@@ -24,7 +24,6 @@ CONTAINS
 !     ------ SELECTION OF TASK TYPE ------
 
     IERR=0
-
 1   IF(INIT.EQ.0) THEN
        WRITE(6,601)
 601    FORMAT('## TR MENU: P,V/PARM  R/RUN  L/LOAD  ', &

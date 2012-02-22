@@ -197,8 +197,8 @@ CONTAINS
   SUBROUTINE tr_setup_geometric
 
     USE trcomm, ONLY: ikind,rkind,pi,nrmax,ra,rr,rkap,bb,rg,rm,rhoa,  &
-       ttrho,dvrho,abrho,abvrho,arrho,ar1rho,ar2rho,rmjrho,rmnrho,rkprho, &
-       rjcb,rhog,rhom,epsrho,abb2rho,pvolrho,psurrho,modelg
+       ttrho,dvrho,abrho,abvrho,arrho,ar1rho,ar2rho,rmjrho,rmnrho,rmnrhom, &
+       rkprho,rkprhom,rjcb,rhog,rhom,epsrho,abb2rho,pvolrho,psurrho,modelg
 
     IMPLICIT NONE
     INTEGER(ikind) :: nr
@@ -232,7 +232,9 @@ CONTAINS
              abrho(nr)   = 1.d0/(SQRT(rkap)*ra*rr)**2    ! const
              rmjrho(nr)  = rr                            ! const [m]
              rmnrho(nr)  = ra*rhog(nr) ! [m]
+             IF(nr /= 0) rmnrhom(nr)=0.5d0*(rmnrho(nr-1)+rmnrho(nr))
              rkprho(nr)  = rkap
+             IF(nr /= 0) rkprhom(nr)=0.5d0*(rkprho(nr-1)+rkprho(nr))
 !
              epsrho(nr)  = rmnrho(nr)/rmjrho(nr)
              

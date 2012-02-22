@@ -99,9 +99,7 @@ CONTAINS
 
        ! --- for the time being ---
        densimp(1) = 0.d0 ! sum over impurity ion densities [m^-3]
-!       densimp(1) = rn_im(nr)! sum over impurity ion densities [m^-3]
        densfe(1)  = 0.d0! electron density from fast (non-thermal) ions [m^-3]
-!       densfe(1)  = rn_im(nr)*1.d-3! electron density from fast (non-thermal) ions [m^-3]
 
        xzeff(1) = z_eff(nr)
        tekev(1) = rt_em(nr)
@@ -136,11 +134,11 @@ CONTAINS
        grdni(1) = - RR / rn_icl(nr)   ! -R ( d n_i / d r ) / n_i
        grdnh(1) = - RR / rn_icl(nr)   ! -R ( d n_h / d r ) / n_h
        grdnz(1) = 0.d0              ! -R ( d Z n_Z / d r ) / ( Z n_Z )
-!       grdnz(1) = RR / rn_icl(nr)
        grdte(1) = - RR / rt_ecl(nr)   ! -R ( d T_e / d r ) / T_e
        grdti(1) = - RR / rt_icl(nr)   ! -R ( d T_i / d r ) / T_i
        !  R ( d q   / d r ) / q    related to magnetic shear
        grdq (1) = - RR * mshear(nr) / (0.5d0*(rmnrho(nr-1)+rmnrho(nr)))
+
 
        CALL mmm95( &
 ! << Input arrays >> (jz: nr,  jm: mode)
@@ -389,8 +387,9 @@ CONTAINS
 !       nrd1(nr) = theig(1)
 !       nrd2(nr) = therb(1)
 !       nrd3(nr) = thekb(1)
-
-       ! in the case of isotropic diffusivities
+       
+       ! in the case of isotropic (effective) diffusivities
+       !  ** lswitch(2) = 2 **
        DO nsa = 1, nsamax
           IF(idnsa(nsa) == -1)THEN ! electron
              dtr_tb(3*nsa-2,3*nsa-2,nr) = cdtrn * 0.d0

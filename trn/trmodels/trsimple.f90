@@ -25,7 +25,7 @@ CONTAINS
        ! --- No transport
     CASE(0)
 
-       ! --- FLAT PROFILE ---
+       ! --- Flat profile ---
     CASE(1)
        DO nr = 1, nrmax
           DO nsa = 1, nsamax

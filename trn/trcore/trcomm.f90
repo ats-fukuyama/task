@@ -7,8 +7,8 @@ MODULE trcomm
 !  real(rkind),parameter :: pi   = 3.14159265358979323846_dp
 !  real(rkind),parameter :: aee  = 1.602176487E-19_dp ! elementary charge
 !  real(rkind),parameter :: ame  = 9.10938215E-31_dp  ! electron mass
-!  real(rkind),parameter :: amp  = 1.672621637E-27_dp ! proton mass
-!  real(rkind),parameter :: vc   = 2.99792458E8_dp    ! speed of light
+!  real(rkind),parameter :: amp  = 1.672621637E-27_dp ! proton mass [kg]
+!  real(rkind),parameter :: vc   = 2.99792458E8_dp    ! speed of light [m/s]
 !  real(rkind),parameter :: rmu0 = 4.E-7_dp*PI        ! permeability
 !  real(rkind),parameter :: eps0 = ONE/(VC*VC*RMU0)   ! permittivity
 
@@ -130,7 +130,10 @@ MODULE trcomm
        rkprho,   &! local kappa
        abb1rho,  &! <B>
        arhbrho,  &! not used
-       epsrho     ! r/R
+       epsrho,   &! r/R
+!
+       rmnrhom,  &! local r (half-grid)
+       rkprhom    ! local kappa (half-grid)
 
 ! ----- normalized variables -----
   REAL(rkind) :: &
@@ -293,6 +296,9 @@ CONTAINS
       ALLOCATE(arhbrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
       ALLOCATE(epsrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
 
+      ALLOCATE(rmnrhom(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+      ALLOCATE(rkprhom(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000  
+
       !    normalized variables
       ALLOCATE(dpdrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
       ALLOCATE(rhog(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000   
@@ -382,6 +388,9 @@ CONTAINS
     IF(ALLOCATED(abb1rho)) DEALLOCATE(abb1rho)
     IF(ALLOCATED(arhbrho)) DEALLOCATE(arhbrho)
     IF(ALLOCATED(epsrho)) DEALLOCATE(epsrho)
+
+    IF(ALLOCATED(rmnrhom)) DEALLOCATE(rmnrhom)
+    IF(ALLOCATED(rkprhom)) DEALLOCATE(rkprhom)
 
     ! normalized variables
     IF(ALLOCATED(dpdrho)) DEALLOCATE(dpdrho)

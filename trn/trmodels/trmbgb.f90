@@ -12,7 +12,7 @@ CONTAINS
     USE trcomm, ONLY: &
          ikind,rkind,ns_nsa,idnsa,pa,nsamax,nrmax,RR,ra,BB,      &
          rmnrho,rmjrho,nrmax,mdltr_tb,amp,rkev,rn,dtr_tb,vtr_tb, &
-         cdtrn,cdtru,cdtrt
+         cdtrn,cdtru,cdtrt  ,nrd1,nrd2
     USE trcalv, ONLY: &
          rn_im,rn_ecl,rt_e,rt_em,rt_im,rt_ecl,qp_m,mshear,wexbp
 
@@ -25,8 +25,7 @@ CONTAINS
             rmajor,rminor,btor,tekev,tikev,q,aimass,charge,wexbs, &
             grdte,grdne,shear, &
             chi_i_mix,themix,thdmix,thigb,thegb,thibohm,thebohm
-!    REAL(rkind),DIMENSION(0:nrmax) :: D_hyd,chie_b,chii_b,chie_gb,chii_gb
-    REAL(rkind),DIMENSION(0:nrmax) :: chie_b,chie_gb
+    REAL(rkind),DIMENSION(0:nrmax) :: D_hyd,chie_b,chii_b,chie_gb,chii_gb
     INTEGER(ikind):: nr8,npoints,lflowshear
 
     INTEGER(ikind):: nr,nsa,ns,ierr
@@ -72,8 +71,8 @@ CONTAINS
        !      correct : -Ra ( d T_e / d r ) / T_e
        !                -Ra ( d n_e / d r ) / n_e
 
-       grdte(1)  = - ra / rt_ecl(nr) ! -r ( d T_e / d r ) / T_e
-       grdne(1)  = - ra / rn_ecl(nr) ! -r ( d n_e / d r ) / n_e
+       grdte(1)  = - ra / rt_ecl(nr) ! -Ra ( d T_e / d r ) / T_e
+       grdne(1)  = - ra / rn_ecl(nr) ! -Ra ( d n_e / d r ) / n_e
        shear(1)  = mshear(nr)        !  r ( d q   / d r ) / q
        
        wexbs(1)  = wexbp(nr)         ! ExB shearing rate [rad/s]
@@ -163,19 +162,21 @@ CONTAINS
        END DO
 
        ! *** for diagnostic ***
-!!$       ! Hydrogenic ion particle diffusivity [m^2/s]
-!!$       D_hyd(nr)   = thdmix(1)  *factor 
-!!$       ! Bohm contribution to electron thermal diffusivity [m^2/s]
-!!$       nrd1(nr)  = thebohm(1) *factor
-!!$       ! Bohm contribution to ion thermal diffusivity [m^2/s]
-!!$       chii_b(nr)  = thibohm(1) *factor
-!!$       ! gyro-Bohm contribution to electron thermal diffusivity [m^2/s]
-!!$       nrd2(nr) = thegb(1)   *factor
-!!$       ! gyro-Bohm contribution to ion thermal diffusivity [m^2/s]
-!!$       chii_gb(nr) = thigb(1)   *factor
-!!$       write(*,*) chii_gb(1)
+       ! Hydrogenic ion particle diffusivity [m^2/s]
+       D_hyd(nr)   = thdmix(1)  *factor 
+       ! Bohm contribution to electron thermal diffusivity [m^2/s]
+       chie_b(nr)  = thebohm(1) *factor
+       ! Bohm contribution to ion thermal diffusivity [m^2/s]
+       chii_b(nr)  = thibohm(1) *factor
+       ! gyro-Bohm contribution to electron thermal diffusivity [m^2/s]
+       chie_gb(nr) = thegb(1)   *factor
+       ! gyro-Bohm contribution to ion thermal diffusivity [m^2/s]
+       chii_gb(nr) = thigb(1)   *factor
 
     END DO
+
+    nrd1(1:nrmax) = chie_b(1:nrmax)
+    nrd2(1:nrmax) = chie_gb(1:nrmax)
 
     RETURN
   END SUBROUTINE tr_mbgb

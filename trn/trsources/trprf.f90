@@ -1,24 +1,40 @@
+MODULE trprf
 !     ***********************************************************
 
 !           RF HEATING AND CURRENT DRIVE (GAUSSIAN PROFILE)
 
 !     ***********************************************************
 
-      SUBROUTINE TRPWRF
+      SUBROUTINE tr_pwrf
 
-      USE TRCOMM, ONLY : AJRF, AJRFV, AME, DR, DVRHO, EPSRHO, NRMAX, PECCD, PECNPR, PECR0, PECRW, PECTOE, PECTOT, PICCD, &
-     &                   PICNPR, PICR0, PICRW, PICTOE, PICTOT, PLHCD, PLHNPR, PLHR0, PLHRW, PLHTOE, PLHTOT, PRF, PRFV,   &
-     &                   RA, RKEV, RM, RN, RT, VC, ZEFF
+      USE trcomm, ONLY : &
+           ame,dvrho,epsrho,nrmax,DR, &
+           RA, RKEV, RM, RN, RT, VC, ZEFF, &
+           AJRF, AJRFV, &
+! tot: total power
+! rw : radial width of deposition
+! cd : current drive factor
+! r0 : radial position of deposition
+!toe : power particle to electron
+!npr : parallel refractive index
+           PECCD, PECNPR, PECR0, PECRW, PECTOE, PECTOT,  &
+           PICCD, PICNPR, PICR0, PICRW, PICTOE, PICTOT,  &
+           PLHCD, PLHNPR, PLHR0, PLHRW, PLHTOE, PLHTOT,  &
+           PRF, PRFV
       IMPLICIT NONE
-      REAL(8)   :: EFCDEC, EFCDIC, EFCDLH, FACT, PEC0, PECL, PIC0, PICL, PLH0, PLHL, PLHR0L, RLNLMD, SUMEC, SUMIC, SUMLH, &
-     &             VPHEC, VPHIC, VPHLH, VTE, VTEP
+      REAL(8)   :: &
+           EFCDEC, EFCDIC, EFCDLH, FACT, &
+           PEC0, PECL, PIC0, PICL, PLH0, PLHL, &
+           PLHR0L, RLNLMD, &
+           SUMEC, SUMIC, SUMLH, &
+           VPHEC, VPHIC, VPHLH, VTE, VTEP
       INTEGER(4):: NR
       REAL(8)   :: TRCDEF
 
 
-      IF(PECTOT+PLHTOT+PICTOT.LE.0.D0) RETURN
+      IF(pec_tot+plh_tot+pic_tot.le.0.d0) RETURN
 
-      IF(PLHR0.LT.0.D0) THEN
+      IF(plhr0.LT.0.d0) THEN
          VPHLH=VC/(PLHNPR*ABS(PLHR0))
          DO NR=NRMAX,1,-1
             VTE=SQRT(ABS(RT(NR,1))*RKEV/AME)
@@ -41,18 +57,20 @@
          VPHLH=VC/PLHNPR
       ENDIF
 
-      SUMEC = 0.D0
-      SUMLH = 0.D0
-      SUMIC = 0.D0
-      DO NR=1,NRMAX
-         SUMEC = SUMEC + DEXP(-((RA*RM(NR)-PECR0 )/PECRW)**2)*DVRHO(NR)*DR
-         SUMLH = SUMLH + DEXP(-((RA*RM(NR)-PLHR0L)/PLHRW)**2)*DVRHO(NR)*DR
-         SUMIC = SUMIC + DEXP(-((RA*RM(NR)-PICR0 )/PICRW)**2)*DVRHO(NR)*DR
+      sum_ec = 0.d0
+      sum_lh = 0.d0
+      sum_ic = 0.d0
+      DO nr = 0, nrmax
+         dr = 
+! dexp : fortran function 'exp' for double precesion
+         sum_ec = sum_ec + DEXP(-((rmnrho(nr)-pec_r0 )/pec_rw)**2)*dvrho(nr)*DR
+         sum_lh = sum_lh + DEXP(-((rmnrho(nr)-plh_r0l)/plh_rw)**2)*dvrho(nr)*DR
+         sum_ic = sum_ic + DEXP(-((rmnrho(nr)-pic_r0 )/pic_rw)**2)*dvrho(nr)*DR
       ENDDO
 
-      PEC0 = PECTOT*1.D6/SUMEC
-      PLH0 = PLHTOT*1.D6/SUMLH
-      PIC0 = PICTOT*1.D6/SUMIC
+      pec0 = pec_tot*1.d6/sum_ec
+      plh0 = plh_tot*1.d6/sum_lh
+      pic0 = pic_tot*1.d6/sum_ic
 
 !      IF(ABS(PLHNPR).LE.1.D0) THEN
 !         NLH=PLHR0/DR+1.D0
@@ -120,7 +138,7 @@
       ENDDO
 
       RETURN
-      END SUBROUTINE TRPWRF
+      END SUBROUTINE tr_pwrf
 
 !     ****** CURRENT DRIVE EFFICIENCY ******
 
@@ -131,7 +149,7 @@
 !      ID : 0 : LANDAU DAMPING
 !           1 : TTMP
 
-      REAL(8) FUNCTION TRCDEF(WT,Z,XR,YR,ID)
+      REAL(8) FUNCTION tr_cdef(WT,Z,XR,YR,ID)
 
       IMPLICIT NONE
       INTEGER ID
@@ -183,4 +201,6 @@
 
       TRCDEF=EFF0*EFF1*EFF2*EFF3
       RETURN
-      END FUNCTION TRCDEF
+      END FUNCTION tr_cdef
+
+END MODULE trprf

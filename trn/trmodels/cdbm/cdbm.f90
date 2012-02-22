@@ -51,7 +51,6 @@ CONTAINS
     real(rkind),intent(in):: calf    ! Factor in s-alpha effects [1.0]
     real(rkind),intent(in):: ckap    ! Factor in magnetic curvature effects [1.0]
     real(rkind),intent(in):: cexb    ! Factor in ExB drift effects [1.0]
-!    real(rkind) :: cexb    ! Factor in ExB drift effects [1.0]
     integer(ikind),intent(in):: model! Model ID
     !                               0: CDBM original
     !                               1: CDBM05 including elongation
@@ -70,12 +69,13 @@ CONTAINS
 
     ! +++ implemented by Ikari 12/02/16 ++++++++++++++++++++++++++++++++++
     integer(ikind),intent(in):: model2! Tuned model ID
-    !                               0: conventional CDBM/CDBM05
-    !                               1: Tuned CDBM by M.Yagi
-    real(rkind),intent(in):: qp_eng  ! Engineering safety factor (q at rho=a)
-    real(rkind) :: TC1, TC2, TK
+    !                                   0: conventional CDBM/CDBM05
+    !                                   1: Tuned CDBM by M.Yagi
+    real(rkind),intent(in):: qp_eng   ! Engineering safety factor
+    real(rkind) :: TC1, TC2, TK       !                      (q at rho=a)
     real(rkind),intent(out) :: chi_tcdbm ! Thermal diffusion coefficient
-    !                                      for both electrons and ions
+    !                                      for both electrons and ions.
+    !                                      (Tuned CDBM)
     ! ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     real(rkind):: va,wpe2,delta2,alpha,curv,wexb,shearl,fs,fk,fe, &

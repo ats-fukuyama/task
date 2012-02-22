@@ -17,7 +17,7 @@ MODULE trlib
       INTEGER(ikind), INTENT(in)  :: nrmax
       REAL(rkind),    INTENT(in)  :: datam(1:nrmax)
       REAL(rkind),    INTENT(out) :: datag(0:nrmax)
-
+      
       datag(0)       = (9.d0*datam(1)-datam(2))/8.d0
       datag(1:nrmax-1) = 0.5d0 * (datam(1:nrmax-1) + datam(2:nrmax))
       datag(nrmax)   = (4.d0*datam(nrmax)-datam(nrmax-1))/3.d0
@@ -126,13 +126,13 @@ MODULE trlib
 !----------------------------------------------------------------------------
       IMPLICIT NONE
       INTEGER(ikind), INTENT(in)  :: nrmax
-      REAL(rkind),    INTENT(in)  :: datag(nrmax+1)
+      REAL(rkind),    INTENT(in)  :: datag(0:nrmax)
       REAL(rkind),    INTENT(out) :: datam(nrmax)
 
       ! linear extrapolation
-      datam(1) = 1.5d0 * datag(2) - 0.5d0 * datag(3)
+      datam(1) = 1.5d0 * datag(1) - 0.5d0 * datag(2)
 
-      datam(2:nrmax) = 0.5d0 * (datag(2:nrmax) + datag(3:nrmax+1))
+      datam(2:nrmax) = 0.5d0 * (datag(1:nrmax-1) + datag(2:nrmax))
 
       RETURN
       END SUBROUTINE data_interpolate_gtom

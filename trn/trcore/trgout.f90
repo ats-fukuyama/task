@@ -23,7 +23,7 @@ CONTAINS
     REAL(rkind),DIMENSION(1:nrmax) :: rhomg
     REAL(rkind),DIMENSION(0:nrmax,nsamax):: rtg,phg,vg1,vg2,vg3,vg4
     REAL(rkind),DIMENSION(1:nrmax,nsamax):: dfg,vcg
-    REAL(rkind),DIMENSION(0:nrmax,nsamax):: pdg,pvg
+    REAL(rkind),DIMENSION(1:nrmax,nsamax):: pdg,pvg
     REAL(rkind),DIMENSION(0:nrmax,0:nggmax):: gg1,gg2,gg3,gg4,gparg1,gparg2
     REAL(rkind),DIMENSION(0:ngt):: gt
     REAL(rkind),DIMENSION(0:ngt,nsamax):: gt1,gt2,gt3,gt4
@@ -156,24 +156,21 @@ CONTAINS
     ELSE
        DO neqr = 1, neqrmax
           neq=neq_neqr(neqr)       
-          IF(neq == 0)THEN
-             pdg(0:nrmax,neqr) = 0.D0
-             pvg(0:nrmax,neqr) = 0.D0
-          ELSE
-             nsa=nsa_neq(neq)          
-             pdg(0:nrmax,neqr) = dtr_prv(neq-1,0:nrmax)
-             pvg(0:nrmax,neqr) = vtr_prv(neq-1,0:nrmax)
+          nsa=nsa_neq(neq)
+          IF(neq /= 0)THEN
+             pdg(1:nrmax,nsa) = dtr_prv(3*nsa,1:nrmax)
+             pvg(1:nrmax,nsa) = vtr_prv(3*nsa,1:nrmax)
           END IF
        END DO
     END IF
     
     CALL PAGES
     LABEL = '/T vs rho/'
-    CALL GRD1D(1,rhog,rtg, NRMAX+1, NRMAX+1, neqrmax, LABEL, 0)
+    CALL GRD1D(1,rhog,rtg, NRMAX+1, NRMAX+1, nsamax, LABEL, 0)
     LABEL = '/add_Diff vs rho/'
-    CALL GRD1D(2,rhog,pdg, NRMAX+1, NRMAX+1, neqrmax, LABEL, 0)
+    CALL GRD1D(2,rhomg,pdg, NRMAX, NRMAX, nsamax, LABEL, 0)
     LABEL = '/add_Conv vs rho/'
-    CALL GRD1D(3,rhog,pvg, NRMAX+1, NRMAX+1, neqrmax, LABEL, 0)
+    CALL GRD1D(3,rhomg,pvg, NRMAX, NRMAX, nsamax, LABEL, 0)
     CALL PAGEE
 
 !--- history of additional diffusive profile
@@ -234,11 +231,11 @@ CONTAINS
     nrd3g(0:nrmax) = nrd3(0:nrmax)
     nrd4g(0:nrmax) = nrd4(0:nrmax)
 
-!!$    CALL PAGES
-!!$    LABEL = '/diagnostic1 vs rho/'
-!!$    CALL GRD1D(1,rhomg,nrd1mg, nrmax, nrmax, 1, LABEL, 0)
-!!$    LABEL = '/diagnostic2 vs rho/'
-!!$    CALL GRD1D(2,rhomg,nrd2mg, nrmax, nrmax, 1, LABEL, 0)
+    CALL PAGES
+    LABEL = '/diagnostic1 vs rho/'
+    CALL GRD1D(1,rhomg,nrd1mg, nrmax, nrmax, 1, LABEL, 0)
+    LABEL = '/diagnostic2 vs rho/'
+    CALL GRD1D(2,rhomg,nrd2mg, nrmax, nrmax, 1, LABEL, 0)
 !!$    LABEL = '/diagnostic3 vs rho/'
 !!$    CALL GRD1D(3,rhomg,nrd3mg, NRMAX+1, NRMAX+1, 1, LABEL, 0)
 !!$    LABEL = '/diagnostic4 vs rho/'
