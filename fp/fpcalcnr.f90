@@ -253,7 +253,7 @@
 !         WRITE(8,*)" "
 !         WRITE(8,*)" "
       END DO
-      close(8)
+!      close(8)
 !
 !----------- END OF MID 
 !
@@ -326,10 +326,10 @@
 !                 RJ_1(L+2,0), RYABG(NP,L,0,0), RJ_1(L+1,1), RJ_1(L+2,0), &
 !                 RYABG(NP,L,1,1), RJ_1(L,2), RYABG(NP,L,2,0)
          END DO
-         WRITE(9,*)" "
-         WRITE(9,*)" "
+!         WRITE(9,*)" "
+!         WRITE(9,*)" "
       END DO
-      close(9)
+!      close(9)
 !
 !----------END OF ON GIRD
 !---- END OF PSI AND ITS DERIVATIVES

@@ -194,7 +194,7 @@
       real(rkind),dimension(:,:),POINTER :: & 
            RATE_NF ! (NRSTART:NREND,6)
       real(rkind),dimension(:,:,:,:),POINTER :: & 
-           RATE_NF_D1, RATE_NF_D2 ! (NRSTART:NREND,6,NTHMAX+1,NPMAX+1)
+           RATE_NF_D1, RATE_NF_D2 ! (NTHMAX,NPMAX,NRSTART:NREND,6)
       real(rkind),dimension(:,:),POINTER :: & ! (NPM:NSAM)
            PG2,PM2
       real(rkind),dimension(:),POINTER :: & ! (NSAM)
@@ -397,10 +397,10 @@
           allocate(AL(NMSTART:NMEND,NLMAXM))
           allocate(FM(NMMAX),BMTOT(NMMAX))
 
-          allocate(SIGMAV_NF(NTHMAX+1,NPMAX+1,NTHMAX+1,NPMAX+1,6))
+          allocate(SIGMAV_NF(NTHMAX,NPMAX,NTHMAX,NPMAX,6))
           allocate(RATE_NF(NRSTART:NREND,6))
-          allocate(RATE_NF_D1(NRSTART:NREND,6,NTHMAX+1,NPMAX+1))
-          allocate(RATE_NF_D2(NRSTART:NREND,6,NTHMAX+1,NPMAX+1))
+          allocate(RATE_NF_D1(NTHMAX,NPMAX,NRSTART:NREND,6))
+          allocate(RATE_NF_D2(NTHMAX,NPMAX,NRSTART:NREND,6))
 
           allocate(DEPS_SS(NSAMAX))
           NPMAX_save=NPMAX

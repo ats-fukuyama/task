@@ -371,7 +371,7 @@
       FACT=(1.D0+EPSL)/(2.D0*EPSL)
       
       DO NTH=1,ITL(NR)
-         ETAM(NTH,NR)=PI/2.D0
+         ETAM(NTH,NR)=PI*0.5D0
       ENDDO
       
       DO NTH=ITL(NR)+1,ITU(NR)-1
@@ -380,11 +380,11 @@
       ENDDO
       
       DO NTH=ITU(NR),NTHMAX
-         ETAM(NTH,NR)=PI/2.D0
+         ETAM(NTH,NR)=PI*0.5D0
       ENDDO
       
       DO NTH=1,ITL(NR)
-         ETAG(NTH,NR)=PI/2.D0
+         ETAG(NTH,NR)=PI*0.5D0
       ENDDO
       
       DO NTH=ITL(NR)+1,ITU(NR)
@@ -393,7 +393,7 @@
       ENDDO
       
       DO NTH=ITU(NR)+1,NTHMAX+1
-         ETAG(NTH,NR)=PI/2.D0
+         ETAG(NTH,NR)=PI*0.5D0
       ENDDO
       
       NRX=NR

@@ -649,20 +649,20 @@
                        =FRR(NTH,NP,NR,NSA)
                END DO
             END DO
-            DO NP=1,NPMAX+1
-               DRR(ITLG(NR),NP,NR,NSA) = RLAMDA_GG(ITLG(NR),NR)/4.D0 &
-                    *( DRR(ITLG(NR)-1,NP,NR,NSA)/RLAMDA_GG(ITLG(NR)-1,NR) &
-                    +DRR(ITLG(NR)+1,NP,NR,NSA)/RLAMDA_GG(ITLG(NR)+1,NR)   &
-                    +DRR(ITUG(NR)-1,NP,NR,NSA)/RLAMDA_GG(ITUG(NR)-1,NR)   &
-                    +DRR(ITUG(NR)+1,NP,NR,NSA)/RLAMDA_GG(ITUG(NR)+1,NR)  )
-               FRR(ITLG(NR),NP,NR,NSA) = RLAMDA_GG(ITLG(NR),NR)/4.D0 &
-                    *( FRR(ITLG(NR)-1,NP,NR,NSA)/RLAMDA_GG(ITLG(NR)-1,NR) &
-                    +FRR(ITLG(NR)+1,NP,NR,NSA)/RLAMDA_GG(ITLG(NR)+1,NR)   &
-                    +FRR(ITUG(NR)-1,NP,NR,NSA)/RLAMDA_GG(ITUG(NR)-1,NR)   &
-                    +FRR(ITUG(NR)+1,NP,NR,NSA)/RLAMDA_GG(ITUG(NR)+1,NR)  )
-               DRR(ITUG(NR),NP,NR,NSA)=DRR(ITLG(NR),NP,NR,NSA)
-               FRR(ITUG(NR),NP,NR,NSA)=FRR(ITLG(NR),NP,NR,NSA)
-            END DO
+!            DO NP=1,NPMAX+1
+!               DRR(ITLG(NR),NP,NR,NSA) = RLAMDA_GG(ITLG(NR),NR)/4.D0 &
+!                    *( DRR(ITLG(NR)-1,NP,NR,NSA)/RLAMDA_GG(ITLG(NR)-1,NR) &
+!                    +DRR(ITLG(NR)+1,NP,NR,NSA)/RLAMDA_GG(ITLG(NR)+1,NR)   &
+!                    +DRR(ITUG(NR)-1,NP,NR,NSA)/RLAMDA_GG(ITUG(NR)-1,NR)   &
+!                    +DRR(ITUG(NR)+1,NP,NR,NSA)/RLAMDA_GG(ITUG(NR)+1,NR)  )
+!               FRR(ITLG(NR),NP,NR,NSA) = RLAMDA_GG(ITLG(NR),NR)/4.D0 &
+!                    *( FRR(ITLG(NR)-1,NP,NR,NSA)/RLAMDA_GG(ITLG(NR)-1,NR) &
+!                    +FRR(ITLG(NR)+1,NP,NR,NSA)/RLAMDA_GG(ITLG(NR)+1,NR)   &
+!                    +FRR(ITUG(NR)-1,NP,NR,NSA)/RLAMDA_GG(ITUG(NR)-1,NR)   &
+!                    +FRR(ITUG(NR)+1,NP,NR,NSA)/RLAMDA_GG(ITUG(NR)+1,NR)  )
+!               DRR(ITUG(NR),NP,NR,NSA)=DRR(ITLG(NR),NP,NR,NSA)
+!               FRR(ITUG(NR),NP,NR,NSA)=FRR(ITLG(NR),NP,NR,NSA)
+!            END DO
          END IF! end of bounce average
       ENDDO
       
@@ -866,23 +866,24 @@
 !     ----- Calcluated fusion source term -----
 
       IF(MODELS.EQ.2) THEN
+
          DO ID=1,6
             IF(NSA.EQ.NSA1_NF(ID)) THEN
                PSP=SQRT(2.D0*AMFP(NSA)*ENG1_NF(ID)*AEE)/PTFP0(NSA)
-               DO NP=1,NPMAX-1
-                  IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
-                     DO NR=NRSTART,NREND
+               DO NR=NRSTART,NREND
+                  CALL NF_REACTION_RATE(NR,ID)
+                  DO NP=1,NPMAX-1
+                     IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
                         SUML=0.D0
                         DO NTH=1,NTHMAX
                            SUML=SUML+VOLP(NTH,NP,NSBA)!*RLAMDA(NTH,NR)
                         ENDDO
-                        CALL NF_REACTION_RATE(NR,ID)
                         DO NTH=1,NTHMAX
                            SPPF(NTH,NP,NR,NSA)=SPPF(NTH,NP,NR,NSA) &
                                +RATE_NF(NR,ID)/SUML/RNFP0(NSA)!*RLAMDA(NTH,NR)
                         ENDDO
-                     ENDDO
-                  ENDIF
+                     ENDIF
+                  ENDDO
                ENDDO
                IF(PSP.ge.PG(NPMAX,NSBA))THEN
                   NP=NPMAX
@@ -896,19 +897,20 @@
                      DO NTH=1,NTHMAX
                         SUML=SUML+VOLP(NTH,NP,NSBA)!*RLAMDA(NTH,NR)
                      ENDDO
-                     CALL NF_REACTION_RATE(NR,ID)
+!                     CALL NF_REACTION_RATE(NR,ID)
                      DO NTH=1,NTHMAX
                         SPPF(NTH,NP,NR,NSA)=SPPF(NTH,NP,NR,NSA) &
                              +RATE_NF(NR,ID)/SUML/RNFP0(NSA)!*RLAMDA(NTH,NR)
                      ENDDO
                   ENDDO
                END IF
-            ENDIF
+            ENDIF ! NSA=NSA1_NF(ID)
             IF(NSA.EQ.NSA2_NF(ID)) THEN
                PSP=SQRT(2.D0*AMFP(NSA)*ENG2_NF(ID)*AEE)/PTFP0(NSA)
-               DO NP=1,NPMAX-1
-                  IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
-                     DO NR=NRSTART,NREND
+               DO NR=NRSTART,NREND
+                  CALL NF_REACTION_RATE(NR,ID)
+                  DO NP=1,NPMAX-1
+                     IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
                         SUML=0.D0
                         DO NTH=1,NTHMAX
                            SUML=SUML+VOLP(NTH,NP,NSBA)!*RLAMDA(NTH,NR)
@@ -917,28 +919,28 @@
                            SPPF(NTH,NP,NR,NSA)=SPPF(NTH,NP,NR,NSA) &
                                 +RATE_NF(NR,ID)/SUML/RNFP0(NSA)!*RLAMDA(NTH,NR)
                         ENDDO
-                     ENDDO
-                  ENDIF
+                     ENDIF
+                  ENDDO
                ENDDO
             ENDIF
-            IF(NSA.EQ.NSA1_NF(ID)) THEN
+            IF( NSA.EQ.NSA1_NF(ID).or.NSA.EQ.NSA2_NF(ID) ) THEN
                DO NR=NRSTART,NREND
                   DO NP=1,NPMAX
                      DO NTH=1,NTHMAX
                         SPPF(NTH,NP,NR,NSB1_NF(ID))=                  &
                              SPPF(NTH,NP,NR,NSB1_NF(ID))              &
-                             -RATE_NF_D1(NR,ID,NTH,NP)                &
+                             -RATE_NF_D1(NTH,NP,NR,ID)                &
                              /RNFP0(NSB1_NF(ID))!*RLAMDA(NTH,NR)
                         SPPF(NTH,NP,NR,NSB2_NF(ID))=                  &
                              SPPF(NTH,NP,NR,NSB2_NF(ID))              &
-                             -RATE_NF_D2(NR,ID,NTH,NP)                &
+                             -RATE_NF_D2(NTH,NP,NR,ID)                &
                              /RNFP0(NSB2_NF(ID))!*RLAMDA(NTH,NR)
                      ENDDO
                   ENDDO
                ENDDO
             ENDIF
-         ENDDO
-      ENDIF
+         ENDDO ! ID
+      ENDIF ! MODELS=2
 !
 !     ----- Particle loss and source terms -----
 !
