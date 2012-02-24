@@ -42,7 +42,7 @@ CONTAINS
        END DO
     END DO
 
-    xv_prev(1:nvmax)=xv(1:nvmax)
+    xv_prev(1:nvmax)   = xv(1:nvmax)
     error_it(1:lmaxtr) = epsltr
        
     DO NIT = 1, lmaxtr

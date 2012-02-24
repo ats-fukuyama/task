@@ -29,8 +29,8 @@ CONTAINS
     USE trlib, ONLY: mesh_convert_mtog,data_interpolate_gtom
 
     IMPLICIT NONE
-    INTEGER(ikind):: nr,ns,nsa,model,model2
-    REAL(rkind):: calf,ckap,cexb,qp_eng,pnel,rhoni
+    INTEGER(ikind):: nr,ns,nsa,model,model_t
+    REAL(rkind):: calf,ckap,cexb,tc1,tc2,tk,pnel,rhoni
     ! on grid for numerical stability
     REAL(rkind),DIMENSION(0:nrmax) :: &
          mshearg,rp_totdg,dvexbpdrg,  &
@@ -47,9 +47,8 @@ CONTAINS
     !     4 : CDBM original with strong ExB shear
     !     5 : CDBM05 with strong ExB shear       
     model  = mdltr_tb - 130
-
     ! Tuned CDBM switch by M.Yagi ( 0: off, 1: on )
-    model2 = 1
+    model_t = 0
 
     ! Factor in s-slpha effects [1.0]
     calf=1.D0
@@ -58,11 +57,15 @@ CONTAINS
     ! Factor in ExB drift effects [1.0]
     cexb=1.D0
 
-    qp_eng = qp(nrmax) ! engineering safety factor for Tuned CDBM
+    ! C1,C2,K for Tuned CDBM by M.Yagi
+    tc1 = 0.5d0
+    tc2 = 15.d0
+    tk  = 3.d0
 
     call mesh_convert_mtog(mshear(1:nrmax),mshearg(0:nrmax),nrmax)
     call mesh_convert_mtog(rp_totd(1:nrmax),rp_totdg(0:nrmax),nrmax)
     call mesh_convert_mtog(dvexbpdr(1:nrmax),dvexbpdrg(0:nrmax),nrmax)
+
 
     DO nr = 1, nrmax
        pnel = rn_e(nr)*1.d20  ! electron density [m^-3]
@@ -77,9 +80,14 @@ CONTAINS
           END IF
        END DO
 
-       CALL cdbm(BB,RR,rmnrho(nr),rkprho(nr),qp(nr),qp_eng,mshearg(nr), &
-            pnel,rhoni,rp_totdg(nr),dvexbpdrg(nr), &
-            calf,ckap,cexb,model,model2,chi_cdbm(nr),chi_tcdbm(nr))
+       ! engineering safety factor for Tuned CDBM
+       ! *** for the time being ***
+       IF(model_t == 1) qp(nr) = qp(nrmax) 
+
+       CALL cdbm(BB,RR,rmnrho(nr),rkprho(nr),qp(nr),mshearg(nr), &
+            pnel,rhoni,rp_totdg(nr),dvexbpdrg(nr),               &
+            calf,ckap,cexb,model,chi_cdbm(nr),                   &
+            mdl_tuned=model_t,c1_tuned=tc1,c2_tuned=tc2,k_tuned=tk )
 
     END DO
 
@@ -87,7 +95,6 @@ CONTAINS
     call data_interpolate_gtom(chi_tcdbm(0:nrmax),chim_tcdbm(1:nrmax),nrmax)
 
     DO nr = 1, nrmax
-       IF(model2 == 0)THEN
           DO nsa = 1, nsamax
              IF(idnsa(nsa) /= 0) THEN
                 dtr_tb(3*nsa-2,3*nsa-2,nr) = cdtrn*chim_cdbm(nr)
@@ -96,17 +103,8 @@ CONTAINS
 !                write(*,*) chi_cdbm
              ENDIF
           END DO
-       ELSE IF(model2 == 1)THEN
-          DO nsa = 1, nsamax
-             IF(idnsa(nsa) /= 0) THEN
-                dtr_tb(3*nsa-2,3*nsa-2,nr) = cdtrn*chim_tcdbm(nr)
-                dtr_tb(3*nsa-1,3*nsa-1,nr) = cdtru*chim_tcdbm(nr)
-                dtr_tb(3*nsa  ,3*nsa  ,nr) = cdtrt*chim_tcdbm(nr)
-             ENDIF
-          END DO
-       END IF
-
     END DO
+
     RETURN
 
   END SUBROUTINE tr_cdbm

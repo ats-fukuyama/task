@@ -184,11 +184,11 @@ CONTAINS
        rt_id(nr)   = (rt_i(nr)-rt_i(nr-1)) * dr_norm
        rp_totd(nr) = (rp_tot(nr)-rp_tot(nr-1)) * dr_norm
 
-       ! scale length ( XX / (d XX/d rho))
-       rt_ecl(nr)  = rt_em(nr) / rt_ed(nr)
-       rt_icl(nr)  = rt_im(nr) / rt_id(nr)
-       rn_ecl(nr)  = rn_em(nr) / rn_ed(nr)
-       rn_icl(nr)  = rn_im(nr) / rn_id(nr)
+       ! scale length ( (d XX/d rho)/XX )
+       rt_ecl(nr)  = rt_ed(nr) / rt_em(nr)
+       rt_icl(nr)  = rt_id(nr) / rt_im(nr)
+       rn_ecl(nr)  = rn_ed(nr) / rn_em(nr)
+       rn_icl(nr)  = rn_id(nr) / rn_im(nr)
 
        ! mean atomic mass of thermal ions [AMU]
 
@@ -346,7 +346,7 @@ CONTAINS
 !============================================================================
   SUBROUTINE tr_calv_nr_alloc
 
-    INTEGER(ikind),SAVE:: nrmax_save
+    INTEGER(ikind),SAVE:: nrmax_save=0
     INTEGER(ikind),SAVE:: nsamax_save
     INTEGER(ikind)     :: ierr
 

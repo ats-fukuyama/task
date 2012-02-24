@@ -130,12 +130,12 @@ CONTAINS
        
        wexbs(1) = wexbp(nr)
 
-       grdne(1) = - RR / rn_ecl(nr)   ! -R ( d n_e / d r ) / n_e
-       grdni(1) = - RR / rn_icl(nr)   ! -R ( d n_i / d r ) / n_i
-       grdnh(1) = - RR / rn_icl(nr)   ! -R ( d n_h / d r ) / n_h
+       grdne(1) = - RR * rn_ecl(nr)   ! -R ( d n_e / d r ) / n_e
+       grdni(1) = - RR * rn_icl(nr)   ! -R ( d n_i / d r ) / n_i
+       grdnh(1) = - RR * rn_icl(nr)   ! -R ( d n_h / d r ) / n_h
        grdnz(1) = 0.d0              ! -R ( d Z n_Z / d r ) / ( Z n_Z )
-       grdte(1) = - RR / rt_ecl(nr)   ! -R ( d T_e / d r ) / T_e
-       grdti(1) = - RR / rt_icl(nr)   ! -R ( d T_i / d r ) / T_i
+       grdte(1) = - RR * rt_ecl(nr)   ! -R ( d T_e / d r ) / T_e
+       grdti(1) = - RR * rt_icl(nr)   ! -R ( d T_i / d r ) / T_i
        !  R ( d q   / d r ) / q    related to magnetic shear
        grdq (1) = - RR * mshear(nr) / (0.5d0*(rmnrho(nr-1)+rmnrho(nr)))
 

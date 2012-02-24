@@ -1,85 +1,236 @@
-!     ***** TASK/TR/GOUT MENU *****
+MODULE trgout
+! --------------------------------------------------------------------------
+!   The variables declared below should be refered 
+!    from ONLY 'trn/trgraphics' directory
+! ---------------------------------------------------------------------------
 
-      SUBROUTINE TRGOUT
+  USE trcomm, ONLY : ikind,rkind
 
-      USE TRCOMM, ONLY : NGR, NGT
-      IMPLICIT NONE
-      INTEGER(4), SAVE :: INIT =0, INQG
-      CHARACTER(LEN=5) :: KIG
-      CHARACTER(LEN=3) :: KK
-      CHARACTER(LEN=1) :: K1, K2, K3, K4, K5
-      integer(4)       :: ist
+  PRIVATE
+  PUBLIC tr_gout
 
-      IF(INIT.EQ.0) THEN
-         INQG=0
-         INIT=1
-      ENDIF
+CONTAINS
 
-      DO
-         WRITE(6,*) '# SELECT : R1-R9, T1,2,5-8, G1-G7, Z1, Y1,',' A1-A2, E1-E6, EQ, D1-D67, M1-M5'
-         WRITE(6,*) '           N1-N2, S/SAVE  L/LOAD  H/HELP  ','C/CLEAR  I/INQ  X/EXIT'
-         READ(5,'(A5)',iostat=ist) KIG
-         if(ist > 0) then
-            cycle
-         elseif(ist < 0) then
-            exit
-         end if
-         K1=KIG(1:1)
-         K2=KIG(2:2)
-         K3=KIG(3:3)
-         K4=KIG(4:4)
-         K5=KIG(5:5)
-         CALL GUCPTL(K1)
-         CALL GUCPTL(K2)
-         CALL GUCPTL(K3)
-         CALL GUCPTL(K4)
-         CALL GUCPTL(K5)
-         KK=K3//K4//K5
+  SUBROUTINE tr_gout
+! ***********************************************************
+!     TASK/TR graphic outputs control routine
+! ***********************************************************
 
-         select case(K1)
-         case('C')
-            NGR=0
-            NGT=0
-         case('I')
-            IF(INQG.EQ.0) THEN
-               INQG=4
-               WRITE(6,*) '## GRAPHIC SCALE INQUIRE MODE : ON'
-            ELSE
-               INQG=0
-               WRITE(6,*) '## GRAPHIC SCALE INQUIRE MODE : OFF'
-            ENDIF
-         case('S')
-            CALL TRGRSV
-         case('L')
-            CALL TRGRLD
-         case('R')
-            CALL TRGRR0(K2,INQG)
-         case('Y')
-            CALL TRGRY0(K2,INQG)
-         case('T')
-            CALL TRGRT0(K2,INQG)
-         case('Z')
-            CALL TRGRX0(K2,INQG)
-         case('G')
-            CALL TRGRG0(K2,INQG)
-         case('A')
-            CALL TRGRA0(K2,INQG)
-         case('E')
-            CALL TRGRE0(K2,INQG)
-         case('D')
-            CALL TRGRD0(K2,KK,INQG)
-         case('H')
-            CALL TRHELP('G')
-         case('M')
-            CALL TRCOMP(K2,INQG)
-         case('N')
-            CALL TRGRN0(K2,INQG)
-         case('X')
-            GOTO 9000
-         case default
-            WRITE(6,*) 'UNSUPPORTED GRAPH ID'
-         end select
-      END DO
+!    USE trcomm, ONLY : NGR,NGT
+    USE trgrad, ONLY: tr_gr_radial
+    USE trgtmp, ONLY: tr_gr_temporal
+    USE trgcom, ONLY: tr_gr_comp
+    USE trgdgn, ONLY: tr_gr_diagnostic
+    IMPLICIT NONE
 
- 9000 RETURN
-      END SUBROUTINE TRGOUT
+    INTEGER(ikind), SAVE :: init = 0, inqg
+    CHARACTER(LEN=5) :: kig
+    CHARACTER(LEN=3) :: kk
+    CHARACTER(LEN=1) :: k1, k2, k3, k4, k5
+    INTEGER(ikind)   :: iosts
+
+    INTEGER(ikind) :: NGR,NGT
+
+    IF(init.EQ.0) THEN
+       inqg=0
+       init=1
+    ENDIF
+
+    DO
+       WRITE(6,*) '# Graph select : R1-R11, T1, N1-12, D1'
+       WRITE(6,*) '#  Menu select : S/save  L/load  H/help  ',&
+                                   'C/clear  I/inq  X/exit'
+       READ(5,'(A5)',iostat=iosts) KIG
+       if(iosts > 0) then
+          cycle
+       elseif(iosts < 0) then
+          exit
+       end if
+       k1=kig(1:1)
+       k2=kig(2:2)
+       k3=kig(3:3)
+       k4=kig(4:4)
+       k5=kig(5:5)
+       ! Capital letter to small letter (in GSAF lib)
+       CALL GUCPTL(k1)
+       CALL GUCPTL(k2)
+       CALL GUCPTL(k3)
+       CALL GUCPTL(k4)
+       CALL GUCPTL(k5)
+       kk=k3//k4//k5
+
+       SELECT CASE(k1)
+!!$         CASE('H') ! help
+!!$            CALL TRHELP('G')
+!!$            CYCLE
+       CASE('C') ! clear
+          NGR=0
+          NGT=0
+       CASE('I') ! inquire
+          IF(inqg.EQ.0) THEN
+             inqg=4
+             WRITE(6,*) '## Graphic scale inquire mode : ON'
+          ELSE
+             inqg=0
+             WRITE(6,*) '## Graphic scale inquire mode : OFF'
+          ENDIF
+       CASE('S') ! save
+          CALL tr_gr_save
+          CYCLE
+       CASE('L') ! load
+          CALL tr_gr_load
+          CYCLE
+       CASE('R') ! snap shot of radial profile
+          CALL tr_gr_radial(k2,k3)
+          CYCLE
+       CASE('T')
+          CALL tr_gr_temporal(k2)
+          CYCLE
+       CASE('N')
+          CALL tr_gr_comp(k2,k3)
+          CYCLE
+       CASE('D')
+          CALL tr_gr_diagnostic(k2)
+          CYCLE
+!!$         CASE('Y')
+!!$            CALL TRGRY0(k2,inqg)
+!!$         CASE('Z')
+!!$            CALL TRGRX0(k2,inqg)
+!!$         CASE('G')
+!!$            CALL TRGRG0(k2,inqg)
+!!$         CASE('A')
+!!$            CALL TRGRA0(k2,inqg)
+!!$         CASE('E')
+!!$            CALL TRGRE0(k2,inqg)
+!!$         CASE('M')
+!!$            CALL TRCOMP(k2,inqg)
+       CASE('X')
+          EXIT
+       CASE default
+          WRITE(6,*) ' ERROR : Unsupported graph ID'
+          CYCLE
+       END SELECT
+       EXIT
+    END DO
+
+    RETURN
+  END SUBROUTINE tr_gout
+
+
+  SUBROUTINE tr_gr_save
+! ***********************************************************
+!           SAVE GRAPHIC DATA
+! ***********************************************************
+!    USE trcomm, ONLY : GRG, GRM, GT, GTR, GVR, GVT, NGR, NGT
+    IMPLICIT NONE
+
+    INTEGER(ikind)    :: iosts
+    CHARACTER(LEN=32) :: tr_gfile_name
+    CHARACTER(LEN=1)  :: kid
+    LOGICAL           :: lex
+
+    INTEGER(ikind) :: GRG, GRM, GT, GTR, GVR, GVT, NGR, NGT
+
+    DO
+       WRITE(6,*) '# INPUT : Graphic save file name (CR to CANCEL)'
+       READ(5,'(A32)',IOSTAT=iosts) tr_gfile_name
+       IF(iosts /= 0) CYCLE
+
+       IF(tr_gfile_name.EQ.'                                ') RETURN
+       INQUIRE(FILE=tr_gfile_name, EXIST=lex)
+
+       IF(lex) THEN
+          DO
+             WRITE(6,*) '# Old file is going to be OVERWRITTEN. ', &
+                        'Are you sure {y/n}?'
+             READ(5,'(A1)',IOSTAT=iosts) kid
+             IF(iosts /= 0)THEN
+                WRITE(6,*) ' XX Invalid Input.'
+                CYCLE
+             END IF
+             EXIT
+          END DO
+          
+          CALL GUCPTL(kid)
+          IF(kid.NE.'Y') CYCLE
+
+          OPEN(22,FILE=tr_gfile_name,IOSTAT=iosts,STATUS='OLD', &
+                                                 FORM='UNFORMATTED')
+          IF(iosts /= 0) THEN
+             WRITE(6,*) '# XX Old file open ERROR : IOSTAT=',iosts
+             CYCLE
+          END IF
+
+          WRITE(6,*) '# Old file (',tr_gfile_name,') is assigned for output.'
+
+       ELSE
+          OPEN(22,FILE=tr_gfile_name,IOSTAT=iosts,STATUS='NEW', &
+                                                 FORM='UNFORMATTED')
+          IF(iosts /= 0)THEN
+             WRITE(6,*) 'XX New file open ERROR : IOSTAT=',iosts
+             CYCLE
+          END IF
+
+          WRITE(6,*) '# New file (',tr_gfile_name,') is created for output.'
+       ENDIF
+       EXIT
+    END DO
+
+    WRITE(22) GVR,GRM,GRG,GTR,NGR
+    WRITE(22) GVT,GT,NGT
+    CLOSE(22)
+
+    WRITE(6,*) '# Data was SUCCESSFULLY SAVED to the file.'
+
+    RETURN
+  END SUBROUTINE tr_gr_save
+
+
+  SUBROUTINE tr_gr_load
+! ***********************************************************
+!           LOAD GRAPHIC DATA
+! ***********************************************************
+!    USE trcomm, ONLY : GRG, GRM, GT, GTR, GVR, GVT, NGR, NGT
+    IMPLICIT NONE
+
+    INTEGER(ikind)    :: iosts
+    CHARACTER(LEN=32) :: tr_gfile_name
+    LOGICAL           :: lex
+
+    INTEGER(ikind) :: GRG, GRM, GT, GTR, GVR, GVT, NGR, NGT
+
+    DO
+       WRITE(6,*) '# INPUT : Graphic load file name (CR to CANCEL)'
+       READ(5,'(A32)',IOSTAT=iosts) tr_gfile_name
+       IF(iosts /= 0) CYCLE
+
+       IF(tr_gfile_name.EQ.'                                ') RETURN
+       INQUIRE(FILE=tr_gfile_name,EXIST=lex)
+
+       IF(lex) THEN
+          OPEN(22,FILE=tr_gfile_name,IOSTAT=iosts,STATUS='OLD', &
+                                                 FORM='UNFORMATTED')
+          IF(iosts /= 0)THEN
+             WRITE(6,*) '# XX OLD FILE OPEN ERROR : IOSTAT=',IOSTS
+             CYCLE
+          END IF
+
+          WRITE(6,*) '# File (',tr_gfile_name,') is assigned for input.'
+
+       ELSE
+          WRITE(6,*) 'XX File (',tr_gfile_name,') not found.'
+          CYCLE
+       ENDIF
+       EXIT
+    END DO
+
+    READ(22) GVR,GRM,GRG,GTR,NGR
+    READ(22) GVT,GT,NGT
+    CLOSE(22)
+
+    WRITE(6,*) '# Data was SUCCESSFULLY LOADED from the file.'
+
+    RETURN
+  END SUBROUTINE tr_gr_load
+
+END MODULE trgout

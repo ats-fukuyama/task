@@ -71,8 +71,8 @@ CONTAINS
        !      correct : -Ra ( d T_e / d r ) / T_e
        !                -Ra ( d n_e / d r ) / n_e
 
-       grdte(1)  = - ra / rt_ecl(nr) ! -Ra ( d T_e / d r ) / T_e
-       grdne(1)  = - ra / rn_ecl(nr) ! -Ra ( d n_e / d r ) / n_e
+       grdte(1)  = - ra * rt_ecl(nr) ! -Ra ( d T_e / d r ) / T_e
+       grdne(1)  = - ra * rn_ecl(nr) ! -Ra ( d n_e / d r ) / n_e
        shear(1)  = mshear(nr)        !  r ( d q   / d r ) / q
        
        wexbs(1)  = wexbp(nr)         ! ExB shearing rate [rad/s]

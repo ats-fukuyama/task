@@ -79,8 +79,8 @@ CONTAINS
        CALL Pereverzev_check(add_prv)
        DO nsa=1,nsamax
           DO nr=0,nrmax
-!             gparts(nr,ngt,nsa,1) = add_prv(3*nsa-2,nr)
-!             gparts(nr,ngt,nsa,2) = add_prv(3*nsa-1,nr)
+             gparts(nr,ngt,nsa,1) = add_prv(3*nsa-2,nr)
+             gparts(nr,ngt,nsa,2) = add_prv(3*nsa-1,nr)
              gparts(nr,ngt,nsa,3) = add_prv(3*nsa  ,nr)
           END DO
        END DO

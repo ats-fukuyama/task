@@ -250,13 +250,13 @@ CONTAINS
           ! the derivatives below variables are with respect to 'rho'
           ! ( see callglf2d.f l.592~l.603 )
           ! 1/Lte (necessary if i_grad and jmm != 0)
-          zpte_in = - 1.d0/Lteg(nr)
+          zpte_in = - Lteg(nr)
           ! 1/Lne (necessary if i_grad and jmm != 0)
-          zpti_in = - 1.d0/Ltig(nr)
+          zpti_in = - Ltig(nr)
           ! 1/Lti (necessary if i_grad and jmm != 0)
-          zpne_in = - 1.d0/Lneg(nr)
+          zpne_in = - Lneg(nr)
           ! 1/Lni (necessary if i_grad and jmm != 0)
-          zpni_in = - 1.d0/Lnig(nr)
+          zpni_in = - Lnig(nr)
           !            write(*,*) zpte_in,zpti_in,zpne_in,zpni_in
        ENDIF
 

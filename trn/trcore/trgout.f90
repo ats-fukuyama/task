@@ -240,7 +240,7 @@ CONTAINS
 !!$    CALL GRD1D(3,rhomg,nrd3mg, NRMAX+1, NRMAX+1, 1, LABEL, 0)
 !!$    LABEL = '/diagnostic4 vs rho/'
 !!$    CALL GRD1D(4,rhomg,nrd4mg, NRMAX+1, NRMAX+1, 1, LABEL, 0)
-!!$    CALL PAGEE
+    CALL PAGEE
 
   END SUBROUTINE tr_gout
 END MODULE trgout

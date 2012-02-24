@@ -33,9 +33,9 @@ MODULE cdbm_mod
 
 CONTAINS
 
-  SUBROUTINE cdbm(bb,rr,rs,rkap,qp,qp_eng,shear,pne,rhoni,dpdr,dvexbdr, &
-       &      calf,ckap,cexb,model,model2,chi_cdbm,chi_tcdbm,           &
-       &      fsz,curvz,fez)
+  SUBROUTINE cdbm(bb,rr,rs,rkap,qp,shear,pne,rhoni,dpdr,dvexbdr, &
+       &      calf,ckap,cexb,model,chi_cdbm,                     &
+       &      fsz,curvz,fez,mdl_tuned,c1_tuned,c2_tuned,k_tuned)
 
     real(rkind),intent(in):: bb      ! Magnetic field strength [T]
     real(rkind),intent(in):: rr      ! Major radius [m]
@@ -61,42 +61,39 @@ CONTAINS
 
     real(rkind),intent(out):: chi_cdbm! Thermal diffusion coefficient
     !                                   for both electrons and ions
+
     real(rkind),intent(out),optional :: fsz   ! Fitting function for output
     real(rkind),intent(out),optional :: curvz ! Magnetic curvature effect for output
     real(rkind),intent(out),optional :: fez   ! ExB shear reduction for output
 
-    real(rkind),parameter :: ckcdbm = 12.d0 ! Fixed numerical factor 
-
     ! +++ implemented by Ikari 12/02/16 ++++++++++++++++++++++++++++++++++
-    integer(ikind),intent(in):: model2! Tuned model ID
-    !                                   0: conventional CDBM/CDBM05
-    !                                   1: Tuned CDBM by M.Yagi
-    real(rkind),intent(in):: qp_eng   ! Engineering safety factor
-    real(rkind) :: TC1, TC2, TK       !                      (q at rho=a)
-    real(rkind),intent(out) :: chi_tcdbm ! Thermal diffusion coefficient
-    !                                      for both electrons and ions.
-    !                                      (Tuned CDBM)
+    ! for Tuned CDBM
+    integer(ikind),intent(in),optional :: mdl_tuned   ! Tuned model ID
+    !                                      0: conventional CDBM/CDBM05
+    !                                      1: Tuned CDBM by M.Yagi
+    real(rkind),intent(in),optional :: c1_tuned, c2_tuned, k_tuned
     ! ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    real(rkind):: va,wpe2,delta2,alpha,curv,wexb,shearl,fs,fk,fe, &
-         fs2,gamma_tcdbm
+    real(rkind),parameter :: ckcdbm = 12.d0 ! Fixed numerical factor
+
+    real(rkind):: va,wpe2,delta2,alpha,curv,wexb,shearl,fs,fk,fe,gamma_tuned
 
     if(model.lt.0.or.model.gt.5) then
        write(6,*) 'XX cdbm: model: out of range'
        stop
     endif
 
-    if(model2.lt.0 .or. model2.gt.1)then
-       write(6,*) 'XX cdbm: model2: out of range'
-       stop
+    if(present(mdl_tuned))then
+       if(mdl_tuned.lt.0 .or. mdl_tuned.gt.1)then
+          write(6,*) 'XX cdbm: mdl_tuned: out of range'
+          stop
+       endif
+       if(.not. &
+          (present(c1_tuned).and.present(c2_tuned).and.present(k_tuned)))then
+          write(6,*) 'XX cdbm: factors for tuned CDBM are not found.'
+          stop
+       endif
     endif
-
-    ! initialization and set variables for Tuned CDBM
-    chi_tcdbm  = 0.d0
-    TC1 = 0.5d0
-    TC2 = 15.d0
-    TK  = 3.d0
-
 
     !     Alfven wave velocity
     va     = SQRT(bb**2/(RMU0*rhoni))
@@ -108,11 +105,7 @@ CONTAINS
     delta2 = VC**2/wpe2
 
     !     Normalized pressure gradient (Shafranov shift factor)
-    IF(model2 == 0)THEN 
-       alpha  = -2.D0*RMU0*qp**2*rr/bb**2*dpdr
-    ELSE IF(model2 == 1)THEN ! for Tuned CDBM
-       alpha  = -2.D0*RMU0*qp_eng**2*rr/bb**2*dpdr
-    END IF
+    alpha  = -2.D0*RMU0*qp**2*rr/bb**2*dpdr
 
     !     magnetic curvature
     curv   = -(rs/rr)*(1.D0-1.D0/(qp*qp))
@@ -138,14 +131,16 @@ CONTAINS
        fe     = cexb*fexb(wexb,shear,alpha)
     END SELECT
 
-    fs       = trcofs(shear,calf*alpha,ckap*curv)
-    chi_cdbm = ckcdbm*fs*fk*fe*SQRT(ABS(alpha))**3*delta2*va/(qp*rr)
 
-    ! for Tuned CDBM
-    IF(model2 == 1)THEN
-       fs2         = trcofs2(shear,calf*alpha,ckap*curv)
-       gamma_tcdbm = va/(qp_eng*RR)*ABS(alpha)**0.5d0*fs2
-       chi_tcdbm   = chi_cdbm*TC1/(1.d0+(TC2*wexb/gamma_tcdbm)**TK)
+    IF(PRESENT(mdl_tuned).AND.mdl_tuned==1)THEN ! Tuned CDBM
+       fs          = trcofs_tuned(shear,calf*alpha,ckap*curv)
+       gamma_tuned = va/(qp*RR)*ABS(alpha)**0.5d0*fs
+
+       chi_cdbm = ckcdbm*fs*fk*fe*SQRT(ABS(alpha))**3*delta2*va/(qp*rr) &
+                  *c1_tuned/(1.d0+(c2_tuned*wexb/gamma_tuned)**k_tuned)
+    ELSE ! original CDBM / CDBM05
+       fs       = trcofs(shear,calf*alpha,ckap*curv)
+       chi_cdbm = ckcdbm*fs*fk*fe*SQRT(ABS(alpha))**3*delta2*va/(qp*rr)
     END IF
 
     IF(PRESENT(fsz))   fsz   = fs
@@ -198,7 +193,7 @@ CONTAINS
 
 
   ! for Tuned CDBM model by M.Yagi (implemented by Ikari 12/02/16)
-  REAL(rkind) FUNCTION trcofs2(shear,alpha,curv)
+  REAL(rkind) FUNCTION trcofs_tuned(shear,alpha,curv)
 
     IMPLICIT NONE
     real(rkind),intent(in):: shear ! Magnetic shear
@@ -235,9 +230,9 @@ CONTAINS
        ENDIF
     ENDIF
 
-    trcofs2=MAX(fs1,fs2)
+    trcofs_tuned=MAX(fs1,fs2)
     RETURN
-  END FUNCTION trcofs2
+  END FUNCTION trcofs_tuned
 
 ! *** ExB shearing effect for CDBM model ***
 

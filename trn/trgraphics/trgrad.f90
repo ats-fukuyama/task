@@ -1,266 +1,246 @@
-!     ***********************************************************
+MODULE trgrad
+! **************************************************************************
+!          Snap shot and histroy of radial profile
+! **************************************************************************
 
-!           GRAPHIC 3D : CONTROL ROUTINE
+  USE trcomm, ONLY:ikind,rkind,nrmax,nsamax,neqmax,neqrmax,neq_neqr,nsa_neq,&
+       rhog
+  USE libgrf,ONLY: grd1d
+  IMPLICIT NONE
 
-!     ***********************************************************
+  PRIVATE
+  PUBLIC tr_gr_radial
 
-      SUBROUTINE TRGRD0(K2,K3,INQ)
+  CHARACTER(LEN=30) :: label
+  INTEGER(ikind),PARAMETER :: nggmax=10
+  INTEGER(ikind) :: nr,nsa,neq,neqr,ngg,ngg_interval
 
-      USE TRCOMM, ONLY : NT, NGTSTP, NCRTM
-      IMPLICIT NONE
-      CHARACTER(LEN=1), INTENT(IN):: K2
-      CHARACTER(LEN=3), INTENT(IN):: K3
-      INTEGER(4),       INTENT(IN):: INQ
-      INTEGER(4) :: I2, I3, IERR, NMB
-      CHARACTER(LEN=4) :: KK
-      CHARACTER(LEN=80):: KVL, STRL
+  REAL(rkind),DIMENSION(:),ALLOCATABLE :: rhomg !(1:nrmax)
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(0:nrmax,neqrmax)
+       vg1,vg2,vg3,vg4
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(1:nrmax,neqrmax)
+       vm1,vm2,vm3,vm4
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(0:nrmax,0:nggmax)
+       gg1,gg2,gg3,gg4
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(1:nrmax,0:nggmax)
+       gm1,gm2,gm3,gm4
+  
+CONTAINS
 
-      READ(K2,'(I1)',ERR=600) I2
-      READ(K3,'(I1)') I3
-      IF (K3.EQ.' ') THEN
-         NMB=I2
-         IF (K2.EQ.' ') THEN
-            CALL VIEWRTLIST(NCRTM)
-            GOTO 100
-         ENDIF
-      ELSE
-         NMB=I2*10+I3
-      ENDIF
-      IF(NT.LT.NGTSTP) RETURN
-      GOTO 200
+  SUBROUTINE tr_gr_radial(k2,k3)
+! -------------------------------------------------------------------------
+!          Control routine of radial profile outputs
+! -------------------------------------------------------------------------
+    USE trcomm, ONLY: rhom
+    CHARACTER(LEN=1),INTENT(IN) :: k2,k3
+    INTEGER(ikind) :: i2,i3,iosts
 
- 600  KK=K2//K3
-      CALL CHNBPR(KK,NMB,IERR)
-      IF (IERR.EQ.1) GOTO 100
+    CALL tr_gr_rad_alloc
 
- 200  CALL TRGRTD(STRL,KVL,NMB)
-      IF(NMB.GE.68) NMB=67
-      CALL TRGRUR(NMB,STRL,KVL,INQ)
+    ! set axis
+    rhomg(1:nrmax) = rhom(1:nrmax)
 
- 100  RETURN
-      END SUBROUTINE TRGRD0
+    READ(k2,'(I1)',IOSTAT=iosts) i2
+    READ(k3,'(I1)',IOSTAT=iosts) i3
+    IF(iosts /= 0)THEN
+       WRITE(6,*) ' ERROR : Unsupported graph ID'
+       RETURN
+    END IF
 
-!     **************************************************************
+    IF(k3 .EQ. ' ')THEN
+       SELECT CASE(i2)
+       CASE(1)
+          CALL tr_gr_rad1 ! rn,ru,rt,qp
+       CASE(2)
+          CALL tr_gr_rad2 ! dtr,vtr,str,htr
+       END SELECT
+    ELSE IF(i2 == 1)THEN ! history of radial profile
+       SELECT CASE(i3)
+       CASE(1)
+          CALL tr_gr_rad11 ! rn,rt(e,D),qp
+       END SELECT
+    END IF
 
-!           GRAPHIC 3D : GRAPH TITLE DATA
+    RETURN
+  END SUBROUTINE tr_gr_radial
 
-!     **************************************************************
+! **************************************************************************
 
-      SUBROUTINE TRGRTD(STRL,KVL,NMB)
+  SUBROUTINE tr_gr_rad1
+  ! ----- current radial profile -----
+    USE trcomm, ONLY: rn,ru,rt,qp
 
-      IMPLICIT NONE
-      CHARACTER(LEN=80),INTENT(OUT):: STRL, KVL
-      INTEGER(4),       INTENT(IN) :: NMB
-      CHARACTER(LEN=80), DIMENSION(67), SAVE:: STR0, KV0
-      DATA STR0/ &
-           '@TE [keV] vs t@','@TD [keV] vs t@', &
-           '@TT [keV] vs t@','@TA [keV] vs t@', &
-           '@NE [10^20/m^3] vs t@','@ND [10^20/m^3] vs t@', &
-           '@NT [10^20/m^3] vs t@','@NA [10^20/m^3] vs t@', &
-           '@AJ [A/m^2] vs t@','@AJOH [A/m^2] vs t@', &
-           '@AJNB [A/m^2] vs t@','@AJRF [A/m^2] vs t@', &
-           '@AJBS [A/m^2] vs t@','@PIN [W/m^3] vs t@', &
-           '@POH [W/m^3] vs t@','@PNB [W/m^3] vs t@', &
-           '@PNF [W/m^3] vs t@', '@PRFE [W/m^3] vs t@', &
-           '@PRFD [W/m^3] vs t@','@PRFT [W/m^3] vs t@', &
-           '@PRFA [W/m^3] vs t@', '@PRL [W/m^3] vs t@', &
-           '@PCX [W/m^3] vs t@','@PIE [W/m^3] vs t@', &
-           '@PEXE [W/m^3] vs t@','@PEXI [W/m^3] vs t@',&
-           '@QP vs t@','@EZOH [V/m] vs t@', &
-           '@BETA vs t@','@BETAP vs t@', &
-           '@VLOOP [V] vs t@', '@ETA [Ohm*m] vs t@', &
-           '@ZEFF vs t@','@AKE [m^2/s] vs t@', &
-           '@AKD [m^2/s] vs t@', '@PRECE [W/m^3] vs t@', &
-           '@PRLHE [W/m^3] vs t@','@PRICE [W/m^3] vs t@', &
-           '@PRECI [W/m^3] vs t@', '@PRLHI [W/m^3] vs t@', &
-           '@PRICI [W/m^3] vs t@','@AJEC [A/m^2] vs t@', &
-           '@AJLH [A/m^2] vs t@', '@AJIC [A/m^2] vs t@', &
-           '@NFAST [10^20/m^3] vs t@','@NIMP [10^20/m^3] vs t@', &
-           '@BPOL [T] vs t@','@PSI [Wb] vs t@', &
-           '@RMAJOR [m] vs t@','@RMINOR [m] vs t@', &
-           '@VOLUME [m^3] sv t@','@KAPPAR vs t@', &
-           '@DELTAR@','@GRHO1 vs t@', &
-           '@GRHO2 vs t@','@AKDWE vs t@', &
-           '@AKDWI vs t@','@PE [MPa] vs t@', &
-           '@PI [MPa] vs t@','@VTOR [m/s] vs t@', &
-           '@VPOL [m/s] vs t@','@S-ALPHA vs t@', &
-           '@ER [V/m] vs t@', '@S vs t@', &
-           '@ALPHA vs t@','@G vs t@', &
-           '@IOTA vs t@'/
+    vg1(0:nrmax,1:neqrmax) = 0.d0
+    vg2(0:nrmax,1:neqrmax) = 0.d0
+    vg3(0:nrmax,1:neqrmax) = 0.d0
+    vg4(0:nrmax,1:neqrmax) = 0.d0
 
-      DATA KV0 / &
-           '@TE@','@TD@','@TT@','@TA@','@NE@', &
-           '@ND@','@NT@','@NA@','@AJ@','@AJOH@', &
-           '@AJNB@','@AJRF@','@AJBS@','@PIN@','@POH@', &
-           '@PNB@','@PNF@','@PRFE@','@PRFD@','@PRFT@', &
-           '@PRFA@','@PRL@','@PCX@','@PIE@','@PEXE@', &
-           '@PEXI@','@QP@','@EZOH@','@BETA@','@BETAP@', &
-           '@VLOOP@','@ETA@','@ZEFF@','@AKE@','@AKD@', &
-           '@PRECE@','@PRLHE@','@PRICE@','@PRECI@','@PRLHI@', &
-           '@PRICI@','@AJEC@','@AJLH@','@AJIC@','@NFAST@', &
-           '@NIMP@','@BPOL@','@PSI@','@RMAJOR@','@RMINOR@', &
-           '@VOLUME@','@KAPPAR@','@DELTAR@','@GRHO1@','@GRHO2@', &
-           '@AKTBE@','@AKTBI@','@PE@','@PI@','@VTOR@', &
-           '@VPOL@','@SALPHA@','@ER@','@S@','@ALPHA@', &
-           '@G@','@IOTA@'/
+    DO neqr = 1, neqrmax
+       neq = neq_neqr(neqr)
+       nsa = nsa_neq(neq)
+       vg1(0:nrmax,nsa)=rn(nsa,0:nrmax)
+       vg2(0:nrmax,nsa)=ru(nsa,0:nrmax)
+       vg3(0:nrmax,nsa)=rt(nsa,0:nrmax)
+    END DO
+       vg4(0:nrmax,1)=qp(0:nrmax)
+    !       vg4(0:nrmax,1)=er(0:nrmax)
 
-      STRL=STR0(NMB)
-      KVL =KV0 (NMB)
+    CALL PAGES
+    label = '/n vs rho/'
+    CALL GRD1D(1,rhog,vg1,nrmax+1,nrmax+1,nsamax,label,0)
+    label = '/u vs rho/'
+    CALL GRD1D(2,rhog,vg2,nrmax+1,nrmax+1,nsamax,label,0)
+    label = '/T vs rho/'
+    CALL GRD1D(3,rhog,vg3,nrmax+1,nrmax+1,nsamax,label,0)
+    label = '/q vs rho/'
+    CALL GRD1D(4,rhog,vg4,nrmax+1,nrmax+1,     1,label,0)
+    CALL PAGEE
+    
+    RETURN
+  END SUBROUTINE tr_gr_rad1
 
-      RETURN
-      END SUBROUTINE TRGRTD
+! **************************************************************************
 
-!     **************************************************************
+  SUBROUTINE tr_gr_rad2
+  ! ----- diffusion coefficients -----
+    USE trcomm, ONLY: rt,dtr,vtr,str,htr,dtr_prv,vtr_prv,mdltr_prv
 
-!           GRAPHIC 3D : PARAMETER STRING FOR NP
+    REAL(rkind),DIMENSION(nsamax,1:nrmax) :: dtrg,vtrg
 
-!     **************************************************************
+    vg1(0:nrmax,1:neqrmax) = 0.d0
+    vg2(0:nrmax,1:neqrmax) = 0.d0
+    vm1(1:nrmax,1:neqrmax) = 0.d0
+    vm2(1:nrmax,1:neqrmax) = 0.d0
 
-      SUBROUTINE GETKRT(NP,KRT)
+    DO neqr = 1, neqrmax
+       neq = neq_neqr(neqr)
+       nsa = nsa_neq(neq)
+       IF(mdltr_prv /= 0)THEN
+          ! for Pereverzev method
+          dtrg(nsa,1:nrmax) = dtr(neq,neq,1:nrmax) - dtr_prv(neq-1,1:nrmax)
+          vtrg(nsa,1:nrmax) = vtr(neq,neq,1:nrmax) - vtr_prv(neq-1,1:nrmax)
 
-      IMPLICIT NONE
-      INTEGER(4),       INTENT(IN) :: NP
-      CHARACTER(LEN=4), INTENT(OUT):: KRT
-      CHARACTER(LEN=4),DIMENSION(67)::KRTDATA
-      DATA KRTDATA / &
-           'TE  ','TD  ','TT  ','TA  ','NE  ', &
-           'ND  ','NT  ','NA  ','AJ  ','AJOH', &
-           'AJNB','AJRF','AJBS','PIN ','POH ', &
-           'PNB ','PNF ','PRFE','PRFD','PRFT', &
-           'PRFA','PRL ','PCX ','PIE ','PEXE', &
-           'PEXI','QP  ','EZOH','BETA','BETP', &
-           'VLOP','ETA ','ZEFF','AKE ','AKD ', &
-           'PREE','PRLE','PRIE','PREI','PRLI', &
-           'PRII','AJEC','AJLH','AJIC','NFST', &
-           'NIMP','BP  ','PSI ','RMJ ','RMN ', &
-           'VOL ','LKAP','DLT ','GRH1','GRH2', &
-           'AKTE','AKTI','PE  ','PI  ','VTOR', &
-           'VPOL','SALF','ER  ','S   ','ALFA', &
-           'G   ','IOTA'/
+          vg1(0:nrmax,neqr)=rt(nsa,0:nrmax)
+          vm1(1:nrmax,neqr)=MIN(dtrg(nsa,1:nrmax),20.D0)
+          vg2(0:nrmax,neqr)=str(neq,0:nrmax)
+          vm2(1:nrmax,neqr)=vtrg(nsa,1:nrmax)
+       ELSE
+          vg1(0:nrmax,neqr)=rt(nsa,0:nrmax)
+          vm1(1:nrmax,neqr)=MIN(dtr(neq,neq,1:nrmax),20.D0)
+          vg2(0:nrmax,neqr)=str(neq,0:nrmax)
+          vm2(1:nrmax,neqr)=vtr(neq,neq,1:nrmax)
+       END IF
+    END DO
+    
+    CALL PAGES
+    label = '/T vs rho/'
+    CALL GRD1D(1,rhog, vg1, nrmax+1,nrmax+1,neqrmax,label, 0)
+    label = '/Diffusion vs rho/'
+    CALL GRD1D(2,rhomg,vm1, nrmax,  nrmax,  neqrmax,label, 0)
+    label = '/Heat_pw vs rho/'
+    CALL GRD1D(3,rhog, vg2, nrmax+1,nrmax+1,neqrmax,label, 0)
+    label = '/Convection vs rho/'
+    CALL GRD1D(4,rhomg,vm2, nrmax,  nrmax,  neqrmax,label, 0)
+    CALL PAGEE
+    
+    RETURN
+  END SUBROUTINE tr_gr_rad2
 
-      KRT=KRTDATA(NP)
-      RETURN
-      END SUBROUTINE GETKRT
+! **************************************************************************
 
-!     **************************************************************
+  SUBROUTINE tr_gr_rad11
+  ! ----- history of radial profile -----
+    USE trcomm, ONLY: ngt,gvrt,gvrts
 
-!           PARAMETER NAME STRING FOR GT
+    ngg_interval = ngt/(MOD(ngt-1,nggmax)+1)
+    DO ngg = 0, nggmax
+       gg1(0:nrmax,ngg) = gvrts(0:nrmax, ngg*ngg_interval, 1,3)
+       gg2(0:nrmax,ngg) = gvrts(0:nrmax, ngg*ngg_interval, 2,3)
+       gg3(0:nrmax,ngg) = gvrts(0:nrmax, ngg*ngg_interval, 1,1)
+       gg4(0:nrmax,ngg) =  gvrt(0:nrmax, ngg*ngg_interval, 1)
+    END DO
 
-!     **************************************************************
+    CALL PAGES
+    label = '/T1(t) vs rho/'
+    CALL GRD1D(1,rhog,gg1,nrmax+1,nrmax+1,nggmax+1,label,0)
+    label = '/T2(t) vs rho/'
+    CALL GRD1D(2,rhog,gg2,nrmax+1,nrmax+1,nggmax+1,label,0)
+    label = '/n1(t) vs rho/'
+    CALL GRD1D(3,rhog,gg3,nrmax+1,nrmax+1,nggmax+1,label,0)
+    label = '/qp(t) vs rho/'
+    CALL GRD1D(4,rhog,gg4,nrmax+1,nrmax+1,nggmax+1,label,0)
+    CALL PAGEE
+    
+    RETURN
+  END SUBROUTINE tr_gr_rad11
 
-      SUBROUTINE GETKGT(NP,KGT)
+! **************************************************************************
+! **************************************************************************
+! **************************************************************************
 
-      USE TRCOMM,ONLY:NCTM
-      IMPLICIT NONE
-      INTEGER(4),       INTENT(IN) :: NP
-      CHARACTER(LEN=4), INTENT(OUT):: KGT
-      CHARACTER(LEN=4),DIMENSION(NCTM)::KGTDATA
-      DATA KGTDATA / &
-           'NE  ','ND  ','NT  ','NA  ','<NE>', &
-           '<ND>','<NT>','<NA>','TE  ','TD  ', &
-           'TD  ','TA  ','<TE>','<TD>','<TT>', &
-           '<TA>','WE  ','WD  ','WT  ','WA  ', &
-           'NB  ','NF  ','<NB>','<NF>','TB  ', &
-           'TF  ','<TB>','<TF>','WB  ','WF  ', &
-           'WBUL','WTAL','WTOT','IP  ','IOH ', &
-           'INB ','IRF ','IBS ','PINT','POHT', &
-           'PNBT','PRFE','PRFD','PRFT','PRFA', &
-           'PNF ','PBIN','PBCE','PBCD','PBCT', &
-           'PBCA','PFIN','PFCE','PFCD','PFCT', &
-           'PFCA','POUT','PCXT','PIET','PRDT', &
-           'PLE ','PLD ','PLT ','PLA ','SINT', &
-           'SIET','SNBT','SNFT','SOUT','SLE ', &
-           'SLD ','SLT ','SLA ','VLOP','ALI ', &
-           'RQ1 ','Q0  ','WDOT','TE1 ','TE2 ', &
-           'TE89','BTP0','BTPA','BT0 ','BTA ', &
-           'ZEFF','QF  ','RIP ','PRFE','PRFI', &
-           'PEE ','PECI','PLHE','PLHI','PICE', &
-           'PICI','RR  ','RA  ','BB  ','RKAP', &
-           'ITOT','TE98','H98Y','ANLE','ANLD', &
-           'ANLT','ANLA','PRBT','PRCT','PRLT'/
+  SUBROUTINE tr_gr_rad_alloc
+    
+    INTEGER(ikind),SAVE :: nrmax_save, neqrmax_save
+    INTEGER(ikind)      :: ierr
 
-      KGT=KGTDATA(NP)
-      RETURN
-      END SUBROUTINE GETKGT
+    IF(nrmax /= nrmax_save .OR. neqrmax /= neqrmax_save)THEN
 
-!     **************************************************************
+       IF(nrmax_save /= 0) CALL tr_gr_rad_dealloc
 
-!           GRAPHIC 3D : CHECK A NUMBER CORRESPONDING A PARAMETER
+       DO
+          ALLOCATE(rhomg(1:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
 
-!     **************************************************************
+          ALLOCATE(vg1(0:nrmax,neqrmax),STAT=ierr); IF(ierr /=0) EXIT
+          ALLOCATE(vg2(0:nrmax,neqrmax),STAT=ierr); IF(ierr /=0) EXIT
+          ALLOCATE(vg3(0:nrmax,neqrmax),STAT=ierr); IF(ierr /=0) EXIT
+          ALLOCATE(vg4(0:nrmax,neqrmax),STAT=ierr); IF(ierr /=0) EXIT
+          ALLOCATE(vm1(1:nrmax,neqrmax),STAT=ierr); IF(ierr /=0) EXIT
+          ALLOCATE(vm2(1:nrmax,neqrmax),STAT=ierr); IF(ierr /=0) EXIT
+          ALLOCATE(vm3(1:nrmax,neqrmax),STAT=ierr); IF(ierr /=0) EXIT
+          ALLOCATE(vm4(1:nrmax,neqrmax),STAT=ierr); IF(ierr /=0) EXIT
 
-      SUBROUTINE CHNBPR(KK,NMB,IERR)
+          ALLOCATE(gg1(0:nrmax,0:nggmax),STAT=ierr); IF(ierr /=0) EXIT
+          ALLOCATE(gg2(0:nrmax,0:nggmax),STAT=ierr); IF(ierr /=0) EXIT
+          ALLOCATE(gg3(0:nrmax,0:nggmax),STAT=ierr); IF(ierr /=0) EXIT
+          ALLOCATE(gg4(0:nrmax,0:nggmax),STAT=ierr); IF(ierr /=0) EXIT
+          ALLOCATE(gm1(1:nrmax,0:nggmax),STAT=ierr); IF(ierr /=0) EXIT
+          ALLOCATE(gm2(1:nrmax,0:nggmax),STAT=ierr); IF(ierr /=0) EXIT
+          ALLOCATE(gm3(1:nrmax,0:nggmax),STAT=ierr); IF(ierr /=0) EXIT
+          ALLOCATE(gm4(1:nrmax,0:nggmax),STAT=ierr); IF(ierr /=0) EXIT
 
-      USE TRCOMM,ONLY: NCRTM
-      IMPLICIT NONE
-      INTEGER(4),      INTENT(OUT):: NMB,IERR
-      CHARACTER(LEN=4),INTENT(IN) :: KK
-      INTEGER(4)      :: NP
-      CHARACTER(LEN=4):: KRT
+          nrmax_save   = nrmax
+          neqrmax_save = neqrmax
+          RETURN
+       END DO
+       WRITE(6,*) ' XX tr_gr_rad_alloc: allocation error: ierr=',ierr
 
-      IERR=0
-      DO NP=1,NCRTM
-         CALL GETKRT(NP,KRT)
-         IF (KK.EQ.KRT) THEN
-            NMB=NP
-            GOTO 1000
-         ENDIF
-      ENDDO
-      IERR=1
+    END IF
+    RETURN
+  END SUBROUTINE tr_gr_rad_alloc
 
- 1000 RETURN
-      END SUBROUTINE CHNBPR
+  SUBROUTINE tr_gr_rad_dealloc
+    
+    IF(ALLOCATED(rhomg)) DEALLOCATE(rhomg)
 
-!     **************************************************************
+    IF(ALLOCATED(vg1)) DEALLOCATE(vg1)
+    IF(ALLOCATED(vg2)) DEALLOCATE(vg2)
+    IF(ALLOCATED(vg3)) DEALLOCATE(vg3)
+    IF(ALLOCATED(vg4)) DEALLOCATE(vg4)
+    IF(ALLOCATED(vm1)) DEALLOCATE(vm1)
+    IF(ALLOCATED(vm2)) DEALLOCATE(vm2)
+    IF(ALLOCATED(vm3)) DEALLOCATE(vm3)
+    IF(ALLOCATED(vm4)) DEALLOCATE(vm4)
 
-!           GRAPHIC 3D : VIEW 3D GRAPHICS LIST
+    IF(ALLOCATED(gg1)) DEALLOCATE(gg1)
+    IF(ALLOCATED(gg2)) DEALLOCATE(gg2)
+    IF(ALLOCATED(gg3)) DEALLOCATE(gg3)
+    IF(ALLOCATED(gg4)) DEALLOCATE(gg4)
+    IF(ALLOCATED(gm1)) DEALLOCATE(gm1)
+    IF(ALLOCATED(gm2)) DEALLOCATE(gm2)
+    IF(ALLOCATED(gm3)) DEALLOCATE(gm3)
+    IF(ALLOCATED(gm4)) DEALLOCATE(gm4)
 
-!     **************************************************************
+    RETURN
+  END SUBROUTINE tr_gr_rad_dealloc
 
-      SUBROUTINE VIEWRTLIST(NMAX)
-
-      IMPLICIT NONE
-      INTEGER,INTENT(IN):: NMAX
-      INTEGER :: I,L
-      CHARACTER(LEN=4),DIMENSION(NMAX):: KRT
-
-      DO I=1,NMAX
-         CALL GETKRT(I,KRT(I))
-      ENDDO
-      WRITE(6,700)
-      DO L=1,NMAX,10
-         WRITE(6,710)  L,MIN(L+9,NMAX),(KRT(I),I= L,MIN(L+9,NMAX))
-      ENDDO
-
- 700  FORMAT(' ','# RT VARIABLE LIST')
- 710  FORMAT(' ',I2,'-',I2,': ',10(A4:', '))
-
-      RETURN
-      END SUBROUTINE VIEWRTLIST
-
-!     **************************************************************
-
-!           GT VARIABLE LIST
-
-!     **************************************************************
-
-      SUBROUTINE VIEWGTLIST(NMAX)
-
-      IMPLICIT NONE
-      INTEGER,INTENT(IN):: NMAX
-      INTEGER :: I,L
-      CHARACTER(LEN=4),DIMENSION(NMAX):: KGT
-
-      DO I=1,NMAX
-         CALL GETKGT(I,KGT(I))
-      ENDDO
-      WRITE(6,700)
-      DO L=1,NMAX,10
-         WRITE(6,710)  L,MIN(L+9,NMAX),(KGT(I),I= L,MIN(L+9,NMAX))
-      ENDDO
-
- 700  FORMAT(' ','# GT VARIABLE LIST')
- 710  FORMAT(' ',I2,'-',I2,': ',10(A4:', '))
-
-      RETURN
-      END SUBROUTINE VIEWGTLIST
+END MODULE trgrad

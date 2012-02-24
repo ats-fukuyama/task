@@ -208,7 +208,6 @@ MODULE trcomm
 CONTAINS
 
 ! ----- allocation for radial profile -----
-
   SUBROUTINE tr_nr_allocate
 
     INTEGER(ikind),SAVE:: nrmax_save=0
@@ -314,6 +313,10 @@ CONTAINS
       ALLOCATE(nrd2(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
       ALLOCATE(nrd3(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
       ALLOCATE(nrd4(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+      nrd1 = 0.d0
+      nrd2 = 0.d0
+      nrd3 = 0.d0
+      nrd4 = 0.d0
      
       nrmax_save  = nrmax
       nsamax_save = nsamax

@@ -50,10 +50,11 @@ CONTAINS
 
   END SUBROUTINE tr_loop
 
-! ***** save plasma variables to previous values *****
 
   SUBROUTINE tr_save_pvprev
-
+! ----------------------------------------------------
+!      save plasma variables to previous values
+! ----------------------------------------------------
     USE trcomm,ONLY: ikind,rkind,nrmax,nsamax, &
          qp,rn,ru,rt,qp_prev,rn_prev,ru_prev,rt_prev
     IMPLICIT NONE
