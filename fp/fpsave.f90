@@ -33,13 +33,26 @@
       real(8),dimension(NTHMAX,NPMAX):: T_BULK
       integer,dimension(NRSTART:NRENDX,NSBMAX):: NP_BULK
       real(8):: ratio, RSUM_T, RSUM_V, P_BULK_R, FACT_BULK, RATIO_0_S
+      real(8):: SRHOR1, SRHOR2, RSUM_DRS, RSUMN_DRS
+      real(8),dimension(NSAMAX*2)::tempr_in, tempr_out
 !      real(8),dimension(NRMAX, NSAMAX):: RWS123, RPCS, RPWS, RPES, RLHS
 !      real(8),dimension(NRMAX, NSAMAX):: RFWS, RECS
 !      real(8),dimension(NRMAX, NSBMAX, NSAMAX):: RPCS2
 !      real(8),dimension(NSAMAX, 0:NTMAX):: PWT2, PTT2
+      REAL(8),dimension(:),allocatable::DDATA
+      REAL(8),dimension(:),allocatable::DDATA_R
+!      REAL(8),dimension((NREND-NRSTART+1)*18)::DDATA
+!      REAL(8),dimension(NRMAX*18)::DDATA_R
+!      REAL(8),dimension((NREND-NRSTART+1)*18*NPROCS)::DDATA_R
+      INTEGER:: NOFFSET, NR2, NLENGTH, NALL
+      INTEGER,dimension(NPROCS)::NMTXPOS, NMTXLEN
 
       IF(ISAVE.NE.0) RETURN
 
+      DO NSA=1,NSAMAX
+         RNDRS(NSA) =0.D0
+         RPDRS(NSA) =0.D0
+      END DO
       DO NR=NRSTART,NRENDX
          DO NSA=1,NSAMAX
             NS=NS_NSA(NSA)
@@ -250,25 +263,6 @@
 !                  RSUM11L=RSUM11L+PG(NP,NSBA)**4*SINM(NTH)/PV    &
 !                                  *PPL(NTH,NP,NR,NSA)*FNS(NTH,NP,NR,NSBA)*RLAMDAG(NTH,NR)
 
-
-!                  IF(NR.eq.1.and.NSA.eq.1)THEN
-!                     DFDP=((1.D0-WPL)*FNS(NTH,NP,NR,NSA)+WPL*FNS(NTH,NP-1,NR,NSA))  &
-!                          /(FNS(NTH,NP,NR,NSA)-FNS(NTH,NP-1,NR,NSA))*DELP(NSA)
-!                     WRITE(8,'(3I4,1P14E16.8)') NR,NP,NTH             &
-!                          ,PG(NP,NSA)*COSM(NTH),PG(NP,NSA)*SINM(NTH) &
-!                          ,PM(NP,NSA)*COSM(NTH),PM(NP,NSA)*SINM(NTH) &
-!                          ,DFP,DFT,FFP,FNS(NTH,NP,NR,NSA)            &
-!                          ,DCPP2(NTH,NP,NR,1,NSA) &
-!                          ,FCPP2(NTH,NP,NR,1,NSA) &
-!             ,-PG(NP,NSA)*PTFP0(NSA)*DCPP2(NTH,NP,NR,1,NSA)/FCPP2(NTH,NP,NR,1,NSA)/AEE/1.D3 &
-!             *VTFP0(NSA)/sqrt(1.D0+THETA0(NSA)*PG(NP,NSA)**2) &
-!             ,-PG(NP,NSA)*PTFP0(NSA)*DFDP/AEE/1.D3*VTFP0(NSA)/sqrt(1.D0+THETA0(NSA)*PG(NP,NSA)**2) &
-!                     ,PG(NP,NSBA)**2*SINM(NTH)/PV   &
-!                         *(DCPP(NTH,NP,NR,NSA)*DFP           &
-!                          +DCPT(NTH,NP,NR,NSA)*DFT           &
-!                          -FCPP(NTH,NP,NR,NSA)*FFP           &
-!                       )*RNFP0(NSA)*1.D20*PTFP0(NSA)**3/AMFP(NSA)
-!                  END IF
                ENDDO
 !            IF(NR.eq.1.and.NSA.eq.2)then
 !               write(8,*)" "
@@ -326,9 +320,13 @@
 
 ! --------- radial transport 
             RSUM_DR=0.D0
+            RSUM_DRS=0.D0
             RSUMN_DR=0.D0
+            RSUMN_DRS=0.D0
             DINT_DFDT_R1=0.D0
             DINT_DFDT_R2=0.D0
+            SRHOR1 = 0.D0
+            SRHOR2 = 0.D0
 
             DO NP=1,NPMAX
                RGAMA=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
@@ -356,27 +354,50 @@
 
                      DFDR_R2 = ( FS2(NTH,NP,NSA)-FNS(NTH,NP,NR,NSA) ) / DELR
                      F_R2 = ( (1.D0-WRH)*FS2(NTH,NP,NSA) + WRH*FNS(NTH,NP,NR,NSA) )
+!                     F_R2 = FS3(NTH,NP,NSA)
                      DFDT_R2 = ( DRR(NTH,NP,NR+1,NSA)*DFDR_R2 - FRR(NTH,NP,NR+1,NSA)*F_R2)*RG(NR+1)*RCOEFN_GG(NR+1)
                   END IF
-                  DINT_DR = ( DFDT_R2 - DFDT_R1 ) *VOLR(NR)/(DELR*RM(NR))! *RCOEFNG(NR)
+
+!                  DINT_DR = ( DFDT_R2 - DFDT_R1 ) *VOLR(NR)/(DELR*RM(NR))! *RCOEFNG(NR)
+!                  SRHOR1 = SRHOR1 + DFDT_R1*VOLR(NR)/(DELR*RM(NR))*VOLP(NTH,NP,NSBA)! *RCOEFNG(NR)
+!                  SRHOR2 = SRHOR2 + DFDT_R2*VOLR(NR)/(DELR*RM(NR))*VOLP(NTH,NP,NSBA)! *RCOEFNG(NR)
+
+                  DINT_DR = ( DFDT_R2 - DFDT_R1 )
+                  SRHOR1 = SRHOR1 + DFDT_R1*VOLP(NTH,NP,NSBA)
+                  SRHOR2 = SRHOR2 + DFDT_R2*VOLP(NTH,NP,NSBA)
 
                   RSUMN_DR=RSUMN_DR +             DINT_DR*VOLP(NTH,NP,NSBA)
                   IF(MODELR.eq.1)THEN
-                     RSUM_DR=RSUM_DR+(RGAMA-1.D0)*DINT_DR*VOLP(NTH,NP,NSBA)
+                     RSUM_DR=RSUM_DR+(RGAMA-1.D0)/THETA0(NSA)*DINT_DR*VOLP(NTH,NP,NSBA)
                   ELSEIF(MODELR.eq.0)THEN
                      RSUM_DR=RSUM_DR + 0.5D0*PG(NP,NSBA)**2*DINT_DR*VOLP(NTH,NP,NSBA)
+                  END IF
+!
+                  IF(NR.eq.NRMAX)THEN
+                     RSUMN_DRS=RSUMN_DRS +      DFDT_R2*VOLP(NTH,NP,NSBA)
+                     IF(MODELR.eq.1)THEN
+                        RSUM_DRS=RSUM_DRS+(RGAMA-1.D0)/THETA0(NSA)*DFDT_R2*VOLP(NTH,NP,NSBA)
+                     ELSE
+                        RSUM_DRS=RSUM_DRS+0.5D0*PG(NP,NSBA)**2*DFDT_R2*VOLP(NTH,NP,NSBA)
+                     END IF
                   END IF
 
                END DO
             END DO
+!            IF(NRSTART.eq.28.or.NRSTART.eq.29.or.NRSTART.eq.30.or.NRSTART.eq.31)THEN
+!               IF(NSA.eq.1) &
+!               WRITE(*,*) NRSTART, NR, SRHOR1, SRHOR2
+!            END IF
 
-            RNDRL(NR,NSA) = RNFP0(NSA)*RSUMN_DR/VOLR(NR)
-            IF(MODELR.eq.1)THEN
-               RPDRL(NR,NSA) = AMFP(NSA)*VC**2*RNFP0(NSA)*1.D20*1.D-6*RSUM_DR/VOLR(NR)
-            ELSEIF(MODELR.eq.0)THEN
-               RPDRL(NR,NSA) = PTFP0(NSA)**2/AMFP(NSA)*RNFP0(NSA)*1.D20 &
-                    *1.D-6*RSUM_DR/VOLR(NR)
+            RNDRL(NR,NSA)=RNFP0(NSA)*RSUMN_DR/(DELR*RM(NR))
+            RPDRL(NR,NSA)=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)*1.D-6 &
+                 *RSUM_DR/(DELR*RM(NR))
+            IF(NR.eq.NRMAX)THEN
+               RNDRS(NSA) = RNFP0(NSA)*RSUMN_DRS * 2.D0
+               RPDRS(NSA) = RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)*1.D-6 &
+                 *RSUM_DRS/(DELR*RM(NR))
             END IF
+
 
 ! --------- end of radial transport
                
@@ -406,55 +427,171 @@
             RSPSL(NR,NSA)= RSUM11S*FACT*2.D0*PI*DELP(NSBA)*DELTH*1.D-6*RCOEFNG(NR)
             RSPLL(NR,NSA)= RSUM11L*FACT*2.D0*PI*DELP(NSBA)*DELTH*1.D-6*RCOEFNG(NR)
          ENDDO
-      ENDDO
+      ENDDO ! NR
 
 
 
+      NLENGTH=18
+      NOFFSET=NREND-NRSTART+1
+      NALL = NRMAX*NLENGTH
+      allocate(DDATA(NOFFSET*NLENGTH))
+      allocate(DDATA_R(NALL))
+
+      DO NR=0,NPROCS-1
+         NMTXLEN(NR+1)=NOFFSET*NLENGTH
+         NMTXPOS(NR+1)=NOFFSET*NLENGTH*NR
+      END DO
       DO NSA=1,NSAMAX
-         CALL mtx_gatherv_real8(RNSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-                                RNS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-         CALL mtx_gatherv_real8(RJSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-                                RJS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-         CALL mtx_gatherv_real8(RWSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-                                RWS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-         CALL mtx_gatherv_real8(RWS123L(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-                                RWS123(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-         CALL mtx_gatherv_real8(RPCSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-                                RPCS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-         CALL mtx_gatherv_real8(RPWSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-                                RPWS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-         CALL mtx_gatherv_real8(RPESL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-                                RPES(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-         CALL mtx_gatherv_real8(RLHSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-                                RLHS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-         CALL mtx_gatherv_real8(RFWSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-                                RFWS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-         CALL mtx_gatherv_real8(RECSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-                                RECS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-         CALL mtx_gatherv_real8(RICSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-                                RICS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-!         CALL mtx_gatherv_real8(RNSL_test(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-!                                RNS_test(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
+         DO NR = NRSTART, NREND
+            NR2= NR - NRSTART + 1
+            DDATA(NR2) = RNSL(NR,NSA)
+         END DO
+         DO NR = NRSTART, NREND
+            NR2= NR - NRSTART + 1
+            DDATA(NR2+NOFFSET) = RJSL(NR,NSA)
+         END DO
+         DO NR = NRSTART, NREND
+            NR2= NR - NRSTART + 1
+            DDATA(NR2+NOFFSET*2) = RWSL(NR,NSA)
+         END DO
+         DO NR = NRSTART, NREND
+            NR2= NR - NRSTART + 1
+            DDATA(NR2+NOFFSET*3) = RWS123L(NR,NSA)
+         END DO
+         DO NR = NRSTART, NREND
+            NR2= NR - NRSTART + 1
+            DDATA(NR2+NOFFSET*4) = RPCSL(NR,NSA)
+         END DO
+         DO NR = NRSTART, NREND
+            NR2= NR - NRSTART + 1
+            DDATA(NR2+NOFFSET*5) = RPWSL(NR,NSA)
+         END DO
+         DO NR = NRSTART, NREND
+            NR2= NR - NRSTART + 1
+            DDATA(NR2+NOFFSET*6) = RPESL(NR,NSA)
+         END DO
+         DO NR = NRSTART, NREND
+            NR2= NR - NRSTART + 1
+            DDATA(NR2+NOFFSET*7) = RLHSL(NR,NSA)
+         END DO
+         DO NR = NRSTART, NREND
+            NR2= NR - NRSTART + 1
+            DDATA(NR2+NOFFSET*8) = RFWSL(NR,NSA)
+         END DO
+         DO NR = NRSTART, NREND
+            NR2= NR - NRSTART + 1
+            DDATA(NR2+NOFFSET*9) = RECSL(NR,NSA)
+         END DO
+         DO NR = NRSTART, NREND
+            NR2= NR - NRSTART + 1
+            DDATA(NR2+NOFFSET*10) = RICSL(NR,NSA)
+         END DO
+         DO NR = NRSTART, NREND
+            NR2= NR - NRSTART + 1
+            DDATA(NR2+NOFFSET*11) = RSPBL(NR,NSA)
+         END DO
+         DO NR = NRSTART, NREND
+            NR2= NR - NRSTART + 1
+            DDATA(NR2+NOFFSET*12) = RSPFL(NR,NSA)
+         END DO
+         DO NR = NRSTART, NREND
+            NR2= NR - NRSTART + 1
+            DDATA(NR2+NOFFSET*13) = RSPSL(NR,NSA)
+         END DO
+         DO NR = NRSTART, NREND
+            NR2= NR - NRSTART + 1
+            DDATA(NR2+NOFFSET*14) = RSPLL(NR,NSA)
+         END DO
+         DO NR = NRSTART, NREND
+            NR2= NR - NRSTART + 1
+            DDATA(NR2+NOFFSET*15) = RPDRL(NR,NSA)
+         END DO
+         DO NR = NRSTART, NREND
+            NR2= NR - NRSTART + 1
+            DDATA(NR2+NOFFSET*16) = RNDRL(NR,NSA)
+         END DO
+         DO NR = NRSTART, NREND
+            NR2= NR - NRSTART + 1
+            DDATA(NR2+NOFFSET*17) = RTL_BULK(NR,NSA)
+         END DO
+
+         CALL mtx_gatherv_real8(DDATA,NOFFSET*NLENGTH, &
+                                DDATA_R,NALL,NMTXLEN,NMTXPOS)
+!         IF(NRANK.eq.0)THEN
+            DO NR = 1, NRMAX
+               RNS(NR,NSA) = DDATA_R( 1 + (NR-1)*NOFFSET*NLENGTH )
+               RJS(NR,NSA) = DDATA_R( 2 + (NR-1)*NOFFSET*NLENGTH )
+               RWS(NR,NSA) = DDATA_R( 3 + (NR-1)*NOFFSET*NLENGTH )
+               RWS123(NR,NSA) = DDATA_R( 4 + (NR-1)*NOFFSET*NLENGTH )
+               RPCS(NR,NSA) = DDATA_R( 5 + (NR-1)*NOFFSET*NLENGTH )
+               RPWS(NR,NSA) = DDATA_R( 6 + (NR-1)*NOFFSET*NLENGTH )
+               RPES(NR,NSA) = DDATA_R( 7 + (NR-1)*NOFFSET*NLENGTH )
+               RLHS(NR,NSA) = DDATA_R( 8 + (NR-1)*NOFFSET*NLENGTH )
+               RFWS(NR,NSA) = DDATA_R( 9 + (NR-1)*NOFFSET*NLENGTH )
+               RECS(NR,NSA) = DDATA_R(10 + (NR-1)*NOFFSET*NLENGTH )
+               RICS(NR,NSA) = DDATA_R(11 + (NR-1)*NOFFSET*NLENGTH )
+               RSPB(NR,NSA) = DDATA_R(12 + (NR-1)*NOFFSET*NLENGTH )
+               RSPF(NR,NSA) = DDATA_R(13 + (NR-1)*NOFFSET*NLENGTH )
+               RSPS(NR,NSA) = DDATA_R(14 + (NR-1)*NOFFSET*NLENGTH )
+               RSPL(NR,NSA) = DDATA_R(15 + (NR-1)*NOFFSET*NLENGTH )
+               RPDR(NR,NSA) = DDATA_R(16 + (NR-1)*NOFFSET*NLENGTH )
+               RNDR(NR,NSA) = DDATA_R(17 + (NR-1)*NOFFSET*NLENGTH )
+               RT_BULK(NR,NSA) = DDATA_R(18 + (NR-1)*NOFFSET*NLENGTH )
+            END DO
+!         END IF
+      END DO ! NSA
+      DO NSA=1,NSAMAX
+!         CALL mtx_gatherv_real8(RNSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
+!                                RNS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
+!         CALL mtx_gatherv_real8(RJSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
+!                                RJS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
+!         CALL mtx_gatherv_real8(RWSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
+!                                RWS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
+!         CALL mtx_gatherv_real8(RWS123L(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
+!                                RWS123(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
+!         CALL mtx_gatherv_real8(RPCSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
+!                                RPCS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
+!         CALL mtx_gatherv_real8(RPWSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
+!                                RPWS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
+!         CALL mtx_gatherv_real8(RPESL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
+!                                RPES(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
+!         CALL mtx_gatherv_real8(RLHSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
+!                                RLHS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
+!         CALL mtx_gatherv_real8(RFWSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
+!                                RFWS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
+!         CALL mtx_gatherv_real8(RECSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
+!                                RECS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
+!         CALL mtx_gatherv_real8(RICSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
+!                                RICS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
+!         CALL mtx_gatherv_real8(RSPBL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
+!                                RSPB(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
+!         CALL mtx_gatherv_real8(RSPFL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
+!                                RSPF(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
+!         CALL mtx_gatherv_real8(RSPSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
+!                                RSPS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
+!         CALL mtx_gatherv_real8(RSPLL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
+!                                RSPL(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
+!         CALL mtx_gatherv_real8(RPDRL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
+!                                RPDR(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
+!         CALL mtx_gatherv_real8(RNDRL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
+!                                RNDR(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
+!         CALL mtx_gatherv_real8(RTL_BULK(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
+!                                RT_BULK(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
          DO NSB=1,NSBMAX
             CALL mtx_gatherv_real8(RPCS2L(NRSTART:NRENDX,NSB,NSA), &
                                    MTXLEN(NRANK+1), &
                                    RPCS2(1:NRMAX,NSB,NSA),NRMAX,MTXLEN,MTXPOS)
          ENDDO
-         CALL mtx_gatherv_real8(RSPBL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-                                RSPB(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-         CALL mtx_gatherv_real8(RSPFL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-                                RSPF(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-         CALL mtx_gatherv_real8(RSPSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-                                RSPS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-         CALL mtx_gatherv_real8(RSPLL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-                                RSPL(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-         CALL mtx_gatherv_real8(RPDRL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-                                RPDR(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-         CALL mtx_gatherv_real8(RNDRL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-                                RNDR(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-         CALL mtx_gatherv_real8(RTL_BULK(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-                                RT_BULK(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
       ENDDO
+      DO NSA=1,NSAMAX
+         tempr_in(NSA) = RNDRS(NSA)
+         tempr_in(NSA+NSAMAX) = RPDRS(NSA)
+      END DO
+      CALL mtx_reduce_v_real8(tempr_in,NSAMAX*2,3,tempr_out)
+      DO NSA=1,NSAMAX
+         RNDRS(NSA) = tempr_out(NSA)
+         RPDRS(NSA) = tempr_out(NSA+NSAMAX)
+      END DO
 
       ISAVE=1
       RETURN
@@ -543,6 +680,9 @@
                PPCT2(NSB,NSA,NTG1)=PPCT2(NSB,NSA,NTG1)       &
                                   +RPCS2(NR,NSB,NSA)*VOLR(NR)
             END DO
+!            PDR(NSA,NTG1) = RPDR(NRMAX,NSA)*VOLR(NRMAX)
+!            PDR(NSA,NTG1) = RPDRS(NSA)*TVOLR
+!            PNDR(NSA,NTG1) = RNDRS(NSA)*TVOLR
          ENDDO
 
          PIT(NSA,NTG1) =PIT(NSA,NTG1)/(2.D0*PI*RR)
@@ -564,12 +704,12 @@
          ELSE
             PTT(NSA,NTG1)=0.D0
             PTT2(NSA,NTG1)=0.D0
- !           PTT_BULK(NSA,NTG1)=0.D0
+!            PTT_BULK(NSA,NTG1)=0.D0
          ENDIF
          PTT_BULK(NSA,NTG1) = PTT_BULK(NSA,NTG1)/PNT(NSA,NTG1)
          PNT(NSA,NTG1) =PNT(NSA,NTG1)/TVOLR
-  !       PNT_BULK(NSA,NTG1) =PNT_BULK(NSA,NTG1)/TVOLR
-         PNDR(NSA,NTG1)=PNDR(NSA,NTG1)/TVOLR
+!         PNT_BULK(NSA,NTG1) =PNT_BULK(NSA,NTG1)/TVOLR
+!         PNDR(NSA,NTG1)=PNDR(NSA,NTG1)/TVOLR
       ENDDO
          
       RETURN

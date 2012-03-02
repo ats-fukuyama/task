@@ -61,6 +61,29 @@
          ENDDO
       ENDDO
       ENDDO
+
+!      DO NR=NRSTART,NREND
+!         DO NP=1, NPMAX+1
+!         DO NTH=1,4
+!            DCPPB(NTH,NP,NR,NSA)=0.D0
+!            DCPTB(NTH,NP,NR,NSA)=0.D0
+!            FCPPB(NTH,NP,NR,NSA)=0.D0
+!         END DO
+!         END DO
+!      END DO
+
+!      DO NSB=1,NSBMAX
+!      DO NR=NRSTART,NREND
+!         DO NP=1, NPMAX+1
+!         DO NTH=1,4
+!            DCPP2B(NTH,NP,NR,NSB,NSA)=0.D0
+!            DCPT2B(NTH,NP,NR,NSB,NSA)=0.D0
+!            FCPP2B(NTH,NP,NR,NSB,NSA)=0.D0
+!         END DO
+!         END DO
+!      END DO
+!      END DO
+
 !
       DO NR=NRSTART,NREND
          DO NSB=1,NSBMAX
@@ -174,7 +197,6 @@
          ENDIF
 
 !     sum up coefficients by species
-!         open(8,file='p-dcpp_r1c4ee_x.dat')
          DO NSB=1,NSBMAX
             DO NP=1,NPMAX+1
                DO NTH=1,NTHMAX
@@ -185,12 +207,14 @@
                   FCPP(NTH,NP,NR,NSA)=FCPP(NTH,NP,NR,NSA) &
                                      +FCPP2(NTH,NP,NR,NSB,NSA)
                END DO
-!               IF(NSA.eq.1.and.NSB.eq.1) write(8,'(I4,1P14E14.6)') &
-!                    NP,PG(NP,NSA),PG(NP,NSA)+DELP(NSA)/2.D0 &
-!                    ,DCPP2(10,NP,NR,NSB,NSA),FCPP2(10,NP,NR,NSB,NSA),DCTT2(10,NP,NR,NSB,NSA) &
-!                    ,PTFP0(NSA),sqrt(1.D0+THETA0(NSA)*PG(NP,NSA)**2),AEE*1.D3 &
-!                    ,-PG(NP,NSA)*PTFP0(NSA)*DCPP2(1,NP,NR,NSB,NSA)/FCPP2(1,NP,NR,NSB,NSA)/AEE/1.D3 &
-!                    *VTFP0(NSA)/sqrt(1.D0+THETA0(NSA)*PG(NP,NSA)**2),FNS(10,NP,NR,NSA)
+!               DO NTH=1,4
+!                  DCPPB(NTH,NP,NR,NSA)=DCPPB(NTH,NP,NR,NSA) &
+!                                     +DCPP2B(NTH,NP,NR,NSB,NSA)
+!                  DCPTB(NTH,NP,NR,NSA)=DCPTB(NTH,NP,NR,NSA) &
+!                                     +DCPT2B(NTH,NP,NR,NSB,NSA)
+!                  FCPPB(NTH,NP,NR,NSA)=FCPPB(NTH,NP,NR,NSA) &
+!                                     +FCPP2B(NTH,NP,NR,NSB,NSA)
+!               END DO
             END DO
             DO NP=1,NPMAX
                DO NTH=1,NTHMAX+1
@@ -203,7 +227,6 @@
                END DO
             END DO
          END DO
-!         CLOSE(8)
       ENDDO
 
       

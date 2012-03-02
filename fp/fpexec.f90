@@ -540,12 +540,12 @@
       ENDIF
       IF(NR-1.GE.1) THEN
          IF(NTH.GE.ITL(NR).AND.NTH.LT.ITL(NR-1)) THEN
-            NTBM=NTHMAX-NTH+1
+!            NTBM=NTHMAX-NTH+1
          ENDIF
       ENDIF
       IF(NR+1.LE.NRMAX) THEN
          IF(NTH.LE.ITL(NR).AND.NTH.GT.ITL(NR+1)) THEN
-            NTBP=NTHMAX-NTH+1
+!            NTBP=NTHMAX-NTH+1
          ENDIF
       ENDIF
 
@@ -843,20 +843,20 @@
               =( SPPB(NTH,NP,NR,NSA) &
                 +SPPF(NTH,NP,NR,NSA) &
                 +SPPS(NTH,NP,NR,NSA) )*RLAMDAG(NTH,NR)
-      IF(MODELD.GT.0.AND.NR.EQ.NRMAX) THEN
-         IF(NP.NE.NPMAX) THEN
-            SPP(NTH,NP,NR,NSA)=SPP(NTH,NP,NR,NSA) &
-                 +FS2(NTH,NP,NSA)*(DRR(NTH  ,NP  ,NR+1,NSA)    *DIVDRR &
-                                  -FRR(NTH  ,NP  ,NR+1,NSA)*VRP*DIVFRR) &
-                      *DRRP
-            IF(NTBP.NE.0) THEN
-               SPP(NTH,NP,NR,NSA)=SPP(NTH,NP,NR,NSA) &
-                    +FS2(NTH,NP,NSA)*(DRR(NTBP ,NP  ,NR+1,NSA)     *DIVDRR &
-                                     -FRR(NTBP ,NP  ,NR+1,NSA)*VRBP*DIVFRR) &
-                      *DRRP
-            ENDIF
-         ENDIF
-      ENDIF
+!      IF(MODELD.GT.0.AND.NR.EQ.NRMAX) THEN
+!         IF(NP.NE.NPMAX) THEN
+!            SPP(NTH,NP,NR,NSA)=SPP(NTH,NP,NR,NSA) &
+!                 +FS2(NTH,NP,NSA)*(DRR(NTH  ,NP  ,NR+1,NSA)    *DIVDRR &
+!                                  -FRR(NTH  ,NP  ,NR+1,NSA)*VRP*DIVFRR) &
+!                      *DRRP
+!            IF(NTBP.NE.0) THEN
+!               SPP(NTH,NP,NR,NSA)=SPP(NTH,NP,NR,NSA) &
+!                    +FS2(NTH,NP,NSA)*(DRR(NTBP ,NP  ,NR+1,NSA)     *DIVDRR &
+!                                     -FRR(NTBP ,NP  ,NR+1,NSA)*VRBP*DIVFRR) &
+!                      *DRRP
+!            ENDIF
+!         ENDIF
+!      ENDIF
       RETURN
       END SUBROUTINE FPSETM
 

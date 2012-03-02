@@ -51,7 +51,7 @@
 
 
       integer:: NP, NTH, NSA, NSB, L, NR, LLMIN, NI, NA, NNP, NPG, NSBA
-      integer:: IER, LTEST
+      integer:: IER, LTEST, INTH
       real(8):: RGAMH, SUM1, SUM2, SUM3, SUM4, SUM5
       real(8):: PSUM, PCRIT, RGAMA, RGAMB, RUFP, FACT, FACT2, RUFD
       real(8):: SUMA, SUMB, SUMC, SUMD, SUME, SUMF, SUMG, SUMH
@@ -368,7 +368,58 @@
                     +FACT2 * AMFP(NSA)/AMFD(NSB)*RGAMA             &
                     *( -SUMF + 2.D0/VC**2*SUMG )
             END DO
-         END DO
+         END DO 
+! FOR BOUNDARY VALUE
+!         INTH=0
+!         DO NTH=ITL(NR), ITL(NR)+1
+!            INTH=INTH+1
+!            DO L=LLMAX,LLMIN,-1
+!               SUMA = DPSI02G(NP,L) *PLG(NTH,L)
+!               SUMB = DPSI022G(NP,L)*PLG(NTH,L)
+!               SUMC = PSI0G(NP,L)   *PLG(NTH,L)
+!               SUMD = PSI02G(NP,L)  *PLG(NTH,L)
+!               SUME = PSI022G(NP,L) *PLG(NTH,L)
+!               SUMF = DPSI1G(NP,L)  *PLG(NTH,L)
+!               SUMG = DPSI11G(NP,L) *PLG(NTH,L)
+!               
+!               DCPP2B(INTH,NP,NR,NSB,NSA)=DCPP2B(INTH,NP,NR,NSB,NSA) &
+!                    + FACT * RGAMA / RUFP *(                        &
+!                    2.D0*RGAMA**2* SUMA                             &
+!                    -8.D0*(RGAMA/VC)**2* SUMB                       &
+!                    -RUFP* SUMC - L*(L+1)/RUFP* SUMD                &
+!                    +(8.D0*(RUFP/VC)**2+4.D0*L*(L+1))/(RUFP*VC**2)  &
+!                    *SUME    )
+!               
+!               FCPP2B(INTH,NP,NR,NSB,NSA) = FCPP2B(INTH,NP,NR,NSB,NSA) &
+!                    +FACT2 * AMFP(NSA)/AMFD(NSB)*RGAMA             &
+!                    *( -SUMF + 2.D0/VC**2*SUMG )
+!            END DO
+!         END DO
+!         DO NTH=ITU(NR), ITU(NR)+1
+!            INTH=INTH+1
+!            DO L=LLMAX,LLMIN,-1
+!               SUMA = DPSI02G(NP,L) *PLG(NTH,L)
+!               SUMB = DPSI022G(NP,L)*PLG(NTH,L)
+!               SUMC = PSI0G(NP,L)   *PLG(NTH,L)
+!               SUMD = PSI02G(NP,L)  *PLG(NTH,L)
+!               SUME = PSI022G(NP,L) *PLG(NTH,L)
+!               SUMF = DPSI1G(NP,L)  *PLG(NTH,L)
+!               SUMG = DPSI11G(NP,L) *PLG(NTH,L)
+!               
+!               DCPP2B(INTH,NP,NR,NSB,NSA)=DCPP2B(INTH,NP,NR,NSB,NSA) &
+!                    + FACT * RGAMA / RUFP *(                        &
+!                    2.D0*RGAMA**2* SUMA                             &
+!                    -8.D0*(RGAMA/VC)**2* SUMB                       &
+!                    -RUFP* SUMC - L*(L+1)/RUFP* SUMD                &
+!                    +(8.D0*(RUFP/VC)**2+4.D0*L*(L+1))/(RUFP*VC**2)  &
+!                    *SUME    )
+!               
+!               FCPP2B(INTH,NP,NR,NSB,NSA) = FCPP2B(INTH,NP,NR,NSB,NSA) &
+!                    +FACT2 * AMFP(NSA)/AMFD(NSB)*RGAMA             &
+!                    *( -SUMF + 2.D0/VC**2*SUMG )
+!            END DO
+!         END DO
+! END FOR BOUNDARY VALUE         
       END DO
 
 
@@ -386,12 +437,15 @@
               (AMFD(NSB)*PTFP0(NSA))                     &
               /(AMFP(NSA)*PTFD0(NSB))*RINT2 )            &
               *RNFD(NR,NSB)*1.D20
-
-!         DCPP2(NTH,1,NR,NSB,NSA)                                          &
-!              =RGAMH*RNFD(NR,NSB)*1.D20*(2.D0/(3.D0*SQRT(PI)))             &
-!              *(PTFP0(NSA)/(SQRT(2.D0)*PTFD(NR,NSB)))*AMFD(NSB)/AMFP(NSA) &
-!              +DCPP2(NTH,1,NR,NSB,NSA)
       END DO
+! FOR BAUNDARY
+!      DCPP2B(1,1,NR,NSB,NSA) = &
+!           (DCPP2(ITL(NR),1,NR,NSB,NSA)+DCPP2(ITL(NR)-1,1,NR,NSB,NSA))*0.5D0
+!      DCPP2B(2,1,NR,NSB,NSA) = &
+!           (DCPP2(ITL(NR),1,NR,NSB,NSA)+DCPP2(ITL(NR)+1,1,NR,NSB,NSA))*0.5D0
+!      FCPP2B(1,1,NR,NSB,NSA) = 0.D0
+!      FCPP2B(2,1,NR,NSB,NSA) = 0.D0
+!
 !! end of p->0 limit
 
 
@@ -465,6 +519,35 @@
                  *( 4.D0/VC**2*SUMA - SUMB                       &
                  - 4.D0/(RUFP*VC**2)*SUMC + SUMD/RUFP )
          END DO
+! FOR BAUNDARY
+!         INTH=0
+!         DO NTH=ITL(NR), ITL(NR)+1
+!            INTH=INTH+1
+!            DO L=LLMAX,LLMIN,-1
+!               SUMA = SUMA + DPSI022G(NP,L) * D1PLG(NTH,L)
+!               SUMB = SUMB + DPSI02G(NP,L) * D1PLG(NTH,L)
+!               SUMC = SUMC + PSI022G(NP,L) * D1PLG(NTH,L)
+!               SUMD = SUMD + PSI02G(NP,L) * D1PLG(NTH,L)
+!            END DO
+!            DCPT2B(INTH,NP,NR,NSB,NSA) = DCPT2B(INTH,NP,NR,NSB,NSA)  &
+!                 +FACT*RGAMA/RUFP                                &
+!                 *( 4.D0/VC**2*SUMA - SUMB                       &
+!                 - 4.D0/(RUFP*VC**2)*SUMC + SUMD/RUFP )
+!         END DO
+!         DO NTH=ITU(NR), ITU(NR)+1
+!            INTH=INTH+1
+!            DO L=LLMAX,LLMIN,-1
+!               SUMA = SUMA + DPSI022G(NP,L) * D1PLG(NTH,L)
+!               SUMB = SUMB + DPSI02G(NP,L) * D1PLG(NTH,L)
+!               SUMC = SUMC + PSI022G(NP,L) * D1PLG(NTH,L)
+!               SUMD = SUMD + PSI02G(NP,L) * D1PLG(NTH,L)
+!            END DO
+!            DCPT2B(INTH,NP,NR,NSB,NSA) = DCPT2B(INTH,NP,NR,NSB,NSA)  &
+!                 +FACT*RGAMA/RUFP                                &
+!                 *( 4.D0/VC**2*SUMA - SUMB                       &
+!                 - 4.D0/(RUFP*VC**2)*SUMC + SUMD/RUFP )
+!         END DO
+! END FOR BOUNDARY
       END DO
 
       DO NP=1,NPMAX

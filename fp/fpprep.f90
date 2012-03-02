@@ -282,6 +282,9 @@
                ETAG_G(NTH,NR)=PI/2.D0
             ENDDO
          ENDDO
+         DO NTH=1, NTHMAX
+            RLAMDA_GG(NTH,NRMAX+1)=1.D0
+         END DO
       ELSE
          DO NR=NRSTART,NREND
             CALL SET_RLAMDA(NR)
@@ -344,6 +347,13 @@
             ETAM_GG(NTH,NR)=workg(NR)
          ENDDO
       ENDDO
+
+      IF(NRANK.eq.0)THEN
+      DO NR=1,NRMAX
+         WRITE(*,*) NR, "NRG", ITLG(NR)
+         WRITE(*,*) NR, "NRM ", ITL(NR)
+      END DO
+      END IF
 
       deallocate(work,workg)
       IERR=0
@@ -897,7 +907,8 @@
       call fp_allocate_ntg2
 
 !     ----- Get mtxlen and mtxpos -----
-
+!     MTXLEN(NRANK+1): the number of NR grid points for each RANK
+!     MTXPOS(NRANK):
       CALL mtx_allgather_integer(nrend-nrstart+1,mtxlen)
       CALL mtx_allgather_integer(nrstart-1,mtxpos)
       if(nrank.eq.0) then
@@ -986,6 +997,13 @@
                END DO
             ENDDO
          END DO
+         NR=NRMAX+1
+         DO NP=1,NPMAX
+            FL=FPMXWL(PM(NP,NSB),NR,NS)
+            DO NTH=1,NTHMAX
+               FS3(NTH,NP,NSB)=FL
+            END DO
+         ENDDO
       END DO
 
 !--------- normalize bounce average parameter ---------
@@ -1281,7 +1299,6 @@
       NCALCNR=0
       DO NSA=1,NSAMAX
          CALL FP_COEF(NSA)
-!         IF(MODELD.GT.0) CALL FP_CALR(NSA) 
          NSBA=NSB_NSA(NSA)
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX

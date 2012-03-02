@@ -349,9 +349,11 @@
       integer,intent(in):: NR, NSA
       integer:: NSB, NTH, NP, NG
       real(8):: DELH, ETAL, X, PSIB, PCOS, ARG
-      real(8):: sum1, sum2, sum3, sum4, sum5, sum6
-      real(8):: temp1, temp2, temp3, temp4, temp5, temp6
+      real(8):: sum1, sum2, sum3, sum4, sum5, sum6, sum7, sum8, sum9
+      real(8):: temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8, temp9
+      INTEGER:: ISW_LAV, INTH
      
+      ISW_LAV=0
 ! INTEGRATION OF BOUNCE AVERAGING
       DO NSB = 1, NSBMAX
          DO NP=1,NPMAX+1
@@ -393,6 +395,87 @@
                FCPP2(NTH,NP,NR,NSB,NSA)=SUM2*DELH/PI*RCOEFG(NR) 
                DCPT2(NTH,NP,NR,NSB,NSA)=SUM3*DELH/PI*RCOEFG(NR)
             END DO ! END NTH
+            IF(ISW_LAV.eq.1)THEN
+            INTH=0
+            DO NTH=ITL(NR),ITL(NR)+1
+               INTH=INTH+1
+               DELH=2.D0*ETAM(NTH,NR)/NAVMAX
+               sum7=0.D0
+               sum8=0.D0
+               sum9=0.D0
+
+               temp7 = DCPP2B(INTH,NP,NR,NSB,NSA)
+               temp8 = FCPP2B(INTH,NP,NR,NSB,NSA)
+               temp9 = DCPT2B(INTH,NP,NR,NSB,NSA)
+
+               IF (COSM(NTH).GE.0.D0) THEN
+                  DO NG=1,NAVMAX
+                     ETAL=DELH*(NG-0.5D0)
+                     X=EPSRM(NR)*COS(ETAL)*RR
+                     PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
+                     PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
+                     
+                     sum7=sum7 + temp7*COSM(NTH)/PCOS
+                     sum8=sum8 + temp8*COSM(NTH)/PCOS
+                     sum9=sum9 + temp9/SQRT(PSIB)
+                  END DO ! END NAVMAX 
+               ELSE ! SIGN OF PCOS
+                  DO NG=1,NAVMAX
+                     ETAL=DELH*(NG-0.5D0)
+                     X=EPSRM(NR)*COS(ETAL)*RR
+                     PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
+                     PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
+                     
+                     sum7=sum7 + temp7*COSM(NTH)/PCOS
+                     sum8=sum8 + temp8*COSM(NTH)/PCOS
+                     sum9=sum9 + temp9/SQRT(PSIB)
+                  END DO ! END NAVMAX
+               END IF
+
+               DCPP2B(INTH,NP,NR,NSB,NSA)=SUM7*DELH/PI*RCOEFG(NR) 
+               FCPP2B(INTH,NP,NR,NSB,NSA)=SUM8*DELH/PI*RCOEFG(NR) 
+               DCPT2B(INTH,NP,NR,NSB,NSA)=SUM9*DELH/PI*RCOEFG(NR)
+            END DO ! END NTH
+            DO NTH=ITU(NR),ITU(NR)+1
+               INTH=INTH+1
+               DELH=2.D0*ETAM(NTH,NR)/NAVMAX
+               sum7=0.D0
+               sum8=0.D0
+               sum9=0.D0
+
+               temp7 = DCPP2B(INTH,NP,NR,NSB,NSA)
+               temp8 = FCPP2B(INTH,NP,NR,NSB,NSA)
+               temp9 = DCPT2B(INTH,NP,NR,NSB,NSA)
+
+               IF (COSM(NTH).GE.0.D0) THEN
+                  DO NG=1,NAVMAX
+                     ETAL=DELH*(NG-0.5D0)
+                     X=EPSRM(NR)*COS(ETAL)*RR
+                     PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
+                     PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
+                     
+                     sum7=sum7 + temp7*COSM(NTH)/PCOS
+                     sum8=sum8 + temp8*COSM(NTH)/PCOS
+                     sum9=sum9 + temp9/SQRT(PSIB)
+                  END DO ! END NAVMAX 
+               ELSE ! SIGN OF PCOS
+                  DO NG=1,NAVMAX
+                     ETAL=DELH*(NG-0.5D0)
+                     X=EPSRM(NR)*COS(ETAL)*RR
+                     PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
+                     PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
+                     
+                     sum7=sum7 + temp7*COSM(NTH)/PCOS
+                     sum8=sum8 + temp8*COSM(NTH)/PCOS
+                     sum9=sum9 + temp9/SQRT(PSIB)
+                  END DO ! END NAVMAX
+               END IF
+
+               DCPP2B(INTH,NP,NR,NSB,NSA)=SUM7*DELH/PI*RCOEFG(NR) 
+               FCPP2B(INTH,NP,NR,NSB,NSA)=SUM8*DELH/PI*RCOEFG(NR) 
+               DCPT2B(INTH,NP,NR,NSB,NSA)=SUM9*DELH/PI*RCOEFG(NR)
+            END DO ! END NTH
+            END IF
          END DO ! END NP
 
          DO NP=1,NPMAX
@@ -446,12 +529,21 @@
                DCPP2(NTHMAX-NTH+1,NP,NR,NSB,NSA) &
                     =DCPP2(NTH,NP,NR,NSB,NSA)
             END DO ! END NTH
-            DCPP2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)/4.D0     &
-                 *( DCPP2(ITL(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
-                 +DCPP2(ITL(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR) &
-                 +DCPP2(ITU(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR) &
-                 +DCPP2(ITU(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
-            DCPP2(ITU(NR),NP,NR,NSB,NSA)=DCPP2(ITL(NR),NP,NR,NSB,NSA)
+            IF(ISW_LAV.ne.1)THEN
+               DCPP2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)/4.D0     &
+                    *( DCPP2(ITL(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
+                    +DCPP2(ITL(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR) &
+                    +DCPP2(ITU(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR) &
+                    +DCPP2(ITU(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
+               DCPP2(ITU(NR),NP,NR,NSB,NSA)=DCPP2(ITL(NR),NP,NR,NSB,NSA)
+            ELSE
+               DCPP2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)/4.D0 &
+                    *( DCPP2B(1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
+                    +DCPP2B(2,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR)   &
+                    +DCPP2B(3,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR)   &
+                    +DCPP2B(4,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
+               DCPP2(ITU(NR),NP,NR,NSB,NSA)=DCPP2(ITL(NR),NP,NR,NSB,NSA)
+            END IF
          END DO ! END NP
       END DO ! END NSB
       DO NSB=1,NSBMAX
@@ -463,12 +555,21 @@
                FCPP2(NTHMAX-NTH+1,NP,NR,NSB,NSA) &
                     =FCPP2(NTH,NP,NR,NSB,NSA)
             END DO ! END NTH
-            FCPP2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)/4.D0     &
-                 *( FCPP2(ITL(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
-                 +FCPP2(ITL(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR) &
-                 +FCPP2(ITU(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR) &
-                 +FCPP2(ITU(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
-            FCPP2(ITU(NR),NP,NR,NSB,NSA)=FCPP2(ITL(NR),NP,NR,NSB,NSA)
+            IF(ISW_LAV.ne.1)THEN
+               FCPP2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)/4.D0     &
+                    *( FCPP2(ITL(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
+                    +FCPP2(ITL(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR) &
+                    +FCPP2(ITU(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR) &
+                    +FCPP2(ITU(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
+               FCPP2(ITU(NR),NP,NR,NSB,NSA)=FCPP2(ITL(NR),NP,NR,NSB,NSA)
+            ELSE
+               FCPP2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)/4.D0     &
+                    *( FCPP2B(1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
+                    +FCPP2B(2,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR) &
+                    +FCPP2B(3,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR) &
+                    +FCPP2B(4,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
+               FCPP2(ITU(NR),NP,NR,NSB,NSA)=FCPP2(ITL(NR),NP,NR,NSB,NSA)
+            END IF
          END DO ! END NP
       END DO ! END NSB
       DO NSB=1,NSBMAX
@@ -480,12 +581,21 @@
                DCPT2(NTHMAX-NTH+1,NP,NR,NSB,NSA) &
                     =DCPT2(NTH,NP,NR,NSB,NSA)
             END DO ! END NTH
-            DCPT2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)/4.D0     &
-                 *( DCPT2(ITL(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
-                 +DCPT2(ITL(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR) &
-                 +DCPT2(ITU(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR) &
-                 +DCPT2(ITU(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
-            DCPT2(ITU(NR),NP,NR,NSB,NSA)=DCPT2(ITL(NR),NP,NR,NSB,NSA)
+            IF(ISW_LAV.ne.1)THEN
+               DCPT2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)/4.D0     &
+                    *( DCPT2(ITL(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
+                    +DCPT2(ITL(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR) &
+                    +DCPT2(ITU(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR) &
+                    +DCPT2(ITU(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
+               DCPT2(ITU(NR),NP,NR,NSB,NSA)=DCPT2(ITL(NR),NP,NR,NSB,NSA)
+            ELSE
+               DCPT2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)/4.D0     &
+                    *( DCPT2B(1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
+                    +DCPT2B(2,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR) &
+                    +DCPT2B(3,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR) &
+                    +DCPT2B(4,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
+               DCPT2(ITU(NR),NP,NR,NSB,NSA)=DCPT2(ITL(NR),NP,NR,NSB,NSA)
+            END IF
          END DO ! END NP
       END DO ! END NSB
 ! END OF BALANCE TRAPPED REGION for P direction
@@ -1037,6 +1147,17 @@
 
       END SUBROUTINE INTEGRATION_BACKGROUND_F_FINE
 !-------------------------------------------
+      SUBROUTINE dfdtheta(NP,NR,NSA)
+
+      IMPLICIT NONE
+      INTEGER,INTENT(IN):: NP, NR, NSA
+      INTEGER:: PITL, MITL, MITU, PITU
+
+      
+
+
+      END SUBROUTINE dfdtheta
+
 
       END MODULE fpcalcn
 
