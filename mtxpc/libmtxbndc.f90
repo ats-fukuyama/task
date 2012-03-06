@@ -2,7 +2,7 @@
 
 ! -----------------------------------------------------------------------
 !
-!  Description: Solves a linear system with BANDRD (direct method)
+!  Description: Solves a linear system with BANDCD (direct method)
 !
 ! -----------------------------------------------------------------------
 

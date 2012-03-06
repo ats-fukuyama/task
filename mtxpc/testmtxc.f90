@@ -4,7 +4,7 @@
 program testmtxc
 
   use libmtxc
-!  use libgrf
+  use libgrf,only:grd1d
   implicit none
   integer :: nrank,nprocs
   integer :: isize,itype,idata(2)
@@ -36,14 +36,13 @@ program testmtxc
   xmax = 1.d0
   ndiv = 101
 
-1 continue
-
   if(nrank.eq.0) then
      write(6,'(A)') "#TEST PROGRAM : Schroedinger equation solver"
-2    write(6,"(A,/E12.4,1X,2I4,D12.4)")&
-             &  "#INPUT: dt,ndiv,itype=",&
-               &         dt,ndiv,itype
-     read(5,*,ERR=2) dt,ndiv,itype
+1    continue
+     write(6,"(A,/E12.4,1X,2I4,D12.4)")&
+          &  "#INPUT: dt,ndiv,itype=",&
+          &           dt,ndiv,itype
+     read(5,*,ERR=1)  dt,ndiv,itype
 
      isize = ndiv
 
@@ -94,7 +93,7 @@ program testmtxc
 
   call mtx_gather_vector(x)
 
-3 continue
+2 continue
 
   if(nrank.eq.0) then
 
@@ -114,9 +113,9 @@ program testmtxc
      call pagee
      deallocate(FX,FY)
 
-4    CONTINUE
+3    continue
      write(6,*) "#INPUT: (C)CONTINUE,(Q)QUIT"
-     read (5,*,ERR=4) character
+     read (5,*,ERR=3) character
   endif
   CALL mtx_broadcast_character(character,1)
 
@@ -124,7 +123,7 @@ program testmtxc
   if (character.eq."c")then
      goto 100
   else if(character.ne."q")then
-     go to 3
+     go to 2
   end if
   
   deallocate(x)
