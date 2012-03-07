@@ -2,6 +2,7 @@ MODULE trsetup
 
 ! This module setup table for computation and 
 ! initializes the plasma profiles
+  USE trcomm, ONLY: ikind, rkind
 
   PUBLIC tr_setup
   PRIVATE
@@ -10,8 +11,8 @@ CONTAINS
 
   SUBROUTINE tr_setup
 
-    USE trcomm, ONLY: ikind,t,ngt,kidnsa,ns_nsa,idnsa,nsamax,pa,pz,pz0, &
-         tr_nit_allocate,tr_nsa_allocate,tr_nr_allocate,tr_ngt_allocate,&
+    USE trcomm, ONLY: t,ngt,kidnsa,ns_nsa,idnsa,nsamax,pa,pz,pz0,        &
+         tr_nit_allocate,tr_nsa_allocate,tr_nr_allocate,tr_ngt_allocate, &
          nitmax
     USE trbpsd, ONLY: tr_bpsd_init
     USE trloop, ONLY: tr_save_pvprev
@@ -70,6 +71,8 @@ CONTAINS
     CALL tr_setup_geometric ! calculate geometric factor in TASK/TR
     CALL tr_setup_profile   ! calculate initial profile
 
+    CALL tr_setup_htr_prof
+
     CALL tr_nit_allocate    ! allocation for diagnostics of iteration
 
     t      = 0.D0           ! time is initialized
@@ -90,78 +93,44 @@ CONTAINS
 
   SUBROUTINE tr_setup_table
 
-    USE trcomm, ONLY: ikind,nrmax,nsamax,neqmax,neqrmax,nvrmax,nvmax, &
-                      nsa_neq,nva_neq,id_neq,id_neqnr,neq_neqr, &
-                      rg,rg_fixed,neqr_neq,tr_neq_allocate,tr_neqr_allocate
+    USE trcomm, ONLY: nrmax,nsamax,neqmax,neqrmax,nvrmax,nvmax, &
+                      nsa_neq,nva_neq,id_neq,id_neqnr,neq_neqr,       &
+                      rg,rg_fixed,neqr_neq,tr_neqr_allocate
     IMPLICIT NONE
-    INTEGER(ikind):: neq,nsa,nva,i,neqr,nr
+    INTEGER(ikind):: neq,nsa,nva,neqr,nr
 
-    neqmax=1+3*nsamax
-    nvmax=neqmax*(nrmax+1)
-
-    CALL tr_neq_allocate
-
-!   nsa_neq = 0 : magnetic field
-!             otherwise : particle species
-!   nva_neq = 1 : density
-!             2 : toroidal velocity
-!             3 : temperature
-!   id_neq  = 0 : not solved
-!             1 : solved
-
-    neq=1
-    nsa_neq(neq)=0
-    nva_neq(neq)=1
-    id_neq(neq)=0
-
-    DO nsa=1,nsamax
-       DO i=1,3
-          neq=neq+1
-          nsa_neq(neq)=nsa
-          nva_neq(neq)=i
-          SELECT CASE(i)
-          CASE(1)
-             id_neq(neq)=0
-          CASE(2)
-             id_neq(neq)=0
-          CASE(3)
-             id_neq(neq)=1
-          END SELECT
-       ENDDO
-    ENDDO
-
-    neqr=0
-    DO neq=1,neqmax
+    neqr = 0
+    DO neq = 1, neqmax
        SELECT CASE(id_neq(neq))
 !         id_neqnr = 0 : fixed to zero
 !                    1 : solved normally
 !                    2 : fixed to a given value
 !                    3 : fixed to a given scale length
        CASE(0) ! equation is not solved in any radius (fixed to zero)
-          neqr_neq(neq)=0
-          id_neqnr(neq,0:nrmax)=0
+          neqr_neq(neq) = 0
+          id_neqnr(neq,0:nrmax) = 0
        CASE(1,11) ! flat on axis and fixed at plasma surface
-          neqr=neqr+1
-          neqr_neq(neq)=neqr
-          id_neqnr(neq,0:nrmax-1)=1
-          id_neqnr(neq,nrmax)=2
+          neqr = neqr+1
+          neqr_neq(neq) = neqr
+          id_neqnr(neq,0:nrmax-1) = 1
+          id_neqnr(neq,    nrmax) = 2
        CASE(2,12) ! fixed to zero on axis and fixed at plasma surface
-          neqr=neqr+1
-          neqr_neq(neq)=neqr
-          id_neqnr(neq,0)=2
-          id_neqnr(neq,1:nrmax-1)=1
-          id_neqnr(neq,nrmax)=2
+          neqr = neqr+1
+          neqr_neq(neq) = neqr
+          id_neqnr(neq,        0) = 2
+          id_neqnr(neq,1:nrmax-1) = 1
+          id_neqnr(neq,    nrmax) = 2
        CASE(3,13) ! flat on axis and fixed scale length at plasma surface
-          neqr=neqr+1
-          neqr_neq(neq)=neqr
-          id_neqnr(neq,0:nrmax-1)=1
-          id_neqnr(neq,nrmax)=3
+          neqr = neqr+1
+          neqr_neq(neq) = neqr
+          id_neqnr(neq,0:nrmax-1) = 1
+          id_neqnr(neq,    nrmax) = 3
        CASE(4,14) ! fixed to zero on axis and fixed scale length at surface
-          neqr=neqr+1
-          neqr_neq(neq)=neqr
-          id_neqnr(neq,0)=2
-          id_neqnr(neq,1:nrmax-1)=1
-          id_neqnr(neq,nrmax)=3
+          neqr = neqr+1
+          neqr_neq(neq) = neqr
+          id_neqnr(neq,        0) = 2
+          id_neqnr(neq,1:nrmax-1) = 1
+          id_neqnr(neq,    nrmax) = 3
        CASE DEFAULT
           WRITE(6,*) 'XX tr_setup_table: undefied id_neq:'
           WRITE(6,*) '   neq,id_neq(neq)=',neq,id_neq(neq)
@@ -177,9 +146,11 @@ CONTAINS
              END IF
           END DO
        END IF
+
     END DO
-    neqrmax=neqr
-    nvrmax=neqrmax*(nrmax+1)
+    neqrmax = neqr
+    nvrmax  = neqrmax*(nrmax+1)
+    write(*,*) neqrmax
 
     CALL tr_neqr_allocate
 
@@ -191,14 +162,13 @@ CONTAINS
     RETURN
   END SUBROUTINE tr_setup_table
 
-! -----------------------------------------------------------------------
-!  This subrouitne is called in the case not using any equilibrium code
-! -----------------------------------------------------------------------
+! ***************************************************************************
   SUBROUTINE tr_setup_geometric
 
-    USE trcomm, ONLY: ikind,rkind,pi,nrmax,ra,rr,rkap,bb,rg,rm,rhoa,  &
-       ttrho,dvrho,abrho,abvrho,arrho,ar1rho,ar2rho,rmjrho,rmnrho,rmnrhom, &
-       rkprho,rkprhom,rjcb,rhog,rhom,epsrho,abb2rho,pvolrho,psurrho,modelg
+    USE trcomm, ONLY: pi,nrmax,ra,rr,rkap,bb,rg,rm,rhoa,                    &
+       ttrho,dvrho,abrho,abvrho,arrho,ar1rho,ar2rho,rmjrho,rmnrho,rmnrhom,  &
+       rkprho,rkprhom,rjcb,rhog,rhom,epsrho,abb2rho,abb1rho,pvolrho,psurrho,&
+       modelg!, nrd1,nrd2
 
     IMPLICIT NONE
     INTEGER(ikind) :: nr
@@ -213,20 +183,16 @@ CONTAINS
        IF(nr /= 0) rm(nr)=0.5d0*(rg(nr-1)+rg(nr))
 
        SELECT CASE(modelg)
-          CASE(2) ! Toloidal geometry
+          CASE(2) ! Toloidal geometry : cylindrical assumption
              ! normalized variables
              rjcb(nr)    = 1.d0/(SQRT(rkap)*ra)
              rhog(nr)    = rg(nr)*rjcb(nr)
              IF(nr /= 0) rhom(nr) = 0.5d0*(rhog(nr-1)+rhog(nr))
-
-             ttrho(nr)   = bb*rr                         ! const
              
              pvolrho(nr) = pi*rkap*(ra*rhog(nr))**2*2.d0*pi*rr
              psurrho(nr) = pi*(rkap+1.d0)*ra*rhog(nr)*2.d0*pi*rr
              dvrho(nr)   = 2.d0*pi*rkap*ra**2*2.d0*pi*rr*rhog(nr)
 !
-             arrho(nr)   = 1.d0/rr**2                    ! const
-
              ar1rho(nr)  = 1.d0/(SQRT(rkap)*ra)          ! const
              ar2rho(nr)  = 1.d0/(SQRT(rkap)*ra)**2       ! const
              abrho(nr)   = 1.d0/(SQRT(rkap)*ra*rr)**2    ! const
@@ -237,42 +203,52 @@ CONTAINS
              IF(nr /= 0) rkprhom(nr)=0.5d0*(rkprho(nr-1)+rkprho(nr))
 !
              epsrho(nr)  = rmnrho(nr)/rmjrho(nr)
-             
-             abb2rho(nr) = bb*(1.d0+0.25d0*epsrho(nr)**2)
+
+             abb1rho(nr) = BB*(1.d0 + 0.5d0*epsrho(nr)**2) ! <B>
+             ttrho(nr)   = abb1rho(nr) * rr
+!             arrho(nr)   = 1.d0/rr**2                    ! const
+             arrho(nr)   = 1.d0/rr**2 * (1+1.5d0*epsrho(nr)**2)
+            
+!             abb2rho(nr) = 
              abvrho(nr)  = dvrho(nr)**2*abrho(nr)
+
           CASE(3) ! TASK/EQ output geometry
              continue
           CASE(8) ! CALL TASK/EQ
              continue
        END SELECT
+!       nrd1(0:nrmax) = abb1rho(0:nrmax)
+!       nrd2(0:nrmax) = ttrho(0:nrmax)
 
     END DO
 
   END SUBROUTINE tr_setup_geometric
 
 
+! ***************************************************************************
 ! ***** calculate inital profile *****
-
   SUBROUTINE tr_setup_profile
 
     USE trcomm, ONLY: ikind,rkind,pi,rkap,rdlt,nrmax,nsmax,nsamax, &
          rg,rm,rhog,rhom,ra,rr,rn,ru,rt,ns_nsa,qp, &
-         ttrho,dvrho,arrho,ar1rho,rdpvrho,dpdrho,bp
+         ttrho,dvrho,arrho,ar1rho,rdpvrho,dpdrho,bp, &
+         mdluf
     USE plprof, ONLY: pl_prof2,pl_qprf
                       
     IMPLICIT NONE
     REAL(rkind),DIMENSION(nsmax):: rn_ns,ru_ns,rtpr_ns,rtpp_ns
     INTEGER(ikind):: nr,nsa,ns
 
-    DO nr=0,nrmax
-       CALL pl_qprf(rhog(nr),qp(nr))
-       CALL pl_prof2(rhog(nr),rn_ns,rtpr_ns,rtpp_ns,ru_ns)
-       DO nsa=1,nsamax
-          ns=ns_nsa(nsa)
-          rn(nsa,nr)=rn_ns(ns)
-          ru(nsa,nr)=ru_ns(ns)
-          rt(nsa,nr)=(rtpr_ns(ns)+2.D0*rtpp_ns(ns))/3.D0
-
+    IF(mdluf == 0)THEN
+       DO nr=0,nrmax
+          CALL pl_qprf(rhog(nr),qp(nr))
+          CALL pl_prof2(rhog(nr),rn_ns,rtpr_ns,rtpp_ns,ru_ns)
+          DO nsa=1,nsamax
+             ns=ns_nsa(nsa)
+             rn(nsa,nr)=rn_ns(ns)
+             ru(nsa,nr)=ru_ns(ns)
+             rt(nsa,nr)=(rtpr_ns(ns)+2.D0*rtpp_ns(ns))/3.D0
+             
           ! MDLUF = 0 : trprof.f90
 !          pex(nsa,nr) = 0.d0
 !          sex(nsa,nr) = 0.d0
@@ -281,19 +257,95 @@ CONTAINS
 !          pbm(nr)     = 0.d0
 !          wrot(nr)    = 0.d0
 !          vtor(nr)    = 0.d0
+          ENDDO
+
        ENDDO
-
-! create BP from given Q profile
-       ! d psi/d V
-       rdpvrho(nr) = ttrho(nr)*arrho(nr)/(4.d0*pi**2*qp(nr))
-       dpdrho(nr)  = dvrho(nr)*rdpvrho(nr) ! d psi/d rho
-
-       ! This part should be calculated in another module ----------
-       ! poloidal magnetic field ~ (kappa^-2 * r * BB)/(RR * q)
-       bp(nr)      = ar1rho(nr)*dpdrho(nr)/rr ! poloidal magnetic field
-       ! -----------------------------------------------------------
-
-    ENDDO
+    END IF
   END SUBROUTINE tr_setup_profile
+
+! ***************************************************************************
+  SUBROUTINE tr_setup_htr_prof
+    USE trcomm, ONLY: rmu0,nrmax,BB,RR,abb1rho,dvrho,ttrho,abrho,dpdrho, &
+         ar1rho,rhog,jtot,joh,bp, nrd1,nrd2
+
+    IMPLICIT NONE
+    REAL(rkind) :: dr,prof,factor0,sumfact1,profj1,profj2
+    INTEGER(ikind) :: nr
+
+
+    ! create BP from given Q profile
+!    rdpvrho(nr) = ttrho(nr)*arrho(nr)/(4.d0*pi**2*qp(nr))! d psi/d V
+!    dpdrho(nr)  = dvrho(nr)*rdpvrho(nr)                  ! d psi/d rho
+    
+    profj1 = 2.d0
+    profj2 = 1.d0
+
+    DO nr = 0, nrmax
+       IF((1.d0-rhog(nr)**ABS(profj1)).LE.0.d0) THEN
+          prof = 0.D0
+       ELSE
+          prof = 1.d6 * (1.D0-rhog(nr)**ABS(profj1))**ABS(profj2)
+       ENDIF
+       joh(nr)  = prof
+       jtot(nr) = prof
+    ENDDO
+
+    sumfact1 = 0.d0
+    dpdrho   = 0.d0
+    DO nr = 1, nrmax
+       dr = rhog(nr)-rhog(nr-1)
+       factor0 = ttrho(nr)/(dvrho(nr)*abrho(nr))
+       sumfact1 = sumfact1 +                               &
+                  rmu0*abb1rho(nr)*dvrho(nr)/ttrho(nr)**2  &
+                   * 0.5d0*(jtot(nr)+jtot(nr-1)) * dr
+       dpdrho(nr) = factor0*sumfact1
+
+       ! poloidal magnetic field ~ (kappa^-2 * r * BB)/(RR * q)
+       bp(nr)      = ar1rho(nr)*dpdrho(nr)/rr
+
+    END DO
+
+    nrd1(0:nrmax) = jtot(0:nrmax)
+    nrd2(0:nrmax) = dpdrho(0:nrmax)
+
+
+!!$    NR=1    
+!!$    FACTORP=ABVRHOG(NR  )/TTRHOG(NR  )
+!!$    RDPVRHOG(NR)=FACTOR0*DR/FACTORP
+!!$    RDP(NR)=RDPVRHOG(NR)*DVRHOG(NR)
+!!$    BP(NR)=AR1RHOG(NR)*RDP(NR)/RR
+!!$    DO NR=2,NRMAX
+!!$       FACTOR0=RMU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
+!!$       FACTORM=ABVRHOG(NR-1)/TTRHOG(NR-1)
+!!$       FACTORP=ABVRHOG(NR  )/TTRHOG(NR  )
+!!$       RDPVRHOG(NR)=(FACTORM*RDPVRHOG(NR-1)+FACTOR0*DR)/FACTORP
+!!$       RDP(NR)=RDPVRHOG(NR)*DVRHOG(NR)
+!!$       BP(NR)=AR1RHOG(NR)*RDP(NR)/RR
+!!$    ENDDO
+!!$    NR=1
+!!$    FACTOR0=RR/(RMU0*DVRHO(NR))
+!!$    FACTORP=ABVRHOG(NR  )
+!!$    AJTOR(NR) =FACTOR0*FACTORP*RDPVRHOG(NR)/DR
+!!$    DO NR=2,NRMAX
+!!$       FACTOR0=RR/(RMU0*DVRHO(NR))
+!!$       FACTORM=ABVRHOG(NR-1)
+!!$       FACTORP=ABVRHOG(NR  )
+!!$       AJTOR(NR) =FACTOR0*(FACTORP*RDPVRHOG(NR)-FACTORM*RDPVRHOG(NR-1))/D\
+!!$       R
+!!$    ENDDO
+!!$    
+!!$    RDPS=2.D0*PI*RMU0*RIP*1.D6*DVRHOG(NRMAX)/ABVRHOG(NRMAX)
+!!$    FACT=RDPS/RDP(NRMAX)
+!!$    RDP(1:NRMAX)=FACT*RDP(1:NRMAX)
+!!$    RDPVRHOG(1:NRMAX)=FACT*RDPVRHOG(1:NRMAX)
+!!$    AJOH(1:NRMAX)=FACT*AJOH(1:NRMAX)
+!!$    AJ(1:NRMAX)  =AJOH(1:NRMAX)
+!!$    BP(1:NRMAX)  =FACT*BP(1:NRMAX)
+!!$    QP(1:NRMAX)  =TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)/(4.D0*PI**2*RDPVRHOG(1:\
+!!$    NRMAX))
+    
+
+    RETURN
+  END SUBROUTINE tr_setup_htr_prof
 
 END MODULE trsetup

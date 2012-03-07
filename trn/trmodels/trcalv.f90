@@ -14,9 +14,10 @@ MODULE trcalv
 
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE ::&
        rp,       &!the pressure of each species (nT)
-       rp_d       !the deriv. of pressure of each species (dnT/dr) (half-mesh)
+       rp_d       !the deriv. of pressure of each species (dnT/dr) 
        
   REAL(rkind),DIMENSION(:),ALLOCATABLE ::&
+       rps,&
        rp_tot,   &! the total pressure
        rp_totd,  &! the deriv. of total pressure
        rp_add,   &! the additional pressure
@@ -24,23 +25,23 @@ MODULE trcalv
 !
        rt_e,     &! the electron temperature
        rt_em,    &! the electron temperature (half-mesh)
-       rt_ed,    &! the deriv. of electron temperature (half-mesh)
-       rt_ecl,   &! the scale length of electron temperature (half-mesh)
+       rt_ed,    &! the deriv. of electron temperature
+       rt_ecl,   &! the scale length of electron temperature 
        rt_i,     &! the effective ion temperature
        rt_im,    &! the effective ion temperature (half-mesh)
-       rt_id,    &! the deriv. of effective ion temperature (half-mesh)
-       rt_icl,   &! the scale length of ion temperature (half-mesh)
+       rt_id,    &! the deriv. of effective ion temperature 
+       rt_icl,   &! the scale length of ion temperature 
 !
        rn_e,     &! the electron density
        rn_em,    &! the electron density (half-mesh)
-       rn_ed,    &! the deriv. of electron density (half-mesh)
-       rn_ecl,   &! the scale length of electron density (half-mesh)
+       rn_ed,    &! the deriv. of electron density 
+       rn_ecl,   &! the scale length of electron density 
        rn_i,     &! the sum of ion density
        rn_im,    &! the sum of ion density (half-mesh)
-       rn_id,    &! the deriv. of ion density (half-mesh)
-       rn_icl,   &! the scale length of ion density (half-mesh)
+       rn_id,    &! the deriv. of ion density 
+       rn_icl,   &! the scale length of ion density 
        qp_m,     &! safety factor (half-mesh)
-       qp_d,     &! the deriv. of safety factor (half-mesh)
+       qp_d,     &! the deriv. of safety factor 
 !       
        mshear,   &! magnetic shear            r/q * (dq/dr)
        mshear_cl,&! magnetic shear length  R*q**2/(r*dq/dr)
@@ -105,13 +106,14 @@ CONTAINS
 
   SUBROUTINE tr_calv_fundamental
     USE trcomm, ONLY: rkev,pa,pz,pz0,idnsa,ar1rho,RR,BB,rhog,rmnrho, &
-         rt,rn,bp,qp
+         rt,rn,bp,qp, nrd1,nrd2
 
     IMPLICIT NONE
 
     ! --- control and internal variables
     INTEGER(ikind) :: nr,ns,nsa
     REAL(rkind) :: rt_isum, dr_norm
+    REAL(rkind) :: deriv3
 
     rp_add  = 0.d0
     rp_beam = 0.d0
@@ -129,12 +131,25 @@ CONTAINS
 !       ! padd = experimental - calculating result (beam pressure)
 !    ENDIF
 
+
+    ! ---  NR = 0 ----
     rn_i    = 0.d0
     rp_tot  = 0.d0
     rp_totd = 0.d0
     rt_isum = 0.d0
 
-    ! ---  NR = 0 ----
+    rp_d   = 0.d0
+    rn_ed  = 0.d0
+    rn_ecl = 0.d0
+    rn_id  = 0.d0
+    rn_icl = 0.d0
+    rt_ed  = 0.d0
+    rt_ecl = 0.d0
+    rt_id  = 0.d0
+    rt_icl = 0.d0
+    qp_d   = 0.d0
+    mshear = 0.d0
+
        rt_e(0) = rt(1,0)
        rn_e(0) = rn(1,0)
 
@@ -158,9 +173,7 @@ CONTAINS
        rn_e(nr) = rn(1,nr)
        DO nsa = 1, nsamax
           ! the pressure of each species
-          rp(nsa,nr)  = rn(nsa,nr)*1.d20 * rt(nsa,nr)*rkev
-          rp_d(nsa,nr) = (rp(nsa,nr)-rp(nsa,nr-1)) * dr_norm
-
+          rp(nsa,nr)    = rn(nsa,nr)*1.d20 * rt(nsa,nr)*rkev
           rp_tot(nr)  = rp_tot(nr) + rp(nsa,nr)
 
           IF(idnsa(nsa) == 1) THEN ! ion
@@ -170,41 +183,42 @@ CONTAINS
        END DO         
        rt_i(nr)    = rt_isum / rn_i(nr)
 
-       ! half-mesh
-       rn_em(nr)   = 0.5d0*(rn_e(nr)+rn_e(nr-1))
-       rn_im(nr)   = 0.5d0*(rn_i(nr)+rn_i(nr-1))          
-       rt_em(nr)   = 0.5d0*(rt_e(nr)+rt_e(nr-1))
-       rt_im(nr)   = 0.5d0*(rt_i(nr)+rt_i(nr-1))
-!       write(*,*) rt_im(nr)
-
-       ! derivatives with respect to 'r' ( d XX/dr = <|grad rho|>*d XX/d rho)
-       rn_ed(nr)   = (rn_e(nr)-rn_e(nr-1)) * dr_norm
-       rn_id(nr)   = (rn_i(nr)-rn_i(nr-1)) * dr_norm
-       rt_ed(nr)   = (rt_e(nr)-rt_e(nr-1)) * dr_norm
-       rt_id(nr)   = (rt_i(nr)-rt_i(nr-1)) * dr_norm
-       rp_totd(nr) = (rp_tot(nr)-rp_tot(nr-1)) * dr_norm
-
-       ! scale length ( (d XX/d rho)/XX )
-       rt_ecl(nr)  = rt_ed(nr) / rt_em(nr)
-       rt_icl(nr)  = rt_id(nr) / rt_im(nr)
-       rn_ecl(nr)  = rn_ed(nr) / rn_em(nr)
-       rn_icl(nr)  = rn_id(nr) / rn_im(nr)
-
-       ! mean atomic mass of thermal ions [AMU]
-
-       ! impurity and hydrogen density, density weighted charge/atomic number
-
        ! safety factor
-       qp_m(nr) = 0.5d0*(qp(nr)+qp(nr-1))
-       qp_d(nr) = (qp(nr)-qp(nr-1)) * dr_norm
-
-       ! magnetic shear
-       mshear(nr) =  0.5d0*(rmnrho(nr-1)+rmnrho(nr))/qp_m(nr) * qp_d(nr)
+       qp_m(nr)  = 0.5d0*(qp(nr)+qp(nr-1))
+       qp_d(nr) = deriv3(nr,rmnrho,qp,nrmax,0)
 
        ! magnetic curvature
        mcurv = 0.d0
        
     END DO
+       ! derivatives with respect to 'r' ( d XX/dr = <|grad rho|>*d XX/d rho)
+       ! ** second order accuracy on grid
+    DO nr = 1, nrmax
+       DO nsa = 1, nsamax
+          rps(0:nrmax) = rp(nsa,0:nrmax)
+          rp_d(nsa,nr) = deriv3(nr,rmnrho,rps,nrmax,0)
+       END DO
+
+       rn_ed(nr)   = deriv3(nr,rmnrho,rn_e,nrmax,0)
+       rn_id(nr)   = deriv3(nr,rmnrho,rn_i,nrmax,0)
+       rt_ed(nr)   = deriv3(nr,rmnrho,rt_e,nrmax,0)
+       rt_id(nr)   = deriv3(nr,rmnrho,rt_i,nrmax,0)
+       rp_totd(nr) = deriv3(nr,rmnrho,rp_tot,nrmax,0)
+
+       ! scale length ( (d XX/d rho)/XX ) on grid
+       rt_ecl(nr)  = rt_ed(nr) / rt_e(nr)
+       rt_icl(nr)  = rt_id(nr) / rt_i(nr)
+       rn_ecl(nr)  = rn_ed(nr) / rn_e(nr)
+       rn_icl(nr)  = rn_id(nr) / rn_i(nr)
+
+       ! mean atomic mass of thermal ions [AMU]
+
+       ! impurity and hydrogen density, density weighted charge/atomic number
+
+       ! magnetic shear
+       mshear(nr) =  rmnrho(nr)/qp(nr) * qp_d(nr)
+    END DO
+
 
   END SUBROUTINE tr_calv_fundamental
 
@@ -220,7 +234,7 @@ CONTAINS
 
     IMPLICIT NONE
     INTEGER(ikind) :: nr
-    REAl(rkind) :: term_dp
+    REAl(rkind) :: term_dp,term_dpg
 
 
     DO nr=1,nrmax
@@ -244,8 +258,8 @@ CONTAINS
 
 ! DPD -> rp_d(nsa,nr)
 
-       ! second species (main ion: D) only  for now (half-mesh)
-       term_dp = rp_d(2,nr) / (pz(2)*aee*0.5d0*(rn(2,nr)+rn(2,nr-1))*1.d20)
+       ! second species (main ion: D) only
+       term_dp = rp_d(2,nr) / (pz(2)*aee*rn(2,nr)*1.d20)
 
        ! toroidal and poloidal rotation velocity <- from experiments for now
        vtor = 0.d0
@@ -253,14 +267,13 @@ CONTAINS
 
        IF(mdler.EQ.0) THEN
           ! pressure gradient only (nabla p)
-          er(nr) = term_dp
+          er(nr)  = term_dp
        ELSE IF(mdler.EQ.1) THEN
           ! nabla p + toroidal rotation (V_tor)
           er(nr) = term_dp+vtor(nr)*bp(nr)
        ELSE IF(mdler.EQ.2) THEN
           ! nabla p + V_tor + poloidal rotation (V_pol) *** typical ER ***
           er(nr) = term_dp+vtor(nr)*bp(nr)-vpol(nr)*bb
-
 !       ELSEIF(MDLER.EQ.3) THEN
 !          !     Waltz definition
 !          EPS = EPSRHO(NR)
@@ -359,6 +372,7 @@ CONTAINS
        ALLOCATE(rp(nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000
        ALLOCATE(rp_d(nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000
        
+       ALLOCATE(rps(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000
        ALLOCATE(rp_tot(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000   
        ALLOCATE(rp_totd(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000  
        ALLOCATE(rp_add(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000   
@@ -408,6 +422,7 @@ CONTAINS
     IF(ALLOCATED(rp)) DEALLOCATE(rp)
     IF(ALLOCATED(rp_d)) DEALLOCATE(rp_d)
 !    
+    IF(ALLOCATED(rps)) DEALLOCATE(rps)
     IF(ALLOCATED(rp_tot)) DEALLOCATE(rp_tot)
     IF(ALLOCATED(rp_totd)) DEALLOCATE(rp_totd)
     IF(ALLOCATED(rp_add)) DEALLOCATE(rp_add)

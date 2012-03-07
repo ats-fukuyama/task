@@ -61,7 +61,9 @@ MODULE trcomm
        rg,      &! radial mesh position [m]
        rm,      &! radial half mesh position [m]
        qp,      &! safety factor
-       qp_prev   ! previous safety factor
+       qp_prev, &! previous safety factor
+       dpdrho,   &! d psi/d rho
+       dpdrho_prev! d psi/d rho
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
        rn,      &! particle density [10^{20] m^{-3}]
        ru,      &! toroidal velocity [m/s]
@@ -87,6 +89,9 @@ MODULE trcomm
        dtr_prv,  &! additional diffusion coefficient [m^2/s]
        vtr_prv    ! additional convection velocity [m^2/s]
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
+       eta   ,   &! pararell resistivity 
+       jtot  ,   &! total current [A/m^2]
+       joh   ,   &! ohmic current [A/m^2]
        eta_nc,   &! neoclassical resistivity [ohm m]
        jbs_nc,   &! bootstrap current by neoclassical effect [A/m^2]
        jcd_nb,   &! current driven by NBI [A/m^2]
@@ -94,7 +99,7 @@ MODULE trcomm
        jcd_lh,   &! current driven by LHRF waves [A/m^2]
        jcd_ic     ! current driven by ICRF waves [A/m^2]
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
-       lt_save    ! temperature scale length [m]
+       str_simple !  simple model of source density [MW/m^3]
 
 ! ----- profile variables -----
 
@@ -139,7 +144,6 @@ MODULE trcomm
   REAL(rkind) :: &
        rhoa       ! normalized minor radius
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
-       dpdrho,   &! dpsi/drho
        rhog,     &! normalized minor radius mesh position
        rhom,     &! normalized minor radius half-mesh position
        rjcb       ! 1/rho : rho ~ kappa * r : effective minor radius ?
@@ -223,6 +227,8 @@ CONTAINS
        ALLOCATE(rm(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(qp(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(qp_prev(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(dpdrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
+       ALLOCATE(dpdrho_prev(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
        ALLOCATE(rn(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(ru(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(rt(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
@@ -248,6 +254,9 @@ CONTAINS
           IF(ierr /= 0) GOTO 9000
        ALLOCATE(ctr_ex(3*neqmax,3*neqmax,0:nrmax),STAT=ierr)
           IF(ierr /= 0) GOTO 9000
+       ALLOCATE(eta(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(jtot(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(joh(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(eta_nc(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(jbs_nc(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(jcd_nb(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
@@ -255,7 +264,7 @@ CONTAINS
        ALLOCATE(jcd_lh(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(jcd_ic(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
 
-       ALLOCATE(lt_save(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(str_simple(3*neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
 
        ! profile variables
        ALLOCATE(vtor(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
@@ -299,7 +308,6 @@ CONTAINS
       ALLOCATE(rkprhom(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000  
 
       !    normalized variables
-      ALLOCATE(dpdrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
       ALLOCATE(rhog(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000   
       ALLOCATE(rhom(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000   
       ALLOCATE(rjcb(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000   
@@ -333,6 +341,8 @@ CONTAINS
     IF(ALLOCATED(rm)) DEALLOCATE(rm)
     IF(ALLOCATED(qp)) DEALLOCATE(qp)
     IF(ALLOCATED(qp_prev)) DEALLOCATE(qp_prev)
+    IF(ALLOCATED(dpdrho)) DEALLOCATE(dpdrho)
+    IF(ALLOCATED(dpdrho_prev)) DEALLOCATE(dpdrho_prev)
     IF(ALLOCATED(rn)) DEALLOCATE(rn)
     IF(ALLOCATED(ru)) DEALLOCATE(ru)
     IF(ALLOCATED(rt)) DEALLOCATE(rt)
@@ -349,13 +359,17 @@ CONTAINS
     IF(ALLOCATED(vtr_nc)) DEALLOCATE(vtr_nc)
     IF(ALLOCATED(vtr_tb)) DEALLOCATE(vtr_tb)
     IF(ALLOCATED(ctr_ex)) DEALLOCATE(ctr_ex)
+    IF(ALLOCATED(eta)) DEALLOCATE(eta)
+    IF(ALLOCATED(jtot)) DEALLOCATE(jtot)
+    IF(ALLOCATED(joh)) DEALLOCATE(joh)
     IF(ALLOCATED(eta_nc)) DEALLOCATE(eta_nc)
     IF(ALLOCATED(jbs_nc)) DEALLOCATE(jbs_nc)
     IF(ALLOCATED(jcd_nb)) DEALLOCATE(jcd_nb)
     IF(ALLOCATED(jcd_ec)) DEALLOCATE(jcd_ec)
     IF(ALLOCATED(jcd_lh)) DEALLOCATE(jcd_lh)
     IF(ALLOCATED(jcd_ic)) DEALLOCATE(jcd_ic)
-    IF(ALLOCATED(lt_save)) DEALLOCATE(lt_save)
+
+    IF(ALLOCATED(str_simple)) DEALLOCATE(str_simple)
 
     ! profile variables
     IF(ALLOCATED(vtor)) DEALLOCATE(vtor)
@@ -410,7 +424,7 @@ CONTAINS
     IF(ALLOCATED(nrd2)) DEALLOCATE(nrd2)
     IF(ALLOCATED(nrd3)) DEALLOCATE(nrd3)
     IF(ALLOCATED(nrd4)) DEALLOCATE(nrd4)
-       
+
     RETURN
   END SUBROUTINE tr_nr_deallocate
 

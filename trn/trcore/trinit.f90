@@ -4,6 +4,7 @@ MODULE trinit
   PUBLIC tr_term  ! terminate procedure
   PUBLIC tr_parm  ! parameter input through namelist
   PUBLIC tr_view  ! show values of input parameters
+  PUBLIC tr_idneq ! set id_neq (whether solve eqn. or not)
 
   PRIVATE
 
@@ -429,4 +430,55 @@ CONTAINS
      &        2X,A7, '=',I7,3X   :2X,A7, '=',I7)
 
   END SUBROUTINE tr_view
+
+  SUBROUTINE tr_idneq
+    USE trcomm, ONLY: tr_neq_allocate, &
+         ikind,nsamax,neqmax,nvmax,nrmax,nsa_neq,nva_neq,id_neq
+
+    IMPLICIT NONE
+    INTEGER(ikind) :: i,neq,nsa
+
+    neqmax = 1 + 3*nsamax
+    nvmax  = neqmax*(nrmax+1)
+
+    CALL tr_neq_allocate
+
+    !   nsa_neq = 0 : magnetic field
+    !     otherwise : particle species
+
+    !   nva_neq = 1 : density
+    !             2 : toroidal velocity
+    !             3 : temperature
+
+    !   id_neq  = 0 : equation is not solved in any radius (fixed to zero)
+    !             1 : flat on axis and fixed at plasma surface 
+    !             2 : fixed to zero on axis and fixed at plasma surface
+    !             3 : flat on axis and fixed scale length at plasma surface
+    !             4 : fixed to zero on axis and fixed scale length at surface
+
+    ! magnetic diffusion equation
+    neq = 1
+    nsa_neq(neq) = 0
+    nva_neq(neq) = 0
+    id_neq(neq)  = 2
+
+    DO nsa=1,nsamax
+       DO i=1,3
+          neq = neq+1
+          nsa_neq(neq) = nsa
+          nva_neq(neq) = i
+          SELECT CASE(i)
+          CASE(1) ! density
+             id_neq(neq) = 0
+          CASE(2) ! toroidal velocity
+             id_neq(neq) = 0
+          CASE(3) ! temperature
+             id_neq(neq) = 1
+          END SELECT
+       ENDDO
+    ENDDO
+    
+    RETURN
+  END SUBROUTINE tr_idneq
+
 END MODULE trinit

@@ -10,11 +10,11 @@ CONTAINS
     USE mixed_Bohm_gyro_Bohm, ONLY: mixed_model
 
     USE trcomm, ONLY: &
-         ikind,rkind,ns_nsa,idnsa,pa,nsamax,nrmax,RR,ra,BB,      &
-         rmnrho,rmjrho,nrmax,mdltr_tb,amp,rkev,rn,dtr_tb,vtr_tb, &
-         cdtrn,cdtru,cdtrt  ,nrd1,nrd2
+         ikind,rkind,ns_nsa,idnsa,pa,nsamax,nrmax,RR,ra,BB,abb1rho, &
+         rmnrho,rmjrho,nrmax,mdltr_tb,amp,rkev,rn,qp,dtr_tb,vtr_tb, &
+         cdtrn,cdtru,cdtrt !  ,nrd1,nrd2
     USE trcalv, ONLY: &
-         rn_im,rn_ecl,rt_e,rt_em,rt_im,rt_ecl,qp_m,mshear,wexbp
+         rn_i,rn_ecl,rt_e,rt_i,rt_ecl,mshear,wexbp
 
     IMPLICIT NONE
 
@@ -25,13 +25,21 @@ CONTAINS
             rmajor,rminor,btor,tekev,tikev,q,aimass,charge,wexbs, &
             grdte,grdne,shear, &
             chi_i_mix,themix,thdmix,thigb,thegb,thibohm,thebohm
-    REAL(rkind),DIMENSION(0:nrmax) :: D_hyd,chie_b,chii_b,chie_gb,chii_gb
+
+    REAL(rkind),DIMENSION(0:nrmax) :: &
+         mbgb_chie,mbgb_chii
+    REAL(rkind),DIMENSION(1:nrmax) :: &
+         mbgb_chiem,mbgb_chiim
+
+!    REAL(rkind),DIMENSION(0:nrmax) :: D_hyd,chie_b,chii_b,chie_gb,chii_gb
     INTEGER(ikind):: nr8,npoints,lflowshear
 
     INTEGER(ikind):: nr,nsa,ns,ierr
 
     dtr_tb(1:3*nsamax,1:3*nsamax,0:nrmax) = 0.D0
     vtr_tb(1:3*nsamax,1:3*nsamax,0:nrmax) = 0.D0
+    mbgb_chie = 0.d0
+    mbgb_chii = 0.d0
 
     amm      = amp          ! proton mass
     npoints  = 1            ! num. of values of 'jz' in all of arrays [int]
@@ -43,27 +51,28 @@ CONTAINS
 
     DO nr = 1, nrmax
        ! minor radius (half-width) of zone boundary [m]
-       rminor(1)  = 0.5d0*(rmnrho(nr-1)+rmnrho(nr))
+       rminor(1)  = rmnrho(nr)
        ! major radius to geometric center of zone boundary [m] <- approx.
-       rmajor(1)  = 0.5d0*(rmjrho(nr-1)*rmjrho(nr))
-       btor(1)    = BB     ! toroidal magnetic field [T] <- approx.
+       rmajor(1)  = rmjrho(nr)
+!       btor(1)    = BB     ! toroidal magnetic field [T] <- approx.
+       btor(1) = abb1rho(nr) ! toroidal magnetic field [T]
 
        sum_pan = 0.d0
        DO nsa = 1, nsamax
           IF(idnsa(nsa)==1)THEN
              ns = ns_nsa(nsa)
-             sum_pan = sum_pan+pa(ns)*0.5d0*(rn(nsa,nr-1)+rn(nsa,nr))
+             sum_pan = sum_pan+pa(ns)*rn(nsa,nr)
           END IF
        END DO
-       pa_ave    = sum_pan / rn_im(nr) ! average ion mass [AMU]
+       pa_ave    = sum_pan / rn_i(nr) ! average ion mass [AMU]
        aimass(1) = pa_ave
 
        charge(1) = 1.0               ! charge number of main thermal ions
                                      ! ( 1.0 for hydrogenic ions )
 
-       tekev(1)  = rt_em(nr)         ! T_e [keV]
-       tikev(1)  = rt_im(nr)         ! T_i [keV] :effective ion temperature
-       q(1)      = qp_m(nr)          ! safety-factor (half-mesh)
+       tekev(1)  = rt_e(nr)         ! T_e [keV]
+       tikev(1)  = rt_i(nr)         ! T_i [keV] :effective ion temperature
+       q(1)      = qp(nr)          ! safety-factor (half-mesh)
 
        ! *** There is a fault in 'mixed model' subroutine ***
        !      fault   : -RR ( d T_e / d r ) / T_e
@@ -93,14 +102,14 @@ CONTAINS
           EXBfactor  = 1.d0
        CASE(142)
           lflowshear = 0
-          vti        = SQRT(2.d0*rt_im(nr)*rkev / (pa_ave*amm))
-          gamma0     = vti / (qp_m(nr)*RR)
+          vti        = SQRT(2.d0*rt_i(nr)*rkev / (pa_ave*amm))
+          gamma0     = vti / (qp(nr)*RR)
           SHRfactor  = 1.d0
           EXBfactor  = 1.d0 / (1.d0+(wexbp(nr)/gamma0)**2)
        CASE(143)
           lflowshear = 0
-          vti        = SQRT(2.d0*rt_im(nr)*rkev/(pa_ave*amm))
-          gamma0     = vti / (qp_m(nr)*RR)
+          vti        = SQRT(2.d0*rt_i(nr)*rkev/(pa_ave*amm))
+          gamma0     = vti / (qp(nr)*RR)
           SHRfactor  = 1.d0 / MAX(1.d0,(mshear(nr)-0.5d0)**2)
           EXBfactor  = 1.d0 / (1.d0+(wexbp(nr)/gamma0)**2)
        CASE DEFAULT
@@ -147,36 +156,43 @@ CONTAINS
 !
 !   ierr    = returning with value .ne. 0 indicates error                  
 
-       factor   = EXBfactor * SHRfactor
-
-       DO nsa = 1, nsamax
-          IF(idnsa(nsa) == -1)THEN ! electron
-             dtr_tb(3*nsa-2,3*nsa-2,nr) = cdtrn *themix(1)*factor
-             dtr_tb(3*nsa-1,3*nsa-1,nr) = cdtru *themix(1)*factor
-             dtr_tb(3*nsa  ,3*nsa  ,nr) = cdtrt *themix(1)*factor
-          ELSE IF(idnsa(nsa) /= 0)THEN ! ion
-             dtr_tb(3*nsa-2,3*nsa-2,nr) = cdtrn *chi_i_mix(1)*factor
-             dtr_tb(3*nsa-1,3*nsa-1,nr) = cdtru *chi_i_mix(1)*factor
-             dtr_tb(3*nsa  ,3*nsa  ,nr) = cdtrt *chi_i_mix(1)*factor
-          END IF
-       END DO
-
        ! *** for diagnostic ***
-       ! Hydrogenic ion particle diffusivity [m^2/s]
-       D_hyd(nr)   = thdmix(1)  *factor 
-       ! Bohm contribution to electron thermal diffusivity [m^2/s]
-       chie_b(nr)  = thebohm(1) *factor
-       ! Bohm contribution to ion thermal diffusivity [m^2/s]
-       chii_b(nr)  = thibohm(1) *factor
-       ! gyro-Bohm contribution to electron thermal diffusivity [m^2/s]
-       chie_gb(nr) = thegb(1)   *factor
-       ! gyro-Bohm contribution to ion thermal diffusivity [m^2/s]
-       chii_gb(nr) = thigb(1)   *factor
+!!$       ! Hydrogenic ion particle diffusivity [m^2/s]
+!!$       D_hyd(nr)   = thdmix(1)  *factor 
+!!$       ! Bohm contribution to electron thermal diffusivity [m^2/s]
+!!$       chie_b(nr)  = thebohm(1) *factor
+!!$       ! Bohm contribution to ion thermal diffusivity [m^2/s]
+!!$       chii_b(nr)  = thibohm(1) *factor
+!!$       ! gyro-Bohm contribution to electron thermal diffusivity [m^2/s]
+!!$       chie_gb(nr) = thegb(1)   *factor
+!!$       ! gyro-Bohm contribution to ion thermal diffusivity [m^2/s]
+!!$       chii_gb(nr) = thigb(1)   *factor
 
+       mbgb_chie(nr) = themix(1)
+       mbgb_chii(nr) = chi_i_mix(1)
     END DO
 
-    nrd1(1:nrmax) = chie_b(1:nrmax)
-    nrd2(1:nrmax) = chie_gb(1:nrmax)
+    mbgb_chiem(1:nrmax) = 0.5d0*(mbgb_chie(0:nrmax-1)+mbgb_chie(1:nrmax))
+    mbgb_chiim(1:nrmax) = 0.5d0*(mbgb_chii(0:nrmax-1)+mbgb_chii(1:nrmax))
+
+    factor   = EXBfactor * SHRfactor
+
+    DO nr = 1, nrmax
+       DO nsa = 1, nsamax
+          IF(idnsa(nsa) == -1)THEN ! electron
+             dtr_tb(3*nsa-2,3*nsa-2,nr) = cdtrn *mbgb_chiem(nr)*factor
+             dtr_tb(3*nsa-1,3*nsa-1,nr) = cdtru *mbgb_chiem(nr)*factor
+             dtr_tb(3*nsa  ,3*nsa  ,nr) = cdtrt *mbgb_chiem(nr)*factor
+          ELSE IF(idnsa(nsa) /= 0)THEN ! ion
+             dtr_tb(3*nsa-2,3*nsa-2,nr) = cdtrn *mbgb_chiim(nr)*factor
+             dtr_tb(3*nsa-1,3*nsa-1,nr) = cdtru *mbgb_chiim(nr)*factor
+             dtr_tb(3*nsa  ,3*nsa  ,nr) = cdtrt *mbgb_chiim(nr)*factor
+          END IF
+       END DO
+    END DO
+
+!    nrd1(1:nrmax) = chie_b(1:nrmax)
+!    nrd2(1:nrmax) = chie_gb(1:nrmax)
 
     RETURN
   END SUBROUTINE tr_mbgb

@@ -1,5 +1,7 @@
 MODULE trresult
 
+  USE trcomm, ONLY: rkind,ikind
+
   PUBLIC tr_calc_global,tr_status,tr_save_ngt
   PRIVATE
 
@@ -16,7 +18,7 @@ CONTAINS
 
   SUBROUTINE tr_status
 
-    USE trcomm, ONLY : rkind,ikind,nsamax,t,qp,rt,kidnsa,nitmax
+    USE trcomm, ONLY : nsamax,t,qp,rt,kidnsa,nitmax
     IMPLICIT NONE
     REAL(rkind):: wp,taue
     INTEGER(ikind):: nsa
@@ -38,7 +40,7 @@ CONTAINS
   SUBROUTINE tr_save_ngt
 
     USE trcomm, ONLY : &
-         rkind,ikind,nrmax,nsamax,ngtmax,neqmax, &
+         nrmax,nsamax,ngtmax,neqmax, &
          ngt,gvt,gvts,gvrt,gvrts,gparts,t,rn,ru,rt,qp
     USE trcoef, ONLY: Pereverzev_check
     IMPLICIT NONE

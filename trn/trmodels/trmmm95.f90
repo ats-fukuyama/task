@@ -14,12 +14,12 @@ CONTAINS
   SUBROUTINE tr_mmm95
 
     USE trcomm, ONLY: &
-         rkind,ikind,nrmax,nsamax,idnsa,ns_nsa,pa,pz,     &
-         rmnrho,rmjrho,rkprho,BB,RR,rn,cdtrn,cdtru,cdtrt, &
-         dtr_tb,vtr_tb!,&
+         rkind,ikind,nrmax,nsamax,idnsa,ns_nsa,pa,pz,  &
+         rmnrho,rmjrho,rkprho,abb1rho,BB,RR,rn,qp,     &
+         cdtrn,cdtru,cdtrt,dtr_tb,vtr_tb!,&
          !nrd1,nrd2,nrd3
     USE trcalv, ONLY: &
-        rt_em,rt_ecl,rt_im,rt_icl,rn_em,rn_ecl,rn_im,rn_icl,qp_m, &
+        rt_e,rt_ecl,rt_i,rt_icl,rn_e,rn_ecl,rn_i,rn_icl, &
         mshear,wexbp,z_eff
 
     IMPLICIT NONE
@@ -62,6 +62,11 @@ CONTAINS
     ! Internal varialbes
     INTEGER(ikind) :: nr,ns,nsa
     REAL(rkind) :: sum_pan,pa_ave
+    REAL(rkind),DIMENSION(0:nrmax) :: &
+       mmm_diff,mmm_chie,mmm_chii,mmm_vele,mmm_veli
+    REAL(rkind),DIMENSION(1:nrmax) :: &
+       mmm_diffm,mmm_chiem,mmm_chiim,mmm_velem,mmm_velim
+
 
     ! Initilization
     dtr_tb(1:3*nsamax,1:3*nsamax,0:nrmax) = 0.d0
@@ -88,24 +93,24 @@ CONTAINS
     frb     = 0
     fkb     = 0
 
-    DO nr = 1, nrmax
-       rminor(1) = 0.5d0*(rmnrho(nr-1)+rmnrho(nr))
-!       rmajor(1) = 0.5d0*(rmjrho(nr-1)+rmjrho(nr))
-       rmajor(1) = RR
-       elong(1)  = 0.5d0*(rkprho(nr-1)+rkprho(nr))
+    DO nr = 0, nrmax
+       rminor(1) = rmnrho(nr)
+       rmajor(1) = rmjrho(nr)
+       elong(1)  = rkprho(nr)
 
-       dense(1) = rn_em(nr)*1.d20 ! electron density [m^-3]
-       densh(1) = rn_im(nr)*1.d20 ! sum over thermal hyd. ion densities [m^-3]
+       dense(1) = rn_e(nr)*1.d20 ! electron density [m^-3]
+       densh(1) = rn_i(nr)*1.d20 ! sum over thermal hyd. ion densities [m^-3]
 
        ! --- for the time being ---
        densimp(1) = 0.d0 ! sum over impurity ion densities [m^-3]
        densfe(1)  = 0.d0! electron density from fast (non-thermal) ions [m^-3]
 
        xzeff(1) = z_eff(nr)
-       tekev(1) = rt_em(nr)
-       tikev(1) = rt_im(nr)
-       q(1)     = qp_m(nr)
-       btor(1)  = BB
+       tekev(1) = rt_e(nr)
+       tikev(1) = rt_i(nr)
+       q(1)     = qp(nr)
+!       btor(1)  = BB
+       btor(1)  = abb1rho(nr)
 
        ! --- for the time being ---
        ! ------ calculate in sbrtn. trcalv ( Non-zero values are required.)
@@ -120,10 +125,10 @@ CONTAINS
        DO nsa = 1, nsamax
           IF(idnsa(nsa)==1)THEN
              ns = ns_nsa(nsa)
-             sum_pan = sum_pan+pa(ns)*0.5d0*(rn(nsa,nr-1)+rn(nsa,nr))
+             sum_pan = sum_pan+pa(ns)*rn(nsa,nr)
           END IF
        END DO
-       pa_ave    = sum_pan / rn_im(nr)
+       pa_ave    = sum_pan / rn_i(nr)
        ! average ion mass [AMU]   
        aimass(1)   = pa_ave
        ! -------------------------------
@@ -137,7 +142,7 @@ CONTAINS
        grdte(1) = - RR * rt_ecl(nr)   ! -R ( d T_e / d r ) / T_e
        grdti(1) = - RR * rt_icl(nr)   ! -R ( d T_i / d r ) / T_i
        !  R ( d q   / d r ) / q    related to magnetic shear
-       grdq (1) = - RR * mshear(nr) / (0.5d0*(rmnrho(nr-1)+rmnrho(nr)))
+       grdq (1) = - RR * mshear(nr) / rmnrho(nr)
 
 
        CALL mmm95( &
@@ -387,29 +392,43 @@ CONTAINS
 !       nrd1(nr) = theig(1)
 !       nrd2(nr) = therb(1)
 !       nrd3(nr) = thekb(1)
-       
+
        ! in the case of isotropic (effective) diffusivities
        !  ** lswitch(2) = 2 **
+       mmm_diff(nr) = difthi(2,2,1)
+       mmm_chie(nr) = difthi(3,3,1)
+       mmm_chii(nr) = difthi(1,1,1)
+       mmm_vele(nr)  = velthi(3,1)
+       mmm_veli(nr)  = velthi(1,1)
+
+    END DO
+
+    mmm_diffm(1:nrmax) = 0.5d0*(mmm_diff(0:nrmax-1)+mmm_diff(1:nrmax))
+    mmm_chiem(1:nrmax) = 0.5d0*(mmm_chie(0:nrmax-1)+mmm_chie(1:nrmax))
+    mmm_chiim(1:nrmax) = 0.5d0*(mmm_chii(0:nrmax-1)+mmm_chii(1:nrmax))
+    mmm_velem(1:nrmax) = 0.5d0*(mmm_vele(0:nrmax-1)+mmm_vele(1:nrmax))
+    mmm_velim(1:nrmax) = 0.5d0*(mmm_veli(0:nrmax-1)+mmm_veli(1:nrmax))
+
+    DO nr = 1, nrmax
        DO nsa = 1, nsamax
           IF(idnsa(nsa) == -1)THEN ! electron
              dtr_tb(3*nsa-2,3*nsa-2,nr) = cdtrn * 0.d0
-             dtr_tb(3*nsa-1,3*nsa-1,nr) = cdtru * difthi(3,3,1)
-             dtr_tb(3*nsa  ,3*nsa  ,nr) = cdtrt * difthi(3,3,1)
+             dtr_tb(3*nsa-1,3*nsa-1,nr) = cdtru * mmm_chiem(nr)
+             dtr_tb(3*nsa  ,3*nsa  ,nr) = cdtrt * mmm_chiem(nr)
 
              vtr_tb(3*nsa-2,3*nsa-2,nr) = cdtrn * 0.d0
-             vtr_tb(3*nsa-1,3*nsa-1,nr) = cdtru * velthi(3,1)
-             vtr_tb(3*nsa  ,3*nsa  ,nr) = cdtrt * velthi(3,1)
+             vtr_tb(3*nsa-1,3*nsa-1,nr) = cdtru * mmm_velem(nr)
+             vtr_tb(3*nsa  ,3*nsa  ,nr) = cdtrt * mmm_velem(nr)
           ELSE IF(idnsa(nsa) /= 0)THEN ! (hydrogenic) ion
-             dtr_tb(3*nsa-2,3*nsa-2,nr) = cdtrn * difthi(2,2,1)
-             dtr_tb(3*nsa-1,3*nsa-1,nr) = cdtru * difthi(1,1,1)
-             dtr_tb(3*nsa  ,3*nsa  ,nr) = cdtrt * difthi(1,1,1)
+             dtr_tb(3*nsa-2,3*nsa-2,nr) = cdtrn * mmm_diffm(nr)
+             dtr_tb(3*nsa-1,3*nsa-1,nr) = cdtru * mmm_chiim(nr)
+             dtr_tb(3*nsa  ,3*nsa  ,nr) = cdtrt * mmm_chiim(nr)
 
              vtr_tb(3*nsa-2,3*nsa-2,nr) = cdtrn * 0.d0
-             vtr_tb(3*nsa-1,3*nsa-1,nr) = cdtru * velthi(1,1)
-             vtr_tb(3*nsa  ,3*nsa  ,nr) = cdtrt * velthi(1,1)
+             vtr_tb(3*nsa-1,3*nsa-1,nr) = cdtru * mmm_velim(nr)
+             vtr_tb(3*nsa  ,3*nsa  ,nr) = cdtrt * mmm_velim(nr)
           END IF
        END DO
-
     END DO
 
   END SUBROUTINE tr_mmm95

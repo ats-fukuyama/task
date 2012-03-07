@@ -19,8 +19,8 @@ CONTAINS
     USE trmmm95,ONLY: tr_mmm95
     IMPLICIT NONE
 
-    call tr_calv_nr_alloc
-    call tr_calc_variables
+    CALL tr_calv_nr_alloc
+    CALL tr_calc_variables
 
     SELECT CASE(mdltr_nc) ! results are in dtr_nc and vtr_nc
     CASE(0)

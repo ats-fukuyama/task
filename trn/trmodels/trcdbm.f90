@@ -15,29 +15,27 @@ CONTAINS
 
     USE cdbm_mod, ONLY: cdbm
     USE trcomm, ONLY: &
-         ikind,rkind,bb,rr,rmnrho,rkev,qp,rn,pa,amp,aee, &
-         rkprho,cdtrn,cdtru,cdtrt, &
+         ikind,rkind,bb,rr,abb1rho,rmnrho,rmjrho,rkev,pa,amp,aee, &
+         rkprho,cdtrn,cdtru,cdtrt,qp,rn,                          &
          dtr_tb,vtr_tb,nrmax,nsamax,ns_nsa,idnsa,mdltr_tb
 
     USE trcalv, ONLY: &
-         rn_e,    &! the density of electron
-         rp_totd, &! the total pressure
-         qp_m,    &! safety factor (half-mesh)
-         mshear,  &! magnetic shear (half-mesh)
-         dvexbpdr  ! the gradient of ExBp drift velocity
+         rn_e,     &! the density of electron
+         rp_totd , &! the total pressure
+         mshear,   &! magnetic shear
+         dvexbpdr   ! the gradient of ExBp drift velocity
 
     USE trlib, ONLY: mesh_convert_mtog,data_interpolate_gtom
 
     IMPLICIT NONE
     INTEGER(ikind):: nr,ns,nsa,model,model_t
     REAL(rkind):: calf,ckap,cexb,tc1,tc2,tk,pnel,rhoni
-    ! on grid for numerical stability
     REAL(rkind),DIMENSION(0:nrmax) :: &
-         mshearg,rp_totdg,dvexbpdrg,  &
-         chi_cdbm,chim_cdbm,chi_tcdbm,chim_tcdbm
+         chi_cdbm,chim_cdbm
 
-    dtr_tb(1:3*nsamax,1:3*nsamax,0:nrmax) = 0.D0
-    vtr_tb(1:3*nsamax,1:3*nsamax,0:nrmax) = 0.D0
+    chi_cdbm(0:nrmax) = 0.d0
+    dtr_tb(1:3*nsamax,1:3*nsamax,0:nrmax) = 0.d0
+    vtr_tb(1:3*nsamax,1:3*nsamax,0:nrmax) = 0.d0
 
     ! model : Model ID
     !     0 : CDBM original
@@ -62,12 +60,7 @@ CONTAINS
     tc2 = 15.d0
     tk  = 3.d0
 
-    call mesh_convert_mtog(mshear(1:nrmax),mshearg(0:nrmax),nrmax)
-    call mesh_convert_mtog(rp_totd(1:nrmax),rp_totdg(0:nrmax),nrmax)
-    call mesh_convert_mtog(dvexbpdr(1:nrmax),dvexbpdrg(0:nrmax),nrmax)
-
-
-    DO nr = 1, nrmax
+    DO nr = 0, nrmax
        pnel = rn_e(nr)*1.d20  ! electron density [m^-3]
     
        rhoni = 0.D0
@@ -84,15 +77,14 @@ CONTAINS
        ! *** for the time being ***
        IF(model_t == 1) qp(nr) = qp(nrmax) 
 
-       CALL cdbm(BB,RR,rmnrho(nr),rkprho(nr),qp(nr),mshearg(nr), &
-            pnel,rhoni,rp_totdg(nr),dvexbpdrg(nr),               &
-            calf,ckap,cexb,model,chi_cdbm(nr),                   &
+       CALL cdbm(abb1rho(nr),rmjrho(nr),rmnrho(nr),rkprho(nr),       &
+            qp(nr),mshear(nr),pnel,rhoni,rp_totd(nr),dvexbpdr(nr),   &
+            calf,ckap,cexb,model,chi_cdbm(nr),                       &
             mdl_tuned=model_t,c1_tuned=tc1,c2_tuned=tc2,k_tuned=tk )
 
     END DO
 
-    call data_interpolate_gtom(chi_cdbm(0:nrmax),chim_cdbm(1:nrmax),nrmax)
-    call data_interpolate_gtom(chi_tcdbm(0:nrmax),chim_tcdbm(1:nrmax),nrmax)
+    chim_cdbm(1:nrmax) = 0.5d0*(chi_cdbm(0:nrmax-1)+chi_cdbm(1:nrmax))
 
     DO nr = 1, nrmax
           DO nsa = 1, nsamax

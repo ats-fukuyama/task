@@ -32,7 +32,7 @@ OBJS = $(SRCS:.f90=.o)
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
 ../trn: $(OBJS) $(TRLIBS)
-	ifort -pg $(FFLAGS) -o ../trn $(OBJS) $(TRLIBS) $(FLIBS)
+	ifort $(FFLAGS) -o ../trn $(OBJS) $(TRLIBS) $(FLIBS)
 
 $(TASKDIR)/plx/pllib.a:
 	(cd $(TASKDIR)/plx; make pllib.a)

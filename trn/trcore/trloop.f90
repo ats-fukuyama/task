@@ -50,16 +50,17 @@ CONTAINS
 
   END SUBROUTINE tr_loop
 
+! **************************************************************************
 
   SUBROUTINE tr_save_pvprev
 ! ----------------------------------------------------
 !      save plasma variables to previous values
 ! ----------------------------------------------------
     USE trcomm,ONLY: ikind,rkind,nrmax,nsamax, &
-         qp,rn,ru,rt,qp_prev,rn_prev,ru_prev,rt_prev
+         dpdrho,rn,ru,rt,dpdrho_prev,rn_prev,ru_prev,rt_prev
     IMPLICIT NONE
 
-    qp_prev(0:nrmax)=qp(0:nrmax)
+    dpdrho_prev(0:nrmax)=dpdrho(0:nrmax)
     rn_prev(1:nsamax,0:nrmax)=rn(1:nsamax,0:nrmax)
     ru_prev(1:nsamax,0:nrmax)=ru(1:nsamax,0:nrmax)
     rt_prev(1:nsamax,0:nrmax)=rt(1:nsamax,0:nrmax)

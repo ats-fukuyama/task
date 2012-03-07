@@ -27,7 +27,7 @@ CONTAINS
 ! ******************************************************************
 
     USE trcomm, ONLY : &
-         rkind,ikind,BB, mdltr_tb, rkev, &
+         rkind,ikind,BB, abb1rho, mdltr_tb, rkev, &
          nrmax, nsamax, pa, pi, pz, pz0, qp, RR,ra,rhog,rkap, &
          rn,rt,rmu0,ns_nsa,dtr_tb,vtr_tb,  &
          ar1rho,ar2rho,rkprho,rmjrho,rmnrho,    &
@@ -75,7 +75,6 @@ CONTAINS
     ! Internal variables and others
     REAL(rkind),DIMENSION(0:nrmax)::&
          Wexb_exp,Wrot,Vpar,Vprp,Vpar_shear,rp_totdg, &
-         Lte,Lti,Lne,Lni,Lteg,Ltig,Lneg,Lnig,         &
          diff_jm,chie_jm,chii_jm,diff_jmg,chie_jmg,chii_jmg
     REAL(rkind) :: phia
     INTEGER(ikind) :: nsmax,mdluf,mdleqn,mdleqt,mdleoi,nsa,nbase
@@ -154,9 +153,9 @@ CONTAINS
     ENDIF
     
 
-    bt_exp     = BB   ! toroidal field [T]
+    bt_exp     = BB   ! vaccume axis toroidal field [T]
     bt_flag    = 1    ! >0 for Beff, Bt otherwise
-    rmajor_exp = RR   ! geometrical major radius of magnetix axis [m]
+    rmajor_exp = RR   ! geometrical major radius of magnetic axis [m]
     
     q_exp(0:nrmax)    = qp(0:nrmax)     ! safety factor
     shat_exp(0:nrmax) = mshear(0:nrmax) ! magnetic shear
@@ -184,9 +183,9 @@ CONTAINS
     
     te_m(0:nrmax) = rt_e(0:nrmax)       ! Te [keV]
     ti_m(0:nrmax) = rt_i(0:nrmax)       ! Ti [keV]
-    ne_m(0:nrmax) = rn_e(0:nrmax)*10.D0 ! Ne [10^19 /m^3]
-    ni_m(0:nrmax) = rn_i(0:nrmax)*10.D0 ! Ni [10^19 /m^3]
-    ns_m(0:nrmax) = 0.D0                ! Fast ion density [10^19 /m^3]
+    ne_m(0:nrmax) = rn_e(0:nrmax)*10.d0 ! Ne [10^19 /m^3]
+    ni_m(0:nrmax) = rn_i(0:nrmax)*10.d0 ! Ni [10^19 /m^3]
+    ns_m(0:nrmax) = 0.d0*10.d0          ! Fast ion density [10^19 /m^3]
     
     
     ! variables form experimental data ---------------------
@@ -213,11 +212,9 @@ CONTAINS
     END IF
     ! ------------------------------------------------------
     
-    CALL mesh_convert_mtog(rp_totd(1:nrmax),rp_totdg,nrmax)
-    alpha_exp(0:nrmax) = -2.d0*rmu0*qp(0:nrmax)**2*RR  &
-                         /BB**2*rp_totdg(0:nrmax)
-    
-    
+    alpha_exp(0:nrmax) = -2.d0*rmu0*qp(0:nrmax)**2*rmjrho(nr)  &
+                         /abb1rho(nr)**2*rp_totd(0:nrmax)
+
     alpha_e = 1.D0        ! ExB shear stabilization (0=off,>0=on)
     x_alpha = 1.D0        ! alpha stabilization (0=off,>0=on)
     i_delay = 0.d0        ! default(usually recommended)
@@ -226,17 +223,6 @@ CONTAINS
     amassimp_exp = PA(3)  ! Aimp; finite data is necessary
       
     amassgas_exp = PA(2)  ! atomic num. of working hydrogen gas
-      
-      
-    Lte(1:nrmax)=0.5d0*(ar1rho(1:nrmax)+ar1rho(0:nrmax-1))*rt_ecl(1:nrmax)
-    Lti(1:nrmax)=0.5d0*(ar1rho(1:nrmax)+ar1rho(0:nrmax-1))*rt_icl(1:nrmax)
-    Lne(1:nrmax)=0.5d0*(ar1rho(1:nrmax)+ar1rho(0:nrmax-1))*rn_ecl(1:nrmax)
-    Lni(1:nrmax)=0.5d0*(ar1rho(1:nrmax)+ar1rho(0:nrmax-1))*rn_icl(1:nrmax)
-    call mesh_convert_mtog(Lte(1:nrmax),Lteg,nrmax)
-    call mesh_convert_mtog(Lti(1:nrmax),Ltig,nrmax)
-    call mesh_convert_mtog(Lne(1:nrmax),Lneg,nrmax)
-    call mesh_convert_mtog(Lni(1:nrmax),Lnig,nrmax)
-    
     
     !--- NR LOOP -----------------------------------------
     DO nr = 1, nrmax-1
@@ -246,17 +232,17 @@ CONTAINS
           !  +++ Normal type +++
           
           ! compute gradients (1=input gradients)
-          i_grad=1
+          i_grad=0
           ! the derivatives below variables are with respect to 'rho'
           ! ( see callglf2d.f l.592~l.603 )
           ! 1/Lte (necessary if i_grad and jmm != 0)
-          zpte_in = - Lteg(nr)
+          zpte_in = 0.d0
           ! 1/Lne (necessary if i_grad and jmm != 0)
-          zpti_in = - Ltig(nr)
+          zpti_in = 0.d0
           ! 1/Lti (necessary if i_grad and jmm != 0)
-          zpne_in = - Lneg(nr)
+          zpne_in = 0.d0
           ! 1/Lni (necessary if i_grad and jmm != 0)
-          zpni_in = - Lnig(nr)
+          zpni_in = 0.d0
           !            write(*,*) zpte_in,zpti_in,zpne_in,zpni_in
        ENDIF
 
