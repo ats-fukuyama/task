@@ -1,12 +1,12 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../pl/$(MOD) -I../lib/$(MOD)
 
-SRCS = eq_bpsd.f eqinit.f eqmenu.f eqcalc.f eqcalq.f eqcalv.f \
+SRCS = eqbpsd.f eqinit.f eqmenu.f eqcalc.f eqcalq.f eqcalv.f \
        eqsub.f eqfunc.f eqintf.f eqsplf.f eqfile.f \
        eqgout.f eqgsub.f \
        newton.f invematrix.f equnit.f eqrppl.f
