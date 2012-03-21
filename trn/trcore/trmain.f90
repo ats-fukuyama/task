@@ -32,10 +32,10 @@
 PROGRAM tr  
 
   USE trcomm, ONLY : rkind,ikind
-!  use equnit_mod
-!  use equunit_mod
-  use trinit
-  use trmenu
+  USE equnit_mod
+!  USE equunit_mod
+  USE trinit
+  USE trmenu
   IMPLICIT NONE
   INTEGER(ikind):: ierr
 
@@ -46,11 +46,11 @@ PROGRAM tr
   CALL GSOPEN
 
   CALL tr_init
-!  CALL eq_init
+  CALL eq_init
 !  CALL equ_init
 
   CALL tr_parm(1,'trparm',ierr)
-!  CALL eq_parm(1,'eqparm',ierr)
+  CALL eq_parm(1,'eqparm',ierr)
 !  CALL equ_parm(1,'equparm',ierr)
   
   CALL tr_menu

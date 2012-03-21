@@ -18,7 +18,7 @@ MODULE trgdgn
 CONTAINS
 
   SUBROUTINE tr_gr_diagnostic(k2)
-    USE trcomm, ONLY: rhog,rhom,nrd1,nrd2,nrd3,nrd4,dtr
+    USE trcomm, ONLY: rhog,rhom,nrd1,nrd2,nrd3,nrd4
 
     CHARACTER(LEN=1),INTENT(IN) :: k2
     INTEGER(ikind) :: iosts,i2
@@ -32,7 +32,7 @@ CONTAINS
 
     !--- for diagnostic array
 !    nrd1mg(1:nrmax,1) = nrd1(1:nrmax)
-    nrd1mg(1:nrmax,1) = dtr(1,1,1:nrmax)
+    nrd1mg(1:nrmax,1) = nrd1(1:nrmax)
     nrd2mg(1:nrmax,1) = nrd2(1:nrmax)
     nrd3mg(1:nrmax,1) = nrd3(1:nrmax)
     nrd4mg(1:nrmax,1) = nrd4(1:nrmax)
@@ -50,9 +50,9 @@ CONTAINS
     LABEL = '/diagnostic2 vs rho/'
     CALL GRD1D(2,rhog,nrd2g, nrmax+1, nrmax+1, 1, label, 0)
     LABEL = '/diagnostic3 vs rho/'
-    CALL GRD1D(3,rhomg,nrd1mg, nrmax, nrmax, 1, label, 0)
+    CALL GRD1D(3,rhog,nrd3g, nrmax+1, nrmax+1, 1, label, 0)
     LABEL = '/diagnostic4 vs rho/'
-    CALL GRD1D(4,rhomg,nrd4mg, nrmax, nrmax, 1, label, 0)
+    CALL GRD1D(4,rhog,nrd4g, nrmax+1, nrmax+1, 1, label, 0)
     CALL PAGEE    
 
   END SUBROUTINE tr_gr_diagnostic

@@ -115,8 +115,6 @@ CONTAINS
     REAL(rkind) :: rt_isum, dr_norm
     REAL(rkind) :: deriv3
 
-    rp_add  = 0.d0
-    rp_beam = 0.d0
 !    *****
 !    ! This part will be implemented in introducing the NBI heating modules.
 !    *****
@@ -132,27 +130,29 @@ CONTAINS
 !    ENDIF
 
 
-    ! ---  NR = 0 ----
-    rn_i    = 0.d0
-    rp_tot  = 0.d0
-    rp_totd = 0.d0
+    ! initilization (zero at NR = 0) ----
+    rn_i(0:nrmax)    = 0.d0
+    rp_tot(0:nrmax)  = 0.d0
+    rp_totd(0:nrmax) = 0.d0
+    rp_add(0:nrmax)  = 0.d0
+    rp_beam(0:nrmax) = 0.d0
+
+    rp_d(1:nsamax,0:nrmax)   = 0.d0
+    rn_ed(0:nrmax)  = 0.d0
+    rn_ecl(0:nrmax) = 0.d0
+    rn_id(0:nrmax)  = 0.d0
+    rn_icl(0:nrmax) = 0.d0
+    rt_ed(0:nrmax)  = 0.d0
+    rt_ecl(0:nrmax) = 0.d0
+    rt_id(0:nrmax)  = 0.d0
+    rt_icl(0:nrmax) = 0.d0
+    qp_d(0:nrmax)   = 0.d0
+    mshear(0:nrmax) = 0.d0
+
+    rt_e(0) = rt(1,0)
+    rn_e(0) = rn(1,0)
+
     rt_isum = 0.d0
-
-    rp_d   = 0.d0
-    rn_ed  = 0.d0
-    rn_ecl = 0.d0
-    rn_id  = 0.d0
-    rn_icl = 0.d0
-    rt_ed  = 0.d0
-    rt_ecl = 0.d0
-    rt_id  = 0.d0
-    rt_icl = 0.d0
-    qp_d   = 0.d0
-    mshear = 0.d0
-
-       rt_e(0) = rt(1,0)
-       rn_e(0) = rn(1,0)
-
     DO nsa = 1, nsamax
        rp(nsa,0) = rn(nsa,0)*1.d20 * rt(nsa,0)*rkev
        rp_tot(0) = rp_tot(0) + rp(nsa,0)       
@@ -163,8 +163,8 @@ CONTAINS
        END IF
     END DO
        rt_i(0) = rt_isum / rn_i(0)
-
     ! ---------------
+
     DO nr = 1, nrmax
        rt_isum = 0.d0
        dr_norm = 1.d0/(rmnrho(nr)-rmnrho(nr-1))
@@ -173,7 +173,7 @@ CONTAINS
        rn_e(nr) = rn(1,nr)
        DO nsa = 1, nsamax
           ! the pressure of each species
-          rp(nsa,nr)    = rn(nsa,nr)*1.d20 * rt(nsa,nr)*rkev
+          rp(nsa,nr)  = rn(nsa,nr)*1.d20 * rt(nsa,nr)*rkev
           rp_tot(nr)  = rp_tot(nr) + rp(nsa,nr)
 
           IF(idnsa(nsa) == 1) THEN ! ion

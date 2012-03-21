@@ -18,7 +18,7 @@ MODULE trgcom
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &          !(0:nrmax,1:nsamax)
        vma1,vma2
   REAL(rkind),DIMENSION(:),ALLOCATABLE :: ig, err_ig !(1:lmaxtr)
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: lt       !(1:nrmax,nsamax)
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: lt       !(0:nrmax,nsamax)
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &
        gparg1,gparg2,gparg3,gparg4                   !(0:nrmax,0:nggmax)
 
@@ -76,15 +76,15 @@ CONTAINS
     lt = 0.d0
 
     err_ig(1:lmaxtr) = log10(error_it(1:lmaxtr))
-    lt(1:nrmax,1) = - rt_ecl
-    lt(1:nrmax,2) = - rt_icl
+    lt(0:nrmax,1) = - rt_ecl(0:nrmax)
+    lt(0:nrmax,2) = - rt_icl(0:nrmax)
 
     ! GRD1D: MODE = 2 ; X:LINEAR  Y:LOG
     CALL PAGES
     label = '/convergence vs NIT/'
-    CALL GRD1D(1,ig,err_ig, lmaxtr,lmaxtr,1, label, 2)
+    CALL GRD1D(1,ig,  err_ig,lmaxtr, lmaxtr, 1,      label,2)
     label = '/Temp. scale length vs rho/'
-    CALL GRD1D(2,rhomg,lt, nrmax,nrmax,nsamax, label,0)
+    CALL GRD1D(2,rhog,lt,    nrmax+1,nrmax+1,nsamax, label,0)
     CALL PAGEE    
 
   END SUBROUTINE tr_gr_comp1
@@ -169,7 +169,7 @@ CONTAINS
 
           ALLOCATE(ig(1:lmaxtr),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(err_ig(1:lmaxtr),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(lt(1:nrmax,nsamax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(lt(0:nrmax,nsamax),STAT=ierr); IF(ierr /= 0) EXIT
 
           ALLOCATE(gparg1(0:nrmax,0:nggmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(gparg2(0:nrmax,0:nggmax),STAT=ierr); IF(ierr /= 0) EXIT

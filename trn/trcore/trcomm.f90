@@ -3,14 +3,32 @@ MODULE trcomm
   USE plcomm
   IMPLICIT NONE
 
-!  --- module bpsd_constants ---
-!  real(rkind),parameter :: pi   = 3.14159265358979323846_dp
-!  real(rkind),parameter :: aee  = 1.602176487E-19_dp ! elementary charge
-!  real(rkind),parameter :: ame  = 9.10938215E-31_dp  ! electron mass
-!  real(rkind),parameter :: amp  = 1.672621637E-27_dp ! proton mass [kg]
-!  real(rkind),parameter :: vc   = 2.99792458E8_dp    ! speed of light [m/s]
-!  real(rkind),parameter :: rmu0 = 4.E-7_dp*PI        ! permeability
-!  real(rkind),parameter :: eps0 = ONE/(VC*VC*RMU0)   ! permittivity
+!!$                   *** module bpsd_constants ***
+!!$
+!!$  real(rkind),parameter :: pi   = 3.14159265358979323846_dp
+!!$  real(rkind),parameter :: aee  = 1.602176487E-19_dp ! elementary charge
+!!$  real(rkind),parameter :: ame  = 9.10938215E-31_dp  ! electron mass
+!!$  real(rkind),parameter :: amp  = 1.672621637E-27_dp ! proton mass [kg]
+!!$  real(rkind),parameter :: vc   = 2.99792458E8_dp    ! speed of light [m/s]
+!!$  real(rkind),parameter :: rmu0 = 4.E-7_dp*PI        ! permeability
+!!$  real(rkind),parameter :: eps0 = ONE/(VC*VC*RMU0)   ! permittivity
+
+!!$               *** Variables defined in plcomm.f90 ***
+!!$
+!!$  INTEGER,PARAMETER:: NSM=100 ! Maximum number of particle species
+!!$
+!!$  INTEGER:: NSMAX,MODELG,MODELN,MODELQ,IDEBUG,MODEFR,MODEFW
+!!$
+!!$  REAL(rkind):: RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ
+!!$  REAL(rkind):: PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2
+!!$  REAL(rkind):: RHOMIN,QMIN,RHOEDG,RHOITB,RHOGMN,RHOGMX
+!!$
+!!$  REAL(rkind),DIMENSION(NSM):: &
+!!$       &           PA,PZ,PZ0,PN,PNS,PTPR,PTPP,PTS,PU,PUS, &
+!!$       &           PNITB,PTITB,PUITB
+!!$
+!!$  CHARACTER(len=80):: KNAMEQ,KNAMWR,KNAMFP,KNAMWM,KNAMPF,KNAMFO,KNAMTR
+!!$
 
   REAL(rkind),PARAMETER :: rkev = aee*1.d3 ! the factor ([keV] -> [J])
 
@@ -56,6 +74,11 @@ MODULE trcomm
   INTEGER(ikind)::     nvrmax  ! number of active variables
 
 ! ----- plasma variables -----
+
+  REAL(rkind) :: rips          ! toroidal current at the beginning
+  REAL(rkind) :: ripe          ! toroidal current 
+
+  REAL(rkind) :: profj1, profj2 ! current density profile factors
 
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
        rg,      &! radial mesh position [m]

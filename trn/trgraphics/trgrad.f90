@@ -68,7 +68,7 @@ CONTAINS
 
   SUBROUTINE tr_gr_rad1
   ! ----- current radial profile -----
-    USE trcomm, ONLY: rn,ru,rt,dpdrho
+    USE trcomm, ONLY: rn,ru,rt,dpdrho,qp
 
     vg1(0:nrmax,1:neqrmax) = 0.d0
     vg2(0:nrmax,1:neqrmax) = 0.d0
@@ -84,7 +84,7 @@ CONTAINS
        END IF
     END DO
        vg4(0:nrmax,1)=dpdrho(0:nrmax)
-    !       vg4(0:nrmax,1)=er(0:nrmax)
+       vg4(0:nrmax,1)=qp(0:nrmax)
 
     CALL PAGES
     label = '/n vs rho/'
@@ -125,7 +125,7 @@ CONTAINS
           vg1(0:nrmax,nsa)=rt(nsa,0:nrmax)
           vm1(1:nrmax,nsa)=MIN(dtrg(nsa,1:nrmax),20.D0)
           vg2(0:nrmax,nsa)=str(neq,0:nrmax)
-          vm2(1:nrmax,nsa)=vtrg(neq,1:nrmax)
+          vm2(1:nrmax,nsa)=vtrg(nsa,1:nrmax)
        ELSE
           vg1(0:nrmax,nsa)=rt(nsa,0:nrmax)
           vm1(1:nrmax,nsa)=MIN(dtr(neq,neq,1:nrmax),20.D0)

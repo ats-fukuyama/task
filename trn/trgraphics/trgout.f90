@@ -129,7 +129,7 @@ CONTAINS
     CHARACTER(LEN=1)  :: kid
     LOGICAL           :: lex
 
-    INTEGER(ikind) :: GRG, GRM, GT, GTR, GVR, GVT, NGR, NGT
+!    INTEGER(ikind) :: GRG, GRM, GT, GTR, GVR, GVT, NGR, NGT
 
     DO
        WRITE(6,*) '# INPUT : Graphic save file name (CR to CANCEL)'
@@ -176,9 +176,9 @@ CONTAINS
        EXIT
     END DO
 
-    WRITE(22) GVR,GRM,GRG,GTR,NGR
-    WRITE(22) GVT,GT,NGT
-    CLOSE(22)
+!    WRITE(22) GVR,GRM,GRG,GTR,NGR
+!    WRITE(22) GVT,GT,NGT
+!    CLOSE(22)
 
     WRITE(6,*) '# Data was SUCCESSFULLY SAVED to the file.'
 

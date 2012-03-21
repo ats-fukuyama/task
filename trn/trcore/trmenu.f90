@@ -56,7 +56,6 @@ CONTAINS
 !       CALL tr_save(ierr)
 
     ELSE IF(KID.EQ.'R') THEN
-       CALL tr_idneq
        CALL tr_setup
        if(ierr.ne.0) GO TO 1
        CALL tr_loop

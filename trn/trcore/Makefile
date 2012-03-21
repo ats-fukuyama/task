@@ -7,11 +7,11 @@ MODDIR = -module ../mod
 .SUFFIXES:
 .SUFFIXES: .f90 .mod .o .a
 
-FLAGS=$(OFLAGS)
+#FLAGS=$(OFLAGS)
 FFLAGS=$(DFLAGS) -warn
 
 MODINCLUDE=-I $(BPSDDIR)/mod -I $(TASKDIR)/plx/mod -I $(TASKDIR)/lib/mod \
-           -I ../trmodels/mod -I $(MOD) 
+	   -I $(TASKDIR)/eq/mod -I ../trmodels/mod -I $(MOD) 
 
 
 TRLIBS=	../trmodels/trmodelslib.a \

@@ -212,8 +212,8 @@ CONTAINS
     END IF
     ! ------------------------------------------------------
     
-    alpha_exp(0:nrmax) = -2.d0*rmu0*qp(0:nrmax)**2*rmjrho(nr)  &
-                         /abb1rho(nr)**2*rp_totd(0:nrmax)
+    alpha_exp(0:nrmax) = -2.d0*rmu0*qp(0:nrmax)**2*rmjrho(0:nrmax)  &
+                         /abb1rho(0:nrmax)**2*rp_totd(0:nrmax)
 
     alpha_e = 1.D0        ! ExB shear stabilization (0=off,>0=on)
     x_alpha = 1.D0        ! alpha stabilization (0=off,>0=on)
