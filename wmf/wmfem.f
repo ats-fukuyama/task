@@ -888,33 +888,38 @@
 
       subroutine wmfem_calculate_efield
 
-      integer:: nr,nn,mm,ml
+      integer:: nr,nn,mm,ml,nfc,nth,nph
 
       nr=1
-      do nn=1,nphmax
-         do mm=1,nthmax
-            ml=6*nthmax*nphmax*(nr-1)+6*nthmax*(nn-1)+6*(mm-1)
-            if(abs(mm).eq.1) then
-               cef(1,mm,nn,nr)=(fvx(ml+1)+fvx(ml+3))
-               cef(2,mm,nn,nr)=(fvx(ml+1)-fvx(ml+3))/(ci*mm)
-               cef(3,mm,nn,nr)=fvx(ml+5)
-            else
-               cef(1,mm,nn,nr)=fvx(ml+1)
-               cef(2,mm,nn,nr)=fvx(ml+3)
-               cef(3,mm,nn,nr)=fvx(ml+5)
-            endif
-         enddo
+      do nfc=1,nfcmax
+         nth=nthnfc(nfc)
+         mm=mmnfc(nfc)
+         nph=nphnfc(nfc)
+         nn=nnnfc(nfc)
+         ml=6*nfcmax*(nr-1)+6*nthmax*(nph-1)+6*(nth-1)
+         if(abs(mm).eq.1) then
+            cef(1,nth,nph,nr)=(fvx(ml+1)+fvx(ml+3))
+            cef(2,nth,nph,nr)=(fvx(ml+1)-fvx(ml+3))/(ci*mm)
+            cef(3,nth,nph,nr)= fvx(ml+5)
+         else
+            cef(1,nth,nph,nr)=fvx(ml+1)
+            cef(2,nth,nph,nr)=fvx(ml+3)
+            cef(3,nth,nph,nr)=fvx(ml+5)
+         endif
       enddo
+
       do nr=2,nrmax
-         do nn=1,nphmax
-            do mm=1,nthmax
-               ml=6*nthmax*nphmax*(nr-1)+6*nthmax*(nn-1)+6*(mm-1)
-               cef(1,mm,nn,nr)=fvx(ml+1)
-               cef(2,mm,nn,nr)=fvx(ml+3)
-               cef(3,mm,nn,nr)=fvx(ml+5)
+         do nfc=1,nfcmax
+            nth=nthnfc(nfc)
+            mm=mmnfc(nfc)
+            nph=nphnfc(nfc)
+            nn=nnnfc(nfc)
+            ml=6*nfcmax*(nr-1)+6*nthmax*(nph-1)+6*(nth-1)
+            cef(1,nth,nph,nr)=fvx(ml+1)
+            cef(2,nth,nph,nr)=fvx(ml+3)
+            cef(3,nth,nph,nr)=fvx(ml+5)
 !               write(6,'(3I4,1P6E11.3)') nr,nn,mm,cef(1,mm,nn,nr),
 !     &              cef(2,mm,nn,nr),cef(3,mm,nn,nr)
-            enddo
          enddo
       enddo
 
