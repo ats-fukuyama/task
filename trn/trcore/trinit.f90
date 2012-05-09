@@ -212,8 +212,8 @@ CONTAINS
     mdltr_nc  = 0
     mdltr_tb  = 1
     mdltr_prv = 0
-    dtr0    = 0.01D0
-    dtr1    = 0.1D0
+    dtr0    = 0.1D0
+    dtr1    = 0.5D0
     ltcr  = 1.D0
     ph0   = 0.1D0
     phs   = 0.1D0

@@ -14,13 +14,13 @@ CONTAINS
   SUBROUTINE tr_mmm95
 
     USE trcomm, ONLY: &
-         rkind,ikind,nrmax,nsamax,idnsa,ns_nsa,pa,pz,  &
-         rmnrho,rmjrho,rkprho,abb1rho,BB,RR,rn,qp,     &
+         rkind,ikind,nrmax,nsamax,idnsa,ns_nsa,pa,pz, &
+         rmnrho,rmjrho,rkprho,abb1rho,BB,RR,rn,qp,    &
          cdtrn,cdtru,cdtrt,dtr_tb,vtr_tb!,&
          !nrd1,nrd2,nrd3
     USE trcalv, ONLY: &
         rt_e,rt_ecl,rt_i,rt_icl,rn_e,rn_ecl,rn_i,rn_icl, &
-        mshear,wexbp,z_eff
+        qp_d,mshear,wexbp,z_eff
 
     IMPLICIT NONE
 
@@ -72,6 +72,13 @@ CONTAINS
     dtr_tb(1:3*nsamax,1:3*nsamax,0:nrmax) = 0.d0
     vtr_tb(1:3*nsamax,1:3*nsamax,0:nrmax) = 0.d0
 
+    mmm_diff(0:nrmax) = 0.d0
+    mmm_chie(0:nrmax) = 0.d0
+    mmm_chii(0:nrmax) = 0.d0
+    mmm_vele(0:nrmax) = 0.d0
+    mmm_veli(0:nrmax) = 0.d0
+
+
     !  << Input integers >>
     matdim  = 5  ! the dimension of transport matricies ( j1 and j2 )
                  !   matdim must be at least 5
@@ -93,7 +100,7 @@ CONTAINS
     frb     = 0
     fkb     = 0
 
-    DO nr = 0, nrmax
+    DO nr = 1, nrmax
        rminor(1) = rmnrho(nr)
        rmajor(1) = rmjrho(nr)
        elong(1)  = rkprho(nr)
@@ -102,7 +109,7 @@ CONTAINS
        densh(1) = rn_i(nr)*1.d20 ! sum over thermal hyd. ion densities [m^-3]
 
        ! --- for the time being ---
-       densimp(1) = 0.d0 ! sum over impurity ion densities [m^-3]
+       densimp(1) = 0.d0! sum over impurity ion densities [m^-3]
        densfe(1)  = 0.d0! electron density from fast (non-thermal) ions [m^-3]
 
        xzeff(1) = z_eff(nr)
@@ -142,8 +149,7 @@ CONTAINS
        grdte(1) = - RR * rt_ecl(nr)   ! -R ( d T_e / d r ) / T_e
        grdti(1) = - RR * rt_icl(nr)   ! -R ( d T_i / d r ) / T_i
        !  R ( d q   / d r ) / q    related to magnetic shear
-       grdq (1) = - RR * mshear(nr) / rmnrho(nr)
-
+       grdq (1) = - RR * qp_d(nr) / qp(nr)
 
        CALL mmm95( &
 ! << Input arrays >> (jz: nr,  jm: mode)
@@ -257,7 +263,7 @@ CONTAINS
 !
 !    +++ Input switches +++
 !
-  lprint,   &!     controls the amount of printout (0 => no printout)
+  lprint,   &! controls the amount of printout (0 => no printout)
 !              higher values yield more diagnostic output
 !
   lsuper,   &!  = 0 for simulations of all other discharges
@@ -398,11 +404,12 @@ CONTAINS
        mmm_diff(nr) = difthi(2,2,1)
        mmm_chie(nr) = difthi(3,3,1)
        mmm_chii(nr) = difthi(1,1,1)
-       mmm_vele(nr)  = velthi(3,1)
-       mmm_veli(nr)  = velthi(1,1)
+       mmm_vele(nr) = velthi(3,1)
+       mmm_veli(nr) = velthi(1,1)
 
     END DO
 
+    ! on grid -> on hlaf grid
     mmm_diffm(1:nrmax) = 0.5d0*(mmm_diff(0:nrmax-1)+mmm_diff(1:nrmax))
     mmm_chiem(1:nrmax) = 0.5d0*(mmm_chie(0:nrmax-1)+mmm_chie(1:nrmax))
     mmm_chiim(1:nrmax) = 0.5d0*(mmm_chii(0:nrmax-1)+mmm_chii(1:nrmax))

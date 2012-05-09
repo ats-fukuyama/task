@@ -172,6 +172,7 @@ CONTAINS
        mbgb_chii(nr) = chi_i_mix(1)
     END DO
 
+    ! on grid -> on half grid
     mbgb_chiem(1:nrmax) = 0.5d0*(mbgb_chie(0:nrmax-1)+mbgb_chie(1:nrmax))
     mbgb_chiim(1:nrmax) = 0.5d0*(mbgb_chii(0:nrmax-1)+mbgb_chii(1:nrmax))
 

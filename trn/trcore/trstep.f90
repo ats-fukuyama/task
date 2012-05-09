@@ -14,7 +14,7 @@ CONTAINS
 
     USE trcomm, ONLY: nrmax,neqmax,xv,xv_prev,xv_new, &
          rn,ru,rt,dpdrho,lmaxtr,epsltr,nsa_neq,nva_neq,nvmax,error_it,&
-         nitmax,mdltr_prv
+         nitmax,mdltr_prv  ! ,nrd1
     USE trcoef, ONLY: Pereverzev_check
     USE trcalc, ONLY: tr_calc
     USE trexec, ONLY: tr_exec
@@ -31,6 +31,8 @@ CONTAINS
     error_it(1:lmaxtr) = epsltr
        
     DO nit = 1, lmaxtr
+
+!       write(*,*) 'in nonlinear iteration'
 
        CALL tr_calc
 
@@ -53,6 +55,7 @@ CONTAINS
        END DO
        difmax = MAXVAL(dif)
        error_it(nit) = difmax
+!       write(*,*) difmax
 
        xv(1:nvmax) = xv_new(1:nvmax)
 
@@ -70,6 +73,7 @@ CONTAINS
 700 CONTINUE
 
     CALL tr_set_xv(xv,dpdrho,rn,ru,rt)
+!    nrd1(0:nrmax) = rt(1,0:nrmax)*rn(1,0:nrmax)
        
 !   --- error check here ---
     ierr=0
@@ -102,7 +106,8 @@ CONTAINS
              CASE(2)
                 xv(nv)=ru(nsa,nr)
              CASE(3)
-                xv(nv)=rt(nsa,nr)
+                xv(nv)=rn(nsa,nr)*rt(nsa,nr)
+!                xv(nv)=rt(nsa,nr)
              END SELECT
           END IF
        END DO
@@ -134,7 +139,8 @@ CONTAINS
              CASE(2)
                 ru(nsa,nr)=xv(nv)
              CASE(3)
-                rt(nsa,nr)=xv(nv)
+                rt(nsa,nr)=xv(nv)/rn(nsa,nr)
+!                rt(nsa,nr)=xv(nv)
              END SELECT
           END IF
        END DO

@@ -139,9 +139,9 @@ CONTAINS
     END DO
 
     CALL PAGES
-    label = '/add_Net(T_e) vs rho'
+    label = '/add_Net(n_e*T_e) vs rho'
     CALL GRD1D(1,rhog,gparg1, nrmax+1,nrmax+1,nggmax+1, label,0)
-    label = '/add_Net(T_H) vs rho'
+    label = '/add_Net(n_H*T_H) vs rho'
     CALL GRD1D(2,rhog,gparg2, nrmax+1,nrmax+1,nggmax+1, label,0)
     CALL PAGEE
     

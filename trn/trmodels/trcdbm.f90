@@ -23,7 +23,7 @@ CONTAINS
          rn_e,     &! the density of electron
          rp_totd , &! the total pressure
          mshear,   &! magnetic shear
-         dvexbpdr   ! the gradient of ExBp drift velocity
+         dvexbdr    ! the gradient of ExBp drift velocity
 
     USE trlib, ONLY: mesh_convert_mtog,data_interpolate_gtom
 
@@ -60,7 +60,7 @@ CONTAINS
     tc2 = 15.d0
     tk  = 3.d0
 
-    DO nr = 0, nrmax
+    DO nr = 1, nrmax
        pnel = rn_e(nr)*1.d20  ! electron density [m^-3]
     
        rhoni = 0.D0
@@ -78,12 +78,13 @@ CONTAINS
        IF(model_t == 1) qp(nr) = qp(nrmax) 
 
        CALL cdbm(abb1rho(nr),rmjrho(nr),rmnrho(nr),rkprho(nr),       &
-            qp(nr),mshear(nr),pnel,rhoni,rp_totd(nr),dvexbpdr(nr),   &
+            qp(nr),mshear(nr),pnel,rhoni,rp_totd(nr),dvexbdr(nr),   &
             calf,ckap,cexb,model,chi_cdbm(nr),                       &
             mdl_tuned=model_t,c1_tuned=tc1,c2_tuned=tc2,k_tuned=tk )
 
     END DO
 
+    ! on grid -> on half grid
     chim_cdbm(1:nrmax) = 0.5d0*(chi_cdbm(0:nrmax-1)+chi_cdbm(1:nrmax))
 
     DO nr = 1, nrmax

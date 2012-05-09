@@ -60,15 +60,18 @@ CONTAINS
 ! ----- calculate source -----
 
   SUBROUTINE tr_calc_source
-    USE trcomm, ONLY: nrmax,nsamax,neqmax,ph0,phs,rhog,ra,str_simple
+    USE trcomm, ONLY: nrmax,nsamax,neqmax,nva_neq,ph0,phs,rhog,ra,str_simple
     IMPLICIT NONE
     INTEGER(ikind) :: nr, neq
 
     str_simple = 0.d0
     DO nr = 0, nrmax
        DO neq=1,neqmax
-          str_simple(neq,nr) = phs+(ph0-phs)*(1.D0-(rhog(nr)/ra)**2)
-!          str_simple(neq,nr) = phs+(ph0-phs)*(1.D0-(rg(nr)/ra)**2)
+          IF(nva_neq(neq) == 3) THEN
+             str_simple(neq,nr) = phs+(ph0-phs)*(1.D0-(rhog(nr)/ra)**2)
+!             str_simple(neq,nr) = phs+(ph0-phs)*(1.D0-(rg(nr)/ra)**2)
+!             str_simple(neq,nr) = 0.d0
+          END IF
        END DO
     END DO
     RETURN

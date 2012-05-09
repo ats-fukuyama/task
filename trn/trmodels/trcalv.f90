@@ -47,7 +47,7 @@ MODULE trcalv
        mshear_cl,&! magnetic shear length  R*q**2/(r*dq/dr)
        mcurv,    &! magnetic curvature
        vexb,     &! ExBt velocity [m/s]
-!       dvexbdr,  &! ExBt velocity gradient [1/s]
+       dvexbdr,  &! ExBt velocity gradient [1/s]
        vexbp,    &! ExBp velocity [m/s]
        dvexbpdr, &! ExBp velocity gradient [1/s]
 !       wexb,     &! ExBt shearing rate [rad/s]
@@ -64,7 +64,8 @@ CONTAINS
 !--------------------------------------------------------------------------
 !   Calculate variables and some effects used in calculate transport 
 !--------------------------------------------------------------------------
-    USE trcomm, ONLY: ikind,nrmax,RR,rhog,rmnrho,BB,dpdrho,bp,er
+    USE trcomm, ONLY: ikind,nrmax,RR,rhog,rmnrho,BB,dpdrho,bp,er &
+         ,nrd1,nrd2,nrd3,nrd4
 
     IMPLICIT NONE
     INTEGER(ikind) :: nr
@@ -76,16 +77,25 @@ CONTAINS
 
     CALL tr_zeff
 
-    ! half grid
+    vexbp(0:nrmax)    = 0.d0
+    dvexbpdr(0:nrmax) = 0.d0
+    wexbp(0:nrmax)    = 0.d0
+
+    ! on grid; these variables are not defined at rho = 0
     DO nr = 1, nrmax
        ! ExB velocity : er [V/m] / BB [T] -> [m/s]
-       !    vexb(nr)  = -er(nr) / BB
+       vexb(nr)  = -er(nr) / BB
        vexbp(nr) = -er(nr) / (RR*bp(nr)) ! [1/s]
        
        !:the 2nd order accuracy derivative of V_exb
+       dvexbdr(nr)  = deriv3(nr,rmnrho,vexb,nrmax,1)
        dvexbpdr(nr) = deriv3(nr,rmnrho,vexbp,nrmax,1)
 
        ! poloidal rotational shear [1/s]
+!      ExB Rotation shear
+!       "Effects of {ExB} velocity shear and magnetic shear
+!           on turbulence and transport in magnetic confinement devices"
+!       [Phys. of Plasmas, 4, 1499 (1997)]          
        wexbp(nr) = (RR*bp(nr))**2/(dpdrho(nr)*sqrt(BB**2+bp(nr)**2)) &
                    *dvexbpdr(nr)
        ! wexbp(nr) = RR*bp(nr)*dvexbpdr(nr)/BB
@@ -99,12 +109,20 @@ CONTAINS
 
     END DO
 
+!    nrd1(0:nrmax) = er(0:nrmax)
+!    nrd2(0:nrmax) = vexbp(0:nrmax)
+!    nrd3(0:nrmax) = dvexbpdr(0:nrmax)
+!    nrd4(0:nrmax) = bp(0:nrmax)
+
     RETURN
   END SUBROUTINE tr_calc_variables
 
 !==========================================================================
 
   SUBROUTINE tr_calv_fundamental
+!-------------------------------------------------------------------------
+!   The derivatives are calculated on the each grid.
+!-------------------------------------------------------------------------
     USE trcomm, ONLY: rkev,pa,pz,pz0,idnsa,ar1rho,RR,BB,rhog,rmnrho, &
          rt,rn,bp,qp, nrd1,nrd2
 
@@ -191,8 +209,10 @@ CONTAINS
        mcurv = 0.d0
        
     END DO
-       ! derivatives with respect to 'r' ( d XX/dr = <|grad rho|>*d XX/d rho)
-       ! ** second order accuracy on grid
+
+    ! derivatives with respect to 'r' ( d XX/dr = <|grad rho|>*d XX/d rho)
+    ! ** deriv3: second order accuracy on grid
+    !          ; at nr=0, d XX/dr = 0 and 
     DO nr = 1, nrmax
        DO nsa = 1, nsamax
           rps(0:nrmax) = rp(nsa,0:nrmax)
@@ -237,7 +257,7 @@ CONTAINS
     REAl(rkind) :: term_dp,term_dpg
 
 
-    DO nr=1,nrmax
+    DO nr=0,nrmax
 
 !    *****
 !    ! This part will be implemented in introducing the NBI heating modules.
@@ -400,7 +420,8 @@ CONTAINS
        
        ALLOCATE(mshear(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000   
        ALLOCATE(mcurv(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
-!       ALLOCATE(vexb(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
+       ALLOCATE(vexb(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
+       ALLOCATE(dvexbdr(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000 
        ALLOCATE(vexbp(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
        ALLOCATE(dvexbpdr(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000 
        ALLOCATE(wexbp(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000       
@@ -450,7 +471,8 @@ CONTAINS
 !       
     IF(ALLOCATED(mshear)) DEALLOCATE(mshear)
     IF(ALLOCATED(mcurv)) DEALLOCATE(mcurv)
-!    IF(ALLOCATED(vexb)) DEALLOCATE(vexb)
+    IF(ALLOCATED(vexb)) DEALLOCATE(vexb)
+    IF(ALLOCATED(dvexbdr)) DEALLOCATE(dvexbdr)
     IF(ALLOCATED(vexbp)) DEALLOCATE(vexbp)
     IF(ALLOCATED(dvexbpdr)) DEALLOCATE(dvexbpdr)
     IF(ALLOCATED(wexbp)) DEALLOCATE(wexbp)

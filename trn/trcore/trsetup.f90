@@ -94,7 +94,7 @@ CONTAINS
     !             2 : toroidal velocity
     !             3 : temperature
 
-    !   id_neq  = 0 : equation is not solved in any radius (fixed to zero)
+    !   id_neq  = 0 : equation is not solved in any radius
     !             1 : flat on axis and fixed at plasma surface
     !             2 : fixed to zero on axis and fixed at plasma surface
     !             3 : flat on axis and fixed scale length at plasma surface
@@ -103,7 +103,7 @@ CONTAINS
     neq = 1
     nsa_neq(neq) = 0
     nva_neq(neq) = 0
-    id_neq(neq)  = 2
+    id_neq(neq)  = 0
 
     DO nsa=1,nsamax
        DO i=1,3
@@ -204,7 +204,7 @@ CONTAINS
        CASE(2,12) ! fixed to zero on axis and fixed at plasma surface
           neqr = neqr+1
           neqr_neq(neq) = neqr
-          id_neqnr(neq,        0) = 2
+          id_neqnr(neq,        0) = 0
           id_neqnr(neq,1:nrmax-1) = 1
           id_neqnr(neq,    nrmax) = 2
        CASE(3,13) ! flat on axis and fixed scale length at plasma surface
@@ -215,7 +215,7 @@ CONTAINS
        CASE(4,14) ! fixed to zero on axis and fixed scale length at surface
           neqr = neqr+1
           neqr_neq(neq) = neqr
-          id_neqnr(neq,        0) = 2
+          id_neqnr(neq,        0) = 0
           id_neqnr(neq,1:nrmax-1) = 1
           id_neqnr(neq,    nrmax) = 3
        CASE DEFAULT
@@ -261,7 +261,7 @@ CONTAINS
     USE trcomm, ONLY: pi,rkap,nrmax,ra,rr,bb,rkap,rg,rm,rjcb,rhog,rhom, &
          rhoa,ttrho,dvrho,abrho,abvrho,arrho,ar1rho,ar2rho,rmjrho,      &
          rmnrho,rmnrhom,rkprho,rkprhom,rhog,rhom,epsrho,                &
-         abb2rho,abb1rho,pvolrho,psurrho !, nrd1,nrd2
+         abb2rho,abb1rho,pvolrho,psurrho  ! ,nrd1,nrd2,nrd3
 
     IMPLICIT NONE
     INTEGER(ikind) :: nr
@@ -303,6 +303,7 @@ CONTAINS
        arrho(nr)   = 1.d0/rr**2 * (1+1.5d0*epsrho(nr)**2)            
 !       abb2rho(nr) = 
        abvrho(nr)  = dvrho(nr)**2*abrho(nr)
+
     END DO
 
   END SUBROUTINE tr_setup_metric_init
@@ -354,7 +355,6 @@ CONTAINS
 !       call tr_bpsd_get(ierr)
 !       call trgout        
     CASE(9) ! CALL TASK/EQ
-          CALL eq_prof              ! initial calculation of eq
           CALL eq_calc              ! recalculate eq
           CALL tr_bpsd_get(ierr)
           ! --- here the convergence of q profile must be confirmed
@@ -415,7 +415,7 @@ CONTAINS
 ! --------------------------------------------------------------------------
     USE trcomm, ONLY: rmu0,pi,nrmax,BB,RR,q0,qa,profj1,profj2,knameq, &
          rhog,abb1rho,dvrho,ttrho,abrho,arrho,dpdrho,ar1rho,          &
-         jtot,joh,bp,qp, nrd1,nrd2,nrd3,nrd4
+         jtot,joh,bp,qp!, nrd1,nrd2,nrd3,nrd4
 
     IMPLICIT NONE
     REAL(rkind) :: dr,prof,factor0,sumfact1
@@ -457,10 +457,10 @@ CONTAINS
     qa = qp(nrmax)
 
     ! diagnostic
-    nrd1(0:nrmax) = jtot(0:nrmax)
-    nrd2(0:nrmax) = dpdrho(0:nrmax)
-    nrd3(0:nrmax) = qp(0:nrmax)
-    nrd4(0:nrmax) = bp(0:nrmax)
+!    nrd1(0:nrmax) = jtot(0:nrmax)
+!    nrd2(0:nrmax) = dpdrho(0:nrmax)
+!    nrd3(0:nrmax) = qp(0:nrmax)
+!    nrd4(0:nrmax) = bp(0:nrmax)
 
 
 !!$    NR=1    

@@ -340,6 +340,7 @@ CONTAINS
     ENDDO
 
     ! *** < nr=1, nrmax-1 on grid >  to  < nr=1,nrmax on half-grid > ***
+    ! this subroutine is used for the time being
     call mesh_convert_mtog(diff_jm(1:nrmax-1),diff_jmg(1:nrmax),nrmax-1)
     call mesh_convert_mtog(chie_jm(1:nrmax-1),chie_jmg(1:nrmax),nrmax-1)
     call mesh_convert_mtog(chii_jm(1:nrmax-1),chii_jmg(1:nrmax),nrmax-1)
