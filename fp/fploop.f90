@@ -34,6 +34,7 @@
       integer:: NSTEST
       real(kind8):: temp_send, temp_recv
       character:: fmt*40
+!      real(8),dimension(NTHMAX,NPMAX)::diff_f
 
       IF(MODELE.NE.0) CALL FPNEWE
 
@@ -41,6 +42,15 @@
 
       gut_EX = 0.D0
       gut_CALC= 0.D0
+
+!      IF(NRANK.eq.29)THEN
+!         DO NP=1,NPMAX
+!            DO NTH=1,NTHMAX
+!               diff_f(NTH,NP)=FNS(NTH,NP,30,1)
+!            END DO
+!         END DO
+!      END IF
+
 
       DO NT=1,NTMAX
          
@@ -318,6 +328,21 @@
 !         write(*,*)"1 loop time", nrank, gut2-gut
 
       ENDDO ! END OF NT LOOP
+
+!      IF(NRANK.eq.29)THEN
+!      open(8,file='diff_FNS.dat')
+!      DO NP=1,NPMAX
+!         DO NTH=1,NTHMAX
+!            diff_f(NTH,NP)=FNS(NTH,NP,30,1)-diff_f(NTH,NP)
+!!            WRITE(8,*) NTH, NP, diff_f(NTH,NP)
+!            WRITE(8,*) PM(NP,1)*COSM(NTH), PM(NP,1)*SINM(NTH), diff_f(NTH,NP)
+!         END DO 
+!         WRITE(8,*) " "
+!         WRITE(8,*) " "
+!      END DO
+!      CLOSE(8)
+!      END IF
+
 
 !      CALL GUTIME(gut4)
 !      write(*,*)"total loop time", nrank, gut4-gut3

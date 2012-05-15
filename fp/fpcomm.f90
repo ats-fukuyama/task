@@ -71,9 +71,9 @@
       real(rkind),dimension(:,:,:),POINTER :: & ! (NTHM,NPM,NRM)
            F,F1
       integer,dimension(:),POINTER :: & ! (NRM)
-           ITL,ITU
+           ITL,ITU,ITL_G,ITU_G
       integer,dimension(:),POINTER :: & ! (NRM)
-           ITLG,ITUG
+           ITLG,ITUG,ITLG_G,ITUG_G
       real(rkind),dimension(:),POINTER :: & ! (NRM,NSBM)
            RCOEF, RCOEF_G, RCOEFN, RCOEFN_G
       real(rkind),dimension(:),POINTER :: & ! (NSAM)
@@ -96,21 +96,24 @@
       real(rkind),dimension(:),POINTER :: & ! (NRM)
            BP,QR,RJ1,E1,RJ2,E2,BPG,BPM,QLM,QLG
       real(rkind),dimension(:),POINTER :: & ! (NRM)
-           EPSRM,EPSRG
+           EPSRM,EPSRG,EPSRM2,EPSRG2
       real(rkind),dimension(:),POINTER :: & ! (NRM)
            EPSRMX,EPSRGX
       real(rkind),dimension(:,:,:),POINTER :: & ! (NTHM,NPM,NSBM)
            VOLP
       real(rkind),dimension(:,:),POINTER :: & ! (NTHM,NRMP)
            ETAG,ETAM,RLAMDA,RLAMDC,ETAM_G,ETAG_G,RLAMDA_G,RlAMDC_G
+      real(rkind),dimension(:),POINTER:: & !(NR)
+           RFSAD,RFSADG, RFSAD_G, RFSAD_GG
+
       real(rkind),dimension(:),POINTER :: & ! (NTHM)
            SING,COSG,SINM,COSM
 
-       real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSBM)
+      real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSBM)
            FNS
-       real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSAM)
+      real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSAM)
            FNS1,FNS2,FNS22
-       real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSBM)
+      real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSBM)
            FNS_L
 
 
@@ -241,9 +244,12 @@
           allocate(RJ1(NRMAX),E1(NRMAX))
           allocate(RJ2(NRMAX),E2(NRMAX))
           allocate(EPSRM(NRMAX+1),EPSRG(NRMAX+1))
+          allocate(EPSRM2(NRMAX+1),EPSRG2(NRMAX+1))
           allocate(EPSRMX(NRMAX+1),EPSRGX(NRMAX+1))
           allocate(ITL(NRMAX+1),ITU(NRMAX+1))
           allocate(ITLG(NRMAX+1),ITUG(NRMAX+1))
+          allocate(ITL_G(NRMAX+1),ITU_G(NRMAX+1))
+          allocate(ITLG_G(NRMAX+1),ITUG_G(NRMAX+1))
 
           allocate(RCOEF(NRSTART:NREND), RCOEF_G(NRSTART:NREND))
           allocate(RCOEFN(NRSTART:NREND), RCOEFN_G(NRSTART:NREND))
@@ -260,6 +266,10 @@
           allocate(ETAG(NTHMAX+1,NRSTART:NREND+1),ETAM(NTHMAX,NRSTART:NREND+1))
           allocate(ETAG_G(NTHMAX+1,NRSTART:NREND+1),ETAM_G(NTHMAX,NRSTART:NREND+1))
           allocate(RLAMDA(NTHMAX,NRSTART:NREND),RLAMDC(NTHMAX+1,NRSTART:NREND))
+
+          allocate(RFSAD(NRSTART:NREND),RFSADG(NRMAX))
+          allocate(RFSAD_G(NRSTART:NREND),RFSAD_GG(NRMAX+1))
+
           allocate(RLAMDA_G(NTHMAX,NRSTART:NREND),RLAMDC_G(NTHMAX+1,NRSTART:NREND))
           allocate(SING(NTHMAX+1),COSG(NTHMAX+1))
           allocate(SINM(NTHMAX),COSM(NTHMAX))
@@ -443,6 +453,8 @@
           deallocate(RCOEFG,RCOEF_GG)
           deallocate(ITL,ITU)
           deallocate(ITLG,ITUG)
+          deallocate(ITL_G,ITU_G)
+          deallocate(ITLG_G,ITUG_G)
           deallocate(RG,RM)
           deallocate(PG,PM)
           deallocate(THG,THM)
@@ -462,6 +474,7 @@
           deallocate(BPG,BPM)
           deallocate(QLG,QLM)
           deallocate(EPSRM,EPSRG,EPSRMX,EPSRGX)
+          deallocate(EPSRM2,EPSRG2)
           deallocate(THETA,DKBSR)
 
           deallocate(RNFD,RTFD,PTFD,VTFD)
@@ -469,6 +482,8 @@
           deallocate(FS1,FS2,VOLP,FS3)
           deallocate(ETAG,ETAM)
           deallocate(RLAMDA,RLAMDC)
+          deallocate(RFSAD,RFSADG)
+          deallocate(RFSAD_G,RFSAD_GG)
           deallocate(SING,COSG,SINM,COSM)
           deallocate(WEIGHP,WEIGHT)
           deallocate(WEIGHR)

@@ -402,7 +402,7 @@
                              +FEPP(NTH,NP,NR,NSA)*PSIB*COSG(NTH)/ABS(COSG(NTH))
                      END DO
                   END DO
-                  FEPP(NTH,NP,NR,NSA)=SUM11*DELH/PI*RCOEFG(NR)
+                  FEPP(NTH,NP,NR,NSA)=SUM11*DELH*RCOEFG(NR)
 !                  FEPP(NTH,NP,NR,NSA)= FACT*FEPP(NTH,NP,NR,NSA)
                ENDDO
             ENDDO
@@ -431,7 +431,7 @@
                              +FEPP(NTH,NP,NR,NSA)*PSIB
                      END DO
                   END DO
-                  FEPP(NTH,NP,NR,NSA)=SUM11*DELH/PI*RCOEFG(NR)
+                  FEPP(NTH,NP,NR,NSA)=SUM11*DELH*RCOEFG(NR)
 !                  FEPP(NTH,NP,NR,NSA)= FACT*FEPP(NTH,NP,NR,NSA)
                ENDDO
                DO NP=1,NPMAX+1
@@ -462,7 +462,7 @@
                              +FETH(NTH,NP,NR,NSA)*PSIB
                      END DO
                   END DO
-                  FETH(NTH,NP,NR,NSA)=SUM11*DELH/PI*RCOEFG(NR)
+                  FETH(NTH,NP,NR,NSA)=SUM11*DELH*RCOEFG(NR)
 !                  FETH(NTH,NP,NR,NSA)=FACT*FETH(NTH,NP,NR,NSA)
                ENDDO
             ENDDO
@@ -491,7 +491,7 @@
                              +FETH(NTH,NP,NR,NSA)*PSIB
                      END DO
                   END DO
-                  FETH(NTH,NP,NR,NSA)=SUM11*DELH/PI*RCOEFG(NR)
+                  FETH(NTH,NP,NR,NSA)=SUM11*DELH*RCOEFG(NR)
 !                  FETH(NTH,NP,NR,NSA)=FACT*FETH(NTH,NP,NR,NSA)
                ENDDO
             ENDDO
@@ -719,10 +719,11 @@
 
       IMPLICIT NONE
       integer:: NSA, NSBA, NS, NR, NTH, NP, NG
-      real(kind8):: RHON, RTFPL, FACTR, FACTP, FACTRN, FACTRT, SV
+      real(kind8):: RHON, RTFPL, FACTR, FACTP, SV
       real(kind8):: PSIB, PCOS, X, ETAL, sumd, sumf, DELH
-      real(kind8):: DNDR, NEDGE, FACT, DINT_D, DINT_F, DFDR_R1, F_R1, WRL
-      real(kind8):: sum1, temp1
+      real(kind8):: DNDR, NEDGE, FACT, DINT_D, DINT_F, WRL
+      real(kind8):: sum1, temp1, SRHODP, SRHODM, SRHOFP, SRHOFM
+      real(kind8):: WRH, DFDR_D, DFDR_F, F_R2, DFDR_R2, F_R1, DFDR_R1
 
       NS=NS_NSA(NSA)
       NSBA=NSB_NSA(NSA)
@@ -741,129 +742,146 @@
                FACTP=1.D0/(RTFPL+PG(NP,NSBA)**2)
             CASE(9) ! case(3) with pinch, = MODELD=5
                FACTP=1.D0
+            CASE(10) ! case(3) with pinch, = MODELD=5
+               FACTP=1.D0
             END SELECT
             IF(NR.ne.NRMAX+1)THEN
                DO NTH=1,NTHMAX
-                  FACT= (DRR0-DRRS)*(1.D0-RHON**2)+DRRS 
-                  DRR(NTH,NP,NR,NSA)= FACT &
+                  FACTR= (DRR0-DRRS)*(1.D0-RHON**2)+DRRS 
+                  DRR(NTH,NP,NR,NSA)= FACTR &
                        *FACTP      /(RA*RA)
                ENDDO
             ELSE
                DO NTH=1,NTHMAX
-                  FACT= DRRS 
-                  DRR(NTH,NP,NR,NSA)= FACT &
+                  FACTR= DRRS 
+                  DRR(NTH,NP,NR,NSA)= FACTR &
                        *FACTP      /(RA*RA)
                ENDDO
-!               DO NTH=1,NTHMAX
-!                  DRR(NTH,NP,NR,NSA)=0.D0 
-!               ENDDO               
             END IF
          ENDDO
 
-         IF(MODELA.eq.1)THEN! Bounce average for radial diffusion coef.
-            DO NP=1, NPMAX
-               DO NTH=1,NTHMAX
-                  DELH=2.D0*ETAM_GG(NTH,NR)/NAVMAX 
-                  sum1=0.D0
-                  temp1=DRR(NTH,NP,NR,NSA)
-
-                  IF(COSM(NTH).ge.0.D0)THEN
-                     DO NG=1, NAVMAX
-                        ETAL=DELH*(NG-0.5D0)
-                        X=EPSRG(NR)*COS(ETAL)*RR
-                        PSIB=(1.D0+EPSRG(NR))/(1.D0+X/RR) 
-                        PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
-
-                        sum1 = sum1 + temp1*COSM(NTH)/PCOS
-                     END DO
-                  ELSE
-                     DO NG=1, NAVMAX
-                        ETAL=DELH*(NG-0.5D0)
-                        X=EPSRG(NR)*COS(ETAL)*RR
-                        PSIB=(1.D0+EPSRG(NR))/(1.D0+X/RR) 
-                        PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
-
-                        sum1 = sum1 + temp1*COSM(NTH)/PCOS
-                     END DO
-                  END IF
-                  DRR(NTH,NP,NR,NSA)=SUM1*DELH/PI*RCOEF_GG(NR)
-               END DO
-            END DO
-! SYMMETRY 
-            DO NP=1,NPMAX
-               DO NTH=ITLG(NR)+1,NTHMAX/2
-                  DRR(NTH,NP,NR,NSA) &
-                       =(DRR(NTH,NP,NR,NSA) &
-                       +DRR(NTHMAX-NTH+1,NP,NR,NSA))/2.D0
-                  DRR(NTHMAX-NTH+1,NP,NR,NSA) &
-                       =DRR(NTH,NP,NR,NSA)
-               END DO
-            END DO
-! AT BOUNDARY
-            IF(NR.eq.1)THEN
-               DO NP=1,NPMAX
-                  DRR(ITLG(NR),NP,NR,NSA) = RLAMDA_GG(ITLG(NR),NR)/4.D0 &
-                       *( DRR(ITLG(NR)-1,NP,NR,NSA)/RLAMDA_GG(ITLG(NR)-1,NR) &
-                       +DRR(ITLG(NR)+1,NP,NR,NSA)/RLAMDA_GG(ITLG(NR)+1,NR)   &
-                       +DRR(ITUG(NR)-1,NP,NR,NSA)/RLAMDA_GG(ITUG(NR)-1,NR)   &
-                       +DRR(ITUG(NR)+1,NP,NR,NSA)/RLAMDA_GG(ITUG(NR)+1,NR)  )
-                  DRR(ITUG(NR),NP,NR,NSA)=DRR(ITLG(NR),NP,NR,NSA)
-               END DO
-            ELSE                  
-               IF(ITL(NR-1).eq.ITLG(NR))THEN
-                  DO NP=1,NPMAX
-                     DRR(ITLG(NR),NP,NR,NSA) = RLAMDA_GG(ITLG(NR),NR)/4.D0 &
-                          *( DRR(ITLG(NR)-1,NP,NR,NSA)/RLAMDA_GG(ITLG(NR)-1,NR) &
-                          +DRR(ITLG(NR)+1,NP,NR,NSA)/RLAMDA_GG(ITLG(NR)+1,NR)   &
-                          +DRR(ITUG(NR)-1,NP,NR,NSA)/RLAMDA_GG(ITUG(NR)-1,NR)   &
-                          +DRR(ITUG(NR)+1,NP,NR,NSA)/RLAMDA_GG(ITUG(NR)+1,NR)  )
-                     DRR(ITUG(NR),NP,NR,NSA)=DRR(ITLG(NR),NP,NR,NSA)
-                  END DO
-               ELSEIF(ITL(NR-1).ne.ITLG(NR))THEN
-                  DO NP=1,NPMAX
-                     DRR(ITL(NR),NP,NR,NSA) = RLAMDA_GG(ITL(NR),NR)/4.D0 &
-                          *( DRR(ITL(NR)-1,NP,NR,NSA)/RLAMDA_GG(ITL(NR)-1,NR) &
-                          +DRR(ITL(NR)+1,NP,NR,NSA)/RLAMDA_GG(ITL(NR)+1,NR)   &
-                          +DRR(ITU(NR)-1,NP,NR,NSA)/RLAMDA_GG(ITU(NR)-1,NR)   &
-                          +DRR(ITU(NR)+1,NP,NR,NSA)/RLAMDA_GG(ITU(NR)+1,NR)  )
-                     DRR(ITU(NR),NP,NR,NSA)=DRR(ITL(NR),NP,NR,NSA)
-                  END DO
-               END IF
-            END IF
-         END IF! end of bounce average
-
+!         IF(MODELA.eq.1)THEN! Bounce average for radial diffusion coef.
+!!            DO NP=1, NPMAX
+!!               DO NTH=1,NTHMAX
+!!                  DELH=2.D0*ETAM_GG(NTH,NR)/NAVMAX 
+!!                  sum1=0.D0
+!!                  temp1=DRR(NTH,NP,NR,NSA)
+!!
+!!                  IF(COSM(NTH).ge.0.D0)THEN
+!!                     DO NG=1, NAVMAX
+!!                        ETAL=DELH*(NG-0.5D0)
+!!                        X=EPSRG(NR)*COS(ETAL)*RR
+!!                        PSIB=(1.D0+EPSRG(NR))/(1.D0+X/RR) 
+!!                        PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
+!!
+!!                        sum1 = sum1 + temp1*COSM(NTH)/PCOS
+!!                     END DO
+!!                  ELSE
+!!                     DO NG=1, NAVMAX
+!!                        ETAL=DELH*(NG-0.5D0)
+!!                        X=EPSRG(NR)*COS(ETAL)*RR
+!!                        PSIB=(1.D0+EPSRG(NR))/(1.D0+X/RR) 
+!!                        PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
+!!
+!!                        sum1 = sum1 + temp1*COSM(NTH)/PCOS
+!!                     END DO
+!!                  END IF
+!!                  DRR(NTH,NP,NR,NSA)=SUM1*DELH!/PI*RCOEF_GG(NR)
+!!               END DO
+!!            END DO
+!! SYMMETRY 
+!            DO NP=1,NPMAX
+!               DO NTH=ITLG(NR)+1,NTHMAX/2
+!                  DRR(NTH,NP,NR,NSA) &
+!                       =(DRR(NTH,NP,NR,NSA) &
+!                       +DRR(NTHMAX-NTH+1,NP,NR,NSA))/2.D0
+!                  DRR(NTHMAX-NTH+1,NP,NR,NSA) &
+!                       =DRR(NTH,NP,NR,NSA)
+!               END DO
+!            END DO
+!! AT BOUNDARY
+!            IF(NR.eq.1)THEN
+!               DO NP=1,NPMAX
+!                  DRR(ITLG(NR),NP,NR,NSA) = RLAMDA_GG(ITLG(NR),NR)/4.D0 &
+!                       *( DRR(ITLG(NR)-1,NP,NR,NSA)/RLAMDA_GG(ITLG(NR)-1,NR) &
+!                       +DRR(ITLG(NR)+1,NP,NR,NSA)/RLAMDA_GG(ITLG(NR)+1,NR)   &
+!                       +DRR(ITUG(NR)-1,NP,NR,NSA)/RLAMDA_GG(ITUG(NR)-1,NR)   &
+!                       +DRR(ITUG(NR)+1,NP,NR,NSA)/RLAMDA_GG(ITUG(NR)+1,NR)  )
+!                  DRR(ITUG(NR),NP,NR,NSA)=DRR(ITLG(NR),NP,NR,NSA)
+!               END DO
+!            ELSE                  
+!               IF(ITL(NR-1).eq.ITLG(NR))THEN
+!                  DO NP=1,NPMAX
+!                     DRR(ITLG(NR),NP,NR,NSA) = RLAMDA_GG(ITLG(NR),NR)/4.D0 &
+!                          *( DRR(ITLG(NR)-1,NP,NR,NSA)/RLAMDA_GG(ITLG(NR)-1,NR) &
+!                          +DRR(ITLG(NR)+1,NP,NR,NSA)/RLAMDA_GG(ITLG(NR)+1,NR)   &
+!                          +DRR(ITUG(NR)-1,NP,NR,NSA)/RLAMDA_GG(ITUG(NR)-1,NR)   &
+!                          +DRR(ITUG(NR)+1,NP,NR,NSA)/RLAMDA_GG(ITUG(NR)+1,NR)  )
+!                     DRR(ITUG(NR),NP,NR,NSA)=DRR(ITLG(NR),NP,NR,NSA)
+!                  END DO
+!               ELSEIF(ITL(NR-1).ne.ITLG(NR))THEN
+!                  DO NP=1,NPMAX
+!                     DRR(ITL(NR),NP,NR,NSA) = RLAMDA_GG(ITL(NR),NR)/4.D0 &
+!                          *( DRR(ITL(NR)-1,NP,NR,NSA)/RLAMDA_GG(ITL(NR)-1,NR) &
+!                          +DRR(ITL(NR)+1,NP,NR,NSA)/RLAMDA_GG(ITL(NR)+1,NR)   &
+!                          +DRR(ITU(NR)-1,NP,NR,NSA)/RLAMDA_GG(ITU(NR)-1,NR)   &
+!                          +DRR(ITU(NR)+1,NP,NR,NSA)/RLAMDA_GG(ITU(NR)+1,NR)  )
+!                     DRR(ITU(NR),NP,NR,NSA)=DRR(ITL(NR),NP,NR,NSA)
+!                  END DO
+!               END IF
+!            END IF
+!         END IF! end of bounce average
+!
 ! SET PINCH TERM
 
          DINT_D=0.D0
          DINT_F=0.D0
          DO NP=1,NPMAX
             DO NTH=1,NTHMAX
-               IF(NTG1.ne.1)THEN
-                  WRL=WEIGHR(NTH,NP,NR,NSA)
-               ELSEIF(NTG1.eq.1.and.NR.ne.1)THEN
-                  !                     WRL=0.5D0
-                  WRL=(4.D0*NR-3.D0)/(2.D0*NR-2.D0)/4.D0
+!               IF(NTG1.ne.0)THEN
+!                  WRL=WEIGHR(NTH,NP,NR,NSA)
+!                  WRH=WEIGHR(NTH,NP,NR+1,NSA) 
+!               ELSEIF(NTG1.eq.0.and.NR.ne.1)THEN
+               IF(NR.ne.1)THEN
+                  IF(NR.le.NRMAX)THEN
+                     WRL=(4.D0*RG(NR)+DELR)/(8.D0*RG(NR))
+                     WRH=(4.D0*RG(NR+1)+DELR)/(8.D0*RG(NR+1))
+                  ELSE
+                     WRL=(4.D0*RG(NR)+DELR)/(8.D0*RG(NR))
+                     WRH=(4.D0*RG(NR)+DELR)/(8.D0*RG(NR))
+                  END IF
                END IF
+!               END IF
                IF(NR.eq.1)THEN
-                  DFDR_R1 = ( FNS(NTH,NP,NR,NSA)-FS1(NTH,NP,NSA) ) / DELR * 2.D0
-                  F_R1 = FS1(NTH,NP,NSA) 
+                  DFDR_R1 = ( FNS(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)/RFSADG(NR) &
+                       -FS1(NTH,NP,NSA)*RLAMDA_GG(NTH,NR)/RFSAD_GG(NR) ) / DELR *2.D0
+                  F_R1 = FS1(NTH,NP,NSA)*RLAMDA_GG(NTH,NR)/RFSAD_GG(NR)
+                  SRHODM=DFDR_R1 * DRR(NTH,NP,NR,NSA)
+                  SRHOFM=F_R1    * DRR(NTH,NP,NR,NSA)
                ELSEIF(NR.eq.NRMAX+1)THEN ! FS2 = F_INIT at rho=1+delR/2
-                  DFDR_R1 = ( FS2(NTH,NP,NSA)-FNS(NTH,NP,NR-1,NSA) ) / DELR
-                  F_R1 = ( (1.D0-WRL)*FS2(NTH,NP,NSA) + WRL*FNS(NTH,NP,NR-1,NSA) )
-!                  DFDR_R1 = ( FS3(NTH,NP,NSA)-FNS(NTH,NP,NR-1,NSA) ) / DELR *2.D0
-!                  F_R1 = FS3(NTH,NP,NSA)
+                  DFDR_R1 = ( FS2(NTH,NP,NSA)*RLAMDA_GG(NTH,NR)/RFSAD_GG(NR) &
+                       -FNS(NTH,NP,NR-1,NSA)*RLAMDAG(NTH,NR-1)/RFSADG(NR-1) ) / DELR
+                  F_R1 = FS3(NTH,NP,NSA)*RLAMDA_GG(NTH,NR)/RFSAD_GG(NR)
+!                  F_R1 = ( (1.D0-WRH)*FS2(NTH,NP,NSA)*RLAMDA_GG(NTH,NR)/RFSAD_GG(NR) &
+!                       + WRH*FNS(NTH,NP,NR-1,NSA)*RLAMDA(NTH,NR-1)/RFSADG(NR-1) )
+                  SRHODM=DFDR_R1 * DRR(NTH,NP,NR,NSA)
+                  SRHOFM=F_R1    * DRR(NTH,NP,NR,NSA)
                ELSE
-                  DFDR_R1 = ( FNS(NTH,NP,NR,NSA)-FNS(NTH,NP,NR-1,NSA) ) / DELR
-                  F_R1 = ( (1.D0-WRL)*FNS(NTH,NP,NR,NSA) + WRL*FNS(NTH,NP,NR-1,NSA) )
+                  DFDR_R1 = ( FNS(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)/RFSADG(NR) &
+                       -FNS(NTH,NP,NR-1,NSA)*RLAMDAG(NTH,NR-1)/RFSADG(NR-1) ) / DELR
+                  F_R1 = ( (1.D0-WRL)*FNS(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)/RFSADG(NR) &
+                       + WRL*FNS(NTH,NP,NR-1,NSA)*RLAMDAG(NTH,NR-1)/RFSADG(NR-1) )
+                  SRHODM=DFDR_R1 * DRR(NTH,NP,NR,NSA)
+                  SRHOFM=F_R1    * DRR(NTH,NP,NR,NSA)
                END IF
-               
-               DINT_D = DINT_D + VOLP(NTH,NP,NSBA)*DFDR_R1 * DRR(NTH,NP,NR,NSA)
-               DINT_F = DINT_F + VOLP(NTH,NP,NSBA)*F_R1    * DRR(NTH,NP,NR,NSA)
+               DINT_D = DINT_D + VOLP(NTH,NP,NSBA)*SRHODM
+               DINT_F = DINT_F + VOLP(NTH,NP,NSBA)*SRHOFM
             END DO
          END DO
 
 !         IF(NR.ne.NRMAX+1)THEN
-            FACTR = DINT_D/DINT_F
+            FACT = DINT_D/DINT_F
+            IF(MODELD.eq.10) FACT=0.D0
 !         ELSE
 !            FACTR = DINT_D/DINT_F
 !            FACTR=0.D0
@@ -872,7 +890,7 @@
 
          DO NP=1,NPMAX
             DO NTH=1,NTHMAX
-               FRR(NTH,NP,NR,NSA) = FACTR * DRR(NTH,NP,NR,NSA)
+               FRR(NTH,NP,NR,NSA) = FACT * DRR(NTH,NP,NR,NSA)
             END DO
          END DO
 

@@ -9,6 +9,7 @@
       USE fpinit
       USE fpsave
       USE fpcoef
+      USE fpbounce
       USE equnit_mod
 
       contains
@@ -199,28 +200,31 @@
          DO NR=1,NRMAX+1
             ITL(NR)=0
             ITU(NR)=0
-!         ENDDO
-!         DO NR=1,NRMAX+1
             ITLG(NR)=0
             ITUG(NR)=0
          ENDDO
       ELSE
          DO NR=1,NRMAX+1
             A1=ACOS(SQRT(2.D0*EPSRM(NR)/(1.D0+EPSRM(NR))))
-            DO NTH=1,NTHMAX/2
-               IF (THG(NTH).LE.A1.AND.THG(NTH+1).GE.A1) GOTO 201
-            ENDDO
-            NTH=NTHMAX/2-1
-  201       CONTINUE
-
+            NTH=0
+            DO WHILE (THG(NTH+1).le.A1)
+               NTH = NTH+1
+            END DO
             ITL(NR)=NTH
             ITU(NR)=NTHMAX-NTH+1
+
+!            DO NTH=1,NTHMAX/2
+!               IF (THG(NTH).LE.A1.AND.THG(NTH+1).GE.A1) GOTO 201
+!            ENDDO
+!            NTH=NTHMAX/2-1
+!  201       CONTINUE
+!            ITL(NR)=NTH
+!            ITU(NR)=NTHMAX-NTH+1
 
             EPSL=COSM(ITL(NR))**2/(2.D0-COSM(ITL(NR))**2)
             IF(nprocs.gt.1.and.NRANK.eq.1) &
                  WRITE(6,'(A,2I5,1P2E12.4)') 'NR,NTHC,EPSRM=',NR,NTH,EPSRM(NR),EPSL
-!            WRITE(6,'(A,1P2E12.4)') 'EPSRM(NR)=',EPSRM(NR),EPSL
-!            WRITE(6,'(A,2I8)') 'ITL,ITU=',ITL(NR),ITU(NR)
+            EPSRM2(NR) = EPSRM(NR)
             EPSRM(NR)=EPSL
          ENDDO
 
@@ -228,19 +232,25 @@
 
          DO NR=1,NRMAX+1
             A1=ACOS(SQRT(2.D0*EPSRG(NR)/(1.D0+EPSRG(NR))))
-            DO NTH=1,NTHMAX/2
-               IF (THG(NTH).LE.A1.AND.THG(NTH+1).GE.A1) GOTO 202
-            ENDDO
-            NTH=NTHMAX/2-1
-  202       CONTINUE
-
+!            DO NTH=1,NTHMAX/2
+!               IF (THG(NTH).LE.A1.AND.THG(NTH+1).GE.A1) GOTO 202
+!            ENDDO
+!            NTH=NTHMAX/2-1
+!  202       CONTINUE
+!
+!            ITL_G(NR)=NTH
+!            ITU_G(NR)=NTHMAX-NTH+1
+            NTH=0
+            DO WHILE (THG(NTH+1).le.A1)
+               NTH = NTH+1
+            END DO
             ITLG(NR)=NTH
             ITUG(NR)=NTHMAX-NTH+1
 
             EPSL=COSM(ITLG(NR))**2/(2.D0-COSM(ITLG(NR))**2)
             IF(nprocs.gt.1.and.NRANK.eq.1) &
                  WRITE(6,'(A,2I5,1P2E12.4)') 'NR,NTHC,EPSRG=',NR,NTH,EPSRG(NR),EPSL
-
+            EPSRG2(NR) = EPSRG(NR)
             EPSRG(NR)=EPSL
          ENDDO
 
@@ -258,7 +268,6 @@
 !      ENDDO
 !      END IF
 !
-
 
       IF (MODELA.EQ.0) THEN
          DO NR=NRSTART,NREND
@@ -285,15 +294,34 @@
          DO NTH=1, NTHMAX
             RLAMDA_GG(NTH,NRMAX+1)=1.D0
          END DO
+         DO NR=1,NRMAX
+            RFSADG(NR)=1.D0
+            RFSAD_GG(NR)=1.D0
+         END DO
+         RFSAD_GG(NRMAX+1)=1.D0
       ELSE
          DO NR=NRSTART,NREND
-            CALL SET_RLAMDA(NR)
-         ENDDO
+            CALL SET_BOUNCE_PARAM(NR)
+         END DO
+         CALL SET_BOUNCE_PARAM(NRMAX+1)
+         DO NR=1,NRMAX
+            CALL SET_RFSAD(NR)
+         END DO
+         RFSAD_GG(NRMAX+1)=QLG(NRMAX+1)*RR/(1.D0+EPSRG(NRMAX+1))*PI
+! temporary for lav
          DO NR=NRSTART,NREND
-            CALL SET_RLAMDA_G(NR)
-         ENDDO
-         CALL SET_RLAMDA_GMAX(NRMAX+1)
-      END IF
+            FACT=(1.D0+EPSRM(NR))/(2.D0*EPSRM(NR))
+            DO NTH=ITL(NR)+1,ITU(NR)-1
+               A1=FACT*COSM(NTH)**2
+               ETAM(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
+            ENDDO
+            DO NTH=ITL(NR)+1,ITU(NR)
+               A1=FACT*COSG(NTH)**2
+               ETAG(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
+            ENDDO
+         END DO
+! temporary end 
+      END IF ! MODELA
 
       allocate(work(nrstart:nrendx),workg(NRMAX))
 
@@ -332,8 +360,6 @@
          DO NR=1,NRMAX
             RLAMDA_GG(NTH,NR)=workg(NR)
          ENDDO
-!         RLAMDA_GG(NTH,NRMAX+1)=RLAMDA_GG(NTH,NRMAX)
-!         RLAMDA_GG(NTH,NRMAX+1)=RLAMDA_G(NTH,NRMAX+1)
       ENDDO
 
       DO NTH=1,NTHMAX
@@ -349,6 +375,18 @@
       ENDDO
 
       IF(NRANK.eq.0)THEN
+      open(8,file='RLAMDAG100.dat')
+      DO NR =1, NRMAX
+      DO NTH=1,NTHMAX
+         WRITE(8,'(2I4, 4E14.6)') NR, NTH, NTH-0.5D0, COSM(NTH), RLAMDAG(NTH,NR), RLAMDA_GG(NTH,NR)
+      END DO
+      WRITE(8,*) " "
+      WRITE(8,*) " "
+      END DO
+      close(8)
+      END IF
+
+      IF(NRANK.eq.0)THEN
       DO NR=1,NRMAX
          WRITE(*,*) NR, "NRG", ITLG(NR)
          WRITE(*,*) NR, "NRM ", ITL(NR)
@@ -359,270 +397,6 @@
       IERR=0
       RETURN
       END subroutine fp_mesh
-
-!
-!-----------------------------
-!
-      SUBROUTINE SET_RLAMDA(NR)
-
-      USE libde,ONLY: DEFT
-      USE libmtx
-      USE plprof
-!      USE fpbroadcast
-!      USE fpwrin
-!      USE fpwmin
-
-      IMPLICIT NONE
-      integer:: NR, NTH, NG
-      real(kind8):: EPSL, FACT, A1, RINT0, ES, DELH
-      real(kind8):: SUML, ETAL, X, PSIB, PCOS, RINT2
-
-      EPSL=EPSRM(NR)
-      FACT=(1.D0+EPSL)/(2.D0*EPSL)
-      
-      DO NTH=1,ITL(NR)
-         ETAM(NTH,NR)=PI*0.5D0
-      ENDDO
-      
-      DO NTH=ITL(NR)+1,ITU(NR)-1
-         A1=FACT*COSM(NTH)**2
-         ETAM(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
-      ENDDO
-      
-      DO NTH=ITU(NR),NTHMAX
-         ETAM(NTH,NR)=PI*0.5D0
-      ENDDO
-      
-      DO NTH=1,ITL(NR)
-         ETAG(NTH,NR)=PI*0.5D0
-      ENDDO
-      
-      DO NTH=ITL(NR)+1,ITU(NR)
-         A1=FACT*COSG(NTH)**2
-         ETAG(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
-      ENDDO
-      
-      DO NTH=ITU(NR)+1,NTHMAX+1
-         ETAG(NTH,NR)=PI*0.5D0
-      ENDDO
-      
-      NRX=NR
-      DO NTH=1,NTHMAX/2
-         NTHX=NTH
-         IF(NTH.LT.ITL(NR)) THEN
-            CALL DEFT(RINT0,ES,H0DE,EPSDE,0,FPFN0U)
-         ELSEIF(NTH.ge.ITL(NR)) THEN
-!                  CALL DEFT(RINT0,ES,H0DE,EPSDE,0,FPFN0T)
-            DELH=2.D0*ETAM(NTH,NR)/NAVMAX
-            suml=0.D0
-            DO NG=1,NAVMAX
-               ETAL=DELH*(NG-0.5D0)
-               X=EPSRM(NR)*COS(ETAL)*RR
-               PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
-               IF(COSM(NTH).ge.0.D0)THEN
-                  PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
-               ELSE
-                  PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
-               END IF
-               suml=suml+COSM(NTH)/PCOS
-            END DO
-            RINT0=suml*DELH/ABS(COSM(NTH))
-         ELSE
-            RINT0=0.D0
-         ENDIF
-         CALL DEFT(RINT2,ES,H0DE,EPSDE,0,FPFN2A)
-!         RLAMDA(NTH,NR)=RINT0*ABS(COSM(NTH))/PI
-         RLAMDA(NTH,NR)=RINT0*ABS(COSM(NTH))/PI / ( QLM(NR)*RR )
-         RLAMDC(NTH,NR)=RINT2/(PI*(1.D0+EPSRM(NR))*(COSG(NTH)))
-      ENDDO
-      IF(ITL(NR).ne.NTHMAX/2)THEN
-         RLAMDA(ITL(NR),NR)=0.5D0*(RLAMDA(ITL(NR)-1,NR) &
-              +RLAMDA(ITL(NR)+1,NR))
-      ELSE!IF(ITL(NR).eq.NTHMAX/2)THEN
-         RLAMDA(ITL(NR),NR)=RINT0*ABS(COSM(ITL(NR)))/PI
-      END IF
-      DO NTH=1,NTHMAX/2
-         RLAMDA(NTHMAX-NTH+1,NR)=RLAMDA(NTH,NR)
-         RLAMDC(NTHMAX-NTH+2,NR)=RLAMDC(NTH,NR)
-      ENDDO
-      RLAMDC(NTHMAX/2+1,NR)=0.D0
-
-      END SUBROUTINE SET_RLAMDA
-
-!
-!-----------------------------
-!
-      SUBROUTINE SET_RLAMDA_G(NR)
-
-      USE libde,ONLY: DEFT
-      USE libmtx
-      USE plprof
-!      USE fpbroadcast
-!      USE fpwrin
-!      USE fpwmin
-
-      IMPLICIT NONE
-      integer:: NR, NTH, NG
-      real(kind8):: EPSL, FACT, A1, RINT0, ES, DELH
-      real(kind8):: SUML, ETAL, X, PSIB, PCOS, RINT2
-
-      EPSL=EPSRG(NR)
-      FACT=(1.D0+EPSL)/(2.D0*EPSL)
-      
-      DO NTH=1,ITLG(NR)
-         ETAM_G(NTH,NR)=PI/2.D0
-      ENDDO
-      
-      DO NTH=ITLG(NR)+1,ITUG(NR)-1
-         A1=FACT*COSM(NTH)**2
-         ETAM_G(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
-      ENDDO
-      
-      DO NTH=ITUG(NR),NTHMAX
-         ETAM_G(NTH,NR)=PI/2.D0
-      ENDDO
-      
-      DO NTH=1,ITLG(NR)
-         ETAG_G(NTH,NR)=PI/2.D0
-      ENDDO
-      
-      DO NTH=ITLG(NR)+1,ITUG(NR)
-         A1=FACT*COSG(NTH)**2
-         ETAG_G(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
-      ENDDO
-      
-      DO NTH=ITUG(NR)+1,NTHMAX+1
-         ETAG_G(NTH,NR)=PI/2.D0
-      ENDDO
-      
-      NRX=NR
-      DO NTH=1,NTHMAX/2
-         NTHX=NTH
-         IF(NTH.LT.ITLG(NR)) THEN
-            CALL DEFT(RINT0,ES,H0DE,EPSDE,0,FPFN0U_G)
-         ELSEIF(NTH.ge.ITLG(NR)) THEN
-            DELH=2.D0*ETAM_G(NTH,NR)/NAVMAX
-            suml=0.D0
-            DO NG=1,NAVMAX
-               ETAL=DELH*(NG-0.5D0)
-               X=EPSRG(NR)*COS(ETAL)*RR
-               PSIB=(1.D0+EPSRG(NR))/(1.D0+X/RR)
-               IF(COSM(NTH).ge.0.D0)THEN
-                  PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
-               ELSE
-                  PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
-               END IF
-               suml=suml+COSM(NTH)/PCOS
-            END DO
-            RINT0=suml*DELH/ABS(COSM(NTH))
-         ELSE
-            RINT0=0.D0
-         ENDIF
-         CALL DEFT(RINT2,ES,H0DE,EPSDE,0,FPFN2A_G)
-!         RLAMDA_G(NTH,NR)=RINT0*ABS(COSM(NTH))/PI 
-         RLAMDA_G(NTH,NR)=RINT0*ABS(COSM(NTH))/PI / ( QLG(NR)*RR )
-         RLAMDC_G(NTH,NR)=RINT2/(PI*(1.D0+EPSRG(NR))*(COSG(NTH)))
-      ENDDO
-      IF(ITLG(NR).ne.NTHMAX/2)THEN
-         RLAMDA_G(ITLG(NR),NR)=0.5D0*(RLAMDA_G(ITLG(NR)-1,NR) &
-              +RLAMDA_G(ITLG(NR)+1,NR))
-      ELSE!IF(ITL(NR).eq.NTHMAX/2)THEN
-         RLAMDA_G(ITLG(NR),NR)=RINT0*ABS(COSM(ITLG(NR)))/PI
-      END IF
-      DO NTH=1,NTHMAX/2
-         RLAMDA_G(NTHMAX-NTH+1,NR)=RLAMDA_G(NTH,NR)
-         RLAMDC_G(NTHMAX-NTH+2,NR)=RLAMDC_G(NTH,NR)
-      ENDDO
-      RLAMDC_G(NTHMAX/2+1,NR)=0.D0
-
-      END SUBROUTINE SET_RLAMDA_G
-!
-!-----------------------------
-!
-      SUBROUTINE SET_RLAMDA_GMAX(NR)
-
-      USE libde,ONLY: DEFT
-      USE libmtx
-      USE plprof
-!      USE fpbroadcast
-!      USE fpwrin
-!      USE fpwmin
-
-      IMPLICIT NONE
-      integer:: NR, NTH, NG
-      real(kind8):: EPSL, FACT, A1, RINT0, ES, DELH
-      real(kind8):: SUML, ETAL, X, PSIB, PCOS, RINT2
-
-      EPSL=EPSRG(NR)
-      FACT=(1.D0+EPSL)/(2.D0*EPSL)
-      
-      DO NTH=1,ITLG(NR)
-         ETAM_GG(NTH,NR)=PI/2.D0
-      ENDDO
-      
-      DO NTH=ITLG(NR)+1,ITUG(NR)-1
-         A1=FACT*COSM(NTH)**2
-         ETAM_GG(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
-      ENDDO
-      
-      DO NTH=ITUG(NR),NTHMAX
-         ETAM_GG(NTH,NR)=PI/2.D0
-      ENDDO
-      
-      DO NTH=1,ITLG(NR)
-         ETAG_G_GL(NTH,NR)=PI/2.D0
-      ENDDO
-      
-      DO NTH=ITLG(NR)+1,ITUG(NR)
-         A1=FACT*COSG(NTH)**2
-         ETAG_G_GL(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
-      ENDDO
-      
-      DO NTH=ITUG(NR)+1,NTHMAX+1
-         ETAG_G_GL(NTH,NR)=PI/2.D0
-      ENDDO
-      
-      NRX=NR
-      DO NTH=1,NTHMAX/2
-         NTHX=NTH
-         IF(NTH.LT.ITLG(NR)) THEN
-            CALL DEFT(RINT0,ES,H0DE,EPSDE,0,FPFN0U_GG)
-         ELSEIF(NTH.ge.ITLG(NR)) THEN
-            DELH=2.D0*ETAM_GG(NTH,NR)/NAVMAX
-            suml=0.D0
-            DO NG=1,NAVMAX
-               ETAL=DELH*(NG-0.5D0)
-               X=EPSRG(NR)*COS(ETAL)*RR
-               PSIB=(1.D0+EPSRG(NR))/(1.D0+X/RR)
-               IF(COSM(NTH).ge.0.D0)THEN
-                  PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
-               ELSE
-                  PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
-               END IF
-               suml=suml+COSM(NTH)/PCOS
-            END DO
-            RINT0=suml*DELH/ABS(COSM(NTH))
-         ELSE
-            RINT0=0.D0
-         ENDIF
-         CALL DEFT(RINT2,ES,H0DE,EPSDE,0,FPFN2A_GG)
-!         RLAMDA_G(NTH,NR)=RINT0*ABS(COSM(NTH))/PI 
-         RLAMDA_GG(NTH,NR)=RINT0*ABS(COSM(NTH))/PI / ( QLG(NR)*RR )
-!         RLAMDC_G(NTH,NR)=RINT2/(PI*(1.D0+EPSRG(NR))*(COSG(NTH)))
-      ENDDO
-      IF(ITLG(NR).ne.NTHMAX/2)THEN
-         RLAMDA_GG(ITLG(NR),NR)=0.5D0*(RLAMDA_GG(ITLG(NR)-1,NR) &
-              +RLAMDA_GG(ITLG(NR)+1,NR))
-      ELSE!IF(ITL(NR).eq.NTHMAX/2)THEN
-         RLAMDA_GG(ITLG(NR),NR)=RINT0*ABS(COSM(ITLG(NR)))/PI
-      END IF
-      DO NTH=1,NTHMAX/2
-         RLAMDA_GG(NTHMAX-NTH+1,NR)=RLAMDA_GG(NTH,NR)
-!         RLAMDC_G(NTHMAX-NTH+2,NR)=RLAMDC_G(NTH,NR)
-      ENDDO
-!      RLAMDC_G(NTHMAX/2+1,NR)=0.D0
-
-      END SUBROUTINE SET_RLAMDA_GMAX
 
 ! *************************
 !     INITIAL DATA SAVE
@@ -657,182 +431,6 @@
       RETURN
       END SUBROUTINE FPCINI
 
-! ***************************************************************
-
-!                       SET OF INTEGRAND
-
-! ***************************************************************
-
-! ============================================================
-
-      REAL*8 FUNCTION  FPFN0U(X,XM,XP)
-
-      IMPLICIT NONE
-      real(8),INTENT(IN):: X, XM, XP
-      real(8):: XX, A0, A1, A2
-
-      XX=X
-      XX=XM
-      A0=ETAM(NTHX,NRX)
-      A1=1.D0+EPSRM(NRX)*COS(A0*XP)
-      A2=(1.D0+EPSRM(NRX))*SINM(NTHX)**2
-      FPFN0U=A0*SQRT(A1/(A1-A2))
-
-      RETURN
-      END FUNCTION  FPFN0U
-
-! ============================================================
-
-      REAL*8 FUNCTION  FPFN0U_G(X,XM,XP)
-
-      IMPLICIT NONE
-      real(8),INTENT(IN):: X, XM, XP
-      real(8):: XX, A0, A1, A2
-
-      XX=X
-      XX=XM
-      A0=ETAM_G(NTHX,NRX)
-      A1=1.D0+EPSRG(NRX)*COS(A0*XP)
-      A2=(1.D0+EPSRG(NRX))*SINM(NTHX)**2
-      FPFN0U_G=A0*SQRT(A1/(A1-A2))
-
-      RETURN
-      END FUNCTION  FPFN0U_G
-
-! ============================================================
-
-      REAL*8 FUNCTION FPFN0T(X,XM,XP)
-
-      IMPLICIT NONE
-      real(8),INTENT(IN):: X, XM, XP
-      real(8):: XX, A0, A1, A2
-
-      XX=X
-      A0=ETAM(NTHX,NRX)
-      A1=1.D0+EPSRM(NRX)*COS(A0*XP)
-      A2=2.D0*EPSRM(NRX)*SIN(0.5D0*A0*XM)*SIN(0.5D0*A0*(XP+2.D0))
-      FPFN0T=A0*SQRT(A1/A2)
-
-      RETURN
-      END FUNCTION FPFN0T
-
-! ============================================================
-
-      REAL*8 FUNCTION FPFN1A(X,XM,XP)
-
-      IMPLICIT NONE
-      real(8),INTENT(IN):: X, XM, XP
-      real(8):: XX, A0, A1, A2
-
-      XX=X
-      XX=XM
-      A0=ETAM(NTHX,NRX)
-      A1=1.D0+EPSRM(NRX)*COS(A0*XP)
-      FPFN1A=A0*SQRT(A1)
-
-      RETURN
-      END FUNCTION FPFN1A
-
-! ============================================================
-
-      REAL*8 FUNCTION FPFN2A(X,XM,XP)
-
-      IMPLICIT NONE
-      real(8),INTENT(IN):: X, XM, XP
-      real(8):: XX, A0, A1, A2
-
-      XX=X
-      XX=XM
-      A0=ETAG(NTHX,NRX)
-      A1=1.D0+EPSRM(NRX)*COS(A0*XP)
-      A2=A1-(1.D0+EPSRM(NRX))*SING(NTHX)**2
-      FPFN2A=A0*SQRT(A1*A2)
-
-      RETURN
-      END FUNCTION FPFN2A
-! ============================================================
-
-      REAL*8 FUNCTION FPFN2A_G(X,XM,XP)
-
-      IMPLICIT NONE
-      real(8),INTENT(IN):: X, XM, XP
-      real(8):: XX, A0, A1, A2
-
-      XX=X
-      XX=XM
-      A0=ETAG_G(NTHX,NRX)
-      A1=1.D0+EPSRG(NRX)*COS(A0*XP)
-      A2=A1-(1.D0+EPSRG(NRX))*SING(NTHX)**2
-      FPFN2A_G=A0*SQRT(A1*A2)
-
-      RETURN
-      END FUNCTION FPFN2A_G
-!--------------------------------
-      REAL*8 FUNCTION  FPFN2U(X,XM,XP)
-                           
-      IMPLICIT NONE
-      real(8),INTENT(IN):: X, XM, XP
-      real(8):: XX, A0, A1, A2
-
-      XX=X
-      XX=XM
-      A0=ETAG(NTHX,NRX)
-      A1=1.D0+EPSRM(NRX)*COS(A0*XP)
-      A2=(1.D0+EPSRM(NRX))*SING(NTHX)**2
-      FPFN2U=A0*SQRT(A1/(A1-A2))
-
-      RETURN
-      END FUNCTION  FPFN2U
-!------------------------------
-      REAL*8 FUNCTION FPFN2T(X,XM,XP)
-
-      IMPLICIT NONE
-      real(8),INTENT(IN):: X, XM, XP
-      real(8):: XX, A0, A1, A2
-
-      XX=X
-      A0=ETAG(NTHX,NRX)
-      A1=1.D0+EPSRM(NRX)*COS(A0*XP)
-      A2=2.D0*EPSRM(NRX)*SIN(0.5D0*A0*XM)*SIN(0.5D0*A0*(XP+2.D0))
-      FPFN2T=A0*SQRT(A1/A2)
-
-      RETURN
-      END FUNCTION FPFN2T
-
-!-------------------------------------------------
-
-      REAL*8 FUNCTION FPFN2A_GG(X,XM,XP)
-
-      IMPLICIT NONE
-      real(8),INTENT(IN):: X, XM, XP
-      real(8):: XX, A0, A1, A2
-
-      XX=X
-      XX=XM
-      A0=ETAG_G_GL(NTHX,NRX)
-      A1=1.D0+EPSRG(NRX)*COS(A0*XP)
-      A2=A1-(1.D0+EPSRG(NRX))*SING(NTHX)**2
-      FPFN2A_GG=A0*SQRT(A1*A2)
-
-      RETURN
-      END FUNCTION FPFN2A_GG
-! ============================================================
-      REAL*8 FUNCTION  FPFN0U_GG(X,XM,XP)
-
-      IMPLICIT NONE
-      real(8),INTENT(IN):: X, XM, XP
-      real(8):: XX, A0, A1, A2
-
-      XX=X
-      XX=XM
-      A0=ETAM_GG(NTHX,NRX)
-      A1=1.D0+EPSRG(NRX)*COS(A0*XP)
-      A2=(1.D0+EPSRG(NRX))*SINM(NTHX)**2
-      FPFN0U_GG=A0*SQRT(A1/(A1-A2))
-
-      RETURN
-      END FUNCTION  FPFN0U_GG
-
 ! ============================================================
 
       SUBROUTINE fp_prep(ierr)
@@ -845,7 +443,7 @@
 
       integer :: ierr,NSA,NSB,NS,NR,NP,NTH,NSFP,NSFD,NSBA,N,NREND1
       real(kind8) :: FL, RSUM1, RSUM2, RTFD0L, RHON, RNE, RTE
-      real(kind8) :: RLNRL, FACT, RSUM, RSUM11, rsum3, rsum4
+      real(kind8) :: RLNRL, FACT, RSUM, RSUM11, rsum3, rsum4, rsum5, rsum6
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
       INTEGER,DIMENSION(nprocs):: ima1,ima2,nra1,nra2,nma1,nma2
       real(kind8),DIMENSION(:),POINTER:: work,workg
@@ -1001,11 +599,12 @@
          DO NP=1,NPMAX
             FL=FPMXWL(PM(NP,NSB),NR,NS)
             DO NTH=1,NTHMAX
-               FS3(NTH,NP,NSB)=FL
+               FS3(NTH,NP,NSB)=FL ! rho=1.0
             END DO
          ENDDO
       END DO
 
+      WRITE(*,*) "TEST1"
 !--------- normalize bounce average parameter ---------
 
       IF(MODELA.eq.1)THEN
@@ -1017,10 +616,9 @@
             RSUM4=0.D0
             DO NP=1,NPMAX
                DO NTH=1,NTHMAX
-                  RSUM1 = RSUM1+VOLP(NTH,NP,NSB)&!*FNS(NTH,NP,NR,NSB) &
-                       *RLAMDAG(NTH,NR)!*RCOEF(NR)
-                  RSUM2 = RSUM2+VOLP(NTH,NP,NSB)!*FNS(NTH,NP,NR,NSB)
-                  RSUM3 = rsum3+VOLP(NTH,NP,NSB)*RLAMDA_GG(NTH,NR)!*RCOEF_G(NR)
+                  RSUM1 = RSUM1+VOLP(NTH,NP,NSB)*RLAMDAG(NTH,NR)/RFSADG(NR)*FNS(NTH,NP,NR,NSB)
+                  RSUM2 = RSUM2+VOLP(NTH,NP,NSB)*FNS(NTH,NP,NR,NSB)
+                  RSUM3 = rsum3+VOLP(NTH,NP,NSB)*RLAMDA_GG(NTH,NR)/RFSAD_GG(NR)
                   RSUM4 = rsum4+VOLP(NTH,NP,NSB)
                END DO
             END DO
@@ -1029,14 +627,10 @@
 
             RCOEFN(NR)=RSUM2/RSUM1
             RCOEFN_G(NR)=RSUM4/RSUM3
-!            RCOEF(NR)=1.D0
-!            RCOEF_G(NR)=1.D0
-            RCOEF(NR)=1.D0/ ( QLM(NR)*RR )
-            RCOEF_G(NR)=1.D0/ ( QLG(NR)*RR )
 !            RCOEFN(NR)=1.D0
 !            RCOEFN_G(NR)=1.D0
-!            RCOEF(NR)=RSUM2/RSUM1
-!            RCOEF_G(NR)=RSUM4/RSUM3
+            RCOEF(NR) = ( QLM(NR)*RR )
+            RCOEF_G(NR) = ( QLG(NR)*RR )
          END DO
       ELSE
          DO NSB=1,NSBMAX
@@ -1048,66 +642,61 @@
            ENDDO
          ENDDO
       END IF
+      WRITE(*,*) "TEST2"
 
 !     ----- set boundary distribution functions -----
-
-      IF(NRSTART.EQ.1) THEN
-         DO NSA=1,NSAMAX
-            NS=NS_NSA(NSA)
-            NSBA=NSB_NSA(NSA)
-            DO NP=1,NPMAX
-               FL=FPMXWL(PM(NP,NSBA),0,NS)
-               DO NTH=1,NTHMAX
-                  FS1(NTH,NP,NSA)=FL ! at r=0
-               ENDDO
+      
+      DO NSA=1,NSAMAX
+         NS=NS_NSA(NSA)
+         NSBA=NSB_NSA(NSA)
+         DO NP=1,NPMAX
+            FL=FPMXWL(PM(NP,NSBA),0,NS)
+            DO NTH=1,NTHMAX
+               FS1(NTH,NP,NSA)=FL ! at r=0
             ENDDO
+         ENDDO
+      END DO
+!
+      DO NSA=1,NSAMAX
+         NS=NS_NSA(NSA)
+         NSBA=NSB_NSA(NSA)
+         DO NP=1,NPMAX
+            CALL FPMXWL_EDGE(NP,NS,FL)
+            DO NTH=1,NTHMAX
+               FS2(NTH,NP,NS)=FL ! at R=1.0+DELR/2
+            ENDDO
+         ENDDO
+      ENDDO
+!
+      IF(MODELA.eq.1)THEN
+         NSBA=1
+         RSUM1=0.D0
+         RSUM2=0.D0
+         RSUM3=0.D0
+         RSUM4=0.D0
+         RSUM5=0.D0
+         RSUM6=0.D0
+         DO NP=1,NPMAX
+            DO NTH=1,NTHMAX
+               RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*RLAMDA_GG(NTH,1) &
+                    /RFSAD_GG(1)*FS1(NTH,NP,NSBA)
+               RSUM2 = RSUM2+VOLP(NTH,NP,NSBA)*FS1(NTH,NP,NSBA)
+               RSUM3 = RSUM3+VOLP(NTH,NP,NSBA)*RLAMDA_GG(NTH,NRMAX+1) &
+                    /RFSAD_GG(NRMAX+1)*FS3(NTH,NP,NSBA)
+               RSUM4 = RSUM4+VOLP(NTH,NP,NSBA)*FS3(NTH,NP,NSBA)
+               RSUM5 = RSUM5+VOLP(NTH,NP,NSBA)*RLAMDAG(NTH,NRMAX) &
+                    /RFSADG(NRMAX)*FS2(NTH,NP,NSBA)
+               RSUM6 = RSUM6+VOLP(NTH,NP,NSBA)*FS2(NTH,NP,NSBA)
+            END DO
          END DO
+         RCOEFN_GG(1) = RSUM2/RSUM1
+         RCOEFN_GG(NRMAX+1) = RSUM4/RSUM3
+         RCOEFNG(NRMAX+1) = RSUM6/RSUM5
       ELSE
-         DO NSA=1,NSAMAX
-            DO NP=1,NPMAX
-               DO NTH=1,NTHMAX
-                  FS1(NTH,NP,NSA)=0.D0
-               ENDDO
-            ENDDO
-         ENDDO
-      ENDIF
-
-!      IF(NREND.EQ.NRMAX) THEN
-         DO NSA=1,NSAMAX
-            NS=NS_NSA(NSA)
-            NSBA=NSB_NSA(NSA)
-            DO NP=1,NPMAX
-               CALL FPMXWL_EDGE(NP,NS,FL)
-!               FL=FPMXWL(PM(NP,NSBA),NRMAX+1,NS)
-               DO NTH=1,NTHMAX
-                  FS2(NTH,NP,NS)=FL ! at R=1.0+DELR/2
-               ENDDO
-            ENDDO
-            IF(MODELA.eq.1)THEN
-               RSUM1=0.D0
-               RSUM2=0.D0
-               RSUM3=0.D0
-               RSUM4=0.D0
-               DO NP=1,NPMAX
-                  DO NTH=1,NTHMAX
-                     RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)&!*FS2(NTH,NP,NSA) &
-                                  *RLAMDAG(NTH,NRMAX+1)!*RCOEF(NRMAX)
-                     RSUM2 = RSUM2+VOLP(NTH,NP,NSBA)!*FS2(NTH,NP,NSA)
-                     RSUM3 = RSUM3+VOLP(NTH,NP,NSBA)*RLAMDA_GG(NTH,NRMAX+1)
-                     RSUM4 = RSUM4+VOLP(NTH,NP,NSBA)
-                  END DO
-               END DO
-               RCOEF2(1)=RSUM2/RSUM1
-               RCOEF2_G(1)=RSUM4/RSUM3
-!               RCOEF2(1)=1.D0
-!               RCOEF2_G(1)=1.D0
-            ELSE
-               RCOEF2(1)=1.D0
-               RCOEF2_G(1)=1.D0
-            END IF
-
-         ENDDO
-!      END IF
+         RCOEFN_GG(1) = 1.D0
+         RCOEFN_GG(NRMAX+1) = 1.D0
+         RCOEFNG(NRMAX+1) = 1.D0
+      END IF
 !!!!
       allocate(work(nrstart:nrendx),workg(NRMAX))
 
@@ -1120,9 +709,7 @@
       DO NR=1,NRMAX
          RCOEFG(NR)=workg(NR)
       ENDDO
-!      RCOEFG(NRMAX+1)=RCOEF2(1)
-!      RCOEFG(NRMAX+1)=1.D0
-      RCOEFG(NRMAX+1)=1.D0/(QLM(NRMAX)*RR)
+      RCOEFG(NRMAX+1)=(QLM(NRMAX)*RR)
 
       DO NR=NRSTART,NRENDX
          work(NR)=RCOEF_G(NR)
@@ -1133,8 +720,6 @@
       DO NR=1,NRMAX
          RCOEF_GG(NR)=workg(NR)
       ENDDO
-!      RCOEF_GG(NRMAX+1)=RCOEF2_G(1)
-!      RCOEF_GG(NRMAX+1)=1.D0
       RCOEF_GG(NRMAX+1)=1.D0/(QLG(NRMAX+1)*RR)
 
       DO NR=NRSTART,NRENDX
@@ -1153,53 +738,60 @@
       CALL mtx_gatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
            workg,NRMAX,MTXLEN,MTXPOS)
       CALL mtx_broadcast_real8(workg,NRMAX)
-      DO NR=1,NRMAX
+      DO NR=2,NRMAX
          RCOEFN_GG(NR)=workg(NR)
       ENDDO
-!      RCOEFN_GG(NRMAX+1)=1.D0
-      RCOEFN_GG(NRMAX+1)=RCOEF2_G(1)
+
+!      DO NSA =1, NSAMAX
+!      DO NR=1,NRMAX
+!         DO NP=1,NPMAX
+!            DO NTH=1,NTHMAX
+!               FNS(NTH,NP,NR,NSA) = FNS(NTH,NP,NR,NSA) * RCOEFNG(NR)
+!            END DO
+!         END DO
+!      END DO
+!      END DO
+!      DO NR=1,NRMAX
+!         RCOEFNG(NR)=1.D0
+!      END DO
+
+      IF(NRANK.eq.0)THEN
+         open(8,file='rcoefng.dat')
+         DO NR=1,NRMAX
+            WRITE(8,'(7E14.6)') RM(NR), RCOEFNG(NR), RFSADG(NR) &
+                 , RG(NR), RCOEFN_GG(NR), RFSAD_GG(NR), QLM(NR)
+         END DO
+         close(8)
+         open(8,file='volp_r.dat')
+         DO NTH=1,NTHMAX/2
+            DO NR=1,NRMAX
+               WRITE(8,'(2I4,E14.6)') NTH, NR, RLAMDAG(NTH,NR)/RFSADG(NR)
+            END DO
+            WRITE(8,*) " "
+            WRITE(8,*) " "
+         END DO
+      END IF
 
       deallocate(work,workg)
 
-!      DO NR=1,NRMAX
-!         RCOEFG(NR)=RCOEFG(NR)/ ( QLM(NR)*RR )
-!         RCOEF_GG(NR)=RCOEF_GG(NR)/ ( QLG(NR)*RR )
-!      END DO
-!      RCOEF_GG(NRMAX+1)=RCOEF_GG(NRMAX+1)/ ( QLG(NRMAX+1)*RR )
+!     ----- set RCOEFNG to FNS, FS1, FS2, FS3 ----
 
-!!!! lambda is devided by 1/qR
-!      DO NTH=1,NTHMAX
-!         DO NR=1,NRMAX!+1
-!            RLAMDAG(NTH,NR)=RLAMDAG(NTH,NR)*RCOEFG(NR)
-!         END DO
-!         RLAMDAG(NTH,NRMAX+1)=RLAMDAG(NTH,NRMAX+1)*RCOEFG(NRMAX+1)
-!         DO NR=NRSTART, NREND
-!            RLAMDA(NTH,NR)=RLAMDA(NTH,NR)*RCOEFG(NR)
-!         END DO
-!
-!         DO NR=1,NRMAX+1
-!            RLAMDA_GG(NTH,NR)=RLAMDA_GG(NTH,NR)*RCOEF_GG(NR)
-!         END DO
-!         DO NR=NRSTART, NREND
-!            RLAMDA_G(NTH,NR)=RLAMDA_G(NTH,NR)*RCOEF_GG(NR)
-!         END DO
-!      ENDDO
-
- !!!!! test FNS
-!      DO NSA=1,NSAMAX
-!         NS=NS_NSA(NSA)
-!         NSBA=NSB_NSA(NSA)
- !     DO NR=1,NRMAX
-!         DO NTH=1,NTHMAX
- !           DO NP=1,NPMAX
-!               FNS(NTH,NP,NR,NSBA)=FNS(NTH,NP,NR,NSBA)*RCOEFNG(NR)
-!            END DO
-!         END DO
-!         FS2(NTH,NP,NSA)=FS2(NTH,NP,NSA)*RCOEFN_GG(NRMAX+1)
-!         RCOEFNG(NR)=1.D0
-!         RCOEFN_GG(NR)=1.D0
-!      END DO
-!      END DO
+      DO NSA=1,NSAMAX
+         DO NR=1,NRMAX
+            DO NP=1,NPMAX
+               DO NTH=1,NTHMAX
+                  FNS(NTH,NP,NR,NSA) = FNS(NTH,NP,NR,NSA) * RCOEFNG(NR)
+               END DO
+            END DO
+         END DO
+         DO NP=1,NPMAX
+            DO NTH=1,NTHMAX
+               FS1(NTH,NP,NSA) = FS1(NTH,NP,NSA) * RCOEFN_GG(1)
+               FS2(NTH,NP,NSA) = FS2(NTH,NP,NSA) * RCOEFNG(NRMAX+1)
+               FS3(NTH,NP,NSA) = FS3(NTH,NP,NSA) * RCOEFN_GG(NRMAX+1)
+            END DO
+         END DO
+      END DO
 
 !     ----- set parameters for target species -----
 
