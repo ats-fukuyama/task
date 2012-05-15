@@ -559,7 +559,8 @@
       REAL(8),INTENT(OUT):: v
 !      PetscScalar:: x_value(ilen)
 !      PetscOffset:: x_offset
-      INTEGER:: ierr
+      PetscErrorCode:: ierr
+!      INTEGER:: ierr
 
 !      call VecGetArrayF90(x,x_value,x_offset,ierr)
       call VecGetArrayF90(x,x_value,ierr)
@@ -579,7 +580,8 @@
 
       REAL(8),DIMENSION(imax),INTENT(OUT):: x_
       REAL(8),DIMENSION(ilen):: v
-      INTEGER:: j,ierr
+      INTEGER:: j!,ierr
+      PetscErrorCode:: ierr
 !      PetscScalar:: x_value(1)
 !      PetscOffset:: x_offset
 
