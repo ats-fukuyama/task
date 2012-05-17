@@ -226,6 +226,7 @@
                  WRITE(6,'(A,2I5,1P2E12.4)') 'NR,NTHC,EPSRM=',NR,NTH,EPSRM(NR),EPSL
             EPSRM2(NR) = EPSRM(NR)
             EPSRM(NR)=EPSL
+!            EPSRM2(NR) = EPSRM(NR)
          ENDDO
 
          IF(NRANK.eq.1) WRITE(6,*) " "
@@ -252,6 +253,7 @@
                  WRITE(6,'(A,2I5,1P2E12.4)') 'NR,NTHC,EPSRG=',NR,NTH,EPSRG(NR),EPSL
             EPSRG2(NR) = EPSRG(NR)
             EPSRG(NR)=EPSL
+!            EPSRG2(NR) = EPSRG(NR)
          ENDDO
 
       ENDIF
@@ -375,7 +377,7 @@
       ENDDO
 
       IF(NRANK.eq.0)THEN
-      open(8,file='RLAMDAG100.dat')
+      open(8,file='RLAMDAG100_tpb_ex2.dat')
       DO NR =1, NRMAX
       DO NTH=1,NTHMAX
          WRITE(8,'(2I4, 4E14.6)') NR, NTH, NTH-0.5D0, COSM(NTH), RLAMDAG(NTH,NR), RLAMDA_GG(NTH,NR)
@@ -604,7 +606,6 @@
          ENDDO
       END DO
 
-      WRITE(*,*) "TEST1"
 !--------- normalize bounce average parameter ---------
 
       IF(MODELA.eq.1)THEN
@@ -642,7 +643,6 @@
            ENDDO
          ENDDO
       END IF
-      WRITE(*,*) "TEST2"
 
 !     ----- set boundary distribution functions -----
       
@@ -756,13 +756,13 @@
 !      END DO
 
       IF(NRANK.eq.0)THEN
-         open(8,file='rcoefng.dat')
+         open(8,file='rcoefng_tpb_ex2.dat')
          DO NR=1,NRMAX
             WRITE(8,'(7E14.6)') RM(NR), RCOEFNG(NR), RFSADG(NR) &
                  , RG(NR), RCOEFN_GG(NR), RFSAD_GG(NR), QLM(NR)
          END DO
          close(8)
-         open(8,file='volp_r.dat')
+         open(8,file='volp_r_tpb_ex2.dat')
          DO NTH=1,NTHMAX/2
             DO NR=1,NRMAX
                WRITE(8,'(2I4,E14.6)') NTH, NR, RLAMDAG(NTH,NR)/RFSADG(NR)

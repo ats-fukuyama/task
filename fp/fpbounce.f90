@@ -26,7 +26,8 @@
 
          CALL SET_RLAMDA_DE(NR)
          CALL SET_RLAMDA_ELL(NR)
-!         CALL SET_RLAMDA_TPB(NR)
+         CALL SET_RLAMDA_TPB(NR)
+         CALL SET_RLAMDA_TPB2(NR)
       END IF
 
 !     ON RG(NR)
@@ -39,13 +40,13 @@
 
          CALL SET_RLAMDA_DE_GMAX(NR)
          CALL SET_RLAMDA_ELL_GMAX(NR)
-!         CALL SET_RLAMDA_TPB_GMAX(NR)
+         CALL SET_RLAMDA_TPB_GMAX(NR)
       ELSE
          CALL SET_ETAMG_G(NR)
 
          CALL SET_RLAMDA_DE_G(NR)
          CALL SET_RLAMDA_ELL_G(NR)
-!         CALL SET_RLAMDA_TPB_G(NR)
+         CALL SET_RLAMDA_TPB_G(NR)
       END IF
 
       END SUBROUTINE SET_BOUNCE_PARAM
@@ -130,10 +131,11 @@
       INTEGER,INTENT(IN):: NR
       INTEGER,parameter:: m=mmax
       INTEGER:: NTH, i
-      DOUBLE PRECISION:: DEL2T1, DEL2T2, DEL2T, mub
+      DOUBLE PRECISION:: DEL2T1, DEL2T2, DEL2T, mub,sinb
       DOUBLE PRECISION:: k1, k2, sum, K_1_x
       DOUBLE PRECISION,dimension(0:m):: alpha, beta
       DOUBLE PRECISION,DIMENSION(0:4):: ell_a, ell_b
+
       DATA ell_a/ 1.38629436112D0, 0.09666344259D0, 0.03590092383D0, &
            0.03742563713D0, 0.01451196212D0/
       DATA ell_b/ 0.5D0, 0.12498593597D0, 0.06880248576D0, &
@@ -141,6 +143,7 @@
 
 !     define DEL2T
       mub = SQRT(2.D0*EPSRM2(NR) / (1.D0 + EPSRM2(NR) ) )
+      sinb= SQRT( (1.D0-EPSRM2(NR))/(1.D0+EPSRM2(NR)) )
       DEL2T1 = COSG(ITL(NR))/mub -1.D0
       DEL2T2 =-COSG(ITL(NR)+1)/mub +1.D0
       DEL2T = 0.5D0 *( DEL2T1 + DEL2T2 )
@@ -160,9 +163,11 @@
          SUM = SUM + alpha(i)*( mub )**(2*i+1)*beta(i)
       END DO
 !     
-      K_1_x  = mub*SQRT(1.D0-mub**2)*(k1-k2*( LOG(2.D0*DEL2T)-1.D0 ) )
+      K_1_x  = mub*sinb*(k1-k2*( LOG(2.D0*DEL2T)-1.D0 ) )
 !
-      RLAMDA(ITL(NR),NR) = 2.D0*QLM(NR)*RR*(K_1_x - sum)/SINM(ITL(NR))
+!      RLAMDA(ITL(NR),NR) = 2.D0*QLM(NR)*RR*(K_1_x - sum)/SINM(ITL(NR))
+!      RLAMDA(ITL(NR),NR) = 2.D0*QLM(NR)*RR*(K_1_x - sum)/sinb
+      RLAMDA(ITL(NR),NR) = 4.D0*QLM(NR)*RR*(K_1_x - sum)*DEL2T/(sinb*DELTH)
       RLAMDA(ITU(NR),NR) = RLAMDA(ITL(NR),NR)
 
       END SUBROUTINE SET_RLAMDA_TPB
@@ -252,8 +257,8 @@
       SUBROUTINE SET_RLAMDA_DE(NR)
 
       USE libde,ONLY: DEFT
-      USE libmtx
-      USE plprof
+!      USE libmtx
+!      USE plprof
 
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NR
@@ -328,8 +333,8 @@
       SUBROUTINE SET_RLAMDA_DE_G(NR)
 
       USE libde,ONLY: DEFT
-      USE libmtx
-      USE plprof
+!      USE libmtx
+!      USE plprof
 
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NR
@@ -1103,5 +1108,106 @@
 
       END FUNCTION FPF_RLAMDA_DE_GMAX
 ! ============================================================
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      SUBROUTINE SET_RLAMDA_TPB2(NR)
+
+      USE libde, only: DEFT
+      IMPLICIT NONE
+      INTEGER,INTENT(IN):: NR
+      INTEGER,parameter:: m=mmax
+      INTEGER:: NTH, i, NTHX
+      DOUBLE PRECISION:: DEL2T1, DEL2T2, DEL2T, mub,sinb, DELTHB, z, RINT0, ES, ram_bl
+      DOUBLE PRECISION:: k1, k2, sum_bl, sum_ex, K_1_x, L_bl, L_ex, L_b, THEX, DELTHEX
+      DOUBLE PRECISION,dimension(0:m):: alpha, beta, j2m
+      DOUBLE PRECISION,DIMENSION(0:4):: ell_a, ell_b
+
+      DATA ell_a/ 1.38629436112D0, 0.09666344259D0, 0.03590092383D0, &
+           0.03742563713D0, 0.01451196212D0/
+      DATA ell_b/ 0.5D0, 0.12498593597D0, 0.06880248576D0, &
+           0.03328355346D0, 0.00441787012D0/
+
+      mub = SQRT(2.D0*EPSRM2(NR) / (1.D0 + EPSRM2(NR) ) )
+      sinb= SQRT( (1.D0-EPSRM2(NR))/(1.D0+EPSRM2(NR)) )
+
+      IF(COSM(ITL(NR)).le.mub)THEN ! ITL = TRAPPED
+!!     define DEL2T
+         DEL2T = COSG(ITL(NR))/mub -1.D0
+         DELTHB =( ACOS(mub) - THG(ITL(NR)) )*2.D0
+
+!     obtain L_ex
+         DELTHEX = DELTH - DELTHB
+         THEX = THG(ITL(NR)+1) - DELTHEX*0.5D0
+         z = COS(THEX)/mub
+         call RECURRENCE_ALPHA(m,alpha)
+         call RECURRENCE_J(m,z,j2m)
+         SUM_EX = 0.D0
+         DO i = 0, m
+            SUM_EX = SUM_EX + alpha(i)*( mub )**(2*i)*j2m(i)
+         END DO
+         L_ex = SUM_EX*( QLM(NR)*RR )*2.D0 * SIN(THEX)*DELTHEX
+      ELSE ! ITL = PASSING
+         DEL2T = -COSG(ITL(NR)+1)/mub +1.D0
+         DELTHB = ( THG(ITL(NR)+1) - ACOS(mub) )*2.D0
+
+!     obtain L_ex
+         DELTHEX = DELTH - DELTHB
+         THEX = THG(ITL(NR)) + DELTHEX*0.5D0
+
+         NTHX = ITL(NR)
+         CALL DEFT(RINT0,ES,H0DE,EPSDE,0,FPF_RLAMDA_DE_TPB)
+         L_ex = RINT0 * ( QLM(NR)*RR ) * 2.D0 * SIN(THEX)*DELTHEX
+      END IF
+
+!     obtain k1, k2, the coefficients of K(1-x)
+      k1 = 0.D0
+      k2 = 0.D0
+      DO i = 0, 4
+         k1 = k1 + ell_a(i) * (2.D0*DEL2T)**i
+         k2 = k2 + ell_b(i) * (2.D0*DEL2T)**i
+      END DO
+!     calculate summention
+      call RECURRENCE_ALPHA(m,alpha)
+      call RECURRENCE_BETA(m,beta)
+      SUM_BL = 0.D0
+      DO i = 0, m
+         SUM_BL = SUM_BL + alpha(i)*( mub )**(2*i+1)*beta(i)
+      END DO
+      K_1_x  = mub*sinb*(k1-k2*( LOG(2.D0*DEL2T)-1.D0 ) )
+      L_b = 8.D0*QLM(NR)*RR*DEL2T*( K_1_x - SUM_BL ) * 0.5D0
+!     L_b means lambda_B * SIN(TEHTA_B) *DELTHB
+
+!      IF(COSM(ITL(NR)).le.mub)THEN ! ITL = TRAPPED
+         RLAMDA(ITL(NR),NR) = ( L_b + L_ex )/( SINM(ITL(NR))*DELTH )
+!         RLAMDA(ITL(NR),NR) = (L_bl - L_ex)/(2.D0*sinb*DELTHB)
+         RLAMDA(ITU(NR),NR) = RLAMDA(ITL(NR),NR)
+!      END IF
+
+      END SUBROUTINE SET_RLAMDA_TPB2
+!---------------------------------
+      DOUBLE PRECISION FUNCTION FPF_RLAMDA_DE_TPB(X,XM,XP)
+
+      IMPLICIT NONE
+      DOUBLE PRECISION,INTENT(IN):: X, XM, XP
+      DOUBLE PRECISION:: XX, A0, A1, A2
+      DOUBLE PRECISION:: mub2, mu02, DELTHB, THEX, mub
+
+      mub = SQRT(2.D0*EPSRM2(NRX) / (1.D0 + EPSRM2(NRX) ) )
+      DELTHB = ( THG(ITL(NRX)+1) - ACOS(mub) )*2.D0
+      THEX = THG(ITL(NRX)) + (DELTH-DELTHB)*0.5D0
+
+      XX=X
+      XX=XM
+      mub2 = 2.D0*EPSRM2(NRX) / (1.D0 + EPSRM2(NRX) )
+      mu02 = COS(THEX)**2
+      A0 = ETAM(NTHX,NRX)
+      A1 = 1.D0-mub2*SIN(A0*XP)**2
+      A2 = 1.D0-(mub2/mu02)*SIN(A0*XP)**2
+
+      FPF_RLAMDA_DE_TPB = A0*SQRT(A1/A2)*0.5D0
+
+      RETURN
+
+      END FUNCTION FPF_RLAMDA_DE_TPB
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       END MODULE FPBOUNCE
