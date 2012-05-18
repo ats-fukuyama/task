@@ -186,8 +186,6 @@
          RHOL2=RG(NR+1)
          VOLR(NR)=2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1)) &
                 *2.D0*PI*RR
-!         VOLR(NR)=2.D0*PI*EPSRM(NR)*RR*(EPSRG(NR+1)-EPSRG(NR))*RR &
-!                *2.D0*PI*RR
       ENDDO
       TVOLR=0.D0
       DO NR=1,NRMAX
@@ -257,19 +255,6 @@
          ENDDO
 
       ENDIF
-
-!
-!      IF(MODELA.eq.1)THEN
-!      DO NR=1,NRMAX
-!         VOLR(NR)=2.D0*PI*EPSRM(NR)*RR*(EPSRG(NR+1)-EPSRG(NR))*RR &
-!                *2.D0*PI*RR
-!      ENDDO
-!      TVOLR=0.D0
-!      DO NR=1,NRMAX
-!         TVOLR=TVOLR+VOLR(NR)
-!      ENDDO
-!      END IF
-!
 
       IF (MODELA.EQ.0) THEN
          DO NR=NRSTART,NREND
@@ -377,7 +362,7 @@
       ENDDO
 
       IF(NRANK.eq.0)THEN
-      open(8,file='RLAMDAG100_tpb_ex2.dat')
+      open(8,file='RLAMDAG100_tpb_ex3.dat')
       DO NR =1, NRMAX
       DO NTH=1,NTHMAX
          WRITE(8,'(2I4, 4E14.6)') NR, NTH, NTH-0.5D0, COSM(NTH), RLAMDAG(NTH,NR), RLAMDA_GG(NTH,NR)
@@ -756,13 +741,13 @@
 !      END DO
 
       IF(NRANK.eq.0)THEN
-         open(8,file='rcoefng_tpb_ex2.dat')
+         open(8,file='rcoefng_tpb_ex3.dat')
          DO NR=1,NRMAX
             WRITE(8,'(7E14.6)') RM(NR), RCOEFNG(NR), RFSADG(NR) &
                  , RG(NR), RCOEFN_GG(NR), RFSAD_GG(NR), QLM(NR)
          END DO
          close(8)
-         open(8,file='volp_r_tpb_ex2.dat')
+         open(8,file='volp_r_tpb_ex3.dat')
          DO NTH=1,NTHMAX/2
             DO NR=1,NRMAX
                WRITE(8,'(2I4,E14.6)') NTH, NR, RLAMDAG(NTH,NR)/RFSADG(NR)
