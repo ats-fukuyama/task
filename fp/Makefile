@@ -43,10 +43,6 @@ fplib.a: $(OBJS)
 
 ../../bpsd/bpsdlib.a:
 	(cd ../../bpsd; make bpsdlib.a)
-../../task/plx/pllib.a:
-	(cd ../plx; make pllib.a)
-../../task/eq/eqlib.a:
-	(cd ../../task/eq; make eqlib.a)
 ../../task/mtxp/libmtxksp.o:
 	(cd ../../task/mtxp; make libmtxksp.o)
 ../../task/mtxp/libmtxbnd.o:
@@ -57,6 +53,10 @@ fplib.a: $(OBJS)
 	(cd ../../task/mtxp; make libmtxnompi.o)
 ../../task/lib/tasklib.a:
 	(cd ../../task/lib; make tasklib.a)
+../../task/plx/pllib.a:
+	(cd ../plx; make pllib.a)
+../../task/eq/eqlib.a:
+	(cd ../../task/eq; make eqlib.a)
 
 libs:
 	(cd ../../bpsd; make bpsdlib.a)

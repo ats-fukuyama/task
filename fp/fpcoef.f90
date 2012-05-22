@@ -310,9 +310,9 @@
 
 !     ----- Radial diffusion term -----
 
-      IF(MODELD.ge.6)THEN
+      IF(MODELD.ge.6) THEN
          CALL FP_CALR2(NSA)
-      ELSE
+      ELSEIF(MODELD.GT.0) THEN
          CALL FP_CALR(NSA)
       END IF
 !      IF(MODELD.GT.0) CALL FP_CALR(NSA)
