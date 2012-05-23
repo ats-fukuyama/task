@@ -900,8 +900,14 @@
 
       IF(MODELD.EQ.0)THEN
          WRITE(6,*) 'WITHOUT RADIAL TRANPORT'
-      ELSE IF(MODELR.EQ.1)THEN
-         WRITE(6,*) 'WITH RADIAL TRANSPORT'
+      ELSE IF(MODELD.EQ.1)THEN
+         WRITE(6,*) 'WITH RADIAL TRANSPORT (const. for r,p,th, without pinch)'
+      ELSE IF(MODELD.EQ.2)THEN
+         WRITE(6,*) 'WITH RADIAL TRANSPORT (const. for r,p,th, with pinch)'
+      ELSE IF(MODELD.EQ.3)THEN
+         WRITE(6,*) 'WITH RADIAL TRANSPORT (p dependence without pinch)'
+      ELSE IF(MODELD.EQ.4)THEN
+         WRITE(6,*) 'WITH RADIAL TRANSPORT (p dependence with pinch)'
       ELSE
          WRITE(6,*) 'XX UNKNOWN MODELD: MODELD =',MODELD
       ENDIF

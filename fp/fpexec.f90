@@ -676,9 +676,9 @@
 !               AL(NM,NL)=DRR(NTBM ,NP  ,NR,NSA)     *DIVDRR*DRRM &
 !                        +FRR(NTBM ,NP  ,NR,NSA)*WRBM*DIVFRR*DRRM
                AL(NM,NL)=DRR(NTBM ,NP  ,NR,NSA)     *DIVDRR*DRRM &
-                            *RLAMDAG(NTH,NR-1)/RFSADG(NR-1) &
+                            *RLAMDAG(NTBM,NR-1)/RFSADG(NR-1) &
                         +FRR(NTBM ,NP  ,NR,NSA)*WRBM*DIVFRR*DRRM &
-                            *RLAMDAG(NTH,NR-1)/RFSADG(NR-1)
+                            *RLAMDAG(NTBM,NR-1)/RFSADG(NR-1)
                IF(ABS(AL(NM,NL)).LT.1.D-70) THEN
                   LL(NM,NL)=0
                   AL(NM,NL)=0.D0
@@ -837,9 +837,9 @@
 !               AL(NM,NL)=DRR(NTBP ,NP  ,NR+1,NSA)     *DIVDRR*DRRP &
 !                        -FRR(NTBP ,NP  ,NR+1,NSA)*VRBP*DIVFRR*DRRP
                AL(NM,NL)=DRR(NTBP ,NP  ,NR+1,NSA)     *DIVDRR*DRRP &
-                            *RLAMDAG(NTH,NR+1)/RFSADG(NR+1) &
+                            *RLAMDAG(NTBP,NR+1)/RFSADG(NR+1) &
                         -FRR(NTBP ,NP  ,NR+1,NSA)*VRBP*DIVFRR*DRRP &
-                            *RLAMDAG(NTH,NR+1)/RFSADG(NR+1)
+                            *RLAMDAG(NTBP,NR+1)/RFSADG(NR+1)
                IF(ABS(AL(NM,NL)).LT.1.D-70) THEN
                   LL(NM,NL)=0
                   AL(NM,NL)=0.D0
@@ -890,9 +890,9 @@
 !                    -DRR(NTBP ,NP  ,NR+1,NSA)     *DIVDRR*DRRP &
 !                    -FRR(NTBP ,NP  ,NR+1,NSA)*WRBP*DIVFRR*DRRP 
                     -DRR(NTBP ,NP  ,NR+1,NSA)     *DIVDRR*DRRP &
-                        *RLAMDAG(NTH,NR)/RFSADG(NR) &
+                        *RLAMDAG(NTBP,NR)/RFSADG(NR) &
                     -FRR(NTBP ,NP  ,NR+1,NSA)*WRBP*DIVFRR*DRRP &
-                        *RLAMDAG(NTH,NR)/RFSADG(NR) 
+                        *RLAMDAG(NTBP,NR)/RFSADG(NR) 
                ENDIF
             ENDIF
             IF(NR.NE.1) THEN
@@ -908,9 +908,9 @@
 !                    -DRR(NTBM ,NP  ,NR  ,NSA)     *DIVDRR*DRRM &
 !                    +FRR(NTBM ,NP  ,NR  ,NSA)*VRBM*DIVFRR*DRRM 
                     -DRR(NTBM ,NP  ,NR  ,NSA)     *DIVDRR*DRRM &
-                        *RLAMDAG(NTH,NR)/RFSADG(NR) &
+                        *RLAMDAG(NTBM,NR)/RFSADG(NR) &
                     +FRR(NTBM ,NP  ,NR  ,NSA)*VRBM*DIVFRR*DRRM &
-                        *RLAMDAG(NTH,NR)/RFSADG(NR) 
+                        *RLAMDAG(NTBM,NR)/RFSADG(NR) 
                ENDIF
             ENDIF
          ENDIF
