@@ -931,83 +931,10 @@
 
 !     ----- NBI source term -----
 
-      DO NBEAM=1,NBEAMMAX
-         IF(NSSPB(NBEAM).EQ.NS_NSA(NSA)) THEN
-            PSP=SQRT(2.D0*AMFP(NSA)*SPBENG(NBEAM)*AEE)/PTFP0(NSA)
-            ANGSP=PI*SPBANG(NBEAM)/180.D0
-            SUML=0.D0
-            DO NP=1,NPMAX-1
-               IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
-                  DO NTH=1,NTHMAX
-                     IF(THG(NTH).LE.ANGSP.AND.THG(NTH+1).GT.ANGSP) THEN
-                        DO NR=1,NRMAX
-                           SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
-                           SUML=SUML &
-                                +SPL*VOLP(NTH,NP,NSBA)*VOLR(NR)!*RLAMDAG(NTH,NR)
-                        ENDDO
-                     ENDIF
-                  ENDDO
-               ENDIF
-            ENDDO
-            SUML=SUML*RNFP0(NSA)
-            DO NP=1,NPMAX-1
-               IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
-                  DO NTH=1,NTHMAX
-                     IF(THG(NTH).LE.ANGSP.AND.THG(NTH+1).GT.ANGSP) THEN
-                        DO NR=NRSTART,NREND
-                           SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
-                           SPPB(NTH,NP,NR,NSA)=SPPB(NTH,NP,NR,NSA) &
-                                + SPBTOT(NBEAM)*SPL/SUML!*RLAMDAG(NTH,NR)
-                        ENDDO
-                     ENDIF
-                  ENDDO
-               ENDIF
-            ENDDO
-         ENDIF
-      ENDDO
-!  ----  FOR ELECTRON (NS=1)
-!      IF(NS_NSA(NSA).EQ.1) THEN
-      IF(NS_NSA(NSA).EQ.1.and.NSSPB(1).ne.1) THEN
-         DO NBEAM=1,NBEAMMAX
-            NSABEAM=0
-            DO NSAX=1,NSAMAX
-               IF(NS_NSA(NSAX).EQ.NSSPB(NBEAM)) NSABEAM=NSAX
-            ENDDO
-
-            IF(NSABEAM.NE.0) THEN
-               PSP=SQRT(2.D0*AMFP(NSA)**2*SPBENG(NBEAM)*AEE &
-                    /AMFP(NSABEAM))/PTFP0(NSA)
-               ANGSP=PI*SPBANG(NBEAM)/180.D0
-               SUML=0.D0
-               DO NP=1,NPMAX-1
-                  IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
-                     DO NTH=1,NTHMAX
-                        IF(THG(NTH).LE.ANGSP.AND.THG(NTH+1).GT.ANGSP) THEN
-                           DO NR=1,NRMAX
-                              SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
-                              SUML=SUML &
-                                   +SPL*VOLP(NTH,NP,NSBA)*VOLR(NR)!*RLAMDAG(NTH,NR)
-                           ENDDO
-                        ENDIF
-                     ENDDO
-                  ENDIF
-               ENDDO
-               DO NP=1,NPMAX-1
-                  IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
-                     DO NTH=1,NTHMAX
-                        IF(THG(NTH).LE.ANGSP.AND.THG(NTH+1).GT.ANGSP) THEN
-                           DO NR=NRSTART,NREND
-                              SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
-                              SPPB(NTH,NP,NR,NSA)=SPPB(NTH,NP,NR,NSA) &
-                                   +PZ(NSABEAM)*SPBTOT(NBEAM)*SPL/SUML!*RLAMDAG(NTH,NR)
-                           ENDDO
-                        ENDIF
-                     ENDDO
-                  ENDIF
-               ENDDO
-            ENDIF
-
-         END DO
+      IF(MODELA.eq.0)THEN
+         CALL NBI_SOURCE(NSA)
+      ELSE
+         CALL FSAD_NBI(NSA)
       END IF
 
 !     ----- Fixed fusion source term -----
@@ -1367,5 +1294,206 @@
 
       RETURN
       END SUBROUTINE FPWAVE_CONST
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      SUBROUTINE FSAD_NBI(NSA)
 
+      IMPLICIT NONE
+      INTEGER,INTENT(IN):: NSA
+      INTEGER:: NTH, NP, NR, NBEAM, NS, NSBA, NSABEAM, NSAX
+      DOUBLE PRECISION:: PSP, ANGSP, SUML, SPL, SPFS, PSI, PCOS
+      DOUBLE PRECISION:: TH0B, PANGSP
+
+      NS=NS_NSA(NSA)
+      NSBA=NSB_NSA(NSA)
+
+!     NBI distribute Gaussian in rho space
+!     and distribute as delta function in p, theta, poloidal angle, respectively. 
+
+      DO NBEAM = 1, NBEAMMAX
+         IF(NSSPB(NBEAM).EQ.NS_NSA(NSA)) THEN
+            PSP=SQRT(2.D0*AMFP(NSA)*SPBENG(NBEAM)*AEE)/PTFP0(NSA)
+            PANGSP=PI*SPBPANG(NBEAM)/180.D0 ! poloidal angle where the beam deposit
+            ANGSP=PI*SPBANG(NBEAM)/180.D0 ! pitch angle at phi = PANGSP
+            SUML = 0.D0
+            DO NR=1, NRMAX
+               PSI = (1.D0+EPSRM2(NR))/(1.D0+EPSRM2(NR)*COS(PANGSP) )
+               TH0B = ASIN( SQRT(SIN(ANGSP)**2/PSI) )
+               DO NP=1, NPMAX-1
+                  IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
+                     DO NTH=1, NTHMAX
+                        IF(THG(NTH).LE.TH0B.AND.THG(NTH+1).GT.TH0B) THEN 
+                           PCOS = COS(ANGSP)
+                           SPFS = PM(NP,NSBA)**2*SINM(NTH)*COSM(NTH)/(RFSADG(NR)*PCOS)
+                           SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2) 
+                           SUML = SUML &
+                                + SPFS * SPL * VOLR(NR)
+                        END IF
+                     END DO
+                  END IF
+               END DO
+            END DO
+            SUML=SUML*RNFP0(NSA)
+            DO NR=NRSTART, NREND
+               PSI = (1.D0+EPSRM2(NR))/(1.D0+EPSRM2(NR)*COS(PANGSP) )
+               TH0B = ASIN( SQRT(SIN(ANGSP)**2/PSI) )
+               DO NP=1, NPMAX-1
+                  IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
+                     DO NTH=1, NTHMAX
+                        IF(THG(NTH).LE.TH0B.AND.THG(NTH+1).GT.TH0B) THEN
+                           WRITE(*,'(A,2I4,2E14.6)') "TH0B", NR, NTH, TH0B, ANGSP
+                           SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
+                           SPPB(NTH,NP,NR,NSA)=SPPB(NTH,NP,NR,NSA) &
+                                + SPBTOT(NBEAM)*SPL/SUML
+                        END IF
+                     END DO
+                  END IF
+               END DO
+            END DO
+         END IF
+      END DO ! NBEAM
+!  ----  FOR ELECTRON (NS=1)
+!      IF(NS_NSA(NSA).EQ.1) THEN
+      IF(NS_NSA(NSA).EQ.1.and.NSSPB(1).ne.1) THEN
+         DO NBEAM=1,NBEAMMAX
+            NSABEAM=0
+            DO NSAX=1,NSAMAX
+               IF(NS_NSA(NSAX).EQ.NSSPB(NBEAM)) NSABEAM=NSAX
+            ENDDO
+            IF(NSABEAM.NE.0) THEN
+               PSP=SQRT(2.D0*AMFP(NSA)**2*SPBENG(NBEAM)*AEE &
+                    /AMFP(NSABEAM))/PTFP0(NSA)
+               PANGSP=PI*SPBPANG(NBEAM)/180.D0 ! poloidal angle where the beam deposit
+               ANGSP=PI*SPBANG(NBEAM)/180.D0 ! pitch angle at phi = PANGSP
+               SUML = 0.D0
+               DO NR=1,NRMAX
+                  PSI = (1.D0+EPSRM2(NR))/(1.D0+EPSRM2(NR)*COS(PANGSP) )
+                  TH0B = ASIN( SQRT(SIN(ANGSP)**2/PSI) )
+                  DO NP=1,NPMAX-1
+                     IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
+                        DO NTH=1,NTHMAX
+                           IF(THG(NTH).LE.TH0B.AND.THG(NTH+1).GT.TH0B) THEN
+                              PCOS = COS(ANGSP)
+                              SPFS = PM(NP,NSBA)**2*SINM(NTH)*COSM(NTH)/(RFSADG(NR)*PCOS)
+                              SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2) 
+                              SUML = SUML &
+                                   + SPFS * SPL * VOLR(NR)
+                           ENDIF
+                        ENDDO
+                     ENDIF
+                  ENDDO
+               ENDDO
+               DO NR=NRSTART,NREND
+                  PSI = (1.D0+EPSRM2(NR))/(1.D0+EPSRM2(NR)*COS(PANGSP) )
+                  TH0B = ASIN( SQRT(SIN(ANGSP)**2/PSI) )
+                  DO NP=1,NPMAX-1
+                     IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
+                        DO NTH=1,NTHMAX
+                           IF(THG(NTH).LE.TH0B.AND.THG(NTH+1).GT.TH0B) THEN
+                              SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
+                              SPPB(NTH,NP,NR,NSA)=SPPB(NTH,NP,NR,NSA) &
+                                   +PZ(NSABEAM)*SPBTOT(NBEAM)*SPL/SUML
+                           ENDIF
+                        ENDDO
+                     ENDIF
+                  ENDDO
+               ENDDO
+
+            ENDIF ! NBEAM eq 0
+         END DO
+      END IF
+
+      END SUBROUTINE FSAD_NBI
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      SUBROUTINE NBI_SOURCE(NSA)
+
+      IMPLICIT NONE
+      INTEGER,INTENT(IN):: NSA
+      integer:: NSB, NSBA, NR, NTH, NP, NS, ID
+      integer:: NBEAM, NSABEAM, NSAX
+      DOUBLE PRECISION:: PSP, SUML, ANGSP, SPL
+
+      NS=NS_NSA(NSA)
+      NSBA=NSB_NSA(NSA)
+
+      DO NBEAM=1,NBEAMMAX
+         IF(NSSPB(NBEAM).EQ.NS_NSA(NSA)) THEN
+            PSP=SQRT(2.D0*AMFP(NSA)*SPBENG(NBEAM)*AEE)/PTFP0(NSA)
+            ANGSP=PI*SPBANG(NBEAM)/180.D0
+            SUML=0.D0
+            DO NP=1,NPMAX-1
+               IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
+                  DO NTH=1,NTHMAX
+                     IF(THG(NTH).LE.ANGSP.AND.THG(NTH+1).GT.ANGSP) THEN
+                        DO NR=1,NRMAX
+                           SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
+                           SUML=SUML &
+                                +SPL*VOLP(NTH,NP,NSBA)*VOLR(NR)!*RLAMDAG(NTH,NR)
+                        ENDDO
+                     ENDIF
+                  ENDDO
+               ENDIF
+            ENDDO
+            SUML=SUML*RNFP0(NSA)
+            DO NP=1,NPMAX-1
+               IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
+                  DO NTH=1,NTHMAX
+                     IF(THG(NTH).LE.ANGSP.AND.THG(NTH+1).GT.ANGSP) THEN
+                        DO NR=NRSTART,NREND
+                           SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
+                           SPPB(NTH,NP,NR,NSA)=SPPB(NTH,NP,NR,NSA) &
+                                + SPBTOT(NBEAM)*SPL/SUML!*RLAMDAG(NTH,NR)
+                        ENDDO
+                     ENDIF
+                  ENDDO
+               ENDIF
+            ENDDO
+         ENDIF
+      ENDDO
+!  ----  FOR ELECTRON (NS=1)
+!      IF(NS_NSA(NSA).EQ.1) THEN
+      IF(NS_NSA(NSA).EQ.1.and.NSSPB(1).ne.1) THEN
+         DO NBEAM=1,NBEAMMAX
+            NSABEAM=0
+            DO NSAX=1,NSAMAX
+               IF(NS_NSA(NSAX).EQ.NSSPB(NBEAM)) NSABEAM=NSAX
+            ENDDO
+
+            IF(NSABEAM.NE.0) THEN
+               PSP=SQRT(2.D0*AMFP(NSA)**2*SPBENG(NBEAM)*AEE &
+                    /AMFP(NSABEAM))/PTFP0(NSA)
+               ANGSP=PI*SPBANG(NBEAM)/180.D0
+               SUML=0.D0
+               DO NP=1,NPMAX-1
+                  IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
+                     DO NTH=1,NTHMAX
+                        IF(THG(NTH).LE.ANGSP.AND.THG(NTH+1).GT.ANGSP) THEN
+                           DO NR=1,NRMAX
+                              SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
+                              SUML=SUML &
+                                   +SPL*VOLP(NTH,NP,NSBA)*VOLR(NR)!*RLAMDAG(NTH,NR)
+                           ENDDO
+                        ENDIF
+                     ENDDO
+                  ENDIF
+               ENDDO
+               DO NP=1,NPMAX-1
+                  IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
+                     DO NTH=1,NTHMAX
+                        IF(THG(NTH).LE.ANGSP.AND.THG(NTH+1).GT.ANGSP) THEN
+                           DO NR=NRSTART,NREND
+                              SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
+                              SPPB(NTH,NP,NR,NSA)=SPPB(NTH,NP,NR,NSA) &
+                                   +PZ(NSABEAM)*SPBTOT(NBEAM)*SPL/SUML!*RLAMDAG(NTH,NR)
+                           ENDDO
+                        ENDIF
+                     ENDDO
+                  ENDIF
+               ENDDO
+            ENDIF
+
+         END DO
+      END IF
+
+      END SUBROUTINE NBI_SOURCE
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       END MODULE fpcoef

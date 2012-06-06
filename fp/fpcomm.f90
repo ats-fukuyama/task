@@ -39,7 +39,7 @@
 !      real(rkind),dimension(NSM) :: SPTOT,SPR0,SPRW,SPENG,SPANG
       integer:: NSSPF
       integer,dimension(NBEAMM) :: NSSPB
-      real(rkind),dimension(NBEAMM) :: SPBTOT,SPBR0,SPBRW,SPBENG,SPBANG
+      real(rkind),dimension(NBEAMM) :: SPBTOT,SPBR0,SPBRW,SPBENG,SPBANG,SPBPANG
       real(rkind) :: SPFTOT,SPFR0,SPFRW,SPFENG,SPFANG
 
       integer::LMAXFP

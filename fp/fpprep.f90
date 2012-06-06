@@ -362,7 +362,7 @@
       ENDDO
 
       IF(NRANK.eq.0)THEN
-      open(8,file='RLAMDAG100_tpb_ex3.dat')
+      open(8,file='RLAMDAG100_tpb_ex_killeen_fine.dat')
       DO NR =1, NRMAX
       DO NTH=1,NTHMAX
          WRITE(8,'(2I4, 4E14.6)') NR, NTH, NTH-0.5D0, COSM(NTH), RLAMDAG(NTH,NR), RLAMDA_GG(NTH,NR)
@@ -741,13 +741,13 @@
 !      END DO
 
       IF(NRANK.eq.0)THEN
-         open(8,file='rcoefng_tpb_ex3.dat')
+         open(8,file='rcoefng_tpb_ex_killeen_fine.dat')
          DO NR=1,NRMAX
             WRITE(8,'(7E14.6)') RM(NR), RCOEFNG(NR), RFSADG(NR) &
                  , RG(NR), RCOEFN_GG(NR), RFSAD_GG(NR), QLM(NR)
          END DO
          close(8)
-         open(8,file='volp_r_tpb_ex3.dat')
+         open(8,file='volp_r_tpb_ex_killeen_fine.dat')
          DO NTH=1,NTHMAX/2
             DO NR=1,NRMAX
                WRITE(8,'(2I4,E14.6)') NTH, NR, RLAMDAG(NTH,NR)/RFSADG(NR)
@@ -755,6 +755,16 @@
             WRITE(8,*) " "
             WRITE(8,*) " "
          END DO
+         close(8)
+         open(8,file='r_ram_ram_ex_killeen_fine.dat')
+         DO NTH = 1, NTHMAX
+            DO NR=1,NRMAX
+               WRITE(8,'(2I4,2E14.6)') NTH, NR, RLAMDAG(NTH,NR), RFSADG(NR)
+            END DO
+            WRITE(8,*) " "
+            WRITE(8,*) " "
+         END DO
+         close(8)
       END IF
 
       deallocate(work,workg)

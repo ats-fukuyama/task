@@ -134,7 +134,8 @@
 !     SPBR0(nbeam) : Source radius [r/a]
 !     SPBRW(nbeam) : Source width [r/a]
 !     SPBENG(nbeam): Particle energy [eV]
-!     SPBANG(nbeam): Source pitch angle [degree]
+!     SPBPANG(nbeam): Source poloidal angle [degree]
+!     SPBANG(nbeam): Source pitch angle [degree] ! at phi=SPBPANG
 
 !     NSSPF  : Fusion product particle species
 !     SPFTOT : Particle source [1/m^3 s]
@@ -153,6 +154,7 @@
          SPBRW(NBEAM)=0.2d0
          SPBENG(NBEAM)=1.D6
          SPBANG(NBEAM)=20.D0
+         SPBPANG(NBEAM)=20.D0
       ENDDO
 
       NSSPF=4
@@ -353,7 +355,7 @@
            nsamax,nsbmax, &
            ns_nsa,ns_nsb, &
            pmax,tloss,MODELW,MODELS,NBEAMMAX, &
-           NSSPB,SPBTOT,SPBR0,SPBRW,SPBENG,SPBANG,&
+           NSSPB,SPBTOT,SPBR0,SPBRW,SPBENG,SPBANG,SPBPANG,&
            NSSPF,SPFTOT,SPFR0,SPFRW,SPFENG,&
            LMAXFP, EPSFP,NCMIN,NCMAX, DRRS, MODEL_KSP, MODEL_PC
 
@@ -379,7 +381,7 @@
            DFW,PFW1,PFW2,RFW,RFDW,DELNPR,CEWR,CEWTH,CEWPH, &
            RKWR,RKWTH,RKWPH,REWY,DREWY,FACTWM,PWAVE,EPSNWR, &
            ZEFF,DELT,RIMPL,EPSM,EPSE,EPSDE,H0DE, &
-           NSSPB,SPBTOT,SPBR0,SPBRW,SPBENG,SPBANG, &
+           NSSPB,SPBTOT,SPBR0,SPBRW,SPBENG,SPBANG,SPBPANG, &
            NSSPF,SPFTOT,SPFR0,SPFRW,SPFENG, &
            pmax,tloss,LMAXFP,EPSFP,MODELS,NBEAMMAX, &
            nsamax,nsbmax,ns_nsa,ns_nsb,NCMIN,NCMAX,DRRS, MODEL_KSP, MODEL_PC
@@ -415,7 +417,7 @@
       WRITE(6,*) '      DEC,PEC1,PEC2,PEC3,PEC4,RFEC,DELYEC,DLH,PLH1,PLH2,RLH,'
       WRITE(6,*) '      DFW,PFW1,PFW2,RFW,RFDW,DELNPR,CEWR,CEWTH,CEWPH,'
       WRITE(6,*) '      RKWR,RKWTH,RKWPH,REWY,DREWY,FACTWM,PWAVE,EPSNWR,'
-      WRITE(6,*) '      NSSPB,SPBTOT,SPBR0,SPBRW,SPBENG,SPBANG,'
+      WRITE(6,*) '      NSSPB,SPBTOT,SPBR0,SPBRW,SPBENG,SPBANG,SPBPANG,'
       WRITE(6,*) '      NSSPF,SPFTOT,SPFR0,SPFRW,SPFENG,'
       WRITE(6,*) '      ZEFF,DELT,RIMPL,EPSM,EPSE,EPSDE,H0DE,'
       WRITE(6,*) '      nsamax,nsbmax,ns_nsa,ns_nsb,pmax,tloss,'
@@ -716,6 +718,7 @@
       CALL mtx_broadcast_real8(SPBRW ,NBEAMMAX)
       CALL mtx_broadcast_real8(SPBENG,NBEAMMAX)
       CALL mtx_broadcast_real8(SPBANG,NBEAMMAX)
+      CALL mtx_broadcast_real8(SPBPANG,NBEAMMAX)
 
       cdata (1)=CEWR
       cdata (2)=CEWTH
@@ -751,7 +754,7 @@
            DEC,PEC1,PEC2,PEC3,PEC4,RFEC,DELYEC,DLH,PLH1,PLH2,RLH, &
            DFW,PFW1,PFW2,RFW,RFDW,DELNPR,CEWR,CEWTH,CEWPH, &
            RKWR,RKWTH,RKWPH,REWY,DREWY,FACTWM,PWAVE,EPSNWR, &
-           NSSPB,SPBTOT,SPBR0,SPBRW,SPBENG,SPBANG,&
+           NSSPB,SPBTOT,SPBR0,SPBRW,SPBENG,SPBANG,SPBPANG,&
            NSSPF,SPFTOT,SPFR0,SPFRW,SPFENG,&
            ZEFF,DELT,RIMPL,EPSM,EPSE,EPSDE,H0DE, &
            nsamax,nsbmax,ns_nsa,ns_nsb,pmax,tloss,MODELS,NCMIN,NCMAX, &
@@ -845,7 +848,8 @@
             WRITE(6,*) "NBI NUMBER NBEAM & NSSPB=",NBEAM,NSSPB(NBEAM)
             WRITE(6,600) 'SPBTOT   ',SPBTOT(NBEAM), &
                          'SPBENG   ',SPBENG(NBEAM), &
-                         'SPBANG   ',SPBANG(NBEAM)
+                         'SPBANG   ',SPBANG(NBEAM), &
+                         'SPBPANG   ',SPBPANG(NBEAM)
             WRITE(6,600) 'SPBR0    ',SPBR0(NBEAM), &
                          'SPBRW    ',SPBRW(NBEAM)
          ENDIF

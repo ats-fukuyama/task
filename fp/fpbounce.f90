@@ -26,8 +26,10 @@
 
          CALL SET_RLAMDA_DE(NR)
          CALL SET_RLAMDA_ELL(NR)
-!         CALL SET_RLAMDA_TPB(NR)
-         CALL SET_RLAMDA_TPB2(NR)
+!         CALL SET_RLAMDA(NR) ! NAVMAX
+!         CALL SET_RLAMDA_TPB(NR) ! Kileen
+         CALL SET_RLAMDA_TPB2(NR) ! Kileen with correction
+!         CALL SET_RLAMDA_TPB3(NR) ! NAVMAX
       END IF
 
 !     ON RG(NR)
@@ -40,14 +42,21 @@
 
          CALL SET_RLAMDA_DE_GMAX(NR)
          CALL SET_RLAMDA_ELL_GMAX(NR)
-         CALL SET_RLAMDA_TPB_GMAX(NR)
+!         CALL SET_RLAMDA_GMAX(NR)
+
+!         CALL SET_RLAMDA_TPB_GMAX(NR)
+         CALL SET_RLAMDA_TPB2_G(NR) ! Killeen with correction
+!         CALL SET_RLAMDA_TPB3_G(NR)
       ELSE
          CALL SET_ETAMG_G(NR)
 
          CALL SET_RLAMDA_DE_G(NR)
          CALL SET_RLAMDA_ELL_G(NR)
-!         CALL SET_RLAMDA_TPB_G(NR)
-         CALL SET_RLAMDA_TPB2_G(NR)
+!         CALL SET_RLAMDA_G(NR)
+
+!         CALL SET_RLAMDA_TPB_G(NR) ! Killeen
+         CALL SET_RLAMDA_TPB2_G(NR) ! Killeen with correction
+!         CALL SET_RLAMDA_TPB3_G(NR)
       END IF
 
       END SUBROUTINE SET_BOUNCE_PARAM
@@ -291,11 +300,11 @@
       XX=XM
       mub2 = 2.D0*EPSRM2(NRX) / (1.D0 + EPSRM2(NRX) )
       mu02 = COSM(NTHX)**2
-      A0 = ETAM(NTHX,NRX)
+      A0 = ETAM(NTHX,NRX) * 0.5D0
       A1 = 1.D0-mub2*SIN(A0*XP)**2
       A2 = 1.D0-(mub2/mu02)*SIN(A0*XP)**2
 
-      FPF_RLAMDA_DE = A0*SQRT(A1/A2)*0.5D0
+      FPF_RLAMDA_DE = A0*SQRT(A1/A2)!*0.5D0
 
       RETURN
 
@@ -312,11 +321,11 @@
       XX=XM
       mub2 = 2.D0*EPSRM2(NRX) / (1.D0 + EPSRM2(NRX) )
       mu02 = COSG(NTHX)**2
-      A0 = ETAG(NTHX,NRX)
+      A0 = ETAG(NTHX,NRX) * 0.5D0
       A1 = 1.D0-mub2*SIN(A0*XP)**2
       A2 = 1.D0-(mub2/mu02)*SIN(A0*XP)**2
 
-      FPF_RLAMDA_DEM = A0*SQRT(A1/A2)*0.5D0
+      FPF_RLAMDA_DEM = A0*SQRT(A1/A2)!*0.5D0
 
       RETURN
 
@@ -361,11 +370,11 @@
       XX=XM
       mub2 = 2.D0*EPSRG2(NRX) / (1.D0 + EPSRG2(NRX) )
       mu02 = COSM(NTHX)**2
-      A0 = ETAM_G(NTHX,NRX)
+      A0 = ETAM_G(NTHX,NRX) * 0.5D0
       A1 = 1.D0-mub2*SIN(A0*XP)**2
       A2 = 1.D0-(mub2/mu02)*SIN(A0*XP)**2
 
-      FPF_RLAMDA_DE_G = A0*SQRT(A1/A2)*0.5D0
+      FPF_RLAMDA_DE_G = A0*SQRT(A1/A2)!*0.5D0
 
       RETURN
 
@@ -502,48 +511,16 @@
       real(kind8):: EPSL, FACT, A1, RINT0, ES, DELH
       real(kind8):: SUML, ETAL, X, PSIB, PCOS, RINT2, SUML2, RINTL
 
-      EPSL=EPSRM(NR)
-      FACT=(1.D0+EPSL)/(2.D0*EPSL)
-      
-      DO NTH=1,ITL(NR)
-         ETAM(NTH,NR)=PI*0.5D0
-      ENDDO
-      
-      DO NTH=ITL(NR)+1,ITU(NR)-1
-         A1=FACT*COSM(NTH)**2
-         ETAM(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
-      ENDDO
-      
-      DO NTH=ITU(NR),NTHMAX
-         ETAM(NTH,NR)=PI*0.5D0
-      ENDDO
-      
-      DO NTH=1,ITL(NR)
-         ETAG(NTH,NR)=PI*0.5D0
-      ENDDO
-      
-      DO NTH=ITL(NR)+1,ITU(NR)
-         A1=FACT*COSG(NTH)**2
-         ETAG(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
-      ENDDO
-      
-      DO NTH=ITU(NR)+1,NTHMAX+1
-         ETAG(NTH,NR)=PI*0.5D0
-      ENDDO
-      
       NRX=NR
       DO NTH=1,NTHMAX/2
-         NTHX=NTH
-         IF(NTH.LT.ITL(NR)) THEN
-            CALL DEFT(RINT0,ES,H0DE,EPSDE,0,FPFN0U)
-         ELSEIF(NTH.ge.ITL(NR)) THEN
-!                  CALL DEFT(RINT0,ES,H0DE,EPSDE,0,FPFN0T)
+!         NTHX=NTH
+         IF(NTH.ne.ITL(NR)) THEN
             DELH=2.D0*ETAM(NTH,NR)/NAVMAX
             suml=0.D0
             DO NG=1,NAVMAX
                ETAL=DELH*(NG-0.5D0)
-               X=EPSRM(NR)*COS(ETAL)*RR
-               PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
+               X=EPSRM2(NR)*COS(ETAL)*RR
+               PSIB=(1.D0+EPSRM2(NR))/(1.D0+X/RR)
                IF(COSM(NTH).ge.0.D0)THEN
                   PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
                ELSE
@@ -552,116 +529,53 @@
                suml=suml+1.D0/PCOS
             END DO
             RINT0 = suml*DELH
-         ELSE
-            RINT0=0.D0
-         ENDIF
-         CALL DEFT(RINT2,ES,H0DE,EPSDE,0,FPFN2A)
-!         RLAMDA(NTH,NR)=RINT0*ABS(COSM(NTH))/PI / ( QLM(NR)*RR )
-         RLAMDA(NTH,NR)=RINT0*ABS(COSM(NTH)) * ( QLM(NR)*RR )! lambda = v_0*|cos\theta_0|*tau_B
+            RLAMDA(NTH,NR)=RINT0*ABS(COSM(NTH)) * ( QLM(NR)*RR )! lambda = v_0*|cos\theta_0|*tau_B
 !         RLAMDA(NTH,NR)=RINT0*ABS(COSM(NTH)) ! lambda = v_0*|cos\theta_0|*tau_B / qR
-         RLAMDC(NTH,NR)=RINT2/(PI*(1.D0+EPSRM(NR))*(COSG(NTH)))
+!            CALL DEFT(RINT2,ES,H0DE,EPSDE,0,FPFN2A)
+!            RLAMDC(NTH,NR)=RINT2/(PI*(1.D0+EPSRM(NR))*(COSG(NTH)))
+            RLAMDA(NTHMAX-NTH+1,NR)=RLAMDA(NTH,NR)
+!            RLAMDC(NTHMAX-NTH+2,NR)=RLAMDC(NTH,NR)
+         ENDIF
       ENDDO
-      IF(ITL(NR).ne.NTHMAX/2)THEN
-         RLAMDA(ITL(NR),NR)=0.5D0*(RLAMDA(ITL(NR)-1,NR) &
-              +RLAMDA(ITL(NR)+1,NR))
-      ELSE!IF(ITL(NR).eq.NTHMAX/2)THEN
-         RLAMDA(ITL(NR),NR)=RINT0*ABS(COSM(ITL(NR)))/PI
-      END IF
-      DO NTH=1,NTHMAX/2
-         RLAMDA(NTHMAX-NTH+1,NR)=RLAMDA(NTH,NR)
-         RLAMDC(NTHMAX-NTH+2,NR)=RLAMDC(NTH,NR)
-      ENDDO
-      RLAMDC(NTHMAX/2+1,NR)=0.D0
+!      RLAMDC(NTHMAX/2+1,NR)=0.D0
 
       END SUBROUTINE SET_RLAMDA
-
 !
 !-----------------------------
 !
       SUBROUTINE SET_RLAMDA_G(NR)
 
       USE libde,ONLY: DEFT
-      USE libmtx
-      USE plprof
-!      USE fpbroadcast
-!      USE fpwrin
-!      USE fpwmin
 
       IMPLICIT NONE
       integer:: NR, NTH, NG
       real(kind8):: EPSL, FACT, A1, RINT0, ES, DELH
       real(kind8):: SUML, ETAL, X, PSIB, PCOS, RINT2, SUML2, RINTL
 
-      EPSL=EPSRG(NR)
-      FACT=(1.D0+EPSL)/(2.D0*EPSL)
-      
-      DO NTH=1,ITLG(NR)
-         ETAM_G(NTH,NR)=PI/2.D0
-      ENDDO
-      
-      DO NTH=ITLG(NR)+1,ITUG(NR)-1
-         A1=FACT*COSM(NTH)**2
-         ETAM_G(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
-      ENDDO
-      
-      DO NTH=ITUG(NR),NTHMAX
-         ETAM_G(NTH,NR)=PI/2.D0
-      ENDDO
-      
-      DO NTH=1,ITLG(NR)
-         ETAG_G(NTH,NR)=PI/2.D0
-      ENDDO
-      
-      DO NTH=ITLG(NR)+1,ITUG(NR)
-         A1=FACT*COSG(NTH)**2
-         ETAG_G(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
-      ENDDO
-      
-      DO NTH=ITUG(NR)+1,NTHMAX+1
-         ETAG_G(NTH,NR)=PI/2.D0
-      ENDDO
-      
       NRX=NR
       DO NTH=1,NTHMAX/2
          NTHX=NTH
-         IF(NTH.LT.ITLG(NR)) THEN
-            CALL DEFT(RINT0,ES,H0DE,EPSDE,0,FPFN0U_G)
-         ELSEIF(NTH.ge.ITLG(NR)) THEN
+         IF(NTH.ne.ITLG(NR)) THEN
             DELH=2.D0*ETAM_G(NTH,NR)/NAVMAX
             suml=0.D0
             SUML2=0.D0
             DO NG=1,NAVMAX
                ETAL=DELH*(NG-0.5D0)
-               X=EPSRG(NR)*COS(ETAL)*RR
-               PSIB=(1.D0+EPSRG(NR))/(1.D0+X/RR)
-               IF(COSM(NTH).ge.0.D0)THEN
-                  PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
-               ELSE
-                  PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
-               END IF
+               X=EPSRG2(NR)*COS(ETAL)*RR
+               PSIB=(1.D0+EPSRG2(NR))/(1.D0+X/RR)
+               PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
                suml=suml+1.D0/PCOS
             END DO
             RINT0 = suml *DELH
-         ELSE
-            RINT0=0.D0
+!            CALL DEFT(RINT2,ES,H0DE,EPSDE,0,FPFN2A_G)
+            RLAMDA_G(NTH,NR)=RINT0*ABS(COSM(NTH)) * ( QLG(NR)*RR )! lambda = v_0*|cos\theta_0|*tau_B
+!            RLAMDC_G(NTH,NR)=RINT2/(PI*(1.D0+EPSRG(NR))*(COSG(NTH)))
+
+            RLAMDA_G(NTHMAX-NTH+1,NR)=RLAMDA_G(NTH,NR)
+!            RLAMDC_G(NTHMAX-NTH+2,NR)=RLAMDC_G(NTH,NR)
          ENDIF
-         CALL DEFT(RINT2,ES,H0DE,EPSDE,0,FPFN2A_G)
-!         RLAMDA_G(NTH,NR)=RINT0*ABS(COSM(NTH))/PI 
-         RLAMDA_G(NTH,NR)=RINT0*ABS(COSM(NTH)) * ( QLG(NR)*RR )! lambda = v_0*|cos\theta_0|*tau_B
-!         RLAMDA_G(NTH,NR)=RINT0*ABS(COSM(NTH))
-         RLAMDC_G(NTH,NR)=RINT2/(PI*(1.D0+EPSRG(NR))*(COSG(NTH)))
       ENDDO
-      IF(ITLG(NR).ne.NTHMAX/2)THEN
-         RLAMDA_G(ITLG(NR),NR)=0.5D0*(RLAMDA_G(ITLG(NR)-1,NR) &
-              +RLAMDA_G(ITLG(NR)+1,NR))
-      ELSE!IF(ITL(NR).eq.NTHMAX/2)THEN
-         RLAMDA_G(ITLG(NR),NR)=RINT0*ABS(COSM(ITLG(NR)))/PI
-      END IF
-      DO NTH=1,NTHMAX/2
-         RLAMDA_G(NTHMAX-NTH+1,NR)=RLAMDA_G(NTH,NR)
-         RLAMDC_G(NTHMAX-NTH+2,NR)=RLAMDC_G(NTH,NR)
-      ENDDO
-      RLAMDC_G(NTHMAX/2+1,NR)=0.D0
+!      RLAMDC_G(NTHMAX/2+1,NR)=0.D0
 
       END SUBROUTINE SET_RLAMDA_G
 !
@@ -669,87 +583,29 @@
 !
       SUBROUTINE SET_RLAMDA_GMAX(NR)
 
-      USE libde,ONLY: DEFT
-      USE libmtx
-      USE plprof
-!      USE fpbroadcast
-!      USE fpwrin
-!      USE fpwmin
-
       IMPLICIT NONE
       integer:: NR, NTH, NG
       real(kind8):: EPSL, FACT, A1, RINT0, ES, DELH
       real(kind8):: SUML, ETAL, X, PSIB, PCOS, RINT2, SUML2, RINTL
 
-      EPSL=EPSRG(NR)
-      FACT=(1.D0+EPSL)/(2.D0*EPSL)
-      
-      DO NTH=1,ITLG(NR)
-         ETAM_GG(NTH,NR)=PI/2.D0
-      ENDDO
-      
-      DO NTH=ITLG(NR)+1,ITUG(NR)-1
-         A1=FACT*COSM(NTH)**2
-         ETAM_GG(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
-      ENDDO
-      
-      DO NTH=ITUG(NR),NTHMAX
-         ETAM_GG(NTH,NR)=PI/2.D0
-      ENDDO
-      
-      DO NTH=1,ITLG(NR)
-         ETAG_G_GL(NTH,NR)=PI/2.D0
-      ENDDO
-      
-      DO NTH=ITLG(NR)+1,ITUG(NR)
-         A1=FACT*COSG(NTH)**2
-         ETAG_G_GL(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
-      ENDDO
-      
-      DO NTH=ITUG(NR)+1,NTHMAX+1
-         ETAG_G_GL(NTH,NR)=PI/2.D0
-      ENDDO
-      
       NRX=NR
       DO NTH=1,NTHMAX/2
          NTHX=NTH
-         IF(NTH.LT.ITLG(NR)) THEN
-            CALL DEFT(RINT0,ES,H0DE,EPSDE,0,FPFN0U_GG)
-         ELSEIF(NTH.ge.ITLG(NR)) THEN
+         IF(NTH.ne.ITLG(NR)) THEN
             DELH=2.D0*ETAM_GG(NTH,NR)/NAVMAX
             suml=0.D0 
             DO NG=1,NAVMAX
                ETAL=DELH*(NG-0.5D0)
-               X=EPSRG(NR)*COS(ETAL)*RR
-               PSIB=(1.D0+EPSRG(NR))/(1.D0+X/RR)
-               IF(COSM(NTH).ge.0.D0)THEN
-                  PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
-               ELSE
-                  PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
-               END IF
+               X=EPSRG2(NR)*COS(ETAL)*RR
+               PSIB=(1.D0+EPSRG2(NR))/(1.D0+X/RR)
+               PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
                suml=suml + 1.D0/PCOS
             END DO
             RINT0 = suml*DELH
-         ELSE
-            RINT0=0.D0
+            RLAMDA_GG(NTH,NR)=RINT0*ABS(COSM(NTH)) * ( QLG(NR)*RR )! lambda = v_0*|cos\theta_0|*tau_B
+            RLAMDA_GG(NTHMAX-NTH+1,NR)=RLAMDA_GG(NTH,NR)
          ENDIF
-         CALL DEFT(RINT2,ES,H0DE,EPSDE,0,FPFN2A_GG)
-!         RLAMDA_G(NTH,NR)=RINT0*ABS(COSM(NTH))/PI 
-!         RLAMDA_GG(NTH,NR)=RINT0*ABS(COSM(NTH))/PI / ( QLG(NR)*RR )
-         RLAMDA_GG(NTH,NR)=RINT0*ABS(COSM(NTH)) * ( QLG(NR)*RR )! lambda = v_0*|cos\theta_0|*tau_B
-!         RLAMDA_GG(NTH,NR)=RINT0*ABS(COSM(NTH))
       ENDDO
-      IF(ITLG(NR).ne.NTHMAX/2)THEN
-         RLAMDA_GG(ITLG(NR),NR)=0.5D0*(RLAMDA_GG(ITLG(NR)-1,NR) &
-              +RLAMDA_GG(ITLG(NR)+1,NR))
-      ELSE!IF(ITL(NR).eq.NTHMAX/2)THEN
-         RLAMDA_GG(ITLG(NR),NR)=RINT0*ABS(COSM(ITLG(NR)))/PI
-      END IF
-      DO NTH=1,NTHMAX/2
-         RLAMDA_GG(NTHMAX-NTH+1,NR)=RLAMDA_GG(NTH,NR)
-!         RLAMDC_G(NTHMAX-NTH+2,NR)=RLAMDC_G(NTH,NR)
-      ENDDO
-!      RLAMDC_G(NTHMAX/2+1,NR)=0.D0
 
       END SUBROUTINE SET_RLAMDA_GMAX
 
@@ -1076,11 +932,11 @@
       XX=XM
       mub2 = 2.D0*EPSRG2(NRX) / (1.D0 + EPSRG2(NRX) )
       mu02 = COSM(NTHX)**2
-      A0 = ETAM_GG(NTHX,NRX)
+      A0 = ETAM_GG(NTHX,NRX) * 0.5D0
       A1 = 1.D0-mub2*SIN(A0*XP)**2
       A2 = 1.D0-(mub2/mu02)*SIN(A0*XP)**2
 
-      FPF_RLAMDA_DE_GMAX = A0*SQRT(A1/A2)*0.5D0
+      FPF_RLAMDA_DE_GMAX = A0*SQRT(A1/A2)!*0.5D0
 
       RETURN
 
@@ -1093,7 +949,7 @@
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NR
       INTEGER,parameter:: m=mmax
-      INTEGER:: NTH, i, NTHX
+      INTEGER:: NTH, i
       DOUBLE PRECISION:: DEL2T1, DEL2T2, DEL2T, mub,sinb, DELTHB, z, RINT0, ES, ram_bl
       DOUBLE PRECISION:: k1, k2, sum_bl, sum_ex, K_1_x, L_bl, L_ex, L_b, THEX, DELTHEX
       DOUBLE PRECISION,dimension(0:m):: alpha, beta, j2m
@@ -1131,17 +987,9 @@
          THEX = THG(ITL(NR)) + DELTHEX*0.5D0
 !
          NTHX = ITL(NR)
+         NRX = NR
          CALL DEFT(RINT0,ES,H0DE,EPSDE,0,FPF_RLAMDA_DE_TPB)
          L_ex = RINT0 * ( QLM(NR)*RR ) * 2.D0 * SIN(THEX)*DELTHEX
-
-!         THEX = THG(ITL(NR)) + DELTHEX
-!         NTHX = ITL(NR)
-!         CALL DEFT(RINT0,ES,H0DE,EPSDE,0,FPF_RLAMDA_DE_TPBL)
-!         L_ex = RINT0 * ( QLM(NR)*RR ) * 2.D0 * SIN(THG(ITL(NR)))*DELTHEX
-!         CALL DEFT(RINT0,ES,H0DE,EPSDE,0,FPF_RLAMDA_DE_TPBH)
-!         L_ex = RINT0 * ( QLM(NR)*RR ) * 2.D0 * SIN(THEX)*DELTHEX + L_ex
-!         L_ex = L_ex * 0.5D0
-
       END IF
 
 !     obtain k1, k2, the coefficients of K(1-x)
@@ -1184,11 +1032,11 @@
       XX=XM
       mub2 = 2.D0*EPSRM2(NRX) / (1.D0 + EPSRM2(NRX) )
       mu02 = COS(THEX)**2
-      A0 = ETAM(NTHX,NRX)
+      A0 = ETAM(NTHX,NRX) * 0.5D0
       A1 = 1.D0-mub2*SIN(A0*XP)**2
       A2 = 1.D0-(mub2/mu02)*SIN(A0*XP)**2
 
-      FPF_RLAMDA_DE_TPB = A0*SQRT(A1/A2)*0.5D0
+      FPF_RLAMDA_DE_TPB = A0*SQRT(A1/A2)!*0.5D0
 
       RETURN
 
@@ -1200,7 +1048,7 @@
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NR
       INTEGER,parameter:: m=mmax
-      INTEGER:: NTH, i, NTHX
+      INTEGER:: NTH, i
       DOUBLE PRECISION:: DEL2T1, DEL2T2, DEL2T, mub,sinb, DELTHB, z, RINT0, ES, ram_bl
       DOUBLE PRECISION:: k1, k2, sum_bl, sum_ex, K_1_x, L_bl, L_ex, L_b, THEX, DELTHEX
       DOUBLE PRECISION,dimension(0:m):: alpha, beta, j2m
@@ -1240,7 +1088,13 @@
          THEX = THG(ITLG(NR)) + DELTHEX*0.5D0
 
          NTHX = ITLG(NR)
-         CALL DEFT(RINT0,ES,H0DE,EPSDE,0,FPF_RLAMDA_DE_TPBG)
+         NRX = NR
+         IF(NR.eq.NRMAX+1)THEN
+            CALL DEFT(RINT0,ES,H0DE,EPSDE,0,FPF_RLAMDA_DE_TPBGMAX)
+         ELSE
+            CALL DEFT(RINT0,ES,H0DE,EPSDE,0,FPF_RLAMDA_DE_TPBG)
+         END IF
+
          L_ex = RINT0 * ( QLG(NR)*RR ) * 2.D0 * SIN(THEX)*DELTHEX
       END IF
 
@@ -1262,10 +1116,14 @@
       L_b = 8.D0*QLG(NR)*RR*DEL2T*( K_1_x - SUM_BL ) * 0.5D0
 !     L_b means lambda_B * SIN(TEHTA_B) *DELTHB
 
-!      IF(COSM(ITL(NR)).le.mub)THEN ! ITL = TRAPPED
+      IF(NR.ne.NRMAX+1)THEN
          RLAMDA_G(ITLG(NR),NR) = ( L_b + L_ex )/( SINM(ITLG(NR))*DELTH )
-!         RLAMDA(ITL(NR),NR) = (L_bl - L_ex)/(2.D0*sinb*DELTHB)
          RLAMDA_G(ITUG(NR),NR) = RLAMDA_G(ITLG(NR),NR)
+      ELSEIF(NR.eq.NRMAX+1)THEN
+         RLAMDA_GG(ITLG(NR),NR) = ( L_b + L_ex )/( SINM(ITLG(NR))*DELTH )
+         RLAMDA_GG(ITUG(NR),NR) = RLAMDA_GG(ITLG(NR),NR)
+      END IF
+
 !      END IF
 
       END SUBROUTINE SET_RLAMDA_TPB2_G
@@ -1285,15 +1143,40 @@
       XX=XM
       mub2 = 2.D0*EPSRG2(NRX) / (1.D0 + EPSRG2(NRX) )
       mu02 = COS(THEX)**2
-      A0 = ETAM_G(NTHX,NRX)
+      A0 = ETAM_G(NTHX,NRX) * 0.5D0
       A1 = 1.D0-mub2*SIN(A0*XP)**2
       A2 = 1.D0-(mub2/mu02)*SIN(A0*XP)**2
 
-      FPF_RLAMDA_DE_TPBG = A0*SQRT(A1/A2)*0.5D0
+      FPF_RLAMDA_DE_TPBG = A0*SQRT(A1/A2)!*0.5D0
 
       RETURN
 
       END FUNCTION FPF_RLAMDA_DE_TPBG
+!---------------------------------
+      DOUBLE PRECISION FUNCTION FPF_RLAMDA_DE_TPBGMAX(X,XM,XP)
+
+      IMPLICIT NONE
+      DOUBLE PRECISION,INTENT(IN):: X, XM, XP
+      DOUBLE PRECISION:: XX, A0, A1, A2
+      DOUBLE PRECISION:: mub2, mu02, DELTHB, THEX, mub
+
+      mub = SQRT(2.D0*EPSRG2(NRX) / (1.D0 + EPSRG2(NRX) ) )
+      DELTHB = ( THG(ITLG(NRX)+1) - ACOS(mub) )*2.D0
+      THEX = THG(ITLG(NRX)) + (DELTH-DELTHB)*0.5D0
+
+      XX=X
+      XX=XM
+      mub2 = 2.D0*EPSRG2(NRX) / (1.D0 + EPSRG2(NRX) )
+      mu02 = COS(THEX)**2
+      A0 = ETAM_GG(NTHX,NRX) * 0.5D0
+      A1 = 1.D0-mub2*SIN(A0*XP)**2
+      A2 = 1.D0-(mub2/mu02)*SIN(A0*XP)**2
+
+      FPF_RLAMDA_DE_TPBGMAX = A0*SQRT(A1/A2)!*0.5D0
+
+      RETURN
+
+      END FUNCTION FPF_RLAMDA_DE_TPBGMAX
 
 !---------------------------------
       DOUBLE PRECISION FUNCTION FPF_RLAMDA_DE_TPBL(X,XM,XP)
@@ -1311,11 +1194,11 @@
       XX=XM
       mub2 = 2.D0*EPSRM2(NRX) / (1.D0 + EPSRM2(NRX) )
       mu02 = COS(THG(ITL(NRX)))**2
-      A0 = ETAM(NTHX,NRX)
+      A0 = ETAM(NTHX,NRX) * 0.5D0
       A1 = 1.D0-mub2*SIN(A0*XP)**2
       A2 = 1.D0-(mub2/mu02)*SIN(A0*XP)**2
 
-      FPF_RLAMDA_DE_TPBL = A0*SQRT(A1/A2)*0.5D0
+      FPF_RLAMDA_DE_TPBL = A0*SQRT(A1/A2)!*0.5D0
 
       RETURN
 
@@ -1336,15 +1219,200 @@
       XX=XM
       mub2 = 2.D0*EPSRM2(NRX) / (1.D0 + EPSRM2(NRX) )
       mu02 = COS(THEX)**2
-      A0 = ETAM(NTHX,NRX)
+      A0 = ETAM(NTHX,NRX) * 0.5D0
       A1 = 1.D0-mub2*SIN(A0*XP)**2
       A2 = 1.D0-(mub2/mu02)*SIN(A0*XP)**2
 
-      FPF_RLAMDA_DE_TPBH = A0*SQRT(A1/A2)*0.5D0
+      FPF_RLAMDA_DE_TPBH = A0*SQRT(A1/A2)!*0.5D0
 
       RETURN
 
       END FUNCTION FPF_RLAMDA_DE_TPBH
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      SUBROUTINE SET_RLAMDA_TPB3(NR)
+
+      USE libde, only: DEFT
+      IMPLICIT NONE
+      INTEGER,INTENT(IN):: NR
+      INTEGER,parameter:: m=mmax
+      INTEGER:: NTH, i, NG
+      DOUBLE PRECISION:: DEL2T1, DEL2T2, DEL2T, mub,sinb, DELTHB, z, RINT0, ES, ram_bl
+      DOUBLE PRECISION:: k1, k2, sum_bl, sum_ex, K_1_x, L_bl, L_ex, L_b, THEX, DELTHEX
+      DOUBLE PRECISION,dimension(0:m):: alpha, beta, j2m
+      DOUBLE PRECISION,DIMENSION(0:4):: ell_a, ell_b
+      DOUBLE PRECISION:: phib, DELH, suml, ETAL, PSIB, X, PCOS, FACT
+
+      DATA ell_a/ 1.38629436112D0, 0.09666344259D0, 0.03590092383D0, &
+           0.03742563713D0, 0.01451196212D0/
+      DATA ell_b/ 0.5D0, 0.12498593597D0, 0.06880248576D0, &
+           0.03328355346D0, 0.00441787012D0/
+
+      mub = SQRT(2.D0*EPSRM2(NR) / (1.D0 + EPSRM2(NR) ) )
+      sinb= SQRT( (1.D0-EPSRM2(NR))/(1.D0+EPSRM2(NR)) )
+
+      IF(COSM(ITL(NR)).le.mub)THEN ! ITL = TRAPPED
+!!     define DEL2T
+         DEL2T = COSG(ITL(NR))/mub -1.D0
+         DELTHB =( ACOS(mub) - THG(ITL(NR)) )*2.D0
+!     obtain L_ex
+         DELTHEX = DELTH - DELTHB
+         THEX = THG(ITL(NR)+1) - DELTHEX*0.5D0
+!
+         FACT = (1.D0+EPSRM2(NR)) / EPSRM2(NR)
+         phib = ACOS(1.D0- FACT*COS(THEX)**2 )
+         DELH=phib/NAVMAX
+         suml=0.D0
+         DO NG=1,NAVMAX
+            ETAL=DELH*(NG-0.5D0)
+            X=EPSRM2(NR)*COS(ETAL)*RR
+            PSIB=(1.D0+EPSRM2(NR))/(1.D0+X/RR)
+            PCOS=SQRT(1.D0-PSIB*SIN(THEX)**2)
+            suml=suml+1.D0/PCOS
+         END DO
+         RINT0 = suml*DELH
+         L_ex = RINT0*ABS(COS(THEX)) * ( QLM(NR)*RR ) * SIN(THEX)*DELTHEX
+      ELSE ! ITL = PASSING
+         DEL2T = -COSG(ITL(NR)+1)/mub +1.D0
+         DELTHB = ( THG(ITL(NR)+1) - ACOS(mub) )*2.D0
+!     obtain L_ex
+         DELTHEX = DELTH - DELTHB
+         THEX = THG(ITL(NR)) + DELTHEX*0.5D0
+!
+!         NTHX = ITL(NR)
+!         NRX = NR
+!         CALL DEFT(RINT0,ES,H0DE,EPSDE,0,FPF_RLAMDA_DE_TPB)
+!         L_ex = RINT0 * ( QLM(NR)*RR ) * 2.D0 * SIN(THEX)*DELTHEX
+         DELH=PI/NAVMAX
+         suml=0.D0
+         DO NG=1,NAVMAX
+            ETAL=DELH*(NG-0.5D0)
+            X=EPSRM2(NR)*COS(ETAL)*RR
+            PSIB=(1.D0+EPSRM2(NR))/(1.D0+X/RR)
+            PCOS=SQRT(1.D0-PSIB*SIN(THEX)**2)
+            suml=suml+1.D0/PCOS
+         END DO
+         RINT0 = suml*DELH
+         L_ex = RINT0*ABS(COS(THEX)) * ( QLM(NR)*RR ) * SIN(THEX)*DELTHEX
+      END IF
+
+!     obtain k1, k2, the coefficients of K(1-x)
+      k1 = 0.D0
+      k2 = 0.D0
+      DO i = 0, 4
+         k1 = k1 + ell_a(i) * (2.D0*DEL2T)**i
+         k2 = k2 + ell_b(i) * (2.D0*DEL2T)**i
+      END DO
+!     calculate summention
+      call RECURRENCE_ALPHA(m,alpha)
+      call RECURRENCE_BETA(m,beta)
+      SUM_BL = 0.D0
+      DO i = 0, m
+         SUM_BL = SUM_BL + alpha(i)*( mub )**(2*i+1)*beta(i)
+      END DO
+      K_1_x  = mub*sinb*(k1-k2*( LOG(2.D0*DEL2T)-1.D0 ) )
+      L_b = 8.D0*QLM(NR)*RR*DEL2T*( K_1_x - SUM_BL ) * 0.5D0
+!     L_b means lambda_B * SIN(TEHTA_B) *DELTHB
+
+!      IF(COSM(ITL(NR)).le.mub)THEN ! ITL = TRAPPED
+         RLAMDA(ITL(NR),NR) = ( L_b + L_ex )/( SINM(ITL(NR))*DELTH )
+         RLAMDA(ITU(NR),NR) = RLAMDA(ITL(NR),NR)
+!      END IF
+
+      END SUBROUTINE SET_RLAMDA_TPB3
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      SUBROUTINE SET_RLAMDA_TPB3_G(NR)
+
+      USE libde, only: DEFT
+      IMPLICIT NONE
+      INTEGER,INTENT(IN):: NR
+      INTEGER,parameter:: m=mmax
+      INTEGER:: NTH, i, NG
+      DOUBLE PRECISION:: DEL2T1, DEL2T2, DEL2T, mub,sinb, DELTHB, z, RINT0, ES, ram_bl
+      DOUBLE PRECISION:: k1, k2, sum_bl, sum_ex, K_1_x, L_bl, L_ex, L_b, THEX, DELTHEX
+      DOUBLE PRECISION,dimension(0:m):: alpha, beta, j2m
+      DOUBLE PRECISION,DIMENSION(0:4):: ell_a, ell_b
+      DOUBLE PRECISION:: phib, DELH, suml, ETAL, PSIB, X, PCOS, FACT
+
+      DATA ell_a/ 1.38629436112D0, 0.09666344259D0, 0.03590092383D0, &
+           0.03742563713D0, 0.01451196212D0/
+      DATA ell_b/ 0.5D0, 0.12498593597D0, 0.06880248576D0, &
+           0.03328355346D0, 0.00441787012D0/
+
+      mub = SQRT(2.D0*EPSRG2(NR) / (1.D0 + EPSRG2(NR) ) )
+      sinb= SQRT( (1.D0-EPSRG2(NR))/(1.D0+EPSRG2(NR)) )
+
+      IF(COSM(ITLG(NR)).le.mub)THEN ! ITL = TRAPPED
+!!     define DEL2T
+         DEL2T = COSG(ITLG(NR))/mub -1.D0
+         DELTHB =( ACOS(mub) - THG(ITLG(NR)) )*2.D0
+!     obtain L_ex
+         DELTHEX = DELTH - DELTHB
+         THEX = THG(ITLG(NR)+1) - DELTHEX*0.5D0
+!
+         FACT = (1.D0+EPSRG2(NR)) / EPSRG2(NR)
+         phib = ACOS(1.D0- FACT*COS(THEX)**2 )
+         DELH=phib/NAVMAX
+         suml=0.D0
+         DO NG=1,NAVMAX
+            ETAL=DELH*(NG-0.5D0)
+            X=EPSRG2(NR)*COS(ETAL)*RR
+            PSIB=(1.D0+EPSRG2(NR))/(1.D0+X/RR)
+            PCOS=SQRT(1.D0-PSIB*SIN(THEX)**2)
+            suml=suml+1.D0/PCOS
+         END DO
+         RINT0 = suml*DELH
+         L_ex = RINT0*ABS(COS(THEX)) * ( QLG(NR)*RR ) * SIN(THEX)*DELTHEX
+      ELSE ! ITL = PASSING
+         DEL2T = -COSG(ITLG(NR)+1)/mub +1.D0
+         DELTHB = ( THG(ITLG(NR)+1) - ACOS(mub) )*2.D0
+!     obtain L_ex
+         DELTHEX = DELTH - DELTHB
+         THEX = THG(ITLG(NR)) + DELTHEX*0.5D0
+!
+!         NTHX = ITLG(NR)
+!         NRX = NR
+!         CALL DEFT(RINT0,ES,H0DE,EPSDE,0,FPF_RLAMDA_DE_TPBG)
+!         L_ex = RINT0 * ( QLG(NR)*RR ) * 2.D0 * SIN(THEX)*DELTHEX
+         DELH=PI/NAVMAX
+         suml=0.D0
+         DO NG=1,NAVMAX
+            ETAL=DELH*(NG-0.5D0)
+            X=EPSRG2(NR)*COS(ETAL)*RR
+            PSIB=(1.D0+EPSRG2(NR))/(1.D0+X/RR)
+            PCOS=SQRT(1.D0-PSIB*SIN(THEX)**2)
+            suml=suml+1.D0/PCOS
+         END DO
+         RINT0 = suml*DELH
+         L_ex = RINT0*ABS(COS(THEX)) * ( QLG(NR)*RR ) * SIN(THEX)*DELTHEX
+      END IF
+
+!     obtain k1, k2, the coefficients of K(1-x)
+      k1 = 0.D0
+      k2 = 0.D0
+      DO i = 0, 4
+         k1 = k1 + ell_a(i) * (2.D0*DEL2T)**i
+         k2 = k2 + ell_b(i) * (2.D0*DEL2T)**i
+      END DO
+!     calculate summention
+      call RECURRENCE_ALPHA(m,alpha)
+      call RECURRENCE_BETA(m,beta)
+      SUM_BL = 0.D0
+      DO i = 0, m
+         SUM_BL = SUM_BL + alpha(i)*( mub )**(2*i+1)*beta(i)
+      END DO
+      K_1_x  = mub*sinb*(k1-k2*( LOG(2.D0*DEL2T)-1.D0 ) )
+      L_b = 8.D0*QLG(NR)*RR*DEL2T*( K_1_x - SUM_BL ) * 0.5D0
+!     L_b means lambda_B * SIN(TEHTA_B) *DELTHB
+
+      IF(NR.ne.NRMAX+1)THEN
+         RLAMDA_G(ITLG(NR),NR) = ( L_b + L_ex )/( SINM(ITLG(NR))*DELTH )
+         RLAMDA_G(ITUG(NR),NR) = RLAMDA_G(ITLG(NR),NR)
+      ELSE
+         RLAMDA_GG(ITLG(NR),NR) = ( L_b + L_ex )/( SINM(ITLG(NR))*DELTH )
+         RLAMDA_GG(ITUG(NR),NR) = RLAMDA_GG(ITLG(NR),NR)
+      END IF
+
+      END SUBROUTINE SET_RLAMDA_TPB3_G
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       END MODULE FPBOUNCE
