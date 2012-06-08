@@ -259,25 +259,19 @@
       IF (MODELA.EQ.0) THEN
          DO NR=NRSTART,NREND
             DO NTH=1,NTHMAX
-               ETAM(NTH,NR)=PI/2.D0
+               ETAM(NTH,NR)=PI*0.5D0
                RLAMDA(NTH,NR)=1.D0
                RLAMDC(NTH,NR)=1.D0
-            ENDDO
-            DO NTH=1,NTHMAX+1
-               ETAG(NTH,NR)=PI/2.D0
-            ENDDO
-         ENDDO
-
-         DO NR=NRSTART,NREND
-            DO NTH=1,NTHMAX
-               ETAM_G(NTH,NR)=PI/2.D0
+               ETAM_G(NTH,NR)=PI*0.5D0
                RLAMDA_G(NTH,NR)=1.D0
                RLAMDC_G(NTH,NR)=1.D0
             ENDDO
             DO NTH=1,NTHMAX+1
+               ETAG(NTH,NR)=PI/2.D0
                ETAG_G(NTH,NR)=PI/2.D0
             ENDDO
          ENDDO
+
          DO NTH=1, NTHMAX
             RLAMDA_GG(NTH,NRMAX+1)=1.D0
          END DO
@@ -296,17 +290,17 @@
          END DO
          RFSAD_GG(NRMAX+1)=QLG(NRMAX+1)*RR/(1.D0+EPSRG(NRMAX+1))*PI
 ! temporary for lav
-         DO NR=NRSTART,NREND
-            FACT=(1.D0+EPSRM(NR))/(2.D0*EPSRM(NR))
-            DO NTH=ITL(NR)+1,ITU(NR)-1
-               A1=FACT*COSM(NTH)**2
-               ETAM(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
-            ENDDO
-            DO NTH=ITL(NR)+1,ITU(NR)
-               A1=FACT*COSG(NTH)**2
-               ETAG(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
-            ENDDO
-         END DO
+!         DO NR=NRSTART,NREND
+!            FACT=(1.D0+EPSRM(NR))/(2.D0*EPSRM(NR))
+!            DO NTH=ITL(NR)+1,ITU(NR)-1
+!               A1=FACT*COSM(NTH)**2
+!               ETAM(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
+!            ENDDO
+!            DO NTH=ITL(NR)+1,ITU(NR)
+!               A1=FACT*COSG(NTH)**2
+!               ETAG(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
+!            ENDDO
+!         END DO
 ! temporary end 
       END IF ! MODELA
 
@@ -726,19 +720,6 @@
       DO NR=2,NRMAX
          RCOEFN_GG(NR)=workg(NR)
       ENDDO
-
-!      DO NSA =1, NSAMAX
-!      DO NR=1,NRMAX
-!         DO NP=1,NPMAX
-!            DO NTH=1,NTHMAX
-!               FNS(NTH,NP,NR,NSA) = FNS(NTH,NP,NR,NSA) * RCOEFNG(NR)
-!            END DO
-!         END DO
-!      END DO
-!      END DO
-!      DO NR=1,NRMAX
-!         RCOEFNG(NR)=1.D0
-!      END DO
 
       IF(NRANK.eq.0)THEN
          open(8,file='rcoefng_tpb_ex_killeen_fine.dat')

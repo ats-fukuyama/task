@@ -24,12 +24,12 @@
       IF(NR.ne.NRMAX+1)THEN
          CALL SET_ETAMG(NR)
 
-         CALL SET_RLAMDA_DE(NR)
-         CALL SET_RLAMDA_ELL(NR)
-!         CALL SET_RLAMDA(NR) ! NAVMAX
+!         CALL SET_RLAMDA_DE(NR)
+!         CALL SET_RLAMDA_ELL(NR)
+         CALL SET_RLAMDA(NR) ! NAVMAX
 !         CALL SET_RLAMDA_TPB(NR) ! Kileen
-         CALL SET_RLAMDA_TPB2(NR) ! Kileen with correction
-!         CALL SET_RLAMDA_TPB3(NR) ! NAVMAX
+!         CALL SET_RLAMDA_TPB2(NR) ! Kileen with correction
+         CALL SET_RLAMDA_TPB3(NR) ! NAVMAX
       END IF
 
 !     ON RG(NR)
@@ -40,23 +40,23 @@
       ELSEIF(NR.eq.NRMAX+1)THEN
          CALL SET_ETAMG_GMAX(NR)
 
-         CALL SET_RLAMDA_DE_GMAX(NR)
-         CALL SET_RLAMDA_ELL_GMAX(NR)
-!         CALL SET_RLAMDA_GMAX(NR)
+!         CALL SET_RLAMDA_DE_GMAX(NR)
+!         CALL SET_RLAMDA_ELL_GMAX(NR)
+         CALL SET_RLAMDA_GMAX(NR)
 
 !         CALL SET_RLAMDA_TPB_GMAX(NR)
-         CALL SET_RLAMDA_TPB2_G(NR) ! Killeen with correction
-!         CALL SET_RLAMDA_TPB3_G(NR)
+!         CALL SET_RLAMDA_TPB2_G(NR) ! Killeen with correction
+         CALL SET_RLAMDA_TPB3_G(NR)
       ELSE
          CALL SET_ETAMG_G(NR)
 
-         CALL SET_RLAMDA_DE_G(NR)
-         CALL SET_RLAMDA_ELL_G(NR)
-!         CALL SET_RLAMDA_G(NR)
+!         CALL SET_RLAMDA_DE_G(NR)
+!         CALL SET_RLAMDA_ELL_G(NR)
+         CALL SET_RLAMDA_G(NR)
 
 !         CALL SET_RLAMDA_TPB_G(NR) ! Killeen
-         CALL SET_RLAMDA_TPB2_G(NR) ! Killeen with correction
-!         CALL SET_RLAMDA_TPB3_G(NR)
+!         CALL SET_RLAMDA_TPB2_G(NR) ! Killeen with correction
+         CALL SET_RLAMDA_TPB3_G(NR)
       END IF
 
       END SUBROUTINE SET_BOUNCE_PARAM

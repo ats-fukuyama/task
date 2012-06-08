@@ -50,8 +50,9 @@
 !
 !     ----- Parallel electric field accleration term -----
 !
-      CALL FP_CALE(NSA)
-
+      IF(E0.ne.0.D0)THEN
+         CALL FP_CALE(NSA)
+      END IF
 !
 !     ----- Quasi-linear wave-particle interaction term -----
 !
@@ -181,14 +182,8 @@
       
 !     N_IMPL = 0 means initial state in fpprep
       IF(N_IMPL.ne.0) CALL FPWAVE_CONST
-!      DO NR=NRSTART,NREND
-!         IF(NSA.eq.3)THEN
-!            WRITE(6,'(2I4,1P14E16.8)') NSA,NR,RPWEC_INIT(NR,NSA),RPWIC_INIT(NR,NSA)
-!         END IF
-!      END DO
 !     ----- Constant Dw
       NCONST_RF=3
-!      IF(MODELW(NSA).eq.4.and.NCONST_RF.eq.1.and.NTG2.ge.2)THEN
       IF(MODELW(NSA).eq.4.and.NCONST_RF.eq.2.and.N_IMPL.ne.0)THEN ! TOTAL Pabs(r) invariant
          DO NR=NRSTART,NREND
             DO NP=1,NPMAX+1
@@ -932,9 +927,9 @@
 !     ----- NBI source term -----
 
       IF(MODELA.eq.0)THEN
-         CALL NBI_SOURCE(NSA)
+         CALL NBI_SOURCE_A0(NSA)
       ELSE
-         CALL FSAD_NBI(NSA)
+         CALL NBI_SOURCE_A1(NSA)
       END IF
 
 !     ----- Fixed fusion source term -----
@@ -1009,80 +1004,11 @@
 !     ----- Calcluated fusion source term -----
 
       IF(MODELS.EQ.2) THEN
-
-         DO ID=1,6
-            IF(NSA.EQ.NSA1_NF(ID)) THEN
-               PSP=SQRT(2.D0*AMFP(NSA)*ENG1_NF(ID)*AEE)/PTFP0(NSA)
-               DO NR=NRSTART,NREND
-                  CALL NF_REACTION_RATE(NR,ID)
-                  DO NP=1,NPMAX-1
-                     IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
-                        SUML=0.D0
-                        DO NTH=1,NTHMAX
-                           SUML=SUML+VOLP(NTH,NP,NSBA)!*RLAMDA(NTH,NR)
-                        ENDDO
-                        DO NTH=1,NTHMAX
-                           SPPF(NTH,NP,NR,NSA)=SPPF(NTH,NP,NR,NSA) &
-                               +RATE_NF(NR,ID)/SUML/RNFP0(NSA)!*RLAMDA(NTH,NR)
-                        ENDDO
-                     ENDIF
-                  ENDDO
-               ENDDO
-               IF(PSP.ge.PG(NPMAX,NSBA))THEN
-                  NP=NPMAX
-                  IF(N_IMPL.eq.0.or.N_IMPL.gt.LMAXFP)THEN
-                     write(6,'(A,I5,1P3E12.4)') '  |-NP,PSP,PG=',&
-                       NP,PSP,PMAX(NSBA)
-                     WRITE(6,*) ' |-  OUT OF RANGE PMAX'
-                  END IF
-                  DO NR=NRSTART,NREND
-                     SUML=0.D0
-                     DO NTH=1,NTHMAX
-                        SUML=SUML+VOLP(NTH,NP,NSBA)!*RLAMDA(NTH,NR)
-                     ENDDO
-!                     CALL NF_REACTION_RATE(NR,ID)
-                     DO NTH=1,NTHMAX
-                        SPPF(NTH,NP,NR,NSA)=SPPF(NTH,NP,NR,NSA) &
-                             +RATE_NF(NR,ID)/SUML/RNFP0(NSA)!*RLAMDA(NTH,NR)
-                     ENDDO
-                  ENDDO
-               END IF
-            ENDIF ! NSA=NSA1_NF(ID)
-            IF(NSA.EQ.NSA2_NF(ID)) THEN
-               PSP=SQRT(2.D0*AMFP(NSA)*ENG2_NF(ID)*AEE)/PTFP0(NSA)
-               DO NR=NRSTART,NREND
-                  CALL NF_REACTION_RATE(NR,ID)
-                  DO NP=1,NPMAX-1
-                     IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
-                        SUML=0.D0
-                        DO NTH=1,NTHMAX
-                           SUML=SUML+VOLP(NTH,NP,NSBA)!*RLAMDA(NTH,NR)
-                        ENDDO
-                        DO NTH=1,NTHMAX
-                           SPPF(NTH,NP,NR,NSA)=SPPF(NTH,NP,NR,NSA) &
-                                +RATE_NF(NR,ID)/SUML/RNFP0(NSA)!*RLAMDA(NTH,NR)
-                        ENDDO
-                     ENDIF
-                  ENDDO
-               ENDDO
-            ENDIF
-            IF( NSA.EQ.NSA1_NF(ID).or.NSA.EQ.NSA2_NF(ID) ) THEN
-               DO NR=NRSTART,NREND
-                  DO NP=1,NPMAX
-                     DO NTH=1,NTHMAX
-                        SPPF(NTH,NP,NR,NSB1_NF(ID))=                  &
-                             SPPF(NTH,NP,NR,NSB1_NF(ID))              &
-                             -RATE_NF_D1(NTH,NP,NR,ID)                &
-                             /RNFP0(NSB1_NF(ID))!*RLAMDA(NTH,NR)
-                        SPPF(NTH,NP,NR,NSB2_NF(ID))=                  &
-                             SPPF(NTH,NP,NR,NSB2_NF(ID))              &
-                             -RATE_NF_D2(NTH,NP,NR,ID)                &
-                             /RNFP0(NSB2_NF(ID))!*RLAMDA(NTH,NR)
-                     ENDDO
-                  ENDDO
-               ENDDO
-            ENDIF
-         ENDDO ! ID
+         IF(MODELA.eq.0)THEN
+            CALL FUSION_SOURCE_S2A0(NSA)
+         ELSE
+            CALL FUSION_SOURCE_S2A1(NSA)            
+         END IF
       ENDIF ! MODELS=2
 !
 !     ----- Particle loss and source terms -----
@@ -1295,7 +1221,7 @@
       RETURN
       END SUBROUTINE FPWAVE_CONST
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      SUBROUTINE FSAD_NBI(NSA)
+      SUBROUTINE NBI_SOURCE_A1(NSA)
 
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NSA
@@ -1322,8 +1248,9 @@
                   IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
                      DO NTH=1, NTHMAX
                         IF(THG(NTH).LE.TH0B.AND.THG(NTH+1).GT.TH0B) THEN 
-                           PCOS = COS(ANGSP)
-                           SPFS = PM(NP,NSBA)**2*SINM(NTH)*COSM(NTH)/(RFSADG(NR)*PCOS)
+!                           PCOS = COS(ANGSP)
+!                           SPFS = VOLP(NTH,NP,NSBA)*COSM(NTH)/(RFSADG(NR)*PCOS)
+                           SPFS = VOLP(NTH,NP,NSBA)*RLAMDAG(NTH,NR)/RFSADG(NR)
                            SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2) 
                            SUML = SUML &
                                 + SPFS * SPL * VOLR(NR)
@@ -1336,14 +1263,14 @@
             DO NR=NRSTART, NREND
                PSI = (1.D0+EPSRM2(NR))/(1.D0+EPSRM2(NR)*COS(PANGSP) )
                TH0B = ASIN( SQRT(SIN(ANGSP)**2/PSI) )
+               SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
                DO NP=1, NPMAX-1
                   IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
                      DO NTH=1, NTHMAX
                         IF(THG(NTH).LE.TH0B.AND.THG(NTH+1).GT.TH0B) THEN
-                           WRITE(*,'(A,2I4,2E14.6)') "TH0B", NR, NTH, TH0B, ANGSP
-                           SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
+!                           WRITE(*,'(A,2I4,2E14.6)') "TH0B", NR, NTH, TH0B, ANGSP
                            SPPB(NTH,NP,NR,NSA)=SPPB(NTH,NP,NR,NSA) &
-                                + SPBTOT(NBEAM)*SPL/SUML
+                                + SPBTOT(NBEAM)*SPL/SUML!/RFSADG(NR)
                         END IF
                      END DO
                   END IF
@@ -1372,8 +1299,9 @@
                      IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
                         DO NTH=1,NTHMAX
                            IF(THG(NTH).LE.TH0B.AND.THG(NTH+1).GT.TH0B) THEN
-                              PCOS = COS(ANGSP)
-                              SPFS = PM(NP,NSBA)**2*SINM(NTH)*COSM(NTH)/(RFSADG(NR)*PCOS)
+!                              PCOS = COS(ANGSP)
+!                              SPFS = VOLP(NTH,NP,NSBA)*COSM(NTH)/(RFSADG(NR)*PCOS)
+                              SPFS = VOLP(NTH,NP,NSBA)*RLAMDAG(NTH,NR)/RFSADG(NR)
                               SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2) 
                               SUML = SUML &
                                    + SPFS * SPL * VOLR(NR)
@@ -1391,7 +1319,7 @@
                            IF(THG(NTH).LE.TH0B.AND.THG(NTH+1).GT.TH0B) THEN
                               SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
                               SPPB(NTH,NP,NR,NSA)=SPPB(NTH,NP,NR,NSA) &
-                                   +PZ(NSABEAM)*SPBTOT(NBEAM)*SPL/SUML
+                                   +PZ(NSABEAM)*SPBTOT(NBEAM)*SPL/SUML!/RFSADG(NR)
                            ENDIF
                         ENDDO
                      ENDIF
@@ -1402,9 +1330,9 @@
          END DO
       END IF
 
-      END SUBROUTINE FSAD_NBI
+      END SUBROUTINE NBI_SOURCE_A1
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      SUBROUTINE NBI_SOURCE(NSA)
+      SUBROUTINE NBI_SOURCE_A0(NSA)
 
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NSA
@@ -1494,6 +1422,180 @@
          END DO
       END IF
 
-      END SUBROUTINE NBI_SOURCE
+      END SUBROUTINE NBI_SOURCE_A0
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      SUBROUTINE FUSION_SOURCE_S2A0(NSA)
+
+      USE fpnfrr
+      IMPLICIT NONE
+      INTEGER,INTENT(IN):: NSA
+      integer:: NSB, NSBA, NR, NTH, NP, NS, ID
+      integer:: NBEAM, NSABEAM, NSAX
+      DOUBLE PRECISION:: PSP, SUML, ANGSP, SPL
+
+      NS=NS_NSA(NSA)
+      NSBA=NSB_NSA(NSA)
+
+      DO ID=1,6
+         IF(NSA.EQ.NSA1_NF(ID)) THEN
+            PSP=SQRT(2.D0*AMFP(NSA)*ENG1_NF(ID)*AEE)/PTFP0(NSA)
+            DO NR=NRSTART,NREND
+               CALL NF_REACTION_RATE(NR,ID)
+               DO NP=1,NPMAX-1
+                  IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
+                     SUML=0.D0
+                     DO NTH=1,NTHMAX
+                        SUML=SUML+VOLP(NTH,NP,NSBA)
+                     ENDDO
+                     DO NTH=1,NTHMAX
+                        SPPF(NTH,NP,NR,NSA)=SPPF(NTH,NP,NR,NSA) &
+                             +RATE_NF(NR,ID)/SUML/RNFP0(NSA)
+                     ENDDO
+                  ENDIF
+               ENDDO
+            ENDDO
+            IF(PSP.ge.PG(NPMAX,NSBA))THEN
+               NP=NPMAX
+               IF(N_IMPL.eq.0.or.N_IMPL.gt.LMAXFP)THEN
+                  write(6,'(A,I5,1P3E12.4)') '  |-NP,PSP,PG=',&
+                       NP,PSP,PMAX(NSBA)
+                  WRITE(6,*) ' |-  OUT OF RANGE PMAX'
+               END IF
+               DO NR=NRSTART,NREND
+                  SUML=0.D0
+                  DO NTH=1,NTHMAX
+                     SUML=SUML+VOLP(NTH,NP,NSBA)
+                  ENDDO
+                  DO NTH=1,NTHMAX
+                     SPPF(NTH,NP,NR,NSA)=SPPF(NTH,NP,NR,NSA) &
+                          +RATE_NF(NR,ID)/SUML/RNFP0(NSA)
+                  ENDDO
+               ENDDO
+            END IF
+         ENDIF ! NSA=NSA1_NF(ID)
+         IF(NSA.EQ.NSA2_NF(ID)) THEN
+            PSP=SQRT(2.D0*AMFP(NSA)*ENG2_NF(ID)*AEE)/PTFP0(NSA)
+            DO NR=NRSTART,NREND
+               CALL NF_REACTION_RATE(NR,ID)
+               DO NP=1,NPMAX-1
+                  IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
+                     SUML=0.D0
+                     DO NTH=1,NTHMAX
+                        SUML=SUML+VOLP(NTH,NP,NSBA)
+                     ENDDO
+                     DO NTH=1,NTHMAX
+                        SPPF(NTH,NP,NR,NSA)=SPPF(NTH,NP,NR,NSA) &
+                             +RATE_NF(NR,ID)/SUML/RNFP0(NSA)
+                     ENDDO
+                  ENDIF
+               ENDDO
+            ENDDO
+         ENDIF
+         IF( NSA.EQ.NSA1_NF(ID).or.NSA.EQ.NSA2_NF(ID) ) THEN
+            DO NR=NRSTART,NREND
+               DO NP=1,NPMAX
+                  DO NTH=1,NTHMAX
+                     SPPF(NTH,NP,NR,NSB1_NF(ID))=                  &
+                          SPPF(NTH,NP,NR,NSB1_NF(ID))              &
+                          -RATE_NF_D1(NTH,NP,NR,ID)                &
+                          /RNFP0(NSB1_NF(ID))
+                     SPPF(NTH,NP,NR,NSB2_NF(ID))=                  &
+                          SPPF(NTH,NP,NR,NSB2_NF(ID))              &
+                          -RATE_NF_D2(NTH,NP,NR,ID)                &
+                          /RNFP0(NSB2_NF(ID))
+                  ENDDO
+               ENDDO
+            ENDDO
+         ENDIF
+      ENDDO ! ID
+      
+      END SUBROUTINE FUSION_SOURCE_S2A0
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      SUBROUTINE FUSION_SOURCE_S2A1(NSA)
+
+      USE fpnfrr
+      IMPLICIT NONE
+      INTEGER,INTENT(IN):: NSA
+      integer:: NSB, NSBA, NR, NTH, NP, NS, ID
+      integer:: NBEAM, NSABEAM, NSAX
+      DOUBLE PRECISION:: PSP, SUML, ANGSP, SPL
+
+      NS=NS_NSA(NSA)
+      NSBA=NSB_NSA(NSA)
+
+      DO ID=1,6
+         IF(NSA.EQ.NSA1_NF(ID)) THEN
+            PSP=SQRT(2.D0*AMFP(NSA)*ENG1_NF(ID)*AEE)/PTFP0(NSA)
+            DO NR=NRSTART,NREND
+               CALL NF_REACTION_RATE(NR,ID)
+               DO NP=1,NPMAX-1
+                  IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
+                     SUML=0.D0
+                     DO NTH=1,NTHMAX
+                        SUML=SUML+VOLP(NTH,NP,NSBA)*RLAMDA(NTH,NR)/RFSADG(NR)
+                     ENDDO
+                     DO NTH=1,NTHMAX
+                        SPPF(NTH,NP,NR,NSA)=SPPF(NTH,NP,NR,NSA) &
+                             +RATE_NF(NR,ID)/SUML/RNFP0(NSA)
+                     ENDDO
+                  ENDIF
+               ENDDO
+            ENDDO
+            IF(PSP.ge.PG(NPMAX,NSBA))THEN
+               NP=NPMAX
+               IF(N_IMPL.eq.0.or.N_IMPL.gt.LMAXFP)THEN
+                  write(6,'(A,I5,1P3E12.4)') '  |-NP,PSP,PG=',&
+                       NP,PSP,PMAX(NSBA)
+                  WRITE(6,*) ' |-  OUT OF RANGE PMAX'
+               END IF
+               DO NR=NRSTART,NREND
+                  SUML=0.D0
+                  DO NTH=1,NTHMAX
+                     SUML=SUML+VOLP(NTH,NP,NSBA)*RLAMDA(NTH,NR)/RFSADG(NR)
+                  ENDDO
+                  DO NTH=1,NTHMAX
+                     SPPF(NTH,NP,NR,NSA)=SPPF(NTH,NP,NR,NSA) &
+                          +RATE_NF(NR,ID)/SUML/RNFP0(NSA)
+                  ENDDO
+               ENDDO
+            END IF
+         ENDIF ! NSA=NSA1_NF(ID)
+         IF(NSA.EQ.NSA2_NF(ID)) THEN
+            PSP=SQRT(2.D0*AMFP(NSA)*ENG2_NF(ID)*AEE)/PTFP0(NSA)
+            DO NR=NRSTART,NREND
+               CALL NF_REACTION_RATE(NR,ID)
+               DO NP=1,NPMAX-1
+                  IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
+                     SUML=0.D0
+                     DO NTH=1,NTHMAX
+                        SUML=SUML+VOLP(NTH,NP,NSBA)*RLAMDA(NTH,NR)/RFSADG(NR)
+                     ENDDO
+                     DO NTH=1,NTHMAX
+                        SPPF(NTH,NP,NR,NSA)=SPPF(NTH,NP,NR,NSA) &
+                             +RATE_NF(NR,ID)/SUML/RNFP0(NSA)
+                     ENDDO
+                  ENDIF
+               ENDDO
+            ENDDO
+         ENDIF
+         IF( NSA.EQ.NSA1_NF(ID).or.NSA.EQ.NSA2_NF(ID) ) THEN
+            DO NR=NRSTART,NREND
+               DO NP=1,NPMAX
+                  DO NTH=1,NTHMAX
+                     SPPF(NTH,NP,NR,NSB1_NF(ID))=                  &
+                          SPPF(NTH,NP,NR,NSB1_NF(ID))              &
+                          -RATE_NF_D1(NTH,NP,NR,ID)                &
+                          /RNFP0(NSB1_NF(ID))
+                     SPPF(NTH,NP,NR,NSB2_NF(ID))=                  &
+                          SPPF(NTH,NP,NR,NSB2_NF(ID))              &
+                          -RATE_NF_D2(NTH,NP,NR,ID)                &
+                          /RNFP0(NSB2_NF(ID))
+                  ENDDO
+               ENDDO
+            ENDDO
+         ENDIF
+      ENDDO ! ID
+
+      END SUBROUTINE FUSION_SOURCE_S2A1
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       END MODULE fpcoef

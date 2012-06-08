@@ -333,33 +333,17 @@
       DO NP2=1,NPMAX
       DO NTH2=1,NTHMAX
          RSUM=0.D0
-         FACT2 = VOLP(NTH2,NP2,NSB2)*FNS(NTH2,NP2,NR,NSB2)*RLAMDAG(NTH2,NR)
+         FACT2 = VOLP(NTH2,NP2,NSB2)*FNS(NTH2,NP2,NR,NSB2)*RLAMDA(NTH2,NR)/RFSADG(NR)
          DO NP1=1,NPMAX
          DO NTH1=1,NTHMAX
-            FACT1 = VOLP(NTH1,NP1,NSB1)*FNS(NTH1,NP1,NR,NSB1)*RLAMDAG(NTH1,NR)
-            FACT3 = SIGMAV_NF(NTH1,NP1,NTH2,NP2,ID) * FACT * RCOEFNG(NR)
+            FACT1 = VOLP(NTH1,NP1,NSB1)*FNS(NTH1,NP1,NR,NSB1)*RLAMDA(NTH1,NR)/RFSADG(NR)
+            FACT3 = SIGMAV_NF(NTH1,NP1,NTH2,NP2,ID) * FACT
 
-!         RSUM = RSUM  &
-!              + VOLP(NTH1,NP1,NSB1)*FNS(NTH1,NP1,NR,NSB1) &
-!              * VOLP(NTH2,NP2,NSB2)*FNS(NTH2,NP2,NR,NSB2) &
-!              * SIGMAV_NF(NTH1,NP1,NTH2,NP2,ID) &
-!              * RLAMDAG(NTH1,NR) * RLAMDAG(NTH2,NR) * RCOEFNG(NR)**2
-
-!            RATE_NF_D1(NTH1,NP1,NR,ID) = RATE_NF_D1(NTH1,NP1,NR,ID) &
-!                 +                     FNS(NTH1,NP1,NR,NSB1) &
-!                 * VOLP(NTH2,NP2,NSB2)*FNS(NTH2,NP2,NR,NSB2) &
-!                 * SIGMAV_NF(NTH1,NP1,NTH2,NP2,ID) &
-!                 * RLAMDAG(NTH2,NR) * FACT * RCOEFNG(NR)
             RATE_NF_D1(NTH1,NP1,NR,ID) = RATE_NF_D1(NTH1,NP1,NR,ID) &
                  +                     FNS(NTH1,NP1,NR,NSB1) &
                  * FACT2 &
                  * FACT3
             
-!            RATE_NF_D2(NTH2,NP2,NR,ID) = RATE_NF_D2(NTH2,NP2,NR,ID) &
-!                 + VOLP(NTH1,NP1,NSB1)*FNS(NTH1,NP1,NR,NSB1) &
-!                 *                     FNS(NTH2,NP2,NR,NSB2) &
-!                 * SIGMAV_NF(NTH1,NP1,NTH2,NP2,ID) &
-!                 * RLAMDAG(NTH1,NR) * FACT * RCOEFNG(NR)
             RATE_NF_D2(NTH2,NP2,NR,ID) = RATE_NF_D2(NTH2,NP2,NR,ID) &
                  + FACT1 &
                  *                     FNS(NTH2,NP2,NR,NSB2) &
@@ -375,22 +359,17 @@
       DO NTH1=1,NTHMAX
          RSUM2 = RSUM2 &
               + RATE_NF_D1(NTH1,NP1,NR,ID) *VOLP(NTH1,NP1,NSB1) &
-              * RLAMDAG(NTH1,NR) * RCOEFNG(NR) 
+              * RLAMDA(NTH1,NR)/RFSADG(NR)
       END DO
       END DO
-
-
 
       IF((N_IMPL.eq.0.or.N_IMPL.gt.LMAXFP).and.NR.eq.1)THEN
          WRITE(6,*) '|-NF_REACTION_RATE:'
-!         WRITE(6,'(A,3I5)') '   |-ID,NSB1,NSB2=',ID,NSB1,NSB2
          WRITE(6,'(A,3I5,A,2I5)') '   |-ID,NSB1,NSB2 -> NSA1,NSA2=' &
               ,ID,NSB1,NSB2,' -> ',NSA1,NSA2
-         WRITE(6, *) "  |-ID,  NR,NSB1,NSB2,  <sigma*v>,    ENG1_NF"
-!         WRITE(6,'("  ",4I5,1P2E12.4)') ID,NR,NSB1,NSB2,RSUM,ENG1_NF(ID)
-         WRITE(6,'("  ",4I5,1P2E12.4)') ID,NR,NSB1,NSB2,RSUM2/FACT,ENG1_NF(ID)
+         WRITE(6, *) "  |-ID,  NR,NSB1,NSB2,  <sigma*v>,      ENG1_NF"
+         WRITE(6,'("  ",4I5,1PE14.6,1PE12.4)') ID,NR,NSB1,NSB2,RSUM2/FACT,ENG1_NF(ID)
       END IF
-!      RATE_NF(NR,ID) = RSUM * FACT
       RATE_NF(NR,ID) = RSUM2
 
       end SUBROUTINE NF_REACTION_RATE

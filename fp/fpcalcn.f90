@@ -358,124 +358,109 @@
       DO NSB = 1, NSBMAX
          DO NP=1,NPMAX+1
             DO NTH=1,NTHMAX
-               DELH=2.D0*ETAM(NTH,NR)/NAVMAX
-               sum1=0.D0
-               sum2=0.D0
-               sum3=0.D0
-
-               temp1 = DCPP2(NTH,NP,NR,NSB,NSA)
-               temp2 = FCPP2(NTH,NP,NR,NSB,NSA)
-               temp3 = DCPT2(NTH,NP,NR,NSB,NSA)
-
-               IF (COSM(NTH).GE.0.D0) THEN
+               IF(NTH.ne.ITL(NR).or.NTH.ne.ITU(NR))THEN
+                  DELH=2.D0*ETAM(NTH,NR)/NAVMAX
+                  sum1=0.D0
+                  sum2=0.D0
+                  sum3=0.D0
                   DO NG=1,NAVMAX
                      ETAL=DELH*(NG-0.5D0)
-                     X=EPSRM(NR)*COS(ETAL)*RR
-                     PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
+                     X=EPSRM2(NR)*COS(ETAL)*RR
+                     PSIB=(1.D0+EPSRM2(NR))/(1.D0+X/RR)
                      PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
                      
-                     sum1=sum1 + temp1*COSM(NTH)/PCOS
-                     sum2=sum2 + temp2*COSM(NTH)/PCOS
-                     sum3=sum3 + temp3/SQRT(PSIB)
+                     sum1=sum1 + DCPP2(NTH,NP,NR,NSB,NSA)*ABS(COSM(NTH))/PCOS
+                     sum2=sum2 + FCPP2(NTH,NP,NR,NSB,NSA)*ABS(COSM(NTH))/PCOS
+                     sum3=sum3 + DCPT2(NTH,NP,NR,NSB,NSA)/SQRT(PSIB)
                   END DO ! END NAVMAX 
-               ELSE ! SIGN OF PCOS
-                  DO NG=1,NAVMAX
-                     ETAL=DELH*(NG-0.5D0)
-                     X=EPSRM(NR)*COS(ETAL)*RR
-                     PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
-                     PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
-                     
-                     sum1=sum1 + temp1/PCOS
-                     sum2=sum2 + temp2/PCOS
-                     sum3=sum3 + temp3/SQRT(PSIB)
-                  END DO ! END NAVMAX
+                  
+                  DCPP2(NTH,NP,NR,NSB,NSA)=SUM1*DELH!*COSM(NTH)*RCOEFG(NR) 
+                  FCPP2(NTH,NP,NR,NSB,NSA)=SUM2*DELH!*COSM(NTH)*RCOEFG(NR) 
+                  DCPT2(NTH,NP,NR,NSB,NSA)=SUM3*DELH!*RCOEFG(NR)
                END IF
-
-               DCPP2(NTH,NP,NR,NSB,NSA)=SUM1*DELH*COSM(NTH)*RCOEFG(NR) 
-               FCPP2(NTH,NP,NR,NSB,NSA)=SUM2*DELH*COSM(NTH)*RCOEFG(NR) 
-               DCPT2(NTH,NP,NR,NSB,NSA)=SUM3*DELH*RCOEFG(NR)
             END DO ! END NTH
-            IF(ISW_LAV.eq.1)THEN
-               INTH=0
-               DO NTH=ITL(NR),ITL(NR)+1
-                  INTH=INTH+1
-                  DELH=2.D0*ETAM(NTH,NR)/NAVMAX
-                  sum7=0.D0
-                  sum8=0.D0
-                  sum9=0.D0
-                  
-                  temp7 = DCPP2B(INTH,NP,NR,NSB,NSA)
-                  temp8 = FCPP2B(INTH,NP,NR,NSB,NSA)
-                  temp9 = DCPT2B(INTH,NP,NR,NSB,NSA)
-                  
-                  IF (COSM(NTH).GE.0.D0) THEN
-                     DO NG=1,NAVMAX
-                        ETAL=DELH*(NG-0.5D0)
-                        X=EPSRM(NR)*COS(ETAL)*RR
-                        PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
-                        PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
-                        
-                        sum7=sum7 + temp7*COSM(NTH)/PCOS
-                        sum8=sum8 + temp8*COSM(NTH)/PCOS
-                        sum9=sum9 + temp9/SQRT(PSIB)
-                     END DO ! END NAVMAX 
-                  ELSE ! SIGN OF PCOS
-                     DO NG=1,NAVMAX
-                        ETAL=DELH*(NG-0.5D0)
-                        X=EPSRM(NR)*COS(ETAL)*RR
-                        PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
-                        PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
-                        
-                        sum7=sum7 + temp7*COSM(NTH)/PCOS
-                        sum8=sum8 + temp8*COSM(NTH)/PCOS
-                        sum9=sum9 + temp9/SQRT(PSIB)
-                     END DO ! END NAVMAX
-                  END IF
-                  
-                  DCPP2B(INTH,NP,NR,NSB,NSA)=SUM7*DELH!/PI*RCOEFG(NR) 
-                  FCPP2B(INTH,NP,NR,NSB,NSA)=SUM8*DELH!/PI*RCOEFG(NR) 
-                  DCPT2B(INTH,NP,NR,NSB,NSA)=SUM9*DELH!/PI*RCOEFG(NR)
-               END DO ! END NTH
-               DO NTH=ITU(NR),ITU(NR)+1
-                  INTH=INTH+1
-                  DELH=2.D0*ETAM(NTH,NR)/NAVMAX
-                  sum7=0.D0
-                  sum8=0.D0
-                  sum9=0.D0
-                  
-                  temp7 = DCPP2B(INTH,NP,NR,NSB,NSA)
-                  temp8 = FCPP2B(INTH,NP,NR,NSB,NSA)
-                  temp9 = DCPT2B(INTH,NP,NR,NSB,NSA)
-                  
-                  IF (COSM(NTH).GE.0.D0) THEN
-                     DO NG=1,NAVMAX
-                        ETAL=DELH*(NG-0.5D0)
-                        X=EPSRM(NR)*COS(ETAL)*RR
-                        PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
-                        PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
-                        
-                        sum7=sum7 + temp7*COSM(NTH)/PCOS
-                        sum8=sum8 + temp8*COSM(NTH)/PCOS
-                        sum9=sum9 + temp9/SQRT(PSIB)
-                     END DO ! END NAVMAX 
-                  ELSE ! SIGN OF PCOS
-                     DO NG=1,NAVMAX
-                        ETAL=DELH*(NG-0.5D0)
-                        X=EPSRM(NR)*COS(ETAL)*RR
-                        PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
-                        PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
-                        
-                        sum7=sum7 + temp7*COSM(NTH)/PCOS
-                        sum8=sum8 + temp8*COSM(NTH)/PCOS
-                        sum9=sum9 + temp9/SQRT(PSIB)
-                     END DO ! END NAVMAX
-                  END IF
 
-                  DCPP2B(INTH,NP,NR,NSB,NSA)=SUM7*DELH!/PI*RCOEFG(NR) 
-                  FCPP2B(INTH,NP,NR,NSB,NSA)=SUM8*DELH!/PI*RCOEFG(NR) 
-                  DCPT2B(INTH,NP,NR,NSB,NSA)=SUM9*DELH!/PI*RCOEFG(NR)
-               END DO ! END NTH
-            END IF ! NEW GRID
+!            IF(ISW_LAV.eq.1)THEN
+!               INTH=0
+!               DO NTH=ITL(NR),ITL(NR)+1
+!                  INTH=INTH+1
+!                  DELH=2.D0*ETAM(NTH,NR)/NAVMAX
+!                  sum7=0.D0
+!                  sum8=0.D0
+!                  sum9=0.D0
+!                  
+!                  temp7 = DCPP2B(INTH,NP,NR,NSB,NSA)
+!                  temp8 = FCPP2B(INTH,NP,NR,NSB,NSA)
+!                  temp9 = DCPT2B(INTH,NP,NR,NSB,NSA)
+!                  
+!                  IF (COSM(NTH).GE.0.D0) THEN
+!                     DO NG=1,NAVMAX
+!                        ETAL=DELH*(NG-0.5D0)
+!                        X=EPSRM(NR)*COS(ETAL)*RR
+!                        PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
+!                        PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
+!                        
+!                        sum7=sum7 + temp7*COSM(NTH)/PCOS
+!                        sum8=sum8 + temp8*COSM(NTH)/PCOS
+!                        sum9=sum9 + temp9/SQRT(PSIB)
+!                     END DO ! END NAVMAX 
+!                  ELSE ! SIGN OF PCOS
+!                     DO NG=1,NAVMAX
+!                        ETAL=DELH*(NG-0.5D0)
+!                        X=EPSRM(NR)*COS(ETAL)*RR
+!                        PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
+!                        PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
+!                        
+!                        sum7=sum7 + temp7*COSM(NTH)/PCOS
+!                        sum8=sum8 + temp8*COSM(NTH)/PCOS
+!                        sum9=sum9 + temp9/SQRT(PSIB)
+!                     END DO ! END NAVMAX
+!                  END IF
+!                  
+!                  DCPP2B(INTH,NP,NR,NSB,NSA)=SUM7*DELH!/PI*RCOEFG(NR) 
+!                  FCPP2B(INTH,NP,NR,NSB,NSA)=SUM8*DELH!/PI*RCOEFG(NR) 
+!                  DCPT2B(INTH,NP,NR,NSB,NSA)=SUM9*DELH!/PI*RCOEFG(NR)
+!               END DO ! END NTH
+!               DO NTH=ITU(NR),ITU(NR)+1
+!                  INTH=INTH+1
+!                  DELH=2.D0*ETAM(NTH,NR)/NAVMAX
+!                  sum7=0.D0
+!                  sum8=0.D0
+!                  sum9=0.D0
+!                  
+!                  temp7 = DCPP2B(INTH,NP,NR,NSB,NSA)
+!                  temp8 = FCPP2B(INTH,NP,NR,NSB,NSA)
+!                  temp9 = DCPT2B(INTH,NP,NR,NSB,NSA)
+!                  
+!                  IF (COSM(NTH).GE.0.D0) THEN
+!                     DO NG=1,NAVMAX
+!                        ETAL=DELH*(NG-0.5D0)
+!                        X=EPSRM(NR)*COS(ETAL)*RR
+!                        PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
+!                        PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
+!                        
+!                        sum7=sum7 + temp7*COSM(NTH)/PCOS
+!                        sum8=sum8 + temp8*COSM(NTH)/PCOS
+!                        sum9=sum9 + temp9/SQRT(PSIB)
+!                     END DO ! END NAVMAX 
+!                  ELSE ! SIGN OF PCOS
+!                     DO NG=1,NAVMAX
+!                        ETAL=DELH*(NG-0.5D0)
+!                        X=EPSRM(NR)*COS(ETAL)*RR
+!                        PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
+!                        PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
+!                        
+!                        sum7=sum7 + temp7*COSM(NTH)/PCOS
+!                        sum8=sum8 + temp8*COSM(NTH)/PCOS
+!                        sum9=sum9 + temp9/SQRT(PSIB)
+!                     END DO ! END NAVMAX
+!                  END IF
+!
+!                  DCPP2B(INTH,NP,NR,NSB,NSA)=SUM7*DELH!/PI*RCOEFG(NR) 
+!                  FCPP2B(INTH,NP,NR,NSB,NSA)=SUM8*DELH!/PI*RCOEFG(NR) 
+!                  DCPT2B(INTH,NP,NR,NSB,NSA)=SUM9*DELH!/PI*RCOEFG(NR)
+!               END DO ! END NTH
+!            END IF ! NEW GRID ISW
          END DO ! END NP
 
          DO NP=1,NPMAX
@@ -490,8 +475,8 @@
                   temp6 = DCTP2(NTH,NP,NR,NSB,NSA)
                   DO NG=1,NAVMAX
                      ETAL=DELH*(NG-0.5D0)
-                     X=EPSRM(NR)*COS(ETAL)*RR
-                     PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
+                     X=EPSRM2(NR)*COS(ETAL)*RR
+                     PSIB=(1.D0+EPSRM2(NR))/(1.D0+X/RR)
                      ARG=1.D0-PSIB*SING(NTH)**2
                      IF(ARG.GT.0.D0) THEN
                         IF (COSG(NTH).GE.0.D0) THEN
@@ -506,9 +491,9 @@
                      sum5=sum5 + temp5/SQRT(PSIB)
                      sum6=sum6 + temp6/SQRT(PSIB)
                   END DO ! END NAVMAX
-                  DCTT2(NTH,NP,NR,NSB,NSA)=sum4*DELH*RCOEFG(NR) 
-                  FCTH2(NTH,NP,NR,NSB,NSA)=sum5*DELH*RCOEFG(NR) 
-                  DCTP2(NTH,NP,NR,NSB,NSA)=sum6*DELH*RCOEFG(NR)
+                  DCTT2(NTH,NP,NR,NSB,NSA)=sum4*DELH!*RCOEFG(NR) 
+                  FCTH2(NTH,NP,NR,NSB,NSA)=sum5*DELH!*RCOEFG(NR) 
+                  DCTP2(NTH,NP,NR,NSB,NSA)=sum6*DELH!*RCOEFG(NR)
                ELSE
                   DCTT2(NTH,NP,NR,NSB,NSA)=0.D0!?
                   FCTH2(NTH,NP,NR,NSB,NSA)=0.D0

@@ -578,6 +578,7 @@
       NTB=0
       NTBM=0
       NTBP=0
+      IF(MODELA.ne.0)THEN
       IF(NTH.EQ.ITL(NR)+1) THEN
          NTB=ITU(NR)+1
       ENDIF
@@ -591,6 +592,7 @@
             NTBP=ITL(NR+1)+ITU(NR+1)-NTH+1
          ENDIF
       ENDIF
+      END IF ! MODELA
 
       NL=0
       NM=NMA(NTH,NP,NR)
@@ -634,7 +636,7 @@
          VTB=1.D0-WTB
       ENDIF
       IF(NTBM.NE.0) THEN
-         WRBM=WEIGHR(NTBM,NP  ,NR-1,NSA)
+         WRBM=WEIGHR(NTBM,NP  ,NR,NSA)
          VRBM=1.D0-WRBM
       ENDIF
       IF(NTBP.NE.0) THEN
@@ -709,7 +711,7 @@
                    +DTP(NTH  ,NP  ,NR,NSA)*VTM*DIVDTP*DTPM
          IF(NTB.NE.0) THEN
             AL(NM,NL)=AL(NM,NL) &
-                   -DTP(NTB+1,NP  ,NR,NSA)*VTB*DIVDTP*DTPM
+                   -DTP(NTB,NP  ,NR,NSA)*VTB*DIVDTP*DTPM
          ENDIF
       ENDIF
 
@@ -919,7 +921,7 @@
       SPP(NTH,NP,NR,NSA) &
               =( SPPB(NTH,NP,NR,NSA) &
                 +SPPF(NTH,NP,NR,NSA) &
-                +SPPS(NTH,NP,NR,NSA) )*RLAMDAG(NTH,NR)
+                +SPPS(NTH,NP,NR,NSA) )!*RLAMDAG(NTH,NR)
 !      IF(MODELD.GT.0.AND.NR.EQ.NRMAX) THEN
 !         IF(NP.NE.NPMAX) THEN
 !            SPP(NTH,NP,NR,NSA)=SPP(NTH,NP,NR,NSA) &
