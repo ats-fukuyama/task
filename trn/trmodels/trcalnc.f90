@@ -2,21 +2,103 @@ MODULE trcalnc
 
   USE trcomm, ONLY: ikind, rkind
 
-  PRIVATE
-  PUBLIC ftpf
+!  PRIVATE
+  PUBLIC tr_calc_clseta,ftpf
+
+  
 
 CONTAINS
 
 ! from trcalc.f90 in TASK/TR previous version
 
+! ----------------------------------------------------------------------
+!           COULOMB LOGARITHM
+! ----------------------------------------------------------------------
+      REAL(8) FUNCTION COULOG(NS1,NS2,ANEL,TL)
+
+!     ANEL : electron density [10^20 /m^3]
+!     TL   : electron or ion temperature [keV]
+!            in case of ion-ion collision, TL becomes ion temp.
+
+      IMPLICIT NONE
+      INTEGER(4):: NS1,NS2
+      REAL(8)   :: ANEL,TL
+
+      IF(NS1.EQ.1.AND.NS2.EQ.1) THEN
+         COULOG=14.9D0-0.5D0*LOG(ANEL)+LOG(TL)
+      ELSE
+         IF(NS1.EQ.1.OR.NS2.EQ.1) THEN
+            COULOG=15.2D0-0.5D0*LOG(ANEL)+LOG(TL)
+         ELSE
+            COULOG=17.3D0-0.5D0*LOG(ANEL)+1.5D0*LOG(TL)
+         ENDIF
+      ENDIF
+
+      RETURN
+      END FUNCTION COULOG
+
+
+
+
+! ----------------------------------------------------------------------
+!           COLLISION TIME
+! ----------------------------------------------------------------------
+!     between electrons and ions
+      REAL(8) FUNCTION FTAUE(ANEL,ANIL,TEL,ZL)
+
+!     ANEL : electron density [10^20 /m^3]
+!     ANIL : ion density [10^20 /m^3]
+!     TEL  : electron temperature [kev]
+!     ZL   : ion charge number
+
+      USE TRCOMM, ONLY : AEE, AME, EPS0, PI, PZ, RKEV
+      IMPLICIT NONE
+      REAL(8) :: ANEL, ANIL, TEL, ZL
+      REAL(8) :: COEF, COULOG
+
+      COEF = 6.D0*PI*SQRT(2.D0*PI)*EPS0**2*SQRT(AME)/(AEE**4*1.D20)
+      IF(ZL-PZ(2).LE.1.D-7) THEN
+         FTAUE = COEF*(TEL*RKEV)**1.5D0/(ANIL*ZL**2*COULOG(1,2,ANEL,TEL))
+      ELSE
+!     If the plasma contains impurities, we need to consider the
+!     effective charge number instead of ion charge number.
+!     From the definition of Zeff=sum(n_iZ_i^2)/n_e,
+!     n_iZ_i^2 is replaced by n_eZ_eff at the denominator of tau_e.
+         FTAUE = COEF*(TEL*RKEV)**1.5D0/(ANEL*ZL*COULOG(1,2,ANEL,TEL))
+      ENDIF
+
+      RETURN
+      END FUNCTION FTAUE
+
+!     between ions and ions
+      REAL(8) FUNCTION FTAUI(ANEL,ANIL,TIL,ZL,PAL)
+
+!     ANEL : electron density [10^20 /m^3]
+!     ANIL : ion density [10^20 /m^3]
+!     TIL  : ion temperature [kev]
+!     ZL   : ion charge number
+!     PAL  : ion atomic number
+
+      USE TRCOMM, ONLY : AEE, AMP, EPS0, PI, RKEV
+      IMPLICIT NONE
+      REAL(8):: ANEL, ANIL, PAL, TIL, ZL
+      REAL(8):: COEF, COULOG
+
+      COEF = 12.D0*PI*SQRT(PI)*EPS0**2*SQRT(PAL*AMP)/(AEE**4*1.D20)
+      FTAUI = COEF*(TIL*RKEV)**1.5D0/(ANIL*ZL**4*COULOG(2,2,ANEL,TIL))
+
+      RETURN
+      END FUNCTION FTAUI
+
+
+
   SUBROUTINE tr_calc_clseta
     USE trcomm, ONLY: aee,ame,nrmax,rn,rt,eta
-
     USE trcalv, ONLY: z_eff
 
     IMPLICIT NONE
     INTEGER(ikind) :: nr
-    REAL(rkind) :: taue
+    REAL(rkind) :: taue, FTAUE
 
       DO nr = 1, nrmax
 !        ****** CLASSICAL RESISTIVITY (Spitzer) from JAERI Report ******
@@ -31,7 +113,7 @@ CONTAINS
     RETURN
   END SUBROUTINE tr_calc_clseta
 
-! ***********************************************************************
+! **********************************************************************
 ! -----------------------------------------------------------------------
 !           TRAPPED PARTICLE FRACTION
 ! -----------------------------------------------------------------------
@@ -77,33 +159,8 @@ CONTAINS
          FTPF=1.46D0*SQRT(EPS)-0.46D0*(EPS)**1.5D0
       ENDIF
 
-      RETURN
+      RETURN      
       END FUNCTION FTPF
-
-! -----------------------------------------------------------------------
-!           FUNCTION FOR ROMBERG INTEGRATION
-! -----------------------------------------------------------------------
-      REAL(8) FUNCTION FTU(X,EPS)
-      IMPLICIT NONE
-      REAL(8):: EPS, X
-
-      FTU = X/SQRT(1.D0-X*(1.D0-EPS))
-
-      RETURN
-      END FUNCTION FTU
-
-
-      REAL(8) FUNCTION FTL(X,EPS)
-      IMPLICIT NONE
-      REAL(8):: X, EPS
-      REAL(8):: H
-
-      H = (1.D0 - EPS) / (1.D0 + EPS * COS(X))
-      FTL = (1.D0 - SQRT(1.D0 - H) * (1.D0 + 0.5D0 * H)) / H**2
-
-      RETURN
-      END FUNCTION FTL
-
 
 ! -----------------------------------------------------------------------
 !           ROMBERG INTEGRATION METHOD
@@ -168,82 +225,32 @@ CONTAINS
       RETURN
       END SUBROUTINE RMBRG
 
+! -----------------------------------------------------------------------
+!           FUNCTION FOR ROMBERG INTEGRATION
+! -----------------------------------------------------------------------
+      REAL(8) FUNCTION FTU(X,EPS)
+      IMPLICIT NONE
+      REAL(8):: EPS, X
+
+      FTU = X/SQRT(1.D0-X*(1.D0-EPS))
+
+      RETURN
+      END FUNCTION FTU
+
+
+      REAL(8) FUNCTION FTL(X,EPS)
+      IMPLICIT NONE
+      REAL(8):: X, EPS
+      REAL(8):: H
+
+      H = (1.D0 - EPS) / (1.D0 + EPS * COS(X))
+      FTL = (1.D0 - SQRT(1.D0 - H) * (1.D0 + 0.5D0 * H)) / H**2
+
+      RETURN
+      END FUNCTION FTL
+
 ! ***********************************************************************
-! ----------------------------------------------------------------------
-!           COLLISION TIME
-! ----------------------------------------------------------------------
-!     between electrons and ions
-      REAL(8) FUNCTION FTAUE(ANEL,ANIL,TEL,ZL)
 
-!     ANEL : electron density [10^20 /m^3]
-!     ANIL : ion density [10^20 /m^3]
-!     TEL  : electron temperature [kev]
-!     ZL   : ion charge number
-
-      USE TRCOMM, ONLY : AEE, AME, EPS0, PI, PZ, RKEV
-      IMPLICIT NONE
-      REAL(8) :: ANEL, ANIL, TEL, ZL
-      REAL(8) :: COEF, COULOG
-
-      COEF = 6.D0*PI*SQRT(2.D0*PI)*EPS0**2*SQRT(AME)/(AEE**4*1.D20)
-      IF(ZL-PZ(2).LE.1.D-7) THEN
-         FTAUE = COEF*(TEL*RKEV)**1.5D0/(ANIL*ZL**2*COULOG(1,2,ANEL,TEL))
-      ELSE
-!     If the plasma contains impurities, we need to consider the
-!     effective charge number instead of ion charge number.
-!     From the definition of Zeff=sum(n_iZ_i^2)/n_e,
-!     n_iZ_i^2 is replaced by n_eZ_eff at the denominator of tau_e.
-         FTAUE = COEF*(TEL*RKEV)**1.5D0/(ANEL*ZL*COULOG(1,2,ANEL,TEL))
-      ENDIF
-
-      RETURN
-      END FUNCTION FTAUE
-
-!     between ions and ions
-      REAL(8) FUNCTION FTAUI(ANEL,ANIL,TIL,ZL,PAL)
-
-!     ANEL : electron density [10^20 /m^3]
-!     ANIL : ion density [10^20 /m^3]
-!     TIL  : ion temperature [kev]
-!     ZL   : ion charge number
-!     PAL  : ion atomic number
-
-      USE TRCOMM, ONLY : AEE, AMP, EPS0, PI, RKEV
-      IMPLICIT NONE
-      REAL(8):: ANEL, ANIL, PAL, TIL, ZL
-      REAL(8):: COEF, COULOG
-
-      COEF = 12.D0*PI*SQRT(PI)*EPS0**2*SQRT(PAL*AMP)/(AEE**4*1.D20)
-      FTAUI = COEF*(TIL*RKEV)**1.5D0/(ANIL*ZL**4*COULOG(2,2,ANEL,TIL))
-
-      RETURN
-      END FUNCTION FTAUI
-
-! ----------------------------------------------------------------------
-!           COULOMB LOGARITHM
-! ----------------------------------------------------------------------
-      REAL(8) FUNCTION COULOG(NS1,NS2,ANEL,TL)
-
-!     ANEL : electron density [10^20 /m^3]
-!     TL   : electron or ion temperature [keV]
-!            in case of ion-ion collision, TL becomes ion temp.
-
-      IMPLICIT NONE
-      INTEGER(4):: NS1,NS2
-      REAL(8)   :: ANEL,TL
-
-      IF(NS1.EQ.1.AND.NS2.EQ.1) THEN
-         COULOG=14.9D0-0.5D0*LOG(ANEL)+LOG(TL)
-      ELSE
-         IF(NS1.EQ.1.OR.NS2.EQ.1) THEN
-            COULOG=15.2D0-0.5D0*LOG(ANEL)+LOG(TL)
-         ELSE
-            COULOG=17.3D0-0.5D0*LOG(ANEL)+1.5D0*LOG(TL)
-         ENDIF
-      ENDIF
-
-      RETURN
-      END FUNCTION COULOG
 
 
 END MODULE trcalnc
