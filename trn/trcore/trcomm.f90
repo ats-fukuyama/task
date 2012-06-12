@@ -76,9 +76,7 @@ MODULE trcomm
 ! ----- plasma variables -----
 
   REAL(rkind) :: rips          ! toroidal current at the beginning
-  REAL(rkind) :: ripe          ! toroidal current 
-
-  REAL(rkind) :: profj1, profj2 ! current density profile factors
+  REAL(rkind) :: ripe          ! toroidal current at the end
 
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
        rg,      &! radial mesh position [m]
@@ -102,33 +100,43 @@ MODULE trcomm
        str,      &! source density [MW/m^3]
        htr        ! current density [MA/m^2]
   REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: &
+       ! ***_tb, ***_nc are variables except for magnetic equation.
        dtr_tb,   &! turbulent diffusion coefficient [m^2/s]
-       vtr_tb,   &! turbulent convection velocity [m^2/s]
+       vtr_tb,   &! turbulent convection velocity [m/s]
        dtr_nc,   &! neoclassical diffusion coefficient [m^2/s]
-       vtr_nc,   &! neoclassical convection velocity [m^2/s]
+       vtr_nc,   &! neoclassical convection velocity [m/s]
        ctr_ex     ! exchange frequency [1/s]
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
                   ! variables for Pereverzev method
        dtr_prv,  &! additional diffusion coefficient [m^2/s]
-       vtr_prv    ! additional convection velocity [m^2/s]
+       vtr_prv    ! additional convection velocity [m/s]
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
-       eta   ,   &! pararell resistivity 
-       jtot  ,   &! total current [A/m^2]
-       joh   ,   &! ohmic current [A/m^2]
+       ! These variables should be distinguished; parallel and toroidal(total)
+       eta   ,   &! pararell resistivity [ohm m]
+       jtot  ,   &! (parallel) total current [A/m^2]
+       joh   ,   &! (parallel) ohmic current [A/m^2]
+       jtor  ,   &! toroidal current [A/m^2]
        eta_nc,   &! neoclassical resistivity [ohm m]
        jbs_nc,   &! bootstrap current by neoclassical effect [A/m^2]
+       jex_nc,   &! externally driven current (NCLASS) [A/m^2]
        jcd_nb,   &! current driven by NBI [A/m^2]
        jcd_ec,   &! current driven by ECRF waves [A/m^2]
        jcd_lh,   &! current driven by LHRF waves [A/m^2]
        jcd_ic     ! current driven by ICRF waves [A/m^2]
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
        str_simple !  simple model of source density [MW/m^3]
+  REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
+       htr_simple !  simple model of external driven current density [A/m^2]
 
 ! ----- profile variables -----
 
+  REAL(rkind) :: profj1, profj2 ! current density profile factors
+
   REAL(rkind),DIMENSION(:),ALLOCATABLE::&
        vtor,     &! toroidal rotation velocity [m/s]
-       vpol       ! poloidal rotation velocity [m/s]
+       vpol,     &! poloidal rotation velocity [m/s]
+       vpar,     &! parallel roration velocity [m/s]
+       vprp       ! perpendicular rotation velocity [m/s]
 
 ! --- equilibrium interface variables -----
 ! ------ interface variables fot bpsd_equ1D
@@ -157,7 +165,6 @@ MODULE trcomm
        rmnrho,   &! local r
        rkprho,   &! local kappa
        abb1rho,  &! <B>
-       arhbrho,  &! not used
        epsrho,   &! r/R
 !
        rmnrhom,  &! local r (half-grid)
@@ -185,7 +192,7 @@ MODULE trcomm
 !       modelg,   &! control plasma geometry model
 !       nteqit     ! step interval of EQ calculation
 
-! ----- daignostic variables -----
+! ----- daignostic variables for debug -----
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
        nrd1,     &! a diagnostic array for radial grid
        nrd2,     &! a diagnostic array for radial grid
@@ -208,11 +215,11 @@ MODULE trcomm
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
        rhv,xv_new,xv,xv_prev
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
-       elmtx,lhmtx
+       elmtx,lhmtx,elmtx_ofd
   REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: &
        limtx, rjimtx, rsimtx
   REAL(rkind),DIMENSION(:,:,:,:),ALLOCATABLE:: &
-       r1imtx, r2imtx, r3imtx, rimtx
+       r1imtx, r2imtx, r3imtx, rimtx, r1imtx_ofd
 
 ! ----- diagnostics -----
 
@@ -223,9 +230,9 @@ MODULE trcomm
 
 ! ----- save data parameters -----
   INTEGER(ikind):: ngt
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: gvt
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: gvt,gvti
   REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: gvts
-  REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: gvrt
+  REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: gvrt,gvrtj
   REAL(rkind),DIMENSION(:,:,:,:),ALLOCATABLE:: gvrts,gparts
 
 ! ----- species id -----
@@ -234,8 +241,8 @@ MODULE trcomm
 
 CONTAINS
 
-! ----- allocation for radial profile -----
   SUBROUTINE tr_nr_allocate
+  ! ----- allocation for radial profile -----
 
     INTEGER(ikind),SAVE:: nrmax_save=0
     INTEGER(ikind),SAVE:: nsamax_save=0
@@ -258,45 +265,50 @@ CONTAINS
        ALLOCATE(rn_prev(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(ru_prev(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(rt_prev(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(dtr(3*neqmax,3*neqmax,0:nrmax),STAT=ierr)
+       ALLOCATE(dtr(neqmax,neqmax,0:nrmax),STAT=ierr)
           IF(ierr /= 0) GOTO 9000
-       ALLOCATE(vtr(3*neqmax,3*neqmax,0:nrmax),STAT=ierr) 
+       ALLOCATE(vtr(neqmax,neqmax,0:nrmax),STAT=ierr) 
           IF(ierr /= 0) GOTO 9000
-       ALLOCATE(ctr(3*neqmax,3*neqmax,0:nrmax),STAT=ierr)
+       ALLOCATE(ctr(neqmax,neqmax,0:nrmax),STAT=ierr)
           IF(ierr /= 0) GOTO 9000
-       ALLOCATE(htr(3*neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(str(3*neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(htr(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(str(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
 
-       ALLOCATE(dtr_tb(3*neqmax,3*neqmax,0:nrmax),STAT=ierr)
+       ALLOCATE(dtr_tb(neqmax,neqmax,0:nrmax),STAT=ierr)
           IF(ierr /= 0) GOTO 9000
-       ALLOCATE(vtr_tb(3*neqmax,3*neqmax,0:nrmax),STAT=ierr)
+       ALLOCATE(vtr_tb(neqmax,neqmax,0:nrmax),STAT=ierr)
           IF(ierr /= 0) GOTO 9000
-       ALLOCATE(dtr_nc(3*neqmax,3*neqmax,0:nrmax),STAT=ierr)
+       ALLOCATE(dtr_nc(neqmax,neqmax,0:nrmax),STAT=ierr)
           IF(ierr /= 0) GOTO 9000
-       ALLOCATE(vtr_nc(3*neqmax,3*neqmax,0:nrmax),STAT=ierr)
+       ALLOCATE(vtr_nc(neqmax,neqmax,0:nrmax),STAT=ierr)
           IF(ierr /= 0) GOTO 9000
-       ALLOCATE(ctr_ex(3*neqmax,3*neqmax,0:nrmax),STAT=ierr)
+       ALLOCATE(ctr_ex(neqmax,neqmax,0:nrmax),STAT=ierr)
           IF(ierr /= 0) GOTO 9000
        ALLOCATE(eta(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(jtot(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(joh(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(jtor(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(eta_nc(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(jbs_nc(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(jex_nc(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(jcd_nb(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(jcd_ec(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(jcd_lh(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(jcd_ic(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
 
-       ALLOCATE(str_simple(3*neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(str_simple(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(htr_simple(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
 
        ! profile variables
        ALLOCATE(vtor(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(vpol(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(vpar(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(vprp(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
 
        ! for Pereverzev method
-       ALLOCATE(dtr_prv(3*neqmax,0:nrmax),STAT=ierr)
+       ALLOCATE(dtr_prv(neqmax,0:nrmax),STAT=ierr)
           IF(ierr /= 0) GOTO 9000
-       ALLOCATE(vtr_prv(3*neqmax,0:nrmax),STAT=ierr)
+       ALLOCATE(vtr_prv(neqmax,0:nrmax),STAT=ierr)
           IF(ierr /= 0) GOTO 9000
 
       ! geometric factors
@@ -324,7 +336,6 @@ CONTAINS
       ALLOCATE(rmnrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
       ALLOCATE(rkprho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
       ALLOCATE(abb1rho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
-      ALLOCATE(arhbrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
       ALLOCATE(epsrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
 
       ALLOCATE(rmnrhom(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
@@ -385,18 +396,23 @@ CONTAINS
     IF(ALLOCATED(eta)) DEALLOCATE(eta)
     IF(ALLOCATED(jtot)) DEALLOCATE(jtot)
     IF(ALLOCATED(joh)) DEALLOCATE(joh)
+    IF(ALLOCATED(jtor)) DEALLOCATE(jtor)
     IF(ALLOCATED(eta_nc)) DEALLOCATE(eta_nc)
     IF(ALLOCATED(jbs_nc)) DEALLOCATE(jbs_nc)
+    IF(ALLOCATED(jex_nc)) DEALLOCATE(jex_nc)
     IF(ALLOCATED(jcd_nb)) DEALLOCATE(jcd_nb)
     IF(ALLOCATED(jcd_ec)) DEALLOCATE(jcd_ec)
     IF(ALLOCATED(jcd_lh)) DEALLOCATE(jcd_lh)
     IF(ALLOCATED(jcd_ic)) DEALLOCATE(jcd_ic)
 
     IF(ALLOCATED(str_simple)) DEALLOCATE(str_simple)
+    IF(ALLOCATED(htr_simple)) DEALLOCATE(htr_simple)
 
     ! profile variables
     IF(ALLOCATED(vtor)) DEALLOCATE(vtor)
     IF(ALLOCATED(vpol)) DEALLOCATE(vpol)
+    IF(ALLOCATED(vpar)) DEALLOCATE(vpar)
+    IF(ALLOCATED(vprp)) DEALLOCATE(vprp)
 
     ! for Pereverzev method
     IF(ALLOCATED(dtr_prv)) DEALLOCATE(dtr_prv)
@@ -426,7 +442,6 @@ CONTAINS
     IF(ALLOCATED(rmnrho)) DEALLOCATE(rmnrho)
     IF(ALLOCATED(rkprho)) DEALLOCATE(rkprho)
     IF(ALLOCATED(abb1rho)) DEALLOCATE(abb1rho)
-    IF(ALLOCATED(arhbrho)) DEALLOCATE(arhbrho)
     IF(ALLOCATED(epsrho)) DEALLOCATE(epsrho)
 
     IF(ALLOCATED(rmnrhom)) DEALLOCATE(rmnrhom)
@@ -451,9 +466,9 @@ CONTAINS
     RETURN
   END SUBROUTINE tr_nr_deallocate
 
-! ----- allocation for coefficient calculation -----
 
   SUBROUTINE tr_neq_allocate
+  ! ----- allocation for coefficient calculation -----
 
     INTEGER(ikind),SAVE:: neqmax_save=0
     INTEGER(ikind),SAVE:: nrmax_save=0
@@ -483,6 +498,8 @@ CONTAINS
     ALLOCATE(r1imtx(2,2,neqmax,neqmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
     ALLOCATE(r2imtx(2,2,neqmax,neqmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
     ALLOCATE(r3imtx(2,2,neqmax,neqmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+    ALLOCATE(r1imtx_ofd(2,2,neqmax,neqmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+    ALLOCATE(elmtx_ofd(2*neqmax,2*neqmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
 
     nrmax_save  = nrmax
     neqmax_save = neqmax
@@ -512,13 +529,15 @@ CONTAINS
     IF(ALLOCATED(r1imtx)) DEALLOCATE(r1imtx)
     IF(ALLOCATED(r2imtx)) DEALLOCATE(r2imtx)
     IF(ALLOCATED(r3imtx)) DEALLOCATE(r3imtx)
+    IF(ALLOCATED(r1imtx_ofd)) DEALLOCATE(r1imtx_ofd)
+    IF(ALLOCATED(elmtx_ofd)) DEALLOCATE(elmtx_ofd)
 
     RETURN
   END SUBROUTINE tr_neq_deallocate
 
-! ----- allocation for solver -----
 
   SUBROUTINE tr_neqr_allocate
+  ! ----- allocation for solver -----
 
     INTEGER(ikind),SAVE:: neqrmax_save=0
     INTEGER(ikind),SAVE:: nvrmax_save=0
@@ -552,9 +571,9 @@ CONTAINS
     RETURN
   END SUBROUTINE tr_neqr_deallocate
 
-! ----- allocation for diagnostics of iteration -----
 
   SUBROUTINE tr_nit_allocate
+  ! ----- allocation for diagnostics of iteration -----
 
     INTEGER(ikind),SAVE:: lmaxtr_save=0
     INTEGER(ikind)::      ierr
@@ -579,9 +598,9 @@ CONTAINS
     RETURN
   END SUBROUTINE tr_nit_deallocate
 
-! ----- allocation for data save -----
 
   SUBROUTINE tr_ngt_allocate
+  ! ----- allocation for data save -----
 
     INTEGER(ikind),SAVE:: ngtmax_save=0
     INTEGER(ikind),SAVE:: nsamax_save=0
@@ -595,9 +614,12 @@ CONTAINS
        IF(ngtmax_save /= 0) CALL tr_ngt_deallocate
 
        ALLOCATE(gvt(0:ngtmax,0:2),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(gvti(0:ngtmax,5),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(gvts(0:ngtmax,nsamax,3),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(gvrt(0:nrmax,0:ngtmax,1),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(gvrts(0:nrmax,0:ngtmax,nsamax,3),STAT=ierr)
+            IF(ierr /= 0) GOTO 9000
+       ALLOCATE(gvrtj(0:nrmax,0:ngtmax,5),STAT=ierr)
             IF(ierr /= 0) GOTO 9000
 
        ! for Pereverzev method
@@ -617,8 +639,10 @@ CONTAINS
   SUBROUTINE tr_ngt_deallocate
 
     IF(ALLOCATED(gvt)) DEALLOCATE(gvt)
+    IF(ALLOCATED(gvti)) DEALLOCATE(gvti)
     IF(ALLOCATED(gvts)) DEALLOCATE(gvts)
     IF(ALLOCATED(gvrt)) DEALLOCATE(gvrt)
+    IF(ALLOCATED(gvrtj)) DEALLOCATE(gvrtj)
     IF(ALLOCATED(gvrts)) DEALLOCATE(gvrts)
     IF(ALLOCATED(gparts)) DEALLOCATE(gparts)
 

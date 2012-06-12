@@ -36,7 +36,7 @@ CONTAINS
            lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
            mdluf,mdler,modelg,mdleqn, &
            dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
-           ntstep,ngtmax,ngtstp
+           ntstep,ngtmax,ngtstp,rips,ripe,profj1,profj2
     USE plinit
     IMPLICIT NONE
     INTEGER(ikind):: nsa
@@ -55,7 +55,7 @@ CONTAINS
 !        Q0    : Safety factor at center
 !        QA    : Safety factor on plasma surface
 !        RIP   : Plasma current                                 (MA)
-!        PROFJ : Curren density profile parameter (power of (1 - rho^2))
+!        PROFJ : Curren density profile parameter (power of (1 - rho^2))  
 
 !     ======( PLASMA PARAMETERS )======
 
@@ -74,8 +74,8 @@ CONTAINS
 !        PTITB : Temperature increment at ITB                  (keV)
 !        PUITB : Toroidal rotation velocity increment at ITB   (m/s)
 
-!     ======( PROFILE PARAMETERS )======
 
+!     ======( PROFILE PARAMETERS )======
 
 !        PROFN1: Density profile parameter (power of rho)
 !        PROFN2: Density profile parameter (power of (1 - rho^PROFN1))
@@ -102,7 +102,6 @@ CONTAINS
 !        NTEQIT: Step interval of EQ calulation
 !                  0 : Initial equilibrium only
 
-    modelg=2
 
 !        MODELN: Control plasma profile
 !                   0: Calculated from PN,PNS,PTPR,PTPP,PTS,PU,PUS; 0 in SOL
@@ -118,11 +117,6 @@ CONTAINS
 !        RHOITB: rho at ITB (0 for no ITB)
 !        RHOEDG: rho at EDGE for smoothing (1 for no smooth)
 
-!        MDLUF: the type of UFILE
-!        MDLER: the type of radial electric field
-
-    mdluf  = 0
-    mdler  = 0
 
 !     ======( GRAPHIC PARAMETERS )======
 
@@ -189,6 +183,7 @@ CONTAINS
 !     ==== TR PARAMETERS for stiff modeling by Ikari  ====
 
 !       mdltr_nc  = 0 : no neoclassical transport
+!                   1 : NCLASS trasport model
 !       mdltr_tb  = 0 : no turbulent transport
 !                   1 : constant diffusion
 !                   2 : STIFF MODEL (Pereverzev)
@@ -209,7 +204,7 @@ CONTAINS
 !       cdtru     : factor for toroidal viscosity
 !       cdtrt     : factor for thermal diffusivity
 
-    mdltr_nc  = 0
+    mdltr_nc  = 1
     mdltr_tb  = 1
     mdltr_prv = 0
     dtr0    = 0.1D0
@@ -245,6 +240,24 @@ CONTAINS
     ngtmax = 10001
     ngtstp =     1
 
+
+! ==== for the time being ===
+!        PROFJ1: Current density profile parameter (power of rho)
+!        PROFJ2: Current density profile parameter (power of (1 - rho^PROFJ1))
+
+!        MDLUF: the type of UFILE
+!        MDLER: the type of radial electric field
+
+    profj1 = 1.5d0
+    profj2 = 1.5d0
+
+    rips = 1.d0
+    ripe = 1.d0
+
+    mdluf  = 0
+    mdler  = 0
+
+
     RETURN
   END SUBROUTINE tr_init
 
@@ -275,7 +288,8 @@ CONTAINS
              9X,'nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa'/ &
              9X,'lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv,'/ &
              9X,'d0,d1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt,'/ &
-             9X,'ngtmax,ngtstep')
+             9X,'ngtmax,ngtstep'/ &
+             9X,'rips,ripe')
   END SUBROUTINE tr_plist
 
 ! ***** namelist input *****
@@ -287,7 +301,8 @@ CONTAINS
            nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
            lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
            dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
-           ntstep,ngtmax,ngtstp
+           ntstep,ngtmax,ngtstp, &
+           rips,ripe
     IMPLICIT NONE
     INTEGER(ikind),INTENT(IN) :: nid
     INTEGER(ikind),INTENT(OUT):: ist
@@ -304,7 +319,8 @@ CONTAINS
          nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
          lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
          dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
-         ntstep,ngtmax,ngtstp
+         ntstep,ngtmax,ngtstp, &
+         rips,ripe
 
     READ(nid,TR,IOSTAT=ist,ERR=9800,END=9900)
     IERR=0
@@ -355,7 +371,7 @@ CONTAINS
 
   SUBROUTINE tr_check(ierr)
 
-    USE trcomm, ONLY : ikind,nrmax,nsamax
+    USE trcomm, ONLY : ikind,nrmax,nsamax,mdltr_nc,mdltr_tb
     IMPLICIT NONE
     INTEGER(ikind), INTENT(OUT):: IERR
 
@@ -370,6 +386,13 @@ CONTAINS
     IF(nsamax < 2) THEN ! nsamax > nsmax ??
        WRITE(6,*) 'XXX tr_check: input error : illegal nsamax'
        WRITE(6,*) '                  nsamax =',nsamax
+       IERR=1
+    ENDIF
+
+    IF(mdltr_nc==0 .AND. mdltr_tb==0) THEN
+       WRITE(6,*) 'XXX tr_check: input error : no trasport'
+       WRITE(6,*) '                mdltr_nc =',mdltr_nc
+       WRITE(6,*) '                mdltr_tb =',mdltr_tb
        IERR=1
     ENDIF
 

@@ -17,7 +17,6 @@ MODULE trcalv
        rp_d       !the deriv. of pressure of each species (dnT/dr) 
        
   REAL(rkind),DIMENSION(:),ALLOCATABLE ::&
-       rps,&
        rp_tot,   &! the total pressure
        rp_totd,  &! the deriv. of total pressure
        rp_add,   &! the additional pressure
@@ -58,6 +57,29 @@ MODULE trcalv
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
        z_eff      ! Z_eff: effective charge
 
+  ! for NCLASS output
+  REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: &
+       chi_ncp,  &! coef. of the pres. grad. for matrix expression 
+                  !  of heat flux
+       chi_nct,  &! coef. of the temp. grad. for matrix expression 
+                  !  of heat flux
+       d_ncp,    &! coef. of the pres. grad. for matrix expression
+                  !  of particle flux
+       d_nct      ! coef. of the temp. grad. for martix expression
+                  !  of particle flux
+  REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: &
+       gfls,     &! radial particle flux components of s [/(m^2 s)]
+       qfls       ! radial heat conduction flux components of s [W/m^2
+  REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: &
+       fls_tot    ! total radial flux of s (heat and particle)
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE::&
+       vebs,     &! <E.B> particle convection velocity of s [m/s]
+       qebs,     &! <E.B> heat convection velocity of s [m/s]
+       dia_gdnc,  &! diagonal diffusivity [m^2/s]
+       dia_gvnc,  &! diagonal convection driven by off-diagonal part [m/s]
+       cjbs_p,   &! <J_bs.B> driven by unit p'/p of s [A*T/1.d-20*m^2]
+       cjbs_t     ! <J_bs.B> driven by unit T'/T of s [A*T/1.d-20*m^2]
+
 CONTAINS
 !==========================================================================
   SUBROUTINE tr_calc_variables
@@ -88,8 +110,8 @@ CONTAINS
        vexbp(nr) = -er(nr) / (RR*bp(nr)) ! [1/s]
        
        !:the 2nd order accuracy derivative of V_exb
-       dvexbdr(nr)  = deriv3(nr,rmnrho,vexb,nrmax,1)
-       dvexbpdr(nr) = deriv3(nr,rmnrho,vexbp,nrmax,1)
+       dvexbdr(nr)  = deriv3(nr,rmnrho,vexb,nrmax,0)
+       dvexbpdr(nr) = deriv3(nr,rmnrho,vexbp,nrmax,0)
 
        ! poloidal rotational shear [1/s]
 !      ExB Rotation shear
@@ -130,8 +152,9 @@ CONTAINS
 
     ! --- control and internal variables
     INTEGER(ikind) :: nr,ns,nsa
-    REAL(rkind) :: rt_isum, dr_norm
+    REAL(rkind) :: rt_isum
     REAL(rkind) :: deriv3
+    REAL(rkind),DIMENSION(0:nrmax) :: nr_array
 
 !    *****
 !    ! This part will be implemented in introducing the NBI heating modules.
@@ -185,7 +208,6 @@ CONTAINS
 
     DO nr = 1, nrmax
        rt_isum = 0.d0
-       dr_norm = 1.d0/(rmnrho(nr)-rmnrho(nr-1))
        
        rt_e(nr) = rt(1,nr)
        rn_e(nr) = rn(1,nr)
@@ -213,10 +235,11 @@ CONTAINS
     ! derivatives with respect to 'r' ( d XX/dr = <|grad rho|>*d XX/d rho)
     ! ** deriv3: second order accuracy on grid
     !          ; at nr=0, d XX/dr = 0 and 
+    ! need consideration for PADD
     DO nr = 1, nrmax
        DO nsa = 1, nsamax
-          rps(0:nrmax) = rp(nsa,0:nrmax)
-          rp_d(nsa,nr) = deriv3(nr,rmnrho,rps,nrmax,0)
+          nr_array(0:nrmax) = rp(nsa,0:nrmax)
+          rp_d(nsa,nr) = deriv3(nr,rmnrho,nr_array,nrmax,0)
        END DO
 
        rn_ed(nr)   = deriv3(nr,rmnrho,rn_e,nrmax,0)
@@ -245,8 +268,7 @@ CONTAINS
 
   SUBROUTINE tr_er_field
 !---------------------------------------------------------------------------
-!        Radial Electric Field
-!        *** half grid ***
+!        Radial Electric Field (on grid)
 !---------------------------------------------------------------------------
     USE trcomm, ONLY: nrmax,aee,bb,bp,rg,rt,rn,rg,rm,er, &
          pa,pz, &
@@ -255,7 +277,6 @@ CONTAINS
     IMPLICIT NONE
     INTEGER(ikind) :: nr
     REAl(rkind) :: term_dp,term_dpg
-
 
     DO nr=0,nrmax
 
@@ -278,7 +299,7 @@ CONTAINS
 
 ! DPD -> rp_d(nsa,nr)
 
-       ! second species (main ion: D) only
+       ! second species (main ion: D(H)) only
        term_dp = rp_d(2,nr) / (pz(2)*aee*rn(2,nr)*1.d20)
 
        ! toroidal and poloidal rotation velocity <- from experiments for now
@@ -389,53 +410,76 @@ CONTAINS
 
        IF(nrmax_save /= 0) CALL tr_calv_nr_dealloc
 
-       ALLOCATE(rp(nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000
-       ALLOCATE(rp_d(nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000
-       
-       ALLOCATE(rps(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000
-       ALLOCATE(rp_tot(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000   
-       ALLOCATE(rp_totd(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000  
-       ALLOCATE(rp_add(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000   
-       ALLOCATE(rp_beam(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000  
+       DO
+          ALLOCATE(rp(nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(rp_d(nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          
+          ALLOCATE(rp_tot(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT   
+          ALLOCATE(rp_totd(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT  
+          ALLOCATE(rp_add(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT   
+          ALLOCATE(rp_beam(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT  
+          
+          ALLOCATE(rt_e(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT     
+          ALLOCATE(rt_em(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT     
+          ALLOCATE(rt_ed(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT    
+          ALLOCATE(rt_ecl(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT   
+          ALLOCATE(rt_i(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT     
+          ALLOCATE(rt_im(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT     
+          ALLOCATE(rt_id(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT    
+          ALLOCATE(rt_icl(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT   
+          
+          ALLOCATE(rn_e(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT     
+          ALLOCATE(rn_em(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT     
+          ALLOCATE(rn_ed(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT    
+          ALLOCATE(rn_ecl(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT    
+          ALLOCATE(rn_i(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT     
+          ALLOCATE(rn_im(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT     
+          ALLOCATE(rn_id(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(rn_icl(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT        
+          ALLOCATE(qp_m(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT      
+          ALLOCATE(qp_d(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT      
+          
+          ALLOCATE(mshear(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT   
+          ALLOCATE(mcurv(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT    
+          ALLOCATE(vexb(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT     
+          ALLOCATE(dvexbdr(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT 
+          ALLOCATE(vexbp(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT    
+          ALLOCATE(dvexbpdr(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT 
+          ALLOCATE(wexbp(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT       
+!          ALLOCATE(v_alf(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT    
+          ALLOCATE(v_se(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
 
-       ALLOCATE(rt_e(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
-       ALLOCATE(rt_em(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
-       ALLOCATE(rt_ed(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
-       ALLOCATE(rt_ecl(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000   
-       ALLOCATE(rt_i(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
-       ALLOCATE(rt_im(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
-       ALLOCATE(rt_id(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
-       ALLOCATE(rt_icl(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000   
+          ALLOCATE(z_eff(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
 
-       ALLOCATE(rn_e(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
-       ALLOCATE(rn_em(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
-       ALLOCATE(rn_ed(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
-       ALLOCATE(rn_ecl(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
-       ALLOCATE(rn_i(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
-       ALLOCATE(rn_im(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
-       ALLOCATE(rn_id(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000
-       ALLOCATE(rn_icl(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000        
-       ALLOCATE(qp_m(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000      
-       ALLOCATE(qp_d(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000      
-       
-       ALLOCATE(mshear(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000   
-       ALLOCATE(mcurv(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
-       ALLOCATE(vexb(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
-       ALLOCATE(dvexbdr(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000 
-       ALLOCATE(vexbp(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
-       ALLOCATE(dvexbpdr(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000 
-       ALLOCATE(wexbp(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000       
-!       ALLOCATE(v_alf(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
-       ALLOCATE(v_se(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000
+          ! for NCLASS
+          ALLOCATE(chi_ncp(1:nsamax,1:nsamax,0:nrmax),STAT=ierr)
+            IF(ierr /= 0) EXIT
+          ALLOCATE(chi_nct(1:nsamax,1:nsamax,0:nrmax),STAT=ierr)
+            IF(ierr /= 0) EXIT
+          ALLOCATE(d_ncp(1:nsamax,1:nsamax,0:nrmax),STAT=ierr)
+            IF(ierr /= 0) EXIT
+          ALLOCATE(d_nct(1:nsamax,1:nsamax,0:nrmax),STAT=ierr)
+            IF(ierr /= 0) EXIT
+          ALLOCATE(gfls(5,1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(qfls(5,1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(fls_tot(3,1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(vebs(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(qebs(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(dia_gdnc(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(dia_gvnc(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(cjbs_p(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(cjbs_t(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
 
-       ALLOCATE(z_eff(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000
+          nrmax_save  = nrmax
+          nsamax_save = nsamax
+          RETURN
+       END DO
 
-       nrmax_save  = nrmax
-       nsamax_save = nsamax
+       WRITE(6,*) 'XX tr_calv_nr_alloc: allocation error: ierr=',ierr
+       STOP
    END IF
+
    RETURN
-9000 WRITE(6,*) 'XX tr_calv_nr_alloc: allocation error: ierr=',ierr
-   STOP
   END SUBROUTINE tr_calv_nr_alloc
 
   SUBROUTINE tr_calv_nr_dealloc
@@ -443,7 +487,6 @@ CONTAINS
     IF(ALLOCATED(rp)) DEALLOCATE(rp)
     IF(ALLOCATED(rp_d)) DEALLOCATE(rp_d)
 !    
-    IF(ALLOCATED(rps)) DEALLOCATE(rps)
     IF(ALLOCATED(rp_tot)) DEALLOCATE(rp_tot)
     IF(ALLOCATED(rp_totd)) DEALLOCATE(rp_totd)
     IF(ALLOCATED(rp_add)) DEALLOCATE(rp_add)
@@ -480,6 +523,21 @@ CONTAINS
     IF(ALLOCATED(v_se)) DEALLOCATE(v_se)
 
     IF(ALLOCATED(z_eff)) DEALLOCATE(z_eff)
+
+    ! for NCLASS
+    IF(ALLOCATED(chi_ncp)) DEALLOCATE(chi_ncp)
+    IF(ALLOCATED(chi_nct)) DEALLOCATE(chi_nct)
+    IF(ALLOCATED(d_ncp)) DEALLOCATE(d_ncp)
+    IF(ALLOCATED(d_nct)) DEALLOCATE(d_nct)
+    IF(ALLOCATED(gfls)) DEALLOCATE(gfls)
+    IF(ALLOCATED(qfls)) DEALLOCATE(qfls)
+    IF(ALLOCATED(fls_tot)) DEALLOCATE(fls_tot)
+    IF(ALLOCATED(vebs)) DEALLOCATE(vebs)
+    IF(ALLOCATED(qebs)) DEALLOCATE(qebs)
+    IF(ALLOCATED(dia_gdnc)) DEALLOCATE(dia_gdnc)
+    IF(ALLOCATED(dia_gvnc)) DEALLOCATE(dia_gvnc)
+    IF(ALLOCATED(cjbs_p)) DEALLOCATE(cjbs_p)
+    IF(ALLOCATED(cjbs_t)) DEALLOCATE(cjbs_t)
 
     RETURN
   END SUBROUTINE tr_calv_nr_dealloc

@@ -149,6 +149,7 @@
       REAL           pgrp_iz(mx_mi,mx_mz)
       REAL           amnt_ii(mx_mi,mx_mi)
       REAL           tau_ss(mx_ms,mx_ms)
+
 !Initialization
 !  Error flag
       iflag=0

@@ -11,15 +11,15 @@ CONTAINS
 
   SUBROUTINE tr_simple
 
-    USE trcomm, ONLY: nrmax,nsamax,mdltr_tb,rg,rt,ltcr,dtr0,dtr1, &
-         dtr_tb,vtr_tb,cdtrn,cdtru,cdtrt
+    USE trcomm, ONLY: nrmax,nsamax,neqmax,mdltr_tb,rg,rt, &
+         ltcr,dtr0,dtr1,dtr_tb,vtr_tb,cdtrn,cdtru,cdtrt
     IMPLICIT NONE
     INTEGER(ikind) :: NR, NEQ, nsa
     REAL(rkind) :: LT
     REAL(rkind),DIMENSION(nsamax,nrmax):: DTR_DIAG
 
-    dtr_tb(1:3*nsamax,1:3*nsamax,1:nrmax)=0.D0
-    vtr_tb(1:3*nsamax,1:3*nsamax,1:nrmax)=0.D0
+    dtr_tb(1:neqmax,1:neqmax,1:nrmax)=0.D0
+    vtr_tb(1:neqmax,1:neqmax,1:nrmax)=0.D0
 
     SELECT CASE(mdltr_tb)
        ! --- No transport
@@ -53,9 +53,9 @@ CONTAINS
          
     DO nr = 1, nrmax
        DO nsa = 1, nsamax
-          dtr_tb(3*nsa-2,3*nsa-2,nr) = cdtrn*dtr_diag(nsa,nr)
-          dtr_tb(3*nsa-1,3*nsa-1,nr) = cdtru*dtr_diag(nsa,nr)
-          dtr_tb(3*nsa  ,3*nsa  ,nr) = cdtrt*dtr_diag(nsa,nr)
+          dtr_tb(1+3*nsa-2,1+3*nsa-2,nr) = cdtrn*dtr_diag(nsa,nr)
+          dtr_tb(1+3*nsa-1,1+3*nsa-1,nr) = cdtru*dtr_diag(nsa,nr)
+          dtr_tb(1+3*nsa  ,1+3*nsa  ,nr) = cdtrt*dtr_diag(nsa,nr)
        END DO
     END DO
     RETURN

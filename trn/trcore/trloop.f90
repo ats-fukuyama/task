@@ -9,27 +9,43 @@ CONTAINS
 
   SUBROUTINE tr_loop
 
-    USE trcomm, ONLY: ikind,rkind,ntmax,t,dt,ntstep,ngtstp
+    USE trcomm, ONLY: ikind,rkind,ntmax,t,dt,ntstep,ngtstp, &
+         rip,rips,ripe
     USE trbpsd, ONLY: tr_bpsd_set,tr_bpsd_get
     USE trstep, ONLY: tr_step
     USE trresult, ONLY: tr_status,tr_calc_global,tr_save_ngt
     IMPLICIT NONE
 
-    REAL(4):: t1,t2
-    INTEGER(ikind):: nt,ierr
+    REAL(4)        :: t1,t2,drip
+    INTEGER(ikind) :: nt,ierr
 
     CALL GUTIME(t1)
 
     DO nt = 1, ntmax ! main loop
 
+       CALL tr_save_pvprev
+
+       ! incremental addtions
        t=t+dt
-       CALl tr_save_pvprev
+
+       drip = (ripe - rips) / ntmax
+       rip  = rip + drip
+       IF(nt==ntmax)THEN
+          rip  = ripe
+          rips = ripe
+       END IF
+!       write(*,*) 'rip = ',rip
 
        ! Interaction with EQ
 !       IF(modelg .eq. 3) THEN
 !          CALL TASK/EQ
 !          CALL tr_bpsd_get(ierr)
 !       END IF       
+
+       ! cofirmation of the conservation of nV', nTV'^(5/3)
+
+       ! set the boundary value of dpdrho in terms of plasma current value
+       CALL tr_mag_boundary
 
        CALL tr_step(ierr); IF(ierr /= 0) GO TO 9000
 
@@ -100,6 +116,16 @@ CONTAINS
 !!$    dpdrho(
 !!$
 !!$  END SUBROUTINE tr_prof_q2dpdrho
+
+! **************************************************************************
+
+  SUBROUTINE tr_mag_boundary
+    USE trcomm, ONLY: pi,rmu0,nrmax,dvrho,abrho,rip,dpdrho
+
+    dpdrho(nrmax) = 2.d0*pi*rmu0*rip*1.d6 / (dvrho(nrmax)*abrho(nrmax))
+
+    RETURN
+  END SUBROUTINE tr_mag_boundary
   
 
 END MODULE trloop

@@ -13,12 +13,12 @@ FFLAGS = $(DFLAGS)
 MODINCLUDE=-I $(BPSDDIR)/mod -I $(TASKDIR)/plx/mod -I $(TASKDIR)/lib/mod \
            -I $(MOD) 
 
-SRC90=trcalv.f90 trglf23.f90 trmbgb.f90 trmmm95.f90 trcdbm.f90 trsimple.f90 trcoef.f90
+SRC90=trcalv.f90 trcalnc.f90 trncls.f90 trglf23.f90 trmbgb.f90 trmmm95.f90 trcdbm.f90 trsimple.f90 trcoeftb.f90 trcoefnc.f90
 SRCMBGB=mbgb/mixed_Bohm_gyro_Bohm.f
 SRCITG= glf/callglf2d.f  itg/ifspppl_model.f itg/weiland.f
 SRCITGF= glf/glf2d.F glf/r8tomsqz.F
 SRCCDBM=cdbm/cdbm.f90
-SRCNC=trncls.f nclass/nclass_mod.f nclass/rarray_sum.f \
+SRCNC=nclass/nclass_mod.f nclass/rarray_sum.f \
       nclass/rarray_copy.f nclass/rarray_zero.f nclass/u_erf.f \
       nclass/u_lu_backsub.f nclass/u_lu_decomp.f nclass/write_mod.f
 INCNC=trncls.inc nclass/pamx_mi.inc nclass/pamx_ms.inc nclass/pamx_mz.inc
@@ -27,12 +27,11 @@ SRCCYT=cytran/cytran_mod.f90 cytran/tr_cytran_mod.f90
 SRCMMM=mmm95/stripx.f mmm95/tomsqz.f mmm95/weiland14.f mmm95/mmm95.f
 
 OBJS= $(SRCMMM:.f=.o) $(SRCITGF:.F=.o) $(SRCITG:.f=.o) $(SRCMBGB:.f=.o) \
-$(SRCCDBM:.f90=.o) $(SRC90:.f90=.o) 
-
-# $(SRCNC:.f=.o) $(SRCCYT:.f90=.o) $(SRCMMM:.f=.o) $(SRCMBGB:.f=.o)
+$(SRCCDBM:.f90=.o) $(SRC90:.f90=.o) $(SRCNC:.f=.o)
+# $(SRCCYT:.f90=.o)
 
 .f.o :
-	$(FCFIXED) -r8 $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+	$(FCFIXED)  $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 

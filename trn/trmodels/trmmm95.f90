@@ -14,8 +14,8 @@ CONTAINS
   SUBROUTINE tr_mmm95
 
     USE trcomm, ONLY: &
-         rkind,ikind,nrmax,nsamax,idnsa,ns_nsa,pa,pz, &
-         rmnrho,rmjrho,rkprho,abb1rho,BB,RR,rn,qp,    &
+         rkind,ikind,nrmax,nsamax,neqmax,idnsa,ns_nsa,pa,pz, &
+         rmnrho,rmjrho,rkprho,abb1rho,BB,RR,rn,qp,           &
          cdtrn,cdtru,cdtrt,dtr_tb,vtr_tb!,&
          !nrd1,nrd2,nrd3
     USE trcalv, ONLY: &
@@ -69,8 +69,8 @@ CONTAINS
 
 
     ! Initilization
-    dtr_tb(1:3*nsamax,1:3*nsamax,0:nrmax) = 0.d0
-    vtr_tb(1:3*nsamax,1:3*nsamax,0:nrmax) = 0.d0
+    dtr_tb(1:neqmax,1:neqmax,0:nrmax) = 0.d0
+    vtr_tb(1:neqmax,1:neqmax,0:nrmax) = 0.d0
 
     mmm_diff(0:nrmax) = 0.d0
     mmm_chie(0:nrmax) = 0.d0
@@ -419,21 +419,21 @@ CONTAINS
     DO nr = 1, nrmax
        DO nsa = 1, nsamax
           IF(idnsa(nsa) == -1)THEN ! electron
-             dtr_tb(3*nsa-2,3*nsa-2,nr) = cdtrn * 0.d0
-             dtr_tb(3*nsa-1,3*nsa-1,nr) = cdtru * mmm_chiem(nr)
-             dtr_tb(3*nsa  ,3*nsa  ,nr) = cdtrt * mmm_chiem(nr)
+             dtr_tb(1+3*nsa-2,1+3*nsa-2,nr) = cdtrn * 0.d0
+             dtr_tb(1+3*nsa-1,1+3*nsa-1,nr) = cdtru * mmm_chiem(nr)
+             dtr_tb(1+3*nsa  ,1+3*nsa  ,nr) = cdtrt * mmm_chiem(nr)
 
-             vtr_tb(3*nsa-2,3*nsa-2,nr) = cdtrn * 0.d0
-             vtr_tb(3*nsa-1,3*nsa-1,nr) = cdtru * mmm_velem(nr)
-             vtr_tb(3*nsa  ,3*nsa  ,nr) = cdtrt * mmm_velem(nr)
+             vtr_tb(1+3*nsa-2,1+3*nsa-2,nr) = cdtrn * 0.d0
+             vtr_tb(1+3*nsa-1,1+3*nsa-1,nr) = cdtru * mmm_velem(nr)
+             vtr_tb(1+3*nsa  ,1+3*nsa  ,nr) = cdtrt * mmm_velem(nr)
           ELSE IF(idnsa(nsa) /= 0)THEN ! (hydrogenic) ion
-             dtr_tb(3*nsa-2,3*nsa-2,nr) = cdtrn * mmm_diffm(nr)
-             dtr_tb(3*nsa-1,3*nsa-1,nr) = cdtru * mmm_chiim(nr)
-             dtr_tb(3*nsa  ,3*nsa  ,nr) = cdtrt * mmm_chiim(nr)
+             dtr_tb(1+3*nsa-2,1+3*nsa-2,nr) = cdtrn * mmm_diffm(nr)
+             dtr_tb(1+3*nsa-1,1+3*nsa-1,nr) = cdtru * mmm_chiim(nr)
+             dtr_tb(1+3*nsa  ,1+3*nsa  ,nr) = cdtrt * mmm_chiim(nr)
 
-             vtr_tb(3*nsa-2,3*nsa-2,nr) = cdtrn * 0.d0
-             vtr_tb(3*nsa-1,3*nsa-1,nr) = cdtru * mmm_velim(nr)
-             vtr_tb(3*nsa  ,3*nsa  ,nr) = cdtrt * mmm_velim(nr)
+             vtr_tb(1+3*nsa-2,1+3*nsa-2,nr) = cdtrn * 0.d0
+             vtr_tb(1+3*nsa-1,1+3*nsa-1,nr) = cdtru * mmm_velim(nr)
+             vtr_tb(1+3*nsa  ,1+3*nsa  ,nr) = cdtrt * mmm_velim(nr)
           END IF
        END DO
     END DO

@@ -27,10 +27,10 @@ CONTAINS
 ! ******************************************************************
 
     USE trcomm, ONLY : &
-         rkind,ikind,BB, abb1rho, mdltr_tb, rkev, &
-         nrmax, nsamax, pa, pi, pz, pz0, qp, RR,ra,rhog,rkap, &
-         rn,rt,rmu0,ns_nsa,dtr_tb,vtr_tb,  &
-         ar1rho,ar2rho,rkprho,rmjrho,rmnrho,    &
+         rkind,ikind,pi,rkev,BB,RR,ra,rkap,mdltr_tb, &
+         nrmax,nsamax,neqmax,pa,pz,pz0,rhog,        &
+         qp,rn,rt,rmu0,ns_nsa,dtr_tb,vtr_tb,         &
+         abb1rho,ar1rho,ar2rho,rkprho,rmjrho,rmnrho, &
          vtor
     USE trlib, ONLY: mesh_convert_mtog
     
@@ -80,8 +80,8 @@ CONTAINS
     INTEGER(ikind) :: nsmax,mdluf,mdleqn,mdleqt,mdleoi,nsa,nbase
     
     ! initilization
-    dtr_tb(1:3*nsamax,1:3*nsamax,1:nrmax)=0.D0
-    vtr_tb(1:3*nsamax,1:3*nsamax,1:nrmax)=0.D0
+    dtr_tb(1:neqmax,1:neqmax,1:nrmax)=0.D0
+    vtr_tb(1:neqmax,1:neqmax,1:nrmax)=0.D0
 
 
     phia  = 0.d0
@@ -188,7 +188,7 @@ CONTAINS
     ns_m(0:nrmax) = 0.d0*10.d0          ! Fast ion density [10^19 /m^3]
     
     
-    ! variables form experimental data ---------------------
+    ! variables from experimental data ---------------------
     zeff_exp(0:nrmax) = z_eff(0:nrmax)
     
     IF(     itport_pt(4) ==  0 .AND. itport_pt(5) ==  0)THEN
@@ -346,10 +346,10 @@ CONTAINS
     call mesh_convert_mtog(chii_jm(1:nrmax-1),chii_jmg(1:nrmax),nrmax-1)
 
     DO nsa=1,nsamax
-       ns=ns_nsa(nsa)
-       nbase=3*(nsa-1)
+       ns = ns_nsa(nsa)
+       nbase = 3*(nsa-1)+1
        IF(pz0(ns) < 0.D0) THEN ! for electron
-!          dtr_tb(nbase+1,nbase+1,1:nrmax)=MAX(diff_jmg(1:nrmax),0.d0)
+          dtr_tb(nbase+1,nbase+1,1:nrmax)=MAX(diff_jmg(1:nrmax),0.d0)
           dtr_tb(nbase+3,nbase+3,1:nrmax)=MAX(chie_jmg(1:nrmax),0.d0)
 !          write(*,*) chietem,diffnem
        ELSE 
@@ -363,4 +363,3 @@ CONTAINS
     RETURN
   END SUBROUTINE tr_glf23
 END MODULE trglf23
-    

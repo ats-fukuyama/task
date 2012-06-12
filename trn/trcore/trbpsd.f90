@@ -252,12 +252,8 @@ CONTAINS
          !             metric1D%data(nr)%trig      ! triangularity
          abb1rho(nr-1) = metric1D%data(nr)%aveb      ! <B>
          
-         IF(nr /= 1) THEN
-            arhbrho(nr-1) = abvrho(nr-1) / dvrho(nr-1)**2
-         ENDIF
          epsrho(nr-1)  = rmnrho(nr-1) / rmjrho(nr-1) ! rs/rr
       ENDDO
-         arhbrho(0) = arhbrho(1)   ! dummy because dvrho(0)=0
 
       RETURN
     END SUBROUTINE get_spl_off
@@ -360,9 +356,6 @@ CONTAINS
 
       temp(1:metric1D%nrmax) = metric1D%data(1:metric1D%nrmax)%aveb
       CALL spl1d_tr_array(metric1D%rho,temp,rhog,abb1rho,metric1D%nrmax,1,ierr)
-
-      arhbrho(1:nrmax) = abvrho(1:nrmax) / dvrho(1:nrmax)**2
-      arhbrho(0) = arhbrho(1) ! dummy because dvrho(0)=0
 
       epsrho(0:nrmax)  = rmnrho(0:nrmax) / rmjrho(0:nrmax)
 

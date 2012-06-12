@@ -37,7 +37,7 @@ CONTAINS
     ENDIF
 
     DO
-       WRITE(6,*) '# Graph select : R1-R11, T1, N1-12, D1'
+       WRITE(6,*) '# Graph select : R1-R13, T1-2, N1-12, D1'
        WRITE(6,*) '#  Menu select : S/save  L/load  H/help  ',&
                                    'C/clear  I/inq  X/exit'
        READ(5,'(A5)',iostat=iosts) KIG

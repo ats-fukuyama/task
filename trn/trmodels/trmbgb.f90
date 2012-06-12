@@ -10,9 +10,9 @@ CONTAINS
     USE mixed_Bohm_gyro_Bohm, ONLY: mixed_model
 
     USE trcomm, ONLY: &
-         ikind,rkind,ns_nsa,idnsa,pa,nsamax,nrmax,RR,ra,BB,abb1rho, &
-         rmnrho,rmjrho,nrmax,mdltr_tb,amp,rkev,rn,qp,dtr_tb,vtr_tb, &
-         cdtrn,cdtru,cdtrt !  ,nrd1,nrd2
+         ikind,rkind,ns_nsa,idnsa,pa,nsamax,nrmax,neqmax,RR,ra,BB, &
+         abb1rho,rmnrho,rmjrho,nrmax,mdltr_tb,amp,rkev,rn,qp,      &
+         dtr_tb,vtr_tb,cdtrn,cdtru,cdtrt !  ,nrd1,nrd2
     USE trcalv, ONLY: &
          rn_i,rn_ecl,rt_e,rt_i,rt_ecl,mshear,wexbp
 
@@ -32,12 +32,13 @@ CONTAINS
          mbgb_chiem,mbgb_chiim
 
 !    REAL(rkind),DIMENSION(0:nrmax) :: D_hyd,chie_b,chii_b,chie_gb,chii_gb
+    REAL(rkind) :: FCTR
     INTEGER(ikind):: nr8,npoints,lflowshear
 
     INTEGER(ikind):: nr,nsa,ns,ierr
 
-    dtr_tb(1:3*nsamax,1:3*nsamax,0:nrmax) = 0.D0
-    vtr_tb(1:3*nsamax,1:3*nsamax,0:nrmax) = 0.D0
+    dtr_tb(1:neqmax,1:neqmax,0:nrmax) = 0.D0
+    vtr_tb(1:neqmax,1:neqmax,0:nrmax) = 0.D0
     mbgb_chie = 0.d0
     mbgb_chii = 0.d0
 
@@ -172,6 +173,10 @@ CONTAINS
        mbgb_chii(nr) = chi_i_mix(1)
     END DO
 
+    mbgb_chie(0) = &
+         FCTR(rmnrho(1),rmnrho(2),mbgb_chie(1),mbgb_chie(2))
+    mbgb_chii(0) = &
+         FCTR(rmnrho(1),rmnrho(2),mbgb_chii(1),mbgb_chii(2))
     ! on grid -> on half grid
     mbgb_chiem(1:nrmax) = 0.5d0*(mbgb_chie(0:nrmax-1)+mbgb_chie(1:nrmax))
     mbgb_chiim(1:nrmax) = 0.5d0*(mbgb_chii(0:nrmax-1)+mbgb_chii(1:nrmax))
@@ -181,13 +186,13 @@ CONTAINS
     DO nr = 1, nrmax
        DO nsa = 1, nsamax
           IF(idnsa(nsa) == -1)THEN ! electron
-             dtr_tb(3*nsa-2,3*nsa-2,nr) = cdtrn *mbgb_chiem(nr)*factor
-             dtr_tb(3*nsa-1,3*nsa-1,nr) = cdtru *mbgb_chiem(nr)*factor
-             dtr_tb(3*nsa  ,3*nsa  ,nr) = cdtrt *mbgb_chiem(nr)*factor
+             dtr_tb(1+3*nsa-2,1+3*nsa-2,nr) = cdtrn *mbgb_chiem(nr)*factor
+             dtr_tb(1+3*nsa-1,1+3*nsa-1,nr) = cdtru *mbgb_chiem(nr)*factor
+             dtr_tb(1+3*nsa  ,1+3*nsa  ,nr) = cdtrt *mbgb_chiem(nr)*factor
           ELSE IF(idnsa(nsa) /= 0)THEN ! ion
-             dtr_tb(3*nsa-2,3*nsa-2,nr) = cdtrn *mbgb_chiim(nr)*factor
-             dtr_tb(3*nsa-1,3*nsa-1,nr) = cdtru *mbgb_chiim(nr)*factor
-             dtr_tb(3*nsa  ,3*nsa  ,nr) = cdtrt *mbgb_chiim(nr)*factor
+             dtr_tb(1+3*nsa-2,1+3*nsa-2,nr) = cdtrn *mbgb_chiim(nr)*factor
+             dtr_tb(1+3*nsa-1,1+3*nsa-1,nr) = cdtru *mbgb_chiim(nr)*factor
+             dtr_tb(1+3*nsa  ,1+3*nsa  ,nr) = cdtrt *mbgb_chiim(nr)*factor
           END IF
        END DO
     END DO

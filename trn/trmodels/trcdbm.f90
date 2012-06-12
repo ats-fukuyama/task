@@ -17,7 +17,7 @@ CONTAINS
     USE trcomm, ONLY: &
          ikind,rkind,bb,rr,abb1rho,rmnrho,rmjrho,rkev,pa,amp,aee, &
          rkprho,cdtrn,cdtru,cdtrt,qp,rn,                          &
-         dtr_tb,vtr_tb,nrmax,nsamax,ns_nsa,idnsa,mdltr_tb
+         dtr_tb,vtr_tb,nrmax,nsamax,neqmax,ns_nsa,idnsa,mdltr_tb
 
     USE trcalv, ONLY: &
          rn_e,     &! the density of electron
@@ -34,8 +34,8 @@ CONTAINS
          chi_cdbm,chim_cdbm
 
     chi_cdbm(0:nrmax) = 0.d0
-    dtr_tb(1:3*nsamax,1:3*nsamax,0:nrmax) = 0.d0
-    vtr_tb(1:3*nsamax,1:3*nsamax,0:nrmax) = 0.d0
+    dtr_tb(1:neqmax,1:neqmax,0:nrmax) = 0.d0
+    vtr_tb(1:neqmax,1:neqmax,0:nrmax) = 0.d0
 
     ! model : Model ID
     !     0 : CDBM original
@@ -90,9 +90,9 @@ CONTAINS
     DO nr = 1, nrmax
           DO nsa = 1, nsamax
              IF(idnsa(nsa) /= 0) THEN
-                dtr_tb(3*nsa-2,3*nsa-2,nr) = cdtrn*chim_cdbm(nr)
-                dtr_tb(3*nsa-1,3*nsa-1,nr) = cdtru*chim_cdbm(nr)
-                dtr_tb(3*nsa  ,3*nsa  ,nr) = cdtrt*chim_cdbm(nr)
+                dtr_tb(1+3*nsa-2,1+3*nsa-2,nr) = cdtrn*chim_cdbm(nr)
+                dtr_tb(1+3*nsa-1,1+3*nsa-1,nr) = cdtru*chim_cdbm(nr)
+                dtr_tb(1+3*nsa  ,1+3*nsa  ,nr) = cdtrt*chim_cdbm(nr)
 !                write(*,*) chi_cdbm
              ENDIF
           END DO

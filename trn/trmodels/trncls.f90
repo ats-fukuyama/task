@@ -1,13 +1,19 @@
+MODULE trncls
+
+  PRIVATE
+  PUBLIC tr_nclass
+
+CONTAINS
+
+! **********************************************************************
 !
-!     ***********************************************************
+!  The interface between TASK/TR(trcalv) and NCLASS model(NCLASS)
+!
+! **********************************************************************
 
-!            NCLASS
-
-!     ***********************************************************
-
-      SUBROUTINE TR_NCLASS(IERR)
+  SUBROUTINE tr_nclass(ierr)
 !***********************************************************************
-!TR_NCLASS calculates various parameters and arrays for NCLASS.
+!TR_NCLASS CALCULATES various parameters and arrays for NCLASS.
 !Please note that type declarations of all variables except "INTEGER"
 !  in NCLASS subroutine are "REAL(*4)" or "SINGLE" but not "REAL*8"
 !  or "DOUBLE".
@@ -77,291 +83,308 @@
 !        = 5 error: inversion of flow matrix failed
 !        = 6 error: trapped fraction must be 0.0.le.p_ft.le.1.0
 !***********************************************************************
-      USE TRCOMM,  ONLY : ABB2RHOG,     ADNCG,        ADNCP,        ADNCT,        AIB2RHOG,     AJBSNC,       AJEXNC,      &
-     &         AJOH,      AKNCP,        AKNCT,        AR1RHO,       AR2RHO,       ARHBRHOG,     AVKNC,        AVNC,        &
-     &         AVNCG,     BB,           BP,           CJBSP,        CJBST,        DR,           EPSRHO,       ER,          &
-     &         ETA,       ETANC,        MDLEQZ,       MDLTPF,       NRMAX,        NSLMAX,       NSM,         &
-     &         NSZMAX,    PA,           PADD,         PNSS,         PTS,          PZ,           Q0,           QP,          &
-     &         RA,        RDP,          RG,           RGFLS,        RHOG,         RKAP,         RM,           RN,          &
-     &         RQFLS,     RR,           RT,           TTRHOG,       VPAR,         VPOL,         VPRP,         VTOR
-      IMPLICIT NONE
-      INCLUDE 'nclass/pamx_mi.inc'
-      INCLUDE 'nclass/pamx_ms.inc'
-      INCLUDE 'nclass/pamx_mz.inc'
-!      INCLUDE 'trncls.inc'
-!Declaration of input to NCLASS
-      INTEGER(4)::                        k_order,  k_potato, m_i,      m_z
-      REAL(4)::                           c_den,    c_potb,   c_potl,   p_b2,     p_bm2,    p_eb,   &
-     &                                    p_fhat,   p_ft,     p_grbm2,  p_ngrth,  p_grphi,  p_gr2phi
-      REAL(4),DIMENSION(3)            ::  p_fm
-      REAL(4),DIMENSION(mx_mi)        ::  amu_i,    grt_i,    temp_i
-      REAL(4),DIMENSION(mx_mi,mx_mz)  ::  den_iz,   grp_iz
-      REAL(4),DIMENSION(3,mx_mi,mx_mz)::  fex_iz
+    USE trcomm, ONLY : &
+         rkev,NSM,nrmax,nsamax,ns_nsa,idnsa,pa,pz,RR,ra,BB,            &
+         abb1rho,abb2rho,aib2rho,ttrho,ar1rho,ar2rho,epsrho,rhog,rkap, &
+         rt,rn,dpdrho,pts,pns,qp,q0,bp,jbs_nc,jex_nc,joh,              &
+         er,eta,eta_nc,vtor,vpol,vpar,vprp
+!    PADD,! additional pressure due to NBI
+!    MDLTPF,! Trapped particle fraction model
 
-!Declaration of output from NCLASS
-      INTEGER(4)::                        iflag,    m_s
-      INTEGER(4),DIMENSION(mx_ms)::       jm_s,     jz_s
-      REAL(4)::                           p_bsjb,   p_etap,    p_exjb
-      REAL(4),DIMENSION(3,3,mx_mi)::      calm_i
-      REAL(4),DIMENSION(3,3,mx_mi,mx_mi)::caln_ii,  capm_ii,  capn_ii
-      REAL(4),DIMENSION(mx_ms)::          bsjbp_s,  bsjbt_s,  dn_s,     sqz_s,    vn_s,     veb_s,    qeb_s,    xi_s
-      REAL(4),DIMENSION(5,mx_ms)::        gfl_s,    qfl_s
-      REAL(4),DIMENSION(3,3,mx_ms)::      upar_s,   utheta_s, ymu_s
-      REAL(4),DIMENSION(mx_ms,mx_ms)::    chip_ss,  chit_ss,  dp_ss,    dt_ss
+    USE trcalv, ONLY: &
+         rp,&
+    chi_ncp,&! associated value with off-diagonal transport coefficients
+    chi_nct,&! associated value with off-diagonal transport coefficients
+    d_ncp,&! associated value with off-diagonal transport coefficients
+    d_nct,&! associated value with off-diagonal transport coefficients
+    gfls,&! gfl_s(m,s) - radial particle flux comps of s (rho/m**3/s)
+    qfls,&! qfl_s(m,s) - radial heat conduction flux comps of s (W*rho/m**3)
+    qebs,&! neoclassical heat pinch
+    vebs,&! neoclassical particle pinch
+    dia_gdnc,&! Diagonal diffusivity
+    dia_gvnc,&! Off-diagonal part driven pinch and neoclassical pinch
+    cjbs_p,&! bsjbp_s(s) - <J_bs.B> driven by unit p'/p of s (A*T*rho/m**3)
+    cjbs_t  ! bsjbt_s(s) - <J_bs.B> driven by unit T'/T of s (A*T*rho/m**3)
 
-      INTEGER(4),INTENT(OUT):: IERR
-      INTEGER(4)::  i,iz,k_out,k_v,na,nm,nr,ns,ns1,nsn,nsz
-      REAL(4)   ::  a0,bt0,e0,p_eps,p_q,q0l,r0
-      REAL(8)   ::  aitken2p,bpol,btor,btot,deriv3p,eps,ftpf,pzmax,uthai
+!    USE trcalnc, ONLY: ftpf
 
+    IMPLICIT NONE
+    INCLUDE 'nclass/pamx_mi.inc'
+    INCLUDE 'nclass/pamx_ms.inc'
+    INCLUDE 'nclass/pamx_mz.inc'
+!    INCLUDE 'trncls.inc'
 
-      REAL(8),DIMENSION(NRMAX):: EROPSI
+    ! Declaration of input to NCLASS
+    INTEGER(4) :: k_order, k_potato, m_i, m_z
+    REAL(4) :: &
+         c_den,    c_potb,   c_potl,   p_b2,     p_bm2,    p_eb,   &
+         p_fhat,   p_ft,   p_grbm2,  p_ngrth,  p_grphi,  p_gr2phi
+    REAL(4),DIMENSION(3)            ::  p_fm
+    REAL(4),DIMENSION(mx_mi)        ::  amu_i,    grt_i,    temp_i
+    REAL(4),DIMENSION(mx_mi,mx_mz)  ::  den_iz,   grp_iz
+    REAL(4),DIMENSION(3,mx_mi,mx_mz)::  fex_iz
 
-!     *** Initialization ***
+    ! Declaration of output from NCLASS
+    INTEGER(4)::                        iflag,    m_s
+    INTEGER(4),DIMENSION(mx_ms)::       jm_s,     jz_s
+    REAL(4)::                           p_bsjb,   p_etap,    p_exjb
+    REAL(4),DIMENSION(3,3,mx_mi)::      calm_i
+    REAL(4),DIMENSION(3,3,mx_mi,mx_mi)::caln_ii,  capm_ii,  capn_ii
+    REAL(4),DIMENSION(mx_ms)::&
+         bsjbp_s,  bsjbt_s,  dn_s,  sqz_s,  vn_s,  veb_s,  qeb_s,  xi_s
+    REAL(4),DIMENSION(5,mx_ms)::        gfl_s,    qfl_s
+    REAL(4),DIMENSION(3,3,mx_ms)::      upar_s,   utheta_s, ymu_s
+    REAL(4),DIMENSION(mx_ms,mx_ms)::    chip_ss,  chit_ss,  dp_ss,   dt_ss
+    
+    INTEGER(4),INTENT(OUT):: IERR
+    INTEGER(4)::  i,iz,k_out,k_v,na,nm,nr,ns,ns1,nsn,nsz
+    REAL(4)   ::  a0,bt0,e0,p_eps,p_q,q0l,r0
+    REAL(8)   ::  bpol,btor,btot,uthai
+    REAL(8)   ::  aitken2p,deriv3,ftpf,FCTR
 
-      amu_i(1:mx_mi)=0.0
-      grt_i(1:mx_mi)=0.0
-      temp_i(1:mx_mi)=0.0
-      den_iz(1:mx_mi,1:mx_mz)=0.0
-      grp_iz(1:mx_mi,1:mx_mz)=0.0
-      fex_iz(1:3,1:mx_mi,1:mx_mz)=0.0
-      
-      IERR=0
+    ! internal parameters for tr_nclass
+    INTEGER(4) :: mdltpf ! interim definition of switch variables
+    INTEGER(4) :: nsa,nsa1,nk,i_ns
+    REAL(8),DIMENSION(0:nrmax) :: eropsi,nr_array
 
-!  k_out-option for output to nout (-)
-!       =1 errors only
-!       =2 errors and results
-!       =else no output
-!  k_v-option for neoclassical v_tor,v_pol,v_para,v_perp
-!       =1 output
-!       =else no output
-      k_out=1
-      k_v=1
-      k_order=2
-      k_potato=1
-      IF(MDLEQZ.EQ.0) THEN
-         m_i=NSLMAX
-      ELSE
-         m_i=NSLMAX+NSZMAX
-      ENDIF
-      PZMAX=0.D0
-      DO NS=1,NSLMAX
-         IF(PZ(NS).GE.PZMAX) PZMAX=PZ(NS)
-      ENDDO
-      IF(MDLEQZ.NE.0) THEN
-         DO NSZ=1,NSZMAX
-           IF(PZ(NSM+NSZ).GE.PZMAX) PZMAX=PZ(NSM+NSZ)
-         ENDDO
-      ENDIF
-      m_z=INT(PZMAX)
-      c_den=1.E10
-      c_potb=SNGL(RKAP*BB/(2.D0*Q0**2))
-      c_potl=SNGL(Q0*RR)
+    ! *** Initialization ***
+    amu_i(1:mx_mi)  = 0.0
+    grt_i(1:mx_mi)  = 0.0
+    temp_i(1:mx_mi) = 0.0
+    den_iz(1:mx_mi,1:mx_mz)     = 0.0
+    grp_iz(1:mx_mi,1:mx_mz)     = 0.0
+    fex_iz(1:3,1:mx_mi,1:mx_mz) = 0.0
+    
+    ierr = 0
 
-      amu_i(1:NSLMAX)=SNGL(PA(1:NSLMAX))
-      IF(MDLEQZ.NE.0) THEN
-         DO NSZ=1,NSZMAX
-            amu_i(NSLMAX+NSZ)=SNGL(PA(NSM+NSZ))
-         ENDDO
-      ENDIF
-
-      EROPSI(1:NRMAX)=ER(1:NRMAX)/RDP(1:NRMAX)
-
-      DO NR=1,NRMAX
-         EPS=EPSRHO(NR)
-
-         p_b2=SNGL(ABB2RHOG(NR))
-         p_bm2=SNGL(AIB2RHOG(NR))
-         p_fhat=SNGL(TTRHOG(NR)/RDP(NR))
-         DO i=1,3
-            p_fm(i)=0.0
-         ENDDO
-         IF(SNGL(EPS).gt.0.0) THEN
-            DO i=1,3
-               p_fm(i)=SNGL(DBLE(i)*((1.D0-SQRT(1.D0-EPS**2))/EPS)**(2*i) &
-     &                 *(1.D0+DBLE(i)*SQRT(1.D0-EPS**2))/((1.D0-EPS**2)**1.5D0*(QP(NR)*RR)**2))
-            ENDDO
-         ENDIF
-         p_ft=SNGL(FTPF(MDLTPF,EPS))
-         p_grbm2=SNGL(ARHBRHOG(NR))
-         p_grphi=ER(NR)
-!         p_gr2phi=SNGL(RDP(NR)*DERIV3(NR,RG,EROPSI,NRMAX,1))
-         p_gr2phi=0.D0
-         p_ngrth=SNGL(BP(NR)/(BB*RHOG(NR)))
-         IF(NR.EQ.NRMAX) THEN
-            DO NS=1,NSLMAX
-               temp_i(NS)=SNGL(PTS(NS))
-               grt_i(NS)=SNGL(DERIV3P(PTS(NS),RT(NR,NS),RT(NR-1,NS), &
-     &                               RG(NR),RM(NR),RM(NR-1)))
-               den_iz(NS,INT(ABS(PZ(NS))))=SNGL(PNSS(NS))*1.E20
-               grp_iz(NS,INT(ABS(PZ(NS)))) &
-     &              =SNGL(DERIV3P(PNSS(NS)*PTS(NS),RN(NR  ,NS)*RT(NR  ,NS), &
-     &                           RN(NR-1,NS)*RT(NR-1,NS),RG(NR),RM(NR),RM(NR-1)))*1.E20
-!     &                           RN(NR+1,NS)*RT(NR+1,NS),RG(NR),RM(NR),RM(NR-1)))*1.E20
-               DO NA=1,3
-                  fex_iz(NA,NS,INT(ABS(PZ(NS))))=0.0
-               ENDDO
-            ENDDO
-            IF(MDLEQZ.NE.0) THEN
-               DO NSZ=1,NSZMAX
-                  NS =NSM+NSZ
-                  NSN=NSLMAX+NSZ
-                  temp_i(NSN)=SNGL(PTS(NS))
-                  grt_i(NSN)=SNGL(DERIV3P(PTS(NS),RT(NR,NS),RT(NR-1,NS), &
-     &                               RG(NR),RM(NR),RM(NR-1)))
-                  den_iz(NSN,INT(ABS(PZ(NS))))=SNGL(PNSS(NS))*1.E20
-                  grp_iz(NSN,INT(ABS(PZ(NS)))) &
-     &                 =SNGL(DERIV3P(PNSS(NS)*PTS(NS),RN(NR  ,NS)*RT(NR  ,NS), &
-     &                              RN(NR+1,NS)*RT(NR+1,NS),RG(NR),RM(NR),RM(NR-1)))*1.E20
-                  DO NA=1,3
-                     fex_iz(NA,NSN,INT(ABS(PZ(NS))))=0.0
-                  ENDDO
-               ENDDO
-            ENDIF
-            p_eb=SNGL(AITKEN2P(RG(NR),ETA(NR)*AJOH(NR), &
-     &                ETA(NR-1)*AJOH(NR-1),ETA(NR-2)*AJOH(NR-2),RM(NR),RM(NR-1),RM(NR-2))*BB)
-         ELSE
-            DO NS=1,NSLMAX
-               temp_i(NS)=SNGL(0.5D0*(RT(NR+1,NS)+RT(NR,NS)))
-               grt_i(NS)=SNGL((RT(NR+1,NS)-RT(NR,NS))/DR)
-               den_iz(NS,INT(ABS(PZ(NS))))=SNGL(0.5D0*(RN(NR+1,NS)+RN(NR,NS)))*1.E20
-               grp_iz(NS,INT(ABS(PZ(NS)))) &
-     &             =SNGL(( RN(NR+1,NS)*RT(NR+1,NS)+PADD(NR+1) &
-     &                    -RN(NR  ,NS)*RT(NR  ,NS)-PADD(NR  ))/DR)*1.E20
-               DO NA=1,3
-                  fex_iz(NA,NS,INT(ABS(PZ(NS))))=0.0
-               ENDDO
-            ENDDO
-            IF(MDLEQZ.NE.0) THEN
-               DO NSZ=1,NSZMAX
-                  NS =NSM+NSZ
-                  NSN=NSLMAX+NSZ
-                  temp_i(NSN)=SNGL(0.5D0*(RT(NR+1,NS)+RT(NR,NS)))
-                  grt_i(NSN)=SNGL((RT(NR+1,NS)-RT(NR,NS))/DR)
-                  den_iz(NSN,INT(ABS(PZ(NS))))=SNGL(0.5D0*(RN(NR+1,NS)+RN(NR,NS)))*1.E20
-                  grp_iz(NSN,INT(ABS(PZ(NS)))) &
-     &               =SNGL(( RN(NR+1,NS)*RT(NR+1,NS)+PADD(NR+1) &
-     &                      -RN(NR  ,NS)*RT(NR  ,NS)-PADD(NR  ))/DR)*1.E20
-                  DO NA=1,3
-                     fex_iz(NA,NSN,INT(ABS(PZ(NS))))=0.0
-                  ENDDO
-               ENDDO
-            ENDIF
-            p_eb=SNGL(0.5D0*(ETA(NR+1)*AJOH(NR+1)+ETA(NR)*AJOH(NR))*BB)
-         ENDIF
-
-      CALL NCLASS(  &
-!     Input
-     &            k_order,k_potato,m_i,m_z,c_den,c_potb,c_potl,p_b2, &
-     &            p_bm2,p_eb,p_fhat,p_fm,p_ft,p_grbm2,p_grphi,p_gr2phi, &
-     &            p_ngrth,amu_i,grt_i,temp_i,den_iz,fex_iz,grp_iz, &
-!     Output
-     &            m_s,jm_s,jz_s,p_bsjb,p_etap,p_exjb,calm_i,caln_ii, &
-     &            capm_ii,capn_ii,bsjbp_s,bsjbt_s,dn_s,gfl_s,qfl_s, &
-     &            sqz_s,upar_s,utheta_s,vn_s,veb_s,qeb_s,xi_s,ymu_s, &
-     &            chip_ss,chit_ss,dp_ss,dt_ss,iflag)
-
-      IF(k_out.eq.1.or.k_out.eq.2) THEN
-         p_eps = SNGL(EPS)
-         p_q   = SNGL(QP(NR))
-         r0    = SNGL(RR)
-         a0    = SNGL(RA)
-         e0    = SNGL(RKAP)
-         bt0   = SNGL(BB)
-         q0l   = SNGL(Q0)
-         CALL NCLASS_CHECK(6,NR, &
-     &        k_out,k_order,m_i,m_z,p_fhat,p_grphi, &
-     &        amu_i,grt_i,temp_i,den_iz,grp_iz,p_eps,bt0, &
-     &        m_s,jm_s,jz_s,p_bsjb,p_etap,p_exjb,calm_i,caln_ii, &
-     &        capm_ii,capn_ii,bsjbp_s,bsjbt_s,dn_s,gfl_s,qfl_s, &
-     &        upar_s,utheta_s,vn_s,veb_s,qeb_s,xi_s,ymu_s, &
-     &        chip_ss,chit_ss,dp_ss,dt_ss,iflag)
-      ENDIF
-
-!     *** Takeover Parameters ***
-
-         IF(k_potato.EQ.0) THEN
-            IF(iflag.NE.-1) THEN
-               WRITE(6,*) "XX iflag=",iflag
-               IERR=1
-               RETURN
-            ENDIF
-         ELSE
-            IF(iflag.NE. 0) WRITE(6,*) "XX iflag=",iflag
-         ENDIF
-         AJBSNC(NR)=DBLE(p_bsjb)/BB
-         ETANC(NR) =DBLE(p_etap)
-         AJEXNC(NR)=DBLE(p_exjb)/BB
-
-!     ADNCG : Diagonal diffusivity for graphic use only
-!     AVNCG : Off-diagonal part driven pinch and neoclassical pinch
-!             for graphic use only
-
-         DO NS=1,NSM
-            CJBSP(NR,NS)=DBLE(bsjbp_s(NS))
-            CJBST(NR,NS)=DBLE(bsjbt_s(NS))
-            ADNCG(NR,NS)=DBLE(dn_s(NS))/AR2RHO(NR)
-            AVNCG(NR,NS)=DBLE(vn_s(NS)+veb_s(NS))/AR1RHO(NR)
-            DO NS1=1,NSLMAX
-               AKNCP(NR,NS,NS1)=DBLE(chip_ss(NS,NS1))/AR2RHO(NR)
-               AKNCT(NR,NS,NS1)=DBLE(chit_ss(NS,NS1))/AR2RHO(NR)
-               ADNCP(NR,NS,NS1)=DBLE(dp_ss(NS,NS1))/AR2RHO(NR)
-               ADNCT(NR,NS,NS1)=DBLE(dt_ss(NS,NS1))/AR2RHO(NR)
-            ENDDO
-            DO NM=1,5
-               RGFLS(NR,NM,NS)=DBLE(gfl_s(NM,NS))*1.D-20/AR1RHO(NR)
-               RQFLS(NR,NM,NS)=DBLE(qfl_s(NM,NS))*1.D-20/AR1RHO(NR)
-            ENDDO
-            AVKNC(NR,NS)=DBLE(qeb_s(NS))/AR1RHO(NR)
-            AVNC (NR,NS)=DBLE(veb_s(NS))/AR1RHO(NR)
-         ENDDO
-         IF(MDLEQZ.NE.0) THEN
-            DO NSZ=1,NSZMAX
-               NS =NSM+NSZ
-               NSN=NSLMAX+NSZ
-               CJBSP(NR,NS)=DBLE(bsjbp_s(NSN))
-               CJBST(NR,NS)=DBLE(bsjbt_s(NSN))
-               ADNCG(NR,NS)=DBLE(dn_s(NSN))/AR2RHO(NR)
-               AVNCG(NR,NS)=DBLE(vn_s(NSN)+veb_s(NSN))/AR1RHO(NR)
-               DO NS1=1,NSLMAX
-                  AKNCP(NR,NS,NS1)=DBLE(chip_ss(NSN,NS1))/AR2RHO(NR)
-                  AKNCT(NR,NS,NS1)=DBLE(chit_ss(NSN,NS1))/AR2RHO(NR)
-                  ADNCP(NR,NS,NS1)=DBLE(dp_ss(NSN,NS1))/AR2RHO(NR)
-                  ADNCT(NR,NS,NS1)=DBLE(dt_ss(NSN,NS1))/AR2RHO(NR)
-               ENDDO
-               DO NM=1,5
-                  RGFLS(NR,NM,NS)=DBLE(gfl_s(NM,NSN))*1.D-20/AR1RHO(NR)
-                  RQFLS(NR,NM,NS)=DBLE(qfl_s(NM,NSN))*1.D-20/AR1RHO(NR)
-               ENDDO
-               AVKNC(NR,NS)=DBLE(qeb_s(NSN))/AR1RHO(NR)
-               AVNC (NR,NS)=DBLE(veb_s(NSN))/AR1RHO(NR)
-            ENDDO
-         ENDIF
-
-!     /* neoclassical bulk ion toroidal and poloidal velocities */
+!  ----- < Output option switches > ------------------------
+!   k_out: option for output to nout (-)
+!         = 1    : errors only
+!         = 2    : errors and results
+!         = else : no output
 !
-         IF(k_v.ne.0) THEN
-            btor=bt0/(1.0+p_eps)
-            bpol=btor/p_fhat
-            btot=SQRT(btor**2+bpol**2)*btor/ABS(btor)
-            DO i=1,m_s
-               uthai=utheta_s(1,1,i)+utheta_s(1,2,i)+utheta_s(1,3,i)
-!               IF(DBLE(amu_i(jm_s(i))).eq.PA(2).and.iz.eq.int(PZ(2))) then
-               IF(DBLE(amu_i(jm_s(i))).eq.PA(2).and.jz_s(i).eq.int(PZ(2))) then
-!     Poloidal
-                  VPOL(NR)=DBLE(uthai*bpol)
-!     Parallel
-                  VPAR(NR)=DBLE(bpol/btot*VPOL(NR)+btor/btot*VTOR(NR))
-!     Perpendicular
-                  VPRP(NR)=DBLE(btor/btot*VPOL(NR)-bpol/btot*VTOR(NR))
-               ENDIF
-            ENDDO
-         ENDIF
+!   k_v  : option for neoclassical v_tor,v_pol,v_para,v_perp
+!         = 1    : output
+!         = else : no output
+! ----------------------------------------------------------
+    k_out    = 1
+    k_v      = 1
+    
+    k_order  = 2
+    k_potato = 1
+      
+    !*** mdleqz --> nsamax
+    ! number of isotopes (1 < m_i < mx_mi+1)
+    m_i = nsamax
 
-      ENDDO
+    !*** mdleqz,pzmax --> pz(nsamax)
+    ! highest charge state of all species (0 < m_z < mx_mz+1)
+    m_z = INT(MAXVAL(pz(1:nsamax)))
 
-      RETURN
-      END SUBROUTINE TR_NCLASS
+    c_den  = SNGL(1.E10)
+    c_potb = SNGL(rkap*BB/(2.d0*q0**2))
+    c_potl = SNGL(q0*RR)
+
+    ! atomic mass number of i (-)
+    amu_i(1:nsamax) = SNGL(PA(1:nsamax))
+
+    ! ----- preparation for calculatio in nr loop -----
+    eropsi(0:nrmax) = 0.d0
+    eropsi(1:nrmax) = er(1:nrmax)/ar1rho(1:nrmax) / dpdrho(1:nrmax)
+      
+    DO nr = 1, nrmax
+
+       p_b2      = SNGL(abb2rho(nr))
+       p_bm2     = SNGL(aib2rho(nr))
+       p_fhat    = SNGL(ttrho(nr)/dpdrho(nr))
+       p_fm(1:3) = 0.0
+       IF(SNGL(epsrho(nr)).gt.0.0) THEN
+          DO i = 1, 3
+             ! poloidal moments of geometic factor for PS viscosity (-)
+             p_fm(i) = SNGL( & ! ??????????
+                  DBLE(i)                                              &
+                  *((1.D0-SQRT(1.D0-epsrho(nr)**2))/epsrho(nr))**(2*i) &
+                  *(1.D0+DBLE(i)*SQRT(1.D0-epsrho(nr)**2))             &
+                  /((1.D0-epsrho(nr)**2)**1.5D0*(QP(NR)*RR)**2)        &
+                  )
+          ENDDO
+       ENDIF
+       ! trapped particle fraction
+       p_ft     = SNGL(ftpf(mdltpf,epsrho(nr)))
+       p_grbm2  = SNGL(ar2rho(nr)*aib2rho(nr))
+       ! radial electric field phi' (V/rho)
+       p_grphi  = SNGL(er(nr)/ar1rho(nr))
+       p_gr2phi = SNGL(dpdrho(nr) * deriv3(nr,rhog,eropsi,nrmax,0))
+!         p_gr2phi=0.0
+       p_ngrth  = SNGL(bp(nr)/(BB*rhog(nr))) ! ?????
+       
+       i_ns = 0
+       DO nsa = 1, nsamax ! only for ion
+          ns=ns_nsa(nsa)
+!          IF(idnsa(nsa)==1)THEN
+             i_ns = i_ns + 1
+               
+             ! temperature of i (keV)
+             temp_i(i_ns) = SNGL(rt(nsa,nr))
+             ! temperature gradient of i (keV/rho)
+             nr_array(0:nrmax) = rt(nsa,0:nrmax)
+             grt_i(i_ns)  = SNGL(deriv3(nr,rhog,nr_array,nrmax,0))
+             ! density of i,z (/m**3)
+             den_iz(i_ns,INT(ABS(pz(ns)))) &
+                          = SNGL(rn(nsa,nr))*1.E20
+             ! pressure gradient of i,z (keV/m**3 /rho)
+             ! ***** PADD should be included *****
+             nr_array(0:nrmax) = rp(nsa,0:nrmax)/rkev
+             grp_iz(i_ns,INT(ABS(pz(ns)))) &
+                   = SNGL(deriv3(nr,rhog,nr_array(0:nrmax),nrmax,0))
+             DO i = 1, 3
+                ! moments of external parallel force on i,z (T*j/m**3)
+                fex_iz(i,i_ns,INT(ABS(pz(ns)))) = 0.0
+             ENDDO
+!          END IF
+       ENDDO
+       ! <E.B> (V*T/m)  *** E_para = eta_para * J_oh(para) ***
+       p_eb = SNGL(eta(nr)*joh(nr)*abb1rho(nr))
+
+
+       CALL NCLASS( &
+           ! << Input >>
+           k_order,k_potato,m_i,m_z,c_den,c_potb,c_potl,p_b2,    &
+           p_bm2,p_eb,p_fhat,p_fm,p_ft,p_grbm2,p_grphi,p_gr2phi, &
+           p_ngrth,amu_i,grt_i,temp_i,den_iz,fex_iz,grp_iz,      &
+           ! << Output >>
+           m_s,jm_s,jz_s,p_bsjb,p_etap,p_exjb,calm_i,caln_ii,    &
+           capm_ii,capn_ii,bsjbp_s,bsjbt_s,dn_s,gfl_s,qfl_s,     &
+           sqz_s,upar_s,utheta_s,vn_s,veb_s,qeb_s,xi_s,ymu_s,    &
+           chip_ss,chit_ss,dp_ss,dt_ss,iflag)
+
+       IF(k_out.eq.1 .or. k_out.eq.2) THEN ! for error output
+          p_eps = SNGL(epsrho(nr))
+          p_q   = SNGL(qp(nr))
+          r0    = SNGL(RR)
+          a0    = SNGL(ra)
+          e0    = SNGL(rkap)
+          bt0   = SNGL(BB)
+          q0l   = SNGL(q0)
+
+          CALL NCLASS_CHECK(6,nr,                                &
+              k_out,k_order,m_i,m_z,p_fhat,p_grphi,              &
+              amu_i,grt_i,temp_i,den_iz,grp_iz,p_eps,bt0,        &
+              m_s,jm_s,jz_s,p_bsjb,p_etap,p_exjb,calm_i,caln_ii, &
+              capm_ii,capn_ii,bsjbp_s,bsjbt_s,dn_s,gfl_s,qfl_s,  &
+              upar_s,utheta_s,vn_s,veb_s,qeb_s,xi_s,ymu_s,       &
+              chip_ss,chit_ss,dp_ss,dt_ss,iflag)
+         
+       ENDIF
+
+
+       ! *****  Takeover Parameters *****
+       IF(k_potato.EQ.0) THEN
+          IF(iflag.NE.-1) THEN
+             WRITE(6,*) "XXX NCLASS error: iflag =",iflag
+             ierr=1
+             RETURN
+          ENDIF
+       ELSE
+          IF(iflag.NE. 0) WRITE(6,*) "XXX NCLASS error: iflag =",iflag
+       ENDIF
+
+       eta_nc(nr) = DBLE(p_etap)
+       jbs_nc(nr) = DBLE(p_bsjb)/abb1rho(nr)
+       jex_nc(nr) = DBLE(p_exjb)/abb1rho(nr)
+
+       DO nsa = 1, nsamax
+          cjbs_p(nsa,nr) = DBLE(bsjbp_s(nsa))
+          cjbs_t(nsa,nr) = DBLE(bsjbt_s(nsa))
+
+          ! flux form
+          DO nk  = 1, 5
+             gfls(nk,nsa,nr) = DBLE(gfl_s(nk,nsa))*1.d-20/ar1rho(nr)
+             qfls(nk,nsa,nr) = DBLE(qfl_s(nk,nsa))*1.d-20/ar1rho(nr)
+          ENDDO
+          
+          ! ADNCG : Diagonal diffusivity for graphic use only
+          dia_gdnc(nsa,nr) = DBLE(dn_s(nsa))/ar2rho(nr)
+          ! AVNCG : Off-diagonal part driven pinch and neoclassical pinch
+          !          for graphic use only
+!          dia_gvnc(nsa,nr) = DBLE(vn_s(nsa)+veb_s(nsa))/ar1rho(nr)
+          dia_gvnc(nsa,nr) = DBLE(vn_s(nsa))/ar1rho(nr)
+
+          vebs(nsa,nr) = DBLE(veb_s(nsa))/ar1rho(nr)
+          qebs(nsa,nr) = DBLE(qeb_s(nsa))/ar1rho(nr)
+
+          ! complete matrix form as coefficients of 
+          !  the temperature gradients and the pressure gradients.
+          DO nsa1 = 1, nsamax
+             chi_ncp(nsa,nsa1,nr) = DBLE(chip_ss(nsa,nsa1)) / ar2rho(nr)
+             chi_nct(nsa,nsa1,nr) = DBLE(chit_ss(nsa,nsa1)) / ar2rho(nr)
+             d_ncp(nsa,nsa1,nr)   = DBLE(  dp_ss(nsa,nsa1)) / ar2rho(nr)
+             d_nct(nsa,nsa1,nr)   = DBLE(  dt_ss(nsa,nsa1)) / ar2rho(nr)
+          ENDDO
+
+       ENDDO
+
+       ! *** extrapolate center value ***
+       eta_nc(0) = FCTR(rhog(1),rhog(2),eta_nc(1),eta_nc(2))
+       jbs_nc(0) = FCTR(rhog(1),rhog(2),jbs_nc(1),jbs_nc(2))
+       jex_nc(0) = FCTR(rhog(1),rhog(2),jex_nc(1),jex_nc(2))
+
+       DO nsa = 1, nsamax
+          cjbs_p(nsa,0)=FCTR(rhog(1),rhog(2),cjbs_p(nsa,1),cjbs_p(nsa,2))
+          cjbs_t(nsa,0)=FCTR(rhog(1),rhog(2),cjbs_t(nsa,1),cjbs_t(nsa,2))
+
+          DO nk = 1, 5
+             gfls(nk,nsa,0) = &
+                  FCTR(rhog(1),rhog(2),gfls(nk,nsa,1),gfls(nk,nsa,2))
+             qfls(nk,nsa,0) = &
+                  FCTR(rhog(1),rhog(2),qfls(nk,nsa,1),qfls(nk,nsa,2))
+          END DO
+
+          dia_gdnc(nsa,0) = &
+               FCTR(rhog(1),rhog(2),dia_gdnc(nsa,1),dia_gdnc(nsa,2))
+          dia_gvnc(nsa,0) = &
+               FCTR(rhog(1),rhog(2),dia_gvnc(nsa,1),dia_gvnc(nsa,2))
+          vebs(nsa,0)=FCTR(rhog(1),rhog(2),vebs(nsa,1),vebs(nsa,2))
+          qebs(nsa,0)=FCTR(rhog(1),rhog(2),qebs(nsa,1),qebs(nsa,2))
+
+          DO nsa1 = 1, nsamax
+             chi_ncp(nsa,nsa1,0) = &
+               FCTR(rhog(1),rhog(2),chi_ncp(nsa,nsa1,1),chi_ncp(nsa,nsa1,2))
+             chi_nct(nsa,nsa1,0) = &
+               FCTR(rhog(1),rhog(2),chi_nct(nsa,nsa1,1),chi_nct(nsa,nsa1,2))
+             d_ncp(nsa,nsa1,0) = &
+               FCTR(rhog(1),rhog(2),d_ncp(nsa,nsa1,1),d_ncp(nsa,nsa1,2))
+             d_nct(nsa,nsa1,0) = &
+               FCTR(rhog(1),rhog(2),d_nct(nsa,nsa1,1),d_nct(nsa,nsa1,2))
+          END DO
+       END DO
+
+       ! neoclassical bulk ion toroidal and poloidal velocities
+       IF(k_v.ne.0) THEN
+          btor = bt0 / (1.0 + 0.5d0*p_eps**2)
+          bpol = ar1rho(nr)/r0 * dpdrho(nr)
+          btot = SQRT(btor**2+bpol**2)*btor / ABS(btor)
+
+          DO i = 1, m_s
+             ! poloidal flow of s
+             uthai = utheta_s(1,1,i) + utheta_s(1,2,i) + utheta_s(1,3,i)
+             
+             IF(DBLE(amu_i(jm_s(i))).EQ.PA(2) &
+                       .AND. jz_s(i).EQ.INT(PZ(2))) THEN
+                ! poloidal
+                vpol(nr) = DBLE(uthai*bpol)
+                ! parallel
+                vpar(nr) = DBLE(bpol/btot*vpol(nr)+btor/btot*vtor(nr))
+                ! perpendicular
+                vprp(nr) = DBLE(btor/btot*vpol(nr)-bpol/btot*vtor(nr))
+             ENDIF
+          ENDDO
+       ENDIF
+
+    ENDDO ! end of nr loop
+
+    RETURN
+  END SUBROUTINE TR_NCLASS
 
 !     ***********************************************************
 
@@ -369,12 +392,12 @@
 
 !     ***********************************************************
 
-      SUBROUTINE NCLASS_CHECK(nout,nr, &
-     &            k_out,k_order,m_i,m_z,p_fhat,p_grphi, &
-     &            amu_i,grt_i,temp_i,den_iz,grp_iz,p_eps,bt0, &
+  SUBROUTINE NCLASS_CHECK(nout,nr,                                   &
+     &            k_out,k_order,m_i,m_z,p_fhat,p_grphi,              &
+     &            amu_i,grt_i,temp_i,den_iz,grp_iz,p_eps,bt0,        &
      &            m_s,jm_s,jz_s,p_bsjb,p_etap,p_exjb,calm_i,caln_ii, &
-     &            capm_ii,capn_ii,bsjbp_s,bsjbt_s,dn_s,gfl_s,qfl_s, &
-     &            upar_s,utheta_s,vn_s,veb_s,qeb_s,xi_s,ymu_s, &
+     &            capm_ii,capn_ii,bsjbp_s,bsjbt_s,dn_s,gfl_s,qfl_s,  &
+     &            upar_s,utheta_s,vn_s,veb_s,qeb_s,xi_s,ymu_s,       &
      &            chip_ss,chit_ss,dp_ss,dt_ss,iflag)
 
       IMPLICIT NONE
@@ -431,7 +454,7 @@
       z_pi=ACOS(-1.0)
       z_protonmass=1.6726e-27
 
-      IF(iflag.ne.0) WRITE(nout,'(A3,I3)') "NR=",NR
+      IF(iflag.ne.0) WRITE(nout,'(A3,I3)') "NR=",nr
 !Check warning flags
       IF(iflag.eq.-1) THEN
         label='WARNING:NCLASS-no potato orbit viscosity'
@@ -462,7 +485,7 @@
             idum(1)=m_z
             CALL WRITE_LINE_IR(nout,label,1,idum,0,rdum,0)
           ELSEIF(iflag.eq.4) THEN
-            label='ERROR:NCLASS-require 0<m_s<mx_ms, m_s='
+            label='ERROR:NCLASS-require 1<m_s<mx_ms, m_s='
             idum(1)=m_s
             CALL WRITE_LINE_IR(nout,label,1,idum,0,rdum,0)
           ELSEIF(iflag.eq.5) THEN
@@ -977,3 +1000,5 @@
 
       RETURN
       END SUBROUTINE NCLASS_CHECK
+
+END MODULE trncls

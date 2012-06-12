@@ -15,7 +15,6 @@ CONTAINS
     USE trcomm, ONLY: nrmax,neqmax,xv,xv_prev,xv_new, &
          rn,ru,rt,dpdrho,lmaxtr,epsltr,nsa_neq,nva_neq,nvmax,error_it,&
          nitmax,mdltr_prv  ! ,nrd1
-    USE trcoef, ONLY: Pereverzev_check
     USE trcalc, ONLY: tr_calc
     USE trexec, ONLY: tr_exec
 

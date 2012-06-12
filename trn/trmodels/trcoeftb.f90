@@ -1,17 +1,16 @@
-MODULE trcoef
+MODULE trcoeftb
 
   USE trcomm, ONLY: ikind, rkind
-  USE trcalv, ONLY: tr_calv_nr_alloc,tr_calc_variables
 
   PRIVATE
-  PUBLIC tr_coef, Pereverzev_check
+  PUBLIC tr_coeftb, Pereverzev_check
 
 CONTAINS
 
-! ***** calculate transport coefficients and souce terms *****
+! ***** calculate trubenlent transport coefficients *****
 
-  SUBROUTINE tr_coef
-    USE trcomm, ONLY: mdltr_nc,mdltr_tb,mdltr_prv,dtr_nc,vtr_nc
+  SUBROUTINE tr_coeftb
+    USE trcomm, ONLY: mdltr_tb,mdltr_prv,neqmax,nrmax,dtr_tb,vtr_tb
     USE trsimple, ONLY: tr_simple
     USE trglf23, ONLY: tr_glf23
     USE trcdbm, ONLY: tr_cdbm
@@ -19,10 +18,8 @@ CONTAINS
     USE trmmm95,ONLY: tr_mmm95
     IMPLICIT NONE
 
-    CALL tr_calv_nr_alloc
-    CALL tr_calc_variables
-
-    CALL tr_calc_neocls
+    dtr_tb(1:neqmax,1:neqmax,1:nrmax) = 0.d0
+    vtr_tb(1:neqmax,1:neqmax,1:nrmax) = 0.d0
 
     SELECT CASE(mdltr_tb) ! results are in dtr_tb and vtr_tb
     CASE(0:9)
@@ -37,70 +34,12 @@ CONTAINS
        CALL tr_mmm95
     END SELECT
 
-    ! only for energy transport
+    ! only for energy transport for now
     IF(mdltr_prv /= 0) CALL Pereverzev_method
 
     RETURN
-  END SUBROUTINE tr_coef
+  END SUBROUTINE tr_coeftb
 
-!*************************************************************************
-
-  SUBROUTINE tr_calc_neocls
-    USE trcomm, ONLY: &
-         nsa_neq,neqmax,nrmax,mdltr_nc,        &
-         dtr,vtr,htr,eta,dtr_nc,vtr_nc,eta_nc, &
-         jbs_nc,jex_nc
-    USE trcalv, ONLY: &
-         chi_ncp,chi_nct,d_ncp,d_nct,gfls,qfls,vebs,qebs, &
-         dia_dnc,dia_vnc,cjbs_p,cjbs_t
-    USE trncls, ONLY: tr_nclass
-
-    IMPLICIT NONE
-    INTEGER(ikind) :: nsa,neq
-
-    dtr_nc = 0.d0
-    vtr_nc = 0.d0
-
-    ! trapped particle fraction
-
-    SELECT CASE(mdltr_nc) ! results are in dtr_nc and vtr_nc
-    CASE(1)
-       CALL tr_nclass
-
-       ! dtr, vtr
-       ! diagonal term only
-       DO neq = 2, neqmax
-          nsa = nsa_neq(neq)
-          dtr(neq,neq,0:nrmax) = dia_dnc(nsa,0:nrmax)
-          vtr(neq,neq,0:nrmax) = dia_vnc(nsa,0:nrmax)
-       END DO
-       !  off diagonal term...       
-
-    END SELECT
-
-    ! resistivity
-    eta(0:nrmax) = eta_nc(0:nramx)
-
-    ! bootstrap current
-    htr(neq,0:nrmax) = jbs_nc(0:nrmax) + jex_nc(0:nrmax)   
-
-    
-    RETURN
-  END SUBROUTINE tr_calc_neocls
-
-!!$  SUBROUTINE tr_calc_bootstrap
-!!$
-!!$    RETURN
-!!$  END SUBROUTINE tr_calc_bootstrap
-!!$
-!!$  SUBROUTINE tr_calc_nceta
-!!$
-!!$    RETURN
-!!$  END SUBROUTINE tr_calc_nceta
-
-
-!*************************************************************************
-!*************************************************************************
 !*************************************************************************
 
 ! ------------------------- Pereverzev method ----------------------------
@@ -132,6 +71,7 @@ CONTAINS
          gm1p,gm1m,gm2p,gm2m,gm20
     INTEGER(ikind) :: nr,nsa
 
+    ! only for energy transport for now
     cdtru = 0.d0
     cdtrn = 0.d0
 
@@ -189,30 +129,30 @@ CONTAINS
 !!$             END IF
           END SELECT
 
-          dtr_prv(3*nsa-2,nr) = cdtrn*dtr_new
-          dtr_prv(3*nsa-1,nr) = cdtru*dtr_new
-          dtr_prv(3*nsa  ,nr) = cdtrt*dtr_new
+          dtr_prv(1+3*nsa-2,nr) = cdtrn*dtr_new
+          dtr_prv(1+3*nsa-1,nr) = cdtru*dtr_new
+          dtr_prv(1+3*nsa  ,nr) = cdtrt*dtr_new
 
-          dtr_tb(3*nsa-2,3*nsa-2,nr) = dtr_tb(3*nsa-2,3*nsa-2,nr) &
-                                      +dtr_prv(3*nsa-2,nr)
-          dtr_tb(3*nsa-1,3*nsa-1,nr) = dtr_tb(3*nsa-1,3*nsa-1,nr) &
-                                      +dtr_prv(3*nsa-1,nr) 
-          dtr_tb(3*nsa  ,3*nsa  ,nr) = dtr_tb(3*nsa  ,3*nsa  ,nr) &
-                                      +dtr_prv(3*nsa  ,nr)
+          dtr_tb(1+3*nsa-2,1+3*nsa-2,nr) = dtr_tb(1+3*nsa-2,1+3*nsa-2,nr) &
+                                         +dtr_prv(1+3*nsa-2,nr)
+          dtr_tb(1+3*nsa-1,1+3*nsa-1,nr) = dtr_tb(1+3*nsa-1,1+3*nsa-1,nr) &
+                                         +dtr_prv(1+3*nsa-1,nr) 
+          dtr_tb(1+3*nsa  ,1+3*nsa  ,nr) = dtr_tb(1+3*nsa  ,1+3*nsa  ,nr) &
+                                         +dtr_prv(1+3*nsa  ,nr)
 
           vtr_old = dtr_new * lt / rnrt_ave
 !          write(*,*) '*** nr, vtr_old ***', nr, vtr_old
 
-          vtr_prv(3*nsa-2,nr) = cdtrn*vtr_old
-          vtr_prv(3*nsa-1,nr) = cdtru*vtr_old
-          vtr_prv(3*nsa  ,nr) = cdtrt*vtr_old
+          vtr_prv(1+3*nsa-2,nr) = cdtrn*vtr_old
+          vtr_prv(1+3*nsa-1,nr) = cdtru*vtr_old
+          vtr_prv(1+3*nsa  ,nr) = cdtrt*vtr_old
 
-          vtr_tb(3*nsa-2,3*nsa-2,nr) = vtr_tb(3*nsa-2,3*nsa-2,nr) &
-                                      +vtr_prv(3*nsa-2,nr) 
-          vtr_tb(3*nsa-1,3*nsa-1,nr) = vtr_tb(3*nsa-1,3*nsa-1,nr) &
-                                      +vtr_prv(3*nsa-1,nr) 
-          vtr_tb(3*nsa  ,3*nsa  ,nr) = vtr_tb(3*nsa  ,3*nsa  ,nr) &
-                                      +vtr_prv(3*nsa  ,nr) 
+          vtr_tb(1+3*nsa-2,1+3*nsa-2,nr) = vtr_tb(1+3*nsa-2,1+3*nsa-2,nr) &
+                                         +vtr_prv(1+3*nsa-2,nr) 
+          vtr_tb(1+3*nsa-1,1+3*nsa-1,nr) = vtr_tb(1+3*nsa-1,1+3*nsa-1,nr) &
+                                         +vtr_prv(1+3*nsa-1,nr) 
+          vtr_tb(1+3*nsa  ,1+3*nsa  ,nr) = vtr_tb(1+3*nsa  ,1+3*nsa  ,nr) &
+                                         +vtr_prv(1+3*nsa  ,nr) 
 
        END DO
     END DO
@@ -223,8 +163,8 @@ CONTAINS
     USE trcomm, ONLY: ikind,rkind,neqmax,nsamax,nrmax,rg,dtr_prv,vtr_prv,&
                       dtr,rn,ru,rt,dvrho,ar1rho,ar2rho,rhog
 
-    REAL(rkind),DIMENSION(3*neqmax,0:nrmax) :: dtr_elm,vtr_elm,dtr_all
-    REAL(rkind),DIMENSION(3*neqmax,0:nrmax),INTENT(OUT) :: add_prv
+    REAL(rkind),DIMENSION(neqmax,0:nrmax) :: dtr_elm,vtr_elm,dtr_all
+    REAL(rkind),DIMENSION(neqmax,0:nrmax),INTENT(OUT) :: add_prv
     REAL(rkind) :: term_n,term_u,term_t
     REAL(rkind) :: dvdrm,dvdrp,gm1p,gm1m,gm2p,gm2m,gm20
     INTEGER(ikind) :: nr,nsa
@@ -246,40 +186,43 @@ CONTAINS
           term_t = gm20*(rn(nsa,nr)*rt(nsa,nr)-rn(nsa,nr-1)*rt(nsa,nr-1)) &
                                                  /(rhog(nr)-rhog(nr-1))
 
-          dtr_elm(3*nsa-2,nr) = dtr_prv(3*nsa-2,nr) * term_n
-          dtr_elm(3*nsa-1,nr) = dtr_prv(3*nsa-1,nr) * term_u
-          dtr_elm(3*nsa  ,nr) = dtr_prv(3*nsa  ,nr) * term_t
+          dtr_elm(1+3*nsa-2,nr) = dtr_prv(1+3*nsa-2,nr) * term_n
+          dtr_elm(1+3*nsa-1,nr) = dtr_prv(1+3*nsa-1,nr) * term_u
+          dtr_elm(1+3*nsa  ,nr) = dtr_prv(1+3*nsa  ,nr) * term_t
 
           ! diagonal element only
-          dtr_all(3*nsa-2,nr) = dtr(3*nsa-2+1,3*nsa-2+1,nr) * term_n
-          dtr_all(3*nsa-1,nr) = dtr(3*nsa-1+1,3*nsa-1+1,nr) * term_u
-          dtr_all(3*nsa  ,nr) = dtr(3*nsa  +1,3*nsa  +1,nr) * term_t
+          dtr_all(1+3*nsa-2,nr) = dtr(1+3*nsa-2,1+3*nsa-2,nr) * term_n
+          dtr_all(1+3*nsa-1,nr) = dtr(1+3*nsa-1,1+3*nsa-1,nr) * term_u
+          dtr_all(1+3*nsa  ,nr) = dtr(1+3*nsa  ,1+3*nsa  ,nr) * term_t
 
-          vtr_elm(3*nsa-2,nr) =                            &
-            vtr_prv(3*nsa-2,nr)/6.D0                       &
+          vtr_elm(1+3*nsa-2,nr) =                            &
+          vtr_prv(1+3*nsa-2,nr)/6.D0                         &
             *((2.D0*gm1m+gm1p)*rn(nsa,nr-1) + (gm1m+2.D0*gm1p)*rn(nsa,nr))
-          vtr_elm(3*nsa-1,nr) =                            &
-            vtr_prv(3*nsa-1,nr)/6.D0                       &
+          vtr_elm(1+3*nsa-1,nr) =                            &
+          vtr_prv(1+3*nsa-1,nr)/6.D0                         &
             *((2.D0*gm1m+gm1p)*ru(nsa,nr-1) + (gm1m+2.D0*gm1p)*ru(nsa,nr))
-          vtr_elm(3*nsa  ,nr) =                                 &
-            vtr_prv(3*nsa  ,nr)/4.D0                            &
-            *((2.D0*gm1m+     gm1p)*rn(nsa,nr-1)*rt(nsa,nr-1)   &
+          vtr_elm(1+3*nsa  ,nr) =                                 &
+          vtr_prv(1+3*nsa  ,nr)/4.D0                              &
+            *((2.D0*gm1m+     gm1p)*rn(nsa,nr-1)*rt(nsa,nr-1)     &
              +(     gm1m+2.D0*gm1p)*rn(nsa,nr  )*rt(nsa,nr  ))
 
 
-          IF(dtr_all(3*nsa-2,nr)==0.d0) dtr_all(3*nsa-2,nr) = 0.01d0
-          IF(dtr_all(3*nsa-1,nr)==0.d0) dtr_all(3*nsa-1,nr) = 0.01d0
-          IF(dtr_all(3*nsa  ,nr)==0.d0) dtr_all(3*nsa  ,nr) = 0.01d0
+          IF(dtr_all(1+3*nsa-2,nr)==0.d0) dtr_all(1+3*nsa-2,nr) = 0.01d0
+          IF(dtr_all(1+3*nsa-1,nr)==0.d0) dtr_all(1+3*nsa-1,nr) = 0.01d0
+          IF(dtr_all(1+3*nsa  ,nr)==0.d0) dtr_all(1+3*nsa  ,nr) = 0.01d0
 
           ! numerically additional term in nodal equation
-          add_prv(3*nsa-2,nr) = (dtr_elm(3*nsa-2,nr)-vtr_elm(3*nsa-2,nr)) &
-                                / dtr_all(3*nsa-2,nr)
-          add_prv(3*nsa-1,nr) = (dtr_elm(3*nsa-1,nr)-vtr_elm(3*nsa-1,nr)) &
-                                / dtr_all(3*nsa-1,nr)
-          add_prv(3*nsa  ,nr) = (dtr_elm(3*nsa  ,nr)-vtr_elm(3*nsa  ,nr)) &
-                                / dtr_all(3*nsa  ,nr)          
+          add_prv(1+3*nsa-2,nr) =                            &
+               (dtr_elm(1+3*nsa-2,nr)-vtr_elm(1+3*nsa-2,nr)) &
+               / dtr_all(1+3*nsa-2,nr)
+          add_prv(1+3*nsa-1,nr) =                            &
+               (dtr_elm(1+3*nsa-1,nr)-vtr_elm(1+3*nsa-1,nr)) &
+               / dtr_all(1+3*nsa-1,nr)
+          add_prv(1+3*nsa  ,nr) =                            &
+               (dtr_elm(1+3*nsa  ,nr)-vtr_elm(1+3*nsa  ,nr)) &
+               / dtr_all(1+3*nsa  ,nr)          
        END DO
     END DO
 
   END SUBROUTINE Pereverzev_check
-END MODULE trcoef
+END MODULE trcoeftb

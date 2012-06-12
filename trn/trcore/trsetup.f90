@@ -103,7 +103,7 @@ CONTAINS
     neq = 1
     nsa_neq(neq) = 0
     nva_neq(neq) = 0
-    id_neq(neq)  = 0
+    id_neq(neq)  = 2
 
     DO nsa=1,nsamax
        DO i=1,3
@@ -195,7 +195,7 @@ CONTAINS
 
        CASE(0) ! equation is not solved in any radius (fixed to zero)
           neqr_neq(neq) = 0
-          id_neqnr(neq,0:nrmax) = 0
+          id_neqnr(neq,0:nrmax) = 2
        CASE(1,11) ! flat on axis and fixed at plasma surface
           neqr = neqr+1
           neqr_neq(neq) = neqr
@@ -261,7 +261,7 @@ CONTAINS
     USE trcomm, ONLY: pi,rkap,nrmax,ra,rr,bb,rkap,rg,rm,rjcb,rhog,rhom, &
          rhoa,ttrho,dvrho,abrho,abvrho,arrho,ar1rho,ar2rho,rmjrho,      &
          rmnrho,rmnrhom,rkprho,rkprhom,rhog,rhom,epsrho,                &
-         abb2rho,abb1rho,pvolrho,psurrho  ! ,nrd1,nrd2,nrd3
+         abb2rho,aib2rho,abb1rho,pvolrho,psurrho  ! ,nrd1,nrd2,nrd3
 
     IMPLICIT NONE
     INTEGER(ikind) :: nr
@@ -297,12 +297,19 @@ CONTAINS
 !
        epsrho(nr)  = rmnrho(nr)/rmjrho(nr)
 
-       abb1rho(nr) = BB*(1.d0 + 0.5d0*epsrho(nr)**2) ! <B>
-       ttrho(nr)   = abb1rho(nr) * rr
-!       arrho(nr)   = 1.d0/rr**2                    ! const
-       arrho(nr)   = 1.d0/rr**2 * (1+1.5d0*epsrho(nr)**2)            
+       ! toroidal field for now
+!       abb1rho(nr) = BB*(1.d0 + 0.5d0*epsrho(nr)**2) ! <B>
+       abb1rho(nr) = BB
+!       abb2rho(nr) = BB**2 *(1.d0+1.5d0*epsrho(nr)**2)
+       abb2rho(nr) = BB**2
+!       aib2rho(nr) = (1.d0+1.5d0*epsrho(nr)**2)/BB**2
+       aib2rho(nr) = 1/BB**2
+!       ttrho(nr)   = abb1rho(nr) * rr
+       ttrho(nr)   = BB * rr
+!       arrho(nr)   = 1.d0/rr**2 * (1+1.5d0*epsrho(nr)**2)            
+       arrho(nr)   = 1.d0/rr**2                    ! const
 !       abb2rho(nr) = 
-       abvrho(nr)  = dvrho(nr)**2*abrho(nr)
+       abvrho(nr)  = dvrho(nr)**2 * abrho(nr)
 
     END DO
 
@@ -370,10 +377,11 @@ CONTAINS
 ! --------------------------------------------------------------------------
 !   This subroutine calculates inital profiles.
 ! --------------------------------------------------------------------------
-    USE trcomm, ONLY: ikind,rkind,pi,rkap,rdlt,nrmax,nsmax,nsamax, &
+    USE trcomm, ONLY: pi,rkap,rdlt,nrmax,nsmax,nsamax, &
          rg,rm,rhog,rhom,ra,rr,rn,ru,rt,ns_nsa,   &
          ttrho,dvrho,arrho,ar1rho,rdpvrho,dpdrho, &
          mdluf
+    USE trcalc, ONLY: tr_calc_dpdrho2j
     USE plprof, ONLY: pl_prof2,pl_qprf
                       
     IMPLICIT NONE
@@ -402,6 +410,7 @@ CONTAINS
 
        ! set profile of 'd psi/d rho' from given jtot profile
        CALL tr_prof_j2dpdrho
+       CALL tr_calc_dpdrho2j
 
     END IF
 
@@ -411,92 +420,60 @@ CONTAINS
 
   SUBROUTINE tr_prof_j2dpdrho
 ! --------------------------------------------------------------------------
-!   This subroutine gives initial profile of current density and d psi/d rho
+!   This subroutine gives initial profile of toroidal current density 
+!    and d psi/d rho.
 ! --------------------------------------------------------------------------
-    USE trcomm, ONLY: rmu0,pi,nrmax,BB,RR,q0,qa,profj1,profj2,knameq, &
-         rhog,abb1rho,dvrho,ttrho,abrho,arrho,dpdrho,ar1rho,          &
-         jtot,joh,bp,qp!, nrd1,nrd2,nrd3,nrd4
+    USE trcomm, ONLY: rmu0,pi,nrmax,BB,RR,q0,qa,profj1,profj2,rip,rips, &
+         rhog,abb1rho,dvrho,ttrho,abrho,arrho,ar1rho,abvrho,            &
+         dpdrho,rdpvrho,jtot,joh,eta,knameq! ,nrd1,nrd2
 
     IMPLICIT NONE
-    REAL(rkind) :: dr,prof,factor0,sumfact1
-    REAL(rkind) :: FCTR ! function defined in TASK/lib
+    REAL(rkind) :: dr,factor0,factorp,factorm,fact,dpdrhos
     INTEGER(ikind) :: nr
 
-!    rdpvrho(nr) = ttrho(nr)*arrho(nr)/(4.d0*pi**2*qp(nr))! d psi/d V
-    
-    profj1 = 2.d0
-    profj2 = 1.d0
+    rip = rips
 
     DO nr = 0, nrmax
        IF((1.d0-rhog(nr)**ABS(profj1)).LE.0.d0) THEN
-          prof = 0.D0
+          jtot(nr) = 0.D0
        ELSE
-          prof = 1.d6 * (1.D0-rhog(nr)**ABS(profj1))**ABS(profj2)
+          jtot(nr) = 1.d5 * (1.D0-rhog(nr)**ABS(profj1))**ABS(profj2)
        ENDIF
-       joh(nr)  = prof
-       jtot(nr) = prof
     ENDDO
 
-    sumfact1 = 0.d0
-    dpdrho   = 0.d0
+    dpdrho(0:nrmax)  = 0.d0
+    rdpvrho(0:nrmax) = 0.d0
     DO nr = 1, nrmax
-       dr = rhog(nr)-rhog(nr-1)
-       factor0 = ttrho(nr)/(dvrho(nr)*abrho(nr))
-       sumfact1 = sumfact1 +                               &
-                  rmu0*abb1rho(nr)*dvrho(nr)/ttrho(nr)**2  &
-                   * 0.5d0*(jtot(nr)+jtot(nr-1)) * dr
-       dpdrho(nr) = factor0*sumfact1
+       dr      = rhog(nr)-rhog(nr-1)
+       factor0 = rmu0*0.5d0*(abb1rho(nr)+abb1rho(nr-1)) &
+                     *0.5d0*(dvrho(nr)+dvrho(nr-1))     &
+                     *0.5d0*(jtot(nr)+jtot(nr-1))       &
+                  /(0.5d0*(ttrho(nr)+ttrho(nr-1)))**2
+       factorp = abvrho(nr  )/ttrho(nr  )
+       factorm = abvrho(nr-1)/ttrho(nr-1)
 
-       bp(nr)      = ar1rho(nr)*dpdrho(nr)/RR
+       rdpvrho(nr) = (factorm*rdpvrho(nr-1) + factor0*dr)/factorp
+       dpdrho(nr)  = rdpvrho(nr)*dvrho(nr)
     END DO
+!    rdpvrho(nr) = ttrho(nr)*arrho(nr)/(4.d0*pi**2*qp(nr))! d psi/d V
 
-    qp(1:nrmax) = ttrho(1:nrmax)*dvrho(1:nrmax)*arrho(1:nrmax)   &
-                   /(4.d0*pi**2 * dpdrho(1:nrmax))
-    qp(0)       = FCTR(rhog(1),rhog(2),qp(1),qp(2)) ! func. in TASK/lib
-    q0 = qp(0)
-    qa = qp(nrmax)
+    ! set the boundary value of dpdrho in terms of plasma current value
+    dpdrhos = 2.d0*pi*rmu0*rip*1.d6 / (dvrho(nrmax)*abrho(nrmax))
+    ! correction in terms of the boundary value of dpdrho
+    fact = dpdrhos / dpdrho(nrmax)
+!    write(*,*) fact
 
+    dpdrho(0:nrmax)  = fact*dpdrho(0:nrmax) 
+    rdpvrho(0:nrmax) = fact*rdpvrho(0:nrmax)
+
+    jtot(0:nrmax) = fact*jtot(0:nrmax)
+    joh(0:nrmax)  = jtot(0:nrmax)
+
+    eta(0:nrmax) = 1.d-7
+    
     ! diagnostic
-!    nrd1(0:nrmax) = jtot(0:nrmax)
-!    nrd2(0:nrmax) = dpdrho(0:nrmax)
-!    nrd3(0:nrmax) = qp(0:nrmax)
-!    nrd4(0:nrmax) = bp(0:nrmax)
-
-
-!!$    NR=1    
-!!$    FACTORP=ABVRHOG(NR  )/TTRHOG(NR  )
-!!$    RDPVRHOG(NR)=FACTOR0*DR/FACTORP
-!!$    RDP(NR)=RDPVRHOG(NR)*DVRHOG(NR)
-!!$    BP(NR)=AR1RHOG(NR)*RDP(NR)/RR
-!!$    DO NR=2,NRMAX
-!!$       FACTOR0=RMU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
-!!$       FACTORM=ABVRHOG(NR-1)/TTRHOG(NR-1)
-!!$       FACTORP=ABVRHOG(NR  )/TTRHOG(NR  )
-!!$       RDPVRHOG(NR)=(FACTORM*RDPVRHOG(NR-1)+FACTOR0*DR)/FACTORP
-!!$       RDP(NR)=RDPVRHOG(NR)*DVRHOG(NR)
-!!$       BP(NR)=AR1RHOG(NR)*RDP(NR)/RR
-!!$    ENDDO
-!!$    NR=1
-!!$    FACTOR0=RR/(RMU0*DVRHO(NR))
-!!$    FACTORP=ABVRHOG(NR  )
-!!$    AJTOR(NR) =FACTOR0*FACTORP*RDPVRHOG(NR)/DR
-!!$    DO NR=2,NRMAX
-!!$       FACTOR0=RR/(RMU0*DVRHO(NR))
-!!$       FACTORM=ABVRHOG(NR-1)
-!!$       FACTORP=ABVRHOG(NR  )
-!!$       AJTOR(NR) =FACTOR0*(FACTORP*RDPVRHOG(NR)-FACTORM*RDPVRHOG(NR-1))/D\
-!!$       R
-!!$    ENDDO
-!!$    
-!!$    RDPS=2.D0*PI*RMU0*RIP*1.D6*DVRHOG(NRMAX)/ABVRHOG(NRMAX)
-!!$    FACT=RDPS/RDP(NRMAX)
-!!$    RDP(1:NRMAX)=FACT*RDP(1:NRMAX)
-!!$    RDPVRHOG(1:NRMAX)=FACT*RDPVRHOG(1:NRMAX)
-!!$    AJOH(1:NRMAX)=FACT*AJOH(1:NRMAX)
-!!$    AJ(1:NRMAX)  =AJOH(1:NRMAX)
-!!$    BP(1:NRMAX)  =FACT*BP(1:NRMAX)
-!!$    QP(1:NRMAX)  =TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)/(4.D0*PI**2*RDPVRHOG(1:\
-!!$    NRMAX))    
+!    nrd1(0:nrmax) = rdpvrho(0:nrmax)
+!    nrd2(0:nrmax) = jtot(0:nrmax)
 
     RETURN
   END SUBROUTINE tr_prof_j2dpdrho
