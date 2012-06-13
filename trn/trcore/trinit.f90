@@ -255,7 +255,7 @@ CONTAINS
     ripe = 1.d0
 
     mdluf  = 0
-    mdler  = 0
+    mdler  = 2
 
 
     RETURN

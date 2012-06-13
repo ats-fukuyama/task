@@ -111,7 +111,8 @@ MODULE trcomm
        dtr_prv,  &! additional diffusion coefficient [m^2/s]
        vtr_prv    ! additional convection velocity [m/s]
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
-       ! These variables should be distinguished; parallel and toroidal(total)
+       htr_simple !  simple model of external driven current density [A/m^2]
+  REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
        eta   ,   &! pararell resistivity [ohm m]
        jtot  ,   &! (parallel) total current [A/m^2]
        joh   ,   &! (parallel) ohmic current [A/m^2]
@@ -126,7 +127,13 @@ MODULE trcomm
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
        str_simple !  simple model of source density [MW/m^3]
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
-       htr_simple !  simple model of external driven current density [A/m^2]
+       ptot,    &!
+       poh,     &!
+       pnb,     &!
+       prf,     &!
+       pec,     &!
+       pic,     &!
+       plh       !
 
 ! ----- profile variables -----
 
@@ -181,7 +188,8 @@ MODULE trcomm
 ! ----- unclassified -----
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
        bp,       &! poloidal magnetic field [T]
-       er         ! radial electric field [V/m]
+       er,       &! radial electric field [V/m]
+       ezoh       !
 
 ! ----- switch variables -----
   INTEGER(ikind) :: &
@@ -284,7 +292,7 @@ CONTAINS
           IF(ierr /= 0) GOTO 9000
        ALLOCATE(ctr_ex(neqmax,neqmax,0:nrmax),STAT=ierr)
           IF(ierr /= 0) GOTO 9000
-       ALLOCATE(eta(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+
        ALLOCATE(jtot(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(joh(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(jtor(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
@@ -295,9 +303,16 @@ CONTAINS
        ALLOCATE(jcd_ec(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(jcd_lh(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(jcd_ic(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-
-       ALLOCATE(str_simple(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(eta(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(htr_simple(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(str_simple(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(ptot(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(poh(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(pnb(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(prf(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(pec(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(pic(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(plh(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
 
        ! profile variables
        ALLOCATE(vtor(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
@@ -349,6 +364,7 @@ CONTAINS
       ! unclassified
       ALLOCATE(bp(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
       ALLOCATE(er(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+      ALLOCATE(ezoh(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
 
       ! for diagnostic
       ALLOCATE(nrd1(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
@@ -405,8 +421,15 @@ CONTAINS
     IF(ALLOCATED(jcd_lh)) DEALLOCATE(jcd_lh)
     IF(ALLOCATED(jcd_ic)) DEALLOCATE(jcd_ic)
 
-    IF(ALLOCATED(str_simple)) DEALLOCATE(str_simple)
     IF(ALLOCATED(htr_simple)) DEALLOCATE(htr_simple)
+    IF(ALLOCATED(str_simple)) DEALLOCATE(str_simple)
+    IF(ALLOCATED(ptot)) DEALLOCATE(ptot)
+    IF(ALLOCATED(poh)) DEALLOCATE(poh)
+    IF(ALLOCATED(pnb)) DEALLOCATE(pnb)
+    IF(ALLOCATED(prf)) DEALLOCATE(prf)
+    IF(ALLOCATED(pec)) DEALLOCATE(pec)
+    IF(ALLOCATED(pic)) DEALLOCATE(pic)
+    IF(ALLOCATED(plh)) DEALLOCATE(plh)
 
     ! profile variables
     IF(ALLOCATED(vtor)) DEALLOCATE(vtor)
@@ -456,6 +479,7 @@ CONTAINS
     ! unclassified
     IF(ALLOCATED(bp)) DEALLOCATE(bp)
     IF(ALLOCATED(er)) DEALLOCATE(er)
+    IF(ALLOCATED(ezoh)) DEALLOCATE(ezoh)
 
     ! for diagnostic
     IF(ALLOCATED(nrd1)) DEALLOCATE(nrd1)

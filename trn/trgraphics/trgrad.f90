@@ -305,24 +305,25 @@ CONTAINS
   ! ----- current density profile -----
     USE trcomm, ONLY: jtot,joh,jtor,eta,qp,htr
 
-    vgx1(0:nrmax,1) = 1.d-6*jtot(0:nrmax) !+ htr(1,0:nrmax)
+    vgx1(0:nrmax,1) = 1.d-6*jtot(0:nrmax) + 1.d-6*htr(1,0:nrmax)
     vgx1(0:nrmax,2) = 1.d-6*joh(0:nrmax)
+    vgx1(0:nrmax,3) = 1.d-6*htr(1,0:nrmax)
 
     vgx2(0:nrmax,1) = 1.d-6*jtor(0:nrmax)
     vgx3(0:nrmax,1) = 1.d-6*htr(1,0:nrmax)
-    vgx4(0:nrmax,1) = eta(0:nrmax)
+    vgx4(0:nrmax,1) = LOG10(eta(0:nrmax))
     
 !    vgx4(0:nrmax,1) = qp(0:nrmax)
 
     CALL PAGES
-    label = '/j(tot,oh) [MA/m^2] vs rho'
+    label = '/j(tot,oh,bs) [MA/m^2] vs rho'
     CALL GRD1D(1,rhog,vgx1,nrmax+1,nrmax+1,5,label,0)
     label = '/j(tor) [MA/m^2] vs rho'
     CALL GRD1D(2,rhog,vgx2,nrmax+1,nrmax+1,5,label,0)
-    label = '/j(ex) [MA/m^2] vs rho'
+    label = '/j(bs,ex) [MA/m^2] vs rho'
     CALL GRD1D(3,rhog,vgx3,nrmax+1,nrmax+1,1,label,0)
-    label = '/eta(para) vs rho'
-    CALL GRD1D(4,rhog,vgx4,nrmax+1,nrmax+1,1,label,0)
+    label = '/eta(para) [ohm m] vs rho'
+    CALL GRD1D(4,rhog,vgx4,nrmax+1,nrmax+1,1,label,2)
     CALL PAGEE
 
     RETURN
@@ -331,8 +332,17 @@ CONTAINS
 ! **************************************************************************
   SUBROUTINE tr_gr_rad6
   ! ----- heating profile-----
-    
-    write(*,*) '*** Unavailable now ***'
+    USE trcomm, ONLY: str,poh
+
+    vgx1 = 0.d0
+
+!    write(*,*) '*** Unavailable now ***'
+    vgx1(0:nrmax,1) = poh(0:nrmax)*1.d-6
+
+    CALL PAGES
+    label = '/Pin [MW/m^3] vs rho/'
+    CALL GRD1D(1,rhog,vgx1,nrmax+1,nrmax+1,5,label,0)
+    CALL PAGEE
 
     RETURN
   END SUBROUTINE tr_gr_rad6

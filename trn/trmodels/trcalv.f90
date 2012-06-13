@@ -303,8 +303,8 @@ CONTAINS
        term_dp = rp_d(2,nr) / (pz(2)*aee*rn(2,nr)*1.d20)
 
        ! toroidal and poloidal rotation velocity <- from experiments for now
-       vtor = 0.d0
-       vpol = 0.d0
+!       vtor = 0.d0
+!       vpol = 0.d0
 
        IF(mdler.EQ.0) THEN
           ! pressure gradient only (nabla p)

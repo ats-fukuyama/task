@@ -31,7 +31,10 @@ CONTAINS
            '  TAUE:',F7.3,'(s)   Q0:',F7.3)
     WRITE(6,602) (kidnsa(nsa),rt(nsa,0),nsa=1,nsamax)
 602 FORMAT(4(' T',A1,':',F7.3,'(keV)  ':))
-    WRITE(6,'(I4)') nitmax
+
+    WRITE(6,'(A13,I4)') 'Iterations: ',nitmax
+    nitmax = 0
+    
     RETURN
   END SUBROUTINE tr_status
 
@@ -79,7 +82,7 @@ CONTAINS
           gvrts(0:nrmax,ngt,nsa, 3) = rt(nsa,0:nrmax)
     END DO
 
-    gvrtj(0:nrmax,ngt,1) = jtot(0:nrmax)
+    gvrtj(0:nrmax,ngt,1) = jtot(0:nrmax) + htr(1,0:nrmax)
     gvrtj(0:nrmax,ngt,2) = joh(0:nrmax)
     gvrtj(0:nrmax,ngt,3) = htr(1,0:nrmax)
 

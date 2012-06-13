@@ -320,10 +320,10 @@ CONTAINS
 ! --------------------------------------------------------------------------
 !
 ! --------------------------------------------------------------------------
-    USE trcomm, ONLY: pi,nrmax,ra,rr,rkap,bb,rg,rm,rhoa,                    &
-       ttrho,dvrho,abrho,abvrho,arrho,ar1rho,ar2rho,rmjrho,rmnrho,rmnrhom,  &
-       rkprho,rkprhom,rjcb,rhog,rhom,epsrho,abb2rho,abb1rho,pvolrho,psurrho,&
-       modelg,knameq !, nrd1,nrd2
+    USE trcomm, ONLY: pi,nrmax,ra,rr,rkap,bb,rg,rm,rhoa,                   &
+       ttrho,dvrho,abrho,abvrho,arrho,ar1rho,ar2rho,rmjrho,rmnrho,rmnrhom, &
+       rkprho,rkprhom,rjcb,rhog,rhom,epsrho,abb2rho,abb1rho,pvolrho,       &
+       psurrho,modelg,knameq !, nrd1,nrd2
 
     USE trbpsd, ONLY: tr_bpsd_set,tr_bpsd_get
     USE equnit_mod, ONLY: eq_parm,eq_prof,eq_calc,eq_load

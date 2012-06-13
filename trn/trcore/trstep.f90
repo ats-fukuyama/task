@@ -63,13 +63,12 @@ CONTAINS
 
        IF(difmax < epsltr) THEN
           nitmax=MAX(nit,nitmax)
-          GO TO 700
+!          nitmax = nit
+          EXIT
        END IF
     END DO
 
-    nitmax=lmaxtr+1
-
-700 CONTINUE
+    IF(nit==lmaxtr+1) nitmax = lmaxtr + 1
 
     CALL tr_set_xv(xv,dpdrho,rn,ru,rt)
 !    nrd1(0:nrmax) = rt(1,0:nrmax)*rn(1,0:nrmax)

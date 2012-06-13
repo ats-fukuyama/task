@@ -104,8 +104,8 @@ CONTAINS
     ELSE
        DO nsa = 1, nsamax
           vga1(0:nrmax,nsa) = rt(nsa,0:nrmax)
-          vma1(1:nrmax,nsa) = dtr_prv(3*nsa,1:nrmax)
-          vma2(1:nrmax,nsa) = vtr_prv(3*nsa,1:nrmax)
+          vma1(1:nrmax,nsa) = dtr_prv(1+3*nsa,1:nrmax)
+          vma2(1:nrmax,nsa) = vtr_prv(1+3*nsa,1:nrmax)
        END DO
     END IF
 
@@ -126,6 +126,7 @@ CONTAINS
   !--- history of profiles of numerically additional quantities
   !                                               ( for Pereverzev method )
   !    * numerically net additional quantities in each nodal equation *
+  !    * These quantities are relative value to total dtr.            *
     USE trcomm, ONLY: ngt,gparts
 
     ngg_interval = ngt/(MOD(ngt-1,nggmax)+1)
@@ -139,9 +140,9 @@ CONTAINS
     END DO
 
     CALL PAGES
-    label = '/add_Net(n_e*T_e) vs rho'
+    label = '/add_Net(nT(1)) vs rho'
     CALL GRD1D(1,rhog,gparg1, nrmax+1,nrmax+1,nggmax+1, label,0)
-    label = '/add_Net(n_H*T_H) vs rho'
+    label = '/add_Net(nT(2)) vs rho'
     CALL GRD1D(2,rhog,gparg2, nrmax+1,nrmax+1,nggmax+1, label,0)
     CALL PAGEE
     

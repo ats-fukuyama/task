@@ -10,20 +10,21 @@ CONTAINS
 ! ***** calculate transport coefficients and souce terms *****
 
   SUBROUTINE tr_calc
-    USE trcomm, ONLY: nrmax,nsamax,neqmax,dtr,vtr,ctr,str,htr,eta, &
-         dtr_nc,vtr_nc,dtr_tb,vtr_tb,ctr_ex,str_simple,htr_simple, &
-         nrd4
+    USE trcomm, ONLY: nrmax,nsamax,neqmax,rkev,dtr,vtr,ctr,str,htr, &
+         nsa_neq,nva_neq, &
+         dtr_nc,vtr_nc,dtr_tb,vtr_tb,ctr_ex,str_simple,htr_simple,  &
+         jbs_nc,jex_nc,eta,poh,nrd4
     USE trcalv, ONLY: tr_calv_nr_alloc,tr_calc_variables
     USE trcoeftb, ONLY: tr_coeftb
     USE trcoefnc, ONLY: tr_coefnc
     IMPLICIT NONE
-    INTEGER(ikind):: nr,neq
+    INTEGER(ikind):: nr,neq,nsa,nva
 
     CALL tr_calc_dpdrho2j
-    ! calculate classical resistivity
 
     CALL tr_calv_nr_alloc
     CALL tr_calc_variables
+
     CALL tr_coeftb         ! calculate turbulent transport coefficients
     CALL tr_coefnc         ! calculate neoclassical transport coefficients
 
@@ -54,7 +55,19 @@ CONTAINS
        END DO
     END DO
 
-    str(2:neqmax,0:nrmax) = str_simple(2:neqmax,0:nrmax)
+!    str(2:neqmax,0:nrmax) = str_simple(2:neqmax,0:nrmax)
+    DO neq = 1, neqmax
+       nsa = nsa_neq(neq)
+       nva = nva_neq(neq)
+       IF(nva == 3)THEN
+          str(neq,0:nrmax) = poh(0:nrmax)/(rkev*1.d20)
+       END IF
+    END DO
+
+
+    ! bootstrap current
+    htr(1,0:nrmax) = jbs_nc(0:nrmax) + jex_nc(0:nrmax)
+
 !    htr(1,0:nrmax) = htr_simple(0:nrmax)
 
     RETURN
@@ -94,7 +107,8 @@ CONTAINS
 ! ----- calculate source -----
 
   SUBROUTINE tr_calc_source
-    USE trcomm, ONLY: nrmax,nsamax,neqmax,nva_neq,ph0,phs,rhog,ra,str_simple
+    USE trcomm, ONLY: nrmax,nsamax,neqmax,nva_neq,ph0,phs,rhog,ra, &
+         str_simple,joh,eta,ezoh,poh
     IMPLICIT NONE
     INTEGER(ikind) :: nr, neq
 
@@ -108,6 +122,11 @@ CONTAINS
           END IF
        END DO
     END DO
+
+    ! ohmic heating [W/m^3]
+    ezoh(0:nrmax) = eta(0:nrmax)*joh(0:nrmax)
+    poh(0:nrmax) = ezoh(0:nrmax)*joh(0:nrmax)    
+
     RETURN
   END SUBROUTINE tr_calc_source
 
@@ -137,8 +156,9 @@ CONTAINS
 !  calculate following conversions:  d psi/d rho --> bp,qp,jtor,jtot
 ! --------------------------------------------------------------------------
     USE trcomm, ONLY: pi,rmu0,nrmax,RR,ar1rho,ttrho,rmjrho,arrho,dvrho,  &
-         abb1rho,abrho,rhog,dpdrho,rdpvrho,qp,q0,qa,bp,jtot,joh,jtor,rip &
-         ,nrd3,nrd4
+         abb1rho,abrho,rhog,dpdrho,rdpvrho,qp,q0,qa,bp,rip,              &
+         jtot,joh,jtor,jbs_nc,jex_nc,jcd_nb,jcd_ec,jcd_lh,jcd_ic,        &
+         nrd3,nrd4
 
     IMPLICIT NONE
     INTEGER(ikind) :: nr
@@ -175,7 +195,7 @@ CONTAINS
 !    jtot(0) = FCTR4pt(rhog(1),rhog(2),rhog(3),jtot(1),jtot(2),jtot(3))
     jtot(0) = FCTR(rhog(1),rhog(2),jtot(1),jtot(2))
 
-    joh(0:nrmax) = jtot(0:nrmax) !-jex(0:nrmax)
+    joh(0:nrmax) = jtot(0:nrmax) - jbs_nc(0:nrmax) - jex_nc(0:nrmax)
 
     ! ***** inverse conversion for confirmation *****
 !!$    ipl = 0.d0
@@ -193,6 +213,5 @@ CONTAINS
 
     RETURN
   END SUBROUTINE tr_calc_dpdrho2j
-
 
 END MODULE trcalc

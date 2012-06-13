@@ -12,8 +12,8 @@ CONTAINS
 
     USE trcomm,ONLY: &
          neqmax,neqrmax,nvmax,nvrmax,nrmax,               &
-         neqr_neq,nva_neq,id_neq,id_neqnr,                &
-         dt,rhog,dtr,vtr,ctr,str,htr,                     &
+         neqr_neq,nva_neq,id_neq,id_neqnr,mdltr_prv,      &
+         dt,rhog,dtr,vtr,ctr,str,htr,dtr_prv,             &
          elmtx,elmtx_ofd,limtx,rsimtx,rjimtx,             &
          r1imtx,r2imtx,r3imtx,r1imtx_ofd,rimtx,lhmtx,rhv, &
          xv,xv_new,xv_prev 
@@ -21,7 +21,7 @@ CONTAINS
     REAL(rkind) :: &
          dh0,dh1,dh2,dh3,dvdrp,dvdrm,  &
          gm1p,gm1m,gm2p,gm2m,cjexm,cjexp,coef1,coef2
-    REAL(rkind) :: dtr_ofd
+    REAL(rkind) :: dtr_ofd,dtr_d,dtr_chi
     INTEGER(ikind) :: nr,neq,neq1,neqr,neqr1,nvrm,nvrp,ierr,nvm,nvp
 
 
@@ -78,9 +78,18 @@ CONTAINS
              ! off-diagonal term of density gradient
              !                          in energy transport equation.
              IF(nva_neq(neq)==3 .AND. nva_neq(neq1)==3)THEN
+                IF(mdltr_prv /= 0 .AND. neq == neq1)THEN
+                   ! only for energy transport (i.e. for chi)
+                   !   in common with Pereverzev method routine.
+                   dtr_d   = dtr(neq-2,neq1-2,nr) - dtr_prv(neq-2,nr)
+                   dtr_chi = dtr(neq,neq1,nr) - dtr_prv(neq,nr)
+                ELSE
+                   dtr_d   = dtr(neq-2,neq1-2,nr)
+                   dtr_chi = dtr(neq,neq1,nr)
+                END IF
                 dtr_ofd = 0.5d0*(xv_prev((nr-1)*neqmax+neq1)  &
                                 +xv_prev( nr   *neqmax+neq1)) &
-                          *(coef2*dtr(neq-2,neq1-2,nr) - dtr(neq,neq1,nr))
+                               *( coef2*dtr_d - dtr_chi )
 !                dtr_ofd = - 0.5d0*(xv_prev((nr-1)*neqmax+neq1)  &
 !                                  +xv_prev( nr   *neqmax+neq1)) &
 !                           *dtr(neq,neq1,nr)
@@ -92,24 +101,30 @@ CONTAINS
              END IF
 
              ! at the center of element
-             r2imtx(1,1,neq,neq1)= - coef1*dh1*vtr(neq,neq1,nr)        &
-                                               *(2.d0*gm1m +      gm1p)
-             r2imtx(2,1,neq,neq1)=   coef1*dh1*vtr(neq,neq1,nr)        &
-                                               *(2.d0*gm1m +      gm1p)
-             r2imtx(1,2,neq,neq1)= - coef1*dh1*vtr(neq,neq1,nr)        &
-                                               *(     gm1m + 2.d0*gm1p)
-             r2imtx(2,2,neq,neq1)=   coef1*dh1*vtr(neq,neq1,nr)        &
-                                               *(     gm1m + 2.d0*gm1p)
+             IF(nva_neq(neq)==3 .AND. nva_neq(neq1)==3)THEN
+                r2imtx(1,1,neq,neq1)= - dh1                           &
+                     *(vtr(neq,neq1,nr)+coef2*vtr(neq-2,neq1-2,nr))   &
+                     *(2.d0*gm1m +      gm1p)
+                r2imtx(2,1,neq,neq1)=   dh1                           &
+                     *(vtr(neq,neq1,nr)+coef2*vtr(neq-2,neq1-2,nr))   &
+                     *(2.d0*gm1m +      gm1p)
+                r2imtx(1,2,neq,neq1)= - dh1                           &
+                     *(vtr(neq,neq1,nr)+coef2*vtr(neq-2,neq1-2,nr))   &
+                     *(     gm1m + 2.d0*gm1p)
+                r2imtx(2,2,neq,neq1)=   dh1                           &
+                     *(vtr(neq,neq1,nr)+coef2*vtr(neq-2,neq1-2,nr))   &
+                     *(     gm1m + 2.d0*gm1p)
 
-             
-             r2imtx(1,1,neq,neq1)= - coef1*dh1*vtr(neq,neq1,nr)        &
-                                               *(2.d0*gm1m +      gm1p)
-             r2imtx(2,1,neq,neq1)=   coef1*dh1*vtr(neq,neq1,nr)        &
-                                               *(2.d0*gm1m +      gm1p)
-             r2imtx(1,2,neq,neq1)= - coef1*dh1*vtr(neq,neq1,nr)        &
-                                               *(     gm1m + 2.d0*gm1p)
-             r2imtx(2,2,neq,neq1)=   coef1*dh1*vtr(neq,neq1,nr)        &
-                                               *(     gm1m + 2.d0*gm1p)
+             ELSE
+                r2imtx(1,1,neq,neq1)= - dh1*vtr(neq,neq1,nr)        &
+                                         *(2.d0*gm1m +      gm1p)
+                r2imtx(2,1,neq,neq1)=   dh1*vtr(neq,neq1,nr)        &
+                                         *(2.d0*gm1m +      gm1p)
+                r2imtx(1,2,neq,neq1)= - dh1*vtr(neq,neq1,nr)        &
+                                         *(     gm1m + 2.d0*gm1p)
+                r2imtx(2,2,neq,neq1)=   dh1*vtr(neq,neq1,nr)        &
+                                         *(     gm1m + 2.d0*gm1p)
+             END IF
 
            
              r3imtx(1,1,neq,neq1)= dh2*(3.D0*ctr(neq,neq1,nr-1)*dvdrm &
@@ -328,8 +343,8 @@ CONTAINS
        dvdrm = dvrho(nr-1)
        gm2p  = dvrho(nr-1)*ar2rho(nr-1) + dvrho(nr  )*ar2rho(nr  )
        gm2m  = dvrho(nr-1)*ar2rho(nr-1) + dvrho(nr  )*ar2rho(nr  )
-       coef1 = 1.5d0 ! the coefficient of time derivative term
-       coef2 = 2.5d0 ! the coefficient of off-diagonal particle diffusion
+       coef1 = 1.5d0 ! the coef. of time derivative term
+       coef2 = 2.5d0 ! the coef. of contribution from particle diffusion
        cjexp = 0.d0
        cjexm = 0.d0
     END IF
