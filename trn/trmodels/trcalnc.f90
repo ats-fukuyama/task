@@ -54,7 +54,7 @@ CONTAINS
       USE TRCOMM, ONLY : AEE, AME, EPS0, PI, PZ, RKEV
       IMPLICIT NONE
       REAL(8) :: ANEL, ANIL, TEL, ZL
-      REAL(8) :: COEF, COULOG
+      REAL(8) :: COEF
 
       COEF = 6.D0*PI*SQRT(2.D0*PI)*EPS0**2*SQRT(AME)/(AEE**4*1.D20)
       IF(ZL-PZ(2).LE.1.D-7) THEN
@@ -82,7 +82,7 @@ CONTAINS
       USE TRCOMM, ONLY : AEE, AMP, EPS0, PI, RKEV
       IMPLICIT NONE
       REAL(8):: ANEL, ANIL, PAL, TIL, ZL
-      REAL(8):: COEF, COULOG
+      REAL(8):: COEF
 
       COEF = 12.D0*PI*SQRT(PI)*EPS0**2*SQRT(PAL*AMP)/(AEE**4*1.D20)
       FTAUI = COEF*(TIL*RKEV)**1.5D0/(ANIL*ZL**4*COULOG(2,2,ANEL,TIL))
@@ -98,7 +98,7 @@ CONTAINS
 
     IMPLICIT NONE
     INTEGER(ikind) :: nr
-    REAL(rkind) :: taue, FTAUE
+    REAL(rkind) :: taue
 
       DO nr = 1, nrmax
 !        ****** CLASSICAL RESISTIVITY (Spitzer) from JAERI Report ******
@@ -125,8 +125,8 @@ CONTAINS
     INTEGER(4),PARAMETER        :: IMAX=20
     REAL(8)                     :: EPS, EPSC, FTLL, FTUL, OMEGA, PI, S
     REAL(8),DIMENSION(IMAX,IMAX):: TABLE
-    REAL(8)                     :: FTL, FTU
-    EXTERNAL FTL, FTU
+!    REAL(8)                     :: FTL, FTU
+!    EXTERNAL FTL, FTU
 
       IF(ID.EQ.1) THEN
 !  Y. R. Lin-Liu and R. L. Miller, PoP 2 1666 (1995), eqs(7)(13)(18)(19)

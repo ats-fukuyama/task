@@ -106,7 +106,7 @@ CONTAINS
     cjbs_p,&! bsjbp_s(s) - <J_bs.B> driven by unit p'/p of s (A*T*rho/m**3)
     cjbs_t  ! bsjbt_s(s) - <J_bs.B> driven by unit T'/T of s (A*T*rho/m**3)
 
-!    USE trcalnc, ONLY: ftpf
+    USE trcalnc, ONLY: ftpf
 
     IMPLICIT NONE
     INCLUDE 'nclass/pamx_mi.inc'
@@ -140,7 +140,7 @@ CONTAINS
     INTEGER(4)::  i,iz,k_out,k_v,na,nm,nr,ns,ns1,nsn,nsz
     REAL(4)   ::  a0,bt0,e0,p_eps,p_q,q0l,r0
     REAL(8)   ::  bpol,btor,btot,uthai
-    REAL(8)   ::  aitken2p,deriv3,ftpf,FCTR
+    REAL(8)   ::  aitken2p,deriv3,FCTR
 
     ! internal parameters for tr_nclass
     INTEGER(4) :: mdltpf ! interim definition of switch variables
