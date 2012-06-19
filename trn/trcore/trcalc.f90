@@ -41,7 +41,7 @@ CONTAINS
     DO nr=1,nrmax
 
        call tr_calc_mag_diff
-       nrd4(0:nrmax) = dtr(1,1,0:nrmax)
+!       nrd4(0:nrmax) = dtr(1,1,0:nrmax)
 
        DO neq=2,neqmax
           dtr(2:neqmax,neq,nr) &
@@ -108,7 +108,7 @@ CONTAINS
 
   SUBROUTINE tr_calc_source
     USE trcomm, ONLY: nrmax,nsamax,neqmax,nva_neq,ph0,phs,rhog,ra, &
-         str_simple,joh,eta,ezoh,poh
+         str_simple,joh,eta,ezoh,poh,nrd1,nrd2,nrd3,nrd4
     IMPLICIT NONE
     INTEGER(ikind) :: nr, neq
 
@@ -124,8 +124,15 @@ CONTAINS
     END DO
 
     ! ohmic heating [W/m^3]
-    ezoh(0:nrmax) = eta(0:nrmax)*joh(0:nrmax)
-    poh(0:nrmax) = ezoh(0:nrmax)*joh(0:nrmax)    
+    DO nr = 0, nrmax
+       ezoh(nr) = eta(nr)*joh(nr)
+       poh(nr) = ezoh(nr)*joh(nr)    
+    END DO
+
+    nrd1(0:nrmax) = eta(0:nrmax)
+    nrd2(0:nrmax) = ezoh(0:nrmax)
+    nrd3(0:nrmax) = poh(0:nrmax)
+    nrd4(0:nrmax) = joh(0:nrmax)
 
     RETURN
   END SUBROUTINE tr_calc_source
@@ -157,8 +164,8 @@ CONTAINS
 ! --------------------------------------------------------------------------
     USE trcomm, ONLY: pi,rmu0,nrmax,RR,ar1rho,ttrho,rmjrho,arrho,dvrho,  &
          abb1rho,abrho,rhog,dpdrho,rdpvrho,qp,q0,qa,bp,rip,              &
-         jtot,joh,jtor,jbs_nc,jex_nc,jcd_nb,jcd_ec,jcd_lh,jcd_ic,        &
-         nrd3,nrd4
+         jtot,joh,jtor,jbs_nc,jex_nc,jcd_nb,jcd_ec,jcd_lh,jcd_ic       ! &
+!         ,nrd3,nrd4
 
     IMPLICIT NONE
     INTEGER(ikind) :: nr
@@ -173,6 +180,8 @@ CONTAINS
     ! dpdrho --> qp
     qp(1:nrmax) = ttrho(1:nrmax)*arrho(1:nrmax)*dvrho(1:nrmax)    &
                   /(4.d0*pi**2 * dpdrho(1:nrmax))
+!    qp(1:nrmax) = ttrho(1:nrmax)*arrho(1:nrmax)    &
+!                  /(4.d0*pi**2 * rdpvrho(1:nrmax))
     !   * FCTR4pt: func. in TASK/lib
 !    qp(0)       = FCTR4pt(rhog(1),rhog(2),rhog(3),qp(1),qp(2),qp(3))
     qp(0)       = FCTR(rhog(1),rhog(2),qp(1),qp(2))
@@ -208,7 +217,7 @@ CONTAINS
 !!$    write(*,*) rip,ipl
     ! ***********************************************
 
-    nrd3(0:nrmax) = dpdrho(0:nrmax)
+!    nrd3(0:nrmax) = dpdrho(0:nrmax)
 !    nrd4(0:nrmax) = jtot(0:nrmax)
 
     RETURN

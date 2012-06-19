@@ -102,7 +102,7 @@ CONTAINS
        vg4(0:nrmax,1)=qp(0:nrmax)
 
     CALL PAGES
-    label = '/n [10^20/m^3] vs rho/'
+    label = '/n [10$+20$=/m$+3$=] vs rho/'
     CALL GRD1D(1,rhog,vg1,nrmax+1,nrmax+1,nsamax,label,0)
     label = '/u vs rho/'
     CALL GRD1D(2,rhog,vg2,nrmax+1,nrmax+1,nsamax,label,0)
@@ -175,13 +175,13 @@ CONTAINS
     END DO
     
     CALL PAGES
-    label = '/Dnc_s [m^2/s] vs rho/'
+    label = '/Dnc_s [m$+2$=/s=] vs rho/'
     CALL GRD1D(1,rhomg,vm1, nrmax, nrmax, nsamax,label, 0)
-    label = '/Dtb_s [m^2/s] vs rho/'
+    label = '/Dtb_s [m$+2$=/s=] vs rho/'
     CALL GRD1D(2,rhomg,vm2, nrmax, nrmax, nsamax,label, 0)
-    label = '/D(1) tot,nc,tb/'
+    label = '/D(1) tot,nc,tb [m$+2$=/s=] vs rho/'
     CALL GRD1D(3,rhomg,vmx1,nrmax, nrmax, 3,label,0)
-    label = '/D(2) tot,nc,tb/'
+    label = '/D(2) tot,nc,tb [m$+2$=/s=] vs rho/'
     CALL GRD1D(4,rhomg,vmx2,nrmax, nrmax, 3,label,0)
     CALL PAGEE
     
@@ -247,13 +247,13 @@ CONTAINS
     END DO
     
     CALL PAGES
-    label = '/chi_nc_s [m^2/s] vs rho/'
+    label = '/chi_nc_s [m$+2$=/s=] vs rho/'
     CALL GRD1D(1,rhomg,vm1, nrmax, nrmax, nsamax,label, 0)
-    label = '/chi_tb_s [m^2/s] vs rho/'
+    label = '/chi_tb_s [m$+2$=/s=] vs rho/'
     CALL GRD1D(2,rhomg,vm2, nrmax, nrmax, nsamax,label, 0)
-    label = '/chi(1)tot,nc,tb [m^2/s] vs rho/'
+    label = '/chi(1)tot,nc,tb [m$+2$=/s=] vs rho/'
     CALL GRD1D(3,rhomg,vmx1,nrmax, nrmax, 3,label,0)
-    label = '/chi(2)tot,nc,tb [m^2/s] vs rho/'
+    label = '/chi(2)tot,nc,tb [m$+2$=/s=] vs rho/'
     CALL GRD1D(4,rhomg,vmx2,nrmax, nrmax, 3,label,0)
     CALL PAGEE
     
@@ -289,9 +289,9 @@ CONTAINS
     vgx1(0:nrmax,1) = LOG10(eta(0:nrmax))
 
     CALL PAGES
-    label = '/V_D [m/s] vs rho/'
+    label = '/V_D [m=/s=] vs rho/'
     CALL GRD1D(1,rhomg,vmx1,nrmax,nrmax,nsamax,label,0)
-    label = '/V_chi [m/s] vs rho/'
+    label = '/V_chi [m=/s=] vs rho/'
     CALL GRD1D(2,rhomg,vmx2,nrmax,nrmax,nsamax,label,0)
     label = '/eta_par [ohm m] vs rho/'
     CALL GRD1D(3,rhog,vgx1,nrmax+1,nrmax+1,1,label,2)
@@ -303,24 +303,26 @@ CONTAINS
 ! **************************************************************************
   SUBROUTINE tr_gr_rad5
   ! ----- current density profile -----
-    USE trcomm, ONLY: jtot,joh,jtor,eta,qp,htr
+    USE trcomm, ONLY: jtot,joh,jtor,eta,qp,htr,dpdrho
 
     vgx1(0:nrmax,1) = 1.d-6*jtot(0:nrmax) + 1.d-6*htr(1,0:nrmax)
     vgx1(0:nrmax,2) = 1.d-6*joh(0:nrmax)
     vgx1(0:nrmax,3) = 1.d-6*htr(1,0:nrmax)
 
-    vgx2(0:nrmax,1) = 1.d-6*jtor(0:nrmax)
-    vgx3(0:nrmax,1) = 1.d-6*htr(1,0:nrmax)
+!    vgx2(0:nrmax,1) = 1.d-6*htr(0:nrmax)
+    vgx2(0:nrmax,1) = dpdrho(0:nrmax)
+    vgx3(0:nrmax,1) = qp(0:nrmax)
     vgx4(0:nrmax,1) = LOG10(eta(0:nrmax))
     
 !    vgx4(0:nrmax,1) = qp(0:nrmax)
 
     CALL PAGES
-    label = '/j(tot,oh,bs) [MA/m^2] vs rho'
+    label = '/j(tot,oh,bs) [MA=/m$+2$=] vs rho'
     CALL GRD1D(1,rhog,vgx1,nrmax+1,nrmax+1,5,label,0)
-    label = '/j(tor) [MA/m^2] vs rho'
+!    label = '/j(bs,ex) [MA/m^2] vs rho'
+    label = '/d Psi/d rho vs rho/'
     CALL GRD1D(2,rhog,vgx2,nrmax+1,nrmax+1,5,label,0)
-    label = '/j(bs,ex) [MA/m^2] vs rho'
+    label = '/qp vs rho'
     CALL GRD1D(3,rhog,vgx3,nrmax+1,nrmax+1,1,label,0)
     label = '/eta(para) [ohm m] vs rho'
     CALL GRD1D(4,rhog,vgx4,nrmax+1,nrmax+1,1,label,2)
@@ -340,7 +342,7 @@ CONTAINS
     vgx1(0:nrmax,1) = poh(0:nrmax)*1.d-6
 
     CALL PAGES
-    label = '/Pin [MW/m^3] vs rho/'
+    label = '/Pin [MW=/m$+3$=] vs rho/'
     CALL GRD1D(1,rhog,vgx1,nrmax+1,nrmax+1,5,label,0)
     CALL PAGEE
 
@@ -358,13 +360,13 @@ CONTAINS
     vgx4(0:nrmax,1) = vprp(0:nrmax)
 
     CALL PAGES
-    label = '/Vtor[m/s] vs rho'
+    label = '/Vtor[m=/s=] vs rho'
     CALL GRD1D(1,rhog,vgx1,nrmax+1,nrmax+1,1,label,0)
-    label = '/Vpol[m/s] vs rho'
+    label = '/Vpol[m=/s=] vs rho'
     CALL GRD1D(2,rhog,vgx2,nrmax+1,nrmax+1,1,label,0)
-    label = '/Vpar[m/s] vs rho'
+    label = '/Vpar[m=/s=] vs rho'
     CALL GRD1D(3,rhog,vgx3,nrmax+1,nrmax+1,1,label,0)
-    label = '/Vprp[m/s] vs rho'
+    label = '/Vprp[m=/s=] vs rho'
     CALL GRD1D(4,rhog,vgx4,nrmax+1,nrmax+1,1,label,0)
     CALL PAGEE
 
@@ -389,7 +391,7 @@ CONTAINS
     CALL GRD1D(1,rhog,gg1,nrmax+1,nrmax+1,nggmax+1,label,0)
     label = '/T2(t) [keV] vs rho/'
     CALL GRD1D(2,rhog,gg2,nrmax+1,nrmax+1,nggmax+1,label,0)
-    label = '/n1(t) [10^20/m^3] vs rho/'
+    label = '/n1(t) [10$+20$=/m$+3$=] vs rho/'
     CALL GRD1D(3,rhog,gg3,nrmax+1,nrmax+1,nggmax+1,label,0)
     label = '/qp(t) vs rho/'
     CALL GRD1D(4,rhog,gg4,nrmax+1,nrmax+1,nggmax+1,label,0)
@@ -413,9 +415,9 @@ CONTAINS
     END DO
 
     CALL PAGES
-    label = '/j_tot(t) [MA/m^2] vs rho/'
+    label = '/j_tot(t) [MA=/m$+2$=] vs rho/'
     CALL GRD1D(1,rhog,gg1,nrmax+1,nrmax+1,nggmax+1,label,0)
-    label = '/j_oh(t) [MA/m^2] vs rho/'
+    label = '/j_oh(t) [MA=/m$+2$=] vs rho/'
     CALL GRD1D(2,rhog,gg2,nrmax+1,nrmax+1,nggmax+1,label,0)
 !    label = '/j_ex(t) vs rho/'
 !    CALL GRD1D(3,rhog,gg3,nrmax+1,nrmax+1,nggmax+1,label,0)

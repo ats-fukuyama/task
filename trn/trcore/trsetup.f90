@@ -248,9 +248,8 @@ CONTAINS
     RETURN
   END SUBROUTINE tr_setup_table
 
-! ***************************************************************************
-! ***************************************************************************
-
+! *************************************************************************
+! *************************************************************************
   SUBROUTINE tr_setup_metric_init
 ! --------------------------------------------------------------------------
 !   This subroutine initializes geometric factors.
@@ -282,10 +281,6 @@ CONTAINS
 
     ! --- cylindrical assumption ---
     DO nr = 0, nrmax
-       pvolrho(nr) = pi*rkap*(ra*rhog(nr))**2*2.d0*pi*rr
-       psurrho(nr) = pi*(rkap+1.d0)*ra*rhog(nr)*2.d0*pi*rr
-       dvrho(nr)   = 2.d0*pi*rkap*ra**2*2.d0*pi*rr*rhog(nr)
-!
        ar1rho(nr)  = 1.d0/(SQRT(rkap)*ra)          ! const
        ar2rho(nr)  = 1.d0/(SQRT(rkap)*ra)**2       ! const
        abrho(nr)   = 1.d0/(SQRT(rkap)*ra*rr)**2    ! const
@@ -294,6 +289,10 @@ CONTAINS
        IF(nr /= 0) rmnrhom(nr)=0.5d0*(rmnrho(nr-1)+rmnrho(nr))
        rkprho(nr)  = rkap
        IF(nr /= 0) rkprhom(nr)=0.5d0*(rkprho(nr-1)+rkprho(nr))
+!
+       pvolrho(nr) = pi*rkap*(ra*rg(nr))**2*2.d0*pi*rr
+       psurrho(nr) = pi*(rkap+1.d0)*ra*rg(nr)*2.d0*pi*rr
+       dvrho(nr)   = 2.d0*pi*rkap*ra**2*2.d0*pi*rr*rg(nr)!/ar1rho(nr)
 !
        epsrho(nr)  = rmnrho(nr)/rmjrho(nr)
 
@@ -366,6 +365,7 @@ CONTAINS
           CALL tr_bpsd_get(ierr)
           ! --- here the convergence of q profile must be confirmed
           ! ---  and show the graph of Psi(R,Z)
+          write(*,*) rhog(0:nrmax)
     END SELECT
 
   END SUBROUTINE tr_setup_geometric
@@ -423,8 +423,9 @@ CONTAINS
 !   This subroutine gives initial profile of toroidal current density 
 !    and d psi/d rho.
 ! --------------------------------------------------------------------------
-    USE trcomm, ONLY: rmu0,pi,nrmax,BB,RR,q0,qa,profj1,profj2,rip,rips, &
-         rhog,abb1rho,dvrho,ttrho,abrho,arrho,ar1rho,abvrho,            &
+    USE trcomm, ONLY: rmu0,pi,nrmax,BB,RR,ra,rkap,q0,qa,         &
+         rg,rhog,abb1rho,dvrho,ttrho,abrho,arrho,ar1rho,abvrho,  &
+         profj1,profj2,rip,rips,                                 &
          dpdrho,rdpvrho,jtot,joh,eta,knameq! ,nrd1,nrd2
 
     IMPLICIT NONE
@@ -434,10 +435,11 @@ CONTAINS
     rip = rips
 
     DO nr = 0, nrmax
-       IF((1.d0-rhog(nr)**ABS(profj1)).LE.0.d0) THEN
+       IF(((SQRT(rkap)*ra)**ABS(profj1)-rg(nr)**ABS(profj1)).LE.0.d0) THEN
           jtot(nr) = 0.D0
        ELSE
-          jtot(nr) = 1.d5 * (1.D0-rhog(nr)**ABS(profj1))**ABS(profj2)
+          jtot(nr) = &
+          ((SQRT(rkap)*ra)**ABS(profj1)-rg(nr)**ABS(profj1))**ABS(profj2)
        ENDIF
     ENDDO
 
@@ -459,6 +461,7 @@ CONTAINS
 
     ! set the boundary value of dpdrho in terms of plasma current value
     dpdrhos = 2.d0*pi*rmu0*rip*1.d6 / (dvrho(nrmax)*abrho(nrmax))
+!    dpdrhos = 2.d0*pi*rmu0*rip*1.d6*dvrho(nrmax)/abvrho(nrmax)
     ! correction in terms of the boundary value of dpdrho
     fact = dpdrhos / dpdrho(nrmax)
 !    write(*,*) fact
@@ -474,6 +477,8 @@ CONTAINS
     ! diagnostic
 !    nrd1(0:nrmax) = rdpvrho(0:nrmax)
 !    nrd2(0:nrmax) = jtot(0:nrmax)
+
+    write(*,*) jtot(0:nrmax)
 
     RETURN
   END SUBROUTINE tr_prof_j2dpdrho

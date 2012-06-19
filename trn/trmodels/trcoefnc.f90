@@ -11,7 +11,7 @@ CONTAINS
     USE trcomm, ONLY: &
          rkev,nsa_neq,nva_neq,neqmax,nsamax,nrmax,mdltr_nc,  &
          rmnrho,htr,eta,dtr_nc,vtr_nc,eta_nc,jbs_nc,jex_nc,  &
-         rt,rn ,nrd1,nrd2
+         rt,rn !,nrd1,nrd2
     USE trcalv, ONLY: &
          chi_ncp,chi_nct,d_ncp,d_nct,gfls,qfls,fls_tot, &
          vebs,qebs,dia_gdnc,dia_gvnc,cjbs_p,cjbs_t
@@ -94,8 +94,8 @@ CONTAINS
           END IF
        END DO
 
-       nrd1(0:nrmax) = dia_gdnc(1,0:nrmax)
-       nrd2(0:nrmax) = dia_gvnc(1,0:nrmax)
+!       nrd1(0:nrmax) = dia_gdnc(1,0:nrmax)
+!       nrd2(0:nrmax) = dia_gvnc(1,0:nrmax)
 
        ! resistivity
        eta(0:nrmax) = eta_nc(0:nrmax)

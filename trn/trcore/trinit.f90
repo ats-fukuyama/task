@@ -299,17 +299,17 @@ CONTAINS
     USE plcomm
     USE trcomm, ONLY: &
            nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
+           ntstep,ngtmax,ngtstp, &
            lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
            dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
-           ntstep,ngtmax,ngtstp, &
-           rips,ripe
+           profj1,profj2,rips,ripe
     IMPLICIT NONE
     INTEGER(ikind),INTENT(IN) :: nid
     INTEGER(ikind),INTENT(OUT):: ist
     INTEGER(ikind),INTENT(OUT):: ierr
 
     NAMELIST /TR/ &
-         RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ, &
+         RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ1,PROFJ2, &
          NSMAX,PA,PZ,PZ0,PN,PNS,PTPR,PTPP,PTS,PU,PUS, &
          PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
          RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG, &

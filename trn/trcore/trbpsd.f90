@@ -144,9 +144,9 @@ CONTAINS
 
          DO ns=1,plasmaf%nsmax
             plasmaf%data(nr,ns)%pn   = rn(ns,nr-1)*1.d20
-            plasmaf%data(nr,ns)%pt   = rt(ns,nr-1)*1.D3
-            plasmaf%data(nr,ns)%ptpr = rt(ns,nr-1)*1.D3
-            plasmaf%data(nr,ns)%ptpp = rt(ns,nr-1)*1.D3
+            plasmaf%data(nr,ns)%pt   = rt(ns,nr-1)*1.d3
+            plasmaf%data(nr,ns)%ptpr = rt(ns,nr-1)*1.d3
+            plasmaf%data(nr,ns)%ptpp = rt(ns,nr-1)*1.d3
             plasmaf%data(nr,ns)%pu   = ru(ns,nr-1)
          ENDDO
       ENDDO
@@ -235,21 +235,21 @@ CONTAINS
          ! dV/drho
          rdpvrho(nr-1) = 1.d0 / (metric1D%data(nr)%dvpsip * 2.d0*pi)
          ! dpsi/dV
-         !             metric1D%data(nr)%aver2     ! <R^2>
+         !             metric1D%data(nr)%aver2       ! <R^2>
          arrho(nr-1)   = metric1D%data(nr)%aver2i    ! <1/R^2>
          abb2rho(nr-1) = metric1D%data(nr)%aveb2     ! <B^2>
          aib2rho(nr-1) = metric1D%data(nr)%aveb2i    ! <1/B^2>
-         !             metric1D%data(nr)%avegv     ! <|grad V|>
-         !             metric1D%data(nr)%avegv2    ! <|grad V|^2>
+         !             metric1D%data(nr)%avegv       ! <|grad V|>
+         !             metric1D%data(nr)%avegv2      ! <|grad V|^2>
          abvrho(nr-1)  = metric1D%data(nr)%avegvr2   ! <|grad V|^2/R^2>
          ar1rho(nr-1)  = metric1D%data(nr)%avegr     ! <|grad rho|>
          ar2rho(nr-1)  = metric1D%data(nr)%avegr2    ! <|grad rho|^2>
          abrho(nr-1)   = metric1D%data(nr)%avegrr2   ! <|grad rho|^2/R^2>
-         !             metric1D%data(nr)%avegpp2   ! <|grad Psip|^2>
+         !             metric1D%data(nr)%avegpp2     ! <|grad Psip|^2>
          rmjrho(nr-1)  = metric1D%data(nr)%rr        ! local R
          rmnrho(nr-1)  = metric1D%data(nr)%rs        ! local r
          rkprho(nr-1)  = metric1D%data(nr)%elip      ! elipticity
-         !             metric1D%data(nr)%trig      ! triangularity
+         !             metric1D%data(nr)%trig        ! triangularity
          abb1rho(nr-1) = metric1D%data(nr)%aveb      ! <B>
          
          epsrho(nr-1)  = rmnrho(nr-1) / rmjrho(nr-1) ! rs/rr

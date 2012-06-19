@@ -147,6 +147,8 @@ CONTAINS
     INTEGER(4) :: nsa,nsa1,nk,i_ns
     REAL(8),DIMENSION(0:nrmax) :: eropsi,nr_array
 
+    mdltpf=0
+
     ! *** Initialization ***
     amu_i(1:mx_mi)  = 0.0
     grt_i(1:mx_mi)  = 0.0

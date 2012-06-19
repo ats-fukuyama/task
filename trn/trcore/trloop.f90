@@ -42,9 +42,10 @@ CONTAINS
 !          CALL tr_bpsd_get(ierr)
 !       END IF       
 
-       ! cofirmation of the conservation of nV', nTV'^(5/3)
+       ! trcalc1.f90
+       ! +-- cofirmation of the conservation of nV', nTV'^(5/3)
 
-       ! set the boundary value of dpdrho in terms of plasma current value
+       ! +-- set the boundary value of dpdrho in terms of plasma current value
        CALL tr_mag_boundary
 
        CALL tr_step(ierr); IF(ierr /= 0) GO TO 9000
@@ -96,33 +97,35 @@ CONTAINS
 
 ! **************************************************************************
 
-  SUBROUTINE tr_eq_calc
-
-       CALL eq_prof
-       CALL eq_calc
-       CALL tr_bpsd_get(ierr)
-
-       !convergence check of q
-    END DO
-
-    CALL tr_prof_q2dpdrho
-
-  END SUBROUTINE tr_eq_calc
-
-  SUBROUTINE tr_prof_q2dpdrho
-    USE trcomm, ONLY: rmu0,pi,nrmax,BB,RR,q0,qa,profj1,profj2,knameq, &
-         &         rhog,abb1rho,dvrho,ttrho,abrho,arrho,dpdrho,ar1rho,&
-         &         jtot,joh,bp,qp, nrd1,nrd2,nrd3,nrd4
-
-    IMPLICIT NONE
-    REAL(rkind) :: dr,prof,factor0,sumfact1
-    REAL(rkind) :: FCTR ! function defined in TASK/lib
-    INTEGER(ikind) :: nr
-
-! q --> dpdrho, j
-
-    dpdrho(
-
-  END SUBROUTINE tr_prof_q2dpdrho  
+!!$  SUBROUTINE tr_eq_calc
+!!$
+!!$    DO
+!!$    ! iteration for convergence of q(safety factor)
+!!$       CALL eq_prof
+!!$       CALL eq_calc
+!!$       CALL tr_bpsd_get(ierr)
+!!$
+!!$       !convergence check of q
+!!$    END DO
+!!$
+!!$    CALL tr_prof_q2dpdrho
+!!$
+!!$  END SUBROUTINE tr_eq_calc
+!!$
+!!$  SUBROUTINE tr_prof_q2dpdrho
+!!$    USE trcomm, ONLY: rmu0,pi,nrmax,BB,RR,q0,qa,profj1,profj2,knameq, &
+!!$         &         rhog,abb1rho,dvrho,ttrho,abrho,arrho,dpdrho,ar1rho,&
+!!$         &         jtot,joh,bp,qp, nrd1,nrd2,nrd3,nrd4
+!!$
+!!$    IMPLICIT NONE
+!!$    REAL(rkind) :: dr,prof,factor0,sumfact1
+!!$    REAL(rkind) :: FCTR ! function defined in TASK/lib
+!!$    INTEGER(ikind) :: nr
+!!$
+!!$! q --> dpdrho, j
+!!$
+!!$    dpdrho(
+!!$
+!!$  END SUBROUTINE tr_prof_q2dpdrho  
 
 END MODULE trloop

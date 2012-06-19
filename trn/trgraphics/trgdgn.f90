@@ -1,6 +1,7 @@
 MODULE trgdgn
 
-  USE trcomm, ONLY: ikind,rkind,nrmax,nsamax
+  USE trcomm, ONLY: ikind,rkind,nrmax,nsamax,neqmax,neqrmax, &
+       neq_neqr,nsa_neq,nva_neq,rhog
   USE libgrf, ONLY: grd1d
   IMPLICIT NONE
 
@@ -18,7 +19,10 @@ MODULE trgdgn
 CONTAINS
 
   SUBROUTINE tr_gr_diagnostic(k2)
-    USE trcomm, ONLY: rhog,rhom,nrd1,nrd2,nrd3,nrd4
+! -------------------------------------------------------------------------
+!        Control routine of outputs for diagnostic and debug
+! -------------------------------------------------------------------------
+    USE trcomm, ONLY: rhom
 
     CHARACTER(LEN=1),INTENT(IN) :: k2
     INTEGER(ikind) :: iosts,i2
@@ -29,6 +33,25 @@ CONTAINS
     rhomg(1:nrmax) = rhom(1:nrmax)
 
     READ(k2,'(I1)',IOSTAT=iosts) i2
+
+    IF(iosts /= 0) THEN
+       WRITE(6,*) ' ERROR : Unsupported graoh ID'
+       RETURN
+    END IF
+
+    SELECT CASE(i2)
+    CASE(1)
+       CALL tr_gr_dgn1
+    CASE(2)
+       CALL tr_gr_dgn2
+    END SELECT
+
+    RETURN
+  END SUBROUTINE tr_gr_diagnostic
+
+! *************************************************************************
+  SUBROUTINE tr_gr_dgn1
+    USE trcomm, ONLY: nrd1,nrd2,nrd3,nrd4
 
     !--- for diagnostic array
 !    nrd1mg(1:nrmax,1) = nrd1(1:nrmax)
@@ -55,8 +78,48 @@ CONTAINS
     CALL GRD1D(4,rhog,nrd4g, nrmax+1, nrmax+1, 1, label, 0)
     CALL PAGEE    
 
-  END SUBROUTINE tr_gr_diagnostic
+  END SUBROUTINE tr_gr_dgn1
 
+! *************************************************************************
+  SUBROUTINE tr_gr_dgn2
+! -------------------------------------------------------------------------
+!            Confirmation of 1-D metric quantity
+! -------------------------------------------------------------------------
+    USE trcomm, ONLY: &
+         rjcb,ar1rho,ar2rho,abrho,rmjrho,rmnrho,rkprho,epsrho, &
+         pvolrho,psurrho,dvrho,abb1rho,abb2rho,aib2rho,ttrho,  &
+         arrho,abvrho,dpdrho
+
+    IMPLICIT NONE
+
+    CALL PAGES
+    label ='/ar1rho vs rho/'
+    CALL GRD1D(5,rhog,ar1rho,nrmax+1,nrmax+1,1,label,0)
+    label ='/abrho vs rho/'
+    CALL GRD1D(6,rhog,abrho,nrmax+1,nrmax+1,1,label,0)
+    label ='/pvolrho vs rho/'
+    CALL GRD1D(7,rhog,pvolrho,nrmax+1,nrmax+1,1,label,0)
+    label ='/dvrho vs rho/'
+    CALL GRD1D(8,rhog,dvrho,nrmax+1,nrmax+1,1,label,0)
+    label ='/abb1rho vs rho/'
+    CALL GRD1D(9,rhog,abb1rho,nrmax+1,nrmax+1,1,label,0)
+    label ='/ttrho vs rho/'
+    CALL GRD1D(10,rhog,ttrho,nrmax+1,nrmax+1,1,label,0)
+    label ='/arrho vs rho/'
+    CALL GRD1D(11,rhog,arrho,nrmax+1,nrmax+1,1,label,0)
+    label ='/abvrho vs rho/'
+    CALL GRD1D(12,rhog,abvrho,nrmax+1,nrmax+1,1,label,0)
+    label ='/dpdrho vs rho/'
+    CALL GRD1D(13,rhog,dpdrho,nrmax+1,nrmax+1,1,label,0)
+    CALL PAGEE
+
+
+    RETURN
+  END SUBROUTINE tr_gr_dgn2
+
+! *************************************************************************
+! *************************************************************************
+! *************************************************************************
   SUBROUTINE tr_gr_diagnostic_alloc
 
     INTEGER(ikind),SAVE :: nrmax_save,nsamax_save
