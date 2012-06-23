@@ -7,7 +7,7 @@ CONTAINS
 
 ! **********************************************************************
 !
-!  The interface between TASK/TR(tacalv) and MMM95 model(mmm95)
+!  The interface between TASK/TR(trcoeftb) and MMM95 model(mmm95)
 !
 ! **********************************************************************
 

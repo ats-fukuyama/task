@@ -31,7 +31,7 @@ $(SRCCDBM:.f90=.o) $(SRC90:.f90=.o) $(SRCNC:.f=.o)
 # $(SRCCYT:.f90=.o)
 
 .f.o :
-	$(FCFIXED)  $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+	$(FCFIXED) -r8 $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 

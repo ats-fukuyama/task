@@ -349,7 +349,6 @@ CONTAINS
   SUBROUTINE tr_zeff
 !---------------------------------------------------------------------------
 !           Caluculate Z_eff (effective charge)
-!           *** half grid ***
 !---------------------------------------------------------------------------
 !!$    USE TRCOMM, ONLY : ANC, ANFE, MDLEQN, MDLUF, NRMAX, PZ, PZC, PZFE, RN, R\
 !!$    NF, RT, ZEFF
@@ -361,7 +360,7 @@ CONTAINS
 
     ! not include impurities
     IF(mdluf == 0)THEN
-       DO nr = 1, nrmax
+       DO nr = 0, nrmax
           DO nsa = 1, nsamax
              IF(idnsa(nsa) == 1)THEN
                 ns=ns_nsa(nsa)

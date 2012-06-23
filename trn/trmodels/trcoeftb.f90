@@ -71,10 +71,6 @@ CONTAINS
          gm1p,gm1m,gm2p,gm2m,gm20
     INTEGER(ikind) :: nr,nsa
 
-    ! only for energy transport for now
-    cdtru = 0.d0
-    cdtrn = 0.d0
-
     DO nr = 1, nrmax
 
        dvdrp = dvrho(nr  )
@@ -95,7 +91,7 @@ CONTAINS
                      *rn_prev(nsa,nr-1)*rt_prev(nsa,nr-1)  &
                    +(     gm1m + 2.d0*gm1p)                &
                      *rn_prev(nsa,nr  )*rt_prev(nsa,nr ))  &
-                   /(2.d0*gm20)
+                   /(3.d0*gm20)
 
 !          write(*,*) '*** drnrt ***', drnrt
 !          write(*,*) '*** rnrt_ave ***', rnrt_ave
@@ -129,8 +125,8 @@ CONTAINS
 !!$             END IF
           END SELECT
 
-          dtr_prv(1+3*nsa-2,nr) = cdtrn*dtr_new
-          dtr_prv(1+3*nsa-1,nr) = cdtru*dtr_new
+!          dtr_prv(1+3*nsa-2,nr) = cdtrn*dtr_new
+!          dtr_prv(1+3*nsa-1,nr) = cdtru*dtr_new
           dtr_prv(1+3*nsa  ,nr) = cdtrt*dtr_new
 
           dtr_tb(1+3*nsa-2,1+3*nsa-2,nr) = dtr_tb(1+3*nsa-2,1+3*nsa-2,nr) &
@@ -143,8 +139,8 @@ CONTAINS
           vtr_old = dtr_new * lt / rnrt_ave
 !          write(*,*) '*** nr, vtr_old ***', nr, vtr_old
 
-          vtr_prv(1+3*nsa-2,nr) = cdtrn*vtr_old
-          vtr_prv(1+3*nsa-1,nr) = cdtru*vtr_old
+!          vtr_prv(1+3*nsa-2,nr) = cdtrn*vtr_old
+!          vtr_prv(1+3*nsa-1,nr) = cdtru*vtr_old
           vtr_prv(1+3*nsa  ,nr) = cdtrt*vtr_old
 
           vtr_tb(1+3*nsa-2,1+3*nsa-2,nr) = vtr_tb(1+3*nsa-2,1+3*nsa-2,nr) &
@@ -160,14 +156,17 @@ CONTAINS
   END SUBROUTINE Pereverzev_method
 
   SUBROUTINE Pereverzev_check(add_prv)
-    USE trcomm, ONLY: ikind,rkind,neqmax,nsamax,nrmax,rg,dtr_prv,vtr_prv,&
-                      dtr,rn,ru,rt,dvrho,ar1rho,ar2rho,rhog
+    USE trcomm, ONLY: ikind,rkind,neqmax,nsamax,nrmax,rg,mdltr_prv, &
+         dtr_prv,vtr_prv,dtr,rn,ru,rt,dvrho,ar1rho,ar2rho,rhog
 
     REAL(rkind),DIMENSION(neqmax,0:nrmax) :: dtr_elm,vtr_elm,dtr_all
     REAL(rkind),DIMENSION(neqmax,0:nrmax),INTENT(OUT) :: add_prv
     REAL(rkind) :: term_n,term_u,term_t
     REAL(rkind) :: dvdrm,dvdrp,gm1p,gm1m,gm2p,gm2m,gm20
     INTEGER(ikind) :: nr,nsa
+
+    add_prv(1:neqmax,0:nrmax) = 0.d0    
+    IF(mdltr_prv == 0) RETURN
     
     DO nr = 1, nrmax
        dvdrp = dvrho(nr)

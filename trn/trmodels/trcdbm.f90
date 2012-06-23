@@ -7,7 +7,7 @@ CONTAINS
 
 !  ************************************************************
 !
-!   The interface between TASK/TR(trcalv) and CDBM model(cdbm)
+!   The interface between TASK/TR(trcoeftb) and CDBM model(cdbm)
 !
 !  ************************************************************
 

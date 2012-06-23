@@ -3,7 +3,7 @@ MODULE trcoefnc
   USE trcomm, ONLY: ikind, rkind
 
   PRIVATE
-  PUBLIC tr_coefnc,tr_calc_clseta
+  PUBLIC tr_coefnc,tr_calc_clseta,coulog
 
 CONTAINS
 
@@ -131,7 +131,7 @@ CONTAINS
     INTEGER(ikind) :: nr
     REAL(rkind) :: taue
 
-      DO nr = 1, nrmax
+      DO nr = 0, nrmax
 !        ****** CLASSICAL RESISTIVITY (Spitzer) from JAERI Report ******
 
          ! electron collision time with ions
@@ -139,6 +139,8 @@ CONTAINS
 
          eta(nr) = ame/(rn(1,nr)*1.d20*aee**2*taue) &
                       *(0.29d0+0.46d0/(1.08d0+z_eff(nr)))
+
+!         eta(nr) = 1.d-7
       END DO
 
     RETURN
@@ -157,6 +159,7 @@ CONTAINS
       INTEGER(4):: NS1,NS2
       REAL(8)   :: ANEL,TL
 
+      ! *** ref: 'Tokamaks 3rd Edition' p727 Coulomb logarithm ***
       IF(NS1.EQ.1.AND.NS2.EQ.1) THEN
          COULOG=14.9D0-0.5D0*LOG(ANEL)+LOG(TL)
       ELSE

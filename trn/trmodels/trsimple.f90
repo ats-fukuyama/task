@@ -11,7 +11,7 @@ CONTAINS
 
   SUBROUTINE tr_simple
 
-    USE trcomm, ONLY: nrmax,nsamax,neqmax,mdltr_tb,rg,rt, &
+    USE trcomm, ONLY: nrmax,nsamax,neqmax,mdltr_tb,rg,rm,rhom,rt, &
          ltcr,dtr0,dtr1,dtr_tb,vtr_tb,cdtrn,cdtru,cdtrt
     IMPLICIT NONE
     INTEGER(ikind) :: NR, NEQ, nsa
@@ -22,19 +22,27 @@ CONTAINS
     vtr_tb(1:neqmax,1:neqmax,1:nrmax)=0.D0
 
     SELECT CASE(mdltr_tb)
-       ! --- No transport
+    ! --- No transport
     CASE(0)
 
-       ! --- Flat profile ---
+    ! --- Flat profile ---
     CASE(1)
        DO nr = 1, nrmax
           DO nsa = 1, nsamax
              dtr_diag(nsa,nr) = dtr0
           END DO
        END DO
-      
-       ! --- Typical stiff model (Pereverzev) ---
+
+    ! ---   ---
     CASE(2)
+       DO nr = 1, nrmax
+          DO nsa = 1, nsamax
+             dtr_diag(nsa,nr) = dtr0 + dtr1*rhom(nr)**2
+          END DO
+       END DO
+
+    ! --- Typical stiff model (Pereverzev) ---
+    CASE(3)
        DO nr = 1, nrmax
           DO nsa = 1, nsamax
              IF(rt(nsa,nr)-rt(nsa,nr-1) > 0) THEN

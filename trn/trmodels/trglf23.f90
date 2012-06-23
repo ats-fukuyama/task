@@ -7,7 +7,7 @@ CONTAINS
 
 ! ******************************************************************
 !
-!  The interface between TASK/TR(trcalv) and GLF23 model(callglf2d)
+!  The interface between TASK/TR(trcoeftb) and GLF23 model(callglf2d)
 !
 ! ******************************************************************
 
@@ -31,7 +31,7 @@ CONTAINS
          nrmax,nsamax,neqmax,pa,pz,pz0,rhog,        &
          qp,rn,rt,rmu0,ns_nsa,dtr_tb,vtr_tb,         &
          abb1rho,ar1rho,ar2rho,rkprho,rmjrho,rmnrho, &
-         vtor
+         vtor,cdtrn,cdtrt
     USE trlib, ONLY: mesh_convert_mtog
     
     USE trcalv, ONLY: &
@@ -349,13 +349,15 @@ CONTAINS
        ns = ns_nsa(nsa)
        nbase = 3*(nsa-1)+1
        IF(pz0(ns) < 0.D0) THEN ! for electron
-          dtr_tb(nbase+1,nbase+1,1:nrmax)=MAX(diff_jmg(1:nrmax),0.d0)
-          dtr_tb(nbase+3,nbase+3,1:nrmax)=MAX(chie_jmg(1:nrmax),0.d0)
+          dtr_tb(nbase+1,nbase+1,1:nrmax)=cdtrn*MAX(diff_jmg(1:nrmax),0.d0)
+          dtr_tb(nbase+3,nbase+3,1:nrmax)=cdtrt*MAX(chie_jmg(1:nrmax),0.d0)
 !          write(*,*) chietem,diffnem
        ELSE 
           IF(pz(ns) /= 0.d0) THEN ! for ion
-             dtr_tb(nbase+1,nbase+1,1:nrmax)=MAX(diff_jmg(1:nrmax),0.d0)
-             dtr_tb(nbase+3,nbase+3,1:nrmax)=MAX(chii_jmg(1:nrmax),0.d0)    
+             dtr_tb(nbase+1,nbase+1,1:nrmax)= &
+                                          cdtrn*MAX(diff_jmg(1:nrmax),0.d0)
+             dtr_tb(nbase+3,nbase+3,1:nrmax)= &
+                                          cdtrt*MAX(chii_jmg(1:nrmax),0.d0)
           END IF
        END IF
     END DO

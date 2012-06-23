@@ -5,6 +5,12 @@ MODULE trmbgb
 
 CONTAINS
 
+! *************************************************************************
+!
+!  The interface between TASK/TR(trcoeftb) and mixed Bohm/gyro-Bohm model
+!
+! *************************************************************************
+
   SUBROUTINE tr_mbgb
 
     USE mixed_Bohm_gyro_Bohm, ONLY: mixed_model
