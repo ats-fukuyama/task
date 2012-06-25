@@ -110,13 +110,11 @@ CONTAINS
                       ams1 = amp*pa(ns1)
                    END IF
 
-                   write(*,*) nr,rt(nsa,nr), rt(nsa1,nr)
                    coef2 = (pz(ns)*pz(ns1))**2.d0 / (ams*ams1)             &
                    *(rt(nsa,nr)*rkev/ams + rt(nsa1,nr)*rkev/ams1)**(-1.5d0)&
                    *coulog(ns,ns1,rn(1,nr),rt(nsa,nr))                     &
                    *rn(nsa1,nr)*1.d20
 
-!                   write(*,*) ams, ams1
                    ! coef1*coef2 : nu_ij (heat exchange frequency)
                    ctr_ex(neq,neq1,nr) =   1.5d0*rn(nsa,nr)*coef1*coef2 &
                                            /rn(nsa1,nr)

@@ -21,10 +21,12 @@ CONTAINS
     dtr_tb(1:neqmax,1:neqmax,1:nrmax)=0.D0
     vtr_tb(1:neqmax,1:neqmax,1:nrmax)=0.D0
 
+    dtr_diag(1:nsamax,1:nrmax) = 0.d0
+
     SELECT CASE(mdltr_tb)
     ! --- No transport
     CASE(0)
-
+       RETURN
     ! --- Flat profile ---
     CASE(1)
        DO nr = 1, nrmax

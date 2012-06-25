@@ -67,6 +67,8 @@ CONTAINS
           CALL tr_gr_rad6 ! heating profile
        CASE(7)
           CALL tr_gr_rad7 ! rotational velocity, Vtor,Vpol,Vpar,Vprp
+       CASE(8)
+          CALL tr_gr_rad8 ! er
        END SELECT
     ELSE IF(i2 == 1)THEN ! history of radial profile
        SELECT CASE(i3)
@@ -372,6 +374,20 @@ CONTAINS
 
     RETURN
   END SUBROUTINE tr_gr_rad7
+
+! **************************************************************************
+  SUBROUTINE tr_gr_rad8
+    USE trcomm, ONLY: er
+
+    vmx1(1:nrmax,1) = er(1:nrmax)
+
+    CALL PAGES
+    label = '/Er [V=/m=] vs rho/'
+    CALL GRD1D(1,rhomg,vmx1,nrmax,nrmax,1,label,0)
+    CALL PAGEE
+
+    RETURN
+  END SUBROUTINE tr_gr_rad8
 
 ! **************************************************************************
   SUBROUTINE tr_gr_rad11

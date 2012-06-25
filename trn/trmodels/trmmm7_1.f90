@@ -81,6 +81,9 @@ CONTAINS
     mmm7_diff(0:nrmax) = 0.d0
     mmm7_chie(0:nrmax) = 0.d0
     mmm7_chii(0:nrmax) = 0.d0
+    mmm7_velim(1:nrmax) = 0.d0
+    mmm7_velhm(1:nrmax) = 0.d0
+    mmm7_velem(1:nrmax) = 0.d0
     mmm7_difz(0:nrmax) = 0.d0
     mmm7_dtm(0:nrmax)  = 0.d0
     mmm7_dpm(0:nrmax)  = 0.d0

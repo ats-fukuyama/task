@@ -300,7 +300,7 @@ CONTAINS
     USE trcomm, ONLY: &
            nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
            ntstep,ngtmax,ngtstp, &
-           lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
+           lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv,mdler,&
            dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
            profj1,profj2,rips,ripe
     IMPLICIT NONE
@@ -318,6 +318,7 @@ CONTAINS
          MODEFR,MODEFW,IDEBUG, &
          nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
          lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
+         mdler,&
          dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
          ntstep,ngtmax,ngtstp, &
          rips,ripe
