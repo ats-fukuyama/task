@@ -10,10 +10,12 @@ CONTAINS
   SUBROUTINE tr_loop
 
     USE trcomm, ONLY: ikind,rkind,ntmax,t,dt,ntstep,ngtstp, &
-         rip,rips,ripe
+         modelg,rip,rips,ripe
     USE trbpsd, ONLY: tr_bpsd_set,tr_bpsd_get
     USE trstep, ONLY: tr_step
     USE trresult, ONLY: tr_status,tr_calc_global,tr_save_ngt
+    USE equnit_mod, ONLY: eq_calc,eq_load
+!    USE equunit_mod, ONLY: equ_calc
     IMPLICIT NONE
 
     REAL(4)        :: t1,t2,drip
@@ -24,7 +26,6 @@ CONTAINS
     DO nt = 1, ntmax ! main loop
 
        CALL tr_save_pvprev
-
        ! incremental addtions
        t=t+dt
 
@@ -34,21 +35,28 @@ CONTAINS
           rip  = ripe
           rips = ripe
        END IF
+       ! set the boundary value of dpdrho in terms of plasma current value
+       CALL tr_mag_boundary
 !       write(*,*) 'rip = ',rip
 
-       ! Interaction with EQ
-!       IF(modelg .eq. 3) THEN
-!          CALL TASK/EQ
-!          CALL tr_bpsd_get(ierr)
-!       END IF       
-
        ! trcalc1.f90
-       ! +-- cofirmation of the conservation of nV', nTV'^(5/3)
-
-       ! +-- set the boundary value of dpdrho in terms of plasma current value
-       CALL tr_mag_boundary
 
        CALL tr_step(ierr); IF(ierr /= 0) GO TO 9000
+
+       ! Interaction with EQ
+       SELECT CASE(modelg)
+       CASE(8)
+!!$          CALL tr_bpsd_set(ierr)
+!!$          CALL equ_calc
+!!$          CALL tr_bpsd_get(ierr)
+       CASE(9)
+          CALL tr_bpsd_set(ierr)
+          CALL eq_calc
+          CALL tr_bpsd_get(ierr)
+       CASE DEFAULT
+       END SELECT
+       ! cofirmation of the conservation of nV', nTV'^(5/3)
+
 
        IF(MOD(nt,ntstep) == 0 .OR. &
           MOD(nt,ngtstp) == 0) CALL tr_calc_global

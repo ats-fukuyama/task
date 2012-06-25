@@ -208,8 +208,8 @@ CONTAINS
 !  calculate following conversions:  d psi/d rho --> bp,qp,jtor,jtot
 ! --------------------------------------------------------------------------
     USE trcomm, ONLY: pi,rmu0,nrmax,RR,ar1rho,ttrho,rmjrho,arrho,dvrho,  &
-         abb1rho,abrho,rhog,dpdrho,rdpvrho,qp,q0,qa,bp,rip,              &
-         jtot,joh,jtor,jbs_nc,jex_nc,jcd_nb,jcd_ec,jcd_lh,jcd_ic       ! &
+         abb1rho,abrho,abvrho,rhog,dpdrho,rdpvrho,qp,q0,qa,bp,rip,       &
+         jtot,joh,jtor,jbs_nc,jex_nc,jcd_nb,jcd_ec,jcd_lh,jcd_ic
 !         ,nrd3,nrd4
 
     IMPLICIT NONE
@@ -218,6 +218,8 @@ CONTAINS
     REAL(rkind) :: deriv3  ! function defined in TASK/lib
 !    REAL(rkind) :: ipl,dr
     REAL(rkind),DIMENSION(0:nrmax) :: factor1,factor2
+
+    REAL(rkind) :: dr,factorp,factorm,factor0,fact,dpdrhos
 
     ! dpdrho --> bp
     bp(0:nrmax) = ar1rho(0:nrmax)*dpdrho(0:nrmax)/rmjrho(0:nrmax)
@@ -237,10 +239,10 @@ CONTAINS
     factor1(0:nrmax) = dvrho(0:nrmax)*abrho(0:nrmax)*dpdrho(0:nrmax)
     factor2(0:nrmax) = factor1(0:nrmax)/ttrho(0:nrmax)
     DO nr = 1, nrmax
-       ! dpdrho --> jtot(j_para)
+       ! dpdrho --> jtor(j_toroidal)    
        jtor(nr) = rmjrho(nr)/(rmu0*dvrho(nr))               &
                   * deriv3(nr,rhog,factor1,nrmax,0)
-       ! dpdrho --> jtor(j_toroidal)    
+       ! dpdrho --> jtot(j_para)
        jtot(nr) = ttrho(nr)**2/(rmu0*abb1rho(nr)*dvrho(nr)) &
                   * deriv3(nr,rhog,factor2,nrmax,0)
     END DO
@@ -248,6 +250,36 @@ CONTAINS
     jtor(0) = FCTR(rhog(1),rhog(2),jtor(1),jtor(2))
 !    jtot(0) = FCTR4pt(rhog(1),rhog(2),rhog(3),jtot(1),jtot(2),jtot(3))
     jtot(0) = FCTR(rhog(1),rhog(2),jtot(1),jtot(2))
+
+! -----------------------------------------------------------------------
+    DO nr = 1, nrmax
+       dr      = rhog(nr)-rhog(nr-1)
+       factor0 = rmu0*0.5d0*(abb1rho(nr)+abb1rho(nr-1)) &
+                     *0.5d0*(dvrho(nr)+dvrho(nr-1))     &
+                     *0.5d0*(jtot(nr)+jtot(nr-1))       &
+                  /(0.5d0*(ttrho(nr)+ttrho(nr-1)))**2
+       factorp = abvrho(nr  )/ttrho(nr  )
+       factorm = abvrho(nr-1)/ttrho(nr-1)
+
+       rdpvrho(nr) = (factorm*rdpvrho(nr-1) + factor0*dr)/factorp
+       dpdrho(nr)  = rdpvrho(nr)*dvrho(nr)
+    END DO
+!    rdpvrho(nr) = ttrho(nr)*arrho(nr)/(4.d0*pi**2*qp(nr))! d psi/d V
+
+    ! set the boundary value of dpdrho in terms of plasma current value     
+    dpdrhos = 2.d0*pi*rmu0*rip*1.d6 / (dvrho(nrmax)*abrho(nrmax))
+!    dpdrhos = 2.d0*pi*rmu0*rip*1.d6*dvrho(nrmax)/abvrho(nrmax)
+
+    ! correction in terms of the boundary value of dpdrho 
+    fact = dpdrhos / dpdrho(nrmax)
+!    write(*,*) fact
+
+    dpdrho(0:nrmax)  = fact*dpdrho(0:nrmax)
+    rdpvrho(0:nrmax) = fact*rdpvrho(0:nrmax)
+
+    jtot(0:nrmax) = fact*jtot(0:nrmax)
+    jtor(0:nrmax) = fact*jtor(0:nrmax)
+!-------------------------------------------------------------------------
 
     joh(0:nrmax) = jtot(0:nrmax) - jbs_nc(0:nrmax) - jex_nc(0:nrmax)
 

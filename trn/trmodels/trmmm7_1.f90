@@ -94,10 +94,9 @@ CONTAINS
 
     nprout  = 71 ! output unit number for long printout
                  !  : for error and diagnostic
-    lprint  = 50  ! controls the amount of printout (0 => no printout)
+    lprint  = 0  ! controls the amount of printout (0 => no printout)
                  !  higher values yield more diagnostic ouput
-
-    OPEN(nprout,FILE='mmm7_1_err_output.txt')
+!    OPEN(nprout,FILE='mmm7_1_err_output.txt')
 
     ! +++ Input switches +++
     ! cmodel(1)~cmodel(3) are assigned as the weights 

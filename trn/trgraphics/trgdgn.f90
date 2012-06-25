@@ -88,9 +88,14 @@ CONTAINS
     USE trcomm, ONLY: &
          rjcb,ar1rho,ar2rho,abrho,rmjrho,rmnrho,rkprho,epsrho, &
          pvolrho,psurrho,dvrho,abb1rho,abb2rho,aib2rho,ttrho,  &
-         arrho,abvrho,dpdrho
-
+         arrho,abvrho,dpdrho, psiprho
     IMPLICIT NONE
+    REAL(rkind) :: deriv3
+    INTEGER(ikind) :: nr
+
+    DO nr = 0, nrmax
+       nrd1g(nr,1) = deriv3(nr,rhog,psiprho,nrmax,0)
+    END DO
 
     CALL PAGES
     label ='/ar1rho vs rho/'
@@ -108,7 +113,7 @@ CONTAINS
     label ='/arrho vs rho/'
     CALL GRD1D(11,rhog,arrho,nrmax+1,nrmax+1,1,label,0)
     label ='/abvrho vs rho/'
-    CALL GRD1D(12,rhog,abvrho,nrmax+1,nrmax+1,1,label,0)
+    CALL GRD1D(12,rhog,nrd1g,nrmax+1,nrmax+1,1,label,0)
     label ='/dpdrho vs rho/'
     CALL GRD1D(13,rhog,dpdrho,nrmax+1,nrmax+1,1,label,0)
     CALL PAGEE

@@ -366,22 +366,23 @@ CONTAINS
           CALL tr_bpsd_get(ierr)
           ! --- here the convergence of q profile must be confirmed
           ! ---  and show the graph of Psi(R,Z)
-          write(*,*) rhog(0:nrmax)
+!          write(*,*) rhog(0:nrmax)
+          CALL tr_setup_profile
     END SELECT
 
   END SUBROUTINE tr_setup_geometric
 
-! ***************************************************************************
-! ***************************************************************************
+! *************************************************************************
+! *************************************************************************
 
   SUBROUTINE tr_setup_profile
-! --------------------------------------------------------------------------
+! -------------------------------------------------------------------------
 !   This subroutine calculates inital profiles.
-! --------------------------------------------------------------------------
+! -------------------------------------------------------------------------
     USE trcomm, ONLY: pi,rkap,rdlt,nrmax,nsmax,nsamax, &
          rg,rm,rhog,rhom,ra,rr,rn,ru,rt,ns_nsa,   &
          ttrho,dvrho,arrho,ar1rho,rdpvrho,dpdrho, &
-         mdluf
+         mdluf,jtot,joh,jbs_nc,jex_nc
     USE trcalc, ONLY: tr_calc_dpdrho2j
     USE plprof, ONLY: pl_prof2,pl_qprf
                       
@@ -409,6 +410,11 @@ CONTAINS
           ENDDO
        ENDDO
 
+       ! initialization of current profiles
+       jtot(0:nrmax)   = 0.d0
+       joh(0:nrmax)    = 0.d0
+       jbs_nc(0:nrmax) = 0.d0
+       jex_nc(0:nrmax) = 0.d0
        ! set profile of 'd psi/d rho' from given jtot profile
        CALL tr_prof_j2dpdrho
        CALL tr_calc_dpdrho2j
@@ -420,10 +426,10 @@ CONTAINS
 
 
   SUBROUTINE tr_prof_j2dpdrho
-! --------------------------------------------------------------------------
+! -------------------------------------------------------------------------
 !   This subroutine gives initial profile of toroidal current density 
 !    and d psi/d rho.
-! --------------------------------------------------------------------------
+! -------------------------------------------------------------------------
     USE trcomm, ONLY: rmu0,pi,nrmax,BB,RR,ra,rkap,q0,qa,         &
          rg,rhog,abb1rho,dvrho,ttrho,abrho,arrho,ar1rho,abvrho,  &
          profj1,profj2,rip,rips,                                 &

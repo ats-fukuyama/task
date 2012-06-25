@@ -27,6 +27,7 @@ CONTAINS
 
     dtr_nc(1:neqmax,1:neqmax,0:nrmax) = 0.d0
     vtr_nc(1:neqmax,1:neqmax,0:nrmax) = 0.d0
+    jbs_nc(0:nrmax) = 0.d0
 
     ! CALL tr_calnc
     ! trapped particle fraction

@@ -129,7 +129,11 @@ CONTAINS
   !    * These quantities are relative value to total dtr.            *
     USE trcomm, ONLY: ngt,gvrts
 
-    ngg_interval = ngt/(MOD(ngt-1,nggmax)+1)
+    IF(ngt > 0)THEN
+       ngg_interval = ngt/(MOD(ngt-1,nggmax)+1)
+    ELSE IF(ngt <= 0 )THEN
+       ngg_interval = 1
+    END IF
     DO ngg = 0, nggmax
        ! thermal diffusivity
        vgap1(0:nrmax,ngg) = gvrts(0:nrmax,ngg*ngg_interval,1,6)

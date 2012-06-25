@@ -258,7 +258,7 @@ CONTAINS
       RETURN
     END SUBROUTINE get_spl_off
 
-! ---------------------------------------------------------------------------
+! --------------------------------------------------------------------------
 
     SUBROUTINE get_spl_on(ierr)
       USE trcomm
@@ -304,8 +304,9 @@ CONTAINS
       temp(1:equ1D%nrmax) = equ1D%data(1:equ1D%nrmax)%pip
       CALL spl1d_tr_array(equ1D%rho,temp,rhog,ttrho,equ1D%nrmax,1,ierr)
       ttrho(0:nrmax) = ttrho(0:nrmax) * rmu0/(2.d0*pi)
-!      CALL spl1d_tr_array(equ1D%rho,equ1D%data(:)%pit,pitrho, &
-!                          equ1D%nrmax,1,ierr)
+
+      temp(1:equ1D%nrmax) = equ1D%data(1:equ1D%nrmax)%pit
+      CALL spl1d_tr_array(equ1D%rho,temp,rhog,pirho,equ1D%nrmax,1,ierr)
 
       psita       = psitrho(nrmax)
       qp(0:nrmax) = 1.d0/piqrho(0:nrmax)
