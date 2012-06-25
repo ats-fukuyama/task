@@ -145,11 +145,11 @@ CONTAINS
        grdne(1) = - RR * rn_ecl(nr)   ! -R ( d n_e / d r ) / n_e
        grdni(1) = - RR * rn_icl(nr)   ! -R ( d n_i / d r ) / n_i
        grdnh(1) = - RR * rn_icl(nr)   ! -R ( d n_h / d r ) / n_h
-       grdnz(1) = 0.d0              ! -R ( d Z n_Z / d r ) / ( Z n_Z )
+       grdnz(1) = - RR * rn_icl(nr)   ! -R ( d Z n_Z / d r ) / ( Z n_Z )
        grdte(1) = - RR * rt_ecl(nr)   ! -R ( d T_e / d r ) / T_e
        grdti(1) = - RR * rt_icl(nr)   ! -R ( d T_i / d r ) / T_i
        !  R ( d q   / d r ) / q    related to magnetic shear
-       grdq (1) = - RR * qp_d(nr) / qp(nr)
+       grdq (1) =   RR * qp_d(nr) / qp(nr)
 
        CALL mmm95( &
 ! << Input arrays >> (jz: nr,  jm: mode)
@@ -406,6 +406,10 @@ CONTAINS
        mmm_chii(nr) = difthi(1,1,1)
        mmm_vele(nr) = velthi(3,1)
        mmm_veli(nr) = velthi(1,1)
+       ! << NOTE >>
+       ! 'difthi' and 'velthi' include all of the anomalous transport.
+       ! There are no additional contributions to hte heat flux 
+       !  from charged particle convection.
 
     END DO
 
@@ -416,26 +420,25 @@ CONTAINS
     mmm_velem(1:nrmax) = 0.5d0*(mmm_vele(0:nrmax-1)+mmm_vele(1:nrmax))
     mmm_velim(1:nrmax) = 0.5d0*(mmm_veli(0:nrmax-1)+mmm_veli(1:nrmax))
 
-    DO nr = 1, nrmax
-       DO nsa = 1, nsamax
-          IF(idnsa(nsa) == -1)THEN ! electron
-             dtr_tb(1+3*nsa-2,1+3*nsa-2,nr) = cdtrn * 0.d0
-             dtr_tb(1+3*nsa-1,1+3*nsa-1,nr) = cdtru * mmm_chiem(nr)
-             dtr_tb(1+3*nsa  ,1+3*nsa  ,nr) = cdtrt * mmm_chiem(nr)
 
-             vtr_tb(1+3*nsa-2,1+3*nsa-2,nr) = cdtrn * 0.d0
-             vtr_tb(1+3*nsa-1,1+3*nsa-1,nr) = cdtru * mmm_velem(nr)
-             vtr_tb(1+3*nsa  ,1+3*nsa  ,nr) = cdtrt * mmm_velem(nr)
-          ELSE IF(idnsa(nsa) /= 0)THEN ! (hydrogenic) ion
-             dtr_tb(1+3*nsa-2,1+3*nsa-2,nr) = cdtrn * mmm_diffm(nr)
-             dtr_tb(1+3*nsa-1,1+3*nsa-1,nr) = cdtru * mmm_chiim(nr)
-             dtr_tb(1+3*nsa  ,1+3*nsa  ,nr) = cdtrt * mmm_chiim(nr)
+    DO nsa = 1, nsamax
+       IF(idnsa(nsa) == -1)THEN ! electron
+          dtr_tb(1+3*nsa-2,1+3*nsa-2,1:nrmax) = cdtrn * mmm_diffm(1:nrmax)
+!          dtr_tb(1+3*nsa-1,1+3*nsa-1,1:nrmax) = cdtru *
+          dtr_tb(1+3*nsa  ,1+3*nsa  ,1:nrmax) = cdtrt * mmm_chiem(1:nrmax)
+          
+          vtr_tb(1+3*nsa-2,1+3*nsa-2,1:nrmax) = cdtrn * 0.d0
+!          vtr_tb(1+3*nsa-1,1+3*nsa-1,1:nrmax) = cdtru *
+          vtr_tb(1+3*nsa  ,1+3*nsa  ,1:nrmax) = cdtrt * mmm_velem(1:nrmax)
+       ELSE IF(idnsa(nsa) /= 0)THEN ! (hydrogenic) ion
+          dtr_tb(1+3*nsa-2,1+3*nsa-2,1:nrmax) = cdtrn * mmm_diffm(1:nrmax)
+!          dtr_tb(1+3*nsa-1,1+3*nsa-1,1:nrmax) = cdtru *
+          dtr_tb(1+3*nsa  ,1+3*nsa  ,1:nrmax) = cdtrt * mmm_chiim(1:nrmax)
 
-             vtr_tb(1+3*nsa-2,1+3*nsa-2,nr) = cdtrn * 0.d0
-             vtr_tb(1+3*nsa-1,1+3*nsa-1,nr) = cdtru * mmm_velim(nr)
-             vtr_tb(1+3*nsa  ,1+3*nsa  ,nr) = cdtrt * mmm_velim(nr)
-          END IF
-       END DO
+          vtr_tb(1+3*nsa-2,1+3*nsa-2,1:nrmax) = cdtrn * 0.d0
+!          vtr_tb(1+3*nsa-1,1+3*nsa-1,1:nrmax) = cdtru *
+          vtr_tb(1+3*nsa  ,1+3*nsa  ,1:nrmax) = cdtrt * mmm_velim(1:nrmax)
+       END IF
     END DO
 
   END SUBROUTINE tr_mmm95

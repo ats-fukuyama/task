@@ -25,8 +25,8 @@ CONTAINS
     CALL tr_calv_nr_alloc
     CALL tr_calc_variables
 
-    CALL tr_coeftb         ! calculate turbulent transport coefficients
     CALL tr_coefnc         ! calculate neoclassical transport coefficients
+    CALL tr_coeftb         ! calculate turbulent transport coefficients
 
     CALL tr_calc_exchange  ! calculate exchange rate
     CALL tr_calc_excurrent ! calculate external driven current term
@@ -59,7 +59,7 @@ CONTAINS
     DO neq = 1, neqmax
        nsa = nsa_neq(neq)
        nva = nva_neq(neq)
-       IF(nva == 3)THEN
+       IF(nva==3 .AND. nsa==1)THEN ! energy, electron
           str(neq,0:nrmax) = poh(0:nrmax)/(rkev*1.d20)
        END IF
     END DO
@@ -76,10 +76,57 @@ CONTAINS
 ! ----- calculate exchange rate -----
 
   SUBROUTINE tr_calc_exchange
-    USE trcomm, ONLY: nrmax,neqmax,ctr_ex
+    USE trcomm, ONLY: aee,ame,amp,pi,rkev,pa,pz,eps0,nrmax,neqmax, &
+         ns_nsa,nva_neq,nsa_neq,rt,rn,ctr_ex
+    USE trcoefnc, ONLY: coulog ! coulomb logarithm
     IMPLICIT NONE
+    INTEGER(ikind) :: nr,neq,neq1,nsa,nsa1,ns,ns1
+    REAL(rkind) :: coef1,coef2,ams,ams1
 
     ctr_ex(1:neqmax,1:neqmax,0:nrmax)=0.D0
+
+    coef1 = aee**4.d0 / (3.d0*SQRT(2.d0)*pi**1.5d0 * eps0**2.d0)
+
+    ! *** only heat exchange ***
+    DO nr = 0, nrmax
+       DO neq = 1, neqmax
+          IF(nva_neq(neq) == 3)THEN ! only for energy equation
+             DO neq1 = 1, neqmax
+                IF(nva_neq(neq1) == 3 .AND. neq /= neq1)THEN
+                   nsa  = nsa_neq(neq)
+                   nsa1 = nsa_neq(neq1)
+                   ns  = ns_nsa(nsa)
+                   ns1 = ns_nsa(nsa1)
+
+                   ! particle mass
+                   IF(pz(ns) < 0.d0)THEN ! electron
+                      ams = ame
+                   ELSE IF(pz(ns) > 0.d0)THEN ! ions
+                      ams = amp*pa(ns)
+                   END IF
+                   IF(pz(ns1) < 0.d0)THEN ! electron
+                      ams1 = ame
+                   ELSE IF(pz(ns1) > 0.d0)THEN ! ions
+                      ams1 = amp*pa(ns1)
+                   END IF
+
+                   write(*,*) nr,rt(nsa,nr), rt(nsa1,nr)
+                   coef2 = (pz(ns)*pz(ns1))**2.d0 / (ams*ams1)             &
+                   *(rt(nsa,nr)*rkev/ams + rt(nsa1,nr)*rkev/ams1)**(-1.5d0)&
+                   *coulog(ns,ns1,rn(1,nr),rt(nsa,nr))                     &
+                   *rn(nsa1,nr)*1.d20
+
+!                   write(*,*) ams, ams1
+                   ! coef1*coef2 : nu_ij (heat exchange frequency)
+                   ctr_ex(neq,neq1,nr) =   1.5d0*rn(nsa,nr)*coef1*coef2 &
+                                           /rn(nsa1,nr)
+                   ctr_ex(neq,neq ,nr) = - 1.5d0*rn(nsa,nr)*coef1*coef2 &
+                                           /rn(nsa ,nr)
+                END IF
+             END DO
+          END IF
+       END DO
+    END DO
 
     RETURN
   END SUBROUTINE tr_calc_exchange

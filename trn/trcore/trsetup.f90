@@ -104,6 +104,7 @@ CONTAINS
     nsa_neq(neq) = 0
     nva_neq(neq) = 0
     id_neq(neq)  = 2
+!    id_neq(neq)  = 0
 
     DO nsa=1,nsamax
        DO i=1,3
@@ -290,9 +291,9 @@ CONTAINS
        rkprho(nr)  = rkap
        IF(nr /= 0) rkprhom(nr)=0.5d0*(rkprho(nr-1)+rkprho(nr))
 !
-       pvolrho(nr) = pi*rkap*(ra*rg(nr))**2*2.d0*pi*rr
-       psurrho(nr) = pi*(rkap+1.d0)*ra*rg(nr)*2.d0*pi*rr
-       dvrho(nr)   = 2.d0*pi*rkap*ra**2*2.d0*pi*rr*rg(nr)!/ar1rho(nr)
+       pvolrho(nr) = pi*rkap*(ra*rhog(nr))**2*2.d0*pi*rr
+       psurrho(nr) = pi*(rkap+1.d0)*ra*rhog(nr)*2.d0*pi*rr
+       dvrho(nr)   = 2.d0*pi*rkap*ra**2*2.d0*pi*rr*rhog(nr)
 !
        epsrho(nr)  = rmnrho(nr)/rmjrho(nr)
 
@@ -478,7 +479,7 @@ CONTAINS
 !    nrd1(0:nrmax) = rdpvrho(0:nrmax)
 !    nrd2(0:nrmax) = jtot(0:nrmax)
 
-    write(*,*) jtot(0:nrmax)
+!    write(*,*) jtot(0:nrmax)
 
     RETURN
   END SUBROUTINE tr_prof_j2dpdrho

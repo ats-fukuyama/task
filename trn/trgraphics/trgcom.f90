@@ -20,7 +20,7 @@ MODULE trgcom
   REAL(rkind),DIMENSION(:),ALLOCATABLE :: ig, err_ig !(1:lmaxtr)
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: lt       !(0:nrmax,nsamax)
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &
-       gparg1,gparg2,gparg3,gparg4                   !(0:nrmax,0:nggmax)
+       vgap1,vgap2,vgap3,vgap4                   !(0:nrmax,0:nggmax)
 
 CONTAINS
 
@@ -127,13 +127,13 @@ CONTAINS
   !                                               ( for Pereverzev method )
   !    * numerically net additional quantities in each nodal equation *
   !    * These quantities are relative value to total dtr.            *
-    USE trcomm, ONLY: ngt,gparts
+    USE trcomm, ONLY: ngt,gvrts
 
     ngg_interval = ngt/(MOD(ngt-1,nggmax)+1)
     DO ngg = 0, nggmax
        ! thermal diffusivity
-       gparg1(0:nrmax,ngg) = gparts(0:nrmax,ngg*ngg_interval,1,3)
-       gparg2(0:nrmax,ngg) = gparts(0:nrmax,ngg*ngg_interval,2,3)
+       vgap1(0:nrmax,ngg) = gvrts(0:nrmax,ngg*ngg_interval,1,6)
+       vgap2(0:nrmax,ngg) = gvrts(0:nrmax,ngg*ngg_interval,2,6)
 !!$       ! particle diffusivity
 !!$       gparg3(0:nrmax,ngg) = gparts(0:nrmax,ngg*ngg_interval,1,1)
 !!$       gparg4(0:nrmax,ngg) = gparts(0:nrmax,ngg*ngg_interval,2,1)
@@ -141,9 +141,9 @@ CONTAINS
 
     CALL PAGES
     label = '/add_Net(nT(1)) vs rho'
-    CALL GRD1D(1,rhog,gparg1, nrmax+1,nrmax+1,nggmax+1, label,0)
+    CALL GRD1D(1,rhog,vgap1, nrmax+1,nrmax+1,nggmax+1, label,0)
     label = '/add_Net(nT(2)) vs rho'
-    CALL GRD1D(2,rhog,gparg2, nrmax+1,nrmax+1,nggmax+1, label,0)
+    CALL GRD1D(2,rhog,vgap2, nrmax+1,nrmax+1,nggmax+1, label,0)
     CALL PAGEE
     
   END SUBROUTINE tr_gr_comp12
@@ -172,10 +172,10 @@ CONTAINS
           ALLOCATE(err_ig(1:lmaxtr),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(lt(0:nrmax,nsamax),STAT=ierr); IF(ierr /= 0) EXIT
 
-          ALLOCATE(gparg1(0:nrmax,0:nggmax),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gparg2(0:nrmax,0:nggmax),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gparg3(0:nrmax,0:nggmax),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gparg4(0:nrmax,0:nggmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(vgap1(0:nrmax,0:nggmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(vgap2(0:nrmax,0:nggmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(vgap3(0:nrmax,0:nggmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(vgap4(0:nrmax,0:nggmax),STAT=ierr); IF(ierr /= 0) EXIT
 
           nrmax_save  = nrmax
           lmaxtr_save = lmaxtr
@@ -199,10 +199,10 @@ CONTAINS
     IF(ALLOCATED(err_ig)) DEALLOCATE(err_ig)
     IF(ALLOCATED(lt)) DEALLOCATE(lt)
 
-    IF(ALLOCATED(gparg1)) DEALLOCATE(gparg1)
-    IF(ALLOCATED(gparg2)) DEALLOCATE(gparg2)
-    IF(ALLOCATED(gparg3)) DEALLOCATE(gparg3)
-    IF(ALLOCATED(gparg4)) DEALLOCATE(gparg4)
+    IF(ALLOCATED(vgap1)) DEALLOCATE(vgap1)
+    IF(ALLOCATED(vgap2)) DEALLOCATE(vgap2)
+    IF(ALLOCATED(vgap3)) DEALLOCATE(vgap3)
+    IF(ALLOCATED(vgap4)) DEALLOCATE(vgap4)
 
     RETURN
   END SUBROUTINE tr_gr_comp_dealloc

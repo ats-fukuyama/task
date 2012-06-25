@@ -16,6 +16,7 @@ CONTAINS
     USE trcdbm, ONLY: tr_cdbm
     USE trmbgb, ONLY: tr_mbgb
     USE trmmm95,ONLY: tr_mmm95
+    USE trmmm7_1,ONLY: tr_mmm7_1
     IMPLICIT NONE
 
     dtr_tb(1:neqmax,1:neqmax,1:nrmax) = 0.d0
@@ -32,6 +33,8 @@ CONTAINS
        CALL tr_mbgb
     CASE(150:159)
        CALL tr_mmm95
+    CASE(160:169)
+       CALL tr_mmm7_1
     END SELECT
 
     ! only for energy transport for now

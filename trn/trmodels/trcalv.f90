@@ -26,10 +26,10 @@ MODULE trcalv
        rt_em,    &! the electron temperature (half-mesh)
        rt_ed,    &! the deriv. of electron temperature
        rt_ecl,   &! the scale length of electron temperature 
-       rt_i,     &! the effective ion temperature
-       rt_im,    &! the effective ion temperature (half-mesh)
-       rt_id,    &! the deriv. of effective ion temperature 
-       rt_icl,   &! the scale length of ion temperature 
+       rt_i,     &! the effective hydrogenic ion temperature
+       rt_im,    &! the effective hydrogenic ion temperature (half-mesh)
+       rt_id,    &! the deriv. of effective hydrogenic ion temperature 
+       rt_icl,   &! the scale length of hydrogenic ion temperature 
 !
        rn_e,     &! the electron density
        rn_em,    &! the electron density (half-mesh)
@@ -193,6 +193,8 @@ CONTAINS
     rt_e(0) = rt(1,0)
     rn_e(0) = rn(1,0)
 
+    ! '_i' means 'hydrogennic ions'. 
+    ! for now, in following, nsa are used as loop counters.
     rt_isum = 0.d0
     DO nsa = 1, nsamax
        rp(nsa,0) = rn(nsa,0)*1.d20 * rt(nsa,0)*rkev

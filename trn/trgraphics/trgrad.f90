@@ -403,15 +403,15 @@ CONTAINS
 ! **************************************************************************
   SUBROUTINE tr_gr_rad15
   ! ----- history of radial profile -----
-    USE trcomm, ONLY: ngt,gvrt,gvrtj
+    USE trcomm, ONLY: ngt,gvrt
 
     ngg_interval = ngt/(MOD(ngt-1,nggmax)+1)
     DO ngg = 0, nggmax
-       gg1(0:nrmax,ngg) = 1.d-6*gvrtj(0:nrmax, ngg*ngg_interval, 1)
-       gg2(0:nrmax,ngg) = 1.d-6*gvrtj(0:nrmax, ngg*ngg_interval, 2)
-!       gg3(0:nrmax,ngg) = gvrtj(0:nrmax, ngg*ngg_interval, 3)
+       gg1(0:nrmax,ngg) = 1.d-6*gvrt(0:nrmax, ngg*ngg_interval, 2)
+       gg2(0:nrmax,ngg) = 1.d-6*gvrt(0:nrmax, ngg*ngg_interval, 3)
+!       gg3(0:nrmax,ngg) = gvrt(0:nrmax, ngg*ngg_interval, 4)
        ! history of qp profile
-       gg4(0:nrmax,ngg) =  gvrt(0:nrmax, ngg*ngg_interval, 1)
+       gg4(0:nrmax,ngg) = gvrt(0:nrmax, ngg*ngg_interval, 1)
     END DO
 
     CALL PAGES

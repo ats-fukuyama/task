@@ -345,6 +345,7 @@ CONTAINS
        gm2m  = dvrho(nr-1)*ar2rho(nr-1) + dvrho(nr  )*ar2rho(nr  )
        coef1 = 1.5d0 ! the coef. of time derivative term
        coef2 = 2.5d0 ! the coef. of contribution from particle diffusion
+!       coef2 = 1.5d0 ! the coef. of contribution from particle diffusion
        cjexp = 0.d0
        cjexm = 0.d0
     END IF

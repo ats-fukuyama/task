@@ -11,9 +11,11 @@ MODDIR = -module ../mod
 FFLAGS = $(DFLAGS)
 
 MODINCLUDE=-I $(BPSDDIR)/mod -I $(TASKDIR)/plx/mod -I $(TASKDIR)/lib/mod \
-           -I $(MOD) 
+           -I $(MOD) -I MMM7_1
 
-SRC90=trcalv.f90 trcalnc.f90 trncls.f90 trglf23.f90 trmbgb.f90 trmmm95.f90 trcdbm.f90 trsimple.f90 trcoeftb.f90 trcoefnc.f90
+SRC90=trcalv.f90 trcalnc.f90 trncls.f90 \
+      trglf23.f90 trmbgb.f90 trmmm95.f90 trmmm7_1.f90 trcdbm.f90 \
+      trsimple.f90 trcoeftb.f90 trcoefnc.f90
 SRCMBGB=mbgb/mixed_Bohm_gyro_Bohm.f
 SRCITG= glf/callglf2d.f  itg/ifspppl_model.f itg/weiland.f
 SRCITGF= glf/glf2d.F glf/r8tomsqz.F
@@ -25,13 +27,14 @@ INCNC=trncls.inc nclass/pamx_mi.inc nclass/pamx_ms.inc nclass/pamx_mz.inc
 INCGLF=glf/glf.m
 SRCCYT=cytran/cytran_mod.f90 cytran/tr_cytran_mod.f90
 SRCMMM=mmm95/stripx.f mmm95/tomsqz.f mmm95/weiland14.f mmm95/mmm95.f
+SRCMMM7=MMM7_1/w20mod.f90 MMM7_1/modmmm7_1.f90
 
-OBJS= $(SRCMMM:.f=.o) $(SRCITGF:.F=.o) $(SRCITG:.f=.o) $(SRCMBGB:.f=.o) \
-$(SRCCDBM:.f90=.o) $(SRC90:.f90=.o) $(SRCNC:.f=.o)
+OBJS= $(SRCMMM7:.f90=.o) $(SRCMMM:.f=.o) $(SRCITGF:.F=.o) $(SRCITG:.f=.o) \
+$(SRCMBGB:.f=.o) $(SRCCDBM:.f90=.o) $(SRC90:.f90=.o) $(SRCNC:.f=.o)
 # $(SRCCYT:.f90=.o)
 
 .f.o :
-	$(FCFIXED) -r8 $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
@@ -41,10 +44,10 @@ trmodelslib.a: $(OBJS) $(INCNC) $(INCGLF)
 	$(LD) $(LDFLAGS) trmodelslib.a $(OBJS)
 
 clean : 
-	rm -f ./#* ./*f90~ *.o nclass/*.o itg/*.o glf/*.o cytran/*.o mmm95/*.o mbgb/*.o cdbm/*.o a.out core *.a *.mod 
+	rm -f ./#* ./*f90~ *.o nclass/*.o itg/*.o glf/*.o cytran/*.o MMM7_1/*.o mmm95/*.o mbgb/*.o cdbm/*.o a.out core *.a *.mod 
 
 veryclean : 
-	rm -f ./#* ./*~ *.o nclass/*.o itg/*.o glf/*.o cytran/*.o mmm95/*.o mbgb/*.o cdbm/*.o a.out core *.a *.mod
+	rm -f ./#* ./*~ *.o nclass/*.o itg/*.o glf/*.o cytran/*.o MMM7_1/*.o mmm95/*.o mbgb/*.o cdbm/*.o a.out core *.a *.mod
 
 tritg.o  : tritg.f90
 glf/callglf2d.o : glf/callglf2d.f glf/glf.m
@@ -72,7 +75,14 @@ nclass/write_mod.o   : nclass/write_mod.f
 cytran/cytran_mod.o: cytran/cytran_mod.f90
 cytran/tr_cytran_mod.o: cytran/tr_cytran_mod.f90
 mmm95/stripx.o: mmm95/stripx.f
+	$(FCFIXED) -r8 $(FFLAGS) -c mmm95/stripx.f -o mmm95/stripx.o
 mmm95/tomsqz.o: mmm95/tomsqz.f
+	$(FCFIXED) -r8 $(FFLAGS) -c mmm95/tomsqz.f -o mmm95/tomsqz.o
 mmm95/weiland14.o: mmm95/weiland14.f
+	$(FCFIXED) -r8 $(FFLAGS) -c mmm95/weiland14.f -o mmm95/weiland14.o
 mmm95/mmm95.o: mmm95/mmm95.f
+	$(FCFIXED) -r8 $(FFLAGS) -c mmm95/mmm95.f -o mmm95/mmm95.o
+#MMM7_1/MMM7_interface_mod.o: MMM7_1/MMM7_interface_mod.f90
+MMM7_1/w20mod.o: MMM7_1/w20mod.f90
+MMM7_1/modmmm7_1.o: MMM7_1/w20mod.f90 MMM7_1/modmmm7_1.f90
 mbgb/mixed_Bohm_gyro_Bohm.o: mbgb/mixed_Bohm_gyro_Bohm.f

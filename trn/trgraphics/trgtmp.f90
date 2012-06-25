@@ -18,7 +18,7 @@ MODULE trgtmp
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: & !(0:ngt,nsamax)
        gt1,gt2,gt3,gt4
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: & !(0:ngt,5)
-       gti1
+       gti1,gti2,gti3,gti4
 
 CONTAINS
 
@@ -70,13 +70,13 @@ CONTAINS
     gt4(0:ngt,2)=gvt(0:ngt,2)
 
     CALL PAGES
-    LABEL = '/n(0) [10^20/m^3] vs t/'
+    label = '/n(0) [10^20/m^3] vs t/'
     CALL GRD1D(1,gt,gt1,ngt+1,ngt+1,nsamax,label,0)
-    LABEL = '/u(0) vs t/'
+    label = '/u(0) vs t/'
     CALL GRD1D(2,gt,gt2,ngt+1,ngt+1,nsamax,label,0)
-    LABEL = '/T(0) [keV] vs t/'
+    label = '/T(0) [keV] vs t/'
     CALL GRD1D(3,gt,gt3,ngt+1,ngt+1,nsamax,label,0)
-    LABEL = '/q(0),q(a) vs t/'
+    label = '/q(0),q(a) vs t/'
     CALL GRD1D(4,gt,gt4,ngt+1,ngt+1,2,label,0)
     CALL PAGEE
     
@@ -87,22 +87,20 @@ CONTAINS
 
   SUBROUTINE tr_gr_temp2
     ! ----- time evolution of (j, q) -----
-    USE trcomm, ONLY: gvt,gvti
+    USE trcomm, ONLY: gvt
 
     gt(0:ngt)=gvt(0:ngt,0)
 
-    gti1(0:ngt,1) = gvti(0:ngt,1)
-!    gti1(0:ngt,2) = gvti(0:ngt,2)
-!    gti1(0:ngt,3) = gvti(0:ngt,3)
-
-    gt4(0:ngt,1)=gvt(0:ngt,1)
-    gt4(0:ngt,2)=gvt(0:ngt,2)
+    gti1(0:ngt,1) = gvt(0:ngt,3)
+!    gti1(0:ngt,2) = gvt(0:ngt,4)
+!    gti1(0:ngt,3) = gvt(0:ngt,5)
+    gti2(0:ngt,1) = gvt(0:ngt,8)
 
     CALL PAGES
-    LABEL = '/Ipl [MA] vs t/'
+    label = '/Ipl [MA] vs t/'
     CALL GRD1D(1,gt,gti1,ngt+1,ngt+1,5,label,0)
-    LABEL = '/q(0),q(a) vs t/'
-    CALL GRD1D(4,gt,gt4,ngt+1,ngt+1,2,label,0)
+    label = '/Wp [MJ] vs t/'
+    CALL GRD1D(2,gt,gti2,ngt+1,ngt+1,5,label,0)
     CALL PAGEE
 
     RETURN
@@ -129,6 +127,9 @@ CONTAINS
           ALLOCATE(gt3(0:ngt,nsamax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(gt4(0:ngt,nsamax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(gti1(0:ngt,5),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(gti2(0:ngt,5),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(gti3(0:ngt,5),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(gti4(0:ngt,5),STAT=ierr); IF(ierr /= 0) EXIT
 
           ngt_save    = ngt
           nsamax_save = nsamax
@@ -148,6 +149,9 @@ CONTAINS
     IF(ALLOCATED(gt3)) DEALLOCATE(gt3)
     IF(ALLOCATED(gt4)) DEALLOCATE(gt4)
     IF(ALLOCATED(gti1)) DEALLOCATE(gti1)
+    IF(ALLOCATED(gti2)) DEALLOCATE(gti2)
+    IF(ALLOCATED(gti3)) DEALLOCATE(gti3)
+    IF(ALLOCATED(gti4)) DEALLOCATE(gti4)
 
   END SUBROUTINE tr_gr_temp_dealloc
 

@@ -73,10 +73,30 @@ MODULE trcomm
   INTEGER(ikind)::     nvmax   ! number of variables
   INTEGER(ikind)::     nvrmax  ! number of active variables
 
+  REAL(rkind)::        wp_t    ! total stored energy
+  REAL(rkind)::        taue1   !
+  REAL(rkind)::        taue2   !
+  REAL(rkind)::        taue89  !
+  REAL(rkind)::        taue98  !
+  REAL(rkind)::        betan   ! normalized toroidal beta
+
+  REAL(rkind),DIMENSION(:),ALLOCATABLE:: & ! 0:nrmax
+       beta,     &!
+       beta_va,  &!
+       betap,    &!
+       betap_va, &!
+       betaq      !
+
+  REAL(rkind),DIMENSION(:),ALLOCATABLE:: & ! 1:nsamax
+       rns_va,   &! volume-averaged density
+       rts_va,   &! volume-averaged temperature
+       ws_t       ! stored energy of each species
+
 ! ----- plasma variables -----
 
   REAL(rkind) :: rips          ! toroidal current at the beginning
   REAL(rkind) :: ripe          ! toroidal current at the end
+  REAL(rkind) :: vloop         ! loop valtage
 
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
        rg,      &! radial mesh position [m]
@@ -238,10 +258,10 @@ MODULE trcomm
 
 ! ----- save data parameters -----
   INTEGER(ikind):: ngt
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: gvt,gvti
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: gvt
   REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: gvts
-  REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: gvrt,gvrtj
-  REAL(rkind),DIMENSION(:,:,:,:),ALLOCATABLE:: gvrts,gparts
+  REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: gvrt
+  REAL(rkind),DIMENSION(:,:,:,:),ALLOCATABLE:: gvrts,gvrtp
 
 ! ----- species id -----
   INTEGER(ikind),DIMENSION(:),ALLOCATABLE:: idnsa
@@ -365,6 +385,13 @@ CONTAINS
       ALLOCATE(bp(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
       ALLOCATE(er(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
       ALLOCATE(ezoh(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+
+      ! global variables
+      ALLOCATE(beta(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+      ALLOCATE(beta_va(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+      ALLOCATE(betap(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+      ALLOCATE(betap_va(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+      ALLOCATE(betaq(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
 
       ! for diagnostic
       ALLOCATE(nrd1(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
@@ -637,17 +664,10 @@ CONTAINS
 
        IF(ngtmax_save /= 0) CALL tr_ngt_deallocate
 
-       ALLOCATE(gvt(0:ngtmax,0:2),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(gvti(0:ngtmax,5),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(gvt(0:ngtmax,0:10),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(gvts(0:ngtmax,nsamax,3),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(gvrt(0:nrmax,0:ngtmax,1),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(gvrts(0:nrmax,0:ngtmax,nsamax,3),STAT=ierr)
-            IF(ierr /= 0) GOTO 9000
-       ALLOCATE(gvrtj(0:nrmax,0:ngtmax,5),STAT=ierr)
-            IF(ierr /= 0) GOTO 9000
-
-       ! for Pereverzev method
-       ALLOCATE(gparts(0:nrmax,0:ngtmax,nsamax,3),STAT=ierr)
+       ALLOCATE(gvrt(0:nrmax,0:ngtmax,10),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(gvrts(0:nrmax,0:ngtmax,nsamax,10),STAT=ierr)
             IF(ierr /= 0) GOTO 9000
 
        nrmax_save  = nrmax
@@ -663,12 +683,9 @@ CONTAINS
   SUBROUTINE tr_ngt_deallocate
 
     IF(ALLOCATED(gvt)) DEALLOCATE(gvt)
-    IF(ALLOCATED(gvti)) DEALLOCATE(gvti)
     IF(ALLOCATED(gvts)) DEALLOCATE(gvts)
     IF(ALLOCATED(gvrt)) DEALLOCATE(gvrt)
-    IF(ALLOCATED(gvrtj)) DEALLOCATE(gvrtj)
     IF(ALLOCATED(gvrts)) DEALLOCATE(gvrts)
-    IF(ALLOCATED(gparts)) DEALLOCATE(gparts)
 
     RETURN
   END SUBROUTINE tr_ngt_deallocate
@@ -686,6 +703,10 @@ CONTAINS
        ALLOCATE(idnsa(nsamax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(kidnsa(nsamax),STAT=ierr); IF(ierr /= 0) GOTO 9000
 
+       ALLOCATE(ws_t(nsamax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(rns_va(nsamax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(rts_va(nsamax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+
        nsamax_save = nsamax
     END IF
 
@@ -698,6 +719,10 @@ CONTAINS
 
     IF(ALLOCATED(idnsa)) DEALLOCATE(idnsa)
     IF(ALLOCATED(kidnsa)) DEALLOCATE(kidnsa)
+
+    IF(ALLOCATED(ws_t)) DEALLOCATE(ws_t)
+    IF(ALLOCATED(rns_va)) DEALLOCATE(rns_va)
+    IF(ALLOCATED(rts_va)) DEALLOCATE(rts_va)
 
     RETURN
   END SUBROUTINE tr_nsa_deallocate
