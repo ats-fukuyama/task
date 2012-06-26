@@ -370,13 +370,13 @@
                      PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
                      
                      sum1=sum1 + DCPP2(NTH,NP,NR,NSB,NSA)*ABS(COSM(NTH))/PCOS
-                     sum2=sum2 + FCPP2(NTH,NP,NR,NSB,NSA)*ABS(COSM(NTH))/PCOS
-                     sum3=sum3 + DCPT2(NTH,NP,NR,NSB,NSA)/SQRT(PSIB)
+                     sum2=sum2 + DCPT2(NTH,NP,NR,NSB,NSA)/SQRT(PSIB)
+                     sum3=sum3 + FCPP2(NTH,NP,NR,NSB,NSA)*ABS(COSM(NTH))/PCOS
                   END DO ! END NAVMAX 
                   
                   DCPP2(NTH,NP,NR,NSB,NSA)=SUM1*DELH!*COSM(NTH)*RCOEFG(NR) 
-                  FCPP2(NTH,NP,NR,NSB,NSA)=SUM2*DELH!*COSM(NTH)*RCOEFG(NR) 
-                  DCPT2(NTH,NP,NR,NSB,NSA)=SUM3*DELH!*RCOEFG(NR)
+                  DCPT2(NTH,NP,NR,NSB,NSA)=SUM2*DELH!*RCOEFG(NR)
+                  FCPP2(NTH,NP,NR,NSB,NSA)=SUM3*DELH!*COSM(NTH)*RCOEFG(NR) 
                END IF
             END DO ! END NTH
 
@@ -470,9 +470,6 @@
                   sum4=0.D0
                   sum5=0.D0
                   sum6=0.D0
-                  temp4 = DCTT2(NTH,NP,NR,NSB,NSA)
-                  temp5 = FCTH2(NTH,NP,NR,NSB,NSA)
-                  temp6 = DCTP2(NTH,NP,NR,NSB,NSA)
                   DO NG=1,NAVMAX
                      ETAL=DELH*(NG-0.5D0)
                      X=EPSRM2(NR)*COS(ETAL)*RR
@@ -487,17 +484,17 @@
                      ELSE
                         PCOS=0.D0
                      ENDIF
-                     sum4=sum4 + temp4*PCOS/(PSIB*COSG(NTH))
-                     sum5=sum5 + temp5/SQRT(PSIB)
-                     sum6=sum6 + temp6/SQRT(PSIB)
+                     sum4=sum4 + DCTP2(NTH,NP,NR,NSB,NSA)/SQRT(PSIB)
+                     sum5=sum5 + DCTT2(NTH,NP,NR,NSB,NSA)*PCOS/(PSIB*COSG(NTH))
+                     sum6=sum6 + FCTH2(NTH,NP,NR,NSB,NSA)/SQRT(PSIB)
                   END DO ! END NAVMAX
-                  DCTT2(NTH,NP,NR,NSB,NSA)=sum4*DELH!*RCOEFG(NR) 
-                  FCTH2(NTH,NP,NR,NSB,NSA)=sum5*DELH!*RCOEFG(NR) 
-                  DCTP2(NTH,NP,NR,NSB,NSA)=sum6*DELH!*RCOEFG(NR)
+                  DCTP2(NTH,NP,NR,NSB,NSA)=sum4*DELH!*RCOEFG(NR)
+                  DCTT2(NTH,NP,NR,NSB,NSA)=sum5*DELH!*RCOEFG(NR) 
+                  FCTH2(NTH,NP,NR,NSB,NSA)=sum6*DELH!*RCOEFG(NR) 
                ELSE
+                  DCTP2(NTH,NP,NR,NSB,NSA)=0.D0
                   DCTT2(NTH,NP,NR,NSB,NSA)=0.D0!?
                   FCTH2(NTH,NP,NR,NSB,NSA)=0.D0
-                  DCTP2(NTH,NP,NR,NSB,NSA)=0.D0
                ENDIF ! END NTH!=pi/2
             END DO ! END NTH
          END DO ! END NP
@@ -510,19 +507,19 @@
             DO NTH=ITL(NR)+1,NTHMAX/2
                DCPP2(NTH,NP,NR,NSB,NSA) &
                     =(DCPP2(NTH,NP,NR,NSB,NSA) &
-                    +DCPP2(NTHMAX-NTH+1,NP,NR,NSB,NSA))/2.D0
+                    +DCPP2(NTHMAX-NTH+1,NP,NR,NSB,NSA))*0.5D0
                DCPP2(NTHMAX-NTH+1,NP,NR,NSB,NSA) &
                     =DCPP2(NTH,NP,NR,NSB,NSA)
             END DO ! END NTH
             IF(ISW_LAV.ne.1)THEN
-               DCPP2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)/4.D0     &
+               DCPP2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)*0.25D0     &
                     *( DCPP2(ITL(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
                     +DCPP2(ITL(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR) &
                     +DCPP2(ITU(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR) &
                     +DCPP2(ITU(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
                DCPP2(ITU(NR),NP,NR,NSB,NSA)=DCPP2(ITL(NR),NP,NR,NSB,NSA)
             ELSE
-               DCPP2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)/4.D0 &
+               DCPP2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)*0.25D0 &
                     *( DCPP2B(1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
                     +DCPP2B(2,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR)   &
                     +DCPP2B(3,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR)   &
@@ -536,19 +533,19 @@
             DO NTH=ITL(NR)+1,NTHMAX/2
                FCPP2(NTH,NP,NR,NSB,NSA) &
                     =(FCPP2(NTH,NP,NR,NSB,NSA) &
-                    +FCPP2(NTHMAX-NTH+1,NP,NR,NSB,NSA))/2.D0
+                    +FCPP2(NTHMAX-NTH+1,NP,NR,NSB,NSA))*0.5D0
                FCPP2(NTHMAX-NTH+1,NP,NR,NSB,NSA) &
                     =FCPP2(NTH,NP,NR,NSB,NSA)
             END DO ! END NTH
             IF(ISW_LAV.ne.1)THEN
-               FCPP2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)/4.D0     &
+               FCPP2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)*0.25D0     &
                     *( FCPP2(ITL(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
                     +FCPP2(ITL(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR) &
                     +FCPP2(ITU(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR) &
                     +FCPP2(ITU(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
                FCPP2(ITU(NR),NP,NR,NSB,NSA)=FCPP2(ITL(NR),NP,NR,NSB,NSA)
             ELSE
-               FCPP2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)/4.D0     &
+               FCPP2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)*0.25D0     &
                     *( FCPP2B(1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
                     +FCPP2B(2,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR) &
                     +FCPP2B(3,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR) &
@@ -562,24 +559,24 @@
             DO NTH=ITL(NR)+1,NTHMAX/2
                DCPT2(NTH,NP,NR,NSB,NSA) &
                     =(DCPT2(NTH,NP,NR,NSB,NSA) &
-                    +DCPT2(NTHMAX-NTH+1,NP,NR,NSB,NSA))/2.D0
+                    -DCPT2(NTHMAX-NTH+1,NP,NR,NSB,NSA))*0.5D0
                DCPT2(NTHMAX-NTH+1,NP,NR,NSB,NSA) &
-                    =DCPT2(NTH,NP,NR,NSB,NSA)
+                    =-DCPT2(NTH,NP,NR,NSB,NSA)
             END DO ! END NTH
             IF(ISW_LAV.ne.1)THEN
-               DCPT2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)/4.D0     &
+               DCPT2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)*0.25D0     &
                     *( DCPT2(ITL(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
                     +DCPT2(ITL(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR) &
-                    +DCPT2(ITU(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR) &
-                    +DCPT2(ITU(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
-               DCPT2(ITU(NR),NP,NR,NSB,NSA)=DCPT2(ITL(NR),NP,NR,NSB,NSA)
+                    -DCPT2(ITU(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR) &
+                    -DCPT2(ITU(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
+               DCPT2(ITU(NR),NP,NR,NSB,NSA)=-DCPT2(ITL(NR),NP,NR,NSB,NSA)
             ELSE
-               DCPT2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)/4.D0     &
+               DCPT2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)*0.25D0     &
                     *( DCPT2B(1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
                     +DCPT2B(2,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR) &
-                    +DCPT2B(3,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR) &
-                    +DCPT2B(4,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
-               DCPT2(ITU(NR),NP,NR,NSB,NSA)=DCPT2(ITL(NR),NP,NR,NSB,NSA)
+                    -DCPT2B(3,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR) &
+                    -DCPT2B(4,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
+               DCPT2(ITU(NR),NP,NR,NSB,NSA)=-DCPT2(ITL(NR),NP,NR,NSB,NSA)
             END IF
          END DO ! END NP
       END DO ! END NSB
@@ -591,7 +588,7 @@
             DO NTH=ITL(NR)+1,NTHMAX/2
                DCTT2(NTH,NP,NR,NSB,NSA)        &
                     =(DCTT2(NTH,NP,NR,NSB,NSA) &
-                    +DCTT2(NTHMAX-NTH+2,NP,NR,NSB,NSA))/2.D0
+                    +DCTT2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0
                DCTT2(NTHMAX-NTH+2,NP,NR,NSB,NSA) &
                     =DCTT2(NTH,NP,NR,NSB,NSA)
             END DO
@@ -602,9 +599,9 @@
             DO NTH=ITL(NR)+1,NTHMAX/2
                FCTH2(NTH,NP,NR,NSB,NSA)        &
                     =(FCTH2(NTH,NP,NR,NSB,NSA) &
-                    +FCTH2(NTHMAX-NTH+2,NP,NR,NSB,NSA))/2.D0
+                    -FCTH2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0
                FCTH2(NTHMAX-NTH+2,NP,NR,NSB,NSA) &
-                    =FCTH2(NTH,NP,NR,NSB,NSA)
+                    =-FCTH2(NTH,NP,NR,NSB,NSA)
             END DO
          END DO
       END DO
@@ -613,9 +610,9 @@
             DO NTH=ITL(NR)+1,NTHMAX/2
                DCTP2(NTH,NP,NR,NSB,NSA)        &
                     =(DCTP2(NTH,NP,NR,NSB,NSA) &
-                    +DCTP2(NTHMAX-NTH+2,NP,NR,NSB,NSA))/2.D0
+                    -DCTP2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0
                DCTP2(NTHMAX-NTH+2,NP,NR,NSB,NSA) &
-                    =DCTP2(NTH,NP,NR,NSB,NSA)
+                    =-DCTP2(NTH,NP,NR,NSB,NSA)
             END DO
          END DO
       END DO

@@ -335,14 +335,6 @@
                   WRL=WEIGHR(NTH,NP,NR,NSA)
                   WRH=WEIGHR(NTH,NP,NR+1,NSA)
                   IF(NR.ne.1.and.NR.ne.NRMAX)THEN
-!                     F_R1 = ( (1.D0-WRL)*FNS(NTH,NP,NR,NSA) + WRL*FNS(NTH,NP,NR-1,NSA) )
-!                     DFDR_R1 = ( FNS(NTH,NP,NR,NSA)-FNS(NTH,NP,NR-1,NSA) ) / DELR
-!                     DFDT_R1 = ( DRR(NTH,NP,NR,NSA)*DFDR_R1 - FRR(NTH,NP,NR,NSA)*F_R1 )*RG(NR)*RCOEFN_GG(NR)
-!
-!                     F_R2 = ( (1.D0-WRH)*FNS(NTH,NP,NR+1,NSA) + WRH*FNS(NTH,NP,NR,NSA) )
-!                     DFDR_R2 = ( FNS(NTH,NP,NR+1,NSA)-FNS(NTH,NP,NR,NSA) ) / DELR
-!                     DFDT_R2 = ( DRR(NTH,NP,NR+1,NSA)*DFDR_R2 - FRR(NTH,NP,NR+1,NSA)*F_R2)*RG(NR+1)*RCOEFN_GG(NR+1)
-!
                      DFDR_R1 = ( FNS(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)/RFSADG(NR) &
                           -FNS(NTH,NP,NR-1,NSA)*RLAMDAG(NTH,NR-1)/RFSADG(NR-1) &
                           ) / DELR
@@ -358,9 +350,6 @@
                      DFDT_R1 = ( DRR(NTH,NP,NR,NSA)*DFDR_R1 - FRR(NTH,NP,NR,NSA)*F_R1 )*RG(NR)
                      DFDT_R2 = ( DRR(NTH,NP,NR+1,NSA)*DFDR_R2 - FRR(NTH,NP,NR+1,NSA)*F_R2)*RG(NR+1)
                   ELSEIF(NR.eq.1)THEN
-!                     DFDR_R2 = ( FNS(NTH,NP,NR+1,NSA)-FNS(NTH,NP,NR,NSA) ) / DELR
-!                     F_R2 = ( (1.D0-WRH)*FNS(NTH,NP,NR+1,NSA) + WRH*FNS(NTH,NP,NR,NSA) )
-!                     DFDT_R2 = ( DRR(NTH,NP,NR+1,NSA)*DFDR_R2 - FRR(NTH,NP,NR+1,NSA)*F_R2)*RG(NR+1)*RCOEFN_GG(NR+1)
                      F_R2 = ( (1.D0-WRH)*FNS(NTH,NP,NR+1,NSA)*RLAMDAG(NTH,NR+1)/RFSADG(NR+1) &
                           + WRH*FNS(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)/RFSADG(NR) )
                      DFDR_R2 = ( FNS(NTH,NP,NR+1,NSA)*RLAMDAG(NTH,NR+1)/RFSADG(NR+1) &
@@ -370,22 +359,15 @@
                      DFDT_R1 = 0.D0
                      DFDT_R2 = ( DRR(NTH,NP,NR+1,NSA)*DFDR_R2 - FRR(NTH,NP,NR+1,NSA)*F_R2)*RG(NR+1)
                   ELSEIF(NR.eq.NRMAX)THEN
-!                     DFDR_R1 = ( FNS(NTH,NP,NR,NSA)-FNS(NTH,NP,NR-1,NSA) ) / DELR
-!                     F_R1 = ( (1.D0-WRL)*FNS(NTH,NP,NR,NSA) + WRL*FNS(NTH,NP,NR-1,NSA) )
-!                     DFDT_R1 = ( DRR(NTH,NP,NR,NSA)*DFDR_R1 - FRR(NTH,NP,NR,NSA)*F_R1 )*RG(NR)*RCOEFN_GG(NR)
-!
-!                     DFDR_R2 = ( FS2(NTH,NP,NSA)-FNS(NTH,NP,NR,NSA) ) / DELR
-!                     F_R2 = ( (1.D0-WRH)*FS2(NTH,NP,NSA) + WRH*FNS(NTH,NP,NR,NSA) )
-!                     DFDT_R2 = ( DRR(NTH,NP,NR+1,NSA)*DFDR_R2 - FRR(NTH,NP,NR+1,NSA)*F_R2)*RG(NR+1)*RCOEFN_GG(NR+1)
                      F_R1 = ( (1.D0-WRL)*FNS(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)/RFSADG(NR) &
                           + WRL*FNS(NTH,NP,NR-1,NSA)*RLAMDAG(NTH,NR-1)/RFSADG(NR-1) )
                      DFDR_R1 = ( FNS(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)/RFSADG(NR) &
                           -FNS(NTH,NP,NR-1,NSA)*RLAMDAG(NTH,NR-1)/RFSADG(NR-1) &
                           ) / DELR
 
-                     F_R2 = ( (1.D0-WRH)*FS2(NTH,NP,NSA)*RLAMDA_GG(NTH,NR+1)/RFSAD_GG(NR+1) &
+                     F_R2 = ( (1.D0-WRH)*FS2(NTH,NP,NSA)*RLAMDAG(NTH,NR+1)/RFSADG(NR+1) &
                           + WRH*FNS(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)/RFSADG(NR) )
-                     DFDR_R2 = ( FS2(NTH,NP,NSA)*RLAMDA_GG(NTH,NR+1)/RFSAD_GG(NR+1) &
+                     DFDR_R2 = ( FS2(NTH,NP,NSA)*RLAMDAG(NTH,NR+1)/RFSADG(NR+1) &
                           -FNS(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)/RFSADG(NR) &
                           ) / DELR
 

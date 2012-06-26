@@ -572,6 +572,7 @@
       real(8):: DIVDPP, DIVDPT, DIVDTP, DIVDTT, DIVFPP, DIVFTH
       real(8):: RL,DRRM,DRRP,WRM,WRP,VRM,VRP,DIVDRR,DIVFRR
       real(8):: PL
+      DOUBLE PRECISION:: WPBM, VPBM, WPBP, VPBP
 
       NSBA=NSB_NSA(NSA)
 
@@ -579,19 +580,23 @@
       NTBM=0
       NTBP=0
       IF(MODELA.ne.0)THEN
-      IF(NTH.EQ.ITL(NR)+1) THEN
-         NTB=ITU(NR)+1
-      ENDIF
-      IF(NR-1.GE.1) THEN
-         IF(NTH.GE.ITL(NR)+1.AND.NTH.LE.ITL(NR-1)) THEN 
-            NTBM=ITU(NR-1)+ITL(NR-1)-NTH+1
+!         IF(NTH.EQ.ITL(NR)+1) THEN
+!            NTB=ITU(NR)+1
+         IF(NTH.EQ.ITL(NR)) THEN
+            NTB=ITU(NR)+1
          ENDIF
-      ENDIF
-      IF(NR+1.LE.NRMAX) THEN
-         IF(NTH.GE.ITU(NR)+1.AND.NTH.LE.ITU(NR+1)) THEN
-            NTBP=ITL(NR+1)+ITU(NR+1)-NTH+1
+         IF(NR-1.GE.1) THEN
+!            IF(NTH.GE.ITL(NR)+1.AND.NTH.LE.ITL(NR-1)) THEN 
+            IF(NTH.GE.ITL(NR).AND.NTH.LT.ITL(NR-1)) THEN 
+!               NTBM=ITU(NR-1)+ITL(NR-1)-NTH+1
+               NTBM=ITU(NR)
+            ENDIF
          ENDIF
-      ENDIF
+!         IF(NR+1.LE.NRMAX) THEN
+!            IF(NTH.GE.ITU(NR)+1.AND.NTH.LE.ITU(NR+1)) THEN
+!               NTBP=ITL(NR+1)+ITU(NR+1)-NTH+1
+!            ENDIF
+!         ENDIF
       END IF ! MODELA
 
       NL=0
@@ -607,6 +612,8 @@
       DTTM=SING(NTH  )/PL
       DTTP=SING(NTH+1)/PL
       IF(NTB.NE.0) THEN
+         DPTM=0.5D0*DPTM
+         DPTP=0.5D0*DPTP
          DTPM=0.5D0*DTPM
          DTTM=0.5D0*DTTM
       ENDIF
@@ -616,15 +623,17 @@
       IF(NTBM.NE.0) THEN
          DRRM=0.5D0*DRRM
       ENDIF
-      IF(NTBP.NE.0) THEN
-         DRRP=0.5D0*DRRP
-      ENDIF
+!      IF(NTBP.NE.0) THEN
+!         DRRP=0.5D0*DRRP
+!      ENDIF
+!     delta
       WPM=WEIGHP(NTH  ,NP  ,NR  ,NSA)
       WPP=WEIGHP(NTH  ,NP+1,NR  ,NSA)
       WTM=WEIGHT(NTH  ,NP  ,NR  ,NSA)
       WTP=WEIGHT(NTH+1,NP  ,NR  ,NSA)
       WRM=WEIGHR(NTH  ,NP  ,NR  ,NSA)
       WRP=WEIGHR(NTH  ,NP  ,NR+1,NSA)
+!     epsilon
       VPM=1.D0-WPM
       VPP=1.D0-WPP
       VTM=1.D0-WTM
@@ -634,15 +643,19 @@
       IF(NTB.NE.0) THEN
          WTB=WEIGHT( NTB, NP  ,NR  ,NSA)
          VTB=1.D0-WTB
+         WPBM=WEIGHP( NTB-1, NP  ,NR  ,NSA)
+         VPBM=1.D0-WPBM
+         WPBP=WEIGHP( NTB-1, NP+1,NR  ,NSA)
+         VPBP=1.D0-WPBP
       ENDIF
       IF(NTBM.NE.0) THEN
          WRBM=WEIGHR(NTBM,NP  ,NR,NSA)
          VRBM=1.D0-WRBM
       ENDIF
-      IF(NTBP.NE.0) THEN
-         WRBP=WEIGHR(NTBP,NP  ,NR+1,NSA)
-         VRBP=1.D0-WRBP
-      ENDIF
+!      IF(NTBP.NE.0) THEN
+!         WRBP=WEIGHR(NTBP,NP  ,NR+1,NSA)
+!         VRBP=1.D0-WRBP
+!      ENDIF
       DIVDPP=1.D0/(     PL*PL*DELP(NSBA) *DELP(NSBA))
       DIVDPT=1.D0/(2.D0*PL*PL*DELP(NSBA) *DELTH)
       DIVDTP=1.D0/(2.D0*PL*SL*DELTH*DELP(NSBA))
@@ -653,16 +666,14 @@
 !      DIVFRR=1.D0/(     RL   *DELR)
       DIVDRR=1.D0/(     RL   *DELR *DELR)*RFSADG(NR)
       DIVFRR=1.D0/(     RL   *DELR)*RFSADG(NR)
-      IF(NP.EQ.NPMAX) THEN
-         DIVDTP=2.D0*DIVDTP
-      ENDIF
+!      IF(NP.EQ.NPMAX) THEN
+!         DIVDTP=2.D0*DIVDTP
+!      ENDIF
 
       IF(MODELD.GT.0) THEN
          IF(NR.NE.1.AND.NP.NE.NPMAX) THEN
             NL=NL+1
             LL(NM,NL)=NMA(NTH,NP,NR-1)
-!            AL(NM,NL)=DRR(NTH  ,NP  ,NR,NSA)    *DIVDRR*DRRM &
-!                     +FRR(NTH  ,NP  ,NR,NSA)*WRM*DIVFRR*DRRM
             AL(NM,NL)=DRR(NTH  ,NP  ,NR,NSA)    *DIVDRR*DRRM &
                          *RLAMDAG(NTH,NR-1)/RFSADG(NR-1) &
                      +FRR(NTH  ,NP  ,NR,NSA)*WRM*DIVFRR*DRRM &
@@ -675,8 +686,6 @@
             IF(NTBM.NE.0) THEN
                NL=NL+1
                LL(NM,NL)=NMA(NTBM,NP,NR-1)
-!               AL(NM,NL)=DRR(NTBM ,NP  ,NR,NSA)     *DIVDRR*DRRM &
-!                        +FRR(NTBM ,NP  ,NR,NSA)*WRBM*DIVFRR*DRRM
                AL(NM,NL)=DRR(NTBM ,NP  ,NR,NSA)     *DIVDRR*DRRM &
                             *RLAMDAG(NTBM,NR-1)/RFSADG(NR-1) &
                         +FRR(NTBM ,NP  ,NR,NSA)*WRBM*DIVFRR*DRRM &
@@ -695,6 +704,7 @@
          LL(NM,NL)=NMA(NTH-1,NP-1,NR)
          AL(NM,NL)=+DPT(NTH  ,NP  ,NR,NSA)*WPM*DIVDPT*DPTM &
                    +DTP(NTH  ,NP  ,NR,NSA)*WTM*DIVDTP*DTPM
+
          IF(ABS(AL(NM,NL)).LT.1.D-70) THEN
             LL(NM,NL)=0
             AL(NM,NL)=0.D0
@@ -711,7 +721,7 @@
                    +DTP(NTH  ,NP  ,NR,NSA)*VTM*DIVDTP*DTPM
          IF(NTB.NE.0) THEN
             AL(NM,NL)=AL(NM,NL) &
-                   -DTP(NTB,NP  ,NR,NSA)*VTB*DIVDTP*DTPM
+                   -DTP(NTB  ,NP  ,NR,NSA)*WTB*DIVDTP*DTPM 
          ENDIF
       ENDIF
 
@@ -720,12 +730,18 @@
          LL(NM,NL)=NMA(NTH+1,NP-1,NR)
          AL(NM,NL)=-DPT(NTH  ,NP  ,NR,NSA)*WPM*DIVDPT*DPTM &
                    -DTP(NTH+1,NP  ,NR,NSA)*VTP*DIVDTP*DTPP
+         IF(NTB.ne.0)THEN
+            AL(NM,NL)=AL(NM,NL) &
+                 -DPT(NTH  ,NP  ,NR,NSA)*WPM*DIVDPT*DPTM
+         END IF
       ENDIF
 
       IF(NP.NE.1.AND.NTB.NE.0) THEN
          NL=NL+1
          LL(NM,NL)=NMA(NTB,NP-1,NR)
-         AL(NM,NL)=-DTP(NTB,NP  ,NR,NSA)*WTB*DIVDTP*DTPM
+         AL(NM,NL)= &
+              +DPT(NTH, NP  ,NR,NSA)*WPBM*DIVDPT*DPTM &
+              -DTP(NTB, NP  ,NR,NSA)*VTB *DIVDTP*DTPM
          IF(ABS(AL(NM,NL)).LT.1.D-70) THEN
             LL(NM,NL)=0
             AL(NM,NL)=0.D0
@@ -736,38 +752,45 @@
       IF(NTH.NE.1) THEN
          NL=NL+1
          LL(NM,NL)=NMA(NTH-1,NP,NR)
-         AL(NM,NL)=+DTT(NTH  ,NP  ,NR,NSA)    *DIVDTT*DTTM &
-                   +FTH(NTH  ,NP  ,NR,NSA)*WTM*DIVFTH*DTPM &
-                   -DPT(NTH  ,NP+1,NR,NSA)*WPP*DIVDPT*DPTP &
-                   +DPT(NTH  ,NP  ,NR,NSA)*VPM*DIVDPT*DPTM
-         IF(NP.EQ.NPMAX) THEN
-            AL(NM,NL)=AL(NM,NL) &
-                   -DTP(NTH  ,NP  ,NR,NSA)*WTM*DIVDTP*DTPM
-         ENDIF
+         AL(NM,NL)=-DPT(NTH  ,NP+1,NR,NSA)*WPP*DIVDPT*DPTP &
+                   +DPT(NTH  ,NP  ,NR,NSA)*VPM*DIVDPT*DPTM &
+                   +DTT(NTH  ,NP  ,NR,NSA)    *DIVDTT*DTTM &
+                   +FTH(NTH  ,NP  ,NR,NSA)*WTM*DIVFTH*DTPM 
+!         IF(NP.EQ.NPMAX) THEN !
+!            AL(NM,NL)=AL(NM,NL) &
+!                   -DTP(NTH  ,NP  ,NR,NSA)*VTM*DIVDTP*DTPM
+!         ENDIF
       ENDIF
 
       IF(NTH.NE.NTHMAX) THEN
          NL=NL+1
          LL(NM,NL)=NMA(NTH+1,NP,NR)
-         AL(NM,NL)=+DTT(NTH+1,NP  ,NR,NSA)    *DIVDTT*DTTP &
-                   -FTH(NTH+1,NP  ,NR,NSA)*VTP*DIVFTH*DTPP &
-                   +DPT(NTH  ,NP+1,NR,NSA)*WPP*DIVDPT*DPTP &
-                   -DPT(NTH  ,NP  ,NR,NSA)*VPM*DIVDPT*DPTM
-         IF(NP.EQ.NPMAX) THEN
+         AL(NM,NL)=+DPT(NTH  ,NP+1,NR,NSA)*WPP*DIVDPT*DPTP &
+                   -DPT(NTH  ,NP  ,NR,NSA)*VPM*DIVDPT*DPTM &
+                   +DTT(NTH+1,NP  ,NR,NSA)    *DIVDTT*DTTP &
+                   -FTH(NTH+1,NP  ,NR,NSA)*VTP*DIVFTH*DTPP 
+         IF(NTB.ne.0)THEN
             AL(NM,NL)=AL(NM,NL) &
-                   +DTP(NTH+1,NP  ,NR,NSA)*VTP*DIVDTP*DTPP
-         ENDIF
+                   +DPT(NTH  ,NP+1,NR,NSA)*WPP*DIVDPT*DPTP &
+                   -DPT(NTH  ,NP  ,NR,NSA)*VPM*DIVDPT*DPTM 
+         END IF
+!         IF(NP.EQ.NPMAX) THEN !
+!            AL(NM,NL)=AL(NM,NL) &
+!                   +DTP(NTH+1,NP  ,NR,NSA)*WTP*DIVDTP*DTPP
+!         ENDIF
       ENDIF
 
       IF(NTB.NE.0) THEN
          NL=NL+1
          LL(NM,NL)=NMA(NTB,NP,NR)
-         AL(NM,NL)= DTT(NTB,NP  ,NR,NSA)    *DIVDTT*DTTM &
-                   -FTH(NTB,NP  ,NR,NSA)*WTB*DIVFTH*DTPM
-         IF(NP.EQ.NPMAX) THEN
-            AL(NM,NL)=AL(NM,NL) &
-                   +DTP(NTB,NP  ,NR,NSA)*WTB*DIVDTP*DTPM
-         ENDIF
+         AL(NM,NL)=-DPT(NTH,NP+1,NR,NSA)*WPBP*DIVDPT*DPTP &
+                   +DPT(NTH,NP  ,NR,NSA)*VPBM*DIVDPT*DPTM &
+                   +DTT(NTB,NP  ,NR,NSA)    *DIVDTT*DTTM &
+                   -FTH(NTB,NP  ,NR,NSA)*VTB*DIVFTH*DTPM
+!         IF(NP.EQ.NPMAX) THEN
+!            AL(NM,NL)=AL(NM,NL) &
+!                   +DTP(NTB,NP  ,NR,NSA)*VTB*DIVDTP*DTPM
+!         ENDIF
       ENDIF
 
       IF(NP.NE.NPMAX.AND.NTH.NE.1) THEN
@@ -791,7 +814,7 @@
                    -DTP(NTH  ,NP  ,NR,NSA)*VTM*DIVDTP*DTPM
          IF(NTB.NE.0) THEN
             AL(NM,NL)=AL(NM,NL) &
-                   +DTP(NTB,NP  ,NR,NSA)*VTB*DIVDTP*DTPM
+                   +DTP(NTB  ,NP  ,NR,NSA)*WTB*DIVDTP*DTPM 
          ENDIF
       ENDIF
 
@@ -800,6 +823,10 @@
          LL(NM,NL)=NMA(NTH+1,NP+1,NR)
          AL(NM,NL)=+DPT(NTH  ,NP+1,NR,NSA)*VPP*DIVDPT*DPTP &
                    +DTP(NTH+1,NP  ,NR,NSA)*VTP*DIVDTP*DTPP
+         IF(NTB.ne.0)THEN
+            AL(NM,NL)=AL(NM,NL) &
+                   +DPT(NTH  ,NP+1,NR,NSA)*VPP*DIVDPT*DPTP
+         END IF
          IF(ABS(AL(NM,NL)).LT.1.D-70) THEN
             LL(NM,NL)=0
             AL(NM,NL)=0.D0
@@ -810,7 +837,9 @@
       IF(NP.NE.NPMAX.AND.NTB.NE.0) THEN
          NL=NL+1
          LL(NM,NL)=NMA(NTB,NP+1,NR)
-         AL(NM,NL)=+DTP(NTB,NP  ,NR,NSA)*WTB*DIVDTP*DTPM
+         AL(NM,NL)= &
+              -DPT(NTH,NP+1,NR,NSA)*VPBP*DIVDPT*DPTP &
+              +DTP(NTB,NP  ,NR,NSA)*VTB *DIVDTP*DTPM
          IF(ABS(AL(NM,NL)).LT.1.D-70) THEN
             LL(NM,NL)=0
             AL(NM,NL)=0.D0
@@ -822,8 +851,6 @@
          IF(NR.NE.NRMAX.AND.NP.NE.NPMAX) THEN
             NL=NL+1
             LL(NM,NL)=NMA(NTH,NP,NR+1)
-!            AL(NM,NL)=DRR(NTH  ,NP  ,NR+1,NSA)    *DIVDRR*DRRP &
-!                     -FRR(NTH  ,NP  ,NR+1,NSA)*VRP*DIVFRR*DRRP
             AL(NM,NL)=DRR(NTH  ,NP  ,NR+1,NSA)    *DIVDRR*DRRP &
                          *RLAMDAG(NTH,NR+1)/RFSADG(NR+1) &
                      -FRR(NTH  ,NP  ,NR+1,NSA)*VRP*DIVFRR*DRRP &
@@ -833,21 +860,19 @@
                AL(NM,NL)=0.D0
                NL=NL-1
             ENDIF
-            IF(NTBP.NE.0) THEN
-               NL=NL+1
-               LL(NM,NL)=NMA(NTBP,NP,NR+1)
+!            IF(NTBP.NE.0) THEN
+!               NL=NL+1
+!               LL(NM,NL)=NMA(NTBP,NP,NR+1)
 !               AL(NM,NL)=DRR(NTBP ,NP  ,NR+1,NSA)     *DIVDRR*DRRP &
-!                        -FRR(NTBP ,NP  ,NR+1,NSA)*VRBP*DIVFRR*DRRP
-               AL(NM,NL)=DRR(NTBP ,NP  ,NR+1,NSA)     *DIVDRR*DRRP &
-                            *RLAMDAG(NTBP,NR+1)/RFSADG(NR+1) &
-                        -FRR(NTBP ,NP  ,NR+1,NSA)*VRBP*DIVFRR*DRRP &
-                            *RLAMDAG(NTBP,NR+1)/RFSADG(NR+1)
-               IF(ABS(AL(NM,NL)).LT.1.D-70) THEN
-                  LL(NM,NL)=0
-                  AL(NM,NL)=0.D0
-                  NL=NL-1
-               ENDIF
-            ENDIF
+!                            *RLAMDAG(NTBP,NR+1)/RFSADG(NR+1) &
+!                        -FRR(NTBP ,NP  ,NR+1,NSA)*VRBP*DIVFRR*DRRP &
+!                            *RLAMDAG(NTBP,NR+1)/RFSADG(NR+1)
+!               IF(ABS(AL(NM,NL)).LT.1.D-70) THEN
+!                  LL(NM,NL)=0
+!                  AL(NM,NL)=0.D0
+!                  NL=NL-1
+!               ENDIF
+!            ENDIF
          ENDIF
       ENDIF
 
@@ -857,9 +882,10 @@
              +FPP(NTH  ,NP  ,NR  ,NSA)*VPM*DIVFPP*DPPM &
              -DTT(NTH+1,NP  ,NR  ,NSA)    *DIVDTT*DTTP &
              -FTH(NTH+1,NP  ,NR  ,NSA)*WTP*DIVFTH*DTPP &
+!
              -DTT(NTH  ,NP  ,NR  ,NSA)    *DIVDTT*DTTM &
              +FTH(NTH  ,NP  ,NR  ,NSA)*VTM*DIVFTH*DTPM &
-             +PPL(NTH  ,NP  ,NR  ,NSA)!*RLAMDAG(NTH,NR)
+             +PPL(NTH  ,NP  ,NR  ,NSA)
 
       IF(NTB.NE.0) THEN
          DL(NM)=DL(NM) &
@@ -867,62 +893,74 @@
              -FTH(NTB,NP  ,NR  ,NSA)*VTB*DIVFTH*DTPM
       ENDIF
 
-      IF(NP.EQ.NPMAX) THEN
-         DL(NM)=DL(NM) &
-             +DTP(NTH+1,NP  ,NR  ,NSA)*WTP*DIVDTP*DTPP &
-             -DTP(NTH  ,NP  ,NR  ,NSA)*VTM*DIVDTP*DTPM
-         IF(NTB.NE.0) THEN
-            DL(NM)=DL(NM) &
-                +DTP(NTB,NP  ,NR  ,NSA)*VTB*DIVDTP*DTPM
-         ENDIF
-      ENDIF
+!      IF(NP.EQ.NPMAX) THEN !
+!         DL(NM)=DL(NM) &
+!             +DTP(NTH+1,NP  ,NR  ,NSA)*WTP*DIVDTP*DTPP &
+!             -DTP(NTH  ,NP  ,NR  ,NSA)*VTM*DIVDTP*DTPM
+!         IF(NTB.NE.0) THEN
+!            DL(NM)=DL(NM) &
+!                +DTP(NTB,NP  ,NR  ,NSA)*VTB*DIVDTP*DTPM
+!         ENDIF
+!      ENDIF
 
       IF(MODELD.GT.0) THEN
-         IF(NP.NE.NPMAX) THEN
-            IF(NR.NE.NRMAX) THEN
-               DL(NM)= DL(NM) &
+         DL(NM)= DL(NM) &
+              -DRR(NTH  ,NP  ,NR+1,NSA)    *DIVDRR*DRRP &
+                            *RLAMDAG(NTH,NR)/RFSADG(NR) &
+              -FRR(NTH  ,NP  ,NR+1,NSA)*WRP*DIVFRR*DRRP &
+                            *RLAMDAG(NTH,NR)/RFSADG(NR) &
+              -DRR(NTH  ,NP  ,NR  ,NSA)    *DIVDRR*DRRM &
+                            *RLAMDAG(NTH,NR)/RFSADG(NR) &
+              +FRR(NTH  ,NP  ,NR  ,NSA)*VRM*DIVFRR*DRRM &
+                            *RLAMDAG(NTH,NR)/RFSADG(NR) 
+         IF(NTBM.ne.0)THEN
+            DL(NM)= DL(NM) &
+                 -DRR(NTBM ,NP  ,NR  ,NSA)    *DIVDRR*DRRM &
+                               *RLAMDAG(NTH,NR)/RFSADG(NR) &
+                 +FRR(NTBM ,NP  ,NR  ,NSA)*VRM*DIVFRR*DRRM &
+                               *RLAMDAG(NTH,NR)/RFSADG(NR)
+         END IF
+!            IF(NR.NE.NRMAX) THEN
+!               DL(NM)= DL(NM) &
 !                 -DRR(NTH  ,NP  ,NR+1,NSA)    *DIVDRR*DRRP &
-!                 -FRR(NTH  ,NP  ,NR+1,NSA)*WRP*DIVFRR*DRRP
-                 -DRR(NTH  ,NP  ,NR+1,NSA)    *DIVDRR*DRRP &
-                     *RLAMDAG(NTH,NR)/RFSADG(NR) &
-                 -FRR(NTH  ,NP  ,NR+1,NSA)*WRP*DIVFRR*DRRP &
-                     *RLAMDAG(NTH,NR)/RFSADG(NR)
-               IF(NTBP.NE.0) THEN
-                  DL(NM)= DL(NM) &
+!                     *RLAMDAG(NTH,NR)/RFSADG(NR) &
+!                 -FRR(NTH  ,NP  ,NR+1,NSA)*WRP*DIVFRR*DRRP &
+!                     *RLAMDAG(NTH,NR)/RFSADG(NR)
+!               IF(NTBP.NE.0) THEN
+!                  DL(NM)= DL(NM) &
 !                    -DRR(NTBP ,NP  ,NR+1,NSA)     *DIVDRR*DRRP &
-!                    -FRR(NTBP ,NP  ,NR+1,NSA)*WRBP*DIVFRR*DRRP 
-                    -DRR(NTBP ,NP  ,NR+1,NSA)     *DIVDRR*DRRP &
-                        *RLAMDAG(NTBP,NR)/RFSADG(NR) &
-                    -FRR(NTBP ,NP  ,NR+1,NSA)*WRBP*DIVFRR*DRRP &
-                        *RLAMDAG(NTBP,NR)/RFSADG(NR) 
-               ENDIF
-            ENDIF
-            IF(NR.NE.1) THEN
-               DL(NM)= DL(NM) &
+!                        *RLAMDAG(NTBP,NR)/RFSADG(NR) &
+!                    -FRR(NTBP ,NP  ,NR+1,NSA)*WRBP*DIVFRR*DRRP &
+!                        *RLAMDAG(NTBP,NR)/RFSADG(NR) 
+!               ENDIF
+!            ENDIF
+!            IF(NR.NE.1) THEN
+!               DL(NM)= DL(NM) &
 !                 -DRR(NTH  ,NP  ,NR  ,NSA)    *DIVDRR*DRRM &
-!                 +FRR(NTH  ,NP  ,NR  ,NSA)*VRM*DIVFRR*DRRM 
-                 -DRR(NTH  ,NP  ,NR  ,NSA)    *DIVDRR*DRRM &
-                     *RLAMDAG(NTH,NR)/RFSADG(NR) &
-                 +FRR(NTH  ,NP  ,NR  ,NSA)*VRM*DIVFRR*DRRM &
-                     *RLAMDAG(NTH,NR)/RFSADG(NR) 
-               IF(NTBM.NE.0) THEN
-                  DL(NM)= DL(NM) &
+!                     *RLAMDAG(NTH,NR)/RFSADG(NR) &
+!                 +FRR(NTH  ,NP  ,NR  ,NSA)*VRM*DIVFRR*DRRM &
+!                     *RLAMDAG(NTH,NR)/RFSADG(NR) 
+!               IF(NTBM.NE.0) THEN
+!                  DL(NM)= DL(NM) &
 !                    -DRR(NTBM ,NP  ,NR  ,NSA)     *DIVDRR*DRRM &
-!                    +FRR(NTBM ,NP  ,NR  ,NSA)*VRBM*DIVFRR*DRRM 
-                    -DRR(NTBM ,NP  ,NR  ,NSA)     *DIVDRR*DRRM &
-                        *RLAMDAG(NTBM,NR)/RFSADG(NR) &
-                    +FRR(NTBM ,NP  ,NR  ,NSA)*VRBM*DIVFRR*DRRM &
-                        *RLAMDAG(NTBM,NR)/RFSADG(NR) 
-               ENDIF
-            ENDIF
-         ENDIF
+!                        *RLAMDAG(NTBM,NR)/RFSADG(NR) &
+!                    +FRR(NTBM ,NP  ,NR  ,NSA)*VRBM*DIVFRR*DRRM &
+!                        *RLAMDAG(NTBM,NR)/RFSADG(NR) 
+!               ENDIF
+!            ENDIF
       ENDIF
 
       SPP(NTH,NP,NR,NSA) &
               =( SPPB(NTH,NP,NR,NSA) &
                 +SPPF(NTH,NP,NR,NSA) &
                 +SPPS(NTH,NP,NR,NSA) )!*RLAMDAG(NTH,NR)
-!      IF(MODELD.GT.0.AND.NR.EQ.NRMAX) THEN
+      IF(MODELD.GT.0.AND.NR.EQ.NRMAX) THEN
+         SPP(NTH,NP,NR,NSA)=SPP(NTH,NP,NR,NSA) &
+              +FS2(NTH,NP,NSA)*RLAMDAG(NTH,NRMAX+1)/RFSADG(NRMAX+1) &
+              *(DRR(NTH,NP,NR+1,NSA)    *DIVDRR &
+               -FRR(NTH,NP,NR+1,NSA)*VRP*DIVFRR)*DRRP
+      ENDIF
+
 !         IF(NP.NE.NPMAX) THEN
 !            SPP(NTH,NP,NR,NSA)=SPP(NTH,NP,NR,NSA) &
 !                 +FS2(NTH,NP,NSA)*(DRR(NTH  ,NP  ,NR+1,NSA)    *DIVDRR &
@@ -935,7 +973,6 @@
 !                      *DRRP
 !            ENDIF
 !         ENDIF
-!      ENDIF
       RETURN
       END SUBROUTINE FPSETM
 

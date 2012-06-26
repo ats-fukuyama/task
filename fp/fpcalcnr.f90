@@ -463,23 +463,30 @@
             SUMF = 0.D0
             SUMG = 0.D0
             SUMH = 0.D0
-!            DO L=LLMIN,LLMAX
             DO L=LLMAX,LLMIN,-1
                SUMA = SUMA + DPSI02M(NP,L) * PLG(NTH,L)
                SUMB = SUMB + PSI02M(NP,L) * PLG(NTH,L)
-               SUMC = SUMC + PSI02M(NP,L) * D2PLG(NTH,L)
                SUMD = SUMD + DPSI022M(NP,L) * PLG(NTH,L)
                SUME = SUME + PSI022M(NP,L) * PLG(NTH,L)
+            END DO
+            DO L=LLMIN,LLMAX
+               SUMC = SUMC + PSI02M(NP,L) * D2PLG(NTH,L)
                SUMF = SUMF + PSI022M(NP,L) * D2PLG(NTH,L)
                SUMG = SUMG + PSI1M(NP,L) * D1PLG(NTH,L)
                SUMH = SUMH + PSI11M(NP,L) * D1PLG(NTH,L)
+!               IF(NP.eq.2.and.NR.eq.2.and.NSA.eq.1.and.NSB.eq.1)THEN
+!                  IF(NTH.eq.ITL(NR)+1)THEN
+!                     WRITE(*,'(A,8E14.6)') "L", PSI02M(NP,L) * D2PLG(NTH,L), &
+!                          PSI022M(NP,L) * D2PLG(NTH,L),PSI1M(NP,L) * D1PLG(NTH,L), &
+!                          PSI11M(NP,L) * D1PLG(NTH,L)
+!                  ELSEIF(NTH.eq.ITU(NR))THEN
+!                     WRITE(*,'(A,8E14.6)') "U", PSI02M(NP,L) * D2PLG(NTH,L), &
+!                          PSI022M(NP,L) * D2PLG(NTH,L),PSI1M(NP,L) * D1PLG(NTH,L), &
+!                          PSI11M(NP,L) * D1PLG(NTH,L)
+!                  END IF
+!               END IF
             END DO
-!            DCTT2(NTH,NP,NR,NSB,NSA) = DCTT2(NTH,NP,NR,NSB,NSA)   &
-!                 +FACT/RGAMA/RUFP                                 &
-!                 *(-RGAMA**2*SUMA - RUFP/VC**2*SUMB + SUMC/RUFP   &
-!                 +4.D0*RGAMA**2/VC**2*SUMD                        &
-!                 - (4.D0*RUFP/VC**4*SUME - 4.D0/RUFP/VC**2*SUMF ) &
-!                 )
+
             DCTT2(NTH,NP,NR,NSB,NSA) = DCTT2(NTH,NP,NR,NSB,NSA)   &
                  +FACT/RGAMA/RUFP                                 &
                  *(-RGAMA**2*SUMA - RUFP/VC**2*SUMB - SUMC/RUFP   &
@@ -491,6 +498,13 @@
                  + FACT2 * AMFP(NSA)/AMFD(NSB)/RGAMA/RUFP       & 
                  *(- SUMG + 2.D0/VC**2*SUMH )
 
+!            IF(NP.eq.2.and.NR.eq.2.and.NSA.eq.1.and.NSB.eq.1)THEN
+!               IF(NTH.eq.ITL(NR)+1)THEN
+!                  WRITE(*,'(A,8E14.6)') "L", SUMA, SUMB, SUMC, SUMD, SUME, SUMF, SUMG, SUMH
+!               ELSEIF(NTH.eq.ITU(NR))THEN
+!                  WRITE(*,'(A,8E14.6)') "U", SUMA, SUMB, SUMC, SUMD, SUME, SUMF, SUMG, SUMH
+!               END IF
+!            END IF
          END DO
       END DO
 
@@ -507,8 +521,8 @@
             SUMB = 0.D0
             SUMC = 0.D0
             SUMD = 0.D0
-!            DO L=LLMIN,LLMAX
-            DO L=LLMAX,LLMIN,-1
+            DO L=LLMIN,LLMAX
+!            DO L=LLMAX,LLMIN,-1
                SUMA = SUMA + DPSI022G(NP,L) * D1PLM(NTH,L)
                SUMB = SUMB + DPSI02G(NP,L) * D1PLM(NTH,L)
                SUMC = SUMC + PSI022G(NP,L) * D1PLM(NTH,L)
@@ -558,8 +572,8 @@
             SUMB = 0.D0
             SUMC = 0.D0
             SUMD = 0.D0
-!            DO L=LLMIN,LLMAX
-            DO L=LLMAX,LLMIN,-1
+            DO L=LLMIN,LLMAX
+!            DO L=LLMAX,LLMIN,-1
                SUMA = SUMA + DPSI022M(NP,L) * D1PLG(NTH,L)
                SUMB = SUMB + DPSI02M(NP,L) * D1PLG(NTH,L)
                SUMC = SUMC + PSI022M(NP,L) * D1PLG(NTH,L)

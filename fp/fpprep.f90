@@ -109,7 +109,8 @@
          EPSRM(NR)=RSRHON(RHON)/RR
          BPM(NR)= RSRHON(RHON)*BT/(RR*QL)
       ENDDO
-      RHON=RG(NRMAX+1)
+!      RHON=RG(NRMAX+1)
+      RHON=RM(NRMAX)+DELR
       CALL pl_qprf(RHON,QL)
       QLM(NRMAX+1)=QL
       BT=BB
@@ -211,14 +212,6 @@
             ITL(NR)=NTH
             ITU(NR)=NTHMAX-NTH+1
 
-!            DO NTH=1,NTHMAX/2
-!               IF (THG(NTH).LE.A1.AND.THG(NTH+1).GE.A1) GOTO 201
-!            ENDDO
-!            NTH=NTHMAX/2-1
-!  201       CONTINUE
-!            ITL(NR)=NTH
-!            ITU(NR)=NTHMAX-NTH+1
-
             EPSL=COSM(ITL(NR))**2/(2.D0-COSM(ITL(NR))**2)
             IF(nprocs.gt.1.and.NRANK.eq.1) &
                  WRITE(6,'(A,2I5,1P2E12.4)') 'NR,NTHC,EPSRM=',NR,NTH,EPSRM(NR),EPSL
@@ -231,14 +224,6 @@
 
          DO NR=1,NRMAX+1
             A1=ACOS(SQRT(2.D0*EPSRG(NR)/(1.D0+EPSRG(NR))))
-!            DO NTH=1,NTHMAX/2
-!               IF (THG(NTH).LE.A1.AND.THG(NTH+1).GE.A1) GOTO 202
-!            ENDDO
-!            NTH=NTHMAX/2-1
-!  202       CONTINUE
-!
-!            ITL_G(NR)=NTH
-!            ITU_G(NR)=NTHMAX-NTH+1
             NTH=0
             DO WHILE (THG(NTH+1).le.A1)
                NTH = NTH+1
@@ -275,20 +260,19 @@
          DO NTH=1, NTHMAX
             RLAMDA_GG(NTH,NRMAX+1)=1.D0
          END DO
-         DO NR=1,NRMAX
+         DO NR=1,NRMAX+1
             RFSADG(NR)=1.D0
             RFSAD_GG(NR)=1.D0
          END DO
-         RFSAD_GG(NRMAX+1)=1.D0
       ELSE
          DO NR=NRSTART,NREND
             CALL SET_BOUNCE_PARAM(NR)
          END DO
          CALL SET_BOUNCE_PARAM(NRMAX+1)
-         DO NR=1,NRMAX
+         DO NR=1,NRMAX+1
             CALL SET_RFSAD(NR)
          END DO
-         RFSAD_GG(NRMAX+1)=QLG(NRMAX+1)*RR/(1.D0+EPSRG(NRMAX+1))*PI
+!         RFSAD_GG(NRMAX+1)=QLG(NRMAX+1)*RR/(1.D0+EPSRG(NRMAX+1))*PI
 ! temporary for lav
 !         DO NR=NRSTART,NREND
 !            FACT=(1.D0+EPSRM(NR))/(2.D0*EPSRM(NR))
@@ -663,8 +647,8 @@
                RSUM3 = RSUM3+VOLP(NTH,NP,NSBA)*RLAMDA_GG(NTH,NRMAX+1) &
                     /RFSAD_GG(NRMAX+1)*FS3(NTH,NP,NSBA)
                RSUM4 = RSUM4+VOLP(NTH,NP,NSBA)*FS3(NTH,NP,NSBA)
-               RSUM5 = RSUM5+VOLP(NTH,NP,NSBA)*RLAMDAG(NTH,NRMAX) &
-                    /RFSADG(NRMAX)*FS2(NTH,NP,NSBA)
+               RSUM5 = RSUM5+VOLP(NTH,NP,NSBA)*RLAMDAG(NTH,NRMAX+1) &
+                    /RFSADG(NRMAX+1)*FS2(NTH,NP,NSBA)
                RSUM6 = RSUM6+VOLP(NTH,NP,NSBA)*FS2(NTH,NP,NSBA)
             END DO
          END DO

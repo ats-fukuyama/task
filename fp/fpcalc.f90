@@ -128,6 +128,15 @@
             ENDIF
          ENDDO
 
+         IF(NR.eq.2.and.NSA.eq.1)THEN
+            WRITE(*,'("L ",6E14.6)') DCPP2(ITL(NR),2,NR,1,NSA),DCPT2(ITL(NR),2,NR,1,NSA) &
+                 ,FCPP2(ITL(NR),2,NR,1,NSA) &
+                 ,DCTP2(ITL(NR)+1,2,NR,1,NSA),DCTT2(ITL(NR)+1,2,NR,1,NSA),FCTH2(ITL(NR)+1,2,NR,1,NSA)
+            WRITE(*,'("U ",6E14.6)') DCPP2(ITU(NR),2,NR,1,NSA),DCPT2(ITU(NR),2,NR,1,NSA) &
+                 ,FCPP2(ITU(NR),2,NR,1,NSA) &
+                 ,DCTP2(ITU(NR),2,NR,1,NSA),DCTT2(ITU(NR),2,NR,1,NSA),FCTH2(ITU(NR),2,NR,1,NSA)
+         END IF
+
 !      DO NSB=1,NSBMAX
 !         IF(NSA.eq.1.and.NSB.eq.1)THEN
 !         DO NP=2,NPMAX+1
@@ -817,53 +826,75 @@
       real(8):: RGAMH, RGAMH2, RZI, RTE, PFPL, VFPL, U, DCTTL
       real(8):: FACT
       real(8):: PNFP,TMC2FD,TMC2FD0 
+      DOUBLE PRECISION:: DELH, sum, etal, psib, pcos, arg, x
+      INTEGER:: NG
 
-      DO NTH=1,NTHMAX
-         FACT=RLAMDA(NTH,NR)
+      DO NSB=1,NSBMAX
          DO NP=1,NPMAX+1
-            DO NSB=1,NSBMAX
+            DO NTH=1,NTHMAX
+               FACT=RLAMDA(NTH,NR)
                DCPP2(NTH,NP,NR,NSB,NSA) &
                     =FACT*DCPP2(NTH,NP,NR,NSB,NSA)
                FCPP2(NTH,NP,NR,NSB,NSA) &
                     =FACT*FCPP2(NTH,NP,NR,NSB,NSA)
-            END DO
-         ENDDO
+            ENDDO
+            DCPP2(ITL(NR),NP,NR,NSB,NSA) &
+                     =RLAMDA(ITL(NR),NR)/4.D0 &
+                       *( DCPP2(ITL(NR)-1,NP,NR,NSB,NSA) &
+                                   /RLAMDA(ITL(NR)-1,NR) &
+                         +DCPP2(ITL(NR)+1,NP,NR,NSB,NSA) &
+                                   /RLAMDA(ITL(NR)+1,NR) &
+                         +DCPP2(ITU(NR)-1,NP,NR,NSB,NSA) &
+                                   /RLAMDA(ITU(NR)-1,NR) &
+                         +DCPP2(ITU(NR)+1,NP,NR,NSB,NSA) &
+                                   /RLAMDA(ITU(NR)+1,NR))
 
-         FACT=RLAMDC(NTH,NR)
-         DO NP=1,NPMAX
-            DO NSB=1,NSBMAX
-               DCTT2(NTH,NP,NR,NSB,NSA)=FACT*DCTT2(NTH,NP,NR,NSB,NSA)
-            END DO
-         ENDDO
-
-         DO NP=1,NPMAX+1
-            DO NSB=1,NSBMAX
-               DCPP2(ITL(NR),NP,NR,NSB,NSA) &
-                    =RLAMDA(ITL(NR),NR)/4.D0 &
-                      *( DCPP2(ITL(NR)-1,NP,NR,NSB,NSA) &
-                                                /RLAMDA(ITL(NR)-1,NR) &
-                        +DCPP2(ITL(NR)+1,NP,NR,NSB,NSA) &
-                                                /RLAMDA(ITL(NR)+1,NR) &
-                        +DCPP2(ITU(NR)-1,NP,NR,NSB,NSA) &
-                                                /RLAMDA(ITU(NR)-1,NR) &
-                        +DCPP2(ITU(NR)+1,NP,NR,NSB,NSA) &
-                                                /RLAMDA(ITU(NR)+1,NR))
-
-               FCPP2(ITL(NR),NP,NR,NSB,NSA) &
+            FCPP2(ITL(NR),NP,NR,NSB,NSA) &
                     =RLAMDA(ITL(NR),NR)/4.D0  &
                       *( FCPP2(ITL(NR)-1,NP,NR,NSB,NSA) &
-                                                /RLAMDA(ITL(NR)-1,NR) &
+                                    /RLAMDA(ITL(NR)-1,NR) &
                         +FCPP2(ITL(NR)+1,NP,NR,NSB,NSA) &
-                                                /RLAMDA(ITL(NR)+1,NR) &
+                                    /RLAMDA(ITL(NR)+1,NR) &
                         +FCPP2(ITU(NR)-1,NP,NR,NSB,NSA) &
-                                                /RLAMDA(ITU(NR)-1,NR) &
+                                    /RLAMDA(ITU(NR)-1,NR) &
                         +FCPP2(ITU(NR)+1,NP,NR,NSB,NSA) &
-                                                /RLAMDA(ITU(NR)+1,NR)) 
-               DCPP2(ITU(NR),NP,NR,NSB,NSA)=DCPP2(ITL(NR),NP,NR,NSB,NSA)
-               FCPP2(ITU(NR),NP,NR,NSB,NSA)=FCPP2(ITL(NR),NP,NR,NSB,NSA)
-            END DO
+                                    /RLAMDA(ITU(NR)+1,NR)) 
+            DCPP2(ITU(NR),NP,NR,NSB,NSA)=DCPP2(ITL(NR),NP,NR,NSB,NSA)
+            FCPP2(ITU(NR),NP,NR,NSB,NSA)=FCPP2(ITL(NR),NP,NR,NSB,NSA)
          END DO
-      END DO
+!         FACT=RLAMDC(NTH,NR)
+!         DO NP=1,NPMAX
+!            DO NTH=1,NTHMAX+1
+!               DCTT2(NTH,NP,NR,NSB,NSA)=FACT*DCTT2(NTH,NP,NR,NSB,NSA)
+!            ENDDO
+!         END DO
+         DO NP=1,NPMAX
+            DO NTH=1,NTHMAX+1
+               IF(NTH.NE.NTHMAX/2+1) THEN 
+                  DELH = 2.D0*ETAG(NTH,NR)/NAVMAX
+                  SUM=0.D0
+                  DO NG=1,NAVMAX
+                     ETAL = DELH*(NG-0.5D0)
+                     X=EPSRM2(NR)*COS(ETAL)*RR 
+                     PSIB=(1.D0+EPSRM2(NR))/(1.D0+X/RR)
+                     ARG=1.D0-PSIB*SING(NTH)**2
+                     PCOS = SQRT(ARG)
+                     sum=sum + DCTT2(NTH,NP,NR,NSB,NSA)*PCOS/(PSIB*COSG(NTH)) 
+                  END DO
+                  DCTT2(NTH,NP,NR,NSB,NSA)=sum*DELH
+               ELSE
+                  DCTT2(NTH,NP,NR,NSB,NSA)=0.D0
+               END IF
+            ENDDO
+            DO NTH=ITL(NR)+1,NTHMAX/2
+               DCTT2(NTH,NP,NR,NSB,NSA)        &
+                    =(DCTT2(NTH,NP,NR,NSB,NSA) &
+                    +DCTT2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0
+               DCTT2(NTHMAX-NTH+2,NP,NR,NSB,NSA) &
+                    =DCTT2(NTH,NP,NR,NSB,NSA) 
+            END DO
+         END DO ! NP
+      END DO ! NSB
 
       RETURN
       END SUBROUTINE FPCALC_LAV
