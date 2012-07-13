@@ -1,12 +1,12 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS = $(OFLAGS)
-#FFLAGS = $(DFLAGS)
+#FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../eq/$(MOD)
 
-SRC0 = wmfem_com.f wmmenu.f wminit.f wmeign.f \
+SRC0 = wmfem_comm.f wmf_quad.f wmmenu.f wminit.f wmeign.f \
        wmexec.f wmloop.f \
        wmxprf.f wmdprf.f \
        wmgout.f wmgsub.f wmdout.f wmfout.f \
@@ -122,12 +122,13 @@ wmpout1.o : wmpout1.f $(WMCOMM)
 
 wmtae.o : wmtae.f $(WMCOMM)
 
-wmfem.o : wmfem.f wmfem_com.f
-wmfem_com.o : wmfem_com.f
-wmfem_calc.o : wmfem_calc.f wmfem_com.f
-wmfem_sub.o : wmfem_sub.f wmfem_com.f $(WMCOMM)	
-wmfem_setg.o : wmfem_setg.f wmfem_com.f $(WMCOMM)
-wmfem_vmec.o : wmfem_vmec.f wmfem_com.f $(WMCOMM) vmcomm.inc
+wmfem.o : wmfem.f wmfem_comm.f
+wmfem_comm.o : wmfem_comm.f
+wmf_hermite.o : wmf_hermite.f
+wmfem_calc.o : wmfem_calc.f wmfem_comm.f
+wmfem_sub.o : wmfem_sub.f wmfem_comm.f $(WMCOMM)	
+wmfem_setg.o : wmfem_setg.f wmfem_comm.f $(WMCOMM)
+wmfem_vmec.o : wmfem_vmec.f wmfem_comm.f $(WMCOMM) vmcomm.inc
 
 wmvmec.o : wmvmec.f $(WMCOMM) vmcomm.inc
 wmbooz.o : wmbooz.f $(WMCOMM) vmcomm.inc

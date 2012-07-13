@@ -479,15 +479,15 @@ C
       ENDIF
 C
       IF(MDLWMF.EQ.1) THEN
-         WRITE(6,*) '## MDLWMF=1: FEM ##'
+         WRITE(6,*) '## MDLWMF=1: FEM (toroidal plasma model) ##'
       ELSE IF(MDLWMF.EQ.2) THEN
-         WRITE(6,*) '## MDLWMF=2: (nsmax+3) times memory, but faster ##'
+         WRITE(6,*) '## MDLWMF=2: FEM (cylindrical plasma model) ##'
       ENDIF
 C
       IF(MDLWMD.EQ.0) THEN
          WRITE(6,*) '## MDLWMD=0: Least memory ##'
-      ELSE IF(MDLWMF.EQ.1) THEN
-         WRITE(6,*) '## MDLWMF=2: (nsmax+3) times memory, but faster ##'
+      ELSE IF(MDLWMD.EQ.1) THEN
+         WRITE(6,*) '## MDLWMD=1: (nsmax+3) times memory, but faster ##'
       ENDIF
 C
       SELECT CASE(MDLWM_NPHS)

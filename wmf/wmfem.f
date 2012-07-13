@@ -4,7 +4,7 @@
 
       subroutine wmfem_main
 
-      use wmfem_com
+      use wmfem_comm
       implicit none
       integer:: ierr
 
@@ -20,8 +20,13 @@
 
       nfcmax=nthmax*nphmax      ! size of block matrix 
                                 !    (number of Fourier components)
-      mlmax=6*nfcmax*nrmax      ! length of coeffient matrix and source vector
-      mwmax=4*6*nfcmax-1        ! width of coefficient matrix
+      mlmax=nfcmax*(6*nrmax-4)  ! length of coeffient matrix and source vector
+                                !   Eperp0,Epara0,Erho1/4,
+                                !   Eperp1/2,Epara1/2,Erho3/4
+
+      mbmax=nfcmax*8            ! size of block matrix
+      mwmax=2*mbmax-1           ! width of coefficient matrix
+      mwc=mbmax                 ! position of diagonal coponent
 
       if(nthmax.eq.1) then
          nthmax2=1
@@ -79,58 +84,58 @@
 
       implicit none
       integer,save:: nrmax_save=0,nthmax_save=0,nphmax_save=0
-      integer,save:: mwmax_save=0,mlmax_save=0
+      integer,save:: mwmax_save=0,mlmax_save=0,mbmax_save=0
       integer,save:: nsmax_save=0,nfcmax_save=0
       integer,save:: mdlwmd_save=0 
 
       if((nrmax.ne.nrmax_save).or.(nthmax.ne.nthmax_save).or. 
      &   (nphmax.ne.nphmax_save)) then
-         if(associated(cef)) deallocate(cef)
+         if(ALLOCATED(cef)) deallocate(cef)
          allocate(cef(3,nthmax,nphmax,nrmax))
-         if(associated(cbf)) deallocate(cbf)
+         if(ALLOCATED(cbf)) deallocate(cbf)
          allocate(cbf(3,nthmax,nphmax,nrmax))
-         if(associated(cpp)) deallocate(cpp)
+         if(ALLOCATED(cpp)) deallocate(cpp)
          allocate(cpp(nthmax,nphmax,nthmax2,nphmax2,nrmax,0:nsmax))
-         if(associated(cpa)) deallocate(cpa)
+         if(ALLOCATED(cpa)) deallocate(cpa)
          allocate(cpa(nthmax,nphmax))
       endif
 
       if((mwmax.ne.mwmax_save).or.(mlmax.ne.mlmax_save)) then
-         if(associated(fma)) deallocate(fma)
+         if(ALLOCATED(fma)) deallocate(fma)
          allocate(fma(mwmax,mlmax))
       endif
 
       if(mdlwmd.ge.1) then
       if((mwmax.ne.mwmax_save).or.(mlmax.ne.mlmax_save).or.
      &   (nsmax.ne.nsmax_save).or.mdlwmd.ne.mdlwmd_save) then
-         if(associated(fms)) deallocate(fms)
+         if(ALLOCATED(fma_save)) deallocate(fma_save)
          if(mdlwmd.ge.1) then
-            allocate(fms(mwmax,12*nfcmax,nrmax,0:nsmax))
+            allocate(fma_save(mbmax,mbmax,nrmax,0:nsmax))
          endif 
       endif
       endif
 
       if(mlmax.ne.mlmax_save) then
-         if(associated(fvb)) deallocate(fvb)
-         if(associated(fvx)) deallocate(fvx)
+         if(ALLOCATED(fvb)) deallocate(fvb)
+         if(ALLOCATED(fvx)) deallocate(fvx)
          allocate(fvb(mlmax))
          allocate(fvx(mlmax))
       endif
 
       if(nfcmax.ne.nfcmax_save) then
-         if(associated(nthnfc)) deallocate(nthnfc)
-         if(associated(nphnfc)) deallocate(nphnfc)
-         if(associated(mmnfc)) deallocate(mmnfc)
-         if(associated(nnnfc)) deallocate(nnnfc)
+         if(ALLOCATED(nthnfc)) deallocate(nthnfc)
+         if(ALLOCATED(nphnfc)) deallocate(nphnfc)
+         if(ALLOCATED(mmnfc)) deallocate(mmnfc)
+         if(ALLOCATED(nnnfc)) deallocate(nnnfc)
          if(nfcmax.ne.0) allocate(nthnfc(nfcmax))
          if(nfcmax.ne.0) allocate(nphnfc(nfcmax))
          if(nfcmax.ne.0) allocate(mmnfc(nfcmax))
          if(nfcmax.ne.0) allocate(nnnfc(nfcmax))
 
-         if(associated(nthnfc2)) deallocate(nthnfc2)
-         if(associated(nphnfc2)) deallocate(nphnfc2)
-         if(associated(mmnfc2)) deallocate(mmnfc2)
-         if(associated(nnnfc2)) deallocate(nnnfc2)
+         if(ALLOCATED(nthnfc2)) deallocate(nthnfc2)
+         if(ALLOCATED(nphnfc2)) deallocate(nphnfc2)
+         if(ALLOCATED(mmnfc2)) deallocate(mmnfc2)
+         if(ALLOCATED(nnnfc2)) deallocate(nnnfc2)
          if(nfcmax2.ne.0) allocate(nthnfc2(nfcmax2))
          if(nfcmax2.ne.0) allocate(nphnfc2(nfcmax2))
          if(nfcmax2.ne.0) allocate(mmnfc2(nfcmax2))
@@ -140,6 +145,7 @@
       mlmax_save=mlmax
       nsmax_save=nsmax
       nfcmax_save=nfcmax
+      mbmax_save=mbmax
       mdlwmd_save=mdlwmd
       end subroutine wmfem_allocate
 
@@ -227,12 +233,13 @@
 
       subroutine wmfem_calculate_matrix
 
-      complex(8),dimension(nphmax,nthmax,3):: fvb_nr
-!      complex(8),dimension(mwmax,12*nfcmax):: fml
-      complex(8),dimension(:,:),pointer:: fml
-      integer:: ml,mw,ns,nfc,nth,nph,nr
+      complex(8),dimension(:,:),allocatable:: fma_local
+      complex(8),dimension(:,:,:),allocatable:: fvb1_local,fvb2_local
+      integer:: ml,mw,ns,nfc,nth,nph,nr,mb1,mb2,mm,nn,i
 
-      allocate(fml(mwmax,12*nfcmax))
+      allocate(fma_local(mbmax,mbmax))
+      allocate(fvb1_local(nphmax,nthmax,3))
+      allocate(fvb2_local(nphmax,nthmax,3))
 
       do ml=1,mlmax             ! clear fma
          do mw=1,mwmax
@@ -244,20 +251,21 @@
 
          do nr=1,nrmax-1        ! loop for elements
 
-            call wmfem_calculate_local(nr,ns,fml)
+            call wmfem_calculate_local(nr,ns,fma_local)
 
             if(mdlwmd.ge.1) then
-               do ml=1,12*nfcmax
-                  do mw=1,mwmax
-                     fms(mw,ml,nr,ns)=fml(mw,ml)
+               do mb2=1,mbmax
+                  do mb1=1,mbmax
+                     fma_save(mb1,mb2,nr,ns)=fma_local(mb1,mb2)
                   enddo
                enddo
             endif
 
-            do ml=1,12*nfcmax
-               do mw=1,mwmax
-                  fma(mw,6*nfcmax*(nr-1)+ml)
-     &           =fma(mw,6*nfcmax*(nr-1)+ml)+fml(mw,ml)
+            do mb2=1,mbmax
+               do mb1=1,mbmax
+                  fma(mwc+mb1-mb2,6*nfcmax*(nr-1)+mb2)
+     &           =fma(mwc+mb1-mb2,6*nfcmax*(nr-1)+mb2)
+     &           +fma_local(mb1,mb2)
                enddo
             enddo
          enddo
@@ -270,18 +278,23 @@
       enddo
          
       do nr=1,nrmax-1
-         call get_wmfvb(nr,fvb_nr)
-         do nfc=1,nfcmax
-            nth=nthnfc(nfc)
-            nph=nphnfc(nfc)
-            ml=6*nfcmax*(nr-1)+6*(nfc-1)
-            fvb(ml+1)=fvb_nr(nph,nth,1)
-            fvb(ml+3)=fvb_nr(nph,nth,2)
-            fvb(ml+5)=fvb_nr(nph,nth,3)
+         call get_wmfvb(nr,  fvb1_local)
+         call get_wmfvb(nr+1,fvb2_local)
+         do i=1,3
+            do nfc=1,nfcmax
+               nn=nnnfc(nfc)
+               mm=mmnfc(nfc)
+               ml=6*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
+               fvb(ml)=fvb(ml)+fvb1_local(nn,mm,i)
+               ml=ml+3*nfcmax
+               fvb(ml)=fvb(ml)+fvb2_local(nn,mm,i)
+            enddo
          enddo
       enddo
 
-      deallocate(fml) 
+      deallocate(fma_local) 
+      deallocate(fvb1_local) 
+      deallocate(fvb2_local) 
 
       return
       end subroutine wmfem_calculate_matrix
@@ -293,106 +306,100 @@
       subroutine wmfem_boundary_condition_axis0
 
       integer:: mc,mr,nr,mm,mll,ml,mw,ns,nfc,nn
+
       complex(8):: cx,cy
       integer:: id_base=1
 
-!----- boundary conditions -----
-
-      mc=(mwmax+1)/2
-      mr=6*nfcmax
+!----- boundary conditions on axis -----
 
       nr=1
+
+!   --- Etheta = 0 for m=0 ---
+
       do nfc=1,nfcmax
          mm=mmnfc(nfc)
-         mll=6*(nfc-1)
-         ml=6*nfcmax*(nr-1)+mll
          if(mm.eq.0) then
+            ml=nfc
             do mw=1,mwmax
-               fma(mw,ml+3) = 0.d0
+               fma(mw,ml) = 0.d0
                if(mdlwmd.ge.1) then
                   do ns=0,nsmax
-                     fms(mw,mll+3,nr,ns)=0.d0
+                     fma_save(mw,ml,nr,ns)=0.d0
                   enddo
                end if
             enddo
-            fma(mc,ml+3)=1.d0
-            if(mdlwmd.ge.1) fms(mc,mll+3,nr,0)=1.d0
-            fvb(ml+3)=0.d0
-         elseif(abs(mm).eq.1) then
-            do mw=4,mwmax
-               cx= fma(mw  ,ml+1)
-               cy= fma(mw-2,ml+3)
-               fma(mw  ,ml+1)=cx +ci*mm*cy
-               fma(mw-2,ml+3)=cx -ci*mm*cy
-               if(mdlwmd.ge.1) then
-                  do ns=0,nsmax
-                     cx= fms(mw  ,mll+1,nr,ns)
-                     cy= fms(mw-2,mll+3,nr,ns)
-                     fms(mw  ,mll+1,nr,ns)=cx +ci*mm*cy
-                     fms(mw-2,mll+3,nr,ns)=cx -ci*mm*cy
-                  enddo
-               endif
-            enddo
-            do mw=-mc+5,mc
-               if(ml+mw.ge.1.AND.ml+mw.LE.12*nfcmax) then
-                  cx= fma(mc-mw+1,ml+mw)
-                  cy= fma(mc-mw+3,ml+mw)
-                  fma(mc-mw+1,ml+mw)=cx -ci*mm*cy
-                  fma(mc-mw+3,ml+mw)=cx +ci*mm*cy
-                  if(mdlwmd.ge.1) then
-                     do ns=0,nsmax
-                        cx= fms(mc-mw+1,mll+mw,nr,ns)
-                        cy= fms(mc-mw+3,mll+mw,nr,ns)
-                        fms(mc-mw+1,mll+mw,nr,ns)=cx -ci*mm*cy
-                        fms(mc-mw+3,mll+mw,nr,ns)=cx +ci*mm*cy
-                        if(ml+mw.GT.mr.and.mc-mw+1-mr.GT.0) then
-                           cx= fms(mc-mw+1-mr,mll+mw-mr,nr,ns)
-                           cy= fms(mc-mw+3-mr,mll+mw-mr,nr,ns)
-                           fms(mc-mw+1-mr,mll+mw-mr,nr+1,ns)=cx-ci*mm*cy
-                           fms(mc-mw+3-mr,mll+mw-mr,nr+1,ns)=cx+ci*mm*cy
-                        endif
-                     end do
-                  endif
-               endif
-            enddo
+            fma(mwc,ml)=1.d0
+            if(mdlwmd.ge.1) then
+               fma_save(ml,ml,nr,0)=1.d0
+            end if
+            fvb(ml)=0.d0
 
+         elseif(abs(mm).eq.1) then
+            ml =nfc
             do mw=1,mwmax
-               fma(mw,ml+1) = 0.d0
-               fma(mw,ml+5) = 0.d0
+               fma(mw,ml) = 0.d0
                if(mdlwmd.ge.1) then
                   do ns=0,nsmax
-                     fms(mw,mll+1,nr,ns)=0.d0
-                     fms(mw,mll+5,nr,ns)=0.d0
-                  end do
+                     fma_save(mw,ml,nr,ns)=0.d0
+                  enddo
                end if
             end do
-            fma(mc  ,ml+1)=1.d0
-            fma(mc  ,ml+5)=1.d0
-            fvb(ml+1)=0.d0
-            fvb(ml+5)=0.d0
+            fma(mwc,ml)=1.d0
+            fma(mwc+2*nfcmax,ml)= 1.5D0*ci*mm
+            fma(mwc+5*nfcmax,ml)=-0.5D0*ci*mm
             if(mdlwmd.ge.1) then
-               fms(mc  ,mll+1,nr,0)=1.d0
-               fms(mc  ,mll+5,nr,0)=1.d0
-            endif
-         else
+               fma_save(ml,ml,nr,0)= 1.d0
+               fma_save(ml+2*nfcmax,ml,nr,0)= 1.5D0*ci*mm
+               fma_save(ml+5*nfcmax,ml,nr,0)=-0.5D0*ci*mm
+            end if
+            fvb(ml)=0.d0
+
+            ml=nfcmax+nfc
             do mw=1,mwmax
-               fma(mw,ml+3) = 0.d0
-               fma(mw,ml+5) = 0.d0
+               fma(mw,ml) = 0.d0
                if(mdlwmd.ge.1) then
                   do ns=0,nsmax
-                     fms(mw,mll+3,nr,ns)=0.d0
-                     fms(mw,mll+5,nr,ns)=0.d0
+                     fma_save(mw,ml,nr,ns)=0.d0
                   enddo
-               endif
+               end if
             enddo
-            fma(mc,ml+3)=1.d0
-            fma(mc,ml+5)=1.d0
-            fvb(ml+3)=0.d0
-            fvb(ml+5)=0.d0
+            fma(mwc,ml)=1.d0
             if(mdlwmd.ge.1) then
-               fms(mc,mll+3,nr,0)=1.d0
-               fms(mc,mll+5,nr,0)=1.d0
-            endif
+               fma_save(ml,ml,nr,0)=1.d0
+            end if
+            fvb(ml)=0.d0
+
+         else
+            ml=nfc
+            do mw=1,mwmax
+               fma(mw,ml) = 0.d0
+               if(mdlwmd.ge.1) then
+                  do ns=0,nsmax
+                     fma_save(mw,ml,nr,ns)=0.d0
+                  enddo
+               end if
+            enddo
+            fma(mwc,ml)=1.d0
+            if(mdlwmd.ge.1) then
+               fma_save(ml,ml,nr,0)=1.d0
+            end if
+            fvb(ml)=0.d0
+
+            ml=nfcmax+nfc
+            do mw=1,mwmax
+               fma(mw,ml) = 0.d0
+               if(mdlwmd.ge.1) then
+                  do ns=0,nsmax
+                     fma_save(mw,ml,nr,ns)=0.d0
+                  enddo
+               end if
+            enddo
+            fma(mwc,ml)=1.d0
+            if(mdlwmd.ge.1) then
+               fma_save(ml,ml,nr,0)=1.d0
+            end if
+            fvb(ml)=0.d0
+
          endif
       enddo
 
@@ -405,9 +412,9 @@
 
       complex(8),dimension(3,3,nthmax2,nphmax2):: mtxcl
 !      complex(8),dimension(3*nfcmax,3*nfcmax):: mtxclx
-      complex(8),dimension(:,:),pointer:: mtxclx
-      complex(8),dimension(:,:),POINTER:: mtx0,mtx1,mtx0i,mtx1i
-      complex(8),dimension(:,:),POINTER:: vec0,vec1,sol0,sol1
+      complex(8),dimension(:,:),ALLOCATABLE:: mtxclx
+      complex(8),dimension(:,:),ALLOCATABLE:: mtx0,mtx1,mtx0i,mtx1i
+      complex(8),dimension(:,:),ALLOCATABLE:: vec0,vec1,sol0,sol1
       integer,dimension(nfcmax):: nfc0a,nfc0b,ipos0
       integer,dimension(nfcmax):: nfc1a,nfc1b,ipos1
       real(8):: drho,rkth,rkph,rkth0,rho0,rho1,rho2,rho3,rho4,rhol,thl
@@ -728,37 +735,40 @@
 
       subroutine wmfem_boundary_condition_wall
 
-      integer:: mc,nr,nfc,mll,ml,mw
+      integer:: nfc,ml,mw,ns
       integer:: id_base=1
 
-      mc=(mwmax+1)/2
-
-      nr=nrmax
       do nfc=1,nfcmax
-         mll=6*(nfc-1)
-         ml=6*nfcmax*(nr-1)+mll
-         if(id_base.eq.0) then
-            do mw=1,mwmax
-               fma(mw,ml+3) = 0.d0
-               fma(mw,ml+5) = 0.d0
-            enddo
-            fma(mc,ml+3) = 1.d0
-            fma(mc,ml+5) = 1.d0
-            fvb(ml+3)=0.d0
-            fvb(ml+5)=0.d0
-         else
-            do mw=1,mwmax
-               fma(mw,ml+2) = 0.d0
-               fma(mw,ml+3) = 0.d0
-               fma(mw,ml+5) = 0.d0
-            enddo
-            fma(mc,ml+2) = 1.d0
-            fma(mc,ml+3) = 1.d0
-            fma(mc,ml+5) = 1.d0
-            fvb(ml+2)=0.d0
-            fvb(ml+3)=0.d0
-            fvb(ml+5)=0.d0
-         endif
+         ml=6*nfcmax*nrmax+nfc
+         do mw=1,mwmax
+            fma(mw,ml) = 0.d0
+            if(mdlwmd.ge.1) then
+               do ns=0,nsmax
+                  fma_save(mw,ml,nrmax,ns)=0.d0
+               enddo
+            end if
+         enddo
+         fma(mwc,ml)=1.d0
+         if(mdlwmd.ge.1) then
+            fma_save(ml,ml,nrmax,0)=1.d0
+         end if
+         fvb(ml)=0.d0
+
+         ml=6*nfcmax*nrmax+nfcmax*nfc
+         do mw=1,mwmax
+            fma(mw,ml) = 0.d0
+            if(mdlwmd.ge.1) then
+               do ns=0,nsmax
+                  fma_save(mw,ml,nrmax,ns)=0.d0
+               enddo
+            end if
+         enddo
+         fma(mwc,ml)=1.d0
+         if(mdlwmd.ge.1) then
+            fma_save(ml,ml,nrmax,0)=1.d0
+         end if
+         fvb(ml)=0.d0
+
       enddo
 
       return
@@ -784,13 +794,13 @@
                   fma(mw,ml+5)=0.d0
                   if(mdlwmd.ge.1) then
                      do ns=0,nsmax
-                        fms(mw,mll+1,nr,ns)=0.d0
-                        fms(mw,mll+3,nr,ns)=0.d0
-                        fms(mw,mll+5,nr,ns)=0.d0
+                        fma_save(mw,mll+1,nr,ns)=0.d0
+                        fma_save(mw,mll+3,nr,ns)=0.d0
+                        fma_save(mw,mll+5,nr,ns)=0.d0
                         if(nr.ne.1) then
-                           fms(mw,mll+6*nfcmax+1,nr-1,ns)=0.d0
-                           fms(mw,mll+6*nfcmax+3,nr-1,ns)=0.d0
-                           fms(mw,mll+6*nfcmax+5,nr-1,ns)=0.d0
+                           fma_save(mw,mll+6*nfcmax+1,nr-1,ns)=0.d0
+                           fma_save(mw,mll+6*nfcmax+3,nr-1,ns)=0.d0
+                           fma_save(mw,mll+6*nfcmax+5,nr-1,ns)=0.d0
                         endif
                      end do
                   endif
@@ -803,13 +813,13 @@
                fvb(ml+5)=0.d0
                if(mdlwmd.ge.1) then
                   do ns=0,nsmax
-                     fms(mc,mll+1,nr,ns)=1.d0
-                     fms(mc,mll+3,nr,ns)=1.d0
-                     fms(mc,mll+5,nr,ns)=1.d0
+                     fma_save(mc,mll+1,nr,ns)=1.d0
+                     fma_save(mc,mll+3,nr,ns)=1.d0
+                     fma_save(mc,mll+5,nr,ns)=1.d0
                      if(nr.ne.1) then
-                        fms(mc,mll+6*nfcmax+1,nr-1,ns)=0.d0
-                        fms(mc,mll+6*nfcmax+3,nr-1,ns)=0.d0
-                        fms(mc,mll+6*nfcmax+5,nr-1,ns)=0.d0
+                        fma_save(mc,mll+6*nfcmax+1,nr-1,ns)=0.d0
+                        fma_save(mc,mll+6*nfcmax+3,nr-1,ns)=0.d0
+                        fma_save(mc,mll+6*nfcmax+5,nr-1,ns)=0.d0
                      endif
                   enddo
                end if
@@ -829,13 +839,13 @@
                   fma(mw,ml+5)=0.d0
                   if(mdlwmd.ge.1) then
                      do ns=0,nsmax
-                        fms(mw,mll+1,nr,ns)=0.d0
-                        fms(mw,mll+3,nr,ns)=0.d0
-                        fms(mw,mll+5,nr,ns)=0.d0
+                        fma_save(mw,mll+1,nr,ns)=0.d0
+                        fma_save(mw,mll+3,nr,ns)=0.d0
+                        fma_save(mw,mll+5,nr,ns)=0.d0
                         if(nr.ne.1) then
-                           fms(mw,mll+6*nfcmax+1,nr-1,ns)=0.d0
-                           fms(mw,mll+6*nfcmax+3,nr-1,ns)=0.d0
-                           fms(mw,mll+6*nfcmax+5,nr-1,ns)=0.d0
+                           fma_save(mw,mll+6*nfcmax+1,nr-1,ns)=0.d0
+                           fma_save(mw,mll+6*nfcmax+3,nr-1,ns)=0.d0
+                           fma_save(mw,mll+6*nfcmax+5,nr-1,ns)=0.d0
                         endif
                      end do
                   endif
@@ -848,13 +858,13 @@
                fvb(ml+5)=0.d0
                if(mdlwmd.ge.1) then
                   do ns=0,nsmax
-                     fms(mc,mll+1,nr,ns)=1.d0
-                     fms(mc,mll+3,nr,ns)=1.d0
-                     fms(mc,mll+5,nr,ns)=1.d0
+                     fma_save(mc,mll+1,nr,ns)=1.d0
+                     fma_save(mc,mll+3,nr,ns)=1.d0
+                     fma_save(mc,mll+5,nr,ns)=1.d0
                      if(nr.ne.1) then
-                        fms(mc,mll+6*nfcmax+1,nr-1,ns)=0.d0
-                        fms(mc,mll+6*nfcmax+3,nr-1,ns)=0.d0
-                        fms(mc,mll+6*nfcmax+5,nr-1,ns)=0.d0
+                        fma_save(mc,mll+6*nfcmax+1,nr-1,ns)=0.d0
+                        fma_save(mc,mll+6*nfcmax+3,nr-1,ns)=0.d0
+                        fma_save(mc,mll+6*nfcmax+5,nr-1,ns)=0.d0
                      endif
                   end do
                endif
@@ -933,7 +943,7 @@
 
       subroutine wmfem_post
 
-      use wmfem_com
+      use wmfem_comm
       implicit none
       integer:: ierr
 
@@ -955,7 +965,7 @@
 
       subroutine wmfem_calculate_bfield
 
-      use wmfem_com
+      use wmfem_comm
       implicit none
       integer:: nr,nth,nph
       complex(8),dimension(3,nthmax,nphmax):: cbfl
@@ -1158,7 +1168,7 @@
       real(8):: factor
       complex(8):: csum,csums,cfactor
 !      complex(8),dimension(mwmax,12*nfcmax):: fml
-      complex(8),dimension(:,:),pointer:: fml
+      complex(8),dimension(:,:),ALLOCATABLE:: fml
 
       allocate(fml(mwmax,12*nfcmax))
 
@@ -1186,7 +1196,7 @@
             else
                do ml=1,12*nfcmax
                   do mw=1,mwmax
-                     fml(mw,ml)=fms(mw,ml,nr0,ns)
+                     fml(mw,ml)=fma_save(mw,ml,nr0,ns)
                   enddo
                enddo
             endif
@@ -1285,10 +1295,11 @@ c$$$               endif
             mll=ml-6*nfcmax*(nr-1)
             do mw=max(1,mc-ml+1),min(mwmax,mc-ml+mlmax)
                ml1=ml+mw-mc
-               csum=csum-ci*conjg(fvx(ml))*fms(mw,mll,nr,ns)*fvx(ml1)
+               csum=csum-ci*conjg(fvx(ml))*fma_save(mw,mll,nr,ns)
+     &                                    *fvx(ml1)
                if(nr.gt.1) then
                   csum=csum-ci*conjg(fvx(ml))
-     &                     *fms(mw,mll+6*nfcmax,nr-1,ns)*fvx(ml1)
+     &                     *fma_save(mw,mll+6*nfcmax,nr-1,ns)*fvx(ml1)
                endif
             enddo
          enddo

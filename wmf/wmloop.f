@@ -4,13 +4,13 @@ C
       INCLUDE 'wmcomm.inc'
       integer(4), intent(inout) :: IERR
       integer(4), intent(in), optional :: IFLG
-      COMPLEX(8),DIMENSION(:),pointer:: CRADTTS
-      REAL(8),DIMENSION(:),pointer:: PABSTTS,PCURTS
-      REAL(8),DIMENSION(:,:),pointer:: PABSTS,PCURRS
-      REAL(8),DIMENSION(:,:,:),pointer:: PABSRS
-      REAL(8),DIMENSION(:,:,:,:),pointer:: PCURS
-      REAL(8),DIMENSION(:,:,:,:,:),pointer:: PABSS,PABSKS
-      COMPLEX(8),DIMENSION(:,:,:,:,:),pointer:: 
+      COMPLEX(8),DIMENSION(:),ALLOCATABLE:: CRADTTS
+      REAL(8),DIMENSION(:),ALLOCATABLE:: PABSTTS,PCURTS
+      REAL(8),DIMENSION(:,:),ALLOCATABLE:: PABSTS,PCURRS
+      REAL(8),DIMENSION(:,:,:),ALLOCATABLE:: PABSRS
+      REAL(8),DIMENSION(:,:,:,:),ALLOCATABLE:: PCURS
+      REAL(8),DIMENSION(:,:,:,:,:),ALLOCATABLE:: PABSS,PABSKS
+      COMPLEX(8),DIMENSION(:,:,:,:,:),ALLOCATABLE:: 
      &     CEFLDKS,CBFLDKS,CEFLDS,CBFLDS,CENS,CEPS
       INTEGER(4):: NPH0_SAVE,NPHSMAX_SAVE
       INTEGER(4),DIMENSION(NPHSM):: NPH0S_SAVE

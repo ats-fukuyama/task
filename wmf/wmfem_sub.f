@@ -32,7 +32,7 @@ C     $Id$
 
       subroutine get_wmfem_size(nrmax_,nthmax_,nphmax_,nsmax_)
       
-      use wmfem_com, only: rhoa
+      use wmfem_comm, only: rhoa
       include 'wmcomm.inc'
       integer,intent(out):: nrmax_,nthmax_,nphmax_,nsmax_
       integer,save::  nrmax_save=0
@@ -44,7 +44,7 @@ C     $Id$
       nsmax_=nsmax
 
       if(nrmax.ne.nrmax_save) then
-         if(associated(rhoa)) deallocate(rhoa)
+         if(allocated(rhoa)) deallocate(rhoa)
          allocate(rhoa(nrmax_))
       endif
 
@@ -687,7 +687,7 @@ C     ****** CALCULATE WAVE ELECTRIC FIELD ******
 C
       SUBROUTINE WMFEM_EFLD
 C
-      use wmfem_com, only: cef
+      use wmfem_comm, only: cef
       INCLUDE 'wmcomm.inc'
 
       DIMENSION CEF1(MDM,NDM),CEF2(MDM,NDM),RMA(3,3)
@@ -774,7 +774,7 @@ C     ****** CALCULATE WAVE MAGNETIC FIELD ******
 C
       SUBROUTINE WMFEM_BFLD
 C
-      use wmfem_com, only: cbf
+      use wmfem_comm, only: cbf
       INCLUDE 'wmcomm.inc'
 C
       DIMENSION CBF1(MDM,NDM),CBF2(MDM,NDM),RMA(3,3)
@@ -861,7 +861,7 @@ C     ****** CALCULATE ABSORBED POWER ******
 C
       SUBROUTINE WMFEM_PABS
 C
-      use wmfem_com, only: cpp,cpa,nthmax2,nphmax2
+      use wmfem_comm, only: cpp,cpa,nthmax2,nphmax2
       INCLUDE 'wmcomm.inc'
 C
       DIMENSION RN(NSM),RTPR(NSM),RTPP(NSM),RU(NSM)
