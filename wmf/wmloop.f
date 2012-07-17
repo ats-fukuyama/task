@@ -404,10 +404,17 @@ C
 
  8000 CONTINUE
 
-      DEALLOCATE(CEFLDKS,CBFLDKS,CEFLDS,CBFLDS,CENS,CEPS)
+      write(6,*) 'break 1'
+      DEALLOCATE(CEFLDKS)
+      write(6,*) 'break 1'
+      DEALLOCATE(CBFLDKS,CEFLDS,CBFLDS,CENS,CEPS)
+      write(6,*) 'break 2'
       DEALLOCATE(PCURTS,PCURRS,PCURS)
+      write(6,*) 'break 3'
       DEALLOCATE(PABSTTS,PABSTS,PABSRS,PABSS,PABSKS)
+      write(6,*) 'break 4'
       DEALLOCATE(CRADTTS)
+      write(6,*) 'break 5'
 
       NPH0=NPH0_SAVE
       NPHSMAX=NPHSMAX_SAVE

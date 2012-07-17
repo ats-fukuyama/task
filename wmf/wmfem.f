@@ -1,87 +1,10 @@
 !     $Id$
 
-!     ***** wmfem main routine *****
-
-      subroutine wmfem_main
-
-      use wmfem_comm
-      implicit none
-      integer:: ierr
-
-!     ***** metric setup  *****
-
-         CALL wmfem_setg(ierr)
-         IF(IERR.NE.0) RETURN
-         CALL wmfem_setj(ierr)
-         IF(IERR.NE.0) RETURN
-         CALL get_wmfem_size(nrmax,nthmax,nphmax,nsmax)
-
-!     ***** define array size  *****
-
-      nfcmax=nthmax*nphmax      ! size of block matrix 
-                                !    (number of Fourier components)
-      mlmax=nfcmax*(6*nrmax-4)  ! length of coeffient matrix and source vector
-                                !   Eperp0,Epara0,Erho1/4,
-                                !   Eperp1/2,Epara1/2,Erho3/4
-
-      mbmax=nfcmax*8            ! size of block matrix
-      mwmax=2*mbmax-1           ! width of coefficient matrix
-      mwc=mbmax                 ! position of diagonal coponent
-
-      if(nthmax.eq.1) then
-         nthmax2=1
-      else
-         nthmax2=nthmax*2
-      endif
-      if(nphmax.eq.1) then
-         nphmax2=1
-      else
-         nphmax2=nphmax*2
-      endif
-      nfcmax2=nthmax2*nphmax2
-
-!     ***** get additional parameters *****
-
-      call get_wmfem_parm(crf,nth0,nph0,mdlwmf,mdlwmd)
-
-!     ***** allocate matrix and vector *****
-
-      call wmfem_allocate
-
-      if(nrmax.eq.0) return   ! matrix and vector deallocated
-
-!     ***** setup Fourier component index *****
-
-      call wmfem_setup_index
-
-!     ***** calculate coefficient matrix *****
-
-      call wmfem_calculate_matrix
-
-!     ***** setup boundary conditions *****
-
-      call wmfem_boundary_condition_axis0
-!      call wmfem_boundary_condition_axis1
-      call wmfem_boundary_condition_wall
-      call wmfem_boundary_condition_fourier
-
-!     ***** solve matrix equation *****
-
-      call wmfem_solve
-
-!     ***** calculate efield *****
-
-      call wmfem_calculate_efield
-      call wmfem_efld
-
-      return
-
-      contains
-
 !     ----- allocate arrays -----
 
       subroutine wmfem_allocate
 
+      use wmfem_comm
       implicit none
       integer,save:: nrmax_save=0,nthmax_save=0,nphmax_save=0
       integer,save:: mwmax_save=0,mlmax_save=0,mbmax_save=0
@@ -92,6 +15,8 @@
      &   (nphmax.ne.nphmax_save)) then
          if(ALLOCATED(cef)) deallocate(cef)
          allocate(cef(3,nthmax,nphmax,nrmax))
+         if(ALLOCATED(cdef)) deallocate(cdef)
+         allocate(cdef(3,nthmax,nphmax,nrmax))
          if(ALLOCATED(cbf)) deallocate(cbf)
          allocate(cbf(3,nthmax,nphmax,nrmax))
          if(ALLOCATED(cpp)) deallocate(cpp)
@@ -149,7 +74,88 @@
       mdlwmd_save=mdlwmd
       end subroutine wmfem_allocate
 
-!     ---------------------------------------
+!     ***** wmfem pre routine *****
+
+      subroutine wmfem_pre
+
+      use wmfem_comm
+      implicit none
+      integer:: ierr
+
+!     ***** metric setup  *****
+
+         CALL wmfem_setg(ierr)
+         IF(IERR.NE.0) RETURN
+         CALL wmfem_setj(ierr)
+         IF(IERR.NE.0) RETURN
+         CALL get_wmfem_size(nrmax,nthmax,nphmax,nsmax)
+
+!     ***** define array size  *****
+
+      nfcmax=nthmax*nphmax      ! size of block matrix 
+                                !    (number of Fourier components)
+      mlmax=nfcmax*(6*nrmax-4)  ! length of coeffient matrix and source vector
+                                !   Eperp0,Epara0,Erho1/4,
+                                !   Eperp1/2,Epara1/2,Erho3/4
+
+      mbmax=nfcmax*8            ! size of block matrix
+      mwmax=2*mbmax-1           ! width of coefficient matrix
+      mwc=mbmax                 ! position of diagonal coponent
+
+      if(nthmax.eq.1) then
+         nthmax2=1
+      else
+         nthmax2=nthmax*2
+      endif
+      if(nphmax.eq.1) then
+         nphmax2=1
+      else
+         nphmax2=nphmax*2
+      endif
+      nfcmax2=nthmax2*nphmax2
+
+!     ***** get additional parameters *****
+
+      call get_wmfem_parm(crf,nth0,nph0,mdlwmf,mdlwmd)
+
+      return
+      end subroutine wmfem_pre
+
+!     ***** wmfem main routine *****
+
+      subroutine wmfem_main
+
+      use wmfem_comm
+      implicit none
+
+!     ***** setup Fourier component index *****
+
+      call wmfem_setup_index
+
+!     ***** calculate coefficient matrix *****
+
+      call wmfem_calculate_matrix
+
+!     ***** setup boundary conditions *****
+
+      call wmfem_boundary_condition_axis0
+!      call wmfem_boundary_condition_axis1
+      call wmfem_boundary_condition_wall
+      call wmfem_boundary_condition_fourier
+
+!     ***** solve matrix equation *****
+
+      call wmfem_solve
+
+!     ***** calculate efield *****
+
+      call wmfem_calculate_efield
+      call wmfem_efld
+
+      return
+
+      contains
+
 !     ---- setup Fourier component index ----
 
       subroutine wmfem_setup_index
@@ -282,12 +288,12 @@
          call get_wmfvb(nr+1,fvb2_local)
          do i=1,3
             do nfc=1,nfcmax
-               nn=nnnfc(nfc)
-               mm=mmnfc(nfc)
+               nph=nphnfc(nfc)
+               nth=nthnfc(nfc)
                ml=6*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
-               fvb(ml)=fvb(ml)+fvb1_local(nn,mm,i)
+               fvb(ml)=fvb(ml)+fvb1_local(nph,nth,i)
                ml=ml+3*nfcmax
-               fvb(ml)=fvb(ml)+fvb2_local(nn,mm,i)
+               fvb(ml)=fvb(ml)+fvb2_local(nph,nth,i)
             enddo
          enddo
       enddo
@@ -421,6 +427,7 @@
       integer:: nfc1,nfc2,nn1,mm1,nn2,mm2,nn3,mm3,i,j,k,nfc,il,jl,kl,mc
       integer:: count0a,count0b,count1a,count1b
       integer:: count1,count2,counta,countb
+      integer:: ierr
 
       allocate(mtxclx(3*nfcmax,3*nfcmax))
 
@@ -739,7 +746,7 @@
       integer:: id_base=1
 
       do nfc=1,nfcmax
-         ml=6*nfcmax*nrmax+nfc
+         ml=6*nfcmax*(nrmax-1)+nfc
          do mw=1,mwmax
             fma(mw,ml) = 0.d0
             if(mdlwmd.ge.1) then
@@ -754,7 +761,7 @@
          end if
          fvb(ml)=0.d0
 
-         ml=6*nfcmax*nrmax+nfcmax*nfc
+         ml=6*nfcmax*(nrmax-1)+nfcmax*nfc
          do mw=1,mwmax
             fma(mw,ml) = 0.d0
             if(mdlwmd.ge.1) then
@@ -899,40 +906,77 @@
       subroutine wmfem_calculate_efield
 
       integer:: nr,nn,mm,ml,nfc,nth,nph
+      real(8):: drho
 
       nr=1
+      drho=rhoa(2)-rhoa(1)
       do nfc=1,nfcmax
          nth=nthnfc(nfc)
          mm=mmnfc(nfc)
          nph=nphnfc(nfc)
          nn=nnnfc(nfc)
-         ml=6*nfcmax*(nr-1)+6*nthmax*(nph-1)+6*(nth-1)
-         if(abs(mm).eq.1) then
-            cef(1,nth,nph,nr)=(fvx(ml+1)+fvx(ml+3))
-            cef(2,nth,nph,nr)=(fvx(ml+1)-fvx(ml+3))/(ci*mm)
-            cef(3,nth,nph,nr)= fvx(ml+5)
-         else
-            cef(1,nth,nph,nr)=fvx(ml+1)
-            cef(2,nth,nph,nr)=fvx(ml+3)
-            cef(3,nth,nph,nr)=fvx(ml+5)
-         endif
+         ml=6*nfcmax*(nr-1)+nthmax*(nph-1)+(nth-1)
+         IF(abs(mm) == 1) THEN
+            cef(1,nth,nph,nr)=(9.D0*fvx(ml+2*nfcmax+1)
+     &                        -1.D0*fvx(ml+5*nfcmax+1))/8.D0
+            cdef(1,nth,nph,nr)=0.D0
+            cef(2,nth,nph,nr)= fvx(ml+1)
+            cdef(2,nth,nph,nr)= 0.D0
+         ELSE
+            cef(1,nth,nph,nr)=0.D0
+            cdef(1,nth,nph,nr)=fvx(ml+2*nfcmax+1)/(0.25D0*drho)
+            cef(2,nth,nph,nr)=0.D0
+            cdef(2,nth,nph,nr)=fvx(ml+3*nfcmax+1)/(0.5D0*drho)
+         END IF
+         IF(abs(mm) == 1) THEN
+            cef(3,nth,nph,nr)= fvx(ml+nfcmax+1)
+            cdef(3,nth,nph,nr)=0.D0
+         ELSE
+            cef(3,nth,nph,nr)= 0.D0
+            cdef(3,nth,nph,nr)=fvx(ml+4*nfcmax+1)/(0.5D0*drho)
+         END IF
       enddo
 
-      do nr=2,nrmax
+      do nr=2,nrmax-1
+         drho=rhoa(nr+1)-rhoa(nr)
          do nfc=1,nfcmax
             nth=nthnfc(nfc)
             mm=mmnfc(nfc)
             nph=nphnfc(nfc)
             nn=nnnfc(nfc)
-            ml=6*nfcmax*(nr-1)+6*nthmax*(nph-1)+6*(nth-1)
-            cef(1,nth,nph,nr)=fvx(ml+1)
-            cef(2,nth,nph,nr)=fvx(ml+3)
-            cef(3,nth,nph,nr)=fvx(ml+5)
-!               write(6,'(3I4,1P6E11.3)') nr,nn,mm,cef(1,mm,nn,nr),
-!     &              cef(2,mm,nn,nr),cef(3,mm,nn,nr)
+            ml=6*nfcmax*(nr-1)+nthmax*(nph-1)+(nth-1)
+            cef(1,nth,nph,nr)=0.5d0*(fvx(ml+2*nfcmax+1)
+     &                              +fvx(ml-  nfcmax+1))
+            cdef(1,nth,nph,nr)=(fvx(ml+2*nfcmax+1)
+     &                         -fvx(ml-  nfcmax+1))/(0.5D0*drho)
+            cef(2,nth,nph,nr)=fvx(ml         +1)
+            cdef(2,nth,nph,nr)=(fvx(ml+3*nfcmax+1)
+     &                         -fvx(ml-3*nfcmax+1))/drho
+            cef(3,nth,nph,nr)=fvx(ml+  nfcmax+1)
+            cdef(3,nth,nph,nr)=(fvx(ml+4*nfcmax+1)
+     &                         -fvx(ml-2*nfcmax+1))/drho
          enddo
       enddo
 
+      nr=nrmax
+         drho=rhoa(nr)-rhoa(nr-1)
+         do nfc=1,nfcmax
+            nth=nthnfc(nfc)
+            mm=mmnfc(nfc)
+            nph=nphnfc(nfc)
+            nn=nnnfc(nfc)
+            ml=6*nfcmax*(nr-1)+nthmax*(nph-1)+(nth-1)
+            cef(1,nth,nph,nr)=(3.D0*fvx(ml-  nfcmax+1)
+     &                             -fvx(ml-4*nfcmax+1))/2.D0
+            cdef(1,nth,nph,nr)=(fvx(ml-  nfcmax+1)
+     &                         -fvx(ml-4*nfcmax+1))/(0.5D0*drho)
+            cef(2,nth,nph,nr)=fvx(ml         +1)
+            cdef(2,nth,nph,nr)=(fvx(ml         +1)
+     &                         -fvx(ml-3*nfcmax+1))/(0.5D0*drho)
+            cef(3,nth,nph,nr)=fvx(ml+  nfcmax+1)
+            cdef(3,nth,nph,nr)=(fvx(ml+  nfcmax+1)
+     &                         -fvx(ml-2*nfcmax+1))/(0.5D0*drho)
+         enddo
       return
       end subroutine wmfem_calculate_efield
       end subroutine wmfem_main
@@ -1137,7 +1181,7 @@
             mmdiff=mm1-mm2
             if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
             nfcdiff=nthmax2*nndiff+mmdiff+1
-            ml=6*nthmax*nphmax*(nr-1)+6*(nfc2-1)
+            ml=6*nthmax*nphmax*(nr-1)+(nfc2-1)
 
 !          !!!!! on axis should be considered !!!!!
 
@@ -1148,8 +1192,8 @@
      &                 +cfactor*(
      &                  (cqq(i,j,1,nfcdiff)
      &                  +cqq(i,j,2,nfcdiff)*mm2
-     &                  +cqq(i,j,3,nfcdiff)*nn2)*fvx(ml+2*j-1)
-     &                 + cpp(i,j,  nfcdiff)     *fvx(ml+2*j  ))
+     &                  +cqq(i,j,3,nfcdiff)*nn2)*cef(j,nth1,nph1,nr)
+     &                  +cpp(i,j,  nfcdiff)     *cdef(j,nth1,nph1,nr))
                enddo
             enddo
          enddo
@@ -1162,15 +1206,14 @@
       subroutine wmfem_calculate_power
 
       implicit none
-      integer:: mc,ml,mw,nr,ns,mm,nn,i,j
+      integer:: mc,mb,mb1,mb2,mw,nr,ns,mm,nn,i,j
       integer:: ir,nr1,mm1,nn1,mm2,nn2,nndiff,mmdiff
-      integer:: i1,ml1,ml2,nfc,nfc1,nfc2,mll,nr0
+      integer:: i1,ml1,nfc,nfc1,nfc2,ml,mll,nr0
       real(8):: factor
       complex(8):: csum,csums,cfactor
-!      complex(8),dimension(mwmax,12*nfcmax):: fml
-      complex(8),dimension(:,:),ALLOCATABLE:: fml
+      complex(8),dimension(:,:),ALLOCATABLE:: fma_local
 
-      allocate(fml(mwmax,12*nfcmax))
+      allocate(fma_local(mbmax,mbmax))
 
       mc=(mwmax+1)/2
 
@@ -1192,54 +1235,45 @@
          do nr0=1,nrmax-1
 
             if(mdlwmd.eq.0) then
-               call wmfem_calculate_local(nr0,ns,fml)
+               call wmfem_calculate_local(nr0,ns,fma_local)
             else
-               do ml=1,12*nfcmax
-                  do mw=1,mwmax
-                     fml(mw,ml)=fma_save(mw,ml,nr0,ns)
+               do mb2=1,mbmax
+                  do mb1=1,mbmax
+                     fma_local(mb1,mb2)=fma_save(mb1,mb2,nr0,ns)
                   enddo
                enddo
             endif
 
 
-            do nr=nr0,nr0+1
-               do nfc=1,nfcmax
-                  nn=nphnfc(nfc)
-                  mm=nthnfc(nfc)
-                  do i=1,6
-                     mll=6*nthmax*nphmax*(nr-nr0)
-     &                  +6*nthmax*(nn-1)+6*(mm-1)+i
-                     ml =6*nthmax*nphmax*(nr-1)
-     &                  +6*nthmax*(nn-1)+6*(mm-1)+i
-                     do nr1=nr0,nr0+1
-                        do nfc1=1,nfcmax
-                           nn1=nphnfc(nfc1)
-                           mm1=nthnfc(nfc1)
-                           do i1=1,6
-                              ml1=6*nthmax*nphmax*(nr1-1)
-     &                           +6*nthmax*(nn1-1)+6*(mm1-1)+i1
-                              do nfc2=1,nfcmax
-                                 nn2=nphnfc(nfc2)
-                                 mm2=nthnfc(nfc2)
-                                 nndiff=nnnfc(nfc2)-nnnfc(nfc1)
-                                 mmdiff=mmnfc(nfc2)-mmnfc(nfc1)
-                                 if(nndiff.lt.0) nndiff=nndiff+nphmax2
-                                 if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
+            do nfc=1,nfcmax
+               nn=nphnfc(nfc)
+               mm=nthnfc(nfc)
+               do i=1,8
+                  mb=nfcmax*(i-1)+nfc
+                  ml=6*nfcmax*(nr0-1)+mb
+                  do nfc1=1,nfcmax
+                     nn1=nphnfc(nfc1)
+                     mm1=nthnfc(nfc1)
+                     do i1=1,8
+                        mb1=nfcmax*(i1-1)+nfc
+                        ml1=6*nfcmax*(nr0-1)+mb1
+                        do nfc2=1,nfcmax
+                           nn2=nphnfc(nfc2)
+                           mm2=nthnfc(nfc2)
+                           nndiff=nnnfc(nfc2)-nnnfc(nfc1)
+                           mmdiff=mmnfc(nfc2)-mmnfc(nfc1)
+                           if(nndiff.lt.0) nndiff=nndiff+nphmax2
+                           if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
 
-                                 mw=6*nthmax*nphmax*(nr1-nr)
-     &                             +6*nthmax*(nn2-nn)+6*(mm2-mm)+(i1-i)
-
-                                 cpp(mm,nn,mmdiff+1,nndiff+1,nr0,ns)
+                           cpp(mm,nn,mmdiff+1,nndiff+1,nr0,ns)
      &                          =cpp(mm,nn,mmdiff+1,nndiff+1,nr0,ns)
      &                          -ci*conjg(fvx(ml))
-     &                                *fml(mc+mw,mll)*fvx(ml1)
-                           end do
+     &                                *fma_local(mb,mb1)*fvx(ml1)
                         end do
                      end do
                   end do
                end do
             end do
-         end do
          end do
       end do
 
@@ -1274,10 +1308,6 @@ c$$$     &               ns,mmdiff,csum
             do nn1=1,nphmax
             do mm1=1,nthmax
                csum=csum+cpp(mm1,nn1,1,1,nr,ns)
-c$$$               if(ns.eq.0) then
-c$$$                  write(6,'(A,3I5,1P2E12.4)') 
-c$$$     &                 'nr,mm,nn,cpp=',nr,mm1,nn1,cpp(mm1,nn1,1,1,nr,ns)
-c$$$               endif
             enddo
             enddo
          enddo
@@ -1314,7 +1344,7 @@ c$$$               endif
       do nn=1,nphmax
       do mm=1,nthmax
          cpa(mm,nn)=0.d0
-         do nr=1,nrmax
+         do nr=1,nrmax-1
             ml=6*nthmax*nphmax*(nr-1)+6*nthmax*(nn-1)+6*(mm-1)
             do i=1,6
                cpa(mm,nn)=cpa(mm,nn)-ci*conjg(fvx(ml+i))*fvb(ml+i)
@@ -1329,7 +1359,7 @@ c$$$               endif
          enddo
          write(6,'(A,5X,1P2E12.4)') '   PRADM=',csum
 
-      deallocate(fml)
+      deallocate(fma_local)
 
       return
       end subroutine wmfem_calculate_power

@@ -14,7 +14,7 @@
       real(8),dimension(:),ALLOCATABLE:: rhoa
       integer:: nfcmax,nthmax2,nphmax2,nfcmax2
       integer:: mlmax,mwmax,mbmax,mwc
-      complex(8),dimension(:,:,:,:),ALLOCATABLE:: cef,cbf 
+      complex(8),dimension(:,:,:,:),ALLOCATABLE:: cef,cdef,cbf 
                                 !(3,nthmax,nphmax,nrmax)
       complex(8),dimension(:,:,:,:,:,:),ALLOCATABLE:: cpp 
                                 !(nthmax,nphmax,nthmax2,nphmax2,nrmax,0:nsmax)

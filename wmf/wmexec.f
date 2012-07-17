@@ -31,6 +31,8 @@ C      else
          CALL DPCHEK(NTHMAX,NRMAX+1,XRHO(1),XRHO(NRMAX+1),RR,IERR)
          IF(IERR.NE.0) RETURN
          nrmax=nrmax+1
+         call wmfem_pre
+         call wmfem_allocate
          call wmfem_main
          call wmfem_post
          nrmax=nrmax-1
