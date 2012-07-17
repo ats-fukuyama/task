@@ -8,7 +8,7 @@
       use wmfem_comm
       implicit none
       complex(8),dimension(3,3,4,nfcmax,nfcmax),intent(in):: fmd1,fmd2
-      complex(8),dimension(16*nfcmax-1,8*nfcmax),intent(out):: fml
+      complex(8),dimension(mbmax,mbmax),intent(out):: fml
       real(8),intent(in):: drho
       integer:: ic1,ic2,ip1,ip2,mu1,mu2,nfc1,nfc2,mb1,mb2
       integer,dimension(8):: ica =(/2,3,1,2,3,1,2,3/) ! column number

@@ -765,7 +765,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       real(8),intent(in):: rho
       integer,intent(in):: ns
       complex(8),dimension(3,3,4,nfcmax2,nfcmax),intent(out):: fmc
-      complex(8),dimension(3,3):: fml
+      complex(8),dimension(3,3):: fmlp
 
       real(8):: th,ph,dth,dph
       integer:: nth,nph,mm,nn,i,j,nfc2,nfc
@@ -781,10 +781,10 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
          DO nfc=1,nfcmax
             mm=mmnfc(nfc)
             nn=nnnfc(nfc)
-            CALL wmfem_dielectric(rho,th,ph,mm,nn,ns,fml)
+            CALL wmfem_dielectric(rho,th,ph,mm,nn,ns,fmlp)
             DO j=1,3
                DO i=1,3
-                  fmc(i,j,1,nfc2,nfc)=fml(i,j)
+                  fmc(i,j,1,nfc2,nfc)=fmlp(i,j)
                   fmc(i,j,2,nfc2,nfc)=0.d0
                   fmc(i,j,3,nfc2,nfc)=0.d0
                   fmc(i,j,4,nfc2,nfc)=0.d0
@@ -797,13 +797,13 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
 
 !     ****** CALCULATE dielectric tensor ******
 
-      SUBROUTINE wmfem_dielectric(rho,th,ph,mm,nn,ns,fml)
+      SUBROUTINE wmfem_dielectric(rho,th,ph,mm,nn,ns,fmlp)
 
       use wmfem_comm
       IMPLICIT NONE
       real(8),intent(in):: rho,th,ph
       integer,intent(in):: mm,nn,ns
-      complex(8),dimension(3,3),intent(out):: fml
+      complex(8),dimension(3,3),intent(out):: fmlp
       complex(8):: cw,ckpara,ckperp
       complex(8):: ckppf,ckpps
       real(8):: babs,bsupth,bsupph
@@ -822,7 +822,7 @@ c$$$         if(ns.eq.1.and.abs(th).lt.0.1)
 c$$$     &    write(6,'(a,2i5,1p5e12.4)') 'm,n,kpara:',
 c$$$     &         mm,nn,dble(ckpara),rho,babs,bsupth,bsupph
 
-      CALL dpcalc(cw,ckpara,ckperp,rho,babs,ns,fml)
+      CALL dpcalc(cw,ckpara,ckperp,rho,babs,ns,fmlp)
 
       return
 
