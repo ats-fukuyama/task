@@ -50,7 +50,7 @@ C     MNPH0  : Current central value of toroidal mode number
 C     PFRAC  : Fraction of power for each toroidal mode number
 C
       MNPHMAX = 1
-      DO NM = 1, MNPHMX
+      DO NM = 1, MNPHMAX
          MNPH0(NM) = 8
          PFRAC(NM) = 0.D0
       ENDDO

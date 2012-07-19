@@ -34,16 +34,7 @@ C
 C
          CALL DIAMIN(FRINI,FIINI,AMPL)
          
-         if(mdlwmf.eq.0) then
-            CALL WMBFLD
-C            CALL WMPABS
-C            CALL WMPFLX
-C            CALL WMPANT
-         else
-            nrmax=nrmax+1
-            call wmfem_post
-            nrmax=nrmax-1
-         endif
+         CALL WMBFLD
 
       GOTO 1
 C
@@ -454,16 +445,7 @@ C
 C
          FRINI=XX
          FIINI=YY
-         if(mdlwmf.eq.0) then
-            CALL WMBFLD
-C            CALL WMPABS
-C            CALL WMPFLX
-C            CALL WMPANT
-         else
-            nrmax=nrmax+1
-            call wmfem_post
-            nrmax=nrmax-1
-         endif
+         CALL WMBFLD
 
       GOTO 1
 C
@@ -691,16 +673,7 @@ C
          IF(IERR.EQ.0) THEN
             FRINI=XX
             FIINI=YY
-            if(mdlwmf.eq.0) then
-               CALL WMBFLD
-C               CALL WMPABS
-C               CALL WMPFLX
-C               CALL WMPANT
-            else
-               nrmax=nrmax+1
-               call wmfem_post
-               nrmax=nrmax-1
-            endif
+            CALL WMBFLD
          ENDIF
 C
          IF(ISCAN.EQ.1) THEN
@@ -823,15 +796,9 @@ C
 C
       MODEEG=1
 
-      IF(mdlwmf.EQ.0) THEN
-         CALL WMSETG(IERR)
-         CALL WMSOLV
-         CALL WMEFLD
-      ELSE
-         nrmax=nrmax+1
-         call wmfem_main
-         nrmax=nrmax-1
-      ENDIF
+      CALL WMSETG(IERR)
+      CALL WMSOLV
+      CALL WMEFLD
 C
       ESUM=0.D0
       EABSMAX=0.D0

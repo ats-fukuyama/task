@@ -7,12 +7,11 @@ FFLAGS = $(OFLAGS)
 MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
             -I../../bpsd/$(MOD)
 
-SRC0 = wmfem_com.f wmmenu.f wminit.f wmeign.f wmsetg.f \
+SRC0 = wmmenu.f wminit.f wmeign.f wmsetg.f \
        wmexec.f wmprof.f wmdisp.f \
        wmsetm.f wmsetf.f wmxprf.f wmdprf.f \
        wmpout.f wmgout.f wmgsub.f wmdout.f wmfout.f \
-       wmsetm0.f wmsetm1.f wmpout0.f wmpout1.f \
-       wmtae.f wmfem.f wmfem_calc.f wmfem_sub.f wmfem_setg.f wmfem_vmec.f\
+       wmsetm.f wmpout.f wmtae.f \
        wmvmec.f wmbooz.f wmvout.f wmtpcs.f
 
 # wmtrfile.f
@@ -117,19 +116,10 @@ wmgsub.o : wmgsub.f $(WMCOMM)
 wmdout.o : wmdout.f $(WMCOMM)	
 wmfout.o : wmfout.f $(WMCOMM)	
 
-wmsetm0.o : wmsetm0.f $(WMCOMM)
-wmpout0.o : wmpout0.f $(WMCOMM)
-wmsetm1.o : wmsetm1.f $(WMCOMM)
-wmpout1.o : wmpout1.f $(WMCOMM)
+wmsetm.o : wmsetm.f $(WMCOMM)
+wmsetm.o : wmsetm.f $(WMCOMM)
 
 wmtae.o : wmtae.f $(WMCOMM)
-
-wmfem.o : wmfem.f wmfem_com.f
-wmfem_com.o : wmfem_com.f
-wmfem_calc.o : wmfem_calc.f wmfem_com.f
-wmfem_sub.o : wmfem_sub.f wmfem_com.f $(WMCOMM)	
-wmfem_setg.o : wmfem_setg.f wmfem_com.f $(WMCOMM)
-wmfem_vmec.o : wmfem_vmec.f wmfem_com.f $(WMCOMM) vmcomm.inc
 
 wmvmec.o : wmvmec.f $(WMCOMM) vmcomm.inc
 wmbooz.o : wmbooz.f $(WMCOMM) vmcomm.inc

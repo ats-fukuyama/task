@@ -75,11 +75,7 @@ C        defined by toroidal magnetic flux
 C
       CALL PLWMXPRF(IERR) ! in pl/plprof.f
 C
-      IF(MDLWMF.EQ.0) THEN
-         NRMAX1 = NRMAX + 1
-      ELSE
-         NRMAX1 = NRMAX
-      ENDIF
+      NRMAX1 = NRMAX
 C
 C----  Set profile data at the point calculated in wm-code.
 C
