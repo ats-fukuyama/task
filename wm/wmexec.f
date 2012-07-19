@@ -15,6 +15,7 @@ C
       IF(IERR.NE.0) RETURN
       CALL WMSETJ(IERR)
       IF(IERR.NE.0) RETURN
+      CALL WMSETEW
 
       CALL WMSOLV
       CALL WMEFLD
@@ -186,74 +187,40 @@ C
       RETURN
       END
 C
-C     ****** CALCULATE WAVEGUIDE FIELD ******
+C     ****** CALCULATE WAVEGUIDE FIELD (simple) ******
 C
-      SUBROUTINE WMCWGF
+      SUBROUTINE WMSETEW
 C
       INCLUDE 'wmcomm.inc'
 C
-      DIMENSION CJT(MDM,NDM,NAM)
-      DIMENSION CJZ(MDM,NDM,NAM)
-C
+      DO NPH=1,NPHMAX
+         DO NTH=1,NTHMAX
+            CEWALL(NTH,NPH,1)=(0.D0,0.D0)
+            CEWALL(NTH,NPH,2)=(0.D0,0.D0)
+            CEWALL(NTH,NPH,3)=(0.D0,0.D0)
+         END DO
+      END DO
+
       DO NA=1,NAMAX
          TH1=THJ1(NA)*PI/180.D0
          TH2=THJ2(NA)*PI/180.D0
-         WGH=RB*ABS(TH2-TH1)
+         WTH=ABS(TH2-TH1)
          TH0=0.5D0*(TH1+TH2)
-         RKWG=PI/WGH
-         DO ND=NDMIN,NDMAX
-            NDX=ND-NDMIN+1
-            NN=NPH0+NHC*ND
-            RKPHI=NN/(RR+RB*COS(TH0))
-         ENDDO
-C
-         CAJ=AJ(NA)*EXP(DCMPLX(0.D0,APH(NA)*PI/180.D0))
-C   
-      DO ND=NDMIN,NDMAX
-         NDX=ND-NDMIN+1
-         NN=NPH0+NHC*ND
-         IF(NN.EQ.0.OR.ABS(PH2-PH1).LE.1.D-15) THEN
-            CJN=-CI
-         ELSE
-            CJN=(EXP(-CI*NN*PH2)-EXP(-CI*NN*PH1))/(NN*(PH2-PH1))
-         ENDIF
-      DO MD=MDMIN,MDMAX
-         MDX=MD-MDMIN+1
-         MM=NTH0+MD
-         IF(ABS(MM+BETAJ).LE.0.D0) THEN
-            CJMP=-CI*(TH2-TH1)
-         ELSE
-            CJMP=(EXP(-CI*(MM+BETAJ)*TH2)-EXP(-CI*(MM+BETAJ)*TH1))
-     &           /(MM+BETAJ)
-         ENDIF
-         IF(ABS(MM-BETAJ).LE.0.D0) THEN
-            CJMM=-CI*(TH2-TH1)
-         ELSE
-            CJMM=(EXP(-CI*(MM-BETAJ)*TH2)-EXP(-CI*(MM-BETAJ)*TH1))
-     &           /(MM-BETAJ)
-         ENDIF
-         CJTEMP=CAJ/(8*PI**2)*CJN*(CJMP+CJMM)
-         CJT(MDX,NDX,NA)=CJTEMP*COS(2*PI*ANTANG/360.D0)
-         CJZ(MDX,NDX,NA)=CJTEMP*SIN(2*PI*ANTANG/360.D0)
-      ENDDO
-      ENDDO
-      ENDDO
-C
-      DO ND=NDMIN,NDMAX
-         NDX=ND-NDMIN+1
-      DO MD=MDMIN,MDMAX
-         MDX=MD-MDMIN+1
-      DO NA=1,NAMAX
-         CJANT(2,MDX,NDX)=CJANT(2,MDX,NDX)+CJT(MDX,NDX,NA)
-         CJANT(3,MDX,NDX)=CJANT(3,MDX,NDX)+CJZ(MDX,NDX,NA)
-         IF(MYRANK.EQ.0) THEN
-            IF(NPRINT.GE.3) WRITE(6,'(A,2I4,1P2E15.7)') 
-     &                   'NN,MM,CJANT=',
-     &                   NPH0+NHC*ND,NTH0+MD,CJANT(2,MDX,NDX)
-         ENDIF
-      ENDDO
-      ENDDO
-      ENDDO
+         DTH=2.D0*PI/NPHMAX
+         DO NTH=1,NTHMAX
+            TH=DTH*(NTH-1)
+            IF(TH >= TH1 .AND. TH <= TH2) THEN
+               CETH=AEWGT(NA)
+               CEPH=AEWGZ(NA)*COS((TH-TH0)/WTH*PI)
+               DO NPH=1,NPHMAX
+                  CEWALL(NTH,NPH,2)=CEWALL(NTH,NPH,2)+CETH
+                  CEWALL(NTH,NPH,3)=CEWALL(NTH,NPH,3)+CEPH
+               END DO
+            END IF
+         END DO
+      END DO
+      CALL WMSUBC(CEWALL(1,1,2))
+      CALL WMSUBC(CEWALL(1,1,3))
 C
       RETURN
       END

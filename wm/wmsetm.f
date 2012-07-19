@@ -813,8 +813,8 @@ C
                ENDDO
                CEMP(MBND,NDX,MDX,2)= 1.D0
                CEMP(MBND,NDX,MDX,3)= 1.D0
-               CFVP(NDX,MDX,2)= 0.D0
-               CFVP(NDX,MDX,3)= 0.D0
+               CFVP(NDX,MDX,2)= CEWALL(MDX,NDX,2)
+               CFVP(NDX,MDX,3)= CEWALL(MDX,NDX,3)
             ENDDO
             ENDDO
 C

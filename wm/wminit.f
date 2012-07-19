@@ -60,6 +60,8 @@ C     *** ANTENNA PARAMETERS ***
 C
 C        NAMAX : Number of antennae
 C        AJ    : Antenna current density                       (A/m)
+C        AEWGT : Waveguide electric field (poloidal)           (V/m)
+C        AEWGZ : Waveguide electric field (toroidal)           (V/m)
 C        APH   : Antenna phase                              (degree)
 C        THJ1  : Start poloidal angle of antenna            (degree)
 C        THJ2  : End poloidal angle of antenna              (degree)
@@ -69,6 +71,8 @@ C
       NAMAX  = 1
       DO NA=1,NAM
          AJ(NA)   = 1.D0
+         AEWGT(NA)= 0.D0
+         AEWGZ(NA)= 0.D0
          APH(NA)  = 0.D0
          THJ1(NA) =-45.D0
          THJ2(NA) = 45.D0
@@ -117,7 +121,7 @@ C                  2X: Vacuum eigen mode, poloidal current
 C                  3X: Vacuum eigen mode, toroidal current
 C
 C        ANTANG: Antenna angle: 0 for vertical antenna 
-C        MWGMAX: Antenna angle: 0 : theta direction (degree)
+C        MWGMAX: for future use
 C
 C        MODELA: Control alpha particle contribution
 C                   0: No alpha effect
@@ -147,7 +151,7 @@ C
       NGRAPH = 1
       MODELJ = 0
       MODELA = 0
-      MWGMAX = 2
+      MWGMAX = 0
       MODELM = 0
       MODELW = 0
       MDLWMF = 0
@@ -214,6 +218,8 @@ C
       LMAXNW= 10
       LISTNW= 1
       MODENW= 0
+
+      NCONT=10
 C
 C     *** ALFVEN FREQUENCY PARAMETERS ***
 C
@@ -271,14 +277,15 @@ C
      &              PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PU,PUS,NSMAX,
      &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
      &              PNA,PNAL,PTA,ZEFF,NDISP1,NDISP2,
-     &              RF,RFI,RD,BETAJ,AJ,APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,
+     &              RF,RFI,RD,BETAJ,AJ,AEWGT,AEWGZ,
+     &              APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,
      &              NRMAX,NTHMAX,NPHMAX,NTH0,NPH0,NHC,
      &              NPRINT,NGRAPH,MODELG,MODELJ,MODELP,MODELN,MODELA,
      &              MODELQ,MODELM,MODELW,MODELV,MDLWMF,MDLWMX,MDLWMD,
      &              MWGMAX,MODEFR,MODEFW,ANTANG,
      &              FRMIN,FRMAX,FIMIN,FIMAX,FI0,FRINI,FIINI,
      &              NGFMAX,NGXMAX,NGYMAX,SCMIN,SCMAX,NSCMAX,LISTEG,
-     &              DLTNW,EPSNW,LMAXNW,LISTNW,MODENW,
+     &              DLTNW,EPSNW,LMAXNW,LISTNW,MODENW,NCONT,
      &              RHOMIN,QMIN,RHOEDG,
      &              RHOITB,PNITB,PTITB,PUITB,
      &              KNAMEQ,KNAMTR,KNAMWM,KNAMFP,KNAMFO,KNAMPF,
@@ -319,7 +326,7 @@ C
      &       9X,'PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,'/
      &       9X,'PROFN1,PROFN2,PROFT1,PROFT2,ZEFF,'/
      &       9X,'NSMAX,PNA,PNAL,PTA,RF,RFI,RD,BETAJ,'/
-     &       9X,'AJ,APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,MWGMAX,'/
+     &       9X,'AJ,AEWGT,AEWGZ,APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,MWGMAX,'/
      &       9X,'NRMAX,NTHMAX,NPHMAX,NTH0,NPH0,NHC,'/
      &       9X,'MODELG,MODELJ,MODELP,MODELA,MODELN,'/
      &       9X,'MODELQ,MODELM,MODELW,MDLWMF,MDLWMX,MDLWMD,'/
@@ -328,7 +335,7 @@ C
      &       9X,'FRMIN,FRMAX,FIMIN,FIMAX,FI0,'/
      &       9X,'FRINI,FIINI,NGFMAX,NGXMAX,NGYMAX,'/
      &       9X,'SCMIN,SCMAX,NSCMAX,LISTEG,ANTANG,'/
-     &       9X,'DLTNW,EPSNW,LMAXNW,LISTNW,MODENW,'/
+     &       9X,'DLTNW,EPSNW,LMAXNW,LISTNW,MODENW,NCONT,'/
      &       9X,'RHOMIN,QMIN,PU,PUS,PROFU1,PROFU2'/
      &       9X,'RHOITB,PNITB,PTITB,PUITB'/
      &       9X,'WAEMIN,WAEMAX,KNAMWM,KNAMFP,KNAMFO'/
@@ -545,7 +552,7 @@ C
 C
       INCLUDE 'wmcomm.inc'
 C
-      DIMENSION IPARA(21),DPARA(28)
+      DIMENSION IPARA(22),DPARA(28)
 C
       IF(MYRANK.EQ.0) THEN
          RF=DBLE(CRF)
@@ -571,6 +578,7 @@ C
          IPARA(19)=LMAXNW
          IPARA(20)=LISTNW
          IPARA(21)=MODENW
+         IPARA(22)=NCONT
 C
          DPARA(1) =BB
          DPARA(2) =RR
@@ -674,6 +682,8 @@ C
       CALL MPBCDN(PUITB,NSMAX)
       CALL MPBCIN(MODELP,NSMAX)
       CALL MPBCDN(AJ,NAMAX)
+      CALL MPBCDN(AEWGT,NAMAX)
+      CALL MPBCDN(AEWGZ,NAMAX)
       CALL MPBCDN(APH,NAMAX)
       CALL MPBCDN(THJ1,NAMAX)
       CALL MPBCDN(THJ2,NAMAX)

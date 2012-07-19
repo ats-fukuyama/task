@@ -582,6 +582,37 @@ C
 C
 C     ****** 2D FOURIER TRANSFORM ******
 C
+      SUBROUTINE WMSUBC(CF1)
+C
+      INCLUDE 'wmcomm.inc'
+C
+      DIMENSION CF1(MDM,NDM),CF2(MDM,NDM)
+      DIMENSION CFM(MDM),CFN(NDM)
+C
+      DO NPH=1,NPHMAX
+         DO NTH=1,NTHMAX
+            CFM(NTH)=CF1(NTH,NPH)
+         ENDDO
+         CALL WMXFFT(CFM,NTHMAX,0)
+         DO LDX=1,LDSIZ
+            CF2(LDX,NPH)=CFM(LDX)
+         ENDDO
+      ENDDO
+C
+      DO LDX=1,LDSIZ
+         DO NPH=1,NPHMAX
+            CFN(NPH)=CF2(LDX,NPH)
+         ENDDO
+         CALL WMXFFT(CFN,NPHMAX,0)
+         DO KDX=1,KDSIZ
+            CF1(LDX,KDX)=CFN(KDX)
+         ENDDO
+      ENDDO
+      RETURN
+      END
+C     
+C     ****** 2D FOURIER TRANSFORM ******
+C
       SUBROUTINE WMSUBE(CF1,CF2)
 C
       INCLUDE 'wmcomm.inc'
