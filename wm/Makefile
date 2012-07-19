@@ -11,7 +11,7 @@ SRC0 = wmmenu.f wminit.f wmeign.f wmsetg.f \
        wmexec.f wmprof.f wmdisp.f \
        wmsetm.f wmsetf.f wmxprf.f wmdprf.f \
        wmpout.f wmgout.f wmgsub.f wmdout.f wmfout.f \
-       wmsetm.f wmpout.f wmtae.f \
+       wmtae.f \
        wmvmec.f wmbooz.f wmvout.f wmtpcs.f
 
 # wmtrfile.f

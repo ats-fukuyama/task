@@ -198,7 +198,7 @@ c      DPSIP=(PHI(NSRMAX)-PHI(NSRMAX-5))/(XS(NSRMAX)-XS(NSRMAX-5))
          IF(XRHO(NR).GT.1.D0) THEN
 c            PSIP(NR)=PHI(NSRMAX)+DPSIP*(XRHO(NR)-XS(NSRMAX))
 c
-dddc
+c
             do i=1,np
                nra(i)=nr-np-1+i
                psipax(i)=psip(nr-np-1+i)
