@@ -11,7 +11,7 @@ MODDIR = -module ../mod
 FFLAGS = $(DFLAGS)
 
 MODINCLUDE=-I $(BPSDDIR)/mod -I $(TASKDIR)/plx/mod -I $(TASKDIR)/lib/mod \
-           -I $(MOD) -I MMM7_1
+           -I $(MOD) -I mmm7_1
 
 SRC90=trcalnc.f90 trncls.f90 \
       trglf23.f90 trmbgb.f90 trmmm95.f90 trmmm7_1.f90 trcdbm.f90 \
@@ -27,7 +27,7 @@ INCNC=trncls.inc nclass/pamx_mi.inc nclass/pamx_ms.inc nclass/pamx_mz.inc
 INCGLF=glf/glf.m
 SRCCYT=cytran/cytran_mod.f90 cytran/tr_cytran_mod.f90
 SRCMMM=mmm95/stripx.f mmm95/tomsqz.f mmm95/weiland14.f mmm95/mmm95.f
-SRCMMM7=MMM7_1/w20mod.f90 MMM7_1/modmmm7_1.f90
+SRCMMM7=mmm7_1/w20mod.f90 mmm7_1/modmmm7_1.f90
 
 OBJS= $(SRCMMM7:.f90=.o) $(SRCMMM:.f=.o) $(SRCITGF:.F=.o) $(SRCITG:.f=.o) \
 $(SRCMBGB:.f=.o) $(SRCCDBM:.f90=.o) $(SRC90:.f90=.o) $(SRCNC:.f=.o)
@@ -82,6 +82,6 @@ mmm95/weiland14.o: mmm95/weiland14.f
 	$(FCFIXED) -r8 $(FFLAGS) -c mmm95/weiland14.f -o mmm95/weiland14.o
 mmm95/mmm95.o: mmm95/mmm95.f
 	$(FCFIXED) -r8 $(FFLAGS) -c mmm95/mmm95.f -o mmm95/mmm95.o
-MMM7_1/w20mod.o: MMM7_1/w20mod.f90
-MMM7_1/modmmm7_1.o: MMM7_1/w20mod.f90 MMM7_1/modmmm7_1.f90
+mmm7_1/w20mod.o: mmm7_1/w20mod.f90
+mmm7_1/modmmm7_1.o: mmm7_1/w20mod.f90 mmm7_1/modmmm7_1.f90
 mbgb/mixed_Bohm_gyro_Bohm.o: mbgb/mixed_Bohm_gyro_Bohm.f
