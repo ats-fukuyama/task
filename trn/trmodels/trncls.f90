@@ -87,11 +87,9 @@ CONTAINS
          rkev,NSM,nrmax,nsamax,ns_nsa,idnsa,pa,pz,RR,ra,BB,            &
          abb1rho,abb2rho,aib2rho,ttrho,ar1rho,ar2rho,epsrho,rhog,rkap, &
          rt,rn,dpdrho,pts,pns,qp,q0,bp,jbs_nc,jex_nc,joh,              &
-         er,eta,eta_nc,vtor,vpol,vpar,vprp
+         er,eta,eta_nc,vtor,vpol,vpar,vprp,                            &
 !    PADD,! additional pressure due to NBI
 !    MDLTPF,! Trapped particle fraction model
-
-    USE trcalv, ONLY: &
          rp,&
     chi_ncp,&! associated value with off-diagonal transport coefficients
     chi_nct,&! associated value with off-diagonal transport coefficients
@@ -140,7 +138,7 @@ CONTAINS
     INTEGER(4)::  i,iz,k_out,k_v,na,nm,nr,ns,ns1,nsn,nsz
     REAL(4)   ::  a0,bt0,e0,p_eps,p_q,q0l,r0
     REAL(8)   ::  bpol,btor,btot,uthai
-    REAL(8)   ::  aitken2p,deriv3,FCTR
+    REAL(8)   ::  aitken2p,deriv4,FCTR
 
     ! internal parameters for tr_nclass
     INTEGER(4) :: mdltpf ! interim definition of switch variables
@@ -216,7 +214,7 @@ CONTAINS
        p_grbm2  = SNGL(ar2rho(nr)*aib2rho(nr))
        ! radial electric field phi' (V/rho)
        p_grphi  = SNGL(er(nr)/ar1rho(nr))
-       p_gr2phi = SNGL(dpdrho(nr) * deriv3(nr,rhog,eropsi,nrmax,0))
+       p_gr2phi = SNGL(dpdrho(nr) * deriv4(nr,rhog,eropsi,nrmax,0))
 !         p_gr2phi=0.0
        p_ngrth  = SNGL(bp(nr)/(BB*rhog(nr))) ! ?????
        
@@ -230,7 +228,7 @@ CONTAINS
              temp_i(i_ns) = SNGL(rt(nsa,nr))
              ! temperature gradient of i (keV/rho)
              nr_array(0:nrmax) = rt(nsa,0:nrmax)
-             grt_i(i_ns)  = SNGL(deriv3(nr,rhog,nr_array,nrmax,0))
+             grt_i(i_ns)  = SNGL(deriv4(nr,rhog,nr_array,nrmax,0))
              ! density of i,z (/m**3)
              den_iz(i_ns,INT(ABS(pz(ns)))) &
                           = SNGL(rn(nsa,nr))*1.E20
@@ -238,7 +236,7 @@ CONTAINS
              ! ***** PADD should be included *****
              nr_array(0:nrmax) = rp(nsa,0:nrmax)/rkev
              grp_iz(i_ns,INT(ABS(pz(ns)))) &
-                   = SNGL(deriv3(nr,rhog,nr_array(0:nrmax),nrmax,0))
+                   = SNGL(deriv4(nr,rhog,nr_array(0:nrmax),nrmax,0))
              DO i = 1, 3
                 ! moments of external parallel force on i,z (T*j/m**3)
                 fex_iz(i,i_ns,INT(ABS(pz(ns)))) = 0.0

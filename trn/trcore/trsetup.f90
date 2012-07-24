@@ -13,17 +13,26 @@ CONTAINS
 
     USE trcomm, ONLY: &
          tr_nit_allocate,tr_nsa_allocate,tr_nr_allocate,tr_ngt_allocate, &
-         t,ngt,kidnsa,ns_nsa,idnsa,nsamax,pa,pz,pz0,nitmax,modelg
+         t,t_prev,ngt,kidnsa,ns_nsa,idnsa,nrmax,nsamax,pa,pz,pz0,        &
+         nitmax,modelg,rip,rips,vtor,vpol,vpar,vprp
 
     USE trbpsd, ONLY: tr_bpsd_init
     USE eq_bpsd_mod, ONLY: eq_bpsd_init
     USE trloop, ONLY: tr_save_pvprev
-    USE trresult, ONLY: tr_calc_global,tr_save_ngt
+    USE trresult, ONLY: tr_calc_global, tr_save_ngt
+    USE trcalv, ONLY: tr_calc_zeff, tr_calc_clseta
+    USE trcalc, ONLY: tr_calc_source
     IMPLICIT NONE
     INTEGER(ikind):: ierr
 
     CALL tr_bpsd_init(ierr)
     CALL eq_bpsd_init(ierr)
+
+    t      = 0.d0           ! time is initialized
+    t_prev = 0.d0
+    ngt    = -1             ! save data count is initilaized
+    nitmax = 0              ! iteration count is initialized
+    rip    = rips
 
 ! +++ setup of equations and speices information +++
     CALL tr_set_idneq
@@ -40,6 +49,11 @@ CONTAINS
 
     CALL tr_nr_allocate     ! allocation for radial profile
 
+! +++ Initialization for successive interactive calculation +++
+    vtor(0:nrmax) = 0.d0
+    vpol(0:nrmax) = 0.d0
+    vpar(0:nrmax) = 0.d0
+    vprp(0:nrmax) = 0.d0
 
 ! +++ setup of initial geometic factor and profiles +++
     ! Calculate initial geometric factor for cylindrical assumption
@@ -55,14 +69,15 @@ CONTAINS
 ! +++
     CALL tr_nit_allocate    ! allocation for diagnostics of iteration
 
-    t      = 0.D0           ! time is initialized
-    ngt    = -1             ! save data count is initilaized
-    nitmax = 0              ! iteration count is initialized
+    CALL tr_save_pvprev
+
+    CALL tr_calc_zeff      ! *** dummy calculation for tr_calc_global 
+    CALL tr_calc_clseta    !      and preparation of 'eta' for NCLASS calc
+    CALL tr_calc_source    ! *** 
 
     CALL tr_calc_global
-    CALL tr_save_ngt
 
-    CALL tr_save_pvprev
+    CALL tr_save_ngt
 
     CALL tr_bpsd_init(ierr)
 
@@ -286,7 +301,7 @@ CONTAINS
        ar2rho(nr)  = 1.d0/(SQRT(rkap)*ra)**2       ! const
        abrho(nr)   = 1.d0/(SQRT(rkap)*ra*rr)**2    ! const
        rmjrho(nr)  = rr                            ! const [m]
-       rmnrho(nr)  = ra*rhog(nr) ! [m]
+       rmnrho(nr)  = SQRT(rkap)*ra*rhog(nr) ! [m]
        IF(nr /= 0) rmnrhom(nr)=0.5d0*(rmnrho(nr-1)+rmnrho(nr))
        rkprho(nr)  = rkap
        IF(nr /= 0) rkprhom(nr)=0.5d0*(rkprho(nr-1)+rkprho(nr))
@@ -379,9 +394,9 @@ CONTAINS
 ! -------------------------------------------------------------------------
 !   This subroutine calculates inital profiles.
 ! -------------------------------------------------------------------------
-    USE trcomm, ONLY: pi,rkap,rdlt,nrmax,nsmax,nsamax, &
-         rg,rm,rhog,rhom,ra,rr,rn,ru,rt,ns_nsa,   &
-         ttrho,dvrho,arrho,ar1rho,rdpvrho,dpdrho, &
+    USE trcomm, ONLY: pi,rkev,rkap,rdlt,nrmax,nsmax,nsamax,ns_nsa, &
+         rg,rm,rhog,rhom,ra,rr,rn,ru,rt,rp,rp_tot,          &
+         ttrho,dvrho,arrho,ar1rho,rdpvrho,dpdrho,           &
          mdluf,jtot,joh,jbs_nc,jex_nc
     USE trcalc, ONLY: tr_calc_dpdrho2j
     USE plprof, ONLY: pl_prof2,pl_qprf
@@ -391,6 +406,7 @@ CONTAINS
     INTEGER(ikind):: nr,nsa,ns
 
     IF(mdluf == 0)THEN
+       rp_tot(0:nrmax) = 0.d0
        DO nr=0,nrmax
           CALL pl_prof2(rhog(nr),rn_ns,rtpr_ns,rtpp_ns,ru_ns)
           DO nsa=1,nsamax
@@ -398,6 +414,10 @@ CONTAINS
              rn(nsa,nr)=rn_ns(ns)
              ru(nsa,nr)=ru_ns(ns)
              rt(nsa,nr)=(rtpr_ns(ns)+2.D0*rtpp_ns(ns))/3.D0
+
+             ! the pressure of each species
+             rp(nsa,nr)  = rn(nsa,nr)*1.d20 * rt(nsa,nr)*rkev
+             rp_tot(nr)  = rp_tot(nr) + rp(nsa,nr)
              
           ! MDLUF = 0 : trprof.f90
 !          pex(nsa,nr) = 0.d0
@@ -438,8 +458,6 @@ CONTAINS
     IMPLICIT NONE
     REAL(rkind) :: dr,factor0,factorp,factorm,fact,dpdrhos
     INTEGER(ikind) :: nr
-
-    rip = rips
 
     DO nr = 0, nrmax
        IF(((SQRT(rkap)*ra)**ABS(profj1)-rg(nr)**ABS(profj1)).LE.0.d0) THEN

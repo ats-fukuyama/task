@@ -16,11 +16,9 @@ CONTAINS
     USE trcomm, ONLY: &
          ikind,rkind,nrmax,nsamax,neqmax,idnsa,ns_nsa,pa,pz, &
          rmnrho,rmjrho,rkprho,abb1rho,BB,RR,rn,qp,           &
-         vtor,vpol,vpar,cdtrn,cdtru,cdtrt,dtr_tb,vtr_tb
-
-    USE trcalv, ONLY: &
-         rt_e,rt_ecl,rt_i,rt_icl,rn_e,rn_ecl,rn_i,rn_icl, &
-         qp_d,mshear,wexbp,z_eff
+         vtor,vpol,vpar,cdtrn,cdtru,cdtrt,dtr_tb,vtr_tb,     &
+         rt_e,rt_ecl,rt_i,rt_icl,rn_e,rn_ecl,rn_i,rn_icl,    &
+         qp_d,ai_ave,mshear,wexbp,z_eff
 
     IMPLICIT NONE
 
@@ -66,29 +64,17 @@ CONTAINS
     INTEGER(ikind) :: nr,ns,nsa
     REAL(rkind) :: sum_pan
     REAL(rkind) :: deriv3 ! in TASK/lib
-    REAL(rkind),DIMENSION(0:nrmax) :: &
-         mmm7_diff,mmm7_chie,mmm7_chii,mmm7_difz,mmm7_dtm,mmm7_dpm, &
-         mmm7_veli,mmm7_vele,mmm7_velh
+    REAL(rkind):: &
+         rmnrhom,rmjrhom,rkprhom,rn_em,rn_im,rt_em,rt_im,z_effm, &
+         qpm,abb1rhom
     REAL(rkind),DIMENSION(1:nrmax) :: &
-         mmm7_diffm,mmm7_chiem,mmm7_chiim, &
+         mmm7_diffm,mmm7_chiem,mmm7_chiim,mmm7_difzm,mmm7_dtmm,mmm7_dpmm, &
          mmm7_velim,mmm7_velem,mmm7_velhm
-
 
     ! Initilization
     dtr_tb(1:neqmax,1:neqmax,0:nrmax) = 0.d0
     vtr_tb(1:neqmax,1:neqmax,0:nrmax) = 0.d0
 
-    mmm7_diff(0:nrmax) = 0.d0
-    mmm7_chie(0:nrmax) = 0.d0
-    mmm7_chii(0:nrmax) = 0.d0
-    mmm7_velim(1:nrmax) = 0.d0
-    mmm7_velhm(1:nrmax) = 0.d0
-    mmm7_velem(1:nrmax) = 0.d0
-    mmm7_difz(0:nrmax) = 0.d0
-    mmm7_dtm(0:nrmax)  = 0.d0
-    mmm7_dpm(0:nrmax)  = 0.d0
-
-    
     ! << Input integers >>
     npoints = 1  ! number of values of jz in all of the arrays
 
@@ -107,24 +93,34 @@ CONTAINS
 
     
     DO nr = 1, nrmax
+       rmnrhom  = 0.5d0*(rmnrho(nr)  +  rmnrho(nr-1))
+       rmjrhom  = 0.5d0*(rmjrho(nr)  +  rmjrho(nr-1))
+       rkprhom  = 0.5d0*(rkprho(nr)  +  rkprho(nr-1))
+       rn_em    = 0.5d0*(rn_e(nr)    +    rn_e(nr-1))
+       rn_im    = 0.5d0*(rn_i(nr)    +    rn_i(nr-1))
+       rt_em    = 0.5d0*(rt_e(nr)    +    rt_e(nr-1))
+       rt_im    = 0.5d0*(rt_i(nr)    +    rt_i(nr-1))
+       z_effm   = 0.5d0*(z_eff(nr)   +   z_eff(nr-1))
+       qpm      = 0.5d0*(qp(nr)      +      qp(nr-1))
+       abb1rhom = 0.5d0*(abb1rho(nr) + abb1rho(nr-1))
 
-       rmin(1)  = rmnrho(nr)
-       rmaj(1)  = rmjrho(nr)
-       elong(1) = rkprho(nr)
+       rmin(1)  = rmnrhom
+       rmaj(1)  = rmjrhom
+       elong(1) = rkprhom
        rmaj0    = RR
 
-       ne(1) = rn_e(nr)*1.d20
-       nh(1) = rn_i(nr)*1.d20
+       ne(1) = rn_em*1.d20
+       nh(1) = rn_im*1.d20
 
        ! --- for the time being ---
-       nz(1) = 1.d10 ! impurity ion density [m^-3]
+       nz(1) = 1.d5 ! impurity ion density [m^-3]
        nf(1) = 1.d5 ! density from fast (non-thermal) ions [m^-3]
 
-       zeff(1) = z_eff(nr)
-       te(1)   = rt_e(nr)
-       ti(1)   = rt_i(nr)
-       q(1)    = qp(nr)
-       btor(1) = abb1rho(nr)
+       zeff(1) = z_effm
+       te(1)   = rt_em
+       ti(1)   = rt_im
+       q(1)    = qpm
+       btor(1) = abb1rhom
 
        ! --- for the time being ---
        ! ------ calculate in sbrtn. trcalv ( Non-zero values are required.) 
@@ -135,28 +131,20 @@ CONTAINS
        ! mean atomic mass of hydrogenic ions
        ahyd(1) = pa(2)
 
-
-       sum_pan = 0.d0
-       DO nsa = 1, nsamax
-          IF(idnsa(nsa)==1)THEN
-             ns = ns_nsa(nsa)
-             sum_pan = sum_pan+pa(ns)*rn(nsa,nr)
-          END IF
-       END DO
        ! mean atomic mass of thermal ions
-       aimass(1) = sum_pan / rn_i(nr)
+       aimass(1) = ai_ave(nr)
 
        ! w_exb shearing rate [rad/s] [Phys. of Plasmas, 4, 1499 (1997)]
        wexbs(1) = wexbp(nr)
 
-       gne(1) = - rmjrho(nr) * rn_ecl(nr) ! -R ( d n_e / d r) / n_e
-       gni(1) = - rmjrho(nr) * rn_icl(nr) ! -R ( d n_i / d r) / n_i
-       gnh(1) = - rmjrho(nr) * rn_icl(nr) ! -R ( d n_h / d r) / n_h
-       gnz(1) = - rmjrho(nr) * rn_icl(nr) ! -R ( d Z n_z / d r) / ( Z n_z )
-       gte(1) = - rmjrho(nr) * rt_ecl(nr) ! -R ( d T_e / d r) / T_e
-       gti(1) = - rmjrho(nr) * rt_icl(nr) ! -R ( d T_i / d r) / T_i
+       gne(1) = - rmjrhom * rn_ecl(nr) ! -R ( d n_e / d r) / n_e
+       gni(1) = - rmjrhom * rn_icl(nr) ! -R ( d n_i / d r) / n_i
+       gnh(1) = - rmjrhom * rn_icl(nr) ! -R ( d n_h / d r) / n_h
+       gnz(1) = - rmjrhom * rn_icl(nr) ! -R ( d Z n_z / d r) / ( Z n_z )
+       gte(1) = - rmjrhom * rt_ecl(nr) ! -R ( d T_e / d r) / T_e
+       gti(1) = - rmjrhom * rt_icl(nr) ! -R ( d T_i / d r) / T_i
        ! R ( d q / d r) / q : related to magnetic shear
-       gq(1)  = rmjrho(nr) * qp_d(nr) / qp(nr)
+       gq(1)  = rmjrhom * qp_d(nr) / qp(nr)
 
 
        ! profiles related to momentum transport in 2006 Weiland model
@@ -282,27 +270,19 @@ cswitch=cswitch,&!: Real internal parameters
 lswitch=lswitch )!: Integral internal parameters
 
 
-      mmm7_chii(nr) = xti(1)
-      mmm7_diff(nr) = xdi(1)
-      mmm7_chie(nr) = xte(1)
+      mmm7_chiim(nr) = xti(1)
+      mmm7_diffm(nr) = xdi(1)
+      mmm7_chiem(nr) = xte(1)
 
-      mmm7_veli(nr) = vconv(1,1) ! ion thermal convective velocity
-      mmm7_velh(nr) = vconv(2,1) ! hydrogenic ion particle conv. vel.
-      mmm7_vele(nr) = vconv(3,1) ! electron thermal convective velocity
+      mmm7_velim(nr) = vconv(1,1) ! ion thermal convective velocity
+      mmm7_velhm(nr) = vconv(2,1) ! hydrogenic ion particle conv. vel.
+      mmm7_velem(nr) = vconv(3,1) ! electron thermal convective velocity
 
-      mmm7_difz(nr) = xdz(1)
-      mmm7_dtm(nr)  = xvt(1)
-      mmm7_dpm(nr)  = xvp(1)
+      mmm7_difzm(nr) = xdz(1)
+      mmm7_dtmm(nr)  = xvt(1)
+      mmm7_dpmm(nr)  = xvp(1)
 
    END DO ! End of nr loop
-
-   ! on grid -> on half grid
-    mmm7_chiim(1:nrmax) = 0.5d0*(mmm7_chii(0:nrmax-1)+mmm7_chii(1:nrmax))
-    mmm7_diffm(1:nrmax) = 0.5d0*(mmm7_diff(0:nrmax-1)+mmm7_diff(1:nrmax))
-    mmm7_chiem(1:nrmax) = 0.5d0*(mmm7_chie(0:nrmax-1)+mmm7_chie(1:nrmax))
-    mmm7_velim(1:nrmax) = 0.5d0*(mmm7_veli(0:nrmax-1)+mmm7_veli(1:nrmax))
-    mmm7_velhm(1:nrmax) = 0.5d0*(mmm7_velh(0:nrmax-1)+mmm7_velh(1:nrmax))
-    mmm7_velem(1:nrmax) = 0.5d0*(mmm7_vele(0:nrmax-1)+mmm7_vele(1:nrmax))
 
     DO nsa = 1, nsamax
        IF(idnsa(nsa) == -1)THEN ! electron                                

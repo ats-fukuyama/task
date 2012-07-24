@@ -2,6 +2,8 @@ MODULE trloop
 
 ! This module advances time upto ntmax*dt
 
+  USE trcomm,ONLY: rkind, ikind
+
   PUBLIC tr_loop,tr_save_pvprev
   PRIVATE
 
@@ -9,8 +11,8 @@ CONTAINS
 
   SUBROUTINE tr_loop
 
-    USE trcomm, ONLY: ikind,rkind,ntmax,t,dt,ntstep,ngtstp, &
-         modelg,rip,rips,ripe
+    USE trcomm, ONLY: rkev,ntmax,nrmax,nsamax,t,dt,ntstep,ngtstp, &
+         modelg,nteqit,rip,rips,ripe,rn,rt,rp,rp_tot
     USE trbpsd, ONLY: tr_bpsd_set,tr_bpsd_get
     USE trstep, ONLY: tr_step
     USE trresult, ONLY: tr_status,tr_calc_global,tr_save_ngt
@@ -26,6 +28,7 @@ CONTAINS
     DO nt = 1, ntmax ! main loop
 
        CALL tr_save_pvprev
+
        ! incremental addtions
        t=t+dt
 
@@ -44,17 +47,19 @@ CONTAINS
        CALL tr_step(ierr); IF(ierr /= 0) GO TO 9000
 
        ! Interaction with EQ
-       SELECT CASE(modelg)
-       CASE(8)
+       IF(nteqit /= 0 .AND. MOD(nt, nteqit) == 0)THEN
+          SELECT CASE(modelg)
+          CASE(8)
 !!$          CALL tr_bpsd_set(ierr)
 !!$          CALL equ_calc
 !!$          CALL tr_bpsd_get(ierr)
-       CASE(9)
-          CALL tr_bpsd_set(ierr)
-          CALL eq_calc
-          CALL tr_bpsd_get(ierr)
-       CASE DEFAULT
-       END SELECT
+          CASE(9)
+             CALL tr_bpsd_set(ierr)
+             CALL eq_calc
+             CALL tr_bpsd_get(ierr)
+          CASE DEFAULT
+          END SELECT
+       END IF
        ! cofirmation of the conservation of nV', nTV'^(5/3)
 
 

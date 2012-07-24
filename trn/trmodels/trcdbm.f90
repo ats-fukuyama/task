@@ -16,22 +16,22 @@ CONTAINS
     USE cdbm_mod, ONLY: cdbm
     USE trcomm, ONLY: &
          ikind,rkind,bb,rr,abb1rho,rmnrho,rmjrho,rkev,pa,amp,aee, &
-         rkprho,cdtrn,cdtru,cdtrt,qp,rn,                          &
-         dtr_tb,vtr_tb,nrmax,nsamax,neqmax,ns_nsa,idnsa,mdltr_tb
-
-    USE trcalv, ONLY: &
+         rhog,rhom,rkprho,cdtrn,cdtru,cdtrt,qp,rn,                &
+         dtr_tb,vtr_tb,nrmax,nsamax,neqmax,ns_nsa,idnsa,mdltr_tb, &
          rn_e,     &! the density of electron
-         rp_totd , &! the total pressure
+         rn_i,     &! the effective density of hydrogenic ions
+         rp_totd,  &! the total pressure
+         ai_ave,   &! mean atomic mass of tehrmal ions [AMU]
          mshear,   &! magnetic shear
-         dvexbdr    ! the gradient of ExBp drift velocity
-
-    USE trlib, ONLY: mesh_convert_mtog,data_interpolate_gtom
+         dvexbpdr   ! the gradient of ExBp drift velocity
 
     IMPLICIT NONE
-    INTEGER(ikind):: nr,ns,nsa,model,model_t
+    INTEGER(ikind):: nr,ns,nsa,model,model_t,ierr
     REAL(rkind):: calf,ckap,cexb,tc1,tc2,tk,pnel,rhoni
     REAL(rkind),DIMENSION(0:nrmax) :: &
          chi_cdbm,chim_cdbm
+
+    REAL(rkind) :: abb1rhom,rmjrhom,rmnrhom,rkprhom,qpm
 
     chi_cdbm(0:nrmax) = 0.d0
     dtr_tb(1:neqmax,1:neqmax,0:nrmax) = 0.d0
@@ -61,31 +61,28 @@ CONTAINS
     tk  = 3.d0
 
     DO nr = 1, nrmax
-       pnel = rn_e(nr)*1.d20  ! electron density [m^-3]
-    
-       rhoni = 0.D0
-       DO nsa = 1, nsamax
-          IF(idnsa(nsa)==1) THEN
-             ns = ns_nsa(nsa)
-             ! ion mass density [kg/m^3]
-             ! (sum of ion-mass times ion-density)
-             rhoni= rhoni + pa(ns)*amp*rn(nsa,nr)*1.D20
-          END IF
-       END DO
+       pnel = 0.5d0*(rn_e(nr)+rn_e(nr-1))*1.d20  ! electron density [m^-3]
+
+       ! ion mass density [kg/m^3]
+       ! (sum of ion-mass times ion-density)
+       rhoni = ai_ave(nr) * amp * 0.5d0*(rn_i(nr)+rn_i(nr-1))*1.d20
+
+       abb1rhom = 0.5d0*(abb1rho(nr-1)+ abb1rho(nr))
+       rmjrhom  = 0.5d0*(rmjrho(nr-1) +  rmjrho(nr))
+       rmnrhom  = 0.5d0*(rmnrho(nr-1) +  rmnrho(nr))
+       rkprhom  = 0.5d0*(rkprho(nr-1) +  rkprho(nr))
+       qpm      = 0.5d0*(qp(nr-1)     +      qp(nr))
 
        ! engineering safety factor for Tuned CDBM
        ! *** for the time being ***
        IF(model_t == 1) qp(nr) = qp(nrmax) 
 
-       CALL cdbm(abb1rho(nr),rmjrho(nr),rmnrho(nr),rkprho(nr),       &
-            qp(nr),mshear(nr),pnel,rhoni,rp_totd(nr),dvexbdr(nr),   &
-            calf,ckap,cexb,model,chi_cdbm(nr),                       &
+       CALL cdbm(abb1rhom,rmjrhom,rmnrhom,rkprhom,                   &
+            qpm,mshear(nr),pnel,rhoni,rp_totd(nr),dvexbpdr(nr),      &
+            calf,ckap,cexb,model,chim_cdbm(nr),                      &
             mdl_tuned=model_t,c1_tuned=tc1,c2_tuned=tc2,k_tuned=tk )
 
     END DO
-
-    ! on grid -> on half grid
-    chim_cdbm(1:nrmax) = 0.5d0*(chi_cdbm(0:nrmax-1)+chi_cdbm(1:nrmax))
 
     DO nr = 1, nrmax
           DO nsa = 1, nsamax

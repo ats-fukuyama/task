@@ -47,7 +47,9 @@ CONTAINS
     CASE(1)
        CALL tr_gr_temp1 ! n(0),u(0),t(0),q(0),q(a)
     CASE(2)
-       CALL tr_gr_temp2 ! I_pl,etc...
+       CALL tr_gr_temp2 ! I_pl,W,taue
+    CASE(3)
+       CALL tr_gr_temp3 ! Pin
     END SELECT
     
     RETURN
@@ -59,7 +61,6 @@ CONTAINS
   ! ----- time evolution of (n, u, T, q)-----
     USE trcomm,ONLY: gvt,gvts
 
-    gt(0:ngt)=gvt(0:ngt,0)
     DO nsa=1,nsamax
        gt1(0:ngt,nsa)=gvts(0:ngt,nsa,1)
        gt2(0:ngt,nsa)=gvts(0:ngt,nsa,2)
@@ -86,26 +87,68 @@ CONTAINS
 ! *************************************************************************
 
   SUBROUTINE tr_gr_temp2
-    ! ----- time evolution of (j, q) -----
+    ! ----- time evolution of (I, W, taue) -----
     USE trcomm, ONLY: gvt
 
-    gt(0:ngt)=gvt(0:ngt,0)
+    gti1(0:ngt,1:nsamax) = 0.d0
+    gti2(0:ngt,1:nsamax) = 0.d0
+    gti3(0:ngt,1:nsamax) = 0.d0
+    gti4(0:ngt,1:nsamax) = 0.d0
 
-    gti1(0:ngt,1) = gvt(0:ngt,3)
+    gti1(0:ngt,1) = gvt(0:ngt,3) ! rip
 !    gti1(0:ngt,2) = gvt(0:ngt,4)
 !    gti1(0:ngt,3) = gvt(0:ngt,5)
-    gti2(0:ngt,1) = gvt(0:ngt,8)
+
+    gti2(0:ngt,1) = gvt(0:ngt,8) ! wp_t
+
+    gti3(0:ngt,1) = gvt(0:ngt,25) ! taue3
+    gti3(0:ngt,2) = gvt(0:ngt,26) ! taue89
+    gti3(0:ngt,3) = gvt(0:ngt,27) ! taue98
+
+    gti4(0:ngt,1) = gvt(0:ngt,28) ! h89
+    gti4(0:ngt,2) = gvt(0:ngt,29) ! h98y2
+
 
     CALL PAGES
     label = '/Ipl [MA] vs t/'
-    CALL GRD1D(1,gt,gti1,ngt+1,ngt+1,5,label,0)
+    CALL GRD1D(1,gt,gti1,ngt+1,ngt+1,1,label,0)
     label = '/Wp [MJ] vs t/'
     CALL GRD1D(2,gt,gti2,ngt+1,ngt+1,5,label,0)
+    label = '/tauE,tauE89,tauE98 (H89,H98y2) vs t'
+    CALL GRD1D(3,gt,gti3,ngt+1,ngt+1,5,label,0)
+    label = '/H89,H98y2 vs t'
+    CALL GRD1D(4,gt,gti4,ngt+1,ngt+1,5,label,0)
     CALL PAGEE
 
     RETURN
   END SUBROUTINE tr_gr_temp2
 
+! *************************************************************************
+
+  SUBROUTINE tr_gr_temp3
+    USE trcomm, ONLY: gvt
+
+    gti1(0:ngt,1) = gvt(0:ngt,18) ! pin_t
+    gti1(0:ngt,2) = gvt(0:ngt,19) ! poh_t
+    gti1(0:ngt,3) = gvt(0:ngt,20) ! pnb_t
+    gti1(0:ngt,4) = gvt(0:ngt,21) ! prf_t
+    gti1(0:ngt,5) = gvt(0:ngt,22) ! pec_t
+    gti1(0:ngt,6) = gvt(0:ngt,23) ! pic_t
+    gti1(0:ngt,7) = gvt(0:ngt,24) ! plh_t
+    gti1(0:ngt,8) = gvt(0:ngt,24) ! pnf_t
+
+    gti2(0:ngt,1) = gvt(0:ngt,15) ! betap(0)
+    gti2(0:ngt,2) = gvt(0:ngt,16) ! betap(nrmax)
+    gti2(0:ngt,3) = gvt(0:ngt,17) ! betan
+
+    CALL PAGES
+    label = '/Ptot,oh,nb,rf,ec,ic,lh,nf [MW] vs t/'
+    CALL GRD1D(1,gt,gti1,ngt+1,ngt+1,8,label,0)
+    label = '/betap(0),betap(nrmax),betan vs t/'
+    CALL GRD1D(2,gt,gti2,ngt+1,ngt+1,5,label,0)
+    CALL PAGEE
+
+  END SUBROUTINE tr_gr_temp3
 
 ! *************************************************************************
 ! *************************************************************************
@@ -126,10 +169,10 @@ CONTAINS
           ALLOCATE(gt2(0:ngt,nsamax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(gt3(0:ngt,nsamax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(gt4(0:ngt,nsamax),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gti1(0:ngt,5),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gti2(0:ngt,5),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gti3(0:ngt,5),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gti4(0:ngt,5),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(gti1(0:ngt,8),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(gti2(0:ngt,8),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(gti3(0:ngt,8),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(gti4(0:ngt,8),STAT=ierr); IF(ierr /= 0) EXIT
 
           ngt_save    = ngt
           nsamax_save = nsamax

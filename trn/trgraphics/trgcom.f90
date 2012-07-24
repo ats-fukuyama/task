@@ -70,8 +70,7 @@ CONTAINS
 
   SUBROUTINE tr_gr_comp1
   !--- convergence of non-linear iteration---
-    USE trcomm, ONLY: error_it
-    USE trcalv, ONLY: rt_ecl,rt_icl
+    USE trcomm, ONLY: error_it, rt_ecl, rt_icl
 
     lt = 0.d0
 

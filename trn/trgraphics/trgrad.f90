@@ -54,7 +54,7 @@ CONTAINS
     IF(k3 .EQ. ' ')THEN
        SELECT CASE(i2)
        CASE(1)
-          CALL tr_gr_rad1 ! rn,ru,rt,qp
+          CALL tr_gr_rad1 ! rn,(ru,) rp,rt,qp
        CASE(2)
           CALL tr_gr_rad2 ! dtr for particle equation
        CASE(3)
@@ -85,7 +85,7 @@ CONTAINS
 ! **************************************************************************
   SUBROUTINE tr_gr_rad1
   ! ----- current radial profile of (n, u, T, q)-----
-    USE trcomm, ONLY: rn,ru,rt,dpdrho,qp
+    USE trcomm, ONLY: rn,ru,rt,rp,dpdrho,qp
 
     vg1(0:nrmax,1:neqrmax) = 0.d0
     vg2(0:nrmax,1:neqrmax) = 0.d0
@@ -96,7 +96,7 @@ CONTAINS
        nsa = nsa_neq(neq)
        IF(nsa /= 0)THEN
           vg1(0:nrmax,nsa)=rn(nsa,0:nrmax)
-          vg2(0:nrmax,nsa)=ru(nsa,0:nrmax)
+          vg2(0:nrmax,nsa)=rp(nsa,0:nrmax) * 1.d-6
           vg3(0:nrmax,nsa)=rt(nsa,0:nrmax)
        END IF
     END DO
@@ -106,7 +106,7 @@ CONTAINS
     CALL PAGES
     label = '/n [10$+20$=/m$+3$=] vs rho/'
     CALL GRD1D(1,rhog,vg1,nrmax+1,nrmax+1,nsamax,label,0)
-    label = '/u vs rho/'
+    label = '/p [MPa] vs rho/'
     CALL GRD1D(2,rhog,vg2,nrmax+1,nrmax+1,nsamax,label,0)
     label = '/T [keV] vs rho/'
     CALL GRD1D(3,rhog,vg3,nrmax+1,nrmax+1,nsamax,label,0)
@@ -306,6 +306,7 @@ CONTAINS
   SUBROUTINE tr_gr_rad5
   ! ----- current density profile -----
     USE trcomm, ONLY: jtot,joh,jtor,jbs_nc,eta,qp,dpdrho
+    vgx1(0:nrmax,1:5) = 0.d0
 
     vgx1(0:nrmax,1) = 1.d-6*jtot(0:nrmax)
     vgx1(0:nrmax,2) = 1.d-6*joh(0:nrmax)
@@ -335,12 +336,12 @@ CONTAINS
 ! **************************************************************************
   SUBROUTINE tr_gr_rad6
   ! ----- heating profile-----
-    USE trcomm, ONLY: str,poh
+    USE trcomm, ONLY: str,poh,pnb
 
-    vgx1 = 0.d0
+    vgx1(0:nrmax,1:5) = 0.d0
 
-!    write(*,*) '*** Unavailable now ***'
     vgx1(0:nrmax,1) = poh(0:nrmax)*1.d-6
+    vgx1(0:nrmax,2) = pnb(0:nrmax)*1.d-6
 
     CALL PAGES
     label = '/Pin [MW=/m$+3$=] vs rho/'
@@ -457,7 +458,7 @@ CONTAINS
 
   SUBROUTINE tr_gr_rad_alloc
     
-    INTEGER(ikind),SAVE :: nrmax_save, neqmax_save
+    INTEGER(ikind),SAVE :: nrmax_save=0, neqmax_save=0
     INTEGER(ikind)      :: ierr
 
     IF(nrmax /= nrmax_save .OR. neqmax /= neqmax_save)THEN
@@ -514,7 +515,7 @@ CONTAINS
     IF(ALLOCATED(vgx1)) DEALLOCATE(vgx1)
     IF(ALLOCATED(vgx2)) DEALLOCATE(vgx2)
     IF(ALLOCATED(vgx3)) DEALLOCATE(vgx3)
-    IF(ALLOCATED(vmx4)) DEALLOCATE(vmx4)
+    IF(ALLOCATED(vgx4)) DEALLOCATE(vgx4)
     IF(ALLOCATED(vmx1)) DEALLOCATE(vmx1)
     IF(ALLOCATED(vmx2)) DEALLOCATE(vmx2)
     IF(ALLOCATED(vmx3)) DEALLOCATE(vmx3)

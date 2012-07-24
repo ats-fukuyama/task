@@ -34,9 +34,10 @@ CONTAINS
     USE trcomm, ONLY: &
            nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
            lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
-           mdluf,mdler,modelg,mdleqn, &
+           mdluf,mdler,modelg,mdleqn,nteqit, &
            dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
-           ntstep,ngtmax,ngtstp,rips,ripe,profj1,profj2
+           ntstep,ngtmax,ngtstp,rips,ripe,profj1,profj2, &
+           pnb_tot,pnb_eng,pnb_rw,pnb_r0
     USE plinit
     IMPLICIT NONE
     INTEGER(ikind):: nsa
@@ -116,6 +117,9 @@ CONTAINS
 !        QMIN  : q minimum for reversed shear
 !        RHOITB: rho at ITB (0 for no ITB)
 !        RHOEDG: rho at EDGE for smoothing (1 for no smooth)
+
+    modelg = 0
+    nteqit = 0
 
 
 !     ======( GRAPHIC PARAMETERS )======
@@ -257,6 +261,12 @@ CONTAINS
     mdluf  = 0
     mdler  = 2
 
+!   ==== NBI heating ===
+    pnb_tot = 1.d0  ! [MW]
+    pnb_r0  = 0.3d0
+    pnb_rw  = 0.5d0
+    pnb_eng = 80.d0 ! [keV]          
+
 
     RETURN
   END SUBROUTINE tr_init
@@ -302,7 +312,8 @@ CONTAINS
            ntstep,ngtmax,ngtstp, &
            lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv,mdler,&
            dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
-           profj1,profj2,rips,ripe
+           profj1,profj2,rips,ripe,nteqit, &
+           pnb_tot,pnb_eng,pnb_rw,pnb_r0
     IMPLICIT NONE
     INTEGER(ikind),INTENT(IN) :: nid
     INTEGER(ikind),INTENT(OUT):: ist
@@ -318,10 +329,11 @@ CONTAINS
          MODEFR,MODEFW,IDEBUG, &
          nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
          lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
-         mdler,&
+         mdler,nteqit, &
          dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
          ntstep,ngtmax,ngtstp, &
-         rips,ripe
+         rips,ripe, &
+         pnb_tot,pnb_eng,pnb_rw,pnb_r0
 
     READ(nid,TR,IOSTAT=ist,ERR=9800,END=9900)
     IERR=0
@@ -360,7 +372,7 @@ CONTAINS
 1   CALL TASK_PARM(mode,'TR',kin,tr_nlin,tr_plist,ierr)
     IF(ierr /= 0) RETURN
 
-    CALL tr_check(ierr)
+    CALL tr_input_check(ierr)
 
     IF(mode == 0.AND. IERR /= 0) GOTO 1
     IF(IERR.NE.0) IERR=IERR+100
@@ -370,7 +382,7 @@ CONTAINS
 
 !     ***** CHECK INPUT PARAMETERS *****
 
-  SUBROUTINE tr_check(ierr)
+  SUBROUTINE tr_input_check(ierr)
 
     USE trcomm, ONLY : ikind,nrmax,nsamax,mdltr_nc,mdltr_tb
     IMPLICIT NONE
@@ -398,7 +410,7 @@ CONTAINS
     ENDIF
 
     RETURN
-  END SUBROUTINE tr_check
+  END SUBROUTINE tr_input_check
 
 ! ***** show input parameters *****
 

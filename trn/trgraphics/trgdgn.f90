@@ -69,7 +69,7 @@ CONTAINS
 
     CALL PAGES
     LABEL = '/diagnostic1 vs rho/'
-    CALL GRD1D(1,rhog,nrd1g, nrmax+1, nrmax+1, 1, label, 0)
+    CALL GRD1D(1,rhomg,nrd1mg, nrmax, nrmax, 1, label, 0)
     LABEL = '/diagnostic2 vs rho/'
     CALL GRD1D(2,rhog,nrd2g, nrmax+1, nrmax+1, 1, label, 0)
     LABEL = '/diagnostic3 vs rho/'

@@ -111,6 +111,8 @@ CONTAINS
              dtr_new = dprv2*dtr_tb(3*nsa,3*nsa,nr)
           CASE(3)
              dtr_new = dprv2*dtr_tb(3*nsa,3*nsa,nr)+dprv1
+          CASE(4)
+             dtr_new = dprv1 + dprv2*(0.5d0*(rhog(nr)+rhog(nr-1)))**3
 !!$          CASE(4)
 !!$             IF(nr==1)THEN
 !!$                dtr_new = dprv2 &
@@ -204,7 +206,7 @@ CONTAINS
           vtr_prv(1+3*nsa-1,nr)/6.D0                         &
             *((2.D0*gm1m+gm1p)*ru(nsa,nr-1) + (gm1m+2.D0*gm1p)*ru(nsa,nr))
           vtr_elm(1+3*nsa  ,nr) =                                 &
-          vtr_prv(1+3*nsa  ,nr)/4.D0                              &
+          vtr_prv(1+3*nsa  ,nr)/6.D0                              &
             *((2.D0*gm1m+     gm1p)*rn(nsa,nr-1)*rt(nsa,nr-1)     &
              +(     gm1m+2.D0*gm1p)*rn(nsa,nr  )*rt(nsa,nr  ))
 

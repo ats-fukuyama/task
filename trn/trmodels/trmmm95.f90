@@ -16,11 +16,10 @@ CONTAINS
     USE trcomm, ONLY: &
          rkind,ikind,nrmax,nsamax,neqmax,idnsa,ns_nsa,pa,pz, &
          rmnrho,rmjrho,rkprho,abb1rho,BB,RR,rn,qp,           &
-         cdtrn,cdtru,cdtrt,dtr_tb,vtr_tb!,&
+         cdtrn,cdtru,cdtrt,dtr_tb,vtr_tb,                    &
+         rt_e,rt_ecl,rt_i,rt_icl,rn_e,rn_ecl,rn_i,rn_icl,    &
+         qp_d,ai_ave,mshear,wexbp,z_eff
          !nrd1,nrd2,nrd3
-    USE trcalv, ONLY: &
-        rt_e,rt_ecl,rt_i,rt_icl,rn_e,rn_ecl,rn_i,rn_icl, &
-        qp_d,mshear,wexbp,z_eff
 
     IMPLICIT NONE
 
@@ -62,6 +61,9 @@ CONTAINS
     ! Internal varialbes
     INTEGER(ikind) :: nr,ns,nsa
     REAL(rkind) :: sum_pan,pa_ave
+    REAL(rkind):: &
+         rmnrhom,rmjrhom,rkprhom,rn_em,rn_im,rt_em,rt_im,z_effm, &
+         qpm,abb1rhom
     REAL(rkind),DIMENSION(0:nrmax) :: &
        mmm_diff,mmm_chie,mmm_chii,mmm_vele,mmm_veli
     REAL(rkind),DIMENSION(1:nrmax) :: &
@@ -71,13 +73,6 @@ CONTAINS
     ! Initilization
     dtr_tb(1:neqmax,1:neqmax,0:nrmax) = 0.d0
     vtr_tb(1:neqmax,1:neqmax,0:nrmax) = 0.d0
-
-    mmm_diff(0:nrmax) = 0.d0
-    mmm_chie(0:nrmax) = 0.d0
-    mmm_chii(0:nrmax) = 0.d0
-    mmm_vele(0:nrmax) = 0.d0
-    mmm_veli(0:nrmax) = 0.d0
-
 
     !  << Input integers >>
     matdim  = 5  ! the dimension of transport matricies ( j1 and j2 )
@@ -101,23 +96,34 @@ CONTAINS
     fkb     = 0
 
     DO nr = 1, nrmax
-       rminor(1) = rmnrho(nr)
-       rmajor(1) = rmjrho(nr)
-       elong(1)  = rkprho(nr)
+       rmnrhom  = 0.5d0*(rmnrho(nr)  +  rmnrho(nr-1))
+       rmjrhom  = 0.5d0*(rmjrho(nr)  +  rmjrho(nr-1))
+       rkprhom  = 0.5d0*(rkprho(nr)  +  rkprho(nr-1))
+       rn_em    = 0.5d0*(rn_e(nr)    +    rn_e(nr-1))
+       rn_im    = 0.5d0*(rn_i(nr)    +    rn_i(nr-1))
+       rt_em    = 0.5d0*(rt_e(nr)    +    rt_e(nr-1))
+       rt_im    = 0.5d0*(rt_i(nr)    +    rt_i(nr-1))
+       z_effm   = 0.5d0*(z_eff(nr)   +   z_eff(nr-1))
+       qpm      = 0.5d0*(qp(nr)      +      qp(nr-1))
+       abb1rhom = 0.5d0*(abb1rho(nr) + abb1rho(nr-1))
 
-       dense(1) = rn_e(nr)*1.d20 ! electron density [m^-3]
-       densh(1) = rn_i(nr)*1.d20 ! sum over thermal hyd. ion densities [m^-3]
+       rminor(1) = rmnrhom
+       rmajor(1) = rmjrhom
+       elong(1)  = rkprhom
+
+       dense(1) = rn_em*1.d20 ! electron density [m^-3]
+       densh(1) = rn_im*1.d20 ! sum over thermal hyd. ion densities [m^-3]
 
        ! --- for the time being ---
        densimp(1) = 0.d0! sum over impurity ion densities [m^-3]
        densfe(1)  = 0.d0! electron density from fast (non-thermal) ions [m^-3]
 
-       xzeff(1) = z_eff(nr)
-       tekev(1) = rt_e(nr)
-       tikev(1) = rt_i(nr)
-       q(1)     = qp(nr)
+       xzeff(1) = z_effm
+       tekev(1) = rt_em
+       tikev(1) = rt_im
+       q(1)     = qpm
 !       btor(1)  = BB
-       btor(1)  = abb1rho(nr)
+       btor(1)  = abb1rhom
 
        ! --- for the time being ---
        ! ------ calculate in sbrtn. trcalv ( Non-zero values are required.)
@@ -128,28 +134,20 @@ CONTAINS
        ! average density weighted atomic mass of hydrogen ions
        amasshyd(1) = PA(2)
 
-       sum_pan = 0.d0
-       DO nsa = 1, nsamax
-          IF(idnsa(nsa)==1)THEN
-             ns = ns_nsa(nsa)
-             sum_pan = sum_pan+pa(ns)*rn(nsa,nr)
-          END IF
-       END DO
-       pa_ave    = sum_pan / rn_i(nr)
        ! average ion mass [AMU]   
-       aimass(1)   = pa_ave
+       aimass(1)   = ai_ave(nr)
        ! -------------------------------
        
        wexbs(1) = wexbp(nr)
 
-       grdne(1) = - RR * rn_ecl(nr)   ! -R ( d n_e / d r ) / n_e
-       grdni(1) = - RR * rn_icl(nr)   ! -R ( d n_i / d r ) / n_i
-       grdnh(1) = - RR * rn_icl(nr)   ! -R ( d n_h / d r ) / n_h
-       grdnz(1) = - RR * rn_icl(nr)   ! -R ( d Z n_Z / d r ) / ( Z n_Z )
-       grdte(1) = - RR * rt_ecl(nr)   ! -R ( d T_e / d r ) / T_e
-       grdti(1) = - RR * rt_icl(nr)   ! -R ( d T_i / d r ) / T_i
+       grdne(1) = - rmjrhom * rn_ecl(nr) ! -R ( d n_e / d r ) / n_e
+       grdni(1) = - rmjrhom * rn_icl(nr) ! -R ( d n_i / d r ) / n_i
+       grdnh(1) = - rmjrhom * rn_icl(nr) ! -R ( d n_h / d r ) / n_h
+       grdnz(1) = - rmjrhom * rn_icl(nr) ! -R ( d Z n_Z / d r ) / ( Z n_Z )
+       grdte(1) = - rmjrhom * rt_ecl(nr) ! -R ( d T_e / d r ) / T_e
+       grdti(1) = - rmjrhom * rt_icl(nr) ! -R ( d T_i / d r ) / T_i
        !  R ( d q   / d r ) / q    related to magnetic shear
-       grdq (1) =   RR * qp_d(nr) / qp(nr)
+       grdq (1) =   rmjrhom * qp_d(nr) / qpm
 
        CALL mmm95( &
 ! << Input arrays >> (jz: nr,  jm: mode)
@@ -401,25 +399,16 @@ CONTAINS
 
        ! in the case of isotropic (effective) diffusivities
        !  ** lswitch(2) = 2 **
-       mmm_diff(nr) = difthi(2,2,1)
-       mmm_chie(nr) = difthi(3,3,1)
-       mmm_chii(nr) = difthi(1,1,1)
-       mmm_vele(nr) = velthi(3,1)
-       mmm_veli(nr) = velthi(1,1)
+       mmm_diffm(nr) = difthi(2,2,1)
+       mmm_chiem(nr) = difthi(3,3,1)
+       mmm_chiim(nr) = difthi(1,1,1)
+       mmm_velem(nr) = velthi(3,1)
+       mmm_velim(nr) = velthi(1,1)
        ! << NOTE >>
        ! 'difthi' and 'velthi' include all of the anomalous transport.
-       ! There are no additional contributions to hte heat flux 
+       ! There are no additional contributions to the heat flux 
        !  from charged particle convection.
-
     END DO
-
-    ! on grid -> on hlaf grid
-    mmm_diffm(1:nrmax) = 0.5d0*(mmm_diff(0:nrmax-1)+mmm_diff(1:nrmax))
-    mmm_chiem(1:nrmax) = 0.5d0*(mmm_chie(0:nrmax-1)+mmm_chie(1:nrmax))
-    mmm_chiim(1:nrmax) = 0.5d0*(mmm_chii(0:nrmax-1)+mmm_chii(1:nrmax))
-    mmm_velem(1:nrmax) = 0.5d0*(mmm_vele(0:nrmax-1)+mmm_vele(1:nrmax))
-    mmm_velim(1:nrmax) = 0.5d0*(mmm_veli(0:nrmax-1)+mmm_veli(1:nrmax))
-
 
     DO nsa = 1, nsamax
        IF(idnsa(nsa) == -1)THEN ! electron

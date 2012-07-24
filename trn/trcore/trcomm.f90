@@ -52,8 +52,8 @@ MODULE trcomm
   REAL(rkind)::    dtr0        ! lower diffusion coefficient in simple model
   REAL(rkind)::    dtr1        ! upper diffusion coefficient in simple model
   REAL(rkind)::    ltcr        ! critical scale length in simple model
-  REAL(rkind)::    ph0         ! heating power density at r = 0
-  REAL(rkind)::    phs         ! heating power density at r = a
+  REAL(rkind)::    ph0         ! heating power density at r = 0 in simple model [MW/m^3]
+  REAL(rkind)::    phs         ! heating power density at r = a in simple model [MW/m^3]
   REAL(rkind)::    dprv1       ! enhanced diffusion coefficient in Prv method
   REAL(rkind)::    dprv2       ! diffusion enhancement factor in Prv method
   REAL(rkind)::    cdtrn       ! factor for particle diffusion
@@ -64,9 +64,22 @@ MODULE trcomm
   INTEGER(ikind):: ngtmax      ! number of saved data
   INTEGER(ikind):: ngtstp      ! number of time step for data save
 
+  REAL(rkind)::    pnb_tot     !
+  REAL(rkind)::    pnb_r0      !
+  REAL(rkind)::    pnb_rw      !
+  REAL(rkind)::    pnb_eng     !
+
+! ----- switch variables -----
+  INTEGER(ikind) :: &
+       mdluf,    &! model type of UFILE
+       mdler,    &! model type of radial electric field
+       mdleqn,   &!
+       nteqit     ! step interval of EQ calculation
+
 ! ----- global variables -----
 
   REAL(rkind)::        t       ! time [s]
+  REAL(rkind)::        t_prev  ! time at the previous time step
   REAL(rkind)::        dr      ! size of radial step
   INTEGER(ikind)::     neqmax  ! number of equations
   INTEGER(ikind)::     neqrmax ! number of active equations
@@ -74,18 +87,32 @@ MODULE trcomm
   INTEGER(ikind)::     nvrmax  ! number of active variables
 
   REAL(rkind)::        wp_t    ! total stored energy
-  REAL(rkind)::        taue1   !
-  REAL(rkind)::        taue2   !
-  REAL(rkind)::        taue89  !
-  REAL(rkind)::        taue98  !
+  REAL(rkind)::        wp_th   ! total stored energy of thermal particles
+  REAL(rkind)::        taue1   ! energy confinment time (steady state)
+  REAL(rkind)::        taue2   ! energy confinment time (transient)
+  REAL(rkind)::        taue3   ! energy confinment time (thermal, transient)
+  REAL(rkind)::        taue89  ! ITER89-P L-mode scaling
+  REAL(rkind)::        taue98  ! IPB98(y,2) H-mode scaling with ELMs
+  REAL(rkind)::        h89     ! confinement enhancement factor for ITER89-P
+  REAL(rkind)::        h98y2   ! confinement enhancement factor for IPB98(y,2)
   REAL(rkind)::        betan   ! normalized toroidal beta
 
+  REAL(rkind)::        pin_t   ! [MW/m^3]
+  REAL(rkind)::        poh_t   !
+  REAL(rkind)::        pnb_t   !
+  REAL(rkind)::        prf_t   !
+  REAL(rkind)::        pec_t   !
+  REAL(rkind)::        pic_t   !
+  REAL(rkind)::        plh_t   !
+  REAL(rkind)::        pnf_t   !
+  REAL(rkind)::        pout_t  !
+
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: & ! 0:nrmax
-       beta,     &!
-       beta_va,  &!
-       betap,    &!
-       betap_va, &!
-       betaq      !
+       beta,     &! toroidal beta
+       beta_va,  &! volume-averaged toroidal beta
+       betap,    &! poloidal beta
+       betap_va, &! volume-averaged poloidal beta
+       betaq      ! toroidal beta for reaction rate
 
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: & ! 1:nsamax
        rns_va,   &! volume-averaged density
@@ -117,8 +144,8 @@ MODULE trcomm
        vtr,      &! convection velocity [m^2/s]
        ctr        ! exchange freuency [1/s]
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
-       str,      &! source density [MW/m^3]
-       htr        ! current density [MA/m^2]
+       str,      &! source density [keV/(10^{20}m^3 s)]
+       htr        ! current density [A/m^2]
   REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: &
        ! ***_tb, ***_nc are variables except for magnetic equation.
        dtr_tb,   &! turbulent diffusion coefficient [m^2/s]
@@ -134,26 +161,30 @@ MODULE trcomm
        htr_simple !  simple model of external driven current density [A/m^2]
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
        eta   ,   &! pararell resistivity [ohm m]
-       jtot  ,   &! (parallel) total current [A/m^2]
-       joh   ,   &! (parallel) ohmic current [A/m^2]
-       jtor  ,   &! toroidal current [A/m^2]
+       jtot  ,   &! (parallel) total current density [A/m^2]
+       joh   ,   &! (parallel) ohmic current density [A/m^2]
+       jtor  ,   &! toroidal current density [A/m^2]
        eta_nc,   &! neoclassical resistivity [ohm m]
-       jbs_nc,   &! bootstrap current by neoclassical effect [A/m^2]
-       jex_nc,   &! externally driven current (NCLASS) [A/m^2]
-       jcd_nb,   &! current driven by NBI [A/m^2]
-       jcd_ec,   &! current driven by ECRF waves [A/m^2]
-       jcd_lh,   &! current driven by LHRF waves [A/m^2]
-       jcd_ic     ! current driven by ICRF waves [A/m^2]
+       jbs_nc,   &! bootstrap current density by neoclassical effect [A/m^2]
+       jex_nc,   &! externally driven current density (NCLASS) [A/m^2]
+       jcd_nb,   &! current density driven by NBI [A/m^2]
+       jcd_ec,   &! current density driven by ECRF waves [A/m^2]
+       jcd_lh,   &! current density driven by LHRF waves [A/m^2]
+       jcd_ic     ! current density driven by ICRF waves [A/m^2]
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
-       str_simple !  simple model of source density [MW/m^3]
+       str_simple ! simple model of source density [MW/m^3]
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
-       ptot,    &!
-       poh,     &!
-       pnb,     &!
-       prf,     &!
-       pec,     &!
-       pic,     &!
-       plh       !
+       ptot,    & ! total heating power density [W/m^3]
+       poh,     & ! ohmic heating power density [W/m^3]
+       pnb,     & ! NBI heating power density [W/m^3]
+       prf,     & ! total RF heating power density [W/m^3]
+       pec,     & ! EC heating power density [W/m^3]
+       pic,     & ! IC heating power density [W/m^3]
+       plh,     & ! LH heating power density [W/m^3]
+       pnf,     & ! heating power density due to fusion alpha [W/m^3]
+!
+       snb,     & !
+       spl        !
 
 ! ----- profile variables -----
 
@@ -211,15 +242,6 @@ MODULE trcomm
        er,       &! radial electric field [V/m]
        ezoh       !
 
-! ----- switch variables -----
-  INTEGER(ikind) :: &
-       mdluf,    &! model type of UFILE
-       mdler,    &! model type of radial electric field
-       mdleqn     !
-         
-!       modelg,   &! control plasma geometry model
-!       nteqit     ! step interval of EQ calculation
-
 ! ----- daignostic variables for debug -----
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
        nrd1,     &! a diagnostic array for radial grid
@@ -267,6 +289,75 @@ MODULE trcomm
   INTEGER(ikind),DIMENSION(:),ALLOCATABLE:: idnsa
   CHARACTER(LEN=1),DIMENSION(:),ALLOCATABLE:: kidnsa
 
+
+
+! ----- derivatives of the quantities -----
+
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE ::&
+       rp,       &!the pressure of each species (nT)
+       rp_d       !the deriv. of pressure of each species (dnT/dr) 
+       
+  REAL(rkind),DIMENSION(:),ALLOCATABLE ::&
+       rp_tot,   &! the total pressure
+       rp_totd,  &! the deriv. of total pressure
+       rp_add,   &! the additional pressure
+       rp_beam,  &! the beam pressure
+!
+       rt_e,     &! the electron temperature
+       rt_ed,    &! the deriv. of electron temperature
+       rt_ecl,   &! the scale length of electron temperature 
+       rt_i,     &! the effective hydrogenic ion temperature
+       rt_id,    &! the deriv. of effective hydrogenic ion temperature 
+       rt_icl,   &! the scale length of hydrogenic ion temperature 
+!
+       rn_e,     &! the electron density
+       rn_ed,    &! the deriv. of electron density 
+       rn_ecl,   &! the scale length of electron density 
+       rn_i,     &! the sum of hydrogenic ion density
+       rn_id,    &! the deriv. of hydrogenic ion density 
+       rn_icl,   &! the scale length of hydrogenic ion density 
+       qp_d,     &! the deriv. of safety factor
+!
+       ai_ave     ! mean atomic mass of thermal ions [AMU]
+
+  REAL(rkind),DIMENSION(:),ALLOCATABLE ::&
+       mshear,   &! magnetic shear            r/q * (dq/dr)
+       mshear_cl,&! magnetic shear length  R*q**2/(r*dq/dr)
+       mcurv,    &! magnetic curvature
+       vexbp,    &! ExBp velocity [m/s]
+       dvexbpdr, &! ExBp velocity gradient [1/s]
+       wexbp,    &! ExBp shearing rate [rad/s]
+!       v_alf,    &! Alfven wave velocity
+       v_se,     &! speed of sound for electron
+       alpha      ! MHD alpha
+
+  REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
+       z_eff      ! Z_eff: effective charge
+
+  ! ----- for NCLASS output -----
+
+  REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: &
+       chi_ncp,  &! coef. of the pres. grad. for matrix expression 
+                  !  of heat flux
+       chi_nct,  &! coef. of the temp. grad. for matrix expression 
+                  !  of heat flux
+       d_ncp,    &! coef. of the pres. grad. for matrix expression
+                  !  of particle flux
+       d_nct      ! coef. of the temp. grad. for martix expression
+                  !  of particle flux
+  REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: &
+       gfls,     &! radial particle flux components of s [/(m^2 s)]
+       qfls       ! radial heat conduction flux components of s [W/m^2
+  REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: &
+       fls_tot    ! total radial flux of s (heat and particle)
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE::&
+       vebs,     &! <E.B> particle convection velocity of s [m/s]
+       qebs,     &! <E.B> heat convection velocity of s [m/s]
+       dia_gdnc,  &! diagonal diffusivity [m^2/s]
+       dia_gvnc,  &! diagonal convection driven by off-diagonal part [m/s]
+       cjbs_p,   &! <J_bs.B> driven by unit p'/p of s [A*T/1.d-20*m^2]
+       cjbs_t     ! <J_bs.B> driven by unit T'/T of s [A*T/1.d-20*m^2]
+
 CONTAINS
 
   SUBROUTINE tr_nr_allocate
@@ -281,135 +372,197 @@ CONTAINS
 
        IF(nrmax_save /= 0 ) CALL tr_nr_deallocate
 
-       ALLOCATE(rg(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(rm(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(qp(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(qp_prev(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(dpdrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
-       ALLOCATE(dpdrho_prev(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
-       ALLOCATE(rn(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(ru(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(rt(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(rn_prev(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(ru_prev(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(rt_prev(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(dtr(neqmax,neqmax,0:nrmax),STAT=ierr)
-          IF(ierr /= 0) GOTO 9000
-       ALLOCATE(vtr(neqmax,neqmax,0:nrmax),STAT=ierr) 
-          IF(ierr /= 0) GOTO 9000
-       ALLOCATE(ctr(neqmax,neqmax,0:nrmax),STAT=ierr)
-          IF(ierr /= 0) GOTO 9000
-       ALLOCATE(htr(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(str(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       nr_allocation : DO
+          ALLOCATE(rg(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(rm(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(qp(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(qp_prev(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(dpdrho(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT 
+          ALLOCATE(dpdrho_prev(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT 
+          ALLOCATE(rn(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(ru(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(rt(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(rn_prev(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(ru_prev(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(rt_prev(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(dtr(neqmax,neqmax,0:nrmax),STAT=ierr)
+            IF(ierr /= 0) EXIT
+          ALLOCATE(vtr(neqmax,neqmax,0:nrmax),STAT=ierr) 
+            IF(ierr /= 0) EXIT
+          ALLOCATE(ctr(neqmax,neqmax,0:nrmax),STAT=ierr)
+            IF(ierr /= 0) EXIT
+          ALLOCATE(htr(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(str(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+            
+          ALLOCATE(dtr_tb(neqmax,neqmax,0:nrmax),STAT=ierr)
+            IF(ierr /= 0) EXIT
+          ALLOCATE(vtr_tb(neqmax,neqmax,0:nrmax),STAT=ierr)
+            IF(ierr /= 0) EXIT
+          ALLOCATE(dtr_nc(neqmax,neqmax,0:nrmax),STAT=ierr)
+            IF(ierr /= 0) EXIT
+          ALLOCATE(vtr_nc(neqmax,neqmax,0:nrmax),STAT=ierr)
+            IF(ierr /= 0) EXIT
+          ALLOCATE(ctr_ex(neqmax,neqmax,0:nrmax),STAT=ierr)
+            IF(ierr /= 0) EXIT
 
-       ALLOCATE(dtr_tb(neqmax,neqmax,0:nrmax),STAT=ierr)
-          IF(ierr /= 0) GOTO 9000
-       ALLOCATE(vtr_tb(neqmax,neqmax,0:nrmax),STAT=ierr)
-          IF(ierr /= 0) GOTO 9000
-       ALLOCATE(dtr_nc(neqmax,neqmax,0:nrmax),STAT=ierr)
-          IF(ierr /= 0) GOTO 9000
-       ALLOCATE(vtr_nc(neqmax,neqmax,0:nrmax),STAT=ierr)
-          IF(ierr /= 0) GOTO 9000
-       ALLOCATE(ctr_ex(neqmax,neqmax,0:nrmax),STAT=ierr)
-          IF(ierr /= 0) GOTO 9000
+          ALLOCATE(jtot(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(joh(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(jtor(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(eta_nc(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(jbs_nc(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(jex_nc(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(jcd_nb(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(jcd_ec(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(jcd_lh(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(jcd_ic(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(eta(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(htr_simple(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(str_simple(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(ptot(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(poh(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(pnb(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(prf(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(pec(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(pic(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(plh(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          
+          ALLOCATE(snb(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(spl(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          
+          ! profile variables
+          ALLOCATE(vtor(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(vpol(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(vpar(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(vprp(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          
+          ! for Pereverzev method
+          ALLOCATE(dtr_prv(neqmax,0:nrmax),STAT=ierr)
+            IF(ierr /= 0) EXIT
+          ALLOCATE(vtr_prv(neqmax,0:nrmax),STAT=ierr)
+            IF(ierr /= 0) EXIT
 
-       ALLOCATE(jtot(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(joh(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(jtor(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(eta_nc(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(jbs_nc(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(jex_nc(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(jcd_nb(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(jcd_ec(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(jcd_lh(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(jcd_ic(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(eta(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(htr_simple(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(str_simple(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(ptot(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(poh(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(pnb(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(prf(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(pec(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(pic(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(plh(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+          ! geometric factors
+          ! +-- interface variables for bpsd_equ1D
+          ALLOCATE(psitrho(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(psiprho(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(ppprho(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(piqrho(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(ttrho(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(pirho(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          
+          ! +-- interface variables for bpsd_metric1D
+          ALLOCATE(pvolrho(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(psurrho(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(dvrho(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT 
+          ALLOCATE(rdpvrho(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(arrho(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT 
+          ALLOCATE(abb2rho(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(aib2rho(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(abvrho(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT 
+          ALLOCATE(ar1rho(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(ar2rho(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT 
+          ALLOCATE(abrho(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT 
+          ALLOCATE(rmjrho(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT 
+          ALLOCATE(rmnrho(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT 
+          ALLOCATE(rkprho(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT 
+          ALLOCATE(abb1rho(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT 
+          ALLOCATE(epsrho(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT 
+          
+          ALLOCATE(rmnrhom(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(rkprhom(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT  
+          
+          !    normalized variables
+          ALLOCATE(rhog(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT   
+          ALLOCATE(rhom(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT   
+          ALLOCATE(rjcb(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT   
+          
+          ! unclassified
+          ALLOCATE(bp(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(er(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(ezoh(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          
+          ! global variables
+          ALLOCATE(beta(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(beta_va(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(betap(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(betap_va(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(betaq(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          
+          ! for diagnostic
+          ALLOCATE(nrd1(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(nrd2(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(nrd3(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(nrd4(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          nrd1 = 0.d0
+          nrd2 = 0.d0
+          nrd3 = 0.d0
+          nrd4 = 0.d0
 
-       ! profile variables
-       ALLOCATE(vtor(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(vpol(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(vpar(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(vprp(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+          ALLOCATE(rp(nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(rp_d(nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          
+          ALLOCATE(rp_tot(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT   
+          ALLOCATE(rp_totd(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT  
+          ALLOCATE(rp_add(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT   
+          ALLOCATE(rp_beam(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT  
+          
+          ALLOCATE(rt_e(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT     
+          ALLOCATE(rt_ed(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT    
+          ALLOCATE(rt_ecl(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT   
+          ALLOCATE(rt_i(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT     
+          ALLOCATE(rt_id(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT    
+          ALLOCATE(rt_icl(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT   
+          
+          ALLOCATE(rn_e(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT     
+          ALLOCATE(rn_ed(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT    
+          ALLOCATE(rn_ecl(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT    
+          ALLOCATE(rn_i(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT     
+          ALLOCATE(rn_id(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(rn_icl(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT        
+          ALLOCATE(qp_d(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT      
 
-       ! for Pereverzev method
-       ALLOCATE(dtr_prv(neqmax,0:nrmax),STAT=ierr)
-          IF(ierr /= 0) GOTO 9000
-       ALLOCATE(vtr_prv(neqmax,0:nrmax),STAT=ierr)
-          IF(ierr /= 0) GOTO 9000
+          ALLOCATE(ai_ave(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT      
+          
+          ALLOCATE(mshear(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT   
+          ALLOCATE(mcurv(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT    
+          ALLOCATE(vexbp(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT    
+          ALLOCATE(dvexbpdr(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT 
+          ALLOCATE(wexbp(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT       
+!          ALLOCATE(v_alf(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT    
+          ALLOCATE(v_se(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(alpha(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
 
-      ! geometric factors
-      ! +-- interface variables for bpsd_equ1D
-      ALLOCATE(psitrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-      ALLOCATE(psiprho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-      ALLOCATE(ppprho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-      ALLOCATE(piqrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-      ALLOCATE(ttrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-      ALLOCATE(pirho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+          ALLOCATE(z_eff(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
 
-      ! +-- interface variables for bpsd_metric1D
-      ALLOCATE(pvolrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-      ALLOCATE(psurrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-      ALLOCATE(dvrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
-      ALLOCATE(rdpvrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-      ALLOCATE(arrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
-      ALLOCATE(abb2rho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-      ALLOCATE(aib2rho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-      ALLOCATE(abvrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
-      ALLOCATE(ar1rho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-      ALLOCATE(ar2rho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
-      ALLOCATE(abrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
-      ALLOCATE(rmjrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
-      ALLOCATE(rmnrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
-      ALLOCATE(rkprho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
-      ALLOCATE(abb1rho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
-      ALLOCATE(epsrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
+          ! for NCLASS
+          ALLOCATE(chi_ncp(1:nsamax,1:nsamax,0:nrmax),STAT=ierr)
+            IF(ierr /= 0) EXIT
+          ALLOCATE(chi_nct(1:nsamax,1:nsamax,0:nrmax),STAT=ierr)
+            IF(ierr /= 0) EXIT
+          ALLOCATE(d_ncp(1:nsamax,1:nsamax,0:nrmax),STAT=ierr)
+            IF(ierr /= 0) EXIT
+          ALLOCATE(d_nct(1:nsamax,1:nsamax,0:nrmax),STAT=ierr)
+            IF(ierr /= 0) EXIT
+          ALLOCATE(gfls(5,1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(qfls(5,1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(fls_tot(3,1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(vebs(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(qebs(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(dia_gdnc(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(dia_gvnc(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(cjbs_p(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(cjbs_t(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
 
-      ALLOCATE(rmnrhom(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-      ALLOCATE(rkprhom(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000  
-
-      !    normalized variables
-      ALLOCATE(rhog(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000   
-      ALLOCATE(rhom(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000   
-      ALLOCATE(rjcb(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000   
-
-      ! unclassified
-      ALLOCATE(bp(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-      ALLOCATE(er(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-      ALLOCATE(ezoh(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-
-      ! global variables
-      ALLOCATE(beta(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-      ALLOCATE(beta_va(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-      ALLOCATE(betap(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-      ALLOCATE(betap_va(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-      ALLOCATE(betaq(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-
-      ! for diagnostic
-      ALLOCATE(nrd1(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-      ALLOCATE(nrd2(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-      ALLOCATE(nrd3(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-      ALLOCATE(nrd4(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-      nrd1 = 0.d0
-      nrd2 = 0.d0
-      nrd3 = 0.d0
-      nrd4 = 0.d0
-     
-      nrmax_save  = nrmax
-      nsamax_save = nsamax
+          nrmax_save  = nrmax
+          nsamax_save = nsamax
+          RETURN
+       END DO nr_allocation
+       
+       WRITE(6,*) 'XX tr_nr_allocate: allocation error: ierr=',ierr
+       STOP
     END IF
 
     RETURN
-9000 WRITE(6,*) 'XX tr_nr_allocate: allocation error: ierr=',ierr
-    STOP
   END SUBROUTINE tr_nr_allocate
 
   SUBROUTINE tr_nr_deallocate
@@ -457,6 +610,9 @@ CONTAINS
     IF(ALLOCATED(pec)) DEALLOCATE(pec)
     IF(ALLOCATED(pic)) DEALLOCATE(pic)
     IF(ALLOCATED(plh)) DEALLOCATE(plh)
+
+    IF(ALLOCATED(snb)) DEALLOCATE(snb)
+    IF(ALLOCATED(spl)) DEALLOCATE(spl)
 
     ! profile variables
     IF(ALLOCATED(vtor)) DEALLOCATE(vtor)
@@ -508,11 +664,70 @@ CONTAINS
     IF(ALLOCATED(er)) DEALLOCATE(er)
     IF(ALLOCATED(ezoh)) DEALLOCATE(ezoh)
 
+    IF(ALLOCATED(beta)) DEALLOCATE(beta)
+    IF(ALLOCATED(beta_va)) DEALLOCATE(beta_va)
+    IF(ALLOCATED(betap)) DEALLOCATE(betap)
+    IF(ALLOCATED(betap_va)) DEALLOCATE(betap_va)
+    IF(ALLOCATED(betaq)) DEALLOCATE(betaq)
+
     ! for diagnostic
     IF(ALLOCATED(nrd1)) DEALLOCATE(nrd1)
     IF(ALLOCATED(nrd2)) DEALLOCATE(nrd2)
     IF(ALLOCATED(nrd3)) DEALLOCATE(nrd3)
     IF(ALLOCATED(nrd4)) DEALLOCATE(nrd4)
+
+! ***
+
+    IF(ALLOCATED(rp)) DEALLOCATE(rp)
+    IF(ALLOCATED(rp_d)) DEALLOCATE(rp_d)
+!    
+    IF(ALLOCATED(rp_tot)) DEALLOCATE(rp_tot)
+    IF(ALLOCATED(rp_totd)) DEALLOCATE(rp_totd)
+    IF(ALLOCATED(rp_add)) DEALLOCATE(rp_add)
+    IF(ALLOCATED(rp_beam)) DEALLOCATE(rp_beam)
+!
+    IF(ALLOCATED(rt_e)) DEALLOCATE(rt_e)
+    IF(ALLOCATED(rt_ed)) DEALLOCATE(rt_ed)
+    IF(ALLOCATED(rt_ecl)) DEALLOCATE(rt_ecl)
+    IF(ALLOCATED(rt_i)) DEALLOCATE(rt_i)
+    IF(ALLOCATED(rt_id)) DEALLOCATE(rt_id)
+    IF(ALLOCATED(rt_icl)) DEALLOCATE(rt_icl)
+!
+    IF(ALLOCATED(rn_e)) DEALLOCATE(rn_e)
+    IF(ALLOCATED(rn_ed)) DEALLOCATE(rn_ed)
+    IF(ALLOCATED(rn_ecl)) DEALLOCATE(rn_ecl)
+    IF(ALLOCATED(rn_i)) DEALLOCATE(rn_i)
+    IF(ALLOCATED(rn_id)) DEALLOCATE(rn_id)
+    IF(ALLOCATED(rn_icl)) DEALLOCATE(rn_icl)
+    IF(ALLOCATED(qp_d)) DEALLOCATE(qp_d)
+!
+    IF(ALLOCATED(ai_ave)) DEALLOCATE(ai_ave)
+!       
+    IF(ALLOCATED(mshear)) DEALLOCATE(mshear)
+    IF(ALLOCATED(mcurv)) DEALLOCATE(mcurv)
+    IF(ALLOCATED(vexbp)) DEALLOCATE(vexbp)
+    IF(ALLOCATED(dvexbpdr)) DEALLOCATE(dvexbpdr)
+    IF(ALLOCATED(wexbp)) DEALLOCATE(wexbp)
+!    IF(ALLOCATED(v_alf)) DEALLOCATE(v_alf)
+    IF(ALLOCATED(v_se)) DEALLOCATE(v_se)
+    IF(ALLOCATED(alpha)) DEALLOCATE(alpha)
+
+    IF(ALLOCATED(z_eff)) DEALLOCATE(z_eff)
+
+    ! for NCLASS
+    IF(ALLOCATED(chi_ncp)) DEALLOCATE(chi_ncp)
+    IF(ALLOCATED(chi_nct)) DEALLOCATE(chi_nct)
+    IF(ALLOCATED(d_ncp)) DEALLOCATE(d_ncp)
+    IF(ALLOCATED(d_nct)) DEALLOCATE(d_nct)
+    IF(ALLOCATED(gfls)) DEALLOCATE(gfls)
+    IF(ALLOCATED(qfls)) DEALLOCATE(qfls)
+    IF(ALLOCATED(fls_tot)) DEALLOCATE(fls_tot)
+    IF(ALLOCATED(vebs)) DEALLOCATE(vebs)
+    IF(ALLOCATED(qebs)) DEALLOCATE(qebs)
+    IF(ALLOCATED(dia_gdnc)) DEALLOCATE(dia_gdnc)
+    IF(ALLOCATED(dia_gvnc)) DEALLOCATE(dia_gvnc)
+    IF(ALLOCATED(cjbs_p)) DEALLOCATE(cjbs_p)
+    IF(ALLOCATED(cjbs_t)) DEALLOCATE(cjbs_t)
 
     RETURN
   END SUBROUTINE tr_nr_deallocate
@@ -526,39 +741,44 @@ CONTAINS
     INTEGER(ikind),SAVE:: nvmax_save=0
     INTEGER(ikind)::      ierr
 
-    IF(nrmax == nrmax_save .AND. &
-       neqmax == neqmax_save .AND. &
-       nvmax == nvmax_save) RETURN
+    IF(nrmax  /= nrmax_save .OR. &
+       neqmax /= neqmax_save .OR. &
+       nvmax  /= nvmax_save) THEN
 
-    IF(neqmax_save /= 0) CALL tr_neq_deallocate
+       IF(neqmax_save /= 0) CALL tr_neq_deallocate
 
-    ALLOCATE(nsa_neq(neqmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-    ALLOCATE(nva_neq(neqmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-    ALLOCATE(id_neq(neqmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-    ALLOCATE(id_neqnr(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+    neq_allocation: DO
+       ALLOCATE(nsa_neq(neqmax),STAT=ierr); IF(ierr /= 0) EXIT
+       ALLOCATE(nva_neq(neqmax),STAT=ierr); IF(ierr /= 0) EXIT
+       ALLOCATE(id_neq(neqmax),STAT=ierr); IF(ierr /= 0) EXIT
+       ALLOCATE(id_neqnr(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+       
+       ALLOCATE(xv(nvmax),STAT=ierr); IF(ierr /= 0) EXIT
+       ALLOCATE(xv_new(nvmax),STAT=ierr); IF(ierr /= 0) EXIT
+       ALLOCATE(xv_prev(nvmax),STAT=ierr); IF(ierr /= 0) EXIT
+       
+       ALLOCATE(neqr_neq(neqmax),STAT=ierr); IF(ierr /= 0) EXIT
+       ALLOCATE(limtx(2,2,neqmax),STAT=ierr); IF(ierr /= 0) EXIT
+       ALLOCATE(rjimtx(2,2,neqmax),STAT=ierr); IF(ierr /= 0) EXIT
+       ALLOCATE(rsimtx(2,2,neqmax),STAT=ierr); IF(ierr /= 0) EXIT
+       ALLOCATE(rimtx(2,2,neqmax,neqmax),STAT=ierr); IF(ierr /= 0) EXIT
+       ALLOCATE(r1imtx(2,2,neqmax,neqmax),STAT=ierr); IF(ierr /= 0) EXIT
+       ALLOCATE(r2imtx(2,2,neqmax,neqmax),STAT=ierr); IF(ierr /= 0) EXIT
+       ALLOCATE(r3imtx(2,2,neqmax,neqmax),STAT=ierr); IF(ierr /= 0) EXIT
+       ALLOCATE(r1imtx_ofd(2,2,neqmax,neqmax),STAT=ierr); IF(ierr /= 0) EXIT
+       ALLOCATE(elmtx_ofd(2*neqmax,2*neqmax),STAT=ierr); IF(ierr /= 0) EXIT
 
-    ALLOCATE(xv(nvmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-    ALLOCATE(xv_new(nvmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-    ALLOCATE(xv_prev(nvmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       nrmax_save  = nrmax
+       neqmax_save = neqmax
+       nvmax_save  = nvmax
+       RETURN
+    END DO neq_allocation
 
-    ALLOCATE(neqr_neq(neqmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-    ALLOCATE(limtx(2,2,neqmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-    ALLOCATE(rjimtx(2,2,neqmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-    ALLOCATE(rsimtx(2,2,neqmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-    ALLOCATE(rimtx(2,2,neqmax,neqmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-    ALLOCATE(r1imtx(2,2,neqmax,neqmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-    ALLOCATE(r2imtx(2,2,neqmax,neqmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-    ALLOCATE(r3imtx(2,2,neqmax,neqmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-    ALLOCATE(r1imtx_ofd(2,2,neqmax,neqmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-    ALLOCATE(elmtx_ofd(2*neqmax,2*neqmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-
-    nrmax_save  = nrmax
-    neqmax_save = neqmax
-    nvmax_save  = nvmax
-
-    RETURN
-9000 WRITE(6,*) 'XX tr_neq_allocate: allocation error: ierr=',ierr
+    WRITE(6,*) 'XX tr_neq_allocate: allocation error: ierr=',ierr
     STOP
+
+    END IF
+    RETURN
   END SUBROUTINE tr_neq_allocate
 
   SUBROUTINE tr_neq_deallocate
@@ -594,22 +814,27 @@ CONTAINS
     INTEGER(ikind),SAVE:: nvrmax_save=0
     INTEGER(ikind)::      ierr
 
-    IF(neqrmax == neqrmax_save .AND. &
-       nvrmax == nvrmax_save) RETURN
+    IF(neqrmax /= neqrmax_save .OR. &
+       nvrmax  /= nvrmax_save) THEN
 
-    IF(neqrmax_save /= 0) CALL tr_neqr_deallocate
+       IF(neqrmax_save /= 0) CALL tr_neqr_deallocate
 
-    ALLOCATE(neq_neqr(neqrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-    ALLOCATE(rhv(nvrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-    ALLOCATE(elmtx(2*neqrmax,2*neqrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-    ALLOCATE(lhmtx(4*neqrmax-1,nvrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+    neqr_allocation: DO
+       ALLOCATE(neq_neqr(neqrmax),STAT=ierr); IF(ierr /= 0) EXIT
+       ALLOCATE(rhv(nvrmax),STAT=ierr); IF(ierr /= 0) EXIT
+       ALLOCATE(elmtx(2*neqrmax,2*neqrmax),STAT=ierr); IF(ierr /= 0) EXIT
+       ALLOCATE(lhmtx(4*neqrmax-1,nvrmax),STAT=ierr); IF(ierr /= 0) EXIT
 
-    neqrmax_save = neqrmax
-    nvrmax_save  = nvrmax
+       neqrmax_save = neqrmax
+       nvrmax_save  = nvrmax
+       RETURN
+    END DO neqr_allocation
 
-    RETURN
-9000 WRITE(6,*) 'XX tr_neqr_allocate: allocation error: ierr=',ierr
+    WRITE(6,*) 'XX tr_neqr_allocate: allocation error: ierr=',ierr
     STOP
+
+    END IF
+    RETURN
   END SUBROUTINE tr_neqr_allocate
 
   SUBROUTINE tr_neqr_deallocate
@@ -629,17 +854,22 @@ CONTAINS
     INTEGER(ikind),SAVE:: lmaxtr_save=0
     INTEGER(ikind)::      ierr
 
-    IF(lmaxtr == lmaxtr_save) RETURN
+    IF(lmaxtr /= lmaxtr_save) THEN
 
-    IF(lmaxtr_save /= 0) CALL tr_nit_deallocate
+       IF(lmaxtr_save /= 0) CALL tr_nit_deallocate
 
-    ALLOCATE(error_it(lmaxtr),STAT=ierr); IF(ierr /= 0) GOTO 9000
+    nit_allocation: DO
+       ALLOCATE(error_it(lmaxtr),STAT=ierr); IF(ierr /= 0) EXIT
 
-    lmaxtr_save = lmaxtr
+       lmaxtr_save = lmaxtr
+       RETURN
+    END DO nit_allocation
 
-    RETURN
-9000 WRITE(6,*) 'XX tr_nit_allocate: allocation error: ierr=',ierr
+    WRITE(6,*) 'XX tr_nit_allocate: allocation error: ierr=',ierr
     STOP
+
+    END IF
+    RETURN
   END SUBROUTINE tr_nit_allocate
 
   SUBROUTINE tr_nit_deallocate
@@ -664,20 +894,24 @@ CONTAINS
 
        IF(ngtmax_save /= 0) CALL tr_ngt_deallocate
 
-       ALLOCATE(gvt(0:ngtmax,0:10),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(gvts(0:ngtmax,nsamax,3),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(gvrt(0:nrmax,0:ngtmax,10),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(gvrts(0:nrmax,0:ngtmax,nsamax,10),STAT=ierr)
-            IF(ierr /= 0) GOTO 9000
+       ngt_allocation: DO
+          ALLOCATE(gvt(0:ngtmax,0:30),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(gvts(0:ngtmax,nsamax,3),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(gvrt(0:nrmax,0:ngtmax,10),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(gvrts(0:nrmax,0:ngtmax,nsamax,10),STAT=ierr)
+            IF(ierr /= 0) EXIT
 
-       nrmax_save  = nrmax
-       ngtmax_save = ngtmax
-       nsamax_save = nsamax
-    END IF
+          nrmax_save  = nrmax
+          ngtmax_save = ngtmax
+          nsamax_save = nsamax
+          RETURN
+       END DO ngt_allocation
 
-    RETURN
-9000 WRITE(6,*) 'XX tr_ngt_allocate: allocation error: ierr=',ierr
+    WRITE(6,*) 'XX tr_ngt_allocate: allocation error: ierr=',ierr
     STOP
+
+    END IF
+    RETURN
   END SUBROUTINE tr_ngt_allocate
 
   SUBROUTINE tr_ngt_deallocate
@@ -700,19 +934,24 @@ CONTAINS
     IF(nsamax /= nsamax_save) THEN
 
        IF(nsamax_save /= 0) CALL tr_nsa_deallocate
-       ALLOCATE(idnsa(nsamax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(kidnsa(nsamax),STAT=ierr); IF(ierr /= 0) GOTO 9000
 
-       ALLOCATE(ws_t(nsamax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(rns_va(nsamax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(rts_va(nsamax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       nsa_allocation: DO
+          ALLOCATE(idnsa(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(kidnsa(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
+          
+          ALLOCATE(ws_t(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(rns_va(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(rts_va(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
 
-       nsamax_save = nsamax
-    END IF
+          nsamax_save = nsamax
+          RETURN
+       END DO nsa_allocation
 
-    RETURN
-9000 WRITE(6,*) 'XX tr_nsa_allocate: allocation error: ierr=',ierr
+    WRITE(6,*) 'XX tr_nsa_allocate: allocation error: ierr=',ierr
     STOP
+
+    END IF
+    RETURN
   END SUBROUTINE tr_nsa_allocate
 
   SUBROUTINE tr_nsa_deallocate

@@ -13,7 +13,7 @@ FFLAGS = $(DFLAGS)
 MODINCLUDE=-I $(BPSDDIR)/mod -I $(TASKDIR)/plx/mod -I $(TASKDIR)/lib/mod \
            -I $(MOD) -I MMM7_1
 
-SRC90=trcalv.f90 trcalnc.f90 trncls.f90 \
+SRC90=trcalnc.f90 trncls.f90 \
       trglf23.f90 trmbgb.f90 trmmm95.f90 trmmm7_1.f90 trcdbm.f90 \
       trsimple.f90 trcoeftb.f90 trcoefnc.f90
 SRCMBGB=mbgb/mixed_Bohm_gyro_Bohm.f
@@ -82,7 +82,6 @@ mmm95/weiland14.o: mmm95/weiland14.f
 	$(FCFIXED) -r8 $(FFLAGS) -c mmm95/weiland14.f -o mmm95/weiland14.o
 mmm95/mmm95.o: mmm95/mmm95.f
 	$(FCFIXED) -r8 $(FFLAGS) -c mmm95/mmm95.f -o mmm95/mmm95.o
-#MMM7_1/MMM7_interface_mod.o: MMM7_1/MMM7_interface_mod.f90
 MMM7_1/w20mod.o: MMM7_1/w20mod.f90
 MMM7_1/modmmm7_1.o: MMM7_1/w20mod.f90 MMM7_1/modmmm7_1.f90
 mbgb/mixed_Bohm_gyro_Bohm.o: mbgb/mixed_Bohm_gyro_Bohm.f

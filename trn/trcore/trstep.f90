@@ -12,9 +12,9 @@ CONTAINS
 
   SUBROUTINE tr_step(ierr)
 
-    USE trcomm, ONLY: nrmax,neqmax,xv,xv_prev,xv_new, &
-         rn,ru,rt,dpdrho,lmaxtr,epsltr,nsa_neq,nva_neq,nvmax,error_it,&
-         nitmax,mdltr_prv  ! ,nrd1
+    USE trcomm, ONLY: nrmax,neqmax,nvmax,xv,xv_prev,xv_new,       &
+         rn,ru,rt,rp,rp_tot,dpdrho,lmaxtr,epsltr,nsa_neq,nva_neq, &
+         error_it,nitmax,mdltr_prv  ! ,nrd1
     USE trcalc, ONLY: tr_calc
     USE trexec, ONLY: tr_exec
 
@@ -59,7 +59,7 @@ CONTAINS
        xv(1:nvmax) = xv_new(1:nvmax)
 
        ! dpdrho,rn,ru,rt <-- xv
-       CALL tr_set_xv(xv,dpdrho,rn,ru,rt)
+       CALL tr_set_xv(xv,dpdrho,rn,ru,rt,rp,rp_tot)
 
        IF(difmax < epsltr) THEN
           nitmax=MAX(nit,nitmax)
@@ -70,7 +70,7 @@ CONTAINS
 
     IF(nit==lmaxtr+1) nitmax = lmaxtr + 1
 
-    CALL tr_set_xv(xv,dpdrho,rn,ru,rt)
+    CALL tr_set_xv(xv,dpdrho,rn,ru,rt,rp,rp_tot)
 !    nrd1(0:nrmax) = rt(1,0:nrmax)*rn(1,0:nrmax)
        
 !   --- error check here ---
@@ -114,15 +114,16 @@ CONTAINS
     RETURN
   END SUBROUTINE tr_get_xv
 
-  SUBROUTINE tr_set_xv(xv,dpdrho,rn,ru,rt)
-    USE trcomm, ONLY:nsamax,nrmax,neqmax,nvmax,nsa_neq,nva_neq
+  SUBROUTINE tr_set_xv(xv,dpdrho,rn,ru,rt,rp,rp_tot)
+    USE trcomm, ONLY:nsamax,nrmax,neqmax,nvmax,nsa_neq,nva_neq,rkev
     
-    REAL(rkind),DIMENSION(nsamax,0:nrmax),INTENT(OUT) :: rn,ru,rt
-    REAL(rkind),DIMENSION(0:nrmax),INTENT(OUT) :: dpdrho
+    REAL(rkind),DIMENSION(nsamax,0:nrmax),INTENT(OUT) :: rn,ru,rt,rp
+    REAL(rkind),DIMENSION(0:nrmax),INTENT(OUT) :: dpdrho,rp_tot
     REAL(rkind),DIMENSION(1:nvmax),INTENT(IN) :: xv
 
     INTEGER(ikind) :: nr,neq,nv,nsa,nva
 
+    rp_tot(0:nrmax) = 0.d0
     DO nr=0,nrmax
        DO neq=1,neqmax
           nv=nr*neqmax+neq
@@ -140,6 +141,10 @@ CONTAINS
                 rt(nsa,nr)=xv(nv)/rn(nsa,nr)
 !                rt(nsa,nr)=xv(nv)
              END SELECT
+
+             ! the pressure of each species
+             rp(nsa,nr) = rn(nsa,nr)*1.d20 * rt(nsa,nr)*rkev
+             rp_tot(nr) = rp_tot(nr) +rp(nsa,nr)
           END IF
        END DO
     END DO
