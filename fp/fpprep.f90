@@ -214,7 +214,7 @@
 
             EPSL=COSM(ITL(NR))**2/(2.D0-COSM(ITL(NR))**2)
             IF(nprocs.gt.1.and.NRANK.eq.1) &
-                 WRITE(6,'(A,2I5,1P2E12.4)') 'NR,NTHC,EPSRM=',NR,NTH,EPSRM(NR),EPSL
+                 WRITE(6,'(A,3I5,1P2E12.4)') 'NR,ITL,ITU,EPSRM=',NR,ITL(NR),ITU(NR),EPSRM(NR),EPSL
             EPSRM2(NR) = EPSRM(NR)
             EPSRM(NR)=EPSL
 !            EPSRM2(NR) = EPSRM(NR)
@@ -272,20 +272,6 @@
          DO NR=1,NRMAX+1
             CALL SET_RFSAD(NR)
          END DO
-!         RFSAD_GG(NRMAX+1)=QLG(NRMAX+1)*RR/(1.D0+EPSRG(NRMAX+1))*PI
-! temporary for lav
-!         DO NR=NRSTART,NREND
-!            FACT=(1.D0+EPSRM(NR))/(2.D0*EPSRM(NR))
-!            DO NTH=ITL(NR)+1,ITU(NR)-1
-!               A1=FACT*COSM(NTH)**2
-!               ETAM(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
-!            ENDDO
-!            DO NTH=ITL(NR)+1,ITU(NR)
-!               A1=FACT*COSG(NTH)**2
-!               ETAG(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
-!            ENDDO
-!         END DO
-! temporary end 
       END IF ! MODELA
 
       allocate(work(nrstart:nrendx),workg(NRMAX))
@@ -339,17 +325,17 @@
          ENDDO
       ENDDO
 
-      IF(NRANK.eq.0)THEN
-      open(8,file='RLAMDAG100_tpb_ex_killeen_fine.dat')
-      DO NR =1, NRMAX
-      DO NTH=1,NTHMAX
-         WRITE(8,'(2I4, 4E14.6)') NR, NTH, NTH-0.5D0, COSM(NTH), RLAMDAG(NTH,NR), RLAMDA_GG(NTH,NR)
-      END DO
-      WRITE(8,*) " "
-      WRITE(8,*) " "
-      END DO
-      close(8)
-      END IF
+!      IF(NRANK.eq.0)THEN
+!      open(8,file='RLAMDAG100_tpb_ex_killeen_fine.dat')
+!      DO NR =1, NRMAX
+!      DO NTH=1,NTHMAX
+!         WRITE(8,'(2I4, 4E14.6)') NR, NTH, NTH-0.5D0, COSM(NTH), RLAMDAG(NTH,NR), RLAMDA_GG(NTH,NR)
+!      END DO
+!      WRITE(8,*) " "
+!      WRITE(8,*) " "
+!      END DO
+!      close(8)
+!      END IF
 
       IF(NRANK.eq.0)THEN
       DO NR=1,NRMAX
@@ -580,10 +566,13 @@
             RSUM4=0.D0
             DO NP=1,NPMAX
                DO NTH=1,NTHMAX
+!                  IF(NTH.eq.ITL(NR).or.NTH.eq.ITU(NR))THEN
+!                  ELSE
                   RSUM1 = RSUM1+VOLP(NTH,NP,NSB)*RLAMDAG(NTH,NR)/RFSADG(NR)*FNS(NTH,NP,NR,NSB)
                   RSUM2 = RSUM2+VOLP(NTH,NP,NSB)*FNS(NTH,NP,NR,NSB)
                   RSUM3 = rsum3+VOLP(NTH,NP,NSB)*RLAMDA_GG(NTH,NR)/RFSAD_GG(NR)
                   RSUM4 = rsum4+VOLP(NTH,NP,NSB)
+!                  END IF
                END DO
             END DO
             IF(RSUM1.EQ.0.D0) &
@@ -706,30 +695,30 @@
       ENDDO
 
       IF(NRANK.eq.0)THEN
-         open(8,file='rcoefng_tpb_ex_killeen_fine.dat')
+         open(8,file='rcoefng_norfsad.dat')
          DO NR=1,NRMAX
             WRITE(8,'(7E14.6)') RM(NR), RCOEFNG(NR), RFSADG(NR) &
                  , RG(NR), RCOEFN_GG(NR), RFSAD_GG(NR), QLM(NR)
          END DO
          close(8)
-         open(8,file='volp_r_tpb_ex_killeen_fine.dat')
-         DO NTH=1,NTHMAX/2
-            DO NR=1,NRMAX
-               WRITE(8,'(2I4,E14.6)') NTH, NR, RLAMDAG(NTH,NR)/RFSADG(NR)
-            END DO
-            WRITE(8,*) " "
-            WRITE(8,*) " "
-         END DO
-         close(8)
-         open(8,file='r_ram_ram_ex_killeen_fine.dat')
-         DO NTH = 1, NTHMAX
-            DO NR=1,NRMAX
-               WRITE(8,'(2I4,2E14.6)') NTH, NR, RLAMDAG(NTH,NR), RFSADG(NR)
-            END DO
-            WRITE(8,*) " "
-            WRITE(8,*) " "
-         END DO
-         close(8)
+!         open(8,file='volp_r_tpb_ex_killeen_fine.dat')
+!         DO NTH=1,NTHMAX/2
+!            DO NR=1,NRMAX
+!               WRITE(8,'(2I4,E14.6)') NTH, NR, RLAMDAG(NTH,NR)/RFSADG(NR)
+!            END DO
+!            WRITE(8,*) " "
+!            WRITE(8,*) " "
+!         END DO
+!         close(8)
+!         open(8,file='r_ram_ram_ex_killeen_fine.dat')
+!         DO NTH = 1, NTHMAX
+!            DO NR=1,NRMAX
+!               WRITE(8,'(2I4,2E14.6)') NTH, NR, RLAMDAG(NTH,NR), RFSADG(NR)
+!            END DO
+!            WRITE(8,*) " "
+!            WRITE(8,*) " "
+!         END DO
+!         close(8)
       END IF
 
       deallocate(work,workg)
@@ -740,15 +729,15 @@
          DO NR=1,NRMAX
             DO NP=1,NPMAX
                DO NTH=1,NTHMAX
-                  FNS(NTH,NP,NR,NSA) = FNS(NTH,NP,NR,NSA) * RCOEFNG(NR)
+!                  FNS(NTH,NP,NR,NSA) = FNS(NTH,NP,NR,NSA) * RCOEFNG(NR)
                END DO
             END DO
          END DO
          DO NP=1,NPMAX
             DO NTH=1,NTHMAX
-               FS1(NTH,NP,NSA) = FS1(NTH,NP,NSA) * RCOEFN_GG(1)
-               FS2(NTH,NP,NSA) = FS2(NTH,NP,NSA) * RCOEFNG(NRMAX+1)
-               FS3(NTH,NP,NSA) = FS3(NTH,NP,NSA) * RCOEFN_GG(NRMAX+1)
+!               FS1(NTH,NP,NSA) = FS1(NTH,NP,NSA) * RCOEFN_GG(1)
+!               FS2(NTH,NP,NSA) = FS2(NTH,NP,NSA) * RCOEFNG(NRMAX+1)
+!               FS3(NTH,NP,NSA) = FS3(NTH,NP,NSA) * RCOEFN_GG(NRMAX+1)
             END DO
          END DO
       END DO
@@ -845,6 +834,17 @@
             ENDDO
          ENDDO
       ENDIF
+
+      DO NSA=1,NSAMAX
+         NSBA=NSB_NSA(NSA) 
+         DO NR=NRSTART,NREND
+            DO NP=1,NPMAX
+               DO NTH=1,NTHMAX
+                  FNS1(NTH,NP,NR,NSBA)=FNS(NTH,NP,NR,NSBA)
+               END DO
+            END DO
+         END DO
+      END DO
 
       N_IMPL=0
       CALL NF_REACTION_COEF

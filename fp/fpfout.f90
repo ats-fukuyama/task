@@ -122,6 +122,51 @@
 
  9000 RETURN
       END SUBROUTINE FPFOTC
+!-------------------------------------
+      SUBROUTINE FPFOTC_2(STRING,FG,MODE)
+!
+      real(8),DIMENSION(NTHMAX,NPMAX,NRMAX):: FG
+      real(8),DIMENSION(NPMAX,NTHMAX):: FL
+      CHARACTER(LEN=*),INTENT(IN):: STRING
+!
+    1 CONTINUE
+      IF(NRMAX.GT.1) THEN
+         IF(MODE.EQ.0) THEN
+            NRG=NRMAX+1
+         ELSE
+            NRG=NRMAX
+         ENDIF
+         WRITE(6,'(A,I4,A)') '# INPUT NR (1..',NRG,' or 0) :'
+         READ(5,*,ERR=1,END=9000) NR
+         IF(NR.LT.1) GOTO 9000
+         IF(NR.GT.NRG) GOTO 1
+      ELSE
+         NR=1
+      END IF
+
+      IF(MOD(MODE,2).EQ.0) THEN
+         NPG=NPMAX
+      ELSE
+         NPG=NPMAX+1
+      ENDIF
+
+      IF(MOD(MODE/2,2).EQ.0) THEN
+         NTHG=NTHMAX
+      ELSE
+         NTHG=NTHMAX+1
+      ENDIF
+
+      DO NTH=1,NTHG
+         DO NP=1,NPG
+            FL(NP,NTH)=FG(NTH,NP,NR)
+         ENDDO
+      ENDDO
+
+      CALL FPFOUX4(STRING,NPG,NTHG,FL,NPMAX+1)
+      IF(NRMAX.GT.1) GOTO 1
+
+ 9000 RETURN
+      END SUBROUTINE FPFOTC_2
 
 !-------------------------------------
       SUBROUTINE FPFOUX1(STRING,N1MAX,N2MAX,FL,N1M)

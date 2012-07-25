@@ -181,10 +181,10 @@
                   DWTP(NTH,NP,NR,NSA)=DWTPS
                   DWTT(NTH,NP,NR,NSA)=DWTTS
                ELSE
-                  P=PM(NP,NSA)
-                  ETA=ETAG(NTH,NR)
-                  CALL FPWAVV(RHOL,ETA,SING(NTH),COSG(NTH),P,SING(NTH),COSG(NTH),NSA,1, &
-                       DWTPL,DWTTL)
+!                  P=PM(NP,NSA)
+!                  ETA=ETAG(NTH,NR)
+!                  CALL FPWAVV(RHOL,ETA,SING(NTH),COSG(NTH),P,SING(NTH),COSG(NTH),NSA,1, &
+!                       DWTPL,DWTTL)
                   DWTP(NTH,NP,NR,NSA)=0.D0
                   DWTT(NTH,NP,NR,NSA)=0.D0
 !                  DWTT(NTH,NP,NR,NSA)=DWTTL

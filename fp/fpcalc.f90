@@ -128,14 +128,14 @@
             ENDIF
          ENDDO
 
-         IF(NR.eq.2.and.NSA.eq.1)THEN
-            WRITE(*,'("L ",6E14.6)') DCPP2(ITL(NR),2,NR,1,NSA),DCPT2(ITL(NR),2,NR,1,NSA) &
-                 ,FCPP2(ITL(NR),2,NR,1,NSA) &
-                 ,DCTP2(ITL(NR)+1,2,NR,1,NSA),DCTT2(ITL(NR)+1,2,NR,1,NSA),FCTH2(ITL(NR)+1,2,NR,1,NSA)
-            WRITE(*,'("U ",6E14.6)') DCPP2(ITU(NR),2,NR,1,NSA),DCPT2(ITU(NR),2,NR,1,NSA) &
-                 ,FCPP2(ITU(NR),2,NR,1,NSA) &
-                 ,DCTP2(ITU(NR),2,NR,1,NSA),DCTT2(ITU(NR),2,NR,1,NSA),FCTH2(ITU(NR),2,NR,1,NSA)
-         END IF
+!         IF(NR.eq.2.and.NSA.eq.1)THEN
+!            WRITE(*,'("L ",6E14.6)') DCPP2(ITL(NR),2,NR,1,NSA),DCPT2(ITL(NR),2,NR,1,NSA) &
+!                 ,FCPP2(ITL(NR),2,NR,1,NSA) &
+!                 ,DCTP2(ITL(NR)+1,2,NR,1,NSA),DCTT2(ITL(NR)+1,2,NR,1,NSA),FCTH2(ITL(NR)+1,2,NR,1,NSA)
+!            WRITE(*,'("U ",6E14.6)') DCPP2(ITU(NR),2,NR,1,NSA),DCPT2(ITU(NR),2,NR,1,NSA) &
+!                 ,FCPP2(ITU(NR),2,NR,1,NSA) &
+!                 ,DCTP2(ITU(NR),2,NR,1,NSA),DCTT2(ITU(NR),2,NR,1,NSA),FCTH2(ITU(NR),2,NR,1,NSA)
+!         END IF
 
 !      DO NSB=1,NSBMAX
 !         IF(NSA.eq.1.and.NSB.eq.1)THEN
@@ -238,7 +238,6 @@
          END DO
       ENDDO
 
-      
 !      open(8,file='p-dcpp_c4r1a0_2000_new2.dat')
 !      NSA=1
 !      NR=1

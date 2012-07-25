@@ -8,6 +8,7 @@
 
       USE fpcomm
       use fpexec
+      use fpdrexec
       use fpcoef
       use fpsave
       contains
@@ -25,7 +26,8 @@
       integer:: NT, NR, NP, NTH, NSA, NTI, NSBA
       integer:: L, IERR, I!, N_IMPL
       real(kind8):: RSUM, DELEM, RJNL, dw, RSUM1, RSUM2
-      real(4):: gut, gut1, gut2, gut3, gut4, gut_ex, gut_calc
+      real(4):: gut, gut1, gut2, gut3, gut4, gut5, gut6
+      real(4):: gut_ex, gut_calc, gut_1step
       real(kind8),DIMENSION(nprocs):: RSUMA
       integer,dimension(NSAMAX)::NTCLSTEP2
       real(kind8):: DEPS_MAX, DEPS, DEPS1
@@ -34,14 +36,11 @@
       integer:: NSTEST
       real(kind8):: temp_send, temp_recv
       character:: fmt*40
-!      real(8),dimension(NTHMAX,NPMAX)::diff_f
+      integer:: modeld_temp, modela_temp
 
       IF(MODELE.NE.0) CALL FPNEWE
 
 !     +++++ Time loop +++++
-
-      gut_EX = 0.D0
-      gut_CALC= 0.D0
 
 !      IF(NRANK.eq.29)THEN
 !         DO NP=1,NPMAX
@@ -74,19 +73,24 @@
             DO NR=NRSTART,NREND ! local
                DO NP=1,NPMAX
                   DO NTH=1,NTHMAX
-                     FNS2(NTH,NP,NR,NSA)=FNS(NTH,NP,NR,NSBA)
-                     FNS1(NTH,NP,NR,NSA)=FNS(NTH,NP,NR,NSBA)
+                     FNS2(NTH,NP,NR,NSA)=FNS(NTH,NP,NR,NSBA) ! old step: invariant during N_IMPL 
+                     FNS1(NTH,NP,NR,NSA)=FNS(NTH,NP,NR,NSBA) ! new step: variant each N_IMPL
                   END DO
                END DO
             END DO
             DO NR=1,NRMAX ! global
                DO NP=1,NPMAX
                   DO NTH=1,NTHMAX
-                     FNS22(NTH,NP,NR,NSA)=FNS(NTH,NP,NR,NSBA) ! before
+                     FNS22(NTH,NP,NR,NSA)=FNS(NTH,NP,NR,NSBA) ! old step
                   END DO
                END DO
             END DO
          END DO
+
+         gut_EX = 0.D0
+         gut_CALC= 0.D0
+         gut_1step= 0.D0
+         CALL GUTIME(gut5)
 
 !         DO WHILE(DEPS.gt.EPSFP.and.N_IMPL.le.LMAXFP) ! start do while
          DO WHILE(N_IMPL.le.LMAXFP) ! start do while
@@ -102,20 +106,15 @@
                END DO
 
                CALL GUTIME(gut1)
-               IF(DEPS.ge.EPSFP)THEN
-                  CALL fp_exec(NSA,IERR) ! F1 and FNS are changed
-!                  IF (MOD(NT,NTCLSTEP2(NSA)).EQ.0) CALL fp_exec(NSA,IERR) ! F1 and FNS are changed
-                  IF(IERR.NE.0) GOTO 250
-               ELSE
-                  DO NR=NRSTART,NREND
-                  DO NP=1,NPMAX
-                  DO NTH=1,NTHMAX
-                     F1(NTH,NP,NR)=FNS1(NTH,NP,NR,NSA)
-                     FNS(NTH,NP,NR,NSA)=FNS1(NTH,NP,NR,NSA)
-                  END DO
-                  END DO
-                  END DO
+               modeld_temp=modeld
+               modeld=0
+               CALL fp_exec(NSA,IERR) ! F1 and FNS are changed
+               modeld=modeld_temp
+               IF(MODELD.ge.1)THEN
+                  CALL fp_drexec(NSA,IERR)
                END IF
+
+               IF(IERR.NE.0) GOTO 250
                CALL GUTIME(gut2)
                GUT_EX = GUT_EX + (gut2-gut1)
 
@@ -127,60 +126,20 @@
                DO NTH=1,NTHMAX
                   RSUMF(NSA)=RSUMF(NSA) &
                          +ABS(FNS1(NTH,NP,NR,NSA)-F1(NTH,NP,NR))**2
-!                         +ABS(FNS1(NTH,NP,NR,NSA)-FNS(NTH,NP,NR,NSA))**2
-
                   RSUMF0(NSA)=RSUMF0(NSA) &
                          +ABS(FNS2(NTH,NP,NR,NSA))**2
-
                   RSUM_SS(NSA)=RSUM_SS(NSA) &
                          +ABS(FNS2(NTH,NP,NR,NSA)-F1(NTH,NP,NR))**2
-!                         +ABS(FNS2(NTH,NP,NR,NSA)-FNS(NTH,NP,NR,NSA))**2
-
                   FNS1(NTH,NP,NR,NSA)=F1(NTH,NP,NR)
                ENDDO
                ENDDO
                ENDDO
             ENDDO ! END OF NSA
 
-!            DO NSA=1,NSAMAX
-!            WRITE(*,'(2I3,"RSUMF(NSA)=",E14.6)') NRANK, NSA, RSUMF(NSA)
-!            END DO
-
-!            DO NSA=1,NSAMAX
-!               CALL mtx_gather_real8(RSUMF(NSA),RSUMA)
-!               RSUMF(NSA)=0.D0
-!               DO i=1,nprocs
-!                  RSUMF(NSA)=RSUMF(NSA)+RSUMA(i)
-!               ENDDO
-!               RSUMA(1)=RSUMF(NSA)
-!               CALL mtx_broadcast_real8(RSUMA,1)
-!               RSUMF(NSA)=RSUMA(1)
-!
-!               CALL mtx_gather_real8(RSUMF0(NSA),RSUMA)
-!               RSUMF0(NSA)=0.D0
-!               DO i=1,nprocs
-!                  RSUMF0(NSA)=RSUMF0(NSA)+RSUMA(i)
-!               ENDDO
-!               RSUMA(1)=RSUMF0(NSA)
-!               CALL mtx_broadcast_real8(RSUMA,1)
-!               RSUMF0(NSA)=RSUMA(1)
-!
-!               CALL mtx_gather_real8(RSUM_SS(NSA),RSUMA)
-!               RSUM_SS(NSA)=0.D0
-!               DO i=1,nprocs
-!                  RSUM_SS(NSA)=RSUM_SS(NSA)+RSUMA(i)
-!               ENDDO
-!               RSUMA(1)=RSUM_SS(NSA)
-!               CALL mtx_broadcast_real8(RSUMA,1)
-!               RSUM_SS(NSA)=RSUMA(1)
-!            ENDDO
-
             DEPS=0.D0
-!            NSTEST=0
             DO NSA=1,NSAMAX
                DEPSV(NSA) = RSUMF(NSA)/RSUMF0(NSA)
                DEPS1 = DEPSV(NSA)
-!               IF(DEPS1.ge.DEPS) NSTEST=NSA 
                DEPS=MAX(DEPS,DEPS1)
                DEPS_SS(NSA)=RSUM_SS(NSA)/RSUMF0(NSA)/DELT ! steady state
             END DO
@@ -210,19 +169,13 @@
             GUT_CALC = GUT_CALC + (gut4-gut3)
 
          END DO ! END OF DOWHILE
-         IF(NRANK.eq.0) &
-         WRITE(*,'(" GUT_EX = ", E14.6, " GUT_CALC = ", E14.6)') GUT_EX, GUT_CALC
+         CALL GUTIME(gut6)
+         GUT_1step = gut6-gut5
 
-         DO NSA=1,NSAMAX
-            NSBA=NSB_NSA(NSA)
-            DO NR=NRSTART,NREND
-            DO NP=1,NPMAX
-            DO NTH=1,NTHMAX
-               FNS(NTH,NP,NR,NSBA)=FNS1(NTH,NP,NR,NSA)
-            ENDDO
-            ENDDO
-            ENDDO
-         ENDDO
+         IF(NRANK.eq.0) &
+              WRITE(*,'(" GUT_EX = ", E14.6, " GUT_CALC = ", E14.6, " GUT_1step = ", E14.6)') &
+              GUT_EX, GUT_CALC, GUT_1step
+
 !     ----- calculation of current density -----
 
          IF(MODELE.NE.0) THEN
@@ -232,7 +185,7 @@
                   RSUM=0.D0
                   DO NP=1,NPMAX
                   DO NTH=1,NTHMAX
-                     RSUM=RSUM+VOLP(NTH,NP,NSBA)*FNS1(NTH,NP,NR,NSA)*PM(NP,NSBA)
+                     RSUM=RSUM+VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSA)*PM(NP,NSBA)
                   ENDDO
                   ENDDO
                   RJNS(NR,NSA)=AEFP(NSA)*RNFP0(NSA)*1.D20 &
@@ -326,18 +279,18 @@
 
       ENDDO ! END OF NT LOOP
 
-!      IF(NRANK.eq.0)THEN
-!            open(9,file='fns_e.dat')
-!            DO NR=1,NRMAX
-!               DO NP=1,NPMAX
-!                  DO NTH=1,NTHMAX
-!                     WRITE(9,'(3I4,E16.8)') NR, NP, NTH, FNS(NTH,NP,NR,1)
-!                  END DO
-!               END DO
-!               WRITE(9,*) " "
-!               WRITE(9,*) " "
-!            END DO
-!            close(9)
+      IF(NRANK.eq.0)THEN
+            open(9,file='fns_e_a1w4s2_pinch.dat')
+            DO NR=1,NRMAX
+               DO NP=1,NPMAX
+                  DO NTH=1,NTHMAX
+                     WRITE(9,'(3I4,3E16.8)') NR, NP, NTH, FNS(NTH,NP,NR,1), PM(NP,1)*COSM(NTH), PM(NP,1)*SINM(NTH)
+                  END DO
+               END DO
+               WRITE(9,*) " "
+               WRITE(9,*) " "
+            END DO
+            close(9)
 !            open(9,file='fns_D.dat')
 !            DO NR=1,NRMAX
 !               DO NP=1,NPMAX
@@ -349,6 +302,7 @@
 !               WRITE(9,*) " "
 !            END DO
 !            close(9)
+
 !            open(9,file='fns_T.dat')
 !            DO NR=1,NRMAX
 !               DO NP=1,NPMAX
@@ -371,7 +325,7 @@
 !               WRITE(9,*) " "
 !            END DO
 !            close(9)
-!      END IF
+      END IF
 
 !      IF(NRANK.eq.29)THEN
 !      open(8,file='diff_FNS.dat')

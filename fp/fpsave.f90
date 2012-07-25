@@ -75,14 +75,14 @@
             IF(MODELA.eq.0)THEN
                DO NP=1,NPMAX
                   DO NTH=1,NTHMAX
-                     RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA)
+                     RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*FNS1(NTH,NP,NR,NSBA)
                   END DO
                ENDDO
             ELSE
                DO NP=1,NPMAX
                   DO NTH=1,NTHMAX
-                     RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA) &
-                          *RLAMDAG(NTH,NR)
+                     RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*FNS1(NTH,NP,NR,NSBA) &
+                          *RLAMDA(NTH,NR)
                   END DO
                ENDDO
             END IF
@@ -102,10 +102,10 @@
                   DO NP=1,NPMAX
                      DO NTH=1,NTHMAX
                         RSUM2 = RSUM2                       &
-                             +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA) &
+                             +VOLP(NTH,NP,NSBA)*FNS1(NTH,NP,NR,NSBA) &
                              *PM(NP,NSBA)*COSM(NTH)
                         RSUM3 = RSUM3                       &
-                             +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA) &
+                             +VOLP(NTH,NP,NSBA)*FNS1(NTH,NP,NR,NSBA) &
                              *0.5D0*PM(NP,NSBA)**2
                      END DO
                   RSUMNP_E(NP)=RSUM3
@@ -115,10 +115,10 @@
                      PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
                      DO NTH=1,NTHMAX
                         RSUM2 = RSUM2                       &
-                             +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA) &
+                             +VOLP(NTH,NP,NSBA)*FNS1(NTH,NP,NR,NSBA) &
                              *PM(NP,NSBA)*COSM(NTH)/PV
                         RSUM3 = RSUM3                       &
-                             +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA) &
+                             +VOLP(NTH,NP,NSBA)*FNS1(NTH,NP,NR,NSBA) &
                              *(PV-1.D0)/THETA0(NSA)
                      END DO
                   RSUMNP_E(NP)=RSUM3
@@ -129,11 +129,11 @@
                   DO NP=1,NPMAX
                      DO NTH=1,NTHMAX
                         RSUM2 = RSUM2                        &
-                             +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA)  &
-                             *PM(NP,NSBA)*COSM(NTH)*RLAMDAG(NTH,NR)
+                             +VOLP(NTH,NP,NSBA)*FNS1(NTH,NP,NR,NSBA)  &
+                             *PM(NP,NSBA)*COSM(NTH)*RLAMDA(NTH,NR)
                         RSUM3 = RSUM3                        &
-                             +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA)  &
-                             *0.5D0*PM(NP,NSBA)**2*RLAMDAG(NTH,NR)
+                             +VOLP(NTH,NP,NSBA)*FNS1(NTH,NP,NR,NSBA)  &
+                             *0.5D0*PM(NP,NSBA)**2*RLAMDA(NTH,NR)
                      END DO
                   RSUMNP_E(NP)=RSUM3
                   ENDDO
@@ -142,11 +142,11 @@
                      PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
                      DO NTH=1,NTHMAX
                         RSUM2 = RSUM2                        &
-                             +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA)  &
-                             *PM(NP,NSBA)*COSM(NTH)/PV*RLAMDAG(NTH,NR)
+                             +VOLP(NTH,NP,NSBA)*FNS1(NTH,NP,NR,NSBA)  &
+                             *PM(NP,NSBA)*COSM(NTH)/PV*RLAMDA(NTH,NR)
                         RSUM3 = RSUM3                        &
-                             +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA)  &
-                             *(PV-1.D0)/THETA0(NSA)*RLAMDAG(NTH,NR)
+                             +VOLP(NTH,NP,NSBA)*FNS1(NTH,NP,NR,NSBA)  &
+                             *(PV-1.D0)/THETA0(NSA)*RLAMDA(NTH,NR)
                      END DO
                   RSUMNP_E(NP)=RSUM3
                   END DO
@@ -171,102 +171,94 @@
                      WPP=WEIGHP(NTH+1,NP,NR,NSA)
                   ENDIF
                   DFP=    PG(NP,NSBA) &
-                       /DELP(NSBA)*(FNS(NTH,NP,NR,NSBA)-FNS(NTH,NP-1,NR,NSBA))
+                       /DELP(NSBA)*(FNS1(NTH,NP,NR,NSBA)-FNS1(NTH,NP-1,NR,NSBA))
                   IF(NTH.EQ.1) THEN
                      DFT=1.D0/DELTH                             &
                          *(                                     &
-                            ((1.D0-WPP)*FNS(NTH+1,NP  ,NR,NSBA)   &
-                                  +WPP *FNS(NTH+1,NP-1,NR,NSBA))&
+                            ((1.D0-WPP)*FNS1(NTH+1,NP  ,NR,NSBA)   &
+                                  +WPP *FNS1(NTH+1,NP-1,NR,NSBA))&
                            -                                    &
-                            ((1.D0-WPM)*FNS(NTH,NP  ,NR,NSBA)     &
-                                  +WPM *FNS(NTH,NP-1,NR,NSBA))&
+                            ((1.D0-WPM)*FNS1(NTH,NP  ,NR,NSBA)     &
+                                  +WPM *FNS1(NTH,NP-1,NR,NSBA))&
                           )
 
                   ELSE IF(NTH.EQ.NTHMAX) THEN
                      DFT=    1.D0/DELTH                         & 
                          *(-                                    &
-                            ((1.D0-WPM)*FNS(NTH-1,NP  ,NR,NSBA)   &
-                                  +WPM *FNS(NTH-1,NP-1,NR,NSBA))&
+                            ((1.D0-WPM)*FNS1(NTH-1,NP  ,NR,NSBA)   &
+                                  +WPM *FNS1(NTH-1,NP-1,NR,NSBA))&
                           +                                     &
-                            ((1.D0-WPP)*FNS(NTH,NP  ,NR,NSBA)     &
-                                  +WPP *FNS(NTH,NP-1,NR,NSBA))&
+                            ((1.D0-WPP)*FNS1(NTH,NP  ,NR,NSBA)     &
+                                  +WPP *FNS1(NTH,NP-1,NR,NSBA))&
                           )
                   ELSE
                      DFT=    1.D0/(2.D0*DELTH)                  &
                          *(                                     &
-                            ((1.D0-WPP)*FNS(NTH+1,NP  ,NR,NSBA)   &
-                                  +WPP *FNS(NTH+1,NP-1,NR,NSBA))&
+                            ((1.D0-WPP)*FNS1(NTH+1,NP  ,NR,NSBA)   &
+                                  +WPP *FNS1(NTH+1,NP-1,NR,NSBA))&
                            -                                    &
-                            ((1.D0-WPM)*FNS(NTH-1,NP  ,NR,NSBA)   &
-                                  +WPM *FNS(NTH-1,NP-1,NR,NSBA))&
+                            ((1.D0-WPM)*FNS1(NTH-1,NP  ,NR,NSBA)   &
+                                  +WPM *FNS1(NTH-1,NP-1,NR,NSBA))&
                                   )
                   ENDIF
-                  FFP=    PG(NP,NSBA)                         &
-                         *((1.D0-WPL)*FNS(NTH  ,NP  ,NR,NSBA)  &
-                                +WPL *FNS(NTH  ,NP-1,NR,NSBA))
+                  FFP=    PG(NP,NSBA)                           &
+                         *((1.D0-WPL)*FNS1(NTH  ,NP  ,NR,NSBA)  &
+                                +WPL *FNS1(NTH  ,NP-1,NR,NSBA))
                   RSUM4 = RSUM4+PG(NP,NSBA)**2*SINM(NTH)/PV   &
-                         *(DCPP(NTH,NP,NR,NSA)*DFP           &
-                          +DCPT(NTH,NP,NR,NSA)*DFT           &
-                          -FCPP(NTH,NP,NR,NSA)*FFP           &
-                       )
+                       *(DCPP(NTH,NP,NR,NSA)*DFP           &
+                        +DCPT(NTH,NP,NR,NSA)*DFT           &
+                        -FCPP(NTH,NP,NR,NSA)*FFP           &
+                          )
                   R_FLUX(NTH,NP) = -  &
-                          (DPP(NTH,NP,NR,NSA)*DFP           &
-                          +DPT(NTH,NP,NR,NSA)*DFT           &
-                          -FPP(NTH,NP,NR,NSA)*FFP           &
+                       (DPP(NTH,NP,NR,NSA)*DFP           &
+                       +DPT(NTH,NP,NR,NSA)*DFT           &
+                       -FPP(NTH,NP,NR,NSA)*FFP           &
                        )
                   RSUM5 = RSUM5+PG(NP,NSBA)**2*SINM(NTH)/PV   &
-                         *(DWPP(NTH,NP,NR,NSA)*DFP           &
-                          +DWPT(NTH,NP,NR,NSA)*DFT)
+                          *(DWPP(NTH,NP,NR,NSA)*DFP           &
+                           +DWPT(NTH,NP,NR,NSA)*DFT)
                   RSUM6 = RSUM6-PG(NP,NSBA)**2*SINM(NTH)/PV   &
-                         *(FEPP(NTH,NP,NR,NSA)*FFP)
+                          *(FEPP(NTH,NP,NR,NSA)*FFP)
                   RSUM7 = RSUM7+PG(NP,NSBA)**2*SINM(NTH)/PV   &
-                         *(DWLHPP(NTH,NP,NR,NSA)*DFP         &
-                          +DWLHPT(NTH,NP,NR,NSA)*DFT)
+                          *(DWLHPP(NTH,NP,NR,NSA)*DFP         &
+                           +DWLHPT(NTH,NP,NR,NSA)*DFT)
                   RSUM8 = RSUM8+PG(NP,NSBA)**2*SINM(NTH)/PV   &
-                         *(DWFWPP(NTH,NP,NR,NSA)*DFP         &
-                          +DWFWPT(NTH,NP,NR,NSA)*DFT)
+                          *(DWFWPP(NTH,NP,NR,NSA)*DFP         &
+                       +DWFWPT(NTH,NP,NR,NSA)*DFT)
                   RSUM9 = RSUM9+PG(NP,NSBA)**2*SINM(NTH)/PV   &
-                         *(DWECPP(NTH,NP,NR,NSA)*DFP         &
-                          +DWECPT(NTH,NP,NR,NSA)*DFT)
+                          *(DWECPP(NTH,NP,NR,NSA)*DFP         &
+                       +DWECPT(NTH,NP,NR,NSA)*DFT)
                   RSUM_IC = RSUM_IC+PG(NP,NSBA)**2*SINM(NTH)/PV   &
-                         *(DWICPP(NTH,NP,NR,NSA)*DFP         &
-                          +DWICPT(NTH,NP,NR,NSA)*DFT)
+                              *(DWICPP(NTH,NP,NR,NSA)*DFP         &
+                               +DWICPT(NTH,NP,NR,NSA)*DFT)
                   DO NSB=1,NSBMAX
                      RSUM10(NSB)=RSUM10(NSB)+PG(NP,NSBA)**2*SINM(NTH)/PV &
-                         *(DCPP2(NTH,NP,NR,NSB,NSA)*DFP              &
-                          +DCPT2(NTH,NP,NR,NSB,NSA)*DFT              & 
-                          -FCPP2(NTH,NP,NR,NSB,NSA)*FFP)
+                             *(DCPP2(NTH,NP,NR,NSB,NSA)*DFP              &
+                              +DCPT2(NTH,NP,NR,NSB,NSA)*DFT              & 
+                              -FCPP2(NTH,NP,NR,NSB,NSA)*FFP)
                   END DO
                   RSUM12 = RSUM12+PG(NP,NSBA)**2*SINM(NTH)/PV   &
-                         *(DPP(NTH,NP,NR,NSA)*DFP           &
-                          +DPT(NTH,NP,NR,NSA)*DFT           &
-                          -FPP(NTH,NP,NR,NSA)*FFP           &
-                       )
+                             *(DPP(NTH,NP,NR,NSA)*DFP           &
+                              +DPT(NTH,NP,NR,NSA)*DFT           &
+                              -FPP(NTH,NP,NR,NSA)*FFP           &
+                              )
                ENDDO
             ENDDO
-!      SOURCE POWER
 
+!      SOURCE POWER
             IF(MODELR.eq.1)THEN
                DO NP=1,NPMAX
                   PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
                   DO NTH=1,NTHMAX
-!                  RSUM11B=RSUM11B+PM(NP,NSBA)**4*SINM(NTH)/PV    &
-!                       *SPPB(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)
-!                  RSUM11F=RSUM11F+PM(NP,NSBA)**4*SINM(NTH)/PV    &
-!                       *SPPF(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)
-!                  RSUM11S=RSUM11S+PM(NP,NSBA)**4*SINM(NTH)/PV    &
-!                       *SPPS(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)
-!                  RSUM11L=RSUM11L+PM(NP,NSBA)**4*SINM(NTH)/PV    &
-!                       *PPL(NTH,NP,NR,NSA)*FNS(NTH,NP,NR,NSBA)*RLAMDAG(NTH,NR)
                      RSUM11B = RSUM11B + PM(NP,NSBA)**2*SINM(NTH) &
-                          *(PV-1.D0)/THETA0(NSA)*RLAMDA(NTH,NR)*SPPB(NTH,NP,NR,NSA)
+                          *(PV-1.D0)/THETA0(NSA)*SPPB(NTH,NP,NR,NSA)!*RLAMDA(NTH,NR)
                      RSUM11F = RSUM11F + PM(NP,NSBA)**2*SINM(NTH) &
-                          *(PV-1.D0)/THETA0(NSA)*RLAMDA(NTH,NR)*SPPF(NTH,NP,NR,NSA)
+                          *(PV-1.D0)/THETA0(NSA)*SPPF(NTH,NP,NR,NSA)!*RLAMDA(NTH,NR)
                      RSUM11S = RSUM11S + PM(NP,NSBA)**2*SINM(NTH) &
-                          *(PV-1.D0)/THETA0(NSA)*RLAMDA(NTH,NR)*SPPS(NTH,NP,NR,NSA)
+                          *(PV-1.D0)/THETA0(NSA)*SPPS(NTH,NP,NR,NSA)!*RLAMDA(NTH,NR)
                      RSUM11L = RSUM11L + PM(NP,NSBA)**2*SINM(NTH) &
-                          *(PV-1.D0)/THETA0(NSA)*RLAMDA(NTH,NR)*PPL(NTH,NP,NR,NSA) &
-                          *FNS(NTH,NP,NR,NSBA)
+                          *(PV-1.D0)/THETA0(NSA)* PPL(NTH,NP,NR,NSA)&!*RLAMDA(NTH,NR) &
+                          *FNS1(NTH,NP,NR,NSBA)
                   END DO
                END DO
             ELSE ! MODELR=0
@@ -281,7 +273,7 @@
                           *0.5D0*PM(NP,NSBA)**2*RLAMDAG(NTH,NR)*SPPS(NTH,NP,NR,NSA)
                      RSUM11L = RSUM11L + PM(NP,NSBA)**2*SINM(NTH) &
                           *0.5D0*PM(NP,NSBA)**2*RLAMDAG(NTH,NR)*PPL(NTH,NP,NR,NSA) &
-                          *FNS(NTH,NP,NR,NSBA)
+                          *FNS1(NTH,NP,NR,NSBA)
                   END DO
                END DO
             END IF
@@ -293,28 +285,22 @@
             DO NP=2,NP_BULK(NR,NSA)
                PV=SQRT(1.D0+THETA0(NSA)*PG(NP,NSBA)**2)
                DO NTH=1,NTHMAX
-                  IF(FNS(NTH,NP,NR,NSA).gt.0.D0.and.FNS(NTH,NP-1,NR,NSA).gt.0.D0)THEN
+                  IF(FNS1(NTH,NP,NR,NSA).gt.0.D0.and.FNS1(NTH,NP-1,NR,NSA).gt.0.D0)THEN
                      DFDP=DELP(NSA)/ &
-                       ( log(FNS(NTH,NP,NR,NSA))-log(FNS(NTH,NP-1,NR,NSA)) )
+                       ( log(FNS1(NTH,NP,NR,NSA))-log(FNS1(NTH,NP-1,NR,NSA)) )
                   ELSE
                      WPL=WEIGHP(NTH  ,NP,NR,NSA)
-                     FFP=   ( (1.D0-WPL)*FNS(NTH  ,NP  ,NR,NSBA)  &
-                          +WPL *FNS(NTH  ,NP-1,NR,NSBA) )
+                     FFP=   ( (1.D0-WPL)*FNS1(NTH  ,NP  ,NR,NSBA)  &
+                          +WPL *FNS1(NTH  ,NP-1,NR,NSBA) )
                      DFDP=DELP(NSA)*FFP/(                         &
-                          FNS(NTH,NP,NR,NSA)-FNS(NTH,NP-1,NR,NSA) )
+                          FNS1(NTH,NP,NR,NSA)-FNS1(NTH,NP-1,NR,NSA) )
                   END IF
                   T_BULK(NTH,NP)=-PG(NP,NSA)*PTFP0(NSA)*DFDP &
                           /AEE/1.D3*VTFP0(NSA)/PV 
-                  RSUM_T = RSUM_T + T_BULK(NTH,NP)*VOLP(NTH,NP,NSBA)!*FNS(NTH,NP,NR,NSBA)
-                  RSUM_V = RSUM_V + VOLP(NTH,NP,NSBA)!*FNS(NTH,NP,NR,NSBA)
-
-!                  IF(NSA.eq.4) WRITE(10,'(10E14.6)') &
-!                       PG(NP,NSA)*COSM(NTH), PG(NP,NSA)*SINM(NTH),T_BULK(NTH,NP), FFP, DFDP
+                  RSUM_T = RSUM_T + T_BULK(NTH,NP)*VOLP(NTH,NP,NSBA)
+                  RSUM_V = RSUM_V + VOLP(NTH,NP,NSBA)
                END DO
             END DO
-!            IF(NSA.eq.4) WRITE(10,*) "  " 
-!            IF(NSA.eq.4) WRITE(10,*) "  " 
-
 
             RTL_BULK(NR,NSA)=RSUM_T/RSUM_V
 !-------    Calculation of bulk temperature
@@ -335,40 +321,40 @@
                   WRL=WEIGHR(NTH,NP,NR,NSA)
                   WRH=WEIGHR(NTH,NP,NR+1,NSA)
                   IF(NR.ne.1.and.NR.ne.NRMAX)THEN
-                     DFDR_R1 = ( FNS(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)/RFSADG(NR) &
-                          -FNS(NTH,NP,NR-1,NSA)*RLAMDAG(NTH,NR-1)/RFSADG(NR-1) &
+                     DFDR_R1 = ( FNS(NTH,NP,NR,NSA)&!*RLAMDAG(NTH,NR)/RFSADG(NR) &
+                          -FNS(NTH,NP,NR-1,NSA)&!*RLAMDAG(NTH,NR-1)/RFSADG(NR-1) &
                           ) / DELR
-                     F_R1 = ( (1.D0-WRL)*FNS(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)/RFSADG(NR) &
-                          + WRL*FNS(NTH,NP,NR-1,NSA)*RLAMDAG(NTH,NR-1)/RFSADG(NR-1) )
+                     F_R1 = ( (1.D0-WRL)*FNS(NTH,NP,NR,NSA) + WRL*FNS(NTH,NP,NR-1,NSA) ) !&
+!                          *RLAMDA_GG(NTH,NR)/RFSAD_GG(NR)
 
-                     DFDR_R2 = ( FNS(NTH,NP,NR+1,NSA)*RLAMDAG(NTH,NR+1)/RFSADG(NR+1) &
-                          -FNS(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)/RFSADG(NR) &
+                     DFDR_R2 = ( FNS(NTH,NP,NR+1,NSA)&!*RLAMDAG(NTH,NR+1)/RFSADG(NR+1) &
+                          -FNS(NTH,NP,NR,NSA)&!*RLAMDAG(NTH,NR)/RFSADG(NR) &
                           ) / DELR
-                     F_R2 = ( (1.D0-WRH)*FNS(NTH,NP,NR+1,NSA)*RLAMDAG(NTH,NR+1)/RFSADG(NR+1) &
-                          + WRH*FNS(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)/RFSADG(NR) )
+                     F_R2 = ( (1.D0-WRH)*FNS(NTH,NP,NR+1,NSA) + WRH*FNS(NTH,NP,NR,NSA) )!&
+!                          *RLAMDA_GG(NTH,NR+1)/RFSAD_GG(NR+1)
 
                      DFDT_R1 = ( DRR(NTH,NP,NR,NSA)*DFDR_R1 - FRR(NTH,NP,NR,NSA)*F_R1 )*RG(NR)
                      DFDT_R2 = ( DRR(NTH,NP,NR+1,NSA)*DFDR_R2 - FRR(NTH,NP,NR+1,NSA)*F_R2)*RG(NR+1)
                   ELSEIF(NR.eq.1)THEN
-                     F_R2 = ( (1.D0-WRH)*FNS(NTH,NP,NR+1,NSA)*RLAMDAG(NTH,NR+1)/RFSADG(NR+1) &
-                          + WRH*FNS(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)/RFSADG(NR) )
-                     DFDR_R2 = ( FNS(NTH,NP,NR+1,NSA)*RLAMDAG(NTH,NR+1)/RFSADG(NR+1) &
-                          -FNS(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)/RFSADG(NR) &
+                     F_R2 = ( (1.D0-WRH)*FNS(NTH,NP,NR+1,NSA) + WRH*FNS(NTH,NP,NR,NSA) )!&
+!                          *RLAMDA_GG(NTH,NR+1)/RFSAD_GG(NR+1)
+                     DFDR_R2 = ( FNS(NTH,NP,NR+1,NSA)&!*RLAMDAG(NTH,NR+1)/RFSADG(NR+1) &
+                          -FNS(NTH,NP,NR,NSA)&!*RLAMDAG(NTH,NR)/RFSADG(NR) &
                           ) / DELR
 
                      DFDT_R1 = 0.D0
                      DFDT_R2 = ( DRR(NTH,NP,NR+1,NSA)*DFDR_R2 - FRR(NTH,NP,NR+1,NSA)*F_R2)*RG(NR+1)
                   ELSEIF(NR.eq.NRMAX)THEN
-                     F_R1 = ( (1.D0-WRL)*FNS(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)/RFSADG(NR) &
-                          + WRL*FNS(NTH,NP,NR-1,NSA)*RLAMDAG(NTH,NR-1)/RFSADG(NR-1) )
-                     DFDR_R1 = ( FNS(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)/RFSADG(NR) &
-                          -FNS(NTH,NP,NR-1,NSA)*RLAMDAG(NTH,NR-1)/RFSADG(NR-1) &
+                     F_R1 = ( (1.D0-WRL)*FNS(NTH,NP,NR,NSA) + WRL*FNS(NTH,NP,NR-1,NSA) )!&
+!                          *RLAMDA_GG(NTH,NR)/RFSAD_GG(NR)
+                     DFDR_R1 = ( FNS(NTH,NP,NR,NSA)&!*RLAMDAG(NTH,NR)/RFSADG(NR) &
+                          -FNS(NTH,NP,NR-1,NSA)&!*RLAMDAG(NTH,NR-1)/RFSADG(NR-1) &
                           ) / DELR
 
-                     F_R2 = ( (1.D0-WRH)*FS2(NTH,NP,NSA)*RLAMDAG(NTH,NR+1)/RFSADG(NR+1) &
-                          + WRH*FNS(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)/RFSADG(NR) )
-                     DFDR_R2 = ( FS2(NTH,NP,NSA)*RLAMDAG(NTH,NR+1)/RFSADG(NR+1) &
-                          -FNS(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)/RFSADG(NR) &
+                     F_R2 = ( (1.D0-WRH)*FS2(NTH,NP,NSA) + WRH*FNS(NTH,NP,NR,NSA) )!&
+!                          *RLAMDA_GG(NTH,NR+1)/RFSAD_GG(NR+1)
+                     DFDR_R2 = ( FS2(NTH,NP,NSA)&!*RLAMDAG(NTH,NR+1)/RFSADG(NR+1) &
+                          -FNS(NTH,NP,NR,NSA)&!*RLAMDAG(NTH,NR)/RFSADG(NR) &
                           ) / DELR
 
                      DFDT_R1 = ( DRR(NTH,NP,NR,NSA)*DFDR_R1 - FRR(NTH,NP,NR,NSA)*F_R1 )*RG(NR)
@@ -376,8 +362,8 @@
                   END IF
 
                   DINT_DR = ( DFDT_R2 - DFDT_R1 )
-                  SRHOR1 = SRHOR1 + DFDT_R1*VOLP(NTH,NP,NSBA)
-                  SRHOR2 = SRHOR2 + DFDT_R2*VOLP(NTH,NP,NSBA)
+!                  SRHOR1 = SRHOR1 + DFDT_R1*VOLP(NTH,NP,NSBA)
+!                  SRHOR2 = SRHOR2 + DFDT_R2*VOLP(NTH,NP,NSBA)
 
                   RSUMN_DR=RSUMN_DR +             DINT_DR*VOLP(NTH,NP,NSBA)
                   IF(MODELR.eq.1)THEN
@@ -402,11 +388,11 @@
 !               WRITE(*,*) NRSTART, NR, SRHOR1, SRHOR2
 !            END IF
 
-            RNDRL(NR,NSA)=RNFP0(NSA)*RSUMN_DR/(DELR*RM(NR))
+            RNDRL(NR,NSA)=RNFP0(NSA)*RSUMN_DR/(DELR*RM(NR))!*RFSADG(NR)
             RPDRL(NR,NSA)=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)*1.D-6 &
-                 *RSUM_DR/(DELR*RM(NR))
+                 *RSUM_DR/(DELR*RM(NR))!*RFSADG(NR)
             IF(NR.eq.NRMAX)THEN
-               RNDRS(NSA) = RNFP0(NSA)*RSUMN_DRS * 2.D0
+               RNDRS(NSA) = RNFP0(NSA)*RSUMN_DRS/(DELR*RM(NR))!* 2.D0
                RPDRS(NSA) = RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)*1.D-6 &
                  *RSUM_DRS/(DELR*RM(NR))
             END IF
@@ -415,12 +401,12 @@
 ! --------- end of radial transport
                
  888        FORMAT(2I4,12E14.6)
-            FACT=RNFP0(NSA)*1.D20/RFSADG(NR)!*RCOEFNG(NR)
+            FACT=RNFP0(NSA)*1.D20/RFSADG(NR)*RCOEFNG(NR)
             RNSL(NR,NSA) = RSUM1*FACT                   *1.D-20
             RJSL(NR,NSA) = RSUM2*FACT*AEFP(NSA)*PTFP0(NSA) &
                            /AMFP(NSA)*1.D-6
 
-            FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)/RFSADG(NR)!*RCOEFNG(NR)
+            FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)/RFSADG(NR) *RCOEFNG(NR)
             RWSL(NR,NSA) = RSUM3*FACT               *1.D-6
             RWS123L(NR,NSA) =-RSUM12*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             RPCSL(NR,NSA)=-RSUM4*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
@@ -436,7 +422,7 @@
             END DO
 
 !            FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)*0.5D0!*RCOEFNG(NR)
-            FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)/RFSADG(NR)
+            FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)!/RFSADG(NR)*RCOEFNG(NR)
             RSPBL(NR,NSA)= RSUM11B*FACT*2.D0*PI*DELP(NSBA)*DELTH*1.D-6
             RSPFL(NR,NSA)= RSUM11F*FACT*2.D0*PI*DELP(NSBA)*DELTH*1.D-6
             RSPSL(NR,NSA)= RSUM11S*FACT*2.D0*PI*DELP(NSBA)*DELTH*1.D-6

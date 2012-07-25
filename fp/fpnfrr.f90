@@ -333,20 +333,20 @@
       DO NP2=1,NPMAX
       DO NTH2=1,NTHMAX
          RSUM=0.D0
-         FACT2 = VOLP(NTH2,NP2,NSB2)*FNS(NTH2,NP2,NR,NSB2)*RLAMDA(NTH2,NR)/RFSADG(NR)
+         FACT2 = VOLP(NTH2,NP2,NSB2)*FNS1(NTH2,NP2,NR,NSB2)!*RLAMDA(NTH2,NR)/RFSADG(NR)*RCOEFNG(NR)
          DO NP1=1,NPMAX
          DO NTH1=1,NTHMAX
-            FACT1 = VOLP(NTH1,NP1,NSB1)*FNS(NTH1,NP1,NR,NSB1)*RLAMDA(NTH1,NR)/RFSADG(NR)
+            FACT1 = VOLP(NTH1,NP1,NSB1)*FNS1(NTH1,NP1,NR,NSB1)!*RLAMDA(NTH1,NR)/RFSADG(NR)*RCOEFNG(NR)
             FACT3 = SIGMAV_NF(NTH1,NP1,NTH2,NP2,ID) * FACT
 
             RATE_NF_D1(NTH1,NP1,NR,ID) = RATE_NF_D1(NTH1,NP1,NR,ID) &
-                 +                     FNS(NTH1,NP1,NR,NSB1) &
+                 +                     FNS1(NTH1,NP1,NR,NSB1) &
                  * FACT2 &
                  * FACT3
             
             RATE_NF_D2(NTH2,NP2,NR,ID) = RATE_NF_D2(NTH2,NP2,NR,ID) &
                  + FACT1 &
-                 *                     FNS(NTH2,NP2,NR,NSB2) &
+                 *                     FNS1(NTH2,NP2,NR,NSB2) &
                  * FACT3
          END DO
          END DO
@@ -358,8 +358,8 @@
       DO NP1=1,NPMAX
       DO NTH1=1,NTHMAX
          RSUM2 = RSUM2 &
-              + RATE_NF_D1(NTH1,NP1,NR,ID) *VOLP(NTH1,NP1,NSB1) &
-              * RLAMDA(NTH1,NR)/RFSADG(NR)
+              + RATE_NF_D1(NTH1,NP1,NR,ID) *VOLP(NTH1,NP1,NSB1) !&
+!              * RLAMDA(NTH1,NR)/RFSADG(NR)*RCOEFNG(NR)
       END DO
       END DO
 

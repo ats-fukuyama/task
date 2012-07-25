@@ -20,7 +20,7 @@ MODINCLUDE= -I.$(MOD) -I../../task/lib/$(MOD) \
             -I../../task/plx/$(MOD) -I../../task/eq/$(MOD) \
             -I../../bpsd/$(MOD) -I../../task/mtxp
 
-SRCS = fpcomm.f90 fpinit.f90 fpbroadcast.f90 fpexec.f90 fpsave.f90 \
+SRCS = fpcomm.f90 fpinit.f90 fpbroadcast.f90 fpexec.f90 fpdrexec.f90 fpsave.f90 \
        fpwmin.f90 fpwrin.f90 fpcalwm.f90 fpcalwr.f90 fpcalw.f90 \
        fpcalcn.f90 fpcalcnr.f90 fpcalc.f90 fpnfrr.f90 fpcoef.f90 \
        fpbounce.f90 fpprep.f90 fploop.f90 \
@@ -43,6 +43,10 @@ fplib.a: $(OBJS)
 
 ../../bpsd/bpsdlib.a:
 	(cd ../../bpsd; make bpsdlib.a)
+../../task/plx/pllib.a:
+	(cd ../plx; make pllib.a)
+../../task/eq/eqlib.a:
+	(cd ../../task/eq; make eqlib.a)
 ../../task/mtxp/libmtxksp.o:
 	(cd ../../task/mtxp; make libmtxksp.o)
 ../../task/mtxp/libmtxbnd.o:
@@ -53,10 +57,6 @@ fplib.a: $(OBJS)
 	(cd ../../task/mtxp; make libmtxnompi.o)
 ../../task/lib/tasklib.a:
 	(cd ../../task/lib; make tasklib.a)
-../../task/plx/pllib.a:
-	(cd ../plx; make pllib.a)
-../../task/eq/eqlib.a:
-	(cd ../../task/eq; make eqlib.a)
 
 libs:
 	(cd ../../bpsd; make bpsdlib.a)
@@ -88,6 +88,7 @@ fpinit.o : fpinit.f90 fpcomm.f90
 fpprep.o : fpprep.f90 fpcomm.f90
 fploop.o : fploop.f90 fpcomm.f90
 fpexec.o : fpexec.f90 fpcomm.f90
+fpdrexec.o : fpdrexec.f90 fpcomm.f90
 fpbroadcast.o : fpbroadcast.f90 fpcomm.f90
 fpcoef.o : fpcoef.f90 fpcomm.f90
 fpcalc.o : fpcalc.f90 fpcomm.f90

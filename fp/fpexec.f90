@@ -105,7 +105,7 @@
                DO NTH=1,NTHMAX/2
                   NM=NMA(NTH,NP,NR)
                   BM(NM)=(RLAMDA(NTH,NR)+(1.D0-RIMPL)*DELT*DL(NM))*FM(NM) &
-                        +DELT*SPP(NTH,NP,NR,NSA)
+                        +DELT*SPP(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)
                   IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
                      CALL mtx_set_matrix(nm,nm, &
                                          RLAMDA(NTH,NR)-RIMPL*DELT*DL(NM))
@@ -125,7 +125,7 @@
                DO NTH=ITU(NR)+1,NTHMAX
                   NM=NMA(NTH,NP,NR)
                   BM(NM)=(RLAMDA(NTH,NR)+(1.D0-RIMPL)*DELT*DL(NM))*FM(NM) &
-                        +DELT*SPP(NTH,NP,NR,NSA)
+                        +DELT*SPP(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)
                   IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
                      CALL mtx_set_matrix(nm,nm, &
                                          RLAMDA(NTH,NR)-RIMPL*DELT*DL(NM))
@@ -170,6 +170,17 @@
             CALL mtx_set_source(nm,BM(NM))
          ENDIF
       ENDDO
+
+!      DO NR=NRSTART,NREND
+!      DO NP=1,NPMAX
+!         IF(NR.eq.2.and.NP.eq.NPMAX)THEN
+!            DO NTH=NTHMAX/2+1,ITU(NR)
+!               NM=NMA(NTH,NP,NR)
+!               WRITE(*,'(I4,E14.6)') NTH, BM(NM)
+!            ENDDO
+!         END IF
+!      ENDDO
+!      ENDDO
 
 !     ----- Solve matrix equation -----
 
@@ -474,12 +485,12 @@
       DO NTH=1,NTHMAX
          FVEL=FRR(NTH,NP,NR,NSA)
          DVEL=DRR(NTH,NP,NR,NSA)
-!         WEIGHR(NTH,NP,NR,NSA)=FPWEGH(-DELR*FVEL,DVEL)
-         IF(NR.ne.1.and.NR.ne.NRMAX+1)THEN
-            WEIGHR(NTH,NP,NR,NSA)=(4.D0*RG(NR)+DELR)/(8.D0*RG(NR))
-         ELSE
-            WEIGHR(NTH,NP,NR,NSA)=0.5D0
-         ENDIF
+         WEIGHR(NTH,NP,NR,NSA)=FPWEGH(-DELR*FVEL,DVEL)
+!         IF(NR.ne.1)THEN
+!            WEIGHR(NTH,NP,NR,NSA)=(4.D0*RG(NR)+DELR)/(8.D0*RG(NR))
+!         ELSE
+!            WEIGHR(NTH,NP,NR,NSA)=0.5D0
+!         ENDIF
       ENDDO
       ENDDO
       ENDDO
@@ -589,14 +600,10 @@
 !            IF(NTH.GE.ITL(NR)+1.AND.NTH.LE.ITL(NR-1)) THEN 
             IF(NTH.GE.ITL(NR).AND.NTH.LT.ITL(NR-1)) THEN 
 !               NTBM=ITU(NR-1)+ITL(NR-1)-NTH+1
-               NTBM=ITU(NR)
+!               NTBM=ITU(NR)
+               NTBM=NTHMAX+1-NTH
             ENDIF
          ENDIF
-!         IF(NR+1.LE.NRMAX) THEN
-!            IF(NTH.GE.ITU(NR)+1.AND.NTH.LE.ITU(NR+1)) THEN
-!               NTBP=ITL(NR+1)+ITU(NR+1)-NTH+1
-!            ENDIF
-!         ENDIF
       END IF ! MODELA
 
       NL=0
@@ -623,9 +630,6 @@
       IF(NTBM.NE.0) THEN
          DRRM=0.5D0*DRRM
       ENDIF
-!      IF(NTBP.NE.0) THEN
-!         DRRP=0.5D0*DRRP
-!      ENDIF
 !     delta
       WPM=WEIGHP(NTH  ,NP  ,NR  ,NSA)
       WPP=WEIGHP(NTH  ,NP+1,NR  ,NSA)
@@ -652,10 +656,6 @@
          WRBM=WEIGHR(NTBM,NP  ,NR,NSA)
          VRBM=1.D0-WRBM
       ENDIF
-!      IF(NTBP.NE.0) THEN
-!         WRBP=WEIGHR(NTBP,NP  ,NR+1,NSA)
-!         VRBP=1.D0-WRBP
-!      ENDIF
       DIVDPP=1.D0/(     PL*PL*DELP(NSBA) *DELP(NSBA))
       DIVDPT=1.D0/(2.D0*PL*PL*DELP(NSBA) *DELTH)
       DIVDTP=1.D0/(2.D0*PL*SL*DELTH*DELP(NSBA))
@@ -671,7 +671,8 @@
 !      ENDIF
 
       IF(MODELD.GT.0) THEN
-         IF(NR.NE.1.AND.NP.NE.NPMAX) THEN
+!         IF(NR.NE.1.AND.NP.NE.NPMAX) THEN
+         IF(NR.NE.1) THEN
             NL=NL+1
             LL(NM,NL)=NMA(NTH,NP,NR-1)
             AL(NM,NL)=DRR(NTH  ,NP  ,NR,NSA)    *DIVDRR*DRRM &
@@ -848,7 +849,8 @@
       ENDIF
 
       IF(MODELD.GT.0) THEN!
-         IF(NR.NE.NRMAX.AND.NP.NE.NPMAX) THEN
+!         IF(NR.NE.NRMAX.AND.NP.NE.NPMAX) THEN
+         IF(NR.NE.NRMAX) THEN
             NL=NL+1
             LL(NM,NL)=NMA(NTH,NP,NR+1)
             AL(NM,NL)=DRR(NTH  ,NP  ,NR+1,NSA)    *DIVDRR*DRRP &
@@ -916,9 +918,9 @@
          IF(NTBM.ne.0)THEN
             DL(NM)= DL(NM) &
                  -DRR(NTBM ,NP  ,NR  ,NSA)    *DIVDRR*DRRM &
-                               *RLAMDAG(NTH,NR)/RFSADG(NR) &
+                               *RLAMDAG(NTBM,NR)/RFSADG(NR) &
                  +FRR(NTBM ,NP  ,NR  ,NSA)*VRM*DIVFRR*DRRM &
-                               *RLAMDAG(NTH,NR)/RFSADG(NR)
+                               *RLAMDAG(NTBM,NR)/RFSADG(NR)
          END IF
 !            IF(NR.NE.NRMAX) THEN
 !               DL(NM)= DL(NM) &
@@ -953,12 +955,15 @@
       SPP(NTH,NP,NR,NSA) &
               =( SPPB(NTH,NP,NR,NSA) &
                 +SPPF(NTH,NP,NR,NSA) &
-                +SPPS(NTH,NP,NR,NSA) )!*RLAMDAG(NTH,NR)
+                +SPPS(NTH,NP,NR,NSA) )
+
       IF(MODELD.GT.0.AND.NR.EQ.NRMAX) THEN
-         SPP(NTH,NP,NR,NSA)=SPP(NTH,NP,NR,NSA) &
-              +FS2(NTH,NP,NSA)*RLAMDAG(NTH,NRMAX+1)/RFSADG(NRMAX+1) &
+         SPPD(NTH,NP,NSA)= &!SPPD(NTH,NP,NSA)+ &
+              FS2(NTH,NP,NSA)*RLAMDAG(NTH,NRMAX+1)/RFSADG(NRMAX+1) &
               *(DRR(NTH,NP,NR+1,NSA)    *DIVDRR &
                -FRR(NTH,NP,NR+1,NSA)*VRP*DIVFRR)*DRRP
+         SPP(NTH,NP,NR,NSA) = SPP(NTH,NP,NR,NSA) &
+              + SPPD(NTH,NP,NSA)
       ENDIF
 
 !         IF(NP.NE.NPMAX) THEN
