@@ -118,8 +118,8 @@ CONTAINS
     neq = 1
     nsa_neq(neq) = 0
     nva_neq(neq) = 0
-    id_neq(neq)  = 2
-!    id_neq(neq)  = 0
+!    id_neq(neq)  = 2
+    id_neq(neq)  = 0
 
     DO nsa=1,nsamax
        DO i=1,3
@@ -398,7 +398,7 @@ CONTAINS
          rg,rm,rhog,rhom,ra,rr,rn,ru,rt,rp,rp_tot,          &
          ttrho,dvrho,arrho,ar1rho,rdpvrho,dpdrho,           &
          mdluf,jtot,joh,jbs_nc,jex_nc
-    USE trcalc, ONLY: tr_calc_dpdrho2j
+    USE trloop, ONLY: tr_calc_dpdrho2j
     USE plprof, ONLY: pl_prof2,pl_qprf
                       
     IMPLICIT NONE

@@ -8,7 +8,7 @@ MODDIR = -module ../mod
 .SUFFIXES: .f .f90 .mod .o .a
 
 #FFLAGS = $(OFLAGS)
-FFLAGS = $(DFLAGS)
+FFLAGS = $(DFLAGS) -g
 
 MODINCLUDE=-I $(BPSDDIR)/mod -I $(TASKDIR)/plx/mod -I $(TASKDIR)/lib/mod \
            -I $(MOD) -I mmm7_1
@@ -44,10 +44,10 @@ trmodelslib.a: $(OBJS) $(INCNC) $(INCGLF)
 	$(LD) $(LDFLAGS) trmodelslib.a $(OBJS)
 
 clean : 
-	rm -f ./#* ./*f90~ *.o nclass/*.o itg/*.o glf/*.o cytran/*.o MMM7_1/*.o mmm95/*.o mbgb/*.o cdbm/*.o a.out core *.a *.mod 
+	rm -f ./#* ./*f90~ *.o nclass/*.o itg/*.o glf/*.o cytran/*.o mmm7_1/*.o mmm95/*.o mbgb/*.o cdbm/*.o a.out core *.a *.mod 
 
 veryclean : 
-	rm -f ./#* ./*~ *.o nclass/*.o itg/*.o glf/*.o cytran/*.o MMM7_1/*.o mmm95/*.o mbgb/*.o cdbm/*.o a.out core *.a *.mod
+	rm -f ./#* ./*~ *.o nclass/*.o itg/*.o glf/*.o cytran/*.o mmm7_1/*.o mmm95/*.o mbgb/*.o cdbm/*.o a.out core *.a *.mod
 
 tritg.o  : tritg.f90
 glf/callglf2d.o : glf/callglf2d.f glf/glf.m

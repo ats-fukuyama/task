@@ -126,11 +126,11 @@ CONTAINS
           rp_d(nsa,nr) = (rp(nsa,nr)-rp(nsa,nr-1)) / dr
        END DO
 
-       rn_ed(nr)   = (rn_e(nr)-rn_e(nr-1)) / dr
-       rn_id(nr)   = (rn_i(nr)-rn_i(nr-1)) / dr
-       rt_ed(nr)   = (rt_e(nr)-rt_e(nr-1)) / dr
-       rt_id(nr)   = (rt_i(nr)-rt_i(nr-1)) / dr
-       rp_totd(nr) = (rp_tot(nr)-rp_tot(nr-1)) / dr
+       rn_ed(nr)   = (rn_e(nr)   -   rn_e(nr-1)) / dr
+       rn_id(nr)   = (rn_i(nr)   -   rn_i(nr-1)) / dr
+       rt_ed(nr)   = (rt_e(nr)   -   rt_e(nr-1)) / dr
+       rt_id(nr)   = (rt_i(nr)   -   rt_i(nr-1)) / dr
+       rp_totd(nr) = (rp_tot(nr) - rp_tot(nr-1)) / dr
 
        ! scale length ( (d XX/d rho)/XX ) on half grids
        rt_ecl(nr)  = rt_ed(nr) / (0.5d0*(rt_e(nr)+rt_e(nr-1)))
@@ -214,7 +214,7 @@ CONTAINS
 
        IF(mdler.EQ.0) THEN
           ! pressure gradient only (nabla p)
-          er(nr)  = term_dp
+          er(nr) = term_dp
        ELSE IF(mdler.EQ.1) THEN
           ! nabla p + toroidal rotation (V_tor)
           er(nr) = term_dp+vtor(nr)*bp(nr)
@@ -255,37 +255,59 @@ CONTAINS
 ! --------------------------------------------------------------------------
 !       E x B velocity and velocity shear
 ! --------------------------------------------------------------------------
-    USE trcomm, ONLY: nrmax,RR,rhog,rmnrho,BB,dpdrho,bp,er &
-         ,nrd1,nrd2,nrd3,nrd4, &
-         vexbp,dvexbpdr,wexbp
+    USE trcomm, ONLY: nrmax,RR,rhog,rhom,BB,dpdrho,bp,er, &
+         vexbp,dvexbpdr,wexbp, &
+         nrd1,nrd2,nrd3,nrd4
 
     IMPLICIT NONE
     INTEGER(ikind) :: nr
-    REAL(rkind) :: deriv3, bp_m
+    REAL(rkind) :: bp_m
+    REAL(rkind),DIMENSION(0:nrmax) :: dpvexbp,drhog
 
     vexbp(0:nrmax)    = 0.d0
     dvexbpdr(0:nrmax) = 0.d0
     wexbp(0:nrmax)    = 0.d0
 
-    ! on half grids
-    DO nr = 1, nrmax
-       bp_m = 0.5d0*(bp(nr)+bp(nr-1))
+    drhog(1:nrmax) = 0.5d0*(rhog(0:nrmax-1)-rhog(1:nrmax))
 
-       ! ExB velocity
-       vexbp(nr) = -er(nr) / (RR*bp_m) ! [1/s]
-       
+    ! on half grids
+
+    ! ExB velocity (toroidal angular speed) [1/s]
+    vexbp(1:nrmax) = -er(1:nrmax)/(RR*0.5d0*(bp(0:nrmax-1)+bp(1:nrmax)))
+
+    dpvexbp(1:nrmax) = vexbp(1:nrmax) &
+                      /(0.5d0*(dpdrho(0:nrmax-1)+dpdrho(1:nrmax)))
+
+    DO nr = 1, nrmax
+       bp_m  = 0.5d0*(bp(nr)+bp(nr-1))
+
        !:the 2nd order accuracy derivative of V_exb
-       dvexbpdr(nr) = deriv3(nr,rmnrho,vexbp,nrmax,0)
+!       dvexbpdr(nr) = deriv3(nr,rhom,dpvexbp,nrmax,1)
+       IF(nr==1)THEN
+          dvexbpdr(nr) = (dpvexbp(nr+1)-dpvexbp(nr)) &
+                        /(0.5d0*(drhog(1)+drhog(2)))
+       ELSE IF(nr == nrmax)THEN
+          dvexbpdr(nr) = (dpvexbp(nr)-dpvexbp(nr-1)) &
+                        /(0.5d0*(drhog(nrmax-1)+drhog(nrmax)))
+       ELSE
+          dvexbpdr(nr) = (dpvexbp(nr+1)-dpvexbp(nr-1)) &
+                        /(0.5d0*(drhog(nr-1)*drhog(nr+1))+drhog(nr))
+       END IF
+!       dvexbpdr(nr) = 0.d0
+
 
 !      ExB Rotation shear
 !       "Effects of {ExB} velocity shear and magnetic shear
 !           on turbulence and transport in magnetic confinement devices"
 !       [Phys. of Plasmas, 4, 1499 (1997)]          
-       wexbp(nr) = (RR*bp_m)**2/(dpdrho(nr)*sqrt(BB**2+bp_m**2)) &
+       wexbp(nr) = (RR*bp_m)**2/sqrt(BB**2+bp_m**2) &
                    *dvexbpdr(nr)
        ! wexbp(nr) = RR*bp(nr)*dvexbpdr(nr)/BB
 
     END DO
+
+    nrd3(0:nrmax) = bp(0:nrmax)
+    nrd4(1:nrmax) = dpvexbp(1:nrmax)
 
     RETURN
   END SUBROUTINE tr_calc_exb

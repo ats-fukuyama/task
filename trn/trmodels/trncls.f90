@@ -138,12 +138,15 @@ CONTAINS
     INTEGER(4)::  i,iz,k_out,k_v,na,nm,nr,ns,ns1,nsn,nsz
     REAL(4)   ::  a0,bt0,e0,p_eps,p_q,q0l,r0
     REAL(8)   ::  bpol,btor,btot,uthai
-    REAL(8)   ::  aitken2p,deriv4,FCTR
+    REAL(8)   ::  aitken2p,deriv4,deriv3,FCTR
 
     ! internal parameters for tr_nclass
     INTEGER(4) :: mdltpf ! interim definition of switch variables
     INTEGER(4) :: nsa,nsa1,nk,i_ns
-    REAL(8),DIMENSION(0:nrmax) :: eropsi,nr_array
+    REAL(8),DIMENSION(0:nrmax) :: eropsi,nr_array,drhog,rhom
+    REAL(8) :: rhom1,rhom2,abb1rhom,abb2rhom,aib2rhom, &
+         ttrhom,dpdrhom,ar1rhom,ar2rhom,epsrhom,qpm,bpm,etam,johm
+    REAL(8) :: cm,cp
 
     mdltpf=0
 
@@ -189,62 +192,74 @@ CONTAINS
     amu_i(1:nsamax) = SNGL(PA(1:nsamax))
 
     ! ----- preparation for calculatio in nr loop -----
-    eropsi(0:nrmax) = 0.d0
-    eropsi(1:nrmax) = er(1:nrmax)/ar1rho(1:nrmax) / dpdrho(1:nrmax)
+    eropsi(1:nrmax) = er(1:nrmax)                      &
+         /(0.5d0*(ar1rho(0:nrmax-1)+ar1rho(1:nrmax)))  &
+         /(0.5d0*(dpdrho(0:nrmax-1)+dpdrho(1:nrmax)))
       
     DO nr = 1, nrmax
+       drhog(nr) = rhog(nr)-rhog(nr-1)
+       rhom(nr)  = 0.5d0*(rhog(nr)    +    rhog(nr-1))
+       abb1rhom  = 0.5d0*(abb1rho(nr) + abb1rho(nr-1))
+       abb2rhom  = 0.5d0*(abb2rho(nr) + abb2rho(nr-1))
+       aib2rhom  = 0.5d0*(aib2rho(nr) + aib2rho(nr-1))
+       ar1rhom   = 0.5d0*(ar1rho(nr)  +  ar1rho(nr-1))
+       ar2rhom   = 0.5d0*(ar2rho(nr)  +  ar2rho(nr-1))
+       ttrhom    = 0.5d0*(ttrho(nr)   +   ttrho(nr-1))
+       dpdrhom   = 0.5d0*(dpdrho(nr)  +  dpdrho(nr-1))
+       epsrhom   = 0.5d0*(epsrho(nr)  +  epsrho(nr-1))
+       qpm       = 0.5d0*(qp(nr)      +      qp(nr-1))
+       bpm       = 0.5d0*(bp(nr)      +      bp(nr-1))
+       etam      = 0.5d0*(eta(nr)     +     eta(nr-1))
+       johm      = 0.5d0*(joh(nr)     +     joh(nr-1))
 
-       p_b2      = SNGL(abb2rho(nr))
-       p_bm2     = SNGL(aib2rho(nr))
-       p_fhat    = SNGL(ttrho(nr)/dpdrho(nr))
+
+       p_b2      = SNGL(abb2rhom)
+       p_bm2     = SNGL(aib2rhom)
+       p_fhat    = SNGL(ttrhom/dpdrhom)
        p_fm(1:3) = 0.0
-       IF(SNGL(epsrho(nr)).gt.0.0) THEN
+       IF(SNGL(epsrhom).gt.0.0) THEN
           DO i = 1, 3
              ! poloidal moments of geometic factor for PS viscosity (-)
              p_fm(i) = SNGL( & ! ??????????
-                  DBLE(i)                                              &
-                  *((1.D0-SQRT(1.D0-epsrho(nr)**2))/epsrho(nr))**(2*i) &
-                  *(1.D0+DBLE(i)*SQRT(1.D0-epsrho(nr)**2))             &
-                  /((1.D0-epsrho(nr)**2)**1.5D0*(QP(NR)*RR)**2)        &
+                  DBLE(i)                                        &
+                  *((1.D0-SQRT(1.D0-epsrhom**2))/epsrhom)**(2*i) &
+                  *(1.D0+DBLE(i)*SQRT(1.D0-epsrhom**2))          &
+                  /((1.D0-epsrhom**2)**1.5D0*(qpm*RR)**2)        &
                   )
           ENDDO
        ENDIF
        ! trapped particle fraction
-       p_ft     = SNGL(ftpf(mdltpf,epsrho(nr)))
-       p_grbm2  = SNGL(ar2rho(nr)*aib2rho(nr))
+       p_ft     = SNGL(ftpf(mdltpf,epsrhom))
+       p_grbm2  = SNGL(ar2rhom*aib2rhom)
        ! radial electric field phi' (V/rho)
-       p_grphi  = SNGL(er(nr)/ar1rho(nr))
-       p_gr2phi = SNGL(dpdrho(nr) * deriv4(nr,rhog,eropsi,nrmax,0))
+       p_grphi  = SNGL(er(nr)/ar1rhom)
+       p_gr2phi = SNGL(dpdrhom * deriv3(nr,rhom,eropsi,nrmax,1))
 !         p_gr2phi=0.0
-       p_ngrth  = SNGL(bp(nr)/(BB*rhog(nr))) ! ?????
+       p_ngrth  = SNGL(bpm/(BB*rhom(nr))) ! ?????
        
        i_ns = 0
        DO nsa = 1, nsamax ! only for ion
           ns=ns_nsa(nsa)
-!          IF(idnsa(nsa)==1)THEN
-             i_ns = i_ns + 1
+          i_ns = i_ns + 1
                
-             ! temperature of i (keV)
-             temp_i(i_ns) = SNGL(rt(nsa,nr))
-             ! temperature gradient of i (keV/rho)
-             nr_array(0:nrmax) = rt(nsa,0:nrmax)
-             grt_i(i_ns)  = SNGL(deriv4(nr,rhog,nr_array,nrmax,0))
-             ! density of i,z (/m**3)
-             den_iz(i_ns,INT(ABS(pz(ns)))) &
-                          = SNGL(rn(nsa,nr))*1.E20
-             ! pressure gradient of i,z (keV/m**3 /rho)
-             ! ***** PADD should be included *****
-             nr_array(0:nrmax) = rp(nsa,0:nrmax)/rkev
-             grp_iz(i_ns,INT(ABS(pz(ns)))) &
-                   = SNGL(deriv4(nr,rhog,nr_array(0:nrmax),nrmax,0))
-             DO i = 1, 3
-                ! moments of external parallel force on i,z (T*j/m**3)
-                fex_iz(i,i_ns,INT(ABS(pz(ns)))) = 0.0
-             ENDDO
-!          END IF
+          ! temperature of i (keV)
+          temp_i(i_ns) = SNGL(0.5d0*(rt(nsa,nr)+rt(nsa,nr-1)))
+          ! temperature gradient of i (keV/rho)
+          grt_i(i_ns)  = SNGL((rt(nsa,nr)-rt(nsa,nr-1))/drhog(nr))
+          ! density of i,z (/m**3)
+          den_iz(i_ns,INT(ABS(pz(ns)))) &
+                     = SNGL(0.5d0*(rn(nsa,nr)+rn(nsa,nr-1)))*1.E20
+          ! pressure gradient of i,z (keV/m**3 /rho)
+          ! ***** PADD should be included *****
+          grp_iz(i_ns,INT(ABS(pz(ns)))) &
+                     = SNGL((rp(nsa,nr)-rp(nsa,nr-1))/(drhog(nr)*rkev))
+          DO i = 1, 3
+             ! moments of external parallel force on i,z (T*j/m**3)
+             fex_iz(i,i_ns,INT(ABS(pz(ns)))) = 0.0
+          ENDDO
        ENDDO
        ! <E.B> (V*T/m)  *** E_para = eta_para * J_oh(para) ***
-       p_eb = SNGL(eta(nr)*joh(nr)*abb1rho(nr))
+       p_eb = SNGL(etam*johm*abb1rhom)
 
 
        CALL NCLASS( &
@@ -289,80 +304,51 @@ CONTAINS
           IF(iflag.NE. 0) WRITE(6,*) "XXX NCLASS error: iflag =",iflag
        ENDIF
 
+       ! *** interim substitution 
+       !  (Values on half grids -> arrays on grids)
        eta_nc(nr) = DBLE(p_etap)
-       jbs_nc(nr) = DBLE(p_bsjb)/abb1rho(nr)
-       jex_nc(nr) = DBLE(p_exjb)/abb1rho(nr)
+       jbs_nc(nr) = DBLE(p_bsjb)/abb1rhom
+       jex_nc(nr) = DBLE(p_exjb)/abb1rhom
 
+       ! For now, contribution of the flux driven by the external force
+       !  gfl_s(5,i)/n_i is not included.
        DO nsa = 1, nsamax
           cjbs_p(nsa,nr) = DBLE(bsjbp_s(nsa))
           cjbs_t(nsa,nr) = DBLE(bsjbt_s(nsa))
 
           ! flux form
           DO nk  = 1, 5
-             gfls(nk,nsa,nr) = DBLE(gfl_s(nk,nsa))*1.d-20/ar1rho(nr)
-             qfls(nk,nsa,nr) = DBLE(qfl_s(nk,nsa))*1.d-20/ar1rho(nr)
+             gfls(nk,nsa,nr) = DBLE(gfl_s(nk,nsa))*1.d-20/ar1rhom
+             qfls(nk,nsa,nr) = DBLE(qfl_s(nk,nsa))*1.d-20/ar1rhom
           ENDDO
           
           ! ADNCG : Diagonal diffusivity for graphic use only
-          dia_gdnc(nsa,nr) = DBLE(dn_s(nsa))/ar2rho(nr)
+          dia_gdnc(nsa,nr) = DBLE(dn_s(nsa))/ar2rhom
+
           ! AVNCG : Off-diagonal part driven pinch and neoclassical pinch
           !          for graphic use only
-!          dia_gvnc(nsa,nr) = DBLE(vn_s(nsa)+veb_s(nsa))/ar1rho(nr)
-          dia_gvnc(nsa,nr) = DBLE(vn_s(nsa))/ar1rho(nr)
+          dia_gvnc(nsa,nr) = DBLE(vn_s(nsa)+veb_s(nsa))/ar1rhom
+!          dia_gvnc(nsa,nr) = DBLE(vn_s(nsa))/ar1rhom
 
-          vebs(nsa,nr) = DBLE(veb_s(nsa))/ar1rho(nr)
-          qebs(nsa,nr) = DBLE(qeb_s(nsa))/ar1rho(nr)
+          vebs(nsa,nr) = DBLE(veb_s(nsa))/ar1rhom
+          qebs(nsa,nr) = DBLE(qeb_s(nsa))/ar1rhom
 
           ! complete matrix form as coefficients of 
           !  the temperature gradients and the pressure gradients.
           DO nsa1 = 1, nsamax
-             chi_ncp(nsa,nsa1,nr) = DBLE(chip_ss(nsa,nsa1)) / ar2rho(nr)
-             chi_nct(nsa,nsa1,nr) = DBLE(chit_ss(nsa,nsa1)) / ar2rho(nr)
-             d_ncp(nsa,nsa1,nr)   = DBLE(  dp_ss(nsa,nsa1)) / ar2rho(nr)
-             d_nct(nsa,nsa1,nr)   = DBLE(  dt_ss(nsa,nsa1)) / ar2rho(nr)
+             chi_ncp(nsa,nsa1,nr) = DBLE(chip_ss(nsa,nsa1)) / ar2rhom
+             chi_nct(nsa,nsa1,nr) = DBLE(chit_ss(nsa,nsa1)) / ar2rhom
+
+             d_ncp(nsa,nsa1,nr)   = DBLE(  dp_ss(nsa,nsa1)) / ar2rhom
+             d_nct(nsa,nsa1,nr)   = DBLE(  dt_ss(nsa,nsa1)) / ar2rhom
           ENDDO
 
        ENDDO
 
-       ! *** extrapolate center value ***
-       eta_nc(0) = FCTR(rhog(1),rhog(2),eta_nc(1),eta_nc(2))
-       jbs_nc(0) = FCTR(rhog(1),rhog(2),jbs_nc(1),jbs_nc(2))
-       jex_nc(0) = FCTR(rhog(1),rhog(2),jex_nc(1),jex_nc(2))
-
-       DO nsa = 1, nsamax
-          cjbs_p(nsa,0)=FCTR(rhog(1),rhog(2),cjbs_p(nsa,1),cjbs_p(nsa,2))
-          cjbs_t(nsa,0)=FCTR(rhog(1),rhog(2),cjbs_t(nsa,1),cjbs_t(nsa,2))
-
-          DO nk = 1, 5
-             gfls(nk,nsa,0) = &
-                  FCTR(rhog(1),rhog(2),gfls(nk,nsa,1),gfls(nk,nsa,2))
-             qfls(nk,nsa,0) = &
-                  FCTR(rhog(1),rhog(2),qfls(nk,nsa,1),qfls(nk,nsa,2))
-          END DO
-
-          dia_gdnc(nsa,0) = &
-               FCTR(rhog(1),rhog(2),dia_gdnc(nsa,1),dia_gdnc(nsa,2))
-          dia_gvnc(nsa,0) = &
-               FCTR(rhog(1),rhog(2),dia_gvnc(nsa,1),dia_gvnc(nsa,2))
-          vebs(nsa,0)=FCTR(rhog(1),rhog(2),vebs(nsa,1),vebs(nsa,2))
-          qebs(nsa,0)=FCTR(rhog(1),rhog(2),qebs(nsa,1),qebs(nsa,2))
-
-          DO nsa1 = 1, nsamax
-             chi_ncp(nsa,nsa1,0) = &
-               FCTR(rhog(1),rhog(2),chi_ncp(nsa,nsa1,1),chi_ncp(nsa,nsa1,2))
-             chi_nct(nsa,nsa1,0) = &
-               FCTR(rhog(1),rhog(2),chi_nct(nsa,nsa1,1),chi_nct(nsa,nsa1,2))
-             d_ncp(nsa,nsa1,0) = &
-               FCTR(rhog(1),rhog(2),d_ncp(nsa,nsa1,1),d_ncp(nsa,nsa1,2))
-             d_nct(nsa,nsa1,0) = &
-               FCTR(rhog(1),rhog(2),d_nct(nsa,nsa1,1),d_nct(nsa,nsa1,2))
-          END DO
-       END DO
-
        ! neoclassical bulk ion toroidal and poloidal velocities
        IF(k_v.ne.0) THEN
           btor = bt0 / (1.0 + 0.5d0*p_eps**2)
-          bpol = ar1rho(nr)/r0 * dpdrho(nr)
+          bpol = ar1rhom/r0 * dpdrhom
           btot = SQRT(btor**2+bpol**2)*btor / ABS(btor)
 
           DO i = 1, m_s
@@ -382,6 +368,37 @@ CONTAINS
        ENDIF
 
     ENDDO ! end of nr loop
+
+
+    ! *** extrapolate center value ***
+    rhom1 = 0.5d0*(rhog(0)+rhog(1))
+    rhom2 = 0.5d0*(rhog(1)+rhog(2))
+    eta_nc(0) = FCTR(rhom1,rhom2,eta_nc(1),eta_nc(2))
+    jbs_nc(0) = FCTR(rhom1,rhom2,jbs_nc(1),jbs_nc(2))
+    jex_nc(0) = FCTR(rhom1,rhom2,jex_nc(1),jex_nc(2))
+    vpol(0) = FCTR(rhom1,rhom2,vpol(1),vpol(2))
+    vpar(0) = FCTR(rhom1,rhom2,vpar(1),vpar(2))
+    vprp(0) = FCTR(rhom1,rhom2,vprp(1),vprp(2))
+
+    ! *** interpolate values on grids linearly ***
+    DO nr = 1, nrmax-1
+       cm = drhog(nr+1) / (drhog(nr)+drhog(nr+1))
+       cp = drhog(nr  ) / (drhog(nr)+drhog(nr+1))
+       eta_nc(nr) = cm*eta_nc(nr) + cp*eta_nc(nr+1)
+       jbs_nc(nr) = cm*jbs_nc(nr) + cp*jbs_nc(nr+1)
+       jex_nc(nr) = cm*jex_nc(nr) + cp*jex_nc(nr+1)
+       vpol(nr)   = cm*vpol(nr)   + cp*vpol(nr+1)
+       vpar(nr)   = cm*vpar(nr)   + cp*vpar(nr+1)
+       vprp(nr)   = cm*vprp(nr)   + cp*vprp(nr+1)
+    END DO
+
+    ! *** extrapolate edge value ***
+    eta_nc(nrmax) = 2.d0*eta_nc(nrmax) - eta_nc(nrmax-1)
+    jbs_nc(nrmax) = 2.d0*jbs_nc(nrmax) - jbs_nc(nrmax-1)
+    jex_nc(nrmax) = 2.d0*jex_nc(nrmax) - jex_nc(nrmax-1)
+    vpol(nrmax)   = 2.d0*vpol(nrmax)   - vpol(nrmax-1)
+    vpar(nrmax)   = 2.d0*vpar(nrmax)   - vpar(nrmax-1)
+    vprp(nrmax)   = 2.d0*vprp(nrmax)   - vprp(nrmax-1)
 
     RETURN
   END SUBROUTINE TR_NCLASS

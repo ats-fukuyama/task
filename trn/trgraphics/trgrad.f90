@@ -377,13 +377,23 @@ CONTAINS
 
 ! **************************************************************************
   SUBROUTINE tr_gr_rad8
-    USE trcomm, ONLY: er
+    USE trcomm, ONLY: er,vexbp,dvexbpdr,wexbp,nrd4
 
     vmx1(1:nrmax,1) = er(1:nrmax)
+    vmx2(1:nrmax,1) = vexbp(1:nrmax)
+!    vmx3(1:nrmax,1) = nrd4(1:nrmax)
+    vmx3(1:nrmax,1) = dvexbpdr(1:nrmax)
+    vmx4(1:nrmax,1) = wexbp(1:nrmax)
 
     CALL PAGES
     label = '/Er [V=/m=] vs rho/'
     CALL GRD1D(1,rhomg,vmx1,nrmax,nrmax,1,label,0)
+    label = '/Vexb [1=/s=] vs rho/'
+    CALL GRD1D(2,rhomg,vmx2,nrmax,nrmax,1,label,0)
+    label = '/dpvexbp vs rho/'
+    CALL GRD1D(3,rhomg,vmx3,nrmax,nrmax,1,label,0)
+    label = '/Wexb [1=/s=] vs rho/'
+    CALL GRD1D(4,rhomg,vmx4,nrmax,nrmax,1,label,0)
     CALL PAGEE
 
     RETURN

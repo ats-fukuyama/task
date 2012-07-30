@@ -10,7 +10,7 @@ CONTAINS
   SUBROUTINE tr_coefnc
     USE trcomm, ONLY: &
          rkev,nsa_neq,nva_neq,neqmax,nsamax,nrmax,mdltr_nc,       &
-         rmnrho,htr,eta,dtr_nc,vtr_nc,eta_nc,jbs_nc,jex_nc,rt,rn, &
+         rhog,rmnrho,htr,eta,dtr_nc,vtr_nc,eta_nc,jbs_nc,jex_nc,rt,rn,   &
          chi_ncp,chi_nct,d_ncp,d_nct,gfls,qfls,fls_tot,           &
          vebs,qebs,dia_gdnc,dia_gvnc,cjbs_p,cjbs_t
         !,nrd1,nrd2
@@ -21,7 +21,7 @@ CONTAINS
 
     ! internal parameters
     INTEGER(ikind) :: nr,nsa,nva,neq,nk,ierr
-    REAL(rkind),DIMENSION(0:nrmax) :: rt_s,d_nc,v_nc
+    REAL(rkind),DIMENSION(0:nrmax) :: rt_s,d_nc,v_nc,drhog
 
     dtr_nc(1:neqmax,1:neqmax,0:nrmax) = 0.d0
     vtr_nc(1:neqmax,1:neqmax,0:nrmax) = 0.d0
@@ -39,7 +39,7 @@ CONTAINS
        CALL tr_nclass(ierr)
 
        ! diffusion and convection coefficients
-       ! ** diagonal term only
+       ! ** For now, we consider diagonal terms only
        fls_tot(3,1:nsamax,0:nrmax) = 0.d0
        DO neq = 1, neqmax
           nsa = nsa_neq(neq)
@@ -47,14 +47,12 @@ CONTAINS
          
           IF(nva == 1)THEN! particle
              DO nk = 1, 5
-                fls_tot(nva,nsa,0:nrmax) = fls_tot(nva,nsa,0:nrmax) &
-                                            + gfls(nk,nsa,0:nrmax)
+                fls_tot(nva,nsa,1:nrmax) = fls_tot(nva,nsa,1:nrmax) &
+                                            + gfls(nk,nsa,1:nrmax)
              END DO
              ! on half grid
-             dtr_nc(neq,neq,1:nrmax) = &
-                  0.5d0*(dia_gdnc(nsa,0:nrmax-1)+dia_gdnc(nsa,1:nrmax))
-             vtr_nc(neq,neq,1:nrmax) = &
-                  0.5d0*(dia_gvnc(nsa,0:nrmax-1)+dia_gvnc(nsa,1:nrmax))
+             dtr_nc(neq,neq,1:nrmax) = dia_gdnc(nsa,1:nrmax)
+             vtr_nc(neq,neq,1:nrmax) = dia_gvnc(nsa,1:nrmax)
 
           ELSE IF(nva == 2)THEN! velocity
 !             dtr_nc(neq,neq,0:nrmax) = dia_dnc(nsa,0:nrmax)
@@ -62,26 +60,26 @@ CONTAINS
 
           ELSE IF(nva == 3)THEN! energy
              DO nk = 1, 5
-                fls_tot(nva,nsa,0:nrmax) = fls_tot(nva,nsa,0:nrmax) &
-                                            + qfls(nk,nsa,0:nrmax)
+                fls_tot(nva,nsa,1:nrmax) = fls_tot(nva,nsa,1:nrmax) &
+                                            + qfls(nk,nsa,1:nrmax)
              END DO             
 
-             rt_s(0:nrmax) = rt(nsa,0:nrmax)
-             DO nr = 0, nrmax
-                d_nc(nr) = chi_nct(nsa,nsa,nr)+chi_ncp(nsa,nsa,nr)
+             DO nr = 1, nrmax
+!                drhog(nr) = rmnrho(nr) - rmnrho(nr-1)
+                drhog(nr) = rhog(nr) - rhog(nr-1)
+                d_nc(nr)  = chi_nct(nsa,nsa,nr) + chi_ncp(nsa,nsa,nr)
                 
                 v_nc(nr) &
-                  = fls_tot(nva,nsa,nr)                                    &
-                    /(rn(nsa,nr)*rt(nsa,nr)*rkev)                          &
-                  + d_nc(nr)*deriv4(nr,rmnrho,rt_s,nrmax,0) &
-                    /rt(nsa,nr)
+                  = fls_tot(nva,nsa,nr)                          &
+                    /(0.5d0*(rn(nsa,nr)+rn(nsa,nr-1))            &
+                     *0.5d0*(rt(nsa,nr)+rt(nsa,nr-1))*rkev)      &
+                  + d_nc(nr)*(rt(nsa,nr)-rt(nsa,nr-1))/drhog(nr) &
+                    /(0.5d0*(rt(nsa,nr)+rt(nsa,nr-1)))
              END DO
-             dtr_nc(neq,neq,1:nrmax) = &
-                  0.5d0*(d_nc(0:nrmax-1)+d_nc(1:nrmax))
+             dtr_nc(neq,neq,1:nrmax) = d_nc(1:nrmax)
              ! interim way of substitution V_Es = V_Ks + (3/2)V_s
-             vtr_nc(neq,neq,1:nrmax) =                  &
-                  0.5d0*(v_nc(0:nrmax-1)+v_nc(1:nrmax)) &
-                 +1.5d0*vtr_nc(neq-2,neq-2,1:nrmax)
+             vtr_nc(neq,neq,1:nrmax) = v_nc(1:nrmax) &
+                                      +2.5d0*vtr_nc(neq-2,neq-2,1:nrmax)
           END IF
        END DO
 

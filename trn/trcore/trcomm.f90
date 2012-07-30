@@ -32,6 +32,9 @@ MODULE trcomm
 
   REAL(rkind),PARAMETER :: rkev = aee*1.d3 ! the factor ([keV] -> [J])
 
+  ! *** the size of UFILE ***
+  INTEGER(ikind),PARAMETER :: ntum = 1000, nrum = 100
+
 ! ----- contral parameters -----
 
   INTEGER(ikind):: nrmax       ! number of radial step (except rg=0)
@@ -182,6 +185,7 @@ MODULE trcomm
        pic,     & ! IC heating power density [W/m^3]
        plh,     & ! LH heating power density [W/m^3]
        pnf,     & ! heating power density due to fusion alpha [W/m^3]
+       prl,     & !
 !
        snb,     & !
        spl        !
@@ -357,6 +361,23 @@ MODULE trcomm
        dia_gvnc,  &! diagonal convection driven by off-diagonal part [m/s]
        cjbs_p,   &! <J_bs.B> driven by unit p'/p of s [A*T/1.d-20*m^2]
        cjbs_t     ! <J_bs.B> driven by unit T'/T of s [A*T/1.d-20*m^2]
+
+
+  ! ----- Stored variables for UFILE -----
+!!$  REAL(rkind),DIMENSION(0:ntum) ::    &
+!!$       rru,rau,phiau,volau,bbu,rkapu, &
+!!$       pnbiu,ripu
+!!$  REAL(rkind),DIMENSION(0:ntum,0:nrum) :: &
+!!$       qpu,z_effu,jtotu,jnbu,jbsu,bpu,prlu,pecu,pohu,pbmu,    &
+!!$       dvrhou,rkprhou,rmjrhou,rmnrhou,arrhou,ar1rhou,ar2rhou, &
+!!$       abrhou,ttrhou,                                         &
+!!$       wrotu,z_effu_org,s_wallu
+!!$  REAL(rkind),DIMENSION(0:ntum,1:nsum) :: &
+!!$       ptsu,pnsu,ptsau,pnsau
+!!$  REAL(rkind),DIMENSION(0:ntum,0:nrum,1:nsum) :: &
+!!$       rnu,rtu,pnbu,picu,snbu,rnu_or
+!!$
+  ! ----- UFILE control -----
 
 CONTAINS
 

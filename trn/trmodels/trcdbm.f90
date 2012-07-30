@@ -28,12 +28,10 @@ CONTAINS
     IMPLICIT NONE
     INTEGER(ikind):: nr,ns,nsa,model,model_t,ierr
     REAL(rkind):: calf,ckap,cexb,tc1,tc2,tk,pnel,rhoni
-    REAL(rkind),DIMENSION(0:nrmax) :: &
-         chi_cdbm,chim_cdbm
+    REAL(rkind),DIMENSION(0:nrmax) :: chim_cdbm
 
     REAL(rkind) :: abb1rhom,rmjrhom,rmnrhom,rkprhom,qpm
 
-    chi_cdbm(0:nrmax) = 0.d0
     dtr_tb(1:neqmax,1:neqmax,0:nrmax) = 0.d0
     vtr_tb(1:neqmax,1:neqmax,0:nrmax) = 0.d0
 
@@ -67,11 +65,11 @@ CONTAINS
        ! (sum of ion-mass times ion-density)
        rhoni = ai_ave(nr) * amp * 0.5d0*(rn_i(nr)+rn_i(nr-1))*1.d20
 
-       abb1rhom = 0.5d0*(abb1rho(nr-1)+ abb1rho(nr))
-       rmjrhom  = 0.5d0*(rmjrho(nr-1) +  rmjrho(nr))
-       rmnrhom  = 0.5d0*(rmnrho(nr-1) +  rmnrho(nr))
-       rkprhom  = 0.5d0*(rkprho(nr-1) +  rkprho(nr))
-       qpm      = 0.5d0*(qp(nr-1)     +      qp(nr))
+       abb1rhom = 0.5d0*(abb1rho(nr-1) + abb1rho(nr))
+       rmjrhom  = 0.5d0*(rmjrho(nr-1)  +  rmjrho(nr))
+       rmnrhom  = 0.5d0*(rmnrho(nr-1)  +  rmnrho(nr))
+       rkprhom  = 0.5d0*(rkprho(nr-1)  +  rkprho(nr))
+       qpm      = 0.5d0*(qp(nr-1)      +      qp(nr))
 
        ! engineering safety factor for Tuned CDBM
        ! *** for the time being ***
@@ -90,7 +88,6 @@ CONTAINS
                 dtr_tb(1+3*nsa-2,1+3*nsa-2,nr) = cdtrn*chim_cdbm(nr)
                 dtr_tb(1+3*nsa-1,1+3*nsa-1,nr) = cdtru*chim_cdbm(nr)
                 dtr_tb(1+3*nsa  ,1+3*nsa  ,nr) = cdtrt*chim_cdbm(nr)
-!                write(*,*) chi_cdbm
              ENDIF
           END DO
     END DO

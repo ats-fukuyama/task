@@ -9,7 +9,7 @@ MODDIR = -module ../mod
 
 
 #FLAGS=$(OFLAGS)
-FFLAGS=$(DFLAGS) -warn
+FFLAGS=$(DFLAGS) -warn -g
 
 MODINCLUDE=-I $(BPSDDIR)/mod -I $(TASKDIR)/plx/mod -I $(TASKDIR)/lib/mod \
 	   -I $(TASKDIR)/eq/mod -I ../trmodels/mod -I $(MOD) 

@@ -255,6 +255,8 @@ CONTAINS
          epsrho(nr-1)  = rmnrho(nr-1) / rmjrho(nr-1) ! rs/rr
       ENDDO
 
+      rhom(1:nrmax) = 0.5d0*(rhog(0:nrmax-1)*rhog(1:nrmax))
+
       RETURN
     END SUBROUTINE get_spl_off
 
@@ -359,6 +361,8 @@ CONTAINS
       CALL spl1d_tr_array(metric1D%rho,temp,rhog,abb1rho,metric1D%nrmax,1,ierr)
 
       epsrho(0:nrmax)  = rmnrho(0:nrmax) / rmjrho(0:nrmax)
+
+      rhom(1:nrmax) = 0.5d0*(rhog(0:nrmax-1)*rhog(1:nrmax))
 
       RETURN
     END SUBROUTINE get_spl_on

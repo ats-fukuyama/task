@@ -19,8 +19,8 @@ CONTAINS
     USE trmmm7_1,ONLY: tr_mmm7_1
     IMPLICIT NONE
 
-    dtr_tb(1:neqmax,1:neqmax,1:nrmax) = 0.d0
-    vtr_tb(1:neqmax,1:neqmax,1:nrmax) = 0.d0
+    dtr_tb(1:neqmax,1:neqmax,0:nrmax) = 0.d0
+    vtr_tb(1:neqmax,1:neqmax,0:nrmax) = 0.d0
 
     SELECT CASE(mdltr_tb) ! results are in dtr_tb and vtr_tb
     CASE(0:9)

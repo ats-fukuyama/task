@@ -4,7 +4,7 @@ MODULE trloop
 
   USE trcomm,ONLY: rkind, ikind
 
-  PUBLIC tr_loop,tr_save_pvprev
+  PUBLIC tr_loop,tr_save_pvprev,tr_calc_dpdrho2j
   PRIVATE
 
 CONTAINS
@@ -62,6 +62,7 @@ CONTAINS
        END IF
        ! cofirmation of the conservation of nV', nTV'^(5/3)
 
+       CALL tr_calc_dpdrho2j
 
        IF(MOD(nt,ntstep) == 0 .OR. &
           MOD(nt,ngtstp) == 0) CALL tr_calc_global
@@ -109,6 +110,73 @@ CONTAINS
   END SUBROUTINE tr_mag_boundary
 
 ! **************************************************************************
+
+  SUBROUTINE tr_calc_dpdrho2j
+! --------------------------------------------------------------------------
+!  calculate following conversions:  d psi/d rho --> bp,qp,jtor,jtot
+! --------------------------------------------------------------------------
+    USE trcomm, ONLY: pi,rmu0,nrmax,RR,ar1rho,ttrho,rmjrho,arrho,dvrho,  &
+         abb1rho,abrho,abvrho,rhog,dpdrho,rdpvrho,qp,q0,qa,bp,rip,       &
+         jtot,joh,jtor,jbs_nc,jex_nc,jcd_nb,jcd_ec,jcd_lh,jcd_ic
+!         ,nrd3,nrd4
+
+    IMPLICIT NONE
+    INTEGER(ikind) :: nr
+    REAL(rkind) :: FCTR    ! function defined in TASK/lib
+    REAL(rkind) :: deriv3  ! function defined in TASK/lib
+!    REAL(rkind) :: ipl,dr
+    REAL(rkind),DIMENSION(0:nrmax) :: factor1,factor2
+
+    ! dpdrho --> bp
+    bp(0:nrmax) = ar1rho(0:nrmax)*dpdrho(0:nrmax)/rmjrho(0:nrmax)
+
+    ! dpdrho --> qp
+    qp(1:nrmax) = ttrho(1:nrmax)*arrho(1:nrmax)*dvrho(1:nrmax)    &
+                  /(4.d0*pi**2 * dpdrho(1:nrmax))
+!    qp(1:nrmax) = ttrho(1:nrmax)*arrho(1:nrmax)    &
+!                  /(4.d0*pi**2 * rdpvrho(1:nrmax))
+    !   * FCTR4pt: func. in TASK/lib
+!    qp(0)       = FCTR4pt(rhog(1),rhog(2),rhog(3),qp(1),qp(2),qp(3))
+    qp(0)       = FCTR(rhog(1),rhog(2),qp(1),qp(2))
+    q0 = qp(0)
+    qa = qp(nrmax)
+
+
+    factor1(0:nrmax) = dvrho(0:nrmax)*abrho(0:nrmax)*dpdrho(0:nrmax)
+    factor2(0:nrmax) = factor1(0:nrmax)/ttrho(0:nrmax)
+    DO nr = 1, nrmax
+       ! dpdrho --> jtor(j_toroidal)    
+       jtor(nr) = rmjrho(nr)/(rmu0*dvrho(nr))               &
+                  * deriv3(nr,rhog,factor1,nrmax,0)
+       ! dpdrho --> jtot(j_para)
+       jtot(nr) = ttrho(nr)**2/(rmu0*abb1rho(nr)*dvrho(nr)) &
+                  * deriv3(nr,rhog,factor2,nrmax,0)
+    END DO
+!    jtor(0) = FCTR4pt(rhog(1),rhog(2),rhog(3),jtor(1),jtor(2),jtor(3))
+    jtor(0) = FCTR(rhog(1),rhog(2),jtor(1),jtor(2))
+!    jtot(0) = FCTR4pt(rhog(1),rhog(2),rhog(3),jtot(1),jtot(2),jtot(3))
+    jtot(0) = FCTR(rhog(1),rhog(2),jtot(1),jtot(2))
+
+
+    joh(0:nrmax) = jtot(0:nrmax) - jbs_nc(0:nrmax) - jex_nc(0:nrmax)
+
+    ! ***** inverse conversion for confirmation *****
+!!$    ipl = 0.d0
+!!$    DO nr = 1, nrmax
+!!$       dr = rhog(nr) - rhog(nr-1)
+!!$       ipl = ipl + 0.5d0*(dvrho(nr)+dvrho(nr-1))  &
+!!$                  *0.5d0*(jtor(nr)+jtor(nr-1))*dr
+!!$    END DO
+!!$    ipl = ipl/(2.d0*pi*RR)
+!!$    write(*,*) rip,ipl
+    ! ***********************************************
+
+!    nrd3(0:nrmax) = dpdrho(0:nrmax)
+!    nrd4(0:nrmax) = jtot(0:nrmax)
+
+    RETURN
+  END SUBROUTINE tr_calc_dpdrho2j
+
 
 !!$  SUBROUTINE tr_eq_calc
 !!$
