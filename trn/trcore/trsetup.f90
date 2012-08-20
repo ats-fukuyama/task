@@ -118,8 +118,8 @@ CONTAINS
     neq = 1
     nsa_neq(neq) = 0
     nva_neq(neq) = 0
-!    id_neq(neq)  = 2
-    id_neq(neq)  = 0
+    id_neq(neq)  = 2
+!    id_neq(neq)  = 0
 
     DO nsa=1,nsamax
        DO i=1,3

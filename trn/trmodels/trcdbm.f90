@@ -15,12 +15,12 @@ CONTAINS
 
     USE cdbm_mod, ONLY: cdbm
     USE trcomm, ONLY: &
-         ikind,rkind,bb,rr,abb1rho,rmnrho,rmjrho,rkev,pa,amp,aee, &
-         rhog,rhom,rkprho,cdtrn,cdtru,cdtrt,qp,rn,                &
-         dtr_tb,vtr_tb,nrmax,nsamax,neqmax,ns_nsa,idnsa,mdltr_tb, &
+         ikind,rkind,rkev,amp,aee,pa,nrmax,nsamax,neqmax,ns_nsa,idnsa, &
+         bb,rr,ra,abb1rho,rmnrho,rmjrho,rhog,rhom,rkprho,              &
+         cdtrn,cdtru,cdtrt,qp,rn,dtr_tb,vtr_tb,mdltr_tb,               &
          rn_e,     &! the density of electron
          rn_i,     &! the effective density of hydrogenic ions
-         rp_totd,  &! the total pressure
+         rp_totd,  &! the total pressure gradient
          ai_ave,   &! mean atomic mass of tehrmal ions [AMU]
          mshear,   &! magnetic shear
          dvexbpdr   ! the gradient of ExBp drift velocity
@@ -34,6 +34,7 @@ CONTAINS
 
     dtr_tb(1:neqmax,1:neqmax,0:nrmax) = 0.d0
     vtr_tb(1:neqmax,1:neqmax,0:nrmax) = 0.d0
+    chim_cdbm(0:nrmax) = 0.d0
 
     ! model : Model ID
     !     0 : CDBM original

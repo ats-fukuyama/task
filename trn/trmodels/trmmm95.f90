@@ -59,13 +59,10 @@ CONTAINS
 
 
     ! Internal varialbes
-    INTEGER(ikind) :: nr,ns,nsa
-    REAL(rkind) :: sum_pan,pa_ave
+    INTEGER(ikind) :: nr,nsa
     REAL(rkind):: &
          rmnrhom,rmjrhom,rkprhom,rn_em,rn_im,rt_em,rt_im,z_effm, &
          qpm,abb1rhom
-    REAL(rkind),DIMENSION(0:nrmax) :: &
-       mmm_diff,mmm_chie,mmm_chii,mmm_vele,mmm_veli
     REAL(rkind),DIMENSION(1:nrmax) :: &
        mmm_diffm,mmm_chiem,mmm_chiim,mmm_velem,mmm_velim
 

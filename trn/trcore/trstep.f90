@@ -144,7 +144,7 @@ CONTAINS
 
              ! the pressure of each species
              rp(nsa,nr) = rn(nsa,nr)*1.d20 * rt(nsa,nr)*rkev
-             rp_tot(nr) = rp_tot(nr) +rp(nsa,nr)
+             rp_tot(nr) = rp_tot(nr) + rp(nsa,nr)
           END IF
        END DO
     END DO
