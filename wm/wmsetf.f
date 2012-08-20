@@ -37,19 +37,19 @@ C
 C
 C     ----- Calculate dielectric tensor -----
 C
-      DO NPH=1,NPHMAX
+      DO NHH=1,NHHMAX
       DO NTH=1,NTHMAX
       DO ND=-NDSIZX,NDSIZX
       DO MD=-MDSIZX,MDSIZX
          DO J=1,3
          DO I=1,3
-            CEP0(I,J,MD,ND,NTH,NPH)=0.D0
+            CEP0(I,J,MD,ND,NTH,NHH)=0.D0
          ENDDO
          ENDDO
          IF(NS0.EQ.0) THEN
-            CEP0(1,1,MD,ND,NTH,NPH)=1.D0
-            CEP0(2,2,MD,ND,NTH,NPH)=1.D0
-            CEP0(3,3,MD,ND,NTH,NPH)=1.D0
+            CEP0(1,1,MD,ND,NTH,NHH)=1.D0
+            CEP0(2,2,MD,ND,NTH,NHH)=1.D0
+            CEP0(3,3,MD,ND,NTH,NHH)=1.D0
          ENDIF
       ENDDO
       ENDDO
@@ -66,15 +66,15 @@ C
       DO NS=NS1,NS2
          CALL WMTNSR(NR,NS)
 C
-         DO NPH=1,NPHMAX
+         DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
             DO ND=-NDSIZX,NDSIZX
             DO MD=-MDSIZX,MDSIZX
                DO J=1,3
                DO I=1,3
-                  CEP0(I,J,MD,ND,NTH,NPH)
-     &           =CEP0(I,J,MD,ND,NTH,NPH)
-     &           +CTNSR(I,J,MD,ND,NTH,NPH)
+                  CEP0(I,J,MD,ND,NTH,NHH)
+     &           =CEP0(I,J,MD,ND,NTH,NHH)
+     &           +CTNSR(I,J,MD,ND,NTH,NHH)
                ENDDO
                ENDDO
             ENDDO
@@ -85,55 +85,55 @@ C
 C
 C     ----- Calculate A, B, C -----
 C
-      DO NPH=1,NPHMAX
+      DO NHH=1,NHHMAX
       DO NTH=1,NTHMAX
 C
 C        ----- Calculate rotation matrix mu=RMA -----
 C
-         CALL WMCMAG(NR,NTH,NPH,BABS,BSUPTH,BSUPPH)
+         CALL WMCMAG(NR,NTH,NHH,BABS,BSUPTH,BSUPPH)
          TC2=BSUPTH/BABS
          TC3=BSUPPH/BABS
 C
 C        ***** RF11=RJ*SQRT(G^11)/XR *****
 C
-         RF11=SQRT(RG22(NTH,NPH,NR)*RG33(NTH,NPH,NR)
-     &            -RG23(NTH,NPH,NR)*RG23(NTH,NPH,NR))
-         RMA(1,1)= RJ(NTH,NPH,NR)/RF11*XRI
+         RF11=SQRT(RG22(NTH,NHH,NR)*RG33(NTH,NHH,NR)
+     &            -RG23(NTH,NHH,NR)*RG23(NTH,NHH,NR))
+         RMA(1,1)= RJ(NTH,NHH,NR)/RF11*XRI
          RMA(2,1)= 0.D0
          RMA(3,1)= 0.D0
-         RMA(1,2)= (TC2*(RG23(NTH,NPH,NR)*RG12(NTH,NPH,NR)
-     &                  -RG22(NTH,NPH,NR)*RG13(NTH,NPH,NR))
-     &             +TC3*(RG33(NTH,NPH,NR)*RG12(NTH,NPH,NR)
-     &                  -RG23(NTH,NPH,NR)*RG13(NTH,NPH,NR))*XRI)
+         RMA(1,2)= (TC2*(RG23(NTH,NHH,NR)*RG12(NTH,NHH,NR)
+     &                  -RG22(NTH,NHH,NR)*RG13(NTH,NHH,NR))
+     &             +TC3*(RG33(NTH,NHH,NR)*RG12(NTH,NHH,NR)
+     &                  -RG23(NTH,NHH,NR)*RG13(NTH,NHH,NR))*XRI)
      &             /RF11
          RMA(2,2)= TC3*RF11*XRL
          RMA(3,2)=-TC2*RF11*XRL
-         RMA(1,3)=TC2*RG12(NTH,NPH,NR)
-     &           +TC3*RG13(NTH,NPH,NR)*XRI
-         RMA(2,3)=TC2*RG22(NTH,NPH,NR)*XRL*XRL
-     &           +TC3*RG23(NTH,NPH,NR)*XRL
-         RMA(3,3)=TC2*RG23(NTH,NPH,NR)*XRL
-     &           +TC3*RG33(NTH,NPH,NR)
+         RMA(1,3)=TC2*RG12(NTH,NHH,NR)
+     &           +TC3*RG13(NTH,NHH,NR)*XRI
+         RMA(2,3)=TC2*RG22(NTH,NHH,NR)*XRL*XRL
+     &           +TC3*RG23(NTH,NHH,NR)*XRL
+         RMA(3,3)=TC2*RG23(NTH,NHH,NR)*XRL
+     &           +TC3*RG33(NTH,NHH,NR)
 C
 C         IF(NR.EQ.2.AND.NS0.EQ.0) THEN
-C            WRITE(6,*) 'NR,NTH,NPH=',NR,NTH,NPH
+C            WRITE(6,*) 'NR,NTH,NHH=',NR,NTH,NHH
 C            WRITE(6,'(1P3E12.4)') RMA(1,1),RMA(1,2),RMA(1,3)
 C            WRITE(6,'(1P3E12.4)') RMA(2,1),RMA(2,2),RMA(2,3)
 C            WRITE(6,'(1P3E12.4)') RMA(3,1),RMA(3,2),RMA(3,3)
-C            WRITE(6,'(1P3E12.4)') RJ(NTH,NPH,NR),RF11,XRI
+C            WRITE(6,'(1P3E12.4)') RJ(NTH,NHH,NR),RF11,XRI
 C         ENDIF
 C
 C        ----- Set metric matrix g=RGA -----
 C
-         RGA(1,1)=RG11(NTH,NPH,NR)
-         RGA(1,2)=RG12(NTH,NPH,NR)
-         RGA(1,3)=RG13(NTH,NPH,NR)
-         RGA(2,1)=RG12(NTH,NPH,NR)
-         RGA(2,2)=RG22(NTH,NPH,NR)
-         RGA(2,3)=RG23(NTH,NPH,NR)
-         RGA(3,1)=RG13(NTH,NPH,NR)
-         RGA(3,2)=RG23(NTH,NPH,NR)
-         RGA(3,3)=RG33(NTH,NPH,NR)
+         RGA(1,1)=RG11(NTH,NHH,NR)
+         RGA(1,2)=RG12(NTH,NHH,NR)
+         RGA(1,3)=RG13(NTH,NHH,NR)
+         RGA(2,1)=RG12(NTH,NHH,NR)
+         RGA(2,2)=RG22(NTH,NHH,NR)
+         RGA(2,3)=RG23(NTH,NHH,NR)
+         RGA(3,1)=RG13(NTH,NHH,NR)
+         RGA(3,2)=RG23(NTH,NHH,NR)
+         RGA(3,3)=RG33(NTH,NHH,NR)
 C
 C        ----- Invert matrix to obtain mu^(-1)=RMB and g^(-1)=RGB -----
 C
@@ -147,14 +147,14 @@ C
          CALL INVMRD(RMB,3,3,ILL)
          IF(ILL.NE.0) THEN
             WRITE(6,*) 'XX WMSETF: INVMRD(RMB) : SINGULAR MATRIX'
-            WRITE(6,'(3I5,1P2E12.4)') NR,NTH,NPH,TC3,TC2
+            WRITE(6,'(3I5,1P2E12.4)') NR,NTH,NHH,TC3,TC2
             GOTO 9000
          ENDIF
 C
          CALL INVMRD(RGB,3,3,ILL)
          IF(ILL.NE.0) THEN
             WRITE(6,*) 'XX WMSETF: INVMRD(RGB) : SINGULAR MATRIX'
-            WRITE(6,*) '   NTH,NPH,NR = ',NTH,NPH,NR
+            WRITE(6,*) '   NTH,NHH,NR = ',NTH,NHH,NR
             GOTO 9000
          ENDIF
 C
@@ -178,7 +178,7 @@ C
             DO K=1,3
                CSUM=CSUM+RGB(I,K)*RMA(K,J)
             ENDDO
-            CRA(NTH,NPH,I,J)=CSUM*RJ(NTH,NPH,NR)
+            CRA(NTH,NHH,I,J)=CSUM*RJ(NTH,NHH,NR)
          ENDDO
          ENDDO
 C
@@ -186,7 +186,7 @@ C
          DO MD=-MDSIZX,MDSIZX
             DO J=1,3
             DO I=1,3
-               CRB(NTH,NPH,I,J,MD,ND)=CEP0(I,J,MD,ND,NTH,NPH)
+               CRB(NTH,NHH,I,J,MD,ND)=CEP0(I,J,MD,ND,NTH,NHH)
             ENDDO
             ENDDO
          ENDDO
@@ -194,7 +194,7 @@ C
 C
          DO J=1,3
          DO I=1,3
-            CRC(NTH,NPH,I,J)=RMB(I,J)
+            CRC(NTH,NHH,I,J)=RMB(I,J)
          ENDDO
          ENDDO
 C
@@ -399,21 +399,21 @@ C
       DIMENSION RF1(MDM,NDM),RF2(MDM,NDM),CF(MDM,NDM)
       DIMENSION CFM(MDM),CFN(NDM)
 C
-      DO NPH=1,NPHMAX
+      DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
-            CFM(NTH)=RF1(NTH,NPH)/RF2(NTH,NPH)
+            CFM(NTH)=RF1(NTH,NHH)/RF2(NTH,NHH)
          ENDDO
          CALL WMXFFT(CFM,NTHMAX,0)
          DO LDX=1,LDSIZ
-            CF(LDX,NPH)=CFM(LDX)
+            CF(LDX,NHH)=CFM(LDX)
          ENDDO
       ENDDO
 C
       DO LDX=1,LDSIZ
-         DO NPH=1,NPHMAX
-            CFN(NPH)=CF(LDX,NPH)
+         DO NHH=1,NHHMAX
+            CFN(NHH)=CF(LDX,NHH)
          ENDDO
-         CALL WMXFFT(CFN,NPHMAX,0)
+         CALL WMXFFT(CFN,NHHMAX,0)
          DO KDX=1,KDSIZ
             CF(LDX,KDX)=CFN(KDX)
          ENDDO
@@ -430,21 +430,21 @@ C
       DIMENSION CF1(MDM,NDM),CF2(MDM,NDM)
       DIMENSION CFM(MDM),CFN(NDM)
 C
-      DO NPH=1,NPHMAX
+      DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
-            CFM(NTH)=CF1(NTH,NPH)
+            CFM(NTH)=CF1(NTH,NHH)
          ENDDO
          CALL WMXFFT(CFM,NTHMAX,0)
          DO LDX=1,LDSIZ
-            CF2(LDX,NPH)=CFM(LDX)
+            CF2(LDX,NHH)=CFM(LDX)
          ENDDO
       ENDDO
 C
       DO LDX=1,LDSIZ
-         DO NPH=1,NPHMAX
-            CFN(NPH)=CF2(LDX,NPH)
+         DO NHH=1,NHHMAX
+            CFN(NHH)=CF2(LDX,NHH)
          ENDDO
-         CALL WMXFFT(CFN,NPHMAX,0)
+         CALL WMXFFT(CFN,NHHMAX,0)
          DO KDX=1,KDSIZ
             CF2(LDX,KDX)=CFN(KDX)
          ENDDO

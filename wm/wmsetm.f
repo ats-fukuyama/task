@@ -551,7 +551,7 @@ C
             IF(NR+1.GE.NRANT) THEN
                CW=2.D0*PI*CRF*1.D6
                CC=CI*CW*RMU0
-               DPH=2.D0*PI/NPHMAX
+               DPH=2.D0*PI/NHHMAX
                DTH=2.D0*PI/NTHMAX
 C
                IF(NR+1.EQ.NRANT.OR.NR+1.EQ.NRANT+1) THEN
@@ -644,7 +644,7 @@ C                     WRITE(6,*) 'CFVP(',NDX,MDX,3,')',CFVP(NDX,MDX,3)
                ENDIF
             ENDIF
          ELSE
-            DPH=2.D0*PI/NPHMAX
+            DPH=2.D0*PI/NHHMAX
             DTH=2.D0*PI/NTHMAX
             XRHO1=XRHO(NR+1)
             IF(NR.LT.NRMAX) THEN

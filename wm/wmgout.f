@@ -145,21 +145,21 @@ C
             WRITE(6,*) 'XX ILLEGAL NTH'
             GOTO 1
          ENDIF
-    2    IF(NPHMAX.EQ.1) THEN
-            NPH=1
+    2    IF(NHHMAX.EQ.1) THEN
+            NHH=1
          ELSE
-            WRITE(6,*) '## INPUT NPH : 1..',NPHMAX
-            READ(5,*,ERR=2,END=9000) NPH
+            WRITE(6,*) '## INPUT NHH : 1..',NHHMAX
+            READ(5,*,ERR=2,END=9000) NHH
          END IF
-         IF(NPH.LT.1.OR.NPH.GT.NPHMAX) THEN
-            WRITE(6,*) 'XX ILLEGAL NPH'
+         IF(NHH.LT.1.OR.NHH.GT.NHHMAX) THEN
+            WRITE(6,*) 'XX ILLEGAL NHH'
             GOTO 2
          ENDIF
 C
          IF(K2.EQ.'E') THEN
             DO I=1,3
             DO NR=1,NRMAX+1
-               CF(NR,I)=CEFLD(I,NTH,NPH,NR)
+               CF(NR,I)=CEFLD(I,NTH,NHH,NR)
             ENDDO
             ENDDO
             IF(K3.EQ.'A') THEN
@@ -172,7 +172,7 @@ C
             ELSE
                DO NS=1,NSMAX
                   DO NR=1,NRMAX
-                     POWER(NR,NS)=PABS(NTH,NPH,NR,NS)
+                     POWER(NR,NS)=PABS(NTH,NHH,NR,NS)
                   ENDDO
                   POWER(NRMAX+1,NS)=0.D0
                ENDDO
@@ -180,7 +180,7 @@ C
          ELSE
             DO I=1,3
             DO NR=1,NRMAX+1
-               CF(NR,I)=CBFLD(I,NTH,NPH,NR)
+               CF(NR,I)=CBFLD(I,NTH,NHH,NR)
             ENDDO
             ENDDO
             IF(K3.EQ.'A') THEN
@@ -191,7 +191,7 @@ C                  POWER(NR,1)=PCURR(NR)
                POWER(NRMAX+1,1)=0.D0
             ELSE
                DO NR=1,NRMAX
-                  POWER(NR,1)=PCUR(NTH,NPH,NR)
+                  POWER(NR,1)=PCUR(NTH,NHH,NR)
                ENDDO
                POWER(NRMAX+1,1)=0.D0
             ENDIF
@@ -211,7 +211,7 @@ C                  POWER(NR,1)=PCURR(NR)
             GOTO 3
          ENDIF
          MDX=MD-MDMIN+1
-    4    IF(NPHMAX.EQ.1) THEN
+    4    IF(NHHMAX.EQ.1) THEN
             ND=0
          ELSE
             WRITE(6,*) '## INPUT ND : ',NDMIN,'..',NDMAX-1
@@ -262,7 +262,7 @@ C
             WRITE(6,*) 'XX ILLEGAL MD1,MD2'
             GOTO 7
          ENDIF
-    8    IF(NPHMAX.EQ.1) THEN
+    8    IF(NHHMAX.EQ.1) THEN
             ND=0
          ELSE
             ND=NPH0
@@ -448,7 +448,7 @@ C
         CALL NUMBI(NTH0+MD2,'(I3)',3)
       END IF
 C
-      CALL WMGPRM('R',K3,NTH,NPH,MD,ND)
+      CALL WMGPRM('R',K3,NTH,NHH,MD,ND)
 C
       CALL PAGEE
 C
@@ -631,14 +631,14 @@ C
          GOTO 9000
       ENDIF
 C
-    1 IF(NPHMAX.EQ.1) THEN
-         NPH=1
+    1 IF(NHHMAX.EQ.1) THEN
+         NHH=1
       ELSE
-         WRITE(6,*) '## INPUT NPH : 1..',NPHMAX
-         READ(5,*,ERR=1,END=9000) NPH
+         WRITE(6,*) '## INPUT NHH : 1..',NHHMAX
+         READ(5,*,ERR=1,END=9000) NHH
       END IF
-      IF(NPH.LT.1.OR.NPH.GT.NPHMAX) THEN
-         WRITE(6,*) 'XX ILLEGAL NPH'
+      IF(NHH.LT.1.OR.NHH.GT.NHHMAX) THEN
+         WRITE(6,*) 'XX ILLEGAL NHH'
          GOTO 1
       ENDIF
 C
@@ -647,14 +647,14 @@ C
          IF(K2.EQ.'E'.OR.K2.EQ.'B') THEN
             IF(K2.EQ.'E') THEN
                IF(NA3.EQ.1) THEN
-                  CFL=CEFLD(NG3,NTH,NPH,NR)
+                  CFL=CEFLD(NG3,NTH,NHH,NR)
                ELSEIF(NA3.EQ.2) THEN
-                  CFL=CEN(NG3,NTH,NPH,NR)
+                  CFL=CEN(NG3,NTH,NHH,NR)
                ELSEIF(NA3.EQ.3) THEN
-                  CFL=CEP(NG3,NTH,NPH,NR)
+                  CFL=CEP(NG3,NTH,NHH,NR)
                ENDIF
             ELSEIF(K2.EQ.'B') THEN
-               CFL=CBFLD(NG3,NTH,NPH,NR)
+               CFL=CBFLD(NG3,NTH,NHH,NR)
             ENDIF
 C
             IF(K4.EQ.'R') THEn
@@ -669,9 +669,9 @@ C
             ENDIF
             NX=NRMAX+1
          ELSEIF(K2.EQ.'P') THEN
-            GY(NR,NTH)=GUCLIP(PABS(NTH,NPH,NR,NG3))
+            GY(NR,NTH)=GUCLIP(PABS(NTH,NHH,NR,NG3))
          ELSEIF(K2.EQ.'J') THEN
-            GY(NR,NTH)=GUCLIP(PCUR(NTH,NPH,NR))
+            GY(NR,NTH)=GUCLIP(PCUR(NTH,NHH,NR))
          ENDIF
       ENDDO
       ENDDO
@@ -691,7 +691,7 @@ C
       CALL GMNMX1(GXR,1,NX,1,GRMIN,GRMAX)
       CALL GMNMX2(GY,NRM,1,NX,1,1,MDSIZ,1,GZ1MIN,GZ1MAX)
       CALL GQSCAL(GZ1MIN,GZ1MAX,GZMIN,GZMAX,GZSTEP)
-      NSTEP=10
+      NSTEP=NCONT
       GZSTEP=(GZMAX-GZMIN)/NSTEP
 C
       CALL GDEFIN(2.5,17.5,2.5,17.5,-GRMAX,GRMAX,-GRMAX,GRMAX)
@@ -813,7 +813,7 @@ C
          GOTO 9000
       ENDIF
 C
-    1 IF(NPHMAX.EQ.1) THEN
+    1 IF(NHHMAX.EQ.1) THEN
          ND=0
       ELSE
          WRITE(6,*) '## INPUT ND : ',NDMIN,'..',NDMAX-1
@@ -929,7 +929,7 @@ C
       CALL GQSCAL(GYMIN,GYMAX,GSYMIN,GSYMAX,GSY)
       CALL GQSCAL(GZMIN,GZMAX,GSZMIN,GSZMAX,GSZ)
 C
-      NSTEP=10
+      NSTEP=NCONT
       GZSTEP=(GZMAX-GZMIN)/NSTEP
 C
       CALL GDEFIN(3.0,21.6,1.0,16.5,GXMIN,GXMAX,GYMIN,GYMAX)
@@ -988,7 +988,7 @@ C
 C
 C     ****** WRITE PARAMETERS ******
 C
-      SUBROUTINE WMGPRM(K1,K3,NTH,NPH,MD,ND)
+      SUBROUTINE WMGPRM(K1,K3,NTH,NHH,MD,ND)
 C
       INCLUDE 'wmcomm.inc'
 C
@@ -1084,8 +1084,8 @@ C
       CALL NUMBI(NTHMAX,'(I5)',5)
 C
       CALL MOVE(XPOS,YPOS-4*DY)
-      CALL TEXT('NPHMAX:',7)
-      CALL NUMBI(NPHMAX,'(I5)',5)
+      CALL TEXT('NHHMAX:',7)
+      CALL NUMBI(NHHMAX,'(I5)',5)
       YPOS=YPOS-6*DY
 C
 C     ****** COMPUTATION RESULTS ******
@@ -1148,7 +1148,7 @@ C
             CALL NUMBD(DBLE(NTH-1)/DBLE(NTHMAX)*360.D0,'(F9.4)',9)
             CALL MOVE(XPOS,YPOS-DY)
             CALL TEXT('Ph:',3)
-            CALL NUMBD(DBLE(NPH-1)/DBLE(NPHMAX)*360.D0,'(F9.4)',9)
+            CALL NUMBD(DBLE(NHH-1)/DBLE(NHHMAX)*360.D0,'(F9.4)',9)
          ENDIF
       ENDIF
 C

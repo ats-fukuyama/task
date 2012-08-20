@@ -97,9 +97,9 @@ C
          ENDDO
          ENDDO
          CALL WMSUBE(CEF1,CEF2)
-         DO NPH=1,NPHMAX
+         DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
-            CEFLD(I,NTH,NPH,NR)=CEF2(NTH,NPH)
+            CEFLD(I,NTH,NHH,NR)=CEF2(NTH,NHH)
          ENDDO
          ENDDO
       ENDDO
@@ -112,70 +112,70 @@ C
          XRI=1.D0/XRHO(NR)
          XRL=XRHO(NR)
 C
-      DO NPH=1,NPHMAX
+      DO NHH=1,NHHMAX
       DO NTH=1,NTHMAX
 C
 C        ----- Calculate rotation matrix mu=RMA -----
 C
-         CALL WMCMAG(NR,NTH,NPH,BABS,BSUPTH,BSUPPH)
+         CALL WMCMAG(NR,NTH,NHH,BABS,BSUPTH,BSUPPH)
          TC2=BSUPTH/BABS
          TC3=BSUPPH/BABS
 C
 C        ***** RF11=RJ*SQRT(G^11)/XR *****
 C
-         RF11=SQRT(RG22(NTH,NPH,NR)*RG33(NTH,NPH,NR)
-     &            -RG23(NTH,NPH,NR)*RG23(NTH,NPH,NR))
-         RMA(1,1)= RJ(NTH,NPH,NR)/RF11*XRI
+         RF11=SQRT(RG22(NTH,NHH,NR)*RG33(NTH,NHH,NR)
+     &            -RG23(NTH,NHH,NR)*RG23(NTH,NHH,NR))
+         RMA(1,1)= RJ(NTH,NHH,NR)/RF11*XRI
          RMA(2,1)= 0.D0
          RMA(3,1)= 0.D0
-         RMA(1,2)= (TC2*(RG23(NTH,NPH,NR)*RG12(NTH,NPH,NR)
-     &                  -RG22(NTH,NPH,NR)*RG13(NTH,NPH,NR))
-     &             +TC3*(RG33(NTH,NPH,NR)*RG12(NTH,NPH,NR)
-     &                  -RG23(NTH,NPH,NR)*RG13(NTH,NPH,NR))*XRI)
+         RMA(1,2)= (TC2*(RG23(NTH,NHH,NR)*RG12(NTH,NHH,NR)
+     &                  -RG22(NTH,NHH,NR)*RG13(NTH,NHH,NR))
+     &             +TC3*(RG33(NTH,NHH,NR)*RG12(NTH,NHH,NR)
+     &                  -RG23(NTH,NHH,NR)*RG13(NTH,NHH,NR))*XRI)
      &             /RF11
          RMA(2,2)= TC3*RF11*XRL
          RMA(3,2)=-TC2*RF11*XRL
-         RMA(1,3)=TC2*RG12(NTH,NPH,NR)
-     &           +TC3*RG13(NTH,NPH,NR)*XRI
-         RMA(2,3)=TC2*RG22(NTH,NPH,NR)*XRL*XRL
-     &           +TC3*RG23(NTH,NPH,NR)*XRL
-         RMA(3,3)=TC2*RG23(NTH,NPH,NR)*XRL
-     &           +TC3*RG33(NTH,NPH,NR)
+         RMA(1,3)=TC2*RG12(NTH,NHH,NR)
+     &           +TC3*RG13(NTH,NHH,NR)*XRI
+         RMA(2,3)=TC2*RG22(NTH,NHH,NR)*XRL*XRL
+     &           +TC3*RG23(NTH,NHH,NR)*XRL
+         RMA(3,3)=TC2*RG23(NTH,NHH,NR)*XRL
+     &           +TC3*RG33(NTH,NHH,NR)
 C
          CALL INVMRD(RMA,3,3,ILL)
          IF(ILL.NE.0) THEN
             WRITE(6,*) 'XX WEFLD: INVMRD(RMA) : SINGULAR MATRIX'
-            WRITE(6,'(3I5,1P2E12.4)') NR,NTH,NPH,TC3,TC2
+            WRITE(6,'(3I5,1P2E12.4)') NR,NTH,NHH,TC3,TC2
          ENDIF
 C
 C         IF(NR.EQ.2.OR.NR.EQ.3) THEN
-C            WRITE(6,*) 'NR,NTH,NPH=',NR,NTH,NPH
+C            WRITE(6,*) 'NR,NTH,NHH=',NR,NTH,NHH
 C            WRITE(6,'(1P3E12.4)') RMA(1,1),RMA(1,2),RMA(1,3)
 C            WRITE(6,'(1P3E12.4)') RMA(2,1),RMA(2,2),RMA(2,3)
 C            WRITE(6,'(1P3E12.4)') RMA(3,1),RMA(3,2),RMA(3,3)
-C            WRITE(6,'(1P3E12.4)') RJ(NTH,NPH,NR),RF11,XRI
+C            WRITE(6,'(1P3E12.4)') RJ(NTH,NHH,NR),RF11,XRI
 C            WRITE(6,'(1P3E12.4)') TC2,TC3,XRL
 C         ENDIF
 C
-         CEN(1,NTH,NPH,NR)=RMA(1,1)*CEFLD(1,NTH,NPH,NR)*XRI
-     &                    +RMA(1,2)*CEFLD(2,NTH,NPH,NR)*XRL
-     &                    +RMA(1,3)*CEFLD(3,NTH,NPH,NR)
-         CEN(2,NTH,NPH,NR)=RMA(2,1)*CEFLD(1,NTH,NPH,NR)*XRI
-     &                    +RMA(2,2)*CEFLD(2,NTH,NPH,NR)*XRL
-     &                    +RMA(2,3)*CEFLD(3,NTH,NPH,NR)
-         CEN(3,NTH,NPH,NR)=RMA(3,1)*CEFLD(1,NTH,NPH,NR)*XRI
-     &                    +RMA(3,2)*CEFLD(2,NTH,NPH,NR)*XRL
-     &                    +RMA(3,3)*CEFLD(3,NTH,NPH,NR)
-         CEP(1,NTH,NPH,NR)=(   CEN(1,NTH,NPH,NR)
-     &                     +CI*CEN(2,NTH,NPH,NR))/SQRT(2.D0)
-         CEP(2,NTH,NPH,NR)=(   CEN(1,NTH,NPH,NR)
-     &                     -CI*CEN(2,NTH,NPH,NR))/SQRT(2.D0)
-         CEP(3,NTH,NPH,NR)=    CEN(3,NTH,NPH,NR)
+         CEN(1,NTH,NHH,NR)=RMA(1,1)*CEFLD(1,NTH,NHH,NR)*XRI
+     &                    +RMA(1,2)*CEFLD(2,NTH,NHH,NR)*XRL
+     &                    +RMA(1,3)*CEFLD(3,NTH,NHH,NR)
+         CEN(2,NTH,NHH,NR)=RMA(2,1)*CEFLD(1,NTH,NHH,NR)*XRI
+     &                    +RMA(2,2)*CEFLD(2,NTH,NHH,NR)*XRL
+     &                    +RMA(2,3)*CEFLD(3,NTH,NHH,NR)
+         CEN(3,NTH,NHH,NR)=RMA(3,1)*CEFLD(1,NTH,NHH,NR)*XRI
+     &                    +RMA(3,2)*CEFLD(2,NTH,NHH,NR)*XRL
+     &                    +RMA(3,3)*CEFLD(3,NTH,NHH,NR)
+         CEP(1,NTH,NHH,NR)=(   CEN(1,NTH,NHH,NR)
+     &                     +CI*CEN(2,NTH,NHH,NR))/SQRT(2.D0)
+         CEP(2,NTH,NHH,NR)=(   CEN(1,NTH,NHH,NR)
+     &                     -CI*CEN(2,NTH,NHH,NR))/SQRT(2.D0)
+         CEP(3,NTH,NHH,NR)=    CEN(3,NTH,NHH,NR)
 C
 C         IF(NR.EQ.1) THEN
-C            WRITE(6,'(1P4E12.4)') CEN(1,NTH,NPH,NR),CEP(1,NTH,NPH,NR)
-C            WRITE(6,'(1P4E12.4)') CEN(2,NTH,NPH,NR),CEP(2,NTH,NPH,NR)
-C            WRITE(6,'(1P4E12.4)') CEN(3,NTH,NPH,NR),CEP(3,NTH,NPH,NR)
+C            WRITE(6,'(1P4E12.4)') CEN(1,NTH,NHH,NR),CEP(1,NTH,NHH,NR)
+C            WRITE(6,'(1P4E12.4)') CEN(2,NTH,NHH,NR),CEP(2,NTH,NHH,NR)
+C            WRITE(6,'(1P4E12.4)') CEN(3,NTH,NHH,NR),CEP(3,NTH,NHH,NR)
 C         ENDIF
       ENDDO
       ENDDO
@@ -186,8 +186,8 @@ C     ------- Set E+, E- and Ez0 to those outside the plasma ---------
          DO NR=1,NRMAX+1
             IF(XRHO(NR).GT.1.0D0) THEN
                DO NTH=1,NTHMAX
-                  DO NPH=1,NPHMAX
-                     CEP(K,NTH,NPH,NR)=(0.D0,0.D0)
+                  DO NHH=1,NHHMAX
+                     CEP(K,NTH,NHH,NR)=(0.D0,0.D0)
                   ENDDO
                ENDDO
             ELSE
@@ -195,7 +195,7 @@ C     ------- Set E+, E- and Ez0 to those outside the plasma ---------
          ENDDO
       ENDDO
 C
-      DO NPH=1,NPHMAX
+      DO NHH=1,NHHMAX
          CEN1=0.D0
          CEN2=0.D0
          CEN3=0.D0
@@ -203,12 +203,12 @@ C
          CEP2=0.D0
          CEP3=0.D0
          DO NTH=1,NTHMAX
-            CEN1=CEN1+CEN(1,NTH,NPH,2)
-            CEN2=CEN1+CEN(2,NTH,NPH,2)
-            CEN3=CEN1+CEN(3,NTH,NPH,2)
-            CEP1=CEP1+CEP(1,NTH,NPH,2)
-            CEP2=CEP1+CEP(2,NTH,NPH,2)
-            CEP3=CEP1+CEP(3,NTH,NPH,2)
+            CEN1=CEN1+CEN(1,NTH,NHH,2)
+            CEN2=CEN1+CEN(2,NTH,NHH,2)
+            CEN3=CEN1+CEN(3,NTH,NHH,2)
+            CEP1=CEP1+CEP(1,NTH,NHH,2)
+            CEP2=CEP1+CEP(2,NTH,NHH,2)
+            CEP3=CEP1+CEP(3,NTH,NHH,2)
          ENDDO
          CEN1=CEN1/NTHMAX
          CEN2=CEN2/NTHMAX
@@ -217,50 +217,50 @@ C
          CEP2=CEP2/NTHMAX
          CEP3=CEP3/NTHMAX
          DO NTH=1,NTHMAX
-            CEN(1,NTH,NPH,1)=CEN1
-            CEN(2,NTH,NPH,1)=CEN2
-            CEN(3,NTH,NPH,1)=CEN3
-            CEP(1,NTH,NPH,1)=CEP1
-            CEP(2,NTH,NPH,1)=CEP2
-            CEP(3,NTH,NPH,1)=CEP3
+            CEN(1,NTH,NHH,1)=CEN1
+            CEN(2,NTH,NHH,1)=CEN2
+            CEN(3,NTH,NHH,1)=CEN3
+            CEP(1,NTH,NHH,1)=CEP1
+            CEP(2,NTH,NHH,1)=CEP2
+            CEP(3,NTH,NHH,1)=CEP3
          ENDDO
       ENDDO
 C      NR=1
 C      NTH=1
-C      NPH=1
-C      WRITE(6,'(1P4E12.4)') CEN(1,NTH,NPH,NR),CEP(1,NTH,NPH,NR)
-C      WRITE(6,'(1P4E12.4)') CEN(2,NTH,NPH,NR),CEP(2,NTH,NPH,NR)
-C      WRITE(6,'(1P4E12.4)') CEN(3,NTH,NPH,NR),CEP(3,NTH,NPH,NR)
+C      NHH=1
+C      WRITE(6,'(1P4E12.4)') CEN(1,NTH,NHH,NR),CEP(1,NTH,NHH,NR)
+C      WRITE(6,'(1P4E12.4)') CEN(2,NTH,NHH,NR),CEP(2,NTH,NHH,NR)
+C      WRITE(6,'(1P4E12.4)') CEN(3,NTH,NHH,NR),CEP(3,NTH,NHH,NR)
 C      NR=2
 C      NTH=1
-C      NPH=1
-C      WRITE(6,'(1P4E12.4)') CEN(1,NTH,NPH,NR),CEP(1,NTH,NPH,NR)
-C      WRITE(6,'(1P4E12.4)') CEN(2,NTH,NPH,NR),CEP(2,NTH,NPH,NR)
-C      WRITE(6,'(1P4E12.4)') CEN(3,NTH,NPH,NR),CEP(3,NTH,NPH,NR)
+C      NHH=1
+C      WRITE(6,'(1P4E12.4)') CEN(1,NTH,NHH,NR),CEP(1,NTH,NHH,NR)
+C      WRITE(6,'(1P4E12.4)') CEN(2,NTH,NHH,NR),CEP(2,NTH,NHH,NR)
+C      WRITE(6,'(1P4E12.4)') CEN(3,NTH,NHH,NR),CEP(3,NTH,NHH,NR)
 C
 C     ----- Normalize CEFLD -----
 C
       DO NR=1,NRMAX+1
-      DO NPH=1,NPHMAX
+      DO NHH=1,NHHMAX
       DO NTH=1,NTHMAX
 C
-         RF11=(RG22(NTH,NPH,NR)*RG33(NTH,NPH,NR)
-     &        -RG23(NTH,NPH,NR)**2)/RJ(NTH,NPH,NR)**2
-         RF22=(RG33(NTH,NPH,NR)*RG11(NTH,NPH,NR)
-     &        -RG13(NTH,NPH,NR)**2)/RJ(NTH,NPH,NR)**2
-         RF33=(RG11(NTH,NPH,NR)*RG22(NTH,NPH,NR)
-     &         -RG12(NTH,NPH,NR)**2)/RJ(NTH,NPH,NR)**2
+         RF11=(RG22(NTH,NHH,NR)*RG33(NTH,NHH,NR)
+     &        -RG23(NTH,NHH,NR)**2)/RJ(NTH,NHH,NR)**2
+         RF22=(RG33(NTH,NHH,NR)*RG11(NTH,NHH,NR)
+     &        -RG13(NTH,NHH,NR)**2)/RJ(NTH,NHH,NR)**2
+         RF33=(RG11(NTH,NHH,NR)*RG22(NTH,NHH,NR)
+     &         -RG12(NTH,NHH,NR)**2)/RJ(NTH,NHH,NR)**2
          RG011=SQRT(RF11)
          RG022=SQRT(RF22)
          RG033=SQRT(RF33)
 C
-         CEFLD(1,NTH,NPH,NR)=CEFLD(1,NTH,NPH,NR)*RG011
-         CEFLD(2,NTH,NPH,NR)=CEFLD(2,NTH,NPH,NR)*RG022
-         CEFLD(3,NTH,NPH,NR)=CEFLD(3,NTH,NPH,NR)*RG033
+         CEFLD(1,NTH,NHH,NR)=CEFLD(1,NTH,NHH,NR)*RG011
+         CEFLD(2,NTH,NHH,NR)=CEFLD(2,NTH,NHH,NR)*RG022
+         CEFLD(3,NTH,NHH,NR)=CEFLD(3,NTH,NHH,NR)*RG033
 C
-C         WRITE(21,*) nth,nph,nr,CEFLD(1,NTH,NPH,NR)
-C         WRITE(21,*) nth,nph,nr,CEFLD(2,NTH,NPH,NR)
-C         WRITE(21,*) nth,nph,nr,CEFLD(3,NTH,NPH,NR)
+C         WRITE(21,*) nth,nph,nr,CEFLD(1,NTH,NHH,NR)
+C         WRITE(21,*) nth,nph,nr,CEFLD(2,NTH,NHH,NR)
+C         WRITE(21,*) nth,nph,nr,CEFLD(3,NTH,NHH,NR)
 C
       ENDDO
       ENDDO
@@ -353,24 +353,24 @@ C
          ENDDO
          ENDDO
          CALL WMSUBE(CBF1,CBF2)
-         DO NPH=1,NPHMAX
+         DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
-            CBFLD(I,NTH,NPH,NR)=CBF2(NTH,NPH)
+            CBFLD(I,NTH,NHH,NR)=CBF2(NTH,NHH)
          ENDDO
          ENDDO
       ENDDO
       ENDDO
 C
       DO NR=1,NRMAX+1
-      DO NPH=1,NPHMAX
+      DO NHH=1,NHHMAX
       DO NTH=1,NTHMAX
 C
-         CBFLD(1,NTH,NPH,NR)=CBFLD(1,NTH,NPH,NR)/RJ(NTH,NPH,NR)
-     &                      *SQRT(RG11(NTH,NPH,NR))
-         CBFLD(2,NTH,NPH,NR)=CBFLD(2,NTH,NPH,NR)/RJ(NTH,NPH,NR)
-     &                      *SQRT(RG22(NTH,NPH,NR))
-         CBFLD(3,NTH,NPH,NR)=CBFLD(3,NTH,NPH,NR)/RJ(NTH,NPH,NR)
-     &                      *SQRT(RG33(NTH,NPH,NR))
+         CBFLD(1,NTH,NHH,NR)=CBFLD(1,NTH,NHH,NR)/RJ(NTH,NHH,NR)
+     &                      *SQRT(RG11(NTH,NHH,NR))
+         CBFLD(2,NTH,NHH,NR)=CBFLD(2,NTH,NHH,NR)/RJ(NTH,NHH,NR)
+     &                      *SQRT(RG22(NTH,NHH,NR))
+         CBFLD(3,NTH,NHH,NR)=CBFLD(3,NTH,NHH,NR)/RJ(NTH,NHH,NR)
+     &                      *SQRT(RG33(NTH,NHH,NR))
       ENDDO
       ENDDO
       ENDDO
@@ -413,7 +413,7 @@ C
          ENDDO
 C
          DTH=2.D0*PI/DBLE(NTHMAX)
-         DPH=2.D0*PI/DBLE(NPHMAX)
+         DPH=2.D0*PI/DBLE(NHHMAX)
          CPRAD=(0.D0,0.D0)
 C
          DO NR=NRANT-1,NRMAX
@@ -558,21 +558,21 @@ C
       DIMENSION RF1(MDM,NDM),CF2(MDM,NDM)
       DIMENSION CFM(MDM),CFN(NDM)
 C
-      DO NPH=1,NPHMAX
+      DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
-            CFM(NTH)=RF1(NTH,NPH)
+            CFM(NTH)=RF1(NTH,NHH)
          ENDDO
          CALL WMXFFT(CFM,NTHMAX,0)
          DO LDX=1,LDSIZ
-            CF2(LDX,NPH)=CFM(LDX)
+            CF2(LDX,NHH)=CFM(LDX)
          ENDDO
       ENDDO
 C
       DO LDX=1,LDSIZ
-         DO NPH=1,NPHMAX
-            CFN(NPH)=CF2(LDX,NPH)
+         DO NHH=1,NHHMAX
+            CFN(NHH)=CF2(LDX,NHH)
          ENDDO
-         CALL WMXFFT(CFN,NPHMAX,0)
+         CALL WMXFFT(CFN,NHHMAX,0)
          DO KDX=1,KDSIZ
             CF2(LDX,KDX)=CFN(KDX)
          ENDDO
@@ -589,21 +589,21 @@ C
       DIMENSION CF1(MDM,NDM),CF2(MDM,NDM)
       DIMENSION CFM(MDM),CFN(NDM)
 C
-      DO NPH=1,NPHMAX
+      DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
-            CFM(NTH)=CF1(NTH,NPH)
+            CFM(NTH)=CF1(NTH,NHH)
          ENDDO
          CALL WMXFFT(CFM,NTHMAX,0)
          DO LDX=1,LDSIZ
-            CF2(LDX,NPH)=CFM(LDX)
+            CF2(LDX,NHH)=CFM(LDX)
          ENDDO
       ENDDO
 C
       DO LDX=1,LDSIZ
-         DO NPH=1,NPHMAX
-            CFN(NPH)=CF2(LDX,NPH)
+         DO NHH=1,NHHMAX
+            CFN(NHH)=CF2(LDX,NHH)
          ENDDO
-         CALL WMXFFT(CFN,NPHMAX,0)
+         CALL WMXFFT(CFN,NHHMAX,0)
          DO KDX=1,KDSIZ
             CF1(LDX,KDX)=CFN(KDX)
          ENDDO
@@ -634,9 +634,9 @@ C
          DO NDX=1,NDSIZ
             CFN(NDX)=CF2(NTH,NDX)
          ENDDO
-         CALL WMXFFT(CFN,NPHMAX,1)
-         DO NPH=1,NPHMAX
-            CF2(NTH,NPH)=CFN(NPH)
+         CALL WMXFFT(CFN,NHHMAX,1)
+         DO NHH=1,NHHMAX
+            CF2(NTH,NHH)=CFN(NHH)
          ENDDO
       ENDDO
       RETURN
@@ -651,21 +651,21 @@ C
       DIMENSION RF1(MDM,NDM),CF2(MDM,NDM)
       DIMENSION CFM(MDM),CFN(NDM)
 C
-      DO NPH=1,NPHMAX
+      DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
-            CFM(NTH)=1.D0/RF1(NTH,NPH)
+            CFM(NTH)=1.D0/RF1(NTH,NHH)
          ENDDO
          CALL WMXFFT(CFM,NTHMAX,0)
          DO LDX=1,LDSIZ
-            CF2(LDX,NPH)=CFM(LDX)
+            CF2(LDX,NHH)=CFM(LDX)
          ENDDO
       ENDDO
 C
       DO LDX=1,LDSIZ
-         DO NPH=1,NPHMAX
-            CFN(NPH)=CF2(LDX,NPH)
+         DO NHH=1,NHHMAX
+            CFN(NHH)=CF2(LDX,NHH)
          ENDDO
-         CALL WMXFFT(CFN,NPHMAX,0)
+         CALL WMXFFT(CFN,NHHMAX,0)
          DO KDX=1,KDSIZ
             CF2(LDX,KDX)=CFN(KDX)
          ENDDO
@@ -680,7 +680,7 @@ C
       INCLUDE 'wmcomm.inc'
 C
       DIMENSION RN(NSM),RTPR(NSM),RTPP(NSM),RU(NSM)
-      DIMENSION DS(NRM),DSS(NTHM,NPHM,NRM)
+      DIMENSION DS(NRM),DSS(NTHM,NHHM,NRM)
       DIMENSION CPF1(MDM,NDM),CPF2(MDM,NDM)
       DIMENSION CDV(3,3,3),CDW(3,3,3)
       DIMENSION CFA(NRM*NSM*MDM*MDM*NDM*NDM)
@@ -689,7 +689,7 @@ C
       NM=NRM*NSM*MDM*MDM*NDM*NDM
       CW=2.D0*PI*CRF*1.D6
       DTH=2.D0*PI/DBLE(NTHMAX)
-      DPH=2.D0*PI/DBLE(NPHMAX)
+      DPH=2.D0*PI/DBLE(NHHMAX)
 C
       IF(MYRANK.EQ.0) THEN
          NRS=NBST
@@ -1027,9 +1027,9 @@ C     +++++ CALCULATE PABS IN REAL SPACE +++++
 C
          DO NS=1,NSMAX
          DO NR=1,NRMAX+1
-            DO NPH=1,NPHMAX
+            DO NHH=1,NHHMAX
             DO NTH=1,NTHMAX
-               PABS(NTH,NPH,NR,NS)=0.D0
+               PABS(NTH,NHH,NR,NS)=0.D0
             ENDDO
             ENDDO
             DO NDX=1,NDSIZ
@@ -1042,10 +1042,10 @@ C
                ENDDO
                ENDDO
                CALL WMSUBE(CPF1,CPF2)
-               DO NPH=1,NPHMAX
+               DO NHH=1,NHHMAX
                DO NTH=1,NTHMAX
-                  PABS(NTH,NPH,NR,NS)=PABS(NTH,NPH,NR,NS)
-     &                               +DBLE(CPF2(NTH,NPH))
+                  PABS(NTH,NHH,NR,NS)=PABS(NTH,NHH,NR,NS)
+     &                               +DBLE(CPF2(NTH,NHH))
                ENDDO
                ENDDO
             ENDDO
@@ -1057,9 +1057,9 @@ C     +++++ CALCULATE DRIVEN CURRENT IN REAL SPACE +++++
 C
       NS=1
       DO NR=1,NRMAX+1
-         DO NPH=1,NPHMAX
+         DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
-            PCUR(NTH,NPH,NR)=0.D0
+            PCUR(NTH,NHH,NR)=0.D0
          ENDDO
          ENDDO
          CALL WMCDEN(NR,RN,RTPR,RTPP,RU)
@@ -1074,7 +1074,7 @@ C
          ENDIF
          DO ND=NDMIN,NDMAX
             NDX=ND-NDMIN+1
-            NN=NPH0+ND
+            NN=NPH0+HNC*ND
          DO MD=MDMIN,MDMAX
             MDX=MD-MDMIN+1
             MM=NTH0+MD
@@ -1084,22 +1084,22 @@ C
             ENDDO
             ENDDO
             CALL WMSUBE(CPF1,CPF2)
-            DO NPH=1,NPHMAX
+            DO NHH=1,NHHMAX
             DO NTH=1,NTHMAX
-               CALL WMCMAG(NR,NTH,NPH,BABS,BSUPTH,BSUPPH)
+               CALL WMCMAG(NR,NTH,NHH,BABS,BSUPTH,BSUPPH)
                RKPR=MM*BSUPTH/BABS+NN*BSUPPH/BABS
               IF(ABS(RKPR).LT.1.D-8) RKPR=1.D-8
               IF(ABS(WW/RKPR).LT.VC) THEN
                  W=WW/(RKPR*VTE)
-                 XL=(RPST(NTH,NPH,NR)-RR  )/RR
-                 YL=(ZPST(NTH,NPH,NR)-0.D0)/RR
+                 XL=(RPST(NTH,NHH,NR)-RR  )/RR
+                 YL=(ZPST(NTH,NHH,NR)-0.D0)/RR
                  EFCD=W1CDEF(ABS(W),ZEFF,XL,YL,1)
                  IF(W.LT.0.D0) EFCD=-EFCD
                  IF (RN(1).GT.0.D0) THEN
-                    PCUR(NTH,NPH,NR)=PCUR(NTH,NPH,NR)
+                    PCUR(NTH,NHH,NR)=PCUR(NTH,NHH,NR)
      &                   +0.384D0*RTPR(1)/(AEE*1.D3)*EFCD
-     &                   /((RN(1)/1.D20)*RLNLMD)*DBLE(CPF2(NTH,NPH))
-     &                   /(2.D0*PI*RPST(NTH,NPH,NR))
+     &                   /((RN(1)/1.D20)*RLNLMD)*DBLE(CPF2(NTH,NHH))
+     &                   /(2.D0*PI*RPST(NTH,NHH,NR))
                  END IF
               ENDIF
             ENDDO
@@ -1110,9 +1110,9 @@ C
 C
       DO NR=1,NRMAX
          PCURR(NR)=0.D0
-         DO NPH=1,NPHMAX
+         DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
-            PCURR(NR)=PCURR(NR)+PCUR(NTH,NPH,NR)*DTH
+            PCURR(NR)=PCURR(NR)+PCUR(NTH,NHH,NR)*DTH
          ENDDO
          ENDDO
       ENDDO
@@ -1120,9 +1120,9 @@ C
       DO NS=1,NSMAX
       DO NR=1,NRMAX
          PABSR(NR,NS)=0.D0
-         DO NPH=1,NPHMAX
+         DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
-            PABSR(NR,NS)=PABSR(NR,NS)+PABS(NTH,NPH,NR,NS)*DTH*DPH
+            PABSR(NR,NS)=PABSR(NR,NS)+PABS(NTH,NHH,NR,NS)*DTH*DPH
          ENDDO
          ENDDO
       ENDDO
@@ -1154,23 +1154,23 @@ C
 C
       NR=1
          DS(NR)=0.D0
-         DO NPH=1,NPHMAX
+         DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
-            DSS(NTH,NPH,NR)=0.D0
+            DSS(NTH,NHH,NR)=0.D0
          ENDDO
          ENDDO
       DO NR=2,NRMAX
          DS(NR)=0.D0
          DRHO=0.5D0*(XRHO(NR+1)-XRHO(NR-1))
-         DO NPH=1,NPHMAX
+         DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
             IF(MODELG.EQ.3) THEN
                DPSIPDRHO=2.D0*PSITA*XRHO(NR)/QPS(NR)
             ELSE
                DPSIPDRHO=2.D0*PSIPA*XRHO(NR)
             ENDIF
-            DSSS=DPSIPDRHO*DRHO*RJ(NTH,NPH,NR)
-            DSS(NTH,NPH,NR)=1.D0/DSSS
+            DSSS=DPSIPDRHO*DRHO*RJ(NTH,NHH,NR)
+            DSS(NTH,NHH,NR)=1.D0/DSSS
             DS(NR)=DS(NR)+DSSS*DTH*DPH
          ENDDO
          ENDDO
@@ -1182,10 +1182,10 @@ C
          PABST(NS)=FACT*PABST(NS)
          DO NR=1,NRMAX
             PABSR(NR,NS)=FACT*PABSR(NR,NS)*DS(NR)
-            DO NPH=1,NPHMAX
+            DO NHH=1,NHHMAX
             DO NTH=1,NTHMAX
-               PABS(NTH,NPH,NR,NS)=FACT*PABS(NTH,NPH,NR,NS)
-     &                            *DSS(NTH,NPH,NR)
+               PABS(NTH,NHH,NR,NS)=FACT*PABS(NTH,NHH,NR,NS)
+     &                            *DSS(NTH,NHH,NR)
             ENDDO
             ENDDO
          ENDDO
@@ -1206,9 +1206,9 @@ C
       PCURT=FACT*PCURT
       DO NR=1,NRMAX
          PCURR(NR)=FACT*PCURR(NR)*DS(NR)
-         DO NPH=1,NPHMAX
+         DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
-            PCUR(NTH,NPH,NR)=FACT*PCUR(NTH,NPH,NR)*DSS(NTH,NPH,NR)
+            PCUR(NTH,NHH,NR)=FACT*PCUR(NTH,NHH,NR)*DSS(NTH,NHH,NR)
          ENDDO
          ENDDO
       ENDDO
@@ -1227,20 +1227,20 @@ C
             CBFLDK(3,MDX,NDX,NR)=FACTSQ*CBFLDK(3,MDX,NDX,NR)
          ENDDO
          ENDDO
-         DO NPH=1,NPHMAX
+         DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
-            CEFLD(1,NTH,NPH,NR)=FACTSQ*CEFLD(1,NTH,NPH,NR)
-            CEFLD(2,NTH,NPH,NR)=FACTSQ*CEFLD(2,NTH,NPH,NR)
-            CEFLD(3,NTH,NPH,NR)=FACTSQ*CEFLD(3,NTH,NPH,NR)
-            CBFLD(1,NTH,NPH,NR)=FACTSQ*CBFLD(1,NTH,NPH,NR)
-            CBFLD(2,NTH,NPH,NR)=FACTSQ*CBFLD(2,NTH,NPH,NR)
-            CBFLD(3,NTH,NPH,NR)=FACTSQ*CBFLD(3,NTH,NPH,NR)
-            CEN(1,NTH,NPH,NR)  =FACTSQ*CEN(1,NTH,NPH,NR)
-            CEN(2,NTH,NPH,NR)  =FACTSQ*CEN(2,NTH,NPH,NR)
-            CEN(3,NTH,NPH,NR)  =FACTSQ*CEN(3,NTH,NPH,NR)
-            CEP(1,NTH,NPH,NR)  =FACTSQ*CEP(1,NTH,NPH,NR)
-            CEP(2,NTH,NPH,NR)  =FACTSQ*CEP(2,NTH,NPH,NR)
-            CEP(3,NTH,NPH,NR)  =FACTSQ*CEP(3,NTH,NPH,NR)
+            CEFLD(1,NTH,NHH,NR)=FACTSQ*CEFLD(1,NTH,NHH,NR)
+            CEFLD(2,NTH,NHH,NR)=FACTSQ*CEFLD(2,NTH,NHH,NR)
+            CEFLD(3,NTH,NHH,NR)=FACTSQ*CEFLD(3,NTH,NHH,NR)
+            CBFLD(1,NTH,NHH,NR)=FACTSQ*CBFLD(1,NTH,NHH,NR)
+            CBFLD(2,NTH,NHH,NR)=FACTSQ*CBFLD(2,NTH,NHH,NR)
+            CBFLD(3,NTH,NHH,NR)=FACTSQ*CBFLD(3,NTH,NHH,NR)
+            CEN(1,NTH,NHH,NR)  =FACTSQ*CEN(1,NTH,NHH,NR)
+            CEN(2,NTH,NHH,NR)  =FACTSQ*CEN(2,NTH,NHH,NR)
+            CEN(3,NTH,NHH,NR)  =FACTSQ*CEN(3,NTH,NHH,NR)
+            CEP(1,NTH,NHH,NR)  =FACTSQ*CEP(1,NTH,NHH,NR)
+            CEP(2,NTH,NHH,NR)  =FACTSQ*CEP(2,NTH,NHH,NR)
+            CEP(3,NTH,NHH,NR)  =FACTSQ*CEP(3,NTH,NHH,NR)
          ENDDO
          ENDDO
       ENDDO

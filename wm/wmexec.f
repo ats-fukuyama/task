@@ -193,11 +193,11 @@ C
 C
       INCLUDE 'wmcomm.inc'
 C
-      DO NPH=1,NPHMAX
+      DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
-            CEWALL(NTH,NPH,1)=(0.D0,0.D0)
-            CEWALL(NTH,NPH,2)=(0.D0,0.D0)
-            CEWALL(NTH,NPH,3)=(0.D0,0.D0)
+            CEWALL(NTH,NHH,1)=(0.D0,0.D0)
+            CEWALL(NTH,NHH,2)=(0.D0,0.D0)
+            CEWALL(NTH,NHH,3)=(0.D0,0.D0)
          END DO
       END DO
 
@@ -206,15 +206,22 @@ C
          TH2=THJ2(NA)*PI/180.D0
          WTH=ABS(TH2-TH1)
          TH0=0.5D0*(TH1+TH2)
-         DTH=2.D0*PI/NPHMAX
+         DTH=2.D0*PI/NTHMAX
          DO NTH=1,NTHMAX
             TH=DTH*(NTH-1)
-            IF(TH >= TH1 .AND. TH <= TH2) THEN
+            IF(TH >= TH1         .AND. TH <= TH2        )THEN
                CETH=AEWGT(NA)
                CEPH=AEWGZ(NA)*COS((TH-TH0)/WTH*PI)
-               DO NPH=1,NPHMAX
-                  CEWALL(NTH,NPH,2)=CEWALL(NTH,NPH,2)+CETH
-                  CEWALL(NTH,NPH,3)=CEWALL(NTH,NPH,3)+CEPH
+               DO NHH=1,NHHMAX
+                  CEWALL(NTH,NHH,2)=CEWALL(NTH,NHH,2)+CETH
+                  CEWALL(NTH,NHH,3)=CEWALL(NTH,NHH,3)+CEPH
+               END DO
+            ELSE IF(TH >= TH1+2.D0*PI .AND. TH <= TH2+2.D0*PI) THEN
+               CETH=AEWGT(NA)
+               CEPH=AEWGZ(NA)*COS((TH-TH0-2.D0*PI)/WTH*PI)
+               DO NHH=1,NHHMAX
+                  CEWALL(NTH,NHH,2)=CEWALL(NTH,NHH,2)+CETH
+                  CEWALL(NTH,NHH,3)=CEWALL(NTH,NHH,3)+CEPH
                END DO
             END IF
          END DO

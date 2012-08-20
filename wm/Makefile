@@ -8,10 +8,10 @@ MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
             -I../../bpsd/$(MOD)
 
 SRC0 = wmmenu.f wminit.f wmeign.f wmsetg.f \
-       wmexec.f wmprof.f wmdisp.f \
+       wmprof.f wmdisp.f \
        wmsetm.f wmsetf.f wmxprf.f wmdprf.f \
        wmpout.f wmgout.f wmgsub.f wmdout.f wmfout.f \
-       wmtae.f \
+       wmexec.f wmloop.f wmtae.f \
        wmvmec.f wmbooz.f wmvout.f wmtpcs.f
 
 # wmtrfile.f

@@ -54,7 +54,7 @@ C            CALL WMTRLOAD(KNAMTR,IERR)
       ENDIF
       IF(IERR.NE.0) RETURN
 C
-      IF(NPHMAX.EQ.1) THEN
+      IF(NHHMAX.EQ.1) THEN
          NDSIZ  = 1
          NDMIN  = 0
          NDMAX  = 0
@@ -63,13 +63,13 @@ C
          KDMAX  = 0
          NDSIZX = 1
       ELSE
-         NDSIZ  = NPHMAX
-         NDMIN  =-NPHMAX/2+1
-         NDMAX  = NPHMAX/2
-         KDSIZ  = NPHMAX
-         KDMIN  =-NPHMAX/2+1
-         KDMAX  = NPHMAX/2
-         NDSIZX = 3*NPHMAX/2
+         NDSIZ  = NHHMAX
+         NDMIN  =-NHHMAX/2+1
+         NDMAX  = NHHMAX/2
+         KDSIZ  = NHHMAX
+         KDMIN  =-NHHMAX/2+1
+         KDMAX  = NHHMAX/2
+         NDSIZX = 3*NHHMAX/2
       ENDIF
 C
       IF(NTHMAX.EQ.1) THEN
@@ -105,7 +105,7 @@ C
 C
          NSUMAX=31
          NSWMAX=31
-         NPHMAX=1
+         NHHMAX=1
 C
          PSIPA=RA*RA*BB/(Q0+QA)
          PSIPB=SQRT(RB**2/RA**2+(RB**2/RA**2-1.D0)*Q0/QA)*PSIPA
@@ -207,24 +207,24 @@ C
          DO NR=1,NRMAX+1
          DO NTH=1,NTHMAX
             RRG=RPS(NTH,NR)
-         DO NPH=1,NPHMAX
-            RPST(NTH,NPH,NR)=RPS(NTH,NR)
-            ZPST(NTH,NPH,NR)=ZPS(NTH,NR)
+         DO NHH=1,NHHMAX
+            RPST(NTH,NHH,NR)=RPS(NTH,NR)
+            ZPST(NTH,NHH,NR)=ZPS(NTH,NR)
 C
-            RG11(NTH,NPH,NR)= DRPSI(NTH,NR)**2+DZPSI(NTH,NR)**2
-            RG12(NTH,NPH,NR)= DRPSI(NTH,NR)*DRCHI(NTH,NR)
+            RG11(NTH,NHH,NR)= DRPSI(NTH,NR)**2+DZPSI(NTH,NR)**2
+            RG12(NTH,NHH,NR)= DRPSI(NTH,NR)*DRCHI(NTH,NR)
      &                       +DZPSI(NTH,NR)*DZCHI(NTH,NR)
-            RG13(NTH,NPH,NR)= 0.D0
-            RG22(NTH,NPH,NR)= DRCHI(NTH,NR)**2+DZCHI(NTH,NR)**2
-            RG23(NTH,NPH,NR)= 0.D0
-            RG33(NTH,NPH,NR)= RRG**2
-            RJ  (NTH,NPH,NR)= RRG*( DRPSI(NTH,NR)*DZCHI(NTH,NR)
+            RG13(NTH,NHH,NR)= 0.D0
+            RG22(NTH,NHH,NR)= DRCHI(NTH,NR)**2+DZCHI(NTH,NR)**2
+            RG23(NTH,NHH,NR)= 0.D0
+            RG33(NTH,NHH,NR)= RRG**2
+            RJ  (NTH,NHH,NR)= RRG*( DRPSI(NTH,NR)*DZCHI(NTH,NR)
      &                             -DRCHI(NTH,NR)*DZPSI(NTH,NR))
 C
-            BFLD(2,NTH,NPH,NR)=1.D0/RJ(NTH,NPH,NR)
-            BFLD(3,NTH,NPH,NR)=RBPS(NR)/RRG**2
-C            WRITE(6,*) 'NR,RJ,BFLD2,BFLD3=',NR,RJ(NTH,NPH,NR),
-C     &                 BFLD(2,NTH,NPH,NR),BFLD(3,NTH,NPH,NR)
+            BFLD(2,NTH,NHH,NR)=1.D0/RJ(NTH,NHH,NR)
+            BFLD(3,NTH,NHH,NR)=RBPS(NR)/RRG**2
+C            WRITE(6,*) 'NR,RJ,BFLD2,BFLD3=',NR,RJ(NTH,NHH,NR),
+C     &                 BFLD(2,NTH,NHH,NR),BFLD(3,NTH,NHH,NR)
          ENDDO
          ENDDO
          ENDDO
@@ -243,7 +243,7 @@ C
 C
          NSUMAX=31
          NSWMAX=31
-         NPHMAX=1
+         NHHMAX=1
 
 C         CALL plfile_prof_read(modeln,modelq,ierr)
 C
@@ -329,26 +329,26 @@ C
          DO NR=1,NRMAX+1
          DO NTH=1,NTHMAX
             RRG=RPS(NTH,NR)
-         DO NPH=1,NPHMAX
-            RPST(NTH,NPH,NR)=RPS(NTH,NR)
-            ZPST(NTH,NPH,NR)=ZPS(NTH,NR)
+         DO NHH=1,NHHMAX
+            RPST(NTH,NHH,NR)=RPS(NTH,NR)
+            ZPST(NTH,NHH,NR)=ZPS(NTH,NR)
 C
-            RG11(NTH,NPH,NR)= DRPSI(NTH,NR)**2+DZPSI(NTH,NR)**2
-            RG12(NTH,NPH,NR)= DRPSI(NTH,NR)*DRCHI(NTH,NR)
+            RG11(NTH,NHH,NR)= DRPSI(NTH,NR)**2+DZPSI(NTH,NR)**2
+            RG12(NTH,NHH,NR)= DRPSI(NTH,NR)*DRCHI(NTH,NR)
      &                       +DZPSI(NTH,NR)*DZCHI(NTH,NR)
-            RG13(NTH,NPH,NR)= 0.D0
-            RG22(NTH,NPH,NR)= DRCHI(NTH,NR)**2+DZCHI(NTH,NR)**2
+            RG13(NTH,NHH,NR)= 0.D0
+            RG22(NTH,NHH,NR)= DRCHI(NTH,NR)**2+DZCHI(NTH,NR)**2
 C            if(nth.eq.1) write(6,'(A,I5,1P3E12.4)') 
-C     &           '-- ',NR,DRCHI(NTH,NR),DZCHI(NTH,NR),RG22(NTH,NPH,NR)
-            RG23(NTH,NPH,NR)= 0.D0
-            RG33(NTH,NPH,NR)= RRG**2
-            RJ  (NTH,NPH,NR)= RRG*( DRPSI(NTH,NR)*DZCHI(NTH,NR)
+C     &           '-- ',NR,DRCHI(NTH,NR),DZCHI(NTH,NR),RG22(NTH,NHH,NR)
+            RG23(NTH,NHH,NR)= 0.D0
+            RG33(NTH,NHH,NR)= RRG**2
+            RJ  (NTH,NHH,NR)= RRG*( DRPSI(NTH,NR)*DZCHI(NTH,NR)
      &                             -DRCHI(NTH,NR)*DZPSI(NTH,NR))
 C
-            BFLD(2,NTH,NPH,NR)=BB*RR/RRG**2/QPS(NR)
-            BFLD(3,NTH,NPH,NR)=BB*RR/RRG**2
-C            WRITE(6,*) 'NR,RJ,BFLD2,BFLD3=',NR,RJ(NTH,NPH,NR),
-C     &                 BFLD(2,NTH,NPH,NR),BFLD(3,NTH,NPH,NR)
+            BFLD(2,NTH,NHH,NR)=BB*RR/RRG**2/QPS(NR)
+            BFLD(3,NTH,NHH,NR)=BB*RR/RRG**2
+C            WRITE(6,*) 'NR,RJ,BFLD2,BFLD3=',NR,RJ(NTH,NHH,NR),
+C     &                 BFLD(2,NTH,NHH,NR),BFLD(3,NTH,NHH,NR)
          ENDDO
          ENDDO
          ENDDO
@@ -375,7 +375,7 @@ C
 C
       NSUMAX=41
       NSWMAX=NSUMAX
-      NPHMAX=1
+      NHHMAX=1
 C
       IF(NTHMAX.LT.4) THEN
          IF(MYRANK.EQ.0) 
@@ -487,87 +487,87 @@ C
          ENDDO
 C
          DO NR=1,NRMAX+1
-         DO NPH=1,NPHMAX
+         DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
-            RPST(NTH,NPH,NR)=RPS(NTH,NR)
-            ZPST(NTH,NPH,NR)=ZPS(NTH,NR)
+            RPST(NTH,NHH,NR)=RPS(NTH,NR)
+            ZPST(NTH,NHH,NR)=ZPS(NTH,NR)
          ENDDO
          ENDDO
          ENDDO
 C
          DO NR=2,NRMAX+1
          DO NTH=1,NTHMAX
-         DO NPH=1,NPHMAX
-            RG11(NTH,NPH,NR)= (DRPSI(NTH,NR)**2+DZPSI(NTH,NR)**2)
+         DO NHH=1,NHHMAX
+            RG11(NTH,NHH,NR)= (DRPSI(NTH,NR)**2+DZPSI(NTH,NR)**2)
 C     &                       *(2.D0*PI)**2
-            RG12(NTH,NPH,NR)= (DRPSI(NTH,NR)*DRCHI(NTH,NR)
+            RG12(NTH,NHH,NR)= (DRPSI(NTH,NR)*DRCHI(NTH,NR)
      &                        +DZPSI(NTH,NR)*DZCHI(NTH,NR))/XRHO(NR)
 C     &                       * 2.D0*PI
-            RG13(NTH,NPH,NR)=0.D0
-            RG22(NTH,NPH,NR)= (DRCHI(NTH,NR)**2+DZCHI(NTH,NR)**2)
+            RG13(NTH,NHH,NR)=0.D0
+            RG22(NTH,NHH,NR)= (DRCHI(NTH,NR)**2+DZCHI(NTH,NR)**2)
      &                        /(XRHO(NR)*XRHO(NR))
-            RG23(NTH,NPH,NR)=0.D0
-            RG33(NTH,NPH,NR)= RPS(NTH,NR)**2
-            RJ  (NTH,NPH,NR)= RPS(NTH,NR)
+            RG23(NTH,NHH,NR)=0.D0
+            RG33(NTH,NHH,NR)= RPS(NTH,NR)**2
+            RJ  (NTH,NHH,NR)= RPS(NTH,NR)
      &                      *( DRPSI(NTH,NR)*DZCHI(NTH,NR)
      &                        -DRCHI(NTH,NR)*DZPSI(NTH,NR))/XRHO(NR)
 C     &                      / 2.D0*PI
 C
-C            BFLD(2,NTH,NPH,NR)=1.D0/(2.D0*PI*RJ(NTH,NPH,NR))
-C            BFLD(3,NTH,NPH,NR)=RBPS(NR)/RPS(NTH,NR)**2
+C            BFLD(2,NTH,NHH,NR)=1.D0/(2.D0*PI*RJ(NTH,NHH,NR))
+C            BFLD(3,NTH,NHH,NR)=RBPS(NR)/RPS(NTH,NR)**2
 C     &                        /(2.D0*PI)
 C
             BPTL=(BPR(NTH,NR)*DZPSI(NTH,NR)
      &           -BPZ(NTH,NR)*DRPSI(NTH,NR))/XRHO(NR)
-     &           /SQRT(RG11(NTH,NPH,NR))
-     &           /SQRT(RG22(NTH,NPH,NR))
+     &           /SQRT(RG11(NTH,NHH,NR))
+     &           /SQRT(RG22(NTH,NHH,NR))
 C     &                       * 2.D0*PI
 C
-            BFLD(2,NTH,NPH,NR)=BPTL
-            BFLD(3,NTH,NPH,NR)=BTP(NTH,NR)/RPS(NTH,NR)
+            BFLD(2,NTH,NHH,NR)=BPTL
+            BFLD(3,NTH,NHH,NR)=BTP(NTH,NR)/RPS(NTH,NR)
 C
 C            IF(NTH.EQ.1) WRITE(6,'(2I3,1P6E12.4)') 
-C     &           NR,NTH,1.D0/(2.D0*PI*RJ(NTH,NPH,NR)),
+C     &           NR,NTH,1.D0/(2.D0*PI*RJ(NTH,NHH,NR)),
 C     &           BPTL,
 C     &           RBPS(NR)/RPS(NTH,NR)**2/(2.D0*PI),
 C     &           BTP(NTH,NR)/RPS(NTH,NR),
 C     &           BPZ(NTH,NR),XRHO(NR)
 C
 C            IF((NR.EQ.2).OR.(NR.EQ.3)) THEN
-C            WRITE(6,*) 'NR,NTH,NPH=',NR,NTH,NPH
+C            WRITE(6,*) 'NR,NTH,NHH=',NR,NTH,NHH
 C            WRITE(6,'(1P3E21.4)') 
-C     &           RG11(NTH,NPH,NR),RG12(NTH,NPH,NR),RG13(NTH,NPH,NR)
+C     &           RG11(NTH,NHH,NR),RG12(NTH,NHH,NR),RG13(NTH,NHH,NR)
 C            WRITE(6,'(1P3E21.4)') 
-C     &           RG22(NTH,NPH,NR),RG23(NTH,NPH,NR),RG33(NTH,NPH,NR)
+C     &           RG22(NTH,NHH,NR),RG23(NTH,NHH,NR),RG33(NTH,NHH,NR)
 C            WRITE(6,'(1P3E21.4)') 
-C     &           RJ(NTH,NPH,NR),BFLD(2,NTH,NPH,NR),BFLD(3,NTH,NPH,NR)
+C     &           RJ(NTH,NHH,NR),BFLD(2,NTH,NHH,NR),BFLD(3,NTH,NHH,NR)
 C            ENDIF
          ENDDO
          ENDDO
          ENDDO
 C
          NR=1
-         DO NPH=1,NPHMAX
+         DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
-            RG11(NTH,NPH,NR)= RG11(NTH,NPH,2)
-            RG12(NTH,NPH,NR)= RG12(NTH,NPH,2)
-            RG13(NTH,NPH,NR)= 0.D0
-            RG22(NTH,NPH,NR)= RG22(NTH,NPH,2)
-            RG23(NTH,NPH,NR)= 0.D0
-            RG33(NTH,NPH,NR)= RPST(NTH,NPH,NR)**2
-            RJ  (NTH,NPH,NR)= RJ(NTH,NPH,2)
+            RG11(NTH,NHH,NR)= RG11(NTH,NHH,2)
+            RG12(NTH,NHH,NR)= RG12(NTH,NHH,2)
+            RG13(NTH,NHH,NR)= 0.D0
+            RG22(NTH,NHH,NR)= RG22(NTH,NHH,2)
+            RG23(NTH,NHH,NR)= 0.D0
+            RG33(NTH,NHH,NR)= RPST(NTH,NHH,NR)**2
+            RJ  (NTH,NHH,NR)= RJ(NTH,NHH,2)
             BPTL=0.D0
 C
-C            BFLD(2,NTH,NPH,NR)=1.D0/(2.D0*PI*RJ(NTH,NPH,NR))
-C            BFLD(3,NTH,NPH,NR)=RBPS(NR)/RPS(NTH,NR)**2
+C            BFLD(2,NTH,NHH,NR)=1.D0/(2.D0*PI*RJ(NTH,NHH,NR))
+C            BFLD(3,NTH,NHH,NR)=RBPS(NR)/RPS(NTH,NR)**2
 C     &                        /(2.D0*PI)
 C
-            BFLD(2,NTH,NPH,NR)=BFLD(2,NTH,NPH,2)
-            BFLD(3,NTH,NPH,NR)=BTP(NTH,NR)/RPS(NTH,NR)
+            BFLD(2,NTH,NHH,NR)=BFLD(2,NTH,NHH,2)
+            BFLD(3,NTH,NHH,NR)=BTP(NTH,NR)/RPS(NTH,NR)
 C
-C            WRITE(6,'(2I3,1P4E12.4)') NTH,NR,1.D0/RJ(NTH,NPH,NR),
+C            WRITE(6,'(2I3,1P4E12.4)') NTH,NR,1.D0/RJ(NTH,NHH,NR),
 C     &           RBPS(NR)/RPS(NTH,NR)**2,
-C     &           BPTL,BPTL*RJ(NTH,NPH,NR)
+C     &           BPTL,BPTL*RJ(NTH,NHH,NR)
 C     &           BPT,BTP(NTH,NR)/RPS(NTH,NR)
 C
          ENDDO
@@ -582,15 +582,15 @@ C
       INCLUDE 'wmcomm.inc'
 C
       DO NR=1,NRMAX+1
-      DO NPH=1,NPHMAX
+      DO NHH=1,NHHMAX
       DO NTH=1,NTHMAX
-         BSUPTH=BFLD(2,NTH,NPH,NR)
-         BSUPPH=BFLD(3,NTH,NPH,NR)
-         BABS=SQRT(     RG22(NTH,NPH,NR)*BSUPTH*BSUPTH*XRHO(NR)**2
-     &            +2.D0*RG23(NTH,NPH,NR)*BSUPTH*BSUPPH*XRHO(NR)
-     &            +     RG33(NTH,NPH,NR)*BSUPPH*BSUPPH)
+         BSUPTH=BFLD(2,NTH,NHH,NR)
+         BSUPPH=BFLD(3,NTH,NHH,NR)
+         BABS=SQRT(     RG22(NTH,NHH,NR)*BSUPTH*BSUPTH*XRHO(NR)**2
+     &            +2.D0*RG23(NTH,NHH,NR)*BSUPTH*BSUPPH*XRHO(NR)
+     &            +     RG33(NTH,NHH,NR)*BSUPPH*BSUPPH)
 C         BABS=SQRT(BPT(NTH,NR)**2+BTP(NTH,NR)**2)
-         BPST(NTH,NPH,NR)=BABS
+         BPST(NTH,NHH,NR)=BABS
 C         IF(NTH.EQ.1) THEN
 C            WRITE(6,'(I5,1P4E12.4)') NR,BABS,BABS1,BSUPTH,BSUPPH
 C         ENDIF

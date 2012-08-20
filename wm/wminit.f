@@ -45,16 +45,6 @@ C
 C
 C     (Multi-mode case)
 C
-C     MNPHMAX : Number of toroidal modes
-C     MNPH0  : Current central value of toroidal mode number
-C     PFRAC  : Fraction of power for each toroidal mode number
-C
-      MNPHMAX = 1
-      DO NM = 1, MNPHMAX
-         MNPH0(NM) = 8
-         PFRAC(NM) = 0.D0
-      ENDDO
-C
 C
 C     *** ANTENNA PARAMETERS ***
 C
@@ -84,13 +74,28 @@ C     *** MESH PARAMETERS ***
 C
 C        NRMAX  : Number of radial mesh points
 C        NTHMAX : Number of poloidal mesh points
-C        NPHMAX : Number of toroidal mesh points
+C        NHHMAX : Number of helically coupled toroidal modes
+C                 =1 : axisymmetric calculation
+C                 >1 : helical calculation
+C        NPHMAX : Number of toroidal modes
+C                 =1 : single toroidal mode calculation
+C                 >1 : multi toroidal mode calculation (-NPHMAX/2+1..NPHMAX/2)
 C
       NRMAX   = 50
       NTHMAX  = 1
+      NHHMAX  = 1
       NPHMAX  = 1
+
       NSUMAX  = 64
       NSWMAX  = 64
+C
+C     NPH0L  : Current central value of toroidal mode number
+C     PFRACL : Fraction of power for each toroidal mode number
+C
+      DO NPH = 1, NPHMAX
+         NPH0L(NPH) = 8
+         PFRACL(NPH)= 0.D0
+      ENDDO
 C
       DO NS=1,NSM
          DO NR=1,NRMAX
@@ -279,7 +284,7 @@ C
      &              PNA,PNAL,PTA,ZEFF,NDISP1,NDISP2,
      &              RF,RFI,RD,BETAJ,AJ,AEWGT,AEWGZ,
      &              APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,
-     &              NRMAX,NTHMAX,NPHMAX,NTH0,NPH0,NHC,
+     &              NRMAX,NTHMAX,NHHMAX,NTH0,NPH0,NHC,
      &              NPRINT,NGRAPH,MODELG,MODELJ,MODELP,MODELN,MODELA,
      &              MODELQ,MODELM,MODELW,MODELV,MDLWMF,MDLWMX,MDLWMD,
      &              MWGMAX,MODEFR,MODEFW,ANTANG,
@@ -290,16 +295,16 @@ C
      &              RHOITB,PNITB,PTITB,PUITB,
      &              KNAMEQ,KNAMTR,KNAMWM,KNAMFP,KNAMFO,KNAMPF,
      &              WAEMIN,WAEMAX,PRFIN,MODELPR,MODELVR,
-     &              NSUMAX,NSWMAX,MNPHMAX,MNPH0,PFRAC
+     &              NSUMAX,NSWMAX,NPHMAX,NPH0L,PFRACL
 C
       RF=DREAL(CRF)
       RFI=DIMAG(CRF)
       READ(NID,WM,IOSTAT=IST,ERR=9800,END=9900)
       CRF=DCMPLX(RF,RFI)
-      IF(NPHMAX.EQ.1) THEN
-         NPHMAX2=1
+      IF(NHHMAX.EQ.1) THEN
+         NHHMAX2=1
       ELSE
-         NPHMAX2=2*NPHMAX
+         NHHMAX2=2*NHHMAX
       ENDIF
       IF(NTHMAX.EQ.1) THEN
          NTHMAX2=1
@@ -327,7 +332,7 @@ C
      &       9X,'PROFN1,PROFN2,PROFT1,PROFT2,ZEFF,'/
      &       9X,'NSMAX,PNA,PNAL,PTA,RF,RFI,RD,BETAJ,'/
      &       9X,'AJ,AEWGT,AEWGZ,APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,MWGMAX,'/
-     &       9X,'NRMAX,NTHMAX,NPHMAX,NTH0,NPH0,NHC,'/
+     &       9X,'NRMAX,NTHMAX,NHHMAX,NTH0,NPH0,NHC,'/
      &       9X,'MODELG,MODELJ,MODELP,MODELA,MODELN,'/
      &       9X,'MODELQ,MODELM,MODELW,MDLWMF,MDLWMX,MDLWMD,'/
      &       9X,'KNAMEQ,KNAMTR,KNAMPF,MODEFR,MODEFW,'/
@@ -339,7 +344,7 @@ C
      &       9X,'RHOMIN,QMIN,PU,PUS,PROFU1,PROFU2'/
      &       9X,'RHOITB,PNITB,PTITB,PUITB'/
      &       9X,'WAEMIN,WAEMAX,KNAMWM,KNAMFP,KNAMFO'/
-     &       9X,'NSUMAX,NSWMAX,MNPHMAX,MNPH0,PFRAC')
+     &       9X,'NSUMAX,NSWMAX,NPHMAX,NPH0L,PFRACL')
       END
 C
 C     ***** CHECK INPUT PARAMETERS *****
@@ -375,15 +380,15 @@ C
          ENDIF
       ENDIF
 C
-      IF(NPHMAX.LT.1.OR.NPHMAX.GT.NDM) THEN
-         WRITE(6,*) 'XXX INPUT ERROR : ILLEGAL NPHMAX'
-         WRITE(6,*) '                  NPHMAX,NDM =',NPHMAX,NDM
+      IF(NHHMAX.LT.1.OR.NHHMAX.GT.NDM) THEN
+         WRITE(6,*) 'XXX INPUT ERROR : ILLEGAL NHHMAX'
+         WRITE(6,*) '                  NHHMAX,NDM =',NHHMAX,NDM
          IERR=1
       ELSE
-         NDP=NINT(LOG(DBLE(NPHMAX))/LOG(2.D0))
-         IF(2**NDP.NE.NPHMAX) THEN
-            WRITE(6,*) 'XXX INPUT ERROR : ILLEGAL NPHMAX'
-            WRITE(6,*) '                  NPHMAX,NDM =',NPHMAX,NDM
+         NDP=NINT(LOG(DBLE(NHHMAX))/LOG(2.D0))
+         IF(2**NDP.NE.NHHMAX) THEN
+            WRITE(6,*) 'XXX INPUT ERROR : ILLEGAL NHHMAX'
+            WRITE(6,*) '                  NHHMAX,NDM =',NHHMAX,NDM
             IERR=1
          ENDIF
       ENDIF
@@ -504,7 +509,7 @@ C
       WRITE(6,601) 'RF    ',RF    ,'RFI   ',RFI   ,
      &             'RD    ',RD    ,'BETAJ ',BETAJ
       WRITE(6,602) 'NRMAX ',NRMAX ,'NTHMAX',NTHMAX,
-     &             'NPHMAX',NPHMAX
+     &             'NHHMAX',NHHMAX
       WRITE(6,602) 'NTH0  ',NTH0  ,'NPH0  ',NPH0  ,
      &             'NHC   ',NHC   ,'MWGMAX',MWGMAX
       WRITE(6,602) 'MODELG',MODELG,'MODELJ',MODELJ,
@@ -552,7 +557,7 @@ C
 C
       INCLUDE 'wmcomm.inc'
 C
-      DIMENSION IPARA(22),DPARA(28)
+      DIMENSION IPARA(23),DPARA(28)
 C
       IF(MYRANK.EQ.0) THEN
          RF=DBLE(CRF)
@@ -561,7 +566,7 @@ C
          IPARA(2) =NAMAX
          IPARA(3) =NRMAX
          IPARA(4) =NTHMAX
-         IPARA(5) =NPHMAX
+         IPARA(5) =NHHMAX
          IPARA(6) =NTH0
          IPARA(7) =NPH0
          IPARA(8) =NHC
@@ -579,6 +584,7 @@ C
          IPARA(20)=LISTNW
          IPARA(21)=MODENW
          IPARA(22)=NCONT
+         IPARA(23)=NPHMAX
 C
          DPARA(1) =BB
          DPARA(2) =RR
@@ -610,7 +616,7 @@ C
          DPARA(28)=PRFIN
       ENDIF
 C
-      CALL MPBCIN(IPARA,22)
+      CALL MPBCIN(IPARA,23)
       CALL MPBCDN(DPARA,28)
 C
       IF(MYRANK.NE.0) THEN
@@ -618,7 +624,7 @@ C
          NAMAX =IPARA(2) 
          NRMAX =IPARA(3) 
          NTHMAX=IPARA(4) 
-         NPHMAX=IPARA(5) 
+         NHHMAX=IPARA(5) 
          NTH0  =IPARA(6) 
          NPH0  =IPARA(7) 
          NHC   =IPARA(8) 
@@ -635,6 +641,8 @@ C
          LMAXNW=IPARA(19)
          LISTNW=IPARA(20)
          MODENW=IPARA(21)
+         NCONT =IPARA(22)
+         NPHMAX=IPARA(23)
 C       
          BB    =DPARA(1) 
          RR    =DPARA(2) 

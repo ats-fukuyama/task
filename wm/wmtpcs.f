@@ -17,21 +17,21 @@ C
          PABST_SV(NS)=0.D0
       DO NR = 1, NRMAX
          PABSR_SV(NR,NS) = 0.D0
-      DO NPH=1,NDSIZ
+      DO NHH=1,NDSIZ
       DO NTH=1,MDSIZ
-         PABS_SV(NTH,NPH,NR,NS) = 0.0
+         PABS_SV(NTH,NHH,NR,NS) = 0.0
       ENDDO
       ENDDO
       ENDDO
       ENDDO
 C
       WRITE(6,*) "========= MULTI-MODE CALCULATION START ========="
-      DO NM = 1, MNPHMAX
-         NPH0 = MNPH0(NM)
-         PRFIN = PRFIN_SV * PFRAC(NM)
+      DO NPH = 1, NPHMAX
+         NPH0 = NPH0L(NPH)
+         PRFIN = PRFIN_SV * PFRACL(NPH)
          WRITE(6,*)
-         WRITE(6,'(A,I4)') "== Toroidal mode number : ",MNPH0(NM)
-         WRITE(6,'(A,F12.4)') "== Power fraction       : ",PFRAC(NM)
+         WRITE(6,'(A,I4)') "== Toroidal mode number : ",NPH0L(NPH)
+         WRITE(6,'(A,F12.4)') "== Power fraction       : ",PFRACL(NPH)
 C
          CALL WMEXEC(IERR)
          CALL MPSYNC
@@ -42,10 +42,10 @@ C
             PABST_SV(NS)=PABST_SV(NS)+PABST(NS)
          DO NR = 1, NRMAX
             PABSR_SV(NR,NS) = PABSR_SV(NR,NS) + PABSR(NR,NS)
-         DO NPH=1,NDSIZ
+         DO NHH=1,NDSIZ
          DO NTH=1,MDSIZ
-            PABS_SV(NTH,NPH,NR,NS) = PABS_SV(NTH,NPH,NR,NS) 
-     &          + PABS(NTH,NPH,NR,NS)
+            PABS_SV(NTH,NHH,NR,NS) = PABS_SV(NTH,NHH,NR,NS) 
+     &          + PABS(NTH,NHH,NR,NS)
          ENDDO
          ENDDO
          ENDDO
@@ -59,9 +59,9 @@ C
             PABST(NS)=PABST_SV(NS)
          DO NR = 1, NRMAX
             PABSR(NR,NS) = PABSR_SV(NR,NS)
-         DO NPH=1,NDSIZ
+         DO NHH=1,NDSIZ
          DO NTH=1,MDSIZ
-            PABS(NTH,NPH,NR,NS) = PABS_SV(NTH,NPH,NR,NS) 
+            PABS(NTH,NHH,NR,NS) = PABS_SV(NTH,NHH,NR,NS) 
          ENDDO
          ENDDO
          ENDDO

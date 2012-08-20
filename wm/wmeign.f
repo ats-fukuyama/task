@@ -804,16 +804,16 @@ C
       EABSMAX=0.D0
       CEMAX=0.D0
       DO NR=1,NRMAX+1
-      DO NPH=1,NPHMAX
+      DO NHH=1,NHHMAX
       DO NTH=1,NTHMAX
-         EABS=ABS(CEFLD(1,NTH,NPH,NR))**2
-     &       +ABS(CEFLD(2,NTH,NPH,NR))**2
-     &       +ABS(CEFLD(3,NTH,NPH,NR))**2
+         EABS=ABS(CEFLD(1,NTH,NHH,NR))**2
+     &       +ABS(CEFLD(2,NTH,NHH,NR))**2
+     &       +ABS(CEFLD(3,NTH,NHH,NR))**2
          ESUM=ESUM+EABS
-         EABS=ABS(CEFLD(2,NTH,NPH,NR))**2
+         EABS=ABS(CEFLD(2,NTH,NHH,NR))**2
          IF(EABS.GT.EABSMAX) THEN
             EABSMAX=EABS
-            CEMAX=CEFLD(2,NTH,NPH,NR)
+            CEMAX=CEFLD(2,NTH,NHH,NR)
          ENDIF
       ENDDO
       ENDDO
@@ -825,11 +825,11 @@ C
          CFACT=1.D0/CEMAX
       ENDIF
       DO NR=1,NRMAX+1
-      DO NPH=1,NPHMAX
+      DO NHH=1,NHHMAX
       DO NTH=1,NTHMAX
-         CEFLD(1,NTH,NPH,NR)=CFACT*CEFLD(1,NTH,NPH,NR)
-         CEFLD(2,NTH,NPH,NR)=CFACT*CEFLD(2,NTH,NPH,NR)
-         CEFLD(3,NTH,NPH,NR)=CFACT*CEFLD(3,NTH,NPH,NR)
+         CEFLD(1,NTH,NHH,NR)=CFACT*CEFLD(1,NTH,NHH,NR)
+         CEFLD(2,NTH,NHH,NR)=CFACT*CEFLD(2,NTH,NHH,NR)
+         CEFLD(3,NTH,NHH,NR)=CFACT*CEFLD(3,NTH,NHH,NR)
       ENDDO
       ENDDO
       ENDDO
@@ -871,8 +871,8 @@ C
       ENDDO
       ENDDO
 C
-C      WRITE(6,*) NRMAX,NTHMAX,NPHMAX,ESUM,RF
-      F=NRMAX*NTHMAX*NPHMAX/(ESUM*RF**4)
+C      WRITE(6,*) NRMAX,NTHMAX,NHHMAX,ESUM,RF
+      F=NRMAX*NTHMAX*NHHMAX/(ESUM*RF**4)
       IF(F.LE.1.D-15) F=1.D-15
       AMPEIGEN=F
 C
@@ -1161,8 +1161,8 @@ C
          NDX=ND-NDMIN+1
          DO MD=MDMIN,MDMAX
             MDX=MD-MDMIN+1
-            WRITE(NF,*) 'MD           = ',MD+NTH0
-            WRITE(NF,*) 'ND           = ',ND+NPH0
+            WRITE(NF,*) 'MD           = ',NTH0+MD
+            WRITE(NF,*) 'ND           = ',NPH0+NHC*ND
             WRITE(NF,*) 'Re Er:'
             WRITE(NF,'(1P5E14.6)') 
      &           (DREAL(CEFLDK(1,MDX,NDX,NR)),NR=1,NRMAX+1)

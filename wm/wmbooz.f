@@ -426,15 +426,15 @@ C
 C      ***** CULCULATE METRIC TENSOR AND JACOBIAN*****
 C 
       DTH=2.D0*PI/NTHMAX
-      DPH=2.D0*PI/(NHC*NPHMAX)
+      DPH=2.D0*PI/(NHC*NHHMAX)
       PSIPA=1.D0
 C
       DO NR=1,NRMAX+1
-      DO NPH=1,NPHMAX
+      DO NHH=1,NHHMAX
       DO NTH=1,NTHMAX
 C
          TH=DTH*(NTH-1)
-         PH=DPH*(NPH-1)
+         PH=DPH*(NHH-1)
 C
          BPSS=0.D0
          RPSS=0.D0
@@ -470,32 +470,32 @@ C
 C
 C  *****  DRS,DZS,DPHS,DRTH,DZTH,DPHTH,DRPH,DZPH,DPHPH GRAPH *****
 C            
-         BPST(  NTH,NPH,NR)=BPSS
-         RPST(  NTH,NPH,NR)=RPSS
-         ZPST(  NTH,NPH,NR)=ZPSS
-         PPST(  NTH,NPH,NR)=PPSS
+         BPST(  NTH,NHH,NR)=BPSS
+         RPST(  NTH,NHH,NR)=RPSS
+         ZPST(  NTH,NHH,NR)=ZPSS
+         PPST(  NTH,NHH,NR)=PPSS
 C
          IF(NR.NE.1) THEN
             DRS=DRS/(2.D0*PSIPA*XRHO(NR))
             DZS=DZS/(2.D0*PSIPA*XRHO(NR))
             DPS=DPS/(2.D0*PSIPA*XRHO(NR))
-            RG11(NTH,NPH,NR)=DRS *DRS +DZS *DZS +DPS *DPS *RPSS**2
-            RG12(NTH,NPH,NR)=DRS *DRTH+DZS *DZTH+DPS *DPTH*RPSS**2
-            RG13(NTH,NPH,NR)=DRS *DRPH+DZS *DZPH+DPS *DPPH*RPSS**2
-            RG22(NTH,NPH,NR)=DRTH*DRTH+DZTH*DZTH+DPTH*DPTH*RPSS**2
-            RG23(NTH,NPH,NR)=DRTH*DRPH+DZTH*DZPH+DPTH*DPPH*RPSS**2
-            RG33(NTH,NPH,NR)=DRPH*DRPH+DZPH*DZPH+DPPH*DPPH*RPSS**2
-C            RJ  (NTH,NPH,NR)=(DRS *DZTH-DZS *DRTH)*DPPH*RPSS
+            RG11(NTH,NHH,NR)=DRS *DRS +DZS *DZS +DPS *DPS *RPSS**2
+            RG12(NTH,NHH,NR)=DRS *DRTH+DZS *DZTH+DPS *DPTH*RPSS**2
+            RG13(NTH,NHH,NR)=DRS *DRPH+DZS *DZPH+DPS *DPPH*RPSS**2
+            RG22(NTH,NHH,NR)=DRTH*DRTH+DZTH*DZTH+DPTH*DPTH*RPSS**2
+            RG23(NTH,NHH,NR)=DRTH*DRPH+DZTH*DZPH+DPTH*DPPH*RPSS**2
+            RG33(NTH,NHH,NR)=DRPH*DRPH+DZPH*DZPH+DPPH*DPPH*RPSS**2
+C            RJ  (NTH,NHH,NR)=(DRS *DZTH-DZS *DRTH)*DPPH*RPSS
 C     &                      +(DZS *DPTH-DPS *DZTH)*DRPH*RPSS
 C     &                      +(DPS *DRTH-DRS *DPTH)*DZPH*RPSS
-            RJ  (NTH,NPH,NR)=(DRS *DPTH-DPS *DRTH)*DZPH*RPSS
+            RJ  (NTH,NHH,NR)=(DRS *DPTH-DPS *DRTH)*DZPH*RPSS
      &                      +(DPS *DZTH-DZS *DPTH)*DRPH*RPSS
      &                      +(DZS *DRTH-DRS *DZTH)*DPPH*RPSS
 C
-            RG11(NTH,NPH,NR)=RG11(NTH,NPH,NR)*XRHO(NR)**2
-            RG13(NTH,NPH,NR)=RG13(NTH,NPH,NR)*XRHO(NR)
-            RG22(NTH,NPH,NR)=RG22(NTH,NPH,NR)/XRHO(NR)**2
-            RG23(NTH,NPH,NR)=RG23(NTH,NPH,NR)/XRHO(NR)
+            RG11(NTH,NHH,NR)=RG11(NTH,NHH,NR)*XRHO(NR)**2
+            RG13(NTH,NHH,NR)=RG13(NTH,NHH,NR)*XRHO(NR)
+            RG22(NTH,NHH,NR)=RG22(NTH,NHH,NR)/XRHO(NR)**2
+            RG23(NTH,NHH,NR)=RG23(NTH,NHH,NR)/XRHO(NR)
          ENDIF
       ENDDO
       ENDDO
@@ -504,15 +504,15 @@ C
          print*,nr,rj(1,1,nr),drmnc(1,nr)
       enddo
 C
-      DO NPH=1,NPHMAX
+      DO NHH=1,NHHMAX
       DO NTH=1,NTHMAX
-         RG11(NTH,NPH,1)=RG11(NTH,NPH,2)
-         RG12(NTH,NPH,1)=RG12(NTH,NPH,2)
-         RG13(NTH,NPH,1)=RG13(NTH,NPH,2)
-         RG22(NTH,NPH,1)=RG22(NTH,NPH,2)
-         RG23(NTH,NPH,1)=RG23(NTH,NPH,2)
-         RG33(NTH,NPH,1)=RG33(NTH,NPH,2)
-         RJ(NTH,NPH,1)  =RJ(NTH,NPH,2)
+         RG11(NTH,NHH,1)=RG11(NTH,NHH,2)
+         RG12(NTH,NHH,1)=RG12(NTH,NHH,2)
+         RG13(NTH,NHH,1)=RG13(NTH,NHH,2)
+         RG22(NTH,NHH,1)=RG22(NTH,NHH,2)
+         RG23(NTH,NHH,1)=RG23(NTH,NHH,2)
+         RG33(NTH,NHH,1)=RG33(NTH,NHH,2)
+         RJ(NTH,NHH,1)  =RJ(NTH,NHH,2)
       ENDDO
       ENDDO
 C
@@ -540,14 +540,14 @@ C
          QPS(NR)=1.D0/SIOTA(NR)
       ENDDO
 C
-      DO NPH=1,NPHMAX
+      DO NHH=1,NHHMAX
       DO NTH=1,NTHMAX
       DO NR=1,NRMAX+1
-         FACT=  RG22(NTH,NPH,NR)*XRHO(NR)**2*SIOTA(NR)**2
-     &       +2*RG23(NTH,NPH,NR)*XRHO(NR)   *SIOTA(NR)
-     &       +  RG33(NTH,NPH,NR)
-         BFLD(3,NTH,NPH,NR)=BPST(NTH,NPH,NR)/SQRT(FACT)
-         BFLD(2,NTH,NPH,NR)=SIOTA(NR)*BFLD(3,NTH,NPH,NR)
+         FACT=  RG22(NTH,NHH,NR)*XRHO(NR)**2*SIOTA(NR)**2
+     &       +2*RG23(NTH,NHH,NR)*XRHO(NR)   *SIOTA(NR)
+     &       +  RG33(NTH,NHH,NR)
+         BFLD(3,NTH,NHH,NR)=BPST(NTH,NHH,NR)/SQRT(FACT)
+         BFLD(2,NTH,NHH,NR)=SIOTA(NR)*BFLD(3,NTH,NHH,NR)
       ENDDO
       ENDDO
       ENDDO
@@ -584,7 +584,7 @@ C
 C
       NSUMAX=31
       DTHU=2.D0*PI/(NSUMAX-1)
-      DPH=2.D0*PI/(NHC*NPHMAX)
+      DPH=2.D0*PI/(NHC*NHHMAX)
 C
       DO MN=1,MNMAX
          CALL SPL1DF(1.D0,SRMNCL(MN),XSHRHO,U2(1,1,MN),NSRMAX+3,IERR)
@@ -594,16 +594,16 @@ C
       ENDDO
 C
       DO NSU=1,NSUMAX
-         DO NPH=1,NPHMAX
-            RSU(NSU,NPH)=0.D0
-            ZSU(NSU,NPH)=0.D0
+         DO NHH=1,NHHMAX
+            RSU(NSU,NHH)=0.D0
+            ZSU(NSU,NHH)=0.D0
             TH=DTHU*(NSU-1)
-            PH=DPH*(NPH-1)
+            PH=DPH*(NHH-1)
             DO MN=1,MNMAX
                RSIN=SIN(-XM(MN)*TH+XN(MN)*PH)
                RCOS=COS(-XM(MN)*TH+XN(MN)*PH)
-               RSU(NSU,NPH)=RSU(NSU,NPH)+SRMNCL(MN)*RCOS
-               ZSU(NSU,NPH)=ZSU(NSU,NPH)+SZMNSL(MN)*RSIN
+               RSU(NSU,NHH)=RSU(NSU,NHH)+SRMNCL(MN)*RCOS
+               ZSU(NSU,NHH)=ZSU(NSU,NHH)+SZMNSL(MN)*RSIN
             ENDDO
          ENDDO
       ENDDO
@@ -611,16 +611,16 @@ C
       NSWMAX=31
       DTHW=2.D0*PI/(NSWMAX-1)
       DO NSW=1,NSWMAX
-         DO NPH=1,NPHMAX
-            RSW(NSW,NPH)=0.D0
-            ZSW(NSW,NPH)=0.D0
+         DO NHH=1,NHHMAX
+            RSW(NSW,NHH)=0.D0
+            ZSW(NSW,NHH)=0.D0
             TH=DTHW*(NSW-1)
-            PH=DPH*(NPH-1)
+            PH=DPH*(NHH-1)
             DO MN=1,MNMAX
                RSIN=SIN(-XM(MN)*TH+XN(MN)*PH)
                RCOS=COS(-XM(MN)*TH+XN(MN)*PH)
-               RSW(NSW,NPH)=RSW(NSW,NPH)+SRMNC(MN,NRMAX+1)*RCOS
-               ZSW(NSW,NPH)=ZSW(NSW,NPH)+SZMNS(MN,NRMAX+1)*RSIN
+               RSW(NSW,NHH)=RSW(NSW,NHH)+SRMNC(MN,NRMAX+1)*RCOS
+               ZSW(NSW,NHH)=ZSW(NSW,NHH)+SZMNS(MN,NRMAX+1)*RSIN
             ENDDO
          ENDDO
       ENDDO
@@ -631,12 +631,12 @@ C
       RGMAX=RSW(1,1)
       ZGMIN=ZSW(1,1)
       ZGMAX=ZSW(1,1)
-      DO NPH=1,NPHMAX
+      DO NHH=1,NHHMAX
          DO NSW=1,NSWMAX
-            RGMIN=MIN(RGMIN,RSW(NSW,NPH))
-            RGMAX=MAX(RGMAX,RSW(NSW,NPH))
-            ZGMIN=MIN(ZGMIN,ZSW(NSW,NPH))
-            ZGMAX=MAX(ZGMAX,ZSW(NSW,NPH))
+            RGMIN=MIN(RGMIN,RSW(NSW,NHH))
+            RGMAX=MAX(RGMAX,RSW(NSW,NHH))
+            ZGMIN=MIN(ZGMIN,ZSW(NSW,NHH))
+            ZGMAX=MAX(ZGMAX,ZSW(NSW,NHH))
          ENDDO
       ENDDO
 C

@@ -45,7 +45,7 @@ C        *** WAVE CALCULATION ***
 C
          ELSEIF (KID.EQ.'R') THEN
             CALL plfile_prof_read(modeln,modelq,ierr)
-            CALL WMEXEC(IERR)
+            CALL WM_LOOP(IERR)
             CALL MPSYNC
             IF(IERR.NE.0) GOTO 1
             KID=' '
