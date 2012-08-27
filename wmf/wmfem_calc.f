@@ -21,8 +21,8 @@
             call wmfem_calculate_vacuum(rho1,fmd1)
             call wmfem_calculate_vacuum(rho2,fmd2)
          else if(mdlwmf.eq.2) then
-            call wmfem_calculate_vacuum_c(rho1,fmd2)
-            call wmfem_calculate_vacuum_c(rho1,fmd2)
+            call wmfem_calculate_vacuum_c(rho1,fmd1)
+            call wmfem_calculate_vacuum_c(rho2,fmd2)
          endif
       else
          if(mdlwmf.eq.1) then
@@ -324,7 +324,6 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       complex(8),dimension(nthmax2,nphmax2):: fv1,fv1f
       complex(8):: cfactor
       real(8):: rkth,rkph,rkth0,rho0
-      real(8):: rkthrh,rkthrh0,rkth2,rkth02,rkth20
       integer:: i,j,k,nn,mm,nth,nph
       integer:: nfc1,nfc2
       complex(8):: csum,fmd1,fmd2,fmd3,fmd4
@@ -353,46 +352,27 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
          mm=mmnfc(nfc2)
          nn=nnnfc(nfc2)
 
-!            rkth=mm/(ra*rho)
-!            rkth0=1.d0/(ra*rho)
-            rkthrh=mm/ra
-            rkthrh0=1.d0/ra
-         if(rho.gt.1.d-6) then
-            rkth=mm/(ra*rho)
-            rkth0=1.d0/(ra*rho)
-            rkth2=rkth**2
-            rkth20=rkth*rkth0
-            rkth02=rkth0**2
-         else
-!            rkth=mm/(ra*rho)
-!            rkth0=1.d0/(ra*rho)
-            rkth2=0d0
-            rkth20=0d0
-            rkth02=0d0
-         endif
+         rkth=mm/(ra*rho)
+         rkth0=1.d0/(ra*rho)
+
          rkph=nn/rr
 
          do nfc1=1,nfcmax2
-!            fmc(1,1,1,nfc1,nfc2)= rho*(cfactor-rkph**2-rkth**2)
-            fmc(1,1,1,nfc1,nfc2)= rho*(cfactor-rkph**2-rkth2)
-!            fmc(1,2,1,nfc1,nfc2)= rho*(-ci*rkth*rkth0)
-!            fmc(2,1,1,nfc1,nfc2)= rho*(+ci*rkth*rkth0)
-            fmc(1,2,1,nfc1,nfc2)= rho*(-ci*rkth20)
-            fmc(2,1,1,nfc1,nfc2)= rho*(+ci*rkth20)
-!            fmc(2,2,1,nfc1,nfc2)= rho*(cfactor-rkph**2-rkth0**2)
-            fmc(2,2,1,nfc1,nfc2)= rho*(cfactor-rkph**2-rkth02)
-            fmc(2,3,1,nfc1,nfc2)= (rkthrh*rkph)
-            fmc(3,2,1,nfc1,nfc2)= (rkthrh*rkph)
-!            fmc(3,3,1,nfc1,nfc2)= rho*(cfactor-rkth**2)
-            fmc(3,3,1,nfc1,nfc2)= rho*(cfactor-rkth2)
+            fmc(1,1,1,nfc1,nfc2)= rho*(cfactor-rkph**2-rkth**2)
+            fmc(1,2,1,nfc1,nfc2)= rho*(-ci*rkth*rkth0)
+            fmc(2,1,1,nfc1,nfc2)= rho*(+ci*rkth*rkth0)
+            fmc(2,2,1,nfc1,nfc2)= rho*(cfactor-rkph**2-rkth0**2)
+            fmc(2,3,1,nfc1,nfc2)= rho*(rkth*rkph)
+            fmc(3,2,1,nfc1,nfc2)= rho*(rkth*rkph)
+            fmc(3,3,1,nfc1,nfc2)= rho*(cfactor-rkth**2)
                   
-            fmc(2,1,2,nfc1,nfc2)= ( ci*rkthrh)/ra
-            fmc(2,2,2,nfc1,nfc2)= (-rkthrh0)/ra
+            fmc(2,1,2,nfc1,nfc2)= rho*( ci*rkth)/ra
+            fmc(2,2,2,nfc1,nfc2)= rho*(  -rkth0)/ra
             fmc(3,1,2,nfc1,nfc2)= rho*( ci*rkph)/ra
                   
-            fmc(1,2,3,nfc1,nfc2)= (-ci*rkthrh)/ra
+            fmc(1,2,3,nfc1,nfc2)= rho*(-ci*rkth)/ra
             fmc(1,3,3,nfc1,nfc2)= rho*(-ci*rkph)/ra
-            fmc(2,2,3,nfc1,nfc2)= (  -rkthrh0)/ra
+            fmc(2,2,3,nfc1,nfc2)= rho*(  -rkth0)/ra
                   
             fmc(1,1,4,nfc1,nfc2)= 0.d0
             fmc(2,2,4,nfc1,nfc2)= rho*(-1.d0)/ra**2

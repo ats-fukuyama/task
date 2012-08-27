@@ -631,10 +631,12 @@
 
       subroutine wmfem_boundary_condition_wall
 
-      integer:: nfc,ml,mw,ns
+      integer:: nfc,ml,mw,ns,nr
+
+      nr=nrmax
 
       do nfc=1,nfcmax
-         ml=6*nfcmax*(nrmax-1)+nfc
+         ml=6*nfcmax*(nr-1)+nfc
          do mw=1,mwmax
             fma(mw,ml) = 0.d0
          enddo
@@ -642,14 +644,14 @@
          fvb(ml)=0.d0
          if(mdlwmd.ge.1) then
             do mw=1,mwmax
-               fma_save(ml,ml,nrmax,0)=fma(mw,ml)
+               fma_save(ml,ml,nr,0)=fma(mw,ml)
                do ns=1,nsmax
-                  fma_save(mw,ml,nrmax,ns)=0.d0
+                  fma_save(mw,ml,nr,ns)=0.d0
                enddo
             end do
          end if
 
-         ml=6*nfcmax*(nrmax-1)+nfcmax+nfc
+         ml=6*nfcmax*(nr-1)+nfcmax+nfc
          do mw=1,mwmax
             fma(mw,ml) = 0.d0
          enddo
@@ -657,9 +659,9 @@
          fvb(ml)=0.d0
          if(mdlwmd.ge.1) then
             do mw=1,mwmax
-               fma_save(ml,ml,nrmax,0)=fma(mw,ml)
+               fma_save(ml,ml,nr,0)=fma(mw,ml)
                do ns=1,nsmax
-                  fma_save(mw,ml,nrmax,ns)=0.d0
+                  fma_save(mw,ml,nr,ns)=0.d0
                enddo
             end do
          end if
