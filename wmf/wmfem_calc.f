@@ -8,7 +8,6 @@
       complex(8),dimension(mbmax,mbmax),intent(out):: fml
       complex(8),dimension(:,:,:,:,:),ALLOCATABLE :: fmd1,fmd2
       real(8):: drho,rho1,rho2
-      integer:: id_base=1
 
       drho=rhoa(nr+1)-rhoa(nr)
       rho1=rhoa(nr)+0.25D0*drho

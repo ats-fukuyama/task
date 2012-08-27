@@ -10,7 +10,8 @@ SRC0 = wmfem_comm.f wmf_quad.f wmmenu.f wminit.f wmeign.f \
        wmexec.f wmloop.f \
        wmxprf.f wmdprf.f \
        wmgout.f wmgsub.f wmdout.f wmfout.f \
-       wmtae.f wmfem.f wmfem_calc.f wmfem_sub.f wmfem_setg.f wmfem_vmec.f\
+       wmtae.f wmfem_allocate.f wmfem_pre.f wmfem_main.f wmfem_post.f \
+       wmfem_calc.f wmfem_sub.f wmfem_setg.f wmfem_vmec.f\
        wmvout.f wmtpcs.f
 
 # wmtrfile.f
