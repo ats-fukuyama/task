@@ -5,6 +5,7 @@ C
       SUBROUTINE WMMENU
 C
       use plfile_prof_mod
+      use wmtest
       INCLUDE 'wmcomm.inc'
 C
       EXTERNAL WMPARM
@@ -138,6 +139,13 @@ C
             CALL WMDEBUG(IERR)
             CALL MPSYNC
             IF(IERR.NE.0) GOTO 1
+            KID=' '
+C
+         ELSEIF (KID.EQ.'Y') THEN
+            CALL WM_TEST(CEFLD3D,NTHMAX,NPHMAX,NRMAX,RR,RA,2)
+            CALL WM_TEST(CEFLD3D,NTHMAX,NPHMAX,NRMAX,RR,RA,3)
+            CALL WM_TEST(CEFLD3D,NTHMAX,NPHMAX,NRMAX,RR,RA,4)
+            CALL WM_TEST(CEFLD3D,NTHMAX,NPHMAX,NRMAX,RR,RA,5)
             KID=' '
 C
          ELSE IF(KID.EQ.'X') THEN

@@ -520,7 +520,7 @@ C
 C         WRITE(6,*) '   MD   IMP                        PABSKT'
 C         DO ND=NDMIN,NDMAX
 C            NDX=ND-NDMIN+1
-C            NN=NPH0+ND
+C            NN=NPH0+NHC*ND
 C         DO MD=MDMIN,MDMAX
 C            MDX=MD-MDMIN+1
 C            MM=NTH0+MD

@@ -1,6 +1,9 @@
 ### $Id$ ###
 include ../make.header
 
+.SUFFIXES:
+.SUFFIXES: .f .f90 .mod .o .a
+
 FFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
 
@@ -14,13 +17,15 @@ SRC0 = wmmenu.f wminit.f wmeign.f wmsetg.f \
        wmexec.f wmloop.f wmtae.f \
        wmvmec.f wmbooz.f wmvout.f wmtpcs.f
 
+SRCX = wmcont.f90 wmtest.f90
+
 # wmtrfile.f
 
 SRCS = $(SRC0) nowmsolv.f 
 SRCM = $(SRC0) wmsolv.f 
 
-OBJS = $(SRCS:.f=.o)
-OBJM = $(SRCM:.f=.o)
+OBJS = $(SRCX:.f90=.o) $(SRCS:.f=.o)
+OBJM = $(SRCX:.f90=.o) $(SRCM:.f=.o)
 
 LIB0 = ../eq/wmeqin.o ../eq/eqlib.a \
        ../pl/pllib.a ../dp/dplib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a 
@@ -33,7 +38,7 @@ LIBM = $(LIB0) mpiwmlib.a ../mtx/mpimtxlib.a ../mpi/mpilib.o
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all: libs wm
+all: libs wmlib.a wm
 
 wmlib.a: $(OBJS)
 	$(LD) $(LDFLAGS) wmlib.a $(OBJS)
@@ -132,3 +137,5 @@ wmvout.o : wmvout.f $(WMCOMM) vmcomm.inc
 
 wmtrfile.o : wmtrfile.f ../tr/trcomm.inc ../tr/trcom0.inc
 wmtpcs.o : wmtpcs.f $(WMCOMM)
+
+wmcont.o : wmcont.f90

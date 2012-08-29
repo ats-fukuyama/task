@@ -14,11 +14,18 @@ c
       ENDIF
 
       NPH0_SV  = NPH0
+      NPHMAX_SV = NPHMAX
+      NHHMAX_SV = NHHMAX
+
+      IF(NHHMAX.GT.1) THEN
+         NHHMAX=NPHMAX/NHC
+         NPHMAX=NHC
+      END IF
 C
 C     Axisymmetric case : NHHMAX=1
 C
       DO NR=1,NRMAX
-         DO NPH=1,NPHMAX
+         DO NPH=1,NPHMAX_SV
             DO NTH=1,NTHMAX
                CEFLD3D(1,NTH,NPH,NR)=(0.D0,0.D0)
                CEFLD3D(2,NTH,NPH,NR)=(0.D0,0.D0)
@@ -28,7 +35,7 @@ C
       END DO
       DO NS=1,NSMAX
          DO NR=1,NRMAX
-            DO NPH=1,NPHMAX
+            DO NPH=1,NPHMAX_SV
                DO NTH=1,NTHMAX
                   PABS3D(NTH,NPH,NR,NS)=0.D0
                END DO
@@ -37,11 +44,7 @@ C
       END DO
 
       DO NPH = 1,NPHMAX
-         IF(NPH.LE.NPHMAX/2+1) THEN
-            NPH0 = NPH-1
-         ELSE
-            NPH0 = NPH-NPHMAX-1
-         ENDIF
+         NPH0 = NPH-NPHMAX/2-1
          WRITE(6,'(A,I4)') "== Toroidal mode number : ",NPH0
 C
          CALL WMEXEC(IERR)
@@ -50,9 +53,9 @@ C
 
          DO NR=1,NRMAX
             DO NTH=1,NTHMAX
-               CEFLD3D(1,NTH,NPH,NR)=CEFLDK(1,NTH,1,NR)
-               CEFLD3D(2,NTH,NPH,NR)=CEFLDK(2,NTH,1,NR)
-               CEFLD3D(3,NTH,NPH,NR)=CEFLDK(3,NTH,1,NR)
+               CEFLD3D(1,NTH,NPH,NR)=CEFLD(1,NTH,1,NR)
+               CEFLD3D(2,NTH,NPH,NR)=CEFLD(2,NTH,1,NR)
+               CEFLD3D(3,NTH,NPH,NR)=CEFLD(3,NTH,1,NR)
             END DO
          END DO
 
