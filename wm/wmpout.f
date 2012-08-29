@@ -1074,7 +1074,7 @@ C
          ENDIF
          DO ND=NDMIN,NDMAX
             NDX=ND-NDMIN+1
-            NN=NPH0+HNC*ND
+            NN=NPH0+NHC*ND
          DO MD=MDMIN,MDMAX
             MDX=MD-MDMIN+1
             MM=NTH0+MD

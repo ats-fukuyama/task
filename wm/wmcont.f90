@@ -57,7 +57,7 @@
       real(4),DIMENSION(NH):: ZLS,ILNS,WLNS
       real(4),dimension(3,NH):: RGBS
 !      PARAMETER (NFMAX=2000,NGMAX=4000)
-      PARAMETER (NFMAX=200,NGMAX=400)
+      PARAMETER (NFMAX=2000,NGMAX=4000)
       real(4),DIMENSION(NFMAX):: XF,YF,XP,YP
       real(4),DIMENSION(NGMAX):: XG,YG
 !
@@ -636,7 +636,7 @@
             XI=DX*(RI*COS(TI)-GXS)+PXS
             YI=DY*(RI*SIN(TI)-GYS)+PYS
             IF(J.GE.M) THEN
-               WRITE(6,*) 'XX GSAF CONTV2 ERROR: BUFFER OVER'
+               WRITE(6,*) 'XX GSAF CONTV2X ERROR: BUFFER OVER'
                NN=J
                RETURN
             ENDIF

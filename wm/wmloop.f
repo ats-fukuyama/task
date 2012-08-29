@@ -24,7 +24,7 @@ c
 C
 C     Axisymmetric case : NHHMAX=1
 C
-      DO NR=1,NRMAX
+      DO NR=1,NRMAX+1
          DO NPH=1,NPHMAX_SV
             DO NTH=1,NTHMAX
                CEFLD3D(1,NTH,NPH,NR)=(0.D0,0.D0)
@@ -34,7 +34,7 @@ C
          END DO
       END DO
       DO NS=1,NSMAX
-         DO NR=1,NRMAX
+         DO NR=1,NRMAX+1
             DO NPH=1,NPHMAX_SV
                DO NTH=1,NTHMAX
                   PABS3D(NTH,NPH,NR,NS)=0.D0
@@ -51,7 +51,7 @@ C
          CALL MPSYNC
          IF(IERR.NE.0) EXIT
 
-         DO NR=1,NRMAX
+         DO NR=1,NRMAX+1
             DO NTH=1,NTHMAX
                CEFLD3D(1,NTH,NPH,NR)=CEFLD(1,NTH,1,NR)
                CEFLD3D(2,NTH,NPH,NR)=CEFLD(2,NTH,1,NR)
@@ -60,7 +60,7 @@ C
          END DO
 
          DO NS=1,NSMAX
-            DO NR=1,NRMAX
+            DO NR=1,NRMAX+1
                DO NTH=1,NTHMAX
                   PABS3D(NTH,NPH,NR,NS)=PABS3D(NTH,1,NR,NS)
                END DO
