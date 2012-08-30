@@ -33,7 +33,7 @@ C
          ZMIN=ZGMIN
       ENDIF
 C
-      write(6,'(1P4E12.4)') RMAX,RMIN,ZMAX,ZMIN
+C      write(6,'(1P4E12.4)') RMAX,RMIN,ZMAX,ZMIN
 C
       IF(RAXIS.LE.RMAX.AND.
      &   RAXIS.GE.RMIN.AND.
@@ -54,7 +54,7 @@ C
       ELSE
          REDGE=FBRENT(PSIGZ0,RR,RMAX,1.D-8)
       ENDIF
-      write(6,*) 'redge=',redge
+C      write(6,*) 'redge=',redge
 C
       RETURN
       END

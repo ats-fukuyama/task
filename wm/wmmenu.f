@@ -22,7 +22,7 @@ C
          IF(MYRANK.EQ.0) THEN
             WRITE(6,601)
   601       FORMAT('## WM MENU: P,V/PARM R/RUN D0-3/AMP F/ROOT ',
-     &      'G/GRAPH T/TAE O/OUT S,W/SAVE Q/QUIT')
+     &      'G,Y/GRAPH T/TAE O/OUT S,W/SAVE Q/QUIT')
             CALL TASK_KLIN(LINE,KID,MODE,WMPARM)
          ENDIF
          CALL MPBCIA(MODE)

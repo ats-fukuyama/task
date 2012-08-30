@@ -83,7 +83,7 @@ CONTAINS
     INTEGER:: nrmax,nphmax,nr,nth,nph,nn,nglmax,ngl,ispl
     INTEGER:: nr_in,nth_in,nph_in
     REAL(4):: rmin,rmax,rr,rb,phmin,phmax,dph,zmin,zmax
-    REAL(4):: rmin1,rmax1,rstep,zmin1,zmax1,zstep,fsign
+    REAL(4):: rmin1,rmax1,rstep,zmin1,zmax1,zstep,fsign,phl
     COMPLEX(8):: value
     INTERFACE 
        FUNCTION NGULEN(R)
@@ -155,8 +155,7 @@ CONTAINS
           CASE(7:12)
              DO NPH_IN=1,NPHMAX_IN
                 NN=NPH_IN-NPHMAX_IN/2-1
-                VALUE=VALUE+CPABS3D(NTH_IN,NPH_IN,NR_IN,MODE-6) &
-                           *EXP(CI*NN*PH(NPH))
+                VALUE=VALUE+CPABS3D(NTH_IN,NPH_IN,NR_IN,MODE-6)
              END DO
           END SELECT
           SELECT CASE(MODE)
@@ -209,6 +208,25 @@ CONTAINS
       CALL GVALUE(0.,RSTEP*2,0.,RSTEP*2,NGULEN(2*RSTEP))
 
       CALL CONTG4X(Z,R,PH,NRMAX,NRMAX,NPHMAX,ZL,RGB,ILN,WLN,NGLMAX,ISPL)
+
+      DPH=2.D0*PI/NPHMAX
+      CALL SETLNW(0.035)
+      CALL SETRGB(0.0,1.0,0.0)
+      CALL MOVE2D(GUCLIP(RGMIN),0.0)
+      DO NPH=1,NPHMAX
+         PHL=DPH*NPH
+         CALL DRAW2D(GUCLIP(RGMIN*COS(PHL)),GUCLIP(RGMIN*SIN(PHL)))
+      END DO
+      CALL MOVE2D(GUCLIP(RAXIS),0.0)
+      DO NPH=1,NPHMAX
+         PHL=DPH*NPH
+         CALL DRAW2D(GUCLIP(RAXIS*COS(PHL)),GUCLIP(RAXIS*SIN(PHL)))
+      END DO
+      CALL MOVE2D(GUCLIP(RGMAX),0.0)
+      DO NPH=1,NPHMAX
+         PHL=DPH*NPH
+         CALL DRAW2D(GUCLIP(RGMAX*COS(PHL)),GUCLIP(RGMAX*SIN(PHL)))
+      END DO
 
       CALL move(2.0,17.1)
       SELECT CASE(MODE)

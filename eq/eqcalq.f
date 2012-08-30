@@ -932,7 +932,8 @@ C
 C
       DO NR=1,NRMAX
          RHOTL=RHOT(NR)
-         IF(RHOTL.EQ.0.D0) RHOTL=1.D-8
+C         write(6,'(A,I5,1P3E12.4)') 'NR,RHOT:',NR,RHOTL,RHOTL**2,
+C     &        PSITA*RHOTL**2
          QPSL=FNQPS(RHOTL)
          DO NTH=1,NTHMAX+1
             THITL=THIT(NTH)
