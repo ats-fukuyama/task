@@ -708,7 +708,7 @@ C
       DO KDX=1,KDSIZ
       DO MLX=1,MDSIZ
       DO LDX=1,LDSIZ
-         CPABS(LDX,MLX,KDX,NKX,NS,NR)=(0.D0,0.D0)
+         CPABSK(LDX,MLX,KDX,NKX,NS,NR)=(0.D0,0.D0)
       ENDDO
       ENDDO
       ENDDO
@@ -936,18 +936,18 @@ C
      &             +CPP31
      &             )*DPSIPDRHOC*DRHOPM
 C
-               CPABS(LLX,MDX,KKX,NDX,NS,NR)
-     &        =CPABS(LLX,MDX,KKX,NDX,NS,NR)
+               CPABSK(LLX,MDX,KKX,NDX,NS,NR)
+     &        =CPABSK(LLX,MDX,KKX,NDX,NS,NR)
      &        +0.5D0*CPABSM
-C               CPABS(LLX,MLX,KKX,NKX,NS,NR)
-C     &        =CPABS(LLX,MLX,KKX,NKX,NS,NR)
+C               CPABSK(LLX,MLX,KKX,NKX,NS,NR)
+C     &        =CPABSK(LLX,MLX,KKX,NKX,NS,NR)
 C     &        +0.5D0*CPABSM
 C
-               CPABS(LLX,MDX,KKX,NDX,NS,NR+1)
-     &        =CPABS(LLX,MDX,KKX,NDX,NS,NR+1)
+               CPABSK(LLX,MDX,KKX,NDX,NS,NR+1)
+     &        =CPABSK(LLX,MDX,KKX,NDX,NS,NR+1)
      &        +0.5D0*CPABSC
-C               CPABS(LLX,MLX,KKX,NKX,NS,NR+1)
-C     &        =CPABS(LLX,MLX,KKX,NKX,NS,NR+1)
+C               CPABSK(LLX,MLX,KKX,NKX,NS,NR+1)
+C     &        =CPABSK(LLX,MLX,KKX,NKX,NS,NR+1)
 C     &        +0.5D0*CPABSC
 C
             ENDDO
@@ -976,9 +976,9 @@ C
       DO MLX=1,MDSIZ
       DO LDX=1,LDSIZ
          MN=MN+1
-         CFB(MN)=CPABS(LDX,MLX,KDX,NKX,NS,NR)
-C         if(myrank.eq.0) write(23,*) nr,ns,CPABS(MLX,LDX,NKX,KDX,NS,NR)
-C         if(myrank.eq.1) write(24,*) nr,ns,CPABS(MLX,LDX,NKX,KDX,NS,NR)
+         CFB(MN)=CPABSK(LDX,MLX,KDX,NKX,NS,NR)
+C         if(myrank.eq.0) write(23,*) nr,ns,CPABSK(MLX,LDX,NKX,KDX,NS,NR)
+C         if(myrank.eq.1) write(24,*) nr,ns,CPABSK(MLX,LDX,NKX,KDX,NS,NR)
       ENDDO
       ENDDO
       ENDDO
@@ -997,9 +997,9 @@ C
          DO MLX=1,MDSIZ
          DO LDX=1,LDSIZ
             MN=MN+1
-            CPABS(LDX,MLX,KDX,NKX,NS,NR)=CFA(MN)
+            CPABSK(LDX,MLX,KDX,NKX,NS,NR)=CFA(MN)
 C            if(myrank.eq.0) write(21,*) nr,ns,
-C     &           CPABS(MLX,LDX,NKX,KDX,NS,NR)
+C     &           CPABSK(MLX,LDX,NKX,KDX,NS,NR)
          ENDDO
          ENDDO
          ENDDO
@@ -1017,7 +1017,7 @@ C
          DO MDX=1,MDSIZ
             LL=0
             LLX=LL-LDMIN+1
-            PABSK(MDX,NDX,NR,NS)=DBLE(CPABS(LLX,MDX,KKX,NDX,NS,NR))
+            PABSK(MDX,NDX,NR,NS)=DBLE(CPABSK(LLX,MDX,KKX,NDX,NS,NR))
          ENDDO
          ENDDO
          ENDDO
@@ -1030,6 +1030,7 @@ C
             DO NHH=1,NHHMAX
             DO NTH=1,NTHMAX
                PABS(NTH,NHH,NR,NS)=0.D0
+               CPABS(NTH,NHH,NR,NS)=0.D0
             ENDDO
             ENDDO
             DO NDX=1,NDSIZ
@@ -1038,7 +1039,7 @@ C
                   KKX=KK-KDMIN+1
                DO LL=LDMIN,LDMAX
                   LLX=LL-LDMIN+1
-                  CPF1(LLX,KKX)=CPABS(LLX,MDX,KKX,NDX,NS,NR)
+                  CPF1(LLX,KKX)=CPABSK(LLX,MDX,KKX,NDX,NS,NR)
                ENDDO
                ENDDO
                CALL WMSUBE(CPF1,CPF2)
@@ -1046,6 +1047,8 @@ C
                DO NTH=1,NTHMAX
                   PABS(NTH,NHH,NR,NS)=PABS(NTH,NHH,NR,NS)
      &                               +DBLE(CPF2(NTH,NHH))
+                  CPABS(NTH,NHH,NR,NS)=CPABS(NTH,NHH,NR,NS)
+     &                               +CPF2(NTH,NHH)
                ENDDO
                ENDDO
             ENDDO
@@ -1080,7 +1083,7 @@ C
             MM=NTH0+MD
             DO KKX=1,KDSIZ
             DO LLX=1,LDSIZ
-               CPF1(LLX,KKX)=CPABS(LLX,MDX,KKX,NDX,NS,NR)
+               CPF1(LLX,KKX)=CPABSK(LLX,MDX,KKX,NDX,NS,NR)
             ENDDO
             ENDDO
             CALL WMSUBE(CPF1,CPF2)
@@ -1185,6 +1188,8 @@ C
             DO NHH=1,NHHMAX
             DO NTH=1,NTHMAX
                PABS(NTH,NHH,NR,NS)=FACT*PABS(NTH,NHH,NR,NS)
+     &                            *DSS(NTH,NHH,NR)
+               CPABS(NTH,NHH,NR,NS)=FACT*CPABS(NTH,NHH,NR,NS)
      &                            *DSS(NTH,NHH,NR)
             ENDDO
             ENDDO

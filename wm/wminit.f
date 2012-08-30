@@ -57,18 +57,21 @@ C        THJ1  : Start poloidal angle of antenna            (degree)
 C        THJ2  : End poloidal angle of antenna              (degree)
 C        PHJ1  : Start toroidal angle of antenna            (degree)
 C        PHJ2  : End toroidal angle of antenna              (degree)
+C        ANTANG: Antenna angle: 0 for vertical antenna or perp WG
 C
       NAMAX  = 1
       DO NA=1,NAM
-         AJ(NA)   = 1.D0
-         AEWGT(NA)= 0.D0
-         AEWGZ(NA)= 0.D0
-         APH(NA)  = 0.D0
-         THJ1(NA) =-45.D0
-         THJ2(NA) = 45.D0
-         PHJ1(NA) = 0.D0
-         PHJ2(NA) = 0.D0
+         AJ(NA)    = 1.D0
+         AEWGT(NA) = 0.D0
+         AEWGZ(NA) = 0.D0
+         APH(NA)   = 0.D0
+         THJ1(NA)  =-45.D0
+         THJ2(NA)  = 45.D0
+         PHJ1(NA)  = 0.D0
+         PHJ2(NA)  = 0.D0
+         ANTANG(NA)= 0.D0
       ENDDO
+      MWGMAX = 0
 C
 C     *** MESH PARAMETERS ***
 C
@@ -125,9 +128,6 @@ C                   3: Toroidal current
 C                  2X: Vacuum eigen mode, poloidal current
 C                  3X: Vacuum eigen mode, toroidal current
 C
-C        ANTANG: Antenna angle: 0 for vertical antenna 
-C        MWGMAX: for future use
-C
 C        MODELA: Control alpha particle contribution
 C                   0: No alpha effect
 C                   1: Precession of alpha particles
@@ -144,25 +144,13 @@ C                  10: BSTABCDBM
 C        MODELW: Control writing a data of absorped power
 C                   0: Not writting
 C                   1: Writting
-C        MDLWMF: Control of solver
-C                   0: original FDM
-C                   1: FEM
-C                   2: FEM (simple cylindrical)
-C        MDLWMD: Control of solver memory
-C                   0: least memory, but slower
-C                   1: (nsmax+3) times memory, but half computation time
 C
       NPRINT = 2
       NGRAPH = 1
       MODELJ = 0
       MODELA = 0
-      MWGMAX = 0
       MODELM = 0
       MODELW = 0
-      MDLWMF = 0
-      MDLWMX = 0
-      MDLWMD = 0
-      ANTANG = 0.D0
 C
 C     *** EIGEN VALUE PARAMETERS ***
 C
@@ -286,7 +274,7 @@ C
      &              APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,
      &              NRMAX,NTHMAX,NHHMAX,NTH0,NPH0,NHC,
      &              NPRINT,NGRAPH,MODELG,MODELJ,MODELP,MODELN,MODELA,
-     &              MODELQ,MODELM,MODELW,MODELV,MDLWMF,MDLWMX,MDLWMD,
+     &              MODELQ,MODELM,MODELW,MODELV,
      &              MWGMAX,MODEFR,MODEFW,ANTANG,
      &              FRMIN,FRMAX,FIMIN,FIMAX,FI0,FRINI,FIINI,
      &              NGFMAX,NGXMAX,NGYMAX,SCMIN,SCMAX,NSCMAX,LISTEG,
@@ -334,7 +322,7 @@ C
      &       9X,'AJ,AEWGT,AEWGZ,APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,MWGMAX,'/
      &       9X,'NRMAX,NTHMAX,NHHMAX,NTH0,NPH0,NHC,'/
      &       9X,'MODELG,MODELJ,MODELP,MODELA,MODELN,'/
-     &       9X,'MODELQ,MODELM,MODELW,MDLWMF,MDLWMX,MDLWMD,'/
+     &       9X,'MODELQ,MODELM,MODELW,,'/
      &       9X,'KNAMEQ,KNAMTR,KNAMPF,MODEFR,MODEFW,'/
      &       9X,'NPRINT,NGRAPH,PRFIN,MODELPR,MODELVR,'/
      &       9X,'FRMIN,FRMAX,FIMIN,FIMAX,FI0,'/
@@ -478,20 +466,6 @@ C
          WRITE(6,*) '## MODELM=10: BSTABCDBM ##'
       ENDIF
 C
-      IF(MDLWMF.EQ.0) THEN
-         WRITE(6,*) '## MDLWMF=0: Original FDM ##'
-      ELSE IF(MDLWMF.EQ.1) THEN
-         WRITE(6,*) '## MDLWMF=1: FEM ##'
-      ELSE IF(MDLWMF.EQ.2) THEN
-         WRITE(6,*) '## MDLWMF=2: FEM (cylindrical) ##'
-      ENDIF
-C
-      IF(MDLWMD.EQ.0) THEN
-         WRITE(6,*) '## MDLWMD=0: Least memory ##'
-      ELSE IF(MDLWMF.EQ.1) THEN
-         WRITE(6,*) '## MDLWMF=2: (nsmax+3) times memory, but faster ##'
-      ENDIF
-C
       RF =DBLE(CRF)
       RFI=DIMAG(CRF)
       WRITE(6,601) 'BB    ',BB    ,'RR    ',RR    ,
@@ -504,8 +478,7 @@ C
      &             'PNAL  ',PNAL  ,'PTA   ',PTA
       WRITE(6,601) 'PROFU1',PROFU1,'PROFU2',PROFU2,
      &             'RHOMIN',RHOMIN,'QMIN  ',QMIN
-      WRITE(6,601) 'RHOITB',RHOITB,'PRFIN ',PRFIN ,
-     &             'ANTANG',ANTANG
+      WRITE(6,601) 'RHOITB',RHOITB,'PRFIN ',PRFIN
       WRITE(6,601) 'RF    ',RF    ,'RFI   ',RFI   ,
      &             'RD    ',RD    ,'BETAJ ',BETAJ
       WRITE(6,602) 'NRMAX ',NRMAX ,'NTHMAX',NTHMAX,
@@ -516,8 +489,6 @@ C
      &             'MODELN',MODELN,'MODELA',MODELA
       WRITE(6,602) 'MODELM',MODELM,'MODELQ',MODELQ,
      &             'MODEFR',MODEFR,'MODEFW',MODEFW
-      WRITE(6,602) 'MDLWMF',MDLWMF,'MDLWMX',MDLWMX,
-     &             'MDLWMD',MDLWMD
 C
       WRITE(6,692)
       DO NS=1,NSMAX
@@ -533,6 +504,7 @@ C
       DO NA=1,NAMAX
          WRITE(6,610) NA,AJ(NA),APH(NA),THJ1(NA),THJ2(NA),
      &                                  PHJ1(NA),PHJ2(NA)
+         WRITE(6,613)    AEWGT(NA),AEWGZ(NA),ANTANG(NA)
       ENDDO
       RETURN
 C
@@ -543,6 +515,7 @@ C
   610 FORMAT(' ',I1,6(1PE11.3))
   611 FORMAT(' ',I1,7(1PE11.3))
   612 FORMAT(' ',I1,3I3,I2,6(1PE11.3))
+  613 FORMAT(' ',1X,6(1PE11.3))
   692 FORMAT(' ','NS    PA',9X,'PZ',9X,'PN',9X,'PNS',
      &                      8X,'PTPR',7X,'PTPP',7X,'PTS'/
      &       ' ','  MP MV ND1 ND2',2X,'PZCL',7X,'PU',9X,'PUS',
@@ -697,6 +670,7 @@ C
       CALL MPBCDN(THJ2,NAMAX)
       CALL MPBCDN(PHJ1,NAMAX)
       CALL MPBCDN(PHJ2,NAMAX)
+      CALL MPBCDN(ANTANG,NAMAX)
       CALL MPBCKN(KNAMEQ,80)
       CALL MPBCKN(KNAMTR,80)
       CALL MPBCKN(KNAMPF,80)

@@ -37,7 +37,7 @@ C
          DO NR=1,NRMAX+1
             DO NPH=1,NPHMAX_SV
                DO NTH=1,NTHMAX
-                  PABS3D(NTH,NPH,NR,NS)=0.D0
+                  CPABS3D(NTH,NPH,NR,NS)=0.D0
                END DO
             END DO
          END DO
@@ -62,10 +62,15 @@ C
          DO NS=1,NSMAX
             DO NR=1,NRMAX+1
                DO NTH=1,NTHMAX
-                  PABS3D(NTH,NPH,NR,NS)=PABS3D(NTH,1,NR,NS)
+                  CPABS3D(NTH,NPH,NR,NS)=CPABS(NTH,1,NR,NS)
                END DO
             END DO
          END DO
+
+         DO NS=1,NSMAX
+            PABST3D(NPH,NS)=PABST(NS)
+         END DO
+         PABSTT3D(NPH)=PABSTT
 C
       ENDDO
 C

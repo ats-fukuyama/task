@@ -142,7 +142,9 @@ C
             KID=' '
 C
          ELSEIF (KID.EQ.'Y') THEN
-            CALL WM_TEST(CEFLD3D,MDM,NPHM,NRM,NTHMAX,NPHMAX,NRMAX,
+            CALL WM_TEST(CEFLD3D,CPABS3D,PABST3D,PABSTT3D,
+     &                   MDM,NPHM,NRM,NSM,
+     &                   NTHMAX,NPHMAX,NRMAX,NSMAX,
      &                   RGMIN,RGMAX,RAXIS,NCONT)
             KID=' '
 C

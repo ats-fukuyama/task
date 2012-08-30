@@ -142,7 +142,7 @@ C
          NDX=ND-NDMIN+1
          NN=NPH0+NHC*ND
          IF(NN.EQ.0.OR.ABS(PH2-PH1).LE.1.D-15) THEN
-            CJN=-CI
+            CJN=-CI*EXP(-CI*NN*PH1)
          ELSE
             CJN=(EXP(-CI*NN*PH2)-EXP(-CI*NN*PH1))/(NN*(PH2-PH1))
          ENDIF
@@ -162,8 +162,8 @@ C
      &           /(MM-BETAJ)
          ENDIF
          CJTEMP=CAJ/(8*PI**2)*CJN*(CJMP+CJMM)
-         CJT(MDX,NDX,NA)=CJTEMP*COS(2*PI*ANTANG/360.D0)
-         CJZ(MDX,NDX,NA)=CJTEMP*SIN(2*PI*ANTANG/360.D0)
+         CJT(MDX,NDX,NA)=CJTEMP*COS(2*PI*ANTANG(NA)/360.D0)
+         CJZ(MDX,NDX,NA)=CJTEMP*SIN(2*PI*ANTANG(NA)/360.D0)
       ENDDO
       ENDDO
       ENDDO
@@ -201,17 +201,40 @@ C
          END DO
       END DO
 
+      CW=2.D0*PI*CRF*1.D6
       DO NA=1,NAMAX
          TH1=THJ1(NA)*PI/180.D0
          TH2=THJ2(NA)*PI/180.D0
+         PH1=PHJ1(NA)*PI/180.D0
+         PH2=PHJ2(NA)*PI/180.D0
+         ANG=ANTANG(NA)*PI/180.D0
+
+         CAJ=EXP(DCMPLX(0.D0,APH(NA)*PI/180.D0))
+
          WTH=ABS(TH2-TH1)
+         WPH=PH2-PH1
+         RWPH=(RR+RD)*WPH
          TH0=0.5D0*(TH1+TH2)
          DTH=2.D0*PI/NTHMAX
+      DO ND=NDMIN,NDMAX
+         NHH=ND-NDMIN+1
+         NN=NPH0+NHC*ND
+         IF(NN.EQ.0.OR.ABS(PH2-PH1).LE.1.D-15) THEN
+            CJA=-CI*EXP(-CI*NN*PH1)
+         ELSE
+            CJA=(EXP(-CI*NN*PH2)-EXP(-CI*NN*PH1))/(NN*(PH2-PH1))
+         ENDIF
+         COEF=RWPH*CW*TAN(ANG)/VC-NN
+         IF(ABS(COEF).EQ.0) THEN
+            CJB=CI*(PH2-PH1)
+         ELSE
+            CJB=(EXP(CI*COEF*PH2)-EXP(CI*COEF*PH1))/COEF
+         ENDIF
          DO NTH=1,NTHMAX
             TH=DTH*(NTH-1)
-            IF(TH >= TH1         .AND. TH <= TH2        )THEN
-               CETH=AEWGT(NA)
-               CEPH=AEWGZ(NA)*COS((TH-TH0)/WTH*PI)
+            IF(TH >= TH1              .AND. TH <= TH2        )THEN
+               CETH=CJA*CJB*AEWGT(NA)
+               CEPH=CJA*CJB*AEWGZ(NA)*COS((TH-TH0)/WTH*PI)
                DO NHH=1,NHHMAX
                   CEWALL(NTH,NHH,2)=CEWALL(NTH,NHH,2)+CETH
                   CEWALL(NTH,NHH,3)=CEWALL(NTH,NHH,3)+CEPH
@@ -226,8 +249,11 @@ C
             END IF
          END DO
       END DO
-      CALL WMSUBC(CEWALL(1,1,2))
-      CALL WMSUBC(CEWALL(1,1,3))
+      END DO
+      DO NHH=1,NHHMAX
+         CALL WMSUBC(CEWALL(1,NHH,2))
+         CALL WMSUBC(CEWALL(1,NHH,3))
+      ENDDO
 C
       RETURN
       END
