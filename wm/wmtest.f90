@@ -32,7 +32,7 @@ CONTAINS
 
     SELECT CASE(MODE0)
     CASE(1)
-2      WRITE(6,'(A)') '## INPUT: 1-6:E, 7..:PABS 0:EXIT'
+2      WRITE(6,'(A)') '## INPUT: 1-9:E, 11..:PABS 0:EXIT'
        READ(5,*,ERR=2,END=1) MODE1
        IF(MODE1.EQ.0) GO TO 1
        CALL wmg3d2(CEFLD3D,CPABS3D,MDM,NPHM,NRM,NSM, &
@@ -40,7 +40,7 @@ CONTAINS
                    RGMIN,RGMAX,RAXIS,MODE1,NCONT)
        GO TO 2
     CASE(2)
-3      WRITE(6,'(A,I4,A,I4)') '## INPUT: MODE:1-6:E 7..:PABS 0:EXIT, NN:', &
+3      WRITE(6,'(A,I4,A,I4)') '## INPUT: MODE:1-9:E 11..:PABS 0:EXIT, NN:', &
             -NPHMAX_IN/2,'..',NPHMAX_IN/2-1
        READ(5,*,ERR=3,END=1) MODE1,NN
        IF(MODE1.EQ.0) GO TO 1
@@ -152,7 +152,7 @@ CONTAINS
                 VALUE=VALUE+CEFLD3D(3,NTH_IN,NPH_IN,NR_IN) &
                            *EXP(CI*NN*PH(NPH))
              END DO
-          CASE(11:12)
+          CASE(11:16)
              DO NPH_IN=1,NPHMAX_IN
                 NN=NPH_IN-NPHMAX_IN/2-1
                 VALUE=VALUE+CPABS3D(NTH_IN,NPH_IN,NR_IN,MODE-10)
@@ -165,7 +165,7 @@ CONTAINS
              Z(NR,NPH)=GUCLIP(IMAG(VALUE))
           CASE(3,6,9)
              Z(NR,NPH)=GUCLIP(ABS(VALUE))
-          CASE(11:12)
+          CASE(11:16)
              Z(NR,NPH)=GUCLIP(REAL(VALUE))
           END SELECT
        END DO
@@ -237,14 +237,20 @@ CONTAINS
       CASE(2)
          CALL text('Er imag',7)
       CASE(3)
-         CALL text('Eth real',8)
+         CALL text('Er abs ',7)
       CASE(4)
-         CALL text('Eth imag',8)
+         CALL text('Eth real',8)
       CASE(5)
-         CALL text('Eph real',8)
+         CALL text('Eth imag',8)
       CASE(6)
+         CALL text('Eth abs ',8)
+      CASE(7)
+         CALL text('Eph real',8)
+      CASE(8)
          CALL text('Eph imag',8)
-      CASE(7:12)
+      CASE(9)
+         CALL text('Eph abs ',8)
+      CASE(11:16)
          CALL text('Pabs ',5)
          CALL numbi(MODE-6,'(I1)',4)
       END SELECT
@@ -300,13 +306,22 @@ CONTAINS
     CASE(3)
        DO NR=1,NRMAX_IN+1
           DO NTH=1,NTHMAX_IN
+             Z(NR,NTH)=GUCLIP(ABS(CEFLD3D(1,NTH,NPH,NR)))
+          END DO
+       END DO
+       K2='E'
+       K3='R'
+       K4='A'
+    CASE(4)
+       DO NR=1,NRMAX_IN+1
+          DO NTH=1,NTHMAX_IN
              Z(NR,NTH)=GUCLIP(REAL(CEFLD3D(2,NTH,NPH,NR)))
           END DO
        END DO
        K2='E'
        K3='T'
        K4='R'
-    CASE(4)
+    CASE(5)
        DO NR=1,NRMAX_IN+1
           DO NTH=1,NTHMAX_IN
              Z(NR,NTH)=GUCLIP(IMAG(CEFLD3D(2,NTH,NPH,NR)))
@@ -315,7 +330,16 @@ CONTAINS
        K2='E'
        K3='T'
        K4='I'
-    CASE(5)
+    CASE(6)
+       DO NR=1,NRMAX_IN+1
+          DO NTH=1,NTHMAX_IN
+             Z(NR,NTH)=GUCLIP(ABS(CEFLD3D(2,NTH,NPH,NR)))
+          END DO
+       END DO
+       K2='E'
+       K3='T'
+       K4='A'
+    CASE(7)
        DO NR=1,NRMAX_IN+1
           DO NTH=1,NTHMAX_IN
              Z(NR,NTH)=GUCLIP(REAL(CEFLD3D(3,NTH,NPH,NR)))
@@ -324,7 +348,7 @@ CONTAINS
        K2='E'
        K3='Z'
        K4='R'
-    CASE(6)
+    CASE(8)
        DO NR=1,NRMAX_IN+1
           DO NTH=1,NTHMAX_IN
              Z(NR,NTH)=GUCLIP(IMAG(CEFLD3D(3,NTH,NPH,NR)))
@@ -333,10 +357,19 @@ CONTAINS
        K2='E'
        K3='Z'
        K4='I'
-    CASE(7:12)
+    CASE(9)
        DO NR=1,NRMAX_IN+1
           DO NTH=1,NTHMAX_IN
-             Z(NR,NTH)=GUCLIP(REAL(CPABS3D(NTH,NPH,NR,MODE-6)))
+             Z(NR,NTH)=GUCLIP(ABS(CEFLD3D(3,NTH,NPH,NR)))
+          END DO
+       END DO
+       K2='E'
+       K3='Z'
+       K4='A'
+    CASE(11:16)
+       DO NR=1,NRMAX_IN+1
+          DO NTH=1,NTHMAX_IN
+             Z(NR,NTH)=GUCLIP(REAL(CPABS3D(NTH,NPH,NR,MODE-10)))
           END DO
        END DO
        K2='P'

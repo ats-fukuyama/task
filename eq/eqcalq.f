@@ -491,15 +491,15 @@ C     +++++ SETUP VACUUM DATA +++++
 C
 C      write(6,'(A,1P5E12.4)') 'RB,RA,REDGE-RAXIS:',
 C     &     RB,RA,REDGE-RAXIS,REDGE,RAXIS
-      DR=(RB-RA+REDGE-RAXIS)/(NRMAX-1)
-      NRPMAX=NINT((REDGE-RAXIS)/DR)+1
-      DR=(RR+RB-REDGE)/(NRMAX-NRPMAX)
+      DR_OUT=(RR+RB-REDGE)/(NRMAX-NRPMAX)
+      DR_IN =FRBIN*(RR+RB-REDGE)/(NRMAX-NRPMAX)
       DTH=2.d0*PI/NTHMAX
       IF(MDLEQF.LT.10) THEN
          DO NR=NRPMAX+1,NRMAX
-            RL=REDGE+DR*(NR-NRPMAX)
+            RL_OUT=REDGE+DR_OUT*(NR-NRPMAX)
+            RL_IN =REDGE+DR_IN *(NR-NRPMAX)
             ZL=ZAXIS
-            PSIP(NR)=PSIG(RL,ZL)-PSI0
+            PSIP(NR)=PSIG(RL_OUT,ZL)-PSI0
             PPS(NR)=0.D0
             TTS(NR)=2.D0*PI*BB*RR
 C
@@ -524,15 +524,20 @@ C            call polintx(nr,npmax,nrm,dsdpsit)
             call polintx(nr,npmax,nrm,aveir)
 
             IF(MDLEQV.GT.0) THEN
-               FACTOR=(RL-RR)/(REDGE-RR)
+               F_OUT=(RL_OUT-RR)/(REDGE-RR)
+               F_IN =(RL_IN -RR)/(REDGE-RR)
+               DTHL=2.D0*PI/NTHMAX
                DO nth=1,nthmax+1
-                  rps(NTH,NR)=RR+(RPS(NTH,NRPMAX)-RR)*FACTOR
-                  zps(NTH,NR)=    ZPS(NTH,NRPMAX)    *FACTOR
+                  FACTOR=0.5D0*(F_OUT+F_IN)
+     &                  +0.5D0*(F_OUT-F_IN)*COS(DTHL*(NTH-1))
+                  rps(NTH,NR)=RAXIS+(RPS(NTH,NRPMAX)-RAXIS)*FACTOR
+                  zps(NTH,NR)=       ZPS(NTH,NRPMAX)       *FACTOR
                END DO
             ELSE
                call polintxx(nr,nthmax+1,npmax,nthmp,nrm,rps)
                call polintxx(nr,nthmax+1,npmax,nthmp,nrm,zps)
             ENDIF
+
             RMIN=RAXIS
             RMAX=RAXIS
             ZMIN=ZAXIS
@@ -568,8 +573,9 @@ C            write(6,'(I3,5F15.7)') NR,PSIP(NR),ZMIN,ZMINR,ZMAX,ZMAXR
             ELIPPSI(NR)=(ZMAX-ZMIN)/(2.D0*RSPSI(NR))
             TRIGPSI(NR)=(RRPSI(NR)-(ZMAXR+ZMINR)/2.D0)/RSPSI(NR)
 
-            FACTOR=(RL-RAXIS)/(REDGE-RAXIS)
+            FACTOR_OUT=(RL_OUT-RAXIS)/(REDGE-RAXIS)
             BBMIN(NR)=BBMIN(NRPMAX)/FACTOR
+            FACTOR_IN =(RL_IN -RAXIS)/(REDGE-RAXIS)
             BBMAX(NR)=BBMAX(NRPMAX)*FACTOR
          ENDDO
 C
@@ -801,8 +807,8 @@ C     &        'NTH: ',NTH,THW(NTH),RPSW(NTH),ZPSW(NTH)
          THWL=(NSU-1)*2.d0*PI/NSUMAX
          CALL SPL1DF(THWL,RSW(NSU),THW,URPSW,NTHMAX+1,IERR)
          CALL SPL1DF(THWL,ZSW(NSU),THW,UZPSW,NTHMAX+1,IERR)
-C         WRITE(6,'(A,I5,1P5E12.4)') 
-C     &        'NSU: ',NSU,THWL,RSU(NSU),ZSU(NSU),RSW(NSU),ZSW(NSU)
+         WRITE(6,'(A,I5,1P5E12.4)') 
+     &        'NSU: ',NSU,THWL,RSU(NSU),ZSU(NSU),RSW(NSU),ZSW(NSU)
       ENDDO
 C
       IF(MDLEQF.LT.10) THEN
@@ -817,6 +823,8 @@ C
             ZGMAX=MAX(ZGMAX,ZSW(NSU))
          ENDDO
       ENDIF
+      WRITE(6,'(A,I5)') 'MDLEQF=',MDLEQF
+      WRITE(6,'(A,1P4E12.4)') 'RG,ZG=',RGMIN,RGMAX,ZGMIN,ZGMAX
 C
       RETURN
       END

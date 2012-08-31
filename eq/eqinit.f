@@ -19,6 +19,7 @@ C        Q0    : Safety factor at center
 C        QA    : Safety factor on plasma surface
 C        RIP   : Plasma current                                 (MA)
 C        PROFJ : Curren density profile parameter (power of (1 - rho^2))
+C        FRBIN : (RB_inside-RA)/(RB_outside-RA)
 C
       RR    = 3.D0
       RA    = 1.D0
@@ -31,6 +32,8 @@ C
       QA    = 3.D0
       RIP   = 3.D0
       PROFJ = 2.D0
+C
+      FRBIN = 1.D0
 C
 C     ======( PLASMA PARAMETERS )======
 C
@@ -488,7 +491,7 @@ C
      &              NPSMAX,NRVMAX,NTVMAX,NRMAX,NTHMAX,NSUMAX,
      &              MODEFR,MODEFW,
      &              MDLEQF,MDLEQC,MDLEQA,MDLEQX,MDLEQV,NPRINT,
-     &              PSIB,NPFCMAX,RIPFC,RPFC,ZPFC,WPFC
+     &              PSIB,NPFCMAX,RIPFC,RPFC,ZPFC,WPFC,FRBIN
 C
       READ(NID,EQ,IOSTAT=IST,ERR=9800,END=9900)
       IERR=0
@@ -524,7 +527,7 @@ C
      &       9X,'EPSEQ,NLPMAX,EPSNW,DELNW,NLPNW'/
      &       9X,'RGMIN,RGMAX,RZMIN,RZMAX,ZLIMP,ZLIMM'/
      &       9X,'MODEFR,MODEFW,'/
-     &       9X,'PSIB,NPFCMAX,RIPFC,RPFC,ZPFC,WPFC')
+     &       9X,'PSIB,NPFCMAX,RIPFC,RPFC,ZPFC,WPFC,FRBIN')
       END
 C
 C     ***** CHECK INPUT PARAMETERS *****
@@ -614,7 +617,8 @@ C
      &             'ZGMIN ',ZGMIN,
      &             'ZGMAX ',ZGMAX
       WRITE(6,601) 'ZLIMP ',ZLIMP,
-     &             'ZLIMM ',ZLIMM
+     &             'ZLIMM ',ZLIMM,
+     &             'FRBIN ',FRBIN
       WRITE(6,601) 'PP0   ',PP0,
      &             'PROFP0',PROFP0,
      &             'PJ0   ',PJ0,
