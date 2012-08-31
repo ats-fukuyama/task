@@ -324,6 +324,7 @@ C
          RGMAX=RR+RB*1.01D0
          ZGMIN=-RB*1.01D0
          ZGMAX= RB*1.01D0
+         RAXIS=RR
 
 C
          DO NR=1,NRMAX+1

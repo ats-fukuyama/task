@@ -1,0 +1,13 @@
+ &eq
+   RR=0.22
+   RA=0.16
+   RB=0.18
+   BB=0.018
+   RIP=0.00625
+   RKAP=1.5
+   RDLT=0.5
+   PP0=0.0000036
+   rgmin=0.04 rgmax=0.4
+   zgmin=-0.27 zgmax=0.27
+   KNAMEQ='eqdata.late'
+ &eq   

@@ -211,9 +211,8 @@ C
 
          CAJ=EXP(DCMPLX(0.D0,APH(NA)*PI/180.D0))
 
+         RWPH=(RR+RD)*(PH2-PH1)
          WTH=ABS(TH2-TH1)
-         WPH=PH2-PH1
-         RWPH=(RR+RD)*WPH
          TH0=0.5D0*(TH1+TH2)
          DTH=2.D0*PI/NTHMAX
       DO ND=NDMIN,NDMAX
@@ -240,8 +239,8 @@ C
                   CEWALL(NTH,NHH,3)=CEWALL(NTH,NHH,3)+CEPH
                END DO
             ELSE IF(TH >= TH1+2.D0*PI .AND. TH <= TH2+2.D0*PI) THEN
-               CETH=AEWGT(NA)
-               CEPH=AEWGZ(NA)*COS((TH-TH0-2.D0*PI)/WTH*PI)
+               CETH=CJA*CJB*AEWGT(NA)
+               CEPH=CJA*CJB*AEWGZ(NA)*COS((TH-TH0-2.D0*PI)/WTH*PI)
                DO NHH=1,NHHMAX
                   CEWALL(NTH,NHH,2)=CEWALL(NTH,NHH,2)+CETH
                   CEWALL(NTH,NHH,3)=CEWALL(NTH,NHH,3)+CEPH

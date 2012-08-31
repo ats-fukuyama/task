@@ -134,36 +134,38 @@ CONTAINS
           ENDIF
           VALUE=(0.D0,0.D0)
           SELECT CASE(MODE)
-          CASE(1,2)
+          CASE(1,2,3)
              DO NPH_IN=1,NPHMAX_IN
                 NN=NPH_IN-NPHMAX_IN/2-1
                 VALUE=VALUE+CEFLD3D(1,NTH_IN,NPH_IN,NR_IN) &
                            *EXP(CI*NN*PH(NPH))
              END DO
-          CASE(3,4)
+          CASE(4,5,6)
              DO NPH_IN=1,NPHMAX_IN
                 NN=NPH_IN-NPHMAX_IN/2-1
                 VALUE=VALUE+fsign*CEFLD3D(2,NTH_IN,NPH_IN,NR_IN) &
                            *EXP(CI*NN*PH(NPH))
              END DO
-          CASE(5,6)
+          CASE(7,8,9)
              DO NPH_IN=1,NPHMAX_IN
                 NN=NPH_IN-NPHMAX_IN/2-1
                 VALUE=VALUE+CEFLD3D(3,NTH_IN,NPH_IN,NR_IN) &
                            *EXP(CI*NN*PH(NPH))
              END DO
-          CASE(7:12)
+          CASE(11:12)
              DO NPH_IN=1,NPHMAX_IN
                 NN=NPH_IN-NPHMAX_IN/2-1
-                VALUE=VALUE+CPABS3D(NTH_IN,NPH_IN,NR_IN,MODE-6)
+                VALUE=VALUE+CPABS3D(NTH_IN,NPH_IN,NR_IN,MODE-10)
              END DO
           END SELECT
           SELECT CASE(MODE)
-          CASE(1,3,5)
+          CASE(1,4,7)
              Z(NR,NPH)=GUCLIP(REAL(VALUE))
-          CASE(2,4,6)
+          CASE(2,5,8)
              Z(NR,NPH)=GUCLIP(IMAG(VALUE))
-          CASE(7:12)
+          CASE(3,6,9)
+             Z(NR,NPH)=GUCLIP(ABS(VALUE))
+          CASE(11:12)
              Z(NR,NPH)=GUCLIP(REAL(VALUE))
           END SELECT
        END DO

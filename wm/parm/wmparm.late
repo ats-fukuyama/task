@@ -1,0 +1,29 @@
+ &wm
+   MODELG=3
+   KNAMEQ='eqdata.late'
+   NSMAX=2
+   PA(2)=1 PZ(2)=1
+   PN =0.0010,0.0010
+   PNS=0.0000,0.0000
+   PTPR=0.100,0.100,
+   PTPP=0.100,0.100,
+   PTS =0.020,0.020,
+   MODELP=1,1
+   PZCL=3.D-3,3.D-3
+   PROFN2=1.0
+   RF=1500
+   RD=0.17
+   NPH0=8
+   NTH0=0
+   NTHMAX=16
+   NRMAX=50
+   AJ(1)=0.D0
+   AEWGZ(1)=1.D0
+   THJ1(1)=-30.D0
+   THJ2(1)= 30.D0
+   PHJ1(1)=-20.D0
+   PHJ2(1)= 20.D0
+   ANTANG(1)=20.D0
+   NCONT=30
+   NPHMAX=16
+ &end
