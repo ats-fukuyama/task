@@ -544,25 +544,25 @@ C     ****** DRAW PLASMA CUTOFF SURFACE (medium blue, two-dot-dashed) ******
 C
          CALL SETRGB(0.0,1.0,1.0)
          CALL CONTQ5(GTCO,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
-     &               0.0,1.0,1,2,6,KACONT)
+     &               0.0,1000.0,1,2,6,KACONT)
 C
 C     ****** DRAW RIGHT CUT OFF SURFACE (light blue, two-dot-dashed) ******
 C
          CALL SETRGB(0.5,1.0,1.0)
          CALL CONTQ5(GTRC,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
-     &               0.0,1.0,1,2,6,KACONT)
+     &               0.0,1000.0,1,2,6,KACONT)
 C
 C     ****** DRAW LEFT CUT OFF SURFACE (light purple, two-dots-dashed) ******
 C
          CALL SETRGB(1.0,0.5,1.0)
          CALL CONTQ5(GTLC,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
-     &               0.0,1.0,1,2,6,KACONT)
+     &               0.0,1000.0,1,2,6,KACONT)
 C
 C     ****** DRAW HYBRID RESONANCE SURFACE (purple, long-dashed) ******
 C
          CALL SETRGB(1.0,0.0,1.0)
          CALL CONTQ5(GTHR,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
-     &               0.0,1.0,1,2,3,KACONT)
+     &               0.0,1000.0,1,2,3,KACONT)
 C
       ENDIF
 C

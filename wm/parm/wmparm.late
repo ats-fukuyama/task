@@ -3,13 +3,13 @@
    KNAMEQ='eqdata.late'
    NSMAX=2
    PA(2)=1 PZ(2)=1
-   PN =0.0010,0.0010
+   PN =0.00040,0.00040
    PNS=0.0000,0.0000
    PTPR=0.100,0.100,
    PTPP=0.100,0.100,
    PTS =0.020,0.020,
    MODELP=1,1
-   PZCL=3.D-3,3.D-3
+   PZCL=1.D-3,1.D-3
    PROFN2=1.0
    RF=1500
    RD=0.17

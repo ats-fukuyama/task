@@ -211,23 +211,19 @@ C
 
          CAJ=EXP(DCMPLX(0.D0,APH(NA)*PI/180.D0))
 
-         RWPH=(RR+RD)*(PH2-PH1)
+         RWPH=RR+RB
          WTH=ABS(TH2-TH1)
          TH0=0.5D0*(TH1+TH2)
          DTH=2.D0*PI/NTHMAX
       DO ND=NDMIN,NDMAX
          NHH=ND-NDMIN+1
          NN=NPH0+NHC*ND
-         IF(NN.EQ.0.OR.ABS(PH2-PH1).LE.1.D-15) THEN
-            CJA=-CI*EXP(-CI*NN*PH1)
+         CJA=EXP(-CI*NN*PH1)/(2.D0*PI)
+         COEF=-RWPH*CW*SIN(ANG)/VC-NN
+         IF(ABS(COEF).EQ.0.D0) THEN
+            CJB=PH2-PH1
          ELSE
-            CJA=(EXP(-CI*NN*PH2)-EXP(-CI*NN*PH1))/(NN*(PH2-PH1))
-         ENDIF
-         COEF=RWPH*CW*TAN(ANG)/VC-NN
-         IF(ABS(COEF).EQ.0) THEN
-            CJB=CI*(PH2-PH1)
-         ELSE
-            CJB=(EXP(CI*COEF*PH2)-EXP(CI*COEF*PH1))/COEF
+            CJB=-CI*(EXP(CI*COEF*(PH2-PH1))-1.D0)/COEF
          ENDIF
          DO NTH=1,NTHMAX
             TH=DTH*(NTH-1)
