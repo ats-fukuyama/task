@@ -19,21 +19,25 @@
       PUBLIC mtx_broadcast_complex8
       PUBLIC mtx_gather_integer
       PUBLIC mtx_gather_real8
+      PUBLIC mtx_gather_fns
       PUBLIC mtx_allgather_integer
       PUBLIC mtx_gatherv_real8
       PUBLIC mtx_allgatherv_real8
+      PUBLIC mtx_allgatherv_real8_local
       PUBLIC mtx_reduce_real8
       PUBLIC mtx_maxloc_real8
       PUBLIC mtx_reduce_v_real8
       PUBLIC mtx_broadcast_integer1
 
       PUBLIC mtx_setup
+!      PUBLIC mtx_setup_RS
       PUBLIC mtx_set_matrix
       PUBLIC mtx_set_source
       PUBLIC mtx_set_vector
       PUBLIC mtx_solve
       PUBLIC mtx_get_vector
       PUBLIC mtx_gather_vector
+!      PUBLIC mtx_gather_vector_local
       PUBLIC mtx_cleanup
 
       PRIVATE
@@ -47,11 +51,12 @@
 
       CONTAINS
 
-      SUBROUTINE mtx_setup(imax_,istart_,iend_,jwidth_)
+      SUBROUTINE mtx_setup(imax_,istart_,iend_,jwidth_,ncom)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: imax_           ! total matrix size
       INTEGER,INTENT(OUT):: istart_,iend_  ! allocated range of lines 
       INTEGER,INTENT(IN):: jwidth_         ! band matrix width
+      INTEGER,INTENT(IN):: ncom            ! communicator
       INTEGER:: i,j
 
       imax=imax_
@@ -175,5 +180,6 @@
       DEALLOCATE(A)
       RETURN
       END SUBROUTINE mtx_cleanup
+
 
       END MODULE libmtx

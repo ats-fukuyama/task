@@ -18,14 +18,14 @@
       INTEGER:: idimen,isiz,isource,itype,m1,m2
       INTEGER:: nrank,nprocs,istart,iend,its 
       INTEGER:: imax,jwidth,jsource 
-      INTEGER:: i,j,k,l,m,n,iskip 
+      INTEGER:: i,j,k,l,m,n,iskip,ncom 
       REAL(8):: v,tolerance 
       REAL(8),DIMENSION(:),POINTER:: x
       INTEGER,DIMENSION(6):: idata 
       REAL(8),DIMENSION(1):: ddata
       REAL(4):: cputime1,cputime2
 
-      CALL mtx_initialize(nrank,nprocs)
+      CALL mtx_initialize(nrank,nprocs,ncom)
       idimen=1
       isiz=11
       isource=6
@@ -88,7 +88,7 @@
       END SELECT
       ALLOCATE(x(imax))
 
-      CALL mtx_setup(imax,istart,iend,jwidth)
+      CALL mtx_setup(imax,istart,iend,jwidth,ncom)
 
       SELECT CASE(idimen)
       CASE(1)
@@ -130,12 +130,12 @@
       IF(jsource.GE.istart.AND.jsource.LE.iend) &
            CALL mtx_set_source(jsource,-1.d0)
 
-      CALL mtx_solve(itype,tolerance,its,methodKSP=m1,methodPC=m2)
+      CALL mtx_solve(ncom,itype,tolerance,its,methodKSP=m1,methodPC=m2)
       if(nrank.eq.0) then
          write(6,*) 'Iteration Number=',its
       endif
 
-      CALL mtx_gather_vector(x)
+      CALL mtx_gather_vector(x,ncom)
 
       IF(nrank.eq.0) THEN
          SELECT CASE(idimen)
