@@ -119,10 +119,10 @@
       RETURN
       END SUBROUTINE mtx_split_operation
       
-      SUBROUTINE mtx_solve(itype,tolerance,its, &
+      SUBROUTINE mtx_solve(ncom,itype,tolerance,its, &
            methodKSP,methodPC,damping_factor,emax,emin,max_steps)
       IMPLICIT NONE
-      INTEGER,INTENT(IN):: itype     ! not used
+      INTEGER,INTENT(IN):: itype,ncom     ! not used
       REAL(8),INTENT(IN):: tolerance ! not used
       INTEGER,INTENT(OUT):: its
       INTEGER,OPTIONAL:: methodKSP,methodPC,max_steps
@@ -162,10 +162,10 @@
       RETURN
       END SUBROUTINE mtx_get_vector
 
-      SUBROUTINE mtx_gather_vector(v)
+      SUBROUTINE mtx_gather_vector(v,ncom)
       IMPLICIT NONE
       REAL(8),DIMENSION(imax),INTENT(OUT):: v
-      INTEGER:: i
+      INTEGER:: i,ncom
 
       DO i=1,imax
          v(i)=x(i)

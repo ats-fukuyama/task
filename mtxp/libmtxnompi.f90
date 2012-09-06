@@ -8,11 +8,12 @@
 
 !-----
 
-      SUBROUTINE mtx_initialize(rank_,nsize_)
+      SUBROUTINE mtx_initialize(rank_,nsize_,ncom)
       IMPLICIT NONE
-      INTEGER,INTENT(OUT):: rank_,nsize_
+      INTEGER,INTENT(OUT):: rank_,nsize_,ncom
 
       WRITE(6,'(A)') '# mtx_initialize: libmtxbnd'
+      ncom=0
       rank=0
       nsize=1
       rank_=0
