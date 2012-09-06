@@ -10,7 +10,7 @@
 
       contains
 
-      SUBROUTINE fp_exec(NSA,IERR)
+      SUBROUTINE fp_exec(NSA,IERR,its)
 
       USE libmtx
       IMPLICIT NONE
@@ -24,7 +24,7 @@
 !      WRITE(*,*) "NRANK, NSA = ",NRANK,NSA
 
 !     ----- Set up matrix solver -----
-      CALL mtx_setup(imtxsize,imtxstart1,imtxend1,imtxwidth)
+      CALL mtx_setup(imtxsize,imtxstart1,imtxend1,imtxwidth,ncoms)
       IF(imtxstart1.NE.imtxstart.OR.imtxend1.NE.imtxend) THEN
          WRITE(6,*) 'XX fp_exec: '
          WRITE(6,*) '   imtxstart1.NE.imtxstart.OR.imtxend1.NE.imtxend'
@@ -41,15 +41,7 @@
 !               NM: line number of the coefficient matrix
 !               NL: 
 
-      DO NR=1,NRMAX
-         DO NP=1,NPMAX
-            DO NTH=1,NTHMAX
-               NM=NTH+NTHMAX*(NP-1)+NPMAX*NTHMAX*(NR-1)
-               NMA(NTH,NP,NR)=NM
-               FM(NM)=FNS22(NTH,NP,NR,NSBA)
-            ENDDO
-         ENDDO
-      ENDDO
+      CALL SET_FM_NMA(NSA,FNSM)
 
       DO NM=NMSTART,NMEND
          NLMAX(NM)=0
@@ -184,15 +176,15 @@
 
 !     ----- Solve matrix equation -----
 
-      CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC)
-      if(nrank.eq.0) then
-         write(6,*) 'Number of iterations =',its
-      endif
+      CALL mtx_solve(ncoms,imtx,epsm,its,MODEL_KSP,MODEL_PC) ! ncom is nessesary for MUMPS not PETSc
+!      if(nranks.eq.0) then
+!         write(6,*) 'Number of iterations, NSA    =',its,NSA
+!      endif
       ierr=0
 
 !     ----- Get solution vector -----
 
-      CALL mtx_gather_vector(BMTOT)
+      CALL mtx_gather_vector(BMTOT,ncoms)
       
       DO NR=NRSTART,NREND
          DO NP=1,NPMAX
@@ -202,22 +194,85 @@
             ENDDO
          ENDDO
       ENDDO
-
-      DO NR=1,NRMAX
-         DO NP=1,NPMAX
-            DO NTH=1,NTHMAX
-               NM=NMA(NTH,NP,NR)
-               FNS(NTH,NP,NR,NSBA)=BMTOT(NM)
+      
+      DO NR=NRSTART-1,NREND+1
+         IF(NR.ge.1.and.NR.le.NRMAX)THEN
+            DO NP=1,NPMAX
+               DO NTH=1,NTHMAX
+                  NM=NMA(NTH,NP,NR)
+                  FNS0(NTH,NP,NR,NSBA)=BMTOT(NM)
+               ENDDO
             ENDDO
-         ENDDO
+         END IF
       ENDDO
 
-!     ----- Clean up matrix solver -----
+!      DO NR=1,NRMAX
+!         DO NP=1,NPMAX
+!            DO NTH=1,NTHMAX
+!               NM=NMA(NTH,NP,NR)
+!               FNS(NTH,NP,NR,NSBA)=BMTOT(NM)
+!            ENDDO
+!         ENDDO
+!      ENDDO
 
+!     ----- Clean up matrix solver -----
       CALL mtx_cleanup
 
       RETURN
       END SUBROUTINE FP_EXEC
+
+!     ---------------------------------
+
+      SUBROUTINE SET_FM_NMA(NSA,func_in)
+
+      IMPLICIT NONE
+      integer:: NTH, NP, NR, NSA, NSBA, NM
+      double precision,dimension(NTHMAX,NPMAX,NRSTART-1:NREND+1,NSAMAX), &
+           intent(IN):: func_in
+
+      DO NR=1,NRMAX
+         DO NP=1,NPMAX
+            DO NTH=1,NTHMAX
+               NM=NTH+NTHMAX*(NP-1)+NPMAX*NTHMAX*(NR-1)
+               NMA(NTH,NP,NR)=NM
+            END DO
+         END DO
+      END DO
+
+      NSBA=NSB_NSA(NSA)
+      IF(NRSTART.ge.2.and.NREND.LE.NRMAX-1) THEN
+         DO NR=NRSTART-1,NREND+1
+            DO NP=1,NPMAX
+               DO NTH=1,NTHMAX
+                  NM=NTH+NTHMAX*(NP-1)+NPMAX*NTHMAX*(NR-1)
+!                  NMA(NTH,NP,NR)=NM
+                  FM(NM)=func_in(NTH,NP,NR,NSBA)
+               ENDDO
+            ENDDO
+         ENDDO
+      ELSEIF(NRSTART.eq.1)THEN
+         DO NR=NRSTART,NREND+1
+            DO NP=1,NPMAX
+               DO NTH=1,NTHMAX
+                  NM=NTH+NTHMAX*(NP-1)+NPMAX*NTHMAX*(NR-1)
+!                  NMA(NTH,NP,NR)=NM
+                  FM(NM)=func_in(NTH,NP,NR,NSBA)
+               ENDDO
+            ENDDO
+         ENDDO
+      ELSEIF(NREND.eq.NRMAX)THEN
+         DO NR=NRSTART-1,NREND
+            DO NP=1,NPMAX
+               DO NTH=1,NTHMAX
+                  NM=NTH+NTHMAX*(NP-1)+NPMAX*NTHMAX*(NR-1)
+!                  NMA(NTH,NP,NR)=NM
+                  FM(NM)=func_in(NTH,NP,NR,NSBA)
+               ENDDO
+            ENDDO
+         ENDDO
+      END IF
+
+      END SUBROUTINE SET_FM_NMA
 
 !
 !     ***************************
@@ -268,6 +323,7 @@
             ENDIF
          ENDIF
          FVEL=FPP(NTH,NP,NR,NSA)-DPT(NTH,NP,NR,NSA)*DFDTH
+!         WEIGHP(NTH,NP,NR,NSA)=0.5D0
          WEIGHP(NTH,NP,NR,NSA)=FPWEGH(-DELP(NSBA)*FVEL,DPP(NTH,NP,NR,NSA))
       ENDDO
       ENDDO
@@ -279,7 +335,7 @@
 !         DFDP=-PM(NP,NSBA)*RTFP0(NSA)/RTFP(NR,NSA)/SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
          DFDB=DFDP
       DO NTH=1,NTHMAX+1
-         IF(NTH.EQ.1) THEN
+        IF(NTH.EQ.1) THEN
             IF(F(NTH,NP,NR).GT.EPSWT) THEN
                IF(NP.EQ.1) THEN
                   DFDP= (F(NTH  ,NP+1,NR)-F(NTHMAX-NTH+1,1,NR)) &
@@ -465,7 +521,6 @@
                ENDIF
             ENDIF
          ENDIF
-
          IF(NTH.EQ.ITL(NR)) THEN
             FVEL=FTH(NTH,NP,NR,NSA)-DTP(NTH,NP,NR,NSA)*DFDP &
                 -FTH(NTB,NP,NR,NSA)+DTP(NTB,NP,NR,NSA)*DFDB
@@ -476,6 +531,8 @@
          ENDIF
          WEIGHT(NTH,NP,NR,NSA) &
                  =FPWEGH(-DELTH*PM(NP,NSBA)*FVEL,DVEL)
+         WEIGHT(NTH,NP,NR,NSA) &
+                 =0.5D0
       ENDDO
       ENDDO
       ENDDO
@@ -486,6 +543,7 @@
          FVEL=FRR(NTH,NP,NR,NSA)
          DVEL=DRR(NTH,NP,NR,NSA)
          WEIGHR(NTH,NP,NR,NSA)=FPWEGH(-DELR*FVEL,DVEL)
+!         WEIGHR(NTH,NP,NR,NSA)=0.5D0
 !         IF(NR.ne.1)THEN
 !            WEIGHR(NTH,NP,NR,NSA)=(4.D0*RG(NR)+DELR)/(8.D0*RG(NR))
 !         ELSE

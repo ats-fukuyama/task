@@ -138,12 +138,12 @@
             TY(1)=0.D0
             DO NTH=1,NTHMAX
                TX(NTH+1)=THM(NTH)
-               TY(NTH+1)=FNS1(NTH,NP,NR,NSB)*PLM(NTH,L)*SINM(NTH)
+               TY(NTH+1)=FNSB(NTH,NP,NR,NSB)*PLM(NTH,L)*SINM(NTH)
             END DO
             TX(NTHMAX+2)=PI
             TY(NTHMAX+2)=0.D0
-            DF(1)= FNS1(1,NP,NR,NSB)
-            DF(NTHMAX+2)= (-1)**(L+1)*FNS1(NTHMAX,NP,NR,NSB)
+            DF(1)= FNSB(1,NP,NR,NSB)
+            DF(NTHMAX+2)= (-1)**(L+1)*FNSB(NTHMAX,NP,NR,NSB)
             CALL SPL1D(TX,TY,DF,UTY,NTHMAX+2,3,IER)
             CALL SPL1DI0(TX,UTY,UTY0,NTHMAX+2,IER)
             CALL SPL1DI(PI,SUM1,TX,UTY,UTY0,NTHMAX+2,IER)
@@ -1338,12 +1338,12 @@
       DO NTH=1,NTHMAX
          DO NP=1, NPMAX-1
             WPP=1.D0-WEIGHP(NTH,NP+1,NR,NSB)
-            FNSMG(NTH,2*NP-1)=FNS1(NTH,NP,NR,NSB)
+            FNSMG(NTH,2*NP-1)=FNSB(NTH,NP,NR,NSB)
             FNSMG(NTH,2*NP  )= &
-                 (1.D0-WPP)*FNS1(NTH,NP+1,NR,NSB)+WPP*FNS1(NTH,NP,NR,NSB)
+                 (1.D0-WPP)*FNSB(NTH,NP+1,NR,NSB)+WPP*FNSB(NTH,NP,NR,NSB)
 
          END DO
-         FNSMG(NTH,2*NPMAX-1)=FNS1(NTH,NPMAX,NR,NSB)
+         FNSMG(NTH,2*NPMAX-1)=FNSB(NTH,NPMAX,NR,NSB)
       END DO
 
 !      DO NP=1,NPMAX-1
@@ -1366,8 +1366,8 @@
             END DO
             TX(NTHMAX+2)=PI
             TY(NTHMAX+2)=0.D0
-            DF(1)= FNS1(1,NP,NR,NSB)
-            DF(NTHMAX+2)= (-1)**(L+1)*FNS1(NTHMAX,NP,NR,NSB)
+            DF(1)= FNSB(1,NP,NR,NSB)
+            DF(NTHMAX+2)= (-1)**(L+1)*FNSB(NTHMAX,NP,NR,NSB)
             CALL SPL1D(TX,TY,DF,UTY,NTHMAX+2,3,IER)
             CALL SPL1DI0(TX,UTY,UTY0,NTHMAX+2,IER)
             CALL SPL1DI(PI,SUM1,TX,UTY,UTY0,NTHMAX+2,IER)

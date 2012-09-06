@@ -51,7 +51,13 @@
 !         +++ mpi and petsc variables +++
       integer:: nrank,nprocs,imtxsize,imtxwidth,imtxstart,imtxend
       integer:: nrstart,nrend,nrendx,nmstart,nmend
+      integer:: N_partition_s, N_partition_r, NSASTART, NSAEND
       integer,dimension(:),POINTER:: mtxlen,mtxpos
+      integer,dimension(:),POINTER:: savlen
+      integer,dimension(:,:),POINTER:: savpos
+      integer:: ncomw, colorw, keyw
+      integer:: ncoms, colors, keys, nranks, nprocss
+      integer:: ncomr, colorr, keyr, nrankr, nprocsr
       
       integer::ISAVE
       integer,dimension(NSM):: nsb_nsa,nsa_nsb
@@ -111,11 +117,12 @@
 
       real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSBM)
            FNS
-      real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSAM)
-           FNS1,FNS2,FNS22
+      real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRS:NRE,NSAM)
+           FNS0,FNSP,FNSM
       real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSBM)
            FNS_L
-
+      real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSBMAX)
+           FNSB
 
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
            RNFP,RTFP,PTFP,VTFP,THETA,DKBSR
@@ -231,6 +238,8 @@
           endif
 
           allocate(MTXLEN(nprocs),MTXPOS(nprocs))
+          allocate(SAVLEN(nprocs))
+          allocate(SAVPOS(nprocs,NSAEND-NSASTART+1))
 
           allocate(F(NTHMAX,NPMAX,NRSTART:NREND))
           allocate(F1(NTHMAX,NPMAX,NRSTART:NREND))
@@ -276,10 +285,12 @@
           allocate(SINM(NTHMAX),COSM(NTHMAX))
 
           allocate(FNS(NTHMAX,NPMAX,NRMAX+1,NSBMAX))
-          allocate(FNS22(NTHMAX,NPMAX,NRMAX+1,NSAMAX))
 
-          allocate(FNS1(NTHMAX,NPMAX,NRSTART:NREND+1,NSAMAX))
-          allocate(FNS2(NTHMAX,NPMAX,NRSTART:NREND+1,NSAMAX))
+          allocate(FNS0(NTHMAX,NPMAX,NRSTART-1:NREND+1,NSAMAX))
+          allocate(FNSP(NTHMAX,NPMAX,NRSTART-1:NREND+1,NSAMAX))
+          allocate(FNSM(NTHMAX,NPMAX,NRSTART-1:NREND+1,NSAMAX))
+          allocate(FNSB(NTHMAX,NPMAX,NRSTART:NREND,NSBMAX))
+
           allocate(FS1(NTHMAX,NPMAX,NSAMAX))
           allocate(FS2(NTHMAX,NPMAX,NSAMAX))
           allocate(FS3(NTHMAX,NPMAX,NSAMAX))
@@ -296,9 +307,9 @@
           allocate(RNFP(NRSTART:NREND+1,NSAMAX),RTFP(NRSTART:NREND+1,NSAMAX))
           allocate(PTFP(NRSTART:NREND+1,NSAMAX),VTFP(NRSTART:NREND+1,NSAMAX))
           allocate(THETA(NRSTART:NREND,NSAMAX),DKBSR(NRSTART:NREND,NSAMAX))
-          allocate(WEIGHP(NTHMAX+1,NPMAX+1,NRSTART:NREND+1,NSAMAX))
-          allocate(WEIGHT(NTHMAX+1,NPMAX+1,NRSTART:NREND+1,NSAMAX))
-          allocate(WEIGHR(NTHMAX+1,NPMAX+1,NRSTART:NREND+1,NSAMAX))
+          allocate(WEIGHP(NTHMAX,NPMAX+1,NRSTART:NREND+1,NSAMAX))
+          allocate(WEIGHT(NTHMAX+1,NPMAX,NRSTART:NREND+1,NSAMAX))
+          allocate(WEIGHR(NTHMAX,NPMAX,NRSTART:NREND+1,NSAMAX))
 
           allocate(RNFD(NRSTART:NREND+1,NSBMAX),RTFD(NRSTART:NREND+1,NSBMAX))
           allocate(PTFD(NRSTART:NREND+1,NSBMAX),VTFD(NRSTART:NREND+1,NSBMAX))
@@ -417,7 +428,9 @@
           allocate(LL(NMSTART:NMEND,NLMAXM))
           allocate(DL(NMSTART:NMEND),BM(NMSTART:NMEND))
           allocate(AL(NMSTART:NMEND,NLMAXM))
-          allocate(FM(NMMAX),BMTOT(NMMAX))
+!          allocate(FM(NMMAX))
+          allocate(FM(1+NPMAX*NTHMAX*(NRSTART-2):NTHMAX*NPMAX*(NREND+1)) )
+          allocate(BMTOT(NMMAX))
 
           allocate(SIGMAV_NF(NTHMAX,NPMAX,NTHMAX,NPMAX,6))
           allocate(RATE_NF(NRSTART:NREND,6))
@@ -442,9 +455,10 @@
           deallocate(F1)
 
           deallocate(FNS)
-          deallocate(FNS1)
-          deallocate(FNS2)
-          deallocate(FNS22)
+          deallocate(FNS0)
+          deallocate(FNSP)
+          deallocate(FNSM)
+          deallocate(FNSB)
 
           deallocate(RCOEF,RCOEF_G)
           deallocate(RCOEF1,RCOEF2,VOLR,RCOEF2_G)

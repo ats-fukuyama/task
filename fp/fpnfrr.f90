@@ -140,7 +140,8 @@
       NSA_T=0
       NSA_HE3=0
       NSA_HE4=0
-      DO NSA=1,NSAMAX
+!      DO NSA=1,NSAMAX
+      DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
          IF(PA(NS).EQ.1.D0.AND.PZ(NS).EQ.1.D0) NSA_H=NSA
          IF(PA(NS).EQ.2.D0.AND.PZ(NS).EQ.1.D0) NSA_D=NSA
@@ -333,20 +334,20 @@
       DO NP2=1,NPMAX
       DO NTH2=1,NTHMAX
          RSUM=0.D0
-         FACT2 = VOLP(NTH2,NP2,NSB2)*FNS1(NTH2,NP2,NR,NSB2)!*RLAMDA(NTH2,NR)/RFSADG(NR)*RCOEFNG(NR)
+         FACT2 = VOLP(NTH2,NP2,NSB2)*FNSP(NTH2,NP2,NR,NSB2)!*RLAMDA(NTH2,NR)/RFSADG(NR)*RCOEFNG(NR)
          DO NP1=1,NPMAX
          DO NTH1=1,NTHMAX
-            FACT1 = VOLP(NTH1,NP1,NSB1)*FNS1(NTH1,NP1,NR,NSB1)!*RLAMDA(NTH1,NR)/RFSADG(NR)*RCOEFNG(NR)
+            FACT1 = VOLP(NTH1,NP1,NSB1)*FNSP(NTH1,NP1,NR,NSB1)!*RLAMDA(NTH1,NR)/RFSADG(NR)*RCOEFNG(NR)
             FACT3 = SIGMAV_NF(NTH1,NP1,NTH2,NP2,ID) * FACT
 
             RATE_NF_D1(NTH1,NP1,NR,ID) = RATE_NF_D1(NTH1,NP1,NR,ID) &
-                 +                     FNS1(NTH1,NP1,NR,NSB1) &
+                 +                     FNSP(NTH1,NP1,NR,NSB1) &
                  * FACT2 &
                  * FACT3
             
             RATE_NF_D2(NTH2,NP2,NR,ID) = RATE_NF_D2(NTH2,NP2,NR,ID) &
                  + FACT1 &
-                 *                     FNS1(NTH2,NP2,NR,NSB2) &
+                 *                     FNSP(NTH2,NP2,NR,NSB2) &
                  * FACT3
          END DO
          END DO

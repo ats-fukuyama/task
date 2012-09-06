@@ -55,7 +55,6 @@
       END IF
 !
 !     ----- Quasi-linear wave-particle interaction term -----
-!
 
 !!!   reduce the number of calling fp_calwm and fp_calw
 !     include 2 IF
@@ -179,7 +178,6 @@
 !!!   end of the reduction of the number of calling fp_calwm and fp_calw
 
 
-      
 !     N_IMPL = 0 means initial state in fpprep
       IF(N_IMPL.ne.0) CALL FPWAVE_CONST
 !     ----- Constant Dw
@@ -245,7 +243,6 @@
       END IF
 !      WRITE(6,*) NRSTART, NRANK, NPROCS
 !     ----- Collisional slowing down and diffusion term -----
-
       CALL FP_CALC(NSA)
 !      IF(NRANK.eq.1.and.NSA.eq.1)THEN
 !         WRITE(*,'("L2",6E14.6)') DCPP2(ITL(NR),2,NR,1,NSA),DCPT2(ITL(NR),2,NR,1,NSA) &
@@ -340,8 +337,6 @@
 !       ENDDO
 !       ENDDO
 !
-
-
       RETURN
       END SUBROUTINE fp_coef
 
@@ -397,7 +392,7 @@
                              +FEPP(NTH,NP,NR,NSA)*PSIB*COSG(NTH)/ABS(COSG(NTH))
                      END DO
                   END DO
-                  FEPP(NTH,NP,NR,NSA)=SUM11*DELH*RCOEFG(NR)
+                  FEPP(NTH,NP,NR,NSA)=SUM11*DELH
 !                  FEPP(NTH,NP,NR,NSA)= FACT*FEPP(NTH,NP,NR,NSA)
                ENDDO
             ENDDO
@@ -426,7 +421,7 @@
                              +FEPP(NTH,NP,NR,NSA)*PSIB
                      END DO
                   END DO
-                  FEPP(NTH,NP,NR,NSA)=SUM11*DELH*RCOEFG(NR)
+                  FEPP(NTH,NP,NR,NSA)=SUM11*DELH
 !                  FEPP(NTH,NP,NR,NSA)= FACT*FEPP(NTH,NP,NR,NSA)
                ENDDO
                DO NP=1,NPMAX+1
@@ -457,7 +452,7 @@
                              +FETH(NTH,NP,NR,NSA)*PSIB
                      END DO
                   END DO
-                  FETH(NTH,NP,NR,NSA)=SUM11*DELH*RCOEFG(NR)
+                  FETH(NTH,NP,NR,NSA)=SUM11*DELH
 !                  FETH(NTH,NP,NR,NSA)=FACT*FETH(NTH,NP,NR,NSA)
                ENDDO
             ENDDO
@@ -486,7 +481,7 @@
                              +FETH(NTH,NP,NR,NSA)*PSIB
                      END DO
                   END DO
-                  FETH(NTH,NP,NR,NSA)=SUM11*DELH*RCOEFG(NR)
+                  FETH(NTH,NP,NR,NSA)=SUM11*DELH
 !                  FETH(NTH,NP,NR,NSA)=FACT*FETH(NTH,NP,NR,NSA)
                ENDDO
             ENDDO
@@ -551,14 +546,14 @@
                      WRL=(4.D0*NR-3.D0)/(2.D0*NR-2.D0)/4.D0
                   END IF
                   IF(NR.eq.1)THEN
-                     DFDR_R1 = ( FNS(NTH,NP,NR,NSA)-FS1(NTH,NP,NSA) ) / DELR * 2.D0
+                     DFDR_R1 = ( FNSP(NTH,NP,NR,NSA)-FS1(NTH,NP,NSA) ) / DELR * 2.D0
                      F_R1 = FS1(NTH,NP,NSA) 
                   ELSEIF(NR.eq.NRMAX+1)THEN ! FS2 = F_INIT at rho=1+delR/2
-                     DFDR_R1 = ( FS2(NTH,NP,NSA)-FNS(NTH,NP,NR-1,NSA) ) / DELR
-                     F_R1 = ( (1.D0-WRL)*FS2(NTH,NP,NSA) + WRL*FNS(NTH,NP,NR-1,NSA) )
+                     DFDR_R1 = ( FS2(NTH,NP,NSA)-FNSP(NTH,NP,NR-1,NSA) ) / DELR
+                     F_R1 = ( (1.D0-WRL)*FS2(NTH,NP,NSA) + WRL*FNSP(NTH,NP,NR-1,NSA) )
                   ELSE
-                     DFDR_R1 = ( FNS(NTH,NP,NR,NSA)-FNS(NTH,NP,NR-1,NSA) ) / DELR
-                     F_R1 = ( (1.D0-WRL)*FNS(NTH,NP,NR,NSA) + WRL*FNS(NTH,NP,NR-1,NSA) )
+                     DFDR_R1 = ( FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP,NR-1,NSA) ) / DELR
+                     F_R1 = ( (1.D0-WRL)*FNSP(NTH,NP,NR,NSA) + WRL*FNSP(NTH,NP,NR-1,NSA) )
                   END IF
                   IF(MODELD.eq.6)THEN
                      DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/SQRT(RTFPL+PM(NP,NSBA)**2)*DFDR_R1 * RLAMDA_GG(NTH,NR)!PM?
@@ -760,33 +755,37 @@
          DO NP=1,NPMAX
             DO NTH=1,NTHMAX
                IF(N_IMPL.eq.0)THEN
-                  WRL=(4.D0*RG(NR)+DELR)/(8.D0*RG(NR))
+                  IF(NR.eq.1)THEN
+                     WRL=0.25D0 ! not necessary
+                  ELSE
+                     WRL=(4.D0*RG(NR)+DELR)/(8.D0*RG(NR))                     
+                  END IF
                ELSE
                   WRL=WEIGHR(NTH,NP,NR,NSA)
                END IF
                IF(NR.eq.1)THEN
-!                  DFDR_R1 = ( FNS(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)/RFSADG(NR) &
+!                  DFDR_R1 = ( FNSP(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)/RFSADG(NR) &
 !                       -FS1(NTH,NP,NSA)*RLAMDA_GG(NTH,NR)/RFSAD_GG(NR) ) / DELR *2.D0
 !                  F_R1 = FS1(NTH,NP,NSA)*RLAMDA_GG(NTH,NR)/RFSAD_GG(NR)
-                  DFDR_R1 = ( FNS(NTH,NP,NR,NSA)-FS1(NTH,NP,NSA) ) / DELR *2.D0
+                  DFDR_R1 = ( FNSP(NTH,NP,NR,NSA)-FS1(NTH,NP,NSA) ) / DELR *2.D0
                   F_R1 = FS1(NTH,NP,NSA)
                   SRHODM=DFDR_R1 * DRR(NTH,NP,NR,NSA)
                   SRHOFM=F_R1    * DRR(NTH,NP,NR,NSA)
                ELSEIF(NR.eq.NRMAX+1)THEN ! FS2 = F_INIT at rho=1+delR/2
 !                  DFDR_R1 = ( FS2(NTH,NP,NSA)*RLAMDAG(NTH,NR)/RFSADG(NR) &
-!                       -FNS(NTH,NP,NR-1,NSA)*RLAMDAG(NTH,NR-1)/RFSADG(NR-1) ) / DELR
+!                       -FNSP(NTH,NP,NR-1,NSA)*RLAMDAG(NTH,NR-1)/RFSADG(NR-1) ) / DELR
 !                  F_R1 = FS3(NTH,NP,NSA)*RLAMDA_GG(NTH,NR)/RFSAD_GG(NR)
-                  DFDR_R1 = ( FS2(NTH,NP,NSA)-FNS(NTH,NP,NR-1,NSA) ) / DELR
+                  DFDR_R1 = ( FS2(NTH,NP,NSA)-FNSP(NTH,NP,NR-1,NSA) ) / DELR
                   F_R1 = FS3(NTH,NP,NSA)
                   SRHODM=DFDR_R1 * DRR(NTH,NP,NR,NSA)
                   SRHOFM=F_R1    * DRR(NTH,NP,NR,NSA)
                ELSE
-!                  DFDR_R1 = ( FNS(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)/RFSADG(NR) &
-!                       -FNS(NTH,NP,NR-1,NSA)*RLAMDAG(NTH,NR-1)/RFSADG(NR-1) ) / DELR
-!                  F_R1 = ( (1.D0-WRL)*FNS(NTH,NP,NR,NSA) + WRL*FNS(NTH,NP,NR-1,NSA) ) &
+!                  DFDR_R1 = ( FNSP(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)/RFSADG(NR) &
+!                       -FNSP(NTH,NP,NR-1,NSA)*RLAMDAG(NTH,NR-1)/RFSADG(NR-1) ) / DELR
+!                  F_R1 = ( (1.D0-WRL)*FNSP(NTH,NP,NR,NSA) + WRL*FNSP(NTH,NP,NR-1,NSA) ) &
 !                       *RLAMDA_GG(NTH,NR)/RFSAD_GG(NR)
-                  DFDR_R1 = ( FNS(NTH,NP,NR,NSA)-FNS(NTH,NP,NR-1,NSA) ) / DELR
-                  F_R1 = ( (1.D0-WRL)*FNS(NTH,NP,NR,NSA) + WRL*FNS(NTH,NP,NR-1,NSA) ) 
+                  DFDR_R1 = ( FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP,NR-1,NSA) ) / DELR
+                  F_R1 = ( (1.D0-WRL)*FNSP(NTH,NP,NR,NSA) + WRL*FNSP(NTH,NP,NR-1,NSA) ) 
                   SRHODM=DFDR_R1 * DRR(NTH,NP,NR,NSA)
                   SRHOFM=F_R1    * DRR(NTH,NP,NR,NSA)
                END IF
@@ -803,14 +802,6 @@
             END DO
          END DO
 
-!         FACT = DINT_D/DINT_F
-!         IF(MODELD.eq.11) THEN
-!            RHON=RG(NR)
-!            CALL PL_PROF(RHON,PLF)
-!            densp=PLF(NS)%RN
-!
-!            FACT = -2.D0*RG(NR)*(RNFP0(NSA)-RNFPS(NSA))/densp
-!         END IF
 
 !         DO NP=1,NPMAX
 !            DO NTH=1,NTHMAX
@@ -1070,7 +1061,7 @@
       real(kind8):: DFP, DFT, FFP, FACT
 
       DO NR=NRSTART,NREND
-         DO NSA=1,NSAMAX
+         DO NSA=NSASTART,NSAEND
             NS=NS_NSA(NSA)
             NSBA=NSB_NSA(NSA)
 
@@ -1093,34 +1084,34 @@
                      WPP=WEIGHP(NTH+1,NP,NR,NSA)
                   ENDIF
                   DFP=    PG(NP,NSBA) &
-                       /DELP(NSBA)*(FNS1(NTH,NP,NR,NSBA)-FNS1(NTH,NP-1,NR,NSBA))
+                       /DELP(NSBA)*(FNSP(NTH,NP,NR,NSBA)-FNSP(NTH,NP-1,NR,NSBA))
                   IF(NTH.EQ.1) THEN
                      DFT=1.D0/DELTH                             &
                          *(                                     &
-                            ((1.D0-WPP)*FNS1(NTH+1,NP  ,NR,NSBA)   &
-                                  +WPP *FNS1(NTH+1,NP-1,NR,NSBA))&
+                            ((1.D0-WPP)*FNSP(NTH+1,NP  ,NR,NSBA)   &
+                                  +WPP *FNSP(NTH+1,NP-1,NR,NSBA))&
                            -                                    &
-                            ((1.D0-WPM)*FNS1(NTH,NP  ,NR,NSBA)     &
-                                  +WPM *FNS1(NTH,NP-1,NR,NSBA))&
+                            ((1.D0-WPM)*FNSP(NTH,NP  ,NR,NSBA)     &
+                                  +WPM *FNSP(NTH,NP-1,NR,NSBA))&
                           )
 
                   ELSE IF(NTH.EQ.NTHMAX) THEN
                      DFT=    1.D0/DELTH                         & 
                          *(-                                    &
-                            ((1.D0-WPM)*FNS1(NTH-1,NP  ,NR,NSBA)   &
-                                  +WPM *FNS1(NTH-1,NP-1,NR,NSBA))&
+                            ((1.D0-WPM)*FNSP(NTH-1,NP  ,NR,NSBA)   &
+                                  +WPM *FNSP(NTH-1,NP-1,NR,NSBA))&
                           +                                     &
-                            ((1.D0-WPP)*FNS1(NTH,NP  ,NR,NSBA)     &
-                                  +WPP *FNS1(NTH,NP-1,NR,NSBA))&
+                            ((1.D0-WPP)*FNSP(NTH,NP  ,NR,NSBA)     &
+                                  +WPP *FNSP(NTH,NP-1,NR,NSBA))&
                           )
                   ELSE
                      DFT=    1.D0/(2.D0*DELTH)                  &
                          *(                                     &
-                            ((1.D0-WPP)*FNS1(NTH+1,NP  ,NR,NSBA)   &
-                                  +WPP *FNS1(NTH+1,NP-1,NR,NSBA))&
+                            ((1.D0-WPP)*FNSP(NTH+1,NP  ,NR,NSBA)   &
+                                  +WPP *FNSP(NTH+1,NP-1,NR,NSBA))&
                            -                                    &
-                            ((1.D0-WPM)*FNS1(NTH-1,NP  ,NR,NSBA)   &
-                                  +WPM *FNS1(NTH-1,NP-1,NR,NSBA))&
+                            ((1.D0-WPM)*FNSP(NTH-1,NP  ,NR,NSBA)   &
+                                  +WPM *FNSP(NTH-1,NP-1,NR,NSBA))&
                                   )
                   ENDIF
 

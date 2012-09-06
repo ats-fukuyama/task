@@ -11,6 +11,7 @@
       USE fpcoef
       USE fpbounce
       USE equnit_mod
+      USE fpmpi
 
       contains
 
@@ -152,11 +153,6 @@
             PG(NP,NSB)=DELP(NSB)*(NP-1)
             PM(NP,NSB)=DELP(NSB)*(NP-0.5D0)
          ENDDO
-!         DO NP2=1,NP2MAX
-!            PG2(NP2,NSB)=PG(2,NSB)/DBLE(NP2MAX)*(NP2-1)
-!            PM2(NP2,NSB)=PG(2,NSB)/DBLE(NP2MAX)*(NP2-0.5D0)
-!         END DO
-!         PG2(NP2MAX+1,NSB)=PG(2,NSB)
          PG(NPMAX+1,NSB)=PMAX(NSB)
       ENDDO
 
@@ -280,8 +276,8 @@
          DO NR=NRSTART,NRENDX
             work(NR)=RLAMDA(NTH,NR)
          ENDDO
-         CALL mtx_gatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
-                                workg,NRMAX,MTXLEN,MTXPOS)
+         CALL mtx_gatherv_real8_local(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+                                workg,NRMAX,MTXLEN,MTXPOS,ncoms)
          CALL mtx_broadcast_real8(workg,NRMAX)
          DO NR=1,NRMAX
             RLAMDAG(NTH,NR)=workg(NR)
@@ -293,8 +289,8 @@
          DO NR=NRSTART,NRENDX
             work(NR)=ETAM(NTH,NR)
          ENDDO
-         CALL mtx_gatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
-                                workg,NRMAX,MTXLEN,MTXPOS)
+         CALL mtx_gatherv_real8_local(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+                                workg,NRMAX,MTXLEN,MTXPOS,ncoms)
          CALL mtx_broadcast_real8(workg,NRMAX)
          DO NR=1,NRMAX
             ETAMG(NTH,NR)=workg(NR)
@@ -305,8 +301,8 @@
          DO NR=NRSTART,NRENDX
             work(NR)=RLAMDA_G(NTH,NR)
          ENDDO
-         CALL mtx_gatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
-                                workg,NRMAX,MTXLEN,MTXPOS)
+         CALL mtx_gatherv_real8_local(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+                                workg,NRMAX,MTXLEN,MTXPOS,ncoms)
          CALL mtx_broadcast_real8(workg,NRMAX)
          DO NR=1,NRMAX
             RLAMDA_GG(NTH,NR)=workg(NR)
@@ -317,8 +313,8 @@
          DO NR=NRSTART,NRENDX
             work(NR)=ETAM_G(NTH,NR)
          ENDDO
-         CALL mtx_gatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
-                                workg,NRMAX,MTXLEN,MTXPOS)
+         CALL mtx_gatherv_real8_local(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+                                workg,NRMAX,MTXLEN,MTXPOS,ncoms)
          CALL mtx_broadcast_real8(workg,NRMAX)
          DO NR=1,NRMAX
             ETAM_GG(NTH,NR)=workg(NR)
@@ -392,11 +388,11 @@
 
       Implicit none
 
-      integer :: ierr,NSA,NSB,NS,NR,NP,NTH,NSFP,NSFD,NSBA,N,NREND1
+      integer :: ierr,NSA,NSB,NS,NR,NP,NTH,NSFP,NSFD,NSBA,N,NREND1,NSW
       real(kind8) :: FL, RSUM1, RSUM2, RTFD0L, RHON, RNE, RTE
       real(kind8) :: RLNRL, FACT, RSUM, RSUM11, rsum3, rsum4, rsum5, rsum6
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
-      INTEGER,DIMENSION(nprocs):: ima1,ima2,nra1,nra2,nma1,nma2
+      INTEGER,DIMENSION(nprocs):: ima1,ima2,nra1,nra2,nma1,nma2,insa1,insa2
       real(kind8),DIMENSION(:),POINTER:: work,workg
 
 !     ----- Initialize time counter -----
@@ -405,16 +401,33 @@
       NTG1=0
       NTG2=0
 !     ----- Check nprocs -----
-      IF(nprocs.GT.nrmax) THEN
-         IF(nrank.EQ.0) THEN
-            WRITE(6,*) 'XX fp_prep: nrmax must be greater than nprocs.'
-            WRITE(6,*) 'XX          nrmax,nprocs=',nrmax,nprocs
-         ENDIF
+!      IF(nprocs.GT.nrmax) THEN
+!         IF(nrank.EQ.0) THEN
+!            WRITE(6,*) 'XX fp_prep: nrmax must be greater than nprocs.'
+!            WRITE(6,*) 'XX          nrmax,nprocs=',nrmax,nprocs
+!         ENDIF
+!         ierr=1
+!         RETURN
+!      ENDIF
+!      N_partition_s=2
+!      N_partition_r=25
+      IF(N_partition_s*N_partition_r.ne.NPROCS)THEN
+         IF(NRANK.eq.0) THEN
+            WRITE(6,*) 'XX fp_prep: The partition number must be N_partition_s*N_partition_r=NPROCS.'
+            WRITE(6,'(A,3I4)') 'XX N_partition_s, N_partiton_r, NPROCS=', N_partition_s, N_partition_r, NPROCS
+         END IF
          ierr=1
          RETURN
-      ENDIF
+      END IF
 
 !     ----- Set matrix size -----
+      call mtx_comm_split_s(N_partition_s,colors,keys,ncoms)
+      call mtx_comm_split_r(N_partition_r,colorr,keyr,ncomr)
+      NSASTART = (NSAMAX/N_partition_s)*colors+1
+      NSAEND =   (NSAMAX/N_partition_s)*(colors+1)
+
+!      WRITE(*,'(A,5I4)') "NRANK, colors, NRANKS, color, NRANKR", &
+!           nrank, colors, nranks, colorr, nrankr
 
       imtxsize=nthmax*npmax*nrmax
       IF(modeld.EQ.0) THEN
@@ -422,7 +435,7 @@
       ELSE
          imtxwidth=4*nthmax*npmax-1
       ENDIF
-      CALL mtx_setup(imtxsize,imtxstart,imtxend,imtxwidth)
+      CALL mtx_setup(imtxsize,imtxstart,imtxend,imtxwidth,ncoms)
       nrstart=(imtxstart-1)/(nthmax*npmax)+1
       nrend=  (imtxend  -1)/(nthmax*npmax)+1
       nrend1= (imtxend    )/(nthmax*npmax)+1
@@ -439,12 +452,14 @@
       CALL mtx_gather_integer(nrend,    nra2)
       CALL mtx_gather_integer(nmstart,  nma1)
       CALL mtx_gather_integer(nmend,    nma2)
+      CALL mtx_gather_integer(nsastart,insa1)
+      CALL mtx_gather_integer(nsaend,  insa2)
       IF(nrank.EQ.0) THEN
          write(6,'(A,2I10)') '  imtxsize,imtxwidth=',imtxsize,imtxwidth
          write(6,'(A,A)') '     nrank   imtxstart   imtxend   nrstart',&
-                          '     nrend   nmstart     nmend'
+                          '     nrend   nmstart     nmend      nsastart      nsaend'
          DO N=1,nprocs
-            write(6,'(7I10)') N,ima1(N),ima2(N),nra1(N),nra2(N),nma1(N),nma2(N)
+            write(6,'(9I10)') N,ima1(N),ima2(N),nra1(N),nra2(N),nma1(N),nma2(N),insa1(N),insa2(N)
          ENDDO
       ENDIF
       CALL mtx_cleanup
@@ -460,7 +475,18 @@
 !     MTXPOS(NRANK):
       CALL mtx_allgather_integer(nrend-nrstart+1,mtxlen)
       CALL mtx_allgather_integer(nrstart-1,mtxpos)
+      CALL mtx_allgather_integer(nrend-nrstart+1,savlen)
+      NSW=NSAEND-NSASTART+1
+      DO N=1,NSW
+         NSA=N+NSASTART-1
+         CALL mtx_allgather_integer_sav( (nsa-1)*NRMAX+NRSTART,N,NSW,ncomw)
+      END DO
+
       if(nrank.eq.0) then
+         DO N=1,NPROCS/2
+            WRITE(6,'(I3,A,2I4,A,I3,A,2I4,A)') N,"(", savpos(N,1), savpos(N,2),")", N+25, "(",savpos(N+25,1), savpos(N+25,2),")"
+         END DO
+
          DO N=1,NPROCS
             WRITE(6,'(A,3I10)') '  nrank,mtxpos,mtxlen = ', &
                                    n-1,mtxpos(n),mtxlen(n)
@@ -532,19 +558,21 @@
       ENDIF
 
 !     ----- create meches -----
-
       CALL fp_mesh(ierr)
 !     ----- Initialize velocity distribution function of all species -----
 
-      DO NSB=1,NSBMAX
+!      DO NSB=1,NSBMAX
+      DO NSB=NSASTART,NSAEND
          NS=NS_NSB(NSB)
-         DO NR=1,NRMAX
-            DO NP=1,NPMAX
-               FL=FPMXWL(PM(NP,NSB),NR,NS)
-               DO NTH=1,NTHMAX
-                  FNS(NTH,NP,NR,NSB)=FL
-               END DO
-            ENDDO
+         DO NR=NRSTART-1,NREND+1
+            IF(NR.ge.1.and.NR.le.NRMAX)THEN
+               DO NP=1,NPMAX
+                  FL=FPMXWL(PM(NP,NSB),NR,NS)
+                  DO NTH=1,NTHMAX
+                     FNSP(NTH,NP,NR,NSB)=FL
+                  END DO
+               ENDDO
+            END IF
          END DO
          NR=NRMAX+1
          DO NP=1,NPMAX
@@ -558,7 +586,7 @@
 !--------- normalize bounce average parameter ---------
 
       IF(MODELA.eq.1)THEN
-         NSB=1 ! arbitrary
+         NSB=NSASTART ! arbitrary
          DO NR=NRSTART,NREND
             RSUM1=0.D0
             RSUM2=0.D0
@@ -566,39 +594,33 @@
             RSUM4=0.D0
             DO NP=1,NPMAX
                DO NTH=1,NTHMAX
-!                  IF(NTH.eq.ITL(NR).or.NTH.eq.ITU(NR))THEN
-!                  ELSE
-                  RSUM1 = RSUM1+VOLP(NTH,NP,NSB)*RLAMDAG(NTH,NR)/RFSADG(NR)*FNS(NTH,NP,NR,NSB)
-                  RSUM2 = RSUM2+VOLP(NTH,NP,NSB)*FNS(NTH,NP,NR,NSB)
+                  RSUM1 = RSUM1+VOLP(NTH,NP,NSB)*RLAMDAG(NTH,NR)/RFSADG(NR)*FNSP(NTH,NP,NR,NSB)
+                  RSUM2 = RSUM2+VOLP(NTH,NP,NSB)*FNSP(NTH,NP,NR,NSB)
                   RSUM3 = rsum3+VOLP(NTH,NP,NSB)*RLAMDA_GG(NTH,NR)/RFSAD_GG(NR)
                   RSUM4 = rsum4+VOLP(NTH,NP,NSB)
-!                  END IF
                END DO
             END DO
             IF(RSUM1.EQ.0.D0) &
-                 WRITE(6,'(1P3E12.4)') VOLP(1,1,NSB),FNS(1,1,1,NSB),RLAMDA(1,1)
+                 WRITE(6,'(1P3E12.4)') VOLP(1,1,NSB),FNSP(1,1,1,NSB),RLAMDA(1,1)
 
             RCOEFN(NR)=RSUM2/RSUM1
             RCOEFN_G(NR)=RSUM4/RSUM3
-!            RCOEFN(NR)=1.D0
-!            RCOEFN_G(NR)=1.D0
-            RCOEF(NR) = ( QLM(NR)*RR )
-            RCOEF_G(NR) = ( QLG(NR)*RR )
+!            RCOEF(NR) = ( QLM(NR)*RR )
+!            RCOEF_G(NR) = ( QLG(NR)*RR )
          END DO
       ELSE
-         DO NSB=1,NSBMAX
-            DO NR=NRSTART,NREND
-               RCOEF(NR)=1.D0
-               RCOEF_G(NR)=1.D0
-               RCOEFN(NR)=1.D0
-               RCOEFN_G(NR)=1.D0
-           ENDDO
+         DO NR=NRSTART,NREND
+!            RCOEF(NR)=1.D0
+!            RCOEF_G(NR)=1.D0
+            RCOEFN(NR)=1.D0
+            RCOEFN_G(NR)=1.D0
          ENDDO
       END IF
 
 !     ----- set boundary distribution functions -----
       
-      DO NSA=1,NSAMAX
+!      DO NSA=1,NSAMAX
+      DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
          NSBA=NSB_NSA(NSA)
          DO NP=1,NPMAX
@@ -609,7 +631,8 @@
          ENDDO
       END DO
 !
-      DO NSA=1,NSAMAX
+!      DO NSA=1,NSAMAX
+      DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
          NSBA=NSB_NSA(NSA)
          DO NP=1,NPMAX
@@ -621,7 +644,7 @@
       ENDDO
 !
       IF(MODELA.eq.1)THEN
-         NSBA=1
+         NSBA=NSASTART
          RSUM1=0.D0
          RSUM2=0.D0
          RSUM3=0.D0
@@ -652,33 +675,33 @@
 !!!!
       allocate(work(nrstart:nrendx),workg(NRMAX))
 
-      DO NR=NRSTART,NRENDX
-         work(NR)=RCOEF(NR)
-      ENDDO
-      CALL mtx_gatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
-           workg,NRMAX,MTXLEN,MTXPOS)
-      CALL mtx_broadcast_real8(workg,NRMAX)
-      DO NR=1,NRMAX
-         RCOEFG(NR)=workg(NR)
-      ENDDO
-      RCOEFG(NRMAX+1)=(QLM(NRMAX)*RR)
+!      DO NR=NRSTART,NRENDX
+!         work(NR)=RCOEF(NR)
+!      ENDDO
+!      CALL mtx_gatherv_real8_local(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+!           workg,NRMAX,MTXLEN,MTXPOS,ncoms)
+!      CALL mtx_broadcast_real8(workg,NRMAX)
+!      DO NR=1,NRMAX
+!         RCOEFG(NR)=workg(NR)
+!      ENDDO
+!      RCOEFG(NRMAX+1)=(QLM(NRMAX)*RR)
 
-      DO NR=NRSTART,NRENDX
-         work(NR)=RCOEF_G(NR)
-      ENDDO
-      CALL mtx_gatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
-           workg,NRMAX,MTXLEN,MTXPOS)
-      CALL mtx_broadcast_real8(workg,NRMAX)
-      DO NR=1,NRMAX
-         RCOEF_GG(NR)=workg(NR)
-      ENDDO
-      RCOEF_GG(NRMAX+1)=1.D0/(QLG(NRMAX+1)*RR)
+!      DO NR=NRSTART,NRENDX
+!         work(NR)=RCOEF_G(NR)
+!      ENDDO
+!      CALL mtx_gatherv_real8_local(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+!           workg,NRMAX,MTXLEN,MTXPOS,ncoms)
+!      CALL mtx_broadcast_real8(workg,NRMAX)
+!      DO NR=1,NRMAX
+!         RCOEF_GG(NR)=workg(NR)
+!      ENDDO
+!      RCOEF_GG(NRMAX+1)=1.D0/(QLG(NRMAX+1)*RR)
 
       DO NR=NRSTART,NRENDX
          work(NR)=RCOEFN(NR)
       ENDDO
-      CALL mtx_gatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
-           workg,NRMAX,MTXLEN,MTXPOS)
+      CALL mtx_gatherv_real8_local(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+           workg,NRMAX,MTXLEN,MTXPOS,ncoms)
       CALL mtx_broadcast_real8(workg,NRMAX)
       DO NR=1,NRMAX
          RCOEFNG(NR)=workg(NR)
@@ -687,20 +710,20 @@
       DO NR=NRSTART,NRENDX
          work(NR)=RCOEFN_G(NR)
       ENDDO
-      CALL mtx_gatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
-           workg,NRMAX,MTXLEN,MTXPOS)
+      CALL mtx_gatherv_real8_local(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+           workg,NRMAX,MTXLEN,MTXPOS,ncoms)
       CALL mtx_broadcast_real8(workg,NRMAX)
       DO NR=2,NRMAX
          RCOEFN_GG(NR)=workg(NR)
       ENDDO
 
-      IF(NRANK.eq.0)THEN
-         open(8,file='rcoefng_norfsad.dat')
-         DO NR=1,NRMAX
-            WRITE(8,'(7E14.6)') RM(NR), RCOEFNG(NR), RFSADG(NR) &
-                 , RG(NR), RCOEFN_GG(NR), RFSAD_GG(NR), QLM(NR)
-         END DO
-         close(8)
+!      IF(NRANK.eq.0)THEN
+!         open(8,file='rcoefng_norfsad.dat')
+!         DO NR=1,NRMAX
+!            WRITE(8,'(7E14.6)') RM(NR), RCOEFNG(NR), RFSADG(NR) &
+!                 , RG(NR), RCOEFN_GG(NR), RFSAD_GG(NR), QLM(NR)
+!         END DO
+!         close(8)
 !         open(8,file='volp_r_tpb_ex_killeen_fine.dat')
 !         DO NTH=1,NTHMAX/2
 !            DO NR=1,NRMAX
@@ -719,28 +742,9 @@
 !            WRITE(8,*) " "
 !         END DO
 !         close(8)
-      END IF
+!      END IF
 
       deallocate(work,workg)
-
-!     ----- set RCOEFNG to FNS, FS1, FS2, FS3 ----
-
-      DO NSA=1,NSAMAX
-         DO NR=1,NRMAX
-            DO NP=1,NPMAX
-               DO NTH=1,NTHMAX
-!                  FNS(NTH,NP,NR,NSA) = FNS(NTH,NP,NR,NSA) * RCOEFNG(NR)
-               END DO
-            END DO
-         END DO
-         DO NP=1,NPMAX
-            DO NTH=1,NTHMAX
-!               FS1(NTH,NP,NSA) = FS1(NTH,NP,NSA) * RCOEFN_GG(1)
-!               FS2(NTH,NP,NSA) = FS2(NTH,NP,NSA) * RCOEFNG(NRMAX+1)
-!               FS3(NTH,NP,NSA) = FS3(NTH,NP,NSA) * RCOEFN_GG(NRMAX+1)
-            END DO
-         END DO
-      END DO
 
 !     ----- set parameters for target species -----
 
@@ -835,40 +839,25 @@
          ENDDO
       ENDIF
 
-      DO NSA=1,NSAMAX
-         NSBA=NSB_NSA(NSA) 
-         DO NR=NRSTART,NREND
-            DO NP=1,NPMAX
-               DO NTH=1,NTHMAX
-                  FNS1(NTH,NP,NR,NSBA)=FNS(NTH,NP,NR,NSBA)
-               END DO
-            END DO
-         END DO
-      END DO
-
       N_IMPL=0
       CALL NF_REACTION_COEF
       NCALCNR=0
-      DO NSA=1,NSAMAX
+!      DO NSA=1,NSAMAX
+      DO NSA=NSASTART,NSAEND
          CALL FP_COEF(NSA)
          NSBA=NSB_NSA(NSA)
-         DO NTH=1,NTHMAX
+         DO NR=NRSTART,NREND
             DO NP=1,NPMAX
-               DO NR=NRSTART,NREND
-                  F(NTH,NP,NR)=FNS(NTH,NP,NR,NSBA)
+               DO NTH=1,NTHMAX
+                  F(NTH,NP,NR)=FNSP(NTH,NP,NR,NSBA)
                END DO
             END DO
          END DO
          CALL FPWEIGHT(NSA,IERR)
-!         IF(MODELR.eq.1.and.MODELC.eq.4.and.NCALCNR.eq.2)THEN
-!            NCALCNR=1
-!            CALL FP_COEF(NSA)
-!         END IF
       END DO
       ISAVE=0
       IF(NTG1.eq.0) CALL FPWAVE_CONST ! all nrank must have RPWT  
       CALL FPSSUB
-!      OPEN(10,file='TBULK_TEST.dat')
       IF(nrank.EQ.0) THEN
          CALL FPSGLB
          CALL FPWRTGLB
@@ -879,5 +868,5 @@
 
       RETURN
       END subroutine fp_prep
-
+!-----
       END MODULE fpprep

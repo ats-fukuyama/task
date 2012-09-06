@@ -255,7 +255,7 @@
       MODELC= 0
       MODELR= 0
       MODELD= 0
-      MODELS=0
+      MODELS= 0
       DO NS=1,NSM
          MODELW(NS)=0
       END DO
@@ -289,6 +289,13 @@
 
       NTG1M=0
       NTG2M=0
+
+!-----------------------------------------------------------------------
+!     MPI Partition number : 
+!          N_partition_s: the number of patition for NSA
+!          N_partition_r: the number of patition for NR
+      N_partition_s = 2
+      N_partition_r = 25
 
       RETURN
       END SUBROUTINE fp_init
@@ -357,7 +364,8 @@
            pmax,tloss,MODELW,MODELS,NBEAMMAX, &
            NSSPB,SPBTOT,SPBR0,SPBRW,SPBENG,SPBANG,SPBPANG,&
            NSSPF,SPFTOT,SPFR0,SPFRW,SPFENG,&
-           LMAXFP, EPSFP,NCMIN,NCMAX, DRRS, MODEL_KSP, MODEL_PC
+           LMAXFP, EPSFP,NCMIN,NCMAX, DRRS, MODEL_KSP, MODEL_PC, &
+           N_partition_s, N_partition_r
 
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: nid
@@ -384,7 +392,8 @@
            NSSPB,SPBTOT,SPBR0,SPBRW,SPBENG,SPBANG,SPBPANG, &
            NSSPF,SPFTOT,SPFR0,SPFRW,SPFENG, &
            pmax,tloss,LMAXFP,EPSFP,MODELS,NBEAMMAX, &
-           nsamax,nsbmax,ns_nsa,ns_nsb,NCMIN,NCMAX,DRRS, MODEL_KSP, MODEL_PC
+           nsamax,nsbmax,ns_nsa,ns_nsb,NCMIN,NCMAX,DRRS, MODEL_KSP, MODEL_PC, &
+           N_partition_s, N_partition_r
 
       READ(nid,FP,IOSTAT=ist,ERR=9800,END=9900)
 
@@ -422,6 +431,7 @@
       WRITE(6,*) '      ZEFF,DELT,RIMPL,EPSM,EPSE,EPSDE,H0DE,'
       WRITE(6,*) '      nsamax,nsbmax,ns_nsa,ns_nsb,pmax,tloss,'
       WRITE(6,*) '      MODELS,NBEAMMAX,DRRS,MODEL_KSP,MODEL_PC'
+      WRITE(6,*) '      N_partition_s, N_partition_r'
 
       RETURN
     END SUBROUTINE fp_plst
@@ -446,7 +456,7 @@
       USE fpcomm
       USE libmtx
       IMPLICIT NONE
-      INTEGER,DIMENSION(34):: idata
+      INTEGER,DIMENSION(36):: idata
       real(8),DIMENSION(44):: rdata
       complex(8),DIMENSION(3):: cdata
 
@@ -575,7 +585,9 @@
       idata(32)=MODELS
       idata(33)=MODEL_KSP
       idata(34)=MODEL_PC
-      CALL mtx_broadcast_integer(idata,34)
+      idata(35)=N_partition_s
+      idata(36)=N_partition_r
+      CALL mtx_broadcast_integer(idata,36)
       NPMAX   =idata( 1)
       NTHMAX  =idata( 2)
       NRMAX   =idata( 3)
@@ -612,6 +624,8 @@
       MODELS  =idata(32)
       MODEL_KSP=idata(33)
       MODEL_PC =idata(34)
+      N_partition_s = idata(35)
+      N_partition_r = idata(36)
 
       CALL mtx_broadcast_integer(NS_NSA,NSAMAX)
       CALL mtx_broadcast_integer(NS_NSB,NSBMAX)
@@ -758,7 +772,7 @@
            NSSPF,SPFTOT,SPFR0,SPFRW,SPFENG,&
            ZEFF,DELT,RIMPL,EPSM,EPSE,EPSDE,H0DE, &
            nsamax,nsbmax,ns_nsa,ns_nsb,pmax,tloss,MODELS,NCMIN,NCMAX, &
-           nbeammax,DRRS,MODEL_KSP, MODEL_PC
+           nbeammax,DRRS,MODEL_KSP,MODEL_PC,N_partition_s,N_partition_r,NPROCS
       IMPLICIT NONE
       integer:: nsa,nsb,ns,NBEAM
 
@@ -951,6 +965,11 @@
       ELSE
          WRITE(6,*) 'XX UNKNOWN MODELG: MODELG =',MODELG
       END IF
+
+      WRITE(6,*) "-------- MPI CONFIGURATION --------"
+      WRITE(6,'(A,I4)') "THE NUMBER MPI PROCESS   =", NPROCS
+      WRITE(6,'(A,I4)') "PARTITION NUMBER FOR NSA =", N_partition_s
+      WRITE(6,'(A,I4)') "PARTITION NUMBER FOR NR  =", N_partition_r
 
       RETURN
 

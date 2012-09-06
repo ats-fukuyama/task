@@ -11,13 +11,13 @@
 
       contains
 
-      SUBROUTINE fp_drexec(NSA,IERR)
+      SUBROUTINE fp_drexec(NSA,IERR,its1)
 
       USE libmtx
       IMPLICIT NONE
       integer:: NSA, NP, NTH, NR, NL, NM, NSBA
       integer:: NTHS, NLL
-      integer:: IERR,its,i,j,ll1
+      integer:: IERR,its,i,j,ll1,its1
       integer:: imtxstart1,imtxend1
 !      integer,optional:: methodKSP, methodPC
 
@@ -25,9 +25,9 @@
 !      WRITE(*,*) "NRANK, NSA = ",NRANK,NSA
 
 !     ----- Set up matrix solver -----
-      CALL mtx_setup(imtxsize,imtxstart1,imtxend1,imtxwidth)
+      CALL mtx_setup(imtxsize,imtxstart1,imtxend1,imtxwidth,ncoms)
       IF(imtxstart1.NE.imtxstart.OR.imtxend1.NE.imtxend) THEN
-         WRITE(6,*) 'XX fp_exec: '
+         WRITE(6,*) 'XX fp_drexec: '
          WRITE(6,*) '   imtxstart1.NE.imtxstart.OR.imtxend1.NE.imtxend'
          WRITE(6,*) '   imtxstart1,imtxstart = ',imtxstart1,imtxstart
          WRITE(6,*) '   imtxend1,imtxend     = ',imtxend1,imtxend
@@ -42,16 +42,7 @@
 !               NM: line number of the coefficient matrix
 !               NL: 
 
-      DO NR=1,NRMAX
-         DO NP=1,NPMAX
-            DO NTH=1,NTHMAX
-               NM=NTH+NTHMAX*(NP-1)+NPMAX*NTHMAX*(NR-1)
-               NMA(NTH,NP,NR)=NM
-!               FM(NM)=FNS22(NTH,NP,NR,NSBA)
-               FM(NM)=FNS(NTH,NP,NR,NSBA)
-            ENDDO
-         ENDDO
-      ENDDO
+      CALL SET_FM_NMA(NSA,FNS0)
 
       DO NM=NMSTART,NMEND
          NLMAX(NM)=0
@@ -190,15 +181,15 @@
 
 !     ----- Solve matrix equation -----
 
-      CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC)
-      if(nrank.eq.0) then
-         write(6,*) 'Number of iterations =',its
+      CALL mtx_solve(ncoms,imtx,epsm,its,MODEL_KSP,MODEL_PC)! ncom is necessary for MUMPS
+      if(nranks.eq.0) then
+         write(6,'(A,3I4)') 'Number of iterations p, r, NSA =',its1, its, NSA
       endif
       ierr=0
 
 !     ----- Get solution vector -----
 
-      CALL mtx_gather_vector(BMTOT)
+      CALL mtx_gather_vector(BMTOT,ncoms)
       
       DO NR=NRSTART,NREND
          DO NP=1,NPMAX
@@ -209,14 +200,25 @@
          ENDDO
       ENDDO
 
-      DO NR=1,NRMAX
-         DO NP=1,NPMAX
-            DO NTH=1,NTHMAX
-               NM=NMA(NTH,NP,NR)
-               FNS(NTH,NP,NR,NSBA)=BMTOT(NM)
+      DO NR=NRSTART-1,NREND+1
+         IF(NR.ge.1.and.NR.le.NRMAX)THEN
+            DO NP=1,NPMAX
+               DO NTH=1,NTHMAX
+                  NM=NMA(NTH,NP,NR)
+                  FNS0(NTH,NP,NR,NSBA)=BMTOT(NM)
+               ENDDO
             ENDDO
-         ENDDO
+         END IF
       ENDDO
+
+!      DO NR=1,NRMAX
+!         DO NP=1,NPMAX
+!            DO NTH=1,NTHMAX
+!               NM=NMA(NTH,NP,NR)
+!               FNS(NTH,NP,NR,NSBA)=BMTOT(NM)
+!            ENDDO
+!         ENDDO
+!      ENDDO
 
 !     ----- Clean up matrix solver -----
 

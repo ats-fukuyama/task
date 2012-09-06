@@ -13,14 +13,16 @@ PETSCLIBS=${PETSC_KSP_LIB}
 .SUFFIXES:
 .SUFFIXES: .f90 .mod .o .a
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+FCFREE =mpiifort
+
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 MODINCLUDE= -I.$(MOD) -I../../task/lib/$(MOD) \
             -I../../task/plx/$(MOD) -I../../task/eq/$(MOD) \
             -I../../bpsd/$(MOD) -I../../task/mtxp
 
-SRCS = fpcomm.f90 fpinit.f90 fpbroadcast.f90 fpexec.f90 fpdrexec.f90 fpsave.f90 \
+SRCS = fpcomm.f90 fpinit.f90 fpmpi.f90 fpbroadcast.f90 fpexec.f90 fpdrexec.f90 fpsave.f90 \
        fpwmin.f90 fpwrin.f90 fpcalwm.f90 fpcalwr.f90 fpcalw.f90 \
        fpcalcn.f90 fpcalcnr.f90 fpcalc.f90 fpnfrr.f90 fpcoef.f90 \
        fpbounce.f90 fpprep.f90 fploop.f90 \

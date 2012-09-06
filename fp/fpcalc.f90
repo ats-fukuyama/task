@@ -12,6 +12,7 @@
       USE fpcomm
       USE fpcalcn
       USE fpcalcnr
+      USE fpmpi
       USE libspf, ONLY: ERF0,ERF1
       real(8):: PMAXC
 
@@ -21,9 +22,10 @@
 
       SUBROUTINE FP_CALC(NSA)
 
+      USE libmtx
       IMPLICIT NONE
       integer:: NSA,NSB,NR, NP, NTH
-!      integer::NTHM, NPM, NRM
+      integer:: nsrc
       real(8):: RGAMH, RGAMH2, RZI, RTE, PFPL, VFPL, U, DCTTL, RGAMA, DFDP, DFDTH
 
       DO NR=NRSTART,NREND
@@ -85,9 +87,11 @@
 !      END DO
 
 !
+
+      CALL mtx_allgather_f(ncomr)
+
       DO NR=NRSTART,NREND
          DO NSB=1,NSBMAX
-!
 !            if(nr.eq.1) write(6,'(A,I8,1P2E12.4)') 
 !     &           ' NSB,RN,RNFD=',NSB,RN(NSB),RNFD(NR,NSB)
 !
@@ -128,34 +132,6 @@
             ENDIF
          ENDDO
 
-!         IF(NR.eq.2.and.NSA.eq.1)THEN
-!            WRITE(*,'("L ",6E14.6)') DCPP2(ITL(NR),2,NR,1,NSA),DCPT2(ITL(NR),2,NR,1,NSA) &
-!                 ,FCPP2(ITL(NR),2,NR,1,NSA) &
-!                 ,DCTP2(ITL(NR)+1,2,NR,1,NSA),DCTT2(ITL(NR)+1,2,NR,1,NSA),FCTH2(ITL(NR)+1,2,NR,1,NSA)
-!            WRITE(*,'("U ",6E14.6)') DCPP2(ITU(NR),2,NR,1,NSA),DCPT2(ITU(NR),2,NR,1,NSA) &
-!                 ,FCPP2(ITU(NR),2,NR,1,NSA) &
-!                 ,DCTP2(ITU(NR),2,NR,1,NSA),DCTT2(ITU(NR),2,NR,1,NSA),FCTH2(ITU(NR),2,NR,1,NSA)
-!         END IF
-
-!      DO NSB=1,NSBMAX
-!         IF(NSA.eq.1.and.NSB.eq.1)THEN
-!         DO NP=2,NPMAX+1
-!         RGAMA=SQRT(1.D0+THETA0(NSA)*PG(NP,NSA)**2)
-!         DO NTH=1,NTHMAX
-!!            DCPP2(NTH,NP,NR,NSB,NSA)=-RGAMA*RTFP(NR,NSB)*FCPP2(NTH,NP,NR,NSB,NSA)/PG(NP,NSA) &
-!!                 *AEE*1.D3/PTFP0(NSA)/VTFP0(NSA)
-!            IF(NTG2.eq.0)THEN
-!               FCPP2(NTH,NP,NR,NSB,NSA)=-PG(NP,NSA)*PTFP0(NSA)*VTFP0(NSA)*DCPP2(NTH,NP,NR,NSB,NSA) &
-!                    /(RGAMA*RTFP(NR,NSB)*AEE*1.D3 )
-!            ELSE
-!               FCPP2(NTH,NP,NR,NSB,NSA)=-PG(NP,NSA)*PTFP0(NSA)*VTFP0(NSA)*DCPP2(NTH,NP,NR,NSB,NSA) &
-!                    /(RGAMA*RTT(NR,NSB,NTG2)*AEE*1.D3 )
-!            END IF
-!         ENDDO
-!         ENDDO
-!         END IF
-!      ENDDO
-
 !        ----- Simple electron-ion collision term using ZEFF -----
 
          IF(MODELC.LT.0) THEN
@@ -186,7 +162,6 @@
          ENDIF
 
 !     ----- bounce average -----
-
          IF(MODELA.EQ.1) THEN
             IF(MODELC.EQ.0.or.MODELC.eq.1) THEN
                CALL FPCALC_LAV(NR,NSA)
@@ -204,9 +179,9 @@
                CALL FPCALC_NLAV(NR,NSA)
             ENDIF
          ENDIF
-
 !     sum up coefficients by species
          DO NSB=1,NSBMAX
+!         WRITE(*,'(A,3I4,E14.6)') "DCPP2",NR,NSA,NSB,DCPP2(2,2,NR,NSB,NSA)
             DO NP=1,NPMAX+1
                DO NTH=1,NTHMAX
                   DCPP(NTH,NP,NR,NSA)=DCPP(NTH,NP,NR,NSA) &
@@ -237,24 +212,6 @@
             END DO
          END DO
       ENDDO
-
-!      open(8,file='p-dcpp_c4r1a0_2000_new2.dat')
-!      NSA=1
-!      NR=1
-!      DO NP=1,NPMAX
-!         DO NTH=1,NTHMAX
-!            WRITE(8,'(2I4,1P14E14.6)') NP, NTH, &
-!                 PG(NP,NSA)*COSM(NTH), PG(NP,NSA)*SINM(NTH), &
-!                 PM(NP,NSA)*COSG(NTH), PM(NP,NSA)*SING(NTH), &
-!                 DCPP(NTH,NP,NR,NSA), DCPT(NTH,NP,NR,NSA), &
-!                 DCTT(NTH,NP,NR,NSA), DCTP(NTH,NP,NR,NSA), &
-!                 FCPP(NTH,NP,NR,NSA),FCTH(NTH,NP,NR,NSA)
-!         END DO
-!         WRITE(8,*) " "
-!         WRITE(8,*) " "
-!      END DO
-!      close(8)
-
 
       IF(nrank.eq.0) THEN
       IF(MOD(IDBGFP/8,2).EQ.1) THEN
