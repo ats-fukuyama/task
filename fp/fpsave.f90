@@ -692,9 +692,9 @@
       write(6,107) rtotalPC
       write(6,109) rtotalSP
       write(6,110) rtotalPC2
-      IF(NTG1.gt.1)THEN
-         write(6,'("Steady State Criterion ",6E14.6)')  (DEPS_SS(NSA),NSA=1,NSAMAX)
-      END IF
+!      IF(NTG1.gt.1)THEN
+!         write(6,'("Steady State Criterion ",6E14.6)')  (DEPS_SS(NSA),NSA=1,NSAMAX)
+!      END IF
 
 !      write(6,1111) PECT(1,NTG1)
 

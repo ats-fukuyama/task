@@ -838,13 +838,12 @@
             DO NTH=1,NTHMAX
                PPL(NTH,NP,NR,NSA)=0.D0
                SPPB(NTH,NP,NR,NSA)=0.D0
-               SPPF(NTH,NP,NR,NSA)=0.D0
+!               SPPF(NTH,NP,NR,NSA)=0.D0
                SPPS(NTH,NP,NR,NSA)=0.D0
                SPPD(NTH,NP,NSA)=0.D0
             ENDDO
          ENDDO
       ENDDO
-
 !     ----- NBI source term -----
 
       IF(MODELA.eq.0)THEN
@@ -923,13 +922,16 @@
       END IF ! MODELS=1
 
 !     ----- Calcluated fusion source term -----
-
       IF(MODELS.EQ.2) THEN
          IF(MODELA.eq.0)THEN
             CALL FUSION_SOURCE_S2A0(NSA)
          ELSE
             CALL FUSION_SOURCE_S2A1(NSA)            
          END IF
+!         IF(NSA.eq.3.and.nranks.eq.0) WRITE(*,*) "SPPF1", SPPF(1,1,1,3), SPPF(1,1,1,4)
+!         CALL mtx_allreduce_source(SPPF,ncomr)
+!         IF(NSA.eq.3.and.nranks.eq.0) WRITE(*,*) "SPPF2", SPPF(1,1,1,3), SPPF(1,1,1,4)
+
       ENDIF ! MODELS=2
 !
 !     ----- Particle loss and source terms -----
@@ -1519,5 +1521,13 @@
       ENDDO ! ID
 
       END SUBROUTINE FUSION_SOURCE_S2A1
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      SUBROUTINE fusion_source_init
+
+      IMPLICIT NONE
+
+      SPPF(:,:,:,:)=0.D0
+
+      END SUBROUTINE fusion_source_init
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       END MODULE fpcoef

@@ -18,6 +18,7 @@
       SUBROUTINE FP_LOOP
 
       USE libmtx
+      USE FPMPI
       IMPLICIT NONE
       real(kind8),dimension(NRSTART:NREND,NSAMAX):: RJNS
       real(kind8),dimension(NRSTART:NREND):: RJN,RJ3,E3,DELE
@@ -32,7 +33,7 @@
       integer,dimension(NSAMAX)::NTCLSTEP2
       real(kind8):: DEPS_MAX, DEPS, DEPS1
 !      real(kind8),dimension(NSAMAX):: DEPS_MAXV, DEPSV
-      real(kind8),dimension(NSASTART:NSAEND):: DEPS_MAXVL, DEPSV
+      real(kind8),dimension(NSASTART:NSAEND):: DEPS_MAXVL, DEPSV, DEPS_SS_LOCAL
 !      real(kind8),dimension(NSASTART:NSAEND):: DEPS_MAXV
       real(kind8),dimension(NSAMAX):: DEPS_MAXV
       integer,dimension(NSASTART:NSAEND):: ILOCL
@@ -40,7 +41,7 @@
       integer:: NSTEST
       real(kind8):: temp_send, temp_recv
       character:: fmt*40
-      integer:: modeld_temp, modela_temp, NSW, NSWI,its
+      integer:: modela_temp, NSW, NSWI,its
 
       IF(MODELE.NE.0) CALL FPNEWE
 
@@ -120,8 +121,8 @@
                          +ABS(FNSP(NTH,NP,NR,NSBA)-F1(NTH,NP,NR))**2
                   RSUMF0(NSA)=RSUMF0(NSA) &
                          +ABS(FNSM(NTH,NP,NR,NSBA))**2
-                  RSUM_SS(NSA)=RSUM_SS(NSA) &
-                         +ABS(FNSM(NTH,NP,NR,NSBA)-F1(NTH,NP,NR))**2
+!                  RSUM_SS(NSA)=RSUM_SS(NSA) &
+!                         +ABS(FNSM(NTH,NP,NR,NSBA)-F1(NTH,NP,NR))**2
                ENDDO
                ENDDO
                ENDDO
@@ -141,11 +142,11 @@
                DEPSV(NSA) = RSUMF(NSA)/RSUMF0(NSA)
                DEPS1 = DEPSV(NSA)
                DEPS=MAX(DEPS,DEPS1)
-               DEPS_SS(NSA)=RSUM_SS(NSA)/RSUMF0(NSA)/DELT ! steady state
+!               DEPS_SS_LOCAL(NSA)=RSUM_SS(NSA)/RSUMF0(NSA)/DELT ! steady state
             END DO
 
             DEPS_MAX=0.D0
-            CALL mtx_reduce_real8(DEPS,1,DEPS_MAX) ! convergence condition
+            CALL mtx_reduce_real8(DEPS,1,DEPS_MAX,ncomw) ! convergence condition
             DEPS = DEPS_MAX
             IF(DEPS.le.EPSFP)THEN
                N_IMPL=1+LMAXFP ! exit dowhile
@@ -164,10 +165,13 @@
             ENDIF
 
             CALL GUTIME(gut3)
-!            DO NSA=1,NSAMAX
+
+            CALL fusion_source_init
             DO NSA=NSASTART,NSAEND
                   IF (MOD(NT,NTCLSTEP).EQ.0) CALL FP_COEF(NSA)
             END DO
+            CALL source_allreduce(SPPF,ncomr)
+
             CALL GUTIME(gut4)
             GUT_COEF = GUT_COEF + (gut4-gut3)
 
@@ -177,7 +181,7 @@
          GUT_1step = gut6-gut5
 
          IF(NRANK.eq.0) &
-              WRITE(*,'(" GUT_EXEC = ", E12.4, " GUT_COEF = ", E12.4, " GUT_1step = ", E12.4, " EXEC_RATIO = ",E12.4)') &
+              WRITE(*,'(" GUT_EXEC = ", E12.4, ", GUT_COEF = ", E12.4, ", GUT_1step = ", E12.4, ", EXEC_RATIO = ",E12.4)') &
               GUT_EX, GUT_COEF, GUT_1step, GUT_EX/GUT_1step
 
 !     ----- calculation of current density -----

@@ -240,4 +240,27 @@
 
 !-----
 
+      SUBROUTINE source_allreduce(array,ncom)
+
+      IMPLICIT NONE
+      INTEGER,INTENT(IN):: ncom
+      DOUBLE PRECISION,dimension(NTHMAX,NPMAX,NRSTART:NREND+1,NSAMAX),INTENT(INOUT):: array
+      DOUBLE PRECISION,dimension(NTHMAX,NPMAX,NRSTART:NREND+1,NSAMAX):: sendbuf, recvbuf
+      INTEGER:: ierr, ncount
+      
+      sendbuf(:,:,:,:)=0.D0
+      recvbuf(:,:,:,:)=0.D0
+      sendbuf(:,:,:,:)=array(:,:,:,:)
+      ncount = NTHMAX*NPMAX*(NREND-NRSTART+2)*NSAMAX
+
+      CALL MPI_ALLREDUCE(sendbuf, recvbuf, ncount, MPI_DOUBLE_PRECISION, MPI_SUM, ncom, ierr)
+
+      array(:,:,:,:) = recvbuf(:,:,:,:)
+
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_allreduce_source: MPI_ALLREDUCE: ierr=',ierr
+      RETURN
+
+      END SUBROUTINE source_allreduce
+!-----
       END MODULE FPMPI

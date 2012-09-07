@@ -140,8 +140,8 @@
       NSA_T=0
       NSA_HE3=0
       NSA_HE4=0
-!      DO NSA=1,NSAMAX
-      DO NSA=NSASTART,NSAEND
+      DO NSA=1,NSAMAX
+!      DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
          IF(PA(NS).EQ.1.D0.AND.PZ(NS).EQ.1.D0) NSA_H=NSA
          IF(PA(NS).EQ.2.D0.AND.PZ(NS).EQ.1.D0) NSA_D=NSA
@@ -282,18 +282,18 @@
             ENDDO
          ENDDO
 
- !        DO NP1=1,NPMAX
- !        DO NTH1=1,NTHMAX
- !        DO NP2=1,NPMAX
- !        DO NTH2=1,NTHMAX
- !        E3=(PTFP0(NSB1)*PM(NP1,NSB1))**2/AMFP(NSB1)/(AEE*1.D3)
- !        SIGMAV_NF(NTH1,NP1,NTH2,NP2,ID)=SIGMA_E(E3,ID)*SQRT(E3) &
- !                              *SQRT(AEE*1.D3/AMFP(NSB1))
- !        END DO
- !        END DO
- !        END DO
- !        END DO
- !        write(*,*)E3
+!        DO NP1=1,NPMAX
+!        DO NTH1=1,NTHMAX
+!        DO NP2=1,NPMAX
+!        DO NTH2=1,NTHMAX
+!        E3=(PTFP0(NSB1)*PM(NP1,NSB1))**2/AMFP(NSB1)/(AEE*1.D3)
+!        SIGMAV_NF(NTH1,NP1,NTH2,NP2,ID)=SIGMA_E(E3,ID)*SQRT(E3) &
+!                              *SQRT(AEE*1.D3/AMFP(NSB1))
+!        END DO
+!        END DO
+!        END DO
+!        END DO
+!        write(*,*)E3
 
 
          ENDIF
@@ -334,20 +334,20 @@
       DO NP2=1,NPMAX
       DO NTH2=1,NTHMAX
          RSUM=0.D0
-         FACT2 = VOLP(NTH2,NP2,NSB2)*FNSP(NTH2,NP2,NR,NSB2)!*RLAMDA(NTH2,NR)/RFSADG(NR)*RCOEFNG(NR)
+         FACT2 = VOLP(NTH2,NP2,NSB2)*FNSB(NTH2,NP2,NR,NSB2)!*RLAMDA(NTH2,NR)/RFSADG(NR)*RCOEFNG(NR)
          DO NP1=1,NPMAX
          DO NTH1=1,NTHMAX
-            FACT1 = VOLP(NTH1,NP1,NSB1)*FNSP(NTH1,NP1,NR,NSB1)!*RLAMDA(NTH1,NR)/RFSADG(NR)*RCOEFNG(NR)
+            FACT1 = VOLP(NTH1,NP1,NSB1)*FNSB(NTH1,NP1,NR,NSB1)!*RLAMDA(NTH1,NR)/RFSADG(NR)*RCOEFNG(NR)
             FACT3 = SIGMAV_NF(NTH1,NP1,NTH2,NP2,ID) * FACT
 
             RATE_NF_D1(NTH1,NP1,NR,ID) = RATE_NF_D1(NTH1,NP1,NR,ID) &
-                 +                     FNSP(NTH1,NP1,NR,NSB1) &
+                 +                     FNSB(NTH1,NP1,NR,NSB1) &
                  * FACT2 &
                  * FACT3
             
             RATE_NF_D2(NTH2,NP2,NR,ID) = RATE_NF_D2(NTH2,NP2,NR,ID) &
                  + FACT1 &
-                 *                     FNSP(NTH2,NP2,NR,NSB2) &
+                 *                     FNSB(NTH2,NP2,NR,NSB2) &
                  * FACT3
          END DO
          END DO
@@ -364,8 +364,9 @@
       END DO
       END DO
 
+!      IF((N_IMPL.eq.0.or.N_IMPL.gt.LMAXFP).and.NR.eq.1)THEN
       IF((N_IMPL.eq.0.or.N_IMPL.gt.LMAXFP).and.NR.eq.1)THEN
-         WRITE(6,*) '|-NF_REACTION_RATE:'
+         WRITE(6,*) '|-NF_REACTION_RATE:', nrank, nranks
          WRITE(6,'(A,3I5,A,2I5)') '   |-ID,NSB1,NSB2 -> NSA1,NSA2=' &
               ,ID,NSB1,NSB2,' -> ',NSA1,NSA2
          WRITE(6, *) "  |-ID,  NR,NSB1,NSB2,  <sigma*v>,      ENG1_NF"

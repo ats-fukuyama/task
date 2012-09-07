@@ -388,7 +388,7 @@
 
       Implicit none
 
-      integer :: ierr,NSA,NSB,NS,NR,NP,NTH,NSFP,NSFD,NSBA,N,NREND1,NSW
+      integer :: ierr,NSA,NSB,NS,NR,NP,NTH,NSFP,NSFD,NSBA,N,NREND1,NSW,j
       real(kind8) :: FL, RSUM1, RSUM2, RTFD0L, RHON, RNE, RTE
       real(kind8) :: RLNRL, FACT, RSUM, RSUM11, rsum3, rsum4, rsum5, rsum6
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
@@ -426,7 +426,7 @@
       NSASTART = (NSAMAX/N_partition_s)*colors+1
       NSAEND =   (NSAMAX/N_partition_s)*(colors+1)
 
-!      WRITE(*,'(A,5I4)') "NRANK, colors, NRANKS, color, NRANKR", &
+!      WRITE(*,'(A,5I4)') "NRANK, colors, NRANKS, colorr, NRANKR", &
 !           nrank, colors, nranks, colorr, nrankr
 
       imtxsize=nthmax*npmax*nrmax
@@ -483,14 +483,10 @@
       END DO
 
       if(nrank.eq.0) then
-         DO N=1,NPROCS/2
-            WRITE(6,'(I3,A,2I4,A,I3,A,2I4,A)') N,"(", savpos(N,1), savpos(N,2),")", N+25, "(",savpos(N+25,1), savpos(N+25,2),")"
-         END DO
-
-         DO N=1,NPROCS
-            WRITE(6,'(A,3I10)') '  nrank,mtxpos,mtxlen = ', &
-                                   n-1,mtxpos(n),mtxlen(n)
-         ENDDO
+!         DO N=1,NPROCS
+!            WRITE(6,'(A,5I8)') '  nrank,mtxpos,mtxlen = ', &
+!                                   n-1,mtxpos(n),mtxlen(n)
+!         ENDDO
 !     ----- Check NS_NSA and NS_NSB -----
 
          DO NSA=1,NSAMAX
@@ -843,6 +839,7 @@
       CALL NF_REACTION_COEF
       NCALCNR=0
 !      DO NSA=1,NSAMAX
+      CALL fusion_source_init
       DO NSA=NSASTART,NSAEND
          CALL FP_COEF(NSA)
          NSBA=NSB_NSA(NSA)
@@ -855,6 +852,7 @@
          END DO
          CALL FPWEIGHT(NSA,IERR)
       END DO
+      CALL source_allreduce(SPPF,ncomr)
       ISAVE=0
       IF(NTG1.eq.0) CALL FPWAVE_CONST ! all nrank must have RPWT  
       CALL FPSSUB

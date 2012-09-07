@@ -177,9 +177,11 @@
 !     ----- Solve matrix equation -----
 
       CALL mtx_solve(ncoms,imtx,epsm,its,MODEL_KSP,MODEL_PC) ! ncom is nessesary for MUMPS not PETSc
-!      if(nranks.eq.0) then
-!         write(6,*) 'Number of iterations, NSA    =',its,NSA
-!      endif
+      IF(MODELD_temp.eq.0)THEN
+         if(nranks.eq.0) then
+            write(6,*) 'Number of iterations, NSA    =',its,NSA
+         endif
+      END IF
       ierr=0
 
 !     ----- Get solution vector -----
