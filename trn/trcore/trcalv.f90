@@ -315,32 +315,30 @@ CONTAINS
 
   SUBROUTINE tr_calc_zeff
 !---------------------------------------------------------------------------
-!           Caluculate Z_eff (effective charge) on grids
-!             What is the definition ???
+!   Caluculate Z_eff (effective charge) on grids assuming quasi-neutrality
+!    
+!    Z_eff = (n_h + Z_imp^2 n_imp + Z_fi^2 n_fi) / n_e
 !---------------------------------------------------------------------------
 !!$    USE TRCOMM, ONLY : ANC, ANFE, MDLEQN, MDLUF, NRMAX, PZ, PZC, PZFE, RN, R\
 !!$    NF, RT, ZEFF
     USE trcomm, ONLY: idnsa,ns_nsa,nrmax,pz,rn,mdluf,z_eff
     IMPLICIT NONE
     INTEGER(ikind) :: nr,nsa,ns
-    REAL(rkind),DIMENSION(0:nrmax) :: rn_itot
 
     z_eff(0:nrmax)   = 0.d0
-    rn_itot(0:nrmax) = 0.d0
 
     ! not include impurities
-    IF(mdluf == 0)THEN
+!    IF(mdluf == 0)THEN
        DO nr = 0, nrmax
           DO nsa = 1, nsamax
              IF(idnsa(nsa) == 1)THEN
                 ns = ns_nsa(nsa)
-                rn_itot(nr) = rn_itot(nr) + rn(nsa,nr)
-                z_eff(nr) = z_eff(nr) + pz(ns)*rn(nsa,nr)                
+                z_eff(nr) = z_eff(nr) + pz(ns)**2 *rn(nsa,nr)                
              END IF
           END DO          
-          z_eff(nr) = z_eff(nr)/rn_itot(nr)
+          z_eff(nr) = z_eff(nr)/rn(1,nr)
        END DO
-    END IF
+!    END IF
 
 !!$    IF(MDLUF.EQ.0) THEN
 !!$       DO NR=1,NRMAX

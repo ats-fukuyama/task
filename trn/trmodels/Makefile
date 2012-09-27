@@ -1,8 +1,6 @@
 TASKDIR=../../../task
 BPSDDIR=../../../bpsd
 include $(TASKDIR)/make.header
-MOD = ../mod
-MODDIR = -module ../mod
 
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
@@ -11,7 +9,7 @@ MODDIR = -module ../mod
 FFLAGS = $(DFLAGS) -g
 
 MODINCLUDE=-I $(BPSDDIR)/mod -I $(TASKDIR)/plx/mod -I $(TASKDIR)/lib/mod \
-           -I $(MOD) -I mmm7_1
+           -I ../trcore/mod -I $(MOD)
 
 SRC90=trcalnc.f90 trncls.f90 \
       trglf23.f90 trmbgb.f90 trmmm95.f90 trmmm7_1.f90 trcdbm.f90 \
@@ -75,13 +73,14 @@ nclass/write_mod.o   : nclass/write_mod.f
 cytran/cytran_mod.o: cytran/cytran_mod.f90
 cytran/tr_cytran_mod.o: cytran/tr_cytran_mod.f90
 mmm95/stripx.o: mmm95/stripx.f
-	$(FCFIXED) -r8 $(FFLAGS) -c mmm95/stripx.f -o mmm95/stripx.o
+	$(FCFIXED) -r8 $(FFLAGS) -c $? -o $@
 mmm95/tomsqz.o: mmm95/tomsqz.f
-	$(FCFIXED) -r8 $(FFLAGS) -c mmm95/tomsqz.f -o mmm95/tomsqz.o
+	$(FCFIXED) -r8 $(FFLAGS) -c $? -o $@
 mmm95/weiland14.o: mmm95/weiland14.f
-	$(FCFIXED) -r8 $(FFLAGS) -c mmm95/weiland14.f -o mmm95/weiland14.o
+	$(FCFIXED) -r8 $(FFLAGS) -c $? -o $@
 mmm95/mmm95.o: mmm95/mmm95.f
-	$(FCFIXED) -r8 $(FFLAGS) -c mmm95/mmm95.f -o mmm95/mmm95.o
+	$(FCFIXED) -r8 $(FFLAGS) -c $? -o $@
 mmm7_1/w20mod.o: mmm7_1/w20mod.f90
 mmm7_1/modmmm7_1.o: mmm7_1/w20mod.f90 mmm7_1/modmmm7_1.f90
+	$(FCFREE) -c mmm7_1/modmmm7_1.f90 -o $@ $(MODDIR) -I mmm7_1
 mbgb/mixed_Bohm_gyro_Bohm.o: mbgb/mixed_Bohm_gyro_Bohm.f

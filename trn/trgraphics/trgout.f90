@@ -7,7 +7,7 @@ MODULE trgout
   USE trcomm, ONLY : ikind,rkind
 
   PRIVATE
-  PUBLIC tr_gout
+  PUBLIC tr_gout,tr_gr_time
 
 CONTAINS
 
@@ -21,6 +21,7 @@ CONTAINS
     USE trgtmp, ONLY: tr_gr_temporal
     USE trgcom, ONLY: tr_gr_comp
     USE trgdgn, ONLY: tr_gr_diagnostic
+    USE trgexp, ONLY: tr_gr_exp
     IMPLICIT NONE
 
     INTEGER(ikind), SAVE :: init = 0, inqg
@@ -37,7 +38,7 @@ CONTAINS
     ENDIF
 
     DO
-       WRITE(6,*) '# Graph select : R1-R13, T1-2, N1-12, D1'
+       WRITE(6,*) '# Graph select : R1-13, T1-2, N1-12, D1, U1-2'
        WRITE(6,*) '#  Menu select : S/save  L/load  H/help  ',&
                                    'C/clear  I/inq  X/exit'
        READ(5,'(A5)',iostat=iosts) KIG
@@ -91,6 +92,9 @@ CONTAINS
           CYCLE
        CASE('D')
           CALL tr_gr_diagnostic(k2)
+          CYCLE
+       CASE('U')
+          CALL tr_gr_exp(k2,k3)
           CYCLE
 !!$         CASE('Y')
 !!$            CALL TRGRY0(k2,inqg)
@@ -232,5 +236,24 @@ CONTAINS
 
     RETURN
   END SUBROUTINE tr_gr_load
+
+
+  SUBROUTINE tr_gr_time
+! ***********************************************************************
+!            Write time on figure
+! ***********************************************************************
+
+    USE trcomm, ONLY : t
+    IMPLICIT NONE
+
+    CALL SETLIN(0,0,7)
+    CALL SETCHS(0.3,0.0)
+    CALL SETFNT(32)
+    CALL MOVE(11.8,18.0)
+    CALL TEXT('t =',2)
+    CALL NUMBD(t,'(1F7.3)',7)
+    CALL TEXT(' sec.',4)
+    RETURN
+  END SUBROUTINE tr_gr_time
 
 END MODULE trgout

@@ -13,8 +13,9 @@ CONTAINS
 
     USE trcomm, ONLY: &
          tr_nit_allocate,tr_nsa_allocate,tr_nr_allocate,tr_ngt_allocate, &
-         t,t_prev,ngt,kidnsa,ns_nsa,idnsa,nrmax,nsamax,pa,pz,pz0,        &
-         nitmax,modelg,rip,rips,vtor,vpol,vpar,vprp
+         t,t_prev,ngt,kidnsa,ns_nsa,idnsa,nrmax,nsamax,nsafmax,   &
+         pa,pz,pz0,nitmax,mdluf,modelg,rip,rips,vtor,vpol,vpar,vprp,     &
+         nrd1,nrd2,nrd3,nrd4
 
     USE trbpsd, ONLY: tr_bpsd_init
     USE eq_bpsd_mod, ONLY: eq_bpsd_init
@@ -22,6 +23,7 @@ CONTAINS
     USE trresult, ONLY: tr_calc_global, tr_save_ngt
     USE trcalv, ONLY: tr_calc_zeff, tr_calc_clseta
     USE trcalc, ONLY: tr_calc_source
+!    USE trufile, ONLY: tr_ufile
     IMPLICIT NONE
     INTEGER(ikind):: ierr
 
@@ -50,14 +52,21 @@ CONTAINS
     CALL tr_nr_allocate     ! allocation for radial profile
 
 ! +++ Initialization for successive interactive calculation +++
+    nrd1(0:nrmax) = 0.d0
+    nrd2(0:nrmax) = 0.d0
+    nrd3(0:nrmax) = 0.d0
+    nrd4(0:nrmax) = 0.d0
+
     vtor(0:nrmax) = 0.d0
     vpol(0:nrmax) = 0.d0
     vpar(0:nrmax) = 0.d0
     vprp(0:nrmax) = 0.d0
 
-! +++ setup of initial geometic factor and profiles +++
+! +++ setup of initial geometic factors and profiles +++
     ! Calculate initial geometric factor for cylindrical assumption
     CALL tr_setup_metric_init
+
+ !   If(mdluf > 0) CALL tr_ufile
 
     ! Calculate initial profile.( preparation for calling equilibrium code )
     CALL tr_setup_profile
@@ -139,6 +148,29 @@ CONTAINS
 
     RETURN
   END SUBROUTINE tr_set_idneq
+
+
+!!$  SUBROUTINE tr_set_conversion
+!!$! -------------------------------------------------------------------------
+!!$!  set the conversion table for ns, nsa, nsaf, nsab, nsan
+!!$! -------------------------------------------------------------------------
+!!$    USE trcomm, ONLY: nsm,ns_nsa,nsab_nsa,nsaf_nsa,nsan_nsa, &
+!!$         nsamax,nsabmax,nsafmax,nsanmax
+!!$    IMPLICIT NONE
+!!$    
+!!$    INTEGER(ikind) :: nsa
+!!$
+!!$    DO nsa = 1, nsm
+!!$       ns_nsa(nsa)   = nsa
+!!$    END DO
+!!$
+!!$       nsab_nsa(nsa) = nsa
+!!$       nsaf_nsa(nsa) = nsabmax + nsa
+!!$       nsan_nsa(nsa) = 
+!!$
+!!$
+!!$    RETURN
+!!$  END SUBROUTINE tr_set_conversion
 
 
   SUBROUTINE tr_set_species
@@ -405,7 +437,7 @@ CONTAINS
     REAL(rkind),DIMENSION(nsmax):: rn_ns,ru_ns,rtpr_ns,rtpp_ns
     INTEGER(ikind):: nr,nsa,ns
 
-    IF(mdluf == 0)THEN
+!    IF(mdluf == 0)THEN
        rp_tot(0:nrmax) = 0.d0
        DO nr=0,nrmax
           CALL pl_prof2(rhog(nr),rn_ns,rtpr_ns,rtpp_ns,ru_ns)
@@ -439,7 +471,7 @@ CONTAINS
        CALL tr_prof_j2dpdrho
        CALL tr_calc_dpdrho2j
 
-    END IF
+!    END IF
 
     RETURN
   END SUBROUTINE tr_setup_profile

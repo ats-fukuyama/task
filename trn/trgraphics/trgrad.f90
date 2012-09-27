@@ -18,12 +18,12 @@ MODULE trgrad
   REAL(rkind),DIMENSION(:),ALLOCATABLE :: rhomg !(1:nrmax)
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(0:nrmax,neqrmax)
        vg1,vg2,vg3,vg4
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(1:nrmax,neqrmax)
+       vm1,vm2,vm3,vm4
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(0:nrmax,5)
        vgx1,vgx2,vgx3,vgx4
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(1:nrmax,5)
        vmx1,vmx2,vmx3,vmx4
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(1:nrmax,neqrmax)
-       vm1,vm2,vm3,vm4
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(0:nrmax,0:nggmax)
        gg1,gg2,gg3,gg4
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(1:nrmax,0:nggmax)
@@ -508,7 +508,7 @@ CONTAINS
           neqmax_save = neqmax
           RETURN
        END DO
-       WRITE(6,*) ' XX tr_gr_rad_alloc: allocation error: ierr=',ierr
+       WRITE(6,*) ' XX tr_gr_rad_alloc: allocation error: ierr= ',ierr
 
     END IF
     RETURN

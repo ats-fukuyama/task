@@ -23,9 +23,9 @@ MODULE trcomm
 !!$  REAL(rkind):: PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2
 !!$  REAL(rkind):: RHOMIN,QMIN,RHOEDG,RHOITB,RHOGMN,RHOGMX
 !!$
-!!$  REAL(rkind),DIMENSION(NSM):: &
-!!$       &           PA,PZ,PZ0,PN,PNS,PTPR,PTPP,PTS,PU,PUS, &
-!!$       &           PNITB,PTITB,PUITB
+!!$  REAL(rkind),DIMENSION(NSM)::                       &
+!!$       &      PA,PZ,PZ0,PN,PNS,PTPR,PTPP,PTS,PU,PUS, &
+!!$       &      PNITB,PTITB,PUITB
 !!$
 !!$  CHARACTER(len=80):: KNAMEQ,KNAMWR,KNAMFP,KNAMWM,KNAMPF,KNAMFO,KNAMTR
 !!$
@@ -33,10 +33,9 @@ MODULE trcomm
   REAL(rkind),PARAMETER :: rkev = aee*1.d3 ! the factor ([keV] -> [J])
 
   ! *** the size of UFILE ***
-  INTEGER(ikind),PARAMETER :: ntum = 1000, nrum = 100
+  INTEGER(ikind),PARAMETER :: ntum = 1000,nrum = 100,nsum = 10
 
 ! ----- contral parameters -----
-
   INTEGER(ikind):: nrmax       ! number of radial step (except rg=0)
   INTEGER(ikind):: ntmax       ! number of time step
   REAL(rkind)::    dt          ! size of time step
@@ -44,8 +43,14 @@ MODULE trcomm
                    rg_fixed    ! minimum radius of fixed profile
 
   INTEGER(ikind):: nsamax      ! number of active particle species
+  INTEGER(ikind):: nsafmax      ! number of active (fast ion) particle species
+  INTEGER(ikind):: nsabmax     ! number of active (bulk ion) particle species
+  INTEGER(ikind):: nsanmax     ! number of active (neutral) particle species
   INTEGER(ikind),DIMENSION(nsm)::  &
-                   ns_nsa      ! table of NS for NSA
+                   ns_nsa,    &! conversion table of NS   for NSA
+                   nsaf_nsa,  &! conversion table of NSAF for NSA
+                   nsab_nsa,  &! conversion table of NSAB for NSA
+                   nsan_nsa    ! conversion table of NSAN for NSA
   INTEGER(ikind):: lmaxtr      ! maximum number of iterations
   REAL(rkind)::    epsltr      ! tolerance of iteration
 
@@ -55,8 +60,10 @@ MODULE trcomm
   REAL(rkind)::    dtr0        ! lower diffusion coefficient in simple model
   REAL(rkind)::    dtr1        ! upper diffusion coefficient in simple model
   REAL(rkind)::    ltcr        ! critical scale length in simple model
-  REAL(rkind)::    ph0         ! heating power density at r = 0 in simple model [MW/m^3]
-  REAL(rkind)::    phs         ! heating power density at r = a in simple model [MW/m^3]
+  REAL(rkind)::    ph0         ! heating power density 
+                               !  at r = 0 in simple model [MW/m^3]
+  REAL(rkind)::    phs         ! heating power density 
+                               !  at r = a in simple model [MW/m^3]
   REAL(rkind)::    dprv1       ! enhanced diffusion coefficient in Prv method
   REAL(rkind)::    dprv2       ! diffusion enhancement factor in Prv method
   REAL(rkind)::    cdtrn       ! factor for particle diffusion
@@ -74,41 +81,39 @@ MODULE trcomm
 
 ! ----- switch variables -----
   INTEGER(ikind) :: &
-       mdluf,    &! model type of UFILE
        mdler,    &! model type of radial electric field
        mdleqn,   &!
        nteqit     ! step interval of EQ calculation
 
 ! ----- global variables -----
+  REAL(rkind)::      t       ! time [s]
+  REAL(rkind)::      t_prev  ! time at the previous time step
+  REAL(rkind)::      dr      ! size of radial step
+  INTEGER(ikind)::   neqmax  ! number of equations
+  INTEGER(ikind)::   neqrmax ! number of active equations
+  INTEGER(ikind)::   nvmax   ! number of variables
+  INTEGER(ikind)::   nvrmax  ! number of active variables
 
-  REAL(rkind)::        t       ! time [s]
-  REAL(rkind)::        t_prev  ! time at the previous time step
-  REAL(rkind)::        dr      ! size of radial step
-  INTEGER(ikind)::     neqmax  ! number of equations
-  INTEGER(ikind)::     neqrmax ! number of active equations
-  INTEGER(ikind)::     nvmax   ! number of variables
-  INTEGER(ikind)::     nvrmax  ! number of active variables
+  REAL(rkind)::      wp_t    ! total stored energy
+  REAL(rkind)::      wp_th   ! total stored energy of thermal particles
+  REAL(rkind)::      taue1   ! energy confinment time (steady state)
+  REAL(rkind)::      taue2   ! energy confinment time (transient)
+  REAL(rkind)::      taue3   ! energy confinment time (thermal, transient)
+  REAL(rkind)::      taue89  ! ITER89-P L-mode scaling
+  REAL(rkind)::      taue98  ! IPB98(y,2) H-mode scaling with ELMs
+  REAL(rkind)::      h89     ! confinement enhancement factor for ITER89-P
+  REAL(rkind)::      h98y2   ! confinement enhancement factor for IPB98(y,2)
+  REAL(rkind)::      betan   ! normalized toroidal beta
 
-  REAL(rkind)::        wp_t    ! total stored energy
-  REAL(rkind)::        wp_th   ! total stored energy of thermal particles
-  REAL(rkind)::        taue1   ! energy confinment time (steady state)
-  REAL(rkind)::        taue2   ! energy confinment time (transient)
-  REAL(rkind)::        taue3   ! energy confinment time (thermal, transient)
-  REAL(rkind)::        taue89  ! ITER89-P L-mode scaling
-  REAL(rkind)::        taue98  ! IPB98(y,2) H-mode scaling with ELMs
-  REAL(rkind)::        h89     ! confinement enhancement factor for ITER89-P
-  REAL(rkind)::        h98y2   ! confinement enhancement factor for IPB98(y,2)
-  REAL(rkind)::        betan   ! normalized toroidal beta
-
-  REAL(rkind)::        pin_t   ! [MW/m^3]
-  REAL(rkind)::        poh_t   !
-  REAL(rkind)::        pnb_t   !
-  REAL(rkind)::        prf_t   !
-  REAL(rkind)::        pec_t   !
-  REAL(rkind)::        pic_t   !
-  REAL(rkind)::        plh_t   !
-  REAL(rkind)::        pnf_t   !
-  REAL(rkind)::        pout_t  !
+  REAL(rkind)::      pin_t   ! [MW/m^3]
+  REAL(rkind)::      poh_t   !
+  REAL(rkind)::      pnb_t   !
+  REAL(rkind)::      prf_t   !
+  REAL(rkind)::      pec_t   !
+  REAL(rkind)::      pic_t   !
+  REAL(rkind)::      plh_t   !
+  REAL(rkind)::      pnf_t   !
+  REAL(rkind)::      pout_t  !
 
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: & ! 0:nrmax
        beta,     &! toroidal beta
@@ -123,7 +128,6 @@ MODULE trcomm
        ws_t       ! stored energy of each species
 
 ! ----- plasma variables -----
-
   REAL(rkind) :: rips          ! toroidal current at the beginning
   REAL(rkind) :: ripe          ! toroidal current at the end
   REAL(rkind) :: vloop         ! loop valtage
@@ -191,7 +195,6 @@ MODULE trcomm
        spl        !
 
 ! ----- profile variables -----
-
   REAL(rkind) :: profj1, profj2 ! current density profile factors
 
   REAL(rkind),DIMENSION(:),ALLOCATABLE::&
@@ -254,7 +257,6 @@ MODULE trcomm
        nrd4       ! a diagnostic array for radial grid
   
 ! ----- computation variables -----
-
   INTEGER(ikind),DIMENSION(:),ALLOCATABLE:: &
        nsa_neq,  &! particle species of equation neq
        nva_neq,  &! variable type of equation neq
@@ -263,7 +265,6 @@ MODULE trcomm
        id_neqnr   ! variable type of (neq,nr)
 
 ! ----- matrix equaton variables -----
-
   INTEGER(ikind),DIMENSION(:),ALLOCATABLE:: &
        neqr_neq,neq_neqr
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
@@ -276,7 +277,6 @@ MODULE trcomm
        r1imtx, r2imtx, r3imtx, rimtx, r1imtx_ofd
 
 ! ----- diagnostics -----
-
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
        error_it
   INTEGER(ikind):: &
@@ -294,9 +294,7 @@ MODULE trcomm
   CHARACTER(LEN=1),DIMENSION(:),ALLOCATABLE:: kidnsa
 
 
-
 ! ----- derivatives of the quantities -----
-
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE ::&
        rp,       &!the pressure of each species (nT)
        rp_d       !the deriv. of pressure of each species (dnT/dr) 
@@ -338,8 +336,7 @@ MODULE trcomm
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
        z_eff      ! Z_eff: effective charge
 
-  ! ----- for NCLASS output -----
-
+! ----- for NCLASS output -----
   REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: &
        chi_ncp,  &! coef. of the pres. grad. for matrix expression 
                   !  of heat flux
@@ -357,28 +354,48 @@ MODULE trcomm
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE::&
        vebs,     &! <E.B> particle convection velocity of s [m/s]
        qebs,     &! <E.B> heat convection velocity of s [m/s]
-       dia_gdnc,  &! diagonal diffusivity [m^2/s]
-       dia_gvnc,  &! diagonal convection driven by off-diagonal part [m/s]
+       dia_gdnc, &! diagonal diffusivity [m^2/s]
+       dia_gvnc, &! diagonal convection driven by off-diagonal part [m/s]
        cjbs_p,   &! <J_bs.B> driven by unit p'/p of s [A*T/1.d-20*m^2]
        cjbs_t     ! <J_bs.B> driven by unit T'/T of s [A*T/1.d-20*m^2]
 
+  INTEGER(ikind) :: &  
+       mdlxp,    &! Select UFILE or MDSplus
+       mdluf,    &! Model type of UFILE
+       mdni  ! Select how to determine bulk density, impurity density
+             !  or effective charge number
+             !  0 : NSMAX=2, ne=ni
+             !  1 : calculate Nimp and Ni profiles from Ne, Zimp and Zeffr
+             !  2 : calculate Nimp and Zeff profiles from Ne, Zimp and NM1
+             !  3 : calculate Zeff and Ni profiles from Ne, Zimp and Nimp
+
+  ! ----- UFILE control -----
+  CHARACTER(80) :: kuf_dir  !
+  CHARACTER(80) :: kuf_dev  !
+  CHARACTER(80) :: kuf_dcg  !
+  CHARACTER(80) :: kdirx    !
+  REAL(rkind)   :: time_slc ! time slicing point for steady state simulation
 
   ! ----- Stored variables for UFILE -----
-!!$  REAL(rkind),DIMENSION(0:ntum) ::    &
-!!$       rru,rau,phiau,volau,bbu,rkapu, &
-!!$       pnbiu,ripu
-!!$  REAL(rkind),DIMENSION(0:ntum,0:nrum) :: &
-!!$       qpu,z_effu,jtotu,jnbu,jbsu,bpu,prlu,pecu,pohu,pbmu,    &
-!!$       dvrhou,rkprhou,rmjrhou,rmnrhou,arrhou,ar1rhou,ar2rhou, &
-!!$       abrhou,ttrhou,                                         &
-!!$       wrotu,z_effu_org,s_wallu
-!!$  REAL(rkind),DIMENSION(0:ntum,1:nsum) :: &
-!!$       ptsu,pnsu,ptsau,pnsau
-!!$  REAL(rkind),DIMENSION(0:ntum,0:nrum,1:nsum) :: &
-!!$       rnu,rtu,pnbu,picu,snbu,rnu_or
-!!$
-  ! ----- UFILE control -----
+  INTEGER(ikind) :: ntxmax ! number of experimental time data
+  INTEGER(ikind) :: ntlmax ! number of time step of experimental data
+                           ! * Step size 'dt' is one of TASK/TR.
+  REAL(rkind)    :: tlmax  ! end of time of experimental data
 
+  REAL(rkind),DIMENSION(1:ntum) ::        &
+       tmu,rru,rau,phiau,volau,bbu,rkapu, &
+       pnbiu,ripu
+  REAL(rkind),DIMENSION(1:ntum,1:nrum) :: &
+       qpu,z_effu,jtotu,jnbu,jbsu,bpu,prlu,pecu,pohu,pbmu,    &
+       dvrhou,rkprhou,rmjrhou,rmnrhou,arrhou,ar1rhou,ar2rhou, &
+       abrhou,ttrhou,                                         &
+       wrotu,z_effu_org,s_wallu
+  REAL(rkind),DIMENSION(1:ntum,1:nsum) :: &
+       ptsu,pnsu!,ptsau,pnsau
+  REAL(rkind),DIMENSION(1:nsum,1:ntum,1:nrum) :: &
+       rnu,rtu,pnbu,picu,snbu
+
+  
 CONTAINS
 
   SUBROUTINE tr_nr_allocate
@@ -514,10 +531,6 @@ CONTAINS
           ALLOCATE(nrd2(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(nrd3(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(nrd4(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
-          nrd1 = 0.d0
-          nrd2 = 0.d0
-          nrd3 = 0.d0
-          nrd4 = 0.d0
 
           ALLOCATE(rp(nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
           ALLOCATE(rp_d(nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT

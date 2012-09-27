@@ -1,37 +1,37 @@
 TASKDIR=../../../task
 BPSDDIR=../../../bpsd
 include $(TASKDIR)/make.header
-MOD = ../mod
-MODDIR = -module ../mod
 
 .SUFFIXES:
 .SUFFIXES: .f90 .mod .o .a
 
 
 #FFLAGS=$(OFLAGS)
-FFLAGS=$(DFLAGS) -warn -g
+FFLAGS=$(DFLAGS) -warn
 
 MODINCLUDE=-I $(BPSDDIR)/mod -I $(TASKDIR)/plx/mod -I $(TASKDIR)/lib/mod \
-	   -I $(TASKDIR)/eq/mod -I ../trmodels/mod -I $(MOD) 
-
+	   -I $(TASKDIR)/eq/mod -I ../trgraphics/mod -I ../trmodels/mod  \
+	   -I $(MOD) #-I ../trufile/mod -I $(MOD) 
 
 TRLIBS=	../trmodels/trmodelslib.a \
 	../trgraphics/trgraphicslib.a \
+	../trufile/trufilelib.a \
 	$(TASKDIR)/plx/pllib.a \
         $(TASKDIR)/eq/eqlib.a \
         $(TASKDIR)/lib/tasklib.a \
+        $(TASKDIR)/lib/mdslib.a \
 	$(BPSDDIR)/bpsdlib.a
 
-SRCS = trcomm.f90 trbpsd.f90 trlib.f90 trcalv.f90 trcalc.f90 \
-       trexec.f90 trstep.f90 trresult.f90 trloop.f90 \
-       trinit.f90 trsetup.f90 \
-       trmenu.f90 trmain.f90
+SRCS = trcomm.f90 trbpsd.f90  trlib.f90    trcalv.f90 trcalc.f90 \
+       trexec.f90 trstep.f90  trresult.f90 trloop.f90 \
+       trinit.f90 trsetup.f90 trmenu.f90   trmain.f90 
 
 OBJS = $(SRCS:.f90=.o)
 
 .f90.o:
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
+ 
 ../trn: $(OBJS) $(TRLIBS)
 	ifort $(FFLAGS) -o ../trn $(OBJS) $(TRLIBS) $(FLIBS)
 
@@ -41,6 +41,8 @@ $(TASKDIR)/eq/eqlib.a:
 	(cd $(TASKDIR)/eq; make eqlib.a)
 $(TASKDIR)/lib/tasklib.a:
 	(cd $(TASKDIR)/lib; make tasklib.a)
+$(TASKDIR)/lib/mdslib.a:
+	(cd $(TASKDIR)/lib; make mdslib.a)
 $(BPSDDIR)/bpsdlib.a:
 	(cd $(BPSDDIR)/lib; make bpsdlib.a)
 

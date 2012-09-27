@@ -34,10 +34,11 @@ CONTAINS
     USE trcomm, ONLY: &
            nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
            lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
-           mdluf,mdler,modelg,mdleqn,nteqit, &
+           mdluf,mdlxp,mdler,modelg,mdleqn,nteqit,time_slc, &
            dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
            ntstep,ngtmax,ngtstp,rips,ripe,profj1,profj2, &
-           pnb_tot,pnb_eng,pnb_rw,pnb_r0
+           pnb_tot,pnb_eng,pnb_rw,pnb_r0, &
+           kuf_dir,kuf_dev,kuf_dcg
     USE plinit
     IMPLICIT NONE
     INTEGER(ikind):: nsa
@@ -163,7 +164,6 @@ CONTAINS
 
 !        rg_fixed(3,nsm) : minimum radius of fixed profile
 !        nsamax   : number of active particle species
-!        ns_nsa   : conversion table from nsa to ns
 !        nitmax   : maximum number of iterations
 !        epsit    : tolerance of iteration
 
@@ -172,8 +172,8 @@ CONTAINS
     dt       = 0.01D0
     rg_fixed(1:3,0:nsm) = rb
     nsamax   = 2
-    DO nsa=1,nsm
-       ns_nsa(nsa)=nsa
+    DO nsa = 1, nsamax
+       ns_nsa(nsa) = nsa
     END DO
 
 !     ==== Convergence Parameter ====
@@ -244,12 +244,45 @@ CONTAINS
     ngtmax = 10001
     ngtstp =     1
 
+!     ==== Input from experimental data ==== 
+!        MDLXP :
+!            0 : from UFILEs
+!         else : MDSplus
+
+!        MDLUF :
+!            0 : not used
+!            1 : steady state
+!            2 : time evolution
+!            3 : compared with TOPICS
+
+      mdlxp = 0
+      mdluf = 0
+
+      time_slc = -1.d0 ! not determined
+
+!     ==== DEVICE NAME AND SHOT NUMBER IN UFILE DATA ====
+!        KUF_DIR : UFILE directory
+!        KUF_DEV : Device name
+!        KUF_DCG : Discharge number
+
+      kuf_dir = '../../../profiledb/profile_data'
+      kuf_dev = 'd3d'
+      kuf_dcg = '103818'
+
+!     ==== IMPURITY TREATMENT ====
+!        MDNI  :
+!            0 : NSMAX=2, ne=ni
+!            1 : Use exp. ZEFFR profile if available
+!            2 : Use exp. NM1 (or NM2) profile if available
+!            3 : Use exp. NIMP profile if available
+!      MDNI=0
+
+
 
 ! ==== for the time being ===
 !        PROFJ1: Current density profile parameter (power of rho)
 !        PROFJ2: Current density profile parameter (power of (1 - rho^PROFJ1))
 
-!        MDLUF: the type of UFILE
 !        MDLER: the type of radial electric field
 
     profj1 = 1.5d0
@@ -258,7 +291,6 @@ CONTAINS
     rips = 1.d0
     ripe = 1.d0
 
-    mdluf  = 0
     mdler  = 2
 
 !   ==== NBI heating ===
@@ -266,7 +298,6 @@ CONTAINS
     pnb_r0  = 0.3d0
     pnb_rw  = 0.5d0
     pnb_eng = 80.d0 ! [keV]          
-
 
     RETURN
   END SUBROUTINE tr_init
@@ -312,8 +343,9 @@ CONTAINS
            ntstep,ngtmax,ngtstp, &
            lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv,mdler,&
            dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
-           profj1,profj2,rips,ripe,nteqit, &
-           pnb_tot,pnb_eng,pnb_rw,pnb_r0
+           profj1,profj2,rips,ripe,nteqit,time_slc, &
+           pnb_tot,pnb_eng,pnb_rw,pnb_r0, &
+           mdluf,mdlxp,kuf_dir,kuf_dev,kuf_dcg
     IMPLICIT NONE
     INTEGER(ikind),INTENT(IN) :: nid
     INTEGER(ikind),INTENT(OUT):: ist
@@ -327,6 +359,8 @@ CONTAINS
          MODELG,MODELN,MODELQ,RHOGMN,RHOGMX, &
          KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF, &
          MODEFR,MODEFW,IDEBUG, &
+         mdluf,mdlxp, &
+         kuf_dir,kuf_dev,kuf_dcg,time_slc, &
          nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
          lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
          mdler,nteqit, &
