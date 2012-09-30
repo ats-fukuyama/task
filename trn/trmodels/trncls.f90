@@ -84,8 +84,8 @@ CONTAINS
 !        = 6 error: trapped fraction must be 0.0.le.p_ft.le.1.0
 !***********************************************************************
     USE trcomm, ONLY : &
-         rkev,NSM,nrmax,nsamax,ns_nsa,idnsa,pa,pz,RR,ra,BB,            &
-         abb1rho,abb2rho,aib2rho,ttrho,ar1rho,ar2rho,epsrho,rhog,rkap, &
+         rkev,NSM,nrmax,nsamax,ns_nsa,idnsa,pa,pz,RR,ra,BB,rkap,       &
+         abb1rho,abb2rho,aib2rho,ttrho,ar1rho,ar2rho,epsrho,rhog,rhom, &
          rt,rn,dpdrho,pts,pns,qp,q0,bp,jbs_nc,jex_nc,joh,              &
          er,eta,eta_nc,vtor,vpol,vpar,vprp,                            &
 !    PADD,! additional pressure due to NBI
@@ -143,8 +143,8 @@ CONTAINS
     ! internal parameters for tr_nclass
     INTEGER(4) :: mdltpf ! interim definition of switch variables
     INTEGER(4) :: nsa,nsa1,nk,i_ns
-    REAL(8),DIMENSION(0:nrmax) :: eropsi,nr_array,drhog,rhom
-    REAL(8) :: rhom1,rhom2,abb1rhom,abb2rhom,aib2rhom, &
+    REAL(8),DIMENSION(0:nrmax) :: eropsi,nr_array,drhog
+    REAL(8) :: abb1rhom,abb2rhom,aib2rhom, &
          ttrhom,dpdrhom,ar1rhom,ar2rhom,epsrhom,qpm,bpm,etam,johm
     REAL(8) :: cm,cp
 
@@ -198,7 +198,6 @@ CONTAINS
       
     DO nr = 1, nrmax
        drhog(nr) = rhog(nr)-rhog(nr-1)
-       rhom(nr)  = 0.5d0*(rhog(nr)    +    rhog(nr-1))
        abb1rhom  = 0.5d0*(abb1rho(nr) + abb1rho(nr-1))
        abb2rhom  = 0.5d0*(abb2rho(nr) + abb2rho(nr-1))
        aib2rhom  = 0.5d0*(aib2rho(nr) + aib2rho(nr-1))
@@ -371,14 +370,12 @@ CONTAINS
 
 
     ! *** extrapolate center value ***
-    rhom1 = 0.5d0*(rhog(0)+rhog(1))
-    rhom2 = 0.5d0*(rhog(1)+rhog(2))
-    eta_nc(0) = FCTR(rhom1,rhom2,eta_nc(1),eta_nc(2))
-    jbs_nc(0) = FCTR(rhom1,rhom2,jbs_nc(1),jbs_nc(2))
-    jex_nc(0) = FCTR(rhom1,rhom2,jex_nc(1),jex_nc(2))
-    vpol(0) = FCTR(rhom1,rhom2,vpol(1),vpol(2))
-    vpar(0) = FCTR(rhom1,rhom2,vpar(1),vpar(2))
-    vprp(0) = FCTR(rhom1,rhom2,vprp(1),vprp(2))
+    eta_nc(0) = FCTR(rhom(1),rhom(2),eta_nc(1),eta_nc(2))
+    jbs_nc(0) = FCTR(rhom(1),rhom(2),jbs_nc(1),jbs_nc(2))
+    jex_nc(0) = FCTR(rhom(1),rhom(2),jex_nc(1),jex_nc(2))
+    vpol(0) = FCTR(rhom(1),rhom(2),vpol(1),vpol(2))
+    vpar(0) = FCTR(rhom(1),rhom(2),vpar(1),vpar(2))
+    vprp(0) = FCTR(rhom(1),rhom(2),vprp(1),vprp(2))
 
     ! *** interpolate values on grids linearly ***
     DO nr = 1, nrmax-1

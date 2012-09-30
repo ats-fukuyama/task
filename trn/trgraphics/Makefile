@@ -16,8 +16,6 @@ SRC90= trgsub.f90 trgcom.f90 trgtmp.f90 trgrad.f90 trgexp.f90 trgdgn.f90 \
 
 OBJS= $(SRC90:.f90=.o) 
 
-.f.o :
-	$(FCFIXED) -r8 $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 

@@ -285,16 +285,16 @@ CONTAINS
 
 !        MDLER: the type of radial electric field
 
-    profj1 = 1.5d0
-    profj2 = 1.5d0
+    profj1 = 2.d0
+    profj2 = 1.d0
 
     rips = 1.d0
     ripe = 1.d0
 
-    mdler  = 2
+    mdler  = 0
 
 !   ==== NBI heating ===
-    pnb_tot = 1.d0  ! [MW]
+    pnb_tot = 0.d0  ! [MW]
     pnb_r0  = 0.3d0
     pnb_rw  = 0.5d0
     pnb_eng = 80.d0 ! [keV]          

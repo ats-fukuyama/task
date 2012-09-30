@@ -11,6 +11,7 @@ FFLAGS = $(DFLAGS) -g
 MODINCLUDE=-I $(BPSDDIR)/mod -I $(TASKDIR)/plx/mod -I $(TASKDIR)/lib/mod \
            -I ../trcore/mod -I $(MOD)
 
+
 SRC90=trcalnc.f90 trncls.f90 \
       trglf23.f90 trmbgb.f90 trmmm95.f90 trmmm7_1.f90 trcdbm.f90 \
       trsimple.f90 trcoeftb.f90 trcoefnc.f90
@@ -42,7 +43,7 @@ trmodelslib.a: $(OBJS) $(INCNC) $(INCGLF)
 	$(LD) $(LDFLAGS) trmodelslib.a $(OBJS)
 
 clean : 
-	rm -f ./#* ./*f90~ *.o nclass/*.o itg/*.o glf/*.o cytran/*.o mmm7_1/*.o mmm95/*.o mbgb/*.o cdbm/*.o a.out core *.a *.mod 
+	rm -f ./#* ./*f90~ *.o nclass/*.o itg/*.o glf/*.o cytran/*.o mmm7_1/*.o mmm95/*.o mbgb/*.o cdbm/*.o a.out core *.a ./mod/*.mod 
 
 veryclean : 
 	rm -f ./#* ./*~ *.o nclass/*.o itg/*.o glf/*.o cytran/*.o mmm7_1/*.o mmm95/*.o mbgb/*.o cdbm/*.o a.out core *.a *.mod
@@ -73,13 +74,13 @@ nclass/write_mod.o   : nclass/write_mod.f
 cytran/cytran_mod.o: cytran/cytran_mod.f90
 cytran/tr_cytran_mod.o: cytran/tr_cytran_mod.f90
 mmm95/stripx.o: mmm95/stripx.f
-	$(FCFIXED) -r8 $(FFLAGS) -c $? -o $@
+	$(FCFIXED) -fdefault-real-8 $(FFLAGS) -c $? -o $@
 mmm95/tomsqz.o: mmm95/tomsqz.f
-	$(FCFIXED) -r8 $(FFLAGS) -c $? -o $@
+	$(FCFIXED) -fdefault-real-8 $(FFLAGS) -c $? -o $@
 mmm95/weiland14.o: mmm95/weiland14.f
-	$(FCFIXED) -r8 $(FFLAGS) -c $? -o $@
+	$(FCFIXED) -fdefault-real-8 $(FFLAGS) -c $? -o $@
 mmm95/mmm95.o: mmm95/mmm95.f
-	$(FCFIXED) -r8 $(FFLAGS) -c $? -o $@
+	$(FCFIXED) -fdefault-real-8 $(FFLAGS) -c $? -o $@
 mmm7_1/w20mod.o: mmm7_1/w20mod.f90
 mmm7_1/modmmm7_1.o: mmm7_1/w20mod.f90 mmm7_1/modmmm7_1.f90
 	$(FCFREE) -c mmm7_1/modmmm7_1.f90 -o $@ $(MODDIR) -I mmm7_1

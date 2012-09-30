@@ -335,7 +335,7 @@ CONTAINS
                 ns = ns_nsa(nsa)
                 z_eff(nr) = z_eff(nr) + pz(ns)**2 *rn(nsa,nr)                
              END IF
-          END DO          
+          END DO
           z_eff(nr) = z_eff(nr)/rn(1,nr)
        END DO
 !    END IF
