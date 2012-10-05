@@ -31,7 +31,7 @@ CONTAINS
 ! ***** calculate global values *****
 
   SUBROUTINE tr_calc_global
-    USE trcomm, ONLY: pi,rmu0,rkev,RR,ra,BB,nrmax,nsamax,ns_nsa,      &
+    USE trcomm, ONLY: pi,rmu0,rkev,RR,ra,BB,nrmax,nsamax,nsabmax,ns_nsa, &
          rkap,pa,pz,rhog,bp,dvrho,rip,t,t_prev,dt,rn,rt,rn_prev,rt_prev, &
          beta,beta_va,betap,betap_va,betaq,betan,                &
          poh,pnb,prf,pec,pic,plh,pnf,                            &
@@ -146,7 +146,7 @@ CONTAINS
 
     !   * Input and output sources and powers
     wp_t  = SUM(ws_t(1:nsamax)) ! including fast ions
-    wp_th = SUM(ws_t(1:nsamax)) ! excluding fast ions
+    wp_th = SUM(ws_t(1:nsabmax)) ! excluding fast ions
     pin_t  = poh_t + pnb_t ! + .....
 !    pout_t =
 !    sin_t  = 

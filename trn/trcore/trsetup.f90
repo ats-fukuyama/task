@@ -43,7 +43,6 @@ CONTAINS
 
     CALL tr_set_species
 
-
 ! +++ Basic setup +++
     CALL tr_ngt_allocate    ! allocation for data save
 
@@ -150,74 +149,67 @@ CONTAINS
   END SUBROUTINE tr_set_idneq
 
 
-!!$  SUBROUTINE tr_set_conversion
-!!$! -------------------------------------------------------------------------
-!!$!  set the conversion table for ns, nsa, nsaf, nsab, nsan
-!!$! -------------------------------------------------------------------------
-!!$    USE trcomm, ONLY: nsm,ns_nsa,nsab_nsa,nsaf_nsa,nsan_nsa, &
-!!$         nsamax,nsabmax,nsafmax,nsanmax
-!!$    IMPLICIT NONE
-!!$    
-!!$    INTEGER(ikind) :: nsa
-!!$
-!!$    DO nsa = 1, nsm
-!!$       ns_nsa(nsa)   = nsa
-!!$    END DO
-!!$
-!!$       nsab_nsa(nsa) = nsa
-!!$       nsaf_nsa(nsa) = nsabmax + nsa
-!!$       nsan_nsa(nsa) = 
-!!$
-!!$
-!!$    RETURN
-!!$  END SUBROUTINE tr_set_conversion
-
-
   SUBROUTINE tr_set_species
 ! --------------------------------------------------------------------------
 !   This subroutine sets the table for matrix generation.
 ! --------------------------------------------------------------------------
-    USE trcomm, ONLY: nsamax,pz,pz0,pa,idnsa,kidnsa,ns_nsa
+    USE trcomm, ONLY: nsm,nsamax,nsabmax,nsafmax,nsanmax, &
+         pz,pz0,pzc,pa,idnsa,kidns,ns_nsa,nsab_nsaf
     IMPLICIT NONE
 
-    INTEGER(ikind) :: nsa,ns
+    INTEGER(ikind) :: nsa,ns,nsab
+    CHARACTER(len=1):: kidnsf
 
-    DO nsa=1,nsamax
-       ns=ns_nsa(nsa)
-       IF(NINT(pz0(ns)) == -1) THEN
-          idnsa(nsa) = -1
-       ELSE
-          IF(NINT(pz(ns)) == 0) THEN
-             idnsa(nsa) = 0
-          ELSE
-             idnsa(nsa) = 1
+    ! set cenversion (fast ion --> bulk ion) table
+    nsabmax = 1 ! initilize to include electron
+    nsafmax = 0
+    nsanmax = 0
+    DO nsa = 1, nsm
+       ns_nsa(nsa) = nsa
+       ns = ns_nsa(nsa)
+
+       IF(kidns(ns) == ' ') EXIT ! exclude for dummy species (plinit)
+
+       IF(pz(ns) == 0)THEN
+          nsanmax = nsanmax + 1
+       ELSE IF(pz(ns) >= 1)THEN
+          IF(pzc(ns) == 0) THEN
+             nsabmax = nsabmax + 1
+          ELSE IF(pzc(ns) == 1) THEN
+             nsafmax = nsafmax + 1
+             kidnsf  = kidns(ns)
+
+             DO nsab = 1, nsabmax
+                ns = ns_nsa(nsab)
+                IF(kidnsf == kidns(ns))THEN
+                   nsab_nsaf(nsa) = nsab
+                END IF
+             END DO
+
           END IF
        END IF
     END DO
-          
+
+    ! set identifier for charge of particle
     DO nsa=1,nsamax
        ns=ns_nsa(nsa)
-       SELECT CASE(NINT(pz0(ns)))
-       CASE(-1)
-          kidnsa(nsa)='E'
-       CASE(1)
-          SELECT CASE(NINT(pa(ns)))
-          CASE(1)
-             kidnsa(nsa)='H'
-          CASE(2)
-             kidnsa(nsa)='D'
-          CASE(3)
-             kidnsa(nsa)='T'
-          CASE DEFAULT
-             kidnsa(nsa)=' '
-          END SELECT
-       CASE(2)
-          kidnsa(nsa)='A'
-       CASE DEFAULT
-          kidnsa(nsa)=' '
-       END SELECT
+       IF(NINT(pz0(ns)) == -1) THEN
+          idnsa(nsa) = -1 ! electron
+       ELSE
+          IF(NINT(pz(ns)) == 0) THEN
+             idnsa(nsa) = 0 ! neutral particle
+          ELSE
+             IF(pzc(ns) == 0)THEN
+                idnsa(nsa) = 1 ! bulk ion particle
+             ELSE IF(pzc(ns) == 1)THEN
+                idnsa(nsa) = 2 ! fast ion particle
+             END IF
+          END IF
+       END IF
     END DO
-  
+
+!    write(*,*)'nsabmax',nsabmax, 'nsafmax',nsafmax,'nsanmax',nsanmax
+          
     RETURN
   END SUBROUTINE tr_set_species
 

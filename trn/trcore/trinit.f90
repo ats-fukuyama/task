@@ -171,10 +171,7 @@ CONTAINS
     ntmax    = 100
     dt       = 0.01D0
     rg_fixed(1:3,0:nsm) = rb
-    nsamax   = 2
-    DO nsa = 1, nsamax
-       ns_nsa(nsa) = nsa
-    END DO
+    nsamax   = 3
 
 !     ==== Convergence Parameter ====
 !        epsltr : convergence criterion of iteration

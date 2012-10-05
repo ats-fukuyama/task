@@ -15,4 +15,6 @@
   pns(1)=0.1D0,0.1D0
   ph0=0.1D0
   phs=0.1D0
+  mdltr_nc=1
+  mdltr_tb=140
  &end

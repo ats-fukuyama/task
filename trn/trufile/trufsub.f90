@@ -1,4 +1,7 @@
 MODULE trufsub
+! -----------------------------------------------------------------------
+!       reading and interpolating data from experimental database
+! -----------------------------------------------------------------------
 
   USE trcomm,ONLY: ikind, rkind, ntum, nrum
 
@@ -7,13 +10,12 @@ MODULE trufsub
 
 CONTAINS
 
-  SUBROUTINE tr_uf_check_impurity(kdirx,kuf_dcg,kuf_dev,mdni,mdslct,nmchk)
+  SUBROUTINE tr_uf_check_impurity(kdirx,kuf_dcg,kuf_dev,mdslct,nmchk)
 ! ------------------------------------------------------------------------ 
 !           CHECKING WHETHER IMPURITY EXISTS
 ! ------------------------------------------------------------------------
     IMPLICIT NONE
     CHARACTER(LEN=80),INTENT(IN) :: kdirx,kuf_dcg,kuf_dev
-    INTEGER(ikind),INTENT(IN)    :: mdni
     INTEGER(ikind),INTENT(OUT)   :: mdslct,nmchk
 
     CHARACTER(LEN=80)            :: KDIRR2, KFILE
@@ -29,13 +31,7 @@ CONTAINS
     KDIRR2= KDIRX(1:IKDIRX)//KUF_DEV(1:IKNDEV)//'2d'//KUF_DCG(1:IKNDCG)//'.'
     KL2   = len_trim(KDIRR2)
 
-    IF(MDNI.LT.0.OR.MDNI.GT.3) THEN
-       MDNI=0
-       WRITE(6,*)'Warning: tr_uf_check_impurity: '
-       WRITE(6,*)'   Parameter "MDNI" is out of range, and set to zero.'
-    END IF
     MDSLCT=0
-
     DO
        KFID='ZEFFR'
        KFILE=KDIRR2(1:KL2)//KFID
@@ -72,20 +68,6 @@ CONTAINS
 
        EXIT
     END DO
-
-!
-
-    SELECT CASE(mdslct)
-    CASE(0)
-    CASE(1)
-    CASE(2)
-    CASE(3)
-    CASE(4)
-    CASE(5)
-    CASE(6)
-    CASE(7)
-    END SELECT
-
 
     RETURN
   END SUBROUTINE tr_uf_check_impurity

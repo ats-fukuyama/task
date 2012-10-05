@@ -47,10 +47,8 @@ MODULE trcomm
   INTEGER(ikind):: nsabmax     ! number of active (bulk ion) particle species
   INTEGER(ikind):: nsanmax     ! number of active (neutral) particle species
   INTEGER(ikind),DIMENSION(nsm)::  &
-                   ns_nsa,    &! conversion table of NS   for NSA
-                   nsaf_nsa,  &! conversion table of NSAF for NSA
-                   nsab_nsa,  &! conversion table of NSAB for NSA
-                   nsan_nsa    ! conversion table of NSAN for NSA
+                   ns_nsa,    &! conversion table of NS  for NSA
+                   nsab_nsaf   ! conversion table of [fast ion > bulk ion]
   INTEGER(ikind):: lmaxtr      ! maximum number of iterations
   REAL(rkind)::    epsltr      ! tolerance of iteration
 

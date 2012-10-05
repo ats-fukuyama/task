@@ -1,4 +1,7 @@
 MODULE trufile
+! ------------------------------------------------------------------------
+!   substitution of experimental data into TASK/TR variables
+! ------------------------------------------------------------------------
 
   USE trcomm, ONLY: ikind, rkind, ntum,nrum,nsum
 
@@ -154,6 +157,7 @@ CONTAINS
     CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
 
 
+! ******
     kfid = 'NM1'   ! --> RNU
     CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
                  pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
@@ -187,6 +191,7 @@ CONTAINS
                  pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
                  time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
     CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
+! ******
 
     kfid = 'PBEAM'   ! --> RNU
     CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
@@ -351,6 +356,13 @@ CONTAINS
 
     INTEGER(ikind),INTENT(IN) :: mdslct
     INTEGER(ikind),INTENT(INOUT) :: mdni
+
+    IF(MDNI.LT.0.OR.MDNI.GT.3) THEN
+       MDNI=0
+       WRITE(6,*)'Warning: tr_uf_complete: '
+       WRITE(6,*)'   Parameter "MDNI" is out of range, and set to zero.'
+    END IF
+
 
     SELECT CASE(mdslct)
     CASE(0)
