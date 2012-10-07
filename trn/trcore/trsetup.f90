@@ -43,12 +43,16 @@ CONTAINS
 
     CALL tr_set_species
 
+    CALL tr_set_fast_species
+
 ! +++ Basic setup +++
     CALL tr_ngt_allocate    ! allocation for data save
 
     CALL tr_setup_table     ! calculate table for matrix generation
 
     CALL tr_nr_allocate     ! allocation for radial profile
+
+    CALL tr_print_table
 
 ! +++ Initialization for successive interactive calculation +++
     nrd1(0:nrmax) = 0.d0
@@ -154,55 +158,36 @@ CONTAINS
 !   This subroutine sets the table for matrix generation.
 ! --------------------------------------------------------------------------
     USE trcomm, ONLY: nsm,nsamax,nsabmax,nsafmax,nsanmax, &
-         pz,pz0,pzc,pa,idnsa,kidns,ns_nsa,nsab_nsaf
+         pz,pz0,pa,idion,idnsa,kidns,ns_nsa,nsab_nsaf
     IMPLICIT NONE
 
-    INTEGER(ikind) :: nsa,ns,nsab
-    CHARACTER(len=1):: kidnsf
+    INTEGER(ikind) :: nsa,ns
 
-    ! set cenversion (fast ion --> bulk ion) table
-    nsabmax = 1 ! initilize to include electron
+    nsabmax = 0
     nsafmax = 0
     nsanmax = 0
+
+    ! set identifier for charge of particles
     DO nsa = 1, nsm
        ns_nsa(nsa) = nsa
-       ns = ns_nsa(nsa)
+       ns=ns_nsa(nsa)
 
        IF(kidns(ns) == ' ') EXIT ! exclude for dummy species (plinit)
 
-       IF(pz(ns) == 0)THEN
-          nsanmax = nsanmax + 1
-       ELSE IF(pz(ns) >= 1)THEN
-          IF(pzc(ns) == 0) THEN
-             nsabmax = nsabmax + 1
-          ELSE IF(pzc(ns) == 1) THEN
-             nsafmax = nsafmax + 1
-             kidnsf  = kidns(ns)
-
-             DO nsab = 1, nsabmax
-                ns = ns_nsa(nsab)
-                IF(kidnsf == kidns(ns))THEN
-                   nsab_nsaf(nsa) = nsab
-                END IF
-             END DO
-
-          END IF
-       END IF
-    END DO
-
-    ! set identifier for charge of particle
-    DO nsa=1,nsamax
-       ns=ns_nsa(nsa)
        IF(NINT(pz0(ns)) == -1) THEN
           idnsa(nsa) = -1 ! electron
+          nsabmax = nsabmax + 1
        ELSE
           IF(NINT(pz(ns)) == 0) THEN
              idnsa(nsa) = 0 ! neutral particle
+             nsanmax = nsanmax + 1
           ELSE
-             IF(pzc(ns) == 0)THEN
+             IF(idion(ns) == 0)THEN
                 idnsa(nsa) = 1 ! bulk ion particle
-             ELSE IF(pzc(ns) == 1)THEN
+                nsabmax = nsabmax + 1
+             ELSE IF(idion(ns) == 1)THEN
                 idnsa(nsa) = 2 ! fast ion particle
+                nsafmax = nsafmax + 1
              END IF
           END IF
        END IF
@@ -212,6 +197,37 @@ CONTAINS
           
     RETURN
   END SUBROUTINE tr_set_species
+
+
+  SUBROUTINE tr_set_fast_species
+! -------------------------------------------------------------------------
+!   setup cenversion (fast ion --> bulk ion) table
+! -------------------------------------------------------------------------
+    USE trcomm, ONLY: nsm,nsamax,kidns,ns_nsa,nsab_nsaf,idion
+
+    CHARACTER(len=1) :: kidnsf
+    INTEGER(ikind)   :: ns,nsa,ns1,nsa1
+
+    nsab_nsaf(1:nsm) = 0
+    DO nsa = 1, nsamax
+       ns = ns_nsa(nsa)
+       IF(idion(ns) /= 1.d0) CYCLE ! exclude particles except fast ion 
+       kidnsf = kidns(ns) 
+       DO nsa1 = 1, nsamax
+          ns1 = ns_nsa(nsa1)
+
+          IF(ns /= ns1 .AND. kidnsf == kidns(ns1)) THEN
+             nsab_nsaf(nsa) = nsa1
+          END IF
+       END DO
+    END DO
+
+!!$    DO nsa = 1, nsamax
+!!$       write(*,*) 'nsa: ',nsa,'nsab_nsaf',nsab_nsaf(nsa)
+!!$    END DO
+
+    RETURN
+  END SUBROUTINE tr_set_fast_species
 
 
   SUBROUTINE tr_setup_table
@@ -287,6 +303,45 @@ CONTAINS
           
     RETURN
   END SUBROUTINE tr_setup_table
+
+
+  SUBROUTINE tr_print_table
+! ------------------------------------------------------------------------
+!   print conversion table for equations, species
+! ------------------------------------------------------------------------
+    USE trcomm,ONLY: neqmax,kidns,ns_nsa,nsa_neq,nva_neq,neqr_neq, &
+         nsab_nsaf
+
+    IMPLICIT NONE
+    CHARACTER(1)   :: kid
+    CHARACTER(50)  :: fmt_table
+    INTEGER(ikind) :: neq,neqr,nsa,ns,nva,nsab
+
+    fmt_table = '(1X,I3,I6,I6,A7,I6,I6)'
+    WRITE(6,*) '##  Variables conversion table  ##'
+    WRITE(6,*) 'NEQ  NEQR   NVA  KIDNS   NSA  NSAB'
+
+    neqr = 0
+    nva  = 0
+    nsa  = 0
+    nsab = 0
+    kid  = ' '
+    
+    DO neq = 1, neqmax
+       neqr = neqr_neq(neq)
+       IF(neq /= 1)THEN
+          nsa  = nsa_neq(neq)
+          nva  = nva_neq(neq)
+          ns   = ns_nsa(nsa)
+          nsab = nsab_nsaf(nsa)
+          kid  = kidns(ns)
+       END IF
+
+       WRITE(6,fmt_table) neq,neqr,nva,kid,nsa,nsab
+    END DO
+    
+    RETURN
+  END SUBROUTINE tr_print_table
 
 ! *************************************************************************
 ! *************************************************************************

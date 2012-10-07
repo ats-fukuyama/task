@@ -43,8 +43,9 @@ MODULE trcomm
                    rg_fixed    ! minimum radius of fixed profile
 
   INTEGER(ikind):: nsamax      ! number of active particle species
-  INTEGER(ikind):: nsafmax      ! number of active (fast ion) particle species
-  INTEGER(ikind):: nsabmax     ! number of active (bulk ion) particle species
+  INTEGER(ikind):: nsafmax     ! number of active (fast ion) particle species
+  INTEGER(ikind):: nsabmax     ! number of active bulk particle species
+                               !  (including electron)
   INTEGER(ikind):: nsanmax     ! number of active (neutral) particle species
   INTEGER(ikind),DIMENSION(nsm)::  &
                    ns_nsa,    &! conversion table of NS  for NSA
@@ -382,14 +383,14 @@ MODULE trcomm
 
   REAL(rkind),DIMENSION(1:ntum) ::        &
        tmu,rru,rau,phiau,volau,bbu,rkapu, &
-       pnbiu,ripu
+       rdelu,pnbiu,ripu
   REAL(rkind),DIMENSION(1:ntum,1:nrum) :: &
        qpu,z_effu,jtotu,jnbu,jbsu,bpu,prlu,pecu,pohu,pbmu,    &
        dvrhou,rkprhou,rmjrhou,rmnrhou,arrhou,ar1rhou,ar2rhou, &
        abrhou,ttrhou,                                         &
        wrotu,z_effu_org,s_wallu
   REAL(rkind),DIMENSION(1:ntum,1:nsum) :: &
-       ptsu,pnsu!,ptsau,pnsau
+       pzu,pau,ptsu,pnsu!,ptsau,pnsau
   REAL(rkind),DIMENSION(1:nsum,1:ntum,1:nrum) :: &
        rnu,rtu,pnbu,picu,snbu
 

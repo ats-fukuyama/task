@@ -18,8 +18,6 @@ CONTAINS
 
     ! initialization of ufile variables
 
-    
-    CALL tr_uf_check_impurity(kdirx,kuf_dcg,kuf_dev,mdni,mdslct,nmchk)
 
     SELECT CASE(mdluf)
     CASE(1)
@@ -38,8 +36,9 @@ CONTAINS
   SUBROUTINE tr_ufile_steady
 
     USE trcomm, ONLY: nrmax,nsamax,mdlxp,kdirx,kuf_dir,kuf_dev,kuf_dcg, &
-         ntxmax,tlmax,ntlmax,dt,rhog,rhom,rhoa, &
-         time_slc,tmu,rru,rau,ripu,bbu,rkapu,phiau,rtu,ptsu,rnu,pnsu, &
+         ntxmax,tlmax,ntlmax,dt,rhog,rhom,rhoa,           &
+         time_slc,tmu,rru,rau,ripu,bbu,rkapu,rdelu,phiau, &
+         rtu,ptsu,rnu,pnsu, &
          nrd1
 
     USE trufsub, ONLY: tr_uf1d,tr_uf2d,tr_uftl_check
@@ -47,10 +46,11 @@ CONTAINS
     IMPLICIT NONE
     REAL(rkind),DIMENSION(ntum) :: pv, pva
     REAL(rkind),DIMENSION(ntum,nrum) :: f2out
-    INTEGER(ikind) :: nsu
+    INTEGER(ikind) :: nsu,nsi
     INTEGER(ikind) :: ierr, uftl_save, uftl_check
     INTEGER(ikind) :: id_time,id_mesh,id_deriv,id_rhoa
     CHARACTER(10)  :: kfid
+    CHARACTER(1)   :: nsion
 
     uftl_check = 1 ! default
 
@@ -67,8 +67,25 @@ CONTAINS
        RETURN
     END IF
 
+    CALL tr_uf_check_impurity(kdirx,kuf_dcg,kuf_dev,mdni,mdslct,nmchk)
+
 
 !    CALL tr_ufile_get ??
+
+
+!   **************************   0D data   **************************
+
+! NFAST, NM
+    DO nsi = 1, 9 ! '9' is specified in "PR08 profile database"
+       WRITE(nsion,*) nsi ! integer -> character
+       kfid = 'NFAST'//NSION(1)//A
+
+       ! 'tr_uf0d' is to be made...
+       CALL tr_uf1d(kfid,kdirx,kuf_dev,kuf_dcg,tmu,phiau,ntxmax,mdlxp,ierr)
+
+! AUXHEAT, STATE
+
+! judge 0d or 1d  --> RGEO, AMIN ...
 
 !   **************************   1D data   **************************
 
@@ -99,12 +116,18 @@ CONTAINS
 !         RKAPU(1:NTXMAX1)=1.D0
 
     kfid = 'KAPPA' ! --> RKAPU
-    CALL tr_uf1d(kfid,kdirx,kuf_dev,kuf_dcg,tmu,rau,ntxmax,mdlxp,ierr)
+    CALL tr_uf1d(kfid,kdirx,kuf_dev,kuf_dcg,tmu,rkapu,ntxmax,mdlxp,ierr)
+    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
+
+    kfid = 'DELTA' ! --> RDELU
+    CALL tr_uf1d(kfid,kdirx,kuf_dev,kuf_dcg,tmu,rdelu,ntxmax,mdlxp,ierr)
     CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
 
     kfid = 'PHIA' ! --> PHIAU
-    CALL tr_uf1d(kfid,kdirx,kuf_dev,kuf_dcg,tmu,rau,ntxmax,mdlxp,ierr)
+    CALL tr_uf1d(kfid,kdirx,kuf_dev,kuf_dcg,tmu,phiau,ntxmax,mdlxp,ierr)
     CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
+
+
 
 
 !   **************************   2D data   *****************************
@@ -149,15 +172,13 @@ CONTAINS
 
     rnu(1,ntxmax,1:nrmax+1) = f2out(ntxmax,1:nrmax+1) * 1.d-20
 
-
+! ******
     kfid = 'NFAST'   ! --> RNU
     CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
                  pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
                  time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
     CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
 
-
-! ******
     kfid = 'NM1'   ! --> RNU
     CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
                  pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
@@ -186,11 +207,11 @@ CONTAINS
     CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
 
 
-    kfid = 'NIMP'   ! --> RNU
-    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
+!!$    kfid = 'NIMP'   ! --> RNU
+!!$    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
+!!$                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
+!!$                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
+!!$    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
 ! ******
 
     kfid = 'PBEAM'   ! --> RNU
