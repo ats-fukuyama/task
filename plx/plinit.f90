@@ -56,8 +56,15 @@
 !        PTITB : Temperature increment at ITB                  (keV)
 !        PUITB : Toroidal rotation velocity increment at ITB   (m/s)
 
-      NSMAX = 2                  ! Default number of particle species
+!        KIDNS : index of particle species
+!        IDION :  1 : fast ion particle
+!                 0 : else
 
+      NSMAX = 3                  ! Default number of particle species
+
+         ! electron
+         KIDNS(1)= 'e'
+         IDION(1)= 0.0D0
          PA(1)   = AME/AMP
          PZ(1)   =-1.0D0
          PZ0(1)  =-1.0D0
@@ -73,6 +80,9 @@
          PUITB(1)= 0.D0
 
       IF(NSM.GE.2) THEN
+         ! hydrogen
+         KIDNS(2)= 'H'
+         IDION(2)= 0.0D0
          PA(2)   = 1.0D0
          PZ(2)   = 1.0D0
          PZ0(2)  = 1.0D0
@@ -86,9 +96,96 @@
          PNITB(2)= 0.D0
          PTITB(2)= 0.D0
          PUITB(2)= 0.D0
-      ENDIF
 
-      DO NS=3,NSM
+         ! deuterium
+!!$         KIDNS(3)= 'D'
+!!$         IDION(3)= 0.0D0
+!!$         PA(3)   = 2.0D0
+!!$         PZ(3)   = 1.0D0
+!!$         PZ0(3)  = 1.0D0
+!!$         PN(3)   = 1.0D0
+!!$         PNS(3)  = 0.0D0
+!!$         PTPR(3) = 5.0D0
+!!$         PTPP(3) = 5.0D0
+!!$         PTS(3)  = 0.05D0
+!!$         PU(3)   = 0.D0
+!!$         PUS(3)  = 0.D0
+!!$         PNITB(3)= 0.D0
+!!$         PTITB(3)= 0.D0
+!!$         PUITB(3)= 0.D0
+!!$
+!!$         ! tritium
+!!$         KIDNS(4)= 'T'
+!!$         IDION(4)= 0.0D0
+!!$         PA(4)   = 3.0D0
+!!$         PZ(4)   = 1.0D0
+!!$         PZ0(4)  = 1.0D0
+!!$         PN(4)   = 1.0D0
+!!$         PNS(4)  = 0.0D0
+!!$         PTPR(4) = 5.0D0
+!!$         PTPP(4) = 5.0D0
+!!$         PTS(4)  = 0.05D0
+!!$         PU(4)   = 0.D0
+!!$         PUS(4)  = 0.D0
+!!$         PNITB(4)= 0.D0
+!!$         PTITB(4)= 0.D0
+!!$         PUITB(4)= 0.D0
+!!$
+!!$         ! helium (alpha particle)
+!!$         KIDNS(5)= 'A'
+!!$         IDION(5)= 0.0D0
+!!$         PA(5)   = 4.0D0
+!!$         PZ(5)   = 2.0D0
+!!$         PZ0(5)  = 2.0D0
+!!$         PN(5)   = 1.0D0
+!!$         PNS(5)  = 0.0D0
+!!$         PTPR(5) = 5.0D0
+!!$         PTPP(5) = 5.0D0
+!!$         PTS(5)  = 0.05D0
+!!$         PU(5)   = 0.D0
+!!$         PUS(5)  = 0.D0
+!!$         PNITB(5)= 0.D0
+!!$         PTITB(5)= 0.D0
+!!$         PUITB(5)= 0.D0
+
+         ! hydrogen (fast)
+         KIDNS(3)= 'H'
+         IDION(3)= 1.0D0
+         PA(3)   = PA(2)
+         PZ(3)   = PZ(2)
+         PZ0(3)  = PZ0(2)
+         PN(3)   = 0.0001D0
+         PNS(3)  = 0.0001D0
+         PTPR(3) = 50.D0
+         PTPP(3) = 50.D0
+         PTS(3)  = 50.D0
+         PU(3)   = 0.D0
+         PUS(3)  = 0.D0
+         PNITB(3)= 0.D0
+         PTITB(3)= 0.D0
+         PUITB(3)= 0.D0
+
+!!$         ! helium (fast)
+!!$         KIDNS(1)= 'A'
+!!$         IDION(7)= 1.0D0
+!!$         PA(7)   = PA(5)
+!!$         PZ(7)   = PZ(5)
+!!$         PZ0(7)  = PZ0(5)
+!!$         PN(7)   = 0.0D0
+!!$         PNS(7)  = 0.0D0
+!!$         PTPR(7) = 50.D0
+!!$         PTPP(7) = 50.D0
+!!$         PTS(7)  = 50.D0
+!!$         PU(7)   = 0.D0
+!!$         PUS(7)  = 0.D0
+!!$         PNITB(7)= 0.D0
+!!$         PTITB(7)= 0.D0
+!!$         PUITB(7)= 0.D0
+
+         ! dummy
+      DO NS=4,NSM
+         KIDNS(NS)= ' '
+         IDION(NS)= 0.0D0
          PA(NS)   = 1.0D0
          PZ(NS)   = 1.0D0
          PZ0(NS)  = 1.0D0
@@ -103,6 +200,8 @@
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
       ENDDO
+
+      ENDIF
 
 !     ======( PROFILE PARAMETERS )======
 
@@ -390,10 +489,10 @@
 
   100 FORMAT(1H ,'NS    PA          PZ          PZ0         ', &
                  'PN          PNS')
-  110 FORMAT(1H ,I2,' ',1P5E12.4)
+  110 FORMAT(1H ,I2,' ',1P5E12.3)
   120 FORMAT(1H ,'NS    PTPR        PTPP        PTS         ', &
                  'PU          PUS')
-  130 FORMAT(1H ,I2,' ',1P5E12.4)                               
+  130 FORMAT(1H ,I2,' ',1P5E12.3)                               
   140 FORMAT(1H ,'NS    PNITB       PTITB       PUITB')
   150 FORMAT(1H ,I2,' ',1P3E12.4)                               
   601 FORMAT(1H ,A6,'=',1PE11.3:2X,A6,'=',1PE11.3: &
