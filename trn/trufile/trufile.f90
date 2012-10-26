@@ -3,63 +3,35 @@ MODULE trufile
 !   substitution of experimental data into TASK/TR variables
 ! ------------------------------------------------------------------------
 
-  USE trcomm, ONLY: ikind, rkind, ntum,nrum,nsum
+  USE trcomm, ONLY: ikind,rkind,ntum,nrum,nsum, &
+       nrmax,dt,rhog,rhom,mdlxp,ndmax,ntxmax,ntlmax,tlmax,time_slc,ufid_bin
+
+  USE trufsub,ONLY: idnm,idnfast,idnmaz,idnfastaz,idzeff
+  IMPLICIT NONE
 
   PRIVATE
-  PUBLIC tr_ufile
+  PUBLIC tr_ufile!, idnm,idnfast,idnmaz,idnfastaz,idzeff
+
+  INTEGER(ikind) :: tlcheck, tlsave
+
+!  LOGICAL,DIMENSION(1:9) :: idnm,idnfast,idnmaz,idnfastaz
+!  LOGICAL,DIMENSION(1:2) :: idzeff
+
 
 CONTAINS
 
   SUBROUTINE tr_ufile
-
-    USE trcomm, ONLY: kdirx,kuf_dcg,kuf_dev,mdni,mdslct,nmchk,&
-         nrmax,ntmax,mdluf
+    USE ufinit, ONLY: ufile_init
+    USE truf0d, ONLY: tr_uf0d
+    USE trufcalc,ONLY: tr_uf_complete
+    USE trcomm, ONLY: kuf_dir,kuf_dcg,kuf_dev,nrmax,ntmax,mdluf
     IMPLICIT NONE
 
-    ! initialization of ufile variables
+    INTEGER(ikind) :: id_time,id_mesh,id_deriv,ierr
 
-
-    SELECT CASE(mdluf)
-    CASE(1)
-       CALL tr_ufile_steady
-!!$    CASE(2)
-!!$       CALL tr_ufile_time
-!!$    CASE(3)
-!!$       CALL tr_ufile_topics
-    END SELECT
-
-    RETURN
-  END SUBROUTINE tr_ufile
-
-! *************************************************************************
-
-  SUBROUTINE tr_ufile_steady
-
-    USE trcomm, ONLY: nrmax,nsamax,mdlxp,kdirx,kuf_dir,kuf_dev,kuf_dcg, &
-         ntxmax,tlmax,ntlmax,dt,rhog,rhom,rhoa,           &
-         time_slc,tmu,rru,rau,ripu,bbu,rkapu,rdelu,phiau, &
-         rtu,ptsu,rnu,pnsu, &
-         nrd1
-
-    USE trufsub, ONLY: tr_uf1d,tr_uf2d,tr_uftl_check
-
-    IMPLICIT NONE
-    REAL(rkind),DIMENSION(ntum) :: pv, pva
-    REAL(rkind),DIMENSION(ntum,nrum) :: f2out
-    INTEGER(ikind) :: nsu,nsi
-    INTEGER(ikind) :: ierr, uftl_save, uftl_check
-    INTEGER(ikind) :: id_time,id_mesh,id_deriv,id_rhoa
-    CHARACTER(10)  :: kfid
-    CHARACTER(1)   :: nsion
-
-    uftl_check = 1 ! default
-
-    uftl_save = 0
-    tlmax     = 0.d0
-
-    ! locating experimental data directory (TASK/lib)
+    ! locating experimental data directory and initialization (TASK/lib)
     IF(mdlxp == 0)THEN
-       CALL ufile_interface(kdirx,kuf_dir,kuf_dev,kuf_dcg,0)
+       CALL ufile_init(kuf_dir,kuf_dev,kuf_dcg,ufid_bin,ierr)
     ELSE IF(mdlxp == 1)THEN
        CALL IPDB_OPEN(kuf_dev,kuf_dcg)
     ELSE
@@ -67,343 +39,635 @@ CONTAINS
        RETURN
     END IF
 
-    CALL tr_uf_check_impurity(kdirx,kuf_dcg,kuf_dev,mdni,mdslct,nmchk)
+    IF(ierr /= 0)THEN
+       WRITE(6,*) 'XX Preparation for reading UFILE failed.'
+       WRITE(6,*) 'XX Stop reading UFILEs. IERR= ',ierr
+       RETURN
+    END IF
+
+    tlcheck = 1 !  = 1: consistency check ON (default)
+                !  = 0: consistency check OFF
+    tlsave  = 0
+
+    ntxmax = 0
+    ntlmax = 0
+    tlmax  = 0.d0
+
+    id_mesh  = 0 ! integer mesh
+    id_deriv = 1 ! the derivative at the axis: deriv(0) = 0
 
 
-!    CALL tr_ufile_get ??
+    SELECT CASE(mdluf)
+    CASE(1)
+       id_time = 1 ! steady state simulation (at a certain moment)
+    CASE(2)
+       id_time = 2 ! time evolution
+    CASE(3)
+       ! read UFILE data from topics
+    END SELECT
 
 
-!   **************************   0D data   **************************
+    ! ***  0D data  ***
+    CALL tr_uf0d(mdlxp,ndmax,ierr)
 
-! NFAST, NM
-    DO nsi = 1, 9 ! '9' is specified in "PR08 profile database"
-       WRITE(nsion,*) nsi ! integer -> character
-       kfid = 'NFAST'//NSION(1)//A
+    CALL tr_ufget_global(id_time,ierr)
 
-       ! 'tr_uf0d' is to be made...
-       CALL tr_uf1d(kfid,kdirx,kuf_dev,kuf_dcg,tmu,phiau,ntxmax,mdlxp,ierr)
+    CALL tr_ufget_profile(id_time,id_mesh,id_deriv,ierr)
 
-! AUXHEAT, STATE
+    CALL tr_ufget_source(id_time,id_mesh,id_deriv,ierr)
 
-! judge 0d or 1d  --> RGEO, AMIN ...
+    CALL tr_ufget_geometric(id_time,id_mesh,id_deriv,ierr)
 
-!   **************************   1D data   **************************
+    CALL tr_uf_complete
 
-    kfid = 'RGEO' ! --> RRU
-    CALL tr_uf1d(kfid,kdirx,kuf_dev,kuf_dcg,tmu,rru,ntxmax,mdlxp,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
+    CALL tr_ufile_view
 
-!    write(*,*) 'RRU =',(RRU(i), i = 1,ntxmax)
-!    write(*,*) 'TMU =',(TMU(i), i = 1,ntxmax)
+    ! read error handling
+    ! substitution, interpolate or extrapolate, and so on.
 
-    kfid = 'AMIN' ! --> RAU
-    CALL tr_uf1d(kfid,kdirx,kuf_dev,kuf_dcg,tmu,rau,ntxmax,mdlxp,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
+    WRITE(6,*) ! spacing
 
-!    write(*,*) 'RAU =',(RAU(i), i = 1,ntxmax)
-!    write(*,*) 'TMU =',(TMU(i), i = 1,ntxmax)
+    RETURN
+  END SUBROUTINE tr_ufile
 
-    kfid = 'IP' ! --> RIPU
-    CALL tr_uf1d(kfid,kdirx,kuf_dev,kuf_dcg,tmu,ripu,ntxmax,mdlxp,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
+! ************************************************************************
+! ************************************************************************
 
-    kfid = 'BT' ! --> BBU
-    CALL tr_uf1d(kfid,kdirx,kuf_dev,kuf_dcg,tmu,bbu,ntxmax,mdlxp,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
+  SUBROUTINE tr_ufget_global(id_time,ierr)
+! ------------------------------------------------------------------------
+!   *** acquire the global variables from experimental data ***
+!   ***  and substitute them into TASK/TR variables         ***
+! ------------------------------------------------------------------------
+    USE trufsub,ONLY: tr_uf1d,tr_uftl_check
+    USE trcomm,ONLY: tmu,rru,rau,ripu,bbu,rkapu,rdelu,phiau,zeffu,wthu,wtotu
+
+    IMPLICIT NONE
+    INTEGER(ikind),INTENT(IN)  :: id_time
+    INTEGER(ikind),INTENT(OUT) :: ierr
+
+    CHARACTER(LEN=10) :: kfid
+    INTEGER(ikind)    :: errout
+
+    errout = 0 ! write inquire error message to standard output
+
+    ! ***  1D data  ***
+
+    kfid = 'RGEO' ! --> rru
+    CALL tr_uf1d(kfid,tmu,rru,ntxmax,mdlxp,ufid_bin,time_slc,id_time, &
+                 errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+
+    kfid = 'AMIN' ! --> rau
+    CALL tr_uf1d(kfid,tmu,rau,ntxmax,mdlxp,ufid_bin,time_slc,id_time, &
+                 errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+
+    kfid = 'IP' ! --> ripu
+    CALL tr_uf1d(kfid,tmu,ripu,ntxmax,mdlxp,ufid_bin,time_slc,id_time, &
+                 errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+
+    kfid = 'BT' ! --> bbu
+    CALL tr_uf1d(kfid,tmu,bbu,ntxmax,mdlxp,ufid_bin,time_slc,id_time, &
+                 errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
 
 !      IF(KUFDEV.EQ.'tftr' .AND. &
 !         (KUFDCG.EQ.'50862' .OR. KUFDCG.EQ.'50921'.OR.KUFDCG.EQ.'52527')) THEN
 !         RKAPU(1:NTXMAX1)=1.D0
 
-    kfid = 'KAPPA' ! --> RKAPU
-    CALL tr_uf1d(kfid,kdirx,kuf_dev,kuf_dcg,tmu,rkapu,ntxmax,mdlxp,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
-
-    kfid = 'DELTA' ! --> RDELU
-    CALL tr_uf1d(kfid,kdirx,kuf_dev,kuf_dcg,tmu,rdelu,ntxmax,mdlxp,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
-
-    kfid = 'PHIA' ! --> PHIAU
-    CALL tr_uf1d(kfid,kdirx,kuf_dev,kuf_dcg,tmu,phiau,ntxmax,mdlxp,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
-
-
-
-
-!   **************************   2D data   *****************************
-    id_time = 1 ! steady state simulation
-
-    id_mesh  = 0 ! integer mesh
-    id_deriv = 1 ! derivative deriv(0) = 0
-    id_rhoa  = 1 ! for the time being
-    kfid = 'TE'   ! --> RTU
-    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
-
-    rtu(1,ntxmax,1:nrmax+1) = f2out(ntxmax,1:nrmax+1) * 1.d-3
-    ptsu(1,1) = pv(1)
-    ! ??? rhoa value ???
-    IF(rhoa.EQ.2.d0)THEN
-       CONTINUE
+    kfid = 'KAPPA' ! --> rkapu
+    CALL tr_uf1d(kfid,tmu,rkapu,ntxmax,mdlxp,ufid_bin,time_slc,id_time, &
+                 errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
     END IF
 
-    kfid = 'TI'   ! --> RTU
-    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
+    kfid = 'DELTA' ! --> rdelu
+    CALL tr_uf1d(kfid,tmu,rdelu,ntxmax,mdlxp,ufid_bin,time_slc,id_time, &
+                 errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
 
-    DO nsu = 2, nsum ! ??? ns ?
-       rtu(nsu,ntxmax,1:nrmax+1) = f2out(ntxmax,1:nrmax+1) * 1.d-3
-       ptsu(nsu,1) = pv(1)
-       IF(rhoa.EQ.2.d0)THEN
-          CONTINUE
+    kfid = 'PHIA' ! --> phiau
+    CALL tr_uf1d(kfid,tmu,phiau,ntxmax,mdlxp,ufid_bin,time_slc,id_time, &
+                 errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+
+    kfid = 'ZEFF' ! --> zeffu
+    CALL tr_uf1d(kfid,tmu,zeffu,ntxmax,mdlxp,ufid_bin,time_slc,id_time, &
+                 errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+
+    kfid = 'WTH' ! --> wthu
+    CALL tr_uf1d(kfid,tmu,wthu,ntxmax,mdlxp,ufid_bin,time_slc,id_time, &
+                 errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+
+    kfid = 'WTOT' ! --> wtotu
+    CALL tr_uf1d(kfid,tmu,wtotu,ntxmax,mdlxp,ufid_bin,time_slc,id_time, &
+                 errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+
+    RETURN
+  END SUBROUTINE tr_ufget_global
+
+! ************************************************************************
+
+  SUBROUTINE tr_ufget_profile(id_time,id_mesh,id_deriv,ierr)
+! ------------------------------------------------------------------------
+!
+! -----------------------------------------------------------------------
+    USE truf0d, ONLY: idnm,idnfast,idzeff
+    USE trufsub,ONLY: tr_uf2d,tr_uftl_check
+    USE trcomm,ONLY: rkev,tmu,pau,pzu,rtu,rnu,rnfu,rpu,zeffru,zeffu,qpu,bpu,wrotu
+    IMPLICIT NONE
+
+    INTEGER(ikind),INTENT(IN)  :: id_time,id_mesh,id_deriv
+    INTEGER(ikind),INTENT(OUT) :: ierr
+
+    CHARACTER(LEN=10)                :: kfid
+    CHARACTER(LEN=1)                 :: knum
+    INTEGER(ikind)                   :: nsu, nsi, num, ntx, errout
+    REAL(rkind),DIMENSION(ntum,nrum) :: f2out
+
+    errout = 0 ! write inquire error message to standard output
+
+
+    ! ***  2D data  ***
+    kfid = 'TE'   ! --> RTU
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+    rtu(1,1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1) * 1.d-3
+
+    kfid = 'TI'   ! --> RTU
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+    DO nsi = 2, nsum !
+       rtu(nsi,1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1) * 1.d-3
+    END DO
+
+    kfid = 'NE'   ! --> RNU
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+    rnu(1,1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1) * 1.d-20
+
+    ! *** density of particles including impurity ***
+    DO nsi = 2, nsum
+       WRITE(knum,'(I1)') nsi
+
+       IF(idnfast(nsi-1))THEN
+          kfid = 'NFAST'//knum   ! --> RNU
+          CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom, &
+             mdlxp,ufid_bin,time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+          IF(ierr == 0)THEN
+             CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+          END IF
+          rnfu(nsi,1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1) * 1.d-20
+       END IF
+
+       IF(idnm(nsi-1))THEN
+          kfid = 'NM'//knum   ! --> RNU
+          CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom, &
+             mdlxp,ufid_bin,time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+          IF(ierr == 0)THEN
+             CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+          END IF          
+          rnu(nsi,1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1) * 1.d-20
+
        END IF
     END DO
 
-
-    kfid = 'NE'   ! --> RNU
-    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
-
-    rnu(1,ntxmax,1:nrmax+1) = f2out(ntxmax,1:nrmax+1) * 1.d-20
-
-! ******
-    kfid = 'NFAST'   ! --> RNU
-    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
-
-    kfid = 'NM1'   ! --> RNU
-    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
+    IF(idzeff(2))THEN
+       kfid = 'ZEFFR'   ! --> zeffru
+       CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom, &
+              mdlxp,ufid_bin,time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+       IF(ierr == 0)THEN
+          CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+       END IF
+       zeffru(1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
+    END IF
+    ! *********************************************
 
 
-    kfid = 'NM2'   ! --> RNU
-    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
+    kfid = 'Q'   ! --> qpu
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+    qpu(1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
+
+    kfid = 'BPOL'   ! --> bpu
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+    bpu(1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
 
 
-    kfid = 'NM3'   ! --> RNU
-    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
+    kfid = 'VROT'   ! --> wrotu
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+    wrotu(1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
 
+    ! associated values
+    DO nsu = 1, nsum
+       DO ntx = 1, ntxmax
+          rpu(nsu,ntx,1:nrmax+1) = rnu(nsu,ntx,1:nrmax+1)*1.d20  &
+                                  *rtu(nsu,ntx,1:nrmax+1)*rkev
+       END DO
+    END DO
 
-    kfid = 'ZEFFR'   ! --> RNU
-    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
-
-
-!!$    kfid = 'NIMP'   ! --> RNU
-!!$    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-!!$                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-!!$                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-!!$    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
-! ******
-
-    kfid = 'PBEAM'   ! --> RNU
-    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
-
-    kfid = 'Q'   ! --> RNU
-    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
-
-    kfid = 'CURTOT'   ! --> RNU
-    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
-
-    kfid = 'CURNBI'   ! --> RNU
-    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
-
-    kfid = 'BPOL'   ! --> RNU
-    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
-
-    kfid = 'QNBIE'   ! --> RNU
-    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
-
-    kfid = 'QNBII'   ! --> RNU
-    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
-
-    kfid = 'QICRHE'   ! --> RNU
-    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
-
-    kfid = 'PICRHI'   ! --> RNU
-    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
-
-    kfid = 'QECH'   ! --> RNU
-    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
-
-    kfid = 'QRAD'   ! --> RNU
-    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
-
-    kfid = 'QOHM'   ! --> RNU
-    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
-
-    kfid = 'VROT'   ! --> RNU
-    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
-
-
-! ***********************   Geometry factors   ************************
-
-    kfid = 'RMAJOR'   ! --> RNU
-    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
-
-    kfid = 'RMINOR'   ! --> RNU
-    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
-
-    kfid = 'GRHO1'   ! --> RNU
-    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
-
-    kfid = 'GRHO2'   ! --> RNU
-    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
-
-    kfid = 'VOLUME'   ! --> RNU
-    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
-
-    kfid = 'SURF'   ! --> RNU
-    CALL tr_uf2d(kfid,kdirx,kuf_dev,kuf_dcg,rhog,rhom,         &
-                 pv,pva,tmu,f2out,ntxmax,rhoa,nrmax,mdlxp,     &
-                 time_slc,id_time,id_mesh,id_deriv,id_rhoa,ierr)
-    CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,uftl_check,uftl_save)
-
-
-    ! read error handling
-    ! substitution, interpolate or extrapolate, and so on.
 
     RETURN
-  END SUBROUTINE tr_ufile_steady
-
-! -------------------------------------------------------------------------
-
-!!$  SUBROUTINE tr_ufile_time
-!!$
-!!$    ! locating UFILE directory (TASK/lib)
-!!$    CALL ufile_interface(kdirx,kufdir,kufdev,kufdcg,0)
-!!$
-!!$!    CALL tr_ufile_get ??
-!!$
-!!$    ! substitution, interpolate or extrapolate, and so on.
-!!$
-!!$  END SUBROUTINE tr_ufile_time
-!!$
-!!$! -------------------------------------------------------------------------
-!!$
-!!$  SUBROUTINE tr_ufile_topics
-!!$
-!!$    ! locating UFILE directory (TASK/lib)
-!!$    CALL ufile_interface(kdirx,kufdir,kufdev,kufdcg,0)
-!!$
-!!$    RETURN
-!!$  END SUBROUTINE tr_ufile_topics
+  END SUBROUTINE tr_ufget_profile
 
 ! ************************************************************************
-! ************************************************************************
 
-  SUBROUTINE tr_uf_complete
-!     MDNI is a parameter that can control which data is used
-!     to determine bulk density, impurity density or effective
-!     charge number among those data.
-!     If all the data above do not exist, MDNI is set to zero
-!     automatically regardless of original MDNI.
-!           0 : NSMAX=2, ne=ni
-!           1 : calculate nimp and ni profiles from NE, ZIMP and ZEFFR
-!           2 : calculate nimp and zeff profiles from NE, ZIMP and NM1
-!           3 : calculate zeff and ni profiles from NE, ZIMP and NIMP
+  SUBROUTINE tr_ufget_source(id_time,id_mesh,id_deriv,ierr)
+! ------------------------------------------------------------------------
+!   *** acquire the source and sink variables from experimental data ***
+!   ***  and substitute them into TASK/TR variables                  ***
+! ------------------------------------------------------------------------
+    USE trufsub,ONLY: tr_uf1d,tr_uf2d,tr_uftl_check
+    USE trcomm,ONLY: tmu,pnbu,pecu,pibwu,picu,plhu,pohmu,pradu,    &
+         jtotu,jnbu,jecu,jicu,jlhu,jbsu,qnbu,qecu,qibwu,qicu,qlhu, &
+         qfusu,qohmu,qradu,snbu,swallu
+    IMPLICIT NONE
 
-    INTEGER(ikind),INTENT(IN) :: mdslct
-    INTEGER(ikind),INTENT(INOUT) :: mdni
+    INTEGER(ikind),INTENT(IN)  :: id_time,id_mesh,id_deriv
+    INTEGER(ikind),INTENT(OUT) :: ierr
 
-    IF(MDNI.LT.0.OR.MDNI.GT.3) THEN
-       MDNI=0
-       WRITE(6,*)'Warning: tr_uf_complete: '
-       WRITE(6,*)'   Parameter "MDNI" is out of range, and set to zero.'
+    CHARACTER(LEN=10)                :: kfid
+    INTEGER(ikind)                   :: errout
+    REAL(rkind),DIMENSION(ntum,nrum) :: f2out
+
+    errout = 1 ! NOT write inquire error message to standard output
+
+    ! ***  1d data  ***
+
+    kfid = 'PNBI'   ! --> pnbu
+    CALL tr_uf1d(kfid,tmu,pnbu,ntxmax,mdlxp,ufid_bin,time_slc,id_time, &
+                 errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+
+    kfid = 'PECH'   ! --> pecu
+    CALL tr_uf1d(kfid,tmu,pecu,ntxmax,mdlxp,ufid_bin,time_slc,id_time, &
+                 errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+
+    kfid = 'PIBW'   ! --> pibwu
+    CALL tr_uf1d(kfid,tmu,pibwu,ntxmax,mdlxp,ufid_bin,time_slc,id_time, &
+                 errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+
+    kfid = 'PICRH'  ! --> picu
+    CALL tr_uf1d(kfid,tmu,picu,ntxmax,mdlxp,ufid_bin,time_slc,id_time, &
+                 errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+
+    kfid = 'PLH'    ! --> plhu
+    CALL tr_uf1d(kfid,tmu,plhu,ntxmax,mdlxp,ufid_bin,time_slc,id_time, &
+                 errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+
+    kfid = 'POHM'   ! --> pohmu
+    CALL tr_uf1d(kfid,tmu,pohmu,ntxmax,mdlxp,ufid_bin,time_slc,id_time, &
+                 errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+
+    kfid = 'PRAD'   ! --> pradu
+    CALL tr_uf1d(kfid,tmu,pradu,ntxmax,mdlxp,ufid_bin,time_slc,id_time, &
+                 errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
     END IF
 
 
-    SELECT CASE(mdslct)
-    CASE(0)
-    CASE(1)
-    CASE(2)
-    CASE(3)
-    CASE(4)
-    CASE(5)
-    CASE(6)
-    CASE(7)
-    END SELECT
+    ! ***  2D data  ***
+    ! current density
+    kfid = 'CURTOT'   ! --> jtotu
+    CALL tr_uf2d(kfid,tmu,jtotu,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
 
-    SELECT CASE(mdni)
-    CASE(0)
-    CASE(1)
-    CASE(2)
-    CASE(3)
-    END SELECT
+    kfid = 'CURNBI'   ! --> jnbu
+    CALL tr_uf2d(kfid,tmu,jnbu,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+
+    kfid = 'CURECH'   ! --> jecu
+    CALL tr_uf2d(kfid,tmu,jecu,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+    jecu(1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
+
+    kfid = 'CURICRH'   ! --> jicu
+    CALL tr_uf2d(kfid,tmu,jicu,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+
+    kfid = 'CURLH'   ! --> jlhu
+    CALL tr_uf2d(kfid,tmu,jlhu,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+
+    kfid = 'CURBS'   ! --> jbsu
+    CALL tr_uf2d(kfid,tmu,jbsu,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+
+
+    ! heating density
+    kfid = 'QNBIE'   ! --> qnbu
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+    qnbu(1,1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
+
+    kfid = 'QNBII'   ! --> qnbu
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+    qnbu(2,1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
+
+
+    kfid = 'QECHE'   ! --> qecu
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+    qecu(1,1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
+
+    kfid = 'QECHI'   ! --> qecu
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+    qecu(2,1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
+
+
+    kfid = 'QIBWHE'   ! --> qibwu
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+    qibwu(1,1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
+
+    kfid = 'QIBWHI'   ! --> qibwu
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+    qibwu(2,1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
+
+
+    kfid = 'QICRHE'   ! --> qicu
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+    qicu(1,1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
+
+    kfid = 'QICRHI'   ! --> qicu
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+    qicu(2,1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
+
+
+    kfid = 'QLHE'   ! --> qecu
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+    qlhu(1,1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
+
+    kfid = 'QLHI'   ! --> qecu
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+    qlhu(2,1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
+
+
+    kfid = 'QOHM'   ! --> qohmu
+    CALL tr_uf2d(kfid,tmu,qohmu,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+
+    kfid = 'QRAD'   ! --> qradu
+    CALL tr_uf2d(kfid,tmu,qradu,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+
+
+    kfid = 'SNBIE'   ! --> snbu
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+    snbu(1,1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
+
+    kfid = 'SNBII'   ! --> snbu
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+    snbu(2,1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
+
+
+    kfid = 'SWALL'   ! --> swallu
+    CALL tr_uf2d(kfid,swallu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+
 
     RETURN
-  END SUBROUTINE tr_uf_complete
+  END SUBROUTINE tr_ufget_source
+
+! ************************************************************************
+
+  SUBROUTINE tr_ufget_geometric(id_time,id_mesh,id_deriv,ierr)
+! ------------------------------------------------------------------------
+! *** acquire the geometric quantity variables from experimental data ***
+! ***  and substitute them into TASK/TR variables                     ***
+! ------------------------------------------------------------------------
+    USE trufsub,ONLY: tr_uf2d,tr_uftl_check
+    USE trcomm,ONLY: tmu,pvolu,psuru,rmjrhou,rmnrhou,ar1rhou,ar2rhou, &
+                     rkprhou,dvrhou,arrhou,abrhou,ttrhou, rru,bbu
+    IMPLICIT NONE
+
+    INTEGER(ikind),INTENT(IN)  :: id_time,id_mesh,id_deriv
+    INTEGER(ikind),INTENT(OUT) :: ierr
+
+    CHARACTER(LEN=10)                :: kfid
+    INTEGER(ikind)                   :: nr, errout
+    REAL(rkind),DIMENSION(ntum,nrum) :: f2out
+
+    errout = 0 ! write inquire error message to standard output
+
+    ! ***  Geometric factors  ***
+
+    kfid = 'RMAJOR'   ! --> rmjrhou
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+    rmjrhou(1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
+
+    kfid = 'RMINOR'   ! --> rmnrhou
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+    rmnrhou(1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
+
+    kfid = 'KAPPAR'   ! --> rkprhou
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+    rkprhou(1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
+
+    kfid = 'GRHO1'   ! --> ar1rhou
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+    ar1rhou(1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
+
+    kfid = 'GRHO2'   ! --> ar2rhou
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+
+    kfid = 'VOLUME'   ! --> pvolu
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+    pvolu(1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
+
+    kfid = 'SURF'   ! --> psuru
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 time_slc,id_time,id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,ntlmax,dt,tlcheck,tlsave)
+    END IF
+    psuru(1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
+
+
+    ! asscociated values
+    dvrhou(1:ntxmax,2:nrmax+1) = psuru(1:ntxmax,2:nrmax+1) &
+                              /ar1rhou(1:ntxmax,2:nrmax+1)
+    dvrhou(1:ntxmax,1) = 0.d0 ! at the magnetic axis
+
+    arrhou(1:ntxmax,1:nrmax+1) = 1.d0 / rmjrhou(1:ntxmax,1:nrmax+1)**2
+    
+    abrhou(1:ntxmax,1:nrmax+1) = ar2rhou(1:ntxmax,1:nrmax+1) &
+                                 *arrhou(1:ntxmax,1:nrmax+1)
+
+    DO nr = 1, nrmax + 1
+       ttrhou(1:ntxmax,nr) = bbu(1:ntxmax)*rru(1:ntxmax)
+    END DO
+
+
+    RETURN
+  END SUBROUTINE tr_ufget_geometric
+
+! **********************************************************************
+
+  SUBROUTINE tr_ufile_view
+    USE truf0d, ONLY: toknam, shotnum
+
+    WRITE(6,*) ' DEVICE: ',TRIM(toknam),'     SHOT: ',TRIM(shotnum)
+
+    RETURN
+  END SUBROUTINE tr_ufile_view
+  
 
 END MODULE trufile

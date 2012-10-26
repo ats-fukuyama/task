@@ -8,9 +8,10 @@ MODULE trgcom
   PRIVATE
   PUBLIC tr_gr_comp
 
-  CHARACTER(LEN=30) :: label
   INTEGER(ikind),PARAMETER :: nggmax=10
-  INTEGER(ikind) :: nr,nit,nsa,ngg,ngg_interval
+
+  CHARACTER(LEN=30) :: label
+  INTEGER(ikind)    :: nr,nit,nsa,ngg,ngg_interval
   
   REAL(rkind),DIMENSION(:),ALLOCATABLE :: rhomg      !(1:nrmax)
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &          !(0:nrmax,1:nsamax)
@@ -31,9 +32,9 @@ CONTAINS
     USE trcomm, ONLY: rhom
 
     CHARACTER(LEN=1),INTENT(IN) :: k2,k3
-    INTEGER(ikind) :: i2,i3,iosts
+    INTEGER(ikind) :: i2,i3,ierr,iosts
 
-    CALL tr_gr_comp_alloc
+    CALL tr_gr_comp_alloc(ierr)
 
     ! set axis
     rhomg(1:nrmax) = rhom(1:nrmax)
@@ -155,10 +156,10 @@ CONTAINS
 ! *************************************************************************
 ! *************************************************************************
 
-  SUBROUTINE tr_gr_comp_alloc
+  SUBROUTINE tr_gr_comp_alloc(ierr)
 
+    INTEGER(ikind),INTENT(OUT) :: ierr
     INTEGER(ikind),SAVE :: nrmax_save, lmaxtr_save
-    INTEGER(ikind)      :: ierr
 
     IF(nrmax /= nrmax_save .OR. lmaxtr /= lmaxtr_save)THEN
 

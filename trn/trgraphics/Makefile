@@ -9,7 +9,7 @@ include $(TASKDIR)/make.header
 FFLAGS = $(DFLAGS)
 
 MODINCLUDE=-I $(BPSDDIR)/mod -I $(TASKDIR)/plx/mod -I $(TASKDIR)/lib/mod \
-           -I ../trcore/mod -I $(MOD) 
+           -I ../trcore/mod -I ../trufile/mod -I $(MOD)
 
 SRC90= trgsub.f90 trgcom.f90 trgtmp.f90 trgrad.f90 trgexp.f90 trgdgn.f90 \
        trgout.f90 

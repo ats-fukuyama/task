@@ -142,7 +142,7 @@ CONTAINS
          plasmaf%rho(nr)  = rhog(nr-1)
          plasmaf%qinv(nr) = 1.d0 / qp(nr-1)
 
-         DO ns=1,plasmaf%nsmax
+         DO ns=1, nsamax
             plasmaf%data(nr,ns)%pn   = rn(ns,nr-1)*1.d20
             plasmaf%data(nr,ns)%pt   = rt(ns,nr-1)*1.d3
             plasmaf%data(nr,ns)%ptpr = rt(ns,nr-1)*1.d3

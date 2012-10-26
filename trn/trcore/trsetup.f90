@@ -23,7 +23,7 @@ CONTAINS
     USE trresult, ONLY: tr_calc_global, tr_save_ngt
     USE trcalv, ONLY: tr_calc_zeff, tr_calc_clseta
     USE trcalc, ONLY: tr_calc_source
-!    USE trufile, ONLY: tr_ufile
+    USE trufile, ONLY: tr_ufile
     IMPLICIT NONE
     INTEGER(ikind):: ierr
 
@@ -69,7 +69,7 @@ CONTAINS
     ! Calculate initial geometric factor for cylindrical assumption
     CALL tr_setup_metric_init
 
- !   If(mdluf > 0) CALL tr_ufile
+    If(mdluf > 0) CALL tr_ufile
 
     ! Calculate initial profile.( preparation for calling equilibrium code )
     CALL tr_setup_profile
@@ -157,7 +157,7 @@ CONTAINS
 ! --------------------------------------------------------------------------
 !   This subroutine sets the table for matrix generation.
 ! --------------------------------------------------------------------------
-    USE trcomm, ONLY: nsm,nsamax,nsabmax,nsafmax,nsanmax, &
+    USE trcomm, ONLY: nsamax,nsabmax,nsafmax,nsanmax, &
          pz,pz0,pa,idion,idnsa,kidns,ns_nsa,nsab_nsaf
     IMPLICIT NONE
 
@@ -168,7 +168,7 @@ CONTAINS
     nsanmax = 0
 
     ! set identifier for charge of particles
-    DO nsa = 1, nsm
+    DO nsa = 1, nsamax
        ns_nsa(nsa) = nsa
        ns=ns_nsa(nsa)
 
@@ -317,9 +317,9 @@ CONTAINS
     CHARACTER(50)  :: fmt_table
     INTEGER(ikind) :: neq,neqr,nsa,ns,nva,nsab
 
-    fmt_table = '(1X,I3,I6,I6,A7,I6,I6)'
-    WRITE(6,*) '##  Variables conversion table  ##'
-    WRITE(6,*) 'NEQ  NEQR   NVA  KIDNS   NSA  NSAB'
+    fmt_table = '(1X,I3,I4,I5,A6,I4,I5)'
+    WRITE(6,*) '# Variables conversion table'
+    WRITE(6,*) 'NEQ NEQR NVA KIDNS NSA NSAB'
 
     neqr = 0
     nva  = 0
@@ -339,6 +339,8 @@ CONTAINS
 
        WRITE(6,fmt_table) neq,neqr,nva,kid,nsa,nsab
     END DO
+    WRITE(6,*) '---------------------------'
+    WRITE(6,*) ! spacing
     
     RETURN
   END SUBROUTINE tr_print_table
@@ -353,7 +355,7 @@ CONTAINS
 !    carried out for making interim profiles for equilibrium code.
 ! --------------------------------------------------------------------------
     USE trcomm, ONLY: pi,rkap,nrmax,ra,rr,bb,rkap,rg,rm,rjcb,rhog,rhom, &
-         rhoa,ttrho,dvrho,abrho,abvrho,arrho,ar1rho,ar2rho,rmjrho,      &
+         ttrho,dvrho,abrho,abvrho,arrho,ar1rho,ar2rho,rmjrho,           &
          rmnrho,rmnrhom,rkprho,rkprhom,rhog,rhom,epsrho,                &
          abb2rho,aib2rho,abb1rho,pvolrho,psurrho  ! ,nrd1,nrd2,nrd3
 
@@ -363,7 +365,6 @@ CONTAINS
 
     ! --- Interim substitution ---
     dr   = SQRT(rkap)*ra/dble(nrmax)
-    rhoa = 1.D0
     DO nr = 0, nrmax
        rg(nr)=dble(nr)*dr
        IF(nr /= 0) rm(nr)=0.5d0*(rg(nr-1)+rg(nr))
@@ -414,7 +415,7 @@ CONTAINS
 ! --------------------------------------------------------------------------
 !
 ! --------------------------------------------------------------------------
-    USE trcomm, ONLY: pi,nrmax,ra,rr,rkap,bb,rg,rm,rhoa,                   &
+    USE trcomm, ONLY: pi,nrmax,ra,rr,rkap,bb,rg,rm,                        &
        ttrho,dvrho,abrho,abvrho,arrho,ar1rho,ar2rho,rmjrho,rmnrho,rmnrhom, &
        rkprho,rkprhom,rjcb,rhog,rhom,epsrho,abb2rho,abb1rho,pvolrho,       &
        psurrho,modelg,knameq !, nrd1,nrd2

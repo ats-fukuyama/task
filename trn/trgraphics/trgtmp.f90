@@ -14,10 +14,10 @@ MODULE trgtmp
 
   INTEGER(ikind) :: nr,nsa,neq,neqr
 
-  REAL(rkind),DIMENSION(:),ALLOCATABLE :: gt  !(0:ngt)
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: & !(0:ngt,nsamax)
+  REAL(rkind),DIMENSION(:),ALLOCATABLE   :: gt !(0:ngt)
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &  !(0:ngt,nsamax)
        gt1,gt2,gt3,gt4
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: & !(0:ngt,5)
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &  !(0:ngt,5)
        gti1,gti2,gti3,gti4
 
 CONTAINS
@@ -29,9 +29,9 @@ CONTAINS
     USE trcomm, ONLY: gvt
 
     CHARACTER(LEN=1),INTENT(IN) :: k2
-    INTEGER(ikind) :: i2,iosts
+    INTEGER(ikind) :: i2,ierr,iosts
 
-    CALL tr_gr_temp_alloc
+    CALL tr_gr_temp_alloc(ierr)
 
     ! set axis
     gt(0:ngt) = gvt(0:ngt,0)
@@ -154,10 +154,10 @@ CONTAINS
 ! *************************************************************************
 ! *************************************************************************
 
-  SUBROUTINE tr_gr_temp_alloc
+  SUBROUTINE tr_gr_temp_alloc(ierr)
 
     INTEGER(ikind),SAVE :: ngt_save, nsamax_save
-    INTEGER(ikind)      :: ierr
+    INTEGER(ikind),INTENT(OUT) :: ierr
 
     IF(ngt /= ngt_save .OR. nsamax /= nsamax_save)THEN
 

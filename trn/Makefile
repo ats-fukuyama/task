@@ -6,7 +6,7 @@ all:
 #	(cd ../equ; make)
 	(cd trcore; make trcomm.o trlib.o)
 	(cd trmodels; make)
-#	(cd trufile; make)
+	(cd trufile; make)
 	(cd trgraphics; make)
 	(cd trcore; make)
 

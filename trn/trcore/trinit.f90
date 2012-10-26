@@ -34,11 +34,11 @@ CONTAINS
     USE trcomm, ONLY: &
            nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
            lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
-           mdluf,mdlxp,mdler,modelg,mdleqn,nteqit,time_slc, &
+           mdluf,mdlxp,mdler,modelg,mdleqn,nteqit,time_slc,time_snap,mdlugt, &
            dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
            ntstep,ngtmax,ngtstp,rips,ripe,profj1,profj2, &
            pnb_tot,pnb_eng,pnb_rw,pnb_r0, &
-           kuf_dir,kuf_dev,kuf_dcg
+           ufid_bin,kuf_dir,kuf_dev,kuf_dcg
     USE plinit
     IMPLICIT NONE
     INTEGER(ikind):: nsa
@@ -245,24 +245,43 @@ CONTAINS
 !        MDLXP :
 !            0 : from UFILEs
 !         else : MDSplus
-
+!
+!     UFID_BIN : Parameter which determines how to handle exp. files.
+!            0 : Binary files are loaded if available, or ASCII files
+!                 are loaded and aftermath binary files are created.
+!            1 : Only binary files are loaded.
+!            2 : Only ASCII files are loaded and binary files are NOT
+!                  created.      
+!
 !        MDLUF :
 !            0 : not used
 !            1 : steady state
 !            2 : time evolution
 !            3 : compared with TOPICS
 
-      mdlxp = 0
-      mdluf = 0
+      mdlxp    = 0
+      mdluf    = 0
+      ufid_bin = 0
 
-      time_slc = -1.d0 ! not determined
+      time_slc  = -1.d0 ! not determined
+
+!     ==== graphic output of experimental data ====
+!     MDLUGT : set the time of snap shot
+!          0 : --- from standard input every time graphic pages are opened.
+!          1 : --- by 'time_snap' in namelist input (trparm)
+!          2 : --- to the lastest time of data
+!       * This switch is valid only in the case of MDLUF = 2
+
+      mdlugt = 0
+      time_snap = -1.d0 ! not determined
 
 !     ==== DEVICE NAME AND SHOT NUMBER IN UFILE DATA ====
-!        KUF_DIR : UFILE directory
+!        KUF_DIR : UFILE database directory
 !        KUF_DEV : Device name
 !        KUF_DCG : Discharge number
 
-      kuf_dir = '../../../profiledb/profile_data'
+!      kuf_dir = '../../../profiledb/profile_data'
+      kuf_dir = '../../../profiledb/itpa_pr08'
       kuf_dev = 'd3d'
       kuf_dcg = '103818'
 
@@ -340,9 +359,9 @@ CONTAINS
            ntstep,ngtmax,ngtstp, &
            lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv,mdler,&
            dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
-           profj1,profj2,rips,ripe,nteqit,time_slc, &
+           profj1,profj2,rips,ripe,nteqit,time_slc,time_snap,mdlugt, &
            pnb_tot,pnb_eng,pnb_rw,pnb_r0, &
-           mdluf,mdlxp,kuf_dir,kuf_dev,kuf_dcg
+           ufid_bin,mdluf,mdlxp,kuf_dir,kuf_dev,kuf_dcg
     IMPLICIT NONE
     INTEGER(ikind),INTENT(IN) :: nid
     INTEGER(ikind),INTENT(OUT):: ist
@@ -356,8 +375,8 @@ CONTAINS
          MODELG,MODELN,MODELQ,RHOGMN,RHOGMX, &
          KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF, &
          MODEFR,MODEFW,IDEBUG, &
-         mdluf,mdlxp, &
-         kuf_dir,kuf_dev,kuf_dcg,time_slc, &
+         ufid_bin,mdluf,mdlxp,mdlugt, &
+         kuf_dir,kuf_dev,kuf_dcg,time_slc,time_snap, &
          nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
          lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
          mdler,nteqit, &

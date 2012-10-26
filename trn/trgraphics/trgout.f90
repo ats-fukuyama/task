@@ -7,7 +7,7 @@ MODULE trgout
   USE trcomm, ONLY : ikind,rkind
 
   PRIVATE
-  PUBLIC tr_gout,tr_gr_time
+  PUBLIC tr_gout
 
 CONTAINS
 
@@ -21,7 +21,7 @@ CONTAINS
     USE trgtmp, ONLY: tr_gr_temporal
     USE trgcom, ONLY: tr_gr_comp
     USE trgdgn, ONLY: tr_gr_diagnostic
-    USE trgexp, ONLY: tr_gr_exp
+    USE trgexp, ONLY: tr_gr_experiment
     IMPLICIT NONE
 
     INTEGER(ikind), SAVE :: init = 0, inqg
@@ -94,7 +94,7 @@ CONTAINS
           CALL tr_gr_diagnostic(k2)
           CYCLE
        CASE('U')
-          CALL tr_gr_exp(k2,k3)
+          CALL tr_gr_experiment(k2,k3)
           CYCLE
 !!$         CASE('Y')
 !!$            CALL TRGRY0(k2,inqg)
@@ -236,24 +236,5 @@ CONTAINS
 
     RETURN
   END SUBROUTINE tr_gr_load
-
-
-  SUBROUTINE tr_gr_time
-! ***********************************************************************
-!            Write time on figure
-! ***********************************************************************
-
-    USE trcomm, ONLY : t
-    IMPLICIT NONE
-
-    CALL SETLIN(0,0,7)
-    CALL SETCHS(0.3,0.0)
-    CALL SETFNT(32)
-    CALL MOVE(11.8,18.0)
-    CALL TEXT('t =',2)
-    CALL NUMBD(t,'(1F7.3)',7)
-    CALL TEXT(' sec.',4)
-    RETURN
-  END SUBROUTINE tr_gr_time
 
 END MODULE trgout

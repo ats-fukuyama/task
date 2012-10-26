@@ -11,7 +11,7 @@ FFLAGS = $(DFLAGS) -warn -g
 MODINCLUDE=-I $(BPSDDIR)/mod -I $(TASKDIR)/plx/mod -I $(TASKDIR)/lib/mod \
            -I ../trcore/mod -I $(MOD)
 
-SRC90= trufsub.f90 trufile.f90
+SRC90= trufsub.f90 trufcalc.f90 trufile.f90
 
 OBJS= $(SRC90:.f90=.o)
 

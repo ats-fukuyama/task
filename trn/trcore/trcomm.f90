@@ -32,8 +32,10 @@ MODULE trcomm
 
   REAL(rkind),PARAMETER :: rkev = aee*1.d3 ! the factor ([keV] -> [J])
 
-  ! *** the size of UFILE ***
-  INTEGER(ikind),PARAMETER :: ntum = 1000,nrum = 100,nsum = 10
+  ! *** the maximum size of UFILE ***
+  INTEGER(ikind),PARAMETER :: ntum = 1000
+  INTEGER(ikind),PARAMETER :: nrum = 100
+  INTEGER(ikind),PARAMETER :: nsum = 10   ! number of species: NMn + electron
 
 ! ----- contral parameters -----
   INTEGER(ikind):: nrmax       ! number of radial step (except rg=0)
@@ -141,7 +143,7 @@ MODULE trcomm
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
        rn,      &! particle density [10^{20] m^{-3}]
        ru,      &! toroidal velocity [m/s]
-       rt,      &! temperature [keV]
+       rt,      &! particle temperature [keV]
        rn_prev, &! previous particle density [10^{20] m^{-3}]
        ru_prev, &! previous toroidal velocity [m/s]
        rt_prev   ! previous temperature [keV]
@@ -225,8 +227,8 @@ MODULE trcomm
        ar1rho,   &! <|grad rho|>
        ar2rho,   &! <|grad rho|^2>
        abrho,    &! <|grad rho|^2/R^2> ; avegrr2
-       rmjrho,   &! local R
-       rmnrho,   &! local r
+       rmjrho,   &! local R [m]
+       rmnrho,   &! local r [m]
        rkprho,   &! local kappa
        abb1rho,  &! <B>
        epsrho,   &! r/R
@@ -235,8 +237,6 @@ MODULE trcomm
        rkprhom    ! local kappa (half-grid)
 
 ! ----- normalized variables -----
-  REAL(rkind) :: &
-       rhoa       ! normalized minor radius
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
        rhog,     &! normalized minor radius mesh position
        rhom,     &! normalized minor radius half-mesh position
@@ -295,7 +295,7 @@ MODULE trcomm
 
 ! ----- derivatives of the quantities -----
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE ::&
-       rp,       &!the pressure of each species (nT)
+       rp,       &!the pressure of each species (nT) [Pa]
        rp_d       !the deriv. of pressure of each species (dnT/dr) 
        
   REAL(rkind),DIMENSION(:),ALLOCATABLE ::&
@@ -361,38 +361,110 @@ MODULE trcomm
   INTEGER(ikind) :: &  
        mdlxp,    &! Select UFILE or MDSplus
        mdluf,    &! Model type of UFILE
-       mdni  ! Select how to determine bulk density, impurity density
-             !  or effective charge number
-             !  0 : NSMAX=2, ne=ni
-             !  1 : calculate Nimp and Ni profiles from Ne, Zimp and Zeffr
-             !  2 : calculate Nimp and Zeff profiles from Ne, Zimp and NM1
-             !  3 : calculate Zeff and Ni profiles from Ne, Zimp and Nimp
+       mdlugt,   &! Select the way to set the time of snap shot for graphic
+       mdni,     &! Select how to determine bulk density, impurity density
+!                 !  or effective charge number
+!                 !  0 : NSMAX=2, ne=ni
+!                 !  1 : calculate Nimp and Ni profiles from Ne, Zimp and Zeffr
+!                 !  2 : calculate Nimp and Zeff profiles from Ne, Zimp and NM1
+!                 !  3 : calculate Zeff and Ni profiles from Ne, Zimp and Nimp
+       ufid_bin   ! Parameter which determines how to handle exp. files.
+                  ! 0 : Binary files are loaded if available, or ASCII files
+                  !      are loaded and aftermath binary files are created.
+                  ! 1 : Only binary files are loaded.
+                  ! 2 : Only ASCII files are loaded and binary files are NOT
+                  !      created.
 
   ! ----- UFILE control -----
-  CHARACTER(80) :: kuf_dir  !
-  CHARACTER(80) :: kuf_dev  !
-  CHARACTER(80) :: kuf_dcg  !
-  CHARACTER(80) :: kdirx    !
+  CHARACTER(80) :: kuf_dir  ! UFILE database directory
+  CHARACTER(80) :: kuf_dev  ! device name
+  CHARACTER(80) :: kuf_dcg  ! discharge number
+  CHARACTER(80) :: kdirx    ! directory containig a set of UFILE
   REAL(rkind)   :: time_slc ! time slicing point for steady state simulation
+  REAL(rkind)   :: time_snap! time slicing point for graphic
 
   ! ----- Stored variables for UFILE -----
+  INTEGER(ikind) :: ndmax  ! number of 0D experimental (UFILE) data
   INTEGER(ikind) :: ntxmax ! number of experimental time data
   INTEGER(ikind) :: ntlmax ! number of time step of experimental data
-                           ! * Step size 'dt' is one of TASK/TR.
+                           ! * Step size 'dt' is that of simulation.
   REAL(rkind)    :: tlmax  ! end of time of experimental data
 
-  REAL(rkind),DIMENSION(1:ntum) ::        &
-       tmu,rru,rau,phiau,volau,bbu,rkapu, &
-       rdelu,pnbiu,ripu
-  REAL(rkind),DIMENSION(1:ntum,1:nrum) :: &
-       qpu,z_effu,jtotu,jnbu,jbsu,bpu,prlu,pecu,pohu,pbmu,    &
-       dvrhou,rkprhou,rmjrhou,rmnrhou,arrhou,ar1rhou,ar2rhou, &
-       abrhou,ttrhou,                                         &
-       wrotu,z_effu_org,s_wallu
-  REAL(rkind),DIMENSION(1:ntum,1:nsum) :: &
-       pzu,pau,ptsu,pnsu!,ptsau,pnsau
+  REAL(rkind),DIMENSION(1:ntum) :: & 
+       ! global variables
+       tmu,   &! time point data vector [s]
+       rru,   &! plasma major radius [m]
+       rau,   &! plasma minor radius
+       phiau, &! total toroidal flux enclosed by the plasma [Wb]
+       bbu,   &! vaccume toroidal field at geometric axis [T]
+       rkapu, &! plasma elongation
+       rdelu, &! mean triangularity of the plasma boundary
+       ripu,  &! plasma current [A]
+       wthu,  &! thermal plasma energy content [J]
+       wtotu, &! total plasma energy content [J]
+       zeffu, &! line averaged effective charge
+!
+       ! source
+       pnbu,  &! total injected NBI power (minus shine through) [W]
+       pecu,  &! coupled ECH power [W]
+       pibwu, &! coupled IBW power [W]
+       picu,  &! coupled ICRH power [W]
+       plhu,  &! coupled LH power [W]
+       pohmu, &! total ohmic power [W]
+       pradu   ! total radiated power [W]
+
+  REAL(rkind),DIMENSION(1:ntum,1:nrum) :: & ! profile variables
+       qpu,    &! safety factor
+       bpu,    &! surface averaged poloidal magnetic field [T]
+       zeffru, &! plasma effective charge radial profile
+       wrotu,  &! toroidal angular speed [rad/s]
+!
+       jtotu,  &! total current density [A/m^2]
+       jnbu,   &! NBI driven current profile [A/m^2]
+       jecu,   &! ECH driven current profile [A/m^2]
+       jicu,   &! ICRH driven current profile [A/m^2]
+       jlhu,   &! LH driven current profile [A/m^2]
+       jbsu     ! bootstrap current profile [A/m^2]
+!
+  REAL(rkind),DIMENSION(2,1:ntum,1:nrum) :: & ! electron and ion
+       qnbu,   &! power deposition profile on thermal particles by NBI [W/m^3]
+       qecu,   &! power deposition profile on thermal particles by ECH [W/m^3]
+       qibwu,  &! power deposition profile on thermal particles by IBW [W/m^3]
+       qicu,   &! power deposition profile on thermal particles by ICRH[W/m^3]
+       qlhu,   &! power deposition profile on thermal particles by LH  [W/m^3]
+       qfusu,  &! heating density due to DT fusion [W/m^2]
+!
+       snbu     ! source of thermal particles from NBI [/(m^3 s)]
+!               ! in the case of ions, it's due to thermalization and 
+!               !  charge exchange process [/(m^3 s)]
+
+  REAL(rkind),DIMENSION(1:ntum,1:nrum) :: & ! profile variables
+       qohmu,  &! ohmic power density [W/m^3]
+       qradu,  &! total radiated power density [W/m^3]
+!
+       swallu, &! main thermal ion particle source from 
+!               !  due to ionisation recycling wall neutral [/(m^3 s)]
+!
+       pvolu,  &! volume enclosed by the magnetic surface [m^3]
+       psuru,  &! surface area of the magnetic surface [m^2]
+       rmjrhou,&! geometrical major radius [m]
+       rmnrhou,&! geometrical minor radius [m]
+       ar1rhou,&! metric quantity: <|nabla rho|>
+       ar2rhou,&! metric quantity: <|nabla rho|^2>
+       rkprhou,&! average elongation of the magnetic surface
+       dvrhou, &! d V /d rho
+       arrhou, &! <1/R^2>
+       abrhou, &! <|grad rho|^2/R^2>
+       ttrhou   ! R*B
+
   REAL(rkind),DIMENSION(1:nsum,1:ntum,1:nrum) :: &
-       rnu,rtu,pnbu,picu,snbu
+       rnu,    &! particle density [10^{20} m^{-3}]
+       rnfu,   &! fast particle density [10^{20} m^{-3}]
+       rtu,    &! particle temperature [keV]
+       rpu      ! particle pressure [Pa]
+  REAL(rkind),DIMENSION(1:nsum) :: &
+       pau,    &! atomic number
+       pzu      ! charge number
 
   
 CONTAINS

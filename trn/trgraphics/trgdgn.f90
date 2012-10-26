@@ -25,9 +25,9 @@ CONTAINS
     USE trcomm, ONLY: rhom
 
     CHARACTER(LEN=1),INTENT(IN) :: k2
-    INTEGER(ikind) :: iosts,i2
+    INTEGER(ikind) :: ierr,iosts,i2
 
-    CALL tr_gr_diagnostic_alloc
+    CALL tr_gr_diagnostic_alloc(ierr)
 
     ! set axis
     rhomg(1:nrmax) = rhom(1:nrmax)
@@ -61,6 +61,7 @@ CONTAINS
     nrd4mg(1:nrmax,1) = nrd4(1:nrmax)
 
     nrd1g(0:nrmax,1) = nrd1(0:nrmax)
+    nrd1g(0:nrmax,2) = nrd2(0:nrmax)
     nrd2g(0:nrmax,1) = nrd2(0:nrmax)
     nrd3g(0:nrmax,1) = nrd3(0:nrmax)
     nrd4g(0:nrmax,1) = nrd4(0:nrmax)
@@ -69,7 +70,7 @@ CONTAINS
 
     CALL PAGES
     LABEL = '/diagnostic1 vs rho/'
-    CALL GRD1D(1,rhomg,nrd1mg, nrmax, nrmax, 1, label, 0)
+    CALL GRD1D(1,rhog,nrd1g, nrmax+1, nrmax+1, 2, label, 0)
     LABEL = '/diagnostic2 vs rho/'
     CALL GRD1D(2,rhog,nrd2g, nrmax+1, nrmax+1, 1, label, 0)
     LABEL = '/diagnostic3 vs rho/'
@@ -125,10 +126,10 @@ CONTAINS
 ! *************************************************************************
 ! *************************************************************************
 ! *************************************************************************
-  SUBROUTINE tr_gr_diagnostic_alloc
+  SUBROUTINE tr_gr_diagnostic_alloc(ierr)
 
+    INTEGER(ikind),INTENT(OUT) :: ierr
     INTEGER(ikind),SAVE :: nrmax_save,nsamax_save
-    INTEGER(ikind)      :: ierr
 
     IF(nrmax /= nrmax_save .OR. nsamax /= nsamax_save)THEN
 

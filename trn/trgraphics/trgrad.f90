@@ -4,16 +4,17 @@ MODULE trgrad
 ! **************************************************************************
 
   USE trcomm, ONLY:ikind,rkind,nrmax,nsamax,neqmax,neqrmax, &
-       neq_neqr,nsa_neq,nva_neq,rhog
+       nsabmax,nsafmax,neq_neqr,nsa_neq,nva_neq,nsab_nsaf,rhog
   USE libgrf,ONLY: grd1d
   IMPLICIT NONE
 
   PRIVATE
   PUBLIC tr_gr_radial
 
-  CHARACTER(LEN=30) :: label
   INTEGER(ikind),PARAMETER :: nggmax=10
-  INTEGER(ikind) :: nr,nsa,neq,neqr,ngg,ngg_interval
+
+  CHARACTER(LEN=30) :: label
+  INTEGER(ikind)    :: nr,nsa,nsaf,neq,neqr,ngg,ngg_interval
 
   REAL(rkind),DIMENSION(:),ALLOCATABLE :: rhomg !(1:nrmax)
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(0:nrmax,neqrmax)
@@ -37,9 +38,10 @@ CONTAINS
 ! -------------------------------------------------------------------------
     USE trcomm, ONLY: rhom
     CHARACTER(LEN=1),INTENT(IN) :: k2,k3
-    INTEGER(ikind) :: i2,i3,iosts
+    INTEGER(ikind) :: i2,i3,ierr,iosts
 
-    CALL tr_gr_rad_alloc
+    CALL tr_gr_rad_alloc(ierr)
+    IF(ierr /= 0) RETURN
 
     ! set axis
     rhomg(1:nrmax) = rhom(1:nrmax)
@@ -69,6 +71,8 @@ CONTAINS
           CALL tr_gr_rad7 ! rotational velocity, Vtor,Vpol,Vpar,Vprp
        CASE(8)
           CALL tr_gr_rad8 ! er
+       CASE(9)
+          CALL tr_gr_rad9 ! fast ion particle
        END SELECT
     ELSE IF(i2 == 1)THEN ! history of radial profile
        SELECT CASE(i3)
@@ -95,9 +99,11 @@ CONTAINS
     DO neq = 1, neqmax
        nsa = nsa_neq(neq)
        IF(nsa /= 0)THEN
-          vg1(0:nrmax,nsa)=rn(nsa,0:nrmax)
-          vg2(0:nrmax,nsa)=rp(nsa,0:nrmax) * 1.d-6
-          vg3(0:nrmax,nsa)=rt(nsa,0:nrmax)
+          IF(nsab_nsaf(nsa) == 0)THEN! excluding fast ion species
+             vg1(0:nrmax,nsa)=rn(nsa,0:nrmax)
+             vg2(0:nrmax,nsa)=rp(nsa,0:nrmax) * 1.d-6
+             vg3(0:nrmax,nsa)=rt(nsa,0:nrmax)
+          END IF
        END IF
     END DO
 !       vg4(0:nrmax,1)=dpdrho(0:nrmax)
@@ -400,6 +406,29 @@ CONTAINS
   END SUBROUTINE tr_gr_rad8
 
 ! **************************************************************************
+  SUBROUTINE tr_gr_rad9
+    ! fast ion particle profile
+    USE trcomm, ONLY: rt
+
+    DO neq = 1, neqmax
+       nsa = nsa_neq(neq)
+       IF(nsa /= 0)THEN
+          nsaf = nsab_nsaf(nsa)
+          IF(nsaf /= 0)THEN
+             vg1(0:nrmax,nsaf) = rt(nsa,0:nrmax)
+          END IF
+       END IF
+    END DO
+
+    CALL PAGES
+    label = '/Ti(fast) [keV] vs rho/'
+    CALL GRD1D(1,rhog,vg1,nrmax,nrmax,nsafmax,label,0)
+    CALL PAGEE
+
+    RETURN
+  END SUBROUTINE tr_gr_rad9
+
+! **************************************************************************
   SUBROUTINE tr_gr_rad11
   ! ----- history of radial profile -----
     USE trcomm, ONLY: ngt,gvrt,gvrts
@@ -466,10 +495,10 @@ CONTAINS
 ! **************************************************************************
 ! **************************************************************************
 
-  SUBROUTINE tr_gr_rad_alloc
+  SUBROUTINE tr_gr_rad_alloc(ierr)
     
+    INTEGER(ikind),INTENT(OUT) :: ierr
     INTEGER(ikind),SAVE :: nrmax_save=0, neqmax_save=0
-    INTEGER(ikind)      :: ierr
 
     IF(nrmax /= nrmax_save .OR. neqmax /= neqmax_save)THEN
 
