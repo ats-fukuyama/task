@@ -7,7 +7,7 @@ MODULE trufcalc
   PUBLIC tr_uf_complete, &
        sumzni,rniu,rnfiu
 
-  REAL(rkind),DIMENSION(1:ntum,1:nrum)        :: sumzni
+  REAL(rkind),DIMENSION(1:ntum,1:nrum)        :: sumzni,sumznin
   REAL(rkind),DIMENSION(1:nsum,1:ntum,1:nrum) :: rnuc,rnfuc
 
 CONTAINS
@@ -35,16 +35,50 @@ CONTAINS
     DO nsi = 2, nsum
        IF(idnm(nsi))THEN
           IF(pzu(nsu) == pz_mion .AND. pau(nsu) == pa_mion)THEN
-             ns_mion = nsu
+             ns_mion = nsi
           ELSE IF(pzu(nsu) == pz_mimp .AND. pau(nsu) == pa_mimp)THEN
-             ns_mimp = nsu
+             ns_mimp = nsi
           END IF
        END IF
     END DO
-    
 
-    id = 0
-    CALL tr_uf_neutrality_check(pzi,id,ierr)
+    ! the case that the main ion density data can not be found.
+    IF(ns_mion == 0)THEN
+       DO nsi = 2, nsum
+          IF(idnm(nsi) == .FALSE.)THEN
+             idnm(nsi)   = .TRUE.
+             idnmaz(nsi) = .TRUE.
+
+             ns_mion = nsi
+             pzu(ns_mion) = pz_mion
+             pau(ns_mion) = pa_mion
+             EXIT
+          END IF
+          WRITE(6,*) 'XX tr_uf_complete: No blank in UFILE array.'
+          ierr = 1
+          RETURN
+       END DO
+    END IF
+
+    ! the case that the main impurity density data can not be found.
+    IF(ns_mimp == 0)THEN
+       DO nsi = 3, nsum ! nsi = 2: impurity data should not be store.
+          IF(idnm(nsi) == .FALSE.)THEN
+             idnm(nsi)   = .TRUE.
+             idnmaz(nsi) = .TRUE.
+
+             ns_mimp = nsi
+             pzu(ns_mimp) = pz_mimp
+             pau(ns_mimp) = pa_mimp
+             EXIT
+          END IF
+       END DO
+    END IF
+             
+
+
+    id = 1
+    CALL tr_uf_neutrality_check(rnuc,pzu,ns_mion,ns_mimp,id,ierr)
 
     RETURN
   END SUBROUTINE tr_uf_complete
@@ -160,43 +194,67 @@ CONTAINS
     RETURN
   END SUBROUTINE tr_uf_comp_table
 
-!!$  SUBROUTINE tr_uf_comp_nimp
-!!$
-!!$    RETURN
-!!$  END SUBROUTINE tr_uf_comp_nimp
-!!$
-!!$  SUBROUTINE tr_uf_comp_zeff
-!!$
-!!$    RETURN
-!!$  END SUBROUTINE tr_uf_comp_zeff
-
 ! **********************************************************************
 
-  SUBROUTINE tr_uf_neutrality_check(pzi,id,ierr)
+  SUBROUTINE tr_uf_neutrality_check(rnc,pzc,rnfc,pzfc,ns_mion,ns_mimp, &
+                                    zeffrc,id,ierr)
 ! ----------------------------------------------------------------------
+!  < NOTATION >
+!  n_e    : particle density of electron
+!  n_i    : particle density of main ion
+!  n_bulk : particle density of other ions (not impurity)
+!  n_imp  : particle density of impurity
 !
-!  id = 1 : from zeff make n_x
-!  id = 2 : from n_i make n_x and zeff
+!  id = 1 : complete n_i and n_imp  from Zeff, n_e (and n_bulk)
+!  id = 2 : complete n_imp and Zeff from n_e, n_i (and n_bulk)
+!  id = 3 : complete n_i and Zeff   from n_e, n_imp (and n_bulk)
 ! ----------------------------------------------------------------------
     USE trcomm,ONLY: nrmax,ntxmax,rnu
 
     IMPLICIT NONE
 
-    INTEGER(ikind),             INTENT(IN)  :: id
-    REAL(rkind),                INTENT(IN)  :: pzi
-    INTEGER(ikind),             INTENT(OUT) :: ierr
+    INTEGER(ikind),               INTENT(IN)  :: ns_mion,ns_mimp,id
+    REAL(rkind),DIMENSION(1:nsum),INTENT(IN)  :: pzc,pzfc
+    REAL(rkind),DIMENSION(1:ntum,1:nrum),       INTENT(IN)    :: zeffrc
+    REAL(rkind),DIMENSION(1:nsum,1:ntum,1:nrum),INTENT(IN)    :: rnfc
+    REAL(rkind),DIMENSION(1:nsum,1:ntum,1:nrum),INTENT(INOUT) :: rnc
+    INTEGER(ikind),               INTENT(OUT) :: ierr
 
-    INTEGER(ikind) :: nsi
+    INTEGER(ikind) :: nsi, ntx
 
     ierr = 0
-    sumzni(1:ntum,1:nrum) = 0.d0
+    sumzni(1:ntum,1:nrum)  = 0.d0
+    sumznin(1:ntum,1:nrum) = 0.d0
 
-    DO nsi = 1, 9 ! ion only: SUM_i(Z_i * n_i)
-       sumzni(1:ntxmax,1:nrmax+1) = sumzni(1:ntxmax,1:nrmax+1)           &
-                         + pziu(nsi+1)*rniu(nsi+1,1:ntxmax,1:nrmax+1)    &
-                         + pzfiu(nsi+1)*rnfiu(nsi+1,1:ntxmax,1:nrmax+1)
+    DO nsi = 2, nsum ! ion only: SUM_i(Z_i * n_i)
+       sumzni(1:ntxmax,1:nrmax+1) = sumzni(1:ntxmax,1:nrmax+1)     &
+                         + pzc(nsi)*rnc(nsi,1:ntxmax,1:nrmax+1)    &
+                         + pzfc(nsi)*rnfc(nsi,1:ntxmax,1:nrmax+1)
        write(6,*) nsi+1, pziu(nsi+1), pzfiu(nsi+1)
     END DO
+
+
+
+    SELECT CASE(id)
+    CASE(1)
+       DO ntx = 1, ntxmax
+       rnc(ns_mion,ntx,1:nrmax+1) = (pzc(ns_mimp)-zeffrc(ntx,1:nrmax+1))   &
+                                     *rnc(1,ntx,1:nrmax+1)
+       DO nsi = 2, nsum
+          IF(nsi /= ns_mion .AND. nsi /= ns_mimp)THEN
+             rnc(ns_mion,ntx,1:nrmax+1) = rnc(ns_mion,ntx,1:nrmax+1)       &
+                  - (pzc(ns_mimp)-pzc(nsi))*pzc(nsi)*rnc(nsi,ntx,1:nrmax+1)
+          END IF
+             rnc(ns_mion,ntx,1:nrmax+1) = rnc(ns_mion,ntx,1:nrmax+1)       &
+                  - (pzc(ns_mimp)-pzfc(nsi))*pzfc(nsi)*rnfc(nsi,ntx,1:nrmax+1)
+       END DO
+
+       rnc(ns_mion,ntx,1:nrmax+1) = rnc(ns_mion,ntx,1:nrmax+1)             &
+                               /(pzc(ns_mion)*(pzc(ms_mimp)-pzc(ms_mion)))
+
+    CASE(2)
+
+    END SELECT
 
     RETURN
   END SUBROUTINE tr_uf_neutrality_check
