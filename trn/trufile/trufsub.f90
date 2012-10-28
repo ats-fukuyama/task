@@ -8,8 +8,7 @@ MODULE trufsub
   IMPLICIT NONE
 
   PRIVATE
-  PUBLIC tr_uf_check_impurity,tr_uf0d,tr_uf1d,tr_uf2d,tr_uftl_check, &
-         tr_uf_time_slice
+  PUBLIC tr_uf1d,tr_uf2d,tr_uftl_check,tr_uf_time_slice
 
 CONTAINS
 

@@ -464,7 +464,9 @@ MODULE trcomm
        rpu      ! particle pressure [Pa]
   REAL(rkind),DIMENSION(1:nsum) :: &
        pau,    &! atomic number
-       pzu      ! charge number
+       pzu,    &! charge number
+       pafu,   &! atomic number of fast ions (subscript #1 is dummy)
+       pzfu     ! charge number of fast ions (subscript #1 is dummy)
 
   
 CONTAINS

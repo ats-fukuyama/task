@@ -154,7 +154,7 @@ CONTAINS
 ! ************************************************************************
   SUBROUTINE tr_gr_exp9
     ! quasi neutrality check of ufile data
-    USE trufcalc, ONLY: sumzni,rniu,rnfiu
+    USE trufcalc, ONLY: sumzni,rnuc,rnfuc,ns_mion,ns_mimp
     USE trcomm, ONLY: rnu
 
     INTEGER(ikind) :: nsu
@@ -163,21 +163,32 @@ CONTAINS
     vgu2(0:nrmax,1:nsum) = 0.d0
     vgu3(0:nrmax,1:nsum) = 0.d0
     
+    ! original electron density profile
     vgu1(0:nrmax,1) = rnu(1,ntxsnap,1:nrmax+1)
+    ! re-calculated ion desity profile
     vgu1(0:nrmax,2) = sumzni(ntxsnap,1:nrmax+1)
 
+    vgu2(0:nrmax,1) = rnu(ns_mion,ntxsnap,1:nrmax+1)
+    vgu2(0:nrmax,2) = rnu(ns_mimp,ntxsnap,1:nrmax+1)
+    vgu2(0:nrmax,3) = rnuc(ns_mion,ntxsnap,1:nrmax+1)
+    vgu2(0:nrmax,4) = rnuc(ns_mimp,ntxsnap,1:nrmax+1)
+
     DO nsu = 1, nsum-1
-       vgu2(0:nrmax,nsu) = rniu(nsu+1,ntxsnap,1:nrmax+1)
-       vgu3(0:nrmax,nsu) = rnfiu(nsu+1,ntxsnap,1:nrmax+1)
+       ! original ion density profiles
+       vgu3(0:nrmax,nsu) = rnuc(nsu+1,ntxsnap,1:nrmax+1)
+       ! original fast ion density profiles
+       vgu4(0:nrmax,nsu) = rnfuc(nsu+1,ntxsnap,1:nrmax+1)
     END DO
 
     CALL PAGES
-    label = '/neutrality check (n_e and Sum_i (Z_i n_i))/'
+    label = '/neutrality (re-calc) (n_e and Sum_i (Z_i n_i))/'
     CALL GRD1D(1,rhog,vgu1,nrmax+1,nrmax+1,2,label,0)
+    label = '/neutrality (compare) (n_mion,n_mimp)/'
+    CALL GRD1D(2,rhog,vgu2,nrmax+1,nrmax+1,4,label,0)
     label = '/n_i(exp) vs rho/'
-    CALL GRD1D(2,rhog,vgu2,nrmax+1,nrmax+1,nsum,label,0)
+    CALL GRD1D(3,rhog,vgu2,nrmax+1,nrmax+1,nsum,label,0)
     label = '/n_f(exp) vs rho/'
-    CALL GRD1D(3,rhog,vgu3,nrmax+1,nrmax+1,nsum,label,0)
+    CALL GRD1D(4,rhog,vgu3,nrmax+1,nrmax+1,nsum,label,0)
 
     CALL tr_gr_time(idexp)
     CALL PAGEE

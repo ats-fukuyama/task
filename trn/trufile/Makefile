@@ -5,13 +5,11 @@ include $(TASKDIR)/make.header
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-#FFLAGS = $(OFLAGS)
-FFLAGS = $(DFLAGS) -warn -g
 
 MODINCLUDE=-I $(BPSDDIR)/mod -I $(TASKDIR)/plx/mod -I $(TASKDIR)/lib/mod \
            -I ../trcore/mod -I $(MOD)
 
-SRC90= trufsub.f90 trufcalc.f90 trufile.f90
+SRC90= truf0d.f90 trufsub.f90 trufcalc.f90 trufile.f90
 
 OBJS= $(SRC90:.f90=.o)
 

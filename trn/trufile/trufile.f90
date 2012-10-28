@@ -6,17 +6,13 @@ MODULE trufile
   USE trcomm, ONLY: ikind,rkind,ntum,nrum,nsum, &
        nrmax,dt,rhog,rhom,mdlxp,ndmax,ntxmax,ntlmax,tlmax,time_slc,ufid_bin
 
-  USE trufsub,ONLY: idnm,idnfast,idnmaz,idnfastaz,idzeff
+  USE truf0d,ONLY: idnm,idnfast,idnmaz,idnfastaz,idzeff
   IMPLICIT NONE
 
   PRIVATE
-  PUBLIC tr_ufile!, idnm,idnfast,idnmaz,idnfastaz,idzeff
+  PUBLIC tr_ufile
 
   INTEGER(ikind) :: tlcheck, tlsave
-
-!  LOGICAL,DIMENSION(1:9) :: idnm,idnfast,idnmaz,idnfastaz
-!  LOGICAL,DIMENSION(1:2) :: idzeff
-
 
 CONTAINS
 
@@ -195,7 +191,6 @@ CONTAINS
 ! ------------------------------------------------------------------------
 !
 ! -----------------------------------------------------------------------
-    USE truf0d, ONLY: idnm,idnfast,idzeff
     USE trufsub,ONLY: tr_uf2d,tr_uftl_check
     USE trcomm,ONLY: rkev,tmu,pau,pzu,rtu,rnu,rnfu,rpu,zeffru,zeffu,qpu,bpu,wrotu
     IMPLICIT NONE

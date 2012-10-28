@@ -1,10 +1,12 @@
 MODULE truf0d
   USE uflist, ONLY: uf0d
+  USE trcomm, ONLY: ikind, rkind, nsum,ntum,nrum,ntxmax
 
   IMPLICIT NONE
 
   PRIVATE
-  PUBLIC tr_uf0d,idnm,idnfast,idnmaz,idnfastaz,idzeff
+  PUBLIC tr_uf0d, &
+         idnm,idnfast,idnmaz,idnfastaz,idzeff, toknam,shotnum
 
   LOGICAL,DIMENSION(1:9) :: idnm,idnfast,idnmaz,idnfastaz
   LOGICAL,DIMENSION(1:2) :: idzeff
@@ -19,9 +21,11 @@ CONTAINS
 !    ( MDSplus is not supportted. )
 ! ----------------------------------------------------------------------
     USE ufread,ONLY: ufread_0d
+    USE trcomm,ONLY: zeffu
 
     INTEGER(ikind),INTENT(IN)  :: mdlxp
     INTEGER(ikind),INTENT(OUT) :: ndmax,ierr
+
 
     IF(mdlxp == 0)THEN
        CALL ufread_0d(ndmax,ierr)
@@ -38,7 +42,11 @@ CONTAINS
 
        CALL tr_uf_check_species
 
-       CALL tr_uf_get_species
+       CALL tr_uf_get_papz
+
+       zeffu(1:ntxmax) = 0.d0
+       IF(idzeff(1))  zeffu(1:ntxmax) = uf0d(175)%fr0
+
     ENDIF
 
     RETURN
@@ -95,7 +103,7 @@ CONTAINS
 
     DO nsi = 1, 9
        num = (nsi-1)*2 + 68 ! see uf0d list: NFAST1A ~ NFAST9Z
-       IF(uf0d(num)%lex == .TRUE. .AND. uf0d(num+1)%lex == .TRUE.)THEN
+       IF(uf0d(num)%lex .EQV. .TRUE. .AND. uf0d(num+1)%lex .EQV. .TRUE.)THEN
           IF(0 < uf0d(num)%fr0   .AND.   uf0d(num)%fr0 < pamax .AND.  &
              0 < uf0d(num+1)%fr0 .AND. uf0d(num+1)%fr0 < pzmax)THEN
              idnfastaz(nsi) = .TRUE.
@@ -103,7 +111,7 @@ CONTAINS
        END IF
 
        num = (nsi-1)*2 + 86 ! see uf0d list: NM1A ~ NM9Z
-       IF(uf0d(num)%lex == .TRUE. .AND. uf0d(num+1)%lex == .TRUE.)THEN
+       IF(uf0d(num)%lex .EQV. .TRUE. .AND. uf0d(num+1)%lex .EQV. .TRUE.)THEN
           IF(0 < uf0d(num)%fr0   .AND.   uf0d(num)%fr0 < pamax .AND.  &
              0 < uf0d(num+1)%fr0 .AND. uf0d(num+1)%fr0 < pzmax)THEN
              idnmaz(nsi) = .TRUE.
@@ -111,10 +119,10 @@ CONTAINS
        END IF
 
        ! The species can not be idetified in the following case.
-       IF(idnfast(nsi)==.TRUE. .AND. idnfastaz(nsi)==.FALSE.)THEN
+       IF(idnfast(nsi).EQV. .TRUE. .AND. idnfastaz(nsi).EQV. .FALSE.)THEN
           ierr = ierr + 10**(nsi-1)
        END IF
-       IF(idnm(nsi)==.TRUE. .AND. idnmaz(nsi)==.FALSE.)THEN
+       IF(idnm(nsi).EQV. .TRUE. .AND. idnmaz(nsi).EQV. .FALSE.)THEN
           ierr = ierr + 2*10**(nsi-1)
        END IF
     END DO
@@ -126,7 +134,7 @@ CONTAINS
     END IF
 
     ! 0d.dat: kfid = ZEFF
-    IF(uf0d(175)%lex == .TRUE. .AND. &
+    IF(uf0d(175)%lex .EQV. .TRUE. .AND. &
          0 < uf0d(175)%fr0 .AND. uf0d(175)%fr0 < pzmax)THEN
        idzeff(2) = .TRUE.
     END IF
@@ -136,88 +144,123 @@ CONTAINS
 
 ! **********************************************************************
 
-  SUBROUTINE tr_uf_get_species!(idnm,idnfast,idnmaz,idnfastaz,idzeff)
-    USE trcomm, ONLY: pau,pzu
-    IMPLICIT NONE
+  SUBROUTINE tr_uf_get_papz
+! ----------------------------------------------------------------------
+!   set the atomic number and the charge number of species which are
+!    contained in experimental data
+! ----------------------------------------------------------------------
+    USE trcomm, ONLY: ame,amp,pau,pzu,pafu,pzfu
 
+    IMPLICIT NONE
     CHARACTER(LEN=10) :: kfid
     CHARACTER(LEN=1)  :: knum
     INTEGER(ikind)    :: nsi, num
+    REAL(rkind)       :: pans, pzns
 
-    pau(1:nsum) = 0.d0
-    pzu(1:nsum) = 0.d0
-    zeffu(1:ntxmax) = 0.d0
 
     pau(1) = ame/amp
     pzu(1) = -1.d0
-
+    
     WRITE(6,*) ! spacing
+    ! bulk ions
     WRITE(6,'(A33)',ADVANCE="NO") ' ## UFILE data of ions contains: '
     DO nsi = 2, nsum
-       WRITE(knum,'(I1)') ns
-       kfid = 'NM'//knum
-
-       num = (nsi-1)*2 + 86 ! see uf0d list: NM1A ~ NM9Z
        IF(idnm(nsi))THEN
-          IF(0.9d0 < uf0d(num+1)%fr0 .AND. uf0d(num+1)%fr0 < 1.1d0)THEN
-             pzu(nsi) = 1.d0 ! hydrogenic ions
+          WRITE(knum,'(I1)') nsi
+          kfid = 'NM'//knum
+          WRITE(6,'(A3)',ADVANCE='NO') TRIM(kfid)
+          num = (nsi-1)*2 + 86 ! see uf0d list: NM1A ~ NM9Z
+          
+          pans = uf0d(num)%fr0
+          pzns = uf0d(num+1)%fr0
+          CALL tr_uf_identify_ions(pans,pzns)
+          pau(nsi) = pans
+          pzu(nsi) = pzns
+       END IF
+    END DO
 
-             IF(0.9d0 < uf0d(num)%fr0 .AND. uf0d(num)%fr0 < 1.1d0)THEN
-                pau(nsi) = 1.d0 ! H
-                WRITE(6,'(I1,A4)',ADVANCE="NO") nsi,'.H, '
+    pafu(1) = 0.d0
+    pzfu(1) = 0.d0
 
-             ELSE IF(1.9d0 < uf0d(num)%fr0 .AND. uf0d(num)%fr0 < 2.1d0)THEN
-                pau(nsi) = 2.d0 ! D
-                WRITE(6,'(I1,A4)',ADVANCE="NO") nsi,'.D, '
+    WRITE(6,*) ! breaking line
+    ! fast ions
+    WRITE(6,'(A33)',ADVANCE="NO") ' ## UFILE data of fast ions contains: '
+    DO nsi = 2, nsum
+       IF(idnfast(nsi))THEN
+          WRITE(knum,'(I1)') nsi
+          kfid = 'NFAST'//knum
+          WRITE(6,'(A3)',ADVANCE='NO') TRIM(kfid)
+          num = (nsi-1)*2 + 68 ! see uf0d list: NFAST1A ~ NFAST9Z
+          
+          pans = uf0d(num)%fr0
+          pzns = uf0d(num+1)%fr0
+          CALL tr_uf_identify_ions(pans,pzns)
+          pafu(nsi) = pans
+          pzfu(nsi) = pzns       
+       END IF
+    END DO
+    WRITE(6,*) ! spacing
+       
+    RETURN
+  END SUBROUTINE tr_uf_get_papz
 
-             ELSE IF(2.9d0 < uf0d(num)%fr0 .AND. uf0d(num)%fr0 < 3.1d0)THEN
-                pau(nsi) = 3.d0 ! T
-                WRITE(6,'(I1,A4)',ADVANCE="NO") nsi,'.T, '
-             END IF
+! ************************************************************************
 
-          ELSE IF(1.9d0 < uf0d(num+1)%fr0 .AND. uf0d(num+1)%fr0 < 2.1d0)THEN
-             pau(nsi) = 4.d0
-             pzu(nsi) = 2.d0 ! He
-             WRITE(6,'(I1,A5)',ADVANCE="NO") nsi,'.He, '
+  SUBROUTINE tr_uf_identify_ions(pans,pzns)
+! -----------------------------------------------------------------------
+!   Identify the atomic number and the charge number of ions
+! -----------------------------------------------------------------------
+    IMPLICIT NONE
+    REAL(rkind),INTENT(INOUT) :: pans, pzns
 
-          ELSE IF(2.9d0 < uf0d(num+1)%fr0 .AND. uf0d(num+1)%fr0 < 3.1d0)THEN
-             pau(nsi) = 6.d0
-             pzu(nsi) = 3.d0 ! Li             
-             WRITE(6,'(I1,A5)',ADVANCE="NO") nsi,'.Li, '
+    IF(0.9d0 < pzns .AND. pzns < 1.1d0)THEN
+       pzns = 1.d0 ! hydrogenic ions
 
-          ELSE IF(3.9d0 < uf0d(num+1)%fr0 .AND. uf0d(num+1)%fr0 < 4.1d0)THEN
-             pau(nsi) = 8.d0
-             pzu(nsi) = 4.d0 ! Be
-             WRITE(6,'(I1,A5)',ADVANCE="NO") nsi,'.Be, '
+       IF(0.9d0 < pans .AND. pans < 1.1d0)THEN
+          pans = 1.d0 ! H
+          WRITE(6,'(A4)',ADVANCE="NO") ':H, '
 
-          ELSE IF(4.9d0 < uf0d(num+1)%fr0 .AND. uf0d(num+1)%fr0 < 5.1d0)THEN
-             pau(nsi) = 10.d0
-             pzu(nsi) = 5.d0 ! B
-             WRITE(6,'(I1,A4)',ADVANCE="NO") nsi,'.B, '
+       ELSE IF(1.9d0 < pans .AND. pans < 2.1d0)THEN
+          pans = 2.d0 ! D
+          WRITE(6,'(A4)',ADVANCE="NO") ':D, '
 
-          ELSE IF(5.9d0 < uf0d(num+1)%fr0 .AND. uf0d(num+1)%fr0 < 6.1d0)THEN
-             pau(nsi) = 12.d0
-             pzu(nsi) = 6.d0 ! C
-             WRITE(6,'(I1,A4)',ADVANCE="NO") nsi,'.C, '
-
-          ELSE
-             ! other impurity
-             pau(nsi) = uf0d(num)%fr0
-             pzu(nsi) = uf0d(num+1)%fr0
-             WRITE(6,'(I1,A7,F9.3,A4,F9.3,A1)',ADVANCE="NO") &
-                  nsi,'. IMP(A=',pau(nsi), ', Z=',pzu(nsi),')'
-          END IF
+       ELSE IF(2.9d0 < pans .AND. pans < 3.1d0)THEN
+          pans = 3.d0 ! T
+          WRITE(6,'(A4)',ADVANCE="NO") ':T, '
        END IF
 
-    END DO  
+    ELSE IF(1.9d0 < pzns .AND. pzns < 2.1d0)THEN
+       pans = 4.d0
+       pzns = 2.d0 ! He
+       WRITE(6,'(A5)',ADVANCE="NO") ':He, '
 
-    ELSE IF(idzeff(1))THEN
-       zeffu(1:ntxmax) = uf0d(175)%fr0
+    ELSE IF(2.9d0 < pzns .AND. pzns < 3.1d0)THEN
+       pans = 6.d0
+       pzns = 3.d0 ! Li             
+       WRITE(6,'(A5)',ADVANCE="NO") ':Li, '
+
+    ELSE IF(3.9d0 < pzns .AND. pzns < 4.1d0)THEN
+       pans = 8.d0
+       pzns = 4.d0 ! Be
+       WRITE(6,'(A5)',ADVANCE="NO") ':Be, '
+
+    ELSE IF(4.9d0 < pzns .AND. pzns < 5.1d0)THEN
+       pans = 10.d0
+       pzns = 5.d0 ! B
+       WRITE(6,'(A4)',ADVANCE="NO") ':B, '
+
+    ELSE IF(5.9d0 < pzns .AND. pzns < 6.1d0)THEN
+       pans = 12.d0
+       pzns = 6.d0 ! C
+       WRITE(6,'(A4)',ADVANCE="NO") ':C, '
+
+    ELSE
+       ! other impurity
+       WRITE(6,'(A8,F9.3,A4,F9.3,A1)',ADVANCE="NO") &
+                                    ': IMP(A=',pans, ', Z=',pzns,')'
     END IF
 
-    WRITE(6,*) ! spacing
-
     RETURN
-  END SUBROUTINE tr_uf_get_species
+  END SUBROUTINE tr_uf_identify_ions
 
 END MODULE truf0d

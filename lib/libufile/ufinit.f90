@@ -55,8 +55,8 @@ CONTAINS
     INQUIRE(FILE=KDIRX,EXIST=DIR,IOSTAT=IST)
 
     IF(IST > 0) THEN
-       WRITE(6,*) 'XX Directory inquiring error. (ufile_dir_inquire)'
-       WRITE(6,*) 'XX IOSTAT= ',IST
+       WRITE(6,*) ' XX Directory inquiring error. (ufile_dir_inquire)'
+       WRITE(6,*) ' XX IOSTAT= ',IST
        IERR = 2
        RETURN
     ENDIF
@@ -70,15 +70,15 @@ CONTAINS
        KFILE=KDIRX(1:IKDIRX)//KUFDEV(1:IKNDEV)//'2d'//KUFDCG(1:IKNDCG)//'.NE'
        INQUIRE(FILE=KFILE,EXIST=FILE,IOSTAT=IST)
        IF(IST > 0) THEN
-          WRITE(6,*) 'XX ufile_dir_inquire: File inquiring error.'
-          WRITE(6,*) 'XX IOSTAT= ',IST
+          WRITE(6,*) ' XX ufile_dir_inquire: File inquiring error.'
+          WRITE(6,*) ' XX IOSTAT= ',IST
           IERR = 2
           RETURN
        END IF
        IF(FILE.EQV..FALSE.) THEN
           WRITE(6,'(A)') &
-               'XX ufile_dir_inquire: Designated directory does not exist!'
-          WRITE(6,'(A7,A80)') '   ==> ',TRIM(KDIRX)
+               ' XX ufile_dir_inquire: Designated directory does not exist!'
+          WRITE(6,'(A7,A80)') '   ==> ',KDIRX
           IERR = 1
           RETURN
        ENDIF
@@ -134,15 +134,15 @@ CONTAINS
     INQUIRE(FILE=KFILE,EXIST=LEX,IOSTAT=IST)
     IF(LEX .EQV. .FALSE.)THEN
        IF(ERROUT == 0)THEN
-          WRITE(6,*) 'XX ufile_inquire: KFILE does not exist.'
-          WRITE(6,*) 'XX KFILE: ',TRIM(KFILE)
+          WRITE(6,*) ' XX ufile_inquire: KFILE does not exist.'
+          WRITE(6,*) ' XX KFILE: ',TRIM(KFILE)
        END IF
        IERR = -1
        RETURN
     ELSE IF(IST /= 0) THEN
        IF(ERROUT == 0)THEN
-          WRITE(6,*) 'XX ufile_inquire: KFILE inquiring error. IOSTAT= ',IST
-          WRITE(6,*) 'XX KFILE: ',TRIM(KFILE)
+          WRITE(6,*) ' XX ufile_inquire: KFILE inquiring error. IOSTAT= ',IST
+          WRITE(6,*) ' XX KFILE: ',TRIM(KFILE)
        END IF
        IERR = -1
        RETURN
@@ -154,8 +154,8 @@ CONTAINS
        IF(LEX .EQV. .FALSE.)THEN
           IF(IDBIN==1)THEN
              IF(ERROUT == 0)THEN
-                WRITE(6,*) 'XX ufile_inquire: KFILEB does not exist.'
-                WRITE(6,*) 'XX KFILEB: ',TRIM(KFILEB)
+                WRITE(6,*) ' XX ufile_inquire: KFILEB does not exist.'
+                WRITE(6,*) ' XX KFILEB: ',TRIM(KFILEB)
              END IF
              IERR = -1
              RETURN
@@ -164,8 +164,8 @@ CONTAINS
           RETURN
        ELSE IF(IST /= 0) THEN
           IF(ERROUT == 0)THEN
-             WRITE(6,*) 'XX ufile_inqurie: KFILEB inquiring error. IOSTAT= ',IST
-             WRITE(6,*) 'XX KFILEB: ',TRIM(KFILEB)
+             WRITE(6,*) ' XX ufile_inqurie: KFILEB inquiring error. IOSTAT= ',IST
+             WRITE(6,*) ' XX KFILEB: ',TRIM(KFILEB)
           END IF
           IF(IDBIN==1)THEN
              IERR = -1
