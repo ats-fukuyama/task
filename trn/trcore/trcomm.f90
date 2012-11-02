@@ -362,12 +362,11 @@ MODULE trcomm
        mdlxp,    &! Select UFILE or MDSplus
        mdluf,    &! Model type of UFILE
        mdlugt,   &! Select the way to set the time of snap shot for graphic
-       mdni,     &! Select how to determine bulk density, impurity density
-!                 !  or effective charge number
-!                 !  0 : NSMAX=2, ne=ni
-!                 !  1 : calculate Nimp and Ni profiles from Ne, Zimp and Zeffr
-!                 !  2 : calculate Nimp and Zeff profiles from Ne, Zimp and NM1
-!                 !  3 : calculate Zeff and Ni profiles from Ne, Zimp and Nimp
+       mdlni,    &! Select how to determine main ion density, impurity density
+                  !  or effective charge number
+                  ! 1 : complete n_i and n_imp  from Zeff, n_e (and n_bulk)
+                  ! 2 : complete n_imp and Zeff from n_e, n_i (and n_bulk)
+                  ! 3 : complete n_i and Zeff   from n_e, n_imp (and n_bulk)
        ufid_bin   ! Parameter which determines how to handle exp. files.
                   ! 0 : Binary files are loaded if available, or ASCII files
                   !      are loaded and aftermath binary files are created.
@@ -382,6 +381,9 @@ MODULE trcomm
   CHARACTER(80) :: kdirx    ! directory containig a set of UFILE
   REAL(rkind)   :: time_slc ! time slicing point for steady state simulation
   REAL(rkind)   :: time_snap! time slicing point for graphic
+
+  REAL(rkind)   :: uf_tinit !
+  REAL(rkind)   :: uf_tdura !
 
   ! ----- Stored variables for UFILE -----
   INTEGER(ikind) :: ndmax  ! number of 0D experimental (UFILE) data
@@ -398,7 +400,7 @@ MODULE trcomm
        phiau, &! total toroidal flux enclosed by the plasma [Wb]
        bbu,   &! vaccume toroidal field at geometric axis [T]
        rkapu, &! plasma elongation
-       rdelu, &! mean triangularity of the plasma boundary
+       rdltu, &! mean triangularity of the plasma boundary
        ripu,  &! plasma current [A]
        wthu,  &! thermal plasma energy content [J]
        wtotu, &! total plasma energy content [J]
@@ -465,8 +467,8 @@ MODULE trcomm
   REAL(rkind),DIMENSION(1:nsum) :: &
        pau,    &! atomic number
        pzu,    &! charge number
-       pafu,   &! atomic number of fast ions (subscript #1 is dummy)
-       pzfu     ! charge number of fast ions (subscript #1 is dummy)
+       pafu,   &! atomic number of fast ions (nsu=1 is dummy)
+       pzfu     ! charge number of fast ions (nsu=1 is dummy)
 
   
 CONTAINS

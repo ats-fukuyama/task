@@ -53,6 +53,9 @@ CONTAINS
   SUBROUTINE tr_gr_dgn1
     USE trcomm, ONLY: nrd1,nrd2,nrd3,nrd4
 
+    CALL tr_gr_dgn_init_nrdg
+    CALL tr_gr_dgn_init_nrdmg
+
     !--- for diagnostic array
 !    nrd1mg(1:nrmax,1) = nrd1(1:nrmax)
     nrd1mg(1:nrmax,1) = nrd1(1:nrmax)
@@ -93,6 +96,8 @@ CONTAINS
     IMPLICIT NONE
     REAL(rkind) :: deriv3
     INTEGER(ikind) :: nr
+
+    CALL tr_gr_dgn_init_nrdg
 
     DO nr = 0, nrmax
        nrd1g(nr,1) = deriv3(nr,rhog,psiprho,nrmax,0)
@@ -171,5 +176,27 @@ CONTAINS
 
     RETURN
   END SUBROUTINE tr_gr_diagnostic_dealloc
+
+! ************************************************************************
+
+  SUBROUTINE tr_gr_dgn_init_nrdg
+
+    nrd1g(0:nrmax,1:nsamax) = 0.d0
+    nrd2g(0:nrmax,1:nsamax) = 0.d0
+    nrd3g(0:nrmax,1:nsamax) = 0.d0
+    nrd4g(0:nrmax,1:nsamax) = 0.d0
+
+    RETURN
+  END SUBROUTINE tr_gr_dgn_init_nrdg
+
+  SUBROUTINE tr_gr_dgn_init_nrdmg
+
+    nrd1mg(0:nrmax,1:nsamax) = 0.d0
+    nrd2mg(0:nrmax,1:nsamax) = 0.d0
+    nrd3mg(0:nrmax,1:nsamax) = 0.d0
+    nrd4mg(0:nrmax,1:nsamax) = 0.d0
+
+    RETURN
+  END SUBROUTINE tr_gr_dgn_init_nrdmg
 
 END MODULE trgdgn

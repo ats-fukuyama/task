@@ -34,7 +34,8 @@ CONTAINS
     USE trcomm, ONLY: &
            nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
            lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
-           mdluf,mdlxp,mdler,modelg,mdleqn,nteqit,time_slc,time_snap,mdlugt, &
+           mdluf,mdlxp,mdlni,mdler,modelg,mdleqn,nteqit, &
+           time_slc,time_snap,mdlugt, &
            dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
            ntstep,ngtmax,ngtstp,rips,ripe,profj1,profj2, &
            pnb_tot,pnb_eng,pnb_rw,pnb_r0, &
@@ -52,7 +53,7 @@ CONTAINS
 !        RA    : Plasma minor radius                             (m)
 !        RB    : Wall minor radius                               (m)
 !        RKAP  : Plasma shape elongation
-!        RDEL  : Plasma shape triangularity *
+!        RDLT  : Plasma shape triangularity *
 !        BB    : Magnetic field at center                        (T)
 !        Q0    : Safety factor at center
 !        QA    : Safety factor on plasma surface
@@ -242,28 +243,34 @@ CONTAINS
     ngtstp =     1
 
 !     ==== Input from experimental data ==== 
+!        MDLUF :
+!            0 : not used
+!            1 : steady state (at a certain moment: time_slc)
+!            2 : time evolution
+!            3 : compared with TOPICS
+!
 !        MDLXP :
 !            0 : from UFILEs
 !         else : MDSplus
 !
-!     UFID_BIN : Parameter which determines how to handle exp. files.
+!     UFID_BIN : Parameter which determines how to handle UFILEs.
 !            0 : Binary files are loaded if available, or ASCII files
 !                 are loaded and aftermath binary files are created.
 !            1 : Only binary files are loaded.
 !            2 : Only ASCII files are loaded and binary files are NOT
 !                  created.      
-!
-!        MDLUF :
-!            0 : not used
-!            1 : steady state
-!            2 : time evolution
-!            3 : compared with TOPICS
+!        MDLNI : Switch how to determine main ion density, impurity density
+!                 and effective charge number                             
+!            1 : complete n_i and n_imp  from Zeff, n_e (and n_bulk)
+!            2 : complete n_imp and Zeff from n_e, n_i (and n_bulk)
+!            3 : complete n_i and Zeff   from n_e, n_imp (and n_bulk)    
 
-      mdlxp    = 0
-      mdluf    = 0
-      ufid_bin = 0
-
+      mdluf     = 0
       time_slc  = -1.d0 ! not determined
+
+      mdlxp     = 0
+      ufid_bin  = 0
+      mdlni     = 1
 
 !     ==== graphic output of experimental data ====
 !     MDLUGT : set the time of snap shot
@@ -272,7 +279,7 @@ CONTAINS
 !          2 : --- to the lastest time of data
 !       * This switch is valid only in the case of MDLUF = 2
 
-      mdlugt = 0
+      mdlugt    = 0
       time_snap = -1.d0 ! not determined
 
 !     ==== DEVICE NAME AND SHOT NUMBER IN UFILE DATA ====
@@ -359,7 +366,7 @@ CONTAINS
            ntstep,ngtmax,ngtstp, &
            lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv,mdler,&
            dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
-           profj1,profj2,rips,ripe,nteqit,time_slc,time_snap,mdlugt, &
+           profj1,profj2,rips,ripe,nteqit,time_slc,time_snap,mdlugt,mdlni, &
            pnb_tot,pnb_eng,pnb_rw,pnb_r0, &
            ufid_bin,mdluf,mdlxp,kuf_dir,kuf_dev,kuf_dcg
     IMPLICIT NONE
@@ -375,7 +382,7 @@ CONTAINS
          MODELG,MODELN,MODELQ,RHOGMN,RHOGMX, &
          KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF, &
          MODEFR,MODEFW,IDEBUG, &
-         ufid_bin,mdluf,mdlxp,mdlugt, &
+         ufid_bin,mdluf,mdlxp,mdlugt,mdlni, &
          kuf_dir,kuf_dev,kuf_dcg,time_slc,time_snap, &
          nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
          lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &

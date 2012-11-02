@@ -73,7 +73,7 @@ CONTAINS
   !--- convergence of non-linear iteration---
     USE trcomm, ONLY: error_it, rt_ecl, rt_icl
 
-    lt = 0.d0
+    CALL tr_gr_com_init_ltig
 
     err_ig(1:lmaxtr) = log10(error_it(1:lmaxtr))
     lt(0:nrmax,1) = - rt_ecl(0:nrmax)
@@ -94,6 +94,8 @@ CONTAINS
   SUBROUTINE tr_gr_comp2
   !--- Outputs for Pereverzev method (Numerical stabilazation method) ---
     USE trcomm, ONLY: mdltr_prv,rt,dtr_prv,vtr_prv
+
+    CALL tr_gr_com_init_vma
 
     IF(mdltr_prv == 0)THEN
        vma1 = 0.d0
@@ -128,6 +130,8 @@ CONTAINS
   !    * numerically net additional quantities in each nodal equation *
   !    * These quantities are relative value to total dtr.            *
     USE trcomm, ONLY: ngt,gvrts
+
+    CALL tr_gr_com_init_vgap
 
     IF(ngt > 0)THEN
        ngg_interval = ngt/(MOD(ngt-1,nggmax)+1)
@@ -210,5 +214,41 @@ CONTAINS
 
     RETURN
   END SUBROUTINE tr_gr_comp_dealloc
+
+! ***********************************************************************
+
+  SUBROUTINE tr_gr_com_init_vga
+
+    vga1(0:nrmax,1:nsamax) = 0.d0
+    vga2(0:nrmax,1:nsamax) = 0.d0
+
+    RETURN
+  END SUBROUTINE tr_gr_com_init_vga
+
+  SUBROUTINE tr_gr_com_init_vma
+
+    vma1(0:nrmax,1:nsamax) = 0.d0
+    vma2(0:nrmax,1:nsamax) = 0.d0
+
+    RETURN
+  END SUBROUTINE tr_gr_com_init_vma
+
+  SUBROUTINE tr_gr_com_init_vgap
+
+    vgap1(0:nrmax,0:nggmax) = 0.d0
+    vgap2(0:nrmax,0:nggmax) = 0.d0
+    vgap3(0:nrmax,0:nggmax) = 0.d0
+    vgap4(0:nrmax,0:nggmax) = 0.d0
+
+    RETURN
+  END SUBROUTINE tr_gr_com_init_vgap
+
+  SUBROUTINE tr_gr_com_init_ltig
+
+    err_ig(1:lmaxtr)     = 0.d0
+    lt(0:nrmax,1:nsamax) = 0.d0
+
+    RETURN
+  END SUBROUTINE tr_gr_com_init_ltig
 
 END MODULE trgcom

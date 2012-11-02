@@ -91,10 +91,7 @@ CONTAINS
   ! ----- current radial profile of (n, u, T, q)-----
     USE trcomm, ONLY: rn,ru,rt,rp,dpdrho,qp
 
-    vg1(0:nrmax,1:neqrmax) = 0.d0
-    vg2(0:nrmax,1:neqrmax) = 0.d0
-    vg3(0:nrmax,1:neqrmax) = 0.d0
-    vg4(0:nrmax,1:neqrmax) = 0.d0
+    CALL tr_gr_rad_init_vg
 
     DO neq = 1, neqmax
        nsa = nsa_neq(neq)
@@ -133,8 +130,8 @@ CONTAINS
     REAL(rkind),DIMENSION(3,1:nrmax) :: dtrg_s1,dtrg_s2
     INTEGER(ikind) :: neq,nsa,nva,nk
 
-    vm1(1:nrmax,1:neqmax) = 0.d0
-    vm2(1:nrmax,1:neqmax) = 0.d0
+    CALL tr_gr_rad_init_vm
+    CALL tr_gr_rad_init_vmx
 
     DO neq = 1, neqmax
        nsa = nsa_neq(neq)
@@ -205,8 +202,8 @@ CONTAINS
     REAL(rkind),DIMENSION(3,1:nrmax) :: dtrg_s1,dtrg_s2
     INTEGER(ikind) :: neq,nsa,nva,nk
 
-    vm1(1:nrmax,1:neqmax) = 0.d0
-    vm2(1:nrmax,1:neqmax) = 0.d0
+    CALL tr_gr_rad_init_vm
+    CALL tr_gr_rad_init_vmx
 
     DO neq = 1, neqmax
        nsa = nsa_neq(neq)
@@ -276,6 +273,9 @@ CONTAINS
     REAL(rkind),DIMENSION(1:nsamax,1:nrmax) :: vtrnc_d,vtrnc_chi
     INTEGER(ikind) :: neq,nsa,nva
 
+    CALL tr_gr_rad_init_vmx
+    CALL tr_gr_rad_init_vgx
+
     DO neq = 1, neqmax
        nsa = nsa_neq(neq)
        nva = nva_neq(neq)
@@ -312,7 +312,8 @@ CONTAINS
   SUBROUTINE tr_gr_rad5
   ! ----- current density profile -----
     USE trcomm, ONLY: jtot,joh,jtor,jbs_nc,eta,qp,dpdrho
-    vgx1(0:nrmax,1:5) = 0.d0
+
+    CALL tr_gr_rad_init_vgx
 
     vgx1(0:nrmax,1) = 1.d-6*jtot(0:nrmax)
     vgx1(0:nrmax,2) = 1.d-6*joh(0:nrmax)
@@ -344,7 +345,7 @@ CONTAINS
   ! ----- heating profile-----
     USE trcomm, ONLY: str,poh,pnb
 
-    vgx1(0:nrmax,1:5) = 0.d0
+    CALL tr_gr_rad_init_vgx
 
     vgx1(0:nrmax,1) = poh(0:nrmax)*1.d-6
     vgx1(0:nrmax,2) = pnb(0:nrmax)*1.d-6
@@ -361,6 +362,8 @@ CONTAINS
   SUBROUTINE tr_gr_rad7
   ! rotation velocity profile
     USE trcomm, ONLY: vtor,vpol,vpar,vprp
+
+    CALL tr_gr_rad_init_vgx
 
     vgx1(0:nrmax,1) = vtor(0:nrmax)
     vgx2(0:nrmax,1) = vpol(0:nrmax)
@@ -384,6 +387,8 @@ CONTAINS
 ! **************************************************************************
   SUBROUTINE tr_gr_rad8
     USE trcomm, ONLY: er,vexbp,dvexbpdr,wexbp,nrd4
+
+    CALL tr_gr_rad_init_vmx
 
     vmx1(1:nrmax,1) = er(1:nrmax)
     vmx2(1:nrmax,1) = vexbp(1:nrmax)
@@ -410,6 +415,8 @@ CONTAINS
     ! fast ion particle profile
     USE trcomm, ONLY: rt
 
+    CALL tr_gr_rad_init_vg
+
     DO neq = 1, neqmax
        nsa = nsa_neq(neq)
        IF(nsa /= 0)THEN
@@ -432,6 +439,8 @@ CONTAINS
   SUBROUTINE tr_gr_rad11
   ! ----- history of radial profile -----
     USE trcomm, ONLY: ngt,gvrt,gvrts
+
+    CALL tr_gr_rad_init_gg
 
     IF(ngt > 0)THEN
        ngg_interval = ngt/(MOD(ngt-1,nggmax)+1)
@@ -463,6 +472,8 @@ CONTAINS
   SUBROUTINE tr_gr_rad15
   ! ----- history of radial profile -----
     USE trcomm, ONLY: ngt,gvrt
+
+    CALL tr_gr_rad_init_gg
 
     IF(ngt > 0)THEN
        ngg_interval = ngt/(MOD(ngt-1,nggmax)+1)
@@ -575,5 +586,68 @@ CONTAINS
 
     RETURN
   END SUBROUTINE tr_gr_rad_dealloc
+
+! ***********************************************************************
+
+  SUBROUTINE tr_gr_rad_init_vg
+
+    vg1(0:nrmax,1:neqrmax) = 0.d0
+    vg2(0:nrmax,1:neqrmax) = 0.d0
+    vg3(0:nrmax,1:neqrmax) = 0.d0
+    vg4(0:nrmax,1:neqrmax) = 0.d0
+
+    RETURN
+  END SUBROUTINE tr_gr_rad_init_vg
+
+  SUBROUTINE tr_gr_rad_init_vm
+
+    vm1(1:nrmax,1:neqrmax) = 0.d0
+    vm2(1:nrmax,1:neqrmax) = 0.d0
+    vm3(1:nrmax,1:neqrmax) = 0.d0
+    vm4(1:nrmax,1:neqrmax) = 0.d0
+
+    RETURN
+  END SUBROUTINE tr_gr_rad_init_vm
+
+  SUBROUTINE tr_gr_rad_init_vgx
+
+    vgx1(0:nrmax,5) = 0.d0
+    vgx2(0:nrmax,5) = 0.d0
+    vgx3(0:nrmax,5) = 0.d0
+    vgx4(0:nrmax,5) = 0.d0
+
+    RETURN
+  END SUBROUTINE tr_gr_rad_init_vgx
+
+  SUBROUTINE tr_gr_rad_init_vmx
+
+    vmx1(0:nrmax,5) = 0.d0
+    vmx2(0:nrmax,5) = 0.d0
+    vmx3(0:nrmax,5) = 0.d0
+    vmx4(0:nrmax,5) = 0.d0
+
+    RETURN
+  END SUBROUTINE tr_gr_rad_init_vmx
+
+  SUBROUTINE tr_gr_rad_init_gg
+
+    gg1(0:nrmax,0:nggmax) = 0.d0
+    gg2(0:nrmax,0:nggmax) = 0.d0
+    gg3(0:nrmax,0:nggmax) = 0.d0
+    gg4(0:nrmax,0:nggmax) = 0.d0
+
+    RETURN
+  END SUBROUTINE tr_gr_rad_init_gg
+
+  SUBROUTINE tr_gr_rad_init_gm
+
+    gm1(1:nrmax,0:nggmax) = 0.d0
+    gm2(1:nrmax,0:nggmax) = 0.d0
+    gm3(1:nrmax,0:nggmax) = 0.d0
+    gm4(1:nrmax,0:nggmax) = 0.d0
+
+    RETURN
+  END SUBROUTINE tr_gr_rad_init_gm
+
 
 END MODULE trgrad

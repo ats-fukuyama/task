@@ -26,10 +26,10 @@ MODULE trgexp
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(1:nrmax,5)
        vmxu1,vmxu2,vmxu3,vmxu4
 
-  REAL(rkind),DIMENSION(:),ALLOCATABLE   :: gtu !(1:ntum)
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(1:ntum,1:nsum)
+  REAL(rkind),DIMENSION(:),ALLOCATABLE   :: gtu !(1:ntxmax)
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(1:ntxmax,1:nsum)
        gtu1,gtu2,gtu3,gtu4
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(1:ntum,7)
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(1:ntxmax,7)
        gtiu1,gtiu2,gtiu3,gtiu4
 
 CONTAINS
@@ -113,10 +113,7 @@ CONTAINS
     USE trcomm, ONLY:rnu,rtu,rpu,qpu
     INTEGER(ikind) :: nsu
 
-    vgu1(0:nrmax,1:nsum) = 0.d0
-    vgu2(0:nrmax,1:nsum) = 0.d0
-    vgu3(0:nrmax,1:nsum) = 0.d0
-    vgu4(0:nrmax,1:nsum) = 0.d0
+    CALL tr_gr_exp_init_vgu
 
     DO nsu = 1, nsum
        vgu1(0:nrmax,nsu) = rnu(nsu,ntxsnap,1:nrmax+1)
@@ -154,18 +151,16 @@ CONTAINS
 ! ************************************************************************
   SUBROUTINE tr_gr_exp9
     ! quasi neutrality check of ufile data
-    USE trufcalc, ONLY: sumzni,rnuc,rnfuc,ns_mion,ns_mimp
-    USE trcomm, ONLY: rnu
+    USE trufcalc, ONLY: sumzni,rnuc,rnfuc,zeffruc,ns_mion,ns_mimp
+    USE trcomm, ONLY: rnu,zeffru
 
     INTEGER(ikind) :: nsu
     
-    vgu1(0:nrmax,1:nsum) = 0.d0
-    vgu2(0:nrmax,1:nsum) = 0.d0
-    vgu3(0:nrmax,1:nsum) = 0.d0
+    CALL tr_gr_exp_init_vgu
     
     ! original electron density profile
     vgu1(0:nrmax,1) = rnu(1,ntxsnap,1:nrmax+1)
-    ! re-calculated ion desity profile
+    ! re-calculated profile of sum of ions density
     vgu1(0:nrmax,2) = sumzni(ntxsnap,1:nrmax+1)
 
     vgu2(0:nrmax,1) = rnu(ns_mion,ntxsnap,1:nrmax+1)
@@ -175,10 +170,13 @@ CONTAINS
 
     DO nsu = 1, nsum-1
        ! original ion density profiles
-       vgu3(0:nrmax,nsu) = rnuc(nsu+1,ntxsnap,1:nrmax+1)
-       ! original fast ion density profiles
-       vgu4(0:nrmax,nsu) = rnfuc(nsu+1,ntxsnap,1:nrmax+1)
+       vgu3(0:nrmax,nsu) = rnu(nsu+1,ntxsnap,1:nrmax+1)
     END DO
+
+    ! the original effective charge number profile
+    vgu4(0:nrmax,1) = zeffru(ntxsnap,1:nrmax+1)
+    ! re-calculated profile of the effective charge number
+    vgu4(0:nrmax,2) = zeffruc(ntxsnap,1:nrmax+1)
 
     CALL PAGES
     label = '/neutrality (re-calc) (n_e and Sum_i (Z_i n_i))/'
@@ -186,9 +184,9 @@ CONTAINS
     label = '/neutrality (compare) (n_mion,n_mimp)/'
     CALL GRD1D(2,rhog,vgu2,nrmax+1,nrmax+1,4,label,0)
     label = '/n_i(exp) vs rho/'
-    CALL GRD1D(3,rhog,vgu2,nrmax+1,nrmax+1,nsum,label,0)
-    label = '/n_f(exp) vs rho/'
-    CALL GRD1D(4,rhog,vgu3,nrmax+1,nrmax+1,nsum,label,0)
+    CALL GRD1D(3,rhog,vgu3,nrmax+1,nrmax+1,nsum,label,0)
+    label = '/Zeff (compare) (org,re-calc) vs rho/'
+    CALL GRD1D(4,rhog,vgu4,nrmax+1,nrmax+1,2,label,0)
 
     CALL tr_gr_time(idexp)
     CALL PAGEE
@@ -203,10 +201,7 @@ CONTAINS
     USE trcomm, ONLY: rnu,rtu,rpu,qpu
     INTEGER(ikind) :: nsu
 
-    gtu1(1:ntxmax,1:nsum) = 0.d0
-    gtu2(1:ntxmax,1:nsum) = 0.d0
-    gtu3(1:ntxmax,1:nsum) = 0.d0
-    gtu4(1:ntxmax,1:nsum) = 0.d0
+    CALL tr_gr_exp_init_gtu
 
     DO nsu = 1, nsum
        gtu1(1:ntxmax,nsu) = rnu(nsu,1:ntxmax,1)
@@ -234,11 +229,7 @@ CONTAINS
     ! source and sink power
     USE trcomm, ONLY: pnbu,pecu,pibwu,picu,plhu,pohmu,pradu
 
-    gtiu1(1:ntxmax,1:7) = 0.d0
-    gtiu2(1:ntxmax,1:7) = 0.d0
-    gtiu3(1:ntxmax,1:7) = 0.d0
-    gtiu4(1:ntxmax,1:7) = 0.d0
-
+    CALL tr_gr_exp_init_gtiu
 
     gtiu1(1:ntxmax,1) = pnbu(1:ntxmax)  * 1.d-6
 
@@ -357,6 +348,68 @@ CONTAINS
 
     RETURN
   END SUBROUTINE tr_gr_exp_nrdealloc
+
+! ***********************************************************************
+
+  SUBROUTINE tr_gr_exp_init_vgu
+
+    vgu1(0:nrmax,1:nsum) = 0.d0
+    vgu2(0:nrmax,1:nsum) = 0.d0
+    vgu3(0:nrmax,1:nsum) = 0.d0
+    vgu4(0:nrmax,1:nsum) = 0.d0
+
+    RETURN
+  END SUBROUTINE tr_gr_exp_init_vgu
+
+  SUBROUTINE tr_gr_exp_init_vmu
+
+    vmu1(0:nrmax,1:nsum) = 0.d0
+    vmu2(0:nrmax,1:nsum) = 0.d0
+    vmu3(0:nrmax,1:nsum) = 0.d0
+    vmu4(0:nrmax,1:nsum) = 0.d0
+
+    RETURN
+  END SUBROUTINE tr_gr_exp_init_vmu
+
+  SUBROUTINE tr_gr_exp_init_vgxu
+
+    vgxu1(0:nrmax,1:nsum) = 0.d0
+    vgxu2(0:nrmax,1:nsum) = 0.d0
+    vgxu3(0:nrmax,1:nsum) = 0.d0
+    vgxu4(0:nrmax,1:nsum) = 0.d0
+
+    RETURN
+  END SUBROUTINE tr_gr_exp_init_vgxu
+
+  SUBROUTINE tr_gr_exp_init_vmxu
+
+    vmxu1(0:nrmax,1:nsum) = 0.d0
+    vmxu2(0:nrmax,1:nsum) = 0.d0
+    vmxu3(0:nrmax,1:nsum) = 0.d0
+    vmxu4(0:nrmax,1:nsum) = 0.d0
+
+    RETURN
+  END SUBROUTINE tr_gr_exp_init_vmxu
+
+  SUBROUTINE tr_gr_exp_init_gtu
+
+    gtu1(1:ntxmax,1:nsum) = 0.d0
+    gtu2(1:ntxmax,1:nsum) = 0.d0
+    gtu3(1:ntxmax,1:nsum) = 0.d0
+    gtu4(1:ntxmax,1:nsum) = 0.d0
+
+    RETURN
+  END SUBROUTINE tr_gr_exp_init_gtu
+
+  SUBROUTINE tr_gr_exp_init_gtiu
+
+    gtiu1(1:ntxmax,1:7) = 0.d0
+    gtiu2(1:ntxmax,1:7) = 0.d0
+    gtiu3(1:ntxmax,1:7) = 0.d0
+    gtiu4(1:ntxmax,1:7) = 0.d0
+
+    RETURN
+  END SUBROUTINE tr_gr_exp_init_gtiu
 
 
 END MODULE trgexp

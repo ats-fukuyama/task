@@ -17,7 +17,7 @@ MODULE trgtmp
   REAL(rkind),DIMENSION(:),ALLOCATABLE   :: gt !(0:ngt)
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &  !(0:ngt,nsamax)
        gt1,gt2,gt3,gt4
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &  !(0:ngt,5)
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &  !(0:ngt,10)
        gti1,gti2,gti3,gti4
 
 CONTAINS
@@ -61,6 +61,8 @@ CONTAINS
   ! ----- time evolution of (n, u, T, q)-----
     USE trcomm,ONLY: gvt,gvts
 
+    CALL tr_gr_tmp_init_gt
+
     DO nsa=1,nsamax
        gt1(0:ngt,nsa)=gvts(0:ngt,nsa,1)
        gt2(0:ngt,nsa)=gvts(0:ngt,nsa,2)
@@ -90,10 +92,7 @@ CONTAINS
     ! ----- time evolution of (I, W, taue) -----
     USE trcomm, ONLY: gvt
 
-    gti1(0:ngt,1:nsamax) = 0.d0
-    gti2(0:ngt,1:nsamax) = 0.d0
-    gti3(0:ngt,1:nsamax) = 0.d0
-    gti4(0:ngt,1:nsamax) = 0.d0
+    CALL tr_gr_tmp_init_gti
 
     gti1(0:ngt,1) = gvt(0:ngt,3) ! rip
 !    gti1(0:ngt,2) = gvt(0:ngt,4)
@@ -127,6 +126,8 @@ CONTAINS
 
   SUBROUTINE tr_gr_temp3
     USE trcomm, ONLY: gvt
+
+    CALL tr_gr_tmp_init_gti
 
     gti1(0:ngt,1) = gvt(0:ngt,18) ! pin_t
     gti1(0:ngt,2) = gvt(0:ngt,19) ! poh_t
@@ -169,10 +170,10 @@ CONTAINS
           ALLOCATE(gt2(0:ngt,nsamax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(gt3(0:ngt,nsamax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(gt4(0:ngt,nsamax),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gti1(0:ngt,8),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gti2(0:ngt,8),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gti3(0:ngt,8),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gti4(0:ngt,8),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(gti1(0:ngt,10),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(gti2(0:ngt,10),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(gti3(0:ngt,10),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(gti4(0:ngt,10),STAT=ierr); IF(ierr /= 0) EXIT
 
           ngt_save    = ngt
           nsamax_save = nsamax
@@ -197,5 +198,27 @@ CONTAINS
     IF(ALLOCATED(gti4)) DEALLOCATE(gti4)
 
   END SUBROUTINE tr_gr_temp_dealloc
+
+! ************************************************************************
+
+  SUBROUTINE tr_gr_tmp_init_gt
+
+    gt1(0:ngt,1:nsamax) = 0.d0
+    gt2(0:ngt,1:nsamax) = 0.d0
+    gt3(0:ngt,1:nsamax) = 0.d0
+    gt4(0:ngt,1:nsamax) = 0.d0
+
+    RETURN
+  END SUBROUTINE tr_gr_tmp_init_gt
+
+  SUBROUTINE tr_gr_tmp_init_gti
+
+    gti1(0:ngt,10) = 0.d0
+    gti2(0:ngt,10) = 0.d0
+    gti3(0:ngt,10) = 0.d0
+    gti4(0:ngt,10) = 0.d0
+
+    RETURN
+  END SUBROUTINE tr_gr_tmp_init_gti
 
 END MODULE trgtmp

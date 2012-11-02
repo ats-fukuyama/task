@@ -4,14 +4,14 @@ MODULE truf0d
 
   IMPLICIT NONE
 
-  PRIVATE
-  PUBLIC tr_uf0d, &
-         idnm,idnfast,idnmaz,idnfastaz,idzeff, toknam,shotnum
+  PUBLIC
 
-  LOGICAL,DIMENSION(1:9) :: idnm,idnfast,idnmaz,idnfastaz
-  LOGICAL,DIMENSION(1:2) :: idzeff
+  LOGICAL,DIMENSION(1:nsum) :: idnm,idnfast,idnmaz,idnfastaz
+  LOGICAL,DIMENSION(1:2)    :: idzeff
+  LOGICAL                   :: idpgasa,idpgasz,idpimpa,idpimpz
 
   CHARACTER(LEN=15) :: toknam,shotnum
+  REAL(rkind) :: pgasa,pgasz,pimpa,pimpz
 
 CONTAINS
 
@@ -21,11 +21,11 @@ CONTAINS
 !    ( MDSplus is not supportted. )
 ! ----------------------------------------------------------------------
     USE ufread,ONLY: ufread_0d
-    USE trcomm,ONLY: zeffu
 
     INTEGER(ikind),INTENT(IN)  :: mdlxp
     INTEGER(ikind),INTENT(OUT) :: ndmax,ierr
 
+    INTEGER(ikind) :: ntx
 
     IF(mdlxp == 0)THEN
        CALL ufread_0d(ndmax,ierr)
@@ -35,24 +35,18 @@ CONTAINS
           RETURN
        END IF
 
-       toknam  = uf0d(158)%fc0
-       shotnum = uf0d(139)%fc0
-
-       WRITE(6,*) '# DEVICE: ',TRIM(toknam),'     SHOT: ',TRIM(shotnum)
-
        CALL tr_uf_check_species
 
        CALL tr_uf_get_papz
 
-       zeffu(1:ntxmax) = 0.d0
-       IF(idzeff(1))  zeffu(1:ntxmax) = uf0d(175)%fr0
 
     ENDIF
 
     RETURN
   END SUBROUTINE tr_uf0d
 
-! *********************************************************************
+! ***********************************************************************
+! ***********************************************************************
 
   SUBROUTINE tr_uf_check_species
 ! ------------------------------------------------------------------------ 
@@ -73,15 +67,23 @@ CONTAINS
     id_bin = 2 ! confirm the existence of only ASCII file
     errout = 1 ! suppress the error message in checking the existence of UFILE
 
-    idnm(1:9)      = .FALSE.
-    idnfast(1:9)   = .FALSE.
-    idnmaz(1:9)    = .FALSE.
-    idnfastaz(1:9) = .FALSE.
-    idzeff(1:2)    = .FALSE.
+    idnm(1:nsum)      = .FALSE.
+    idnfast(1:nsum)   = .FALSE.
+    idnmaz(1:nsum)    = .FALSE.
+    idnfastaz(1:nsum) = .FALSE.
+    idzeff(1:2)       = .FALSE.
 
     kufdim = '2d'
-    DO nsi = 1, 9
-       WRITE(knum,'(I1)') nsi
+
+    kfid = 'NE'
+    CALL ufile_inquire(kufdim,kfid,kfile,kfileb,id_bin,errout,ierr)
+    IF(ierr == 0)THEN
+       idnm(1)   = .TRUE.
+       idnmaz(1) = .TRUE.
+    END IF
+
+    DO nsi = 2, nsum
+       WRITE(knum,'(I1)') nsi-1
 
        ! NMn
        kfid = 'NM'//knum
@@ -99,10 +101,17 @@ CONTAINS
     IF(ierr == 0) idzeff(1) = .TRUE.
 
 
+    kufdim = '1d'
+    kfid   = 'ZEFF'
+    CALL ufile_inquire(kufdim,kfid,kfile,kfileb,id_bin,errout,ierr)
+    IF(ierr == 0) idzeff(2) = .TRUE.
+
+
+
     ierr = 0
 
-    DO nsi = 1, 9
-       num = (nsi-1)*2 + 68 ! see uf0d list: NFAST1A ~ NFAST9Z
+    DO nsi = 2, nsum
+       num = (nsi-2)*2 + 68 ! see uf0d list: NFAST1A ~ NFAST9Z
        IF(uf0d(num)%lex .EQV. .TRUE. .AND. uf0d(num+1)%lex .EQV. .TRUE.)THEN
           IF(0 < uf0d(num)%fr0   .AND.   uf0d(num)%fr0 < pamax .AND.  &
              0 < uf0d(num+1)%fr0 .AND. uf0d(num+1)%fr0 < pzmax)THEN
@@ -110,7 +119,7 @@ CONTAINS
           END IF
        END IF
 
-       num = (nsi-1)*2 + 86 ! see uf0d list: NM1A ~ NM9Z
+       num = (nsi-2)*2 + 86 ! see uf0d list: NM1A ~ NM9Z
        IF(uf0d(num)%lex .EQV. .TRUE. .AND. uf0d(num+1)%lex .EQV. .TRUE.)THEN
           IF(0 < uf0d(num)%fr0   .AND.   uf0d(num)%fr0 < pamax .AND.  &
              0 < uf0d(num+1)%fr0 .AND. uf0d(num+1)%fr0 < pzmax)THEN
@@ -120,10 +129,10 @@ CONTAINS
 
        ! The species can not be idetified in the following case.
        IF(idnfast(nsi).EQV. .TRUE. .AND. idnfastaz(nsi).EQV. .FALSE.)THEN
-          ierr = ierr + 10**(nsi-1)
+          ierr = ierr + 10**(nsi-2)
        END IF
        IF(idnm(nsi).EQV. .TRUE. .AND. idnmaz(nsi).EQV. .FALSE.)THEN
-          ierr = ierr + 2*10**(nsi-1)
+          ierr = ierr + 2*10**(nsi-2)
        END IF
     END DO
     
@@ -133,11 +142,6 @@ CONTAINS
        RETURN
     END IF
 
-    ! 0d.dat: kfid = ZEFF
-    IF(uf0d(175)%lex .EQV. .TRUE. .AND. &
-         0 < uf0d(175)%fr0 .AND. uf0d(175)%fr0 < pzmax)THEN
-       idzeff(2) = .TRUE.
-    END IF
 
     RETURN
   END SUBROUTINE tr_uf_check_species
@@ -152,25 +156,17 @@ CONTAINS
     USE trcomm, ONLY: ame,amp,pau,pzu,pafu,pzfu
 
     IMPLICIT NONE
-    CHARACTER(LEN=10) :: kfid
-    CHARACTER(LEN=1)  :: knum
     INTEGER(ikind)    :: nsi, num
     REAL(rkind)       :: pans, pzns
 
-
+    ! electron
     pau(1) = ame/amp
     pzu(1) = -1.d0
     
-    WRITE(6,*) ! spacing
     ! bulk ions
-    WRITE(6,'(A33)',ADVANCE="NO") ' ## UFILE data of ions contains: '
     DO nsi = 2, nsum
        IF(idnm(nsi))THEN
-          WRITE(knum,'(I1)') nsi
-          kfid = 'NM'//knum
-          WRITE(6,'(A3)',ADVANCE='NO') TRIM(kfid)
-          num = (nsi-1)*2 + 86 ! see uf0d list: NM1A ~ NM9Z
-          
+          num = (nsi-2)*2 + 86 ! see uf0d list: NM1A ~ NM9Z
           pans = uf0d(num)%fr0
           pzns = uf0d(num+1)%fr0
           CALL tr_uf_identify_ions(pans,pzns)
@@ -182,16 +178,10 @@ CONTAINS
     pafu(1) = 0.d0
     pzfu(1) = 0.d0
 
-    WRITE(6,*) ! breaking line
     ! fast ions
-    WRITE(6,'(A33)',ADVANCE="NO") ' ## UFILE data of fast ions contains: '
     DO nsi = 2, nsum
        IF(idnfast(nsi))THEN
-          WRITE(knum,'(I1)') nsi
-          kfid = 'NFAST'//knum
-          WRITE(6,'(A3)',ADVANCE='NO') TRIM(kfid)
-          num = (nsi-1)*2 + 68 ! see uf0d list: NFAST1A ~ NFAST9Z
-          
+          num  = (nsi-2)*2 + 68 ! see uf0d list: NFAST1A ~ NFAST9Z
           pans = uf0d(num)%fr0
           pzns = uf0d(num+1)%fr0
           CALL tr_uf_identify_ions(pans,pzns)
@@ -199,7 +189,17 @@ CONTAINS
           pzfu(nsi) = pzns       
        END IF
     END DO
-    WRITE(6,*) ! spacing
+
+    idpgasa = uf0d(107)%lex
+    idpgasz = uf0d(108)%lex
+    idpimpa = uf0d(112)%lex
+    idpimpz = uf0d(113)%lex
+
+    pgasa = uf0d(107)%fr0 ! 'mean' mass number of the plasma ions
+    pgasz = uf0d(108)%fr0 ! 'mean' charge number of the plasma ions
+    pimpa = uf0d(112)%fr0 ! mass number of the plasma main impurity
+    pimpz = uf0d(113)%fr0 ! charge number of the plasma main impurity
+
        
     RETURN
   END SUBROUTINE tr_uf_get_papz
@@ -218,49 +218,129 @@ CONTAINS
 
        IF(0.9d0 < pans .AND. pans < 1.1d0)THEN
           pans = 1.d0 ! H
-          WRITE(6,'(A4)',ADVANCE="NO") ':H, '
 
        ELSE IF(1.9d0 < pans .AND. pans < 2.1d0)THEN
           pans = 2.d0 ! D
-          WRITE(6,'(A4)',ADVANCE="NO") ':D, '
 
        ELSE IF(2.9d0 < pans .AND. pans < 3.1d0)THEN
           pans = 3.d0 ! T
-          WRITE(6,'(A4)',ADVANCE="NO") ':T, '
        END IF
 
     ELSE IF(1.9d0 < pzns .AND. pzns < 2.1d0)THEN
        pans = 4.d0
        pzns = 2.d0 ! He
-       WRITE(6,'(A5)',ADVANCE="NO") ':He, '
 
     ELSE IF(2.9d0 < pzns .AND. pzns < 3.1d0)THEN
        pans = 6.d0
        pzns = 3.d0 ! Li             
-       WRITE(6,'(A5)',ADVANCE="NO") ':Li, '
 
     ELSE IF(3.9d0 < pzns .AND. pzns < 4.1d0)THEN
        pans = 8.d0
        pzns = 4.d0 ! Be
-       WRITE(6,'(A5)',ADVANCE="NO") ':Be, '
 
     ELSE IF(4.9d0 < pzns .AND. pzns < 5.1d0)THEN
        pans = 10.d0
        pzns = 5.d0 ! B
-       WRITE(6,'(A4)',ADVANCE="NO") ':B, '
 
     ELSE IF(5.9d0 < pzns .AND. pzns < 6.1d0)THEN
        pans = 12.d0
        pzns = 6.d0 ! C
-       WRITE(6,'(A4)',ADVANCE="NO") ':C, '
 
     ELSE
        ! other impurity
-       WRITE(6,'(A8,F9.3,A4,F9.3,A1)',ADVANCE="NO") &
-                                    ': IMP(A=',pans, ', Z=',pzns,')'
+       CONTINUE
     END IF
 
     RETURN
   END SUBROUTINE tr_uf_identify_ions
+
+! ************************************************************************
+
+  SUBROUTINE tr_ufile_0d_view
+    USE trcomm, ONLY: mdlxp,pau,pzu,pafu,pzfu
+    IMPLICIT NONE
+
+    CHARACTER(LEN=10) :: kfid
+    CHARACTER(LEN=1)  :: knum
+    CHARACTER(LEN=30) :: fmt_aaaa,fmt_arar
+    INTEGER(ikind)    :: nsi
+
+    fmt_aaaa = '(1X,A12,A15,A12,A15)'
+    fmt_arar = '(1X,A11,ES11.3,3X,A11,ES11.3)'
+
+    IF(mdlxp == 0)THEN ! UFILE
+       shotnum = uf0d(139)%fc0
+       toknam  = uf0d(158)%fc0
+
+       WRITE(6,*) ! spacing
+       WRITE(6,'(A55)') '# UFILE information ----------------------------------#'
+       WRITE(6,fmt_aaaa) 'DEVICE    : ',toknam,'SHOT      : ',shotnum
+
+       WRITE(6,'(1X,A12)',ADVANCE='NO') 'Bulk ions : '
+       DO nsi = 2, nsum
+          IF(idnm(nsi))THEN
+             WRITE(knum,'(I1)') nsi-1
+             kfid = 'NM'//knum
+             WRITE(6,'(A6)',ADVANCE='NO') TRIM(kfid)
+          
+             IF(pzu(nsi) == 1.d0)THEN
+                IF(pau(nsi)==1.d0) WRITE(6,'(A7)',ADVANCE='NO') ' : H,  '
+                IF(pau(nsi)==2.d0) WRITE(6,'(A7)',ADVANCE='NO') ' : D,  '
+                IF(pau(nsi)==3.d0) WRITE(6,'(A7)',ADVANCE='NO') ' : T,  '
+             ELSE IF(pzu(nsi) == 2.d0)THEN
+                IF(pau(nsi)==4.d0) WRITE(6,'(A7)',ADVANCE='NO') ' : He, '
+             ELSE IF(pzu(nsi) == 3.d0)THEN
+                IF(pau(nsi)==6.d0) WRITE(6,'(A7)',ADVANCE='NO') ' : Li, '
+             ELSE IF(pzu(nsi) == 4.d0)THEN
+                IF(pau(nsi)==8.d0) WRITE(6,'(A7)',ADVANCE='NO') ' : Be, '
+             ELSE IF(pzu(nsi) == 5.d0)THEN
+                IF(pau(nsi)==10.d0) WRITE(6,'(A7)',ADVANCE='NO') ' : B,  '
+             ELSE IF(pzu(nsi) == 6.d0)THEN
+                IF(pau(nsi)==12.d0) WRITE(6,'(A7)',ADVANCE='NO') ' : C,  '
+             ELSE
+                WRITE(6,'(A9,ES9.3,A4,ES9.3,A1)',ADVANCE="NO") &
+                     ' : IMP(A=',pau(nsi), ', Z=',pzu(nsi),')'
+             END IF
+          END IF
+       END DO
+       WRITE(6,*) ! breaking line
+       WRITE(6,'(1X,A12)',ADVANCE='NO') 'Fast ions : '
+       DO nsi = 2, nsum
+          IF(idnfast(nsi))THEN
+             WRITE(knum,'(I1)') nsi-1
+             kfid = 'NFAST'//knum
+             WRITE(6,'(A6)',ADVANCE='NO') TRIM(kfid)
+             
+             IF(pzfu(nsi) == 1.d0)THEN
+                IF(pafu(nsi)==1.d0) WRITE(6,'(A7)',ADVANCE='NO') ' : H,  '
+                IF(pafu(nsi)==2.d0) WRITE(6,'(A7)',ADVANCE='NO') ' : D,  '
+                IF(pafu(nsi)==3.d0) WRITE(6,'(A7)',ADVANCE='NO') ' : T,  '
+             ELSE IF(pzfu(nsi) == 2.d0)THEN
+                IF(pafu(nsi)==4.d0) WRITE(6,'(A7)',ADVANCE='NO') ' : He, '
+             ELSE IF(pzfu(nsi) == 3.d0)THEN
+                IF(pafu(nsi)==6.d0) WRITE(6,'(A7)',ADVANCE='NO') ' : Li, '
+             ELSE IF(pzfu(nsi) == 4.d0)THEN
+                IF(pafu(nsi)==8.d0) WRITE(6,'(A7)',ADVANCE='NO') ' : Be, '
+             ELSE IF(pzfu(nsi) == 5.d0)THEN
+                IF(pafu(nsi)==10.d0) WRITE(6,'(A7)',ADVANCE='NO') ' : B,  '
+             ELSE IF(pzfu(nsi) == 6.d0)THEN
+                IF(pafu(nsi)==12.d0) WRITE(6,'(A7)',ADVANCE='NO') ' : C,  '
+             ELSE
+                WRITE(6,'(A9,ES9.3,A4,ES9.3,A1)',ADVANCE="NO") &
+                     ' : IMP(A=',pafu(nsi), ', Z=',pzfu(nsi),')'
+             END IF
+          END IF
+       END DO
+       WRITE(6,*) ! breaking line
+       
+       WRITE(6,fmt_arar) 'PGASA    = ',pgasa,  'PGASZ    = ',pgasz
+       WRITE(6,fmt_arar) 'PIMPA    = ',pimpa,  'PIMPZ    = ',pimpz
+       WRITE(6,'(A55)') '#-----------------------------------------------------#'
+       WRITE(6,*) ! spacing
+       
+    END IF
+
+    RETURN
+  END SUBROUTINE tr_ufile_0d_view
 
 END MODULE truf0d
