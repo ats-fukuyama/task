@@ -2,7 +2,6 @@ MODULE trgexp
 ! *************************************************************************
 !       graphic output for experimental data
 ! *************************************************************************
-
   USE trcomm,ONLY: ikind,rkind,ntum,nrum,nsum,nrmax,rhog,tmu, &
                     mdluf,ntxmax,tlmax
   USE trgsub,ONLY: tr_gr_time
@@ -38,7 +37,7 @@ CONTAINS
 ! -----------------------------------------------------------------------
 !         Control routine of experimental data outputs
 ! -----------------------------------------------------------------------
-    USE trcomm, ONLY: rhom, mdlugt, time_snap
+    USE trcomm, ONLY: rhom, mdlugt, time_snap, time_slc
     USE trufsub,ONLY: tr_uf_time_slice
     CHARACTER(LEN=1),INTENT(IN) :: k2,k3
     INTEGER(ikind) :: i2,i3,ierr,iosts
@@ -56,7 +55,7 @@ CONTAINS
     SELECT CASE(mdluf)
     CASE(1)
        idexp = 1
-       ntxsnap = ntxmax
+       ntxsnap = time_slc
     CASE(2)
        IF(k3 == ' ')THEN
           SELECT CASE(mdlugt)
@@ -71,6 +70,10 @@ CONTAINS
           idexp = 2
           ntxsnap = ntsl
        END IF
+
+    CASE DEFAULT
+       WRITE(6,*) 'XX Experimental data has not been read. MDLUF= ',mdluf
+       RETURN
     END SELECT
 
 
@@ -81,26 +84,35 @@ CONTAINS
        RETURN
     END IF
 
+
     IF(k3 .EQ. ' ')THEN ! snapshot
        SELECT CASE(i2)
        CASE(1)
           CALL tr_gr_exp1
        CASE(2)
           CALL tr_gr_exp2
+       CASE(3)
+          CALL tr_gr_exp3
+       CASE(4)
+          CALL tr_gr_exp4
        CASE(9)
           CALL tr_gr_exp9
        END SELECT
+
     ELSE IF(i2 == 1)THEN ! time evolution
        SELECT CASE(i3)
        CASE(1)
        CASE(2)
        END SELECT
+
     ELSE IF(i2 == 2)THEN ! time evolution of 0D variables
        SELECT CASE(i3)
        CASE(1)
           CALL tr_gr_exp21
        CASE(2)
           CALL tr_gr_exp22
+       CASE(3)
+          CALL tr_gr_exp23
        END SELECT
     END IF   
 
@@ -142,11 +154,99 @@ CONTAINS
 
 ! ************************************************************************
   SUBROUTINE tr_gr_exp2
-
+    ! other profile: zeff ...
 !    USE trcomm, ONLY:
 
     RETURN
   END SUBROUTINE tr_gr_exp2
+
+! ************************************************************************
+  SUBROUTINE tr_gr_exp3
+    ! heating density (1)
+    USE trcomm, ONLY: qnbu,qecu,qicu,qlhu,qohmu,qradu,qfusu
+
+    CALL tr_gr_exp_init_vgu
+
+    ! for electron
+    vgu1(0:nrmax,1) = qnbu(1,ntxsnap,1:nrmax+1) *1.d-6
+    vgu1(0:nrmax,2) = qecu(1,ntxsnap,1:nrmax+1) *1.d-6
+    vgu1(0:nrmax,3) = qicu(1,ntxsnap,1:nrmax+1) *1.d-6
+    vgu1(0:nrmax,4) = qlhu(1,ntxsnap,1:nrmax+1) *1.d-6
+    ! for ion
+    vgu3(0:nrmax,1) = qnbu(2,ntxsnap,1:nrmax+1) *1.d-6
+    vgu3(0:nrmax,2) = qecu(2,ntxsnap,1:nrmax+1) *1.d-6
+    vgu3(0:nrmax,3) = qicu(2,ntxsnap,1:nrmax+1) *1.d-6
+    vgu3(0:nrmax,4) = qlhu(2,ntxsnap,1:nrmax+1) *1.d-6
+    ! ohm, rad
+    vgu2(0:nrmax,1) = qohmu(ntxsnap,1:nrmax+1) *1.d-6
+    vgu2(0:nrmax,2) = qradu(ntxsnap,1:nrmax+1) *1.d-6
+    ! fusion
+    vgu4(0:nrmax,1) = qfusu(1,ntxsnap,1:nrmax+1) *1.d-6
+    vgu4(0:nrmax,2) = qfusu(2,ntxsnap,1:nrmax+1) *1.d-6
+
+    CALL PAGES
+    label = '/Pe_nb,ec,ic,lh(exp) [MW/m$+3$=] vs rho/'
+    CALL GRD1D(1,rhog,vgu1,nrmax+1,nrmax+1,4,label,0)
+    label = '/Pe_ohm,rad(exp) [MW/m$+3$=] vs rho/'
+    CALL GRD1D(2,rhog,vgu2,nrmax+1,nrmax+1,2,label,0)
+    label = '/Pi_nb,ec,ic,lh(exp) [MW/m$+3$=] vs rho/'
+    CALL GRD1D(3,rhog,vgu3,nrmax+1,nrmax+1,4,label,0)
+    label = '/P(e,i)_fus [MW/m$+3$=] vs rho/'
+    CALL GRD1D(4,rhog,vgu4,nrmax+1,nrmax+1,2,label,0)
+
+    CALL tr_gr_time(idexp)
+    CALL PAGEE
+
+    RETURN
+  END SUBROUTINE tr_gr_exp3
+
+! ************************************************************************
+  SUBROUTINE tr_gr_exp4
+    ! current density and particle source density
+    USE trcomm, ONLY: jtotu,jbsu,jnbu,jecu,jicu,jlhu,snbu,swallu
+    REAL(rkind),DIMENSION(1:ntxmax,1:nrmax+1) :: johu
+
+    CALL tr_gr_exp_init_vgu
+
+    DO nr = 1, nrmax+1
+       johu(1:ntxmax,nr) =  jtotu(1:ntxmax,nr) &
+                          -(jbsu(1:ntxmax,nr) + jnbu(1:ntxmax,nr) &
+                           +jecu(1:ntxmax,nr) + jicu(1:ntxmax,nr) &
+                           +jlhu(1:ntxmax,nr))
+    END DO
+
+    vgu1(0:nrmax,1) = - jtotu(ntxsnap,1:nrmax+1) * 1.d-6
+    vgu1(0:nrmax,2) = - johu(ntxsnap,1:nrmax+1) * 1.d-6
+    vgu1(0:nrmax,3) = - jbsu(ntxsnap,1:nrmax+1) * 1.d-6
+    vgu1(0:nrmax,4) = -(jnbu(ntxsnap,1:nrmax+1)+jecu(ntxsnap,1:nrmax+1) &
+                      + jicu(ntxsnap,1:nrmax+1)+jlhu(ntxsnap,1:nrmax+1))*1.d-6
+
+    vgu2(0:nrmax,1) = - jnbu(ntxsnap,1:nrmax+1) *1.d-6
+    vgu2(0:nrmax,2) = - jecu(ntxsnap,1:nrmax+1) *1.d-6
+    vgu2(0:nrmax,3) = - jicu(ntxsnap,1:nrmax+1) *1.d-6
+    vgu2(0:nrmax,4) = - jlhu(ntxsnap,1:nrmax+1) *1.d-6
+
+    vgu3(0:nrmax,1) = snbu(1,ntxsnap,1:nrmax+1) *1.d-20
+    vgu3(0:nrmax,2) = snbu(2,ntxsnap,1:nrmax+1) *1.d-20
+
+    vgu4(0:nrmax,1) = swallu(ntxsnap,1:nrmax+1) *1.d-20
+
+
+    CALL PAGES
+    label = '/jtot,joh,jbs,jcd(exp) [MA] vs rho/'
+    CALL GRD1D(1,rhog,vgu1,nrmax+1,nrmax+1,4,label,0)
+    label = '/j_cd (NB,EC,IC,LH) [MA] vs rho/'
+    CALL GRD1D(2,rhog,vgu2,nrmax+1,nrmax+1,4,label,0)
+    label = '/S_nb(e,i) [10$+20$=/m$+3$= s] vs rho/'
+    CALL GRD1D(3,rhog,vgu3,nrmax+1,nrmax+1,2,label,0)
+    label = '/Swall [10$+20$=/m$+3$= s] vs rho/'
+    CALL GRD1D(4,rhog,vgu4,nrmax+1,nrmax+1,1,label,0)
+
+    CALL tr_gr_time(idexp)
+    CALL PAGEE
+
+    RETURN
+  END SUBROUTINE tr_gr_exp4
 
 ! ************************************************************************
   SUBROUTINE tr_gr_exp9
@@ -163,20 +263,20 @@ CONTAINS
     ! re-calculated profile of sum of ions density
     vgu1(0:nrmax,2) = sumzni(ntxsnap,1:nrmax+1)
 
-    vgu2(0:nrmax,1) = rnu(ns_mion,ntxsnap,1:nrmax+1)
-    vgu2(0:nrmax,2) = rnu(ns_mimp,ntxsnap,1:nrmax+1)
-    vgu2(0:nrmax,3) = rnuc(ns_mion,ntxsnap,1:nrmax+1)
-    vgu2(0:nrmax,4) = rnuc(ns_mimp,ntxsnap,1:nrmax+1)
+    vgu2(0:nrmax,1) = rnuc(ns_mion,ntxsnap,1:nrmax+1)
+    vgu2(0:nrmax,2) = rnuc(ns_mimp,ntxsnap,1:nrmax+1)
+    vgu2(0:nrmax,3) = rnu(ns_mion,ntxsnap,1:nrmax+1)
+    vgu2(0:nrmax,4) = rnu(ns_mimp,ntxsnap,1:nrmax+1)
 
     DO nsu = 1, nsum-1
        ! original ion density profiles
-       vgu3(0:nrmax,nsu) = rnu(nsu+1,ntxsnap,1:nrmax+1)
+       vgu3(0:nrmax,nsu) = rnuc(nsu+1,ntxsnap,1:nrmax+1)
     END DO
 
     ! the original effective charge number profile
-    vgu4(0:nrmax,1) = zeffru(ntxsnap,1:nrmax+1)
+    vgu4(0:nrmax,1) = zeffruc(ntxsnap,1:nrmax+1)
     ! re-calculated profile of the effective charge number
-    vgu4(0:nrmax,2) = zeffruc(ntxsnap,1:nrmax+1)
+    vgu4(0:nrmax,2) = zeffru(ntxsnap,1:nrmax+1)
 
     CALL PAGES
     label = '/neutrality (re-calc) (n_e and Sum_i (Z_i n_i))/'
@@ -205,20 +305,23 @@ CONTAINS
 
     DO nsu = 1, nsum
        gtu1(1:ntxmax,nsu) = rnu(nsu,1:ntxmax,1)
-       gtu2(1:ntxmax,nsu) = rtu(nsu,1:ntxmax,1)
-       gtu3(1:ntxmax,nsu) = rpu(nsu,1:ntxmax,1)
+       gtu2(1:ntxmax,nsu) = rpu(nsu,1:ntxmax,1)
+       gtu3(1:ntxmax,nsu) = rtu(nsu,1:ntxmax,1)
     END DO
     gtu4(1:ntxmax,1) = qpu(1:ntxmax,1)
+    gtu4(1:ntxmax,2) = qpu(1:ntxmax,nrmax)
 
     CALL PAGES
     label = '/n0(exp) [10$+20$=/m$+3$=] vs t/'
     CALL GRD1D(1,gtu,gtu1,ntxmax,ntxmax,nsum,label,0)
-    label = '/T0(exp) [keV] vs t/'
-    CALL GRD1D(2,gtu,gtu2,ntxmax,ntxmax,nsum,label,0)
     label = '/p0(exp) [Pa] vs t/'
+    CALL GRD1D(2,gtu,gtu2,ntxmax,ntxmax,nsum,label,0)
+    label = '/T0(exp) [keV] vs t/'
     CALL GRD1D(3,gtu,gtu3,ntxmax,ntxmax,nsum,label,0)
-    label = '/q0(exp) vs t/'
-    CALL GRD1D(4,gtu,gtu4,ntxmax,ntxmax,1,label,0)
+    label = '/q0,qa(exp) vs t/'
+    CALL GRD1D(4,gtu,gtu4,ntxmax,ntxmax,2,label,0)
+
+    CALL tr_gr_time(idexp)
     CALL PAGEE
 
     RETURN
@@ -226,6 +329,28 @@ CONTAINS
 
 ! ************************************************************************
   SUBROUTINE tr_gr_exp22
+    USE trcomm,ONLY: ripu,wtotu,wthu
+
+    CALL tr_gr_exp_init_gtiu
+
+    gtiu1(1:ntxmax,1) = - ripu(1:ntxmax) * 1.d-6
+    gtiu2(1:ntxmax,1) = wtotu(1:ntxmax) * 1.d-6
+    gtiu2(1:ntxmax,2) = wthu(1:ntxmax) * 1.d-6
+
+    CALL PAGES
+    label = '/Ipl(exp) [MA] vs t/'
+    CALL GRD1D(1,gtu,gtiu1,ntxmax,ntxmax,1,label,0)
+    label = '/Wp,Wth [MJ] vs t/'
+    CALL GRD1D(2,gtu,gtiu2,ntxmax,ntxmax,2,label,0)
+
+    CALL tr_gr_time(idexp)
+    CALL PAGEE
+
+    RETURN
+  END SUBROUTINE tr_gr_exp22
+
+! ************************************************************************
+  SUBROUTINE tr_gr_exp23
     ! source and sink power
     USE trcomm, ONLY: pnbu,pecu,pibwu,picu,plhu,pohmu,pradu
 
@@ -250,10 +375,12 @@ CONTAINS
     CALL GRD1D(3,gtu,gtiu3,ntxmax,ntxmax,1,label,0)
     label = '/P(RAD) [MW] vs t/'
     CALL GRD1D(4,gtu,gtiu4,ntxmax,ntxmax,1,label,0)
+
+    CALL tr_gr_time(idexp)
     CALL PAGEE
 
     RETURN
-  END SUBROUTINE tr_gr_exp22
+  END SUBROUTINE tr_gr_exp23
 
 ! ************************************************************************
 ! ************************************************************************

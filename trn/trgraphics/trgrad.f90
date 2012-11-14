@@ -5,6 +5,7 @@ MODULE trgrad
 
   USE trcomm, ONLY:ikind,rkind,nrmax,nsamax,neqmax,neqrmax, &
        nsabmax,nsafmax,neq_neqr,nsa_neq,nva_neq,nsab_nsaf,rhog
+  USE trgsub, ONLY: tr_gr_time
   USE libgrf,ONLY: grd1d
   IMPLICIT NONE
 
@@ -14,7 +15,7 @@ MODULE trgrad
   INTEGER(ikind),PARAMETER :: nggmax=10
 
   CHARACTER(LEN=30) :: label
-  INTEGER(ikind)    :: nr,nsa,nsaf,neq,neqr,ngg,ngg_interval
+  INTEGER(ikind)    :: nr,nsa,nsaf,neq,neqr,ngg,ngg_interval, idexp
 
   REAL(rkind),DIMENSION(:),ALLOCATABLE :: rhomg !(1:nrmax)
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(0:nrmax,neqrmax)
@@ -40,6 +41,7 @@ CONTAINS
     CHARACTER(LEN=1),INTENT(IN) :: k2,k3
     INTEGER(ikind) :: i2,i3,ierr,iosts
 
+    ierr = 0
     CALL tr_gr_rad_alloc(ierr)
     IF(ierr /= 0) RETURN
 
@@ -52,6 +54,8 @@ CONTAINS
        WRITE(6,*) ' ERROR : Unsupported graph ID'
        RETURN
     END IF
+
+    idexp = 0 ! print simulation time on every GSAF page
 
     IF(k3 .EQ. ' ')THEN
        SELECT CASE(i2)
@@ -103,6 +107,7 @@ CONTAINS
           END IF
        END IF
     END DO
+!    write(6,*) rt(2,0:nrmax)
 !       vg4(0:nrmax,1)=dpdrho(0:nrmax)
        vg4(0:nrmax,1)=qp(0:nrmax)
 
@@ -115,6 +120,8 @@ CONTAINS
     CALL GRD1D(3,rhog,vg3,nrmax+1,nrmax+1,nsamax,label,0)
     label = '/q vs rho/'
     CALL GRD1D(4,rhog,vg4,nrmax+1,nrmax+1,     1,label,0)
+
+    CALL tr_gr_time(idexp)
     CALL PAGEE
     
     RETURN
@@ -188,6 +195,8 @@ CONTAINS
     CALL GRD1D(3,rhomg,vmx1,nrmax, nrmax, 3,label,0)
     label = '/D(2) tot,nc,tb [m$+2$=/s=] vs rho/'
     CALL GRD1D(4,rhomg,vmx2,nrmax, nrmax, 3,label,0)
+
+    CALL tr_gr_time(idexp)
     CALL PAGEE
     
     RETURN
@@ -260,6 +269,8 @@ CONTAINS
     CALL GRD1D(3,rhomg,vmx1,nrmax, nrmax, 3,label,0)
     label = '/chi(2)tot,nc,tb [m$+2$=/s=] vs rho/'
     CALL GRD1D(4,rhomg,vmx2,nrmax, nrmax, 3,label,0)
+
+    CALL tr_gr_time(idexp)
     CALL PAGEE
     
     RETURN
@@ -303,6 +314,8 @@ CONTAINS
     CALL GRD1D(2,rhomg,vmx2,nrmax,nrmax,nsamax,label,0)
     label = '/eta_par [ohm m] vs rho/'
     CALL GRD1D(3,rhog,vgx1,nrmax+1,nrmax+1,1,label,2)
+
+    CALL tr_gr_time(idexp)
     CALL PAGEE
 
     RETURN
@@ -311,14 +324,15 @@ CONTAINS
 ! **************************************************************************
   SUBROUTINE tr_gr_rad5
   ! ----- current density profile -----
-    USE trcomm, ONLY: jtot,joh,jtor,jbs_nc,eta,qp,dpdrho
+    USE trcomm, ONLY: jtot,joh,jcd_nb,jtor,jbs_nc,eta,qp,dpdrho
 
     CALL tr_gr_rad_init_vgx
 
     vgx1(0:nrmax,1) = 1.d-6*jtot(0:nrmax)
     vgx1(0:nrmax,2) = 1.d-6*joh(0:nrmax)
-    vgx1(0:nrmax,3) = 1.d-6*jbs_nc(0:nrmax)
-!    vgx1(0:nrmax,4) = 1.d-6*jtor(0:nrmax)
+    vgx1(0:nrmax,4) = 1.d-6*jcd_nb(0:nrmax)
+    vgx1(0:nrmax,4) = 1.d-6*jbs_nc(0:nrmax)
+
 
     vgx2(0:nrmax,1) = dpdrho(0:nrmax)
     vgx3(0:nrmax,1) = qp(0:nrmax)
@@ -327,7 +341,7 @@ CONTAINS
 !    vgx4(0:nrmax,1) = qp(0:nrmax)
 
     CALL PAGES
-    label = '/j(tot,oh,bs) [MA=/m$+2$=] vs rho'
+    label = '/j(tot,oh,nb,bs) [MA=/m$+2$=] vs rho'
     CALL GRD1D(1,rhog,vgx1,nrmax+1,nrmax+1,5,label,0)
     label = '/d Psi/d rho vs rho/'
     CALL GRD1D(2,rhog,vgx2,nrmax+1,nrmax+1,5,label,0)
@@ -335,6 +349,8 @@ CONTAINS
     CALL GRD1D(3,rhog,vgx3,nrmax+1,nrmax+1,1,label,0)
     label = '/eta(para) [ohm m] vs rho'
     CALL GRD1D(4,rhog,vgx4,nrmax+1,nrmax+1,1,label,2)
+
+    CALL tr_gr_time(idexp)
     CALL PAGEE
 
     RETURN
@@ -343,16 +359,18 @@ CONTAINS
 ! **************************************************************************
   SUBROUTINE tr_gr_rad6
   ! ----- heating profile-----
-    USE trcomm, ONLY: str,poh,pnb
+    USE trcomm, ONLY: str,poh,pnb,pec,pic,plh,pnf,prl
 
     CALL tr_gr_rad_init_vgx
 
-    vgx1(0:nrmax,1) = poh(0:nrmax)*1.d-6
-    vgx1(0:nrmax,2) = pnb(0:nrmax)*1.d-6
+    vgx1(0:nrmax,1) = poh(1,0:nrmax)*1.d-6
+    vgx1(0:nrmax,2) = (pnb(1,0:nrmax)+pnb(2,0:nrmax))*1.d-6
 
     CALL PAGES
     label = '/Pin [MW=/m$+3$=] vs rho/'
     CALL GRD1D(1,rhog,vgx1,nrmax+1,nrmax+1,5,label,0)
+
+    CALL tr_gr_time(idexp)
     CALL PAGEE
 
     RETURN
@@ -379,6 +397,8 @@ CONTAINS
     CALL GRD1D(3,rhog,vgx3,nrmax+1,nrmax+1,1,label,0)
     label = '/Vprp[m=/s=] vs rho'
     CALL GRD1D(4,rhog,vgx4,nrmax+1,nrmax+1,1,label,0)
+
+    CALL tr_gr_time(idexp)
     CALL PAGEE
 
     RETURN
@@ -405,6 +425,8 @@ CONTAINS
     CALL GRD1D(3,rhomg,vmx3,nrmax,nrmax,1,label,0)
     label = '/Wexb [1=/s=] vs rho/'
     CALL GRD1D(4,rhomg,vmx4,nrmax,nrmax,1,label,0)
+
+    CALL tr_gr_time(idexp)
     CALL PAGEE
 
     RETURN
@@ -430,6 +452,8 @@ CONTAINS
     CALL PAGES
     label = '/Ti(fast) [keV] vs rho/'
     CALL GRD1D(1,rhog,vg1,nrmax,nrmax,nsafmax,label,0)
+
+    CALL tr_gr_time(idexp)
     CALL PAGEE
 
     RETURN
@@ -463,6 +487,8 @@ CONTAINS
     CALL GRD1D(3,rhog,gg3,nrmax+1,nrmax+1,nggmax+1,label,0)
     label = '/qp(t) vs rho/'
     CALL GRD1D(4,rhog,gg4,nrmax+1,nrmax+1,nggmax+1,label,0)
+
+    CALL tr_gr_time(idexp)
     CALL PAGEE
     
     RETURN
@@ -497,6 +523,8 @@ CONTAINS
 !    CALL GRD1D(3,rhog,gg3,nrmax+1,nrmax+1,nggmax+1,label,0)
     label = '/qp(t) vs rho/'
     CALL GRD1D(4,rhog,gg4,nrmax+1,nrmax+1,nggmax+1,label,0)
+
+    CALL tr_gr_time(idexp)
     CALL PAGEE
     
     RETURN
@@ -511,6 +539,7 @@ CONTAINS
     INTEGER(ikind),INTENT(OUT) :: ierr
     INTEGER(ikind),SAVE :: nrmax_save=0, neqmax_save=0
 
+    ierr = 0
     IF(nrmax /= nrmax_save .OR. neqmax /= neqmax_save)THEN
 
        IF(nrmax_save /= 0) CALL tr_gr_rad_dealloc
@@ -611,20 +640,20 @@ CONTAINS
 
   SUBROUTINE tr_gr_rad_init_vgx
 
-    vgx1(0:nrmax,5) = 0.d0
-    vgx2(0:nrmax,5) = 0.d0
-    vgx3(0:nrmax,5) = 0.d0
-    vgx4(0:nrmax,5) = 0.d0
+    vgx1(0:nrmax,1:5) = 0.d0
+    vgx2(0:nrmax,1:5) = 0.d0
+    vgx3(0:nrmax,1:5) = 0.d0
+    vgx4(0:nrmax,1:5) = 0.d0
 
     RETURN
   END SUBROUTINE tr_gr_rad_init_vgx
 
   SUBROUTINE tr_gr_rad_init_vmx
 
-    vmx1(0:nrmax,5) = 0.d0
-    vmx2(0:nrmax,5) = 0.d0
-    vmx3(0:nrmax,5) = 0.d0
-    vmx4(0:nrmax,5) = 0.d0
+    vmx1(1:nrmax,1:5) = 0.d0
+    vmx2(1:nrmax,1:5) = 0.d0
+    vmx3(1:nrmax,1:5) = 0.d0
+    vmx4(1:nrmax,1:5) = 0.d0
 
     RETURN
   END SUBROUTINE tr_gr_rad_init_vmx

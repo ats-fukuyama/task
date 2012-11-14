@@ -2,6 +2,7 @@ MODULE trgdgn
 
   USE trcomm, ONLY: ikind,rkind,nrmax,nsamax,neqmax,neqrmax, &
        neq_neqr,nsa_neq,nva_neq,rhog
+  USE trgsub,ONLY: tr_gr_time
   USE libgrf, ONLY: grd1d
   IMPLICIT NONE
 
@@ -9,6 +10,7 @@ MODULE trgdgn
   PUBLIC tr_gr_diagnostic
 
   CHARACTER(LEN=30) :: label
+  INTEGER(ikind) :: idexp
 
   REAL(rkind),DIMENSION(:),ALLOCATABLE :: rhomg ! (1:nrmax)
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &     ! (0:nrmax,nsamax)
@@ -38,6 +40,8 @@ CONTAINS
        WRITE(6,*) ' ERROR : Unsupported graoh ID'
        RETURN
     END IF
+
+!    idexp = 0 ! print simulation time on every GSAF page
 
     SELECT CASE(i2)
     CASE(1)
@@ -136,6 +140,7 @@ CONTAINS
     INTEGER(ikind),INTENT(OUT) :: ierr
     INTEGER(ikind),SAVE :: nrmax_save,nsamax_save
 
+    ierr = 0
     IF(nrmax /= nrmax_save .OR. nsamax /= nsamax_save)THEN
 
        IF(nrmax_save /= 0) CALL tr_gr_diagnostic_dealloc
@@ -191,10 +196,10 @@ CONTAINS
 
   SUBROUTINE tr_gr_dgn_init_nrdmg
 
-    nrd1mg(0:nrmax,1:nsamax) = 0.d0
-    nrd2mg(0:nrmax,1:nsamax) = 0.d0
-    nrd3mg(0:nrmax,1:nsamax) = 0.d0
-    nrd4mg(0:nrmax,1:nsamax) = 0.d0
+    nrd1mg(1:nrmax,1:nsamax) = 0.d0
+    nrd2mg(1:nrmax,1:nsamax) = 0.d0
+    nrd3mg(1:nrmax,1:nsamax) = 0.d0
+    nrd4mg(1:nrmax,1:nsamax) = 0.d0
 
     RETURN
   END SUBROUTINE tr_gr_dgn_init_nrdmg

@@ -34,12 +34,14 @@ CONTAINS
     USE trcomm, ONLY: &
            nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
            lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
-           mdluf,mdlxp,mdlni,mdler,modelg,mdleqn,nteqit, &
+           mdluf,mdlxp,mdlni,mdler,modelg,nteqit, &
            time_slc,time_snap,mdlugt, &
            dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
            ntstep,ngtmax,ngtstp,rips,ripe,profj1,profj2, &
            pnb_tot,pnb_eng,pnb_rw,pnb_r0, &
-           ufid_bin,kuf_dir,kuf_dev,kuf_dcg
+           ufid_bin,kuf_dir,kuf_dev,kuf_dcg, &
+           mdlijq,mdlgmt,mdlsrc,mdlglb
+
     USE plinit
     IMPLICIT NONE
     INTEGER(ikind):: nsa
@@ -119,9 +121,18 @@ CONTAINS
 !        QMIN  : q minimum for reversed shear
 !        RHOITB: rho at ITB (0 for no ITB)
 !        RHOEDG: rho at EDGE for smoothing (1 for no smooth)
+!
+!        MDLIJQ: Control how to create d psi/d rho profile
+!            1 : create from jtot using RIP as boundary condition
+!            2 : create from qp using RIP as boundary condition
+!            3 : create from jtot not using RIP
+!            4 : create from qp not using RIP
+!        * MDLIJQ = 3, 4 is especially for using exp. data
 
     modelg = 0
     nteqit = 0
+
+    mdlijq = 1
 
 
 !     ======( GRAPHIC PARAMETERS )======
@@ -223,7 +234,7 @@ CONTAINS
 !!$    !     ==== Eqs. Selection Parameter ====
 !!$
 !!$    MDLEQB=1  ! 0/1 for B_theta
-    MDLEQN=0  ! 0/1 for density
+!!$    MDLEQN=0  ! 0/1 for density
 !!$    MDLEQT=1  ! 0/1 for heat
 !!$    MDLEQU=0  ! 0/1 for rotation
 !!$    MDLEQZ=0  ! 0/1 for impurity
@@ -243,11 +254,11 @@ CONTAINS
     ngtstp =     1
 
 !     ==== Input from experimental data ==== 
-!        MDLUF :
-!            0 : not used
-!            1 : steady state (at a certain moment: time_slc)
-!            2 : time evolution
-!            3 : compared with TOPICS
+!     MDLUF :
+!     0 : not used
+!     1 : read exp. data only for initial condition (default t=0.d0: time_slc)
+!     2 : read exp. data successively in time evolution
+!     3 : compared with TOPICS
 !
 !        MDLXP :
 !            0 : from UFILEs
@@ -264,20 +275,29 @@ CONTAINS
 !            1 : complete n_i and n_imp  from Zeff, n_e (and n_bulk)
 !            2 : complete n_imp and Zeff from n_e, n_i (and n_bulk)
 !            3 : complete n_i and Zeff   from n_e, n_imp (and n_bulk)    
+!
+!       MDLGMT :
+!       MDLSRC :
+!       MDLGLB :
 
       mdluf     = 0
-      time_slc  = -1.d0 ! not determined
+      time_slc  = 0.d0 ! not determined
 
       mdlxp     = 0
       ufid_bin  = 0
       mdlni     = 1
 
+      mdlgmt = 1
+      mdlsrc = 1
+      mdlglb = 1
+
+
 !     ==== graphic output of experimental data ====
 !     MDLUGT : set the time of snap shot
 !          0 : --- from standard input every time graphic pages are opened.
 !          1 : --- by 'time_snap' in namelist input (trparm)
-!          2 : --- to the lastest time of data
-!       * This switch is valid only in the case of MDLUF = 2
+!          2 : --- to the lastest time of the data
+!       * This switch is valid only in the case of MDLUF = 2, 3
 
       mdlugt    = 0
       time_snap = -1.d0 ! not determined
@@ -368,7 +388,8 @@ CONTAINS
            dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
            profj1,profj2,rips,ripe,nteqit,time_slc,time_snap,mdlugt,mdlni, &
            pnb_tot,pnb_eng,pnb_rw,pnb_r0, &
-           ufid_bin,mdluf,mdlxp,kuf_dir,kuf_dev,kuf_dcg
+           ufid_bin,mdluf,mdlxp,kuf_dir,kuf_dev,kuf_dcg, &
+           mdlijq,mdlgmt,mdlsrc,mdlglb
     IMPLICIT NONE
     INTEGER(ikind),INTENT(IN) :: nid
     INTEGER(ikind),INTENT(OUT):: ist
@@ -384,6 +405,7 @@ CONTAINS
          MODEFR,MODEFW,IDEBUG, &
          ufid_bin,mdluf,mdlxp,mdlugt,mdlni, &
          kuf_dir,kuf_dev,kuf_dcg,time_slc,time_snap, &
+         mdlijq,mdlgmt,mdlsrc,mdlglb,&
          nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
          lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
          mdler,nteqit, &
@@ -429,7 +451,7 @@ CONTAINS
 1   CALL TASK_PARM(mode,'TR',kin,tr_nlin,tr_plist,ierr)
     IF(ierr /= 0) RETURN
 
-    CALL tr_input_check(ierr)
+    CALL tr_check_parm(ierr)
 
     IF(mode == 0.AND. IERR /= 0) GOTO 1
     IF(IERR.NE.0) IERR=IERR+100
@@ -439,35 +461,61 @@ CONTAINS
 
 !     ***** CHECK INPUT PARAMETERS *****
 
-  SUBROUTINE tr_input_check(ierr)
+  SUBROUTINE tr_check_parm(ierr)
 
-    USE trcomm, ONLY : ikind,nrmax,nsamax,mdltr_nc,mdltr_tb
+    USE trcomm, ONLY : ikind,nrmax,nsamax,mdltr_nc,mdltr_tb, &
+         mdluf,mdleqn,mdlequ,mdleqt,mdleqm,mdlgmt,mdlsrc,mdlglb
     IMPLICIT NONE
     INTEGER(ikind), INTENT(OUT):: IERR
+    CHARACTER(LEN=32) :: fmt1
 
     IERR=0
 
     IF(nrmax < 1) THEN
-       WRITE(6,*) 'XXX tr_check: input error : illegal nrmax'
+       WRITE(6,*) 'XX tr_check_parm: input error : illegal nrmax'
        WRITE(6,*) '                  nrmax =',nrmax
        IERR=1
     ENDIF
 
     IF(nsamax < 2) THEN ! nsamax > nsmax ??
-       WRITE(6,*) 'XXX tr_check: input error : illegal nsamax'
+       WRITE(6,*) 'XX tr_check_parm: input error : illegal nsamax'
        WRITE(6,*) '                  nsamax =',nsamax
        IERR=1
     ENDIF
 
     IF(mdltr_nc==0 .AND. mdltr_tb==0) THEN
-       WRITE(6,*) 'XXX tr_check: input error : no trasport'
+       WRITE(6,*) 'XX tr_check_parm: input error : no trasport'
        WRITE(6,*) '                mdltr_nc =',mdltr_nc
        WRITE(6,*) '                mdltr_tb =',mdltr_tb
        IERR=1
     ENDIF
 
+    SELECT CASE(mdluf)
+    CASE(0)
+       IF(mdleqn==6 .OR. mdleqn==7 .OR. mdlequ==6 .OR. mdlequ==7 .OR. &
+          mdleqt==6 .OR. mdleqt==7 .OR. mdleqm==6 .OR. mdleqm==7 .OR. &
+          mdlgmt==6 .OR. mdlgmt==7 .OR. mdlsrc==6 .OR. mdlsrc==7 .OR. &
+          mdlglb==6 .OR. mdlglb==7)THEN
+          WRITE(6,*) 'XX tr_check_parm: input error: experimental data are not read.'
+          IERR=2
+       END IF
+    CASE(1)
+       IF(mdleqn==7 .OR. mdlequ==7 .OR. mdleqt==7 .OR. mdleqm==7 .OR. &
+          mdlgmt==7 .OR. mdlsrc==7 .OR. mdlglb==7)THEN
+          WRITE(6,*) 'XX tr_check_parm: input error: time evolution experimental data are not read.'
+          IERR=2
+       END IF
+    END SELECT
+    IF(IERR==2)THEN
+       fmt1='(1X,4(A10,I2))'
+       WRITE(6,fmt1) &
+   'mdleqn= ',mdleqn,'mdlequ= ',mdlequ,'mdleqt= ',mdleqt,'mdleqm= ',mdleqm
+       fmt1='(1X,3(A10,I2))'
+       WRITE(6,fmt1) 'mdlglb= ',mdlglb,'mdlgmt= ',mdleqn,'mdlsrc= ',mdleqn
+    END IF
+
     RETURN
-  END SUBROUTINE tr_input_check
+  END SUBROUTINE tr_check_parm
 
 ! ***** show input parameters *****
 

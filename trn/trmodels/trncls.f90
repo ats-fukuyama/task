@@ -84,9 +84,9 @@ CONTAINS
 !        = 6 error: trapped fraction must be 0.0.le.p_ft.le.1.0
 !***********************************************************************
     USE trcomm, ONLY : &
-         rkev,NSM,nrmax,nsamax,ns_nsa,idnsa,pa,pz,RR,ra,BB,rkap,       &
-         abb1rho,abb2rho,aib2rho,ttrho,ar1rho,ar2rho,epsrho,rhog,rhom, &
-         rt,rn,dpdrho,pts,pns,qp,q0,bp,jbs_nc,jex_nc,joh,              &
+         rkev,nsm,nrmax,nsamax,nsabmax,ns_nsa,nsab_nsa,idnsa,idion,pa,pz, &
+         RR,ra,BB,rkap,abb1rho,abb2rho,aib2rho,ttrho,ar1rho,ar2rho,epsrho,&
+         rhog,rhom,rt,rn,dpdrho,pts,pns,qp,q0,bp,jbs_nc,jex_nc,joh,    &
          er,eta,eta_nc,vtor,vpol,vpar,vprp,                            &
 !    PADD,! additional pressure due to NBI
 !    MDLTPF,! Trapped particle fraction model
@@ -142,7 +142,7 @@ CONTAINS
 
     ! internal parameters for tr_nclass
     INTEGER(4) :: mdltpf ! interim definition of switch variables
-    INTEGER(4) :: nsa,nsa1,nk,i_ns
+    INTEGER(4) :: nsa,nsa1,nk,nsabnum, nsab, nsab1
     REAL(8),DIMENSION(0:nrmax) :: eropsi,nr_array,drhog
     REAL(8) :: abb1rhom,abb2rhom,aib2rhom, &
          ttrhom,dpdrhom,ar1rhom,ar2rhom,epsrhom,qpm,bpm,etam,johm
@@ -178,7 +178,7 @@ CONTAINS
       
     !*** mdleqz --> nsamax
     ! number of isotopes (1 < m_i < mx_mi+1)
-    m_i = nsamax
+    m_i = nsabmax
 
     !*** mdleqz,pzmax --> pz(nsamax)
     ! highest charge state of all species (0 < m_z < mx_mz+1)
@@ -195,6 +195,7 @@ CONTAINS
     eropsi(1:nrmax) = er(1:nrmax)                      &
          /(0.5d0*(ar1rho(0:nrmax-1)+ar1rho(1:nrmax)))  &
          /(0.5d0*(dpdrho(0:nrmax-1)+dpdrho(1:nrmax)))
+
       
     DO nr = 1, nrmax
        drhog(nr) = rhog(nr)-rhog(nr-1)
@@ -208,9 +209,8 @@ CONTAINS
        epsrhom   = 0.5d0*(epsrho(nr)  +  epsrho(nr-1))
        qpm       = 0.5d0*(qp(nr)      +      qp(nr-1))
        bpm       = 0.5d0*(bp(nr)      +      bp(nr-1))
-       etam      = 0.5d0*(eta(nr)     +     eta(nr-1))
+       etam      = 0.5d0*(eta_nc(nr)  +  eta_nc(nr-1))
        johm      = 0.5d0*(joh(nr)     +     joh(nr-1))
-
 
        p_b2      = SNGL(abb2rhom)
        p_bm2     = SNGL(aib2rhom)
@@ -232,29 +232,30 @@ CONTAINS
        p_grbm2  = SNGL(ar2rhom*aib2rhom)
        ! radial electric field phi' (V/rho)
        p_grphi  = SNGL(er(nr)/ar1rhom)
-       p_gr2phi = SNGL(dpdrhom * deriv3(nr,rhom,eropsi,nrmax,1))
-!         p_gr2phi=0.0
+       p_gr2phi = SNGL(dpdrhom*deriv3(nr,rhom(1:nrmax),eropsi(1:nrmax),nrmax,1))
+!       p_gr2phi=0.0
        p_ngrth  = SNGL(bpm/(BB*rhom(nr))) ! ?????
        
-       i_ns = 0
-       DO nsa = 1, nsamax ! only for ion
-          ns=ns_nsa(nsa)
-          i_ns = i_ns + 1
+       nsabnum = 0
+       DO nsa = 1, nsamax ! only for bulk species
+          ns = ns_nsa(nsa)
+          IF(pz(ns) == 0.d0 .OR.  idion(ns) /= 0.d0) CYCLE
+          nsabnum = nsabnum + 1
                
           ! temperature of i (keV)
-          temp_i(i_ns) = SNGL(0.5d0*(rt(nsa,nr)+rt(nsa,nr-1)))
+          temp_i(nsabnum) = SNGL(0.5d0*(rt(nsa,nr)+rt(nsa,nr-1)))
           ! temperature gradient of i (keV/rho)
-          grt_i(i_ns)  = SNGL((rt(nsa,nr)-rt(nsa,nr-1))/drhog(nr))
+          grt_i(nsabnum)  = SNGL((rt(nsa,nr)-rt(nsa,nr-1))/drhog(nr))
           ! density of i,z (/m**3)
-          den_iz(i_ns,INT(ABS(pz(ns)))) &
+          den_iz(nsabnum,INT(ABS(pz(ns)))) &
                      = SNGL(0.5d0*(rn(nsa,nr)+rn(nsa,nr-1)))*1.E20
           ! pressure gradient of i,z (keV/m**3 /rho)
           ! ***** PADD should be included *****
-          grp_iz(i_ns,INT(ABS(pz(ns)))) &
+          grp_iz(nsabnum,INT(ABS(pz(ns)))) &
                      = SNGL((rp(nsa,nr)-rp(nsa,nr-1))/(drhog(nr)*rkev))
           DO i = 1, 3
              ! moments of external parallel force on i,z (T*j/m**3)
-             fex_iz(i,i_ns,INT(ABS(pz(ns)))) = 0.0
+             fex_iz(i,nsabnum,INT(ABS(pz(ns)))) = 0.0
           ENDDO
        ENDDO
        ! <E.B> (V*T/m)  *** E_para = eta_para * J_oh(para) ***
@@ -311,37 +312,42 @@ CONTAINS
 
        ! For now, contribution of the flux driven by the external force
        !  gfl_s(5,i)/n_i is not included.
-       DO nsa = 1, nsamax
-          cjbs_p(nsa,nr) = DBLE(bsjbp_s(nsa))
-          cjbs_t(nsa,nr) = DBLE(bsjbt_s(nsa))
+       DO nsa = 1, nsabnum
+          nsab = nsab_nsa(nsa)
+          IF(nsab /= 0)THEN
+             cjbs_p(nsab,nr) = DBLE(bsjbp_s(nsa))
+             cjbs_t(nsab,nr) = DBLE(bsjbt_s(nsa))
 
-          ! flux form
-          DO nk  = 1, 5
-             gfls(nk,nsa,nr) = DBLE(gfl_s(nk,nsa))*1.d-20/ar1rhom
-             qfls(nk,nsa,nr) = DBLE(qfl_s(nk,nsa))*1.d-20/ar1rhom
-          ENDDO
+             ! flux form
+             DO nk  = 1, 5
+                gfls(nk,nsab,nr) = DBLE(gfl_s(nk,nsa))*1.d-20/ar1rhom
+                qfls(nk,nsab,nr) = DBLE(qfl_s(nk,nsa))*1.d-20/ar1rhom
+             ENDDO
           
-          ! ADNCG : Diagonal diffusivity for graphic use only
-          dia_gdnc(nsa,nr) = DBLE(dn_s(nsa))/ar2rhom
+             ! ADNCG : Diagonal diffusivity for graphic use only
+             dia_gdnc(nsab,nr) = DBLE(dn_s(nsa))/ar2rhom
 
-          ! AVNCG : Off-diagonal part driven pinch and neoclassical pinch
-          !          for graphic use only
-          dia_gvnc(nsa,nr) = DBLE(vn_s(nsa)+veb_s(nsa))/ar1rhom
-!          dia_gvnc(nsa,nr) = DBLE(vn_s(nsa))/ar1rhom
+             ! AVNCG : Off-diagonal part driven pinch and neoclassical pinch
+             !          for graphic use only
+             dia_gvnc(nsab,nr) = DBLE(vn_s(nsa)+veb_s(nsa))/ar1rhom
+!             dia_gvnc(nsa,nr) = DBLE(vn_s(nsa))/ar1rhom
 
-          vebs(nsa,nr) = DBLE(veb_s(nsa))/ar1rhom
-          qebs(nsa,nr) = DBLE(qeb_s(nsa))/ar1rhom
+             vebs(nsab,nr) = DBLE(veb_s(nsa))/ar1rhom
+             qebs(nsab,nr) = DBLE(qeb_s(nsa))/ar1rhom
 
-          ! complete matrix form as coefficients of 
-          !  the temperature gradients and the pressure gradients.
-          DO nsa1 = 1, nsamax
-             chi_ncp(nsa,nsa1,nr) = DBLE(chip_ss(nsa,nsa1)) / ar2rhom
-             chi_nct(nsa,nsa1,nr) = DBLE(chit_ss(nsa,nsa1)) / ar2rhom
+             ! complete matrix form as coefficients of 
+             !  the temperature gradients and the pressure gradients.
+             DO nsa1 = 1, nsamax
+                nsab1 = nsab_nsa(nsa1)
+                IF(nsab1 /= 0)THEN
+                   chi_ncp(nsab,nsab1,nr) = DBLE(chip_ss(nsa,nsa1)) / ar2rhom
+                   chi_nct(nsab,nsab1,nr) = DBLE(chit_ss(nsa,nsa1)) / ar2rhom
 
-             d_ncp(nsa,nsa1,nr)   = DBLE(  dp_ss(nsa,nsa1)) / ar2rhom
-             d_nct(nsa,nsa1,nr)   = DBLE(  dt_ss(nsa,nsa1)) / ar2rhom
-          ENDDO
-
+                   d_ncp(nsab,nsab1,nr)   = DBLE(  dp_ss(nsa,nsa1)) / ar2rhom
+                   d_nct(nsab,nsab1,nr)   = DBLE(  dt_ss(nsa,nsa1)) / ar2rhom
+                END IF
+             ENDDO
+          END IF
        ENDDO
 
        ! neoclassical bulk ion toroidal and poloidal velocities
@@ -370,9 +376,12 @@ CONTAINS
 
 
     ! *** extrapolate center value ***
-    eta_nc(0) = FCTR(rhom(1),rhom(2),eta_nc(1),eta_nc(2))
-    jbs_nc(0) = FCTR(rhom(1),rhom(2),jbs_nc(1),jbs_nc(2))
-    jex_nc(0) = FCTR(rhom(1),rhom(2),jex_nc(1),jex_nc(2))
+!    eta_nc(0) = FCTR(rhom(1),rhom(2),eta_nc(1),eta_nc(2))
+!    jbs_nc(0) = FCTR(rhom(1),rhom(2),jbs_nc(1),jbs_nc(2))
+!    jex_nc(0) = FCTR(rhom(1),rhom(2),jex_nc(1),jex_nc(2))
+    eta_nc(0) = eta_nc(1)
+    jbs_nc(0) = jbs_nc(1)
+    jex_nc(0) = jex_nc(1)
     vpol(0) = FCTR(rhom(1),rhom(2),vpol(1),vpol(2))
     vpar(0) = FCTR(rhom(1),rhom(2),vpar(1),vpar(2))
     vprp(0) = FCTR(rhom(1),rhom(2),vprp(1),vprp(2))
@@ -398,7 +407,7 @@ CONTAINS
     vprp(nrmax)   = 2.d0*vprp(nrmax)   - vprp(nrmax-1)
 
     RETURN
-  END SUBROUTINE TR_NCLASS
+  END SUBROUTINE tr_nclass
 
 !     ***********************************************************
 

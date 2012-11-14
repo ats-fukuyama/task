@@ -13,7 +13,7 @@ CONTAINS
 !
 !  idexp = 0 : simulation time
 !        = 1 : time of snap shot of experimental data (mdluf = 1)
-!        = 2 : time of snap shot of experimental data (mdluf = 2)
+!        = 2 : time of snap shot of experimental data (mdluf = 2, 3)
 !               (arbitrary time slice every graphic view)
 ! ----------------------------------------------------------------------       
     USE trcomm, ONLY : t, time_slc, time_snap

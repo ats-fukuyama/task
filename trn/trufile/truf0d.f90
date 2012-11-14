@@ -39,7 +39,6 @@ CONTAINS
 
        CALL tr_uf_get_papz
 
-
     ENDIF
 
     RETURN
@@ -152,6 +151,8 @@ CONTAINS
 ! ----------------------------------------------------------------------
 !   set the atomic number and the charge number of species which are
 !    contained in experimental data
+!
+!   setup the conversion table of (nsu --> nsa)
 ! ----------------------------------------------------------------------
     USE trcomm, ONLY: ame,amp,pau,pzu,pafu,pzfu
 
@@ -253,6 +254,65 @@ CONTAINS
 
     RETURN
   END SUBROUTINE tr_uf_identify_ions
+
+! ************************************************************************
+! ************************************************************************
+
+  SUBROUTINE tr_uf_set_table
+! ------------------------------------------------------------------------
+!   set the conversion table: [nsu --> nsa], [nsfu --> nsa]
+! ------------------------------------------------------------------------
+    USE trcomm, ONLY: idion,nsamax,nsa_nsu,nsa_nsfu,ns_nsa, &
+                      pa,pz,pau,pzu,pafu,pzfu
+    IMPLICIT NONE
+    INTEGER(ikind) :: ns,nsa,nsi
+
+    nsa_nsu(1:nsum)  = 0
+    nsa_nsfu(1:nsum) = 0
+
+    nsa_nsu(1)  = 1 ! electron
+    nsa_nsfu(1) = 0 ! dummy
+
+    exp: DO nsi = 2, nsum
+       IF(idnm(nsi))THEN
+          sim: DO nsa = 2, nsamax
+             ns = ns_nsa(nsa)
+             IF(idion(ns) == 0.d0)THEN ! bulk ions
+                IF(pzu(nsi) == pz(ns) .AND. pau(nsi) == pa(ns))THEN
+                   nsa_nsu(nsi) = nsa
+                   EXIT
+                END IF
+             END IF
+
+             IF(nsa==nsamax)THEN
+                WRITE(6,'(1X,A25,I1,A34)') &
+       '## tr_uf_set_table:    NM',nsi-1,'  is discarded in the calculation.'
+             END IF
+          END DO sim
+       END IF
+    END DO exp
+
+    expf: DO nsi = 2, nsum
+       IF(idnfast(nsi))THEN
+          simf: DO nsa = 2, nsamax
+             ns = ns_nsa(nsa)
+             IF(idion(ns) /= 0.d0)THEN ! fast ions
+                IF(pzu(nsi) == pz(ns) .AND. pau(nsi) == pa(ns))THEN
+                   nsa_nsfu(nsi) = nsa
+                   EXIT
+                END IF
+             END IF
+
+             IF(nsa==nsamax)THEN
+                WRITE(6,'(1X,A25,I1,A34)') &
+       '## tr_uf_set_table: NFAST',nsi-1,'  is discarded in the calculation.'
+             END IF
+          END DO simf
+       END IF
+    END DO expf
+
+    RETURN
+  END SUBROUTINE tr_uf_set_table
 
 ! ************************************************************************
 

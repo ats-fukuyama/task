@@ -190,8 +190,10 @@ CONTAINS
 
   SUBROUTINE tr_uftl_check(kfid,tl,ntxmax,tlmax,dt,tl_check,tl_save)
 ! -------------------------------------------------------------------------
-!   Consistency check of UFILE data
-!    check the number of time point data
+!   ***   Consistency check of UFILE data   ***
+!
+!   This subroutine checks the number of time point data of each variable
+!    data file and the equivalence of it.
 ! -------------------------------------------------------------------------
 
     IMPLICIT NONE
@@ -224,14 +226,33 @@ CONTAINS
 ! *************************************************************************
 ! *************************************************************************
 
-  SUBROUTINE tr_uf2d_interpolate(kfid,rl,f1,fint,u,deriv,nrlmax,nrmax, &
-                                 rhog,rhom,id,id_mesh,ierr)
-    !  UFILE mesh --> TASK/TR mesh
+  SUBROUTINE tr_uf2d_interpolate(kfid,rl,f2,fint,u,deriv,nrlmax,nrmax, &
+                                 rhog,rhom,id_grd,id_mesh,ierr)
+! ------------------------------------------------------------------------
+!  data interpolation: UFILE mesh --> TASK/TR mesh
+!
+!   < input >
+!  kfid    : the name of variable data of the UFILE
+!  rl      : the radial mesh points data of the UFILE
+!  f2      : the functional value of the UFILE
+!  deriv   : the derivative value for spline interpolation
+!  nrlmax  : the number of radial mesh points of UFILE
+!  nrmax   : the number of radial mesh points of TASK/TR
+!  rhog    : the radial mesh points data of TAKS/TR (integer mesh)
+!  rhom    : the radial mesh points data of TAKS/TR (half integer mesh)
+!  id_grd  : the boundary condition selector for spline interpolation
+!  id_mesh : the selector of mesh type (=0: integer, else=half integer)
+!
+!   < output >
+!  fint    : the interpolated functional data
+!  u       : the spline coefficients used in the interpolation
+!  ierr    : error identifier
+! ------------------------------------------------------------------------
     
     IMPLICIT NONE
     CHARACTER(10),                 INTENT(IN) :: kfid
-    INTEGER(ikind),                INTENT(IN) :: nrlmax,nrmax, id,id_mesh
-    REAL(rkind),DIMENSION(nrum),   INTENT(IN) :: rl, f1
+    INTEGER(ikind),                INTENT(IN) :: nrlmax,nrmax,id_grd,id_mesh
+    REAL(rkind),DIMENSION(nrum),   INTENT(IN) :: rl, f2
     REAL(rkind),DIMENSION(1:nrmax+1),INTENT(IN) :: rhog,rhom
     REAL(rkind),DIMENSION(nrum),INTENT(INOUT) :: deriv
 
@@ -242,7 +263,7 @@ CONTAINS
     INTEGER(ikind) :: nr
     REAL(rkind)    :: rsl, f0
 
-    CALL SPL1D(rl,f1,deriv,u,nrlmax,id,ierr)
+    CALL SPL1D(rl,f2,deriv,u,nrlmax,id_grd,ierr)
     IF(ierr.NE.0) THEN
        WRITE(6,*) 'XX tr_uf2d_interpolate: SPL1D ERROR. IERR= ',IERR
        WRITE(6,*) 'XX KFID= ',kfid
@@ -271,7 +292,16 @@ CONTAINS
 
   SUBROUTINE tr_uf_time_slice(time_slc,tl,ntxmax,ntsl)
 ! ------------------------------------------------------------------------
-!   acquire the profile of a 2D variable at the certain time point
+!   *** acquire the profile of a 2D variable at the certain time point
+!
+!   < input >
+!   time_slc : the designated time
+!   tl       : the time points data of UFILE
+!   ntxmax   : the maximum number of the time points data
+!
+!   < output >
+!   ntsl     : the subscript number of the time array
+!                                   corresponding to the designated time
 ! ------------------------------------------------------------------------
 
     IMPLICIT NONE

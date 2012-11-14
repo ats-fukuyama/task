@@ -4,6 +4,7 @@ MODULE trgtmp
 ! **************************************************************************
 
   USE trcomm,ONLY: ikind,rkind,nsamax,neqmax,neqrmax,neq_neqr,nsa_neq,ngt
+  USE trgsub,ONLY: tr_gr_time
   USE libgrf,ONLY: grd1d
   IMPLICIT NONE
 
@@ -12,7 +13,7 @@ MODULE trgtmp
 
   CHARACTER(LEN=30) :: label
 
-  INTEGER(ikind) :: nr,nsa,neq,neqr
+  INTEGER(ikind) :: nr,nsa,neq,neqr,idexp
 
   REAL(rkind),DIMENSION(:),ALLOCATABLE   :: gt !(0:ngt)
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &  !(0:ngt,nsamax)
@@ -43,6 +44,8 @@ CONTAINS
        RETURN
     END IF
 
+    idexp = 0 ! print simulation time on every GSAF page
+
     SELECT CASE(i2)
     CASE(1)
        CALL tr_gr_temp1 ! n(0),u(0),t(0),q(0),q(a)
@@ -65,7 +68,8 @@ CONTAINS
 
     DO nsa=1,nsamax
        gt1(0:ngt,nsa)=gvts(0:ngt,nsa,1)
-       gt2(0:ngt,nsa)=gvts(0:ngt,nsa,2)
+!       gt2(0:ngt,nsa)=gvts(0:ngt,nsa,2)
+       gt2(0:ngt,nsa)=gvts(0:ngt,nsa,4)
        gt3(0:ngt,nsa)=gvts(0:ngt,nsa,3)
     END DO
 
@@ -75,12 +79,14 @@ CONTAINS
     CALL PAGES
     label = '/n(0) [10^20/m^3] vs t/'
     CALL GRD1D(1,gt,gt1,ngt+1,ngt+1,nsamax,label,0)
-    label = '/u(0) vs t/'
+    label = '/p(0) [MPa] vs t/'
     CALL GRD1D(2,gt,gt2,ngt+1,ngt+1,nsamax,label,0)
     label = '/T(0) [keV] vs t/'
     CALL GRD1D(3,gt,gt3,ngt+1,ngt+1,nsamax,label,0)
     label = '/q(0),q(a) vs t/'
     CALL GRD1D(4,gt,gt4,ngt+1,ngt+1,2,label,0)
+
+    CALL tr_gr_time(idexp)
     CALL PAGEE
     
     RETURN
@@ -117,6 +123,8 @@ CONTAINS
     CALL GRD1D(3,gt,gti3,ngt+1,ngt+1,5,label,0)
     label = '/H89,H98y2 vs t'
     CALL GRD1D(4,gt,gti4,ngt+1,ngt+1,5,label,0)
+
+    CALL tr_gr_time(idexp)
     CALL PAGEE
 
     RETURN
@@ -132,10 +140,9 @@ CONTAINS
     gti1(0:ngt,1) = gvt(0:ngt,18) ! pin_t
     gti1(0:ngt,2) = gvt(0:ngt,19) ! poh_t
     gti1(0:ngt,3) = gvt(0:ngt,20) ! pnb_t
-    gti1(0:ngt,4) = gvt(0:ngt,21) ! prf_t
-    gti1(0:ngt,5) = gvt(0:ngt,22) ! pec_t
-    gti1(0:ngt,6) = gvt(0:ngt,23) ! pic_t
-    gti1(0:ngt,7) = gvt(0:ngt,24) ! plh_t
+    gti1(0:ngt,5) = gvt(0:ngt,21) ! pec_t
+    gti1(0:ngt,6) = gvt(0:ngt,22) ! pic_t
+    gti1(0:ngt,7) = gvt(0:ngt,23) ! plh_t
     gti1(0:ngt,8) = gvt(0:ngt,24) ! pnf_t
 
     gti2(0:ngt,1) = gvt(0:ngt,15) ! betap(0)
@@ -147,6 +154,8 @@ CONTAINS
     CALL GRD1D(1,gt,gti1,ngt+1,ngt+1,8,label,0)
     label = '/betap(0),betap(nrmax),betan vs t/'
     CALL GRD1D(2,gt,gti2,ngt+1,ngt+1,5,label,0)
+
+    CALL tr_gr_time(idexp)
     CALL PAGEE
 
   END SUBROUTINE tr_gr_temp3
@@ -160,6 +169,7 @@ CONTAINS
     INTEGER(ikind),SAVE :: ngt_save, nsamax_save
     INTEGER(ikind),INTENT(OUT) :: ierr
 
+    ierr = 0
     IF(ngt /= ngt_save .OR. nsamax /= nsamax_save)THEN
 
        IF(ngt_save /= 0) CALL tr_gr_temp_dealloc
@@ -213,10 +223,10 @@ CONTAINS
 
   SUBROUTINE tr_gr_tmp_init_gti
 
-    gti1(0:ngt,10) = 0.d0
-    gti2(0:ngt,10) = 0.d0
-    gti3(0:ngt,10) = 0.d0
-    gti4(0:ngt,10) = 0.d0
+    gti1(0:ngt,1:10) = 0.d0
+    gti2(0:ngt,1:10) = 0.d0
+    gti3(0:ngt,1:10) = 0.d0
+    gti4(0:ngt,1:10) = 0.d0
 
     RETURN
   END SUBROUTINE tr_gr_tmp_init_gti

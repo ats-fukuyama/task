@@ -7,9 +7,9 @@ include $(TASKDIR)/make.header
 
 
 MODINCLUDE=-I $(BPSDDIR)/mod -I $(TASKDIR)/plx/mod -I $(TASKDIR)/lib/mod \
-           -I ../trcore/mod -I $(MOD)
+           -I ../trufile/mod -I ../trcore/mod -I $(MOD)
 
-SRC90= truf0d.f90 trufsub.f90 trufcalc.f90 trufin.f90 trufile.f90
+SRC90= trsource.f90
 
 OBJS= $(SRC90:.f90=.o)
 
@@ -18,10 +18,10 @@ OBJS= $(SRC90:.f90=.o)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all: trufilelib.a
+all: trsourceslib.a
 
-trufilelib.a: $(OBJS)
-	$(LD) $(LDFLAGS) trufilelib.a $(OBJS)
+trsourceslib.a: $(OBJS)
+	$(LD) $(LDFLAGS) trsourceslib.a $(OBJS)
 
 clean :
 	rm -f ./#* ./*f90~ *.o

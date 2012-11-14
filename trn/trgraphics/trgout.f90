@@ -19,9 +19,10 @@ CONTAINS
 !    USE trcomm, ONLY : NGR,NGT
     USE trgrad, ONLY: tr_gr_radial
     USE trgtmp, ONLY: tr_gr_temporal
-    USE trgcom, ONLY: tr_gr_comp
+    USE trgcom, ONLY: tr_gr_computation
     USE trgdgn, ONLY: tr_gr_diagnostic
     USE trgexp, ONLY: tr_gr_experiment
+    USE trgcmp, ONLY: tr_gr_comparison
     IMPLICIT NONE
 
     INTEGER(ikind), SAVE :: init = 0, inqg
@@ -38,7 +39,7 @@ CONTAINS
     ENDIF
 
     DO
-       WRITE(6,*) '# Graph select : R1-13, T1-2, N1-12, D1, U1-2'
+       WRITE(6,*) '# Graph select : R1-13, T1-2, N1-12, D1-2, U1-2, M1-5'
        WRITE(6,*) '#  Menu select : S/save  L/load  H/help  ',&
                                    'C/clear  I/inq  X/exit'
        READ(5,'(A5)',iostat=iosts) KIG
@@ -88,13 +89,16 @@ CONTAINS
           CALL tr_gr_temporal(k2)
           CYCLE
        CASE('N')
-          CALL tr_gr_comp(k2,k3)
+          CALL tr_gr_computation(k2,k3)
           CYCLE
        CASE('D')
           CALL tr_gr_diagnostic(k2)
           CYCLE
        CASE('U')
           CALL tr_gr_experiment(k2,k3)
+          CYCLE
+       CASE('M')
+          CALL tr_gr_comparison(k2,k3)
           CYCLE
 !!$         CASE('Y')
 !!$            CALL TRGRY0(k2,inqg)

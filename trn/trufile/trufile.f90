@@ -13,21 +13,23 @@ MODULE trufile
   PUBLIC tr_ufile
 
   INTEGER(ikind) :: tlcheck, tlsave
+  REAL(rkind),DIMENSION(1:nrum) :: tmu_save
 
 CONTAINS
 
-  SUBROUTINE tr_ufile
+  SUBROUTINE tr_ufile(ierr)
     USE ufinit, ONLY: ufile_init
-    USE truf0d, ONLY: tr_uf0d,tr_ufile_0d_view
+    USE truf0d, ONLY: tr_uf0d,tr_ufile_0d_view,tr_uf_set_table
     USE trufcalc,ONLY: tr_uf_nicomplete
-    USE trcomm, ONLY: kuf_dir,kuf_dcg,kuf_dev,nrmax,ntmax,mdluf
+    USE trcomm, ONLY: kuf_dir,kuf_dcg,kuf_dev,nrmax,ntmax,mdluf,tmu
     IMPLICIT NONE
 
-    INTEGER(ikind) :: id_mesh,id_deriv,ierr
+    INTEGER(ikind),INTENT(OUT) :: ierr
+    INTEGER(ikind) :: id_mesh,id_deriv
 
     ! locating experimental data directory and initialization (TASK/lib)
     IF(mdlxp == 0)THEN
-       CALL ufile_init(kuf_dir,kuf_dev,kuf_dcg,ufid_bin,ierr)
+       CALL ufile_init(kuf_dir,kuf_dev,kuf_dcg,ierr)
     ELSE IF(mdlxp == 1)THEN
        CALL IPDB_OPEN(kuf_dev,kuf_dcg)
     ELSE
@@ -79,10 +81,14 @@ CONTAINS
 
     CALL tr_ufget_geometric(id_mesh,id_deriv,ierr)
 
+    ! load time array
+    tmu(1:ntum) = tmu_save(1:ntum)
+
 
     CALL tr_uf_nicomplete
 
     CALL tr_ufile_0d_view
+    CALL tr_uf_set_table
 
     ! read error handling
     ! substitution, interpolate or extrapolate, and so on.
@@ -118,6 +124,9 @@ CONTAINS
     IF(ierr == 0)THEN
        CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
     END IF
+
+    ! save time array
+    tmu_save(1:ntum) = tmu(1:ntum)
 
     kfid = 'AMIN' ! --> rau
     CALL tr_uf1d(kfid,tmu,rau,ntxmax,mdlxp,ufid_bin,errout,ierr)
@@ -195,11 +204,14 @@ CONTAINS
 
     CHARACTER(LEN=10)                :: kfid
     CHARACTER(LEN=1)                 :: knum
-    INTEGER(ikind)                   :: nsu, nsi, num, ntx, errout
+    INTEGER(ikind)                   :: nsu, nsi, num, ntx, nr, errout
     REAL(rkind),DIMENSION(ntum,nrum) :: f2out
 
     errout = 0 ! write inquire error message to standard output
 
+    rtu(1:nsum,1:ntum,1:nrum) = 0.d0
+    rnu(1:nsum,1:ntum,1:nrum) = 0.d0
+    zeffru(1:ntum,1:nrum)     = 0.d0
 
     ! ***  2D data  ***
     kfid = 'TE'   ! --> RTU
@@ -254,7 +266,7 @@ CONTAINS
        END IF
     END DO
 
-    IF(idzeff(2))THEN
+    IF(idzeff(1))THEN
        kfid = 'ZEFFR'   ! --> zeffru
        CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom, &
                                 mdlxp,ufid_bin,id_mesh,id_deriv,errout,ierr)
@@ -263,16 +275,22 @@ CONTAINS
        END IF
        zeffru(1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
 
-    ELSE IF(idzeff(1))THEN
+    ELSE IF(idzeff(2))THEN
        DO ntx = 1, ntxmax
           zeffru(ntx,1:nrmax+1) = zeffu(ntx)
        END DO
        WRITE(6,*) '## tr_ufget_profile: set the flat profile of ZEFF(1d) to ZEFFR(2d) due to lacking of ZEFFR data.'
     END IF
-
     
-    ! *********************************************
+    ! correction of negative profile due to the interpolation
+    FORALL(nsu=1:nsum,ntx=1:ntxmax,nr=1:nrmax+1,rtu(nsu,ntx,nr)<0.d0)
+       rtu(nsu,ntx,nr) = 1.d-3
+    END FORALL
+    FORALL(nsu=1:nsum,ntx=1:ntxmax,nr=1:nrmax+1,rnu(nsu,ntx,nr)<0.d0)
+       rnu(nsu,ntx,nr) = 1.d-17
+    END FORALL
 
+    ! **************************************************************
 
     kfid = 'Q'   ! --> qpu
     CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
@@ -282,6 +300,9 @@ CONTAINS
     END IF
     qpu(1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
 
+
+    errout = 1 ! following variables is not essential
+
     kfid = 'BPOL'   ! --> bpu
     CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
                  id_mesh,id_deriv,errout,ierr)
@@ -289,7 +310,6 @@ CONTAINS
        CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
     END IF
     bpu(1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
-
 
     kfid = 'VROT'   ! --> wrotu
     CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
@@ -510,6 +530,23 @@ CONTAINS
     qlhu(2,1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
 
 
+    kfid = 'QFUSIE'   ! --> qfusu
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
+    END IF
+    qfusu(1,1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
+
+    kfid = 'QFUSII'   ! --> qfusu
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
+    END IF
+    qfusu(2,1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
+
+
     kfid = 'QOHM'   ! --> qohmu
     CALL tr_uf2d(kfid,tmu,qohmu,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
                  id_mesh,id_deriv,errout,ierr)
@@ -614,6 +651,7 @@ CONTAINS
     IF(ierr == 0)THEN
        CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
     END IF
+    ar2rhou(1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
 
     kfid = 'VOLUME'   ! --> pvolu
     CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
@@ -633,6 +671,7 @@ CONTAINS
 
 
     ! asscociated values
+    ! d V/d rho
     dvrhou(1:ntxmax,2:nrmax+1) = psuru(1:ntxmax,2:nrmax+1) &
                               /ar1rhou(1:ntxmax,2:nrmax+1)
     dvrhou(1:ntxmax,1) = 0.d0 ! at the magnetic axis

@@ -4,8 +4,10 @@ MODULE trsetup
 ! initializes the plasma profiles
   USE trcomm, ONLY: ikind, rkind
 
-  PUBLIC tr_setup
+  PUBLIC  tr_setup
   PRIVATE
+
+  REAL(rkind) :: time
 
 CONTAINS
 
@@ -13,17 +15,17 @@ CONTAINS
 
     USE trcomm, ONLY: &
          tr_nit_allocate,tr_nsa_allocate,tr_nr_allocate,tr_ngt_allocate, &
-         t,t_prev,ngt,kidnsa,ns_nsa,idnsa,nrmax,nsamax,nsafmax,   &
-         pa,pz,pz0,nitmax,mdluf,modelg,rip,rips,vtor,vpol,vpar,vprp,     &
-         nrd1,nrd2,nrd3,nrd4
+         t,t_prev,ngt,ns_nsa,idnsa,nrmax,nsamax,nsafmax,   &
+         pa,pz,pz0,nitmax,rip,rips
+
+         
 
     USE trbpsd, ONLY: tr_bpsd_init
     USE eq_bpsd_mod, ONLY: eq_bpsd_init
     USE trloop, ONLY: tr_save_pvprev
+    USE trcalv, ONLY: tr_calc_variables
     USE trresult, ONLY: tr_calc_global, tr_save_ngt
-    USE trcalv, ONLY: tr_calc_zeff, tr_calc_clseta
-    USE trcalc, ONLY: tr_calc_source
-    USE trufile, ONLY: tr_ufile
+    USE trsource, ONLY:tr_source1,tr_source2
     IMPLICIT NONE
     INTEGER(ikind):: ierr
 
@@ -37,59 +39,39 @@ CONTAINS
     rip    = rips
 
 ! +++ setup of equations and speices information +++
-    CALL tr_set_idneq
-
     CALL tr_nsa_allocate
 
     CALL tr_set_species
 
-    CALL tr_set_fast_species
-
-! +++ Basic setup +++
-    CALL tr_ngt_allocate    ! allocation for data save
+    CALL tr_set_idneq
 
     CALL tr_setup_table     ! calculate table for matrix generation
 
+    CALL tr_print_species
+
+! +++ allocation of array and initilization +++
+    CALL tr_ngt_allocate    ! allocation for data save
     CALL tr_nr_allocate     ! allocation for radial profile
-
-    CALL tr_print_table
-
-! +++ Initialization for successive interactive calculation +++
-    nrd1(0:nrmax) = 0.d0
-    nrd2(0:nrmax) = 0.d0
-    nrd3(0:nrmax) = 0.d0
-    nrd4(0:nrmax) = 0.d0
-
-    vtor(0:nrmax) = 0.d0
-    vpol(0:nrmax) = 0.d0
-    vpar(0:nrmax) = 0.d0
-    vprp(0:nrmax) = 0.d0
-
-! +++ setup of initial geometic factors and profiles +++
-    ! Calculate initial geometric factor for cylindrical assumption
-    CALL tr_setup_metric_init
-
-    If(mdluf > 0) CALL tr_ufile
-
-    ! Calculate initial profile.( preparation for calling equilibrium code )
-    CALL tr_setup_profile
-
-    ! set geometric factor (EQ/EQDSK file, calc EQU, calc EQ, calc VMEC)
-    IF(modelg >= 3) CALL tr_setup_geometric
-
-
-! +++
     CALL tr_nit_allocate    ! allocation for diagnostics of iteration
 
+    CALL tr_setup_varinit
+
+! +++ setup of initial profiles and metric quantities +++
+    CALL tr_setup_profile
+
+    CALL tr_setup_geometry
+
+    CALL tr_setup_field
+
+! +++ calculate global quantities +++
+    CALL tr_calc_variables
+    CALL tr_source1
+    CALL tr_source2
+
     CALL tr_save_pvprev
-
-    CALL tr_calc_zeff      ! *** dummy calculation for tr_calc_global 
-    CALL tr_calc_clseta    !      and preparation of 'eta' for NCLASS calc
-    CALL tr_calc_source    ! *** 
-
     CALL tr_calc_global
-
     CALL tr_save_ngt
+
 
     CALL tr_bpsd_init(ierr)
 
@@ -99,96 +81,94 @@ CONTAINS
 ! ***************************************************************************
 ! ***************************************************************************
 
-  SUBROUTINE tr_set_idneq
+  SUBROUTINE tr_set_species
 ! --------------------------------------------------------------------------
-!   This subroutine sets the table for matrix generation.
+!   Setup cenversion (fast ion --> bulk ion) table
 ! --------------------------------------------------------------------------
     USE trcomm, ONLY: tr_neq_allocate, &
-         nsamax,neqmax,nvmax,nrmax,nsa_neq,nva_neq,id_neq
-
+         nsm,nsamax,nrmax,neqmax,nvmax,nsabmax,nsafmax,nsanmax,    &
+         pz,pz0,pa,idion,idnsa,kidns,ns_nsa,idion,nsa_neq,nva_neq, &
+         nsab_nsa,nsaf_nsa,nsan_nsa,nsab_nsaf
     IMPLICIT NONE
-    INTEGER(ikind) :: i,neq,nsa
 
-    neqmax = 1 + 3*nsamax
-    nvmax  = neqmax*(nrmax+1)
-
-    CALL tr_neq_allocate
+    CHARACTER(len=1) :: kidnsf
+    INTEGER(ikind)   :: nsa,ns,nsa1,ns1,nva,neq
 
     !   nsa_neq = 0 : magnetic field
     !     otherwise : particle species
 
     !   nva_neq = 1 : density
     !             2 : toroidal velocity
-    !             3 : temperature
+    !             3 : energy
 
-    !   id_neq  = 0 : equation is not solved in any radius
-    !             1 : flat on axis and fixed at plasma surface
-    !             2 : fixed to zero on axis and fixed at plasma surface
-    !             3 : flat on axis and fixed scale length at plasma surface
-    !             4 : fixed to zero on axis and fixed scale length at surface  
-    ! magnetic diffusion equation
+    neqmax = 1 + 3*nsamax
+    nvmax  = neqmax*(nrmax+1)
+
+    CALL tr_neq_allocate
+
     neq = 1
     nsa_neq(neq) = 0
     nva_neq(neq) = 0
-    id_neq(neq)  = 2
-!    id_neq(neq)  = 0
-
-    DO nsa=1,nsamax
-       DO i=1,3
-          neq = neq+1
+    DO nsa = 1, nsamax
+       DO nva = 1, 3
+          neq = neq + 1
           nsa_neq(neq) = nsa
-          nva_neq(neq) = i
-          SELECT CASE(i)
-          CASE(1) ! density
-             id_neq(neq) = 0
-          CASE(2) ! toroidal velocity
-             id_neq(neq) = 0
-          CASE(3) ! temperature
-             id_neq(neq) = 1
-          END SELECT
+          nva_neq(neq) = nva
        ENDDO
     ENDDO
 
-    RETURN
-  END SUBROUTINE tr_set_idneq
+    ! ----------------------------------------------------------------
 
+    ns_nsa(1:nsm)    = 0
 
-  SUBROUTINE tr_set_species
-! --------------------------------------------------------------------------
-!   This subroutine sets the table for matrix generation.
-! --------------------------------------------------------------------------
-    USE trcomm, ONLY: nsamax,nsabmax,nsafmax,nsanmax, &
-         pz,pz0,pa,idion,idnsa,kidns,ns_nsa,nsab_nsaf
-    IMPLICIT NONE
+    DO nsa = 1, nsamax
+       ns_nsa(nsa) = nsa
+    END DO
 
-    INTEGER(ikind) :: nsa,ns
+    ! ----------------------------------------------------------------
 
     nsabmax = 0
     nsafmax = 0
     nsanmax = 0
 
-    ! set identifier for charge of particles
-    DO nsa = 1, nsamax
-       ns_nsa(nsa) = nsa
-       ns=ns_nsa(nsa)
+    nsab_nsa(1:nsm)  = 0
+    nsaf_nsa(1:nsm)  = 0
+    nsan_nsa(1:nsm)  = 0
+    nsab_nsaf(1:nsm) = 0
 
-       IF(kidns(ns) == ' ') EXIT ! exclude for dummy species (plinit)
+    DO nsa = 1, nsamax
+       ns=ns_nsa(nsa)
+       IF(kidns(ns) == ' ') CYCLE ! exclude for dummy species (see plinit)
 
        IF(NINT(pz0(ns)) == -1) THEN
           idnsa(nsa) = -1 ! electron
           nsabmax = nsabmax + 1
+          nsab_nsa(nsa) = nsabmax
        ELSE
           IF(NINT(pz(ns)) == 0) THEN
              idnsa(nsa) = 0 ! neutral particle
              nsanmax = nsanmax + 1
+             nsan_nsa(nsa) = nsanmax
           ELSE
              IF(idion(ns) == 0)THEN
                 idnsa(nsa) = 1 ! bulk ion particle
                 nsabmax = nsabmax + 1
+                nsab_nsa(nsa) = nsabmax
              ELSE IF(idion(ns) == 1)THEN
                 idnsa(nsa) = 2 ! fast ion particle
                 nsafmax = nsafmax + 1
+                nsaf_nsa(nsa) = nsafmax
+
+                kidnsf = kidns(ns)
+                DO nsa1 = 1, nsamax
+                   ns1 = ns_nsa(nsa1)
+                   IF(ns /= ns1 .AND. kidnsf == kidns(ns1))THEN
+                      nsab_nsaf(nsa) = nsa1
+                   END IF
+                END DO
+
              END IF
+
           END IF
        END IF
     END DO
@@ -199,35 +179,46 @@ CONTAINS
   END SUBROUTINE tr_set_species
 
 
-  SUBROUTINE tr_set_fast_species
-! -------------------------------------------------------------------------
-!   setup cenversion (fast ion --> bulk ion) table
-! -------------------------------------------------------------------------
-    USE trcomm, ONLY: nsm,nsamax,kidns,ns_nsa,nsab_nsaf,idion
+  SUBROUTINE tr_set_idneq
+! --------------------------------------------------------------------------
+!   This subroutine sets the table for matrix generation.
+! --------------------------------------------------------------------------
+    USE trcomm, ONLY: neqmax,idnsa,nsa_neq,nva_neq,id_neq
 
-    CHARACTER(len=1) :: kidnsf
-    INTEGER(ikind)   :: ns,nsa,ns1,nsa1
+    IMPLICIT NONE
+    INTEGER(ikind) :: i,neq,nsa,nva
 
-    nsab_nsaf(1:nsm) = 0
-    DO nsa = 1, nsamax
-       ns = ns_nsa(nsa)
-       IF(idion(ns) /= 1.d0) CYCLE ! exclude particles except fast ion 
-       kidnsf = kidns(ns) 
-       DO nsa1 = 1, nsamax
-          ns1 = ns_nsa(nsa1)
+    !   id_neq  = 0 : equation is not solved in any radius
+    !             1 : flat on axis and fixed at plasma surface
+    !             2 : fixed to zero on axis and fixed at plasma surface
+    !             3 : flat on axis and fixed scale length at plasma surface
+    !             4 : fixed to zero on axis and fixed scale length at surface
 
-          IF(ns /= ns1 .AND. kidnsf == kidns(ns1)) THEN
-             nsab_nsaf(nsa) = nsa1
+    ! magnetic diffusion equation
+    neq = 1
+    id_neq(neq) = 2
+!    id_neq(neq) = 0
+
+    DO neq = 2, neqmax
+       nsa = nsa_neq(neq)
+       nva = nva_neq(neq)
+       
+       SELECT CASE(nva)
+       CASE(1) ! density
+          id_neq(neq) = 0
+       CASE(2) ! toroidal velocity
+          id_neq(neq) = 0
+       CASE(3) ! temperature
+          IF(idnsa(nsa) == 0 .OR. idnsa(nsa) == 2)THEN ! neutral and fast ions
+             id_neq(neq) = 0
+          ELSE ! bulk species
+             id_neq(neq) = 1
           END IF
-       END DO
-    END DO
-
-!!$    DO nsa = 1, nsamax
-!!$       write(*,*) 'nsa: ',nsa,'nsab_nsaf',nsab_nsaf(nsa)
-!!$    END DO
+       END SELECT
+    ENDDO
 
     RETURN
-  END SUBROUTINE tr_set_fast_species
+  END SUBROUTINE tr_set_idneq
 
 
   SUBROUTINE tr_setup_table
@@ -305,7 +296,7 @@ CONTAINS
   END SUBROUTINE tr_setup_table
 
 
-  SUBROUTINE tr_print_table
+  SUBROUTINE tr_print_species
 ! ------------------------------------------------------------------------
 !   print conversion table for equations, species
 ! ------------------------------------------------------------------------
@@ -317,9 +308,10 @@ CONTAINS
     CHARACTER(50)  :: fmt_table
     INTEGER(ikind) :: neq,neqr,nsa,ns,nva,nsab
 
-    fmt_table = '(1X,I3,I4,I5,A6,I4,I5)'
+    fmt_table = '(1X,I3,I4,I5,I5,A6,I4)'
+    WRITE(6,*) ! spacing
     WRITE(6,*) '# Variables conversion table'
-    WRITE(6,*) 'NEQ NEQR NVA KIDNS NSA NSAB'
+    WRITE(6,*) 'NEQ NEQR NSA NSAB KIDNS NVA'
 
     neqr = 0
     nva  = 0
@@ -337,54 +329,142 @@ CONTAINS
           kid  = kidns(ns)
        END IF
 
-       WRITE(6,fmt_table) neq,neqr,nva,kid,nsa,nsab
+       WRITE(6,fmt_table) neq,neqr,nsa,nsab,kid,nva
     END DO
     WRITE(6,*) '---------------------------'
     WRITE(6,*) ! spacing
     
     RETURN
-  END SUBROUTINE tr_print_table
+  END SUBROUTINE tr_print_species
 
 ! *************************************************************************
 ! *************************************************************************
-  SUBROUTINE tr_setup_metric_init
-! --------------------------------------------------------------------------
-!   This subroutine initializes geometric factors.
-!
-!   In the case of calling equilibrium code, however, its substitution is 
-!    carried out for making interim profiles for equilibrium code.
-! --------------------------------------------------------------------------
-    USE trcomm, ONLY: pi,rkap,nrmax,ra,rr,bb,rkap,rg,rm,rjcb,rhog,rhom, &
-         ttrho,dvrho,abrho,abvrho,arrho,ar1rho,ar2rho,rmjrho,           &
-         rmnrho,rmnrhom,rkprho,rkprhom,rhog,rhom,epsrho,                &
-         abb2rho,aib2rho,abb1rho,pvolrho,psurrho  ! ,nrd1,nrd2,nrd3
 
+  SUBROUTINE tr_setup_profile
+! -------------------------------------------------------------------------
+!   This subroutine calculates inital profiles.
+! -------------------------------------------------------------------------
+    USE trcomm, ONLY: rkev,rkap,nrmax,nsmax,nsamax,ns_nsa,t, &
+         rg,rm,rhog,rhom,rjcb,ra,rr,rn,ru,rt,rp,rp_tot,           &
+         mdluf,mdleqn,mdlequ,mdleqt,mdleqm,mdlgmt,mdlglb,mdlsrc,time_slc
+    USE trufile, ONLY: tr_ufile
+    USE trufin, ONLY: tr_uf_init,tr_ufin_global,tr_ufin_density, &
+                      tr_ufin_rotation,tr_ufin_temperature
+    USE plprof, ONLY: pl_prof2
+                      
     IMPLICIT NONE
-    INTEGER(ikind) :: nr
-    REAL(rkind) :: dr
+    REAL(rkind),DIMENSION(nsmax):: rn_ns,ru_ns,rtpr_ns,rtpp_ns
+    REAL(rkind)    :: dr
+    INTEGER(ikind) :: nr,nsa,ns,ierr
 
-    ! --- Interim substitution ---
-    dr   = SQRT(rkap)*ra/dble(nrmax)
+    ! generate mesh
+    dr = SQRT(rkap)*ra/dble(nrmax)
     DO nr = 0, nrmax
        rg(nr)=dble(nr)*dr
        IF(nr /= 0) rm(nr)=0.5d0*(rg(nr-1)+rg(nr))
 
-       ! normalized variables
        rjcb(nr)    = 1.d0/(SQRT(rkap)*ra)
        rhog(nr)    = rg(nr)*rjcb(nr)
        IF(nr /= 0) rhom(nr) = 0.5d0*(rhog(nr-1)+rhog(nr))   
     END DO
 
-    ! --- cylindrical assumption ---
+    ! setup to read experimental data
+    DO
+       IF(mdluf /= 0)THEN
+          CALL tr_ufile(ierr)
+          IF(ierr /= 0)THEN
+             ! set to default values
+             mdluf  = 0
+             mdlgmt = 1
+             mdlglb = 1
+             mdlsrc = 1
+             EXIT
+          END IF
+
+          CALL tr_uf_init(mdluf)
+          IF(mdluf==1)THEN
+             time = time_slc
+             t    = time
+          ELSE IF(mdluf==2)THEN
+             time = t
+          END IF
+          EXIT
+       END IF
+       EXIT
+    END DO
+
+    ! -------------------------------------------------------------------
+
+    IF(mdluf == 0)THEN ! simple profile
+       DO nr=0,nrmax
+          CALL pl_prof2(rhog(nr),rn_ns,rtpr_ns,rtpp_ns,ru_ns)
+          DO nsa=1,nsamax
+             ns=ns_nsa(nsa)
+             rn(nsa,nr)=rn_ns(ns)
+             ru(nsa,nr)=ru_ns(ns)
+             rt(nsa,nr)=(rtpr_ns(ns)+2.D0*rtpp_ns(ns))/3.D0          
+          ENDDO
+       ENDDO
+
+    ELSE IF(mdluf > 0)THEN! experimental data
+
+       SELECT CASE(mdlglb)
+       CASE(6:7)
+          CALL tr_ufin_global(time,0,ierr)
+       END SELECT
+
+       CALL tr_ufin_density(time,1,ierr)
+       CALL tr_ufin_rotation(time,1,ierr)
+       CALL tr_ufin_temperature(time,1,ierr)
+    END IF
+
+
+    ! pressure ----------------------------------------------
+    rp_tot(0:nrmax) = 0.d0
+    DO nr = 0, nrmax
+       DO nsa = 1, nsamax
+          rp(nsa,nr)  = rn(nsa,nr)*1.d20 * rt(nsa,nr)*rkev
+          rp_tot(nr)  = rp_tot(nr) + rp(nsa,nr)          
+       ENDDO
+    ENDDO
+
+    RETURN
+  END SUBROUTINE tr_setup_profile
+
+
+  SUBROUTINE tr_setup_geometry
+! --------------------------------------------------------------------------
+!
+! --------------------------------------------------------------------------
+    USE trcomm, ONLY: pi,nrmax,ra,rr,rkap,bb,rg,rm,dpdrho,           &
+       ttrho,dvrho,abrho,abvrho,arrho,ar1rho,ar2rho,rmjrho,rmnrho,   &
+       rkprho,rjcb,rhog,rhom,epsrho,abb2rho,abb1rho,pvolrho,         &
+       aib2rho,psurrho,time_slc,mdluf,mdlgmt,knameq, &
+       profj1,profj2,qp,jtot!, nrd1,nrd2
+
+    USE trbpsd, ONLY: tr_bpsd_set,tr_bpsd_get
+    USE trufin, ONLY: tr_ufin_geometry
+    USE equnit_mod, ONLY: eq_parm,eq_prof,eq_calc,eq_load
+!    USE equunit_mod, ONLY: equ_prof,equ_calc
+!    USE pl_vmec_mod, ONLY: pl_vmec
+
+    IMPLICIT NONE
+    INTEGER(ikind)    :: nr,ierr, modelg
+    REAL(rkind)       :: FCTR
+    CHARACTER(len=80) :: line
+
+    ! modelg --> mdlgmt
+
+
+    ! Cylindrical geometry
+    ! MDLGMT = 1  or  interim calculation for equilibrium code
     DO nr = 0, nrmax
        ar1rho(nr)  = 1.d0/(SQRT(rkap)*ra)          ! const
        ar2rho(nr)  = 1.d0/(SQRT(rkap)*ra)**2       ! const
        abrho(nr)   = 1.d0/(SQRT(rkap)*ra*rr)**2    ! const
        rmjrho(nr)  = rr                            ! const [m]
        rmnrho(nr)  = SQRT(rkap)*ra*rhog(nr) ! [m]
-       IF(nr /= 0) rmnrhom(nr)=0.5d0*(rmnrho(nr-1)+rmnrho(nr))
        rkprho(nr)  = rkap
-       IF(nr /= 0) rkprhom(nr)=0.5d0*(rkprho(nr-1)+rkprho(nr))
 !
        pvolrho(nr) = pi*rkap*(ra*rhog(nr))**2*2.d0*pi*rr
        psurrho(nr) = pi*(rkap+1.d0)*ra*rhog(nr)*2.d0*pi*rr
@@ -405,34 +485,12 @@ CONTAINS
        arrho(nr)   = 1.d0/rr**2                    ! const
 !       abb2rho(nr) = 
        abvrho(nr)  = dvrho(nr)**2 * abrho(nr)
-
     END DO
 
-  END SUBROUTINE tr_setup_metric_init
+    SELECT CASE(MDLGMT)
+    CASE(2) ! Toroidal geometry
 
-
-  SUBROUTINE tr_setup_geometric
-! --------------------------------------------------------------------------
-!
-! --------------------------------------------------------------------------
-    USE trcomm, ONLY: pi,nrmax,ra,rr,rkap,bb,rg,rm,                        &
-       ttrho,dvrho,abrho,abvrho,arrho,ar1rho,ar2rho,rmjrho,rmnrho,rmnrhom, &
-       rkprho,rkprhom,rjcb,rhog,rhom,epsrho,abb2rho,abb1rho,pvolrho,       &
-       psurrho,modelg,knameq !, nrd1,nrd2
-
-    USE trbpsd, ONLY: tr_bpsd_set,tr_bpsd_get
-    USE equnit_mod, ONLY: eq_parm,eq_prof,eq_calc,eq_load
-!    USE equunit_mod, ONLY: equ_prof,equ_calc
-!    USE pl_vmec_mod, ONLY: pl_vmec
-
-    IMPLICIT NONE
-    INTEGER(ikind) :: ierr
-    CHARACTER(len=80) :: line
-
-    CALL tr_bpsd_set(ierr)
-
-    SELECT CASE(modelg)
-    CASE(3,5) ! TASK/EQ,EQDSK output geometry
+    CASE(3) ! TASK/EQ,EQDSK output geometry
        write(line,'(A,I5)') 'nrmax=',nrmax+1
        call eq_parm(2,line,ierr)
        write(line,'(A,I5)') 'nthmax=',64
@@ -440,6 +498,7 @@ CONTAINS
        write(line,'(A,I5)') 'nsumax=',0
        call eq_parm(2,line,ierr)
 
+       modelg = mdlgmt
        call eq_load(modelg,knameq,ierr) ! load eq data and calculate eq
        IF(ierr.NE.0) THEN
           WRITE(6,*) 'XX eq_load: ierr=',ierr
@@ -447,145 +506,199 @@ CONTAINS
        ENDIF
        call tr_bpsd_get(ierr)
 
-!    CASE(7)
-!       call pl_vmec(knameq,ierr) ! load vmec data
-!       call tr_bpsd_get(ierr)
-!       call trgout
-!    CASE(8) ! CALL TASK/EQU
-!       call equ_prof             ! initial calculation of eq
-!       call equ_calc             ! recalculate eq
-!       call tr_bpsd_get(ierr)
-!       call trgout        
-    CASE(9) ! CALL TASK/EQ
-          CALL eq_calc              ! recalculate eq
-          CALL tr_bpsd_get(ierr)
-          ! --- here the convergence of q profile must be confirmed
-          ! ---  and show the graph of Psi(R,Z)
-!          write(*,*) rhog(0:nrmax)
-          CALL tr_setup_profile
+    CASE(6:7) ! from experimental dataset
+       CALL tr_ufin_geometry(time,1,ierr)
+
+    CASE(8:9) ! CALL TASK/EQ       
+       
+       ! create interim q profile 
+       !  using metric quantities on cylindrical assumption
+       CALL tr_setup_field
+
+       CALL tr_bpsd_set(ierr)
+       CALL eq_calc              ! recalculate eq
+       CALL tr_bpsd_get(ierr)
+       ! --- here the convergence of q profile must be confirmed
+       ! ---  and show the graph of Psi(R,Z)
     END SELECT
 
-  END SUBROUTINE tr_setup_geometric
+    RETURN
+  END SUBROUTINE tr_setup_geometry
 
-! *************************************************************************
-! *************************************************************************
 
-  SUBROUTINE tr_setup_profile
-! -------------------------------------------------------------------------
-!   This subroutine calculates inital profiles.
-! -------------------------------------------------------------------------
-    USE trcomm, ONLY: pi,rkev,rkap,rdlt,nrmax,nsmax,nsamax,ns_nsa, &
-         rg,rm,rhog,rhom,ra,rr,rn,ru,rt,rp,rp_tot,          &
-         ttrho,dvrho,arrho,ar1rho,rdpvrho,dpdrho,           &
-         mdluf,jtot,joh,jbs_nc,jex_nc
-    USE trloop, ONLY: tr_calc_dpdrho2j
-    USE plprof, ONLY: pl_prof2,pl_qprf
-                      
+  SUBROUTINE tr_setup_field
+! -----------------------------------------------------------------------
+!
+! -----------------------------------------------------------------------
+    USE trcomm, ONLY: pi,nrmax,mdluf,mdlijq,ra,rkap,qp,rg,rhog, &
+         profj1,profj2,jtot,joh,jcd_nb,jcd_ec,jcd_ic,jcd_lh,jbs_nc
+         ! ,nrd1,nrd2
+    USE trufin,ONLY: tr_ufin_field
+    USE plprof,ONLY: pl_qprf
+
     IMPLICIT NONE
-    REAL(rkind),DIMENSION(nsmax):: rn_ns,ru_ns,rtpr_ns,rtpp_ns
-    INTEGER(ikind):: nr,nsa,ns
+    INTEGER(ikind) :: nr,ierr
 
-!    IF(mdluf == 0)THEN
-       rp_tot(0:nrmax) = 0.d0
-       DO nr=0,nrmax
-          CALL pl_prof2(rhog(nr),rn_ns,rtpr_ns,rtpp_ns,ru_ns)
-          DO nsa=1,nsamax
-             ns=ns_nsa(nsa)
-             rn(nsa,nr)=rn_ns(ns)
-             ru(nsa,nr)=ru_ns(ns)
-             rt(nsa,nr)=(rtpr_ns(ns)+2.D0*rtpp_ns(ns))/3.D0
 
-             ! the pressure of each species
-             rp(nsa,nr)  = rn(nsa,nr)*1.d20 * rt(nsa,nr)*rkev
-             rp_tot(nr)  = rp_tot(nr) + rp(nsa,nr)
-             
-          ! MDLUF = 0 : trprof.f90
-!          pex(nsa,nr) = 0.d0
-!          sex(nsa,nr) = 0.d0
-!          prf(nsa,nr) = 0.d0
+    IF(mdluf == 0)THEN ! simple profile
+       IF(MOD(mdlijq,2)==1)THEN ! jtot --> dpdrho
 
-!          pbm(nr)     = 0.d0
-!          wrot(nr)    = 0.d0
-!          vtor(nr)    = 0.d0
+          ! RIP is prior to jtot when not using exp. data
+          IF(mdlijq == 3) mdlijq = 1
+
+          DO nr = 0, nrmax
+             IF(((SQRT(rkap)*ra)**ABS(profj1)-rg(nr)**ABS(profj1)).LE.0.d0)THEN
+                jtot(nr) = 0.D0
+             ELSE
+                jtot(nr) = &
+               ((SQRT(rkap)*ra)**ABS(profj1)-rg(nr)**ABS(profj1))**ABS(profj2)
+             ENDIF
           ENDDO
-       ENDDO
 
-       ! initialization of current profiles
-       jtot(0:nrmax)   = 0.d0
-       joh(0:nrmax)    = 0.d0
-       jbs_nc(0:nrmax) = 0.d0
-       jex_nc(0:nrmax) = 0.d0
-       ! set profile of 'd psi/d rho' from given jtot profile
-       CALL tr_prof_j2dpdrho
-       CALL tr_calc_dpdrho2j
+       ELSE IF(MOD(mdlijq,2)==0)THEN ! qp --> dpdrho
 
-!    END IF
+          ! RIP is prior to qp when not using exp. data
+          IF(mdlijq == 4) mdlijq = 2
+
+          ! simple q profile from q0, qa
+          DO nr = 0, nrmax
+             CALL pl_qprf(rhog(nr),qp(nr))
+          END DO
+
+       END IF
+
+    ELSE IF(mdluf > 0)THEN
+       CALL tr_ufin_field(time,1,ierr)
+
+    END IF
+
+    ! create d psi/d rho profile
+    CALL tr_prof_dpdrho
+
+    joh(0:nrmax) = jtot(0:nrmax)                        &
+                   - (jcd_nb(0:nrmax) + jcd_ec(0:nrmax) &
+                     +jcd_ic(0:nrmax)+jcd_lh(0:nrmax))  &
+                   -  jbs_nc(0:nrmax)
 
     RETURN
-  END SUBROUTINE tr_setup_profile
+  END SUBROUTINE tr_setup_field
 
+! *************************************************************************
+! *************************************************************************
 
-  SUBROUTINE tr_prof_j2dpdrho
+  SUBROUTINE tr_prof_dpdrho
 ! -------------------------------------------------------------------------
-!   This subroutine gives initial profile of toroidal current density 
-!    and d psi/d rho.
+!   toroidal current density profile --> d psi/d rho
 ! -------------------------------------------------------------------------
-    USE trcomm, ONLY: rmu0,pi,nrmax,BB,RR,ra,rkap,q0,qa,         &
-         rg,rhog,abb1rho,dvrho,ttrho,abrho,arrho,ar1rho,abvrho,  &
-         profj1,profj2,rip,rips,                                 &
-         dpdrho,rdpvrho,jtot,joh,eta,knameq! ,nrd1,nrd2
-
+    USE trcomm,ONLY: rmu0,pi,nrmax,mdlijq,rhog,rip,abb1rho,dvrho,ttrho, &
+         rmjrho,abrho,arrho,ar1rho,abvrho,dpdrho,rdpvrho,qp,bp,jtot
+         ! ,nrd1,nrd2
     IMPLICIT NONE
-    REAL(rkind) :: dr,factor0,factorp,factorm,fact,dpdrhos
+
     INTEGER(ikind) :: nr
+    REAL(rkind)    :: FCTR,DERIV3 ! the functions in TASK/lib
+    REAL(rkind)    :: dr,dpdrhos,factor0,factorp,factorm,fact
+    REAL(rkind),DIMENSION(0:nrmax) :: factor1,factor2
 
-    DO nr = 0, nrmax
-       IF(((SQRT(rkap)*ra)**ABS(profj1)-rg(nr)**ABS(profj1)).LE.0.d0) THEN
-          jtot(nr) = 0.D0
-       ELSE
-          jtot(nr) = &
-          ((SQRT(rkap)*ra)**ABS(profj1)-rg(nr)**ABS(profj1))**ABS(profj2)
-       ENDIF
-    ENDDO
 
-    dpdrho(0:nrmax)  = 0.d0
-    rdpvrho(0:nrmax) = 0.d0
-    DO nr = 1, nrmax
-       dr      = rhog(nr)-rhog(nr-1)
-       factor0 = rmu0*0.5d0*(abb1rho(nr)+abb1rho(nr-1)) &
-                     *0.5d0*(dvrho(nr)+dvrho(nr-1))     &
-                     *0.5d0*(jtot(nr)+jtot(nr-1))       &
-                  /(0.5d0*(ttrho(nr)+ttrho(nr-1)))**2
-       factorp = abvrho(nr  )/ttrho(nr  )
-       factorm = abvrho(nr-1)/ttrho(nr-1)
+    IF(MOD(mdlijq,2)==1)THEN ! jtot --> dpdrho                          
+       dpdrho(0:nrmax)  = 0.d0
+       DO nr = 1, nrmax
+          dr      = rhog(nr)-rhog(nr-1)
+          factor0 = rmu0*0.5d0*(abb1rho(nr)+abb1rho(nr-1)) &
+                        *0.5d0*(dvrho(nr)  +  dvrho(nr-1)) &
+                        *0.5d0*(jtot(nr)   +   jtot(nr-1)) &
+                       /(0.5d0*(ttrho(nr)  +  ttrho(nr-1)))**2
+          factorp = abvrho(nr  )/ttrho(nr  )
+          factorm = abvrho(nr-1)/ttrho(nr-1)
 
-       rdpvrho(nr) = (factorm*rdpvrho(nr-1) + factor0*dr)/factorp
-       dpdrho(nr)  = rdpvrho(nr)*dvrho(nr)
-    END DO
-!    rdpvrho(nr) = ttrho(nr)*arrho(nr)/(4.d0*pi**2*qp(nr))! d psi/d V
+          rdpvrho(nr) = (factorm*rdpvrho(nr-1) + factor0*dr)/factorp
+          dpdrho(nr)  = rdpvrho(nr) * dvrho(nr)
+       END DO
 
-    ! set the boundary value of dpdrho in terms of plasma current value
-    dpdrhos = 2.d0*pi*rmu0*rip*1.d6 / (dvrho(nrmax)*abrho(nrmax))
-!    dpdrhos = 2.d0*pi*rmu0*rip*1.d6*dvrho(nrmax)/abvrho(nrmax)
-    ! correction in terms of the boundary value of dpdrho
-    fact = dpdrhos / dpdrho(nrmax)
-!    write(*,*) fact
+       IF(mdlijq==1)THEN
+          ! set the boundary value of dpdrho in terms of RIP            
+          dpdrhos = 2.d0*pi*rmu0*rip*1.d6 / (dvrho(nrmax)*abrho(nrmax))
+!          dpdrhos = 2.d0*pi*rmu0*rip*1.d6*dvrho(nrmax)/abvrho(nrmax)   
+          ! correction in terms of the boundary value of dpdrho         
+          fact = dpdrhos / dpdrho(nrmax)
+!       write(*,*) fact                                              
 
-    dpdrho(0:nrmax)  = fact*dpdrho(0:nrmax) 
-    rdpvrho(0:nrmax) = fact*rdpvrho(0:nrmax)
+          dpdrho(0:nrmax)  = fact*dpdrho(0:nrmax)
+          rdpvrho(0:nrmax) = fact*rdpvrho(0:nrmax)
+          jtot(0:nrmax)    = fact*jtot(0:nrmax)
+       END IF
 
-    jtot(0:nrmax) = fact*jtot(0:nrmax)
-    joh(0:nrmax)  = jtot(0:nrmax)
+       ! dpdrho --> qp                                                 
+       qp(1:nrmax) = ttrho(1:nrmax)*arrho(1:nrmax)*dvrho(1:nrmax)    &
+                    /(4.d0*pi**2 * dpdrho(1:nrmax))
+       qp(0)       = FCTR(rhog(1),rhog(2),qp(1),qp(2))
 
-    eta(0:nrmax) = 1.d-7
-    
-    ! diagnostic
-!    nrd1(0:nrmax) = rdpvrho(0:nrmax)
-!    nrd2(0:nrmax) = jtot(0:nrmax)
 
-!    write(*,*) jtot(0:nrmax)
+    ELSE IF(MOD(mdlijq,2)==0)THEN ! qp --> dpdrho                       
+       dpdrho(0:nrmax) = ttrho(0:nrmax)*arrho(0:nrmax)*dvrho(0:nrmax) &
+                        / (4.d0*pi**2 * qp(0:nrmax))
+       IF(mdlijq==2)THEN
+          ! set the boundary value of dpdrho in terms of RIP            
+          dpdrhos = 2.d0*pi*rmu0*rip*1.d6 / (dvrho(nrmax)*abrho(nrmax))
+!          dpdrhos = 2.d0*pi*rmu0*rip*1.d6*dvrho(nrmax)/abvrho(nrmax)   
+          ! correction in terms of the boundary value of dpdrho         
+          fact = dpdrhos / dpdrho(nrmax)
+!          write(*,*) fact                 
+                             
+          dpdrho(0:nrmax) = fact*dpdrho(0:nrmax)
+          qp(0:nrmax)     = qp(0:nrmax) / fact
+       END IF
+
+       rdpvrho(0:nrmax) = ttrho(0:nrmax)*arrho(0:nrmax) &
+                         /(4.d0*pi**2*qp(0:nrmax))! d psi/d V 
+
+       ! dpdrho --> jtot
+       factor1(0:nrmax) = dvrho(0:nrmax)*abrho(0:nrmax)*dpdrho(0:nrmax)
+       factor2(0:nrmax) = factor1(0:nrmax)/ttrho(0:nrmax)
+       DO nr = 1, nrmax
+          ! dpdrho --> jtot(j_para)
+          jtot(nr) = ttrho(nr)**2/(rmu0*abb1rho(nr)*dvrho(nr)) &
+                    * deriv3(nr,rhog,factor2,nrmax,0)
+       END DO
+!       jtot(0) = FCTR4pt(rhog(1),rhog(2),rhog(3),jtot(1),jtot(2),jtot(3))
+       jtot(0) = FCTR(rhog(1),rhog(2),jtot(1),jtot(2))
+
+    END IF
+
+    ! dpdrho --> bp                                               
+    bp(0:nrmax) = ar1rho(0:nrmax)*dpdrho(0:nrmax)/rmjrho(0:nrmax)
 
     RETURN
-  END SUBROUTINE tr_prof_j2dpdrho
+  END SUBROUTINE tr_prof_dpdrho
+
+
+  SUBROUTINE tr_setup_varinit
+! --------------------------------------------------------------------
+!   Initialization for successive interactive calculation
+! --------------------------------------------------------------------
+    USE trcomm,ONLY: nrmax, &
+         nrd1,nrd2,nrd3,nrd4,vtor,vpol,vpar,vprp,  &
+         jbs_nc,jex_nc,jcd_nb,jcd_ec,jcd_ic,jcd_lh
+
+    nrd1(0:nrmax) = 0.d0
+    nrd2(0:nrmax) = 0.d0
+    nrd3(0:nrmax) = 0.d0
+    nrd4(0:nrmax) = 0.d0
+
+    vtor(0:nrmax) = 0.d0
+    vpol(0:nrmax) = 0.d0
+    vpar(0:nrmax) = 0.d0
+    vprp(0:nrmax) = 0.d0
+
+    jbs_nc(0:nrmax) = 0.d0
+    jex_nc(0:nrmax) = 0.d0
+    jcd_nb(0:nrmax) = 0.d0
+    jcd_ec(0:nrmax) = 0.d0
+    jcd_ic(0:nrmax) = 0.d0
+    jcd_lh(0:nrmax) = 0.d0
+
+    RETURN
+  END SUBROUTINE tr_setup_varinit
 
 END MODULE trsetup

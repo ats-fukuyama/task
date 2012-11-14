@@ -64,7 +64,7 @@ CONTAINS
 !
 ! ------------------------------------------------------------------------
   SUBROUTINE Pereverzev_method
-    USE trcomm, ONLY: ikind,rkind,nrmax,nsamax,ph0,rg,rhog,         &
+    USE trcomm, ONLY: ikind,rkind,nrmax,nsamax,idnsa,ph0,rg,rhog,   &
          mdltr_prv,dprv1,dprv2,dtr,vtr,nsa_neq,dtr_tb,vtr_tb,       &
          dtr_prv,vtr_prv,cdtrn,cdtru,cdtrt,rn,ru,rt,                &
          rn_prev,ru_prev,rt_prev,ar1rho,ar2rho,dvrho
@@ -87,6 +87,9 @@ CONTAINS
        gm20 = gm2p + gm2m
 
        DO nsa = 1, nsamax
+          ! excluding neutral and fast ions
+          IF(idnsa(nsa) == 0 .OR. idnsa(nsa) == 2) CYCLE
+
           drnrt = rn_prev(nsa,nr  )*rt_prev(nsa,nr  ) &
                  -rn_prev(nsa,nr-1)*rt_prev(nsa,nr-1)
 
@@ -161,8 +164,8 @@ CONTAINS
   END SUBROUTINE Pereverzev_method
 
   SUBROUTINE Pereverzev_check(add_prv)
-    USE trcomm, ONLY: ikind,rkind,neqmax,nsamax,nrmax,rg,mdltr_prv, &
-         dtr_prv,vtr_prv,dtr,rn,ru,rt,dvrho,ar1rho,ar2rho,rhog
+    USE trcomm, ONLY: ikind,rkind,neqmax,nsamax,nrmax,idnsa,rg, &
+         mdltr_prv,dtr_prv,vtr_prv,dtr,rn,ru,rt,dvrho,ar1rho,ar2rho,rhog
 
     REAL(rkind),DIMENSION(neqmax,0:nrmax) :: dtr_elm,vtr_elm,dtr_all
     REAL(rkind),DIMENSION(neqmax,0:nrmax),INTENT(OUT) :: add_prv
@@ -185,6 +188,9 @@ CONTAINS
        gm20 = 0.5d0*(gm2p+gm2m)
        
        DO nsa = 1, nsamax
+          ! excluding neutral and fast ions
+          IF(idnsa(nsa) == 0 .OR. idnsa(nsa) == 2) CYCLE
+
           term_n = gm20*(rn(nsa,nr)-rn(nsa,nr-1))/(rhog(nr)-rhog(nr-1))
           term_u = gm20*(ru(nsa,nr)-ru(nsa,nr-1))/(rhog(nr)-rhog(nr-1))
           term_t = gm20*(rn(nsa,nr)*rt(nsa,nr)-rn(nsa,nr-1)*rt(nsa,nr-1)) &

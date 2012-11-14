@@ -11,18 +11,26 @@ CONTAINS
 
   SUBROUTINE tr_status
 
-    USE trcomm, ONLY : nsamax,t,qp,rt,kidnsa,nitmax, &
+    USE trcomm, ONLY : nsamax,ns_nsa,t,qp,rt,kidns,nitmax, &
          wp_t,taue1,taue2,taue3
     IMPLICIT NONE
     INTEGER(ikind):: nsa
+    CHARACTER(LEN=64) :: fmt_1,fmt_2,fmt_3
 
-    WRITE(6,601) t,wp_t,taue3,qp(0)
-601 FORMAT(' # T: ',F7.3,'(s)     WP:',F7.2,'(MJ)  ', &
-           '  TAUE:',F7.3,'(s)   Q0:',F7.3)
-    WRITE(6,602) (kidnsa(nsa),rt(nsa,0),nsa=1,nsamax)
-602 FORMAT(4(' T',A1,':',F7.3,'(keV)  ':))
+    fmt_1 = '(A5,F7.3,A12,F7.2,A5,A7,F7.3,A12,F7.3)'
+    fmt_2 = '(A3,A1,A1)'
+    fmt_3 = '(F7.3,A7)'
 
-    WRITE(6,'(A13,I4)') 'Iterations: ',nitmax
+    WRITE(6,fmt_1) ' # T:',t,'(s)      WP:',wp_t,'(MJ)', &
+                   '  TAUE:',taue3,'(s)     Q0:',qp(0)
+
+    DO nsa = 1, nsamax
+       WRITE(6,fmt_2,ADVANCE='NO') '  T',kidns(ns_nsa(nsa)),': '
+       WRITE(6,fmt_3,ADVANCE='NO') rt(nsa,0),'(keV)  '
+    END DO
+    WRITE(6,*) ! breaking line
+
+    WRITE(6,'(A14,I3)') '  Iterations: ',nitmax
     nitmax = 0
     
     RETURN
@@ -33,11 +41,12 @@ CONTAINS
   SUBROUTINE tr_calc_global
     USE trcomm, ONLY: pi,rmu0,rkev,RR,ra,BB,nrmax,nsamax,nsabmax,ns_nsa, &
          rkap,pa,pz,rhog,bp,dvrho,rip,t,t_prev,dt,rn,rt,rn_prev,rt_prev, &
-         beta,beta_va,betap,betap_va,betaq,betan,                &
-         poh,pnb,prf,pec,pic,plh,pnf,                            &
-         pin_t,poh_t,pnb_t,prf_t,pec_t,pic_t,plh_t,pnf_t,        &
-         rns_va,rts_va,ws_t,wp_t,wp_th,taue1,taue2,taue3,        &
-         taue89,taue98,h89,h98y2
+         beta,beta_va,betap,betap_va,betaq,betan,                        &
+         poh,pnb,pec,pic,plh,pibw,pnf,prl,                               &
+         pin_t,poh_t,pnb_t,pec_t,pic_t,plh_t,pibw_t,prl_t,pnf_t,         &
+         rns_va,rts_va,ws_t,wp_t,wp_th,taue1,taue2,taue3,                &
+         taue89,taue98,h89,h98y2,                                        &
+         mdluf,mdleqn,mdlequ,mdleqt,mdleqm,mdlsrc,mdlgmt,mdlglb
 
     IMPLICIT NONE
     REAL(rkind) :: FCTR
@@ -91,6 +100,57 @@ CONTAINS
 ! ------------------------------------------------------------------------
 
 !   * Volume-averaged density and temperature
+
+!   * Line-averaged densities
+    rn_la = 0.d0
+    DO nsa = 1, nsamax
+       rn_la = rn_la &
+              +SUM(0.5d0*(rn(nsa,0:nrmax-1)+rn(nsa,1:nrmax))*drhog(1:nrmax))
+    END DO
+    ! only electron
+    rne_la = SUM(0.5d0*(rn(1,0:nrmax-1)+rn(1,1:nrmax))*drhog(1:nrmax))
+
+! ------------------------------------------------------------------------
+!   * Ohmic, NBI and fusion powers
+    DO
+       dvm(1:nrmax) = dvrhom(1:nrmax)*drhog(1:nrmax)*1.d-6
+
+       poh_t  = 0.d0
+       DO ns = 1, 2
+          poh_t = poh_t &
+                + SUM(0.5d0*(poh(ns,0:nrmax-1)+poh(ns,1:nrmax))*dvm(1:nrmax))
+       END DO
+
+       IF(mdluf==2 .AND. mdlsrc==7) EXIT ! experimental data are already set
+       pnb_t  = 0.d0
+       pec_t  = 0.d0
+       pic_t  = 0.d0
+       plh_t  = 0.d0
+       pibw_t = 0.d0
+       prl_t  = 0.d0
+       pnf_t  = 0.d0    
+       DO ns = 1, 2 ! electron and ion
+          pnb_t = pnb_t &
+                + SUM(0.5d0*(pnb(ns,0:nrmax-1)+pnb(ns,1:nrmax))*dvm(1:nrmax))
+          pec_t = pec_t &
+                + SUM(0.5d0*(pec(ns,0:nrmax-1)+pec(ns,1:nrmax))*dvm(1:nrmax))
+          pic_t = pic_t &
+                + SUM(0.5d0*(pic(ns,0:nrmax-1)+pic(ns,1:nrmax))*dvm(1:nrmax))
+          plh_t = plh_t &
+                + SUM(0.5d0*(plh(ns,0:nrmax-1)+plh(ns,1:nrmax))*dvm(1:nrmax))
+          pibw_t = pibw_t &
+               + SUM(0.5d0*(pibw(ns,0:nrmax-1)+pibw(ns,1:nrmax))*dvm(1:nrmax))
+          prl_t = prl_t &
+               + SUM(0.5d0*(prl(ns,0:nrmax-1)+prl(ns,1:nrmax))*dvm(1:nrmax))
+          pnf_t = pnf_t &
+               + SUM(0.5d0*(pnf(ns,0:nrmax-1)+pnf(ns,1:nrmax))*dvm(1:nrmax))
+       END DO
+       EXIT
+    END DO
+
+!   * Radiation, charge exchage and ionization losses
+
+! ------------------------------------------------------------------------
 !   * Stored energy
     DO nsa = 1, nsamax
        rnsum  = 0.d0
@@ -104,50 +164,23 @@ CONTAINS
        END DO
 
        rns_va(nsa) = rnsum / pvol
-       rts_va(nsa) = rntsum / rnsum
+       IF(rnsum == 0.d0)THEN
+          rts_va(nsa) = 0.d0
+       ELSE
+          rts_va(nsa) = rntsum / rnsum
+       END IF
 
        ws_t(nsa) = 1.5d0*rntsum*rkev*1.d14
     END DO
 
-       
-!   * Line-averaged densities
-    rn_la = 0.d0
-    DO nsa = 1, nsamax
-       rn_la = rn_la &
-              +SUM(0.5d0*(rn(nsa,0:nrmax-1)+rn(nsa,1:nrmax))*drhog(1:nrmax))
-    END DO
-    ! only electron
-    rne_la = SUM(0.5d0*(rn(1,0:nrmax-1)+rn(1,1:nrmax))*drhog(1:nrmax))
-
-!   * Ohmic, NBI and fusion powers
-    dvm(1:nrmax) = dvrhom(1:nrmax)*drhog(1:nrmax)*1.d-6
-
-    poh_t = SUM(0.5d0*(poh(0:nrmax-1)+poh(1:nrmax))*dvm(1:nrmax))
-    pnb_t = SUM(0.5d0*(pnb(0:nrmax-1)+pnb(1:nrmax))*dvm(1:nrmax))
-!!$    prf_t = SUM(0.5d0*(prf(0:nrmax-1)+prf(1:nrmax))*dvm(1:nrmax))
-!!$    pec_t = SUM(0.5d0*(pec(0:nrmax-1)+pec(1:nrmax))*dvm(1:nrmax))
-!!$    pic_t = SUM(0.5d0*(pic(0:nrmax-1)+pic(1:nrmax))*dvm(1:nrmax))
-!!$    plh_t = SUM(0.5d0*(plh(0:nrmax-1)+plh(1:nrmax))*dvm(1:nrmax))
-!!$    pnf_t = SUM(0.5d0*(pnf(0:nrmax-1)+pnf(1:nrmax))*dvm(1:nrmax))
-
-
-!   * External power typically for NBI from exp. data
-!   * RF power
-!   * Total NBI power distributed on electrons and bulk ions
-!   * Total RF  power distributed on electrons and bulk ions
-!   * Radiation, charge exchage and ionization losses
-
-!   * Inductance and loop voltage
-    !   * Current densities
-    dsrho(0:nrmax) = dvrho(0:nrmax) / (2.d0*pi*RR)
-
 !   * Fusion production rate
+
 !   * Output source and power
 
     !   * Input and output sources and powers
-    wp_t  = SUM(ws_t(1:nsamax)) ! including fast ions
+    wp_t  = SUM(ws_t(1:nsamax))  ! including fast ions
     wp_th = SUM(ws_t(1:nsabmax)) ! excluding fast ions
-    pin_t  = poh_t + pnb_t ! + .....
+    pin_t  = poh_t + pnb_t + pec_t + pic_t + plh_t + pnf_t - prl_t
 !    pout_t =
 !    sin_t  = 
 !    sout_t =
@@ -228,6 +261,10 @@ CONTAINS
 
 ! ------------------------------------------------------------------------
 
+! ------------------------------------------------------------------------
+!   * Inductance and loop voltage
+    !   * Current densities
+    dsrho(0:nrmax) = dvrho(0:nrmax) / (2.d0*pi*RR)
 
 !   * Distance of q=1 surface from magnetic axis
 !   * Effective charge number at axis
@@ -241,9 +278,10 @@ CONTAINS
   SUBROUTINE tr_save_ngt
 
     USE trcomm, ONLY : &
-         nrmax,nsamax,ngtmax,neqmax,ngt,gvt,gvts,gvrt,gvrts,  &
-         t,rn,ru,rt,qp,jtot,joh,htr,rip,wp_t,ws_t,            &
-         pin_t,poh_t,pnb_t,prf_t,pec_t,pic_t,plh_t,           &
+         nrmax,nsamax,ngtmax,neqmax,ngt,gvt,gvts,gvrt,gvrts,        &
+         rkev,t,rn,ru,rt,rp,qp,jtot,joh,rip,wp_t,ws_t,              &
+         jcd_nb,jcd_ec,jcd_ic,jcd_lh,                               &
+         pin_t,poh_t,pnb_t,pec_t,pic_t,plh_t,pibw_t,pnf_t,          &
          beta,betap,betan,taue1,taue3,taue89,taue98,h89,h98y2
     USE trcoeftb, ONLY: Pereverzev_check
     IMPLICIT NONE
@@ -255,7 +293,7 @@ CONTAINS
     ngt=ngt+1
     gvt(ngt, 0) = t
 
-    ! ----- values on the axis or the edge -----
+    ! *****   0D value --- values on the axis or the edge   *****
     gvt(ngt, 1) = qp(0)
     gvt(ngt, 2) = qp(nrmax)
 
@@ -281,10 +319,10 @@ CONTAINS
     gvt(ngt,18) = pin_t
     gvt(ngt,19) = poh_t
     gvt(ngt,20) = pnb_t
-    gvt(ngt,21) = prf_t
-    gvt(ngt,22) = pec_t
-    gvt(ngt,23) = pic_t
-    gvt(ngt,24) = plh_t
+    gvt(ngt,21) = pec_t
+    gvt(ngt,22) = pic_t
+    gvt(ngt,23) = plh_t
+    gvt(ngt,24) = pnf_t
 
     ! confinement time
     gvt(ngt,25) = taue3
@@ -293,41 +331,70 @@ CONTAINS
     gvt(ngt,28) = h89
     gvt(ngt,29) = h98y2
 
+! ------------------------------------------------------------------------
+
     DO nsa=1,nsamax
        gvts(ngt,nsa, 1) = rn(nsa,0)
        gvts(ngt,nsa, 2) = ru(nsa,0)
        gvts(ngt,nsa, 3) = rt(nsa,0)
+       gvts(ngt,nsa, 4) = rp(nsa,0)
     END DO
 
-    ! ----- radial profile -----
-    DO nr=0,nrmax
-       gvrt(nr,ngt, 1) = qp(nr)
-    END DO
+! ------------------------------------------------------------------------
 
-    DO nsa=1,nsamax
+    gvrt(0:nrmax,ngt,1) = qp(0:nrmax)
+    gvrt(0:nrmax,ngt,2) = jtot(0:nrmax)
+    gvrt(0:nrmax,ngt,3) = joh(0:nrmax)
+    gvrt(0:nrmax,ngt,4) = jcd_nb(0:nrmax)
+    gvrt(0:nrmax,ngt,5) = jcd_ec(0:nrmax)
+    gvrt(0:nrmax,ngt,6) = jcd_ic(0:nrmax)
+    gvrt(0:nrmax,ngt,7) = jcd_lh(0:nrmax)
+
+    ! *****   radial profile   *****
+    DO nsa = 1, nsamax
           gvrts(0:nrmax,ngt,nsa, 1) = rn(nsa,0:nrmax)
           gvrts(0:nrmax,ngt,nsa, 2) = ru(nsa,0:nrmax)
           gvrts(0:nrmax,ngt,nsa, 3) = rt(nsa,0:nrmax)
+          gvrts(0:nrmax,ngt,nsa, 4) = rp(nsa,0:nrmax)
     END DO
-
-    gvrt(0:nrmax,ngt,2) = jtot(0:nrmax) + htr(1,0:nrmax)
-    gvrt(0:nrmax,ngt,3) = joh(0:nrmax)
-    gvrt(0:nrmax,ngt,4) = htr(1,0:nrmax)
-
+!!$    ! experimental data
+!!$    DO nsu = 1, nsum
+!!$       IF(idnm(nsu))THEN
+!!$          nsa = nsa_nsu(nsu)
+!!$          IF(nsa /= 0)THEN
+!!$             gvrtu(0:nrmax,ngt,nsa,1) = rnug(nsu,1:nrmax+1)
+!!$!             gvrtu(0:nrmax,ngt,nsa,2) = ruug(nsu,1:nrmax+1)
+!!$             gvrtu(0:nrmax,ngt,nsa,3) = rtug(nsu,1:nrmax+1)
+!!$             gvrtu(0:nrmax,ngt,nsa,4) = &
+!!$                  (rnug(nsu,1:nrmax+1)+rtug(nsu,1:nrmax+1))*rkev*1.d20
+!!$          END IF
+!!$       END IF
+!!$    END DO
+!!$    DO nsfu = 1, nsum
+!!$       IF(idnfast(nsu))THEN
+!!$          nsa = nsa_nsu(nsu)
+!!$          IF(nsa /= 0)THEN
+!!$             gvrtu(0:nrmax,ngt,nsa,1) = rnfug(nsu,1:nrmax+1)
+!!$!             gvrtu(0:nrmax,ngt,nsa,3) = rtfug(nsu,1:nrmax+1)
+!!$!             gvrtu(0:nrmax,ngt,nsa,4) = &
+!!$!                  (rnfug(nsu,1:nrmax+1)+rtfug(nsu,1:nrmax+1))*rkev*1.d20
+!!$          END IF
+!!$       END IF
+!!$    END DO
 
     ! for Pereverzev method
     ! numerically addtional term in nodal equation (relative value)
     IF(t == 0)THEN
-       gvrts(0:nrmax,ngt,1:nsamax,4) = 0.d0
        gvrts(0:nrmax,ngt,1:nsamax,5) = 0.d0
        gvrts(0:nrmax,ngt,1:nsamax,6) = 0.d0
+       gvrts(0:nrmax,ngt,1:nsamax,7) = 0.d0
     ELSE
        CALL Pereverzev_check(add_prv)
        DO nsa=1,nsamax
           DO nr=0,nrmax
-             gvrts(nr,ngt,nsa,4) = add_prv(1+3*nsa-2,nr)
-             gvrts(nr,ngt,nsa,5) = add_prv(1+3*nsa-1,nr)
-             gvrts(nr,ngt,nsa,6) = add_prv(1+3*nsa  ,nr)
+             gvrts(nr,ngt,nsa,5) = add_prv(1+3*nsa-2,nr)
+             gvrts(nr,ngt,nsa,6) = add_prv(1+3*nsa-1,nr)
+             gvrts(nr,ngt,nsa,7) = add_prv(1+3*nsa  ,nr)
           END DO
        END DO
     END IF

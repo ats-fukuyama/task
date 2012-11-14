@@ -4,7 +4,7 @@ MODULE trloop
 
   USE trcomm,ONLY: rkind, ikind
 
-  PUBLIC tr_loop,tr_save_pvprev,tr_calc_dpdrho2j
+  PUBLIC tr_loop,tr_save_pvprev,tr_calc_dpdrho2jtot
   PRIVATE
 
 CONTAINS
@@ -12,57 +12,34 @@ CONTAINS
   SUBROUTINE tr_loop
 
     USE trcomm, ONLY: rkev,ntmax,nrmax,nsamax,t,dt,ntstep,ngtstp, &
-         modelg,nteqit,rip,rips,ripe,rn,rt,rp,rp_tot
+         mdluf,ntlmax
     USE trbpsd, ONLY: tr_bpsd_set,tr_bpsd_get
+    USE trcalc1, ONLY: tr_calc1
     USE trstep, ONLY: tr_step
     USE trresult, ONLY: tr_status,tr_calc_global,tr_save_ngt
-    USE equnit_mod, ONLY: eq_calc,eq_load
-!    USE equunit_mod, ONLY: equ_calc
+    USE trcalv, ONLY: tr_calc_variables
     IMPLICIT NONE
 
-    REAL(4)        :: t1,t2,drip
+    REAL(4)        :: t1,t2
     INTEGER(ikind) :: nt,ierr
 
     CALL GUTIME(t1)
 
-    DO nt = 1, ntmax ! main loop
+    time_evolution: DO nt = 1, ntmax ! main loop
 
        CALL tr_save_pvprev
 
-       ! incremental addtions
+       ! incremental addtion
        t=t+dt
 
-       drip = (ripe - rips) / ntmax
-       rip  = rip + drip
-       IF(nt==ntmax)THEN
-          rip  = ripe
-          rips = ripe
-       END IF
-       ! set the boundary value of dpdrho in terms of plasma current value
-       CALL tr_mag_boundary
-!       write(*,*) 'rip = ',rip
+       CALL tr_calc1
 
-       ! trcalc1.f90
+       ! non-linear iteration
+       CALL tr_step(ierr); IF(ierr /= 0) EXIT
 
-       CALL tr_step(ierr); IF(ierr /= 0) GO TO 9000
 
-       ! Interaction with EQ
-       IF(nteqit /= 0 .AND. MOD(nt, nteqit) == 0)THEN
-          SELECT CASE(modelg)
-          CASE(8)
-!!$          CALL tr_bpsd_set(ierr)
-!!$          CALL equ_calc
-!!$          CALL tr_bpsd_get(ierr)
-          CASE(9)
-             CALL tr_bpsd_set(ierr)
-             CALL eq_calc
-             CALL tr_bpsd_get(ierr)
-          CASE DEFAULT
-          END SELECT
-       END IF
-       ! cofirmation of the conservation of nV', nTV'^(5/3)
-
-       CALL tr_calc_dpdrho2j
+       ! calculate associated variables and save values
+       CALL tr_calc_bpqpj
 
        IF(MOD(nt,ntstep) == 0 .OR. &
           MOD(nt,ngtstp) == 0) CALL tr_calc_global
@@ -70,10 +47,17 @@ CONTAINS
        IF(MOD(nt,ngtstp) == 0) CALL tr_save_ngt
 
        CALL tr_bpsd_set(ierr)
-       
-    END DO
+       IF(ierr /= 0)THEN
+          WRITE(6,*) 'XX tr_loop: Error to set the variables to BPSD interface. NT= ', nt
+       END IF
 
-9000 CONTINUE
+       IF(mdluf==2 .OR. mdluf==3)THEN
+          IF(nt==ntlmax)THEN
+             WRITE(6,*) ' - End of experimental data. Stop calculation. NT= ',nt
+             EXIT
+          END IF
+       END IF
+    END DO time_evolution
 
     CALL GUTIME(t2)
 
@@ -101,17 +85,7 @@ CONTAINS
 
 ! **************************************************************************
 
-  SUBROUTINE tr_mag_boundary
-    USE trcomm, ONLY: pi,rmu0,nrmax,dvrho,abrho,rip,dpdrho
-
-    dpdrho(nrmax) = 2.d0*pi*rmu0*rip*1.d6 / (dvrho(nrmax)*abrho(nrmax))
-
-    RETURN
-  END SUBROUTINE tr_mag_boundary
-
-! **************************************************************************
-
-  SUBROUTINE tr_calc_dpdrho2j
+  SUBROUTINE tr_calc_bpqpj
 ! --------------------------------------------------------------------------
 !  calculate following conversions:  d psi/d rho --> bp,qp,jtor,jtot
 ! --------------------------------------------------------------------------
@@ -123,6 +97,7 @@ CONTAINS
     IMPLICIT NONE
     INTEGER(ikind) :: nr
     REAL(rkind) :: FCTR    ! function defined in TASK/lib
+!    REAL(rkind) :: FCTR4pt ! function defined in TASK/lib
     REAL(rkind) :: deriv3  ! function defined in TASK/lib
 !    REAL(rkind) :: ipl,dr
     REAL(rkind),DIMENSION(0:nrmax) :: factor1,factor2
@@ -133,14 +108,13 @@ CONTAINS
     ! dpdrho --> qp
     qp(1:nrmax) = ttrho(1:nrmax)*arrho(1:nrmax)*dvrho(1:nrmax)    &
                   /(4.d0*pi**2 * dpdrho(1:nrmax))
-!    qp(1:nrmax) = ttrho(1:nrmax)*arrho(1:nrmax)    &
-!                  /(4.d0*pi**2 * rdpvrho(1:nrmax))
-    !   * FCTR4pt: func. in TASK/lib
 !    qp(0)       = FCTR4pt(rhog(1),rhog(2),rhog(3),qp(1),qp(2),qp(3))
     qp(0)       = FCTR(rhog(1),rhog(2),qp(1),qp(2))
     q0 = qp(0)
     qa = qp(nrmax)
 
+    rdpvrho(0:nrmax) = ttrho(0:nrmax)*arrho(0:nrmax) &
+                      /(4.d0*pi**2*qp(0:nrmax)) ! d psi/d V 
 
     factor1(0:nrmax) = dvrho(0:nrmax)*abrho(0:nrmax)*dpdrho(0:nrmax)
     factor2(0:nrmax) = factor1(0:nrmax)/ttrho(0:nrmax)
@@ -158,7 +132,10 @@ CONTAINS
     jtot(0) = FCTR(rhog(1),rhog(2),jtot(1),jtot(2))
 
 
-    joh(0:nrmax) = jtot(0:nrmax) - jbs_nc(0:nrmax) - jex_nc(0:nrmax)
+    joh(0:nrmax) = jtot(0:nrmax)                &
+         - (jbs_nc(0:nrmax) + jex_nc(0:nrmax) + &
+            jcd_nb(0:nrmax) + jcd_ec(0:nrmax) + &
+            jcd_ic(0:nrmax) + jcd_lh(0:nrmax))
 
     ! ***** inverse conversion for confirmation *****
 !!$    ipl = 0.d0
@@ -175,38 +152,6 @@ CONTAINS
 !    nrd4(0:nrmax) = jtot(0:nrmax)
 
     RETURN
-  END SUBROUTINE tr_calc_dpdrho2j
-
-
-!!$  SUBROUTINE tr_eq_calc
-!!$
-!!$    DO
-!!$    ! iteration for convergence of q(safety factor)
-!!$       CALL eq_prof
-!!$       CALL eq_calc
-!!$       CALL tr_bpsd_get(ierr)
-!!$
-!!$       !convergence check of q
-!!$    END DO
-!!$
-!!$    CALL tr_prof_q2dpdrho
-!!$
-!!$  END SUBROUTINE tr_eq_calc
-!!$
-!!$  SUBROUTINE tr_prof_q2dpdrho
-!!$    USE trcomm, ONLY: rmu0,pi,nrmax,BB,RR,q0,qa,profj1,profj2,knameq, &
-!!$         &         rhog,abb1rho,dvrho,ttrho,abrho,arrho,dpdrho,ar1rho,&
-!!$         &         jtot,joh,bp,qp, nrd1,nrd2,nrd3,nrd4
-!!$
-!!$    IMPLICIT NONE
-!!$    REAL(rkind) :: dr,prof,factor0,sumfact1
-!!$    REAL(rkind) :: FCTR ! function defined in TASK/lib
-!!$    INTEGER(ikind) :: nr
-!!$
-!!$! q --> dpdrho, j
-!!$
-!!$    dpdrho(
-!!$
-!!$  END SUBROUTINE tr_prof_q2dpdrho  
+  END SUBROUTINE tr_calc_bpqpj
 
 END MODULE trloop

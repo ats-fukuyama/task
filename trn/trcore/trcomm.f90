@@ -50,7 +50,10 @@ MODULE trcomm
                                !  (including electron)
   INTEGER(ikind):: nsanmax     ! number of active (neutral) particle species
   INTEGER(ikind),DIMENSION(nsm)::  &
-                   ns_nsa,    &! conversion table of NS  for NSA
+                   ns_nsa,    &! conversion table of NS for NSA
+                   nsab_nsa,  &!
+                   nsaf_nsa,  &!
+                   nsan_nsa,  &!
                    nsab_nsaf   ! conversion table of [fast ion > bulk ion]
   INTEGER(ikind):: lmaxtr      ! maximum number of iterations
   REAL(rkind)::    epsltr      ! tolerance of iteration
@@ -83,8 +86,18 @@ MODULE trcomm
 ! ----- switch variables -----
   INTEGER(ikind) :: &
        mdler,    &! model type of radial electric field
-       mdleqn,   &!
        nteqit     ! step interval of EQ calculation
+
+  INTEGER(ikind) :: &
+       mdleqn,   &!
+       mdlequ,   &!
+       mdleqt,   &!
+       mdleqm,   &!
+       mdlglb,   &!
+       mdlgmt,   &!
+       mdlsrc,   &!
+       mdlijq
+
 
 ! ----- global variables -----
   REAL(rkind)::      t       ! time [s]
@@ -109,11 +122,12 @@ MODULE trcomm
   REAL(rkind)::      pin_t   ! [MW/m^3]
   REAL(rkind)::      poh_t   !
   REAL(rkind)::      pnb_t   !
-  REAL(rkind)::      prf_t   !
   REAL(rkind)::      pec_t   !
+  REAL(rkind)::      pibw_t  !
   REAL(rkind)::      pic_t   !
   REAL(rkind)::      plh_t   !
   REAL(rkind)::      pnf_t   !
+  REAL(rkind)::      prl_t   !
   REAL(rkind)::      pout_t  !
 
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: & ! 0:nrmax
@@ -129,8 +143,8 @@ MODULE trcomm
        ws_t       ! stored energy of each species
 
 ! ----- plasma variables -----
-  REAL(rkind) :: rips          ! toroidal current at the beginning
-  REAL(rkind) :: ripe          ! toroidal current at the end
+  REAL(rkind) :: rips          ! toroidal current at the beginning [MA]
+  REAL(rkind) :: ripe          ! toroidal current at the end       [MA]
   REAL(rkind) :: vloop         ! loop valtage
 
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
@@ -150,7 +164,7 @@ MODULE trcomm
   REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: &
        dtr,      &! diffusion coefficient [m^2/s]
        vtr,      &! convection velocity [m^2/s]
-       ctr        ! exchange freuency [1/s]
+       ctr        ! charge exchange freuency [1/s]
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
        str,      &! source density [keV/(10^{20}m^3 s)]
        htr        ! current density [A/m^2]
@@ -160,7 +174,7 @@ MODULE trcomm
        vtr_tb,   &! turbulent convection velocity [m/s]
        dtr_nc,   &! neoclassical diffusion coefficient [m^2/s]
        vtr_nc,   &! neoclassical convection velocity [m/s]
-       ctr_ex     ! exchange frequency [1/s]
+       ctr_ex     ! charge exchange frequency [1/s]
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
                   ! variables for Pereverzev method
        dtr_prv,  &! additional diffusion coefficient [m^2/s]
@@ -181,19 +195,20 @@ MODULE trcomm
        jcd_ic     ! current density driven by ICRF waves [A/m^2]
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
        str_simple ! simple model of source density [MW/m^3]
-  REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
        ptot,    & ! total heating power density [W/m^3]
        poh,     & ! ohmic heating power density [W/m^3]
        pnb,     & ! NBI heating power density [W/m^3]
-       prf,     & ! total RF heating power density [W/m^3]
        pec,     & ! EC heating power density [W/m^3]
+       pibw,    & ! IBW heating power density [W/m^3]
        pic,     & ! IC heating power density [W/m^3]
        plh,     & ! LH heating power density [W/m^3]
        pnf,     & ! heating power density due to fusion alpha [W/m^3]
        prl,     & !
 !
-       snb,     & !
-       spl        !
+       snb,     & ! [10^{20] m^{-3} s^{-1}]
+       spl,     & ! [10^{20] m^{-3} s^{-1}]
+       swl        ! [10^{20] m^{-3} s^{-1}]
 
 ! ----- profile variables -----
   REAL(rkind) :: profj1, profj2 ! current density profile factors
@@ -202,7 +217,8 @@ MODULE trcomm
        vtor,     &! toroidal rotation velocity [m/s]
        vpol,     &! poloidal rotation velocity [m/s]
        vpar,     &! parallel roration velocity [m/s]
-       vprp       ! perpendicular rotation velocity [m/s]
+       vprp,     &! perpendicular rotation velocity [m/s]
+       wrot       ! toroidal angular speed [rad/s]
 
 ! --- equilibrium interface variables -----
 ! ------ interface variables fot bpsd_equ1D
@@ -231,10 +247,7 @@ MODULE trcomm
        rmnrho,   &! local r [m]
        rkprho,   &! local kappa
        abb1rho,  &! <B>
-       epsrho,   &! r/R
-!
-       rmnrhom,  &! local r (half-grid)
-       rkprhom    ! local kappa (half-grid)
+       epsrho     ! r/R
 
 ! ----- normalized variables -----
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
@@ -286,11 +299,10 @@ MODULE trcomm
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: gvt
   REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: gvts
   REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: gvrt
-  REAL(rkind),DIMENSION(:,:,:,:),ALLOCATABLE:: gvrts,gvrtp
+  REAL(rkind),DIMENSION(:,:,:,:),ALLOCATABLE:: gvrts
 
 ! ----- species id -----
   INTEGER(ikind),DIMENSION(:),ALLOCATABLE:: idnsa
-  CHARACTER(LEN=1),DIMENSION(:),ALLOCATABLE:: kidnsa
 
 
 ! ----- derivatives of the quantities -----
@@ -333,7 +345,7 @@ MODULE trcomm
        alpha      ! MHD alpha
 
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
-       z_eff      ! Z_eff: effective charge
+       z_eff       ! Z_eff: effective charge
 
 ! ----- for NCLASS output -----
   REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: &
@@ -375,7 +387,7 @@ MODULE trcomm
                   !      created.
 
   ! ----- UFILE control -----
-  CHARACTER(80) :: kuf_dir  ! UFILE database directory
+  CHARACTER(80) :: kuf_dir  ! UFILE database directory path
   CHARACTER(80) :: kuf_dev  ! device name
   CHARACTER(80) :: kuf_dcg  ! discharge number
   CHARACTER(80) :: kdirx    ! directory containig a set of UFILE
@@ -391,6 +403,9 @@ MODULE trcomm
   INTEGER(ikind) :: ntlmax ! number of time step of experimental data
                            ! * Step size 'dt' is that of simulation.
   REAL(rkind)    :: tlmax  ! end of time of experimental data
+
+  INTEGER(ikind),DIMENSION(1:nsum) :: nsa_nsu ! conversion table [nsu  -> nsa]
+  INTEGER(ikind),DIMENSION(1:nsum) :: nsa_nsfu! conversion table [nsuf -> nsa]
 
   REAL(rkind),DIMENSION(1:ntum) :: & 
        ! global variables
@@ -504,8 +519,8 @@ CONTAINS
             IF(ierr /= 0) EXIT
           ALLOCATE(ctr(neqmax,neqmax,0:nrmax),STAT=ierr)
             IF(ierr /= 0) EXIT
-          ALLOCATE(htr(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(str(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(htr(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
             
           ALLOCATE(dtr_tb(neqmax,neqmax,0:nrmax),STAT=ierr)
             IF(ierr /= 0) EXIT
@@ -531,22 +546,26 @@ CONTAINS
           ALLOCATE(eta(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(htr_simple(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(str_simple(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(ptot(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(poh(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(pnb(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(prf(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(pec(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(pic(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(plh(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(ptot(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(poh(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(pnb(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(pec(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(pibw(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(pic(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(plh(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(prl(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(pnf(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           
-          ALLOCATE(snb(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(spl(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(snb(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(spl(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(swl(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           
           ! profile variables
           ALLOCATE(vtor(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(vpol(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(vpar(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(vprp(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(wrot(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           
           ! for Pereverzev method
           ALLOCATE(dtr_prv(neqmax,0:nrmax),STAT=ierr)
@@ -580,10 +599,7 @@ CONTAINS
           ALLOCATE(rkprho(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT 
           ALLOCATE(abb1rho(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT 
           ALLOCATE(epsrho(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT 
-          
-          ALLOCATE(rmnrhom(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(rkprhom(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT  
-          
+                    
           !    normalized variables
           ALLOCATE(rhog(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT   
           ALLOCATE(rhom(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT   
@@ -715,19 +731,23 @@ CONTAINS
     IF(ALLOCATED(ptot)) DEALLOCATE(ptot)
     IF(ALLOCATED(poh)) DEALLOCATE(poh)
     IF(ALLOCATED(pnb)) DEALLOCATE(pnb)
-    IF(ALLOCATED(prf)) DEALLOCATE(prf)
     IF(ALLOCATED(pec)) DEALLOCATE(pec)
+    IF(ALLOCATED(pibw)) DEALLOCATE(pibw)
     IF(ALLOCATED(pic)) DEALLOCATE(pic)
     IF(ALLOCATED(plh)) DEALLOCATE(plh)
+    IF(ALLOCATED(prl)) DEALLOCATE(prl)
+    IF(ALLOCATED(pnf)) DEALLOCATE(pnf)
 
     IF(ALLOCATED(snb)) DEALLOCATE(snb)
     IF(ALLOCATED(spl)) DEALLOCATE(spl)
+    IF(ALLOCATED(swl)) DEALLOCATE(swl)
 
     ! profile variables
     IF(ALLOCATED(vtor)) DEALLOCATE(vtor)
     IF(ALLOCATED(vpol)) DEALLOCATE(vpol)
     IF(ALLOCATED(vpar)) DEALLOCATE(vpar)
     IF(ALLOCATED(vprp)) DEALLOCATE(vprp)
+    IF(ALLOCATED(wrot)) DEALLOCATE(wrot)
 
     ! for Pereverzev method
     IF(ALLOCATED(dtr_prv)) DEALLOCATE(dtr_prv)
@@ -758,9 +778,6 @@ CONTAINS
     IF(ALLOCATED(rkprho)) DEALLOCATE(rkprho)
     IF(ALLOCATED(abb1rho)) DEALLOCATE(abb1rho)
     IF(ALLOCATED(epsrho)) DEALLOCATE(epsrho)
-
-    IF(ALLOCATED(rmnrhom)) DEALLOCATE(rmnrhom)
-    IF(ALLOCATED(rkprhom)) DEALLOCATE(rkprhom)
 
     ! normalized variables
     IF(ALLOCATED(dpdrho)) DEALLOCATE(dpdrho)
@@ -1005,10 +1022,9 @@ CONTAINS
 
        ngt_allocation: DO
           ALLOCATE(gvt(0:ngtmax,0:30),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gvts(0:ngtmax,nsamax,3),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(gvts(0:ngtmax,nsamax,4),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(gvrt(0:nrmax,0:ngtmax,10),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gvrts(0:nrmax,0:ngtmax,nsamax,10),STAT=ierr)
-            IF(ierr /= 0) EXIT
+          ALLOCATE(gvrts(0:nrmax,0:ngtmax,nsamax,10),STAT=ierr);IF(ierr /= 0) EXIT
 
           nrmax_save  = nrmax
           ngtmax_save = ngtmax
@@ -1046,7 +1062,6 @@ CONTAINS
 
        nsa_allocation: DO
           ALLOCATE(idnsa(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(kidnsa(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
           
           ALLOCATE(ws_t(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(rns_va(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
@@ -1066,7 +1081,6 @@ CONTAINS
   SUBROUTINE tr_nsa_deallocate
 
     IF(ALLOCATED(idnsa)) DEALLOCATE(idnsa)
-    IF(ALLOCATED(kidnsa)) DEALLOCATE(kidnsa)
 
     IF(ALLOCATED(ws_t)) DEALLOCATE(ws_t)
     IF(ALLOCATED(rns_va)) DEALLOCATE(rns_va)

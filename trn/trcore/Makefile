@@ -12,10 +12,11 @@ FFLAGS=$(DFLAGS)
 
 MODINCLUDE=-I $(BPSDDIR)/mod -I $(TASKDIR)/plx/mod -I $(TASKDIR)/lib/mod \
 	   -I $(TASKDIR)/eq/mod -I ../trgraphics/mod -I ../trmodels/mod  \
-	   -I ../trufile/mod -I $(MOD) 
+	   -I ../trsources/mod  -I ../trufile/mod -I $(MOD) 
 
 
 TRLIBS=	../trmodels/trmodelslib.a \
+	../trsources/trsourceslib.a \
 	../trgraphics/trgraphicslib.a \
 	../trufile/trufilelib.a \
 	$(TASKDIR)/plx/pllib.a \
@@ -25,9 +26,9 @@ TRLIBS=	../trmodels/trmodelslib.a \
 	$(BPSDDIR)/bpsdlib.a
 
 
-SRCS = trcomm.f90 trbpsd.f90  trlib.f90    trcalv.f90 trcalc.f90 \
-       trexec.f90 trstep.f90  trresult.f90 trloop.f90 \
-       trinit.f90 trsetup.f90 trmenu.f90   trmain.f90 
+SRCS = trcomm.f90 trbpsd.f90  trlib.f90   trcalv.f90   trcalc2.f90 \
+       trexec.f90 trstep.f90  trcalc1.f90 trresult.f90 trloop.f90 \
+       trinit.f90 trsetup.f90 trmenu.f90  trmain.f90 
 
 OBJS = $(SRCS:.f90=.o)
 
@@ -63,8 +64,8 @@ trinit.o: trinit.f90 $(COMMON)
 trcalc.o: trcalc.f90 trsetup.f90 $(COMMON)
 trcalv.o: trcalv.f90 $(COMMON)
 trexec.o: trexec.f90 $(COMMON)
-trstep.o: trstep.f90 trexec.f90 trcalc.f90 $(COMMON)
-trloop.o: trloop.f90 trstep.f90 trbpsd.f90 $(COMMON)
+trstep.o: trstep.f90 trexec.f90 trcalc2.f90 $(COMMON)
+trloop.o: trloop.f90 trcalc1.f90 trstep.f90 trbpsd.f90 $(COMMON)
 trsetup.o: trsetup.f90 trbpsd.f90 $(COMMON)
 trmenu.o: trmenu.f90 $(COMMON)
 trmain.o: trmain.f90 $(COMMON)

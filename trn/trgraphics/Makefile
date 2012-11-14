@@ -12,7 +12,7 @@ MODINCLUDE=-I $(BPSDDIR)/mod -I $(TASKDIR)/plx/mod -I $(TASKDIR)/lib/mod \
            -I ../trcore/mod -I ../trufile/mod -I $(MOD)
 
 SRC90= trgsub.f90 trgcom.f90 trgtmp.f90 trgrad.f90 trgexp.f90 trgdgn.f90 \
-       trgout.f90 
+       trgcmp.f90 trgout.f90 
 
 OBJS= $(SRC90:.f90=.o) 
 

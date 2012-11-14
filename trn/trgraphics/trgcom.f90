@@ -2,16 +2,17 @@ MODULE trgcom
 
   USE trcomm, ONLY: ikind,rkind,nrmax,nsamax,neqrmax,lmaxtr,nitmax, &
        rhog
+  USE trgsub,ONLY: tr_gr_time
   USE libgrf, ONLY: grd1d
   IMPLICIT NONE
 
   PRIVATE
-  PUBLIC tr_gr_comp
+  PUBLIC tr_gr_computation
 
   INTEGER(ikind),PARAMETER :: nggmax=10
 
   CHARACTER(LEN=30) :: label
-  INTEGER(ikind)    :: nr,nit,nsa,ngg,ngg_interval
+  INTEGER(ikind)    :: nr,nit,nsa,ngg,ngg_interval,idexp
   
   REAL(rkind),DIMENSION(:),ALLOCATABLE :: rhomg      !(1:nrmax)
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &          !(0:nrmax,1:nsamax)
@@ -25,7 +26,7 @@ MODULE trgcom
 
 CONTAINS
 
-  SUBROUTINE tr_gr_comp(k2,k3)
+  SUBROUTINE tr_gr_computation(k2,k3)
 ! -------------------------------------------------------------------------
 !        Control routine of computational parameters outputs
 ! -------------------------------------------------------------------------
@@ -50,6 +51,8 @@ CONTAINS
        RETURN
     END IF
 
+    idexp = 0 ! print simulation time on every GSAF page
+
     IF(k3 .EQ. ' ')THEN
        SELECT CASE(i2)
        CASE(1)
@@ -65,7 +68,7 @@ CONTAINS
     END IF
 
     RETURN
-  END SUBROUTINE tr_gr_comp
+  END SUBROUTINE tr_gr_computation
 
 ! *************************************************************************
 
@@ -85,6 +88,8 @@ CONTAINS
     CALL GRD1D(1,ig,  err_ig,lmaxtr, lmaxtr, 1,      label,2)
     label = '/Temp. scale length vs rho/'
     CALL GRD1D(2,rhog,lt,    nrmax+1,nrmax+1,nsamax, label,0)
+
+    CALL tr_gr_time(idexp)
     CALL PAGEE    
 
   END SUBROUTINE tr_gr_comp1
@@ -118,6 +123,8 @@ CONTAINS
     CALL GRD1D(2,rhomg,vma1, nrmax,  nrmax,  nsamax, label, 0)
     label = '/add_Conv(vel) vs rho/'
     CALL GRD1D(3,rhomg,vma2, nrmax,  nrmax,  nsamax, label, 0)
+
+    CALL tr_gr_time(idexp)
     CALL PAGEE
     
   END SUBROUTINE tr_gr_comp2
@@ -152,6 +159,8 @@ CONTAINS
     CALL GRD1D(1,rhog,vgap1, nrmax+1,nrmax+1,nggmax+1, label,0)
     label = '/add_Net(nT(2)) vs rho'
     CALL GRD1D(2,rhog,vgap2, nrmax+1,nrmax+1,nggmax+1, label,0)
+
+    CALL tr_gr_time(idexp)
     CALL PAGEE
     
   END SUBROUTINE tr_gr_comp12
@@ -165,6 +174,7 @@ CONTAINS
     INTEGER(ikind),INTENT(OUT) :: ierr
     INTEGER(ikind),SAVE :: nrmax_save, lmaxtr_save
 
+    ierr = 0
     IF(nrmax /= nrmax_save .OR. lmaxtr /= lmaxtr_save)THEN
 
        IF(nrmax_save /= 0) CALL tr_gr_comp_dealloc

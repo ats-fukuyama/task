@@ -31,7 +31,7 @@ CONTAINS
 
     CALL tr_calc_zeff
 
-    IF(mdltr_nc==0) CALL tr_calc_clseta
+    CALL tr_calc_clseta
 
        ! Doppler shift
        ! AGMP(NR) = QP(NR)/EPS*WEXB(NR)
@@ -101,7 +101,6 @@ CONTAINS
     mcurv(0:nrmax)  = 0.d0
 
     ! '_i' means 'hydrogenic ions'. 
-    ! for now, in following, 'nsa' is used as the loop counter.
     DO nr = 0, nrmax
        rt_isum = 0.d0
        
@@ -319,19 +318,15 @@ CONTAINS
 !    
 !    Z_eff = (n_h + Z_imp^2 n_imp + Z_fi^2 n_fi) / n_e
 !---------------------------------------------------------------------------
-!!$    USE TRCOMM, ONLY : ANC, ANFE, MDLEQN, MDLUF, NRMAX, PZ, PZC, PZFE, RN, R\
-!!$    NF, RT, ZEFF
-    USE trcomm, ONLY: idnsa,ns_nsa,nrmax,pz,rn,mdluf,z_eff
+    USE trcomm, ONLY: idnsa,ns_nsa,nrmax,pz,rn,mdluf,mdleqn,z_eff
     IMPLICIT NONE
     INTEGER(ikind) :: nr,nsa,ns
 
-    z_eff(0:nrmax)   = 0.d0
-
-    ! not include impurities
-!    IF(mdluf == 0)THEN
+!    IF(mdleqn==0 .OR. mdleqn==1)THEN
+       z_eff(0:nrmax)   = 0.d0
        DO nr = 0, nrmax
-          DO nsa = 1, nsamax
-             IF(idnsa(nsa) == 1)THEN
+          DO nsa = 2, nsamax
+             IF(idnsa(nsa) >= 1)THEN
                 ns = ns_nsa(nsa)
                 z_eff(nr) = z_eff(nr) + pz(ns)**2 *rn(nsa,nr)                
              END IF
@@ -340,46 +335,23 @@ CONTAINS
        END DO
 !    END IF
 
-!!$    IF(MDLUF.EQ.0) THEN
-!!$       DO NR=1,NRMAX
-!!$          TE =RT(NR,1)
-!!$          ZEFF(NR) =(PZ(2)  *PZ(2)  *RN(NR,2) +PZ(3)  *PZ(3)  *RN(NR,3) +PZ(\
-!!$4         )  *PZ(4)  *RN(NR,4) &
-!!$               &     &                +TRZEC(TE)**2   *ANC (NR) +TRZEFE(TE)**2  *ANFE(NR))/RN(\
-!!$          NR,1)
-!!$       ENDDO
-!!$    ELSE
-!!$       IF(MDLEQN.EQ.0) THEN ! fixed density
-!!$          DO NR=1,NRMAX
-!!$             ZEFF(NR) =(PZ(2)  *PZ(2)  *RN(NR,2) +PZ(3)  *PZ(3)  *RN(NR,3) +\
-!!$             PZ(2)  *PZ(2)  *RNF(NR,1))/RN(NR,1)
-!!$          ENDDO
-!!$       ENDIF
-!!$    ENDIF
-!!$
-!!$    DO NR=1,NRMAX
-!!$       TE=RT(NR,1)
-!!$       PZC(NR)=TRZEC(TE)
-!!$       PZFE(NR)=TRZEFE(TE)
-!!$    ENDDO
-
     RETURN
   END SUBROUTINE tr_calc_zeff
 
 
   SUBROUTINE tr_calc_clseta
 ! ----------------------------------------------------------------------
-!                classical resitivity
+!   classical resistivity
 ! ----------------------------------------------------------------------
     USE trcomm, ONLY: aee,ame,nrmax,rn,rt,eta,z_eff
 
     IMPLICIT NONE
     INTEGER(ikind) :: nr
     REAL(rkind) :: taue
-
+    
       DO nr = 0, nrmax
+!         write(6,*) nr
 !        ****** CLASSICAL RESISTIVITY (Spitzer) from JAERI Report ******
-
          ! electron collision time with ions
          taue = FTAUE(rn(1,nr),rn(2,nr),rt(1,nr),z_eff(nr))
 
@@ -393,36 +365,9 @@ CONTAINS
   END SUBROUTINE tr_calc_clseta
 
 ! ----------------------------------------------------------------------
-!           COULOMB LOGARITHM
-! ----------------------------------------------------------------------
-      REAL(8) FUNCTION COULOG(NS1,NS2,ANEL,TL)
-
-!     ANEL : electron density [10^20 /m^3]
-!     TL   : electron or ion temperature [keV]
-!            in case of ion-ion collision, TL becomes ion temp.
-
-      IMPLICIT NONE
-      INTEGER(4):: NS1,NS2
-      REAL(8)   :: ANEL,TL
-
-      ! *** ref: 'Tokamaks 3rd Edition' p727 Coulomb logarithm ***
-      IF(NS1.EQ.1.AND.NS2.EQ.1) THEN
-         COULOG=14.9D0-0.5D0*LOG(ANEL)+LOG(TL)
-      ELSE
-         IF(NS1.EQ.1.OR.NS2.EQ.1) THEN
-            COULOG=15.2D0-0.5D0*LOG(ANEL)+LOG(TL)
-         ELSE
-            COULOG=17.3D0-0.5D0*LOG(ANEL)+1.5D0*LOG(TL)
-         ENDIF
-      ENDIF
-
-      RETURN
-      END FUNCTION COULOG
-
-! ----------------------------------------------------------------------
 !           COLLISION TIME
 ! ----------------------------------------------------------------------
-!     between electrons and ions
+!     between electron and ions
       REAL(8) FUNCTION FTAUE(ANEL,ANIL,TEL,ZL)
 
 !     ANEL : electron density [10^20 /m^3]
@@ -468,6 +413,34 @@ CONTAINS
 
       RETURN
       END FUNCTION FTAUI
+
+! ----------------------------------------------------------------------
+!           COULOMB LOGARITHM
+! ----------------------------------------------------------------------
+      REAL(8) FUNCTION COULOG(NS1,NS2,ANEL,TL)
+
+!     ANEL : electron density [10^20 /m^3]
+!     TL   : electron or ion temperature [keV]
+!            in case of ion-ion collision, TL becomes ion temp.
+
+      IMPLICIT NONE
+      INTEGER(4):: NS1,NS2
+      REAL(8)   :: ANEL,TL
+
+      ! *** ref: 'Tokamaks 3rd Edition' p727 Coulomb logarithm ***
+      IF(NS1.EQ.1.AND.NS2.EQ.1) THEN
+         COULOG=14.9D0-0.5D0*LOG(ANEL)+LOG(TL)
+      ELSE
+         IF(NS1.EQ.1.OR.NS2.EQ.1) THEN
+!            write(6,*) ANEL,TL
+            COULOG=15.2D0-0.5D0*LOG(ANEL)+LOG(TL)
+         ELSE
+            COULOG=17.3D0-0.5D0*LOG(ANEL)+1.5D0*LOG(TL)
+         ENDIF
+      ENDIF
+
+      RETURN
+      END FUNCTION COULOG
 
 
 END MODULE trcalv
