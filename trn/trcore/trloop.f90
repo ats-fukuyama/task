@@ -16,7 +16,7 @@ CONTAINS
     USE trbpsd, ONLY: tr_bpsd_set,tr_bpsd_get
     USE trcalc1, ONLY: tr_calc1
     USE trstep, ONLY: tr_step
-    USE trresult, ONLY: tr_status,tr_calc_global,tr_save_ngt
+    USE trresult, ONLY: tr_status,tr_calc_global,tr_save_ngt,tr_exp_compare
     USE trcalv, ONLY: tr_calc_variables
     IMPLICIT NONE
 
@@ -44,6 +44,7 @@ CONTAINS
        IF(MOD(nt,ntstep) == 0 .OR. &
           MOD(nt,ngtstp) == 0) CALL tr_calc_global
        IF(MOD(nt,ntstep) == 0) CALL tr_status
+       IF(MOD(nt,ntstep) == 0 .AND. mdluf > 0) CALL tr_exp_compare
        IF(MOD(nt,ngtstp) == 0) CALL tr_save_ngt
 
        CALL tr_bpsd_set(ierr)
@@ -110,6 +111,7 @@ CONTAINS
                   /(4.d0*pi**2 * dpdrho(1:nrmax))
 !    qp(0)       = FCTR4pt(rhog(1),rhog(2),rhog(3),qp(1),qp(2),qp(3))
     qp(0)       = FCTR(rhog(1),rhog(2),qp(1),qp(2))
+!    qp(0) = qp(1)
     q0 = qp(0)
     qa = qp(nrmax)
 

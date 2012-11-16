@@ -77,13 +77,13 @@ CONTAINS
     gt4(0:ngt,2)=gvt(0:ngt,2)
 
     CALL PAGES
-    label = '/n(0) [10^20/m^3] vs t/'
+    label = '@n(0) [10^20/m^3] vs t@'
     CALL GRD1D(1,gt,gt1,ngt+1,ngt+1,nsamax,label,0)
-    label = '/p(0) [MPa] vs t/'
+    label = '@p(0) [MPa] vs t@'
     CALL GRD1D(2,gt,gt2,ngt+1,ngt+1,nsamax,label,0)
-    label = '/T(0) [keV] vs t/'
+    label = '@T(0) [keV] vs t@'
     CALL GRD1D(3,gt,gt3,ngt+1,ngt+1,nsamax,label,0)
-    label = '/q(0),q(a) vs t/'
+    label = '@q(0),q(a) vs t@'
     CALL GRD1D(4,gt,gt4,ngt+1,ngt+1,2,label,0)
 
     CALL tr_gr_time(idexp)
@@ -115,13 +115,13 @@ CONTAINS
 
 
     CALL PAGES
-    label = '/Ipl [MA] vs t/'
+    label = '@Ipl [MA] vs t@'
     CALL GRD1D(1,gt,gti1,ngt+1,ngt+1,1,label,0)
-    label = '/Wp [MJ] vs t/'
+    label = '@Wp [MJ] vs t@'
     CALL GRD1D(2,gt,gti2,ngt+1,ngt+1,5,label,0)
-    label = '/tauE,tauE89,tauE98 (H89,H98y2) vs t'
+    label = '@tauE,tauE89,tauE98 (H89,H98y2) vs t@'
     CALL GRD1D(3,gt,gti3,ngt+1,ngt+1,5,label,0)
-    label = '/H89,H98y2 vs t'
+    label = '@H89,H98y2 vs t@'
     CALL GRD1D(4,gt,gti4,ngt+1,ngt+1,5,label,0)
 
     CALL tr_gr_time(idexp)
@@ -150,9 +150,9 @@ CONTAINS
     gti2(0:ngt,3) = gvt(0:ngt,17) ! betan
 
     CALL PAGES
-    label = '/Ptot,oh,nb,rf,ec,ic,lh,nf [MW] vs t/'
+    label = '@Ptot,oh,nb,rf,ec,ic,lh,nf [MW] vs t@'
     CALL GRD1D(1,gt,gti1,ngt+1,ngt+1,8,label,0)
-    label = '/betap(0),betap(nrmax),betan vs t/'
+    label = '@betap(0),betap(nrmax),betan vs t@'
     CALL GRD1D(2,gt,gti2,ngt+1,ngt+1,5,label,0)
 
     CALL tr_gr_time(idexp)

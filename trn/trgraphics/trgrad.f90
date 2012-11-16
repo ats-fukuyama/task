@@ -112,13 +112,13 @@ CONTAINS
        vg4(0:nrmax,1)=qp(0:nrmax)
 
     CALL PAGES
-    label = '/n [10$+20$=/m$+3$=] vs rho/'
+    label = '@n [10$+20$=/m$+3$=] vs rho@'
     CALL GRD1D(1,rhog,vg1,nrmax+1,nrmax+1,nsamax,label,0)
-    label = '/p [MPa] vs rho/'
+    label = '@p [MPa] vs rho@'
     CALL GRD1D(2,rhog,vg2,nrmax+1,nrmax+1,nsamax,label,0)
-    label = '/T [keV] vs rho/'
+    label = '@T [keV] vs rho@'
     CALL GRD1D(3,rhog,vg3,nrmax+1,nrmax+1,nsamax,label,0)
-    label = '/q vs rho/'
+    label = '@q vs rho@'
     CALL GRD1D(4,rhog,vg4,nrmax+1,nrmax+1,     1,label,0)
 
     CALL tr_gr_time(idexp)
@@ -187,13 +187,13 @@ CONTAINS
     END DO
     
     CALL PAGES
-    label = '/Dnc_s [m$+2$=/s=] vs rho/'
+    label = '@Dnc_s [m$+2$=/s] vs rho@'
     CALL GRD1D(1,rhomg,vm1, nrmax, nrmax, nsamax,label, 0)
-    label = '/Dtb_s [m$+2$=/s=] vs rho/'
+    label = '@Dtb_s [m$+2$=/s] vs rho@'
     CALL GRD1D(2,rhomg,vm2, nrmax, nrmax, nsamax,label, 0)
-    label = '/D(1) tot,nc,tb [m$+2$=/s=] vs rho/'
+    label = '@D(1) tot,nc,tb [m$+2$=/s] vs rho@'
     CALL GRD1D(3,rhomg,vmx1,nrmax, nrmax, 3,label,0)
-    label = '/D(2) tot,nc,tb [m$+2$=/s=] vs rho/'
+    label = '@D(2) tot,nc,tb [m$+2$=/s] vs rho@'
     CALL GRD1D(4,rhomg,vmx2,nrmax, nrmax, 3,label,0)
 
     CALL tr_gr_time(idexp)
@@ -261,13 +261,13 @@ CONTAINS
     END DO
     
     CALL PAGES
-    label = '/chi_nc_s [m$+2$=/s=] vs rho/'
+    label = '@chi_nc_s [m$+2$=/s] vs rho@'
     CALL GRD1D(1,rhomg,vm1, nrmax, nrmax, nsamax,label, 0)
-    label = '/chi_tb_s [m$+2$=/s=] vs rho/'
+    label = '@chi_tb_s [m$+2$=/s] vs rho@'
     CALL GRD1D(2,rhomg,vm2, nrmax, nrmax, nsamax,label, 0)
-    label = '/chi(1)tot,nc,tb [m$+2$=/s=] vs rho/'
+    label = '@chi(1)tot,nc,tb [m$+2$=/s] vs rho@'
     CALL GRD1D(3,rhomg,vmx1,nrmax, nrmax, 3,label,0)
-    label = '/chi(2)tot,nc,tb [m$+2$=/s=] vs rho/'
+    label = '@chi(2)tot,nc,tb [m$+2$=/s] vs rho@'
     CALL GRD1D(4,rhomg,vmx2,nrmax, nrmax, 3,label,0)
 
     CALL tr_gr_time(idexp)
@@ -308,11 +308,11 @@ CONTAINS
     vgx1(0:nrmax,1) = LOG10(eta(0:nrmax))
 
     CALL PAGES
-    label = '/V_D [m=/s=] vs rho/'
+    label = '@V_D [m/s] vs rho@'
     CALL GRD1D(1,rhomg,vmx1,nrmax,nrmax,nsamax,label,0)
-    label = '/V_chi [m=/s=] vs rho/'
+    label = '@V_chi [m/s] vs rho@'
     CALL GRD1D(2,rhomg,vmx2,nrmax,nrmax,nsamax,label,0)
-    label = '/eta_par [ohm m] vs rho/'
+    label = '@eta_par [ohm m] vs rho@'
     CALL GRD1D(3,rhog,vgx1,nrmax+1,nrmax+1,1,label,2)
 
     CALL tr_gr_time(idexp)
@@ -341,13 +341,13 @@ CONTAINS
 !    vgx4(0:nrmax,1) = qp(0:nrmax)
 
     CALL PAGES
-    label = '/j(tot,oh,nb,bs) [MA=/m$+2$=] vs rho'
+    label = '@j(tot,oh,nb,bs) [MA/m$+2$=] vs rho'
     CALL GRD1D(1,rhog,vgx1,nrmax+1,nrmax+1,5,label,0)
-    label = '/d Psi/d rho vs rho/'
+    label = '@d Psi/d rho vs rho@'
     CALL GRD1D(2,rhog,vgx2,nrmax+1,nrmax+1,5,label,0)
-    label = '/qp vs rho'
+    label = '@qp vs rho@'
     CALL GRD1D(3,rhog,vgx3,nrmax+1,nrmax+1,1,label,0)
-    label = '/eta(para) [ohm m] vs rho'
+    label = '@eta(para) [ohm m] vs rho@'
     CALL GRD1D(4,rhog,vgx4,nrmax+1,nrmax+1,1,label,2)
 
     CALL tr_gr_time(idexp)
@@ -367,7 +367,7 @@ CONTAINS
     vgx1(0:nrmax,2) = (pnb(1,0:nrmax)+pnb(2,0:nrmax))*1.d-6
 
     CALL PAGES
-    label = '/Pin [MW=/m$+3$=] vs rho/'
+    label = '@Pin [MW/m$+3$=] vs rho@'
     CALL GRD1D(1,rhog,vgx1,nrmax+1,nrmax+1,5,label,0)
 
     CALL tr_gr_time(idexp)
@@ -389,13 +389,13 @@ CONTAINS
     vgx4(0:nrmax,1) = vprp(0:nrmax)
 
     CALL PAGES
-    label = '/Vtor[m=/s=] vs rho'
+    label = '@Vtor[m/s] vs rho@'
     CALL GRD1D(1,rhog,vgx1,nrmax+1,nrmax+1,1,label,0)
-    label = '/Vpol[m=/s=] vs rho'
+    label = '@Vpol[m/s] vs rho@'
     CALL GRD1D(2,rhog,vgx2,nrmax+1,nrmax+1,1,label,0)
-    label = '/Vpar[m=/s=] vs rho'
+    label = '@Vpar[m/s] vs rho@'
     CALL GRD1D(3,rhog,vgx3,nrmax+1,nrmax+1,1,label,0)
-    label = '/Vprp[m=/s=] vs rho'
+    label = '@Vprp[m/s] vs rho@'
     CALL GRD1D(4,rhog,vgx4,nrmax+1,nrmax+1,1,label,0)
 
     CALL tr_gr_time(idexp)
@@ -417,13 +417,13 @@ CONTAINS
     vmx4(1:nrmax,1) = wexbp(1:nrmax)
 
     CALL PAGES
-    label = '/Er [V=/m=] vs rho/'
+    label = '@Er [V/m] vs rho@'
     CALL GRD1D(1,rhomg,vmx1,nrmax,nrmax,1,label,0)
-    label = '/Vexb [1=/s=] vs rho/'
+    label = '@Vexb [1/s] vs rho@'
     CALL GRD1D(2,rhomg,vmx2,nrmax,nrmax,1,label,0)
-    label = '/dpvexbp vs rho/'
+    label = '@dpvexbp vs rho@'
     CALL GRD1D(3,rhomg,vmx3,nrmax,nrmax,1,label,0)
-    label = '/Wexb [1=/s=] vs rho/'
+    label = '@Wexb [1/s] vs rho@'
     CALL GRD1D(4,rhomg,vmx4,nrmax,nrmax,1,label,0)
 
     CALL tr_gr_time(idexp)
@@ -450,7 +450,7 @@ CONTAINS
     END DO
 
     CALL PAGES
-    label = '/Ti(fast) [keV] vs rho/'
+    label = '@Ti(fast) [keV] vs rho@'
     CALL GRD1D(1,rhog,vg1,nrmax,nrmax,nsafmax,label,0)
 
     CALL tr_gr_time(idexp)
@@ -479,13 +479,13 @@ CONTAINS
     END DO
 
     CALL PAGES
-    label = '/T1(t) [keV] vs rho/'
+    label = '@T1(t) [keV] vs rho@'
     CALL GRD1D(1,rhog,gg1,nrmax+1,nrmax+1,nggmax+1,label,0)
-    label = '/T2(t) [keV] vs rho/'
+    label = '@T2(t) [keV] vs rho@'
     CALL GRD1D(2,rhog,gg2,nrmax+1,nrmax+1,nggmax+1,label,0)
-    label = '/n1(t) [10$+20$=/m$+3$=] vs rho/'
+    label = '@n1(t) [10$+20$=/m$+3$=] vs rho@'
     CALL GRD1D(3,rhog,gg3,nrmax+1,nrmax+1,nggmax+1,label,0)
-    label = '/qp(t) vs rho/'
+    label = '@qp(t) vs rho@'
     CALL GRD1D(4,rhog,gg4,nrmax+1,nrmax+1,nggmax+1,label,0)
 
     CALL tr_gr_time(idexp)
@@ -515,13 +515,13 @@ CONTAINS
     END DO
 
     CALL PAGES
-    label = '/j_tot(t) [MA=/m$+2$=] vs rho/'
+    label = '@j_tot(t) [MA/m$+2$=] vs rho@'
     CALL GRD1D(1,rhog,gg1,nrmax+1,nrmax+1,nggmax+1,label,0)
-    label = '/j_oh(t) [MA=/m$+2$=] vs rho/'
+    label = '@j_oh(t) [MA/m$+2$=] vs rho@'
     CALL GRD1D(2,rhog,gg2,nrmax+1,nrmax+1,nggmax+1,label,0)
-!    label = '/j_ex(t) vs rho/'
+!    label = '@j_ex(t) vs rho@'
 !    CALL GRD1D(3,rhog,gg3,nrmax+1,nrmax+1,nggmax+1,label,0)
-    label = '/qp(t) vs rho/'
+    label = '@qp(t) vs rho@'
     CALL GRD1D(4,rhog,gg4,nrmax+1,nrmax+1,nggmax+1,label,0)
 
     CALL tr_gr_time(idexp)

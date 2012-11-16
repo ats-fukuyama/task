@@ -125,11 +125,11 @@ CONTAINS
        ! --- for the time being ---
        ! ------ calculate in sbrtn. trcalv ( Non-zero values are required.)
        ! average density weighted charge of impurities
-       avezimp(1)  = PZ(3)
+       avezimp(1)  = 6.d0 !PZ(3)
        ! average density weighted atomic mass of impurities
-       amassimp(1) = PA(3)
+       amassimp(1) = 12.d0 !PA(3)
        ! average density weighted atomic mass of hydrogen ions
-       amasshyd(1) = PA(2)
+       amasshyd(1) = 2.d0 !PA(2)
 
        ! average ion mass [AMU]   
        aimass(1)   = ai_ave(nr)

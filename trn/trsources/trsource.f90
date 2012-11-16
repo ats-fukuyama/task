@@ -47,10 +47,10 @@ CONTAINS
     CASE(6) ! only initial condition
        IF(t /= 0.d0) RETURN
        ! experimental data
-       CALL tr_ufin_source(time,0,ierr)
+       CALL tr_ufin_source(time,2,ierr)
 
     CASE(7) ! successive input
-       CALL tr_ufin_source(time,0,ierr)
+       CALL tr_ufin_source(time,2,ierr)
 
     CASE(8:9)
        ! other module or code

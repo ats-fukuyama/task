@@ -122,8 +122,8 @@ CONTAINS
     CALL GRD1D(10,rhog,ttrho,nrmax+1,nrmax+1,1,label,0)
     label ='/arrho vs rho/'
     CALL GRD1D(11,rhog,arrho,nrmax+1,nrmax+1,1,label,0)
-    label ='/abvrho vs rho/'
-    CALL GRD1D(12,rhog,nrd1g,nrmax+1,nrmax+1,1,label,0)
+    label ='/rmjrho vs rho/'
+    CALL GRD1D(12,rhog,rmjrho,nrmax+1,nrmax+1,1,label,0)
     label ='/dpdrho vs rho/'
     CALL GRD1D(13,rhog,dpdrho,nrmax+1,nrmax+1,1,label,0)
     CALL PAGEE

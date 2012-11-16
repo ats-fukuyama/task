@@ -78,15 +78,17 @@ CONTAINS
 
     CALL tr_gr_com_init_ltig
 
-    err_ig(1:lmaxtr) = log10(error_it(1:lmaxtr))
+    FORALL(nit=1:lmaxtr,error_it(nit) > 0)
+       err_ig(nit) = log10(error_it(nit))
+    END FORALL
     lt(0:nrmax,1) = - rt_ecl(0:nrmax)
     lt(0:nrmax,2) = - rt_icl(0:nrmax)
 
     ! GRD1D: MODE = 2 ; X:LINEAR  Y:LOG
     CALL PAGES
-    label = '/convergence vs NIT/'
+    label = '@convergence vs NIT@'
     CALL GRD1D(1,ig,  err_ig,lmaxtr, lmaxtr, 1,      label,2)
-    label = '/Temp. scale length vs rho/'
+    label = '@Temp. scale length vs rho@'
     CALL GRD1D(2,rhog,lt,    nrmax+1,nrmax+1,nsamax, label,0)
 
     CALL tr_gr_time(idexp)
@@ -117,11 +119,11 @@ CONTAINS
     END IF
 
     CALL PAGES
-    label = '/T vs rho/'
+    label = '@T vs rho@'
     CALL GRD1D(1,rhog, vga1, nrmax+1,nrmax+1,nsamax, label, 0)
-    label = '/add_Diff(chi) vs rho/'
+    label = '@add_Diff(chi) vs rho@'
     CALL GRD1D(2,rhomg,vma1, nrmax,  nrmax,  nsamax, label, 0)
-    label = '/add_Conv(vel) vs rho/'
+    label = '@add_Conv(vel) vs rho@'
     CALL GRD1D(3,rhomg,vma2, nrmax,  nrmax,  nsamax, label, 0)
 
     CALL tr_gr_time(idexp)
@@ -155,9 +157,9 @@ CONTAINS
     END DO
 
     CALL PAGES
-    label = '/add_Net(nT(1)) vs rho'
+    label = '@add_Net(nT(1)) vs rho@'
     CALL GRD1D(1,rhog,vgap1, nrmax+1,nrmax+1,nggmax+1, label,0)
-    label = '/add_Net(nT(2)) vs rho'
+    label = '@add_Net(nT(2)) vs rho@'
     CALL GRD1D(2,rhog,vgap2, nrmax+1,nrmax+1,nggmax+1, label,0)
 
     CALL tr_gr_time(idexp)
@@ -237,8 +239,8 @@ CONTAINS
 
   SUBROUTINE tr_gr_com_init_vma
 
-    vma1(0:nrmax,1:nsamax) = 0.d0
-    vma2(0:nrmax,1:nsamax) = 0.d0
+    vma1(1:nrmax,1:nsamax) = 0.d0
+    vma2(1:nrmax,1:nsamax) = 0.d0
 
     RETURN
   END SUBROUTINE tr_gr_com_init_vma

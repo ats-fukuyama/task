@@ -220,8 +220,8 @@ CONTAINS
     mdltr_nc  = 1
     mdltr_tb  = 1
     mdltr_prv = 0
-    dtr0    = 0.1D0
-    dtr1    = 0.5D0
+    dtr0  = 0.1D0
+    dtr1  = 0.5D0
     ltcr  = 1.D0
     ph0   = 0.1D0
     phs   = 0.1D0
@@ -464,7 +464,7 @@ CONTAINS
   SUBROUTINE tr_check_parm(ierr)
 
     USE trcomm, ONLY : ikind,nrmax,nsamax,mdltr_nc,mdltr_tb, &
-         mdluf,mdleqn,mdlequ,mdleqt,mdleqm,mdlgmt,mdlsrc,mdlglb
+         mdluf,mdlgmt,mdlsrc,mdlglb
     IMPLICIT NONE
     INTEGER(ikind), INTENT(OUT):: IERR
     CHARACTER(LEN=32) :: fmt1
@@ -492,26 +492,20 @@ CONTAINS
 
     SELECT CASE(mdluf)
     CASE(0)
-       IF(mdleqn==6 .OR. mdleqn==7 .OR. mdlequ==6 .OR. mdlequ==7 .OR. &
-          mdleqt==6 .OR. mdleqt==7 .OR. mdleqm==6 .OR. mdleqm==7 .OR. &
-          mdlgmt==6 .OR. mdlgmt==7 .OR. mdlsrc==6 .OR. mdlsrc==7 .OR. &
+       IF(mdlgmt==6 .OR. mdlgmt==7 .OR. mdlsrc==6 .OR. mdlsrc==7 .OR. &
           mdlglb==6 .OR. mdlglb==7)THEN
           WRITE(6,*) 'XX tr_check_parm: input error: experimental data are not read.'
           IERR=2
        END IF
     CASE(1)
-       IF(mdleqn==7 .OR. mdlequ==7 .OR. mdleqt==7 .OR. mdleqm==7 .OR. &
-          mdlgmt==7 .OR. mdlsrc==7 .OR. mdlglb==7)THEN
+       IF(mdlgmt==7 .OR. mdlsrc==7 .OR. mdlglb==7)THEN
           WRITE(6,*) 'XX tr_check_parm: input error: time evolution experimental data are not read.'
           IERR=2
        END IF
     END SELECT
     IF(IERR==2)THEN
-       fmt1='(1X,4(A10,I2))'
-       WRITE(6,fmt1) &
-   'mdleqn= ',mdleqn,'mdlequ= ',mdlequ,'mdleqt= ',mdleqt,'mdleqm= ',mdleqm
        fmt1='(1X,3(A10,I2))'
-       WRITE(6,fmt1) 'mdlglb= ',mdlglb,'mdlgmt= ',mdleqn,'mdlsrc= ',mdleqn
+       WRITE(6,fmt1) 'mdlglb= ',mdlglb,'mdlgmt= ',mdlgmt,'mdlsrc= ',mdlsrc
     END IF
 
     RETURN

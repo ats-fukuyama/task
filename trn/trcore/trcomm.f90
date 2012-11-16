@@ -110,6 +110,9 @@ MODULE trcomm
 
   REAL(rkind)::      wp_t    ! total stored energy
   REAL(rkind)::      wp_th   ! total stored energy of thermal particles
+  REAL(rkind)::      wp_inc  ! incremental stored energy of thermal particles
+  REAL(rkind)::      wpu_inc ! incremental stored energy of thermal particles
+  REAL(rkind)::      rw      ! the deviation of Wp_inc
   REAL(rkind)::      taue1   ! energy confinment time (steady state)
   REAL(rkind)::      taue2   ! energy confinment time (transient)
   REAL(rkind)::      taue3   ! energy confinment time (thermal, transient)
@@ -140,7 +143,8 @@ MODULE trcomm
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: & ! 1:nsamax
        rns_va,   &! volume-averaged density
        rts_va,   &! volume-averaged temperature
-       ws_t       ! stored energy of each species
+       ws_t,     &! stored energy of each species
+       sigmat     ! the deviation of temperature profile
 
 ! ----- plasma variables -----
   REAL(rkind) :: rips          ! toroidal current at the beginning [MA]
@@ -296,7 +300,7 @@ MODULE trcomm
 
 ! ----- save data parameters -----
   INTEGER(ikind):: ngt
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: gvt
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: gvt,gvtu
   REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: gvts
   REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: gvrt
   REAL(rkind),DIMENSION(:,:,:,:),ALLOCATABLE:: gvrts
@@ -1022,6 +1026,7 @@ CONTAINS
 
        ngt_allocation: DO
           ALLOCATE(gvt(0:ngtmax,0:30),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(gvtu(0:ngtmax,0:10),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(gvts(0:ngtmax,nsamax,4),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(gvrt(0:nrmax,0:ngtmax,10),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(gvrts(0:nrmax,0:ngtmax,nsamax,10),STAT=ierr);IF(ierr /= 0) EXIT
@@ -1042,6 +1047,7 @@ CONTAINS
   SUBROUTINE tr_ngt_deallocate
 
     IF(ALLOCATED(gvt)) DEALLOCATE(gvt)
+    IF(ALLOCATED(gvtu)) DEALLOCATE(gvtu)
     IF(ALLOCATED(gvts)) DEALLOCATE(gvts)
     IF(ALLOCATED(gvrt)) DEALLOCATE(gvrt)
     IF(ALLOCATED(gvrts)) DEALLOCATE(gvrts)
@@ -1064,6 +1070,7 @@ CONTAINS
           ALLOCATE(idnsa(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
           
           ALLOCATE(ws_t(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(sigmat(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(rns_va(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(rts_va(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
 
@@ -1083,6 +1090,7 @@ CONTAINS
     IF(ALLOCATED(idnsa)) DEALLOCATE(idnsa)
 
     IF(ALLOCATED(ws_t)) DEALLOCATE(ws_t)
+    IF(ALLOCATED(sigmat)) DEALLOCATE(sigmat)
     IF(ALLOCATED(rns_va)) DEALLOCATE(rns_va)
     IF(ALLOCATED(rts_va)) DEALLOCATE(rts_va)
 

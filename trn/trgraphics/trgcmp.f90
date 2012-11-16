@@ -64,6 +64,8 @@ CONTAINS
           CALL tr_gr_cmp1
        CASE(2)
           CALL tr_gr_cmp2
+       CASE(3)
+          CALL tr_gr_cmp3
        END SELECT
 
     ELSE IF(i2 == 1)THEN
@@ -71,6 +73,15 @@ CONTAINS
        CASE(1)
        CASE(2)
        END SELECT
+
+    ELSE IF(i2 == 2)THEN ! time evolution of 0D variables
+       SELECT CASE(i3)
+       CASE(1)
+          CALL tr_gr_cmp21
+       CASE(2)
+          CALL tr_gr_cmp22
+       END SELECT
+
     END IF
 
     RETURN
@@ -113,13 +124,13 @@ CONTAINS
     END DO
 
     CALL PAGES
-    label = '/Ne, Ne(exp) [10$+20$=/m$+3$=] vs rho/'
+    label = '@Ne, Ne(exp) [10$+20$=/m$+3$=] vs rho@'
     CALL GRD1D(1,rhog,vgxc1,nrmax+1,nrmax+1,2,label,0)
-    label = '/N1, N1(exp) [10$+20$=/m$+3$=] vs rho/'
+    label = '@N1, N1(exp) [10$+20$=/m$+3$=] vs rho@'
     CALL GRD1D(2,rhog,vgxc2,nrmax+1,nrmax+1,2,label,0)
-    label = '/N2, N2(exp) [10$+20$=/m$+3$=] vs rho/'
+    label = '@N2, N2(exp) [10$+20$=/m$+3$=] vs rho@'
     CALL GRD1D(3,rhog,vgxc3,nrmax+1,nrmax+1,2,label,0)
-    label = '/N3, N3(exp) [10$+20$=/m$+3$=] vs rho/'
+    label = '@N3, N3(exp) [10$+20$=/m$+3$=] vs rho@'
     CALL GRD1D(4,rhog,vgxc4,nrmax+1,nrmax+1,2,label,0)
 
     CALL tr_gr_time(idexp)
@@ -165,13 +176,13 @@ CONTAINS
     END DO
 
     CALL PAGES
-    label = '/Te, Te(exp) [keV] vs rho/'
+    label = '@Te, Te(exp) [keV] vs rho@'
     CALL GRD1D(1,rhog,vgxc1,nrmax+1,nrmax+1,2,label,0)
-    label = '/T1, T1(exp) [keV] vs rho/'
+    label = '@T1, T1(exp) [keV] vs rho@'
     CALL GRD1D(2,rhog,vgxc2,nrmax+1,nrmax+1,2,label,0)
-    label = '/T2, T2(exp) [keV] vs rho/'
+    label = '@T2, T2(exp) [keV] vs rho@'
     CALL GRD1D(3,rhog,vgxc3,nrmax+1,nrmax+1,2,label,0)
-    label = '/T3, T3(exp) [keV] vs rho/'
+    label = '@T3, T3(exp) [keV] vs rho@'
     CALL GRD1D(4,rhog,vgxc4,nrmax+1,nrmax+1,2,label,0)
 
     CALL tr_gr_time(idexp)
@@ -179,6 +190,94 @@ CONTAINS
 
     RETURN
   END SUBROUTINE tr_gr_cmp2
+
+  
+  SUBROUTINE tr_gr_cmp3
+    USE trcomm,ONLY: jtot,joh,jbs_nc,jcd_nb,jcd_ec,jcd_ic,jcd_lh
+    USE trufin,ONLY: jtotug,jnbug,jecug,jicug,jlhug,jbsug
+
+    REAL(rkind),DIMENSION(1:nrmax+1) :: johug
+
+    johug(1:nrmax+1) = jtotug(1:nrmax+1) - jbsug(1:nrmax+1) &
+       -(jnbug(1:nrmax+1)+jecug(1:nrmax+1)+jicug(1:nrmax+1)*jecug(1:nrmax+1))
+
+    CALL tr_gr_cmp_init_vgxc
+
+    vgxc1(0:nrmax,1) = jtot(0:nrmax)   * 1.d-6
+    vgxc1(0:nrmax,2) = - jtotug(1:nrmax+1) * 1.d-6
+
+    vgxc2(0:nrmax,1) = joh(0:nrmax)    * 1.d-6
+    vgxc2(0:nrmax,2) = jbs_nc(0:nrmax) * 1.d-6
+    vgxc2(0:nrmax,3) = - johug(1:nrmax+1) * 1.d-6
+    vgxc2(0:nrmax,4) = - jbsug(1:nrmax+1) * 1.d-6
+
+    vgxc3(0:nrmax,1) = jcd_nb(0:nrmax) * 1.d-6
+    vgxc3(0:nrmax,2) = jcd_ec(0:nrmax) * 1.d-6
+    vgxc3(0:nrmax,3) = jcd_ic(0:nrmax) * 1.d-6
+    vgxc3(0:nrmax,4) = jcd_lh(0:nrmax) * 1.d-6
+
+    vgxc4(0:nrmax,1) = - jnbug(1:nrmax+1) * 1.d-6
+    vgxc4(0:nrmax,2) = - jecug(1:nrmax+1) * 1.d-6
+    vgxc4(0:nrmax,3) = - jicug(1:nrmax+1) * 1.d-6
+    vgxc4(0:nrmax,4) = - jlhug(1:nrmax+1) * 1.d-6
+
+    CALL PAGES
+    label = '@jtot (sim,exp) [MA/m^2] vs rho@'
+    CALL GRD1D(1,rhog,vgxc1,nrmax+1,nrmax+1,2,label,0)
+    label = '@joh,jbs (sim,exp) [MA/m^2] vs rho@'
+    CALL GRD1D(2,rhog,vgxc2,nrmax+1,nrmax+1,4,label,0)
+    label = '@jcd_nb,ec,ic,lh (sim) [MA/m^2] vs rho@'
+    CALL GRD1D(3,rhog,vgxc3,nrmax+1,nrmax+1,4,label,0)
+    label = '@jcd_nb,ec,ic,lh (exp) [MA/m^2] vs rho@'
+    CALL GRD1D(4,rhog,vgxc4,nrmax+1,nrmax+1,4,label,0)
+
+    CALL tr_gr_time(idexp)
+    CALL PAGEE
+
+    RETURN
+  END SUBROUTINE tr_gr_cmp3
+
+
+  SUBROUTINE tr_gr_cmp21
+    USE trcomm,ONLY: gvt,gvtu
+
+    CALL tr_gr_cmp_init_gtic
+
+    gtic1(0:ngt,1) = gvt(0:ngt,3)   ! rip
+    gtic1(0:ngt,2) = gvtu(0:ngt,3)  ! ripu
+
+    gtic2(0:ngt,1) = gvt(0:ngt,1)  ! qp(0)
+    gtic2(0:ngt,2) = gvt(0:ngt,2)  ! qp(a)
+    gtic2(0:ngt,3) = gvtu(0:ngt,1) ! qpu(0)
+    gtic2(0:ngt,4) = gvtu(0:ngt,2) ! qpu(a)
+
+    gtic3(0:ngt,1) = gvt(0:ngt,7)        ! w_th
+    gtic3(0:ngt,2) = gvtu(0:ngt,4)*1.d-6 ! w_thu
+
+    gtic4(0:ngt,1) = gvt(0:ngt,8)        ! w_tot
+    gtic4(0:ngt,2) = gvtu(0:ngt,5)*1.d-6 ! w_totu   
+
+    CALL PAGES
+    label = '@RIP (sim,exp) [MA] vs t@'
+    CALL GRD1D(1,gtc,gtic1,ngt+1,ngt+1,2,label,0)
+    label = '@q0,qa (sim,exp) vs t@'
+    CALL GRD1D(2,gtc,gtic2,ngt+1,ngt+1,4,label,0)
+    label = '@Wth (sim,exp) [MJ] vs t@'
+    CALL GRD1D(3,gtc,gtic3,ngt+1,ngt+1,2,label,0)
+    label = '@Wtot (sim,exp) [MJ] vs t@'
+    CALL GRD1D(4,gtc,gtic4,ngt+1,ngt+1,2,label,0)
+
+    CALL tr_gr_time(idexp)
+    CALL PAGEE
+
+    RETURN
+  END SUBROUTINE tr_gr_cmp21
+
+
+  SUBROUTINE tr_gr_cmp22
+
+    RETURN
+  END SUBROUTINE tr_gr_cmp22
 
 ! ***********************************************************************
 

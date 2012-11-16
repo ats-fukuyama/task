@@ -595,20 +595,24 @@ CONTAINS
          ! ,nrd1,nrd2
     IMPLICIT NONE
 
-    INTEGER(ikind) :: nr
-    REAL(rkind)    :: FCTR,DERIV3 ! the functions in TASK/lib
-    REAL(rkind)    :: dr,dpdrhos,factor0,factorp,factorm,fact
+    INTEGER(ikind):: nr
+    REAL(rkind)   :: FCTR,DERIV3 ! the functions in TASK/lib
+    REAL(rkind)   :: dr,dpdrhos,factor0,factor0p,factor0m,factorp,factorm,fact
     REAL(rkind),DIMENSION(0:nrmax) :: factor1,factor2
 
 
     IF(MOD(mdlijq,2)==1)THEN ! jtot --> dpdrho                          
        dpdrho(0:nrmax)  = 0.d0
+       rdpvrho(0:nrmax) = 0.d0
        DO nr = 1, nrmax
           dr      = rhog(nr)-rhog(nr-1)
-          factor0 = rmu0*0.5d0*(abb1rho(nr)+abb1rho(nr-1)) &
-                        *0.5d0*(dvrho(nr)  +  dvrho(nr-1)) &
-                        *0.5d0*(jtot(nr)   +   jtot(nr-1)) &
-                       /(0.5d0*(ttrho(nr)  +  ttrho(nr-1)))**2
+!          factor0 = rmu0*0.5d0*(abb1rho(nr)+abb1rho(nr-1)) &
+!                        *0.5d0*(dvrho(nr)  +  dvrho(nr-1)) &
+!                        *0.5d0*(jtot(nr)   +   jtot(nr-1)) &
+!                       /(0.5d0*(ttrho(nr)  +  ttrho(nr-1)))**2
+          factor0p=rmu0*abb1rho(nr)*dvrho(nr)*jtot(nr)/ttrho(nr)**2
+          factor0m=rmu0*abb1rho(nr-1)*dvrho(nr-1)*jtot(nr-1)/ttrho(nr-1)**2
+          factor0 = 0.5d0*(factor0p + factor0m)
           factorp = abvrho(nr  )/ttrho(nr  )
           factorm = abvrho(nr-1)/ttrho(nr-1)
 
@@ -632,6 +636,8 @@ CONTAINS
        ! dpdrho --> qp                                                 
        qp(1:nrmax) = ttrho(1:nrmax)*arrho(1:nrmax)*dvrho(1:nrmax)    &
                     /(4.d0*pi**2 * dpdrho(1:nrmax))
+!       qp(1:nrmax) = ttrho(1:nrmax)*arrho(1:nrmax) &
+!                    /(4.d0*pi**2 * rdpvrho(1:nrmax))
        qp(0)       = FCTR(rhog(1),rhog(2),qp(1),qp(2))
 
 

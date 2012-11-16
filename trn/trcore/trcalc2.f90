@@ -161,6 +161,7 @@ CONTAINS
                                        - 1.5d0*coef1*coef2*rn(nsa1,nr)*1.d20
                    ctr_ex(neq,neq1,nr) = ctr_ex(neq,neq1,nr) &
                                        + 1.5d0*coef1*coef2*rn(nsa,nr)*1.d20
+!                   write(6,*) 1.d0/(coef1*coef2*rn(nsa1,nr))
                 END IF
              END DO
           END IF

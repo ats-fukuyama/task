@@ -2,7 +2,7 @@ MODULE trresult
 
   USE trcomm, ONLY: rkind,ikind
 
-  PUBLIC tr_calc_global,tr_status,tr_save_ngt
+  PUBLIC tr_calc_global,tr_status,tr_save_ngt,tr_exp_compare
   PRIVATE
 
 CONTAINS
@@ -170,7 +170,7 @@ CONTAINS
           rts_va(nsa) = rntsum / rnsum
        END IF
 
-       ws_t(nsa) = 1.5d0*rntsum*rkev*1.d14
+       ws_t(nsa) = 1.5d0*rntsum*rkev*1.d14 ! [MJ]
     END DO
 
 !   * Fusion production rate
@@ -178,8 +178,8 @@ CONTAINS
 !   * Output source and power
 
     !   * Input and output sources and powers
-    wp_t  = SUM(ws_t(1:nsamax))  ! including fast ions
-    wp_th = SUM(ws_t(1:nsabmax)) ! excluding fast ions
+    wp_t  = SUM(ws_t(1:nsamax))  ! [MJ] including fast ions
+    wp_th = SUM(ws_t(1:nsabmax)) ! [MJ] excluding fast ions
     pin_t  = poh_t + pnb_t + pec_t + pic_t + plh_t + pnf_t - prl_t
 !    pout_t =
 !    sin_t  = 
@@ -273,16 +273,79 @@ CONTAINS
     RETURN
   END SUBROUTINE tr_calc_global
 
-! ***** save data for time history *****
+
+  SUBROUTINE tr_exp_compare
+    USE trcomm,ONLY: rkev,kidns,ns_nsa,nsa_nsu,idnsa,nrmax,nsum,nsamax, &
+         rhog,dvrho,wp_t,wp_th,wp_inc,wpu_inc,rw,sigmat,rt,rn
+    USE trufin,ONLY: rtug,rnug,wthug,wtotug
+    IMPLICIT NONE
+
+    REAL(rkind)    :: rgcore,rgedge,ntp,ntm,ntsum,ntup,ntum,ntusum,dr
+    INTEGER(ikind) :: nr,nsa,nsu,ns,nrcore,nredge
+
+    ! exculuding region; swatooth and edge pedestal regions
+    rgcore = 0.2d0
+    rgedge = 0.9d0
+
+    nrcore = 0
+    nredge = 0
+    DO nr = 0, nrmax
+       IF(rhog(nr) >  rgcore .AND. nrcore == 0) nrcore = nr-1
+       IF(rhog(nr) >= rgedge .AND. nredge == 0) nredge = nr
+    END DO
+
+    ntsum = 0.d0
+    sigmat(1:nsamax) = 0.d0
+    DO nsu = 1, nsum
+       nsa = nsa_nsu(nsu)
+       IF(nsa == 0) CYCLE
+       ! excluding neutral and fast ions
+       IF(idnsa(nsa)==0 .OR. idnsa(nsa)==2) CYCLE
+       DO nr = nrcore, nredge-1 ! 'transport region'
+          dr  = rhog(nr+1) - rhog(nr)
+          ntm  = rn(nsa,nr  )*(rt(nsa,nr  )-rt(nsa,nredge))*dvrho(nr  )
+          ntp  = rn(nsa,nr+1)*(rt(nsa,nr+1)-rt(nsa,nredge))*dvrho(nr+1)
+          ntum = rnug(nsu,nr+1)*rtug(nsu,nr+1)*dvrho(nr+1)
+          ntup = rnug(nsu,nr+2)*rtug(nsu,nr+2)*dvrho(nr+2)
+
+          sigmat(nsa) = sigmat(nsa) &
+               + ((rt(nsa,nr)-rtug(nsu,nr+1)) / rtug(nsu,nr+1))**2.d0
+
+          ntsum  = ntsum  + 0.5d0*(ntm  + ntp )
+          ntusum = ntusum + 0.5d0*(ntum + ntup)
+       END DO
+       sigmat(nsa) = sigmat(nsa) / (nredge-nrcore)
+    END DO
+    ! incremental stored energy
+    wp_inc  = 1.5d0* ntsum  *rkev*1.d14
+    wpu_inc = 1.5d0* ntusum *rkev*1.d14
+
+    rw  = (wp_inc - wpu_inc) / wpu_inc
+
+    WRITE(6,'(1X,A31,F5.1,A4)') '# Rw(the deviation of Wp_inc): ', &
+                                rw*100.d0,' (%)'
+    DO nsa = 1, nsamax
+       ns = ns_nsa(nsa)
+       WRITE(6,'(A8,A1,A2,F5.1,A4)',ADVANCE='NO') &
+               '  sigmaT',kidns(ns),': ',sigmat(nsa)*100.d0,' (%)'
+    END DO
+    WRITE(6,*) !breaking line
+
+    RETURN
+  END SUBROUTINE tr_exp_compare
+
 
   SUBROUTINE tr_save_ngt
+! ***** save data for time history *****
 
-    USE trcomm, ONLY : &
-         nrmax,nsamax,ngtmax,neqmax,ngt,gvt,gvts,gvrt,gvrts,        &
-         rkev,t,rn,ru,rt,rp,qp,jtot,joh,rip,wp_t,ws_t,              &
+    USE trcomm, ONLY: &
+         nrmax,nsamax,ngtmax,neqmax,ngt,gvt,gvts,gvrt,gvrts,gvtu,   &
+         rkev,t,rn,ru,rt,rp,qp,jtot,joh,rip,wp_t,wp_th,ws_t,        &
          jcd_nb,jcd_ec,jcd_ic,jcd_lh,                               &
          pin_t,poh_t,pnb_t,pec_t,pic_t,plh_t,pibw_t,pnf_t,          &
          beta,betap,betan,taue1,taue3,taue89,taue98,h89,h98y2
+    USE trufin, ONLY: &
+         qpug,ripug,wthug,wtotug
     USE trcoeftb, ONLY: Pereverzev_check
     IMPLICIT NONE
     INTEGER(ikind):: nsa,nr,wstmax
@@ -301,6 +364,7 @@ CONTAINS
     gvt(ngt, 3) = rip
 
     ! stored energy
+    gvt(ngt,7) = wp_th
     gvt(ngt,8) = wp_t
     
     IF(nsamax >  4) wstmax = 4
@@ -330,6 +394,13 @@ CONTAINS
     gvt(ngt,27) = taue98
     gvt(ngt,28) = h89
     gvt(ngt,29) = h98y2
+
+    ! experimental data
+    gvtu(ngt,1) = qpug(1)
+    gvtu(ngt,2) = qpug(nrmax+1)
+    gvtu(ngt,3) = - ripug
+    gvtu(ngt,4) = wthug
+    gvtu(ngt,5) = wtotug
 
 ! ------------------------------------------------------------------------
 

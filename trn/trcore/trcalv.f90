@@ -107,7 +107,7 @@ CONTAINS
        rt_e(nr) = rt(1,nr)
        rn_e(nr) = rn(1,nr)
        DO nsa = 1, nsamax
-          IF(idnsa(nsa) == 1) THEN ! ion
+          IF(idnsa(nsa) == 1) THEN ! bulk ion
              rn_i(nr) = rn_i(nr) + rn(nsa,nr)
              rt_isum  = rt_isum + rn(nsa,nr)*rt(nsa,nr)
           END IF            
@@ -149,7 +149,7 @@ CONTAINS
        ! mean atomic mass of thermal ions [AMU] (on half grids)
        pansum = 0.d0
        DO nsa = 1, nsamax
-          IF(idnsa(nsa)==1)THEN
+          IF(idnsa(nsa)==1)THEN ! bulk ions
              ns     = ns_nsa(nsa)
              pansum = pansum + pa(ns)*0.5d0*(rn(nsa,nr)+rn(nsa,nr-1))
           END IF
@@ -322,18 +322,17 @@ CONTAINS
     IMPLICIT NONE
     INTEGER(ikind) :: nr,nsa,ns
 
-!    IF(mdleqn==0 .OR. mdleqn==1)THEN
-       z_eff(0:nrmax)   = 0.d0
-       DO nr = 0, nrmax
-          DO nsa = 2, nsamax
-             IF(idnsa(nsa) >= 1)THEN
-                ns = ns_nsa(nsa)
-                z_eff(nr) = z_eff(nr) + pz(ns)**2 *rn(nsa,nr)                
-             END IF
-          END DO
-          z_eff(nr) = z_eff(nr)/rn(1,nr)
+
+    z_eff(0:nrmax)   = 0.d0
+    DO nr = 0, nrmax
+       DO nsa = 2, nsamax
+          IF(idnsa(nsa) >= 1)THEN
+             ns = ns_nsa(nsa)
+             z_eff(nr) = z_eff(nr) + pz(ns)**2 *rn(nsa,nr)                
+          END IF
        END DO
-!    END IF
+       z_eff(nr) = z_eff(nr)/rn(1,nr)
+    END DO
 
     RETURN
   END SUBROUTINE tr_calc_zeff

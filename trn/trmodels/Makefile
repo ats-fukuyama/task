@@ -5,8 +5,8 @@ include $(TASKDIR)/make.header
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-#FFLAGS = $(OFLAGS)
-FFLAGS = $(DFLAGS) -g
+FFLAGS = $(OFLAGS)
+#FFLAGS = $(DFLAGS) -g
 
 MODINCLUDE=-I $(BPSDDIR)/mod -I $(TASKDIR)/plx/mod -I $(TASKDIR)/lib/mod \
            -I ../trcore/mod -I $(MOD)
@@ -74,13 +74,13 @@ nclass/write_mod.o   : nclass/write_mod.f
 cytran/cytran_mod.o: cytran/cytran_mod.f90
 cytran/tr_cytran_mod.o: cytran/tr_cytran_mod.f90
 mmm95/stripx.o: mmm95/stripx.f
-	$(FCFIXED) -fdefault-real-8 $(FFLAGS) -c $? -o $@
+	$(FCFIXED) -r8 $(FFLAGS) -c $? -o $@
 mmm95/tomsqz.o: mmm95/tomsqz.f
-	$(FCFIXED) -fdefault-real-8 $(FFLAGS) -c $? -o $@
+	$(FCFIXED) -r8 $(FFLAGS) -c $? -o $@
 mmm95/weiland14.o: mmm95/weiland14.f
-	$(FCFIXED) -fdefault-real-8 $(FFLAGS) -c $? -o $@
+	$(FCFIXED) -r8 $(FFLAGS) -c $? -o $@
 mmm95/mmm95.o: mmm95/mmm95.f
-	$(FCFIXED) -fdefault-real-8 $(FFLAGS) -c $? -o $@
+	$(FCFIXED) -r8 $(FFLAGS) -c $? -o $@
 mmm7_1/w20mod.o: mmm7_1/w20mod.f90
 mmm7_1/modmmm7_1.o: mmm7_1/w20mod.f90 mmm7_1/modmmm7_1.f90
 	$(FCFREE) -c mmm7_1/modmmm7_1.f90 -o $@ $(MODDIR) -I mmm7_1
