@@ -11,7 +11,19 @@ CONTAINS
 
   SUBROUTINE ufread_0d(NDMAX,IERR)
 ! -----------------------------------------------------------------------
-!   0D UFILE reader for TR
+!   ***  0D UFILE reader for TR  ***
+!
+!   This sburoutine reads the ***_0d.dat file of UFILE.
+!
+!   The subroutine 'uflist_init' initialize the structure 'uf0d'
+!    to contain variable names and its data type.
+!
+!   The subroutine 'uflist_set' contains the variable data 
+!    into the structure 'ud0d'
+!
+!   < output >
+!   NDMAX  : the number of data included in the _0d.dat file
+!   IERR   : error identifier
 ! -----------------------------------------------------------------------
     USE uflist, ONLY: uflist_init, uflist_set, uf0d
     USE ufinit, ONLY: kufdir,kufdev,kufdcg,N0DMAX,nid_nd
@@ -182,9 +194,10 @@ CONTAINS
 
 
 ! =======================================================================
-!  UFILE reader for TR (Time Evolution UFILE)
+!  UFILE reader subroutines for TASK/TR (for time Evolution UFILE)
 !     - ufread_1d_time
 !     - ufread_2d_time
+!     - ufread_2d_errbar
 !
 !  input:
 !
@@ -199,6 +212,7 @@ CONTAINS
 !              = 0: write, = 1(else): suppress
 !
 !  output:
+!
 !  RUF(NRUM)      : Equally Spaced Normalized Radial Data
 !  TMU(NTUM)      : Total Time Data (The Number of DT)
 !  F1(NTUM)       : Functional Values
@@ -440,8 +454,10 @@ CONTAINS
 
   SUBROUTINE uf_bin_1d_read(KFID,KFILE,KFILEB,T,F1,NTM,NTXMAX,IDBIN)
 ! ----------------------------------------------------------------------
-!   Read 1D variable from ASCII file or binary file
+!   Read 1D variable from ASCII file or binary file of UFILE
 !   Make binary file in order to faster reading of data if necessary
+!
+!   This subroutine is called only from the subroutine 'ufread_1d_time'
 ! ----------------------------------------------------------------------
     IMPLICIT NONE
 
@@ -539,6 +555,8 @@ CONTAINS
 ! ----------------------------------------------------------------------
 !   Read 2D variable from ASCII file or binary file
 !   Make binary file in order to faster reading of data if necessary
+!
+!   This subroutine is called only from the subroutine 'ufread_2d_time'
 ! ----------------------------------------------------------------------
     IMPLICIT NONE
 
@@ -585,7 +603,7 @@ CONTAINS
           RETURN
        ENDIF
 
-       CALL uf_head_search(UNIT,NRXMAX,NTXMAX,NRXMAX,IERR)
+       CALL uf_head_search(UNIT,NRXMAX,NTXMAX,NTXMAX,IERR)
        IF(IERR /= 0)THEN
           WRITE(6,*) 'XX uf_bin_2d_read: Read error of the header. IERR= ',IERR
           WRITE(6,*) 'XX KFILE= ',TRIM(KFILE)
@@ -693,7 +711,18 @@ CONTAINS
 
   SUBROUTINE uf_head_search(UNIT,MAXVAL1,MAXVAL2,MAXVAL3,IERR)
 ! -------------------------------------------------------------------------
-!   search the phrase matching key sentences and get the certain values
+!   *** search the phrase matching key sentences and get the certain values
+!   
+!  < input >
+!   UNIT  : the unit number for input
+!
+!  < output >
+!   the maximum number of data ...
+!   MAXVAL1 : ... corresponding to the phrase '# OF X PTS' (e.g. NRXMAX)
+!   MAXVAL2 : ... corresponding to the phrase '# OF Y PTS' (e.g. NTXMAX)
+!   MAXVAL3 : ... corresponding to the phrase '# OF PTS'   (e.g. NTXMAX)
+!
+!   IERR    : error identifier
 ! -------------------------------------------------------------------------
     IMPLICIT NONE
 

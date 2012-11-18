@@ -17,7 +17,7 @@ MODULE ufinit
 
 CONTAINS
 
-  SUBROUTINE ufile_init(KUF_DIR,KUF_DEV,KUF_DCG,ID_BIN,IERR)
+  SUBROUTINE ufile_init(KUF_DIR,KUF_DEV,KUF_DCG,IERR)
 ! --------------------------------------------------------------------
 !  ***  Initialization routine.                                 ***
 !  ***   - Locating ufile directory and checking its existence  ***
@@ -28,11 +28,14 @@ CONTAINS
 !   
 !   (This subroutine searches 'KUFDIR/DEVICE/SHOT/in'.)
 !
+!   KUF_DIR  : the directory path containing UFILE database
+!   KUF_DEV  : the device name
+!   KUF_DCG  : the discharge number
+!   IERR     : error identifier
 ! --------------------------------------------------------------------
     IMPLICIT NONE
 
     CHARACTER(LEN=80), INTENT(IN)  :: KUF_DIR, KUF_DEV, KUF_DCG
-    INTEGER(ikind),    INTENT(IN)  :: ID_BIN
     INTEGER(ikind),    INTENT(OUT) :: IERR
 
     LOGICAL            :: DIR, FILE
@@ -91,18 +94,23 @@ CONTAINS
   SUBROUTINE ufile_inquire(KUFDIM,KFID,KFILE,KFILEB,IDBIN,ERROUT,IERR)
 ! -------------------------------------------------------------------------
 !   *** inquire ufile and check its existence ***
-!
-!   IDBIN is the parameter which determines how to handle exp. files.
-!
+!   < input >
+!   KUFDIM : the dimension of ufile data; 1d or 2d
+!   KFID   : the name of variables; AMIN, PNBI, NE, ...etc.
+!   ERROUT : Error message output switch
+!          : = 0  write error message to standard output 
+!          : = 1  suppress error message output
+!   
+!   < output >
+!   KFILE  : file name of a varible data including its path
+!   KFILEB : binary file name of a varible data including its path
+!   IDBIN  : the parameter which determines how to handle exp. files.
 !   IDBIN =   0 : Binary files are loaded if available, or ASCII files
 !                 are loaded and aftermath binary files are created.
 !             1 : Only binary files are loaded.
 !             2 : Only ASCII files are loaded and binary files are NOT
 !                  created.
-!
-!   ERROUT : Error message output switch
-!          : = 0  write error message to standard output 
-!          : = 1  suppress error message output
+!   IERR   : error identifier
 ! -------------------------------------------------------------------------
     IMPLICIT NONE
 

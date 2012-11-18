@@ -18,11 +18,11 @@ MODULE uflist
 
   TYPE ufile_0d
      INTEGER(ikind)    :: id_type ! 1:REAL 2:INTEGER 3:CHARACTER
-     CHARACTER(LEN=15) :: kfid    ! label
+     CHARACTER(LEN=16) :: kfid    ! label
      LOGICAL           :: lex     ! existence of data
      REAL(rkind)       :: FR0     ! value ( if its type is REAL )
      INTEGER(ikind)    :: FI0     ! value ( if its type is INTEGER )
-     CHARACTER(LEN=15) :: FC0     ! value ( if its type is CHARACTER )
+     CHARACTER(LEN=16) :: FC0     ! value ( if its type is CHARACTER )
   END TYPE ufile_0d
 
   TYPE(ufile_0d),DIMENSION(N0DMAX) :: uf0d
