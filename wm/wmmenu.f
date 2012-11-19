@@ -145,7 +145,7 @@ C
             CALL WM_TEST(CEFLD3D,CPABS3D,PABST3D,PABSTT3D,
      &                   MDM,NPHM,NRM,NSM,
      &                   NTHMAX,NPHMAX,NRMAX,NSMAX,
-     &                   RGMIN,RGMAX,RAXIS,NCONT)
+     &                   RGMIN,RGMAX,RAXIS,NCONT,NGRAPH)
             KID=' '
 C
          ELSE IF(KID.EQ.'X') THEN

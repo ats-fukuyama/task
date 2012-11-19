@@ -71,6 +71,9 @@ C
             PABST3D(NPH,NS)=PABST(NS)
          END DO
          PABSTT3D(NPH)=PABSTT
+
+C         write(6,'(A,1P2E12.4)') 
+C     &        'CEFLD3D(1,5,NPH,5)=',CEFLD3D(1,5,NPH,5)
 C
       ENDDO
 C
