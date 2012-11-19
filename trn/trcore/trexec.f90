@@ -11,18 +11,18 @@ CONTAINS
   SUBROUTINE tr_exec
 
     USE trcomm,ONLY: &
-         neqmax,neqrmax,nvmax,nvrmax,nrmax,               &
-         neqr_neq,nva_neq,id_neq,id_neqnr,mdltr_prv,      &
+         neqmax,neqrmax,nvmax,nvrmax,nrmax,                       &
+         neqr_neq,nva_neq,nsa_neq,id_neq,id_neqnr,mdltr_prv,      &
          dt,rhog,dtr,vtr,ctr,str,htr,dtr_prv,             &
          elmtx,elmtx_ofd,limtx,rsimtx,rjimtx,             &
          r1imtx,r2imtx,r3imtx,r1imtx_ofd,rimtx,lhmtx,rhv, &
-         xv,xv_new,xv_prev 
+         xv,xv_new,xv_prev
     IMPLICIT NONE
     REAL(rkind) :: &
          dh0,dh1,dh2,dh3,dvdrp,dvdrm,  &
          gm1p,gm1m,gm2p,gm2m,cjexm,cjexp,coef1,coef2
     REAL(rkind) :: dtr_ofd,dtr_d,dtr_chi
-    INTEGER(ikind) :: nr,neq,neq1,neqr,neqr1,nvrm,nvrp,ierr,nvm,nvp
+    INTEGER(ikind) :: nr,nsa,neq,neq1,neqr,neqr1,nvrm,nvrp,ierr,nvm,nvp
 
 
     lhmtx(1:4*neqrmax-1,1:nvrmax) = 0.d0
@@ -31,6 +31,7 @@ CONTAINS
     DO nr = 1, nrmax 
 
        ! initialization
+       rimtx(1:2,1:2,1:neqmax,1:neqmax)  = 0.d0
        r1imtx(1:2,1:2,1:neqmax,1:neqmax) = 0.d0
        r2imtx(1:2,1:2,1:neqmax,1:neqmax) = 0.d0
        r3imtx(1:2,1:2,1:neqmax,1:neqmax) = 0.d0
@@ -49,7 +50,7 @@ CONTAINS
        DO neq = 1, neqmax
 
           call tr_neq_mtrc(nr,neq,dvdrp,dvdrm,gm1p,gm1m, &
-               gm2p,gm2m,cjexm,cjexp,coef1,coef2)
+                           gm2p,gm2m,cjexm,cjexp,coef1,coef2)
           
           limtx(1,1,neq) = coef1*dh0*(3.D0*dvdrm +      dvdrp)
           limtx(2,1,neq) = coef1*dh0*(     dvdrm +      dvdrp)
@@ -77,8 +78,8 @@ CONTAINS
 
              ! off-diagonal term of density gradient
              !                          in energy transport equation.
-             IF(nva_neq(neq)==3 .AND. nva_neq(neq1)==3)THEN
-                IF(mdltr_prv /= 0 .AND. neq == neq1)THEN
+             IF(nva_neq(neq)==3 .AND. neq == neq1)THEN
+                IF(mdltr_prv /= 0)THEN
                    ! only for energy transport (i.e. for chi)
                    !   in common with Pereverzev method routine.
                    dtr_d   = dtr(neq-2,neq1-2,nr) - dtr_prv(neq-2,nr)
@@ -87,17 +88,17 @@ CONTAINS
                    dtr_d   = dtr(neq-2,neq1-2,nr)
                    dtr_chi = dtr(neq,neq1,nr)
                 END IF
-                dtr_ofd = 0.5d0*(xv_prev((nr-1)*neqmax+neq1)  &
-                                +xv_prev( nr   *neqmax+neq1)) &
-                               *( coef2*dtr_d - dtr_chi )
+                dtr_ofd = (xv((nr-1)*neqmax+neq)/xv((nr-1)*neqmax+(neq-2))  &
+                          +xv( nr   *neqmax+neq)/xv( nr   *neqmax+(neq-2))) &
+                         *0.5d0*( coef2*dtr_d - dtr_chi )
 !                dtr_ofd = - 0.5d0*(xv_prev((nr-1)*neqmax+neq1)  &
 !                                  +xv_prev( nr   *neqmax+neq1)) &
 !                           *dtr(neq,neq1,nr)
 
-                r1imtx_ofd(1,1,neq,neq1-2)=   dh3*dtr_ofd*gm2m
-                r1imtx_ofd(2,1,neq,neq1-2)= - dh3*dtr_ofd*gm2m
-                r1imtx_ofd(1,2,neq,neq1-2)= - dh3*dtr_ofd*gm2p
-                r1imtx_ofd(2,2,neq,neq1-2)=   dh3*dtr_ofd*gm2p
+!!$                r1imtx_ofd(1,1,neq,neq1-2)=   dh3*dtr_ofd*gm2m
+!!$                r1imtx_ofd(2,1,neq,neq1-2)= - dh3*dtr_ofd*gm2m
+!!$                r1imtx_ofd(1,2,neq,neq1-2)= - dh3*dtr_ofd*gm2p
+!!$                r1imtx_ofd(2,2,neq,neq1-2)=   dh3*dtr_ofd*gm2p
              END IF
 
              ! at the center of element
@@ -247,17 +248,13 @@ CONTAINS
                 IF(id_neq(neq1)/=0)THEN
                    neqr = neqr_neq(neq1)
 
-                   rhv(nvrm+neqr) = rhv(nvrm+neqr)           &
-                        - elmtx_ofd(neq1       ,neq       )  &
-                           *xv((nr-1)*neqmax+neq)            &
-                        - elmtx_ofd(neq1       ,neq+neqmax)  &
-                           *xv( nr   *neqmax+neq)
+                   rhv(nvrm+neqr) = rhv(nvrm+neqr)         &
+                        - elmtx_ofd(neq1       ,neq       )*xv(nvm + neq) &
+                        - elmtx_ofd(neq1       ,neq+neqmax)*xv(nvp + neq)
 
-                   rhv(nvrp+neqr) = rhv(nvrp+neqr)           &
-                        - elmtx_ofd(neq1+neqmax,neq       )  &
-                           *xv((nr-1)*neqmax+neq)            &
-                        - elmtx_ofd(neq1+neqmax,neq+neqmax)  &
-                           *xv( nr   *neqmax+neq)
+                   rhv(nvrp+neqr) = rhv(nvrp+neqr)         &
+                        - elmtx_ofd(neq1+neqmax,neq       )*xv(nvm + neq) &
+                        - elmtx_ofd(neq1+neqmax,neq+neqmax)*xv(nvp + neq)
                 END IF
              END DO
           END IF

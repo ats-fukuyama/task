@@ -365,10 +365,20 @@ CONTAINS
 
     vgx1(0:nrmax,1) = poh(1,0:nrmax)*1.d-6
     vgx1(0:nrmax,2) = (pnb(1,0:nrmax)+pnb(2,0:nrmax))*1.d-6
+    vgx1(0:nrmax,3) = (pec(1,0:nrmax)+pec(2,0:nrmax))*1.d-6
+    vgx1(0:nrmax,4) = (pic(1,0:nrmax)+pic(2,0:nrmax))*1.d-6
+    vgx1(0:nrmax,5) = (plh(1,0:nrmax)+plh(2,0:nrmax))*1.d-6
+
+    vgx2(0:nrmax,1) = poh(1,0:nrmax)*1.d-6
+    vgx2(0:nrmax,2) = (prl(1,0:nrmax)+prl(2,0:nrmax))*1.d-6
+    vgx2(0:nrmax,3) = (pnf(1,0:nrmax)+pnf(2,0:nrmax))*1.d-6
+
 
     CALL PAGES
-    label = '@Pin [MW/m$+3$=] vs rho@'
+    label = '@Pin(oh,nb,ec,ic,lh) [MW/m$+3$=] vs rho@'
     CALL GRD1D(1,rhog,vgx1,nrmax+1,nrmax+1,5,label,0)
+    label = '@Pin(oh,rl,nf) [MW/m$+3$=] vs rho@'
+    CALL GRD1D(2,rhog,vgx2,nrmax+1,nrmax+1,3,label,0)
 
     CALL tr_gr_time(idexp)
     CALL PAGEE

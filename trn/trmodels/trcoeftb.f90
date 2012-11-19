@@ -10,7 +10,8 @@ CONTAINS
 ! ***** calculate trubenlent transport coefficients *****
 
   SUBROUTINE tr_coeftb
-    USE trcomm, ONLY: mdltr_tb,mdltr_prv,neqmax,nrmax,dtr_tb,vtr_tb
+    USE trcomm, ONLY: mdltr_tb,mdltr_prv,neqmax,nrmax, &
+                      dtr_tb,vtr_tb,dtr_prv,vtr_prv
     USE trsimple, ONLY: tr_simple
     USE trglf23, ONLY: tr_glf23
     USE trcdbm, ONLY: tr_cdbm
@@ -21,6 +22,8 @@ CONTAINS
 
     dtr_tb(1:neqmax,1:neqmax,0:nrmax) = 0.d0
     vtr_tb(1:neqmax,1:neqmax,0:nrmax) = 0.d0
+    dtr_prv(1:neqmax,0:nrmax) = 0.d0
+    vtr_prv(1:neqmax,0:nrmax) = 0.d0
 
     SELECT CASE(mdltr_tb) ! results are in dtr_tb and vtr_tb
     CASE(0:9)

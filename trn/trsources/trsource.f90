@@ -134,10 +134,12 @@ CONTAINS
                                 + pibw(2,0:nrmax) &
                                 + pnf(2,0:nrmax)  &
                                 - prl(2,0:nrmax))/(rkev*1.d20)
+
           END IF
        END SELECT
     END DO
 
+!    str = 0.d0
 !    str(2:neqmax,0:nrmax) = str_simple(2:neqmax,0:nrmax)*1.d6
 
     RETURN
@@ -182,8 +184,8 @@ CONTAINS
     ENDDO
     pnb0 = pnb_tot*1.d6 / sum_nb
     DO nr = 0, nrmax
-       pnb(1,nr) = 0.5d0*pnb0*DEXP(-((ra*rhog(nr)-pnb_r0)/pnb_rw)**2)
-       pnb(2,nr) = 0.5d0*pnb0*DEXP(-((ra*rhog(nr)-pnb_r0)/pnb_rw)**2)
+       pnb(1,nr) = pnb0*DEXP(-((ra*rhog(nr)-pnb_r0)/pnb_rw)**2)
+!       pnb(2,nr) = 0.5d0*pnb0*DEXP(-((ra*rhog(nr)-pnb_r0)/pnb_rw)**2)
     ENDDO
 
 !    nrd1(0:nrmax) = eta(0:nrmax)

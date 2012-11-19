@@ -46,7 +46,7 @@ CONTAINS
     ! *** dtr, vtr ***
     CALL tr_coefnc         ! calculate neoclassical transport coefficients
     CALL tr_coeftb         ! calculate turbulent transport coefficients
-    CALL tr_calc2_mag_diff
+    CALL tr_coefmg
     
     DO nr=1,nrmax
        DO neq=2,neqmax
@@ -60,14 +60,16 @@ CONTAINS
                =ctr_ex(2:neqmax,neq,nr)
        END DO
     END DO
-
+    
+!    dtr=0.01d0*dtr
+!    vtr=0.d0
     RETURN
   END SUBROUTINE tr_calc2
 
 ! ***********************************************************************
 ! ***********************************************************************
 
-  SUBROUTINE tr_calc2_mag_diff
+  SUBROUTINE tr_coefmg
 ! -----------------------------------------------------------------------
 !   calculate coefficients for poloidal magnetic diffusion equation
 ! -----------------------------------------------------------------------
@@ -86,7 +88,7 @@ CONTAINS
        dtr(1,1,nr) = etam*ttrhom/(rmu0*arrhom*dvrhom)
     END DO
 
-  END SUBROUTINE tr_calc2_mag_diff
+  END SUBROUTINE tr_coefmg
 
 
   SUBROUTINE tr_calc2_excurrent
@@ -122,12 +124,12 @@ CONTAINS
     INTEGER(ikind) :: nr,neq,neq1,nsa,nsa1,ns,ns1
     REAL(rkind) :: coef1,coef2,ams,ams1
 
-    ctr_ex(1:neqmax,1:neqmax,0:nrmax)=0.D0
+    ctr_ex(1:neqmax,1:neqmax,0:nrmax) = 0.D0
 
+    ! *** heat exchange                          ***
+    ! *** relaxation process (Tokamaks 3rd p.68) ***
     coef1 = aee**4.d0 / (3.d0*SQRT(2.d0)*pi**1.5d0 * eps0**2.d0)
 
-    ! *** only heat exchange ***
-    ! *** relaxation process (Tokamaks 3rd p.68) ***
     DO nr = 0, nrmax
        DO neq = 1, neqmax
           IF(id_neq(neq)==0) CYCLE
@@ -153,14 +155,13 @@ CONTAINS
                    END IF
 
                    coef2 = (pz(ns)*pz(ns1))**2.d0 / (ams*ams1)             &
-                   *(rt(nsa,nr)*rkev/ams + rt(nsa1,nr)*rkev/ams1)**(-1.5d0)&
+                   *(rt(nsa,nr)*rkev/ams + rt(nsa1,nr)*rkev/ams1)**(-1.5d0) &
                    *coulog(ns,ns1,rn(1,nr),rt(nsa,nr))
 
                    ! coef1*coef2*n_j : nu_ij (heat exchange frequency)
                    ctr_ex(neq,neq,nr)  = ctr_ex(neq,neq,nr) &
                                        - 1.5d0*coef1*coef2*rn(nsa1,nr)*1.d20
-                   ctr_ex(neq,neq1,nr) = ctr_ex(neq,neq1,nr) &
-                                       + 1.5d0*coef1*coef2*rn(nsa,nr)*1.d20
+                   ctr_ex(neq,neq1,nr) = 1.5d0*coef1*coef2*rn(nsa, nr)*1.d20
 !                   write(6,*) 1.d0/(coef1*coef2*rn(nsa1,nr))
                 END IF
              END DO
@@ -170,5 +171,12 @@ CONTAINS
 
     RETURN
   END SUBROUTINE tr_calc2_energy_ex
+
+
+  SUBROUTINE tr_calc2_energy_ex_check
+    USE trcomm, ONLY: ctr_ex,rn,rt,pz,pa
+
+    RETURN
+  END SUBROUTINE tr_calc2_energy_ex_check
 
 END MODULE trcalc2

@@ -76,7 +76,7 @@ CONTAINS
 
     IF(nit==lmaxtr+1) nitmax = lmaxtr + 1
 
-!    CALL tr_set_xv(xv,dpdrho,rn,ru,rt,rp,rp_tot)
+    CALL tr_set_xv(xv,dpdrho,rn,ru,rt,rp,rp_tot)
 !    nrd1(0:nrmax) = rt(1,0:nrmax)*rn(1,0:nrmax)
 
 
@@ -163,17 +163,18 @@ CONTAINS
 ! ------------------------------------------------------------------------
 ! check temperature and density profiles whether they are negative or not
 ! ------------------------------------------------------------------------
-    USE trcomm,ONLY: nrmax,nsamax,t,dt,rn,rt
+    USE trcomm,ONLY: nrmax,nsamax,t,dt,rn,rt,eta
     IMPLICIT NONE
 
     INTEGER(ikind),INTENT(OUT) :: ierr
 
     INTEGER(ikind)    :: nsa,nr
-    CHARACTER(LEN=32) :: fmt_1, fmt_2
+    CHARACTER(LEN=32) :: fmt_1, fmt_2, fmt_3
 
     ierr = 0
     fmt_1 = '(1X,A,I8,A)'
     fmt_2 = '(1X,A10,I2,A5,I3,A3,ES12.4)'
+    fmt_3 = '(1X,A11,I3,A3,ES12.4)'
 
     DO nsa = 1, nsamax
        DO nr = 0, nrmax
@@ -193,6 +194,15 @@ CONTAINS
           IF(ierr /= 0) RETURN
        END DO
     END DO
+
+!!$    DO nr = 0, nrmax
+!!$       IF(eta(nr) < 0.d0)THEN
+!!$          WRITE(6,fmt_1) &
+!!$       'XX tr_negative_check: negative eta value at step (',INT(t/dt),' )'
+!!$          WRITE(6,fmt_3) 'XX eta (nr=',nr,') =',eta(nr)
+!!$          ierr = 1
+!!$       END IF
+!!$    END DO
 
     RETURN
   END SUBROUTINE tr_check_negative

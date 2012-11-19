@@ -351,29 +351,6 @@ MODULE trcomm
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
        z_eff       ! Z_eff: effective charge
 
-! ----- for NCLASS output -----
-  REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: &
-       chi_ncp,  &! coef. of the pres. grad. for matrix expression 
-                  !  of heat flux
-       chi_nct,  &! coef. of the temp. grad. for matrix expression 
-                  !  of heat flux
-       d_ncp,    &! coef. of the pres. grad. for matrix expression
-                  !  of particle flux
-       d_nct      ! coef. of the temp. grad. for martix expression
-                  !  of particle flux
-  REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: &
-       gfls,     &! radial particle flux components of s [/(m^2 s)]
-       qfls       ! radial heat conduction flux components of s [W/m^2
-  REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: &
-       fls_tot    ! total radial flux of s (heat and particle)
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE::&
-       vebs,     &! <E.B> particle convection velocity of s [m/s]
-       qebs,     &! <E.B> heat convection velocity of s [m/s]
-       dia_gdnc, &! diagonal diffusivity [m^2/s]
-       dia_gvnc, &! diagonal convection driven by off-diagonal part [m/s]
-       cjbs_p,   &! <J_bs.B> driven by unit p'/p of s [A*T/1.d-20*m^2]
-       cjbs_t     ! <J_bs.B> driven by unit T'/T of s [A*T/1.d-20*m^2]
-
   INTEGER(ikind) :: &  
        mdlxp,    &! Select UFILE or MDSplus
        mdluf,    &! Model type of UFILE
@@ -663,25 +640,6 @@ CONTAINS
 
           ALLOCATE(z_eff(0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
 
-          ! for NCLASS
-          ALLOCATE(chi_ncp(1:nsamax,1:nsamax,0:nrmax),STAT=ierr)
-            IF(ierr /= 0) EXIT
-          ALLOCATE(chi_nct(1:nsamax,1:nsamax,0:nrmax),STAT=ierr)
-            IF(ierr /= 0) EXIT
-          ALLOCATE(d_ncp(1:nsamax,1:nsamax,0:nrmax),STAT=ierr)
-            IF(ierr /= 0) EXIT
-          ALLOCATE(d_nct(1:nsamax,1:nsamax,0:nrmax),STAT=ierr)
-            IF(ierr /= 0) EXIT
-          ALLOCATE(gfls(5,1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
-          ALLOCATE(qfls(5,1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
-          ALLOCATE(fls_tot(3,1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
-          ALLOCATE(vebs(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
-          ALLOCATE(qebs(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
-          ALLOCATE(dia_gdnc(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
-          ALLOCATE(dia_gvnc(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
-          ALLOCATE(cjbs_p(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
-          ALLOCATE(cjbs_t(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
-
           nrmax_save  = nrmax
           nsamax_save = nsamax
           RETURN
@@ -843,21 +801,6 @@ CONTAINS
     IF(ALLOCATED(alpha)) DEALLOCATE(alpha)
 
     IF(ALLOCATED(z_eff)) DEALLOCATE(z_eff)
-
-    ! for NCLASS
-    IF(ALLOCATED(chi_ncp)) DEALLOCATE(chi_ncp)
-    IF(ALLOCATED(chi_nct)) DEALLOCATE(chi_nct)
-    IF(ALLOCATED(d_ncp)) DEALLOCATE(d_ncp)
-    IF(ALLOCATED(d_nct)) DEALLOCATE(d_nct)
-    IF(ALLOCATED(gfls)) DEALLOCATE(gfls)
-    IF(ALLOCATED(qfls)) DEALLOCATE(qfls)
-    IF(ALLOCATED(fls_tot)) DEALLOCATE(fls_tot)
-    IF(ALLOCATED(vebs)) DEALLOCATE(vebs)
-    IF(ALLOCATED(qebs)) DEALLOCATE(qebs)
-    IF(ALLOCATED(dia_gdnc)) DEALLOCATE(dia_gdnc)
-    IF(ALLOCATED(dia_gvnc)) DEALLOCATE(dia_gvnc)
-    IF(ALLOCATED(cjbs_p)) DEALLOCATE(cjbs_p)
-    IF(ALLOCATED(cjbs_t)) DEALLOCATE(cjbs_t)
 
     RETURN
   END SUBROUTINE tr_nr_deallocate

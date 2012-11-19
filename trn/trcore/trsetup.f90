@@ -547,11 +547,13 @@ CONTAINS
           IF(mdlijq == 3) mdlijq = 1
 
           DO nr = 0, nrmax
-             IF(((SQRT(rkap)*ra)**ABS(profj1)-rg(nr)**ABS(profj1)).LE.0.d0)THEN
+!             IF(((SQRT(rkap)*ra)**ABS(profj1)-rg(nr)**ABS(profj1)).LE.0.d0)THEN
+             IF((1.d0-rhog(nr)**ABS(profj1))**ABS(profj2) < 0)THEN
                 jtot(nr) = 0.D0
              ELSE
                 jtot(nr) = &
-               ((SQRT(rkap)*ra)**ABS(profj1)-rg(nr)**ABS(profj1))**ABS(profj2)
+!               ((SQRT(rkap)*ra)**ABS(profj1)-rg(nr)**ABS(profj1))**ABS(profj2)
+                (1.d0-rhog(nr)**ABS(profj1))**ABS(profj2)
              ENDIF
           ENDDO
 

@@ -1,7 +1,42 @@
 MODULE trncls
 
+  USE trcomm, ONLY: ikind,rkind,nrmax,nsamax
+
   PRIVATE
-  PUBLIC tr_nclass
+  PUBLIC tr_nclass,tr_ncls_allocate, &
+       chi_ncp,chi_nct,d_ncp,d_nct,gfls,qfls,fls_tot,vebs,qebs,dia_gdnc, &
+       dia_gvnc,cjbs_p,cjbs_t,eta_ncls,jbs_ncls,jex_ncls,vpol_ncls,       &
+       vpar_ncls,vprp_ncls
+
+  ! ----- for NCLASS output -----                                          
+  REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: &
+       chi_ncp,  &! coef. of the pres. grad. for matrix expression
+                  !  of heat flux
+       chi_nct,  &! coef. of the temp. grad. for matrix expression
+                  !  of heat flux
+       d_ncp,    &! coef. of the pres. grad. for matrix expression
+                  !  of particle flux
+       d_nct      ! coef. of the temp. grad. for martix expression
+                  !  of particle flux
+  REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: &
+       gfls,     &! radial particle flux components of s [/(m^2 s)]      
+       qfls       ! radial heat conduction flux components of s [W/(m^2 s)]
+  REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: &
+       fls_tot    ! total radial flux of s (heat and particle)
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE::&
+       vebs,     &! <E.B> particle convection velocity of s [m/s]
+       qebs,     &! <E.B> heat convection velocity of s [m/s]
+       dia_gdnc, &! diagonal diffusivity [m^2/s]
+       dia_gvnc, &! diagonal convection driven by off-diagonal part [m/s]
+       cjbs_p,   &! <J_bs.B> driven by unit p'/p of s [A*T/1.d-20*m^2]
+       cjbs_t     ! <J_bs.B> driven by unit T'/T of s [A*T/1.d-20*m^2]
+  REAL(rkind),DIMENSION(:),ALLOCATABLE::&
+       eta_ncls, &!
+       jbs_ncls, &!
+       jex_ncls, &!
+       vpol_ncls,&!
+       vpar_ncls,&!
+       vprp_ncls  !
 
 CONTAINS
 
@@ -86,23 +121,9 @@ CONTAINS
     USE trcomm, ONLY : &
          rkev,nsm,nrmax,nsamax,nsabmax,ns_nsa,nsab_nsa,idnsa,idion,pa,pz, &
          RR,ra,BB,rkap,abb1rho,abb2rho,aib2rho,ttrho,ar1rho,ar2rho,epsrho,&
-         rhog,rhom,rt,rn,dpdrho,pts,pns,qp,q0,bp,jbs_nc,jex_nc,joh,    &
-         er,eta,eta_nc,vtor,vpol,vpar,vprp,                            &
+         rhog,rhom,rt,rn,rp,dpdrho,pts,pns,qp,q0,bp,joh,er,vtor,eta
 !    PADD,! additional pressure due to NBI
 !    MDLTPF,! Trapped particle fraction model
-         rp,&
-    chi_ncp,&! associated value with off-diagonal transport coefficients
-    chi_nct,&! associated value with off-diagonal transport coefficients
-    d_ncp,&! associated value with off-diagonal transport coefficients
-    d_nct,&! associated value with off-diagonal transport coefficients
-    gfls,&! gfl_s(m,s) - radial particle flux comps of s (rho/m**3/s)
-    qfls,&! qfl_s(m,s) - radial heat conduction flux comps of s (W*rho/m**3)
-    qebs,&! neoclassical heat pinch
-    vebs,&! neoclassical particle pinch
-    dia_gdnc,&! Diagonal diffusivity
-    dia_gvnc,&! Off-diagonal part driven pinch and neoclassical pinch
-    cjbs_p,&! bsjbp_s(s) - <J_bs.B> driven by unit p'/p of s (A*T*rho/m**3)
-    cjbs_t  ! bsjbt_s(s) - <J_bs.B> driven by unit T'/T of s (A*T*rho/m**3)
 
     USE trcalnc, ONLY: ftpf
 
@@ -209,8 +230,8 @@ CONTAINS
        epsrhom   = 0.5d0*(epsrho(nr)  +  epsrho(nr-1))
        qpm       = 0.5d0*(qp(nr)      +      qp(nr-1))
        bpm       = 0.5d0*(bp(nr)      +      bp(nr-1))
-       etam      = 0.5d0*(eta_nc(nr)  +  eta_nc(nr-1))
        johm      = 0.5d0*(joh(nr)     +     joh(nr-1))
+       etam      = eta_ncls(nr)
 
        p_b2      = SNGL(abb2rhom)
        p_bm2     = SNGL(aib2rhom)
@@ -306,9 +327,9 @@ CONTAINS
 
        ! *** interim substitution 
        !  (Values on half grids -> arrays on grids)
-       eta_nc(nr) = DBLE(p_etap)
-       jbs_nc(nr) = DBLE(p_bsjb)/abb1rhom
-       jex_nc(nr) = DBLE(p_exjb)/abb1rhom
+       eta_ncls(nr) = DBLE(p_etap)
+       jbs_ncls(nr) = DBLE(p_bsjb)/abb1rhom
+       jex_ncls(nr) = DBLE(p_exjb)/abb1rhom
 
        ! For now, contribution of the flux driven by the external force
        !  gfl_s(5,i)/n_i is not included.
@@ -363,48 +384,16 @@ CONTAINS
              IF(DBLE(amu_i(jm_s(i))).EQ.PA(2) &
                        .AND. jz_s(i).EQ.INT(PZ(2))) THEN
                 ! poloidal
-                vpol(nr) = DBLE(uthai*bpol)
+                vpol_ncls(nr)=DBLE(uthai*bpol)
                 ! parallel
-                vpar(nr) = DBLE(bpol/btot*vpol(nr)+btor/btot*vtor(nr))
+                vpar_ncls(nr)=DBLE(bpol/btot*vpol_ncls(nr)+btor/btot*vtor(nr))
                 ! perpendicular
-                vprp(nr) = DBLE(btor/btot*vpol(nr)-bpol/btot*vtor(nr))
+                vprp_ncls(nr)=DBLE(btor/btot*vpol_ncls(nr)-bpol/btot*vtor(nr))
              ENDIF
           ENDDO
        ENDIF
 
     ENDDO ! end of nr loop
-
-
-    ! *** extrapolate center value ***
-!    eta_nc(0) = FCTR(rhom(1),rhom(2),eta_nc(1),eta_nc(2))
-!    jbs_nc(0) = FCTR(rhom(1),rhom(2),jbs_nc(1),jbs_nc(2))
-!    jex_nc(0) = FCTR(rhom(1),rhom(2),jex_nc(1),jex_nc(2))
-    eta_nc(0) = eta_nc(1)
-    jbs_nc(0) = jbs_nc(1)
-    jex_nc(0) = jex_nc(1)
-    vpol(0) = FCTR(rhom(1),rhom(2),vpol(1),vpol(2))
-    vpar(0) = FCTR(rhom(1),rhom(2),vpar(1),vpar(2))
-    vprp(0) = FCTR(rhom(1),rhom(2),vprp(1),vprp(2))
-
-    ! *** interpolate values on grids linearly ***
-    DO nr = 1, nrmax-1
-       cm = drhog(nr+1) / (drhog(nr)+drhog(nr+1))
-       cp = drhog(nr  ) / (drhog(nr)+drhog(nr+1))
-       eta_nc(nr) = cm*eta_nc(nr) + cp*eta_nc(nr+1)
-       jbs_nc(nr) = cm*jbs_nc(nr) + cp*jbs_nc(nr+1)
-       jex_nc(nr) = cm*jex_nc(nr) + cp*jex_nc(nr+1)
-       vpol(nr)   = cm*vpol(nr)   + cp*vpol(nr+1)
-       vpar(nr)   = cm*vpar(nr)   + cp*vpar(nr+1)
-       vprp(nr)   = cm*vprp(nr)   + cp*vprp(nr+1)
-    END DO
-
-    ! *** extrapolate edge value ***
-    eta_nc(nrmax) = 2.d0*eta_nc(nrmax) - eta_nc(nrmax-1)
-    jbs_nc(nrmax) = 2.d0*jbs_nc(nrmax) - jbs_nc(nrmax-1)
-    jex_nc(nrmax) = 2.d0*jex_nc(nrmax) - jex_nc(nrmax-1)
-    vpol(nrmax)   = 2.d0*vpol(nrmax)   - vpol(nrmax-1)
-    vpar(nrmax)   = 2.d0*vpar(nrmax)   - vpar(nrmax-1)
-    vprp(nrmax)   = 2.d0*vprp(nrmax)   - vprp(nrmax-1)
 
     RETURN
   END SUBROUTINE tr_nclass
@@ -1023,5 +1012,79 @@ CONTAINS
 
       RETURN
       END SUBROUTINE NCLASS_CHECK
+
+! ************************************************************************
+
+  SUBROUTINE tr_ncls_allocate
+
+    INTEGER(ikind),SAVE:: nrmax_save=0
+    INTEGER(ikind),SAVE:: nsamax_save=0
+    INTEGER(ikind)     :: ierr
+
+    IF(nrmax /= nrmax_save .OR. nsamax /= nsamax_save)THEN
+
+       IF(nrmax_save /= 0) CALL tr_ncls_deallocate
+
+       nr_allocation: DO
+          ALLOCATE(chi_ncp(1:nsamax,1:nsamax,0:nrmax),STAT=ierr)
+            IF(ierr /= 0) EXIT
+          ALLOCATE(chi_nct(1:nsamax,1:nsamax,0:nrmax),STAT=ierr)
+            IF(ierr /= 0) EXIT
+          ALLOCATE(d_ncp(1:nsamax,1:nsamax,0:nrmax),STAT=ierr)
+            IF(ierr /= 0) EXIT
+          ALLOCATE(d_nct(1:nsamax,1:nsamax,0:nrmax),STAT=ierr)
+            IF(ierr /= 0) EXIT
+          ALLOCATE(gfls(5,1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(qfls(5,1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(fls_tot(3,1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(vebs(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(qebs(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(dia_gdnc(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(dia_gvnc(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(cjbs_p(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(cjbs_t(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
+          ALLOCATE(eta_ncls(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(jbs_ncls(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(jex_ncls(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(vpol_ncls(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(vpar_ncls(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(vprp_ncls(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+
+          nrmax_save  = nrmax
+          nsamax_save = nsamax
+          RETURN
+       END DO nr_allocation
+
+       WRITE(6,*) 'XX tr_nr_allocate: allocation error: ierr=',ierr
+       STOP
+    END IF
+
+    RETURN
+  END SUBROUTINE tr_ncls_allocate
+
+  SUBROUTINE tr_ncls_deallocate
+
+    IF(ALLOCATED(chi_ncp)) DEALLOCATE(chi_ncp)
+    IF(ALLOCATED(chi_nct)) DEALLOCATE(chi_nct)
+    IF(ALLOCATED(d_ncp)) DEALLOCATE(d_ncp)
+    IF(ALLOCATED(d_nct)) DEALLOCATE(d_nct)
+    IF(ALLOCATED(gfls)) DEALLOCATE(gfls)
+    IF(ALLOCATED(qfls)) DEALLOCATE(qfls)
+    IF(ALLOCATED(fls_tot)) DEALLOCATE(fls_tot)
+    IF(ALLOCATED(vebs)) DEALLOCATE(vebs)
+    IF(ALLOCATED(qebs)) DEALLOCATE(qebs)
+    IF(ALLOCATED(dia_gdnc)) DEALLOCATE(dia_gdnc)
+    IF(ALLOCATED(dia_gvnc)) DEALLOCATE(dia_gvnc)
+    IF(ALLOCATED(cjbs_p)) DEALLOCATE(cjbs_p)
+    IF(ALLOCATED(cjbs_t)) DEALLOCATE(cjbs_t)
+    IF(ALLOCATED(eta_ncls)) DEALLOCATE(eta_ncls)
+    IF(ALLOCATED(jbs_ncls)) DEALLOCATE(jbs_ncls)
+    IF(ALLOCATED(jex_ncls)) DEALLOCATE(jex_ncls)
+    IF(ALLOCATED(vpol_ncls)) DEALLOCATE(vpol_ncls)
+    IF(ALLOCATED(vpar_ncls)) DEALLOCATE(vpar_ncls)
+    IF(ALLOCATED(vprp_ncls)) DEALLOCATE(vprp_ncls)
+
+    RETURN
+  END SUBROUTINE tr_ncls_deallocate
 
 END MODULE trncls
