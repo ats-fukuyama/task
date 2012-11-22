@@ -1,8 +1,10 @@
 MODULE trgdgn
-
-  USE trcomm, ONLY: ikind,rkind,nrmax,nsamax,neqmax,neqrmax, &
-       neq_neqr,nsa_neq,nva_neq,rhog
-  USE trgsub,ONLY: tr_gr_time
+! -------------------------------------------------------------------------
+!  module for debugging or temporary checks of variables
+! -------------------------------------------------------------------------
+  USE trcomm, ONLY: ikind,rkind,nrmax,nsamax,neq_neqr,nsa_neq,nva_neq,rhog
+  USE trgsub,ONLY: tr_gr_time,tr_gr_vnr_alloc,tr_gr_init_vg,tr_gr_init_vm, &
+       vg1,vg2,vg3,vg4, vm1,vm2,vm3,vm4, rhomg
   USE libgrf, ONLY: grd1d
   IMPLICIT NONE
 
@@ -10,9 +12,8 @@ MODULE trgdgn
   PUBLIC tr_gr_diagnostic
 
   CHARACTER(LEN=30) :: label
-  INTEGER(ikind) :: idexp
+  INTEGER(ikind)    :: idexp
 
-  REAL(rkind),DIMENSION(:),ALLOCATABLE :: rhomg ! (1:nrmax)
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &     ! (0:nrmax,nsamax)
        nrd1g,nrd2g,nrd3g,nrd4g
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &     ! (1:nrmax,nsamax)
@@ -29,7 +30,7 @@ CONTAINS
     CHARACTER(LEN=1),INTENT(IN) :: k2
     INTEGER(ikind) :: ierr,iosts,i2
 
-    CALL tr_gr_diagnostic_alloc(ierr)
+    CALL tr_gr_vnr_alloc(ierr)
 
     ! set axis
     rhomg(1:nrmax) = rhom(1:nrmax)
@@ -57,33 +58,29 @@ CONTAINS
   SUBROUTINE tr_gr_dgn1
     USE trcomm, ONLY: nrd1,nrd2,nrd3,nrd4
 
-    CALL tr_gr_dgn_init_nrdg
-    CALL tr_gr_dgn_init_nrdmg
+    CALL tr_gr_init_vg
+    CALL tr_gr_init_vm
 
     !--- for diagnostic array
-!    nrd1mg(1:nrmax,1) = nrd1(1:nrmax)
-    nrd1mg(1:nrmax,1) = nrd1(1:nrmax)
-    nrd2mg(1:nrmax,1) = nrd2(1:nrmax)
-    nrd3mg(1:nrmax,1) = nrd3(1:nrmax)
-    nrd4mg(1:nrmax,1) = nrd4(1:nrmax)
+    vg1(0:nrmax,1) = nrd1(0:nrmax)
+    vg2(0:nrmax,1) = nrd2(0:nrmax)
+    vg3(0:nrmax,1) = nrd3(0:nrmax)
+    vg4(0:nrmax,1) = nrd4(0:nrmax)
 
-    nrd1g(0:nrmax,1) = nrd1(0:nrmax)
-    nrd1g(0:nrmax,2) = nrd2(0:nrmax)
-    nrd2g(0:nrmax,1) = nrd2(0:nrmax)
-    nrd3g(0:nrmax,1) = nrd3(0:nrmax)
-    nrd4g(0:nrmax,1) = nrd4(0:nrmax)
-
-    nrd1mg(1:nrmax,2) = nrd2(1:nrmax)
+    vm1(1:nrmax,1) = nrd1(1:nrmax)
+    vm2(1:nrmax,1) = nrd2(1:nrmax)
+    vm3(1:nrmax,1) = nrd3(1:nrmax)
+    vm4(1:nrmax,1) = nrd4(1:nrmax)
 
     CALL PAGES
     LABEL = '/diagnostic1 vs rho/'
-    CALL GRD1D(1,rhog,nrd1mg, nrmax, nrmax, 1, label, 0)
+    CALL GRD1D(1,rhog,vg1, nrmax, nrmax, 1, label, 0)
     LABEL = '/diagnostic2 vs rho/'
-    CALL GRD1D(2,rhog,nrd2mg, nrmax, nrmax, 1, label, 0)
+    CALL GRD1D(2,rhog,vg2, nrmax, nrmax, 1, label, 0)
     LABEL = '/diagnostic3 vs rho/'
-    CALL GRD1D(3,rhog,nrd3g, nrmax+1, nrmax+1, 1, label, 0)
+    CALL GRD1D(3,rhog,vg3, nrmax+1, nrmax+1, 1, label, 0)
     LABEL = '/diagnostic4 vs rho/'
-    CALL GRD1D(4,rhomg,nrd4mg, nrmax, nrmax, 1, label, 0)
+    CALL GRD1D(4,rhomg,vm4, nrmax, nrmax, 1, label, 0)
     CALL PAGEE    
 
   END SUBROUTINE tr_gr_dgn1
@@ -100,12 +97,6 @@ CONTAINS
     IMPLICIT NONE
     REAL(rkind) :: deriv3
     INTEGER(ikind) :: nr
-
-    CALL tr_gr_dgn_init_nrdg
-
-    DO nr = 0, nrmax
-       nrd1g(nr,1) = deriv3(nr,rhog,psiprho,nrmax,0)
-    END DO
 
     CALL PAGES
     label ='/ar1rho vs rho/'
@@ -131,77 +122,5 @@ CONTAINS
 
     RETURN
   END SUBROUTINE tr_gr_dgn2
-
-! *************************************************************************
-! *************************************************************************
-! *************************************************************************
-  SUBROUTINE tr_gr_diagnostic_alloc(ierr)
-
-    INTEGER(ikind),INTENT(OUT) :: ierr
-    INTEGER(ikind),SAVE :: nrmax_save,nsamax_save
-
-    ierr = 0
-    IF(nrmax /= nrmax_save .OR. nsamax /= nsamax_save)THEN
-
-       IF(nrmax_save /= 0) CALL tr_gr_diagnostic_dealloc
-
-       DO
-          ALLOCATE(rhomg(1:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
-
-          ALLOCATE(nrd1g(0:nrmax,nsamax),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(nrd2g(0:nrmax,nsamax),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(nrd3g(0:nrmax,nsamax),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(nrd4g(0:nrmax,nsamax),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(nrd1mg(1:nrmax,nsamax),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(nrd2mg(1:nrmax,nsamax),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(nrd3mg(1:nrmax,nsamax),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(nrd4mg(1:nrmax,nsamax),STAT=ierr); IF(ierr /=0) EXIT
-
-          nrmax_save  = nrmax
-          nsamax_save = nsamax
-          RETURN
-       END DO
-       WRITE(6,*) ' XX tr_gr_diagnostic_alloc: allocation error: ierr=',ierr
-
-    END IF
-    RETURN
-  END SUBROUTINE tr_gr_diagnostic_alloc
-
-  SUBROUTINE tr_gr_diagnostic_dealloc
-
-    IF(ALLOCATED(rhomg)) DEALLOCATE(rhomg)
-    IF(ALLOCATED(nrd1g)) DEALLOCATE(nrd1g)
-    IF(ALLOCATED(nrd2g)) DEALLOCATE(nrd2g)
-    IF(ALLOCATED(nrd3g)) DEALLOCATE(nrd3g)
-    IF(ALLOCATED(nrd4g)) DEALLOCATE(nrd4g)
-    IF(ALLOCATED(nrd1mg)) DEALLOCATE(nrd1mg)
-    IF(ALLOCATED(nrd2mg)) DEALLOCATE(nrd2mg)
-    IF(ALLOCATED(nrd3mg)) DEALLOCATE(nrd3mg)
-    IF(ALLOCATED(nrd4mg)) DEALLOCATE(nrd4mg)
-
-    RETURN
-  END SUBROUTINE tr_gr_diagnostic_dealloc
-
-! ************************************************************************
-
-  SUBROUTINE tr_gr_dgn_init_nrdg
-
-    nrd1g(0:nrmax,1:nsamax) = 0.d0
-    nrd2g(0:nrmax,1:nsamax) = 0.d0
-    nrd3g(0:nrmax,1:nsamax) = 0.d0
-    nrd4g(0:nrmax,1:nsamax) = 0.d0
-
-    RETURN
-  END SUBROUTINE tr_gr_dgn_init_nrdg
-
-  SUBROUTINE tr_gr_dgn_init_nrdmg
-
-    nrd1mg(1:nrmax,1:nsamax) = 0.d0
-    nrd2mg(1:nrmax,1:nsamax) = 0.d0
-    nrd3mg(1:nrmax,1:nsamax) = 0.d0
-    nrd4mg(1:nrmax,1:nsamax) = 0.d0
-
-    RETURN
-  END SUBROUTINE tr_gr_dgn_init_nrdmg
 
 END MODULE trgdgn

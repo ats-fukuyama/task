@@ -27,6 +27,8 @@ CONTAINS
     htr(1:neqmax,0:nrmax)=0.D0 ! external driven current
 
 
+    CALL tr_calc_variables
+
     ! *** ctr ***
     CALL tr_calc2_energy_ex
     ! call tr_calc2_charge_ex
@@ -37,16 +39,18 @@ CONTAINS
     ! *** htr ***
     CALL tr_calc2_excurrent ! calculate external driven current term
 
-    joh(0:nrmax) = jtot(0:nrmax) - jbs_nc(0:nrmax)   &
-              -( jcd_nb(0:nrmax) + jcd_ec(0:nrmax)   &
-               + jcd_ic(0:nrmax) + jcd_lh(0:nrmax))
-
-    CALL tr_calc_variables
-
     ! *** dtr, vtr ***
     CALL tr_coefnc         ! calculate neoclassical transport coefficients
     CALL tr_coeftb         ! calculate turbulent transport coefficients
     CALL tr_coefmg
+
+    joh(0:nrmax) = jtot(0:nrmax) - jbs_nc(0:nrmax)   &
+              -( jcd_nb(0:nrmax) + jcd_ec(0:nrmax)   &
+               + jcd_ic(0:nrmax) + jcd_lh(0:nrmax))
+
+    htr(1,0:nrmax) = jbs_nc(0:nrmax)                   &
+                   + jcd_nb(0:nrmax) + jcd_ec(0:nrmax) &
+                   + jcd_ic(0:nrmax) + jcd_lh(0:nrmax)
     
     DO nr=1,nrmax
        DO neq=2,neqmax

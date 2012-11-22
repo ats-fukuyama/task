@@ -46,7 +46,7 @@ CONTAINS
          pin_t,poh_t,pnb_t,pec_t,pic_t,plh_t,pibw_t,prl_t,pnf_t,         &
          rns_va,rts_va,ws_t,wp_t,wp_th,taue1,taue2,taue3,                &
          taue89,taue98,h89,h98y2,                                        &
-         mdluf,mdleqn,mdlequ,mdleqt,mdleqm,mdlsrc,mdlgmt,mdlglb
+         mdluf,mdlsrc,mdlgmt,mdlglb
 
     IMPLICIT NONE
     REAL(rkind) :: FCTR
@@ -462,7 +462,7 @@ CONTAINS
     ELSE
        CALL Pereverzev_check(add_prv)
        DO nsa=1,nsamax
-          DO nr=0,nrmax
+          DO nr=1,nrmax
              gvrts(nr,ngt,nsa,5) = add_prv(1+3*nsa-2,nr)
              gvrts(nr,ngt,nsa,6) = add_prv(1+3*nsa-1,nr)
              gvrts(nr,ngt,nsa,7) = add_prv(1+3*nsa  ,nr)

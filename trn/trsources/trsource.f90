@@ -184,8 +184,8 @@ CONTAINS
     ENDDO
     pnb0 = pnb_tot*1.d6 / sum_nb
     DO nr = 0, nrmax
-       pnb(1,nr) = pnb0*DEXP(-((ra*rhog(nr)-pnb_r0)/pnb_rw)**2)
-!       pnb(2,nr) = 0.5d0*pnb0*DEXP(-((ra*rhog(nr)-pnb_r0)/pnb_rw)**2)
+       pnb(1,nr) = 0.5d0*pnb0*DEXP(-((ra*rhog(nr)-pnb_r0)/pnb_rw)**2)
+       pnb(2,nr) = 0.5d0*pnb0*DEXP(-((ra*rhog(nr)-pnb_r0)/pnb_rw)**2)
     ENDDO
 
 !    nrd1(0:nrmax) = eta(0:nrmax)

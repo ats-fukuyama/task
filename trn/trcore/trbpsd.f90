@@ -186,8 +186,9 @@ CONTAINS
 !         RIPE = RIP
 !      ENDIF
 
+      modelg = mdlgmt
       ! TASK/EQ or EQDSK output geometry, call TOPICS/EQU or TASK/EQ
-      IF(modelg.eq.3.or.modelg.eq.5.or.modelg.eq.8.or.modelg.eq.9) THEN
+      IF(modelg.eq.9) THEN
 
          CALL bpsd_get_data(equ1D,ierr)
          CALL bpsd_get_data(metric1D,ierr)

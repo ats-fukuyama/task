@@ -137,8 +137,12 @@ CONTAINS
        nclass_save = 1
     END SELECT
 
-    ! resistivity
-    eta(0:nrmax) = eta_nc(0:nrmax)
+
+    ! substitution
+    IF(mdltr_nc /= 0)THEN
+       ! resistivity
+       eta(0:nrmax) = eta_nc(0:nrmax)
+    END IF
 
     RETURN
   END SUBROUTINE tr_coefnc

@@ -89,10 +89,6 @@ MODULE trcomm
        nteqit     ! step interval of EQ calculation
 
   INTEGER(ikind) :: &
-       mdleqn,   &!
-       mdlequ,   &!
-       mdleqt,   &!
-       mdleqm,   &!
        mdlglb,   &!
        mdlgmt,   &!
        mdlsrc,   &!
@@ -178,7 +174,7 @@ MODULE trcomm
        vtr_tb,   &! turbulent convection velocity [m/s]
        dtr_nc,   &! neoclassical diffusion coefficient [m^2/s]
        vtr_nc,   &! neoclassical convection velocity [m/s]
-       ctr_ex     ! charge exchange frequency [1/s]
+       ctr_ex     ! charge (energy) exchange frequency [1/s]
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
                   ! variables for Pereverzev method
        dtr_prv,  &! additional diffusion coefficient [m^2/s]

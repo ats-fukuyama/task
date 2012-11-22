@@ -3,8 +3,12 @@ MODULE trgexp
 !       graphic output for experimental data
 ! *************************************************************************
   USE trcomm,ONLY: ikind,rkind,ntum,nrum,nsum,nrmax,rhog,tmu, &
-                    mdluf,ntxmax,tlmax
-  USE trgsub,ONLY: tr_gr_time
+                   mdluf,ntxmax,tlmax
+  USE trgsub,ONLY: tr_gr_time,tr_gr_exp_alloc,tr_gr_expt_alloc,         &
+       tr_gr_init_vgu, tr_gr_init_vmu,tr_gr_init_gtu,tr_gr_init_gtiu,   &
+       vgu1,vgu2,vgu3,vgu4,  vmu1,vmu2,vmu3,vmu4,  gtu1,gtu2,gtu3,gtu4, &
+       gtiu1,gtiu2,gtiu3,gtiu4, gtu
+
   USE libgrf,ONLY: grd1d
 
   IMPLICIT NONE
@@ -14,22 +18,6 @@ MODULE trgexp
   INTEGER(ikind) :: nr, idexp
   INTEGER(ikind) :: ntsl ! time slice point node number for experimental data
   INTEGER(ikind) :: ntxsnap
-
-  REAL(rkind),DIMENSION(:),ALLOCATABLE :: rhomg !(1:nrmax)
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(0:nrmax,1:nsum)
-       vgu1,vgu2,vgu3,vgu4
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(1:nrmax,1:nsum)
-       vmu1,vmu2,vmu3,vmu4
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(0:nrmax,5)
-       vgxu1,vgxu2,vgxu3,vgxu4
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(1:nrmax,5)
-       vmxu1,vmxu2,vmxu3,vmxu4
-
-  REAL(rkind),DIMENSION(:),ALLOCATABLE   :: gtu !(1:ntxmax)
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(1:ntxmax,1:nsum)
-       gtu1,gtu2,gtu3,gtu4
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(1:ntxmax,7)
-       gtiu1,gtiu2,gtiu3,gtiu4
 
 CONTAINS
 
@@ -42,15 +30,14 @@ CONTAINS
     CHARACTER(LEN=1),INTENT(IN) :: k2,k3
     INTEGER(ikind) :: i2,i3,ierr,iosts
 
-    CALL tr_gr_exp_nralloc(ierr)
+    CALL tr_gr_exp_alloc(ierr)
     IF(ierr /= 0) RETURN
 
-    CALL tr_gr_exp_ntalloc(ierr)
+    CALL tr_gr_expt_alloc(ierr)
     IF(ierr /= 0) RETURN
 
     ! set axis
-    rhomg(1:nrmax) = rhom(1:nrmax)
-    gtu(1:ntxmax)  = tmu(1:ntxmax)
+    gtu(1:ntxmax)   = tmu(1:ntxmax)
 
     SELECT CASE(mdluf)
     CASE(1)
@@ -125,7 +112,7 @@ CONTAINS
     USE trcomm, ONLY:rnu,rtu,rpu,qpu
     INTEGER(ikind) :: nsu
 
-    CALL tr_gr_exp_init_vgu
+    CALL tr_gr_init_vgu
 
     DO nsu = 1, nsum
        vgu1(0:nrmax,nsu) = rnu(nsu,ntxsnap,1:nrmax+1)
@@ -165,7 +152,7 @@ CONTAINS
     ! heating density (1)
     USE trcomm, ONLY: qnbu,qecu,qicu,qlhu,qohmu,qradu,qfusu
 
-    CALL tr_gr_exp_init_vgu
+    CALL tr_gr_init_vgu
 
     ! for electron
     vgu1(0:nrmax,1) = qnbu(1,ntxsnap,1:nrmax+1) *1.d-6
@@ -206,7 +193,7 @@ CONTAINS
     USE trcomm, ONLY: jtotu,jbsu,jnbu,jecu,jicu,jlhu,snbu,swallu
     REAL(rkind),DIMENSION(1:ntxmax,1:nrmax+1) :: johu
 
-    CALL tr_gr_exp_init_vgu
+    CALL tr_gr_init_vgu
 
     DO nr = 1, nrmax+1
        johu(1:ntxmax,nr) =  jtotu(1:ntxmax,nr) &
@@ -256,7 +243,7 @@ CONTAINS
 
     INTEGER(ikind) :: nsu
     
-    CALL tr_gr_exp_init_vgu
+    CALL tr_gr_init_vgu
     
     ! original electron density profile
     vgu1(0:nrmax,1) = rnu(1,ntxsnap,1:nrmax+1)
@@ -301,7 +288,7 @@ CONTAINS
     USE trcomm, ONLY: rnu,rtu,rpu,qpu
     INTEGER(ikind) :: nsu
 
-    CALL tr_gr_exp_init_gtu
+    CALL tr_gr_init_gtu
 
     DO nsu = 1, nsum
        gtu1(1:ntxmax,nsu) = rnu(nsu,1:ntxmax,1)
@@ -331,7 +318,7 @@ CONTAINS
   SUBROUTINE tr_gr_exp22
     USE trcomm,ONLY: ripu,wtotu,wthu
 
-    CALL tr_gr_exp_init_gtiu
+    CALL tr_gr_init_gtiu
 
     gtiu1(1:ntxmax,1) = - ripu(1:ntxmax) * 1.d-6
     gtiu2(1:ntxmax,1) = wtotu(1:ntxmax) * 1.d-6
@@ -354,7 +341,7 @@ CONTAINS
     ! source and sink power
     USE trcomm, ONLY: pnbu,pecu,pibwu,picu,plhu,pohmu,pradu
 
-    CALL tr_gr_exp_init_gtiu
+    CALL tr_gr_init_gtiu
 
     gtiu1(1:ntxmax,1) = pnbu(1:ntxmax)  * 1.d-6
 
@@ -381,162 +368,5 @@ CONTAINS
 
     RETURN
   END SUBROUTINE tr_gr_exp23
-
-! ************************************************************************
-! ************************************************************************
-! ************************************************************************
-
-  SUBROUTINE tr_gr_exp_nralloc(ierr)
-
-    INTEGER(ikind),INTENT(OUT) :: ierr
-    INTEGER(ikind),SAVE :: nrmax_save=0
-
-    IF(nrmax /= nrmax_save)THEN
-       
-       IF(nrmax_save /= 0 ) CALL tr_gr_exp_nrdealloc
-
-       DO
-          ALLOCATE(rhomg(1:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
-
-          ALLOCATE(vgu1(0:nrmax,1:nsum),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(vgu2(0:nrmax,1:nsum),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(vgu3(0:nrmax,1:nsum),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(vgu4(0:nrmax,1:nsum),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(vmu1(0:nrmax,1:nsum),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(vmu2(0:nrmax,1:nsum),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(vmu3(0:nrmax,1:nsum),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(vmu4(0:nrmax,1:nsum),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(vgxu1(0:nrmax,5),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(vgxu2(0:nrmax,5),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(vgxu3(0:nrmax,5),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(vgxu4(0:nrmax,5),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(vmxu1(0:nrmax,5),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(vmxu2(0:nrmax,5),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(vmxu3(0:nrmax,5),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(vmxu4(0:nrmax,5),STAT=ierr); IF(ierr /= 0) EXIT
-
-          nrmax_save = nrmax
-          RETURN
-       END DO
-       WRITE(6,*) ' XX tr_gr_exp_nralloc: allocation error: ierr= ', ierr
-
-    END IF
-    RETURN
-  END SUBROUTINE tr_gr_exp_nralloc
-
-
-  SUBROUTINE tr_gr_exp_ntalloc(ierr)
-
-    INTEGER(ikind),INTENT(OUT) :: ierr
-    INTEGER(ikind),SAVE :: ntalloc_save = 0
-
-    IF(ntalloc_save == 0)THEN
-       DO
-          ALLOCATE(gtu(1:ntxmax),STAT=ierr); IF(ierr /= 0) EXIT
-          
-          ALLOCATE(gtu1(1:ntxmax,1:nsum),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gtu2(1:ntxmax,1:nsum),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gtu3(1:ntxmax,1:nsum),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gtu4(1:ntxmax,1:nsum),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gtiu1(1:ntxmax,7),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gtiu2(1:ntxmax,7),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gtiu3(1:ntxmax,7),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gtiu4(1:ntxmax,7),STAT=ierr); IF(ierr /= 0) EXIT
-          
-          ntalloc_save = 1
-          RETURN
-       END DO
-       WRITE(6,*) ' XX tr_gr_exp_ntalloc: allocation error: ierr= ', ierr
-    END IF
-
-    RETURN
-  END SUBROUTINE tr_gr_exp_ntalloc
-
-
-  SUBROUTINE tr_gr_exp_nrdealloc
-
-    IF(ALLOCATED(rhomg)) DEALLOCATE(rhomg)
-    IF(ALLOCATED(vgu1)) DEALLOCATE(vgu1)
-    IF(ALLOCATED(vgu2)) DEALLOCATE(vgu2)
-    IF(ALLOCATED(vgu3)) DEALLOCATE(vgu3)
-    IF(ALLOCATED(vgu4)) DEALLOCATE(vgu4)
-    IF(ALLOCATED(vmu1)) DEALLOCATE(vmu1)
-    IF(ALLOCATED(vmu2)) DEALLOCATE(vmu2)
-    IF(ALLOCATED(vmu3)) DEALLOCATE(vmu3)
-    IF(ALLOCATED(vmu4)) DEALLOCATE(vmu4)
-    IF(ALLOCATED(vgxu1)) DEALLOCATE(vgxu1)
-    IF(ALLOCATED(vgxu2)) DEALLOCATE(vgxu2)
-    IF(ALLOCATED(vgxu3)) DEALLOCATE(vgxu3)
-    IF(ALLOCATED(vgxu4)) DEALLOCATE(vgxu4)
-    IF(ALLOCATED(vmxu1)) DEALLOCATE(vmxu1)
-    IF(ALLOCATED(vmxu2)) DEALLOCATE(vmxu2)
-    IF(ALLOCATED(vmxu3)) DEALLOCATE(vmxu3)
-    IF(ALLOCATED(vmxu4)) DEALLOCATE(vmxu4)
-
-    RETURN
-  END SUBROUTINE tr_gr_exp_nrdealloc
-
-! ***********************************************************************
-
-  SUBROUTINE tr_gr_exp_init_vgu
-
-    vgu1(0:nrmax,1:nsum) = 0.d0
-    vgu2(0:nrmax,1:nsum) = 0.d0
-    vgu3(0:nrmax,1:nsum) = 0.d0
-    vgu4(0:nrmax,1:nsum) = 0.d0
-
-    RETURN
-  END SUBROUTINE tr_gr_exp_init_vgu
-
-  SUBROUTINE tr_gr_exp_init_vmu
-
-    vmu1(0:nrmax,1:nsum) = 0.d0
-    vmu2(0:nrmax,1:nsum) = 0.d0
-    vmu3(0:nrmax,1:nsum) = 0.d0
-    vmu4(0:nrmax,1:nsum) = 0.d0
-
-    RETURN
-  END SUBROUTINE tr_gr_exp_init_vmu
-
-  SUBROUTINE tr_gr_exp_init_vgxu
-
-    vgxu1(0:nrmax,1:nsum) = 0.d0
-    vgxu2(0:nrmax,1:nsum) = 0.d0
-    vgxu3(0:nrmax,1:nsum) = 0.d0
-    vgxu4(0:nrmax,1:nsum) = 0.d0
-
-    RETURN
-  END SUBROUTINE tr_gr_exp_init_vgxu
-
-  SUBROUTINE tr_gr_exp_init_vmxu
-
-    vmxu1(0:nrmax,1:nsum) = 0.d0
-    vmxu2(0:nrmax,1:nsum) = 0.d0
-    vmxu3(0:nrmax,1:nsum) = 0.d0
-    vmxu4(0:nrmax,1:nsum) = 0.d0
-
-    RETURN
-  END SUBROUTINE tr_gr_exp_init_vmxu
-
-  SUBROUTINE tr_gr_exp_init_gtu
-
-    gtu1(1:ntxmax,1:nsum) = 0.d0
-    gtu2(1:ntxmax,1:nsum) = 0.d0
-    gtu3(1:ntxmax,1:nsum) = 0.d0
-    gtu4(1:ntxmax,1:nsum) = 0.d0
-
-    RETURN
-  END SUBROUTINE tr_gr_exp_init_gtu
-
-  SUBROUTINE tr_gr_exp_init_gtiu
-
-    gtiu1(1:ntxmax,1:7) = 0.d0
-    gtiu2(1:ntxmax,1:7) = 0.d0
-    gtiu3(1:ntxmax,1:7) = 0.d0
-    gtiu4(1:ntxmax,1:7) = 0.d0
-
-    RETURN
-  END SUBROUTINE tr_gr_exp_init_gtiu
-
 
 END MODULE trgexp

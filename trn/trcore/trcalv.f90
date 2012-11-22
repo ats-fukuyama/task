@@ -318,7 +318,7 @@ CONTAINS
 !    
 !    Z_eff = (n_h + Z_imp^2 n_imp + Z_fi^2 n_fi) / n_e
 !---------------------------------------------------------------------------
-    USE trcomm, ONLY: idnsa,ns_nsa,nrmax,pz,rn,mdluf,mdleqn,z_eff
+    USE trcomm, ONLY: idnsa,ns_nsa,nrmax,pz,rn,z_eff,mdluf
     IMPLICIT NONE
     INTEGER(ikind) :: nr,nsa,ns
 
@@ -349,14 +349,12 @@ CONTAINS
     REAL(rkind) :: taue
     
       DO nr = 0, nrmax
-!         write(6,*) nr
 !        ****** CLASSICAL RESISTIVITY (Spitzer) from JAERI Report ******
          ! electron collision time with ions
          taue = FTAUE(rn(1,nr),rn(2,nr),rt(1,nr),z_eff(nr))
 
          eta(nr) = ame/(rn(1,nr)*1.d20*aee**2*taue) &
                       *(0.29d0+0.46d0/(1.08d0+z_eff(nr)))
-
 !         eta(nr) = 1.d-7
       END DO
 

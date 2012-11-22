@@ -11,8 +11,8 @@ CONTAINS
   SUBROUTINE tr_exec
 
     USE trcomm,ONLY: &
-         neqmax,neqrmax,nvmax,nvrmax,nrmax,                       &
-         neqr_neq,nva_neq,nsa_neq,id_neq,id_neqnr,mdltr_prv,      &
+         neqmax,neqrmax,nvmax,nvrmax,nrmax,               &
+         neqr_neq,nva_neq,id_neq,id_neqnr,mdltr_prv,      &
          dt,rhog,dtr,vtr,ctr,str,htr,dtr_prv,             &
          elmtx,elmtx_ofd,limtx,rsimtx,rjimtx,             &
          r1imtx,r2imtx,r3imtx,r1imtx_ofd,rimtx,lhmtx,rhv, &
@@ -22,7 +22,7 @@ CONTAINS
          dh0,dh1,dh2,dh3,dvdrp,dvdrm,  &
          gm1p,gm1m,gm2p,gm2m,cjexm,cjexp,coef1,coef2
     REAL(rkind) :: dtr_ofd,dtr_d,dtr_chi
-    INTEGER(ikind) :: nr,nsa,neq,neq1,neqr,neqr1,nvrm,nvrp,ierr,nvm,nvp
+    INTEGER(ikind) :: nr,neq,neq1,neqr,neqr1,nvrm,nvrp,ierr,nvm,nvp
 
 
     lhmtx(1:4*neqrmax-1,1:nvrmax) = 0.d0
@@ -341,6 +341,7 @@ CONTAINS
        gm2p  = dvrho(nr-1)*ar2rho(nr-1) + dvrho(nr  )*ar2rho(nr  )
        gm2m  = dvrho(nr-1)*ar2rho(nr-1) + dvrho(nr  )*ar2rho(nr  )
        coef1 = 1.5d0 ! the coef. of time derivative term
+!       coef1 = 1.d0
        coef2 = 2.5d0 ! the coef. of contribution from particle diffusion
 !       coef2 = 1.5d0 ! the coef. of contribution from particle diffusion
        cjexp = 0.d0

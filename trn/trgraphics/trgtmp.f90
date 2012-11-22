@@ -2,9 +2,10 @@ MODULE trgtmp
 ! **************************************************************************
 !           Temporal evolution outputs
 ! **************************************************************************
-
   USE trcomm,ONLY: ikind,rkind,nsamax,neqmax,neqrmax,neq_neqr,nsa_neq,ngt
-  USE trgsub,ONLY: tr_gr_time
+  USE trgsub,ONLY: tr_gr_time, tr_gr_vnr_alloc, tr_gr_vnrt_alloc,  &
+       tr_gr_vnt_alloc, tr_gr_init_gt, tr_gr_init_gti,             &
+       gt, gt1,gt2,gt3,gt4,  gti1,gti2,gti3,gti4
   USE libgrf,ONLY: grd1d
   IMPLICIT NONE
 
@@ -14,12 +15,6 @@ MODULE trgtmp
   CHARACTER(LEN=30) :: label
 
   INTEGER(ikind) :: nr,nsa,neq,neqr,idexp
-
-  REAL(rkind),DIMENSION(:),ALLOCATABLE   :: gt !(0:ngt)
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &  !(0:ngt,nsamax)
-       gt1,gt2,gt3,gt4
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &  !(0:ngt,10)
-       gti1,gti2,gti3,gti4
 
 CONTAINS
 
@@ -32,7 +27,8 @@ CONTAINS
     CHARACTER(LEN=1),INTENT(IN) :: k2
     INTEGER(ikind) :: i2,ierr,iosts
 
-    CALL tr_gr_temp_alloc(ierr)
+    CALL tr_gr_vnt_alloc(ierr)
+    IF(ierr /= 0) RETURN
 
     ! set axis
     gt(0:ngt) = gvt(0:ngt,0)
@@ -64,7 +60,7 @@ CONTAINS
   ! ----- time evolution of (n, u, T, q)-----
     USE trcomm,ONLY: gvt,gvts
 
-    CALL tr_gr_tmp_init_gt
+    CALL tr_gr_init_gt
 
     DO nsa=1,nsamax
        gt1(0:ngt,nsa)=gvts(0:ngt,nsa,1)
@@ -98,7 +94,7 @@ CONTAINS
     ! ----- time evolution of (I, W, taue) -----
     USE trcomm, ONLY: gvt
 
-    CALL tr_gr_tmp_init_gti
+    CALL tr_gr_init_gti
 
     gti1(0:ngt,1) = gvt(0:ngt,3) ! rip
 !    gti1(0:ngt,2) = gvt(0:ngt,4)
@@ -135,7 +131,7 @@ CONTAINS
   SUBROUTINE tr_gr_temp3
     USE trcomm, ONLY: gvt
 
-    CALL tr_gr_tmp_init_gti
+    CALL tr_gr_init_gti
 
     gti1(0:ngt,1) = gvt(0:ngt,18) ! pin_t
     gti1(0:ngt,2) = gvt(0:ngt,19) ! poh_t
@@ -159,76 +155,5 @@ CONTAINS
     CALL PAGEE
 
   END SUBROUTINE tr_gr_temp3
-
-! *************************************************************************
-! *************************************************************************
-! *************************************************************************
-
-  SUBROUTINE tr_gr_temp_alloc(ierr)
-
-    INTEGER(ikind),SAVE :: ngt_save, nsamax_save
-    INTEGER(ikind),INTENT(OUT) :: ierr
-
-    ierr = 0
-    IF(ngt /= ngt_save .OR. nsamax /= nsamax_save)THEN
-
-       IF(ngt_save /= 0) CALL tr_gr_temp_dealloc
-
-       DO
-          ALLOCATE(gt(0:ngt),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gt1(0:ngt,nsamax),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gt2(0:ngt,nsamax),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gt3(0:ngt,nsamax),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gt4(0:ngt,nsamax),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gti1(0:ngt,10),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gti2(0:ngt,10),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gti3(0:ngt,10),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gti4(0:ngt,10),STAT=ierr); IF(ierr /= 0) EXIT
-
-          ngt_save    = ngt
-          nsamax_save = nsamax
-          RETURN
-       END DO
-       WRITE(6,*) ' XX tr_gr_temp_alloc: allocation error: ierr=',ierr
-
-    END IF
-    RETURN
-  END SUBROUTINE tr_gr_temp_alloc
-
-  SUBROUTINE tr_gr_temp_dealloc
-
-    IF(ALLOCATED(gt)) DEALLOCATE(gt)
-    IF(ALLOCATED(gt1)) DEALLOCATE(gt1)
-    IF(ALLOCATED(gt2)) DEALLOCATE(gt2)
-    IF(ALLOCATED(gt3)) DEALLOCATE(gt3)
-    IF(ALLOCATED(gt4)) DEALLOCATE(gt4)
-    IF(ALLOCATED(gti1)) DEALLOCATE(gti1)
-    IF(ALLOCATED(gti2)) DEALLOCATE(gti2)
-    IF(ALLOCATED(gti3)) DEALLOCATE(gti3)
-    IF(ALLOCATED(gti4)) DEALLOCATE(gti4)
-
-  END SUBROUTINE tr_gr_temp_dealloc
-
-! ************************************************************************
-
-  SUBROUTINE tr_gr_tmp_init_gt
-
-    gt1(0:ngt,1:nsamax) = 0.d0
-    gt2(0:ngt,1:nsamax) = 0.d0
-    gt3(0:ngt,1:nsamax) = 0.d0
-    gt4(0:ngt,1:nsamax) = 0.d0
-
-    RETURN
-  END SUBROUTINE tr_gr_tmp_init_gt
-
-  SUBROUTINE tr_gr_tmp_init_gti
-
-    gti1(0:ngt,1:10) = 0.d0
-    gti2(0:ngt,1:10) = 0.d0
-    gti3(0:ngt,1:10) = 0.d0
-    gti4(0:ngt,1:10) = 0.d0
-
-    RETURN
-  END SUBROUTINE tr_gr_tmp_init_gti
 
 END MODULE trgtmp

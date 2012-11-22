@@ -346,7 +346,7 @@ CONTAINS
 ! -------------------------------------------------------------------------
     USE trcomm, ONLY: rkev,rkap,nrmax,nsmax,nsamax,ns_nsa,t, &
          rg,rm,rhog,rhom,rjcb,ra,rr,rn,ru,rt,rp,rp_tot,           &
-         mdluf,mdleqn,mdlequ,mdleqt,mdleqm,mdlgmt,mdlglb,mdlsrc,time_slc
+         mdluf,mdlgmt,mdlglb,mdlsrc,time_slc
     USE trufile, ONLY: tr_ufile
     USE trufin, ONLY: tr_uf_init,tr_ufin_global,tr_ufin_density, &
                       tr_ufin_rotation,tr_ufin_temperature
@@ -488,6 +488,30 @@ CONTAINS
     END DO
 
     SELECT CASE(MDLGMT)
+    CASE(0) ! for testing
+       DO nr = 0, nrmax
+          ar1rho(nr)  = 1.d0
+          ar2rho(nr)  = 1.d0
+          dvrho(nr)   = 1.d0
+
+          abrho(nr)   = 1.d0
+          rmjrho(nr)  = 1.d0
+          rmnrho(nr)  = SQRT(rkap)*ra*rhog(nr) ! [m]
+          rkprho(nr)  = rkap
+!
+          pvolrho(nr) = 1.d0
+          psurrho(nr) = 1.d0
+!
+          epsrho(nr)  = rmnrho(nr)/rmjrho(nr)
+
+          abb1rho(nr) = BB
+          abb2rho(nr) = BB**2
+          aib2rho(nr) = 1/BB**2
+          ttrho(nr)   = BB * rr
+          arrho(nr)   = 1.d0/rr**2                    ! const
+          abvrho(nr)  = dvrho(nr)**2 * abrho(nr)
+       END DO
+       
     CASE(2) ! Toroidal geometry
 
     CASE(3) ! TASK/EQ,EQDSK output geometry

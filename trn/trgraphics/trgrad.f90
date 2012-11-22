@@ -2,34 +2,22 @@ MODULE trgrad
 ! **************************************************************************
 !          Snap shot and histroy of radial profile
 ! **************************************************************************
-
-  USE trcomm, ONLY:ikind,rkind,nrmax,nsamax,neqmax,neqrmax, &
+  USE trcomm, ONLY:ikind,rkind,nrmax,nsamax,neqmax,neqrmax,        &
        nsabmax,nsafmax,neq_neqr,nsa_neq,nva_neq,nsab_nsaf,rhog
-  USE trgsub, ONLY: tr_gr_time
+  USE trgsub, ONLY: tr_gr_time, tr_gr_vnr_alloc,tr_gr_vnrt_alloc,    &
+       tr_gr_init_vg, tr_gr_init_vm, tr_gr_init_vgx, tr_gr_init_vmx, &
+       tr_gr_init_gg,tr_gr_init_gm,                                  &
+       vg1,vg2,vg3,vg4, vm1,vm2,vm3,vm4, vgx1,vgx2,vgx3,vgx4,        &
+       vmx1,vmx2,vmx3,vmx4, gg1,gg2,gg3,gg4, gm1,gm2,gm3,gm4,        &
+       nggmax,rhomg
   USE libgrf,ONLY: grd1d
   IMPLICIT NONE
 
   PRIVATE
   PUBLIC tr_gr_radial
 
-  INTEGER(ikind),PARAMETER :: nggmax=10
-
   CHARACTER(LEN=30) :: label
   INTEGER(ikind)    :: nr,nsa,nsaf,neq,neqr,ngg,ngg_interval, idexp
-
-  REAL(rkind),DIMENSION(:),ALLOCATABLE :: rhomg !(1:nrmax)
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(0:nrmax,neqrmax)
-       vg1,vg2,vg3,vg4
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(1:nrmax,neqrmax)
-       vm1,vm2,vm3,vm4
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(0:nrmax,5)
-       vgx1,vgx2,vgx3,vgx4
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(1:nrmax,5)
-       vmx1,vmx2,vmx3,vmx4
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(0:nrmax,0:nggmax)
-       gg1,gg2,gg3,gg4
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(1:nrmax,0:nggmax)
-       gm1,gm2,gm3,gm4
   
 CONTAINS
 
@@ -42,7 +30,9 @@ CONTAINS
     INTEGER(ikind) :: i2,i3,ierr,iosts
 
     ierr = 0
-    CALL tr_gr_rad_alloc(ierr)
+    CALL tr_gr_vnr_alloc(ierr)
+    IF(ierr /= 0) RETURN
+    CALL tr_gr_vnrt_alloc(ierr)
     IF(ierr /= 0) RETURN
 
     ! set axis
@@ -95,7 +85,7 @@ CONTAINS
   ! ----- current radial profile of (n, u, T, q)-----
     USE trcomm, ONLY: rn,ru,rt,rp,dpdrho,qp
 
-    CALL tr_gr_rad_init_vg
+    CALL tr_gr_init_vg
 
     DO neq = 1, neqmax
        nsa = nsa_neq(neq)
@@ -137,8 +127,8 @@ CONTAINS
     REAL(rkind),DIMENSION(3,1:nrmax) :: dtrg_s1,dtrg_s2
     INTEGER(ikind) :: neq,nsa,nva,nk
 
-    CALL tr_gr_rad_init_vm
-    CALL tr_gr_rad_init_vmx
+    CALL tr_gr_init_vm
+    CALL tr_gr_init_vmx
 
     DO neq = 1, neqmax
        nsa = nsa_neq(neq)
@@ -211,8 +201,8 @@ CONTAINS
     REAL(rkind),DIMENSION(3,1:nrmax) :: dtrg_s1,dtrg_s2
     INTEGER(ikind) :: neq,nsa,nva,nk
 
-    CALL tr_gr_rad_init_vm
-    CALL tr_gr_rad_init_vmx
+    CALL tr_gr_init_vm
+    CALL tr_gr_init_vmx
 
     DO neq = 1, neqmax
        nsa = nsa_neq(neq)
@@ -282,10 +272,10 @@ CONTAINS
     USE trcomm, ONLY: vtr,vtr_nc,vtr_tb,vtr_prv,mdltr_prv,eta
 
     REAL(rkind),DIMENSION(1:nsamax,1:nrmax) :: vtrnc_d,vtrnc_chi
-    INTEGER(ikind) :: neq,nsa,nva
+    INTEGER(ikind) :: neq,nsa,nva,gsid
 
-    CALL tr_gr_rad_init_vmx
-    CALL tr_gr_rad_init_vgx
+    CALL tr_gr_init_vmx
+    CALL tr_gr_init_vgx
 
     DO neq = 1, neqmax
        nsa = nsa_neq(neq)
@@ -305,7 +295,17 @@ CONTAINS
        END IF
        END IF
     END DO
-    vgx1(0:nrmax,1) = LOG10(eta(0:nrmax))
+    gsid = 2
+    DO nr = 0, nrmax
+       IF(eta(nr) <= 0)THEN
+          gsid = 0
+       END IF
+    END DO
+    IF(gsid == 2)THEN
+       vgx1(0:nrmax,1) = LOG10(eta(0:nrmax))
+    ELSE
+       WRITE(6,*) 'XX non-positive eta values. Graph scale is set to linear.'
+    END IF
 
     CALL PAGES
     label = '@V_D [m/s] vs rho@'
@@ -313,7 +313,7 @@ CONTAINS
     label = '@V_chi [m/s] vs rho@'
     CALL GRD1D(2,rhomg,vmx2,nrmax,nrmax,nsamax,label,0)
     label = '@eta_par [ohm m] vs rho@'
-    CALL GRD1D(3,rhog,vgx1,nrmax+1,nrmax+1,1,label,2)
+    CALL GRD1D(3,rhog,vgx1,nrmax+1,nrmax+1,1,label,gsid)
 
     CALL tr_gr_time(idexp)
     CALL PAGEE
@@ -325,8 +325,9 @@ CONTAINS
   SUBROUTINE tr_gr_rad5
   ! ----- current density profile -----
     USE trcomm, ONLY: jtot,joh,jcd_nb,jtor,jbs_nc,eta,qp,dpdrho
+    INTEGER(ikind) :: gsid
 
-    CALL tr_gr_rad_init_vgx
+    CALL tr_gr_init_vgx
 
     vgx1(0:nrmax,1) = 1.d-6*jtot(0:nrmax)
     vgx1(0:nrmax,2) = 1.d-6*joh(0:nrmax)
@@ -336,7 +337,18 @@ CONTAINS
 
     vgx2(0:nrmax,1) = dpdrho(0:nrmax)
     vgx3(0:nrmax,1) = qp(0:nrmax)
-    vgx4(0:nrmax,1) = LOG10(eta(0:nrmax))
+
+    gsid = 2
+    DO nr = 0, nrmax
+       IF(eta(nr) <= 0)THEN
+          gsid = 0
+       END IF
+    END DO
+    IF(gsid == 2)THEN
+       vgx4(0:nrmax,1) = LOG10(eta(0:nrmax))
+    ELSE
+       WRITE(6,*) 'XX non-positive eta values. Graph scale is set to linear.'
+    END IF
     
 !    vgx4(0:nrmax,1) = qp(0:nrmax)
 
@@ -348,7 +360,7 @@ CONTAINS
     label = '@qp vs rho@'
     CALL GRD1D(3,rhog,vgx3,nrmax+1,nrmax+1,1,label,0)
     label = '@eta(para) [ohm m] vs rho@'
-    CALL GRD1D(4,rhog,vgx4,nrmax+1,nrmax+1,1,label,2)
+    CALL GRD1D(4,rhog,vgx4,nrmax+1,nrmax+1,1,label,gsid)
 
     CALL tr_gr_time(idexp)
     CALL PAGEE
@@ -361,7 +373,7 @@ CONTAINS
   ! ----- heating profile-----
     USE trcomm, ONLY: str,poh,pnb,pec,pic,plh,pnf,prl
 
-    CALL tr_gr_rad_init_vgx
+    CALL tr_gr_init_vgx
 
     vgx1(0:nrmax,1) = poh(1,0:nrmax)*1.d-6
     vgx1(0:nrmax,2) = (pnb(1,0:nrmax)+pnb(2,0:nrmax))*1.d-6
@@ -391,7 +403,7 @@ CONTAINS
   ! rotation velocity profile
     USE trcomm, ONLY: vtor,vpol,vpar,vprp
 
-    CALL tr_gr_rad_init_vgx
+    CALL tr_gr_init_vgx
 
     vgx1(0:nrmax,1) = vtor(0:nrmax)
     vgx2(0:nrmax,1) = vpol(0:nrmax)
@@ -418,7 +430,7 @@ CONTAINS
   SUBROUTINE tr_gr_rad8
     USE trcomm, ONLY: er,vexbp,dvexbpdr,wexbp,nrd4
 
-    CALL tr_gr_rad_init_vmx
+    CALL tr_gr_init_vmx
 
     vmx1(1:nrmax,1) = er(1:nrmax)
     vmx2(1:nrmax,1) = vexbp(1:nrmax)
@@ -447,7 +459,7 @@ CONTAINS
     ! fast ion particle profile
     USE trcomm, ONLY: rt
 
-    CALL tr_gr_rad_init_vg
+    CALL tr_gr_init_vg
 
     DO neq = 1, neqmax
        nsa = nsa_neq(neq)
@@ -474,7 +486,7 @@ CONTAINS
   ! ----- history of radial profile -----
     USE trcomm, ONLY: ngt,gvrt,gvrts
 
-    CALL tr_gr_rad_init_gg
+    CALL tr_gr_init_gg
 
     IF(ngt > 0)THEN
        ngg_interval = ngt/(MOD(ngt-1,nggmax)+1)
@@ -509,7 +521,7 @@ CONTAINS
   ! ----- history of radial profile -----
     USE trcomm, ONLY: ngt,gvrt
 
-    CALL tr_gr_rad_init_gg
+    CALL tr_gr_init_gg
 
     IF(ngt > 0)THEN
        ngg_interval = ngt/(MOD(ngt-1,nggmax)+1)
@@ -539,154 +551,5 @@ CONTAINS
     
     RETURN
   END SUBROUTINE tr_gr_rad15
-
-! **************************************************************************
-! **************************************************************************
-! **************************************************************************
-
-  SUBROUTINE tr_gr_rad_alloc(ierr)
-    
-    INTEGER(ikind),INTENT(OUT) :: ierr
-    INTEGER(ikind),SAVE :: nrmax_save=0, neqmax_save=0
-
-    ierr = 0
-    IF(nrmax /= nrmax_save .OR. neqmax /= neqmax_save)THEN
-
-       IF(nrmax_save /= 0) CALL tr_gr_rad_dealloc
-
-       DO
-          ALLOCATE(rhomg(1:nrmax),STAT=ierr); IF(ierr /=0 ) EXIT
-
-          ALLOCATE(vg1(0:nrmax,neqmax),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(vg2(0:nrmax,neqmax),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(vg3(0:nrmax,neqmax),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(vg4(0:nrmax,neqmax),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(vgx1(0:nrmax,5),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(vgx2(0:nrmax,5),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(vgx3(0:nrmax,5),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(vgx4(0:nrmax,5),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(vmx1(1:nrmax,5),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(vmx2(1:nrmax,5),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(vmx3(1:nrmax,5),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(vmx4(1:nrmax,5),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(vm1(1:nrmax,neqmax),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(vm2(1:nrmax,neqmax),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(vm3(1:nrmax,neqmax),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(vm4(1:nrmax,neqmax),STAT=ierr); IF(ierr /=0) EXIT
-
-          ALLOCATE(gg1(0:nrmax,0:nggmax),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(gg2(0:nrmax,0:nggmax),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(gg3(0:nrmax,0:nggmax),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(gg4(0:nrmax,0:nggmax),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(gm1(1:nrmax,0:nggmax),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(gm2(1:nrmax,0:nggmax),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(gm3(1:nrmax,0:nggmax),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(gm4(1:nrmax,0:nggmax),STAT=ierr); IF(ierr /=0) EXIT
-
-          nrmax_save  = nrmax
-          neqmax_save = neqmax
-          RETURN
-       END DO
-       WRITE(6,*) ' XX tr_gr_rad_alloc: allocation error: ierr= ',ierr
-
-    END IF
-    RETURN
-  END SUBROUTINE tr_gr_rad_alloc
-
-  SUBROUTINE tr_gr_rad_dealloc
-    
-    IF(ALLOCATED(rhomg)) DEALLOCATE(rhomg)
-
-    IF(ALLOCATED(vg1)) DEALLOCATE(vg1)
-    IF(ALLOCATED(vg2)) DEALLOCATE(vg2)
-    IF(ALLOCATED(vg3)) DEALLOCATE(vg3)
-    IF(ALLOCATED(vg4)) DEALLOCATE(vg4)
-    IF(ALLOCATED(vgx1)) DEALLOCATE(vgx1)
-    IF(ALLOCATED(vgx2)) DEALLOCATE(vgx2)
-    IF(ALLOCATED(vgx3)) DEALLOCATE(vgx3)
-    IF(ALLOCATED(vgx4)) DEALLOCATE(vgx4)
-    IF(ALLOCATED(vmx1)) DEALLOCATE(vmx1)
-    IF(ALLOCATED(vmx2)) DEALLOCATE(vmx2)
-    IF(ALLOCATED(vmx3)) DEALLOCATE(vmx3)
-    IF(ALLOCATED(vmx4)) DEALLOCATE(vmx4)
-    IF(ALLOCATED(vm1)) DEALLOCATE(vm1)
-    IF(ALLOCATED(vm2)) DEALLOCATE(vm2)
-    IF(ALLOCATED(vm3)) DEALLOCATE(vm3)
-    IF(ALLOCATED(vm4)) DEALLOCATE(vm4)
-
-    IF(ALLOCATED(gg1)) DEALLOCATE(gg1)
-    IF(ALLOCATED(gg2)) DEALLOCATE(gg2)
-    IF(ALLOCATED(gg3)) DEALLOCATE(gg3)
-    IF(ALLOCATED(gg4)) DEALLOCATE(gg4)
-    IF(ALLOCATED(gm1)) DEALLOCATE(gm1)
-    IF(ALLOCATED(gm2)) DEALLOCATE(gm2)
-    IF(ALLOCATED(gm3)) DEALLOCATE(gm3)
-    IF(ALLOCATED(gm4)) DEALLOCATE(gm4)
-
-    RETURN
-  END SUBROUTINE tr_gr_rad_dealloc
-
-! ***********************************************************************
-
-  SUBROUTINE tr_gr_rad_init_vg
-
-    vg1(0:nrmax,1:neqrmax) = 0.d0
-    vg2(0:nrmax,1:neqrmax) = 0.d0
-    vg3(0:nrmax,1:neqrmax) = 0.d0
-    vg4(0:nrmax,1:neqrmax) = 0.d0
-
-    RETURN
-  END SUBROUTINE tr_gr_rad_init_vg
-
-  SUBROUTINE tr_gr_rad_init_vm
-
-    vm1(1:nrmax,1:neqrmax) = 0.d0
-    vm2(1:nrmax,1:neqrmax) = 0.d0
-    vm3(1:nrmax,1:neqrmax) = 0.d0
-    vm4(1:nrmax,1:neqrmax) = 0.d0
-
-    RETURN
-  END SUBROUTINE tr_gr_rad_init_vm
-
-  SUBROUTINE tr_gr_rad_init_vgx
-
-    vgx1(0:nrmax,1:5) = 0.d0
-    vgx2(0:nrmax,1:5) = 0.d0
-    vgx3(0:nrmax,1:5) = 0.d0
-    vgx4(0:nrmax,1:5) = 0.d0
-
-    RETURN
-  END SUBROUTINE tr_gr_rad_init_vgx
-
-  SUBROUTINE tr_gr_rad_init_vmx
-
-    vmx1(1:nrmax,1:5) = 0.d0
-    vmx2(1:nrmax,1:5) = 0.d0
-    vmx3(1:nrmax,1:5) = 0.d0
-    vmx4(1:nrmax,1:5) = 0.d0
-
-    RETURN
-  END SUBROUTINE tr_gr_rad_init_vmx
-
-  SUBROUTINE tr_gr_rad_init_gg
-
-    gg1(0:nrmax,0:nggmax) = 0.d0
-    gg2(0:nrmax,0:nggmax) = 0.d0
-    gg3(0:nrmax,0:nggmax) = 0.d0
-    gg4(0:nrmax,0:nggmax) = 0.d0
-
-    RETURN
-  END SUBROUTINE tr_gr_rad_init_gg
-
-  SUBROUTINE tr_gr_rad_init_gm
-
-    gm1(1:nrmax,0:nggmax) = 0.d0
-    gm2(1:nrmax,0:nggmax) = 0.d0
-    gm3(1:nrmax,0:nggmax) = 0.d0
-    gm4(1:nrmax,0:nggmax) = 0.d0
-
-    RETURN
-  END SUBROUTINE tr_gr_rad_init_gm
-
 
 END MODULE trgrad

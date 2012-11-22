@@ -9,20 +9,30 @@ MODULE trgout
   PRIVATE
   PUBLIC tr_gout
 
+
+  REAL(rkind),DIMENSION(:),ALLOCATABLE :: rhomg !(1:nrmax)
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(0:nrmax,nsamax)
+       &       &       vg1,vg2,vg3,vg4
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(1:nrmax,nsamax)
+       &       &       vm1,vm2,vm3,vm4
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(0:nrmax,5)
+       &       &       vgx1,vgx2,vgx3,vgx4
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE :: &   !(1:nrmax,5)
+       &       &       vmx1,vmx2,vmx3,vmx4
+
 CONTAINS
 
   SUBROUTINE tr_gout
 ! ***********************************************************
 !     TASK/TR graphic outputs control routine
 ! ***********************************************************
-
-!    USE trcomm, ONLY : NGR,NGT
     USE trgrad, ONLY: tr_gr_radial
     USE trgtmp, ONLY: tr_gr_temporal
     USE trgcom, ONLY: tr_gr_computation
     USE trgdgn, ONLY: tr_gr_diagnostic
     USE trgexp, ONLY: tr_gr_experiment
     USE trgcmp, ONLY: tr_gr_comparison
+    USE trgequ, ONLY: tr_gr_equilibrium
     IMPLICIT NONE
 
     INTEGER(ikind), SAVE :: init = 0, inqg
@@ -100,6 +110,9 @@ CONTAINS
        CASE('M')
           CALL tr_gr_comparison(k2,k3)
           CYCLE
+       CASE('E')
+          CALL tr_gr_equilibrium(k2)
+          CYCLE
 !!$         CASE('Y')
 !!$            CALL TRGRY0(k2,inqg)
 !!$         CASE('Z')
@@ -108,10 +121,6 @@ CONTAINS
 !!$            CALL TRGRG0(k2,inqg)
 !!$         CASE('A')
 !!$            CALL TRGRA0(k2,inqg)
-!!$         CASE('E')
-!!$            CALL TRGRE0(k2,inqg)
-!!$         CASE('M')
-!!$            CALL TRCOMP(k2,inqg)
        CASE('X')
           EXIT
        CASE default
@@ -240,5 +249,6 @@ CONTAINS
 
     RETURN
   END SUBROUTINE tr_gr_load
+
 
 END MODULE trgout
