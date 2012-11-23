@@ -601,9 +601,9 @@ CONTAINS
     ! create d psi/d rho profile
     CALL tr_prof_dpdrho
 
-    joh(0:nrmax) = jtot(0:nrmax)                        &
-                   - (jcd_nb(0:nrmax) + jcd_ec(0:nrmax) &
-                     +jcd_ic(0:nrmax)+jcd_lh(0:nrmax))  &
+    joh(0:nrmax) = jtot(0:nrmax)                          &
+                   - (jcd_nb(0:nrmax) + jcd_ec(0:nrmax)   &
+                     +jcd_ic(0:nrmax) + jcd_lh(0:nrmax))  &
                    -  jbs_nc(0:nrmax)
 
     RETURN
