@@ -599,7 +599,7 @@ CONTAINS
 ! ------------------------------------------------------------------------
     USE trufsub,ONLY: tr_uf2d,tr_uftl_check
     USE trcomm,ONLY: tmu,pvolu,psuru,rmjrhou,rmnrhou,ar1rhou,ar2rhou, &
-                     rkprhou,dvrhou,arrhou,abrhou,ttrhou, rru,bbu
+                     rkprhou,dvrhou, rru,bbu
     IMPLICIT NONE
 
     INTEGER(ikind),INTENT(IN)  :: id_mesh,id_deriv
@@ -675,15 +675,6 @@ CONTAINS
     dvrhou(1:ntxmax,2:nrmax+1) = psuru(1:ntxmax,2:nrmax+1) &
                               /ar1rhou(1:ntxmax,2:nrmax+1)
     dvrhou(1:ntxmax,1) = 0.d0 ! at the magnetic axis
-
-    arrhou(1:ntxmax,1:nrmax+1) = 1.d0 / rmjrhou(1:ntxmax,1:nrmax+1)**2
-    
-    abrhou(1:ntxmax,1:nrmax+1) = ar2rhou(1:ntxmax,1:nrmax+1) &
-                                 *arrhou(1:ntxmax,1:nrmax+1)
-
-    DO nr = 1, nrmax + 1
-       ttrhou(1:ntxmax,nr) = bbu(1:ntxmax)*rru(1:ntxmax)
-    END DO
 
     RETURN
   END SUBROUTINE tr_ufget_geometric

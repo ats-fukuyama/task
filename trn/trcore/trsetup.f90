@@ -17,9 +17,6 @@ CONTAINS
          tr_nit_allocate,tr_nsa_allocate,tr_nr_allocate,tr_ngt_allocate, &
          t,t_prev,ngt,ns_nsa,idnsa,nrmax,nsamax,nsafmax,   &
          pa,pz,pz0,nitmax,rip,rips
-
-         
-
     USE trbpsd, ONLY: tr_bpsd_init
     USE eq_bpsd_mod, ONLY: eq_bpsd_init
     USE trloop, ONLY: tr_save_pvprev
@@ -441,8 +438,8 @@ CONTAINS
        rkprho,rjcb,rhog,rhom,epsrho,abb2rho,abb1rho,pvolrho,         &
        aib2rho,psurrho,time_slc,mdluf,mdlgmt,knameq, &
        profj1,profj2,qp,jtot!, nrd1,nrd2
-
     USE trbpsd, ONLY: tr_bpsd_set,tr_bpsd_get
+    USE trcalc1,ONLY: tr_calc_geometry
     USE trufin, ONLY: tr_ufin_geometry
     USE equnit_mod, ONLY: eq_parm,eq_prof,eq_calc,eq_load
 !    USE equunit_mod, ONLY: equ_prof,equ_calc
@@ -455,9 +452,8 @@ CONTAINS
 
     ! modelg --> mdlgmt
 
-
     ! Cylindrical geometry
-    ! MDLGMT = 1  or  interim calculation for equilibrium code
+    ! for MDLGMT = 1  or  interim calculation for equilibrium code
     DO nr = 0, nrmax
        ar1rho(nr)  = 1.d0/(SQRT(rkap)*ra)          ! const
        ar2rho(nr)  = 1.d0/(SQRT(rkap)*ra)**2       ! const
@@ -466,29 +462,16 @@ CONTAINS
        rmnrho(nr)  = SQRT(rkap)*ra*rhog(nr) ! [m]
        rkprho(nr)  = rkap
 !
+       dvrho(nr)   = 2.d0*pi*rkap*ra**2*2.d0*pi*rr*rhog(nr)
        pvolrho(nr) = pi*rkap*(ra*rhog(nr))**2*2.d0*pi*rr
        psurrho(nr) = pi*(rkap+1.d0)*ra*rhog(nr)*2.d0*pi*rr
-       dvrho(nr)   = 2.d0*pi*rkap*ra**2*2.d0*pi*rr*rhog(nr)
-!
-       epsrho(nr)  = rmnrho(nr)/rmjrho(nr)
-
-       ! toroidal field for now
-!       abb1rho(nr) = BB*(1.d0 + 0.5d0*epsrho(nr)**2) ! <B>
-       abb1rho(nr) = BB
-!       abb2rho(nr) = BB**2 *(1.d0+1.5d0*epsrho(nr)**2)
-       abb2rho(nr) = BB**2
-!       aib2rho(nr) = (1.d0+1.5d0*epsrho(nr)**2)/BB**2
-       aib2rho(nr) = 1/BB**2
-!       ttrho(nr)   = abb1rho(nr) * rr
-       ttrho(nr)   = BB * rr
-!       arrho(nr)   = 1.d0/rr**2 * (1+1.5d0*epsrho(nr)**2)            
-       arrho(nr)   = 1.d0/rr**2                    ! const
-!       abb2rho(nr) = 
-       abvrho(nr)  = dvrho(nr)**2 * abrho(nr)
     END DO
 
+    ! caluculate associated geomtric quantities
+    CALL tr_calc_geometry
+
     SELECT CASE(MDLGMT)
-    CASE(0) ! for testing
+    CASE(0) ! for testing; slab geometry
        DO nr = 0, nrmax
           ar1rho(nr)  = 1.d0
           ar2rho(nr)  = 1.d0
@@ -503,7 +486,6 @@ CONTAINS
           psurrho(nr) = 1.d0
 !
           epsrho(nr)  = rmnrho(nr)/rmjrho(nr)
-
           abb1rho(nr) = BB
           abb2rho(nr) = BB**2
           aib2rho(nr) = 1/BB**2
@@ -532,6 +514,9 @@ CONTAINS
 
     CASE(6:7) ! from experimental dataset
        CALL tr_ufin_geometry(time,1,ierr)
+
+       ! caluculate associated geomtric quantities
+       CALL tr_calc_geometry
 
     CASE(8:9) ! CALL TASK/EQ       
        

@@ -4,11 +4,12 @@ MODULE trgexp
 ! *************************************************************************
   USE trcomm,ONLY: ikind,rkind,ntum,nrum,nsum,nrmax,rhog,tmu, &
                    mdluf,ntxmax,tlmax
-  USE trgsub,ONLY: tr_gr_time,tr_gr_exp_alloc,tr_gr_expt_alloc,         &
-       tr_gr_init_vgu, tr_gr_init_vmu,tr_gr_init_gtu,tr_gr_init_gtiu,   &
-       vgu1,vgu2,vgu3,vgu4,  vmu1,vmu2,vmu3,vmu4,  gtu1,gtu2,gtu3,gtu4, &
-       gtiu1,gtiu2,gtiu3,gtiu4, gtu
-
+  USE trgsub,ONLY: tr_gr_time, &
+       tr_gr_exp_alloc,tr_gr_expt_alloc,tr_gr_vnr_alloc,                  &
+       tr_gr_init_vgu,tr_gr_init_vmu, tr_gr_init_gtu,tr_gr_init_gtiu,     &
+       tr_gr_init_vgx,  vgu1,vgu2,vgu3,vgu4,  vmu1,vmu2,vmu3,vmu4,        &
+       gtu1,gtu2,gtu3,gtu4, gtiu1,gtiu2,gtiu3,gtiu4, vgx1,vgx2,vgx3,vgx4, &
+       gtu
   USE libgrf,ONLY: grd1d
 
   IMPLICIT NONE
@@ -32,8 +33,9 @@ CONTAINS
 
     CALL tr_gr_exp_alloc(ierr)
     IF(ierr /= 0) RETURN
-
     CALL tr_gr_expt_alloc(ierr)
+    IF(ierr /= 0) RETURN
+    CALL tr_gr_vnr_alloc(ierr)
     IF(ierr /= 0) RETURN
 
     ! set axis
@@ -141,14 +143,6 @@ CONTAINS
 
 ! ************************************************************************
   SUBROUTINE tr_gr_exp2
-    ! other profile: zeff ...
-!    USE trcomm, ONLY:
-
-    RETURN
-  END SUBROUTINE tr_gr_exp2
-
-! ************************************************************************
-  SUBROUTINE tr_gr_exp3
     ! heating density (1)
     USE trcomm, ONLY: qnbu,qecu,qicu,qlhu,qohmu,qradu,qfusu
 
@@ -185,15 +179,15 @@ CONTAINS
     CALL PAGEE
 
     RETURN
-  END SUBROUTINE tr_gr_exp3
+  END SUBROUTINE tr_gr_exp2
 
 ! ************************************************************************
-  SUBROUTINE tr_gr_exp4
+  SUBROUTINE tr_gr_exp3
     ! current density and particle source density
     USE trcomm, ONLY: jtotu,jbsu,jnbu,jecu,jicu,jlhu,snbu,swallu
     REAL(rkind),DIMENSION(1:ntxmax,1:nrmax+1) :: johu
 
-    CALL tr_gr_init_vgu
+    CALL tr_gr_init_vgx
 
     DO nr = 1, nrmax+1
        johu(1:ntxmax,nr) =  jtotu(1:ntxmax,nr) &
@@ -202,38 +196,89 @@ CONTAINS
                            +jlhu(1:ntxmax,nr))
     END DO
 
-    vgu1(0:nrmax,1) = - jtotu(ntxsnap,1:nrmax+1) * 1.d-6
-    vgu1(0:nrmax,2) = - johu(ntxsnap,1:nrmax+1) * 1.d-6
-    vgu1(0:nrmax,3) = - jbsu(ntxsnap,1:nrmax+1) * 1.d-6
-    vgu1(0:nrmax,4) = -(jnbu(ntxsnap,1:nrmax+1)+jecu(ntxsnap,1:nrmax+1) &
+    vgx1(0:nrmax,1) = - jtotu(ntxsnap,1:nrmax+1) * 1.d-6
+    vgx1(0:nrmax,2) = - johu(ntxsnap,1:nrmax+1) * 1.d-6
+    vgx1(0:nrmax,3) = - jbsu(ntxsnap,1:nrmax+1) * 1.d-6
+    vgx1(0:nrmax,4) = -(jnbu(ntxsnap,1:nrmax+1)+jecu(ntxsnap,1:nrmax+1) &
                       + jicu(ntxsnap,1:nrmax+1)+jlhu(ntxsnap,1:nrmax+1))*1.d-6
 
-    vgu2(0:nrmax,1) = - jnbu(ntxsnap,1:nrmax+1) *1.d-6
-    vgu2(0:nrmax,2) = - jecu(ntxsnap,1:nrmax+1) *1.d-6
-    vgu2(0:nrmax,3) = - jicu(ntxsnap,1:nrmax+1) *1.d-6
-    vgu2(0:nrmax,4) = - jlhu(ntxsnap,1:nrmax+1) *1.d-6
+    vgx2(0:nrmax,1) = - jnbu(ntxsnap,1:nrmax+1) *1.d-6
+    vgx2(0:nrmax,2) = - jecu(ntxsnap,1:nrmax+1) *1.d-6
+    vgx2(0:nrmax,3) = - jicu(ntxsnap,1:nrmax+1) *1.d-6
+    vgx2(0:nrmax,4) = - jlhu(ntxsnap,1:nrmax+1) *1.d-6
 
-    vgu3(0:nrmax,1) = snbu(1,ntxsnap,1:nrmax+1) *1.d-20
-    vgu3(0:nrmax,2) = snbu(2,ntxsnap,1:nrmax+1) *1.d-20
+    vgx3(0:nrmax,1) = snbu(1,ntxsnap,1:nrmax+1) *1.d-20
+    vgx3(0:nrmax,2) = snbu(2,ntxsnap,1:nrmax+1) *1.d-20
 
-    vgu4(0:nrmax,1) = swallu(ntxsnap,1:nrmax+1) *1.d-20
+    vgx4(0:nrmax,1) = swallu(ntxsnap,1:nrmax+1) *1.d-20
 
 
     CALL PAGES
     label = '@jtot,joh,jbs,jcd(exp) [MA] vs rho@'
-    CALL GRD1D(1,rhog,vgu1,nrmax+1,nrmax+1,4,label,0)
+    CALL GRD1D(1,rhog,vgx1,nrmax+1,nrmax+1,4,label,0)
     label = '@j_cd (NB,EC,IC,LH) [MA] vs rho@'
-    CALL GRD1D(2,rhog,vgu2,nrmax+1,nrmax+1,4,label,0)
+    CALL GRD1D(2,rhog,vgx2,nrmax+1,nrmax+1,4,label,0)
     label = '@S_nb(e,i) [10$+20$=/m$+3$= s] vs rho@'
-    CALL GRD1D(3,rhog,vgu3,nrmax+1,nrmax+1,2,label,0)
+    CALL GRD1D(3,rhog,vgx3,nrmax+1,nrmax+1,2,label,0)
     label = '@Swall [10$+20$=/m$+3$= s] vs rho@'
-    CALL GRD1D(4,rhog,vgu4,nrmax+1,nrmax+1,1,label,0)
+    CALL GRD1D(4,rhog,vgx4,nrmax+1,nrmax+1,1,label,0)
 
     CALL tr_gr_time(idexp)
     CALL PAGEE
 
     RETURN
+  END SUBROUTINE tr_gr_exp3
+
+! ************************************************************************
+  SUBROUTINE tr_gr_exp4
+    USE trcomm, ONLY: ar1rhou,ar2rhou,dvrhou,pvolu
+
+    CALL tr_gr_init_vgx
+
+    vgx1(0:nrmax,1) = ar1rhou(ntxsnap,1:nrmax+1)
+    vgx2(0:nrmax,1) = ar2rhou(ntxsnap,1:nrmax+1)
+    vgx3(0:nrmax,1) = dvrhou(ntxsnap,1:nrmax+1)
+    vgx4(0:nrmax,1) = pvolu(ntxsnap,1:nrmax+1)
+
+    CALL PAGES
+    label = '@<|grad rho|> vs rho@'
+    CALL GRD1D(1,rhog,vgx1,nrmax+1,nrmax+1,1,label,0)
+    label = '@<|grad rho|$+2$=> vs rho@'
+    CALL GRD1D(2,rhog,vgx2,nrmax+1,nrmax+1,1,label,0)
+    label = "@V' vs rho@"
+    CALL GRD1D(3,rhog,vgx3,nrmax+1,nrmax+1,1,label,0)
+    label = '@V [m$+3$=] vs rho@'
+    CALL GRD1D(4,rhog,vgx4,nrmax+1,nrmax+1,1,label,0)
+    CALL tr_gr_time(idexp)
+    CALL PAGEE
+
+    RETURN
   END SUBROUTINE tr_gr_exp4
+
+  SUBROUTINE tr_gr_exp5
+    USE trcomm, ONLY: psuru,rkprhou,rmjrhou,rmnrhou
+
+    CALL tr_gr_init_vgx
+
+    vgx1(0:nrmax,1) = psuru(ntxsnap,1:nrmax+1)
+    vgx2(0:nrmax,1) = rkprhou(ntxsnap,1:nrmax+1)
+    vgx3(0:nrmax,1) = rmjrhou(ntxsnap,1:nrmax+1)
+    vgx4(0:nrmax,1) = rmnrhou(ntxsnap,1:nrmax+1)
+
+    CALL PAGES
+    label = '@Ssur [m$+2$=] vs rho@'
+    CALL GRD1D(1,rhog,vgx1,nrmax+1,nrmax+1,1,label,0)
+    label = '@Kappa vs rho@'
+    CALL GRD1D(2,rhog,vgx2,nrmax+1,nrmax+1,1,label,0)
+    label = '@rmjrho vs rho@'
+    CALL GRD1D(3,rhog,vgx3,nrmax+1,nrmax+1,1,label,0)
+    label = '@rmnrho vs rho@'
+    CALL GRD1D(4,rhog,vgx4,nrmax+1,nrmax+1,1,label,0)
+    CALL tr_gr_time(idexp)
+    CALL PAGEE
+
+    RETURN
+  END SUBROUTINE tr_gr_exp5
 
 ! ************************************************************************
   SUBROUTINE tr_gr_exp9
@@ -362,7 +407,6 @@ CONTAINS
     CALL GRD1D(3,gtu,gtiu3,ntxmax,ntxmax,1,label,0)
     label = '@P(RAD) [MW] vs t@'
     CALL GRD1D(4,gtu,gtiu4,ntxmax,ntxmax,1,label,0)
-
     CALL tr_gr_time(idexp)
     CALL PAGEE
 

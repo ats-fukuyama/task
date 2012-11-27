@@ -517,7 +517,7 @@ CONTAINS
     USE trcomm,ONLY: tmu,pvolu,psuru,rmjrhou,rmnrhou,ar1rhou,ar2rhou, &
                      rkprhou,dvrhou,arrhou,abrhou,ttrhou,             &
                      pvolrho,psurrho,rmjrho,rmnrho,ar1rho,ar2rho,     &
-                     rkprho,dvrho,arrho,abrho,ttrho,epsrho,abvrho
+                     rkprho,dvrho
     IMPLICIT NONE
 
     INTEGER(ikind),INTENT(IN) :: tmid
@@ -537,9 +537,6 @@ CONTAINS
 !!$       CALL TIMESPL(t,ar2rhoug(nr),tmu,ar2rhou(:,nr),ntxmax,ntum,ierr)
 !!$       CALL TIMESPL(t,rkprhoug(nr),tmu,rkprhou(:,nr),ntxmax,ntum,ierr)
 !!$       CALL TIMESPL(t,dvrhoug(nr),tmu,dvrhou(:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,arrhoug(nr),tmu,arrhou(:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,abrhoug(nr),tmu,abrhou(:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,ttrhoug(nr),tmu,ttrhou(:,nr),ntxmax,ntum,ierr)
 
        CALL lin_itp(t,pvolug(nr),tmu,pvolu(:,nr),ntxmax,ntum)
        CALL lin_itp(t,psurug(nr),tmu,psuru(:,nr),ntxmax,ntum)
@@ -549,9 +546,6 @@ CONTAINS
        CALL lin_itp(t,ar2rhoug(nr),tmu,ar2rhou(:,nr),ntxmax,ntum)
        CALL lin_itp(t,rkprhoug(nr),tmu,rkprhou(:,nr),ntxmax,ntum)
        CALL lin_itp(t,dvrhoug(nr),tmu,dvrhou(:,nr),ntxmax,ntum)
-       CALL lin_itp(t,arrhoug(nr),tmu,arrhou(:,nr),ntxmax,ntum)
-       CALL lin_itp(t,abrhoug(nr),tmu,abrhou(:,nr),ntxmax,ntum)
-       CALL lin_itp(t,ttrhoug(nr),tmu,ttrhou(:,nr),ntxmax,ntum)
     END DO
 
     IF(ierr /= 0)THEN
@@ -570,13 +564,6 @@ CONTAINS
        ar2rho(0:nrmax)  = ar2rhoug(1:nrmax+1)
        rkprho(0:nrmax)  = rkprhoug(1:nrmax+1)
        dvrho(0:nrmax)   = dvrhoug(1:nrmax+1)
-       arrho(0:nrmax)   = arrhoug(1:nrmax+1)
-       abrho(0:nrmax)   = abrhoug(1:nrmax+1)
-       ttrho(0:nrmax)   = - ttrhoug(1:nrmax+1)
-
-       ! associated values
-       epsrho(0:nrmax) = rmnrho(0:nrmax)/rmjrho(0:nrmax)
-       abvrho(0:nrmax) = dvrho(0:nrmax)**2 * abrho(0:nrmax)
     END IF
 
     RETURN

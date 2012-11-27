@@ -334,7 +334,6 @@ CONTAINS
     vgx1(0:nrmax,4) = 1.d-6*jcd_nb(0:nrmax)
     vgx1(0:nrmax,4) = 1.d-6*jbs_nc(0:nrmax)
 
-
     vgx2(0:nrmax,1) = dpdrho(0:nrmax)
     vgx3(0:nrmax,1) = qp(0:nrmax)
 
@@ -428,13 +427,12 @@ CONTAINS
 
 ! **************************************************************************
   SUBROUTINE tr_gr_rad8
-    USE trcomm, ONLY: er,vexbp,dvexbpdr,wexbp,nrd4
+    USE trcomm, ONLY: er,vexbp,dvexbpdr,wexbp
 
     CALL tr_gr_init_vmx
 
     vmx1(1:nrmax,1) = er(1:nrmax)
     vmx2(1:nrmax,1) = vexbp(1:nrmax)
-!    vmx3(1:nrmax,1) = nrd4(1:nrmax)
     vmx3(1:nrmax,1) = dvexbpdr(1:nrmax)
     vmx4(1:nrmax,1) = wexbp(1:nrmax)
 
@@ -457,24 +455,37 @@ CONTAINS
 ! **************************************************************************
   SUBROUTINE tr_gr_rad9
     ! fast ion particle profile
-    USE trcomm, ONLY: rt
+    USE trcomm, ONLY: rt,rn,pnb,nsafmax
+    INTEGER(ikind) :: nsafmaxg
 
     CALL tr_gr_init_vg
+    CALL tr_gr_init_vgx
 
-    DO neq = 1, neqmax
-       nsa = nsa_neq(neq)
-       IF(nsa /= 0)THEN
-          nsaf = nsab_nsaf(nsa)
-          IF(nsaf /= 0)THEN
-             vg1(0:nrmax,nsaf) = rt(nsa,0:nrmax)
+    IF(nsafmax > 0)THEN
+       nsafmaxg = nsafmax
+       DO neq = 1, neqmax
+          nsa = nsa_neq(neq)
+          IF(nsa /= 0)THEN
+             nsaf = nsab_nsaf(nsa)
+             IF(nsaf /= 0)THEN
+                vg1(0:nrmax,nsaf) = rt(nsa,0:nrmax)
+                vg2(0:nrmax,nsaf) = rn(nsa,0:nrmax)
+             END IF
           END IF
-       END IF
-    END DO
+       END DO
+    ELSE
+       nsafmaxg = 1
+    END IF
+       
+    vgx1(0:nrmax,1) = (pnb(1,0:nrmax)+pnb(2,0:nrmax))*1.d-6
 
     CALL PAGES
     label = '@Ti(fast) [keV] vs rho@'
-    CALL GRD1D(1,rhog,vg1,nrmax,nrmax,nsafmax,label,0)
-
+    CALL GRD1D(1,rhog,vg1,nrmax+1,nrmax+1,nsafmaxg,label,0)
+    label = '@ni(fast) [10$+20$=/m$+3$=] vs rho@'
+    CALL GRD1D(2,rhog,vg2,nrmax+1,nrmax+1,nsafmaxg,label,0)
+    label = '@Pin(fast) [MW/m$+3$=] vs rho@'
+    CALL GRD1D(3,rhog,vgx1,nrmax+1,nrmax+1,nsafmaxg,label,0)
     CALL tr_gr_time(idexp)
     CALL PAGEE
 

@@ -22,7 +22,7 @@ CONTAINS
 ! -----------------------------------------------------------------------
 !    Control routine of data comparison outputs
 ! -----------------------------------------------------------------------
-    USE trcomm,ONLY: rhom,gvt
+    USE trcomm,ONLY: rhom,gvt, mdluf
 
     CHARACTER(LEN=1),INTENT(IN) :: k2,k3
     INTEGER(ikind) :: i2,i3,ierr,iosts
@@ -37,6 +37,11 @@ CONTAINS
     ! set axis
     rhomg(1:nrmax) = rhom(1:nrmax)
     gt(0:ngt)      = gvt(0:ngt,0)
+
+    IF(mdluf==0)THEN
+       WRITE(6,*) 'XX Experimental data has not been read. MDLUF= ',mdluf
+       RETURN
+    END IF
     
     READ(k2,'(I1)',IOSTAT=iosts) i2
     READ(k3,'(I1)',IOSTAT=iosts) i3

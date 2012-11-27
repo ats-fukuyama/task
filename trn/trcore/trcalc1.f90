@@ -2,7 +2,7 @@ MODULE trcalc1
   USE trcomm, ONLY: ikind,rkind
 
   PRIVATE
-  PUBLIC tr_calc1
+  PUBLIC tr_calc1,tr_calc_geometry
 
 CONTAINS
 
@@ -42,8 +42,10 @@ CONTAINS
     SELECT CASE(mdlgmt)
     CASE(6)
        CALL tr_ufin_geometry(time,0,ierr)
+
     CASE(7)
        CALL tr_ufin_geometry(time,1,ierr)
+
     CASE(9)
        ! Interaction with equilibrium codes
        IF(nteqit /= 0 .AND. MOD(nt, nteqit) == 0)THEN
@@ -70,6 +72,8 @@ CONTAINS
     END SELECT
 
 
+    CALL tr_calc_geometry
+
     CALL tr_calc_dpdrho
 
     CALL tr_source1 ! source calculation (unnecessary non-linear iteration)
@@ -79,7 +83,47 @@ CONTAINS
 
 ! ************************************************************************
 
+  SUBROUTINE tr_calc_geometry
+! -------------------------------------------------------------------------
+!
+! -------------------------------------------------------------------------
+    USE trcomm, ONLY: nrmax,BB,RR,dvrho,abrho,rmjrho,rmnrho, &
+         epsrho,abb1rho,abb2rho,aib2rho,ttrho,arrho,abvrho,ar2rho,mdlgmt
+
+    IMPLICIT NONE
+    INTEGER(ikind) :: nr
+
+    IF(mdlgmt==0) RETURN
+
+    ! *** associated values ***
+    DO nr = 0, nrmax
+       epsrho(nr)  = rmnrho(nr)/rmjrho(nr)
+
+       ! toroidal field for now
+       !       abb1rho(nr) = BB*(1.d0 + 0.5d0*epsrho(nr)**2) ! <B>
+       abb1rho(nr) = BB
+       !       abb2rho(nr) = BB**2 *(1.d0+1.5d0*epsrho(nr)**2)
+       abb2rho(nr) = BB**2
+       !       aib2rho(nr) = (1.d0+1.5d0*epsrho(nr)**2)/BB**2
+       aib2rho(nr) = 1/BB**2
+
+       !       ttrho(nr)   = abb1rho(nr) * rr ??? what's the definition ???
+       ttrho(nr)   = abb1rho(nr) * rr
+       !       arrho(nr)   = 1.d0/rr**2 * (1+1.5d0*epsrho(nr)**2)
+       arrho(nr)   = 1.d0/rmjrho(nr)**2                    ! const
+
+       abrho(nr) = ar2rho(nr) * arrho(nr)
+       abvrho(nr)  = dvrho(nr)**2 * abrho(nr)
+    END DO
+    
+    RETURN
+  END SUBROUTINE tr_calc_geometry
+
+
   SUBROUTINE tr_calc_dpdrho
+! -------------------------------------------------------------------------
+!
+! -------------------------------------------------------------------------
     USE trcomm,ONLY: rmu0,pi,id_neq,t,dt,ntmax,nrmax,rhog,rip,rips,ripe, &
          mdluf,mdlijq,abb1rho,dvrho,ttrho,abrho,arrho,ar1rho,abvrho,     &
          rmjrho,dpdrho,rdpvrho,jtot,qp,bp
