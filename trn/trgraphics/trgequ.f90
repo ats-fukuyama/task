@@ -119,6 +119,8 @@ CONTAINS
 !   essential metric quantities for values associate with poloidal flux
     USE trcomm, ONLY: jtot,dpdrho,rdpvrho,abvrho
 
+    CALL tr_gr_init_vgx
+
     vgx1(0:nrmax,1) = jtot(0:nrmax) * 1.d-6
     vgx2(0:nrmax,1) = dpdrho(0:nrmax)
     vgx3(0:nrmax,1) = rdpvrho(0:nrmax)

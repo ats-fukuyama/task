@@ -420,7 +420,6 @@ CONTAINS
     IF(ierr == 0)THEN
        CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
     END IF
-    jecu(1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
 
     kfid = 'CURICRH'   ! --> jicu
     CALL tr_uf2d(kfid,tmu,jicu,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &

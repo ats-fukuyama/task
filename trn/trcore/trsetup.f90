@@ -617,10 +617,6 @@ CONTAINS
        rdpvrho(0:nrmax) = 0.d0
        DO nr = 1, nrmax
           dr      = rhog(nr)-rhog(nr-1)
-!          factor0 = rmu0*0.5d0*(abb1rho(nr)+abb1rho(nr-1)) &
-!                        *0.5d0*(dvrho(nr)  +  dvrho(nr-1)) &
-!                        *0.5d0*(jtot(nr)   +   jtot(nr-1)) &
-!                       /(0.5d0*(ttrho(nr)  +  ttrho(nr-1)))**2
           factor0p=rmu0*abb1rho(nr)*dvrho(nr)*jtot(nr)/ttrho(nr)**2
           factor0m=rmu0*abb1rho(nr-1)*dvrho(nr-1)*jtot(nr-1)/ttrho(nr-1)**2
           factor0 = 0.5d0*(factor0p + factor0m)

@@ -294,7 +294,8 @@ CONTAINS
        IF(rhog(nr) >= rgedge .AND. nredge == 0) nredge = nr
     END DO
 
-    ntsum = 0.d0
+    ntsum  = 0.d0
+    ntusum = 0.d0
     sigmat(1:nsamax) = 0.d0
     DO nsu = 1, nsum
        nsa = nsa_nsu(nsu)

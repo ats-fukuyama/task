@@ -16,7 +16,7 @@ MODULE trgrad
   PRIVATE
   PUBLIC tr_gr_radial
 
-  CHARACTER(LEN=30) :: label
+  CHARACTER(LEN=64) :: label
   INTEGER(ikind)    :: nr,nsa,nsaf,neq,neqr,ngg,ngg_interval, idexp
   
 CONTAINS
@@ -331,7 +331,7 @@ CONTAINS
 
     vgx1(0:nrmax,1) = 1.d-6*jtot(0:nrmax)
     vgx1(0:nrmax,2) = 1.d-6*joh(0:nrmax)
-    vgx1(0:nrmax,4) = 1.d-6*jcd_nb(0:nrmax)
+    vgx1(0:nrmax,3) = 1.d-6*jcd_nb(0:nrmax)
     vgx1(0:nrmax,4) = 1.d-6*jbs_nc(0:nrmax)
 
     vgx2(0:nrmax,1) = dpdrho(0:nrmax)
@@ -349,13 +349,11 @@ CONTAINS
        WRITE(6,*) 'XX non-positive eta values. Graph scale is set to linear.'
     END IF
     
-!    vgx4(0:nrmax,1) = qp(0:nrmax)
-
     CALL PAGES
-    label = '@j(tot,oh,nb,bs) [MA/m$+2$=] vs rho'
-    CALL GRD1D(1,rhog,vgx1,nrmax+1,nrmax+1,5,label,0)
+    label = '@j(tot,oh,nb,bs) [MA/m$+2$=] vs rho@'
+    CALL GRD1D(1,rhog,vgx1,nrmax+1,nrmax+1,4,label,0)
     label = '@d Psi/d rho vs rho@'
-    CALL GRD1D(2,rhog,vgx2,nrmax+1,nrmax+1,5,label,0)
+    CALL GRD1D(2,rhog,vgx2,nrmax+1,nrmax+1,1,label,0)
     label = '@qp vs rho@'
     CALL GRD1D(3,rhog,vgx3,nrmax+1,nrmax+1,1,label,0)
     label = '@eta(para) [ohm m] vs rho@'

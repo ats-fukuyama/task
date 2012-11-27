@@ -352,7 +352,6 @@ CONTAINS
        CALL lin_itp(t,jicug(nr),tmu,jicu(:,nr),ntxmax,ntum)
        CALL lin_itp(t,jlhug(nr),tmu,jlhu(:,nr),ntxmax,ntum)
        CALL lin_itp(t,jbsug(nr),tmu,jbsu(:,nr),ntxmax,ntum)
-
     END DO
 
     IF(ierr /= 0)THEN
