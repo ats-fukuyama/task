@@ -29,29 +29,34 @@ CONTAINS
 
     CALL tr_calc_variables
 
-    ! *** ctr ***
-    CALL tr_calc2_energy_ex
-    ! call tr_calc2_charge_ex
-
-    ! *** str ***
-    CALL tr_source2
-
-    ! *** htr ***
-    CALL tr_calc2_excurrent ! calculate external driven current term
-
     ! *** dtr, vtr ***
+    ! *** CAUTION: Physical quantities associated with neoclassical theory
+    !               must be calculated before calculating 'htr' and 'str'.
+
     CALL tr_coefnc         ! calculate neoclassical transport coefficients
     CALL tr_coeftb         ! calculate turbulent transport coefficients
     CALL tr_coefmg
 
-    joh(0:nrmax) = jtot(0:nrmax) - jbs_nc(0:nrmax)   &
-              -( jcd_nb(0:nrmax) + jcd_ec(0:nrmax)   &
+
+    ! *** ctr ***
+    CALL tr_calc2_energy_ex
+    ! call tr_calc2_charge_ex
+
+
+    ! *** htr *** this section should be in the trsource directory ??
+    CALL tr_calc2_excurrent ! calculate external driven current term
+
+    joh(0:nrmax) = jtot(0:nrmax) - jbs_nc(0:nrmax)     &
+              -( jcd_nb(0:nrmax) + jcd_ec(0:nrmax)     &
                + jcd_ic(0:nrmax) + jcd_lh(0:nrmax))
 
-    htr(1,0:nrmax) = jbs_nc(0:nrmax)                   &
-                   + jcd_nb(0:nrmax) + jcd_ec(0:nrmax) &
-                   + jcd_ic(0:nrmax) + jcd_lh(0:nrmax)
+    ! ***
+
+    ! *** str ***
+    CALL tr_source2
     
+
+    ! substitution
     DO nr=1,nrmax
        DO neq=2,neqmax
           dtr(2:neqmax,neq,nr) &
@@ -77,19 +82,24 @@ CONTAINS
 ! -----------------------------------------------------------------------
 !   calculate coefficients for poloidal magnetic diffusion equation
 ! -----------------------------------------------------------------------
-    USE trcomm, ONLY: rmu0,nrmax,dvrho,ttrho,arrho,abb1rho,eta,dtr,htr
+    USE trcomm, ONLY: rmu0,nrmax,mdltr_nc, &
+                      dvrho,ttrho,arrho,abb1rho,eta,etam_nc,dtr,htr
     IMPLICIT NONE
     INTEGER(ikind) :: nr
     REAL(rkind) :: etam,ttrhom,arrhom,dvrhom
 
     ! registivity term (half grid)
     DO nr = 1, nrmax
-       etam   = 0.5d0*(eta(nr)+eta(nr-1))
+!       IF(mdltr_nc == 1)THEN
+!          etam = etam_nc(nr)
+!       ELSE
+          etam   = 0.5d0*(eta(nr)+eta(nr-1))
+!       END IF
        ttrhom = 0.5d0*(ttrho(nr)+ttrho(nr-1))
        arrhom = 0.5d0*(arrho(nr)+arrho(nr-1))
        dvrhom = 0.5d0*(dvrho(nr)+dvrho(nr-1))
-
-       dtr(1,1,nr) = etam*ttrhom/(rmu0*arrhom*dvrhom)
+       
+       dtr(1,1,nr) = etam*ttrhom/(rmu0*dvrhom*arrhom)
     END DO
 
   END SUBROUTINE tr_coefmg

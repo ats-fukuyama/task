@@ -9,9 +9,9 @@ CONTAINS
 
   SUBROUTINE tr_coefnc
     USE trcomm, ONLY: &
-         rkev,nsa_neq,nva_neq,nsab_nsa,neqmax,nsamax,nrmax,mdltr_nc,       &
-         rhog,rhom,rmnrho,htr,eta,dtr_nc,vtr_nc,eta_nc,jbs_nc,jex_nc,rt,rn,&
-         vpol,vpar,vprp!,nrd1,nrd2
+         rkev,nsa_neq,nva_neq,nsab_nsa,neqmax,nsamax,nrmax,mdltr_nc,   &
+         rhog,rhom,rmnrho,htr,eta,dtr_nc,vtr_nc,eta_nc,etam_nc,        &
+         jbs_nc,jex_nc,rt,rn,vpol,vpar,vprp!,nrd1,nrd2
     USE trncls, ONLY: tr_nclass, tr_ncls_allocate,       &
          chi_ncp,chi_nct,d_ncp,d_nct,gfls,qfls,fls_tot,  &
          vebs,qebs,dia_gdnc,dia_gvnc,cjbs_p,cjbs_t,      &
@@ -100,6 +100,9 @@ CONTAINS
 
 !       nrd1(0:nrmax) = dia_gdnc(1,0:nrmax)
 !       nrd2(0:nrmax) = dia_gvnc(1,0:nrmax)
+
+       ! store for caluculation of magnetic diffusion coefficient
+       etam_nc(1:nrmax) = eta_ncls(1:nrmax)
 
        ! *** extrapolate center value ***                            
        eta_nc(0) = FCTR(rhom(1),rhom(2),eta_ncls(1),eta_ncls(2))

@@ -614,7 +614,7 @@ CONTAINS
 
     IF(MOD(mdlijq,2)==1)THEN ! jtot --> dpdrho                          
        dpdrho(0:nrmax)  = 0.d0
-       rdpvrho(0:nrmax) = 0.d0
+       rdpvrho(0:nrmax) = 0.d0 ! not defined at nr=0 in this case
        DO nr = 1, nrmax
           dr      = rhog(nr)-rhog(nr-1)
           factor0p=rmu0*abb1rho(nr)*dvrho(nr)*jtot(nr)/ttrho(nr)**2
@@ -641,8 +641,8 @@ CONTAINS
        END IF
 
        ! dpdrho --> qp                                                 
-       qp(1:nrmax) = ttrho(1:nrmax)*arrho(1:nrmax)*dvrho(1:nrmax)    &
-                    /(4.d0*pi**2 * dpdrho(1:nrmax))
+       qp(1:nrmax) = ttrho(1:nrmax)*arrho(1:nrmax) &
+                    /(4.d0*pi**2 * rdpvrho(1:nrmax))
 !       qp(1:nrmax) = ttrho(1:nrmax)*arrho(1:nrmax) &
 !                    /(4.d0*pi**2 * rdpvrho(1:nrmax))
        qp(0)       = FCTR(rhog(1),rhog(2),qp(1),qp(2))

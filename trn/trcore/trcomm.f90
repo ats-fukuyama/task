@@ -187,6 +187,7 @@ MODULE trcomm
        joh   ,   &! (parallel) ohmic current density [A/m^2]
        jtor  ,   &! toroidal current density [A/m^2]
        eta_nc,   &! neoclassical resistivity [ohm m]
+       etam_nc,  &! neoclassical resistivity (half grid) [ohm m]
        jbs_nc,   &! bootstrap current density by neoclassical effect [A/m^2]
        jex_nc,   &! externally driven current density (NCLASS) [A/m^2]
        jcd_nb,   &! current density driven by NBI [A/m^2]
@@ -514,6 +515,7 @@ CONTAINS
           ALLOCATE(joh(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(jtor(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(eta_nc(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(etam_nc(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(jbs_nc(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(jex_nc(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(jcd_nb(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
@@ -677,6 +679,7 @@ CONTAINS
     IF(ALLOCATED(joh)) DEALLOCATE(joh)
     IF(ALLOCATED(jtor)) DEALLOCATE(jtor)
     IF(ALLOCATED(eta_nc)) DEALLOCATE(eta_nc)
+    IF(ALLOCATED(etam_nc)) DEALLOCATE(etam_nc)
     IF(ALLOCATED(jbs_nc)) DEALLOCATE(jbs_nc)
     IF(ALLOCATED(jex_nc)) DEALLOCATE(jex_nc)
     IF(ALLOCATED(jcd_nb)) DEALLOCATE(jcd_nb)
