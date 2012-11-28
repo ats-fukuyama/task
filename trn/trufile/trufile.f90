@@ -268,12 +268,11 @@ CONTAINS
 
     IF(idzeff(1))THEN
        kfid = 'ZEFFR'   ! --> zeffru
-       CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom, &
+       CALL tr_uf2d(kfid,tmu,zeffru,ntxmax,nrmax,rhog,rhom, &
                                 mdlxp,ufid_bin,id_mesh,id_deriv,errout,ierr)
        IF(ierr == 0)THEN
           CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
        END IF
-       zeffru(1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
 
     ELSE IF(idzeff(2))THEN
        DO ntx = 1, ntxmax
@@ -293,31 +292,27 @@ CONTAINS
     ! **************************************************************
 
     kfid = 'Q'   ! --> qpu
-    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+    CALL tr_uf2d(kfid,tmu,qpu,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
                  id_mesh,id_deriv,errout,ierr)
     IF(ierr == 0)THEN
        CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
     END IF
-    qpu(1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
-
 
     errout = 1 ! following variables is not essential
 
     kfid = 'BPOL'   ! --> bpu
-    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+    CALL tr_uf2d(kfid,tmu,bpu,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
                  id_mesh,id_deriv,errout,ierr)
     IF(ierr == 0)THEN
        CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
     END IF
-    bpu(1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
 
     kfid = 'VROT'   ! --> wrotu
-    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+    CALL tr_uf2d(kfid,tmu,wrotu,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
                  id_mesh,id_deriv,errout,ierr)
     IF(ierr == 0)THEN
        CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
     END IF
-    wrotu(1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
 
     ! associated values
     DO nsu = 1, nsum
@@ -613,61 +608,53 @@ CONTAINS
     ! ***  Geometric factors  ***
 
     kfid = 'RMAJOR'   ! --> rmjrhou
-    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+    CALL tr_uf2d(kfid,tmu,rmjrhou,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
                  id_mesh,id_deriv,errout,ierr)
     IF(ierr == 0)THEN
        CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
     END IF
-    rmjrhou(1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
 
     kfid = 'RMINOR'   ! --> rmnrhou
-    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+    CALL tr_uf2d(kfid,tmu,rmnrhou,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
                  id_mesh,id_deriv,errout,ierr)
     IF(ierr == 0)THEN
        CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
     END IF
-    rmnrhou(1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
 
     kfid = 'KAPPAR'   ! --> rkprhou
-    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+    CALL tr_uf2d(kfid,tmu,rkprhou,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
                  id_mesh,id_deriv,errout,ierr)
     IF(ierr == 0)THEN
        CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
     END IF
-    rkprhou(1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
 
     kfid = 'GRHO1'   ! --> ar1rhou
-    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+    CALL tr_uf2d(kfid,tmu,ar1rhou,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
                  id_mesh,id_deriv,errout,ierr)
     IF(ierr == 0)THEN
        CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
     END IF
-    ar1rhou(1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
 
     kfid = 'GRHO2'   ! --> ar2rhou
-    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+    CALL tr_uf2d(kfid,tmu,ar2rhou,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
                  id_mesh,id_deriv,errout,ierr)
     IF(ierr == 0)THEN
        CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
     END IF
-    ar2rhou(1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
 
     kfid = 'VOLUME'   ! --> pvolu
-    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+    CALL tr_uf2d(kfid,tmu,pvolu,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
                  id_mesh,id_deriv,errout,ierr)
     IF(ierr == 0)THEN
        CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
     END IF
-    pvolu(1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
 
     kfid = 'SURF'   ! --> psuru
-    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+    CALL tr_uf2d(kfid,tmu,psuru,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
                  id_mesh,id_deriv,errout,ierr)
     IF(ierr == 0)THEN
        CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
     END IF
-    psuru(1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
-
 
     ! asscociated values
     ! d V/d rho
