@@ -79,6 +79,7 @@ CONTAINS
              ! off-diagonal term of density gradient
              !                          in energy transport equation.
              IF(nva_neq(neq)==3 .AND. neq == neq1)THEN
+!             IF(nva_neq(neq)==3 .AND. nva_neq(neq1)==3)THEN
                 IF(mdltr_prv /= 0)THEN
                    ! only for energy transport (i.e. for chi)
                    !   in common with Pereverzev method routine.
@@ -247,7 +248,7 @@ CONTAINS
              DO neq1 = 1, neqmax
                 IF(id_neq(neq1)/=0)THEN
                    neqr = neqr_neq(neq1)
-
+                   
                    rhv(nvrm+neqr) = rhv(nvrm+neqr)         &
                         - elmtx_ofd(neq1       ,neq       )*xv(nvm + neq) &
                         - elmtx_ofd(neq1       ,neq+neqmax)*xv(nvp + neq)
@@ -335,7 +336,7 @@ CONTAINS
        coef2 = 0.d0
        cjexp = 0.d0
        cjexm = 0.d0
-    ELSE IF(MOD((neq-1),3) == 0)THEN ! temperature
+    ELSE IF(MOD((neq-1),3) == 0)THEN ! energy
        dvdrp = dvrho(nr)
        dvdrm = dvrho(nr-1)
        gm2p  = dvrho(nr-1)*ar2rho(nr-1) + dvrho(nr  )*ar2rho(nr  )

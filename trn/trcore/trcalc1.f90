@@ -112,7 +112,7 @@ CONTAINS
        !       arrho(nr)   = 1.d0/rr**2 * (1+1.5d0*epsrho(nr)**2)
        arrho(nr)   = 1.d0/rmjrho(nr)**2                    ! const
 
-       abrho(nr) = ar2rho(nr) * arrho(nr)
+       abrho(nr)   = ar2rho(nr) * arrho(nr)
        abvrho(nr)  = dvrho(nr)**2 * abrho(nr)
     END DO
     

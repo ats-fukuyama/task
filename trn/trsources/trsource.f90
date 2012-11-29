@@ -18,6 +18,7 @@ CONTAINS
     REAL(rkind)    :: time
     INTEGER(ikind) :: ierr
 
+    ! initialization
     poh(1:2,0:nrmax)  = 0.d0
     pnb(1:2,0:nrmax)  = 0.d0
     pec(1:2,0:nrmax)  = 0.d0
@@ -125,7 +126,7 @@ CONTAINS
                                 + pibw(1,0:nrmax) &
                                 + pnf(1,0:nrmax)  &
                                 - prl(1,0:nrmax))/(rkev*1.d20)
-                                
+
           ELSE IF(nsa == 2)THEN ! energy, ion
              str(neq,0:nrmax) = ( pnb(2,0:nrmax)  &
                                 + pec(2,0:nrmax)  &
@@ -134,12 +135,10 @@ CONTAINS
                                 + pibw(2,0:nrmax) &
                                 + pnf(2,0:nrmax)  &
                                 - prl(2,0:nrmax))/(rkev*1.d20)
-
           END IF
        END SELECT
     END DO
 
-!    str = 0.d0
 !    str(2:neqmax,0:nrmax) = str_simple(2:neqmax,0:nrmax)*1.d6
 
     RETURN

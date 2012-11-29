@@ -276,6 +276,7 @@ CONTAINS
     INTEGER(ikind),INTENT(OUT) :: ierr
     INTEGER(ikind),SAVE :: nrmax_save=0
 
+    ierr = 0
     IF(nrmax /= nrmax_save)THEN
 
        IF(nrmax_save /= 0 ) CALL tr_gr_exp_dealloc
@@ -319,6 +320,7 @@ CONTAINS
     INTEGER(ikind),INTENT(OUT) :: ierr
     INTEGER(ikind),SAVE :: ntalloc_save = 0
 
+    ierr = 0
     IF(ntalloc_save == 0)THEN
        DO
           ALLOCATE(gtu(1:ntxmax),STAT=ierr); IF(ierr /= 0) EXIT

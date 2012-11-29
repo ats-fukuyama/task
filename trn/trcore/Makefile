@@ -14,7 +14,6 @@ MODINCLUDE=-I $(BPSDDIR)/mod -I $(TASKDIR)/plx/mod -I $(TASKDIR)/lib/mod \
 	   -I $(TASKDIR)/eq/mod -I ../trgraphics/mod -I ../trmodels/mod  \
 	   -I ../trsources/mod  -I ../trufile/mod -I $(MOD) 
 
-
 TRLIBS=	../trmodels/trmodelslib.a \
 	../trsources/trsourceslib.a \
 	../trgraphics/trgraphicslib.a \
@@ -25,12 +24,12 @@ TRLIBS=	../trmodels/trmodelslib.a \
         $(TASKDIR)/lib/mdslib.a \
 	$(BPSDDIR)/bpsdlib.a
 
-
 SRCS = trcomm.f90 trbpsd.f90  trlib.f90   trcalv.f90   trcalc2.f90 \
-       trexec.f90 trstep.f90  trcalc1.f90 trresult.f90 trloop.f90 \
+       trexec.f90 trstep.f90  trcalc1.f90 trresult.f90 trloop.f90  \
        trinit.f90 trsetup.f90 trmenu.f90  trmain.f90 
 
 OBJS = $(SRCS:.f90=.o)
+
 
 .f90.o:
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -38,6 +37,7 @@ OBJS = $(SRCS:.f90=.o)
 
 ../trn: $(OBJS) $(TRLIBS)
 	$(FCFREE) $(FFLAGS) -o ../trn $(OBJS) $(TRLIBS) $(FLIBS)
+
 
 $(TASKDIR)/plx/pllib.a:
 	(cd $(TASKDIR)/plx; make pllib.a)

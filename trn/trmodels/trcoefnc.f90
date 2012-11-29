@@ -88,12 +88,10 @@ CONTAINS
                          *0.5d0*(rt(nsa,nr)+rt(nsa,nr-1))*rkev)      &
                       + d_nc(nr)*(rt(nsa,nr)-rt(nsa,nr-1))/drhog(nr) &
                         /(0.5d0*(rt(nsa,nr)+rt(nsa,nr-1)))
-!                nrd1(nr) = v_nc(nr)
 !                v_nc(nr) = qebs(nsab,nr)
 !                nrd2(nr) = v_nc(nr)
              END DO
              dtr_nc(neq,neq,1:nrmax) = d_nc(1:nrmax)
-             ! interim way of substitution V_Es = V_Ks + (3/2)V_s
              vtr_nc(neq,neq,1:nrmax) = v_nc(1:nrmax)
           END IF
        END DO

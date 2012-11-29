@@ -237,7 +237,8 @@ CONTAINS
 
     SELECT CASE(mdlni)
     CASE(1) ! complete n_i and n_imp from Zeff, n_e (and n_bulk)
-       IF(idzeff(1).EQV..FALSE. .AND. idzeff(2).EQV..FALSE.)THEN
+       DO
+          IF(idzeff(1).EQV..TRUE. .OR. idzeff(2).EQV..TRUE.) EXIT
           WRITE(6,*) 'XX tr_uf_nicheck: Lack of ZEFF data.'
           IF(id_ion)THEN
              mdlni = 2
@@ -252,7 +253,8 @@ CONTAINS
              mdlni = 9
              WRITE(6,*) '## "MDLNI" is reset to MDLNI= ',mdlni
           END IF
-       END IF
+          EXIT
+       END DO
 
     CASE(2) ! complete n_imp and Zeff from n_e, n_i (and n_bulk)
        IF(id_ion .EQV. .FALSE.)THEN

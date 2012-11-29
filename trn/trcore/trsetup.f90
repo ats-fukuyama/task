@@ -193,8 +193,8 @@ CONTAINS
 
     ! magnetic diffusion equation
     neq = 1
-    id_neq(neq) = 2
-!    id_neq(neq) = 0
+!    id_neq(neq) = 2
+    id_neq(neq) = 0
 
     DO neq = 2, neqmax
        nsa = nsa_neq(neq)
@@ -305,10 +305,10 @@ CONTAINS
     CHARACTER(50)  :: fmt_table
     INTEGER(ikind) :: neq,neqr,nsa,ns,nva,nsab
 
-    fmt_table = '(1X,I3,I4,I5,I5,A6,I4)'
+    fmt_table = '(1X,I3,I5,I4,I4,A6,I5)'
     WRITE(6,*) ! spacing
     WRITE(6,*) '# Variables conversion table'
-    WRITE(6,*) 'NEQ NEQR NSA NSAB KIDNS NVA'
+    WRITE(6,*) 'NEQ NEQR NVA NSA KIDNS NSAB'
 
     neqr = 0
     nva  = 0
@@ -326,7 +326,7 @@ CONTAINS
           kid  = kidns(ns)
        END IF
 
-       WRITE(6,fmt_table) neq,neqr,nsa,nsab,kid,nva
+       WRITE(6,fmt_table) neq,neqr,nva,nsa,kid,nsab
     END DO
     WRITE(6,*) '---------------------------'
     WRITE(6,*) ! spacing

@@ -40,7 +40,6 @@ CONTAINS
 
     ! *** ctr ***
     CALL tr_calc2_energy_ex
-    ! call tr_calc2_charge_ex
 
 
     ! *** htr *** this section should be in the trsource directory ??
@@ -50,11 +49,11 @@ CONTAINS
               -( jcd_nb(0:nrmax) + jcd_ec(0:nrmax)     &
                + jcd_ic(0:nrmax) + jcd_lh(0:nrmax))
 
-    ! ***
+    ! ***    
 
     ! *** str ***
     CALL tr_source2
-    
+
 
     ! substitution
     DO nr=1,nrmax
@@ -69,9 +68,8 @@ CONTAINS
                =ctr_ex(2:neqmax,neq,nr)
        END DO
     END DO
-    
-!    dtr=0.01d0*dtr
-!    vtr=0.d0
+
+
     RETURN
   END SUBROUTINE tr_calc2
 
@@ -148,7 +146,7 @@ CONTAINS
        DO neq = 1, neqmax
           IF(id_neq(neq)==0) CYCLE
           IF(nva_neq(neq) == 3)THEN ! only for energy equation
-             DO neq1 = neq, neqmax
+             DO neq1 = 1, neqmax
                 IF(id_neq(neq1)==0) CYCLE
                 IF(nva_neq(neq1) == 3 .AND. neq /= neq1)THEN
                    nsa  = nsa_neq(neq)
@@ -185,12 +183,5 @@ CONTAINS
 
     RETURN
   END SUBROUTINE tr_calc2_energy_ex
-
-
-  SUBROUTINE tr_calc2_energy_ex_check
-    USE trcomm, ONLY: ctr_ex,rn,rt,pz,pa
-
-    RETURN
-  END SUBROUTINE tr_calc2_energy_ex_check
 
 END MODULE trcalc2
