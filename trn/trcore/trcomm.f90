@@ -926,19 +926,19 @@ CONTAINS
     INTEGER(ikind),SAVE:: lmaxtr_save=0
     INTEGER(ikind)::      ierr
 
+    ierr = 0
     IF(lmaxtr /= lmaxtr_save) THEN
-
        IF(lmaxtr_save /= 0) CALL tr_nit_deallocate
 
-    nit_allocation: DO
-       ALLOCATE(error_it(lmaxtr),STAT=ierr); IF(ierr /= 0) EXIT
+       nit_allocation: DO
+          ALLOCATE(error_it(lmaxtr),STAT=ierr); IF(ierr /= 0) EXIT
 
-       lmaxtr_save = lmaxtr
-       RETURN
-    END DO nit_allocation
+          lmaxtr_save = lmaxtr
+          RETURN
+       END DO nit_allocation
 
-    WRITE(6,*) 'XX tr_nit_allocate: allocation error: ierr=',ierr
-    STOP
+       WRITE(6,*) 'XX tr_nit_allocate: allocation error: ierr=',ierr
+       STOP
 
     END IF
     RETURN

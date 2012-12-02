@@ -128,7 +128,6 @@ CONTAINS
 
     INTEGER(ikind) :: nr,neq,nv,nsa,nva
 
-    rp_tot(0:nrmax) = 0.d0
     DO nr = 0, nrmax
        DO neq = 1, neqmax
           nv = nr*neqmax + neq
@@ -147,11 +146,16 @@ CONTAINS
                    rt(nsa,nr) = xv(nv)/rn(nsa,nr)
                 END IF
              END SELECT
-
-             ! the pressure of each species
-             rp(nsa,nr) = rn(nsa,nr)*1.d20 * rt(nsa,nr)*rkev
-             rp_tot(nr) = rp_tot(nr) + rp(nsa,nr)
           END IF
+       END DO
+    END DO
+
+    rp_tot(0:nrmax) = 0.d0
+    DO nr = 0, nrmax
+       DO nsa = 1, nsamax
+          ! the pressure of each species
+          rp(nsa,nr) = rn(nsa,nr)*1.d20 * rt(nsa,nr)*rkev
+          rp_tot(nr) = rp_tot(nr) + rp(nsa,nr)
        END DO
     END DO
 

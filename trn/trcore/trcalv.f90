@@ -86,7 +86,7 @@ CONTAINS
     ! initilization (zero at NR = 0) ----
     rn_i(0:nrmax)    = 0.d0
 
-    rp_d(1:nsamax,0:nrmax)   = 0.d0
+    rp_d(1:nsamax,0:nrmax) = 0.d0
     rp_totd(0:nrmax) = 0.d0
     rn_ed(0:nrmax)  = 0.d0
     rn_ecl(0:nrmax) = 0.d0
@@ -141,7 +141,7 @@ CONTAINS
        qp_d(nr) = (qp(nr)-qp(nr-1)) / dr
 
        ! magnetic shear
-       mshear(nr) = qp_d(nr) * rmnrho(nr)/(0.5d0*(qp(nr)+qp(nr-1)))
+       mshear(nr) = qp_d(nr) * (rmnrho(nr)+rmnrho(nr-1))/((qp(nr)+qp(nr-1)))
 
        ! magnetic curvature
        mcurv = 0.d0
@@ -429,7 +429,6 @@ CONTAINS
          COULOG=14.9D0-0.5D0*LOG(ANEL)+LOG(TL)
       ELSE
          IF(NS1.EQ.1.OR.NS2.EQ.1) THEN
-!            write(6,*) ANEL,TL
             COULOG=15.2D0-0.5D0*LOG(ANEL)+LOG(TL)
          ELSE
             COULOG=17.3D0-0.5D0*LOG(ANEL)+1.5D0*LOG(TL)

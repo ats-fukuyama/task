@@ -1,7 +1,7 @@
 MODULE trcdbm
 
   PRIVATE
-  PUBLIC:: tr_cdbm
+  PUBLIC tr_cdbm
 
 CONTAINS
 

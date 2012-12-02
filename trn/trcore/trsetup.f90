@@ -193,8 +193,8 @@ CONTAINS
 
     ! magnetic diffusion equation
     neq = 1
-!    id_neq(neq) = 2
-    id_neq(neq) = 0
+    id_neq(neq) = 2
+!    id_neq(neq) = 0
 
     DO neq = 2, neqmax
        nsa = nsa_neq(neq)
