@@ -238,7 +238,8 @@ CONTAINS
     SELECT CASE(mdlni)
     CASE(1) ! complete n_i and n_imp from Zeff, n_e (and n_bulk)
        DO
-          IF(idzeff(1).EQV..TRUE. .OR. idzeff(2).EQV..TRUE.) EXIT
+          IF(idzeff(1).EQV..TRUE.) EXIT
+          IF(idzeff(2).EQV..TRUE.) EXIT
           WRITE(6,*) 'XX tr_uf_nicheck: Lack of ZEFF data.'
           IF(id_ion)THEN
              mdlni = 2
@@ -330,10 +331,10 @@ CONTAINS
     INTEGER(ikind),               INTENT(IN)  :: ns_ion,ns_imp,id
     REAL(rkind),DIMENSION(1:nsum),INTENT(IN)  :: pzc,pzfc
     REAL(rkind),DIMENSION(1:ntum,1:nrum),       INTENT(INOUT) :: zeffrc
-    REAL(rkind),DIMENSION(1:nsum,1:ntum,1:nrum),INTENT(IN)    :: rnfc
+    REAL(rkind),DIMENSION(1:nsum,1:ntum,1:nrum),INTENT(INOUT) :: rnfc
     REAL(rkind),DIMENSION(1:nsum,1:ntum,1:nrum),INTENT(INOUT) :: rnc
 
-    INTEGER(ikind) :: nsi, ntx
+    INTEGER(ikind) :: nsi,nsu,ntx,nr
 
     sumzni(1:ntum,1:nrum)  = 0.d0
 
@@ -417,10 +418,17 @@ CONTAINS
 
     CASE(9) ! n_e --> n_i, Zeff (n_e = n_i)
        rnc(ns_ion,1:ntxmax,1:nrmax+1) = rnc(1,1:ntxmax,1:nrmax+1)
-       write(6,*) rnc(ns_ion,1,1:nrmax+1)
        zeffrc(1:ntxmax,1:nrmax+1)     = pzc(ns_ion)
 
     END SELECT
+
+    ! correction for negative density
+    FORALL(nsu=1:nsum,ntx=1:ntum,nr=1:nrmax+1,rnc(nsu,ntx,nr) < 0.d0)
+       rnc(nsu,ntx,nr) = 1.d-6
+    END FORALL
+    FORALL(nsu=1:nsum,ntx=1:ntum,nr=1:nrmax+1,rnfc(nsu,ntx,nr) < 0.d0)
+       rnfc(nsu,ntx,nr) = 1.d-9
+    END FORALL
 
     ! check for magnitude of correction
     DO nsi = 2, nsum ! ion only: SUM_i(Z_i * n_i)

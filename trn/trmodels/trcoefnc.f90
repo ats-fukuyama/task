@@ -51,39 +51,35 @@ CONTAINS
        DO neq = 1, neqmax
           nsa  = nsa_neq(neq)
           nva  = nva_neq(neq)
-          IF(nsa == 0)THEN
-             CYCLE
-          ELSE
-             nsab = nsab_nsa(nsa)
-          END IF
-          IF(nsab == 0) CYCLE
-         
+          IF(nsa == 0) CYCLE
+          IF(nsab_nsa(nsa) == 0) CYCLE ! only for bulk species
+
           IF(nva == 1)THEN! particle
              DO nk = 1, 5
-                fls_tot(nva,nsab,1:nrmax) = fls_tot(nva,nsab,1:nrmax) &
-                                          + gfls(nk,nsab,1:nrmax)
+                fls_tot(nva,nsa,1:nrmax) = fls_tot(nva,nsa,1:nrmax) &
+                                            + gfls(nk,nsa,1:nrmax)
              END DO
              ! on half grid
-             dtr_nc(neq,neq,1:nrmax) = dia_gdnc(nsab,1:nrmax)
-             vtr_nc(neq,neq,1:nrmax) = dia_gvnc(nsab,1:nrmax)
+             dtr_nc(neq,neq,1:nrmax) = dia_gdnc(nsa,1:nrmax)
+             vtr_nc(neq,neq,1:nrmax) = dia_gvnc(nsa,1:nrmax)
 
           ELSE IF(nva == 2)THEN! velocity
-!             dtr_nc(neq,neq,0:nrmax) = dia_dnc(nsab,0:nrmax)
-!             vtr_nc(neq,neq,0:nrmax) = dia_vnc(nsab,0:nrmax)
+!             dtr_nc(neq,neq,0:nrmax) = dia_dnc(nsa,0:nrmax)
+!             vtr_nc(neq,neq,0:nrmax) = dia_vnc(nsa,0:nrmax)
 
           ELSE IF(nva == 3)THEN! energy
              DO nk = 1, 5
-                fls_tot(nva,nsab,1:nrmax) = fls_tot(nva,nsab,1:nrmax) &
-                                          + qfls(nk,nsab,1:nrmax)
+                fls_tot(nva,nsa,1:nrmax) = fls_tot(nva,nsa,1:nrmax) &
+                                            + qfls(nk,nsa,1:nrmax)
              END DO
 
              DO nr = 1, nrmax
 !                drhog(nr) = rmnrho(nr) - rmnrho(nr-1)
                 drhog(nr) = rhog(nr) - rhog(nr-1)
-                d_nc(nr)  = chi_nct(nsab,nsab,nr) + chi_ncp(nsab,nsab,nr)
+                d_nc(nr)  = chi_nct(nsa,nsa,nr) + chi_ncp(nsa,nsa,nr)
 
                 v_nc(nr) &
-                     = fls_tot(nva,nsab,nr)                          &
+                     = fls_tot(nva,nsa,nr)                          &
                         /(0.5d0*(rn(nsa,nr)+rn(nsa,nr-1))            &
                          *0.5d0*(rt(nsa,nr)+rt(nsa,nr-1))*rkev)      &
                       + d_nc(nr)*(rt(nsa,nr)-rt(nsa,nr-1))/drhog(nr) &

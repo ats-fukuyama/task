@@ -60,7 +60,7 @@ CONTAINS
 
     CALL tr_setup_field
 
-! +++ calculate global quantities +++
+! +++ preliminarily calculation of physical quantities +++
     CALL tr_calc_variables
     CALL tr_source1
     CALL tr_source2
@@ -193,8 +193,8 @@ CONTAINS
 
     ! magnetic diffusion equation
     neq = 1
-    id_neq(neq) = 2
-!    id_neq(neq) = 0
+!    id_neq(neq) = 2
+    id_neq(neq) = 0
 
     DO neq = 2, neqmax
        nsa = nsa_neq(neq)
@@ -579,7 +579,7 @@ CONTAINS
        END IF
 
     ELSE IF(mdluf > 0)THEN
-       CALL tr_ufin_field(time,1,ierr)
+       CALL tr_ufin_field(time,1,mdlijq,ierr)
 
     END IF
 
@@ -638,6 +638,10 @@ CONTAINS
           dpdrho(0:nrmax)  = fact*dpdrho(0:nrmax)
           rdpvrho(0:nrmax) = fact*rdpvrho(0:nrmax)
           jtot(0:nrmax)    = fact*jtot(0:nrmax)
+
+       ELSE IF(mdlijq==3)THEN
+          rip = dpdrho(nrmax)*dvrho(nrmax)*abrho(nrmax) &
+                /(2.d0*pi*rmu0*1.d6)
        END IF
 
        ! dpdrho --> qp                                                 
@@ -661,6 +665,9 @@ CONTAINS
                              
           dpdrho(0:nrmax) = fact*dpdrho(0:nrmax)
           qp(0:nrmax)     = qp(0:nrmax) / fact
+       ELSE IF(mdlijq==4)THEN
+          rip = dpdrho(nrmax)*dvrho(nrmax)*abrho(nrmax) &
+                /(2.d0*pi*rmu0*1.d6)
        END IF
 
        rdpvrho(0:nrmax) = ttrho(0:nrmax)*arrho(0:nrmax) &

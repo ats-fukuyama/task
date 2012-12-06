@@ -67,9 +67,9 @@ CONTAINS
 !
 ! ------------------------------------------------------------------------
   SUBROUTINE Pereverzev_method
-    USE trcomm, ONLY: ikind,rkind,nrmax,nsamax,idnsa,ph0,rg,rhog,   &
-         mdltr_prv,dprv1,dprv2,dtr,vtr,nsa_neq,dtr_tb,vtr_tb,       &
-         dtr_prv,vtr_prv,cdtrn,cdtru,cdtrt,rn,ru,rt,                &
+    USE trcomm, ONLY: ikind,rkind,nrmax,nsamax,idnsa,ph0,rg,rhog,      &
+         mdltr_prv,dprv1,dprv2,rhog_prv,dtr,vtr,nsa_neq,dtr_tb,vtr_tb, &
+         dtr_prv,vtr_prv,cdtrn,cdtru,cdtrt,rn,ru,rt,                   &
          rn_prev,ru_prev,rt_prev,ar1rho,ar2rho,dvrho
     IMPLICIT NONE
     REAL(rkind) :: &
@@ -78,6 +78,10 @@ CONTAINS
     INTEGER(ikind) :: nr,nsa
 
     DO nr = 1, nrmax
+
+       IF(mdltr_prv > 10)THEN
+          IF(rhog(nr) < rhog_prv) CYCLE
+       END IF
 
        dvdrp = dvrho(nr  )
        dvdrm = dvrho(nr-1)
@@ -111,13 +115,13 @@ CONTAINS
              lt = drnrt/(rhog(nr)-rhog(nr-1))
           END IF
           SELECT CASE(mdltr_prv)
-          CASE(1)
+          CASE(1,11)
              dtr_new = dprv1
-          CASE(2)
+          CASE(2,12)
              dtr_new = dprv2*dtr_tb(3*nsa,3*nsa,nr)
-          CASE(3)
+          CASE(3,13)
              dtr_new = dprv2*dtr_tb(3*nsa,3*nsa,nr)+dprv1
-          CASE(4)
+          CASE(4,14)
              dtr_new = dprv1 + dprv2*(0.5d0*(rhog(nr)+rhog(nr-1)))**3
 !!$          CASE(4)
 !!$             IF(nr==1)THEN

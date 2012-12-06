@@ -88,11 +88,7 @@ CONTAINS
 
     ! registivity term (half grid)
     DO nr = 1, nrmax
-!       IF(mdltr_nc == 1)THEN
-!          etam = etam_nc(nr)
-!       ELSE
-          etam   = 0.5d0*(eta(nr)+eta(nr-1))
-!       END IF
+       etam   = 0.5d0*(eta(nr)+eta(nr-1))
        ttrhom = 0.5d0*(ttrho(nr)+ttrho(nr-1))
        arrhom = 0.5d0*(arrho(nr)+arrho(nr-1))
        dvrhom = 0.5d0*(dvrho(nr)+dvrho(nr-1))

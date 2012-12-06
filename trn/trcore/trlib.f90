@@ -43,6 +43,15 @@ CONTAINS
 
 ! **************************************************************************
 
+  SUBROUTINE deriv_stg4p
+
+    
+
+    RETURN
+  END SUBROUTINE deriv_stg4p
+
+! **************************************************************************
+
   SUBROUTINE mesh_convert_mtog(datam,datag,nrmax)
 !----------------------------------------------------------------------------
 !          *** convert half mesh to origin + grid mesh ***

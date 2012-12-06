@@ -36,7 +36,8 @@ CONTAINS
            lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
            mdluf,mdlxp,mdlni,mdler,modelg,nteqit, &
            time_slc,time_snap,mdlugt, &
-           dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
+           dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,rhog_prv, &
+           cdtrn,cdtru,cdtrt, &
            ntstep,ngtmax,ngtstp,rips,ripe,profj1,profj2, &
            pnb_tot,pnb_eng,pnb_rw,pnb_r0, &
            ufid_bin,kuf_dir,kuf_dev,kuf_dcg, &
@@ -213,6 +214,7 @@ CONTAINS
 !       phs       : heating power density [MW/m^3] at r = a
 !       dprv1     : enhanced diffusion coefficient
 !       dprv2     : diffusion enhancement factor
+!       rhog_prv  : enhanced diffusion region (rhog(nr) > rhog_prv)
 !       cdtrn     : factor for particle diffusivity
 !       cdtru     : factor for toroidal viscosity
 !       cdtrt     : factor for thermal diffusivity
@@ -225,8 +227,9 @@ CONTAINS
     ltcr  = 1.D0
     ph0   = 0.1D0
     phs   = 0.1D0
-    dprv1 = 1.D0
-    dprv2 = 1.D0
+    dprv1     = 1.D0
+    dprv2     = 1.D0
+    rhog_prv  = 0.D0
     cdtrn = 1.D0
     cdtru = 1.D0
     cdtrt = 1.D0
@@ -385,7 +388,7 @@ CONTAINS
            nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
            ntstep,ngtmax,ngtstp, &
            lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv,mdler,&
-           dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
+           dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,rhog_prv,cdtrn,cdtru,cdtrt, &
            profj1,profj2,rips,ripe,nteqit,time_slc,time_snap,mdlugt,mdlni, &
            pnb_tot,pnb_eng,pnb_rw,pnb_r0, &
            ufid_bin,mdluf,mdlxp,kuf_dir,kuf_dev,kuf_dcg, &
@@ -409,7 +412,8 @@ CONTAINS
          nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
          lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
          mdler,nteqit, &
-         dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
+         dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,rhog_prv, &
+         cdtrn,cdtru,cdtrt, &
          ntstep,ngtmax,ngtstp, &
          rips,ripe, &
          pnb_tot,pnb_eng,pnb_rw,pnb_r0
@@ -463,13 +467,15 @@ CONTAINS
 
   SUBROUTINE tr_check_parm(ierr)
 
-    USE trcomm, ONLY : ikind,nrmax,nsamax,mdltr_nc,mdltr_tb, &
+    USE trcomm, ONLY : ikind,nrum,nrmax,nsamax,mdltr_nc,mdltr_tb, &
          mdluf,mdlgmt,mdlsrc,mdlglb
     IMPLICIT NONE
     INTEGER(ikind), INTENT(OUT):: IERR
     CHARACTER(LEN=32) :: fmt1
 
     IERR=0
+
+    ! ---------------------------------------------------------------------
 
     IF(nrmax < 1) THEN
        WRITE(6,*) 'XX tr_check_parm: input error : illegal nrmax'
@@ -490,6 +496,8 @@ CONTAINS
        IERR=1
     ENDIF
 
+    ! ---------------------------------------------------------------------
+
     SELECT CASE(mdluf)
     CASE(0)
        IF(mdlgmt==6 .OR. mdlgmt==7 .OR. mdlsrc==6 .OR. mdlsrc==7 .OR. &
@@ -507,6 +515,18 @@ CONTAINS
        fmt1='(1X,3(A10,I2))'
        WRITE(6,fmt1) 'mdlglb= ',mdlglb,'mdlgmt= ',mdlgmt,'mdlsrc= ',mdlsrc
     END IF
+
+    ! ---------------------------------------------------------------------
+
+    IF(mdluf > 0)THEN
+       IF(nrmax+1 > nrum)THEN
+          WRITE(6,*) 'XX tr_check_parm: input error: radial grid number must be less than "NRUM".'
+          fmt1='(1X,2(A10,I4))'
+          WRITE(6,*) 'NRMAX+1 = ',nrmax+1, 'NRUM = ',nrum
+       END IF
+    END IF
+
+    ! ---------------------------------------------------------------------
 
     RETURN
   END SUBROUTINE tr_check_parm

@@ -67,7 +67,9 @@ CONTAINS
        rhoni = ai_ave(nr) * amp * 0.5d0*(rn_i(nr)+rn_i(nr-1))*1.d20
 
        abb1rhom = 0.5d0*(abb1rho(nr-1) + abb1rho(nr))
+!       abb1rhom = BB
        rmjrhom  = 0.5d0*(rmjrho(nr-1)  +  rmjrho(nr))
+!       rmjrhom = RR
        rmnrhom  = 0.5d0*(rmnrho(nr-1)  +  rmnrho(nr))
        rkprhom  = 0.5d0*(rkprho(nr-1)  +  rkprho(nr))
        qpm      = 0.5d0*(qp(nr-1)      +      qp(nr))
@@ -94,6 +96,6 @@ CONTAINS
     END DO
 
     RETURN
-
   END SUBROUTINE tr_cdbm
+
 END MODULE trcdbm

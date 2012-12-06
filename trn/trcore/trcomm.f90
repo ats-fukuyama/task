@@ -70,6 +70,7 @@ MODULE trcomm
                                !  at r = a in simple model [MW/m^3]
   REAL(rkind)::    dprv1       ! enhanced diffusion coefficient in Prv method
   REAL(rkind)::    dprv2       ! diffusion enhancement factor in Prv method
+  REAL(rkind)::    rhog_prv    ! enhanced diffusion region in Prv method
   REAL(rkind)::    cdtrn       ! factor for particle diffusion
   REAL(rkind)::    cdtru       ! factor for toroidal flow viscosity
   REAL(rkind)::    cdtrt       ! factor for thermal diffusivity

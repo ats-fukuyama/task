@@ -81,6 +81,33 @@ CONTAINS
 
 ! **********************************************************************
 
+! ----------------------------------------------------------------------
+! Substitution routines of experimental data into calculation variables
+!
+!   - tr_ufin_global      : global variables (RR,RA,BB, ...etc.)
+!   - tr_ufin_density     : density profiles including fast ions
+!   - tr_ufin_rotation    : toroidal velocity
+!   - tr_ufin_temperature : temperature profiles
+!   - tr_ufin_field       : quantities associated with poloidal flux
+!   - tr_ufin_source      : source profile (density and energy)
+!   - tr_ufin_geometry    : geometric quantities
+!
+! < input >
+!   time : the time at which the experimental data are substituted [sec]
+!   tmid = 0 : the exp. data are not substituted
+!        = 1 : all the exp. data are substituted
+!        = 2 : the exp. data are substituted depending on 'id_neq'
+!  mdlid : (only for 'tr_ufin_field')
+!          the switch corresponding to 'mdlijq' in trcomm.f90
+!        = 1 : create from jtot using RIP as boundary condition
+!        = 2 : create from qp using RIP as boundary condition  
+!        = 3 : create from jtot not using RIP                  
+!        = 4 : create from qp not using RIP                    
+!
+! < output >
+!   ierr : error identifier
+! ----------------------------------------------------------------------
+
   SUBROUTINE tr_ufin_global(time,tmid,ierr)
 ! ----------------------------------------------------------------------
 !   global variables
@@ -125,7 +152,7 @@ CONTAINS
     IF(tmid > 0)THEN
        RR   = rrug
        RA   = raug
-       BB   = - bbug
+       BB   = ABS(bbug)
        RKAP = rkapug
        RDLT = rdltug
     END IF
@@ -186,7 +213,7 @@ CONTAINS
              IF(tmid == 1) id = 0 ! initial profile
 
              SELECT CASE(id)
-             CASE(0)   ! input values over all radial points
+             CASE(0) ! input values over all radial points
                 rn(nsa,0:nrmax) = rnug(nsu,1:nrmax+1)
              CASE(2) ! input value only at plasma surface
                 rn(nsa,nrmax) = rnug(nsu,nrmax+1)
@@ -312,7 +339,7 @@ CONTAINS
   END SUBROUTINE tr_ufin_temperature
 
 
-  SUBROUTINE tr_ufin_field(time,tmid,ierr)
+  SUBROUTINE tr_ufin_field(time,tmid,mdlid,ierr)
 ! ----------------------------------------------------------------------
 !   profile variables associated with poloidal magnetic field
 ! ----------------------------------------------------------------------
@@ -321,7 +348,7 @@ CONTAINS
          tmu,ripu,qpu,bpu,jtotu,jnbu,jecu,jicu,jlhu,jbsu
     IMPLICIT NONE
 
-    INTEGER(ikind),INTENT(IN)  :: tmid
+    INTEGER(ikind),INTENT(IN)  :: tmid,mdlid
     REAL(rkind)   ,INTENT(IN)  :: time
     INTEGER(ikind),INTENT(OUT) :: ierr
     INTEGER(ikind) :: nr,id
@@ -365,19 +392,30 @@ CONTAINS
        id = id_neq(1)
        IF(tmid == 1) id = 0 ! initial profile
 
-       SELECT CASE(id)
-       CASE(0)
-          qp(0:nrmax)   = qpug(1:nrmax+1)
-          jtot(0:nrmax) = - jtotug(1:nrmax+1)
-!          bp(0:nrmax) = bpug(1:nrmax+1)
+       IF(id == 0)THEN ! magnetic diffusion equation is not solved.
+          SELECT CASE(mdlid)
+          CASE(1)
+             rip  = - ripug * 1.d-6
+             jtot(0:nrmax) = - jtotug(1:nrmax+1)
+          CASE(2)
+             rip  = - ripug * 1.d-6
+             qp(0:nrmax)   = qpug(1:nrmax+1)
+          CASE(3)
+             jtot(0:nrmax) = - jtotug(1:nrmax+1)
+          CASE(4)
+             qp(0:nrmax)   = qpug(1:nrmax+1)
+          END SELECT
 
-          rip  = - ripug * 1.d-6
-       CASE(2)
-          rip  = - ripug * 1.d-6
-
-          qp(0:nrmax)   = qpug(1:nrmax+1)
-          jtot(0:nrmax) = - jtotug(1:nrmax+1)
-       END SELECT
+       ELSE IF(id == 2)THEN ! magnetic diffusion equation is solved.
+          SELECT CASE(mdlid)
+          CASE(1,2)
+             rip  = - ripug * 1.d-6
+          CASE(3)
+             jtot(0:nrmax) = - jtotug(1:nrmax+1)
+          CASE(4)
+             qp(nrmax)   = qpug(nrmax+1)
+          END SELECT
+       END IF
 
        jcd_nb(0:nrmax) = - jnbug(1:nrmax+1)
        jcd_ec(0:nrmax) = - jecug(1:nrmax+1)

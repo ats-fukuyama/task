@@ -237,8 +237,8 @@ CONTAINS
 
     CALL tr_gr_init_gti
 
-    gti1(0:ngt,1) = gvt(0:ngt,3)   ! rip
-    gti1(0:ngt,2) = gvtu(0:ngt,3)  ! ripu
+    gti1(0:ngt,1) = gvt(0:ngt,3)  ! rip
+    gti1(0:ngt,2) = gvtu(0:ngt,3) ! ripu
 
     gti2(0:ngt,1) = gvt(0:ngt,1)  ! qp(0)
     gti2(0:ngt,2) = gvt(0:ngt,2)  ! qp(a)

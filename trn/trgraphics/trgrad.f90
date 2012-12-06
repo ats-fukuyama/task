@@ -3,7 +3,7 @@ MODULE trgrad
 !          Snap shot and histroy of radial profile
 ! **************************************************************************
   USE trcomm, ONLY:ikind,rkind,nrmax,nsamax,neqmax,neqrmax,        &
-       nsabmax,nsafmax,neq_neqr,nsa_neq,nva_neq,nsab_nsaf,rhog
+       nsabmax,nsafmax,idion,neq_neqr,ns_nsa,nsa_neq,nva_neq,nsaf_nsa,rhog
   USE trgsub, ONLY: tr_gr_time, tr_gr_vnr_alloc,tr_gr_vnrt_alloc,    &
        tr_gr_init_vg, tr_gr_init_vm, tr_gr_init_vgx, tr_gr_init_vmx, &
        tr_gr_init_gg,tr_gr_init_gm,                                  &
@@ -17,7 +17,7 @@ MODULE trgrad
   PUBLIC tr_gr_radial
 
   CHARACTER(LEN=64) :: label
-  INTEGER(ikind)    :: nr,nsa,nsaf,neq,neqr,ngg,ngg_interval, idexp
+  INTEGER(ikind)    :: nr,ns,nsa,nsaf,neq,neqr,ngg,ngg_interval, idexp
   
 CONTAINS
 
@@ -90,7 +90,8 @@ CONTAINS
     DO neq = 1, neqmax
        nsa = nsa_neq(neq)
        IF(nsa /= 0)THEN
-          IF(nsab_nsaf(nsa) == 0)THEN! excluding fast ion species
+          ns = ns_nsa(nsa)
+          IF(idion(ns) == 0.d0)THEN! excluding fast ion species
              vg1(0:nrmax,nsa)=rn(nsa,0:nrmax)
              vg2(0:nrmax,nsa)=rp(nsa,0:nrmax) * 1.d-6
              vg3(0:nrmax,nsa)=rt(nsa,0:nrmax)
@@ -324,15 +325,19 @@ CONTAINS
 ! **************************************************************************
   SUBROUTINE tr_gr_rad5
   ! ----- current density profile -----
-    USE trcomm, ONLY: jtot,joh,jcd_nb,jtor,jbs_nc,eta,qp,dpdrho
+    USE trcomm, ONLY: jtot,joh,jcd_nb,jcd_ec,jcd_ic,jcd_lh, &
+                      jtor,jbs_nc,eta,qp,dpdrho
     INTEGER(ikind) :: gsid
 
     CALL tr_gr_init_vgx
 
     vgx1(0:nrmax,1) = 1.d-6*jtot(0:nrmax)
     vgx1(0:nrmax,2) = 1.d-6*joh(0:nrmax)
-    vgx1(0:nrmax,3) = 1.d-6*jcd_nb(0:nrmax)
-    vgx1(0:nrmax,4) = 1.d-6*jbs_nc(0:nrmax)
+    vgx1(0:nrmax,3) = 1.d-6*jbs_nc(0:nrmax)
+    vgx1(0:nrmax,4) = 1.d-6*jcd_nb(0:nrmax)
+    vgx1(0:nrmax,5) = 1.d-6*jcd_ec(0:nrmax)
+    vgx1(0:nrmax,6) = 1.d-6*jcd_ic(0:nrmax)
+    vgx1(0:nrmax,7) = 1.d-6*jcd_lh(0:nrmax)
 
     vgx2(0:nrmax,1) = dpdrho(0:nrmax)
     vgx3(0:nrmax,1) = qp(0:nrmax)
@@ -350,7 +355,7 @@ CONTAINS
     END IF
     
     CALL PAGES
-    label = '@j(tot,oh,nb,bs) [MA/m$+2$=] vs rho@'
+    label = '@j(tot,oh,bs,nb,ec,ic,lh) [MA/m$+2$=] vs rho@'
     CALL GRD1D(1,rhog,vgx1,nrmax+1,nrmax+1,4,label,0)
     label = '@d Psi/d rho vs rho@'
     CALL GRD1D(2,rhog,vgx2,nrmax+1,nrmax+1,1,label,0)
@@ -453,7 +458,7 @@ CONTAINS
 ! **************************************************************************
   SUBROUTINE tr_gr_rad9
     ! fast ion particle profile
-    USE trcomm, ONLY: rt,rn,pnb,nsafmax
+    USE trcomm, ONLY: rt,rn,pnb,pnf,nsafmax
     INTEGER(ikind) :: nsafmaxg
 
     CALL tr_gr_init_vg
@@ -461,14 +466,11 @@ CONTAINS
 
     IF(nsafmax > 0)THEN
        nsafmaxg = nsafmax
-       DO neq = 1, neqmax
-          nsa = nsa_neq(neq)
-          IF(nsa /= 0)THEN
-             nsaf = nsab_nsaf(nsa)
-             IF(nsaf /= 0)THEN
-                vg1(0:nrmax,nsaf) = rt(nsa,0:nrmax)
-                vg2(0:nrmax,nsaf) = rn(nsa,0:nrmax)
-             END IF
+       DO nsa = 1, nsamax
+          nsaf = nsaf_nsa(nsa)
+          IF(nsaf /= 0)THEN
+             vg1(0:nrmax,nsaf) = rt(nsa,0:nrmax)
+             vg2(0:nrmax,nsaf) = rn(nsa,0:nrmax)
           END IF
        END DO
     ELSE
@@ -476,6 +478,7 @@ CONTAINS
     END IF
        
     vgx1(0:nrmax,1) = (pnb(1,0:nrmax)+pnb(2,0:nrmax))*1.d-6
+    vgx1(0:nrmax,2) = (pnf(1,0:nrmax)+pnf(2,0:nrmax))*1.d-6
 
     CALL PAGES
     label = '@Ti(fast) [keV] vs rho@'

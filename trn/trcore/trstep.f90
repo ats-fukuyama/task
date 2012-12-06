@@ -45,6 +45,7 @@ CONTAINS
           ave(neq) = 0.d0
           DO nr = 0, nrmax
              nv = nr*neqmax + neq
+!             write(6,*) nr, xv_new(nv), xv(nv)
              dif(neq) = dif(neq) + (xv_new(nv)-xv(nv))**2
              ave(neq) = ave(neq) + xv_new(nv)**2
           END DO
@@ -210,6 +211,5 @@ CONTAINS
 
     RETURN
   END SUBROUTINE tr_check_negative
-
 
 END MODULE trstep

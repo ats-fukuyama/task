@@ -7,7 +7,7 @@ MODULE trcalc1
 CONTAINS
 
   SUBROUTINE tr_calc1
-    USE trcomm,ONLY: t,dt,ntmax,nteqit,mdluf,mdlgmt,mdlglb
+    USE trcomm,ONLY: t,dt,ntmax,nteqit,mdluf,mdlgmt,mdlglb, nrmax,jtot
     USE trbpsd,ONLY: tr_bpsd_set,tr_bpsd_get
     USE trsource,ONLY: tr_source1
     USE trufin,ONLY: tr_ufin_density,tr_ufin_rotation,tr_ufin_temperature, &
@@ -42,10 +42,8 @@ CONTAINS
     SELECT CASE(mdlgmt)
     CASE(6)
        CALL tr_ufin_geometry(time,0,ierr)
-
     CASE(7)
        CALL tr_ufin_geometry(time,1,ierr)
-
     CASE(9)
        ! Interaction with equilibrium codes
        IF(nteqit /= 0 .AND. MOD(nt, nteqit) == 0)THEN
@@ -68,7 +66,6 @@ CONTAINS
 
     CASE DEFAULT
        CONTINUE
-
     END SELECT
 
 
@@ -132,7 +129,8 @@ CONTAINS
     
     INTEGER(ikind) :: nt,nr,id,ierr
     REAL(rkind)    :: FCTR,DERIV3 ! the function in TASK/lib
-    REAL(rkind)    :: time,drip,dr,dpdrhos,factor0,factorp,factorm,fact
+    REAL(rkind)    :: time,drip,dr,dpdrhos,factor0,factor0p,factor0m, &
+                      factorp,factorm,fact,rdpvrhomax,dpdrhomax
     REAL(rkind),DIMENSION(0:nrmax) :: factor1, factor2
 
     id   = id_neq(1)
@@ -158,19 +156,18 @@ CONTAINS
        dpdrho(nrmax) = 2.d0*pi*rmu0*rip*1.d6/(dvrho(nrmax)*abrho(nrmax))
 
     ELSE IF(mdluf > 0)THEN ! ---------------------------------------------
-       CALL tr_ufin_field(time,2,ierr)
-
        equation_id2: SELECT CASE(id)
        CASE(0) ! not solve
+          CALL tr_ufin_field(time,2,mdlijq,ierr)
+
           IF(MOD(mdlijq,2)==1)THEN ! jtot --> dpdrho
              dpdrho(0:nrmax)  = 0.d0
-             rdpvrho(0:nrmax) = 0.d0 ! d psi/d V
+             rdpvrho(0:nrmax) = 0.d0 ! not defined at nr=0 in this case
              DO nr = 1, nrmax
                 dr      = rhog(nr)-rhog(nr-1)
-                factor0 = rmu0*0.5d0*(abb1rho(nr)+abb1rho(nr-1)) &
-                              *0.5d0*(dvrho(nr)  +  dvrho(nr-1)) &
-                              *0.5d0*(jtot(nr)   +   jtot(nr-1)) &
-                             /(0.5d0*(ttrho(nr)  +  ttrho(nr-1)))**2
+                factor0p=rmu0*abb1rho(nr)*dvrho(nr)*jtot(nr)/ttrho(nr)**2
+                factor0m=rmu0*abb1rho(nr-1)*dvrho(nr-1)*jtot(nr-1)/ttrho(nr-1)**2
+                factor0 = 0.5d0*(factor0p + factor0m)
                 factorp = abvrho(nr  )/ttrho(nr  )
                 factorm = abvrho(nr-1)/ttrho(nr-1)
 
@@ -190,6 +187,9 @@ CONTAINS
                 dpdrho(0:nrmax)  = fact*dpdrho(0:nrmax)
                 rdpvrho(0:nrmax) = fact*rdpvrho(0:nrmax) ! d psi/d V
                 jtot(0:nrmax)    = fact*jtot(0:nrmax)
+             ELSE IF(mdlijq==3)THEN
+                rip = dpdrho(nrmax)*dvrho(nrmax)*abrho(nrmax) &
+                     /(2.d0*pi*rmu0*1.d6)
              END IF
 
              ! dpdrho --> qp                                                
@@ -215,6 +215,9 @@ CONTAINS
 
                 dpdrho(0:nrmax) = fact*dpdrho(0:nrmax)
                 qp(0:nrmax)     = qp(0:nrmax) / fact
+             ELSE IF(mdlijq==4)THEN
+                rip = dpdrho(nrmax)*dvrho(nrmax)*abrho(nrmax) &
+                     /(2.d0*pi*rmu0*1.d6)
              END IF
              rdpvrho(0:nrmax) = ttrho(0:nrmax)*arrho(0:nrmax) &
                                 /(4.d0*pi**2*qp(0:nrmax)) ! d psi/d V
@@ -237,25 +240,34 @@ CONTAINS
 
 
        CASE(2) ! fixed to zero on axis and fixed at plasma surface
+          CALL tr_ufin_field(time,2,mdlijq,ierr)
 
-          IF(MOD(mdlijq,2) <= 2)THEN ! rip --> dpdrho at the surface
+          IF(mdlijq <= 2)THEN ! rip --> dpdrho at the surface
              dpdrho(nrmax) = 2.d0*pi*rmu0*rip*1.d6/(dvrho(nrmax)*abrho(nrmax))
 
           ELSE IF(mdlijq == 3)THEN ! jtot --> dpdrho at the surface
-             dr      = rhog(nrmax)-rhog(nrmax-1)
-             factor0 = rmu0*0.5d0*(abb1rho(nrmax)+abb1rho(nrmax-1)) &
-                           *0.5d0*(dvrho(nrmax)  +  dvrho(nrmax-1)) &
-                           *0.5d0*(jtot(nrmax)   +   jtot(nrmax-1)) &
-                          /(0.5d0*(ttrho(nrmax)  +  ttrho(nrmax-1)))**2
-             factorp = abvrho(nrmax  )/ttrho(nrmax  )
-             factorm = abvrho(nrmax-1)/ttrho(nrmax-1)
+             dpdrhomax  = 0.d0
+             rdpvrhomax = 0.d0 ! not defined at nr=0 in this case
+             DO nr = 1, nrmax
+                dr      = rhog(nr)-rhog(nr-1)
+                factor0p=rmu0*abb1rho(nr)*dvrho(nr)*jtot(nr)/ttrho(nr)**2
+                factor0m=rmu0*abb1rho(nr-1)*dvrho(nr-1)*jtot(nr-1)/ttrho(nr-1)**2
+                factor0 = 0.5d0*(factor0p + factor0m)
+                factorp = abvrho(nr  )/ttrho(nr  )
+                factorm = abvrho(nr-1)/ttrho(nr-1)
 
-             rdpvrho(nrmax) = (factorm*rdpvrho(nrmax-1) + factor0*dr)/factorp
-             dpdrho(nrmax)  = rdpvrho(nrmax)*dvrho(nrmax)
+                rdpvrhomax = (factorm*rdpvrhomax + factor0*dr)/factorp
+                dpdrhomax  = rdpvrhomax * dvrho(nr)
+             END DO
+             dpdrho(nrmax) = dpdrhomax
+             rip = dpdrho(nrmax)*dvrho(nrmax)*abrho(nrmax) &
+                   /(2.d0*pi*rmu0*1.d6)
 
           ELSE IF(mdlijq == 4)THEN ! qp --> dpdrho at the surfac
              dpdrho(nrmax) = ttrho(nrmax)*arrho(nrmax)*dvrho(nrmax) &
                             / (4.d0*pi**2 * qp(nrmax))
+             rip = dpdrho(nrmax)*dvrho(nrmax)*abrho(nrmax) &
+                   /(2.d0*pi*rmu0*1.d6)
           END IF
 
        END SELECT equation_id2

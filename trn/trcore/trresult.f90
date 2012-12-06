@@ -180,8 +180,8 @@ CONTAINS
     !   * Input and output sources and powers
     wp_t  = SUM(ws_t(1:nsamax))  ! [MJ] including fast ions
     wp_th = SUM(ws_t(1:nsabmax)) ! [MJ] excluding fast ions
-    pin_t  = poh_t + pnb_t + pec_t + pic_t + plh_t + pnf_t - prl_t
-!    pout_t =
+    pin_t  = poh_t + pnb_t + pec_t + pic_t + plh_t + pnf_t
+!    pout_t = prl_t
 !    sin_t  = 
 !    sout_t =
 
@@ -306,8 +306,8 @@ CONTAINS
           dr  = rhog(nr+1) - rhog(nr)
           ntm  = rn(nsa,nr  )*(rt(nsa,nr  )-rt(nsa,nredge))*dvrho(nr  )
           ntp  = rn(nsa,nr+1)*(rt(nsa,nr+1)-rt(nsa,nredge))*dvrho(nr+1)
-          ntum = rnug(nsu,nr+1)*rtug(nsu,nr+1)*dvrho(nr+1)
-          ntup = rnug(nsu,nr+2)*rtug(nsu,nr+2)*dvrho(nr+2)
+          ntum =rnug(nsu,nr+1)*(rtug(nsu,nr+1)-rtug(nsu,nredge+1))*dvrho(nr  )
+          ntup =rnug(nsu,nr+2)*(rtug(nsu,nr+2)-rtug(nsu,nredge+2))*dvrho(nr+1)
 
           sigmat(nsa) = sigmat(nsa) &
                + ((rt(nsa,nr)-rtug(nsu,nr+1)) / rtug(nsu,nr+1))**2.d0
@@ -344,7 +344,7 @@ CONTAINS
          rkev,t,rn,ru,rt,rp,qp,jtot,joh,rip,wp_t,wp_th,ws_t,        &
          jcd_nb,jcd_ec,jcd_ic,jcd_lh,                               &
          pin_t,poh_t,pnb_t,pec_t,pic_t,plh_t,pibw_t,pnf_t,          &
-         beta,betap,betan,taue1,taue3,taue89,taue98,h89,h98y2
+         beta,betap,betan,taue1,taue3,taue89,taue98,h89,h98y2,mdluf
     USE trufin, ONLY: &
          qpug,ripug,wthug,wtotug
     USE trcoeftb, ONLY: Pereverzev_check
@@ -397,11 +397,13 @@ CONTAINS
     gvt(ngt,29) = h98y2
 
     ! experimental data
-    gvtu(ngt,1) = qpug(1)
-    gvtu(ngt,2) = qpug(nrmax+1)
-    gvtu(ngt,3) = - ripug
-    gvtu(ngt,4) = wthug
-    gvtu(ngt,5) = wtotug
+    IF(mdluf > 0)THEN
+       gvtu(ngt,1) = qpug(1)
+       gvtu(ngt,2) = qpug(nrmax+1)
+       gvtu(ngt,3) = - ripug * 1.d-6
+       gvtu(ngt,4) = wthug
+       gvtu(ngt,5) = wtotug
+    END IF
 
 ! ------------------------------------------------------------------------
 

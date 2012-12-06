@@ -112,6 +112,8 @@ CONTAINS
   SUBROUTINE tr_gr_exp1
 
     USE trcomm, ONLY:rnu,rtu,rpu,qpu
+
+    USE trufcalc, ONLY: ns_mimp
     INTEGER(ikind) :: nsu
 
     CALL tr_gr_init_vgu
@@ -123,7 +125,6 @@ CONTAINS
     END DO
 
     vgu4(0:nrmax,1) = qpu(ntxsnap,1:nrmax+1)
-
 
     CALL PAGES
     label = '@n(exp) [10$+20$=/m$+3$=] vs rho@'

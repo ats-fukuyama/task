@@ -196,7 +196,8 @@ CONTAINS
 !
 ! -----------------------------------------------------------------------
     USE trufsub,ONLY: tr_uf2d,tr_uftl_check
-    USE trcomm,ONLY: rkev,tmu,pau,pzu,rtu,rnu,rnfu,rpu,zeffru,zeffu,qpu,bpu,wrotu
+    USE trcomm,ONLY: rkev,tmu,pau,pzu,rtu,rnu,rnfu,rpu,zeffru,zeffu, &
+                     qpu,jtotu,bpu,wrotu, mdlijq
     IMPLICIT NONE
 
     INTEGER(ikind),INTENT(IN)  :: id_mesh,id_deriv
@@ -278,7 +279,8 @@ CONTAINS
        DO ntx = 1, ntxmax
           zeffru(ntx,1:nrmax+1) = zeffu(ntx)
        END DO
-       WRITE(6,*) '## tr_ufget_profile: set the flat profile of ZEFF(1d) to ZEFFR(2d) due to lacking of ZEFFR data.'
+       WRITE(6,*) &
+    ' ## tr_ufget_profile: set ZEFF(1d) to ZEFFR(2d) due to lacking of ZEFFR.'
     END IF
     
     ! correction of negative profile due to the interpolation
@@ -291,12 +293,35 @@ CONTAINS
 
     ! **************************************************************
 
+    errout = 1
+
     kfid = 'Q'   ! --> qpu
     CALL tr_uf2d(kfid,tmu,qpu,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
                  id_mesh,id_deriv,errout,ierr)
     IF(ierr == 0)THEN
        CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
+    ELSE
+       IF(MOD(mdlijq,2)==0)THEN
+          mdlijq = mdlijq - 1
+          WRITE(6,*) ' XX tr_ufget_profile: Q profile is not exist.'
+          WRITE(6,*) ' ## MDLIJQ is replaced. MDLIJQ= ', mdlijq
+       END IF
     END IF
+
+    kfid = 'CURTOT'   ! --> jtotu
+    CALL tr_uf2d(kfid,tmu,jtotu,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
+    ELSE
+       IF(MOD(mdlijq,2)==1)THEN
+          mdlijq = mdlijq + 1
+          WRITE(6,*) ' XX tr_ufget_profile: CURTOT profile is not exist.'
+          WRITE(6,*) ' ## MDLIJQ is replaced. MDLIJQ= ', mdlijq
+       END IF       
+    END IF
+
+    ! **************************************************************
 
     errout = 1 ! following variables is not essential
 
@@ -334,8 +359,8 @@ CONTAINS
 !   ***  and substitute them into TASK/TR variables                  ***
 ! ------------------------------------------------------------------------
     USE trufsub,ONLY: tr_uf1d,tr_uf2d,tr_uftl_check
-    USE trcomm,ONLY: tmu,pnbu,pecu,pibwu,picu,plhu,pohmu,pradu,    &
-         jtotu,jnbu,jecu,jicu,jlhu,jbsu,qnbu,qecu,qibwu,qicu,qlhu, &
+    USE trcomm,ONLY: tmu,pnbu,pecu,pibwu,picu,plhu,pohmu,pradu,  &
+         jnbu,jecu,jicu,jlhu,jbsu,qnbu,qecu,qibwu,qicu,qlhu,     &
          qfusu,qohmu,qradu,snbu,swallu
     IMPLICIT NONE
 
@@ -394,14 +419,7 @@ CONTAINS
 
 
     ! ***  2D data  ***
-    ! current density
-    kfid = 'CURTOT'   ! --> jtotu
-    CALL tr_uf2d(kfid,tmu,jtotu,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
-                 id_mesh,id_deriv,errout,ierr)
-    IF(ierr == 0)THEN
-       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
-    END IF
-
+    ! driven current density
     kfid = 'CURNBI'   ! --> jnbu
     CALL tr_uf2d(kfid,tmu,jnbu,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
                  id_mesh,id_deriv,errout,ierr)

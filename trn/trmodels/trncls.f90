@@ -163,11 +163,11 @@ CONTAINS
 
     ! internal parameters for tr_nclass
     INTEGER(4) :: mdltpf ! interim definition of switch variables
-    INTEGER(4) :: nsa,nsa1,nk,nsabnum, nsab, nsab1
+    INTEGER(4) :: nsa,nsa1,nk,nsab, nsab1
     REAL(8),DIMENSION(0:nrmax) :: eropsi,nr_array,drhog
     REAL(8) :: abb1rhom,abb2rhom,aib2rhom, &
          ttrhom,dpdrhom,ar1rhom,ar2rhom,epsrhom,qpm,bpm,etam,johm
-    REAL(8) :: cm,cp
+    REAL(8) :: cm,cp, pjbm,pjbp
 
     mdltpf=0
 
@@ -213,9 +213,9 @@ CONTAINS
     amu_i(1:nsamax) = SNGL(PA(1:nsamax))
 
     ! ----- preparation for calculatio in nr loop -----
-    eropsi(1:nrmax) = er(1:nrmax)                      &
-         /(0.5d0*(ar1rho(0:nrmax-1)+ar1rho(1:nrmax)))  &
-         /(0.5d0*(dpdrho(0:nrmax-1)+dpdrho(1:nrmax)))
+    eropsi(1:nrmax) = er(1:nrmax)                                   &
+                     /(0.5d0*(ar1rho(0:nrmax-1)*dpdrho(0:nrmax-1)   &
+                             +ar1rho(1:nrmax  )*dpdrho(1:nrmax  )))
 
       
     DO nr = 1, nrmax
@@ -231,6 +231,7 @@ CONTAINS
        qpm       = 0.5d0*(qp(nr)      +      qp(nr-1))
        bpm       = 0.5d0*(bp(nr)      +      bp(nr-1))
        johm      = 0.5d0*(joh(nr)     +     joh(nr-1))
+
        etam      = eta_ncls(nr)
 
        p_b2      = SNGL(abb2rhom)
@@ -250,37 +251,39 @@ CONTAINS
        ENDIF
        ! trapped particle fraction
        p_ft     = SNGL(ftpf(mdltpf,epsrhom))
-       p_grbm2  = SNGL(ar2rhom*aib2rhom)
+       p_grbm2  = SNGL(0.5d0*(ar2rho(nr-1)*aib2rho(nr-1) &
+                             +ar2rho(nr  )*aib2rho(nr  )))
        ! radial electric field phi' (V/rho)
        p_grphi  = SNGL(er(nr)/ar1rhom)
        p_gr2phi = SNGL(dpdrhom*deriv3(nr,rhom(1:nrmax),eropsi(1:nrmax),nrmax,1))
 !       p_gr2phi=0.0
-       p_ngrth  = SNGL(bpm/(BB*rhom(nr))) ! ?????
+       p_ngrth  = SNGL(bpm/(BB*rhom(nr)))
        
-       nsabnum = 0
        DO nsa = 1, nsamax ! only for bulk species
+          nsab = nsab_nsa(nsa)
+          IF(nsab == 0) CYCLE
           ns = ns_nsa(nsa)
-          IF(pz(ns) == 0.d0 .OR.  idion(ns) /= 0.d0) CYCLE
-          nsabnum = nsabnum + 1
                
           ! temperature of i (keV)
-          temp_i(nsabnum) = SNGL(0.5d0*(rt(nsa,nr)+rt(nsa,nr-1)))
+          temp_i(nsab) = SNGL(0.5d0*(rt(nsa,nr)+rt(nsa,nr-1)))
           ! temperature gradient of i (keV/rho)
-          grt_i(nsabnum)  = SNGL((rt(nsa,nr)-rt(nsa,nr-1))/drhog(nr))
+          grt_i(nsab)  = SNGL((rt(nsa,nr)-rt(nsa,nr-1))/drhog(nr))
           ! density of i,z (/m**3)
-          den_iz(nsabnum,INT(ABS(pz(ns)))) &
+          den_iz(nsab,INT(ABS(pz(ns)))) &
                      = SNGL(0.5d0*(rn(nsa,nr)+rn(nsa,nr-1)))*1.E20
           ! pressure gradient of i,z (keV/m**3 /rho)
           ! ***** PADD should be included *****
-          grp_iz(nsabnum,INT(ABS(pz(ns)))) &
+          grp_iz(nsab,INT(ABS(pz(ns)))) &
                      = SNGL((rp(nsa,nr)-rp(nsa,nr-1))/(drhog(nr)*rkev))
           DO i = 1, 3
              ! moments of external parallel force on i,z (T*j/m**3)
-             fex_iz(i,nsabnum,INT(ABS(pz(ns)))) = 0.0
+             fex_iz(i,nsab,INT(ABS(pz(ns)))) = 0.0
           ENDDO
        ENDDO
        ! <E.B> (V*T/m)  *** E_para = eta_para * J_oh(para) ***
-       p_eb = SNGL(etam*johm*abb1rhom)
+       pjbm = joh(nr-1)*abb1rho(nr-1)
+       pjbp = joh(nr  )*abb1rho(nr  )
+       p_eb = SNGL(etam*0.5d0*(pjbm+pjbp))
 
 
        CALL NCLASS( &
@@ -295,8 +298,8 @@ CONTAINS
            chip_ss,chit_ss,dp_ss,dt_ss,iflag)
 
        IF(k_out.eq.1 .or. k_out.eq.2) THEN ! for error output
-          p_eps = SNGL(epsrho(nr))
-          p_q   = SNGL(qp(nr))
+          p_eps = SNGL(0.5d0*(epsrho(nr)+epsrho(nr-1)))
+          p_q   = SNGL(0.5d0*(qp(nr)+qp(nr-1)))
           r0    = SNGL(RR)
           a0    = SNGL(ra)
           e0    = SNGL(rkap)
@@ -333,39 +336,39 @@ CONTAINS
 
        ! For now, contribution of the flux driven by the external force
        !  gfl_s(5,i)/n_i is not included.
-       DO nsa = 1, nsabnum
+       DO nsa = 1, nsamax
           nsab = nsab_nsa(nsa)
           IF(nsab /= 0)THEN
-             cjbs_p(nsab,nr) = DBLE(bsjbp_s(nsa))
-             cjbs_t(nsab,nr) = DBLE(bsjbt_s(nsa))
+             cjbs_p(nsa,nr) = DBLE(bsjbp_s(nsab))
+             cjbs_t(nsa,nr) = DBLE(bsjbt_s(nsab))
 
              ! flux form
              DO nk  = 1, 5
-                gfls(nk,nsab,nr) = DBLE(gfl_s(nk,nsa))*1.d-20/ar1rhom
-                qfls(nk,nsab,nr) = DBLE(qfl_s(nk,nsa))*1.d-20/ar1rhom
+                gfls(nk,nsa,nr) = DBLE(gfl_s(nk,nsab))*1.d-20/ar1rhom
+                qfls(nk,nsa,nr) = DBLE(qfl_s(nk,nsab))*1.d-20/ar1rhom
              ENDDO
           
              ! ADNCG : Diagonal diffusivity for graphic use only
-             dia_gdnc(nsab,nr) = DBLE(dn_s(nsa))/ar2rhom
+             dia_gdnc(nsa,nr) = DBLE(dn_s(nsab))/ar2rhom
 
              ! AVNCG : Off-diagonal part driven pinch and neoclassical pinch
              !          for graphic use only
-             dia_gvnc(nsab,nr) = DBLE(vn_s(nsa)+veb_s(nsa))/ar1rhom
+             dia_gvnc(nsa,nr) = DBLE(vn_s(nsab)+veb_s(nsab))/ar1rhom
 !             dia_gvnc(nsa,nr) = DBLE(vn_s(nsa))/ar1rhom
 
-             vebs(nsab,nr) = DBLE(veb_s(nsa))/ar1rhom
-             qebs(nsab,nr) = DBLE(qeb_s(nsa))/ar1rhom
+             vebs(nsa,nr) = DBLE(veb_s(nsab))/ar1rhom
+             qebs(nsa,nr) = DBLE(qeb_s(nsab))/ar1rhom
 
              ! complete matrix form as coefficients of 
              !  the temperature gradients and the pressure gradients.
              DO nsa1 = 1, nsamax
                 nsab1 = nsab_nsa(nsa1)
                 IF(nsab1 /= 0)THEN
-                   chi_ncp(nsab,nsab1,nr) = DBLE(chip_ss(nsa,nsa1)) / ar2rhom
-                   chi_nct(nsab,nsab1,nr) = DBLE(chit_ss(nsa,nsa1)) / ar2rhom
+                   chi_ncp(nsa,nsa1,nr) = DBLE(chip_ss(nsab,nsab1)) / ar2rhom
+                   chi_nct(nsa,nsa1,nr) = DBLE(chit_ss(nsab,nsab1)) / ar2rhom
 
-                   d_ncp(nsab,nsab1,nr)   = DBLE(  dp_ss(nsa,nsa1)) / ar2rhom
-                   d_nct(nsab,nsab1,nr)   = DBLE(  dt_ss(nsa,nsa1)) / ar2rhom
+                   d_ncp(nsa,nsa1,nr)   = DBLE(  dp_ss(nsab,nsab1)) / ar2rhom
+                   d_nct(nsa,nsa1,nr)   = DBLE(  dt_ss(nsab,nsab1)) / ar2rhom
                 END IF
              ENDDO
           END IF

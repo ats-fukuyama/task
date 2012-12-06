@@ -79,27 +79,28 @@ CONTAINS
              ! off-diagonal term of density gradient
              !                          in energy transport equation.
              IF(nva_neq(neq)==3 .AND. neq == neq1)THEN
-!             IF(nva_neq(neq)==3 .AND. nva_neq(neq1)==3)THEN
-                IF(mdltr_prv /= 0)THEN
-                   ! only for energy transport (i.e. for chi)
-                   !   in common with Pereverzev method routine.
-                   dtr_d   = dtr(neq-2,neq1-2,nr) - dtr_prv(neq-2,nr)
-                   dtr_chi = dtr(neq,neq1,nr) - dtr_prv(neq,nr)
-                ELSE
-                   dtr_d   = dtr(neq-2,neq1-2,nr)
-                   dtr_chi = dtr(neq,neq1,nr)
-                END IF
-                dtr_ofd = (xv((nr-1)*neqmax+neq)/xv((nr-1)*neqmax+(neq-2))  &
-                          +xv( nr   *neqmax+neq)/xv( nr   *neqmax+(neq-2))) &
-                         *0.5d0*( coef2*dtr_d - dtr_chi )
+                IF(id_neq(neq) /= 0.d0)THEN ! only for bulk ions
+                   IF(mdltr_prv /= 0)THEN
+                      ! only for energy transport (i.e. for chi)
+                      !   in common with Pereverzev method routine.
+                      dtr_d   = dtr(neq-2,neq1-2,nr) - dtr_prv(neq-2,nr)
+                      dtr_chi = dtr(neq,neq1,nr) - dtr_prv(neq,nr)
+                   ELSE
+                      dtr_d   = dtr(neq-2,neq1-2,nr)
+                      dtr_chi = dtr(neq,neq1,nr)
+                   END IF
+                   dtr_ofd=(xv((nr-1)*neqmax+neq)/xv((nr-1)*neqmax+(neq-2))  &
+                           +xv( nr   *neqmax+neq)/xv( nr   *neqmax+(neq-2))) &
+                           *0.5d0*( coef2*dtr_d - dtr_chi )
 !                dtr_ofd = - 0.5d0*(xv_prev((nr-1)*neqmax+neq1)  &
 !                                  +xv_prev( nr   *neqmax+neq1)) &
 !                           *dtr(neq,neq1,nr)
 
-!!$                r1imtx_ofd(1,1,neq,neq1-2)=   dh3*dtr_ofd*gm2m
-!!$                r1imtx_ofd(2,1,neq,neq1-2)= - dh3*dtr_ofd*gm2m
-!!$                r1imtx_ofd(1,2,neq,neq1-2)= - dh3*dtr_ofd*gm2p
-!!$                r1imtx_ofd(2,2,neq,neq1-2)=   dh3*dtr_ofd*gm2p
+!!$                   r1imtx_ofd(1,1,neq,neq1-2)=   dh3*dtr_ofd*gm2m
+!!$                   r1imtx_ofd(2,1,neq,neq1-2)= - dh3*dtr_ofd*gm2m
+!!$                   r1imtx_ofd(1,2,neq,neq1-2)= - dh3*dtr_ofd*gm2p
+!!$                   r1imtx_ofd(2,2,neq,neq1-2)=   dh3*dtr_ofd*gm2p
+                END IF
              END IF
 
              ! at the center of element
@@ -263,12 +264,12 @@ CONTAINS
 
     END DO ! END of NR loop ---------------------------------------------
 
-!    DO neq = 1, nvrmax
-!       write(*,*) (lhmtx(nr,neq),nr=1,3)
-!    END DO
-!    DO neq = 1, nvrmax
-!       write(*,*) rhv(neq)
-!    END DO
+!!$    DO neq = 1, nvrmax
+!!$       write(*,*) neq,lhmtx(:,neq)
+!!$    END DO
+!!$    DO neq = 1, nvrmax
+!!$       write(*,*) rhv(neq)
+!!$    END DO
 
     CALL BANDRD(lhmtx,rhv,nvrmax,4*neqrmax-1,4*neqrmax-1,ierr)
     IF(ierr /= 0) THEN
