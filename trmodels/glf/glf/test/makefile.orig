@@ -1,0 +1,145 @@
+# makefile for the GLF23 test code, Jon Kinsey, GA
+#   redone by DMC 12 Nov 1998 at PPPL
+#   in "Lehigh University" style...
+#
+#   DMC 30 Mar 1999 -- removing use of -r8 or similar switches; code
+#   is now explicitly REAL*8
+#
+#   DMC -- added NAG path for Linux NagWare.  However, this isn't working
+#   as of 30 Mar 1999!
+#
+# for HP-UX system, the IBM RS/6000 system running AIX v4, 
+#    the Solaris system, the SGI IRIX system or the DEC alpha system
+#    use `gmake clean' to remove all .o files
+#
+# environment variable CPU is used to set platform-dependent make variables.
+#
+ifeq ($(CPU),)
+   # CPU is undefined; default to HP.
+   WARNcpu = 2
+   CPU = HP
+endif
+ifeq ($(filter $(CPU), IBM SOL SGI DEC HP NAG PGI LF),)
+   ERRcpu = 2
+endif
+#
+# Compilation/linking flags
+# ...RS6000
+#
+ifeq ($(CPU),IBM)
+   FFLAGS  = -O -qmaxmem=-1
+   FFLAGS2 = -qfixed=72 -c
+   FC=xlf90
+endif
+#
+# For Solaris compilers, these compilation flags are:
+#   NOTE NO -r8 OPTION for SOL !!!
+#
+ifeq ($(CPU),SOL)
+   FFLAGS  = -O
+   FFLAGS2 = -c
+   FC=f90
+endif
+#
+# For SGI compilers, these compilation flags are (in order):
+#
+ifeq ($(CPU),SGI)
+   FFLAGS  = -O -ftpp -macro_expand
+   FFLAGS2 = -c
+   FC=f90
+endif
+#
+# For HP compilers, these compilation flags are (in order):
+#
+ifeq ($(CPU),HP)
+   FFLAGS  = -C +DA1.1 +DS1.1
+   FFLAGS2 = -c
+   FC=f90
+endif
+#
+# For DEC-alpha workstations (dmc)
+#
+ifeq ($(CPU),DEC)
+   FFLAGS  = -O
+   FFLAGS2 = -c
+   FC=f90
+endif
+#
+# For NagWare (Linux) (dmc)
+#
+ifeq ($(CPU),NAG)
+   FFLAGS = -O -dusty -D__NAGWARE
+   FFLAGS2 = -c
+   FC=f95
+endif
+# For PGI (Linux) (jek)
+# Pentium optimization
+#
+ifeq ($(CPU),PGI)
+   FFLAGS = -O -fast -tp p6
+   FFLAGS2 = -c
+   FC=pgf90
+endif
+# For LF95 (Linux) (jek)
+# Pentium optimization
+#
+ifeq ($(CPU),LF)
+   FFLAGS = --o1 --ap --f95 -g --lst --pca --sav --trace --xref --swm 2005,3104,3118,3133,3204,3205
+   FFLAGS2 = -c
+   FC=lf95
+endif
+# For the Cray J-90,
+#
+ifeq ($(CPU),J90)
+   FFLAGS = -O -D__CRAY
+   FFLAGS2 = -c
+   FC=f90
+endif
+#
+# Compiling and Linking commands
+#
+COMPILE = $(FC) $(FFLAGS) $(FFLAGS2)
+LINK    = $(FC) $(FFLAGS)
+#
+# Targets and Rules
+#
+
+testglf xtverb::   cputst
+        # without any rule, make tries to build c code
+	@echo 
+
+
+testglf:: ../src/libglf23.a testglf.o stripx.o
+	$(LINK) -o testglf testglf.o stripx.o ../src/libglf23.a
+
+../src/libglf23.a:
+	cd ../src; make
+
+stripx.o:	stripx.f
+	$(COMPILE) -o stripx.o stripx.f
+
+
+testglf.o:	testglf.tex xtverb
+	touch testglf.f
+	rm testglf.f
+	-./xtverb < testglf.tex > testglf.f
+	$(COMPILE) -o testglf.o testglf.f
+
+
+xtverb::	xtverb.f
+	$(COMPILE) -o xtverb.o xtverb.f
+	$(LINK) -o xtverb xtverb.o
+
+cputst:
+  ifeq ($(ERRcpu),2)
+	@echo CPU=$(CPU) is not yet implemented in glf23 makefile.
+	@exit 2
+  endif
+  ifeq ($(WARNcpu),2)
+	@echo CPU defaulted, CPU=HP assumed.
+  endif
+
+clean:
+	@rm *.o xtverb testglf; cd ../src; make clean
+
+

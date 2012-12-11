@@ -1,0 +1,83 @@
+&testmmm_input_2ndkind
+! This is a sample input file of the second kind
+
+!.. Switches for component models
+!   1D0 - ON, 0D0 - OFF
+cmodel  =
+   1D0     ! Weiland
+   1D0     ! DRIBM
+   1D0     ! ETG
+
+!.. Weiland real options
+cW20 =
+   1D0     ! ExB shear coefficient
+   1D0     ! Momentum pinch scaling factor
+   0D0     ! Lower bound of electron thermal diffusivity
+   1D2     ! Upper bound of electron thermal diffusivity
+   0D0     ! Lower bound of ion thermal diffusivity
+   1D2     ! Upper bound of ion thermal diffusivity
+
+!.. DRIBM real options
+cDBM =
+   1D0     ! ExB shear coefficient
+
+!.. ETG integer options
+lETG =
+   2       ! Jenko threshold
+           ! applied to both electrostatic and electromagnetic regimes
+
+!.. ETG real options
+cETG =
+   6D-2    ! CEES scale
+   6D-2    ! CEEM scale
+
+npoints  = 51     ! Number of radial points
+lprint   = 0      ! Verbose level
+
+k_rminor = 0.77   ! minor radius, a [m]
+k_rmajor = 1.695  ! major radius [m]
+
+k_elong  = 1.0    ! elongation
+k_btor   = 3.0    ! toroidal field at rmajor [Tesla]
+k_amassh = 2D0    ! isotopic mass of hydrogenic species
+k_amassz = 12D0   ! isotopic mass of impurity species
+
+k_denmin = 1D7    ! minimum density = 1.e7 [m^-3]
+k_temin  = 1D-6   ! minimum temperature = 1.e-6 [keV]
+
+denhaxis = 6D19   ! hydrogen density at magnetic axis [m^-3]
+denhedge = 1D19   ! hydrogen density at plasma edge [m^-3]
+denhexp  = 1D0    ! exponential of parabola for profile
+
+denzaxis = 7D17   ! impurity density at magnetic axis [m^-3]
+denzedge = 3D17   ! impurity density at plasma edge [m^-3]
+denzexp  = 1D0    ! exponential of parabola for profile
+
+denfaxis = 0.0    ! fast ion density at magnetic axis [m^-3]
+denfedge = 0.0    ! fast ion density at plasma edge [m^-3]
+denfexp  = 1.0    ! exponential of parabola for profile
+
+chrzaxis = 6.0    ! impurity charge at magnetic axis
+chrzedge = 6.0    ! impurity charge at plasma edge
+chrzexp  = 1.0    ! exponential of parabola for profile
+
+chrfaxis = 0.0    ! fast ion charge at magnetic axis
+chrfedge = 0.0    ! fast ion charge at plasma edge
+chrfexp  = 1.0    ! exponential of parabola for profile
+
+teaxis   = 2.0    ! electron temperature at magnetic axis [keV]
+teedge   = 0.1    ! electron temperature at plasma edge [keV]
+teexp    = 1.0    ! exponential of parabola for profile
+
+tiaxis   = 2.0    ! ion temperature at magnetic axis [keV]
+tiedge   = 0.1    ! ion temperature at plasma edge [keV]
+tiexp    = 1.0    ! exponential of parabola for profile
+
+qaxis    = 0.8    ! magnetic q-value at magnetic axis
+qedge    = 4.4    ! magnetic q-value at plasma edge
+qexp     = 4.0    ! q(x) = qaxis + (qedge-qaxis) * x**qexp
+
+wexbmax  = 2D5    ! maximum flow shear rate [rad/sec]
+xwexbinn = 0.4    ! inner r/a (a=rminor) cutoff for the flow shear rate
+xwexbout = 0.8    ! outer r/a (a=rminor) cutoff for the flow shear rate
+/

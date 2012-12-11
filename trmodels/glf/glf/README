@@ -1,0 +1,258 @@
+			GLF23 Transport Model v1.61
+
+			     Prepared by
+
+		   Jon Kinsey -- kinsey@fusion.gat.com
+
+
+
+REVISION HISTORY
+----------------
+     16-mar-10       (clf) replace all double with kind=rspec
+     12-mar-03       (jek) updated for retuned version of model
+     25-aug-02       (jek) converted code to work with LF95 compiler
+     11-mar-02       (jek) added real geometry ExB shear and renormed model
+                     fixed so egamma_exp used properly when irotstab=1
+     23-nov-99       (jek) added zgeev eigenvalue solver (eigen_gf=2)
+     11-nov-99       (jek) fixed impurity dynamics
+     13-may-99       latest version
+     03-mar-99       converted to real*8
+     31-mar-99       (D. McCune) replaced cgg with r8tomsqz eigen-solver
+                     + portability related changes
+
+UNPACKING INSTRUCTIONS
+
+  > gunzip glf.tar.gz
+  > tar xvf glf.tar
+
+
+INSTRUCTIONS FOR PRINTING DOCUMENTATION:
+(testglf.ps is already included in glf/doc)
+
+  cd glf/doc
+  run Latex file twice to obtain correct cross-references:
+  > latex testglf.tex
+  > latex testglf.tex
+  > dvips -f testglf.dvi > testglf.ps
+  > lpr [-P<printer-name>] testglf.ps
+
+
+CONTENTS:
+  This directory should contain the following files:
+  README_glf
+  Makefile
+  in directory glf:
+     README
+     Makefile
+     in sub-directory glf/src:
+        Makefile
+	callglf2d.f
+	glf23_data_mod.f90
+	glf23.f
+	glf2d.F
+	r8tomsqz.F
+	stripx.f
+	xtverb.f
+     in sub-directory glf/test:
+        Makefile
+	testglf.f
+	zgeev.f
+	blas_zgeev.f
+	c9date.f
+	in-1
+	out-1
+	in-2
+        out-2
+        in-3
+        out-3
+        in-4
+        out-4
+     in sub-directory glf/doc:
+        glf23-retune-v1.61.pdf
+	testglf.ps
+	testglf.tex
+  in directory share:
+     Make.flags (includefile for Makefiles) 
+     Make.local.sample  
+  in directory fpreproc (for pre-processing):
+     fppfile.py 
+     fpp.py
+     fpp.pyc
+
+
+	These files are as follows:
+
+    README:  Brief descriptions of all files
+		and instructions for compiling the module containing
+		the GLF23 transport model and its stand-alone driver.  
+
+        glf23-retune-v1.61.pdf: Slides describing retuning of model
+                with linear growth rate comparisons with the GKS, 
+                gyrokinetic code, nonlinear benchmarking with the 
+                GYRO gyrokinetic code, and a few sample transport
+                simulations of L-,H-mode, and ITB discharges.
+
+	testglf.tex:  Latex file containing documentation and the
+		embedded testglf.f fortran source file.  The fortran 
+		routine reads the input file "in" through a namelist 
+		and writes the output to the file, "out".  All the 
+		input and output variables are described in Tables I 
+		and II of the documentation and short descriptions 
+		are also given in the callglf2d.f namelist.		
+		
+	testglf.f:  File containing fortran code stripped out of the
+		testglf.tex LaTeX file using the xtverb utility. This 
+		file is intended only for use in compiling the code. 
+		The documentation is contained in the LaTeX file 
+		"testglf.tex".  The makefile is written so that the 
+		make utility will always extract a new version of 
+		"testglf.f from the fortran code imbedded in the 
+		LaTeX master file using the xtverb utility.
+
+	callglf2d.f:  The fortran code for the glf23 pre-call subroutine.
+		This routine sets all switches particular to the glf23
+		model and passes all necessary variables to glf2d.f using
+		the common block glf.m.
+
+	glf2d.F:  The fortran subroutine containing the source code for
+		the glf23 model.  Model uses either the eispack cgg contained
+        within the routine (leigen=0) or r8tomsqz.F (leigen > 0) to 
+        solve the eigenvector problem. The cgg routine has been kept
+        to maintain compatibility with the MLT transport code from which
+        the glf23 model was extracted.
+
+        Note: The r8tomsqz.F eigenvector solver is a real*8 / complex*16
+              version of the Eigenvector solver from mmm95 (noted
+              D. McCune 31-Mar-1999).
+	
+	glf.m:  Common block containing the variables passed between
+		the callglf2d.f pre-call routine and the main routine 
+		glf2d.f.
+
+	f77_dcomplx.h:  preprocessor code for portability of complex
+		number arithmetic (needed by glf2d.F).
+
+	c9date.f:  use f90 intrinsic function `date_and_time' to get
+		the current date in a Y2K compliant format.
+
+	stripx.f:  Utility routine, used by the driver program, which
+		strips all annotation and comments out of the input
+		namelist before it is read.
+
+	xtverb.f:  Utility program which can pull fortran code out of a
+		LaTeX document, leaving a fortran file.  In this case,
+		it is used to read the tex files described above and
+		generate the corresponding fortran file.
+
+	in-1:   The input parameters for the first test case and read in
+		through the callglf2d namelist.  Data in this input file 
+		contains the profile information taken from the ITER 
+		Profile Database shot DIII-D #82205 at four radial points
+		near the half-radius.  Copy this file to a file named 
+		"in" before running the testglf stand-alone code.
+	
+	out-1:  The first sample output.  This file contains the output
+		produced when the first sample "in-1" file is used. Here,
+		only the electron and ion thermal transport is predicted 
+		and in the absence of ExB shear effects (alpha_e=0). 
+		Transport of vphi and vtheta is not predicted for this 
+		test case. Alpha stabilization is included (x_alpha=1).
+                Simple dilution is assumed (idengrad=2).
+ 
+	in-2:   The input parameters for the second test case.  This
+		case is the same as the first case except that ExB shear
+		is turned on (alpha_e=1).
+	
+	out-2:  The second sample output.  This file contains the output
+		produced when the second sample "in-2" file is used. Again, 
+		only electron and ion thermal transport is predicted with
+		alpha stabilization included (x_alpha=1). Transport of vphi 
+		and vtheta is not predicted.
+
+        in-3:   The input parameters for the third test case. This case
+                uses the real geometry form for the ExB shear (bt_flag=1)
+                with a multiplier of alpha_e=0.6.
+
+        out-3:  The output for the third test case. Only the electron and
+                ion transport is predicted. Both ExB shear and alpha
+                stabilization are included.
+
+        in-4:   The input parameters for the fourth test case. This is the
+                same as the third test case only using the retuned
+                version of the model (iglf=1).
+
+        out-4:  The output for the fourth test case.
+
+	Makefile: File used by the make utility.  This makefile has been 
+		written to work on the HP-UX platform and can be modified
+		to work on other systems.  This makefile contains the 
+		instructions for compiling and building both the "glf" 
+		library and the "testglf" program.  The executable file, 
+		"testglf" is constructed using the files described above.
+
+COMPILATION INSTRUCTIONS:
+
+	1.a) On a Linux system:
+            Set the environment variable FORTRAN_VARIANT
+            to match the compiler version you want to use:
+
+            GCC
+            PathScale
+            Intel     
+            LaheyFujitsu
+            Portland
+
+          b) On other systems the Makefile will choose the Vendor's compiler.  
+  
+	2.  Use gmake to run the `Makefiles':
+
+		gmake clean
+	removes old .o files;
+
+		gmake realclean
+	removes old .o files & libglf.a;
+
+		gmake
+
+	builds `libglf.a` and the `testglf' program.
+
+	3.  If your target environment is not one of the workstation
+	types listed above, revisions to the makefile will be necessary
+	before it can used to build the code binary.  It is quite possible
+	that source code revisions will also be needed-- consult the authors
+	for help.
+
+RUNNING INSTRUCTIONS:
+
+	"testglf" requires only one input file "in" with the namelist "nlglf".
+
+	To produce each of the test cases, copy the sample input
+	file (e.g. in-1) to the file "in" and run "testglf".
+
+	As it runs, "testglf" will generate two files: "temp" and
+	"out".
+	
+	"temp" is a temporary file, containing the input namelist
+	without annotation and notes.  "temp" is actually the file
+	read during the namelist read in the testglf program.
+
+	"output" is the output file.  At the beginning of this file,
+	the input namelist (with annotation) is reproduced.  Then, the
+	program produces a substantial amount of diagnostic output,
+	which fills out	the rest of this file.
+
+	When this package is ported to a new platform, it is suggested
+	that the test cases be run first.  Each time, compare the
+	output file "output" to the appropriate sample output file, in
+	order to verify that all is working as expected.
+
+IF YOU HAVE ANY PROBLEMS, PLEASE CONTACT EITHER:
+
+
+        Jon Kinsey, General Atomics
+		kinsey@fusion.gat.com
+
+	or
+
+        Ron Waltz, General Atomics
+		waltz@fusion.gat.com

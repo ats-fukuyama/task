@@ -1,0 +1,11 @@
+# include file for Make.flags
+# to include, rename to
+# 	Make.overwrite
+# and modify according to your site
+#
+#	FFLAGS = -c -O --trap diou --trace --quiet -ls
+#
+# for delphi.gat.com
+ifeq ($(SYSTEM),Linux)
+	CLIBS = /usr/lib/libstdc++-libc6.2-2.so.3 -laspell
+endif
