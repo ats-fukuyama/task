@@ -5,7 +5,7 @@ MODULE trufin
 !  ***  store values for graphic output
 ! ------------------------------------------------------------------------
 
-  USE trcomm, ONLY: ikind,rkind,nsum,nrum,ntum, nrmax,ntxmax, t,tmu
+  USE trcomm, ONLY: ikind,rkind,nsum,nrum,ntum, nrmax,ntxmax, tmu
   USE trlib, ONLY: lin_itp
 
   IMPLICIT NONE
@@ -27,7 +27,7 @@ MODULE trufin
 
   REAL(rkind),DIMENSION(2,1:nrum) :: & ! electron and ion
        ! power deposition profile
-       qnbug,qecug,qibwug,qicug,qlhug,qfusug, &
+       qnbug,qecug,qibwug,qicug,qlhug,qfusug,qwallug, &
        ! particle source
        snbug
 
@@ -43,6 +43,8 @@ MODULE trufin
   REAL(rkind),DIMENSION(1:nsum,1:nrum) :: &
        rnug,rnfug,rtug
   ! ----------------------------------------------------------------------
+
+  REAL(rkind),DIMENSION(1:ntum) :: temp
 
 CONTAINS
 
@@ -122,25 +124,25 @@ CONTAINS
     INTEGER(ikind),INTENT(OUT) :: ierr
 
     ierr = 0
-!!$    CALL TIMESPL(t,rrug,tmu,rru,ntxmax,ntum,ierr)
-!!$    CALL TIMESPL(t,raug,tmu,rau,ntxmax,ntum,ierr)
-!!$    CALL TIMESPL(t,bbug,tmu,bbu,ntxmax,ntum,ierr)
-!!$    CALL TIMESPL(t,rkapug,tmu,rkapu,ntxmax,ntum,ierr)
-!!$    CALL TIMESPL(t,rdltug,tmu,rdltu,ntxmax,ntum,ierr)
-!!$!    CALL TIMESPL(t,phiaug,tmu,phiau,ntxmax,ntum,ierr)
-!!$    CALL TIMESPL(t,zeffug,tmu,zeffu,ntxmax,ntum,ierr)
-!!$    CALL TIMESPL(t,wthug,tmu,wthu,ntxmax,ntum,ierr)
-!!$    CALL TIMESPL(t,wtotug,tmu,wtotu,ntxmax,ntum,ierr)
+!!$    CALL TIMESPL(time,rrug,tmu,rru,ntxmax,ntum,ierr)
+!!$    CALL TIMESPL(time,raug,tmu,rau,ntxmax,ntum,ierr)
+!!$    CALL TIMESPL(time,bbug,tmu,bbu,ntxmax,ntum,ierr)
+!!$    CALL TIMESPL(time,rkapug,tmu,rkapu,ntxmax,ntum,ierr)
+!!$    CALL TIMESPL(time,rdltug,tmu,rdltu,ntxmax,ntum,ierr)
+!!$!    CALL TIMESPL(time,phiaug,tmu,phiau,ntxmax,ntum,ierr)
+!!$    CALL TIMESPL(time,zeffug,tmu,zeffu,ntxmax,ntum,ierr)
+!!$    CALL TIMESPL(time,wthug,tmu,wthu,ntxmax,ntum,ierr)
+!!$    CALL TIMESPL(time,wtotug,tmu,wtotu,ntxmax,ntum,ierr)
 
-    CALL lin_itp(t,rrug,tmu,rru,ntxmax,ntum)
-    CALL lin_itp(t,raug,tmu,rau,ntxmax,ntum)
-    CALL lin_itp(t,bbug,tmu,bbu,ntxmax,ntum)
-    CALL lin_itp(t,rkapug,tmu,rkapu,ntxmax,ntum)
-    CALL lin_itp(t,rdltug,tmu,rdltu,ntxmax,ntum)
-!    CALL lin_itp(t,phiaug,tmu,phiau,ntxmax,ntum)
-    CALL lin_itp(t,zeffug,tmu,zeffu,ntxmax,ntum)
-    CALL lin_itp(t,wthug,tmu,wthu,ntxmax,ntum)
-    CALL lin_itp(t,wtotug,tmu,wtotu,ntxmax,ntum)
+    CALL lin_itp(time,rrug,tmu,rru,ntxmax,ntum)
+    CALL lin_itp(time,raug,tmu,rau,ntxmax,ntum)
+    CALL lin_itp(time,bbug,tmu,bbu,ntxmax,ntum)
+    CALL lin_itp(time,rkapug,tmu,rkapu,ntxmax,ntum)
+    CALL lin_itp(time,rdltug,tmu,rdltu,ntxmax,ntum)
+!    CALL lin_itp(time,phiaug,tmu,phiau,ntxmax,ntum)
+    CALL lin_itp(time,zeffug,tmu,zeffu,ntxmax,ntum)
+    CALL lin_itp(time,wthug,tmu,wthu,ntxmax,ntum)
+    CALL lin_itp(time,wtotug,tmu,wtotu,ntxmax,ntum)
 
     IF(ierr /= 0)THEN
        WRITE(6,*) 'XX uf_ufin_global: Time interpolation error. IERR=', ierr
@@ -176,22 +178,24 @@ CONTAINS
     INTEGER(ikind) :: nr,nsa,neq,nsu,nsfu,id
 
     ierr = 0
-    t = time
 
     DO nr = 1, nrmax+1
        DO nsu = 1, nsum
           IF(idnm(nsu))THEN
-!             CALL TIMESPL(t,rnug(nsu,nr),tmu,rnu(nsu,:,nr),ntxmax,ntum,ierr)
-             CALL lin_itp(t,rnug(nsu,nr),tmu,rnu(nsu,:,nr),ntxmax,ntum)
+             temp(1:ntum) = rnu(nsu,1:ntum,nr)
+!             CALL TIMESPL(time,rnug(nsu,nr),tmu,temp,ntxmax,ntum,ierr)
+             CALL lin_itp(time,rnug(nsu,nr),tmu,temp,ntxmax,ntum)
           END IF
           IF(idnfast(nsu))THEN
-!             CALL TIMESPL(t,rnfug(nsu,nr),tmu,rnfu(nsu,:,nr),ntxmax,ntum,ierr)
-             CALL lin_itp(t,rnfug(nsu,nr),tmu,rnfu(nsu,:,nr),ntxmax,ntum)
+             temp(1:ntum) = rnu(nsu,1:ntum,nr)
+!             CALL TIMESPL(time,rnfug(nsu,nr),tmu,temp,ntxmax,ntum,ierr)
+             CALL lin_itp(time,rnfug(nsu,nr),tmu,temp,ntxmax,ntum)
           END IF
        END DO
 
-!       CALL TIMESPL(t,zeffrug(nr),tmu,zeffru(:,nr),ntxmax,ntum,ierr)
-       CALL lin_itp(t,zeffrug(nr),tmu,zeffru(:,nr),ntxmax,ntum)
+!       CALL TIMESPL(time,zeffrug(nr),tmu,zeffru(:,nr),ntxmax,ntum,ierr)
+       temp(1:ntum) = zeffru(1:ntum,nr)
+       CALL lin_itp(time,zeffrug(nr),tmu,zeffru(:,nr),ntxmax,ntum)
     END DO
 
     IF(ierr /= 0)THEN
@@ -263,11 +267,11 @@ CONTAINS
     INTEGER(ikind) :: nr
 
     ierr = 0
-    t = time
 
     DO nr = 1, nrmax+1
-!       CALL TIMESPL(t,wrotug(nr),tmu,wrotu(:,nr),ntxmax,ntum,ierr)
-       CALL lin_itp(t,wrotug(nr),tmu,wrotu(:,nr),ntxmax,ntum)
+       temp(1:ntum) = wrotu(1:ntum,nr)
+!       CALL TIMESPL(time,wrotug(nr),tmu,temp,ntxmax,ntum,ierr)
+       CALL lin_itp(time,wrotug(nr),tmu,temp,ntxmax,ntum)
     END DO
 
     IF(ierr /= 0)THEN
@@ -298,12 +302,12 @@ CONTAINS
     INTEGER(ikind) :: nr,nsu,nsa,neq,id
 
     ierr = 0
-    t = time
 
     DO nr = 1, nrmax+1
        DO nsu = 1, nsum
-!          CALL TIMESPL(t,rtug(nsu,nr),tmu,rtu(nsu,:,nr),ntxmax,ntum,ierr)
-          CALL lin_itp(t,rtug(nsu,nr),tmu,rtu(nsu,:,nr),ntxmax,ntum)
+          temp(1:ntum) = rtu(nsu,1:ntum,nr)
+!          CALL TIMESPL(time,rtug(nsu,nr),tmu,temp,ntxmax,ntum,ierr)
+          CALL lin_itp(time,rtug(nsu,nr),tmu,temp,ntxmax,ntum)
        END DO
     END DO
 
@@ -354,31 +358,38 @@ CONTAINS
     INTEGER(ikind) :: nr,id
 
     ierr = 0
-    t = time 
 
-!!$    CALL TIMESPL(t,ripug,tmu,ripu,ntxmax,ntum,ierr)
-    CALL lin_itp(t,ripug,tmu,ripu,ntxmax,ntum)
+!!$    CALL TIMESPL(time,ripug,tmu,ripu,ntxmax,ntum,ierr)
+    CALL lin_itp(time,ripug,tmu,ripu,ntxmax,ntum)
 
     DO nr = 1, nrmax+1
-!!$       CALL TIMESPL(t,qpug(nr),tmu,qpu(:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,bpug(nr),tmu,bpu(:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,jtotug(nr),tmu,jtotu(:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,qpug(nr),tmu,qpu(:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,bpug(nr),tmu,bpu(:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,jtotug(nr),tmu,jtotu(:,nr),ntxmax,ntum,ierr)
 !!$
-!!$       CALL TIMESPL(t,jnbug(nr),tmu,jnbu(:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,jecug(nr),tmu,jecu(:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,jicug(nr),tmu,jicu(:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,jlhug(nr),tmu,jlhu(:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,jbsug(nr),tmu,jbsu(:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,jnbug(nr),tmu,jnbu(:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,jecug(nr),tmu,jecu(:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,jicug(nr),tmu,jicu(:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,jlhug(nr),tmu,jlhu(:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,jbsug(nr),tmu,jbsu(:,nr),ntxmax,ntum,ierr)
 
-       CALL lin_itp(t,qpug(nr),tmu,qpu(:,nr),ntxmax,ntum)
-       CALL lin_itp(t,bpug(nr),tmu,bpu(:,nr),ntxmax,ntum)
-       CALL lin_itp(t,jtotug(nr),tmu,jtotu(:,nr),ntxmax,ntum)
+       temp(1:ntum) = qpu(1:ntum,nr)
+       CALL lin_itp(time,qpug(nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = bpu(1:ntum,nr)
+       CALL lin_itp(time,bpug(nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = jtotu(1:ntum,nr)
+       CALL lin_itp(time,jtotug(nr),tmu,temp,ntxmax,ntum)
 
-       CALL lin_itp(t,jnbug(nr),tmu,jnbu(:,nr),ntxmax,ntum)
-       CALL lin_itp(t,jecug(nr),tmu,jecu(:,nr),ntxmax,ntum)
-       CALL lin_itp(t,jicug(nr),tmu,jicu(:,nr),ntxmax,ntum)
-       CALL lin_itp(t,jlhug(nr),tmu,jlhu(:,nr),ntxmax,ntum)
-       CALL lin_itp(t,jbsug(nr),tmu,jbsu(:,nr),ntxmax,ntum)
+       temp(1:ntum) = jnbu(1:ntum,nr)
+       CALL lin_itp(time,jnbug(nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = jecu(1:ntum,nr)
+       CALL lin_itp(time,jecug(nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = jicu(1:ntum,nr)
+       CALL lin_itp(time,jicug(nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = jlhu(1:ntum,nr)
+       CALL lin_itp(time,jlhug(nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = jbsu(1:ntum,nr)
+       CALL lin_itp(time,jbsug(nr),tmu,temp,ntxmax,ntum)
     END DO
 
     IF(ierr /= 0)THEN
@@ -434,8 +445,8 @@ CONTAINS
 ! ----------------------------------------------------------------------
     USE trcomm,ONLY: tmu,pnbu,pecu,pibwu,picu,plhu,pohmu,pradu,    &
          jtotu,jnbu,jecu,jicu,jlhu,jbsu,qnbu,qecu,qibwu,qicu,qlhu, &
-         qfusu,qohmu,qradu,snbu,swallu, &
-         pnb,pec,pibw,pic,plh,poh,prl,pnf,snb,spl,swl,  &
+         qfusu,qohmu,qradu,qwallu,snbu,swallu, &
+         pnb,pec,pibw,pic,plh,poh,prl,pwl,pnf,snb,spl,swl,  &
          pnb_t,pec_t,pibw_t,pic_t,plh_t,poh_t,prl_t
 
     IMPLICIT NONE
@@ -446,62 +457,82 @@ CONTAINS
     INTEGER(ikind) :: nr
 
     ierr = 0
-    t = time
 
-!!$    CALL TIMESPL(t,pnbug,tmu,pnbu,ntxmax,ntum,ierr)
-!!$    CALL TIMESPL(t,pecug,tmu,pecu,ntxmax,ntum,ierr)
-!!$    CALL TIMESPL(t,pibwug,tmu,pibwu,ntxmax,ntum,ierr)
-!!$    CALL TIMESPL(t,picug,tmu,picu,ntxmax,ntum,ierr)
-!!$    CALL TIMESPL(t,plhug,tmu,plhu,ntxmax,ntum,ierr)
-!!$    CALL TIMESPL(t,pohmug,tmu,pohmu,ntxmax,ntum,ierr)
-!!$    CALL TIMESPL(t,pradug,tmu,pradu,ntxmax,ntum,ierr)
+!!$    CALL TIMESPL(time,pnbug,tmu,pnbu,ntxmax,ntum,ierr)
+!!$    CALL TIMESPL(time,pecug,tmu,pecu,ntxmax,ntum,ierr)
+!!$    CALL TIMESPL(time,pibwug,tmu,pibwu,ntxmax,ntum,ierr)
+!!$    CALL TIMESPL(time,picug,tmu,picu,ntxmax,ntum,ierr)
+!!$    CALL TIMESPL(time,plhug,tmu,plhu,ntxmax,ntum,ierr)
+!!$    CALL TIMESPL(time,pohmug,tmu,pohmu,ntxmax,ntum,ierr)
+!!$    CALL TIMESPL(time,pradug,tmu,pradu,ntxmax,ntum,ierr)
 
-    CALL lin_itp(t,pnbug,tmu,pnbu,ntxmax,ntum)
-    CALL lin_itp(t,pecug,tmu,pecu,ntxmax,ntum)
-    CALL lin_itp(t,pibwug,tmu,pibwu,ntxmax,ntum)
-    CALL lin_itp(t,picug,tmu,picu,ntxmax,ntum)
-    CALL lin_itp(t,plhug,tmu,plhu,ntxmax,ntum)
-    CALL lin_itp(t,pohmug,tmu,pohmu,ntxmax,ntum)
-    CALL lin_itp(t,pradug,tmu,pradu,ntxmax,ntum)
+    CALL lin_itp(time,pnbug,tmu,pnbu,ntxmax,ntum)
+    CALL lin_itp(time,pecug,tmu,pecu,ntxmax,ntum)
+    CALL lin_itp(time,pibwug,tmu,pibwu,ntxmax,ntum)
+    CALL lin_itp(time,picug,tmu,picu,ntxmax,ntum)
+    CALL lin_itp(time,plhug,tmu,plhu,ntxmax,ntum)
+    CALL lin_itp(time,pohmug,tmu,pohmu,ntxmax,ntum)
+    CALL lin_itp(time,pradug,tmu,pradu,ntxmax,ntum)
 
     DO nr = 1, nrmax+1
-!!$       CALL TIMESPL(t,qnbug(1,nr),tmu,qnbu(1,:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,qnbug(2,nr),tmu,qnbu(2,:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,qecug(1,nr),tmu,qecu(1,:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,qecug(2,nr),tmu,qecu(2,:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,qibwug(1,nr),tmu,qibwu(1,:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,qibwug(2,nr),tmu,qibwu(2,:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,qicug(1,nr),tmu,qicu(1,:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,qicug(2,nr),tmu,qicu(2,:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,qlhug(1,nr),tmu,qlhu(1,:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,qlhug(2,nr),tmu,qlhu(2,:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,qohmug(nr),tmu,qohmu(:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,qradug(nr),tmu,qradu(:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,qfusug(1,nr),tmu,qfusu(1,:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,qfusug(2,nr),tmu,qfusu(2,:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,qnbug(1,nr),tmu,qnbu(1,:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,qnbug(2,nr),tmu,qnbu(2,:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,qecug(1,nr),tmu,qecu(1,:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,qecug(2,nr),tmu,qecu(2,:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,qibwug(1,nr),tmu,qibwu(1,:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,qibwug(2,nr),tmu,qibwu(2,:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,qicug(1,nr),tmu,qicu(1,:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,qicug(2,nr),tmu,qicu(2,:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,qlhug(1,nr),tmu,qlhu(1,:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,qlhug(2,nr),tmu,qlhu(2,:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,qohmug(nr),tmu,qohmu(:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,qradug(nr),tmu,qradu(:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,qfusug(1,nr),tmu,qfusu(1,:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,qfusug(2,nr),tmu,qfusu(2,:,nr),ntxmax,ntum,ierr)
 !!$
-!!$       CALL TIMESPL(t,snbug(1,nr),tmu,snbu(1,:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,snbug(2,nr),tmu,snbu(2,:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,swallug(nr),tmu,swallu(:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,snbug(1,nr),tmu,snbu(1,:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,snbug(2,nr),tmu,snbu(2,:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,swallug(nr),tmu,swallu(:,nr),ntxmax,ntum,ierr)
 
-       CALL lin_itp(t,qnbug(1,nr),tmu,qnbu(1,:,nr),ntxmax,ntum)
-       CALL lin_itp(t,qnbug(2,nr),tmu,qnbu(2,:,nr),ntxmax,ntum)
-       CALL lin_itp(t,qecug(1,nr),tmu,qecu(1,:,nr),ntxmax,ntum)
-       CALL lin_itp(t,qecug(2,nr),tmu,qecu(2,:,nr),ntxmax,ntum)
-       CALL lin_itp(t,qibwug(1,nr),tmu,qibwu(1,:,nr),ntxmax,ntum)
-       CALL lin_itp(t,qibwug(2,nr),tmu,qibwu(2,:,nr),ntxmax,ntum)
-       CALL lin_itp(t,qicug(1,nr),tmu,qicu(1,:,nr),ntxmax,ntum)
-       CALL lin_itp(t,qicug(2,nr),tmu,qicu(2,:,nr),ntxmax,ntum)
-       CALL lin_itp(t,qlhug(1,nr),tmu,qlhu(1,:,nr),ntxmax,ntum)
-       CALL lin_itp(t,qlhug(2,nr),tmu,qlhu(2,:,nr),ntxmax,ntum)
-       CALL lin_itp(t,qohmug(nr),tmu,qohmu(:,nr),ntxmax,ntum)
-       CALL lin_itp(t,qradug(nr),tmu,qradu(:,nr),ntxmax,ntum)
-       CALL lin_itp(t,qfusug(1,nr),tmu,qfusu(1,:,nr),ntxmax,ntum)
-       CALL lin_itp(t,qfusug(2,nr),tmu,qfusu(2,:,nr),ntxmax,ntum)
+       temp(1:ntum) = qnbu(1,1:ntum,nr)
+       CALL lin_itp(time,qnbug(1,nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = qnbu(2,1:ntum,nr)
+       CALL lin_itp(time,qnbug(2,nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = qecu(1,1:ntum,nr)
+       CALL lin_itp(time,qecug(1,nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = qecu(2,1:ntum,nr)
+       CALL lin_itp(time,qecug(2,nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = qibwu(1,1:ntum,nr)
+       CALL lin_itp(time,qibwug(1,nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = qibwu(2,1:ntum,nr)
+       CALL lin_itp(time,qibwug(2,nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = qicu(1,1:ntum,nr)
+       CALL lin_itp(time,qicug(1,nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = qicu(2,1:ntum,nr)
+       CALL lin_itp(time,qicug(2,nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = qlhu(1,1:ntum,nr)
+       CALL lin_itp(time,qlhug(1,nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = qlhu(2,1:ntum,nr)
+       CALL lin_itp(time,qlhug(2,nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = qohmu(1:ntum,nr)
+       CALL lin_itp(time,qohmug(nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = qradu(1:ntum,nr)
+       CALL lin_itp(time,qradug(nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = qwallu(1,1:ntum,nr)
+       CALL lin_itp(time,qwallug(1,nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = qwallu(2,1:ntum,nr)
+       CALL lin_itp(time,qwallug(2,nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = qfusu(1,1:ntum,nr)
+       CALL lin_itp(time,qfusug(1,nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = qfusu(2,1:ntum,nr)
+       CALL lin_itp(time,qfusug(2,nr),tmu,temp,ntxmax,ntum)
 
-       CALL lin_itp(t,snbug(1,nr),tmu,snbu(1,:,nr),ntxmax,ntum)
-       CALL lin_itp(t,snbug(2,nr),tmu,snbu(2,:,nr),ntxmax,ntum)
-       CALL lin_itp(t,swallug(nr),tmu,swallu(:,nr),ntxmax,ntum)
+       temp(1:ntum) = snbu(1,1:ntum,nr)
+       CALL lin_itp(time,snbug(1,nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = snbu(2,1:ntum,nr)
+       CALL lin_itp(time,snbug(2,nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = swallu(1:ntum,nr)
+       CALL lin_itp(time,swallug(nr),tmu,temp,ntxmax,ntum)
     END DO
 
     IF(ierr /= 0)THEN
@@ -534,6 +565,8 @@ CONTAINS
        plh(2,0:nrmax)  = qlhug(2,1:nrmax+1)
        poh(1,0:nrmax)  = qohmug(1:nrmax+1)
        prl(1,0:nrmax)  = qradug(1:nrmax+1)
+       pwl(1,0:nrmax)  = qwallug(1,1:nrmax+1)
+       pwl(2,0:nrmax)  = qwallug(2,1:nrmax+1)
        pnf(1,0:nrmax)  = qfusug(1,1:nrmax+1)
        pnf(2,0:nrmax)  = qfusug(2,1:nrmax+1)
 
@@ -563,26 +596,33 @@ CONTAINS
     INTEGER(ikind) :: nr
 
     ierr = 0
-    t = time
 
     DO nr = 1, nrmax+1
-!!$       CALL TIMESPL(t,pvolug(nr),tmu,pvolu(:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,psurug(nr),tmu,psuru(:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,rmjrhoug(nr),tmu,rmjrhou(:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,rmnrhoug(nr),tmu,rmnrhou(:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,ar1rhoug(nr),tmu,ar1rhou(:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,ar2rhoug(nr),tmu,ar2rhou(:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,rkprhoug(nr),tmu,rkprhou(:,nr),ntxmax,ntum,ierr)
-!!$       CALL TIMESPL(t,dvrhoug(nr),tmu,dvrhou(:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,pvolug(nr),tmu,pvolu(:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,psurug(nr),tmu,psuru(:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,rmjrhoug(nr),tmu,rmjrhou(:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,rmnrhoug(nr),tmu,rmnrhou(:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,ar1rhoug(nr),tmu,ar1rhou(:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,ar2rhoug(nr),tmu,ar2rhou(:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,rkprhoug(nr),tmu,rkprhou(:,nr),ntxmax,ntum,ierr)
+!!$       CALL TIMESPL(time,dvrhoug(nr),tmu,dvrhou(:,nr),ntxmax,ntum,ierr)
 
-       CALL lin_itp(t,pvolug(nr),tmu,pvolu(:,nr),ntxmax,ntum)
-       CALL lin_itp(t,psurug(nr),tmu,psuru(:,nr),ntxmax,ntum)
-       CALL lin_itp(t,rmjrhoug(nr),tmu,rmjrhou(:,nr),ntxmax,ntum)
-       CALL lin_itp(t,rmnrhoug(nr),tmu,rmnrhou(:,nr),ntxmax,ntum)
-       CALL lin_itp(t,ar1rhoug(nr),tmu,ar1rhou(:,nr),ntxmax,ntum)
-       CALL lin_itp(t,ar2rhoug(nr),tmu,ar2rhou(:,nr),ntxmax,ntum)
-       CALL lin_itp(t,rkprhoug(nr),tmu,rkprhou(:,nr),ntxmax,ntum)
-       CALL lin_itp(t,dvrhoug(nr),tmu,dvrhou(:,nr),ntxmax,ntum)
+       temp(1:ntum) = pvolu(1:ntum,nr)
+       CALL lin_itp(time,pvolug(nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = psuru(1:ntum,nr)
+       CALL lin_itp(time,psurug(nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = rmjrhou(1:ntum,nr)
+       CALL lin_itp(time,rmjrhoug(nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = rmnrhou(1:ntum,nr)
+       CALL lin_itp(time,rmnrhoug(nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = ar1rhou(1:ntum,nr)
+       CALL lin_itp(time,ar1rhoug(nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = ar2rhou(1:ntum,nr)
+       CALL lin_itp(time,ar2rhoug(nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = rkprhou(1:ntum,nr)
+       CALL lin_itp(time,rkprhoug(nr),tmu,temp,ntxmax,ntum)
+       temp(1:ntum) = dvrhou(1:ntum,nr)
+       CALL lin_itp(time,dvrhoug(nr),tmu,temp,ntxmax,ntum)
     END DO
 
     IF(ierr /= 0)THEN

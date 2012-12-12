@@ -84,6 +84,8 @@ CONTAINS
           CALL tr_gr_exp3
        CASE(4)
           CALL tr_gr_exp4
+       CASE(5)
+          CALL tr_gr_exp5
        CASE(9)
           CALL tr_gr_exp9
        END SELECT
@@ -145,7 +147,7 @@ CONTAINS
 ! ************************************************************************
   SUBROUTINE tr_gr_exp2
     ! heating density (1)
-    USE trcomm, ONLY: qnbu,qecu,qicu,qlhu,qohmu,qradu,qfusu
+    USE trcomm, ONLY: qnbu,qecu,qicu,qlhu,qohmu,qradu,qwallu,qfusu
 
     CALL tr_gr_init_vgu
 
@@ -159,9 +161,11 @@ CONTAINS
     vgu3(0:nrmax,2) = qecu(2,ntxsnap,1:nrmax+1) *1.d-6
     vgu3(0:nrmax,3) = qicu(2,ntxsnap,1:nrmax+1) *1.d-6
     vgu3(0:nrmax,4) = qlhu(2,ntxsnap,1:nrmax+1) *1.d-6
-    ! ohm, rad
+    ! ohm, rad, wall(e), wall(i)
     vgu2(0:nrmax,1) = qohmu(ntxsnap,1:nrmax+1) *1.d-6
     vgu2(0:nrmax,2) = qradu(ntxsnap,1:nrmax+1) *1.d-6
+    vgu2(0:nrmax,3) = qwallu(1,ntxsnap,1:nrmax+1) *1.d-6
+    vgu2(0:nrmax,4) = qwallu(2,ntxsnap,1:nrmax+1) *1.d-6
     ! fusion
     vgu4(0:nrmax,1) = qfusu(1,ntxsnap,1:nrmax+1) *1.d-6
     vgu4(0:nrmax,2) = qfusu(2,ntxsnap,1:nrmax+1) *1.d-6
@@ -169,8 +173,8 @@ CONTAINS
     CALL PAGES
     label = '@Pe_nb,ec,ic,lh(exp) [MW/m$+3$=] vs rho@'
     CALL GRD1D(1,rhog,vgu1,nrmax+1,nrmax+1,4,label,0)
-    label = '@Pe_ohm,rad(exp) [MW/m$+3$=] vs rho@'
-    CALL GRD1D(2,rhog,vgu2,nrmax+1,nrmax+1,2,label,0)
+    label = '@Pe_ohm,rad,wall_e,wall_i(exp) [MW/m$+3$=] vs rho@'
+    CALL GRD1D(2,rhog,vgu2,nrmax+1,nrmax+1,4,label,0)
     label = '@Pi_nb,ec,ic,lh(exp) [MW/m$+3$=] vs rho@'
     CALL GRD1D(3,rhog,vgu3,nrmax+1,nrmax+1,4,label,0)
     label = '@P(e,i)_fus [MW/m$+3$=] vs rho@'

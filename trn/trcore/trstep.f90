@@ -34,7 +34,6 @@ CONTAINS
     non_linear: DO nit = 1, lmaxtr
 
 !       write(*,*) 'in nonlinear iteration'
-
        CALL tr_calc2
 
        CALL tr_exec

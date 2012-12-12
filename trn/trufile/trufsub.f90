@@ -276,7 +276,7 @@ CONTAINS
        ELSE IF(nr.NE.nrmax+1 .AND. id_mesh.EQ.1)THEN
           rsl = rhom(nr)
        END IF
-       CALL SPL1DF(rsl,f0,rl,u,nrlmax,ierr)
+       CALL SPL1DF(rsl,f0,rl(1:nrlmax),u(1:4,1:nrlmax),nrlmax,ierr)
        IF(ierr.NE.0)THEN
           WRITE(6,*) 'XX tr_uf2d_interpolate: SPL1DF ERROR. IERR= ',ierr
           WRITE(6,*) 'XX KFID= ',KFID, 'NR= ',NR

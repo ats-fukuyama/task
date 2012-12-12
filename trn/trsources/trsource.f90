@@ -12,7 +12,7 @@ CONTAINS
 !   *** calculation source terms which do not need non-linear calculations
 ! ------------------------------------------------------------------------
     USE trcomm, ONLY: t,time_slc,mdluf,mdlsrc, &
-                      poh,pnb,pec,pic,plh,pibw,pnf,prl,snb,spl,swl
+                      poh,pnb,pec,pic,plh,pibw,pnf,prl,pwl,snb,spl,swl
     USE trufin, ONLY: tr_ufin_source
     IMPLICIT NONE
     REAL(rkind)    :: time
@@ -27,6 +27,7 @@ CONTAINS
     pibw(1:2,0:nrmax) = 0.d0
     pnf(1:2,0:nrmax)  = 0.d0
     prl(1:2,0:nrmax)  = 0.d0
+    pwl(1:2,0:nrmax)  = 0.d0
     snb(1:2,0:nrmax)  = 0.d0
     spl(1:2,0:nrmax)  = 0.d0
     swl(1:2,0:nrmax)  = 0.d0
@@ -67,8 +68,8 @@ CONTAINS
 !   *** calculation source terms which need non-linear calculations
 !   *** substitution all contribution to calculation variable 'str'
 ! ------------------------------------------------------------------------
-    USE trcomm,ONLY: rkev,nsa_neq,nva_neq,mdlsrc,str,htr, &
-         poh,pnb,pec,pic,plh,pibw,pnf,prl,snb,spl,swl,    &
+    USE trcomm,ONLY: rkev,nsa_neq,nva_neq,mdlsrc,str,htr,  &
+         poh,pnb,pec,pic,plh,pibw,pnf,prl,pwl,snb,spl,swl, &
          jbs_nc,jex_nc,jcd_nb,jcd_ec,jcd_ic,jcd_lh
     IMPLICIT NONE
 
@@ -91,7 +92,6 @@ CONTAINS
     CASE(7)
        
     END SELECT
-
 
 
     ! substitution each contribution of sources
@@ -125,7 +125,8 @@ CONTAINS
                                 + plh(1,0:nrmax)  &
                                 + pibw(1,0:nrmax) &
                                 + pnf(1,0:nrmax)  &
-                                - prl(1,0:nrmax))/(rkev*1.d20)
+                                - prl(1,0:nrmax)  &
+                                - pwl(1,0:nrmax))/(rkev*1.d20)
 
           ELSE IF(nsa == 2)THEN ! energy, ion
              str(neq,0:nrmax) = ( pnb(2,0:nrmax)  &
@@ -134,7 +135,8 @@ CONTAINS
                                 + plh(2,0:nrmax)  &
                                 + pibw(2,0:nrmax) &
                                 + pnf(2,0:nrmax)  &
-                                - prl(2,0:nrmax))/(rkev*1.d20)
+                                - prl(2,0:nrmax)  &
+                                - pwl(2,0:nrmax))/(rkev*1.d20)
           END IF
        END SELECT
     END DO

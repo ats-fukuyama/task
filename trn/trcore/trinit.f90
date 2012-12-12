@@ -33,6 +33,7 @@ CONTAINS
     USE plcomm
     USE trcomm, ONLY: &
            nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
+           phia,pa_mion,pz_mion,pa_mimp,pz_mimp,      &
            lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
            mdluf,mdlxp,mdlni,mdler,modelg,nteqit, &
            time_slc,time_snap,mdlugt, &
@@ -63,6 +64,13 @@ CONTAINS
 !        RIP   : Plasma current                                 (MA)
 !        PROFJ : Curren density profile parameter (power of (1 - rho^2))  
 
+!        PHIA  : total toroidal flux enclosed by the plasma (Wb)
+
+    rips = 1.d0
+    ripe = 1.d0
+
+    phia = 0.d0
+
 !     ======( PLASMA PARAMETERS )======
 
 !        NSMAX : Number of particle species
@@ -89,7 +97,11 @@ CONTAINS
 !        PROFT2: Temperature profile parameter (power of (1 - rho^PROFN1))
 !        PROFU1: Rotation profile parameter (power of rho)
 !        PROFU2: Rotation profile parameter (power of (1 - rho^PROFN1))
+!        PROFJ1: Current density profile parameter (power of rho)
+!        PROFJ2: Current density profile parameter (power of (1 - rho^PROFJ1))
 
+    profj1 = 2.d0
+    profj2 = 1.d0
 
 !     ======( MODEL PARAMETERS )======
 
@@ -178,13 +190,24 @@ CONTAINS
 !        rg_fixed(3,nsm) : minimum radius of fixed profile
 !        nsamax   : number of active particle species
 !        nitmax   : maximum number of iterations
-!        epsit    : tolerance of iteration
+!        epsltr   : tolerance of iteration
+!
+!        pa_mion  : atomic number of main hydrogenic ion
+!        pz_mion  : charge number of main hydrogenic ion
+!        pa_mimp  : atomic number of main impurity ion
+!        pz_mion  : charge number of main impurity ion
 
     nrmax    = 50
     ntmax    = 100
     dt       = 0.01D0
     rg_fixed(1:3,0:nsm) = rb
+
     nsamax   = 3
+
+    pa_mion = 2.d0  ! Deuterium
+    pz_mion = 1.d0 
+    pa_mimp = 6.d0  ! Carbon
+    pz_mimp = 12.d0
 
 !     ==== Convergence Parameter ====
 !        epsltr : convergence criterion of iteration
@@ -235,7 +258,11 @@ CONTAINS
     cdtrt = 1.D0
 
 !!$    !     ==== Eqs. Selection Parameter ====
-!!$
+!!$    For now, these switch variables are not used.
+!!$    Instead, we determine which equation is solved
+!!$     by the array 'id_neq' (see trsetup.f90) and the declaration of
+!!$     species in TASK/PL (see plx/plinit.f90).
+!!$    
 !!$    MDLEQB=1  ! 0/1 for B_theta
 !!$    MDLEQN=0  ! 0/1 for density
 !!$    MDLEQT=1  ! 0/1 for heat
@@ -326,16 +353,9 @@ CONTAINS
 
 
 ! ==== for the time being ===
-!        PROFJ1: Current density profile parameter (power of rho)
-!        PROFJ2: Current density profile parameter (power of (1 - rho^PROFJ1))
 
 !        MDLER: the type of radial electric field
 
-    profj1 = 2.d0
-    profj2 = 1.d0
-
-    rips = 1.d0
-    ripe = 1.d0
 
     mdler  = 0
 
@@ -387,6 +407,7 @@ CONTAINS
     USE trcomm, ONLY: &
            nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
            ntstep,ngtmax,ngtstp, &
+           phia,pa_mion,pz_mion,pa_mimp,pz_mimp,       &
            lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv,mdler,&
            dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,rhog_prv,cdtrn,cdtru,cdtrt, &
            profj1,profj2,rips,ripe,nteqit,time_slc,time_snap,mdlugt,mdlni, &
@@ -410,6 +431,7 @@ CONTAINS
          kuf_dir,kuf_dev,kuf_dcg,time_slc,time_snap, &
          mdlijq,mdlgmt,mdlsrc,mdlglb,&
          nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
+         phia,pa_mion,pz_mion,pa_mimp,pz_mimp,      &
          lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
          mdler,nteqit, &
          dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,rhog_prv, &

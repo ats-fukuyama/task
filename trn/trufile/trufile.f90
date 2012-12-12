@@ -13,7 +13,7 @@ MODULE trufile
   PUBLIC tr_ufile
 
   INTEGER(ikind) :: tlcheck, tlsave
-  REAL(rkind),DIMENSION(1:nrum) :: tmu_save
+  REAL(rkind),DIMENSION(1:ntum) :: tmu_save
 
 CONTAINS
 
@@ -263,7 +263,6 @@ CONTAINS
              CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
           END IF          
           rnu(nsi,1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1) * 1.d-20
-
        END IF
     END DO
 
@@ -361,7 +360,7 @@ CONTAINS
     USE trufsub,ONLY: tr_uf1d,tr_uf2d,tr_uftl_check
     USE trcomm,ONLY: tmu,pnbu,pecu,pibwu,picu,plhu,pohmu,pradu,  &
          jnbu,jecu,jicu,jlhu,jbsu,qnbu,qecu,qibwu,qicu,qlhu,     &
-         qfusu,qohmu,qradu,snbu,swallu
+         qfusu,qohmu,qradu,qwallu,snbu,swallu
     IMPLICIT NONE
 
     INTEGER(ikind),INTENT(IN)  :: id_mesh,id_deriv
@@ -574,6 +573,23 @@ CONTAINS
     END IF
 
 
+    kfid = 'QWALLE'   ! --> qwallu
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
+    END IF
+    qwallu(1,1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
+
+    kfid = 'QWALLI'   ! --> qwallu
+    CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
+                 id_mesh,id_deriv,errout,ierr)
+    IF(ierr == 0)THEN
+       CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
+    END IF
+    qwallu(2,1:ntxmax,1:nrmax+1) = f2out(1:ntxmax,1:nrmax+1)
+
+
     kfid = 'SNBIE'   ! --> snbu
     CALL tr_uf2d(kfid,tmu,f2out,ntxmax,nrmax,rhog,rhom,mdlxp,ufid_bin,   &
                  id_mesh,id_deriv,errout,ierr)
@@ -613,13 +629,16 @@ CONTAINS
     USE trcomm,ONLY: tmu,pvolu,psuru,rmjrhou,rmnrhou,ar1rhou,ar2rhou, &
                      rkprhou,dvrhou, rru,bbu
     IMPLICIT NONE
-
     INTEGER(ikind),INTENT(IN)  :: id_mesh,id_deriv
     INTEGER(ikind),INTENT(OUT) :: ierr
 
     CHARACTER(LEN=10)                :: kfid
     INTEGER(ikind)                   :: nr, errout
     REAL(rkind),DIMENSION(ntum,nrum) :: f2out
+
+    REAL(rkind),DIMENSION(1:nrum) :: temp
+    REAL(rkind) :: deriv4
+    INTEGER(ikind) :: ntx
 
     errout = 0 ! write inquire error message to standard output
 
@@ -676,9 +695,17 @@ CONTAINS
 
     ! asscociated values
     ! d V/d rho
-    dvrhou(1:ntxmax,2:nrmax+1) = psuru(1:ntxmax,2:nrmax+1) &
-                              /ar1rhou(1:ntxmax,2:nrmax+1)
-    dvrhou(1:ntxmax,1) = 0.d0 ! at the magnetic axis
+!!$    dvrhou(1:ntxmax,2:nrmax+1) = psuru(1:ntxmax,2:nrmax+1) &
+!!$                              /ar1rhou(1:ntxmax,2:nrmax+1)
+!!$    dvrhou(1:ntxmax,1) = 0.d0 ! at the magnetic axis
+
+    DO ntx = 1, ntxmax
+       DO nr = 1,nrmax+1
+          temp(1:nrum) = pvolu(ntx,1:nrum)
+          dvrhou(ntx,nr) = deriv4(nr,rhog,temp(1:nrmax+1),nrmax+1,1)
+       END DO
+       dvrhou(ntx,1) = 0.d0 ! at the magnetic axis
+    END DO
 
     RETURN
   END SUBROUTINE tr_ufget_geometric

@@ -2,7 +2,7 @@ MODULE trgcmp
 ! ***********************************************************************
 !    graphic output for comparison of calculation result and exp. data
 ! ***********************************************************************
-  USE trcomm,ONLY: ikind,rkind,nsum,ngt,nrmax,rhog
+  USE trcomm,ONLY: ikind,rkind,nsum,ngt,nrmax,nsamax,rhog
   USE trgsub,ONLY: &
        tr_gr_time,tr_gr_vnr_alloc,tr_gr_exp_alloc,tr_gr_vnt_alloc, &
        tr_gr_init_vgx,tr_gr_init_vgu,tr_gr_init_gt,tr_gr_init_gti, &
@@ -14,7 +14,7 @@ MODULE trgcmp
   PUBLIC tr_gr_comparison
 
   CHARACTER(LEN=50) :: label
-  INTEGER(ikind) :: nr, idexp
+  INTEGER(ikind) :: nr,nsa, idexp
 
 CONTAINS
 
@@ -65,7 +65,9 @@ CONTAINS
     ELSE IF(i2 == 1)THEN
        SELECT CASE(i3)
        CASE(1)
+          CALL tr_gr_cmp11
        CASE(2)
+          CALL tr_gr_cmp12
        END SELECT
 
     ELSE IF(i2 == 2)THEN ! time evolution of 0D variables
@@ -74,6 +76,8 @@ CONTAINS
           CALL tr_gr_cmp21
        CASE(2)
           CALL tr_gr_cmp22
+       CASE(3)
+          CALL tr_gr_cmp23
        END SELECT
 
     END IF
@@ -187,6 +191,7 @@ CONTAINS
 
   
   SUBROUTINE tr_gr_cmp3
+    ! for now, supposed that experimental j_tot(CURTOT) data always exist.
     USE trcomm,ONLY: jtot,joh,jbs_nc,jcd_nb,jcd_ec,jcd_ic,jcd_lh
     USE trufin,ONLY: jtotug,jnbug,jecug,jicug,jlhug,jbsug
 
@@ -231,8 +236,60 @@ CONTAINS
     RETURN
   END SUBROUTINE tr_gr_cmp3
 
+! ************************************************************************
+
+  SUBROUTINE tr_gr_cmp11
+
+    RETURN
+  END SUBROUTINE tr_gr_cmp11
+
+
+  SUBROUTINE tr_gr_cmp12
+
+    RETURN
+  END SUBROUTINE tr_gr_cmp12
+
+! ************************************************************************
 
   SUBROUTINE tr_gr_cmp21
+    USE trcomm,ONLY: gvts
+
+    CALL tr_gr_init_gti
+
+    gti1(0:ngt,1) = gvts(0:ngt,1,1) ! rn_e(rho=0)
+    gti1(0:ngt,2) = gvts(0:ngt,2,1) ! rn_1(rho=0)
+    gti1(0:ngt,3) = gvts(0:ngt,1,5) ! rnu_e(rho=0)
+    gti1(0:ngt,4) = gvts(0:ngt,2,5) ! rnu_1(rho=0)
+
+    gti2(0:ngt,1) = gvts(0:ngt,1,4)*1.d-6 ! rp_e(rho=0)
+    gti2(0:ngt,2) = gvts(0:ngt,2,4)*1.d-6 ! rp_1(rho=0)
+    gti2(0:ngt,3) = gvts(0:ngt,1,7)*1.d-6 ! rpu_e(rho=0)
+    gti2(0:ngt,4) = gvts(0:ngt,2,7)*1.d-6 ! rpu_1(rho=0)
+
+    gti3(0:ngt,1) = gvts(0:ngt,1,3) ! rt_e(rho=0)
+    gti3(0:ngt,2) = gvts(0:ngt,1,6) ! rtu_e(rho=0)
+
+    gti4(0:ngt,1) = gvts(0:ngt,2,3) ! rt_1(rho=0)
+    gti4(0:ngt,2) = gvts(0:ngt,2,6) ! rtu_1(rho=0)
+
+    CALL PAGES
+    label = '@n(0)_e,i (sim,exp) [10$+20$=/m$+3$=] vs rho@'
+    CALL GRD1D(1,gt,gti1,ngt+1,ngt+1,4,label,0)
+    label = '@p(0)_e,i (sim,exp) [MPa] vs rho@'
+    CALL GRD1D(2,gt,gti2,ngt+1,ngt+1,4,label,0)
+    label = '@T(0)_e (sim,exp) [keV] vs rho@'
+    CALL GRD1D(3,gt,gti3,ngt+1,ngt+1,2,label,0)
+    label = '@T(0)_i (sim,exp) [keV] vs rho@'
+    CALL GRD1D(4,gt,gti4,ngt+1,ngt+1,2,label,0)
+    CALL tr_gr_time(idexp)
+    CALL PAGEE
+
+    RETURN
+  END SUBROUTINE tr_gr_cmp21
+
+! ************************************************************************
+
+  SUBROUTINE tr_gr_cmp22
     USE trcomm,ONLY: gvt,gvtu
 
     CALL tr_gr_init_gti
@@ -265,13 +322,40 @@ CONTAINS
     CALL PAGEE
 
     RETURN
-  END SUBROUTINE tr_gr_cmp21
-
-
-  SUBROUTINE tr_gr_cmp22
-
-    RETURN
   END SUBROUTINE tr_gr_cmp22
 
+  SUBROUTINE tr_gr_cmp23
+    USE trcomm, ONLY: gvts,gvt
+
+    CALL tr_gr_init_gti
+
+    DO nsa = 1, nsamax
+       IF(nsa > 4) EXIT
+       ! the pressure of each species
+       gti1(0:ngt,nsa) = gvts(0:ngt,nsa,4) *1.d-6
+    END DO
+
+    gti2(0:ngt,1) = gvt(0:ngt,30) ! rw: the deviation of the W_inc
+
+    DO nsa = 1, nsamax
+       IF(nsa > 4) EXIT
+       gti3(0:ngt,nsa) = gvts(0:ngt,nsa,8)  ! stdrt(nsa)
+       gti4(0:ngt,nsa) = gvts(0:ngt,nsa,9)  ! offrt(nsa)
+    END DO
+
+    CALL PAGES
+    label = '@p(0) [MPa] vs t@'
+    CALL GRD1D(1,gt,gti1,ngt+1,ngt+1,4,label,0)
+    label = '@rw (%) vs t@'
+    CALL GRD1D(2,gt,gti2,ngt+1,ngt+1,1,label,0)
+    label = '@STD_s (%) vs t@'
+    CALL GRD1D(3,gt,gti3,ngt+1,ngt+1,4,label,0)
+    label = '@OFF_s (%) vs t@'
+    CALL GRD1D(4,gt,gti4,ngt+1,ngt+1,4,label,0)
+    CALL tr_gr_time(idexp)
+    CALL PAGEE
+
+    RETURN
+  END SUBROUTINE tr_gr_cmp23
 
 END MODULE trgcmp

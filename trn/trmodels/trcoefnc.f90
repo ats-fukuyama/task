@@ -98,6 +98,8 @@ CONTAINS
        ! store for caluculation of magnetic diffusion coefficient
        etam_nc(1:nrmax) = eta_ncls(1:nrmax)
 
+       ! The following interpolation is a interim way
+       !  (valid in the case of equi-spaced mesh)
        ! *** extrapolate center value ***                            
        eta_nc(0) = FCTR(rhom(1),rhom(2),eta_ncls(1),eta_ncls(2))
        jbs_nc(0) = FCTR(rhom(1),rhom(2),jbs_ncls(1),jbs_ncls(2))

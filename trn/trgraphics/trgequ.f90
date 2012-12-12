@@ -47,6 +47,8 @@ CONTAINS
        CALL tr_gr_equ3
     CASE(4)
        CALL tr_gr_equ4
+    CASE(5)
+       CALL tr_gr_equ5
     END SELECT
 
     RETURN
@@ -56,6 +58,12 @@ CONTAINS
 
   SUBROUTINE tr_gr_equ1
     ! show magnetic flux surface (equi-psi surface)
+    USE trcomm,ONLY: mdlgmt
+
+    IF(.NOT.(mdlgmt==8 .OR. mdlgmt==9))THEN
+       WRITE(6,'(1X,A,I3)') 'Equilibrium code has not been called. MDLGMT = ',MDLGMT
+       RETURN
+    END IF
 
     RETURN
   END SUBROUTINE tr_gr_equ1
@@ -63,7 +71,7 @@ CONTAINS
 
   SUBROUTINE tr_gr_equ2
 !   essential metric quantities for transport equations
-    USE trcomm, ONLY: qp,dvrho,ar1rho,ar2rho
+    USE trcomm, ONLY: qp,dvrho,ar1rho,ar2rho, pi,rkap,ra,rr,rhog
 
     CALL tr_gr_init_vgx
 
@@ -76,7 +84,7 @@ CONTAINS
     label = '@q vs rho@'
     CALL GRD1D(1,rhog,vgx1,nrmax+1,nrmax+1,1,label,0)
     label = "@V' vs rho@"
-    CALL GRD1D(2,rhog,vgx2,nrmax+1,nrmax+1,1,label,0)
+    CALL GRD1D(2,rhog,vgx2,nrmax+1,nrmax+1,2,label,0)
     label = '@<|grad rho|> vs rho@'
     CALL GRD1D(3,rhog,vgx3,nrmax+1,nrmax+1,1,label,0)
     label = '@<|grad rho|$+2$=> vs rho@'
@@ -136,8 +144,33 @@ CONTAINS
     label = '@<|grad V|$+2$=/R$+2$=>@'
     CALL GRD1D(4,rhog,vgx4,nrmax+1,nrmax+1,1,label,0)
     CALL tr_gr_time(idexp)
+    CALL PAGEE
 
     RETURN
   END SUBROUTINE tr_gr_equ4
+
+
+  SUBROUTINE tr_gr_equ5
+    USE trcomm, ONLY: pvolrho,psurrho,rmjrho,rmnrho
+
+    vgx1(0:nrmax,1) = pvolrho(0:nrmax)
+    vgx2(0:nrmax,1) = psurrho(0:nrmax)
+    vgx3(0:nrmax,1) = rmjrho(0:nrmax)
+    vgx4(0:nrmax,1) = rmnrho(0:nrmax)
+
+    CALL PAGES
+    label = '@V_plasma [m$+3$=] vs rho@'
+    CALL GRD1D(1,rhog,vgx1,nrmax+1,nrmax+1,1,label,0)
+    label = '@S_plasma [m$+3$=] vs rho@'
+    CALL GRD1D(2,rhog,vgx2,nrmax+1,nrmax+1,1,label,0)
+    label = '@R_major [m] vs rho@'
+    CALL GRD1D(3,rhog,vgx3,nrmax+1,nrmax+1,1,label,0)
+    label = '@R_minor [m] vs rho@'
+    CALL GRD1D(4,rhog,vgx4,nrmax+1,nrmax+1,1,label,0)
+    CALL tr_gr_time(idexp)
+    CALL PAGEE
+
+    RETURN
+  END SUBROUTINE tr_gr_equ5
 
 END MODULE trgequ

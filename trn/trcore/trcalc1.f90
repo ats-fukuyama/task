@@ -39,6 +39,7 @@ CONTAINS
        ! read equilibrium code ouput
     END SELECT
     
+
     SELECT CASE(mdlgmt)
     CASE(6)
        CALL tr_ufin_geometry(time,0,ierr)
@@ -105,8 +106,10 @@ CONTAINS
        aib2rho(nr) = 1/BB**2
 
        !       ttrho(nr)   = abb1rho(nr) * rr ??? what's the definition ???
+!       ttrho(nr)   = BB*RR
        ttrho(nr)   = abb1rho(nr) * rr
        !       arrho(nr)   = 1.d0/rr**2 * (1+1.5d0*epsrho(nr)**2)
+!       arrho(nr)   = 1.d0/RR*2
        arrho(nr)   = 1.d0/rmjrho(nr)**2                    ! const
 
        abrho(nr)   = ar2rho(nr) * arrho(nr)

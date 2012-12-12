@@ -275,15 +275,17 @@ CONTAINS
 
 
   SUBROUTINE tr_exp_compare
+!   ITER Physics Basis 1999  p.2219
     USE trcomm,ONLY: rkev,kidns,ns_nsa,nsa_nsu,idnsa,nrmax,nsum,nsamax, &
-         rhog,dvrho,wp_t,wp_th,wp_inc,wpu_inc,rw,sigmat,rt,rn
+         rhog,dvrho,wp_t,wp_th,wp_inc,wpu_inc,rw,stdrt,offrt,rt,rn
     USE trufin,ONLY: rtug,rnug,wthug,wtotug
     IMPLICIT NONE
 
+    REAL(rkind),DIMENSION(1:nsamax) :: squsum
     REAL(rkind)    :: rgcore,rgedge,ntp,ntm,ntsum,ntup,ntum,ntusum,dr
     INTEGER(ikind) :: nr,nsa,nsu,ns,nrcore,nredge
 
-    ! exculuding region; swatooth and edge pedestal regions
+    ! transport region; excluding swatooth and edge pedestal regions
     rgcore = 0.2d0
     rgedge = 0.9d0
 
@@ -296,7 +298,10 @@ CONTAINS
 
     ntsum  = 0.d0
     ntusum = 0.d0
-    sigmat(1:nsamax) = 0.d0
+    squsum(1:nsamax) = 0.d0
+    stdrt(1:nsamax) = 0.d0
+    offrt(1:nsamax) = 0.d0
+
     DO nsu = 1, nsum
        nsa = nsa_nsu(nsu)
        IF(nsa == 0) CYCLE
@@ -309,26 +314,39 @@ CONTAINS
           ntum =rnug(nsu,nr+1)*(rtug(nsu,nr+1)-rtug(nsu,nredge+1))*dvrho(nr  )
           ntup =rnug(nsu,nr+2)*(rtug(nsu,nr+2)-rtug(nsu,nredge+2))*dvrho(nr+1)
 
-          sigmat(nsa) = sigmat(nsa) &
-               + ((rt(nsa,nr)-rtug(nsu,nr+1)) / rtug(nsu,nr+1))**2.d0
+          squsum(nsa) = squsum(nsa) + rtug(nsu,nr+1)**2.d0
+          stdrt(nsa)  = stdrt(nsa)  + (rt(nsa,nr) - rtug(nsu,nr+1))**2.d0
+          offrt(nsa)  = offrt(nsa)  + (rt(nsa,nr) - rtug(nsu,nr+1))
 
-          ntsum  = ntsum  + 0.5d0*(ntm  + ntp )
-          ntusum = ntusum + 0.5d0*(ntum + ntup)
+          ntsum  = ntsum  + 0.5d0*(ntm  + ntp )*dr
+          ntusum = ntusum + 0.5d0*(ntum + ntup)*dr
        END DO
-       sigmat(nsa) = sigmat(nsa) / (nredge-nrcore)
+       stdrt(nsa) = SQRT(stdrt(nsa)/squsum(nsa) / (nredge-nrcore))
+       offrt(nsa) = offrt(nsa)/SQRT(squsum(nsa) * (nredge-nrcore))
+       write(6,*) offrt(nsa),squsum(nsa)
     END DO
+
     ! incremental stored energy
     wp_inc  = 1.5d0* ntsum  *rkev*1.d14
     wpu_inc = 1.5d0* ntusum *rkev*1.d14
 
+    ! relative value
     rw  = (wp_inc - wpu_inc) / wpu_inc
 
-    WRITE(6,'(1X,A31,F5.1,A4)') '# Rw(the deviation of Wp_inc): ', &
+
+    ! print status to standard output
+    WRITE(6,'(1X,A31,F5.1,A4)') '# RW(the deviation of Wp_inc): ', &
                                 rw*100.d0,' (%)'
     DO nsa = 1, nsamax
        ns = ns_nsa(nsa)
-       WRITE(6,'(A8,A1,A2,F5.1,A4)',ADVANCE='NO') &
-               '  sigmaT',kidns(ns),': ',sigmat(nsa)*100.d0,' (%)'
+       WRITE(6,'(A7,A1,A2,F5.1,A4)',ADVANCE='NO') &
+               '  STD_T',kidns(ns),': ',stdrt(nsa)*100.d0,' (%)'
+    END DO
+    WRITE(6,*) !breaking line
+    DO nsa = 1, nsamax
+       ns = ns_nsa(nsa)
+       WRITE(6,'(A7,A1,A2,F6.1,A4)',ADVANCE='NO') &
+               '  OFF_T',kidns(ns),': ',offrt(nsa)*100.d0,' (%)'
     END DO
     WRITE(6,*) !breaking line
 
@@ -340,16 +358,17 @@ CONTAINS
 ! ***** save data for time history *****
 
     USE trcomm, ONLY: &
-         nrmax,nsamax,ngtmax,neqmax,ngt,gvt,gvts,gvrt,gvrts,gvtu,   &
-         rkev,t,rn,ru,rt,rp,qp,jtot,joh,rip,wp_t,wp_th,ws_t,        &
-         jcd_nb,jcd_ec,jcd_ic,jcd_lh,                               &
-         pin_t,poh_t,pnb_t,pec_t,pic_t,plh_t,pibw_t,pnf_t,          &
-         beta,betap,betan,taue1,taue3,taue89,taue98,h89,h98y2,mdluf
+         nsum,nrmax,nsamax,ngtmax,neqmax,idnsa,nsa_nsu,mdluf,  &
+         ngt,gvt,gvts,gvrt,gvrts,gvtu,                         &
+         rkev,t,rn,ru,rt,rp,qp,jtot,joh,rip,wp_t,wp_th,ws_t,   &
+         rw,stdrt,offrt,jcd_nb,jcd_ec,jcd_ic,jcd_lh,           & 
+         pin_t,poh_t,pnb_t,pec_t,pic_t,plh_t,pibw_t,pnf_t,     &
+         beta,betap,betan,taue1,taue3,taue89,taue98,h89,h98y2
     USE trufin, ONLY: &
-         qpug,ripug,wthug,wtotug
+         rtug,rnug,qpug,ripug,wthug,wtotug
     USE trcoeftb, ONLY: Pereverzev_check
     IMPLICIT NONE
-    INTEGER(ikind):: nsa,nr,wstmax
+    INTEGER(ikind):: nsa,nsu,nr,wstmax
     REAL(rkind),DIMENSION(neqmax,0:nrmax):: add_prv
 
     IF(ngt >= ngtmax) RETURN
@@ -396,6 +415,8 @@ CONTAINS
     gvt(ngt,28) = h89
     gvt(ngt,29) = h98y2
 
+    gvt(ngt,30) = rw ! the deviation of the incremental energy
+
     ! experimental data
     IF(mdluf > 0)THEN
        gvtu(ngt,1) = qpug(1)
@@ -403,7 +424,21 @@ CONTAINS
        gvtu(ngt,3) = - ripug * 1.d-6
        gvtu(ngt,4) = wthug
        gvtu(ngt,5) = wtotug
+
+       DO nsu = 1, nsum
+          nsa = nsa_nsu(nsu)
+          IF(nsa == 0) CYCLE
+          IF(idnsa(nsa) == 0 .OR. idnsa(nsa) == 2) CYCLE
+          gvts(ngt,nsa, 5) = rnug(nsa,1)
+          gvts(ngt,nsa, 6) = rtug(nsa,1)
+          gvts(ngt,nsa, 7) = rnug(nsa,1)*rtug(nsa,1)*rkev*1.d20
+          gvts(ngt,nsa, 8) = stdrt(nsa)
+          gvts(ngt,nsa, 9) = offrt(nsa)
+       END DO
     END IF
+
+       IF(mdluf > 0)THEN
+       END IF
 
 ! ------------------------------------------------------------------------
 

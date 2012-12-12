@@ -30,13 +30,12 @@ CONTAINS
        CALL tr_save_pvprev
 
        ! incremental addtion
-       t=t+dt
-
+       t = t + dt
+       
        CALL tr_calc1
 
        ! non-linear iteration
        CALL tr_step(ierr); IF(ierr /= 0) EXIT
-
 
        ! calculate associated variables and save values
        CALL tr_calc_bpqpj

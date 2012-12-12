@@ -96,10 +96,10 @@ CONTAINS
 !                                  +xv_prev( nr   *neqmax+neq1)) &
 !                           *dtr(neq,neq1,nr)
 
-!!$                   r1imtx_ofd(1,1,neq,neq1-2)=   dh3*dtr_ofd*gm2m
-!!$                   r1imtx_ofd(2,1,neq,neq1-2)= - dh3*dtr_ofd*gm2m
-!!$                   r1imtx_ofd(1,2,neq,neq1-2)= - dh3*dtr_ofd*gm2p
-!!$                   r1imtx_ofd(2,2,neq,neq1-2)=   dh3*dtr_ofd*gm2p
+                   r1imtx_ofd(1,1,neq,neq1-2)=   dh3*dtr_ofd*gm2m
+                   r1imtx_ofd(2,1,neq,neq1-2)= - dh3*dtr_ofd*gm2m
+                   r1imtx_ofd(1,2,neq,neq1-2)= - dh3*dtr_ofd*gm2p
+                   r1imtx_ofd(2,2,neq,neq1-2)=   dh3*dtr_ofd*gm2p
                 END IF
              END IF
 

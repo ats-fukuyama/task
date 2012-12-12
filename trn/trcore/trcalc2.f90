@@ -37,7 +37,6 @@ CONTAINS
     CALL tr_coeftb         ! calculate turbulent transport coefficients
     CALL tr_coefmg
 
-
     ! *** ctr ***
     CALL tr_calc2_energy_ex
 

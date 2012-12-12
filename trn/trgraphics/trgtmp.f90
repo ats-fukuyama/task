@@ -44,11 +44,13 @@ CONTAINS
 
     SELECT CASE(i2)
     CASE(1)
-       CALL tr_gr_temp1 ! n(0),u(0),t(0),q(0),q(a)
+       CALL tr_gr_temp1 ! n(0),u(0),T(0),q(0),q(a)
     CASE(2)
        CALL tr_gr_temp2 ! I_pl,W,taue
     CASE(3)
        CALL tr_gr_temp3 ! Pin
+    CASE(4)
+       CALL tr_gr_temp4 ! n, T
     END SELECT
     
     RETURN
@@ -155,5 +157,11 @@ CONTAINS
     CALL PAGEE
 
   END SUBROUTINE tr_gr_temp3
+
+  SUBROUTINE tr_gr_temp4
+    USE trcomm, ONLY: gvts
+
+    RETURN
+  END SUBROUTINE tr_gr_temp4
 
 END MODULE trgtmp

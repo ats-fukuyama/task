@@ -8,11 +8,13 @@ MODULE trufcalc
 
   PRIVATE
   PUBLIC tr_uf_nicomplete, &
-       sumzni,rnuc,rnfuc,zeffruc,ns_mion,ns_mimp
+         sumzni,rnuc,rnfuc,zeffruc,ns_mion,ns_mimp ! for graphic output
 
+  ! the profiles before correction by neutrality for graphic output
   REAL(rkind),DIMENSION(1:ntum,1:nrum)        :: zeffruc, sumzni
   REAL(rkind),DIMENSION(1:nsum,1:ntum,1:nrum) :: rnuc,rnfuc
 
+  ! the location number of main ion and impurity in the density profile arrays
   INTEGER(ikind) :: ns_mion, ns_mimp
 
 CONTAINS
@@ -22,13 +24,13 @@ CONTAINS
 !   Correct the profile of main ion, main impurity and effective charge
 !    number(Zeff) based on the assumption of charge neutrality.
 ! -----------------------------------------------------------------------
-    USE trcomm, ONLY: pzu,pzfu,rnu,rnfu,zeffru,mdlni
-
+    USE trcomm, ONLY: pzu,pzfu,rnu,rnfu,zeffru,mdlni, &
+                      pa_mion,pz_mion,pa_mimp,pz_mimp
     IMPLICIT NONE
 
     LOGICAL        :: id_mion, id_mimp, test
     INTEGER(ikind) :: id,nsu,nsi,ierr
-    REAL(rkind)    :: pa_mion,pz_mion,pa_mimp,pz_mimp
+!    REAL(rkind)    :: pa_mion,pz_mion,pa_mimp,pz_mimp
 
     rnuc(1:nsum,1:ntum,1:nrum)  = 0.d0
     rnfuc(1:nsum,1:ntum,1:nrum) = 0.d0

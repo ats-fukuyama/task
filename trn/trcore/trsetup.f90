@@ -407,7 +407,7 @@ CONTAINS
 
        SELECT CASE(mdlglb)
        CASE(6:7)
-          CALL tr_ufin_global(time,0,ierr)
+          CALL tr_ufin_global(time,1,ierr)
        END SELECT
 
        CALL tr_ufin_density(time,1,ierr)
@@ -462,10 +462,11 @@ CONTAINS
        rmnrho(nr)  = SQRT(rkap)*ra*rhog(nr) ! [m]
        rkprho(nr)  = rkap
 !
-       dvrho(nr)   = 2.d0*pi*rkap*ra**2*2.d0*pi*rr*rhog(nr)
        pvolrho(nr) = pi*rkap*(ra*rhog(nr))**2*2.d0*pi*rr
        psurrho(nr) = pi*(rkap+1.d0)*ra*rhog(nr)*2.d0*pi*rr
+       dvrho(nr)   = 2.d0*pi*rkap*ra**2*2.d0*pi*rr*rhog(nr)
     END DO
+!    dvrho(0:nrmax) = psurrho(0:nrmax) / ar1rho(0:nrmax)
 
     ! caluculate associated geomtric quantities
     CALL tr_calc_geometry
@@ -514,7 +515,6 @@ CONTAINS
 
     CASE(6:7) ! from experimental dataset
        CALL tr_ufin_geometry(time,1,ierr)
-
        ! caluculate associated geomtric quantities
        CALL tr_calc_geometry
 
@@ -602,12 +602,12 @@ CONTAINS
 !   toroidal current density profile --> d psi/d rho
 ! -------------------------------------------------------------------------
     USE trcomm,ONLY: rmu0,pi,nrmax,mdlijq,rhog,rip,abb1rho,dvrho,ttrho, &
-         rmjrho,abrho,arrho,ar1rho,abvrho,dpdrho,rdpvrho,qp,bp,jtot
-         ! ,nrd1,nrd2
+         rmjrho,abrho,arrho,ar1rho,abvrho,dpdrho,rdpvrho,qp,bp,jtot &
+         ,nrd1,nrd2
     IMPLICIT NONE
 
     INTEGER(ikind):: nr
-    REAL(rkind)   :: FCTR,DERIV3 ! the functions in TASK/lib
+    REAL(rkind)   :: FCTR,DERIV3,DERIV4 ! the functions in TASK/lib
     REAL(rkind)   :: dr,dpdrhos,factor0,factor0p,factor0m,factorp,factorm,fact
     REAL(rkind),DIMENSION(0:nrmax) :: factor1,factor2
 
@@ -676,13 +676,18 @@ CONTAINS
        ! dpdrho --> jtot
        factor1(0:nrmax) = dvrho(0:nrmax)*abrho(0:nrmax)*dpdrho(0:nrmax)
        factor2(0:nrmax) = factor1(0:nrmax)/ttrho(0:nrmax)
+
+!       factor1(0:nrmax) = arrho(0:nrmax)*dvrho(0:nrmax)**2*abrho(0:nrmax)
+!       factor2(0:nrmax) = factor1(0:nrmax)/((2.d0*pi)**2*qp(0:nrmax))
        DO nr = 1, nrmax
           ! dpdrho --> jtot(j_para)
+!          jtot(nr) = ttrho(nr)**2/(rmu0*abb1rho(nr)*dvrho(nr)) &
+!                    * deriv3(nr,rhog,factor2,nrmax,0)
           jtot(nr) = ttrho(nr)**2/(rmu0*abb1rho(nr)*dvrho(nr)) &
-                    * deriv3(nr,rhog,factor2,nrmax,0)
+                    * deriv4(nr,rhog,factor2,nrmax,0)
        END DO
 !       jtot(0) = FCTR4pt(rhog(1),rhog(2),rhog(3),jtot(1),jtot(2),jtot(3))
-       jtot(0) = FCTR(rhog(1),rhog(2),jtot(1),jtot(2))
+       jtot(0) = FCTR(rhog(1),rhog(2),jtot(1),jtot(2))       
 
     END IF
 

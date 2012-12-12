@@ -33,8 +33,8 @@ MODULE trcomm
   REAL(rkind),PARAMETER :: rkev = aee*1.d3 ! the factor ([keV] -> [J])
 
   ! *** the maximum size of UFILE ***
-  INTEGER(ikind),PARAMETER :: ntum = 1000
-  INTEGER(ikind),PARAMETER :: nrum = 100
+  INTEGER(ikind),PARAMETER :: ntum = 1001
+  INTEGER(ikind),PARAMETER :: nrum = 201
   INTEGER(ikind),PARAMETER :: nsum = 10   ! number of species: NMn + electron
 
 ! ----- contral parameters -----
@@ -55,6 +55,10 @@ MODULE trcomm
                    nsaf_nsa,  &!
                    nsan_nsa,  &!
                    nsab_nsaf   ! conversion table of [fast ion > bulk ion]
+  REAL(rkind)::    pa_mion     ! atomic number of main hydrogenic ion
+  REAL(rkind)::    pz_mion     ! charge number of main hydrogenic ion
+  REAL(rkind)::    pa_mimp     ! atomic number of main impurity ion
+  REAL(rkind)::    pz_mimp     ! charge number of main impurity ion
   INTEGER(ikind):: lmaxtr      ! maximum number of iterations
   REAL(rkind)::    epsltr      ! tolerance of iteration
 
@@ -141,12 +145,14 @@ MODULE trcomm
        rns_va,   &! volume-averaged density
        rts_va,   &! volume-averaged temperature
        ws_t,     &! stored energy of each species
-       sigmat     ! the deviation of temperature profile
+       stdrt,    &! the deviations of each temperature profiles
+       offrt      ! the offsets of each temperature profiles
 
 ! ----- plasma variables -----
-  REAL(rkind) :: rips          ! toroidal current at the beginning [MA]
-  REAL(rkind) :: ripe          ! toroidal current at the end       [MA]
-  REAL(rkind) :: vloop         ! loop valtage
+  REAL(rkind) :: phia   ! total toroidal flux enclosed by the plasma [Wb]
+  REAL(rkind) :: rips   ! toroidal current at the beginning [MA]
+  REAL(rkind) :: ripe   ! toroidal current at the end       [MA]
+  REAL(rkind) :: vloop  ! loop valtage
 
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
        rg,      &! radial mesh position [m]
@@ -206,7 +212,8 @@ MODULE trcomm
        pic,     & ! IC heating power density [W/m^3]
        plh,     & ! LH heating power density [W/m^3]
        pnf,     & ! heating power density due to fusion alpha [W/m^3]
-       prl,     & !
+       prl,     & !  [W/m^3]
+       pwl,     & !  [W/m^3]
 !
        snb,     & ! [10^{20] m^{-3} s^{-1}]
        spl,     & ! [10^{20] m^{-3} s^{-1}]
@@ -428,6 +435,7 @@ MODULE trcomm
        qibwu,  &! power deposition profile on thermal particles by IBW [W/m^3]
        qicu,   &! power deposition profile on thermal particles by ICRH[W/m^3]
        qlhu,   &! power deposition profile on thermal particles by LH  [W/m^3]
+       qwallu, &! heat loss due to ionisation of wall neutrals [W/m^3]
        qfusu,  &! heating density due to DT fusion [W/m^2]
 !
        snbu     ! source of thermal particles from NBI [/(m^3 s)]
@@ -463,7 +471,6 @@ MODULE trcomm
        pzu,    &! charge number
        pafu,   &! atomic number of fast ions (nsu=1 is dummy)
        pzfu     ! charge number of fast ions (nsu=1 is dummy)
-
   
 CONTAINS
 
@@ -534,6 +541,7 @@ CONTAINS
           ALLOCATE(pic(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(plh(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(prl(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(pwl(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(pnf(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           
           ALLOCATE(snb(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
@@ -698,6 +706,7 @@ CONTAINS
     IF(ALLOCATED(pic)) DEALLOCATE(pic)
     IF(ALLOCATED(plh)) DEALLOCATE(plh)
     IF(ALLOCATED(prl)) DEALLOCATE(prl)
+    IF(ALLOCATED(pwl)) DEALLOCATE(pwl)
     IF(ALLOCATED(pnf)) DEALLOCATE(pnf)
 
     IF(ALLOCATED(snb)) DEALLOCATE(snb)
@@ -968,9 +977,9 @@ CONTAINS
        IF(ngtmax_save /= 0) CALL tr_ngt_deallocate
 
        ngt_allocation: DO
-          ALLOCATE(gvt(0:ngtmax,0:30),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(gvt(0:ngtmax,0:50),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(gvtu(0:ngtmax,0:10),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gvts(0:ngtmax,nsamax,4),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(gvts(0:ngtmax,nsamax,10),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(gvrt(0:nrmax,0:ngtmax,10),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(gvrts(0:nrmax,0:ngtmax,nsamax,10),STAT=ierr);IF(ierr /= 0) EXIT
 
@@ -1013,7 +1022,8 @@ CONTAINS
           ALLOCATE(idnsa(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
           
           ALLOCATE(ws_t(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(sigmat(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(stdrt(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(offrt(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(rns_va(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(rts_va(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
 
@@ -1033,7 +1043,8 @@ CONTAINS
     IF(ALLOCATED(idnsa)) DEALLOCATE(idnsa)
 
     IF(ALLOCATED(ws_t)) DEALLOCATE(ws_t)
-    IF(ALLOCATED(sigmat)) DEALLOCATE(sigmat)
+    IF(ALLOCATED(stdrt)) DEALLOCATE(stdrt)
+    IF(ALLOCATED(offrt)) DEALLOCATE(offrt)
     IF(ALLOCATED(rns_va)) DEALLOCATE(rns_va)
     IF(ALLOCATED(rts_va)) DEALLOCATE(rts_va)
 

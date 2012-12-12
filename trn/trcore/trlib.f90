@@ -11,9 +11,9 @@ CONTAINS
 ! -------------------------------------------------------------------------
     IMPLICIT NONE
 
-    INTEGER(4),                 INTENT(IN) :: nmax,nxmax
-    REAL(8),                    INTENT(IN) :: x0
-    REAL(8),DIMENSION(1:nmax+1),INTENT(IN) :: ax,ay
+    INTEGER(4),               INTENT(IN) :: nmax,nxmax
+    REAL(8),                  INTENT(IN) :: x0
+    REAL(8),DIMENSION(1:nmax),INTENT(IN) :: ax,ay
     REAL(8),INTENT(OUT) :: y0
 
     INTEGER(4) :: nx, xid, nxl, nxr
