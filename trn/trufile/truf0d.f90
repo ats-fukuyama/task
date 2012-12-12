@@ -358,7 +358,7 @@ CONTAINS
              ELSE IF(pzu(nsi) == 6.d0)THEN
                 IF(pau(nsi)==12.d0) WRITE(6,'(A7)',ADVANCE='NO') ' : C,  '
              ELSE
-                WRITE(6,'(A9,ES9.3,A4,ES9.3,A1)',ADVANCE="NO") &
+                WRITE(6,'(A9,ES9.2,A4,ES9.2,A1)',ADVANCE="NO") &
                      ' : IMP(A=',pau(nsi), ', Z=',pzu(nsi),')'
              END IF
           END IF
@@ -386,7 +386,7 @@ CONTAINS
              ELSE IF(pzfu(nsi) == 6.d0)THEN
                 IF(pafu(nsi)==12.d0) WRITE(6,'(A7)',ADVANCE='NO') ' : C,  '
              ELSE
-                WRITE(6,'(A9,ES9.3,A4,ES9.3,A1)',ADVANCE="NO") &
+                WRITE(6,'(A9,ES9.2,A4,ES9.2,A1)',ADVANCE="NO") &
                      ' : IMP(A=',pafu(nsi), ', Z=',pzfu(nsi),')'
              END IF
           END IF
