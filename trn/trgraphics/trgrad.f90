@@ -104,13 +104,13 @@ CONTAINS
 
     CALL PAGES
     label = '@n [10$+20$=/m$+3$=] vs rho@'
-    CALL GRD1D(1,rhog,vg1,nrmax+1,nrmax+1,nsamax,label,0)
+    CALL GRD1D(1,rhog,vg1,nrmax+1,nrmax+1,nsamax,label,0,FMIN=0.d0)
     label = '@p [MPa] vs rho@'
-    CALL GRD1D(2,rhog,vg2,nrmax+1,nrmax+1,nsamax,label,0)
+    CALL GRD1D(2,rhog,vg2,nrmax+1,nrmax+1,nsamax,label,0,FMIN=0.d0)
     label = '@T [keV] vs rho@'
-    CALL GRD1D(3,rhog,vg3,nrmax+1,nrmax+1,nsamax,label,0)
+    CALL GRD1D(3,rhog,vg3,nrmax+1,nrmax+1,nsamax,label,0,FMIN=0.d0)
     label = '@q vs rho@'
-    CALL GRD1D(4,rhog,vg4,nrmax+1,nrmax+1,     1,label,0)
+    CALL GRD1D(4,rhog,vg4,nrmax+1,nrmax+1,     1,label,0,FMIN=0.d0)
 
     CALL tr_gr_time(idexp)
     CALL PAGEE
@@ -179,13 +179,13 @@ CONTAINS
     
     CALL PAGES
     label = '@Dnc_s [m$+2$=/s] vs rho@'
-    CALL GRD1D(1,rhomg,vm1, nrmax, nrmax, nsamax,label, 0)
+    CALL GRD1D(1,rhomg,vm1, nrmax, nrmax, nsamax,label, 0,FMIN=0.d0)
     label = '@Dtb_s [m$+2$=/s] vs rho@'
-    CALL GRD1D(2,rhomg,vm2, nrmax, nrmax, nsamax,label, 0)
+    CALL GRD1D(2,rhomg,vm2, nrmax, nrmax, nsamax,label, 0,FMIN=0.d0)
     label = '@D(1) tot,nc,tb [m$+2$=/s] vs rho@'
-    CALL GRD1D(3,rhomg,vmx1,nrmax, nrmax, 3,label,0)
+    CALL GRD1D(3,rhomg,vmx1,nrmax, nrmax, 3,label,0,FMIN=0.d0)
     label = '@D(2) tot,nc,tb [m$+2$=/s] vs rho@'
-    CALL GRD1D(4,rhomg,vmx2,nrmax, nrmax, 3,label,0)
+    CALL GRD1D(4,rhomg,vmx2,nrmax, nrmax, 3,label,0,FMIN=0.d0)
 
     CALL tr_gr_time(idexp)
     CALL PAGEE
@@ -253,13 +253,13 @@ CONTAINS
     
     CALL PAGES
     label = '@chi_nc_s [m$+2$=/s] vs rho@'
-    CALL GRD1D(1,rhomg,vm1, nrmax, nrmax, nsamax,label, 0)
+    CALL GRD1D(1,rhomg,vm1, nrmax, nrmax, nsamax,label, 0,FMIN=0.d0)
     label = '@chi_tb_s [m$+2$=/s] vs rho@'
-    CALL GRD1D(2,rhomg,vm2, nrmax, nrmax, nsamax,label, 0)
+    CALL GRD1D(2,rhomg,vm2, nrmax, nrmax, nsamax,label, 0,FMIN=0.d0)
     label = '@chi(1)tot,nc,tb [m$+2$=/s] vs rho@'
-    CALL GRD1D(3,rhomg,vmx1,nrmax, nrmax, 3,label,0)
+    CALL GRD1D(3,rhomg,vmx1,nrmax, nrmax, 3,label,0,FMIN=0.d0)
     label = '@chi(2)tot,nc,tb [m$+2$=/s] vs rho@'
-    CALL GRD1D(4,rhomg,vmx2,nrmax, nrmax, 3,label,0)
+    CALL GRD1D(4,rhomg,vmx2,nrmax, nrmax, 3,label,0,FMIN=0.d0)
 
     CALL tr_gr_time(idexp)
     CALL PAGEE
@@ -360,7 +360,7 @@ CONTAINS
     label = '@d Psi/d rho vs rho@'
     CALL GRD1D(2,rhog,vgx2,nrmax+1,nrmax+1,1,label,0)
     label = '@qp vs rho@'
-    CALL GRD1D(3,rhog,vgx3,nrmax+1,nrmax+1,1,label,0)
+    CALL GRD1D(3,rhog,vgx3,nrmax+1,nrmax+1,1,label,0,FMIN=0.d0)
     label = '@eta(para) [ohm m] vs rho@'
     CALL GRD1D(4,rhog,vgx4,nrmax+1,nrmax+1,1,label,gsid)
 
@@ -482,11 +482,11 @@ CONTAINS
 
     CALL PAGES
     label = '@Ti(fast) [keV] vs rho@'
-    CALL GRD1D(1,rhog,vg1,nrmax+1,nrmax+1,nsafmaxg,label,0)
+    CALL GRD1D(1,rhog,vg1,nrmax+1,nrmax+1,nsafmaxg,label,0,FMIN=0.d0)
     label = '@ni(fast) [10$+20$=/m$+3$=] vs rho@'
-    CALL GRD1D(2,rhog,vg2,nrmax+1,nrmax+1,nsafmaxg,label,0)
+    CALL GRD1D(2,rhog,vg2,nrmax+1,nrmax+1,nsafmaxg,label,0,FMIN=0.d0)
     label = '@Pin(fast) [MW/m$+3$=] vs rho@'
-    CALL GRD1D(3,rhog,vgx1,nrmax+1,nrmax+1,nsafmaxg,label,0)
+    CALL GRD1D(3,rhog,vgx1,nrmax+1,nrmax+1,nsafmaxg,label,0,FMIN=0.d0)
     CALL tr_gr_time(idexp)
     CALL PAGEE
 
@@ -514,13 +514,13 @@ CONTAINS
 
     CALL PAGES
     label = '@T1(t) [keV] vs rho@'
-    CALL GRD1D(1,rhog,gg1,nrmax+1,nrmax+1,nggmax+1,label,0)
+    CALL GRD1D(1,rhog,gg1,nrmax+1,nrmax+1,nggmax+1,label,0,FMIN=0.d0)
     label = '@T2(t) [keV] vs rho@'
-    CALL GRD1D(2,rhog,gg2,nrmax+1,nrmax+1,nggmax+1,label,0)
+    CALL GRD1D(2,rhog,gg2,nrmax+1,nrmax+1,nggmax+1,label,0,FMIN=0.d0)
     label = '@n1(t) [10$+20$=/m$+3$=] vs rho@'
-    CALL GRD1D(3,rhog,gg3,nrmax+1,nrmax+1,nggmax+1,label,0)
+    CALL GRD1D(3,rhog,gg3,nrmax+1,nrmax+1,nggmax+1,label,0,FMIN=0.d0)
     label = '@qp(t) vs rho@'
-    CALL GRD1D(4,rhog,gg4,nrmax+1,nrmax+1,nggmax+1,label,0)
+    CALL GRD1D(4,rhog,gg4,nrmax+1,nrmax+1,nggmax+1,label,0,FMIN=0.d0)
 
     CALL tr_gr_time(idexp)
     CALL PAGEE
@@ -556,7 +556,7 @@ CONTAINS
 !    label = '@j_ex(t) vs rho@'
 !    CALL GRD1D(3,rhog,gg3,nrmax+1,nrmax+1,nggmax+1,label,0)
     label = '@qp(t) vs rho@'
-    CALL GRD1D(4,rhog,gg4,nrmax+1,nrmax+1,nggmax+1,label,0)
+    CALL GRD1D(4,rhog,gg4,nrmax+1,nrmax+1,nggmax+1,label,0,FMIN=0.d0)
 
     CALL tr_gr_time(idexp)
     CALL PAGEE

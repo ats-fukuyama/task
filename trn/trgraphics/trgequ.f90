@@ -82,7 +82,7 @@ CONTAINS
 
     CALL PAGES
     label = '@q vs rho@'
-    CALL GRD1D(1,rhog,vgx1,nrmax+1,nrmax+1,1,label,0)
+    CALL GRD1D(1,rhog,vgx1,nrmax+1,nrmax+1,1,label,0,FMIN=0.d0)
     label = "@V' vs rho@"
     CALL GRD1D(2,rhog,vgx2,nrmax+1,nrmax+1,2,label,0)
     label = '@<|grad rho|> vs rho@'
@@ -109,7 +109,7 @@ CONTAINS
 
     CALL PAGES
     label = '@q vs rho@'
-    CALL GRD1D(1,rhog,vgx1,nrmax+1,nrmax+1,1,label,0)
+    CALL GRD1D(1,rhog,vgx1,nrmax+1,nrmax+1,1,label,0,FMIN=0.d0)
     label = "@<1/R$+2$=>@"
     CALL GRD1D(2,rhog,vgx2,nrmax+1,nrmax+1,1,label,0)
     label = '@<B> vs rho@'

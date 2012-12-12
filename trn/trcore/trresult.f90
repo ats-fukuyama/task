@@ -282,7 +282,7 @@ CONTAINS
     IMPLICIT NONE
 
     REAL(rkind),DIMENSION(1:nsamax) :: squsum
-    REAL(rkind)    :: rgcore,rgedge,ntp,ntm,ntsum,ntup,ntum,ntusum,dr
+    REAL(rkind)    :: rgcore,rgedge,ntp,ntm,ntsum,ntup,ntum,ntusum,rtumax,dr
     INTEGER(ikind) :: nr,nsa,nsu,ns,nrcore,nredge
 
     ! transport region; excluding swatooth and edge pedestal regions
@@ -314,16 +314,15 @@ CONTAINS
           ntum =rnug(nsu,nr+1)*(rtug(nsu,nr+1)-rtug(nsu,nredge+1))*dvrho(nr  )
           ntup =rnug(nsu,nr+2)*(rtug(nsu,nr+2)-rtug(nsu,nredge+2))*dvrho(nr+1)
 
-          squsum(nsa) = squsum(nsa) + rtug(nsu,nr+1)**2.d0
           stdrt(nsa)  = stdrt(nsa)  + (rt(nsa,nr) - rtug(nsu,nr+1))**2.d0
           offrt(nsa)  = offrt(nsa)  + (rt(nsa,nr) - rtug(nsu,nr+1))
 
           ntsum  = ntsum  + 0.5d0*(ntm  + ntp )*dr
           ntusum = ntusum + 0.5d0*(ntum + ntup)*dr
        END DO
-       stdrt(nsa) = SQRT(stdrt(nsa)/squsum(nsa) / (nredge-nrcore))
-       offrt(nsa) = offrt(nsa)/SQRT(squsum(nsa) * (nredge-nrcore))
-       write(6,*) offrt(nsa),squsum(nsa)
+       rtumax = MAXVAL(rtug(nsu,nrcore+1:nredge))
+       stdrt(nsa) = SQRT(stdrt(nsa)/(rtumax**2 * (nredge-nrcore)))
+       offrt(nsa) = offrt(nsa)/(rtumax * (nredge-nrcore))
     END DO
 
     ! incremental stored energy

@@ -118,9 +118,9 @@ CONTAINS
 
     CALL PAGES
     label = '@T vs rho@'
-    CALL GRD1D(1,rhog, vg1, nrmax+1,nrmax+1,nsamax, label, 0)
+    CALL GRD1D(1,rhog, vg1, nrmax+1,nrmax+1,nsamax, label, 0,FMIN=0.d0)
     label = '@add_Diff(chi) vs rho@'
-    CALL GRD1D(2,rhomg,vm1, nrmax,  nrmax,  nsamax, label, 0)
+    CALL GRD1D(2,rhomg,vm1, nrmax,  nrmax,  nsamax, label, 0,FMIN=0.d0)
     label = '@add_Conv(vel) vs rho@'
     CALL GRD1D(3,rhomg,vm2, nrmax,  nrmax,  nsamax, label, 0)
 

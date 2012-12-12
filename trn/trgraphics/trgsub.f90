@@ -108,14 +108,14 @@ CONTAINS
           ALLOCATE(vgx2(0:nrmax,10),STAT=ierr); IF(ierr /=0) EXIT
           ALLOCATE(vgx3(0:nrmax,10),STAT=ierr); IF(ierr /=0) EXIT
           ALLOCATE(vgx4(0:nrmax,10),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(vmx1(1:nrmax,10),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(vmx2(1:nrmax,10),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(vmx3(1:nrmax,10),STAT=ierr); IF(ierr /=0) EXIT
-          ALLOCATE(vmx4(1:nrmax,10),STAT=ierr); IF(ierr /=0) EXIT
           ALLOCATE(vm1(1:nrmax,nsamax),STAT=ierr); IF(ierr /=0) EXIT
           ALLOCATE(vm2(1:nrmax,nsamax),STAT=ierr); IF(ierr /=0) EXIT
           ALLOCATE(vm3(1:nrmax,nsamax),STAT=ierr); IF(ierr /=0) EXIT
           ALLOCATE(vm4(1:nrmax,nsamax),STAT=ierr); IF(ierr /=0) EXIT
+          ALLOCATE(vmx1(1:nrmax,10),STAT=ierr); IF(ierr /=0) EXIT
+          ALLOCATE(vmx2(1:nrmax,10),STAT=ierr); IF(ierr /=0) EXIT
+          ALLOCATE(vmx3(1:nrmax,10),STAT=ierr); IF(ierr /=0) EXIT
+          ALLOCATE(vmx4(1:nrmax,10),STAT=ierr); IF(ierr /=0) EXIT
 
           nrmax_save  = nrmax
           nsamax_save = nsamax
