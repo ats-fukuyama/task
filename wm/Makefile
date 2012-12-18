@@ -138,5 +138,6 @@ wmvout.o : wmvout.f $(WMCOMM) vmcomm.inc
 wmtrfile.o : wmtrfile.f ../tr/trcomm.inc ../tr/trcom0.inc
 wmtpcs.o : wmtpcs.f $(WMCOMM)
 
+wmloop.o : wmloop.f $(WMCOMM)
 wmcont.o : wmcont.f90
 wmtest.o : wmtest.f90
