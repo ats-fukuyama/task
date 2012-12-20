@@ -252,6 +252,21 @@ C
          RKPARA=YM(4)*BNX+YM(5)*BNY+YM(6)*BNZ
          RKPERP=SQRT((YM(4)*YM(4)+YM(5)*YM(5)+YM(6)*YM(6))-RKPARA**2)
 
+C
+         IF(MDLWRW.GE.2) THEN
+            ID=0
+            SELECT CASE(MDLWRW)
+            CASE(2)
+               IF(MOD(IT-1,100).EQ.0) ID=1
+            CASE(3)
+               IF(MOD(IT-1,10).EQ.0) ID=1
+            CASE(4)
+               ID=1
+            END SELECT
+            IF(ID.EQ.1) 
+     &           WRITE(6,'(1P7E11.3)') XE,RL,PHIL,ZL,RKRL,YM(7),YN(8,IT)
+         ENDIF
+
          DO I=1,7
             Y(I)=YM(I)
          ENDDO
@@ -271,6 +286,10 @@ C
 C     
  11   IF(YN(7,NIT).LT.0.D0) THEN
          YN(7,NIT)=0.D0
+      ENDIF
+      IF(MDLWRW.GE.2) THEN
+         IF(ID.EQ.0) 
+     &        WRITE(6,'(1P7E11.3)') XE,RL,PHIL,ZL,RKRL,YM(7),YN(8,IT)
       ENDIF
 C
       RETURN
@@ -347,6 +366,21 @@ C     &	               DELTA,RKPARA*VC/OMG,RKPERP*VC/OMG,RKRL,
 C     &	               RNPHI_IDEI
 C 6001    FORMAT(1H ,1P14E13.5)
 
+C
+         IF(MDLWRW.GE.2) THEN
+            ID=0
+            SELECT CASE(MDLWRW)
+            CASE(2)
+               IF(MOD(IT-1,100).EQ.0) ID=1
+            CASE(3)
+               IF(MOD(IT-1,10).EQ.0) ID=1
+            CASE(4)
+               ID=1
+            END SELECT
+            IF(ID.EQ.1) 
+     &           WRITE(6,'(1P7E11.3)') XE,RL,PHIL,ZL,RKRL,YM(7),YN(8,IT)
+         ENDIF
+
          DO I=1,7
             Y(I)=YM(I)
          ENDDO
@@ -366,6 +400,10 @@ C 6001    FORMAT(1H ,1P14E13.5)
 C     
  11   IF(YN(7,NIT).LT.0.D0) THEN
          YN(7,NIT)=0.D0
+      ENDIF
+      IF(MDLWRW.GE.2) THEN
+         IF(ID.EQ.0) 
+     &        WRITE(6,'(1P7E11.3)') XE,RL,PHIL,ZL,RKRL,YM(7),YN(8,IT)
       ENDIF
 C
       RETURN
@@ -416,8 +454,19 @@ C
             RKRL=(YM(4)*YM(1)+YM(5)*YM(2))/RL
          ENDIF
 C
-         WRITE(6,6001) XE,RL,PHIL,ZL,RKRL,YM(7),YN(8,IT)
- 6001    FORMAT(1H ,1P7E11.3)
+         IF(MDLWRW.GE.2) THEN
+            ID=0
+            SELECT CASE(MDLWRW)
+            CASE(2)
+               IF(MOD(IT-1,100).EQ.0) ID=1
+            CASE(3)
+               IF(MOD(IT-1,10).EQ.0) ID=1
+            CASE(4)
+               ID=1
+            END SELECT
+            IF(ID.EQ.1) 
+     &           WRITE(6,'(1P7E11.3)') XE,RL,PHIL,ZL,RKRL,YM(7),YN(8,IT)
+         ENDIF
 C
          DO I=1,7
             Y(I)=YM(I)
@@ -438,6 +487,10 @@ C
 C     
  11   IF(YN(7,NIT).LT.0.D0) THEN
          YN(7,NIT)=0.D0
+      ENDIF
+      IF(MDLWRW.GE.2) THEN
+         IF(ID.EQ.0) 
+     &        WRITE(6,'(1P7E11.3)') XE,RL,PHIL,ZL,RKRL,YM(7),YN(8,IT)
       ENDIF
 C
       RETURN
@@ -524,8 +577,19 @@ C
          RKPARA=YM(4)*BNX+YM(5)*BNY+YM(6)*BNZ
          RKPERP=SQRT((YM(4)*YM(4)+YM(5)*YM(5)+YM(6)*YM(6))-RKPARA**2)
 
-         IF(MDLWRW.GE.1)
-     &        WRITE(6,'(1P7E11.3)') XE,RL,PHIL,ZL,RKRL,YM(7),YN(8,IT)
+         IF(MDLWRW.GE.2) THEN
+            ID=0
+            SELECT CASE(MDLWRW)
+            CASE(2)
+               IF(MOD(IT-1,100).EQ.0) ID=1
+            CASE(3)
+               IF(MOD(IT-1,10).EQ.0) ID=1
+            CASE(4)
+               ID=1
+            END SELECT
+            IF(ID.EQ.1) 
+     &           WRITE(6,'(1P7E11.3)') XE,RL,PHIL,ZL,RKRL,YM(7),YN(8,IT)
+         ENDIF
 
 CIDEI	 WRITE(6,*) 'BX=',BNX*BABS,'BY=',BNY*BABS,'BZ=',BNZ*BABS
 C	 WRITE(6,6001) YN(0,IT),RL,ZL,PHIL,YN(1,IT),
@@ -553,6 +617,10 @@ C 6001    FORMAT(1H ,1P14E13.5)
 C     
  11   IF(YN(7,NIT).LT.0.D0) THEN
          YN(7,NIT)=0.D0
+      ENDIF
+      IF(MDLWRW.GE.2) THEN
+         IF(ID.EQ.0) 
+     &        WRITE(6,'(1P7E11.3)') XE,RL,PHIL,ZL,RKRL,YM(7),YN(8,IT)
       ENDIF
 C
       RETURN
@@ -786,11 +854,21 @@ c_zhenya
          wp2=sqrt(WP2)
 c_zhenya
          delta=DISPXR(Y(1),Y(2),Y(3),Y(4),Y(5),Y(6),OMG)
-         WRITE(6,6001) XE,RL,PHIL,ZL,RKRL,Y(7),YN(8,IT),WP2/OMG,RN(1),
-     &        delta
 C
- 6001    FORMAT(1H ,1P10E11.3)
-         
+         IF(MDLWRW.GE.2) THEN
+            ID=0
+            SELECT CASE(MDLWRW)
+            CASE(2)
+               IF(MOD(IT-1,100).EQ.0) ID=1
+            CASE(3)
+               IF(MOD(IT-1,10).EQ.0) ID=1
+            CASE(4)
+               ID=1
+            END SELECT
+            IF(ID.EQ.1) 
+     &           WRITE(6,'(1P7E11.3)') XE,RL,PHIL,ZL,RKRL,Y(7),YN(8,IT)
+         ENDIF
+
          IF(Y(7).LT.UUMIN) THEN
             NIT = IT
             GOTO 11
@@ -805,6 +883,10 @@ C
 C     
  11   IF(YN(7,NIT).LT.0.D0) THEN
          YN(7,NIT)=0.D0
+      ENDIF
+      IF(MDLWRW.GE.2) THEN
+         IF(ID.EQ.0) 
+     &        WRITE(6,'(1P7E11.3)') XE,RL,PHIL,ZL,RKRL,Y(7),YN(8,IT)
       ENDIF
 C
       RETURN
@@ -971,7 +1053,8 @@ C
 C
 C      WRITE(6,*) S,T,S/T
       RKR=RKRI-S/T
-      WRITE(6,'(1P3E12.4)') RKR,RKRI,-S/T
+      IF(MDLWRW.GE.1) 
+     &     WRITE(6,'(1P3E12.4)') RKR,RKRI,-S/T
 C
       IF(ABS((RKR-RKRI)/RKRI).LE.EPSNW) GOTO 9000
 C      WRITE(6,*) ABS((RKR-RKRI)/RKRI), RKR
@@ -1218,7 +1301,7 @@ C
 C      CHARACTER*1 KID
       LOGICAL LEX
 C
-    1 WRITE(6,*) '# INPUT : WRDATA SAVE FILE NAME : ',KNAMWR
+    1 WRITE(6,*) '# INPUT : WRDATA SAVE FILE NAME : ',TRIM(KNAMWR)
       READ(5,'(A80)',ERR=1,END=900) KNAM
       IF(KNAM(1:2).NE.'/ ') KNAMWR=KNAM
 C
@@ -1250,6 +1333,8 @@ C
       WRITE(21) NRAYMX
       DO NRAY=1,NRAYMX
          WRITE(21) NITMAX(NRAY)
+      END DO
+      DO NRAY=1,NRAYMX
          WRITE(21) (RAYIN(I,NRAY),I=1,8)
          WRITE(21) (CEXS(NIT,NRAY),NIT=0,NITMAX(NRAY))
          WRITE(21) (CEYS(NIT,NRAY),NIT=0,NITMAX(NRAY))

@@ -45,6 +45,13 @@ C              2 : RUNGE-KUTTA, FIXED STEPSIZE, with mode conversion
 C              3 : RUNGE-KUTTA, VARIABLE STEPSIZE
 C              4 : SYMPLECTIC METHOD, FIXED STEPSIZE (not completed)
 C
+C     MDLWRW : Level of PRINT OUTPUT
+C              0 : NO output
+C              1 : Write initial kr calculation
+C              2 : Write data every 100 steps
+C              3 : Write data every 10 steps
+C              4 : Write data every step
+C
 C     RCURVA : INITIAL WAVE-FRONT CURVATURE RADIUS (0 for Plane wave)
 C     RCURVB : INITIAL WAVE-FRONT CURVATURE RADIUS (0 for Plane wave)
 C                 RCURVA perp to k and B
@@ -87,6 +94,7 @@ C
       MDLWRI = 0
       MDLWRG = 0
       MDLWRQ = 1
+      MDLWRW = 0
 C
       RCURVA = 0.D0
       RCURVB = 0.D0
@@ -155,7 +163,7 @@ C
      &              MODELG,MODELN,MODELQ,
      &              KNAMEQ,KNAMWR,KNAMFP,KNAMFO,IDEBUG,KNAMEQ2,
      &              MODELP,NDISP1,NDISP2,
-     &              MODELV,MDLWRI,MDLWRG,RHOGMN,RHOGMX,MDLWRQ,
+     &              MODELV,MDLWRI,MDLWRG,RHOGMN,RHOGMX,MDLWRQ,MDLWRW,
      &              RF,RPI,ZPI,PHII,RNZI,RNPHII,RKR0,UUI,
      &              SMAX,DELS,UUMIN,EPSNW,DELKR,EPSRAY,DELRAY,DELDER,
      &              LMAXNW,NRZMAX,NRAYMX,KNAMWR,
@@ -192,7 +200,7 @@ C
      &       9X,'RF1,RFI1,RKX1,RKY1,RKZ1,RX1,'/
      &       9X,'RF2,RFI2,RKX2,RKY2,RKZ2,RX2,'/
      &       9X,'NXMAX,EPSRT,LMAXRT,'/
-     &       9X,'MODELV,MDLWRI,MDLWRG,RHOGMN,RHOGMX,MDLWRQ,'/
+     &       9X,'MODELV,MDLWRI,MDLWRG,RHOGMN,RHOGMX,MDLWRQ,MDLWRW,'/
      &       9X,'RF,RPI,ZPI,PHII,RNZI,RNPHII,RKR0,UUI,'/
      &       9X,'SMAX,DELS,UUMIN,EPSNW,DELKR,EPSRAY,DELRAY,DELDER,'/
      &       9X,'LMAXNW,NRZMAX,NRAYMX,KNAMWR,'/
@@ -271,7 +279,7 @@ C
       WRITE(6,602) 'NRAYMX',NRAYMX,'LMAXNW',LMAXNW,
      &             'NRZMAX',NRZMAX,'NRADMX',NRADMX
       WRITE(6,602) 'MDLWRI',MDLWRI,'MDLWRG',MDLWRG,
-     &             'MDLWRQ',MDLWRQ
+     &             'MDLWRQ',MDLWRQ,'MDLWRW',MDLWRW
       RETURN
 C
   601 FORMAT(1H ,A6,'=',1PE11.3:2X,A6,'=',1PE11.3:
