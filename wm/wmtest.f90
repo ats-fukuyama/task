@@ -27,7 +27,7 @@ CONTAINS
        END FUNCTION GUCLIP
     END INTERFACE
 
-1   WRITE(6,'(A)') '## INPUT: 1:3D, 2:2D, 3:pabs,  0:EXIT'
+1   WRITE(6,'(A)') '## INPUT: 1:3D, 2:2D, 3:pabs, 4:Ewg, 0:EXIT'
     READ(5,*,ERR=1,END=9000) MODE0
 
     SELECT CASE(MODE0)
@@ -55,6 +55,14 @@ CONTAINS
        CALL pages
        CALL grf1d(0,GX,GY,NPHMAX_IN,NPHMAX_IN,1,'@Pabs vs n_phi@',0)
        CALL pagee
+    CASE(4)
+4      WRITE(6,'(A)') '## INPUT: 1-9:E, 11..:PABS 0:EXIT'
+       READ(5,*,ERR=4,END=1) MODE1
+       IF(MODE1.EQ.0) GO TO 1
+       CALL wmg3d3(CEFLD3D,CPABS3D,MDM,NPHM,NRM,NSM, &
+                   NTHMAX_IN,NPHMAX_IN,NRMAX_IN,NSMAX, &
+                   RGMIN,RGMAX,RAXIS,MODE1,NCONT)
+       GO TO 4
     CASE(0)
        GOTO 9000
     END SELECT
@@ -171,6 +179,7 @@ CONTAINS
        END DO
     END DO
 
+
 !    DO NR=1,NRMAX
 !       WRITE(6,'(I5,1P2E12.4)') NR,R(NR),Z(NR,1)
 !    END DO
@@ -264,6 +273,184 @@ CONTAINS
 
     RETURN
   END SUBROUTINE wmg3d2
+
+  SUBROUTINE wmg3d3(CEFLD3D,CPABS3D,MDM,NPHM,NRM,NSM, &
+                    NTHMAX_IN,NPHMAX_IN,NRMAX_IN,NSMAX, &
+                    RGMIN,RGMAX,RAXIS,MODE,NCONT)
+
+    USE bpsd_constants,ONLY:PI,CI
+    IMPLICIT NONE
+    COMPLEX(8),DIMENSION(3,MDM,NPHM,NRM),INTENT(IN):: CEFLD3D
+    COMPLEX(8),DIMENSION(MDM,NPHM,NRM,NSM),INTENT(IN):: CPABS3D
+    INTEGER,INTENT(IN):: MDM,NPHM,NRM,NSM
+    INTEGER,INTENT(IN):: NTHMAX_IN,NPHMAX_IN,NRMAX_IN,NSMAX
+    REAL(8),INTENT(IN):: RGMIN,RGMAX,RAXIS
+    INTEGER,INTENT(IN):: MODE,NCONT
+    REAL(4),DIMENSION(:,:),ALLOCATABLE:: Z
+    INTEGER,DIMENSION(:,:,:),ALLOCATABLE:: KA
+    
+    REAL(4),DIMENSION(:),ALLOCATABLE:: TH
+    REAL(4),DIMENSION(:),ALLOCATABLE:: PH
+    REAL(4),DIMENSION(:),ALLOCATABLE:: ZL,WLN
+    INTEGER,DIMENSION(:),ALLOCATABLE:: ILN
+    REAL(4),DIMENSION(:,:),ALLOCATABLE:: RGB
+    INTEGER:: nr,nth,nph,nn,nglmax,ngl,ispl,iprd,nth1
+    INTEGER:: nr_in,nth_in,nph_in
+    REAL(4):: rmin,rmax,rr,rb,phmin,phmax,dph,zmin,zmax,thmin,thmax,dth
+    REAL(4):: rmin1,rmax1,rstep,zmin1,zmax1,zstep,fsign,phl
+    COMPLEX(8):: value
+    INTERFACE 
+       FUNCTION NGULEN(R)
+         REAL(4),INTENT(IN):: R
+         INTEGER:: NGULEN
+       END FUNCTION NGULEN
+       FUNCTION GUCLIP(D)
+         REAL(8),INTENT(IN):: D
+         REAL(4):: GUCLIP
+       END FUNCTION GUCLIP
+    END INTERFACE
+
+    NGLMAX=NCONT
+
+    ALLOCATE(Z(NPHMAX_IN+1,NTHMAX_IN+1),PH(NPHMAX_IN+1),TH(NTHMAX_IN+1))
+    ALLOCATE(KA(2,NPHMAX_IN+1,NTHMAX_IN+1))
+    ALLOCATE(ZL(NGLMAX),WLN(NGLMAX),ILN(NGLMAX),RGB(3,NGLMAX))
+
+    PHMIN=-PI
+    PHMAX= PI
+    DPH=(PHMAX-PHMIN)/NPHMAX_IN
+    DO NPH=1,NPHMAX_IN+1
+       PH(NPH)=PHMIN+DPH*(NPH-1)
+    END DO
+
+    THMIN=-PI
+    THMAX= PI
+    DTH=(THMAX-THMIN)/NTHMAX_IN
+    DO NTH=1,NTHMAX_IN+1
+       TH(NTH)=THMIN+DTH*(NTH-1)
+    END DO
+
+    NR=NRMAX_IN
+    DO NPH=1,NPHMAX_IN+1
+       DO NTH1=1,NTHMAX_IN+1
+          NTH=NTH1
+          IF(NTH==NTHMAX_IN+1) NTH=1
+          VALUE=(0.D0,0.D0)
+          SELECT CASE(MODE)
+          CASE(1,2,3)
+             DO NPH_IN=1,NPHMAX_IN
+                NN=NPH_IN-NPHMAX_IN/2-1
+                VALUE=VALUE+CEFLD3D(1,NTH,NPH_IN,NR) &
+                           *EXP(CI*NN*PH(NPH))
+             END DO
+          CASE(4,5,6)
+             DO NPH_IN=1,NPHMAX_IN
+                NN=NPH_IN-NPHMAX_IN/2-1
+                VALUE=VALUE+CEFLD3D(2,NTH,NPH_IN,NR) &
+                           *EXP(CI*NN*PH(NPH))
+             END DO
+          CASE(7,8,9)
+             DO NPH_IN=1,NPHMAX_IN
+                NN=NPH_IN-NPHMAX_IN/2-1
+                VALUE=VALUE+CEFLD3D(3,NTH,NPH_IN,NR) &
+                           *EXP(CI*NN*PH(NPH))
+             END DO
+          CASE(11:16)
+             DO NPH_IN=1,NPHMAX_IN
+                NN=NPH_IN-NPHMAX_IN/2-1
+                VALUE=VALUE+CPABS3D(NTH,NPH_IN,NR,MODE-10)
+             END DO
+          END SELECT
+          SELECT CASE(MODE)
+          CASE(1,4,7)
+             Z(NPH,NTH1)=GUCLIP(REAL(VALUE))
+          CASE(2,5,8)
+             Z(NPH,NTH1)=GUCLIP(IMAG(VALUE))
+          CASE(3,6,9)
+             Z(NPH,NTH1)=GUCLIP(ABS(VALUE))
+          CASE(11:16)
+             Z(NPH,NTH1)=GUCLIP(REAL(VALUE))
+          END SELECT
+       END DO
+    END DO
+
+
+!    DO NR=1,NRMAX
+!       WRITE(6,'(I5,1P2E12.4)') NR,R(NR),Z(NR,1)
+!    END DO
+
+
+    CALL pages
+      CALL SETLNW(0.07)
+      CALL SETCHS(.3,0.)
+      CALL SETFNT(32)
+!
+      CALL GMNMX2(Z,NPHMAX_IN+1,1,NPHMAX_IN+1,1,1,NTHMAX_IN+1,1,ZMIN,ZMAX)
+      CALL GQSCAL(ZMIN,ZMAX,ZMIN1,ZMAX1,ZSTEP)
+!
+      zmax1=MAX(ABS(zmin1),ABS(zmax1))
+      DO ngl=1,nglmax
+         ZL(NGL)=-zmax1+2*zmax1*REAL(ngl-1)/REAL(NGLMAX-1)
+         WLN(NGL)=0.0
+         ILN(NGL)=0
+         IF(ZL(NGL)>=0.D0) THEN
+            RGB(1,NGL)=1.0
+            RGB(2,NGL)=0.0
+            RGB(3,NGL)=0.0
+         ELSE
+            RGB(1,NGL)=0.0
+            RGB(2,NGL)=0.0
+            RGB(3,NGL)=1.0
+         ENDIF
+      END DO
+      ISPL=0
+      IPRD=0
+
+      CALL GDEFIN(2.,17.,2.,17.,-GUCLIP(PI),GUCLIP(PI), &
+                                -GUCLIP(PI),GUCLIP(PI))
+      CALL GFRAME
+      CALL SETLNW(0.035)
+      CALL GSCALE(0.,0.25*GUCLIP(PI),0.,0.25*GUCLIP(PI),1.0,0)
+      CALL SETLNW(0.07)
+      CALL GVALUE(0.,0.50*GUCLIP(PI),0.,0.50*GUCLIP(PI),2)
+
+      CALL CONTG2(Z,PH,TH,NPHMAX_IN+1,NPHMAX_IN+1,NTHMAX_IN+1,ZL,RGB,ILN,WLN, &
+                  NGLMAX,ISPL,IPRD,KA)
+
+      CALL move(2.0,17.1)
+      SELECT CASE(MODE)
+      CASE(1)
+         CALL text('Er real',7)
+      CASE(2)
+         CALL text('Er imag',7)
+      CASE(3)
+         CALL text('Er abs ',7)
+      CASE(4)
+         CALL text('Eth real',8)
+      CASE(5)
+         CALL text('Eth imag',8)
+      CASE(6)
+         CALL text('Eth abs ',8)
+      CASE(7)
+         CALL text('Eph real',8)
+      CASE(8)
+         CALL text('Eph imag',8)
+      CASE(9)
+         CALL text('Eph abs ',8)
+      CASE(11:16)
+         CALL text('Pabs ',5)
+         CALL numbi(MODE-6,'(I1)',4)
+      END SELECT
+
+      CALL WMGPRM('C','R',0,0,0,0)
+      
+    CALL pagee
+
+    DEALLOCATE(Z,TH,PH,KA)
+    DEALLOCATE(ZL,WLN,ILN,RGB)
+
+    RETURN
+  END SUBROUTINE wmg3d3
 
   SUBROUTINE wmg3d1(CEFLD3D,CPABS3D,MDM,NPHM,NRM,NSM, &
                     NTHMAX_IN,NPHMAX_IN,NRMAX_IN,NSMAX, &
@@ -447,4 +634,7 @@ CONTAINS
 9000 CONTINUE
     RETURN
   END SUBROUTINE wmg3d1
+
+
+
 END MODULE wmtest
