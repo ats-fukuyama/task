@@ -6,7 +6,7 @@ program testmtxc
   use libmtxc
   use libgrf,only:grd1d
   implicit none
-  integer :: nrank,nprocs
+  integer :: nrank,nprocs,ncom
   integer :: isize,itype,idata(2)
   integer :: istart,iend,its
   integer :: imax,jwidth,jsource
@@ -22,7 +22,7 @@ program testmtxc
   real(8),dimension(:,:),pointer :: FY
   character ::STR*80
 
-  call mtx_initialize(nrank,nprocs)
+  call mtx_initialize(nrank,nprocs,ncom)
   if(nrank.eq.0) then
      write(6,*) 'nrank, nprocs = ',nrank,nprocs
      call gsopen
@@ -74,7 +74,7 @@ program testmtxc
 
 100 continue
 
-  call mtx_setup(imax,istart,iend,jwidth)
+  call mtx_setup(imax,istart,iend,jwidth,ncom)
 
   do i=istart,iend
      if(i.gt.1) call mtx_set_matrix(i,i-1,k)
@@ -86,12 +86,12 @@ program testmtxc
      call mtx_set_source(i,x(i))
   end do
 
-  call mtx_solve(itype,tolerance,its)
+  call mtx_solve(ncom,itype,tolerance,its)
   if(nrank.eq.0) then
      write(6,*) 'Iteration Number=',its
   end if
 
-  call mtx_gather_vector(x)
+  call mtx_gather_vector(x,ncom)
 
 2 continue
 

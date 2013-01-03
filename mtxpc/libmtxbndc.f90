@@ -43,12 +43,12 @@
 
       CONTAINS
 
-      SUBROUTINE mtx_setup(imax_,istart_,iend_,jwidth,nzmax)
+      SUBROUTINE mtx_setup(imax_,istart_,iend_,jwidth,ncom)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: imax_           ! total matrix size
       INTEGER,INTENT(OUT):: istart_,iend_  ! allocated range of lines 
       INTEGER,OPTIONAL,INTENT(IN):: jwidth ! band matrix width
-      INTEGER,OPTIONAL,INTENT(IN):: nzmax  ! number of nonzero components
+      INTEGER,INTENT(IN):: ncom         ! communicator
       INTEGER:: i,j
 
       istart_=1
@@ -117,9 +117,9 @@
       RETURN
       END SUBROUTINE mtx_split_operation
       
-      SUBROUTINE mtx_solve(itype,tolerance,its)
+      SUBROUTINE mtx_solve(ncom,itype,tolerance,its)
       IMPLICIT NONE
-      INTEGER,INTENT(IN):: itype     ! not used
+      INTEGER,INTENT(IN):: itype,ncom ! not used
       REAL(8),INTENT(IN):: tolerance ! not used
       INTEGER,INTENT(OUT):: its
       INTEGER:: i,j
@@ -157,9 +157,10 @@
       RETURN
       END SUBROUTINE mtx_get_vector
 
-      SUBROUTINE mtx_gather_vector(v)
+      SUBROUTINE mtx_gather_vector(v,ncom)
       IMPLICIT NONE
       COMPLEX(8),DIMENSION(imax),INTENT(OUT):: v
+      INTEGER,INTENT(IN):: ncom
       INTEGER:: i
 
       DO i=1,imax

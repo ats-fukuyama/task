@@ -41,13 +41,13 @@ all: $(EXEC)
 libs: $(LIBNOMPI) $(LIBMPI) libmtxbndc.o libmtxkspc.o libmtxzmumps.o
 
 testkspc: $(LIBKSPC) testmtxc.o
-	-${FCFREE} -g -o testkspc testmtxc.o $(LIBKSPC) ${PETSC_KSP_LIB} ../lib/tasklib.a $(FLIBS)
+	-${FLINKER} -g -o testkspc testmtxc.o $(LIBKSPC) ${PETSC_KSP_LIB} ../../task/lib/tasklib.a $(FLIBS)
 
 testzmumps: $(LIBZMUMPS) testmtxc.o
-	-${FCFREE} -g -o testzmumps testmtxc.o $(LIBZMUMPS) ${PETSC_KSP_LIB} ${PETSC_DIR}/${PETSC_ARCH}/lib/libzmumps.a ../lib/tasklib.a $(FLIBS)
+	-${FLINKER} -g -o testzmumps testmtxc.o $(LIBZMUMPS) ${PETSC_KSP_LIB} ${PETSC_DIR}/${PETSC_ARCH}/lib/libzmumps.a ../../task/lib/tasklib.a $(FLIBS)
 
 testbndc: $(LIBBNDC) testmtxc.o 
-	-${FCFREE} -g -o testbndc testmtxc.o $(LIBBNDC) ../lib/tasklib.a $(FLIBS) 
+	-${FLINKER} -g -o testbndc testmtxc.o $(LIBBNDC) ../../task/lib/tasklib.a $(FLIBS) 
 
 testmtxc.o: testmtxc.f90
 ../mtxp/libmtxmpi.o: ../mtxp/libmtxmpi.F90

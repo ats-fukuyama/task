@@ -106,6 +106,7 @@
       INTEGER,PARAMETER:: ione=1
       REAL(8),PARAMETER:: one=1.D0
       INTEGER,DIMENSION(:),POINTER:: istartx,iendx,isiz
+      PetscScalar,pointer:: x_value(:)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !                 Beginning of program
@@ -113,10 +114,11 @@
 
       CONTAINS
 
-      SUBROUTINE mtx_setup(imax_,istart_,iend_,jwidth_)
+      SUBROUTINE mtx_setup(imax_,istart_,iend_,jwidth_,ncom)
 
       INTEGER,INTENT(IN):: imax_           ! total matrix size
       INTEGER,INTENT(IN):: jwidth_         ! band matrix width
+      INTEGER,INTENT(IN):: ncom            ! communicator
       INTEGER,INTENT(OUT):: istart_,iend_   ! allocated range of lines 
       INTEGER:: i,ierr
 
@@ -131,7 +133,7 @@
 !  determined by PETSc at runtime.
 
       imax=imax_
-      call MatCreate(PETSC_COMM_WORLD,A,ierr)
+      call MatCreate(ncom,A,ierr)
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_setup: MatCreate: ierr=',ierr
       call MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,imax,imax,ierr)
@@ -148,7 +150,7 @@
       iend_=iend
       ilen=iend-istart
 
-      call VecCreate(PETSC_COMM_WORLD,b,ierr)
+      call VecCreate(ncom,b,ierr)
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_setup: VecCreate: ierr=',ierr
       call VecSetSizes(b,PETSC_DECIDE,imax,ierr)
@@ -184,7 +186,7 @@
 
 !  Create linear solver context
 
-      call KSPCreate(PETSC_COMM_WORLD,ksp,ierr)
+      call KSPCreate(ncom,ksp,ierr)
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_setup: KSPCreate: ierr=',ierr
 
@@ -261,8 +263,8 @@
       return
       END SUBROUTINE mtx_split_operation
 
-      SUBROUTINE mtx_solve(itype,tolerance,its)
-      INTEGER,INTENT(IN):: itype     ! for futuer use
+      SUBROUTINE mtx_solve(ncom,itype,tolerance,its)
+      INTEGER,INTENT(IN):: itype,ncom     ! for futuer use
       REAL(8),INTENT(IN):: tolerance
       INTEGER,INTENT(OUT):: its
       INTEGER:: ierr
@@ -379,41 +381,43 @@
 
       INTEGER,INTENT(IN):: j
       COMPLEX(8),INTENT(OUT):: v
-      PetscScalar:: x_value(1)
-      PetscOffset:: x_offset
+!      PetscScalar:: x_value(1)
+!      PetscOffset:: x_offset
       INTEGER:: ierr
 
-      call VecGetArray(x,x_value,x_offset,ierr)
+!      call VecGetArray(x,x_value,x_offset,ierr)
+      call VecGetArrayF90(x,x_value,ierr)
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_get_vector: VecGetArray: ierr=',ierr
-      v=x_value(x_offset+j-Istart)
-      call VecRestoreArray(x,x_value,x_offset,ierr)
+      v=x_value(j-Istart)
+      call VecRestoreArray(x,x_value,ierr)
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_get_vector: VecRestoreArray: ierr=',ierr
 
       RETURN
       END SUBROUTINE mtx_get_vector
 
-      SUBROUTINE mtx_gather_vector(x_)
+      SUBROUTINE mtx_gather_vector(x_,ncom)
 
       COMPLEX(8),DIMENSION(imax),INTENT(OUT):: x_
       COMPLEX(8),DIMENSION(ilen):: v
+      INTEGER,INTENT(IN):: ncom
       INTEGER:: j,ierr
-      PetscScalar:: x_value(1)
-      PetscOffset:: x_offset
+!      PetscScalar:: x_value(1)
+!      PetscOffset:: x_offset
 
-      call VecGetArray(x,x_value,x_offset,ierr)
+      call VecGetArrayF90(x,x_value,ierr)
 
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_gather_vector: VecGetArray: ierr=',ierr
       do j=1,ilen
-         v(j)=x_value(x_offset+j)
+         v(j)=x_value(j)
       enddo
-      call VecRestoreArray(x,x_value,x_offset,ierr)
+      call VecRestoreArrayF90(x,x_value,ierr)
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_gather_vector: VecRestoreArray: ierr=',ierr
 
-      call mtx_allgatherv_complex8(v,iend-istart,x_,imax,isiz,istartx)
+      call mtx_allgatherv_complex8(v,iend-istart,x_,imax,isiz,istartx,ncom)
       RETURN
       END SUBROUTINE mtx_gather_vector
 
