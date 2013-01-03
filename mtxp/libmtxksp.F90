@@ -149,6 +149,9 @@
       call MatSetFromOptions(A,ierr)
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_setup: MatSetFromOptions: ierr=',ierr
+      call MatSetUp(A,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_setup: MatSetUp: ierr=',ierr
 
       call MatGetOwnershipRange(A,istart,iend,ierr)
       IF(ierr.NE.0) WRITE(6,*) &
@@ -573,7 +576,7 @@
 !      v=x_value(x_offset+j-Istart)
       v=x_value(j-Istart)
 !      call VecRestoreArray(x,x_value,x_offset,ierr)
-      call VecRestoreArray(x,x_value,ierr)
+      call VecRestoreArrayF90(x,x_value,ierr)
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_get_vector: VecRestoreArray: ierr=',ierr
 
