@@ -212,7 +212,7 @@ C
       LISTNW= 1
       MODENW= 0
 
-      NCONT=10
+      NCONT=30
 C
 C     *** ALFVEN FREQUENCY PARAMETERS ***
 C

@@ -146,6 +146,7 @@ C
          ELSE
             CJN=(EXP(-CI*NN*PH2)-EXP(-CI*NN*PH1))/(NN*(PH2-PH1))
          ENDIF
+!         write(6,'(A,I5,1P2E12.4)') 'CJN: ',NN,CJN
       DO MD=MDMIN,MDMAX
          MDX=MD-MDMIN+1
          MM=NTH0+MD
