@@ -346,13 +346,19 @@ CONTAINS
 
     ENDDO
 
-    diff_jm(1:nrmax) = 0.5d0*(diff_jmg(0:nrmax-1)+diff_jmg(1:nrmax))
-    chie_jm(1:nrmax) = 0.5d0*(chie_jmg(0:nrmax-1)+chie_jmg(1:nrmax))
-    chii_jm(1:nrmax) = 0.5d0*(chii_jmg(0:nrmax-1)+chii_jmg(1:nrmax))
+    diff_jm(1:nrmax-1) = 0.5d0*(diff_jmg(0:nrmax-2)+diff_jmg(1:nrmax-1))
+    chie_jm(1:nrmax-1) = 0.5d0*(chie_jmg(0:nrmax-2)+chie_jmg(1:nrmax-1))
+    chii_jm(1:nrmax-1) = 0.5d0*(chii_jmg(0:nrmax-2)+chii_jmg(1:nrmax-1))
+    diff_jm(nrmax) = diff_jmg(nrmax-1)
+    chie_jm(nrmax) = chie_jmg(nrmax-1)
+    chii_jm(nrmax) = chii_jmg(nrmax-1)
 
-    vtorm(1:nrmax) = 0.5d0*(vphi_m(0:nrmax-1)+vphi_m(1:nrmax))
-    vparm(1:nrmax) = 0.5d0*(vpar_m(0:nrmax-1)+vpar_m(1:nrmax))
-    vprpm(1:nrmax) = 0.5d0*(vper_m(0:nrmax-1)+vper_m(1:nrmax))
+    vtorm(1:nrmax-1) = 0.5d0*(vphi_m(0:nrmax-2)+vphi_m(1:nrmax-1))
+    vparm(1:nrmax-1) = 0.5d0*(vpar_m(0:nrmax-2)+vpar_m(1:nrmax-1))
+    vprpm(1:nrmax-1) = 0.5d0*(vper_m(0:nrmax-2)+vper_m(1:nrmax-1))
+    vtorm(nrmax) = vphi_m(nrmax-1)
+    vparm(nrmax) = vpar_m(nrmax-1)
+    vprpm(nrmax) = vper_m(nrmax-1)
 
     DO nsa=1,nsamax
        ns = ns_nsa(nsa)
