@@ -67,10 +67,10 @@ CONTAINS
     INTEGER(ikind),INTENT(IN) :: idexp
 
     CALL SETLIN(0,0,7)
-    CALL SETCHS(0.3,0.0)
+    CALL SETCHS(0.4,0.0)
     CALL SETFNT(32)
     CALL MOVE(11.8,18.0)
-    CALL TEXT('t =',2)
+    CALL TEXT('T=',2)
 
     SELECT CASE(idexp)
     CASE(0)
@@ -85,6 +85,176 @@ CONTAINS
 
     RETURN
   END SUBROUTINE tr_gr_time
+
+
+  SUBROUTINE tr_gr1d_rad(NGP,FX,FF,NXM,NGMAX,TITLE,MODE_LS,FMIN0,FMAX0)
+! ----------------------------------------------------------------------
+!   ***   The graphic interface routine for radial profiles   ***
+!
+!   <indispensable arguments>
+!   NGP     : The Position ID of GSAF page
+!   FX(NXM) : The grid point value of the data
+!   FF(NSM,NGMAX) : The functional value of the data
+!   NXM     : The number of data points
+!   NGMAX   : The number of lines
+!   TITLE   : Graph (f axis) title
+!   MODE_LS : Scale type =  0 : X:LINEAR  Y:LINEAR
+!                           1 : X:LOG     Y:LINEAR
+!                           2 : X:LINEAR  Y:LOG
+!                           3 : X:LOG     Y:LOG
+!
+!   <optional arguments>
+!   FMIN0   : Minimum value of f axis
+!   FMAX0   : Maximum value of f axis
+! ----------------------------------------------------------------------
+    USE libgrf, ONLY: grd1d
+
+    IMPLICIT NONE
+
+    ! < indispensable arguments >
+    INTEGER(ikind),  INTENT(IN)   :: NGP            ! Graph position
+    REAL(rkind),     INTENT(IN)   :: FX(NXM)        ! 1D grid data
+    REAL(rkind),     INTENT(INOUT):: FF(NXM,NGMAX)  ! 1D data 
+    INTEGER(ikind),  INTENT(IN)   :: NXM, NGMAX     ! number of data
+    CHARACTER(LEN=*),INTENT(IN)   :: TITLE
+!    CHARACTER(LEN=*),INTENT(IN)   :: XTITLE
+    INTEGER(ikind),  INTENT(IN)   :: MODE_LS
+
+    ! < optional arguments >
+    REAL(rkind),INTENT(IN),OPTIONAL:: FMIN0,FMAX0
+
+    ! < arguments of GRD1D >
+    INTEGER(ikind) :: NXMAX
+    INTEGER(ikind) :: XSCALE_TYPE0,FSCALE_TYPE0   ! Scale type
+    INTEGER(ikind) :: XSCALE_LTYPE0,FSCALE_LTYPE0 ! Scale type for log plot
+    INTEGER(ikind) :: TITLE_FONT0,VALUE_FONT0
+
+    REAL(rkind) :: ASPECT0                      ! Asprct ratio of the graph
+    REAL(rkind) :: TITLE_SIZE0,XTITLE_SIZE0     ! Title font size 
+    REAL(rkind) :: TITLE_RGB0(3),XTITLE_RGB0(3) ! Title font color
+
+    REAL(rkind) :: VALUE_SIZE0   ! Value font size 
+    REAL(rkind) :: VALUE_RGB0(3) ! Value font color
+
+    ! internal variables
+    INTEGER(ikind) :: NX, NG
+
+
+    NXMAX = NXM
+
+    XSCALE_TYPE0  = 1     ! 0: draw grid lines for X axis, else: none
+    FSCALE_TYPE0  = 1     ! 0: draw grid lines for f axis, else: none
+    XSCALE_LTYPE0 = 1     ! 0: draw grid lines for X axis in log plot
+    FSCALE_LTYPE0 = 1     ! 0: draw grid lines for f axis in log plot
+
+    ASPECT0 = 4.d0/3.d0   ! default: 4.d0/3.d0
+
+    TITLE_SIZE0  = 0.85d0  ! The font size of title label
+    XTITLE_SIZE0 = 0.85d0  ! The font size of X axis label
+    VALUE_SIZE0  = 0.85d0  ! The font size of values of axes
+
+    TITLE_FONT0  = 32     ! defalut: 32  (1 ~ 10 is mainly used)
+    VALUE_FONT0  = 32     ! default: 32  (11: Greek font)
+
+    TITLE_RGB0(1)  = 0.d0 ! The color of title on the RGB scale
+    TITLE_RGB0(2)  = 0.d0
+    TITLE_RGB0(3)  = 0.d0
+    XTITLE_RGB0(1) = 0.d0 ! The color of X axis label on the RGB scale
+    XTITLE_RGB0(2) = 0.d0
+    XTITLE_RGB0(3) = 0.d0
+    VALUE_RGB0(1)  = 0.d0 ! The color of values of axes on the RGB scale
+    VALUE_RGB0(2)  = 0.d0
+    VALUE_RGB0(3)  = 0.d0
+
+
+    IF(PRESENT(FMIN0) .AND. .NOT.PRESENT(FMAX0))THEN
+
+       FORALL(NX=1:NXM, NG=1:NGMAX, FF(NX,NG)==FMIN0)
+          FF(NX,NG) = 1.d-9
+       END FORALL
+
+       CALL GRD1D(NGP,FX,FF,NXM,NXMAX,NGMAX,    &! indispensable arguments 
+                  TITLE,MODE_LS,                &! optional positional args
+                  FMIN         = FMIN0,         &
+                  ASPECT       = ASPECT0,       &
+                  TITLE_SIZE   = TITLE_SIZE0,   &
+                  TITLE_FONT   = TITLE_FONT0,   &
+                  TITLE_RGB    = TITLE_RGB0,    &
+                  XSCALE_TYPE  = XSCALE_TYPE0,  &
+                  FSCALE_TYPE  = FSCALE_TYPE0,  &
+                  XSCALE_LTYPE = XSCALE_LTYPE0, &
+                  FSCALE_LTYPE = FSCALE_LTYPE0, &
+                  VALUE_SIZE   = VALUE_SIZE0,   &
+                  VALUE_RGB    = VALUE_RGB0,    &
+                  VALUE_FONT   = VALUE_FONT0)
+
+    ELSE IF(.NOT.PRESENT(FMIN0) .AND. PRESENT(FMAX0))THEN
+
+       CALL GRD1D(NGP,FX,FF,NXM,NXMAX,NGMAX,    &! indispensable arguments 
+                  TITLE,MODE_LS,                &! optional positional args
+                  FMAX         = FMAX0,         &
+                  ASPECT       = ASPECT0,       &
+                  TITLE_SIZE   = TITLE_SIZE0,   &
+                  TITLE_FONT   = TITLE_FONT0,   &
+                  TITLE_RGB    = TITLE_RGB0,    &
+                  XSCALE_TYPE  = XSCALE_TYPE0,  &
+                  FSCALE_TYPE  = FSCALE_TYPE0,  &
+                  XSCALE_LTYPE = XSCALE_LTYPE0, &
+                  FSCALE_LTYPE = FSCALE_LTYPE0, &
+                  VALUE_SIZE   = VALUE_SIZE0,   &
+                  VALUE_RGB    = VALUE_RGB0,    &
+                  VALUE_FONT   = VALUE_FONT0)
+
+    ELSE IF(PRESENT(FMIN0) .AND. PRESENT(FMAX0))THEN
+
+       FORALL(NX=1:NXM, NG=1:NGMAX, FF(NX,NG)==FMIN0)
+          FF(NX,NG) = 1.d-9
+       END FORALL
+
+       CALL GRD1D(NGP,FX,FF,NXM,NXMAX,NGMAX,    &! indispensable arguments 
+                  TITLE,MODE_LS,                &! optional positional args
+                  FMIN         = FMIN0,         &
+                  FMAX         = FMAX0,         &
+                  ASPECT       = ASPECT0,       &
+                  TITLE_SIZE   = TITLE_SIZE0,   &
+                  TITLE_FONT   = TITLE_FONT0,   &
+                  TITLE_RGB    = TITLE_RGB0,    &
+                  XSCALE_TYPE  = XSCALE_TYPE0,  &
+                  FSCALE_TYPE  = FSCALE_TYPE0,  &
+                  XSCALE_LTYPE = XSCALE_LTYPE0, &
+                  FSCALE_LTYPE = FSCALE_LTYPE0, &
+                  VALUE_SIZE   = VALUE_SIZE0,   &
+                  VALUE_RGB    = VALUE_RGB0,    &
+                  VALUE_FONT   = VALUE_FONT0)
+
+    ELSE
+
+       CALL GRD1D(NGP,FX,FF,NXM,NXMAX,NGMAX,    &! indispensable arguments 
+                  TITLE,MODE_LS,                &! optional positional args
+                  ASPECT       = ASPECT0,       &
+                  TITLE_SIZE   = TITLE_SIZE0,   &
+                  TITLE_FONT   = TITLE_FONT0,   &
+                  TITLE_RGB    = TITLE_RGB0,    &
+                  XSCALE_TYPE  = XSCALE_TYPE0,  &
+                  FSCALE_TYPE  = FSCALE_TYPE0,  &
+                  XSCALE_LTYPE = XSCALE_LTYPE0, &
+                  FSCALE_LTYPE = FSCALE_LTYPE0, &
+                  VALUE_SIZE   = VALUE_SIZE0,   &
+                  VALUE_RGB    = VALUE_RGB0,    &
+                  VALUE_FONT   = VALUE_FONT0)
+
+    END IF
+         
+    RETURN
+  END SUBROUTINE tr_gr1d_rad
+
+
+  SUBROUTINE tr_gr1d_time!(NGP,FX,FF,NXM,NGMAX,TITLE,MODE_LS,FMIN0,FMAX0)
+! -----------------------------------------------------------------------
+!   for time evolution
+
+    RETURN
+  END SUBROUTINE tr_gr1d_time
 
 ! ************************************************************************
 
@@ -198,12 +368,12 @@ CONTAINS
   SUBROUTINE tr_gr_vnt_alloc(ierr)
 
     INTEGER(ikind),INTENT(OUT) :: ierr
-    INTEGER(ikind),SAVE :: ngt_save, nsamax_save
+    INTEGER(ikind),SAVE :: ngt_save=-1, nsamax_save=0
 
     ierr = 0
     IF(ngt /= ngt_save .OR. nsamax /= nsamax_save)THEN
 
-       IF(ngt_save /= 0) CALL tr_gr_vnt_dealloc
+       IF(ngt_save /= -1) CALL tr_gr_vnt_dealloc
        DO
           ALLOCATE(gt(0:ngt),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(gt1(0:ngt,nsamax),STAT=ierr); IF(ierr /= 0) EXIT
@@ -346,130 +516,104 @@ CONTAINS
 ! ************************************************************************
   
   SUBROUTINE tr_gr_init_vg
-
     vg1(0:nrmax,1:nsamax) = 0.d0
     vg2(0:nrmax,1:nsamax) = 0.d0
     vg3(0:nrmax,1:nsamax) = 0.d0
     vg4(0:nrmax,1:nsamax) = 0.d0
-
     RETURN
   END SUBROUTINE tr_gr_init_vg
 
   SUBROUTINE tr_gr_init_vm
-
     vm1(1:nrmax,1:nsamax) = 0.d0
     vm2(1:nrmax,1:nsamax) = 0.d0
     vm3(1:nrmax,1:nsamax) = 0.d0
     vm4(1:nrmax,1:nsamax) = 0.d0
-
     RETURN
   END SUBROUTINE tr_gr_init_vm
 
   SUBROUTINE tr_gr_init_vgx
-
     vgx1(0:nrmax,1:10) = 0.d0
     vgx2(0:nrmax,1:10) = 0.d0
     vgx3(0:nrmax,1:10) = 0.d0
     vgx4(0:nrmax,1:10) = 0.d0
-
     RETURN
   END SUBROUTINE tr_gr_init_vgx
 
   SUBROUTINE tr_gr_init_vmx
-
     vmx1(1:nrmax,1:10) = 0.d0
     vmx2(1:nrmax,1:10) = 0.d0
     vmx3(1:nrmax,1:10) = 0.d0
     vmx4(1:nrmax,1:10) = 0.d0
-
     RETURN
   END SUBROUTINE tr_gr_init_vmx
 
 
   SUBROUTINE tr_gr_init_gg
-
     gg1(0:nrmax,0:nggmax) = 0.d0
     gg2(0:nrmax,0:nggmax) = 0.d0
     gg3(0:nrmax,0:nggmax) = 0.d0
     gg4(0:nrmax,0:nggmax) = 0.d0
-
     RETURN
   END SUBROUTINE tr_gr_init_gg
 
   SUBROUTINE tr_gr_init_gm
-
     gm1(1:nrmax,0:nggmax) = 0.d0
     gm2(1:nrmax,0:nggmax) = 0.d0
     gm3(1:nrmax,0:nggmax) = 0.d0
     gm4(1:nrmax,0:nggmax) = 0.d0
-
     RETURN
   END SUBROUTINE tr_gr_init_gm
 
   SUBROUTINE tr_gr_init_gt
-
     gt1(0:ngt,1:nsamax) = 0.d0
     gt2(0:ngt,1:nsamax) = 0.d0
     gt3(0:ngt,1:nsamax) = 0.d0
     gt4(0:ngt,1:nsamax) = 0.d0
-
     RETURN
   END SUBROUTINE tr_gr_init_gt
 
   SUBROUTINE tr_gr_init_gti
-
     gti1(0:ngt,1:10) = 0.d0
     gti2(0:ngt,1:10) = 0.d0
     gti3(0:ngt,1:10) = 0.d0
     gti4(0:ngt,1:10) = 0.d0
-
     RETURN
   END SUBROUTINE tr_gr_init_gti
 
   SUBROUTINE tr_gr_init_lg
-
     lg1(1:lmaxtr) = 0.d0
-
     RETURN
   END SUBROUTINE tr_gr_init_lg
 
   SUBROUTINE tr_gr_init_vgu
-
     vgu1(0:nrmax,1:nsum) = 0.d0
     vgu2(0:nrmax,1:nsum) = 0.d0
     vgu3(0:nrmax,1:nsum) = 0.d0
     vgu4(0:nrmax,1:nsum) = 0.d0
-
     RETURN
   END SUBROUTINE tr_gr_init_vgu
 
   SUBROUTINE tr_gr_init_vmu
-
     vmu1(0:nrmax,1:nsum) = 0.d0
     vmu2(0:nrmax,1:nsum) = 0.d0
     vmu3(0:nrmax,1:nsum) = 0.d0
     vmu4(0:nrmax,1:nsum) = 0.d0
-
     RETURN
   END SUBROUTINE tr_gr_init_vmu
   
   SUBROUTINE tr_gr_init_gtu
-
     gtu1(1:ntxmax,1:nsum) = 0.d0
     gtu2(1:ntxmax,1:nsum) = 0.d0
     gtu3(1:ntxmax,1:nsum) = 0.d0
     gtu4(1:ntxmax,1:nsum) = 0.d0
-
     RETURN
   END SUBROUTINE tr_gr_init_gtu
 
   SUBROUTINE tr_gr_init_gtiu
-
     gtiu1(1:ntxmax,1:10) = 0.d0
     gtiu2(1:ntxmax,1:10) = 0.d0
     gtiu3(1:ntxmax,1:10) = 0.d0
     gtiu4(1:ntxmax,1:10) = 0.d0
-
     RETURN
   END SUBROUTINE tr_gr_init_gtiu
 

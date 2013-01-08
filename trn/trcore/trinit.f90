@@ -42,34 +42,50 @@ CONTAINS
            ntstep,ngtmax,ngtstp,rips,ripe,profj1,profj2, &
            pnb_tot,pnb_eng,pnb_rw,pnb_r0, &
            ufid_bin,kuf_dir,kuf_dev,kuf_dcg, &
-           mdlijq,mdlgmt,mdlsrc,mdlglb
+           mdleqb,mdleqn,mdlequ,mdleqt, &
+           mdlijq,mdlgmt,mdlsrc,mdlglb, &
+           mdlwrt,nwrstp,kwpnam,kwtnam
 
     USE plinit
     IMPLICIT NONE
-    INTEGER(ikind):: nsa
+    INTEGER(ikind):: nsa,ns
 
     OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
     CALL pl_init
 
 !     ======( DEVICE PARAMETERS )======
-
+!       ***  variables declared in PL ***
 !        RR    : Plasma major radius                             (m)
 !        RA    : Plasma minor radius                             (m)
 !        RB    : Wall minor radius                               (m)
 !        RKAP  : Plasma shape elongation
-!        RDLT  : Plasma shape triangularity *
+!        RDLT  : Plasma shape triangularity
 !        BB    : Magnetic field at center                        (T)
 !        Q0    : Safety factor at center
 !        QA    : Safety factor on plasma surface
 !        RIP   : Plasma current                                 (MA)
 !        PROFJ : Curren density profile parameter (power of (1 - rho^2))  
 
+!       *** variables declared in TR ***
 !        PHIA  : total toroidal flux enclosed by the plasma (Wb)
+!        RIPS  : toroidal current at the beginning [MA]
+!        RIPE  : toroidal current at the end       [MA]
+!
 
-    rips = 1.d0
-    ripe = 1.d0
+      RR    = 3.D0
+      RA    = 1.D0
+      RB    = 1.2D0
+      RKAP  = 1.D0
+      RDLT  = 0.D0
+      BB    = 3.D0
+      Q0    = 1.D0
+      QA    = 3.D0
+      RIP   = 3.D0
+      PROFJ = 2.D0
 
-    phia = 0.d0
+      PHIA = 0.D0
+      RIPS = 1.D0
+      RIPE = 1.D0
 
 !     ======( PLASMA PARAMETERS )======
 
@@ -88,6 +104,61 @@ CONTAINS
 !        PTITB : Temperature increment at ITB                  (keV)
 !        PUITB : Toroidal rotation velocity increment at ITB   (m/s)
 
+!        KIDNS : index of particle species
+!        IDION :  1 = fast ion particle
+!                 0 = else                                                     
+
+    ! *** Species to be condidered are defined in PL     ***
+    ! *** This part is only for initilization of profile ***
+
+    NS = 1 ! electron
+    PN(NS)   = 0.5D0
+    PNS(NS)  = 0.2D0
+    PTPR(NS) = 1.50D0
+    PTPP(NS) = 1.50D0
+    PTS(NS)  = 0.05D0
+    PU(NS)   = 0.D0
+    PUS(NS)  = 0.D0
+    PNITB(NS)= 0.D0
+    PTITB(NS)= 0.D0
+    PUITB(NS)= 0.D0
+
+    NS = 2 ! D (bulk)
+    PN(NS)   = 0.5D0
+    PNS(NS)  = 0.2D0
+    PTPR(NS) = 1.50D0
+    PTPP(NS) = 1.50D0
+    PTS(NS)  = 0.05D0
+    PU(NS)   = 0.D0
+    PUS(NS)  = 0.D0
+    PNITB(NS)= 0.D0
+    PTITB(NS)= 0.D0
+    PUITB(NS)= 0.D0
+    
+    NS = 3 ! D (fast)
+    PN(NS)   = 0.D0
+    PNS(NS)  = 0.D0
+    PTPR(NS) = 5.0D0
+    PTPP(NS) = 5.0D0
+    PTS(NS)  = 0.05D0
+    PU(NS)   = 0.D0
+    PUS(NS)  = 0.D0
+    PNITB(NS)= 0.D0
+    PTITB(NS)= 0.D0
+    PUITB(NS)= 0.D0
+
+    NS = 4 ! C (impurity)
+    PN(NS)   = 0.0D0
+    PNS(NS)  = 0.0D0
+    PTPR(NS) = 5.0D0
+    PTPP(NS) = 5.0D0
+    PTS(NS)  = 0.05D0
+    PU(NS)   = 0.D0
+    PUS(NS)  = 0.D0
+    PNITB(NS)= 0.D0
+    PTITB(NS)= 0.D0
+    PUITB(NS)= 0.D0
+
 
 !     ======( PROFILE PARAMETERS )======
 
@@ -100,8 +171,14 @@ CONTAINS
 !        PROFJ1: Current density profile parameter (power of rho)
 !        PROFJ2: Current density profile parameter (power of (1 - rho^PROFJ1))
 
-    profj1 = 2.d0
-    profj2 = 1.d0
+    PROFN1 = 2.D0
+    PROFN1 = 1.5D0
+    PROFU1 = 2.D0
+    PROFU1 = 1.D0
+    PROFT1 = 2.D0
+    PROFT2 = 1.D0
+    PROFJ1 = 2.D0
+    PROFJ2 = 1.D0
 
 !     ======( MODEL PARAMETERS )======
 
@@ -135,18 +212,9 @@ CONTAINS
 !        RHOITB: rho at ITB (0 for no ITB)
 !        RHOEDG: rho at EDGE for smoothing (1 for no smooth)
 !
-!        MDLIJQ: Control how to create d psi/d rho profile
-!            1 : create from jtot using RIP as boundary condition
-!            2 : create from qp using RIP as boundary condition
-!            3 : create from jtot not using RIP
-!            4 : create from qp not using RIP
-!        * MDLIJQ = 3, 4 is especially for using exp. data
 
-    modelg = 0
-    nteqit = 0
-
-    mdlijq = 1
-
+    MODELG = 0 ! For now, 'MDLGMT' is used instead.
+    NTEQIT = 0
 
 !     ======( GRAPHIC PARAMETERS )======
 
@@ -177,18 +245,27 @@ CONTAINS
 !                 6 : WITH FILE NAME INPUT, ASK NEW NAME, IF FILE EXISTS
 !                 7 : WITH FILE NAME INPUT, ERROR, IF FILE EXISTS
 
-!     ==== Parameters above are initialized in plx/plinit ====
 
-    CALL pl_init
+! =========================================================================
+!     Variables above is declared in TASK/PL
+! =========================================================================
+! =========================================================================
+
 
 !     ==== TR PARAMETERS ====
+
+!     ==== Eqs. Selection Parameter ====
+    MDLEQB = 1  ! 0/1 for B_theta
+    MDLEQN = 0  ! 0/1 for density
+    MDLEQU = 0  ! 0/1 for rotation
+    MDLEQT = 1  ! 0/1 for heat
 
 !        NRMAX  : NUMBER OF RADIAL MESH POINTS
 !        NTMAX  : NUMBER OF TIME STEP
 !        DT     : SIZE OF TIME STEP
 
-!        rg_fixed(3,nsm) : minimum radius of fixed profile
 !        nsamax   : number of active particle species
+!        rg_fixed(3,nsm) : minimum radius of fixed profile
 !        nitmax   : maximum number of iterations
 !        epsltr   : tolerance of iteration
 !
@@ -214,33 +291,33 @@ CONTAINS
 !        lmaxtr : maximum count of iteration
 
     epsltr = 1.D-6
-!    epsltr = 1.D99
     lmaxtr = 100
-        
-!     ==== TR PARAMETERS for stiff modeling by Ikari  ====
+
 
 !       mdltr_nc  = 0 : no neoclassical transport
 !                   1 : NCLASS trasport model
 !       mdltr_tb  = 0 : no turbulent transport
 !                   1 : constant diffusion
 !                   2 : STIFF MODEL (Pereverzev)
+!       dtr0        : lower diffusion coefficient for simple turbulent model
+!       dtr1        : upper diffusion coefficnent for simple turbulent model
+!       ltcr      : critical scale length [m]
+!
+!       cdtrn     : factor for particle diffusivity
+!       cdtru     : factor for toroidal viscosity
+!       cdtrt     : factor for thermal diffusivity
+!
+!     ==== TR PARAMETERS for stiff modeling by Ikari  ====
+!
 !       mdltr_prv = 0 : no Pereverzev method
 !                   1 : Pereverzev method applied : Denh=dprv1
 !                   2 : Pereverzev method applied : Denh=dprv2*Dorg
 !                   3 : Pereverzev method applied : Denh=dprv2*Dorg+dprv1
 !                   4 : Pereverzev method applied : Denh=MIN(dprv2*Dorg,dprv1)
 !                   5 : Pereverzev method applied : Denh=MAX(dprv2*Dorg,dprv1)
-!       dtr0        : lower diffusion coefficient
-!       dtr1        : upper diffusion coefficnet
-!       ltcr      : critical scale length [m]
-!       ph0       : heating power density [MW/m^3] at r = 0
-!       phs       : heating power density [MW/m^3] at r = a
-!       dprv1     : enhanced diffusion coefficient
-!       dprv2     : diffusion enhancement factor
+!       dprv1     : enhanced diffusion coefficient for Pereverzev mothod
+!       dprv2     : diffusion enhancement factor for Pereverzev mothod
 !       rhog_prv  : enhanced diffusion region (rhog(nr) > rhog_prv)
-!       cdtrn     : factor for particle diffusivity
-!       cdtru     : factor for toroidal viscosity
-!       cdtrt     : factor for thermal diffusivity
 
     mdltr_nc  = 1
     mdltr_tb  = 1
@@ -248,40 +325,43 @@ CONTAINS
     dtr0  = 0.1D0
     dtr1  = 0.5D0
     ltcr  = 1.D0
-    ph0   = 0.1D0
-    phs   = 0.1D0
-    dprv1     = 1.D0
-    dprv2     = 1.D0
-    rhog_prv  = 0.D0
+
     cdtrn = 1.D0
     cdtru = 1.D0
     cdtrt = 1.D0
 
-!!$    !     ==== Eqs. Selection Parameter ====
-!!$    For now, these switch variables are not used.
-!!$    Instead, we determine which equation is solved
-!!$     by the array 'id_neq' (see trsetup.f90) and the declaration of
-!!$     species in TASK/PL (see plx/plinit.f90).
-!!$    
-!!$    MDLEQB=1  ! 0/1 for B_theta
-!!$    MDLEQN=0  ! 0/1 for density
-!!$    MDLEQT=1  ! 0/1 for heat
-!!$    MDLEQU=0  ! 0/1 for rotation
-!!$    MDLEQZ=0  ! 0/1 for impurity
-!!$    MDLEQ0=0  ! 0/1 for neutral
-!!$    MDLEQE=0  ! 0/1/2 for electron density
-!!$    !               ! 0: electron only, 1: both, 2: ion only
-!!$    MDLEOI=0  ! 0/1/2 for electron only or bulk ion only if NSMAX=1
-!!$    !               ! 0: both, 1: electron, 2: ion
+    dprv1     = 1.D0
+    dprv2     = 1.D0
+    rhog_prv  = 0.D0
 
-!     ==== TR PARAMETERS for data saving  ====
-!        ntstep    : number of time step for status report
-!        ngtmax    : maximum number of saved data
-!        ngtstp    : number of time step for data save
+!   === Auxiliary heating ===
+!       ph0       : heating power density [MW/m^3] at r = 0
+!       phs       : heating power density [MW/m^3] at r = a
 
-    ntstep =    10
-    ngtmax = 10001
-    ngtstp =     1
+    ph0   = 0.1D0
+    phs   = 0.1D0
+
+    pnb_tot = 0.d0  ! [MW]
+    pnb_r0  = 0.3d0
+    pnb_rw  = 0.5d0
+    pnb_eng = 80.d0 ! [keV]
+
+!   === Model switches ===
+!
+!       MDLIJQ : Control how to create d psi/d rho profile
+!            1 : create from jtot using RIP as boundary condition
+!            2 : create from qp using RIP as boundary condition
+!            3 : create from jtot not using RIP
+!            4 : create from qp not using RIP
+!        * MDLIJQ = 3, 4 is especially for using exp. data
+!
+!        MDLER : the type of radial electric field
+!            0 : pressure gradient only (nabla p)
+!            1 : nabla p + toroidal rotation (V_tor)
+!            2 : nabla p + V_tor + poloidal rotation (V_pol)
+
+    MDLIJQ = 1
+    MDLER  = 2
 
 !     ==== Input from experimental data ==== 
 !     MDLUF :
@@ -290,8 +370,8 @@ CONTAINS
 !     2 : read exp. data successively in time evolution
 !     3 : compared with TOPICS
 !
-!        MDLXP :
-!            0 : from UFILEs
+!        MDLXP : Experimental data format
+!            0 : UFILEs
 !         else : MDSplus
 !
 !     UFID_BIN : Parameter which determines how to handle UFILEs.
@@ -299,7 +379,8 @@ CONTAINS
 !                 are loaded and aftermath binary files are created.
 !            1 : Only binary files are loaded.
 !            2 : Only ASCII files are loaded and binary files are NOT
-!                  created.      
+!                  created.
+!
 !        MDLNI : Switch how to determine main ion density, impurity density
 !                 and effective charge number                             
 !            1 : complete n_i and n_imp  from Zeff, n_e (and n_bulk)
@@ -307,11 +388,28 @@ CONTAINS
 !            3 : complete n_i and Zeff   from n_e, n_imp (and n_bulk)    
 !
 !       MDLGMT :
+!            0 : Slab geometry
+!            1 : Cylindrical geometry
+!            2 : Toroidal geometry
+!            3 : TASK/EQ output geometry
+!            4 : none
+!            5 : none
+!            6 : read experimental data only for initial profile (mdluf=1)
+!            7 : read experimental data                          (mdluf=2)
+!            8 : call TASK/EQ only for initial profile
+!            9 : call TASK/EQ
+!
 !       MDLSRC :
+!            1 : simple source model
+!            6 : read experimental data only for initial profile (mdluf=1)
+!            7 : read experimental data                          (mdluf=2)
+!
 !       MDLGLB :
-
+!            1 : setup global variables by trinit
+!            6 : read experimental data only for initial profile (mdluf=1)
+!            7 : read experimental data                          (mdluf=2)
+!
       mdluf     = 0
-      time_slc  = 0.d0 ! not determined
 
       mdlxp     = 0
       ufid_bin  = 0
@@ -321,12 +419,11 @@ CONTAINS
       mdlsrc = 1
       mdlglb = 1
 
-
 !     ==== graphic output of experimental data ====
-!     MDLUGT : set the time of snap shot
-!          0 : --- from standard input every time graphic pages are opened.
-!          1 : --- by 'time_snap' in namelist input (trparm)
-!          2 : --- to the lastest time of the data
+!      MDLUGT : set the time of snap shot
+!           0 : --- from standard input every time graphic pages are opened.
+!           1 : --- by 'time_snap' in namelist input (trparm)
+!           2 : --- to the lastest time of the data
 !       * This switch is valid only in the case of MDLUF = 2, 3
 
       mdlugt    = 0
@@ -342,31 +439,32 @@ CONTAINS
       kuf_dev = 'd3d'
       kuf_dcg = '103818'
 
-!     ==== IMPURITY TREATMENT ====
-!        MDNI  :
-!            0 : NSMAX=2, ne=ni
-!            1 : Use exp. ZEFFR profile if available
-!            2 : Use exp. NM1 (or NM2) profile if available
-!            3 : Use exp. NIMP profile if available
-!      MDNI=0
+!     ==== TR PARAMETERS for data saving  ====
+!        ntstep    : number of time step for status report
+!        ngtmax    : maximum number of saved data
+!        ngtstp    : number of time step for data save
 
+    ntstep =    10
+    ngtmax = 10001
+    ngtstp =     1
 
+!     ==== output raw data in csv format ===
+!      MDLWRT : switch for the data output in csv format
+!           0 : none
+!        else : csv output
+!      KWPNAM : csv file name for radial profiles
+!      KWTNAM : csv file name for time evolution data
+!      NWRSTP : number of time step for csv output
 
-! ==== for the time being ===
+      mdlwrt = 0
+      kwpnam = 'tr_rad.csv'
+      kwtnam = 'tr_time.csv'
 
-!        MDLER: the type of radial electric field
-
-
-    mdler  = 0
-
-!   ==== NBI heating ===
-    pnb_tot = 0.d0  ! [MW]
-    pnb_r0  = 0.3d0
-    pnb_rw  = 0.5d0
-    pnb_eng = 80.d0 ! [keV]          
+      nwrstp = 1
 
     RETURN
   END SUBROUTINE tr_init
+
 
 !     ***** Terminalte procedure *****
 
@@ -413,7 +511,9 @@ CONTAINS
            profj1,profj2,rips,ripe,nteqit,time_slc,time_snap,mdlugt,mdlni, &
            pnb_tot,pnb_eng,pnb_rw,pnb_r0, &
            ufid_bin,mdluf,mdlxp,kuf_dir,kuf_dev,kuf_dcg, &
-           mdlijq,mdlgmt,mdlsrc,mdlglb
+           mdleqb,mdleqn,mdlequ,mdleqt, &
+           mdlijq,mdlgmt,mdlsrc,mdlglb, &
+           mdlwrt,nwrstp,kwpnam,kwtnam
     IMPLICIT NONE
     INTEGER(ikind),INTENT(IN) :: nid
     INTEGER(ikind),INTENT(OUT):: ist
@@ -429,7 +529,8 @@ CONTAINS
          MODEFR,MODEFW,IDEBUG, &
          ufid_bin,mdluf,mdlxp,mdlugt,mdlni, &
          kuf_dir,kuf_dev,kuf_dcg,time_slc,time_snap, &
-         mdlijq,mdlgmt,mdlsrc,mdlglb,&
+         mdleqb,mdleqn,mdlequ,mdleqt, &
+         mdlijq,mdlgmt,mdlsrc,mdlglb, &
          nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
          phia,pa_mion,pz_mion,pa_mimp,pz_mimp,      &
          lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
@@ -438,7 +539,8 @@ CONTAINS
          cdtrn,cdtru,cdtrt, &
          ntstep,ngtmax,ngtstp, &
          rips,ripe, &
-         pnb_tot,pnb_eng,pnb_rw,pnb_r0
+         pnb_tot,pnb_eng,pnb_rw,pnb_r0, &
+         mdlwrt,nwrstp,kwpnam,kwtnam
 
     READ(nid,TR,IOSTAT=ist,ERR=9800,END=9900)
     IERR=0
@@ -479,7 +581,7 @@ CONTAINS
 
     CALL tr_check_parm(ierr)
 
-    IF(mode == 0.AND. IERR /= 0) GOTO 1
+    IF(mode == 0 .AND. IERR /= 0) GOTO 1
     IF(IERR.NE.0) IERR=IERR+100
 
     RETURN
@@ -498,14 +600,14 @@ CONTAINS
     IERR=0
 
     ! ---------------------------------------------------------------------
-
+    ! 
     IF(nrmax < 1) THEN
        WRITE(6,*) 'XX tr_check_parm: input error : illegal nrmax'
        WRITE(6,*) '                  nrmax =',nrmax
        IERR=1
     ENDIF
 
-    IF(nsamax < 2) THEN ! nsamax > nsmax ??
+    IF(nsamax < 2) THEN
        WRITE(6,*) 'XX tr_check_parm: input error : illegal nsamax'
        WRITE(6,*) '                  nsamax =',nsamax
        IERR=1
@@ -519,7 +621,7 @@ CONTAINS
     ENDIF
 
     ! ---------------------------------------------------------------------
-
+    ! check switches for experimental data
     SELECT CASE(mdluf)
     CASE(0)
        IF(mdlgmt==6 .OR. mdlgmt==7 .OR. mdlsrc==6 .OR. mdlsrc==7 .OR. &
@@ -527,18 +629,18 @@ CONTAINS
           WRITE(6,*) 'XX tr_check_parm: input error: experimental data are not read.'
           IERR=2
        END IF
+
     CASE(1)
        IF(mdlgmt==7 .OR. mdlsrc==7 .OR. mdlglb==7)THEN
           WRITE(6,*) 'XX tr_check_parm: input error: time evolution experimental data are not read.'
           IERR=2
        END IF
     END SELECT
+
     IF(IERR==2)THEN
        fmt1='(1X,3(A10,I2))'
        WRITE(6,fmt1) 'mdlglb= ',mdlglb,'mdlgmt= ',mdlgmt,'mdlsrc= ',mdlsrc
     END IF
-
-    ! ---------------------------------------------------------------------
 
     IF(mdluf > 0)THEN
        IF(nrmax+1 > nrum)THEN

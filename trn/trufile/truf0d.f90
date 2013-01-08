@@ -10,7 +10,7 @@ MODULE truf0d
   LOGICAL,DIMENSION(1:2)    :: idzeff
   LOGICAL                   :: idpgasa,idpgasz,idpimpa,idpimpz
 
-  CHARACTER(LEN=15) :: toknam,shotnum
+  CHARACTER(LEN=15) :: toknam,shotnum,auxheat
   REAL(rkind) :: pgasa,pgasz,pimpa,pimpz
 
 CONTAINS
@@ -331,6 +331,7 @@ CONTAINS
     IF(mdlxp == 0)THEN ! UFILE
        shotnum = uf0d(139)%fc0
        toknam  = uf0d(158)%fc0
+       auxheat = uf0d(3)%fc0
 
        WRITE(6,*) ! spacing
        WRITE(6,'(A55)') '# UFILE information ----------------------------------#'
@@ -395,6 +396,7 @@ CONTAINS
        
        WRITE(6,fmt_arar) 'PGASA    = ',pgasa,  'PGASZ    = ',pgasz
        WRITE(6,fmt_arar) 'PIMPA    = ',pimpa,  'PIMPZ    = ',pimpz
+       WRITE(6,'(1X,A,A15)') 'Auxiliary heating: ',auxheat
        WRITE(6,'(A55)') '#-----------------------------------------------------#'
        WRITE(6,*) ! spacing
        

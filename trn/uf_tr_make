@@ -1,0 +1,66 @@
+#! /usr/bin/python
+# This program is written by Tomoaki IKARI
+#
+# This program converts UFILE(***_DEVICE_SHOT_*d.dat)
+#  to a set of data which can be used in TASK/TR (ver 3.0 or later)
+import os, os.path, glob, subprocess, sys
+
+dirbase_ufile = '/home/ikari/profiledb/itpa_pr08/'
+ver_ufile = 'pr08'
+
+while 1:
+    # input and moving "DEVICE" and "SHOT" directory
+    device = raw_input('# Input DEVICE name: ')
+    shot   = raw_input('# Input SHOT number: ')
+
+    if not device:
+        print 'XX Input error: DEVICE name'
+        continue
+
+    dir_to = dirbase_ufile + device + '/' + shot + '/'
+    if not os.path.exists(dir_to):
+        print 'XX Designated directory does not exist.'
+        print '--> '+ dir_to
+        continue
+    else:
+        os.system('cd '+dir_to)
+
+    # making 'in' directory if not exist
+    dir_in = dir_to + 'in'
+    if not os.path.exists(dir_in):
+        print 'Creating "in" directory...'
+        print '--> '+dir_in
+        os.system('mkdir '+dir_in)
+        os.chdir(dir_in+'/')
+#        print 'moving to --> '+os.getcwd()
+    else:
+        os.chdir(dir_in+'/')
+#        print 'moving to --> '+os.getcwd()
+        
+        in_files = glob.glob('*')
+        if in_files:
+            while 1:
+                print 'Some files have already existed in '+dir_in+'/'
+                print '# Delete all files and rebuild the data set ? [y/n]'
+
+                yon = raw_input()
+                if (yon == 'Y' or yon == 'y'):
+                    for rmfile in in_files:
+                        os.remove(rmfile)
+                    break
+                elif (yon == 'N' or yon == 'n'):
+                    break
+                else:
+                    continue
+
+    # usplit
+    usplit = '/home/ikari/fort/task/tools/usplit08'
+    file1d = ver_ufile+'_'+device+'_'+shot+'_1d.dat'
+    file2d = ver_ufile+'_'+device+'_'+shot+'_2d.dat'
+
+    subprocess.call('echo '+'../'+file1d+' | '+usplit,shell=True)
+    print file1d+' has been splitted into the format of TASK/TR'
+    subprocess.call('echo '+'../'+file2d+' | '+usplit,shell=True)
+    print file2d+' has been splitted into the format of TASK/TR'
+    
+    break

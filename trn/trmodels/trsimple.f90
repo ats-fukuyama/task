@@ -43,7 +43,7 @@ CONTAINS
           END DO
        END DO
 
-    ! --- Typical stiff model (Pereverzev) ---
+    ! --- Typical stiff model ---
     CASE(3)
        DO nr = 1, nrmax
           DO nsa = 1, nsamax

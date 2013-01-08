@@ -15,14 +15,14 @@ CONTAINS
 
     USE trcomm, ONLY: &
          tr_nit_allocate,tr_nsa_allocate,tr_nr_allocate,tr_ngt_allocate, &
-         t,t_prev,ngt,ns_nsa,idnsa,nrmax,nsamax,nsafmax,   &
+         unitid,t,t_prev,ngt,ns_nsa,idnsa,nrmax,nsamax,nsafmax,mdluf,    &
          pa,pz,pz0,nitmax,rip,rips
     USE trbpsd, ONLY: tr_bpsd_init
     USE eq_bpsd_mod, ONLY: eq_bpsd_init
     USE trloop, ONLY: tr_save_pvprev
     USE trcalv, ONLY: tr_calc_variables
-    USE trresult, ONLY: tr_calc_global, tr_save_ngt
     USE trsource, ONLY:tr_source1,tr_source2
+    USE trresult, ONLY: tr_calc_global,tr_save_ngt,tr_exp_compare
     IMPLICIT NONE
     INTEGER(ikind):: ierr
 
@@ -68,6 +68,7 @@ CONTAINS
     CALL tr_save_pvprev
     CALL tr_calc_global
     CALL tr_save_ngt
+    IF(mdluf > 0) CALL tr_exp_compare
 
 
     CALL tr_bpsd_init(ierr)
@@ -180,7 +181,8 @@ CONTAINS
 ! --------------------------------------------------------------------------
 !   This subroutine sets the table for matrix generation.
 ! --------------------------------------------------------------------------
-    USE trcomm, ONLY: neqmax,idnsa,nsa_neq,nva_neq,id_neq
+    USE trcomm, ONLY: neqmax,idnsa,nsa_neq,nva_neq,id_neq, &
+         mdleqb,mdleqn,mdleqt,mdlequ
 
     IMPLICIT NONE
     INTEGER(ikind) :: i,neq,nsa,nva
@@ -193,8 +195,11 @@ CONTAINS
 
     ! magnetic diffusion equation
     neq = 1
-!    id_neq(neq) = 2
-    id_neq(neq) = 0
+    IF(mdleqb == 0)THEN
+       id_neq(neq) = 0
+    ELSE
+       id_neq(neq) = 2
+    END IF
 
     DO neq = 2, neqmax
        nsa = nsa_neq(neq)
@@ -202,15 +207,27 @@ CONTAINS
        
        SELECT CASE(nva)
        CASE(1) ! density
-          id_neq(neq) = 0
+          IF(mdleqn == 0)THEN
+             id_neq(neq) = 0
+          ELSE IF(mdleqn == 1)THEN
+             id_neq(neq) = 1
+          END IF
+
        CASE(2) ! toroidal velocity
           id_neq(neq) = 0
+
        CASE(3) ! temperature
           IF(idnsa(nsa) == 0 .OR. idnsa(nsa) == 2)THEN ! neutral and fast ions
              id_neq(neq) = 0
+
           ELSE ! bulk species
-             id_neq(neq) = 1
+             IF(mdleqt == 0)THEN
+                id_neq(neq) = 0
+             ELSE IF(mdleqt == 1)THEN
+                id_neq(neq) = 1
+             END IF
           END IF
+
        END SELECT
     ENDDO
 
@@ -702,9 +719,10 @@ CONTAINS
 ! --------------------------------------------------------------------
 !   Initialization for successive interactive calculation
 ! --------------------------------------------------------------------
-    USE trcomm,ONLY: nrmax, &
-         nrd1,nrd2,nrd3,nrd4,vtor,vpol,vpar,vprp,  &
-         jbs_nc,jex_nc,jcd_nb,jcd_ec,jcd_ic,jcd_lh
+    USE trcomm,ONLY: nrmax,nsamax,ngtmax, &
+         gvt,gvtu,gvts,gvrt,gvrts,        &
+         nrd1,nrd2,nrd3,nrd4,vtor,vpol,vpar,vprp,                &
+         jbs_nc,jex_nc,jcd_nb,jcd_ec,jcd_ic,jcd_lh, grdpf,fluxtb
 
     nrd1(0:nrmax) = 0.d0
     nrd2(0:nrmax) = 0.d0
@@ -722,6 +740,17 @@ CONTAINS
     jcd_ec(0:nrmax) = 0.d0
     jcd_ic(0:nrmax) = 0.d0
     jcd_lh(0:nrmax) = 0.d0
+
+    grdpf(1:neqmax,1:nrmax)  = 0.d0
+    fluxtb(1:neqmax,1:nrmax) = 0.d0
+
+    ! graphic variables for time evolution
+    gvt(0:ngtmax,0:50)           = 0.d0
+    gvtu(0:ngtmax,0:10)          = 0.d0
+    gvts(0:ngtmax,1:nsamax,1:10) = 0.d0
+    gvrt(0:nrmax,0:ngtmax,1:nsamax)       = 0.d0
+    gvrts(0:nrmax,0:ngtmax,1:nsamax,1:10) = 0.d0
+    
 
     RETURN
   END SUBROUTINE tr_setup_varinit

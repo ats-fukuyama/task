@@ -54,19 +54,21 @@ CONTAINS
 !-------------------------------------------------------------------------
 !   The derivatives are calculated on the each grid.
 !-------------------------------------------------------------------------
-    USE trcomm, ONLY: rkev,rmu0,pa,pz,pz0,idnsa,ns_nsa, &
-         RR,BB,rhog,ar1rho,rmnrho,rt,rn,bp,abb1rho,qp,  &
+    USE trcomm, ONLY: rkev,rmu0,pa,pz,pz0,idnsa,ns_nsa,      &
+         RR,BB,rhog,rhom,ar1rho,rmnrho,rt,rn,bp,abb1rho,qp,  &
          rn_i,rn_id,rn_icl,rn_e,rn_ed,rn_ecl,     &
          rt_i,rt_id,rt_icl,rt_e,rt_ed,rt_ecl,     &                     
          rp,rp_d,rp_tot,rp_totd,qp_d,             &
-         mshear,mcurv,ai_ave,alpha
+         mshear,mcurv,ai_ave,alpha, dtr_tb
 !         nrd1,nrd2,nrd3
+
+    USE libgrf,ONLY: GRD1D
 
     IMPLICIT NONE
 
     ! --- control and internal variables
     INTEGER(ikind) :: nr,ns,nsa
-    REAL(rkind) :: rt_isum,pansum,dr
+    REAL(rkind) :: rt_isum,pansum,dr,deriv4p
 
 !    *****
 !    ! This part will be implemented in introducing the NBI heating modules.

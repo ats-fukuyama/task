@@ -11,17 +11,20 @@ CONTAINS
 
   SUBROUTINE tr_loop
 
-    USE trcomm, ONLY: rkev,ntmax,nrmax,nsamax,t,dt,ntstep,ngtstp, &
+    USE trcomm, ONLY: rkev,ntmax,nrmax,nsamax,t,dt,ntstep,ngtstp,nwrstp, &
          mdluf,ntlmax
     USE trbpsd, ONLY: tr_bpsd_set,tr_bpsd_get
     USE trcalc1, ONLY: tr_calc1
     USE trstep, ONLY: tr_step
     USE trresult, ONLY: tr_status,tr_calc_global,tr_save_ngt,tr_exp_compare
-    USE trcalv, ONLY: tr_calc_variables
+    USE trwrite, ONLY: tr_write_open,tr_write_close,tr_writep_csv,tr_writet_csv
     IMPLICIT NONE
 
     REAL(4)        :: t1,t2
     INTEGER(ikind) :: nt,ierr
+
+    CALL tr_write_open(ierr)
+    CALL tr_writet_csv
 
     CALL GUTIME(t1)
 
@@ -31,7 +34,7 @@ CONTAINS
 
        ! incremental addtion
        t = t + dt
-       
+
        CALL tr_calc1
 
        ! non-linear iteration
@@ -41,10 +44,15 @@ CONTAINS
        CALL tr_calc_bpqpj
 
        IF(MOD(nt,ntstep) == 0 .OR. &
-          MOD(nt,ngtstp) == 0) CALL tr_calc_global
-       IF(MOD(nt,ntstep) == 0) CALL tr_status
-       IF(MOD(nt,ntstep) == 0 .AND. mdluf > 0) CALL tr_exp_compare
-       IF(MOD(nt,ngtstp) == 0) CALL tr_save_ngt
+          MOD(nt,ngtstp) == 0) THEN
+                                CALL tr_calc_global
+          IF(mdluf > 0)         CALL tr_exp_compare
+       END IF
+
+       IF(MOD(nt,ntstep) == 0)  CALL tr_status
+
+       IF(MOD(nt,ngtstp) == 0)  CALL tr_save_ngt
+       IF(MOD(nt,nwrstp) == 0)  CALL tr_writet_csv
 
        CALL tr_bpsd_set(ierr)
        IF(ierr /= 0)THEN
@@ -60,9 +68,12 @@ CONTAINS
     END DO time_evolution
 
     CALL GUTIME(t2)
+    WRITE(6,'(A,F12.3,A)') '## cputime = ',T2 - T1,' (s)'
 
-    write(6,'(A,F12.3,A)') '## cputime = ',T2 - T1,' (s)'
+    CALL tr_writep_csv
+    CALL tr_write_close(ierr)
 
+    RETURN
   END SUBROUTINE tr_loop
 
 ! **************************************************************************

@@ -23,12 +23,14 @@ CONTAINS
          rp_totd,  &! the total pressure gradient
          ai_ave,   &! mean atomic mass of tehrmal ions [AMU]
          mshear,   &! magnetic shear
-         dvexbpdr   ! the gradient of ExBp drift velocity
+         dvexbpdr, &   ! the gradient of ExBp drift velocity
+         rp_tot,alpha
+    USE libgrf, ONLY: grd1d
 
     IMPLICIT NONE
     INTEGER(ikind):: nr,ns,nsa,model,model_t,ierr
     REAL(rkind):: calf,ckap,cexb,tc1,tc2,tk,pnel,rhoni
-    REAL(rkind),DIMENSION(0:nrmax) :: chim_cdbm
+    REAL(rkind),DIMENSION(0:nrmax) :: chim_cdbm, fs,curv,fe
 
     REAL(rkind) :: abb1rhom,rmjrhom,rmnrhom,rkprhom,qpm
 
@@ -81,7 +83,8 @@ CONTAINS
        CALL cdbm(abb1rhom,rmjrhom,rmnrhom,rkprhom,                   &
             qpm,mshear(nr),pnel,rhoni,rp_totd(nr),dvexbpdr(nr),      &
             calf,ckap,cexb,model,chim_cdbm(nr),                      &
-            mdl_tuned=model_t,c1_tuned=tc1,c2_tuned=tc2,k_tuned=tk )
+            mdl_tuned=model_t,c1_tuned=tc1,c2_tuned=tc2,k_tuned=tk,  &
+            fsz=fs(nr),curvz=curv(nr),fez=fe(nr))
 
     END DO
 
@@ -94,6 +97,19 @@ CONTAINS
              ENDIF
           END DO
     END DO
+
+!!$    CALL PAGES
+!!$    CALL GRD1D(1,rhog,rp_tot,nrmax+1,nrmax+1,1,'@rp_tot@',0)
+!!$    CALL GRD1D(2,rhom(1:nrmax),alpha(1:nrmax),nrmax,nrmax,1,'@alpha@',0)
+!!$    CALL GRD1D(3,rhom(1:nrmax),rp_totd(1:nrmax),nrmax,nrmax,1,'@rp_totd@',0)
+!!$    CALL GRD1D(4,rhom(1:nrmax),dtr_tb(4,4,1:nrmax),nrmax,nrmax,1,'@dtr_e@',0)
+!!$    CALL PAGEE
+!!$
+!!$    CALL PAGES
+!!$    CALL GRD1D(1,rhom(1:nrmax),fs(1:nrmax),nrmax,nrmax,1,'@fs@',0)
+!!$    CALL GRD1D(2,rhom(1:nrmax),curv(1:nrmax),nrmax,nrmax,1,'@curv@',0)
+!!$    CALL GRD1D(3,rhom(1:nrmax),fe(1:nrmax),nrmax,nrmax,1,'@fe@',0)
+!!$    CALL PAGEE
 
     RETURN
   END SUBROUTINE tr_cdbm

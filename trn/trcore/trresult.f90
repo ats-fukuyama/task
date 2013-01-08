@@ -12,9 +12,9 @@ CONTAINS
   SUBROUTINE tr_status
 
     USE trcomm, ONLY : nsamax,ns_nsa,t,qp,rt,kidns,nitmax, &
-         wp_t,taue1,taue2,taue3
+         wp_t,taue1,taue2,taue3,mdluf,stdrt,offrt,rw
     IMPLICIT NONE
-    INTEGER(ikind):: nsa
+    INTEGER(ikind)    :: nsa
     CHARACTER(LEN=64) :: fmt_1,fmt_2,fmt_3
 
     fmt_1 = '(A5,F7.3,A12,F7.2,A5,A7,F7.3,A12,F7.3)'
@@ -28,10 +28,27 @@ CONTAINS
        WRITE(6,fmt_2,ADVANCE='NO') '  T',kidns(ns_nsa(nsa)),': '
        WRITE(6,fmt_3,ADVANCE='NO') rt(nsa,0),'(keV)  '
     END DO
-    WRITE(6,*) ! breaking line
+    WRITE(6,*) ! line break
 
     WRITE(6,'(A14,I3)') '  Iterations: ',nitmax
     nitmax = 0
+
+    
+    ! print status to standard output
+    IF(mdluf > 0)THEN
+       WRITE(6,'(1X,A31,F5.1,A4)') '# RW(the deviation of Wp_inc): ', &
+                                   rw*100.d0,' (%)'
+       DO nsa = 1, nsamax
+          WRITE(6,'(A7,A1,A2,F5.1,A4)',ADVANCE='NO') &
+                  '  STD_T',kidns(ns_nsa(nsa)),': ',stdrt(nsa)*100.d0,' (%)'
+       END DO
+       WRITE(6,*) ! line break
+       DO nsa = 1, nsamax
+          WRITE(6,'(A7,A1,A2,F6.1,A4)',ADVANCE='NO') &
+                  '  OFF_T',kidns(ns_nsa(nsa)),': ',offrt(nsa)*100.d0,' (%)'
+       END DO
+       WRITE(6,*) ! line break
+    END IF
     
     RETURN
   END SUBROUTINE tr_status
@@ -276,14 +293,14 @@ CONTAINS
 
   SUBROUTINE tr_exp_compare
 !   ITER Physics Basis 1999  p.2219
-    USE trcomm,ONLY: rkev,kidns,ns_nsa,nsa_nsu,idnsa,nrmax,nsum,nsamax, &
+    USE trcomm,ONLY: rkev,nsa_nsu,idnsa,nrmax,nsum,nsamax,         &
          rhog,dvrho,wp_t,wp_th,wp_inc,wpu_inc,rw,stdrt,offrt,rt,rn
     USE trufin,ONLY: rtug,rnug,wthug,wtotug
     IMPLICIT NONE
 
     REAL(rkind),DIMENSION(1:nsamax) :: squsum
     REAL(rkind)    :: rgcore,rgedge,ntp,ntm,ntsum,ntup,ntum,ntusum,rtumax,dr
-    INTEGER(ikind) :: nr,nsa,nsu,ns,nrcore,nredge
+    INTEGER(ikind) :: nr,nsa,nsu,nrcore,nredge
 
     ! transport region; excluding swatooth and edge pedestal regions
     rgcore = 0.2d0
@@ -312,7 +329,7 @@ CONTAINS
           ntm  = rn(nsa,nr  )*(rt(nsa,nr  )-rt(nsa,nredge))*dvrho(nr  )
           ntp  = rn(nsa,nr+1)*(rt(nsa,nr+1)-rt(nsa,nredge))*dvrho(nr+1)
           ntum =rnug(nsu,nr+1)*(rtug(nsu,nr+1)-rtug(nsu,nredge+1))*dvrho(nr  )
-          ntup =rnug(nsu,nr+2)*(rtug(nsu,nr+2)-rtug(nsu,nredge+2))*dvrho(nr+1)
+          ntup =rnug(nsu,nr+2)*(rtug(nsu,nr+2)-rtug(nsu,nredge+1))*dvrho(nr+1)
 
           stdrt(nsa)  = stdrt(nsa)  + (rt(nsa,nr) - rtug(nsu,nr+1))**2.d0
           offrt(nsa)  = offrt(nsa)  + (rt(nsa,nr) - rtug(nsu,nr+1))
@@ -331,23 +348,6 @@ CONTAINS
 
     ! relative value
     rw  = (wp_inc - wpu_inc) / wpu_inc
-
-
-    ! print status to standard output
-    WRITE(6,'(1X,A31,F5.1,A4)') '# RW(the deviation of Wp_inc): ', &
-                                rw*100.d0,' (%)'
-    DO nsa = 1, nsamax
-       ns = ns_nsa(nsa)
-       WRITE(6,'(A7,A1,A2,F5.1,A4)',ADVANCE='NO') &
-               '  STD_T',kidns(ns),': ',stdrt(nsa)*100.d0,' (%)'
-    END DO
-    WRITE(6,*) !breaking line
-    DO nsa = 1, nsamax
-       ns = ns_nsa(nsa)
-       WRITE(6,'(A7,A1,A2,F6.1,A4)',ADVANCE='NO') &
-               '  OFF_T',kidns(ns),': ',offrt(nsa)*100.d0,' (%)'
-    END DO
-    WRITE(6,*) !breaking line
 
     RETURN
   END SUBROUTINE tr_exp_compare
@@ -436,8 +436,6 @@ CONTAINS
        END DO
     END IF
 
-       IF(mdluf > 0)THEN
-       END IF
 
 ! ------------------------------------------------------------------------
 
@@ -504,6 +502,10 @@ CONTAINS
              gvrts(nr,ngt,nsa,6) = add_prv(1+3*nsa-1,nr)
              gvrts(nr,ngt,nsa,7) = add_prv(1+3*nsa  ,nr)
           END DO
+
+          gvts(ngt,nsa,10) = MAXVAL(ABS(add_prv(1+3*nsa-2,1:nrmax)))
+          gvts(ngt,nsa,11) = MAXVAL(ABS(add_prv(1+3*nsa-1,1:nrmax)))
+          gvts(ngt,nsa,12) = MAXVAL(ABS(add_prv(1+3*nsa  ,1:nrmax)))       
        END DO
     END IF
 

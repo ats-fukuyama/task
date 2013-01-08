@@ -8,7 +8,7 @@ MODULE trufsub
   IMPLICIT NONE
 
   PRIVATE
-  PUBLIC tr_uf1d,tr_uf2d,tr_uftl_check,tr_uf_time_slice
+  PUBLIC tr_uf1d,tr_uf2d,tr_uftl_check
 
 CONTAINS
 
@@ -287,81 +287,5 @@ CONTAINS
 
     RETURN
   END SUBROUTINE tr_uf2d_interpolate
-
-! *************************************************************************
-
-  SUBROUTINE tr_uf_time_slice(time_slc,tl,ntxmax,ntsl)
-! ------------------------------------------------------------------------
-!   *** acquire the profile of a 2D variable at the certain time point
-!
-!   < input >
-!   time_slc : the designated time
-!   tl       : the time points data of UFILE
-!   ntxmax   : the maximum number of the time points data
-!
-!   < output >
-!   ntsl     : the subscript number of the time array
-!                                   corresponding to the designated time
-! ------------------------------------------------------------------------
-
-    IMPLICIT NONE
-    INTEGER(ikind),INTENT(IN)  :: ntxmax
-    INTEGER(ikind),INTENT(OUT) :: ntsl
-    REAL(rkind),                INTENT(INOUT) :: time_slc
-    REAL(rkind),DIMENSION(ntum),INTENT(IN)    :: tl
-
-    INTEGER(ikind) :: ioerr, ntx, ntx_min
-    REAL(rkind) :: tl_min,tl_min_old
-
-
-    IF(ntxmax.NE.1)THEN
-       DO
-          IF(time_slc.LT.tl(1) .OR. time_slc.GT.tl(ntxmax))THEN
-             WRITE(6,'(A,F9.5,A,F9.5,A)')             &
-             &  '# Input arbitrary time between: ',   &
-             &   tl(1),' sec. - ',tl(ntxmax),' sec.'
-             READ(5,*,IOSTAT=ioerr) time_slc
-             IF(ioerr.NE.0 .OR. time_slc.LT.tl(1)) CYCLE
-          END IF
-          EXIT
-       END DO
-
-       IF(time_slc.GT.tl(ntxmax))THEN
-          WRITE(6,'(A,F9.5,A,A,F9.5,A)')                    &
-          &    ' Designated time: ',time_slc,' sec.',       &
-          &    ' has been replaced by ',tl(ntxmax),' sec.'
-          time_slc = tl(ntxmax)
-          ntsl = ntxmax
-          RETURN
-       ELSE IF(time_slc==tl(ntxmax))THEN
-          ntsl = ntxmax
-          RETURN
-       END IF
-
-       tl_min = tl(ntxmax)
-       DO ntx = 1, ntxmax
-          IF(ABS(tl(ntx)-time_slc) .LE. 1.d-5)THEN
-             ntsl = ntx
-             EXIT
-          END IF
-
-          tl_min_old = tl_min
-          tl_min     = MIN(ABS(tl(ntx)-time_slc), tl_min)
-          IF(tl_min_old==tl_min .OR. ntx==ntxmax)THEN
-             ntx_min  = ntx - 1
-             IF(ntx==ntxmax) ntx_min = ntxmax
-             WRITE(6,'(A,F9.5,A,A,F9.5,A)')                    &
-             &    ' Designated time: ',time_slc,' sec.',       &
-             &    ' has been replaced by ',tl(ntx_min),' sec.'
-
-             time_slc = tl(ntx_min)
-             ntsl     = ntx_min
-             EXIT
-          END IF             
-       END DO
-    END IF
-       
-    RETURN
-  END SUBROUTINE tr_uf_time_slice
 
 END MODULE trufsub

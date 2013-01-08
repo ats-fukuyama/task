@@ -40,11 +40,117 @@ CONTAINS
        CALL tr_mmm7_1
     END SELECT
 
+    CALL tr_coeftb_flux
+
     ! only for energy transport for now
     IF(mdltr_prv /= 0) CALL Pereverzev_method
 
     RETURN
   END SUBROUTINE tr_coeftb
+
+! ----------------------------------------------------------------------
+
+  SUBROUTINE tr_coeftb_flux
+    ! evaluate the contribution of the turbulent transport to the fluxes
+    USE trcomm,ONLY: nrmax,neqmax,nva_neq,nsa_neq,idnsa,id_neq,rkev,t, &
+         ar1rho,rhog,dtr_tb,vtr_tb,rn,ru,rt,fluxtb,grdpf,              &
+         mdltr_prv,dtr_prv,dtr_nl
+
+    INTEGER(ikind) :: nva, nsa, neq, nr
+    INTEGER(ikind),SAVE                     :: init_save = 0
+    REAL(rkind),DIMENSION(1:nrmax)          :: ar1rhom,drhog
+    REAL(rkind),DIMENSION(1:neqmax,1:nrmax) :: grdpf_prev,fluxtb_prev
+
+    IF(t == 0.d0 .AND. init_save == 0)THEN
+       init_save = 1
+
+       dtr_nl(1:neqmax,0:nrmax) = 0.d0
+    ELSE
+       init_save = 0
+
+       grdpf_prev(1:neqmax,1:nrmax)  = grdpf(1:neqmax,1:nrmax)
+       fluxtb_prev(1:neqmax,1:nrmax) = fluxtb(1:neqmax,1:nrmax)
+    END IF
+
+    ar1rhom(1:nrmax) = 0.5d0*(ar1rho(0:nrmax-1)+ar1rho(1:nrmax))
+    drhog(1:nrmax)   = rhog(1:nrmax) - rhog(0:nmrax-1)
+
+    DO neq = 1, neqmax
+       IF(id_neq(neq)==0) CYCLE
+       nva = nva_neq(neq)
+       nsa = nsa_neq(neq)
+       IF(nsa==0) CYCLE
+       IF(idnsa(nsa)==0 .OR. idnsa(nsa)==2) CYCLE
+       SELECT CASE(nva)
+       CASE(1) ! density flux [/(m^2 s)]
+!!$          grdpf(neq,1:nrmax) = (rn(nsa,0:nrmax-1)-rn(nsa,1:nrmax)) &
+!!$                               /drhog(1:nrmax)
+!!$
+!!$          fluxtb(neq,1:nrmax) = 0.5d0*(rn(nsa,0:nrmax-1)+rn(nsa,1:nrmax))  &
+!!$                                * vtr_tb(neq,neq,1:nrmax)                  &
+!!$                               -ar1rhom(1:nrmax)*dtr_tb(neq,neq,1:nrmax)   &
+!!$                                *grdpf(neq,1:nrmax)
+!!$
+       CASE(2) ! toroidal velocity flux [(m/s)/(m^2 s)]
+!!$          grdpf(neq,1:nrmax) = (ru(nsa,0:nrmax-1)-ru(nsa,1:nrmax)) &
+!!$                               /drhog(1:nrmax)
+!!$
+!!$          fluxtb(neq,1:nrmax) = 0.5d0*(ru(nsa,0:nrmax-1)+ru(nsa,1:nrmax))  &
+!!$                                * vtr_tb(neq,neq,1:nrmax)                  &
+!!$                               -ar1rhom(1:nrmax)*dtr_tb(neq,neq,1:nrmax)   &
+!!$                                *grdpf(neq,1:nrmax)
+
+       CASE(3) ! energy flux [J/(m^2 s)]
+          grdpf(neq,1:nrmax) = (rn(nsa,0:nrmax-1)*rt(nsa,0:nrmax-1)          &
+                               -rn(nsa,1:nrmax  )*rt(nsa,1:nrmax  ))         &
+                               /drhog(1:nrmax) * ar1rhom(1:nrmax)*rkev*1.d20
+
+          fluxtb(neq,1:nrmax) = &
+               - (0.5d0*(rn(nsa,0:nrmax-1)*rt(nsa,0:nrmax-1)         &
+                        +rn(nsa,1:nrmax  )*rt(nsa,1:nrmax  ))        &
+                  * vtr_tb(neq,neq,1:nrmax) *rkev*1.d20              &
+               - dtr_tb(neq,neq,1:nrmax)* grdpf(neq,1:nrmax))
+       END SELECT
+    END DO
+
+    ! for Pereverzev method -----------------------------------------------
+    IF(mdltr_prv < 5) RETURN
+    ! skip at first nonlinear step when t=0
+    IF(t == 0.d0 .AND. init_save == 1) RETURN
+
+    DO neq = 1, neqmax
+       nva = nva_neq(neq)
+       nsa = nsa_neq(neq)
+       IF(nsa==0) CYCLE
+       IF(idnsa(nsa)==0 .OR. idnsa(nsa)==2) CYCLE
+       SELECT CASE(nva)
+       CASE(1) ! density
+!          dtr_nl(neq,1:nrmax)=(fluxtb(neq,1:nrmax)-fluxtb_prev(neq,1:nrmax)) &
+!                              /(grdpf(neq,1:nrmax)- grdpf_prev(neq,1:nrmax))
+       CASE(2) ! toroidal velocity
+!          dtr_nl(neq,1:nrmax)=(fluxtb(neq,1:nrmax)-fluxtb_prev(neq,1:nrmax)) &
+!                              /(grdpf(neq,1:nrmax)- grdpf_prev(neq,1:nrmax))
+       CASE(3) ! energy
+!          write(6,*) grdpf(neq,1:nrmax)-grdpf_prev(neq,1:nrmax)
+          dtr_nl(neq,1:nrmax)=(fluxtb(neq,1:nrmax)-fluxtb_prev(neq,1:nrmax)) &
+                              /(grdpf(neq,1:nrmax)- grdpf_prev(neq,1:nrmax))
+       END SELECT
+    END DO
+
+    ! correction for negative values
+    FORALL(neq=1:neqmax, nr=0:nrmax, dtr_nl(neq,nr) < 0.d0)
+       dtr_nl(neq,nr) = 0.d0
+    END FORALL
+
+
+    DO neq = 1, neqmax
+       DO nr = 1, nrmax
+          dtr_nl(neq,nr) = MAXVAL(dtr_nl(neq,0:nrmax))
+       END DO
+    END DO
+    
+    RETURN
+  END SUBROUTINE tr_coeftb_flux
 
 !*************************************************************************
 
@@ -69,7 +175,7 @@ CONTAINS
   SUBROUTINE Pereverzev_method
     USE trcomm, ONLY: ikind,rkind,nrmax,nsamax,idnsa,ph0,rg,rhog,      &
          mdltr_prv,dprv1,dprv2,rhog_prv,dtr,vtr,nsa_neq,dtr_tb,vtr_tb, &
-         dtr_prv,vtr_prv,cdtrn,cdtru,cdtrt,rn,ru,rt,                   &
+         dtr_prv,vtr_prv,dtr_nl,cdtrn,cdtru,cdtrt,rn,ru,rt,            &
          rn_prev,ru_prev,rt_prev,ar1rho,ar2rho,dvrho
     IMPLICIT NONE
     REAL(rkind) :: &
@@ -118,26 +224,32 @@ CONTAINS
           CASE(1,11)
              dtr_new = dprv1
           CASE(2,12)
-             dtr_new = dprv2*dtr_tb(3*nsa,3*nsa,nr)
+             dtr_new = dprv2*dtr_tb(1+3*nsa,1+3*nsa,nr)
           CASE(3,13)
-             dtr_new = dprv2*dtr_tb(3*nsa,3*nsa,nr)+dprv1
+             dtr_new = dprv2*dtr_tb(1+3*nsa,1+3*nsa,nr) + dprv1
           CASE(4,14)
-             dtr_new = dprv1 + dprv2*(0.5d0*(rhog(nr)+rhog(nr-1)))**3
-!!$          CASE(4)
-!!$             IF(nr==1)THEN
-!!$                dtr_new = dprv2 &
-!!$                         *0.5d0**(dtr_tb(3*nsa,3*nsa,nr  )   &
-!!$                                 +dtr_tb(3*nsa,3*nsa,nr+1))
-!!$             ELSE IF(nr==nrmax)THEN
-!!$                dtr_new = dprv2 &
-!!$                         *0.5d0**(dtr_tb(3*nsa,3*nsa,nr-1)   &
-!!$                                 +dtr_tb(3*nsa,3*nsa,nr  ))
-!!$             ELSE
-!!$                dtr_new = dprv2 &                  
-!!$                         *0.33d0*(dtr_tb(3*nsa,3*nsa,nr-1)   &
-!!$                                 +dtr_tb(3*nsa,3*nsa,nr  )   &
-!!$                                 +dtr_tb(3*nsa,3*nsa,nr+1))
-!!$             END IF
+             IF(nr==1)THEN
+                dtr_new = dprv2 &
+                         *0.5d0*(dtr_tb(3*nsa,3*nsa,nr  )   &
+                                 +dtr_tb(3*nsa,3*nsa,nr+1))
+             ELSE IF(nr==nrmax)THEN
+                dtr_new = dprv2 &
+                         *0.5d0*(dtr_tb(3*nsa,3*nsa,nr-1)   &
+                                 +dtr_tb(3*nsa,3*nsa,nr  ))
+             ELSE
+                dtr_new = dprv2 &                  
+                         *0.33d0*(dtr_tb(3*nsa,3*nsa,nr-1)   &
+                                 +dtr_tb(3*nsa,3*nsa,nr  )   &
+                                 +dtr_tb(3*nsa,3*nsa,nr+1))
+             END IF
+
+          CASE(5,15) ! especially only for energy transport
+             IF(dtr_nl(1+3*nsa, nr) > dtr_tb(1+3*nsa,1+3*nsa,nr))THEN
+                dtr_new = dtr_nl(1+3*nsa,nr) - dtr_tb(1+3*nsa,1+3*nsa,nr) &
+                         + dprv1
+             ELSE
+                dtr_new = dprv1
+             END IF
           END SELECT
 
 !          dtr_prv(1+3*nsa-2,nr) = cdtrn*dtr_new
@@ -215,9 +327,11 @@ CONTAINS
           vtr_elm(1+3*nsa-2,nr) =                            &
           vtr_prv(1+3*nsa-2,nr)/6.D0                         &
             *((2.D0*gm1m+gm1p)*rn(nsa,nr-1) + (gm1m+2.D0*gm1p)*rn(nsa,nr))
+
           vtr_elm(1+3*nsa-1,nr) =                            &
           vtr_prv(1+3*nsa-1,nr)/6.D0                         &
             *((2.D0*gm1m+gm1p)*ru(nsa,nr-1) + (gm1m+2.D0*gm1p)*ru(nsa,nr))
+
           vtr_elm(1+3*nsa  ,nr) =                                 &
           vtr_prv(1+3*nsa  ,nr)/6.D0                              &
             *((2.D0*gm1m+     gm1p)*rn(nsa,nr-1)*rt(nsa,nr-1)     &
@@ -242,4 +356,5 @@ CONTAINS
     END DO
 
   END SUBROUTINE Pereverzev_check
+
 END MODULE trcoeftb

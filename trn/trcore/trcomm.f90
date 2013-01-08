@@ -50,6 +50,7 @@ MODULE trcomm
                                !  (including electron)
   INTEGER(ikind):: nsanmax     ! number of active (neutral) particle species
   INTEGER(ikind),DIMENSION(nsm)::  &
+                   idnsa,     &! species id (-1:e, 0:n, 1:bulk, 2:fast)
                    ns_nsa,    &! conversion table of NS for NSA
                    nsab_nsa,  &!
                    nsaf_nsa,  &!
@@ -90,6 +91,10 @@ MODULE trcomm
 
 ! ----- switch variables -----
   INTEGER(ikind) :: &
+       mdleqb,   &! EQs. selection parameter for B_theta(d psi/d rho)
+       mdleqn,   &! EQs. selection parameter for density
+       mdlequ,   &! EQs. selection parameter for rotation
+       mdleqt,   &! EQs. selection parameter for heat
        mdler,    &! model type of radial electric field
        nteqit     ! step interval of EQ calculation
 
@@ -183,6 +188,11 @@ MODULE trcomm
        vtr_nc,   &! neoclassical convection velocity [m/s]
        ctr_ex     ! charge (energy) exchange frequency [1/s]
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
+       fluxtb,   &! fluxes by turbulent transport [***/(m^2 s)]
+       fluxnc,   &! fluxes by neoclassical transport [***/(m^2 s)]
+       grdpf,    &! gradients of the variables to be solved
+       dtr_nl     ! assumed non-linear turbulent transport coefficient [m^2/s]
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
                   ! variables for Pereverzev method
        dtr_prv,  &! additional diffusion coefficient [m^2/s]
        vtr_prv    ! additional convection velocity [m/s]
@@ -264,6 +274,48 @@ MODULE trcomm
        rhom,     &! normalized minor radius half-mesh position
        rjcb       ! 1/rho : rho ~ kappa * r : effective minor radius ?
 
+! ----- derivatives of the quantities -----
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE ::&
+       rp,       &!the pressure of each species (nT) [Pa]
+       rp_d       !the deriv. of pressure of each species (dnT/dr) 
+       
+  REAL(rkind),DIMENSION(:),ALLOCATABLE ::&
+       rp_tot,   &! the total pressure
+       rp_totd,  &! the deriv. of total pressure
+       rp_add,   &! the additional pressure
+       rp_beam,  &! the beam pressure
+!
+       rt_e,     &! the electron temperature
+       rt_ed,    &! the deriv. of electron temperature
+       rt_ecl,   &! the scale length of electron temperature 
+       rt_i,     &! the effective hydrogenic ion temperature
+       rt_id,    &! the deriv. of effective hydrogenic ion temperature 
+       rt_icl,   &! the scale length of hydrogenic ion temperature 
+!
+       rn_e,     &! the electron density
+       rn_ed,    &! the deriv. of electron density 
+       rn_ecl,   &! the scale length of electron density 
+       rn_i,     &! the sum of hydrogenic ion density
+       rn_id,    &! the deriv. of hydrogenic ion density 
+       rn_icl,   &! the scale length of hydrogenic ion density 
+       qp_d,     &! the deriv. of safety factor
+!
+       ai_ave     ! mean atomic mass of thermal ions [AMU]
+
+  REAL(rkind),DIMENSION(:),ALLOCATABLE ::&
+       mshear,   &! magnetic shear            r/q * (dq/dr)
+       mshear_cl,&! magnetic shear length  R*q**2/(r*dq/dr)
+       mcurv,    &! magnetic curvature
+       vexbp,    &! ExBp velocity [m/s]
+       dvexbpdr, &! ExBp velocity gradient [1/s]
+       wexbp,    &! ExBp shearing rate [rad/s]
+!       v_alf,    &! Alfven wave velocity
+       v_se,     &! speed of sound for electron
+       alpha      ! MHD alpha
+
+  REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
+       z_eff       ! Z_eff: effective charge
+
 ! ----- unclassified -----
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
        bp,       &! poloidal magnetic field [T]
@@ -310,51 +362,22 @@ MODULE trcomm
   REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: gvrt
   REAL(rkind),DIMENSION(:,:,:,:),ALLOCATABLE:: gvrts
 
-! ----- species id -----
-  INTEGER(ikind),DIMENSION(:),ALLOCATABLE:: idnsa
+  INTEGER(ikind),DIMENSION(5):: &
+       unitid     ! unit identifier for input and output
+                  ! 1: csv output of radial profiles
+                  ! 2: csv output of time evolutions
+                  ! 3: UFILE output of radial profiles
+                  ! 4: UFILE output of time evolutions
+                  ! 5: csv input
+                  ! 6: UFILE output
 
+  INTEGER(ikind) :: &
+       mdlwrt,   &! switch for writing down output
+       nwrstp     ! the interval number of time step for writing down output
 
-! ----- derivatives of the quantities -----
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE ::&
-       rp,       &!the pressure of each species (nT) [Pa]
-       rp_d       !the deriv. of pressure of each species (dnT/dr) 
-       
-  REAL(rkind),DIMENSION(:),ALLOCATABLE ::&
-       rp_tot,   &! the total pressure
-       rp_totd,  &! the deriv. of total pressure
-       rp_add,   &! the additional pressure
-       rp_beam,  &! the beam pressure
-!
-       rt_e,     &! the electron temperature
-       rt_ed,    &! the deriv. of electron temperature
-       rt_ecl,   &! the scale length of electron temperature 
-       rt_i,     &! the effective hydrogenic ion temperature
-       rt_id,    &! the deriv. of effective hydrogenic ion temperature 
-       rt_icl,   &! the scale length of hydrogenic ion temperature 
-!
-       rn_e,     &! the electron density
-       rn_ed,    &! the deriv. of electron density 
-       rn_ecl,   &! the scale length of electron density 
-       rn_i,     &! the sum of hydrogenic ion density
-       rn_id,    &! the deriv. of hydrogenic ion density 
-       rn_icl,   &! the scale length of hydrogenic ion density 
-       qp_d,     &! the deriv. of safety factor
-!
-       ai_ave     ! mean atomic mass of thermal ions [AMU]
-
-  REAL(rkind),DIMENSION(:),ALLOCATABLE ::&
-       mshear,   &! magnetic shear            r/q * (dq/dr)
-       mshear_cl,&! magnetic shear length  R*q**2/(r*dq/dr)
-       mcurv,    &! magnetic curvature
-       vexbp,    &! ExBp velocity [m/s]
-       dvexbpdr, &! ExBp velocity gradient [1/s]
-       wexbp,    &! ExBp shearing rate [rad/s]
-!       v_alf,    &! Alfven wave velocity
-       v_se,     &! speed of sound for electron
-       alpha      ! MHD alpha
-
-  REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
-       z_eff       ! Z_eff: effective charge
+  CHARACTER(LEN=30) :: &
+       kwpnam,   &! the filename for writing down output of radial profiles
+       kwtnam     ! the filename for writing down output of time evolutions
 
   INTEGER(ikind) :: &  
        mdlxp,    &! Select UFILE or MDSplus
@@ -556,10 +579,12 @@ CONTAINS
           ALLOCATE(wrot(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           
           ! for Pereverzev method
-          ALLOCATE(dtr_prv(neqmax,0:nrmax),STAT=ierr)
-            IF(ierr /= 0) EXIT
-          ALLOCATE(vtr_prv(neqmax,0:nrmax),STAT=ierr)
-            IF(ierr /= 0) EXIT
+          ALLOCATE(dtr_prv(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(vtr_prv(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(fluxtb(neqmax,0:nrmax),STAT=ierr);  IF(ierr /= 0) EXIT
+          ALLOCATE(fluxnc(neqmax,0:nrmax),STAT=ierr);  IF(ierr /= 0) EXIT
+          ALLOCATE(grdpf(neqmax,0:nrmax),STAT=ierr);   IF(ierr /= 0) EXIT
+          ALLOCATE(dtr_nl(neqmax,0:nrmax),STAT=ierr);  IF(ierr /= 0) EXIT
 
           ! geometric factors
           ! +-- interface variables for bpsd_equ1D
@@ -723,6 +748,10 @@ CONTAINS
     ! for Pereverzev method
     IF(ALLOCATED(dtr_prv)) DEALLOCATE(dtr_prv)
     IF(ALLOCATED(vtr_prv)) DEALLOCATE(vtr_prv)
+    IF(ALLOCATED(fluxtb)) DEALLOCATE(fluxtb)
+    IF(ALLOCATED(fluxnc)) DEALLOCATE(fluxnc)
+    IF(ALLOCATED(grdpf)) DEALLOCATE(grdpf)
+    IF(ALLOCATED(dtr_nl)) DEALLOCATE(dtr_nl)
 
     ! interface variables for bpsd_equ1D
     IF(ALLOCATED(psitrho)) DEALLOCATE(psitrho)   
@@ -979,7 +1008,7 @@ CONTAINS
        ngt_allocation: DO
           ALLOCATE(gvt(0:ngtmax,0:50),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(gvtu(0:ngtmax,0:10),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(gvts(0:ngtmax,nsamax,10),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(gvts(0:ngtmax,nsamax,20),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(gvrt(0:nrmax,0:ngtmax,10),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(gvrts(0:nrmax,0:ngtmax,nsamax,10),STAT=ierr);IF(ierr /= 0) EXIT
 
@@ -1019,8 +1048,6 @@ CONTAINS
        IF(nsamax_save /= 0) CALL tr_nsa_deallocate
 
        nsa_allocation: DO
-          ALLOCATE(idnsa(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
-          
           ALLOCATE(ws_t(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(stdrt(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(offrt(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
@@ -1039,8 +1066,6 @@ CONTAINS
   END SUBROUTINE tr_nsa_allocate
 
   SUBROUTINE tr_nsa_deallocate
-
-    IF(ALLOCATED(idnsa)) DEALLOCATE(idnsa)
 
     IF(ALLOCATED(ws_t)) DEALLOCATE(ws_t)
     IF(ALLOCATED(stdrt)) DEALLOCATE(stdrt)

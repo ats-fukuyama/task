@@ -54,17 +54,17 @@ CONTAINS
              dif(neq) = dif(neq)/ave(neq)
           ENDIF
        END DO
+
        difmax = MAXVAL(dif)
-       error_it(nit) = difmax
 !       write(*,*) difmax
+       error_it(nit) = difmax
+       xv(1:nvmax) = xv_new(1:nvmax)
 
        IF(difmax < epsltr) THEN
           nitmax=MAX(nit,nitmax)
 !          nitmax = nit
           EXIT
        END IF
-
-       xv(1:nvmax) = xv_new(1:nvmax)
 
        ! dpdrho,rn,ru,rt <-- xv
        CALL tr_set_xv(xv,dpdrho,rn,ru,rt,rp,rp_tot)

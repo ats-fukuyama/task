@@ -6,8 +6,8 @@ include $(TASKDIR)/make.header
 .SUFFIXES: .f90 .mod .o .a
 
 
-#FFLAGS=$(OFLAGS)
-FLAGS=$(DFLAGS)
+FFLAGS=$(OFLAGS)
+#FLAGS=$(DFLAGS)
 
 
 MODINCLUDE=-I $(BPSDDIR)/mod -I $(TASKDIR)/plx/mod -I $(TASKDIR)/lib/mod \
@@ -25,8 +25,8 @@ TRLIBS=	../trmodels/trmodelslib.a \
 	$(BPSDDIR)/bpsdlib.a
 
 SRCS = trcomm.f90 trbpsd.f90  trlib.f90   trcalv.f90   trcalc2.f90 \
-       trexec.f90 trstep.f90  trcalc1.f90 trresult.f90 trloop.f90  \
-       trinit.f90 trsetup.f90 trmenu.f90  trmain.f90 
+       trexec.f90 trstep.f90  trcalc1.f90 trresult.f90 trwrite.f90 \
+       trloop.f90 trinit.f90 trsetup.f90 trmenu.f90  trmain.f90 
 
 OBJS = $(SRCS:.f90=.o)
 
@@ -61,7 +61,6 @@ trcomm.o: trcomm.f90 $(TASKDIR)/plx/plcomm.f90
 trbpsd.o: trbpsd.f90 $(COMMON)
 trlib.o: trlib.f90 $(COMMON)
 trinit.o: trinit.f90 $(COMMON)
-trcalc.o: trcalc.f90 trsetup.f90 $(COMMON)
 trcalv.o: trcalv.f90 $(COMMON)
 trexec.o: trexec.f90 $(COMMON)
 trstep.o: trstep.f90 trexec.f90 trcalc2.f90 $(COMMON)

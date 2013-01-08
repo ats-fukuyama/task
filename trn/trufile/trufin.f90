@@ -15,7 +15,7 @@ MODULE trufin
   ! intermediate variables for graphic output ----------------------------
   REAL(rkind) :: &
        ! golobal variables
-       tmug,rrug,raug,phiaug,bbug,rkapug,rdltug,ripug,wthug,wtotug,zeffug, &
+       rrug,raug,phiaug,bbug,rkapug,rdltug,ripug,wthug,wtotug,zeffug, &
        ! source
        pnbug,pecug,pibwug,picug,plhug,pohmug,pradug
 
@@ -187,7 +187,7 @@ CONTAINS
              CALL lin_itp(time,rnug(nsu,nr),tmu,temp,ntxmax,ntum)
           END IF
           IF(idnfast(nsu))THEN
-             temp(1:ntum) = rnu(nsu,1:ntum,nr)
+             temp(1:ntum) = rnfu(nsu,1:ntum,nr)
 !             CALL TIMESPL(time,rnfug(nsu,nr),tmu,temp,ntxmax,ntum,ierr)
              CALL lin_itp(time,rnfug(nsu,nr),tmu,temp,ntxmax,ntum)
           END IF

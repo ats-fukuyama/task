@@ -92,9 +92,6 @@ CONTAINS
                    dtr_ofd=(xv((nr-1)*neqmax+neq)/xv((nr-1)*neqmax+(neq-2))  &
                            +xv( nr   *neqmax+neq)/xv( nr   *neqmax+(neq-2))) &
                            *0.5d0*( coef2*dtr_d - dtr_chi )
-!                dtr_ofd = - 0.5d0*(xv_prev((nr-1)*neqmax+neq1)  &
-!                                  +xv_prev( nr   *neqmax+neq1)) &
-!                           *dtr(neq,neq1,nr)
 
                    r1imtx_ofd(1,1,neq,neq1-2)=   dh3*dtr_ofd*gm2m
                    r1imtx_ofd(2,1,neq,neq1-2)= - dh3*dtr_ofd*gm2m
@@ -343,7 +340,6 @@ CONTAINS
        gm2p  = dvrho(nr-1)*ar2rho(nr-1) + dvrho(nr  )*ar2rho(nr  )
        gm2m  = dvrho(nr-1)*ar2rho(nr-1) + dvrho(nr  )*ar2rho(nr  )
        coef1 = 1.5d0 ! the coef. of time derivative term
-!       coef1 = 1.d0
        coef2 = 2.5d0 ! the coef. of contribution from particle diffusion
 !       coef2 = 1.5d0 ! the coef. of contribution from particle diffusion
        cjexp = 0.d0
