@@ -637,7 +637,7 @@ CONTAINS
     REAL(rkind),DIMENSION(ntum,nrum) :: f2out
 
     REAL(rkind),DIMENSION(1:nrum) :: temp
-    REAL(rkind) :: deriv4
+    REAL(rkind) :: deriv4,deriv3
     INTEGER(ikind) :: ntx
 
     errout = 0 ! write inquire error message to standard output
@@ -702,7 +702,7 @@ CONTAINS
     DO ntx = 1, ntxmax
        DO nr = 1,nrmax+1
           temp(1:nrum) = pvolu(ntx,1:nrum)
-          dvrhou(ntx,nr) = deriv4(nr,rhog,temp(1:nrmax+1),nrmax+1,1)
+          dvrhou(ntx,nr) = deriv3(nr,rhog(0:nrmax),temp(1:nrmax+1),nrmax+1,1)
        END DO
        dvrhou(ntx,1) = 0.d0 ! at the magnetic axis
     END DO

@@ -698,10 +698,8 @@ CONTAINS
 !       factor2(0:nrmax) = factor1(0:nrmax)/((2.d0*pi)**2*qp(0:nrmax))
        DO nr = 1, nrmax
           ! dpdrho --> jtot(j_para)
-!          jtot(nr) = ttrho(nr)**2/(rmu0*abb1rho(nr)*dvrho(nr)) &
-!                    * deriv3(nr,rhog,factor2,nrmax,0)
           jtot(nr) = ttrho(nr)**2/(rmu0*abb1rho(nr)*dvrho(nr)) &
-                    * deriv4(nr,rhog,factor2,nrmax,0)
+                    * deriv3(nr,rhog,factor2,nrmax,0)
        END DO
 !       jtot(0) = FCTR4pt(rhog(1),rhog(2),rhog(3),jtot(1),jtot(2),jtot(3))
        jtot(0) = FCTR(rhog(1),rhog(2),jtot(1),jtot(2))       

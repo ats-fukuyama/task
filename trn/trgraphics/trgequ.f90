@@ -62,7 +62,7 @@ CONTAINS
     USE trcomm,ONLY: mdlgmt
 
     IF(.NOT.(mdlgmt==8 .OR. mdlgmt==9))THEN
-       WRITE(6,'(1X,A,I3)') 'Equilibrium code has not been called. MDLGMT = ',MDLGMT
+       WRITE(6,'(1X,A,I3)') '## Equilibrium code has not been called. MDLGMT = ',MDLGMT
        RETURN
     END IF
 

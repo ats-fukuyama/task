@@ -101,8 +101,8 @@ CONTAINS
 !
 !   +++ for interpolation;
 !   id_mesh : mesh selector in spline interpolation of radial profile
-!       = 0 : integer mesh
-!       = 1 : half integer mesh
+!      = 0  : integer mesh
+!      = 1  : half integer mesh
 !
 !  id_deriv : assumption selector for spline interpolation
 !       = 1 : derivative deriv(0) = 0
