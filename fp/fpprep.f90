@@ -426,8 +426,8 @@
       END IF
 
 !     ----- Set matrix size -----
-      call mtx_comm_split_s(N_partition_s,colors,keys,ncoms)
-      call mtx_comm_split_r(N_partition_r,colorr,keyr,ncomr)
+      call fp_comm_split_s(N_partition_s,colors,keys,ncoms)
+      call fp_comm_split_r(N_partition_r,colorr,keyr,ncomr)
       IF(NPROCS.GT.1) THEN
          NSASTART = (NSAMAX/N_partition_s)*colors+1
          NSAEND =   (NSAMAX/N_partition_s)*(colors+1)
@@ -706,24 +706,6 @@
 !         DO NR=1,NRMAX
 !            WRITE(8,'(7E14.6)') RM(NR), RCOEFNG(NR), RFSADG(NR) &
 !                 , RG(NR), RCOEFN_GG(NR), RFSAD_GG(NR), QLM(NR)
-!         END DO
-!         close(8)
-!         open(8,file='volp_r_tpb_ex_killeen_fine.dat')
-!         DO NTH=1,NTHMAX/2
-!            DO NR=1,NRMAX
-!               WRITE(8,'(2I4,E14.6)') NTH, NR, RLAMDAG(NTH,NR)/RFSADG(NR)
-!            END DO
-!            WRITE(8,*) " "
-!            WRITE(8,*) " "
-!         END DO
-!         close(8)
-!         open(8,file='r_ram_ram_ex_killeen_fine.dat')
-!         DO NTH = 1, NTHMAX
-!            DO NR=1,NRMAX
-!               WRITE(8,'(2I4,2E14.6)') NTH, NR, RLAMDAG(NTH,NR), RFSADG(NR)
-!            END DO
-!            WRITE(8,*) " "
-!            WRITE(8,*) " "
 !         END DO
 !         close(8)
 !      END IF
