@@ -6,17 +6,14 @@ include ../../task/make.header
 #PETSCLIBS=
 ##### With PETSc library #####
 include ${PETSC_DIR}/conf/variables
-
 LIBMTX=../../task/mtxp/libmtxksp.o ../../task/mtxp/libmtxmpi.o
 PETSCLIBS=${PETSC_KSP_LIB}
 
 .SUFFIXES:
 .SUFFIXES: .f90 .mod .o .a
 
-FCFREE =mpiifort
-
-#FFLAGS=$(OFLAGS)
-FFLAGS=$(DFLAGS)
+FFLAGS=$(OFLAGS)
+#FFLAGS=$(DFLAGS)
 
 MODINCLUDE= -I.$(MOD) -I../../task/lib/$(MOD) \
             -I../../task/plx/$(MOD) -I../../task/eq/$(MOD) \
@@ -34,9 +31,9 @@ LIBS = fplib.a ../../task/plx/pllib.a ../../task/eq/eqlib.a   \
         ../../task/lib/tasklib.a ../../bpsd/bpsdlib.a $(LIBMTX)
 
 .f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+	$(MF90) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+	$(MF90) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
 all: libs fp
 
@@ -62,13 +59,13 @@ fplib.a: $(OBJS)
 
 libs:
 	(cd ../../bpsd; make bpsdlib.a)
-	(cd ../../task/eq; make eqlib.a)
-	(cd ../../task/mtxp; make libmtxbnd.o libmtxksp.o)
-	(cd ../../task/plx; make pllib.a)
 	(cd ../../task/lib; make tasklib.a)
+	(cd ../../task/mtxp; make libmtxbnd.o libmtxksp.o)
+	(cd ../../task/eq; make eqlib.a)
+	(cd ../../task/plx; make pllib.a)
 
 fp : $(LIBS) fpmain.o 
-	$(FCFREE) fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(PETSCLIBS) 
+	$(MF90) fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(PETSCLIBS) 
 
 # $(MODDIR) $(MODINCLUDE)
 

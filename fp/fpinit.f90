@@ -294,8 +294,8 @@
 !     MPI Partition number : 
 !          N_partition_s: the number of patition for NSA
 !          N_partition_r: the number of patition for NR
-      N_partition_s = 2
-      N_partition_r = 25
+      N_partition_s = 1
+      N_partition_r = 1
 
       RETURN
       END SUBROUTINE fp_init
@@ -347,7 +347,7 @@
            PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
            RHOMIN,QMIN,RHOITB,RHOEDG, &
            MODELG,MODELN,MODELQ,RHOGMN,RHOGMX, &
-           KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF, &
+           KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF,KNAMEQ2, &
            MODEFR,MODEFW,IDEBUG, &
            NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX,IMTX, &
            NTMAX,NTCLSTEP,LMAXE,NGLINE,NGRAPH,LMAXNWR, &
@@ -377,7 +377,7 @@
            PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
            RHOMIN,QMIN,RHOITB,RHOEDG, &
            MODELG,MODELN,MODELQ,RHOGMN,RHOGMX, &
-           KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF, &
+           KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF,KNAMEQ2, &
            MODEFR,MODEFW,IDEBUG, &
            NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX,IMTX, &
            NTMAX,NTCLSTEP,LMAXE,NGLINE,NGRAPH,LMAXNWR, &
@@ -415,7 +415,7 @@
       WRITE(6,*) '      PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,'
       WRITE(6,*) '      RHOMIN,QMIN,RHOITB,RHOEDG,'
       WRITE(6,*) '      MODELG,MODELN,MODELQ,RHOGMN,RHOGMX,'
-      WRITE(6,*) '      KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF,'
+      WRITE(6,*) '      KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF,KNAMEQ2,'
       WRITE(6,*) '      MODEFR,MODEFW,IDEBUG,'
       WRITE(6,*) '      NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX,IMTX,'
       WRITE(6,*) '      NTMAX,NTCLSTEP,LMAXE,NGLINE,NGRAPH,LMAXNWR,'
@@ -546,6 +546,7 @@
       CALL mtx_broadcast_character(KNAMPF,80)
       CALL mtx_broadcast_character(KNAMFO,80)
       CALL mtx_broadcast_character(KNAMTR,80)
+      CALL mtx_broadcast_character(KNAMEQ2,80)
 
 !----- FP input parameters -----
 
@@ -757,7 +758,7 @@
            PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
            RHOMIN,QMIN,RHOITB,RHOEDG, &
            MODELG,MODELN,MODELQ,RHOGMN,RHOGMX, &
-           KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF, &
+           KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF,KNAMEQ2, &
            MODEFR,MODEFW,IDEBUG, &
            NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX,IMTX, &
            NTMAX,NTCLSTEP,LMAXE,NGLINE,NGRAPH,LMAXNWR, &

@@ -37,6 +37,11 @@
 
       IF(MODELG.EQ.3) THEN
          IF(nrank.EQ.0) THEN
+            IF(MODELG.EQ.8) THEN !JAEA model
+               write(6,'(A,A1,A,A1)') 'knameq2=','"',KNAMEQ2,'"'
+               WRITE(line,'(A,A1,A,A1)') 'knameq2=','"',KNAMEQ2,'"'
+               CALL eq_parm(2,line,ierr)
+            END IF
             CALL eq_load(MODELG,KNAMEQ,IERR)
             IF(IERR.NE.0) THEN
                write(6,*) 'XX FPMESH:EQLOAD:IERR=',IERR
@@ -423,8 +428,13 @@
 !     ----- Set matrix size -----
       call mtx_comm_split_s(N_partition_s,colors,keys,ncoms)
       call mtx_comm_split_r(N_partition_r,colorr,keyr,ncomr)
-      NSASTART = (NSAMAX/N_partition_s)*colors+1
-      NSAEND =   (NSAMAX/N_partition_s)*(colors+1)
+      IF(NPROCS.GT.1) THEN
+         NSASTART = (NSAMAX/N_partition_s)*colors+1
+         NSAEND =   (NSAMAX/N_partition_s)*(colors+1)
+      ELSE
+         NSASTART=1
+         NSAEND=NSAMAX
+      END IF
 
 !      WRITE(*,'(A,5I4)') "NRANK, colors, NRANKS, colorr, NRANKR", &
 !           nrank, colors, nranks, colorr, nrankr

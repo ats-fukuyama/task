@@ -15,15 +15,23 @@
       integer,intent(OUT):: color, key, PETSC_COMM_LOCAL_S
       integer:: N_PS, ierr
 
-      N_PS=NPROCS/N_partition_s
+      IF(NPROCS.GT.1) THEN
+         N_PS=NPROCS/N_partition_s
       
-      color = NRANK / N_PS ! number of belonged sub group
-      key = NRANK - color*N_PS ! rank in sub group
-      CALL MPI_COMM_SPLIT(ncomw, color, key, PETSC_COMM_LOCAL_S, ierr)
-      IF(ierr.ne.0) WRITE(*,*) "mtx_split_s, ierr=", ierr
-      call MPI_Comm_rank(PETSC_COMM_LOCAL_S,nranks,ierr)
-      call MPI_Comm_size(PETSC_COMM_LOCAL_S,nprocss,ierr) 
-
+         color = NRANK / N_PS ! number of belonging sub group
+         key = NRANK - color*N_PS ! rank in sub group
+         CALL MPI_COMM_SPLIT(ncomw, color, key, PETSC_COMM_LOCAL_S, ierr)
+         IF(ierr.ne.0) WRITE(*,*) "mtx_split_s, ierr=", ierr
+         call MPI_Comm_rank(PETSC_COMM_LOCAL_S,nranks,ierr)
+         call MPI_Comm_size(PETSC_COMM_LOCAL_S,nprocss,ierr) 
+      ELSE
+         color=1
+         key=1
+         nranks=0
+         nprocss=1
+         PETSC_COMM_LOCAL_S=ncomw
+      ENDIF
+      RETURN
       END SUBROUTINE mtx_comm_split_s
       
 !---------------------------------------------------
@@ -36,17 +44,24 @@
       integer,intent(OUT):: color, key, PETSC_COMM_LOCAL_R
       integer:: N_PR, ierr
 
-      N_PR=NPROCS/N_partition_r
+      IF(NPROCS.GT.1) THEN
+         N_PR=NPROCS/N_partition_r
 
-      key = NRANK/N_partition_r ! rank in sub group
-      color = mod(NRANK+1,N_partition_r) ! number of belonging sub group
-!      color = NRANK / N_PR 
-!      key = NRANK - color*N_PR 
-      CALL MPI_COMM_SPLIT(ncomw, color, key, PETSC_COMM_LOCAL_R, ierr)
-      IF(ierr.ne.0) WRITE(*,*) "mtx_split_r, ierr=", ierr
-      call MPI_Comm_rank(PETSC_COMM_LOCAL_R,nrankr,ierr)
-      call MPI_Comm_size(PETSC_COMM_LOCAL_R,nprocsr,ierr) 
-
+         key = NRANK/N_partition_r ! rank in sub group
+         color = mod(NRANK+1,N_partition_r) ! number of belonging sub group
+!         color = NRANK / N_PR 
+!         key = NRANK - color*N_PR 
+         CALL MPI_COMM_SPLIT(ncomw, color, key, PETSC_COMM_LOCAL_R, ierr)
+         IF(ierr.ne.0) WRITE(*,*) "mtx_split_r, ierr=", ierr
+         call MPI_Comm_rank(PETSC_COMM_LOCAL_R,nrankr,ierr)
+         call MPI_Comm_size(PETSC_COMM_LOCAL_R,nprocsr,ierr) 
+      ELSE
+         color=1
+         key=1
+         nrankr=0
+         nprocsr=1
+         PETSC_COMM_LOCAL_R=ncomw
+      END IF
       END SUBROUTINE mtx_comm_split_r
 
 !---------------------------------------------------
@@ -61,12 +76,21 @@
       REAL(8),DIMENSION(ndata),INTENT(IN):: vdata ! work
       REAL(8),DIMENSION(ntot),INTENT(OUT):: vtot ! workg
       INTEGER,DIMENSION(nprocs):: ilena,iposa
-      INTEGER:: ierr
+      INTEGER:: n,ierr
 
-      call MPI_GATHERV(vdata,ndata,MPI_DOUBLE_PRECISION,vtot,ilena,iposa, &
-                       MPI_DOUBLE_PRECISION,0,ncom,ierr)
-      IF(ierr.NE.0) WRITE(6,*) &
-           'XX mtx_gatherv_real8: MPI_GATHERV: ierr=',ierr
+      IF(NPROCS.GT.1) THEN
+         call MPI_GATHERV(vdata,ndata,MPI_DOUBLE_PRECISION,vtot,ilena,iposa, &
+                          MPI_DOUBLE_PRECISION,0,ncom,ierr)
+      
+         IF(ierr.NE.0) WRITE(6,*) &
+              'XX mtx_gatherv_real8: MPI_GATHERV: ierr=',ierr
+      ELSE
+         DO n=1,ndata
+            vtot(n)=vdata(n)
+         END DO
+         ilena(1)=ndata
+         iposa(1)=1
+      END IF
       RETURN
       END SUBROUTINE mtx_gatherv_real8_local
 
@@ -79,25 +103,35 @@
       double precision,dimension(nthmax,npmax,NRSTART:NREND,NSASTART:NSAEND):: sendf
       integer:: ierr, NSW, NRW, NTH, NP, NR, NSB, sendcount
 
-      DO NSB = NSASTART, NSAEND
-      DO NR = NRSTART, NREND
-      DO NP = 1, NPMAX
-      DO NTH = 1, NTHMAX
-         sendf(NTH,NP,NR,NSB) = FNSP(NTH,NP,NR,NSB)
-      END DO
-      END DO
-      END DO
-      END DO
+      IF(NPROCS.GT.1) THEN
+         DO NSB = NSASTART, NSAEND
+            DO NR = NRSTART, NREND
+               DO NP = 1, NPMAX
+                  DO NTH = 1, NTHMAX
+                     sendf(NTH,NP,NR,NSB) = FNSP(NTH,NP,NR,NSB)
+                  END DO
+               END DO
+            END DO
+         END DO
 
-      NSW = NSAEND-NSASTART+1
-      NRW = NREND-NRSTART+1
-      sendcount = NTHMAX*NPMAX*NRW*NSW
-      CALL MPI_ALLGATHER(sendf, sendcount, MPI_DOUBLE_PRECISION, &
-                         FNSB , sendcount, MPI_DOUBLE_PRECISION, &
-                         ncom, ierr)
-
-
-      IF(ierr.ne.0) WRITE(*,*) "mtx_allgather_f, ierr=", ierr
+         NSW = NSAEND-NSASTART+1
+         NRW = NREND-NRSTART+1
+         sendcount = NTHMAX*NPMAX*NRW*NSW
+         CALL MPI_ALLGATHER(sendf, sendcount, MPI_DOUBLE_PRECISION, &
+                            FNSB , sendcount, MPI_DOUBLE_PRECISION, &
+                            ncom, ierr)
+         IF(ierr.ne.0) WRITE(*,*) "mtx_allgather_f, ierr=", ierr
+      ELSE
+         DO NSB = NSASTART, NSAEND
+            DO NR = NRSTART, NREND
+               DO NP = 1, NPMAX
+                  DO NTH = 1, NTHMAX
+                     FNSB(NTH,NP,NR,NSB) = FNSP(NTH,NP,NR,NSB)
+                  END DO
+               END DO
+            END DO
+         END DO
+      ENDIF
 
       END SUBROUTINE mtx_allgather_f
 !---------------------------------------------------
@@ -108,11 +142,14 @@
 !      INTEGER,DIMENSION(nprocs,nsaw),INTENT(OUT):: irecv
       INTEGER:: ierr
 
-      call MPI_ALLGATHER(isend,1,MPI_INTEGER,savpos(1,n),1,MPI_INTEGER, &
-                         ncom,ierr)
-      IF(ierr.NE.0) WRITE(6,*) &
-           'XX mtx_allgather_integer_sav: MPI_ALLGATHER: ierr=',ierr
-
+      IF(NPROCS.GT.1) THEN
+         call MPI_ALLGATHER(isend,1,MPI_INTEGER,savpos(1,n),1,MPI_INTEGER, &
+                            ncom,ierr)
+         IF(ierr.NE.0) WRITE(6,*) &
+            'XX mtx_allgather_integer_sav: MPI_ALLGATHER: ierr=',ierr
+      ELSE
+         savpos(1,n)=isend
+      END IF
       RETURN
       END SUBROUTINE mtx_allgather_integer_sav
 !-----
@@ -124,24 +161,33 @@
       REAL(8),DIMENSION(nrmax*nsamax):: vrecv
       REAL(8),DIMENSION(nrmax,nsamax),INTENT(OUT):: vreturn
       INTEGER,DIMENSION(nprocs):: nlen, npos
-      INTEGER:: ierr, ncom, n, nsa, nn, ns, nr, nsw, nse
+      INTEGER:: ierr, ncom, n, nsa, nn, nr, nsw, nse
       integer,dimension(nprocs):: idisp
 
-      DO nn=1,nprocs
-         idisp(nn)=savpos(nn,n)-1
-      END DO
+      IF(nprocs.GT.1) THEN
+         DO nn=1,nprocs
+            idisp(nn)=savpos(nn,n)-1
+         END DO
 
-      call MPI_GATHERV(vsend(NRSTART,NSA), nscnt, MPI_DOUBLE_PRECISION, &
-                       vrecv  ,savlen,idisp, MPI_DOUBLE_PRECISION, &
-                       0,ncom,ierr)
-      IF(ierr.NE.0) WRITE(6,*) &
-           'XX mtx_gatherv_real8: MPI_GATHERV: ierr=',ierr
-      IF(NRANK.eq.0)THEN
-         nsw = NSAEND-NSASTART+1
-         nse = NSAMAX/NSW
-         DO NS=n,NSAMAX,nsw
+         call MPI_GATHERV(vsend(NRSTART,NSA), nscnt, MPI_DOUBLE_PRECISION, &
+                          vrecv  ,savlen,idisp, MPI_DOUBLE_PRECISION, &
+                          0,ncom,ierr)
+         IF(ierr.NE.0) WRITE(6,*) &
+              'XX mtx_gatherv_real8: MPI_GATHERV: ierr=',ierr
+         
+         IF(NRANK.eq.0)THEN
+            nsw = NSAEND-NSASTART+1
+            nse = NSAMAX/NSW
+            DO NSA=n,NSAMAX,nsw
+               DO NR=1,NRMAX
+                  vreturn(NR,NSA)=vrecv( (NSA-1)*NRMAX+NR )
+               END DO
+            END DO
+         END IF
+      ELSE
+         DO NSA=1,NSAMAX
             DO NR=1,NRMAX
-               vreturn(NR,NS)=vrecv( (NS-1)*NRMAX+NR )
+               vreturn(NR,NSA)=vsend(NR,NSA)
             END DO
          END DO
       END IF
@@ -158,23 +204,31 @@
       REAL(8),dimension(2,ncount):: d_send, d_recv
       REAL(8),dimension(nsastart:nsaend),INTENT(OUT):: dout
       INTEGER,dimension(nsastart:nsaend),INTENT(OUT):: loc
-      INTEGER:: ierr, i, rank
+      INTEGER,INTENT(IN):: rank
+      INTEGER:: ierr, i
 
-      DO i = 1, ncount
-         d_send(1,i) = din(i+NSASTART-1)
-         d_send(2,i) = rank*1.D0
-      END DO
+      IF(NPROCS.GT.1) THEN
+         DO i = 1, ncount
+            d_send(1,i) = din(i+NSASTART-1)
+            d_send(2,i) = rank*1.D0
+         END DO
 
-      CALL MPI_ALLREDUCE(d_send,d_recv,ncount,MPI_2DOUBLE_PRECISION &
-                              ,MPI_MAXLOC,ncom,ierr)
+         CALL MPI_ALLREDUCE(d_send,d_recv,ncount,MPI_2DOUBLE_PRECISION, &
+                            MPI_MAXLOC,ncom,ierr)
+         IF(ierr.NE.0) WRITE(6,*) &
+              'XX mtx_maxloc_real8: MPI_ALLREDUCE_MAXLOC: ierr=',ierr
 
-      DO i = 1, ncount 
-         dout(i+NSASTART-1) = d_recv(1,i)
-         loc(i+NSASTART-1) = idint(d_recv(2,i))
-      END DO
+         DO i = 1, ncount 
+            dout(i+NSASTART-1) = d_recv(1,i)
+            loc(i+NSASTART-1) = idint(d_recv(2,i))
+         END DO
+      ELSE
+         DO i = 1, ncount 
+            dout(i+NSASTART-1) = din(i+NSASTART-1)
+            loc(i+NSASTART-1) = i
+         END DO
+      END IF
 
-      IF(ierr.NE.0) WRITE(6,*) &
-           'XX mtx_maxloc_real8: MPI_ALLREDUCE_MAXLOC: ierr=',ierr
       RETURN
       END SUBROUTINE mtx_maxloc_real8_local
 !---------------------------------------------------
@@ -259,21 +313,26 @@
 
       IMPLICIT NONE
       INTEGER,INTENT(IN):: ncom
-      DOUBLE PRECISION,dimension(NTHMAX,NPMAX,NRSTART:NREND+1,NSAMAX),INTENT(INOUT):: array
-      DOUBLE PRECISION,dimension(NTHMAX,NPMAX,NRSTART:NREND+1,NSAMAX):: sendbuf, recvbuf
+      DOUBLE PRECISION,dimension(NTHMAX,NPMAX,NRSTART:NREND+1,NSAMAX), &
+           INTENT(INOUT):: array
+      DOUBLE PRECISION,dimension(NTHMAX,NPMAX,NRSTART:NREND+1,NSAMAX):: &
+           sendbuf, recvbuf
       INTEGER:: ierr, ncount
-      
-      sendbuf(:,:,:,:)=0.D0
-      recvbuf(:,:,:,:)=0.D0
-      sendbuf(:,:,:,:)=array(:,:,:,:)
-      ncount = NTHMAX*NPMAX*(NREND-NRSTART+2)*NSAMAX
 
-      CALL MPI_ALLREDUCE(sendbuf, recvbuf, ncount, MPI_DOUBLE_PRECISION, MPI_SUM, ncom, ierr)
+      IF(NPROCS.GT.1) THEN
+         sendbuf(:,:,:,:)=0.D0
+         recvbuf(:,:,:,:)=0.D0
+         sendbuf(:,:,:,:)=array(:,:,:,:)
+         ncount = NTHMAX*NPMAX*(NREND-NRSTART+2)*NSAMAX
 
-      array(:,:,:,:) = recvbuf(:,:,:,:)
+         CALL MPI_ALLREDUCE(sendbuf, recvbuf, ncount, MPI_DOUBLE_PRECISION, &
+                            MPI_SUM, ncom, ierr)
+         IF(ierr.NE.0) WRITE(6,*) &
+              'XX mtx_allreduce_source: MPI_ALLREDUCE: ierr=',ierr
 
-      IF(ierr.NE.0) WRITE(6,*) &
-           'XX mtx_allreduce_source: MPI_ALLREDUCE: ierr=',ierr
+         array(:,:,:,:) = recvbuf(:,:,:,:)
+      END IF
+
       RETURN
 
       END SUBROUTINE source_allreduce
