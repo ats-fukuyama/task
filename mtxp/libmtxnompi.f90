@@ -148,13 +148,13 @@
 
 !-----
 
-      SUBROUTINE mtx_allgatherv_real8(vdata,ndata,vtot,ntot,ilena,iposa)
+      SUBROUTINE mtx_allgatherv_real8(vdata,ndata,vtot,ntot,ilena,iposa,ncom)
       IMPLICIT NONE
-      INTEGER,INTENT(IN):: ndata
+      INTEGER,INTENT(IN):: ndata,ncom
       INTEGER,INTENT(INOUT):: ntot
       REAL(8),DIMENSION(ndata),INTENT(IN):: vdata
       REAL(8),DIMENSION(ntot),INTENT(OUT):: vtot
-      INTEGER,DIMENSION(1):: ilena,iposa
+      INTEGER,DIMENSION(nsize),INTENT(IN):: ilena,iposa
       INTEGER:: n
 
       DO n=1,ndata
@@ -163,4 +163,75 @@
       RETURN
       END SUBROUTINE mtx_allgatherv_real8
 
+! ----------
+
+      SUBROUTINE mtx_allgatherv_complex8(vdata,ndata,vtot,ntot,ilena,iposa,ncom)
+      IMPLICIT NONE
+      INTEGER,INTENT(IN):: ndata,ncom
+      INTEGER,INTENT(INOUT):: ntot
+      COMPLEX(8),DIMENSION(ndata),INTENT(IN):: vdata
+      COMPLEX(8),DIMENSION(ntot),INTENT(OUT):: vtot
+      INTEGER,DIMENSION(nsize),INTENT(IN):: ilena,iposa
+      INTEGER:: n
+
+      DO n=1,ndata
+         vtot(n)=vdata(n)
+      ENDDO
+      RETURN
+      END SUBROUTINE mtx_allgatherv_complex8
+
+!-----
+
+      SUBROUTINE mtx_reduce_real8(din,NOP,dout,ncom)
+      IMPLICIT NONE
+      REAL(8),INTENT(IN):: din
+      INTEGER,INTENT(IN):: NOP,ncom
+      REAL(8),INTENT(OUT):: dout
+
+      dout=din
+      RETURN
+      END SUBROUTINE mtx_reduce_real8
+      
+!-----
+
+      SUBROUTINE mtx_broadcast_integer1(idata)
+      IMPLICIT NONE
+      INTEGER,INTENT(INOUT):: idata
+      
+      RETURN
+      END SUBROUTINE mtx_broadcast_integer1
+
+!-----
+
+      SUBROUTINE mtx_reduce_v_real8(din,ncount,NOP,dout)
+      IMPLICIT NONE
+      REAL(8),dimension(ncount),INTENT(IN):: din
+      INTEGER,INTENT(IN):: NOP, ncount
+      REAL(8),dimension(ncount),INTENT(OUT):: dout
+      INTEGER:: n
+
+      DO n=1,ncount
+         dout(n)=din(n)
+      END DO
+
+      RETURN
+      END SUBROUTINE mtx_reduce_v_real8
+
+!-----
+
+      SUBROUTINE mtx_maxloc_real8(din,ncount,dout,loc)
+      IMPLICIT NONE
+      REAL(8),dimension(ncount),INTENT(IN):: din
+      REAL(8),dimension(ncount),INTENT(OUT):: dout
+      INTEGER,INTENT(IN):: ncount
+      INTEGER,dimension(ncount),INTENT(OUT):: loc
+      INTEGER:: n
+
+      DO n = 1, ncount
+         dout(n) = din(n)
+         loc(n) = 1
+      END DO
+
+      RETURN
+      END SUBROUTINE mtx_maxloc_real8
       END MODULE libmpi
