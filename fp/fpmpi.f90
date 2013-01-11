@@ -7,7 +7,7 @@
 
 !------------------------------------------------------
 
-      SUBROUTINE mtx_comm_split_s(N_partition_s,color,key,PETSC_COMM_LOCAL_S)
+      SUBROUTINE fp_comm_split_s(N_partition_s,color,key,PETSC_COMM_LOCAL_S)
 
       USE MPI
       IMPLICIT NONE
@@ -17,7 +17,6 @@
 
       IF(NPROCS.GT.1) THEN
          N_PS=NPROCS/N_partition_s
-      
          color = NRANK / N_PS ! number of belonging sub group
          key = NRANK - color*N_PS ! rank in sub group
          CALL MPI_COMM_SPLIT(ncomw, color, key, PETSC_COMM_LOCAL_S, ierr)
@@ -32,11 +31,10 @@
          PETSC_COMM_LOCAL_S=ncomw
       ENDIF
       RETURN
-      END SUBROUTINE mtx_comm_split_s
-      
+      END SUBROUTINE fp_comm_split_s
 !---------------------------------------------------
 
-      SUBROUTINE mtx_comm_split_r(N_partition_r,color,key,PETSC_COMM_LOCAL_R)
+      SUBROUTINE fp_comm_split_r(N_partition_r,color,key,PETSC_COMM_LOCAL_R)
 
       USE MPI
       IMPLICIT NONE
@@ -46,11 +44,8 @@
 
       IF(NPROCS.GT.1) THEN
          N_PR=NPROCS/N_partition_r
-
          key = NRANK/N_partition_r ! rank in sub group
          color = mod(NRANK+1,N_partition_r) ! number of belonging sub group
-!         color = NRANK / N_PR 
-!         key = NRANK - color*N_PR 
          CALL MPI_COMM_SPLIT(ncomw, color, key, PETSC_COMM_LOCAL_R, ierr)
          IF(ierr.ne.0) WRITE(*,*) "mtx_split_r, ierr=", ierr
          call MPI_Comm_rank(PETSC_COMM_LOCAL_R,nrankr,ierr)
@@ -62,11 +57,11 @@
          nprocsr=1
          PETSC_COMM_LOCAL_R=ncomw
       END IF
-      END SUBROUTINE mtx_comm_split_r
+      END SUBROUTINE fp_comm_split_r
 
 !---------------------------------------------------
 
-      SUBROUTINE mtx_gatherv_real8_local(vdata,ndata,vtot,ntot,ilena,iposa,ncom)
+      SUBROUTINE fp_gatherv_real8(vdata,ndata,vtot,ntot,ilena,iposa,ncom)
 
       IMPLICIT NONE
 
@@ -92,11 +87,11 @@
          iposa(1)=1
       END IF
       RETURN
-      END SUBROUTINE mtx_gatherv_real8_local
+      END SUBROUTINE fp_gatherv_real8
 
 !---------------------------------------------------
 
-      SUBROUTINE mtx_allgather_f(ncom)
+      SUBROUTINE fp_allgather_f(ncom)
 
       IMPLICIT NONE
       integer,intent(IN):: ncom
@@ -133,10 +128,10 @@
          END DO
       ENDIF
 
-      END SUBROUTINE mtx_allgather_f
+      END SUBROUTINE fp_allgather_f
 !---------------------------------------------------
 
-      SUBROUTINE mtx_allgather_integer_sav(isend,n,nsaw,ncom)
+      SUBROUTINE fp_allgather_integer_sav(isend,n,nsaw,ncom)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: isend, nsaw, n, ncom
 !      INTEGER,DIMENSION(nprocs,nsaw),INTENT(OUT):: irecv
@@ -151,9 +146,9 @@
          savpos(1,n)=isend
       END IF
       RETURN
-      END SUBROUTINE mtx_allgather_integer_sav
+      END SUBROUTINE fp_allgather_integer_sav
 !-----
-      SUBROUTINE mtx_gatherv_real8_sav(vsend,nscnt,vreturn,n,nsa,ncom)
+      SUBROUTINE fp_gatherv_real8_sav(vsend,nscnt,vreturn,n,nsa,ncom)
 
       IMPLICIT NONE
       INTEGER,INTENT(IN):: nscnt
@@ -193,10 +188,10 @@
       END IF
 
       RETURN
-      END SUBROUTINE mtx_gatherv_real8_sav
+      END SUBROUTINE fp_gatherv_real8_sav
 
 !-----
-      SUBROUTINE mtx_maxloc_real8_local(din,ncount,rank,ncom,dout,loc)
+      SUBROUTINE fp_maxloc_real8(din,ncount,rank,ncom,dout,loc)
 
       IMPLICIT NONE
       REAL(8),dimension(nsastart:nsaend),INTENT(IN):: din
@@ -230,10 +225,10 @@
       END IF
 
       RETURN
-      END SUBROUTINE mtx_maxloc_real8_local
+      END SUBROUTINE fp_maxloc_real8
 !---------------------------------------------------
 
-      SUBROUTINE mtx_gather_real8_deps(dsend,nsw,ncom,drecv)
+      SUBROUTINE fp_gather_real8_deps(dsend,nsw,ncom,drecv)
 
       IMPLICIT NONE
 
@@ -247,13 +242,13 @@
                       drecv,nsw,MPI_DOUBLE_PRECISION,0,ncom,ierr)
 
       IF(ierr.NE.0) WRITE(6,*) &
-           'XX mtx_gather_real8_deps: MPI_GATHER: ierr=',ierr
+           'XX fp_gather_real8_deps: MPI_GATHER: ierr=',ierr
       RETURN
-      END SUBROUTINE mtx_gather_real8_deps
+      END SUBROUTINE fp_gather_real8_deps
 
 !------------------------------------------
 
-      SUBROUTINE mtx_gather_integer_deps(isend,nsw,ncom,irecv)
+      SUBROUTINE fp_gather_integer_deps(isend,nsw,ncom,irecv)
 
       IMPLICIT NONE
 
@@ -267,13 +262,13 @@
                       irecv,nsw,MPI_INTEGER,0,ncom,ierr)
 
       IF(ierr.NE.0) WRITE(6,*) &
-           'XX mtx_gather_integer_deps: MPI_GATHER: ierr=',ierr
+           'XX fp_gather_integer_deps: MPI_GATHER: ierr=',ierr
       RETURN
-      END SUBROUTINE mtx_gather_integer_deps
+      END SUBROUTINE fp_gather_integer_deps
 
 !------------------------------------------
 
-      SUBROUTINE mtx_gather_fns_rs(nsa,ncom,local,global)
+      SUBROUTINE fp_gather_fns_rs(nsa,ncom,local,global)
 
       IMPLICIT NONE
       integer,intent(in):: nsa, ncom
@@ -303,9 +298,9 @@
 
 
       IF(ierr.NE.0) WRITE(6,*) &
-           'XX mtx_gather_fns_rs: MPI_GATHER: ierr=',ierr
+           'XX fp_gather_fns_rs: MPI_GATHER: ierr=',ierr
       RETURN
-      END SUBROUTINE mtx_gather_fns_rs
+      END SUBROUTINE fp_gather_fns_rs
 
 !-----
 

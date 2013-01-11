@@ -970,41 +970,41 @@
       NSW=NSAEND-NSASTART+1
       DO N=1,NSW
          NSA=N+NSASTART-1
-         CALL mtx_gatherv_real8_sav(RNSL,SAVLEN(NRANK+1), &
+         CALL fp_gatherv_real8_sav(RNSL,SAVLEN(NRANK+1), &
               RNS,N,NSA,ncomw)
-         CALL mtx_gatherv_real8_sav(RJSL,SAVLEN(NRANK+1), &
+         CALL fp_gatherv_real8_sav(RJSL,SAVLEN(NRANK+1), &
               RJS,N,NSA,ncomw)
-         CALL mtx_gatherv_real8_sav(RWSL,SAVLEN(NRANK+1), &
+         CALL fp_gatherv_real8_sav(RWSL,SAVLEN(NRANK+1), &
               RWS,N,NSA,ncomw)
-         CALL mtx_gatherv_real8_sav(RWS123L,SAVLEN(NRANK+1), &
+         CALL fp_gatherv_real8_sav(RWS123L,SAVLEN(NRANK+1), &
               RWS123,N,NSA,ncomw)
-         CALL mtx_gatherv_real8_sav(RPCSL,SAVLEN(NRANK+1), &
+         CALL fp_gatherv_real8_sav(RPCSL,SAVLEN(NRANK+1), &
               RPCS,N,NSA,ncomw)
-         CALL mtx_gatherv_real8_sav(RPWSL,SAVLEN(NRANK+1), &
+         CALL fp_gatherv_real8_sav(RPWSL,SAVLEN(NRANK+1), &
               RPWS,N,NSA,ncomw)
-         CALL mtx_gatherv_real8_sav(RPESL,SAVLEN(NRANK+1), &
+         CALL fp_gatherv_real8_sav(RPESL,SAVLEN(NRANK+1), &
               RPES,N,NSA,ncomw)
-         CALL mtx_gatherv_real8_sav(RLHSL,SAVLEN(NRANK+1), &
+         CALL fp_gatherv_real8_sav(RLHSL,SAVLEN(NRANK+1), &
               RLHS,N,NSA,ncomw)
-         CALL mtx_gatherv_real8_sav(RFWSL,SAVLEN(NRANK+1), &
+         CALL fp_gatherv_real8_sav(RFWSL,SAVLEN(NRANK+1), &
               RFWS,N,NSA,ncomw)
-         CALL mtx_gatherv_real8_sav(RECSL,SAVLEN(NRANK+1), &
+         CALL fp_gatherv_real8_sav(RECSL,SAVLEN(NRANK+1), &
               RECS,N,NSA,ncomw)
-         CALL mtx_gatherv_real8_sav(RICSL,SAVLEN(NRANK+1), &
+         CALL fp_gatherv_real8_sav(RICSL,SAVLEN(NRANK+1), &
               RICS,N,NSA,ncomw)
-         CALL mtx_gatherv_real8_sav(RSPBL,SAVLEN(NRANK+1), &
+         CALL fp_gatherv_real8_sav(RSPBL,SAVLEN(NRANK+1), &
               RSPB,N,NSA,ncomw)
-         CALL mtx_gatherv_real8_sav(RSPFL,SAVLEN(NRANK+1), &
+         CALL fp_gatherv_real8_sav(RSPFL,SAVLEN(NRANK+1), &
               RSPF,N,NSA,ncomw)
-         CALL mtx_gatherv_real8_sav(RSPSL,SAVLEN(NRANK+1), &
+         CALL fp_gatherv_real8_sav(RSPSL,SAVLEN(NRANK+1), &
               RSPS,N,NSA,ncomw)
-         CALL mtx_gatherv_real8_sav(RSPLL,SAVLEN(NRANK+1), &
+         CALL fp_gatherv_real8_sav(RSPLL,SAVLEN(NRANK+1), &
               RSPL,N,NSA,ncomw)
-         CALL mtx_gatherv_real8_sav(RPDRL,SAVLEN(NRANK+1), &
+         CALL fp_gatherv_real8_sav(RPDRL,SAVLEN(NRANK+1), &
               RPDR,N,NSA,ncomw)
-         CALL mtx_gatherv_real8_sav(RNDRL,SAVLEN(NRANK+1), &
+         CALL fp_gatherv_real8_sav(RNDRL,SAVLEN(NRANK+1), &
               RNDR,N,NSA,ncomw)
-         CALL mtx_gatherv_real8_sav(RTL_BULK,SAVLEN(NRANK+1), &
+         CALL fp_gatherv_real8_sav(RTL_BULK,SAVLEN(NRANK+1), &
               RT_BULK,N,NSA,ncomw)
       END DO
       DO NSB=1,NSBMAX
@@ -1015,7 +1015,7 @@
          END DO
          DO N=1,NSW
             NSA=N+NSASTART-1
-            CALL mtx_gatherv_real8_sav(work,SAVLEN(NRANK+1), &
+            CALL fp_gatherv_real8_sav(work,SAVLEN(NRANK+1), &
                  workg,N,NSA,ncomw)
          ENDDO
 

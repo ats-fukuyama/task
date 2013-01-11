@@ -88,7 +88,7 @@
 
 !
 
-      CALL mtx_allgather_f(ncomr)
+      CALL fp_allgather_f(ncomr)
 
       DO NR=NRSTART,NREND
          DO NSB=1,NSBMAX

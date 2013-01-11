@@ -152,9 +152,9 @@
                N_IMPL=1+LMAXFP ! exit dowhile
             ENDIF
 
-            CALL mtx_maxloc_real8_local(DEPSV,NSW,NRANKS,ncoms,DEPS_MAXVL,ILOCL)
-            CALL mtx_gather_real8_deps(DEPS_MAXVL,nsw,ncomr,DEPS_MAXV) 
-            CALL mtx_gather_integer_deps(ILOCL,nsw,ncomr,ILOC) 
+            CALL fp_maxloc_real8(DEPSV,NSW,NRANKS,ncoms,DEPS_MAXVL,ILOCL)
+            CALL fp_gather_real8_deps(DEPS_MAXVL,nsw,ncomr,DEPS_MAXV) 
+            CALL fp_gather_integer_deps(ILOCL,nsw,ncomr,ILOC) 
 
             IF(nrank.eq.0) THEN
                WRITE(fmt,'(a16,I1,a6,I1,a3)') &
@@ -294,7 +294,7 @@
       DO NSWI=1, NSW
          NSA=NSASTART-1+NSWI
 !         NSA=NSASTART
-         CALL mtx_gather_fns_rs(nsa,ncomw,FNSP,FNS)
+         CALL fp_gather_fns_rs(nsa,ncomw,FNSP,FNS)
       END DO
 
 !      IF(NRANK.eq.0)THEN

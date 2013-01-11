@@ -281,7 +281,7 @@
          DO NR=NRSTART,NRENDX
             work(NR)=RLAMDA(NTH,NR)
          ENDDO
-         CALL mtx_gatherv_real8_local(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+         CALL fp_gatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
                                 workg,NRMAX,MTXLEN,MTXPOS,ncoms)
          CALL mtx_broadcast_real8(workg,NRMAX)
          DO NR=1,NRMAX
@@ -294,7 +294,7 @@
          DO NR=NRSTART,NRENDX
             work(NR)=ETAM(NTH,NR)
          ENDDO
-         CALL mtx_gatherv_real8_local(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+         CALL fp_gatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
                                 workg,NRMAX,MTXLEN,MTXPOS,ncoms)
          CALL mtx_broadcast_real8(workg,NRMAX)
          DO NR=1,NRMAX
@@ -306,7 +306,7 @@
          DO NR=NRSTART,NRENDX
             work(NR)=RLAMDA_G(NTH,NR)
          ENDDO
-         CALL mtx_gatherv_real8_local(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+         CALL fp_gatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
                                 workg,NRMAX,MTXLEN,MTXPOS,ncoms)
          CALL mtx_broadcast_real8(workg,NRMAX)
          DO NR=1,NRMAX
@@ -318,7 +318,7 @@
          DO NR=NRSTART,NRENDX
             work(NR)=ETAM_G(NTH,NR)
          ENDDO
-         CALL mtx_gatherv_real8_local(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+         CALL fp_gatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
                                 workg,NRMAX,MTXLEN,MTXPOS,ncoms)
          CALL mtx_broadcast_real8(workg,NRMAX)
          DO NR=1,NRMAX
@@ -489,7 +489,7 @@
       NSW=NSAEND-NSASTART+1
       DO N=1,NSW
          NSA=N+NSASTART-1
-         CALL mtx_allgather_integer_sav( (nsa-1)*NRMAX+NRSTART,N,NSW,ncomw)
+         CALL fp_allgather_integer_sav( (nsa-1)*NRMAX+NRSTART,N,NSW,ncomw)
       END DO
 
       if(nrank.eq.0) then
@@ -681,32 +681,10 @@
 !!!!
       allocate(work(nrstart:nrendx),workg(NRMAX))
 
-!      DO NR=NRSTART,NRENDX
-!         work(NR)=RCOEF(NR)
-!      ENDDO
-!      CALL mtx_gatherv_real8_local(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
-!           workg,NRMAX,MTXLEN,MTXPOS,ncoms)
-!      CALL mtx_broadcast_real8(workg,NRMAX)
-!      DO NR=1,NRMAX
-!         RCOEFG(NR)=workg(NR)
-!      ENDDO
-!      RCOEFG(NRMAX+1)=(QLM(NRMAX)*RR)
-
-!      DO NR=NRSTART,NRENDX
-!         work(NR)=RCOEF_G(NR)
-!      ENDDO
-!      CALL mtx_gatherv_real8_local(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
-!           workg,NRMAX,MTXLEN,MTXPOS,ncoms)
-!      CALL mtx_broadcast_real8(workg,NRMAX)
-!      DO NR=1,NRMAX
-!         RCOEF_GG(NR)=workg(NR)
-!      ENDDO
-!      RCOEF_GG(NRMAX+1)=1.D0/(QLG(NRMAX+1)*RR)
-
       DO NR=NRSTART,NRENDX
          work(NR)=RCOEFN(NR)
       ENDDO
-      CALL mtx_gatherv_real8_local(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+      CALL fp_gatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
            workg,NRMAX,MTXLEN,MTXPOS,ncoms)
       CALL mtx_broadcast_real8(workg,NRMAX)
       DO NR=1,NRMAX
@@ -716,7 +694,7 @@
       DO NR=NRSTART,NRENDX
          work(NR)=RCOEFN_G(NR)
       ENDDO
-      CALL mtx_gatherv_real8_local(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+      CALL fp_gatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
            workg,NRMAX,MTXLEN,MTXPOS,ncoms)
       CALL mtx_broadcast_real8(workg,NRMAX)
       DO NR=2,NRMAX
