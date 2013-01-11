@@ -293,38 +293,38 @@
 
       DO NSWI=1, NSW
          NSA=NSASTART-1+NSWI
+!         NSA=NSASTART
          CALL mtx_gather_fns_rs(nsa,ncomw,FNSP,FNS)
       END DO
 
-      IF(NRANK.eq.0)THEN
-            open(9,file='fns_e_a1w4s2_pinch.dat')
-            DO NR=1,NRMAX
-               DO NP=1,NPMAX
-                  DO NTH=1,NTHMAX
-                     WRITE(9,'(3I4,3E16.8)') NR, NP, NTH, FNS(NTH,NP,NR,1), PM(NP,1)*COSM(NTH), PM(NP,1)*SINM(NTH)
-                  END DO
-               END DO
-               WRITE(9,*) " "
-               WRITE(9,*) " "
-            END DO
-            close(9)
-!            open(9,file='fns_D.dat')
+!      IF(NRANK.eq.0)THEN
+!            open(9,file='fns_e.dat')
 !            DO NR=1,NRMAX
 !               DO NP=1,NPMAX
 !                  DO NTH=1,NTHMAX
-!                     WRITE(9,'(3I4,E16.8)') NR, NP, NTH, FNSP(NTH,NP,NR,2)
+!                     WRITE(9,'(3I4,3E16.8)') NR, NP, NTH, FNS(NTH,NP,NR,1), PM(NP,1)*COSM(NTH), PM(NP,1)*SINM(NTH)
 !                  END DO
 !               END DO
 !               WRITE(9,*) " "
 !               WRITE(9,*) " "
 !            END DO
 !            close(9)
-
+!            open(9,file='fns_D.dat')
+!            DO NR=1,NRMAX
+!               DO NP=1,NPMAX
+!                  DO NTH=1,NTHMAX
+!                     WRITE(9,'(3I4,3E16.8)') NR, NP, NTH, FNS(NTH,NP,NR,2), PM(NP,2)*COSM(NTH), PM(NP,2)*SINM(NTH)
+!                  END DO
+!               END DO
+!               WRITE(9,*) " "
+!               WRITE(9,*) " "
+!            END DO
+!            close(9)
 !            open(9,file='fns_T.dat')
 !            DO NR=1,NRMAX
 !               DO NP=1,NPMAX
 !                  DO NTH=1,NTHMAX
-!                     WRITE(9,'(3I4,E16.8)') NR, NP, NTH, FNSP(NTH,NP,NR,3)
+!                     WRITE(9,'(3I4,3E16.8)') NR, NP, NTH, FNS(NTH,NP,NR,3), PM(NP,3)*COSM(NTH), PM(NP,3)*SINM(NTH)
 !                  END DO
 !               END DO
 !               WRITE(9,*) " "
@@ -335,14 +335,14 @@
 !            DO NR=1,NRMAX
 !               DO NP=1,NPMAX
 !                  DO NTH=1,NTHMAX
-!                     WRITE(9,'(3I4,E16.8)') NR, NP, NTH, FNSP(NTH,NP,NR,4)
+!                     WRITE(9,'(3I4,3E16.8)') NR, NP, NTH, FNS(NTH,NP,NR,4), PM(NP,4)*COSM(NTH), PM(NP,4)*SINM(NTH)
 !                  END DO
 !               END DO
 !               WRITE(9,*) " "
 !               WRITE(9,*) " "
 !            END DO
 !            close(9)
-      END IF
+!      END IF
 
 
       RETURN

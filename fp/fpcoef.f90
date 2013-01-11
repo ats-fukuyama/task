@@ -368,129 +368,57 @@
       ENDDO
       ENDDO
 
-      IF (MODELA.EQ.0) RETURN
-
-      DO NR=NRSTART,NREND
-         IF(MODELA.eq.1)then
-!         FACT=1.D0/SQRT(1.D0-EPSR(NR)**2)
-            FACT=1.D0
-            DO NTH=1,ITL(NR)-1
-               DELH=2.D0*ETAM(NTH,NR)/NAVMAX
-               DO NP=1,NPMAX+1
-                  sum11=0.D0
-                  DO NG=1,NAVMAX
-                     ETAL=DELH*(NG-0.5D0)
-                     X=EPSRM(NR)*COS(ETAL)*RR
-                     PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
-                     IF (COSM(NTH).GE.0.D0) THEN
-                        PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
-                     ELSE
-                        PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
-                     ENDIF
-                     DO NSB=1,NSBMAX
-                        sum11=sum11 &
-                             +FEPP(NTH,NP,NR,NSA)*PSIB*COSG(NTH)/ABS(COSG(NTH))
-                     END DO
-                  END DO
-                  FEPP(NTH,NP,NR,NSA)=SUM11*DELH
-!                  FEPP(NTH,NP,NR,NSA)= FACT*FEPP(NTH,NP,NR,NSA)
-               ENDDO
-            ENDDO
-            
-            DO NP=1,NPMAX+1
-               DO NTH=ITL(NR),ITU(NR)
-                  FEPP(NTH,NP,NR,NSA)= 0.D0
-               ENDDO
-            ENDDO
-            
-            DO NTH=ITU(NR)+1,NTHMAX
-               DELH=2.D0*ETAM(NTH,NR)/NAVMAX
-               DO NP=1,NPMAX+1
-                  sum11=0.D0
-                  DO NG=1,NAVMAX
-                     ETAL=DELH*(NG-0.5D0)
-                     X=EPSRM(NR)*COS(ETAL)*RR
-                     PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
-                     IF (COSM(NTH).GE.0.D0) THEN
-                        PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
-                     ELSE
-                        PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
-                     ENDIF
-                     DO NSB=1,NSBMAX
-                        sum11=sum11 &
-                             +FEPP(NTH,NP,NR,NSA)*PSIB
-                     END DO
-                  END DO
-                  FEPP(NTH,NP,NR,NSA)=SUM11*DELH
-!                  FEPP(NTH,NP,NR,NSA)= FACT*FEPP(NTH,NP,NR,NSA)
-               ENDDO
-               DO NP=1,NPMAX+1
-               FEPP(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)/4.D0 &
-                    *( FEPP(ITL(NR)-1,NP,NR,NSA)/RLAMDA(ITL(NR)-1,NR) &
-                      +FEPP(ITL(NR)+1,NP,NR,NSA)/RLAMDA(ITL(NR)+1,NR) &
-                      +FEPP(ITU(NR)-1,NP,NR,NSA)/RLAMDA(ITU(NR)-1,NR) &
-                      +FEPP(ITU(NR)+1,NP,NR,NSA)/RLAMDA(ITU(NR)+1,NR))
-               FEPP(ITU(NR),NP,NR,NSA)=FEPP(ITL(NR),NP,NR,NSA)
-               ENDDO
-            ENDDO
-!!!             
-            DO NTH=1,ITL(NR)
-               DELH=2.D0*ETAG(NTH,NR)/NAVMAX
-               DO NP=1,NPMAX
-                  sum11=0.D0
-                  DO NG=1,NAVMAX
-                     ETAL=DELH*(NG-0.5D0)
-                     X=EPSRM(NR)*COS(ETAL)*RR
-                     PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
-                     IF (COSM(NTH).GE.0.D0) THEN
-                        PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
-                     ELSE
-                        PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
-                     ENDIF
-                     DO NSB=1,NSBMAX
-                        sum11=sum11 &
-                             +FETH(NTH,NP,NR,NSA)*PSIB
-                     END DO
-                  END DO
-                  FETH(NTH,NP,NR,NSA)=SUM11*DELH
-!                  FETH(NTH,NP,NR,NSA)=FACT*FETH(NTH,NP,NR,NSA)
-               ENDDO
-            ENDDO
-            
-            DO NP=1,NPMAX
-               DO NTH=ITL(NR)+1,ITU(NR)
-                  FETH(NTH,NP,NR,NSA)= 0.D0
-               ENDDO
-            ENDDO
-            
-            DO NTH=ITU(NR)+1,NTHMAX+1
-               DELH=2.D0*ETAG(NTH,NR)/NAVMAX
-               DO NP=1,NPMAX
-                  sum11=0.D0
-                  DO NG=1,NAVMAX
-                     ETAL=DELH*(NG-0.5D0)
-                     X=EPSRM(NR)*COS(ETAL)*RR
-                     PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
-                     IF (COSM(NTH-1).GE.0.D0) THEN
-                        PCOS=SQRT(1.D0-PSIB*SINM(NTH-1)**2)
-                     ELSE
-                        PCOS=-SQRT(1.D0-PSIB*SINM(NTH-1)**2)
-                     ENDIF
-                     DO NSB=1,NSBMAX
-                        sum11=sum11 &
-                             +FETH(NTH,NP,NR,NSA)*PSIB
-                     END DO
-                  END DO
-                  FETH(NTH,NP,NR,NSA)=SUM11*DELH
-!                  FETH(NTH,NP,NR,NSA)=FACT*FETH(NTH,NP,NR,NSA)
-               ENDDO
-            ENDDO
-
-         END IF
-      ENDDO
+      IF(MODELA.eq.1)THEN
+         DO NR=NRSTART,NREND
+            CALL FP_CALE_LAV(NR,NSA)
+         ENDDO
+      END IF
       
       RETURN
       END SUBROUTINE FP_CALE
+
+! ****************************************
+!     BOUNCE AVERAGING FEPP, FETH
+! ****************************************
+      SUBROUTINE FP_CALE_LAV(NR, NSA)
+
+      IMPLICIT NONE
+      integer,intent(in):: NR, NSA
+      integer:: NTH, NP
+
+!     BOUNCE AVERAGE FEPP
+      DO NP=1,NPMAX+1
+         DO NTH=1,ITL(NR)-1
+            FEPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)*2.D0*ETAM(NTH,NR)
+         END DO ! END NTH
+         DO NTH=ITL(NR)+1,ITU(NR)-1
+            FEPP(NTH,NP,NR,NSA)=0.D0
+         END DO
+         DO NTH=ITU(NR)+1,NTHMAX
+            FEPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)*2.D0*ETAM(NTH,NR)
+         END DO
+         FEPP(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)/4.D0 &
+              *( FEPP(ITL(NR)-1,NP,NR,NSA)/RLAMDA(ITL(NR)-1,NR) &
+              +FEPP(ITL(NR)+1,NP,NR,NSA)/RLAMDA(ITL(NR)+1,NR) &
+              +FEPP(ITU(NR)-1,NP,NR,NSA)/RLAMDA(ITU(NR)-1,NR) &
+              +FEPP(ITU(NR)+1,NP,NR,NSA)/RLAMDA(ITU(NR)+1,NR))
+         FEPP(ITU(NR),NP,NR,NSA)=FEPP(ITL(NR),NP,NR,NSA)
+      END DO ! END NP
+!     BOUNCE AVERAGE FETH
+      DO NP=1,NPMAX
+         DO NTH=1,ITL(NR)
+            FETH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)*2.D0*ETAG(NTH,NR)
+         END DO
+         DO NTH=ITL(NR)+1,ITU(NR)
+            FETH(NTH,NP,NR,NSA)=0.D0
+!            FETH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)*2.D0*ETAG(NTH,NR)
+         END DO
+         DO NTH=ITU(NR)+1,NTHMAX+1
+            FETH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)*2.D0*ETAG(NTH,NR)
+         END DO
+      END DO ! END NP
+
+      END SUBROUTINE FP_CALE_LAV
 
 ! ****************************************
 !     Radial transport

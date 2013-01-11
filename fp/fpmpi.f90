@@ -17,7 +17,7 @@
 
       N_PS=NPROCS/N_partition_s
       
-      color = NRANK / N_PS ! number of belonging sub group
+      color = NRANK / N_PS ! number of belonged sub group
       key = NRANK - color*N_PS ! rank in sub group
       CALL MPI_COMM_SPLIT(ncomw, color, key, PETSC_COMM_LOCAL_S, ierr)
       IF(ierr.ne.0) WRITE(*,*) "mtx_split_s, ierr=", ierr
@@ -223,15 +223,30 @@
 
       IMPLICIT NONE
       integer,intent(in):: nsa, ncom
-      REAL(8),dimension(NTHMAX,NPMAX,NRSTART-1:NREND+1,NSASTART:NSAEND),INTENT(IN):: local
+      REAL(8),dimension(NTHMAX,NPMAX,NRSTART-1:NREND+1,NSAMAX),INTENT(IN):: local
+      REAL(8),dimension(NTHMAX,NPMAX,NRSTART:NREND):: container
       REAL(8),dimension(NTHMAX,NPMAX,NRMAX,NSAMAX),INTENT(OUT):: global
-      INTEGER:: ierr, nsend, nrecv
+      INTEGER:: ierr, nsend, nrecv, NTH, NP, NR
 
       nsend = NTHMAX*NPMAX*(NREND-NRSTART+1) 
       nrecv = nsend
+
+!      DO NR=NRSTART,NREND
+!         DO NP=1,NPMAX
+!            DO NTH=1,NTHMAX
+!               container(NTH,NP,NR)=local(NTH,NP,NR,NSA)
+!            END DO
+!         END DO
+!      END DO
+
       call MPI_GATHER(local(1,1,nrstart,nsa),nsend,MPI_DOUBLE_PRECISION, &
                      global(1,1,nrstart,nsa),nrecv,MPI_DOUBLE_PRECISION, &
                      0, ncom, ierr)
+!      call MPI_GATHER(container,nsend,MPI_DOUBLE_PRECISION, &
+!                      global   ,nrecv,MPI_DOUBLE_PRECISION, &
+!                      0, ncom, ierr)
+
+
 
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_gather_fns_rs: MPI_GATHER: ierr=',ierr
