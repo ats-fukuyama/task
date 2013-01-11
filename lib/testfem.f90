@@ -29,7 +29,7 @@ program testfem
       write(6,*) ' * id=11: Maxwell eq (cylinder) quadra + linear (cont)'
       write(6,*) ' * id=12: Maxwell eq (cylinder) quadra + linear (discont)'
       write(6,*) ' * id=13: Maxwell eq (cylinder) E+- Hermite'
-      write(6,*) ' * id=14: Maxwell eq (cylinder) Laplacian Hermite'
+      write(6,*) ' * id=14: Maxwell eq (cylinder) Laplacian E Hermite'
       write(6,*) ' * *******************************'
 
       id=12
