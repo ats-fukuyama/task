@@ -44,8 +44,8 @@
 
       IF(NPROCS.GT.1) THEN
          N_PR=NPROCS/N_partition_r
-         key = NRANK/N_partition_r ! rank in sub group
-         color = mod(NRANK+1,N_partition_r) ! number of belonging sub group
+         key = NRANK/N_PR ! rank in sub group
+         color = mod(NRANK+1,N_PR) ! number of belonging sub group
          CALL MPI_COMM_SPLIT(ncomw, color, key, PETSC_COMM_LOCAL_R, ierr)
          IF(ierr.ne.0) WRITE(*,*) "mtx_split_r, ierr=", ierr
          call MPI_Comm_rank(PETSC_COMM_LOCAL_R,nrankr,ierr)
