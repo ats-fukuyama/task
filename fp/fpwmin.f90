@@ -34,6 +34,7 @@
 
       SUBROUTINE fp_wm_read(IERR)
 
+      USE libmpi
       USE libmtx
       IMPLICIT NONE
       integer:: IERR,NSMAX1,I,NWR,NWTH,NWPH
@@ -181,6 +182,7 @@
 
       SUBROUTINE fp_wm_broadcast
 
+      USE libmpi
       USE libmtx
       USE fpcomm
       IMPLICIT NONE

@@ -2,26 +2,25 @@
 include ../../task/make.header
 
 ##### Without PETSc library #####
-#LIBMTX=../../task/mtxp/libmtxbnd.o ../../task/mtxp/libmtxnompi.o
+#LIBMTX=../mtxp/libmtxbnd.o ../mtxp/libmtxnompi.o
 #PETSCLIBS=
 ##### With PETSc library #####
 include ${PETSC_DIR}/conf/variables
-LIBMTX=../../task/mtxp/libmtxksp.o ../../task/mtxp/libmtxmpi.o
+LIBMTX=../mtxp/libmtxksp.o ../mtxp/libmtxmpi.o
 PETSCLIBS=${PETSC_KSP_LIB}
 
 .SUFFIXES:
 .SUFFIXES: .f90 .mod .o .a
 
-#FCFREE =mpif90
-
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 MODINCLUDE= -I.$(MOD) -I../../task/lib/$(MOD) \
             -I../../task/plx/$(MOD) -I../../task/eq/$(MOD) \
             -I../../bpsd/$(MOD) -I../../task/mtxp
 
-SRCS = fpcomm.f90 fpinit.f90 fpmpi.f90 fpbroadcast.f90 fpexec.f90 fpdrexec.f90 fpsave.f90 \
+SRCS = fpcomm.f90 fpinit.f90 fpmpi.f90 fpbroadcast.f90 fpexec.f90 \
+       fpdrexec.f90 fpsave.f90 \
        fpwmin.f90 fpwrin.f90 fpcalwm.f90 fpcalwr.f90 fpcalw.f90 \
        fpcalcn.f90 fpcalcnr.f90 fpcalc.f90 fpnfrr.f90 fpcoef.f90 \
        fpbounce.f90 fpprep.f90 fploop.f90 \
@@ -29,8 +28,8 @@ SRCS = fpcomm.f90 fpinit.f90 fpmpi.f90 fpbroadcast.f90 fpexec.f90 fpdrexec.f90 f
 
 OBJS = $(SRCS:.f90=.o)
 
-LIBS = fplib.a ../../task/plx/pllib.a ../../task/eq/eqlib.a   \
-        ../../task/lib/tasklib.a ../../bpsd/bpsdlib.a $(LIBMTX)
+LIBS =  fplib.a ../../task/plx/pllib.a ../../task/eq/eqlib.a   \
+        ../../task/lib/tasklib.a ../../bpsd/bpsdlib.a 
 
 .f.o :
 	$(MF90) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -67,9 +66,7 @@ libs:
 	(cd ../../task/plx; make pllib.a)
 
 fp : $(LIBS) fpmain.o 
-	$(MF90) fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(PETSCLIBS) 
-
-# $(MODDIR) $(MODINCLUDE)
+	$(FCFREE) fpmain.o -o $@ $(FFLAGS) $(LIBS) $(LIBMTX) $(PETSCLIBS) $(FLIBS) 
 
 clean :
 	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod

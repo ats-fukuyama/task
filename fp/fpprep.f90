@@ -12,6 +12,7 @@
       USE fpbounce
       USE equnit_mod
       USE fpmpi
+      USE libmpi
 
       contains
 
@@ -214,7 +215,7 @@
             ITU(NR)=NTHMAX-NTH+1
 
             EPSL=COSM(ITL(NR))**2/(2.D0-COSM(ITL(NR))**2)
-            IF(nprocs.gt.1.and.NRANK.eq.1) &
+            IF(nsize.gt.1.and.NRANK.eq.1) &
                  WRITE(6,'(A,3I5,1P2E12.4)') 'NR,ITL,ITU,EPSRM=',NR,ITL(NR),ITU(NR),EPSRM(NR),EPSL
             EPSRM2(NR) = EPSRM(NR)
             EPSRM(NR)=EPSL
@@ -233,7 +234,7 @@
             ITUG(NR)=NTHMAX-NTH+1
 
             EPSL=COSM(ITLG(NR))**2/(2.D0-COSM(ITLG(NR))**2)
-            IF(nprocs.gt.1.and.NRANK.eq.1) &
+            IF(nsize.gt.1.and.NRANK.eq.1) &
                  WRITE(6,'(A,2I5,1P2E12.4)') 'NR,NTHC,EPSRG=',NR,NTH,EPSRG(NR),EPSL
             EPSRG2(NR) = EPSRG(NR)
             EPSRG(NR)=EPSL
@@ -277,13 +278,13 @@
 
       allocate(work(nrstart:nrendx),workg(NRMAX))
 
+      CALL mtx_set_communicator(comm_nsa,nrank,nsize)
       DO NTH=1,NTHMAX
          DO NR=NRSTART,NRENDX
             work(NR)=RLAMDA(NTH,NR)
          ENDDO
-         CALL fp_gatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
-                                workg,NRMAX,MTXLEN,MTXPOS,ncoms)
-         CALL mtx_broadcast_real8(workg,NRMAX)
+         CALL mtx_allgatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+                                   workg,NRMAX,MTXLEN,MTXPOS)
          DO NR=1,NRMAX
             RLAMDAG(NTH,NR)=workg(NR)
          ENDDO
@@ -294,9 +295,8 @@
          DO NR=NRSTART,NRENDX
             work(NR)=ETAM(NTH,NR)
          ENDDO
-         CALL fp_gatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
-                                workg,NRMAX,MTXLEN,MTXPOS,ncoms)
-         CALL mtx_broadcast_real8(workg,NRMAX)
+         CALL mtx_allgatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+                                   workg,NRMAX,MTXLEN,MTXPOS)
          DO NR=1,NRMAX
             ETAMG(NTH,NR)=workg(NR)
          ENDDO
@@ -306,9 +306,8 @@
          DO NR=NRSTART,NRENDX
             work(NR)=RLAMDA_G(NTH,NR)
          ENDDO
-         CALL fp_gatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
-                                workg,NRMAX,MTXLEN,MTXPOS,ncoms)
-         CALL mtx_broadcast_real8(workg,NRMAX)
+         CALL mtx_allgatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+                                   workg,NRMAX,MTXLEN,MTXPOS)
          DO NR=1,NRMAX
             RLAMDA_GG(NTH,NR)=workg(NR)
          ENDDO
@@ -318,13 +317,13 @@
          DO NR=NRSTART,NRENDX
             work(NR)=ETAM_G(NTH,NR)
          ENDDO
-         CALL fp_gatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
-                                workg,NRMAX,MTXLEN,MTXPOS,ncoms)
-         CALL mtx_broadcast_real8(workg,NRMAX)
+         CALL mtx_allgatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+                                   workg,NRMAX,MTXLEN,MTXPOS)
          DO NR=1,NRMAX
             ETAM_GG(NTH,NR)=workg(NR)
          ENDDO
       ENDDO
+      CALL mtx_reset_communicator(nrank,nsize)
 
 !      IF(NRANK.eq.0)THEN
 !      open(8,file='RLAMDAG100_tpb_ex_killeen_fine.dat')
@@ -397,44 +396,52 @@
       real(kind8) :: FL, RSUM1, RSUM2, RTFD0L, RHON, RNE, RTE
       real(kind8) :: RLNRL, FACT, RSUM, RSUM11, rsum3, rsum4, rsum5, rsum6
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
-      INTEGER,DIMENSION(nprocs):: ima1,ima2,nra1,nra2,nma1,nma2,insa1,insa2
+      INTEGER,DIMENSION(nsize):: ima1,ima2,nra1,nra2,nma1,nma2,insa1,insa2
       real(kind8),DIMENSION(:),POINTER:: work,workg
+      INTEGER:: colors
 
 !     ----- Initialize time counter -----
 
       TIMEFP=0.D0
       NTG1=0
       NTG2=0
-!     ----- Check nprocs -----
-!      IF(nprocs.GT.nrmax) THEN
+!     ----- Check nsize -----
+!      IF(nsize.GT.nrmax) THEN
 !         IF(nrank.EQ.0) THEN
-!            WRITE(6,*) 'XX fp_prep: nrmax must be greater than nprocs.'
-!            WRITE(6,*) 'XX          nrmax,nprocs=',nrmax,nprocs
+!            WRITE(6,*) 'XX fp_prep: nrmax must be greater than nsize.'
+!            WRITE(6,*) 'XX          nrmax,nsize=',nrmax,nsize
 !         ENDIF
 !         ierr=1
 !         RETURN
 !      ENDIF
 !      N_partition_s=2
 !      N_partition_r=25
-      IF(N_partition_s*N_partition_r.ne.NPROCS)THEN
+
+      IF(N_partition_s*N_partition_r.ne.nsize)THEN
          IF(NRANK.eq.0) THEN
-            WRITE(6,*) 'XX fp_prep: The partition number must be N_partition_s*N_partition_r=NPROCS.'
-            WRITE(6,'(A,3I4)') 'XX N_partition_s, N_partiton_r, NPROCS=', N_partition_s, N_partition_r, NPROCS
+            WRITE(6,*) 'XX fp_prep: N_partition_s*N_partition_r != nsize.'
+            WRITE(6,'(A,3I4)') 'XX N_partition_s, N_partiton_r, nsize=', &
+                                   N_partition_s, N_partition_r, nsize
          END IF
          ierr=1
          RETURN
       END IF
 
-!     ----- Set matrix size -----
-      call fp_comm_split_s(N_partition_s,colors,keys,ncoms)
-      call fp_comm_split_r(N_partition_r,colorr,keyr,ncomr)
-      IF(NPROCS.GT.1) THEN
-         NSASTART = (NSAMAX/N_partition_s)*colors+1
-         NSAEND =   (NSAMAX/N_partition_s)*(colors+1)
-      ELSE
-         NSASTART=1
-         NSAEND=NSAMAX
-      END IF
+!     ----- Set commpunicator -----
+      CALL mtx_comm_split(N_partition_s,comm_nsa)
+!      nranks=comm_nsa%rank
+!      nsizes=comm_nsa%size
+       colors=comm_nsa%rankg
+!      keys=  comm_nsa%rankl
+
+      CALL mtx_comm_split(N_partition_r,comm_nr)
+!      nrankr=comm_nr%rank
+!      nsizer=comm_nr%size
+!      colorr=comm_nr%rankg
+!      keyr=  comm_nr%rankl
+
+      NSASTART = (NSAMAX/N_partition_s)*colors+1
+      NSAEND =   (NSAMAX/N_partition_s)*(colors+1)
 
 !      WRITE(*,'(A,5I4)') "NRANK, colors, NRANKS, colorr, NRANKR", &
 !           nrank, colors, nranks, colorr, nrankr
@@ -445,7 +452,9 @@
       ELSE
          imtxwidth=4*nthmax*npmax-1
       ENDIF
-      CALL mtx_setup(imtxsize,imtxstart,imtxend,imtxwidth,ncoms)
+      CALL mtx_set_communicator(comm_nsa,nrank,nsize)
+      CALL mtx_setup(imtxsize,imtxstart,imtxend,imtxwidth)
+      CALL mtx_reset_communicator(nrank,nsize)
       nrstart=(imtxstart-1)/(nthmax*npmax)+1
       nrend=  (imtxend  -1)/(nthmax*npmax)+1
       nrend1= (imtxend    )/(nthmax*npmax)+1
@@ -456,20 +465,22 @@
       ENDIF
       nmstart=nthmax*npmax*(nrstart-1)+1
       nmend  =nthmax*npmax* nrend
-      CALL mtx_gather_integer(imtxstart,ima1)
-      CALL mtx_gather_integer(imtxend,  ima2)
-      CALL mtx_gather_integer(nrstart,  nra1)
-      CALL mtx_gather_integer(nrend,    nra2)
-      CALL mtx_gather_integer(nmstart,  nma1)
-      CALL mtx_gather_integer(nmend,    nma2)
-      CALL mtx_gather_integer(nsastart,insa1)
-      CALL mtx_gather_integer(nsaend,  insa2)
+      CALL mtx_gather1_integer(imtxstart,ima1)
+      CALL mtx_gather1_integer(imtxend,  ima2)
+      CALL mtx_gather1_integer(nrstart,  nra1)
+      CALL mtx_gather1_integer(nrend,    nra2)
+      CALL mtx_gather1_integer(nmstart,  nma1)
+      CALL mtx_gather1_integer(nmend,    nma2)
+      CALL mtx_gather1_integer(nsastart,insa1)
+      CALL mtx_gather1_integer(nsaend,  insa2)
       IF(nrank.EQ.0) THEN
          write(6,'(A,2I10)') '  imtxsize,imtxwidth=',imtxsize,imtxwidth
-         write(6,'(A,A)') '     nrank   imtxstart   imtxend   nrstart',&
-                          '     nrend   nmstart     nmend      nsastart      nsaend'
-         DO N=1,nprocs
-            write(6,'(9I10)') N,ima1(N),ima2(N),nra1(N),nra2(N),nma1(N),nma2(N),insa1(N),insa2(N)
+         write(6,'(A,A)') '     nrank   imtxstart   imtxend   nrstart', &
+                          '     nrend   nmstart     nmend      nsastart', &
+                          '      nsaend'
+         DO N=1,nsize
+            write(6,'(9I10)') N,ima1(N),ima2(N),nra1(N),nra2(N), &
+                              nma1(N),nma2(N),insa1(N),insa2(N)
          ENDDO
       ENDIF
       CALL mtx_cleanup
@@ -483,17 +494,18 @@
 !     ----- Get mtxlen and mtxpos -----
 !     MTXLEN(NRANK+1): the number of NR grid points for each RANK
 !     MTXPOS(NRANK):
-      CALL mtx_allgather_integer(nrend-nrstart+1,mtxlen)
-      CALL mtx_allgather_integer(nrstart-1,mtxpos)
-      CALL mtx_allgather_integer(nrend-nrstart+1,savlen)
+!
+      CALL mtx_allgather1_integer(nrend-nrstart+1,mtxlen)
+      CALL mtx_allgather1_integer(nrstart-1,mtxpos)
+      CALL mtx_allgather1_integer(nrend-nrstart+1,savlen)
       NSW=NSAEND-NSASTART+1
       DO N=1,NSW
          NSA=N+NSASTART-1
-         CALL fp_allgather_integer_sav( (nsa-1)*NRMAX+NRSTART,N,NSW,ncomw)
+         CALL mtx_allgather1_integer((nsa-1)*NRMAX+NRSTART,savpos(1:nsize,N))
       END DO
 
       if(nrank.eq.0) then
-!         DO N=1,NPROCS
+!         DO N=1,NSIZE
 !            WRITE(6,'(A,5I8)') '  nrank,mtxpos,mtxlen = ', &
 !                                   n-1,mtxpos(n),mtxlen(n)
 !         ENDDO
@@ -681,12 +693,13 @@
 !!!!
       allocate(work(nrstart:nrendx),workg(NRMAX))
 
+      CALL mtx_set_communicator(comm_nsa,nrank,nsize)
+
       DO NR=NRSTART,NRENDX
          work(NR)=RCOEFN(NR)
       ENDDO
-      CALL fp_gatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
-           workg,NRMAX,MTXLEN,MTXPOS,ncoms)
-      CALL mtx_broadcast_real8(workg,NRMAX)
+      CALL mtx_allgatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+                                workg,NRMAX,MTXLEN,MTXPOS)
       DO NR=1,NRMAX
          RCOEFNG(NR)=workg(NR)
       ENDDO
@@ -694,12 +707,13 @@
       DO NR=NRSTART,NRENDX
          work(NR)=RCOEFN_G(NR)
       ENDDO
-      CALL fp_gatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
-           workg,NRMAX,MTXLEN,MTXPOS,ncoms)
-      CALL mtx_broadcast_real8(workg,NRMAX)
+      CALL mtx_allgatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+                                workg,NRMAX,MTXLEN,MTXPOS)
       DO NR=2,NRMAX
          RCOEFN_GG(NR)=workg(NR)
       ENDDO
+
+      CALL mtx_reset_communicator(nrank,nsize)
 
 !      IF(NRANK.eq.0)THEN
 !         open(8,file='rcoefng_norfsad.dat')
@@ -822,7 +836,7 @@
          END DO
          CALL FPWEIGHT(NSA,IERR)
       END DO
-      CALL source_allreduce(SPPF,ncomr)
+!      CALL source_allreduce(SPPF,ncomr)
       ISAVE=0
       IF(NTG1.eq.0) CALL FPWAVE_CONST ! all nrank must have RPWT  
       CALL FPSSUB

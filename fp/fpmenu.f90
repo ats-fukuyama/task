@@ -16,6 +16,7 @@
       USE fpfout
       USE plinit
       USE fpfile
+      USE libmpi
       USE libmtx
 
       IMPLICIT NONE

@@ -24,8 +24,10 @@
       NSBA=NSB_NSA(NSA)
 !      WRITE(*,*) "NRANK, NSA = ",NRANK,NSA
 
+      CALL mtx_set_communicator(comm_nsa,nrank,nsize)
+
 !     ----- Set up matrix solver -----
-      CALL mtx_setup(imtxsize,imtxstart1,imtxend1,imtxwidth,ncoms)
+      CALL mtx_setup(imtxsize,imtxstart1,imtxend1,imtxwidth)
       IF(imtxstart1.NE.imtxstart.OR.imtxend1.NE.imtxend) THEN
          WRITE(6,*) 'XX fp_drexec: '
          WRITE(6,*) '   imtxstart1.NE.imtxstart.OR.imtxend1.NE.imtxend'
@@ -181,15 +183,15 @@
 
 !     ----- Solve matrix equation -----
 
-      CALL mtx_solve(ncoms,imtx,epsm,its,MODEL_KSP,MODEL_PC)! ncom is necessary for MUMPS
-      if(nranks.eq.0) then
+      CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC)! ncom is necessary for MUMPS
+      if(nrank.eq.0) then
          write(6,'(A,3I4)') 'Number of iterations p, r, NSA =',its1, its, NSA
       endif
       ierr=0
 
 !     ----- Get solution vector -----
 
-      CALL mtx_gather_vector(BMTOT,ncoms)
+      CALL mtx_gather_vector(BMTOT)
       
       DO NR=NRSTART,NREND
          DO NP=1,NPMAX
@@ -223,6 +225,8 @@
 !     ----- Clean up matrix solver -----
 
       CALL mtx_cleanup
+
+      CALL mtx_reset_communicator(nrank,nsize)
 
       RETURN
       END SUBROUTINE FP_DREXEC

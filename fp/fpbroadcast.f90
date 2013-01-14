@@ -8,6 +8,7 @@ CONTAINS
 
     SUBROUTINE fp_eq_broadcast
 
+      USE libmpi
       USE libmtx
       INCLUDE '../eq/eqcomc.inc'
       INTEGER,DIMENSION(3):: idata

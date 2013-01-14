@@ -960,7 +960,7 @@
       double precision,dimension(:),allocatable::DDATA
       double precision,dimension(:),allocatable::DDATA_R
       INTEGER:: NOFFSET, NR2, NLENGTH, NALL
-      INTEGER,dimension(NPROCS)::COMPOS, COMLEN
+      INTEGER,dimension(nsize)::COMPOS, COMLEN
       double precision,dimension(NSAMAX*2)::tempr_in, tempr_out
       double precision,dimension(NRSTART:NRENDX,NSAMAX):: work
       double precision,dimension(NRMAX,NSAMAX):: workg
@@ -970,42 +970,24 @@
       NSW=NSAEND-NSASTART+1
       DO N=1,NSW
          NSA=N+NSASTART-1
-         CALL fp_gatherv_real8_sav(RNSL,SAVLEN(NRANK+1), &
-              RNS,N,NSA,ncomw)
-         CALL fp_gatherv_real8_sav(RJSL,SAVLEN(NRANK+1), &
-              RJS,N,NSA,ncomw)
-         CALL fp_gatherv_real8_sav(RWSL,SAVLEN(NRANK+1), &
-              RWS,N,NSA,ncomw)
-         CALL fp_gatherv_real8_sav(RWS123L,SAVLEN(NRANK+1), &
-              RWS123,N,NSA,ncomw)
-         CALL fp_gatherv_real8_sav(RPCSL,SAVLEN(NRANK+1), &
-              RPCS,N,NSA,ncomw)
-         CALL fp_gatherv_real8_sav(RPWSL,SAVLEN(NRANK+1), &
-              RPWS,N,NSA,ncomw)
-         CALL fp_gatherv_real8_sav(RPESL,SAVLEN(NRANK+1), &
-              RPES,N,NSA,ncomw)
-         CALL fp_gatherv_real8_sav(RLHSL,SAVLEN(NRANK+1), &
-              RLHS,N,NSA,ncomw)
-         CALL fp_gatherv_real8_sav(RFWSL,SAVLEN(NRANK+1), &
-              RFWS,N,NSA,ncomw)
-         CALL fp_gatherv_real8_sav(RECSL,SAVLEN(NRANK+1), &
-              RECS,N,NSA,ncomw)
-         CALL fp_gatherv_real8_sav(RICSL,SAVLEN(NRANK+1), &
-              RICS,N,NSA,ncomw)
-         CALL fp_gatherv_real8_sav(RSPBL,SAVLEN(NRANK+1), &
-              RSPB,N,NSA,ncomw)
-         CALL fp_gatherv_real8_sav(RSPFL,SAVLEN(NRANK+1), &
-              RSPF,N,NSA,ncomw)
-         CALL fp_gatherv_real8_sav(RSPSL,SAVLEN(NRANK+1), &
-              RSPS,N,NSA,ncomw)
-         CALL fp_gatherv_real8_sav(RSPLL,SAVLEN(NRANK+1), &
-              RSPL,N,NSA,ncomw)
-         CALL fp_gatherv_real8_sav(RPDRL,SAVLEN(NRANK+1), &
-              RPDR,N,NSA,ncomw)
-         CALL fp_gatherv_real8_sav(RNDRL,SAVLEN(NRANK+1), &
-              RNDR,N,NSA,ncomw)
-         CALL fp_gatherv_real8_sav(RTL_BULK,SAVLEN(NRANK+1), &
-              RT_BULK,N,NSA,ncomw)
+         CALL fp_gatherv_real8_sav(RNSL,SAVLEN(NRANK+1),RNS,N,NSA)
+         CALL fp_gatherv_real8_sav(RJSL,SAVLEN(NRANK+1),RJS,N,NSA)
+         CALL fp_gatherv_real8_sav(RWSL,SAVLEN(NRANK+1),RWS,N,NSA)
+         CALL fp_gatherv_real8_sav(RWS123L,SAVLEN(NRANK+1),RWS123,N,NSA)
+         CALL fp_gatherv_real8_sav(RPCSL,SAVLEN(NRANK+1),RPCS,N,NSA)
+         CALL fp_gatherv_real8_sav(RPWSL,SAVLEN(NRANK+1),RPWS,N,NSA)
+         CALL fp_gatherv_real8_sav(RPESL,SAVLEN(NRANK+1),RPES,N,NSA)
+         CALL fp_gatherv_real8_sav(RLHSL,SAVLEN(NRANK+1),RLHS,N,NSA)
+         CALL fp_gatherv_real8_sav(RFWSL,SAVLEN(NRANK+1),RFWS,N,NSA)
+         CALL fp_gatherv_real8_sav(RECSL,SAVLEN(NRANK+1),RECS,N,NSA)
+         CALL fp_gatherv_real8_sav(RICSL,SAVLEN(NRANK+1),RICS,N,NSA)
+         CALL fp_gatherv_real8_sav(RSPBL,SAVLEN(NRANK+1),RSPB,N,NSA)
+         CALL fp_gatherv_real8_sav(RSPFL,SAVLEN(NRANK+1),RSPF,N,NSA)
+         CALL fp_gatherv_real8_sav(RSPSL,SAVLEN(NRANK+1),RSPS,N,NSA)
+         CALL fp_gatherv_real8_sav(RSPLL,SAVLEN(NRANK+1),RSPL,N,NSA)
+         CALL fp_gatherv_real8_sav(RPDRL,SAVLEN(NRANK+1),RPDR,N,NSA)
+         CALL fp_gatherv_real8_sav(RNDRL,SAVLEN(NRANK+1),RNDR,N,NSA)
+         CALL fp_gatherv_real8_sav(RTL_BULK,SAVLEN(NRANK+1),RT_BULK,N,NSA)
       END DO
       DO NSB=1,NSBMAX
          DO NSA=NSASTART,NSAEND
@@ -1015,8 +997,7 @@
          END DO
          DO N=1,NSW
             NSA=N+NSASTART-1
-            CALL fp_gatherv_real8_sav(work,SAVLEN(NRANK+1), &
-                 workg,N,NSA,ncomw)
+            CALL fp_gatherv_real8_sav(work,SAVLEN(NRANK+1),workg,N,NSA)
          ENDDO
 
          DO NSA=1,NSAMAX

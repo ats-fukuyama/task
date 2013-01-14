@@ -11,6 +11,7 @@
       use fpdrexec
       use fpcoef
       use fpsave
+      use libmpi
       contains
 
 !-----------------------------
@@ -29,7 +30,7 @@
       real(kind8):: RSUM, DELEM, RJNL, dw, RSUM1, RSUM2
       real(4):: gut, gut1, gut2, gut3, gut4, gut5, gut6
       real(4):: gut_ex, gut_coef, gut_1step
-      real(kind8),DIMENSION(nprocs):: RSUMA
+      real(kind8),DIMENSION(nsize):: RSUMA
       integer,dimension(NSAMAX)::NTCLSTEP2
       real(kind8):: DEPS_MAX, DEPS, DEPS1
 !      real(kind8),dimension(NSAMAX):: DEPS_MAXV, DEPSV
@@ -42,6 +43,7 @@
       real(kind8):: temp_send, temp_recv
       character:: fmt*40
       integer:: modela_temp, NSW, NSWI,its
+      integer:: ILOC1
 
       IF(MODELE.NE.0) CALL FPNEWE
 
@@ -146,15 +148,20 @@
             END DO
 
             DEPS_MAX=0.D0
-            CALL mtx_reduce_real8(DEPS,1,DEPS_MAX,ncomw) ! convergence condition
+            CALL mtx_reduce1_real8(DEPS,1,DEPS_MAX,ILOC1) ! convergence condition
             DEPS = DEPS_MAX
             IF(DEPS.le.EPSFP)THEN
                N_IMPL=1+LMAXFP ! exit dowhile
             ENDIF
 
-            CALL fp_maxloc_real8(DEPSV,NSW,NRANKS,ncoms,DEPS_MAXVL,ILOCL)
-            CALL fp_gather_real8_deps(DEPS_MAXVL,nsw,ncomr,DEPS_MAXV) 
-            CALL fp_gather_integer_deps(ILOCL,nsw,ncomr,ILOC) 
+            CALL mtx_set_communicator(comm_nsa,nrank,nsize)
+            CALL mtx_allreduce_real8(DEPSV,NSW,1,DEPS_MAXVL,ILOCL)
+
+            CALL mtx_set_communicator(comm_nr,nrank,nsize)
+            CALL mtx_gather_real8(DEPS_MAXVL,nsw,DEPS_MAXV) 
+            CALL mtx_gather_integer(ILOCL,nsw,ILOC) 
+
+            CALL mtx_reset_communicator(nrank,nsize)
 
             IF(nrank.eq.0) THEN
                WRITE(fmt,'(a16,I1,a6,I1,a3)') &
@@ -170,7 +177,7 @@
             DO NSA=NSASTART,NSAEND
                   IF (MOD(NT,NTCLSTEP).EQ.0) CALL FP_COEF(NSA)
             END DO
-            CALL source_allreduce(SPPF,ncomr)
+!            CALL source_allreduce(SPPF,ncomr)
 
             CALL GUTIME(gut4)
             GUT_COEF = GUT_COEF + (gut4-gut3)
@@ -293,8 +300,9 @@
 
       DO NSWI=1, NSW
          NSA=NSASTART-1+NSWI
-!         NSA=NSASTART
-         CALL fp_gather_fns_rs(nsa,ncomw,FNSP,FNS)
+         CALL mtx_gather_real8(FNSP(1:NTHMAX,1:NPMAX,nrstart,nsa), &
+                               NTHMAX*NPMAX*(NREND-NRSTART+1), &
+                               FNS(1:NTHMAX,1:NPMAX,1:NRMAX,nsa))
       END DO
 
 !      IF(NRANK.eq.0)THEN

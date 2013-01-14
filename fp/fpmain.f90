@@ -27,7 +27,7 @@
       implicit none
       integer:: IERR
 
-      CALL mtx_initialize(nrank,nprocs,ncomw)
+      CALL mtx_initialize(nrank,nsize)
       IF(nrank.EQ.0) THEN
          WRITE(6,*) '***** TASK/FP 2009/09/18 *****'
          CALL GSOPEN

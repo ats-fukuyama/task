@@ -454,6 +454,7 @@
       SUBROUTINE fp_broadcast
 
       USE fpcomm
+      USE libmpi
       USE libmtx
       IMPLICIT NONE
       INTEGER,DIMENSION(36):: idata
@@ -773,7 +774,8 @@
            NSSPF,SPFTOT,SPFR0,SPFRW,SPFENG,&
            ZEFF,DELT,RIMPL,EPSM,EPSE,EPSDE,H0DE, &
            nsamax,nsbmax,ns_nsa,ns_nsb,pmax,tloss,MODELS,NCMIN,NCMAX, &
-           nbeammax,DRRS,MODEL_KSP,MODEL_PC,N_partition_s,N_partition_r,NPROCS
+           nbeammax,DRRS,MODEL_KSP,MODEL_PC,N_partition_s,N_partition_r, &
+           nsize
       IMPLICIT NONE
       integer:: nsa,nsb,ns,NBEAM
 
@@ -968,7 +970,7 @@
       END IF
 
       WRITE(6,*) "-------- MPI CONFIGURATION --------"
-      WRITE(6,'(A,I4)') "THE NUMBER MPI PROCESS   =", NPROCS
+      WRITE(6,'(A,I4)') "THE NUMBER MPI PROCESS   =", nsize
       WRITE(6,'(A,I4)') "PARTITION NUMBER FOR NSA =", N_partition_s
       WRITE(6,'(A,I4)') "PARTITION NUMBER FOR NR  =", N_partition_r
 

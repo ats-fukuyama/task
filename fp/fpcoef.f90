@@ -241,7 +241,7 @@
             END DO
          END DO
       END IF
-!      WRITE(6,*) NRSTART, NRANK, NPROCS
+!      WRITE(6,*) NRSTART, NRANK, NSIZE
 !     ----- Collisional slowing down and diffusion term -----
       CALL FP_CALC(NSA)
 !      IF(NRANK.eq.1.and.NSA.eq.1)THEN
@@ -856,9 +856,6 @@
          ELSE
             CALL FUSION_SOURCE_S2A1(NSA)            
          END IF
-!         IF(NSA.eq.3.and.nranks.eq.0) WRITE(*,*) "SPPF1", SPPF(1,1,1,3), SPPF(1,1,1,4)
-!         CALL mtx_allreduce_source(SPPF,ncomr)
-!         IF(NSA.eq.3.and.nranks.eq.0) WRITE(*,*) "SPPF2", SPPF(1,1,1,3), SPPF(1,1,1,4)
 
       ENDIF ! MODELS=2
 !
