@@ -9,38 +9,25 @@
       MODULE libmtx
 
       use libmpi
+      PRIVATE
 
       PUBLIC mtx_initialize
       PUBLIC mtx_finalize
-      PUBLIC mtx_barrier
-      PUBLIC mtx_broadcast_character
-      PUBLIC mtx_broadcast_integer
-      PUBLIC mtx_broadcast_real8
-      PUBLIC mtx_broadcast_complex8
-      PUBLIC mtx_gather_integer
-      PUBLIC mtx_gather_real8
-      PUBLIC mtx_gather_fns
-      PUBLIC mtx_allgather_integer
-      PUBLIC mtx_gatherv_real8
-      PUBLIC mtx_allgatherv_real8
-      PUBLIC mtx_allgatherv_real8_local
-      PUBLIC mtx_reduce_real8
-      PUBLIC mtx_maxloc_real8
-      PUBLIC mtx_reduce_v_real8
-      PUBLIC mtx_broadcast_integer1
+      PUBLIC mtx_set_communicator
+      PUBLIC mtx_reset_communicator
 
       PUBLIC mtx_setup
-!      PUBLIC mtx_setup_RS
       PUBLIC mtx_set_matrix
       PUBLIC mtx_set_source
       PUBLIC mtx_set_vector
       PUBLIC mtx_solve
       PUBLIC mtx_get_vector
       PUBLIC mtx_gather_vector
-!      PUBLIC mtx_gather_vector_local
       PUBLIC mtx_cleanup
 
-      PRIVATE
+      TYPE(mtx_mpi_type):: mtx_global
+      INTEGER:: ncomm,nrank,nsize
+
       INTEGER:: imax,jmax,joffset,ierr
       REAL(8),DIMENSION(:),POINTER:: x,b
       REAL(8),DIMENSION(:,:),POINTER:: A
@@ -51,16 +38,80 @@
 
       CONTAINS
 
-      SUBROUTINE mtx_setup(imax_,istart_,iend_,jwidth_,ncom)
+      SUBROUTINE mtx_initialize(nrank_,nsize_)
+      IMPLICIT NONE
+      INTEGER,INTENT(OUT):: nrank_,nsize_
+      INTEGER:: ierr
+
+
+      ncomm=0
+      CALL mtx_set_communicator_global(ncomm,nrank,nsize)
+      nrank_=nrank
+      nsize_=nsize
+      mtx_global%comm=ncomm
+      mtx_global%rank=nrank
+      mtx_global%size=nsize
+      mtx_global%rankg=0
+      mtx_global%sizeg=1
+      mtx_global%rankl=nrank
+      mtx_global%sizel=nsize
+      return
+      END SUBROUTINE mtx_initialize
+
+!-----
+
+      SUBROUTINE mtx_finalize
+      IMPLICIT NONE
+      INTEGER:: ierr
+
+      RETURN
+      END SUBROUTINE mtx_finalize
+
+!-----
+
+      SUBROUTINE mtx_set_communicator(mtx_mpi,nrank_,nsize_)
+        IMPLICIT NONE
+        TYPE(mtx_mpi_type),INTENT(IN):: mtx_mpi
+        INTEGER,INTENT(OUT):: nrank_,nsize_
+
+        CALL mtx_set_communicator_local(mtx_mpi)
+        ncomm=mtx_mpi%comm
+        nrank=mtx_mpi%rank
+        nsize=mtx_mpi%size
+        nrank_=nrank
+        nsize_=nsize
+        return
+      END SUBROUTINE mtx_set_communicator
+
+!-----
+
+      SUBROUTINE mtx_reset_communicator(nrank_,nsize_)
+        IMPLICIT NONE
+        INTEGER,INTENT(OUT):: nrank_,nsize_
+
+        CALL mtx_reset_communicator_local
+        ncomm=mtx_global%comm
+        nrank=mtx_global%rank
+        nsize=mtx_global%size
+        nrank_=nrank
+        nsize_=nsize
+        return
+      END SUBROUTINE mtx_reset_communicator
+
+      SUBROUTINE mtx_setup(imax_,istart_,iend_,jwidth,nzmax)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: imax_           ! total matrix size
       INTEGER,INTENT(OUT):: istart_,iend_  ! allocated range of lines 
-      INTEGER,INTENT(IN):: jwidth_         ! band matrix width
-      INTEGER,INTENT(IN):: ncom            ! communicator
+      INTEGER,OPTIONAL,INTENT(IN):: jwidth ! band matrix width
+      INTEGER,OPTIONAL,INTENT(IN):: nzmax  ! number of nonzero components
       INTEGER:: i,j
 
       imax=imax_
-      jmax=jwidth_
+      IF(PRESENT(jwidth)) THEN
+         jmax=jwidth
+      ELSE
+         jmax=2*imax_-1
+      ENDIF
       ALLOCATE(A(jmax,imax))
       ALLOCATE(b(imax),x(imax))
       istart_=1
@@ -105,24 +156,10 @@
       RETURN
       END SUBROUTINE mtx_set_vector
       
-      SUBROUTINE mtx_add_vector(j,v)
-      IMPLICIT NONE
-      INTEGER,INTENT(IN):: j ! vector positon j=row
-      REAL(8),INTENT(IN):: v ! value to be inserted
-
-      x(j)=x(j)+v
-      RETURN
-      END SUBROUTINE mtx_add_vector
-      
-      SUBROUTINE mtx_split_operation
-      IMPLICIT NONE
-      RETURN
-      END SUBROUTINE mtx_split_operation
-      
-      SUBROUTINE mtx_solve(ncom,itype,tolerance,its, &
+      SUBROUTINE mtx_solve(itype,tolerance,its, &
            methodKSP,methodPC,damping_factor,emax,emin,max_steps)
       IMPLICIT NONE
-      INTEGER,INTENT(IN):: itype,ncom     ! not used
+      INTEGER,INTENT(IN):: itype     ! not used
       REAL(8),INTENT(IN):: tolerance ! not used
       INTEGER,INTENT(OUT):: its
       INTEGER,OPTIONAL:: methodKSP,methodPC,max_steps
@@ -162,10 +199,10 @@
       RETURN
       END SUBROUTINE mtx_get_vector
 
-      SUBROUTINE mtx_gather_vector(v,ncom)
+      SUBROUTINE mtx_gather_vector(v)
       IMPLICIT NONE
       REAL(8),DIMENSION(imax),INTENT(OUT):: v
-      INTEGER:: i,ncom
+      INTEGER:: i
 
       DO i=1,imax
          v(i)=x(i)

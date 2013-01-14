@@ -13,6 +13,7 @@
 
       PROGRAM testmtx
 
+      USE libmpi 
       USE libmtx 
       IMPLICIT NONE 
       INTEGER:: idimen,isiz,isource,itype,m1,m2
@@ -25,7 +26,7 @@
       REAL(8),DIMENSION(1):: ddata
       REAL(4):: cputime1,cputime2
 
-      CALL mtx_initialize(nrank,nprocs,ncom)
+      CALL mtx_initialize(nrank,nprocs)
       idimen=1
       isiz=11
       isource=6
@@ -88,7 +89,7 @@
       END SELECT
       ALLOCATE(x(imax))
 
-      CALL mtx_setup(imax,istart,iend,jwidth,ncom)
+      CALL mtx_setup(imax,istart,iend,jwidth=jwidth)
 
       SELECT CASE(idimen)
       CASE(1)
@@ -130,12 +131,12 @@
       IF(jsource.GE.istart.AND.jsource.LE.iend) &
            CALL mtx_set_source(jsource,-1.d0)
 
-      CALL mtx_solve(ncom,itype,tolerance,its,methodKSP=m1,methodPC=m2)
+      CALL mtx_solve(itype,tolerance,its,methodKSP=m1,methodPC=m2)
       if(nrank.eq.0) then
          write(6,*) 'Iteration Number=',its
       endif
 
-      CALL mtx_gather_vector(x,ncom)
+      CALL mtx_gather_vector(x)
 
       IF(nrank.eq.0) THEN
          SELECT CASE(idimen)
