@@ -19,7 +19,7 @@
       PUBLIC mtx_set_communicator_global
       PUBLIC mtx_set_communicator_local
       PUBLIC mtx_reset_communicator_local
-      PUBLIC mtx_comm_split
+      PUBLIC mtx_comm_split2D
       PUBLIC mtx_comm_free
       PUBLIC mtx_barrier
       PUBLIC mtx_broadcast1_character
@@ -123,45 +123,61 @@
 
 !-----
 
-      SUBROUTINE mtx_comm_split(ngroup,mtx_mpi)
+      SUBROUTINE mtx_comm_split2D(n1,n2,commx1,commx2)
         IMPLICIT NONE
-        INTEGER,INTENT(IN):: ngroup ! number of groups
-        TYPE(mtx_mpi_type),intent(OUT):: mtx_mpi
+        INTEGER,INTENT(IN):: n1,n2 ! number of groups
+        TYPE(mtx_mpi_type),intent(OUT):: commx1,commx2
         integer:: ierr
 
-        IF(ngroup > nsize) THEN
-           WRITE(6,*) 'XX mtx_comm_split: ngroup > nsize: ',ngroup,nsize
+        IF(n1*n2 > nsize) THEN
+           WRITE(6,*) 'XX mtx_comm_split2D: n1*n2 > nsize: ',n1,n2,nsize
            STOP
         ENDIF
-        mtx_mpi%sizel=ngroup
-        mtx_mpi%sizeg=nsize/ngroup
-        mtx_mpi%rankg=nrank/mtx_mpi%sizeg
-        mtx_mpi%rankl=nrank-mtx_mpi%rankg*mtx_mpi%sizeg
-        CALL MPI_Comm_split(ncomm,mtx_mpi%rankg,mtx_mpi%rankl, &
-                            mtx_mpi%comm,ierr)
+        commx1%sizeg=n2
+        commx2%sizeg=n1
+        commx1%sizel=n1
+        commx2%sizel=n2
+        commx1%rankg=nrank/n1
+        commx1%rankl=nrank - commx1%rankg*n1
+        commx2%rankl=nrank/n1
+        commx2%rankg=MOD(nrank,n1)
+
+        CALL MPI_Comm_split(ncomm,commx1%rankg,commx1%rankl, &
+                            commx1%comm,ierr)
         IF(ierr.ne.0) WRITE(6,*) &
-             "XX mtx_comm_split: MPI_Comm_split: ierr=", ierr
-        CALL MPI_Comm_rank(mtx_mpi%comm,mtx_mpi%rank,ierr)
+             "XX mtx_comm_split2D: MPI_Comm_split_1: ierr=", ierr
+        CALL MPI_Comm_split(ncomm,commx2%rankg,commx2%rankl, &
+                            commx2%comm,ierr)
         IF(ierr.ne.0) WRITE(6,*) &
-             "XX mtx_comm_split: MPI_Comm_rank: ierr=", ierr
-        CALL MPI_Comm_size(mtx_mpi%comm,mtx_mpi%size,ierr)
+             "XX mtx_comm_split2D: MPI_Comm_split_2: ierr=", ierr
+
+        CALL MPI_Comm_rank(commx1%comm,commx1%rank,ierr)
         IF(ierr.ne.0) WRITE(6,*) &
-             "XX mtx_comm_split: MPI_Comm_size: ierr=", ierr
+             "XX mtx_comm_split: MPI_Comm_rank_1: ierr=", ierr
+        CALL MPI_Comm_rank(commx2%comm,commx2%rank,ierr)
+        IF(ierr.ne.0) WRITE(6,*) &
+             "XX mtx_comm_split: MPI_Comm_rank_2: ierr=", ierr
+        CALL MPI_Comm_size(commx1%comm,commx1%size,ierr)
+        IF(ierr.ne.0) WRITE(6,*) &
+             "XX mtx_comm_split: MPI_Comm_size_1: ierr=", ierr
+        CALL MPI_Comm_size(commx2%comm,commx2%size,ierr)
+        IF(ierr.ne.0) WRITE(6,*) &
+             "XX mtx_comm_split: MPI_Comm_size_2: ierr=", ierr
         RETURN
-      END SUBROUTINE mtx_comm_split
+      END SUBROUTINE mtx_comm_split2D
 
 !-----
 
-      SUBROUTINE mtx_comm_free(mtx_mpi)
+      SUBROUTINE mtx_comm_free(commx)
 
         IMPLICIT NONE
-        TYPE(mtx_mpi_type),intent(INOUT):: mtx_mpi
+        TYPE(mtx_mpi_type),intent(INOUT):: commx
         integer:: ierr
 
-        CALL MPI_COMM_FREE(mtx_mpi%comm,ierr)
+        CALL MPI_COMM_FREE(commx%comm,ierr)
         IF(ierr.ne.0) WRITE(6,*) &
              "XX mtx_comm_free: MPI_Comm_free: ierr=", ierr
-        mtx_mpi%comm=0
+        commx%comm=0
         RETURN
       END SUBROUTINE mtx_comm_free
 

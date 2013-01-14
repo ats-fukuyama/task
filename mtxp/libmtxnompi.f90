@@ -18,7 +18,7 @@
       PUBLIC mtx_set_communicator_global
       PUBLIC mtx_set_communicator_local
       PUBLIC mtx_reset_communicator_local
-      PUBLIC mtx_comm_split
+      PUBLIC mtx_comm_split2D
       PUBLIC mtx_comm_free
       PUBLIC mtx_barrier
       PUBLIC mtx_broadcast1_character
@@ -117,24 +117,33 @@
 
 !-----
 
-      SUBROUTINE mtx_comm_split(ngroup,mtx_mpi)
+      SUBROUTINE mtx_comm_split2D(n1,n2,commx1,commx2)
         IMPLICIT NONE
-        INTEGER,INTENT(IN):: ngroup ! number of groups
-        TYPE(mtx_mpi_type),intent(OUT):: mtx_mpi
+        INTEGER,INTENT(IN):: n1,n2 ! number of groups
+        TYPE(mtx_mpi_type),intent(OUT):: commx1,commx2
 
-        IF(ngroup > nsize) THEN
-           WRITE(6,*) 'XX mtx_comm_split: ngroup > nsize: ',ngroup,nsize
+        IF(n1*n2 > nsize) THEN
+           WRITE(6,*) 'XX mtx_comm_split2D: n1*n2 > nsize: ',n1,n2,nsize
            STOP
         ENDIF
-        mtx_mpi%sizel=ngroup
-        mtx_mpi%sizeg=nsize/ngroup
-        mtx_mpi%rankg=nrank/mtx_mpi%sizeg
-        mtx_mpi%rankl=nrank-mtx_mpi%rankg*mtx_mpi%sizeg
-        mtx_mpi%comm=ncomm
-        mtx_mpi%rank=nrank
-        mtx_mpi%size=nsize
+
+        commx1%sizeg=n2
+        commx2%sizeg=n1
+        commx1%sizel=n1
+        commx2%sizel=n2
+        commx1%rankg=nrank/n1
+        commx1%rankl=nrank - commx1%rankg*n1
+        commx2%rankl=nrank/n1
+        commx2%rankg=MOD(nrank,n1)
+
+        commx1%comm=ncomm
+        commx2%comm=ncomm
+        commx1%rank=nrank
+        commx2%rank=nrank
+        commx1%size=nsize
+        commx2%size=nsize
         RETURN
-      END SUBROUTINE mtx_comm_split
+      END SUBROUTINE mtx_comm_split2D
 
 !-----
 

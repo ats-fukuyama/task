@@ -428,13 +428,12 @@
       END IF
 
 !     ----- Set commpunicator -----
-      CALL mtx_comm_split(N_partition_s,comm_nsa)
+      CALL mtx_comm_split2D(N_partition_s,N_partition_r,comm_nsa,comm_nr)
 !      nranks=comm_nsa%rank
 !      nsizes=comm_nsa%size
        colors=comm_nsa%rankg
 !      keys=  comm_nsa%rankl
 
-      CALL mtx_comm_split(N_partition_r,comm_nr)
 !      nrankr=comm_nr%rank
 !      nsizer=comm_nr%size
 !      colorr=comm_nr%rankg
