@@ -33,9 +33,7 @@
       real(kind8),DIMENSION(nsize):: RSUMA
       integer,dimension(NSAMAX)::NTCLSTEP2
       real(kind8):: DEPS_MAX, DEPS, DEPS1
-!      real(kind8),dimension(NSAMAX):: DEPS_MAXV, DEPSV
       real(kind8),dimension(NSASTART:NSAEND):: DEPS_MAXVL, DEPSV, DEPS_SS_LOCAL
-!      real(kind8),dimension(NSASTART:NSAEND):: DEPS_MAXV
       real(kind8),dimension(NSAMAX):: DEPS_MAXV
       integer,dimension(NSASTART:NSAEND):: ILOCL
       integer,dimension(NSAMAX):: ILOC
@@ -155,7 +153,7 @@
             CALL mtx_broadcast1_integer(N_IMPL)
 
             CALL mtx_set_communicator(comm_nsa,nrank,nsize)
-            CALL mtx_allreduce_real8(DEPSV,NSW,1,DEPS_MAXVL,ILOCL,NSASTART)
+            CALL mtx_allreduce_real8(DEPSV,NSW,4,DEPS_MAXVL,ILOCL)
 
             CALL mtx_set_communicator(comm_nr,nrank,nsize)
             CALL mtx_gather_real8(DEPS_MAXVL,nsw,DEPS_MAXV) 

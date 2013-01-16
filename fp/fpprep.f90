@@ -36,13 +36,8 @@
 
 !     ----- exec EQ -----
 
-      IF(MODELG.EQ.3) THEN
+      IF(MODELG.EQ.3.OR.MODELG.EQ.8) THEN
          IF(nrank.EQ.0) THEN
-            IF(MODELG.EQ.8) THEN !JAEA model
-               write(6,'(A,A1,A,A1)') 'knameq2=','"',KNAMEQ2,'"'
-               WRITE(line,'(A,A1,A,A1)') 'knameq2=','"',KNAMEQ2,'"'
-               CALL eq_parm(2,line,ierr)
-            END IF
             CALL eq_load(MODELG,KNAMEQ,IERR)
             IF(IERR.NE.0) THEN
                write(6,*) 'XX FPMESH:EQLOAD:IERR=',IERR
@@ -115,6 +110,8 @@
          BP= RSRHON(RHON)*BT/(RR*QL)
          EPSRM(NR)=RSRHON(RHON)/RR
          BPM(NR)= RSRHON(RHON)*BT/(RR*QL)
+!         write(6,'(A,I5,1P4E12.4)') 'nr,rm,epsrm,bpm=', &
+!              NR,RM(NR),RSRHON(RHON),EPSRM(NR),BPM(NR)
       ENDDO
 !      RHON=RG(NRMAX+1)
       RHON=RM(NRMAX)+DELR
@@ -215,11 +212,11 @@
             ITU(NR)=NTHMAX-NTH+1
 
             EPSL=COSM(ITL(NR))**2/(2.D0-COSM(ITL(NR))**2)
-            IF(nsize.gt.1.and.NRANK.eq.1) &
-                 WRITE(6,'(A,3I5,1P2E12.4)') 'NR,ITL,ITU,EPSRM=',NR,ITL(NR),ITU(NR),EPSRM(NR),EPSL
+
+!            WRITE(6,'(A,3I5,1P2E12.4)') 'NR,ITL,ITU,EPSRM=', &
+!                          NR,ITL(NR),ITU(NR),EPSRM(NR),EPSL
             EPSRM2(NR) = EPSRM(NR)
             EPSRM(NR)=EPSL
-!            EPSRM2(NR) = EPSRM(NR)
          ENDDO
 
          IF(NRANK.eq.1) WRITE(6,*) " "

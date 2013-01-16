@@ -51,7 +51,7 @@
 
          ncount = NTHMAX*NPMAX*(NREND-NRSTART+2)*NSAMAX
 
-         CALL mtx_allreduce_real8(sendbuf, ncount, 1, recvbuf,lloc, NSASTART)
+         CALL mtx_allreduce_real8(sendbuf, ncount, 1, recvbuf,lloc)
 
          array(:,:,:,:) = recvbuf(:,:,:,:)
 
