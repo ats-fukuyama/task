@@ -133,19 +133,20 @@
            WRITE(6,*) 'XX mtx_comm_split2D: n1*n2 > nsize: ',n1,n2,nsize
            STOP
         ENDIF
-        commx1%sizeg=n1 ! number of groups
-        commx1%sizel=n2 ! number of processors in the group
+        commx1%sizeg=n1       ! number of groups
+        commx1%sizel=n2       ! number of processors in the group
         commx1%rankg=nrank/n2 ! colors
         commx1%rankl=nrank - commx1%rankg*n2 ! keys
 
         commx2%sizeg=n2
         commx2%sizel=n1
         commx2%rankg=MOD(nrank+1,n2) ! colorr
-        commx2%rankl=nrank/n2 ! keyr
+        commx2%rankl=nrank/n2        ! keyr
 
         CALL MPI_Comm_split(ncomm,commx1%rankg,commx1%rankl, &
                             commx1%comm,ierr)
         IF(ierr.ne.0) WRITE(6,*) &
+
              "XX mtx_comm_split2D: MPI_Comm_split_1: ierr=", ierr
         CALL MPI_Comm_split(ncomm,commx2%rankg,commx2%rankl, &
                             commx2%comm,ierr)
@@ -781,22 +782,36 @@
       INTEGER,INTENT(IN):: ndata,nop
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vreduce
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
-      INTEGER:: ierr
+      INTEGER,DIMENSION(2,ndata):: d_send, d_recv
+      INTEGER:: ierr,i
 
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_REDUCE(vdata,vreduce,ndata,MPI_INTEGER, &
                          MPI_MAX,0,ncomm,ierr)
-         CALL MPI_REDUCE(vdata,vloc,ndata,MPI_2INTEGER, &
-                         MPI_MAXLOC,0,ncomm,ierr)
       CASE(2)! MIN
          CALL MPI_REDUCE(vdata,vreduce,ndata,MPI_INTEGER, &
                          MPI_MIN,0,ncomm,ierr)
-         CALL MPI_REDUCE(vdata,vloc,ndata,MPI_2INTEGER, &
-                         MPI_MINLOC,0,ncomm,ierr)
       CASE(3)! SUM
          CALL MPI_REDUCE(vdata,vreduce,ndata,MPI_INTEGER, &
                          MPI_SUM,0,ncomm,ierr)
+      CASE(4,5)! MAX/MINOC
+         DO i=1,ndata
+            d_send(1,i)=vdata(i)
+            d_send(2,i)=nrank
+         END DO
+         SELECT CASE(NOP)
+         CASE(4) ! MAXLOC
+            CALL MPI_REDUCE(d_send,d_recv,ndata,MPI_2INTEGER, &
+                            MPI_MAXLOC,0,ncomm,ierr)
+         CASE(5) ! MINLOC
+            CALL MPI_REDUCE(d_send,d_recv,ndata,MPI_2INTEGER, &
+                            MPI_MINLOC,0,ncomm,ierr)
+         END SELECT
+         DO i=1,ndata
+            vreduce(i)=d_recv(1,i)
+            vloc(i)=d_recv(2,i)
+         END DO
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_reduce_integer: MPI_REDUCE: ierr=',ierr
@@ -810,32 +825,37 @@
       REAL(8),DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,INTENT(IN):: ndata,nop
       REAL(8),DIMENSION(ndata),INTENT(OUT):: vreduce
-      DOUBLE PRECISION,DIMENSION(2,ndata):: d_send, d_recv
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
+      DOUBLE PRECISION,DIMENSION(2,ndata):: d_send, d_recv
       INTEGER:: ierr, i
 
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_REDUCE(vdata,vreduce,ndata,MPI_DOUBLE_PRECISION, &
                          MPI_MAX,0,ncomm,ierr)
+      CASE(2)! MIN
+         CALL MPI_REDUCE(vdata,vreduce,ndata,MPI_DOUBLE_PRECISION, &
+                         MPI_MIN,0,ncomm,ierr)
+      CASE(3)! SUM
+         CALL MPI_REDUCE(vdata,vreduce,ndata,MPI_DOUBLE_PRECISION, &
+                         MPI_SUM,0,ncomm,ierr)
+      CASE(4,5)! MAX/MINLOC
          DO i=1,ndata
             d_send(1,i)=vdata(i)
             d_send(2,i)=nrank*1.D0
          END DO
-         CALL MPI_REDUCE(d_send,d_recv,ndata,MPI_2DOUBLE_PRECISION, &
-                         MPI_MAXLOC,0,ncomm,ierr)
+         SELECT CASE(NOP)
+         CASE(4) ! MAXLOC
+            CALL MPI_REDUCE(d_send,d_recv,ndata,MPI_2DOUBLE_PRECISION, &
+                            MPI_MAXLOC,0,ncomm,ierr)
+         CASE(5) ! MINLOC
+            CALL MPI_REDUCE(d_send,d_recv,ndata,MPI_2DOUBLE_PRECISION, &
+                            MPI_MINLOC,0,ncomm,ierr)
+         END SELECT
          DO i=1,ndata
+            vreduce(i)=d_recv(1,i)
             vloc(i)=idint(d_recv(2,i))
          END DO
-
-      CASE(2)! MIN
-         CALL MPI_REDUCE(vdata,vreduce,ndata,MPI_DOUBLE_PRECISION, &
-                         MPI_MIN,0,ncomm,ierr)
-         CALL MPI_REDUCE(vdata,vloc,ndata,MPI_2DOUBLE_PRECISION, &
-                         MPI_MINLOC,0,ncomm,ierr)
-      CASE(3)! SUM
-         CALL MPI_REDUCE(vdata,vreduce,ndata,MPI_DOUBLE_PRECISION, &
-                         MPI_SUM,0,ncomm,ierr)
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_reduce_real8: MPI_REDUCE: ierr=',ierr
@@ -850,22 +870,36 @@
       INTEGER,INTENT(IN):: ndata,nop
       COMPLEX(8),DIMENSION(ndata),INTENT(OUT):: vreduce
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
-      INTEGER:: ierr
+      COMPLEX(8),DIMENSION(2,ndata):: d_send, d_recv
+      INTEGER:: ierr,i
 
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_REDUCE(vdata,vreduce,ndata,MPI_DOUBLE_COMPLEX, &
                          MPI_MAX,0,ncomm,ierr)
-         CALL MPI_REDUCE(vdata,vloc,ndata,MPI_2DOUBLE_COMPLEX, &
-                         MPI_MAXLOC,0,ncomm,ierr)
       CASE(2)! MIN
          CALL MPI_REDUCE(vdata,vreduce,ndata,MPI_DOUBLE_COMPLEX, &
                          MPI_MIN,0,ncomm,ierr)
-         CALL MPI_REDUCE(vdata,vloc,ndata,MPI_2DOUBLE_COMPLEX, &
-                         MPI_MINLOC,0,ncomm,ierr)
       CASE(3)! SUM
          CALL MPI_REDUCE(vdata,vreduce,ndata,MPI_DOUBLE_COMPLEX, &
                          MPI_SUM,0,ncomm,ierr)
+      CASE(4,5)! MAX/MINLOC
+         DO i=1,ndata
+            d_send(1,i)=vdata(i)
+            d_send(2,i)=nrank*1.D0
+         END DO
+         SELECT CASE(NOP)
+         CASE(4) ! MAXLOC
+            CALL MPI_REDUCE(d_send,d_recv,ndata,MPI_2DOUBLE_COMPLEX, &
+                            MPI_MAXLOC,0,ncomm,ierr)
+         CASE(5) ! MINLOC
+            CALL MPI_REDUCE(d_send,d_recv,ndata,MPI_2DOUBLE_COMPLEX, &
+                            MPI_MINLOC,0,ncomm,ierr)
+         END SELECT
+         DO i=1,ndata
+            vreduce(i)=d_recv(1,i)
+            vloc(i)=idint(real(d_recv(2,i)))
+         END DO
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_reduce_complex8: MPI_REDUCE: ierr=',ierr
@@ -893,7 +927,7 @@
       
 !-----
 
-      SUBROUTINE mtx_allreduce1_real8(vdata_,nop,vreduce_,vloc_,nsastart)
+      SUBROUTINE mtx_allreduce1_real8(vdata_,nop,vreduce_,vloc_)
       IMPLICIT NONE
       REAL(8),INTENT(IN):: vdata_
       INTEGER,INTENT(IN):: nop
@@ -902,10 +936,9 @@
       REAL(8),DIMENSION(1):: vdata
       REAL(8),DIMENSION(1):: vreduce
       INTEGER,DIMENSION(1):: vloc
-      integer,intent(in)::nsastart
 
       vdata(1)=vdata_
-      CALL mtx_allreduce_real8(vdata,1,nop,vreduce,vloc,nsastart)
+      CALL mtx_allreduce_real8(vdata,1,nop,vreduce,vloc)
       vreduce_=vreduce(1)
       vloc_=vloc(1)
       RETURN
@@ -938,22 +971,36 @@
       INTEGER,INTENT(IN):: ndata,nop
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vreduce
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
-      INTEGER:: ierr
+      INTEGER,DIMENSION(2,ndata):: d_send, d_recv
+      INTEGER:: ierr,i
 
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_ALLREDUCE(vdata,vreduce,ndata,MPI_INTEGER, &
                             MPI_MAX,ncomm,ierr)
-         CALL MPI_ALLREDUCE(vdata,vloc,ndata,MPI_2INTEGER, &
-                            MPI_MAXLOC,ncomm,ierr)
       CASE(2)! MIN
          CALL MPI_ALLREDUCE(vdata,vreduce,ndata,MPI_INTEGER, &
                             MPI_MIN,ncomm,ierr)
-         CALL MPI_ALLREDUCE(vdata,vloc,ndata,MPI_2INTEGER, &
-                            MPI_MINLOC,ncomm,ierr)
       CASE(3)! SUM
          CALL MPI_ALLREDUCE(vdata,vreduce,ndata,MPI_INTEGER, &
                             MPI_SUM,ncomm,ierr)
+      CASE(4,5)! MAX/MINOC
+         DO i=1,ndata
+            d_send(1,i)=vdata(i)
+            d_send(2,i)=nrank
+         END DO
+         SELECT CASE(NOP)
+         CASE(4) ! MAXLOC
+            CALL MPI_ALLREDUCE(d_send,d_recv,ndata,MPI_2INTEGER, &
+                               MPI_MAXLOC,ncomm,ierr)
+         CASE(5) ! MINLOC
+            CALL MPI_ALLREDUCE(d_send,d_recv,ndata,MPI_2INTEGER, &
+                               MPI_MINLOC,ncomm,ierr)
+         END SELECT
+         DO i=1,ndata
+            vreduce(i)=d_recv(1,i)
+            vloc(i)=d_recv(2,i)
+         END DO
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_allreduce_integer: MPI_allREDUCE: ierr=',ierr
@@ -962,38 +1009,42 @@
       
 !-----
 
-      SUBROUTINE mtx_allreduce_real8(vdata,ndata,nop,vreduce,vloc,nsastart)
+      SUBROUTINE mtx_allreduce_real8(vdata,ndata,nop,vreduce,vloc)
       IMPLICIT NONE
-      REAL(8),DIMENSION(nsastart:nsastart+ndata-1),INTENT(IN):: vdata
+      REAL(8),DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,INTENT(IN):: ndata,nop
-      REAL(8),DIMENSION(nsastart:nsastart+ndata-1),INTENT(OUT):: vreduce
+      REAL(8),DIMENSION(ndata),INTENT(OUT):: vreduce
+      INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
       DOUBLE PRECISION,DIMENSION(2,ndata):: d_send, d_recv
-      INTEGER,DIMENSION(nsastart:nsastart+ndata-1),INTENT(OUT):: vloc
-      INTEGER:: ierr,i,nsastart
+      INTEGER:: ierr,i
 
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_ALLREDUCE(vdata,vreduce,ndata,MPI_DOUBLE_PRECISION, &
                             MPI_MAX,ncomm,ierr)
-         DO i=1,ndata
-            d_send(1,i)=vdata(i+NSASTART-1)
-            d_send(2,i)=nrank*1.D0
-         END DO
-         CALL MPI_ALLREDUCE(d_send,d_recv,ndata,MPI_2DOUBLE_PRECISION, &
-                            MPI_MAXLOC,ncomm,ierr)
-         DO i=1,ndata
-            vloc(i+NSASTART-1)=idint(d_recv(2,i))
-         END DO
-
-
       CASE(2)! MIN
          CALL MPI_ALLREDUCE(vdata,vreduce,ndata,MPI_DOUBLE_PRECISION, &
                             MPI_MIN,ncomm,ierr)
-         CALL MPI_ALLREDUCE(vdata,vloc,ndata,MPI_2DOUBLE_PRECISION, &
-                            MPI_MINLOC,ncomm,ierr)
       CASE(3)! SUM
          CALL MPI_ALLREDUCE(vdata,vreduce,ndata,MPI_DOUBLE_PRECISION, &
                             MPI_SUM,ncomm,ierr)
+      CASE(4,5)! MAX/MINLOC
+         DO i=1,ndata
+            d_send(1,i)=vdata(i)
+            d_send(2,i)=nrank*1.D0
+         END DO
+         SELECT CASE(NOP)
+         CASE(4) ! MAXLOC
+            CALL MPI_ALLREDUCE(d_send,d_recv,ndata,MPI_2DOUBLE_PRECISION, &
+                               MPI_MAXLOC,ncomm,ierr)
+         CASE(5) ! MINLOC
+            CALL MPI_ALLREDUCE(d_send,d_recv,ndata,MPI_2DOUBLE_PRECISION, &
+                               MPI_MINLOC,ncomm,ierr)
+         END SELECT
+         DO i=1,ndata
+            vreduce(i)=d_recv(1,i)
+            vloc(i)=idint(d_recv(2,i))
+         END DO
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_allreduce_real8: MPI_ALLREDUCE: ierr=',ierr
@@ -1008,22 +1059,36 @@
       INTEGER,INTENT(IN):: ndata,nop
       COMPLEX(8),DIMENSION(ndata),INTENT(OUT):: vreduce
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
-      INTEGER:: ierr
+      COMPLEX(8),DIMENSION(2,ndata):: d_send, d_recv
+      INTEGER:: ierr,i
 
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_ALLREDUCE(vdata,vreduce,ndata,MPI_DOUBLE_COMPLEX, &
                             MPI_MAX,ncomm,ierr)
-         CALL MPI_ALLREDUCE(vdata,vloc,ndata,MPI_2DOUBLE_COMPLEX, &
-                            MPI_MAXLOC,ncomm,ierr)
       CASE(2)! MIN
          CALL MPI_ALLREDUCE(vdata,vreduce,ndata,MPI_DOUBLE_COMPLEX, &
                             MPI_MIN,ncomm,ierr)
-         CALL MPI_ALLREDUCE(vdata,vloc,ndata,MPI_2DOUBLE_COMPLEX, &
-                            MPI_MINLOC,ncomm,ierr)
       CASE(3)! SUM
          CALL MPI_ALLREDUCE(vdata,vreduce,ndata,MPI_DOUBLE_COMPLEX, &
                             MPI_SUM,ncomm,ierr)
+      CASE(4,5)! MAX/MINLOC
+         DO i=1,ndata
+            d_send(1,i)=vdata(i)
+            d_send(2,i)=nrank*1.D0
+         END DO
+         SELECT CASE(NOP)
+         CASE(4) ! MAXLOC
+            CALL MPI_ALLREDUCE(d_send,d_recv,ndata,MPI_2DOUBLE_COMPLEX, &
+                               MPI_MAXLOC,ncomm,ierr)
+         CASE(5) ! MINLOC
+            CALL MPI_ALLREDUCE(d_send,d_recv,ndata,MPI_2DOUBLE_COMPLEX, &
+                               MPI_MINLOC,ncomm,ierr)
+         END SELECT
+         DO i=1,ndata
+            vreduce(i)=d_recv(1,i)
+            vloc(i)=idint(real(d_recv(2,i)))
+         END DO
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_allreduce_complex8: MPI_ALLREDUCE: ierr=',ierr

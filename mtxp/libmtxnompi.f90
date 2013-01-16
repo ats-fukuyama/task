@@ -127,20 +127,21 @@
            STOP
         ENDIF
 
-        commx1%sizeg=n2
-        commx2%sizeg=n1
-        commx1%sizel=n1
-        commx2%sizel=n2
-        commx1%rankg=nrank/n1
-        commx1%rankl=nrank - commx1%rankg*n1
-        commx2%rankl=nrank/n1
-        commx2%rankg=MOD(nrank,n1)
+        commx1%sizeg=n1       ! number of groups
+        commx1%sizel=n2       ! number of processors in the group
+        commx1%rankg=nrank/n2 ! colors
+        commx1%rankl=nrank - commx1%rankg*n2 ! keys
+
+        commx2%sizeg=n2
+        commx2%sizel=n1
+        commx2%rankg=MOD(nrank+1,n2) ! colorr
+        commx2%rankl=nrank/n2        ! keyr
 
         commx1%comm=ncomm
-        commx2%comm=ncomm
         commx1%rank=nrank
-        commx2%rank=nrank
         commx1%size=nsize
+        commx2%comm=ncomm
+        commx2%rank=nrank
         commx2%size=nsize
         RETURN
       END SUBROUTINE mtx_comm_split2D
