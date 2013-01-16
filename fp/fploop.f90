@@ -146,16 +146,16 @@
                DEPS=MAX(DEPS,DEPS1)
 !               DEPS_SS_LOCAL(NSA)=RSUM_SS(NSA)/RSUMF0(NSA)/DELT ! steady state
             END DO
-
             DEPS_MAX=0.D0
             CALL mtx_reduce1_real8(DEPS,1,DEPS_MAX,ILOC1) ! convergence condition
             DEPS = DEPS_MAX
-            IF(DEPS.le.EPSFP)THEN
+            IF(NRANK.eq.0.and.DEPS.le.EPSFP)THEN
                N_IMPL=1+LMAXFP ! exit dowhile
             ENDIF
+            CALL mtx_broadcast1_integer(N_IMPL)
 
             CALL mtx_set_communicator(comm_nsa,nrank,nsize)
-            CALL mtx_allreduce_real8(DEPSV,NSW,1,DEPS_MAXVL,ILOCL)
+            CALL mtx_allreduce_real8(DEPSV,NSW,1,DEPS_MAXVL,ILOCL,NSASTART)
 
             CALL mtx_set_communicator(comm_nr,nrank,nsize)
             CALL mtx_gather_real8(DEPS_MAXVL,nsw,DEPS_MAXV) 
@@ -177,7 +177,7 @@
             DO NSA=NSASTART,NSAEND
                   IF (MOD(NT,NTCLSTEP).EQ.0) CALL FP_COEF(NSA)
             END DO
-!            CALL source_allreduce(SPPF,ncomr)
+!            CALL source_allreduce(SPPF,comm_nsa)
 
             CALL GUTIME(gut4)
             GUT_COEF = GUT_COEF + (gut4-gut3)

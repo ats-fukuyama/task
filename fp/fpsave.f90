@@ -433,6 +433,10 @@
 
       CALL FPSAVECOMM
 
+      IF(NRANK.eq.0)THEN
+         WRITE(*,'(A,I4,6E14.6)') "RWS", nrank,RWS(1,1),RWSL(1,1),RNS(1,1),RNSL(1,1),RJS(1,1),RJSL(1,1)
+      END IF
+
       ISAVE=1
       RETURN
       END SUBROUTINE FPSSUB
@@ -851,8 +855,10 @@
       Subroutine FPNEWTON(NR,NSA,rtemp)
 
       IMPLICIT NONE
-      integer:: NSA, NSB, NR, NP, NTH, ncount
-      real(8):: rtemp, rtemp2, xeave, xeave2
+      INTEGER,INTENT(IN)::NR,NSA
+      double precision,intent(out)::rtemp
+      integer:: NSB, NP, NTH, ncount
+      real(8):: rtemp2, xeave, xeave2
       real(8):: xtemp, xtemp2, thetal,thetal2, EAVE, EAVE2
 
 !-----Average kinetic energy
