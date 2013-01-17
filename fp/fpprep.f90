@@ -817,12 +817,13 @@
 
 !     set FNSB 
       CALL mtx_set_communicator(comm_nr,nrank,nsize)  
-      nsend=NTHMAX*NPMAX*(NREND-NRSTART+1)*NSW
-      DO NSWI=1, NSW
-         NSA=NSASTART-1+NSWI
-         CALL mtx_allgather_real8(FNSP(1:NTHMAX,1:NPMAX,nrstart,nsa), &
-              nsend,FNSB(1:NTHMAX,1:NPMAX,NRSTART,1))
-      END DO
+!      nsend=NTHMAX*NPMAX*(NREND-NRSTART+1)
+!      DO NSWI=1, NSW
+!         NSA=NSASTART-1+NSWI
+!         CALL mtx_allgather_real8(FNSP(1:NTHMAX,1:NPMAX,nrstart,nsa), &
+!              nsend,FNSB(1:NTHMAX,1:NPMAX,NRSTART,1))
+!      END DO
+      CALL update_fnsb
       CALL mtx_reset_communicator(nrank,nsize) 
 !     end of set FNSB
 
