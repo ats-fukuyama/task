@@ -41,7 +41,7 @@
       real(kind8):: temp_send, temp_recv
       character:: fmt*40
       integer:: modela_temp, NSW, NSWI,its
-      integer:: ILOC1
+      integer:: ILOC1, nsend
 
       IF(MODELE.NE.0) CALL FPNEWE
 
@@ -158,7 +158,6 @@
             CALL mtx_set_communicator(comm_nr,nrank,nsize)
             CALL mtx_gather_real8(DEPS_MAXVL,nsw,DEPS_MAXV) 
             CALL mtx_gather_integer(ILOCL,nsw,ILOC) 
-
             CALL mtx_reset_communicator(nrank,nsize)
 
             IF(nrank.eq.0) THEN
@@ -170,12 +169,28 @@
             ENDIF
 
             CALL GUTIME(gut3)
-
             CALL fusion_source_init
+
+!           update FNSB 
+            CALL mtx_set_communicator(comm_nr,nrank,nsize)  
+            nsend=NTHMAX*NPMAX*(NREND-NRSTART+1)*NSW
+            DO NSWI=1, NSW
+               NSA=NSASTART-1+NSWI
+               CALL mtx_allgather_real8(FNSP(1:NTHMAX,1:NPMAX,nrstart,nsa), &
+                    nsend,FNSB(1:NTHMAX,1:NPMAX,NRSTART,1))
+            END DO
+            CALL mtx_reset_communicator(nrank,nsize) 
+!           end of update FNSB
+
             DO NSA=NSASTART,NSAEND
                   IF (MOD(NT,NTCLSTEP).EQ.0) CALL FP_COEF(NSA)
             END DO
-!            CALL source_allreduce(SPPF,comm_nsa)
+
+!           sum up SPPF
+            CALL mtx_set_communicator(comm_nsa,nrank,nsize)
+            CALL source_allreduce(SPPF)
+            CALL mtx_reset_communicator(nrank,nsize)
+!           end of sum up SPPF
 
             CALL GUTIME(gut4)
             GUT_COEF = GUT_COEF + (gut4-gut3)

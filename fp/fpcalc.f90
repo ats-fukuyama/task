@@ -89,10 +89,10 @@
 
 !
 
-      CALL mtx_set_communicator(comm_nr,nrank,nsize)
-      nsend=NTHMAX*NPMAX*(NREND-NRSTART+1)*(NSAEND-NSASTART+1)
-      CALL mtx_allgather_real8(FNSP(1:NTHMAX,1:NPMAX,NRSTART,NSASTART),nsend,FNSB)
-      CALL mtx_reset_communicator(nrank,nsize)
+!      CALL mtx_set_communicator(comm_nr,nrank,nsize)
+!      nsend=NTHMAX*NPMAX*(NREND-NRSTART+1)*(NSAEND-NSASTART+1)
+!      CALL mtx_allgather_real8(FNSP(1:NTHMAX,1:NPMAX,NRSTART,NSASTART),nsend,FNSB)
+!      CALL mtx_reset_communicator(nrank,nsize)
 
       DO NR=NRSTART,NREND
          DO NSB=1,NSBMAX

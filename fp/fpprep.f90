@@ -395,7 +395,7 @@
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
       INTEGER,DIMENSION(nsize):: ima1,ima2,nra1,nra2,nma1,nma2,insa1,insa2
       real(kind8),DIMENSION(:),POINTER:: work,workg
-      INTEGER:: colors
+      INTEGER:: colors,  NSEND, NSWI
 
 !     ----- Initialize time counter -----
 
@@ -815,6 +815,17 @@
          ENDDO
       ENDIF
 
+!     set FNSB 
+      CALL mtx_set_communicator(comm_nr,nrank,nsize)  
+      nsend=NTHMAX*NPMAX*(NREND-NRSTART+1)*NSW
+      DO NSWI=1, NSW
+         NSA=NSASTART-1+NSWI
+         CALL mtx_allgather_real8(FNSP(1:NTHMAX,1:NPMAX,nrstart,nsa), &
+              nsend,FNSB(1:NTHMAX,1:NPMAX,NRSTART,1))
+      END DO
+      CALL mtx_reset_communicator(nrank,nsize) 
+!     end of set FNSB
+
       N_IMPL=0
       CALL NF_REACTION_COEF
       NCALCNR=0
@@ -832,7 +843,9 @@
          END DO
          CALL FPWEIGHT(NSA,IERR)
       END DO
-!      CALL source_allreduce(SPPF,ncomr)
+      CALL mtx_set_communicator(comm_nsa,nrank,nsize)
+      CALL source_allreduce(SPPF)
+      CALL mtx_reset_communicator(nrank,nsize) 
       ISAVE=0
       IF(NTG1.eq.0) CALL FPWAVE_CONST ! all nrank must have RPWT  
       CALL FPSSUB
