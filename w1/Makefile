@@ -20,7 +20,7 @@ SOURCES= w1main.f w1init.f w1prep.f w1prof.f w1bcnd.f w1rslt.f w1out.f \
          w1grf1.f w1grf2.f w1disp.f w1mlm.f w1fem.f w1intg.f w1lib.f
 
 OBJS=$(SOURCES:.f=.o)
-LIBS=../task/lib/tasklib.a
+LIBS=../lib/tasklib.a
 
 w1:$(OBJS)
 	$(FCFIXED) $(OBJS) $(LIBS) $(FFLAGS) $(FLIBS) -o $@
