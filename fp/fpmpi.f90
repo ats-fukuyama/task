@@ -68,7 +68,43 @@
 !      CALL mtx_reset_communicator(nrank,nsize)
 
       END SUBROUTINE update_fnsb
+!-----
+      SUBROUTINE update_fns
 
+      IMPLICIT NONE
+      integer:: nsend, nth, np, nr, nsa, nsw, nswi,N
+      double precision,dimension(nthmax,npmax,nrstart:nrend):: dsend
+      double precision,dimension(nthmax,npmax,nrmax,n_partition_s):: drecv
+
+
+      nsw=NSAEND-NSASTART+1
+      nsend=NTHMAX*NPMAX*(NREND-NRSTART+1)
+      DO NSWI=1,NSW
+         NSA=NSASTART-1+NSWI
+         DO NR=NRSTART,NREND
+            DO NP=1,NPMAX
+               DO NTH=1,NTHMAX
+                  dsend(nth,np,nr)=FNSP(nth,np,nr,nsa)
+               END DO
+            END DO
+         END DO
+         CALL mtx_gather_real8(dsend,nsend,drecv) 
+         IF(NRANK.eq.0)THEN
+            N=0
+            DO NSA=NSWI,NSAMAX,NSW
+               N=N+1
+               DO NR=1,NRMAX
+                  DO NP=1,NPMAX
+                     DO NTH=1,NTHMAX
+                        FNS(NTH,NP,NR,NSA)=drecv(NTH,NP,NR,N)
+                     END DO
+                  END DO
+               END DO
+            END DO
+         END IF
+      END DO
+
+      END SUBROUTINE update_fns
 !-----
 
       SUBROUTINE source_allreduce(array)

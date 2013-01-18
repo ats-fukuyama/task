@@ -312,60 +312,61 @@
       ENDDO ! END OF NT LOOP
 
 !     +++++ end of time loop +++++
+!
+!      DO NSWI=1, NSW
+!         NSA=NSASTART-1+NSWI
+!         CALL mtx_gather_real8(FNSP(1:NTHMAX,1:NPMAX,nrstart,nsa), &
+!                               NTHMAX*NPMAX*(NREND-NRSTART+1), &
+!                               FNS(1:NTHMAX,1:NPMAX,1:NRMAX,nsa))
+!      END DO
+      CALL update_fns
 
-      DO NSWI=1, NSW
-         NSA=NSASTART-1+NSWI
-         CALL mtx_gather_real8(FNSP(1:NTHMAX,1:NPMAX,nrstart,nsa), &
-                               NTHMAX*NPMAX*(NREND-NRSTART+1), &
-                               FNS(1:NTHMAX,1:NPMAX,1:NRMAX,nsa))
-      END DO
-
-!      IF(NRANK.eq.0)THEN
-!            open(9,file='fns_e.dat')
-!            DO NR=1,NRMAX
-!               DO NP=1,NPMAX
-!                  DO NTH=1,NTHMAX
-!                     WRITE(9,'(3I4,3E16.8)') NR, NP, NTH, FNS(NTH,NP,NR,1), PM(NP,1)*COSM(NTH), PM(NP,1)*SINM(NTH)
-!                  END DO
-!               END DO
-!               WRITE(9,*) " "
-!               WRITE(9,*) " "
-!            END DO
-!            close(9)
-!            open(9,file='fns_D.dat')
-!            DO NR=1,NRMAX
-!               DO NP=1,NPMAX
-!                  DO NTH=1,NTHMAX
-!                     WRITE(9,'(3I4,3E16.8)') NR, NP, NTH, FNS(NTH,NP,NR,2), PM(NP,2)*COSM(NTH), PM(NP,2)*SINM(NTH)
-!                  END DO
-!               END DO
-!               WRITE(9,*) " "
-!               WRITE(9,*) " "
-!            END DO
-!            close(9)
+      IF(NRANK.eq.0)THEN
+            open(9,file='fns_e.dat')
+            DO NR=1,NRMAX
+               DO NP=1,NPMAX
+                  DO NTH=1,NTHMAX
+                     WRITE(9,'(3I4,3E17.8)') NR, NP, NTH, FNS(NTH,NP,NR,1), PM(NP,1)*COSM(NTH), PM(NP,1)*SINM(NTH)
+                  END DO
+               END DO
+               WRITE(9,*) " "
+               WRITE(9,*) " "
+            END DO
+            close(9)
+            open(9,file='fns_D.dat')
+            DO NR=1,NRMAX
+               DO NP=1,NPMAX
+                  DO NTH=1,NTHMAX
+                     WRITE(9,'(3I4,3E17.8)') NR, NP, NTH, FNS(NTH,NP,NR,2), PM(NP,2)*COSM(NTH), PM(NP,2)*SINM(NTH)
+                  END DO
+               END DO
+               WRITE(9,*) " "
+               WRITE(9,*) " "
+            END DO
+            close(9)
 !            open(9,file='fns_T.dat')
 !            DO NR=1,NRMAX
 !               DO NP=1,NPMAX
 !                  DO NTH=1,NTHMAX
-!                     WRITE(9,'(3I4,3E16.8)') NR, NP, NTH, FNS(NTH,NP,NR,3), PM(NP,3)*COSM(NTH), PM(NP,3)*SINM(NTH)
+!                     WRITE(9,'(3I4,3E17.8)') NR, NP, NTH, FNS(NTH,NP,NR,3), PM(NP,3)*COSM(NTH), PM(NP,3)*SINM(NTH)
 !                  END DO
 !               END DO
 !               WRITE(9,*) " "
 !               WRITE(9,*) " "
 !            END DO
 !            close(9)
-!            open(9,file='fns_He.dat')
-!            DO NR=1,NRMAX
-!               DO NP=1,NPMAX
-!                  DO NTH=1,NTHMAX
-!                     WRITE(9,'(3I4,3E16.8)') NR, NP, NTH, FNS(NTH,NP,NR,4), PM(NP,4)*COSM(NTH), PM(NP,4)*SINM(NTH)
-!                  END DO
-!               END DO
-!               WRITE(9,*) " "
-!               WRITE(9,*) " "
-!            END DO
-!            close(9)
-!      END IF
+            open(9,file='fns_He.dat')
+            DO NR=1,NRMAX
+               DO NP=1,NPMAX
+                  DO NTH=1,NTHMAX
+                     WRITE(9,'(3I4,3E17.8)') NR, NP, NTH, FNS(NTH,NP,NR,4), PM(NP,4)*COSM(NTH), PM(NP,4)*SINM(NTH)
+                  END DO
+               END DO
+               WRITE(9,*) " "
+               WRITE(9,*) " "
+            END DO
+            close(9)
+      END IF
 
 
       RETURN
