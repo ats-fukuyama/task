@@ -25,44 +25,57 @@
       PUBLIC mtx_broadcast1_character
       PUBLIC mtx_broadcast1_logical
       PUBLIC mtx_broadcast1_integer
+      PUBLIC mtx_broadcast1_real4
       PUBLIC mtx_broadcast1_real8
       PUBLIC mtx_broadcast1_complex8
       PUBLIC mtx_broadcast_character
       PUBLIC mtx_broadcast_logical
       PUBLIC mtx_broadcast_integer
+      PUBLIC mtx_broadcast_real4
       PUBLIC mtx_broadcast_real8
       PUBLIC mtx_broadcast_complex8
       PUBLIC mtx_broadcast2D_integer
+      PUBLIC mtx_broadcast2D_real4
       PUBLIC mtx_broadcast2D_real8
       PUBLIC mtx_broadcast2D_complex8
       PUBLIC mtx_gather1_integer
+      PUBLIC mtx_gather1_real4
       PUBLIC mtx_gather1_real8
       PUBLIC mtx_gather1_complex8
       PUBLIC mtx_gather_integer
+      PUBLIC mtx_gather_real4
       PUBLIC mtx_gather_real8
       PUBLIC mtx_gather_complex8
       PUBLIC mtx_gatherv_integer
+      PUBLIC mtx_gatherv_real4
       PUBLIC mtx_gatherv_real8
       PUBLIC mtx_gatherv_complex8
       PUBLIC mtx_allgather1_integer
+      PUBLIC mtx_allgather1_real4
       PUBLIC mtx_allgather1_real8
       PUBLIC mtx_allgather1_complex8
       PUBLIC mtx_allgather_integer
+      PUBLIC mtx_allgather_real4
       PUBLIC mtx_allgather_real8
       PUBLIC mtx_allgather_complex8
       PUBLIC mtx_allgatherv_integer
+      PUBLIC mtx_allgatherv_real4
       PUBLIC mtx_allgatherv_real8
       PUBLIC mtx_allgatherv_complex8
       PUBLIC mtx_reduce1_integer
+      PUBLIC mtx_reduce1_real4
       PUBLIC mtx_reduce1_real8
       PUBLIC mtx_reduce1_complex8
       PUBLIC mtx_reduce_integer
+      PUBLIC mtx_reduce_real4
       PUBLIC mtx_reduce_real8
       PUBLIC mtx_reduce_complex8
       PUBLIC mtx_allreduce1_integer
+      PUBLIC mtx_allreduce1_real4
       PUBLIC mtx_allreduce1_real8
       PUBLIC mtx_allreduce1_complex8
       PUBLIC mtx_allreduce_integer
+      PUBLIC mtx_allreduce_real4
       PUBLIC mtx_allreduce_real8
       PUBLIC mtx_allreduce_complex8
 
@@ -234,6 +247,20 @@
 
 !-----
 
+      SUBROUTINE mtx_broadcast1_real4(v)
+        IMPLICIT NONE
+        REAL(4),INTENT(INOUT):: v
+        REAL(4),DIMENSION(1):: vdata
+        INTEGER:: ierr
+
+        vdata(1)=v
+        CALL mtx_broadcast_real4(vdata,1)
+        v=vdata(1)
+        RETURN
+      END SUBROUTINE mtx_broadcast1_real4
+
+!-----
+
       SUBROUTINE mtx_broadcast1_real8(v)
         IMPLICIT NONE
         REAL(8),INTENT(INOUT):: v
@@ -304,6 +331,20 @@
 
 !-----
 
+      SUBROUTINE mtx_broadcast_real4(vdata,ndata)
+      IMPLICIT NONE
+      REAL(4),DIMENSION(ndata),INTENT(INOUT):: vdata
+      INTEGER,INTENT(IN):: ndata
+      INTEGER:: ierr
+      
+      call MPI_BCAST(vdata,ndata,MPI_REAL,0,ncomm,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_broadcast_real4: MPI_BCAST: ierr=',ierr
+      RETURN
+      END SUBROUTINE mtx_broadcast_real4
+
+!-----
+
       SUBROUTINE mtx_broadcast_real8(vdata,ndata)
       IMPLICIT NONE
       REAL(8),DIMENSION(ndata),INTENT(INOUT):: vdata
@@ -358,6 +399,35 @@
       END DO
       RETURN
       END SUBROUTINE mtx_broadcast2D_integer
+
+!-----
+
+      SUBROUTINE mtx_broadcast2D_real4(vdata,n1,m1,m2)
+      IMPLICIT NONE
+      REAL(4),DIMENSION(n1,m2),INTENT(INOUT):: vdata
+      INTEGER,INTENT(IN):: n1,m1,m2
+      REAL(4),DIMENSION(m1*m2):: tdata
+      INTEGER:: i,i1,i2,ierr
+
+      i=0
+      DO i2=1,m2
+         DO i1=1,m1
+            i=i+1
+            tdata(i)=vdata(i1,i2)
+         END DO
+      END DO
+      call MPI_BCAST(tdata,i,MPI_REAL,0,ncomm,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_broadcast2D_real4: MPI_BCAST: ierr=',ierr
+      i=0
+      DO i2=1,m2
+         DO i1=1,m1
+            i=i+1
+            vdata(i1,i2)=tdata(i)
+         END DO
+      END DO
+      RETURN
+      END SUBROUTINE mtx_broadcast2D_real4
 
 !-----
 
@@ -433,6 +503,20 @@
 
 !-----
 
+      SUBROUTINE mtx_gather1_real4(vdata,vtot)
+      IMPLICIT NONE
+      REAL(4),INTENT(IN):: vdata
+      REAL(4),DIMENSION(nsize),INTENT(OUT):: vtot
+      REAL(4),DIMENSION(1):: tdata
+      INTEGER:: ierr
+
+      tdata(1)=vdata
+      CALL mtx_gather_real4(tdata,1,vtot)
+      RETURN
+      END SUBROUTINE mtx_gather1_real4
+
+!-----
+
       SUBROUTINE mtx_gather1_real8(vdata,vtot)
       IMPLICIT NONE
       REAL(8),INTENT(IN):: vdata
@@ -475,6 +559,23 @@
            'XX mtx_gather_integer: MPI_GATHER: ierr=',ierr
       RETURN
       END SUBROUTINE mtx_gather_integer
+
+!-----
+
+      SUBROUTINE mtx_gather_real4(vdata,ndata,vtot)
+      IMPLICIT NONE
+      REAL(4),DIMENSION(ndata),INTENT(IN):: vdata
+      INTEGER,INTENT(IN):: ndata
+      REAL(4),DIMENSION(ndata*nsize),INTENT(OUT):: vtot
+      INTEGER:: ierr
+
+      call MPI_GATHER(vdata,ndata,MPI_REAL, &
+                      vtot,ndata,MPI_REAL, &
+                      0,ncomm,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_gather_real4: MPI_GATHER: ierr=',ierr
+      RETURN
+      END SUBROUTINE mtx_gather_real4
 
 !-----
 
@@ -531,6 +632,25 @@
 
 !-----
 
+      SUBROUTINE mtx_gatherv_real4(vdata,ndata,vtot,ntot,ilena,iposa)
+      IMPLICIT NONE
+      REAL(4),DIMENSION(ndata),INTENT(IN):: vdata
+      INTEGER,INTENT(IN):: ndata
+      REAL(4),DIMENSION(ntot),INTENT(OUT):: vtot
+      INTEGER,INTENT(IN):: ntot
+      INTEGER,DIMENSION(nsize):: ilena,iposa
+      INTEGER:: ierr
+
+      CALL MPI_GATHERV(vdata,ndata,MPI_REAL, &
+                       vtot,ilena,iposa,MPI_REAL, &
+                       0,ncomm,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_gatherv_real4: MPI_GATHERV: ierr=',ierr
+      RETURN
+      END SUBROUTINE mtx_gatherv_real4
+
+!-----
+
       SUBROUTINE mtx_gatherv_real8(vdata,ndata,vtot,ntot,ilena,iposa)
       IMPLICIT NONE
       REAL(8),DIMENSION(ndata),INTENT(IN):: vdata
@@ -583,6 +703,20 @@
 
 !-----
 
+      SUBROUTINE mtx_allgather1_real4(vdata,vtot)
+      IMPLICIT NONE
+      REAL(4),INTENT(IN):: vdata
+      REAL(4),DIMENSION(nsize),INTENT(OUT):: vtot
+      REAL(4),DIMENSION(1):: tdata
+      INTEGER:: ierr
+
+      tdata(1)=vdata
+      CALL mtx_allgather_real4(tdata,1,vtot)
+      RETURN
+      END SUBROUTINE mtx_allgather1_real4
+
+!-----
+
       SUBROUTINE mtx_allgather1_real8(vdata,vtot)
       IMPLICIT NONE
       REAL(8),INTENT(IN):: vdata
@@ -625,6 +759,23 @@
            'XX mtx_allgather_integer: MPI_ALLGATHER: ierr=',ierr
       RETURN
       END SUBROUTINE mtx_allgather_integer
+
+!-----
+
+      SUBROUTINE mtx_allgather_real4(vdata,ndata,vtot)
+      IMPLICIT NONE
+      REAL(4),DIMENSION(ndata),INTENT(IN):: vdata
+      INTEGER,INTENT(IN):: ndata
+      REAL(4),DIMENSION(ndata*nsize),INTENT(OUT):: vtot
+      INTEGER:: ierr
+
+      call MPI_ALLGATHER(vdata,ndata,MPI_REAL, &
+                         vtot,ndata,MPI_REAL, &
+                         ncomm,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_allgather_real4: MPI_ALLGATHER: ierr=',ierr
+      RETURN
+      END SUBROUTINE mtx_allgather_real4
 
 !-----
 
@@ -678,6 +829,25 @@
            'XX mtx_allgatherv_integer: MPI_ALLGATHERV: ierr=',ierr
       RETURN
       END SUBROUTINE mtx_allgatherv_integer
+
+!-----
+
+      SUBROUTINE mtx_allgatherv_real4(vdata,ndata,vtot,ntot,ilena,iposa)
+      IMPLICIT NONE
+      REAL(4),DIMENSION(ndata),INTENT(IN):: vdata
+      INTEGER,INTENT(IN):: ndata
+      REAL(4),DIMENSION(ntot),INTENT(OUT):: vtot
+      INTEGER,INTENT(IN):: ntot
+      INTEGER,DIMENSION(nsize):: ilena,iposa
+      INTEGER:: ierr
+
+      CALL MPI_ALLGATHERV(vdata,ndata,MPI_REAL, &
+                          vtot,ilena,iposa,MPI_REAL, &
+                          ncomm,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_allgatherv_real4: MPI_ALLGATHERV: ierr=',ierr
+      RETURN
+      END SUBROUTINE mtx_allgatherv_real4
 
 !-----
 
@@ -735,6 +905,25 @@
       vloc_=vloc(1)
       RETURN
       END SUBROUTINE mtx_reduce1_integer
+      
+!-----
+
+      SUBROUTINE mtx_reduce1_real4(vdata_,nop,vreduce_,vloc_)
+      IMPLICIT NONE
+      REAL(4),INTENT(IN):: vdata_
+      INTEGER,INTENT(IN):: nop
+      REAL(4),INTENT(OUT):: vreduce_
+      INTEGER,INTENT(OUT):: vloc_
+      REAL(4),DIMENSION(1):: vdata
+      REAL(4),DIMENSION(1):: vreduce
+      INTEGER,DIMENSION(1):: vloc
+
+      vdata(1)=vdata_
+      CALL mtx_reduce_real4(vdata,1,nop,vreduce,vloc)
+      vreduce_=vreduce(1)
+      vloc_=vloc(1)
+      RETURN
+      END SUBROUTINE mtx_reduce1_real4
       
 !-----
 
@@ -820,13 +1009,57 @@
       
 !-----
 
+      SUBROUTINE mtx_reduce_real4(vdata,ndata,nop,vreduce,vloc)
+      IMPLICIT NONE
+      REAL(4),DIMENSION(ndata),INTENT(IN):: vdata
+      INTEGER,INTENT(IN):: ndata,nop
+      REAL(4),DIMENSION(ndata),INTENT(OUT):: vreduce
+      INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
+      REAL(4),DIMENSION(2,ndata):: d_send, d_recv
+      INTEGER:: ierr, i
+
+      SELECT CASE(NOP)
+      CASE(1)! MAX
+         CALL MPI_REDUCE(vdata,vreduce,ndata,MPI_REAL, &
+                         MPI_MAX,0,ncomm,ierr)
+      CASE(2)! MIN
+         CALL MPI_REDUCE(vdata,vreduce,ndata,MPI_REAL, &
+                         MPI_MIN,0,ncomm,ierr)
+      CASE(3)! SUM
+         CALL MPI_REDUCE(vdata,vreduce,ndata,MPI_REAL, &
+                         MPI_SUM,0,ncomm,ierr)
+      CASE(4,5)! MAX/MINLOC
+         DO i=1,ndata
+            d_send(1,i)=vdata(i)
+            d_send(2,i)=nrank*1.D0
+         END DO
+         SELECT CASE(NOP)
+         CASE(4) ! MAXLOC
+            CALL MPI_REDUCE(d_send,d_recv,ndata,MPI_2REAL, &
+                            MPI_MAXLOC,0,ncomm,ierr)
+         CASE(5) ! MINLOC
+            CALL MPI_REDUCE(d_send,d_recv,ndata,MPI_2REAL, &
+                            MPI_MINLOC,0,ncomm,ierr)
+         END SELECT
+         DO i=1,ndata
+            vreduce(i)=d_recv(1,i)
+            vloc(i)=int(d_recv(2,i))
+         END DO
+      END SELECT
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_reduce_real4: MPI_REDUCE: ierr=',ierr
+      RETURN
+      END SUBROUTINE mtx_reduce_real4
+      
+!-----
+
       SUBROUTINE mtx_reduce_real8(vdata,ndata,nop,vreduce,vloc)
       IMPLICIT NONE
       REAL(8),DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,INTENT(IN):: ndata,nop
       REAL(8),DIMENSION(ndata),INTENT(OUT):: vreduce
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
-      DOUBLE PRECISION,DIMENSION(2,ndata):: d_send, d_recv
+      REAL(8),DIMENSION(2,ndata):: d_send, d_recv
       INTEGER:: ierr, i
 
       SELECT CASE(NOP)
@@ -927,6 +1160,25 @@
       
 !-----
 
+      SUBROUTINE mtx_allreduce1_real4(vdata_,nop,vreduce_,vloc_)
+      IMPLICIT NONE
+      REAL(4),INTENT(IN):: vdata_
+      INTEGER,INTENT(IN):: nop
+      REAL(4),INTENT(OUT):: vreduce_
+      INTEGER,INTENT(OUT):: vloc_
+      REAL(4),DIMENSION(1):: vdata
+      REAL(4),DIMENSION(1):: vreduce
+      INTEGER,DIMENSION(1):: vloc
+
+      vdata(1)=vdata_
+      CALL mtx_allreduce_real4(vdata,1,nop,vreduce,vloc)
+      vreduce_=vreduce(1)
+      vloc_=vloc(1)
+      RETURN
+      END SUBROUTINE mtx_allreduce1_real4
+      
+!-----
+
       SUBROUTINE mtx_allreduce1_real8(vdata_,nop,vreduce_,vloc_)
       IMPLICIT NONE
       REAL(8),INTENT(IN):: vdata_
@@ -1009,13 +1261,57 @@
       
 !-----
 
+      SUBROUTINE mtx_allreduce_real4(vdata,ndata,nop,vreduce,vloc)
+      IMPLICIT NONE
+      REAL(4),DIMENSION(ndata),INTENT(IN):: vdata
+      INTEGER,INTENT(IN):: ndata,nop
+      REAL(4),DIMENSION(ndata),INTENT(OUT):: vreduce
+      INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
+      REAL(4),DIMENSION(2,ndata):: d_send, d_recv
+      INTEGER:: ierr,i
+
+      SELECT CASE(NOP)
+      CASE(1)! MAX
+         CALL MPI_ALLREDUCE(vdata,vreduce,ndata,MPI_REAL, &
+                            MPI_MAX,ncomm,ierr)
+      CASE(2)! MIN
+         CALL MPI_ALLREDUCE(vdata,vreduce,ndata,MPI_REAL, &
+                            MPI_MIN,ncomm,ierr)
+      CASE(3)! SUM
+         CALL MPI_ALLREDUCE(vdata,vreduce,ndata,MPI_REAL, &
+                            MPI_SUM,ncomm,ierr)
+      CASE(4,5)! MAX/MINLOC
+         DO i=1,ndata
+            d_send(1,i)=vdata(i)
+            d_send(2,i)=nrank*1.D0
+         END DO
+         SELECT CASE(NOP)
+         CASE(4) ! MAXLOC
+            CALL MPI_ALLREDUCE(d_send,d_recv,ndata,MPI_2REAL, &
+                               MPI_MAXLOC,ncomm,ierr)
+         CASE(5) ! MINLOC
+            CALL MPI_ALLREDUCE(d_send,d_recv,ndata,MPI_2REAL, &
+                               MPI_MINLOC,ncomm,ierr)
+         END SELECT
+         DO i=1,ndata
+            vreduce(i)=d_recv(1,i)
+            vloc(i)=int(d_recv(2,i))
+         END DO
+      END SELECT
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_allreduce_real4: MPI_ALLREDUCE: ierr=',ierr
+      RETURN
+      END SUBROUTINE mtx_allreduce_real4
+      
+!-----
+
       SUBROUTINE mtx_allreduce_real8(vdata,ndata,nop,vreduce,vloc)
       IMPLICIT NONE
       REAL(8),DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,INTENT(IN):: ndata,nop
       REAL(8),DIMENSION(ndata),INTENT(OUT):: vreduce
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
-      DOUBLE PRECISION,DIMENSION(2,ndata):: d_send, d_recv
+      REAL(8),DIMENSION(2,ndata):: d_send, d_recv
       INTEGER:: ierr,i
 
       SELECT CASE(NOP)

@@ -24,44 +24,57 @@
       PUBLIC mtx_broadcast1_character
       PUBLIC mtx_broadcast1_logical
       PUBLIC mtx_broadcast1_integer
+      PUBLIC mtx_broadcast1_real4
       PUBLIC mtx_broadcast1_real8
       PUBLIC mtx_broadcast1_complex8
       PUBLIC mtx_broadcast_character
       PUBLIC mtx_broadcast_logical
       PUBLIC mtx_broadcast_integer
+      PUBLIC mtx_broadcast_real4
       PUBLIC mtx_broadcast_real8
       PUBLIC mtx_broadcast_complex8
       PUBLIC mtx_broadcast2D_integer
+      PUBLIC mtx_broadcast2D_real4
       PUBLIC mtx_broadcast2D_real8
       PUBLIC mtx_broadcast2D_complex8
       PUBLIC mtx_gather1_integer
+      PUBLIC mtx_gather1_real4
       PUBLIC mtx_gather1_real8
       PUBLIC mtx_gather1_complex8
       PUBLIC mtx_gather_integer
+      PUBLIC mtx_gather_real4
       PUBLIC mtx_gather_real8
       PUBLIC mtx_gather_complex8
       PUBLIC mtx_gatherv_integer
+      PUBLIC mtx_gatherv_real4
       PUBLIC mtx_gatherv_real8
       PUBLIC mtx_gatherv_complex8
       PUBLIC mtx_allgather1_integer
+      PUBLIC mtx_allgather1_real4
       PUBLIC mtx_allgather1_real8
       PUBLIC mtx_allgather1_complex8
       PUBLIC mtx_allgather_integer
+      PUBLIC mtx_allgather_real4
       PUBLIC mtx_allgather_real8
       PUBLIC mtx_allgather_complex8
       PUBLIC mtx_allgatherv_integer
+      PUBLIC mtx_allgatherv_real4
       PUBLIC mtx_allgatherv_real8
       PUBLIC mtx_allgatherv_complex8
       PUBLIC mtx_reduce1_integer
+      PUBLIC mtx_reduce1_real4
       PUBLIC mtx_reduce1_real8
       PUBLIC mtx_reduce1_complex8
       PUBLIC mtx_reduce_integer
+      PUBLIC mtx_reduce_real4
       PUBLIC mtx_reduce_real8
       PUBLIC mtx_reduce_complex8
       PUBLIC mtx_allreduce1_integer
+      PUBLIC mtx_allreduce1_real4
       PUBLIC mtx_allreduce1_real8
       PUBLIC mtx_allreduce1_complex8
       PUBLIC mtx_allreduce_integer
+      PUBLIC mtx_allreduce_real4
       PUBLIC mtx_allreduce_real8
       PUBLIC mtx_allreduce_complex8
 
@@ -189,6 +202,14 @@
 
 !-----
 
+      SUBROUTINE mtx_broadcast1_real4(v)
+        IMPLICIT NONE
+        REAL(4),INTENT(INOUT):: v
+        RETURN
+      END SUBROUTINE mtx_broadcast1_real4
+
+!-----
+
       SUBROUTINE mtx_broadcast1_real8(v)
         IMPLICIT NONE
         REAL(8),INTENT(INOUT):: v
@@ -232,6 +253,15 @@
 
 !-----
 
+      SUBROUTINE mtx_broadcast_real4(vdata,ndata)
+      IMPLICIT NONE
+      REAL(4),DIMENSION(ndata),INTENT(INOUT):: vdata
+      INTEGER,INTENT(IN):: ndata
+      RETURN
+      END SUBROUTINE mtx_broadcast_real4
+
+!-----
+
       SUBROUTINE mtx_broadcast_real8(vdata,ndata)
       IMPLICIT NONE
       REAL(8),DIMENSION(ndata),INTENT(INOUT):: vdata
@@ -256,6 +286,15 @@
       INTEGER,INTENT(IN):: n1,m1,m2
       RETURN
       END SUBROUTINE mtx_broadcast2D_integer
+
+!-----
+
+      SUBROUTINE mtx_broadcast2D_real4(vdata,n1,m1,m2)
+      IMPLICIT NONE
+      REAL(4),DIMENSION(n1,m2),INTENT(INOUT):: vdata
+      INTEGER,INTENT(IN):: n1,m1,m2
+      RETURN
+      END SUBROUTINE mtx_broadcast2D_real4
 
 !-----
 
@@ -285,6 +324,17 @@
       vtot(1)=vdata
       RETURN
       END SUBROUTINE mtx_gather1_integer
+
+!-----
+
+      SUBROUTINE mtx_gather1_real4(vdata,vtot)
+      IMPLICIT NONE
+      REAL(4),INTENT(IN):: vdata
+      REAL(4),DIMENSION(nsize),INTENT(OUT):: vtot
+
+      vtot(1)=vdata
+      RETURN
+      END SUBROUTINE mtx_gather1_real4
 
 !-----
 
@@ -322,6 +372,21 @@
       END DO
       RETURN
       END SUBROUTINE mtx_gather_integer
+
+!-----
+
+      SUBROUTINE mtx_gather_real4(vdata,ndata,vtot)
+      IMPLICIT NONE
+      REAL(4),DIMENSION(ndata),INTENT(IN):: vdata
+      INTEGER,INTENT(IN):: ndata
+      REAL(4),DIMENSION(ndata*nsize),INTENT(OUT):: vtot
+      INTEGER:: i
+
+      DO i=1,ndata
+         vtot(i)=vdata(i)
+      END DO
+      RETURN
+      END SUBROUTINE mtx_gather_real4
 
 !-----
 
@@ -374,6 +439,25 @@
 
 !-----
 
+      SUBROUTINE mtx_gatherv_real4(vdata,ndata,vtot,ntot,ilena,iposa)
+      IMPLICIT NONE
+      REAL(4),DIMENSION(ndata),INTENT(IN):: vdata
+      INTEGER,INTENT(IN):: ndata
+      REAL(4),DIMENSION(ntot),INTENT(OUT):: vtot
+      INTEGER,INTENT(IN):: ntot
+      INTEGER,DIMENSION(nsize),INTENT(OUT):: ilena,iposa
+      INTEGER:: i
+
+      DO i=1,ndata
+         vtot(i)=vdata(i)
+      END DO
+      ilena(1)=ndata
+      iposa(1)=1
+      RETURN
+      END SUBROUTINE mtx_gatherv_real4
+
+!-----
+
       SUBROUTINE mtx_gatherv_real8(vdata,ndata,vtot,ntot,ilena,iposa)
       IMPLICIT NONE
       REAL(8),DIMENSION(ndata),INTENT(IN):: vdata
@@ -423,6 +507,17 @@
 
 !-----
 
+      SUBROUTINE mtx_allgather1_real4(vdata,vtot)
+      IMPLICIT NONE
+      REAL(4),INTENT(IN):: vdata
+      REAL(4),DIMENSION(nsize),INTENT(OUT):: vtot
+
+      vtot(1)=vdata
+      RETURN
+      END SUBROUTINE mtx_allgather1_real4
+
+!-----
+
       SUBROUTINE mtx_allgather1_real8(vdata,vtot)
       IMPLICIT NONE
       REAL(8),INTENT(IN):: vdata
@@ -457,6 +552,21 @@
       END DO
       RETURN
       END SUBROUTINE mtx_allgather_integer
+
+!-----
+
+      SUBROUTINE mtx_allgather_real4(vdata,ndata,vtot)
+      IMPLICIT NONE
+      REAL(4),DIMENSION(ndata),INTENT(IN):: vdata
+      INTEGER,INTENT(IN):: ndata
+      REAL(4),DIMENSION(ndata*nsize),INTENT(OUT):: vtot
+      INTEGER:: i
+
+      DO i=1,ndata
+         vtot(i)=vdata(i)
+      END DO
+      RETURN
+      END SUBROUTINE mtx_allgather_real4
 
 !-----
 
@@ -506,6 +616,25 @@
       iposa(1)=1
       RETURN
       END SUBROUTINE mtx_allgatherv_integer
+
+!-----
+
+      SUBROUTINE mtx_allgatherv_real4(vdata,ndata,vtot,ntot,ilena,iposa)
+      IMPLICIT NONE
+      REAL(4),DIMENSION(ndata),INTENT(IN):: vdata
+      INTEGER,INTENT(IN):: ndata
+      REAL(4),DIMENSION(ntot),INTENT(OUT):: vtot
+      INTEGER,INTENT(IN):: ntot
+      INTEGER,DIMENSION(nsize),INTENT(OUT):: ilena,iposa
+      INTEGER:: i
+
+      DO i=1,ndata
+         vtot(i)=vdata(i)
+      END DO
+      ilena(1)=ndata
+      iposa(1)=1
+      RETURN
+      END SUBROUTINE mtx_allgatherv_real4
 
 !-----
 
@@ -561,6 +690,20 @@
       
 !-----
 
+      SUBROUTINE mtx_reduce1_real4(vdata,nop,vreduce,vloc)
+      IMPLICIT NONE
+      REAL(4),INTENT(IN):: vdata
+      INTEGER,INTENT(IN):: nop
+      REAL(4),INTENT(OUT):: vreduce
+      INTEGER,INTENT(OUT):: vloc
+
+      vreduce=vdata
+      vloc=1
+      RETURN
+      END SUBROUTINE mtx_reduce1_real4
+      
+!-----
+
       SUBROUTINE mtx_reduce1_real8(vdata,nop,vreduce,vloc)
       IMPLICIT NONE
       REAL(8),INTENT(IN):: vdata
@@ -603,6 +746,23 @@
       END DO
       RETURN
       END SUBROUTINE mtx_reduce_integer
+      
+!-----
+
+      SUBROUTINE mtx_reduce_real4(vdata,ndata,nop,vreduce,vloc)
+      IMPLICIT NONE
+      REAL(4),DIMENSION(ndata),INTENT(IN):: vdata
+      INTEGER,INTENT(IN):: ndata,nop
+      REAL(4),DIMENSION(ndata),INTENT(OUT):: vreduce
+      INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
+      INTEGER:: i
+
+      DO i=1,ndata
+         vreduce(i)=vdata(i)
+         vloc(i)=1
+      END DO
+      RETURN
+      END SUBROUTINE mtx_reduce_real4
       
 !-----
 
@@ -654,6 +814,21 @@
       
 !-----
 
+      SUBROUTINE mtx_allreduce1_real4(vdata,nop,vreduce,vloc)
+      IMPLICIT NONE
+      REAL(4),INTENT(IN):: vdata
+      INTEGER,INTENT(IN):: nop
+      REAL(4),INTENT(OUT):: vreduce
+      INTEGER,INTENT(OUT):: vloc
+      INTEGER:: i
+
+      vreduce=vdata
+      vloc=1
+      RETURN
+      END SUBROUTINE mtx_allreduce1_real4
+      
+!-----
+
       SUBROUTINE mtx_allreduce1_real8(vdata,nop,vreduce,vloc)
       IMPLICIT NONE
       REAL(8),INTENT(IN):: vdata
@@ -697,6 +872,23 @@
       END DO
       RETURN
       END SUBROUTINE mtx_allreduce_integer
+      
+!-----
+
+      SUBROUTINE mtx_allreduce_real4(vdata,ndata,nop,vreduce,vloc)
+      IMPLICIT NONE
+      REAL(4),DIMENSION(ndata),INTENT(IN):: vdata
+      INTEGER,INTENT(IN):: ndata,nop
+      REAL(4),DIMENSION(ndata),INTENT(OUT):: vreduce
+      INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
+      INTEGER:: i
+
+      DO i=1,ndata
+         vreduce(i)=vdata(i)
+         vloc(i)=1
+      END DO
+      RETURN
+      END SUBROUTINE mtx_allreduce_real4
       
 !-----
 
