@@ -322,52 +322,31 @@
       CALL update_fns
 
       IF(NRANK.eq.0)THEN
-            open(9,file='fns_e.dat')
-            DO NR=1,NRMAX
-               DO NP=1,NPMAX
-                  DO NTH=1,NTHMAX
-                     WRITE(9,'(3I4,3E17.8)') NR, NP, NTH, FNS(NTH,NP,NR,1), PM(NP,1)*COSM(NTH), PM(NP,1)*SINM(NTH)
+         DO NSA=1,NSAMAX
+            SELECT CASE(NSA)
+            CASE(1)
+               open(9,file='fns_e.dat')
+            CASE(2)
+               open(9,file='fns_D.dat')
+            CASE(3)
+               open(9,file='fns_D.dat')
+            END SELECT
+            IF(NSA.LE.3) THEN
+               DO NR=1,NRMAX
+                  DO NP=1,NPMAX
+                     DO NTH=1,NTHMAX
+                        WRITE(9,'(3I4,3E17.8)') NR, NP, NTH, &
+                             FNS(NTH,NP,NR,NSA), &
+                             PM(NP,NSA)*COSM(NTH), PM(NP,NSA)*SINM(NTH)
+                     END DO
                   END DO
+                  WRITE(9,*) " "
+                  WRITE(9,*) " "
                END DO
-               WRITE(9,*) " "
-               WRITE(9,*) " "
-            END DO
-            close(9)
-            open(9,file='fns_D.dat')
-            DO NR=1,NRMAX
-               DO NP=1,NPMAX
-                  DO NTH=1,NTHMAX
-                     WRITE(9,'(3I4,3E17.8)') NR, NP, NTH, FNS(NTH,NP,NR,2), PM(NP,2)*COSM(NTH), PM(NP,2)*SINM(NTH)
-                  END DO
-               END DO
-               WRITE(9,*) " "
-               WRITE(9,*) " "
-            END DO
-            close(9)
-!            open(9,file='fns_T.dat')
-!            DO NR=1,NRMAX
-!               DO NP=1,NPMAX
-!                  DO NTH=1,NTHMAX
-!                     WRITE(9,'(3I4,3E17.8)') NR, NP, NTH, FNS(NTH,NP,NR,3), PM(NP,3)*COSM(NTH), PM(NP,3)*SINM(NTH)
-!                  END DO
-!               END DO
-!               WRITE(9,*) " "
-!               WRITE(9,*) " "
-!            END DO
-!            close(9)
-            open(9,file='fns_He.dat')
-            DO NR=1,NRMAX
-               DO NP=1,NPMAX
-                  DO NTH=1,NTHMAX
-                     WRITE(9,'(3I4,3E17.8)') NR, NP, NTH, FNS(NTH,NP,NR,4), PM(NP,4)*COSM(NTH), PM(NP,4)*SINM(NTH)
-                  END DO
-               END DO
-               WRITE(9,*) " "
-               WRITE(9,*) " "
-            END DO
-            close(9)
+               close(9)
+            ENDIF
+         END DO
       END IF
-
 
       RETURN
       END SUBROUTINE FP_LOOP

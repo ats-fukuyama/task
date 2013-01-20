@@ -61,7 +61,8 @@ fplib.a: $(OBJS)
 libs:
 	(cd ../../bpsd; make bpsdlib.a)
 	(cd ../../task/lib; make tasklib.a)
-	(cd ../../task/mtxp; make libmtxbnd.o libmtxksp.o)
+	(cd ../../task/mtxp; make libmtxmpi.o libmtxnompi.o)
+	(cd ../../task/mtxp; make libmtxbnd.o libmtxksp.o libmtxdmumps.o)
 	(cd ../../task/eq; make eqlib.a)
 	(cd ../../task/plx; make pllib.a)
 
