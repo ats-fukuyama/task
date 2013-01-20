@@ -84,10 +84,19 @@ MODULE trcomm
   INTEGER(ikind):: ngtmax      ! number of saved data
   INTEGER(ikind):: ngtstp      ! number of time step for data save
 
-  REAL(rkind)::    pnb_tot     !
-  REAL(rkind)::    pnb_r0      !
-  REAL(rkind)::    pnb_rw      !
-  REAL(rkind)::    pnb_eng     !
+  INTEGER(ikind):: mdlnb,mdlec,mdllh,mdlic
+  REAL(rkind)::    pnbtot     ! total power of NBI heating [MW]
+  REAL(rkind)::    pnbrw      ! radial width of deposition [m]
+  REAL(rkind)::    pnbcd      ! current drive factor
+  REAL(rkind)::    pnbr0      ! radial position of deposition
+  REAL(rkind)::    pnbeng     ! [keV]
+  REAL(rkind)::    pectot,pictot,plhtot ! total power of RF heating [MW]
+  REAL(rkind)::    pecrw, picrw, plhrw  ! radial width of deposition [m]
+  REAL(rkind)::    peccd, piccd, plhcd  ! current drice factor
+  REAL(rkind)::    pecr0, picr0, plhr0  ! radial position of deposition [m]
+  REAL(rkind)::    pectoe,pictoe,plhtoe ! power partition to electron
+  REAL(rkind)::    pecnpr,picnpr,plhnpr ! parallel refractive index
+
 
 ! ----- switch variables -----
   INTEGER(ikind) :: &
@@ -388,6 +397,8 @@ MODULE trcomm
                   ! 1 : complete n_i and n_imp  from Zeff, n_e (and n_bulk)
                   ! 2 : complete n_imp and Zeff from n_e, n_i (and n_bulk)
                   ! 3 : complete n_i and Zeff   from n_e, n_imp (and n_bulk)
+                  ! 8 : complete n_i and Zeff using the assumption n_e = n_i (+ n_fast)
+                  ! 9 : complete n_i and Zeff using the assumption n_e = n_i
        ufid_bin   ! Parameter which determines how to handle exp. files.
                   ! 0 : Binary files are loaded if available, or ASCII files
                   !      are loaded and aftermath binary files are created.

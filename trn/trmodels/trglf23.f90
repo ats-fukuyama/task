@@ -63,7 +63,7 @@ CONTAINS
     ! Auxiliaries
     INTEGER(ikind) :: &
          i_delay, idengrad, iglf, i_grad, irotstab, jmaxm, jmm, &
-         jshoot, leigen, bt_flag, nr, nroot, ns, ns1
+         jshoot, leigen, bt_flag, nr, nroot
     REAL(rkind) :: &
          alpha_e, amassgas_exp, amassimp_exp, arho_exp, bt_exp, chietem, &
          chiitim, diffnem, etaparm, etaperm, etaphim, exchm, &
@@ -360,20 +360,15 @@ CONTAINS
     vparm(nrmax) = vpar_m(nrmax-1)
     vprpm(nrmax) = vper_m(nrmax-1)
 
-    DO nsa=1,nsamax
-       ns = ns_nsa(nsa)
-       nbase = 3*(nsa-1)+1
-       IF(pz0(ns) < 0.D0) THEN ! for electron
+    DO nsa = 1, nsamax
+       nbase = 3*(nsa-1) + 1
+       IF(idnsa(nsa) == -1.d0) THEN ! for electron
           dtr_tb(nbase+1,nbase+1,1:nrmax)=cdtrn*MAX(diff_jm(1:nrmax),0.d0)
           dtr_tb(nbase+3,nbase+3,1:nrmax)=cdtrt*MAX(chie_jm(1:nrmax),0.d0)
 !          write(*,*) chietem,diffnem
-       ELSE 
-          IF(pz(ns) /= 0.d0) THEN ! for ion
-             dtr_tb(nbase+1,nbase+1,1:nrmax)= &
-                                          cdtrn*MAX(diff_jm(1:nrmax),0.d0)
-             dtr_tb(nbase+3,nbase+3,1:nrmax)= &
-                                          cdtrt*MAX(chii_jm(1:nrmax),0.d0)
-          END IF
+       ELSE IF(idnsa(nsa) == 1.d0) THEN ! for bulk ion
+          dtr_tb(nbase+1,nbase+1,1:nrmax)=cdtrn*MAX(diff_jm(1:nrmax),0.d0)
+          dtr_tb(nbase+3,nbase+3,1:nrmax)=cdtrt*MAX(chii_jm(1:nrmax),0.d0)
        END IF
     END DO
 

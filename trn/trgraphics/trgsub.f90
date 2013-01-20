@@ -485,13 +485,14 @@ CONTAINS
 
 
   SUBROUTINE tr_gr_expt_alloc(ierr)
-! ***  The deallocation routine is not needed 
-! ***   because ntxmax and nsum are not hcange
+
     INTEGER(ikind),INTENT(OUT) :: ierr
-    INTEGER(ikind),SAVE :: ntalloc_save = 0
+    INTEGER(ikind),SAVE :: ntxmax_save = 0
 
     ierr = 0
-    IF(ntalloc_save == 0)THEN
+    IF(ntxmax /= ntxmax_save)THEN
+
+       IF(ntxmax_save /= 0) CALL tr_gr_expt_dealloc
        DO
           ALLOCATE(gtu(1:ntxmax),STAT=ierr); IF(ierr /= 0) EXIT
 
@@ -504,7 +505,7 @@ CONTAINS
           ALLOCATE(gtiu3(1:ntxmax,10),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(gtiu4(1:ntxmax,10),STAT=ierr); IF(ierr /= 0) EXIT
 
-          ntalloc_save = 1
+          ntxmax_save = ntxmax
           RETURN
        END DO
        WRITE(6,*) ' XX tr_gr_exp_ntalloc: allocation error: ierr= ', ierr
@@ -512,6 +513,21 @@ CONTAINS
 
     RETURN
   END SUBROUTINE tr_gr_expt_alloc
+
+  SUBROUTINE tr_gr_expt_dealloc
+
+    IF(ALLOCATED(gtu)) DEALLOCATE(gtu)
+    IF(ALLOCATED(gtu1)) DEALLOCATE(gtu1)
+    IF(ALLOCATED(gtu2)) DEALLOCATE(gtu2)
+    IF(ALLOCATED(gtu3)) DEALLOCATE(gtu3)
+    IF(ALLOCATED(gtu4)) DEALLOCATE(gtu4)
+    IF(ALLOCATED(gtiu1)) DEALLOCATE(gtiu1)
+    IF(ALLOCATED(gtiu2)) DEALLOCATE(gtiu2)
+    IF(ALLOCATED(gtiu3)) DEALLOCATE(gtiu3)
+    IF(ALLOCATED(gtiu4)) DEALLOCATE(gtiu4)
+
+    RETURN
+  END SUBROUTINE tr_gr_expt_dealloc
 
 ! ************************************************************************
   

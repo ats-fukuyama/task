@@ -48,20 +48,21 @@ CONTAINS
     INTEGER(ikind),             INTENT(OUT) :: ntxmax, ierr
 
     REAL(rkind),DIMENSION(ntum) :: f1
-    INTEGER(ikind) :: ntsl
+    INTEGER(ikind) :: ntsl, liberr
 
     fout(1:ntum) = 0.d0
     
+    liberr = 1 ! suppress error messages from library 'libufile'
     IF(mdlxp .EQ. 0)THEN
-       CALL ufread_1d_time(kfid,TL,F1,ntxmax,ntum,id_bin,errout,ierr)
+       CALL ufread_1d_time(kfid,TL,F1,ntxmax,ntum,id_bin,liberr,ierr)
     ELSE
        ! TASK/lib mdsplus.f
        CALL IPDB_MDS1(kuf_dev,kuf_dcg,kfid,ntum,TL,F1,ntxmax,ierr)
     END IF
 
     IF(ierr /= 0) THEN
-       IF(errout ==0)THEN
-          WRITE(6,'(A,A10,A)') '## tr_uf1d: Failed to read "',KFID,'" file.'
+       IF(errout == 0)THEN
+          WRITE(6,'(A,A10,A7)') ' XX tr_uf1d: Failed to read "',KFID,'" file.'
        END IF
        fout(1:ntum) = 0.d0
        RETURN
@@ -130,7 +131,7 @@ CONTAINS
     REAL(rkind),DIMENSION(ntum),          INTENT(OUT)   :: tl
     REAL(rkind),DIMENSION(ntum,nrum),     INTENT(OUT)   :: fout
 
-    INTEGER(ikind) :: nrlmax,ntx,ntsl,id
+    INTEGER(ikind) :: nrlmax,ntx,ntsl,id, liberr
     REAL(rkind),DIMENSION(nrum)      :: deriv,rl,f1
     REAL(rkind),DIMENSION(1:nrmax+1)   :: fint
     REAL(rkind),DIMENSION(4,nrum)    :: u
@@ -141,20 +142,18 @@ CONTAINS
     f2(1:ntum,1:nrum)   = 0.d0
     fout(1:ntum,1:nrum) = 0.d0
 
+    liberr = 1 ! suppress error messages from library 'libufile'
     IF(mdlxp .EQ. 0) THEN
        CALL ufread_2d_time(kfid,rl,tl,f2,nrlmax,ntxmax,nrum,ntum, &
-                           id_bin,errout,ierr)
+                           id_bin,liberr,ierr)
     ELSE
        CALL IPDB_MDS2(kuf_dev,kuf_dcg,kfid,nrum,ntum, &
                       rl,tl,f2,nrlmax,ntxmax,ierr)
     END IF
 
     IF(ierr == 1) THEN
-       fout(1:ntum,1:nrum) = 0.d0
-       RETURN
-    ELSE IF(ierr >= 2) THEN
        IF(errout == 0)THEN
-          WRITE(6,'(A15,A10,A14)') '## tr_uf2d: Failed to read "',KFID,'" file.'
+          WRITE(6,'(A,A10,A7)') ' XX tr_uf2d: Failed to read "',KFID,'" file.'
        END IF
        fout(1:ntum,1:nrum) = 0.d0
        RETURN

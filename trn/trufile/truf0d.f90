@@ -10,8 +10,8 @@ MODULE truf0d
   LOGICAL,DIMENSION(1:2)    :: idzeff
   LOGICAL                   :: idpgasa,idpgasz,idpimpa,idpimpz
 
-  CHARACTER(LEN=15) :: toknam,shotnum,auxheat
-  REAL(rkind) :: pgasa,pgasz,pimpa,pimpz
+  CHARACTER(LEN=15) :: toknam,shotnum,auxheat,phase,itb,itbtype
+  REAL(rkind) :: pgasa,pgasz,pimpa,pimpz, itbtime
 
 CONTAINS
 
@@ -30,7 +30,7 @@ CONTAINS
     IF(mdlxp == 0)THEN
        CALL ufread_0d(ndmax,ierr)
        IF(ierr /= 0)THEN
-          WRITE(6,'(A13,A10,A14)') '## tr_uf0d: Failed to read 0d.dat file.'
+          WRITE(6,'(A,I4)') '## tr_uf0d: Failed to read 0d.dat file. IERR= ',ierr
           ierr = 1
           RETURN
        END IF
@@ -322,16 +322,21 @@ CONTAINS
 
     CHARACTER(LEN=10) :: kfid
     CHARACTER(LEN=1)  :: knum
-    CHARACTER(LEN=30) :: fmt_aaaa,fmt_arar
+    CHARACTER(LEN=30) :: fmt_aaaa,fmt_arar,fmt_aa
     INTEGER(ikind)    :: nsi
 
     fmt_aaaa = '(1X,A12,A15,A12,A15)'
-    fmt_arar = '(1X,A11,ES11.3,3X,A11,ES11.3)'
+    fmt_arar = '(1X,A11,ES10.2,3X,A11,ES10.2)'
+    fmt_aa   = '(1X,A22,A15)'
 
     IF(mdlxp == 0)THEN ! UFILE
        shotnum = uf0d(139)%fc0
        toknam  = uf0d(158)%fc0
        auxheat = uf0d(3)%fc0
+       phase   = uf0d(109)%fc0
+       itb     = uf0d(53)%fc0
+       itbtime = uf0d(54)%fr0
+       itbtype = uf0d(55)%fc0
 
        WRITE(6,*) ! spacing
        WRITE(6,'(A55)') '# UFILE information ----------------------------------#'
@@ -364,7 +369,7 @@ CONTAINS
              END IF
           END IF
        END DO
-       WRITE(6,*) ! breaking line
+       WRITE(6,*) ! line break
        WRITE(6,'(1X,A12)',ADVANCE='NO') 'Fast ions : '
        DO nsi = 2, nsum
           IF(idnfast(nsi))THEN
@@ -392,11 +397,16 @@ CONTAINS
              END IF
           END IF
        END DO
-       WRITE(6,*) ! breaking line
+       WRITE(6,*) ! line break
        
        WRITE(6,fmt_arar) 'PGASA    = ',pgasa,  'PGASZ    = ',pgasz
        WRITE(6,fmt_arar) 'PIMPA    = ',pimpa,  'PIMPZ    = ',pimpz
-       WRITE(6,'(1X,A,A15)') 'Auxiliary heating: ',auxheat
+       WRITE(6,fmt_aa) 'Auxiliary heating   : ',auxheat
+       WRITE(6,fmt_aa) 'Plasma phase        : ',phase
+       WRITE(6,'(1X,A22,A15,A1,A15)') &
+                       'ITB condition, type : ',itb,',',itbtype
+       WRITE(6,'(1X,A22,ES10.2)')     &
+                       'ITB triggering time : ',itbtime
        WRITE(6,'(A55)') '#-----------------------------------------------------#'
        WRITE(6,*) ! spacing
        

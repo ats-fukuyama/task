@@ -36,10 +36,10 @@ CONTAINS
     
     ! print status to standard output
     IF(mdluf > 0)THEN
-       WRITE(6,'(1X,A31,F5.1,A4)') '# RW(the deviation of Wp_inc): ', &
+       WRITE(6,'(1X,A31,F6.1,A4)') '# RW(the deviation of Wp_inc): ', &
                                    rw*100.d0,' (%)'
        DO nsa = 1, nsamax
-          WRITE(6,'(A7,A1,A2,F5.1,A4)',ADVANCE='NO') &
+          WRITE(6,'(A7,A1,A2,F6.1,A4)',ADVANCE='NO') &
                   '  STD_T',kidns(ns_nsa(nsa)),': ',stdrt(nsa)*100.d0,' (%)'
        END DO
        WRITE(6,*) ! line break

@@ -40,11 +40,16 @@ CONTAINS
            dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,rhog_prv, &
            cdtrn,cdtru,cdtrt, &
            ntstep,ngtmax,ngtstp,rips,ripe,profj1,profj2, &
-           pnb_tot,pnb_eng,pnb_rw,pnb_r0, &
            ufid_bin,kuf_dir,kuf_dev,kuf_dcg, &
            mdleqb,mdleqn,mdlequ,mdleqt, &
            mdlijq,mdlgmt,mdlsrc,mdlglb, &
-           mdlwrt,nwrstp,kwpnam,kwtnam
+           mdlwrt,nwrstp,kwpnam,kwtnam, &
+           mdlnb,mdlec,mdllh,mdlic,     &
+           pnbtot,pnbrw,pnbcd,pnbr0,pnbeng,&
+           pectot,pecrw,peccd,pecr0,pectoe,pecnpr,&
+           plhtot,plhrw,plhcd,plhr0,plhtoe,plhnpr,&
+           pictot,picrw,piccd,picr0,pictoe,picnpr
+           
 
     USE plinit
     IMPLICIT NONE
@@ -341,10 +346,69 @@ CONTAINS
     ph0   = 0.1D0
     phs   = 0.1D0
 
-    pnb_tot = 0.d0  ! [MW]
-    pnb_r0  = 0.3d0
-    pnb_rw  = 0.5d0
-    pnb_eng = 80.d0 ! [keV]
+!      < NBI heating >
+!        PNBTOT : NBI total input power [MW]
+!        PNBR0  : radial position of nbi power deposition [m]
+!        PNBRW  : radial width of nbi power deposition [m]
+!        PNBVY  : vertical position of NBI [m]
+!                 valid for MDLNB=3 or 4
+!        PNBVW  : vertical width of NBI [m]
+!                 valid for MDLNB=3 or 4
+!        PNBENG : NBI beam energy [keV]
+!        PNBRTG : tangential radius of NBI beam [m]
+!                 valid for MDLNB=3 or 4
+!        PNBCD  : current drive factor
+!                 0: off
+!                 0 to 1: ratio of v_parallel to v
+!        MDLNB  : NBI model type
+!                    0 : off
+!                    1 : gaussian (no particle source)
+!                    2 : gaussian      
+!                    3 : pencil beam (no particle source)
+!                    4 : pencil beam
+
+    pnbtot = 0.d0  ! [MW]
+    pnbr0  = 0.3d0
+    pnbrw  = 0.5d0
+    pnbeng = 80.d0 ! [keV]
+    mdlnb  = 1
+
+!      < RF heating; EC, LH, IC >
+!        P**TOT : RF input power [MW]
+!        P**R0  : radial position of power deposition [m]
+!        P**RW  : radial width of power deposition [m]
+!        P**TOE : power partition to electron
+!        P**NPR : parallel refractive index
+!        P**CD  : current drive factor
+!        MDL**  : RF model
+
+!     electron cyclocron resonance heating
+      pectot = 0.d0
+      pecr0  = 0.d0
+      pecrw  = 0.2d0
+      pectoe = 1.d0
+      pecnpr = 0.d0
+      peccd  = 0.d0
+      mdlec  = 0
+
+!     lower hybrid resonance heating
+      plhtot = 0.d0
+      plhr0  = 0.d0
+      plhrw  = 0.2d0
+      plhtoe = 1.d0
+      plhnpr = 2.d0
+      plhcd  = 0.d0
+      mdllh  = 0
+
+!     ion cyclocron resonance heating
+      pictot = 0.d0
+      picr0  = 0.d0
+      picrw  = 0.5d0
+      pictoe = 0.5d0
+      picnpr = 2.d0
+      piccd  = 0.d0
+      mdlic  = 0
+
 
 !   === Model switches ===
 !
@@ -509,11 +573,16 @@ CONTAINS
            lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv,mdler,&
            dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,rhog_prv,cdtrn,cdtru,cdtrt, &
            profj1,profj2,rips,ripe,nteqit,time_slc,time_snap,mdlugt,mdlni, &
-           pnb_tot,pnb_eng,pnb_rw,pnb_r0, &
            ufid_bin,mdluf,mdlxp,kuf_dir,kuf_dev,kuf_dcg, &
            mdleqb,mdleqn,mdlequ,mdleqt, &
            mdlijq,mdlgmt,mdlsrc,mdlglb, &
-           mdlwrt,nwrstp,kwpnam,kwtnam
+           mdlwrt,nwrstp,kwpnam,kwtnam, &
+           mdlnb,mdlec,mdllh,mdlic,     &
+           pnbtot,pnbrw,pnbcd,pnbr0,pnbeng,&
+           pectot,pecrw,peccd,pecr0,pectoe,pecnpr,&
+           plhtot,plhrw,plhcd,plhr0,plhtoe,plhnpr,&
+           pictot,picrw,piccd,picr0,pictoe,picnpr
+
     IMPLICIT NONE
     INTEGER(ikind),INTENT(IN) :: nid
     INTEGER(ikind),INTENT(OUT):: ist
@@ -539,8 +608,12 @@ CONTAINS
          cdtrn,cdtru,cdtrt, &
          ntstep,ngtmax,ngtstp, &
          rips,ripe, &
-         pnb_tot,pnb_eng,pnb_rw,pnb_r0, &
-         mdlwrt,nwrstp,kwpnam,kwtnam
+         mdlwrt,nwrstp,kwpnam,kwtnam, &
+         mdlnb,mdlec,mdllh,mdlic,     &
+         pnbtot,pnbrw,pnbcd,pnbr0,pnbeng,&
+         pectot,pecrw,peccd,pecr0,pectoe,pecnpr,&
+         plhtot,plhrw,plhcd,plhr0,plhtoe,plhnpr,&
+         pictot,picrw,piccd,picr0,pictoe,picnpr
 
     READ(nid,TR,IOSTAT=ist,ERR=9800,END=9900)
     IERR=0

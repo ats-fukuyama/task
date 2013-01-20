@@ -173,7 +173,7 @@ CONTAINS
     REAL(rkind),   INTENT(IN)    :: pa_mion,pz_mion,pa_mimp,pz_mimp
     INTEGER(ikind),INTENT(OUT)   :: ns_ion, ns_imp, ierr
 
-    LOGICAL        :: id_ion,id_imp
+    LOGICAL        :: id_ion,id_imp, id_fion
     INTEGER(ikind) :: nsi
 
     id_ion = .FALSE.
@@ -195,7 +195,7 @@ CONTAINS
     END DO
 
     ! the case that the main ion density data can not be found.
-    IF(ns_ion == 0)THEN
+    IF(id_ion .EQV. .FALSE.)THEN
        DO nsi = 2, nsum
           IF(idnm(nsi) .EQV. .FALSE.)THEN
              idnm(nsi)   = .TRUE.
@@ -216,7 +216,7 @@ CONTAINS
     END IF
 
     ! the case that the main impurity density data can not be found.
-    IF(ns_imp == 0)THEN
+    IF(id_imp .EQV. .FALSE.)THEN
        DO nsi = 3, nsum ! nsi = 2: impurity data should not be store.
           IF(idnm(nsi) .EQV. .FALSE.)THEN
              idnm(nsi)   = .TRUE.
@@ -295,6 +295,21 @@ CONTAINS
           END IF
        END IF
 
+    CASE(8)
+       id_fion = .FALSE.
+       DO nsi = 2, nsum
+          IF(idnfast(nsi) .EQV. .TRUE.) id_fion = .TRUE. ; EXIT
+       END DO
+
+       IF(id_fion .EQV. .FALSE.)THEN
+          mdlni = 9
+          WRITE(6,*) 'XX tr_uf_nicheck: Lack of n_fast data.'
+          WRITE(6,*) '## "MDLNI" is reset to MDLNI= ',mdlni
+       END IF
+          
+    CASE(9) ! complete n_i and Zeff using the assumption n_e = n_i
+       CONTINUE
+
     CASE DEFAULT
        WRITE(6,*) 'XX tr_uf_nicheck: the value of "MDLNI" is invalid. MDLNI= ',mdlni
        WRITE(6,*) 'XX Stopped to correction of profiles by charge neutrality.'
@@ -326,7 +341,8 @@ CONTAINS
 !  id = 1 : complete n_i and n_imp  from Zeff, n_e (and n_bulk)
 !  id = 2 : complete n_imp and Zeff from n_e, n_i (and n_bulk)
 !  id = 3 : complete n_i and Zeff   from n_e, n_imp (and n_bulk)
-!  id = 9 : complete n_i adn Zeff using the assumption n_e = n_i
+!  id = 8 : complete n_i and Zeff using the assumption n_e = n_i (+ n_fast)
+!  id = 9 : complete n_i and Zeff using the assumption n_e = n_i
 ! ----------------------------------------------------------------------
     IMPLICIT NONE
 
@@ -417,6 +433,21 @@ CONTAINS
 
           zeffrc(ntx,1:nrmax+1) = zeffrc(ntx,1:nrmax+1)/rnc(1,ntx,1:nrmax+1)
        END DO
+
+    CASE(8) ! n_e, n_fast --> n_i, Zeff (n_e = n_i + n_fast; not including impurity)
+       rnc(ns_ion,1:ntxmax,1:nrmax+1) = rnc(1,1:ntxmax,1:nrmax+1)
+
+       zeffrc(1:ntxmax,1:nrmax+1) = pzc(ns_ion)*rnc(1,1:ntxmax,1:nrmax+1)
+       DO nsi = 2, nsum
+          rnc(ns_ion,1:ntxmax,1:nrmax+1) = rnc(ns_ion,1:ntxmax,1:nrmax+1) &
+                                  -pzfc(nsi)*rnfc(nsi,1:ntxmax,1:nrmax+1)
+
+          zeffrc(1:ntxmax,1:nrmax+1) = zeffrc(1:ntxmax,1:nrmax+1)         &
+             - (pzc(ns_ion)-pzfc(nsi))*pzfc(nsi)*rnfc(nsi,1:ntxmax,1:nrmax+1)
+       END DO
+
+       zeffrc(1:ntxmax,1:nrmax+1) = zeffrc(1:ntxmax,1:nrmax+1)            &
+                                    /rnc(1,1:ntxmax,1:nrmax+1)
 
     CASE(9) ! n_e --> n_i, Zeff (n_e = n_i)
        rnc(ns_ion,1:ntxmax,1:nrmax+1) = rnc(1,1:ntxmax,1:nrmax+1)

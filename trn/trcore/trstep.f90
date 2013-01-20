@@ -70,7 +70,7 @@ CONTAINS
        CALL tr_set_xv(xv,dpdrho,rn,ru,rt,rp,rp_tot)
 
        CALL tr_check_negative(ierr)
-       IF(ierr /= 0) STOP
+       IF(ierr /= 0) EXIT
 
     END DO non_linear
 

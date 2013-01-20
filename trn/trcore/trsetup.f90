@@ -386,14 +386,14 @@ CONTAINS
     DO
        IF(mdluf /= 0)THEN
           CALL tr_ufile(ierr)
-          IF(ierr /= 0)THEN
-             ! set to default values
-             mdluf  = 0
-             mdlgmt = 1
-             mdlglb = 1
-             mdlsrc = 1
-             EXIT
-          END IF
+!!$          IF(ierr /= 0)THEN
+!!$             ! set to default values
+!!$             mdluf  = 0
+!!$             mdlgmt = 1
+!!$             mdlglb = 1
+!!$             mdlsrc = 1
+!!$             EXIT
+!!$          END IF
 
           CALL tr_uf_init(mdluf)
           IF(mdluf==1)THEN
@@ -621,6 +621,7 @@ CONTAINS
     USE trcomm,ONLY: rmu0,pi,nrmax,mdlijq,rhog,rip,abb1rho,dvrho,ttrho, &
          rmjrho,abrho,arrho,ar1rho,abvrho,dpdrho,rdpvrho,qp,bp,jtot &
          ,nrd1,nrd2
+    USE libgrf,ONLY: grd1d
     IMPLICIT NONE
 
     INTEGER(ikind):: nr
@@ -669,7 +670,7 @@ CONTAINS
        qp(0)       = FCTR(rhog(1),rhog(2),qp(1),qp(2))
 
 
-    ELSE IF(MOD(mdlijq,2)==0)THEN ! qp --> dpdrho                       
+    ELSE IF(MOD(mdlijq,2)==0)THEN ! qp --> dpdrho
        dpdrho(0:nrmax) = ttrho(0:nrmax)*arrho(0:nrmax)*dvrho(0:nrmax) &
                         / (4.d0*pi**2 * qp(0:nrmax))
        IF(mdlijq==2)THEN
@@ -703,6 +704,10 @@ CONTAINS
        END DO
 !       jtot(0) = FCTR4pt(rhog(1),rhog(2),rhog(3),jtot(1),jtot(2),jtot(3))
        jtot(0) = FCTR(rhog(1),rhog(2),jtot(1),jtot(2))       
+
+       CALL PAGES
+       CALL GRD1D(1,rhog,factor2,nrmax+1,nrmax+1,1,'jtot',0)
+       CALL PAGEE
 
     END IF
 

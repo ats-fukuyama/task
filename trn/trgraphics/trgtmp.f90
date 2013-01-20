@@ -61,11 +61,12 @@ CONTAINS
 
   SUBROUTINE tr_gr_temp1
   ! ----- time evolution of (n, u, T, q)-----
-    USE trcomm,ONLY: gvt,gvts
+    USE trcomm,ONLY: gvt,gvts,idnsa
 
     CALL tr_gr_init_gt
 
-    DO nsa=1,nsamax
+    DO nsa = 1, nsamax
+       IF(idnsa(nsa)==0 .OR. idnsa(nsa)==2) CYCLE
        gt1(0:ngt,nsa)=gvts(0:ngt,nsa,1)
        gt2(0:ngt,nsa)=gvts(0:ngt,nsa,4)
        gt3(0:ngt,nsa)=gvts(0:ngt,nsa,3)

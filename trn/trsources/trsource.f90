@@ -41,10 +41,10 @@ CONTAINS
 
     SELECT CASE(mdlsrc)
     CASE(1) ! simple model
-       CALL tr_src_simple
+!       CALL tr_src_simple
 
     CASE(2) ! conventional heating calculation
-       CALL tr_src_simple
+!       CALL tr_src_simple
 
     CASE(6) ! only initial condition
        IF(t /= 0.d0) RETURN
@@ -71,6 +71,7 @@ CONTAINS
     USE trcomm,ONLY: rkev,nsa_neq,nva_neq,mdlsrc,str,htr,  &
          poh,pnb,pec,pic,plh,pibw,pnf,prl,pwl,snb,spl,swl, &
          jbs_nc,jex_nc,jcd_nb,jcd_ec,jcd_ic,jcd_lh
+    USE trprf, ONLY: tr_power_rf
     IMPLICIT NONE
 
     INTEGER(ikind) :: neq,nsa,nva
@@ -83,9 +84,8 @@ CONTAINS
 
     SELECT CASE(mdlsrc)
     CASE(0:1) ! conventional heating
-       ! ----- energy -----
 
-       ! ----- particle -----
+!       CALL tr_power_rf
 
     CASE(6)
 
@@ -149,53 +149,53 @@ CONTAINS
 ! ************************************************************************
 ! ************************************************************************
 
-  SUBROUTINE tr_src_simple
-! ------------------------------------------------------------------------
-!   simple source model for particle and energy equations
-!   for the time being
-! ------------------------------------------------------------------------
-    USE trcomm, ONLY: rkev,nrmax,nsamax,neqmax,nva_neq,ph0,phs,rhog,ra, &
-         dvrho,str_simple,nrd1,nrd2,nrd3,nrd4, &
-         pnb,pnb_tot,pnb_r0,pnb_rw,pnb_eng,snb
-    IMPLICIT NONE
-    INTEGER(ikind) :: nr, neq
-
-    REAL(rkind) :: sum_nb,pnb0,rhom,dvrhom,drhog
-
-    str_simple = 0.d0
-    DO nr = 0, nrmax
-       DO neq=1,neqmax
-          IF(nva_neq(neq) == 3) THEN
-             str_simple(neq,nr) = phs+(ph0-phs)*(1.D0-(rhog(nr)/ra)**2)*1.d6
-!             str_simple(neq,nr) = phs+(ph0-phs)*(1.D0-(rg(nr)/ra)**2)
-!             str_simple(neq,nr) = 0.d0
-          END IF
-       END DO
-    END DO
-
-    ! simple RF : Gaussian profile : only energy
-    sum_nb = 0.d0
-    DO nr = 1, nrmax
-       rhom   = 0.5d0*(rhog(nr)+rhog(nr-1))
-       dvrhom = 0.5d0*(dvrho(nr)+dvrho(nr-1))
-       drhog  = rhog(nr) - rhog(nr-1)
-
-       sum_nb = sum_nb &
-              + DEXP( -((ra*rhom-pnb_r0)/pnb_rw)**2 ) *dvrhom*drhog
-    ENDDO
-    pnb0 = pnb_tot*1.d6 / sum_nb
-    DO nr = 0, nrmax
-       pnb(1,nr) = 0.5d0*pnb0*DEXP(-((ra*rhog(nr)-pnb_r0)/pnb_rw)**2)
-       pnb(2,nr) = 0.5d0*pnb0*DEXP(-((ra*rhog(nr)-pnb_r0)/pnb_rw)**2)
-    ENDDO
-
-!    nrd1(0:nrmax) = eta(0:nrmax)
-!    nrd2(0:nrmax) = ezoh(0:nrmax)
-!    nrd3(0:nrmax) = poh(0:nrmax)
-!    nrd4(0:nrmax) = joh(0:nrmax)
-
-    RETURN
-  END SUBROUTINE tr_src_simple
+!!$  SUBROUTINE tr_src_simple
+!!$! ------------------------------------------------------------------------
+!!$!   simple source model for particle and energy equations
+!!$!   for the time being
+!!$! ------------------------------------------------------------------------
+!!$    USE trcomm, ONLY: rkev,nrmax,nsamax,neqmax,nva_neq,ph0,phs,rhog,ra, &
+!!$         dvrho,str_simple,nrd1,nrd2,nrd3,nrd4, &
+!!$         pnb,pnb_tot,pnb_r0,pnb_rw,pnb_eng,snb
+!!$    IMPLICIT NONE
+!!$    INTEGER(ikind) :: nr, neq
+!!$
+!!$    REAL(rkind) :: sum_nb,pnb0,rhom,dvrhom,drhog
+!!$
+!!$    str_simple = 0.d0
+!!$    DO nr = 0, nrmax
+!!$       DO neq=1,neqmax
+!!$          IF(nva_neq(neq) == 3) THEN
+!!$             str_simple(neq,nr) = phs+(ph0-phs)*(1.D0-(rhog(nr)/ra)**2)*1.d6
+!!$!             str_simple(neq,nr) = phs+(ph0-phs)*(1.D0-(rg(nr)/ra)**2)
+!!$!             str_simple(neq,nr) = 0.d0
+!!$          END IF
+!!$       END DO
+!!$    END DO
+!!$
+!!$    ! simple RF : Gaussian profile : only energy
+!!$    sum_nb = 0.d0
+!!$    DO nr = 1, nrmax
+!!$       rhom   = 0.5d0*(rhog(nr)+rhog(nr-1))
+!!$       dvrhom = 0.5d0*(dvrho(nr)+dvrho(nr-1))
+!!$       drhog  = rhog(nr) - rhog(nr-1)
+!!$
+!!$       sum_nb = sum_nb &
+!!$              + DEXP( -((ra*rhom-pnb_r0)/pnb_rw)**2 ) *dvrhom*drhog
+!!$    ENDDO
+!!$    pnb0 = pnb_tot*1.d6 / sum_nb
+!!$    DO nr = 0, nrmax
+!!$       pnb(1,nr) = 0.5d0*pnb0*DEXP(-((ra*rhog(nr)-pnb_r0)/pnb_rw)**2)
+!!$       pnb(2,nr) = 0.5d0*pnb0*DEXP(-((ra*rhog(nr)-pnb_r0)/pnb_rw)**2)
+!!$    ENDDO
+!!$
+!!$!    nrd1(0:nrmax) = eta(0:nrmax)
+!!$!    nrd2(0:nrmax) = ezoh(0:nrmax)
+!!$!    nrd3(0:nrmax) = poh(0:nrmax)
+!!$!    nrd4(0:nrmax) = joh(0:nrmax)
+!!$
+!!$    RETURN
+!!$  END SUBROUTINE tr_src_simple
 
 
   SUBROUTINE tr_src_energy_ohm
