@@ -1,7 +1,8 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS = $(OFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 SRCN = nompilib.f
 SRCM = mpilib.f
@@ -9,10 +10,12 @@ SRCM = mpilib.f
 OBJN = $(SRCN:.f=.o)
 OBJM = $(SRCM:.f=.o)
 
+MODINCLUDE= -I./$(MOD) -I../mtxp
+
 .f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@
+	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
 all : $(OBJN) $(OBJM)
 

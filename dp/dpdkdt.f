@@ -9,6 +9,7 @@ C ******************************************************
 C
       SUBROUTINE DPDKDT(CW,CKPR,NS,NR,NCH1,NCH2,MM,CDTNS)
 C
+      USE plcomm
       INCLUDE 'dpcomm.inc'
 C
       DIMENSION CDTNS(3,3),CDTNSR(3,3),CDTNSI(3,3)
@@ -38,8 +39,10 @@ C     NCH1,NCH2: POLOIDAL MESH
 C     MM : POLOIDAL NUMBER
 C------------------------------------------------------!
 
+      USE plcomm
+      USE pllocal
+      USE plprof,ONLY:pl_mag_old
       INCLUDE 'dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
 C
       DIMENSION CDTNSR(3,3)
       DIMENSION DRFP(NTHMAX,NPMAX)
@@ -69,7 +72,7 @@ C
       X=RR+RSL*CCHIL
       Y=0.D0
       Z=   RSL*SCHIL
-      CALL PLMAG(X,Y,Z,RHON)
+      CALL PL_MAG_OLD(X,Y,Z,RHON)
 C
       CALL GUFLSH
       AM=PA(NS)*AMP             
@@ -342,8 +345,10 @@ C     NCH1,NCH2: POLOIDAL MESH
 C     MM : POLOIDAL NUMBER
 C------------------------------------------------------! 
 
+      USE plcomm
+      USE pllocal
+      USE plprof,ONLY: pl_mag_old
       INCLUDE 'dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
 
       DIMENSION CDTNSI(3,3)
       DIMENSION DRFP(NTHMAX,NPMAX)
@@ -368,7 +373,7 @@ C
       X=RR+RSL*CCHIL
       Y=0.D0
       Z=   RSL*SCHIL
-      CALL PLMAG(X,Y,Z,RHON)
+      CALL PL_MAG_OLD(X,Y,Z,RHON)
 C
       CALL GUFLSH
       AM=PA(NS)*AMP             

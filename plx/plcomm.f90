@@ -5,8 +5,6 @@
       USE bpsd_kinds
       USE bpsd_constants
 
-      IMPLICIT NONE
-
       INTEGER,PARAMETER:: NSM=100 ! Maximum number of particle species
 
       INTEGER:: NSMAX,MODELG,MODELN,MODELQ,IDEBUG,MODEFR,MODEFW
@@ -17,7 +15,7 @@
 
       REAL(rkind),DIMENSION(NSM):: & 
            PA,PZ,PZ0,IDION,PN,PNS,PTPR,PTPP,PTS,PU,PUS, &
-           PNITB,PTITB,PUITB
+           PNITB,PTITB,PUITB,PZCL
 
       CHARACTER(len=80):: KNAMEQ,KNAMWR,KNAMFP,KNAMWM,KNAMPF,KNAMFO,KNAMTR
       CHARACTER(len=80):: KNAMEQ2

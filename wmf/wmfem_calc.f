@@ -256,9 +256,9 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
                      csum1=0.d0
                      do k=1,3
                         do l=1,3
-                           csum1=csum1-conjg(cq(k,i,imn1))
-     &                                *gma(k,l,nth,nph)
-     &                                *cq(l,j,imn2) *gj
+C                           csum1=csum1-conjg(cq(k,i,imn1))
+C     &                                *gma(k,l,nth,nph)
+C     &                                *cq(l,j,imn2) *gj
                         enddo
                      enddo
                      if(i.eq.j.and.imn1.eq.1.and.imn2.eq.1) then

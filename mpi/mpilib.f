@@ -1,299 +1,241 @@
 C     $Id$
 C
-      SUBROUTINE MPINIT(nprocs1,myrank1)
+      SUBROUTINE MPINIT(nsize_,nrank_)
 C
-      include '../mpi/mpilib.inc'
+      USE mpi
+      INCLUDE '../mpi/mpilib.inc'
+      INTEGER,INTENT(OUT):: nsize_,nrank_
+      INTEGER::ierr
 C
-      call mpi_init(ierr)
-      call mpi_comm_size(mpi_comm_world,nprocs,ierr)
-      call mpi_comm_rank(mpi_comm_world,myrank,ierr)
-      nprocs1=nprocs
-      myrank1=myrank
+      CALL MPI_Init(ierr)
+      IF(ierr.NE.0) WRITE(6,*)
+     &     'XX MPINIT: MPI_Init: ierr=',ierr
+      ncomm=MPI_COMM_WORLD
+      CALL mtx_set_communicator_global(ncomm,nrank,nsize)
+      nsize_=nsize
+      nrank_=nrank
 C
       RETURN
       END
 C
       SUBROUTINE MPTERM
 C
-      include '../mpi/mpilib.inc'
+      USE mpi
+      INCLUDE '../mpi/mpilib.inc'
+      INTEGER::ierr
 C
-      call mpi_finalize(ierr)
-C
+      CALL MPI_Finalize(ierr)
+      IF(ierr.NE.0) WRITE(6,*)
+     &     'XX MPTERM: MPI_Finalaize: ierr=',ierr
       RETURN
       END
 C
       SUBROUTINE MPSYNC
 C
-      include '../mpi/mpilib.inc'
+      INCLUDE '../mpi/mpilib.inc'
 C
-      call mpi_barrier(mpi_comm_world,ierr)
-C
-      RETURN
-      END
-C
-      SUBROUTINE MPSETI(NMAX,NRANK,ista,iend)
-C
-      include '../mpi/mpilib.inc'
-C
-      iwork1 = NMAX/nprocs
-      iwork2 = mod(NMAX,nprocs)
-      ista =  NRANK   *iwork1 + min(NRANK,  iwork2) + 1
-      iend = (NRANK+1)*iwork1 + min(NRANK+1,iwork2)
-      RETURN
-      END
-C
-      SUBROUTINE MPBCDN(dtmp,NDTMP)
-C
-      include '../mpi/mpilib.inc'
-      REAL*8 dtmp(NDTMP)
-C
-      call mpi_barrier(mpi_comm_world,ierr)
-      call mpi_bcast(dtmp,NDTMP,mpi_double_precision,
-     &               0,mpi_comm_world,ierr)
+      call mtx_barrier
 C
       RETURN
       END
 C
-      SUBROUTINE MPBCRN(rtmp,NRTMP)
+      SUBROUTINE MPSETI(NMAX,NRANK_,ista,iend)
 C
       include '../mpi/mpilib.inc'
-      DIMENSION rtmp(NRTMP)
+      INTEGER,INTENT(IN):: NMAX,NRANK_
+      INTEGER,INTENT(OUT):: ista,iend
+      INTEGER:: iwork1,iwork2
 C
-      call mpi_barrier(mpi_comm_world,ierr)
-      call mpi_bcast(rtmp,NRTMP,mpi_real,
-     &               0,mpi_comm_world,ierr)
+      iwork1 = NMAX/nsize
+      iwork2 = mod(NMAX,nsize)
+      ista =  nrank   *iwork1 + min(nrank,  iwork2) + 1
+      iend = (nrank+1)*iwork1 + min(nrank+1,iwork2)
+      RETURN
+      END
+C
+      SUBROUTINE MPBCDN(vdata,ndata)
+C
+      include '../mpi/mpilib.inc'
+      INTEGER,INTENT(IN):: ndata
+      REAL(8),DIMENSION(ndata),INTENT(INOUT):: vdata
+C
+      call mtx_broadcast_real8(vdata,ndata)
 C
       RETURN
       END
 C
-      SUBROUTINE MPBCIN(itmp,NITMP)
+      SUBROUTINE MPBCRN(vdata,ndata)
 C
       include '../mpi/mpilib.inc'
-      DIMENSION itmp(NITMP)
+      INTEGER,INTENT(IN):: ndata
+      REAL(4),DIMENSION(ndata),INTENT(INOUT):: vdata
 C
-      call mpi_barrier(mpi_comm_world,ierr)
-      call mpi_bcast(itmp,NITMP,mpi_integer,
-     &               0,mpi_comm_world,ierr)
+      call mtx_broadcast_real4(vdata,ndata)
 C
       RETURN
       END
 C
-      SUBROUTINE MPBCKN(ktmp,NKTMP)
+      SUBROUTINE MPBCIN(vdata,ndata)
 C
       include '../mpi/mpilib.inc'
-      CHARACTER ktmp*(*)
+      INTEGER,INTENT(IN):: ndata
+      INTEGER,DIMENSION(ndata),INTENT(INOUT):: vdata
 C
-      call mpi_barrier(mpi_comm_world,ierr)
-      call mpi_bcast(ktmp,NKTMP,mpi_character,
-     &               0,mpi_comm_world,ierr)
+      call mtx_broadcast_integer(vdata,ndata)
+
+      RETURN
+      END
+C
+      SUBROUTINE MPBCKN(vdata,ndata)
+C
+      include '../mpi/mpilib.inc'
+      INTEGER,INTENT(IN):: ndata
+      CHARACTER(LEN=ndata),INTENT(INOUT):: vdata
+C
+      call mtx_broadcast_character(vdata,ndata)
 C
       RETURN
       END
 C
-      SUBROUTINE MPBCCN(ctmp,NDTMP)
+      SUBROUTINE MPBCCN(vdata,ndata)
 C
       include '../mpi/mpilib.inc'
-      COMPLEX*16 ctmp(NDTMP)
+      INTEGER,INTENT(IN):: ndata
+      COMPLEX(8),DIMENSION(ndata),INTENT(INOUT):: vdata
 C
-      call mpi_barrier(mpi_comm_world,ierr)
-      call mpi_bcast(ctmp,NDTMP,mpi_double_complex,
-     &               0,mpi_comm_world,ierr)
+      call mtx_broadcast_complex8(vdata,ndata)
 C
       RETURN
       END
 C
-      SUBROUTINE MPBCDA(D)
+      SUBROUTINE MPBCDA(v)
 C
       include '../mpi/mpilib.inc'
-      REAL*8 D
+      REAL(8),INTENT(INOUT):: v
 C
-      call mpi_barrier(mpi_comm_world,ierr)
-      call mpi_bcast(D,1,mpi_double_precision,
-     &               0,mpi_comm_world,ierr)
+      call mtx_broadcast1_real8(v)
 C
       RETURN
       END
 C
-      SUBROUTINE MPBCRA(R)
+      SUBROUTINE MPBCRA(v)
 C
       include '../mpi/mpilib.inc'
+      REAL(4),INTENT(INOUT):: v
 C
-      call mpi_barrier(mpi_comm_world,ierr)
-      call mpi_bcast(R,1,mpi_real,
-     &               0,mpi_comm_world,ierr)
+      call mtx_broadcast1_real4(v)
 C
       RETURN
       END
 C
-      SUBROUTINE MPBCIA(I)
+      SUBROUTINE MPBCIA(v)
 C
       include '../mpi/mpilib.inc'
+      INTEGER,INTENT(INOUT):: v
 C
-      call mpi_barrier(mpi_comm_world,ierr)
-      call mpi_bcast(I,1,mpi_integer,
-     &               0,mpi_comm_world,ierr)
+      call mtx_broadcast1_integer(v)
 C
       RETURN
       END
 C
-      SUBROUTINE MPBCKA(K)
+      SUBROUTINE MPBCKA(v)
 C
       include '../mpi/mpilib.inc'
-      CHARACTER K*1
+      CHARACTER(LEN=1),INTENT(INOUT):: v
 C
-      call mpi_barrier(mpi_comm_world,ierr)
-      call mpi_bcast(K,1,mpi_character,
-     &               0,mpi_comm_world,ierr)
+      call mtx_broadcast1_character(v)
 C
       RETURN
       END
 C
-      SUBROUTINE MPBCLA(L)
+      SUBROUTINE MPBCLA(v)
 C
       include '../mpi/mpilib.inc'
-      LOGICAL L
+      LOGICAL,INTENT(INOUT):: v
 C
-      call mpi_barrier(mpi_comm_world,ierr)
-      call mpi_bcast(L,1,mpi_logical,
-     &               0,mpi_comm_world,ierr)
+      call mtx_broadcast1_logical(v)
 C
       RETURN
       END
 C
-      SUBROUTINE MPBCCA(C)
+      SUBROUTINE MPBCCA(v)
 C
       include '../mpi/mpilib.inc'
-      COMPLEX*16 C
+      COMPLEX(8),INTENT(INOUT):: v
 C
-      call mpi_barrier(mpi_comm_world,ierr)
-      call mpi_bcast(C,1,mpi_double_complex,
-     &               0,mpi_comm_world,ierr)
+      call mtx_broadcast1_complex8(v)
 C
       RETURN
       END
 C
-      SUBROUTINE MPGTDN(dtmp,NDTMP)
+      SUBROUTINE MPGTDN(vdata,ndata,vtot)
 C
       include '../mpi/mpilib.inc'
+      INTEGER,INTENT(IN):: ndata
+      REAL(8),DIMENSION(ndata),INTENT(INOUT):: vdata
+      REAL(8),DIMENSION(ndata*nsize),INTENT(OUT):: vtot
 C
-      REAL*8 dtmp(NDTMP)
-      DIMENSION istatus(mpi_status_size)
-      DIMENSION ireq(0:NCPUMAX-1)
-C
-      if(myrank.eq.0)then
-         do irank=1,nprocs-1
-            call MPSETI(NDTMP,irank,ista,iend)
-            if (ista.le.iend) then
-               call mpi_irecv(dtmp(ista),iend-ista+1,
-     &              mpi_double_precision,
-     &              irank,0,mpi_comm_world,ireq(irank),ierr)
-            endif
-         enddo
-         do irank=1,nprocs-1
-            call MPSETI(NDTMP,irank,ista,iend)
-            if (ista.le.iend) then
-               call mpi_wait(ireq(irank),istatus,ierr)
-            endif
-         enddo
-      else
-         call MPSETI(NDTMP,myrank,ista,iend)
-         if (ista.le.iend) then
-            call mpi_isend(dtmp(ista),iend-ista+1,mpi_double_precision,
-     &           0,0,mpi_comm_world,ireq1,ierr)
-            call mpi_wait(ireq1,istatus,ierr)
-         endif
-      endif
-C
-      call mpi_barrier(mpi_comm_world,ierr)
-      RETURN
-      END
-C
-      SUBROUTINE MPGTRN(rtmp,NRTMP)
-C
-      include '../mpi/mpilib.inc'
-C
-      DIMENSION rtmp(NRTMP)
-      DIMENSION istatus(mpi_status_size)
-      DIMENSION ireq(0:NCPUMAX-1)
-C
-      if(myrank.eq.0)then
-         do irank=1,nprocs-1
-            call MPSETI(NRTMP,irank,ista,iend)
-            call mpi_irecv(rtmp(ista),iend-ista+1,mpi_real,irank,0,
-     &                     mpi_comm_world,ireq(irank),ierr)
-         enddo
-         do irank=1,nprocs-1
-            call mpi_wait(ireq(irank),istatus,ierr)
-         enddo
-      else
-         call MPSETI(NRTMP,myrank,ista,iend)
-         call mpi_isend(rtmp(ista),iend-ista+1,mpi_real,0,0,
-     &                  mpi_comm_world,ireq1,ierr)
-         call mpi_wait(ireq1,istatus,ierr)
-      endif
-C
-      call mpi_barrier(mpi_comm_world,ierr)
-      RETURN
-      END
-C
-      SUBROUTINE MPGTRV(GX,NV,GXTOT,NVTOT,NM)
-C
-      include '../mpi/mpilib.inc'
-C
-      DIMENSION GX(NV),GXTOT(NM)
-      dimension ircnt(NCPUMAX)
-      dimension idisp(NCPUMAX)
-C
-      call mpi_gather(NV,1,mpi_integer,
-     &                ircnt,1,mpi_integer,
-     &                0,mpi_comm_world,ierr)
-C
-      if(myrank.eq.0)then
-         nrecv=0
-         do i=1,nprocs
-            idisp(i)=nrecv
-            nrecv=nrecv+ircnt(i)
-         enddo
-         NVTOT=nrecv
-      endif
-C
-      CALL MPBCIN(ircnt,nprocs)
-      CALL MPBCIN(idisp,nprocs)
-C
-      call mpi_gatherv(GX,NV,mpi_real,
-     &                 GXTOT,ircnt,idisp ,mpi_real,
-     &                 0,mpi_comm_world,ierr)
+      CALL mtx_gather_real8(vdata,ndata,vtot)
 C
       RETURN
       END
 C
-      SUBROUTINE MPGTCV(CX,NV,CXTOT,NVTOT,NM)
+      SUBROUTINE MPGTRN(vdata,ndata,vtot)
 C
       include '../mpi/mpilib.inc'
+      INTEGER,INTENT(IN):: ndata
+      REAL(4),DIMENSION(ndata),INTENT(INOUT):: vdata
+      REAL(4),DIMENSION(ndata*nsize),INTENT(OUT):: vtot
 C
-      complex*16 CX(NV),CXTOT(NM)
-      dimension ircnt(NCPUMAX)
-      dimension idisp(NCPUMAX)
+      CALL mtx_gather_real4(vdata,ndata,vtot)
 C
-      call mpi_gather(NV,1,mpi_integer,
-     &                ircnt,1,mpi_integer,
-     &                0,mpi_comm_world,ierr)
+      RETURN
+      END
 C
-      if(myrank.eq.0)then
-         nrecv=0
-         do i=1,nprocs
-            idisp(i)=nrecv
-            nrecv=nrecv+ircnt(i)
-         enddo
-         NVTOT=nrecv
-      endif
+      SUBROUTINE MPGTRV(vdata,ndata,vtot,ntot,ntotm)
 C
-      CALL MPBCIN(ircnt,nprocs)
-      CALL MPBCIN(idisp,nprocs)
+      include '../mpi/mpilib.inc'
+      REAL(4),DIMENSION(ndata),INTENT(IN):: vdata
+      INTEGER,INTENT(IN):: ndata
+      REAL(4),DIMENSION(ntotm),INTENT(OUT):: vtot
+      INTEGER,INTENT(IN):: ntotm
+      INTEGER,INTENT(OUT):: ntot
+      INTEGER,DIMENSION(nsize):: ilena,iposa
+      INTEGER:: i
 C
-      call mpi_gatherv(CX,NV,mpi_double_complex,
-     &                 CXTOT,ircnt,idisp ,mpi_double_complex,
-     &                 0,mpi_comm_world,ierr)
+      CALL mtx_allgather1_integer(ndata,ilena)
+C
+      ntot=0
+      DO i=1,nsize
+         ilena(i)=ntot
+         ntot=ntot+ilena(I)
+      END DO
+C     
+      CALL mtx_gatherv_real4(vdata,ndata,vtot,ntot,ilena,iposa)
+C
+      RETURN
+      END
+C
+      SUBROUTINE MPGTCV(vdata,ndata,vtot,ntot,ntotm)
+C
+      include '../mpi/mpilib.inc'
+      COMPLEX(8),DIMENSION(ndata),INTENT(IN):: vdata
+      INTEGER,INTENT(IN):: ndata
+      COMPLEX(8),DIMENSION(ntotm),INTENT(OUT):: vtot
+      INTEGER,INTENT(IN):: ntotm
+      INTEGER,INTENT(OUT):: ntot
+      INTEGER,DIMENSION(nsize):: ilena,iposa
+      INTEGER:: i
+C
+      CALL mtx_allgather1_integer(ndata,ilena)
+C
+      ntot=0
+      DO i=1,nsize
+         ilena(i)=ntot
+         ntot=ntot+ilena(I)
+      END DO
+C     
+      CALL mtx_gatherv_complex8(vdata,ndata,vtot,ntot,ilena,iposa)
 C
       RETURN
       END

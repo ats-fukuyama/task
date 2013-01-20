@@ -1,7 +1,7 @@
 all:
 	(cd ../lib; make)
 	(cd ../plx; make)
-	(cd ../pl; make)
+#	(cd ../pl; make)
 	(cd ../eq; make)
 #	(cd ../equ; make)
 	(cd trcore; make trcomm.o trlib.o)

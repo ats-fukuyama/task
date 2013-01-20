@@ -530,6 +530,7 @@ C     ****** ASSEMBLE TOTAL ELEMENT FREE VECTOR ******
 C
       SUBROUTINE WMSETM_V(NR,CFVP)
 C
+      USE plprof,ONLY: pl_prof2
       INCLUDE 'wmcomm.inc'
 C
       DIMENSION CFVP(NDM,MDM,3)
@@ -667,7 +668,7 @@ C
             ENDIF
 C
 C            CALL WMCDEN(NR+1,RN,RTPR,RTPP,RU)
-            CALL PLPROF2(XRHO1,RN,RTPR,RTPP,RU)
+            CALL PL_PROF2(XRHO1,RN,RTPR,RTPP,RU)
             RT=(RTPR(1)+2*RTPP(1))
             RJFACT=RN(1)*RT
             RJFACT=RJFACT*XRHO(NR+1)

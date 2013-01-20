@@ -15,6 +15,7 @@ C ******************************************************
 C
       SUBROUTINE DPHOTR(CW,CKPR,CKPP,NS,CLDISP)
 C
+      USE plcomm
       INCLUDE 'dpcomm.inc'
 C
       DIMENSION CLDISP(6),CLDISP1(6),CLDISP2(6)
@@ -34,8 +35,9 @@ C
       SUBROUTINE DPHOTRR(CW,CKPR,CKPP,NS,CLDISP)
 C
       USE libbes,ONLY: bessjn
+      USE plcomm
+      USE pllocal
       INCLUDE 'dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
 C
       DIMENSION CLDISP(6)
 C
@@ -243,8 +245,9 @@ C
       SUBROUTINE DPHOTRI(CW,CKPR,CKPP,NS,CLDISP)
 C
       USE libbes,ONLY: bessjn
+      USE plcomm
+      USE pllocal
       INCLUDE 'dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
 C
       NCMIN = NDISP1(NS)

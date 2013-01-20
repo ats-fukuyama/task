@@ -224,7 +224,7 @@ C
             YRBS(NSR)=RMNC(MN+(NSR-1)*MNMAX)
             YZBS(NSR)=ZMNS(MN+(NSR-1)*MNMAX)
          ENDDO
-C         IF(MYRANK.EQ.0) THEN
+C         IF(NRANK.EQ.0) THEN
 C            WRITE(6,'( I5,1P6E12.4)') MN,XM(MN),XN(MN),
 C     &                                YRBS(1),YRBS(2),YRBS(3),YRBS(4)
 C            WRITE(6,'(29X,1P4E12.4)') YZBS(1),YZBS(2),YZBS(3),YZBS(4)
@@ -402,7 +402,7 @@ C
             BSUS(NSR)=BSU(MN+(NSR-1)*MNMAX)
             BSVS(NSR)=BSV(MN+(NSR-1)*MNMAX)
          ENDDO
-C         IF(MYRANK.EQ.0) THEN
+C         IF(NRANK.EQ.0) THEN
 C            WRITE(6,'( I5,1PE10.2,1P5E12.4)') MN,XM(MN),
 C     &                      BSUS(1),BSUS(2),BSUS(3),BSUS(4),BSUS(5)
 C            WRITE(6,'( 5X,1PE10.2,1P5E12.4)') XN(MN),

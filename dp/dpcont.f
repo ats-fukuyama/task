@@ -4,8 +4,10 @@ C     ***** PLOT CONTOUR GRAPH *************************************
 C
       SUBROUTINE DPCONT
 C
+      USE plcomm
+      USE pllocal
+      USE PLINIT,ONLY: pl_parm,pl_view
       INCLUDE 'dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
       DIMENSION GX(NGXM),GY(NGYM),GZ(NGXM,NGYM)
       DIMENSION Z(NGXM,NGYM)
       DIMENSION KA(8,NGXM,NGYM)
@@ -34,13 +36,13 @@ C
       IF(KID1.EQ.'X') THEN
          GOTO 9000
       ELSEIF(KID1.EQ.'P') THEN
-         CALL PLPARM
+         CALL PL_PARM(0,'PL',IERR)
          GOTO 1
       ELSEIF(KID1.EQ.'D') THEN
          CALL DPPARM(0,'DP',IERR)
          GOTO 1
       ELSEIF(KID1.EQ.'V') THEN
-         CALL PLVIEW
+         CALL PL_VIEW
          CALL DPVIEW
          GOTO 1
       ENDIF
@@ -230,8 +232,9 @@ C     ***** DENSITY SCAN *****
 C
       SUBROUTINE DPCONTX
 C
+      USE plcomm
+      USE pllocal
       INCLUDE 'dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
       PARAMETER (NGPM=21)
       DIMENSION GX(NGXM),GY(NGYM),GZ(NGXM,NGYM,NGPM)
       DIMENSION Z(NGXM,NGYM,NGPM)

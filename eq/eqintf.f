@@ -122,3 +122,37 @@ C
       ENDDO
       RETURN
       END
+C
+C     ***** GET R and Z for rhot and th *****
+C
+      SUBROUTINE GET_RZB(rhon_,thit_,R_,Z_,BR_,BZ_,BT_,BB_)
+C
+      INCLUDE '../eq/eqcomq.inc'
+C
+      CALL SPL2DF(thit_,rhon_,R_,
+     &                  THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+      CALL SPL2DF(thit_,rhon_,Z_,
+     &                  THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+      CALL SPL2DF(thit_,rhon_,BR_,
+     &                  THIT,RHOT,UBRPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+      CALL SPL2DF(thit_,rhon_,BZ_,
+     &                  THIT,RHOT,UBZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+      CALL SPL2DF(thit_,rhot_,BT_,
+     &                  THIT,RHOT,UBTPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+      CALL SPL2DF(thit_,rhot_,BB_,
+     &                  THIT,RHOT,UBBPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+      RETURN
+      END
+C
+C     ***** GET R and Z for rhot and th *****
+C
+      SUBROUTINE GET_RZ(rhon_,thit_,R_,Z_)
+C
+      INCLUDE '../eq/eqcomq.inc'
+C
+      CALL SPL2DF(thit_,rhon_,R_,
+     &                  THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+      CALL SPL2DF(thit_,rhon_,Z_,
+     &                  THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+      RETURN
+      END

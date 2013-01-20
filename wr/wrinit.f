@@ -66,6 +66,7 @@ C     ****** INITIALIZE INPUT PARAMETERS ******
 C
       SUBROUTINE WRINIT
 C
+      USE plcomm
       INCLUDE 'wrcomm.inc'
 C
       RF     = 170.D3
@@ -100,7 +101,7 @@ C
       RCURVB = 0.D0
       RBRADA = 0.03D0
       RBRADB = 0.03D0
-      NRADMX= 100
+      NRADMX = 100
 C
       DO NRAY=1,NRAYM
          RFIN(NRAY)     = 170.D3
@@ -154,6 +155,7 @@ C     ****** INPUT NAMELIST ******
 C
       SUBROUTINE WRNLIN(NID,IST,IERR)
 C
+      USE plcomm
       INCLUDE 'wrcomm.inc'
 C
       NAMELIST /WR/ RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,
@@ -211,6 +213,7 @@ C     ***** CHECK INPUT PARAMETERS *****
 C
       SUBROUTINE WRCHEK(IERR)
 C
+      USE plcomm
       INCLUDE 'wrcomm.inc'
 C  
       CHARACTER(LEN=80):: LINE
@@ -269,6 +272,7 @@ C     ****** SHOW PARAMETERS ******
 C
       SUBROUTINE WRVIEW
 C
+      USE plcomm
       INCLUDE 'wrcomm.inc'
 C
       WRITE(6,601) 'SMAX  ',SMAX  ,'DELS  ',DELS  ,

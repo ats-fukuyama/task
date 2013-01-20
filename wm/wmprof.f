@@ -90,7 +90,7 @@ C
          ENDIF
       ELSEIF(MODELN.EQ.9) THEN
          IF(RHOL.GE.1.D0) THEN
-            CALL PLDATA_GETPL(1.D0,RNPL,RTPL,RUPL)
+C            CALL PLDATA_GETPL(1.D0,RNPL,RTPL,RUPL)
             DO NS=1,NSMAX
                RN(NS)  =0.D0
                RTPR(NS)=RTPL(NS)
@@ -98,7 +98,7 @@ C
                RU(NS)  =PUS(NS)
             ENDDO
          ELSE
-            CALL PLDATA_GETPL(RHOL,RNPL,RTPL,RUPL)
+C            CALL PLDATA_GETPL(RHOL,RNPL,RTPL,RUPL)
             DO NS=1,NSMAX
                RN(NS)  =RNPL(NS)
                RTPR(NS)=RTPL(NS)
@@ -163,7 +163,6 @@ C
 C
       INCLUDE 'wmcomm.inc'
 C
-      AME=AMP*PA(1)
       FTAUS  =0.75D0*PI*SQRT(PI)*(EPS0/AEE)**2*(4.D0*AMP/AEE)*(AME/AEE)
       VALPHA=SQRT(2.D0*3.5D6*AEE/(4.D0*AMP))
 C

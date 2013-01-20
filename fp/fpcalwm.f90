@@ -17,32 +17,6 @@
 !
 !     -----Calculate PSIN, PCOS, PSI -----
 !
-      SUBROUTINE FPDWRP(NR,ETAL,RSIN,RCOS,PSIN,PCOS,PSI,NSA)
-!
-      IMPLICIT NONE
-      INTEGER,INTENT(IN):: NR,NSA
-      REAL(8),INTENT(IN):: ETAL,RSIN,RCOS
-      REAL(8),INTENT(OUT):: PSIN,PCOS,PSI
-
-      IF(MODELA.EQ.0) THEN
-         PSI=1.D0
-         PSIN=RSIN
-         PCOS=RCOS
-      ELSE
-         PSI=(1.D0+EPSRM(NR))/(1.D0+EPSRM(NR)*COS(ETAL))
-!         PSI=(1.D0+EPSRM2(NR))/(1.D0+EPSRM2(NR)*COS(ETAL))
-         PSIN=SQRT(PSI)*RSIN
-         IF (RCOS.GT.0.0D0) THEN
-            PCOS= SQRT(1.D0-PSI*RSIN**2)
-         ELSE
-            PCOS=-SQRT(1.D0-PSI*RSIN**2)
-         END IF
-      ENDIF
-      RETURN
-      END SUBROUTINE FPDWRP
-!
-!     -----Calculate PSIN, PCOS, PSI -----
-!
       SUBROUTINE FPDWRP2(NR,ETAL,RSIN,RCOS,PSIN,PCOS,PSI)
 !
       IMPLICIT NONE

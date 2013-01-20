@@ -16,8 +16,9 @@ C     ****** COLLISIONLESS COLD MODEL ******
 C
       SUBROUTINE DPTNCL(CW,CKPR,CKPP,NS,CLDISP)
 C
+      USE plcomm
+      USE pllocal
       INCLUDE '../dp/dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
 C
       CWP=RN(NS)*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
@@ -37,8 +38,9 @@ C     ****** COLLISIONAL COLD MODEL ******
 C
       SUBROUTINE DPTNCC(CW,CKPR,CKPP,NS,CLDISP)
 C
+      USE plcomm
+      USE pllocal
       INCLUDE '../dp/dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
 C
       CWP=RN(NS)*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
@@ -71,8 +73,9 @@ C     ****** IDEAL MHD MODEL ******
 C
       SUBROUTINE DPTNIM(CW,CKPR,CKPP,NS,CLDISP)
 C
+      USE plcomm
+      USE pllocal
       INCLUDE '../dp/dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
 C
       CWP=RN(NS)*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS))
@@ -91,8 +94,9 @@ C     ****** RESISTIVE MHD MODEL ******
 C
       SUBROUTINE DPTNRM(CW,CKPR,CKPP,NS,CLDISP)
 C
+      USE plcomm
+      USE pllocal
       INCLUDE '../dp/dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
 C
       CWP=RN(NS)*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
@@ -115,8 +119,9 @@ C     ****** WARM PLAMSA MODEL ******
 C
       SUBROUTINE DPTNWP(CW,CKPR,CKPP,NS,CLDISP)
 C
+      USE plcomm
+      USE pllocal
       INCLUDE '../dp/dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
 C
       CWP=RN(NS)*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
@@ -147,8 +152,9 @@ C
       SUBROUTINE DPTNUP(CW,CKPR,CKPP,NS,CLDISP)
 C
       USE libdsp,ONLY: DSPFN
+      USE plcomm
+      USE pllocal
       INCLUDE '../dp/dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
 C
       RT=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
@@ -177,8 +183,9 @@ C
       SUBROUTINE DPTNHP(CW,CKPR,CKPP,NS,CLDISP)
 C
       USE libdsp,ONLY: DSPFN
+      USE plcomm
+      USE pllocal
       INCLUDE '../dp/dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
 C
       DO I=1,6
@@ -229,8 +236,9 @@ C
       SUBROUTINE DPTNKL(CW,CKPR,CKPP,NS,CLDISP)
 C
       USE libdsp,ONLY: DSPFN
+      USE plcomm
+      USE pllocal
       INCLUDE '../dp/dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
 C
       DO I=1,6
@@ -283,8 +291,9 @@ C
 C
       USE libdsp,ONLY: DSPFN
       USE libbes,ONLY: lambda
+      USE plcomm
+      USE pllocal
       INCLUDE '../dp/dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
 C
       DO I=1,6
@@ -350,8 +359,9 @@ C
 C
       USE libdsp,ONLY: DSPFN
       USE libbes,ONLY: lambda
+      USE plcomm
+      USE pllocal
       INCLUDE '../dp/dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
 C
       DO I=1,6
@@ -415,8 +425,9 @@ C     ******     WEAKLY RELATIVISTIC THERMAL PLASMA     ******
 C
       SUBROUTINE DPTNKR(CW,CKPR,CKPP,NS,CLDISP)
 C
+      USE plcomm
+      USE pllocal
       INCLUDE '../dp/dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
 C
       DELZ=1.D-6
@@ -545,6 +556,7 @@ C
       FUNCTION CFQZ(Q,CZ)
 C
       USE libdsp,ONLY: DSPFN
+      USE plcomm
       INCLUDE '../dp/dpcomm.inc'
 C
       IF(ABS(CZ).GT.15.D0) THEN
@@ -584,6 +596,7 @@ C
       FUNCTION CFQZ_Z(Q,CZ)
 C
       USE libdsp,ONLY: DSPFN
+      USE plcomm
       INCLUDE '../dp/dpcomm.inc'
 C
       NUMAX=NINT(Q-3.D0/2.D0)
@@ -604,6 +617,7 @@ C     *** WITH ASYMPTOTIC EXPANSION ***
 C
       FUNCTION CFQZ_EXP(Q,CZ)
 C
+      USE plcomm
       INCLUDE '../dp/dpcomm.inc'
 C
       CFQZ=(0.D0,0.D0)

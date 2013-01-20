@@ -17,8 +17,9 @@ C
       SUBROUTINE DPTNFK2(CW,CKPR,CKPP,NS,CLDISP)
 C
       USE libdsp,ONLY: dspfn
+      USE plcomm
+      USE pllocal
       INCLUDE '../dp/dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
 C
       DO I=1,6
@@ -164,9 +165,9 @@ C     ****** CALCULATE DRIFT KINETIC DIELECTRIC TENSOR ******
 C
       SUBROUTINE DPTNDK0(CW,CKPR,CKPP,NS,CLDISP)
 C
-C
+      USE plcomm
+      USE pllocal
       INCLUDE '../dp/dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
 C
       RLA=RLN(NS) ! inverse of density scale lenth

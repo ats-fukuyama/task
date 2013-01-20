@@ -197,7 +197,7 @@ C
 C     ======( Default values )======
 C
       MODEFR = 0
-      MODEFW = 5
+      MODEFW = 0
 C
       NRMAXPL= 100
       NSMAXPL= NSMAX

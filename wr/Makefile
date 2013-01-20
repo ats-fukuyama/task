@@ -4,13 +4,13 @@ include ../make.header
 #FFLAGS=$(OFLAGS)
 FFLAGS=$(DFLAGS)
 
-MODINCLUDE= -I./$(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD) -I../pl/$(MOD)
+MODINCLUDE= -I./$(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD) -I../plx/$(MOD)
 
 SRCS = wrmenu.f wrinit.f wrcalc.f wrbeam.f wrgout.f
 
 OBJS = $(SRCS:.f=.o)
 
-LIBS = wrlib.a ../pl/pllib.a ../eq/eqlib.a ../dp/dplib.a \
+LIBS = wrlib.a ../plx/pllib.a ../eq/eqlib.a ../dp/dplib.a \
        ../../bpsd/bpsdlib.a ../lib/tasklib.a
 
 .f.o :
@@ -25,8 +25,8 @@ wrlib.a: $(OBJS)
 
 ../../bpsd/bpsdlib.a:
 	(cd ../../bpsd; make bpsdlib.a)
-../pl/pllib.a:
-	(cd ../pl; make pllib.a)
+../plx/pllib.a:
+	(cd ../plx; make pllib.a)
 ../eq/eqlib.a:
 	(cd ../eq; make eqlib.a)
 ../dp/dplib.a:
@@ -35,7 +35,7 @@ wrlib.a: $(OBJS)
 	(cd ../lib; make tasklib.a)
 libs:
 	(cd ../../bpsd; make bpsdlib.a)
-	(cd ../pl; make pllib.a)
+	(cd ../plx; make pllib.a)
 	(cd ../eq; make eqlib.a)
 	(cd ../dp; make dplib.a)
 	(cd ../lib; make tasklib.a)
@@ -58,9 +58,10 @@ new:
 	cp *.f ../wrnew
 	cp *.inc ../wrnew
 
-wrmain.o: wrmain.f wrcomm.inc wrcom1.inc ../dp/dpcom1.inc ../pl/plcom1.inc
-wrmenu.o: wrmenu.f wrcomm.inc wrcom1.inc ../dp/dpcom1.inc ../pl/plcom1.inc
-wrinit.o: wrinit.f wrcomm.inc wrcom1.inc ../dp/dpcom1.inc ../pl/plcom1.inc
-wrcalc.o: wrcalc.f wrcomm.inc wrcom1.inc ../dp/dpcom1.inc ../pl/plcom1.inc ../pl/plcom2.inc
-wrbeam.o: wrbeam.f wrcomm.inc wrcom1.inc ../dp/dpcom1.inc ../pl/plcom1.inc ../pl/plcom2.inc
-wrgout.o: wrgout.f wrcomm.inc wrcom1.inc ../dp/dpcom1.inc ../pl/plcom1.inc
+WRCOMM=wrcomm.inc wrcom1.inc ../dp/dpcom1.inc ../plx/plcomm.f90
+wrmain.o: wrmain.f $(WRCOMM)
+wrmenu.o: wrmenu.f $(WRCOMM)
+wrinit.o: wrinit.f $(WRCOMM)
+wrcalc.o: wrcalc.f $(WRCOMM) ../plx/plprof.f90
+wrbeam.o: wrbeam.f $(WRCOMM) ../plx/plprof.f90
+wrgout.o: wrgout.f $(WRCOMM)

@@ -4,8 +4,9 @@ C****** SET MAXWELLIAN VELOCITY DISTRIBUTION DATA ******
 C
       SUBROUTINE DPFMFL(NS,ID)
 C
+      USE plcomm
+      USE pllocal
       INCLUDE 'dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
 C
       RHON_MIN=0.D0
       RHON_MAX=1.D0
@@ -91,8 +92,10 @@ C     ****** SET LOCAL VELOCITY DISTRIBUTION DATA ******
 C
       SUBROUTINE DPFPFL(NS)
 C
+      USE plcomm
+      USE pllocal
+      USE plprof,ONLY: pl_bmin
       INCLUDE 'dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
 C
       DIMENSION THT(NTHM+2),FPT(NTHM+2),FPTX(NTHM+2)
       DIMENSION U2(4,NTHM+2)
@@ -160,7 +163,7 @@ C
       ENDDO
 C
       RHON=RHON_LOC
-      CALL PLBMIN(RHON,BMINL)
+      CALL PL_BMIN(RHON,BMINL)
       PSIS=BABS/BMINL
 
       DO NP=1,NPMAX
@@ -201,6 +204,7 @@ C****** LOAD VELOCITY DISTRIBUTION DATA ******
 C
       SUBROUTINE DPLDFP
 C
+      USE plcomm
       INCLUDE 'dpcomm.inc'
       CHARACTER(LEN=80),SAVE::  KNAMFP_SAVE=' '
 C
@@ -264,8 +268,10 @@ C****** LOAD Maxwellian VELOCITY DISTRIBUTION DATA ******
 C
       SUBROUTINE DPLDFM(ID,NCHMAX,NRMAX_1,RMIN_1,RMAX_1)
 C
+      USE plcomm
+      USE pllocal
+      USE plprof,ONLY: pl_prof_old
       INCLUDE 'dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
 C
       NRMAX=NRMAX_1
       RMIN=RMIN_1
@@ -326,7 +332,7 @@ C
 C
          DO NR=1,NRMAX
             RHON=RM(NR)
-            CALL PLPROF(RHON)
+            CALL PL_PROF_OLD(RHON)
 
             RN0 = RN(NS)
             TPR = RTPR(NS)

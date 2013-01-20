@@ -17,14 +17,14 @@ C                      V3.10  : 2000 NOV 25
 C
 C-----------------------------------------------------------------------
 C
-      INCLUDE 'dpcomm.inc'
-C
-      WRITE(6,*) '## TASK/DP 2004/11/08'
+      USE plinit,ONLY: pl_init,pl_parm
+
+      WRITE(6,*) '## TASK/DP 2013/01/020'
       CALL GSOPEN
       OPEN(7,STATUS='SCRATCH')
-      CALL PLINIT
+      CALL PL_INIT
       CALL DPINIT
-      CALL PLPARM(1,'plparm',IERR)
+      CALL PL_PARM(1,'plparm',IERR)
       CALL DPPARM(1,'dpparm',IERR)
 C
       CALL DPMENU

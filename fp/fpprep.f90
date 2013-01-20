@@ -54,6 +54,8 @@
          CALL eqcalq(IERR)
          CALL eqgetb(BB,RR,RIP,RA,RKAP,RDLT,RB)
       ENDIF
+      WRITE(6,*) 'RKAP=',RKAP,' set to 1.0'
+      RKAP=1.D0
 
 !     ----- set radial mesh -----
 
@@ -334,12 +336,12 @@
 !      close(8)
 !      END IF
 
-      IF(NRANK.eq.0)THEN
-      DO NR=1,NRMAX
-         WRITE(*,*) NR, "NRG", ITLG(NR)
-         WRITE(*,*) NR, "NRM ", ITL(NR)
-      END DO
-      END IF
+!      IF(NRANK.eq.0)THEN
+!      DO NR=1,NRMAX
+!         WRITE(*,*) NR, "NRG", ITLG(NR)
+!         WRITE(*,*) NR, "NRM ", ITL(NR)
+!      END DO
+!      END IF
 
       deallocate(work,workg)
       IERR=0

@@ -4,6 +4,8 @@ C     ***** TASK/WR MENU *****
 C
       SUBROUTINE WRMENU
 C
+      use plcomm
+      use plinit,ONLY: pl_view
       INCLUDE 'wrcomm.inc'
 C
       EXTERNAL WRPARM
@@ -23,7 +25,7 @@ C
       IF(KID.EQ.'P') THEN
          CALL WRPARM(0,'WR',IERR)
       ELSEIF(KID.EQ.'V') THEN
-         CALL PLVIEW
+         CALL PL_VIEW
          CALL DPVIEW
          CALL WRVIEW
       ELSEIF(KID.EQ.'D') THEN

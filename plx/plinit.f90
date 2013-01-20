@@ -55,12 +55,13 @@
 !        PNITB : Density increment at ITB              (1.0E20/Mm*3)
 !        PTITB : Temperature increment at ITB                  (keV)
 !        PUITB : Toroidal rotation velocity increment at ITB   (m/s)
+!        PZCL  : normalized collision frequency
 
 !        KIDNS : index of particle species
 !        IDION :  1 : fast ion particle
 !                 0 : else
 
-      NSMAX = 3                  ! Default number of particle species
+      NSMAX = 2                  ! Default number of particle species
 
          ! electron
          NS = 1
@@ -80,27 +81,9 @@
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
+         PZCL(NS) = 0.D0
 
       IF(NSM.GE.2) THEN
-!!$         ! *** hydrogen ***
-!!$         NS = 2
-!!$
-!!$         KIDNS(NS)= 'H'
-!!$         IDION(NS)= 0.0D0
-!!$         PA(NS)   = 1.0D0
-!!$         PZ(NS)   = 1.0D0
-!!$         PZ0(NS)  = 1.0D0
-!!$         PN(NS)   = 1.0D0
-!!$         PNS(NS)  = 0.0D0
-!!$         PTPR(NS) = 5.0D0
-!!$         PTPP(NS) = 5.0D0
-!!$         PTS(NS)  = 0.05D0
-!!$         PU(NS)   = 0.D0
-!!$         PUS(NS)  = 0.D0
-!!$         PNITB(NS)= 0.D0
-!!$         PTITB(NS)= 0.D0
-!!$         PUITB(NS)= 0.D0
-
          ! *** deuterium ***
          NS = 2
 
@@ -119,121 +102,10 @@
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
-
-         ! *** tritium ***
-!!$         NS = 4
-!!$
-!!$         KIDNS(NS)= 'T'
-!!$         IDION(NS)= 0.0D0
-!!$         PA(NS)   = 3.0D0
-!!$         PZ(NS)   = 1.0D0
-!!$         PZ0(NS)  = 1.0D0
-!!$         PN(NS)   = 1.0D0
-!!$         PNS(NS)  = 0.0D0
-!!$         PTPR(NS) = 5.0D0
-!!$         PTPP(NS) = 5.0D0
-!!$         PTS(NS)  = 0.05D0
-!!$         PU(NS)   = 0.D0
-!!$         PUS(NS)  = 0.D0
-!!$         PNITB(NS)= 0.D0
-!!$         PTITB(NS)= 0.D0
-!!$         PUITB(NS)= 0.D0
-!!$
-!!$         ! *** helium (alpha particle) ***
-!!$         NS =
-!!$
-!!$         KIDNS(NS)= 'A'
-!!$         IDION(NS)= 0.0D0
-!!$         PA(NS)   = 4.0D0
-!!$         PZ(NS)   = 2.0D0
-!!$         PZ0(NS)  = 2.0D0
-!!$         PN(NS)   = 1.0D0
-!!$         PNS(NS)  = 0.0D0
-!!$         PTPR(NS) = 5.0D0
-!!$         PTPP(NS) = 5.0D0
-!!$         PTS(NS)  = 0.05D0
-!!$         PU(NS)   = 0.D0
-!!$         PUS(NS)  = 0.D0
-!!$         PNITB(NS)= 0.D0
-!!$         PTITB(NS)= 0.D0
-!!$         PUITB(NS)= 0.D0
-
-         ! *** hydrogen (fast) ***
-!!$         NS = 5
-!!$
-!!$         KIDNS(NS)= 'H'
-!!$         IDION(NS)= 1.0D0
-!!$         PA(NS)   = PA(2)
-!!$         PZ(NS)   = PZ(2)
-!!$         PZ0(NS)  = PZ0(2)
-!!$         PN(NS)   = 0.0001D0
-!!$         PNS(NS)  = 0.00005D0
-!!$         PTPR(NS) = 50.D0
-!!$         PTPP(NS) = 50.D0
-!!$         PTS(NS)  = 10.D0
-!!$         PU(NS)   = 0.D0
-!!$         PUS(NS)  = 0.D0
-!!$         PNITB(NS)= 0.D0
-!!$         PTITB(NS)= 0.D0
-!!$         PUITB(NS)= 0.D0
-
-         ! *** deuterium (fast) ***
-         NS = 3
-
-         KIDNS(NS)= 'D'
-         IDION(NS)= 1.0D0
-         PA(NS)   = 2.0D0
-         PZ(NS)   = 1.0D0
-         PZ0(NS)  = 1.0D0
-         PN(NS)   = 0.0001D0
-         PNS(NS)  = 0.00005D0
-         PTPR(NS) = 50.D0
-         PTPP(NS) = 50.D0
-         PTS(NS)  = 10.D0
-         PU(NS)   = 0.D0
-         PUS(NS)  = 0.D0
-         PNITB(NS)= 0.D0
-         PTITB(NS)= 0.D0
-         PUITB(NS)= 0.D0
-
-!!$         ! *** helium (fast) ***
-!!$         KIDNS(NS)= 'A'
-!!$         IDION(NS)= 1.0D0
-!!$         PA(NS)   = PA(5)
-!!$         PZ(NS)   = PZ(5)
-!!$         PZ0(NS)  = PZ0(5)
-!!$         PN(NS)   = 0.0D0
-!!$         PNS(NS)  = 0.0D0
-!!$         PTPR(NS) = 50.D0
-!!$         PTPP(NS) = 50.D0
-!!$         PTS(NS)  = 50.D0
-!!$         PU(NS)   = 0.D0
-!!$         PUS(NS)  = 0.D0
-!!$         PNITB(NS)= 0.D0
-!!$         PTITB(NS)= 0.D0
-!!$         PUITB(NS)= 0.D0
-
-         ! *** carbon ***
-         NS = 4
-         
-         KIDNS(NS)= 'C'
-         IDION(NS)= 0.0D0
-         PA(NS)   = 12.d0
-         PZ(NS)   = 6.d0
-         PZ0(NS)  = 6.d0
-         PN(NS)   = 0.01D0
-         PNS(NS)  = 0.01D0
-         PTPR(NS) = 1.D0
-         PTPP(NS) = 1.D0
-         PTS(NS)  = 0.1D0
-         PU(NS)   = 0.D0
-         PUS(NS)  = 0.D0
-         PNITB(NS)= 0.D0
-         PTITB(NS)= 0.D0
-         PUITB(NS)= 0.D0
+         PZCL(NS) = 0.D0
 
          ! *** dummy ***
-      DO NS = 5, NSM
+      DO NS = 3, NSM
          KIDNS(NS)= ' '
          IDION(NS)= 0.0D0
          PA(NS)   = 1.0D0
@@ -249,6 +121,7 @@
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
+         PZCL(NS) = 0.D0
       ENDDO
 
       ENDIF
@@ -395,7 +268,7 @@
 
       use plcomm, only:RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ, &
                     NSMAX,PA,PZ,PZ0,PN,PNS,PTPR,PTPP,PTS,PU,PUS, &
-                    PNITB,PTITB,PUITB, &
+                    PNITB,PTITB,PUITB,PZCL, &
                     PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
                     RHOMIN,QMIN,RHOITB,RHOEDG, &
                     MODELG,MODELN,MODELQ,RHOGMN,RHOGMX, &
@@ -410,7 +283,7 @@
       integer:: NS
 
       NAMELIST /PL/ RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ, &
-                    NSMAX,PA,PZ,PZ0,PN,PNS,PTPR,PTPP,PTS,PU,PUS, &
+                    NSMAX,PA,PZ,PZ0,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PZCL, &
                     PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
                     RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG, &
                     MODELG,MODELN,MODELQ,RHOGMN,RHOGMX, &
@@ -437,7 +310,7 @@
       RETURN
 
   601 FORMAT(' ','# &EQ : RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,'/ &
-             9X,'NSMAX,PA,PZ,PN,PNS,PTPR,PTPP,PTS,PU,PUS,'/ &
+             9X,'NSMAX,PA,PZ,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PZCL,'/ &
              9X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,'/ &
              9X,'RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG,'/ &
              9X,'MODELG,MODELN,MODELQ,RHOGMN,RHOGMX,'/ &
@@ -532,7 +405,7 @@
       IF(RHOITB.GT.0.D0) THEN
          WRITE(6,140)
          DO NS=1,NSMAX
-           WRITE(6,150) NS,PNITB(NS),PTITB(NS),PUITB(NS)
+           WRITE(6,150) NS,PNITB(NS),PTITB(NS),PUITB(NS),PZCL(NS)
          ENDDO
       ENDIF
       RETURN
@@ -543,8 +416,9 @@
   120 FORMAT(1H ,'NS    PTPR        PTPP        PTS         ', &
                  'PU          PUS')
   130 FORMAT(1H ,I2,' ',1P5E12.3)                               
-  140 FORMAT(1H ,'NS    PNITB       PTITB       PUITB')
-  150 FORMAT(1H ,I2,' ',1P3E12.4)                               
+  140 FORMAT(1H ,'NS    PNITB       PTITB       PUITB'      , &
+                 'PZCL')
+  150 FORMAT(1H ,I2,' ',1P4E12.4)                               
   601 FORMAT(1H ,A6,'=',1PE11.3:2X,A6,'=',1PE11.3: &
              2X,A6,'=',1PE11.3:2X,A6,'=',1PE11.3)
   604 FORMAT(1H ,A6,'=',I7,4X  :2X,A6,'=',I7,4X  : &

@@ -84,6 +84,8 @@ C
          CALL EQSAVE
 C
       ELSEIF(KID.EQ.'L') THEN
+      write(6,'(A)') KNAMEQ
+      write(6,'(A)') KNAMEQ2
          CALL KTRIM(KNAMEQ,KL)
    10    WRITE(6,*) '#EQ> INPUT : EQDATA FILE NAME : ',KNAMEQ(1:KL)
          READ(5,'(A80)',ERR=10,END=9000) KNAM

@@ -33,9 +33,9 @@ C
          INIT=1
       ENDIF
 C
-      PI     = 2.D0*ASIN(1.D0)
-      RMU0   = 4.D0*PI*1.D-7
-      AEE    = 1.60217733D-19
+C      PI     = 2.D0*ASIN(1.D0)
+C      RMU0   = 4.D0*PI*1.D-7
+C      AEE    = 1.60217733D-19
 C
       IERR   = 0
       MDLEQF = 8

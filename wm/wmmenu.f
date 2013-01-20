@@ -4,7 +4,7 @@ C     ***** TASK/WM MENU *****
 C
       SUBROUTINE WMMENU
 C
-      use plfile_prof_mod
+C      use plfile_prof_mod
       use wmtest
       INCLUDE 'wmcomm.inc'
 C
@@ -19,7 +19,7 @@ C
       ENDIF
 C
     1 CONTINUE
-         IF(MYRANK.EQ.0) THEN
+         IF(NRANK.EQ.0) THEN
             WRITE(6,601)
   601       FORMAT('## WM MENU: P,V/PARM R/RUN D0-3/AMP F/ROOT ',
      &      'G,Y/GRAPH T/TAE O/OUT S,W/SAVE Q/QUIT')
@@ -33,19 +33,19 @@ C
          CALL MPBCKA(KID)
 C
          IF (KID.EQ.'P') THEN
-            IF(MYRANK.EQ.0) CALL WMPARM(0,'WM',IERR)
+            IF(NRANK.EQ.0) CALL WMPARM(0,'WM',IERR)
             CALL MPSYNC
             CALL WMPRBC
             KID=' '
          ELSE IF(KID.EQ.'V') THEN
-            IF(MYRANK.EQ.0) CALL WMVIEW
+            IF(NRANK.EQ.0) CALL WMVIEW
             CALL MPSYNC
             KID=' '
 C
 C        *** WAVE CALCULATION ***
 C
          ELSEIF (KID.EQ.'R') THEN
-            CALL plfile_prof_read(modeln,modelq,ierr)
+C            CALL plfile_prof_read(modeln,modelq,ierr)
             CALL WM_LOOP(IERR)
             CALL MPSYNC
             IF(IERR.NE.0) GOTO 1
@@ -54,7 +54,7 @@ C
 C        *** AMPLITUDE SURVEY ***
 C
       ELSEIF(KID.EQ.'D') THEN
-         CALL plfile_prof_read(modeln,modelq,ierr)
+C         CALL plfile_prof_read(modeln,modelq,ierr)
          READ(LINE(2:),*,ERR=1,END=1) NID
          IF(NID.EQ.0) THEN
             CALL WMAM0D(KID,LINE)
@@ -71,26 +71,26 @@ C
 C        *** FIND ROOT ***
 C
          ELSE IF (KID.EQ.'F') THEN
-            CALL plfile_prof_read(modeln,modelq,ierr)
+C            CALL plfile_prof_read(modeln,modelq,ierr)
             CALL WMEIGN(KID,LINE)
 C
 C        *** GRAPHICS ***
 C
          ELSE IF (KID.EQ.'G') THEN
-            IF(MYRANK.EQ.0) CALL WMGOUT
+            IF(NRANK.EQ.0) CALL WMGOUT
             CALL MPSYNC
             KID=' '
 C
 C        *** FILE OUTPUT ***
 C
          ELSE IF (KID.EQ.'S') THEN
-            IF(MYRANK.EQ.0) THEN
+            IF(NRANK.EQ.0) THEN
                CALL WMSAVE
             ENDIF
             CALL MPSYNC
             KID=' '
          ELSE IF (KID.EQ.'W') THEN
-            IF(MYRANK.EQ.0) THEN
+            IF(NRANK.EQ.0) THEN
                IF(NFILEINI.EQ.0) THEN
                   REWIND(26)
                   NFILEINI=1
@@ -108,7 +108,7 @@ C
                IF(IERR.NE.0) GOTO 1
             CALL WMSETJ(IERR)
                IF(IERR.NE.0) GOTO 1
-            IF(MYRANK.EQ.0) CALL WMTAE
+            IF(NRANK.EQ.0) CALL WMTAE
             CALL MPSYNC
             KID=' '
 C
@@ -154,7 +154,7 @@ C
          ELSE IF(KID.EQ.'Q') THEN
             GOTO 9000
          ELSE
-            IF(MYRANK.EQ.0) WRITE(6,*) 'XX WMMENU: UNKNOWN KID'
+            IF(NRANK.EQ.0) WRITE(6,*) 'XX WMMENU: UNKNOWN KID'
             KID=' '
          END IF
 C

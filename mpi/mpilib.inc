@@ -1,4 +1,5 @@
 C     $Id$
 C
-      include '../mpi/mpif.inc'
-      include '../mpi/mpicom.inc'
+      USE LIBMPI
+      IMPLICIT NONE
+      INCLUDE '../mpi/mpicom.inc'

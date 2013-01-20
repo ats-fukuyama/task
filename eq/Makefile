@@ -1,10 +1,10 @@
 ### $Id$ ###
 include ../make.header
 
-#FFLAGS=$(OFLAGS)
-FFLAGS=$(DFLAGS)
+FFLAGS=$(OFLAGS)
+#FFLAGS=$(DFLAGS)
 
-MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../pl/$(MOD) -I../lib/$(MOD)
+MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../plx/$(MOD) -I../lib/$(MOD)
 
 SRCS = eqbpsd.f eqinit.f eqmenu.f eqcalc.f eqcalq.f eqcalv.f \
        eqsub.f eqfunc.f eqintf.f eqsplf.f eqfile.f \
@@ -23,8 +23,8 @@ OBJA = $(SRCA:.f=.o)
 OBJ2D=$(SRC2D:.f=.o)
 OBJ3D=$(SRC3D:.f=.o)
 
-LIBS2 = eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
-LIBS3 = eq3lib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
+LIBS2 = eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a
+LIBS3 = eq3lib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a
 
 .SUFFIXES: .f90
 
@@ -45,23 +45,23 @@ eq3lib.a: $(OBJS) $(OBJ3D)
 	(cd ../lib; make)
 ../../bpsd/bpsdlib.a:
 	(cd ../../bpsd; make)
-../pl/pllib.a:
-	(cd ../pl; make)
+../plx/pllib.a:
+	(cd ../plx; make)
 
 libs:
 	(cd ../lib; make tasklib.a)
 	(cd ../../bpsd; make bpsdlib.a)
-	(cd ../pl; make pllib.a)
+	(cd ../plx; make pllib.a)
 
-eq: eqmain.o eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
+eq: eqmain.o eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a
 	$(FCFIXED) eqmain.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS)
-eq3: eqmain.o eq3lib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
+eq3: eqmain.o eq3lib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a
 	$(FCFIXED) eqmain.o $(LIBS3) -o $@ $(FFLAGS) $(FLIBS)
-tr : $(OBJT) eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
+tr : $(OBJT) eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a
 	$(FCFIXED) $(OBJT) $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
-pl : $(OGJP) eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
+pl : $(OGJP) eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a
 	$(FCFIXED) $(OBJP) $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
-ak : $(OBJA) eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
+ak : $(OBJA) eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a
 	$(FCFIXED) $(OBJA) $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 check : $(SRCS)
@@ -86,7 +86,7 @@ new:
 	cp -f *.f ../eqnew
 	cp -f *.inc ../eqnew
 
-EQCOMM = ../pl/plcom0.inc ../pl/plcom1.inc eqcom0.inc eqcom1.inc
+EQCOMM = eqcom0.inc eqcom1.inc
 
 eqmain.o: eqmain.f $(EQCOMM)
 eqinit.o: eqinit.f $(EQCOMM)

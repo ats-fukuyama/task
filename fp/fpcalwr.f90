@@ -10,7 +10,6 @@
 
       USE fpcomm
       USE libbes,ONLY: bessjn
-      USE fpcalwm, only: FPDWRP
 
       contains
 
@@ -19,6 +18,7 @@
       SUBROUTINE FP_CALWR(NSA)
 
       USE fpwrin
+      USE plprof,ONLY: pl_getRZ
       IMPLICIT NONE
       INTEGER:: NSA, NSBA, NITM, NP, NTH, NRDO, NR, NAV, NS
       REAL(rkind):: FACT, DELH, ETAL, THETAL, RRAVE, RSAVE
@@ -41,7 +41,7 @@
       NS=NS_NSA(NSA)
       NSBA=NSB_NSA(NSA)
 
-      IF(MODELW(NS).EQ.2) THEN
+      IF(MODELW(NS).EQ.1.OR.MODELW(NS).EQ.2) THEN
          DO NRDO=NRSTART,NREND
             NR=NRDO
             DO NTH=1,NTHMAX
@@ -49,16 +49,8 @@
 
                DO NAV=1,NAVMAX
                   ETAL=DELH*(NAV-0.5D0)-2.D0*ETAM(NTH,NR)
+                  CALL pl_getRZ(RM(NR),ETAL,RL,ZL)
 
-                  THETAL=ATAN2(RKAP*SIN(ETAL),COS(ETAL))
-                  RRAVE=0.5D0*(RRMAX(NR)+RRMIN(NR))
-                  RSAVE=0.5D0*(RRMAX(NR)-RRMIN(NR))
-                  X=RRAVE+RSAVE*COS(THETAL)
-                  Y=0.D0
-                  Z=RSAVE*SIN(THETAL)*RKAP
-
-                  RL=SQRT(X**2+Y**2)
-                  ZL=Z
                   DO NRAY=1,NRAYMAX
                      NITMX=NITMAX(NRAY)
                      RFDW=RAYIN(1,NRAY)
@@ -151,7 +143,7 @@
                      RBB(3,NR,NTH,NAV,NRAY)=RZB
 1                    CONTINUE
             
-!            IF(IFLAG.EQ.1) THEN
+!            IF(IDEBUG.EQ.1) THEN
 !               WRITE(6,'(3I3)') NR,NAV,NCR
 !               WRITE(6,'(1P3E12.4)') X,Y,Z
 !               WRITE(6,'(1P3E12.4)') RX,RY,RZ
@@ -171,8 +163,8 @@
                DO NP=1,NPMAX+1
                   CALL FPDWAV(ETAM(NTH,NR),SINM(NTH),COSM(NTH),PG(NP,NSBA), &
                               NR,NTH,DWPPS,DWPTS,DWTPS,DWTTS,NSA)
-                  DWPP(NTH,NP,NR,NSA)=DWPPS
-                  DWPT(NTH,NP,NR,NSA)=DWPTS
+!                  DWPP(NTH,NP,NR,NSA)=DWPPS
+!                  DWPT(NTH,NP,NR,NSA)=DWPTS
                ENDDO
             ENDIF
          ENDDO
@@ -206,22 +198,15 @@
 
 ! =============  CALCULATION OF DWTP AND DWTT  ===============
 
-      IF(MODELW(NS).EQ.2) THEN
+      IF(MODELW(NS).EQ.1.OR.MODELW(NS).EQ.2) THEN
          DO  NRDO=NRSTART,NREND
             NR=NRDO
             DO  NTH=1,NTHMAX
                DELH=4.D0*ETAG(NTH,NR)/NAVMAX
                DO NAV=1,NAVMAX
                   ETAL=DELH*(NAV-0.5D0)-2.D0*ETAG(NTH,NR)
-                  THETAL=ATAN2(RKAP*SIN(ETAL),COS(ETAL))
-                  RRAVE=0.5D0*(RRMAX(NR)+RRMIN(NR))
-                  RSAVE=0.5D0*(RRMAX(NR)-RRMIN(NR))
-                  X=RRAVE+RSAVE*COS(THETAL)
-                  Y=0.D0
-                  Z=      RSAVE*SIN(THETAL)*RKAP
+                  CALL pl_getRZ(RM(NR),ETAL,RL,ZL)
 
-                  RL=SQRT(X**2+Y**2)
-                  ZL=Z
                   DO NRAY=1,NRAYMAX
                      NITMX=NITMAX(NRAY)
                      RFDW=RAYIN(1,NRAY)
@@ -315,7 +300,7 @@
 2                    CONTINUE
                   ENDDO
 
-!            IF(IFLAG.EQ.1) THEN
+!            IF(IDEBUG.EQ.1) THEN
 !               WRITE(6,'(3I3)') NR,NAV,NCR
 !               WRITE(6,'(1P3E12.4)') X,Y,Z
 !               WRITE(6,'(1P3E12.4)') RX,RY,RZ
@@ -371,7 +356,8 @@
                         DWPPS,DWPTS,DWTPS,DWTTS,NSA)
 
       USE fpwrin
-      USE fpcalwm, only: FPDWRP
+      USE fpcalw, only: FPDWRP
+      USE plprof,ONLY: pl_getRZ
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: ETA,RSIN,RCOS,P
       INTEGER,INTENT(IN):: NR,NTH,NSA
@@ -394,20 +380,22 @@
       DO NAV=1,NAVMAX
          ETAL=DELH*(NAV-0.5D0)-2.D0*ETA
 
-         THETAL=ATAN2(RKAP*SIN(ETAL),COS(ETAL))
-         RRAVE=0.5D0*(RRMAX(NR)+RRMIN(NR))
-         RSAVE=0.5D0*(RRMAX(NR)-RRMIN(NR))
-         X=RRAVE+RSAVE*COS(THETAL)
-         Y=0.D0
-         Z=      RSAVE*SIN(THETAL)*RKAP
+!         THETAL=ATAN2(RKAP*SIN(ETAL),COS(ETAL))
+!         RRAVE=0.5D0*(RRMAX(NR)+RRMIN(NR))
+!         RSAVE=0.5D0*(RRMAX(NR)-RRMIN(NR))
+!         X=RRAVE+RSAVE*COS(THETAL)
+!         Y=0.D0
+!         Z=      RSAVE*SIN(THETAL)*RKAP
+!
+!         RL=SQRT(X**2+Y**2)
+!         ZL=Z
 
-         RL=SQRT(X**2+Y**2)
-         ZL=Z
+         CALL pl_getRZ(RM(NR),ETAL,RL,ZL)
 
          DO NRAY=1,NRAYMAX
             RFDW=RAYIN(1,NRAY)
 
-            IF(MODELW(NS).EQ.1) THEN
+            IF(MODELW(NS).EQ.1.OR.MODELW(NS).EQ.2) THEN
                DO NCR=1,NCRMAX(NR,NRAY)
                   RX=RCR(1,NCR,NR,NRAY)
                   RY=RCR(2,NCR,NR,NRAY)
@@ -434,11 +422,18 @@
                      DWPTS=DWPTS+DWPTL          /SQRT(PSI)
                      DWTPS=DWTPS+DWTPL          /SQRT(PSI)
                      DWTTS=DWTTS+DWTTL*PCOS/RCOS/PSI
+!                     WRITE(6,*) NR,NTH,DWPPS
+!                     IF(IDEBUG.EQ.1) THEN
+!                        WRITE(6,'(3I3)') NR,NAV,NCR
+!                        WRITE(6,'(1P3E12.4)') X,Y,Z
+!                        WRITE(6,'(1P3E12.4)') RX,RY,RZ
+!                        WRITE(6,'(1P3E12.4)') DELR2,DELCR2,ARG
+!                     ENDIF
                   ENDIF
                ENDDO
             ENDIF
 
-            IF(MODELW(NS).EQ.2) THEN
+            IF(MODELW(NS).EQ.1.OR.MODELW(NS).EQ.2) THEN
                ARG=ARGB(NR,NTH,NAV,NRAY)
                IF(ARG.GT.0.D0.AND.ARG.LT.15.D0) THEN
                   FACTOR= EXP(-ARG)
@@ -461,12 +456,12 @@
                   DWTPS=DWTPS+DWTPL          /SQRT(PSI)
                   DWTTS=DWTTS+DWTTL*PCOS/RCOS/PSI
 
-!                  WRITE(6,*) NR,NTH,DWPPS
-!                  IF(IFLAG.EQ.1) THEN
-!                     WRITE(6,'(3I3)') NR,NAV,NCR
-!                     WRITE(6,'(1P3E12.4)') X,Y,Z
-!                     WRITE(6,'(1P3E12.4)') RX,RY,RZ
-!                     WRITE(6,'(1P3E12.4)') DELR2,DELCR2,ARG
+!                  WRITE(21,*) NR,NTH,DWPPS
+!                  IF(IDEBUG.EQ.1) THEN
+!                     WRITE(21,'(3I3)') NR,NAV,NCR
+!                     WRITE(21,'(1P3E12.4)') X,Y,Z
+!                     WRITE(21,'(1P3E12.4)') RX,RY,RZ
+!                     WRITE(21,'(1P3E12.4)') DELR2,DELCR2,ARG
 !                  ENDIF
 
                ENDIF
@@ -478,6 +473,7 @@
             /(2.D0*PI*RR)         &
             /SQRT(PI*DELYEC**2/2) &
             *DELH/(2.D0*PI)
+!      write(6,'(A,2I5,1P5E12.4)') 'FPDWAV:',NR,NTH,FACTOR,DWPPS,ETA,RSIN
       DWPPS=DWPPS*FACTOR
       DWPTS=DWPTS*FACTOR
       DWTPS=DWTPS*FACTOR
@@ -545,7 +541,7 @@
       DWC21=0.D0
       DWC22=0.D0
       RKW  =RKPARA/RW
-      RGZAI=RKPERP*PPERP/(RWC*AMFP(NSA))
+      RGZAI=ABS(RKPERP*PPERP/(RWC*AMFP(NSA)))
 
 !      WRITE(26,*) 'RKPERP,PPERP,RWC,RGZAI = ',RKPERP,PPERP,RWC,RGZAI
 !      CALL BESSEL(RGZAI,RJ,NCBMAX,NJMAX+1)

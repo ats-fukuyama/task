@@ -8,26 +8,26 @@ FFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
 
 # without eq
-#MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../pl/$(MOD)
-#EQLIBS= ../pl/noeqlib.o ../pl/noequlib.o 
+#MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../plx/$(MOD)
+#EQLIBS= ../plx/noeqlib.o ../plx/noequlib.o 
 #MAKE_TPXLIB=
 
 # with task/eq
-MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) -I../pl/$(MOD)
-EQLIBS= ../eq/eqlib.a ../pl/noequlib.o 
+MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD)
+EQLIBS= ../eq/eqlib.a ../plx/noequlib.o 
 MAKE_TPXLIB=
 
 # with topics/equ
-#MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../pl/$(MOD) -I../../topics/src/$(MOD)
-#EQLIBS= ../../topics/src/tpxlib.a ../../topics/src/eqlib.a  ../pl/noeqlib.o 
+#MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../plx/$(MOD) -I../../topics/src/$(MOD)
+#EQLIBS= ../../topics/src/tpxlib.a ../../topics/src/eqlib.a  ../plx/noeqlib.o 
 #MAKE_TPXLIB= (cd ../../topics/src; make tpxlib.a eqlib.a)
 
 # with task/eq and topics/equ
-#MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) -I../pl/$(MOD) -I../../topics/src/$(MOD)
+#MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD) -I../../topics/src/$(MOD)
 #EQLIBS= ../eq/eqlib.a ../../topics/src/tpxlib.a ../../topics/src/eqlib.a
 #MAKE_TPXLIB= (cd ../../topics/src; make tpxlib.a eqlib.a)
 
-PLLIBS=../pl/pl_vmec.o ../pl/modules.o ../../bpsd/bpsdlib.a 
+PLLIBS=../plx/pllib.a ../../bpsd/bpsdlib.a 
 
 SRC90M=trcom0.f90 trcom1.f90 trcomm.f90 tr_bpsd.f90
 SRC90=trinit.f90 trprof.f90 trufsub.f90 trufile.f90 trfile.f90 trhelp.f90 \
@@ -84,12 +84,12 @@ tr2lib.a: $(OBJTR) $(OBJ2D) $(INCNC) $(INCGLF)
 tr3lib.a: $(OBJTR) $(OBJ3D) $(INCNC) $(INCGLF)
 	$(LD) $(LDFLAGS) tr3lib.a $(OBJTR) $(OBJ3D)
 
-../pl/pllib.a:
-	(cd ../pl; make pllib.a)
-../pl/noeqlib.o:
-	(cd ../pl; make noeqlib.o)
-../pl/noequlib.o:
-	(cd ../pl; make noequlib.o)
+../plx/pllib.a:
+	(cd ../plx; make pllib.a)
+../plx/noeqlib.o:
+	(cd ../plx; make noeqlib.o)
+../plx/noequlib.o:
+	(cd ../plx; make noequlib.o)
 ../eq/eqlib.a:
 	(cd ../eq; make eqlib.a)
 ../eq/treqin.o:
@@ -102,7 +102,7 @@ tr3lib.a: $(OBJTR) $(OBJ3D) $(INCNC) $(INCGLF)
 libs:
 	(cd ../lib; make tasklib.a)
 	(cd ../../bpsd; make bpsdlib.a)
-	(cd ../pl; make pllib.a)
+	(cd ../plx; make pllib.a)
 	(cd ../eq; make eqlib.a)
 	$(MAKE_TPXLIB)
 	(cd ../eq; make treqin.o)
@@ -126,7 +126,7 @@ veryclean : clean
 	rm -f tr2 tr3
 
 distclean: clean
-	cd ../pl && make clean
+	cd ../plx && make clean
 	cd ../eq && make clean
 	cd ../lib && make clean
 

@@ -65,6 +65,7 @@ C     ****** INITIALIZE INPUT PARAMETERS ******
 C
       SUBROUTINE DPINIT
 C
+      USE plcomm
       INCLUDE 'dpcomm.inc'
 C
          MODELP(1)= 0
@@ -158,8 +159,8 @@ C     ****** INPUT NAMELIST ******
 C
       SUBROUTINE DPNLIN(NID,IST,IERR)
 C
+      USE plcomm,DPX=>DP
       INCLUDE 'dpcomm.inc'
-C
 C
       NAMELIST /DP/ RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,
      &              NSMAX,PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PU,PUS,
@@ -209,6 +210,7 @@ C     ***** CHECK INPUT PARAMETERS *****
 C
       SUBROUTINE DPCHEK(NCHMAX,NRMAX_1,RMIN_1,RMAX_1,RR_1,IERR)
 C
+      USE plcomm
       INCLUDE 'dpcomm.inc'
 
       DATA INITFP/0/
@@ -246,6 +248,7 @@ C     ****** SHOW PARAMETERS ******
 C
       SUBROUTINE DPVIEW
 C
+      USE plcomm
       INCLUDE 'dpcomm.inc'
 C
       WRITE(6,100)

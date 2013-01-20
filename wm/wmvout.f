@@ -49,8 +49,6 @@ C
       INCLUDE 'wmcomm.inc'
       INCLUDE 'vmcomm.inc'
 C
-      TWOPI=8.D0*DATAN(1.D0)
-C
 C     ****** DETERMINE RADIAL BETA PROFILE AND |B|=BSQ ******
 C
       DO J=1,NSRMAX
@@ -386,7 +384,6 @@ C
       COMMON /WMHRD1/ MN0,NTOR0
       COMMON /WMHRD2/ HS,OHS,DNORM,RC
 C
-      TWOPI=8.D0*DATAN(1.D0)
       PIT=1.D0/(NTH-1.D0)
 c.... updated on 05/05/03 by N^2 .. start ...........
 c     PIZ=RC/NHHMAX

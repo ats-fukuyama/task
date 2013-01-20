@@ -4,11 +4,11 @@ include ../make.header
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-FFLAGS = $(OFLAGS)
-#FFLAGS = $(DFLAGS)
+#FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
-MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \
-            -I../../bpsd/$(MOD)
+MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../plx/$(MOD) -I../eq/$(MOD) \
+            -I../mtxp -I../../bpsd/$(MOD)
 
 SRC0 = wmmenu.f wminit.f wmeign.f wmsetg.f \
        wmprof.f wmdisp.f \
@@ -28,10 +28,10 @@ OBJS = $(SRCX:.f90=.o) $(SRCS:.f=.o)
 OBJM = $(SRCX:.f90=.o) $(SRCM:.f=.o)
 
 LIB0 = ../eq/wmeqin.o ../eq/eqlib.a \
-       ../pl/pllib.a ../dp/dplib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a 
+       ../plx/pllib.a ../dp/dplib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a 
 
 LIBS = $(LIB0) wmlib.a ../mtx/mtxlib.a ../mpi/nompilib.o
-LIBM = $(LIB0) mpiwmlib.a ../mtx/mpimtxlib.a ../mpi/mpilib.o
+LIBM = $(LIB0) mpiwmlib.a ../mtx/mpimtxlib.a ../mpi/mpilib.o ../mtxp/libmtxmpi.o
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -45,8 +45,8 @@ wmlib.a: $(OBJS)
 mpiwmlib.a: $(OBJM)
 	$(LD) $(LDFLAGS) mpiwmlib.a $(OBJM)
 
-../pl/pllib.a:
-	(cd ../pl; make pllib.a)
+../plx/pllib.a:
+	(cd ../plx; make pllib.a)
 ../dp/dplib.a:
 	(cd ../dp; make dplib.a)
 ../eq/eqlib.a:
@@ -61,19 +61,20 @@ mpiwmlib.a: $(OBJM)
 	(cd ../mtx; make mtxlib.a)
 ../mtx/mpimtxlib.a:
 	(cd ../mtx; make mpimtxlib.a)
+../mtxp/libmtxmpi.o:
+	(cd ../mtxp; make libmtxmpi.o)
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)
 libs:
-	(cd ../pl; make pllib.a)
+	(cd ../plx; make pllib.a)
 	(cd ../dp; make dplib.a)
 	(cd ../eq; make eqlib.a)
 	(cd ../eq; make wmeqin.o)
-	(cd ../pl; make pllib.a)
 	(cd ../dp; make dplib.a)
 	(cd ../mpi; make nompilib.o)
-	(cd ../mpi; make mpilib.o)
+#	(cd ../mpi; make mpilib.o)
 	(cd ../mtx; make mtxlib.a)
-	(cd ../mtx; make mpimtxlib.a)
+#	(cd ../mtxp; make libmtxmpi.o)
 	(cd ../lib; make tasklib.a)
 
 wm : wmmain.o $(LIBS)
@@ -97,12 +98,13 @@ clean:
 veryclean: clean
 	rm -f wm
 
-WMCOMM = wmcomm.inc wmcom0.inc wmcom1.inc ../mpi/mpicom.inc ../pl/plcom0.inc ../pl/plcom1.inc ../dp/dpcom1.inc
+WMCOMM = wmcomm.inc wmcom0.inc wmcom1.inc ../mpi/mpicom.inc ../plx/plcomm.f90 \
+ ../dp/dpcom1.inc
 
 wmmain.o : wmmain.f $(WMCOMM)
 
 wmmenu.o : wmmenu.f $(WMCOMM)
-wminit.o : wminit.f $(WMCOMM) ../pl/plcnst.inc
+wminit.o : wminit.f $(WMCOMM)
 wmeign.o : wmeign.f $(WMCOMM)
 wmsetg.o : wmsetg.f $(WMCOMM)
 

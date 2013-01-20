@@ -2,22 +2,31 @@
 include ../make.header
 
 FFLAGS=$(OFLAGS)
+#FFLAGS=$(DFLAGS)
 
 # without eq
-#MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../pl/$(MOD)
-#EQLIBS= ../pl/noeqlib.o ../pl/noequlib.o 
+#MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../plx/$(MOD)  -I../fp/$(MOD)
+#EQLIBS= ../plx/noeqlib.o ../plx/noequlib.o 
 
 # with task/eq
-MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) -I../pl/$(MOD)
-EQLIBS= ../pl/noequlib.o ../eq/eqlib.a 
+MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD) -I../fp/$(MOD)
+EQLIBS= ../plx/noequlib.o ../eq/eqlib.a 
 
 # with topics/equ
-#MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../pl/$(MOD) -I../../topics/src/$(MOD)
-#EQLIBS= ../../topics/src/tpxlib.a ../../topics/src/eqlib.a  ../pl/noeqlib.o 
+#MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../plx/$(MOD) -I../fp/$(MOD) -I../../topics/src/$(MOD)
+#EQLIBS= ../../topics/src/tpxlib.a ../../topics/src/eqlib.a  ../plx/noeqlib.o 
 
 # with task/eq and topics/equ
-#MODINCLUDE= -I./$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) -I../pl/$(MOD) -I../../topics/src/$(MOD)
+#MODINCLUDE= -I./$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD) -I../fp/$(MOD) -I../../topics/src/$(MOD)
 #EQLIBS= ../eq/eqlib.a ../../topics/src/tpxlib.a ../../topics/src/eqlib.a
+
+##### Without PETSc library #####
+LIBMTX=../mtxp/libmtxbnd.o ../mtxp/libmtxnompi.o
+PETSCLIBS=
+##### With PETSc library #####
+#include ${PETSC_DIR}/conf/variables
+#LIBMTX=../mtxp/libmtxksp.o ../mtxp/libmtxmpi.o
+#PETSCLIBS=${PETSC_KSP_LIB}
 
 SRCS = main.f
 
@@ -26,16 +35,16 @@ OBJS = $(SRCS:.f=.o)
 LIB0 =  ../eq/treqin.o ../tr/trcom2.o ../tr/trcom3.o ../tr/tr2lib.a \
        ../dp/dplib.a ../wr/wrlib.a \
        ../eq/wmeqin.o \
+	../fp/fplib.a \
        ../../bpsd/bpsdlib.a \
-       ../lib/mdslib.a 
-#../fp/fplib.a \
+       ../lib/mdslib.a $(LIBMTX) $(PETSCLIBS)
 
-LIBS = $(LIB0) ../wm/wmlib.a ../pl/pllib.a \
+LIBS = $(LIB0) ../wm/wmlib.a ../plx/pllib.a \
        $(EQLIBS) \
        ../mpi/nompilib.o ../mtx/mtxlib.a \
        ../lib/tasklib.a
 
-LIBM = $(LIB0) ../wm/mpiwmlib.a  ../pl/pllib.a \
+LIBM = $(LIB0) ../wm/mpiwmlib.a  ../plx/pllib.a \
        $(EQLIBS) \
        ../mpi/mpilib.o ../mtx/mpimtxlib.a \
        ../lib/tasklib.a
@@ -49,12 +58,12 @@ all : libs tot
 
 ../../bpsd/bpsdlib.a:
 	(cd ../../bpsd; make bpsdlib.a)
-../pl/pllib.a:
-	(cd ../pl; make pllib.a)
-../pl/noeqlib.o:
-	(cd ../pl; make noeqlib.o)
-../pl/noequlib.o:
-	(cd ../pl; make noequlib.o)
+../plx/pllib.a:
+	(cd ../plx; make pllib.a)
+../plx/noeqlib.o:
+	(cd ../plx; make noeqlib.o)
+../plx/noequlib.o:
+	(cd ../plx; make noequlib.o)
 ../eq/eqlib.a:
 	(cd ../eq; make eqlib.a)
 ../eq/treqin.o:
@@ -88,9 +97,9 @@ all : libs tot
 
 libs:
 	(cd ../lib; make tasklib.a)
-	(cd ../pl; make pllib.a)
-	(cd ../pl; make noeqlib.o)
-	(cd ../pl; make noequlib.o)
+	(cd ../plx; make pllib.a)
+	(cd ../plx; make noeqlib.o)
+	(cd ../plx; make noequlib.o)
 	(cd ../eq; make eqlib.a)
 	(cd ../eq; make treqin.o)
 	(cd ../eq; make wmeqin.o)
@@ -100,12 +109,12 @@ libs:
 	(cd ../dp; make dplib.a)
 	(cd ../wr; make wrlib.a)
 	(cd ../wm; make wmlib.a)
-	(cd ../wm; make mpiwmlib.a)
-#	(cd ../fp; make fplib.a)
+#	(cd ../wm; make mpiwmlib.a)
+	(cd ../fp; make fplib.a)
 	(cd ../mtx; make mtxlib.a)
-	(cd ../mtx; make mpimtxlib.a)
+#	(cd ../mtx; make mpimtxlib.a)
 	(cd ../mpi; make nompilib.o)
-	(cd ../mpi; make mpilib.o)
+#	(cd ../mpi; make mpilib.o)
 
 tot : main.o $(LIBS)
 	$(FCFIXED) main.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODINCLUDE)
@@ -114,13 +123,13 @@ mpitot : main.o $(LIBM)
 	$(MFC) main.o $(LIBM) -o $@ $(FFLAGS) $(FLIBS) $(MODINCLUDE)
 
 xtot :
-	(cd ../pl; make pllib.a noeqlib.o)
+	(cd ../plx; make pllib.a noeqlib.o)
 	(cd ../eq; make eqlib.a treqin.o wmeqin.o)
 	(cd ../tr; make tr2lib.a)
 	(cd ../dp; make dplib.a)
 	(cd ../wr; make wrlib.a)
 	(cd ../wm; make wmlib.a)
-#	(cd ../fp; make fplib.a)
+	(cd ../fp; make fplib.a)
 	(cd ../mtx; make mtxlib.a)
 	(cd ../lib; make)
 	(cd ../mpi; make nompilib.o)

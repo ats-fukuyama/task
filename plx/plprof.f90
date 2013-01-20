@@ -15,6 +15,15 @@
 
   END MODULE plxprf
 
+  MODULE pllocal
+    USE plcomm,ONLY: rkind,NSM
+
+    REAL(rkind):: XPOS_LOC,YPOS_LOC,ZPOS_LOC,RHON_LOC
+    REAL(rkind):: BNX,BNY,BNZ,BABS
+    REAL(rkind),DIMENSION(NSM):: RN,RTPR,RTPP,RU,RZCL
+    REAL(rkind),DIMENSION(NSM):: RLN,RLTPR,RLTPP,RLU
+  END MODULE pllocal
+
   MODULE plprof
     USE bpsd_kinds
 
@@ -55,10 +64,11 @@
          USE bpsd_kinds
          REAL(rkind),INTENT(OUT):: RAXIS,ZAXIS
        END SUBROUTINE GETAXS
-       SUBROUTINE GETRSU(NSUMAX,RSU,ZSU)
+       SUBROUTINE GETRSU(RSU,ZSU,NSUM,NSUMAX)
          USE bpsd_kinds
-         INTEGER(ikind),INTENT(IN):: NSUMAX
-         REAL(rkind),DIMENSION(NSUMAX),INTENT(OUT):: RSU,ZSU
+         INTEGER(ikind),INTENT(IN):: NSUM
+         REAL(rkind),DIMENSION(NSUM),INTENT(OUT):: RSU,ZSU
+         INTEGER(ikind),INTENT(OUT):: NSUMAX
        END SUBROUTINE GETRSU
        SUBROUTINE SPL1DF(X,DATA,XA,UDATA,NXMAX,IERR)
          USE bpsd_kinds
@@ -69,10 +79,43 @@
          INTEGER(ikind),INTENT(IN):: NXMAX
          INTEGER(ikind),INTENT(OUT):: IERR
        END SUBROUTINE SPL1DF
+       SUBROUTINE GET_RZB(rhon,th,R,Z,BR,BZ,BT,BB)
+         USE bpsd_kinds
+         REAL(rkind),INTENT(IN):: rhon,th
+         REAL(rkind),INTENT(OUT):: R,Z,BR,BZ,BT,BB
+       END SUBROUTINE GET_RZB
+       SUBROUTINE GET_RZ(rhon,th,R,Z)
+         USE bpsd_kinds
+         REAL(rkind),INTENT(IN):: rhon,th
+         REAL(rkind),INTENT(OUT):: R,Z
+       END SUBROUTINE GET_RZ
     END INTERFACE
 
   CONTAINS
         
+!     ****** CALCULATE LOCAL MAGNETIC FIELD (OLD) ******
+
+    SUBROUTINE pl_mag_old(X,Y,Z,RHON)
+      USE pllocal, ONLY: XPOS_LOC,YPOS_LOC,ZPOS_LOC,RHON_LOC,BNX,BNY,BNZ,BABS
+      IMPLICIT NONE
+      REAL(rkind),INTENT(IN):: X,Y,Z
+      REAL(rkind),INTENT(OUT):: RHON
+      TYPE(pl_mag_type):: MAG
+      
+      CALL pl_mag(X,Y,Z,RHON,MAG)
+
+      XPOS_LOC=X
+      YPOS_LOC=Y
+      ZPOS_LOC=Z
+      RHON_LOC=RHON
+      BNX=MAG%BNX
+      BNY=MAG%BNY
+      BNZ=MAG%BNZ
+      BABS=MAG%BABS
+
+      RETURN
+    END SUBROUTINE pl_mag_old
+
 !     ****** CALCULATE LOCAL MAGNETIC FIELD ******
 
     SUBROUTINE pl_mag(X,Y,Z,RHON,MAG)
@@ -160,7 +203,6 @@
          MAG%BNY = BY/MAG%BABS
          MAG%BNZ = BZ/MAG%BABS
       ENDIF
-
       RETURN
     END SUBROUTINE pl_mag
 
@@ -184,6 +226,27 @@
       ENDDO
       RETURN
     END SUBROUTINE pl_prof2
+
+!     ****** CALCULATE PLASMA PROFILE ******
+
+    SUBROUTINE pl_prof_old(RHON)
+
+      USE plcomm,ONLY: NSMAX
+      USE pllocal,ONLY: RN,RTPR,RTPP,RU
+      IMPLICIT NONE
+      REAL(rkind),INTENT(IN):: RHON
+      TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
+      INTEGER:: NS
+
+      CALL pl_prof(RHON,PLF)
+      DO NS=1,NSMAX
+         RN(NS)=PLF(NS)%RN
+         RTPR(NS)=PLF(NS)%RTPR
+         RTPP(NS)=PLF(NS)%RTPP
+         RU(NS)=PLF(NS)%RU
+      END DO
+      RETURN
+    END SUBROUTINE pl_prof_old
 
 !     ****** CALCULATE PLASMA PROFILE ******
 
@@ -405,10 +468,6 @@
             PLF(NS)%RTPP=RTPPPL(NS)
             PLF(NS)%RU  =RUPL(NS)
          ENDDO
-!         IF(NSMAX.EQ.6) THEN
-!            PLF(2)%RN=PLF(2)%RN-PLF(5)%RN
-!            PLF(4)%RN=PLF(4)%RN-PLF(6)%RN
-!         ENDIF
       ENDIF
 
       RETURN
@@ -450,7 +509,7 @@
            RHOL=RHON
          ENDIF
          rsrhon=RHOL*RA
-      ELSEIF(MODELG.EQ.3) THEN
+      ELSEIF(MODELG.EQ.3.OR.MODELG.EQ.8) THEN
          CALL GETRMN(RHON,RRMINL)
          CALL GETRMX(RHON,RRMAXL)
          rsrhon=0.5D0*(RRMAXL-RRMINL)
@@ -532,7 +591,7 @@
          CALL pl_qprf(RHON,QL)
          BMINP= RS*BMINT/((RR+RS)*QL)
          BMINL= SQRT(BMINT**2+BMINP**2)
-      ELSEIF(MODELG.EQ.3) THEN
+      ELSEIF(MODELG.EQ.3.OR.MODELG.EQ.8) THEN
          CALL GETRMX(RHON,RRMAXL)
          BTL=BB*RR/RRMAXL
          CALL pl_qprf(RHON,QL)
@@ -559,7 +618,7 @@
          RS=rsrhon(RHON)
          RRMINL=RR-RS
          RRMAXL=RR+RS
-      ELSEIF(MODELG.EQ.3) THEN
+      ELSEIF(MODELG.EQ.3.OR.MODELG.EQ.8) THEN
          CALL GETRMN(RHON,RRMINL)
          CALL GETRMX(RHON,RRMAXL)
       ENDIF
@@ -577,7 +636,7 @@
       IF(MODELG.LT.3) THEN
          RAXIS=RR
          ZAXIS=0.D0
-      ELSEIF(MODELG.EQ.3) THEN
+      ELSEIF(MODELG.EQ.3.OR.MODELG.EQ.8) THEN
          CALL GETAXS(RAXIS,ZAXIS)
       ENDIF
       RETURN
@@ -585,24 +644,26 @@
 
 !     ***** PLASMA BOUNDARY *****
 
-    SUBROUTINE pl_rzsu(NSUMAX,RSU,ZSU)
+    SUBROUTINE pl_rzsu(RSU,ZSU,NSUM,NSUMAX)
 
       USE plcomm,ONLY: PI,RA,RKAP,RR,MODELG
       IMPLICIT NONE
-      INTEGER(ikind),INTENT(IN):: NSUMAX
-      REAL(rkind),DIMENSION(NSUMAX),INTENT(OUT) :: RSU,ZSU
+      INTEGER(ikind),INTENT(IN):: NSUM
+      REAL(rkind),DIMENSION(NSUM),INTENT(OUT) :: RSU,ZSU
+      INTEGER(ikind),INTENT(OUT):: NSUMAX
       REAL(rkind)     :: DTH, TH
       INTEGER(ikind)  :: NSU
 
       IF(MODELG.LE.2)THEN
+         NSUMAX=NSUM
          DTH=2.D0*PI/(NSUMAX-1)
          DO NSU=1,NSUMAX
             TH=(NSU-1)*DTH
             RSU(NSU)=RR+     RA*COS(TH)
             ZSU(NSU)=   RKAP*RA*SIN(TH)
          ENDDO
-      ELSEIF(MODELG.EQ.3) THEN
-         CALL GETRSU(NSUMAX,RSU,ZSU)
+      ELSEIF(MODELG.EQ.3.OR.MODELG.EQ.8) THEN
+         CALL GETRSU(RSU,ZSU,NSUM,NSUMAX)
       ENDIF
       RETURN
     END SUBROUTINE pl_rzsu
@@ -697,5 +758,34 @@
 
       RETURN
     END SUBROUTINE wmspl_prof
+
+!     ****** Coordinate conversion ******
+
+    SUBROUTINE pl_getRZ(rhon,th,R,Z)
+
+      USE plcomm, ONLY: RA,RR,MODELG,TWOPI
+
+      IMPLICIT NONE
+      REAL(rkind),INTENT(in):: rhon,th
+      REAL(rkind),INTENT(OUT):: R,Z
+
+      REAL(8) :: RL,RS
+
+      IF(MODELG.EQ.0) THEN
+         R=RR+RA*rhon
+         Z=   RA*rhon*th/TWOPI
+
+      ELSEIF(MODELG.EQ.1) THEN
+         R=RR+RA*rhon*COS(th)
+         Z=   RA*rhon*SIN(th)
+
+      ELSEIF(MODELG.EQ.2) THEN
+         R=RR+RA*rhon*COS(th)
+         Z=   RA*rhon*SIN(th)
+
+      ELSEIF(MODELG.EQ.3.OR.MODELG.EQ.5.OR.MODELG.EQ.8) THEN
+         CALL GET_RZ(rhon,th,R,Z)
+      ENDIF
+    END SUBROUTINE pl_getRZ
 
   END MODULE plprof

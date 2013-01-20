@@ -4,8 +4,11 @@ C     ***** TASK/DP MENU *****
 C
       SUBROUTINE DPMENU
 C
+      USE plcomm
+      USE pllocal
+      USE plprof,ONLY:pl_mag_old,pl_prof_old
+      USE plinit
       INCLUDE 'dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
 C
       PARAMETER (NXGM=101)
       DIMENSION GX(NXGM),GY(NXGM,6)
@@ -25,7 +28,7 @@ C
       IF(KID.EQ.'P') THEN
          CALL DPPARM(0,'DP',IERR)
       ELSEIF(KID.EQ.'V') THEN
-         CALL PLVIEW
+         CALL PL_VIEW
          CALL DPVIEW
       ELSEIF(KID.EQ.'D') THEN
          READ(LINE(2:),*,ERR=1,END=1) NID
@@ -52,8 +55,8 @@ C
          CW=2.D0*PI*DCMPLX(RF0,RFI0)*1.D6
          CKPR=MAX(RKZ0,1.D-4)
          CKPP=RKX0
-         CALL PLMAG(RL,0.D0,0.D0,RHON)
-         CALL PLPROF(RHON)
+         CALL PL_MAG_OLD(RL,0.D0,0.D0,RHON)
+         CALL PL_PROF_OLD(RHON)
          MODELP(1)=1
          CALL DPTENS(CW,CKPR,CKPP,1,CD4)
          MODELP(1)=4
@@ -104,8 +107,8 @@ C
          CALL DPDKDTR(CW,CKPR,NS,NR,NCH1,NCH2,MM,CDTNS)
 
          CKPP=MM/RM(NR)
-         CALL PLMAG(RR+RM(NR),0.D0,0.D0,RHON)
-         CALL PLPROF(RHON)
+         CALL PL_MAG_OLD(RR+RM(NR),0.D0,0.D0,RHON)
+         CALL PL_PROF_OLD(RHON)
          MODELP(1)=1
          CALL DPTENS(CW,CKPR,CKPP,NS,CD4)
          MODELP(1)=4

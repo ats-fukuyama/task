@@ -605,9 +605,7 @@
       SUBROUTINE FPGRAPA(STRING,FGA,NSA)
 
       IMPLICIT NONE
-!      real(8),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1,NSAMAX):: FGA
       real(8),DIMENSION(NTHMAX,NPMAX,NRMAX,NSAMAX):: FGA
-!      real(8),dimension(NTHMAX+1,NPMAX+1,NRMAX+1)::TEMP
       real(8),dimension(NTHMAX,NPMAX,NRMAX)::TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
@@ -628,8 +626,8 @@
       SUBROUTINE FPGRAPAB(STRING,FGAB,NSA,NSB)
 
       IMPLICIT NONE
-      real(8),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1,NSBMAX,NSAMAX):: FGAB
-      real(8),dimension(NTHMAX+1,NPMAX+1,NRMAX+1):: TEMP
+      real(8),DIMENSION(NTHMAX,NPMAX,NRMAX,NSBMAX,NSAMAX):: FGAB
+      real(8),dimension(NTHMAX,NPMAX,NRMAX):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NR, NP, NTH, NSA, NSB
@@ -728,8 +726,6 @@
       SUBROUTINE FPGRAPRA(STRING,FGA,NSA)
 
       IMPLICIT NONE
-!      REAL(8),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1,NSAMAX):: FGA
-!      REAL(8),dimension(NTHMAX+1,NPMAX+1,NRMAX+1):: TEMP
       REAL(8),DIMENSION(NTHMAX,NPMAX,NRMAX,NSAMAX):: FGA
       REAL(8),dimension(NTHMAX,NPMAX,NRMAX):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
@@ -751,8 +747,8 @@
       SUBROUTINE FPGRAPRAB(STRING,FGAB,NSA,NSB)
 
       IMPLICIT NONE
-      real(8),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1,NSBMAX,NSAMAX):: FGAB
-      real(8),dimension(NTHMAX+1,NPMAX+1,NRMAX+1):: TEMP
+      real(8),DIMENSION(NTHMAX,NPMAX,NRMAX,NSBMAX,NSAMAX):: FGAB
+      real(8),dimension(NTHMAX,NPMAX,NRMAX):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NR, NP, NTH, NSA, NSB
@@ -772,17 +768,12 @@
       SUBROUTINE FPGRAPR(STRING,FG,NSA)
 !       
       IMPLICIT NONE
-!      real(8),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1):: FG
-!      real(4),dimension(NPMAX+1):: GX
-!      real(4),dimension(NRMAX+1):: GY
-!      real(4),dimension(NPMAX+1,NRMAX+1):: GZ
       real(8),DIMENSION(NTHMAX,NPMAX,NRMAX):: FG
       real(4),dimension(NPMAX):: GX
       real(4),dimension(NRMAX):: GY
       real(4),dimension(NPMAX,NRMAX):: GZ
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
-!      real(8):: PGMAX, RGMIN, RGMAX
       integer:: NR, NP, NTH, NSA, NSBA, NPGMAX, NPM
       real(4):: GX1, GX2, GY1, GY2
 
@@ -954,23 +945,19 @@
       SUBROUTINE FPGRACA(STRING,FGA,MODE,NSA)
        
       IMPLICIT NONE
-      REAL(8),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1,NSAMAX):: FGA
-      REAL(8),dimension((NRMAX+1)*(NPMAX+1)*(NTHMAX+1)):: TEMP
+      REAL(8),DIMENSION(:,:,:,:):: FGA
+      REAL(8),dimension(NTHMAX+1,NPMAX+1,NRMAX+1):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
-      integer:: NPM, NTHM, NRM, NR, NP, NTH, NSA, NSBA
-      integer:: NM, NM1, MODE
-      NPM=NPMAX+1
-      NTHM=NTHMAX+1
-      NRM=NRMAX+1
+      integer:: NR, NP, NTH, NSA, NSBA
+      integer:: MODE
       NSBA=NSB_NSA(NSA)
 !
       IF(MODE.EQ.0.OR.MODE.EQ.4) THEN
          DO NR=1,NRMAX
          DO NTH=1,NTHMAX
          DO NP=1,NPMAX
-            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-            TEMP(NM)=FGA(NTH,NP,NR,NSA)
+            TEMP(NTH,NP,NR)=FGA(NTH,NP,NR,NSA)
          ENDDO
          ENDDO
          ENDDO
@@ -978,8 +965,7 @@
          DO NR=1,NRMAX
          DO NTH=1,NTHMAX
          DO NP=1,NPMAX+1
-            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-            TEMP(NM)=FGA(NTH,NP,NR,NSA)
+            TEMP(NTH,NP,NR)=FGA(NTH,NP,NR,NSA)
          ENDDO
          ENDDO
          ENDDO
@@ -987,8 +973,7 @@
          DO NR=1,NRMAX
          DO NTH=1,NTHMAX+1
          DO NP=1,NPMAX
-            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-            TEMP(NM)=FGA(NTH,NP,NR,NSA)
+            TEMP(NTH,NP,NR)=FGA(NTH,NP,NR,NSA)
          ENDDO
          ENDDO
          ENDDO
@@ -996,8 +981,7 @@
          DO NR=1,NRMAX+1
          DO NTH=1,NTHMAX
          DO NP=1,NPMAX
-            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-            TEMP(NM)=FGA(NTH,NP,NR,NSA)
+            TEMP(NTH,NP,NR)=FGA(NTH,NP,NR,NSA)
          ENDDO
          ENDDO
          ENDDO
@@ -1064,26 +1048,18 @@
       SUBROUTINE FPGRACB(STRING,FGA,MODE,NSB)
        
       IMPLICIT NONE
-!      REAL(8),DIMENSION(NTHMAX,NPMAX,NRMAX+1,NSBMAX):: FGA
-      REAL(8),DIMENSION(NTHMAX,NPMAX,NRMAX,NSBMAX):: FGA
-      REAL(8),dimension((NRMAX+1)*(NPMAX)*(NTHMAX)):: TEMP
-      REAL(8),dimension(NTHMAX,NPMAX,NRMAX):: TEMP2
+      REAL(8),DIMENSION(:,:,:,:):: FGA
+      REAL(8),dimension(NTHMAX+1,NPMAX+1,NRMAX+1):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
-      integer:: NPM, NTHM, NRM, NR, NP, NTH, NSB
+      integer:: NR, NP, NTH, NSB
       integer:: NM, NM1, MODE
-!      NPM=NPMAX+1
-!      NTHM=NTHMAX+1
-!      NRM=NRMAX+1
-      NPM=NPMAX
-      NTHM=NTHMAX
-      NRM=NRMAX
 !
       IF(MODE.EQ.0.OR.MODE.EQ.4) THEN
          DO NR=1,NRMAX
          DO NTH=1,NTHMAX
          DO NP=1,NPMAX
-            TEMP2(NTH,NP,NR)=FGA(NTH,NP,NR,NSB)
+            TEMP(NTH,NP,NR)=FGA(NTH,NP,NR,NSB)
          ENDDO
          ENDDO
          ENDDO
@@ -1091,8 +1067,7 @@
          DO NR=1,NRMAX
          DO NTH=1,NTHMAX
          DO NP=1,NPMAX+1
-            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-            TEMP(NM)=FGA(NTH,NP,NR,NSB)
+            TEMP(NTH,NP,NR)=FGA(NTH,NP,NR,NSB)
          ENDDO
          ENDDO
          ENDDO
@@ -1100,8 +1075,7 @@
          DO NR=1,NRMAX
          DO NTH=1,NTHMAX+1
          DO NP=1,NPMAX
-            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-            TEMP(NM)=FGA(NTH,NP,NR,NSB)
+            TEMP(NTH,NP,NR)=FGA(NTH,NP,NR,NSB)
          ENDDO
          ENDDO
          ENDDO
@@ -1109,14 +1083,13 @@
          DO NR=1,NRMAX+1
          DO NTH=1,NTHMAX
          DO NP=1,NPMAX
-            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-            TEMP(NM)=FGA(NTH,NP,NR,NSB)
+            TEMP(NTH,NP,NR)=FGA(NTH,NP,NR,NSB)
          ENDDO
          ENDDO
          ENDDO
       ENDIF
       WRITE(STRING1,'(A,A1,I2,A1)') STRING,'(',NSB,')'
-      CALL FPGRAC_2(TRIM(STRING1),TEMP2,MODE,NSB)
+      CALL FPGRAC_2(TRIM(STRING1),TEMP,MODE,NSB)
       RETURN
       END SUBROUTINE FPGRACB
 !---------------------------------------------------
@@ -1267,11 +1240,8 @@
       SUBROUTINE FPGRAC_2(STRING,FG,MODE,NSB)
 !       
       IMPLICIT NONE
-      real(8),DIMENSION(NTHMAX,NPMAX,NRMAX):: FG
-      real(4),DIMENSION(NPMAX,NTHMAX):: GF
-!      real(4),dimension(NPMAX+1):: GP
-!      real(4),dimension(NTHMAX+1):: GTH
-!      real(8),dimension(8,NPMAX+1,NTHMAX+1)::KA
+      real(8),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1):: FG
+      real(4),DIMENSION(NPMAX+1,NTHMAX+1):: GF
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       INTEGER,PARAMETER:: NGLM=30
@@ -1280,12 +1250,12 @@
       REAL(4):: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
       real(4):: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
       real(4):: GPMIN1, GPMAX1, GPSTEP, GLIN, GFFMAX
-      integer:: NR, NP, NTH, NSB, NRG, MODE
+      integer:: NR, NP, NTH, NRG, MODE, NSB
       integer:: NPG, NTHG, NPM, NTHM, NRM, NM, NGLMAX, NGL
       integer:: I
 
-      NPM=NPMAX
-      NTHM=NTHMAX
+      NPM=NPMAX+1
+      NTHM=NTHMAX+1
       NRM=NRMAX+1
 
       IF(NGRAPH.EQ.0) THEN
@@ -1355,7 +1325,7 @@
       SUBROUTINE FPGRACX_2(STRING,GF,MODE,NSB)
 !       
       IMPLICIT NONE
-      real(4),DIMENSION(NPMAX,NTHMAX):: GF
+      real(4),DIMENSION(NPMAX+1,NTHMAX+1):: GF
       real(4),dimension(NPMAX+1):: GP
       real(4),dimension(NTHMAX+1):: GTH
       real(8),dimension(8,NPMAX+1,NTHMAX+1)::KA
@@ -1368,12 +1338,11 @@
       real(4):: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
       real(4):: GPMIN1, GPMAX1, GPSTEP, GLIN, GFFMAX
       integer:: NR, NP, NTH, NSB, NRG, MODE, LMODE
-      integer:: NPG, NTHG, NPM, NTHM, NRM, NM, NGLMAX, NGL
+      integer:: NPG, NTHG, NPM, NTHM, NGLMAX, NGL
       integer:: I
 
-      NPM=NPMAX
-      NTHM=NTHMAX
-      NRM=NRMAX
+      NPM=NPMAX+1
+      NTHM=NTHMAX+1
 
       LMODE=MODE/4
 !

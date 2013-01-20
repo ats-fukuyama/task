@@ -21,12 +21,12 @@ C
       CALL WMEFLD
       CALL WMBFLD
       CALL WMPABS
-      if(myrank.eq.0) then
+      if(nrank.eq.0) then
          CALL WMPFLX
          CALL WMPANT
       endif
 C
-      IF(MYRANK.EQ.0) THEN
+      IF(NRANK.EQ.0) THEN
          CALL WMPOUT
          IF(MODELW.EQ.1) CALL WMDOUT(IERR)
       ENDIF
@@ -51,7 +51,7 @@ C      CALL WMEFLD
 C      CALL WMBFLD
 C      CALL WMPABS
 C
-      IF(MYRANK.EQ.0) THEN
+      IF(NRANK.EQ.0) THEN
 C         CALL WMPFLX
 C         CALL WMPANT
 C         CALL WMPOUT
@@ -76,9 +76,9 @@ C
      &          8.654,10.173,11.620,13.015/
 C
          IF(RD.LE.RA.OR.RD.GE.RB) THEN
-            IF(MYRANK.EQ.0) WRITE(6,*) '!! WMSETJ: RD = (RA+RB)/2'
+            IF(NRANK.EQ.0) WRITE(6,*) '!! WMSETJ: RD = (RA+RB)/2'
             RD=0.5D0*(RA+RB)
-            IF(MYRANK.EQ.0) 
+            IF(NRANK.EQ.0) 
      &           WRITE(6,'(A,1P3E12.4)') 'RA,RB,RD=',RA,RB,RD
          ENDIF
 C
@@ -176,7 +176,7 @@ C
       DO NA=1,NAMAX
          CJANT(2,MDX,NDX)=CJANT(2,MDX,NDX)+CJT(MDX,NDX,NA)
          CJANT(3,MDX,NDX)=CJANT(3,MDX,NDX)+CJZ(MDX,NDX,NA)
-         IF(MYRANK.EQ.0) THEN
+         IF(NRANK.EQ.0) THEN
             IF(NPRINT.GE.3) WRITE(6,'(A,2I4,1P2E15.7)') 
      &                   'NN,MM,CJANT=',
      &                   NPH0+NHC*ND,NTH0+MD,CJANT(2,MDX,NDX)

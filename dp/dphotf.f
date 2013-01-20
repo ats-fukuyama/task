@@ -10,6 +10,7 @@ C ******************************************************
 C
       SUBROUTINE DPHOTF(CW,CKPR,CKPP,NS,CLDISP)
 C
+      USE plcomm
       INCLUDE 'dpcomm.inc'
 C
       DIMENSION CLDISP(6),CLDISP1(6),CLDISP2(6)
@@ -29,8 +30,9 @@ C
       SUBROUTINE DPHOTFR(CW,CKPR,CKPP,NS,CLDISP)
 C
       USE libbes,ONLY: bessjn
+      USE plcomm
+      USE pllocal
       INCLUDE 'dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
 C
       DIMENSION CLDISP(6)
 C
@@ -234,8 +236,9 @@ C
       SUBROUTINE DPHOTFI(CW,CKPR,CKPP,NS,CLDISP)
 C
       USE libbes,ONLY: bessjn
+      USE plcomm
+      USE pllocal
       INCLUDE 'dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
 C
       DIMENSION CLDISP(6)
 C

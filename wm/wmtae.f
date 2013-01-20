@@ -5,8 +5,7 @@ C   ***********************************************
 C
       SUBROUTINE WMTAE
 C
-      INCLUDE 'wmcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
+      INCLUDE 'wmcoml.inc'
 C
       PARAMETER(MMM=MDM*NDM)
       DIMENSION CWALF(MDM,NDM),CWALFK(MDM,NDM)
@@ -27,7 +26,7 @@ C
       DO NR=1,NRMAX
          CALL WMCDEN(NR,RNX,RTPRX,RTPPX,RUX)
          RHON=XRHO(NR)
-         CALL PLPROF(RHON)
+         CALL PL_PROF_OLD(RHON)
          RHOM=0.D0
          DO NS=2,NSMAX
             IF(MODELP(NS).LT.0) THEN

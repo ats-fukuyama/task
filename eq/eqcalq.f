@@ -125,7 +125,10 @@ C
       DIMENSION XA(NTVM),YA(2,NTVM)
       DIMENSION XCHI0(NTVM),XCHI1(NTVM)
       DIMENSION RCHI(NTVM),ZCHI(NTVM),DXCHI(NTVM)
+      DIMENSION BRCHI(NTVM),BZCHI(NTVM),BTCHI(NTVM),BBCHI(NTVM)
       DIMENSION URCHI(4,NTVM),UZCHI(4,NTVM)
+      DIMENSION UBRCHI(4,NTVM),UBZCHI(4,NTVM)
+      DIMENSION UBTCHI(4,NTVM),UBBCHI(4,NTVM)
 C
       IERR=0
 C
@@ -171,6 +174,8 @@ C     &        PSIP(NR),PPS(NR),TTS(NR),RINIT,ZINIT
 C         pause
 C
          CALL EQMAGS(RINIT,ZINIT,NTVMAX,XA,YA,NA,IERR)
+         DO N=1,NA
+         END DO
 C
          SUMS=0.D0
          SUMV=0.D0
@@ -223,6 +228,10 @@ C
             XCHI1(N)=SUMAVIR2
             RCHI(N)=YA(1,N)
             ZCHI(N)=YA(2,N)
+            BRCHI(N)=-DPSIDZ/(2.D0*PI*R)
+            BZCHI(N)= DPSIDR/(2.D0*PI*R)
+            BTCHI(N)= BTL
+            BBCHI(N)= SQRT(B2L)
 C
             R=YA(1,N)
             Z=YA(2,N)
@@ -290,6 +299,14 @@ C
             ENDDO
             RCHI(NA)=RCHI(1)
             ZCHI(NA)=ZCHI(1)
+            BRCHI(1)=0.5D0*(BRCHI(2)+BRCHI(NA-1))
+            BZCHI(1)=0.5D0*(BZCHI(2)+BZCHI(NA-1))
+            BTCHI(1)=0.5D0*(BTCHI(2)+BTCHI(NA-1))
+            BBCHI(1)=0.5D0*(BBCHI(2)+BBCHI(NA-1))
+            BRCHI(NA)=BRCHI(1)
+            BZCHI(NA)=BZCHI(1)
+            BTCHI(NA)=BTCHI(1)
+            BBCHI(NA)=BBCHI(1)
 C
 C            write(6,'(I5,1P2E12.4)') (N,RCHI(N),ZCHI(N),N=1,NA)
 C     
@@ -298,23 +315,51 @@ C
                IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for RCHI: IERR=',IERR
                CALL SPL1D(XCHI0,ZCHI,DXCHI,UZCHI,NA,4,IERR)
                IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for ZCHI: IERR=',IERR
+               CALL SPL1D(XCHI0,BRCHI,DXCHI,UBRCHI,NA,4,IERR)
+               IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for BRCHI: IERR=',IERR
+               CALL SPL1D(XCHI0,BZCHI,DXCHI,UBZCHI,NA,4,IERR)
+               IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for BZCHI: IERR=',IERR
+               CALL SPL1D(XCHI0,BTCHI,DXCHI,UBTCHI,NA,4,IERR)
+               IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for BTCHI: IERR=',IERR
+               CALL SPL1D(XCHI0,BBCHI,DXCHI,UBBCHI,NA,4,IERR)
+               IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for BBCHI: IERR=',IERR
             ELSE
                CALL SPL1D(XCHI1,RCHI,DXCHI,URCHI,NA,4,IERR)
                IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for RCHI: IERR=',IERR
                CALL SPL1D(XCHI1,ZCHI,DXCHI,UZCHI,NA,4,IERR)
                IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for ZCHI: IERR=',IERR
+               CALL SPL1D(XCHI1,BRCHI,DXCHI,UBRCHI,NA,4,IERR)
+               IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for BRCHI: IERR=',IERR
+               CALL SPL1D(XCHI1,BZCHI,DXCHI,UBZCHI,NA,4,IERR)
+               IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for BZCHI: IERR=',IERR
+               CALL SPL1D(XCHI1,BTCHI,DXCHI,UBTCHI,NA,4,IERR)
+               IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for BTCHI: IERR=',IERR
+               CALL SPL1D(XCHI1,BBCHI,DXCHI,UBBCHI,NA,4,IERR)
+               IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for BBCHI: IERR=',IERR
             ENDIF
 C
             RPS(1,NR)=YA(1,1)
             ZPS(1,NR)=YA(2,1)
+            BRPS(1,NR)=BRCHI(1)
+            BZPS(1,NR)=BZCHI(1)
+            BTPS(1,NR)=BTCHI(1)
+            BBPS(1,NR)=BBCHI(1)
             DO NTH=2,NTHMAX+1
                TH=DTH*(NTH-1)
                IF(MDLEQC.EQ.0) THEN
                   CALL SPL1DF(TH,RPS(NTH,NR),XCHI0,URCHI,NA,IERR)
                   CALL SPL1DF(TH,ZPS(NTH,NR),XCHI0,UZCHI,NA,IERR)
+                  CALL SPL1DF(TH,BRPS(NTH,NR),XCHI0,UBRCHI,NA,IERR)
+                  CALL SPL1DF(TH,BZPS(NTH,NR),XCHI0,UBZCHI,NA,IERR)
+                  CALL SPL1DF(TH,BTPS(NTH,NR),XCHI0,UBTCHI,NA,IERR)
+                  CALL SPL1DF(TH,BBPS(NTH,NR),XCHI0,UBBCHI,NA,IERR)
                ELSE
                   CALL SPL1DF(TH,RPS(NTH,NR),XCHI1,URCHI,NA,IERR)
                   CALL SPL1DF(TH,ZPS(NTH,NR),XCHI1,UZCHI,NA,IERR)
+                  CALL SPL1DF(TH,BRPS(NTH,NR),XCHI1,UBRCHI,NA,IERR)
+                  CALL SPL1DF(TH,BZPS(NTH,NR),XCHI1,UBZCHI,NA,IERR)
+                  CALL SPL1DF(TH,BTPS(NTH,NR),XCHI1,UBTCHI,NA,IERR)
+                  CALL SPL1DF(TH,BBPS(NTH,NR),XCHI1,UBBCHI,NA,IERR)
                ENDIF
             ENDDO
          ENDIF
@@ -537,6 +582,18 @@ C            call polintx(nr,npmax,nrm,dsdpsit)
                call polintxx(nr,nthmax+1,npmax,nthmp,nrm,rps)
                call polintxx(nr,nthmax+1,npmax,nthmp,nrm,zps)
             ENDIF
+            
+            DTHL=2.D0*PI/NTHMAX
+            DO nth=1,nthmax+1
+               FACTOR=(RPS(NTH,NR)-RAXIS)/(RPS(NTH,NRPMAX)-RAXIS)
+               BRPS(NTH,NR)=BRPS(NTH,NRPMAX)/FACTOR
+               BZPS(NTH,NR)=BZPS(NTH,NRPMAX)/FACTOR
+               FACTOR=RPS(NTH,NR)/RPS(NTH,NRPMAX)
+               BTPS(NTH,NR)=BTPS(NTH,NRPMAX)/FACTOR
+               BBPS(NTH,NR)=SQRT(BRPS(NTH,NR)**2
+     &                          +BZPS(NTH,NR)**2
+     &                          +BTPS(NTH,NR)**2)
+            END DO
 
             RMIN=RAXIS
             RMAX=RAXIS
@@ -823,8 +880,8 @@ C
             ZGMAX=MAX(ZGMAX,ZSW(NSU))
          ENDDO
       ENDIF
-      WRITE(6,'(A,I5)') 'MDLEQF=',MDLEQF
-      WRITE(6,'(A,1P4E12.4)') 'RG,ZG=',RGMIN,RGMAX,ZGMIN,ZGMAX
+C      WRITE(6,'(A,I5)') 'MDLEQF=',MDLEQF
+C      WRITE(6,'(A,1P4E12.4)') 'RG,ZG=',RGMIN,RGMAX,ZGMIN,ZGMAX
 C
       RETURN
       END
@@ -937,6 +994,22 @@ C
       CALL SPL2D(THIT,RHOT,ZPS,D10,D01,D11,UZPS,
      &           NTHMP,NTHMAX+1,NRMAX,4,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL2D for ZPS: IERR=',IERR
+C
+      CALL SPL2D(THIT,RHOT,BRPS,D10,D01,D11,UBRPS,
+     &           NTHMP,NTHMAX+1,NRMAX,4,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL2D for BRPS: IERR=',IERR
+C
+      CALL SPL2D(THIT,RHOT,BZPS,D10,D01,D11,UBZPS,
+     &           NTHMP,NTHMAX+1,NRMAX,4,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL2D for BZPS: IERR=',IERR
+C
+      CALL SPL2D(THIT,RHOT,BTPS,D10,D01,D11,UBTPS,
+     &           NTHMP,NTHMAX+1,NRMAX,4,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL2D for BTPS: IERR=',IERR
+C
+      CALL SPL2D(THIT,RHOT,BBPS,D10,D01,D11,UBBPS,
+     &           NTHMP,NTHMAX+1,NRMAX,4,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL2D for BBPS: IERR=',IERR
 C
       DO NR=1,NRMAX
          RHOTL=RHOT(NR)

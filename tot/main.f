@@ -8,6 +8,8 @@ C                    Email: fukuyama@nucleng.kyoto-u.ac.jp
 C                  URL: http://p-grp.nucleng.kyoto-u.ac.jp/wm/
 C***********************************************************************
 C
+      USE plinit,ONLY:pl_init,pl_parm
+      USE fpinit,ONLY:fp_init,fp_parm
       INCLUDE '../mpi/mpicom.inc'
 C
       CALL MPINIT(NPROCS,MYRANK)
@@ -21,27 +23,27 @@ C
       ENDIF
 C
       IF(MYRANK.EQ.0) THEN
-         WRITE(6,*) '##### /TASK/TASK  04/11/08 #####'
+         WRITE(6,*) '##### /TASK/TASK  2013/01/20 #####'
          CALL GSOPEN
       ENDIF
       CALL MPSYNC
 C
-      CALL PLINIT
+      CALL PL_INIT
       CALL EQINIT
       CALL TRINIT
       CALL DPINIT
       CALL WRINIT
       CALL WMINIT
-!      CALL FPINIT
+      CALL FP_INIT
       IF(MYRANK.EQ.0) THEN
          OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
-         CALL PLPARM(1,'plparm',IERR)
+         CALL PL_PARM(1,'plparm',IERR)
          CALL EQPARM(1,'eqparm',IERR)
          CALL TRPARM(1,'trparm',IERR)
          CALL DPPARM(1,'dpparm',IERR)
          CALL WRPARM(1,'wrparm',IERR)
          CALL WMPARM(1,'wmparm',IERR)
-!         CALL FPPARM(1,'fpparm',IERR)
+         CALL FP_PARM(1,'fpparm',IERR)
       ENDIF
       CALL MPSYNC
       CALL WMPRBC
@@ -61,6 +63,8 @@ C     ***** TASK MENU *****
 C
       SUBROUTINE TASKMENU
 C
+      USE plmenu,ONLY:pl_menu
+      USE fpmenu,ONLY:fp_menu
       INCLUDE '../mpi/mpicom.inc'
 C
       CHARACTER KID*2,KID1*1,KID2*1
@@ -89,11 +93,11 @@ C
          ELSE IF (KID.EQ.'WM') THEN
             CALL WMMENU
          ELSE IF (KID.EQ.'FP') THEN
-!            CALL FPMENU
+            CALL FP_MENU
          ELSE IF (KID.EQ.'DP') THEN
             CALL DPMENU
          ELSE IF (KID.EQ.'PL') THEN
-            CALL PLMENU
+            CALL PL_MENU
          ELSE IF (KID1.EQ.'Q') THEN
             GOTO 9000
          ENDIF

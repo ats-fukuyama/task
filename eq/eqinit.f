@@ -5,7 +5,7 @@ C
       SUBROUTINE EQINIT
 C
       INCLUDE '../eq/eqcomm.inc'
-      INCLUDE '../pl/plcnst.inc'
+C      INCLUDE '../pl/plcnst.inc'
 C
 C     ======( DEVICE PARAMETERS )======
 C
@@ -42,7 +42,6 @@ C        PA    : Mass number
 C        PZ    : Charge number
 C        PN    : Density at center                     (1.0E20/m**3)
 C        PNS   : Density on plasma surface             (1.0E20/m**3)
-C        PZCL  : Ratio of collision frequency to wave frequency
 C        PTPR  : Parallel temperature at center                (keV)
 C        PTPP  : Perpendicular temperature at center           (keV)
 C        PTS   : Temperature on surface                        (keV)
@@ -58,7 +57,6 @@ C
          PZ(1)   =-1.0D0
          PN(1)   = 1.0D0
          PNS(1)  = 0.0D0
-         PZCL(1) = 0.00D0
          PTPR(1) = 5.0D0
          PTPP(1) = 5.0D0
          PTS(1)  = 0.05D0
@@ -73,7 +71,6 @@ C
          PZ(2)   = 1.0D0
          PN(2)   = 1.0D0
          PNS(2)  = 0.0D0
-         PZCL(2) = 0.00D0
          PTPR(2) = 5.0D0
          PTPP(2) = 5.0D0
          PTS(2)  = 0.05D0
@@ -89,7 +86,6 @@ C
          PZ(NS)   = 1.0D0
          PN(NS)   = 0.0D0
          PNS(NS)  = 0.0D0
-         PZCL(NS) = 0.0D0
          PTPR(NS) = 5.0D0
          PTPP(NS) = 5.0D0
          PTS(NS)  = 0.0D0

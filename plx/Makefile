@@ -7,7 +7,7 @@ include ../../task/make.header
 FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
-MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD)
+MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD)
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -26,7 +26,7 @@ OBJO = $(SRCO:.f=.o)
 
 LIBS = pllib.a ../../task/eq/eqlib.a ../../task/lib/tasklib.a ../../task/wm/wmlib.a
 
-all : pllib.a  noeqlib.o noequlib.o
+all : pllib.a  noeqlib.o noequlib.o pl
 
 ../../task/lib/tasklib.a:
 	(cd ../../task/lib; make tasklib.a)

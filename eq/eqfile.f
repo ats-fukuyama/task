@@ -328,6 +328,7 @@ C
       REAL(8):: DERIV(NPSM)
       REAL(8),DIMENSION(1)::  THIN=(/0.035/)
       REAL(8),DIMENSION(:),ALLOCATABLE:: rc_xp,zc_xp,psic_xp
+      REAL(8),DIMENSION(NSUM):: XA
       INTEGER:: icount,icountmax
       INTEGER,PARAMETER:: icountm=10
       INTEGER:: ic_min1,ic_min2,ic_min3
@@ -500,7 +501,6 @@ c
       H=16.D0*(REDGE-RAXIS)/NMAX
       CALL calc_separtrix(REDGE,ZAXIS,RXPNT1,ZXPNT1,H,NMAX,
      &                    XA,RSU,ZSU,NSUMAX,IERR) 
-      WRITE(6,*) NSUMAX
 
 !      CALL PAGES
 !      CALL GRD2D(0,rg,zg,psirz,nrgm,nrgmax,nzgmax,'@psirz@',0,0,1,
@@ -579,7 +579,6 @@ C *** The following variable defined in Tokamaks 3rd, Sec. 14.14 ***
          TTPS(NPS)=2.D0*PI*TTPS(NPS)
       ENDDO
 
-      RIP=15.D0
       TTDTTPS(1:npsmax)=0.D0
       DPPPS(1:npsmax)=0.D0
 

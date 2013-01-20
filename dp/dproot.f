@@ -6,6 +6,7 @@ C     *************************
 C
       SUBROUTINE DPGRP1
 C
+      USE plcomm
       INCLUDE 'dpcomm.inc'
       DIMENSION GX(NXM),GY(NXM)
 C
@@ -159,6 +160,7 @@ C     *************************
 C
       SUBROUTINE DPROOT
 C
+      USE plcomm
       INCLUDE 'dpcomm.inc'
 C
       PARAMETER (IGM=100)
@@ -355,6 +357,7 @@ C     *************************
 C
       SUBROUTINE DPBRENT1(CX)
 C
+      USE plcomm
       INCLUDE 'dpcomm.inc'
 C
       EXTERNAL DPFUNC1
@@ -383,6 +386,7 @@ C     *******************************
 C
       SUBROUTINE DPFUNC1(N,X,F,I)
 C
+      USE plcomm
       INCLUDE 'dpcomm.inc'
 C
       DIMENSION X(N),F(N)
@@ -404,6 +408,7 @@ C     *******************************
 C
       SUBROUTINE DPBRENT2(CX)
 C
+      USE plcomm
       INCLUDE 'dpcomm.inc'
 C
       EXTERNAL DPFUNC2
@@ -433,6 +438,7 @@ C     *******************************
 C
       SUBROUTINE DPFUNC2(N,X,F,I)
 C
+      USE plcomm
       INCLUDE 'dpcomm.inc'
 C
       DIMENSION X(N),F(N)
@@ -454,6 +460,7 @@ C     *******************************
 C
       SUBROUTINE DPBRENT3(CX)
 C
+      USE plcomm
       INCLUDE 'dpcomm.inc'
 C
       EXTERNAL DPFUNC3
@@ -483,6 +490,7 @@ C     *******************************
 C
       SUBROUTINE DPFUNC3(N,X,F,I)
 C
+      USE plcomm
       INCLUDE 'dpcomm.inc'
 C
       DIMENSION X(N),F(N)
@@ -649,6 +657,7 @@ C     *******************************
 C
       SUBROUTINE DPGPRM(ISW)
 C
+      USE plcomm
       INCLUDE 'dpcomm.inc'
 C
       CALL SETLIN(0,0,7)

@@ -4,6 +4,7 @@ C     ****** CALCULATE DETERMINANT OF DISPERSION TENSOR ******
 C
       COMPLEX*16 FUNCTION CFDISP(CRF,CKX,CKY,CKZ,XPOS,YPOS,ZPOS)
 C
+      USE plcomm
       INCLUDE '../dp/dpcomm.inc'
       DIMENSION CDET(3,3)
 C
@@ -30,6 +31,7 @@ C     ****** CALCULATE REAL PART OF DETERMINANT OF DISPERSION TENSOR ******
 C
       COMPLEX*16 FUNCTION CFDISPR(CRF,CKX,CKY,CKZ,XPOS,YPOS,ZPOS)
 C
+      USE plcomm
       INCLUDE '../dp/dpcomm.inc'
       DIMENSION CDET(3,3)
 C
@@ -56,8 +58,9 @@ C     ****** CALCULATE DISPERSION TENSOR ******
 C
       SUBROUTINE DPDISP(CRF,CKX,CKY,CKZ,XPOS,YPOS,ZPOS,CDET)
 C
+      USE plcomm
+      USE pllocal
       INCLUDE '../dp/dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
       DIMENSION CDTNS(3,3),CDET(3,3)
 C
       CW=2.D0*PI*1.D6*CRF
@@ -82,12 +85,14 @@ C     ****** CALCULATE DIELECTRIC TENSOR ******
 C
       SUBROUTINE DPEXEC(CRF,CKX,CKY,CKZ,XPOS,YPOS,ZPOS,NS,CDTNS)
 C
+      USE plcomm
+      USE pllocal
+      USE plprof
       INCLUDE '../dp/dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
       DIMENSION CDTNS(3,3)
 C
-      CALL PLMAG(XPOS,YPOS,ZPOS,RHON)
-      CALL PLPROF(RHON)
+      CALL PL_MAG_OLD(XPOS,YPOS,ZPOS,RHON)
+      CALL PL_PROF_OLD(RHON)
 C
       CW=2.D0*PI*1.D6*CRF
       CKPR=BNX*CKX+BNY*CKY+BNZ*CKZ
@@ -158,8 +163,10 @@ C     ****** CALCULATE DIELECTRIC TENSOR ******
 C
       SUBROUTINE DPCALC(CW,CKPR,CKPP,RHON,BABS1,NS,CDTNS)
 C
+      USE plcomm
+      USE pllocal
+      USE plprof,ONLY: pl_prof_old
       INCLUDE '../dp/dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
       COMPLEX(8),INTENT(IN):: CW,CKPR,CKPP
       REAL(8),INTENT(IN):: RHON,BABS1
       INTEGER(4),INTENT(IN):: NS
@@ -167,7 +174,7 @@ C
       COMPLEX(8),DIMENSION(6):: CDISP,CLDISP
 C
       BABS=BABS1
-      CALL PLPROF(RHON)
+      CALL PL_PROF_OLD(RHON)
 C
       IF(NS.EQ.0) THEN
          CDISP(1)=1.D0
@@ -228,8 +235,9 @@ C     ****** CALCULATE COLD KPERP ******
 C
       SUBROUTINE DPCOLD_RKPERP(CW,CKPR,CKPPF,CKPPS)
 C
+      USE plcomm
+      USE pllocal
       INCLUDE '../dp/dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
       DIMENSION CDISP(6),CLDISP(6)
 C
       CDISP(1)=1.D0

@@ -19,7 +19,7 @@ C     ----- calculate position of magnetic axis -----
 C
       CALL find_axis
 C
-      WRITE(6,*) RAXIS,ZAXIS,PSIG(RAXIS,ZAXIS)
+C      WRITE(6,*) RAXIS,ZAXIS,PSIG(RAXIS,ZAXIS)
 C
       IF(MDLEQF.LT.10) THEN
          RMAX=RR+RB

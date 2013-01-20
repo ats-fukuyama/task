@@ -235,7 +235,8 @@ C     ****** RADIAL MESH (TOROIDAL COORDINATES) ******
 C
       SUBROUTINE WMXRZT(IERR)
 C
-      USE plfile_prof_mod
+C      USE plfile_prof_mod
+      USE plprof,ONLY: pl_qprf
       INCLUDE 'wmcomm.inc'
 C
 C
@@ -254,7 +255,7 @@ C
             RHOL=DRHO*(NR-1)
             XRHO(NR)=RHOL
             XR(NR)=RA*RHOL
-            CALL PLQPRF(RHOL,QPS(NR))
+            CALL PL_QPRF(RHOL,QPS(NR))
          ENDDO
 C
          DTH=2.D0*PI/NTHMAX
@@ -360,7 +361,7 @@ C     ****** RADIAL MESH AND METRIC TENSOR ******
 C
       SUBROUTINE WMXRZF(IERR)
 C
-      USE plfile_prof_mod
+C      USE plfile_prof_mod
       INCLUDE 'wmcomm.inc'
 C
       CHARACTER*(80) LINE
@@ -379,13 +380,13 @@ C
       NHHMAX=1
 C
       IF(NTHMAX.LT.4) THEN
-         IF(MYRANK.EQ.0) 
+         IF(NRANK.EQ.0) 
      &        WRITE(6,*) 'XX WMXRZF: NTHMAX MUST BE GREATER THAN 4'
          IERR=1
          RETURN
       ENDIF
 C
-      IF(MYRANK.EQ.0) THEN
+      IF(NRANK.EQ.0) THEN
          CALL EQLOAD(MODELG,KNAMEQ,IERR)
       ENDIF
       CALL MPBCIA(IERR)
@@ -396,7 +397,7 @@ C
       NSUMAXSV=NSUMAX
       KNAMEQ_SAVE=KNAMEQ
 C
-      IF(MYRANK.EQ.0) THEN
+      IF(NRANK.EQ.0) THEN
          write(LINE,'(A,I5)') 'nrmax=',NRMAX+1
          call eqparm(2,line,ierr)
          write(LINE,'(A,I5)') 'nthmax=',NTHMAX

@@ -53,7 +53,7 @@ C
 C
       ENDDO
 C
-      IF(IERR.EQ.0.AND.MYRANK.EQ.0) THEN
+      IF(IERR.EQ.0.AND.NRANK.EQ.0) THEN
          PABSTT=PABSTT_SV
          DO NS=1,NSMAX
             PABST(NS)=PABST_SV(NS)

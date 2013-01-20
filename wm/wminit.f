@@ -532,7 +532,7 @@ C
 C
       DIMENSION IPARA(23),DPARA(28)
 C
-      IF(MYRANK.EQ.0) THEN
+      IF(NRANK.EQ.0) THEN
          RF=DBLE(CRF)
          RFI=DIMAG(CRF)
          IPARA(1) =NSMAX
@@ -592,7 +592,7 @@ C
       CALL MPBCIN(IPARA,23)
       CALL MPBCDN(DPARA,28)
 C
-      IF(MYRANK.NE.0) THEN
+      IF(NRANK.NE.0) THEN
          NSMAX =IPARA(1) 
          NAMAX =IPARA(2) 
          NRMAX =IPARA(3) 

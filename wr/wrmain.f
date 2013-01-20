@@ -17,23 +17,25 @@ C                      V3.00  : 1997 AUG 05
 C                      V3.10  : 2000 NOV 25
 C     --------------------------------------------------------
 C
+      USE plcomm
+      USE plinit,ONLY: PL_INIT,PL_PARM
       INCLUDE 'wrcomm.inc'
 C
 C
-      WRITE(6,*) '## TASK/WR 2004/11/08'
+      WRITE(6,*) '## TASK/WR 2013/01/20'
 C
       CALL GSOPEN
       OPEN(7,STATUS='SCRATCH')
-      CALL PLINIT
+      CALL PL_INIT
       CALL EQINIT
       CALL DPINIT
       CALL WRINIT
-      CALL PLPARM(1,'plparm',IERR)
+      CALL PL_PARM(1,'plparm',IERR)
       CALL EQPARM(1,'eqparm',IERR)
       CALL DPPARM(1,'dpparm',IERR)
       CALL WRPARM(1,'wrparm',IERR)
-      CALL PLDATA_SETN(NRZMAX,NSMAX)
-      CALL PLDATA_CLEAR
+C      CALL PLDATA_SETN(NRZMAX,NSMAX)
+C      CALL PLDATA_CLEAR
 C
       CALL WRMENU
 C

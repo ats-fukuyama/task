@@ -344,15 +344,14 @@ C
 C           NR : NODE NUMBER (RADIAL POSITION)
 C           NS : PARTICLE SPECIES 
 C
-      INCLUDE 'wmcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
+      INCLUDE 'wmcoml.inc'
       DIMENSION CDTNS(3,3)
 C
       CW=2.D0*PI*CRF*1.D6
       WW=DBLE(CW)
 C
       RHON=XRHO(NR)
-      CALL PLPROF(RHON)
+      CALL PL_PROF_OLD(RHON)
 C
 C      IF(NS.EQ.1.AND.NR.EQ.1) THEN
 C         WRITE(6,'(A,1P6E12.4)') 'RN  :',(RN(NS1),NS1=1,NSMAX)
@@ -496,14 +495,13 @@ C
 C           NR : NODE NUMBER (RADIAL POSITION)
 C           NS : PARTICLE SPECIES 
 C
-      INCLUDE 'wmcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
+      INCLUDE 'wmcoml.inc'
       DIMENSION CDTNS(3,3)
 C
       CW=2.D0*PI*CRF*1.D6
 C
       RHON=XRHO(NR)
-      CALL PLPROF(RHON)
+      CALL PL_PROF_OLD(RHON)
       IF(RN(NS).EQ.0.D0) RETURN
 C
       DO NHH=1,NHHMAX
@@ -745,16 +743,15 @@ C     ****** CALCULATE MAGNETIC DRIFT DIELECTRIC TENSOR ******
 C
       SUBROUTINE WMTNDK(NR,NS)
 C
-      INCLUDE 'wmcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
+      INCLUDE 'wmcoml.inc'
 C
       CW=2.D0*PI*CRF*1.D6
 C
       RHON=XRHO(NR)
-      CALL PLPROF(RHON+0.01D0)
+      CALL PL_PROF_OLD(RHON+0.01D0)
       RNAP=RN(NS)*1.D20
       RTAP=(RTPR(NS)+RTPP(NS))/3.D0*1.D3*AEE
-      CALL PLPROF(RHON)
+      CALL PL_PROF_OLD(RHON)
       RNA=RN(NS)*1.D20
       RTA=(RTPR(NS)+RTPP(NS))/3.D0*1.D3*AEE
       DRN=(RNAP-RNA)/(0.01D0*RA*RNA)

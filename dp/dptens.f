@@ -4,8 +4,9 @@ C     ****** CALCULATE DIELECTRIC TENSOR ******
 C
       SUBROUTINE DPTENS(CW,CKPR,CKPP,NS,CLDISP)
 C
+      USE plcomm
+      USE pllocal
       INCLUDE '../dp/dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
 C
       DIMENSION CLDISP(6),CLDISP1(6)
 C
@@ -81,8 +82,9 @@ C     ****** CALCULATE ANALYTIC DIELECTRIC TENSOR ******
 C
       SUBROUTINE DPTENS_AN(ID1,CW,CKPR,CKPP,NS,CLDISP)
 C
+      USE plcomm
+      USE pllocal
       INCLUDE '../dp/dpcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
 C
       DIMENSION CLDISP(6)
 C

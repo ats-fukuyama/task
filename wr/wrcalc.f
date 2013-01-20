@@ -3,7 +3,8 @@ C
 C***********************************************************************
 C
       SUBROUTINE WRCALC
-C    
+C
+      USE plcomm
       INCLUDE 'wrcomm.inc'
 C
       DIMENSION Y(NEQ)
@@ -152,8 +153,6 @@ C
          RKPHII=2.D6*PI*RF*RNPHII/VC
          CALL WRNWTN(RKRI,RKZI,RKPHII,IERR)
          IF(IERR.NE.0) GOTO 1200
-C         
-         WRITE(6,*) 'RKRI=',RKRI
 C
          IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
             Y(1)= RPI
@@ -185,8 +184,9 @@ C
             WRITE(6,*) 'XX WRCALC: unknown MDLWRQ =', MDLWRQ
          ENDIF
          CALL WRCALE(RAYS(0,0,NRAY),NITMAX(NRAY),NRAY)
-         WRITE(6,'(A,F8.4)') 
-     &        '# PABS/PIN=',1.D0-RAYS(7,NITMAX(NRAY),NRAY)
+         WRITE(6,'(A,1PE12.4,A,1PE12.4)') 
+     &        '    RKRI=  ',RKRI,  '  PABS/PIN=',
+     &        1.D0-RAYS(7,NITMAX(NRAY),NRAY)
  1200    CONTINUE
       ENDDO
 C
@@ -202,10 +202,10 @@ C************************************************************************
 C
       SUBROUTINE WRRKFT(Y,YN,NIT)
 C
+      USE plcomm
+      USE pllocal
+      USE plprof,ONLY: PL_MAG_OLD
       INCLUDE 'wrcomm.inc'  
-c_zhenya
-      INCLUDE '../pl/plcom2.inc'
-c_zhenya    
 C
       EXTERNAL WRFDRV
       DIMENSION Y(NEQ),YM(NEQ),YN(0:NEQ,0:NITM),WORK(2,NEQ)
@@ -235,7 +235,7 @@ C
          ENDDO
          YN(8,IT)=Y7-YM(7)
 
-         CALL PLMAG(YM(1),YM(2),YM(3),PSIN)
+         CALL PL_MAG_OLD(YM(1),YM(2),YM(3),PSIN)
          IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
             RL  =YM(1)
             PHIL=ASIN(YM(2)/(2.D0*PI*RR))
@@ -276,7 +276,7 @@ C
             NIT = IT
             GOTO 11
          ENDIF         
-         CALL PLMAG(Y(1),Y(2),Y(3),RHON)
+         CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
          IF(RHON.GT.RB/RA*1.2D0) THEN
             NIT = IT
             GOTO 11
@@ -299,10 +299,10 @@ C************************************************************************
 C
       SUBROUTINE WRRKFT_WITHD0(Y,YN,NIT)
 C
+      USE plcomm
+      USE pllocal
+      USE plprof,ONLY:PL_MAG_OLD
       INCLUDE 'wrcomm.inc'  
-c_zhenya
-      INCLUDE '../pl/plcom2.inc'
-c_zhenya    
 C
       EXTERNAL WRFDRV
       DIMENSION Y(NEQ),YM(NEQ),YN(0:NEQ,0:NITM),WORK(2,NEQ)
@@ -342,7 +342,7 @@ CENDIDEI
          ENDDO
          YN(8,IT)=Y7-YM(7)
 
-         CALL PLMAG(YM(1),YM(2),YM(3),PSIN)
+         CALL PL_MAG_OLD(YM(1),YM(2),YM(3),PSIN)
          IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
             RL  =YM(1)
             PHIL=ASIN(YM(2)/(2.D0*PI*RR))
@@ -390,7 +390,7 @@ C
             NIT = IT
             GOTO 11
          ENDIF         
-         CALL PLMAG(Y(1),Y(2),Y(3),RHON)
+         CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
          IF(RHON.GT.RB/RA*1.2D0) THEN
             NIT = IT
             GOTO 11
@@ -413,6 +413,9 @@ C************************************************************************
 C
       SUBROUTINE WRRKFT_ODE(Y,YN,NIT)
 C
+      USE plcomm
+      USE pllocal
+      USE plprof,ONLY: PL_MAG_OLD
       INCLUDE 'wrcomm.inc'  
 C
       EXTERNAL WRFDRV
@@ -477,7 +480,7 @@ C
             NIT = IT
             GOTO 11
          ENDIF         
-         CALL PLMAG(Y(1),Y(2),Y(3),RHON)
+         CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
          IF(RHON.GT.RB/RA*1.2D0) THEN
             NIT = IT
             GOTO 11
@@ -500,10 +503,10 @@ C************************************************************************
 C
       SUBROUTINE WRRKFT_WITHMC(Y,YN,NIT)
 C
+      USE plcomm
+      USE pllocal
+      USE plprof,ONLY: PL_MAG_OLD
       INCLUDE 'wrcomm.inc'  
-c_zhenya
-      INCLUDE '../pl/plcom2.inc'
-c_zhenya    
 C
       EXTERNAL WRFDRV
       DIMENSION Y(NEQ),YM(NEQ),YN(0:NEQ,0:NITM),WORK(2,NEQ)
@@ -560,7 +563,7 @@ C
             YN(8,IT)=Y7
          ENDIF
 C
-         CALL PLMAG(YM(1),YM(2),YM(3),PSIN)
+         CALL PL_MAG_OLD(YM(1),YM(2),YM(3),PSIN)
          IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
             RL  =YM(1)
             PHIL=ASIN(YM(2)/(2.D0*PI*RR))
@@ -607,7 +610,7 @@ C 6001    FORMAT(1H ,1P14E13.5)
             NIT = IT
             GOTO 11
          ENDIF         
-         CALL PLMAG(Y(1),Y(2),Y(3),RHON)
+         CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
          IF(RHON.GT.RB/RA*1.2D0) THEN
             NIT = IT
             GOTO 11
@@ -630,8 +633,10 @@ C************************************************************************
 C
       SUBROUTINE WRMODCOV_OX(IOX, Y, F, OXEFF) 
 C
+      USE plcomm
+      USE pllocal
+      USE plprof,ONLY: PL_MAG_OLD,PL_PROF_OLD
       INCLUDE 'wrcomm.inc' 
-	  INCLUDE '../pl/plcom2.inc'    
 C
       DIMENSION Y(NEQ),F(NEQ), YK(3)
 C
@@ -647,8 +652,8 @@ C
 		OXEFF = EXP(-PI*OX_K0*OX_LN*SQRT(0.5*OX_Y)*OXEFF)
 		WRITE(6,*) 'OXEFF=',OXEFF 
 
-		CALL PLMAG(Y(1),Y(2),Y(3),PSIN)
-		CALL PLPROF(PSIN)	   
+		CALL PL_MAG_OLD(Y(1),Y(2),Y(3),PSIN)
+		CALL PL_PROF_OLD(PSIN)	   
 		BNX0 = BNX
 		BNY0 = BNY
 		BNZ0 = BNZ
@@ -718,14 +723,16 @@ C************************************************************************
 C
       SUBROUTINE  REFINDEX(Y, OX_Y, OX_NZOPT, OX_NZ, OX_NY)
 C
+      USE plcomm
+      USE pllocal
+      USE plprof,ONLY: PL_MAG_OLD
       INCLUDE 'wrcomm.inc'
-	  INCLUDE '../pl/plcom2.inc'
 
 	  DIMENSION Y(NEQ)
 
 		OMG=2.D6*PI*RF 
 		
-		CALL PLMAG(Y(1), Y(2), Y(3), PSIN)
+		CALL PL_MAG_OLD(Y(1), Y(2), Y(3), PSIN)
 		OMG_C_OX = BABS*AEE/(AME)
 		OX_Y = OMG_C_OX / OMG
 		OX_NZOPT = SQRT(OX_Y/(1.D0+OX_Y))
@@ -755,11 +762,13 @@ C************************************************************************
 C
       SUBROUTINE  RAMBDA_N_OX(X,Y,Z, OX_LN)
 C
+      USE plcomm
+      USE pllocal
+      USE plprof,ONLY: PL_MAG_OLD,PL_PROF_OLD
       INCLUDE 'wrcomm.inc'
-	  INCLUDE '../pl/plcom2.inc'
 C
-	  CALL PLMAG(X,Y,Z, PSIN)
-	  CALL PLPROF(PSIN)	  
+	  CALL PL_MAG_OLD(X,Y,Z, PSIN)
+	  CALL PL_PROF_OLD(PSIN)	  
 	  OX_NE = RN(1) 
 	  
 	  RL0  =SQRT(X**2+Y**2)
@@ -775,11 +784,11 @@ C
 C	  WRITE(6,*)'X=',X,'Y=',Y,'Z=',Z
 C	  WRITE(6,*)'DX=',D_OX_X0,'DY=',D_OX_Y0,'DZ=',D_OX_Z0
 	  
-	  CALL PLMAG(X+D_OX_X0, Y+D_OX_Y0, Z+D_OX_Z0, PSIN)
-	  CALL PLPROF(PSIN)	  
+	  CALL PL_MAG_OLD(X+D_OX_X0, Y+D_OX_Y0, Z+D_OX_Z0, PSIN)
+	  CALL PL_PROF_OLD(PSIN)	  
 	  OX_NE_P = RN(1)	  
-	  CALL PLMAG(X-D_OX_X0, Y-D_OX_Y0, Z-D_OX_Z0, PSIN)
-	  CALL PLPROF(PSIN)	  
+	  CALL PL_MAG_OLD(X-D_OX_X0, Y-D_OX_Y0, Z-D_OX_Z0, PSIN)
+	  CALL PL_PROF_OLD(PSIN)	  
 	  OX_NE_M = RN(1) 
 	  
 C	  WRITE(6,*) 'OX_NE_P(E18)=',OX_NE_P,'OX_NE_M(E18)=', OX_NE_M
@@ -794,11 +803,11 @@ C************************************************************************
 C
       SUBROUTINE WRSYMP(Y,YN,NIT)
 C
+      USE plcomm
+      USE pllocal
+      USE plprof,ONLY: PL_MAG_OLD,PL_PROF_OLD
       INCLUDE 'wrcomm.inc'      
 C
-c_zhenya
-      INCLUDE '../pl/plcom2.inc'
-c_zhenya    
       EXTERNAL WRFDRV,WRFDRVR
       DIMENSION Y(NEQ),F(NEQ),YN(0:NEQ,0:NITM)
 C
@@ -847,8 +856,8 @@ C
 C
 c_zhenya
          OMG=2.D6*PI*RF
-         CALL PLMAG(Y(1),Y(2),Y(3),PSIN)
-         CALL PLPROF(PSIN)	  
+         CALL PL_MAG_OLD(Y(1),Y(2),Y(3),PSIN)
+         CALL PL_PROF_OLD(PSIN)	  
          OMG_C = BABS*AEE/(AME)
          WP2=RN(1)*1.D20*AEE*AEE/(EPS0*AMP*PA(1))
          wp2=sqrt(WP2)
@@ -873,7 +882,7 @@ C
             NIT = IT
             GOTO 11
          ENDIF         
-         CALL PLMAG(Y(1),Y(2),Y(3),RHON)
+         CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
          IF(RHON.GT.RB/RA*1.2D0) THEN
             NIT = IT
             GOTO 11
@@ -896,6 +905,7 @@ C************************************************************************
 C
       SUBROUTINE WRFDRV(X,Y,F) 
 C
+      USE plcomm
       INCLUDE 'wrcomm.inc'      
 C
       DIMENSION Y(7),F(7)
@@ -975,6 +985,7 @@ C************************************************************************
 C
       SUBROUTINE WRFDRVR(Y,F) 
 C
+      USE plcomm
       INCLUDE 'wrcomm.inc'      
 C
       DIMENSION Y(6),F(6)
@@ -1039,6 +1050,7 @@ C************************************************************************
 C
       SUBROUTINE WRNWTN(RKRI,RKZI,RKPHII,IERR)
 C
+      USE plcomm
       INCLUDE 'wrcomm.inc'
 C
       IERR=0
@@ -1071,8 +1083,9 @@ C************************************************************************
 C
       FUNCTION DISPFN(RKR,RKPHI,RKZ,RP,ZP,PHI,OMG)
 C
+      USE plcomm
+      USE pllocal
       INCLUDE 'wrcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
       DIMENSION MODELPS(NSM)
 C
       CRF=DCMPLX(OMG/(2.D6*PI),0.D0)
@@ -1119,8 +1132,9 @@ C************************************************************************
 C
       FUNCTION DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP,OMG)
 C
+      USE plcomm
+      USE pllocal
       INCLUDE 'wrcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
       DIMENSION MODELPS(NSM)
 C
       CRF=DCMPLX(OMG/(2.D6*PI),0.D0)
@@ -1162,8 +1176,9 @@ C***********************************************************************
 C
       FUNCTION DISPXI(XP,YP,ZP,RKXP,RKYP,RKZP,OMG)
 C
+      USE plcomm
+      USE pllocal
       INCLUDE 'wrcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
 C
       CRF=DCMPLX(OMG/(2.D6*PI),0.D0)
       CKX=RKXP
@@ -1193,6 +1208,7 @@ C***********************************************************************
 C
       SUBROUTINE WRCALE(YN,NITMX,NRAY)
 C    
+      USE plcomm
       INCLUDE 'wrcomm.inc'
       DIMENSION YN(0:NEQ,0:NITM),CDET(3,3)
       DIMENSION CDETP(3,3),CDETM(3,3),CDETD(3,3)
@@ -1295,6 +1311,7 @@ C***********************************************************************
 C
       SUBROUTINE WRSAVE
 C
+      USE plcomm
       INCLUDE 'wrcomm.inc'
 C      
       CHARACTER*80 KNAM
@@ -1362,14 +1379,16 @@ C********************************** CAL K ********************************
 C
       SUBROUTINE WRCALK(NIT,NRAY,RKPARA,RKPERP)
 C
+      USE plcomm
+      USE pllocal
+      USE plprof,ONLY: PL_MAG_OLD
       INCLUDE 'wrcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
 C
       X=RAYS(1,NIT,NRAY)
       Y=RAYS(2,NIT,NRAY)
       Z=RAYS(3,NIT,NRAY)
 C
-      CALL PLMAG(X,Y,Z,RHON)
+      CALL PL_MAG_OLD(X,Y,Z,RHON)
 C
       RKX=RAYS(4,NIT,NRAY)
       RKY=RAYS(5,NIT,NRAY)
@@ -1385,6 +1404,9 @@ C     ***** ABSORBED POWER PROFILE*****
 C
       SUBROUTINE WRAPWR
 C
+      USE plcomm
+      USE pllocal
+      USE plprof,ONLY: PL_MAG_OLD
       INCLUDE 'wrcomm.inc'
 C
       PARAMETER(NRM=201)
@@ -1394,8 +1416,11 @@ C
 C
 C     ----- CALCULATE RADIAL DEPOSITION PROFILE -----
 C
-      CALL PLDATA_GETN(NRMAXPL,NSMAXPL)
+C      CALL PLDATA_GETN(NRMAXPL,NSMAXPL)
 C
+      NRMAXPL=50
+      NSMAXPL=2
+
       DRHO=1.D0/NRMAXPL
       DO NRAY=1,NRAYMX
          DO NR=1,NRMAXPL
@@ -1408,14 +1433,14 @@ C
             XL=RAYS(1,IT,NRAY)
             YL=RAYS(2,IT,NRAY)
             ZL=RAYS(3,IT,NRAY)
-            CALL PLMAG(XL,YL,ZL,RHON1)
+            CALL PL_MAG_OLD(XL,YL,ZL,RHON1)
             IF(RHON1.LE.1.D0) THEN
                NRS1=INT(RHON1/DRHO)+1
 C               WRITE(6,*) RHON1,DRHO,NRS1
                XL=RAYS(1,IT+1,NRAY)
                YL=RAYS(2,IT+1,NRAY)
                ZL=RAYS(3,IT+1,NRAY)
-               CALL PLMAG(XL,YL,ZL,RHON2)
+               CALL PL_MAG_OLD(XL,YL,ZL,RHON2)
                NRS2=INT(RHON2/DRHO)+1
 C               WRITE(6,*) RHON2,DRHO,NRS2
                NDR=ABS(NRS2-NRS1)
@@ -1473,8 +1498,33 @@ C      WRITE(6,'(1P5E12.4)') (PWR(NR,1),NR=1,NRMAXPL)
       DO NR=1,NRMAXPL
          AJR(NR)=0.D0
       ENDDO
+
+      PWRMAX=0.D0
+      LOCMAX=0
+      DO NR=1,NRMAXPL
+         IF(PWR(NR,1).GT.PWRMAX) THEN
+            PWRMAX=PWR(NR,1)
+            LOCMAX=NR
+         ENDIF
+      END DO
+      IF(LOCMAX.EQ.1) THEN
+         RHOMAX=0.D0
+      ELSE IF(LOCMAX.EQ.NRMAXPL) THEN
+         RHOMAX=1.D0
+      ELSE
+         DPWR =(PWR(LOCMAX+1,1)-PWR(LOCMAX-1,1))/(2.D0*DRHO)
+         DDPWR=(PWR(LOCMAX+1,1)-2*PWR(LOCMAX,1)+PWR(LOCMAX-1,1))/DRHO**2
+         RHOMAX=(LOCMAX-0.5D0)/(NRMAXPL-1.D0)-DPWR/DDPWR
+         PWRMAX=PWRMAX-DPWR**2/(2.D0*DDPWR)
+      ENDIF
+      WRITE(6,'(A,1PE12.4,A,1PE12.4)') 
+     &        '    PWRMAX=',PWRMAX,'  AT RHON =',RHOMAX
+C     &            PWR(MIN(LOCMAX+1,NRMAXPL),1),PWRMAX,RHOMAX
+C      WRITE(6,'(A,I5,1P5E12.4)') 
+C     &     'PWR:',LOCMAX,PWR(MAX(LOCMAX-1,1),1),PWR(LOCMAX,1),
+C     &            PWR(MIN(LOCMAX+1,NRMAXPL),1),PWRMAX,RHOMAX
 C
-      CALL PLDATA_SETWR(1,'EC1',PWR,AJR)
+C      CALL PLDATA_SETWR(1,'EC1',PWR,AJR)
 C
       RETURN
       END
@@ -1485,6 +1535,7 @@ C************************************************************************
 C
       SUBROUTINE WRMODNWTN(Y_zh, YK) 
 C
+      USE plcomm
       INCLUDE 'wrcomm.inc'      
 C
       DIMENSION Y(NEQ),YK(3),Y_zh(NEQ)

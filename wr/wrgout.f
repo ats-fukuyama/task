@@ -4,6 +4,7 @@ C*********************** GRAPHIC DATA ************************
 C
       SUBROUTINE WRGOUT(NSTAT)
 C
+      USE plcomm
       INCLUDE 'wrcomm.inc'
 C
       CHARACTER KID*1
@@ -30,6 +31,8 @@ C     ***** POLOIDAL TRAJECTORY AND POWER *****
 C
       SUBROUTINE WRGRFA
 C
+      USE plcomm
+      USE plprof,ONLY:PL_RZSU,PL_MAG_OLD
       INCLUDE 'wrcomm.inc'
 C
       PARAMETER(NSUM=501)
@@ -46,7 +49,7 @@ C
 C
 C     ----- PLASMA BOUNDARY -----
 C
-      CALL PLRZSU(RSU,ZSU,NSUM,NSUMAX)
+      CALL PL_RZSU(RSU,ZSU,NSUM,NSUMAX)
       DO NSU=1,NSUMAX
          GRS(NSU)=GUCLIP(RSU(NSU))
          GZS(NSU)=GUCLIP(ZSU(NSU))
@@ -91,7 +94,7 @@ C
       CALL SETLIN(0,2,4)
       CALL GPLOTP(GRS,GZS,1,NSUMAX+1,1,0,0,0)
 C
-      IF(MODELG.EQ.3) THEN
+      IF(MODELG.EQ.3.OR.MODELG.EQ.8) THEN
          DGX=DBLE(GRMAX-GRMIN)/(NGXL-1)
          DO NGX=1,NGXL
             GCX(NGX)=GRMIN+(NGX-1)*GUCLIP(DGX)
@@ -104,7 +107,7 @@ C
             ZL=DBLE(GCY(NGY))
             DO NGX=1,NGXL
                RL=DBLE(GCX(NGX))
-               CALL PLMAG(RL,0.D0,ZL,RHON)
+               CALL PL_MAG_OLD(RL,0.D0,ZL,RHON)
                GCF(NGX,NGY)=GUCLIP(RHON)
             ENDDO
          ENDDO
@@ -143,12 +146,12 @@ C
             XL=RAYS(1,IT,NRAY)
             YL=RAYS(2,IT,NRAY)
             ZL=RAYS(3,IT,NRAY)
-            CALL PLMAG(XL,YL,ZL,RHON1)
+            CALL PL_MAG_OLD(XL,YL,ZL,RHON1)
 	    NRS1=INT(RHON1/DRHO)+1
             XL=RAYS(1,IT+1,NRAY)
             YL=RAYS(2,IT+1,NRAY)
             ZL=RAYS(3,IT+1,NRAY)
-            CALL PLMAG(XL,YL,ZL,RHON2)
+            CALL PL_MAG_OLD(XL,YL,ZL,RHON2)
             NRS2=INT(RHON2/DRHO)+1
             NDR=ABS(NRS2-NRS1)
             IF(NDR.EQ.0) THEN
@@ -305,7 +308,7 @@ C         DO IT=0,NITMAX(NRAY)
 C            XL=RAYS(1,IT,NRAY)
 C            YL=RAYS(2,IT,NRAY)
 C            ZL=RAYS(3,IT,NRAY)
-C            CALL PLMAG(XL,YL,ZL,RHON)
+C            CALL PL_MAG_OLD(XL,YL,ZL,RHON)
 C	    GUX(IT+1)=GUCLIP(RHON)
 C            GUY(IT+1)=GUCLIP(RAYS(7,IT,NRAY))
 C         ENDDO
@@ -321,6 +324,8 @@ C     ***** RADIAL DEPENDENCE 1 *****
 C
       SUBROUTINE WRGRFB
 C
+      USE plcomm
+      USE plprof,ONLY:PL_MAG_OLD
       INCLUDE 'wrcomm.inc'
 C
       PARAMETER(NSRM=101)
@@ -392,7 +397,7 @@ C
             XL=RAYS(1,IT,NRAY)
             YL=RAYS(2,IT,NRAY)
             ZL=RAYS(3,IT,NRAY)
-            CALL PLMAG(XL,YL,ZL,RHON)
+            CALL PL_MAG_OLD(XL,YL,ZL,RHON)
             CALL WRCALK(IT,NRAY,RKPARA,RKPERP)
             GKX( IT+1,NRAY)=GUCLIP(RHON)
             GKY1(IT+1,NRAY)=GUCLIP(RKPARA*VC
@@ -458,6 +463,8 @@ C     ***** RADIAL DEPENDENCE 2 *****
 C
       SUBROUTINE WRGRFC
 C
+      USE plcomm
+      USE plprof,ONLY:PL_MAG_OLD
       INCLUDE 'wrcomm.inc'
 C
       DIMENSION GKX(NITM+1,NRAYM)
@@ -475,7 +482,7 @@ C
             XL=RAYS(1,IT,NRAY)
             YL=RAYS(2,IT,NRAY)
             ZL=RAYS(3,IT,NRAY)
-            CALL PLMAG(XL,YL,ZL,RHON)
+            CALL PL_MAG_OLD(XL,YL,ZL,RHON)
             GKX( IT+1,NRAY)=GUCLIP(RHON)
          ENDDO
       ENDDO
@@ -620,6 +627,8 @@ C
       SUBROUTINE WRGRFD
 C
       USE libspf,ONLY: erf0
+      USE plcomm
+      USE plprof,ONLY:PL_MAG_OLD
       INCLUDE 'wrcomm.inc'
 C
       DIMENSION GPX(NITM+1),GPY(NITM+1,NRAYM)
@@ -647,7 +656,7 @@ C
             XL=RAYS(1,IT,NRAY)
             YL=RAYS(2,IT,NRAY)
             ZL=RAYS(3,IT,NRAY)
-            CALL PLMAG(XL,YL,ZL,RHON)
+            CALL PL_MAG_OLD(XL,YL,ZL,RHON)
             GKX( IT+1,NRAY)=GUCLIP(RHON)
 C            GKX( IT+1,NRAY)=GUCLIP(RAYB(0,IT))
          ENDDO
@@ -783,7 +792,7 @@ C
 C            XL=RAYS(1,IT,NRAY)
 C            YL=RAYS(2,IT,NRAY)
 C            ZL=RAYS(3,IT,NRAY)
-C            CALL PLMAG(XL,YL,ZL,RHON1)
+C            CALL PL_MAG_OLD(XL,YL,ZL,RHON1)
 	    NRS1=INT(RHON1/DRHO)+1
             RLAD=SQRT(RAYS(1,IT+1,NRAY)**2+RAYS(2,IT+1,NRAY)**2)
             ZLAD=RAYS(3,IT+1,NRAY)
@@ -791,7 +800,7 @@ C            CALL PLMAG(XL,YL,ZL,RHON1)
 C            XL=RAYS(1,IT+1,NRAY)
 C            YL=RAYS(2,IT+1,NRAY)
 C            ZL=RAYS(3,IT+1,NRAY)
-C            CALL PLMAG(XL,YL,ZL,RHON2)
+C            CALL PL_MAG_OLD(XL,YL,ZL,RHON2)
             NRS2=INT(RHON2/DRHO)+1
             NDR=ABS(NRS2-NRS1)
 C
@@ -835,7 +844,7 @@ C     -------------------------------------------------------------------
 C     ----- CALCULATE RADIAL DEPOSITION PROFILE (with beam radial)-------
 C     -------------------------------------------------------------------
 C
-      IF (MODELG.EQ.3) THEN
+      IF (MODELG.EQ.3.OR.MODELG.EQ.8) THEN
        DRHO=1.D0/NRZMAX  
       DO NRAY=1,NRAYMX
          DO NRZ=1,NRZMAX
@@ -1101,6 +1110,8 @@ C
 C     ***** Rays ***********
       SUBROUTINE WRGRFE
 C
+      USE plcomm
+      USE plprof,ONLY:PL_MAG_OLD
       INCLUDE 'wrcomm.inc'
 C
       DIMENSION GSX (NITM+1,NRAYM),GRX (NITM+1,NRAYM)
@@ -1182,7 +1193,7 @@ C
             XL=RAYS(1,IT,NRAY)
             YL=RAYS(2,IT,NRAY)
             ZL=RAYS(3,IT,NRAY)
-            CALL PLMAG(XL,YL,ZL,RHON)
+            CALL PL_MAG_OLD(XL,YL,ZL,RHON)
             GRX(IT+1,NRAY)=GUCLIP(RHON)
          ENDDO
          CALL GMNMX1(GRX(1,1),1,NITMAX(1),1,GXMIN1,GXMAX1)
@@ -1233,6 +1244,8 @@ C     ***** ANGLE AND WS(I,J) *****
 C
       SUBROUTINE WRGRFF
 C
+      USE plcomm
+      USE plprof,ONLY:PL_MAG_OLD
       INCLUDE 'wrcomm.inc'
 C
       DIMENSION GKX(NITM+1,1),GKY(NITM+1,2)
@@ -1252,7 +1265,7 @@ C
             XL=RAYS(1,IT,NRAY)
             YL=RAYS(2,IT,NRAY)
             ZL=RAYS(3,IT,NRAY)
-            CALL PLMAG(XL,YL,ZL,RHON)
+            CALL PL_MAG_OLD(XL,YL,ZL,RHON)
             GKX( IT+1,NRAY)=GUCLIP(RAYB(0,IT))
          ENDDO
       ENDDO
@@ -1425,6 +1438,7 @@ C     ***** K,(K*B),K*(K*B),VG *****
 C
       SUBROUTINE WRGRFG
 C
+      USE plcomm
       INCLUDE 'wrcomm.inc'
 C
       DIMENSION GKX(NITM+1,1)
@@ -1609,6 +1623,7 @@ C     ***** DRAW PARAMETERS *****
 C
       SUBROUTINE WRGPRM
 C
+      USE plcomm
       INCLUDE 'wrcomm.inc'
 C
 C     ----- DRAW PARAMETERS -----

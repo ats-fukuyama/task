@@ -4,6 +4,7 @@ C
 C
       SUBROUTINE WRBEAM
 C    
+      USE plcomm
       INCLUDE 'wrcomm.inc'
 C
       DIMENSION Y(NBEQ)
@@ -239,14 +240,16 @@ C************************************************************************
 C
       SUBROUTINE WRSETY(Y)
 C
+      USE plcomm
+      USE pllocal
+      USE plprof,ONLY: PL_MAG_OLD
       INCLUDE 'wrcomm.inc'      
-      INCLUDE '../pl/plcom2.inc'      
 C
       DIMENSION Y(NBEQ)
       DIMENSION RUM(3,3),VS(3,3),VP(3,3)
 C
       RKABS=SQRT(Y(4)**2+Y(5)**2+Y(6)**2)
-      CALL PLMAG(Y(1),Y(2),Y(3),RHON)
+      CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
 C
       RKNX=Y(4)/RKABS
       RKNY=Y(5)/RKABS
@@ -323,14 +326,16 @@ C************************************************************************
 C
       SUBROUTINE WRGETY(Y,RC1,RC2,RB1,RB2,RTH1,RTH2,YY)
 C
+      USE plcomm
+      USE pllocal
+      USE plprof,ONLY: PL_MAG_OLD
       INCLUDE 'wrcomm.inc'      
-      INCLUDE '../pl/plcom2.inc'      
 C
       DIMENSION Y(NBEQ),YY(27),DFK(3)
       DIMENSION RUM(3,3),VS(3,3),VP(3,3),WS(3,3),WP(3,3)
 C
       RKABS=SQRT(Y(4)**2+Y(5)**2+Y(6)**2)
-      CALL PLMAG(Y(1),Y(2),Y(3),RHON)
+      CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
 C
       RKNX=Y(4)/RKABS
       RKNY=Y(5)/RKABS
@@ -515,6 +520,9 @@ C************************************************************************
 C
       SUBROUTINE WRRKFTB(Y,YN,NIT)
 C
+      USE plcomm
+      USE pllocal
+      USE plprof,ONLY: PL_MAG_OLD
       INCLUDE 'wrcomm.inc'      
 C
       EXTERNAL WRFDRVB
@@ -595,7 +603,7 @@ C
             WRITE(6,*) '--- Absorbed ---'
             GOTO 10
          ENDIF         
-         CALL PLMAG(Y(1),Y(2),Y(3),RHON)
+         CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
 C         IF(RHON.GT.RB/RA) THEN
           IF(PSIN.GT.2.D0) THEN
             NIT = IT
@@ -616,6 +624,7 @@ C************************************************************************
 C
       SUBROUTINE WRFDRVB(X,Y,F) 
 C
+      USE plcomm
       INCLUDE 'wrcomm.inc'      
 C
       DIMENSION Y(NBEQ),F(NBEQ)
@@ -853,8 +862,9 @@ C************************************************************************
 C
       FUNCTION DISPBXR(XP,YP,ZP,RKXP,RKYP,RKZP,OMG)
 C
+      USE plcomm
+      USE pllocal
       INCLUDE 'wrcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
       DIMENSION MODELPS(NSM)
 C
       CRF=DCMPLX(OMG/(2.D6*PI),0.D0)
@@ -893,8 +903,9 @@ C***********************************************************************
 C
       FUNCTION DISPBXI(XP,YP,ZP,RKXP,RKYP,RKZP,OMG)
 C
+      USE plcomm
+      USE pllocal
       INCLUDE 'wrcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
 C
       CRF=DCMPLX(OMG/(2.D6*PI),0.D0)
       CKX=RKXP

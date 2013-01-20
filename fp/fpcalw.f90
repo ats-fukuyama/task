@@ -448,6 +448,7 @@
       INTEGER,INTENT(IN):: NR,NSA
       REAL(8),INTENT(IN):: ETAL,RSIN,RCOS
       REAL(8),INTENT(OUT):: PSIN,PCOS,PSI
+      REAL(8):: ARG
 
       IF(MODELA.EQ.0) THEN
          PSI=1.D0
@@ -456,11 +457,12 @@
       ELSE
          PSI=(1.D0+EPSRM(NR))/(1.D0+EPSRM(NR)*COS(ETAL))
          PSIN=SQRT(PSI)*RSIN
-!         PSIN=RSIN
+         ARG=1.D0-PSI*RSIN**2
+         IF(ARG.LT.0.D0) ARG=0.D0
          IF (RCOS.GT.0.0D0) THEN
-            PCOS= SQRT(1.D0-PSI*RSIN**2)
+            PCOS= SQRT(ARG)
          ELSE
-            PCOS=-SQRT(1.D0-PSI*RSIN**2)
+            PCOS=-SQRT(ARG)
          END IF
       ENDIF
       RETURN
