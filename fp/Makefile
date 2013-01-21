@@ -6,16 +6,17 @@ include ../../task/make.header
 #PETSCLIBS=
 ##### With MUMPS library #####
 #include ${PETSC_DIR}/conf/variables
-LIBMTX=../mtxp/libmtxdmumps.o ../mtxp/libmtxmpi.o
-PETSCLIBS=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lmumps_common -lpord -lscalapack -lblacs -lblas -lparmetis -lmetis
+#LIBMTX=../mtxp/libmtxdmumps.o ../mtxp/libmtxmpi.o
+#PETSCLIBS=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lmumps_common -lpord -lscalapack -lblacs -lblas -lparmetis -lmetis
 ##### With PETSc library #####
-#include ${PETSC_DIR}/conf/variables
-#LIBMTX=../mtxp/libmtxksp.o ../mtxp/libmtxmpi.o
-#PETSCLIBS=${PETSC_KSP_LIB}
+include ${PETSC_DIR}/conf/variables
+LIBMTX=../mtxp/libmtxksp.o ../mtxp/libmtxmpi.o
+PETSCLIBS=${PETSC_KSP_LIB}
 
 .SUFFIXES:
 .SUFFIXES: .f90 .mod .o .a
 
+FCFREE =ifort
 FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
