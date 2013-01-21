@@ -24,7 +24,7 @@ SRCO = noeqlib.f noequlib.f
 OBJS = $(SRCSFIXED:.f=.o) $(SRCSFREE:.f90=.o) 
 OBJO = $(SRCO:.f=.o) 
 
-LIBS = pllib.a ../../task/eq/eqlib.a ../../task/lib/tasklib.a ../../task/wm/wmlib.a
+LIBS = pllib.a ../../task/eq/eqlib.a ../../task/lib/tasklib.a ../../task/wm/wmlib.a ../../bpsd/bpsdlib.a
 
 all : pllib.a  noeqlib.o noequlib.o pl
 
