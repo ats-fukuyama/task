@@ -10,14 +10,16 @@ SRCM = mpilib.f
 OBJN = $(SRCN:.f=.o)
 OBJM = $(SRCM:.f=.o)
 
-MODINCLUDE= -I./$(MOD) -I../mtxp
+INCLUDE_MPI=-I/usr/local/mpich2-intel121mp/include
+MODINCLUDE= -I./$(MOD) -I../mtxp $(INCLUDE_MPI)
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all : $(OBJN) $(OBJM)
+#all : $(OBJN) $(OBJM)
+all : $(OBJN)
 
 check : 
 	ftnchek -array=0 -usage=no-com-block-unused $(SRCN) $(SRCM) | less

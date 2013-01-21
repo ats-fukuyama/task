@@ -5,7 +5,7 @@ C
       USE mpi
       INCLUDE '../mpi/mpilib.inc'
       INTEGER,INTENT(OUT):: nsize_,nrank_
-      INTEGER::ierr
+      INTEGER:: ncomm,ierr
 C
       CALL MPI_Init(ierr)
       IF(ierr.NE.0) WRITE(6,*)
