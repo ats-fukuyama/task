@@ -4,8 +4,8 @@ include ../make.header
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-#FFLAGS = $(OFLAGS)
-FFLAGS = $(DFLAGS)
+FFLAGS = $(OFLAGS)
+#FFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../plx/$(MOD) -I../eq/$(MOD) \
             -I../mtxp -I../../bpsd/$(MOD)
@@ -66,16 +66,15 @@ mpiwmlib.a: $(OBJM)
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)
 libs:
+	(cd ../lib; make tasklib.a)
+	(cd ../mtx; make mtxlib.a)
+	(cd ../mpi; make nompilib.o)
 	(cd ../plx; make pllib.a)
-	(cd ../dp; make dplib.a)
 	(cd ../eq; make eqlib.a)
 	(cd ../eq; make wmeqin.o)
 	(cd ../dp; make dplib.a)
-	(cd ../mpi; make nompilib.o)
 #	(cd ../mpi; make mpilib.o)
-	(cd ../mtx; make mtxlib.a)
 #	(cd ../mtxp; make libmtxmpi.o)
-	(cd ../lib; make tasklib.a)
 
 wm : wmmain.o $(LIBS)
 	$(FCFIXED) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)

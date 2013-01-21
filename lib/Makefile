@@ -54,7 +54,7 @@ check :
 	ftnchek $(SRCSFREE) $(SRCSFIXED) $(MDSPLUS) | less
 
 clean:
-	-rm -f core* a.out *.o libgrf/*.o *.mod *.a ./*~ ./#* $(MOD)/*.mod
+	-rm -f core* a.out *.o libgrf/*.o libufile/*.o *.mod *.a ./*~ ./#* $(MOD)/*.mod
 
 veryclean: clean
 

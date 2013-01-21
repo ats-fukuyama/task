@@ -1,8 +1,8 @@
 include ../../task/make.header
 
 
-#FFLAGS=$(OFLAGS)
-FFLAGS=$(DFLAGS)
+FFLAGS=$(OFLAGS)
+#FFLAGS=$(DFLAGS)
 
 all: $(EXEC)
 
