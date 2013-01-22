@@ -295,7 +295,7 @@
 !          N_partition_s: the number of patition for NSA
 !          N_partition_r: the number of patition for NR
       N_partition_s = 1
-      N_partition_r = 1
+      N_partition_r = nsize
 
       RETURN
       END SUBROUTINE fp_init

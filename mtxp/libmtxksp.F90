@@ -3,12 +3,11 @@
       MODULE libmtx
 
       use libmpi
+      use commpi
       PRIVATE
 
       PUBLIC mtx_initialize
       PUBLIC mtx_finalize
-      PUBLIC mtx_set_communicator
-      PUBLIC mtx_reset_communicator
 
       PUBLIC mtx_setup
       PUBLIC mtx_set_matrix
@@ -19,8 +18,16 @@
       PUBLIC mtx_gather_vector
       PUBLIC mtx_cleanup
 
+      PUBLIC mtxc_setup
+      PUBLIC mtxc_set_matrix
+      PUBLIC mtxc_set_source
+      PUBLIC mtxc_set_vector
+      PUBLIC mtxc_solve
+      PUBLIC mtxc_get_vector
+      PUBLIC mtxc_gather_vector
+      PUBLIC mtxc_cleanup
+
       TYPE(mtx_mpi_type):: mtx_global
-      INTEGER:: ncomm,nrank,nsize
 
 !
 !  Description: Solves a linear system in parallel with KSP (Fortran code).
@@ -107,19 +114,15 @@
 
 !-----
 
-      SUBROUTINE mtx_initialize(nrank_,nsize_)
+      SUBROUTINE mtx_initialize
       IMPLICIT NONE
-      INTEGER,INTENT(OUT):: nrank_,nsize_
       INTEGER:: ierr
 
       call PetscInitialize(PETSC_NULL_CHARACTER,ierr)
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_initialize: PetscInitialize: ierr=',ierr
       ncomm=PETSC_COMM_WORLD
-      CALL mtx_set_communicator_global(ncomm,nrank,nsize)
-!      write(6,*) 'ncomm,nrank,nsize=',ncomm,nrank,nsize
-      nrank_=nrank
-      nsize_=nsize
+      CALL mtx_set_communicator_global(ncomm)
       mtx_global%comm=ncomm
       mtx_global%rank=nrank
       mtx_global%size=nsize
@@ -140,37 +143,6 @@
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_finalize: PetscFinalize: ierr=',ierr
       END SUBROUTINE mtx_finalize
-
-!-----
-
-      SUBROUTINE mtx_set_communicator(mtx_mpi,nrank_,nsize_)
-        IMPLICIT NONE
-        TYPE(mtx_mpi_type),INTENT(IN):: mtx_mpi
-        INTEGER,INTENT(OUT):: nrank_,nsize_
-
-        CALL mtx_set_communicator_local(mtx_mpi)
-        ncomm=mtx_mpi%comm
-        nrank=mtx_mpi%rank
-        nsize=mtx_mpi%size
-        nrank_=nrank
-        nsize_=nsize
-        return
-      END SUBROUTINE mtx_set_communicator
-
-!-----
-
-      SUBROUTINE mtx_reset_communicator(nrank_,nsize_)
-        IMPLICIT NONE
-        INTEGER,INTENT(OUT):: nrank_,nsize_
-
-        CALL mtx_reset_communicator_local
-        ncomm=mtx_global%comm
-        nrank=mtx_global%rank
-        nsize=mtx_global%size
-        nrank_=nrank
-        nsize_=nsize
-        return
-      END SUBROUTINE mtx_reset_communicator
 
 !-----
 
@@ -680,6 +652,87 @@
       RETURN
       END SUBROUTINE mtx_cleanup
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+!                 Complex inteface for compatibility
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+      SUBROUTINE mtxc_setup(imax_,istart_,iend_,jwidth,nzmax)
+
+      INTEGER,INTENT(IN):: imax_           ! total matrix size
+      INTEGER,INTENT(OUT):: istart_,iend_  ! allocated range of lines 
+      INTEGER,OPTIONAL,INTENT(IN):: jwidth ! band matrix width
+      INTEGER,OPTIONAL,INTENT(IN):: nzmax  ! number of nonzero components
+
+      istart_=0
+      iend_=0
+      RETURN
+      END SUBROUTINE mtxc_setup
+      
+!-----
+
+      SUBROUTINE mtxc_set_matrix(i,j,v)
+      INTEGER,INTENT(IN):: i,j  ! matrix position i=line, j=row
+      COMPLEX(8),INTENT(IN):: v    ! value to be inserted
+
+      RETURN
+      END SUBROUTINE mtxc_set_matrix
+      
+!-----
+
+      SUBROUTINE mtxc_set_source(j,v)
+      INTEGER,INTENT(IN):: j ! vector positon j=row
+      COMPLEX(8),INTENT(IN):: v ! value to be inserted
+
+      RETURN
+      END SUBROUTINE mtxc_set_source
+      
+!-----
+
+      SUBROUTINE mtxc_set_vector(j,v)
+      INTEGER,INTENT(IN):: j ! vector positon j=row
+      REAL(8),INTENT(IN):: v ! value to be inserted
+
+      RETURN
+      END SUBROUTINE mtxc_set_vector
+      
+!-----
+
+      SUBROUTINE mtxc_solve(itype,tolerance,its, &
+           methodKSP,methodPC,damping_factor,emax,emin,max_steps)
+      INTEGER,INTENT(IN):: itype     ! info level
+      REAL(8),INTENT(IN):: tolerance
+      INTEGER,INTENT(OUT):: its
+      INTEGER,OPTIONAL:: methodKSP,methodPC,max_steps
+      REAL(8),OPTIONAL:: damping_factor,emax,emin
+
+      its=0
+      RETURN
+      END SUBROUTINE mtxc_solve
+
+!-----
+
+      SUBROUTINE mtxc_get_vector(j,v)
+      INTEGER,INTENT(IN):: j
+      COMPLEX(8),INTENT(OUT):: v
+
+      v=0.D0
+      RETURN
+      END SUBROUTINE mtxc_get_vector
+
+!-----
+
+      SUBROUTINE mtxc_gather_vector(v)
+      COMPLEX(8),DIMENSION(imax),INTENT(OUT):: v
+
+      v(1)=0.D0
+      RETURN
+      END SUBROUTINE mtxc_gather_vector
+
+!-----
+
+      SUBROUTINE mtxc_cleanup
+
+      RETURN
+      END SUBROUTINE mtxc_cleanup
 
       END MODULE libmtx

@@ -5,6 +5,7 @@
       use bpsd
       use plcomm
       use libmpi,ONLY: mtx_mpi_type
+      use commpi
       implicit none
 
       public
@@ -51,7 +52,6 @@
 !      --- internal variables ---
 
 !         +++ mpi and petsc variables +++
-      integer:: ncomm, nrank, nsize
       TYPE(mtx_mpi_type):: comm_nr,comm_nsa
       integer:: imtxsize,imtxwidth,imtxstart,imtxend
       integer:: nrstart,nrend,nrendx,nmstart,nmend

@@ -6,7 +6,7 @@ include ../../task/make.header
 #PETSCLIBS=
 ##### With MUMPS library #####
 #include ${PETSC_DIR}/conf/variables
-#LIBMTX=../mtxp/libmtxdmumps.o ../mtxp/libmtxmpi.o
+#LIBMTX=../mtxp/libmtxmumps.o ../mtxp/libmtxmpi.o
 #PETSCLIBS=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lmumps_common -lpord -lscalapack -lblacs -lblas -lparmetis -lmetis
 ##### With PETSc library #####
 include ${PETSC_DIR}/conf/variables
@@ -54,6 +54,8 @@ fplib.a: $(OBJS)
 	(cd ../../task/eq; make eqlib.a)
 ../../task/mtxp/libmtxksp.o:
 	(cd ../../task/mtxp; make libmtxksp.o)
+../../task/mtxp/libmtxmumps.o:
+	(cd ../../task/mtxp; make libmtxmumps.o)
 ../../task/mtxp/libmtxbnd.o:
 	(cd ../../task/mtxp; make libmtxbnd.o)
 ../../task/mtxp/libmtxmpi.o:
@@ -67,7 +69,7 @@ libs:
 	(cd ../../bpsd; make bpsdlib.a)
 	(cd ../../task/lib; make tasklib.a)
 	(cd ../../task/mtxp; make libmtxmpi.o libmtxnompi.o)
-	(cd ../../task/mtxp; make libmtxbnd.o libmtxksp.o libmtxdmumps.o)
+	(cd ../../task/mtxp; make libmtxbnd.o libmtxksp.o libmtxmumps.o)
 	(cd ../../task/eq; make eqlib.a)
 	(cd ../../task/plx; make pllib.a)
 

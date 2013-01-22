@@ -14,10 +14,11 @@
       PROGRAM testmtx
 
       USE libmpi 
+      USE commpi
       USE libmtx 
       IMPLICIT NONE 
       INTEGER:: idimen,isiz,isource,itype,m1,m2
-      INTEGER:: nrank,nprocs,istart,iend,its 
+      INTEGER:: istart,iend,its 
       INTEGER:: imax,jwidth,jsource 
       INTEGER:: i,j,k,l,m,n,iskip,ncom 
       REAL(8):: v,tolerance 
@@ -26,13 +27,13 @@
       REAL(8),DIMENSION(1):: ddata
       REAL(4):: cputime1,cputime2
 
-      CALL mtx_initialize(nrank,nprocs)
+      CALL mtx_initialize
       idimen=1
       isiz=11
       isource=6
       itype=0
       m1=4
-      IF(nprocs == 0) THEN
+      IF(nsize == 1) THEN
          m2=5
       ELSE
          m2=0

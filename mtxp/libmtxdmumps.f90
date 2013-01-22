@@ -8,14 +8,10 @@
 
       MODULE libmtx
 
-      USE mpi
       USE libmpi
-      PRIVATE
+      USE libmtxcomm
 
-      PUBLIC mtx_initialize
-      PUBLIC mtx_finalize
-      PUBLIC mtx_set_communicator
-      PUBLIC mtx_reset_communicator
+      PRIVATE
 
       PUBLIC mtx_setup
       PUBLIC mtx_set_matrix
@@ -26,8 +22,14 @@
       PUBLIC mtx_gather_vector
       PUBLIC mtx_cleanup
 
-      TYPE(mtx_mpi_type):: mtx_global
-      INTEGER:: ncomm,nrank,nsize
+      PUBLIC mtxc_setup
+      PUBLIC mtxc_set_matrix
+      PUBLIC mtxc_set_source
+      PUBLIC mtxc_set_vector
+      PUBLIC mtxc_solve
+      PUBLIC mtxc_get_vector
+      PUBLIC mtxc_gather_vector
+      PUBLIC mtxc_cleanup
 
       INCLUDE 'dmumps_struc.h'
       TYPE (DMUMPS_STRUC) id
@@ -40,71 +42,6 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
       CONTAINS
-
-      SUBROUTINE mtx_initialize(nrank_,nsize_)
-      IMPLICIT NONE
-      INTEGER,INTENT(OUT):: nrank_,nsize_
-      INTEGER:: ierr
-
-
-      CALL MPI_Init(ierr)
-      IF(ierr.NE.0) WRITE(6,*) &
-           'XX mtx_initialize: MPI_Init: ierr=',ierr
-      ncomm=MPI_COMM_WORLD
-      CALL mtx_set_communicator_global(ncomm,nrank,nsize)
-      nsize_=nsize
-      nrank_=nrank
-      mtx_global%comm=ncomm
-      mtx_global%rank=nrank
-      mtx_global%size=nsize
-      mtx_global%rankg=0
-      mtx_global%sizeg=1
-      mtx_global%rankl=nrank
-      mtx_global%sizel=nsize
-      return
-      END SUBROUTINE mtx_initialize
-
-!-----
-
-      SUBROUTINE mtx_finalize
-      IMPLICIT NONE
-      INTEGER:: ierr
-
-      CALL MPI_Finalize(ierr)
-      IF(ierr.NE.0) WRITE(6,*) &
-           'XX mtx_finalize: MPI_Finalize: ierr=',ierr
-      END SUBROUTINE mtx_finalize
-
-!-----
-
-      SUBROUTINE mtx_set_communicator(mtx_mpi,nrank_,nsize_)
-        IMPLICIT NONE
-        TYPE(mtx_mpi_type),INTENT(IN):: mtx_mpi
-        INTEGER,INTENT(OUT):: nrank_,nsize_
-
-        CALL mtx_set_communicator_local(mtx_mpi)
-        ncomm=mtx_mpi%comm
-        nrank=mtx_mpi%rank
-        nsize=mtx_mpi%size
-        nrank_=nrank
-        nsize_=nsize
-        return
-      END SUBROUTINE mtx_set_communicator
-
-!-----
-
-      SUBROUTINE mtx_reset_communicator(nrank_,nsize_)
-        IMPLICIT NONE
-        INTEGER,INTENT(OUT):: nrank_,nsize_
-
-        CALL mtx_reset_communicator_local
-        ncomm=mtx_global%comm
-        nrank=mtx_global%rank
-        nsize=mtx_global%size
-        nrank_=nrank
-        nsize_=nsize
-        return
-      END SUBROUTINE mtx_reset_communicator
 
       SUBROUTINE mtx_setup(imax_,istart_,iend_,jwidth,nzmax)
 

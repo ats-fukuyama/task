@@ -38,6 +38,7 @@ C      COMMON /WMSLV3/ F(4*NBSIZM*2*NBSIZM)
       DIMENSION NM(NBSIZM)
       COMPLEX*8,DIMENSION(:,:),pointer:: CEM
       COMPLEX*8,DIMENSION(:),pointer:: CFV
+      DIMENSION iposa(nsize),ilena(nsize)
 C     
       NBSIZ=3*MDSIZ*NDSIZ
       IF(MODEWG.EQ.0) THEN
@@ -118,7 +119,16 @@ C
       ENDIF
 C
       IF(MODELM.GE.8) THEN
-         CALL MPGTCV(CFV,IEND-ISTA+1,CFVG,NVTOT,MSIZM)
+         ndata=IEND-ISTA+1
+         CALL mtx_allgather1_integer(ndata,ilena)
+         ntot=0
+         DO i=1,nsize
+            iposa(i)=ntot
+            ntot=ntot+ilena(i)
+         END DO
+         CALL mtx_gatherv_complex8(CFB,ndata,CFA,ntot,ilena,iposa)
+         NVTOT=ntot
+C         CALL MPGTCV(CFV,IEND-ISTA+1,CFVG,NVTOT,MSIZM)
       ELSE
          IF(NRANK.EQ.0) THEN
             DO I=1,MSIZ

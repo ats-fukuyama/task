@@ -10,17 +10,10 @@ C***********************************************************************
 C
       USE plinit,ONLY:pl_init,pl_parm
       USE fpinit,ONLY:fp_init,fp_parm
-      INCLUDE '../mpi/mpicom.inc'
+      USE commpi
+      USE libmtx
 C
-      CALL MPINIT(nsize,nrank)
-      IF(nsize.LT.NCPUMIN) THEN
-         WRITE(6,*) 'XX nsize.LT.NCPUMIN :',nsize,'.LT.',NCPUMIN
-         STOP
-      ENDIF
-      IF(nsize.GT.NCPUMAX) THEN
-         WRITE(6,*) 'XX nsize.GT.NCPUMAX :',nsize,'.GT.',NCPUMAX
-         STOP
-      ENDIF
+      CALL mtx_initialize
 C
       IF(nrank.EQ.0) THEN
          WRITE(6,*) '##### /TASK/TASK  2013/01/20 #####'
@@ -55,7 +48,7 @@ C
       IF(nrank.EQ.0) CLOSE(7)
       CALL MPSYNC
 C
-      CALL MPTERM
+      CALL mtx_finalize
 C
       STOP
       END
@@ -104,5 +97,6 @@ C
          ENDIF
       GO TO 1
 C
- 9000 RETURN
+ 9000 CONTINUE
+      RETURN
       END

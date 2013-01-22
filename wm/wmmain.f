@@ -15,15 +15,16 @@ C
       USE plinit,ONLY:pl_init,pl_parm
       INCLUDE 'wmcomm.inc'
 C
-      CALL MPINIT(NSIZE,NRANK)
-      IF(NSIZE.LT.NCPUMIN) THEN
-         WRITE(6,*) 'XX NSIZE.LT.NCPUMIN :',NSIZE,'.LT.',NCPUMIN
-         STOP
-      ENDIF
-      IF(NSIZE.GT.NCPUMAX) THEN
-         WRITE(6,*) 'XX NSIZE.GT.NCPUMAX :',NSIZE,'.GT.',NCPUMAX
-         STOP
-      ENDIF
+      CALL mtx_initialize
+
+C      IF(NSIZE.LT.NCPUMIN) THEN
+C         WRITE(6,*) 'XX NSIZE.LT.NCPUMIN :',NSIZE,'.LT.',NCPUMIN
+C         STOP
+C      ENDIF
+C      IF(NSIZE.GT.NCPUMAX) THEN
+C         WRITE(6,*) 'XX NSIZE.GT.NCPUMAX :',NSIZE,'.GT.',NCPUMAX
+C         STOP
+C      ENDIF
 C
       IF(NRANK.EQ.0) THEN
          WRITE(6,*) '##### /TASK/WM  05/06/22 #####'
@@ -51,7 +52,7 @@ C
       IF(NRANK.EQ.0) CLOSE(7)
       CALL MPSYNC
 C
-      CALL MPTERM
+      CALL mtx_finalize
 C
       STOP
       END

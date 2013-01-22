@@ -277,7 +277,7 @@
 
       allocate(work(nrstart:nrendx),workg(NRMAX))
 
-      CALL mtx_set_communicator(comm_nsa,nrank,nsize)
+      CALL mtx_set_communicator(comm_nsa)
       DO NTH=1,NTHMAX
          DO NR=NRSTART,NRENDX
             work(NR)=RLAMDA(NTH,NR)
@@ -322,7 +322,7 @@
             ETAM_GG(NTH,NR)=workg(NR)
          ENDDO
       ENDDO
-      CALL mtx_reset_communicator(nrank,nsize)
+      CALL mtx_reset_communicator
 
 !      IF(NRANK.eq.0)THEN
 !      open(8,file='RLAMDAG100_tpb_ex_killeen_fine.dat')
@@ -450,9 +450,9 @@
       ELSE
          imtxwidth=4*nthmax*npmax-1
       ENDIF
-      CALL mtx_set_communicator(comm_nsa,nrank,nsize)
+      CALL mtx_set_communicator(comm_nsa)
       CALL mtx_setup(imtxsize,imtxstart,imtxend,imtxwidth)
-      CALL mtx_reset_communicator(nrank,nsize)
+      CALL mtx_reset_communicator
       nrstart=(imtxstart-1)/(nthmax*npmax)+1
       nrend=  (imtxend  -1)/(nthmax*npmax)+1
       nrend1= (imtxend    )/(nthmax*npmax)+1
@@ -691,7 +691,7 @@
 !!!!
       allocate(work(nrstart:nrendx),workg(NRMAX))
 
-      CALL mtx_set_communicator(comm_nsa,nrank,nsize)
+      CALL mtx_set_communicator(comm_nsa)
 
       DO NR=NRSTART,NRENDX
          work(NR)=RCOEFN(NR)
@@ -711,7 +711,7 @@
          RCOEFN_GG(NR)=workg(NR)
       ENDDO
 
-      CALL mtx_reset_communicator(nrank,nsize)
+      CALL mtx_reset_communicator
 
 !      IF(NRANK.eq.0)THEN
 !         open(8,file='rcoefng_norfsad.dat')
@@ -818,7 +818,7 @@
       ENDIF
 
 !     set FNSB 
-      CALL mtx_set_communicator(comm_nr,nrank,nsize)  
+      CALL mtx_set_communicator(comm_nr)  
 !      nsend=NTHMAX*NPMAX*(NREND-NRSTART+1)
 !      DO NSWI=1, NSW
 !         NSA=NSASTART-1+NSWI
@@ -826,7 +826,7 @@
 !              nsend,FNSB(1:NTHMAX,1:NPMAX,NRSTART,1))
 !      END DO
       CALL update_fnsb
-      CALL mtx_reset_communicator(nrank,nsize) 
+      CALL mtx_reset_communicator
 !     end of set FNSB
 
       N_IMPL=0
@@ -846,9 +846,9 @@
          END DO
          CALL FPWEIGHT(NSA,IERR)
       END DO
-      CALL mtx_set_communicator(comm_nsa,nrank,nsize)
+      CALL mtx_set_communicator(comm_nsa)
       CALL source_allreduce(SPPF)
-      CALL mtx_reset_communicator(nrank,nsize) 
+      CALL mtx_reset_communicator
       ISAVE=0
       IF(NTG1.eq.0) CALL FPWAVE_CONST ! all nrank must have RPWT  
       CALL FPSSUB

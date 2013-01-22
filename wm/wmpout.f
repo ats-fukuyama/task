@@ -685,6 +685,7 @@ C
       DIMENSION CDV(3,3,3),CDW(3,3,3)
       DIMENSION CFA(NRM*NSM*MDM*MDM*NDM*NDM)
       DIMENSION CFB(NRM*NSM*MDM*MDM*NDM*NDM)
+      DIMENSION iposa(nsize),ilena(nsize)
 C
       NM=NRM*NSM*MDM*MDM*NDM*NDM
       CW=2.D0*PI*CRF*1.D6
@@ -986,7 +987,15 @@ C         if(nrank.eq.1) write(24,*) nr,ns,CPABSK(MLX,LDX,NKX,KDX,NS,NR)
       ENDDO
       ENDDO
 C
-      CALL MPGTCV(CFB,MN,CFA,NVTOT,NM)
+      CALL mtx_allgather1_integer(MN,ilena)
+      ntot=0
+      DO i=1,nsize
+         iposa(i)=ntot
+         ntot=ntot+ilena(i)
+      END DO
+      CALL mtx_gatherv_complex8(CFB,MN,CFA,ntot,ilena,iposa)
+      NM=ntot
+C      CALL MPGTCV(CFB,MN,CFA,NVTOT,NM)
 C
       IF(NRANK.EQ.0) THEN
          MN=0

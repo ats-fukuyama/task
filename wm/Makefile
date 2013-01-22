@@ -1,11 +1,25 @@
 ### $Id$ ###
 include ../make.header
 
+FFLAGS = $(OFLAGS)
+#FFLAGS = $(DFLAGS)
+
+all: $(EXEC)
+
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-FFLAGS = $(OFLAGS)
-#FFLAGS = $(DFLAGS)
+##### Without PETSc library (no MPI, real8 and complex8) #####
+FLINKER=$(FCFREE)
+LIBNOMPI=../mtxp/libmtxnompi.o
+LIBMTXP=$(LIBNOMPI) ../mtxp/libmtxbnd.o
+LIBMUMPSX=.
+
+##### With MUMPS library (MPI, real8 and complex8)
+#FLINKER=$(MF90)
+#LIBMPI=../mtxp/libmtxmpi.o
+#LIBMTXP=$(LIBMPI) ../mtxp/libmtxmumps.o
+#LIBMUMPSX=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common -lpord -lscalapack -lblacs -lparmetis -lmetis -llapack -lblas
 
 MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../plx/$(MOD) -I../eq/$(MOD) \
             -I../mtxp -I../../bpsd/$(MOD)
@@ -30,8 +44,8 @@ OBJM = $(SRCX:.f90=.o) $(SRCM:.f=.o)
 LIB0 = ../eq/wmeqin.o ../eq/eqlib.a \
        ../plx/pllib.a ../dp/dplib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a 
 
-LIBS = $(LIB0) wmlib.a ../mtx/mtxlib.a ../mpi/nompilib.o
-LIBM = $(LIB0) mpiwmlib.a ../mtx/mpimtxlib.a ../mpi/mpilib.o ../mtxp/libmtxmpi.o
+LIBS = $(LIB0) wmlib.a ../mtx/mtxlib.a ../mpi/nompilib.o $(LIBMTXP) 
+LIBM = $(LIB0) mpiwmlib.a ../mtx/mpimtxlib.a ../mpi/mpilib.o $(LIBMTXP)
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -63,18 +77,22 @@ mpiwmlib.a: $(OBJM)
 	(cd ../mtx; make mpimtxlib.a)
 ../mtxp/libmtxmpi.o:
 	(cd ../mtxp; make libmtxmpi.o)
+../mtxp/libmtxnompi.o:
+	(cd ../mtxp; make libmtxnompi.o)
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)
 libs:
 	(cd ../lib; make tasklib.a)
-	(cd ../mtx; make mtxlib.a)
+	(cd ../mtxp; make libmtxnompi.o libmtxbnd.o)
+#	(cd ../mtxp; make libmtxmpi.o libmtxmumps.o)
 	(cd ../mpi; make nompilib.o)
+#	(cd ../mpi; make mpilib.o)
+	(cd ../mtx; make mtxlib.a)
+#	(cd ../mtx; make mpimtxlib.a)
 	(cd ../plx; make pllib.a)
 	(cd ../eq; make eqlib.a)
 	(cd ../eq; make wmeqin.o)
 	(cd ../dp; make dplib.a)
-#	(cd ../mpi; make mpilib.o)
-#	(cd ../mtxp; make libmtxmpi.o)
 
 wm : wmmain.o $(LIBS)
 	$(FCFIXED) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)

@@ -153,13 +153,13 @@
             ENDIF
             CALL mtx_broadcast1_integer(N_IMPL)
 
-            CALL mtx_set_communicator(comm_nsa,nrank,nsize)
+            CALL mtx_set_communicator(comm_nsa)
             CALL mtx_allreduce_real8(DEPSV,NSW,4,DEPS_MAXVL,ILOCL)
 
-            CALL mtx_set_communicator(comm_nr,nrank,nsize)
+            CALL mtx_set_communicator(comm_nr)
             CALL mtx_gather_real8(DEPS_MAXVL,nsw,DEPS_MAXV) 
             CALL mtx_gather_integer(ILOCL,nsw,ILOC) 
-            CALL mtx_reset_communicator(nrank,nsize)
+            CALL mtx_reset_communicator
 
             IF(nrank.eq.0) THEN
                WRITE(fmt,'(a16,I1,a6,I1,a3)') &
@@ -173,7 +173,7 @@
             CALL fusion_source_init
 
 !           update FNSB 
-            CALL mtx_set_communicator(comm_nr,nrank,nsize)  
+            CALL mtx_set_communicator(comm_nr)  
 !            nsend=NTHMAX*NPMAX*(NREND-NRSTART+1)*NSW
 !            DO NSWI=1, NSW
 !               NSA=NSASTART-1+NSWI
@@ -181,7 +181,7 @@
 !                    nsend,FNSB(1:NTHMAX,1:NPMAX,NRSTART,1))
 !            END DO
             CALL update_fnsb
-            CALL mtx_reset_communicator(nrank,nsize) 
+            CALL mtx_reset_communicator
 !           end of update FNSB
 
             DO NSA=NSASTART,NSAEND
@@ -189,9 +189,9 @@
             END DO
 
 !           sum up SPPF
-            CALL mtx_set_communicator(comm_nsa,nrank,nsize)
+            CALL mtx_set_communicator(comm_nsa)
             CALL source_allreduce(SPPF)
-            CALL mtx_reset_communicator(nrank,nsize)
+            CALL mtx_reset_communicator
 !           end of sum up SPPF
 
             CALL GUTIME(gut4)

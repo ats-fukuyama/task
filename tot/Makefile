@@ -5,20 +5,12 @@ FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
 # without eq
-#MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../plx/$(MOD)  -I../fp/$(MOD)
+#MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../plx/$(MOD)  -I../fp/$(MOD) -I../mtxp
 #EQLIBS= ../plx/noeqlib.o ../plx/noequlib.o 
 
 # with task/eq
-MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD) -I../fp/$(MOD)
+MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD) -I../fp/$(MOD) -I../mtxp
 EQLIBS= ../plx/noequlib.o ../eq/eqlib.a 
-
-# with topics/equ
-#MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../plx/$(MOD) -I../fp/$(MOD) -I../../topics/src/$(MOD)
-#EQLIBS= ../../topics/src/tpxlib.a ../../topics/src/eqlib.a  ../plx/noeqlib.o 
-
-# with task/eq and topics/equ
-#MODINCLUDE= -I./$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD) -I../fp/$(MOD) -I../../topics/src/$(MOD)
-#EQLIBS= ../eq/eqlib.a ../../topics/src/tpxlib.a ../../topics/src/eqlib.a
 
 ##### Without PETSc library #####
 LIBMTX=../mtxp/libmtxbnd.o ../mtxp/libmtxnompi.o

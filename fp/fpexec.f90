@@ -12,6 +12,7 @@
 
       SUBROUTINE fp_exec(NSA,IERR,its)
 
+      USE libmpi
       USE libmtx
       IMPLICIT NONE
       integer:: NSA, NP, NTH, NR, NL, NM, NSBA
@@ -23,7 +24,7 @@
       NSBA=NSB_NSA(NSA)
 !      WRITE(*,*) "NRANK, NSA = ",NRANK,NSA
 
-      CALL mtx_set_communicator(comm_nsa,nrank,nsize)
+      CALL mtx_set_communicator(comm_nsa)
 
 !     ----- Set up matrix solver -----
       CALL mtx_setup(imtxsize,imtxstart1,imtxend1,imtxwidth)
@@ -222,7 +223,7 @@
 !     ----- Clean up matrix solver -----
       CALL mtx_cleanup
 
-      CALL mtx_reset_communicator(nrank,nsize)
+      CALL mtx_reset_communicator
 
       RETURN
       END SUBROUTINE FP_EXEC

@@ -4,11 +4,11 @@
 PROGRAM testmtxc
 
   USE libmpi
-  USE libmtxc
+  USE commpi
+  USE libmtx
   USE libgrf,only:grd1d
 
   IMPLICIT NONE
-  integer :: nrank,nprocs
   integer :: isize,itype,idata(2)
   integer :: istart,iend,its
   integer :: imax,jwidth,jsource
@@ -24,9 +24,9 @@ PROGRAM testmtxc
   real(8),dimension(:,:),pointer :: FY
   character ::STR*80
 
-  call mtx_initialize(nrank,nprocs)
+  call mtx_initialize
   if(nrank.eq.0) then
-     write(6,*) 'nrank, nprocs = ',nrank,nprocs
+     write(6,*) 'nrank, nsize = ',nrank,nsize
      call gsopen
   endif
 
@@ -76,24 +76,24 @@ PROGRAM testmtxc
 
 100 continue
 
-  call mtx_setup(imax,istart,iend,jwidth=jwidth)
+  call mtxc_setup(imax,istart,iend,jwidth)
 
   do i=istart,iend
-     if(i.gt.1) call mtx_set_matrix(i,i-1,k)
-     call mtx_set_matrix(i,i,1-2*k)
-     if(i.lt.isize) call mtx_set_matrix(i,i+1,k)
+     if(i.gt.1) call mtxc_set_matrix(i,i-1,k)
+     call mtxc_set_matrix(i,i,1-2*k)
+     if(i.lt.isize) call mtxc_set_matrix(i,i+1,k)
   end do
 
   do i=istart,iend
-     call mtx_set_source(i,x(i))
+     call mtxc_set_source(i,x(i))
   end do
 
-  call mtx_solve(itype,tolerance,its)
+  call mtxc_solve(itype,tolerance,its)
   if(nrank.eq.0) then
      write(6,*) 'Iteration Number=',its
   end if
 
-  call mtx_gather_vector(x)
+  call mtxc_gather_vector(x)
 
 2 continue
 
@@ -121,7 +121,7 @@ PROGRAM testmtxc
   endif
   CALL mtx_broadcast_character(character,1)
 
-  call mtx_cleanup
+  call mtxc_cleanup
   if (character.eq."c")then
      goto 100
   else if(character.ne."q")then

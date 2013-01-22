@@ -4,22 +4,16 @@ include ../make.header
 #FFLAGS=$(OFLAGS)
 FFLAGS=$(DFLAGS)
 
-SRCN = nompilib.f
-SRCM = mpilib.f
+SRCS = mpilib.f
 
-OBJN = $(SRCN:.f=.o)
-OBJM = $(SRCM:.f=.o)
-
-INCLUDE_MPI=-I/usr/local/mpich2-intel121mp/include
-MODINCLUDE= -I./$(MOD) -I../mtxp $(INCLUDE_MPI)
+OBJS = $(SRCS:.f=.o)
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-#all : $(OBJN) $(OBJM)
-all : $(OBJN)
+all : $(OBJS)
 
 check : 
 	ftnchek -array=0 -usage=no-com-block-unused $(SRCN) $(SRCM) | less
@@ -35,5 +29,4 @@ clean:
 
 veryclean: clean
 
-nompilib.o : nompilib.f mpicom.inc
-mpilib.o : mpilib.f mpicom.inc mpilib.inc mpif.inc
+mpilib.o : mpilib.f

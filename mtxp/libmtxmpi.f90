@@ -1,5 +1,16 @@
 !     $Id$
 
+      MODULE commpi
+!
+!       This module indicates the status of mpi communicator
+!       Do not change the variables in this module directly.
+!       In order to change the communicator, 
+!       use the routine "mtx_set_communicator" 
+!
+        INTEGER,PUBLIC:: ncomm,nrank,nsize
+      END MODULE commpi
+        
+
       MODULE libmpi
 
       USE mpi
@@ -17,11 +28,12 @@
       PUBLIC mtx_mpi_type
 
       PUBLIC mtx_set_communicator_global
-      PUBLIC mtx_set_communicator_local
-      PUBLIC mtx_reset_communicator_local
+      PUBLIC mtx_set_communicator
+      PUBLIC mtx_reset_communicator
       PUBLIC mtx_comm_split2D
       PUBLIC mtx_comm_free
       PUBLIC mtx_barrier
+
       PUBLIC mtx_broadcast1_character
       PUBLIC mtx_broadcast1_logical
       PUBLIC mtx_broadcast1_integer
@@ -38,6 +50,7 @@
       PUBLIC mtx_broadcast2D_real4
       PUBLIC mtx_broadcast2D_real8
       PUBLIC mtx_broadcast2D_complex8
+
       PUBLIC mtx_gather1_integer
       PUBLIC mtx_gather1_real4
       PUBLIC mtx_gather1_real8
@@ -62,6 +75,7 @@
       PUBLIC mtx_allgatherv_real4
       PUBLIC mtx_allgatherv_real8
       PUBLIC mtx_allgatherv_complex8
+
       PUBLIC mtx_reduce1_integer
       PUBLIC mtx_reduce1_real4
       PUBLIC mtx_reduce1_real8
@@ -86,13 +100,13 @@
 
 !-----
 
-      SUBROUTINE mtx_set_communicator_global(ncomm_,nrank_,nsize_)
+      SUBROUTINE mtx_set_communicator_global(ncomm_in)
+        USE commpi,ncomm_=>ncomm,nrank_=>nrank,nsize_=>nsize
         IMPLICIT NONE
-        INTEGER,INTENT(IN):: ncomm_
-        INTEGER,INTENT(OUT):: nrank_,nsize_
+        INTEGER,INTENT(IN):: ncomm_in
         INTEGER:: ierr
 
-        ncomm=ncomm_
+        ncomm=ncomm_in
         call MPI_Comm_rank(ncomm,nrank,ierr)
         IF(ierr.NE.0) WRITE(6,*) &
              'XX mtx_set_communicator_global: MPI_Comm_rank: ierr=',ierr
@@ -106,6 +120,7 @@
         mtx_global%sizeg=1
         mtx_global%rankl=nrank
         mtx_global%sizel=nsize
+        ncomm_=ncomm
         nrank_=nrank
         nsize_=nsize
         return
@@ -113,26 +128,34 @@
 
 !-----
 
-      SUBROUTINE mtx_set_communicator_local(mtx_mpi)
+      SUBROUTINE mtx_set_communicator(mtx_mpi)
+        USE commpi,ncomm_=>ncomm,nrank_=>nrank,nsize_=>nsize
         IMPLICIT NONE
         TYPE(mtx_mpi_type),INTENT(IN):: mtx_mpi
 
         ncomm=mtx_mpi%comm
         nrank=mtx_mpi%rank
         nsize=mtx_mpi%size
+        ncomm_=ncomm
+        nrank_=nrank
+        nsize_=nsize
         return
-      END SUBROUTINE mtx_set_communicator_local
+      END SUBROUTINE mtx_set_communicator
 
 !-----
 
-      SUBROUTINE mtx_reset_communicator_local
+      SUBROUTINE mtx_reset_communicator
+        USE commpi,ncomm_=>ncomm,nrank_=>nrank,nsize_=>nsize
         IMPLICIT NONE
 
         ncomm=mtx_global%comm
         nrank=mtx_global%rank
         nsize=mtx_global%size
+        ncomm_=ncomm
+        nrank_=nrank
+        nsize_=nsize
         return
-      END SUBROUTINE mtx_reset_communicator_local
+      END SUBROUTINE mtx_reset_communicator
 
 !-----
 

@@ -8,8 +8,9 @@
 
       MODULE libmtxc
 
-      USE mpi
       USE libmpi
+      USE libmtxcomm
+
       PRIVATE
 
       PUBLIC mtx_initialize
@@ -17,17 +18,14 @@
       PUBLIC mtx_set_communicator
       PUBLIC mtx_reset_communicator
 
-      PUBLIC mtx_setup
-      PUBLIC mtx_set_matrix
-      PUBLIC mtx_set_source
-      PUBLIC mtx_set_vector
-      PUBLIC mtx_solve
-      PUBLIC mtx_get_vector
-      PUBLIC mtx_gather_vector
-      PUBLIC mtx_cleanup
-
-      TYPE(mtx_mpi_type):: mtx_global
-      INTEGER:: ncomm,nrank,nsize
+      PUBLIC mtxc_setup
+      PUBLIC mtxc_set_matrix
+      PUBLIC mtxc_set_source
+      PUBLIC mtxc_set_vector
+      PUBLIC mtxc_solve
+      PUBLIC mtxc_get_vector
+      PUBLIC mtxc_gather_vector
+      PUBLIC mtxc_cleanup
 
       INCLUDE 'zmumps_struc.h'
       TYPE (ZMUMPS_STRUC) id
@@ -41,72 +39,7 @@
 
       CONTAINS
 
-      SUBROUTINE mtx_initialize(nrank_,nsize_)
-      IMPLICIT NONE
-      INTEGER,INTENT(OUT):: nrank_,nsize_
-      INTEGER:: ierr
-
-
-      CALL MPI_Init(ierr)
-      IF(ierr.NE.0) WRITE(6,*) &
-           'XX mtx_initialize: MPI_Init: ierr=',ierr
-      ncomm=MPI_COMM_WORLD
-      CALL mtx_set_communicator_global(ncomm,nrank,nsize)
-      nsize_=nsize
-      nrank_=nrank
-      mtx_global%comm=ncomm
-      mtx_global%rank=nrank
-      mtx_global%size=nsize
-      mtx_global%rankg=0
-      mtx_global%sizeg=1
-      mtx_global%rankl=nrank
-      mtx_global%sizel=nsize
-      return
-      END SUBROUTINE mtx_initialize
-
-!-----
-
-      SUBROUTINE mtx_finalize
-      IMPLICIT NONE
-      INTEGER:: ierr
-
-      CALL MPI_Finalize(ierr)
-      IF(ierr.NE.0) WRITE(6,*) &
-           'XX mtx_finalize: MPI_Finalize: ierr=',ierr
-      END SUBROUTINE mtx_finalize
-
-!-----
-
-      SUBROUTINE mtx_set_communicator(mtx_mpi,nrank_,nsize_)
-        IMPLICIT NONE
-        TYPE(mtx_mpi_type),INTENT(IN):: mtx_mpi
-        INTEGER,INTENT(OUT):: nrank_,nsize_
-
-        CALL mtx_set_communicator_local(mtx_mpi)
-        ncomm=mtx_mpi%comm
-        nrank=mtx_mpi%rank
-        nsize=mtx_mpi%size
-        nrank_=nrank
-        nsize_=nsize
-        return
-      END SUBROUTINE mtx_set_communicator
-
-!-----
-
-      SUBROUTINE mtx_reset_communicator(nrank_,nsize_)
-        IMPLICIT NONE
-        INTEGER,INTENT(OUT):: nrank_,nsize_
-
-        CALL mtx_reset_communicator_local
-        ncomm=mtx_global%comm
-        nrank=mtx_global%rank
-        nsize=mtx_global%size
-        nrank_=nrank
-        nsize_=nsize
-        return
-      END SUBROUTINE mtx_reset_communicator
-
-      SUBROUTINE mtx_setup(imax_,istart_,iend_,jwidth,nzmax)
+      SUBROUTINE mtxc_setup(imax_,istart_,iend_,jwidth,nzmax)
 
       INTEGER,INTENT(IN):: imax_           ! total matrix size
       INTEGER,INTENT(OUT):: istart_,iend_  ! allocated range of lines 
@@ -176,16 +109,16 @@
       ALLOCATE(b(imax),b_loc(iend-istart+1))
       write(6,*) 'point 3'
       RETURN
-      END SUBROUTINE mtx_setup
+      END SUBROUTINE mtxc_setup
       
-      SUBROUTINE mtx_set_matrix(i,j,v)
+      SUBROUTINE mtxc_set_matrix(i,j,v)
       INTEGER,INTENT(IN):: i,j  ! matrix position i=line, j=row
       COMPLEX(8),INTENT(IN):: v    ! value to be inserted
 
       IF(i.GE.istart.AND.i.LE.iend) THEN
          nzcount=nzcount+1
          IF(nzcount > nzmax_save) THEN
-            WRITE(6,*) "XX mtx_set_matrix: nzcount > nzmax_save:", &
+            WRITE(6,*) "XX mtxc_set_matrix: nzcount > nzmax_save:", &
                        nzcount,nzmax_save
             WRITE(6,*) " at component (i,j): ",i,j
             STOP
@@ -195,13 +128,13 @@
          id%JCN_loc(nzcount)=j
       ELSE
          write(6,'(A)') &
-              'XX libmtxzmumps:mtx_set_matrix: i : out of range'
+              'XX libmtxzmumps:mtxc_set_matrix: i : out of range'
          write(6,'(A,4I10)') '   nrank,istart,iend,i=',nrank,istart,iend,i
       ENDIF
       return
-      END SUBROUTINE mtx_set_matrix
+      END SUBROUTINE mtxc_set_matrix
       
-      SUBROUTINE mtx_set_source(j,v)
+      SUBROUTINE mtxc_set_source(j,v)
       INTEGER,INTENT(IN):: j ! vector positon j=row
       COMPLEX(8),INTENT(IN):: v ! value to be inserted
 
@@ -209,20 +142,20 @@
          b_loc(j-istart+1)=v
       ELSE
          write(6,'(A)') &
-              'XX libmtxzmumps:mtx_set_source: j : out of range'
+              'XX libmtxzmumps:mtxc_set_source: j : out of range'
          write(6,'(A,4I10)') '   nrank,istart,iend,j=',nrank,istart,iend,j
       ENDIF
       RETURN
-      END SUBROUTINE mtx_set_source
+      END SUBROUTINE mtxc_set_source
       
-      SUBROUTINE mtx_set_vector(j,v)
+      SUBROUTINE mtxc_set_vector(j,v)
       INTEGER,INTENT(IN):: j ! vector positon j=row
       REAL(8),INTENT(IN):: v ! value to be inserted
 
       return
-      END SUBROUTINE mtx_set_vector
+      END SUBROUTINE mtxc_set_vector
       
-      SUBROUTINE mtx_solve(itype,tolerance,its, &
+      SUBROUTINE mtxc_solve(itype,tolerance,its, &
            methodKSP,methodPC,damping_factor,emax,emin,max_steps)
       INTEGER,INTENT(IN):: itype     ! info level
       REAL(8),INTENT(IN):: tolerance
@@ -323,18 +256,18 @@
 
       its=0
       RETURN
-      END SUBROUTINE mtx_solve
+      END SUBROUTINE mtxc_solve
 
-      SUBROUTINE mtx_get_vector(j,v)
+      SUBROUTINE mtxc_get_vector(j,v)
 
       INTEGER,INTENT(IN):: j
       COMPLEX(8),INTENT(OUT):: v
 
       v=id%RHS(j)
       RETURN
-      END SUBROUTINE mtx_get_vector
+      END SUBROUTINE mtxc_get_vector
 
-      SUBROUTINE mtx_gather_vector(v)
+      SUBROUTINE mtxc_gather_vector(v)
 
       COMPLEX(8),DIMENSION(imax),INTENT(OUT):: v
       INTEGER:: j
@@ -343,9 +276,9 @@
          v(j)=id%RHS(j)
       ENDDO
       RETURN
-      END SUBROUTINE mtx_gather_vector
+      END SUBROUTINE mtxc_gather_vector
 
-      SUBROUTINE mtx_cleanup
+      SUBROUTINE mtxc_cleanup
 
       id%JOB = -2
       CALL ZMUMPS(id)
@@ -360,6 +293,6 @@
       DEALLOCATE(b,b_loc)
 
       RETURN
-      END SUBROUTINE mtx_cleanup
+      END SUBROUTINE mtxc_cleanup
 
       END MODULE libmtxc

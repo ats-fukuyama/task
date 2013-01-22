@@ -11,22 +11,14 @@
       use libmpi
       PRIVATE
 
-      PUBLIC mtx_initialize
-      PUBLIC mtx_finalize
-      PUBLIC mtx_set_communicator
-      PUBLIC mtx_reset_communicator
-
-      PUBLIC mtx_setup
-      PUBLIC mtx_set_matrix
-      PUBLIC mtx_set_source
-      PUBLIC mtx_set_vector
-      PUBLIC mtx_solve
-      PUBLIC mtx_get_vector
-      PUBLIC mtx_gather_vector
-      PUBLIC mtx_cleanup
-
-      TYPE(mtx_mpi_type):: mtx_global
-      INTEGER:: ncomm,nrank,nsize
+      PUBLIC mtxc_setup
+      PUBLIC mtxc_set_matrix
+      PUBLIC mtxc_set_source
+      PUBLIC mtxc_set_vector
+      PUBLIC mtxc_solve
+      PUBLIC mtxc_get_vector
+      PUBLIC mtxc_gather_vector
+      PUBLIC mtxc_cleanup
 
       INTEGER:: imax,jmax,joffset,ierr
       COMPLEX(8),DIMENSION(:),POINTER:: x,b
@@ -38,72 +30,7 @@
 
       CONTAINS
 
-      SUBROUTINE mtx_initialize(nrank_,nsize_)
-      IMPLICIT NONE
-      INTEGER,INTENT(OUT):: nrank_,nsize_
-      INTEGER:: ierr
-
-
-      CALL MPI_Init(ierr)
-      IF(ierr.NE.0) WRITE(6,*) &
-           'XX mtx_initialize: MPI_Init: ierr=',ierr
-      ncomm=0
-      CALL mtx_set_communicator_global(ncomm,nrank,nsize)
-      nrank_=nrank
-      nsize_=nsize
-      mtx_global%comm=ncomm
-      mtx_global%rank=nrank
-      mtx_global%size=nsize
-      mtx_global%rankg=0
-      mtx_global%sizeg=1
-      mtx_global%rankl=nrank
-      mtx_global%sizel=nsize
-      return
-      END SUBROUTINE mtx_initialize
-
-!-----
-
-      SUBROUTINE mtx_finalize
-      IMPLICIT NONE
-      INTEGER:: ierr
-
-      CALL MPI_Finalize(ierr)
-      IF(ierr.NE.0) WRITE(6,*) &
-           'XX mtx_finalize: MPI_Finalize: ierr=',ierr
-      END SUBROUTINE mtx_finalize
-
-!-----
-
-      SUBROUTINE mtx_set_communicator(mtx_mpi,nrank_,nsize_)
-        IMPLICIT NONE
-        TYPE(mtx_mpi_type),INTENT(IN):: mtx_mpi
-        INTEGER,INTENT(OUT):: nrank_,nsize_
-
-        CALL mtx_set_communicator_local(mtx_mpi)
-        ncomm=mtx_mpi%comm
-        nrank=mtx_mpi%rank
-        nsize=mtx_mpi%size
-        nrank_=nrank
-        nsize_=nsize
-        return
-      END SUBROUTINE mtx_set_communicator
-
-!-----
-
-      SUBROUTINE mtx_reset_communicator(nrank_,nsize_)
-        IMPLICIT NONE
-        INTEGER,INTENT(OUT):: nrank_,nsize_
-
-        CALL mtx_reset_communicator_local
-        ncomm=mtx_global%comm
-        nrank=mtx_global%rank
-        nsize=mtx_global%size
-        nrank_=nrank
-        nsize_=nsize
-        return
-      END SUBROUTINE mtx_reset_communicator
-
-      SUBROUTINE mtx_setup(imax_,istart_,iend_,jwidth,nzmax)
+      SUBROUTINE mtxc_setup(imax_,istart_,iend_,jwidth,nzmax)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: imax_           ! total matrix size
       INTEGER,INTENT(OUT):: istart_,iend_  ! allocated range of lines 
@@ -132,36 +59,36 @@
       ENDDO
 
       RETURN
-      END SUBROUTINE mtx_setup
+      END SUBROUTINE mtxc_setup
 
-      SUBROUTINE mtx_set_matrix(i,j,v)
+      SUBROUTINE mtxc_set_matrix(i,j,v)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: i,j  ! matrix position i=line, j=row
       COMPLEX(8),INTENT(IN):: v ! value to be inserted
 
       A(j-i+joffset,i)=v
       RETURN
-      END SUBROUTINE mtx_set_matrix
+      END SUBROUTINE mtxc_set_matrix
       
-      SUBROUTINE mtx_set_source(j,v)
+      SUBROUTINE mtxc_set_source(j,v)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: j    ! vector positon j=row
       COMPLEX(8),INTENT(IN):: v ! value to be inserted
 
       b(j)=v
       RETURN
-      END SUBROUTINE mtx_set_source
+      END SUBROUTINE mtxc_set_source
       
-      SUBROUTINE mtx_set_vector(j,v)
+      SUBROUTINE mtxc_set_vector(j,v)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: j    ! vector positon j=row
       COMPLEX(8),INTENT(IN):: v ! value to be inserted
 
       x(j)=v
       RETURN
-      END SUBROUTINE mtx_set_vector
+      END SUBROUTINE mtxc_set_vector
       
-      SUBROUTINE mtx_solve(itype,tolerance,its, &
+      SUBROUTINE mtxc_solve(itype,tolerance,its, &
            methodKSP,methodPC,damping_factor,emax,emin,max_steps)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: itype     ! not used
@@ -181,7 +108,7 @@
          
       CALL BANDCD(A,x,imax,jmax,jmax,ierr)
       IF(ierr.ne.0) then
-         WRITE(6,'(A,I5)') 'XX BANDRD in mtx_solve: ierr=',ierr
+         WRITE(6,'(A,I5)') 'XX BANDRD in mtxc_solve: ierr=',ierr
          its=-1
       ELSE
          its=0
@@ -194,17 +121,17 @@
       ENDDO
 
       RETURN
-      END SUBROUTINE mtx_solve
+      END SUBROUTINE mtxc_solve
 
-      SUBROUTINE mtx_get_vector(j,v)
+      SUBROUTINE mtxc_get_vector(j,v)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: j
       COMPLEX(8),INTENT(OUT):: v
       v=x(j)
       RETURN
-      END SUBROUTINE mtx_get_vector
+      END SUBROUTINE mtxc_get_vector
 
-      SUBROUTINE mtx_gather_vector(v)
+      SUBROUTINE mtxc_gather_vector(v)
       IMPLICIT NONE
       COMPLEX(8),DIMENSION(imax),INTENT(OUT):: v
       INTEGER:: i
@@ -213,15 +140,14 @@
          v(i)=x(i)
       ENDDO
       RETURN
-      END SUBROUTINE mtx_gather_vector
+      END SUBROUTINE mtxc_gather_vector
 
-      SUBROUTINE mtx_cleanup
+      SUBROUTINE mtxc_cleanup
       IMPLICIT NONE
 
       DEALLOCATE(x,b)
       DEALLOCATE(A)
       RETURN
-      END SUBROUTINE mtx_cleanup
-
+      END SUBROUTINE mtxc_cleanup
 
       END MODULE libmtxc

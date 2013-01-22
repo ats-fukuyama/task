@@ -60,12 +60,12 @@
 
       nsw=NSAEND-NSASTART+1
       nsend=NTHMAX*NPMAX*(NREND-NRSTART+1)*NSW
-!      CALL mtx_set_communicator(comm_nr,nrank,nsize)
+!      CALL mtx_set_communicator(comm_nr)
       DO NSWI=1,NSW
          NSA=NSASTART-1+NSWI
          CALL mtx_allgather_real8(dsend,nsend,FNSB(1:NTHMAX,1:NPMAX,NRSTART,1)) 
       END DO
-!      CALL mtx_reset_communicator(nrank,nsize)
+!      CALL mtx_reset_communicator
 
       END SUBROUTINE update_fnsb
 !-----
