@@ -12,17 +12,17 @@ C
       USE fpinit,ONLY:fp_init,fp_parm
       INCLUDE '../mpi/mpicom.inc'
 C
-      CALL MPINIT(NPROCS,MYRANK)
-      IF(NPROCS.LT.NCPUMIN) THEN
-         WRITE(6,*) 'XX NPROCS.LT.NCPUMIN :',NPROCS,'.LT.',NCPUMIN
+      CALL MPINIT(nsize,nrank)
+      IF(nsize.LT.NCPUMIN) THEN
+         WRITE(6,*) 'XX nsize.LT.NCPUMIN :',nsize,'.LT.',nrank,NCPUMIN
          STOP
       ENDIF
-      IF(NPROCS.GT.NCPUMAX) THEN
-         WRITE(6,*) 'XX NPROCS.GT.NCPUMAX :',NPROCS,'.GT.',NCPUMAX
+      IF(nsize.GT.NCPUMAX) THEN
+         WRITE(6,*) 'XX nsize.GT.NCPUMAX :',nsize,'.GT.',NCPUMAX
          STOP
       ENDIF
 C
-      IF(MYRANK.EQ.0) THEN
+      IF(NRANK.EQ.0) THEN
          WRITE(6,*) '##### /TASK/TASK  2013/01/20 #####'
          CALL GSOPEN
       ENDIF
@@ -35,7 +35,7 @@ C
       CALL WRINIT
       CALL WMINIT
       CALL FP_INIT
-      IF(MYRANK.EQ.0) THEN
+      IF(NRANK.EQ.0) THEN
          OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
          CALL PL_PARM(1,'plparm',IERR)
          CALL EQPARM(1,'eqparm',IERR)
@@ -50,8 +50,8 @@ C
 C
       CALL TASKMENU
 C
-      IF(MYRANK.EQ.0) CALL GSCLOS
-      IF(MYRANK.EQ.0) CLOSE(7)
+      IF(NRANK.EQ.0) CALL GSCLOS
+      IF(NRANK.EQ.0) CLOSE(7)
       CALL MPSYNC
 C
       CALL MPTERM
@@ -70,7 +70,7 @@ C
       CHARACTER KID*2,KID1*1,KID2*1
 C
     1 CONTINUE
-         IF(MYRANK.EQ.0) THEN
+         IF(NRANK.EQ.0) THEN
             WRITE(6,601)
   601       FORMAT('## TASK MENU: EQ/TR/WR/WM/FP/DP/PL Q/QUIT')
             READ(5,'(A2)') KID
