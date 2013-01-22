@@ -25,7 +25,7 @@ all : dp
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)
 ../plx/pllib.a:
-	(cd ../pl; make pllib.a)
+	(cd ../plx; make pllib.a)
 ../eq/eqlib.a:
 	(cd ../eq; make eqlib.a)
 dplib.a: $(OBJS)
