@@ -33,11 +33,11 @@ dplib.a: $(OBJS)
 
 libs:
 	(cd ../lib; make tasklib.a)
-	(cd ../pl; make pllib.a)
+	(cd ../plx; make pllib.a)
 	(cd ../eq; make eqlib.a)
 
 dp : dpmain.o $(LIBS)
-	(cd ../pl; make pllib.a)
+	(cd ../plx; make pllib.a)
 	(cd ../lib; make tasklib.a)
 	$(FCFIXED) dpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
