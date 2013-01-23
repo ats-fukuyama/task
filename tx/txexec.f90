@@ -81,7 +81,7 @@ contains
     use tx_coefficients, only : TXCALA
     use tx_interface, only : INTG_F
     use tx_graphic, only : TX_GRAPH_SAVE, TXSTGT, TXSTGV, TXSTGR, TXSTGQ
-    use f95_lapack ! for self-compiled LAPACK95
+!    use f95_lapack ! for self-compiled LAPACK95
 !    use lapack95 ! for intel mkl LAPACK95
 
     real(8), dimension(:,:), allocatable :: BA, BL
@@ -177,9 +177,9 @@ contains
                    GOTO 180
                 END IF
              ELSE
-!LA                CALL LAPACK_DGBSV(NQMAX*(NRMAX+1),2*NQMAX-1,2*NQMAX-1,1,BL, & 
-!LA                     &            6*NQMAX-2,IPIV,BX,NQMAX*(NRMAX+1),IERR_LA) 
-                CALL LA_GBSV(BL,BX,INFO=IERR_LA) ! for self-compiled LAPACK95
+                CALL LAPACK_DGBSV(NQMAX*(NRMAX+1),2*NQMAX-1,2*NQMAX-1,1,BL, & 
+                     &            6*NQMAX-2,IPIV,BX,NQMAX*(NRMAX+1),IERR_LA) 
+!                CALL LA_GBSV(BL,BX,INFO=IERR_LA) ! for self-compiled LAPACK95
 !                CALL GBSV(BL,BX,INFO=IERR_LA) ! for intel mkl LAPACK95
                 IF(IERR_LA /= 0) THEN
                    WRITE(6,'(3(A,I6))') '### ERROR(TXLOOP) : GBSV, NT = ',  &

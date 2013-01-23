@@ -106,6 +106,7 @@ C        PROFT1: Temperature profile parameter (power of rho)
 C        PROFT2: Temperature profile parameter (power of (1 - rho^PROFN1))
 C        PROFU1: Rotation profile parameter (power of rho)
 C        PROFU2: Rotation profile parameter (power of (1 - rho^PROFN1))
+!                    (X0-XS)(1-RHO**PROFX1)**PROFX2+XS
 C
       PROFN1= 2.D0
       PROFN2= 0.5D0

@@ -59,6 +59,10 @@ mpiwmlib.a: $(OBJM)
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)
 libs:
+	(cd ../lib; make tasklib.a)
+	(cd ../mpi; make mpilib.o)
+	(cd ../mtx; make mtxlib.a)
+	(cd ../mtx; make mpimtxlib.a)
 	(cd ../pl; make pllib.a)
 	(cd ../dp; make dplib.a)
 	(cd ../eq; make eqlib.a)
@@ -66,10 +70,6 @@ libs:
 	(cd ../pl; make pllib.a)
 	(cd ../dp; make dplib.a)
 	(cd ../mpi; make nompilib.o)
-	(cd ../mpi; make mpilib.o)
-	(cd ../mtx; make mtxlib.a)
-	(cd ../mtx; make mpimtxlib.a)
-	(cd ../lib; make tasklib.a)
 
 wm : wmmain.o $(LIBS)
 	$(FCFIXED) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)

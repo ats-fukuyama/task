@@ -1,8 +1,8 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD) -I../fp/$(MOD) -I../mtxp
 EQLIBS= ../plx/noequlib.o ../eq/eqlib.a 
@@ -95,13 +95,11 @@ libs:
 	(cd ../tr; make tr2lib.a)
 	(cd ../dp; make dplib.a)
 	(cd ../wr; make wrlib.a)
-	(cd ../wm; make wmlib.a)
-#	(cd ../wm; make mpiwmlib.a)
-	(cd ../fp; make fplib.a)
+	(cd ../mtxp; make)
 	(cd ../mtx; make mtxlib.a)
-#	(cd ../mtx; make mpimtxlib.a)
 	(cd ../mpi; make nompilib.o)
-#	(cd ../mpi; make mpilib.o)
+	(cd ../wm; make wmlib.a)
+	(cd ../fp; make fplib.a)
 
 tot : main.o $(LIBS)
 	$(FCFIXED) main.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODINCLUDE)
@@ -117,6 +115,7 @@ xtot :
 	(cd ../wr; make wrlib.a)
 	(cd ../wm; make wmlib.a)
 	(cd ../fp; make fplib.a)
+	(cd ../mtxp; make mtxlib.a)
 	(cd ../mtx; make mtxlib.a)
 	(cd ../lib; make)
 	(cd ../mpi; make nompilib.o)

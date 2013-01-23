@@ -689,7 +689,7 @@
       use trcomm, only : modelg, nrmax, knameq, RR, RA
       use tr_bpsd, only: tr_bpsd_init,tr_bpsd_set,tr_bpsd_get
       use equnit_mod, only: eq_parm,eq_prof,eq_calc,eq_load
-      use equunit_mod, only: equ_prof,equ_calc
+!      use equunit_mod, only: equ_prof,equ_calc
       use pl_vmec_mod, only: pl_vmec
       implicit none
       integer, intent(out):: ierr
@@ -717,9 +717,9 @@
          call tr_bpsd_get(ierr)  ! 
 !         call trgout
       elseif(modelg.eq.8) then
-         call equ_prof ! initial calculation of eq
-         call equ_calc         ! recalculate eq
-         call tr_bpsd_get(ierr)  ! 
+!         call equ_prof ! initial calculation of eq
+!         call equ_calc         ! recalculate eq
+!         call tr_bpsd_get(ierr)  ! 
 !         call trgout
       elseif(modelg.eq.9) then
          call eq_prof ! initial calculation of eq

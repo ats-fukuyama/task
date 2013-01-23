@@ -37,7 +37,7 @@
       use bpsd
       use plinit,ONLY: pl_init,pl_parm
       use equnit_mod
-      use equunit_mod
+!      use equunit_mod
       use trunit
       IMPLICIT NONE
       REAL(4)   :: GTCPU2
@@ -52,12 +52,12 @@
 
       CALL pl_init
       call eq_init
-      call equ_init
+!      call equ_init
       CALL tr_init
 
       CALL pl_parm(1,'plparm',IERR)
       CALL eq_parm(1,'eqparm',IERR)
-      CALL equ_parm(1,'equparm',IERR)
+!      CALL equ_parm(1,'equparm',IERR)
       CALL tr_parm(1,'trparm',IERR)
 
       CALL TRMENU

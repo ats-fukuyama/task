@@ -13,7 +13,7 @@
       use tr_bpsd,only: tr_bpsd_set, tr_bpsd_get
       use trunit
       use equnit_mod
-      use equunit_mod
+!      use equunit_mod
       IMPLICIT NONE
       INTEGER(4):: IERR
       REAL(8)   :: FCTR
@@ -51,11 +51,11 @@
 
       IF(NTEQIT.NE.0) THEN
          IF(MOD(NT,NTEQIT).EQ.0) THEN
-            if(modelg.eq.8) THEN
-               call equ_calc
-               call tr_bpsd_get(IERR)
-               if(ierr.ne.0) return
-            endif
+!            if(modelg.eq.8) THEN
+!               call equ_calc
+!               call tr_bpsd_get(IERR)
+!               if(ierr.ne.0) return
+!            endif
             if(modelg.eq.9) THEN
                call tr_bpsd_set(IERR)
                call eq_calc
