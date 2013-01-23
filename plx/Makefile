@@ -32,7 +32,8 @@ all : pllib.a  noeqlib.o noequlib.o pl
 	(cd ../../task/lib; make tasklib.a)
 
 libs:
-	(cd ../../task/lib; make tasklib.a)
+	(cd ../lib; make tasklib.a)
+	(cd ../../bpsd; make bpsdlib.a)
 
 pllib.a: $(OBJS)
 	$(LD) $(LDFLAGS) pllib.a $(OBJS)

@@ -7,25 +7,8 @@ include ../make.header
 FFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
 
-# without eq
-#MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../plx/$(MOD)
-#EQLIBS= ../plx/noeqlib.o ../plx/noequlib.o 
-#MAKE_TPXLIB=
-
-# with task/eq
 MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD)
 EQLIBS= ../eq/eqlib.a ../plx/noequlib.o 
-MAKE_TPXLIB=
-
-# with topics/equ
-#MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../plx/$(MOD) -I../../topics/src/$(MOD)
-#EQLIBS= ../../topics/src/tpxlib.a ../../topics/src/eqlib.a  ../plx/noeqlib.o 
-#MAKE_TPXLIB= (cd ../../topics/src; make tpxlib.a eqlib.a)
-
-# with task/eq and topics/equ
-#MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD) -I../../topics/src/$(MOD)
-#EQLIBS= ../eq/eqlib.a ../../topics/src/tpxlib.a ../../topics/src/eqlib.a
-#MAKE_TPXLIB= (cd ../../topics/src; make tpxlib.a eqlib.a)
 
 PLLIBS=../plx/pllib.a ../../bpsd/bpsdlib.a 
 
@@ -104,7 +87,6 @@ libs:
 	(cd ../../bpsd; make bpsdlib.a)
 	(cd ../plx; make pllib.a)
 	(cd ../eq; make eqlib.a)
-	$(MAKE_TPXLIB)
 	(cd ../eq; make treqin.o)
 
 tr2: trcom2.o trcom3.o $(LIBS2) trmain.o 

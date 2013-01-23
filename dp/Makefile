@@ -36,7 +36,7 @@ libs:
 	(cd ../plx; make pllib.a)
 	(cd ../eq; make eqlib.a)
 
-dp : dpmain.o $(LIBS)
+dp : libs dpmain.o
 	(cd ../plx; make pllib.a)
 	(cd ../lib; make tasklib.a)
 	$(FCFIXED) dpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)

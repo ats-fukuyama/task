@@ -48,32 +48,32 @@ fplib.a: $(OBJS)
 
 ../../bpsd/bpsdlib.a:
 	(cd ../../bpsd; make bpsdlib.a)
-../../task/plx/pllib.a:
+../plx/pllib.a:
 	(cd ../plx; make pllib.a)
-../../task/eq/eqlib.a:
+../eq/eqlib.a:
 	(cd ../../task/eq; make eqlib.a)
-../../task/mtxp/libmtxksp.o:
+../mtxp/libmtxksp.o:
 	(cd ../../task/mtxp; make libmtxksp.o)
-../../task/mtxp/libmtxmumps.o:
+../mtxp/libmtxmumps.o:
 	(cd ../../task/mtxp; make libmtxmumps.o)
-../../task/mtxp/libmtxbnd.o:
+../mtxp/libmtxbnd.o:
 	(cd ../../task/mtxp; make libmtxbnd.o)
-../../task/mtxp/libmtxmpi.o:
+../mtxp/libmtxmpi.o:
 	(cd ../../task/mtxp; make libmtxmpi.o)
-../../task/mtxp/libmtxnompi.o:
+../mtxp/libmtxnompi.o:
 	(cd ../../task/mtxp; make libmtxnompi.o)
-../../task/lib/tasklib.a:
+../lib/tasklib.a:
 	(cd ../../task/lib; make tasklib.a)
 
 libs:
+	(cd ../lib; make tasklib.a)
 	(cd ../../bpsd; make bpsdlib.a)
-	(cd ../../task/lib; make tasklib.a)
-	(cd ../../task/mtxp; make libmtxmpi.o libmtxnompi.o)
-	(cd ../../task/mtxp; make libmtxbnd.o libmtxksp.o libmtxmumps.o)
-	(cd ../../task/eq; make eqlib.a)
-	(cd ../../task/plx; make pllib.a)
+	(cd ../mtxp; make libmtxmpi.o libmtxnompi.o)
+	(cd ../mtxp; make libmtxbnd.o libmtxksp.o libmtxmumps.o)
+	(cd ../plx; make pllib.a)
+	(cd ../eq; make eqlib.a)
 
-fp : $(LIBS) fpmain.o 
+fp : libs fpmain.o 
 	$(MF90) fpmain.o -o $@ $(FFLAGS) $(LIBS) $(LIBMTX) $(PETSCLIBS) $(FLIBS) 
 
 clean :

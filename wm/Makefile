@@ -94,7 +94,7 @@ libs:
 	(cd ../eq; make wmeqin.o)
 	(cd ../dp; make dplib.a)
 
-wm : wmmain.o $(LIBS)
+wm : libs wmmain.o
 	$(FCFIXED) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 mpiwm : wmmain.o $(LIBM)

@@ -23,6 +23,8 @@ all : libs wr
 wrlib.a: $(OBJS)
 	$(LD) $(LDFLAGS) wrlib.a $(OBJS)
 
+../lib/tasklib.a:
+	(cd ../lib; make tasklib.a)
 ../../bpsd/bpsdlib.a:
 	(cd ../../bpsd; make bpsdlib.a)
 ../plx/pllib.a:
@@ -31,16 +33,14 @@ wrlib.a: $(OBJS)
 	(cd ../eq; make eqlib.a)
 ../dp/dplib.a:
 	(cd ../dp; make dplib.a)
-../lib/tasklib.a:
-	(cd ../lib; make tasklib.a)
 libs:
+	(cd ../lib; make tasklib.a)
 	(cd ../../bpsd; make bpsdlib.a)
 	(cd ../plx; make pllib.a)
 	(cd ../eq; make eqlib.a)
 	(cd ../dp; make dplib.a)
-	(cd ../lib; make tasklib.a)
 
-wr : wrmain.o $(LIBS)
+wr : libs wrmain.o
 	$(FCFIXED) wrmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODDIR) $(MODINCLUDE)
 
 check :

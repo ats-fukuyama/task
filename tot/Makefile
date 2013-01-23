@@ -4,11 +4,6 @@ include ../make.header
 FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
-# without eq
-#MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../plx/$(MOD)  -I../fp/$(MOD) -I../mtxp
-#EQLIBS= ../plx/noeqlib.o ../plx/noequlib.o 
-
-# with task/eq
 MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD) -I../fp/$(MOD) -I../mtxp
 EQLIBS= ../plx/noequlib.o ../eq/eqlib.a 
 
@@ -89,9 +84,9 @@ all : libs tot
 
 libs:
 	(cd ../lib; make tasklib.a)
+	(cd ../../bpsd; make bpsdlib.a)
 	(cd ../plx; make pllib.a)
 	(cd ../plx; make noeqlib.o)
-	(cd ../plx; make noequlib.o)
 	(cd ../eq; make eqlib.a)
 	(cd ../eq; make treqin.o)
 	(cd ../eq; make wmeqin.o)
