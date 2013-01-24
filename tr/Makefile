@@ -8,9 +8,8 @@ include ../make.header
 FFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD)
-EQLIBS= ../eq/eqlib.a ../plx/noequlib.o 
-
-PLLIBS=../plx/pllib.a ../../bpsd/bpsdlib.a 
+EQLIBS=../eq/eqlib.a
+PLLIBS=../../bpsd/bpsdlib.a ../plx/pllib.a 
 
 SRC90M=trcom0.f90 trcom1.f90 trcomm.f90 tr_bpsd.f90
 SRC90=trinit.f90 trprof.f90 trufsub.f90 trufile.f90 trfile.f90 trhelp.f90 \
@@ -50,8 +49,8 @@ OBJTR=$(OBJM) $(OBJE) $(OBJL) $(OBJNC) $(OBJCYT) $(OBJMMM) $(OBJMBGB) $(OBJS)
 OBJ2D=$(SRC2D:.f90=.o)
 OBJ3D=$(SRC3D:.f90=.o)
 
-LIBS2=$(EQLIBS) tr2lib.a ../lib/tasklib.a ../lib/mdslib.a $(PLLIBS)
-LIBS3=$(EQLIBS) tr3lib.a ../lib/tasklib.a ../lib/mdslib.a $(PLLIBS)
+LIBS2=../lib/tasklib.a ../lib/mdslib.a $(PLLIBS) $(EQLIBS) tr2lib.a
+LIBS3=../lib/tasklib.a ../lib/mdslib.a $(PLLIBS) $(EQLIBS) tr3lib.a  
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -67,27 +66,22 @@ tr2lib.a: $(OBJTR) $(OBJ2D) $(INCNC) $(INCGLF)
 tr3lib.a: $(OBJTR) $(OBJ3D) $(INCNC) $(INCGLF)
 	$(LD) $(LDFLAGS) tr3lib.a $(OBJTR) $(OBJ3D)
 
+../lib/tasklib.a:
+	(cd ../lib; make tasklib.a)
+../lib/mdslib.a:
+	(cd ../lib; make mdslib.a)
+../../bpsd/bpsdlib.a:
+	(cd ../../bpsd; make bpsdlib.a)
 ../plx/pllib.a:
 	(cd ../plx; make pllib.a)
-../plx/noeqlib.o:
-	(cd ../plx; make noeqlib.o)
-../plx/noequlib.o:
-	(cd ../plx; make noequlib.o)
 ../eq/eqlib.a:
 	(cd ../eq; make eqlib.a)
-../eq/treqin.o:
-	(cd ../eq; make treqin.o)
-../lib/tasklib.a:
-	(cd ../lib; make)
-../lib/mdslib.a:
-	(cd ../lib; make)
 
 libs:
 	(cd ../lib; make tasklib.a)
 	(cd ../../bpsd; make bpsdlib.a)
 	(cd ../plx; make pllib.a)
 	(cd ../eq; make eqlib.a)
-	(cd ../eq; make treqin.o)
 
 tr2: trcom2.o trcom3.o $(LIBS2) trmain.o 
 	$(FCFREE) trmain.o trcom2.o trcom3.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(MODULE) $(MODO) $(MODINCLUDE)

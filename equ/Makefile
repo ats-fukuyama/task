@@ -26,7 +26,7 @@ OBJCOM = $(SRCCOM:.f=.o)
 OBJTPX= $(SRCTPX:.f=.o)
 OBJEQ= $(SRCEQ:.f=.o)
 OBJTR= $(SRCTR:.f=.o)
-LIBS = $(BPSDLIB) $(OBJCOM) ../lib/tasklib.a tpxlib.a eqlib.a trlib.a
+LIBS = ../lib/tasklib.a $(BPSDLIB) $(OBJCOM)  tpxlib.a eqlib.a trlib.a
 #
 MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD)
 #

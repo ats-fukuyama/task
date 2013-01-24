@@ -233,7 +233,14 @@
       ENDDO
 
       CALL TRCHCK(ICHCK)
-      IF(ICHCK.EQ.1) GOTO 4000
+      IF(ICHCK.EQ.1) THEN
+         CALL TRGLOB
+         CALL TRATOT
+         CALL TRATOTN
+         CALL TRATOG
+         IERR=1
+         RETURN
+      END IF
 
 !      CALL TR_EDGE_SELECTOR(1)
       CALL TRCALC(IERR)

@@ -15,8 +15,6 @@ MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD)
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
 SRCSFIXED = 
-#SRCSFREE = modules.f90 pl_vmec.f90 plcomm.f90 plxprf.f90 plinit.f90 \
-#           plprof.f90 plmenu.f90
 SRCSFREE = modules.f90 pl_vmec.f90 plcomm.f90 plinit.f90 \
            plprof.f90 plmenu.f90
 SRCO = noeqlib.f noequlib.f
@@ -24,21 +22,25 @@ SRCO = noeqlib.f noequlib.f
 OBJS = $(SRCSFIXED:.f=.o) $(SRCSFREE:.f90=.o) 
 OBJO = $(SRCO:.f=.o) 
 
-LIBS = pllib.a ../../task/eq/eqlib.a ../../task/lib/tasklib.a ../../bpsd/bpsdlib.a
+LIBS = ../lib/tasklib.a ../../bpsd/bpsdlib.a ../eq/eqlib.a pllib.a
 
 all : pllib.a  noeqlib.o noequlib.o pl
 
-../../task/lib/tasklib.a:
-	(cd ../../task/lib; make tasklib.a)
+../lib/tasklib.a:
+	(cd ../lib; make tasklib.a)
+../../bpsd/bpsdlib.a:
+	(cd ../../bpsd; make bpsdlib.a)
+../eqb/eqlib.a:
+	(cd ../eq; make eqlib.a)
+pllib.a: $(OBJS)
+	$(LD) $(LDFLAGS) pllib.a $(OBJS)
 
 libs:
 	(cd ../lib; make tasklib.a)
 	(cd ../../bpsd; make bpsdlib.a)
+	(cd ../eq; make eqlib.a)
 
-pllib.a: $(OBJS)
-	$(LD) $(LDFLAGS) pllib.a $(OBJS)
-
-pl : plmain.o $(LIBS)
+pl : $(LIBS) plmain.o
 	$(FCFIXED) plmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODDIR) $(MODINCLUDE)
 
 check :

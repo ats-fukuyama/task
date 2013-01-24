@@ -23,8 +23,8 @@ OBJA = $(SRCA:.f=.o)
 OBJ2D=$(SRC2D:.f=.o)
 OBJ3D=$(SRC3D:.f=.o)
 
-LIBS2 = eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a
-LIBS3 = eq3lib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a
+LIBS2 = ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a eqlib.a
+LIBS3 = ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a eq3lib.a
 
 .SUFFIXES: .f90
 
@@ -36,33 +36,33 @@ LIBS3 = eq3lib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a
 all : libs eq
 #all : eq3
 
+
+../lib/tasklib.a:
+	(cd ../lib; make tasklib.a)
+../../bpsd/bpsdlib.a:
+	(cd ../../bpsd; make bpsdlib.a)
+../plx/pllib.a:
+	(cd ../plx; make pllib.a)
 eqlib.a: $(OBJS) $(OBJ2D)
 	$(LD) $(LDFLAGS) eqlib.a $(OBJS) $(OBJ2D)
 eq3lib.a: $(OBJS) $(OBJ3D)
 	$(LD) $(LDFLAGS) eq3lib.a $(OBJS) $(OBJ3D)
-
-../lib/tasklib.a:
-	(cd ../lib; make)
-../../bpsd/bpsdlib.a:
-	(cd ../../bpsd; make)
-../plx/pllib.a:
-	(cd ../plx; make)
 
 libs:
 	(cd ../lib; make tasklib.a)
 	(cd ../../bpsd; make bpsdlib.a)
 	(cd ../plx; make pllib.a)
 
-eq: eqmain.o eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a
+eq: $(LIBS2) eqmain.o
 	$(FCFIXED) eqmain.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS)
-eq3: eqmain.o eq3lib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a
+eq3: $(LIBS3) eqmain.o
 	$(FCFIXED) eqmain.o $(LIBS3) -o $@ $(FFLAGS) $(FLIBS)
-tr : $(OBJT) eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a
-	$(FCFIXED) $(OBJT) $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
-pl : $(OGJP) eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a
-	$(FCFIXED) $(OBJP) $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
-ak : $(OBJA) eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a
-	$(FCFIXED) $(OBJA) $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+tr : $(LIBS2) $(OBJT)
+	$(FCFIXED) $(OBJT) $(LIBS2) -o $@ $(FFLAGS) $(FLIBS)
+pl : $(LIBS2) $(OGJP)
+	$(FCFIXED) $(OBJP) $(LIBS2) -o $@ $(FFLAGS) $(FLIBS)
+ak : $(LIBS2) $(OBJA)
+	$(FCFIXED) $(OBJA) $(LIBS2) -o $@ $(FFLAGS) $(FLIBS)
 
 check : $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRC3D) | $(PAGER)

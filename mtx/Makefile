@@ -21,6 +21,7 @@ OBJM = $(SRCM:.f=.o)
 	$(FCFREE) $(LFLAGS) -c $< -o $@
 
 all : mtxlib.a mpimtxlib.a
+
 mtxlib.a : $(OBJN)
 	$(LD) $(LDFLAGS) mtxlib.a $(OBJN)
 mpimtxlib.a : $(OBJN) $(OBJM)

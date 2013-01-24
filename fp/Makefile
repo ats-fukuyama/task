@@ -2,15 +2,15 @@
 include ../../task/make.header
 
 ##### Without PETSc library #####
-#LIBMTX=../mtxp/libmtxbnd.o ../mtxp/libmtxnompi.o
+#LIBMTX=../mtxp/libmtxnompi.o ../mtxp/libmtxbnd.o
 #PETSCLIBS=
 ##### With MUMPS library #####
 #include ${PETSC_DIR}/conf/variables
-#LIBMTX=../mtxp/libmtxmumps.o ../mtxp/libmtxmpi.o
+#LIBMTX=../mtxp/libmtxmpi.o ../mtxp/libmtxmumps.o
 #PETSCLIBS=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lmumps_common -lpord -lscalapack -lblacs -lblas -lparmetis -lmetis
 ##### With PETSc library #####
 include ${PETSC_DIR}/conf/variables
-LIBMTX=../mtxp/libmtxksp.o ../mtxp/libmtxmpi.o
+LIBMTX=../mtxp/libmtxmpi.o ../mtxp/libmtxksp.o
 PETSCLIBS=${PETSC_KSP_LIB}
 
 .SUFFIXES:
@@ -33,37 +33,26 @@ SRCS = fpcomm.f90 fpinit.f90 fpmpi.f90 fpbroadcast.f90 fpexec.f90 \
 
 OBJS = $(SRCS:.f90=.o)
 
-LIBS =  fplib.a ../../task/plx/pllib.a ../../task/eq/eqlib.a   \
-        ../../task/lib/tasklib.a ../../bpsd/bpsdlib.a 
+LIBS =  ../lib/tasklib.a ../../bpsd/bpsdlib.a $(LIBMTX) ../plx/pllib.a \
+        ../eq/eqlib.a fplib.a
 
 .f.o :
 	$(MF90) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
 	$(MF90) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all: libs fp
+all: fp
 
-fplib.a: $(OBJS)
-	$(LD) $(LDFLAGS) fplib.a $(OBJS)
-
+../lib/tasklib.a:
+	(cd ../lib; make tasklib.a)
 ../../bpsd/bpsdlib.a:
 	(cd ../../bpsd; make bpsdlib.a)
 ../plx/pllib.a:
-	(cd ../plx; make pllib.a)
+	(cd .; make pllib.a)
 ../eq/eqlib.a:
 	(cd ../../task/eq; make eqlib.a)
-../mtxp/libmtxksp.o:
-	(cd ../../task/mtxp; make libmtxksp.o)
-../mtxp/libmtxmumps.o:
-	(cd ../../task/mtxp; make libmtxmumps.o)
-../mtxp/libmtxbnd.o:
-	(cd ../../task/mtxp; make libmtxbnd.o)
-../mtxp/libmtxmpi.o:
-	(cd ../../task/mtxp; make libmtxmpi.o)
-../mtxp/libmtxnompi.o:
-	(cd ../../task/mtxp; make libmtxnompi.o)
-../lib/tasklib.a:
-	(cd ../../task/lib; make tasklib.a)
+fplib.a: $(OBJS)
+	$(LD) $(LDFLAGS) fplib.a $(OBJS)
 
 libs:
 	(cd ../lib; make tasklib.a)
@@ -73,8 +62,8 @@ libs:
 	(cd ../plx; make pllib.a)
 	(cd ../eq; make eqlib.a)
 
-fp : libs fpmain.o 
-	$(MF90) fpmain.o -o $@ $(FFLAGS) $(LIBS) $(LIBMTX) $(PETSCLIBS) $(FLIBS) 
+fp : $(LIBS) fpmain.o 
+	$(MF90) fpmain.o -o $@ $(FFLAGS) $(LIBS) $(PETSCLIBS) $(FLIBS) 
 
 clean :
 	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod

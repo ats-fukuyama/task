@@ -10,18 +10,16 @@ SRCS = wrmenu.f wrinit.f wrcalc.f wrbeam.f wrgout.f
 
 OBJS = $(SRCS:.f=.o)
 
-LIBS = wrlib.a ../plx/pllib.a ../eq/eqlib.a ../dp/dplib.a \
+#LIBS = wrlib.a ../plx/pllib.a ../eq/eqlib.a ../dp/dplib.a \
        ../../bpsd/bpsdlib.a ../lib/tasklib.a
+LIBS = ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a ../eq/eqlib.a ../dp/dplib.a wrlib.a 
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all : libs wr
-
-wrlib.a: $(OBJS)
-	$(LD) $(LDFLAGS) wrlib.a $(OBJS)
+all : wr
 
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)
@@ -33,6 +31,9 @@ wrlib.a: $(OBJS)
 	(cd ../eq; make eqlib.a)
 ../dp/dplib.a:
 	(cd ../dp; make dplib.a)
+wrlib.a: $(OBJS)
+	$(LD) $(LDFLAGS) wrlib.a $(OBJS)
+
 libs:
 	(cd ../lib; make tasklib.a)
 	(cd ../../bpsd; make bpsdlib.a)
@@ -40,7 +41,7 @@ libs:
 	(cd ../eq; make eqlib.a)
 	(cd ../dp; make dplib.a)
 
-wr : libs wrmain.o
+wr : $(LIBS) wrmain.o
 	$(FCFIXED) wrmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODDIR) $(MODINCLUDE)
 
 check :

@@ -175,6 +175,9 @@
       RKAP=device%elip
       RDLT=device%trig
 
+!      write(6,*) 'bpsd_get_data: device'
+!      write(6,'(1P6E12.4)') RR,RA,BB,RIP,RKAP,RDLT
+
       call bpsd_get_data(plasmaf,ierr)
 
       do ns=1,plasmaf%nsmax
@@ -197,6 +200,13 @@
          call mesh_convert_gtom(temp(1:plasmaf%nrmax,ns,3),ru(1:nrmax,ns), &
                                 nrmax)
       enddo
+
+!      write(6,*) 'bpsd_get_data: plasmaf'
+!      DO nr=1,nrmax
+!         write(6,'(A,1P6E12.4)') 'rn:',(rn(nr,ns),ns=1,nsmax)
+!         write(6,'(A,1P6E12.4)') 'rt:',(rt(nr,ns),ns=1,nsmax)
+!         write(6,'(A,1P6E12.4)') 'ru:',(ru(nr,ns),ns=1,nsmax)
+!      END DO
 
       if(modelg.eq.3.or.modelg.eq.5.or.modelg.eq.8.or.modelg.eq.9) then
 
@@ -320,6 +330,32 @@
          AJ(NR) =FACTOR0*(FACTORP*RDPVRHOG(NR)-FACTORM*RDPVRHOG(NR-1))/DR
          AJOH(NR)=AJ(NR)
       ENDDO
+
+!      write(6,*) 'bpsd_get_data: equ1D'
+!      DO nr=1,nrmax
+!         write(6,*) 'nr=',nr
+!         write(6,'(A,1P6E12.4)') &
+!              DVRHOG  (nr), &
+!              ABRHOG  (nr), &
+!              ARRHOG  (nr), &
+!              AR1RHOG (nr), &
+!              AR2RHOG (nr), &
+!              ABB2RHOG(nr), &
+!              AIB2RHOG(nr), &
+!              ARHBRHOG(nr), &
+!              EPSRHO  (nr), &
+!              RMJRHO  (nr), &
+!              RMNRHO  (nr), &
+!              RKPRHOG (nr), &
+!              RDPVRHOG(nr), &
+!              ABVRHOG (nr), &
+!              PVOLRHOG(nr), &
+!              PSURRHOG(nr), &
+!              RDP     (nr), &
+!              BP      (nr), &
+!              AJ      (nr), &
+!              AJOH    (nr)
+!      END DO
 
 !      write(6,*) 'end of tr_bpsd_get: aj'
 !      write(6,'(1P5E12.4)') (aj(nr),nr=1,nrmax)

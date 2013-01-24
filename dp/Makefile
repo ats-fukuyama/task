@@ -12,8 +12,8 @@ SRCS = dpmenu.f dpinit.f dproot.f dpcont.f dpdisp.f \
 
 OBJS = $(SRCS:.f=.o) 
 
-LIBS = dplib.a ../eq/eqlib.a ../plx/pllib.a ../lib/tasklib.a \
-       ../../bpsd/bpsdlib.a
+LIBS = ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a \
+       ../eq/eqlib.a dplib.a 
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -24,6 +24,8 @@ all : dp
 
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)
+../../bpsd/bpsdlib.a:
+	(cd ../../bpsd; make bpsdlib.a)
 ../plx/pllib.a:
 	(cd ../plx; make pllib.a)
 ../eq/eqlib.a:
@@ -33,12 +35,11 @@ dplib.a: $(OBJS)
 
 libs:
 	(cd ../lib; make tasklib.a)
+	(cd ../../bpsd; make bpsdlib.a)
 	(cd ../plx; make pllib.a)
 	(cd ../eq; make eqlib.a)
 
-dp : libs dpmain.o
-	(cd ../plx; make pllib.a)
-	(cd ../lib; make tasklib.a)
+dp : $(LIBS) dpmain.o
 	$(FCFIXED) dpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 check :

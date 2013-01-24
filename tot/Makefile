@@ -8,33 +8,22 @@ MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD) -I../fp/
 EQLIBS= ../plx/noequlib.o ../eq/eqlib.a 
 
 ##### Without PETSc library #####
-LIBMTX=../mtxp/libmtxbnd.o ../mtxp/libmtxnompi.o
+LIBMTXP=../mtxp/libmtxbnd.o ../mtxp/libmtxnompi.o
 PETSCLIBS=
 ##### With PETSc library #####
 #include ${PETSC_DIR}/conf/variables
-#LIBMTX=../mtxp/libmtxksp.o ../mtxp/libmtxmpi.o
+#LIBMTXP=../mtxp/libmtxksp.o ../mtxp/libmtxmpi.o
 #PETSCLIBS=${PETSC_KSP_LIB}
 
 SRCS = main.f
 
 OBJS = $(SRCS:.f=.o)
 
-LIB0 =  ../eq/treqin.o ../tr/trcom2.o ../tr/trcom3.o ../tr/tr2lib.a \
-       ../dp/dplib.a ../wr/wrlib.a \
-       ../eq/wmeqin.o \
-	../fp/fplib.a \
-       ../../bpsd/bpsdlib.a \
-       ../lib/mdslib.a $(LIBMTX) $(PETSCLIBS)
-
-LIBS = $(LIB0) ../wm/wmlib.a ../plx/pllib.a \
-       $(EQLIBS) \
-       ../mpi/nompilib.o ../mtx/mtxlib.a \
-       ../lib/tasklib.a
-
-LIBM = $(LIB0) ../wm/mpiwmlib.a  ../plx/pllib.a \
-       $(EQLIBS) \
-       ../mpi/mpilib.o ../mtx/mpimtxlib.a \
-       ../lib/tasklib.a
+LIBS = ../lib/mdslib.a $(LIBMTXP) ../mtx/mtxlib.a ../mpi/mpilib.o \
+       ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a \
+       ../tr/trcom2.o ../tr/trcom3.o $(EQLIBS) \
+       ../tr/tr2lib.a ../dp/dplib.a ../wr/wrlib.a ../wm/wmlib.a \
+       ../fp/fplib.a
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -43,6 +32,26 @@ LIBM = $(LIB0) ../wm/mpiwmlib.a  ../plx/pllib.a \
 
 all : libs tot
 
+../lib/tasklib.a:
+	(cd ../lib; make tasklib.a)
+../lib/mdslib.a:
+	(cd ../lib; make mdslib.a)
+../mtxp/libmtxmpi.o:
+	(cd ../mtxp; make libmtxmpi.o)
+../mtxp/libmtxnompi.o:
+	(cd ../mtxp; make libmtxnompi.o)
+../mtxp/libmtxksp.o:
+	(cd ../mtxp; make libmtxksp.o)
+../mtxp/libmtxmumps.o:
+	(cd ../mtxp; make libmtxmumps.o)
+../mtxp/libmtxbnd.o:
+	(cd ../mtxp; make libmtxbnd.o)
+../mpi/mpilib.o:
+	(cd ../mpi; make mpilib.o)
+../mtx/mtxlib.a:
+	(cd ../mtx; make mtxlib.a)
+../mtx/mpimtxlib.a:
+	(cd ../mtx; make mpimtxlib.a)
 ../../bpsd/bpsdlib.a:
 	(cd ../../bpsd; make bpsdlib.a)
 ../plx/pllib.a:
@@ -53,10 +62,6 @@ all : libs tot
 	(cd ../plx; make noequlib.o)
 ../eq/eqlib.a:
 	(cd ../eq; make eqlib.a)
-../eq/treqin.o:
-	(cd ../eq; make treqin.o)
-../eq/wmeqin.o:
-	(cd ../eq; make wmeqin.o)
 ../tr/tr2lib.a:
 	(cd ../tr; make tr2lib.a)
 ../dp/dplib.a:
@@ -69,74 +74,35 @@ all : libs tot
 	(cd ../wm; make mpiwmlib.a)
 ../fp/fplib.a:
 	(cd ../fp; make fplib.a)
-../mtx/mtxlib.a:
-	(cd ../mtx; make mtxlib.a)
-../mtx/mpimtxlib.a:
-	(cd ../mtx; make mpimtxlib.a)
-../lib/tasklib.a:
-	(cd ../lib; make tasklib.a)
-../lib/mdslib.a:
-	(cd ../lib; make mdslib.a)
-../mpi/nompilib.o:
-	(cd ../mpi; make nompilib.o)
-../mpi/mpilib.o:
-	(cd ../mpi; make mpilib.o)
 
 libs:
+	(cd ../mtxp; make)
+	(cd ../mtx; make mtxlib.a)
+	(cd ../mpi; make mpilib.o)
 	(cd ../lib; make tasklib.a)
 	(cd ../../bpsd; make bpsdlib.a)
 	(cd ../plx; make pllib.a)
 	(cd ../plx; make noeqlib.o)
 	(cd ../eq; make eqlib.a)
-	(cd ../eq; make treqin.o)
-	(cd ../eq; make wmeqin.o)
 	(cd ../tr; make trcom2.o)
 	(cd ../tr; make trcom3.o)
 	(cd ../tr; make tr2lib.a)
 	(cd ../dp; make dplib.a)
 	(cd ../wr; make wrlib.a)
-	(cd ../mtxp; make)
-	(cd ../mtx; make mtxlib.a)
-	(cd ../mpi; make nompilib.o)
 	(cd ../wm; make wmlib.a)
 	(cd ../fp; make fplib.a)
 
-tot : main.o $(LIBS)
-	$(FCFIXED) main.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODINCLUDE)
+tot : $(LIBS) main.o
+	$(FCFIXED) main.o -o $@ $(FFLAGS) $(MODINCLUDE) $(LIBS) $(FLIBS) 
 
-mpitot : main.o $(LIBM)
-	$(MFC) main.o $(LIBM) -o $@ $(FFLAGS) $(FLIBS) $(MODINCLUDE)
-
-xtot :
-	(cd ../plx; make pllib.a noeqlib.o)
-	(cd ../eq; make eqlib.a treqin.o wmeqin.o)
-	(cd ../tr; make tr2lib.a)
-	(cd ../dp; make dplib.a)
-	(cd ../wr; make wrlib.a)
-	(cd ../wm; make wmlib.a)
-	(cd ../fp; make fplib.a)
-	(cd ../mtxp; make mtxlib.a)
-	(cd ../mtx; make mtxlib.a)
-	(cd ../lib; make)
-	(cd ../mpi; make nompilib.o)
-	$(FC) main.o $(LIBS) -o tot $(FFLAGS) $(FLIBS)
-
-force : main.o $(LIBS)
-	$(FC) main.o $(LIBS) -o tot $(FFLAGS) $(FLIBS)
-
-check :
-	ftnchek $(FCKFLAGS) $(SRCS) | less
+mpitot : $(LIBM) main.o
+	$(MF90) main.o -o $@ $(FFLAGS) $(MODINCLUDE) $(LIB) $(FLIBS) $(PETSCLIBS) 
 
 clean:
 	-rm -f core a.out *.o *.mod ./*~ *.a $(MOD)/*.mod
 
 veryclean: clean
 	-rm -f tot
-
-new:
-	-mkdir ../totnew
-	cp Makefile ../totnew
-	cp *.f ../totnew
 
 main.o: main.f ../wm/wmcomm.inc
 

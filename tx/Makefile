@@ -48,7 +48,7 @@ tx3lib.a: $(OBJS) $(OBJ3D) $(OBJNC) $(INCNC) $(OBJMM)
 libs:
 	(cd ../lib; make)
 
-$(PROG2): $(LIBS2)
+$(PROG2): $(LIBS2) 
 	$(FCFREE) $(LIBS2) -o $@ $(FFLAGS) $(FLIBS)
 
 $(PROG3): $(LIBS3)

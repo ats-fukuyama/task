@@ -59,7 +59,7 @@ C
 C
       USE plmenu,ONLY:pl_menu
       USE fpmenu,ONLY:fp_menu
-      INCLUDE '../mpi/mpicom.inc'
+      USE commpi
 C
       CHARACTER KID*2,KID1*1,KID2*1
 C
