@@ -19,8 +19,9 @@ SRCS = main.f
 
 OBJS = $(SRCS:.f=.o)
 
-LIBS = ../lib/mdslib.a $(LIBMTXP) ../mtx/mtxlib.a ../mpi/mpilib.o \
-       ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a \
+LIBS = ../lib/mdslib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a \
+       $(LIBMTXP) ../mtx/mtxlib.a ../mpi/mpilib.o \
+       ../plx/pllib.a \
        ../tr/trcom2.o ../tr/trcom3.o $(EQLIBS) \
        ../tr/tr2lib.a ../dp/dplib.a ../wr/wrlib.a ../wm/wmlib.a \
        ../fp/fplib.a
@@ -30,7 +31,7 @@ LIBS = ../lib/mdslib.a $(LIBMTXP) ../mtx/mtxlib.a ../mpi/mpilib.o \
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all : libs tot
+all : tot
 
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)
@@ -62,6 +63,10 @@ all : libs tot
 	(cd ../plx; make noequlib.o)
 ../eq/eqlib.a:
 	(cd ../eq; make eqlib.a)
+../tr/trcom2.o:
+	(cd ../tr; make trcom2.o)
+../tr/trcom3.o:
+	(cd ../tr; make trcom3.o)
 ../tr/tr2lib.a:
 	(cd ../tr; make tr2lib.a)
 ../dp/dplib.a:
@@ -76,11 +81,11 @@ all : libs tot
 	(cd ../fp; make fplib.a)
 
 libs:
+	(cd ../lib; make tasklib.a)
+	(cd ../../bpsd; make bpsdlib.a)
 	(cd ../mtxp; make)
 	(cd ../mtx; make mtxlib.a)
 	(cd ../mpi; make mpilib.o)
-	(cd ../lib; make tasklib.a)
-	(cd ../../bpsd; make bpsdlib.a)
 	(cd ../plx; make pllib.a)
 	(cd ../plx; make noeqlib.o)
 	(cd ../eq; make eqlib.a)
