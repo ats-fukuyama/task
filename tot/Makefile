@@ -82,12 +82,14 @@ all : tot
 
 libs:
 	(cd ../lib; make tasklib.a)
+	(cd ../lib; make mdslib.a)
 	(cd ../../bpsd; make bpsdlib.a)
 	(cd ../mtxp; make)
 	(cd ../mtx; make mtxlib.a)
 	(cd ../mpi; make mpilib.o)
 	(cd ../plx; make pllib.a)
 	(cd ../plx; make noeqlib.o)
+	(cd ../plx; make noequlib.o)
 	(cd ../eq; make eqlib.a)
 	(cd ../tr; make trcom2.o)
 	(cd ../tr; make trcom3.o)
