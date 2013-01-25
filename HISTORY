@@ -1,3 +1,12 @@
+2013/01/25   V2.01
+             gfortran support
+
+2013/01/23   V2.00
+             all module uses plx rather than pl
+             mpi interface is unified
+             temporary equ separated
+             pl and mpi will be removed soon
+
 2009/04/30   V1.14
              tr/cytran added
              tr/trfile.f90 is divided into trfile.f90 trufile.f90 trufsub.f90 

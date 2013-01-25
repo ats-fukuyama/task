@@ -33,8 +33,7 @@ LIBS3 = ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a eq3lib.a
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all : libs eq
-#all : eq3
+all : eq
 
 
 ../lib/tasklib.a:
