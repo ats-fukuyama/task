@@ -1,15 +1,14 @@
 include ../../task/make.header
 
-
 FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
-all: $(EXEC)
 
 ##### Without PETSc library (no MPI, real8 and complex8) #####
 FLINKER=$(FCFREE)
 INCLUDE_MUMPS=.
 EXEC=testbnd testbndc
+all: $(EXEC)
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 .f90.o :
@@ -21,6 +20,7 @@ clean :
 #FLINKER=$(MF90)
 #INCLUDE_MUMPS=${PETSC_DIR}/externalpackages/MUMPS_4.10.0/include
 #EXEC=testbnd testbndc testdmumps testzmumps
+#all: $(EXEC)
 #.SUFFIXES:
 #.SUFFIXES: .f .f90 .mod .o .a
 #.f90.o :
@@ -28,13 +28,13 @@ clean :
 #clean :
 #	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod
 
-
 ##### With PETSc library 3.2 (real8) #####
 #include ${PETSC_DIR}/conf/variables
 #include ${PETSC_DIR}/conf/rules
 #INCLUDE_MUMPS=${PETSC_DIR}/externalpackages/MUMPS_4.10.0/include
 #INCLUDE_PETSC=${PETSC_DIR}/include
 #EXEC=testbnd testbndc testdmumps testzmumps testksp
+#all: $(EXEC)
 
 INCMOD=-I $(MOD) -I../lib/$(MOD)
 LIBMOD=-L../lib -l libgrf
@@ -45,8 +45,6 @@ LIBKSP=$(LIBMPI) libmtxksp.o
 LIBMUMPS=$(LIBMPI) libmtxmumps.o
 LIBMUMPSX=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common -lpord -lscalapack -lblacs -lparmetis -lmetis -llapack -lblas
 
-all: $(EXEC)
-
 libs: $(LIBNOMPI) $(LIBMPI) libmtxbnd.o libmtxmumps.o libmtxksp.o 
 
 testbnd: $(LIBBND) testmtx.o 
@@ -55,6 +53,7 @@ testbnd: $(LIBBND) testmtx.o
 testbndc: $(LIBBNDC) testmtxc.o 
 	-${FLINKER} -g -o testbndc testmtxc.o $(LIBBND) \
 	../lib/tasklib.a $(FLIBS)
+
 testksp: $(LIBKSP) testmtx.o
 	-${FLINKER} -g -o testksp testmtx.o $(LIBKSP) ${PETSC_KSP_LIB}
 

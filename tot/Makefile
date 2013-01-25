@@ -97,7 +97,7 @@ libs:
 	(cd ../wm; make wmlib.a)
 	(cd ../fp; make fplib.a)
 
-tot : $(LIBS) main.o
+tot : libs main.o
 	$(FCFIXED) main.o -o $@ $(FFLAGS) $(MODINCLUDE) $(LIBS) $(FLIBS) 
 
 mpitot : $(LIBM) main.o
