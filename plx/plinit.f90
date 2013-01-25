@@ -221,8 +221,8 @@
 
 !     ======( Default values )======
 
-      MODEFR = 0
-      MODEFW = 0
+      MODEFR = 1
+      MODEFW = 5
 
       IDEBUG = 0
 

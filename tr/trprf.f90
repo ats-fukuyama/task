@@ -112,11 +112,16 @@
          ELSE
             EFCDIC=0.D0
          ENDIF
-         AJRFV(NR,1)=0.384D0*RT(NR,1)/(RN(NR,1)*RLNLMD) *(PECCD*PECTOE*EFCDEC*PECL)
-         AJRFV(NR,2)=0.384D0*RT(NR,1)/(RN(NR,1)*RLNLMD) *(PLHCD*PLHTOE*EFCDLH*PLHL)
-         AJRFV(NR,3)=0.384D0*RT(NR,1)/(RN(NR,1)*RLNLMD) *(PICCD*PICTOE*EFCDIC*PICL)
-         AJRF(NR)   =0.384D0*RT(NR,1)/(RN(NR,1)*RLNLMD) *(PECCD*PECTOE*EFCDEC*PECL &
-     &              + PLHCD*PLHTOE*EFCDLH*PLHL          + PICCD*PICTOE*EFCDIC*PICL)
+         AJRFV(NR,1)=0.384D0*RT(NR,1)/(RN(NR,1)*RLNLMD) &
+                    *(PECCD*PECTOE*EFCDEC*PECL)
+         AJRFV(NR,2)=0.384D0*RT(NR,1)/(RN(NR,1)*RLNLMD) &
+                    *(PLHCD*PLHTOE*EFCDLH*PLHL)
+         AJRFV(NR,3)=0.384D0*RT(NR,1)/(RN(NR,1)*RLNLMD) &
+                    *(PICCD*PICTOE*EFCDIC*PICL)
+         AJRF(NR)   =0.384D0*RT(NR,1)/(RN(NR,1)*RLNLMD) &
+                    *(PECCD*PECTOE*EFCDEC*PECL &
+                    + PLHCD*PLHTOE*EFCDLH*PLHL          &
+                    + PICCD*PICTOE*EFCDIC*PICL)
       ENDDO
 
       RETURN

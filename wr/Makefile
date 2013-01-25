@@ -6,7 +6,7 @@ FFLAGS=$(OFLAGS)
 
 MODINCLUDE= -I./$(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD) -I../plx/$(MOD)
 
-SRCS = wrmenu.f wrinit.f wrcalc.f wrbeam.f wrgout.f
+SRCS = wrmenu.f wrinit.f wrcalc.f wrbeam.f wrgout.f wrfile.f
 
 OBJS = $(SRCS:.f=.o)
 

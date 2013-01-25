@@ -100,6 +100,8 @@ C
                SINT2=SIN(ANGPH*PI/180.D0)**2
                RNZI  =SQRT(SINP2*(1-SINT2)/(1-SINP2*SINT2))
                RNPHII=SQRT(SINT2*(1-SINP2)/(1-SINP2*SINT2))
+               IF(ANGZ.LT.0.D0) RNZI=-RNZI
+               IF(ANGPH.LT.0.D0) RNPHII=-RNPHII
                WRITE(6,*) 'XX MDLWRI=2 IS NOT SUPPORTED YET.'
                GOTO 1
             ENDIF
@@ -130,6 +132,21 @@ C
                RNPHII=SQRT(SINT2*(1-SINP2)/(1-SINP2*SINT2))
                IF(ANGZ.LT.0.D0) RNZI=-RNZI
                IF(ANGPH.LT.0.D0) RNPHII=-RNPHII
+
+               IF(RNZI.EQ.0.D0.AND.RNPHI.EQ.0.D0) THEN
+                  ANGZ_=0.D0
+                  ANGPH_=0.D0
+               ELSE
+                  SINP2=RNZI**4 /(RNZI**2+RNPHII**2-RNZI**2*RNPHI**2)
+                  SINT2=RNPHI**4/(RNZI**2+RNPHII**2-RNZI**2*RNPHI**2)
+                  ANGZ_= 180.D0/PI*ASIN(SQRT(SINP2))
+                  ANGPH_=180.D0/PI*ASIN(SQRT(SINT2))
+                  IF(RNZI .LT.0.D0) ANGZ_= -ANGZ_
+                  IF(RNPHI.LT.0.D0) ANGPH_=-ANGPH_
+               ENDIF
+               WRITE(6,'(A,1P2E12.4)') 'ANG:  ',ANGZ,ANGPH
+               WRITE(6,'(A,1P2E12.4)') 'RNI:  ',RNZI,RNPHI
+               WRITE(6,'(A,1P2E12.4)') 'ANG_: ',ANGZ_,ANGPH_
             ENDIF
          ENDIF
 C
@@ -138,14 +155,8 @@ C
          RAYIN(3,NRAY)=ZPI
          RAYIN(4,NRAY)=PHII
          RAYIN(5,NRAY)=RKR0
-         IF(MDLWRI.EQ.0.OR.MDLWRI.EQ.10)THEN
-            RAYIN(6,NRAY)=RNZI
-            RAYIN(7,NRAY)=RNPHII
-         ELSE
-            RAYIN(6,NRAY)=ANGZ
-            RAYIN(7,NRAY)=ANGPH
-         ENDIF
-C         
+         RAYIN(6,NRAY)=ANGZ
+         RAYIN(7,NRAY)=ANGPH
          RAYIN(8,NRAY)=UUI
 C          
          RKRI  = RKR0
@@ -1305,76 +1316,6 @@ C         ENDIF
       ENDDO
 C
       RETURN
-      END
-C
-C***********************************************************************
-C     save ray data
-C***********************************************************************
-C
-      SUBROUTINE WRSAVE
-C
-      USE plcomm
-      INCLUDE 'wrcomm.inc'
-C      
-      CHARACTER*80 KNAM
-C      CHARACTER*1 KID
-      LOGICAL LEX
-C
-    1 WRITE(6,*) '# INPUT : WRDATA SAVE FILE NAME : ',TRIM(KNAMWR)
-      READ(5,'(A80)',ERR=1,END=900) KNAM
-      IF(KNAM(1:2).NE.'/ ') KNAMWR=KNAM
-C
-      INQUIRE(FILE=KNAMWR,EXIST=LEX)
-      IF(LEX) THEN
-C         WRITE(6,*) '# OLD FILE IS GOING TO BE OVERWRITTEN.  ',
-C     &              'ARE YOU SURE {Y/N} ?'
-C         READ(5,502) KID
-C  502    FORMAT(A1)
-C         CALL GUCPTL(KID)
-C         IF(KID.NE.'Y') GOTO 1
-         OPEN(21,FILE=KNAMWR,IOSTAT=IST,STATUS='OLD',ERR=10,
-     &        FORM='UNFORMATTED')
-         WRITE(6,*) '# OLD FILE (',KNAMWR,') IS ASSIGNED FOR OUTPUT.'
-         GOTO 30
-   10    WRITE(6,*) 'XX OLD FILE OPEN ERROR : IOSTAT = ',IST
-         GOTO 1
-      ELSE
-         OPEN(21,FILE=KNAMWR,IOSTAT=IST,STATUS='NEW',ERR=20,
-     &        FORM='UNFORMATTED')
-         WRITE(6,*) '# NEW FILE (',KNAMWR,') IS CREATED FOR OUTPUT.'
-         GOTO 30
-   20    WRITE(6,*) 'XX NEW FILE OPEN ERROR : IOSTAT = ',IST
-         GOTO 1
-      ENDIF
-C
-   30 CONTINUE
-C
-      WRITE(21) NRAYMX
-      DO NRAY=1,NRAYMX
-         WRITE(21) NITMAX(NRAY)
-      END DO
-      DO NRAY=1,NRAYMX
-         WRITE(21) (RAYIN(I,NRAY),I=1,8)
-         WRITE(21) (CEXS(NIT,NRAY),NIT=0,NITMAX(NRAY))
-         WRITE(21) (CEYS(NIT,NRAY),NIT=0,NITMAX(NRAY))
-         WRITE(21) (CEZS(NIT,NRAY),NIT=0,NITMAX(NRAY))
-         WRITE(21) (RKXS(NIT,NRAY),NIT=0,NITMAX(NRAY))
-         WRITE(21) (RKYS(NIT,NRAY),NIT=0,NITMAX(NRAY))
-         WRITE(21) (RKZS(NIT,NRAY),NIT=0,NITMAX(NRAY))
-         WRITE(21) (RXS(NIT,NRAY),NIT=0,NITMAX(NRAY))
-         WRITE(21) (RYS(NIT,NRAY),NIT=0,NITMAX(NRAY))
-         WRITE(21) (RZS(NIT,NRAY),NIT=0,NITMAX(NRAY))
-         WRITE(21) (RAYRB1(NIT,NRAY),NIT=0,NITMAX(NRAY))
-         WRITE(21) (RAYRB2(NIT,NRAY),NIT=0,NITMAX(NRAY))
-         DO I=0,8
-            WRITE(21) (RAYS(I,NIT,NRAY),NIT=0,NITMAX(NRAY))
-         ENDDO
-      ENDDO
-      CLOSE(21)
-C
-      WRITE(6,*) '# DATA WAS SUCCESSFULLY SAVED TO THE FILE.'
-C
-  900 RETURN
       END
 C
 C********************************** CAL K ********************************

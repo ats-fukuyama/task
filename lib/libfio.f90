@@ -29,16 +29,15 @@
       INTEGER(4),       INTENT(OUT)  :: IERR
       CHARACTER(LEN=*), INTENT(INOUT):: KNAMFL
       CHARACTER(LEN=*), INTENT(IN)   :: KPR
-      INTEGER(4)        :: KL, IST
+      INTEGER(4)        :: IST
       CHARACTER(LEN=80) :: KNAM
       LOGICAL           :: LEX
 
       KNAM=KNAMFL
-      CALL KTRIM(KNAM,KL)
       IF(MODEP.EQ.0) THEN
-         IF(KL.EQ.0) GOTO  9008
+         IF(LEN_TRIM(KNAM).EQ.0) GOTO  9008
       ELSEIF(MODEP.EQ.1) THEN
-    1    WRITE(6,*) '#',KPR,'> INPUT : LOAD FILE NAME : ',KNAM(1:KL)
+    1    WRITE(6,*) '#',KPR,'> INPUT : LOAD FILE NAME : ',TRIM(KNAM)
          READ(5,'(A80)',ERR=1,END=9001) KNAM
          IF(KNAM(1:2).NE.'/ ') KNAMFL=KNAM
          IF(KNAMFL(1:2).EQ.'  ') GOTO 9002
@@ -49,7 +48,6 @@
 
       INQUIRE(FILE=KNAMFL,EXIST=LEX,ERR=9004)
       KNAM=KNAMFL
-      CALL KTRIM(KNAM,KL)
       IF(LEX) THEN
          IF(MODEF.EQ.0) THEN
             OPEN(NFL,FILE=KNAMFL,IOSTAT=IST,STATUS='OLD',ERR=20, &
@@ -62,13 +60,13 @@
             GOTO 9005
          ENDIF
          KNAM=KNAMFL
-         WRITE(6,*) '# OLD FILE (',KNAM(1:KL),') IS ASSIGNED FOR INPUT.'
+         WRITE(6,*) '# OLD FILE (',TRIM(KNAM),') IS ASSIGNED FOR INPUT.'
          GOTO 9000
 
    20    WRITE(6,*) 'XX OLD FILE OPEN ERROR : IOSTAT = ',IST
          GOTO 9006
       ELSE
-         WRITE(6,*) 'XX FILE (',KNAM(1:KL),') NOT FOUND'
+         WRITE(6,*) 'XX FILE (',TRIM(KNAM),') NOT FOUND'
          GOTO 9007
       ENDIF
 
@@ -136,7 +134,7 @@
       INTEGER(4),       INTENT(OUT)  :: IERR
       CHARACTER(LEN=*), INTENT(INOUT):: KNAMFL
       CHARACTER(LEN=*), INTENT(IN)   :: KPR
-      INTEGER(4)        :: MODEPI, MODEPII, KL, IST
+      INTEGER(4)        :: MODEPI, MODEPII, IST
       CHARACTER(LEN=80) :: KNAM
       CHARACTER(LEN=1)  :: KID
       LOGICAL           :: LEX
@@ -144,12 +142,11 @@
       MODEPI=MODEP
 
       KNAM=KNAMFL
-      CALL KTRIM(KNAM,KL)
 
  1000 IF(MODEPI.LE.3) THEN
-         IF(KL.EQ.0) GOTO 9008
+         IF(LEN_TRIM(KNAM).EQ.0) GOTO 9008
       ELSE
-    1    WRITE(6,*) '#',KPR,'> INPUT : SAVE FILE NAME : ',KNAM(1:KL)
+    1    WRITE(6,*) '#',KPR,'> INPUT : SAVE FILE NAME : ',TRIM(KNAM)
          READ(5,'(A80)',ERR=1,END=9001) KNAM
          IF(KNAM(1:2).NE.'/ ') KNAMFL=KNAM
          IF(KNAM(1:2).EQ.'  ') GOTO 9002
@@ -157,15 +154,14 @@
 
       INQUIRE(FILE=KNAMFL,EXIST=LEX,ERR=9004)
       KNAM=KNAMFL
-      CALL KTRIM(KNAM,KL)
 
       IF(LEX) THEN
          MODEPII=MOD(MODEPI,4)
          IF(MODEPII.EQ.0) THEN
-            WRITE(6,*) '# OLD FILE (',KNAM(1:KL), &
+            WRITE(6,*) '# OLD FILE (',TRIM(KNAM), &
      &                 ') WILL BE OVERWRITTEN'
          ELSEIF(MODEPII.EQ.1) THEN
-    3       WRITE(6,*) '# OLD FILE (',KNAM(1:KL), &
+    3       WRITE(6,*) '# OLD FILE (',TRIM(KNAM), &
      &                 ') IS GOING TO BE OVERWRITTEN'
             WRITE(6,*) '  ARE YOU SURE ? (Y/N)'
             READ(5,'(A1)',ERR=3,END=9001) KID
@@ -192,7 +188,7 @@
             WRITE(6,*) 'XX FEOPEN: UNKNOWN MODEF : MODEF=',MODEF
             GOTO 9005
          ENDIF
-         WRITE(6,*) '# OLD FILE (',KNAM(1:KL), &
+         WRITE(6,*) '# OLD FILE (',TRIM(KNAM), &
      &                 ') IS ASSIGNED FOR OUTPUT.'
          GOTO 9000
 
@@ -209,7 +205,7 @@
             WRITE(6,*) 'XX FEOPEN: UNKNOWN MODEF : MODEF=',MODEF
             GOTO 9005
          ENDIF
-         WRITE(6,*) '# NEW FILE (',KNAM(1:KL),') IS CREATED FOR OUTPUT.'
+         WRITE(6,*) '# NEW FILE (',TRIM(KNAM),') IS CREATED FOR OUTPUT.'
          GOTO 9000
 
    20    WRITE(6,*) 'XX NEW FILE OPEN ERROR : IOSTAT = ',IST

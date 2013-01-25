@@ -433,6 +433,10 @@ C
          ZPFC(NPFC)  =-1.75D0
          WPFC(NPFC)  = 0.75D0
       ENDDO
+
+      MODEFW=0
+      MODEFR=0
+
       RETURN
       END
 C

@@ -17,7 +17,7 @@ C
     1 CONTINUE
          IERR=0
          WRITE(6,601)
-  601    FORMAT('## WR MENU: P,V/PARM  R,B/RAY  G/GRAPH  S/SAVE',
+  601    FORMAT('## WR MENU: P,V/PARM  R,B/RAY  G/GRAPH  S,L/FILE',
      &          '  Dn/DISP  F/ROOT  Q/QUIT')
          CALL TASK_KLIN(LINE,KID,MODE,WRPARM)
       IF(MODE.NE.1) GOTO 1
@@ -51,6 +51,8 @@ C
          CALL WRGOUT(NSTAT)
       ELSEIF(KID.EQ.'S') THEN
          CALL WRSAVE
+      ELSEIF(KID.EQ.'L') THEN
+         CALL WRLOAD(NSTAT)
       ELSEIF(KID.EQ.'Q') THEN
          GOTO 9000
       ELSE

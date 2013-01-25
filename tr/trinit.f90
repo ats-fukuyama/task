@@ -1205,12 +1205,11 @@
       ENDDO
  1200 CONTINUE
 
-      DO NS=1,8 ! 8 means all particles we should consider.
+      DO NS=1,NSMAX
          IF(PZ(NS).NE.0.D0) THEN
             AMZ(NS)=PA(NS)*AMM/PZ(NS)**2
          ELSE
             AMZ(NS)=0.D0
-!     I don't know whether this representation is true or not.
          ENDIF
       ENDDO
 
