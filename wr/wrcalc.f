@@ -646,9 +646,11 @@ C
 		CALL REFINDEX(Y, OX_Y, OX_NZOPT, OX_NZ, OX_NY)
 		OX_K0 = OMG / VC
 		WRITE(6,*)'N_OPT=',OX_NZOPT,'NZ=',OX_NZ,'NY=',OX_NY
-		WRITE(6,*)'K0=',OX_K0,'N=', SQRT((Y(4)**2+Y(5)**2+Y(6)**2))*(VC/OMG)	
+		WRITE(6,*)'K0=',OX_K0,'N=', 
+     &               SQRT((Y(4)**2+Y(5)**2+Y(6)**2))*(VC/OMG)	
 		
-		OXEFF = ( 2.0*(1.0+OX_Y)*((OX_NZ-OX_NZOPT)**2) +OX_NY**2 )
+		OXEFF = ( 2.0*(1.0+OX_Y)*((OX_NZ-OX_NZOPT)**2) 
+     &                  + OX_NY**2 )
 		OXEFF = EXP(-PI*OX_K0*OX_LN*SQRT(0.5*OX_Y)*OXEFF)
 		WRITE(6,*) 'OXEFF=',OXEFF 
 

@@ -13,13 +13,15 @@
      & PBMU, PEX, PI, PICU, PN, PNBU, PNC, PNFE, PNS, PNSA, PNSS, PNSSA, PRF, &
      & PROFJ1, PROFJ2, PROFN1, PROFN2, PROFT1, PROFT2, PROFU1, PROFU2, PT, &
      & PTS, PZ, PZC, PZFE, Q0, QP, QPU, RDP, RG, RHOA, RIP, RIPA, RIPS, RM, &
-     & RMJRHO, RMJRHOU, RMU0, RN, RNF, RNFU, RNU, RPSI, RR, RT, RTU, RW, &
+     & RMJRHO, RMJRHOU, RMU0, RN, RNF, RNFU, RNU, RPSI, RR, RT, RTF, RTU, &
+     & RU, RW, &
      & SEX, SNBU, SUMPBM, SWLU, T, TPRE, TST, TTRHO, TTRHOG, VPAR, VPOL, &
      & VPRP, VSEC, VTOR, WROT, WROTU, RDPS, KUFDIR, KUFDCG, KUFDEV, MDLXP, &
      & NTMAX_SAVE,ALLOCATE_TRCOMM, ABVRHOG, RDPVRHOG, ABVRHO,abrho
+      USE TRCOM0, ONLY : NSTM
       USE TRCOM1, ONLY : NTAMAX,KDIRX
       IMPLICIT NONE
-      INTEGER(4):: IERR, NR
+      INTEGER(4):: IERR, NR, NS, NF
       REAL(8)   :: ANEAVE, ANI, ANZ, DILUTE
       REAL(8)   :: FACT, FACTOR0, FACTORM, FACTORP, FCTR, PROF
       REAL(8)   :: SUML
@@ -75,6 +77,16 @@
          VPRP(NR)=0.D0
          VPOL(NR)=0.D0
          WROT(NR)=0.D0
+         DO NS=1,NSTM
+            RN(NR,NS)=0.D0
+            RT(NR,NS)=0.D0
+            RU(NR,NS)=0.D0
+         END DO
+         DO NF=1,NFM
+            RW(NR,NF)=0.D0
+            RNF(NR,NF)=0.D0
+            RTF(NR,NF)=0.D0
+         END DO
 
          select case(MDLUF)
          case(1)

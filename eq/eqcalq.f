@@ -1370,7 +1370,10 @@ c
           hp=nra(i+m)-nr
           w=c(i+1)-d(i)
           den=ho-hp
-          if(den.eq.0.)pause 'failure in polint'
+          IF(den.eq.0.) THEN
+             WRITE(6,*) 'failure in polint'
+             STOP
+          ENDIF
           den=w/den
           d(i)=hp*den
           c(i)=ho*den

@@ -557,7 +557,7 @@ contains
                    IND = 0
                 END IF
                 DO I = 1, NGPR
-                   WRITE(STRL,'(I)') NGPRL(I)
+                   WRITE(STRL,'(I0)') NGPRL(I)
                    STRL = "@"//trim(adjustl(STRL))//"@"
                    CALL APPROPGY(MODEG, GY(0,0,NGPRL(I)), GYL2, STRL, NRMAX, NGR, gDIV(NGPRL(I)))
                    J = I - 1
@@ -706,7 +706,7 @@ contains
                 J = 6 ; GZ = 7.0
              END IF
              DO I = 1, NGPR
-                WRITE(STRA(I),'(I)') NGPRL(I)
+                WRITE(STRA(I),'(I0)') NGPRL(I)
                 STRA(I) = "@"//trim(adjustl(STRA(I)))//"@"
                 CALL APPROPGY(MODEG, GYT(0,0,NGPRL(I)), GYL(0,0,I), STRA(I), NRMAX, NGT, &
                      &        gDIV(NGPRL(I)), GMAX=GMAXA(I), GMIN=GMINA(I))

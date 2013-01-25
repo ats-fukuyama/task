@@ -356,7 +356,7 @@ C
       ENDIF
 C
       IF(NTHMAX.LT.1.OR.NTHMAX.GT.MDM) THEN
-         WRITE(6,*) 'XXX INPUT ERROR : ILLEGAL NTHMAX'
+         WRITE(6,*) 'XXX INPUT ERROR : TOO LARGE NTHMAX'
          WRITE(6,*) '                  NTHMAX,MDM =',NTHMAX,MDM
          IERR=1
       ELSE

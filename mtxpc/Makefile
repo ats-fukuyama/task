@@ -1,21 +1,22 @@
 include ../../task/make.header
 
-
 #FFLAGS=$(OFLAGS) -I$(INCLUDE_MUMPS) -I../mtxp
 FFLAGS=$(DFLAGS) -I$(INCLUDE_MUMPS) -I../mtxp -I../../task/lib/mod
 
 all: $(EXEC)
 
 ##### Without PETSc library #####
-#FLINKER=$(FCFREE)
-#INCLUDE_MUMPS=.
 #EXEC=testbndc
+#all: $(EXEC)
+#FLINKER=$(FCFREE)
 #.SUFFIXES:
 #.SUFFIXES: .f .f90 .mod .o .a
 #.f90.o :
 #	$(FCFREE) $(FFLAGS) -c $< -o $@
 #clean :
 #	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod
+#INCLUDE_MUMPS=.
+
 
 ##### With PETSc library 3.0 (complex) #####
 #include ${PETSC_DIR}/conf/base
@@ -35,8 +36,6 @@ LIBNOMPI=../mtxp/libmtxnompi.o
 LIBKSPC=$(LIBMPI) libmtxkspc.o
 LIBZMUMPS=$(LIBMPI) libmtxzmumps.o
 LIBBNDC=$(LIBNOMPI) libmtxbndc.o
-
-all: $(EXEC)
 
 libs: $(LIBNOMPI) $(LIBMPI) libmtxbndc.o libmtxkspc.o libmtxzmumps.o
 

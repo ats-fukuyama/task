@@ -2,21 +2,22 @@
 include ../../task/make.header
 
 ##### Without PETSc library #####
-#LIBMTX=../mtxp/libmtxnompi.o ../mtxp/libmtxbnd.o
-#PETSCLIBS=
+LIBMTX=../mtxp/libmtxnompi.o ../mtxp/libmtxbnd.o
+PETSCLIBS=
+FLINKER=$(FCFREE)
 ##### With MUMPS library #####
 #include ${PETSC_DIR}/conf/variables
 #LIBMTX=../mtxp/libmtxmpi.o ../mtxp/libmtxmumps.o
 #PETSCLIBS=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lmumps_common -lpord -lscalapack -lblacs -lblas -lparmetis -lmetis
+#FLINKER=$(MF90)
 ##### With PETSc library #####
-include ${PETSC_DIR}/conf/variables
-LIBMTX=../mtxp/libmtxmpi.o ../mtxp/libmtxksp.o
-PETSCLIBS=${PETSC_KSP_LIB}
+#include ${PETSC_DIR}/conf/variables
+#LIBMTX=../mtxp/libmtxmpi.o ../mtxp/libmtxksp.o
+#PETSCLIBS=${PETSC_KSP_LIB}
 
 .SUFFIXES:
 .SUFFIXES: .f90 .mod .o .a
 
-FCFREE =ifort
 FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
@@ -37,9 +38,9 @@ LIBS =  ../lib/tasklib.a ../../bpsd/bpsdlib.a $(LIBMTX) ../plx/pllib.a \
         ../eq/eqlib.a fplib.a
 
 .f.o :
-	$(MF90) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
-	$(MF90) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
 all: fp
 
@@ -63,7 +64,7 @@ libs:
 	(cd ../eq; make eqlib.a)
 
 fp : $(LIBS) fpmain.o 
-	$(MF90) fpmain.o -o $@ $(FFLAGS) $(LIBS) $(PETSCLIBS) $(FLIBS) 
+	$(FLINKER) fpmain.o -o $@ $(FFLAGS) $(LIBS) $(PETSCLIBS) $(FLIBS) 
 
 clean :
 	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod
