@@ -236,7 +236,7 @@ contains
              ENDDO
              STRL='@profile'//STR(2:5)//'@'
              CALL PAGES
-             CALL GRD1D(0,FX,FY,NRMAX+1,NRMAX+1,1,STRL,0)
+             CALL GRD1D(0,FX,FY,NRMAX+1,NRMAX+1,1,STRL,0,GPXMIN=4.D0,GPXMAX=24.D0)
              CALL PAGEE
              DEALLOCATE(FX,FY)
           END IF
