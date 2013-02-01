@@ -76,9 +76,9 @@
                   DWPP(NTH,NP,NR,NSA)  =(DWPP(NTH,NP,NR,NSA)           &
                        +DWPP(NTHMAX-NTH+1,NP,NR,NSA))*0.5D0
                   DWPT(NTH,NP,NR,NSA)  =(DWPT(NTH,NP,NR,NSA)           &
-                       -DWPT(NTHMAX-NTH+1,NP,NR,NSA))*0.5D0
+                       +DWPT(NTHMAX-NTH+1,NP,NR,NSA))*0.5D0
                   DWPP(NTHMAX-NTH+1,NP,NR,NSA)  =DWPP(NTH,NP,NR,NSA)
-                  DWPT(NTHMAX-NTH+1,NP,NR,NSA)  =-DWPT(NTH,NP,NR,NSA)
+                  DWPT(NTHMAX-NTH+1,NP,NR,NSA)  =DWPT(NTH,NP,NR,NSA)
                END DO
                DWPP(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)*0.25D0        &
                     *( DWPP(ITL(NR)-1,NP,NR,NSA)            &
@@ -95,9 +95,9 @@
                                      /RLAMDA(ITL(NR)-1,NR)  &
                       +DWPT(ITL(NR)+1,NP,NR,NSA)            &
                                      /RLAMDA(ITL(NR)+1,NR)  &
-                      -DWPT(ITU(NR)-1,NP,NR,NSA)            &
+                      +DWPT(ITU(NR)-1,NP,NR,NSA)            &
                                      /RLAMDA(ITU(NR)-1,NR)  &
-                      -DWPT(ITU(NR)+1,NP,NR,NSA)            &
+                      +DWPT(ITU(NR)+1,NP,NR,NSA)            &
                                     /RLAMDA(ITU(NR)+1,NR))
                DWPP(ITU(NR),NP,NR,NSA)  =DWPP(ITL(NR),NP,NR,NSA)
                DWPT(ITU(NR),NP,NR,NSA)  =-DWPT(ITL(NR),NP,NR,NSA)
@@ -170,10 +170,10 @@
             DO NTH=ITL(NR)+1,NTHMAX/2
             DO NP=1,NPMAX
                DWTP(NTH,NP,NR,NSA)=(DWTP(NTH,NP,NR,NSA)                &
-                                   -DWTP(NTHMAX-NTH+2,NP,NR,NSA))*0.5D0
+                                   +DWTP(NTHMAX-NTH+2,NP,NR,NSA))*0.5D0
                DWTT(NTH,NP,NR,NSA)=(DWTT(NTH,NP,NR,NSA)                &
                                    +DWTT(NTHMAX-NTH+2,NP,NR,NSA))*0.5D0
-               DWTP(NTHMAX-NTH+2,NP,NR,NSA)= -DWTP(NTH,NP,NR,NSA)
+               DWTP(NTHMAX-NTH+2,NP,NR,NSA)= DWTP(NTH,NP,NR,NSA)
                DWTT(NTHMAX-NTH+2,NP,NR,NSA)= DWTT(NTH,NP,NR,NSA)
             END DO
             END DO

@@ -410,9 +410,13 @@
             FETH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)*2.D0*ETAG(NTH,NR)
          END DO
          DO NTH=ITL(NR)+1,ITU(NR)
-            FETH(NTH,NP,NR,NSA)=0.D0
-!            FETH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)*2.D0*ETAG(NTH,NR)
+            FETH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)*2.D0*ETAG(NTH,NR)
          END DO
+!         DO NTH=ITL(NR)+1,NTHMAX/2
+!            FETH(NTH,NP,NR,NSA)=0.5D0*( &
+!                 FETH(NTH,NP,NR,NSA)+FETH(NTHMAX-NTH+2,NP,NR,NSA) )
+!            FETH(NTHMAX-NTH+2,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)
+!         END DO
          DO NTH=ITU(NR)+1,NTHMAX+1
             FETH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)*2.D0*ETAG(NTH,NR)
          END DO
