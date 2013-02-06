@@ -91,7 +91,7 @@ CONTAINS
     INTEGER,DIMENSION(:,:),ALLOCATABLE:: KA(:,:,:)
     INTEGER:: nrmax,nphmax,nr,nth,nph,nn,nglmax,ngl,ispl
     INTEGER:: nr_in,nth_in,nph_in
-    REAL(4):: rmin,rmax,rr,rb,phmin,phmax,dph,zmin,zmax
+    REAL(4):: rmin,rmax,rr,rb,phmin,phmax,dph,zmin,zmax,zmaxm
     REAL(4):: rmin1,rmax1,rstep,zmin1,zmax1,zstep,fsign,phl
     COMPLEX(8):: value
     INTEGER,parameter:: NRGBA=5
@@ -205,10 +205,10 @@ CONTAINS
       CALL GQSCAL(ZMIN,ZMAX,ZMIN1,ZMAX1,ZSTEP)
       CALL GQSCAL(-RMAX,RMAX,RMIN1,RMAX1,RSTEP)
 !
-      zmax1=MAX(ABS(zmin1),ABS(zmax1))
-      zstep=zmax1/REAL(NGLMAX-1)
+      zmaxm=MAX(ABS(zmin1),ABS(zmax1))
+      zstep=2*zmaxm/REAL(NGLMAX-1)
       DO ngl=1,nglmax
-         ZL(NGL)=-zmax1+2*zmax1*REAL(ngl-1)/REAL(NGLMAX-1)
+         ZL(NGL)=-zmaxm+zstep*REAL(ngl-1)
          WLN(NGL)=0.0
          ILN(NGL)=0
          SELECT CASE(NGRAPH)
@@ -228,7 +228,7 @@ CONTAINS
          END SELECT
       END DO
       IF(NGRAPH==2) THEN
-         CALL GUSRGB(REAL(NGLMAX+0.5)/REAL(NGLMAX-1), &
+         CALL GUSRGB(REAL(NGLMAX-0.5)/REAL(NGLMAX-1), &
                      RGB(1:3,NGLMAX+1),NRGBA,GLA,GRGBA)
       END IF
       ISPL=0
@@ -249,7 +249,7 @@ CONTAINS
             CALL CONTQ4(Z,R,PH,NRMAX,NRMAX,NPHMAX,ZMIN1,ZSTEP,NGLMAX, &
                         0,KA)
          ELSE
-            zstep=zmax1/REAL((NGLMAX-1)/2)
+            zstep=zmaxm/REAL((NGLMAX-1)/2)
             CALL SETRGB(1.0,0.0,0.0)
             CALL CONTQ4(Z,R,PH,NRMAX,NRMAX,NPHMAX,0.5*ZSTEP,ZSTEP,NGLMAX/2, &
                         0,KA)
@@ -280,7 +280,8 @@ CONTAINS
          CALL DRAW2D(GUCLIP(RGMAX*COS(PHL)),GUCLIP(RGMAX*SIN(PHL)))
       END DO
 
-      CALL move(2.0,17.1)
+      CALL SETRGB(0.0,0.0,0.0)
+      CALL move(17.5,16.5)
       SELECT CASE(MODE)
       CASE(1)
          CALL text('Er real',7)
@@ -302,8 +303,27 @@ CONTAINS
          CALL text('Eph abs ',8)
       CASE(11:16)
          CALL text('Pabs ',5)
-         CALL numbi(MODE-6,'(I1)',4)
+         CALL numbi(MODE-10,'(I1)',4)
       END SELECT
+      CALL move(17.5,16.0)
+      CALL text('Max = ',6)
+      CALL NUMBR(zmax,'(1PE12.4)',12)
+      CALL move(17.5,15.5)
+      CALL text('Min = ',6)
+      CALL NUMBR(zmin,'(1PE12.4)',12)
+      CALL move(17.5,15.0)
+      CALL text('Step= ',6)
+      CALL NUMBR(zstep,'(1PE12.4)',12)
+
+      IF(NGRAPH.EQ.2) THEN
+         CALL RGBBAR(17.5,18.5,2.0,12.0,RGB,NGLMAX+1,1)
+         CALL move(18.6,1.9)
+         CALL NUMBR(ZL(1),'(1PE12.4)',12)
+         CALL move(18.6,6.9)
+         CALL NUMBR(0.0,'(1PE12.4)',12)
+         CALL move(18.6,11.9)
+         CALL NUMBR(ZL(NGLMAX),'(1PE12.4)',12)
+      END IF
 
       CALL WMGPRM('C','R',0,0,0,0)
       
@@ -538,7 +558,7 @@ CONTAINS
 
     ALLOCATE(Z(NPHMAX_IN+1,NTHMAX_IN+1),PH(NPHMAX_IN+1),TH(NTHMAX_IN+1))
     ALLOCATE(KA(2,NPHMAX_IN+1,NTHMAX_IN+1))
-    ALLOCATE(ZL(NGLMAX),WLN(NGLMAX),ILN(NGLMAX),RGB(3,NGLMAX))
+    ALLOCATE(ZL(NGLMAX+1),WLN(NGLMAX+1),ILN(NGLMAX+1),RGB(3,NGLMAX+1))
 
     PHMIN=-PI
     PHMAX= PI
@@ -616,9 +636,9 @@ CONTAINS
       CALL GQSCAL(ZMIN,ZMAX,ZMIN1,ZMAX1,ZSTEP)
 !
       zmax1=MAX(ABS(zmin1),ABS(zmax1))
-      zstep1=2*zmax1/REAL(NGLMAX-1)
-      DO ngl=1,nglmax
-         ZL(NGL)=-zmax1+2*zmax1*REAL(ngl-1)/REAL(NGLMAX-1)
+      zstep1=2*zmax1/REAL(NGLMAX)
+      DO ngl=1,nglmax+1
+         ZL(NGL)=-zmax1+zstep1*REAL(ngl-1)
          WLN(NGL)=0.0
          ILN(NGL)=0
          IF(ZL(NGL)>=0.D0) THEN
@@ -652,7 +672,8 @@ CONTAINS
       CALL CONTR2(Z,PH,TH,NPHMAX_IN+1,NPHMAX_IN+1,NTHMAX_IN+1, &
                   -0.5*zstep1,-zstep1,NGLMAX/2,IPRD)
 
-      CALL move(2.0,17.1)
+      CALL SETRGB(0.0,0.0,0.0)
+      CALL move(17.5,16.5)
       SELECT CASE(MODE)
       CASE(1)
          CALL text('Er real',7)
@@ -674,8 +695,18 @@ CONTAINS
          CALL text('Eph abs ',8)
       CASE(11:16)
          CALL text('Pabs ',5)
-         CALL numbi(MODE-6,'(I1)',4)
+         CALL numbi(MODE-10,'(I1)',4)
       END SELECT
+
+      CALL move(17.5,16.0)
+      CALL text('Max = ',6)
+      CALL NUMBR(zmax,'(1PE12.4)',12)
+      CALL move(17.5,15.5)
+      CALL text('Min = ',6)
+      CALL NUMBR(zmin,'(1PE12.4)',12)
+      CALL move(17.5,15.0)
+      CALL text('Step= ',6)
+      CALL NUMBR(zstep1,'(1PE12.4)',12)
 
       CALL WMGPRM('C','R',0,0,0,0)
       
