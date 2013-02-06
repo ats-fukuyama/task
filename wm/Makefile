@@ -4,8 +4,6 @@ include ../make.header
 FFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
 
-all: $(EXEC)
-
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
