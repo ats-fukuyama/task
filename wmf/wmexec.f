@@ -23,7 +23,7 @@ C         CALL WMSOLV
 C         CALL WMEFLD
 C         CALL WMBFLD
 C         CALL WMPABS
-C         if(myrank.eq.0) then
+C         if(NRANK.eq.0) then
 C            CALL WMPFLX
 C            CALL WMPANT
 C         endif
@@ -49,14 +49,14 @@ C
 C
       IF(NPRINT.LT.1) RETURN
 C
-      IF(MYRANK.EQ.0) THEN
+      IF(NRANK.EQ.0) THEN
          WRITE(6,601) NPH0,CRADTT,PABSTT,PCURT
          WRITE(6,602) (PABST(NS),NS=1,NSMAX)
       ENDIF
 C
       IF(NPRINT.LT.2) RETURN
 C
-      IF(MYRANK.EQ.0) THEN
+      IF(NRANK.EQ.0) THEN
 C         WRITE(6,*) '   MD   IMP                        PABSKT'
 C         DO ND=NDMIN,NDMAX
 C            NDX=ND-NDMIN+1
@@ -73,7 +73,7 @@ C
       IF(NPRINT.LT.4) RETURN
 C
       DO NR=1,NRMAX+1
-         IF(MYRANK.EQ.0) 
+         IF(NRANK.EQ.0) 
      &        WRITE(6,'(A,I3,1P6E10.2)') 'NR,E1,E2,E3=',NR,
      &               CEFLD(1,1,1,NR),CEFLD(2,1,1,NR),CEFLD(3,1,1,NR)
       ENDDO

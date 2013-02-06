@@ -12,31 +12,24 @@ C                    Email: fukuyama@nucleng.kyoto-u.ac.jp
 C                  URL: http://p-grp.nucleng.kyoto-u.ac.jp/wm/
 C***********************************************************************
 C
+      USE plinit,ONLY:pl_init,pl_parm
       INCLUDE 'wmcomm.inc'
 C
-      CALL MPINIT(NPROCS,MYRANK)
-      IF(NPROCS.LT.NCPUMIN) THEN
-         WRITE(6,*) 'XX NPROCS.LT.NCPUMIN :',NPROCS,'.LT.',NCPUMIN
-         STOP
-      ENDIF
-      IF(NPROCS.GT.NCPUMAX) THEN
-         WRITE(6,*) 'XX NPROCS.GT.NCPUMAX :',NPROCS,'.GT.',NCPUMAX
-         STOP
-      ENDIF
+      CALL mtx_initialize
 C
-      IF(MYRANK.EQ.0) THEN
+      IF(NRANK.EQ.0) THEN
          WRITE(6,*) '##### /TASK/WM  05/06/22 #####'
          CALL GSOPEN
       ENDIF
       CALL MPSYNC
 C
-      CALL PLINIT
+      CALL PL_INIT
       CALL EQINIT
       CALL DPINIT
       CALL WMINIT
-      IF(MYRANK.EQ.0) THEN
+      IF(NRANK.EQ.0) THEN
          OPEN(7,STATUS='SCRATCH')
-         CALL PLPARM(1,'plparm',IERR)
+         CALL PL_PARM(1,'plparm',IERR)
          CALL EQPARM(1,'eqparm',IERR)
          CALL DPPARM(1,'dpparm',IERR)
          CALL WMPARM(1,'wmparm',IERR)
@@ -46,11 +39,11 @@ C
 C
       CALL WMMENU
 C
-      IF(MYRANK.EQ.0) CALL GSCLOS
-      IF(MYRANK.EQ.0) CLOSE(7)
+      IF(NRANK.EQ.0) CALL GSCLOS
+      IF(NRANK.EQ.0) CLOSE(7)
       CALL MPSYNC
 C
-      CALL MPTERM
+      CALL mtx_finalize
 C
       STOP
       END

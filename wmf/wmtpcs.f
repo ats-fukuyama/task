@@ -35,7 +35,7 @@ c$$$         CALL WMEXEC(IERR)
 c$$$         CALL MPSYNC
 c$$$         IF(IERR.NE.0) EXIT
 c$$$C
-c$$$         IF(MYRANK.EQ.0) THEN
+c$$$         IF(NRANK.EQ.0) THEN
 c$$$            CALL WMPOUT(NPH0)
 c$$$            IF(MODELW.EQ.1) CALL WMDOUT(IERR)
 c$$$         ENDIF
@@ -74,7 +74,7 @@ c$$$         ENDDO
 c$$$C
 c$$$      ENDDO
 c$$$C
-c$$$      IF(IERR.EQ.0.AND.MYRANK.EQ.0) THEN
+c$$$      IF(IERR.EQ.0.AND.NRANK.EQ.0) THEN
 c$$$         PABSTTM = 0.D0
 c$$$         DO NS = 1, NSMAX
 c$$$            PABST(NS) = 0.D0

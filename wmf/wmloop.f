@@ -128,7 +128,7 @@ C
             ENDDO
          ENDDO
 
-         IF(MYRANK.EQ.0) THEN
+         IF(NRANK.EQ.0) THEN
             CALL WMPOUT(NPH0)
             IF(MODELW.EQ.1) CALL WMDOUT(IERR)
          ENDIF
@@ -382,7 +382,7 @@ C
 
 !     -----------------------------------------------------------
 
-      IF(MYRANK.EQ.0) THEN
+      IF(NRANK.EQ.0) THEN
          IF(PABSTT.NE.0.D0) THEN
             WRITE(6,*)
             WRITE(6,'(3A)') '  NPH','    PFRACS ', '   PABSTS(NS) [W]'

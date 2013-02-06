@@ -5,8 +5,9 @@ C   ***********************************************
 C
       SUBROUTINE WMTAE
 C
+      USE plprof,ONLY:pl_prof_old
+      USE pllocal
       INCLUDE 'wmcomm.inc'
-      INCLUDE '../pl/plcom2.inc'
 C
       PARAMETER(MMM=MDM*NDM)
       DIMENSION CWALF(MDM,NDM),CWALFK(MDM,NDM)
@@ -25,7 +26,7 @@ C
 C
       DO NR=1,NRMAX
          RHON=XRHO(NR)
-         CALL PLPROF(RHON)
+         CALL PL_PROF_OLD(RHON)
          RHOM=0.D0
          DO NS=2,NSMAX
             RHOM=RHOM+RN(NS)*1.D20*PA(NS)*AMP

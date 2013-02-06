@@ -10,7 +10,7 @@ C
 C
       MODE=0
     1 CONTINUE
-         IF(MYRANK.EQ.0) THEN
+         IF(NRANK.EQ.0) THEN
     2       IF(MODE.EQ.0) WRITE(6,'(A,1P2E12.4)')
      &      ' ## FR,FI=',FRINI,FIINI
             WRITE(6,'(A)') ' ## INPUT : KID or FR,FI'
@@ -62,7 +62,7 @@ C
 C
       MODE=0
     1 CONTINUE
-         IF(MYRANK.EQ.0) THEN
+         IF(NRANK.EQ.0) THEN
     2       IF(MODE.EQ.0) WRITE(6,'(A,1P2E12.4,I5,1PE12.4)')
      &      ' ## FRMIN,FRMAX,NGFMAX,FI0=',FRMIN,FRMAX,NGFMAX,FI0
             WRITE(6,'(A)') ' ## INPUT : KID or FRMIN,FRMAX,NGFMAX,FI0'
@@ -92,7 +92,7 @@ C
             FR=FRMIN+(NGF-1)*DELTFR
             FI=FI0
             CALL DIAMIN(FR,FI,AMPL)
-            IF(MYRANK.EQ.0) THEN
+            IF(NRANK.EQ.0) THEN
                IF(LISTEG.GE.1) THEN
                   WRITE(6,'(A,1P3E12.4)') 
      &              '      FR,FI,AMPL = ',FR,FI,AMPL
@@ -107,7 +107,7 @@ C
                AMPMIN=AMPL
             ENDIF
          ENDDO
-         IF(MYRANK.EQ.0) THEN
+         IF(NRANK.EQ.0) THEN
             WRITE(6,'(A,1P3E12.4)') '      FR,FI,AMPMIN=',
      &                                     FRINI,FIINI,AMPMIN
             CALL GUFLSH
@@ -179,7 +179,7 @@ C
 C
       MODE=0
     1 CONTINUE
-         IF(MYRANK.EQ.0) THEN
+         IF(NRANK.EQ.0) THEN
     2       IF(MODE.EQ.0) THEN
                WRITE(6,'(A)') 
      &            ' ## FRMIN,FRMAX,NGXMAX,FIMIN,FIMAX,NGYMAX='
@@ -219,7 +219,7 @@ C
             DO NGY=1,NGYMAX
                FI=FIMIN+(NGY-1)*DELTFI
                CALL DIAMIN(FR,FI,AMPL)
-               IF(MYRANK.EQ.0) THEN
+               IF(NRANK.EQ.0) THEN
                IF(LISTEG.GE.1) THEN
                WRITE(6,'(A,1P3E12.4)') '      FR,FI,AMPL = ',FR,FI,AMPL
                CALL GUFLSH
@@ -268,7 +268,7 @@ C
             FIINI=DBLE(GFINF(2,1))
             AMPMIN=DBLE(GFINF(3,1))
          ENDIF
-         IF(MYRANK.EQ.0) THEN
+         IF(NRANK.EQ.0) THEN
             WRITE(6,'(A,1P3E12.4)') '      FR,FI,AMPMIN=',
      &                              FRINI,FIINI,AMPMIN
             CALL GUFLSH
@@ -417,7 +417,7 @@ C
 C
       MODE=0
     1 CONTINUE
-         IF(MYRANK.EQ.0) THEN
+         IF(NRANK.EQ.0) THEN
     2       IF(MODE.EQ.0) WRITE(6,'(A,1P2E12.4)')
      &      ' ## FRINI,FIINI=',FRINI,FIINI
             WRITE(6,'(A)') ' ## INPUT : KID or FRINI,FINII'
@@ -443,10 +443,10 @@ C
          Y=FIINI
          IF (MODENW.EQ.0) THEN
             CALL NEWTN0(DIAMIN,X,Y,XX,YY,
-     &                  DLTNW,EPSNW,LMAXNW,LISTNW,MYRANK,IERR)
+     &                  DLTNW,EPSNW,LMAXNW,LISTNW,NRANK,IERR)
          ELSEIF(MODENW.EQ.1) THEN
             CALL NEWTN1(DIAMIN,X,Y,XX,YY,
-     &                  DLTNW,EPSNW,LMAXNW,LISTNW,MYRANK,IERR)
+     &                  DLTNW,EPSNW,LMAXNW,LISTNW,NRANK,IERR)
          ELSE
             XX=X
             YY=Y
@@ -487,7 +487,7 @@ C
       MODE=0
       ISCAN=0
     1 CONTINUE
-         IF(MYRANK.EQ.0) THEN
+         IF(NRANK.EQ.0) THEN
     2       IF(MODE.EQ.0) THEN
                WRITE(6,'(A)') 
      &      ' ## ISCAN: 1:NPH0 2:RR 3:QA 4:BB 5:PNA 6:PNAL 7:PT 8:PN'
@@ -581,7 +581,7 @@ C
 C
       MODE1=0
    11 CONTINUE
-         IF(MYRANK.EQ.0) THEN
+         IF(NRANK.EQ.0) THEN
    12       IF(MODE1.EQ.0) WRITE(6,'(A/1P2E12.4,I5,1P2E12.4)')
      &      ' ## SCMIN,SCMAX,NSCMAX,FRINI,FIINI',
      &           SCMIN,SCMAX,NSCMAX,FRINI,FIINI
@@ -669,10 +669,10 @@ C
 C
             IF(MODENW.EQ.0) THEN
                CALL NEWTN0(DIAMIN,X,Y,XX,YY,
-     &                     DLTNW,EPSNW,LMAXNW,LISTNW,MYRANK,IERR)
+     &                     DLTNW,EPSNW,LMAXNW,LISTNW,NRANK,IERR)
             ELSEIF(MODENW.EQ.1) THEN
                CALL NEWTN1(DIAMIN,X,Y,XX,YY,
-     &                     DLTNW,EPSNW,LMAXNW,LISTNW,MYRANK,IERR)
+     &                     DLTNW,EPSNW,LMAXNW,LISTNW,NRANK,IERR)
             ELSE
                XX=X
                YY=Y
@@ -745,7 +745,7 @@ C
          CALL WMSC1G(GX,GY(1,1),NSCMAX,ISCAN,KV)
          CALL WMSC1G(GX,GY(1,2),NSCMAX,ISCAN,KV)
 C
-         IF(MYRANK.EQ.0) THEN
+         IF(NRANK.EQ.0) THEN
             WRITE(6,*) '      '//KV
             WRITE(6,'(I5,1P4E12.4)') 
      &          (I,GX(I),GY(I,1),GY(I,2),GY(I,3),I=1,NSCMAX) 
@@ -914,14 +914,14 @@ C
 C
 C     ****** TWO-DIMENSIONAL NEWTON METHOD ******
 C
-      SUBROUTINE NEWTN0(SUB,X,Y,XX,YY,DELT,EPS,ILMAX,LIST,MYRANK,IER)
+      SUBROUTINE NEWTN0(SUB,X,Y,XX,YY,DELT,EPS,ILMAX,LIST,NRANK,IER)
 C
       IMPLICIT REAL*8(A-H,O-Z)
       LOGICAL LPRINT,LDUMP
       EXTERNAL SUB
 C
-      LDUMP=MYRANK.EQ.0.AND.LIST.GE.2
-      LPRINT=MYRANK.EQ.0.AND.LIST.EQ.1
+      LDUMP=NRANK.EQ.0.AND.LIST.GE.2
+      LPRINT=NRANK.EQ.0.AND.LIST.EQ.1
 C
       IER=0
       ITER=0
@@ -1065,7 +1065,7 @@ C
 C
 C     ****** TWO-DIMENSIONAL NEWTON METHOD (SIMPLER) ******
 C
-      SUBROUTINE NEWTN1(SUB,X,Y,XX,YY,DELT,EPS,ILMAX,LIST,MYRANK,IER)
+      SUBROUTINE NEWTN1(SUB,X,Y,XX,YY,DELT,EPS,ILMAX,LIST,NRANK,IER)
 C
       IMPLICIT REAL*8(A-H,O-Z)
       EXTERNAL SUB
@@ -1116,7 +1116,7 @@ C
       CALL SUB(X,   Y+HY,F0P)
       FXN=(FP0-FM0)/(2*HX)
       FYN=(F0P-F0M)/(2*HY)
-      IF(MYRANK.EQ.0) THEN
+      IF(NRANK.EQ.0) THEN
          IF(LIST.GT.0) WRITE(6,600) X,Y,DX,DY,F00
          IF(LIST.GT.0) CALL GUFLSH
       ENDIF
@@ -1141,14 +1141,14 @@ C         IF(DF.LE.EPS) GO TO 9000
       ENDIF
 C
       IER=2
-      IF(MYRANK.EQ.0) THEN
+      IF(NRANK.EQ.0) THEN
       IF(LIST.GT.0)
      &   WRITE(6,*) 'XX NEWTN2: LOOP COUNT EXCEEDS UPPER BOUND.'
       ENDIF
       GOTO 9000
 C
  8000 IER=1
-      IF(MYRANK.EQ.0) THEN
+      IF(NRANK.EQ.0) THEN
       IF(LIST.GT.0)
      &   WRITE(6,*) 'XX NEWTN2: DOES NOT CONVERGE.'
       ENDIF

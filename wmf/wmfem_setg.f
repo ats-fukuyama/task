@@ -273,7 +273,7 @@ C
       IERR=0
 C
       IF(NTHMAX.LT.4) THEN
-         IF(MYRANK.EQ.0) 
+         IF(NRANK.EQ.0) 
      &        WRITE(6,*) 'XX WMXRZF: NTHMAX MUST BE GREATER THAN 4'
          IERR=1
          RETURN

@@ -495,6 +495,7 @@ C     ****** DRAW COUNTOUR IN MAGNETIC SURFACE COORDINATES ******
 C
       SUBROUTINE WMGXEQ(GGL,NPH,K2,K3)
 C
+      USE plprof,ONLY: pl_prof2
       INCLUDE 'wmcomm.inc'
 C
       INTEGER NS
@@ -555,7 +556,7 @@ C
          DO NR=1,NRMAX+1
             rhol=xrho(nr)
 C            if(MDLWMF.eq.1) THEN
-               CALL PLPROF2(rhol,RN,RTPR,RTPP,RU)
+               CALL PL_PROF2(rhol,RN,RTPR,RTPP,RU)
 C            else
 C               CALL WMCDEN(NR,RN,RTPR,RTPP,RU)
 C            endif

@@ -422,9 +422,9 @@ C
      &          8.654,10.173,11.620,13.015/
 C
          IF(RD.LE.RA.OR.RD.GE.RB) THEN
-            IF(MYRANK.EQ.0) WRITE(6,*) '!! WMSETJ: RD = (RA+RB)/2'
+            IF(NRANK.EQ.0) WRITE(6,*) '!! WMSETJ: RD = (RA+RB)/2'
             RD=0.5D0*(RA+RB)
-            IF(MYRANK.EQ.0) 
+            IF(NRANK.EQ.0) 
      &           WRITE(6,'(A,1P3E12.4)') 'RA,RB,RD=',RA,RB,RD
          ENDIF
 C
@@ -521,7 +521,7 @@ C
       DO NA=1,NAMAX
          CJANT(2,MDX,NDX)=CJANT(2,MDX,NDX)+CJT(MDX,NDX,NA)
          CJANT(3,MDX,NDX)=CJANT(3,MDX,NDX)+CJZ(MDX,NDX,NA)
-         IF(MYRANK.EQ.0) THEN
+         IF(NRANK.EQ.0) THEN
             IF(NPRINT.GE.3) WRITE(6,'(A,2I4,1P2E15.7)') 
      &                   'NN,MM,CJANT=',
      &                   NPH0+NHC*ND,NTH0+MD,CJANT(2,MDX,NDX)
@@ -537,6 +537,7 @@ C     ****** ASSEMBLE TOTAL ELEMENT FREE VECTOR ******
 C
       SUBROUTINE get_wmfvb(NR,CFVP)
 C
+      USE plprof,ONLY: pl_prof2
       INCLUDE 'wmcomm.inc'
 C
       DIMENSION CFVP(nphmax,nthmax,3)
@@ -659,7 +660,7 @@ c$$$     &                    'CFVP(',NDX,MDX,3,')',CFVP(NDX,MDX,3)
             DRHO=XRHO2-XRHO1
             XRHOC=0.5D0*(XRHO2+XRHO1)
 C
-            CALL plprof2(XRHOC,RN,RTPR,RTPP,RU)
+            CALL pl_prof2(XRHOC,RN,RTPR,RTPP,RU)
             RT=(RTPR(1)+2*RTPP(1))
             RJFACT=RN(1)*RT
             RJFACT=RJFACT*XRHO(NR+1)
@@ -861,7 +862,8 @@ C     ****** CALCULATE ABSORBED POWER ******
 C
       SUBROUTINE WMFEM_PABS
 C
-      use wmfem_comm, only: cpp,cpa,nthmax2,nphmax2
+      USE wmfem_comm, only: cpp,cpa,nthmax2,nphmax2
+      USE plprof,ONLY: pl_prof2
       INCLUDE 'wmcomm.inc'
 C
       DIMENSION RN(NSM),RTPR(NSM),RTPP(NSM),RU(NSM)
@@ -960,7 +962,7 @@ C
          ENDDO
          ENDDO
 
-         CALL plprof2(rho,rn,rtpr,rtpp,ru)
+         CALL pl_prof2(rho,rn,rtpr,rtpp,ru)
          vte=SQRT(rtpr(1)*aee*1.D3/(pa(1)*amp))
          ww=DBLE(cw)
          IF(rn(1).LE.0.D0) THEN
