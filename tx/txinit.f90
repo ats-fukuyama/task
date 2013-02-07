@@ -242,6 +242,9 @@ SUBROUTINE TXINIT
   FSLTE = 1.D0
   FSLTI = 1.D0
 
+  !   Heat limiting model
+  FSLIM = 0.D0
+
   !   Ionization parameter
   FSION = 1.D0
 
@@ -1393,7 +1396,8 @@ module tx_parameter_control
        & Chie0,Chii0,ChiNC, &
        & FSDFIX,FSANOM,FSCBKP,FSCBEL,FSCBSH,FSBOHM,FSPCLD,FSPCLM,FSPCLC,FSVAHL,MDANOM,RhoETB, &
        & PROFD,PROFD1,PROFD2,PROFM,PROFM1,PROFC,PROFC1, &
-       & FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03,FSNCPL,MDLC, &
+       & FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION, &
+       & FSD01,FSD02,FSD03,FSNCPL,MDLC,FSLIM, &
        & rLn,rLT, &
        & Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,PNBCD,PNBMPD, &
        & rNRFe,RRFew,RRFe0,PRFHe,Tqt0,Tqp0,rNRFi,RRFiw,RRFi0,PRFHi, &
@@ -1588,7 +1592,8 @@ contains
          &       ' ',8X,'FSDFIX,FSANOM,FSCBKP,FSCBEL,FSCBSH,FSBOHM,FSPCLD,FSPCLM,FSPCLC,FSVAHL,'/ &
          &       ' ',8X,'MDANOM,RhoETB,'/ &
          &       ' ',8X,'PROFD,PROFD1,PROFD2,PROFM,PROFM1,PROFC,PROFC1,'/ &
-         &       ' ',8X,'FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03,FSNCPL,'/&
+         &       ' ',8X,'FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,'/ &
+         &       ' ',8X,'FSD01,FSD02,FSD03,FSNCPL,FSLIM,'/&
          &       ' ',8X,'MDLC,rLn,rLT,'/ &
          &       ' ',8X,'Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,'/ &
          &       ' ',8X,'PNBCD,PNBMPD,rNRFe,RRFew,RRFe0,PRFHe,Tqt0,Tqp0,rNRFe,RRFew,RRFe0,PRFHe,'/&
@@ -1650,6 +1655,7 @@ contains
          &   'FSLTI ', FSLTI ,  'FSION ', FSION ,  &
          &   'FSD01 ', FSD01 ,  'FSD02 ', FSD02 ,  &
          &   'FSD03 ', FSD03 ,  'FSNCPL', FSNCPL,  &
+         &   'FSLIM ', FSLIM ,  &
          &   'rLn   ', rLn   ,  'rLT   ', rLT   ,  &
          &   'Eb    ', Eb    ,  &
          &   'RNBP  ', RNBP  ,  'RNBP0 ', RNBP0 ,  &

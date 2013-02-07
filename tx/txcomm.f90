@@ -69,7 +69,8 @@ module tx_commons
   ! Amplitude parameters for transport
   real(8) :: FSCBKP, FSCBEL, FSCBSH, FSBOHM, FSPCLD, FSPCLM, FSPCLC, FSVAHL
   real(8) :: PROFD, PROFD1, PROFD2, PROFM, PROFM1, PROFC, PROFC1
-  real(8) :: FSCX, FSLC, FSNC, FSLP, FSLTE, FSLTI, FSION, FSD01, FSD02, FSD03, FSNCPL, rG1, FSRP, FSNF
+  real(8) :: FSCX, FSLC, FSNC, FSLP, FSLTE, FSLTI, FSION
+  real(8) :: FSD01, FSD02, FSD03, FSNCPL, rG1, FSRP, FSNF, FSLIM
   real(8), dimension(1:3) :: FSDFIX, FSANOM, RhoETB
   integer(4) :: MDLC, MDANOM
 

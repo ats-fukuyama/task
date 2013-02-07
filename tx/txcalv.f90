@@ -173,7 +173,8 @@ contains
          &     RLOSS, SQZ, rNuDL, ETASL, Ln, LT, etai_chk, kthrhos, &
          &     RhoSOL, V0ave, Viave, DturbA, rLmean, Sitot, &
          &     rGCIM, rGIM, rHIM, OMEGAPR, &  !09/06/17~ miki_m
-         &     rLMFL ! 11/06/15 AF
+         &     rLMFL, & ! 11/06/15 AF
+         &     rnuLlim, rnuLTeL! 13/02/07 AF
     INTEGER(4) :: NHFM ! miki_m 10-08-06
     real(8), dimension(1:NHFMmx) :: EpsLM 
 !    real(8) :: rLmeanL
@@ -989,10 +990,21 @@ contains
 ! When calculating rNuLTe, we fix PNeV and PTeV constant during iteration
 !   to obain good convergence.
 
-          rNuLTe(NR) = FSLTE * Chicl * (PTeV_FIX(NR)*rKeV)**2.5D0 &
+!          rNuLTe(NR) = FSLTE * Chicl * (PTeV_FIX(NR)*rKeV)**2.5D0 &
+!                             /(rLMFL**2 &
+!                               * PNeV_FIX(NR)*1.D20) &
+!                             * RL**2 / (1.D0 + RL**2)
+          rNuLTeL = FSLTE * Chicl * (PTeV_FIX(NR)*rKeV)**2.5D0 &
                              /(rLMFL**2 &
-                               * PNeV_FIX(NR)*1.D20) &
-                             * RL**2 / (1.D0 + RL**2)
+                               * PNeV_FIX(NR)*1.D20)
+          IF(FSLIM.NE.0.D0) THEN
+             rnuLlim = FSLIM * Vte /rLMFL
+             rNuLTe(NR) = FSLTE * rnuLTeL * rnuLlim /(rnuLTeL + rnuLlim) &
+                                * RL**2 / (1.D0 + RL**2)
+          ELSE
+             rNuLTe(NR) = FSLTE * rnuLTeL &
+                                * RL**2 / (1.D0 + RL**2)
+          ENDIF
           rNuLTi(NR) = FSLTI * Cs / rLMFL &
                              * RL**2 / (1.D0 + RL**2)
           IF(ABS(FSRP) > 0.D0) THEN
