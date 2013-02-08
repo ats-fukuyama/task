@@ -291,7 +291,7 @@
       IMPLICIT NONE
       integer:: NSA, NP, NTH, NR, NL, NM, NTHA, NTHB, NTB, NSBA
       integer:: IERR
-      real(8):: DFDTH, FVEL, DVEL, DFDP, DFDB, RGAMA
+      real(8):: DFDTH, FVEL, DVEL, DFDP, DFDB
 
 !     +++++ calculation of weigthing (including off-diagonal terms) +++++
 
@@ -329,11 +329,9 @@
                ENDIF
             ENDIF
          ENDIF
-!         RGAMA=SQRT(1.D0+PG(NP,NSBA)**2*THETA0(NSA))
          FVEL=FPP(NTH,NP,NR,NSA)-DPT(NTH,NP,NR,NSA)*DFDTH
 !         WEIGHP(NTH,NP,NR,NSA)=0.5D0
          WEIGHP(NTH,NP,NR,NSA)=FPWEGH(-DELP(NSBA)*FVEL,DPP(NTH,NP,NR,NSA))
-!         WEIGHP(NTH,NP,NR,NSA)=FPWEGH(-DELP(NSBA)*FVEL/RGAMA,DPP(NTH,NP,NR,NSA))
       ENDDO
       ENDDO
       ENDDO
@@ -540,8 +538,8 @@
          ENDIF
          WEIGHT(NTH,NP,NR,NSA) &
                  =FPWEGH(-DELTH*PM(NP,NSBA)*FVEL,DVEL)
-!         WEIGHT(NTH,NP,NR,NSA) &
-!                 =0.5D0
+         WEIGHT(NTH,NP,NR,NSA) &
+                 =0.5D0
       ENDDO
       ENDDO
       ENDDO
@@ -651,24 +649,23 @@
       real(8):: RL,DRRM,DRRP,WRM,WRP,VRM,VRP,DIVDRR,DIVFRR
       real(8):: PL
       DOUBLE PRECISION:: WPBM, VPBM, WPBP, VPBP
-      INTEGER:: NCASE
 
       NSBA=NSB_NSA(NSA)
 
       NTB=0
       NTBM=0
       NTBP=0
-      NCASE=0
       IF(MODELA.ne.0)THEN
+!         IF(NTH.EQ.ITL(NR)+1) THEN
+!            NTB=ITU(NR)+1
          IF(NTH.EQ.ITL(NR)) THEN
             NTB=ITU(NR)+1
-            NCASE=1
          ENDIF
-         IF(NTH.ge.ITL(NR)+1.and.NTH.le.ITU(NR))THEN
-            NCASE=2
-         END IF
          IF(NR-1.GE.1) THEN
+!            IF(NTH.GE.ITL(NR)+1.AND.NTH.LE.ITL(NR-1)) THEN 
             IF(NTH.GE.ITL(NR).AND.NTH.LT.ITL(NR-1)) THEN 
+!               NTBM=ITU(NR-1)+ITL(NR-1)-NTH+1
+!               NTBM=ITU(NR)
                NTBM=NTHMAX+1-NTH
             ENDIF
          ENDIF
@@ -686,6 +683,12 @@
       DTPP=SING(NTH+1)
       DTTM=SING(NTH  )/PL
       DTTP=SING(NTH+1)/PL
+      IF(NTB.NE.0) THEN
+         DPTM=0.5D0*DPTM
+         DPTP=0.5D0*DPTP
+         DTPM=0.5D0*DTPM
+         DTTM=0.5D0*DTTM
+      ENDIF
       RL=RM(NR)
       DRRM=RG(NR  )
       DRRP=RG(NR+1)
@@ -728,6 +731,9 @@
 !      DIVFRR=1.D0/(     RL   *DELR)
       DIVDRR=1.D0/(     RL   *DELR *DELR)*RFSADG(NR)
       DIVFRR=1.D0/(     RL   *DELR)*RFSADG(NR)
+!      IF(NP.EQ.NPMAX) THEN
+!         DIVDTP=2.D0*DIVDTP
+!      ENDIF
 
       IF(MODELD.GT.0) THEN
 !         IF(NR.NE.1.AND.NP.NE.NPMAX) THEN
@@ -762,16 +768,9 @@
       IF(NP.NE.1.AND.NTH.NE.1) THEN
          NL=NL+1
          LL(NM,NL)=NMA(NTH-1,NP-1,NR)
-         SELECT CASE(NCASE)
-         CASE(0)
-            AL(NM,NL)=+DPT(NTH  ,NP  ,NR,NSA)*WPM*DIVDPT*DPTM &
-                      +DTP(NTH  ,NP  ,NR,NSA)*WTM*DIVDTP*DTPM
-         CASE(1)
-            AL(NM,NL)=+DPT(NTH  ,NP  ,NR,NSA)*WPM*DIVDPT*DPTM*0.5D0 &
-                      +DTP(NTH  ,NP  ,NR,NSA)*WTM*DIVDTP*DTPM*0.5D0
-         CASE(2)
-            AL(NM,NL)=0.D0
-         END SELECT
+         AL(NM,NL)=+DPT(NTH  ,NP  ,NR,NSA)*WPM*DIVDPT*DPTM &
+                   +DTP(NTH  ,NP  ,NR,NSA)*WTM*DIVDTP*DTPM
+
          IF(ABS(AL(NM,NL)).LT.1.D-70) THEN
             LL(NM,NL)=0
             AL(NM,NL)=0.D0
@@ -782,51 +781,33 @@
       IF(NP.NE.1) THEN
          NL=NL+1
          LL(NM,NL)=NMA(NTH,NP-1,NR)
-         SELECT CASE(NCASE)
-         CASE(0)
-            AL(NM,NL)=+DPP(NTH  ,NP  ,NR,NSA)    *DIVDPP*DPPM &
-                      +FPP(NTH  ,NP  ,NR,NSA)*WPM*DIVFPP*DPPM &
-                      +DTP(NTH  ,NP  ,NR,NSA)*VTM*DIVDTP*DTPM &
-                      -DTP(NTH+1,NP  ,NR,NSA)*WTP*DIVDTP*DTPP 
-         CASE(1)
-            AL(NM,NL)=+DPP(NTH  ,NP  ,NR,NSA)    *DIVDPP*DPPM &
-                      +FPP(NTH  ,NP  ,NR,NSA)*WPM*DIVFPP*DPPM &
-                      +DTP(NTH  ,NP  ,NR,NSA)*VTM*DIVDTP*DTPM*0.5D0 &
-                      -DTP(NTB  ,NP  ,NR,NSA)*WTB*DIVDTP*DTPM*0.5D0  
-         CASE(2)
-            AL(NM,NL)=+DPP(NTH  ,NP  ,NR,NSA)    *DIVDPP*DPPM &
-                      +FPP(NTH  ,NP  ,NR,NSA)*WPM*DIVFPP*DPPM 
-         END SELECT
-!         IF(NTB.NE.0) THEN
-!            AL(NM,NL)=AL(NM,NL) &
-!                   -DTP(NTB  ,NP  ,NR,NSA)*WTB*DIVDTP*DTPM & 
-!                   +DTP(NTH+1,NP  ,NR,NSA)*WTP*DIVDTP*DTPP
-!         ENDIF
+         AL(NM,NL)=+DPP(NTH  ,NP  ,NR,NSA)    *DIVDPP*DPPM &
+                   +FPP(NTH  ,NP  ,NR,NSA)*WPM*DIVFPP*DPPM &
+                   -DTP(NTH+1,NP  ,NR,NSA)*WTP*DIVDTP*DTPP &
+                   +DTP(NTH  ,NP  ,NR,NSA)*VTM*DIVDTP*DTPM
+         IF(NTB.NE.0) THEN
+            AL(NM,NL)=AL(NM,NL) &
+                   -DTP(NTB  ,NP  ,NR,NSA)*WTB*DIVDTP*DTPM 
+         ENDIF
       ENDIF
 
       IF(NP.NE.1.AND.NTH.NE.NTHMAX) THEN
          NL=NL+1
          LL(NM,NL)=NMA(NTH+1,NP-1,NR)
-         SELECT CASE(NCASE)
-         CASE(0)
-            AL(NM,NL)=-DPT(NTH  ,NP  ,NR,NSA)*WPM*DIVDPT*DPTM &
-                      -DTP(NTH+1,NP  ,NR,NSA)*VTP*DIVDTP*DTPP
-         CASE(1)
-            AL(NM,NL)=0.D0
-         CASE(2)
-            AL(NM,NL)=0.D0
-         END SELECT
-!         IF(NTB.ne.0)THEN
-!            AL(NM,NL)=0.D0
-!         END IF
+         AL(NM,NL)=-DPT(NTH  ,NP  ,NR,NSA)*WPM*DIVDPT*DPTM &
+                   -DTP(NTH+1,NP  ,NR,NSA)*VTP*DIVDTP*DTPP
+         IF(NTB.ne.0)THEN
+            AL(NM,NL)=AL(NM,NL) &
+                 -DPT(NTH  ,NP  ,NR,NSA)*WPM*DIVDPT*DPTM
+         END IF
       ENDIF
 
       IF(NP.NE.1.AND.NTB.NE.0) THEN
          NL=NL+1
          LL(NM,NL)=NMA(NTB,NP-1,NR)
          AL(NM,NL)= &
-              -DPT(NTB-1, NP  ,NR,NSA)*WPBM*DIVDPT*DPTM*0.5D0 &
-              -DTP(NTB  , NP  ,NR,NSA)*VTB *DIVDTP*DTPM*0.5D0
+              +DPT(NTH, NP  ,NR,NSA)*WPBM*DIVDPT*DPTM &
+              -DTP(NTB, NP  ,NR,NSA)*VTB *DIVDTP*DTPM
          IF(ABS(AL(NM,NL)).LT.1.D-70) THEN
             LL(NM,NL)=0
             AL(NM,NL)=0.D0
@@ -837,20 +818,10 @@
       IF(NTH.NE.1) THEN
          NL=NL+1
          LL(NM,NL)=NMA(NTH-1,NP,NR)
-         SELECT CASE(NCASE)
-         CASE(0)
-            AL(NM,NL)=-DPT(NTH  ,NP+1,NR,NSA)*WPP*DIVDPT*DPTP &
-                      +DPT(NTH  ,NP  ,NR,NSA)*VPM*DIVDPT*DPTM &
-                      +DTT(NTH  ,NP  ,NR,NSA)    *DIVDTT*DTTM &
-                      +FTH(NTH  ,NP  ,NR,NSA)*WTM*DIVFTH*DTPM 
-         CASE(1)
-            AL(NM,NL)=-DPT(NTH  ,NP+1,NR,NSA)*WPP*DIVDPT*DPTP*0.5D0 &
-                      +DPT(NTH  ,NP  ,NR,NSA)*VPM*DIVDPT*DPTM*0.5D0 &
-                      +DTT(NTH  ,NP  ,NR,NSA)    *DIVDTT*DTTM*0.5D0 &
-                      +FTH(NTH  ,NP  ,NR,NSA)*WTM*DIVFTH*DTPM*0.5D0 
-         CASE(2)
-            AL(NM,NL)= DTT(NTH  ,NP  ,NR,NSA)    *DIVDTT*DTTM
-         END SELECT
+         AL(NM,NL)=-DPT(NTH  ,NP+1,NR,NSA)*WPP*DIVDPT*DPTP &
+                   +DPT(NTH  ,NP  ,NR,NSA)*VPM*DIVDPT*DPTM &
+                   +DTT(NTH  ,NP  ,NR,NSA)    *DIVDTT*DTTM &
+                   +FTH(NTH  ,NP  ,NR,NSA)*WTM*DIVFTH*DTPM 
 !         IF(NP.EQ.NPMAX) THEN !
 !            AL(NM,NL)=AL(NM,NL) &
 !                   -DTP(NTH  ,NP  ,NR,NSA)*VTM*DIVDTP*DTPM
@@ -860,23 +831,15 @@
       IF(NTH.NE.NTHMAX) THEN
          NL=NL+1
          LL(NM,NL)=NMA(NTH+1,NP,NR)
-         SELECT CASE(NCASE)
-         CASE(0)
-            AL(NM,NL)=+DPT(NTH  ,NP+1,NR,NSA)*WPP*DIVDPT*DPTP &
-                      -DPT(NTH  ,NP  ,NR,NSA)*VPM*DIVDPT*DPTM &
-                      +DTT(NTH+1,NP  ,NR,NSA)    *DIVDTT*DTTP &
-                      -FTH(NTH+1,NP  ,NR,NSA)*VTP*DIVFTH*DTPP 
-         CASE(1)
-            AL(NM,NL)= DTT(NTH+1,NP  ,NR,NSA)    *DIVDTT*DTTP 
-         CASE(2)
-            AL(NM,NL)= DTT(NTH+1,NP  ,NR,NSA)    *DIVDTT*DTTP 
-         END SELECT
-
-!         IF(NTB.ne.0)THEN
-!            AL(NM,NL)=AL(NM,NL) &
-!                   +DPT(NTH  ,NP+1,NR,NSA)*WPP*DIVDPT*DPTP &
-!                   -DPT(NTH  ,NP  ,NR,NSA)*VPM*DIVDPT*DPTM 
-!         END IF
+         AL(NM,NL)=+DPT(NTH  ,NP+1,NR,NSA)*WPP*DIVDPT*DPTP &
+                   -DPT(NTH  ,NP  ,NR,NSA)*VPM*DIVDPT*DPTM &
+                   +DTT(NTH+1,NP  ,NR,NSA)    *DIVDTT*DTTP &
+                   -FTH(NTH+1,NP  ,NR,NSA)*VTP*DIVFTH*DTPP 
+         IF(NTB.ne.0)THEN
+            AL(NM,NL)=AL(NM,NL) &
+                   +DPT(NTH  ,NP+1,NR,NSA)*WPP*DIVDPT*DPTP &
+                   -DPT(NTH  ,NP  ,NR,NSA)*VPM*DIVDPT*DPTM 
+         END IF
 !         IF(NP.EQ.NPMAX) THEN !
 !            AL(NM,NL)=AL(NM,NL) &
 !                   +DTP(NTH+1,NP  ,NR,NSA)*WTP*DIVDTP*DTPP
@@ -886,10 +849,10 @@
       IF(NTB.NE.0) THEN
          NL=NL+1
          LL(NM,NL)=NMA(NTB,NP,NR)
-         AL(NM,NL)= DPT(NTH,NP+1,NR,NSA)*WPBP*DIVDPT*DPTP*0.5D0 &
-                   -DPT(NTH,NP  ,NR,NSA)*VPBM*DIVDPT*DPTM*0.5D0 &
-                   +DTT(NTB,NP  ,NR,NSA)     *DIVDTT*DTTM*0.5D0 &
-                   -FTH(NTB,NP  ,NR,NSA)*VTB *DIVFTH*DTPM*0.5D0
+         AL(NM,NL)=-DPT(NTH,NP+1,NR,NSA)*WPBP*DIVDPT*DPTP &
+                   +DPT(NTH,NP  ,NR,NSA)*VPBM*DIVDPT*DPTM &
+                   +DTT(NTB,NP  ,NR,NSA)    *DIVDTT*DTTM &
+                   -FTH(NTB,NP  ,NR,NSA)*VTB*DIVFTH*DTPM
 !         IF(NP.EQ.NPMAX) THEN
 !            AL(NM,NL)=AL(NM,NL) &
 !                   +DTP(NTB,NP  ,NR,NSA)*VTB*DIVDTP*DTPM
@@ -899,16 +862,8 @@
       IF(NP.NE.NPMAX.AND.NTH.NE.1) THEN
          NL=NL+1
          LL(NM,NL)=NMA(NTH-1,NP+1,NR)
-         SELECT CASE(NCASE)
-         CASE(0)
-            AL(NM,NL)=-DPT(NTH  ,NP+1,NR,NSA)*VPP*DIVDPT*DPTP &
-                      -DTP(NTH  ,NP  ,NR,NSA)*WTM*DIVDTP*DTPM
-         CASE(1)
-            AL(NM,NL)=-DPT(NTH  ,NP+1,NR,NSA)*VPP*DIVDPT*DPTP*0.5D0 &
-                      -DTP(NTH  ,NP  ,NR,NSA)*WTM*DIVDTP*DTPM*0.5D0
-         CASE(2)
-            AL(NM,NL)=0.D0
-         END SELECT
+         AL(NM,NL)=-DPT(NTH  ,NP+1,NR,NSA)*VPP*DIVDPT*DPTP &
+                   -DTP(NTH  ,NP  ,NR,NSA)*WTM*DIVDTP*DTPM
          IF(ABS(AL(NM,NL)).LT.1.D-70) THEN
             LL(NM,NL)=0
             AL(NM,NL)=0.D0
@@ -919,43 +874,25 @@
       IF(NP.NE.NPMAX) THEN
          NL=NL+1
          LL(NM,NL)=NMA(NTH,NP+1,NR)
-         SELECT CASE(NCASE)
-         CASE(0)
-            AL(NM,NL)=+DPP(NTH  ,NP+1,NR,NSA)    *DIVDPP*DPPP &
-                      -FPP(NTH  ,NP+1,NR,NSA)*VPP*DIVFPP*DPPP &
-                      +DTP(NTH+1,NP  ,NR,NSA)*WTP*DIVDTP*DTPP &
-                      -DTP(NTH  ,NP  ,NR,NSA)*VTM*DIVDTP*DTPM
-         CASE(1)
-            AL(NM,NL)=+DPP(NTH  ,NP+1,NR,NSA)    *DIVDPP*DPPP &
-                      -FPP(NTH  ,NP+1,NR,NSA)*VPP*DIVFPP*DPPP &
-                      -DTP(NTH  ,NP  ,NR,NSA)*VTM*DIVDTP*DTPM*0.5D0 &
-                      +DTP(NTB  ,NP  ,NR,NSA)*WTB*DIVDTP*DTPM*0.5D0
-         CASE(2)
-            AL(NM,NL)=+DPP(NTH  ,NP+1,NR,NSA)    *DIVDPP*DPPP &
-                      -FPP(NTH  ,NP+1,NR,NSA)*VPP*DIVFPP*DPPP
-         END SELECT
-!         IF(NTB.NE.0) THEN
-!            AL(NM,NL)=AL(NM,NL) &
-!                   +DTP(NTB  ,NP  ,NR,NSA)*WTB*DIVDTP*DTPM 
-!         ENDIF
+         AL(NM,NL)=+DPP(NTH  ,NP+1,NR,NSA)    *DIVDPP*DPPP &
+                   -FPP(NTH  ,NP+1,NR,NSA)*VPP*DIVFPP*DPPP &
+                   +DTP(NTH+1,NP  ,NR,NSA)*WTP*DIVDTP*DTPP &
+                   -DTP(NTH  ,NP  ,NR,NSA)*VTM*DIVDTP*DTPM
+         IF(NTB.NE.0) THEN
+            AL(NM,NL)=AL(NM,NL) &
+                   +DTP(NTB  ,NP  ,NR,NSA)*WTB*DIVDTP*DTPM 
+         ENDIF
       ENDIF
 
       IF(NP.NE.NPMAX.AND.NTH.NE.NTHMAX) THEN
          NL=NL+1
          LL(NM,NL)=NMA(NTH+1,NP+1,NR)
-         SELECT CASE(NCASE)
-         CASE(0)
-            AL(NM,NL)=+DPT(NTH  ,NP+1,NR,NSA)*VPP*DIVDPT*DPTP &
-                      +DTP(NTH+1,NP  ,NR,NSA)*VTP*DIVDTP*DTPP
-         CASE(1)
-            AL(NM,NL)=0.D0
-         CASE(2)
-            AL(NM,NL)=0.D0
-         END SELECT
-!         IF(NTB.ne.0)THEN
-!            AL(NM,NL)=AL(NM,NL) &
-!                   +DPT(NTH  ,NP+1,NR,NSA)*VPP*DIVDPT*DPTP
-!         END IF
+         AL(NM,NL)=+DPT(NTH  ,NP+1,NR,NSA)*VPP*DIVDPT*DPTP &
+                   +DTP(NTH+1,NP  ,NR,NSA)*VTP*DIVDTP*DTPP
+         IF(NTB.ne.0)THEN
+            AL(NM,NL)=AL(NM,NL) &
+                   +DPT(NTH  ,NP+1,NR,NSA)*VPP*DIVDPT*DPTP
+         END IF
          IF(ABS(AL(NM,NL)).LT.1.D-70) THEN
             LL(NM,NL)=0
             AL(NM,NL)=0.D0
@@ -967,8 +904,8 @@
          NL=NL+1
          LL(NM,NL)=NMA(NTB,NP+1,NR)
          AL(NM,NL)= &
-              +DPT(NTH,NP+1,NR,NSA)*VPBP*DIVDPT*DPTP*0.5D0 &
-              +DTP(NTB,NP  ,NR,NSA)*VTB *DIVDTP*DTPM*0.5D0
+              -DPT(NTH,NP+1,NR,NSA)*VPBP*DIVDPT*DPTP &
+              +DTP(NTB,NP  ,NR,NSA)*VTB *DIVDTP*DTPM
          IF(ABS(AL(NM,NL)).LT.1.D-70) THEN
             LL(NM,NL)=0
             AL(NM,NL)=0.D0
@@ -1006,46 +943,22 @@
          ENDIF
       ENDIF
 
-      SELECT CASE(NCASE)
-      CASE(0)
-         DL(NM)=-DPP(NTH  ,NP+1,NR  ,NSA)    *DIVDPP*DPPP &
-                -FPP(NTH  ,NP+1,NR  ,NSA)*WPP*DIVFPP*DPPP &
-                -DPP(NTH  ,NP  ,NR  ,NSA)    *DIVDPP*DPPM &
-                +FPP(NTH  ,NP  ,NR  ,NSA)*VPM*DIVFPP*DPPM &
-                -DTT(NTH+1,NP  ,NR  ,NSA)    *DIVDTT*DTTP &
-                -FTH(NTH+1,NP  ,NR  ,NSA)*WTP*DIVFTH*DTPP &
+      DL(NM)=-DPP(NTH  ,NP+1,NR  ,NSA)    *DIVDPP*DPPP &
+             -FPP(NTH  ,NP+1,NR  ,NSA)*WPP*DIVFPP*DPPP &
+             -DPP(NTH  ,NP  ,NR  ,NSA)    *DIVDPP*DPPM &
+             +FPP(NTH  ,NP  ,NR  ,NSA)*VPM*DIVFPP*DPPM &
+             -DTT(NTH+1,NP  ,NR  ,NSA)    *DIVDTT*DTTP &
+             -FTH(NTH+1,NP  ,NR  ,NSA)*WTP*DIVFTH*DTPP &
 !
-                -DTT(NTH  ,NP  ,NR  ,NSA)    *DIVDTT*DTTM &
-                +FTH(NTH  ,NP  ,NR  ,NSA)*VTM*DIVFTH*DTPM &
-                +PPL(NTH  ,NP  ,NR  ,NSA)
-      CASE(1)
-         DL(NM)=-DPP(NTH  ,NP+1,NR  ,NSA)    *DIVDPP*DPPP &
-                -FPP(NTH  ,NP+1,NR  ,NSA)*WPP*DIVFPP*DPPP &
-                -DPP(NTH  ,NP  ,NR  ,NSA)    *DIVDPP*DPPM &
-                +FPP(NTH  ,NP  ,NR  ,NSA)*VPM*DIVFPP*DPPM &
-!
-                -DTT(NTH+1,NP  ,NR  ,NSA)    *DIVDTT*DTTP &
-                -DTT(NTH  ,NP  ,NR  ,NSA)    *DIVDTT*DTTM*0.5D0 &
-                +FTH(NTH  ,NP  ,NR  ,NSA)*VTM*DIVFTH*DTPM*0.5D0 &
-                -DTT(NTB  ,NP  ,NR  ,NSA)    *DIVDTT*DTTM*0.5D0 &
-                -FTH(NTB  ,NP  ,NR  ,NSA)*VTB*DIVFTH*DTPM*0.5D0 &
-!
-                +PPL(NTH  ,NP  ,NR  ,NSA)
-      CASE(2)
-         DL(NM)=-DPP(NTH  ,NP+1,NR  ,NSA)    *DIVDPP*DPPP &
-                -FPP(NTH  ,NP+1,NR  ,NSA)*WPP*DIVFPP*DPPP &
-                -DPP(NTH  ,NP  ,NR  ,NSA)    *DIVDPP*DPPM &
-                +FPP(NTH  ,NP  ,NR  ,NSA)*VPM*DIVFPP*DPPM &
-                -DTT(NTH+1,NP  ,NR  ,NSA)    *DIVDTT*DTTP &
-                -DTT(NTH  ,NP  ,NR  ,NSA)    *DIVDTT*DTTM &
-                +PPL(NTH  ,NP  ,NR  ,NSA)
-      END SELECT
+             -DTT(NTH  ,NP  ,NR  ,NSA)    *DIVDTT*DTTM &
+             +FTH(NTH  ,NP  ,NR  ,NSA)*VTM*DIVFTH*DTPM &
+             +PPL(NTH  ,NP  ,NR  ,NSA)
 
-!      IF(NTB.NE.0) THEN
-!         DL(NM)=DL(NM) &
-!             -DTT(NTB,NP  ,NR  ,NSA)    *DIVDTT*DTTM &
-!             -FTH(NTB,NP  ,NR  ,NSA)*VTB*DIVFTH*DTPM
-!      ENDIF
+      IF(NTB.NE.0) THEN
+         DL(NM)=DL(NM) &
+             -DTT(NTB,NP  ,NR  ,NSA)    *DIVDTT*DTTM &
+             -FTH(NTB,NP  ,NR  ,NSA)*VTB*DIVFTH*DTPM
+      ENDIF
 
 !      IF(NP.EQ.NPMAX) THEN !
 !         DL(NM)=DL(NM) &

@@ -14,6 +14,7 @@
       USE fpcalwm
       USE fpcalwr
       USE libbes,ONLY: besekn
+      USE fpcaleind
 
       contains
 !-------------------------------------------------------------
@@ -36,6 +37,7 @@
             DPP(NTH,NP,NR,NSA)=0.D0
             DPT(NTH,NP,NR,NSA)=0.D0
             FPP(NTH,NP,NR,NSA)=0.D0
+            FEPP_IND(NTH,NP,NR,NSA)=0.D0
          ENDDO
          ENDDO
          DO NP=1,NPMAX
@@ -43,6 +45,7 @@
             DTP(NTH,NP,NR,NSA)=0.D0
             DTT(NTH,NP,NR,NSA)=0.D0
             FTH(NTH,NP,NR,NSA)=0.D0
+            FETH_IND(NTH,NP,NR,NSA)=0.D0
          ENDDO
          ENDDO
       ENDDO
@@ -53,10 +56,14 @@
       IF(E0.ne.0.D0)THEN
          CALL FP_CALE(NSA)
       END IF
+      IF(N_IMPL.ne.0.and.MODELE.eq.1)THEN
+         CALL FP_CALE_IND(NSA)
+      END IF
+
 !
 !     ----- Quasi-linear wave-particle interaction term -----
 
-!!!   reduce the number of calling fp_calwm and fp_calw
+!!!   reduce the number of call of fp_calwm and fp_calw
 !     include 2 IF
       IF(N_IMPL.eq.0)THEN ! N_IMPL=0
 
@@ -241,41 +248,33 @@
             END DO
          END DO
       END IF
-!      WRITE(6,*) NRSTART, NRANK, NSIZE
 !     ----- Collisional slowing down and diffusion term -----
       CALL FP_CALC(NSA)
-!      IF(NRANK.eq.1.and.NSA.eq.1)THEN
-!         WRITE(*,'("L2",6E14.6)') DCPP2(ITL(NR),2,NR,1,NSA),DCPT2(ITL(NR),2,NR,1,NSA) &
-!              ,FCPP2(ITL(NR),2,NR,1,NSA) &
-!              ,DCTP2(ITL(NR)+1,2,NR,1,NSA),DCTT2(ITL(NR)+1,2,NR,1,NSA),FCTH2(ITL(NR)+1,2,NR,1,NSA)
-!         WRITE(*,'("U2",6E14.6)') DCPP2(ITU(NR),2,NR,1,NSA),DCPT2(ITU(NR),2,NR,1,NSA) &
-!              ,FCPP2(ITU(NR),2,NR,1,NSA) &
-!              ,DCTP2(ITU(NR),2,NR,1,NSA),DCTT2(ITU(NR),2,NR,1,NSA),FCTH2(ITU(NR),2,NR,1,NSA)
-!      END IF
-
 !     ----- Sum up velocity diffusion terms -----
 
       DO NR=NRSTART,NREND
-         DO NP=1,NPMAX+1
-         DO NTH=1,NTHMAX
-            DPP(NTH,NP,NR,NSA)=0.D0
-            DPT(NTH,NP,NR,NSA)=0.D0
-            FPP(NTH,NP,NR,NSA)=0.D0
-         ENDDO
-         ENDDO
-         DO NP=1,NPMAX
-         DO NTH=1,NTHMAX+1
-            DTP(NTH,NP,NR,NSA)=0.D0
-            DTT(NTH,NP,NR,NSA)=0.D0
-            FTH(NTH,NP,NR,NSA)=0.D0
-         ENDDO
-         ENDDO
+!         DO NP=1,NPMAX+1
+!         DO NTH=1,NTHMAX
+!            DPP(NTH,NP,NR,NSA)=0.D0
+!            DPT(NTH,NP,NR,NSA)=0.D0
+!            FPP(NTH,NP,NR,NSA)=0.D0
+!         ENDDO
+!         ENDDO
+!         DO NP=1,NPMAX
+!         DO NTH=1,NTHMAX+1
+!            DTP(NTH,NP,NR,NSA)=0.D0
+!            DTT(NTH,NP,NR,NSA)=0.D0
+!            FTH(NTH,NP,NR,NSA)=0.D0
+!         ENDDO
+!         ENDDO
 
          DO NP=1,NPMAX+1
          DO NTH=1,NTHMAX
             DPP(NTH,NP,NR,NSA)=DCPP(NTH,NP,NR,NSA)+DWPP(NTH,NP,NR,NSA)
             DPT(NTH,NP,NR,NSA)=DCPT(NTH,NP,NR,NSA)+DWPT(NTH,NP,NR,NSA)
             FPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)+FCPP(NTH,NP,NR,NSA)
+            IF(MODELE.eq.1) &
+                 FPP(NTH,NP,NR,NSA)=FPP(NTH,NP,NR,NSA)+FEPP_IND(NTH,NP,NR,NSA)
          ENDDO
          ENDDO
 !
@@ -284,6 +283,8 @@
             DTP(NTH,NP,NR,NSA)=DCTP(NTH,NP,NR,NSA)+DWTP(NTH,NP,NR,NSA)
             DTT(NTH,NP,NR,NSA)=DCTT(NTH,NP,NR,NSA)+DWTT(NTH,NP,NR,NSA)
             FTH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)+FCTH(NTH,NP,NR,NSA)
+            IF(MODELE.eq.1) &
+                 FTH(NTH,NP,NR,NSA)=FTH(NTH,NP,NR,NSA)+FETH_IND(NTH,NP,NR,NSA)
          ENDDO
          ENDDO
       ENDDO
@@ -352,10 +353,14 @@
       integer:: NG
       real(kind8):: FACT, DELH, sum11, ETAL, X, PSIB, PCOS, sum15, ARG
 
+      DO NR=1,NRMAX
+         E1(NR)=E0/(1.D0+EPSRM2(NR))
+      END DO
+
       DO NR=NRSTART,NREND
       DO NP=1,NPMAX+1
       DO NTH=1,NTHMAX
-         FEPP(NTH,NP,NR,NSA)= AEFP(NSA)*E2(NR)/PTFP0(NSA)*COSM(NTH)
+         FEPP(NTH,NP,NR,NSA)= AEFP(NSA)*E1(NR)/PTFP0(NSA)*COSM(NTH)
       ENDDO
       ENDDO
       ENDDO
@@ -363,7 +368,7 @@
       DO NR=NRSTART,NREND
       DO NP=1,NPMAX
       DO NTH=1,NTHMAX+1
-         FETH(NTH,NP,NR,NSA)=-AEFP(NSA)*E2(NR)/PTFP0(NSA)*SING(NTH)
+         FETH(NTH,NP,NR,NSA)=-AEFP(NSA)*E1(NR)/PTFP0(NSA)*SING(NTH)
       ENDDO
       ENDDO
       ENDDO
@@ -384,18 +389,39 @@
 
       IMPLICIT NONE
       integer,intent(in):: NR, NSA
-      integer:: NTH, NP
+      integer:: NTH, NP, NG
+      double precision:: DELH, SUM, ETAL, X, PSIB
 
 !     BOUNCE AVERAGE FEPP
       DO NP=1,NPMAX+1
          DO NTH=1,ITL(NR)-1
-            FEPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)*2.D0*ETAM(NTH,NR)
+            DELH=2.D0*ETAM(NTH,NR)/NAVMAX
+            SUM=0.D0
+            DO NG=1,NAVMAX
+               ETAL=DELH*(NG-0.5D0)
+               X=EPSRM2(NR)*COS(ETAL)
+               PSIB=(1.D0+EPSRM2(NR))/(1.D0+X) 
+               
+               SUM = SUM + FEPP(NTH,NP,NR,NSA)*PSIB
+            END DO
+            FEPP(NTH,NP,NR,NSA) = SUM*DELH
+!            FEPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)*2.D0*ETAM(NTH,NR)
          END DO ! END NTH
          DO NTH=ITL(NR)+1,ITU(NR)-1
             FEPP(NTH,NP,NR,NSA)=0.D0
          END DO
          DO NTH=ITU(NR)+1,NTHMAX
-            FEPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)*2.D0*ETAM(NTH,NR)
+            DELH=2.D0*ETAM(NTH,NR)/NAVMAX
+            SUM=0.D0
+            DO NG=1,NAVMAX
+               ETAL=DELH*(NG-0.5D0)
+               X=EPSRM2(NR)*COS(ETAL)
+               PSIB=(1.D0+EPSRM2(NR))/(1.D0+X) 
+               
+               SUM = SUM + FEPP(NTH,NP,NR,NSA)*PSIB
+            END DO
+            FEPP(NTH,NP,NR,NSA) = SUM*DELH
+!            FEPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)*2.D0*ETAM(NTH,NR)
          END DO
          FEPP(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)/4.D0 &
               *( FEPP(ITL(NR)-1,NP,NR,NSA)/RLAMDA(ITL(NR)-1,NR) &
@@ -407,18 +433,33 @@
 !     BOUNCE AVERAGE FETH
       DO NP=1,NPMAX
          DO NTH=1,ITL(NR)
-            FETH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)*2.D0*ETAG(NTH,NR)
+            DELH=2.D0*ETAG(NTH,NR)/NAVMAX
+            SUM=0.D0
+            DO NG=1,NAVMAX
+               ETAL=DELH*(NG-0.5D0)
+               X=EPSRM2(NR)*COS(ETAL)
+               PSIB=(1.D0+EPSRM2(NR))/(1.D0+X)
+               
+               SUM = SUM + FETH(NTH,NP,NR,NSA)*PSIB
+            END DO
+            FETH(NTH,NP,NR,NSA) = SUM * DELH
+!            FETH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)*2.D0*ETAG(NTH,NR)
          END DO
          DO NTH=ITL(NR)+1,ITU(NR)
-            FETH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)*2.D0*ETAG(NTH,NR)
+            FETH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)*2.D0*ETAG(NTH,NR)*0.D0
          END DO
-!         DO NTH=ITL(NR)+1,NTHMAX/2
-!            FETH(NTH,NP,NR,NSA)=0.5D0*( &
-!                 FETH(NTH,NP,NR,NSA)+FETH(NTHMAX-NTH+2,NP,NR,NSA) )
-!            FETH(NTHMAX-NTH+2,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)
-!         END DO
          DO NTH=ITU(NR)+1,NTHMAX+1
-            FETH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)*2.D0*ETAG(NTH,NR)
+            DELH=2.D0*ETAG(NTH,NR)/NAVMAX
+            SUM=0.D0
+            DO NG=1,NAVMAX
+               ETAL=DELH*(NG-0.5D0)
+               X=EPSRM2(NR)*COS(ETAL)
+               PSIB=(1.D0+EPSRM2(NR))/(1.D0+X)
+               
+               SUM = SUM + FETH(NTH,NP,NR,NSA)*PSIB
+            END DO
+            FETH(NTH,NP,NR,NSA) = SUM * DELH
+!            FETH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)*2.D0*ETAG(NTH,NR)
          END DO
       END DO ! END NP
 
@@ -1459,4 +1500,5 @@
 
       END SUBROUTINE fusion_source_init
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
       END MODULE fpcoef

@@ -556,17 +556,22 @@
             DO NTH=ITL(NR)+1,NTHMAX/2
                DCPT2(NTH,NP,NR,NSB,NSA) &
                     =(DCPT2(NTH,NP,NR,NSB,NSA) &
-                     +DCPT2(NTHMAX-NTH+1,NP,NR,NSB,NSA))*0.5D0
+!                     +DCPT2(NTHMAX-NTH+1,NP,NR,NSB,NSA))*0.5D0 ! symmetry
+                     -DCPT2(NTHMAX-NTH+1,NP,NR,NSB,NSA))*0.5D0 ! assymmetry
                DCPT2(NTHMAX-NTH+1,NP,NR,NSB,NSA) &
-                    =DCPT2(NTH,NP,NR,NSB,NSA)
+!                    =DCPT2(NTH,NP,NR,NSB,NSA) ! symmetry
+                    =-DCPT2(NTH,NP,NR,NSB,NSA) ! assymmetry
             END DO ! END NTH
             IF(ISW_LAV.ne.1)THEN
                DCPT2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)*0.25D0     &
                     *( DCPT2(ITL(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
                     +DCPT2(ITL(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR) &
-                    +DCPT2(ITU(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR) &
-                    +DCPT2(ITU(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
-               DCPT2(ITU(NR),NP,NR,NSB,NSA)=-DCPT2(ITL(NR),NP,NR,NSB,NSA)
+!                    +DCPT2(ITU(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR) & ! symmetry
+!                    +DCPT2(ITU(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
+                    -DCPT2(ITU(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR) & ! assymetry
+                    -DCPT2(ITU(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
+!               DCPT2(ITU(NR),NP,NR,NSB,NSA)=DCPT2(ITL(NR),NP,NR,NSB,NSA) ! symmetry
+               DCPT2(ITU(NR),NP,NR,NSB,NSA)=-DCPT2(ITL(NR),NP,NR,NSB,NSA) ! assymmetry
             ELSE
                DCPT2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)*0.25D0     &
                     *( DCPT2B(1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
@@ -596,9 +601,11 @@
             DO NTH=ITL(NR)+1,NTHMAX/2
                FCTH2(NTH,NP,NR,NSB,NSA)        &
                     =(FCTH2(NTH,NP,NR,NSB,NSA) &
-                     +FCTH2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0
+!                     +FCTH2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0 ! symmetry
+                     -FCTH2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0 ! a
                FCTH2(NTHMAX-NTH+2,NP,NR,NSB,NSA) &
-                    =FCTH2(NTH,NP,NR,NSB,NSA)
+!                    =FCTH2(NTH,NP,NR,NSB,NSA) ! symmetry
+                    =-FCTH2(NTH,NP,NR,NSB,NSA)
             END DO
          END DO
       END DO
@@ -607,9 +614,11 @@
             DO NTH=ITL(NR)+1,NTHMAX/2
                DCTP2(NTH,NP,NR,NSB,NSA)        &
                     =(DCTP2(NTH,NP,NR,NSB,NSA) &
-                     +DCTP2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0
+!                     +DCTP2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0 ! symmetry
+                     -DCTP2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0
                DCTP2(NTHMAX-NTH+2,NP,NR,NSB,NSA) &
-                    =DCTP2(NTH,NP,NR,NSB,NSA)
+!                    =DCTP2(NTH,NP,NR,NSB,NSA) ! symmetry
+                    =-DCTP2(NTH,NP,NR,NSB,NSA)
             END DO
          END DO
       END DO

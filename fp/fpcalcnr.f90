@@ -10,6 +10,7 @@
 
       USE fpcomm
       USE libspf, ONLY: dpleg
+!      USE fpcoef, ONLY: FPMXWL
       real(8):: PNFP, TMC2FD0, TMC2FD
 
 
@@ -26,7 +27,9 @@
       integer,parameter::LNM=5
       real(8),DIMENSION(NTHMAX+3,-1:LNM):: PLM, PLG, D1PLM, D1PLG, D2PLG
       real(8),DIMENSION(0:LNM):: PLTEMP
-      real(8),DIMENSION(NPMAX+3,-1:LNM):: FPL, FPL0
+      real(8),DIMENSION(NPMAX+3,-1:LNM):: FPL
+      double precision,dimension(-1:LNM):: FPLS1
+      double precision:: FPLS1_temp
 
       real(8),DIMENSION(NTHMAX+3):: TX,TY,DF
       real(8),DIMENSION(4,NTHMAX+3):: UTY
@@ -150,8 +153,23 @@
             FPL(NP,L)=0.5D0*(2.D0*L+1.D0)*SUM1
 !            WRITE(8,*) L, NP, FPL(NP,L)
          END DO
-!         WRITE(8,*)" "
-!         WRITE(8,*)" "
+!
+         TX(1)=0.D0
+         TY(1)=0.D0
+         FPLS1_temp=FPMXWL_calcnr(0.D0,NR,NSB)
+         DO NTH=1,NTHMAX
+            TX(NTH+1)=THM(NTH)
+            TY(NTH+1)=FPLS1_temp*PLM(NTH,L)*SINM(NTH)
+         END DO
+         TX(NTHMAX+2)=PI
+         TY(NTHMAX+2)=0.D0
+         DF(1)= FPLS1_temp
+         DF(NTHMAX+2)= (-1)**(L+1)*FPLS1_temp
+         CALL SPL1D(TX,TY,DF,UTY,NTHMAX+2,3,IER)
+         CALL SPL1DI0(TX,UTY,UTY0,NTHMAX+2,IER)
+         CALL SPL1DI(PI,SUM1,TX,UTY,UTY0,NTHMAX+2,IER)
+         FPLS1(L)=0.5D0*(2.D0*L+1.D0)*SUM1
+!            WRITE(8,*) L, NP, FPL(NP,L)
       END DO
 !      close(8)
 !
@@ -159,7 +177,7 @@
 !
 !      CALL INTEGRATION_RJAB_RYAB(NSB,NSA,FPL,RJABG,RJABM,RYABG,RYABM)
       IF(NCALCNR.eq.0)THEN
-         CALL INTEGRATION_RJAB_RYAB_FINE(NSB,NSA,FPL,RJABG,RJABM,RYABG,RYABM)
+         CALL INTEGRATION_RJAB_RYAB_FINE(NSB,NSA,FPL,RJABG,RJABM,RYABG,RYABM,FPLS1)
       ELSE
          CALL INTEGRATION_RJAB_RYAB_weighp(NR,NSB,NSA,FPL,RJABG,RJABM,RYABG,RYABM)
       END IF
@@ -1029,7 +1047,7 @@
 
 !-------------------------------------------
 
-      SUBROUTINE INTEGRATION_RJAB_RYAB_FINE(NSB,NSA,FPL,RJABG,RJABM,RYABG,RYABM)
+      SUBROUTINE INTEGRATION_RJAB_RYAB_FINE(NSB,NSA,FPL,RJABG,RJABM,RYABG,RYABM,FPLS1)
 
       IMPLICIT NONE
 
@@ -1037,6 +1055,7 @@
 
       real(8),DIMENSION(NPMAX+3,-1:LNM),INTENT(IN):: FPL
       real(8),DIMENSION(NPMAX+3,-1:LNM):: FPL0
+      double precision,dimension(-1:LNM):: FPLS1
 
       real(8),DIMENSION(2*NPMAX+3):: TX1,TY1,DF1,UTY10
       real(8),DIMENSION(4,2*NPMAX+3):: UTY1
@@ -1050,17 +1069,20 @@
       real(8):: SUM1, SUM2, SUM3, SUM4, SUM5
       real(8):: PSUM, PCRIT, RGAMA, RGAMB, RUFP, FACT, FACT2
       real(8):: vtatb, pabbar, ptatb, PMAX2, testF, testP
+      integer:: N_fine_range
 
       TMC2FD0=(PTFD0(NSB)/(AMFD(NSB)*VC))**2
       NSBA=NSB_NSA(NSA)
+      N_fine_range=1
 
 !      open(9,file='spl_j_fine.dat')
 !      open(10,file='spl_y_fine.dat')
 
       DO L=0,LLMAX
-         FPL0(1,L)=0.5D0*( FPL(1,L)+FPL(2,L) & 
-              + (FPL(1,L)-FPL(2,L))/( DELP(NSB)*(PM(1,NSB)+PM(2,NSB)) ) &
-              *(PM(1,NSB)**2+PM(2,NSB)**2) )
+         FPL0(1,L)=FPLS1(L) 
+!         FPL0(1,L)=0.5D0*( FPL(1,L)+FPL(2,L) & 
+!              + (FPL(1,L)-FPL(2,L))/( DELP(NSB)*(PM(1,NSB)+PM(2,NSB)) ) &
+!              *(PM(1,NSB)**2+PM(2,NSB)**2) )
          TX1(1)=0.D0
          TY1(1)=FPL0(1,L)
          DO NP=1,NPMAX
@@ -1073,7 +1095,7 @@
          DF1(NPMAX+2)=0.D0
          CALL SPL1D(TX1,TY1,DF1,UTY1,NPMAX+2,3,IER)
          DO NP=1,NPMAX-1
-            testP=PM(NP,NSB)/PMAX(NSB)
+            testP=PM(NP,NSB)/PMAX(NSB)*N_fine_range
             CALL SPL1DF(testP,testF,TX1,UTY1,NPMAX+2,IER)
             FPL0(NP+1,L)=testF
          END DO
@@ -1086,24 +1108,26 @@
          TX1(1)=0.D0
          TY1(1)=0.D0
          DO NNP=1,NPMAX-1
-            testP=PM(NNP,NSB)/PMAX(NSB)
+            testP=PM(NNP,NSB)/PMAX(NSB)*N_fine_range
             RGAMB=SQRT(1.D0+testP**2*THETA0(NSB))
             RUFP = (PTFD0(NSB)*testP)/AMFD(NSB)
             CALL FKLF_JY(RUFP,RJ_1,RY_1)
             TX1(NNP+1)=testP
             TY1(NNP+1)=FPL0(NNP+1,L)*(testP**(2+NI))/RGAMB &
                  *RJ_1(L+NI,NA)
+!            IF(L.eq.1) TY1(NNP+1)=0.D0
          END DO
          NPF=NPMAX
          DO NNP=1,NPMAX
             RGAMB=SQRT(1.D0+PM(NNP,NSB)**2*THETA0(NSB))
             RUFP = (PTFD0(NSB)*PM(NNP,NSB))/AMFD(NSB)
-            IF(PM(NNP,NSB).ge.1.D0)THEN
+            IF(PM(NNP,NSB).ge.1.D0*N_fine_range)THEN
                NPF=NPF+1
                CALL FKLF_JY(RUFP,RJ_1,RY_1)
                TX1(NPF)=PM(NNP,NSB)
                TY1(NPF)=FPL(NNP,L)*(PM(NNP,NSB)**(2+NI))/RGAMB &
                     *RJ_1(L+NI,NA)
+!               IF(L.eq.1) TY1(NPF)=0.D0
             END IF
          END DO
          TX1(NPF+1)=PMAX(NSB)
@@ -1116,7 +1140,7 @@
          CALL SPL1DI(PMAX2,PSUM,TX1,UTY1,UTY10,NPF+1,IER)
 
 !         DO NP=1,NPF
-!         IF(NSB.eq.1.and.nsa.eq.2) THEN
+!         IF(NSB.eq.1.and.nsa.eq.1) THEN
 !            write(9,'(3I2,1P14E14.6)') L, NA,NI,TX1(NP),TY1(NP)
 !         END IF
 !         END DO
@@ -1139,7 +1163,7 @@
               RJABG(NPG,L,NI,NA)=PSUM*(PTFD0(NSB)/AMFD(NSB))**NI
             ENDIF
          END DO
-      RJABG(1,L,NI,NA)=0.D0
+         RJABG(1,L,NI,NA)=0.D0
 !      WRITE(9,*) " "
 !      WRITE(9,*) " "
 !      WRITE(10,*) " "
@@ -1156,7 +1180,7 @@
             TY1(1)=0.D0
          END IF
          DO NNP=1,NPMAX-1
-            testP=PM(NNP,NSB)/PMAX(NSB)
+            testP=PM(NNP,NSB)/PMAX(NSB)*N_fine_range
             RGAMB=SQRT(1.D0+testP**2*THETA0(NSB))
             RUFP = (PTFD0(NSB)*testP)/AMFD(NSB)
             CALL FKLF_JY(RUFP,RJ_1,RY_1)
@@ -1168,7 +1192,7 @@
          DO NNP=1,NPMAX
             RGAMB=SQRT(1.D0+PM(NNP,NSB)**2*THETA0(NSB))
             RUFP = (PTFD0(NSB)*PM(NNP,NSB))/AMFD(NSB)
-            IF(PM(NNP,NSB).ge.1.D0)THEN
+            IF(PM(NNP,NSB).ge.1.D0*N_fine_range)THEN
                NPF=NPF+1
                CALL FKLF_JY(RUFP,RJ_1,RY_1)
                TX1(NPF)=PM(NNP,NSB)
@@ -1558,8 +1582,75 @@
       END DO
 
       END SUBROUTINE INTEGRATION_RJAB_RYAB_weighp
-
 !------
+
+! ****************************************
+!     MAXWELLIAN VELOCITY DISTRIBUTION
+! ****************************************
+
+      FUNCTION FPMXWL_calcnr(PML,NR,NS)
+
+      USE plprof
+      USE libbes,ONLY: besekn 
+      implicit none
+      integer :: NR, NS
+      real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
+      real(kind8) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
+      TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
+      real(kind8):: FPMXWL_calcnr
+
+      AMFDL=PA(NS)*AMP
+      AEFDL=PZ(NS)*AEE
+      RNFD0L=PN(NS)
+      RTFD0L=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
+      PTFD0L=SQRT(RTFD0L*1.D3*AEE*AMFDL)
+
+      IF(NR.eq.0)THEN
+         RL=0.D0
+         RHON=ABS(RL)
+      ELSEIF(NR.EQ.NRSTART-1) THEN
+         RL=RM(NRSTART)-DELR
+         RHON=ABS(RL)
+      ELSEIF(NR.EQ.NREND+1.and.NR.ne.NRMAX+1) THEN
+         RL=RM(NREND)+DELR
+         RHON=MIN(RL,1.D0)
+      ELSEIF(NR.EQ.NRMAX+1) THEN
+         RL=RM(NREND)+DELR
+         RHON=MIN(RL,1.D0)
+      ELSE
+         RL=RM(NR)
+         RHON=RL
+      ENDIF
+      CALL PL_PROF(RHON,PLF)
+      RNFDL=PLF(NS)%RN/RNFD0L
+      RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+
+      IF(MODELR.EQ.0) THEN
+         FACT=RNFDL/SQRT(2.D0*PI*RTFDL/RTFD0L)**3
+         EX=PML**2/(2.D0*RTFDL/RTFD0L)
+         IF(EX.GT.100.D0) THEN
+            FPMXWL_calcnr=0.D0
+         ELSE
+            FPMXWL_calcnr=FACT*EXP(-EX)
+         ENDIF
+      ELSE
+         THETA0L=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)
+         THETAL=THETA0L*RTFDL/RTFD0L
+         Z=1.D0/THETAL
+            DKBSL=BESEKN(2,Z)
+            FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DKBSL) &
+             *RTFD0L
+            EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
+!         IF(EX.LT.-100.D0) THEN
+!            FPMXWL=0.D0
+!         ELSE
+            FPMXWL_calcnr=FACT*EXP(EX)
+!         ENDIF
+      END IF
+
+      RETURN
+      END FUNCTION FPMXWL_calcnr
+
 
       END MODULE fpcalcnr
 

@@ -26,7 +26,7 @@ MODINCLUDE= -I.$(MOD) -I../../task/lib/$(MOD) \
             -I../../bpsd/$(MOD) -I../../task/mtxp
 
 SRCS = fpcomm.f90 fpinit.f90 fpmpi.f90 fpbroadcast.f90 fpexec.f90 \
-       fpdrexec.f90 fpsave.f90 \
+       fpdrexec.f90 fpsave.f90 fpcale.f90 \
        fpwmin.f90 fpwrin.f90 fpcalw.f90 fpcalwm.f90 fpcalwr.f90  \
        fpcalcn.f90 fpcalcnr.f90 fpcalc.f90 fpnfrr.f90 fpcoef.f90 \
        fpbounce.f90 fpprep.f90 fploop.f90 \
@@ -101,3 +101,4 @@ fpsave.o : fpsave.f90 fpcomm.f90
 fpwrin.o : fpwrin.f90 fpcomm.f90
 fpwmin.o : fpwrin.f90 fpcomm.f90
 fpbounce.o : fpbounce.f90 fpcomm.f90
+fpcale.o : fpmpi.f90

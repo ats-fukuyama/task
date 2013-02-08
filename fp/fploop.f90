@@ -13,6 +13,7 @@
       use fpsave
       use libmpi
       use fpmpi
+      use fpcaleind
       contains
 
 !-----------------------------
@@ -44,7 +45,7 @@
       integer:: modela_temp, NSW, NSWI,its
       integer:: ILOC1, nsend
 
-      IF(MODELE.NE.0) CALL FPNEWE
+!      IF(MODELE.NE.0) CALL FPNEWE
 
 !     +++++ Time loop +++++
 
@@ -52,20 +53,17 @@
          
 !     +++++ Iteration loop for toroidal electric field +++++
 
-         L=0
-
-         IF(MODELE.NE.0) THEN
-            DO NR=NRSTART,NREND
-               E3(NR)=0.D0
-               RJ3(NR)=0.D0
-            ENDDO
-         ENDIF
-
-    1    L=L+1
+!         L=0
+!         IF(MODELE.NE.0) THEN
+!            DO NR=NRSTART,NREND
+!               E3(NR)=0.D0
+!               RJ3(NR)=0.D0
+!            ENDDO
+!         ENDIF
+!         L=L+1
 
          N_IMPL=0
          DEPS=1.D0
-!         DO NSA=1,NSAMAX
          DO NSA=NSASTART,NSAEND
             NSBA=NSB_NSA(NSA)
             DO NR=NRSTART-1,NREND+1 ! local
@@ -74,12 +72,15 @@
                      DO NTH=1,NTHMAX
 !                        FNSP(NTH,NP,NR,NSBA)=FNS(NTH,NP,NR,NSBA)  ! new step: variant each N_IMPL ! for fp_load
                         FNSM(NTH,NP,NR,NSBA)=FNSP(NTH,NP,NR,NSBA) ! old step: invariant during N_IMPL 
-!                        FNS0(NTH,NP,NR,NSBA)=FNSP(NTH,NP,NR,NSBA) ! test
                      END DO
                   END DO
                END IF
             END DO
          END DO
+
+         IF(MODELE.eq.1)THEN
+            CALL UPDATE_PSIP_M ! poloidal flux at previous step
+         END IF
 
          gut_EX = 0.D0
          gut_COEF= 0.D0
@@ -208,52 +209,51 @@
 
 !     ----- calculation of current density -----
 
-         IF(MODELE.NE.0) THEN
-!            DO NSA=1,NSAMAX
-            DO NSA=NSASTART,NSAEND
-            NSBA=NSB_NSA(NSA)
-               DO NR=2,NRMAX
-                  RSUM=0.D0
-                  DO NP=1,NPMAX
-                  DO NTH=1,NTHMAX
-                     RSUM=RSUM+VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSA)*PM(NP,NSBA)
-                  ENDDO
-                  ENDDO
-                  RJNS(NR,NSA)=AEFP(NSA)*RNFP0(NSA)*1.D20 &
-                          *PTFP0(NSA)*DELP(NSBA)*RSUM/(AMFP(NSA)*RM(NR)*RA)
-               ENDDO
-               RJNS(1,NSA)=(4.D0*RJNS(2,NSA)-RJNS(3,NSA))/3.D0
-            ENDDO
+!         IF(MODELE.NE.0) THEN
+!            DO NSA=NSASTART,NSAEND
+!            NSBA=NSB_NSA(NSA)
+!               DO NR=2,NRMAX
+!                  RSUM=0.D0
+!                  DO NP=1,NPMAX
+!                  DO NTH=1,NTHMAX
+!                     RSUM=RSUM+VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSA)*PM(NP,NSBA)
+!                  ENDDO
+!                  ENDDO
+!                  RJNS(NR,NSA)=AEFP(NSA)*RNFP0(NSA)*1.D20 &
+!                          *PTFP0(NSA)*DELP(NSBA)*RSUM/(AMFP(NSA)*RM(NR)*RA)
+!               ENDDO
+!               RJNS(1,NSA)=(4.D0*RJNS(2,NSA)-RJNS(3,NSA))/3.D0
+!            ENDDO
 
 !     ----- calculation of toroidal electric field -----
 
-            DELEM=0.D0
-            DO NR=NRSTART,NREND
-               RJNL=0.D0
-!               DO NSA=1,NSAMAX
-               DO NSA=NSASTART,NSAEND
-                  RJNL=RJNL+RJNS(NR,NSA)
-               END DO
-               RJN(NR)=RJNL
-               IF(ABS(RJNL-RJ3(NR)).GT.1.D-20) THEN
-                  DELE(NR)=(RJNL-RJ2(NR))*(E2(NR)-E3(NR)) &
-                          /(RJNL-RJ3(NR))
-                  E3(NR)=E2(NR)
-                  RJ3(NR)=RJNL
-                  E2(NR)=E2(NR)-DELE(NR)
-                  DELEM=MAX(ABS(DELE(NR))/MAX(ABS(E1(NR)),1.D-6),DELEM)
-               ENDIF
-            ENDDO
+!            DELEM=0.D0
+!            DO NR=NRSTART,NREND
+!               RJNL=0.D0
+!               DO NSA=NSASTART,NSAEND
+!                  RJNL=RJNL+RJNS(NR,NSA)
+!               END DO
+!               RJN(NR)=RJNL
+!               IF(ABS(RJNL-RJ3(NR)).GT.1.D-20) THEN
+!                  DELE(NR)=(RJNL-RJ2(NR))*(E2(NR)-E3(NR)) &
+!                          /(RJNL-RJ3(NR))
+!                  E3(NR)=E2(NR)
+!                  RJ3(NR)=RJNL
+!                  E2(NR)=E2(NR)-DELE(NR)
+!                  DELEM=MAX(ABS(DELE(NR))/MAX(ABS(E1(NR)),1.D-6),DELEM)
+!               ENDIF
+!            ENDDO
 
-            IF (L.LT.LMAXE.AND.DELEM.GT.EPSE) GO TO 1
-            IF (L.GE.LMAXE) WRITE(6,*) 'L IS LARGER THAN LMAXE'
+!            IF (L.LT.LMAXE.AND.DELEM.GT.EPSE) GO TO 1
+!            IF (L.GE.LMAXE) WRITE(6,*) 'L IS LARGER THAN LMAXE'
 
-            DO NR=NRSTART,NREND
-               E1(NR)=E2(NR)
-               RJ1(NR)=RJN(NR)
-            ENDDO
-            CALL FPNEWE
-         ENDIF
+!            DO NR=NRSTART,NREND
+!               E1(NR)=E2(NR)
+!               RJ1(NR)=RJN(NR)
+!            ENDDO
+!            CALL FPNEWE
+!         ENDIF
+
 !     +++++ end of toroidal electric field loop +++++
 !
   250    CONTINUE
@@ -313,40 +313,34 @@
 
 !     +++++ end of time loop +++++
 !
-!      DO NSWI=1, NSW
-!         NSA=NSASTART-1+NSWI
-!         CALL mtx_gather_real8(FNSP(1:NTHMAX,1:NPMAX,nrstart,nsa), &
-!                               NTHMAX*NPMAX*(NREND-NRSTART+1), &
-!                               FNS(1:NTHMAX,1:NPMAX,1:NRMAX,nsa))
-!      END DO
       CALL update_fns
 
-      IF(NRANK.eq.0)THEN
-         DO NSA=1,NSAMAX
-            SELECT CASE(NSA)
-            CASE(1)
-               open(9,file='fns_e.dat')
-            CASE(2)
-               open(9,file='fns_D.dat')
-            CASE(3)
-               open(9,file='fns_D.dat')
-            END SELECT
-            IF(NSA.LE.3) THEN
-               DO NR=1,NRMAX
-                  DO NP=1,NPMAX
-                     DO NTH=1,NTHMAX
-                        WRITE(9,'(3I4,3E17.8)') NR, NP, NTH, &
-                             FNS(NTH,NP,NR,NSA), &
-                             PM(NP,NSA)*COSM(NTH), PM(NP,NSA)*SINM(NTH)
-                     END DO
-                  END DO
-                  WRITE(9,*) " "
-                  WRITE(9,*) " "
-               END DO
-               close(9)
-            ENDIF
-         END DO
-      END IF
+!      IF(NRANK.eq.0)THEN
+!         DO NSA=1,NSAMAX
+!            SELECT CASE(NSA)
+!            CASE(1)
+!               open(9,file='fns_e.dat')
+!            CASE(2)
+!               open(9,file='fns_D.dat')
+!            CASE(3)
+!               open(9,file='fns_T.dat')
+!            END SELECT
+!            IF(NSA.LE.3) THEN
+!               DO NR=1,NRMAX
+!                  DO NP=1,NPMAX
+!                     DO NTH=1,NTHMAX
+!                        WRITE(9,'(3I4,3E17.8)') NR, NP, NTH, &
+!                             FNS(NTH,NP,NR,NSA), &
+!                             PM(NP,NSA)*COSM(NTH), PM(NP,NSA)*SINM(NTH)
+!                     END DO
+!                  END DO
+!                  WRITE(9,*) " "
+!                  WRITE(9,*) " "
+!               END DO
+!               close(9)
+!            ENDIF
+!         END DO
+!      END IF
 
       RETURN
       END SUBROUTINE FP_LOOP
@@ -355,25 +349,26 @@
 !     PREDICTION OF ELECTRIC FIELD
 ! ************************************
 
-      SUBROUTINE FPNEWE
+!      SUBROUTINE FPNEWE
+!
+!      IMPLICIT NONE
+!      integer:: NR
+!
+!      DO NR=2,NRMAX
+!         BP(NR)=BP(NR)+(E1(NR)-E1(NR-1))*DELT/(RA*DELR)
+!      ENDDO
+!
+!      DO NR=NRSTART,NREND
+!         RJ2(NR)=(RG(NR+1)*BP(NR+1)-RG(NR)*BP(NR)) &
+!                 /(RMU0*RM(NR)*DELR*RA)
+!      ENDDO
+!
+!      DO NR=NRSTART,NREND
+!         E2(NR)=RJ2(NR)*E1(NR)/RJ1(NR)
+!      ENDDO
+!
+!      RETURN
+!      END SUBROUTINE FPNEWE
 
-      IMPLICIT NONE
-      integer:: NR
-
-      DO NR=2,NRMAX
-         BP(NR)=BP(NR)+(E1(NR)-E1(NR-1))*DELT/(RA*DELR)
-      ENDDO
-
-      DO NR=NRSTART,NREND
-         RJ2(NR)=(RG(NR+1)*BP(NR+1)-RG(NR)*BP(NR)) &
-                 /(RMU0*RM(NR)*DELR*RA)
-      ENDDO
-
-      DO NR=NRSTART,NREND
-         E2(NR)=RJ2(NR)*E1(NR)/RJ1(NR)
-      ENDDO
-
-      RETURN
-      END SUBROUTINE FPNEWE
-
+!------------------------------------
       END MODULE fploop

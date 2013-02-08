@@ -144,9 +144,10 @@
 !     ----- set parallel electric field -----
 
       DO NR=1,NRMAX
-         E1(NR)=E0
-         E2(NR)=E0
-         RJ2(NR)=RJ1(NR)
+!         E1(NR)=E0
+         E1(NR)=E0/(1.D0+EPSRM(NR))
+!         E2(NR)=E0
+!         RJ2(NR)=RJ1(NR)
       ENDDO
 
 !     ----- set momentum space mesh -----
@@ -202,6 +203,8 @@
             ITU(NR)=0
             ITLG(NR)=0
             ITUG(NR)=0
+            EPSRM2(NR) = EPSRM(NR)
+            EPSRG2(NR) = EPSRG(NR)
          ENDDO
       ELSE
          DO NR=1,NRMAX+1
@@ -853,13 +856,16 @@
       IF(NTG1.eq.0) CALL FPWAVE_CONST ! all nrank must have RPWT  
       CALL FPSSUB
       IF(nrank.EQ.0) THEN
+!      DO NP=1,NPMAX+1
+!         WRITE(*,'(I4,3E18.10)') NP,PG(NP,1),WEIGHP(2,NP,1,1),PG(NP,1)/SQRT(1+THETA0(1)*PG(NP,1)**2)
+!      END DO
          CALL FPSGLB
          CALL FPWRTGLB
          CALL FPSPRF
          CALL FPWRTPRF
       ENDIF
       IERR=0
-
+ 
       RETURN
       END subroutine fp_prep
 !-----

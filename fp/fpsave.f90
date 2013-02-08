@@ -37,7 +37,7 @@
 !      real(8),dimension(NRMAX, NSAMAX):: RFWS, RECS
 !      real(8),dimension(NRMAX, NSBMAX, NSAMAX):: RPCS2
 !      real(8),dimension(NSAMAX, 0:NTMAX):: PWT2, PTT2
-      real(8):: DSDR, SRHOP, SRHOM
+      real(8):: DSDR, SRHOP, SRHOM, RSUM62
 
       IF(ISAVE.NE.0) RETURN
 
@@ -58,6 +58,7 @@
             RSUM4=0.D0
             RSUM5=0.D0
             RSUM6=0.D0
+            RSUM62=0.D0
             RSUM7=0.D0
             RSUM8=0.D0
             RSUM9=0.D0
@@ -157,6 +158,7 @@
 !            open(8,file='F_DFDP_r0c4_w.dat')
 !            open(8,file='nth1_r1c4_x.dat')
 !            open(8,file='T_BULK.dat')
+!            IF(NRANK.eq.0) open(9,file='PE.dat')
             DO NP=2,NPMAX
                PV=SQRT(1.D0+THETA0(NSA)*PG(NP,NSBA)**2)
                DO NTH=1,NTHMAX
@@ -220,6 +222,8 @@
                            +DWPT(NTH,NP,NR,NSA)*DFT)
                   RSUM6 = RSUM6-PG(NP,NSBA)**2*SINM(NTH)/PV   &
                           *(FEPP(NTH,NP,NR,NSA)*FFP)
+                  RSUM62 = RSUM62-PG(NP,NSBA)**2*SINM(NTH)/PV   &
+                          *(FEPP_IND(NTH,NP,NR,NSA)*FFP)
                   RSUM7 = RSUM7+PG(NP,NSBA)**2*SINM(NTH)/PV   &
                           *(DWLHPP(NTH,NP,NR,NSA)*DFP         &
                            +DWLHPT(NTH,NP,NR,NSA)*DFT)
@@ -243,8 +247,17 @@
                               +DPT(NTH,NP,NR,NSA)*DFT           &
                               -FPP(NTH,NP,NR,NSA)*FFP           &
                               )
+!                  IF(NRANK.eq.0)THEN
+!                     WRITE(9,'(7E16.8)') PM(NP,NSBA)*COSM(NTH), PM(NP,NSBA)*SINM(NTH), &
+!                          -PG(NP,NSBA)**2*SINM(NTH)/PV*(FEPP(NTH,NP,NR,NSA)*FFP), &
+!                          FFP, FPP(NTH,NP,NR,NSA),FEPP(NTH,NP,NR,NSA),FCPP(NTH,NP,NR,NSA)
+!                  END IF
+
                ENDDO
+!               IF(NRANK.eq.0) WRITE(9,*) " "
+!               IF(NRANK.eq.0) WRITE(9,*) " "
             ENDDO
+!            IF(NRANK.eq.0) close(9)
 
 !      SOURCE POWER
             IF(MODELR.eq.1)THEN
@@ -363,8 +376,6 @@
                   END IF
 
                   DINT_DR = ( DFDT_R2 - DFDT_R1 )
-!                  SRHOR1 = SRHOR1 + DFDT_R1*VOLP(NTH,NP,NSBA)
-!                  SRHOR2 = SRHOR2 + DFDT_R2*VOLP(NTH,NP,NSBA)
 
                   RSUMN_DR=RSUMN_DR +             DINT_DR*VOLP(NTH,NP,NSBA)
                   IF(MODELR.eq.1)THEN
@@ -384,10 +395,6 @@
 
                END DO
             END DO
-!            IF(NRSTART.eq.28.or.NRSTART.eq.29.or.NRSTART.eq.30.or.NRSTART.eq.31)THEN
-!               IF(NSA.eq.1) &
-!               WRITE(*,*) NRSTART, NR, SRHOR1, SRHOR2
-!            END IF
 
             RNDRL(NR,NSA)=RNFP0(NSA)*RSUMN_DR/(DELR*RM(NR))!*RFSADG(NR)
             RPDRL(NR,NSA)=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)*1.D-6 &
@@ -413,6 +420,7 @@
             RPCSL(NR,NSA)=-RSUM4*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             RPWSL(NR,NSA)=-RSUM5*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             RPESL(NR,NSA)=-RSUM6*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
+            RPESL_ind(NR,NSA)=-RSUM62*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             RLHSL(NR,NSA)=-RSUM7*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             RFWSL(NR,NSA)=-RSUM8*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             RECSL(NR,NSA)=-RSUM9*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
@@ -433,9 +441,9 @@
 
       CALL FPSAVECOMM
 
-      IF(NRANK.eq.0)THEN
-         WRITE(*,'(A,I4,6E14.6)') "RWS", nrank,RWS(1,1),RWSL(1,1),RNS(1,1),RNSL(1,1),RJS(1,1),RJSL(1,1)
-      END IF
+!      IF(NRANK.eq.0)THEN
+!         WRITE(*,'(A,I4,6E14.6)') "RWS", nrank,RWS(1,1),RWSL(1,1),RNS(1,1),RNSL(1,1),RJS(1,1),RJSL(1,1)
+!      END IF
 
       ISAVE=1
       RETURN
@@ -463,6 +471,7 @@
          PPCT(NSA,NTG1)=0.D0
          PPWT(NSA,NTG1)=0.D0
          PPET(NSA,NTG1)=0.D0
+         PPET_ind(NSA,NTG1)=0.D0
          PLHT(NSA,NTG1)=0.D0
          PFWT(NSA,NTG1)=0.D0
          PECT(NSA,NTG1)=0.D0
@@ -490,6 +499,7 @@
             PPCT(NSA,NTG1)=PPCT(NSA,NTG1)+RPCS(NR,NSA)*VOLR(NR)
             PPWT(NSA,NTG1)=PPWT(NSA,NTG1)+RPWS(NR,NSA)*VOLR(NR)
             PPET(NSA,NTG1)=PPET(NSA,NTG1)+RPES(NR,NSA)*VOLR(NR)
+            PPET_ind(NSA,NTG1)=PPET_ind(NSA,NTG1)+RPES_ind(NR,NSA)*VOLR(NR)
             PLHT(NSA,NTG1)=PLHT(NSA,NTG1)+RLHS(NR,NSA)*VOLR(NR)
             PFWT(NSA,NTG1)=PFWT(NSA,NTG1)+RFWS(NR,NSA)*VOLR(NR)
             PECT(NSA,NTG1)=PECT(NSA,NTG1)+RECS(NR,NSA)*VOLR(NR)
@@ -524,9 +534,6 @@
                PPCT2(NSB,NSA,NTG1)=PPCT2(NSB,NSA,NTG1)       &
                                   +RPCS2(NR,NSB,NSA)*VOLR(NR)
             END DO
-!            PDR(NSA,NTG1) = RPDR(NRMAX,NSA)*VOLR(NRMAX)
-!            PDR(NSA,NTG1) = RPDRS(NSA)*TVOLR
-!            PNDR(NSA,NTG1) = RNDRS(NSA)*TVOLR
          ENDDO
 
          PIT(NSA,NTG1) =PIT(NSA,NTG1)/(2.D0*PI*RR)
@@ -583,6 +590,7 @@
             RPCT(NR,NSA,NTG2)= RPCS(NR,NSA)
             RPWT(NR,NSA,NTG2)= RPWS(NR,NSA)
             RPET(NR,NSA,NTG2)= RPES(NR,NSA)
+            RPET_ind(NR,NSA,NTG2)= RPES_ind(NR,NSA)
             RLHT(NR,NSA,NTG2)= RLHS(NR,NSA)
             RFWT(NR,NSA,NTG2)= RFWS(NR,NSA)
             RECT(NR,NSA,NTG2)= RECS(NR,NSA)
@@ -634,8 +642,9 @@
 !
       IMPLICIT NONE
       integer:: NSA, NSB, NR, NP, NTH
-      real(8):: rtotalPW, rtotalPC,rtotalSP,rtotalPC2, rtotalDR,rtotalEC,rtotalIC
-!      INCLUDE '../wr/wrcom1.inc'
+      real(8):: rtotalPW, rtotalPC,rtotalSP,rtotalPC2
+      real(8):: rtotalDR,rtotalEC,rtotalIC,rtotalIP
+      character:: fmt0*50
 !
       WRITE(6,*)"--------------------------------------------"
       WRITE(6,*)"-----Global data"
@@ -649,10 +658,6 @@
             WRITE(6,112) NSA,NS_NSA(NSA), &
               PNT(NSA,NTG1),PTT2(NSA,NTG1),PWT(NSA,NTG1),PIT(NSA,NTG1),PNDR(NSA,NTG1),PTT_BULK(NSA,NTG1)
          END IF
-!         WRITE(6,103) PPCT(NSA,NTG1),PPWT(NSA,NTG1),PPET(NSA,NTG1)
-         IF(NSBMAX.GT.1) THEN
-!            write(6,104)(PPCT2(NSB,NSA,NTG1),NSB=1,NSBMAX)
-         ENDIF
       ENDDO
 
       rtotalPW=0.D0
@@ -661,17 +666,20 @@
       rtotalPC2=0.D0
       rtotalEC=0.D0
       rtotalIC=0.D0
+      rtotalIP=0.D0
+
+      WRITE(fmt0,'(a43)') &
+           '(8X,2I2," PC,PW,PE,PEIND,PDR=",6X,1P5E12.4)'
       DO NSA=1,NSAMAX
-!         WRITE(6,103) NSA,NS_NSA(NSA), &
-!              PPCT(NSA,NTG1),PPWT(NSA,NTG1),PPET(NSA,NTG1)
-         WRITE(6,113) NSA,NS_NSA(NSA), &
-              PPCT(NSA,NTG1),PPWT(NSA,NTG1),PPET(NSA,NTG1),PDR(NSA,NTG1)
+         WRITE(6,fmt0) NSA,NS_NSA(NSA), &
+              PPCT(NSA,NTG1),PPWT(NSA,NTG1),PPET(NSA,NTG1),PPET_ind(NSA,NTG1),PDR(NSA,NTG1)
          rtotalPW=rtotalPW + PPWT(NSA,NTG1)
          rtotalPC=rtotalPC + PPCT(NSA,NTG1)
          rtotalSP=rtotalSP + PSPT(NSA,NTG1)
          rtotalPC2 = rtotalPC2 +PPCT(NSA,NTG1)-PPCT2(NSA,NSA,NTG1)
          rtotalEC=rtotalEC + PECT(NSA,NTG1)
          rtotalIC=rtotalIC + PICT(NSA,NTG1)
+         rtotalIP=rtotalIP + PIT(NSA,NTG1)
       END DO
       DO NSA=1,NSAMAX
          IF(NSBMAX.GT.1) THEN
@@ -679,13 +687,6 @@
                  (PPCT2(NSB,NSA,NTG1),NSB=1,NSBMAX)
          ENDIF
       END DO
-
-!      DO NSA=1, NSAMAX
-!         IF(NSBMAX.GT.1) THEN
-!            write(6,104) NSA,NS_NSA(NSA), &
-!                 (PPCT2(NSB,NSA,NTG1)+PPCT2(NSA,NSB,NTG1),NSB=1,NSBMAX)
-!         ENDIF
-!      END DO
 
       DO NSA=1,NSAMAX
          write(6,108) NSA,NS_NSA(NSA),PSPBT(NSA,NTG1),PSPFT(NSA,NTG1), &
@@ -696,20 +697,15 @@
       write(6,107) rtotalPC
       write(6,109) rtotalSP
       write(6,110) rtotalPC2
-!      IF(NTG1.gt.1)THEN
-!         write(6,'("Steady State Criterion ",6E14.6)')  (DEPS_SS(NSA),NSA=1,NSAMAX)
-!      END IF
+      WRITE(6,'("total plasma current   [MA]",1PE12.4)') rtotalIP
 
-!      write(6,1111) PECT(1,NTG1)
-
- 1001 FORMAT(I4,9E14.6)
       RETURN
+!  113 FORMAT('        ',2I2,' PC,PW,PE,PDR=',6X,1P4E12.4)
   101 FORMAT(' TIME=',F12.3,' ms')
   102 FORMAT(' NSA,NS=',2I2,' n,T,W,I=',1PE11.4,1P3E12.4)
   112 FORMAT(' NSA,NS=',2I2,' n,T,W,I,dn,T2=',1PE11.4,1P5E12.4)
   103 FORMAT('        ',2I2,' PC,PW,PE=',10X,1P4E12.4)
   104 FORMAT('        ',2I2,' PCAB    =',10X,1P14E12.4)
-  113 FORMAT('        ',2I2,' PC,PW,PE,PDR=',6X,1P4E12.4)
 
  105  FORMAT('Total absorption power [MW]', 1PE12.4,'    EC:',1PE12.4,'    IC:',1PE12.4)
  106  FORMAT(F12.4, 8E12.4)
@@ -727,74 +723,55 @@
       IMPLICIT NONE
       integer:: NSA, NSB, NR, NP, NTH
       real(8):: RTFDL, RTFD0L, THETAL, rtemp, rtemp2
-!      INCLUDE '../wr/wrcom1.inc'
+      character:: fmt0*50
 !
+      WRITE(fmt0,'(a15)') '(2I3,1P13E12.4)'
+
       WRITE(6,*)"-----Radial profile data"
-      WRITE(6,106) TIMEFP*1000
+      WRITE(6,'(A,F12.3)') " TIME=", TIMEFP*1000
+      IF(MODELE.eq.0)THEN
+         WRITE(6,106) 
+      ELSE
+         WRITE(6,107) 
+      END IF
+
 
       DO NSA=1,NSAMAX
          DO NR=1,NRMAX
-!            RTFDL=RTFP(NR,NSA)
-!            RTFD0L=(PTPR(NSA)+2.D0*PTPP(NSA))/3.D0
-!            THETAL=THETA0(NSA)*RTFDL/RTFD0L
-
             IF(MODELR.eq.1)THEN
-!               CALL FPNEWTON(NR,NSA,rtemp,rtemp2)
                CALL FPNEWTON(NR,NSA,rtemp)
                RTT(NR,NSA,NTG2)=rtemp
             END IF
 
-
-!!            IF(RSPBT(NR,NSA,NTG2).GT.0.D0)THEN
-!!               WRITE(6,104) NSA,NS_NSA(NSA),                  &
-!!                    RM(NR),RNT(NR,NSA,NTG2),RTT(NR,NSA,NTG2), &
-!!                    RJT(NR,NSA,NTG2),RPCT(NR,NSA,NTG2),       &
-!!                    RPET(NR,NSA,NTG2),RPWT(NR,NSA,NTG2),      &
-!!                    RSPBT(NR,NSA,NTG2),RSPFT(NR,NSA,NTG2)
-!            IF(RPWT(NR,NSA,NTG2).GT.0.D0) THEN
-               WRITE(6,104) NSA,NS_NSA(NSA),                  &
-                    RM(NR),RNT(NR,NSA,NTG2), &
-                    !RNT_test(NR,NSA,NTG2), &
-                    RTT(NR,NSA,NTG2), &
+            IF(MODELE.eq.0)THEN
+               WRITE(6,fmt0) NSA,NS_NSA(NSA),&
+                    RM(NR),RNT(NR,NSA,NTG2),RTT(NR,NSA,NTG2), &
                     RJT(NR,NSA,NTG2),RPCT(NR,NSA,NTG2),       &
                     RPET(NR,NSA,NTG2),RPWT(NR,NSA,NTG2),RECT(NR,NSA,NTG2),    &
                     RSPBT(NR,NSA,NTG2),RSPFT(NR,NSA,NTG2),RPDRT(NR,NSA,NTG2), &
                     RTT_BULK(NR,NSA,NTG2),RNDRT(NR,NSA,NTG2)
-!                    ( RWT(NR,NSA,NTG2)-RWT(NR,NSA,NTG2-1) )/DELT, &
-!                    RNDRT(NR,NSA,NTG2), &
-!                    ( RNT(NR,NSA,NTG2)-RNT(NR,NSA,NTG2-1) )/DELT
-
-!                    RPCT2(NR,1,NSA,NTG2),RPCT2(NR,2,NSA,NTG2)
-!!                    RLHT(NR,NSA,NTG2),                        &
-!!                    RFWT(NR,NSA,NTG2),RECT(NR,NSA,NTG2)
-!            ELSE
-!               WRITE(6,102) NSA,NS_NSA(NSA),                  &
-!                    RM(NR),RNT(NR,NSA,NTG2),RTT(NR,NSA,NTG2), &
-!                    RJT(NR,NSA,NTG2),RPCT(NR,NSA,NTG2),       &
-!                    RPET(NR,NSA,NTG2)
-!            ENDIF
-!!               RTT(NR,NSA,NTG2)=rtemp
+            ELSE
+               WRITE(6,fmt0) NSA,NS_NSA(NSA),&
+                    RM(NR),RNT(NR,NSA,NTG2),RTT(NR,NSA,NTG2), &
+                    RJT(NR,NSA,NTG2),RPCT(NR,NSA,NTG2),       &
+                    RPET(NR,NSA,NTG2),RPET_IND(NR,NSA,NTG2),RECT(NR,NSA,NTG2),    &
+                    RSPBT(NR,NSA,NTG2),RSPFT(NR,NSA,NTG2),RPDRT(NR,NSA,NTG2), &
+                    RTT_BULK(NR,NSA,NTG2),RNDRT(NR,NSA,NTG2)
+            END IF
          ENDDO
       ENDDO
       RETURN
-  101 FORMAT(' TIME=',F12.3,' ms'/                   &
-           'NSA/NS',5X,'RM',10X,' n',8X,' T//PW',6X, &
-           ' j//PLH',5X,'PC//PIC',5X,'PE//PEC')
-  102 FORMAT(2I3,1P6E12.4)
-  103 FORMAT(30X,1P4E14.6)
-  104 FORMAT(2I3,1P20E12.4) 
-  105 FORMAT(' TIME=',F12.3,' ms'/                   &
-           'NSA/NS',5X,'RM',10X,' n',8X,' T    ',6X, &
-           ' j     ',5X,'PC     ',5X,'PE     ')
-!  106 FORMAT(' TIME=',F12.3,' ms'/                   &
-!           'NSA/NS',5X,'RM',10X,' n',8X,' T    ',6X, &
-!           ' j     ',5X,'PC     ',5X,'PE     ',5X,   &
-!           'PW     ',5X,'PNB//PLH',5X,'PNF//PIC',5X,'PEC   ')
-  106 FORMAT(' TIME=',F12.3,' ms'/                   &
+  106 FORMAT( &
            'NSA/NS',5X,'RM',10X,' n',8X,' T    ',6X, &
            ' j     ',5X,'PC     ',5X,'PE     ',5X,   &
-           'PW     ',5X,'PEC    ',5X,'PNB//PLH',4X,  &
+           'PW      ',5X,'PEC    ',5X,'PNB//PLH',4X,  &
            ' PNF/PIC',4X,'RPDR   ',5X,'T_BULK ',5X,'RNDR' )
+  107 FORMAT( &
+           'NSA/NS',5X,'RM',10X,' n',8X,' T    ',6X, &
+           ' j     ',5X,'PC     ',5X,'PE     ',5X,   &
+           'PE_IND ',5X,'PEC    ',5X,'PNB//PLH',4X,  &
+           ' PNF/PIC',4X,'RPDR   ',5X,'T_BULK ',5X,'RNDR' )
+
       END SUBROUTINE FPWRTPRF
 ! ***********************************************************
 !
@@ -983,6 +960,7 @@
          CALL fp_gatherv_real8_sav(RPCSL,SAVLEN(NRANK+1),RPCS,N,NSA)
          CALL fp_gatherv_real8_sav(RPWSL,SAVLEN(NRANK+1),RPWS,N,NSA)
          CALL fp_gatherv_real8_sav(RPESL,SAVLEN(NRANK+1),RPES,N,NSA)
+         CALL fp_gatherv_real8_sav(RPESL_ind,SAVLEN(NRANK+1),RPES_ind,N,NSA)
          CALL fp_gatherv_real8_sav(RLHSL,SAVLEN(NRANK+1),RLHS,N,NSA)
          CALL fp_gatherv_real8_sav(RFWSL,SAVLEN(NRANK+1),RFWS,N,NSA)
          CALL fp_gatherv_real8_sav(RECSL,SAVLEN(NRANK+1),RECS,N,NSA)
@@ -1013,62 +991,7 @@
          END DO
       ENDDO
 
-
-!      DO NSA=1,NSAMAX
-!         CALL mtx_gatherv_real8(RNSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-!              RNS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-!         CALL mtx_gatherv_real8(RJSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-!              RJS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-!         CALL mtx_gatherv_real8(RWSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-!              RWS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-!         CALL mtx_gatherv_real8(RWS123L(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-!              RWS123(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-!         CALL mtx_gatherv_real8(RPCSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-!              RPCS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-!         CALL mtx_gatherv_real8(RPWSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-!              RPWS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-!         CALL mtx_gatherv_real8(RPESL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-!              RPES(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-!         CALL mtx_gatherv_real8(RLHSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-!              RLHS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-!         CALL mtx_gatherv_real8(RFWSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-!              RFWS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-!         CALL mtx_gatherv_real8(RECSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-!              RECS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-!         CALL mtx_gatherv_real8(RICSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-!              RICS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-!         CALL mtx_gatherv_real8(RSPBL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-!              RSPB(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-!         CALL mtx_gatherv_real8(RSPFL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-!              RSPF(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-!         CALL mtx_gatherv_real8(RSPSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-!              RSPS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-!         CALL mtx_gatherv_real8(RSPLL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-!              RSPL(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-!         CALL mtx_gatherv_real8(RPDRL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-!              RPDR(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-!         CALL mtx_gatherv_real8(RNDRL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-!              RNDR(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-!         CALL mtx_gatherv_real8(RTL_BULK(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-!              RT_BULK(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-!      END DO
-      
-!      DO NSA=1,NSAMAX
-!         DO NSB=1,NSBMAX
-!            CALL mtx_gatherv_real8(RPCS2L(NRSTART:NRENDX,NSB,NSA), &
-!                                   MTXLEN(NRANK+1), &
-!                                   RPCS2(1:NRMAX,NSB,NSA),NRMAX,MTXLEN,MTXPOS)
-!         ENDDO
-!      ENDDO
-
-!      IF(NRANK.eq.0)THEN
-!         DO NR=1,NRMAX
-!            WRITE(*,'(I3,4E14.6)') NR, (RNS(NR,NSA),NSA=1,NSAMAX)
-!         END DO
-!      END IF
-
       END SUBROUTINE FPSAVECOMM
-
 !^-------------------------------
     end MODULE fpsave
 

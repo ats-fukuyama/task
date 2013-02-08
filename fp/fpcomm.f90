@@ -14,7 +14,7 @@
 
       integer:: NPMAX,NTHMAX,NRMAX,NAVMAX,IMTX
       integer:: NTMAX,NTCLSTEP,LMAXE,NGLINE,LMAXNWR
-      integer:: MODELE,MODELA,MODELC,MODELR,MODELD,MODELS,MODELD_temp
+      integer:: MODELE,MODELA,MODELC,MODELR,MODELD,MODELS,MODELD_temp,MODELE2
       integer:: LLMAX,IDBGFP
       integer:: NTG1STEP,NTG1MIN,NTG1MAX
       integer:: NTG2STEP,NTG2MIN,NTG2MAX
@@ -142,7 +142,7 @@
            DWECPP,DWECPT,SPPB,SPPF,SPPS,DWICPP,DWICPT, &
            DWPP_P, DWPT_P, DWTP_P, DWTT_P, &
            DWICPP_P, DWICPT_P, DWECPP_P, DWECPT_P, &
-           DWECTP, DWECTT, DCPPB, DCPTB, FCPPB
+           DWECTP, DWECTT, DCPPB, DCPTB, FCPPB, FEPP_IND,FETH_IND
       real(rkind),dimension(:,:,:),POINTER :: SPPD
       real(rkind),dimension(:,:,:,:,:),POINTER :: &
            DCPP2,DCPT2,DCTP2,DCTT2,FCPP2,FCTH2  !(NTHM,NPM,NRM,NSAM,NSBM)
@@ -151,7 +151,7 @@
 
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
            RNSL,RJSL,RWSL,RPCSL,RPWSL,RPESL,RLHSL,RFWSL,RECSL,RWS123L, &
-           RSPBL,RSPFL,RSPSL,RSPLL,RPDR,RNDR, RTL_BULK, RT_BULK, RICSL!, RNSL_test
+           RSPBL,RSPFL,RSPSL,RSPLL,RPDR,RNDR, RTL_BULK, RT_BULK, RICSL, RPESL_ind
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSAM,NSBM)
            RPCS2L
 
@@ -162,7 +162,7 @@
 
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
            RNS,RJS,RWS,RPCS,RPWS,RPES,RLHS,RFWS,RECS,RWS123, &
-           RSPB,RSPF,RSPS,RSPL, RPDRL,RNDRL, RICS!, RNS_test
+           RSPB,RSPF,RSPS,RSPL, RPDRL,RNDRL, RICS, RPES_ind
       real(rkind),dimension(:),POINTER :: & ! (NSAM)
            RNS_S2
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSAM,NSBM)
@@ -171,13 +171,17 @@
       real(rkind),dimension(:),POINTER :: & ! (NTG1M)
            PTG,PET,PQT
       real(rkind),dimension(:,:),POINTER :: & ! (NTG1M,NSAM)
-           PNT,PWT,PTT,PIT,PPCT,PPWT,PPET,PLHT,PFWT,PECT,PTT3,PITT,PWTT,PICT
+           PNT,PWT,PTT,PIT,PPCT,PPWT,PPET,PLHT,PFWT,PECT,PTT3,PITT,PWTT,PICT,PPET_ind
       real(rkind),dimension(:,:),POINTER :: & ! (NTG1M,NSAM)
            PSPT,PSPBT,PSPFT,PSPLT,PSPST
       real(rkind),dimension(:,:),POINTER :: & ! (NTG1M,NSAM)
            PNT2,PWT2,PTT2,PIT2,PWTD,PDR,PNDR,PTT_BULK
       real(rkind),dimension(:,:,:),POINTER :: & ! (NTG1M,NSAM,NSBM)
            PPCT2
+      real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSM)
+           RIPP
+      real(rkind),dimension(:,:),POINTER :: & ! (NRM)
+           PSIPM_P, PSIPM_M, PSIPG_P, PSIPG_M
 
       real(rkind),dimension(:),POINTER :: & ! (NTG2M)
            RTG
@@ -185,7 +189,7 @@
            RET,RQT
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NTG2M,NSAM)
            RNT,RWT,RTT,RJT,RPCT,RPWT,RPET,RLHT,RFWT,RECT, &
-           RSPBT,RSPFT,RSPLT,RSPST,RPDRT,RNDRT,RTT_BULK,RICT!, RNT_test
+           RSPBT,RSPFT,RSPLT,RSPST,RPDRT,RNDRT,RTT_BULK,RICT,RPET_ind
       real(rkind),dimension(:,:,:,:),POINTER :: & ! (NRM,NTG2M,NSAM,NSBM)
            RPCT2
 
@@ -254,6 +258,7 @@
           allocate(QLG(NRMAX+1),QLM(NRMAX+1))
           allocate(RJ1(NRMAX),E1(NRMAX))
           allocate(RJ2(NRMAX),E2(NRMAX))
+!          allocate(RJ_IND(NRMAX),E_IND(NRMAX))
           allocate(EPSRM(NRMAX+1),EPSRG(NRMAX+1))
           allocate(EPSRM2(NRMAX+1),EPSRG2(NRMAX+1))
           allocate(EPSRMX(NRMAX+1),EPSRGX(NRMAX+1))
@@ -331,6 +336,9 @@
           allocate(FEPP(NTHMAX  ,NPMAX+1,NRSTART:NREND+1,NSAMAX))
           allocate(FETH(NTHMAX+1,NPMAX  ,NRSTART:NREND+1,NSAMAX))
 
+          allocate(FEPP_IND(NTHMAX  ,NPMAX+1,NRSTART:NREND+1,NSAMAX))
+          allocate(FETH_IND(NTHMAX+1,NPMAX  ,NRSTART:NREND+1,NSAMAX))
+
           allocate(DCPP(NTHMAX  ,NPMAX+1,NRSTART:NREND+1,NSAMAX))
           allocate(DCPT(NTHMAX  ,NPMAX+1,NRSTART:NREND+1,NSAMAX))
           allocate(DCTP(NTHMAX+1,NPMAX  ,NRSTART:NREND+1,NSAMAX))
@@ -388,6 +396,7 @@
           allocate(RSPBL(NRSTART:NRENDX,NSAMAX),RSPFL(NRSTART:NRENDX,NSAMAX))
           allocate(RSPSL(NRSTART:NRENDX,NSAMAX),RSPLL(NRSTART:NRENDX,NSAMAX))
           allocate(RPCSL(NRSTART:NRENDX,NSAMAX),RPESL(NRSTART:NRENDX,NSAMAX))
+          allocate(RPESL_ind(NRSTART:NRENDX,NSAMAX))
           allocate(RPWSL(NRSTART:NRENDX,NSAMAX),RLHSL(NRSTART:NRENDX,NSAMAX))
           allocate(RFWSL(NRSTART:NRENDX,NSAMAX),RECSL(NRSTART:NRENDX,NSAMAX))
           allocate(RICSL(NRSTART:NRENDX,NSAMAX))
@@ -399,6 +408,7 @@
           allocate(RSPB(NRMAX,NSAMAX),RSPF(NRMAX,NSAMAX))
           allocate(RSPL(NRMAX,NSAMAX),RSPS(NRMAX,NSAMAX))
           allocate(RPCS(NRMAX,NSAMAX),RPES(NRMAX,NSAMAX))
+          allocate(RPES_ind(NRMAX,NSAMAX))
           allocate(RPWS(NRMAX,NSAMAX),RLHS(NRMAX,NSAMAX))
           allocate(RFWS(NRMAX,NSAMAX),RECS(NRMAX,NSAMAX))
           allocate(RICS(NRMAX,NSAMAX))
@@ -417,6 +427,9 @@
           allocate(RPWEC_INIT(NRSTART:NRENDX,NSAMAX))
           allocate(RPWIC_INIT(NRSTART:NRENDX,NSAMAX))
 
+          allocate(RIPP(NRMAX,NSAMAX))
+          allocate(PSIPM_P(NTHMAX,NRSTART:NRENDX)  ,PSIPM_M(NTHMAX,NRSTART:NRENDX))
+          allocate(PSIPG_P(NTHMAX+1,NRSTART:NRENDX),PSIPG_M(NTHMAX+1,NRSTART:NRENDX))
 !         NLMAXM= 8   ! this is for analysis without bounce average
 !         NLMAXM=11   ! this is for analysis without radial transport
           NLMAXM=15   ! this is for analysis with a simple radial transport
@@ -462,6 +475,7 @@
           deallocate(BPG,BPM)
           deallocate(QLG,QLM)
           deallocate(RJ1,E1,RJ2,E2)
+!          deallocate(RJ_IND, E_IND)
           deallocate(EPSRM,EPSRG)
           deallocate(EPSRM2,EPSRG2)
           deallocate(EPSRMX,EPSRGX)
@@ -521,6 +535,7 @@
           deallocate(DRR,FRR)
           deallocate(SPP,PPL)
           deallocate(FEPP,FETH)
+          deallocate(FEPP_IND,FETH_IND)
 
           deallocate(DCPP,DCPT)
           deallocate(DCTP,DCTT)
@@ -548,7 +563,7 @@
           deallocate(DCPP2B,DCPT2B,FCPP2B)
 
           deallocate(RNSL,RJSL,RWSL,RWS123L)
-          deallocate(RSPBL,RSPFL,RSPSL,RSPLL,RPCSL,RPESL)
+          deallocate(RSPBL,RSPFL,RSPSL,RSPLL,RPCSL,RPESL,RPESL_ind)
           deallocate(RPCSL,RLHSL,RFWSL,RECSL,RICSL,RPCS2L)
           
           deallocate(RNS,RJS)
@@ -556,7 +571,7 @@
           deallocate(RWS,RWS123)
           deallocate(RSPB,RSPF)
           deallocate(RSPL,RSPS)
-          deallocate(RPCS,RPES)
+          deallocate(RPCS,RPES,RPES_ind)
           deallocate(RPWS,RLHS)
           deallocate(RFWS,RECS,RICS,RPCS2)
           
@@ -565,6 +580,9 @@
           
           deallocate(RPW_IMPL,RPWEC_IMPL,RPWIC_IMPL)
           deallocate(RPW_INIT,RPWEC_INIT,RPWIC_INIT)
+          deallocate(RIPP)
+          deallocate(PSIPM_P,PSIPM_M)
+          deallocate(PSIPG_P,PSIPG_M)
 
           deallocate(NMA)
           deallocate(NLMAX,LL)
@@ -607,6 +625,7 @@
           allocate(PPCT(NSAMAX,NTG1M))
           allocate(PPWT(NSAMAX,NTG1M))
           allocate(PPET(NSAMAX,NTG1M))
+          allocate(PPET_ind(NSAMAX,NTG1M))
           allocate(PLHT(NSAMAX,NTG1M))
           allocate(PFWT(NSAMAX,NTG1M))
           allocate(PECT(NSAMAX,NTG1M))
@@ -646,6 +665,7 @@
           deallocate(PPCT)
           deallocate(PPWT)
           deallocate(PPET)
+          deallocate(PPET_ind)
           deallocate(PLHT)
           deallocate(PFWT)
           deallocate(PECT)
@@ -690,6 +710,7 @@
                       PPCT(NSA,NTG)=PPCT(NSA,2*NTG-1)
                       PPWT(NSA,NTG)=PPWT(NSA,2*NTG-1)
                       PPET(NSA,NTG)=PPET(NSA,2*NTG-1)
+                      PPET_ind(NSA,NTG)=PPET_ind(NSA,2*NTG-1)
                       PLHT(NSA,NTG)=PLHT(NSA,2*NTG-1)
                       PFWT(NSA,NTG)=PFWT(NSA,2*NTG-1)
                       PECT(NSA,NTG)=PECT(NSA,2*NTG-1)
@@ -732,6 +753,7 @@
                 call fp_adjust_ntg1_B(PPCT,tempB,NTG1M_NEW)
                 call fp_adjust_ntg1_B(PPWT,tempB,NTG1M_NEW)
                 call fp_adjust_ntg1_B(PPET,tempB,NTG1M_NEW)
+                call fp_adjust_ntg1_B(PPET_ind,tempB,NTG1M_NEW)
                 call fp_adjust_ntg1_B(PLHT,tempB,NTG1M_NEW)
                 call fp_adjust_ntg1_B(PFWT,tempB,NTG1M_NEW)
                 call fp_adjust_ntg1_B(PECT,tempB,NTG1M_NEW)
@@ -849,6 +871,7 @@
           allocate(RPCT(NRMAX,NSAMAX,NTG2M))
           allocate(RPWT(NRMAX,NSAMAX,NTG2M))
           allocate(RPET(NRMAX,NSAMAX,NTG2M))
+          allocate(RPET_ind(NRMAX,NSAMAX,NTG2M))
           allocate(RLHT(NRMAX,NSAMAX,NTG2M))
           allocate(RFWT(NRMAX,NSAMAX,NTG2M))
           allocate(RECT(NRMAX,NSAMAX,NTG2M))
@@ -880,6 +903,7 @@
           deallocate(RPCT)
           deallocate(RPWT)
           deallocate(RPET)
+          deallocate(RPET_ind)
           deallocate(RLHT)
           deallocate(RFWT)
           deallocate(RECT)
@@ -920,6 +944,7 @@
                          RPCT(NR,NSA,NTG)=RPCT(NR,NSA,2*NTG-1)
                          RPWT(NR,NSA,NTG)=RPWT(NR,NSA,2*NTG-1)
                          RPET(NR,NSA,NTG)=RPET(NR,NSA,2*NTG-1)
+                         RPET_ind(NR,NSA,NTG)=RPET_ind(NR,NSA,2*NTG-1)
                          RLHT(NR,NSA,NTG)=RLHT(NR,NSA,2*NTG-1)
                          RFWT(NR,NSA,NTG)=RFWT(NR,NSA,2*NTG-1)
                          RECT(NR,NSA,NTG)=RECT(NR,NSA,2*NTG-1)
@@ -958,6 +983,7 @@
                 call fp_adjust_ntg2_B(RPCT,tempB,NTG2M_NEW)
                 call fp_adjust_ntg2_B(RPWT,tempB,NTG2M_NEW)
                 call fp_adjust_ntg2_B(RPET,tempB,NTG2M_NEW)
+                call fp_adjust_ntg2_B(RPET_ind,tempB,NTG2M_NEW)
                 call fp_adjust_ntg2_B(RLHT,tempB,NTG2M_NEW)
                 call fp_adjust_ntg2_B(RFWT,tempB,NTG2M_NEW)
                 call fp_adjust_ntg2_B(RECT,tempB,NTG2M_NEW)

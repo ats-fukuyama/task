@@ -217,6 +217,39 @@
          END DO
       ENDDO
 
+!      IF(NSA.eq.1)THEN
+!      NR=1
+!      open(8,file='flux_p.dat')
+!      DO NP=1,NPMAX+1
+!         DO NTH=1,NTHMAX
+!            WRITE(8,'(5E16.8)') PG(NP,NSA)*COSM(NTH),PG(NP,NSA)*SINM(NTH),DCPP(NTH,NP,NR,NSA),DCPT(NTH,NP,NR,NSA),FCPP(NTH,NP,NR,NSA)
+!         END DO
+!         WRITE(8,*) " "
+!         WRITE(8,*) " "
+!      END DO
+!      close(8)
+!      open(9,file='flux_th.dat')
+!      DO NP=1,NPMAX
+!         DO NTH=1,NTHMAX+1
+!            WRITE(9,'(5E16.8)') PM(NP,NSA)*COSG(NTH),PM(NP,NSA)*SING(NTH),DCPT(NTH,NP,NR,NSA),DCTT(NTH,NP,NR,NSA),FCTH(NTH,NP,NR,NSA)
+!         END DO
+!         WRITE(9,*) " "
+!         WRITE(9,*) " "
+!      END DO
+!      close(9)
+
+!      IF(MODELR.eq.1)THEN
+!         DO NP=2,NPMAX+1
+!            RGAMA =SQRT(1.D0+PG(NP,1)**2*THETA0(1))
+!            WRITE(*,'(I3,3E18.10)') NP, PG(NP,1),FCPP2(NTH,NP,NR,1,1)/DCPP2(NTH,NP,NR,1,1)*RGAMA/PG(NP,1), -THETA0(1)/THETA(NR,NSA)
+!         END DO
+!      ELSE
+!         DO NP=2,NPMAX+1
+!            WRITE(*,'(I3,3E18.10)') NP, PG(NP,1),FCPP2(NTH,NP,NR,1,1)/DCPP2(NTH,NP,NR,1,1)/PG(NP,1), -RTFP0(1)/RTFD(NR,1)
+!         END DO
+!      END IF
+!      END IF
+
       IF(nrank.eq.0) THEN
       IF(MOD(IDBGFP/8,2).EQ.1) THEN
 !
