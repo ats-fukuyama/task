@@ -30,7 +30,8 @@
                FEPP_IND(NTH,NP,NR,NSA) = AEFP(NSA)*E_IND/PTFP0(NSA)*COSM(NTH)
             END DO
          END DO
-      END DO
+         IF(NSA.eq.1) WRITE(*,'(2I4,3E16.8)') N_IMPL, NR, E_IND, PSIPM_P(1,NR), PSIPM_M(1,NR) 
+     END DO
 
       DO NR=NRSTART,NREND
          rv = EPSRM2(NR)*RR
@@ -153,6 +154,7 @@
          SUM = SUM + RMU0*RIP(NR2)*(RR/rv + 1.D0) * DELrho
       END DO
       PSIP1 = SUM
+!      PSIP0=0.D0
 
       PSIP_P = PSIP0 - PSIP1
 
@@ -284,23 +286,25 @@
 
       USE libmtx
       IMPLICIT NONE
+      double precision,dimension(NRMAX,NSAMAX)::RJ_G
 
-      CALL FPCURRENT
+      CALL FPCURRENT(RJ_G)
       IF(NRANK.eq.0)THEN
-         CALL FPRIPP
+         CALL FPRIPP(RJ_G)
       END IF
       CALL mtx_broadcast_real8(RIPP,NSAMAX*NRMAX)
 
       END SUBROUTINE Ip_r
 !----------------------------------
-      SUBROUTINE FPCURRENT
+      SUBROUTINE FPCURRENT(RJ_G)
 !
       USE fpmpi
       IMPLICIT NONE
       integer:: NR, NSA, NSB, NSBA, NP, NTH, NS, NSW, N
       integer:: IERR
-      real(8):: RSUM2, FACT
-      real(8):: PV
+      real(8):: RSUM2, FACT, PV
+      double precision,dimension(NRSTART:NREND,NSAMAX)::RJ_L
+      double precision,dimension(NRMAX,NSAMAX),INTENT(OUT)::RJ_G
 
       DO NR=NRSTART,NRENDX
          DO NSA=NSASTART,NSAEND
@@ -349,8 +353,8 @@
             END IF
 
             FACT=RNFP0(NSA)*1.D20/RFSADG(NR)*RCOEFNG(NR)
-            RJSL(NR,NSA) = RSUM2*FACT*AEFP(NSA)*PTFP0(NSA) &
-                           /AMFP(NSA)*1.D-6
+            RJ_L(NR,NSA) = RSUM2*FACT*AEFP(NSA)*PTFP0(NSA) &
+                           /AMFP(NSA)!*1.D-6
 
          ENDDO ! NSA
       ENDDO ! NR
@@ -358,18 +362,19 @@
       NSW=NSAEND-NSASTART+1
       DO N=1,NSW
          NSA=N+NSASTART-1
-         CALL fp_gatherv_real8_sav(RJSL,SAVLEN(NRANK+1),RJS,N,NSA)
+         CALL fp_gatherv_real8_sav(RJ_L,SAVLEN(NRANK+1),RJ_G,N,NSA)
       END DO
 
       RETURN
       END SUBROUTINE FPCURRENT
 !----------------------------------
 
-      SUBROUTINE FPRIPP
+      SUBROUTINE FPRIPP(RJ_G)
 !
       IMPLICIT NONE
       integer:: NSA, NSB, NR, NP, NTH 
       real(8):: EAVE, EAVE2, rtemp, rtemp2, THETAL, THETAL2
+      double precision,dimension(NRMAX,NSAMAX),INTENT(IN)::RJ_G
 
       DO NSA=1,NSAMAX
          DO NR=1,NRMAX
@@ -380,12 +385,13 @@
       DO NSA=1,NSAMAX
          DO NR=1,NRMAX
             IF(NR.eq.1)THEN ! current with in 0<rho<RM(NR)
-               RIPP(NR,NSA)  =RJS(NR,NSA)*VOLR(NR)/(2.D0*PI*RR)
+               RIPP(NR,NSA)  =RJ_G(NR,NSA)*VOLR(NR)/(2.D0*PI*RR)
             ELSE
-               RIPP(NR,NSA)  =RIPP(NR-1,NSA)+RJS(NR,NSA)*VOLR(NR)/(2.D0*PI*RR)
+               RIPP(NR,NSA)  =RIPP(NR-1,NSA)+RJ_G(NR,NSA)*VOLR(NR)/(2.D0*PI*RR)
             END IF
          ENDDO
       ENDDO
+!      IF(NRANK.eq.0) WRITE(*,*) "B_POL", RIPP(NRMAX,1)*RMU0/(2.D0*PI*RA)
          
       RETURN
       END SUBROUTINE FPRIPP

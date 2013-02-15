@@ -25,10 +25,10 @@
       IMPLICIT NONE
       real(kind8),dimension(NRSTART:NREND,NSAMAX):: RJNS
       real(kind8),dimension(NRSTART:NREND):: RJN,RJ3,E3,DELE
-      real(kind8),dimension(NSAMAX)::RSUMF,RSUMF0,RSUM_SS!,DEPS2
+      real(kind8),dimension(NSAMAX)::RSUMF,RSUMF0,RSUM_SS
 
       integer:: NT, NR, NP, NTH, NSA, NTI, NSBA
-      integer:: L, IERR, I!, N_IMPL
+      integer:: L, IERR, I
       real(kind8):: RSUM, DELEM, RJNL, dw, RSUM1, RSUM2
       real(4):: gut, gut1, gut2, gut3, gut4, gut5, gut6
       real(4):: gut_ex, gut_coef, gut_1step
@@ -79,6 +79,11 @@
          END DO
 
          IF(MODELE.eq.1)THEN
+!            CALL Ip_r
+!            CALL UPDATE_PSIP_P ! poloidal flux at present step
+            DO NSA=NSASTART,NSAEND
+               CALL FP_CALE_IND(NSA) ! INCLUDE IP_R AND UPDATE_PSIP_P
+            END DO
             CALL UPDATE_PSIP_M ! poloidal flux at previous step
          END IF
 
@@ -104,7 +109,7 @@
                CALL GUTIME(gut1)
                modeld_temp=modeld
                modeld=0
-               CALL fp_exec(NSA,IERR,its) ! F1 and FNS0 are changed
+               CALL fp_exec(NSA,IERR,its) ! F1 and FNS0 changed
                modeld=modeld_temp
                IF(MODELD.ge.1)THEN
                   CALL fp_drexec(NSA,IERR,its)

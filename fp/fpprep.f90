@@ -123,7 +123,7 @@
       BP= RSRHON(RHON)*BT/(RR*QL)
       EPSRM(NRMAX+1)=RSRHON(RHON)/RR
       BPM(NRMAX+1)= RSRHON(RHON)*BT/(RR*QL)
-
+!      IF(NRANK.eq.0) WRITE(*,*) "BP=", BP
       DO NR=1,NRMAX+1
          RHON=RG(NR)
          CALL pl_qprf(RHON,QL)
@@ -133,7 +133,16 @@
          EPSRG(NR)=RSRHON(RHON)/RR
          BPG(NR)= RSRHON(RHON)*BT/(RR*QL)
       ENDDO
-
+      DO NR=NRSTART,NREND
+         DO NTH=1,NTHMAX
+            PSIPM_P(NTH,NR)=0.D0
+         END DO
+      END DO
+      DO NR=NRSTART,NREND
+         DO NTH=1,NTHMAX+1
+            PSIPG_P(NTH,NR)=0.D0
+         END DO
+      END DO
 !     ----- set parallel current density -----
 
       DO NR=1,NRMAX

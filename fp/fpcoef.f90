@@ -37,6 +37,7 @@
             DPP(NTH,NP,NR,NSA)=0.D0
             DPT(NTH,NP,NR,NSA)=0.D0
             FPP(NTH,NP,NR,NSA)=0.D0
+            FEPP(NTH,NP,NR,NSA)=0.D0
             FEPP_IND(NTH,NP,NR,NSA)=0.D0
          ENDDO
          ENDDO
@@ -45,6 +46,7 @@
             DTP(NTH,NP,NR,NSA)=0.D0
             DTT(NTH,NP,NR,NSA)=0.D0
             FTH(NTH,NP,NR,NSA)=0.D0
+            FETH(NTH,NP,NR,NSA)=0.D0
             FETH_IND(NTH,NP,NR,NSA)=0.D0
          ENDDO
          ENDDO
@@ -252,6 +254,7 @@
       CALL FP_CALC(NSA)
 !     ----- Sum up velocity diffusion terms -----
 
+      IF(NRANK.eq.0) open(9,file='FE.dat')
       DO NR=NRSTART,NREND
 !         DO NP=1,NPMAX+1
 !         DO NTH=1,NTHMAX
@@ -275,7 +278,13 @@
             FPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)+FCPP(NTH,NP,NR,NSA)
             IF(MODELE.eq.1) &
                  FPP(NTH,NP,NR,NSA)=FPP(NTH,NP,NR,NSA)+FEPP_IND(NTH,NP,NR,NSA)
+            IF(NRANK.eq.0)THEN
+            WRITE(9,'(4E16.8)') PG(NP,NSA)*COSM(NTH), PG(NP,NSA)*SINM(NTH), &
+                 FEPP(NTH,NP,NR,NSA),FEPP_IND(NTH,NP,NR,NSA)
+            ENDIF
          ENDDO
+         IF(NRANK.eq.0) WRITE(9,*) " "
+         IF(NRANK.eq.0) WRITE(9,*) " "
          ENDDO
 !
          DO NP=1,NPMAX
@@ -288,13 +297,15 @@
          ENDDO
          ENDDO
       ENDDO
+      IF(NRANK.eq.0) close(9)
 
 !     ----- Radial diffusion term -----
 
       IF(MODELD.ge.6) THEN
-         IF(N_IMPL.eq.0)THEN
+!         IF(N_IMPL.eq.0)THEN
+!         IF(N_IMPL.le.1)THEN
             CALL FP_CALR2(NSA)
-         END IF
+!         END IF
       ELSEIF(MODELD.GT.0) THEN
          CALL FP_CALR(NSA)
       END IF
@@ -353,14 +364,19 @@
       integer:: NG
       real(kind8):: FACT, DELH, sum11, ETAL, X, PSIB, PCOS, sum15, ARG
 
-      DO NR=1,NRMAX
-         E1(NR)=E0/(1.D0+EPSRM2(NR))
-      END DO
+!      IF(MODELE.eq.0)THEN
+         DO NR=1,NRMAX
+            E2(NR)=E0/(1.D0+EPSRM2(NR))
+         END DO
+!      ELSE
+!         CALL FP_NEW_E
+!      END IF
+
 
       DO NR=NRSTART,NREND
       DO NP=1,NPMAX+1
       DO NTH=1,NTHMAX
-         FEPP(NTH,NP,NR,NSA)= AEFP(NSA)*E1(NR)/PTFP0(NSA)*COSM(NTH)
+         FEPP(NTH,NP,NR,NSA)= AEFP(NSA)*E2(NR)/PTFP0(NSA)*COSM(NTH)
       ENDDO
       ENDDO
       ENDDO
@@ -368,7 +384,7 @@
       DO NR=NRSTART,NREND
       DO NP=1,NPMAX
       DO NTH=1,NTHMAX+1
-         FETH(NTH,NP,NR,NSA)=-AEFP(NSA)*E1(NR)/PTFP0(NSA)*SING(NTH)
+         FETH(NTH,NP,NR,NSA)=-AEFP(NSA)*E2(NR)/PTFP0(NSA)*SING(NTH)
       ENDDO
       ENDDO
       ENDDO
@@ -727,36 +743,26 @@
          DINT_F=0.D0
          DO NP=1,NPMAX
             DO NTH=1,NTHMAX
-               IF(N_IMPL.eq.0)THEN
+!               IF(N_IMPL.eq.0)THEN
                   IF(NR.eq.1)THEN
                      WRL=0.25D0 ! not necessary
                   ELSE
                      WRL=(4.D0*RG(NR)+DELR)/(8.D0*RG(NR))                     
                   END IF
-               ELSE
-                  WRL=WEIGHR(NTH,NP,NR,NSA)
-               END IF
+!               ELSE
+!                  WRL=WEIGHR(NTH,NP,NR,NSA)
+!               END IF
                IF(NR.eq.1)THEN
-!                  DFDR_R1 = ( FNSP(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)/RFSADG(NR) &
-!                       -FS1(NTH,NP,NSA)*RLAMDA_GG(NTH,NR)/RFSAD_GG(NR) ) / DELR *2.D0
-!                  F_R1 = FS1(NTH,NP,NSA)*RLAMDA_GG(NTH,NR)/RFSAD_GG(NR)
                   DFDR_R1 = ( FNSP(NTH,NP,NR,NSA)-FS1(NTH,NP,NSA) ) / DELR *2.D0
                   F_R1 = FS1(NTH,NP,NSA)
                   SRHODM=DFDR_R1 * DRR(NTH,NP,NR,NSA)
                   SRHOFM=F_R1    * DRR(NTH,NP,NR,NSA)
                ELSEIF(NR.eq.NRMAX+1)THEN ! FS2 = F_INIT at rho=1+delR/2
-!                  DFDR_R1 = ( FS2(NTH,NP,NSA)*RLAMDAG(NTH,NR)/RFSADG(NR) &
-!                       -FNSP(NTH,NP,NR-1,NSA)*RLAMDAG(NTH,NR-1)/RFSADG(NR-1) ) / DELR
-!                  F_R1 = FS3(NTH,NP,NSA)*RLAMDA_GG(NTH,NR)/RFSAD_GG(NR)
                   DFDR_R1 = ( FS2(NTH,NP,NSA)-FNSP(NTH,NP,NR-1,NSA) ) / DELR
                   F_R1 = FS3(NTH,NP,NSA)
                   SRHODM=DFDR_R1 * DRR(NTH,NP,NR,NSA)
                   SRHOFM=F_R1    * DRR(NTH,NP,NR,NSA)
                ELSE
-!                  DFDR_R1 = ( FNSP(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)/RFSADG(NR) &
-!                       -FNSP(NTH,NP,NR-1,NSA)*RLAMDAG(NTH,NR-1)/RFSADG(NR-1) ) / DELR
-!                  F_R1 = ( (1.D0-WRL)*FNSP(NTH,NP,NR,NSA) + WRL*FNSP(NTH,NP,NR-1,NSA) ) &
-!                       *RLAMDA_GG(NTH,NR)/RFSAD_GG(NR)
                   DFDR_R1 = ( FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP,NR-1,NSA) ) / DELR
                   F_R1 = ( (1.D0-WRL)*FNSP(NTH,NP,NR,NSA) + WRL*FNSP(NTH,NP,NR-1,NSA) ) 
                   SRHODM=DFDR_R1 * DRR(NTH,NP,NR,NSA)
@@ -768,7 +774,7 @@
 ! no integration               
                IF(F_R1.ne.0)THEN
                   FACT = DFDR_R1/F_R1 
-                  FRR(NTH,NP,NR,NSA) = FACT * DRR(NTH,NP,NR,NSA)
+                  FRR(NTH,NP,NR,NSA) = FACT * DRR(NTH,NP,NR,NSA)*0
                ELSE
                   FRR(NTH,NP,NR,NSA) = DRR(NTH,NP,NR,NSA) * 0
                END IF
@@ -781,6 +787,7 @@
 !               FRR(NTH,NP,NR,NSA) = FACT * DRR(NTH,NP,NR,NSA)
 !            END DO
 !         END DO
+!         IF(NR.eq.NREND+1.and.NSA.eq.1) WRITE(*,'(I4,3E16.8)') NR, DRR(1,1,NR,1), FRR(1,1,NR,1),WRL
 
       ENDDO ! NR
 

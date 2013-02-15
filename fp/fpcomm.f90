@@ -101,7 +101,7 @@
            THG,THM
 
       real(rkind),dimension(:),POINTER :: & ! (NRM)
-           BP,QR,RJ1,E1,RJ2,E2,BPG,BPM,QLM,QLG
+           BP,QR,RJ1,E1,RJ2,E2,BPG,BPM,QLM,QLG,E_IMPL
       real(rkind),dimension(:),POINTER :: & ! (NRM)
            EPSRM,EPSRG,EPSRM2,EPSRG2
       real(rkind),dimension(:),POINTER :: & ! (NRM)
@@ -151,7 +151,8 @@
 
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
            RNSL,RJSL,RWSL,RPCSL,RPWSL,RPESL,RLHSL,RFWSL,RECSL,RWS123L, &
-           RSPBL,RSPFL,RSPSL,RSPLL,RPDR,RNDR, RTL_BULK, RT_BULK, RICSL, RPESL_ind
+           RSPBL,RSPFL,RSPSL,RSPLL,RPDR,RNDR, RTL_BULK, RT_BULK, RICSL,&
+           RPESL_ind, RDIDTL
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSAM,NSBM)
            RPCS2L
 
@@ -162,7 +163,7 @@
 
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
            RNS,RJS,RWS,RPCS,RPWS,RPES,RLHS,RFWS,RECS,RWS123, &
-           RSPB,RSPF,RSPS,RSPL, RPDRL,RNDRL, RICS, RPES_ind
+           RSPB,RSPF,RSPS,RSPL, RPDRL,RNDRL, RICS, RPES_ind, RDIDT
       real(rkind),dimension(:),POINTER :: & ! (NSAM)
            RNS_S2
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSAM,NSBM)
@@ -180,6 +181,8 @@
            PPCT2
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSM)
            RIPP
+      real(rkind),dimension(:),POINTER :: & ! (NRM,NSM)
+           RIP_P, RIP_M
       real(rkind),dimension(:,:),POINTER :: & ! (NRM)
            PSIPM_P, PSIPM_M, PSIPG_P, PSIPG_M
 
@@ -258,6 +261,7 @@
           allocate(QLG(NRMAX+1),QLM(NRMAX+1))
           allocate(RJ1(NRMAX),E1(NRMAX))
           allocate(RJ2(NRMAX),E2(NRMAX))
+          allocate(E_IMPL(NRMAX))
 !          allocate(RJ_IND(NRMAX),E_IND(NRMAX))
           allocate(EPSRM(NRMAX+1),EPSRG(NRMAX+1))
           allocate(EPSRM2(NRMAX+1),EPSRG2(NRMAX+1))
@@ -401,6 +405,8 @@
           allocate(RFWSL(NRSTART:NRENDX,NSAMAX),RECSL(NRSTART:NRENDX,NSAMAX))
           allocate(RICSL(NRSTART:NRENDX,NSAMAX))
           allocate(RPCS2L(NRSTART:NRENDX,NSBMAX,NSAMAX))
+          allocate(RDIDTL(NRSTART:NRENDX,NSAMAX))
+          allocate(RDIDT(NRMAX,NSAMAX))
 
           allocate(RNS(NRMAX,NSAMAX),RJS(NRMAX,NSAMAX))
           allocate(RNS_S2(NSAMAX))
@@ -428,6 +434,7 @@
           allocate(RPWIC_INIT(NRSTART:NRENDX,NSAMAX))
 
           allocate(RIPP(NRMAX,NSAMAX))
+          allocate(RIP_P(NRMAX),RIP_M(NRMAX))
           allocate(PSIPM_P(NTHMAX,NRSTART:NRENDX)  ,PSIPM_M(NTHMAX,NRSTART:NRENDX))
           allocate(PSIPG_P(NTHMAX+1,NRSTART:NRENDX),PSIPG_M(NTHMAX+1,NRSTART:NRENDX))
 !         NLMAXM= 8   ! this is for analysis without bounce average
@@ -475,6 +482,7 @@
           deallocate(BPG,BPM)
           deallocate(QLG,QLM)
           deallocate(RJ1,E1,RJ2,E2)
+          deallocate(E_IMPL)
 !          deallocate(RJ_IND, E_IND)
           deallocate(EPSRM,EPSRG)
           deallocate(EPSRM2,EPSRG2)
@@ -565,7 +573,8 @@
           deallocate(RNSL,RJSL,RWSL,RWS123L)
           deallocate(RSPBL,RSPFL,RSPSL,RSPLL,RPCSL,RPESL,RPESL_ind)
           deallocate(RPCSL,RLHSL,RFWSL,RECSL,RICSL,RPCS2L)
-          
+          deallocate(RDIDT, RDIDTL)
+
           deallocate(RNS,RJS)
           deallocate(RNS_S2)
           deallocate(RWS,RWS123)
@@ -581,6 +590,7 @@
           deallocate(RPW_IMPL,RPWEC_IMPL,RPWIC_IMPL)
           deallocate(RPW_INIT,RPWEC_INIT,RPWIC_INIT)
           deallocate(RIPP)
+          deallocate(RIP_P,RIP_M)
           deallocate(PSIPM_P,PSIPM_M)
           deallocate(PSIPG_P,PSIPG_M)
 

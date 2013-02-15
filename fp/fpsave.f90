@@ -37,7 +37,7 @@
 !      real(8),dimension(NRMAX, NSAMAX):: RFWS, RECS
 !      real(8),dimension(NRMAX, NSBMAX, NSAMAX):: RPCS2
 !      real(8),dimension(NSAMAX, 0:NTMAX):: PWT2, PTT2
-      real(8):: DSDR, SRHOP, SRHOM, RSUM62
+      real(8):: DSDR, SRHOP, SRHOM, RSUM62, RSUM63
 
       IF(ISAVE.NE.0) RETURN
 
@@ -59,6 +59,7 @@
             RSUM5=0.D0
             RSUM6=0.D0
             RSUM62=0.D0
+            RSUM63=0.D0
             RSUM7=0.D0
             RSUM8=0.D0
             RSUM9=0.D0
@@ -222,8 +223,13 @@
                            +DWPT(NTH,NP,NR,NSA)*DFT)
                   RSUM6 = RSUM6-PG(NP,NSBA)**2*SINM(NTH)/PV   &
                           *(FEPP(NTH,NP,NR,NSA)*FFP)
-                  RSUM62 = RSUM62-PG(NP,NSBA)**2*SINM(NTH)/PV   &
-                          *(FEPP_IND(NTH,NP,NR,NSA)*FFP)
+!                  RSUM62 = RSUM62-PG(NP,NSBA)**2*SINM(NTH)/PV   &
+!                          *(FEPP_IND(NTH,NP,NR,NSA)*FFP)
+!                  RSUM63 = RSUM63+PG(NP,NSBA)*SINM(NTH)*COSM(NTH) &
+!                       *(&
+!                       DPP(NTH,NP,NR,NSA)*DFP+DPT(NTH,NP,NR,NSA)*DFT &
+!                       -FPP(NTH,NP,NR,NSA)*FFP)/(PV**3)
+
                   RSUM7 = RSUM7+PG(NP,NSBA)**2*SINM(NTH)/PV   &
                           *(DWLHPP(NTH,NP,NR,NSA)*DFP         &
                            +DWLHPT(NTH,NP,NR,NSA)*DFT)
@@ -414,13 +420,16 @@
             RJSL(NR,NSA) = RSUM2*FACT*AEFP(NSA)*PTFP0(NSA) &
                            /AMFP(NSA)*1.D-6
 
+!            RDIDTL(NR,NSA) = -RSUM63*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6 &
+!                 *AEFP(NSA)*PTFP0(NSA)/AMFP(NSA)*DELT
+
             FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)/RFSADG(NR) *RCOEFNG(NR)
             RWSL(NR,NSA) = RSUM3*FACT               *1.D-6
             RWS123L(NR,NSA) =-RSUM12*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             RPCSL(NR,NSA)=-RSUM4*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             RPWSL(NR,NSA)=-RSUM5*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             RPESL(NR,NSA)=-RSUM6*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
-            RPESL_ind(NR,NSA)=-RSUM62*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
+!            RPESL_ind(NR,NSA)=-RSUM62*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             RLHSL(NR,NSA)=-RSUM7*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             RFWSL(NR,NSA)=-RSUM8*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             RECSL(NR,NSA)=-RSUM9*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
@@ -471,7 +480,7 @@
          PPCT(NSA,NTG1)=0.D0
          PPWT(NSA,NTG1)=0.D0
          PPET(NSA,NTG1)=0.D0
-         PPET_ind(NSA,NTG1)=0.D0
+!         PPET_ind(NSA,NTG1)=0.D0
          PLHT(NSA,NTG1)=0.D0
          PFWT(NSA,NTG1)=0.D0
          PECT(NSA,NTG1)=0.D0
@@ -499,7 +508,7 @@
             PPCT(NSA,NTG1)=PPCT(NSA,NTG1)+RPCS(NR,NSA)*VOLR(NR)
             PPWT(NSA,NTG1)=PPWT(NSA,NTG1)+RPWS(NR,NSA)*VOLR(NR)
             PPET(NSA,NTG1)=PPET(NSA,NTG1)+RPES(NR,NSA)*VOLR(NR)
-            PPET_ind(NSA,NTG1)=PPET_ind(NSA,NTG1)+RPES_ind(NR,NSA)*VOLR(NR)
+!            PPET_ind(NSA,NTG1)=PPET_ind(NSA,NTG1)+RPES_ind(NR,NSA)*VOLR(NR)
             PLHT(NSA,NTG1)=PLHT(NSA,NTG1)+RLHS(NR,NSA)*VOLR(NR)
             PFWT(NSA,NTG1)=PFWT(NSA,NTG1)+RFWS(NR,NSA)*VOLR(NR)
             PECT(NSA,NTG1)=PECT(NSA,NTG1)+RECS(NR,NSA)*VOLR(NR)
@@ -669,10 +678,10 @@
       rtotalIP=0.D0
 
       WRITE(fmt0,'(a43)') &
-           '(8X,2I2," PC,PW,PE,PEIND,PDR=",6X,1P5E12.4)'
+           '(8X,2I2," PC,PW,PE,PDR=",6X,1P4E12.4)'
       DO NSA=1,NSAMAX
          WRITE(6,fmt0) NSA,NS_NSA(NSA), &
-              PPCT(NSA,NTG1),PPWT(NSA,NTG1),PPET(NSA,NTG1),PPET_ind(NSA,NTG1),PDR(NSA,NTG1)
+              PPCT(NSA,NTG1),PPWT(NSA,NTG1),PPET(NSA,NTG1),PDR(NSA,NTG1)
          rtotalPW=rtotalPW + PPWT(NSA,NTG1)
          rtotalPC=rtotalPC + PPCT(NSA,NTG1)
          rtotalSP=rtotalSP + PSPT(NSA,NTG1)
@@ -754,7 +763,10 @@
                WRITE(6,fmt0) NSA,NS_NSA(NSA),&
                     RM(NR),RNT(NR,NSA,NTG2),RTT(NR,NSA,NTG2), &
                     RJT(NR,NSA,NTG2),RPCT(NR,NSA,NTG2),       &
-                    RPET(NR,NSA,NTG2),RPET_IND(NR,NSA,NTG2),RECT(NR,NSA,NTG2),    &
+                    RPET(NR,NSA,NTG2),E2(NR), &
+!RPET_IND(NR,NSA,NTG2), &
+!                    RDIDT(NR,NSA), &
+                    RECT(NR,NSA,NTG2),    &
                     RSPBT(NR,NSA,NTG2),RSPFT(NR,NSA,NTG2),RPDRT(NR,NSA,NTG2), &
                     RTT_BULK(NR,NSA,NTG2),RNDRT(NR,NSA,NTG2)
             END IF
@@ -769,7 +781,7 @@
   107 FORMAT( &
            'NSA/NS',5X,'RM',10X,' n',8X,' T    ',6X, &
            ' j     ',5X,'PC     ',5X,'PE     ',5X,   &
-           'PE_IND ',5X,'PEC    ',5X,'PNB//PLH',4X,  &
+           'E2     ',5X,'PEC    ',5X,'PNB//PLH',4X,  &
            ' PNF/PIC',4X,'RPDR   ',5X,'T_BULK ',5X,'RNDR' )
 
       END SUBROUTINE FPWRTPRF
@@ -789,21 +801,14 @@
 !$$$c-----check of conductivity--------
 !      IF(NTG1.ne.1)then
 !!!     Spitzer
-!         FACT1 =  &
-!              2.D0*PI*RSRHON(RM(NRMAX))*(RSRHON(RG(NRMAX+1))-RSRHON(RG(NRMAX)))
-!!              PI*RSRHON(RG(NRMAX+1))**2
-!         FACT2 = 2.D0*PI*RR
-
 !      Do NSA=1,NSAMAX
 !      Do NSB=1,NSBMAX
 !         rnute=RNUD(1,1,NSA)*SQRT(2.D0)*RNFP(1,NSA)/RNFP0(NSA)     &
 !              *(PTFP0(NSA)/PTFD(1,NSA))**2
 !         resist2=RNUTE*AMFP(NSA)/RNFP(1,NSA)/AEFP(NSA)**2/1.D20
-!      resist = 1.D0/(RNFP0(NSA)/RNFP(1,NSA)*1.D20*AEFP(NSA)**2/AMFP(NSA)&
-!          /RNUD(1,1,NSA)*RNFD(1,NSA)/RNFP0(NSA) ) *SQRT(2.D0)/rnfp0(NSA)
 !      if(E0.ne.0.d0) &
-!         write(6,*) "J/E*eta*1.D6", PIT(NSA,NTG1)/E0*1.D6/FACT1*resist2 &
-!     ,"THETA0", THETA0(NSA)
+!         write(6,'(A,1PE16.8,A,1PE16.8)') "J/E*eta*1.D6", RJS(1,NSA)/E0*1.D6*resist2 &
+!         ,"  THETA0", THETA0(NSA)
 !      END DO
 !      END DO
 
@@ -960,7 +965,7 @@
          CALL fp_gatherv_real8_sav(RPCSL,SAVLEN(NRANK+1),RPCS,N,NSA)
          CALL fp_gatherv_real8_sav(RPWSL,SAVLEN(NRANK+1),RPWS,N,NSA)
          CALL fp_gatherv_real8_sav(RPESL,SAVLEN(NRANK+1),RPES,N,NSA)
-         CALL fp_gatherv_real8_sav(RPESL_ind,SAVLEN(NRANK+1),RPES_ind,N,NSA)
+!         CALL fp_gatherv_real8_sav(RPESL_ind,SAVLEN(NRANK+1),RPES_ind,N,NSA)
          CALL fp_gatherv_real8_sav(RLHSL,SAVLEN(NRANK+1),RLHS,N,NSA)
          CALL fp_gatherv_real8_sav(RFWSL,SAVLEN(NRANK+1),RFWS,N,NSA)
          CALL fp_gatherv_real8_sav(RECSL,SAVLEN(NRANK+1),RECS,N,NSA)
@@ -971,7 +976,8 @@
          CALL fp_gatherv_real8_sav(RSPLL,SAVLEN(NRANK+1),RSPL,N,NSA)
          CALL fp_gatherv_real8_sav(RPDRL,SAVLEN(NRANK+1),RPDR,N,NSA)
          CALL fp_gatherv_real8_sav(RNDRL,SAVLEN(NRANK+1),RNDR,N,NSA)
-         CALL fp_gatherv_real8_sav(RTL_BULK,SAVLEN(NRANK+1),RT_BULK,N,NSA)
+         CALL fp_gatherv_real8_sav(RTL_BULK,SAVLEN(NRANK+1),RT_BULK,N,NSA) 
+!         CALL fp_gatherv_real8_sav(RDIDTL,SAVLEN(NRANK+1),RDIDT,N,NSA)
       END DO
       DO NSB=1,NSBMAX
          DO NSA=NSASTART,NSAEND
