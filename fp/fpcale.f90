@@ -30,7 +30,6 @@
                FEPP_IND(NTH,NP,NR,NSA) = AEFP(NSA)*E_IND/PTFP0(NSA)*COSM(NTH)
             END DO
          END DO
-         IF(NSA.eq.1) WRITE(*,'(2I4,3E16.8)') N_IMPL, NR, E_IND, PSIPM_P(1,NR), PSIPM_M(1,NR) 
      END DO
 
       DO NR=NRSTART,NREND
@@ -88,7 +87,7 @@
 
       IMPLICIT NONE
       INTEGER:: NR, NTH
-      double precision:: PSIP_P
+      double precision:: PSIP_P, E_IND
 
       DO NR=NRSTART, NREND
          IF(MODELA.eq.0)THEN
@@ -102,6 +101,9 @@
                PSIPM_P(NTH,NR)=PSIP_P
             END DO
          END IF
+         E_IND=-( PSIPM_P(1,NR)-PSIPM_M(1,NR) )/ (2.D0*PI*RR*(1.D0+EPSRM2(NR))*DELT)
+!         IF(NRANK.eq.0) WRITE(*,'(2I4,4E16.8)') N_IMPL, NR, E_IND, &
+!              PSIPM_P(1,NR), PSIPM_M(1,NR), RIPP(1,1) 
       END DO
 !
       DO NR=NRSTART, NREND
@@ -130,7 +132,9 @@
       double precision,dimension(NRMAX):: RIP
       double precision:: PSIP0, PSIP1
 
-      RIP(:)=0.D0
+      DO NR2=1,NRMAX
+         RIP(NR2)=0.D0
+      END DO
       DO NSA=1,NSAMAX
          DO NR2=1,NRMAX
             RIP(NR2)=RIP(NR2)+RIPP(NR2,NSA)
@@ -299,6 +303,7 @@
       SUBROUTINE FPCURRENT(RJ_G)
 !
       USE fpmpi
+      USE libmtx
       IMPLICIT NONE
       integer:: NR, NSA, NSB, NSBA, NP, NTH, NS, NSW, N
       integer:: IERR
@@ -306,6 +311,7 @@
       double precision,dimension(NRSTART:NREND,NSAMAX)::RJ_L
       double precision,dimension(NRMAX,NSAMAX),INTENT(OUT)::RJ_G
 
+      CALL mtx_set_communicator(comm_np) 
       DO NR=NRSTART,NRENDX
          DO NSA=NSASTART,NSAEND
             NS=NS_NSA(NSA)
@@ -314,7 +320,8 @@
             RSUM2=0.D0
             IF(MODELA.eq.0) THEN
                IF(MODELR.EQ.0) THEN
-                  DO NP=1,NPMAX
+!                  DO NP=1,NPMAX
+                  DO NP=NPSTART,NPEND
                      DO NTH=1,NTHMAX
                         RSUM2 = RSUM2                       &
                              +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
@@ -322,7 +329,8 @@
                      END DO
                   ENDDO
                ELSE
-                  DO NP=1,NPMAX
+!                  DO NP=1,NPMAX
+                  DO NP=NPSTART,NPEND
                      PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
                      DO NTH=1,NTHMAX
                         RSUM2 = RSUM2                       &
@@ -333,7 +341,8 @@
                ENDIF
             ELSE
                IF(MODELR.EQ.0) THEN
-                  DO NP=1,NPMAX
+!                  DO NP=1,NPMAX
+                  DO NP=NPSTART,NPEND
                      DO NTH=1,NTHMAX
                         RSUM2 = RSUM2                        &
                              +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)  &
@@ -341,7 +350,8 @@
                      END DO
                   ENDDO
                ELSE
-                  DO NP=1,NPMAX
+!                  DO NP=1,NPMAX
+                  DO NP=NPSTART,NPEND
                      PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
                      DO NTH=1,NTHMAX
                         RSUM2 = RSUM2                        &
@@ -352,6 +362,8 @@
                ENDIF               
             END IF
 
+            CALL p_theta_integration(RSUM2) 
+
             FACT=RNFP0(NSA)*1.D20/RFSADG(NR)*RCOEFNG(NR)
             RJ_L(NR,NSA) = RSUM2*FACT*AEFP(NSA)*PTFP0(NSA) &
                            /AMFP(NSA)!*1.D-6
@@ -359,11 +371,13 @@
          ENDDO ! NSA
       ENDDO ! NR
 
+      CALL mtx_set_communicator(comm_nsanr)
       NSW=NSAEND-NSASTART+1
       DO N=1,NSW
          NSA=N+NSASTART-1
          CALL fp_gatherv_real8_sav(RJ_L,SAVLEN(NRANK+1),RJ_G,N,NSA)
       END DO
+      CALL mtx_reset_communicator 
 
       RETURN
       END SUBROUTINE FPCURRENT

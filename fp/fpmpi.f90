@@ -24,16 +24,13 @@
       DO NR=NRSTART,NREND
          vtemp(NR)=vsend(nr,nsa)
       END DO
-!      call mtx_gatherv_real8(vtemp,nscnt,vrecv,nrmax*nsamax,savlen,idisp)
       call mtx_gather_real8(vtemp,nscnt,vrecv)
 
       IF(NRANK.eq.0)THEN
          nsw = NSAEND-NSASTART+1
-!         DO NS=n,NSAMAX,nsw
          DO NS=1,n_partition_s
             NSE=(NS-1)*NSW + N
             DO NR=1,NRMAX
-!               vreturn(NR,NS)=vrecv( (NS-1)*NRMAX+NR )
                vreturn(NR,NSE)=vrecv( (NS-1)*NRMAX+NR )
             END DO
          END DO
@@ -45,12 +42,12 @@
       SUBROUTINE update_fnsb 
 
       IMPLICIT NONE
-      integer:: nsend, nth, np, nr, nsa, nsw, nswi
-      double precision,dimension(nthmax,npmax,nrstart:nrend,nsastart:nsaend):: dsend
+      integer:: nsend, nth, np, nr, nsa
+      double precision,dimension(nthmax,npstart:npend,nrstart:nrend,nsastart:nsaend):: dsend
 
       DO NSA=NSASTART,NSAEND
          DO NR=NRSTART,NREND
-            DO NP=1,NPMAX
+            DO NP=NPSTART,NPEND
                DO NTH=1,NTHMAX
                   dsend(nth,np,nr,nsa)=FNSP(nth,np,nr,nsa)
                END DO
@@ -58,51 +55,80 @@
          END DO
       END DO
 
-      nsw=NSAEND-NSASTART+1
-      nsend=NTHMAX*NPMAX*(NREND-NRSTART+1)*NSW
-!      CALL mtx_set_communicator(comm_nr)
-      DO NSWI=1,NSW
-         NSA=NSASTART-1+NSWI
-         CALL mtx_allgather_real8(dsend,nsend,FNSB(1:NTHMAX,1:NPMAX,NRSTART,1)) 
-      END DO
-!      CALL mtx_reset_communicator
+      nsend=NTHMAX*(NPEND-NPSTART+1)*(NREND-NRSTART+1)*(NSAEND-NSASTART+1)
+      CALL mtx_allgather_real8(dsend,nsend,FNSB(1:NTHMAX,NPSTART,NRSTART,1)) 
 
       END SUBROUTINE update_fnsb
 !-----
       SUBROUTINE update_fns
 
+      USE libmtx
       IMPLICIT NONE
       integer:: nsend, nth, np, nr, nsa, nsw, nswi,N
-      double precision,dimension(nthmax,npmax,nrstart:nrend):: dsend
-      double precision,dimension(nthmax,npmax,nrmax,n_partition_s):: drecv
+!      double precision,dimension(nthmax,npstart:npend,nrstart:nrend):: dsend
+!      double precision,dimension(nthmax,npmax,nrmax,n_partition_s):: drecv
+      double precision,dimension(nthmax,npstart:npend,nrstart:nrend):: dsend
+      double precision,dimension(nthmax,npmax,nrmax):: drecv
+      double precision,dimension(nthmax,npmax,nrmax,nsastart:nsaend):: dsend2
 
-
-      nsw=NSAEND-NSASTART+1
-      nsend=NTHMAX*NPMAX*(NREND-NRSTART+1)
-      DO NSWI=1,NSW
-         NSA=NSASTART-1+NSWI
+      CALL mtx_set_communicator(comm_nrnp)
+      DO NSA=NSASTART,NSAEND
          DO NR=NRSTART,NREND
-            DO NP=1,NPMAX
+            DO NP=NPSTART,NPEND
                DO NTH=1,NTHMAX
-                  dsend(nth,np,nr)=FNSP(nth,np,nr,nsa)
+                  dsend(nth,np,nr)=fnsp(nth,np,nr,nsa)
                END DO
             END DO
          END DO
+         nsend=NTHMAX*(NPEND-NPSTART+1)*(NREND-NRSTART+1)
          CALL mtx_gather_real8(dsend,nsend,drecv) 
-         IF(NRANK.eq.0)THEN
-            N=0
-            DO NSA=NSWI,NSAMAX,NSW
-               N=N+1
-               DO NR=1,NRMAX
-                  DO NP=1,NPMAX
-                     DO NTH=1,NTHMAX
-                        FNS(NTH,NP,NR,NSA)=drecv(NTH,NP,NR,N)
-                     END DO
-                  END DO
+         DO NR=1,NRMAX
+            DO NP=1,NPMAX
+               DO NTH=1,NTHMAX
+                  dsend2(nth,np,nr,nsa)=drecv(nth,np,nr)
                END DO
             END DO
-         END IF
+         END DO
       END DO
+      CALL mtx_set_communicator(comm_nsa)
+      nsend=NTHMAX*NPMAX*NRMAX*(NSAEND-NSASTART+1)
+      CALL mtx_gather_real8(dsend2,nsend,FNS) 
+      CALL mtx_reset_communicator 
+
+
+!      CALL mtx_set_communicator(comm_nrnp)
+
+!      nsw=NSAEND-NSASTART+1
+!      nsend=NTHMAX*NPMAX*(NREND-NRSTART+1)
+!      DO NSWI=1,NSW
+!         NSA=NSASTART-1+NSWI
+!         DO NR=NRSTART,NREND
+!            DO NP=NPSTART,NPEND
+!               DO NTH=1,NTHMAX
+!                  dsend(nth,np,nr)=FNSP(nth,np,nr,nsa)
+!               END DO
+!            END DO
+!         END DO
+!         CALL mtx_gather_real8(dsend,nsend,drecv) 
+!         IF(NRANK.eq.0)THEN
+!            N=0
+!            DO NSA=NSWI,NSAMAX,NSW
+!               N=N+1
+!               DO NR=1,NRMAX
+!                  DO NP=1,NPMAX
+!                     DO NTH=1,NTHMAX
+!                        FNS(NTH,NP,NR,NSA)=drecv(NTH,NP,NR,N)
+!                     END DO
+!                  END DO
+!               END DO
+!            END DO
+!         END IF
+!      END DO
+
+
+
+
+!      CALL mtx_reset_communicator
 
       END SUBROUTINE update_fns
 !-----
@@ -129,5 +155,30 @@
       RETURN
 
       END SUBROUTINE source_allreduce
+!-----
+      SUBROUTINE p_theta_integration(vdata)
+
+      IMPLICIT NONE
+      double precision,intent(inout):: vdata
+      double precision:: vrecv
+      integer::vloc
+
+      CALL mtx_allreduce1_real8(vdata,3,vrecv,vloc) 
+      vdata = vrecv
+
+      END SUBROUTINE p_theta_integration
+!-----
+      SUBROUTINE fpl_comm(vdata,vrecv)
+
+      IMPLICIT NONE
+      double precision,dimension(NPSTART:NPEND),intent(in)::vdata
+      double precision,dimension(NPMAX),intent(out)::vrecv
+      integer:: ndata
+
+      ndata = (NPEND-NPSTART+1)
+      CALL mtx_allgather_real8(vdata,ndata,vrecv)
+
+
+      END SUBROUTINE fpl_comm
 !-----
       END MODULE FPMPI

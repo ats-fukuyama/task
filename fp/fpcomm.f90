@@ -47,15 +47,17 @@
       integer::LMAXFP
       real(rkind):: epsfp
       integer,dimension(NSM):: NCMIN, NCMAX
-      integer:: N_partition_r,N_partition_s
-      
+      integer:: N_partition_r,N_partition_s,N_partition_p
+
 !      --- internal variables ---
 
 !         +++ mpi and petsc variables +++
-      TYPE(mtx_mpi_type):: comm_nr,comm_nsa
+      TYPE(mtx_mpi_type):: comm_nr,comm_nsa,comm_np,&
+           comm_nrnp,comm_nsanp,comm_nsanr
       integer:: imtxsize,imtxwidth,imtxstart,imtxend
       integer:: nrstart,nrend,nrendx,nmstart,nmend
-      integer:: NSASTART,NSAEND
+      integer:: NSASTART,NSAEND,NPSTART,NPEND
+      integer:: NPENDWM,NPENDWG,NPSTARTW
       integer,dimension(:),POINTER:: mtxlen,mtxpos
       integer,dimension(:),POINTER:: savlen
       integer,dimension(:,:),POINTER:: savpos
@@ -181,8 +183,6 @@
            PPCT2
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSM)
            RIPP
-      real(rkind),dimension(:),POINTER :: & ! (NRM,NSM)
-           RIP_P, RIP_M
       real(rkind),dimension(:,:),POINTER :: & ! (NRM)
            PSIPM_P, PSIPM_M, PSIPG_P, PSIPG_M
 
@@ -299,7 +299,7 @@
           allocate(FNS0(NTHMAX,NPMAX,NRSTART-1:NREND+1,NSAMAX))
           allocate(FNSP(NTHMAX,NPMAX,NRSTART-1:NREND+1,NSAMAX))
           allocate(FNSM(NTHMAX,NPMAX,NRSTART-1:NREND+1,NSAMAX))
-          allocate(FNSB(NTHMAX,NPMAX,NRSTART:NREND,NSBMAX))
+          allocate(FNSB(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSBMAX))
 
           allocate(FS1(NTHMAX,NPMAX,NSAMAX))
           allocate(FS2(NTHMAX,NPMAX,NSAMAX))
@@ -434,7 +434,6 @@
           allocate(RPWIC_INIT(NRSTART:NRENDX,NSAMAX))
 
           allocate(RIPP(NRMAX,NSAMAX))
-          allocate(RIP_P(NRMAX),RIP_M(NRMAX))
           allocate(PSIPM_P(NTHMAX,NRSTART:NRENDX)  ,PSIPM_M(NTHMAX,NRSTART:NRENDX))
           allocate(PSIPG_P(NTHMAX+1,NRSTART:NRENDX),PSIPG_M(NTHMAX+1,NRSTART:NRENDX))
 !         NLMAXM= 8   ! this is for analysis without bounce average
@@ -590,7 +589,6 @@
           deallocate(RPW_IMPL,RPWEC_IMPL,RPWIC_IMPL)
           deallocate(RPW_INIT,RPWEC_INIT,RPWIC_INIT)
           deallocate(RIPP)
-          deallocate(RIP_P,RIP_M)
           deallocate(PSIPM_P,PSIPM_M)
           deallocate(PSIPG_P,PSIPG_M)
 

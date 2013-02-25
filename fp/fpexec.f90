@@ -24,7 +24,8 @@
       NSBA=NSB_NSA(NSA)
 !      WRITE(*,*) "NRANK, NSA = ",NRANK,NSA
 
-      CALL mtx_set_communicator(comm_nsa)
+!      CALL mtx_set_communicator(comm_nr) !2D
+      CALL mtx_set_communicator(comm_nrnp) !3D
 
 !     ----- Set up matrix solver -----
       CALL mtx_setup(imtxsize,imtxstart1,imtxend1,imtxwidth)
@@ -59,14 +60,16 @@
 
       DO NR=NRSTART,NREND
          IF(MODELA.EQ.0) THEN
-            DO NP=1,NPMAX
+!            DO NP=1,NPMAX
+            DO NP=NPSTART,NPEND
             DO NTH=1,NTHMAX
                NM=NMA(NTH,NP,NR)
                CALL FPSETM(NTH,NP,NR,NSA,NLMAX(NM))
             ENDDO
             ENDDO
          ELSE
-            DO NP=1,NPMAX
+!            DO NP=1,NPMAX
+            DO NP=NPSTART,NPEND
                DO NTH=1,NTHMAX/2
                   NM=NMA(NTH,NP,NR)
                   CALL FPSETM(NTH,NP,NR,NSA,NLMAX(NM))
@@ -77,14 +80,14 @@
                ENDDO
             ENDDO
          ENDIF
-!         write(6,*) 'NLMAX=',NLMAX
       ENDDO
 
 !     ----- Diagonal term -----
 
       DO NR=NRSTART,NREND ! LHS
          IF(MODELA.EQ.0) THEN
-            DO NP=1,NPMAX
+!            DO NP=1,NPMAX
+            DO NP=NPSTART,NPEND
             DO NTH=1,NTHMAX
                NM=NMA(NTH,NP,NR)
                BM(NM)=(1.D0+(1.D0-RIMPL)*DELT*DL(NM))*FM(NM) &
@@ -96,7 +99,8 @@
             ENDDO
             ENDDO
          ELSE
-            DO NP=1,NPMAX
+!            DO NP=1,NPMAX
+            DO NP=NPSTART,NPEND
                DO NTH=1,NTHMAX/2
                   NM=NMA(NTH,NP,NR)
                   BM(NM)=(RLAMDA(NTH,NR)+(1.D0-RIMPL)*DELT*DL(NM))*FM(NM) &
@@ -144,7 +148,8 @@
       ENDDO
 
       DO NR=NRSTART,NREND
-      DO NP=1,NPMAX
+!      DO NP=1,NPMAX
+      DO NP=NPSTART,NPEND
       DO NTH=NTHMAX/2+1,ITU(NR)
          NM=NMA(NTH,NP,NR)
          IF(LL(NM,NL).NE.0) WRITE(6,'(A,5I5,1PE12.4)') &
@@ -192,7 +197,8 @@
       CALL mtx_gather_vector(BMTOT)
       
       DO NR=NRSTART,NREND
-         DO NP=1,NPMAX
+!         DO NP=1,NPMAX
+         DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX
                NM=NMA(NTH,NP,NR)
                F1(NTH,NP,NR)=BMTOT(NM)
@@ -202,7 +208,8 @@
       
       DO NR=NRSTART-1,NREND+1
          IF(NR.ge.1.and.NR.le.NRMAX)THEN
-            DO NP=1,NPMAX
+!            DO NP=1,NPMAX
+            DO NP=NPSTARTW,NPENDWM
                DO NTH=1,NTHMAX
                   NM=NMA(NTH,NP,NR)
                   FNS0(NTH,NP,NR,NSBA)=BMTOT(NM)
@@ -299,7 +306,8 @@
 
       NSBA=NSB_NSA(NSA)
       DO NR=NRSTART,NREND
-      DO NP=1,NPMAX+1
+!      DO NP=1,NPMAX+1
+      DO NP=NPSTARTW,NPENDWM
       DO NTH=1,NTHMAX
          DFDTH=0.D0
          IF(NP.NE.1) THEN
@@ -338,9 +346,9 @@
       ENDDO
 
       DO NR=NRSTART,NREND
-      DO NP=1,NPMAX
+!      DO NP=1,NPMAX
+      DO NP=NPSTARTW,NPENDWM
          DFDP=-PM(NP,NSBA)*RTFP0(NSA)/RTFP(NR,NSA)
-!         DFDP=-PM(NP,NSBA)*RTFP0(NSA)/RTFP(NR,NSA)/SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
          DFDB=DFDP
       DO NTH=1,NTHMAX+1
         IF(NTH.EQ.1) THEN
@@ -551,7 +559,8 @@
       ENDDO
 
       DO NR=NRSTART,NREND+1
-      DO NP=1,NPMAX
+!      DO NP=1,NPMAX
+      DO NP=NPSTARTW,NPENDWM
       DO NTH=1,NTHMAX
          FVEL=FRR(NTH,NP,NR,NSA)
          DVEL=DRR(NTH,NP,NR,NSA)

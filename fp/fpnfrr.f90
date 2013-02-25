@@ -296,7 +296,7 @@
 !        write(*,*)E3
 
 
-         ENDIF
+         ENDIF ! MODELS=2
          ENDIF
 
 
@@ -366,7 +366,7 @@
 
 !      IF((N_IMPL.eq.0.or.N_IMPL.gt.LMAXFP).and.NR.eq.1)THEN
       IF((N_IMPL.eq.0.or.N_IMPL.gt.LMAXFP).and.NR.eq.1)THEN
-         WRITE(6,*) '|-NF_REACTION_RATE:', nrank, comm_nsa%rank
+         WRITE(6,*) '|-NF_REACTION_RATE:', nrank, comm_nr%rank
          WRITE(6,'(A,3I5,A,2I5)') '   |-ID,NSB1,NSB2 -> NSA1,NSA2=' &
               ,ID,NSB1,NSB2,' -> ',NSA1,NSA2
          WRITE(6, *) "  |-ID,  NR,NSB1,NSB2,  <sigma*v>,      ENG1_NF"

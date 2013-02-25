@@ -30,14 +30,16 @@
       real(8):: RGAMH, RGAMH2, RZI, RTE, PFPL, VFPL, U, DCTTL, RGAMA, DFDP, DFDTH
 
       DO NR=NRSTART,NREND
-         DO NP=1,NPMAX+1
+!         DO NP=1,NPMAX+1
+         DO NP=NPSTARTW,NPENDWG
          DO NTH=1,NTHMAX
             DCPP(NTH,NP,NR,NSA)=0.D0
             DCPT(NTH,NP,NR,NSA)=0.D0
             FCPP(NTH,NP,NR,NSA)=0.D0
          ENDDO
          ENDDO
-         DO NP=1,NPMAX
+!         DO NP=1,NPMAX
+         DO NP=NPSTARTW,NPENDWM
          DO NTH=1,NTHMAX+1
             DCTP(NTH,NP,NR,NSA)=0.D0
             DCTT(NTH,NP,NR,NSA)=0.D0
@@ -48,14 +50,16 @@
 
       DO NSB=1,NSBMAX
       DO NR=NRSTART,NREND
-         DO NP=1,NPMAX+1
+!         DO NP=1,NPMAX+1
+         DO NP=NPSTARTW,NPENDWG
          DO NTH=1,NTHMAX
             DCPP2(NTH,NP,NR,NSB,NSA)=0.D0
             DCPT2(NTH,NP,NR,NSB,NSA)=0.D0
             FCPP2(NTH,NP,NR,NSB,NSA)=0.D0
          ENDDO
          ENDDO
-         DO NP=1,NPMAX
+!         DO NP=1,NPMAX
+         DO NP=NPSTARTW,NPENDWM
          DO NTH=1,NTHMAX+1
             DCTP2(NTH,NP,NR,NSB,NSA)=0.D0
             DCTT2(NTH,NP,NR,NSB,NSA)=0.D0
@@ -86,13 +90,6 @@
 !         END DO
 !      END DO
 !      END DO
-
-!
-
-!      CALL mtx_set_communicator(comm_nr)
-!      nsend=NTHMAX*NPMAX*(NREND-NRSTART+1)*(NSAEND-NSASTART+1)
-!      CALL mtx_allgather_real8(FNSP(1:NTHMAX,1:NPMAX,NRSTART,NSASTART),nsend,FNSB)
-!      CALL mtx_reset_communicator
 
       DO NR=NRSTART,NREND
          DO NSB=1,NSBMAX
@@ -148,8 +145,8 @@
                      rZI = -PZ(2)/PZ(1) &
                           /(14.9D0-0.5D0*LOG(RNFP(NR,NSA))+LOG(RTFP(NR,NSA)))* &
                           (15.2D0-0.5D0*LOG(RNFP(NR,NSA))+LOG(RTFP(NR,NSA)))
-!                     RZI=-PZ(2)/PZ(1)*RNUD(NR,NSB,NSA)/RNUD(NR,NSA,NSA)
-                     DO NP=1,NPMAX
+!                     DO NP=1,NPMAX
+                     DO NP=NPSTART,NPENDWM
                         RGAMA =SQRT(1.D0+PM(NP,NSA)**2*THETA0(NSA))
 !                        RGAMA =1.D0
                         PFPL=PM(NP,NSA)*PTFP0(NSA)
@@ -186,7 +183,8 @@
 !     sum up coefficients by species
          DO NSB=1,NSBMAX
 !         WRITE(*,'(A,3I4,E14.6)') "DCPP2",NR,NSA,NSB,DCPP2(2,2,NR,NSB,NSA)
-            DO NP=1,NPMAX+1
+!            DO NP=1,NPMAX+1
+            DO NP=NPSTART,NPENDWG
                DO NTH=1,NTHMAX
                   DCPP(NTH,NP,NR,NSA)=DCPP(NTH,NP,NR,NSA) &
                                      +DCPP2(NTH,NP,NR,NSB,NSA)
@@ -204,7 +202,8 @@
 !                                     +FCPP2B(NTH,NP,NR,NSB,NSA)
 !               END DO
             END DO
-            DO NP=1,NPMAX
+!            DO NP=1,NPMAX
+            DO NP=NPSTART,NPENDWM
                DO NTH=1,NTHMAX+1
                   DCTP(NTH,NP,NR,NSA)=DCTP(NTH,NP,NR,NSA) &
                                      +DCTP2(NTH,NP,NR,NSB,NSA)
@@ -627,7 +626,8 @@
 !     ----- Non-Relativistic -----
 !
       IF(MODELR.EQ.0) THEN 
-         DO NP=1,NPMAX+1
+!         DO NP=1,NPMAX+1
+         DO NP=NPSTARTW,NPENDWG
             IF(NP.EQ.1) THEN
                DCPPL=RGAMH*RNFD(NR,NSB)*1.D20*(2.D0/(3.D0*SQRT(PI))) &
                           *(VTFP0(NSA)/(SQRT(2.D0)*VTFD(NR,NSB))) 
@@ -646,7 +646,8 @@
             ENDDO
          ENDDO
 
-         DO NP=1,NPMAX
+!         DO NP=1,NPMAX
+         DO NP=NPSTARTW,NPENDWM
             PFPL=PM(NP,NSA)*PTFP0(NSA)
             VFPL=PFPL/AMFP(NSA)
             V=VFPL/VTFP0(NSA)
@@ -662,7 +663,8 @@
 !
       ELSE
          PMAXC=PMAX(NSBA)
-         DO NP=1,NPMAX+1
+!         DO NP=1,NPMAX+1
+         DO NP=NPSTARTW,NPENDWG
             IF(NP.EQ.1) THEN
                PNFPL=PG(NP,NSBA)
                PNFP=PNFPL
@@ -752,7 +754,8 @@
             ENDDO
          ENDDO
 
-         DO NP=1,NPMAX
+!         DO NP=1,NPMAX
+         DO NP=NPSTARTW,NPENDWM
             PFPL=PM(NP,NSA)*PTFP0(NSA)
             VFPL=PFPL/SQRT(AMFP(NSA)**2+PTFP(NR,NSA)**2/VC**2)
             PNFPL=PM(NP,NSBA)
@@ -823,7 +826,8 @@
       INTEGER:: NG
 
       DO NSB=1,NSBMAX
-         DO NP=1,NPMAX+1
+!         DO NP=1,NPMAX+1
+         DO NP=NPSTARTW,NPENDWG
             DO NTH=1,NTHMAX
                FACT=RLAMDA(NTH,NR)
                DCPP2(NTH,NP,NR,NSB,NSA) &
@@ -861,7 +865,8 @@
 !               DCTT2(NTH,NP,NR,NSB,NSA)=FACT*DCTT2(NTH,NP,NR,NSB,NSA)
 !            ENDDO
 !         END DO
-         DO NP=1,NPMAX
+!         DO NP=1,NPMAX
+         DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX+1
                IF(NTH.NE.NTHMAX/2+1) THEN 
                   DELH = 2.D0*ETAG(NTH,NR)/NAVMAX

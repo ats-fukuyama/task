@@ -26,6 +26,7 @@
       real(kind8),dimension(NRSTART:NREND,NSAMAX):: RJNS
       real(kind8),dimension(NRSTART:NREND):: RJN,RJ3,E3,DELE
       real(kind8),dimension(NSAMAX)::RSUMF,RSUMF0,RSUM_SS
+      real(kind8):: RSUMF_, RSUMF0_
 
       integer:: NT, NR, NP, NTH, NSA, NTI, NSBA
       integer:: L, IERR, I
@@ -68,7 +69,8 @@
             NSBA=NSB_NSA(NSA)
             DO NR=NRSTART-1,NREND+1 ! local
                IF(NR.ge.1.and.NR.le.NRMAX)THEN
-                  DO NP=1,NPMAX
+!                  DO NP=1,NPMAX
+                  DO NP=NPSTARTW,NPENDWM
                      DO NTH=1,NTHMAX
 !                        FNSP(NTH,NP,NR,NSBA)=FNS(NTH,NP,NR,NSBA)  ! new step: variant each N_IMPL ! for fp_load
                         FNSM(NTH,NP,NR,NSBA)=FNSP(NTH,NP,NR,NSBA) ! old step: invariant during N_IMPL 
@@ -78,14 +80,14 @@
             END DO
          END DO
 
-         IF(MODELE.eq.1)THEN
-!            CALL Ip_r
-!            CALL UPDATE_PSIP_P ! poloidal flux at present step
-            DO NSA=NSASTART,NSAEND
-               CALL FP_CALE_IND(NSA) ! INCLUDE IP_R AND UPDATE_PSIP_P
-            END DO
+!         IF(MODELE.eq.1)THEN
+!            DO NSA=NSASTART,NSAEND
+!               CALL FP_CALE_IND(NSA) ! INCLUDE IP_R AND UPDATE_PSIP_P
+!            END DO
+            CALL Ip_r
+            CALL UPDATE_PSIP_P ! poloidal flux at present step
             CALL UPDATE_PSIP_M ! poloidal flux at previous step
-         END IF
+!         END IF
 
          gut_EX = 0.D0
          gut_COEF= 0.D0
@@ -99,7 +101,8 @@
             DO NSA=NSASTART,NSAEND 
                NSBA=NSB_NSA(NSA)
                DO NR=NRSTART,NREND
-               DO NP=1,NPMAX
+!               DO NP=1,NPMAX
+               DO NP=NPSTARTW,NPENDWM
                DO NTH=1,NTHMAX
                   F(NTH,NP,NR)=FNSM(NTH,NP,NR,NSBA)
                END DO
@@ -122,20 +125,20 @@
                RSUMF0(NSA)=0.D0
                RSUM_SS(NSA)=0.D0
                DO NR=NRSTART,NREND
-               DO NP=1,NPMAX
+!               DO NP=1,NPMAX
+               DO NP=NPSTART,NPEND
                DO NTH=1,NTHMAX
                   RSUMF(NSA)=RSUMF(NSA) &
                          +ABS(FNSP(NTH,NP,NR,NSBA)-F1(NTH,NP,NR))**2
                   RSUMF0(NSA)=RSUMF0(NSA) &
                          +ABS(FNSM(NTH,NP,NR,NSBA))**2
-!                  RSUM_SS(NSA)=RSUM_SS(NSA) &
-!                         +ABS(FNSM(NTH,NP,NR,NSBA)-F1(NTH,NP,NR))**2
                ENDDO
                ENDDO
                ENDDO
                DO NR=NRSTART-1,NREND+1
                   IF(NR.ge.1.and.NR.le.NRMAX)THEN
-                     DO NP=1,NPMAX
+!                     DO NP=1,NPMAX
+                     DO NP=NPSTARTW,NPENDWM
                      DO NTH=1,NTHMAX
                         FNSP(NTH,NP,NR,NSBA)=FNS0(NTH,NP,NR,NSBA)
                      ENDDO
@@ -143,26 +146,39 @@
                   END IF
                ENDDO
             ENDDO ! END OF NSA
+            CALL mtx_set_communicator(comm_np) 
+            DO NSA=NSASTART,NSAEND
+               RSUMF_=RSUMF(NSA)
+               RSUMF0_=RSUMF0(NSA)
+               CALL p_theta_integration(RSUMF_) 
+               CALL p_theta_integration(RSUMF0_) 
+               RSUMF(NSA)=RSUMF_
+               RSUMF0(NSA)=RSUMF0_
+            END DO
 
             DEPS=0.D0
             DO NSA=NSASTART,NSAEND
                DEPSV(NSA) = RSUMF(NSA)/RSUMF0(NSA)
                DEPS1 = DEPSV(NSA)
                DEPS=MAX(DEPS,DEPS1)
-!               DEPS_SS_LOCAL(NSA)=RSUM_SS(NSA)/RSUMF0(NSA)/DELT ! steady state
             END DO
             DEPS_MAX=0.D0
+            CALL mtx_set_communicator(comm_nsa) 
             CALL mtx_reduce1_real8(DEPS,1,DEPS_MAX,ILOC1) ! convergence condition
+            CALL mtx_reset_communicator
+
             DEPS = DEPS_MAX
             IF(NRANK.eq.0.and.DEPS.le.EPSFP)THEN
                N_IMPL=1+LMAXFP ! exit dowhile
             ENDIF
             CALL mtx_broadcast1_integer(N_IMPL)
 
-            CALL mtx_set_communicator(comm_nsa)
-            CALL mtx_allreduce_real8(DEPSV,NSW,4,DEPS_MAXVL,ILOCL)
+!            CALL mtx_set_communicator(comm_nr) !2D
+            CALL mtx_set_communicator(comm_nr) !3D
+            CALL mtx_allreduce_real8(DEPSV,NSW,4,DEPS_MAXVL,ILOCL) ! the peak DEPSV for each NSA
 
-            CALL mtx_set_communicator(comm_nr)
+!            CALL mtx_set_communicator(comm_nsa) !2D
+            CALL mtx_set_communicator(comm_nsa) !3D
             CALL mtx_gather_real8(DEPS_MAXVL,nsw,DEPS_MAXV) 
             CALL mtx_gather_integer(ILOCL,nsw,ILOC) 
             CALL mtx_reset_communicator
@@ -179,13 +195,7 @@
             CALL fusion_source_init
 
 !           update FNSB 
-            CALL mtx_set_communicator(comm_nr)  
-!            nsend=NTHMAX*NPMAX*(NREND-NRSTART+1)*NSW
-!            DO NSWI=1, NSW
-!               NSA=NSASTART-1+NSWI
-!               CALL mtx_allgather_real8(FNSP(1:NTHMAX,1:NPMAX,nrstart,nsa), &
-!                    nsend,FNSB(1:NTHMAX,1:NPMAX,NRSTART,1))
-!            END DO
+            CALL mtx_set_communicator(comm_nsa)
             CALL update_fnsb
             CALL mtx_reset_communicator
 !           end of update FNSB
@@ -195,7 +205,8 @@
             END DO
 
 !           sum up SPPF
-            CALL mtx_set_communicator(comm_nsa)
+!            CALL mtx_set_communicator(comm_nr) !2D
+            CALL mtx_set_communicator(comm_nrnp) !3D
             CALL source_allreduce(SPPF)
             CALL mtx_reset_communicator
 !           end of sum up SPPF
