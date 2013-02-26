@@ -131,33 +131,28 @@
                  RSINT, RCOST, RSINP, RCOSP
 
       IF(MODELG.EQ.0) THEN
-         RS   = X-RR
+         RS   = SQRT(X*X+Z*Z)
          RHON = RS/RA
          CALL pl_qprf(RHON,QL)
-         IF(RS.LE.0.D0) QL=-QL
+         RSINT= Z/RS
+         RCOST= X/RS
          BT   = BB
          BP   = RS*BT/(RR*QL)
-         BX   = 0.D0
+         BX   =-BP*RSINT
          BY   = BB
-         BZ   = BP
+         BZ   = BP*RCOST
 
       ELSEIF(MODELG.EQ.1) THEN
-         RS =SQRT((X-RR)**2+Z**2)
+         RS =SQRT((X-RR)**2+Z*Z)
          RHON=RS/RA
-         IF(RS.LE.0.D0) THEN
-            BX   = 0.D0
-            BY   = BB
-            BZ   = 0.D0
-         ELSE
-            CALL pl_qprf(RHON,QL)
-            RSINT= Z/RS
-            RCOST= (X-RR)/RS
-            BT   = BB
-            BP   = RS*BT/(RR*QL)
-            BX   =-BP*RSINT
-            BY   = BB
-            BZ   = BP*RCOST
-         ENDIF
+         CALL pl_qprf(RHON,QL)
+         RSINT= Z/RS
+         RCOST= (X-RR)/RS
+         BT   = BB
+         BP   = RS*BT/(RR*QL)
+         BX   =-BP*RSINT
+         BY   = BB
+         BZ   = BP*RCOST
 
       ELSEIF(MODELG.EQ.2) THEN
          RL=SQRT(X**2+Y**2)
@@ -308,7 +303,7 @@
            IF(RA.EQ.0.D0) THEN
               FACTX=1.D0
            ELSE
-              FACTX=EXP(-X*X/(RA*RA))
+              FACTX=EXP(-(X*X+Z*Z)/(RA*RA))
            ENDIF
            IF(RR.EQ.0.D0) THEN
               FACTY=1.D0
@@ -595,18 +590,19 @@
       REAL(rkind):: rsrhon
       REAL(rkind):: RHOL,RRMINL,RRMAXL
 
-      IF(MODELG.LT.3) THEN
+      SELECT CASE(MODELG)
+      CASE(0:2)
          IF(RHON.LE.0.D0) THEN
            RHOL=0.D0
          ELSE
            RHOL=RHON
          ENDIF
          rsrhon=RHOL*RA
-      ELSEIF(MODELG.EQ.3.OR.MODELG.EQ.8) THEN
+      CASE(3,5,8)
          CALL GETRMN(RHON,RRMINL)
          CALL GETRMX(RHON,RRMAXL)
          rsrhon=0.5D0*(RRMAXL-RRMINL)
-      ENDIF
+      END SELECT
       RETURN
     END FUNCTION rsrhon
 
@@ -627,7 +623,7 @@
          RHOL=RHON
       ENDIF
 
-      IF(MODELG.LE.2) THEN
+      SELECT CASE(MODELG)
          IF(MODELQ.EQ.0) THEN
             IF(RHOL.GT.1.D0) THEN
                QL = QA*RHOL**2
@@ -656,9 +652,9 @@
                QL=QA*RHOL**2/(1.D0-(1.D0-RHOL**2)**(PROFJ+1.D0))
             ENDIF
          ENDIF
-      ELSE
+      CASE DEFAULT
          CALL GETQP(RHOL,QL)
-      ENDIF
+      END SELECT
       RETURN
     END SUBROUTINE pl_qprf
 
@@ -672,25 +668,26 @@
       REAL(rkind),INTENT(OUT):: BMINL
       REAL(rkind) :: RS, BMINP, BMINT, QL, RRMAXL, BTL, BPL
 
-      IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
+      SELECT CASE(MODELG)
+      CASE(0,1)
          RS=rsrhon(RHON)
          BMINT= BB
          CALL GETQP(RHON,QL)
          BMINP= RS*BMINT/(RR*QL)
          BMINL= SQRT(BMINT**2+BMINP**2)
-      ELSEIF(MODELG.EQ.2) THEN
+      CASE(2)
          RS=rsrhon(RHON)
          BMINT= BB/(1+RS/RR)
          CALL pl_qprf(RHON,QL)
          BMINP= RS*BMINT/((RR+RS)*QL)
          BMINL= SQRT(BMINT**2+BMINP**2)
-      ELSEIF(MODELG.EQ.3.OR.MODELG.EQ.8) THEN
+      CASE(3,5,8)
          CALL GETRMX(RHON,RRMAXL)
          BTL=BB*RR/RRMAXL
          CALL pl_qprf(RHON,QL)
          BPL=RS*BTL/(RR*QL)
          BMINL=SQRT(BTL**2+BPL**2)
-      ENDIF
+      END SELECT
       RETURN
     END SUBROUTINE pl_bmin
 
@@ -704,17 +701,21 @@
       REAL(8),INTENT(OUT):: RRMINL,RRMAXL
       REAL(8)  :: RS
 
-      IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
+      SELECT CASE(MODELG)
+      CASE(0)
+         RRMINL=0.D0
+         RRMAXL=0.D0
+      CASE(1)
          RRMINL=RR
          RRMAXL=RR
-      ELSEIF(MODELG.EQ.2) THEN
+      CASE(2)
          RS=rsrhon(RHON)
          RRMINL=RR-RS
          RRMAXL=RR+RS
-      ELSEIF(MODELG.EQ.3.OR.MODELG.EQ.8) THEN
+      CASE(3,5,8)
          CALL GETRMN(RHON,RRMINL)
          CALL GETRMX(RHON,RRMAXL)
-      ENDIF
+      END SELECT
       RETURN
     END SUBROUTINE pl_rrmx
 
@@ -726,10 +727,14 @@
       IMPLICIT NONE
       REAL(rkind), INTENT(OUT) :: RAXIS,ZAXIS
 
-      IF(MODELG.LT.3) THEN
+      SELECT CASE(MODELG)
+      CASE(0)
+         RAXIS=0.D0
+         ZAXIS=0.D0
+      CASE(1:2)
          RAXIS=RR
          ZAXIS=0.D0
-      ELSEIF(MODELG.EQ.3.OR.MODELG.EQ.8) THEN
+      CASE(3,5,8)
          CALL GETAXS(RAXIS,ZAXIS)
       ENDIF
       RETURN
@@ -747,7 +752,8 @@
       REAL(rkind)     :: DTH, TH
       INTEGER(ikind)  :: NSU
 
-      IF(MODELG.LE.2)THEN
+      SELECT CASE(MODELG)
+      CASE(0:2)
          NSUMAX=NSUM
          DTH=2.D0*PI/(NSUMAX-1)
          DO NSU=1,NSUMAX
@@ -755,9 +761,9 @@
             RSU(NSU)=RR+     RA*COS(TH)
             ZSU(NSU)=   RKAP*RA*SIN(TH)
          ENDDO
-      ELSEIF(MODELG.EQ.3.OR.MODELG.EQ.8) THEN
+      CASE(3,5,8)
          CALL GETRSU(RSU,ZSU,NSUM,NSUMAX)
-      ENDIF
+      END SELECT
       RETURN
     END SUBROUTINE pl_rzsu
 
@@ -864,21 +870,22 @@
 
       REAL(8) :: RL,RS
 
-      IF(MODELG.EQ.0) THEN
-         R=RR+RA*rhon
+      SELECT CASE(MODELG)
+      CASE(0)
+         R=   RA*rhon
          Z=   RA*rhon*th/TWOPI
 
-      ELSEIF(MODELG.EQ.1) THEN
+      CASE(1)
          R=RR+RA*rhon*COS(th)
          Z=   RA*rhon*SIN(th)
 
-      ELSEIF(MODELG.EQ.2) THEN
+      CASE(2)
          R=RR+RA*rhon*COS(th)
          Z=   RA*rhon*SIN(th)
 
-      ELSEIF(MODELG.EQ.3.OR.MODELG.EQ.5.OR.MODELG.EQ.8) THEN
+      CASE(3,5,8)
          CALL GET_RZ(rhon,th,R,Z)
-      ENDIF
+      END SELECT
     END SUBROUTINE pl_getRZ
 
   END MODULE plprof

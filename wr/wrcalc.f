@@ -286,12 +286,14 @@ C
          IF(Y(7).LT.UUMIN) THEN
             NIT = IT
             GOTO 11
-         ENDIF         
-         CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
-         IF(RHON.GT.RB/RA*1.2D0) THEN
-            NIT = IT
-            GOTO 11
-         ENDIF         
+         ENDIF
+         IF(MODELG.GT.1) THEN
+            CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
+            IF(RHON.GT.RB/RA*1.2D0) THEN
+               NIT = IT
+               GOTO 11
+            ENDIF
+         ENDIF
  10   CONTINUE
       NIT=ITMAX
 C     
@@ -400,12 +402,14 @@ C
          IF(Y(7).LT.UUMIN) THEN
             NIT = IT
             GOTO 11
-         ENDIF         
-         CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
-         IF(RHON.GT.RB/RA*1.2D0) THEN
-            NIT = IT
-            GOTO 11
-         ENDIF         
+         ENDIF
+         IF(MODELG.GT.1) THEN
+            CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
+            IF(RHON.GT.RB/RA*1.2D0) THEN
+               NIT = IT
+               GOTO 11
+            ENDIF         
+         ENDIF
  10   CONTINUE
       NIT=ITMAX
 C     
@@ -490,12 +494,14 @@ C
          IF(Y(7).LT.UUMIN) THEN
             NIT = IT
             GOTO 11
-         ENDIF         
-         CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
-         IF(RHON.GT.RB/RA*1.2D0) THEN
-            NIT = IT
-            GOTO 11
-         ENDIF         
+         ENDIF
+         IF(MODELG.GT.1) THEN
+            CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
+            IF(RHON.GT.RB/RA*1.2D0) THEN
+               NIT = IT
+               GOTO 11
+            ENDIF
+         ENDIF
  10   CONTINUE
       NIT=ITMAX
 C     
@@ -620,12 +626,14 @@ C 6001    FORMAT(1H ,1P14E13.5)
          IF(Y(7).LT.UUMIN) THEN
             NIT = IT
             GOTO 11
-         ENDIF         
-         CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
-         IF(RHON.GT.RB/RA*1.2D0) THEN
-            NIT = IT
-            GOTO 11
-         ENDIF         
+         ENDIF
+         IF(MODELG.GT.1) THEN
+            CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
+            IF(RHON.GT.RB/RA*1.2D0) THEN
+               NIT = IT
+               GOTO 11
+            ENDIF
+         ENDIF
  10   CONTINUE
       NIT=ITMAX
 C     
@@ -896,10 +904,12 @@ C
             GOTO 11
          ENDIF         
          CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
-         IF(RHON.GT.RB/RA*1.2D0) THEN
-            NIT = IT
-            GOTO 11
-         ENDIF         
+         IF(MODEG.GT.1) THEN
+            IF(RHON.GT.RB/RA*1.2D0) THEN
+               NIT = IT
+               GOTO 11
+            ENDIF
+         ENDIF
       ENDDO
       NIT=ITMAX
 C     
@@ -1397,7 +1407,7 @@ C               WRITE(6,*) RHON2,DRHO,NRS2
      &                 +(DBLE(NRS1)-RHON1/DRHO)*DELP
                   DO NR=NRS1+1,NRS2-1
                      PWRRAY(NR,NRAY)=PWRRAY(NR,NRAY)+DELP
-                  ENDDO
+                  END DO
                   PWRRAY(NRS2,NRAY)=PWRRAY(NRS2,NRAY)
      &                 +(RHON2/DRHO-DBLE(NRS2-1))*DELP
                ELSE
@@ -1407,14 +1417,14 @@ C               WRITE(6,*) RHON2,DRHO,NRS2
      &                 +(DBLE(NRS2)-RHON2/DRHO)*DELP
                   DO NR=NRS2+1,NRS1-1
                      PWRRAY(NR,NRAY)=PWRRAY(NR,NRAY)+DELP
-                  ENDDO
+                  END DO
                   PWRRAY(NRS1,NRAY)=PWRRAY(NRS1,NRAY)
      &                 +(RHON1/DRHO-DBLE(NRS1-1))*DELP
-               ENDIF
-            ENDIF
-         ENDDO
+               END IF
+            END IF
+         END DO
 C         WRITE(6,'(5(I3,1PE12.4))') (NR,PWRRAY(NR,NRAY),NR=1,NRMAXPL)
-      ENDDO
+      END DO
 C
       DO NR=1,NRMAXPL
          DO NRAY=1,NRAYMX
