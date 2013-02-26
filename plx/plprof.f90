@@ -624,6 +624,7 @@
       ENDIF
 
       SELECT CASE(MODELG)
+      CASE(0:2)
          IF(MODELQ.EQ.0) THEN
             IF(RHOL.GT.1.D0) THEN
                QL = QA*RHOL**2
@@ -642,8 +643,13 @@
                ENDIF
             ENDIF
          ELSEIF(MODELQ.EQ.1) THEN
-            QA=2.D0*PI*RA*RA*BB/(RMU0*RIP*1.D6*RR)
-            Q0=QA/(1.D0+PROFJ)
+            IF(RR.EQ.0.D0) THEN
+               QA=1.D6
+               Q0=1.D6
+            ELSE
+               QA=2.D0*PI*RA*RA*BB/(RMU0*RIP*1.D6*RR)
+               Q0=QA/(1.D0+PROFJ)
+            ENDIF
             IF(RHOL.GE.1.D0) THEN
                QL = QA*RHOL**2
             ELSEIF(RHOL.LE.1.D-30) THEN
@@ -736,7 +742,7 @@
          ZAXIS=0.D0
       CASE(3,5,8)
          CALL GETAXS(RAXIS,ZAXIS)
-      ENDIF
+      END SELECT
       RETURN
     END SUBROUTINE pl_axis
 
