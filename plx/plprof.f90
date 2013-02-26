@@ -229,6 +229,27 @@
 
 !     ****** CALCULATE PLASMA PROFILE ******
 
+    SUBROUTINE pl_prof3d_old(X,Y,Z)
+
+      USE plcomm,ONLY: NSMAX
+      USE pllocal,ONLY: RN,RTPR,RTPP,RU
+      IMPLICIT NONE
+      REAL(rkind),INTENT(IN):: X,Y,Z
+      TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
+      INTEGER:: NS
+
+      CALL pl_prof3d(X,Y,Z,PLF)
+      DO NS=1,NSMAX
+         RN(NS)=PLF(NS)%RN
+         RTPR(NS)=PLF(NS)%RTPR
+         RTPP(NS)=PLF(NS)%RTPP
+         RU(NS)=PLF(NS)%RU
+      END DO
+      RETURN
+    END SUBROUTINE pl_prof3d_old
+
+!     ****** CALCULATE PLASMA PROFILE ******
+
     SUBROUTINE pl_prof_old(RHON)
 
       USE plcomm,ONLY: NSMAX
@@ -250,15 +271,87 @@
 
 !     ****** CALCULATE PLASMA PROFILE ******
 
-!     Density, temperatures, rotation and Ratio of collision
-!       frequency to wave frequency evaluated at a given point, RHON
-!
 !     Input: RHON : 
 !
 !     Output: PLF(NS)%RN   : Density
 !             PLF(NS)%RTPR : Parallel temperature
 !             PLF(NS)%RTPP : Perpendicular temperature
 !             PLF(NS)%RU   : Toroidal rotation velocity
+
+
+!     ****** CALCULATE PLASMA PROFILE in 3D ******
+
+!     Density, temperatures, rotation and Ratio of collision
+!       frequency to wave frequency evaluated at a given point, RHON
+!
+!     Input: X,Y,Z : X and Y : horizontal plane
+!                    Z : vertical axis
+!
+!     Output: PLF(NS)%RN   : Density
+!             PLF(NS)%RTPR : Parallel temperature
+!             PLF(NS)%RTPP : Perpendicular temperature
+!             PLF(NS)%RU   : Toroidal rotation velocity
+
+    SUBROUTINE pl_prof3d(X,Y,Z,PLF)
+
+        USE plcomm,ONLY: PZ,PN,PTPR,PTPP,PU,PNS,PTS,PUS, &
+             NSMAX,MODELN,MODELG, &
+             RR,RA
+        IMPLICIT NONE
+        REAL(rkind),INTENT(IN):: X,Y,Z
+        TYPE(pl_plf_type),DIMENSION(NSMAX),INTENT(OUT):: PLF
+        REAL(rkind):: RHON,FACTX,FACTY,FACTN,FACTT,FACTU
+        INTEGER:: NS
+
+        SELECT CASE(MODELG)
+        CASE(0)
+           IF(RA.EQ.0.D0) THEN
+              FACTX=1.D0
+           ELSE
+              FACTX=EXP(-X*X/(RA*RA))
+           ENDIF
+           IF(RR.EQ.0.D0) THEN
+              FACTY=1.D0
+           ELSE
+              FACTY=EXP(-Y/RR)
+           ENDIF
+           FACTN=FACTX*FACTY
+           FACTT=FACTX*FACTY
+           FACTU=FACTX*FACTY
+           DO NS=1,NSMAX
+              PLF(NS)%RN  =(PN(NS)  -PNS(NS))*FACTN+PNS(NS)
+              PLF(NS)%RTPR=(PTPR(NS)-PTS(NS))*FACTT+PTS(NS)
+              PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACTT+PTS(NS)
+              PLF(NS)%RU  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
+           END DO
+        CASE(1)
+           IF(RA.EQ.0.D0) THEN
+              FACTX=1.D0
+           ELSE
+              FACTX=EXP(-(X*X+Z*Z)/(RA*RA))
+           ENDIF
+           IF(RR.EQ.0.D0) THEN
+              FACTY=1.D0
+           ELSE
+              FACTY=EXP(-Y/RR)
+           ENDIF
+           FACTN=FACTX*FACTY
+           FACTT=FACTX*FACTY
+           FACTU=FACTX*FACTY
+           DO NS=1,NSMAX
+              PLF(NS)%RN  =(PN(NS)  -PNS(NS))*FACTN+PNS(NS)
+              PLF(NS)%RTPR=(PTPR(NS)-PTS(NS))*FACTT+PTS(NS)
+              PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACTT+PTS(NS)
+              PLF(NS)%RU  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
+           END DO
+        CASE DEFAULT
+           CALL pl_mag_old(X,Y,Z,RHON)
+           CALL pl_prof(RHON,PLF)
+        END SELECT
+
+        RETURN
+      END SUBROUTINE pl_prof3d
+     
 
 !     ****** CALCULATE PLASMA PROFILE ******
 
