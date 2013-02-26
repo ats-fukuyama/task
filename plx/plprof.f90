@@ -137,7 +137,11 @@
          RSINT= Z/RS
          RCOST= X/RS
          BT   = BB
-         BP   = RS*BT/(RR*QL)
+         IF(RR.EQ.0.D0) THEN
+            BP=0.D0
+         ELSE
+            BP   = RS*BT/(RR*QL)
+         END IF
          BX   =-BP*RSINT
          BY   = BB
          BZ   = BP*RCOST
@@ -148,7 +152,7 @@
          CALL pl_qprf(RHON,QL)
          RSINT= Z/RS
          RCOST= (X-RR)/RS
-         BT   = BB
+         BT   = BB*RR/X
          BP   = RS*BT/(RR*QL)
          BX   =-BP*RSINT
          BY   = BB
