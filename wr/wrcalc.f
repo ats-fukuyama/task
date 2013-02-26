@@ -372,7 +372,11 @@ CENDIDEI
          CALL PL_MAG_OLD(YM(1),YM(2),YM(3),PSIN)
          IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
             RL  =YM(1)
-            PHIL=ASIN(YM(2)/(2.D0*PI*RR))
+            IF(RR.EQ.0.D0) THEN
+               PHIL=0.D0
+            ELSE
+               PHIL=ASIN(YM(2)/(2.D0*PI*RR))
+            ENDIF
             ZL  =YM(3)
             RKRL=YM(4)
          ELSE
