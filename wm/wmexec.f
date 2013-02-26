@@ -236,8 +236,8 @@ C
                   CEWALL(NTH,NHH,3)=CEWALL(NTH,NHH,3)+CEPH
                END DO
             ELSE IF(TH >= TH1+2.D0*PI .AND. TH <= TH2+2.D0*PI) THEN
-               CETH=CJA*CJB*AEWGT(NA)
-               CEPH=CJA*CJB*AEWGZ(NA)*COS((TH-TH0-2.D0*PI)/WTH*PI)
+               CETH=CJA*CJB*CAJ*AEWGT(NA)
+               CEPH=CJA*CJB*CAJ*AEWGZ(NA)*COS((TH-TH0-2.D0*PI)/WTH*PI)
                DO NHH=1,NHHMAX
                   CEWALL(NTH,NHH,2)=CEWALL(NTH,NHH,2)+CETH
                   CEWALL(NTH,NHH,3)=CEWALL(NTH,NHH,3)+CEPH
