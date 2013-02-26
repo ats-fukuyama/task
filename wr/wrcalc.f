@@ -76,6 +76,22 @@ C
      &         '# initial values: RF,RP,ZP,PHI,RKR0,RNZ,RNPHI,UU'
                WRITE(6,'(1PE12.4,0P7F9.2)') 
      &                      RF,RPI,ZPI,PHII,RKR0,RNZI,RNPHII,UUI
+               IF(ABS(RNZI).GT.1.D0) THEN
+                  ANGZ=0.D0
+                  ANGPH=0.D0
+               ELSE
+                  ANGZ=ASIN(RNZI)*180.D0/PI
+                  IF(ABS(RNZI).GT.SQRT(1.D0-RNPHII**2)) THEN
+                     ANGZ=0.D0
+                  ELSE
+                     ANGZ=ASIN(RNZI/SQRT(1.D0-RNPHII**2))*180.D0/PI
+                  ENDIF
+                  IF(ABS(RNPHII).GT.SQRT(1.D0-RNZI**2)) THEN
+                     ANGPH=0.D0
+                  ELSE
+                     ANGPH=ASIN(RNPHII/SQRT(1.D0-RNZI**2))*180.D0/PI
+                  ENDIF
+               ENDIF
             ELSEIF(MDLWRI.EQ.1) THEN
                READ(5,*,ERR=1,END=9000) 
      &                      RF,RPI,ZPI,PHII,RKR0,ANGZ,ANGPH,UUI
@@ -133,19 +149,19 @@ C
                IF(ANGZ.LT.0.D0) RNZI=-RNZI
                IF(ANGPH.LT.0.D0) RNPHII=-RNPHII
 
-               IF(RNZI.EQ.0.D0.AND.RNPHI.EQ.0.D0) THEN
+               IF(RNZI.EQ.0.D0.AND.RNPHII.EQ.0.D0) THEN
                   ANGZ_=0.D0
                   ANGPH_=0.D0
                ELSE
-                  SINP2=RNZI**4 /(RNZI**2+RNPHII**2-RNZI**2*RNPHI**2)
-                  SINT2=RNPHI**4/(RNZI**2+RNPHII**2-RNZI**2*RNPHI**2)
+                  SINP2=RNZI**4  /(RNZI**2+RNPHII**2-RNZI**2*RNPHII**2)
+                  SINT2=RNPHII**4/(RNZI**2+RNPHII**2-RNZI**2*RNPHII**2)
                   ANGZ_= 180.D0/PI*ASIN(SQRT(SINP2))
                   ANGPH_=180.D0/PI*ASIN(SQRT(SINT2))
-                  IF(RNZI .LT.0.D0) ANGZ_= -ANGZ_
-                  IF(RNPHI.LT.0.D0) ANGPH_=-ANGPH_
+                  IF(RNZI  .LT.0.D0) ANGZ_= -ANGZ_
+                  IF(RNPHII.LT.0.D0) ANGPH_=-ANGPH_
                ENDIF
                WRITE(6,'(A,1P2E12.4)') 'ANG:  ',ANGZ,ANGPH
-               WRITE(6,'(A,1P2E12.4)') 'RNI:  ',RNZI,RNPHI
+               WRITE(6,'(A,1P2E12.4)') 'RNI:  ',RNZI,RNPHII
                WRITE(6,'(A,1P2E12.4)') 'ANG_: ',ANGZ_,ANGPH_
             ENDIF
          ENDIF
@@ -1452,7 +1468,7 @@ C      WRITE(6,'(1P5E12.4)') (PWR(NR,1),NR=1,NRMAXPL)
             LOCMAX=NR
          ENDIF
       END DO
-      IF(LOCMAX.EQ.1) THEN
+      IF(LOCMAX.LE.1) THEN
          RHOMAX=0.D0
       ELSE IF(LOCMAX.EQ.NRMAXPL) THEN
          RHOMAX=1.D0
