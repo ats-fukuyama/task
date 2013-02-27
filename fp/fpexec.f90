@@ -206,16 +206,13 @@
          ENDDO
       ENDDO
       
-      DO NR=NRSTART-1,NREND+1
-         IF(NR.ge.1.and.NR.le.NRMAX)THEN
-!            DO NP=1,NPMAX
-            DO NP=NPSTARTW,NPENDWM
-               DO NTH=1,NTHMAX
-                  NM=NMA(NTH,NP,NR)
-                  FNS0(NTH,NP,NR,NSBA)=BMTOT(NM)
-               ENDDO
+      DO NR=NRSTARTW,NRENDWM
+         DO NP=NPSTARTW,NPENDWM
+            DO NTH=1,NTHMAX
+               NM=NMA(NTH,NP,NR)
+               FNS0(NTH,NP,NR,NSBA)=BMTOT(NM)
             ENDDO
-         END IF
+         ENDDO
       ENDDO
 
 !      DO NR=1,NRMAX
@@ -240,12 +237,22 @@
       SUBROUTINE SET_FM_NMA(NSA,func_in)
 
       IMPLICIT NONE
-      integer:: NTH, NP, NR, NSA, NSBA, NM
-      double precision,dimension(NTHMAX,NPMAX,NRSTART-1:NREND+1,NSAMAX), &
+      integer:: NTH, NP, NR, NSA, NSBA, NM, NRS, NPS
+!      double precision,dimension(NTHMAX,NPMAX,NRSTART-1:NREND+1,NSAMAX), &
+!           intent(IN):: func_in
+      double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSAMAX), &
            intent(IN):: func_in
 
-      DO NR=1,NRMAX
-         DO NP=1,NPMAX
+      IF(NRSTART.eq.1)THEN
+         NRS=1
+      ELSE
+         NRS=NRSTART-1
+      END IF
+
+!      DO NR=1,NRMAX
+      DO NR=NRSTARTW,NRENDWM
+!         DO NP=1,NPMAX
+         DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX
                NM=NTH+NTHMAX*(NP-1)+NPMAX*NTHMAX*(NR-1)
                NMA(NTH,NP,NR)=NM
@@ -254,38 +261,16 @@
       END DO
 
       NSBA=NSB_NSA(NSA)
-      IF(NRSTART.ge.2.and.NREND.LE.NRMAX-1) THEN
-         DO NR=NRSTART-1,NREND+1
-            DO NP=1,NPMAX
-               DO NTH=1,NTHMAX
-                  NM=NTH+NTHMAX*(NP-1)+NPMAX*NTHMAX*(NR-1)
+      DO NR=NRSTARTW,NRENDWM
+         DO NP=NPSTARTW,NPENDWM
+            DO NTH=1,NTHMAX
+               NM=NTH+NTHMAX*(NP-1)+NPMAX*NTHMAX*(NR-1)
 !                  NMA(NTH,NP,NR)=NM
-                  FM(NM)=func_in(NTH,NP,NR,NSBA)
-               ENDDO
+               FM(NM)=func_in(NTH,NP,NR,NSBA)
             ENDDO
          ENDDO
-      ELSEIF(NRSTART.eq.1)THEN
-         DO NR=NRSTART,NREND+1
-            DO NP=1,NPMAX
-               DO NTH=1,NTHMAX
-                  NM=NTH+NTHMAX*(NP-1)+NPMAX*NTHMAX*(NR-1)
-!                  NMA(NTH,NP,NR)=NM
-                  FM(NM)=func_in(NTH,NP,NR,NSBA)
-               ENDDO
-            ENDDO
-         ENDDO
-      ELSEIF(NREND.eq.NRMAX)THEN
-         DO NR=NRSTART-1,NREND
-            DO NP=1,NPMAX
-               DO NTH=1,NTHMAX
-                  NM=NTH+NTHMAX*(NP-1)+NPMAX*NTHMAX*(NR-1)
-!                  NMA(NTH,NP,NR)=NM
-                  FM(NM)=func_in(NTH,NP,NR,NSBA)
-               ENDDO
-            ENDDO
-         ENDDO
-      END IF
-
+      ENDDO
+      
       END SUBROUTINE SET_FM_NMA
 
 !
@@ -307,7 +292,7 @@
       NSBA=NSB_NSA(NSA)
       DO NR=NRSTART,NREND
 !      DO NP=1,NPMAX+1
-      DO NP=NPSTARTW,NPENDWM
+      DO NP=NPSTART,NPENDWG
       DO NTH=1,NTHMAX
          DFDTH=0.D0
          IF(NP.NE.1) THEN
@@ -337,17 +322,17 @@
                ENDIF
             ENDIF
          ENDIF
-!         FVEL=FPP(NTH,NP,NR,NSA)-DPT(NTH,NP,NR,NSA)*DFDTH
-!         WEIGHP(NTH,NP,NR,NSA)=FPWEGH(-DELP(NSBA)*FVEL,DPP(NTH,NP,NR,NSA))
-         FVEL=FCPP(NTH,NP,NR,NSA)-DCPT(NTH,NP,NR,NSA)*DFDTH
-         WEIGHP(NTH,NP,NR,NSA)=FPWEGH(-DELP(NSBA)*FVEL,DCPP(NTH,NP,NR,NSA))
+         FVEL=FPP(NTH,NP,NR,NSA)-DPT(NTH,NP,NR,NSA)*DFDTH
+         WEIGHP(NTH,NP,NR,NSA)=FPWEGH(-DELP(NSBA)*FVEL,DPP(NTH,NP,NR,NSA))
+!         FVEL=FCPP(NTH,NP,NR,NSA)-DCPT(NTH,NP,NR,NSA)*DFDTH
+!         WEIGHP(NTH,NP,NR,NSA)=FPWEGH(-DELP(NSBA)*FVEL,DCPP(NTH,NP,NR,NSA))
       ENDDO
       ENDDO
       ENDDO
 
       DO NR=NRSTART,NREND
 !      DO NP=1,NPMAX
-      DO NP=NPSTARTW,NPENDWM
+      DO NP=NPSTART,NPEND
          DFDP=-PM(NP,NSBA)*RTFP0(NSA)/RTFP(NR,NSA)
          DFDB=DFDP
       DO NTH=1,NTHMAX+1
@@ -558,9 +543,9 @@
       ENDDO
       ENDDO
 
-      DO NR=NRSTART,NREND+1
+      DO NR=NRSTART,NRENDWG
 !      DO NP=1,NPMAX
-      DO NP=NPSTARTW,NPENDWM
+      DO NP=NPSTART,NPEND
       DO NTH=1,NTHMAX
          FVEL=FRR(NTH,NP,NR,NSA)
          DVEL=DRR(NTH,NP,NR,NSA)

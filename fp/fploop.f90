@@ -44,7 +44,7 @@
       real(kind8):: temp_send, temp_recv
       character:: fmt*40
       integer:: modela_temp, NSW, NSWI,its
-      integer:: ILOC1, nsend
+      integer:: ILOC1, nsend,j
 
 !      IF(MODELE.NE.0) CALL FPNEWE
 
@@ -135,15 +135,12 @@
                ENDDO
                ENDDO
                ENDDO
-               DO NR=NRSTART-1,NREND+1
-                  IF(NR.ge.1.and.NR.le.NRMAX)THEN
-!                     DO NP=1,NPMAX
-                     DO NP=NPSTARTW,NPENDWM
+               DO NR=NRSTARTW,NRENDWM
+                  DO NP=NPSTARTW,NPENDWM
                      DO NTH=1,NTHMAX
                         FNSP(NTH,NP,NR,NSBA)=FNS0(NTH,NP,NR,NSBA)
                      ENDDO
-                     ENDDO
-                  END IF
+                  ENDDO
                ENDDO
             ENDDO ! END OF NSA
             CALL mtx_set_communicator(comm_np) 
@@ -200,15 +197,17 @@
             CALL mtx_reset_communicator
 !           end of update FNSB
 
+            CALL Ip_r 
+            CALL UPDATE_PSIP_P ! poloidal flux at present step
             DO NSA=NSASTART,NSAEND
                   IF (MOD(NT,NTCLSTEP).EQ.0) CALL FP_COEF(NSA)
             END DO
 
 !           sum up SPPF
 !            CALL mtx_set_communicator(comm_nr) !2D
-            CALL mtx_set_communicator(comm_nrnp) !3D
-            CALL source_allreduce(SPPF)
-            CALL mtx_reset_communicator
+!            CALL mtx_set_communicator(comm_nrnp) !3D
+!            CALL source_allreduce(SPPF)
+!            CALL mtx_reset_communicator
 !           end of sum up SPPF
 
             CALL GUTIME(gut4)
@@ -280,6 +279,7 @@
 
 !     +++++ calculate and save global data +++++
 
+         CALL GUTIME(gut1)
          TIMEFP=TIMEFP+DELT
 
          ISAVE=0
@@ -298,6 +298,8 @@
             ENDIF
          ENDIF
          IF(NRANK.EQ.0.AND.NTG1.GT.0) call FPWRTSNAP
+         CALL GUTIME(gut2)
+         IF(NRANK.eq.0) WRITE(*,'(A,E14.6)') "--------SAVE_TIME=",gut2-gut1
 
 !         IF(NT.eq.NTMAX.or.NTMAX.ne.0)THEN
 !!            open(9,file='power_D_5s_D0_taul1000_2kev_NB.dat')
@@ -321,15 +323,14 @@
 
          IF(IERR.NE.0) RETURN
 
-
-!         CALL GUTIME(gut2)
-!         write(*,*)"1 loop time", nrank, gut2-gut
-
       ENDDO ! END OF NT LOOP
 
 !     +++++ end of time loop +++++
 !
-      CALL update_fns
+!      CALL GUTIME(gut1)
+!      CALL update_fns
+!      CALL GUTIME(gut2)
+!      IF(NRANK.eq.0) WRITE(6,'(A,E14.6)') "---------TIME UPDATE FNS =",gut2-gut1
 
 !      IF(NRANK.eq.0)THEN
 !         DO NSA=1,NSAMAX

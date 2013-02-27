@@ -19,12 +19,13 @@
       INTEGER:: NR, NTH, NP
       double precision:: rv, E_IND
 
-      CALL Ip_r
-      CALL UPDATE_PSIP_P ! poloidal flux at present step
+!      CALL Ip_r
+!      CALL UPDATE_PSIP_P ! poloidal flux at present step
 
       DO NR=NRSTART,NREND
          rv = EPSRM2(NR)*RR
-         DO NP=1,NPMAX+1
+!         DO NP=1,NPMAX+1
+         DO NP=NPSTART,NPENDWG
             DO NTH=1,NTHMAX
                E_IND=-( PSIPM_P(NTH,NR)-PSIPM_M(NTH,NR) )/ (2.D0*PI*(RR+rv)*DELT)
                FEPP_IND(NTH,NP,NR,NSA) = AEFP(NSA)*E_IND/PTFP0(NSA)*COSM(NTH)
@@ -34,7 +35,8 @@
 
       DO NR=NRSTART,NREND
          rv = EPSRM2(NR)*RR
-         DO NP=1,NPMAX
+!         DO NP=1,NPMAX
+         DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX+1
                E_IND=-( PSIPG_P(NTH,NR)-PSIPG_M(NTH,NR) )/ (2.D0*PI*(RR+rv)*DELT)
                FETH_IND(NTH,NP,NR,NSA) = -AEFP(NSA)*E_IND/PTFP0(NSA)*SING(NTH)
@@ -44,7 +46,8 @@
 
       IF(MODELA.ne.0)THEN
          DO NR=NRSTART,NREND
-            DO NP=1,NPMAX+1
+!            DO NP=1,NPMAX+1
+            DO NP=NPSTART,NPENDWG
                DO NTH=ITL(NR)+1,ITU(NR)-1
                   FEPP_IND(NTH,NP,NR,NSA)=0.D0
                END DO
@@ -56,7 +59,8 @@
                FEPP_IND(ITU(NR),NP,NR,NSA)=FEPP_IND(ITL(NR),NP,NR,NSA) 
             END DO
 !
-            DO NP=1,NPMAX
+!            DO NP=1,NPMAX
+            DO NP=NPSTARTW,NPENDWM
                DO NTH=ITL(NR)+1,ITU(NR)
                   FETH_IND(NTH,NP,NR,NSA)=0.D0
                END DO
@@ -102,8 +106,8 @@
             END DO
          END IF
          E_IND=-( PSIPM_P(1,NR)-PSIPM_M(1,NR) )/ (2.D0*PI*RR*(1.D0+EPSRM2(NR))*DELT)
-!         IF(NRANK.eq.0) WRITE(*,'(2I4,4E16.8)') N_IMPL, NR, E_IND, &
-!              PSIPM_P(1,NR), PSIPM_M(1,NR), RIPP(1,1) 
+!         IF(NRANK.eq.0) WRITE(*,'(A,2I4,6E16.8)') "INDUCTIVE,",N_IMPL, NR, E_IND, &
+!              PSIPM_P(1,NR), PSIPM_M(1,NR), RIPP(1,1),RIPP(NRMAX,1),RIPP(NRMAX,2)
       END DO
 !
       DO NR=NRSTART, NREND
@@ -135,11 +139,12 @@
       DO NR2=1,NRMAX
          RIP(NR2)=0.D0
       END DO
-      DO NSA=1,NSAMAX
+!      DO NSA=1,NSAMAX
          DO NR2=1,NRMAX
-            RIP(NR2)=RIP(NR2)+RIPP(NR2,NSA)
+!            RIP(NR2)=RIP(NR2)+RIPP(NR2,NSA)
+            RIP(NR2)=RIPP(NR2,1)!+RIPP(NR2,2)
          END DO
-      END DO
+!      END DO
 
       SUM=0.D0
       DO NR2=1,NRMAX 
@@ -147,9 +152,9 @@
          DELrho = (EPSRM2(NR2+1)-EPSRM2(NR2) ) * RR
          SUM = SUM + RMU0*RIP(NR2)*(RR/rv - 1.D0) * DELrho
       END DO
-      rv = EPSRM2(NRMAX)*RR
+!      rv = EPSRM2(NRMAX)*RR
       PSIP0 = SUM + &
-           RMU0*RIP(NRMAX)*( RR*LOG(RR/rv) - (RR-rv) )
+           RMU0*RIP(NRMAX)*( RR*LOG(RR/RA) - (RR-RA) )
 
       SUM=0.D0
       DO NR2=1,NR

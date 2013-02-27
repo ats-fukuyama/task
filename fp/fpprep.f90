@@ -482,6 +482,20 @@
       NPSTART=( imtxstart-1- (nrstart-1)*nthmax*npmax )/nthmax +1
       NPEND  =( imtxend - (nrend-1)*nthmax*npmax )/nthmax
 
+!---- SET OF SHADOWS
+      IF(NRSTART.eq.1)THEN
+         NRSTARTW=1
+      ELSE
+         NRSTARTW=NRSTART-1
+      END IF
+      IF(NREND.eq.NRMAX)THEN
+         NRENDWM=NRMAX
+         NRENDWG=NRMAX+1
+      ELSE
+         NRENDWM=NREND+1
+         NRENDWG=NREND+1
+      END IF
+
       IF(NPSTART.eq.1)THEN ! SET SHADOW OF NP
          NPSTARTW=1
       ELSE
@@ -493,8 +507,8 @@
       ELSE
          NPENDWM=NPEND+1
          NPENDWG=NPEND+1
-      END IF ! END OF SHADOW
-
+      END IF 
+!---- OND OF SHADOW
 
 !      nmstart=nthmax*npmax*(nrstart-1)+1 !2D
 !      nmend  =nthmax*npmax* nrend
@@ -889,12 +903,15 @@
 
       integer :: ierr,NSA,NSB,NS,NR,NP,NTH,NSBA,N,NSW,j
       INTEGER:: NSEND, NSWI
+      real:: gut1, gut2, gut_prep
 
+      CALL GUTIME(gut1)
 !     ----- Initialize time counter -----
 
       TIMEFP=0.D0
       NTG1=0
       NTG2=0
+      gut_comm(:)=0.0
 
       CALL fp_comm_setup
 
@@ -954,7 +971,7 @@
          CALL FPWEIGHT(NSA,IERR)
       END DO
       CALL mtx_set_communicator(comm_nr)
-      CALL source_allreduce(SPPF)
+!      CALL source_allreduce(SPPF)
       CALL mtx_reset_communicator
       ISAVE=0
       IF(NTG1.eq.0) CALL FPWAVE_CONST ! all nrank must have RPWT  
@@ -966,6 +983,9 @@
          CALL FPWRTPRF
       ENDIF
       IERR=0
+      CALL GUTIME(gut2)
+      gut_prep=gut2-gut1
+      IF(NRANK.eq.0) WRITE(6,'(A,E14.6)') "---------------PREP_TIME=", gut_prep
  
       RETURN
       END subroutine fp_prep

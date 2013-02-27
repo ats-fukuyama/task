@@ -354,8 +354,9 @@
      
       ISW_LAV=0
 ! INTEGRATION OF BOUNCE AVERAGING
-      DO NSB = 1, NSBMAX
-         DO NP=1,NPMAX+1
+      DO NSB = 1,NSBMAX
+!         DO NP=1,NPMAX+1
+         DO NP=NPSTART,NPENDWG
             DO NTH=1,NTHMAX
                IF(NTH.ne.ITL(NR).and.NTH.ne.ITU(NR))THEN
                   DELH=2.D0*ETAM(NTH,NR)/NAVMAX
@@ -460,7 +461,8 @@
 !               END DO ! END NTH
 !            END IF ! NEW GRID ISW
          END DO ! END NP
-         DO NP=1,NPMAX
+!         DO NP=1,NPMAX
+         DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX+1
                IF(NTH.NE.NTHMAX/2+1) THEN
                   DELH=2.D0*ETAG(NTH,NR)/NAVMAX
@@ -500,7 +502,8 @@
 
 ! BALANCE TRAPPED REGION for P direction
       DO NSB=1,NSBMAX
-         DO NP=1,NPMAX+1
+!         DO NP=1,NPMAX+1
+         DO NP=NPSTART,NPENDWG
             DO NTH=ITL(NR)+1,NTHMAX/2
                DCPP2(NTH,NP,NR,NSB,NSA) &
                     =(DCPP2(NTH,NP,NR,NSB,NSA) &
@@ -526,7 +529,8 @@
          END DO ! END NP
       END DO ! END NSB
       DO NSB=1,NSBMAX
-         DO NP=1,NPMAX+1
+!         DO NP=1,NPMAX+1
+         DO NP=NPSTART,NPENDWG
             DO NTH=ITL(NR)+1,NTHMAX/2
                FCPP2(NTH,NP,NR,NSB,NSA) &
                     =(FCPP2(NTH,NP,NR,NSB,NSA) &
@@ -552,7 +556,8 @@
          END DO ! END NP
       END DO ! END NSB
       DO NSB=1,NSBMAX
-         DO NP=1,NPMAX+1
+!         DO NP=1,NPMAX+1
+         DO NP=NPSTART,NPENDWG
             DO NTH=ITL(NR)+1,NTHMAX/2
                DCPT2(NTH,NP,NR,NSB,NSA) &
                     =(DCPT2(NTH,NP,NR,NSB,NSA) &
@@ -586,7 +591,8 @@
 
 ! BALANCE TRAPPED REGION for THETA direction
       DO NSB=1,NSBMAX
-         DO NP=1,NPMAX
+!         DO NP=1,NPMAX
+         DO NP=NPSTARTW,NPENDWM
             DO NTH=ITL(NR)+1,NTHMAX/2
                DCTT2(NTH,NP,NR,NSB,NSA)        &
                     =(DCTT2(NTH,NP,NR,NSB,NSA) &
@@ -597,7 +603,8 @@
          END DO
       END DO
       DO NSB=1,NSBMAX
-         DO NP=1,NPMAX
+!         DO NP=1,NPMAX
+         DO NP=NPSTARTW,NPENDWM
             DO NTH=ITL(NR)+1,NTHMAX/2
                FCTH2(NTH,NP,NR,NSB,NSA)        &
                     =(FCTH2(NTH,NP,NR,NSB,NSA) &
@@ -610,7 +617,8 @@
          END DO
       END DO
       DO NSB=1,NSBMAX
-         DO NP=1,NPMAX
+!         DO NP=1,NPMAX
+         DO NP=NPSTARTW,NPENDWM
             DO NTH=ITL(NR)+1,NTHMAX/2
                DCTP2(NTH,NP,NR,NSB,NSA)        &
                     =(DCTP2(NTH,NP,NR,NSB,NSA) &

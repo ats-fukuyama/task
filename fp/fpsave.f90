@@ -39,8 +39,10 @@
 !      real(8),dimension(NRMAX, NSBMAX, NSAMAX):: RPCS2
 !      real(8),dimension(NSAMAX, 0:NTMAX):: PWT2, PTT2
       real(8):: DSDR, SRHOP, SRHOM, RSUM62, RSUM63
+      real:: gut1,gut2
 
       IF(ISAVE.NE.0) RETURN
+      CALL GUTIME(gut1)
 
       DO NSA=NSASTART,NSAEND
          RNDRS(NSA) =0.D0
@@ -345,6 +347,7 @@
 
             CALL p_theta_integration(RSUM_T)
             CALL p_theta_integration(RSUM_V)
+
             RTL_BULK(NR,NSA)=RSUM_T/RSUM_V
 !-------    Calculation of bulk temperature
 
@@ -499,6 +502,8 @@
 !      IF(NRANK.eq.0)THEN
 !         WRITE(*,'(A,I4,6E14.6)') "RWS", nrank,RWS(1,1),RWSL(1,1),RNS(1,1),RNSL(1,1),RJS(1,1),RJSL(1,1)
 !      END IF
+      CALL GUTIME(gut2)
+      IF(NRANK.eq.0) WRITE(6,'(A,E14.6)') "-----FPSSUB=", gut2-gut1
 
       ISAVE=1
       RETURN

@@ -95,56 +95,21 @@
       CALL mtx_gather_real8(dsend2,nsend,FNS) 
       CALL mtx_reset_communicator 
 
-
-!      CALL mtx_set_communicator(comm_nrnp)
-
-!      nsw=NSAEND-NSASTART+1
-!      nsend=NTHMAX*NPMAX*(NREND-NRSTART+1)
-!      DO NSWI=1,NSW
-!         NSA=NSASTART-1+NSWI
-!         DO NR=NRSTART,NREND
-!            DO NP=NPSTART,NPEND
-!               DO NTH=1,NTHMAX
-!                  dsend(nth,np,nr)=FNSP(nth,np,nr,nsa)
-!               END DO
-!            END DO
-!         END DO
-!         CALL mtx_gather_real8(dsend,nsend,drecv) 
-!         IF(NRANK.eq.0)THEN
-!            N=0
-!            DO NSA=NSWI,NSAMAX,NSW
-!               N=N+1
-!               DO NR=1,NRMAX
-!                  DO NP=1,NPMAX
-!                     DO NTH=1,NTHMAX
-!                        FNS(NTH,NP,NR,NSA)=drecv(NTH,NP,NR,N)
-!                     END DO
-!                  END DO
-!               END DO
-!            END DO
-!         END IF
-!      END DO
-
-
-
-
-!      CALL mtx_reset_communicator
-
       END SUBROUTINE update_fns
 !-----
 
       SUBROUTINE source_allreduce(array)
 
       IMPLICIT NONE
-      DOUBLE PRECISION,dimension(NTHMAX,NPMAX,NRSTART:NREND+1,NSAMAX), &
+      DOUBLE PRECISION,dimension(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX), &
            INTENT(INOUT):: array
-      DOUBLE PRECISION,dimension(NTHMAX,NPMAX,NRSTART:NREND+1,NSAMAX):: &
+      DOUBLE PRECISION,dimension(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX):: &
            sendbuf, recvbuf
-      INTEGER,dimension(NTHMAX,NPMAX,NRSTART:NREND+1,NSAMAX):: &
+      INTEGER,dimension(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX):: &
            lloc
       INTEGER:: ierr, ncount
 
-         ncount = NTHMAX*NPMAX*(NREND-NRSTART+2)*NSAMAX
+         ncount = NTHMAX*(NPEND-NPSTART+1)*(NREND-NRSTART+1)*NSAMAX
          sendbuf(:,:,:,:)=0.D0
          sendbuf(:,:,:,:)=array(:,:,:,:)
 
@@ -177,7 +142,6 @@
 
       ndata = (NPEND-NPSTART+1)
       CALL mtx_allgather_real8(vdata,ndata,vrecv)
-
 
       END SUBROUTINE fpl_comm
 !-----

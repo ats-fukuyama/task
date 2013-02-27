@@ -34,7 +34,7 @@
 
       DO NR=NRSTART,NREND
 !         DO NP=1,NPMAX+1
-         DO NP=NPSTARTW,NPENDWG
+         DO NP=NPSTART,NPENDWG
          DO NTH=1,NTHMAX
             DPP(NTH,NP,NR,NSA)=0.D0
             DPT(NTH,NP,NR,NSA)=0.D0
@@ -75,7 +75,7 @@
 !     ----- Initialize ------------------------------------- 
       DO NR=NRSTART,NREND
 !         DO NP=1,NPMAX+1
-         DO NP=NPSTARTW,NPENDWG
+         DO NP=NPSTART,NPENDWG
            DO NTH=1,NTHMAX
                DWECPP(NTH,NP,NR,NSA)=0.D0
                DWECPT(NTH,NP,NR,NSA)=0.D0
@@ -95,7 +95,7 @@
          CALL FP_CALW(NSA)
          DO NR=NRSTART,NREND
 !            DO NP=1,NPMAX+1
-            DO NP=NPSTARTW,NPENDWG
+            DO NP=NPSTART,NPENDWG
                DO NTH=1,NTHMAX
                   DWECPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA)
                   DWECPT(NTH,NP,NR,NSA)=DWPT(NTH,NP,NR,NSA)
@@ -130,7 +130,7 @@
 
       DO NR=NRSTART,NREND
 !         DO NP=1,NPMAX+1
-         DO NP=NPSTARTW,NPENDWG
+         DO NP=NPSTART,NPENDWG
             DO NTH=1,NTHMAX
                DWICPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA)
                DWICPT(NTH,NP,NR,NSA)=DWPT(NTH,NP,NR,NSA)
@@ -150,7 +150,7 @@
 !     POOL coef DW in order to reduce the number of call fp_calwm
       DO NR=NRSTART, NREND
 !         DO NP=1, NPMAX+1
-         DO NP=NPSTARTW,NPENDWG
+         DO NP=NPSTART,NPENDWG
             DO NTH=1,NTHMAX
                DWPP_P(NTH,NP,NR,NSA) = DWPP(NTH,NP,NR,NSA)
                DWPT_P(NTH,NP,NR,NSA) = DWPT(NTH,NP,NR,NSA)
@@ -175,7 +175,7 @@
       IF(N_IMPL.ne.0)THEN ! N_IMPL!=0
       DO NR=NRSTART, NREND
 !         DO NP=1, NPMAX+1
-         DO NP=NPSTARTW,NPENDWG
+         DO NP=NPSTART,NPENDWG
             DO NTH=1,NTHMAX
                DWPP(NTH,NP,NR,NSA) = DWPP_P(NTH,NP,NR,NSA)
                DWPT(NTH,NP,NR,NSA) = DWPT_P(NTH,NP,NR,NSA)
@@ -205,7 +205,7 @@
       IF(MODELW(NSA).eq.4.and.NCONST_RF.eq.2.and.N_IMPL.ne.0)THEN ! TOTAL Pabs(r) invariant
          DO NR=NRSTART,NREND
 !            DO NP=1,NPMAX+1
-            DO NP=NPSTARTW,NPENDWG
+            DO NP=NPSTART,NPENDWG
                DO NTH=1,NTHMAX
                   IF(RPW_IMPL(NR,NSA,N_IMPL).gt.0.D0)THEN
                      DWPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA)*RPW_INIT(NR,NSA)/RPW_IMPL(NR,NSA,N_IMPL)
@@ -228,7 +228,7 @@
       ELSEIF(MODELW(NSA).eq.4.and.NCONST_RF.eq.3.and.N_IMPL.ne.0)THEN ! Pabs_EC(r), Pabs_IC(r) invariant
          DO NR=NRSTART,NREND
 !            DO NP=1,NPMAX+1
-            DO NP=NPSTARTW,NPENDWG
+            DO NP=NPSTART,NPENDWG
                DO NTH=1,NTHMAX
                   IF(RPWEC_IMPL(NR,NSA,N_IMPL).gt.0.D0)THEN
                      DWECPP(NTH,NP,NR,NSA)=DWECPP(NTH,NP,NR,NSA)*RPWEC_INIT(NR,NSA)/RPWEC_IMPL(NR,NSA,N_IMPL)
@@ -269,7 +269,7 @@
       CALL FP_CALC(NSA)
 !     ----- Sum up velocity diffusion terms -----
 
-      IF(NRANK.eq.0) open(9,file='FE.dat')
+!      IF(NRANK.eq.0) open(9,file='FE.dat')
       DO NR=NRSTART,NREND
 !         DO NP=1,NPMAX+1
 !         DO NTH=1,NTHMAX
@@ -287,22 +287,20 @@
 !         ENDDO
 
 !         DO NP=1,NPMAX+1
-         DO NP=NPSTARTW,NPENDWG
+         DO NP=NPSTART,NPENDWG
          DO NTH=1,NTHMAX
             DPP(NTH,NP,NR,NSA)=DCPP(NTH,NP,NR,NSA)+DWPP(NTH,NP,NR,NSA)
             DPT(NTH,NP,NR,NSA)=DCPT(NTH,NP,NR,NSA)+DWPT(NTH,NP,NR,NSA)
             FPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)+FCPP(NTH,NP,NR,NSA)
             IF(MODELE.eq.1) &
                  FPP(NTH,NP,NR,NSA)=FPP(NTH,NP,NR,NSA)+FEPP_IND(NTH,NP,NR,NSA)
-            IF(NRANK.eq.0)THEN
+!            IF(NRANK.eq.0)THEN
 !               WRITE(9,'(4E16.8)') PG(NP,NSA)*COSM(NTH), PG(NP,NSA)*SINM(NTH), &
-!                 FEPP(NTH,NP,NR,NSA),FEPP_IND(NTH,NP,NR,NSA)
-               WRITE(9,'(4E16.8)') PG(NP,NSA)*COSM(NTH), PG(NP,NSA)*SINM(NTH), &
-                 DCPP(NTH,NP,NR,NSA),FCPP(NTH,NP,NR,NSA)
-            ENDIF
+!                 DCPP(NTH,NP,NR,NSA),FCPP(NTH,NP,NR,NSA)
+!            ENDIF
          ENDDO
-         IF(NRANK.eq.0) WRITE(9,*) " "
-         IF(NRANK.eq.0) WRITE(9,*) " "
+!         IF(NRANK.eq.0) WRITE(9,*) " "
+!         IF(NRANK.eq.0) WRITE(9,*) " "
          ENDDO
 !
 !         DO NP=1,NPMAX
@@ -316,7 +314,7 @@
          ENDDO
          ENDDO
       ENDDO
-      IF(NRANK.eq.0) close(9)
+!      IF(NRANK.eq.0) close(9)
 
 !     ----- Radial diffusion term -----
 
@@ -376,7 +374,7 @@
 
       DO NR=NRSTART,NREND
 !      DO NP=1,NPMAX+1
-      DO NP=NPSTARTW,NPENDWG
+      DO NP=NPSTART,NPENDWG
       DO NTH=1,NTHMAX
          FEPP(NTH,NP,NR,NSA)= AEFP(NSA)*E2(NR)/PTFP0(NSA)*COSM(NTH)
       ENDDO
@@ -413,7 +411,7 @@
 
 !     BOUNCE AVERAGE FEPP
 !      DO NP=1,NPMAX+1
-      DO NP=NPSTARTW,NPENDWG
+      DO NP=NPSTART,NPENDWG
          DO NTH=1,ITL(NR)-1
             DELH=2.D0*ETAM(NTH,NR)/NAVMAX
             SUM=0.D0

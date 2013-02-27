@@ -31,7 +31,7 @@
 
       DO NR=NRSTART,NREND
 !         DO NP=1,NPMAX+1
-         DO NP=NPSTARTW,NPENDWG
+         DO NP=NPSTART,NPENDWG
          DO NTH=1,NTHMAX
             DCPP(NTH,NP,NR,NSA)=0.D0
             DCPT(NTH,NP,NR,NSA)=0.D0
@@ -51,7 +51,7 @@
       DO NSB=1,NSBMAX
       DO NR=NRSTART,NREND
 !         DO NP=1,NPMAX+1
-         DO NP=NPSTARTW,NPENDWG
+         DO NP=NPSTART,NPENDWG
          DO NTH=1,NTHMAX
             DCPP2(NTH,NP,NR,NSB,NSA)=0.D0
             DCPT2(NTH,NP,NR,NSB,NSA)=0.D0
@@ -146,7 +146,7 @@
                           /(14.9D0-0.5D0*LOG(RNFP(NR,NSA))+LOG(RTFP(NR,NSA)))* &
                           (15.2D0-0.5D0*LOG(RNFP(NR,NSA))+LOG(RTFP(NR,NSA)))
 !                     DO NP=1,NPMAX
-                     DO NP=NPSTART,NPENDWM
+                     DO NP=NPSTARTW,NPENDWM
                         RGAMA =SQRT(1.D0+PM(NP,NSA)**2*THETA0(NSA))
 !                        RGAMA =1.D0
                         PFPL=PM(NP,NSA)*PTFP0(NSA)
@@ -203,7 +203,7 @@
 !               END DO
             END DO
 !            DO NP=1,NPMAX
-            DO NP=NPSTART,NPENDWM
+            DO NP=NPSTARTW,NPENDWM
                DO NTH=1,NTHMAX+1
                   DCTP(NTH,NP,NR,NSA)=DCTP(NTH,NP,NR,NSA) &
                                      +DCTP2(NTH,NP,NR,NSB,NSA)
@@ -627,7 +627,7 @@
 !
       IF(MODELR.EQ.0) THEN 
 !         DO NP=1,NPMAX+1
-         DO NP=NPSTARTW,NPENDWG
+         DO NP=NPSTART,NPENDWG
             IF(NP.EQ.1) THEN
                DCPPL=RGAMH*RNFD(NR,NSB)*1.D20*(2.D0/(3.D0*SQRT(PI))) &
                           *(VTFP0(NSA)/(SQRT(2.D0)*VTFD(NR,NSB))) 
@@ -664,7 +664,7 @@
       ELSE
          PMAXC=PMAX(NSBA)
 !         DO NP=1,NPMAX+1
-         DO NP=NPSTARTW,NPENDWG
+         DO NP=NPSTART,NPENDWG
             IF(NP.EQ.1) THEN
                PNFPL=PG(NP,NSBA)
                PNFP=PNFPL
@@ -827,7 +827,7 @@
 
       DO NSB=1,NSBMAX
 !         DO NP=1,NPMAX+1
-         DO NP=NPSTARTW,NPENDWG
+         DO NP=NPSTART,NPENDWG
             DO NTH=1,NTHMAX
                FACT=RLAMDA(NTH,NR)
                DCPP2(NTH,NP,NR,NSB,NSA) &
