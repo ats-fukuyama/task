@@ -11,7 +11,6 @@ CONTAINS
 
   SUBROUTINE ufread_0d(NDMAX,IERR)
 ! -----------------------------------------------------------------------
-<<<<<<< ufread.f90
 !   ***  0D UFILE reader ***
 !
 !   This subroutine reads the ***_0d.dat file of UFILE datasets.
@@ -25,21 +24,6 @@ CONTAINS
 !   < output >
 !   NDMAX  : the number of data included in the _0d.dat file
 !   IERR   : error identifier
-=======
-!   ***  0D UFILE reader for TR  ***
-!
-!   This sburoutine reads the ***_0d.dat file of UFILE.
-!
-!   The subroutine 'uflist_init' initialize the structure 'uf0d'
-!    to contain variable names and its data type.
-!
-!   The subroutine 'uflist_set' contains the variable data 
-!    into the structure 'ud0d'
-!
-!   < output >
-!   NDMAX  : the number of data included in the _0d.dat file
-!   IERR   : error identifier
->>>>>>> 1.2
 ! -----------------------------------------------------------------------
     USE uflist, ONLY: uflist_init,uflist_set
     USE ufinit, ONLY: kufdir,kufdev,kufdcg,n0dmax
@@ -397,11 +381,7 @@ CONTAINS
   END SUBROUTINE ufread_0d_pr98
 
 ! =======================================================================
-<<<<<<< ufread.f90
 !  UFILE reader subroutines
-=======
-!  UFILE reader subroutines for TASK/TR (for time Evolution UFILE)
->>>>>>> 1.2
 !     - ufread_1d_time
 !     - ufread_2d_time
 !     - ufread_2d_errbar

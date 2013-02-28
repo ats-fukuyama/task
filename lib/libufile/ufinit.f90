@@ -94,7 +94,7 @@ CONTAINS
   SUBROUTINE ufile_inquire(KUFDIM,KFID,KFILE,KFILEB,IDBIN,ERROUT,IERR)
 ! -------------------------------------------------------------------------
 !   *** inquire ufile and check its existence ***
-<<<<<<< ufinit.f90
+!
 !   < input >
 !   KUFDIM : the dimension of ufile data; 1d or 2d
 !   KFID   : the name of variables; AMIN, PNBI, NE, ...etc.
@@ -105,33 +105,15 @@ CONTAINS
 !   < output >
 !   KFILE  : file name of a varible data including its path
 !   KFILEB : binary file name of a varible data including its path
-!   IDBIN  : the parameter which determines how to handle exp. files.
-=======
-!   < input >
-!   KUFDIM : the dimension of ufile data; 1d or 2d
-!   KFID   : the name of variables; AMIN, PNBI, NE, ...etc.
-!   ERROUT : Error message output switch
-!          : = 0  write error message to standard output 
-!          : = 1  suppress error message output
-!   
-!   < output >
-!   KFILE  : file name of a varible data including its path
-!   KFILEB : binary file name of a varible data including its path
-!   IDBIN  : the parameter which determines how to handle exp. files.
->>>>>>> 1.3
 !   IDBIN =   0 : Binary files are loaded if available, or ASCII files
 !                 are loaded and aftermath binary files are created.
 !             1 : Only binary files are loaded.
 !             2 : Only ASCII files are loaded and binary files are NOT
 !                  created.
-<<<<<<< ufinit.f90
 !   IERR   : error identifier
 !          =  0 : no error
 !          =  1 : binary file not found or broken; instead read ASCII file
 !          = -1 : fatal error; file not found or broken
-=======
-!   IERR   : error identifier
->>>>>>> 1.3
 ! -------------------------------------------------------------------------
     IMPLICIT NONE
 
