@@ -221,8 +221,8 @@ CONTAINS
     IMPLICIT NONE
 
     LOGICAL,          DIMENSION(N0DMAX),INTENT(IN) :: LEX0
-    REAL(8),          DIMENSION(N0DMAX),INTENT(IN) :: FR0
-    INTEGER(4),       DIMENSION(N0DMAX),INTENT(IN) :: FI0
+    REAL(rkind),      DIMENSION(N0DMAX),INTENT(IN) :: FR0
+    INTEGER(ikind),   DIMENSION(N0DMAX),INTENT(IN) :: FI0
     CHARACTER(LEN=15),DIMENSION(N0DMAX),INTENT(IN) :: FC0
 
     uf0d(1:N0DMAX)%lex = LEX0(1:N0DMAX)
@@ -233,5 +233,32 @@ CONTAINS
 
     RETURN
   END SUBROUTINE uflist_set
+
+
+  SUBROUTINE uflist_print(UNIT)
+    IMPLICIT NONE
+    INTEGER(ikind),INTENT(IN) :: UNIT
+
+    INTEGER(ikind)    :: ND
+    CHARACTER(LEN=16) :: KFVAL
+
+    DO ND = 1, N0DMAX
+       IF(uf0d(ND)%lex .EQV. .TRUE.)THEN
+          KFVAL = ' '
+          SELECT CASE(uf0d(ND)%id_type)
+          CASE(1) ! REAL
+             WRITE(KFVAL,'(ES16.3)') uf0d(ND)%fr0
+          CASE(2) ! INTEGER
+             WRITE(KFVAL,'(I16)') uf0d(ND)%fi0
+          CASE(3) ! CHARACTER
+             KFVAL = uf0d(ND)%fc0
+          END SELECT
+       END IF
+
+       WRITE(UNIT,'(1X,A16,A3,A16)') uf0d(ND)%kfid, ' = ', KFVAL
+    END DO
+
+    RETURN
+  END SUBROUTINE uflist_print
 
 END MODULE uflist

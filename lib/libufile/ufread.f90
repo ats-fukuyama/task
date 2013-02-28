@@ -11,6 +11,21 @@ CONTAINS
 
   SUBROUTINE ufread_0d(NDMAX,IERR)
 ! -----------------------------------------------------------------------
+<<<<<<< ufread.f90
+!   ***  0D UFILE reader ***
+!
+!   This subroutine reads the ***_0d.dat file of UFILE datasets.
+!
+!   The subroutine 'uflist_init' initialize the structure 'uf0d'
+!    to contain variable names and its data type.
+!
+!   The subroutine 'uflist_set' contains the variable data 
+!    into the structure 'ud0d'
+!
+!   < output >
+!   NDMAX  : the number of data included in the _0d.dat file
+!   IERR   : error identifier
+=======
 !   ***  0D UFILE reader for TR  ***
 !
 !   This sburoutine reads the ***_0d.dat file of UFILE.
@@ -24,9 +39,10 @@ CONTAINS
 !   < output >
 !   NDMAX  : the number of data included in the _0d.dat file
 !   IERR   : error identifier
+>>>>>>> 1.2
 ! -----------------------------------------------------------------------
-    USE uflist, ONLY: uflist_init, uflist_set, uf0d
-    USE ufinit, ONLY: kufdir,kufdev,kufdcg,N0DMAX,nid_nd
+    USE uflist, ONLY: uflist_init,uflist_set
+    USE ufinit, ONLY: kufdir,kufdev,kufdcg,n0dmax
     IMPLICIT NONE
 
     INTEGER(ikind)             ,INTENT(OUT) :: NDMAX, IERR
@@ -39,7 +55,7 @@ CONTAINS
     REAL(rkind),          DIMENSION(N0DMAX) :: FR0
     INTEGER(ikind),       DIMENSION(N0DMAX) :: FI0
     CHARACTER(LEN=15),    DIMENSION(N0DMAX) :: FC0
-    INTEGER(ikind) :: IKNDEV,IKNDCG,IKNFID,EOL,NDMAX_LABEL,ND,NID,NDT,NDTMAX,IST,UNIT
+    INTEGER(ikind) :: IKNDEV,IKNDCG,NDTMAX,IST,UNIT
     LOGICAL    :: LEX
 
     IERR   = 0
@@ -87,9 +103,57 @@ CONTAINS
        WRITE(6,*) 'XX KFILE: ',TRIM(KFILE)
        RETURN
     END IF
-    IF(SCAN(KKLINE,',',BACK=.TRUE.) == 0)THEN
-       WRITE(6,*) '## ufread_0d: The format of 0d.dat is unsupported one.'
-       ! call old type reader
+    IF(SCAN(KKLINE,',') == 0)THEN
+       ! traditional format (TAB format)
+       CALL ufread_0d_pr98(UNIT,NDTMAX,NDMAX,LEX0,FR0,FI0,FC0,IERR)
+    ELSE
+       ! up-to-date format (csv format)
+       CALL ufread_0d_pr08(UNIT,NDTMAX,NDMAX,LEX0,FR0,FI0,FC0,IERR)
+    END IF
+
+    IF(IERR /= 0)THEN
+       WRITE(6,*) 'XX ufread_0d: 0d.dat read errors. IERR= ',IERR
+       WRITE(6,*) 'XX KFILE: ',TRIM(KFILE)
+       RETURN
+    END IF
+
+    CLOSE(UNIT)
+
+    CALL uflist_set(LEX0,FR0,FI0,FC0)
+
+    WRITE(6,'(1X,3A,I2,A,I3,A)') ' - Read 0D data: ',TRIM(KFDAT), &
+                                 '   (',NDTMAX,',',NDMAX,')'
+
+    RETURN
+  END SUBROUTINE ufread_0d
+
+
+  SUBROUTINE ufread_0d_pr08(UNIT,NDTMAX,NDMAX,LEX0,FR0,FI0,FC0,IERR)
+! -------------------------------------------------------------------------
+!  0-D UFILE reader for the up-to-date format (csv format)
+! -------------------------------------------------------------------------
+    USE uflist, ONLY: uf0d
+    USE ufinit, ONLY: n0dmax, nid_nd
+    IMPLICIT NONE
+
+    INTEGER(ikind), INTENT(IN)  :: UNIT
+    INTEGER(ikind), INTENT(OUT) :: NDMAX,NDTMAX,IERR
+
+    LOGICAL,          DIMENSION(N0DMAX),INTENT(OUT) :: LEX0
+    REAL(rkind),      DIMENSION(N0DMAX),INTENT(OUT) :: FR0
+    INTEGER(ikind),   DIMENSION(N0DMAX),INTENT(OUT) :: FI0
+    CHARACTER(LEN=15),DIMENSION(N0DMAX),INTENT(OUT) :: FC0
+
+    CHARACTER(LEN=2000) :: KKLINE
+    INTEGER(ikind)      :: ND,NID,NDT,NDMAX_LABEL,IKNFID,EOL,IST
+
+    IERR = 0
+    REWIND UNIT
+
+    ! --- read labels ---
+    READ(UNIT,'(A2000)',IOSTAT=IST) KKLINE
+    IF(IST /= 0) THEN
+       IERR = 2008
        RETURN
     END IF
     
@@ -97,7 +161,6 @@ CONTAINS
     ND  = 0
     EOL = 0
     label: DO
-       ND = ND + 1
        KKLINE = TRIM(KKLINE)
        IKNFID = INDEX(KKLINE,',')
        IF(IKNFID == 0) THEN ! the last item of the list
@@ -107,6 +170,8 @@ CONTAINS
 
        DO NID = 1, N0DMAX
           IF(KKLINE(1:IKNFID-1)==uf0d(NID)%kfid)THEN
+             ND = ND + 1
+
              LEX0(NID)  = .TRUE.
              NID_ND(ND) = NID
              EXIT
@@ -121,18 +186,17 @@ CONTAINS
        KKLINE(1:) = KKLINE(IKNFID+1:)
     END DO label
 
-    ! initialize
+    ! --- initialize ---
     FR0(1:N0DMAX) = 0.d0
     FI0(1:N0DMAX) = 0
     FC0(1:N0DMAX) = '---'
 
-    ! read value
+    ! --- read values ---
     NDT = 0
     time_slice: DO
        READ(UNIT,'(A2000)',IOSTAT=IST) KKLINE
        IF(IST > 0) THEN
-          WRITE(6,*) 'XX ufread_0d: 0d.dat read errors.'
-          WRITE(6,*) 'XX KFILE: ',TRIM(KFILE)
+          IERR = 2008
           RETURN
        ELSE IF(IST < 0)THEN ! the end of file
           NDTMAX = NDT
@@ -151,21 +215,21 @@ CONTAINS
           END IF
 
           NID = NID_ND(ND)
-          IF(NID==0) CYCLE
-          SELECT CASE(uf0d(NID)%id_type)
-          CASE(1) ! REAL
-             READ(KKLINE(1:IKNFID-1),*) FR0(NID)
-          CASE(2) ! INTEGER
-             READ(KKLINE(1:IKNFID-1),*) FI0(NID)
-          CASE(3) ! CHARACTER
-             FC0(NID) = KKLINE(1:IKNFID-1)
-          END SELECT
+          IF(NID /= 0)THEN
+             SELECT CASE(uf0d(NID)%id_type)
+             CASE(1) ! REAL
+                READ(KKLINE(1:IKNFID-1),*) FR0(NID)
+             CASE(2) ! INTEGER
+                READ(KKLINE(1:IKNFID-1),*) FI0(NID)
+             CASE(3) ! CHARACTER
+                FC0(NID) = KKLINE(1:IKNFID-1)
+             END SELECT
+          END IF
 
           IF(EOL == 1)THEN ! the end of line
              NDMAX = ND
              EXIT
           END IF
-
           KKLINE(1:) = KKLINE(IKNFID+1:)
        END DO value
 
@@ -173,28 +237,171 @@ CONTAINS
 
        IF(NDMAX /= 0)THEN
           IF(NDMAX /= NDMAX_LABEL)THEN
-             WRITE(6,*) 'XX ufread_0d: 0d.dat has some error.'
-             WRITE(6,*) 'XX KFILE: ',TRIM(KFILE)
+             WRITE(6,*) 'XX ufread_0d_pr08: 0d.dat has some error.'
              WRITE(6,'(1X,A,I3,A,I4,A,I4)') 'XX NDT= ',NDT,   &
               &             'NDMAX= ',NDMAX,'NDMAX_LABEL= ',NDMAX_LABEL
+             IERR = 2008
              RETURN
           END IF
        END IF
     END DO time_slice
 
-    CLOSE(UNIT)
+    RETURN
+  END SUBROUTINE ufread_0d_pr08
 
-    CALL uflist_set(LEX0,FR0,FI0,FC0)
 
-    WRITE(6,'(1X,3A,I2,A,I3,A)') ' - Read 0D data: ',TRIM(KFDAT), &
-                                 '   (',NDTMAX,',',NDMAX,')'
+  SUBROUTINE ufread_0d_pr98(UNIT,NDTMAX,NDMAX,LEX0,FR0,FI0,FC0,IERR)
+! -----------------------------------------------------------------------
+!  0-D UFILE reader for the traditional format
+! -----------------------------------------------------------------------
+    USE uflist, ONLY: uf0d
+    USE ufinit, ONLY: n0dmax, nid_nd
+    IMPLICIT NONE
+
+    INTEGER(ikind), INTENT(IN)  :: UNIT
+    INTEGER(ikind), INTENT(OUT) :: NDMAX,NDTMAX,IERR
+
+    LOGICAL,          DIMENSION(N0DMAX),INTENT(OUT) :: LEX0
+    REAL(rkind),      DIMENSION(N0DMAX),INTENT(OUT) :: FR0
+    INTEGER(ikind),   DIMENSION(N0DMAX),INTENT(OUT) :: FI0
+    CHARACTER(LEN=15),DIMENSION(N0DMAX),INTENT(OUT) :: FC0
+
+    CHARACTER(LEN=80) :: KKLINE
+    CHARACTER(LEN=10) :: KKVAL
+    INTEGER(ikind)      :: NL,NL1,ND,NID,NDT,NDMAX_LABEL,NLMAX, &
+                           IKNFID,IKNVAL,EOL,EOF,IST
+
+    IERR = 0
+    REWIND UNIT
+
+    IKNFID = 10 ! fixed field length
+
+    NID_ND(1:N0DMAX) = 0
+    ND  = 0
+    NL  = 0
+    EOL = 0
+
+    ! --- read labels ---
+    label: DO
+       READ(UNIT,'(A80)',IOSTAT=IST) KKLINE
+       IF(IST /= 0) THEN
+          IERR = 1998
+          RETURN
+       END IF
+       NL = NL + 1 ! the number of lines in a data block
+
+       line1: DO NL1 = 1, 7
+          ND = ND + 1 ! the number of signals
+          KKLINE = TRIM(KKLINE)
+
+          DO NID = 1, N0DMAX
+             IF(TRIM(ADJUSTL(KKLINE(1:IKNFID)))==uf0d(NID)%kfid)THEN
+                LEX0(NID)  = .TRUE.
+                NID_ND(ND) = NID
+                EXIT
+             END IF
+          END DO
+       
+          KKLINE(1:) = KKLINE(IKNFID+2:)
+          IF(NL1 /= 7 .AND. LEN_TRIM(KKLINE) == 0)THEN ! the end of block
+             EOL = 1
+             NDMAX_LABEL = ND
+             NLMAX       = NL
+             EXIT
+          END IF
+       END DO line1
+
+       IF(EOL==1) EXIT
+    END DO label
+
+    ! --- initialize ---
+    FR0(1:N0DMAX) = 0.d0
+    FI0(1:N0DMAX) = 0
+    FC0(1:N0DMAX) = '---'
+
+
+    ! --- read value ---
+    NDT = 0
+    EOF = 0
+    time_slice: DO
+
+       ND  = 0
+       EOL = 0
+       value: DO
+          READ(UNIT,'(A80)',IOSTAT=IST) KKLINE
+          IF(IST > 0) THEN
+             IERR = 1998
+             RETURN
+          ELSE IF(IST < 0)THEN ! the end of file
+             NDTMAX = NDT
+             EOF = 1
+             EXIT
+          END IF
+
+          line2: DO NL1 = 1, 7
+             ND = ND + 1
+             KKLINE = TRIM(KKLINE)
+
+             NID = NID_ND(ND)
+             IF(NID /= 0)THEN
+                KKVAL = ADJUSTL(KKLINE(1:IKNFID))
+                IKNVAL = LEN_TRIM(KKVAL)
+                SELECT CASE(uf0d(NID)%id_type)
+                CASE(1) ! REAL
+                   READ(KKVAL(1:IKNVAL),*) FR0(NID)
+                CASE(2) ! INTEGER
+                   READ(KKVAL(1:IKNVAL),*) FI0(NID)
+                CASE(3) ! CHARACTER
+                   FC0(NID) = ADJUSTL(KKLINE(1:IKNFID))
+                END SELECT
+             END IF
+
+             KKLINE(1:) = KKLINE(IKNFID+2:)
+             IF(NL1 /= 7 .AND. LEN_TRIM(KKLINE) == 0)THEN ! the end of block
+                EOL   = 1
+                NDMAX = ND
+                EXIT
+             END IF
+
+          END DO line2
+
+          IF(EOL==1) EXIT
+       END DO value
+
+       NDT = NDT + 1
+
+       IF(NDMAX /= 0)THEN
+          IF(NDMAX /= NDMAX_LABEL)THEN
+             WRITE(6,*) 'XX ufread_0d_pr98: 0d.dat has some error.'
+             WRITE(6,'(1X,A,I3,A,I4,A,I4)') 'XX NDT= ',NDT,   &
+              &             'NDMAX= ',NDMAX,'NDMAX_LABEL= ',NDMAX_LABEL
+             IERR = 1998
+             RETURN
+          END IF
+       END IF
+
+       ! Skip lines of the labels
+       DO NL = 1, NLMAX
+          READ(UNIT,'()',IOSTAT=IST)
+          IF(IST < 0)THEN ! the end of file
+             NDTMAX = NDT
+             EOF    = 1
+             EXIT
+          END IF
+       END DO
+
+       IF(EOF==1) EXIT
+    END DO time_slice
 
     RETURN
-  END SUBROUTINE ufread_0d
-
+  END SUBROUTINE ufread_0d_pr98
 
 ! =======================================================================
+<<<<<<< ufread.f90
+!  UFILE reader subroutines
+=======
 !  UFILE reader subroutines for TASK/TR (for time Evolution UFILE)
+>>>>>>> 1.2
 !     - ufread_1d_time
 !     - ufread_2d_time
 !     - ufread_2d_errbar
@@ -223,7 +430,7 @@ CONTAINS
 
   SUBROUTINE ufread_1d_time(KFID,TMU,F1,NTXMAX,NTUM,ID_BIN,ERROUT,IERR)
 ! ----------------------------------------------------------------------
-!    1D UFILE reader for TR (Time Evolution UFILE)
+!    1D UFILE reader (Time Evolution UFILE)
 ! ----------------------------------------------------------------------
     USE ufinit, ONLY: ufile_inquire
     IMPLICIT NONE
@@ -252,8 +459,9 @@ CONTAINS
     CASE(0)
        CONTINUE
     CASE(1) ! binary file is broken. read ASCII file. (if IDBIN=0)
-       WRITE(6,*) '## Binary file has some error.'
+       WRITE(6,*) '## Binary file has some error.'       
        WRITE(6,*) '## read ASCII file and re-create the binary file.'
+       IERR = 0
     END SELECT
 
     CALL uf_bin_1d_read(KFID,KFILE,KFILEB,TMU,F1,NTUM,NTXMAX,IDBIN)
@@ -265,7 +473,7 @@ CONTAINS
   SUBROUTINE ufread_2d_time(KFID,RUF,TMU,F2,NRFMAX,NTXMAX,NRUM,NTUM, &
                             ID_BIN,ERROUT,IERR)
 ! ----------------------------------------------------------------------
-!   2D UFILE reader for TR (Time Evolution UFILE)
+!   2D UFILE reader (Time Evolution UFILE)
 ! ----------------------------------------------------------------------
     USE ufinit, ONLY: ufile_inquire
     IMPLICIT NONE
@@ -300,6 +508,7 @@ CONTAINS
     CASE(1) ! binary file is broken. read ASCII file. (if IDBIN=0)
        WRITE(6,*) '## Binary file has some error.'
        WRITE(6,*) '## read ASCII file and re-create the binary file.'
+       IERR = 0
     END SELECT
 
 
@@ -414,6 +623,7 @@ CONTAINS
     CASE(1) ! binary file is broken. read ASCII file. (if IDBIN=0)
        WRITE(6,*) '## Binary file has some error.'
        WRITE(6,*) '## read ASCII file and re-create the binary file.'
+       IERR = 0
     END SELECT
 
 

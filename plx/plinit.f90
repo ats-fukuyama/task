@@ -84,6 +84,28 @@
          PZCL(NS) = 0.D0
 
       IF(NSM.GE.2) THEN
+<<<<<<< plinit.f90
+         ! *** hydrogen ***
+!!$         NS = 2
+!!$
+!!$         KIDNS(NS)= 'H'
+!!$         IDION(NS)= 0.0D0
+!!$         PA(NS)   = 1.0D0
+!!$         PZ(NS)   = 1.0D0
+!!$         PZ0(NS)  = 1.0D0
+!!$         PN(NS)   = 1.0D0
+!!$         PNS(NS)  = 0.0D0
+!!$         PTPR(NS) = 5.0D0
+!!$         PTPP(NS) = 5.0D0
+!!$         PTS(NS)  = 0.05D0
+!!$         PU(NS)   = 0.D0
+!!$         PUS(NS)  = 0.D0
+!!$         PNITB(NS)= 0.D0
+!!$         PTITB(NS)= 0.D0
+!!$         PUITB(NS)= 0.D0
+
+=======
+>>>>>>> 1.7
          ! *** deuterium ***
          NS = 2
 
@@ -102,7 +124,124 @@
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
+<<<<<<< plinit.f90
+
+         ! *** tritium ***
+!!$         NS = 3
+!!$
+!!$         KIDNS(NS)= 'T'
+!!$         IDION(NS)= 0.0D0
+!!$         PA(NS)   = 3.0D0
+!!$         PZ(NS)   = 1.0D0
+!!$         PZ0(NS)  = 1.0D0
+!!$         PN(NS)   = 1.0D0
+!!$         PNS(NS)  = 0.0D0
+!!$         PTPR(NS) = 5.0D0
+!!$         PTPP(NS) = 5.0D0
+!!$         PTS(NS)  = 0.05D0
+!!$         PU(NS)   = 0.D0
+!!$         PUS(NS)  = 0.D0
+!!$         PNITB(NS)= 0.D0
+!!$         PTITB(NS)= 0.D0
+!!$         PUITB(NS)= 0.D0
+
+!!$         ! *** helium ***
+!!$         NS =
+!!$
+!!$         KIDNS(NS)= 'A'
+!!$         IDION(NS)= 0.0D0
+!!$         PA(NS)   = 4.0D0
+!!$         PZ(NS)   = 2.0D0
+!!$         PZ0(NS)  = 2.0D0
+!!$         PN(NS)   = 1.0D0
+!!$         PNS(NS)  = 0.0D0
+!!$         PTPR(NS) = 5.0D0
+!!$         PTPP(NS) = 5.0D0
+!!$         PTS(NS)  = 0.05D0
+!!$         PU(NS)   = 0.D0
+!!$         PUS(NS)  = 0.D0
+!!$         PNITB(NS)= 0.D0
+!!$         PTITB(NS)= 0.D0
+!!$         PUITB(NS)= 0.D0
+
+         ! *** hydrogen (fast) ***
+!!$         NS = 5
+!!$
+!!$         KIDNS(NS)= 'H'
+!!$         IDION(NS)= 1.0D0
+!!$         PA(NS)   = PA(2)
+!!$         PZ(NS)   = PZ(2)
+!!$         PZ0(NS)  = PZ0(2)
+!!$         PN(NS)   = 0.0001D0
+!!$         PNS(NS)  = 0.00005D0
+!!$         PTPR(NS) = 50.D0
+!!$         PTPP(NS) = 50.D0
+!!$         PTS(NS)  = 10.D0
+!!$         PU(NS)   = 0.D0
+!!$         PUS(NS)  = 0.D0
+!!$         PNITB(NS)= 0.D0
+!!$         PTITB(NS)= 0.D0
+!!$         PUITB(NS)= 0.D0
+
+         ! *** deuterium (fast) ***
+         NS = 3
+
+         KIDNS(NS)= 'D'
+         IDION(NS)= 1.0D0
+         PA(NS)   = 2.0D0
+         PZ(NS)   = 1.0D0
+         PZ0(NS)  = 1.0D0
+         PN(NS)   = 0.D0
+         PNS(NS)  = 0.D0
+         PTPR(NS) = 50.D0
+         PTPP(NS) = 50.D0
+         PTS(NS)  = 10.D0
+         PU(NS)   = 0.D0
+         PUS(NS)  = 0.D0
+         PNITB(NS)= 0.D0
+         PTITB(NS)= 0.D0
+         PUITB(NS)= 0.D0
+
+!!$         ! *** helium (fast,alpha) ***
+!!$         NS = 5
+!!$
+!!$         KIDNS(NS)= 'A'
+!!$         IDION(NS)= 1.0D0
+!!$         PA(NS)   = PA(5)
+!!$         PZ(NS)   = PZ(5)
+!!$         PZ0(NS)  = PZ0(5)
+!!$         PN(NS)   = 0.0D0
+!!$         PNS(NS)  = 0.0D0
+!!$         PTPR(NS) = 50.D0
+!!$         PTPP(NS) = 50.D0
+!!$         PTS(NS)  = 50.D0
+!!$         PU(NS)   = 0.D0
+!!$         PUS(NS)  = 0.D0
+!!$         PNITB(NS)= 0.D0
+!!$         PTITB(NS)= 0.D0
+!!$         PUITB(NS)= 0.D0
+
+         ! *** carbon ***
+         NS = 4
+         
+         KIDNS(NS)= 'C'
+         IDION(NS)= 0.0D0
+         PA(NS)   = 12.d0
+         PZ(NS)   = 6.d0
+         PZ0(NS)  = 6.d0
+         PN(NS)   = 0.D0
+         PNS(NS)  = 0.D0
+         PTPR(NS) = 1.D0
+         PTPP(NS) = 1.D0
+         PTS(NS)  = 0.1D0
+         PU(NS)   = 0.D0
+         PUS(NS)  = 0.D0
+         PNITB(NS)= 0.D0
+         PTITB(NS)= 0.D0
+         PUITB(NS)= 0.D0
+=======
          PZCL(NS) = 0.D0
+>>>>>>> 1.7
 
          ! *** dummy ***
       DO NS = 3, NSM

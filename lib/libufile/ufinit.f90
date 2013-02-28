@@ -24,7 +24,7 @@ CONTAINS
 !  ***   - Substitution of module variables (Initialization)    ***
 !
 !  ***  This subrouitne must be called firstly every time you   ***
-!  ***  refer to a data set of UFILE (i.e. every shot).         ***
+!  ***  refer to a dataset of UFILE (i.e. every shot).          ***
 !   
 !   (This subroutine searches 'KUFDIR/DEVICE/SHOT/in'.)
 !
@@ -58,9 +58,9 @@ CONTAINS
     INQUIRE(FILE=KDIRX,EXIST=DIR,IOSTAT=IST)
 
     IF(IST > 0) THEN
-       WRITE(6,*) ' XX Directory inquiring error. (ufile_dir_inquire)'
+       WRITE(6,*) ' XX ufile_init: Directory inquiring error.'
        WRITE(6,*) ' XX IOSTAT= ',IST
-       IERR = 2
+       IERR = 1
        RETURN
     ENDIF
 
@@ -73,14 +73,14 @@ CONTAINS
        KFILE=KDIRX(1:IKDIRX)//KUFDEV(1:IKNDEV)//'2d'//KUFDCG(1:IKNDCG)//'.NE'
        INQUIRE(FILE=KFILE,EXIST=FILE,IOSTAT=IST)
        IF(IST > 0) THEN
-          WRITE(6,*) ' XX ufile_dir_inquire: File inquiring error.'
+          WRITE(6,*) ' XX ufile_init: File inquiring error.'
           WRITE(6,*) ' XX IOSTAT= ',IST
-          IERR = 2
+          IERR = 1
           RETURN
        END IF
        IF(FILE.EQV..FALSE.) THEN
           WRITE(6,'(A)') &
-               ' XX ufile_dir_inquire: Designated directory does not exist!'
+               ' XX ufile_init: Designated directory does not exist!'
           WRITE(6,'(A7,A80)') '   ==> ',KDIRX
           IERR = 1
           RETURN
@@ -94,6 +94,19 @@ CONTAINS
   SUBROUTINE ufile_inquire(KUFDIM,KFID,KFILE,KFILEB,IDBIN,ERROUT,IERR)
 ! -------------------------------------------------------------------------
 !   *** inquire ufile and check its existence ***
+<<<<<<< ufinit.f90
+!   < input >
+!   KUFDIM : the dimension of ufile data; 1d or 2d
+!   KFID   : the name of variables; AMIN, PNBI, NE, ...etc.
+!   ERROUT : Error message output switch
+!          : = 0     write error message to standard output 
+!          : = else  suppress error message output
+!   
+!   < output >
+!   KFILE  : file name of a varible data including its path
+!   KFILEB : binary file name of a varible data including its path
+!   IDBIN  : the parameter which determines how to handle exp. files.
+=======
 !   < input >
 !   KUFDIM : the dimension of ufile data; 1d or 2d
 !   KFID   : the name of variables; AMIN, PNBI, NE, ...etc.
@@ -105,12 +118,20 @@ CONTAINS
 !   KFILE  : file name of a varible data including its path
 !   KFILEB : binary file name of a varible data including its path
 !   IDBIN  : the parameter which determines how to handle exp. files.
+>>>>>>> 1.3
 !   IDBIN =   0 : Binary files are loaded if available, or ASCII files
 !                 are loaded and aftermath binary files are created.
 !             1 : Only binary files are loaded.
 !             2 : Only ASCII files are loaded and binary files are NOT
 !                  created.
+<<<<<<< ufinit.f90
 !   IERR   : error identifier
+!          =  0 : no error
+!          =  1 : binary file not found or broken; instead read ASCII file
+!          = -1 : fatal error; file not found or broken
+=======
+!   IERR   : error identifier
+>>>>>>> 1.3
 ! -------------------------------------------------------------------------
     IMPLICIT NONE
 
