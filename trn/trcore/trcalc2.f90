@@ -10,9 +10,9 @@ CONTAINS
 ! ***** calculate transport coefficients and souce terms *****
 
   SUBROUTINE tr_calc2
-    USE trcomm, ONLY: rkev,nrmax,nsamax,neqmax,nsa_neq,nva_neq,   &
-         dtr,vtr,ctr,str,htr,dtr_nc,vtr_nc,dtr_tb,vtr_tb,ctr_ex,  &
-         htr_simple,jtot,joh,jcd_nb,jcd_ec,jcd_ic,jcd_lh,jbs_nc
+    USE trcomm, ONLY: rkev,nrmax,nsamax,neqmax,nsa_neq,nva_neq,mdleqn, &
+         dtr,vtr,ctr,str,htr,dtr_nc,vtr_nc,dtr_tb,vtr_tb,ctr_ex,       &
+         vtr_gma,htr_simple,jtot,joh,jcd_nb,jcd_ec,jcd_ic,jcd_lh,jbs_nc
     USE trcalv, ONLY: tr_calc_variables
     USE trcoeftb, ONLY: tr_coeftb
     USE trcoefnc, ONLY: tr_coefnc
@@ -53,10 +53,11 @@ CONTAINS
     ! *** str ***
     CALL tr_source2
 
+    IF(mdleqn == 0) CALL tr_calc_particle_flux
 
     ! substitution
-    DO nr=1,nrmax
-       DO neq=2,neqmax
+    DO nr = 1, nrmax
+       DO neq = 2, neqmax
           dtr(2:neqmax,neq,nr) &
                =dtr_nc(2:neqmax,neq,nr) &
                +dtr_tb(2:neqmax,neq,nr)
@@ -67,7 +68,12 @@ CONTAINS
                =ctr_ex(2:neqmax,neq,nr)
        END DO
     END DO
-
+    IF(mdleqn == 0)THEN ! contribution from particle flux to energy flux
+       DO nsa = 1, nsamax
+          vtr(3*nsa-1,3*nsa-1,1:nrmax) = &
+                    vtr(3*nsa-1,3*nsa-1,1:nrmax) + vtr_gma(3*nsa-1,1:nrmax)
+       END DO
+    END IF
 
     RETURN
   END SUBROUTINE tr_calc2
@@ -80,19 +86,24 @@ CONTAINS
 !   calculate coefficients for poloidal magnetic diffusion equation
 ! -----------------------------------------------------------------------
     USE trcomm, ONLY: rmu0,nrmax,mdltr_nc, &
-                      dvrho,ttrho,arrho,abb1rho,eta,etam_nc,dtr,htr
+                      dvrho,ttrho,arrho,abb1rho,eta,dtr,htr
     IMPLICIT NONE
     INTEGER(ikind) :: nr
-    REAL(rkind) :: etam,ttrhom,arrhom,dvrhom
+    REAL(rkind) :: dtrbm,dtrbp, etam,ttrhom,dvrhom,arrhom
 
     ! registivity term (half grid)
-    DO nr = 1, nrmax
-       etam   = 0.5d0*(eta(nr)+eta(nr-1))
-       ttrhom = 0.5d0*(ttrho(nr)+ttrho(nr-1))
-       arrhom = 0.5d0*(arrho(nr)+arrho(nr-1))
-       dvrhom = 0.5d0*(dvrho(nr)+dvrho(nr-1))
-       
-       dtr(1,1,nr) = etam*ttrhom/(rmu0*dvrhom*arrhom)
+    DO nr = 0, nrmax
+!!$       etam = 0.5d0*(eta(nr)+eta(nr-1))
+!!$       ttrhom = 0.5d0*(ttrho(nr)+ttrho(nr-1))
+!!$       dvrhom = 0.5d0*(dvrho(nr)+dvrho(nr-1))
+!!$       arrhom = 0.5d0*(arrho(nr)+arrho(nr-1))
+!!$
+!!$       dtr(1,1,nr) = etam*ttrhom/(rmu0*dvrhom*arrhom)
+
+!!$       dtrbm = eta(nr-1)*ttrho(nr-1)/(rmu0*dvrho(nr-1)*arrho(nr-1))
+!!$       dtrbp = eta(nr  )*ttrho(nr  )/(rmu0*dvrho(nr  )*arrho(nr  ))
+!!$       dtr(1,1,nr) = 0.5d0*(dtrbm + dtrbp)
+       dtr(1,1,nr) = eta(nr)*ttrho(nr)/(rmu0*dvrho(nr)*arrho(nr))
     END DO
 
   END SUBROUTINE tr_coefmg
@@ -178,5 +189,53 @@ CONTAINS
 
     RETURN
   END SUBROUTINE tr_calc2_energy_ex
+
+
+  SUBROUTINE tr_calc_particle_flux
+! ------------------------------------------------------------------------
+!
+! ------------------------------------------------------------------------
+    USE trcomm, ONLY: nrmax,neqmax,nsamax,vtr_gma,str,dvrho,rhog,rn,cgmrt, &
+         nrd1, nrd2, nrd3, nrd4
+    IMPLICIT NONE
+
+    REAL(rkind) :: FCTR ! function defined in TASK/lib
+
+    INTEGER(ikind) :: nsa, nr
+    REAL(rkind)    :: drhog,sdvdrm,sdvdrp,sumsdv
+    REAL(rkind),DIMENSION(1:nsamax,0:nrmax) :: gamma
+
+    
+    gamma(1:nsamax,0:nrmax)   = 0.d0
+    vtr_gma(1:neqmax,0:nrmax) = 0.d0
+
+    DO nsa = 1, nsamax
+       sdvdrm = 0.d0
+       sdvdrp = 0.d0
+       sumsdv = 0.d0
+       DO nr = 1, nrmax
+          drhog  = rhog(nr) - rhog(nr-1)
+          sdvdrm = sdvdrp
+          sdvdrp = str(3*nsa-1,nr)*dvrho(nr)
+          sumsdv = sumsdv + (sdvdrm + sdvdrp)*drhog
+
+          gamma(nsa,nr) = sumsdv / dvrho(nr)
+       END DO
+       ! extrapolate the value at the axis
+       gamma(nsa,0) = FCTR(rhog(1),rhog(2),gamma(nsa,1),gamma(nsa,2))
+
+       vtr_gma(3*nsa-1,1:nrmax) = 0.5d0*cgmrt          &
+            * (gamma(nsa,0:nrmax-1)/rn(nsa,0:nrmax-1)  &
+              +gamma(nsa,1:nrmax  )/rn(nsa,1:nrmax  ))
+    END DO
+
+!!$    nrd1(0:nrmax) = gamma(1,0:nrmax)
+!!$    nrd2(0:nrmax) = gamma(2,0:nrmax)
+!!$    nrd3(0:nrmax) = vtr_gma(2,0:nrmax)
+!!$    nrd4(0:nrmax) = vtr_gma(5,0:nrmax)
+
+    RETURN
+  END SUBROUTINE tr_calc_particle_flux
+
 
 END MODULE trcalc2

@@ -1,6 +1,6 @@
 MODULE trsource
 
-  USE trcomm,ONLY: ikind,rkind,neqmax,nrmax
+  USE trcomm,ONLY: ikind,rkind,neqmax,nrmax,nsamax
 
   PRIVATE
   PUBLIC tr_source1,tr_source2
@@ -19,18 +19,18 @@ CONTAINS
     INTEGER(ikind) :: ierr
 
     ! initialization
-    poh(1:2,0:nrmax)  = 0.d0
-    pnb(1:2,0:nrmax)  = 0.d0
-    pec(1:2,0:nrmax)  = 0.d0
-    pic(1:2,0:nrmax)  = 0.d0
-    plh(1:2,0:nrmax)  = 0.d0
-    pibw(1:2,0:nrmax) = 0.d0
-    pnf(1:2,0:nrmax)  = 0.d0
-    prl(1:2,0:nrmax)  = 0.d0
-    pwl(1:2,0:nrmax)  = 0.d0
-    snb(1:2,0:nrmax)  = 0.d0
-    spl(1:2,0:nrmax)  = 0.d0
-    swl(1:2,0:nrmax)  = 0.d0
+!!$    poh(1:2,0:nrmax)  = 0.d0
+!!$    pnb(1:2,0:nrmax)  = 0.d0
+!!$    pec(1:2,0:nrmax)  = 0.d0
+!!$    pic(1:2,0:nrmax)  = 0.d0
+!!$    plh(1:2,0:nrmax)  = 0.d0
+!!$    pibw(1:2,0:nrmax) = 0.d0
+!!$    pnf(1:2,0:nrmax)  = 0.d0
+!!$    prl(1:2,0:nrmax)  = 0.d0
+!!$    pwl(1:2,0:nrmax)  = 0.d0
+!!$    snb(1:2,0:nrmax)  = 0.d0
+!!$    spl(1:2,0:nrmax)  = 0.d0
+!!$    swl(1:2,0:nrmax)  = 0.d0
 
 
     IF(mdluf==1)THEN
@@ -85,7 +85,7 @@ CONTAINS
     SELECT CASE(mdlsrc)
     CASE(0:1) ! conventional heating
 
-!       CALL tr_power_rf
+       CALL tr_power_rf
 
     CASE(6)
 
@@ -106,38 +106,20 @@ CONTAINS
                           + jcd_nb(0:nrmax) + jcd_ec(0:nrmax) &
                           + jcd_ic(0:nrmax) + jcd_lh(0:nrmax)
        CASE(1) ! density
-          IF(nsa == 1)THEN
-             str(neq,0:nrmax) = ( snb(1,0:nrmax)  &
-                                + spl(1,0:nrmax)  &
-                                + swl(1,0:nrmax))*1.d-20
-          ELSE IF(nsa == 2)THEN
-             str(neq,0:nrmax) = ( snb(2,0:nrmax)  &
-                                + spl(2,0:nrmax)  &
-                                + swl(2,0:nrmax))*1.d-20
-          END IF
+          str(neq,0:nrmax) = ( snb(nsa,0:nrmax)  &
+                             + spl(nsa,0:nrmax)  &
+                             + swl(nsa,0:nrmax))*1.d-20
        CASE(2) ! toroidal rotation
        CASE(3) ! energy
-          IF(nsa == 1)THEN ! energy, electron
-             str(neq,0:nrmax) = ( poh(1,0:nrmax)  &
-                                + pnb(1,0:nrmax)  &
-                                + pec(1,0:nrmax)  &
-                                + pic(1,0:nrmax)  &
-                                + plh(1,0:nrmax)  &
-                                + pibw(1,0:nrmax) &
-                                + pnf(1,0:nrmax)  &
-                                - prl(1,0:nrmax)  &
-                                - pwl(1,0:nrmax))/(rkev*1.d20)
-
-          ELSE IF(nsa == 2)THEN ! energy, ion
-             str(neq,0:nrmax) = ( pnb(2,0:nrmax)  &
-                                + pec(2,0:nrmax)  &
-                                + pic(2,0:nrmax)  &
-                                + plh(2,0:nrmax)  &
-                                + pibw(2,0:nrmax) &
-                                + pnf(2,0:nrmax)  &
-                                - prl(2,0:nrmax)  &
-                                - pwl(2,0:nrmax))/(rkev*1.d20)
-          END IF
+          str(neq,0:nrmax) = ( poh(nsa,0:nrmax)  &
+                             + pnb(nsa,0:nrmax)  &
+                             + pec(nsa,0:nrmax)  &
+                             + pic(nsa,0:nrmax)  &
+                             + plh(nsa,0:nrmax)  &
+                             + pibw(nsa,0:nrmax) &
+                             + pnf(nsa,0:nrmax)  &
+                             - prl(nsa,0:nrmax)  &
+                             - pwl(nsa,0:nrmax))/(rkev*1.d20)
        END SELECT
     END DO
 
@@ -206,6 +188,8 @@ CONTAINS
     IMPLICIT NONE
 
     INTEGER(ikind) :: nr
+
+    poh(1:nsamax,0:nrmax) = 0.d0
 
     ! ohmic heating [W/m^3]
     DO nr = 0, nrmax

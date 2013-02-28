@@ -189,12 +189,10 @@ CONTAINS
 
     CALL tr_gr_init_gg
 
-    IF(ngt > 0)THEN
-       ngg_interval = ngt/(MOD(ngt-1,nggmax)+1)
-    ELSE IF(ngt <= 0 )THEN
-       ngg_interval = 1
-    END IF
-    DO ngg = 0, nggmax
+    ngg_interval = ngt / nggmax
+    IF(MOD(ngt,nggmax) /= 0) ngg_interval = ngg_interval + 1
+
+    DO ngg = 0, nggmax-1
        ! thermal diffusivity
        gg1(0:nrmax,ngg) = gvrts(0:nrmax,ngg*ngg_interval,1,7)
        gg2(0:nrmax,ngg) = gvrts(0:nrmax,ngg*ngg_interval,2,7)
@@ -202,6 +200,12 @@ CONTAINS
        gg3(0:nrmax,ngg) = gvrts(0:nrmax,ngg*ngg_interval,1,5)
        gg4(0:nrmax,ngg) = gvrts(0:nrmax,ngg*ngg_interval,2,5)
     END DO
+       ! thermal diffusivity
+       gg1(0:nrmax,nggmax) = gvrts(0:nrmax,ngt,1,7)
+       gg2(0:nrmax,nggmax) = gvrts(0:nrmax,ngt,2,7)
+       ! particle diffusivity
+       gg3(0:nrmax,nggmax) = gvrts(0:nrmax,ngt,1,5)
+       gg4(0:nrmax,nggmax) = gvrts(0:nrmax,ngt,2,5)
 
     CALL PAGES
     label = '@add_Net(nT(1)) vs rho@'

@@ -193,12 +193,13 @@ CONTAINS
 !---------------------------------------------------------------------------
 !        Radial Electric Field (on grid)
 !---------------------------------------------------------------------------
-    USE trcomm, ONLY: nrmax,aee,bb,bp,rg,rt,rn,rg,rm,er, &
+    USE trcomm, ONLY: nrmax,aee,bb,bp,abb1rho,rhog,rt,rn,rg,rm,er,erg, &
          pa,pz,mdler,vtor,vpol,rp_d
+    USE trlib, ONLY: mesh_rem2g
 
     IMPLICIT NONE
     INTEGER(ikind) :: nr
-    REAl(rkind) :: term_dp
+    REAl(rkind) :: term_dp,cm,cp
 
     DO nr = 1, nrmax
 
@@ -233,10 +234,11 @@ CONTAINS
           er(nr) = term_dp
        ELSE IF(mdler.EQ.1) THEN
           ! nabla p + toroidal rotation (V_tor)
-          er(nr) = term_dp+vtor(nr)*bp(nr)
+          er(nr) = term_dp+0.5d0*(vtor(nr)*bp(nr)+vtor(nr-1)*bp(nr-1))
        ELSE IF(mdler.EQ.2) THEN
           ! nabla p + V_tor + poloidal rotation (V_pol) *** typical ER ***
-          er(nr) = term_dp+vtor(nr)*bp(nr)-vpol(nr)*bb
+          er(nr) = term_dp+0.5d0*(vtor(nr)*bp(nr)+vtor(nr-1)*bp(nr-1)) &
+                  -0.5d0*(vpol(nr)*abb1rho(nr)+vpol(nr-1)*abb1rho(nr-1))
 !       ELSEIF(MDLER.EQ.3) THEN
 !          !     Waltz definition
 !          EPS = EPSRHO(NR)
@@ -260,8 +262,9 @@ CONTAINS
 !          ER(NR) =-BB*( (TIL/TEL)*RHO_S*CS*(RLNI+ALPHA_NEO*RLTI)-EPS/QP(NR)*\
 !          VTOR(NR))
        ENDIF
-
     ENDDO
+
+    CALL mesh_rem2g(rhog,er(1:nrmax),erg,nrmax,0,1)
 
     RETURN
   END SUBROUTINE tr_calc_er
@@ -272,8 +275,7 @@ CONTAINS
 !       E x B velocity and velocity shear
 ! --------------------------------------------------------------------------
     USE trcomm, ONLY: nrmax,RR,rhog,rhom,BB,dpdrho,bp,er, &
-         vexbp,dvexbpdr,wexbp, &
-         nrd1,nrd2,nrd3,nrd4
+         vexbp,dvexbpdr,wexbp!, nrd1,nrd2,nrd3,nrd4
 
     IMPLICIT NONE
     INTEGER(ikind) :: nr
@@ -321,9 +323,6 @@ CONTAINS
        ! wexbp(nr) = RR*bp(nr)*dvexbpdr(nr)/BB
 
     END DO
-
-    nrd3(0:nrmax) = bp(0:nrmax)
-    nrd4(1:nrmax) = dpvexbp(1:nrmax)
 
     RETURN
   END SUBROUTINE tr_calc_exb

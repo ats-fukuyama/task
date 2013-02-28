@@ -1,17 +1,18 @@
 MODULE truf0d
   USE uflist, ONLY: uf0d
-  USE trcomm, ONLY: ikind, rkind, nsum,ntum,nrum,ntxmax
+  USE trcomm, ONLY: ikind, rkind, nsum,ntum,nrum
 
   IMPLICIT NONE
 
   PUBLIC
+  PRIVATE tr_uf_check_species
 
   LOGICAL,DIMENSION(1:nsum) :: idnm,idnfast,idnmaz,idnfastaz
   LOGICAL,DIMENSION(1:2)    :: idzeff
   LOGICAL                   :: idpgasa,idpgasz,idpimpa,idpimpz
 
   CHARACTER(LEN=15) :: toknam,shotnum,auxheat,phase,itb,itbtype
-  REAL(rkind) :: pgasa,pgasz,pimpa,pimpz, itbtime
+  REAL(rkind)       :: itbtime
 
 CONTAINS
 
@@ -35,9 +36,13 @@ CONTAINS
           RETURN
        END IF
 
+       CALL tr_uf_get_mainpapz
+
        CALL tr_uf_check_species
 
-       CALL tr_uf_get_papz
+       CALL tr_uf_get_nspapz
+
+       CALL tr_uf_main_ions(ierr)
 
     ENDIF
 
@@ -47,12 +52,69 @@ CONTAINS
 ! ***********************************************************************
 ! ***********************************************************************
 
+  SUBROUTINE tr_uf_get_mainpapz
+! ------------------------------------------------------------------------
+!   - Set the atomic number and the charge number of main ion and impurity
+!     ** default main ion: deuterium
+!     ** default main impurity: carbon
+! ------------------------------------------------------------------------
+    USE trcomm, ONLY: pa_mion,pz_mion,pa_mimp,pz_mimp
+    IMPLICIT NONE
+
+    INTEGER(ikind) :: ierr
+
+    idpgasa = uf0d(107)%lex
+    idpgasz = uf0d(108)%lex
+    idpimpa = uf0d(112)%lex
+    idpimpz = uf0d(113)%lex
+
+    pa_mion = uf0d(107)%fr0 ! PGASA: 'mean' mass number of the plasma ions
+    pz_mion = uf0d(108)%fr0 ! PGASZ: 'mean' charge number of the plasma ions
+    pa_mimp = uf0d(112)%fr0 ! PIMPA: mass number of the plasma main impurity
+    pz_mimp = uf0d(113)%fr0 ! PIMPZ: charge number of the plasma main impurity
+
+    ! Determination of main ion which is used for correction of profile.
+    IF(idpgasa .EQV. .FALSE. .OR. idpgasz .EQV. .FALSE.)THEN
+       pa_mion = 2.d0
+       pz_mion = 1.d0 ! Deuterium: defalut
+
+    ELSE
+       CALL tr_uf_identify_ions(pa_mion,pz_mion,ierr)
+       IF(ierr /= 0)THEN
+          WRITE(6,'(1X,A,A5,A2,A5,A)') &
+               '++ Warning: ',uf0d(107)%kfid,', ',uf0d(108)%kfid,' in 0d.dat file'
+          IF(ierr == -1) STOP
+       END IF
+
+    END IF
+
+    ! Determination of main impurity which is used for correction of profile.
+    IF(idpimpa .EQV. .FALSE. .OR. idpimpz .EQV. .FALSE.)THEN
+       pa_mimp = 12.d0
+       pz_mimp = 6.d0 ! Carbon: default
+
+    ELSE
+       CALL tr_uf_identify_ions(pa_mimp,pz_mimp,ierr)
+       IF(ierr /= 0)THEN
+          WRITE(6,'(1X,A,A5,A2,A5,A)') &
+               '++ Warning: ',uf0d(112)%kfid,', ',uf0d(113)%kfid,' in 0d.dat file'
+          IF(ierr == -1) STOP
+       END IF
+
+    END IF
+
+    RETURN
+  END SUBROUTINE tr_uf_get_mainpapz
+
+! ***********************************************************************
+
   SUBROUTINE tr_uf_check_species
 ! ------------------------------------------------------------------------ 
 !   *** Checking whether impurity exists ***
 !
 !   This subrouitne must be called after 'tr_uf0d' is called.
 ! ------------------------------------------------------------------------
+    USE trcomm, ONLY: pa_mion, pz_mion
     USE ufinit, ONLY: ufile_inquire
     IMPLICIT NONE
 
@@ -61,7 +123,10 @@ CONTAINS
     CHARACTER(LEN=100) :: kfile, kfileb ! dummy for 'ufile_inquire'
     CHARACTER(LEN=10)  :: kfid, kufdim
     CHARACTER(LEN=1)   :: knum
-    INTEGER(ikind)     :: num, nsi, id_bin, errout, ierr
+    INTEGER(ikind)     :: num,nsi,id_bin,errout, ierr1,ierr2,nsi1,nsi2
+
+    ierr1 = 0
+    ierr2 = 0
 
     id_bin = 2 ! confirm the existence of only ASCII file
     errout = 1 ! suppress the error message in checking the existence of UFILE
@@ -75,8 +140,8 @@ CONTAINS
     kufdim = '2d'
 
     kfid = 'NE'
-    CALL ufile_inquire(kufdim,kfid,kfile,kfileb,id_bin,errout,ierr)
-    IF(ierr == 0)THEN
+    CALL ufile_inquire(kufdim,kfid,kfile,kfileb,id_bin,errout,ierr1)
+    IF(ierr1 == 0)THEN
        idnm(1)   = .TRUE.
        idnmaz(1) = .TRUE.
     END IF
@@ -86,28 +151,28 @@ CONTAINS
 
        ! NMn
        kfid = 'NM'//knum
-       CALL ufile_inquire(kufdim,kfid,kfile,kfileb,id_bin,errout,ierr)
-       IF(ierr == 0) idnm(nsi) = .TRUE.
+       CALL ufile_inquire(kufdim,kfid,kfile,kfileb,id_bin,errout,ierr1)
+       IF(ierr1 == 0) idnm(nsi) = .TRUE.
 
        ! NFASTn
        kfid = 'NFAST'//knum
-       CALL ufile_inquire(kufdim,kfid,kfile,kfileb,id_bin,errout,ierr)
-       IF(ierr == 0) idnfast(nsi) = .TRUE.
+       CALL ufile_inquire(kufdim,kfid,kfile,kfileb,id_bin,errout,ierr1)
+       IF(ierr1 == 0) idnfast(nsi) = .TRUE.
     END DO
 
     kfid = 'ZEFFR'
-    CALL ufile_inquire(kufdim,kfid,kfile,kfileb,id_bin,errout,ierr)
-    IF(ierr == 0) idzeff(1) = .TRUE.
+    CALL ufile_inquire(kufdim,kfid,kfile,kfileb,id_bin,errout,ierr1)
+    IF(ierr1 == 0) idzeff(1) = .TRUE.
 
 
     kufdim = '1d'
     kfid   = 'ZEFF'
-    CALL ufile_inquire(kufdim,kfid,kfile,kfileb,id_bin,errout,ierr)
-    IF(ierr == 0) idzeff(2) = .TRUE.
+    CALL ufile_inquire(kufdim,kfid,kfile,kfileb,id_bin,errout,ierr1)
+    IF(ierr1 == 0) idzeff(2) = .TRUE.
 
 
-
-    ierr = 0
+    ierr1 = 0
+    ierr2 = 0
 
     DO nsi = 2, nsum
        num = (nsi-2)*2 + 68 ! see uf0d list: NFAST1A ~ NFAST9Z
@@ -128,16 +193,52 @@ CONTAINS
 
        ! The species can not be idetified in the following case.
        IF(idnfast(nsi).EQV. .TRUE. .AND. idnfastaz(nsi).EQV. .FALSE.)THEN
-          ierr = ierr + 10**(nsi-2)
+          ierr1 = ierr1 + 1
+          nsi1  = nsi
        END IF
        IF(idnm(nsi).EQV. .TRUE. .AND. idnmaz(nsi).EQV. .FALSE.)THEN
-          ierr = ierr + 2*10**(nsi-2)
+          ierr2 = ierr2 + 1
+          nsi2  = nsi
        END IF
     END DO
-    
-    IF(ierr /= 0)THEN
+
+    ! complete atomic and charge numbers when the lacking data 
+    !  is only one species in the presence of PGASA and PGASZ data.
+    IF(ierr1 == 1 )THEN
+       idnfastaz(nsi1) = .TRUE.
+       num = (nsi1-2)*2 + 68
+
+       uf0d(num)%lex   = .TRUE.
+       uf0d(num+1)%lex = .TRUE.
+       uf0d(num)%fr0   = pa_mion
+       uf0d(num+1)%fr0 = pz_mion
+       WRITE(6,*) ! spacing
+       WRITE(6,*) '## tr_uf_check_species: beam ion information does not exist.'
+       WRITE(6,'(1X,A21,I1,A2,ES9.2,A7,I1,A2,ES9.2)') &
+               '## completed as NFAST',nsi1-1,'A=',pa_mion, &
+                            '  NFAST',nsi1-1,'Z=',pz_mion
+       ierr1 = 0
+    END IF
+
+    IF(ierr2 == 1 )THEN
+       idnmaz(nsi2) = .TRUE.
+       num = (nsi2-2)*2 + 86
+
+       uf0d(num)%lex   = .TRUE.
+       uf0d(num+1)%lex = .TRUE.
+       uf0d(num)%fr0   = pa_mion
+       uf0d(num+1)%fr0 = pz_mion
+       WRITE(6,*) ! spacing
+       WRITE(6,*) '## tr_uf_check_species: main ion information does not exist.'
+       WRITE(6,'(1X,A18,I1,A2,ES9.2,A4,I1,A2,ES9.2)')   &
+               '## completed as NM',nsi2-1,'A=',pa_mion, &
+                            '  NM',nsi2-1,'Z=',pz_mion
+       ierr2 = 0
+    END IF
+
+    IF(ierr1 /= 0 .OR. ierr2 /= 0)THEN
        WRITE(6,*) 'XX tr_uf_check_species: NO consistency in species data.'
-       WRITE(6,*) 'XX IERR= ',ierr
+       WRITE(6,'(1X,A11,I2,A10,I2)') 'XX IERR1 = ',ierr1,'  IERR2 = ',ierr2
        RETURN
     END IF
 
@@ -147,18 +248,17 @@ CONTAINS
 
 ! **********************************************************************
 
-  SUBROUTINE tr_uf_get_papz
+  SUBROUTINE tr_uf_get_nspapz
 ! ----------------------------------------------------------------------
-!   set the atomic number and the charge number of species which are
-!    contained in experimental data
-!
-!   setup the conversion table of (nsu --> nsa)
+!   - Set the atomic number and the charge number of species which are
+!      contained in experimental data
 ! ----------------------------------------------------------------------
     USE trcomm, ONLY: ame,amp,pau,pzu,pafu,pzfu
-
     IMPLICIT NONE
-    INTEGER(ikind)    :: nsi, num
+    INTEGER(ikind)    :: nsi, num, ierr
     REAL(rkind)       :: pans, pzns
+
+    ierr = 0
 
     ! electron
     pau(1) = ame/amp
@@ -170,7 +270,12 @@ CONTAINS
           num = (nsi-2)*2 + 86 ! see uf0d list: NM1A ~ NM9Z
           pans = uf0d(num)%fr0
           pzns = uf0d(num+1)%fr0
-          CALL tr_uf_identify_ions(pans,pzns)
+          CALL tr_uf_identify_ions(pans,pzns,ierr)
+          IF(ierr /= 0)THEN
+             WRITE(6,'(1X,A,A4,A2,A4,A)') &
+             '++ Warning: ',uf0d(num)%kfid,', ',uf0d(num+1)%kfid,' in 0d.dat file'
+             IF(ierr == -1) STOP
+          END IF
           pau(nsi) = pans
           pzu(nsi) = pzns
        END IF
@@ -185,71 +290,179 @@ CONTAINS
           num  = (nsi-2)*2 + 68 ! see uf0d list: NFAST1A ~ NFAST9Z
           pans = uf0d(num)%fr0
           pzns = uf0d(num+1)%fr0
-          CALL tr_uf_identify_ions(pans,pzns)
+          CALL tr_uf_identify_ions(pans,pzns,ierr)
+          IF(ierr /= 0)THEN
+             WRITE(6,'(1X,A,A7,A2,A7,A)') &
+             '++ Warning: ',uf0d(num)%kfid,', ',uf0d(num+1)%kfid,' in 0d.dat file'
+             IF(ierr == -1) STOP
+          END IF
           pafu(nsi) = pans
           pzfu(nsi) = pzns       
        END IF
     END DO
-
-    idpgasa = uf0d(107)%lex
-    idpgasz = uf0d(108)%lex
-    idpimpa = uf0d(112)%lex
-    idpimpz = uf0d(113)%lex
-
-    pgasa = uf0d(107)%fr0 ! 'mean' mass number of the plasma ions
-    pgasz = uf0d(108)%fr0 ! 'mean' charge number of the plasma ions
-    pimpa = uf0d(112)%fr0 ! mass number of the plasma main impurity
-    pimpz = uf0d(113)%fr0 ! charge number of the plasma main impurity
-
        
     RETURN
-  END SUBROUTINE tr_uf_get_papz
+  END SUBROUTINE tr_uf_get_nspapz
 
 ! ************************************************************************
 
-  SUBROUTINE tr_uf_identify_ions(pans,pzns)
+  SUBROUTINE tr_uf_main_ions(ierr)
+! ------------------------------------------------------------------------
+!   check of the existence of main ion and impurity profile data
+! ------------------------------------------------------------------------
+    USE trcomm, ONLY: mdlni,pau,pzu,pzfu,nsu_mion,nsu_mimp,nsu_fion, &
+                      pa_mion,pz_mion,pa_mimp,pz_mimp
+    IMPLICIT NONE
+
+    INTEGER(ikind),INTENT(OUT)   :: ierr
+    INTEGER(ikind) :: nsi,id_mion,id_mimp,id_fion
+
+    ierr   = 0
+
+    id_mion = .FALSE.
+    id_mimp = .FALSE.
+    id_fion = .FALSE.
+
+    nsu_mion = 0
+    nsu_mimp = 0
+    nsu_fion = 0
+
+    DO nsi = 2, nsum
+       IF(idnm(nsi))THEN
+          IF(pzu(nsi) == pz_mion .AND. pau(nsi) == pa_mion)THEN
+             id_mion = .TRUE.
+             nsu_mion = nsi
+          ELSE IF(pzu(nsi) == pz_mimp .AND. pau(nsi) == pa_mimp)THEN
+             id_mimp = .TRUE.
+             nsu_mimp = nsi
+          END IF
+       END IF
+       IF(idnfast(nsi) .EQV. .TRUE.)THEN
+          id_fion = .TRUE.
+          nsu_fion = nsi ! for now, just identifier of the existence
+       END IF
+    END DO
+
+    ! the case that the main ion density data can not be found.
+    IF(id_mion .EQV. .FALSE.)THEN
+       DO nsi = 2, nsum
+          IF(idnm(nsi) .EQV. .FALSE.)THEN
+             idnmaz(nsi) = .TRUE.
+
+             nsu_mion = nsi
+             pzu(nsu_mion) = pz_mion
+             pau(nsu_mion) = pa_mion
+             EXIT
+          END IF
+          IF(nsi==nsum)THEN
+             WRITE(6,*) 'XX tr_uf_main_ions: No blank in UFILE array.'
+             WRITE(6,*) 'XX Stopped to correction of profiles by neutrality.'
+             ierr = 1
+             RETURN
+          ENDIF
+       END DO
+    END IF
+
+    ! the case that the main impurity density data can not be found.
+    IF(id_mimp .EQV. .FALSE.)THEN
+       DO nsi = 3, nsum ! nsi = 2: impurity data should not be stored.
+          IF(idnm(nsi) .EQV. .FALSE.)THEN
+             idnmaz(nsi) = .TRUE.
+
+             nsu_mimp = nsi
+             pzu(nsu_mimp) = pz_mimp
+             pau(nsu_mimp) = pa_mimp
+             EXIT
+          END IF
+          IF(nsi==nsum)THEN
+             WRITE(6,*) 'XX tr_uf_main_ions: No blank in UFILE array.'
+             WRITE(6,*) 'XX Stopped to correction of profiles by neutrality.'
+             ierr = 1
+             RETURN
+          ENDIF
+       END DO
+    END IF
+
+    RETURN
+  END SUBROUTINE tr_uf_main_ions
+
+! ************************************************************************
+
+  SUBROUTINE tr_uf_identify_ions(pans,pzns,ierr)
 ! -----------------------------------------------------------------------
 !   Identify the atomic number and the charge number of ions
+!
+!   ierr =  0 : no error
+!        =  1 : high charged impurity is detected, and is reset as defalut
+!               impurity element (carbon) for now.
+!        = -1 : fatal error; element cannot be identified
 ! -----------------------------------------------------------------------
     IMPLICIT NONE
-    REAL(rkind),INTENT(INOUT) :: pans, pzns
+    REAL(rkind),INTENT(INOUT)  :: pans, pzns
+    INTEGER(ikind),INTENT(OUT) :: ierr
 
-    IF(0.9d0 < pzns .AND. pzns < 1.1d0)THEN
+    REAL(rkind) :: eps
+
+    eps = 0.2d0 ! allowance to identify the element
+    ierr = 0
+
+    IF(1.d0-eps < pzns .AND. pzns < 1.d0+eps)THEN
        pzns = 1.d0 ! hydrogenic ions
 
-       IF(0.9d0 < pans .AND. pans < 1.1d0)THEN
+       IF(1.d0-eps < pans .AND. pans < 1.d0+eps)THEN
           pans = 1.d0 ! H
 
-       ELSE IF(1.9d0 < pans .AND. pans < 2.1d0)THEN
+       ELSE IF(2.d0-eps < pans .AND. pans < 2.d0+eps)THEN
           pans = 2.d0 ! D
 
-       ELSE IF(2.9d0 < pans .AND. pans < 3.1d0)THEN
+       ELSE IF(3.d0-eps < pans .AND. pans < 3.d0+eps)THEN
           pans = 3.d0 ! T
        END IF
 
-    ELSE IF(1.9d0 < pzns .AND. pzns < 2.1d0)THEN
-       pans = 4.d0
-       pzns = 2.d0 ! He
+    ELSE IF(2.d0-eps < pzns .AND. pzns < 2.d0+eps)THEN
+       pzns = 2.d0
 
-    ELSE IF(2.9d0 < pzns .AND. pzns < 3.1d0)THEN
-       pans = 6.d0
+       IF(3.d0-eps < pans .AND. pans < 3.d0+eps)THEN
+          pans = 3.d0 ! He3
+       ELSE IF(4.d0-eps < pans .AND. pans < 4.d0+eps)THEN
+          pans = 4.d0 ! He4
+       END IF
+
+    ELSE IF(3.d0-eps < pzns .AND. pzns < 3.d0+eps)THEN
        pzns = 3.d0 ! Li             
+       pans = 6.d0
 
-    ELSE IF(3.9d0 < pzns .AND. pzns < 4.1d0)THEN
-       pans = 8.d0
+    ELSE IF(4.d0-eps < pzns .AND. pzns < 4.d0+eps)THEN
        pzns = 4.d0 ! Be
+       pans = 8.d0
 
-    ELSE IF(4.9d0 < pzns .AND. pzns < 5.1d0)THEN
-       pans = 10.d0
+    ELSE IF(5.d0-eps < pzns .AND. pzns < 5.d0+eps)THEN
        pzns = 5.d0 ! B
+       pans = 10.d0
 
-    ELSE IF(5.9d0 < pzns .AND. pzns < 6.1d0)THEN
-       pans = 12.d0
+    ELSE IF(6.d0-eps < pzns .AND. pzns < 6.d0+eps)THEN
        pzns = 6.d0 ! C
+       pans = 12.d0
+
+    ELSE IF( pzns > 6.d0)THEN
+       ! other impurity; for now, set to defalut impurity: carbon
+       ierr = 1   ! correction
+       WRITE(6,*) ! line break
+       WRITE(6,*) 'XX tr_uf_identify_ions: unsupported impurity element.'
+       WRITE(6,'(1X,A,ES9.2,A8,ES9.2)') &
+                  'XX unknown element: PZ = ',pzns, '   PA = ',pans
+       pzns = 6.d0 ! C
+       pans = 12.d0
+       WRITE(6,*) '## tr_uf_identify_ions: set to defalut impurity values.'
+       WRITE(6,'(1X,A,ES9.2,A8,ES9.2)') &
+                  '## replaced element: PZ = ',pzns, '   PA = ',pans
 
     ELSE
-       ! other impurity
-       CONTINUE
+       ierr = -1  ! fatal error
+       WRITE(6,*) ! line break
+       WRITE(6,*) 'XX tr_uf_identify_ions: cannot identify the element.'
+       WRITE(6,'(1X,A,ES9.2,A8,ES9.2)') &
+                  'XX unknown element: PZ = ',pzns, '   PA = ',pans
     END IF
 
     RETURN
@@ -274,7 +487,7 @@ CONTAINS
     nsa_nsfu(1) = 0 ! dummy
 
     exp: DO nsi = 2, nsum
-       IF(idnm(nsi))THEN
+       IF(idnmaz(nsi))THEN
           sim: DO nsa = 2, nsamax
              ns = ns_nsa(nsa)
              IF(idion(ns) == 0.d0)THEN ! bulk ions
@@ -293,11 +506,11 @@ CONTAINS
     END DO exp
 
     expf: DO nsi = 2, nsum
-       IF(idnfast(nsi))THEN
+       IF(idnfastaz(nsi))THEN
           simf: DO nsa = 2, nsamax
              ns = ns_nsa(nsa)
              IF(idion(ns) /= 0.d0)THEN ! fast ions
-                IF(pzu(nsi) == pz(ns) .AND. pau(nsi) == pa(ns))THEN
+                IF(pzfu(nsi) == pz(ns) .AND. pafu(nsi) == pa(ns))THEN
                    nsa_nsfu(nsi) = nsa
                    EXIT
                 END IF
@@ -316,8 +529,40 @@ CONTAINS
 
 ! ************************************************************************
 
+  SUBROUTINE tr_uf0dget_global(kfid,glbu)
+!-------------------------------------------------------------------------
+!   alternative routine for get global data in the absence of 1d.dat file
+!-------------------------------------------------------------------------
+    USE trcomm, ONLY: ntum,mdlxp
+    IMPLICIT NONE
+
+    CHARACTER(LEN=10),            INTENT(IN)  :: kfid
+    REAL(rkind),DIMENSION(1:ntum),INTENT(OUT) :: glbu
+
+    IF(mdlxp == 0)THEN ! UFILE
+       IF(TRIM(kfid) == 'AMIN')THEN
+          glbu(1:ntum)   = uf0d(1)%fr0
+       ELSE IF(TRIM(kfid) == 'RGEO')THEN
+          glbu(1:ntum)   = uf0d(128)%fr0
+       ELSE IF(TRIM(kfid) == 'BT')THEN
+          glbu(1:ntum)   = uf0d(15)%fr0
+       ELSE IF(TRIM(kfid) == 'KAPPA')THEN
+          glbu(1:ntum) = uf0d(56)%fr0
+       ELSE IF(TRIM(kfid) == 'DELTA')THEN
+          glbu(1:ntum) = uf0d(19)%fr0
+       ELSE IF(TRIM(kfid) == 'IP')THEN
+          glbu(1:ntum) = uf0d(51)%fr0
+       END IF
+    END IF
+
+    RETURN
+  END SUBROUTINE tr_uf0dget_global
+
+! ************************************************************************
+
   SUBROUTINE tr_ufile_0d_view
-    USE trcomm, ONLY: mdlxp,pau,pzu,pafu,pzfu
+    USE trcomm, ONLY: mdlxp,pau,pzu,pafu,pzfu, &
+                      pa_mion,pz_mion,pa_mimp,pz_mimp
     IMPLICIT NONE
 
     CHARACTER(LEN=10) :: kfid
@@ -344,7 +589,7 @@ CONTAINS
 
        WRITE(6,'(1X,A12)',ADVANCE='NO') 'Bulk ions : '
        DO nsi = 2, nsum
-          IF(idnm(nsi))THEN
+          IF(idnmaz(nsi))THEN
              WRITE(knum,'(I1)') nsi-1
              kfid = 'NM'//knum
              WRITE(6,'(A6)',ADVANCE='NO') TRIM(kfid)
@@ -372,7 +617,7 @@ CONTAINS
        WRITE(6,*) ! line break
        WRITE(6,'(1X,A12)',ADVANCE='NO') 'Fast ions : '
        DO nsi = 2, nsum
-          IF(idnfast(nsi))THEN
+          IF(idnfastaz(nsi))THEN
              WRITE(knum,'(I1)') nsi-1
              kfid = 'NFAST'//knum
              WRITE(6,'(A6)',ADVANCE='NO') TRIM(kfid)
@@ -399,8 +644,8 @@ CONTAINS
        END DO
        WRITE(6,*) ! line break
        
-       WRITE(6,fmt_arar) 'PGASA    = ',pgasa,  'PGASZ    = ',pgasz
-       WRITE(6,fmt_arar) 'PIMPA    = ',pimpa,  'PIMPZ    = ',pimpz
+       WRITE(6,fmt_arar) 'PGASA    = ',pa_mion,  'PGASZ    = ',pz_mion
+       WRITE(6,fmt_arar) 'PIMPA    = ',pa_mimp,  'PIMPZ    = ',pz_mimp
        WRITE(6,fmt_aa) 'Auxiliary heating   : ',auxheat
        WRITE(6,fmt_aa) 'Plasma phase        : ',phase
        WRITE(6,'(1X,A22,A15,A1,A15)') &

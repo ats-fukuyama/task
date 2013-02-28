@@ -4,7 +4,7 @@ MODULE trufile
 ! ------------------------------------------------------------------------
 
   USE trcomm, ONLY: ikind,rkind,ntum,nrum,nsum, &
-       nrmax,dt,rhog,rhom,mdlxp,ndmax,ntxmax,ntlmax,tlmax,time_slc,ufid_bin
+       nrmax,dt,rhog,rhom,mdlxp,ndmax,ntxmax,tlmax,time_slc,ufid_bin
 
   USE truf0d,ONLY: idnm,idnfast,idnmaz,idnfastaz,idzeff
   IMPLICIT NONE
@@ -18,15 +18,16 @@ MODULE trufile
 CONTAINS
 
   SUBROUTINE tr_ufile(ierr)
-    USE ufinit, ONLY: ufile_init
-    USE truf0d, ONLY: tr_uf0d,tr_ufile_0d_view,tr_uf_set_table
+    USE ufinit,  ONLY: ufile_init
+    USE trufsub, ONLY: tr_uf_time_slice
+    USE truf0d,  ONLY: tr_uf0d,tr_ufile_0d_view,tr_uf_set_table
     USE trufcalc,ONLY: tr_uf_nicomplete
-    USE trcomm, ONLY: kuf_dir,kuf_dcg,kuf_dev,nrmax,ntmax,tmu, &
-                      mdluf,mdlgmt,mdlsrc,mdlglb
+    USE trcomm,  ONLY: kuf_dir,kuf_dcg,kuf_dev,nrmax,ntmax,tmu, &
+                       mdluf,mdlgmt,mdlsrc,mdlglb
     IMPLICIT NONE
 
-    INTEGER(ikind),INTENT(OUT) :: ierr
-    INTEGER(ikind) :: id_mesh,id_deriv
+    INTEGER(ikind),INTENT(OUT) :: ierr ! -1: fatal error
+    INTEGER(ikind) :: id_mesh,id_deriv, dumntx
 
     ! locating experimental data directory and initialization (TASK/lib)
     IF(mdlxp == 0)THEN
@@ -41,6 +42,7 @@ CONTAINS
     IF(ierr /= 0)THEN
        WRITE(6,*) 'XX Preparation for reading UFILE failed.'
        WRITE(6,*) 'XX Stop reading UFILEs. IERR= ',ierr
+       ierr = -1
        RETURN
     END IF
 
@@ -49,7 +51,6 @@ CONTAINS
     tlsave  = 0
 
     ntxmax = 0
-    ntlmax = 0
     tlmax  = 0.d0
 
     id_mesh  = 0 ! integer mesh
@@ -84,9 +85,25 @@ CONTAINS
 
     CALL tr_ufget_field(id_mesh,id_deriv,ierr)
 
+
     ! load time array; save 'tmu' array in reading (KFID = NE)
     tmu(1:ntum) = tmu_save(1:ntum)
+    IF(mdluf==1)THEN
+       ! get the initial time from the exp. data at an arbitrary moment
+       CALL tr_uf_time_slice(time_slc,tmu,ntxmax,dumntx)
 
+    ELSE IF(mdluf==2 .AND. ntxmax==1)THEN
+       mdluf = 1
+       IF(mdlglb == 7) mdlglb = 6
+       IF(mdlsrc == 7) mdlsrc = 6
+       IF(mdlgmt == 7) mdlgmt = 6
+
+       WRITE(6,*) ! spacing
+       WRITE(6,*) '## tr_ufile: experimental data has only one point time data.'
+       WRITE(6,'(1X,A,I2)') '## MDLUF is replaced. MDLUF= ',mdluf
+    END IF
+
+    
     WRITE(6,*) ! spacing
     CALL tr_uf_nicomplete
 
@@ -110,6 +127,7 @@ CONTAINS
 !   ***  and substitute them into TASK/TR variables         ***
 ! ------------------------------------------------------------------------
     USE trufsub,ONLY: tr_uf1d,tr_uftl_check
+    USE truf0d,ONLY: tr_uf0dget_global
     USE trcomm,ONLY: tmu,rru,rau,bbu,rkapu,rdltu,phiau,wthu,wtotu
 
     IMPLICIT NONE
@@ -118,7 +136,8 @@ CONTAINS
     CHARACTER(LEN=10) :: kfid
     INTEGER(ikind)    :: errout
 
-    errout = 0 ! write inquire error message to standard output
+!    errout    = 0 !     write inquire error message to standard output
+    errout    = 1 ! not write inquire error message to standard output
 
     ! ***  1D data  ***
 
@@ -126,18 +145,24 @@ CONTAINS
     CALL tr_uf1d(kfid,tmu,rru,ntxmax,mdlxp,ufid_bin,errout,ierr)
     IF(ierr == 0)THEN
        CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
+    ELSE
+       CALL tr_uf0dget_global(kfid,rru)
     END IF
 
     kfid = 'AMIN' ! --> rau
     CALL tr_uf1d(kfid,tmu,rau,ntxmax,mdlxp,ufid_bin,errout,ierr)
     IF(ierr == 0)THEN
        CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
+    ELSE
+       CALL tr_uf0dget_global(kfid,rau)
     END IF
 
     kfid = 'BT' ! --> bbu
     CALL tr_uf1d(kfid,tmu,bbu,ntxmax,mdlxp,ufid_bin,errout,ierr)
     IF(ierr == 0)THEN
        CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
+    ELSE
+       CALL tr_uf0dget_global(kfid,bbu)
     END IF
 
 !      IF(KUFDEV.EQ.'tftr' .AND. &
@@ -148,13 +173,19 @@ CONTAINS
     CALL tr_uf1d(kfid,tmu,rkapu,ntxmax,mdlxp,ufid_bin,errout,ierr)
     IF(ierr == 0)THEN
        CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
+    ELSE
+       CALL tr_uf0dget_global(kfid,rkapu)
     END IF
 
     kfid = 'DELTA' ! --> rdltu
     CALL tr_uf1d(kfid,tmu,rdltu,ntxmax,mdlxp,ufid_bin,errout,ierr)
     IF(ierr == 0)THEN
        CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
+    ELSE
+       CALL tr_uf0dget_global(kfid,rdltu)
     END IF
+
+    errout = 1
 
     kfid = 'PHIA' ! --> phiau
     CALL tr_uf1d(kfid,tmu,phiau,ntxmax,mdlxp,ufid_bin,errout,ierr)
@@ -317,7 +348,9 @@ CONTAINS
 !
 ! ------------------------------------------------------------------------
     USE trufsub,ONLY: tr_uf1d,tr_uf2d,tr_uftl_check
-    USE trcomm,ONLY: tmu,ripu,qpu,jtotu,bpu,jnbu,jecu,jicu,jlhu,jbsu, mdlijq
+    USE truf0d,ONLY: tr_uf0dget_global
+    USE trcomm,ONLY: tmu,ripu,qpu,jtotu,bpu,jnbu,jecu,jicu,jlhu,jbsu, &
+                     mdlijq,mdltr_jbs
     IMPLICIT NONE
 
     INTEGER(ikind),INTENT(IN)  :: id_mesh,id_deriv
@@ -360,7 +393,9 @@ CONTAINS
     IF(ierr == 0)THEN
        CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
     ELSE
-       IF(mdlijq <= 2)THEN
+       IF(ntxmax==1)THEN
+          CALL tr_uf0dget_global(kfid,ripu)
+       ELSE IF(mdlijq <= 2)THEN
           mdlijq = mdlijq + 2
           WRITE(6,*) 'XX tr_ufget_field: IP evolution data is not exist.'
           WRITE(6,*) '## MDLIJQ is replaced. MDLIJQ= ', mdlijq
@@ -412,6 +447,10 @@ CONTAINS
                  id_mesh,id_deriv,errout,ierr)
     IF(ierr == 0)THEN
        CALL tr_uftl_check(kfid,tmu,ntxmax,tlmax,dt,tlcheck,tlsave)
+    ELSE IF(mdltr_jbs==9)THEN
+          WRITE(6,*) 'XX tr_ufget_field: bootstrap current data does not exist.'
+          mdltr_jbs = 2 ! default: Sauter model
+          WRITE(6,'(1X,A39,I3)') 'XX  "mdltr_jbs" is reset to mdltr_jbs =',mdltr_jbs
     END IF
 
     RETURN

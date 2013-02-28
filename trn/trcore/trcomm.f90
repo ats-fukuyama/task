@@ -40,9 +40,10 @@ MODULE trcomm
 ! ----- contral parameters -----
   INTEGER(ikind):: nrmax       ! number of radial step (except rg=0)
   INTEGER(ikind):: ntmax       ! number of time step
-  REAL(rkind)::    dt          ! size of time step
-  REAL(rkind),DIMENSION(3,0:NSM):: &
-                   rg_fixed    ! minimum radius of fixed profile
+  REAL(rkind)::    dt          ! size of time step [s]
+  REAL(rkind)::    tmax        ! maximum simulation time [s]
+  REAL(rkind),DIMENSION(3,1:NSM):: &
+                   rhog_fixed    ! minimum radius of fixed profile
 
   INTEGER(ikind):: nsamax      ! number of active particle species
   INTEGER(ikind):: nsafmax     ! number of active (fast ion) particle species
@@ -64,6 +65,7 @@ MODULE trcomm
   REAL(rkind)::    epsltr      ! tolerance of iteration
 
   INTEGER(ikind):: mdltr_nc    ! model type of neoclassical transport coef.
+  INTEGER(ikind):: mdltr_jbs   ! model type of bootstrap current.
   INTEGER(ikind):: mdltr_tb    ! model type of turbulent transport coef.
   INTEGER(ikind):: mdltr_prv   ! model type of Pereverzev method
   REAL(rkind)::    dtr0        ! lower diffusion coefficient in simple model
@@ -75,10 +77,14 @@ MODULE trcomm
                                !  at r = a in simple model [MW/m^3]
   REAL(rkind)::    dprv1       ! enhanced diffusion coefficient in Prv method
   REAL(rkind)::    dprv2       ! diffusion enhancement factor in Prv method
+  REAL(rkind)::    deldtl      ! tolerance for variation of diffusion coef.
+  REAL(rkind)::    cdtprv      ! factor for control of time step width (>1.0)
   REAL(rkind)::    rhog_prv    ! enhanced diffusion region in Prv method
   REAL(rkind)::    cdtrn       ! factor for particle diffusion
   REAL(rkind)::    cdtru       ! factor for toroidal flow viscosity
   REAL(rkind)::    cdtrt       ! factor for thermal diffusivity
+  REAL(rkind)::    cgmrt       ! factor for the contribution of particle flux
+                               !  to energy flux (3/2 or 5/2)
 
   INTEGER(ikind):: ntstep      ! number of time step for status report
   INTEGER(ikind):: ngtmax      ! number of saved data
@@ -89,7 +95,10 @@ MODULE trcomm
   REAL(rkind)::    pnbrw      ! radial width of deposition [m]
   REAL(rkind)::    pnbcd      ! current drive factor
   REAL(rkind)::    pnbr0      ! radial position of deposition
+  REAL(rkind)::    pnbvy      ! vertical postion of NBI [m]
+  REAL(rkind)::    pnbvw      ! vertical width of NBI [m]
   REAL(rkind)::    pnbeng     ! [keV]
+  REAL(rkind)::    pnbrtg     ! tangential radius of NBI beam [m]
   REAL(rkind)::    pectot,pictot,plhtot ! total power of RF heating [MW]
   REAL(rkind)::    pecrw, picrw, plhrw  ! radial width of deposition [m]
   REAL(rkind)::    peccd, piccd, plhcd  ! current drice factor
@@ -127,7 +136,7 @@ MODULE trcomm
   REAL(rkind)::      wp_th   ! total stored energy of thermal particles
   REAL(rkind)::      wp_inc  ! incremental stored energy of thermal particles
   REAL(rkind)::      wpu_inc ! incremental stored energy of thermal particles
-  REAL(rkind)::      rw      ! the deviation of Wp_inc
+  REAL(rkind)::      rw      ! the offset of Wp_inc
   REAL(rkind)::      taue1   ! energy confinment time (steady state)
   REAL(rkind)::      taue2   ! energy confinment time (transient)
   REAL(rkind)::      taue3   ! energy confinment time (thermal, transient)
@@ -159,8 +168,10 @@ MODULE trcomm
        rns_va,   &! volume-averaged density
        rts_va,   &! volume-averaged temperature
        ws_t,     &! stored energy of each species
-       stdrt,    &! the deviations of each temperature profiles
-       offrt      ! the offsets of each temperature profiles
+       std_ipb,  &! the deviations of each temperature profiles [IPB]
+       off_ipb,  &! the offsets of each temperature profiles [IPB]
+       std_rt,   &! the deviations of each temperature profiles
+       off_rt     ! the offsets of each temperature profiles
 
 ! ----- plasma variables -----
   REAL(rkind) :: phia   ! total toroidal flux enclosed by the plasma [Wb]
@@ -187,8 +198,9 @@ MODULE trcomm
        vtr,      &! convection velocity [m^2/s]
        ctr        ! charge exchange freuency [1/s]
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
-       str,      &! source density [keV/(10^{20}m^3 s)]
-       htr        ! current density [A/m^2]
+       str,      &! source density [/(10^{20}m^3 s)],[keV/(10^{20}m^3 s)]
+       htr,      &! current density [A/m^2]
+       vtr_gma    ! contribution of particle flux to energy flux [m/s]
   REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: &
        ! ***_tb, ***_nc are variables except for magnetic equation.
        dtr_tb,   &! turbulent diffusion coefficient [m^2/s]
@@ -204,7 +216,8 @@ MODULE trcomm
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
                   ! variables for Pereverzev method
        dtr_prv,  &! additional diffusion coefficient [m^2/s]
-       vtr_prv    ! additional convection velocity [m/s]
+       vtr_prv,  &! additional convection velocity [m/s]
+       dtr_tb_prev! previous value of tubulent diffusion coefficient [m^2/s]
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
        htr_simple !  simple model of external driven current density [A/m^2]
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
@@ -213,7 +226,6 @@ MODULE trcomm
        joh   ,   &! (parallel) ohmic current density [A/m^2]
        jtor  ,   &! toroidal current density [A/m^2]
        eta_nc,   &! neoclassical resistivity [ohm m]
-       etam_nc,  &! neoclassical resistivity (half grid) [ohm m]
        jbs_nc,   &! bootstrap current density by neoclassical effect [A/m^2]
        jex_nc,   &! externally driven current density (NCLASS) [A/m^2]
        jcd_nb,   &! current density driven by NBI [A/m^2]
@@ -328,7 +340,8 @@ MODULE trcomm
 ! ----- unclassified -----
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
        bp,       &! poloidal magnetic field [T]
-       er,       &! radial electric field [V/m]
+       er,       &! radial electric field (on half integer grids) [V/m]
+       erg,      &! radial electric field (on integer grids) [V/m]
        ezoh       !
 
 ! ----- daignostic variables for debug -----
@@ -413,19 +426,18 @@ MODULE trcomm
   CHARACTER(80) :: kdirx    ! directory containig a set of UFILE
   REAL(rkind)   :: time_slc ! time slicing point for steady state simulation
   REAL(rkind)   :: time_snap! time slicing point for graphic
-
-  REAL(rkind)   :: uf_tinit !
-  REAL(rkind)   :: uf_tdura !
+  REAL(rkind)   :: ipsign   ! sign switcher for the direction of plasma current
 
   ! ----- Stored variables for UFILE -----
   INTEGER(ikind) :: ndmax  ! number of 0D experimental (UFILE) data
   INTEGER(ikind) :: ntxmax ! number of experimental time data
-  INTEGER(ikind) :: ntlmax ! number of time step of experimental data
-                           ! * Step size 'dt' is that of simulation.
   REAL(rkind)    :: tlmax  ! end of time of experimental data
 
   INTEGER(ikind),DIMENSION(1:nsum) :: nsa_nsu ! conversion table [nsu  -> nsa]
   INTEGER(ikind),DIMENSION(1:nsum) :: nsa_nsfu! conversion table [nsuf -> nsa]
+  INTEGER(ikind):: nsu_mion    ! 'nsu' of main ion species (0: not exist)
+  INTEGER(ikind):: nsu_mimp    ! 'nsu' of main impurity species (0: not exist)
+  INTEGER(ikind):: nsu_fion    ! 'nsu' of fast particle species (0: not exist)
 
   REAL(rkind),DIMENSION(1:ntum) :: & 
        ! global variables
@@ -541,6 +553,7 @@ CONTAINS
             IF(ierr /= 0) EXIT
           ALLOCATE(str(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(htr(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(vtr_gma(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
             
           ALLOCATE(dtr_tb(neqmax,neqmax,0:nrmax),STAT=ierr)
             IF(ierr /= 0) EXIT
@@ -557,7 +570,6 @@ CONTAINS
           ALLOCATE(joh(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(jtor(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(eta_nc(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(etam_nc(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(jbs_nc(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(jex_nc(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(jcd_nb(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
@@ -592,6 +604,7 @@ CONTAINS
           ! for Pereverzev method
           ALLOCATE(dtr_prv(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(vtr_prv(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(dtr_tb_prev(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(fluxtb(neqmax,0:nrmax),STAT=ierr);  IF(ierr /= 0) EXIT
           ALLOCATE(fluxnc(neqmax,0:nrmax),STAT=ierr);  IF(ierr /= 0) EXIT
           ALLOCATE(grdpf(neqmax,0:nrmax),STAT=ierr);   IF(ierr /= 0) EXIT
@@ -632,6 +645,7 @@ CONTAINS
           ! unclassified
           ALLOCATE(bp(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(er(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(erg(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(ezoh(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           
           ! global variables
@@ -714,6 +728,7 @@ CONTAINS
     IF(ALLOCATED(ctr)) DEALLOCATE(ctr)
     IF(ALLOCATED(htr)) DEALLOCATE(htr)
     IF(ALLOCATED(str)) DEALLOCATE(str)
+    IF(ALLOCATED(vtr_gma)) DEALLOCATE(vtr_gma)
     IF(ALLOCATED(dtr_nc)) DEALLOCATE(dtr_nc)
     IF(ALLOCATED(dtr_tb)) DEALLOCATE(dtr_tb)
     IF(ALLOCATED(vtr_nc)) DEALLOCATE(vtr_nc)
@@ -724,7 +739,6 @@ CONTAINS
     IF(ALLOCATED(joh)) DEALLOCATE(joh)
     IF(ALLOCATED(jtor)) DEALLOCATE(jtor)
     IF(ALLOCATED(eta_nc)) DEALLOCATE(eta_nc)
-    IF(ALLOCATED(etam_nc)) DEALLOCATE(etam_nc)
     IF(ALLOCATED(jbs_nc)) DEALLOCATE(jbs_nc)
     IF(ALLOCATED(jex_nc)) DEALLOCATE(jex_nc)
     IF(ALLOCATED(jcd_nb)) DEALLOCATE(jcd_nb)
@@ -759,6 +773,7 @@ CONTAINS
     ! for Pereverzev method
     IF(ALLOCATED(dtr_prv)) DEALLOCATE(dtr_prv)
     IF(ALLOCATED(vtr_prv)) DEALLOCATE(vtr_prv)
+    IF(ALLOCATED(dtr_tb_prev)) DEALLOCATE(dtr_tb_prev)
     IF(ALLOCATED(fluxtb)) DEALLOCATE(fluxtb)
     IF(ALLOCATED(fluxnc)) DEALLOCATE(fluxnc)
     IF(ALLOCATED(grdpf)) DEALLOCATE(grdpf)
@@ -799,6 +814,7 @@ CONTAINS
     ! unclassified
     IF(ALLOCATED(bp)) DEALLOCATE(bp)
     IF(ALLOCATED(er)) DEALLOCATE(er)
+    IF(ALLOCATED(erg)) DEALLOCATE(erg)
     IF(ALLOCATED(ezoh)) DEALLOCATE(ezoh)
 
     IF(ALLOCATED(beta)) DEALLOCATE(beta)
@@ -1060,8 +1076,10 @@ CONTAINS
 
        nsa_allocation: DO
           ALLOCATE(ws_t(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(stdrt(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
-          ALLOCATE(offrt(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(std_ipb(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(off_ipb(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(std_rt(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(off_rt(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(rns_va(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(rts_va(nsamax),STAT=ierr); IF(ierr /= 0) EXIT
 
@@ -1079,8 +1097,10 @@ CONTAINS
   SUBROUTINE tr_nsa_deallocate
 
     IF(ALLOCATED(ws_t)) DEALLOCATE(ws_t)
-    IF(ALLOCATED(stdrt)) DEALLOCATE(stdrt)
-    IF(ALLOCATED(offrt)) DEALLOCATE(offrt)
+    IF(ALLOCATED(std_ipb)) DEALLOCATE(std_ipb)
+    IF(ALLOCATED(off_ipb)) DEALLOCATE(off_ipb)
+    IF(ALLOCATED(std_rt)) DEALLOCATE(std_rt)
+    IF(ALLOCATED(off_rt)) DEALLOCATE(off_rt)
     IF(ALLOCATED(rns_va)) DEALLOCATE(rns_va)
     IF(ALLOCATED(rts_va)) DEALLOCATE(rts_va)
 

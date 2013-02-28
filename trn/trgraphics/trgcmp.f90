@@ -192,33 +192,35 @@ CONTAINS
   
   SUBROUTINE tr_gr_cmp3
     ! for now, supposed that experimental j_tot(CURTOT) data always exist.
-    USE trcomm,ONLY: jtot,joh,jbs_nc,jcd_nb,jcd_ec,jcd_ic,jcd_lh
+    USE trcomm,ONLY: ipsign,jtot,joh,jbs_nc,jcd_nb,jcd_ec,jcd_ic,jcd_lh
     USE trufin,ONLY: jtotug,jnbug,jecug,jicug,jlhug,jbsug
 
     REAL(rkind),DIMENSION(1:nrmax+1) :: johug
 
-    johug(1:nrmax+1) = jtotug(1:nrmax+1) - jbsug(1:nrmax+1) &
-       -(jnbug(1:nrmax+1)+jecug(1:nrmax+1)+jicug(1:nrmax+1)*jecug(1:nrmax+1))
+    johug(1:nrmax+1) = ipsign *(jtotug(1:nrmax+1)                     &
+                               - jbsug(1:nrmax+1)                     &
+                               -(jnbug(1:nrmax+1) + jecug(1:nrmax+1)  &
+                                +jicug(1:nrmax+1) + jecug(1:nrmax+1)))
 
     CALL tr_gr_init_vgx
 
     vgx1(0:nrmax,1) = jtot(0:nrmax)   * 1.d-6
-    vgx1(0:nrmax,2) = - jtotug(1:nrmax+1) * 1.d-6
+    vgx1(0:nrmax,2) = ipsign * jtotug(1:nrmax+1) * 1.d-6
 
     vgx2(0:nrmax,1) = joh(0:nrmax)    * 1.d-6
     vgx2(0:nrmax,2) = jbs_nc(0:nrmax) * 1.d-6
-    vgx2(0:nrmax,3) = - johug(1:nrmax+1) * 1.d-6
-    vgx2(0:nrmax,4) = - jbsug(1:nrmax+1) * 1.d-6
+    vgx2(0:nrmax,3) = ipsign * johug(1:nrmax+1) * 1.d-6
+    vgx2(0:nrmax,4) = ipsign * jbsug(1:nrmax+1) * 1.d-6
 
     vgx3(0:nrmax,1) = jcd_nb(0:nrmax) * 1.d-6
     vgx3(0:nrmax,2) = jcd_ec(0:nrmax) * 1.d-6
     vgx3(0:nrmax,3) = jcd_ic(0:nrmax) * 1.d-6
     vgx3(0:nrmax,4) = jcd_lh(0:nrmax) * 1.d-6
 
-    vgx4(0:nrmax,1) = - jnbug(1:nrmax+1) * 1.d-6
-    vgx4(0:nrmax,2) = - jecug(1:nrmax+1) * 1.d-6
-    vgx4(0:nrmax,3) = - jicug(1:nrmax+1) * 1.d-6
-    vgx4(0:nrmax,4) = - jlhug(1:nrmax+1) * 1.d-6
+    vgx4(0:nrmax,1) = ipsign * jnbug(1:nrmax+1) * 1.d-6
+    vgx4(0:nrmax,2) = ipsign * jecug(1:nrmax+1) * 1.d-6
+    vgx4(0:nrmax,3) = ipsign * jicug(1:nrmax+1) * 1.d-6
+    vgx4(0:nrmax,4) = ipsign * jlhug(1:nrmax+1) * 1.d-6
 
     CALL PAGES
     label = '@jtot (sim,exp) [MA/m^2] vs rho@'
@@ -338,8 +340,8 @@ CONTAINS
 
     DO nsa = 1, nsamax
        IF(nsa > 4) EXIT
-       gti3(0:ngt,nsa) = gvts(0:ngt,nsa,8)  ! stdrt(nsa)
-       gti4(0:ngt,nsa) = gvts(0:ngt,nsa,9)  ! offrt(nsa)
+       gti3(0:ngt,nsa) = gvts(0:ngt,nsa,8)  ! std_rt(nsa)
+       gti4(0:ngt,nsa) = gvts(0:ngt,nsa,9)  ! off_rt(nsa)
     END DO
 
     CALL PAGES

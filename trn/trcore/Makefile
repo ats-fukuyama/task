@@ -7,7 +7,7 @@ include $(TASKDIR)/make.header
 
 
 #FFLAGS=$(OFLAGS)
-FLAGS=$(DFLAGS)
+FLAGS=$(DFLAGS) -g
 
 
 MODINCLUDE=-I $(BPSDDIR)/mod -I $(TASKDIR)/plx/mod -I $(TASKDIR)/lib/mod \

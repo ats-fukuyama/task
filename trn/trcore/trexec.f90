@@ -19,8 +19,8 @@ CONTAINS
          xv,xv_new,xv_prev
     IMPLICIT NONE
     REAL(rkind) :: &
-         dh0,dh1,dh2,dh3,dvdrp,dvdrm,  &
-         gm1p,gm1m,gm2p,gm2m,cjexm,cjexp,coef1,coef2
+         dh0,dh1,dh2,dh3,dhb,dvdrp,dvdrm,  &
+         gm1p,gm1m,gm2p,gm2m,cjexm,cjexp,mb1,mb2,coef1,coef2
     REAL(rkind) :: dtr_ofd,dtr_d,dtr_chi
     INTEGER(ikind) :: nr,neq,neq1,neqr,neqr1,nvrm,nvrp,ierr,nvm,nvp
 
@@ -28,7 +28,7 @@ CONTAINS
     lhmtx(1:4*neqrmax-1,1:nvrmax) = 0.d0
     rhv(1:nvrmax)                 = 0.d0
 
-    DO nr = 1, nrmax 
+    radial: DO nr = 1, nrmax 
 
        ! initialization
        rimtx(1:2,1:2,1:neqmax,1:neqmax)  = 0.d0
@@ -46,95 +46,108 @@ CONTAINS
        dh1 = dt/6.d0
        dh2 = dt*dh0
        dh3 = dt/(2.d0*(rhog(nr)-rhog(nr-1)))
+       dhb = dt/(rhog(nr)-rhog(nr-1))
 
        DO neq = 1, neqmax
 
-          call tr_neq_mtrc(nr,neq,dvdrp,dvdrm,gm1p,gm1m, &
-                           gm2p,gm2m,cjexm,cjexp,coef1,coef2)
+          CALL tr_neq_mtrc(nr,neq,dvdrp,dvdrm,gm1p,gm1m, &
+                           gm2p,gm2m,coef1,coef2)
           
           limtx(1,1,neq) = coef1*dh0*(3.D0*dvdrm +      dvdrp)
           limtx(2,1,neq) = coef1*dh0*(     dvdrm +      dvdrp)
           limtx(1,2,neq) = coef1*dh0*(     dvdrm +      dvdrp)
           limtx(2,2,neq) = coef1*dh0*(     dvdrm + 3.D0*dvdrp) 
 
-          ! only for magnetic diffusion equation
-          rjimtx(1,1,neq) = - dh1*(-4.D0*cjexm +      cjexp)
-          rjimtx(2,1,neq) = - dh1*(-2.D0*cjexm -      cjexp)
-          rjimtx(1,2,neq) = - dh1*(      cjexm + 2.D0*cjexp)
-          rjimtx(2,2,neq) = - dh1*(-     cjexm + 4.D0*cjexp)
+          IF(neq==1)THEN ! only for magnetic diffusion equation
+             CALL tr_mag_mtrc(nr,mb1,mb2,cjexm,cjexp)
 
-          rsimtx(1,1,neq) = dh2*(3.D0*dvdrm +      dvdrp)
-          rsimtx(2,1,neq) = dh2*(     dvdrm +      dvdrp)
-          rsimtx(1,2,neq) = dh2*(     dvdrm +      dvdrp)
-          rsimtx(2,2,neq) = dh2*(     dvdrm + 3.D0*dvdrp) 
+             rjimtx(1,1,neq) = dh1*(-4.D0*cjexm +      cjexp)
+             rjimtx(2,1,neq) = dh1*(-2.D0*cjexm -      cjexp)
+             rjimtx(1,2,neq) = dh1*(      cjexm + 2.D0*cjexp)
+             rjimtx(2,2,neq) = dh1*(-     cjexm + 4.D0*cjexp)
+          ELSE
+             rsimtx(1,1,neq) = dh2*(3.D0*dvdrm +      dvdrp)
+             rsimtx(2,1,neq) = dh2*(     dvdrm +      dvdrp)
+             rsimtx(1,2,neq) = dh2*(     dvdrm +      dvdrp)
+             rsimtx(2,2,neq) = dh2*(     dvdrm + 3.D0*dvdrp) 
+          END IF
 
           DO neq1 = 1, neqmax
-        
-             ! at the center of element
-             r1imtx(1,1,neq,neq1)=   dh3*dtr(neq,neq1,nr)*gm2m
-             r1imtx(2,1,neq,neq1)= - dh3*dtr(neq,neq1,nr)*gm2m
-             r1imtx(1,2,neq,neq1)= - dh3*dtr(neq,neq1,nr)*gm2p
-             r1imtx(2,2,neq,neq1)=   dh3*dtr(neq,neq1,nr)*gm2p
 
-             ! off-diagonal term of density gradient
-             !                          in energy transport equation.
-             IF(nva_neq(neq)==3 .AND. neq == neq1)THEN
-                IF(id_neq(neq) /= 0.d0)THEN ! only for bulk ions
-                   IF(mdltr_prv /= 0)THEN
-                      ! only for energy transport (i.e. for chi)
-                      !   in common with Pereverzev method routine.
-                      dtr_d   = dtr(neq-2,neq1-2,nr) - dtr_prv(neq-2,nr)
-                      dtr_chi = dtr(neq,neq1,nr) - dtr_prv(neq,nr)
-                   ELSE
-                      dtr_d   = dtr(neq-2,neq1-2,nr)
-                      dtr_chi = dtr(neq,neq1,nr)
-                   END IF
+             IF(neq==1 .AND. neq1==1)THEN! only for mag. diff. eqn.
+                r1imtx(1,1,neq,neq1)= - dhb*mb1
+                r1imtx(2,1,neq,neq1)=   dhb*mb1
+                r1imtx(1,2,neq,neq1)= - dhb*mb2
+                r1imtx(2,2,neq,neq1)=   dhb*mb2
+
+             ELSE
+                ! at the center of element
+                r1imtx(1,1,neq,neq1)=   dh3*dtr(neq,neq1,nr)*gm2m
+                r1imtx(2,1,neq,neq1)= - dh3*dtr(neq,neq1,nr)*gm2m
+                r1imtx(1,2,neq,neq1)= - dh3*dtr(neq,neq1,nr)*gm2p
+                r1imtx(2,2,neq,neq1)=   dh3*dtr(neq,neq1,nr)*gm2p
+
+                ! ==========================================================
+                ! off-diagonal term of density grad. in energy transport eqn.
+                IF(nva_neq(neq)==3 .AND. neq == neq1)THEN
+                   IF(id_neq(neq) /= 0.d0)THEN ! only for bulk ions
+                      IF(mdltr_prv /= 0)THEN
+                         ! only for energy transport (i.e. for chi)
+                         !   in common with Pereverzev method routine.
+                         dtr_d   = dtr(neq-2,neq1-2,nr) - dtr_prv(neq-2,nr)
+                         dtr_chi = dtr(neq  ,neq1  ,nr) - dtr_prv(neq  ,nr)
+                      ELSE
+                         dtr_d   = dtr(neq-2,neq1-2,nr)
+                         dtr_chi = dtr(neq  ,neq1  ,nr)
+                      END IF
                    dtr_ofd=(xv((nr-1)*neqmax+neq)/xv((nr-1)*neqmax+(neq-2))  &
                            +xv( nr   *neqmax+neq)/xv( nr   *neqmax+(neq-2))) &
                            *0.5d0*( coef2*dtr_d - dtr_chi )
 
-                   r1imtx_ofd(1,1,neq,neq1-2)=   dh3*dtr_ofd*gm2m
-                   r1imtx_ofd(2,1,neq,neq1-2)= - dh3*dtr_ofd*gm2m
-                   r1imtx_ofd(1,2,neq,neq1-2)= - dh3*dtr_ofd*gm2p
-                   r1imtx_ofd(2,2,neq,neq1-2)=   dh3*dtr_ofd*gm2p
+                      r1imtx_ofd(1,1,neq,neq1-2)=   dh3*dtr_ofd*gm2m
+                      r1imtx_ofd(2,1,neq,neq1-2)= - dh3*dtr_ofd*gm2m
+                      r1imtx_ofd(1,2,neq,neq1-2)= - dh3*dtr_ofd*gm2p
+                      r1imtx_ofd(2,2,neq,neq1-2)=   dh3*dtr_ofd*gm2p
+                   END IF
+                END IF ! ===================================================
+
+                ! at the center of element
+                IF(nva_neq(neq)==3 .AND. nva_neq(neq1)==3)THEN
+                   r2imtx(1,1,neq,neq1)= - dh1                           &
+                        *(vtr(neq,neq1,nr)+coef2*vtr(neq-2,neq1-2,nr))   &
+                        *(2.d0*gm1m +      gm1p)
+                   r2imtx(2,1,neq,neq1)=   dh1                           &
+                        *(vtr(neq,neq1,nr)+coef2*vtr(neq-2,neq1-2,nr))   &
+                        *(2.d0*gm1m +      gm1p)
+                   r2imtx(1,2,neq,neq1)= - dh1                           &
+                        *(vtr(neq,neq1,nr)+coef2*vtr(neq-2,neq1-2,nr))   &
+                        *(     gm1m + 2.d0*gm1p)
+                   r2imtx(2,2,neq,neq1)=   dh1                           &
+                        *(vtr(neq,neq1,nr)+coef2*vtr(neq-2,neq1-2,nr))   &
+                        *(     gm1m + 2.d0*gm1p)
+
+                ELSE
+                   r2imtx(1,1,neq,neq1)= - dh1*vtr(neq,neq1,nr)        &
+                                           *(2.d0*gm1m +      gm1p)
+                   r2imtx(2,1,neq,neq1)=   dh1*vtr(neq,neq1,nr)        &
+                                           *(2.d0*gm1m +      gm1p)
+                   r2imtx(1,2,neq,neq1)= - dh1*vtr(neq,neq1,nr)        &
+                                           *(     gm1m + 2.d0*gm1p)
+                   r2imtx(2,2,neq,neq1)=   dh1*vtr(neq,neq1,nr)        &
+                                           *(     gm1m + 2.d0*gm1p)
                 END IF
-             END IF
-
-             ! at the center of element
-             IF(nva_neq(neq)==3 .AND. nva_neq(neq1)==3)THEN
-                r2imtx(1,1,neq,neq1)= - dh1                           &
-                     *(vtr(neq,neq1,nr)+coef2*vtr(neq-2,neq1-2,nr))   &
-                     *(2.d0*gm1m +      gm1p)
-                r2imtx(2,1,neq,neq1)=   dh1                           &
-                     *(vtr(neq,neq1,nr)+coef2*vtr(neq-2,neq1-2,nr))   &
-                     *(2.d0*gm1m +      gm1p)
-                r2imtx(1,2,neq,neq1)= - dh1                           &
-                     *(vtr(neq,neq1,nr)+coef2*vtr(neq-2,neq1-2,nr))   &
-                     *(     gm1m + 2.d0*gm1p)
-                r2imtx(2,2,neq,neq1)=   dh1                           &
-                     *(vtr(neq,neq1,nr)+coef2*vtr(neq-2,neq1-2,nr))   &
-                     *(     gm1m + 2.d0*gm1p)
-
-             ELSE
-                r2imtx(1,1,neq,neq1)= - dh1*vtr(neq,neq1,nr)        &
-                                         *(2.d0*gm1m +      gm1p)
-                r2imtx(2,1,neq,neq1)=   dh1*vtr(neq,neq1,nr)        &
-                                         *(2.d0*gm1m +      gm1p)
-                r2imtx(1,2,neq,neq1)= - dh1*vtr(neq,neq1,nr)        &
-                                         *(     gm1m + 2.d0*gm1p)
-                r2imtx(2,2,neq,neq1)=   dh1*vtr(neq,neq1,nr)        &
-                                         *(     gm1m + 2.d0*gm1p)
-             END IF
 
            
-             r3imtx(1,1,neq,neq1)= dh2*(3.D0*ctr(neq,neq1,nr-1)*dvdrm &
-                                       +     ctr(neq,neq1,nr  )*dvdrp)
-             r3imtx(2,1,neq,neq1)= dh2*(     ctr(neq,neq1,nr-1)*dvdrm &
-                                       +     ctr(neq,neq1,nr  )*dvdrp)
-             r3imtx(1,2,neq,neq1)= dh2*(     ctr(neq,neq1,nr-1)*dvdrm &
-                                       +     ctr(neq,neq1,nr  )*dvdrp)
-             r3imtx(2,2,neq,neq1)= dh2*(     ctr(neq,neq1,nr-1)*dvdrm &
-                                       +3.D0*ctr(neq,neq1,nr  )*dvdrp)
+                r3imtx(1,1,neq,neq1)= dh2*(3.D0*ctr(neq,neq1,nr-1)*dvdrm &
+                                          +     ctr(neq,neq1,nr  )*dvdrp)
+                r3imtx(2,1,neq,neq1)= dh2*(     ctr(neq,neq1,nr-1)*dvdrm &
+                                          +     ctr(neq,neq1,nr  )*dvdrp)
+                r3imtx(1,2,neq,neq1)= dh2*(     ctr(neq,neq1,nr-1)*dvdrm &
+                                          +     ctr(neq,neq1,nr  )*dvdrp)
+                r3imtx(2,2,neq,neq1)= dh2*(     ctr(neq,neq1,nr-1)*dvdrm &
+                                          +3.D0*ctr(neq,neq1,nr  )*dvdrp)
+
+             END IF ! mag. eqn. or the others
 
              rimtx(1,1,neq,neq1)                                  &
                 = r1imtx(1,1,neq,neq1) - r2imtx(1,1,neq,neq1)     &
@@ -199,6 +212,11 @@ CONTAINS
              elmtx(neqr+neqrmax,neqr+neqrmax) &
            = elmtx(neqr+neqrmax,neqr+neqrmax) + limtx(2,2,neq)
 
+!!$             IF(neq == 4)THEN
+!!$                write(6,*) neq, nr
+!!$                write(6,*) elmtx(neqr,neqr), elmtx(neqr,neqr+neqrmax)
+!!$                write(6,*) elmtx(neqr+neqrmax,neqr), elmtx(neqr+neqrmax,neqr+neqrmax)
+!!$             END IF
           END IF
 
        END DO ! End of neq loop
@@ -225,16 +243,16 @@ CONTAINS
              rhv(nvrm+neqr) = rhv(nvrm+neqr)           &
                   + limtx(1,1,neq) * xv_prev(nvm+neq)  &
                   + limtx(1,2,neq) * xv_prev(nvp+neq)  &
-                  +rjimtx(1,1,neq) * htr(neq,nr-1)     &
-                  +rjimtx(1,2,neq) * htr(neq,nr)       &
+                  -rjimtx(1,1,neq) * htr(neq,nr-1)     &
+                  -rjimtx(1,2,neq) * htr(neq,nr)       &
                   +rsimtx(1,1,neq) * str(neq,nr-1)     &
                   +rsimtx(1,2,neq) * str(neq,nr)
 
              rhv(nvrp+neqr) = rhv(nvrp+neqr)           &
                   + limtx(2,1,neq) * xv_prev(nvm+neq)  &
                   + limtx(2,2,neq) * xv_prev(nvp+neq)  &
-                  +rjimtx(2,1,neq) * htr(neq,nr-1)     &
-                  +rjimtx(2,2,neq) * htr(neq,nr)       &
+                  -rjimtx(2,1,neq) * htr(neq,nr-1)     &
+                  -rjimtx(2,2,neq) * htr(neq,nr)       &
                   +rsimtx(2,1,neq) * str(neq,nr-1)     &
                   +rsimtx(2,2,neq) * str(neq,nr)
           END IF
@@ -259,7 +277,7 @@ CONTAINS
           END IF
        END DO
 
-    END DO ! END of NR loop ---------------------------------------------
+    END DO radial ! END of NR loop -----------------------------------------
 
 !!$    DO neq = 1, nvrmax
 !!$       write(*,*) neq,lhmtx(:,neq)
@@ -291,16 +309,15 @@ CONTAINS
   END SUBROUTINE tr_exec
 
 ! **************************************************************************
-  SUBROUTINE tr_neq_mtrc(nr,neq,dvdrp,dvdrm,gm1p,gm1m,gm2p,gm2m, &
-                         cjexp,cjexm,coef1,coef2)
+  SUBROUTINE tr_neq_mtrc(nr,neq,dvdrp,dvdrm,gm1p,gm1m,gm2p,gm2m,coef1,coef2)
 ! --------------------------------------------------------------------------
 !   This subroutine decides coefficients of element equations of FEM.
 ! --------------------------------------------------------------------------
-    USE trcomm, ONLY: ar1rho,ar2rho,arrho,dvrho,abrho,ttrho,abb1rho,rhog,eta
+    USE trcomm, ONLY: &
+         ar1rho,ar2rho,arrho,dvrho,abrho,ttrho,abb1rho,rhog,eta,cgmrt
 
     IMPLICIT NONE
-    REAL(rkind),INTENT(OUT) :: &
-         dvdrp,dvdrm,gm1p,gm1m,gm2p,gm2m,cjexp,cjexm,coef1,coef2
+    REAL(rkind),INTENT(OUT) :: dvdrp,dvdrm,gm1p,gm1m,gm2p,gm2m,coef1,coef2
 
     INTEGER(ikind),INTENT(IN) :: nr,neq
 
@@ -310,12 +327,10 @@ CONTAINS
     IF(neq == 1)THEN ! magnetic field: d psi/d rho
        dvdrp = 1.d0
        dvdrm = 1.d0
-       gm2p  = 2.d0*dvrho(nr  ) * abrho(nr  ) / ttrho(nr  ) ! C1 i+1
-       gm2m  = 2.d0*dvrho(nr-1) * abrho(nr-1) / ttrho(nr-1) ! C1 i
+       gm2p  = 0.d0
+       gm2m  = 0.d0
        coef1 = 1.d0
        coef2 = 0.d0
-       cjexp = eta(nr  )*abb1rho(nr  )*arrho(nr  )/ttrho(nr  )
-       cjexm = eta(nr-1)*abb1rho(nr-1)*arrho(nr-1)/ttrho(nr-1)
     ELSE IF(MOD((neq-1),3) == 2)THEN ! density
        dvdrp = dvrho(nr)
        dvdrm = dvrho(nr-1)
@@ -323,8 +338,6 @@ CONTAINS
        gm2m  = dvrho(nr-1)*ar2rho(nr-1) + dvrho(nr  )*ar2rho(nr  )
        coef1 = 1.d0
        coef2 = 0.d0
-       cjexp = 0.d0
-       cjexm = 0.d0
     ELSE IF(MOD((neq-1),3) == 1)THEN ! toroidal velocity
        dvdrp = dvrho(nr)
        dvdrm = dvrho(nr-1)
@@ -332,21 +345,61 @@ CONTAINS
        gm2m  = dvrho(nr-1)*ar2rho(nr-1) + dvrho(nr  )*ar2rho(nr  )
        coef1 = 1.d0
        coef2 = 0.d0
-       cjexp = 0.d0
-       cjexm = 0.d0
     ELSE IF(MOD((neq-1),3) == 0)THEN ! energy
        dvdrp = dvrho(nr)
        dvdrm = dvrho(nr-1)
        gm2p  = dvrho(nr-1)*ar2rho(nr-1) + dvrho(nr  )*ar2rho(nr  )
        gm2m  = dvrho(nr-1)*ar2rho(nr-1) + dvrho(nr  )*ar2rho(nr  )
        coef1 = 1.5d0 ! the coef. of time derivative term
-       coef2 = 2.5d0 ! the coef. of contribution from particle diffusion
+       coef2 = cgmrt ! the coef. of contribution from particle diffusion
 !       coef2 = 1.5d0 ! the coef. of contribution from particle diffusion
-       cjexp = 0.d0
-       cjexm = 0.d0
+!       coef2 = 2.5d0 ! the coef. of contribution from particle diffusion
     END IF
 
+    RETURN
   END SUBROUTINE tr_neq_mtrc
+
+
+  SUBROUTINE tr_mag_mtrc(nr,mb1,mb2,cjexm,cjexp)
+! -------------------------------------------------------------------------
+!   coefficients for magnetic diffusion equation
+! -------------------------------------------------------------------------
+    USE trcomm, ONLY: dtr,dvrho,abrho,ttrho,eta,abb1rho,arrho
+
+    REAL(rkind),   INTENT(OUT) :: mb1, mb2, cjexm,cjexp
+    INTEGER(ikind),INTENT(IN)  :: nr
+
+    REAL(rkind),DIMENSION(1:2)     :: c1,db
+    REAL(rkind),DIMENSION(1:2,1:2) :: &
+         ma1 = RESHAPE((/-1.d0,(1.d0/6.d0),-1.d0,(-1.d0/6.d0)/),SHAPE(ma1)),&
+         ma2 = RESHAPE((/(1.d0/6.d0),1.d0,(-1.d0/6.d0),1.d0/),  SHAPE(ma2))
+    INTEGER(ikind) :: ni,nj
+
+!    write(6,*) ma2(1,1), ma2(2,1), ma2(1,2), ma2(2,2)
+
+    c1(1) = dvrho(nr-1) * abrho(nr-1) / ttrho(nr-1) ! C1_i
+    c1(2) = dvrho(nr  ) * abrho(nr  ) / ttrho(nr  ) ! C1_i+1
+    db(1) = dtr(1,1,nr-1) ! Db_i
+    db(2) = dtr(1,1,nr  ) ! Db_i+1
+
+    IF(nr==1) write(6,*) c1(1),c1(2),db(1),db(2)
+
+    mb1 = 0.d0
+    mb2 = 0.d0
+    DO ni = 1, 2
+       DO nj = 1, 2
+          mb1 = mb1 + c1(ni)*ma1(ni,nj)*db(nj)
+          mb2 = mb2 + c1(ni)*ma2(ni,nj)*db(nj)
+       END DO
+    END DO
+
+    write(6,*) mb1,mb2
+
+    cjexm = eta(nr-1)*abb1rho(nr-1)/(arrho(nr-1)*ttrho(nr-1))
+    cjexp = eta(nr  )*abb1rho(nr  )/(arrho(nr  )*ttrho(nr  ))
+
+    RETURN
+  END SUBROUTINE tr_mag_mtrc
 
 
   SUBROUTINE tr_bndry_set(neq,nr,nrmax)
@@ -376,7 +429,6 @@ CONTAINS
           rimtx(1,1,neq,neq1) = 0.D0
           rimtx(1,2,neq,neq1) = 0.D0
        END DO
-       RETURN
     END IF
 
     IF(id_neqnr(neq,nr)==0 .AND. nr==nrmax)THEN
@@ -412,7 +464,6 @@ CONTAINS
           rimtx(1,1,neq,neq1) = 0.D0
           rimtx(1,2,neq,neq1) = 0.D0
        END DO
-       RETURN
     END IF
 
     IF(id_neqnr(neq,nr)==2)THEN

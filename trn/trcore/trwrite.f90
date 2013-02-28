@@ -56,7 +56,7 @@ CONTAINS
          wp_t,wp_th,wp_inc,rw,taue1,taue2,taue3,        &
          taue89,taue98,h89,h98y2,betan,                 &
          pin_t,poh_t,pnb_t,pec_t,pibw_t,pic_t,          &
-         plh_t,pnf_t,prl_t,pout_t,stdrt,offrt
+         plh_t,pnf_t,prl_t,pout_t,std_rt,off_rt,std_ipb,off_ipb
 
     USE trufin,ONLY: rtug,rnug,qpug
 
@@ -194,7 +194,7 @@ CONTAINS
          ws_t,wp_t,wp_th,wp_inc,wpu_inc,rw,               &
          taue1,taue2,taue3,taue89,taue98,h89,h98y2,betan, &
          pin_t,poh_t,pnb_t,pec_t,pibw_t,pic_t,            &
-         plh_t,pnf_t,prl_t,pout_t,stdrt,offrt
+         plh_t,pnf_t,prl_t,pout_t,std_rt,off_rt,std_ipb,off_ipb
 
     USE trufin,ONLY: rtug,rnug,qpug,wthug,wtotug
 
@@ -318,9 +318,13 @@ CONTAINS
           IF(idnsa(nsa)==0 .OR. idnsa(nsa)==2) CYCLE
           ns = ns_nsa(nsa)
           kwnsa = 'STD_T'//TRIM(kidns(nsa))
-          wcsv(nwr) = stdrt(nsa) ; kwcsv(nwr) = TRIM(kwnsa) ; nwr = nwr + 1
+          wcsv(nwr) = std_rt(nsa) ; kwcsv(nwr) = TRIM(kwnsa) ; nwr = nwr + 1
           kwnsa = 'OFF_T'//TRIM(kidns(nsa))
-          wcsv(nwr) = offrt(nsa) ; kwcsv(nwr) = TRIM(kwnsa) ; nwr = nwr + 1
+          wcsv(nwr) = off_rt(nsa) ; kwcsv(nwr) = TRIM(kwnsa) ; nwr = nwr + 1
+          kwnsa = 'STD_IPB'//TRIM(kidns(nsa))
+          wcsv(nwr) = std_ipb(nsa) ; kwcsv(nwr) = TRIM(kwnsa) ; nwr = nwr + 1
+          kwnsa = 'OFF_IPB'//TRIM(kidns(nsa))
+          wcsv(nwr) = off_ipb(nsa) ; kwcsv(nwr) = TRIM(kwnsa) ; nwr = nwr + 1
        END DO
     END IF
 

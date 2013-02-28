@@ -5,7 +5,7 @@ MODULE trufin
 !  ***  store values for graphic output
 ! ------------------------------------------------------------------------
 
-  USE trcomm, ONLY: ikind,rkind,nsum,nrum,ntum, nrmax,ntxmax, tmu
+  USE trcomm, ONLY: ikind,rkind,nsum,nrum,ntum, nrmax,ntxmax,tmu
   USE trlib, ONLY: lin_itp
 
   IMPLICIT NONE
@@ -47,42 +47,6 @@ MODULE trufin
   REAL(rkind),DIMENSION(1:ntum) :: temp
 
 CONTAINS
-
-  SUBROUTINE tr_uf_init(mdluf)
-    USE trcomm,ONLY: ntmax,dt,tlmax,ntlmax,tmu,time_slc
-
-    INTEGER(ikind),INTENT(IN) :: mdluf
-
-    INTEGER(ikind) :: nt,ntxinit
-    REAL(rkind)    :: tmax
-
-    SELECT CASE(mdluf)
-    CASE(1)
-
-       ! get the initial time from the exp. data at an arbitrary moment
-       CALL tr_uf_time_slice(time_slc,tmu,ntxmax,ntxinit)
-
-    CASE(2)
-       nt = 0
-       ntmax_set: DO
-          nt   = nt + 1
-          tmax = nt * dt
-          IF(tmax > tlmax)THEN
-             ntlmax = nt - 1
-             EXIT
-          END IF
-       END DO ntmax_set
-!       ntmax = ntlmax
-       WRITE(6,*) ' - Set NTLMAX to fit with the exp.data. NTLMAX= ',ntlmax
-       WRITE(6,*) ! spacing
-
-    END SELECT
-    
-    RETURN
-  END SUBROUTINE tr_uf_init
-
-! **********************************************************************
-
 ! ----------------------------------------------------------------------
 ! Substitution routines of experimental data into calculation variables
 !
@@ -281,7 +245,7 @@ CONTAINS
     END IF
 
     IF(tmid > 0)THEN
-       wrot(0:nrmax) = wrotug(1:nrmax+1)
+       wrot(0:nrmax) = wrotug(1:nrmax+1) ! toroidal rotation angular speed
     END IF
 
     RETURN
@@ -347,7 +311,7 @@ CONTAINS
 ! ----------------------------------------------------------------------
 !   profile variables associated with poloidal magnetic field
 ! ----------------------------------------------------------------------
-    USE trcomm,ONLY: rkev,id_neq,                                  &
+    USE trcomm,ONLY: rkev,id_neq,ipsign,mdltr_jbs,                 &
              rip, qp, bp, jtot,jcd_nb,jcd_ec,jcd_ic,jcd_lh,jbs_nc, &
          tmu,ripu,qpu,bpu,jtotu,jnbu,jecu,jicu,jlhu,jbsu
     IMPLICIT NONE
@@ -404,15 +368,15 @@ CONTAINS
        IF(tmid == 1) id = 0 ! initial profile
 
        IF(id == 0)THEN ! magnetic diffusion equation is not solved.
-          SELECT CASE(mdlid)
+          SELECT CASE(mdlid) ! take over 'mdlijq'
           CASE(1)
-             rip  = - ripug * 1.d-6
-             jtot(0:nrmax) = - jtotug(1:nrmax+1)
+             rip  = ipsign * ripug * 1.d-6
+             jtot(0:nrmax) = ipsign * jtotug(1:nrmax+1)
           CASE(2)
-             rip  = - ripug * 1.d-6
+             rip  = ipsign * ripug * 1.d-6
              qp(0:nrmax)   = qpug(1:nrmax+1)
           CASE(3)
-             jtot(0:nrmax) = - jtotug(1:nrmax+1)
+             jtot(0:nrmax) = ipsign * jtotug(1:nrmax+1)
           CASE(4)
              qp(0:nrmax)   = qpug(1:nrmax+1)
           END SELECT
@@ -420,9 +384,9 @@ CONTAINS
        ELSE IF(id == 2)THEN ! magnetic diffusion equation is solved.
           SELECT CASE(mdlid)
           CASE(1,2)
-             rip  = - ripug * 1.d-6
+             rip  = ipsign * ripug * 1.d-6
           CASE(3)
-             jtot(0:nrmax) = - jtotug(1:nrmax+1)
+             jtot(0:nrmax) = ipsign * jtotug(1:nrmax+1)
           CASE(4)
              qp(nrmax)   = qpug(nrmax+1)
           END SELECT
@@ -432,7 +396,8 @@ CONTAINS
        jcd_ec(0:nrmax) = - jecug(1:nrmax+1)
        jcd_ic(0:nrmax) = - jicug(1:nrmax+1)
        jcd_lh(0:nrmax) = - jlhug(1:nrmax+1)
-       jbs_nc(0:nrmax) = - jbsug(1:nrmax+1)
+
+       IF(mdltr_jbs==9) jbs_nc(0:nrmax) = - jbsug(1:nrmax+1)
     END IF
 
     RETURN
@@ -443,10 +408,10 @@ CONTAINS
 ! ----------------------------------------------------------------------
 !   power input and source/sink terms
 ! ----------------------------------------------------------------------
-    USE trcomm,ONLY: tmu,pnbu,pecu,pibwu,picu,plhu,pohmu,pradu,    &
-         jtotu,jnbu,jecu,jicu,jlhu,jbsu,qnbu,qecu,qibwu,qicu,qlhu, &
-         qfusu,qohmu,qradu,qwallu,snbu,swallu, &
-         pnb,pec,pibw,pic,plh,poh,prl,pwl,pnf,snb,spl,swl,  &
+    USE trcomm,ONLY: tmu,nsa_nsu,nsu_mion,                   &
+         snbu,swallu,pnbu,pecu,pibwu,picu,plhu,pohmu,pradu,  &
+         qnbu,qecu,qibwu,qicu,qlhu,qfusu,qohmu,qradu,qwallu, &
+         snb,spl,swl,pnb,pec,pibw,pic,plh,poh,prl,pwl,pnf,   &
          pnb_t,pec_t,pibw_t,pic_t,plh_t,poh_t,prl_t
 
     IMPLICIT NONE
@@ -454,7 +419,7 @@ CONTAINS
     INTEGER(ikind),INTENT(IN)  :: tmid
     REAL(rkind)   ,INTENT(IN)  :: time
     INTEGER(ikind),INTENT(OUT) :: ierr
-    INTEGER(ikind) :: nr
+    INTEGER(ikind) :: nr, nsa_mion
 
     ierr = 0
 
@@ -544,36 +509,39 @@ CONTAINS
     ! substitution for variables used in calculation
     IF(tmid > 0)THEN
        ! global variables
-       pnb_t  = pnbug *1.d-6
-       pec_t  = pecug *1.d-6
+       pnb_t  = pnbug  *1.d-6
+       pec_t  = pecug  *1.d-6
        pibw_t = pibwug *1.d-6
-       pic_t  = picug *1.d-6
-       plh_t  = plhug *1.d-6
+       pic_t  = picug  *1.d-6
+       plh_t  = plhug  *1.d-6
        poh_t  = pohmug *1.d-6
        prl_t  = pradug *1.d-6
 
-       ! profiles
+       ! electron
        pnb(1,0:nrmax)  = qnbug(1,1:nrmax+1)
-       pnb(2,0:nrmax)  = qnbug(2,1:nrmax+1)
        pec(1,0:nrmax)  = qecug(1,1:nrmax+1)
-       pec(2,0:nrmax)  = qecug(2,1:nrmax+1)
        pibw(1,0:nrmax) = qibwug(1,1:nrmax+1)
-       pibw(2,0:nrmax) = qibwug(2,1:nrmax+1)
        pic(1,0:nrmax)  = qicug(1,1:nrmax+1)
-       pic(2,0:nrmax)  = qicug(2,1:nrmax+1)
        plh(1,0:nrmax)  = qlhug(1,1:nrmax+1)
-       plh(2,0:nrmax)  = qlhug(2,1:nrmax+1)
        poh(1,0:nrmax)  = qohmug(1:nrmax+1)
        prl(1,0:nrmax)  = qradug(1:nrmax+1)
        pwl(1,0:nrmax)  = qwallug(1,1:nrmax+1)
-       pwl(2,0:nrmax)  = qwallug(2,1:nrmax+1)
        pnf(1,0:nrmax)  = qfusug(1,1:nrmax+1)
-       pnf(2,0:nrmax)  = qfusug(2,1:nrmax+1)
 
-       snb(1,0:nrmax)  = snbug(1,1:nrmax+1)
-       snb(2,0:nrmax)  = snbug(2,1:nrmax+1)
-       ! for the time being
-       swl(1,0:nrmax)  = swallug(1:nrmax+1)
+       ! main ion (interim way)
+       nsa_mion = nsa_nsu(nsu_mion)
+
+       pnb(nsa_mion,0:nrmax)  = qnbug(2,1:nrmax+1)
+       pec(nsa_mion,0:nrmax)  = qecug(2,1:nrmax+1)
+       pibw(nsa_mion,0:nrmax) = qibwug(2,1:nrmax+1)
+       pic(nsa_mion,0:nrmax)  = qicug(2,1:nrmax+1)
+       plh(nsa_mion,0:nrmax)  = qlhug(2,1:nrmax+1)
+       pwl(nsa_mion,0:nrmax)  = qwallug(2,1:nrmax+1)
+       pnf(nsa_mion,0:nrmax)  = qfusug(2,1:nrmax+1)
+
+       snb(1,0:nrmax)         = snbug(1,1:nrmax+1)
+       snb(nsa_mion,0:nrmax)  = snbug(2,1:nrmax+1)
+       swl(nsa_mion,0:nrmax)  = swallug(1:nrmax+1)
     END IF
 
     RETURN
@@ -645,73 +613,5 @@ CONTAINS
 
     RETURN
   END SUBROUTINE tr_ufin_geometry
-
-! *************************************************************************
-! *************************************************************************
-
-  SUBROUTINE tr_uf_time_slice(time_slc,tl,ntxumax,ntsl)
-! ------------------------------------------------------------------------
-!   acquire the profile of a 2D variable at the certain time point
-! ------------------------------------------------------------------------
-
-    IMPLICIT NONE
-    INTEGER(ikind),INTENT(IN)  :: ntxumax
-    INTEGER(ikind),INTENT(OUT) :: ntsl
-    REAL(rkind),                INTENT(INOUT) :: time_slc
-    REAL(rkind),DIMENSION(ntum),INTENT(IN)    :: tl
-
-    INTEGER(ikind) :: ioerr, ntx, ntx_min
-    REAL(rkind) :: tl_min,tl_min_old
-
-
-    IF(ntxumax.NE.1)THEN
-       DO
-          IF(time_slc.LT.tl(1) .OR. time_slc.GT.tl(ntxumax))THEN
-             WRITE(6,'(A,F9.5,A,F9.5,A)')             &
-             &  '# Input arbitrary time between: ',   &
-             &   tl(1),' sec. - ',tl(ntxumax),' sec.'
-             READ(5,*,IOSTAT=ioerr) time_slc
-             IF(ioerr.NE.0 .OR. time_slc.LT.tl(1)) CYCLE
-          END IF
-          EXIT
-       END DO
-
-       IF(time_slc.GT.tl(ntxumax))THEN
-          time_slc = tl(ntxumax)
-          WRITE(6,'(A,F9.5,A,A,F9.5,A)')                    &
-          &    ' Designated time: ',time_slc,' sec.',       &
-          &    ' has been replaced by ',tl(ntxumax),' sec.'
-          ntsl = ntxumax
-          RETURN
-       ELSE IF(time_slc==tl(ntxumax))THEN
-          ntsl = ntxumax
-          RETURN
-       END IF
-
-       tl_min = tl(ntxumax)
-       DO ntx = 1, ntxumax
-          IF(ABS(tl(ntx)-time_slc) .LE. 1.d-5)THEN
-             ntsl = ntx
-             EXIT
-          END IF
-
-          tl_min_old = tl_min
-          tl_min     = MIN(ABS(tl(ntx)-time_slc), tl_min)
-          IF(tl_min_old==tl_min .OR. ntx==ntxumax)THEN
-             ntx_min  = ntx - 1
-             IF(ntx==ntxumax) ntx_min = ntxumax
-             WRITE(6,'(A,F9.5,A,A,F9.5,A)')                    &
-             &    ' Designated time: ',time_slc,' sec.',       &
-             &    ' has been replaced by ',tl(ntx_min),' sec.'
-
-             time_slc = tl(ntx_min)
-             ntsl     = ntx_min
-             EXIT
-          END IF             
-       END DO
-    END IF
-       
-    RETURN
-  END SUBROUTINE tr_uf_time_slice
 
 END MODULE trufin

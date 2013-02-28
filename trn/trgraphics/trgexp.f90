@@ -27,7 +27,7 @@ CONTAINS
 !         Control routine of experimental data outputs
 ! -----------------------------------------------------------------------
     USE trcomm, ONLY: rhom, mdlugt, time_snap, time_slc
-    USE trufin,ONLY: tr_uf_time_slice
+    USE trufsub,ONLY: tr_uf_time_slice
     CHARACTER(LEN=1),INTENT(IN) :: k2,k3
     INTEGER(ikind) :: i2,i3,ierr,iosts
 
@@ -44,7 +44,8 @@ CONTAINS
     SELECT CASE(mdluf)
     CASE(1)
        idexp = 1
-       ntxsnap = time_slc
+       CALL tr_uf_time_slice(time_slc,tmu,ntxmax,ntsl)
+       ntxsnap = ntsl
     CASE(2)
        IF(k3 == ' ')THEN
           SELECT CASE(mdlugt)
@@ -113,9 +114,7 @@ CONTAINS
 ! ************************************************************************
   SUBROUTINE tr_gr_exp1
 
-    USE trcomm, ONLY:rnu,rtu,rpu,qpu
-
-    USE trufcalc, ONLY: ns_mimp
+    USE trcomm, ONLY: nsu_mimp,rnu,rtu,rpu,qpu
     INTEGER(ikind) :: nsu
 
     CALL tr_gr_init_vgu
@@ -189,28 +188,30 @@ CONTAINS
 ! ************************************************************************
   SUBROUTINE tr_gr_exp3
     ! current density and particle source density
-    USE trcomm, ONLY: jtotu,jbsu,jnbu,jecu,jicu,jlhu,snbu,swallu
+    USE trcomm, ONLY: ipsign,jtotu,jbsu,jnbu,jecu,jicu,jlhu,snbu,swallu
     REAL(rkind),DIMENSION(1:ntxmax,1:nrmax+1) :: johu
 
     CALL tr_gr_init_vgx
 
     DO nr = 1, nrmax+1
-       johu(1:ntxmax,nr) =  jtotu(1:ntxmax,nr) &
+       johu(1:ntxmax,nr) = jtotu(1:ntxmax,nr) &
                           -(jbsu(1:ntxmax,nr) + jnbu(1:ntxmax,nr) &
                            +jecu(1:ntxmax,nr) + jicu(1:ntxmax,nr) &
                            +jlhu(1:ntxmax,nr))
     END DO
 
-    vgx1(0:nrmax,1) = - jtotu(ntxsnap,1:nrmax+1) * 1.d-6
-    vgx1(0:nrmax,2) = - johu(ntxsnap,1:nrmax+1) * 1.d-6
-    vgx1(0:nrmax,3) = - jbsu(ntxsnap,1:nrmax+1) * 1.d-6
-    vgx1(0:nrmax,4) = -(jnbu(ntxsnap,1:nrmax+1)+jecu(ntxsnap,1:nrmax+1) &
-                      + jicu(ntxsnap,1:nrmax+1)+jlhu(ntxsnap,1:nrmax+1))*1.d-6
+    vgx1(0:nrmax,1) = ipsign * jtotu(ntxsnap,1:nrmax+1) * 1.d-6
+    vgx1(0:nrmax,2) = ipsign * johu(ntxsnap,1:nrmax+1) * 1.d-6
+    vgx1(0:nrmax,3) = ipsign * jbsu(ntxsnap,1:nrmax+1) * 1.d-6
+    vgx1(0:nrmax,4) = ipsign *(jnbu(ntxsnap,1:nrmax+1) &
+                             + jecu(ntxsnap,1:nrmax+1) &
+                             + jicu(ntxsnap,1:nrmax+1) &
+                             + jlhu(ntxsnap,1:nrmax+1))*1.d-6
 
-    vgx2(0:nrmax,1) = - jnbu(ntxsnap,1:nrmax+1) *1.d-6
-    vgx2(0:nrmax,2) = - jecu(ntxsnap,1:nrmax+1) *1.d-6
-    vgx2(0:nrmax,3) = - jicu(ntxsnap,1:nrmax+1) *1.d-6
-    vgx2(0:nrmax,4) = - jlhu(ntxsnap,1:nrmax+1) *1.d-6
+    vgx2(0:nrmax,1) = ipsign * jnbu(ntxsnap,1:nrmax+1) *1.d-6
+    vgx2(0:nrmax,2) = ipsign * jecu(ntxsnap,1:nrmax+1) *1.d-6
+    vgx2(0:nrmax,3) = ipsign * jicu(ntxsnap,1:nrmax+1) *1.d-6
+    vgx2(0:nrmax,4) = ipsign * jlhu(ntxsnap,1:nrmax+1) *1.d-6
 
     vgx3(0:nrmax,1) = snbu(1,ntxsnap,1:nrmax+1) *1.d-20
     vgx3(0:nrmax,2) = snbu(2,ntxsnap,1:nrmax+1) *1.d-20
@@ -288,8 +289,8 @@ CONTAINS
 ! ************************************************************************
   SUBROUTINE tr_gr_exp9
     ! quasi neutrality check of ufile data
-    USE trufcalc, ONLY: sumzni,rnuc,rnfuc,zeffruc,ns_mion,ns_mimp
-    USE trcomm, ONLY: rnu,zeffru
+    USE trufcalc, ONLY: sumzni,rnuc,rnfuc,zeffruc
+    USE trcomm, ONLY: nsu_mion,nsu_mimp,rnu,zeffru
 
     INTEGER(ikind) :: nsu
     
@@ -300,10 +301,10 @@ CONTAINS
     ! re-calculated profile of sum of ions density
     vgu1(0:nrmax,2) = sumzni(ntxsnap,1:nrmax+1)
 
-    vgu2(0:nrmax,1) = rnuc(ns_mion,ntxsnap,1:nrmax+1)
-    vgu2(0:nrmax,2) = rnuc(ns_mimp,ntxsnap,1:nrmax+1)
-    vgu2(0:nrmax,3) = rnu(ns_mion,ntxsnap,1:nrmax+1)
-    vgu2(0:nrmax,4) = rnu(ns_mimp,ntxsnap,1:nrmax+1)
+    vgu2(0:nrmax,1) = rnuc(nsu_mion,ntxsnap,1:nrmax+1)
+    vgu2(0:nrmax,2) = rnuc(nsu_mimp,ntxsnap,1:nrmax+1)
+    vgu2(0:nrmax,3) = rnu(nsu_mion,ntxsnap,1:nrmax+1)
+    vgu2(0:nrmax,4) = rnu(nsu_mimp,ntxsnap,1:nrmax+1)
 
     DO nsu = 1, nsum-1
        ! original ion density profiles
@@ -366,11 +367,11 @@ CONTAINS
 
 ! ************************************************************************
   SUBROUTINE tr_gr_exp22
-    USE trcomm,ONLY: ripu,wtotu,wthu
+    USE trcomm,ONLY: ipsign,ripu,wtotu,wthu
 
     CALL tr_gr_init_gtiu
 
-    gtiu1(1:ntxmax,1) = - ripu(1:ntxmax) * 1.d-6
+    gtiu1(1:ntxmax,1) = ipsign * ripu(1:ntxmax) * 1.d-6
     gtiu2(1:ntxmax,1) = wtotu(1:ntxmax) * 1.d-6
     gtiu2(1:ntxmax,2) = wthu(1:ntxmax) * 1.d-6
 

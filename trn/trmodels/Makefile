@@ -5,8 +5,8 @@ include $(TASKDIR)/make.header
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-FFLAGS = $(OFLAGS)
-#FFLAGS = $(DFLAGS) -g
+#FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
 MODINCLUDE=-I $(BPSDDIR)/mod -I $(TASKDIR)/plx/mod -I $(TASKDIR)/lib/mod \
            -I ../trcore/mod -I $(MOD)
@@ -83,5 +83,4 @@ mmm95/mmm95.o: mmm95/mmm95.f
 	$(FCFIXED) -r8 $(FFLAGS) -c $? -o $@
 mmm7_1/w20mod.o: mmm7_1/w20mod.f90
 mmm7_1/modmmm7_1.o: mmm7_1/w20mod.f90 mmm7_1/modmmm7_1.f90
-	$(FCFREE) -c mmm7_1/modmmm7_1.f90 -o $@ $(MODDIR) -I mmm7_1
 mbgb/mixed_Bohm_gyro_Bohm.o: mbgb/mixed_Bohm_gyro_Bohm.f

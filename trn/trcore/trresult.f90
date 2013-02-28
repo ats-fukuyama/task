@@ -2,7 +2,7 @@ MODULE trresult
 
   USE trcomm, ONLY: rkind,ikind
 
-  PUBLIC tr_calc_global,tr_status,tr_save_ngt,tr_exp_compare
+  PUBLIC tr_calc_global,tr_status,tr_latest_status,tr_save_ngt,tr_exp_compare
   PRIVATE
 
 CONTAINS
@@ -11,8 +11,8 @@ CONTAINS
 
   SUBROUTINE tr_status
 
-    USE trcomm, ONLY : nsamax,ns_nsa,t,qp,rt,kidns,nitmax, &
-         wp_t,taue1,taue2,taue3,mdluf,stdrt,offrt,rw
+    USE trcomm, ONLY : nsamax,ns_nsa,nsab_nsa,t,qp,rt,kidns,nitmax, &
+                       wp_t,taue1,taue2,taue3,dt
     IMPLICIT NONE
     INTEGER(ikind)    :: nsa
     CHARACTER(LEN=64) :: fmt_1,fmt_2,fmt_3
@@ -25,33 +25,82 @@ CONTAINS
                    '  TAUE:',taue3,'(s)     Q0:',qp(0)
 
     DO nsa = 1, nsamax
+       IF(nsab_nsa(nsa)==0) CYCLE
        WRITE(6,fmt_2,ADVANCE='NO') '  T',kidns(ns_nsa(nsa)),': '
        WRITE(6,fmt_3,ADVANCE='NO') rt(nsa,0),'(keV)  '
     END DO
     WRITE(6,*) ! line break
 
-    WRITE(6,'(A14,I3)') '  Iterations: ',nitmax
+    WRITE(6,'(A14,I3,A5,ES11.3)') '  Iterations: ',nitmax, ' dt =',dt
     nitmax = 0
-
-    
-    ! print status to standard output
-    IF(mdluf > 0)THEN
-       WRITE(6,'(1X,A31,F6.1,A4)') '# RW(the deviation of Wp_inc): ', &
-                                   rw*100.d0,' (%)'
-       DO nsa = 1, nsamax
-          WRITE(6,'(A7,A1,A2,F6.1,A4)',ADVANCE='NO') &
-                  '  STD_T',kidns(ns_nsa(nsa)),': ',stdrt(nsa)*100.d0,' (%)'
-       END DO
-       WRITE(6,*) ! line break
-       DO nsa = 1, nsamax
-          WRITE(6,'(A7,A1,A2,F6.1,A4)',ADVANCE='NO') &
-                  '  OFF_T',kidns(ns_nsa(nsa)),': ',offrt(nsa)*100.d0,' (%)'
-       END DO
-       WRITE(6,*) ! line break
-    END IF
     
     RETURN
   END SUBROUTINE tr_status
+
+  SUBROUTINE tr_latest_status
+    USE trcomm, ONLY: t,kidns,ns_nsa,nsamax,nsab_nsa,            &
+         mdluf,rw,wp_inc,wpu_inc,std_rt,off_rt,std_ipb,off_ipb,  &
+         qp,rt,wp_t,taue3,betan,taue89,taue98,h89,h98y2
+    IMPLICIT NONE
+    INTEGER(ikind) :: nsa
+    CHARACTER(LEN=64) :: fmt_1,fmt_aaa1, fmt_aaa2
+
+    fmt_1 = '(A5,F7.3,A12,F7.2,A5,A7,F7.3,A12,F7.3)'
+
+    fmt_aaa1 = '(A8,A1,A5,F6.3)'
+    fmt_aaa2 = '(A10,A1,A3,F6.3)'
+
+    WRITE(6,*) ! spacing
+    WRITE(6,*) '#-------------------------------------------------------------------#'
+    WRITE(6,fmt_1) '   T:',t,'(s)      WP:',wp_t,'(MJ)', &
+                   '  TAUE:',taue3,'(s)     Q0:',qp(0)
+
+    DO nsa = 1, nsamax
+       IF(nsab_nsa(nsa)==0) CYCLE
+       WRITE(6,'(A3,A1,A1)',ADVANCE='NO') '  T',kidns(ns_nsa(nsa)),': '
+       WRITE(6,'(F7.3,A7)',ADVANCE='NO') rt(nsa,0),'(keV)  '
+    END DO
+    
+    WRITE(6,*) ! line break
+    WRITE(6,'(1X,A8,F7.3,A8,F7.3)') ' TAUE89:',taue89,'    H89:',h89
+    WRITE(6,'(1X,A8,F7.3,A8,F7.3)') ' TAUE98:',taue98,'  H98y2:',h98y2
+    WRITE(6,'(1X,A8,F7.3)') ' BETA_n: ',betan
+
+    IF(mdluf > 0)THEN ! status values for comparison with exp. data
+       WRITE(6,*) ! spacing
+       WRITE(6,*) '< Comparison with experimental data >'
+       WRITE(6,'(A14,F7.2,A19,F7.2,A4)') '  Wp_inc(sim):',wp_inc,'(MJ)   Wp_inc(exp):',wpu_inc,'(MJ)'
+       WRITE(6,'(A33,F6.3)') '  RW (the relative error of Wp): ', rw
+       WRITE(6,*) ! spacing
+       DO nsa = 1, nsamax
+          IF(nsab_nsa(nsa)==0) CYCLE
+          WRITE(6,fmt_aaa1,ADVANCE='NO') &
+               '  STD_T(',kidns(ns_nsa(nsa)),')  : ',std_rt(nsa)
+       END DO
+       WRITE(6,*) ! line break
+       DO nsa = 1, nsamax
+          IF(nsab_nsa(nsa)==0) CYCLE
+          WRITE(6,fmt_aaa2,ADVANCE='NO') &
+               '  STD_IPB(',kidns(ns_nsa(nsa)),'): ',std_ipb(nsa)
+       END DO
+       WRITE(6,*) ! line break
+       DO nsa = 1, nsamax
+          IF(nsab_nsa(nsa)==0) CYCLE
+          WRITE(6,fmt_aaa1,ADVANCE='NO') &
+               '  OFF_T(',kidns(ns_nsa(nsa)),')  : ',off_rt(nsa)
+       END DO
+       WRITE(6,*) ! line break
+       DO nsa = 1, nsamax
+          IF(nsab_nsa(nsa)==0) CYCLE
+          WRITE(6,fmt_aaa2,ADVANCE='NO') &
+               '  OFF_IPB(',kidns(ns_nsa(nsa)),'): ',off_ipb(nsa)
+       END DO
+    END IF
+    
+    WRITE(6,*) '#-------------------------------------------------------------------#'
+
+    RETURN
+  END SUBROUTINE tr_latest_status
 
 ! ***** calculate global values *****
 
@@ -293,14 +342,16 @@ CONTAINS
 
   SUBROUTINE tr_exp_compare
 !   ITER Physics Basis 1999  p.2219
-    USE trcomm,ONLY: rkev,nsa_nsu,idnsa,nrmax,nsum,nsamax,         &
-         rhog,dvrho,wp_t,wp_th,wp_inc,wpu_inc,rw,stdrt,offrt,rt,rn
+    USE trcomm,ONLY: rkev,nsa_nsu,idnsa,nrmax,nsum,nsamax,rt,rn, &
+                     rhog,dvrho,wp_t,wp_th,wp_inc,wpu_inc,rw,    &
+                     std_rt,off_rt,std_ipb,off_ipb
     USE trufin,ONLY: rtug,rnug,wthug,wtotug
     IMPLICIT NONE
 
     REAL(rkind),DIMENSION(1:nsamax) :: squsum
-    REAL(rkind)    :: rgcore,rgedge,ntp,ntm,ntsum,ntup,ntum,ntusum,rtumax,dr
-    INTEGER(ikind) :: nr,nsa,nsu,nrcore,nredge
+    REAL(rkind)    :: rgcore,rgedge,ntp,ntm,ntsum,ntup,ntum, &
+                      ntusum,rtumax,rtusum,dr
+    INTEGER(ikind) :: nr,nsa,nsu,nrcore,nredge,nrroi
 
     ! transport region; excluding swatooth and edge pedestal regions
     rgcore = 0.2d0
@@ -309,21 +360,23 @@ CONTAINS
     nrcore = 0
     nredge = 0
     DO nr = 0, nrmax
-       IF(rhog(nr) >  rgcore .AND. nrcore == 0) nrcore = nr-1
-       IF(rhog(nr) >= rgedge .AND. nredge == 0) nredge = nr
+       IF(rhog(nr) >  rgcore .AND. nrcore==0) nrcore = nr-1
+       IF(rhog(nr) >= rgedge .AND. nredge==0) nredge = nr
     END DO
 
     ntsum  = 0.d0
     ntusum = 0.d0
     squsum(1:nsamax) = 0.d0
-    stdrt(1:nsamax) = 0.d0
-    offrt(1:nsamax) = 0.d0
+    std_rt(1:nsamax) = 0.d0
+    off_rt(1:nsamax) = 0.d0
 
     DO nsu = 1, nsum
        nsa = nsa_nsu(nsu)
        IF(nsa == 0) CYCLE
        ! excluding neutral and fast ions
        IF(idnsa(nsa)==0 .OR. idnsa(nsa)==2) CYCLE
+
+       rtusum = 0.d0
        DO nr = nrcore, nredge-1 ! 'transport region'
           dr  = rhog(nr+1) - rhog(nr)
           ntm  = rn(nsa,nr  )*(rt(nsa,nr  )-rt(nsa,nredge))*dvrho(nr  )
@@ -331,15 +384,25 @@ CONTAINS
           ntum =rnug(nsu,nr+1)*(rtug(nsu,nr+1)-rtug(nsu,nredge+1))*dvrho(nr  )
           ntup =rnug(nsu,nr+2)*(rtug(nsu,nr+2)-rtug(nsu,nredge+1))*dvrho(nr+1)
 
-          stdrt(nsa)  = stdrt(nsa)  + (rt(nsa,nr) - rtug(nsu,nr+1))**2.d0
-          offrt(nsa)  = offrt(nsa)  + (rt(nsa,nr) - rtug(nsu,nr+1))
-
           ntsum  = ntsum  + 0.5d0*(ntm  + ntp )*dr
           ntusum = ntusum + 0.5d0*(ntum + ntup)*dr
+          rtusum = rtusum + rtug(nsu,nr+1)**2
+
+          std_rt(nsa)  = std_rt(nsa)  + (rt(nsa,nr) - rtug(nsu,nr+1))**2.d0
+          off_rt(nsa)  = off_rt(nsa)  + (rt(nsa,nr) - rtug(nsu,nr+1))
        END DO
+       nrroi = nredge - nrcore
+!!$       nr = nredge ! the right end of the trasnport region
+!!$       rtusum = rtusum + rtug(nsu,nr+1)**2
+!!$       std_rt(nsa)  = std_rt(nsa)  + (rt(nsa,nr) - rtug(nsu,nr+1))**2.d0
+!!$       off_rt(nsa)  = off_rt(nsa)  + (rt(nsa,nr) - rtug(nsu,nr+1))
+
+       off_ipb(nsa) = off_rt(nsa) / SQRT(nrroi*rtusum)
+       std_ipb(nsa) = SQRT(std_rt(nsa) / rtusum)
+
        rtumax = MAXVAL(rtug(nsu,nrcore+1:nredge))
-       stdrt(nsa) = SQRT(stdrt(nsa)/(rtumax**2 * (nredge-nrcore)))
-       offrt(nsa) = offrt(nsa)/(rtumax * (nredge-nrcore))
+       std_rt(nsa) = SQRT(std_rt(nsa)/(rtumax**2 * nrroi))
+       off_rt(nsa) = off_rt(nsa)/(rtumax * nrroi)
     END DO
 
     ! incremental stored energy
@@ -360,7 +423,7 @@ CONTAINS
          nsum,nrmax,nsamax,ngtmax,neqmax,idnsa,nsa_nsu,mdluf,  &
          ngt,gvt,gvts,gvrt,gvrts,gvtu,                         &
          rkev,t,rn,ru,rt,rp,qp,jtot,joh,rip,wp_t,wp_th,ws_t,   &
-         rw,stdrt,offrt,jcd_nb,jcd_ec,jcd_ic,jcd_lh,           & 
+         rw,std_rt,off_rt,jcd_nb,jcd_ec,jcd_ic,jcd_lh,         & 
          pin_t,poh_t,pnb_t,pec_t,pic_t,plh_t,pibw_t,pnf_t,     &
          beta,betap,betan,taue1,taue3,taue89,taue98,h89,h98y2
     USE trufin, ONLY: &
@@ -431,8 +494,8 @@ CONTAINS
           gvts(ngt,nsa, 5) = rnug(nsa,1)
           gvts(ngt,nsa, 6) = rtug(nsa,1)
           gvts(ngt,nsa, 7) = rnug(nsa,1)*rtug(nsa,1)*rkev*1.d20
-          gvts(ngt,nsa, 8) = stdrt(nsa)
-          gvts(ngt,nsa, 9) = offrt(nsa)
+          gvts(ngt,nsa, 8) = std_rt(nsa)
+          gvts(ngt,nsa, 9) = off_rt(nsa)
        END DO
     END IF
 

@@ -306,6 +306,7 @@ CONTAINS
     IF(gsid == 2)THEN
        vgx1(0:nrmax,1) = LOG10(eta(0:nrmax))
     ELSE
+       vgx1(0:nrmax,1) = eta(0:nrmax)
        WRITE(6,*) 'XX non-positive eta values. Graph scale is set to linear.'
     END IF
 
@@ -357,7 +358,7 @@ CONTAINS
     
     CALL PAGES
     label = '@j(tot,oh,bs,nb,ec,ic,lh) [MA/m$+2$=] vs rho@'
-    CALL tr_gr1d_rad(1,rhog,vgx1,nrmax+1,4,label,0)
+    CALL tr_gr1d_rad(1,rhog,vgx1,nrmax+1,7,label,0)
     label = '@d Psi/d rho vs rho@'
     CALL tr_gr1d_rad(2,rhog,vgx2,nrmax+1,1,label,0)
     label = '@qp vs rho@'
@@ -373,27 +374,51 @@ CONTAINS
 
 ! **************************************************************************
   SUBROUTINE tr_gr_rad6
-  ! ----- heating profile-----
-    USE trcomm, ONLY: str,poh,pnb,pec,pic,plh,pnf,prl
+  ! ----- heating profile & particle source profile -----
+    USE trcomm, ONLY: str,poh,pnb,pec,pic,plh,pnf,prl,snb,spl,swl
 
     CALL tr_gr_init_vgx
 
+    ! electron
     vgx1(0:nrmax,1) = poh(1,0:nrmax)*1.d-6
-    vgx1(0:nrmax,2) = (pnb(1,0:nrmax)+pnb(2,0:nrmax))*1.d-6
-    vgx1(0:nrmax,3) = (pec(1,0:nrmax)+pec(2,0:nrmax))*1.d-6
-    vgx1(0:nrmax,4) = (pic(1,0:nrmax)+pic(2,0:nrmax))*1.d-6
-    vgx1(0:nrmax,5) = (plh(1,0:nrmax)+plh(2,0:nrmax))*1.d-6
+    vgx1(0:nrmax,2) = pnb(1,0:nrmax)*1.d-6
+    vgx1(0:nrmax,3) = pec(1,0:nrmax)*1.d-6
+    vgx1(0:nrmax,4) = pic(1,0:nrmax)*1.d-6
+    vgx1(0:nrmax,5) = plh(1,0:nrmax)*1.d-6
+    vgx1(0:nrmax,6) = pnf(1,0:nrmax)*1.d-6
+    vgx1(0:nrmax,7) = prl(1,0:nrmax)*1.d-6
 
-    vgx2(0:nrmax,1) = poh(1,0:nrmax)*1.d-6
-    vgx2(0:nrmax,2) = (prl(1,0:nrmax)+prl(2,0:nrmax))*1.d-6
-    vgx2(0:nrmax,3) = (pnf(1,0:nrmax)+pnf(2,0:nrmax))*1.d-6
+    ! ion
+    vgx2(0:nrmax,1) = poh(2,0:nrmax)*1.d-6
+    vgx2(0:nrmax,2) = pnb(2,0:nrmax)*1.d-6
+    vgx2(0:nrmax,3) = pec(2,0:nrmax)*1.d-6
+    vgx2(0:nrmax,4) = pic(2,0:nrmax)*1.d-6
+    vgx2(0:nrmax,5) = plh(2,0:nrmax)*1.d-6
+    vgx2(0:nrmax,6) = pnf(2,0:nrmax)*1.d-6
+    vgx2(0:nrmax,7) = prl(2,0:nrmax)*1.d-6
+
+
+    ! electron
+    vgx3(0:nrmax,1) = snb(1,0:nrmax) * 1.d-20
+    vgx3(0:nrmax,2) = spl(1,0:nrmax) * 1.d-20
+    vgx3(0:nrmax,3) = swl(1,0:nrmax) * 1.d-20
+
+    ! ion
+    vgx4(0:nrmax,1) = snb(2,0:nrmax) * 1.d-20
+    vgx4(0:nrmax,2) = spl(2,0:nrmax) * 1.d-20
+    vgx4(0:nrmax,3) = swl(2,0:nrmax) * 1.d-20
+    
 
 
     CALL PAGES
-    label = '@Pin(oh,nb,ec,ic,lh) [MW/m$+3$=] vs rho@'
-    CALL tr_gr1d_rad(1,rhog,vgx1,nrmax+1,5,label,0)
-    label = '@Pin(oh,rl,nf) [MW/m$+3$=] vs rho@'
-    CALL tr_gr1d_rad(2,rhog,vgx2,nrmax+1,3,label,0)
+    label = '@Pin_e(oh,nb,ec,ic,lh,nf,rl) [MW/m$+3$=] vs rho@'
+    CALL tr_gr1d_rad(1,rhog,vgx1,nrmax+1,7,label,0)
+    label = '@Pin_i(oh,nb,ec,ic,lh,nf,rl) [MW/m$+3$=] vs rho@'
+    CALL tr_gr1d_rad(2,rhog,vgx2,nrmax+1,7,label,0)
+    label = '@Sin_e(nb,pl,wl) [10$+20$=/m$+3$= s] vs rho@'
+    CALL tr_gr1d_rad(3,rhog,vgx3,nrmax+1,3,label,0)
+    label = '@Sin_i(nb,pl,wl) [10$+20$=/m$+3$= s] vs rho@'
+    CALL tr_gr1d_rad(4,rhog,vgx4,nrmax+1,3,label,0)
 
     CALL tr_gr_time(idexp)
     CALL PAGEE
@@ -402,6 +427,7 @@ CONTAINS
   END SUBROUTINE tr_gr_rad6
 
 ! **************************************************************************
+
   SUBROUTINE tr_gr_rad7
   ! rotation velocity profile
     USE trcomm, ONLY: vtor,vpol,vpar,vprp
@@ -501,17 +527,19 @@ CONTAINS
 
     CALL tr_gr_init_gg
 
-    IF(ngt > 0)THEN
-       ngg_interval = ngt/(MOD(ngt-1,nggmax)+1)
-    ELSE IF(ngt <= 0 )THEN
-       ngg_interval = 1
-    END IF
-    DO ngg = 0, nggmax
+    ngg_interval = ngt / nggmax
+    IF(MOD(ngt,nggmax) /= 0) ngg_interval = ngg_interval + 1
+
+    DO ngg = 0, nggmax-1
        gg1(0:nrmax,ngg) = gvrts(0:nrmax, ngg*ngg_interval, 1,3)
        gg2(0:nrmax,ngg) = gvrts(0:nrmax, ngg*ngg_interval, 2,3)
        gg3(0:nrmax,ngg) = gvrts(0:nrmax, ngg*ngg_interval, 1,1)
        gg4(0:nrmax,ngg) =  gvrt(0:nrmax, ngg*ngg_interval, 1)
     END DO
+       gg1(0:nrmax,nggmax) = gvrts(0:nrmax, ngt, 1,3)
+       gg2(0:nrmax,nggmax) = gvrts(0:nrmax, ngt, 2,3)
+       gg3(0:nrmax,nggmax) = gvrts(0:nrmax, ngt, 1,1)
+       gg4(0:nrmax,nggmax) =  gvrt(0:nrmax, ngt, 1)
 
     CALL PAGES
     label = '@T1(t) [keV] vs rho@'
@@ -536,12 +564,9 @@ CONTAINS
 
     CALL tr_gr_init_gg
 
-    IF(ngt > 0)THEN
-       ngg_interval = ngt/(MOD(ngt-1,nggmax)+1)
-    ELSE IF(ngt <= 0 )THEN
-       ngg_interval = 1
-    END IF
-    DO ngg = 0, nggmax
+    ngg_interval = ngt / nggmax
+    IF(MOD(ngt,nggmax) /= 0) ngg_interval = ngg_interval + 1
+    DO ngg = 0, nggmax-1
        gg1(0:nrmax,ngg) = 1.d-6*gvrt(0:nrmax, ngg*ngg_interval, 2)
        gg2(0:nrmax,ngg) = 1.d-6*gvrt(0:nrmax, ngg*ngg_interval, 3)
        gg3(0:nrmax,ngg) = 1.d-6*(                                  &
@@ -553,6 +578,17 @@ CONTAINS
        ! history of qp profile
        gg4(0:nrmax,ngg) = gvrt(0:nrmax, ngg*ngg_interval, 1)
     END DO
+       gg1(0:nrmax,nggmax) = 1.d-6*gvrt(0:nrmax, ngt, 2)
+       gg2(0:nrmax,nggmax) = 1.d-6*gvrt(0:nrmax, ngt, 3)
+       gg3(0:nrmax,nggmax) = 1.d-6*(                                  &
+                                gvrt(0:nrmax, ngt, 4) &
+                             +  gvrt(0:nrmax, ngt, 5) &
+                             +  gvrt(0:nrmax, ngt, 6) &
+                             +  gvrt(0:nrmax, ngt, 7))
+
+       ! history of qp profile
+       gg4(0:nrmax,nggmax) = gvrt(0:nrmax, ngt, 1)
+
 
     CALL PAGES
     label = '@j_tot(t) [MA/m$+2$=] vs rho@'

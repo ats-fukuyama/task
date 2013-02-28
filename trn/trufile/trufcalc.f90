@@ -8,14 +8,11 @@ MODULE trufcalc
 
   PRIVATE
   PUBLIC tr_uf_nicomplete, &
-         sumzni,rnuc,rnfuc,zeffruc,ns_mion,ns_mimp ! for graphic output
+         sumzni,rnuc,rnfuc,zeffruc ! for graphic output
 
   ! the profiles before correction by neutrality for graphic output
   REAL(rkind),DIMENSION(1:ntum,1:nrum)        :: zeffruc, sumzni
   REAL(rkind),DIMENSION(1:nsum,1:ntum,1:nrum) :: rnuc,rnfuc
-
-  ! the location number of main ion and impurity in the density profile arrays
-  INTEGER(ikind) :: ns_mion, ns_mimp
 
 CONTAINS
 
@@ -25,12 +22,13 @@ CONTAINS
 !    number(Zeff) based on the assumption of charge neutrality.
 ! -----------------------------------------------------------------------
     USE trcomm, ONLY: pzu,pzfu,rnu,rnfu,zeffru,mdlni, &
-                      pa_mion,pz_mion,pa_mimp,pz_mimp
+         nsu_mion,nsu_mimp,pa_mion,pz_mion,pa_mimp,pz_mimp
     IMPLICIT NONE
 
     LOGICAL        :: id_mion, id_mimp, test
     INTEGER(ikind) :: id,nsu,nsi,ierr
-!    REAL(rkind)    :: pa_mion,pz_mion,pa_mimp,pz_mimp
+
+    ierr = 0
 
     rnuc(1:nsum,1:ntum,1:nrum)  = 0.d0
     rnfuc(1:nsum,1:ntum,1:nrum) = 0.d0
@@ -43,15 +41,12 @@ CONTAINS
     END DO
     zeffruc(1:ntxmax,1:nrmax+1) = zeffru(1:ntxmax,1:nrmax+1)
 
-    ! identify the main ion and impurity (their 'pa' and 'pz')
-    CALL tr_uf_id_main(pa_mion,pz_mion,pa_mimp,pz_mimp)
-
     ! check of the existence of main ion and impurity, and correct MDLNI
-    CALL tr_uf_nicheck(pa_mion,pz_mion,pa_mimp,pz_mimp,ns_mion,ns_mimp,ierr)
+    CALL tr_uf_nicheck(ierr)
 
     IF(ierr == 0)THEN
        ! correction of profiles based on charge neutrality
-       CALL tr_uf_neutrality(rnu,pzu,rnfu,pzfu,ns_mion,ns_mimp,&
+       CALL tr_uf_neutrality(rnu,pzu,rnfu,pzfu,nsu_mion,nsu_mimp,&
                              zeffru,mdlni)
     END IF
 
@@ -61,259 +56,184 @@ CONTAINS
 
 ! **********************************************************************
 
-  SUBROUTINE tr_uf_id_main(pa_mion,pz_mion,pa_mimp,pz_mimp)
+  SUBROUTINE tr_uf_nicheck(ierr)
 ! ----------------------------------------------------------------------
-!   Identify the main ion and main impurity which are re-caluculated
-!    to satisfy the charge neutrality.
-!   ** default main ion: deuterium
-!   ** default main impurity: carbon
-! ----------------------------------------------------------------------
-    USE truf0d, ONLY: idnmaz,idnfastaz,idpgasa,idpgasz,idpimpa,idpimpz, &
-                      pgasa,pgasz,pimpa,pimpz
-    IMPLICIT NONE
-
-!    INTEGER(ikind),INTENT(OUT) :: ierr
-    REAL(rkind),   INTENT(OUT) :: pa_mion,pz_mion,pa_mimp,pz_mimp
-
-
-    pa_mion = pgasa ! 'mean' mass number of the plasma ions
-    pz_mion = pgasz ! 'mean' charge number of the plasma ions
-
-    pa_mimp = pimpa ! mass number of the plasma main impurity
-    pz_mimp = pimpz ! charge number of the plasma main impurity
-
-    ! Determination of main ion which is used for correction of profile.
-    IF(idpgasa .EQV. .FALSE. .OR. idpgasz .EQV. .FALSE.)THEN
-       pa_mion = 2.d0
-       pz_mion = 1.d0 ! Deuterium: defalut
-    ELSE
-       IF(pa_mion < 1.5d0)THEN
-          pa_mion = 1.d0 ! Light Hydrogen
-       ELSE IF(1.5d0 <= pa_mion .AND. pa_mion < 2.5d0)THEN
-          pa_mion = 2.d0 ! Deuterium
-       ELSE IF(2.5d0 <= pa_mion .AND. pa_mion < 3.5d0)THEN
-          pa_mion = 3.d0 ! Tritium
-       ELSE IF(pa_mion < 4.d0)THEN
-          pa_mion = 4.d0 ! Herium
-       END IF
-       
-       IF(pz_mion < 1.5d0)THEN
-          pz_mion = 1.d0 ! Hydrogenic ion
-       ELSE
-          pz_mion = 2.d0 ! Herium
-       END IF
-
-       IF(pa_mion <= 3.d0 .AND. pz_mion == 2.d0)THEN
-          WRITE(6,*) 'XX tr_uf_comp_check: Main ion identification error.'
-          WRITE(6,*) 'PGASA= ',pgasa, 'PGASZ= ',pgasz
-          pa_mion = 2.d0
-          pz_mion = 1.d0 ! Deuterium: defalut
-          WRITE(6,*) '## tr_uf_comp_check: set to default values.'
-          WRITE(6,*) 'PGASA= ',pa_mion, 'PGASZ= ',pz_mion
-!          ierr = 1
-       END IF
-    END IF
-
-    ! Determination of main impurity which is used for correction of profile.
-    IF(idpimpa .EQV. .FALSE. .OR. idpimpz .EQV. .FALSE.)THEN
-       pa_mimp = 12.d0
-       pz_mimp = 6.d0 ! Carbon: default
-    ELSE
-       DO
-          IF(pa_mimp < 9.d0)THEN
-             pa_mimp = 8.d0 ! Beryllium
-          ELSE IF(9.d0 <= pa_mimp .AND. pa_mimp < 11.d0)THEN
-             pa_mimp = 10.d0 ! Boron
-          ELSE IF(11.d0 <= pa_mimp .AND. pa_mimp < 13.d0)THEN
-             pa_mimp = 12.d0 ! Carbon
-          ELSE
-             WRITE(6,*) 'XX tr_uf_comp_check: Unsupported impurity element.'
-             WRITE(6,*) 'PIMPA= ',pimpa, 'PIMPZ= ',pimpz
-             pa_mimp = 12.d0
-             pz_mimp = 6.d0 ! Carbon: default
-             WRITE(6,*) '## tr_uf_comp_check: set to default values.'
-             WRITE(6,*) 'PIMPA= ',pa_mimp, 'PIMPZ= ',pz_mimp
-!             ierr = 2
-             EXIT
-          END IF
-    
-          IF(pz_mimp < 4.5d0)THEN
-             pz_mimp = 4.d0 ! Beryllium
-          ELSE IF(4.5d0 <= pz_mimp .AND. pz_mimp < 5.5d0)THEN
-             pz_mimp = 5.d0 ! Boron
-          ELSE IF(5.5d0 <= pz_mimp .AND. pz_mimp < 6.5d0)THEN
-             pz_mimp = 6.d0 ! Carbon
-          ELSE
-             WRITE(6,*) 'XX tr_uf_comp_check: Unsupported impurity element.'
-             WRITE(6,*) 'PIMPA= ',pimpa, 'PIMPZ= ',pimpz
-             pa_mimp = 12.d0
-             pz_mimp = 6.d0 ! Carbon: default
-             WRITE(6,*) '## tr_uf_comp_check: set to default values.'
-             WRITE(6,*) 'PIMPA= ',pa_mimp, 'PIMPZ= ',pz_mimp
-!             ierr = 2
-             EXIT
-          END IF
-          EXIT
-       END DO
-    END IF
-
-    RETURN
-  END SUBROUTINE tr_uf_id_main
-
-! **********************************************************************
-
-  SUBROUTINE tr_uf_nicheck(pa_mion,pz_mion,pa_mimp,pz_mimp,ns_ion,ns_imp,ierr)
-! ----------------------------------------------------------------------
-!   check of the existence of main ion and impurity, and correct MDLNI
+!   check the consistency of experimental data and MDLNI
 ! ----------------------------------------------------------------------
     USE truf0d, ONLY: idnm,idnfast,idnmaz,idnfastaz,idzeff
-    USE trcomm, ONLY: pau,pzu,pzfu, mdlni
+    USE trcomm, ONLY: mdlni,pau,pzu,pzfu,pa_mion,pz_mion,pa_mimp,pz_mimp, &
+                      nsu_mion,nsu_mimp,nsu_fion
     IMPLICIT NONE
 
-    REAL(rkind),   INTENT(IN)    :: pa_mion,pz_mion,pa_mimp,pz_mimp
-    INTEGER(ikind),INTENT(OUT)   :: ns_ion, ns_imp, ierr
-
-    LOGICAL        :: id_ion,id_imp, id_fion
+    INTEGER(ikind),INTENT(OUT)   :: ierr
     INTEGER(ikind) :: nsi
 
-    id_ion = .FALSE.
-    id_imp = .FALSE.
-    ierr   = 0
-
-    ns_ion = 0
-    ns_imp = 0
-    DO nsi = 2, nsum
-       IF(idnm(nsi))THEN
-          IF(pzu(nsi) == pz_mion .AND. pau(nsi) == pa_mion)THEN
-             id_ion = .TRUE.
-             ns_ion = nsi
-          ELSE IF(pzu(nsi) == pz_mimp .AND. pau(nsi) == pa_mimp)THEN
-             id_imp = .TRUE.
-             ns_imp = nsi
-          END IF
-       END IF
-    END DO
-
-    ! the case that the main ion density data can not be found.
-    IF(id_ion .EQV. .FALSE.)THEN
-       DO nsi = 2, nsum
-          IF(idnm(nsi) .EQV. .FALSE.)THEN
-             idnm(nsi)   = .TRUE.
-             idnmaz(nsi) = .TRUE.
-
-             ns_ion = nsi
-             pzu(ns_ion) = pz_mion
-             pau(ns_ion) = pa_mion
-             EXIT
-          END IF
-          IF(nsi==nsum)THEN
-             WRITE(6,*) 'XX tr_uf_nicheck: No blank in UFILE array.'
-             WRITE(6,*) 'XX Stopped to correction of profiles by neutrality.'
-             ierr = 1
-             RETURN
-          ENDIF
-       END DO
-    END IF
-
-    ! the case that the main impurity density data can not be found.
-    IF(id_imp .EQV. .FALSE.)THEN
-       DO nsi = 3, nsum ! nsi = 2: impurity data should not be store.
-          IF(idnm(nsi) .EQV. .FALSE.)THEN
-             idnm(nsi)   = .TRUE.
-             idnmaz(nsi) = .TRUE.
-
-             ns_imp = nsi
-             pzu(ns_imp) = pz_mimp
-             pau(ns_imp) = pa_mimp
-             EXIT
-          END IF
-          IF(nsi==nsum)THEN
-             WRITE(6,*) 'XX tr_uf_nicheck: No blank in UFILE array.'
-             WRITE(6,*) 'XX Stopped to correction of profiles by neutrality.'
-             ierr = 1
-             RETURN
-          ENDIF
-       END DO
-    END IF
-
+    ierr = 0
 
     SELECT CASE(mdlni)
-    CASE(1) ! complete n_i and n_imp from Zeff, n_e (and n_bulk)
+    CASE(1) ! complete n_i and n_imp from Zeff, n_e (and n_bulk,n_fast)
        DO
-          IF(idzeff(1).EQV..TRUE.) EXIT
-          IF(idzeff(2).EQV..TRUE.) EXIT
+          IF((idzeff(1).EQV..TRUE.) .OR. (idzeff(2).EQV..TRUE.))THEN
+             IF(idnm(nsu_mion).EQV..FALSE.) idnm(nsu_mion) = .TRUE.
+             IF(idnm(nsu_mimp).EQV..FALSE.) idnm(nsu_mimp) = .TRUE.
+             EXIT
+          END IF
+
           WRITE(6,*) 'XX tr_uf_nicheck: Lack of ZEFF data.'
-          IF(id_ion)THEN
+          IF(idnm(nsu_mion))THEN
              mdlni = 2
-             WRITE(6,*) '## "MDNI" is reset to MDLNI= ',mdlni
-          ELSE IF(id_imp)THEN
+             WRITE(6,*) '## "MDLNI" is reset to MDLNI= ',mdlni
+          ELSE IF(idnm(nsu_mimp))THEN
              mdlni = 3
              WRITE(6,*) '## "MDLNI" is reset to MDLNI= ',mdlni
           ELSE
              WRITE(6,*) 'XX tr_uf_nicheck: Lack of all essential data, Zeff, n_i, n_imp.'
 !             WRITE(6,*) 'XX Stopped to correction of profiles by neutrality.'
-!             ierr = 2
+!             ierr = 1
              mdlni = 9
              WRITE(6,*) '## "MDLNI" is reset to MDLNI= ',mdlni
+             IF(idnm(nsu_mion) .EQV. .FALSE.) idnm(nsu_mion) = .TRUE.
+             IF(idnm(nsu_mimp) .EQV. .TRUE.)  idnm(nsu_mimp) = .FALSE.
           END IF
           EXIT
        END DO
 
-    CASE(2) ! complete n_imp and Zeff from n_e, n_i (and n_bulk)
-       IF(id_ion .EQV. .FALSE.)THEN
+    CASE(2) ! complete n_imp and Zeff from n_e, n_i (and n_bulk,n_fast)
+       IF(idnm(nsu_mimp).EQV..FALSE.) idnm(nsu_mimp) = .TRUE.
+
+       IF(idnm(nsu_mion).EQV..FALSE.)THEN
           WRITE(6,*) 'XX tr_uf_nicheck: Lack of n_i data.'
           IF(idzeff(1).EQV..TRUE. .OR. idzeff(2).EQV..TRUE.)THEN
              mdlni = 1
              WRITE(6,*) '## "MDLNI" is reset to MDLNI= ',mdlni
-          ELSE IF(id_imp)THEN
+          ELSE IF(idnm(nsu_mimp))THEN
              mdlni = 3
              WRITE(6,*) '## "MDLNI" is reset to MDLNI= ',mdlni
           ELSE
              WRITE(6,*) 'XX tr_uf_nicheck: Lack of all essential data, Zeff, n_i, n_imp.'
 !             WRITE(6,*) 'XX Stopped to correction of profiles by neutrality.'
-!             ierr = 2
+!             ierr = 1
              mdlni = 9
              WRITE(6,*) '## "MDLNI" is reset to MDLNI= ',mdlni
+             IF(idnm(nsu_mion) .EQV. .FALSE.) idnm(nsu_mion) = .TRUE.
+             IF(idnm(nsu_mimp) .EQV. .TRUE.)  idnm(nsu_mimp) = .FALSE.
           END IF
        END IF
 
-    CASE(3) ! complete n_i and Zeff   from n_e, n_imp (and n_bulk)
-       IF(id_imp .EQV. .FALSE.)THEN
+    CASE(3) ! complete n_i and Zeff   from n_e, n_imp (and n_bulk,n_fast)
+       IF(idnm(nsu_mion).EQV..FALSE.) idnm(nsu_mion) = .TRUE.
+
+       IF(idnm(nsu_mimp) .EQV. .FALSE.)THEN
           WRITE(6,*) 'XX tr_uf_nicheck: Lack of n_imp data.'
           IF(idzeff(1).EQV..TRUE. .OR. idzeff(2).EQV..TRUE.)THEN
              mdlni = 1
              WRITE(6,*) '## "MDLNI" is reset to MDLNI= ',mdlni
-          ELSE IF(id_ion)THEN
+          ELSE IF(idnm(nsu_mion))THEN
              mdlni = 2
              WRITE(6,*) '## "MDLNI" is reset to MDLNI= ',mdlni
           ELSE
              WRITE(6,*) 'XX tr_uf_nicheck: Lack of all essential data, Zeff, n_i, n_imp.'
 !             WRITE(6,*) 'XX Stopped to correction of profiles by neutrality.'
-!             ierr = 2
+!             ierr = 1
              mdlni = 9
              WRITE(6,*) '## "MDLNI" is reset to MDLNI= ',mdlni
+             IF(idnm(nsu_mion) .EQV. .FALSE.) idnm(nsu_mion) = .TRUE.
+             IF(idnm(nsu_mimp) .EQV. .TRUE.)  idnm(nsu_mimp) = .FALSE.
           END IF
        END IF
 
-    CASE(8)
-       id_fion = .FALSE.
-       DO nsi = 2, nsum
-          IF(idnfast(nsi) .EQV. .TRUE.) id_fion = .TRUE. ; EXIT
+    CASE(4) ! complete n_i and n_imp from Zeff, n_e (and n_bulk)
+       DO
+          IF(idzeff(1).EQV..TRUE. .OR. idzeff(2).EQV..TRUE.)THEN
+             IF(idnm(nsu_mion).EQV..FALSE.) idnm(nsu_mion) = .TRUE.
+             IF(idnm(nsu_mimp).EQV..FALSE.) idnm(nsu_mimp) = .TRUE.
+             EXIT
+          END IF
+
+          WRITE(6,*) 'XX tr_uf_nicheck: Lack of ZEFF data.'
+          IF(idnm(nsu_mion))THEN
+             mdlni = 5
+             WRITE(6,*) '## "MDLNI" is reset to MDLNI= ',mdlni
+          ELSE IF(idnm(nsu_mimp))THEN
+             mdlni = 6
+             WRITE(6,*) '## "MDLNI" is reset to MDLNI= ',mdlni
+          ELSE
+             WRITE(6,*) 'XX tr_uf_nicheck: Lack of all essential data, Zeff, n_i, n_imp.'
+!             WRITE(6,*) 'XX Stopped to correction of profiles by neutrality.'
+!             ierr = 1
+             mdlni = 9
+             WRITE(6,*) '## "MDLNI" is reset to MDLNI= ',mdlni
+             IF(idnm(nsu_mion) .EQV. .FALSE.) idnm(nsu_mion) = .TRUE.
+             IF(idnm(nsu_mimp) .EQV. .TRUE.)  idnm(nsu_mimp) = .FALSE.
+          END IF
+          EXIT
        END DO
 
-       IF(id_fion .EQV. .FALSE.)THEN
-          mdlni = 9
+    CASE(5) ! complete n_imp and Zeff from n_e, n_i (and n_bulk)
+       IF(idnm(nsu_mimp).EQV..FALSE.) idnm(nsu_mimp) = .TRUE.
+
+       IF(idnm(nsu_mion).EQV..FALSE.)THEN
+          WRITE(6,*) 'XX tr_uf_nicheck: Lack of n_i data.'
+          IF(idzeff(1).EQV..TRUE. .OR. idzeff(2).EQV..TRUE.)THEN
+             mdlni = 4
+             WRITE(6,*) '## "MDLNI" is reset to MDLNI= ',mdlni
+          ELSE IF(idnm(nsu_mimp))THEN
+             mdlni = 6
+             WRITE(6,*) '## "MDLNI" is reset to MDLNI= ',mdlni
+          ELSE
+             WRITE(6,*) 'XX tr_uf_nicheck: Lack of all essential data, Zeff, n_i, n_imp.'
+!             WRITE(6,*) 'XX Stopped to correction of profiles by neutrality.'
+!             ierr = 1
+             mdlni = 9
+             WRITE(6,*) '## "MDLNI" is reset to MDLNI= ',mdlni
+             IF(idnm(nsu_mion) .EQV. .FALSE.) idnm(nsu_mion) = .TRUE.
+             IF(idnm(nsu_mimp) .EQV. .TRUE.)  idnm(nsu_mimp) = .FALSE.
+          END IF
+       END IF
+
+    CASE(6) ! complete n_i and Zeff   from n_e, n_imp (and n_bulk)
+       IF(idnm(nsu_mion).EQV..FALSE.) idnm(nsu_mion) = .TRUE.
+
+       IF(idnm(nsu_mimp) .EQV. .FALSE.)THEN
+          WRITE(6,*) 'XX tr_uf_nicheck: Lack of n_imp data.'
+          IF(idzeff(1).EQV..TRUE. .OR. idzeff(2).EQV..TRUE.)THEN
+             mdlni = 4
+             WRITE(6,*) '## "MDLNI" is reset to MDLNI= ',mdlni
+          ELSE IF(idnm(nsu_mion))THEN
+             mdlni = 5
+             WRITE(6,*) '## "MDLNI" is reset to MDLNI= ',mdlni
+          ELSE
+             WRITE(6,*) 'XX tr_uf_nicheck: Lack of all essential data, Zeff, n_i, n_imp.'
+!             WRITE(6,*) 'XX Stopped to correction of profiles by neutrality.'
+!             ierr = 1
+             mdlni = 9
+             WRITE(6,*) '## "MDLNI" is reset to MDLNI= ',mdlni
+             IF(idnm(nsu_mion) .EQV. .FALSE.) idnm(nsu_mion) = .TRUE.
+             IF(idnm(nsu_mimp) .EQV. .TRUE.)  idnm(nsu_mimp) = .FALSE.
+          END IF
+       END IF
+
+    CASE(8) ! complete n_i and Zeff using the assumption n_e = n_i + n_f
+       IF(idnm(nsu_mion).EQV..FALSE.) idnm(nsu_mion) = .TRUE.
+
+       IF(idnfast(nsu_fion) .EQV. .FALSE.)THEN
           WRITE(6,*) 'XX tr_uf_nicheck: Lack of n_fast data.'
+!          WRITE(6,*) 'XX Stopped to correction of profiles by neutrality.'
+!          ierr = 1
+          mdlni = 9
           WRITE(6,*) '## "MDLNI" is reset to MDLNI= ',mdlni
+          IF(idnm(nsu_mion) .EQV. .FALSE.) idnm(nsu_mion) = .TRUE.
+          IF(idnm(nsu_mimp) .EQV. .TRUE.)  idnm(nsu_mimp) = .FALSE.
        END IF
           
     CASE(9) ! complete n_i and Zeff using the assumption n_e = n_i
-       CONTINUE
+       IF(idnm(nsu_mion) .EQV. .FALSE.) idnm(nsu_mion) = .TRUE.
+       IF(idnm(nsu_mimp) .EQV. .TRUE.)  idnm(nsu_mimp) = .FALSE.
 
     CASE DEFAULT
        WRITE(6,*) 'XX tr_uf_nicheck: the value of "MDLNI" is invalid. MDLNI= ',mdlni
        WRITE(6,*) 'XX Stopped to correction of profiles by charge neutrality.'
-       ierr = 2
+       ierr = -1
     END SELECT
 
 
@@ -338,9 +258,12 @@ CONTAINS
 !  * rnfc(nsu=1) is dummy.
 !
 !  id --> mdlni
-!  id = 1 : complete n_i and n_imp  from Zeff, n_e (and n_bulk)
-!  id = 2 : complete n_imp and Zeff from n_e, n_i (and n_bulk)
-!  id = 3 : complete n_i and Zeff   from n_e, n_imp (and n_bulk)
+!  id = 1 : complete n_i and n_imp  from Zeff, n_e  (and n_bulk, n_fast)
+!  id = 2 : complete n_imp and Zeff from n_e, n_i   (and n_bulk, n_fast)
+!  id = 3 : complete n_i and Zeff   from n_e, n_imp (and n_bulk, n_fast)
+!  id = 4 : complete n_i and n_imp  from Zeff, n_e  (and n_bulk)
+!  id = 5 : complete n_imp and Zeff from n_e, n_i   (and n_bulk)
+!  id = 6 : complete n_i and Zeff   from n_e, n_imp (and n_bulk)
 !  id = 8 : complete n_i and Zeff using the assumption n_e = n_i (+ n_fast)
 !  id = 9 : complete n_i and Zeff using the assumption n_e = n_i
 ! ----------------------------------------------------------------------
@@ -357,7 +280,7 @@ CONTAINS
     sumzni(1:ntum,1:nrum)  = 0.d0
 
     SELECT CASE(id)
-    CASE(1) ! Zeff, n_e (and n_bulk) --> n_i, n_imp
+    CASE(1) ! Zeff, n_e (and n_bulk, n_fast) --> n_i, n_imp
        DO ntx = 1, ntxmax
           rnc(ns_ion,ntx,1:nrmax+1) = (pzc(ns_imp)-zeffrc(ntx,1:nrmax+1)) &
                                       *rnc(1,ntx,1:nrmax+1)
@@ -386,7 +309,7 @@ CONTAINS
        END DO
 
     ! CASE(2) and CASE(3) are symmetry w.r.t 'ns_ion' or 'ns_imp'
-    CASE(2) ! n_e, n_i (and n_bulk) --> n_imp, Zeff
+    CASE(2) ! n_e, n_i (and n_bulk, n_fast) --> n_imp, Zeff
        DO ntx = 1, ntxmax
           rnc(ns_imp,ntx,1:nrmax+1) = rnc(1,ntx,1:nrmax+1)
 
@@ -410,7 +333,7 @@ CONTAINS
           zeffrc(ntx,1:nrmax+1) = zeffrc(ntx,1:nrmax+1)/rnc(1,ntx,1:nrmax+1)
        END DO
 
-    CASE(3) ! n_e, n_imp (and n_bulk) --> n_i, Zeff
+    CASE(3) ! n_e, n_imp (and n_bulk, n_fast) --> n_i, Zeff
        DO ntx = 1, ntxmax
           rnc(ns_ion,ntx,1:nrmax+1) = rnc(1,ntx,1:nrmax+1)
 
@@ -433,6 +356,69 @@ CONTAINS
 
           zeffrc(ntx,1:nrmax+1) = zeffrc(ntx,1:nrmax+1)/rnc(1,ntx,1:nrmax+1)
        END DO
+
+    CASE(4) ! Zeff, n_e (and n_bulk) --> n_i, n_imp
+       DO ntx = 1, ntxmax
+          rnc(ns_ion,ntx,1:nrmax+1) = (pzc(ns_imp)-zeffrc(ntx,1:nrmax+1)) &
+                                      *rnc(1,ntx,1:nrmax+1)
+          rnc(ns_imp,ntx,1:nrmax+1) = (zeffrc(ntx,1:nrmax+1)-pzc(ns_ion)) &
+                                      *rnc(1,ntx,1:nrmax+1)
+          DO nsi = 2, nsum
+             IF(nsi /= ns_ion .AND. nsi /= ns_imp)THEN
+                rnc(ns_ion,ntx,1:nrmax+1) = rnc(ns_ion,ntx,1:nrmax+1)     &
+                     - (pzc(ns_imp)-pzc(nsi))*pzc(nsi)*rnc(nsi,ntx,1:nrmax+1)
+
+                rnc(ns_imp,ntx,1:nrmax+1) = rnc(ns_imp,ntx,1:nrmax+1)     &
+                     - (pzc(nsi)-pzc(ns_ion))*pzc(nsi)*rnc(nsi,ntx,1:nrmax+1)
+             END IF
+          END DO
+
+          rnc(ns_ion,ntx,1:nrmax+1) = rnc(ns_ion,ntx,1:nrmax+1)           &
+                                     /(pzc(ns_ion)*(pzc(ns_imp)-pzc(ns_ion)))
+
+          rnc(ns_imp,ntx,1:nrmax+1) = rnc(ns_imp,ntx,1:nrmax+1)           &
+                                     /(pzc(ns_imp)*(pzc(ns_imp)-pzc(ns_ion)))
+       END DO
+
+    ! CASE(5) and CASE(6) are symmetry w.r.t 'ns_ion' or 'ns_imp'
+    CASE(5) ! n_e, n_i (and n_bulk) --> n_imp, Zeff
+       DO ntx = 1, ntxmax
+          rnc(ns_imp,ntx,1:nrmax+1) = rnc(1,ntx,1:nrmax+1)
+
+          zeffrc(ntx,1:nrmax+1) = pzc(ns_imp)*rnc(1,ntx,1:nrmax+1)
+          DO nsi = 2, nsum
+             IF(nsi /= ns_imp)THEN
+                rnc(ns_imp,ntx,1:nrmax+1) = rnc(ns_imp,ntx,1:nrmax+1) &
+                                 - pzc(nsi)*rnc(nsi,ntx,1:nrmax+1)
+
+                zeffrc(ntx,1:nrmax+1) = zeffrc(ntx,1:nrmax+1)        &
+                     - (pzc(ns_imp)-pzc(nsi))*pzc(nsi)*rnc(nsi,ntx,1:nrmax+1)
+             END IF
+          END DO
+          rnc(ns_imp,ntx,1:nrmax+1) = rnc(ns_imp,ntx,1:nrmax+1)/pzc(ns_imp)
+
+          zeffrc(ntx,1:nrmax+1) = zeffrc(ntx,1:nrmax+1)/rnc(1,ntx,1:nrmax+1)
+       END DO
+
+    CASE(6) ! n_e, n_imp (and n_bulk) --> n_i, Zeff
+       DO ntx = 1, ntxmax
+          rnc(ns_ion,ntx,1:nrmax+1) = rnc(1,ntx,1:nrmax+1)
+
+          zeffrc(ntx,1:nrmax+1) = pzc(ns_ion)*rnc(1,ntx,1:nrmax+1)
+          DO nsi = 2, nsum
+             IF(nsi /= ns_ion)THEN
+                rnc(ns_ion,ntx,1:nrmax+1) = rnc(ns_ion,ntx,1:nrmax+1) &
+                                  -pzc(nsi)*rnc(nsi,ntx,1:nrmax+1)
+
+                zeffrc(ntx,1:nrmax+1) = zeffrc(ntx,1:nrmax+1)         &
+                     - (pzc(ns_ion)-pzc(nsi))*pzc(nsi)*rnc(nsi,ntx,1:nrmax+1)
+             END IF
+          END DO
+          rnc(ns_ion,ntx,1:nrmax+1) = rnc(ns_ion,ntx,1:nrmax+1)/pzc(ns_ion)
+
+          zeffrc(ntx,1:nrmax+1) = zeffrc(ntx,1:nrmax+1)/rnc(1,ntx,1:nrmax+1)
+       END DO
+
 
     CASE(8) ! n_e, n_fast --> n_i, Zeff (n_e = n_i + n_fast; not including impurity)
        rnc(ns_ion,1:ntxmax,1:nrmax+1) = rnc(1,1:ntxmax,1:nrmax+1)

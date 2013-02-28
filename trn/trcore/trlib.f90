@@ -19,6 +19,11 @@ CONTAINS
     INTEGER(4) :: nx, xid, nxl, nxr
     REAL(8)    :: grd
 
+    IF(nxmax == 1)THEN
+       y0 = ay(1)
+       RETURN
+    END IF
+
     IF(x0 < ax(1))THEN
        nxl = 0
        nxr = 1
@@ -31,6 +36,9 @@ CONTAINS
              nxl = nx-1
              nxr = nx
              EXIT
+          ELSE IF(x0 == ax(nx))THEN
+             y0 = ay(nxmax)
+             RETURN
           END IF
        END DO
     END IF
@@ -43,13 +51,62 @@ CONTAINS
 
 ! **************************************************************************
 
-  SUBROUTINE deriv_stg4p
+  SUBROUTINE mesh_rem2g(rhog,datam,datag,nrmax,idcntr,idedge)
+! -------------------------------------------------------------------------
+!   REconvert from HALF integer grid to integer grid.
+! -------------------------------------------------------------------------
+    IMPLICIT NONE
+    INTEGER(ikind),INTENT(IN) :: nrmax, idcntr, idedge
+    REAL(rkind),DIMENSION(0:nrmax),INTENT(IN)  :: rhog
+    REAL(rkind),DIMENSION(1:nrmax),INTENT(IN)  :: datam
+    REAL(rkind),DIMENSION(0:nrmax),INTENT(OUT) :: datag
 
+    INTEGER(ikind) :: nr
+    REAL(rkind)    :: cm, cp, rhom1,rhom2, FCTR ! TASK/lib
+    REAL(rkind),DIMENSION(1:nrmax) :: drhog
     
+    drhog(1:nrmax) = rhog(1:nrmax) - rhog(0:nrmax-1)
+    ! This is the assumption of the subroutine.
+    rhom1 = 0.5d0*(rhog(0) + rhog(1))
+    rhom2 = 0.5d0*(rhog(1) + rhog(2))
+
+    DO nr = 1, nrmax-1
+       cm = drhog(nr+1) / (drhog(nr)+drhog(nr+1))
+       cp = drhog(nr  ) / (drhog(nr)+drhog(nr+1))
+
+       datag(nr) = cm*datam(nr) + cp*datam(nr+1)
+    END DO
+
+    SELECT CASE(idcntr)
+    CASE(0)
+       datag(0) = 0.d0
+    CASE(1) ! derivative = 0 at the axis
+       datag(1) = FCTR(rhom1,rhom2,datam(1),datam(2))
+    END SELECT
+
+    SELECT CASE(idedge)
+    CASE(0)
+       datag(nrmax) = 0.d0
+    CASE(1) ! linear extrapolation
+       datag(nrmax) = ((2.d0*drhog(nrmax)+drhog(nrmax-1))*datam(nrmax  )  &
+                                            -drhog(nrmax)*datam(nrmax-1)) &
+                     /(drhog(nrmax)+drhog(nrmax-1))
+    END SELECT
 
     RETURN
-  END SUBROUTINE deriv_stg4p
+  END SUBROUTINE mesh_rem2g
 
+
+  REAL(rkind) FUNCTION FEDG(Rm,Rp,Fm,Fp)
+    IMPLICIT NONE
+    REAL(8), INTENT(IN) :: Rm, Rp, Fm, Fp
+
+    FEDG = Fp + (Fp - Fm)/(Rp - Rm)*(1.d0 - Rp)
+
+    RETURN
+  END FUNCTION FEDG
+
+! **************************************************************************
 ! **************************************************************************
 
   SUBROUTINE mesh_convert_mtog(datam,datag,nrmax)

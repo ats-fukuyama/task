@@ -15,8 +15,8 @@ CONTAINS
 
     USE trcomm, ONLY: &
          tr_nit_allocate,tr_nsa_allocate,tr_nr_allocate,tr_ngt_allocate, &
-         unitid,t,t_prev,ngt,ns_nsa,idnsa,nrmax,nsamax,nsafmax,mdluf,    &
-         pa,pz,pz0,nitmax,rip,rips
+         unitid,t,t_prev,dt,ngt,ns_nsa,idnsa,ntmax,tmax,nrmax,nsamax,    &
+         mdluf,pa,pz,pz0,nitmax,rip,rips
     USE trbpsd, ONLY: tr_bpsd_init
     USE eq_bpsd_mod, ONLY: eq_bpsd_init
     USE trloop, ONLY: tr_save_pvprev
@@ -30,6 +30,7 @@ CONTAINS
     CALL eq_bpsd_init(ierr)
 
     t      = 0.d0           ! time is initialized
+    tmax   = dt*ntmax
     t_prev = 0.d0
     ngt    = -1             ! save data count is initilaized
     nitmax = 0              ! iteration count is initialized
@@ -39,12 +40,6 @@ CONTAINS
     CALL tr_nsa_allocate
 
     CALL tr_set_species
-
-    CALL tr_set_idneq
-
-    CALL tr_setup_table     ! calculate table for matrix generation
-
-    CALL tr_print_species
 
 ! +++ allocation of array and initilization +++
     CALL tr_ngt_allocate    ! allocation for data save
@@ -69,6 +64,13 @@ CONTAINS
     CALL tr_calc_global
     CALL tr_save_ngt
     IF(mdluf > 0) CALL tr_exp_compare
+
+! +++ setup of table of equations +++
+    CALL tr_set_idneq
+
+    CALL tr_setup_table     ! calculate table for matrix generation
+
+    CALL tr_print_species
 
 
     CALL tr_bpsd_init(ierr)
@@ -182,7 +184,7 @@ CONTAINS
 !   This subroutine sets the table for matrix generation.
 ! --------------------------------------------------------------------------
     USE trcomm, ONLY: neqmax,idnsa,nsa_neq,nva_neq,id_neq, &
-         mdleqb,mdleqn,mdleqt,mdlequ
+         mdleqb,mdleqn,mdleqt,mdlequ,cdtrn
 
     IMPLICIT NONE
     INTEGER(ikind) :: i,neq,nsa,nva
@@ -211,6 +213,8 @@ CONTAINS
              id_neq(neq) = 0
           ELSE IF(mdleqn == 1)THEN
              id_neq(neq) = 1
+          ELSE IF(mdleqn == 2)THEN
+             id_neq(neq) = 11
           END IF
 
        CASE(2) ! toroidal velocity
@@ -225,11 +229,15 @@ CONTAINS
                 id_neq(neq) = 0
              ELSE IF(mdleqt == 1)THEN
                 id_neq(neq) = 1
+             ELSE IF(mdleqt == 2)THEN
+                id_neq(neq) = 11
              END IF
           END IF
 
        END SELECT
     ENDDO
+
+    IF(mdleqn==0) cdtrn = 0.d0
 
     RETURN
   END SUBROUTINE tr_set_idneq
@@ -240,8 +248,8 @@ CONTAINS
 !   This subroutine sets the table for matrix generation.
 ! --------------------------------------------------------------------------
     USE trcomm, ONLY: nrmax,nsamax,neqmax,neqrmax,nvrmax,nvmax, &
-                      nsa_neq,nva_neq,id_neq,id_neqnr,neq_neqr,       &
-                      rg,rg_fixed,neqr_neq,tr_neqr_allocate
+                      nsa_neq,nva_neq,id_neq,id_neqnr,neq_neqr, &
+                      rhog,rhog_fixed,neqr_neq,tr_neqr_allocate
     IMPLICIT NONE
     INTEGER(ikind):: neq,nsa,nva,neqr,nr
 
@@ -285,12 +293,13 @@ CONTAINS
           STOP
        END SELECT
 
-       IF(id_neq(neq) >= 10) THEN  ! fixed for rg >= rg_fixed
-          DO nr=1,nrmax
-             nsa=nsa_neq(neq)
-             nva=nva_neq(neq)
-             IF(rg(nr) >= rg_fixed(nva,nsa)) THEN
-                id_neqnr(neq,nr)=2
+       IF(id_neq(neq) >= 10) THEN  ! fixed for rhog >= rhog_fixed
+          DO nr = 1, nrmax
+             nsa = nsa_neq(neq)
+             nva = nva_neq(neq)
+             IF(nva == 0) CYCLE
+             IF(rhog(nr) >= rhog_fixed(nva,nsa)) THEN
+                id_neqnr(neq,nr) = 2
              END IF
           END DO
        END IF
@@ -362,7 +371,7 @@ CONTAINS
          rg,rm,rhog,rhom,rjcb,ra,rr,rn,ru,rt,rp,rp_tot,           &
          mdluf,mdlgmt,mdlglb,mdlsrc,time_slc
     USE trufile, ONLY: tr_ufile
-    USE trufin, ONLY: tr_uf_init,tr_ufin_global,tr_ufin_density, &
+    USE trufin, ONLY: tr_ufin_global,tr_ufin_density, &
                       tr_ufin_rotation,tr_ufin_temperature
     USE plprof, ONLY: pl_prof2
                       
@@ -386,19 +395,18 @@ CONTAINS
     DO
        IF(mdluf /= 0)THEN
           CALL tr_ufile(ierr)
-!!$          IF(ierr /= 0)THEN
-!!$             ! set to default values
-!!$             mdluf  = 0
-!!$             mdlgmt = 1
-!!$             mdlglb = 1
-!!$             mdlsrc = 1
-!!$             EXIT
-!!$          END IF
+          IF(ierr == -1)THEN ! fatal error
+             ! set to default values
+             mdluf  = 0
+             mdlgmt = 1
+             mdlglb = 1
+             mdlsrc = 1
+             EXIT
+          END IF
 
-          CALL tr_uf_init(mdluf)
           IF(mdluf==1)THEN
              time = time_slc
-             t    = time
+!             t    = time
           ELSE IF(mdluf==2)THEN
              time = t
           END IF
@@ -534,6 +542,8 @@ CONTAINS
        CALL tr_ufin_geometry(time,1,ierr)
        ! caluculate associated geomtric quantities
        CALL tr_calc_geometry
+
+       rmnrho(0:nrmax)  = SQRT(rkap)*ra*rhog(0:nrmax) ! [m]
 
     CASE(8:9) ! CALL TASK/EQ       
        
@@ -705,9 +715,9 @@ CONTAINS
 !       jtot(0) = FCTR4pt(rhog(1),rhog(2),rhog(3),jtot(1),jtot(2),jtot(3))
        jtot(0) = FCTR(rhog(1),rhog(2),jtot(1),jtot(2))       
 
-       CALL PAGES
-       CALL GRD1D(1,rhog,factor2,nrmax+1,nrmax+1,1,'jtot',0)
-       CALL PAGEE
+!       CALL PAGES
+!       CALL GRD1D(1,rhog,factor2,nrmax+1,nrmax+1,1,'jtot',0)
+!       CALL PAGEE
 
     END IF
 
@@ -724,14 +734,16 @@ CONTAINS
 ! --------------------------------------------------------------------
     USE trcomm,ONLY: nrmax,nsamax,ngtmax, &
          gvt,gvtu,gvts,gvrt,gvrts,        &
-         nrd1,nrd2,nrd3,nrd4,vtor,vpol,vpar,vprp,                &
-         jbs_nc,jex_nc,jcd_nb,jcd_ec,jcd_ic,jcd_lh, grdpf,fluxtb
+         nrd1,nrd2,nrd3,nrd4,wrot,vtor,vpol,vpar,vprp,           &
+         grdpf,fluxtb,jbs_nc,jex_nc,jcd_nb,jcd_ec,jcd_ic,jcd_lh, &
+         poh,pnb,pec,pic,plh,pibw,pnf,prl,pwl,snb,spl,swl
 
     nrd1(0:nrmax) = 0.d0
     nrd2(0:nrmax) = 0.d0
     nrd3(0:nrmax) = 0.d0
     nrd4(0:nrmax) = 0.d0
 
+    wrot(0:nrmax) = 0.d0
     vtor(0:nrmax) = 0.d0
     vpol(0:nrmax) = 0.d0
     vpar(0:nrmax) = 0.d0
@@ -743,6 +755,19 @@ CONTAINS
     jcd_ec(0:nrmax) = 0.d0
     jcd_ic(0:nrmax) = 0.d0
     jcd_lh(0:nrmax) = 0.d0
+
+    poh(1:2,0:nrmax)  = 0.d0
+    pnb(1:2,0:nrmax)  = 0.d0
+    pec(1:2,0:nrmax)  = 0.d0
+    pic(1:2,0:nrmax)  = 0.d0
+    plh(1:2,0:nrmax)  = 0.d0
+    pibw(1:2,0:nrmax) = 0.d0
+    pnf(1:2,0:nrmax)  = 0.d0
+    prl(1:2,0:nrmax)  = 0.d0
+    pwl(1:2,0:nrmax)  = 0.d0
+    snb(1:2,0:nrmax)  = 0.d0
+    spl(1:2,0:nrmax)  = 0.d0
+    swl(1:2,0:nrmax)  = 0.d0
 
     grdpf(1:neqmax,1:nrmax)  = 0.d0
     fluxtb(1:neqmax,1:nrmax) = 0.d0

@@ -7,7 +7,8 @@ MODULE trcalc1
 CONTAINS
 
   SUBROUTINE tr_calc1
-    USE trcomm,ONLY: t,dt,ntmax,nteqit,mdluf,mdlgmt,mdlglb, nrmax,jtot
+    USE trcomm,ONLY: t,dt,ntmax,nteqit,mdluf,mdlgmt,mdlglb,nrmax, &
+         vtor,wrot,rmjrho
     USE trbpsd,ONLY: tr_bpsd_set,tr_bpsd_get
     USE trsource,ONLY: tr_source1
     USE trufin,ONLY: tr_ufin_density,tr_ufin_rotation,tr_ufin_temperature, &
@@ -23,7 +24,7 @@ CONTAINS
     nt   = INT(time/dt)
 
     ! read experimental profile data at every time step
-    IF(mdluf > 0)THEN
+    IF(mdluf == 2)THEN
        CALL tr_ufin_density(time,2,ierr)
        CALL tr_ufin_rotation(time,2,ierr)
        CALL tr_ufin_temperature(time,2,ierr)
@@ -75,6 +76,10 @@ CONTAINS
     CALL tr_calc_dpdrho
 
     CALL tr_source1 ! source calculation (unnecessary non-linear iteration)
+
+    ! Interim way; 
+    !  meaningful calculation only if 'wrot' is obtained from exp. data.
+    vtor(0:nrmax) = wrot(0:nrmax) * rmjrho(0:nrmax)
 
     RETURN
   END SUBROUTINE tr_calc1

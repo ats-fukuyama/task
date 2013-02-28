@@ -1,7 +1,7 @@
 MODULE trprf
-!     ***********************************************************
-!           RF HEATING AND CURRENT DRIVE (GAUSSIAN PROFILE)
-!     ***********************************************************
+! ***********************************************************
+!      RF HEATING AND CURRENT DRIVE (GAUSSIAN PROFILE)
+! ***********************************************************
   USE trcomm, ONLY: ikind, rkind
 
   PRIVATE
@@ -32,8 +32,9 @@ CONTAINS
          efcdec, efcdic, efcdlh, &! current drive efficiency
          fact, pec0, pecl, pic0, picl, plh0, plhl,  &
          plhr0l, rlnlmd, sumec, sumic, sumlh,       &
+         pecm,pecp,plhm,plhp,picm,picp,             &
          vphec, vphic, vphlh,    &! phase velocity
-         vte, vtep, dr
+         vte, vtep, drhog
     INTEGER(ikind):: nr
     
 
@@ -69,12 +70,18 @@ CONTAINS
     sumlh = 0.d0
     sumic = 0.d0
 
-    DO nr = 0, nrmax-1
-       dr = rhog(nr+1) - rhog(nr)
+    DO nr = 1, nrmax
+       drhog = rhog(nr) - rhog(nr-1)
+       pecm = DEXP(-((rmnrho(nr-1)-pecr0 )/pecrw)**2)*dvrho(nr-1)
+       pecp = DEXP(-((rmnrho(nr  )-pecr0 )/pecrw)**2)*dvrho(nr  )
+       plhm = DEXP(-((rmnrho(nr-1)-plhr0l)/plhrw)**2)*dvrho(nr-1)
+       plhp = DEXP(-((rmnrho(nr  )-plhr0l)/plhrw)**2)*dvrho(nr  )
+       picm = DEXP(-((rmnrho(nr-1)-picr0 )/picrw)**2)*dvrho(nr-1)
+       picp = DEXP(-((rmnrho(nr  )-picr0 )/picrw)**2)*dvrho(nr  )
 
-       sumec = sumec + DEXP(-((rmnrho(nr)-pecr0 )/pecrw)**2)*dvrho(nr)*dr
-       sumlh = sumlh + DEXP(-((rmnrho(nr)-plhr0l)/plhrw)**2)*dvrho(nr)*dr
-       sumic = sumic + DEXP(-((rmnrho(nr)-picr0 )/picrw)**2)*dvrho(nr)*dr
+       sumec = sumec + 0.5d0*(pecm + pecp)*drhog
+       sumlh = sumlh + 0.5d0*(plhm + plhp)*drhog
+       sumic = sumic + 0.5d0*(picm + picp)*drhog
     ENDDO
 
     pec0 = pectot*1.d6 / sumec
@@ -101,19 +108,19 @@ CONTAINS
        picl = pic0 * DEXP(-((rmnrho(nr)-picr0) /picrw)**2)
 
        ! power to electron
-       pec(1,nr) = pectoe*pecl
-       plh(1,nr) = plhtoe*plhl
-       pic(1,nr) = pictoe*picl
+       pec(1,nr) = pectoe * pecl
+       plh(1,nr) = plhtoe * plhl
+       pic(1,nr) = pictoe * picl
 
        ! power to ion
-       pec(2,nr) = (1.d0 - pectoe)*pecl
-       plh(2,nr) = (1.d0 - plhtoe)*plhl
-       pic(2,nr) = (1.d0 - pictoe)*picl
+       pec(2,nr) = (1.d0 - pectoe) * pecl
+       plh(2,nr) = (1.d0 - plhtoe) * plhl
+       pic(2,nr) = (1.d0 - pictoe) * picl
        
        rlnlmd = 16.1D0 - 1.15D0*LOG10(rn(1,nr)) + 2.30d0*LOG10(rt(1,nr))
        vte    = SQRT(ABS(rt(1,nr))*rkev/ame)
 
-       ! current drive efficiency * FUNCTION 'trcdef' is defined below. *
+       ! current drive efficiency (FUNCTION 'trcdef' is defined below.)
        IF(peccd /= 0.d0) THEN
           vphec = vc / (vte*pecnpr)
           IF(pecnpr <= 1.d0) THEN
@@ -145,7 +152,8 @@ CONTAINS
        ELSE
           efcdic = 0.d0
        ENDIF
-
+!       write(6,*) 'rlnlmd, peccd, pectoe, efcdec, pecl'
+!       write(6,*) rlnlmd,peccd,pectoe,efcdec,pecl
        jcd_ec(nr) = 0.384D0 * rt(1,nr)/(rn(1,nr)*rlnlmd)  &
                             * (peccd*pectoe*efcdec*pecl)
        jcd_lh(nr) = 0.384d0 * rt(1,nr)/(rn(1,nr)*rlnlmd)  &

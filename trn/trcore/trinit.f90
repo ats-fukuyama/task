@@ -32,20 +32,20 @@ CONTAINS
 
     USE plcomm
     USE trcomm, ONLY: &
-           nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
+           nrmax,ntmax,dt,rhog_fixed,nsamax,ns_nsa, &
            phia,pa_mion,pz_mion,pa_mimp,pz_mimp,      &
-           lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
+           lmaxtr,epsltr,mdltr_nc,mdltr_jbs,mdltr_tb,mdltr_prv, &
            mdluf,mdlxp,mdlni,mdler,modelg,nteqit, &
-           time_slc,time_snap,mdlugt, &
-           dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,rhog_prv, &
-           cdtrn,cdtru,cdtrt, &
+           time_slc,time_snap,mdlugt,ipsign, &
+           dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,rhog_prv,deldtl,cdtprv, &
+           cdtrn,cdtru,cdtrt,cgmrt, &
            ntstep,ngtmax,ngtstp,rips,ripe,profj1,profj2, &
            ufid_bin,kuf_dir,kuf_dev,kuf_dcg, &
            mdleqb,mdleqn,mdlequ,mdleqt, &
            mdlijq,mdlgmt,mdlsrc,mdlglb, &
            mdlwrt,nwrstp,kwpnam,kwtnam, &
            mdlnb,mdlec,mdllh,mdlic,     &
-           pnbtot,pnbrw,pnbcd,pnbr0,pnbeng,&
+           pnbtot,pnbrw,pnbcd,pnbr0,pnbeng,pnbrtg,pnbvy,pnbvw,&
            pectot,pecrw,peccd,pecr0,pectoe,pecnpr,&
            plhtot,plhrw,plhcd,plhr0,plhtoe,plhnpr,&
            pictot,picrw,piccd,picr0,pictoe,picnpr
@@ -113,8 +113,8 @@ CONTAINS
 !        IDION :  1 = fast ion particle
 !                 0 = else                                                     
 
-    ! *** Species to be condidered are defined in PL     ***
-    ! *** This part is only for initilization of profile ***
+    ! *** Species to be considered are defined in the PL module ***
+    ! *** This part is only for initilization of profiles       ***
 
     NS = 1 ! electron
     PN(NS)   = 0.5D0
@@ -128,7 +128,19 @@ CONTAINS
     PTITB(NS)= 0.D0
     PUITB(NS)= 0.D0
 
-    NS = 2 ! D (bulk)
+    NS = 2 !
+    PN(NS)   = 0.5D0
+    PNS(NS)  = 0.2D0
+    PTPR(NS) = 1.50D0
+    PTPP(NS) = 1.50D0
+    PTS(NS)  = 0.05D0
+    PU(NS)   = 0.D0
+    PUS(NS)  = 0.D0
+    PNITB(NS)= 0.D0
+    PTITB(NS)= 0.D0
+    PUITB(NS)= 0.D0
+
+    NS = 3 !
     PN(NS)   = 0.5D0
     PNS(NS)  = 0.2D0
     PTPR(NS) = 1.50D0
@@ -140,9 +152,9 @@ CONTAINS
     PTITB(NS)= 0.D0
     PUITB(NS)= 0.D0
     
-    NS = 3 ! D (fast)
-    PN(NS)   = 0.D0
-    PNS(NS)  = 0.D0
+    NS = 4 !
+    PN(NS)   = 0.1D0
+    PNS(NS)  = 0.01D0
     PTPR(NS) = 5.0D0
     PTPP(NS) = 5.0D0
     PTS(NS)  = 0.05D0
@@ -152,9 +164,9 @@ CONTAINS
     PTITB(NS)= 0.D0
     PUITB(NS)= 0.D0
 
-    NS = 4 ! C (impurity)
-    PN(NS)   = 0.0D0
-    PNS(NS)  = 0.0D0
+    NS = 5 !
+    PN(NS)   = 0.1D0
+    PNS(NS)  = 0.01D0
     PTPR(NS) = 5.0D0
     PTPP(NS) = 5.0D0
     PTS(NS)  = 0.05D0
@@ -270,7 +282,7 @@ CONTAINS
 !        DT     : SIZE OF TIME STEP
 
 !        nsamax   : number of active particle species
-!        rg_fixed(3,nsm) : minimum radius of fixed profile
+!        rhog_fixed(3,nsm) : minimum radius of fixed profile
 !        nitmax   : maximum number of iterations
 !        epsltr   : tolerance of iteration
 !
@@ -282,7 +294,7 @@ CONTAINS
     nrmax    = 50
     ntmax    = 100
     dt       = 0.01D0
-    rg_fixed(1:3,0:nsm) = rb
+    rhog_fixed(1:3,0:nsm) = rb
 
     nsamax   = 3
 
@@ -300,7 +312,10 @@ CONTAINS
 
 
 !       mdltr_nc  = 0 : no neoclassical transport
-!                   1 : NCLASS trasport model
+!                   1 : NCLASS transport model
+!       mdltr_jbs = 0 : no bootstrap current
+!                   1 : NCLASS transport model
+!                   9 : use experimental data if possible
 !       mdltr_tb  = 0 : no turbulent transport
 !                   1 : constant diffusion
 !                   2 : STIFF MODEL (Pereverzev)
@@ -311,6 +326,8 @@ CONTAINS
 !       cdtrn     : factor for particle diffusivity
 !       cdtru     : factor for toroidal viscosity
 !       cdtrt     : factor for thermal diffusivity
+!       cgmrt     : factor for the contribution of particle flux
+!                    to energy flux (3/2 or 5/2)
 !
 !     ==== TR PARAMETERS for stiff modeling by Ikari  ====
 !
@@ -323,8 +340,11 @@ CONTAINS
 !       dprv1     : enhanced diffusion coefficient for Pereverzev mothod
 !       dprv2     : diffusion enhancement factor for Pereverzev mothod
 !       rhog_prv  : enhanced diffusion region (rhog(nr) > rhog_prv)
+!       deldtl    : tolerance for variation of diffusion coef.
+!       cdtprv    : factor for control of time step width (>1.d0) 
 
     mdltr_nc  = 1
+    mdltr_jbs = 1
     mdltr_tb  = 1
     mdltr_prv = 0
     dtr0  = 0.1D0
@@ -334,10 +354,14 @@ CONTAINS
     cdtrn = 1.D0
     cdtru = 1.D0
     cdtrt = 1.D0
+    
+    cgmrt = 2.5d0
 
     dprv1     = 1.D0
     dprv2     = 1.D0
     rhog_prv  = 0.D0
+    deldtl    = 1.D0
+    cdtprv    = 1.1d0
 
 !   === Auxiliary heating ===
 !       ph0       : heating power density [MW/m^3] at r = 0
@@ -367,10 +391,13 @@ CONTAINS
 !                    3 : pencil beam (no particle source)
 !                    4 : pencil beam
 
-    pnbtot = 0.d0  ! [MW]
+    pnbtot = 0.d0
     pnbr0  = 0.3d0
     pnbrw  = 0.5d0
-    pnbeng = 80.d0 ! [keV]
+    pnbvy  = 0.d0
+    pnbvw  = 0.5d0
+    pnbeng = 80.d0
+    pnbrtg = 3.d0
     mdlnb  = 1
 
 !      < RF heating; EC, LH, IC >
@@ -424,8 +451,11 @@ CONTAINS
 !            1 : nabla p + toroidal rotation (V_tor)
 !            2 : nabla p + V_tor + poloidal rotation (V_pol)
 
+!       IPSIGN : the sign switcher for the direction of plasma current (1/-1)
+
     MDLIJQ = 1
     MDLER  = 2
+    IPSIGN = - 1.d0
 
 !     ==== Input from experimental data ==== 
 !     MDLUF :
@@ -554,7 +584,7 @@ CONTAINS
              9X,'MODELG,MODELN,MODELQ,RHOGMN,RHOGMX,'/ &
              9X,'KNAMEQ,KNAMWR,KNAMFP,KNAMFO,IDEBUG'/ &
              9X,'MODEFW,MODEFR'/ &
-             9X,'nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa'/ &
+             9X,'nrmax,ntmax,dt,rhog_fixed,nsamax,ns_nsa'/ &
              9X,'lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv,'/ &
              9X,'d0,d1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt,'/ &
              9X,'ngtmax,ngtstep'/ &
@@ -567,18 +597,19 @@ CONTAINS
 
     USE plcomm
     USE trcomm, ONLY: &
-           nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
+           nrmax,ntmax,dt,rhog_fixed,nsamax,ns_nsa, &
            ntstep,ngtmax,ngtstp, &
            phia,pa_mion,pz_mion,pa_mimp,pz_mimp,       &
-           lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv,mdler,&
-           dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,rhog_prv,cdtrn,cdtru,cdtrt, &
+           lmaxtr,epsltr,mdltr_nc,mdltr_jbs,mdltr_tb,mdltr_prv,mdler,&
+           dtr0,dtr1,ltcr,ph0,phs,deldtl,cdtprv, &
+           dprv1,dprv2,rhog_prv,cdtrn,cdtru,cdtrt,cgmrt, &
            profj1,profj2,rips,ripe,nteqit,time_slc,time_snap,mdlugt,mdlni, &
-           ufid_bin,mdluf,mdlxp,kuf_dir,kuf_dev,kuf_dcg, &
+           ufid_bin,mdluf,mdlxp,kuf_dir,kuf_dev,kuf_dcg,ipsign, &
            mdleqb,mdleqn,mdlequ,mdleqt, &
            mdlijq,mdlgmt,mdlsrc,mdlglb, &
            mdlwrt,nwrstp,kwpnam,kwtnam, &
            mdlnb,mdlec,mdllh,mdlic,     &
-           pnbtot,pnbrw,pnbcd,pnbr0,pnbeng,&
+           pnbtot,pnbrw,pnbcd,pnbr0,pnbeng,pnbrtg,pnbvy,pnbvw,&
            pectot,pecrw,peccd,pecr0,pectoe,pecnpr,&
            plhtot,plhrw,plhcd,plhr0,plhtoe,plhnpr,&
            pictot,picrw,piccd,picr0,pictoe,picnpr
@@ -597,20 +628,20 @@ CONTAINS
          KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF, &
          MODEFR,MODEFW,IDEBUG, &
          ufid_bin,mdluf,mdlxp,mdlugt,mdlni, &
-         kuf_dir,kuf_dev,kuf_dcg,time_slc,time_snap, &
+         kuf_dir,kuf_dev,kuf_dcg,time_slc,time_snap,ipsign, &
          mdleqb,mdleqn,mdlequ,mdleqt, &
          mdlijq,mdlgmt,mdlsrc,mdlglb, &
-         nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
+         nrmax,ntmax,dt,rhog_fixed,nsamax,ns_nsa, &
          phia,pa_mion,pz_mion,pa_mimp,pz_mimp,      &
-         lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
+         lmaxtr,epsltr,mdltr_nc,mdltr_jbs,mdltr_tb,mdltr_prv, &
          mdler,nteqit, &
          dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,rhog_prv, &
-         cdtrn,cdtru,cdtrt, &
+         deldtl,cdtprv,cdtrn,cdtru,cdtrt,cgmrt, &
          ntstep,ngtmax,ngtstp, &
          rips,ripe, &
          mdlwrt,nwrstp,kwpnam,kwtnam, &
          mdlnb,mdlec,mdllh,mdlic,     &
-         pnbtot,pnbrw,pnbcd,pnbr0,pnbeng,&
+         pnbtot,pnbrw,pnbcd,pnbr0,pnbeng,pnbrtg,pnbvy,pnbvw,&
          pectot,pecrw,peccd,pecr0,pectoe,pecnpr,&
          plhtot,plhrw,plhcd,plhr0,plhtoe,plhnpr,&
          pictot,picrw,piccd,picr0,pictoe,picnpr
@@ -664,7 +695,7 @@ CONTAINS
 
   SUBROUTINE tr_check_parm(ierr)
 
-    USE trcomm, ONLY : ikind,nrum,nrmax,nsamax,mdltr_nc,mdltr_tb, &
+    USE trcomm, ONLY : ikind,nrum,nrmax,nsamax,mdltr_nc,mdltr_jbs,mdltr_tb, &
          mdluf,mdlgmt,mdlsrc,mdlglb
     IMPLICIT NONE
     INTEGER(ikind), INTENT(OUT):: IERR
@@ -678,20 +709,28 @@ CONTAINS
        WRITE(6,*) 'XX tr_check_parm: input error : illegal nrmax'
        WRITE(6,*) '                  nrmax =',nrmax
        IERR=1
-    ENDIF
+    END IF
 
     IF(nsamax < 2) THEN
        WRITE(6,*) 'XX tr_check_parm: input error : illegal nsamax'
        WRITE(6,*) '                  nsamax =',nsamax
        IERR=1
-    ENDIF
+    END IF
 
     IF(mdltr_nc==0 .AND. mdltr_tb==0) THEN
        WRITE(6,*) 'XX tr_check_parm: input error : no trasport'
        WRITE(6,*) '                mdltr_nc =',mdltr_nc
        WRITE(6,*) '                mdltr_tb =',mdltr_tb
        IERR=1
-    ENDIF
+    END IF
+
+    IF((mdltr_nc==1 .NEQV. mdltr_jbs==1)) THEN
+       WRITE(6,*) '## tr_check_parm: input warning'
+       WRITE(6,*) '   NCLASS model predicts both transport and bootstrap current.'
+       WRITE(6,'(1X,A13,I2,A13,I2)') &
+            '   mdltr_nc =',mdltr_nc, '  mdltr_jbs =',mdltr_jbs
+       IERR=1
+    END IF
 
     ! ---------------------------------------------------------------------
     ! check switches for experimental data
@@ -735,7 +774,7 @@ CONTAINS
     USE plcomm
     USE plinit
     USE trcomm, ONLY: &
-           nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
+           nrmax,ntmax,dt,rhog_fixed,nsamax,ns_nsa, &
            lmaxtr,epsltr,nitmax,mdltr_nc,mdltr_tb,mdltr_prv, &
            dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
            ntstep,ngtmax,ngtstp
@@ -756,9 +795,9 @@ CONTAINS
     WRITE(6,*) ! --------------------------------------------------
     WRITE(6,601) 'dt        ',dt,       'epsltr    ',epsltr
     DO nsa=1,nsamax
-       IF(MIN(rg_fixed(1,nsa),rg_fixed(2,nsa),rg_fixed(3,nsa)) < rb) THEN
-          WRITE(6,'(A,I5,1P3E12.4)') 'rg_fixed(n,u,t): nsa=', &
-               nsa,rg_fixed(1,nsa),rg_fixed(2,nsa),rg_fixed(3,nsa)
+       IF(MIN(rhog_fixed(1,nsa),rhog_fixed(2,nsa),rhog_fixed(3,nsa)) < rb) THEN
+          WRITE(6,'(A,I5,1P3E12.4)') 'rhog_fixed(n,u,t): nsa=', &
+               nsa,rhog_fixed(1,nsa),rhog_fixed(2,nsa),rhog_fixed(3,nsa)
        END IF
     END DO
     WRITE(6,602) 'mdltr_nc  ',mdltr_nc, 'mdltr_tb  ',mdltr_tb, &

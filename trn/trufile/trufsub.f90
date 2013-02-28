@@ -8,7 +8,7 @@ MODULE trufsub
   IMPLICIT NONE
 
   PRIVATE
-  PUBLIC tr_uf1d,tr_uf2d,tr_uftl_check
+  PUBLIC tr_uf1d,tr_uf2d,tr_uftl_check,tr_uf_time_slice
 
 CONTAINS
 
@@ -221,6 +221,84 @@ CONTAINS
 
     RETURN
   END SUBROUTINE tr_uftl_check
+
+! *************************************************************************
+
+  SUBROUTINE tr_uf_time_slice(time_slc,tl,ntxumax,ntsl)
+! ------------------------------------------------------------------------
+!   acquire the number of time step corresponding to a given time point
+! < input >
+!   tl(1:ntum): time point data array
+!   ntxumax   : number of time point data
+!   time_slc  : designated time [s]
+! < output >
+!   time_slc  : designated time after replaced [s]
+!   ntsl      : index number of array 'tl' corresponding to the time 'time_slc'
+! ------------------------------------------------------------------------
+
+    IMPLICIT NONE
+    INTEGER(ikind),INTENT(IN)  :: ntxumax
+    INTEGER(ikind),INTENT(OUT) :: ntsl
+    REAL(rkind),                INTENT(INOUT) :: time_slc
+    REAL(rkind),DIMENSION(ntum),INTENT(IN)    :: tl
+
+    INTEGER(ikind) :: ioerr, ntx, ntx_min
+    REAL(rkind) :: tl_min,tl_min_old
+
+
+    IF(ntxumax.NE.1)THEN
+       DO
+          IF(time_slc.LT.tl(1) .OR. time_slc.GT.tl(ntxumax))THEN
+             WRITE(6,'(A,F9.5,A,F9.5,A)')             &
+             &  '# Input arbitrary time between: ',   &
+             &   tl(1),' sec. - ',tl(ntxumax),' sec.'
+             READ(5,*,IOSTAT=ioerr) time_slc
+             IF(ioerr.NE.0 .OR. time_slc.LT.tl(1)) CYCLE
+          END IF
+          EXIT
+       END DO
+
+       IF(time_slc.GT.tl(ntxumax))THEN
+          time_slc = tl(ntxumax)
+          WRITE(6,'(A,F9.5,A,A,F9.5,A)')                    &
+          &    ' Designated time: ',time_slc,' sec.',       &
+          &    ' has been replaced by ',tl(ntxumax),' sec.'
+          ntsl = ntxumax
+          RETURN
+       ELSE IF(time_slc==tl(ntxumax))THEN
+          ntsl = ntxumax
+          RETURN
+       END IF
+
+       tl_min = tl(ntxumax)
+       DO ntx = 1, ntxumax
+          IF(ABS(tl(ntx)-time_slc) .LE. 1.d-5)THEN
+             ntsl = ntx
+             EXIT
+          END IF
+
+          tl_min_old = tl_min
+          tl_min     = MIN(ABS(tl(ntx)-time_slc), tl_min)
+          IF(tl_min_old==tl_min .OR. ntx==ntxumax)THEN
+             ntx_min  = ntx - 1
+             IF(ntx==ntxumax) ntx_min = ntxumax
+             WRITE(6,'(A,F9.5,A,A,F9.5,A)')                    &
+             &    ' Designated time: ',time_slc,' sec.',       &
+             &    ' has been replaced by ',tl(ntx_min),' sec.'
+
+             time_slc = tl(ntx_min)
+             ntsl     = ntx_min
+             EXIT
+          END IF             
+       END DO
+
+    ELSE
+       ntsl     = 1
+       time_slc = 0.d0
+    END IF
+       
+    RETURN
+  END SUBROUTINE tr_uf_time_slice
 
 ! *************************************************************************
 ! *************************************************************************

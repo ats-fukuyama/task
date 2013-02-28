@@ -1,9 +1,11 @@
 MODULE trstep
-
+! -------------------------------------------------------------------------
+!  This module advances one time step.
+!   - Full implicit method in time with iteration
+!   - Finite element method in radial direction
+! -------------------------------------------------------------------------
   USE trcomm, ONLY: ikind,rkind
-! This module advances one time step.
-! Full implicit method in time with iteration
-! Finite element method in radial direction
+  IMPLICIT NONE
 
   PUBLIC tr_step
   PRIVATE
@@ -14,7 +16,7 @@ CONTAINS
 
     USE trcomm, ONLY: nrmax,neqmax,nvmax,xv,xv_prev,xv_new,       &
          rn,ru,rt,rp,rp_tot,dpdrho,lmaxtr,epsltr,nsa_neq,nva_neq, &
-         error_it,nitmax,mdltr_prv  ! ,nrd1
+         error_it,nitmax,mdltr_prv,dtr_tb  ! ,nrd1
     USE trcalc2, ONLY: tr_calc2
     USE trexec, ONLY: tr_exec
 
@@ -35,6 +37,8 @@ CONTAINS
 
 !       write(*,*) 'in nonlinear iteration'
        CALL tr_calc2
+!       ierr=1
+!       RETURN
 
        CALL tr_exec
 
