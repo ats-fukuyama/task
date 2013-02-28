@@ -30,6 +30,7 @@
       PUBLIC mtx_set_communicator
       PUBLIC mtx_reset_communicator
       PUBLIC mtx_comm_split2D
+      PUBLIC mtx_comm_split3D
       PUBLIC mtx_comm_free
       PUBLIC mtx_barrier
       PUBLIC mtx_broadcast1_character
@@ -181,6 +182,59 @@
         RETURN
       END SUBROUTINE mtx_comm_split2D
 
+!-----
+
+      SUBROUTINE mtx_comm_split3D(n1,n2,n3,commx1,commx2,commx3, &
+                                           commx4,commx5,commx6)
+        IMPLICIT NONE
+        INTEGER,INTENT(IN):: n1,n2,n3 ! number of groups
+        TYPE(mtx_mpi_type),intent(OUT):: commx1,commx2,commx3, &
+                                         commx4,commx5,commx6
+        integer:: na, nb
+
+        IF(n1*n2*n3 > nsize) THEN
+           WRITE(6,*) 'XX mtx_comm_split3D: n1*n2*n3 > nsize: ',n1,n2,n3,nsize
+           STOP
+        ENDIF
+!       enable to communicate for each NSA 
+        commx1%sizeg=n2*n3            ! number of groups
+        commx1%sizel=n1               ! number of processors in a group
+        commx1%rankg=MOD(NRANK,n2*n3) ! colors 
+        commx1%rankl=nrank/(n2*n3)    ! keys = RANK
+
+!       enable to communicate for each NR
+        commx2%sizeg=n1*n3
+        commx2%sizel=n2
+        na = NRANK/(n2*n3)
+        nb = na * (n2*n3)
+        commx2%rankg=mod(NRANK,n3) + nb ! colorr
+        commx2%rankl= (NRANK-nb)/n3     ! keyr
+
+!       enable to communicate for each NP
+        commx3%sizeg=n1*n2
+        commx3%sizel=n3
+        commx3%rankg=NRANK/n3   ! colorp
+        commx3%rankl=MOD(nrank,n3) ! keyp
+
+!       enable to communicate for each NP and NR
+        commx4%sizeg=n1
+        commx4%sizel=n2*n3
+        commx4%rankg=NRANK/(n2*n3)   ! colorrp
+        commx4%rankl=MOD(nrank,n2*n3) ! keyrp
+
+!       enable to communicate for each NP and NSA
+        commx5%sizeg=n2
+        commx5%sizel=n1*n3
+        commx5%rankg=MOD(NRANK,n2*n3)/n3   ! colorsp
+        commx5%rankl=MOD(nrank,n3) + NRANK/(n2*n3)*n3 ! keysp
+
+!       enable to communicate for each NR and NSA
+        commx6%sizeg=n3
+        commx6%sizel=n1*n2
+        commx6%rankg=MOD(NRANK,n3)   ! colorsp
+        commx6%rankl=NRANK/n3 ! keysp
+        RETURN
+      END SUBROUTINE mtx_comm_split3D
 !-----
 
       SUBROUTINE mtx_comm_free(mtx_mpi)

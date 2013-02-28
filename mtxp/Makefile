@@ -45,8 +45,6 @@ LIBKSP=$(LIBMPI) libmtxksp.o
 LIBMUMPS=$(LIBMPI) libmtxmumps.o
 LIBMUMPSX=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common -lpord -lscalapack -lblacs -lparmetis -lmetis -llapack -lblas
 
-libs: $(LIBNOMPI) $(LIBMPI) libmtxbnd.o libmtxmumps.o libmtxksp.o 
-
 testbnd: $(LIBBND) testmtx.o 
 	-${FLINKER} -g -o testbnd testmtx.o $(LIBBND) ../lib/libbnd.o
 
