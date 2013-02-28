@@ -84,7 +84,6 @@
          PZCL(NS) = 0.D0
 
       IF(NSM.GE.2) THEN
-<<<<<<< plinit.f90
          ! *** hydrogen ***
 !!$         NS = 2
 !!$
@@ -104,8 +103,6 @@
 !!$         PTITB(NS)= 0.D0
 !!$         PUITB(NS)= 0.D0
 
-=======
->>>>>>> 1.7
          ! *** deuterium ***
          NS = 2
 
@@ -124,7 +121,6 @@
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
-<<<<<<< plinit.f90
 
          ! *** tritium ***
 !!$         NS = 3
@@ -239,12 +235,10 @@
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
-=======
          PZCL(NS) = 0.D0
->>>>>>> 1.7
 
          ! *** dummy ***
-      DO NS = 3, NSM
+      DO NS = 5, NSM
          KIDNS(NS)= ' '
          IDION(NS)= 0.0D0
          PA(NS)   = 1.0D0
