@@ -103,7 +103,8 @@
            THG,THM
 
       real(rkind),dimension(:),POINTER :: & ! (NRM)
-           BP,QR,RJ1,E1,RJ2,E2,BPG,BPM,QLM,QLG,E_IMPL
+           BP,QR,RJ1,E1,RJ2,E2,BPG,BPM,QLM,QLG, &
+           E_IMPL,EP,EM,SIGM,SIGP,RJ_M,RJ_P,EPM,RI_P,RI_M
       real(rkind),dimension(:),POINTER :: & ! (NRM)
            EPSRM,EPSRG,EPSRM2,EPSRG2
       real(rkind),dimension(:),POINTER :: & ! (NRM)
@@ -264,6 +265,10 @@
           allocate(QLG(NRMAX+1),QLM(NRMAX+1))
           allocate(RJ1(NRMAX),E1(NRMAX))
           allocate(RJ2(NRMAX),E2(NRMAX))
+          allocate(EP(NRMAX), EM(NRMAX), EPM(NRMAX))
+          allocate(SIGP(NRMAX), SIGM(NRMAX))
+          allocate(RJ_M(NRMAX),RJ_P(NRMAX))
+          allocate(RI_M(NRMAX),RI_P(NRMAX))
           allocate(E_IMPL(NRMAX))
 !          allocate(RJ_IND(NRMAX),E_IND(NRMAX))
           allocate(EPSRM(NRMAX+1),EPSRG(NRMAX+1))
@@ -527,6 +532,10 @@
           deallocate(QLG,QLM)
           deallocate(RJ1,E1,RJ2,E2)
           deallocate(E_IMPL)
+          deallocate(EP,EM,EPM)
+          deallocate(SIGP,SIGM)
+          deallocate(RJ_M,RJ_P)
+          deallocate(RI_M,RI_P)
 !          deallocate(RJ_IND, E_IND)
           deallocate(EPSRM,EPSRG)
           deallocate(EPSRM2,EPSRG2)

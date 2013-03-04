@@ -150,15 +150,6 @@
                /(RMU0*RM(NR)*DELR)
       ENDDO
 
-!     ----- set parallel electric field -----
-
-      DO NR=1,NRMAX
-!         E1(NR)=E0
-         E1(NR)=E0/(1.D0+EPSRM(NR))
-!         E2(NR)=E0
-!         RJ2(NR)=RJ1(NR)
-      ENDDO
-
 !     ----- set momentum space mesh -----
 
       DELTH=PI/NTHMAX
@@ -435,7 +426,6 @@
          RETURN
       END IF
 
-
 !     ----- Set commpunicator -----
 !      CALL mtx_comm_split2D(N_partition_s,N_partition_r,comm_nr,comm_nsa) !2D
       CALL mtx_comm_split3D(N_partition_s,N_partition_r,N_partition_p, &
@@ -538,9 +528,9 @@
          ENDDO
       ENDIF
 
-      IF(NRANK.eq.0) WRITE(6,*) "      NRANK, nsa_rank, nr_rank, np_rank, nrnp_rank, nsanp_rank, nsanr_rank"
-      write(6,'(7I10)') NRANK, comm_nsa%rankl, comm_nr%rankl, &
-           comm_np%rankl, comm_nrnp%rankl, comm_nsanp%rankl, comm_nsanr%rankl
+!      IF(NRANK.eq.0) WRITE(6,*) "      NRANK, nsa_rank, nr_rank, np_rank, nrnp_rank, nsanp_rank, nsanr_rank"
+!      write(6,'(7I10)') NRANK, comm_nsa%rankl, comm_nr%rankl, &
+!           comm_np%rankl, comm_nrnp%rankl, comm_nsanp%rankl, comm_nsanr%rankl
 
       CALL mtx_cleanup
 
@@ -639,6 +629,7 @@
                   FL=FPMXWL(PM(NP,NSB),NR,NS)
                   DO NTH=1,NTHMAX
                      FNSP(NTH,NP,NR,NSB)=FL
+                     FNS0(NTH,NP,NR,NSB)=FL
                   END DO
                ENDDO
             END IF
@@ -892,6 +883,51 @@
 
 
       END SUBROUTINE fp_set_normalize_param
+!==============================================================
+      SUBROUTINE fp_continue(ierr)
+
+      USE fpnfrr
+      USE libmtx
+      IMPLICIT NONE
+      integer :: ierr,NSA,NSB,NS,NR,NP,NTH,NSBA,N,NSW,j
+      INTEGER:: NSEND, NSWI
+      real:: gut1, gut2, gut_prep
+
+      CALL GUTIME(gut1)
+      IF(NRANK.eq.0) &
+      WRITE(6,*) "----- RESET COEFFICIENTS FOR NEW PARAMETERS -----"
+
+!     ----- set parallel electric field -----
+      DO NR=1,NRMAX
+         E1(NR)=E0/(1.D0+EPSRM(NR))
+         IF(MODELE.eq.0)THEN
+            EP(NR)=0.D0 ! plus
+            EM(NR)=0.D0 ! minus
+         ELSEIF(MODELE.eq.1)THEN
+            EP(NR)=E1(NR) ! plus
+            EM(NR)=E1(NR) ! minus
+         END IF
+      ENDDO
+      N_IMPL=0
+      CALL NF_REACTION_COEF
+      NCALCNR=0
+      CALL fusion_source_init
+      DO NSA=NSASTART,NSAEND
+         CALL FP_COEF(NSA)
+         CALL FPWEIGHT(NSA,IERR)
+      END DO
+      CALL mtx_set_communicator(comm_nr)
+!      CALL source_allreduce(SPPF)
+      CALL mtx_reset_communicator
+      ISAVE=0
+!      IF(NTG1.eq.0) CALL FPWAVE_CONST ! all nrank must have RPWT  
+      IERR=0
+      CALL GUTIME(gut2)
+      gut_prep=gut2-gut1
+      IF(NRANK.eq.0) WRITE(6,'(A,E14.6)') "-------- CONTINUE_TIME=", gut_prep
+ 
+      RETURN
+      END SUBROUTINE fp_continue
 !-------------------------------------------------------------
       SUBROUTINE fp_prep(ierr)
 
@@ -952,6 +988,18 @@
       CALL mtx_set_communicator(comm_nsa)
       CALL update_fnsb
       CALL mtx_reset_communicator
+!     ----- set parallel electric field -----
+      DO NR=1,NRMAX
+         E1(NR)=E0/(1.D0+EPSRM(NR))
+         IF(MODELE.eq.0)THEN
+            EP(NR)=0.D0 ! plus
+            EM(NR)=0.D0 ! minus
+         ELSEIF(MODELE.eq.1)THEN
+            EP(NR)=E1(NR) ! plus
+            EM(NR)=E1(NR) ! minus
+         END IF
+         RJ_M(NR)=0.D0
+      ENDDO
 
       N_IMPL=0
       CALL NF_REACTION_COEF
@@ -961,7 +1009,6 @@
          CALL FP_COEF(NSA)
          NSBA=NSB_NSA(NSA)
          DO NR=NRSTART,NREND
-!            DO NP=1,NPMAX
             DO NP=NPSTARTW,NPENDWM
                DO NTH=1,NTHMAX
                   F(NTH,NP,NR)=FNSP(NTH,NP,NR,NSBA)

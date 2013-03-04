@@ -7,360 +7,456 @@
 
       USE fpcomm
       USE libmpi
+      USE libmtx
       USE plprof
       USE equnit_mod
 
       contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      SUBROUTINE FP_CALE_IND(NSA)
+      SUBROUTINE UPDATE_FEPP
 
+      USE fpcoef, only: FP_CALE
       IMPLICIT NONE
-      INTEGER,INTENT(IN):: NSA
-      INTEGER:: NR, NTH, NP
-      double precision:: rv, E_IND
+      INTEGER:: NSA, NR
 
-!      CALL Ip_r
-!      CALL UPDATE_PSIP_P ! poloidal flux at present step
+!      IF(NRANK.eq.0)THEN
+!         WRITE(6,'(A,32E10.2)') "     EM=",(EM(NR),NR=1,32)
+!         WRITE(6,'(A,32E10.2)') "     EP=",(EP(NR),NR=1,32)
+!      END IF
 
-      DO NR=NRSTART,NREND
-         rv = EPSRM2(NR)*RR
-!         DO NP=1,NPMAX+1
-         DO NP=NPSTART,NPENDWG
-            DO NTH=1,NTHMAX
-               E_IND=-( PSIPM_P(NTH,NR)-PSIPM_M(NTH,NR) )/ (2.D0*PI*(RR+rv)*DELT)
-               FEPP_IND(NTH,NP,NR,NSA) = AEFP(NSA)*E_IND/PTFP0(NSA)*COSM(NTH)
-            END DO
-         END DO
-     END DO
-
-      DO NR=NRSTART,NREND
-         rv = EPSRM2(NR)*RR
-!         DO NP=1,NPMAX
-         DO NP=NPSTARTW,NPENDWM
-            DO NTH=1,NTHMAX+1
-               E_IND=-( PSIPG_P(NTH,NR)-PSIPG_M(NTH,NR) )/ (2.D0*PI*(RR+rv)*DELT)
-               FETH_IND(NTH,NP,NR,NSA) = -AEFP(NSA)*E_IND/PTFP0(NSA)*SING(NTH)
-            END DO
-         END DO
+      DO NSA=NSASTART,NSAEND
+         CALL FP_CALE(NSA)
       END DO
 
-      IF(MODELA.ne.0)THEN
+      END SUBROUTINE UPDATE_FEPP
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      SUBROUTINE E_IND_EVOL
+
+      IMPLICIT NONE
+      INTEGER:: NSA,NR,NP,NTH,IERR
+      double precision:: coef0,coefm,coefp,RHS,E_EDGE
+      integer:: imtxstart1,imtxend1,its,j
+
+      EPM(:)=EP(:)
+      CALL mtx_set_communicator(comm_nr) !3D
+
+      CALL mtx_setup(NRMAX,imtxstart1,imtxend1)
+
+!---- DIAGONAL TERM
+      DO NR=NRSTART,NREND
+!         coef0=2.D0/(RA*DELR)**2 + RMU0*SIGP(NR)/DELT
+         coef0=2.D0 + RMU0*SIGP(NR)/DELT*(RA*DELR)**2
+         CALL mtx_set_matrix(NR,NR,coef0)
+         CALL mtx_set_vector(NR,EM(NR))
+      END DO
+!---- OFF DIAGONAL
+      DO NR=NRSTART,NREND
+         coefm=-RG(NR)/( RM(NR) )
+         coefp=-RG(NR+1)/( RM(NR) )
+         IF(NR.ne.1)THEN
+            CALL mtx_set_matrix(NR,NR-1,coefm)
+         END IF
+         IF(NR.ne.NRMAX)THEN
+            CALL mtx_set_matrix(NR,NR+1,coefp)
+         END IF
+      END DO
+!---- RIGHT HAND SIDE
+      DO NR=NRSTART,NREND
+         IF(NR.ne.NRMAX)THEN
+            RHS=RMU0/DELT*( RJ_M(NR)-RJ_P(NR)+SIGM(NR)*EPM(NR) )*(RA*DELR)**2
+            CALL mtx_set_source(NR,RHS)
+         ELSE
+            CALL INDUCTANCE_EDGE(E_EDGE)
+            RHS=RMU0/DELT*( RJ_M(NR)-RJ_P(NR)+SIGM(NR)*EPM(NR) )*(RA*DELR)**2 &
+                 + RG(NRMAX+1)/RM(NRMAX)*E_EDGE
+            CALL mtx_set_source(NR,RHS)
+         END IF
+      END DO
+
+!---- SOLVE
+
+      CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC) 
+
+      CALL mtx_gather_vector(EP)
+
+      CALL mtx_cleanup
+      CALL mtx_reset_communicator
+!      IF(NRANK.eq.0) WRITE(*,'(I3,A,7E14.6)') N_IMPL," RHS=", &
+!           (RMU0/DELT*( RJ_M(NR)-RJ_P(NR)+SIGP(NR)*EP(NR) )*(RA*DELR)**2,NR=1,4),SIGP(1),EPM(1),coef0
+
+      END SUBROUTINE E_IND_EVOL
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      SUBROUTINE conductivity_sigma_ind
+
+      IMPLICIT NONE
+      INTEGER:: NSA,NR,NP,NTH,IERR,its
+      double precision:: DELE
+      double precision,parameter:: FACT=1.01D0, DELE2=1.D-5
+      double precision,dimension(NRMAX):: RJ_PO, RJ_PP
+      double precision, &
+         dimension(NTHMAX,NPSTART:NPENDWG,NRSTART:NRENDWM,NSAMAX)::FEPPS
+      double precision, &
+         dimension(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX)::FETHS
+
+      IF(N_IMPL.ne.0)THEN
+         SIGM(:)=SIGP(:)
+         CALL FPCURRENT(RJ_P)
+         CALL j_to_i(RJ_P,RI_P)
+      END IF
+
+      FNS0(:,:,:,:) =FNSM(:,:,:,:)
+      FEPPS(:,:,:,:)=FEPP(:,:,:,:)
+      FETHS(:,:,:,:)=FETH(:,:,:,:)
+
+      IF(N_IMPL.eq.0)THEN
+         CALL FPCURRENT(RJ_M)
+         CALL j_to_i(RJ_M,RI_M)
+      END IF
+
+      DO NSA=NSASTART,NSAEND
+         CALL fp_exec_sigma(NSA,IERR,its) ! partial j/ partial t
+      END DO
+      CALL FPCURRENT(RJ_PP)
+
+      DO NSA=NSASTART,NSAEND
          DO NR=NRSTART,NREND
-!            DO NP=1,NPMAX+1
             DO NP=NPSTART,NPENDWG
-               DO NTH=ITL(NR)+1,ITU(NR)-1
-                  FEPP_IND(NTH,NP,NR,NSA)=0.D0
+               DO NTH=1,NTHMAX
+!                  FEPP(NTH,NP,NR,NSA)= AEFP(NSA)*(EP(NR)*FACT)/PTFP0(NSA)*COSM(NTH)
+                  FEPP(NTH,NP,NR,NSA)= AEFP(NSA)*(EP(NR)+DELE2)/PTFP0(NSA)*COSM(NTH)
+                  FPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)+FCPP(NTH,NP,NR,NSA)
                END DO
-               FEPP_IND(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)/4.D0 &
-                    *( FEPP_IND(ITL(NR)-1,NP,NR,NSA)/RLAMDA(ITL(NR)-1,NR) &
-                    +FEPP_IND(ITL(NR)+1,NP,NR,NSA)/RLAMDA(ITL(NR)+1,NR) & 
-                    +FEPP_IND(ITU(NR)-1,NP,NR,NSA)/RLAMDA(ITU(NR)-1,NR) &
-                    +FEPP_IND(ITU(NR)+1,NP,NR,NSA)/RLAMDA(ITU(NR)+1,NR))
-               FEPP_IND(ITU(NR),NP,NR,NSA)=FEPP_IND(ITL(NR),NP,NR,NSA) 
             END DO
-!
-!            DO NP=1,NPMAX
+         END DO
+      END DO
+      DO NSA=NSASTART,NSAEND
+         DO NR=NRSTART,NREND
             DO NP=NPSTARTW,NPENDWM
-               DO NTH=ITL(NR)+1,ITU(NR)
-                  FETH_IND(NTH,NP,NR,NSA)=0.D0
+               DO NTH=1,NTHMAX+1
+!                  FETH(NTH,NP,NR,NSA)=-AEFP(NSA)*(EP(NR)*FACT)/PTFP0(NSA)*SING(NTH) 
+                  FETH(NTH,NP,NR,NSA)=-AEFP(NSA)*(EP(NR)+DELE2)/PTFP0(NSA)*SING(NTH) 
+                  FTH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)+FCTH(NTH,NP,NR,NSA) 
                END DO
             END DO
-!
-         END DO
-      END IF
-
-      END SUBROUTINE FP_CALE_IND
-!------------------------------------
-      SUBROUTINE UPDATE_PSIP_M
-
-      IMPLICIT NONE
-      integer:: NR,NSA,NTH
-
-      DO NR=NRSTART,NREND
-         DO NTH=1,NTHMAX
-            PSIPM_M(NTH,NR)=PSIPM_P(NTH,NR)
-         END DO
-         DO NTH=1,NTHMAX+1
-            PSIPG_M(NTH,NR)=PSIPG_P(NTH,NR)
          END DO
       END DO
 
-      END SUBROUTINE UPDATE_PSIP_M
-!------------------------------------
-      SUBROUTINE UPDATE_PSIP_P
+      DO NSA=NSASTART,NSAEND
+         CALL fp_exec_sigma(NSA,IERR,its) ! dj/ dt
+      END DO
+      CALL FPCURRENT(RJ_PO)
 
-      IMPLICIT NONE
-      INTEGER:: NR, NTH
-      double precision:: PSIP_P, E_IND
+      DO NR=1,NRMAX
+         DELE=(FACT-1.D0)*EP(NR)
+!         SIGP(NR)=(RJ_PO(NR) - RJ_PP(NR) )/DELE
+         SIGP(NR)=(RJ_PO(NR) - RJ_PP(NR) )/DELE2*10
+      END DO
 
-      DO NR=NRSTART, NREND
-         IF(MODELA.eq.0)THEN
-            CALL POLOIDAL_FLUX_IP(NR,PSIP_P)
-            DO NTH=1,NTHMAX
-               PSIPM_P(NTH,NR)=PSIP_P
+      DO NSA=NSASTART,NSAEND
+         DO NR=NRSTART,NREND
+            DO NP=NPSTART,NPENDWG
+               DO NTH=1,NTHMAX
+                  FEPP(NTH,NP,NR,NSA)= FEPPS(NTH,NP,NR,NSA)
+                  FPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)+FCPP(NTH,NP,NR,NSA)
+               END DO
             END DO
-         ELSE
-            DO NTH=1,NTHMAX
-               CALL BOUNCE_AV_PSIP(0,NR,NTH,PSIP_P)
-               PSIPM_P(NTH,NR)=PSIP_P
+         END DO
+      END DO
+      DO NSA=NSASTART,NSAEND
+         DO NR=NRSTART,NREND
+            DO NP=NPSTARTW,NPENDWM
+               DO NTH=1,NTHMAX+1
+                  FETH(NTH,NP,NR,NSA)=FETHS(NTH,NP,NR,NSA)
+                  FTH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)+FCTH(NTH,NP,NR,NSA) 
+               END DO
             END DO
-         END IF
-         E_IND=-( PSIPM_P(1,NR)-PSIPM_M(1,NR) )/ (2.D0*PI*RR*(1.D0+EPSRM2(NR))*DELT)
-!         IF(NRANK.eq.0) WRITE(*,'(A,2I4,6E16.8)') "INDUCTIVE,",N_IMPL, NR, E_IND, &
-!              PSIPM_P(1,NR), PSIPM_M(1,NR), RIPP(1,1),RIPP(NRMAX,1),RIPP(NRMAX,2)
-      END DO
-!
-      DO NR=NRSTART, NREND
-         IF(MODELA.eq.0)THEN
-            CALL POLOIDAL_FLUX_IP(NR,PSIP_P)
-            DO NTH=1,NTHMAX+1
-               PSIPG_P(NTH,NR)=PSIP_P
-            END DO
-         ELSE
-            DO NTH=1,NTHMAX+1
-               CALL BOUNCE_AV_PSIP(1,NR,NTH,PSIP_P)
-               PSIPG_P(NTH,NR)=PSIP_P
-            END DO
-         END IF
-      END DO
-
-      END SUBROUTINE UPDATE_PSIP_P
-!------------------------------------
-      SUBROUTINE POLOIDAL_FLUX_IP(NR,PSIP_P)
-        
-      IMPLICIT NONE
-      INTEGER,INTENT(IN):: NR
-      double precision,intent(out):: PSIP_P
-      INTEGER:: NSA, NR2
-      double precision:: rv, SUM, DELrho
-      double precision,dimension(NRMAX):: RIP
-      double precision:: PSIP0, PSIP1
-
-      DO NR2=1,NRMAX
-         RIP(NR2)=0.D0
-      END DO
-!      DO NSA=1,NSAMAX
-         DO NR2=1,NRMAX
-!            RIP(NR2)=RIP(NR2)+RIPP(NR2,NSA)
-            RIP(NR2)=RIPP(NR2,1)!+RIPP(NR2,2)
          END DO
-!      END DO
-
-      SUM=0.D0
-      DO NR2=1,NRMAX 
-         rv = EPSRM2(NR2)*RR
-         DELrho = (EPSRM2(NR2+1)-EPSRM2(NR2) ) * RR
-         SUM = SUM + RMU0*RIP(NR2)*(RR/rv - 1.D0) * DELrho
       END DO
-!      rv = EPSRM2(NRMAX)*RR
-      PSIP0 = SUM + &
-           RMU0*RIP(NRMAX)*( RR*LOG(RR/RA) - (RR-RA) )
 
-      SUM=0.D0
-      DO NR2=1,NR
-         rv = EPSRM2(NR2)*RR
-         DELrho = (EPSRM2(NR2+1)-EPSRM2(NR2) ) * RR
-         SUM = SUM + RMU0*RIP(NR2)*(RR/rv + 1.D0) * DELrho
-      END DO
-      PSIP1 = SUM
-!      PSIP0=0.D0
-
-      PSIP_P = PSIP0 - PSIP1
-
-      END SUBROUTINE POLOIDAL_FLUX_IP
-!------------------------------------
-      SUBROUTINE BOUNCE_AV_PSIP(ISW,NR,NTH,PSIP_P)
-
-      IMPLICIT NONE
-      integer,intent(IN):: ISW, NR
-      double precision,intent(out):: PSIP_P
-      integer:: NSA, NP, NTH, NG
-      double precision:: SUM, DELH, ETAL, PSI_PHI
-
-      IF(ISW.eq.0)THEN
-         DELH=2.D0*ETAM(NTH,NR)/NAVMAX 
-      ELSEIF(ISW.eq.1)THEN
-         DELH=2.D0*ETAG(NTH,NR)/NAVMAX 
+      IF(N_IMPL.eq.0) SIGM(:)=SIGP(:)
+      IF(NRANK.eq.0)THEN
+         WRITE(6,'(I3,A,8E14.6)') N_IMPL,"      SIGMA= ",(SIGP(NR),NR=1,8)
+         WRITE(6,'(I3,A,8E14.6)') N_IMPL,"      RJ_M = ",(RJ_M(NR),NR=1,8)
+         WRITE(6,'(I3,A,8E14.6)') N_IMPL,"      RJ_P = ",(RJ_P(NR),NR=1,8)
+         WRITE(6,'(I3,A,8E14.6)') N_IMPL,"      RJ_PO= ",(RJ_PO(NR),NR=1,8)
+         WRITE(6,'(I3,A,8E14.6)') N_IMPL,"      RJ_PP= ",(RJ_PP(NR),NR=1,8)
       END IF
-
-      SUM=0.D0
-      DO NG=1,NAVMAX
-         ETAL=DELH*(NG-0.5D0)
-         CALL POLOIDAL_FLUX_IP_PHI(NR,ETAL,PSI_PHI)
-         SUM= SUM + PSI_PHI
-      END DO
-      PSIP_P = SUM*DELH 
-
-      END SUBROUTINE BOUNCE_AV_PSIP
-!------------------------------------
-      SUBROUTINE POLOIDAL_FLUX_IP_PHI(NR,ETAL,PSI_PHI)
-
-      IMPLICIT NONE
-      INTEGER,INTENT(IN):: NR
-      double precision,intent(in)::ETAL
-      double precision,intent(out):: PSI_PHI
-      INTEGER:: NSA, nx, NR2
-      double precision:: SUM, PSIP0, PSIP1
-      double precision,dimension(NRMAX):: RIP
-      double precision:: zz,rv,xmax,xx,DELxx
-      integer,parameter:: NXMAX=100
-      double precision:: XIP
-
-      RIP(:)=0.D0
-      DO NSA=1,NSAMAX
-         DO NR2=1,NRMAX
-            RIP(NR2)=RIP(NR2)+RIPP(NR2,NSA)
-         END DO
-      END DO
-      IF(ETAL.le.PI*0.5D0)THEN
-         xmax=0.D0
-      ELSE
-         xmax=EPSRM2(NR)*RR*ABS(COS(ETAL))
-      END IF
-      zz = EPSRM2(NR)*RR*SIN(ETAL)
-
-      DELxx = (RR-xmax)/NXMAX
-      SUM=0.D0
-      DO nx=1,nxmax
-         xx = xmax + DELxx * (nx-0.5D0)
-         rv = SQRT(xx**2 + zz*2)
-         CALL IP_INTERPOLATION(rv,RIP,XIP)
-         SUM = SUM + RMU0*XIP*xx/(rv**2)*(RR-xx)*DELxx
-      END DO
-      PSIP0=SUM
-
-      SUM=0.D0
-      IF(ETAL.le.PI*0.5D0)THEN
-         xmax=EPSRM2(NR)*RR*ABS(COS(ETAL))
-         DELxx = xmax/NXMAX
-         DO nx=1,NXMAX
-            xx = xmax + DELxx * (nx-0.5D0)
-            rv = SQRT(xx**2 + zz*2)
-            CALL IP_INTERPOLATION(rv,RIP,XIP)
-            SUM = SUM + RMU0*XIP*xx/(rv**2)*(RR+xx)*DELxx
-         END DO
-         PSIP1=SUM
-      ELSE
-         PSIP1=0.D0
-      END IF
-      
-      PSI_PHI = PSIP0 - PSIP1
-
-      END SUBROUTINE POLOIDAL_FLUX_IP_PHI
-!------------------------------------
-      SUBROUTINE IP_INTERPOLATION(rv,RIP,XIP)
-
-      IMPLICIT NONE
-      double precision,INTENT(IN):: rv
-      double precision,dimension(NRMAX),INTENT(IN):: RIP
-      double precision,INTENT(out):: XIP
-      integer:: NR, NRL, NRU
-      double precision:: rv0, rv1, rv2
-
-      NRL=0
-      NRU=NRMAX
-      rv0 = EPSRM2(NRMAX)*RR
-      IF(rv0.le.rv)THEN
-         XIP=RIP(NRMAX)
-      ELSE
-         DO NR=1,NRMAX
-            rv0 = EPSRM2(NR)*RR
-            IF(rv0.le.rv)THEN
-               NRL=NR
-            END IF
-         END DO
-         DO NR=NRMAX,1,-1
-            rv0 = EPSRM2(NR)*RR
-            IF(rv.le.rv0)THEN
-               NRU=NR
-            END IF
-         END DO
-
-!         WRITE(*,'(A,2I4,3E16.8)') "NRL,NRU ",NRL,NRU,EPSRM2(NRL)*RR, rv, EPSRM2(NRU)*RR
-         IF(NRL.eq.0)THEN
-            rv1=0.D0
-            rv2=EPSRM2(NRU)*RR
-            XIP=( RIP(NRU) )/( rv2-rv1 )*( rv-rv1 )
-         ELSE
-            rv1=EPSRM2(NRL)*RR
-            rv2=EPSRM2(NRU)*RR
-            XIP=RIP(NRL)+( RIP(NRU)-RIP(NRL) )/( rv2-rv1 )*( rv-rv1 )
-         END IF
-      END IF
-
-      END SUBROUTINE IP_INTERPOLATION
-!------------------------------------
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
-      SUBROUTINE Ip_r
+      END SUBROUTINE conductivity_sigma_ind
+!-------------------------------------------------
+      SUBROUTINE fp_exec_sigma(NSA,IERR,its)
 
       USE libmtx
+      USE fpexec
       IMPLICIT NONE
-      double precision,dimension(NRMAX,NSAMAX)::RJ_G
+      integer:: NSA, NP, NTH, NR, NL, NM, NSBA
+      integer:: NTHS, NLL
+      integer:: IERR,its,i,j,ll1
+      integer:: imtxstart1,imtxend1
 
-      CALL FPCURRENT(RJ_G)
-      IF(NRANK.eq.0)THEN
-         CALL FPRIPP(RJ_G)
-      END IF
-      CALL mtx_broadcast_real8(RIPP,NSAMAX*NRMAX)
+      NSBA=NSB_NSA(NSA)
 
-      END SUBROUTINE Ip_r
-!----------------------------------
-      SUBROUTINE FPCURRENT(RJ_G)
+      CALL mtx_set_communicator(comm_nrnp) !3D
+
+!     ----- Set up matrix solver -----
+      CALL mtx_setup(imtxsize,imtxstart1,imtxend1,imtxwidth)
+      IF(imtxstart1.NE.imtxstart.OR.imtxend1.NE.imtxend) THEN
+         WRITE(6,*) 'XX fp_exec: '
+         WRITE(6,*) '   imtxstart1.NE.imtxstart.OR.imtxend1.NE.imtxend'
+         WRITE(6,*) '   imtxstart1,imtxstart = ',imtxstart1,imtxstart
+         WRITE(6,*) '   imtxend1,imtxend     = ',imtxend1,imtxend
+         STOP
+      ENDIF
+
+!     ----- Set up weight array -----
+
+      CALL FPWEIGHT(NSA,IERR)
+
+!     ----- Set up index array NMA -----
+!               NM: line number of the coefficient matrix
+!               NL: 
+
+      CALL SET_FM_NMA(NSA,FNSM)
+
+      DO NM=NMSTART,NMEND
+         NLMAX(NM)=0
+         BM(NM)=0.D0
+         DO NL=1,NLMAXM
+            LL(NM,NL)=0
+            AL(NM,NL)=0.D0
+         ENDDO
+      ENDDO
+
+!     ----- Calculate matrix coefficients in a row -----
+
+      DO NR=NRSTART,NREND
+         IF(MODELA.EQ.0) THEN
+            DO NP=NPSTART,NPEND
+            DO NTH=1,NTHMAX
+               NM=NMA(NTH,NP,NR)
+               CALL FPSETM(NTH,NP,NR,NSA,NLMAX(NM))
+            ENDDO
+            ENDDO
+         ELSE
+            DO NP=NPSTART,NPEND
+               DO NTH=1,NTHMAX/2
+                  NM=NMA(NTH,NP,NR)
+                  CALL FPSETM(NTH,NP,NR,NSA,NLMAX(NM))
+               ENDDO
+               DO NTH=ITU(NR)+1,NTHMAX
+                  NM=NMA(NTH,NP,NR)
+                  CALL FPSETM(NTH,NP,NR,NSA,NLMAX(NM))
+               ENDDO
+            ENDDO
+         ENDIF
+      ENDDO
+
+!     ----- Diagonal term -----
+
+      DO NR=NRSTART,NREND ! LHS
+         IF(MODELA.EQ.0) THEN
+            DO NP=NPSTART,NPEND
+            DO NTH=1,NTHMAX
+               NM=NMA(NTH,NP,NR)
+               BM(NM)=(1.D0+(1.D0-RIMPL)*DELT*DL(NM))*FM(NM) &
+                     +DELT*SPP(NTH,NP,NR,NSA)
+               IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
+                  CALL mtx_set_matrix(nm,nm,1.D0-rimpl*delt*dl(nm))
+                  CALL mtx_set_vector(nm,FM(NM))
+               ENDIF
+            ENDDO
+            ENDDO
+         ELSE
+            DO NP=NPSTART,NPEND
+               DO NTH=1,NTHMAX/2
+                  NM=NMA(NTH,NP,NR)
+                  BM(NM)=(RLAMDA(NTH,NR)+(1.D0-RIMPL)*DELT*DL(NM))*FM(NM) &
+                        +DELT*SPP(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)
+                  IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
+                     CALL mtx_set_matrix(nm,nm, &
+                                         RLAMDA(NTH,NR)-RIMPL*DELT*DL(NM))
+                     CALL mtx_set_vector(nm,FM(NM))
+                  ENDIF
+               ENDDO
+               DO NTH=NTHMAX/2+1,ITU(NR)
+                  NTHS=NTHMAX+1-NTH
+                  NM=NMA(NTH,NP,NR)
+                  BM(NM)=0.D0
+                  IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
+                     CALL mtx_set_matrix(nm,nm,1.d0)
+                     CALL mtx_set_matrix(nm,nm+NTHS-NTH,-1.d0)
+                     CALL mtx_set_vector(nm,FM(NM))
+                  ENDIF
+               ENDDO
+               DO NTH=ITU(NR)+1,NTHMAX
+                  NM=NMA(NTH,NP,NR)
+                  BM(NM)=(RLAMDA(NTH,NR)+(1.D0-RIMPL)*DELT*DL(NM))*FM(NM) &
+                        +DELT*SPP(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)
+                  IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
+                     CALL mtx_set_matrix(nm,nm, &
+                                         RLAMDA(NTH,NR)-RIMPL*DELT*DL(NM))
+                     CALL mtx_set_vector(nm,FM(NM))
+                  ENDIF
+               ENDDO
+            ENDDO
+         ENDIF
+      ENDDO
+
+!     ----- Off diagonal term -----
+
+      DO NM=NMSTART,NMEND ! LHS
+         IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
+            DO NL=1,NLMAX(NM)
+               IF(LL(NM,NL).NE.0) THEN
+                  CALL mtx_set_matrix(nm,LL(NM,NL),-RIMPL*DELT*AL(NM,NL))
+               ENDIF
+            ENDDO
+         ENDIF
+      ENDDO
+
+      DO NR=NRSTART,NREND
+      DO NP=NPSTART,NPEND
+      DO NTH=NTHMAX/2+1,ITU(NR)
+         NM=NMA(NTH,NP,NR)
+         IF(LL(NM,NL).NE.0) WRITE(6,'(A,5I5,1PE12.4)') &
+              'NR,NP,NTH,NM.NL,AL=',NR,NP,NTH,NM,NL,AL(NM,NL)
+      ENDDO
+      ENDDO
+      ENDDO
+
+!     ----- Source vector: contribution from off-diagonal term -----
+
+      DO NM=NMSTART,NMEND ! RHS
+         DO NL=1,NLMAX(NM)
+            IF(LL(NM,NL).NE.0) THEN
+               BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM(LL(NM,NL))
+            ENDIF
+         ENDDO
+         IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
+            CALL mtx_set_source(nm,BM(NM))
+         ENDIF
+      ENDDO
+
+!     ----- Solve matrix equation -----
+
+      CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC) ! ncom is nessesary for MUMPS not PETSc
+!      IF(MODELD_temp.eq.0)THEN
+!         if(nrank.eq.0) then
+!            write(6,*) '          FOR MODELE=1, Number of iterations, NSA    =',its,NSA
+!         endif
+!      END IF
+      ierr=0
+
+!     ----- Get solution vector -----
+
+      CALL mtx_gather_vector(BMTOT)
+      
+!      DO NR=NRSTART,NREND
+!         DO NP=NPSTARTW,NPENDWM
+!            DO NTH=1,NTHMAX
+!               NM=NMA(NTH,NP,NR)
+!               F1(NTH,NP,NR)=BMTOT(NM)
+!            ENDDO
+!         ENDDO
+!      ENDDO
+      
+      DO NR=NRSTARTW,NRENDWM
+         DO NP=NPSTARTW,NPENDWM
+            DO NTH=1,NTHMAX
+               NM=NMA(NTH,NP,NR)
+               FNS0(NTH,NP,NR,NSBA)=BMTOT(NM)
+            ENDDO
+         ENDDO
+      ENDDO
+
+!     ----- Clean up matrix solver -----
+      CALL mtx_cleanup
+
+      CALL mtx_reset_communicator
+
+      RETURN
+      END SUBROUTINE FP_EXEC_SIGMA
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      SUBROUTINE INDUCTANCE_EDGE(E_EDGE)
+
+      IMPLICIT NONE
+      INTEGER:: NR
+      double precision:: SUM, E_EDGE
+
+      SUM=0.D0
+      DO NR=1,NRMAX
+         SUM=SUM+RMU0/(2.D0*PI*RM(NR))*RI_P(NR)
+      END DO
+      SUM=SUM/RI_P(NRMAX)
+      E_EDGE=-SUM*( RJ_P(NRMAX)-RJ_M(NRMAX) )/DELT
+
+      END SUBROUTINE INDUCTANCE_EDGE
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      SUBROUTINE j_to_i(RJ_T,RI_P)
+
+      IMPLICIT NONE
+      INTEGER:: NR 
+      double precision,dimension(NRMAX),INTENT(IN)::RJ_T
+      double precision,dimension(NRMAX),INTENT(OUT)::RI_P
+
+      RI_P(:)=0.D0
+      DO NR=1,NRMAX
+         RI_P(NR)=RI_P(NR)+RJ_T(NR)*VOLR(NR)/(2.D0*PI*RR)
+      END DO
+
+      END SUBROUTINE j_to_i
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      SUBROUTINE FPCURRENT(RJ_T)
 !
       USE fpmpi
-      USE libmtx
       IMPLICIT NONE
       integer:: NR, NSA, NSB, NSBA, NP, NTH, NS, NSW, N
       integer:: IERR
       real(8):: RSUM2, FACT, PV
       double precision,dimension(NRSTART:NREND,NSAMAX)::RJ_L
-      double precision,dimension(NRMAX,NSAMAX),INTENT(OUT)::RJ_G
+      double precision,dimension(NRMAX,NSAMAX)::RJ_G
+      double precision,dimension(NRMAX),INTENT(OUT)::RJ_T
 
       CALL mtx_set_communicator(comm_np) 
-      DO NR=NRSTART,NRENDX
-         DO NSA=NSASTART,NSAEND
-            NS=NS_NSA(NSA)
-            NSBA=NSB_NSA(NSA)
-
+      DO NSA=NSASTART,NSAEND
+         NS=NS_NSA(NSA)
+         NSBA=NSB_NSA(NSA)
+         DO NR=NRSTART,NRENDX
             RSUM2=0.D0
             IF(MODELA.eq.0) THEN
                IF(MODELR.EQ.0) THEN
-!                  DO NP=1,NPMAX
                   DO NP=NPSTART,NPEND
                      DO NTH=1,NTHMAX
                         RSUM2 = RSUM2                       &
-                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
+                             +VOLP(NTH,NP,NSBA)*FNS0(NTH,NP,NR,NSBA) &
                              *PM(NP,NSBA)*COSM(NTH)
                      END DO
                   ENDDO
                ELSE
-!                  DO NP=1,NPMAX
                   DO NP=NPSTART,NPEND
                      PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
                      DO NTH=1,NTHMAX
                         RSUM2 = RSUM2                       &
-                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
+                             +VOLP(NTH,NP,NSBA)*FNS0(NTH,NP,NR,NSBA) &
                              *PM(NP,NSBA)*COSM(NTH)/PV
                      END DO
                   END DO
                ENDIF
             ELSE
                IF(MODELR.EQ.0) THEN
-!                  DO NP=1,NPMAX
                   DO NP=NPSTART,NPEND
                      DO NTH=1,NTHMAX
                         RSUM2 = RSUM2                        &
-                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)  &
+                             +VOLP(NTH,NP,NSBA)*FNS0(NTH,NP,NR,NSBA)  &
                              *PM(NP,NSBA)*COSM(NTH)*RLAMDA(NTH,NR)
                      END DO
                   ENDDO
                ELSE
-!                  DO NP=1,NPMAX
                   DO NP=NPSTART,NPEND
                      PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
                      DO NTH=1,NTHMAX
                         RSUM2 = RSUM2                        &
-                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)  &
+                             +VOLP(NTH,NP,NSBA)*FNS0(NTH,NP,NR,NSBA)  &
                              *PM(NP,NSBA)*COSM(NTH)/PV*RLAMDA(NTH,NR)
                      END DO
                   END DO
@@ -371,53 +467,28 @@
 
             FACT=RNFP0(NSA)*1.D20/RFSADG(NR)*RCOEFNG(NR)
             RJ_L(NR,NSA) = RSUM2*FACT*AEFP(NSA)*PTFP0(NSA) &
-                           /AMFP(NSA)!*1.D-6
-
-         ENDDO ! NSA
-      ENDDO ! NR
-
+                           /AMFP(NSA)
+         ENDDO ! NR
+      ENDDO ! NSA
+   
       CALL mtx_set_communicator(comm_nsanr)
       NSW=NSAEND-NSASTART+1
       DO N=1,NSW
          NSA=N+NSASTART-1
          CALL fp_gatherv_real8_sav(RJ_L,SAVLEN(NRANK+1),RJ_G,N,NSA)
       END DO
-      CALL mtx_reset_communicator 
 
+      RJ_T(:)=0.D0
+      DO NSA=1,NSAMAX
+         DO NR=1,NRMAX
+            RJ_T(NR)=RJ_T(NR)+RJ_G(NR,NSA)
+         END DO
+      END DO
+      CALL mtx_reset_communicator 
+      CALL mtx_broadcast_real8(RJ_T,NRMAX)
+      
       RETURN
       END SUBROUTINE FPCURRENT
-!----------------------------------
-
-      SUBROUTINE FPRIPP(RJ_G)
-!
-      IMPLICIT NONE
-      integer:: NSA, NSB, NR, NP, NTH 
-      real(8):: EAVE, EAVE2, rtemp, rtemp2, THETAL, THETAL2
-      double precision,dimension(NRMAX,NSAMAX),INTENT(IN)::RJ_G
-
-      DO NSA=1,NSAMAX
-         DO NR=1,NRMAX
-            RIPP(NR,NSA)=0.D0
-         END DO
-      ENDDO
-
-      DO NSA=1,NSAMAX
-         DO NR=1,NRMAX
-            IF(NR.eq.1)THEN ! current with in 0<rho<RM(NR)
-               RIPP(NR,NSA)  =RJ_G(NR,NSA)*VOLR(NR)/(2.D0*PI*RR)
-            ELSE
-               RIPP(NR,NSA)  =RIPP(NR-1,NSA)+RJ_G(NR,NSA)*VOLR(NR)/(2.D0*PI*RR)
-            END IF
-         ENDDO
-      ENDDO
-!      IF(NRANK.eq.0) WRITE(*,*) "B_POL", RIPP(NRMAX,1)*RMU0/(2.D0*PI*RA)
-         
-      RETURN
-      END SUBROUTINE FPRIPP
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
 
     end MODULE fpcaleind
-
-
-
-

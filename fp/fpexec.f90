@@ -60,7 +60,6 @@
 
       DO NR=NRSTART,NREND
          IF(MODELA.EQ.0) THEN
-!            DO NP=1,NPMAX
             DO NP=NPSTART,NPEND
             DO NTH=1,NTHMAX
                NM=NMA(NTH,NP,NR)
@@ -68,7 +67,6 @@
             ENDDO
             ENDDO
          ELSE
-!            DO NP=1,NPMAX
             DO NP=NPSTART,NPEND
                DO NTH=1,NTHMAX/2
                   NM=NMA(NTH,NP,NR)
@@ -86,7 +84,6 @@
 
       DO NR=NRSTART,NREND ! LHS
          IF(MODELA.EQ.0) THEN
-!            DO NP=1,NPMAX
             DO NP=NPSTART,NPEND
             DO NTH=1,NTHMAX
                NM=NMA(NTH,NP,NR)
@@ -99,7 +96,6 @@
             ENDDO
             ENDDO
          ELSE
-!            DO NP=1,NPMAX
             DO NP=NPSTART,NPEND
                DO NTH=1,NTHMAX/2
                   NM=NMA(NTH,NP,NR)
@@ -148,7 +144,6 @@
       ENDDO
 
       DO NR=NRSTART,NREND
-!      DO NP=1,NPMAX
       DO NP=NPSTART,NPEND
       DO NTH=NTHMAX/2+1,ITU(NR)
          NM=NMA(NTH,NP,NR)
@@ -170,17 +165,6 @@
             CALL mtx_set_source(nm,BM(NM))
          ENDIF
       ENDDO
-
-!      DO NR=NRSTART,NREND
-!      DO NP=1,NPMAX
-!         IF(NR.eq.2.and.NP.eq.NPMAX)THEN
-!            DO NTH=NTHMAX/2+1,ITU(NR)
-!               NM=NMA(NTH,NP,NR)
-!               WRITE(*,'(I4,E14.6)') NTH, BM(NM)
-!            ENDDO
-!         END IF
-!      ENDDO
-!      ENDDO
 
 !     ----- Solve matrix equation -----
 

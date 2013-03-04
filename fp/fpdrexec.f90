@@ -23,9 +23,7 @@
 !      integer,optional:: methodKSP, methodPC
 
       NSBA=NSB_NSA(NSA)
-!      WRITE(*,*) "NRANK, NSA = ",NRANK,NSA
 
-!      CALL mtx_set_communicator(comm_nr) !2D
       CALL mtx_set_communicator(comm_nrnp) !3D
 
 !     ----- Set up matrix solver -----
@@ -61,7 +59,6 @@
 
       DO NR=NRSTART,NREND
          IF(MODELA.EQ.0) THEN
-!            DO NP=1,NPMAX
             DO NP=NPSTART,NPEND
             DO NTH=1,NTHMAX
                NM=NMA(NTH,NP,NR)
@@ -69,7 +66,6 @@
             ENDDO
             ENDDO
          ELSE
-!            DO NP=1,NPMAX
             DO NP=NPSTART,NPEND
                DO NTH=1,NTHMAX/2
                   NM=NMA(NTH,NP,NR)
@@ -88,7 +84,6 @@
 
       DO NR=NRSTART,NREND ! LHS
          IF(MODELA.EQ.0) THEN
-!            DO NP=1,NPMAX
             DO NP=NPSTART,NPEND
             DO NTH=1,NTHMAX
                NM=NMA(NTH,NP,NR)
@@ -101,7 +96,6 @@
             ENDDO
             ENDDO
          ELSE
-!            DO NP=1,NPMAX
             DO NP=NPSTART,NPEND
                DO NTH=1,NTHMAX/2
                   NM=NMA(NTH,NP,NR)
@@ -154,7 +148,6 @@
       ENDDO
 
       DO NR=NRSTART,NREND
-!      DO NP=1,NPMAX
       DO NP=NPSTART,NPEND
       DO NTH=NTHMAX/2+1,ITU(NR)
          NM=NMA(NTH,NP,NR)
@@ -177,17 +170,6 @@
          ENDIF
       ENDDO
 
-!      DO NR=NRSTART,NREND
-!      DO NP=1,NPMAX
-!         IF(NR.eq.2.and.NP.eq.NPMAX)THEN
-!            DO NTH=NTHMAX/2+1,ITU(NR)
-!               NM=NMA(NTH,NP,NR)
-!               WRITE(*,'(I4,E14.6)') NTH, BM(NM)
-!            ENDDO
-!         END IF
-!      ENDDO
-!      ENDDO
-
 !     ----- Solve matrix equation -----
 
       CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC)! ncom is necessary for MUMPS
@@ -201,7 +183,6 @@
       CALL mtx_gather_vector(BMTOT)
       
       DO NR=NRSTART,NREND
-!         DO NP=1,NPMAX
          DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX
                NM=NMA(NTH,NP,NR)
@@ -210,26 +191,14 @@
          ENDDO
       ENDDO
 
-      DO NR=NRSTART-1,NREND+1
-         IF(NR.ge.1.and.NR.le.NRMAX)THEN
-!            DO NP=1,NPMAX
-            DO NP=NPSTARTW,NPENDWM
-               DO NTH=1,NTHMAX
-                  NM=NMA(NTH,NP,NR)
-                  FNS0(NTH,NP,NR,NSBA)=BMTOT(NM)
-               ENDDO
+      DO NR=NRSTARTW,NRENDWM
+         DO NP=NPSTARTW,NPENDWM
+            DO NTH=1,NTHMAX
+               NM=NMA(NTH,NP,NR)
+               FNS0(NTH,NP,NR,NSBA)=BMTOT(NM)
             ENDDO
-         END IF
+         ENDDO
       ENDDO
-
-!      DO NR=1,NRMAX
-!         DO NP=1,NPMAX
-!            DO NTH=1,NTHMAX
-!               NM=NMA(NTH,NP,NR)
-!               FNS(NTH,NP,NR,NSBA)=BMTOT(NM)
-!            ENDDO
-!         ENDDO
-!      ENDDO
 
 !     ----- Clean up matrix solver -----
 

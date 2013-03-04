@@ -14,7 +14,7 @@
       USE fpcalwm
       USE fpcalwr
       USE libbes,ONLY: besekn
-      USE fpcaleind
+!      USE fpcaleind
       USE libmtx
 
       contains
@@ -58,13 +58,9 @@
 !
 !     ----- Parallel electric field accleration term -----
 !
-      IF(E0.ne.0.D0)THEN
+!      IF(E0.ne.0.D0)THEN
          CALL FP_CALE(NSA)
-      END IF
-      IF(N_IMPL.ne.0.and.MODELE.eq.1)THEN
-         CALL FP_CALE_IND(NSA)
-      END IF
-
+!      END IF
 !
 !     ----- Quasi-linear wave-particle interaction term -----
 
@@ -292,8 +288,6 @@
             DPP(NTH,NP,NR,NSA)=DCPP(NTH,NP,NR,NSA)+DWPP(NTH,NP,NR,NSA)
             DPT(NTH,NP,NR,NSA)=DCPT(NTH,NP,NR,NSA)+DWPT(NTH,NP,NR,NSA)
             FPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)+FCPP(NTH,NP,NR,NSA)
-            IF(MODELE.eq.1) &
-                 FPP(NTH,NP,NR,NSA)=FPP(NTH,NP,NR,NSA)+FEPP_IND(NTH,NP,NR,NSA)
 !            IF(NRANK.eq.0)THEN
 !               WRITE(9,'(4E16.8)') PG(NP,NSA)*COSM(NTH), PG(NP,NSA)*SINM(NTH), &
 !                 DCPP(NTH,NP,NR,NSA),FCPP(NTH,NP,NR,NSA)
@@ -309,8 +303,6 @@
             DTP(NTH,NP,NR,NSA)=DCTP(NTH,NP,NR,NSA)+DWTP(NTH,NP,NR,NSA)
             DTT(NTH,NP,NR,NSA)=DCTT(NTH,NP,NR,NSA)+DWTT(NTH,NP,NR,NSA)
             FTH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)+FCTH(NTH,NP,NR,NSA)
-            IF(MODELE.eq.1) &
-                 FTH(NTH,NP,NR,NSA)=FTH(NTH,NP,NR,NSA)+FETH_IND(NTH,NP,NR,NSA)
          ENDDO
          ENDDO
       ENDDO
@@ -363,17 +355,13 @@
       integer:: NG
       real(kind8):: FACT, DELH, sum11, ETAL, X, PSIB, PCOS, sum15, ARG
 
-!      IF(MODELE.eq.0)THEN
-         DO NR=1,NRMAX
-            E2(NR)=E0/(1.D0+EPSRM2(NR))
-         END DO
-!      ELSE
-!         CALL FP_NEW_E
-!      END IF
-
+      IF(MODELE.eq.0)THEN
+         E2(:)=E1(:)
+      ELSE
+         E2(:)=EP(:)
+      END IF
 
       DO NR=NRSTART,NREND
-!      DO NP=1,NPMAX+1
       DO NP=NPSTART,NPENDWG
       DO NTH=1,NTHMAX
          FEPP(NTH,NP,NR,NSA)= AEFP(NSA)*E2(NR)/PTFP0(NSA)*COSM(NTH)
@@ -382,7 +370,6 @@
       ENDDO
 
       DO NR=NRSTART,NREND
-!      DO NP=1,NPMAX
       DO NP=NPSTARTW,NPENDWM
       DO NTH=1,NTHMAX+1
          FETH(NTH,NP,NR,NSA)=-AEFP(NSA)*E2(NR)/PTFP0(NSA)*SING(NTH)

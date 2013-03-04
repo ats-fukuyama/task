@@ -50,6 +50,7 @@
 
 !     +++++ Time loop +++++
 
+      OPEN(9,file="EPEM.dat")
       DO NT=1,NTMAX
          
 !     +++++ Iteration loop for toroidal electric field +++++
@@ -80,14 +81,15 @@
             END DO
          END DO
 
-!         IF(MODELE.eq.1)THEN
-!            DO NSA=NSASTART,NSAEND
-!               CALL FP_CALE_IND(NSA) ! INCLUDE IP_R AND UPDATE_PSIP_P
-!            END DO
-            CALL Ip_r
-            CALL UPDATE_PSIP_P ! poloidal flux at present step
-            CALL UPDATE_PSIP_M ! poloidal flux at previous step
-!         END IF
+         IF(MODELE.eq.1)THEN
+            EM(:)=EP(:)
+            
+            CALL conductivity_sigma_ind
+            IF(NRANK.eq.0) WRITE(6,'(A,6E14.6)') "E2=",(E2(NR),NR=1,6) 
+!            CALL Ip_r
+!            CALL UPDATE_PSIP_P ! poloidal flux at present step
+!            CALL UPDATE_PSIP_M ! poloidal flux at previous step
+         END IF
 
          gut_EX = 0.D0
          gut_COEF= 0.D0
@@ -101,7 +103,6 @@
             DO NSA=NSASTART,NSAEND 
                NSBA=NSB_NSA(NSA)
                DO NR=NRSTART,NREND
-!               DO NP=1,NPMAX
                DO NP=NPSTARTW,NPENDWM
                DO NTH=1,NTHMAX
                   F(NTH,NP,NR)=FNSM(NTH,NP,NR,NSBA)
@@ -125,7 +126,6 @@
                RSUMF0(NSA)=0.D0
                RSUM_SS(NSA)=0.D0
                DO NR=NRSTART,NREND
-!               DO NP=1,NPMAX
                DO NP=NPSTART,NPEND
                DO NTH=1,NTHMAX
                   RSUMF(NSA)=RSUMF(NSA) &
@@ -143,6 +143,7 @@
                   ENDDO
                ENDDO
             ENDDO ! END OF NSA
+!---------- convergence criterion
             CALL mtx_set_communicator(comm_np) 
             DO NSA=NSASTART,NSAEND
                RSUMF_=RSUMF(NSA)
@@ -170,11 +171,9 @@
             ENDIF
             CALL mtx_broadcast1_integer(N_IMPL)
 
-!            CALL mtx_set_communicator(comm_nr) !2D
             CALL mtx_set_communicator(comm_nr) !3D
             CALL mtx_allreduce_real8(DEPSV,NSW,4,DEPS_MAXVL,ILOCL) ! the peak DEPSV for each NSA
 
-!            CALL mtx_set_communicator(comm_nsa) !2D
             CALL mtx_set_communicator(comm_nsa) !3D
             CALL mtx_gather_real8(DEPS_MAXVL,nsw,DEPS_MAXV) 
             CALL mtx_gather_integer(ILOCL,nsw,ILOC) 
@@ -187,6 +186,7 @@
                     DEPS,N_IMPL,(DEPS_MAXV(NSA),NSA=1,NSAMAX) &
                     ,(ILOC(NSA),NSA=1,NSAMAX)
             ENDIF
+!---------- end of convergence 
 
             CALL GUTIME(gut3)
             CALL fusion_source_init
@@ -197,8 +197,8 @@
             CALL mtx_reset_communicator
 !           end of update FNSB
 
-            CALL Ip_r 
-            CALL UPDATE_PSIP_P ! poloidal flux at present step
+!            CALL Ip_r 
+!            CALL UPDATE_PSIP_P ! poloidal flux at present step
             DO NSA=NSASTART,NSAEND
                   IF (MOD(NT,NTCLSTEP).EQ.0) CALL FP_COEF(NSA)
             END DO
@@ -210,9 +210,21 @@
 !            CALL mtx_reset_communicator
 !           end of sum up SPPF
 
+            IF(MODELE.eq.1)THEN
+               CALL conductivity_sigma_ind
+               CALL E_IND_EVOL
+               CALL UPDATE_FEPP
+               IF(NRANK.eq.0)THEN
+                  DO NR=1,NRMAX
+                     WRITE(9,'(2I3,3E14.6)') N_IMPL, NT, RM(NR), EM(NR), EP(NR)
+                  END DO
+                  WRITE(9,*) " "
+                  WRITE(9,*) " "
+               END IF
+            END IF
+
             CALL GUTIME(gut4)
             GUT_COEF = GUT_COEF + (gut4-gut3)
-
          END DO ! END OF DOWHILE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          CALL GUTIME(gut6)
@@ -324,6 +336,7 @@
          IF(IERR.NE.0) RETURN
 
       ENDDO ! END OF NT LOOP
+      CLOSE(9)
 
 !     +++++ end of time loop +++++
 !

@@ -46,6 +46,9 @@
          IF(KID.EQ.'R') THEN
             CALL fp_prep(ierr)
             IF(ierr.ne.0) GO TO 1
+         ELSEIF(KID.eq.'C')THEN
+            CALL fp_continue(ierr)
+            IF(ierr.ne.0) GO TO 1
          ENDIF
          CALL fp_loop
          IF(nrank.eq.0) THEN
