@@ -70,6 +70,7 @@
             RHS=RMU0/DELT*( RJ_M(NR)-RJ_P(NR)+SIGM(NR)*EPM(NR) )*(RA*DELR)**2 &
                  + RG(NRMAX+1)/RM(NRMAX)*E_EDGE
             CALL mtx_set_source(NR,RHS)
+            WRITE(*,*) N_IMPL,"E_EDGE=",E_EDGE
          END IF
       END DO
 
@@ -122,7 +123,6 @@
          DO NR=NRSTART,NREND
             DO NP=NPSTART,NPENDWG
                DO NTH=1,NTHMAX
-!                  FEPP(NTH,NP,NR,NSA)= AEFP(NSA)*(EP(NR)*FACT)/PTFP0(NSA)*COSM(NTH)
                   FEPP(NTH,NP,NR,NSA)= AEFP(NSA)*(EP(NR)+DELE2)/PTFP0(NSA)*COSM(NTH)
                   FPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)+FCPP(NTH,NP,NR,NSA)
                END DO
@@ -133,7 +133,6 @@
          DO NR=NRSTART,NREND
             DO NP=NPSTARTW,NPENDWM
                DO NTH=1,NTHMAX+1
-!                  FETH(NTH,NP,NR,NSA)=-AEFP(NSA)*(EP(NR)*FACT)/PTFP0(NSA)*SING(NTH) 
                   FETH(NTH,NP,NR,NSA)=-AEFP(NSA)*(EP(NR)+DELE2)/PTFP0(NSA)*SING(NTH) 
                   FTH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)+FCTH(NTH,NP,NR,NSA) 
                END DO
@@ -339,25 +338,11 @@
 !     ----- Solve matrix equation -----
 
       CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC) ! ncom is nessesary for MUMPS not PETSc
-!      IF(MODELD_temp.eq.0)THEN
-!         if(nrank.eq.0) then
-!            write(6,*) '          FOR MODELE=1, Number of iterations, NSA    =',its,NSA
-!         endif
-!      END IF
       ierr=0
 
 !     ----- Get solution vector -----
 
       CALL mtx_gather_vector(BMTOT)
-      
-!      DO NR=NRSTART,NREND
-!         DO NP=NPSTARTW,NPENDWM
-!            DO NTH=1,NTHMAX
-!               NM=NMA(NTH,NP,NR)
-!               F1(NTH,NP,NR)=BMTOT(NM)
-!            ENDDO
-!         ENDDO
-!      ENDDO
       
       DO NR=NRSTARTW,NRENDWM
          DO NP=NPSTARTW,NPENDWM
@@ -381,27 +366,36 @@
 
       IMPLICIT NONE
       INTEGER:: NR
-      double precision:: SUM, E_EDGE
+      double precision:: SUM, SUM2, E_EDGE, L_EDGE, CAP_L
 
       SUM=0.D0
+      SUM2=0.D0
       DO NR=1,NRMAX
-         SUM=SUM+RMU0/(2.D0*PI*RM(NR))*RI_P(NR)
+         SUM=SUM+RMU0/(2.D0*PI*RM(NR))*RI_P(NR)*DELR
       END DO
-      SUM=SUM/RI_P(NRMAX)
-      E_EDGE=-SUM*( RJ_P(NRMAX)-RJ_M(NRMAX) )/DELT
+      DO NR=1,NRMAX
+         SUM2=SUM2+RMU0/(2.D0*PI*RM(NR))*RI_M(NR)*DELR
+      END DO
+      L_EDGE=(SUM-SUM2)/(RI_P(NRMAX)-RI_M(NRMAX))
+
+!      E_EDGE=-L_EDGE*( RI_P(NRMAX)-RI_M(NRMAX) )/DELT
+
+      CAP_L=L_EDGE*AEE**2*RNS(NRMAX,1)/AMFP(1)
+
+      E_EDGE=-( L_EDGE/DELT*(RJ_P(NRMAX)-RJ_M(NRMAX))+CAP_L*EP(NRMAX) )/(1.D0+CAP_L)
 
       END SUBROUTINE INDUCTANCE_EDGE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      SUBROUTINE j_to_i(RJ_T,RI_P)
+      SUBROUTINE j_to_i(RJ,RI)
 
       IMPLICIT NONE
       INTEGER:: NR 
-      double precision,dimension(NRMAX),INTENT(IN)::RJ_T
-      double precision,dimension(NRMAX),INTENT(OUT)::RI_P
+      double precision,dimension(NRMAX),INTENT(IN)::RJ
+      double precision,dimension(NRMAX),INTENT(OUT)::RI
 
-      RI_P(:)=0.D0
+      RI(:)=0.D0
       DO NR=1,NRMAX
-         RI_P(NR)=RI_P(NR)+RJ_T(NR)*VOLR(NR)/(2.D0*PI*RR)
+         RI(NR)=RI(NR)+RJ(NR)*VOLR(NR)/(2.D0*PI*RR)
       END DO
 
       END SUBROUTINE j_to_i
