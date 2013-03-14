@@ -33,7 +33,6 @@
       NS=NS_NSA(NSA)
 
       DO NR=NRSTART,NREND
-!         DO NP=1,NPMAX+1
          DO NP=NPSTART,NPENDWG
          DO NTH=1,NTHMAX
             DPP(NTH,NP,NR,NSA)=0.D0
@@ -43,7 +42,6 @@
             FEPP_IND(NTH,NP,NR,NSA)=0.D0
          ENDDO
          ENDDO
-!         DO NP=1,NPMAX
          DO NP=NPSTARTW,NPENDWM
          DO NTH=1,NTHMAX+1
             DTP(NTH,NP,NR,NSA)=0.D0
@@ -61,6 +59,9 @@
 !      IF(E0.ne.0.D0)THEN
          CALL FP_CALE(NSA)
 !      END IF
+         IF(MODELE.eq.1)THEN
+            CALL FP_CALE_IND(NSA)
+         END IF
 !
 !     ----- Quasi-linear wave-particle interaction term -----
 
@@ -287,7 +288,8 @@
          DO NTH=1,NTHMAX
             DPP(NTH,NP,NR,NSA)=DCPP(NTH,NP,NR,NSA)+DWPP(NTH,NP,NR,NSA)
             DPT(NTH,NP,NR,NSA)=DCPT(NTH,NP,NR,NSA)+DWPT(NTH,NP,NR,NSA)
-            FPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)+FCPP(NTH,NP,NR,NSA)
+            FPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)+FCPP(NTH,NP,NR,NSA) &
+                 +FEPP_IND(NTH,NP,NR,NSA)
 !            IF(NRANK.eq.0)THEN
 !               WRITE(9,'(4E16.8)') PG(NP,NSA)*COSM(NTH), PG(NP,NSA)*SINM(NTH), &
 !                 DCPP(NTH,NP,NR,NSA),FCPP(NTH,NP,NR,NSA)
@@ -302,7 +304,8 @@
          DO NTH=1,NTHMAX+1
             DTP(NTH,NP,NR,NSA)=DCTP(NTH,NP,NR,NSA)+DWTP(NTH,NP,NR,NSA)
             DTT(NTH,NP,NR,NSA)=DCTT(NTH,NP,NR,NSA)+DWTT(NTH,NP,NR,NSA)
-            FTH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)+FCTH(NTH,NP,NR,NSA)
+            FTH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)+FCTH(NTH,NP,NR,NSA) &
+                 +FETH_IND(NTH,NP,NR,NSA)
          ENDDO
          ENDDO
       ENDDO
@@ -355,28 +358,24 @@
       integer:: NG
       real(kind8):: FACT, DELH, sum11, ETAL, X, PSIB, PCOS, sum15, ARG
 
-      IF(MODELE.eq.0)THEN
-         E2(:)=E1(:)
-      ELSE
-         E2(:)=EP(:)
-      END IF
+      E2(:)=E1(:)
 
       DO NR=NRSTART,NREND
-      DO NP=NPSTART,NPENDWG
-      DO NTH=1,NTHMAX
-         FEPP(NTH,NP,NR,NSA)= AEFP(NSA)*E2(NR)/PTFP0(NSA)*COSM(NTH)
-      ENDDO
-      ENDDO
+         DO NP=NPSTART,NPENDWG
+            DO NTH=1,NTHMAX
+               FEPP(NTH,NP,NR,NSA)= AEFP(NSA)*E2(NR)/PTFP0(NSA)*COSM(NTH)
+            ENDDO
+         ENDDO
       ENDDO
 
       DO NR=NRSTART,NREND
-      DO NP=NPSTARTW,NPENDWM
-      DO NTH=1,NTHMAX+1
-         FETH(NTH,NP,NR,NSA)=-AEFP(NSA)*E2(NR)/PTFP0(NSA)*SING(NTH)
+         DO NP=NPSTARTW,NPENDWM
+            DO NTH=1,NTHMAX+1
+               FETH(NTH,NP,NR,NSA)=-AEFP(NSA)*E2(NR)/PTFP0(NSA)*SING(NTH)
+            ENDDO
+         ENDDO
       ENDDO
-      ENDDO
-      ENDDO
-
+      
       IF(MODELA.eq.1)THEN
          DO NR=NRSTART,NREND
             CALL FP_CALE_LAV(NR,NSA)
@@ -385,7 +384,51 @@
       
       RETURN
       END SUBROUTINE FP_CALE
+!----------------------------------------
+      SUBROUTINE FP_CALE_IND(NSA)
+       
+      IMPLICIT NONE
+      integer:: NSA, NSB, NR, NTH, NP
+      real(kind8):: PSP, SUML, ANGSP, SPL, FPMAX
+      integer:: NG
+      real(kind8):: FACT, DELH, sum11, ETAL, X, PSIB, PCOS, sum15, ARG
 
+      IF(MODELA.eq.0)THEN
+         DO NR=NRSTART,NREND
+            DO NP=NPSTART,NPENDWG
+               DO NTH=1,NTHMAX
+                  FEPP_IND(NTH,NP,NR,NSA)= AEFP(NSA)*EP(NR)/PTFP0(NSA)*COSM(NTH)
+               ENDDO
+            ENDDO
+         ENDDO
+         
+         DO NR=NRSTART,NREND
+            DO NP=NPSTARTW,NPENDWM
+               DO NTH=1,NTHMAX+1
+                  FETH_IND(NTH,NP,NR,NSA)=-AEFP(NSA)*EP(NR)/PTFP0(NSA)*SING(NTH)
+               ENDDO
+            ENDDO
+         ENDDO
+      ELSE
+         DO NR=NRSTART,NREND
+            DO NP=NPSTART,NPENDWG
+               DO NTH=1,NTHMAX
+                  FEPP_IND(NTH,NP,NR,NSA)= AEFP(NSA)*ETHM(NTH,NR)/PTFP0(NSA)*COSM(NTH)
+               ENDDO
+            ENDDO
+         ENDDO
+
+         DO NR=NRSTART,NREND
+            DO NP=NPSTARTW,NPENDWM
+               DO NTH=1,NTHMAX+1
+                  FETH_IND(NTH,NP,NR,NSA)=-AEFP(NSA)*ETHG(NTH,NR)/PTFP0(NSA)*SING(NTH)
+               ENDDO
+            ENDDO
+         ENDDO
+      END IF
+
+
+      END SUBROUTINE FP_CALE_IND
 ! ****************************************
 !     BOUNCE AVERAGING FEPP, FETH
 ! ****************************************
@@ -397,7 +440,6 @@
       double precision:: DELH, SUM, ETAL, X, PSIB
 
 !     BOUNCE AVERAGE FEPP
-!      DO NP=1,NPMAX+1
       DO NP=NPSTART,NPENDWG
          DO NTH=1,ITL(NR)-1
             DELH=2.D0*ETAM(NTH,NR)/NAVMAX
@@ -410,7 +452,6 @@
                SUM = SUM + FEPP(NTH,NP,NR,NSA)*PSIB
             END DO
             FEPP(NTH,NP,NR,NSA) = SUM*DELH
-!            FEPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)*2.D0*ETAM(NTH,NR)
          END DO ! END NTH
          DO NTH=ITL(NR)+1,ITU(NR)-1
             FEPP(NTH,NP,NR,NSA)=0.D0
@@ -426,7 +467,6 @@
                SUM = SUM + FEPP(NTH,NP,NR,NSA)*PSIB
             END DO
             FEPP(NTH,NP,NR,NSA) = SUM*DELH
-!            FEPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)*2.D0*ETAM(NTH,NR)
          END DO
          FEPP(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)/4.D0 &
               *( FEPP(ITL(NR)-1,NP,NR,NSA)/RLAMDA(ITL(NR)-1,NR) &
@@ -704,20 +744,19 @@
 
          DINT_D=0.D0
          DINT_F=0.D0
-!         DO NP=1,NPMAX
          DO NP=NPSTART,NPEND
             DO NTH=1,NTHMAX
-!               IF(N_IMPL.eq.0)THEN
+               IF(N_IMPL.eq.0)THEN
                   IF(NR.eq.1)THEN
                      WRL=0.25D0 ! not necessary
                   ELSE
                      WRL=(4.D0*RG(NR)+DELR)/(8.D0*RG(NR))                     
                   END IF
-!               ELSE
-!                  WRL=WEIGHR(NTH,NP,NR,NSA)
-!               END IF
+               ELSE
+                  WRL=WEIGHR(NTH,NP,NR,NSA)
+               END IF
                IF(NR.eq.1)THEN
-                  DFDR_R1 = ( FNSP(NTH,NP,NR,NSA)-FS1(NTH,NP,NSA) ) / DELR *2.D0
+                  DFDR_R1 = ( FNSP(NTH,NP,NR,NSA)-FS1(NTH,NP,NSA) ) / DELR *2.D0*0
                   F_R1 = FS1(NTH,NP,NSA)
                   SRHODM=DFDR_R1 * DRR(NTH,NP,NR,NSA)
                   SRHOFM=F_R1    * DRR(NTH,NP,NR,NSA)
@@ -732,25 +771,32 @@
                   SRHODM=DFDR_R1 * DRR(NTH,NP,NR,NSA)
                   SRHOFM=F_R1    * DRR(NTH,NP,NR,NSA)
                END IF
-!               DINT_D = DINT_D + VOLP(NTH,NP,NSBA)*SRHODM
-!               DINT_F = DINT_F + VOLP(NTH,NP,NSBA)*SRHOFM
-
+               DINT_D = DINT_D + VOLP(NTH,NP,NSBA)*SRHODM
+               DINT_F = DINT_F + VOLP(NTH,NP,NSBA)*SRHOFM
 ! no integration               
-               IF(F_R1.ne.0)THEN
-                  FACT = DFDR_R1/F_R1 
-                  FRR(NTH,NP,NR,NSA) = FACT * DRR(NTH,NP,NR,NSA)*0
-               ELSE
-                  FRR(NTH,NP,NR,NSA) = DRR(NTH,NP,NR,NSA) * 0
-               END IF
+!               IF(F_R1.ne.0)THEN
+!                  FACT = DFDR_R1/F_R1 
+!                  FRR(NTH,NP,NR,NSA) = FACT * DRR(NTH,NP,NR,NSA)*0
+!               ELSE
+!                  FRR(NTH,NP,NR,NSA) = DRR(NTH,NP,NR,NSA) * 0
+!               END IF
             END DO
          END DO
 
+! integration
+         CALL mtx_set_communicator(comm_np) 
+         CALL p_theta_integration(DINT_D) 
+         CALL p_theta_integration(DINT_F) 
+         CALL mtx_reset_communicator 
+!         WRITE(*,'(A,2I3,2E14.6)') "DINT=", NSA,NR,DINT_D, DINT_F
 
-!         DO NP=1,NPMAX
-!            DO NTH=1,NTHMAX
-!               FRR(NTH,NP,NR,NSA) = FACT * DRR(NTH,NP,NR,NSA)
-!            END DO
-!         END DO
+         FACT=DINT_D/DINT_F
+         DO NP=NPSTART,NPEND
+            DO NTH=1,NTHMAX
+               FRR(NTH,NP,NR,NSA) = FACT * DRR(NTH,NP,NR,NSA)
+            END DO
+         END DO
+
 !         IF(NR.eq.NREND+1.and.NSA.eq.1) WRITE(*,'(I4,3E16.8)') NR, DRR(1,1,NR,1), FRR(1,1,NR,1),WRL
 
       ENDDO ! NR

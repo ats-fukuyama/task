@@ -28,14 +28,14 @@
       real(kind8),dimension(NSAMAX)::RSUMF,RSUMF0,RSUM_SS
       real(kind8):: RSUMF_, RSUMF0_
 
-      integer:: NT, NR, NP, NTH, NSA, NTI, NSBA
+      integer:: NT, NR, NP, NTH, NSA, NTI, NSBA, NTE
       integer:: L, IERR, I
       real(kind8):: RSUM, DELEM, RJNL, dw, RSUM1, RSUM2
       real(4):: gut, gut1, gut2, gut3, gut4, gut5, gut6
       real(4):: gut_ex, gut_coef, gut_1step
       real(kind8),DIMENSION(nsize):: RSUMA
       integer,dimension(NSAMAX)::NTCLSTEP2
-      real(kind8):: DEPS_MAX, DEPS, DEPS1
+      real(kind8):: DEPS_MAX, DEPS, DEPS1, DEPSE
       real(kind8),dimension(NSASTART:NSAEND):: DEPS_MAXVL, DEPSV, DEPS_SS_LOCAL
       real(kind8),dimension(NSAMAX):: DEPS_MAXV
       integer,dimension(NSASTART:NSAEND):: ILOCL
@@ -80,15 +80,12 @@
                END IF
             END DO
          END DO
-
+ 
+         CALL conductivity_sigma_ind
          IF(MODELE.eq.1)THEN
             EM(:)=EP(:)
-            
-            CALL conductivity_sigma_ind
+
             IF(NRANK.eq.0) WRITE(6,'(A,6E14.6)') "E2=",(E2(NR),NR=1,6) 
-!            CALL Ip_r
-!            CALL UPDATE_PSIP_P ! poloidal flux at present step
-!            CALL UPDATE_PSIP_M ! poloidal flux at previous step
          END IF
 
          gut_EX = 0.D0
@@ -210,10 +207,21 @@
 !            CALL mtx_reset_communicator
 !           end of sum up SPPF
 
+            CALL FPCURRENT(RJ_P)
+            CALL j_to_i(RJ_P,RI_P)
             IF(MODELE.eq.1)THEN
                CALL conductivity_sigma_ind
-               CALL E_IND_EVOL
-               CALL UPDATE_FEPP
+               IF(MODELA.eq.0)THEN
+                  DO NR=NRSTART,NREND
+                     CALL INDUCTIVE_FIELD(NR)
+                  END DO
+                  CALL UPDATE_FEPP
+               ELSE
+                  DO NR=NRSTART,NREND
+                     CALL INDUCTIVE_FIELD_A1(NR)
+                  END DO
+                  CALL UPDATE_FEPP
+               END IF
                IF(NRANK.eq.0)THEN
                   DO NR=1,NRMAX
                      WRITE(9,'(2I3,3E14.6)') N_IMPL, NT, RM(NR), EM(NR), EP(NR)

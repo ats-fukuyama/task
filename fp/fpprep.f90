@@ -622,7 +622,7 @@
 
       DO NSB=NSASTART,NSAEND
          NS=NS_NSB(NSB)
-         DO NR=NRSTART,NREND
+         DO NR=NRSTARTW,NRENDWM
             IF(NR.ge.1.and.NR.le.NRMAX)THEN
 !               DO NP=1,NPMAX
                DO NP=NPSTARTW,NPENDWM
@@ -661,10 +661,8 @@
 !      DO NSA=1,NSAMAX
       DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
-         NSBA=NSB_NSA(NSA)
-!         DO NP=1,NPMAX
          DO NP=NPSTARTW,NPENDWM
-            CALL FPMXWL_EDGE(NP,NS,FL)
+            CALL FPMXWL_EDGE(NP,NSA,FL)
             DO NTH=1,NTHMAX
                FS2(NTH,NP,NS)=FL ! at R=1.0+DELR/2
             ENDDO
@@ -1000,6 +998,8 @@
          END IF
          RJ_M(NR)=0.D0
       ENDDO
+      EP_PHIM(:,:,:)=0.D0
+      EP_PHIG(:,:,:)=0.D0
 
       N_IMPL=0
       CALL NF_REACTION_COEF

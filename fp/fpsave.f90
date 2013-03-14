@@ -817,7 +817,7 @@
                WRITE(6,fmt0) NSA,NS_NSA(NSA),&
                     RM(NR),RNT(NR,NSA,NTG2),RTT(NR,NSA,NTG2), &
                     RJT(NR,NSA,NTG2),RPCT(NR,NSA,NTG2),       &
-                    RPET(NR,NSA,NTG2), E2(NR), &
+                    RPET(NR,NSA,NTG2), EP(NR), &
 !RPET_IND(NR,NSA,NTG2), &
 !                    RDIDT(NR,NSA), &
                     RECT(NR,NSA,NTG2),    &
@@ -1051,6 +1051,8 @@
          END DO
       ENDDO
       CALL mtx_reset_communicator 
+
+      CALL mtx_broadcast_real8(RNS,NRMAX)
 
       END SUBROUTINE FPSAVECOMM
 !^-------------------------------

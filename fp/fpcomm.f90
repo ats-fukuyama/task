@@ -223,6 +223,11 @@
            DEPS_SS, RPDRS, RNDRS
       integer:: N_IMPL, NCALCNR
       real,dimension(10):: gut_comm
+      real(rkind):: E_EDGEM
+      real(rkind),dimension(:,:,:),POINTER:: EP_PHIM, EM_PHIM
+      real(rkind),dimension(:,:,:),POINTER:: EP_PHIG, EM_PHIG
+      real(rkind),dimension(:,:),POINTER:: ETHM
+      real(rkind),dimension(:,:),POINTER:: ETHG
 
       contains
 
@@ -270,6 +275,13 @@
           allocate(RJ_M(NRMAX),RJ_P(NRMAX))
           allocate(RI_M(NRMAX),RI_P(NRMAX))
           allocate(E_IMPL(NRMAX))
+          allocate(EP_PHIM(100,NTHMAX,NRSTART:NREND))
+          allocate(EM_PHIM(100,NTHMAX,NRSTART:NREND))
+          allocate(EP_PHIG(100,NTHMAX+1,NRSTART:NREND))
+          allocate(EM_PHIG(100,NTHMAX+1,NRSTART:NREND))
+          allocate(ETHM(NTHMAX,NRSTART:NREND))
+          allocate(ETHG(NTHMAX+1,NRSTART:NREND))
+
 !          allocate(RJ_IND(NRMAX),E_IND(NRMAX))
           allocate(EPSRM(NRMAX+1),EPSRG(NRMAX+1))
           allocate(EPSRM2(NRMAX+1),EPSRG2(NRMAX+1))
@@ -369,8 +381,8 @@
           allocate(FEPP(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX))
           allocate(FETH(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX))
 
-          allocate(FEPP_IND(NTHMAX  ,NPMAX+1,NRSTART:NREND+1,NSAMAX))
-          allocate(FETH_IND(NTHMAX+1,NPMAX  ,NRSTART:NREND+1,NSAMAX))
+          allocate(FEPP_IND(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NREND+1,NSAMAX))
+          allocate(FETH_IND(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NREND+1,NSAMAX))
 
 !          allocate(DCPP(NTHMAX  ,NPMAX+1,NRSTART:NREND+1,NSAMAX))
 !          allocate(DCPT(NTHMAX  ,NPMAX+1,NRSTART:NREND+1,NSAMAX))
@@ -536,6 +548,10 @@
           deallocate(SIGP,SIGM)
           deallocate(RJ_M,RJ_P)
           deallocate(RI_M,RI_P)
+          deallocate(EP_PHIM,EM_PHIM)
+          deallocate(EP_PHIG,EM_PHIG)
+          deallocate(ETHM,ETHG)
+
 !          deallocate(RJ_IND, E_IND)
           deallocate(EPSRM,EPSRG)
           deallocate(EPSRM2,EPSRG2)

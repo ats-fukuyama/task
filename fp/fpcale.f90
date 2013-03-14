@@ -15,95 +15,57 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       SUBROUTINE UPDATE_FEPP
 
-      USE fpcoef, only: FP_CALE
+      USE fpcoef, only: FP_CALE, FP_CALE_IND
       IMPLICIT NONE
-      INTEGER:: NSA, NR
-
-!      IF(NRANK.eq.0)THEN
-!         WRITE(6,'(A,32E10.2)') "     EM=",(EM(NR),NR=1,32)
-!         WRITE(6,'(A,32E10.2)') "     EP=",(EP(NR),NR=1,32)
-!      END IF
+      INTEGER:: NSA, NR, NP, NTH
 
       DO NSA=NSASTART,NSAEND
-         CALL FP_CALE(NSA)
+         CALL FP_CALE_IND(NSA)
       END DO
+
+!     UPDATE FPP, FTH
+      DO NSA=NSASTART,NSAEND
+         DO NR=NRSTART,NREND
+         DO NP=NPSTART,NPENDWG
+         DO NTH=1,NTHMAX
+            FPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)+FCPP(NTH,NP,NR,NSA) &
+                 +FEPP_IND(NTH,NP,NR,NSA)
+         END DO
+         END DO
+!
+         DO NP=NPSTARTW,NPENDWM 
+         DO NTH=1,NTHMAX+1 
+            FTH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)+FCTH(NTH,NP,NR,NSA) &
+                 +FETH_IND(NTH,NP,NR,NSA)
+         END DO
+         END DO
+         END DO
+      END DO
+
+      IF(NPENDWG.eq.NPMAX+1)THEN
+      DO NSA=NSASTART,NSAEND
+      DO NR=NRSTART,NREND
+         DO NTH=1,NTHMAX
+            FPP(NTH,NPMAX+1,NR,NSA)=max(0.D0,FPP(NTH,NPMAX+1,NR,NSA))
+         END DO
+      END DO
+      END DO
+      END IF
 
       END SUBROUTINE UPDATE_FEPP
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      SUBROUTINE E_IND_EVOL
-
-      IMPLICIT NONE
-      INTEGER:: NSA,NR,NP,NTH,IERR
-      double precision:: coef0,coefm,coefp,RHS,E_EDGE
-      integer:: imtxstart1,imtxend1,its,j
-
-      EPM(:)=EP(:)
-      CALL mtx_set_communicator(comm_nr) !3D
-
-      CALL mtx_setup(NRMAX,imtxstart1,imtxend1)
-
-!---- DIAGONAL TERM
-      DO NR=NRSTART,NREND
-!         coef0=2.D0/(RA*DELR)**2 + RMU0*SIGP(NR)/DELT
-         coef0=2.D0 + RMU0*SIGP(NR)/DELT*(RA*DELR)**2
-         CALL mtx_set_matrix(NR,NR,coef0)
-         CALL mtx_set_vector(NR,EM(NR))
-      END DO
-!---- OFF DIAGONAL
-      DO NR=NRSTART,NREND
-         coefm=-RG(NR)/( RM(NR) )
-         coefp=-RG(NR+1)/( RM(NR) )
-         IF(NR.ne.1)THEN
-            CALL mtx_set_matrix(NR,NR-1,coefm)
-         END IF
-         IF(NR.ne.NRMAX)THEN
-            CALL mtx_set_matrix(NR,NR+1,coefp)
-         END IF
-      END DO
-!---- RIGHT HAND SIDE
-      DO NR=NRSTART,NREND
-         IF(NR.ne.NRMAX)THEN
-            RHS=RMU0/DELT*( RJ_M(NR)-RJ_P(NR)+SIGM(NR)*EPM(NR) )*(RA*DELR)**2
-            CALL mtx_set_source(NR,RHS)
-         ELSE
-            CALL INDUCTANCE_EDGE(E_EDGE)
-            RHS=RMU0/DELT*( RJ_M(NR)-RJ_P(NR)+SIGM(NR)*EPM(NR) )*(RA*DELR)**2 &
-                 + RG(NRMAX+1)/RM(NRMAX)*E_EDGE
-            CALL mtx_set_source(NR,RHS)
-            WRITE(*,*) N_IMPL,"E_EDGE=",E_EDGE
-         END IF
-      END DO
-
-!---- SOLVE
-
-      CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC) 
-
-      CALL mtx_gather_vector(EP)
-
-      CALL mtx_cleanup
-      CALL mtx_reset_communicator
-!      IF(NRANK.eq.0) WRITE(*,'(I3,A,7E14.6)') N_IMPL," RHS=", &
-!           (RMU0/DELT*( RJ_M(NR)-RJ_P(NR)+SIGP(NR)*EP(NR) )*(RA*DELR)**2,NR=1,4),SIGP(1),EPM(1),coef0
-
-      END SUBROUTINE E_IND_EVOL
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       SUBROUTINE conductivity_sigma_ind
 
+      USE fpcoef, only: FP_CALE_LAV
       IMPLICIT NONE
       INTEGER:: NSA,NR,NP,NTH,IERR,its
-      double precision:: DELE
+      double precision:: DELE, DELT2
       double precision,parameter:: FACT=1.01D0, DELE2=1.D-5
       double precision,dimension(NRMAX):: RJ_PO, RJ_PP
       double precision, &
          dimension(NTHMAX,NPSTART:NPENDWG,NRSTART:NRENDWM,NSAMAX)::FEPPS
       double precision, &
          dimension(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX)::FETHS
-
-      IF(N_IMPL.ne.0)THEN
-         SIGM(:)=SIGP(:)
-         CALL FPCURRENT(RJ_P)
-         CALL j_to_i(RJ_P,RI_P)
-      END IF
 
       FNS0(:,:,:,:) =FNSM(:,:,:,:)
       FEPPS(:,:,:,:)=FEPP(:,:,:,:)
@@ -114,6 +76,8 @@
          CALL j_to_i(RJ_M,RI_M)
       END IF
 
+      DELT2=DELT
+      DELT=1.D-2
       DO NSA=NSASTART,NSAEND
          CALL fp_exec_sigma(NSA,IERR,its) ! partial j/ partial t
       END DO
@@ -123,8 +87,7 @@
          DO NR=NRSTART,NREND
             DO NP=NPSTART,NPENDWG
                DO NTH=1,NTHMAX
-                  FEPP(NTH,NP,NR,NSA)= AEFP(NSA)*(EP(NR)+DELE2)/PTFP0(NSA)*COSM(NTH)
-                  FPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)+FCPP(NTH,NP,NR,NSA)
+                  FEPP(NTH,NP,NR,NSA)= AEFP(NSA)*(E2(NR)+DELE2)/PTFP0(NSA)*COSM(NTH)
                END DO
             END DO
          END DO
@@ -133,8 +96,30 @@
          DO NR=NRSTART,NREND
             DO NP=NPSTARTW,NPENDWM
                DO NTH=1,NTHMAX+1
-                  FETH(NTH,NP,NR,NSA)=-AEFP(NSA)*(EP(NR)+DELE2)/PTFP0(NSA)*SING(NTH) 
-                  FTH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)+FCTH(NTH,NP,NR,NSA) 
+                  FETH(NTH,NP,NR,NSA)=-AEFP(NSA)*(E2(NR)+DELE2)/PTFP0(NSA)*SING(NTH) 
+               END DO
+            END DO
+         END DO
+      END DO
+      IF(MODELA.eq.1)THEN
+         DO NSA=NSASTART,NSAEND
+            DO NR=NRSTART,NREND
+               CALL FP_CALE_LAV(NR,NSA)
+            END DO
+         END DO
+      END IF
+      DO NSA=NSASTART,NSAEND
+         DO NR=NRSTART,NREND
+            DO NP=NPSTART,NPENDWG
+               DO NTH=1,NTHMAX
+                  FPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)+FCPP(NTH,NP,NR,NSA) &
+                       +FEPP_IND(NTH,NP,NR,NSA)
+               END DO
+            END DO
+            DO NP=NPSTARTW,NPENDWM
+               DO NTH=1,NTHMAX+1
+                  FTH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)+FCTH(NTH,NP,NR,NSA) &
+                       +FETH_IND(NTH,NP,NR,NSA)
                END DO
             END DO
          END DO
@@ -144,11 +129,10 @@
          CALL fp_exec_sigma(NSA,IERR,its) ! dj/ dt
       END DO
       CALL FPCURRENT(RJ_PO)
+      DELT=DELT2
 
       DO NR=1,NRMAX
-         DELE=(FACT-1.D0)*EP(NR)
-!         SIGP(NR)=(RJ_PO(NR) - RJ_PP(NR) )/DELE
-         SIGP(NR)=(RJ_PO(NR) - RJ_PP(NR) )/DELE2*10
+         SIGP(NR)=(RJ_PO(NR) - RJ_PP(NR) )/DELE2
       END DO
 
       DO NSA=NSASTART,NSAEND
@@ -156,7 +140,8 @@
             DO NP=NPSTART,NPENDWG
                DO NTH=1,NTHMAX
                   FEPP(NTH,NP,NR,NSA)= FEPPS(NTH,NP,NR,NSA)
-                  FPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)+FCPP(NTH,NP,NR,NSA)
+                  FPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)+FCPP(NTH,NP,NR,NSA) &
+                       +FEPP_IND(NTH,NP,NR,NSA)
                END DO
             END DO
          END DO
@@ -166,7 +151,8 @@
             DO NP=NPSTARTW,NPENDWM
                DO NTH=1,NTHMAX+1
                   FETH(NTH,NP,NR,NSA)=FETHS(NTH,NP,NR,NSA)
-                  FTH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)+FCTH(NTH,NP,NR,NSA) 
+                  FTH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)+FCTH(NTH,NP,NR,NSA) &
+                       +FETH_IND(NTH,NP,NR,NSA)
                END DO
             END DO
          END DO
@@ -177,8 +163,6 @@
          WRITE(6,'(I3,A,8E14.6)') N_IMPL,"      SIGMA= ",(SIGP(NR),NR=1,8)
          WRITE(6,'(I3,A,8E14.6)') N_IMPL,"      RJ_M = ",(RJ_M(NR),NR=1,8)
          WRITE(6,'(I3,A,8E14.6)') N_IMPL,"      RJ_P = ",(RJ_P(NR),NR=1,8)
-         WRITE(6,'(I3,A,8E14.6)') N_IMPL,"      RJ_PO= ",(RJ_PO(NR),NR=1,8)
-         WRITE(6,'(I3,A,8E14.6)') N_IMPL,"      RJ_PP= ",(RJ_PP(NR),NR=1,8)
       END IF
       END SUBROUTINE conductivity_sigma_ind
 !-------------------------------------------------
@@ -362,29 +346,269 @@
       END SUBROUTINE FP_EXEC_SIGMA
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      SUBROUTINE INDUCTANCE_EDGE(E_EDGE)
+      SUBROUTINE INDUCTIVE_FIELD(NR)
 
       IMPLICIT NONE
-      INTEGER:: NR
-      double precision:: SUM, SUM2, E_EDGE, L_EDGE, CAP_L
+      INTEGER,intent(in):: NR
+      double precision:: E_IND
+
+      EPM(NR)=EP(NR)
+      CALL POLOIDAL_FLUX(NR,E_IND)
+
+      CALL mtx_set_communicator(comm_nr)
+      CALL mtx_allgather1_real8(E_IND,EP)
+      CALL mtx_reset_communicator
+
+      END SUBROUTINE INDUCTIVE_FIELD
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      SUBROUTINE INDUCTIVE_FIELD_A1(NR)
+
+      IMPLICIT NONE
+      INTEGER,intent(in):: NR
+      double precision:: E_IND, DELH, SUM, EM, ETAL, E_NEW
+      INTEGER:: NG, NTH
+
+      DO NG=1,NAVMAX
+         DO NTH=1,NTHMAX
+            EM_PHIM(NG,NTH,NR)=EP_PHIM(NG,NTH,NR)
+         END DO
+         DO NTH=1,NTHMAX+1
+            EM_PHIG(NG,NTH,NR)=EP_PHIG(NG,NTH,NR)
+         END DO
+      END DO
+      EPM(NR)=EP(NR)
+
+!      DO NTH=1,NTHMAX
+      DO NTH=1,ITL(NR)-1
+         DELH=2.D0*ETAM(NTH,NR)/NAVMAX
+         SUM=0.D0
+         DO NG=1,NAVMAX
+            ETAL=DELH*(NG-0.5D0)
+            EM=EM_PHIM(NG,NTH,NR)
+            CALL POLOIDAL_FLUX_PHI(NR,NTH,NG,ETAL,EM,E_IND)
+            EP_PHIM(NG,NTH,NR)=E_IND
+            SUM=SUM+E_IND*DELH
+         END DO
+         ETHM(NTH,NR)=SUM
+      END DO
+      DO NTH=ITL(NR)+1,ITU(NR)-1
+         ETHM(NTH,NR)=0.D0
+      END DO
+      DO NTH=ITU(NR)+1,NTHMAX
+         DELH=2.D0*ETAM(NTH,NR)/NAVMAX
+         SUM=0.D0
+         DO NG=1,NAVMAX
+            ETAL=DELH*(NG-0.5D0)
+            EM=EM_PHIM(NG,NTH,NR)
+            CALL POLOIDAL_FLUX_PHI(NR,NTH,NG,ETAL,EM,E_IND)
+            EP_PHIM(NG,NTH,NR)=E_IND
+            SUM=SUM+E_IND*DELH
+         END DO
+         ETHM(NTH,NR)=SUM
+      END DO
+      ETHM(ITL(NR),NR) = RLAMDA(ITL(NR),NR)/4.D0      &
+           *( ETHM(ITL(NR)-1,NR)/RLAMDA(ITL(NR)-1,NR) &
+             +ETHM(ITU(NR)+1,NR)/RLAMDA(ITU(NR)+1,NR) )
+      ETHM(ITU(NR),NR) = ETHM(ITL(NR),NR)
+
+!      DO NTH=1,NTHMAX+1
+      DO NTH=1,ITL(NR)
+         DELH=2.D0*ETAG(NTH,NR)/NAVMAX
+         SUM=0.D0
+         DO NG=1,NAVMAX
+            ETAL=DELH*(NG-0.5D0)
+            EM=EM_PHIG(NG,NTH,NR)
+            CALL POLOIDAL_FLUX_PHI(NR,NTH,NG,ETAL,EM,E_IND)
+            EP_PHIG(NG,NTH,NR)=E_IND
+            SUM=SUM+E_IND*DELH
+         END DO
+         ETHG(NTH,NR)=SUM
+      END DO
+      DO NTH=ITL(NR)+1,ITU(NR)
+         ETHG(NTH,NR) = 0.D0
+      END DO
+      DO NTH=ITU(NR)+1,NTHMAX
+         DELH=2.D0*ETAG(NTH,NR)/NAVMAX
+         SUM=0.D0
+         DO NG=1,NAVMAX
+            ETAL=DELH*(NG-0.5D0)
+            EM=EM_PHIG(NG,NTH,NR)
+            CALL POLOIDAL_FLUX_PHI(NR,NTH,NG,ETAL,EM,E_IND)
+            EP_PHIG(NG,NTH,NR)=E_IND
+            SUM=SUM+E_IND*DELH
+         END DO
+         ETHG(NTH,NR)=SUM
+      END DO
+
+      E_NEW=EP_PHIG(1,1,NR) ! it means inductive field on equator
+      CALL mtx_set_communicator(comm_nr)
+      CALL mtx_allgather1_real8(E_NEW,EP)
+      CALL mtx_reset_communicator
+
+      END SUBROUTINE INDUCTIVE_FIELD_A1
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      SUBROUTINE POLOIDAL_FLUX(NR,E_IND)
+
+      IMPLICIT NONE
+      INTEGER,intent(in):: NR
+      double precision,intent(out):: E_IND ! inductance
+      double precision:: L_IND, l_j, metric
+      double precision:: SUM, SUM2, PSIP, PSIM, rv, delrho
+      INTEGER:: NR2, NSWE
+
+      NSWE=1
+
+      IF(NSWE.eq.0)THEN ! cylindrical
+         SUM=0.D0
+         SUM2=0.D0
+         DO NR2=1,NR
+            SUM=SUM+RMU0/(2.D0*PI*RM(NR2))*RI_P(NR2)*DELR
+         END DO
+         DO NR2=1,NR
+            SUM2=SUM2+RMU0/(2.D0*PI*RM(NR2))*RI_M(NR2)*DELR
+         END DO
+         L_IND=(SUM-SUM2)/(RI_P(NR)-RI_M(NR)) ! inductance 0<RM<RM(NR)
+         metric=1.D0
+      ELSEIF(NSWE.eq.1)THEN ! torus
+         SUM=0.D0
+         SUM2=0.D0
+         DO NR2=1,NRMAX 
+            rv = EPSRM2(NR2)*RR
+            DELrho = (EPSRM2(NR2+1)-EPSRM2(NR2) ) * RR
+            SUM = SUM + RMU0*RI_P(NR2)*(RR/rv - 1.D0) * DELrho
+            SUM2 =SUM2+ RMU0*RI_M(NR2)*(RR/rv - 1.D0) * DELrho
+         END DO
+         PSIP = SUM + &
+              RMU0*RI_P(NRMAX)*( RR*LOG(RR/RA) - (RR-RA) )
+         PSIM = SUM2 + &
+              RMU0*RI_M(NRMAX)*( RR*LOG(RR/RA) - (RR-RA) )
+
+         SUM=0.D0
+         SUM2=0.D0
+         DO NR2=1,NR
+            rv = EPSRM2(NR2)*RR
+            DELrho = (EPSRM2(NR2+1)-EPSRM2(NR2) ) * RR
+            SUM = SUM + RMU0*RI_P(NR2)*(RR/rv + 1.D0) * DELrho
+            SUM2= SUM2+ RMU0*RI_M(NR2)*(RR/rv + 1.D0) * DELrho
+         END DO
+         PSIP = PSIP - SUM
+         PSIM = PSIM - SUM2
+         L_IND=(PSIP-PSIM)/(RI_P(NR)-RI_M(NR)) ! inductance 0<RM<RM(NR)
+         metric=2.D0*PI*(RR+RA*RM(NR))
+      END IF
+
+      l_j = L_IND*( RI_P(NR)-RI_M(NR) )/( RJ_P(NR)-RJ_M(NR) )
+      E_IND = l_j/(l_j*SIGP(NR)+DELT*metric) &
+           *(RJ_M(NR)-RJ_P(NR)+SIGP(NR)*EPM(NR)) ! implicit 
+
+      IF(NSASTART.eq.1.and.NPSTART.eq.1.and.NRSTART.eq.1) &
+           WRITE(*,'(2I3,A,3E16.8)') N_IMPL,NR," l_j,L_IND, E=",l_j, L_IND, E_IND
+
+      END SUBROUTINE POLOIDAL_FLUX
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      SUBROUTINE POLOIDAL_FLUX_PHI(NR,NTH,NG,ETAL,EM,E_IND)
+
+      IMPLICIT NONE
+      INTEGER,intent(in):: NR, NTH, NG
+      double precision,intent(in):: ETAL,EM
+      double precision,intent(out):: E_IND 
+      double precision:: L_IND, l_j ! inductance
+      double precision:: SUM, SUM2, PSIP, PSIM, rv, delrho
+      double precision:: xmax, zz, DELxx, xx, PIP, MIP,metric
+      INTEGER:: NR2, nx
+      INTEGER,parameter:: NXMAX=100
+
+      IF(ETAL.le.0.5D0*PI)THEN
+         xmax=0.D0
+      ELSE
+         xmax=EPSRM2(NR)*RR*ABS(COS(ETAL))
+      END IF
+      zz = EPSRM2(NR)*RR*SIN(ETAL)
+      DELxx=(RR-xmax)/NXMAX
 
       SUM=0.D0
       SUM2=0.D0
-      DO NR=1,NRMAX
-         SUM=SUM+RMU0/(2.D0*PI*RM(NR))*RI_P(NR)*DELR
+      DO nx=1,nxmax
+         xx = xmax + DELxx * (nx-0.5D0)
+         rv = SQRT(xx**2 + zz*2)
+         CALL INTERPOLATION(rv,RI_P,PIP)
+         SUM = SUM + RMU0*PIP*xx/(rv**2)*(RR-xx)*DELxx
+         CALL INTERPOLATION(rv,RI_M,MIP)
+         SUM2= SUM2+ RMU0*MIP*xx/(rv**2)*(RR-xx)*DELxx
       END DO
-      DO NR=1,NRMAX
-         SUM2=SUM2+RMU0/(2.D0*PI*RM(NR))*RI_M(NR)*DELR
-      END DO
-      L_EDGE=(SUM-SUM2)/(RI_P(NRMAX)-RI_M(NRMAX))
+      PSIP = SUM
+      PSIM = SUM2
 
-!      E_EDGE=-L_EDGE*( RI_P(NRMAX)-RI_M(NRMAX) )/DELT
+      SUM=0.D0
+      SUM2=0.D0
+      IF(ETAL.le.0.5D0*PI)THEN
+         xmax=EPSRM2(NR)*RR*ABS(COS(ETAL))
+         DELxx=(RR-xmax)/NXMAX
+         DO nx=1,nxmax
+            xx = xmax + DELxx * (nx-0.5D0)
+            rv = SQRT(xx**2 + zz*2)
+            CALL INTERPOLATION(rv,RI_P,PIP)
+            SUM = SUM + RMU0*PIP*xx/(rv**2)*(RR+xx)*DELxx
+            CALL INTERPOLATION(rv,RI_M,MIP)
+            SUM2= SUM2+ RMU0*MIP*xx/(rv**2)*(RR+xx)*DELxx
+         END DO
+      ELSE
+         SUM=0.D0
+         SUM2=0.D0
+      END IF
+      
+      PSIP = PSIP - SUM
+      PSIM = PSIM - SUM2
+      L_IND=(PSIP-PSIM)/(RI_P(NR)-RI_M(NR)) ! inductance 0<RM<RM(NR)
 
-      CAP_L=L_EDGE*AEE**2*RNS(NRMAX,1)/AMFP(1)
+      metric=2.D0*PI*RR*(1.D0+EPSRM2(NR)*COS(ETAL))
+      l_j = L_IND*( RI_P(NR)-RI_M(NR) )/( RJ_P(NR)-RJ_M(NR) )
 
-      E_EDGE=-( L_EDGE/DELT*(RJ_P(NRMAX)-RJ_M(NRMAX))+CAP_L*EP(NRMAX) )/(1.D0+CAP_L)
+      E_IND = l_j/(l_j*SIGP(NR)+DELT*metric) &
+           *(RJ_M(NR)-RJ_P(NR)+SIGP(NR)*EM) ! implicit 
 
-      END SUBROUTINE INDUCTANCE_EDGE
+
+      END SUBROUTINE POLOIDAL_FLUX_PHI
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      SUBROUTINE INTERPOLATION(rv,IP,XIP)
+
+      IMPLICIT NONE
+      double precision,intent(in):: rv
+      double precision,dimension(NRMAX),intent(in):: IP
+      double precision,intent(out):: XIP
+      INTEGER:: NR, NRL, NRU
+      double precision:: rvmax, rv1, rv2
+
+      NRL=0
+      NRU=NRMAX
+      rvmax = EPSRM2(NRMAX)*RR
+      IF(rv.ge.rvmax)THEN
+         XIP=IP(NRMAX)
+      ELSE
+         DO NR=1,NRMAX
+            rvmax = EPSRM2(NR)*RR
+            IF(rv.ge.rvmax)THEN
+               NRL=NR
+            END IF
+         END DO
+         DO NR=NRMAX,1,-1
+            rvmax = EPSRM2(NR)*RR
+            IF(rv.le.rvmax)THEN
+               NRU=NR
+            END IF
+         END DO
+         IF(NRL.eq.0)THEN
+            rv1=0.D0
+            rv2=EPSRM2(NRU)*RR
+            XIP=( IP(NRU) )/(rv2-rv1)*(rv-rv1)
+         ELSE
+            rv1=EPSRM2(NRL)*RR
+            rv2=EPSRM2(NRU)*RR
+            XIP=IP(NRL)+( IP(NRU)-IP(NRL) )/(rv2-rv1)*(rv-rv1)            
+         END IF
+      END IF
+
+      END SUBROUTINE INTERPOLATION
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       SUBROUTINE j_to_i(RJ,RI)
 
