@@ -194,8 +194,6 @@
             CALL mtx_reset_communicator
 !           end of update FNSB
 
-!            CALL Ip_r 
-!            CALL UPDATE_PSIP_P ! poloidal flux at present step
             DO NSA=NSASTART,NSAEND
                   IF (MOD(NT,NTCLSTEP).EQ.0) CALL FP_COEF(NSA)
             END DO
@@ -348,10 +346,10 @@
 
 !     +++++ end of time loop +++++
 !
-!      CALL GUTIME(gut1)
-!      CALL update_fns
-!      CALL GUTIME(gut2)
-!      IF(NRANK.eq.0) WRITE(6,'(A,E14.6)') "---------TIME UPDATE FNS =",gut2-gut1
+      CALL GUTIME(gut1)
+      CALL update_fns
+      CALL GUTIME(gut2)
+      IF(NRANK.eq.0) WRITE(6,'(A,E14.6)') "---------TIME UPDATE FNS =",gut2-gut1
 
 !      IF(NRANK.eq.0)THEN
 !         DO NSA=1,NSAMAX

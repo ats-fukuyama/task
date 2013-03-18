@@ -54,7 +54,7 @@
          CALL eqcalq(IERR)
          CALL eqgetb(BB,RR,RIP,RA,RKAP,RDLT,RB)
       ENDIF
-      WRITE(6,*) 'RKAP=',RKAP,' set to 1.0'
+!      WRITE(6,*) 'RKAP=',RKAP,' set to 1.0'
       RKAP=1.D0
 
 !     ----- set radial mesh -----
@@ -687,21 +687,26 @@
             RSUM2=0.D0
             RSUM3=0.D0
             RSUM4=0.D0
-!            DO NP=1,NPMAX
-            DO NP=NPSTART,NPEND
-               DO NTH=1,NTHMAX
-                  RSUM1 = RSUM1+VOLP(NTH,NP,NSB)*RLAMDAG(NTH,NR)/RFSADG(NR)*FNSP(NTH,NP,NR,NSB)
-                  RSUM2 = RSUM2+VOLP(NTH,NP,NSB)*FNSP(NTH,NP,NR,NSB)
-                  RSUM3 = rsum3+VOLP(NTH,NP,NSB)*RLAMDA_GG(NTH,NR)/RFSAD_GG(NR)
-                  RSUM4 = rsum4+VOLP(NTH,NP,NSB)
-               END DO
+!            DO NP=NPSTART,NPEND
+!               DO NTH=1,NTHMAX
+!                  RSUM1 = RSUM1+VOLP(NTH,NP,NSB)*RLAMDAG(NTH,NR)/RFSADG(NR)*FNSP(NTH,NP,NR,NSB)
+!                  RSUM2 = RSUM2+VOLP(NTH,NP,NSB)*FNSP(NTH,NP,NR,NSB)
+!                  RSUM3 = rsum3+VOLP(NTH,NP,NSB)*RLAMDA_GG(NTH,NR)/RFSAD_GG(NR)
+!                  RSUM4 = rsum4+VOLP(NTH,NP,NSB)
+!               END DO
+!            END DO
+            DO NTH=1,NTHMAX
+               RSUM1 = RSUM1+RLAMDAG(NTH,NR)/RFSADG(NR)*SINM(NTH)*DELTH
+               RSUM2 = RSUM2+SINM(NTH)*DELTH
+               RSUM3 = rsum3+RLAMDA_GG(NTH,NR)/RFSAD_GG(NR)*SINM(NTH)*DELTH
+               RSUM4 = rsum4+SINM(NTH)*DELTH
             END DO
             IF(RSUM1.EQ.0.D0) &
                  WRITE(6,'(1P3E12.4)') VOLP(1,1,NSB),FNSP(1,1,1,NSB),RLAMDA(1,1)
-            CALL p_theta_integration(RSUM1)
-            CALL p_theta_integration(RSUM2)
-            CALL p_theta_integration(RSUM3)
-            CALL p_theta_integration(RSUM4)
+!            CALL p_theta_integration(RSUM1)
+!            CALL p_theta_integration(RSUM2)
+!            CALL p_theta_integration(RSUM3)
+!            CALL p_theta_integration(RSUM4)
 
             RCOEFN(NR)=RSUM2/RSUM1
             RCOEFN_G(NR)=RSUM4/RSUM3
@@ -722,29 +727,39 @@
          RSUM4=0.D0
          RSUM5=0.D0
          RSUM6=0.D0
-!         DO NP=1,NPMAX
-         DO NP=NPSTART,NPEND
-            DO NTH=1,NTHMAX
-               RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*RLAMDA_GG(NTH,1) &
-                    /RFSAD_GG(1)*FS1(NTH,NP,NSBA)
-               RSUM2 = RSUM2+VOLP(NTH,NP,NSBA)*FS1(NTH,NP,NSBA)
-               RSUM3 = RSUM3+VOLP(NTH,NP,NSBA)*RLAMDA_GG(NTH,NRMAX+1) &
-                    /RFSAD_GG(NRMAX+1)*FS3(NTH,NP,NSBA)
-               RSUM4 = RSUM4+VOLP(NTH,NP,NSBA)*FS3(NTH,NP,NSBA)
-               RSUM5 = RSUM5+VOLP(NTH,NP,NSBA)*RLAMDAG(NTH,NRMAX+1) &
-                    /RFSADG(NRMAX+1)*FS2(NTH,NP,NSBA)
-               RSUM6 = RSUM6+VOLP(NTH,NP,NSBA)*FS2(NTH,NP,NSBA)
-            END DO
+!         DO NP=NPSTART,NPEND
+!            DO NTH=1,NTHMAX
+!               RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*RLAMDA_GG(NTH,1) &
+!                    /RFSAD_GG(1)*FS1(NTH,NP,NSBA)
+!               RSUM2 = RSUM2+VOLP(NTH,NP,NSBA)*FS1(NTH,NP,NSBA)
+!               RSUM3 = RSUM3+VOLP(NTH,NP,NSBA)*RLAMDA_GG(NTH,NRMAX+1) &
+!                    /RFSAD_GG(NRMAX+1)*FS3(NTH,NP,NSBA)
+!               RSUM4 = RSUM4+VOLP(NTH,NP,NSBA)*FS3(NTH,NP,NSBA)
+!               RSUM5 = RSUM5+VOLP(NTH,NP,NSBA)*RLAMDAG(NTH,NRMAX+1) &
+!                    /RFSADG(NRMAX+1)*FS2(NTH,NP,NSBA)
+!               RSUM6 = RSUM6+VOLP(NTH,NP,NSBA)*FS2(NTH,NP,NSBA)
+!            END DO
+!         END DO
+!         CALL p_theta_integration(RSUM1)
+!         CALL p_theta_integration(RSUM2)
+!         CALL p_theta_integration(RSUM3)
+!         CALL p_theta_integration(RSUM4)
+!         CALL p_theta_integration(RSUM5)
+!         CALL p_theta_integration(RSUM6)
+         DO NTH=1,NTHMAX
+            RSUM1 = RSUM1+RLAMDA_GG(NTH,1)/RFSAD_GG(1)*SINM(NTH)*DELTH
+            RSUM2 = RSUM2+SINM(NTH)*DELTH
+            RSUM3 = RSUM3+RLAMDA_GG(NTH,NRMAX+1)/RFSAD_GG(NRMAX+1)*SINM(NTH)*DELTH
+!            RSUM4 = RSUM4+SINM(NTH)*DELTH
+            RSUM5 = RSUM5+RLAMDAG(NTH,NRMAX+1)/RFSADG(NRMAX+1)*SINM(NTH)*DELTH
+!            RSUM6 = RSUM6+SINM(NTH)*DELTH
          END DO
-         CALL p_theta_integration(RSUM1)
-         CALL p_theta_integration(RSUM2)
-         CALL p_theta_integration(RSUM3)
-         CALL p_theta_integration(RSUM4)
-         CALL p_theta_integration(RSUM5)
-         CALL p_theta_integration(RSUM6)
+
          RCOEFN_GG(1) = RSUM2/RSUM1
-         RCOEFN_GG(NRMAX+1) = RSUM4/RSUM3
-         RCOEFNG(NRMAX+1) = RSUM6/RSUM5
+         RCOEFN_GG(NRMAX+1) = RSUM2/RSUM3
+         RCOEFNG(NRMAX+1) = RSUM2/RSUM5
+!         RCOEFN_GG(NRMAX+1) = RSUM4/RSUM3
+!         RCOEFNG(NRMAX+1) = RSUM6/RSUM5
       ELSE
          RCOEFN_GG(1) = 1.D0
          RCOEFN_GG(NRMAX+1) = 1.D0
@@ -752,6 +767,23 @@
       END IF
 !      CALL mtx_reset_communicator
 !!!!
+      IF(MODELA.eq.1)THEN
+         DO NR=NRSTART,NREND
+            RSUM1=0.D0
+            RSUM2=0.D0
+            DO NTH=1,NTHMAX/2
+               RSUM1 = RSUM1 + RLAMDA(NTH,NR)*COSM(NTH)*SINM(NTH)*DELTH
+               RSUM2 = RSUM2 + COSM(NTH)*SINM(NTH)*DELTH
+            END DO
+            RCOEFJ(NR)=RSUM2/RSUM1*RFSADG(NR)
+         END DO
+      ELSE
+         DO NR=NRSTART,NREND
+            RCOEFJ(NR)=1.D0
+         END DO
+      END IF
+!!!!!!!!!!!!!!!!!!!!!
+
       allocate(work(nrstart:nrendx),workg(NRMAX))
 
       CALL mtx_set_communicator(comm_nr)
@@ -774,9 +806,35 @@
          RCOEFN_GG(NR)=workg(NR)
       ENDDO
 
+      DO NR=NRSTART,NRENDX
+         work(NR)=RCOEFJ(NR)
+      ENDDO
+      CALL mtx_allgatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+                                workg,NRMAX,MTXLEN,MTXPOS)
+      DO NR=1,NRMAX
+         RCOEFJG(NR)=workg(NR)
+      ENDDO
       CALL mtx_reset_communicator
 
       deallocate(work,workg)
+
+      DO NR=1,NRMAX
+         DO NTH=1,NTHMAX
+            RLAMDAG(NTH,NR)=RLAMDAG(NTH,NR)*RCOEFNG(NR)
+         END DO
+      END DO
+      DO NR=NRSTART,NREND
+         DO NTH=1,NTHMAX
+            RLAMDA(NTH,NR)=RLAMDA(NTH,NR)*RCOEFNG(NR)
+         END DO
+      END DO
+
+!      IF(NRANK.eq.0)THEN
+!         DO NR=1,NRMAX
+!            WRITE(*,'(I3,3E16.8)') NR, RM(NR), RCOEFNG(NR), RCOEFJG(NR)
+!         END DO
+!      END IF
+
 
       END SUBROUTINE fp_set_bounceaverage_param
 !-------------------------------------------------------------
@@ -910,13 +968,16 @@
       CALL NF_REACTION_COEF
       NCALCNR=0
       CALL fusion_source_init
+      IF(NRANK.eq.0) WRITE(*,*) "source_init"
       DO NSA=NSASTART,NSAEND
          CALL FP_COEF(NSA)
+         IF(NRANK.eq.0) WRITE(*,*) "coef",nsa
          CALL FPWEIGHT(NSA,IERR)
+         IF(NRANK.eq.0) WRITE(*,*) "weight",nsa
       END DO
-      CALL mtx_set_communicator(comm_nr)
+!      CALL mtx_set_communicator(comm_nr)
 !      CALL source_allreduce(SPPF)
-      CALL mtx_reset_communicator
+!      CALL mtx_reset_communicator
       ISAVE=0
 !      IF(NTG1.eq.0) CALL FPWAVE_CONST ! all nrank must have RPWT  
       IERR=0
@@ -988,7 +1049,8 @@
       CALL mtx_reset_communicator
 !     ----- set parallel electric field -----
       DO NR=1,NRMAX
-         E1(NR)=E0/(1.D0+EPSRM(NR))
+!         E1(NR)=E0/(1.D0+EPSRM(NR))
+         E1(NR)=E0
          IF(MODELE.eq.0)THEN
             EP(NR)=0.D0 ! plus
             EM(NR)=0.D0 ! minus
@@ -998,6 +1060,12 @@
          END IF
          RJ_M(NR)=0.D0
       ENDDO
+!      IF(NRANK.eq.0)THEN
+!         DO NR=1,NRMAX
+!            WRITE(*,*) NR, RM(NR), E1(NR)
+!         END DO
+!      END IF
+
       EP_PHIM(:,:,:)=0.D0
       EP_PHIG(:,:,:)=0.D0
 

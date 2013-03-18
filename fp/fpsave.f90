@@ -35,9 +35,6 @@
       integer,dimension(NRSTART:NRENDX,NSBMAX):: NP_BULK
       real(8):: ratio, RSUM_T, RSUM_V, P_BULK_R, FACT_BULK, RATIO_0_S
       real(8):: SRHOR1, SRHOR2, RSUM_DRS, RSUMN_DRS
-!      real(8),dimension(NRMAX, NSAMAX):: RFWS, RECS
-!      real(8),dimension(NRMAX, NSBMAX, NSAMAX):: RPCS2
-!      real(8),dimension(NSAMAX, 0:NTMAX):: PWT2, PTT2
       real(8):: DSDR, SRHOP, SRHOM, RSUM62, RSUM63
       real:: gut1,gut2
 
@@ -77,14 +74,12 @@
             RSUM12=0.D0
 
             IF(MODELA.eq.0)THEN
-!               DO NP=1,NPMAX
                DO NP=NPSTART,NPEND
                   DO NTH=1,NTHMAX
                      RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)
                   END DO
                ENDDO
             ELSE
-!               DO NP=1,NPMAX
                DO NP=NPSTART,NPEND
                   DO NTH=1,NTHMAX
                      RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
@@ -105,7 +100,6 @@
 !
             IF(MODELA.eq.0) THEN
                IF(MODELR.EQ.0) THEN
-!                  DO NP=1,NPMAX
                   DO NP=NPSTART,NPEND
                      DO NTH=1,NTHMAX
                         RSUM2 = RSUM2                       &
@@ -118,7 +112,6 @@
                   RSUMNP_E(NP)=RSUM3
                   ENDDO
                ELSE
-!                  DO NP=1,NPMAX
                   DO NP=NPSTART,NPEND
                      PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
                      DO NTH=1,NTHMAX
@@ -134,7 +127,6 @@
                ENDIF
             ELSE
                IF(MODELR.EQ.0) THEN
-!                  DO NP=1,NPMAX
                   DO NP=NPSTART,NPEND
                      DO NTH=1,NTHMAX
                         RSUM2 = RSUM2                        &
@@ -147,7 +139,6 @@
                   RSUMNP_E(NP)=RSUM3
                   ENDDO
                ELSE
-!                  DO NP=1,NPMAX
                   DO NP=NPSTART,NPEND
                      PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
                      DO NTH=1,NTHMAX
@@ -463,15 +454,15 @@
 ! --------- end of radial transport
                
  888        FORMAT(2I4,12E14.6)
-            FACT=RNFP0(NSA)*1.D20/RFSADG(NR)*RCOEFNG(NR)
-            RNSL(NR,NSA) = RSUM1*FACT                   *1.D-20
+            FACT=RNFP0(NSA)*1.D20/RFSADG(NR)
+            RNSL(NR,NSA) = RSUM1*FACT*1.D-20!*RCOEFNG(NR)
             RJSL(NR,NSA) = RSUM2*FACT*AEFP(NSA)*PTFP0(NSA) &
-                           /AMFP(NSA)*1.D-6
+                           /AMFP(NSA)*1.D-6!*RCOEFJG(NR)
 
 !            RDIDTL(NR,NSA) = -RSUM63*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6 &
 !                 *AEFP(NSA)*PTFP0(NSA)/AMFP(NSA)*DELT
 
-            FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)/RFSADG(NR) *RCOEFNG(NR)
+            FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)/RFSADG(NR)!*RCOEFNG(NR)
             RWSL(NR,NSA) = RSUM3*FACT               *1.D-6
             RWS123L(NR,NSA) =-RSUM12*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             RPCSL(NR,NSA)=-RSUM4*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
@@ -820,8 +811,10 @@
                     RPET(NR,NSA,NTG2), EP(NR), &
 !RPET_IND(NR,NSA,NTG2), &
 !                    RDIDT(NR,NSA), &
+                    RSPST(NR,NSA,NTG2), RSPLT(NR,NSA,NTG2), &
                     RECT(NR,NSA,NTG2),    &
-                    RSPBT(NR,NSA,NTG2),RSPFT(NR,NSA,NTG2),RPDRT(NR,NSA,NTG2), &
+!                    RSPBT(NR,NSA,NTG2),RSPFT(NR,NSA,NTG2),&
+                    RPDRT(NR,NSA,NTG2), &
                     RTT_BULK(NR,NSA,NTG2),RNDRT(NR,NSA,NTG2)
             END IF
          ENDDO

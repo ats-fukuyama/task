@@ -237,10 +237,14 @@
 !     MODELR: 0 : without relativistic effect
 !             1 : with relativistic effect
 !     MODELD: 0 : without radial transport
-!             1 : with radial transport (constant for r,p,th, without pinch)
-!             2 : with radial transport (constant for r,p,th, with pinch)
-!             3 : with radial transport (p dependence, without pinch)
-!             4 : with radial transport (p dependence, with pinch)
+!             1 : with radial transport (no p dependence, w/o pinch)
+!             2 : with radial transport (p depend on 1/p, w/o pinch)
+!             3 : with radial transport (p depend on 1/sqrt{p}, w/o pinch)
+!             4 : with radial transport (p depend on 1/p^2, w/o pinch)
+!             6 : with radial transport (no p dependence, w pinch)
+!             7 : with radial transport (p depend on 1/p, w pinch)
+!             8 : with radial transport (p depend on 1/sqrt{p}, w pinch)
+!             9 : with radial transport (p depend on 1/p^2, w pinch)
 !     MODELS : 0 No fusion reaction
 !              1 DT reaction source (NSSPF,SPFTOT,SPFR0,SPFRW,SPFENG)
 !              2 DT reaction source (self-consistent reactioin rate)

@@ -84,11 +84,11 @@
       integer,dimension(:),POINTER :: & ! (NRM)
            ITLG,ITUG,ITLG_G,ITUG_G
       real(rkind),dimension(:),POINTER :: & ! (NRM,NSBM)
-           RCOEF, RCOEF_G, RCOEFN, RCOEFN_G
+           RCOEF, RCOEF_G, RCOEFN, RCOEFN_G, RCOEFJ
       real(rkind),dimension(:),POINTER :: & ! (NSAM)
            RCOEF1,RCOEF2,RCOEF2_G
       real(rkind),dimension(:),POINTER :: & ! (NSAM)
-           RCOEFG, RCOEF_GG, RCOEFNG, RCOEFN_GG
+           RCOEFG, RCOEF_GG, RCOEFNG, RCOEFN_GG, RCOEFJG
       real(rkind),dimension(:),POINTER :: & ! (NRM)
            volr
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
@@ -293,10 +293,12 @@
 
           allocate(RCOEF(NRSTART:NREND), RCOEF_G(NRSTART:NREND))
           allocate(RCOEFN(NRSTART:NREND), RCOEFN_G(NRSTART:NREND))
+          allocate(RCOEFJ(NRSTART:NREND))
           allocate(RCOEF1(NSAMAX),RCOEF2(NSAMAX))
           allocate(RCOEF2_G(NSAMAX))
           allocate(RCOEFG(NRMAX+1), RCOEF_GG(NRMAX+1))
           allocate(RCOEFNG(NRMAX+1), RCOEFN_GG(NRMAX+1))
+          allocate(RCOEFJG(NRMAX+1))
           allocate(PG(NPMAX+1,NSBMAX),PM(NPMAX,NSBMAX))
           allocate(THG(NTHMAX+1),THM(NTHMAX))
           allocate(DELP(NSBMAX))
@@ -373,8 +375,6 @@
           allocate(FTH(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX))
           allocate(DRR(NTHMAX  ,NPSTART:NPEND,NRSTART:NRENDWG,NSAMAX))
           allocate(FRR(NTHMAX  ,NPSTART:NPEND,NRSTART:NRENDWG,NSAMAX))
-          allocate(SPP(NTHMAX  ,NPSTART:NPEND,NRSTART:NRENDWM,NSAMAX))
-          allocate(PPL(NTHMAX  ,NPSTART:NPEND,NRSTART:NRENDWM,NSAMAX))
 
 !          allocate(FEPP(NTHMAX  ,NPMAX+1,NRSTART:NREND+1,NSAMAX))
 !          allocate(FETH(NTHMAX+1,NPMAX  ,NRSTART:NREND+1,NSAMAX))
@@ -447,9 +447,11 @@
 !          allocate(SPPF(NTHMAX,NPMAX,NRSTART:NREND+1,NSAMAX))
 !          allocate(SPPS(NTHMAX,NPMAX,NRSTART:NREND+1,NSAMAX))
 !          allocate(SPPD(NTHMAX,NPMAX,NSAMAX))
-          allocate(SPPB(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX))
-          allocate(SPPF(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX))
-          allocate(SPPS(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX))
+          allocate(SPP (NTHMAX,NPSTART:NPEND,NRSTART:NRENDWM,NSAMAX))
+          allocate(PPL (NTHMAX,NPSTART:NPEND,NRSTART:NRENDWM,NSAMAX))
+          allocate(SPPB(NTHMAX,NPSTART:NPEND,NRSTART:NRENDWM,NSAMAX))
+          allocate(SPPF(NTHMAX,NPSTART:NPEND,NRSTART:NRENDWM,NSAMAX))
+          allocate(SPPS(NTHMAX,NPSTART:NPEND,NRSTART:NRENDWM,NSAMAX))
           allocate(SPPD(NTHMAX,NPSTART:NPEND,NSAMAX))
 
           
@@ -563,9 +565,11 @@
 
           deallocate(RCOEF,RCOEF_G)
           deallocate(RCOEFN,RCOEFN_G)
+          deallocate(RCOEFJ)
           deallocate(RCOEF1,RCOEF2,RCOEF2_G)
           deallocate(RCOEFG,RCOEF_GG)
           deallocate(RCOEFNG,RCOEFN_GG)
+          deallocate(RCOEFJG)
           deallocate(PG,PM)
           deallocate(THG,THM)
           deallocate(DELP)

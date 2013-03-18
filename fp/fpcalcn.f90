@@ -124,7 +124,7 @@
 !     ----- Legendre expansion of distribution funstion FNS -----
 !
       DO L=LLMIN,LLMAX
-         DO NP=1,NPMAX
+         DO NP=NPSTART,NPEND
             TX(1)=0.D0
             TY(1)=0.D0
             DO NTH=1,NTHMAX
@@ -374,9 +374,9 @@
                      sum3=sum3 + FCPP2(NTH,NP,NR,NSB,NSA)*ABS(COSM(NTH))/PCOS
                   END DO ! END NAVMAX 
                   
-                  DCPP2(NTH,NP,NR,NSB,NSA)=SUM1*DELH
-                  DCPT2(NTH,NP,NR,NSB,NSA)=SUM2*DELH
-                  FCPP2(NTH,NP,NR,NSB,NSA)=SUM3*DELH
+                  DCPP2(NTH,NP,NR,NSB,NSA)=SUM1*DELH * RCOEFNG(NR)
+                  DCPT2(NTH,NP,NR,NSB,NSA)=SUM2*DELH * RCOEFNG(NR)
+                  FCPP2(NTH,NP,NR,NSB,NSA)=SUM3*DELH * RCOEFNG(NR)
                END IF
             END DO ! END NTH
 !            IF(ISW_LAV.eq.1)THEN
@@ -461,7 +461,6 @@
 !               END DO ! END NTH
 !            END IF ! NEW GRID ISW
          END DO ! END NP
-!         DO NP=1,NPMAX
          DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX+1
                IF(NTH.NE.NTHMAX/2+1) THEN
@@ -487,9 +486,9 @@
                      sum5=sum5 + DCTT2(NTH,NP,NR,NSB,NSA)*PCOS/(PSIB*COSG(NTH))
                      sum6=sum6 + FCTH2(NTH,NP,NR,NSB,NSA)/SQRT(PSIB)
                   END DO ! END NAVMAX
-                  DCTP2(NTH,NP,NR,NSB,NSA)=sum4*DELH
-                  DCTT2(NTH,NP,NR,NSB,NSA)=sum5*DELH
-                  FCTH2(NTH,NP,NR,NSB,NSA)=sum6*DELH
+                  DCTP2(NTH,NP,NR,NSB,NSA)=sum4*DELH * RCOEFNG(NR)
+                  DCTT2(NTH,NP,NR,NSB,NSA)=sum5*DELH * RCOEFNG(NR)
+                  FCTH2(NTH,NP,NR,NSB,NSA)=sum6*DELH * RCOEFNG(NR)
                ELSE
                   DCTP2(NTH,NP,NR,NSB,NSA)=0.D0
                   DCTT2(NTH,NP,NR,NSB,NSA)=0.D0!?
@@ -502,7 +501,6 @@
 
 ! BALANCE TRAPPED REGION for P direction
       DO NSB=1,NSBMAX
-!         DO NP=1,NPMAX+1
          DO NP=NPSTART,NPENDWG
             DO NTH=ITL(NR)+1,NTHMAX/2
                DCPP2(NTH,NP,NR,NSB,NSA) &

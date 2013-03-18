@@ -216,8 +216,8 @@
          END DO
       ENDDO
 
-!      IF(NSA.eq.1)THEN
-!      NR=1
+!      IF(NSA.eq.1.and.NRSTART.eq.20.and.NPSTART.eq.1)THEN
+!      NR=NRSTART
 !      open(8,file='flux_p.dat')
 !      DO NP=1,NPMAX+1
 !         DO NTH=1,NTHMAX
@@ -230,7 +230,7 @@
 !      open(9,file='flux_th.dat')
 !      DO NP=1,NPMAX
 !         DO NTH=1,NTHMAX+1
-!            WRITE(9,'(5E16.8)') PM(NP,NSA)*COSG(NTH),PM(NP,NSA)*SING(NTH),DCPT(NTH,NP,NR,NSA),DCTT(NTH,NP,NR,NSA),FCTH(NTH,NP,NR,NSA)
+!            WRITE(9,'(5E16.8)') PM(NP,NSA)*COSG(NTH),PM(NP,NSA)*SING(NTH),DCTP(NTH,NP,NR,NSA),DCTT(NTH,NP,NR,NSA),FCTH(NTH,NP,NR,NSA)
 !         END DO
 !         WRITE(9,*) " "
 !         WRITE(9,*) " "

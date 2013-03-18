@@ -389,7 +389,7 @@
             EP_PHIM(NG,NTH,NR)=E_IND
             SUM=SUM+E_IND*DELH
          END DO
-         ETHM(NTH,NR)=SUM
+         ETHM(NTH,NR)=SUM * RCOEFNG(NR)
       END DO
       DO NTH=ITL(NR)+1,ITU(NR)-1
          ETHM(NTH,NR)=0.D0
@@ -404,7 +404,7 @@
             EP_PHIM(NG,NTH,NR)=E_IND
             SUM=SUM+E_IND*DELH
          END DO
-         ETHM(NTH,NR)=SUM
+         ETHM(NTH,NR)=SUM * RCOEFNG(NR)
       END DO
       ETHM(ITL(NR),NR) = RLAMDA(ITL(NR),NR)/4.D0      &
            *( ETHM(ITL(NR)-1,NR)/RLAMDA(ITL(NR)-1,NR) &
@@ -422,7 +422,7 @@
             EP_PHIG(NG,NTH,NR)=E_IND
             SUM=SUM+E_IND*DELH
          END DO
-         ETHG(NTH,NR)=SUM
+         ETHG(NTH,NR)=SUM * RCOEFNG(NR)
       END DO
       DO NTH=ITL(NR)+1,ITU(NR)
          ETHG(NTH,NR) = 0.D0
@@ -437,10 +437,11 @@
             EP_PHIG(NG,NTH,NR)=E_IND
             SUM=SUM+E_IND*DELH
          END DO
-         ETHG(NTH,NR)=SUM
+         ETHG(NTH,NR)=SUM * RCOEFNG(NR)
       END DO
 
       E_NEW=EP_PHIG(1,1,NR) ! it means inductive field on equator
+!     unfortunately EP_PHIG(1,NTHMAX/2+1,NR) has no value
       CALL mtx_set_communicator(comm_nr)
       CALL mtx_allgather1_real8(E_NEW,EP)
       CALL mtx_reset_communicator
@@ -683,7 +684,7 @@
 
             CALL p_theta_integration(RSUM2) 
 
-            FACT=RNFP0(NSA)*1.D20/RFSADG(NR)*RCOEFNG(NR)
+            FACT=RNFP0(NSA)*1.D20/RFSADG(NR)!*RCOEFNG(NR)
             RJ_L(NR,NSA) = RSUM2*FACT*AEFP(NSA)*PTFP0(NSA) &
                            /AMFP(NSA)
          ENDDO ! NR

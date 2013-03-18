@@ -313,13 +313,10 @@
 
 !     ----- Radial diffusion term -----
 
-      IF(MODELD.ge.6) THEN
-!         IF(N_IMPL.eq.0)THEN
-!         IF(N_IMPL.le.1)THEN
+      IF(MODELD.ge.1) THEN
             CALL FP_CALR2(NSA)
-!         END IF
-      ELSEIF(MODELD.GT.0) THEN
-         CALL FP_CALR(NSA)
+!      ELSEIF(MODELD.GT.0) THEN
+!         CALL FP_CALR(NSA)
       END IF
 !      IF(MODELD.GT.0) CALL FP_CALR(NSA)
 
@@ -358,12 +355,12 @@
       integer:: NG
       real(kind8):: FACT, DELH, sum11, ETAL, X, PSIB, PCOS, sum15, ARG
 
-      E2(:)=E1(:)
+!      E2(:)=E1(:)
 
       DO NR=NRSTART,NREND
          DO NP=NPSTART,NPENDWG
             DO NTH=1,NTHMAX
-               FEPP(NTH,NP,NR,NSA)= AEFP(NSA)*E2(NR)/PTFP0(NSA)*COSM(NTH)
+               FEPP(NTH,NP,NR,NSA)= AEFP(NSA)*E1(NR)/PTFP0(NSA)*COSM(NTH)
             ENDDO
          ENDDO
       ENDDO
@@ -371,7 +368,7 @@
       DO NR=NRSTART,NREND
          DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX+1
-               FETH(NTH,NP,NR,NSA)=-AEFP(NSA)*E2(NR)/PTFP0(NSA)*SING(NTH)
+               FETH(NTH,NP,NR,NSA)=-AEFP(NSA)*E1(NR)/PTFP0(NSA)*SING(NTH)
             ENDDO
          ENDDO
       ENDDO
@@ -451,7 +448,7 @@
                
                SUM = SUM + FEPP(NTH,NP,NR,NSA)*PSIB
             END DO
-            FEPP(NTH,NP,NR,NSA) = SUM*DELH
+            FEPP(NTH,NP,NR,NSA) = SUM*DELH * RCOEFNG(NR)
          END DO ! END NTH
          DO NTH=ITL(NR)+1,ITU(NR)-1
             FEPP(NTH,NP,NR,NSA)=0.D0
@@ -466,7 +463,7 @@
                
                SUM = SUM + FEPP(NTH,NP,NR,NSA)*PSIB
             END DO
-            FEPP(NTH,NP,NR,NSA) = SUM*DELH
+            FEPP(NTH,NP,NR,NSA) = SUM*DELH * RCOEFNG(NR)
          END DO
          FEPP(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)/4.D0 &
               *( FEPP(ITL(NR)-1,NP,NR,NSA)/RLAMDA(ITL(NR)-1,NR) &
@@ -476,7 +473,6 @@
          FEPP(ITU(NR),NP,NR,NSA)=FEPP(ITL(NR),NP,NR,NSA)
       END DO ! END NP
 !     BOUNCE AVERAGE FETH
-!      DO NP=1,NPMAX
       DO NP=NPSTARTW,NPENDWM
          DO NTH=1,ITL(NR)
             DELH=2.D0*ETAG(NTH,NR)/NAVMAX
@@ -488,8 +484,7 @@
                
                SUM = SUM + FETH(NTH,NP,NR,NSA)*PSIB
             END DO
-            FETH(NTH,NP,NR,NSA) = SUM * DELH
-!            FETH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)*2.D0*ETAG(NTH,NR)
+            FETH(NTH,NP,NR,NSA) = SUM * DELH * RCOEFNG(NR)
          END DO
          DO NTH=ITL(NR)+1,ITU(NR)
             FETH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)*2.D0*ETAG(NTH,NR)*0.D0
@@ -504,8 +499,7 @@
                
                SUM = SUM + FETH(NTH,NP,NR,NSA)*PSIB
             END DO
-            FETH(NTH,NP,NR,NSA) = SUM * DELH
-!            FETH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)*2.D0*ETAG(NTH,NR)
+            FETH(NTH,NP,NR,NSA) = SUM * DELH * RCOEFNG(NR)
          END DO
       END DO ! END NP
 
@@ -708,71 +702,72 @@
       real(kind8):: WRH, DFDR_D, DFDR_F, F_R2, DFDR_R2, F_R1, DFDR_R1
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
       double precision:: densm, densp
+      INTEGER:: ISW_D
 
+      ISW_D=MOD(MODELD,5)
       NS=NS_NSA(NSA)
       NSBA=NSB_NSA(NSA)
-      DO NR=NRSTART,NREND+1
+      DO NR=NRSTART,NRENDWG
          RHON=RG(NR)
          RTFPL=RTFP(NR,NSA)/RTFP0(NSA)
-!         DO NP=1,NPMAX
          DO NP=NPSTART,NPEND
-! DECIDE DIFFUSION TERM
-! SET P DEPENDENCE
-            SELECT CASE(MODELD)
-            CASE(6) ! case(3) with pinch, depend on 1/p
-               FACTP=1.D0/SQRT(RTFPL+PG(NP,NSBA)**2)
-            CASE(7) ! case(3) with pinch, depend on 1/sqrt{p}
-               FACTP=1.D0/SQRT(RTFPL+PG(NP,NSBA))
-            CASE(8) ! case(3) with pinch, depend on 1/p^2
-               FACTP=1.D0/(RTFPL+PG(NP,NSBA)**2)
-            CASE(9) ! case(3) with pinch, = MODELD=5
-               FACTP=1.D0
-            CASE(10) ! case(3) with pinch, = MODELD=5
-               FACTP=1.D0
-            CASE(11) ! pinch from <n>
-               FACTP=1.D0
-            END SELECT
-
             DO NTH=1,NTHMAX
+!------------- SET P DEPENDENCE
+               SELECT CASE(ISW_D)
+               CASE(0) ! no transport
+                  FACTP=0.D0
+               CASE(1) ! no p dependence
+                  FACTP=1.D0
+               CASE(2) ! depend on 1/p
+                  FACTP=1.D0/SQRT(RTFPL+PM(NP,NSBA)**2*SINM(NTH)**2)
+               CASE(3) ! depend on 1/sqrt{p}
+                  FACTP=1.D0/SQRT(RTFPL+PM(NP,NSBA)*SINM(NTH))
+               CASE(4) ! depend on 1/p^2
+                  FACTP=1.D0/(RTFPL+PM(NP,NSBA)**2*SINM(NTH)**2)
+                END SELECT
+
                FACTR= (DRR0-DRRS)*(1.D0-RHON**2)+DRRS 
                DRR(NTH,NP,NR,NSA)= FACTR &
                     *FACTP      /(RA*RA)
             ENDDO
          ENDDO
 
-! SET PINCH TERM
-
+! ------ SET PINCH TERM
          DINT_D=0.D0
-         DINT_F=0.D0
-         DO NP=NPSTART,NPEND
-            DO NTH=1,NTHMAX
-               IF(N_IMPL.eq.0)THEN
-                  IF(NR.eq.1)THEN
-                     WRL=0.25D0 ! not necessary
+         DINT_F=1.D0
+         IF(MODELD.ge.6)THEN
+            DINT_F=0.D0
+            DO NP=NPSTART,NPEND
+               DO NTH=1,NTHMAX
+                  IF(N_IMPL.eq.0)THEN
+                     IF(NR.eq.1)THEN
+                        WRL=0.25D0 ! not necessary
+                     ELSE
+                        WRL=(4.D0*RG(NR)+DELR)/(8.D0*RG(NR))                     
+                     END IF
                   ELSE
-                     WRL=(4.D0*RG(NR)+DELR)/(8.D0*RG(NR))                     
+                     WRL=WEIGHR(NTH,NP,NR,NSA)
                   END IF
-               ELSE
-                  WRL=WEIGHR(NTH,NP,NR,NSA)
-               END IF
-               IF(NR.eq.1)THEN
-                  DFDR_R1 = ( FNSP(NTH,NP,NR,NSA)-FS1(NTH,NP,NSA) ) / DELR *2.D0*0
-                  F_R1 = FS1(NTH,NP,NSA)
-                  SRHODM=DFDR_R1 * DRR(NTH,NP,NR,NSA)
-                  SRHOFM=F_R1    * DRR(NTH,NP,NR,NSA)
-               ELSEIF(NR.eq.NRMAX+1)THEN ! FS2 = F_INIT at rho=1+delR/2
-                  DFDR_R1 = ( FS2(NTH,NP,NSA)-FNSP(NTH,NP,NR-1,NSA) ) / DELR
-                  F_R1 = FS3(NTH,NP,NSA)
-                  SRHODM=DFDR_R1 * DRR(NTH,NP,NR,NSA)
-                  SRHOFM=F_R1    * DRR(NTH,NP,NR,NSA)
-               ELSE
-                  DFDR_R1 = ( FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP,NR-1,NSA) ) / DELR
-                  F_R1 = ( (1.D0-WRL)*FNSP(NTH,NP,NR,NSA) + WRL*FNSP(NTH,NP,NR-1,NSA) ) 
-                  SRHODM=DFDR_R1 * DRR(NTH,NP,NR,NSA)
-                  SRHOFM=F_R1    * DRR(NTH,NP,NR,NSA)
-               END IF
-               DINT_D = DINT_D + VOLP(NTH,NP,NSBA)*SRHODM
-               DINT_F = DINT_F + VOLP(NTH,NP,NSBA)*SRHOFM
+
+                  IF(NR.eq.1)THEN
+                     DFDR_R1 = ( FNSP(NTH,NP,NR,NSA)-FS1(NTH,NP,NSA) ) / DELR *2.D0*0
+                     F_R1 = FS1(NTH,NP,NSA)
+                     SRHODM=DFDR_R1 * DRR(NTH,NP,NR,NSA)
+                     SRHOFM=F_R1    * DRR(NTH,NP,NR,NSA)
+                  ELSEIF(NR.eq.NRMAX+1)THEN ! FS2 = F_INIT at rho=1+delR/2
+                     DFDR_R1 = ( FS2(NTH,NP,NSA)-FNSP(NTH,NP,NR-1,NSA) ) / DELR
+                     F_R1 = ( (1.D0-WRL)*FS2(NTH,NP,NSA) + WRL*FNSP(NTH,NP,NR-1,NSA) )
+!                     F_R1 = FS3(NTH,NP,NSA)
+                     SRHODM=DFDR_R1 * DRR(NTH,NP,NR,NSA)
+                     SRHOFM=F_R1    * DRR(NTH,NP,NR,NSA)
+                  ELSE
+                     DFDR_R1 = ( FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP,NR-1,NSA) ) / DELR
+                     F_R1 = ( (1.D0-WRL)*FNSP(NTH,NP,NR,NSA) + WRL*FNSP(NTH,NP,NR-1,NSA) ) 
+                     SRHODM=DFDR_R1 * DRR(NTH,NP,NR,NSA)
+                     SRHOFM=F_R1    * DRR(NTH,NP,NR,NSA)
+                  END IF
+                  DINT_D = DINT_D + VOLP(NTH,NP,NSBA)*SRHODM
+                  DINT_F = DINT_F + VOLP(NTH,NP,NSBA)*SRHOFM
 ! no integration               
 !               IF(F_R1.ne.0)THEN
 !                  FACT = DFDR_R1/F_R1 
@@ -780,15 +775,15 @@
 !               ELSE
 !                  FRR(NTH,NP,NR,NSA) = DRR(NTH,NP,NR,NSA) * 0
 !               END IF
+               END DO
             END DO
-         END DO
-
 ! integration
-         CALL mtx_set_communicator(comm_np) 
-         CALL p_theta_integration(DINT_D) 
-         CALL p_theta_integration(DINT_F) 
-         CALL mtx_reset_communicator 
+            CALL mtx_set_communicator(comm_np) 
+            CALL p_theta_integration(DINT_D) 
+            CALL p_theta_integration(DINT_F) 
+            CALL mtx_reset_communicator 
 !         WRITE(*,'(A,2I3,2E14.6)') "DINT=", NSA,NR,DINT_D, DINT_F
+         ENDIF
 
          FACT=DINT_D/DINT_F
          DO NP=NPSTART,NPEND
@@ -798,6 +793,7 @@
          END DO
 
 !         IF(NR.eq.NREND+1.and.NSA.eq.1) WRITE(*,'(I4,3E16.8)') NR, DRR(1,1,NR,1), FRR(1,1,NR,1),WRL
+!         IF(NPSTART.eq.1.and.NSA.eq.1) WRITE(*,'(I4,3E16.8)') NR, DRR(1,1,NR,1), FRR(1,1,NR,1), WRL
 
       ENDDO ! NR
 
@@ -815,8 +811,8 @@
       USE fpnfrr
       IMPLICIT NONE
       integer:: NSA, NSB, NSBA, NR, NTH, NP, NS, ID
-      integer:: NBEAM, NSABEAM, NSAX
-      real(kind8):: PSP, SUML, ANGSP, SPL
+      integer:: NBEAM, NSABEAM, NSAX, ISW_LOSS
+      real(kind8):: PSP, SUML, ANGSP, SPL, FL
 
       NS=NS_NSA(NSA)
       NSBA=NSB_NSA(NSA)
@@ -928,8 +924,9 @@
 !     ----- Particle loss and source terms -----
 !
 
+      ISW_LOSS=1
       IF(TLOSS(NS).EQ.0.D0) THEN
-         DO NR=NRSTART,NREND
+         DO NR=NRSTART,NRENDWM
             DO NTH=1,NTHMAX
 !               DO NP=1,NPMAX-1
                DO NP=NPSTART,NPEND
@@ -938,16 +935,30 @@
             ENDDO
          ENDDO
       ELSE
-         DO NR=NRSTART,NREND
-            DO NTH=1,NTHMAX
-!               DO NP=1,NPMAX-1
-               DO NP=NPSTART,NPEND
-                  PPL(NTH,NP,NR,NSA)=-1.D0/TLOSS(NS)!*RLAMDA(NTH,NR)
-                  SPPS(NTH,NP,NR,NSA)=FPMXWL(PM(NP,NSBA),NR,NS) &
-                                     /TLOSS(NS)!*RLAMDA(NTH,NR)
+         IF(ISW_LOSS.eq.0)THEN
+            DO NR=NRSTART,NRENDWM
+               DO NTH=1,NTHMAX
+                  DO NP=NPSTART,NPEND
+                     PPL(NTH,NP,NR,NSA)=-1.D0/TLOSS(NS)!*RLAMDA(NTH,NR)
+                     SPPS(NTH,NP,NR,NSA)=FPMXWL(PM(NP,NSBA),NR,NS) &
+                          /TLOSS(NS)!*RLAMDA(NTH,NR)
+                  ENDDO
                ENDDO
             ENDDO
-         ENDDO
+         ELSE
+            DO NR=NRSTART,NRENDWM
+               DO NP=NPSTART,NPEND
+                  FL=FPMXWL_LT(PM(NP,NSBA),NR,NS)
+                  DO NTH=1,NTHMAX
+                     PPL(NTH,NP,NR,NSA)=-1.D0/TLOSS(NS)
+!                     SPPS(NTH,NP,NR,NSA)=FS2(NTH,NP,NS)/TLOSS(NS)
+                     SPPS(NTH,NP,NR,NSA)=FL/TLOSS(NS)
+                  ENDDO
+!                  IF(NRANK.eq.0.and.N_IMPL.eq.1) &
+!                       WRITE(*,'(I3,3E14.6)') NP,SPPS(1,NP,NR,NSA),PPL(1,NP,NR,NSA)*FNSP(1,NP,NR,NSA),FS2(1,NP,NS)
+               ENDDO
+            ENDDO
+         END IF
       ENDIF
 
       RETURN
@@ -1019,7 +1030,55 @@
       RETURN
       END FUNCTION FPMXWL
 !-------------------------------------------------------------
-!
+      FUNCTION FPMXWL_S(PML,NR,NS)
+
+      USE plprof
+      implicit none
+      integer :: NR, NS
+      real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
+      real(kind8) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
+      TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
+      real(kind8):: FPMXWL_S
+
+      AMFDL=PA(NS)*AMP
+      AEFDL=PZ(NS)*AEE
+      RNFD0L=PN(NS)
+      RTFD0L=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
+      PTFD0L=SQRT(RTFD0L*1.D3*AEE*AMFDL)
+
+      IF(NR.eq.NRMAX)THEN
+         RL=RM(NR)
+         RHON=RL
+      ELSEIF(NR.EQ.NRMAX+1) THEN
+         RL=RM(NRMAX)+DELR
+         RHON=MIN(RL,1.D0)
+      ENDIF
+
+      CALL PL_PROF(RHON,PLF)
+      RNFDL=PLF(NS)%RN/RNFD0L
+      RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+
+      IF(MODELR.EQ.0) THEN
+         FACT=RNFDL/SQRT(2.D0*PI*RTFDL/RTFD0L)**3
+         EX=PML**2/(2.D0*RTFDL/RTFD0L)
+         IF(EX.GT.100.D0) THEN
+            FPMXWL_S=0.D0
+         ELSE
+            FPMXWL_S=FACT*EXP(-EX)
+         ENDIF
+      ELSE
+         THETA0L=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)
+         THETAL=THETA0L*RTFDL/RTFD0L
+         Z=1.D0/THETAL
+            DKBSL=BESEKN(2,Z)
+            FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DKBSL) &
+             *RTFD0L
+            EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
+            FPMXWL_S=FACT*EXP(EX)
+      END IF
+
+      RETURN
+      END FUNCTION FPMXWL_S
 !-------------------------------------------------------------
 
       SUBROUTINE FPMXWL_EDGE(NP,NSA,FL)
@@ -1035,15 +1094,76 @@
       NS=NS_NSA(NSA)
       NSBA=NSB_NSA(NSA)
 
-      FL1=FPMXWL(PM(NP,NSBA),NRMAX,NS) ! at RM(NRMAX)
-      FL2=FPMXWL(PM(NP,NSBA),NRMAX+1,NS) ! at RG(NRMAX+1)
+      FL1=FPMXWL_S(PM(NP,NSBA),NRMAX,NS) ! at RM(NRMAX)
+      FL2=FPMXWL_S(PM(NP,NSBA),NRMAX+1,NS) ! at RG(NRMAX+1)
 
 !     F at R=1.0+DELR/2
 !      FL=FL2+(FL2-FL1)
-      FL = -(FL1-FL2)/(DELR-0.25D0*DELR**2)*(DELR+0.25D0*DELR**2)+FL2
+!      FL = -(FL1-FL2)/(DELR-0.25D0*DELR**2)*(DELR+0.25D0*DELR**2)+FL2
+      FL=FL2*1.D-1
 
       RETURN
       END SUBROUTINE FPMXWL_EDGE
+!-------------------------------------------------------------
+      FUNCTION FPMXWL_LT(PML,NR,NS)
+
+      USE plprof
+      implicit none
+      integer :: NR, NS
+      real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
+      real(kind8) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
+      TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
+      real(kind8):: FPMXWL_LT
+
+      AMFDL=PA(NS)*AMP
+      AEFDL=PZ(NS)*AEE
+      RNFD0L=PN(NS)
+      RTFD0L=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
+      PTFD0L=SQRT(RTFD0L*1.D3*AEE*AMFDL)
+
+      IF(NR.eq.0)THEN
+         RL=0.D0
+         RHON=ABS(RL)
+      ELSEIF(NR.EQ.NRSTART-1) THEN
+         RL=RM(NRSTART)-DELR
+         RHON=ABS(RL)
+      ELSEIF(NR.EQ.NREND+1.and.NR.ne.NRMAX+1) THEN
+         RL=RM(NREND)+DELR
+         RHON=MIN(RL,1.D0)
+      ELSEIF(NR.EQ.NRMAX+1) THEN
+         RL=RM(NREND)+DELR
+         RHON=MIN(RL,1.D0)
+      ELSE
+         RL=RM(NR)
+         RHON=RL
+      ENDIF
+
+      CALL PL_PROF(RHON,PLF)
+      RNFDL=PLF(NS)%RN/RNFD0L
+!      RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+      RTFDL=PTS(NS)
+
+      IF(MODELR.EQ.0) THEN
+         FACT=RNFDL/SQRT(2.D0*PI*RTFDL/RTFD0L)**3
+         EX=PML**2/(2.D0*RTFDL/RTFD0L)
+         IF(EX.GT.100.D0) THEN
+            FPMXWL_LT=0.D0
+         ELSE
+            FPMXWL_LT=FACT*EXP(-EX)
+         ENDIF
+      ELSE
+         THETA0L=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)
+         THETAL=THETA0L*RTFDL/RTFD0L
+         Z=1.D0/THETAL
+            DKBSL=BESEKN(2,Z)
+            FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DKBSL) &
+             *RTFD0L
+            EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
+            FPMXWL_LT=FACT*EXP(EX)
+      END IF
+
+      RETURN
+      END FUNCTION FPMXWL_LT
 !-------------------------------------------------------------
 
       SUBROUTINE FPWAVE_CONST
