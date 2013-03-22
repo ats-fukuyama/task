@@ -168,20 +168,6 @@ CONTAINS
 
     END DO
 
-    call pages
-    call grd1d(1,rmnrho,alpha,nrmax+1,nrmax+1,1,'@alpha vs rho@')
-    call grd1d(2,rmnrho,rp_totd,nrmax+1,nrmax+1,1,'@rp_totd vs rho@')
-    call grd1d(3,rmnrho,rp_tot,nrmax+1,nrmax+1,1,'@rp_tot vs rho@')
-    call grd1d(4,rmnrho,qp,nrmax+1,nrmax+1,1,'@qp vs rho@')
-    call pagee
-
-!    do nsa=1,nsamax
-!       write(6,'(1P3E12.4)') rmnrho(nrmax),rn(nsa,nrmax),rt(nsa,nrmax)
-!    END do
-!    write(6,'(1P3E12.4)') rp_tot(nrmax-1),rp_totd(nrmax-1),alpha(nrmax-1)
-!    write(6,'(1P3E12.4)') rp_tot(nrmax),rp_totd(nrmax),alpha(nrmax)
-    
-
 !    nrd1(1:nrmax) = rp_totd(1:nrmax)
 !    nrd2(1:nrmax) = rt_id(1:nrmax)
 !    nrd3(0:nrmax) = rmnrho(0:nrmax)

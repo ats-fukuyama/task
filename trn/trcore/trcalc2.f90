@@ -86,13 +86,13 @@ CONTAINS
 !   calculate coefficients for poloidal magnetic diffusion equation
 ! -----------------------------------------------------------------------
     USE trcomm, ONLY: rmu0,nrmax,mdltr_nc, &
-                      dvrho,ttrho,arrho,abb1rho,eta,dtr,htr
+                      dvrho,ttrho,arrho,abb1rho,eta,dtr,htr,nrd1,nrd2,nrd3,nrd4,abrho
     IMPLICIT NONE
     INTEGER(ikind) :: nr
     REAL(rkind) :: dtrbm,dtrbp, etam,ttrhom,dvrhom,arrhom
 
     ! registivity term (half grid)
-    DO nr = 0, nrmax
+    DO nr = 1, nrmax
 !!$       etam = 0.5d0*(eta(nr)+eta(nr-1))
 !!$       ttrhom = 0.5d0*(ttrho(nr)+ttrho(nr-1))
 !!$       dvrhom = 0.5d0*(dvrho(nr)+dvrho(nr-1))
@@ -105,6 +105,14 @@ CONTAINS
 !!$       dtr(1,1,nr) = 0.5d0*(dtrbm + dtrbp)
        dtr(1,1,nr) = eta(nr)*ttrho(nr)/(rmu0*dvrho(nr)*arrho(nr))
     END DO
+    dtr(1,1,0) = 0.d0
+
+    dtr(1,1,0:nrmax) = 0.05d0
+
+    nrd1(0:nrmax) = dtr(1,1,0:nrmax)
+    nrd2(0:nrmax) = eta(0:nrmax)
+    nrd3(0:nrmax) = dvrho(0:nrmax)
+    nrd4(0:nrmax) = dvrho(0:nrmax) * abrho(0:nrmax) / ttrho(0:nrmax)
 
   END SUBROUTINE tr_coefmg
 

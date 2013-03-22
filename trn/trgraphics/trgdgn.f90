@@ -80,7 +80,7 @@ CONTAINS
     LABEL = '/diagnostic3 vs rho/'
     CALL GRD1D(3,rhog,vg3, nrmax+1, nrmax+1, 1, label, 0)
     LABEL = '/diagnostic4 vs rho/'
-    CALL GRD1D(4,rhog,vg4, nrmax, nrmax, 1, label, 0)
+    CALL GRD1D(4,rhog,vg4, nrmax+1, nrmax+1, 1, label, 0)
     CALL PAGEE    
 
   END SUBROUTINE tr_gr_dgn1

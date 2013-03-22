@@ -382,8 +382,6 @@ CONTAINS
     db(1) = dtr(1,1,nr-1) ! Db_i
     db(2) = dtr(1,1,nr  ) ! Db_i+1
 
-    IF(nr==1) write(6,*) c1(1),c1(2),db(1),db(2)
-
     mb1 = 0.d0
     mb2 = 0.d0
     DO ni = 1, 2
@@ -393,10 +391,11 @@ CONTAINS
        END DO
     END DO
 
-    write(6,*) mb1,mb2
-
     cjexm = eta(nr-1)*abb1rho(nr-1)/(arrho(nr-1)*ttrho(nr-1))
     cjexp = eta(nr  )*abb1rho(nr  )/(arrho(nr  )*ttrho(nr  ))
+
+    cjexm = 0.d0
+    cjexp = 0.d0
 
     RETURN
   END SUBROUTINE tr_mag_mtrc

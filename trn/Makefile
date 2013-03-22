@@ -1,10 +1,6 @@
 all:
 	(cd ../lib; make)
 	(cd ../plx; make)
-<<<<<<< Makefile
-=======
-#	(cd ../pl; make)
->>>>>>> 1.12
 	(cd ../eq; make)
 #	(cd ../equ; make)
 	(cd trcore; make trcomm.o trlib.o)

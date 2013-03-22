@@ -2,7 +2,7 @@ MODULE trcalc1
   USE trcomm, ONLY: ikind,rkind
 
   PRIVATE
-  PUBLIC tr_calc1,tr_calc_geometry
+  PUBLIC tr_calc1,tr_calc_geometry,tr_calc_dpdrho
 
 CONTAINS
 

@@ -13,13 +13,14 @@ CONTAINS
     unitid(1) = 20 ! csv ouput of radial profiles
     unitid(2) = 21 ! csv ouput of time evolutions
 
+    ierr = 0
     IF(mdlwrt /= 0)THEN
        OPEN(unitid(1),FILE=kwpnam,IOSTAT=ierr)
        OPEN(unitid(2),FILE=kwtnam,IOSTAT=ierr)
     END IF
 
     IF(ierr /= 0)THEN
-       WRITE(6,*) 'XX tr_setup: File open error. IERR=',ierr
+       WRITE(6,*) 'XX tr_write_open: File open error. IERR=',ierr
     END IF
 
     RETURN
