@@ -82,7 +82,7 @@
 
 !     ----- Diagonal term -----
 
-      DO NR=NRSTART,NREND ! LHS
+      DO NR=NRSTART,NREND ! LHS: set_matrix, RHS: BM
          IF(MODELA.EQ.0) THEN
             DO NP=NPSTART,NPEND
             DO NTH=1,NTHMAX
@@ -181,7 +181,6 @@
       CALL mtx_gather_vector(BMTOT)
       
       DO NR=NRSTART,NREND
-!         DO NP=1,NPMAX
          DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX
                NM=NMA(NTH,NP,NR)
@@ -724,9 +723,9 @@
             NL=NL+1
             LL(NM,NL)=NMA(NTH,NP,NR-1)
             AL(NM,NL)=DRR(NTH  ,NP  ,NR,NSA)    *DIVDRR*DRRM &
-                         *RLAMDAG(NTH,NR-1)/RFSADG(NR-1) &
-                     +FRR(NTH  ,NP  ,NR,NSA)*WRM*DIVFRR*DRRM &
-                         *RLAMDAG(NTH,NR-1)/RFSADG(NR-1)
+!                         *RLAMDAG(NTH,NR-1)/RFSADG(NR-1) &
+                     +FRR(NTH  ,NP  ,NR,NSA)*WRM*DIVFRR*DRRM 
+!                         *RLAMDAG(NTH,NR-1)/RFSADG(NR-1)
             IF(ABS(AL(NM,NL)).LT.1.D-70) THEN
                LL(NM,NL)=0
                AL(NM,NL)=0.D0
@@ -736,9 +735,9 @@
                NL=NL+1
                LL(NM,NL)=NMA(NTBM,NP,NR-1)
                AL(NM,NL)=DRR(NTBM ,NP  ,NR,NSA)     *DIVDRR*DRRM &
-                            *RLAMDAG(NTBM,NR-1)/RFSADG(NR-1) &
-                        +FRR(NTBM ,NP  ,NR,NSA)*WRBM*DIVFRR*DRRM &
-                            *RLAMDAG(NTBM,NR-1)/RFSADG(NR-1)
+!                            *RLAMDAG(NTBM,NR-1)/RFSADG(NR-1) &
+                        +FRR(NTBM ,NP  ,NR,NSA)*WRBM*DIVFRR*DRRM 
+!                            *RLAMDAG(NTBM,NR-1)/RFSADG(NR-1)
                IF(ABS(AL(NM,NL)).LT.1.D-70) THEN
                   LL(NM,NL)=0
                   AL(NM,NL)=0.D0
@@ -902,9 +901,9 @@
             NL=NL+1
             LL(NM,NL)=NMA(NTH,NP,NR+1)
             AL(NM,NL)=DRR(NTH  ,NP  ,NR+1,NSA)    *DIVDRR*DRRP &
-                         *RLAMDAG(NTH,NR+1)/RFSADG(NR+1) &
-                     -FRR(NTH  ,NP  ,NR+1,NSA)*VRP*DIVFRR*DRRP &
-                         *RLAMDAG(NTH,NR+1)/RFSADG(NR+1)
+!                         *RLAMDAG(NTH,NR+1)/RFSADG(NR+1) &
+                     -FRR(NTH  ,NP  ,NR+1,NSA)*VRP*DIVFRR*DRRP 
+!                         *RLAMDAG(NTH,NR+1)/RFSADG(NR+1)
             IF(ABS(AL(NM,NL)).LT.1.D-70) THEN
                LL(NM,NL)=0
                AL(NM,NL)=0.D0
@@ -956,13 +955,13 @@
       IF(MODELD.GT.0) THEN
          DL(NM)= DL(NM) &
               -DRR(NTH  ,NP  ,NR+1,NSA)    *DIVDRR*DRRP &
-                            *RLAMDAG(NTH,NR)/RFSADG(NR) &
+!                            *RLAMDAG(NTH,NR)/RFSADG(NR) &
               -FRR(NTH  ,NP  ,NR+1,NSA)*WRP*DIVFRR*DRRP &
-                            *RLAMDAG(NTH,NR)/RFSADG(NR) &
+!                            *RLAMDAG(NTH,NR)/RFSADG(NR) &
               -DRR(NTH  ,NP  ,NR  ,NSA)    *DIVDRR*DRRM &
-                            *RLAMDAG(NTH,NR)/RFSADG(NR) &
-              +FRR(NTH  ,NP  ,NR  ,NSA)*VRM*DIVFRR*DRRM &
-                            *RLAMDAG(NTH,NR)/RFSADG(NR) 
+!                            *RLAMDAG(NTH,NR)/RFSADG(NR) &
+              +FRR(NTH  ,NP  ,NR  ,NSA)*VRM*DIVFRR*DRRM 
+!                            *RLAMDAG(NTH,NR)/RFSADG(NR) 
          IF(NTBM.ne.0)THEN
             DL(NM)= DL(NM) &
                  -DRR(NTBM ,NP  ,NR  ,NSA)    *DIVDRR*DRRM &
@@ -1006,8 +1005,7 @@
                 +SPPS(NTH,NP,NR,NSA) )
 
       IF(MODELD.GT.0.AND.NR.EQ.NRMAX) THEN
-         SPPD(NTH,NP,NSA)= &!SPPD(NTH,NP,NSA)+ &
-              FS2(NTH,NP,NSA)*RLAMDAG(NTH,NRMAX+1)/RFSADG(NRMAX+1) &
+         SPPD(NTH,NP,NSA)= FS2(NTH,NP,NSA) &
               *(DRR(NTH,NP,NR+1,NSA)    *DIVDRR &
                -FRR(NTH,NP,NR+1,NSA)*VRP*DIVFRR)*DRRP
          SPP(NTH,NP,NR,NSA) = SPP(NTH,NP,NR,NSA) &

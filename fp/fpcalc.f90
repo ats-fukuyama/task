@@ -30,7 +30,6 @@
       real(8):: RGAMH, RGAMH2, RZI, RTE, PFPL, VFPL, U, DCTTL, RGAMA, DFDP, DFDTH
 
       DO NR=NRSTART,NREND
-!         DO NP=1,NPMAX+1
          DO NP=NPSTART,NPENDWG
          DO NTH=1,NTHMAX
             DCPP(NTH,NP,NR,NSA)=0.D0
@@ -38,7 +37,6 @@
             FCPP(NTH,NP,NR,NSA)=0.D0
          ENDDO
          ENDDO
-!         DO NP=1,NPMAX
          DO NP=NPSTARTW,NPENDWM
          DO NTH=1,NTHMAX+1
             DCTP(NTH,NP,NR,NSA)=0.D0
@@ -50,7 +48,6 @@
 
       DO NSB=1,NSBMAX
       DO NR=NRSTART,NREND
-!         DO NP=1,NPMAX+1
          DO NP=NPSTART,NPENDWG
          DO NTH=1,NTHMAX
             DCPP2(NTH,NP,NR,NSB,NSA)=0.D0
@@ -58,7 +55,6 @@
             FCPP2(NTH,NP,NR,NSB,NSA)=0.D0
          ENDDO
          ENDDO
-!         DO NP=1,NPMAX
          DO NP=NPSTARTW,NPENDWM
          DO NTH=1,NTHMAX+1
             DCTP2(NTH,NP,NR,NSB,NSA)=0.D0
@@ -182,8 +178,6 @@
          ENDIF
 !     sum up coefficients by species
          DO NSB=1,NSBMAX
-!         WRITE(*,'(A,3I4,E14.6)') "DCPP2",NR,NSA,NSB,DCPP2(2,2,NR,NSB,NSA)
-!            DO NP=1,NPMAX+1
             DO NP=NPSTART,NPENDWG
                DO NTH=1,NTHMAX
                   DCPP(NTH,NP,NR,NSA)=DCPP(NTH,NP,NR,NSA) &
@@ -218,24 +212,31 @@
 
 !      IF(NSA.eq.1.and.NRSTART.eq.20.and.NPSTART.eq.1)THEN
 !      NR=NRSTART
+!      NR=1
+!      IF(NSA.eq.1)THEN
 !      open(8,file='flux_p.dat')
 !      DO NP=1,NPMAX+1
-!         DO NTH=1,NTHMAX
-!            WRITE(8,'(5E16.8)') PG(NP,NSA)*COSM(NTH),PG(NP,NSA)*SINM(NTH),DCPP(NTH,NP,NR,NSA),DCPT(NTH,NP,NR,NSA),FCPP(NTH,NP,NR,NSA)
-!         END DO
-!         WRITE(8,*) " "
-!         WRITE(8,*) " "
+!!         DO NTH=1,NTHMAX
+!            WRITE(8,'(4E16.8)') &
+!!PG(NP,NSA)*COSM(NTH),PG(NP,NSA)*SINM(NTH),
+!                 PG(NP,NSA), DCPP2(NTH,NP,NR,1,1),DCPT2(NTH,NP,NR,1,1),FCPP2(NTH,NP,NR,1,1)
+!!         END DO
+!!         WRITE(8,*) " "
+!!         WRITE(8,*) " "
 !      END DO
 !      close(8)
 !      open(9,file='flux_th.dat')
 !      DO NP=1,NPMAX
-!         DO NTH=1,NTHMAX+1
-!            WRITE(9,'(5E16.8)') PM(NP,NSA)*COSG(NTH),PM(NP,NSA)*SING(NTH),DCTP(NTH,NP,NR,NSA),DCTT(NTH,NP,NR,NSA),FCTH(NTH,NP,NR,NSA)
-!         END DO
-!         WRITE(9,*) " "
-!         WRITE(9,*) " "
+!!         DO NTH=1,NTHMAX+1
+!            WRITE(9,'(4E16.8)') &
+!!PM(NP,NSA)*COSG(NTH),PM(NP,NSA)*SING(NTH),
+!                 PM(NP,NSA), DCTP2(NTH,NP,NR,1,1),DCTT2(NTH,NP,NR,1,1),FCTH2(NTH,NP,NR,1,1)
+!!         END DO
+!!         WRITE(9,*) " "
+!!         WRITE(9,*) " "
 !      END DO
 !      close(9)
+!      END IF
 
 !      IF(MODELR.eq.1)THEN
 !         DO NP=2,NPMAX+1
@@ -622,6 +623,9 @@
       RGAMH=RNUD(NR,NSB,NSA)*SQRT(2.D0)*VTFD(NR,NSB)*AMFP(NSA) &
               /(RNFP0(NSA)*PTFP0(NSA)*1.D20)
       NSBA=NSB_NSA(NSA)
+
+!      WRITE(*,*) " "
+!      WRITE(*,'(2I4,3E16.8)') NSA,NSB,RGAMH,RNFD(1,NSB),VTFD(1,NSB)
 !
 !     ----- Non-Relativistic -----
 !
@@ -644,6 +648,7 @@
                DCPP2(NTH,NP,NR,NSB,NSA)=DCPP2(NTH,NP,NR,NSB,NSA)+DCPPL
                FCPP2(NTH,NP,NR,NSB,NSA)=FCPP2(NTH,NP,NR,NSB,NSA)+FCPPL
             ENDDO
+!            WRITE(*,'(3I4,3E16.8)') NP, NSA,NSB,PG(NP,NSBA), DCPPL, FCPPL
          ENDDO
 
 !         DO NP=1,NPMAX

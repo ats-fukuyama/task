@@ -196,7 +196,8 @@
            RSPBT,RSPFT,RSPLT,RSPST,RPDRT,RNDRT,RTT_BULK,RICT,RPET_ind
       real(rkind),dimension(:,:,:,:),POINTER :: & ! (NRM,NTG2M,NSAM,NSBM)
            RPCT2
-
+      real(rkind),dimension(:,:),POINTER:: & !(NRM, NSAM)
+           RN_IMPL, RT_IMPL
       integer:: NMMAX,NLMAXM
       integer,dimension(:,:,:),POINTER :: & ! (NTHM,NPM,NRM)
            NMA
@@ -261,7 +262,7 @@
           allocate( F(NTHMAX,NPSTARTW:NPENDWM,NRSTART:NREND))
           allocate(F1(NTHMAX,NPSTARTW:NPENDWM,NRSTART:NREND))
 
-          allocate(RG(NRMAX+1),RM(NRMAX+1),VOLR(NRMAX))
+          allocate(RG(NRMAX+1),RM(NRMAX),VOLR(NRMAX))
           allocate(RLAMDAG(NTHMAX,NRMAX+1),RLAMDA_GG(NTHMAX,NRMAX+1))
           allocate(ETAMG(NTHMAX,NRMAX+1),ETAM_GG(NTHMAX,NRMAX+1))
           allocate(ETAG_G_GL(NTHMAX+1,NRMAX+1))
@@ -447,13 +448,14 @@
 !          allocate(SPPF(NTHMAX,NPMAX,NRSTART:NREND+1,NSAMAX))
 !          allocate(SPPS(NTHMAX,NPMAX,NRSTART:NREND+1,NSAMAX))
 !          allocate(SPPD(NTHMAX,NPMAX,NSAMAX))
-          allocate(SPP (NTHMAX,NPSTART:NPEND,NRSTART:NRENDWM,NSAMAX))
-          allocate(PPL (NTHMAX,NPSTART:NPEND,NRSTART:NRENDWM,NSAMAX))
-          allocate(SPPB(NTHMAX,NPSTART:NPEND,NRSTART:NRENDWM,NSAMAX))
-          allocate(SPPF(NTHMAX,NPSTART:NPEND,NRSTART:NRENDWM,NSAMAX))
-          allocate(SPPS(NTHMAX,NPSTART:NPEND,NRSTART:NRENDWM,NSAMAX))
+          allocate(SPP (NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX))
+          allocate(PPL (NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX))
+          allocate(SPPB(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX))
+          allocate(SPPF(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX))
+          allocate(SPPS(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX))
           allocate(SPPD(NTHMAX,NPSTART:NPEND,NSAMAX))
 
+          allocate(RN_IMPL(NRMAX,NSAMAX),RT_IMPL(NRMAX,NSAMAX) )
           
           allocate(RNSL(NRSTART:NRENDX,NSAMAX),RJSL(NRSTART:NRENDX,NSAMAX))
           allocate(RWSL(NRSTART:NRENDX,NSAMAX),RWS123L(NRSTART:NRENDX,NSAMAX))
@@ -643,6 +645,7 @@
           deallocate(DCPPB,DCPTB,FCPPB)
           deallocate(DCPP2B,DCPT2B,FCPP2B)
 
+          deallocate(RN_IMPL,RT_IMPL)
           deallocate(RNSL,RJSL,RWSL,RWS123L)
           deallocate(RSPBL,RSPFL,RSPSL,RSPLL,RPCSL,RPESL,RPESL_ind)
           deallocate(RPCSL,RLHSL,RFWSL,RECSL,RICSL,RPCS2L)

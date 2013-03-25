@@ -768,13 +768,6 @@
                   END IF
                   DINT_D = DINT_D + VOLP(NTH,NP,NSBA)*SRHODM
                   DINT_F = DINT_F + VOLP(NTH,NP,NSBA)*SRHOFM
-! no integration               
-!               IF(F_R1.ne.0)THEN
-!                  FACT = DFDR_R1/F_R1 
-!                  FRR(NTH,NP,NR,NSA) = FACT * DRR(NTH,NP,NR,NSA)*0
-!               ELSE
-!                  FRR(NTH,NP,NR,NSA) = DRR(NTH,NP,NR,NSA) * 0
-!               END IF
                END DO
             END DO
 ! integration
@@ -926,36 +919,34 @@
 
       ISW_LOSS=1
       IF(TLOSS(NS).EQ.0.D0) THEN
-         DO NR=NRSTART,NRENDWM
-            DO NTH=1,NTHMAX
-!               DO NP=1,NPMAX-1
-               DO NP=NPSTART,NPEND
+         DO NR=NRSTART,NREND
+            DO NP=NPSTART,NPEND
+               DO NTH=1,NTHMAX
                   PPL(NTH,NP,NR,NSA)=0.D0
                ENDDO
             ENDDO
          ENDDO
       ELSE
          IF(ISW_LOSS.eq.0)THEN
-            DO NR=NRSTART,NRENDWM
-               DO NTH=1,NTHMAX
-                  DO NP=NPSTART,NPEND
+            DO NR=NRSTART,NREND
+               DO NP=NPSTART,NPEND
+                  FL=FPMXWL(PM(NP,NSBA),NR,NS) 
+                  DO NTH=1,NTHMAX
                      PPL(NTH,NP,NR,NSA)=-1.D0/TLOSS(NS)!*RLAMDA(NTH,NR)
-                     SPPS(NTH,NP,NR,NSA)=FPMXWL(PM(NP,NSBA),NR,NS) &
-                          /TLOSS(NS)!*RLAMDA(NTH,NR)
+                     SPPS(NTH,NP,NR,NSA)= FL /TLOSS(NS)!*RLAMDA(NTH,NR)
                   ENDDO
                ENDDO
             ENDDO
          ELSE
-            DO NR=NRSTART,NRENDWM
+            DO NR=NRSTART,NREND
                DO NP=NPSTART,NPEND
                   FL=FPMXWL_LT(PM(NP,NSBA),NR,NS)
                   DO NTH=1,NTHMAX
-                     PPL(NTH,NP,NR,NSA)=-1.D0/TLOSS(NS)
-!                     SPPS(NTH,NP,NR,NSA)=FS2(NTH,NP,NS)/TLOSS(NS)
+!                     PPL(NTH,NP,NR,NSA)=-1.D0/TLOSS(NS)
                      SPPS(NTH,NP,NR,NSA)=FL/TLOSS(NS)
                   ENDDO
 !                  IF(NRANK.eq.0.and.N_IMPL.eq.1) &
-!                       WRITE(*,'(I3,3E14.6)') NP,SPPS(1,NP,NR,NSA),PPL(1,NP,NR,NSA)*FNSP(1,NP,NR,NSA),FS2(1,NP,NS)
+!                       WRITE(*,'(2I3,3E14.6)') NSA,NP,SPPS(1,NP,NR,NSA),FNSP(1,NP,NR,NSA),FNSM(1,np,nr,nsa)
                ENDDO
             ENDDO
          END IF
@@ -987,14 +978,14 @@
       IF(NR.eq.0)THEN
          RL=0.D0
          RHON=ABS(RL)
-      ELSEIF(NR.EQ.NRSTART-1) THEN
-         RL=RM(NRSTART)-DELR
-         RHON=ABS(RL)
-      ELSEIF(NR.EQ.NREND+1.and.NR.ne.NRMAX+1) THEN
-         RL=RM(NREND)+DELR
-         RHON=MIN(RL,1.D0)
+!      ELSEIF(NR.EQ.NRSTART-1) THEN
+!         RL=RM(NRSTART)-DELR
+!         RHON=ABS(RL)
+!      ELSEIF(NR.EQ.NREND+1.and.NR.ne.NRMAX+1) THEN
+!         RL=RM(NREND)+DELR
+!         RHON=MIN(RL,1.D0)
       ELSEIF(NR.EQ.NRMAX+1) THEN
-         RL=RM(NREND)+DELR
+         RL=RM(NRMAX)+DELR
          RHON=MIN(RL,1.D0)
       ELSE
          RL=RM(NR)
@@ -1007,11 +998,11 @@
       IF(MODELR.EQ.0) THEN
          FACT=RNFDL/SQRT(2.D0*PI*RTFDL/RTFD0L)**3
          EX=PML**2/(2.D0*RTFDL/RTFD0L)
-         IF(EX.GT.100.D0) THEN
-            FPMXWL=0.D0
-         ELSE
+!         IF(EX.GT.100.D0) THEN
+!            FPMXWL=0.D0
+!         ELSE
             FPMXWL=FACT*EXP(-EX)
-         ENDIF
+!         ENDIF
       ELSE
          THETA0L=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)
          THETAL=THETA0L*RTFDL/RTFD0L
@@ -1124,14 +1115,8 @@
       IF(NR.eq.0)THEN
          RL=0.D0
          RHON=ABS(RL)
-      ELSEIF(NR.EQ.NRSTART-1) THEN
-         RL=RM(NRSTART)-DELR
-         RHON=ABS(RL)
-      ELSEIF(NR.EQ.NREND+1.and.NR.ne.NRMAX+1) THEN
-         RL=RM(NREND)+DELR
-         RHON=MIN(RL,1.D0)
       ELSEIF(NR.EQ.NRMAX+1) THEN
-         RL=RM(NREND)+DELR
+         RL=RM(NRMAX)+DELR
          RHON=MIN(RL,1.D0)
       ELSE
          RL=RM(NR)

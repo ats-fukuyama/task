@@ -22,6 +22,7 @@
 
       USE libmtx
       USE FPMPI
+      USE fpprep, only: Coulomb_log 
       IMPLICIT NONE
       real(kind8),dimension(NRSTART:NREND,NSAMAX):: RJNS
       real(kind8),dimension(NRSTART:NREND):: RJN,RJ3,E3,DELE
@@ -44,13 +45,13 @@
       real(kind8):: temp_send, temp_recv
       character:: fmt*40
       integer:: modela_temp, NSW, NSWI,its
-      integer:: ILOC1, nsend,j
+      integer:: ILOC1, nsend,j, ISW_D
 
 !      IF(MODELE.NE.0) CALL FPNEWE
 
 !     +++++ Time loop +++++
 
-      OPEN(9,file="EPEM.dat")
+!      OPEN(9,file="EPEM.dat")
       DO NT=1,NTMAX
          
 !     +++++ Iteration loop for toroidal electric field +++++
@@ -93,6 +94,17 @@
          gut_1step= 0.D0
          CALL GUTIME(gut5)
 
+!         IF(NRSTART.eq.NRMAX)THEN
+!            DO NSA=1,NSAMAX
+!               DO NP=1,NPMAX
+!                  WRITE(*,'(3I4,5E16.8)') NT,NSA,NP, PM(NP,NSA), FNSP(1,NP,NRSTART,NSA), &
+!                       DCPP(1,NP,NRSTART,NSA),FCPP(1,NP,NRSTART,NSA),DCPT(1,NP,NRSTART,NSA)
+!               END DO
+!               WRITE(*,*) " "
+!               WRITE(*,*) " "
+!            END DO
+!         END IF
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          nsw = NSAEND-NSASTART+1
          DO WHILE(N_IMPL.le.LMAXFP) ! start do while
@@ -107,14 +119,20 @@
                END DO
                END DO
 
+               ISW_D=1
                CALL GUTIME(gut1)
-               modeld_temp=modeld
-               modeld=0
-               CALL fp_exec(NSA,IERR,its) ! F1 and FNS0 changed
-               modeld=modeld_temp
-               IF(MODELD.ge.1)THEN
-                  CALL fp_drexec(NSA,IERR,its)
+               IF(ISW_D.eq.0)THEN ! separate p, r
+                  modeld_temp=modeld
+                  modeld=0
+                  CALL fp_exec(NSA,IERR,its) ! F1 and FNS0 changed
+                  modeld=modeld_temp
+                  IF(MODELD.ge.1)THEN
+                     CALL fp_drexec(NSA,IERR,its)
+                  END IF
+               ELSEIF(ISW_D.eq.1)THEN ! 
+                  CALL fp_exec(NSA,IERR,its) ! F1 and FNS0 changed
                END IF
+
                IF(IERR.NE.0) GOTO 250
                CALL GUTIME(gut2)
                GUT_EX = GUT_EX + (gut2-gut1)
@@ -194,6 +212,7 @@
             CALL mtx_reset_communicator
 !           end of update FNSB
 
+            CALL Coulomb_log
             DO NSA=NSASTART,NSAEND
                   IF (MOD(NT,NTCLSTEP).EQ.0) CALL FP_COEF(NSA)
             END DO
@@ -220,13 +239,13 @@
                   END DO
                   CALL UPDATE_FEPP
                END IF
-               IF(NRANK.eq.0)THEN
-                  DO NR=1,NRMAX
-                     WRITE(9,'(2I3,3E14.6)') N_IMPL, NT, RM(NR), EM(NR), EP(NR)
-                  END DO
-                  WRITE(9,*) " "
-                  WRITE(9,*) " "
-               END IF
+!               IF(NRANK.eq.0)THEN
+!                  DO NR=1,NRMAX
+!                     WRITE(9,'(2I3,3E14.6)') N_IMPL, NT, RM(NR), EM(NR), EP(NR)
+!                  END DO
+!                  WRITE(9,*) " "
+!                  WRITE(9,*) " "
+!               END IF
             END IF
 
             CALL GUTIME(gut4)
@@ -294,7 +313,6 @@
 !         CALL FPGRAC('F -2',F,4)
 !         CALL FPGRAC('F1-2',F1,4)
 
-
 !     +++++ calculate and save global data +++++
 
          CALL GUTIME(gut1)
@@ -342,7 +360,7 @@
          IF(IERR.NE.0) RETURN
 
       ENDDO ! END OF NT LOOP
-      CLOSE(9)
+!      CLOSE(9)
 
 !     +++++ end of time loop +++++
 !

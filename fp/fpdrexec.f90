@@ -45,6 +45,7 @@
 !               NL: 
 
       CALL SET_FM_NMA(NSA,FNS0)
+!      CALL SET_FM_NMA(NSA,FNSP)
 
       DO NM=NMSTART,NMEND
          NLMAX(NM)=0
@@ -375,6 +376,7 @@
 !              *RLAMDAG(NTH,NRMAX+1)/RFSADG(NRMAX+1) &
               *(DRR(NTH,NP,NR+1,NSA)    *DIVDRR &
                -FRR(NTH,NP,NR+1,NSA)*VRP*DIVFRR)*DRRP
+
          SPP(NTH,NP,NR,NSA) = &! SPP(NTH,NP,NR,NSA) +&
                 SPPD(NTH,NP,NSA)
       ENDIF

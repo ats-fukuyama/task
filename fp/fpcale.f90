@@ -160,9 +160,9 @@
 
       IF(N_IMPL.eq.0) SIGM(:)=SIGP(:)
       IF(NRANK.eq.0)THEN
-         WRITE(6,'(I3,A,8E14.6)') N_IMPL,"      SIGMA= ",(SIGP(NR),NR=1,8)
-         WRITE(6,'(I3,A,8E14.6)') N_IMPL,"      RJ_M = ",(RJ_M(NR),NR=1,8)
-         WRITE(6,'(I3,A,8E14.6)') N_IMPL,"      RJ_P = ",(RJ_P(NR),NR=1,8)
+!         WRITE(6,'(I3,A,8E14.6)') N_IMPL,"      SIGMA= ",(SIGP(NR),NR=1,4)
+!         WRITE(6,'(I3,A,8E14.6)') N_IMPL,"      RJ_M = ",(RJ_M(NR),NR=1,8)
+!         WRITE(6,'(I3,A,8E14.6)') N_IMPL,"      RJ_P = ",(RJ_P(NR),NR=1,8)
       END IF
       END SUBROUTINE conductivity_sigma_ind
 !-------------------------------------------------

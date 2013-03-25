@@ -666,6 +666,9 @@
             DO NTH=1,NTHMAX
                FS2(NTH,NP,NS)=FL ! at R=1.0+DELR/2
             ENDDO
+!            IF(NREND.eq.NRMAX)THEN
+!               WRITE(*,'(2I4,2E16.8)') NSA, NP, PM(NP,NSBA), FS2(1,NP,NS)
+!            END IF
          ENDDO
       ENDDO
 
@@ -842,9 +845,9 @@
 
       USE plprof
       IMPLICIT NONE
-      INTEGER:: NSA, NSB, NS, NSBA, NSFP, NSFD, NR
+      INTEGER:: NSA, NSB, NS, NSBA, NSFP, NSFD, NR, ISW_CLOG
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
-      real(kind8):: RTFD0L, RHON, RNE, RTE, RLNRL, FACT
+      real(kind8):: RTFD0L, RHON, RNE, RTE, RLNRL, FACT, RNA, RTA, RNB, RTB
 
       DO NSA=1,NSAMAX
          NS=NS_NSA(NSA)
@@ -872,7 +875,7 @@
 
 !     ----- set profile data -----
 
-      DO NR=NRSTART,NREND+1
+      DO NR=NRSTART,NRENDWM
 
          RHON=RM(NR)
          CALL PL_PROF(RHON,PLF)
@@ -898,18 +901,37 @@
          RNE=PLF(1)%RN
          RTE=(PLF(1)%RTPR+2.D0*PLF(1)%RTPP)/3.D0
 
+         ISW_CLOG=0 ! =0 Wesson, =1 NRL
          DO NSA=1,NSAMAX
             NSFP=NS_NSB(NSA)
+            RNA=RNFP(NR,NSA)
+            RTA=RTFP(NR,NSA)
             DO NSB=1,NSBMAX
                NSFD=NS_NSB(NSB)
+               RNB=RNFP(NR,NSB)
+               RTB=RTFP(NR,NSB)
+               IF(ISW_CLOG.eq.0)THEN
+                  IF(PZ(NSFP).eq.-1.and.PZ(NSFD).eq.-1) THEN !e-e
+                     RLNRL=14.9D0-0.5D0*LOG(RNE)+LOG(RTE) 
+                  ELSEIF(PZ(NSFP).eq.-1.OR.PZ(NSFD).eq.-1) THEN
+                     RLNRL=15.2D0-0.5D0*LOG(RNE)+LOG(RTE) ! e-i T>10eV
+                  ELSE
+                     RLNRL=17.3D0-0.5D0*LOG(RNE)+1.5D0*LOG(RTFD(NR,NSB)) ! i-i T < m_i/m_p*10 keV, single charge
+                  ENDIF
+               ELSEIF(ISW_CLOG.eq.1)THEN
+                  IF(PZ(NSFP).eq.-1.and.PZ(NSFD).eq.-1) THEN !e-e
+                     RLNRL=23.5D0-LOG(SQRT(RNA*1.D14)*(RTA*1.D3)**(-1.25D0) ) - &
+                          SQRT(1.D-5+(LOG(RTA*1.D3)-2.D0)**2/16.D0 )
+                  ELSEIF(PZ(NSFP).eq.-1.OR.PZ(NSFD).eq.-1) THEN
+                     RLNRL=24.D0-LOG(SQRT(RNA*1.D14)*(RTA*1.D3)**(-1) ) ! Ti*(me/mi) < 10eV < Te
+                  ELSE
+                     RLNRL=23.D0-LOG(PZ(NSA)*PZ(NSB)*(PA(NSA)+PA(NSB)) &
+                          /(PA(NSA)*(RTB*1.D3)+PA(NSB)*(RTA*1.D3))* &
+                          SQRT((RNA*1.D14)*PZ(NSA)**2/(RTA*1.D3) + (RNB*1.D14)*PZ(NSB)**2/(RTB*1.D3) ) )
+                  ENDIF
+               END IF
 
-               IF(NSFP.EQ.1.AND.NSFD.EQ.1) THEN
-                  RLNRL=14.9D0-0.5D0*LOG(RNE)+LOG(RTE)
-               ELSEIF(NSFP.EQ.1.OR.NSFD.EQ.1) THEN
-                  RLNRL=15.2D0-0.5D0*LOG(RNE)+LOG(RTE)
-               ELSE
-                  RLNRL=17.3D0-0.5D0*LOG(RNE)+1.5D0*LOG(RTFD(NR,NSB))
-               ENDIF
+               IF(NRSTART.eq.NRMAX) WRITE(*,*) NR,"Coulomb log",NSA,NSB,RLNRL
                FACT=AEFP(NSA)**2*AEFD(NSB)**2*RLNRL/(4.D0*PI*EPS0**2)
                RNUD(NR,NSB,NSA)=FACT*RNFP0(NSA)*1.D20 &
                       /(SQRT(2.D0)*VTFD(NR,NSB)*PTFP0(NSA)**2)
@@ -939,6 +961,67 @@
 
 
       END SUBROUTINE fp_set_normalize_param
+!==============================================================
+      SUBROUTINE Coulomb_log
+
+      USE fpsave2
+      IMPLICIT NONE
+      INTEGER:: NTH, NP, NR, NSA, NSFP, NSFD, NSB, ISW_CLOG
+      DOUBLE PRECISION:: RTE,NTE,RTA,RTB,RNA,RNB, RLNRL, FACT,RNE
+      double precision,dimension(NSAMAX,NSBMAX):: CLOG
+
+      CALL FPSSUB2
+      CALL FPSPRF2
+
+      DO NR=NRSTART,NRENDWM
+
+         ISW_CLOG=0 ! =0 Wesson, =1 NRL
+         RNE=RN_IMPL(NR,1)
+         DO NSA=1,NSAMAX
+            NSFP=NS_NSB(NSA)
+            RNA=RN_IMPL(NR,NSA)
+            RTA=RT_IMPL(NR,NSA)
+            DO NSB=1,NSBMAX
+               NSFD=NS_NSB(NSB)
+               RNB=RN_IMPL(NR,NSB)
+               RTB=RT_IMPL(NR,NSB)
+               IF(ISW_CLOG.eq.0)THEN
+                  IF(PZ(NSFP).eq.-1.and.PZ(NSFD).eq.-1) THEN !e-e
+                     RLNRL=14.9D0-0.5D0*LOG(RNA)+LOG(RTA) 
+                  ELSEIF(PZ(NSFP).eq.-1.and.PZ(NSFD).ne.-1) THEN
+                     RLNRL=15.2D0-0.5D0*LOG(RNA)+LOG(RTA) ! e-i T>10eV
+                  ELSEIF(PZ(NSFP).ne.-1.and.PZ(NSFD).eq.-1) THEN
+                     RLNRL=15.2D0-0.5D0*LOG(RNB)+LOG(RTB) ! e-i T>10eV
+                  ELSE
+                     RLNRL=17.3D0-0.5D0*LOG(RNE)+1.5D0*LOG(RTB) ! i-i T < m_i/m_p*10 keV, single charge
+                  ENDIF
+               ELSEIF(ISW_CLOG.eq.1)THEN
+                  IF(PZ(NSFP).eq.-1.and.PZ(NSFD).eq.-1) THEN !e-e
+                     RLNRL=23.5D0-LOG(SQRT(RNA*1.D14)*(RTA*1.D3)**(-1.25D0) ) - &
+                          SQRT(1.D-5+(LOG(RTA*1.D3)-2.D0)**2/16.D0 )
+                  ELSEIF(PZ(NSFP).eq.-1.and.PZ(NSFD).ne.-1) THEN
+                     RLNRL=24.D0-LOG(SQRT(RNA*1.D14)*(RTA*1.D3)**(-1) ) ! Ti*(me/mi) < 10eV < Te
+                  ELSEIF(PZ(NSFP).ne.-1.and.PZ(NSFD).eq.-1) THEN
+                     RLNRL=24.D0-LOG(SQRT(RNB*1.D14)*(RTB*1.D3)**(-1) ) ! Ti*(me/mi) < 10eV < Te
+                  ELSE
+                     RLNRL=23.D0-LOG(PZ(NSA)*PZ(NSB)*(PA(NSA)+PA(NSB)) &
+                          /(PA(NSA)*(RTB*1.D3)+PA(NSB)*(RTA*1.D3))* &
+                          SQRT((RNA*1.D14)*PZ(NSA)**2/(RTA*1.D3) + (RNB*1.D14)*PZ(NSB)**2/(RTB*1.D3) ) )
+                  ENDIF
+               END IF
+               CLOG(NSA,NSB)=RLNRL
+               FACT=AEFP(NSA)**2*AEFD(NSB)**2*RLNRL/(4.D0*PI*EPS0**2)
+               RNUD(NR,NSB,NSA)=FACT*RNFP0(NSA)*1.D20 &
+                      /(SQRT(2.D0)*VTFD(NR,NSB)*PTFP0(NSA)**2)
+               RNUF(NR,NSB,NSA)=FACT*RNFP0(NSA)*1.D20 &
+                      /(2*AMFD(NSB)*VTFD(NR,NSB)**2*PTFP0(NSA))
+            ENDDO
+         ENDDO
+      ENDDO
+
+!      IF(NR.eq.NRMAX) WRITE(*,'(A,1P4E16.8)') "Coulomb log",CLOG(1,1), CLOG(1,2), CLOG(2,1), CLOG(2,2)
+
+      END SUBROUTINE Coulomb_log
 !==============================================================
       SUBROUTINE fp_continue(ierr)
 
@@ -1085,6 +1168,13 @@
          END DO
          CALL FPWEIGHT(NSA,IERR)
       END DO
+!      DO NP=1,NPMAX+1
+!         WRITE(*,'(I4,11E16.8)') NP, PG(NP,NSBA) &
+!              , DCPP2(1,NP,1,1,1)-DCPP2(1,NP,1,2,1), DCPP2(1,NP,1,1,2)-DCPP2(1,NP,1,2,2) &
+!              , FCPP2(1,NP,1,1,1)-FCPP2(1,NP,1,2,1), FCPP2(1,NP,1,1,2)-FCPP2(1,NP,1,2,2) &
+!              , DCPP(1,NP,1,1)-DCPP(1,NP,1,2), FCPP(1,NP,1,1)-FCPP(1,NP,1,2)  &
+!              , DCPP2(1,NP,1,1,1), DCPP2(1,NP,1,2,1)
+!      END DO
       CALL mtx_set_communicator(comm_nr)
 !      CALL source_allreduce(SPPF)
       CALL mtx_reset_communicator
