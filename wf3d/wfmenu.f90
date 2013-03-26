@@ -1,7 +1,8 @@
 subroutine wfmenu
 
+  use libmpi
+  use libmtx
   use wfcomm
-  use libmtxc
   implicit none
   
   integer,dimension(1):: MODE

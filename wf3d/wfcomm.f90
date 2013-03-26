@@ -47,13 +47,12 @@ module wfcomm
 !       /WFPRM/
   real(rkind):: RF
   integer(ikind):: NAMAX
-  real(rkind),dimension(NSM):: PZCL
   real(rkind):: ZPMIN,ZPMAX,ZPLEN
   real(rkind):: PPN0,PTN0,PIN
   integer(ikind):: NPRINT,NDRAWD,NDRAWA,NGRAPH
   integer(ikind):: MODELI,MODELB
   integer(ikind):: MODELD,MODELP,MODELS,MODELX,MODELA
-  real(rkind):: POSRES,POSABS,EPSABS,DLTABS
+  real(rkind):: POSRES,POSABS,EPSABS,DLTABS,EPSWF
 
 !       /WFPRK/
   character(len=32) :: KFNAME,KFNAMA,KFNAMF,KFNAMN
@@ -213,7 +212,8 @@ module wfcomm
 contains
   subroutine wfdiv_initialize
 
-    use libmtxc
+    use libmpi
+    use libmtx
     implicit none
     integer :: idata(3)
 
@@ -238,7 +238,7 @@ contains
 ! ----------------------------------  
   subroutine wfdiv_allocate
 
-    use libmtxc
+    use libmtx
     implicit none
     integer,save:: NXM_save,NYM_save,NZM_save
     integer,save:: div_init=0

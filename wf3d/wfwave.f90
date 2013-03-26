@@ -4,7 +4,7 @@
 
 SUBROUTINE WFWAVE
 
-  use libmtxc
+  use libmtx
   use wfcomm
   implicit none
   integer :: IERR

@@ -26,12 +26,12 @@
 program wfmain
   
   use wfcomm
-  use libmtxc
+  use libmtx
   implicit none
   integer:: ncomw
   
   ! --- initialize ---
-  call mtx_initialize(nrank,nprocs,ncomw)
+  call mtx_initialize
   call pl_allocate_ns
 
   if(nrank.eq.0) then
@@ -60,7 +60,6 @@ program wfmain
   call wffld_deallocate
   call wfpwr_deallocate
   if(nrank.eq.0) call wfwin_deallocate
-  call mtx_cleanup
   call mtx_finalize
   stop
 end program wfmain

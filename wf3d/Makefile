@@ -2,15 +2,18 @@
 include ../make.header
 
 ##### Without PETSc library #####
+#FLINKER=$(FCFREE)
 #LIBMTX=../mtxp/libmtxbnd.o ../mtxp/libmtxnompi.o
 ##### With MUMPS library #####
-LIBMTX=../mtxp/libmtxmumps.o ../mtxp/libmtxmpi.o
+FLINKER=$(MF90)
+LIBMTX=../mtxp/libmtxmumps.o ../mtxp/libmtxmpi.o 
+LIBMUMPSX=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common -lpord -lscalapack -lblacs -lparmetis -lmetis -llapack -lblas
 
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-FFLAGS = $(OFLAGS)
-#FFLAGS = $(DFLAGS)
+#FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I.$(MOD) -I../plx/$(MOD) -I../eq/$(MOD) \
             -I../../bpsd/$(MOD) -I../mtxp
@@ -59,7 +62,7 @@ libs:
 	(cd ../lib; make tasklib.a)
 
 wf : $(LIBS) wfmain.o
-	$(FCFREE) wfmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(PETSCLIBS)
+	$(FLINKER) wfmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBMUMPSX)
 
 clean:
 	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod
