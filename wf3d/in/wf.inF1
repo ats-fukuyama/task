@@ -1,0 +1,47 @@
+0
+f
+gsdata.F1
+c
+#
+d
+d
+201,201,101
+c
+0.045,0.0,0.15/
+0.009,0.009,0.009
+g
+s
+elm-data
+x
+#
+a
+a
+1
+c
+0.04,,0.12
+g
+s
+ant-data
+x
+#
+p
+ &wf BB=0.D0
+     RF=2450.D0,
+     NSMAX=0
+ &end
+v
+w
+g
+MEZ0.12
+MEZ0.1
+MEZ0.06
+MEX0.0
+MEY0.0
+MAZ0.12
+MAZ0.1
+MAZ0.06
+MAX0.0
+MAY0.0
+x
+#
+q

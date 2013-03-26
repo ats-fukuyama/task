@@ -1,0 +1,116 @@
+\documentclass[11pt]{jarticle}
+\usepackage{amsmath}
+\usepackage{af}
+\def\baselinestretch{1.2}
+\pagestyle{empty}
+
+\let\dsp=\displaystyle
+
+\renewcommand\r[1]{\mathrm{#1}}
+\newcommand\unit[1]{\,\r{#1}}
+\renewcommand{\vec}[1]{\leavevmode\hbox{\boldmath$#1$}}
+\newcommand{\svec}[1]{\leavevmode\hbox{\boldmath$\scriptstyle#1$}}
+\newcommand{\tensor}[1]{\mathord{\displaystyle\mathop#1^\leftrightarrow}}
+
+\newcommand{\rd}{\r{d}}
+\newcommand{\exe}{\,\r{e}\,}
+\newcommand{\imi}{\,\r{i}\,}
+
+\newcommand{\vE}{\vec{E}}
+\newcommand{\ve}{\vec{e}}
+\newcommand{\vet}{\vec{e}_t}
+\newcommand{\vH}{\vec{H}}
+\newcommand{\vh}{\vec{h}}
+\newcommand{\vht}{\vec{h}_t}
+\newcommand{\vnb}{\vec{\nabla}}
+\newcommand{\vnbt}{\vec{\nabla}_t}
+\newcommand{\vnbz}{\vec{\nabla}_z}
+\newcommand{\vz}{\vec{z}}
+
+
+\begin{document}
+\section{モデルパラメータ}
+
+\begin{enumerate}
+\item
+\texttt{MODELN}：nasdata ファイルの情報をどれだけ利用するかを設定する．
+\begin{center}
+\texttt{MODELN} が 7 以下の場合 \\[3mm]
+\begin{tabular}{|c|ccc|}
+\hline
+\texttt{MODELN} & 比誘電率 & 導波管励起 & 吸収境界 \\
+\hline
+0 & × & × & × \\
+1 & ○ & × & × \\
+2 & × & ○ & × \\
+3 & ○ & ○ & × \\
+4 & × & × & ○ \\
+5 & ○ & × & ○ \\
+6 & × & ○ & ○ \\
+7 & ○ & ○ & ○ \\
+\hline
+\end{tabular}
+\end{center}
+\begin{itemize}
+\item
+比誘電率を利用しない場合は，媒質はすべて真空と見なされる．
+\item
+導波管励起を利用しない場合は，アンテナ励起を設定する必要がある．
+\item
+吸収境界は，垂直入射の平面波のみを吸収する簡易型境界条件である．
+\item
+\texttt{MODELN} が 100 以上の場合：
+\begin{itemize}
+\item
+\texttt{XXY} : \texttt{XX} は導波管入射モードを指定，\texttt{Y} は入射
+方向および他端境界条件を指定．
+\item
+TE11' は TE11 を 90度回転させたモードを表す．
+\end{itemize}
+\begin{center}
+\begin{tabular}{|c|lll|}
+\hline
+\texttt{XX} & 導波管 & 入射モード & 反射モード \\
+\hline
+11 & 同軸 & TEM & TEM, TE11, TE11' TM01 \\
+12 & 同軸 & TE11 & TEM, TE11, TE11', TM01 \\
+13 & 同軸 & TM01 & TEM, TE11, TE11', TM01 \\
+14 & 同軸 & TEM, TE11, TM01 & TEM, TE11, TE11', TM01 \\
+\hline
+21 & 円形 & TE11 & TE11, TE11', TM01, TE01' \\
+22 & 円形 & TM01 & TE11, TE11', TM01, TE01' \\
+23 & 円形 & TE01 & TE11, TE11', TM01, TE01' \\
+24 & 円形 & TE11（17度回転）& TE11, TE11', TM01, TE01' \\
+25 & 円形 & TE11（右円偏波）& TE11, TE11', TM01, TE01' \\
+26 & 円形 & TE11（左円偏波）& TE11, TE11', TM01, TE01' \\
+27 & 円形 & TE11, TM01, TE01 & TE11, TE11', TM01, TE01' \\
+\hline
+31 & 矩形 & TE01 & TE01, TM11, TE11 \\
+32 & 矩形 & TM11 & TE01, TM11, TE11 \\
+33 & 矩形 & TE11 & TE01, TM11, TE11 \\
+34 & 矩形 & TE01, TM11, TE11  & TE01, TM11, TE11 \\
+\hline
+40 & 円形平板 & TEM & TEM \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|c|ll|}
+\hline
+\texttt{Y} & 入射方向 & 他端境界条件 \\
+\hline
+0 & $z_\r{max}$ から入射 & 反射条件 \\
+1 & $z_\r{min}$ から入射 & 反射条件 \\
+2 & $z_\r{max}$ から入射 & 導波管固有モード \\
+3 & $z_\r{min}$ から入射 & 導波管固有モード \\
+4 & $z_\r{max}$ から入射 & 簡易吸収条件 \\
+5 & $z_\r{min}$ から入射 & 簡易吸収条件 \\
+\hline
+\end{tabular}
+\end{center}
+
+\end{itemize}
+\end{enumerate}
+\end{document}
+

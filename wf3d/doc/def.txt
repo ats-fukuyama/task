@@ -1,0 +1,119 @@
+
+   IDIM     dimension of space (3)
+   IDIMP    IDIM+1
+
+   NNM      maximum number of nodes (size of arrays)
+   NEM      maximum number of elements (size of arrays)
+   NKM      maximum number of medium blocks (size of arrays)
+   NMM      maximum number of material blocks (size of arrays)
+   NBM      maximum number of boundary blocks (size of arrays)
+   NSDM     maximum number of side elements (size of arrays)
+   NSFM     maximum number of boundary surfaces (size of arrays)
+   NBPM     maximum number of nodes on a boundary block (size of arrays)
+
+   NNMAX    number of nodes
+   NEMAX    number of elements
+   NKMAX    number of medium blocks
+   NMMAX    number of materials
+   NBMAX    number of boundary blocks
+   NSDMAX   number of side elements
+   NSFMAX   number of boundary surfaces
+
+   XND(NNM)  x coordinate of the node
+   YND(NNM)  y coordinate of the node
+   ZND(NNM)  z coordinate of the node
+   KANOD(NNM)  attribute of the node
+       0 : not on a boundary
+       1 : node on conducting wall boundary 
+              (tangentail component of E = 0)
+      -NB (negative) : node of boundary block number NB
+              (tangentail component of E = given)
+
+   NDELM(IDIMP+1,NEM)  node number of a vertex of the elememnt, including WG
+   KAELM(NEM)        medium block number of the element
+       NK (positive) : medium block number
+   KNELM(IDIMP,NEM)  neighboring element number on surface facing the vertex
+       NE (positive) : element number of the neighboring element
+       0 : conducting wall boundary surface
+      -NB (negative) : boundary block number
+   NBELM(NEM)        boundary block number of the element
+       0 : no boundary surface or only conducting wall boundary surface
+       NB (positive) : boundary block number
+                          assuming only one boundary block
+
+   XEMIN(NEM) minimum x cordinate in the element
+   YEMIN(NEM) minimum y cordinate in the element
+   ZEMIN(NEM) minimum z cordinate in the element
+   XEMAX(NEM) maximum x cordinate in the element
+   YEMAX(NEM) maximum y cordinate in the element
+   ZEMAX(NEM) maximum z cordinate in the element
+
+   NMKA(NKM)  material number of the medium block
+
+   EPSDM(NMM) electric permittivity of the material
+   AMUDM(NMM) magnetic permeability of the material
+   SIGDM(NMM) electric conductivity of the material
+
+   KABDY(NBM) attribute of the boundary block
+       1 : perfectly conducting boundary (phi=0)
+       2 : perfectly conducting boundary (phi=PHIBDY)
+       4 : absorbing bounary : not yet supported
+       5 : resistive wall bounary : not yet supported
+      11 : WG bounary (coaxial TEM)
+      12 : WG bounary (coaxial TE11) : not yet supported
+      13 : WG bounary (coaxial TM01) : not yet supported
+      21 : WG bounary (circular TE11)
+      22 : WG bounary (circular TM01)
+      23 : WG bounary (circular TE01)
+      31 : WG bounary (rectangular TE01)
+      32 : WG bounary (rectangular TM11)
+      33 : WG bounary (rectangular TE11)
+      4m : WG bounary (circular palallel plate TEM)
+
+   PHIBDY(NBM) potential on the boundary (KABDY=2)
+   XGBDY(NBM) x component of the gradient vector of potential (KABDY=2)
+   YGBDY(NBM) y component of the gradient vector of potential (KABDY=2)
+   ZGBDY(NBM) z component of the gradient vector of potential (KABDY=2)
+   RESBDY(NBM) resistivity of the boundary wall (KABDY=5)
+   PWRBDY(NBM) input power of WG (KABDY>10)
+   PHABDY(NBM) field phase of WG (KABDY>10)
+   XNBDY(3,NBM) x component of the unit vectors of WG (KABDY>10)
+   YNBDY(3,NBM) y component of the unit vectors of WG (KABDY>10)
+   ZNBDY(3,NBM) z component of the unit vectors of WG (KABDY>10)
+   XPBDY(NBM) x coordineate of WG center (KABDY>10)
+   YPBDY(NBM) y coordineate of WG center (KABDY>10)
+   ZPBDY(NBM) z coordineate of WG center (KABDY>10)
+   SZBDY(2,NBM) size along the edges of rectangular WG (KABDY=2x)
+                radii of WG (KABDY=1x,2x,4x)
+
+   NDBDY(NBM)  node number for the boundary block variables
+   NNBDY(NBM)  number of the boundary block variables
+
+   NESRF(NSFM) element number of the surface
+   INSRF(NSFM) node index of the vertex facing the surface
+   NDSRF(3,NSFM) node number of the vertex of the surface
+   KNSRF(3,NSFM) surface number adjacent to the edge facing the vertex
+                 of the surface
+
+   NDSID(2,NSDM) node number of the side element
+   KASID(NSDM)   attribute of the side element
+      0: not on boundary
+      1: on conducting wall
+      -NB (negative) : on boundary block number NB
+   NSDELM(6,NEM)  side element number of the element 
+                  (negative for reverse direction)
+   NSDSRF(3,NSFM) side element number of the surface
+                  (negative for reverse direction)
+
+   MODELM: 0: all boundary conducting wall, all element plasma/vacuum
+           1: all boundary conducting wall, element data used
+           2: absorbing wall conductive, WG data used, all element vacuum
+           3: absorbing wall conductive, WG data used, element data used
+           1XX: coaxial WG, all element vacuum
+           2XX: circular WG, all element vacuum
+           3XX: rectangular WG, all element vacuum
+           4XX: parallel plate WG, all element vacuum
+
+   NENBP(NBPM,NBM) element number of the node on the boundary block
+   NDNBP(NBPM,NBM) node number of the node on the boundary block
+   NBPMAX(NBM) number of nodes on the boundary block

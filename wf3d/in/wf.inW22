@@ -1,0 +1,32 @@
+0
+f
+gsdata.W22
+c
+#
+ MODELN=222 MODELS=3 MODELX=3 RF=3540
+ NGXMAX=101 NGYMAX=101 NGVMAX=101
+d
+d
+a
+0.045,0.0,0.0,0.15
+0.01,0.01,0.01
+g
+x
+#
+pn=0,0 pns=0,0
+v
+w
+g
+eyrz0.075 eyiz0.075
+eyrx0.0 eyix0.0
+exry0.0 exiy0.0
+ezz0.00,0.00
+mez0.145
+mez0.075
+mez0.005
+mex0.0
+mey0.0
+exz0.01,0.01
+eyz0.01,0.01
+x
+q

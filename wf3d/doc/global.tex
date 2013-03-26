@@ -1,0 +1,193 @@
+\begin{flushright}
+00/04/25
+\end{flushright}
+\begin{center}\LARGE\bf
+波動伝播解析コード TASK/WF 利用説明書
+\end{center}
+
+\tableofcontents
+
+\section{全体構成}
+
+\subsection{ソース・プログラム}
+\[
+\begin{tabular}{lll}
+\hline
+ヘッダー
+& 共通変数定義 & wfcomm.h \\
+\hline
+機能部
+& 実行制御 & wfmain.f \\
+& 要素分割 & wfdiv.f \\
+& 領域データ作成 & wfzone.f \\
+& アンテナデータ作成 & wfant.f \\
+& 波動伝播解析 & wfwave.f \\
+& プラズマ輸送解析 & wfevol.f \\
+& 図形表示 & wfgout.f \\
+& 分散関係表示 & wffreq.f \\
+\hline
+共通部
+& 空間分布ルーチン & wfprof.f \\
+& ファイル入出力 & wffile.f \\
+& 共通ルーチン & wfsub.f \\
+& 図形ルーチン & wfgsub.f \\
+& 汎用ルーチン & wflib.f \\
+\hline
+\end{tabular}
+\]
+\begin{itemize}
+\item
+wfsub.f および wfgsub.f は wfcomm.h に依存するサブルーチン・ファイル
+\item
+wflib.f は wfcomm.h に依存しないサブルーチン・ファイル
+\end{itemize}
+
+\subsection{実行手順}
+
+\[
+\begin{tabular}{l@{\ }lp{110mm}}
+1. & 要素分割 & 計算領域に節点を定義し，節点を頂点とする３角形要素に分
+割する．
+\\
+2. & 領域分割 & 計算領域をプラズマ領域，誘電体領域，真空領域に分割し，
+それらの境界の属性を定義する．
+\\
+3. & アンテナ定義 & アンテナの形状および位置を定義する．
+\\
+4. & 波動伝播計算 & アンテナによって励起された波動電磁界および吸収パワー
+の空間分布を計算する．
+\\
+5. & プラズマ輸送計算 & 電子とイオンの密度・温度の時間発展を計算する．
+\\
+6. & 図形表示 & 計算結果の空間分布および時間発展を表示する．
+\end{tabular}
+\]
+\begin{itemize}
+\item
+波動を用いたプラズマ生成のシミュレーションでは 4. と 5. を繰り返すこと
+によって，時間発展を解析する．
+\item
+波動を用いないプラズマのシミュレーションでは 5. のみを繰り返す．
+\item
+定義した要素データ，領域データ，アンテナデータをファイルに保存し，シミュ
+レーションの際に読み込むことができる．
+\item
+計算によって得られた空間分布データをファイルに保存し，あとからそのデー
+タを読み込んで計算を続行する機能は未完成．
+\end{itemize}
+
+\subsection{インストール手順}
+
+\begin{itemize}
+\item
+ファイル wf.XXXXXX.tar.gz を解凍する．GNU 版 tar がある場合には
+\\\qquad \verb/tar xvzf wf.XXXXXX.tar.gz/
+\\
+ない場合には
+\\\qquad \verb/gunzip wf.XXXXXX.tar.gz/
+\\\qquad \verb/tar xvf wf.XXXXXX.tar/
+
+\item
+ディレクトリ wf.XXXXXX に移動する．
+\\\quad\verb/cd wf.XXXXXX/
+
+\item
+Makefile を編集する．
+\begin{itemize}
+\item
+\verb/FLIBS/ にはグラフィックライブラリ (libgsp, libgdp)，X11 ライブラリ 
+(libX11)，および数学ライブラリ (libn) を設定
+\item
+\verb/OFLAGS/ にはコンパイラの最適化時オプションを設定
+\item
+\verb/DFLAGS/ にはコンパイラのデバッグ時オプションを設定
+\item
+\verb/FC/ には FORTRAN　コンパイラのプログラム名を設定
+\item
+\verb/LFLAGS/ にはライブラリに対するコンパイルオプションを設定
+\item
+\verb/DFLAGS/ にはライブラリ以外に対するコンパイルオプションを設定
+\end{itemize}
+
+\item
+実行プログラム wf を作成する．
+\\\quad\verb/make/
+
+\end{itemize}
+
+
+\subsection{座標系}
+
+\begin{itemize}
+\item
+直交座標系 (\verb/MODELS=0/)
+\\\qquad 横方向：$x$, 縦方向：$y$, 手前方向：$z$
+\item
+円筒座標系 (\verb/MODELS=1/)
+\\\qquad 横方向：$R$, 縦方向：$Z$, 手前方向：$\theta$
+\item
+トカマク (\verb/MODELS=2/)
+\\\qquad 横方向：$R-R_0$, 縦方向：$Z$, 手前方向：$\theta$
+\end{itemize}
+
+
+\newpage
+
+\subsection{コンパイル・パラメータ}
+
+\begin{itemize}
+\item
+配列の大きさなどはファイル \verb/wfcomm.h/ の中の \verb/paremter/ 文で
+定義されている．このファイルを変更して \verb/make/ すると，依存してい
+るファイルはすべて再コンパイルされる．
+
+\[
+\begin{tabular}{lrl}
+変数名 & 標準値 & 説明 \\
+\hline
+NAM & 8 & アンテナ本数の最大値 \\
+NFM & 2 & 輸送解析における粒子種数の最大値 \\
+NSM & 3 & 波動解析における粒子種数の最大値 \\
+NXM & 200 & X 方向の分割数の最大値 \\
+NYM & 200 & Y 方向の分割数の最大値 \\
+JNUMM & 800 & アンテナ要素データ数の最大値 \\
+NBDYM & 500 & 境界節点数の最大値 \\
+NNODM & 2200 & 節点数の最大値 \\
+NELMM & 4000 & 要素数の最大値 \\
+MBNDM & 400 & 帯行列の横幅の最大値 \\
+MLENM & 12000 & 帯行列の行数の最大値 \\
+NCNM & 36 & \\
+NRM & 101 & 吸収パワーの径方向分布を表示する際の分割数の最大値 \\
+NDM & 20 & 要素属性設定データ数の最大値 \\
+NBM & 50 & 境界属性設定データ数の最大値 \\
+NMM & 8 & 誘電率設定データ数の最大値 \\
+NVM & 2 & 電位設定データ数の最大値 \\
+NGTM & 1001 & 時間発展保存データ数の最大値 \\
+NZLM & 5 & Z 方向のフーリエ分解分割数最大値の２を基底とする対数 \\
+NWDM & 12 & １頁に表示されるグラフの最大数 \\
+NCHM & 10 & グラフ設定変数の文字数最大値 \\
+NCM & 3 & 静磁場ループコイル数の最大値 \\
+\hline
+\end{tabular}
+\]
+
+\item
+プログラム内で定義されているパラメータ
+
+\[
+\begin{tabular}{llrl}
+ファイル名 & 変数名 & 標準値 & 説明 \\
+\hline
+wfdiv.f  & NXQM & 11 & 長方形分割における横方向長方形数の最大値 \\
+wfdiv.f  & NYQM & 11 & 長方形分割における縦方向長方形数の最大値 \\
+wffreq.f & NNXM & 201 & 特性周波数の密度依存性グラフの横方向分割数の最
+大値 \\
+wfgsub.f & NGXM & 101 & 等高線表示における横方向分割数の最大値 \\
+wfgsub.f & NGYM & 101 & 等高線表示における縦方向分割数の最大値 \\
+wfgsub.f & NSTEPM & 101 & 等高線表示における等高線本数の最大値 \\
+libspl.f & NMAX & 1001 & スプライン補間における原データ数の最大値 \\
+\hline
+\end{tabular}
+\]
+\end{itemize}
+

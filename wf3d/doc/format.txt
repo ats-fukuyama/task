@@ -1,0 +1,299 @@
+3次元電界計算の入力書式
+
+概要
+　メッシュ分割後のGRID(ノード)はGRID番号と座標で表記される
+　TETRA要素は４つのGRIDから成る
+　TETRA要素には物性番号があり、どのPropertyを参照するかが示される
+　Propertyの中には、材質番号があり、どのMaterialを参照するかが示される
+　Materialの中には、誘電体･抵抗体・プラズマの物性値がある
+　境界条件は面上に定義される
+　　完全導体面・完全吸収面の面は、面上のTETRA要素の底面の集合として示される
+　　底面は対する頂点のGRID番号よりその対面として定義される
+　導波管固有モード発生条件の定義面はその面上のノードの集合で示される
+　振動電圧の電位差は、二つのGRIDの電位で決められる
+
+
+書式詳細
+
+周波数
+書式
+FREQENCY周波数(8カラム)
+桁
+0        1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+FREQENCYFFFFFFFF 
+e.g.
+FREQENCY2.45e+09
+
+UNIT_LENGTH
+  この条件は、GRIDの座標の単位を指定する
+　km:キロメートル m:メートル cm:センチメートル mm:ミリメートル 
+　mcrm:マイクロメートル nm:ナノメートル A：オングストローム
+書式
+UNIT_LENGTH 長さの単位
+桁
+0        1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+UNIT_LENGTH AAAA
+e.g.
+UNIT_LENGTH mm
+
+GRID
+書式
+GRID  GRID番号(8カラム) 0　X座標(8カラム)Y座標(8カラム)Z座標(8カラム)　 0
+桁
+0        1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+GRID    GGGGGGGG       0XXXXXXXXYYYYYYYYZZZZZZZZ       0        
+e.g.
+GRID          13       0 70.9756 4.03234    20.3       0        
+GRID          21       0 68.1513   5.901    20.3       0        
+GRID          22       0   63.65      8.    20.3       0        
+GRID          23       0 59.1487  10.099    20.3       0        
+GRID          38       0 69.9794 3.94519     20.       0        
+
+
+TETRA要素
+書式
+CTETRA  要素番号(8カラム)物性値番号(8カラム)GRID番号(8カラム)GRID番号(8カラム)GRID番号(8カラム)GRID番号(8カラム) 
+桁
+0        1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+CTETRA  EEEEEEEEPPPPPPPPIIIIIIIIJJJJJJJJKKKKKKKKLLLLLLLL                        
+e.g.
+CTETRA        69       1      13      38      58     286                        
+CTETRA        70       1     286      38      58      62                        
+CTETRA        71       1      13      58     636     286                        
+CTETRA        72       1      46     289      38     633                        
+
+
+物性値(誘電体･抵抗体)
+書式
+$ FEMAP Property 物性値番号(８カラム以下) : 物性名称(25カラム以下)
+PSOLID  物性値番号(８カラム)   材質番号(８カラム)    0        
+桁
+0        1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+$ FEMAP Property PPPPPPPP : AAAAAAAAAAAAAAAAAAAAAAAAA
+PSOLID  PPPPPPPPMMMMMMMM       0        
+e.g.
+$ FEMAP Property 1 : solid1
+PSOLID         1       1       0        
+$ FEMAP Property 2 : solid2
+PSOLID         2       2       0        
+$ FEMAP Property 3 : solid3
+PSOLID         3       3       0        
+
+
+材質(誘電体、抵抗体)
+書式
+$ FEMAP Material 材質番号(８カラム以下) : 材質名称(２５文字以下)
+MAT1    材質番号(８カラム)                    0.誘電率(８カラム)     0.        
+MAT4    材質番号(８カラム)tan(δ)(８カラム)透磁率(８カラム)      電気伝導率(８カラム)
+桁
+0        1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+$ FEMAP Material MMMMMMMM : AAAAAAAAAAAAAAAAAAAAAAAAA
+MAT1    MMMMMMMM                              0.eeeeeeee      0.        
+MAT4    MMMMMMMMddddddddmmmmmmmm                        ssssssss
+e.g.
+$ FEMAP Material 11 : material1
+MAT1          11                              0.   10.25      0.        
+MAT4          11  0.0556   1.023                        2.68E+11
+
+材質(プラズマ)
+書式
+$ FEMAP Material 材質番号(８カラム以下) : plasma_001(末尾番号)
+MAT1    材質番号(８カラム)プラズマ密度(８カラム)衝突周波数(８カラム)      0.      0.      0.        
+桁
+0        1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+$ FEMAP Material MMMMMMMM : plasma_001
+MAT1    MMMMMMMMppppppppnnnnnnnn              0.      0.      0.        
+e.g.
+$ FEMAP Material 22 : plasma
+MAT1          225.56E+115.67E+15              0.      0.      0.        
+
+
+境界条件(完全導体面)
+  この条件は、要素の面で指定する。テトラ要素頂点GRIDの対向する面がそれである。
+書式
+$ FEMAP Load Set 境界条件番号(８カラム以下) : DotaiMen
+PLOAD4  境界条件番号(８カラム)要素番号(８カラム)数字(意味無) 要素底面のGRID(８カラム)要素頂点のGRID(８カラム)
+桁
+0        1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+$ FEMAP Load Set KKKKKKKK : DotaiMen
+PLOAD4  KKKKKKKKEEEEEEEEQQQQQQQQ                        FFFFFFFFGGGGGGGG
+e.g.
+$ FEMAP Load Set 52 : DotaiMen
+PLOAD4        52      37      2.                              11      14
+PLOAD4        52      48      2.                               6      14
+
+境界条件(完全吸収面)
+  この条件は、境界面上の要素の面で指定する。テトラ要素頂点GRIDの対向する面がそれである。
+書式
+$ FEMAP Load Set 境界条件番号(８カラム以下) : KyushuMen
+PLOAD4  境界条件番号(８カラム)要素番号(８カラム)数字(意味無) 要素底面のGRID(８カラム)要素頂点のGRID(８カラム)
+桁
+0        1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+$ FEMAP Load Set KKKKKKKK : KyushuMen
+PLOAD4  KKKKKKKKEEEEEEEEQQQQQQQQ                        FFFFFFFFGGGGGGGG
+e.g.
+$ FEMAP Load Set 53 : KyushuMen
+PLOAD4        53      16      3.                              12       5
+PLOAD4        53      24      3.                               1       5
+PLOAD4        53      14      3.                              12       5
+
+
+固有モード発生条件(矩形導波管TE10)
+  この条件は、入射平面上に並ぶGRIDで指定する
+　入射平面上に並ぶ全てのGRID番号が表示される
+　TE10の電界の矩形面内の向きをベクトル指定(すべてのGRIDで同じ向き)
+書式
+$ FEMAP Load Set 発生条件番号(８カラム以下) : Kuke_TE10 電力(W)
+FORCE   発生条件番号(８カラム)GRID番号(8カラム)     0      1.  X方向成分(８カラム)Y方向成分(８カラム)Y方向成分(８カラム)
+桁
+0        1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+$ FEMAP Load Set HHHHHHHH : Kuke_TE10 pppppppp
+FORCE   HHHHHHHHGGGGGGGG       0      1.XXXXXXXXYYYYYYYYZZZZZZZZ
+e.g.
+$ FEMAP Load Set 51 : Kuke_TE10       15
+FORCE         51       1       0      1.      1.      2.      3.
+FORCE         51       2       0      1.      1.      2.      3.
+FORCE         51       3       0      1.      1.      2.      3.
+
+
+固有モード発生条件(円形導波管TE11)
+  この条件は、入射平面上に並ぶGRIDで指定する
+　入射平面上に並ぶ全てのGRID番号が表示される
+　TE11の電界の矩形面内の向きを二つのベクトルと位相差で指定(すべてのGRIDで同じ向き)
+　一つめのベクトルはFORCEと書かれた行にあり、二つ目はMOMENTと書かれた行にある。
+書式
+$ FEMAP Load Set 発生条件番号(８カラム以下) : Enke_TE10 電力(W) 位相差(degree)
+FORCE    発生条件番号(８カラム)GRID番号(8カラム)     0      1.  X方向成分(８カラム)Y方向成分(８カラム)Y方向成分(８カラム)
+MOMENT   発生条件番号(８カラム)GRID番号(8カラム)     0      1.  X方向成分(８カラム)Y方向成分(８カラム)Y方向成分(８カラム)
+桁
+0        1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+$ FEMAP Load Set HHHHHHHH : Enke_TE11 pppppppp hhhh
+FORCE   HHHHHHHHGGGGGGGG       0      1.XXXXXXXXYYYYYYYYZZZZZZZZ
+MOMENT  HHHHHHHHGGGGGGGG       0      1.XXXXXXXXYYYYYYYYZZZZZZZZ
+e.g.
+$ FEMAP Load Set 51 : Enke_TE11       15 90.5
+FORCE         51       1       0      1.      1.      2.      3.
+FORCE         51       2       0      1.      1.      2.      3.
+FORCE         51       3       0      1.      1.      2.      3.
+FORCE         51       4       0      1.      1.      2.      3.
+MOMENT        51       1       0      1.     -3.      0.      1.
+MOMENT        51       2       0      1.     -3.      0.      1.
+MOMENT        51       3       0      1.     -3.      0.      1.
+MOMENT        51       4       0      1.     -3.      0.      1.
+
+固有モード発生条件(円形導波管TM01)
+  この条件は、入射平面上に並ぶGRIDで指定する
+　入射平面上に並ぶ全てのGRID番号が表示される
+　二つのベクトル表示があるが、軸対称なので、ここでは特に意味はない
+書式
+$ FEMAP Load Set 発生条件番号(８カラム以下) : Enke_TM01 電力(W) 
+FORCE    発生条件番号(８カラム)GRID番号(8カラム)     0      1.  X方向成分(８カラム)Y方向成分(８カラム)Y方向成分(８カラム)
+MOMENT   発生条件番号(８カラム)GRID番号(8カラム)     0      1.  X方向成分(８カラム)Y方向成分(８カラム)Y方向成分(８カラム)
+桁
+0        1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+$ FEMAP Load Set HHHHHHHH : Enke_TM01 pppppppp
+FORCE   HHHHHHHHGGGGGGGG       0      1.XXXXXXXXYYYYYYYYZZZZZZZZ
+MOMENT  HHHHHHHHGGGGGGGG       0      1.XXXXXXXXYYYYYYYYZZZZZZZZ
+e.g.
+$ FEMAP Load Set 51 : Enke_TM01       15
+FORCE         51       1       0      1.      1.      2.      3.
+FORCE         51       2       0      1.      1.      2.      3.
+FORCE         51       3       0      1.      1.      2.      3.
+FORCE         51       4       0      1.      1.      2.      3.
+MOMENT        51       1       0      1.     -3.      0.      1.
+MOMENT        51       2       0      1.     -3.      0.      1.
+MOMENT        51       3       0      1.     -3.      0.      1.
+MOMENT        51       4       0      1.     -3.      0.      1.
+
+固有モード発生条件(同軸管TEM)
+  この条件は、入射平面上に並ぶGRIDで指定する
+　入射平面上に並ぶ全てのGRID番号が表示される
+　一つのベクトル表示があるが、軸対称なので、ここでは特に意味はない
+書式
+$ FEMAP Load Set 発生条件番号(８カラム以下) : Dojik_TEM 電力(W)
+FORCE   発生条件番号(８カラム)GRID番号(8カラム)     0      1.  X方向成分(８カラム)Y方向成分(８カラム)Y方向成分(８カラム)
+桁
+0        1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+$ FEMAP Load Set HHHHHHHH : Dojik_TEM pppppppp
+FORCE   HHHHHHHHGGGGGGGG       0      1.XXXXXXXXYYYYYYYYZZZZZZZZ
+e.g.
+$ FEMAP Load Set 51 : Dojik_TEM       15
+FORCE         51       1       0      1.      1.      2.      3.
+FORCE         51       2       0      1.      1.      2.      3.
+FORCE         51       3       0      1.      1.      2.      3.
+
+振動電圧条件
+  この条件は、二つのGRIDに電圧で指定する。差が電位差である
+書式
+$ FEMAP Load Set 電圧条件番号(８カラム以下) : Denastu
+TEMP  電圧条件番号(８カラム)GRID番号(８カラム)電圧(８カラム) 
+桁
+0        1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+$ FEMAP Load Set KKKKKKKK : Denastu
+TEMP    KKKKKKKKEEEEEEEEVVVVVVVV 
+e.g.
+$ FEMAP Load Set 52 : Denastu
+TEMP           2      37      2.  
+$ FEMAP Load Set 52 : Denastu
+TEMP           1      40      0. 
+ 
+
+データ終了書式
+ENDDATA
+桁
+0        1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+ENDDATA
+
+
+データファイルの前書き
+　以下のような一連のコメントがつくが特に意味はない。
+ID D:\MeshFile\K-1121-81.MOD,FEMAP
+SOL SESTATICS
+TIME 10000
+CEND
+  ECHO = NONE
+  DISPLACEMENT(PLOT) = ALL
+  SPCFORCE(PLOT) = ALL
+  OLOAD(PLOT) = ALL
+  MPCFORCE(PLOT) = ALL
+  GPFORCE(PLOT) = ALL
+  FORCE(PLOT,CORNER) = ALL
+  STRESS(PLOT,CORNER) = ALL
+  STRAIN(PLOT,FIBER,CORNER) = ALL
+  ESE(PLOT) = ALL
+SUBCASE 1
+SUBCASE 2
+  LOAD = 2
+BEGIN BULK
+$ ***************************************************************************
+$   Written by : FEMAP
+$   Version    : 8.20
+$   Translator : MSC.Nastran
+$   From Model : D:\MeshFile\K-1121-81.MOD
+$   Date       : Wed Dec 11 09:28:34 2002
+$ ***************************************************************************
+$
+PARAM,POST,-1
+PARAM,OGEOM,NO
+PARAM,AUTOSPC,YES
+PARAM,GRDPNT,0
+CORD2C         1       0      0.      0.      0.      0.      0.      1.+FEMAPC1
++FEMAPC1      1.      0.      1.
+CORD2S         2       0      0.      0.      0.      0.      0.      1.+FEMAPC2
++FEMAPC2      1.      0.      1.
+

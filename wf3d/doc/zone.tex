@@ -1,0 +1,150 @@
+\section{属性データ作成 ({\tt wfzone})}
+\begin{enumerate}
+\item
+機能
+\begin{itemize}
+\item[Z:]
+属性データの作成
+\item[G:]
+属性データの図形表示
+\item[W:]
+属性データの数値表示
+\item[S:]
+属性データのファイル出力
+\item[L:]
+属性データのファイル入力
+\item[X:]
+作業終了
+\end{itemize}
+
+\item
+属性指定
+\begin{itemize}
+\item[D:]
+要素属性指定
+\begin{itemize}
+\item
+NDMAX: 指定データ数
+\item
+ND,ID,XMIN,XMAX,YMIN,YMAX: 要素領域番号，要素属性，領域指定
+\item
+指定された領域に含まれる要素の属性を指定する．
+\begin{itemize}
+\item
+ID=0: プラズマ（標準属性）
+\item
+ID=1: 真空
+\item
+ID$>$1: 指定された誘電率の絶縁体
+\end{itemize}
+\end{itemize}
+
+\item[E:]
+誘電率指定
+\begin{itemize}
+\item
+NMMAX: 指定データ数
+\item
+NM,EPSD: 要素属性，比誘電率
+\item
+指定された要素属性をもつ要素の比誘電率を指定する．
+\end{itemize}
+
+\item[A:]
+高周波境界属性指定
+\begin{itemize}
+\item
+NBMAX: 指定データ数
+\item
+NB,ID,XMIN,XMAX,YMIN,YMAX: 境界領域番号，境界属性，領域指定
+\item
+指定された領域に含まれる境界節点の属性を指定する．
+\begin{itemize}
+\item
+ID=0: プラズマ中（標準属性）
+\item
+ID=1: プラズマ導体面：電位 0
+\item
+ID=2: プラズマ導体面：電位 PHIW
+\item
+ID=3: プラズマ導体面：電位 0 から PHIW に連続的に空間変化
+\item
+\end{itemize}
+\end{itemize}
+
+\item[B:]
+低周波境界属性指定
+\begin{itemize}
+\item
+NBMAX: 指定データ数
+\item
+NB,ID,XMIN,XMAX,YMIN,YMAX: 境界領域番号，境界属性，領域指定
+\item
+指定された領域に含まれる境界節点の属性を指定する．
+\begin{itemize}
+\item
+ID=0: プラズマ中（標準属性）
+\item
+ID=1: プラズマ導体面：電位 0
+\item
+ID=2: プラズマ導体面：電位 PHIES
+\item
+ID=3: プラズマ導体面：電位 0 から PHIES に連続的に空間変化
+\item
+ID=4: プラズマ導体面：電位 PHIES， 周波数 RFES で振動
+\item
+ID=5: プラズマ導体面：電位 0 から PHIES に連続的に空間変化，周波数 RFES で振動
+\item
+ID=8: プラズマ絶縁体面：表面電荷は蓄積しない．
+\item
+ID=9: プラズマ絶縁体面：表面電荷が蓄積する．
+\item
+ID=10: 真空中あるいは絶縁体中（標準属性）
+\item
+ID=11: 絶縁体導体面：電位 0
+\item
+ID=12: 絶縁体導体面：電位 PHIES
+\item
+ID=13: 絶縁体導体面：電位 0 から PHIES に連続的に空間変化
+\item
+ID=14: 絶縁体導体面：電位 PHIES， 周波数 RFES で振動
+\item
+ID=15: 絶縁体導体面：電位 0 から PHIES に連続的に空間変化，周波数 RFES で振動
+\end{itemize}
+\end{itemize}
+
+\item[W:]
+高周波電位変化範囲指定
+\begin{itemize}
+\item
+NVMAX: 指定データ数
+\item
+NV,XMIN,XMAX,YMIN,YMAX: 境界領域番号，境界属性，領域指定
+\item
+ID=3 の領域で，高周波電位が変化する範囲を指定する．
+\\\qquad 現在NV=1 のみ有効
+\\\qquad X=XMIN, Y=YMIN で高周波電位は 0．
+\\\qquad X=XMAX, Y=YMAX で高周波電位は PHIW．
+\end{itemize}
+
+\item[P:]
+低周波電位変化範囲指定
+\begin{itemize}
+\item
+NVMAX: 指定データ数
+\item
+NV,XMIN,XMAX,YMIN,YMAX: 境界領域番号，境界属性，領域指定
+\item
+ID=3, 5, 13, 15 の領域で，低周波電位が変化する範囲を指定する．
+\\\qquad 現在NV=1 のみ有効
+\\\qquad X=XMIN, Y=YMIN で低周波電位は 0．
+\\\qquad X=XMAX, Y=YMAX で低周波電位は PHIES．
+\end{itemize}
+
+\item[V:]
+指定属性表示
+\item[X:]
+指定終了
+\end{itemize}
+\end{enumerate}
+

@@ -1,0 +1,83 @@
+\section{要素分割 ({\tt wfdiv})}
+\begin{enumerate}
+\item
+機能
+\begin{itemize}
+\item[D:]
+節点・要素データの作成
+\item[G:]
+節点・要素データの図形表示
+\item[W:]
+節点・要素データの数値表示
+\item[S:]
+節点・要素データのファイル出力
+\item[L:]
+節点・要素データのファイル入力
+\item[X:]
+終了
+\end{itemize}
+
+\item
+分割形状
+\begin{itemize}
+\item[X:]
+長方形
+\\\qquad BXMIN, BXMAX（x 座標下限，x 座標上限）
+\\\qquad BYMIN, BYMAX（y 座標下限，y 座標上限）
+\item[R:]
+多段長方形
+\\\qquad NYQMAX （YPOS の入力回数）
+\\\qquad\quad YPOS （y 座標）
+\\\qquad\quad NXQMAX （y=YPOS に対する XPOS の入力回数）
+\\\qquad\quad\quad XPOS （x 座標）
+\\\quad 指定された XPOS, YPOS を節点とする長方形の集合に分割する．
+\item[M:]
+軸対称ミラー形状
+\\\qquad BXMIN, BXMAX, BYMIN, BYMAX
+\\\qquad 軸対称ミラー磁場配位で指定された磁気面形状に沿って分割する．
+\item[V:]
+２次元ミラー形状
+\\\qquad BXMIN, BXMAX, BYMIN, BYMAX
+\\\qquad ２次元ミラー磁場配位で指定された磁気面形状に沿って分割する．
+\item[C:]
+円形断面
+\\\qquad RB （壁半径）
+\item[T:]
+トカマク・ポロイダル断面
+\\\qquad RB, BKAP, BDEL （壁半径，楕円度，３角形度））
+\item[H:]
+直線ヘリカル断面
+\\\qquad RB, BXMIN, BXMAX （壁半径，x 座標下限，x 座標上限）
+\end{itemize}
+
+\item
+分割間隔
+\begin{itemize}
+\item
+DELX, DELY で指定された値より小さな間隔で分割する．
+\end{itemize}
+
+\item
+作成データ
+\begin{itemize}
+\item
+節点の位置：\t{XD(IN)}, 
+\begin{itemize}
+\item
+\t{YD(IN)}\t{IN} = 節点番号, 
+\quad 最大値：\t{NNOD}
+\end{itemize}
+
+\item
+要素を構成する節点番号：\t{IELM(3,IE)}
+\begin{itemize}
+\item
+\t{IE} = 要素番号
+\quad 最大値：\t{NELM}
+\item
+反時計回りに 1, 2, 3
+\end{itemize}
+\end{itemize}
+
+\end{enumerate}
+

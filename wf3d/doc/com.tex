@@ -1,0 +1,678 @@
+\section{COMMON変数一覧}
+
+\begin{itemize}
+ \item[] WFCNS1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[CI] 虚数単位
+      \item[PI] 円周率
+      \item[AEE] 電子の電荷
+      \item[AME]電子の質量 
+      \item[AMP] 陽子の質量
+      \item[VC] 真空中の光速
+      \item[RMU0] 真空中の透磁率
+      \item[EPS0] 真空中の誘電率
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPRM1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[BB] 中心磁場 (T)
+      \item[RA] プラズマ小半径 (m)
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPRM2
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[RR] プラズマ大半径 (m)
+      \item[QA] 中心での安全係数
+      \item[Q0] プラズマ表面での安全係数
+      \item[RKAP] プラズマ断面形状楕円度
+      \item[RDEL] プラズマ断面形状三角形度
+      \item[RMIR] ミラー比
+      \item[ZBB] 磁気軸に沿った周期長 (m)
+      \item[H1] 磁場分布に対するヘリカルピッチ $2\pi /L$
+      \item[H2] 距離に対するヘリカルピッチ $2\pi /L$
+      \item[RRC] コイル半径 (m)
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPRM3
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[RF] 波動周波数 (MHz)
+      \item[RKZ] ($z$ or $Z$) 方向の波数 (${\rm m}^{-1}$)
+      \item[RZ] ($z$ or $Z$) 方向の周期長 (m)
+      \item[NPHI] $\phi$ 方向のモード数
+   \end{namelist}
+   \end{itemize}
+ \item[] WFPRM4
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[PA(NSM)] 質量数
+      \item[PZ(NSM)] 電荷数
+      \item[PN(NSM)] 中心密度 ($10^{20}/{\rm m}^3$)
+      \item[PNS(NSM)] プラズマ表面密度 ($10^{20}/{\rm m}^3$)
+      \item[PZCL(NSM)] 衝突周波数と波動周波数の比
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPRM5
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[PTPR(NSM)] 中心温度の平行成分 (keV)
+      \item[PTPP(NSM)] 中心温度の垂直成分 (keV)
+      \item[PTS(NSM)] 表面温度 (keV)
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPRM6
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[NSMAX] 粒子種の数
+      \item[NAMAX] アンテナの数
+      \item[NRMAX] 径方向メッシュ点の数
+      \item[NZMAX] ($z$ or $Z$) 方向のフーリエモード数
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPRM7
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[NPRINT] 出力パラメーターの表示
+      \item[NDRAWD] 要素分割を描くパラメーター
+      \item[NDRAWA] アンテナジェネレーターを描くパラメーター
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPRM8
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[PNE0] 初期電子密度 ($10^{20}/{\rm m}^3$)
+      \item[PTE0] 初期電子温度 (eV)
+      \item[PTI0] 初期イオン温度 (eV)
+      \item[PPN0] 初期中性粒子圧力 (Pa)
+      \item[PTN0] 初期中性粒子温度 (eV)
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPRM9
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[PIN] 入力 (W)
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPRK1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[KIDSYS] KID1/KID2/KID3/KID4
+      \item[KIDPOS] 
+      \item[KID1] 磁場配位
+      \item[KID2] 要素配位
+      \item[KID3] 誘電率テンソルモデル
+      \item[KID4] 径方向分布
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPRK2
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[KFNAME] 要素データのファイル名
+      \item[KFNAMA] アンテナデータのファイル名
+      \item[KFNAMF] 場のデータのファイル名
+   \end{namelist}
+   \end{itemize}
+\newpage
+ \item[] WFPRD1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[BXMIN] $x$ の最小値 (m)
+      \item[BXMAX] $x$ の最大値 (m)
+      \item[BYMIN] $y$ の最小値 (m)
+      \item[BYMAX] $y$ の最大値 (m)
+      \item[RB] 境界半径 (m)
+      \item[BKAP] 境界楕円度
+      \item[BDEL] 境界三角形度
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPRD2
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[DELX] $x$ 方向の典型的な要素サイズ (m)
+      \item[DELY] $y$ 方向の典型的な要素サイズ (m)
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPRA1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[RD] アンテナ半径 (m)
+      \item[THETJ1] アークアンテナの初期角度 (degree)
+      \item[THETJ2] アークアンテナの終期角度 (degree)
+      \item[NJMAX] アンテナの初期格子点数
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPRA2
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[AJ(NAM)] アンテナ電流密度
+      \item[APH(NAM)] アンテナ位相
+      \item[APOS(NAM)] ($z$, $\phi$, $Z$) 方向のアンテナ位置 (degree)
+      \item[AWD(NAM)] ($z$, $\phi$, $Z$) 方向のアンテナ幅 (degree)
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFDIV1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[XL(NYM)] 左端の座標
+      \item[XR(NYM)] 右端の座標
+      \item[NYMAX] $y$ 方向の分割数
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFDIV2
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[NXA(NYM)] $x$ 方向の節点数
+      \item[NXL(NYM)] 左端で境界になっている節点数
+      \item[NXR(NYM)] 右端で境界になっている節点数
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFDIV3
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[XDA(NXM,NYM)] (NX,NY) で指定される節点の $x$ 座標
+      \item[YDA(NXM,NYM)] (NX,NY) で指定される節点の $y$ 座標
+      \item[NDA(NXM,NYM)] (NX,NY) で指定される節点の節点番号
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFDIV4
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[XF] 境界を探すための固定 $x$ 座標
+      \item[YF] 境界を探すための固定 $y$ 座標
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFDIV5
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[VTOT] 全体積
+      \item[VNOD(NNODM)] ある節点のまわりの体積
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFELM1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[NNOD] 全節点数
+      \item[NELM] 全要素数
+      \item[NBDY] 全境界節点数
+      \item[MBND] 行列の幅
+      \item[MLEN] 行列の長さ
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFELM2
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[XD(NNODM)] 節点の $x$ 座標
+      \item[YD(NNODM)] 節点の $y$ 座標
+      \item[IELM(3,NELMM)] 要素に属している節点番号
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFELM3
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[IBND(NNODM)] ある節点に対する方程式が始まる行列の行番号
+      \item[KBND(NNODM)] ある節点に対する方程式の数
+      \item[IBDY(NBDYM)] 境界を構成している節点の節点番号
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFSLV1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[KELM(3,NELMM)] 方程式を解くための作業領域
+      \item[JBND(NNODM)] 方程式を解くための作業領域
+   \end{namelist}
+   \end{itemize}
+ \item[] WFSLV2
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[CM(4,4,3,3)] ある要素に対する係数行列
+      \item[CRV(MLENM)] 右辺ベクトル
+      \item[CSV(MLENM)] 解ベクトル
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFSLV3
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[LDEST(NCNM)] 方程式を解くための作業領域
+      \item[NK(NCNM)] 方程式を解くための作業領域
+      \item[NFLG(NNODM)] 方程式を解くための作業領域
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFSLV4
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[CEQ(MBNDM,MBNDM)] 方程式を解くための作業領域
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFSLV5
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[LHED(MBNDM)] 方程式を解くための作業領域
+      \item[LPIV(MBNDM)] 方程式を解くための作業領域
+      \item[CQQ(MBNDM)] 方程式を解くための作業領域
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFSLV6
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[MLCO(MLENM)] 方程式を解くための作業領域
+      \item[MCOL(MLENM)] 方程式を解くための作業領域
+      \item[MPOS(MLENM)] 方程式を解くための作業領域
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFSLV7
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[MHED(MBUFM)] 方程式を解くための作業領域
+      \item[CBUF(MBUFM)] 方程式を解くための作業領域
+      \item[DBUF(MBUFM)] 方程式を解くための作業領域
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFAIF1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[AIF3(3,3,3)] 3 つの線形補間関数の積の積分
+      \item[AIF2(3,3)] 2 つの線形補間関数の積の積分
+      \item[AIF1(3)] 1 つの線形補間関数の積の積分
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFEVO1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[DT] 時間ステップ幅
+      \item[T] 時間
+      \item[NTMAX] 反復数
+      \item[NTSTEP] 1 回波を計算した後の輸送計算の回数
+      \item[NEVOL] 0: 固定密度　1: 時間発展
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFEVO2
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[PNE(NNODM)] 電子密度 ($10^{20}/{\rm m}^3$)
+      \item[PPE(NNODM)] 電子圧力 (Pa)
+      \item[PTE(NNODM)] 電子温度 (eV)
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFEVO3
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[PNI(NNODM)] イオン密度 ($10^{20}/{\rm m}^3$)
+      \item[PPI(NNODM)] イオン圧力 (Pa)
+      \item[PTI(NNODM)] イオン温度 (eV)
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFEVO4
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[PHI(NNODM)] スカラーポテンシャル
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFEVO5
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[DEQ(MBNDM,MBNDM)] 時間発展の計算の作業領域
+      \item[DQQ(MBNDM)] 時間発展の計算の作業領域
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFEVO6
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[DM(5,5,3,3)] 時間発展におけるある要素に対する係数行列
+      \item[DRV(MLENM)] 時間発展におけるある要素の右辺ベクトル
+      \item[DSV(MLENM)] 時間発展におけるある要素の解ベクトル
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFEVO7
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[PNET(NGTM,3)] 電子密度の積分値の時間変化
+      \item[PTET(NGTM,3)] 電子温度の積分値の時間変化
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFEVO8
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[PNIT(NGTM,3)] イオン密度の積分値の時間変化
+      \item[PTIT(NGTM,3)] イオン温度の積分値の時間変化
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFEVO9
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[PHIT(NGTM,3)] $\Phi$ の時間変化
+      \item[TG(NGTM)] 時間発展図形出力のサンプリング時刻
+      \item[NGTMAX] 時間発展図形出力のサンプリング時刻のデータ数
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFCAL1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[HA1] ヘリカルの場合の作業変数
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFFEP1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[FMAX(NYM)] ある NEY に属する要素の $y$ 座標の最大値
+      \item[FMIN(NYM)] ある NEY に属する要素の $y$ 座標の最小値
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFFEP2
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[NEMAX(NYM)] ある NEY に属する要素の要素番号の最大値
+      \item[NEMIN(NYM)] ある NEY に属する要素の要素番号の最小値
+      \item[NEYMAX] NEY の上限
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFFLD1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[CAF(4,NNODM)] 各節点上のポテンシャル
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+\newpage
+ \item[] WFFLD2
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[CEF(3,NNODM)] 電界 $(x, y, z)$
+      \item[CEP(3,NNODM)] 電界（右回り，左回り，平行）
+      \item[CEFK(3,NNODM)] 1 つのフーリエ成分に対する電界
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFFLD3
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[CBF(3,NNODM)] 磁界 $(x, y, z)$
+      \item[CBP(3,NNODM)] 磁界（右回り，左回り，平行）
+      \item[SA(NNODM)] 節点に属する面積
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFFLD4
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[EMAX(4)] 電界成分の最大値
+      \item[ETMAX] 電界の最大値
+      \item[PNMAX] 密度の最大値
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPWR1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[TSPWR] 全吸収パワー
+      \item[PWR(NNODM)] 各節点ごとの吸収パワー
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPWR2
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[TPWR(NSM)] 各粒子種ごとの全吸収パワー
+      \item[SPWR(NNODM,NSM)] 各粒子種ごとの各節点ごとの吸収パワー
+   \end{namelist}
+   \end{itemize}
+ \item[] WFPWR3
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[RPWR(NRM)] ある半径における吸収パワー
+      \item[RSPWR(NRM,NSM)] 各粒子種ごとの吸収パワー
+      \item[DR] 半径方向の分割幅
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFANT1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[CIMP(NAM)] 各アンテナごとの負荷インピーダンス
+      \item[CTIMP] 全アンテナの負荷インピーダンス
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFANT2
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[XJ(JNUMM,NAM)] 分割後のアンテナ点の $x$ 座標
+      \item[YJ(JNUMM,NAM)] 分割後のアンテナ点の $y$ 座標
+      \item[CAJ(NAM)] 各アンテナの電流
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFANT3
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[XJ0(JNUMM,NAM)] 分割前のアンテナ点の $x$ 座標
+      \item[YJ0(JNUMM,NAM)] 分割前のアンテナ点の $y$ 座標
+      \item[JNUM0(NAM)] 分割前のアンテナ点数
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFANT4
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[JELMT(JNUMM,NAM)] 分割後のアンテナの一部分が属する要素の要素番号
+      \item[JNUM(NAM)] 分割後のアンテナの点数
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPWK1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[RKZF(NZM)] 各フーリエ成分の波数
+      \item[CAJF(NZM,NAM)] アンテナ電流のフーリエ成分
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFPWK2
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[TSPWRF(NZM)] 各フーリエ成分の吸収パワー
+      \item[TPWRF(NZM,NSM)] 各粒子種ごとの吸収パワー
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFWIN1
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[XDMIN] グラフィックの画面分割のための作業変数
+      \item[XDMAX] グラフィックの画面分割のための作業変数
+      \item[YDMIN] グラフィックの画面分割のための作業変数
+      \item[YDMAX] グラフィックの画面分割のための作業変数
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFWIN2
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[GXD(NNODM)] グラフィックの画面分割のための作業変数
+      \item[GYD(NNODM)] グラフィックの画面分割のための作業変数
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] WFWIN3
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[NFOPEN] ファイル操作の作業変数
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+ \item[] FFTWRK
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{JELMT(JNUMM,NAM)xx}
+      \vspace{-2mm}
+      \item[CT(NZM*NZLM/2,2)] 高速フーリエ変換の作業変数
+      \item[LIST(NZM*NZLM)] 高速フーリエ変換の作業変数
+      \item[IFFT] 高速フーリエ変換の作業変数
+      \item[LP] 高速フーリエ変換の作業変数
+   \end{namelist}
+   \end{itemize}
+   \vspace{1mm}
+\end{itemize}

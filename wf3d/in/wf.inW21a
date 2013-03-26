@@ -1,0 +1,34 @@
+0
+f
+gsdata.W21a
+c
+#
+ MODELN=211 MODELS=3 MODELX=3 RF=2450 
+ MODELA=3 POSRES=0.5 POSABS=0.15 EPSABS=1.0 DLTABS=0.1
+ NGXMAX=101 NGYMAX=101 NGVMAX=101
+d
+d
+a
+0.045,0.0,0.0,0.50
+0.01,0.01,0.01
+g
+x
+#
+pn=0,0 pns=0,0
+v
+w
+g
+eyrz0.075 eyiz0.075
+eyrx0.0 eyix0.0
+eyry0.0 eyiy0.0
+eyz0.00,0.00
+p1z0.0,0.0
+mez0.145
+mez0.075
+mez0.005
+mex0.0
+mey0.0
+exz0.01,0.01
+ezz0.01,0.01
+x
+q

@@ -1,0 +1,63 @@
+\section{アンテナデータ作成 ({\tt wfant})}
+\begin{enumerate}
+\item
+機能
+\begin{itemize}
+\item[A:]
+アンテナ基本データの作成
+\item[G:]
+アンテナデータの図形表示
+\item[W:]
+アンテナデータの数値表示
+\item[S:]
+アンテナデータのファイル出力
+\item[L:]
+アンテナデータのファイル入力
+\item[X:]
+終了
+\end{itemize}
+
+\item
+アンテナ指定
+\begin{itemize}
+\item
+NAMAX: アンテナ本数
+\item
+アンテナ形状
+\begin{itemize}
+\item[C:]
+円形アンテナ：RD, RKAP, NJMAX （アンテナ半径，楕円率，分割数を指定）
+\item[A:]
+円弧状アンテナ：THETA1, THETA2, RD, RKAP, NJMAX 
+\\（開始角度，終了角度，
+アンテナ半径，楕円率，分割数を指定）
+\item[P:]
+折れ線アンテナ：NJMAX （節点数を指定）
+\begin{itemize}
+\item
+NJMAX $=1$: ループアンテナ
+\item
+NJMAX $>1$: 各節点をつなぐ折れ線アンテナ（実際には z 方向に広がった面）
+\end{itemize}
+\end{itemize}
+\end{itemize}
+
+\item
+作成データ
+\begin{itemize}
+\item
+アンテナ節点位置：
+\quad \t{XJ0(NJ0,NA)}, \t{YJ0(NJ0,NA)}
+\item
+変数
+\begin{itemize}
+\item
+\t{NA} = アンテナ番号
+\quad 最大値：\t{NAMAX}
+\item
+\t{NJ0} = アンテナ節点番号
+\quad 最大値：\t{NJ0MAX(NA)}
+\end{itemize}
+\end{itemize}
+\end{enumerate}
+

@@ -1,0 +1,41 @@
+\documentclass[11pt]{jarticle}
+\usepackage{af}
+
+\def\baselinestretch{1.0}
+\def\labelenumii{\arabic{enumii})\ }
+
+\def\r#1{\mathrm{#1}}
+\def\t#1{\texttt{#1}}
+\def\unit#1{\,\r{#1}}
+
+\newcommand{\namelistlabel}[1]{\mbox{#1}\hfil}
+\newenvironment{namelist}[1]{%
+  \begin{list}{}
+     {\let\makelabel\namelistlabel
+      \settowidth{\labelwidth}{#1}
+      \setlength{\leftmargin}{1.1\labelwidth}}
+}{%
+\end{list}}
+\newcommand\centered[1]{\par \hfill#1\hfill\ \par}
+\renewcommand{\contentsname}{–ÚŽŸ}
+\parindent=1zw
+
+\begin{document}
+
+\include{global}
+\include{parm}
+\include{main}
+\include{div}
+\include{ant}
+\include{zone}
+\include{wave}
+\include{evol}
+\include{graf}
+\include{sub}
+\include{com}
+
+%\end{multicols}
+
+\end{document}
+
+

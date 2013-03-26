@@ -1,0 +1,343 @@
+\documentclass[11pt]{jarticle}
+\usepackage{amsmath}
+\usepackage{af}
+\def\baselinestretch{1.2}
+\pagestyle{empty}
+
+\let\dsp=\displaystyle
+
+\renewcommand\r[1]{\mathrm{#1}}
+\newcommand\unit[1]{\,\r{#1}}
+\renewcommand{\vec}[1]{\leavevmode\hbox{\boldmath$#1$}}
+\newcommand{\svec}[1]{\leavevmode\hbox{\boldmath$\scriptstyle#1$}}
+\newcommand{\tensor}[1]{\mathord{\displaystyle\mathop#1^\leftrightarrow}}
+
+\newcommand{\rd}{\r{d}}
+\newcommand{\exe}{\,\r{e}\,}
+\newcommand{\imi}{\,\r{i}\,}
+
+\newcommand{\vE}{\vec{E}}
+\newcommand{\ve}{\vec{e}}
+\newcommand{\vet}{\vec{e}_t}
+\newcommand{\vH}{\vec{H}}
+\newcommand{\vh}{\vec{h}}
+\newcommand{\vht}{\vec{h}_t}
+\newcommand{\vnb}{\vec{\nabla}}
+\newcommand{\vnbt}{\vec{\nabla}_t}
+\newcommand{\vnbz}{\vec{\nabla}_z}
+\newcommand{\vz}{\vec{z}}
+
+
+\begin{document}
+\section{吸収層}
+誘電率 $\epsilon_\r{m}$ の領域に接する境界面 ($\xi=\xi_\r{a}$) におい
+て外向きの波動がすべて吸収される境界条件を実現するために，その外側に吸
+収層 ($\xi_\r{a} < \xi < \xi_\r{r}$) を設ける．ここで $xi$ は，$x$,
+$y$, $z$, $r=\sqrt{x^2+y^2}$ 等を代表する座標変数である．この吸収層内
+では，複素誘電率を次式のようにおく．
+\begin{equation}
+   \epsilon(\xi)
+   = \epsilon_\r{m}
+   + \epsilon_\r{a}\, \frac{2 (\xi-\xi_\r{a})^2}{
+                          |\xi_\r{r}-\xi\r{a}|
+                          \left(|\xi_\r{r}-\xi|-\imi\delta_\r{a}\right)}
+\end{equation}
+この誘電率は，$\xi_\r{a}$ で誘電率およびその空間導関数が連続である．
+$xi_\r{r}$ に近づくにつれて，誘電率の実部が大きくなって波長が短くなる
+とともに，誘電率の虚数部も大きくなって吸収が増大する．共鳴面近傍では，
+入射波と反射波の波数が大きく異なるため，不均一効果による両者間の線形結
+合は小さい．
+
+ここで
+\begin{center}
+\begin{tabular}{ll}
+\hline
+$\xi_\r{a}$ & 吸収境界面の座標 \\
+$\xi_\r{r}$ & 共鳴面の座標（通常は吸収層の最外境界） \\
+$\epsilon_\r{m}$ & 吸収境界面での誘電率 \\
+$\epsilon_\r{a}$ & $\xi=(\xi_\r{a}+\xi_\r{r})/2$ における誘電率の増分 \\
+$\delta_\r{a}$ & 共鳴面近傍における吸収領域の幅 \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+\item
+$\xi_\r{r}-\xi_\r{a}$ を大きくすると計算時間がかかり（空間格子幅一定の
+場合），小さくすると吸収領域が狭くなり，反射が増大する．目安は波長の数
+倍程度．下限は検証必要．
+\item
+$\epsilon_\r{a}$ を大きくすると，誘電率が急激に変化し，境界面での反射
+が増大する．小さくすると波長の変化が緩やかになって，吸収領域が共鳴層近
+傍に局在し，反射が増大する．目安は $\epsilon_\r{m}$ と同程度．最適値は
+検証必要．
+\item
+$\delta_\r{a}$ を大きくすると，境界面での誘電率の跳びが大きくなり，反
+射が増大する．小さくすると，吸収領域が共鳴層近傍に局在し，反射が増大す
+る．目安は $\xi_\r{r}-\xi_\r{a}$ の 1/3 程度．最適値は検証必要．
+\item
+境界面と共鳴面の位置関係が逆で，$\xi_\r{a} > \xi_\r{a}$ であっても正し
+く動作する．確認必要．
+\item
+記述可能な短波長成分は吸収される．遮断周波数近傍の長波長成分の吸収は困
+難．
+\end{itemize}
+
+\newpage
+\section{導波管モード}
+\subsection{一般論}
+\begin{itemize}
+\item
+$z$ 方向に伝搬する波動電界
+\begin{align}
+   \tilde{\vE}(u,v,z,t)&=\vE(u,v,z) \exe^{j\omega t}
+                       =\ve(u,v) \exe^{j\omega t-jk z}
+\\
+   \tilde{\vH}(u,v,z,t)&=\vH(u,v,z) \exe^{j\omega t}
+                       =\vh(u,v) \exe^{j\omega t-jk z}
+\end{align}
+\item
+基準波数：一様無限空間中の波数
+\begin{equation}
+   k_0^2 = \omega^2\mu\epsilon
+         = \omega^2\mu_0\epsilon_0 \, \mu_\r{r} \epsilon_\r{r} 
+         = \frac{\omega^2}{c^2} \, \mu_\r{r} \epsilon_\r{r} 
+\end{equation}
+
+\item
+TE 波
+\begin{itemize}
+\item
+磁界の $z$ 成分に対する方程式
+\begin{equation}
+   (\vnbt^2 + k_0^2 - k^2) h_z(u,v) = 0
+\end{equation}
+\item
+電界
+\begin{equation}
+   \vet(u,v)=\frac{j\omega \mu}{k_0^2-k^2}\,
+            \left[\vz \times \vnbt h_z(u,v)\right]
+\end{equation}
+\item
+磁界
+\begin{equation}
+   \vht(u,v)=\frac{k}{\omega \mu}\,
+            \left[\vz \times \vet(u,v) \right]
+\end{equation}
+\item
+パワー密度
+\begin{equation}
+   P=\frac{k}{2 \omega \mu}\,
+     \int_S |\vet|^2\, \rd S
+\end{equation}
+\end{itemize}
+
+\item
+TM 波
+\begin{itemize}
+\item
+電界の $z$ 成分に対する方程式
+\begin{equation}
+   (\vnbt^2 + k_0^2 - k^2) e_z(u,v) = 0
+\end{equation}
+\item
+磁界
+\begin{equation}
+   \vht(u,v)={}-\frac{j\omega \epsilon}{k_0^2-k^2}\,
+            \left[\vz \times \vnbt e_z(u,v)\right]
+\end{equation}
+\item
+電界
+\begin{equation}
+   \vet(u,v)={}-\frac{k}{\omega \epsilon}\,
+            \left[\vz \times \vht(u,v) \right]
+\end{equation}
+\item
+パワー
+\begin{equation}
+   P=\frac{\omega \epsilon}{2k}\,
+     \int_S |\vet|^2\, \rd S
+\end{equation}
+\end{itemize}
+
+\end{itemize}
+
+\subsection{矩形導波管}
+\begin{itemize}
+\item
+導波管開口部
+\begin{itemize}
+\item
+$x$ 方向：$(0,a)$
+\item
+$y$ 方向：$(0,b)$
+\end{itemize}
+\item
+TM波
+\begin{itemize}
+\item
+波数（$m=1,2,3,\ldots$, $n=1,2,3,\ldots$）
+\begin{equation}
+   k=k_{mn} = \sqrt{\dsp k_0^2-\left(\frac{m\pi}{a}\right)^2
+                              -\left(\frac{n\pi}{b}\right)^2}
+\end{equation}
+\item
+$z$方向電界（$x=0$, $x=a$, $y=0$, $y=b$ で 0）
+\begin{equation}
+   e_z(x,y)=jE\, \sin\frac{m\pi x}{a}\, \sin\frac{n\pi y}{b}
+\end{equation}
+\item
+垂直電界
+\begin{align}
+   e_x(x,y)&=\frac{k_{mn} E}{k_0^2 - k_{mn}^2}\, \frac{m\pi}{a}\,
+             \cos\frac{m\pi x}{a}\, \sin\frac{n\pi y}{b}
+\\
+   e_y(x,y)&=\frac{k_{mn} E}{k_0^2 - k_{mn}^2}\, \frac{n\pi}{b}\,
+             \sin\frac{m\pi x}{a}\, \cos\frac{n\pi y}{b}
+\end{align}
+\item
+パワー
+\begin{equation}
+   P = \frac{\omega\epsilon}{2 k_{mn}}\, \frac{k_{mn}^2 E^2}{k_0^2 - k_{mn}^2}
+       \frac{ab}{4}
+\end{equation}
+\end{itemize}
+\item
+TE波
+\begin{itemize}
+\item
+波数（$m=0,1,2,\ldots$, $n=0,1,2,\ldots$ ただし $m=n=0$ を除く）
+\begin{equation}
+   k=k_{mn} = \sqrt{\dsp k_0^2-\left(\frac{m\pi}{a}\right)^2
+                              -\left(\frac{n\pi}{b}\right)^2}
+\end{equation}
+\item
+$z$方向磁界（$x=0$, $x=a$, $y=0$, $y=b$ で 接線微分が 0）
+\begin{equation}
+   h_z(x,y)=jH\, \cos\frac{m\pi x}{a}\, \cos\frac{n\pi y}{b}
+\end{equation}
+\item
+垂直電界
+\begin{align}
+   e_x(x,y)&={}- \frac{\omega\mu H}{k_0^2 - k_{mn}^2}\, 
+                 \frac{n\pi}{b}\,
+                 \cos\frac{m\pi x}{a}\, \sin\frac{n\pi y}{b}
+\\
+   e_y(x,y)&=    \frac{\omega\mu H}{k_0^2 - k_{mn}^2}\, 
+                 \frac{m\pi}{a}\,
+                 \sin\frac{m\pi x}{a}\, \cos\frac{n\pi y}{b}
+\end{align}
+\item
+パワー
+\begin{equation}
+   P = \frac{k_mn}{2\omega\mu}\, 
+       \frac{\omega^2 \mu^2 H^2}{k_0^2 - k_{mn}^2}
+       \left\{\begin{array}{ll}
+                \dsp \frac{ab}{2} & \mbox{for\ } m=0 \mbox{\ or\ } n=0
+\\[3mm]
+                \dsp \frac{ab}{4} & \mbox{otherwise}
+	      \end{array}\right.
+\end{equation}
+\end{itemize}
+\end{itemize}
+
+\subsection{円形導波管}
+\begin{itemize}
+\item
+導波管開口部
+\begin{itemize}
+\item
+$r$ 方向：$(0,a)$
+\item
+$\phi$ 方向：$[0,2\pi)$
+\end{itemize}
+\item
+TM波
+\begin{itemize}
+\item
+波数（$\rho_{mn}$ は $J_m(\rho)=0$ の $\rho=0$ を除く $n$ 番目の解）
+\begin{equation}
+   k=k_{mn} = \sqrt{\dsp k_0^2-\left(\frac{\rho_{mn}}{a}\right)^2}
+\end{equation}
+\item
+$z$方向電界（$x=0$, $x=a$, $y=0$, $y=b$ で 0）
+\begin{equation}
+   e_z(r,\phi)=jE\, J_m\left(\rho_{mn}\frac{r}{a}\right) 
+       \left\{\begin{array}{l}
+                \cos m\phi \\
+                \sin m\phi
+	      \end{array}\right.
+\end{equation}
+\item
+垂直電界
+\begin{align}
+   e_r(r,\phi)&= \frac{k_{mn}a E}{\rho_{mn}}\, 
+                 J_m'\left(\rho_{mn}\frac{r}{a}\right) 
+       \left\{\begin{array}{l}
+                \cos m\phi \\
+                \sin m\phi
+	      \end{array}\right.
+\\
+   e_\phi(r,\phi)&= {}- \frac{k_{mn}a E}{\rho_{mn}}\, 
+                 \frac{ma}{\rho_{mn}r}
+                 J_m\left(\rho_{mn}\frac{r}{a}\right) 
+       \left\{\begin{array}{l}
+                \sin m\phi \\
+                -\cos m\phi
+	      \end{array}\right.
+\end{align}
+\item
+パワー
+\begin{align}
+   P = & \frac{\omega\epsilon}{2 k_{mn}}\, 
+       \int_0^a r\, \rd r \int_0^{2\pi}\,  \rd\phi
+       \frac{k_{mn}^2 a^2 E^2}{\rho_{mn}^2}\, 
+\nonumber\\
+       & \times 
+        \left\{  \left[ J_m'\left(\rho_{mn}\frac{r}{a}\right) 
+                       \cos m\phi \right]^2
+               + \left[\frac{ma}{\rho_{mn}r} 
+                       J_m\left(\rho_{mn}\frac{r}{a}\right) 
+                       \sin m\phi \right]^2 \right\}
+\end{align}
+\end{itemize}
+\item
+TE波
+\begin{itemize}
+\item
+波数（$m=0,1,2,\ldots$, $n=0,1,2,\ldots$ ただし $m=n=0$ を除く）
+\begin{equation}
+   k=k_{mn} = \sqrt{\dsp k_0^2-\left(\frac{m\pi}{a}\right)^2
+                              -\left(\frac{n\pi}{b}\right)^2}
+\end{equation}
+\item
+$z$方向磁界（$x=0$, $x=a$, $y=0$, $y=b$ で 接線微分が 0）
+\begin{equation}
+   h_z(x,y)=jH\, \cos\frac{m\pi x}{a}\, \cos\frac{n\pi y}{b}
+\end{equation}
+\item
+垂直電界
+\begin{align}
+   e_x(x,y)&={}- \frac{\omega\mu H}{k_0^2 - k_{mn}^2}\, 
+                 \frac{n\pi}{b}\,
+                 \cos\frac{m\pi x}{a}\, \sin\frac{n\pi y}{b}
+\\
+   e_y(x,y)&=    \frac{\omega\mu H}{k_0^2 - k_{mn}^2}\, 
+                 \frac{m\pi}{a}\,
+                 \sin\frac{m\pi x}{a}\, \cos\frac{n\pi y}{b}
+\end{align}
+\item
+パワー
+\begin{equation}
+   P = \frac{k_mn}{2\omega\mu}\, 
+       \frac{\omega^2 \mu^2 H^2}{k_0^2 - k_{mn}^2}
+       \left\{\begin{array}{ll}
+                \dsp \frac{ab}{2} & \mbox{for\ } m=0 \mbox{\ or\ } n=0
+\\[3mm]
+                \dsp \frac{ab}{4} & \mbox{otherwise}
+	      \end{array}\right.
+\end{equation}
+\end{itemize}
+\end{itemize}
+\end{document}
+
