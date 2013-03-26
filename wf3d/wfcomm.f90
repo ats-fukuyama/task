@@ -4,11 +4,12 @@ module wfcomm
 
   use bpsd
   use plcomm
+  use commpi
   implicit none
 
   public
 !       --- for parallel computing ---
-  integer :: nrank,nprocs
+!  integer :: nrank,nprocs
   integer :: istart,iend
 
 !       --- input parameters ---
