@@ -240,6 +240,7 @@ SUBROUTINE DTENSR(NN,CK)
   real(8)    :: RTPP(NSM),RZCL(NSM),FX,FY,FZ
   complex(8) :: CWP,CWC,CDT0,CDX0,CDP0,CDT,CDP,CDX
   complex(8) :: CXX,CXY,CXZ,CYX,CYY,CYZ,CZX,CZY,CZZ,CK(3,3,NSM)
+  real(8)    :: PCRT,PBKG,WCI,WRD,WDIF
 
   WW=2.D0*PI*RF*1.D6
   
@@ -250,7 +251,25 @@ SUBROUTINE DTENSR(NN,CK)
   
   CALL WFSMAG(NN,BABS,AL)
   CALL WFSDEN(NN,RN,RTPR,RTPP,RZCL)
-  
+
+!
+! ----- Add. By YOKOYAMA Mar./05/2013 ----
+!
+      DO NS=1,NSMAX
+         PCRT = RZCL(NS)
+!         PBKG = RZCL(NS) * 1.D-3
+         PBKG = 0.D0
+         WCI  = WC(NS)*WW*BABS
+         WRD  = 1.D-2
+         WDIF = DABS(WW/WCI-1.D0)/WRD
+!         RZCL(NS) = DEXP(-1.D0*WDIF*WDIF)+PBKG
+         RZCL(NS) = PCRT
+!  --    FOR FILE-OUT    --
+         RZCO(NS,NN) = PCRT
+      ENDDO
+!
+! ----- Mar./05/2013 -----
+! 
   DO NS=1,NSMAX
      CWP=WP(NS)*RN(NS)/(1.D0+CII*RZCL(NS))
      CWC=WC(NS)*BABS/(1.D0+CII*RZCL(NS))
@@ -310,7 +329,10 @@ SUBROUTINE CVCALC
   
   DO NA=1,NAMAX
      PHASE =APH(NA)*PI/180.D0
-     CVJ=CII*RW*RMU0*AJ(NA)*EXP(CII*PHASE)
+! ----- Add. By YOKOYAMA Mar./05/2013 ----
+!     CVJ=CII*RW*RMU0*AJ(NA)*EXP(CII*PHASE)
+     CVJ=CI*RW*RMU0*AJ(NA)*EXP(-CI*PHASE)
+! ----- Mar./05/2013 -----
      DO IJ=2,JNUM(NA)
         NE=JELMT(IJ,NA)
         CALL WFABCDX(NE,F,DF,RWE,DWE,V)
@@ -830,7 +852,10 @@ SUBROUTINE PWRRAD
   
   DO NA=1,NAMAX
      PHASE =APH(NA)*PI/180.D0
-     CVJ=AJ(NA)*EXP(CII*PHASE)
+! ----- Add. By YOKOYAMA Mar./05/2013 ----
+!     CVJ=AJ(NA)*EXP(CII*PHASE)
+     CVJ=AJ(NA)*EXP(-CI*PHASE)
+! ----- Mar./05/2013 -----
      CIMP(NA)=0.D0
      DO IJ=2,JNUM(NA)
         NE=JELMT(IJ,NA)
@@ -860,7 +885,14 @@ SUBROUTINE PWRRAD
                             +DWE(3,IN,ISD)*W(IN)*CJ(3))
            ENDDO
         ENDDO
+! ----- Add. By YOKOYAMA Mar./05/2013 ----
+         WRITE(30,'(2I6,11E23.15)') NA,IJ,X1,Y1,Z1,X2,Y2,Z2,&
+     &                              XM,YM,ZM,CEIMP(IJ,NA)
+! ----- Mar./05/2013 -----
      ENDDO
+! ----- Add. By YOKOYAMA Mar./05/2013 ----
+         CLOAD(NA) = CIMP(NA)/(DCONJG(CVJ)*CVJ)
+! ----- Mar./05/2013 -----
   ENDDO
 
   CTIMP=0.D0
@@ -940,6 +972,7 @@ SUBROUTINE WFCALB
   real(8)    :: F(4),DF(3,4),RWE(3,6),DWE(3,4,6),AL(3)
   real(8)    :: RW,V,BABS,SUM,FACTOR
   complex(8) :: CB(3),COEFB,CB1,CB2,CE1,CE2
+  real(8)    :: XPOS,YPOS
 
   RW=2.D0*PI*RF*1.D6
   COEFB=-CII*VC/RW
@@ -991,6 +1024,56 @@ SUBROUTINE WFCALB
      CBP(1,NN)=CB1-CII*CB2
      CBP(2,NN)=CB1+CII*CB2
      CBP(3,NN)=AL(1)*CBF(1,NN)+AL(2)*CBF(2,NN)+AL(3)*CBF(3,NN)
+!
+! ----- Add. By YOKOYAMA Mar./05/2013 ----
+!
+!        波動電界のX成分
+         CE1=CEF(1,NN)
+!        波動電界のY成分
+         CE2=CEF(2,NN)
+!        波動磁界のX成分
+         CB1=CBF(1,NN)
+!        波動磁界のY成分
+         CB2=CBF(2,NN)
+!
+!        位置ベクトル(XPOS,YPOS)のX軸に対する角度: ANGLE(NN)
+!        ANGLE(NN)は，X軸からY軸へ向かう方向が正(右回り)
+!        波動電界の半径方向成分   E-r:     CERT(1,NN)
+!        波動電界の方位角方向成分 E-theta: CERT(2,NN)
+          XPOS = XND(NN)
+          YPOS = YND(NN)
+          IF(XPOS.GT.0.D0) THEN
+             ANGLE(NN) = ATAN(YPOS/XPOS)
+          ELSEIF(XPOS.LT.0.D0) THEN
+             ANGLE(NN) = ATAN(YPOS/XPOS) + PI
+          ELSEIF(YPOS.GT.0.D0) THEN
+             ANGLE(NN) = PI/2.D0
+          ELSEIF(YPOS.LT.0.D0) THEN
+             ANGLE(NN) = -1.D0*PI/2.D0
+          ELSE
+             ANGLE(NN) = 0.D0
+          ENDIF
+          CERT(1,NN)=      CE1*COS(ANGLE(NN))+CE2*SIN(ANGLE(NN))
+          CERT(2,NN)=-1.D0*CE1*SIN(ANGLE(NN))+CE2*COS(ANGLE(NN))
+          CBRT(1,NN)=      CB1*COS(ANGLE(NN))+CB2*SIN(ANGLE(NN))
+          CBRT(2,NN)=-1.D0*CB1*SIN(ANGLE(NN))+CB2*COS(ANGLE(NN))
+!
+!         右回り(E+)，左回り(E-)円偏波成分の計算 (Bx=By=0を仮定)
+!         For  exp( -j omega t )    : MODELI=0 & CI=j
+!         E+ : CEP(1,NN) = E-r  +  j * E-theta
+!         E- : CEP(2,NN) = E-r  -  j * E-theta
+!
+          CEP(1,NN)=CERT(1,NN)+CI*CERT(2,NN)
+          CEP(2,NN)=CERT(1,NN)-CI*CERT(2,NN)
+          CBP(1,NN)=CBRT(1,NN)+CI*CBRT(2,NN)
+          CBP(2,NN)=CBRT(1,NN)-CI*CBRT(2,NN)
+!
+          IF(NN.EQ.1) THEN
+             WRITE(6,*) '## IMAGINARY UNIT: CI=',CI
+          ENDIF
+!
+! ----- Mar./05/2013 -----
+!
   ENDDO
   
   FACTOR=0.5D0/(VC*RMU0)
@@ -1070,7 +1153,7 @@ SUBROUTINE LPELMT
   use wfcomm
   implicit none
 
-  integer :: I,J,NA
+  integer :: I,J,NA,NS,NK
 
   IF(NPRINT.LT.3) RETURN
      
@@ -1085,19 +1168,53 @@ SUBROUTINE LPELMT
   WRITE(6,120) NEMAX,(I,(NDELM(J,I),J=1,4),I=1,NEMAX)
 120 FORMAT(/' ','ELEMENT DATA  : #### NEMAX =',I5,' ####'/&
          &      (' ',5(I6,'(',4I5,')',2X)))
-  
-  WRITE(6,125) NEMAX,(I,(ISDELM(J,I),J=1,7),I=1,NEMAX)
-125 FORMAT(/' ','NOP     DATA  : #### NEMAX =',I5,' ####'/&
-         &      (' ',(I8,'(',7I8,')',2X)))
-  
-  WRITE(6,130) NBMAX
-130 FORMAT(/' ','BOUNDARY DATA : #### NBMAX =',I5,' ####'/&
-         &       ' ',3('  NO.',' NDBDY',2X))
-  WRITE(6,135) (I,NDBDY(I),I=1,NBMAX)
-135 FORMAT((' ',3(2I5,2X)))
-  
-  DO NA=1,NAMAX
-     WRITE(6,140) NA,JNUM0(NA)
+!
+! ----- Add. By YOKOYAMA Mar./05/2013 ----
+!  MEMO
+!     RADIATED POWER
+!        CTIMP=CTIMP+CIMP(NA)
+!        CIMP(NA): 各アンテナの放射電力
+!        DBLE(CTIMP): 複素電力の実部が実効電力となる．
+!     ABSORBED POWER
+!        PABST: 各要素の電力を求め，全要素で総和をとる．
+!
+      IF(ABS(PABST).GT.1.D-32) THEN
+         DO NS=1,NSMAX
+            WRITE(6,125) NS,PABSS(NS)
+!           WRITE(6,125) NEMAX,(I,(ISDELM(J,I),J=1,7),I=1,NEMAX)
+  125       FORMAT(' ','      PABS(NS=',I2,') =',1PE12.4)
+         ENDDO
+         DO NK=1,NKMAX
+            WRITE(6,126) NK,PABSK(NK)
+!
+! 125 FORMAT(/' ','NOP     DATA  : #### NEMAX =',I5,' ####'/&
+!         &      (' ',(I8,'(',7I8,')',2X)))
+!  
+! WRITE(6,130) NBMAX
+  126       FORMAT(' ','      PABS(NK=',I2,') =',1PE12.4)
+         ENDDO
+      ENDIF
+      IF(NAMAX.GT.0) THEN
+         WRITE(6,130)
+  130    FORMAT(' ',' I JNUM', ' AJ(I)','  APH(I)','  AWD(I)',&
+     &                         ' APOS(I)','  XJ(I)','   YJ(I)',&
+     &          7X,'LOADING IMP.[ohm]')
+!     &          8X,'RADIATED POWER')
+      ENDIF
+      DO NA=1,NAMAX
+         WRITE(6,140) NA,JNUM(NA),AJ(NA),APH(NA),AWD(NA),APOS(NA),&
+     &                            XJ(1,NA),YJ(1,NA),CLOAD(NA)
+!     &                            XJ(1,NA),YJ(1,NA),CIMP(NA)
+!130 FORMAT(/' ','BOUNDARY DATA : #### NBMAX =',I5,' ####'/&
+!         &       ' ',3('  NO.',' NDBDY',2X))
+!  WRITE(6,135) (I,NDBDY(I),I=1,NBMAX)
+!135 FORMAT((' ',3(2I5,2X)))
+!  
+!  DO NA=1,NAMAX
+!     WRITE(6,140) NA,JNUM0(NA)
+!
+! ----- Mar./05/2013 -----
+!
 140  FORMAT(/' ','ORIGINAL ANTENNA DATA : NA =',I5,' JNUM0 =',I5/&
           &          ' ',3('  NO.',13X,' XJ0',11X,' YJ0',6X))
      WRITE(6,150) (I,XJ0(I,NA),YJ0(I,NA),I=1,JNUM0(NA))

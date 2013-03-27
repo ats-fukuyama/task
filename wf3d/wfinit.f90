@@ -20,6 +20,9 @@ SUBROUTINE WFINIT
 !               '0' : xyz : Bx only
 !               '1' : xyz : By only
 !               '2' : xyz : Bz only
+! ----- Add. By YOKOYAMA Mar./05/2013 ----
+!               '3' : GAMMA10 Magnetic Field
+!  ----  Mar./05/2013 ----
 !
 !        MODELD = Dielectric Tensor Model
 !               '0' : Cold
@@ -69,13 +72,17 @@ SUBROUTINE WFINIT
 !        POSABS: position of absorption layer surface
 !        EPSABS: typical value of real part of epsilon
 !        DLTABS: typical value of imag part of epsilon
-!        EPSWF:  Tolerance in matrix solver
 !
 !            eps=1.D0+EPSABS*(X-POSABS)**2
 !                           /((POSRES-POSABS)*(POSRES-X+CI*DLTEPS))
-
+! ----- Add. By YOKOYAMA Mar./05/2013 ----
+  MODELI=0
+!  ----  Mar./05/2013 ----
   MODELG=2
-  MODELB=0
+! ----- Add. By YOKOYAMA Mar./05/2013 ----
+!      MODELB=0
+  MODELB=3
+!  ----  Mar./05/2013 ----
   MODELD=0
   MODELP=0
   MODELN=0
@@ -86,7 +93,6 @@ SUBROUTINE WFINIT
   POSABS=0.15D0
   EPSABS=1.0D0
   DLTABS=0.1D0
-  EPSWF = 1.D-8
   
 !        KFNAME: File name of element data
 !        KFNAMA: File name of antenna data
@@ -277,11 +283,18 @@ SUBROUTINE WFINIT
   PTN0   = 0.03D0
       
 !     *** GRAPHICS PARAMETER ***
-
-  NGXMAX = 31
-  NGYMAX = 31
-  NGVMAX = 31
-  
+!
+! ----- Add. By YOKOYAMA Mar./05/2013 ----
+!      NGXMAX = 31
+!      NGYMAX = 31
+!      NGVMAX = 31
+      NGXMAX = 101
+      NGYMAX = 101
+      NGVMAX = 101
+!
+      FRATIO = 1.D0
+! ---- Mar./05/2013 -----
+!
   KGINX(0)='EXRZ0.0 EXIZ0.0 EYRZ0.0 EYIZ0.0 EZRZ0.0 EZIZ0.0 '//&
        &   'P1CZ0.0 P2CZ0.0'
   KGINX(1)='EXRZ0.1 EXIZ0.1 EYRZ0.1 EYIZ0.1 EZRZ0.1 EZIZ0.1 '//&
@@ -340,13 +353,16 @@ SUBROUTINE WFPLST
      WRITE(6,*) '     NSMAX,NAMAX,MODELI,'
      WRITE(6,*) '     MODELG,MODELB,MODELD,MODELP,MODELN,MODELS,'
      WRITE(6,*) '     POSRES,POSABS,EPSABS,DLTABS,MODELA,MODELX,'
-     WRITE(6,*) '     NPRINT,NDRAWD,NDRAWA,NGRAPH,EPSWF,'
+     WRITE(6,*) '     NPRINT,NDRAWD,NDRAWA,NGRAPH,'
      WRITE(6,*) '     KFNAME,KFNAMA,KFNAMF,KFNAMN,KFNAMB,'
      WRITE(6,*) '     BXMIN,BXMAX,BYMIN,BYMAX,BZMIN,BZMAX,'
      WRITE(6,*) '     DELX,DELY,DELZ,'
      WRITE(6,*) '     PIN,RD,THETJ1,THETJ2,NJMAX,ZANT,ZWALL,'
      WRITE(6,*) '     THETS1,THETS2,RD1,RD2,'
      WRITE(6,*) '     NGXMAX,NGYMAX,NGVMAX,KGINX,KGINV,IDEBUG'
+! ----- Add. By YOKOYAMA Mar./05/2013 ----
+     WRITE(6,*) '     FRATIO'
+! ----- Mar./05/2013 -----
   end if
   RETURN
 END SUBROUTINE WFPLST
@@ -366,7 +382,7 @@ SUBROUTINE WFPARM(KID)
                 NSMAX,NAMAX,MODELI,&
                 MODELG,MODELB,MODELD,MODELP,MODELN,MODELS,&
                 POSRES,POSABS,EPSABS,DLTABS,MODELA,MODELX,&
-                NPRINT,NDRAWD,NDRAWA,NGRAPH,EPSWF,&
+                NPRINT,NDRAWD,NDRAWA,NGRAPH,&
                 KFNAME,KFNAMA,KFNAMF,KFNAMN,KFNAMB,&
                 BXMIN,BXMAX,BYMIN,BYMAX,BZMIN,BZMAX,&
                 DELX,DELY,DELZ,&
@@ -488,7 +504,6 @@ SUBROUTINE WFVIEW
   IF(MODELA.NE.0) THEN
      WRITE(6,601) 'POSRES',POSRES,'POSABS',POSABS,&
                   'EPSABS',EPSABS,'DLTABS',DLTABS
-     WRITE(6,601) 'EPSWF ',EPSWF
   ENDIF
   WRITE(6,601) 'PPN0  ',PPN0  ,'PTN0  ',PTN0  
   WRITE(6,*)
@@ -511,7 +526,7 @@ subroutine wfparm_broadcast
   implicit none
 
   integer,dimension(20) :: idata
-  real(8),dimension(33) :: ddata
+  real(8),dimension(32) :: ddata
   
 ! ---  broadcast integer data -----
 
@@ -595,10 +610,9 @@ subroutine wfparm_broadcast
      ddata(30)=RD1
      ddata(31)=RD2
      ddata(32)=RR
-     ddata(33)=EPSWF
   end if
 
-  call mtx_broadcast_real8(ddata,33)
+  call mtx_broadcast_real8(ddata,34)
   
   BB    =ddata(1)
   RA    =ddata(2)
@@ -632,7 +646,6 @@ subroutine wfparm_broadcast
   RD1   =ddata(30)
   RD2   =ddata(31)
   RR    =ddata(32)
-  EPSWF =ddata(33)
 
   call mtx_broadcast_real8(AJ  ,8)
   call mtx_broadcast_real8(APH ,8)

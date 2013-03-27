@@ -4,7 +4,7 @@
 !
 subroutine WFDIV
 
-  USE libmpi
+  use libmpi
   use libmtx
   use wfcomm
   implicit none
@@ -64,34 +64,85 @@ subroutine WFDIV
            BYMIN=-RB
            BYMAX= RB
            IDDIV=2
+!
+! ----- Add. By YOKOYAMA 28/02/2013 ----
+!        GAMMA10軸対称セントラル部を模擬
+!        真空容器内(r=0->RBOUT)，コアプラズマ部(r=0->RBIN)と
+!        周辺プラズマ部(r=RBIN->RBOUT)の各々で，
+!        要素長を変更できるようにする
+       elseif(KID.eq.'G') then
+            RBIN  = 0.24D0
+            RBOUT = 0.50D0
+6           write(6,608) RBIN,RBOUT,BZMIN,BZMIDL,BZMIDH,BZMAX
+608        format('## DIV:   RBIN,RBOUT                = ',2F10.4/&
+                  '##        BZMIN,BZMIDL,BZMIDH,BZMAX = ',4F10.4/&
+                  '## INPUT: RBIN,RBOUT,BZMIN,BZMIDL,BZMIDH,BZMAX ? ')
+!            READ(5,*,ERR=6,END=2) RBIN,RBOUT,BZMIN,BZMAX
+            read(5,*,ERR=6,END=2) RBIN,RBOUT,BZMIN,BZMIDL,BZMIDH,BZMAX
+            BXMIN=-RBOUT
+            BXMAX= RBOUT
+            BYMIN=-RBOUT
+            BYMAX= RBOUT
+            IDDIV=3
+!
+! ----- -----
+!
         else
            write(6,*) 'XX UNKNOWN KID: ',KID
         end if
-     end if
-
-7    continue
-
-     if (nrank.eq.0) then
-        write(6,607) DELX,DELY,DELZ
-607     format('## DIV:   DELX,DELY,DELZ = ',3F10.4/&
-               '## INPUT: DELX,DELY,DELZ ? ')
-        read(5,*,ERR=7,END=2) DELX,DELY,DELZ
-        if(ABS(DELX).le.1.D-6.or.&
-           ABS(DELY).le.1.D-6) goto 2
+!
+! ----- Add. By YOKOYAMA 28/02/2013 ----
+!
+!        要素長の取得
+!        コアプラズマ部(r=0    -> RBIN ):  DXIN， DYIN
+!        周辺プラズマ部(r=RBIN -> RBOUT):  DXOUT，DYOUT
+7        if(KID.ne.'G') then
+            write(6,607) DELX,DELY,DELZ
+607         format('## DIV:   DELX,DELY,DELZ = ',3F10.4/&
+                   '## INPUT: DELX,DELY,DELZ ? ')
+            read(5,*,ERR=7,END=2) DELX,DELY,DELZ
+            if(ABS(DELX).LE.1.D-6.OR.ABS(DELY).LE.1.D-6) GOTO 2
+         else
+            DXIN  = 0.03D0
+            DYIN  = 0.03D0
+            DXOUT = 0.30D0
+            DYOUT = 0.15D0
+            write(6,609) DXIN,DYIN,DXOUT,DYOUT,DELZ,DELZM
+609        format('## DIV:   DXIN,DYIN,DXOUT,DYOUT = ',4F10.4/&
+                  '##        DELZ,DELZM            = ',2F10.4/&
+                  '## INPUT: DXIN,DYIN,DXOUT,DYOUT,DELZ,DELZM ? ')
+!            READ(5,*,ERR=7,END=2) DXIN,DYIN,DXOUT,DYOUT,DELZ
+            read(5,*,ERR=7,END=2) DXIN,DYIN,DXOUT,DYOUT,DELZ,DELZM
+            if((ABS(DXIN) .LE.1.D-6.OR.ABS(DYIN) .LE.1.D-6).OR. &
+              (ABS(DXOUT).LE.1.D-6.OR.ABS(DYOUT).LE.1.D-6)) GOTO 2
+!
+! ----- -----
+!
+         end if
      end if
 
      call wfdiv_broadcast
 
      call DFNODE(IERR)
-     if(IERR.ne.0) goto 7
+     if(IERR.ne.0) goto 2
      call SETNOD(IERR)
-     if(IERR.ne.0) goto 7
-     if(IDDIV.ne.2) then
+     if(IERR.ne.0) goto 2
+!
+! ----- Add. By YOKOYAMA 01/03/2013 ----
+!
+!        "SETELM"と"SETELMX"の違いを調べる必要がある
+!        同軸の穴の空いた構造が原因か...?
+!        GAMMA10セントラル部の場合は"SETELM"を使うべきか...?
+!        
+!         IF(IDDIV.NE.2) THEN
+         if((IDDIV.ne.2).and.(IDDIV.ne.3)) then
+! ----- 01/03/2013 -----
+!
         call SETELM(IERR)
      else
         call SETELMX(IERR)
      end if
-     if(IERR.ne.0) GOTO 7
+     if(IERR.ne.0) GOTO 2
 
      if(nrank.eq.0) write(6,*) '--- WFINDX start ---'
      call WFINDX
@@ -113,6 +164,15 @@ subroutine WFDIV
      call wfdiv_deallocate
 
   elseif(KID.eq.'G') then
+!
+! ----- Add. By YOKOYAMA 01/03/2013 ----
+!
+!        Y-Z平面上の要素分割を表示する
+         call WFGDIV_YZ
+!        X-Z平面上の要素分割を表示する
+         call WFGDIV_XZ
+! ----- 01/03/2013 -----
+!
      if (nrank.eq.0) then
         call WFGDIV
         if(NDRAWD.eq.-1) then

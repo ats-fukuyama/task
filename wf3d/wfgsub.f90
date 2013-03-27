@@ -54,6 +54,73 @@ SUBROUTINE WFGWIN(NW,NWMAX,PXMIN,PXMAX,PYMIN,PYMAX)
   RETURN
 END SUBROUTINE WFGWIN
 
+!
+! ----- Add. By YOKOYAMA Mar./04/2013 ----
+!
+!     ****** CALCULATE RANGE OF WINDOW (Y-Z PLANE) ******
+!
+      SUBROUTINE WFGWIN_YZ(NW,NWMAX,PXMIN,PXMAX,PYMIN,PYMAX)
+!
+      use wfcomm
+      IMPLICIT NONE
+      REAL(8):: DXLEN,DYLEN,DRATIO,PXMIN,PXMAX,PYMIN,PYMAX,PXLEN,PYLEN
+      INTEGER:: NWW,NWMAX,NWYMAX,NWX,NWY,NW
+!
+!     XNDMAX,XNDMIN & YNDMAX,YNDMINは， WFINDX/WFVLIM で設定されている
+!     XNDMAX: 節点のX座標の最大値
+!     XNDMIN: 節点のX座標の最小値
+!     DXLEN: 分割領域のX方向の長さ
+
+!      DXLEN= XNDMAX-XNDMIN
+      DXLEN= ZNDMAX-ZNDMIN
+      DYLEN= YNDMAX-YNDMIN
+      DRATIO=DYLEN/DXLEN
+!
+!     NWXMAXは，WFGOUTで値が代入されている．
+!     要素分割を図示する場合には，WFGOUTよりも先にWFGWINがCALLされているように見えるが...
+!     確認したところ，要素分割の図示の際には，NWXMAX=0であった．
+      IF(NWXMAX.EQ.0) THEN
+         IF(DRATIO.GT.1.25D0) THEN
+            NWW=6
+         ELSEIF(DRATIO.GT.0.5D0) THEN
+            IF(NWMAX.LE.3) then
+               NWW=3
+            ELSE IF(NWMAX.LE.4) THEN
+               NWW=2
+            ELSE IF(NWMAX.LE.6) THEN
+               NWW=3
+            ELSE IF(NWMAX.LE.8) THEN
+               NWW=4
+            ELSE
+               NWW=5
+            ENDIF
+            NWW=4
+         ELSE
+            NWW=2
+         ENDIF
+      ELSE
+         NWW=NWXMAX
+      ENDIF
+!
+      PXMIN=0.0D0
+      PXMAX=25.6D0
+      PYMIN=0.0D0
+      PYMAX=14.0D0
+!
+      NWYMAX=(NWMAX-1)/NWW+1
+      PXLEN=(PXMAX-PXMIN)/MIN(NWW,NWMAX)
+      PYLEN=(PYMAX-PYMIN)/NWYMAX
+      NWX=MOD(NW-1,NWW)+1
+      PXMIN=PXMIN+(NWX-1)*PXLEN
+      PXMAX=PXMIN+PXLEN
+      NWY=NWYMAX-(NW-1)/NWW
+      PYMIN=PYMIN+(NWY-1)*PYLEN
+      PYMAX=PYMIN+PYLEN
+      RETURN
+    END SUBROUTINE WFGWIN_YZ
+!
+! ----- Mar./04/2013 -----
+!
 !     ****** PLOT 2D STRUCTURE OF FIELD AND POWER ******
 
 SUBROUTINE WFGPPC(NW,NWMAX,KWD)
@@ -96,11 +163,29 @@ SUBROUTINE WFGPPC(NW,NWMAX,KWD)
      YMIN = 0.D0
      YMAX = 1.D0
   ENDIF
-  
-  DXLEN= XMAX-XMIN
+!
+! ----- Add. By YOKOYAMA Mar./04/2013 ----
+!
+      IF((KWD(4:4).EQ.'X').OR.(KWD(4:4).EQ.'Y')) THEN
+         DXLEN = FRATIO*(XMAX-XMIN)
+      ELSE
+         DXLEN = XMAX-XMIN
+      ENDIF
+!
+! ----- Mar./04/2013 -----
+!
   DYLEN= YMAX-YMIN
   DRATIO=DYLEN/DXLEN
-  PRATIO=(PYMAX-PYMIN-1.5D0)/(PXMAX-PXMIN-0.6D0)
+!
+!  ---- Add. By YOKOYAMA Mar./04/2013 ----
+!
+      PRATIO=(PYMAX-PYMIN-1.5D0)/(PXMAX-PXMIN-0.6D0)
+! org.  PRATIO=FRATIO*(PYMAX-PYMIN-1.5D0)/(PXMAX-PXMIN-0.6D0)
+! ----- Mar./04/2013 -----
+!
+!     FUNCTION GCLIP(XXX)
+!        XXXの絶対値が1E-15よりも大きければ，REAL(XXX)を返す
+!        XXXの絶対値が1E-15以下ならば，0.0を返す
   GXMIN=GCLIP(XMIN)
   GXMAX=GCLIP(XMAX)
   GYMIN=GCLIP(YMIN)
@@ -867,7 +952,6 @@ END SUBROUTINE WFGPRM
 
 SUBROUTINE WFGBDY
 
-  use wfcomm
   RETURN
 END SUBROUTINE WFGBDY
 
@@ -936,27 +1020,46 @@ SUBROUTINE WFGELM
 
   use wfcomm
   implicit none
-  integer :: I1(4),I2(4),I3(4),IE,K,IN1,IN2,IN3,IEL,IN,INL
+  integer :: I1(4),I2(4),I3(4),IE,K,IN1,IN2,IN3,IEL,IN,INL,NN
   real(4) :: GX1,GX2,GX3,GY1,GY2,GY3,GCLIP,GXC,GYC
-  real(8) :: EPS
+  real(8) :: EPS,ANTZP,DELTZ,DZMIN,ZAXIS
   real(8) :: XT(3),YT(3),ZT(3)!test
   DATA I1,I2,I3/1,2,3,4, 2,3,4,1, 3,4,1,2/
   DATA EPS/1.D-6/
   
   CALL SETCHR(0.2,0.15,0.2,0.,-30.)
+
+  ANTZP=0.0D0
+  DZMIN=5.D0
+  DO NN=1,NNMAX
+     DELTZ=ABS(ZND(NN)-ANTZP)
+     IF(DELTZ.LT.DZMIN) THEN
+        DZMIN=DELTZ
+        ZAXIS=ZND(NN)
+     ENDIF
+  ENDDO
   
   DO IE=1,NEMAX
      DO K=1,4
         IN1=NDELM(I1(K),IE)
         IN2=NDELM(I2(K),IE)
         IN3=NDELM(I3(K),IE)
-        if(MODELG.eq.1) then
-           CALL RCTORT(XND(IN1),YND(IN1),ZND(IN1),XT(1),YT(1),ZT(1))
-           CALL RCTORT(XND(IN2),YND(IN2),ZND(IN2),XT(2),YT(2),ZT(2))
-           CALL RCTORT(XND(IN3),YND(IN3),ZND(IN3),XT(3),YT(3),ZT(3))
-           IF(ZT(1).GT.ZNDMAX-EPS.AND.&
-            & ZT(2).GT.ZNDMAX-EPS.AND.&
-            & ZT(3).GT.ZNDMAX-EPS) THEN
+!
+! ----- Add. By YOKOYAMA Mar./05/2013 ----
+!
+!        if(MODELG.eq.1) then
+!           CALL RCTORT(XND(IN1),YND(IN1),ZND(IN1),XT(1),YT(1),ZT(1))
+!           CALL RCTORT(XND(IN2),YND(IN2),ZND(IN2),XT(2),YT(2),ZT(2))
+!           CALL RCTORT(XND(IN3),YND(IN3),ZND(IN3),XT(3),YT(3),ZT(3))
+!           IF(ZT(1).GT.ZNDMAX-EPS.AND.&
+!            & ZT(2).GT.ZNDMAX-EPS.AND.&
+!            & ZT(3).GT.ZNDMAX-EPS) THEN
+!
+         IF(ABS(ZND(IN1)-ZAXIS).LT.EPS.AND.&
+     &      ABS(ZND(IN2)-ZAXIS).LT.EPS.AND.&
+     &      ABS(ZND(IN3)-ZAXIS).LT.EPS) THEN
+!
+!  ---- Mar./05/2013 -----
               GX1=GCLIP(XT(1))
               GY1=GCLIP(YT(1))
               GX2=GCLIP(XT(2))
@@ -991,7 +1094,6 @@ SUBROUTINE WFGELM
                  IEL=IE
                  CALL GNUMBI(GXC,GYC,IEL,2)
               ENDIF
-           end IF
         else
            IF(ZND(IN1).GT.ZNDMAX-EPS.AND.&
             & ZND(IN2).GT.ZNDMAX-EPS.AND.&
@@ -1023,13 +1125,12 @@ SUBROUTINE WFGELM
                  CALL MOVE(GX3,GY3)
                  CALL DRAW(GX1,GY1)
               END IF
-              
-              IF(NDRAWD.GE.2) THEN
-                 GXC=(GX1+GX2+GX3)/3.
-                 GYC=(GY1+GY2+GY3)/3.
-                 IEL=IE
-                 CALL GNUMBI(GXC,GYC,IEL,2)
-              ENDIF
+           END IF
+           IF(NDRAWD.GE.2) THEN
+              GXC=(GX1+GX2+GX3)/3.
+              GYC=(GY1+GY2+GY3)/3.
+              IEL=IE
+              CALL GNUMBI(GXC,GYC,IEL,2)
            ENDIF
         end if
      ENDDO
@@ -1244,6 +1345,313 @@ SUBROUTINE WFGELM3(ID)
   RETURN
 END SUBROUTINE WFGELM3
 
+
+!     ---- Draw Element Data (ADD. BY YAMA 30/SEP./2008) ----
+
+      SUBROUTINE WFGELMA
+
+      use wfcomm
+      implicit none
+      INTEGER,DIMENSION(4):: I1=(/1,2,3,4/)
+      INTEGER,DIMENSION(4):: I2=(/2,3,4,1/)
+      INTEGER,DIMENSION(4):: I3=(/3,4,1,2/)
+      REAL(8),PARAMETER:: EPS=1.D-6
+      REAL(8):: ANTZP,DZMIN,ZAXIS,DELTZ
+      REAL(4):: GX1,GY1,GX2,GY2,GX3,GY3
+      REAL(4):: GXC,GYC,GCLIP
+      INTEGER:: NN,IE,K,IN1,IN2,IN3,IEL,IN,INL
+
+      CALL SETCHR(0.2,0.15,0.2,0.,-30.)
+
+!      ANTZP = 1.715D0
+!      ANTZP = 2.055D0
+!      ANTZP = 5.6D0
+      ANTZP = ZJ0(1,1)
+      DZMIN = 1.D0
+      DO NN=1,NNMAX
+         DELTZ = ABS(ZND(NN) - ANTZP)
+         IF(DELTZ.LT.DZMIN) THEN
+            DZMIN = DELTZ
+            ZAXIS = ZND(NN)
+         ENDIF
+      ENDDO
+
+      DO IE=1,NEMAX
+         DO K=1,4
+         IN1=NDELM(I1(K),IE)
+         IN2=NDELM(I2(K),IE)
+         IN3=NDELM(I3(K),IE)
+         IF(ABS(ZND(IN1)-ZAXIS).LT.EPS.AND. &
+            ABS(ZND(IN2)-ZAXIS).LT.EPS.AND. &
+            ABS(ZND(IN3)-ZAXIS).LT.EPS) THEN
+            GX1=GCLIP(XND(IN1))
+            GY1=GCLIP(YND(IN1))
+            GX2=GCLIP(XND(IN2))
+            GY2=GCLIP(YND(IN2))
+            GX3=GCLIP(XND(IN3))
+            GY3=GCLIP(YND(IN3))
+            IF (GX1.GT.GX2) THEN
+               CALL MOVE(GX2,GY2)
+               CALL DRAW(GX1,GY1)
+            ELSE
+               CALL MOVE(GX1,GY1)
+               CALL DRAW(GX2,GY2)
+            END IF
+            IF (GX2.GT.GX3) THEN
+               CALL MOVE(GX3,GY3)
+               CALL DRAW(GX2,GY2)
+            ELSE
+               CALL MOVE(GX2,GY2)
+               CALL DRAW(GX3,GY3)
+            END IF
+            IF (GX3.GT.GX1) THEN
+               CALL MOVE(GX1,GY1)
+               CALL DRAW(GX3,GY3)
+            ELSE
+               CALL MOVE(GX3,GY3)
+               CALL DRAW(GX1,GY1)
+            END IF
+
+            IF(NDRAWD.GE.2) THEN
+               GXC=(GX1+GX2+GX3)/3.
+               GYC=(GY1+GY2+GY3)/3.
+               IEL=IE
+               CALL GNUMBI(GXC,GYC,IEL,2)
+            ENDIF
+         ENDIF
+         ENDDO
+      ENDDO
+
+      IF(NDRAWD.GE.3) THEN
+         CALL SETCHS(0.2,0.)
+         DO IN=1,NNMAX
+            GX1=GCLIP(XND(IN))
+            GY1=GCLIP(YND(IN))
+            INL=IN
+            CALL GNUMBI(GX1,GY1,INL,0)
+         END DO
+      ENDIF
+
+      RETURN
+    END SUBROUTINE WFGELMA
+
+!
+!
+! ----- Add. By YOKOYAMA Mar./05/2013 ----
+!
+!     ****** Draw Element Data (ON Y-Z PLANE) ******
+
+      SUBROUTINE WFGELM_YZ
+
+      use wfcomm
+      implicit none
+      INTEGER,DIMENSION(4),PARAMETER:: I1=(/1,2,3,4/)
+      INTEGER,DIMENSION(4),PARAMETER:: I2=(/2,3,4,1/)
+      INTEGER,DIMENSION(4),PARAMETER:: I3=(/3,4,1,2/)
+      REAL(8),PARAMETER:: EPS=1.D-6
+      INTEGER:: IE,KK,IIN1,IIN2,IIN3,IN1,IN2,IN3,K,IZLN,IEL,IN,INL
+      REAL(8):: XNDS,YNDS,ZAVG
+      REAL(4):: GX1,GY1,GX2,GY2,GX3,GY3,GXC,GYC,GCLIP
+
+      CALL SETCHR(0.2,0.15,0.2,0.,-30.)
+
+      DO IE=1,NEMAX
+
+         XNDS=0.D0
+         YNDS=0.D0
+         DO KK=1,4
+            IIN1=NDELM(I1(KK),IE)
+            IIN2=NDELM(I2(KK),IE)
+            IIN3=NDELM(I3(KK),IE)
+            XNDS=XND(IIN1)+XND(IIN2)+XND(IIN3)
+            YNDS=YND(IIN1)+YND(IIN2)+YND(IIN3)
+         ENDDO
+
+!         IF(((YNDS.GT.0.D0).AND.(XNDS.GT.0.D0)).OR.
+!     &      ((YNDS.LT.0.D0).AND.(XNDS.LT.0.D0))) THEN
+         IF(XNDS.GE.0.D0) THEN
+
+         DO K=1,4
+         IN1=NDELM(I1(K),IE)
+         IN2=NDELM(I2(K),IE)
+         IN3=NDELM(I3(K),IE)
+
+!  --  重ね描きの回避 --
+         IZLN=0
+         ZAVG=(ZND(IN1)+ZND(IN2)+ZND(IN3))/3.D0
+         IF(ZND(IN1).LT.ZAVG) IZLN=IZLN+1
+         IF(ZND(IN2).LT.ZAVG) IZLN=IZLN+1
+         IF(ZND(IN3).LT.ZAVG) IZLN=IZLN+1
+
+         IF(ABS(XND(IN1)).LT.EPS.AND. &
+            ABS(XND(IN2)).LT.EPS.AND. &
+            ABS(XND(IN3)).LT.EPS.AND. &
+            IZLN.EQ.1) THEN
+
+
+            GX1=GCLIP(ZND(IN1))
+            GY1=GCLIP(YND(IN1))
+            GX2=GCLIP(ZND(IN2))
+            GY2=GCLIP(YND(IN2))
+            GX3=GCLIP(ZND(IN3))
+            GY3=GCLIP(YND(IN3))
+            IF (GX1.GT.GX2) THEN
+               CALL MOVE(GX2,GY2)
+               CALL DRAW(GX1,GY1)
+            ELSE
+               CALL MOVE(GX1,GY1)
+               CALL DRAW(GX2,GY2)
+            END IF
+            IF (GX2.GT.GX3) THEN
+               CALL MOVE(GX3,GY3)
+               CALL DRAW(GX2,GY2)
+            ELSE
+               CALL MOVE(GX2,GY2)
+               CALL DRAW(GX3,GY3)
+            END IF
+            IF (GX3.GT.GX1) THEN
+               CALL MOVE(GX1,GY1)
+               CALL DRAW(GX3,GY3)
+            ELSE
+               CALL MOVE(GX3,GY3)
+               CALL DRAW(GX1,GY1)
+            END IF
+
+            IF(NDRAWD.GE.2) THEN
+               GXC=(GX1+GX2+GX3)/3.
+               GYC=(GY1+GY2+GY3)/3.
+               IEL=IE
+               CALL GNUMBI(GXC,GYC,IEL,2)
+            ENDIF
+         ENDIF
+         ENDDO
+
+         ENDIF
+
+      ENDDO
+
+      IF(NDRAWD.GE.3) THEN
+         CALL SETCHS(0.2,0.)
+         DO IN=1,NNMAX
+            GX1=GCLIP(ZND(IN))
+            GY1=GCLIP(YND(IN))
+            INL=IN
+            CALL GNUMBI(GX1,GY1,INL,0)
+         END DO
+      ENDIF
+
+      RETURN
+    END SUBROUTINE WFGELM_YZ
+
+!
+!     ****** Draw Element Data (ON X-Z PLANE) ******
+!
+      SUBROUTINE WFGELM_XZ
+!
+      use wfcomm
+      implicit none
+      INTEGER,DIMENSION(4),PARAMETER:: I1=(/1,2,3,4/)
+      INTEGER,DIMENSION(4),PARAMETER:: I2=(/2,3,4,1/)
+      INTEGER,DIMENSION(4),PARAMETER:: I3=(/3,4,1,2/)
+      REAL(8),PARAMETER:: EPS=1.D-6
+      INTEGER:: IE,KK,IIN1,IIN2,IIN3,IN1,IN2,IN3,K,IZLN,IEL,IN,INL
+      REAL(8):: XNDS,YNDS,ZAVG
+      REAL(4):: GX1,GY1,GX2,GY2,GX3,GY3,GXC,GYC,GCLIP
+!
+      CALL SETCHR(0.2,0.15,0.2,0.,-30.)
+!
+!      DO IE=1,NEMAX,2
+      DO IE=1,NEMAX
+
+         YNDS=0.D0
+         DO KK=1,4
+            IIN1=NDELM(I1(KK),IE)
+            IIN2=NDELM(I2(KK),IE)
+            IIN3=NDELM(I3(KK),IE)
+            YNDS=YND(IIN1)+YND(IIN2)+YND(IIN3)
+         ENDDO
+
+         IF(YNDS.GT.0.D0) THEN
+
+         DO K=1,4
+         IN1=NDELM(I1(K),IE)
+         IN2=NDELM(I2(K),IE)
+         IN3=NDELM(I3(K),IE)
+
+!  --  重ね描きの回避 --
+         IZLN=0
+         ZAVG=(ZND(IN1)+ZND(IN2)+ZND(IN3))/3.D0
+         IF(ZND(IN1).LT.ZAVG) IZLN=IZLN+1
+         IF(ZND(IN2).LT.ZAVG) IZLN=IZLN+1
+         IF(ZND(IN3).LT.ZAVG) IZLN=IZLN+1
+
+         IF(ABS(YND(IN1)).LT.EPS.AND.&
+     &      ABS(YND(IN2)).LT.EPS.AND.&
+     &      ABS(YND(IN3)).LT.EPS.AND.&
+     &      IZLN.EQ.2) THEN
+
+
+!            GX1=GCLIP(XND(IN1))
+            GX1=GCLIP(ZND(IN1))
+            GY1=GCLIP(XND(IN1))
+!            GX2=GCLIP(XND(IN2))
+            GX2=GCLIP(ZND(IN2))
+            GY2=GCLIP(XND(IN2))
+!            GX3=GCLIP(XND(IN3))
+            GX3=GCLIP(ZND(IN3))
+            GY3=GCLIP(XND(IN3))
+            IF (GX1.GT.GX2) THEN
+               CALL MOVE(GX2,GY2)
+               CALL DRAW(GX1,GY1)
+            ELSE
+               CALL MOVE(GX1,GY1)
+               CALL DRAW(GX2,GY2)
+            END IF
+            IF (GX2.GT.GX3) THEN
+               CALL MOVE(GX3,GY3)
+               CALL DRAW(GX2,GY2)
+            ELSE
+               CALL MOVE(GX2,GY2)
+               CALL DRAW(GX3,GY3)
+            END IF
+            IF (GX3.GT.GX1) THEN
+               CALL MOVE(GX1,GY1)
+               CALL DRAW(GX3,GY3)
+            ELSE
+               CALL MOVE(GX3,GY3)
+               CALL DRAW(GX1,GY1)
+            END IF
+!
+            IF(NDRAWD.GE.2) THEN
+               GXC=(GX1+GX2+GX3)/3.
+               GYC=(GY1+GY2+GY3)/3.
+               IEL=IE
+               CALL GNUMBI(GXC,GYC,IEL,2)
+            ENDIF
+         ENDIF
+         ENDDO
+
+         ENDIF
+
+      ENDDO
+!
+      IF(NDRAWD.GE.3) THEN
+         CALL SETCHS(0.2,0.)
+         DO 200 IN=1,NNMAX
+!            GX1=GCLIP(XND(IN))
+            GX1=GCLIP(ZND(IN))
+            GY1=GCLIP(YND(IN))
+            INL=IN
+            CALL GNUMBI(GX1,GY1,INL,0)
+  200    CONTINUE
+      ENDIF
+!
+      RETURN
+      END SUBROUTINE WFGELM_XZ
+
+!
+! ----- Mar./05/2013 -----
+!
 !     ****** Draw Element Data ******
 
 SUBROUTINE WFGDIV
@@ -1296,6 +1704,131 @@ SUBROUTINE WFGDIV
   RETURN
 END SUBROUTINE WFGDIV
 
+!
+!
+!
+! ----- Add. By YOKOYAMA Mar./05/2013 ----
+!
+!     ****** Draw Element Data (Y-Z PLANE) ******
+!
+      SUBROUTINE WFGDIV_YZ
+!
+      use wfcomm
+      implicit none
+      REAL(8):: PXMIN,PXMAX,PYMIN,PYMAX,DXLEN,DYLEN,DRATIO,PRATIO
+      REAL(8):: XMID,XLEN,YMID,YLEN
+      REAL(4):: GCLIP
+      REAL(4):: GPXMIN,GPXMAX,GPYMIN,GPYMAX,GYMIN,GYMAX,GXMIN,GXMAX
+!
+!      CALL WFGWIN(1,1,PXMIN,PXMAX,PYMIN,PYMAX)
+      CALL WFGWIN_YZ(1,1,PXMIN,PXMAX,PYMIN,PYMAX)
+      GPXMIN=GCLIP(PXMIN)
+      GPXMAX=GCLIP(PXMAX)
+      GPYMIN=GCLIP(PYMIN)+1.0
+      GPYMAX=GCLIP(PYMAX)+1.0
+!
+!      DXLEN= XNDMAX-XNDMIN
+      DXLEN= ZNDMAX-ZNDMIN
+      DYLEN= YNDMAX-YNDMIN
+      DRATIO=DYLEN/DXLEN
+      PRATIO=(PYMAX-PYMIN)/(PXMAX-PXMIN)
+      IF(DRATIO.GT.PRATIO) THEN
+         GYMIN=GCLIP(YNDMIN)
+         GYMAX=GCLIP(YNDMAX)
+!         XMID=0.5D0*(XNDMIN+XNDMAX)
+         XMID=0.5D0*(ZNDMIN+ZNDMAX)
+         XLEN=DYLEN/PRATIO
+         GXMIN=GCLIP(XMID-0.5D0*XLEN)
+         GXMAX=GCLIP(XMID+0.5D0*XLEN)
+      ELSE
+!         GXMIN=GCLIP(XNDMIN)
+!         GXMAX=GCLIP(XNDMAX)
+         GXMIN=GCLIP(ZNDMIN)
+         GXMAX=GCLIP(ZNDMAX)
+         YMID=0.5D0*(YNDMIN+YNDMAX)
+         YLEN=DXLEN*PRATIO
+         GYMIN=GCLIP(YMID-0.5D0*YLEN)
+         GYMAX=GCLIP(YMID+0.5D0*YLEN)
+      ENDIF
+!
+      CALL PAGES
+      CALL WFPRME
+      CALL SETVEW(GPXMIN,GPXMAX,GPYMIN,GPYMAX,&
+     &            GXMIN,GXMAX,GYMIN,GYMAX)
+!
+      CALL SETLIN(0,0,7)
+      IF(NDRAWD.EQ.0) THEN
+         CALL WFGBDY
+      ELSE
+!         CALL WFGELM
+         CALL WFGELM_YZ
+      ENDIF
+!
+      CALL PAGEE
+      RETURN
+      END SUBROUTINE WFGDIV_YZ
+
+!     ****** Draw Element Data (X-Z PLANE) ******
+!
+      SUBROUTINE WFGDIV_XZ
+!
+      use wfcomm
+      implicit none
+      REAL(8):: PXMIN,PXMAX,PYMIN,PYMAX,DXLEN,DYLEN,DRATIO,PRATIO
+      REAL(8):: XMID,XLEN,YMID,YLEN
+      REAL(4):: GCLIP
+      REAL(4):: GPXMIN,GPXMAX,GPYMIN,GPYMAX,GYMIN,GYMAX,GXMIN,GXMAX
+!
+!      CALL WFGWIN(1,1,PXMIN,PXMAX,PYMIN,PYMAX)
+      CALL WFGWIN_YZ(1,1,PXMIN,PXMAX,PYMIN,PYMAX)
+      GPXMIN=GCLIP(PXMIN)
+      GPXMAX=GCLIP(PXMAX)
+      GPYMIN=GCLIP(PYMIN)+1.0
+      GPYMAX=GCLIP(PYMAX)+1.0
+!
+!      DXLEN= XNDMAX-XNDMIN
+      DXLEN= ZNDMAX-ZNDMIN
+      DYLEN= YNDMAX-YNDMIN
+      DRATIO=DYLEN/DXLEN
+      PRATIO=(PYMAX-PYMIN)/(PXMAX-PXMIN)
+      IF(DRATIO.GT.PRATIO) THEN
+         GYMIN=GCLIP(YNDMIN)
+         GYMAX=GCLIP(YNDMAX)
+!         XMID=0.5D0*(XNDMIN+XNDMAX)
+         XMID=0.5D0*(ZNDMIN+ZNDMAX)
+         XLEN=DYLEN/PRATIO
+         GXMIN=GCLIP(XMID-0.5D0*XLEN)
+         GXMAX=GCLIP(XMID+0.5D0*XLEN)
+      ELSE
+!         GXMIN=GCLIP(XNDMIN)
+!         GXMAX=GCLIP(XNDMAX)
+         GXMIN=GCLIP(ZNDMIN)
+         GXMAX=GCLIP(ZNDMAX)
+         YMID=0.5D0*(YNDMIN+YNDMAX)
+         YLEN=DXLEN*PRATIO
+         GYMIN=GCLIP(YMID-0.5D0*YLEN)
+         GYMAX=GCLIP(YMID+0.5D0*YLEN)
+      ENDIF
+!
+      CALL PAGES
+      CALL WFPRME
+      CALL SETVEW(GPXMIN,GPXMAX,GPYMIN,GPYMAX,&
+     &            GXMIN,GXMAX,GYMIN,GYMAX)
+!
+      CALL SETLIN(0,0,7)
+      IF(NDRAWD.EQ.0) THEN
+         CALL WFGBDY
+      ELSE
+!         CALL WFGELM
+         CALL WFGELM_XZ
+!         CALL WFGELM3(0)
+      ENDIF
+      CALL PAGEE
+      RETURN
+      END SUBROUTINE WFGDIV_XZ
+!
+! ----- Mar./05/2013 -----
+!
 !     ****** Draw Element Paramters ******
 
 SUBROUTINE WFPRME
@@ -1384,6 +1917,11 @@ SUBROUTINE WFPLTA
   ELSE
      NTEMP=NDRAWD
      NDRAWD=NDRAWA-1
+!
+! ----- Add. By YOKOYAMA Mar./05/2013 ----
+!         CALL WFGELM
+! ----- Mar./05/2013 -----
+         CALL WFGELMA
      CALL WFGELM
      NDRAWD=NTEMP
   ENDIF

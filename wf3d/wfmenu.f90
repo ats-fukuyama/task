@@ -14,7 +14,7 @@ subroutine wfmenu
   if(nrank.eq.0) then
      write(6,601)
 601  format(' ','## INPUT: P,V:PARM  D:DIV  A:ANT', &
-                         ' W,C:WAVE, G:GRAPH  N:NAS  S,L:FILE  Q:QUIT')
+        ' W,C:WAVE, G:GRAPH  N:NAS  S,L:FILE  Y:G10  Q:QUIT')
      call GUFLSH
      call WFKLIN(LINE,KID,MODE)
   end if
@@ -55,6 +55,19 @@ subroutine wfmenu
      if(nrank.eq.0) call WFINFO
   elseif (KID.eq.'Q') then
      goto 9000
+!
+! ----- Add. By YOKOYAMA 25/02/2013 ----
+!    KID=Y for GAMMA10 at Univ. of Tsukuba
+!
+  elseif (KID.eq.'Y') then
+!  Loading files for calculation of magnetic field of G10
+      call MAGPRP(14,-1)
+!  Loading files for saving plot points of G10
+      call G10BFL
+      write(6,*) '## READ B-FILD LINE DATA FOR GAMMA10'
+!
+! ----- -----
+!
   end  if
   KID=' '
   goto 1
@@ -100,6 +113,9 @@ subroutine WFKLIN(LINE,KID,MODE)
      KID.eq.'W'.or.&
      KID.eq.'G'.or.&
      KID.eq.'?'.or.&
+! ----- Add. By YOKOYAMA 25/02/2013 ----
+     KID.eq.'Y'.or.&
+! ----- -----
      KID.eq.'Q') then
      MODE=1
      return

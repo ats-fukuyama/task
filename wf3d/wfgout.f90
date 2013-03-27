@@ -14,6 +14,8 @@ SUBROUTINE WFGOUT
   integer :: NL,NWD,NCH,NWMAX,I,NID,NW,ID
   CHARACTER KLINE*80,KWORD*(NCHM),KWD*(NCHM),KID*1,KTAIL*7
   CHARACTER KG1*1,KG2*1
+  integer:: NN
+  real(8):: X,Y,Z
   DIMENSION KWORD(NWDM)
 
   call wfwin_allocate
@@ -160,6 +162,15 @@ SUBROUTINE WFGOUT
            CALL WFCTOG(CEP,3,2,KWD)
         ELSEIF(KID.EQ.'P') THEN
            CALL WFCTOG(CEP,3,3,KWD)
+!
+! ----- Add. By YOKOYAMA 01/03/2013 ----
+!        CERT(1,NN): E-r     波動電界の半径方向成分
+!        CERT(2,NN): E-theta 波動電界の方位角方向成分
+            ELSEIF(KID.EQ.'R') THEN
+               CALL WFCTOG(CERT,3,1,KWD)
+            ELSEIF(KID.EQ.'T') THEN
+               CALL WFCTOG(CERT,3,2,KWD)
+! ----- 01/03/2013 -----
         ELSE
            WRITE(6,*) 'XX UNKNOWN KID2:',KID
            GOTO 1000
@@ -225,6 +236,35 @@ SUBROUTINE WFGOUT
            WRITE(6,*) 'XX UNKNOWN KID2:',KID
            GOTO 1000
         ENDIF
+!
+! ----- Add. By YOKOYAMA 01/03/2013 ----
+     ELSEIF(KID.EQ.'Y') THEN
+        KID=KWD(2:2)
+!           Profile of External Magnetic Field
+        IF(    KID.EQ.'B') THEN
+               DO NN=1,NNMAX
+                  CALL WFSMAG(NN,YBABS(NN),DUMMY1)
+               ENDDO
+               CALL WFDTOG(YBABS,1,KWD)
+!           Profile of Plasma Density
+        ELSEIF(KID.EQ.'N') THEN
+               DO NN=1,NNMAX
+                  CALL WFSDEN(NN,YDEN,DUMMY2,DUMMY3,DUMMY4)
+                  YDENI(NN) = YDEN(1)
+               ENDDO
+               CALL WFDTOG(YDENI,1,KWD)
+!           Profile of PSI (For Check)
+        ELSEIF(KID.EQ.'P') THEN
+               DO NN=1,NNMAX
+                  X=XND(NN)
+                  Y=YND(NN)
+                  Z=ZND(NN)   
+                  CALL WFSPSI(X,Y,Z,YPSI(NN))
+               ENDDO
+               CALL WFDTOG(YPSI,1,KWD)
+        ENDIF
+!  ----
+
      ELSE
         WRITE(6,*) 'XX UNKNOWN KID1:',KID
         GOTO 1000

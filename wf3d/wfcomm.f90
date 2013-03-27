@@ -7,40 +7,40 @@ module wfcomm
   use commpi
   implicit none
 
-  public
+!  public
 !       --- for parallel computing ---
-!  integer :: nrank,nprocs
-  integer :: istart,iend
+!  integer(ikind) :: nrank,nsize
+  integer(ikind) :: istart,iend
 
 !       --- input parameters ---
 
-!  integer,parameter:: NXM = 201
-!  integer,parameter:: NYM = 201
-!  integer,parameter:: NZM = 101
+!  integer(ikind),parameter:: NXM = 201
+!  integer(ikind),parameter:: NYM = 201
+!  integer(ikind),parameter:: NZM = 101
 
-  integer :: NXM,NYM,NZM
-  integer :: NYMH
+  integer(ikind) :: NXM,NYM,NZM
+  integer(ikind) :: NYMH
 
 !      ----- graphics -----
 
-  integer :: NBPM
-  integer,parameter::  NMDM = 10
-  integer,parameter::  NCNM = 12+NMDM
+  integer(ikind) :: NBPM
+  integer(ikind),parameter::  NMDM = 10
+  integer(ikind),parameter::  NCNM = 12+NMDM
 
-  integer,parameter::   NBM = 100
-  integer,parameter::   NKM = 100   
-  integer,parameter::   NMM = 100   
-  integer,parameter::   NAM =   8  
+  integer(ikind),parameter::   NBM = 100
+  integer(ikind),parameter::   NKM = 100   
+  integer(ikind),parameter::   NMM = 100   
+  integer(ikind),parameter::   NAM =  25
 
-  integer,parameter::   NJM = 800
+  integer(ikind),parameter::   NJM = 800
   
-  integer,parameter::  NGXM = 101
-  integer,parameter::  NGYM = 101
-  integer,parameter::  NGVM = 101
-  integer,parameter::   NGM =   3
+  integer(ikind),parameter::  NGXM = 101
+  integer(ikind),parameter::  NGYM = 101
+  integer(ikind),parameter::  NGVM = 101
+  integer(ikind),parameter::   NGM =   3
   
-  integer,parameter::  NWDM = 12
-  integer,parameter::  NCHM = 80
+  integer(ikind),parameter::  NWDM = 12
+  integer(ikind),parameter::  NCHM = 80
 
 !       --- common variables ---
   complex(rkind):: CII
@@ -48,12 +48,13 @@ module wfcomm
 !       /WFPRM/
   real(rkind):: RF
   integer(ikind):: NAMAX
+!  real(rkind),dimension(NSM):: PZCL
   real(rkind):: ZPMIN,ZPMAX,ZPLEN
   real(rkind):: PPN0,PTN0,PIN
   integer(ikind):: NPRINT,NDRAWD,NDRAWA,NGRAPH
   integer(ikind):: MODELI,MODELB
   integer(ikind):: MODELD,MODELP,MODELS,MODELX,MODELA
-  real(rkind):: POSRES,POSABS,EPSABS,DLTABS,EPSWF
+  real(rkind):: POSRES,POSABS,EPSABS,DLTABS
 
 !       /WFPRK/
   character(len=32) :: KFNAME,KFNAMA,KFNAMF,KFNAMN
@@ -61,7 +62,7 @@ module wfcomm
 
 !       /WFPRD/
   real(rkind):: BXMIN,BXMAX,BYMIN,BYMAX,RBAX
-  real(rkind):: BZMIN,BZMAX,DELX,DELY,DELZ
+  real(rkind):: BZMIN,BZMIDL,BZMIDH,BZMAX,DELX,DELY,DELZ,DelZM
   real(rkind):: RD,THETJ1,THETJ2
   integer(ikind):: NJMAX
   real(rkind),dimension(NAM):: AJ,APH,APOS,AWD
@@ -178,6 +179,7 @@ module wfcomm
   integer(ikind),dimension(NAM)    :: JNUM
   real(rkind),dimension(NJM,NAM)   :: XJ0,YJ0,ZJ0
   integer(ikind),dimension(NAM)    :: JNUM0
+  complex(rkind),dimension(NJM,NAM):: CEIMP
         
 !       /WFNAS/
   real(rkind):: FACT_LEN
@@ -205,7 +207,46 @@ module wfcomm
   real(4),dimension(:)  ,pointer :: GX !(NGVM)
   integer(ikind):: NGXMAX,NGYMAX,NGVMAX
   CHARACTER,dimension(0:9) :: KGINX*80,KGINV*80
-        
+
+! ----- Add. By YOKOYAMA Mar./05/2013 ----
+!     (wfgout.f) Magnetic Field and Plasma density Profile
+   real(rkind),dimension(:),pointer:: YBABS,YDEN,YDENI,YPSI
+   real(rkind):: DUMMY1
+   real(rkind):: DUMMY2,DUMMY3,DUMMY4
+!
+!     (wfdiv.f) Elements
+!     /YAMA03/YAMA04/
+   real(rkind):: RBIN,RBOUT,DXIN,DYIN,DXOUT,DYOUT
+   real(rkind):: INOD,NYTEMP,NZTEMP
+!
+!     (wfgsub.f) FRATIO
+!     /YAMA05/
+   real(rkind):: FRATIO
+!
+!     (wffile.f) B-FIELD LINE
+!    /YAMA06/07/08/
+    real(rkind):: NGFLIN
+    real(rkind),dimension(:),pointer:: FLZ,FLX,FLY,XYR
+    real(rkind):: FACTC, FACTA
+!
+!     (wfwave.f) Loaging Impedance
+!    /YAMA09/
+    complex(rkind),dimension(NAM):: CLOAD
+!
+!     (wfwave.f) E-r, E-theta
+!    /YAMA10/
+	complex,dimension(:),pointer::ANGLE
+    complex,dimension(:,:),pointer:: CERT,CBRT
+!
+!     (mbant.f) Rotarion Angle [deg.]
+!    /YAMA11/
+     real(rkind):: RTDEG
+!
+!     (wfwave.f) COLLISION FREQ.
+!    /YAMA12/
+      complex,dimension(:,:),pointer:: RZCO
+! ----- Mar./05/2013 -----
+!        
 !       /WFDBG/
   integer(ikind):: NDFILE
 
@@ -216,7 +257,7 @@ contains
     use libmpi
     use libmtx
     implicit none
-    integer :: idata(3)
+    integer(ikind) :: idata(3)
 
     if (nrank.eq.0) then
        WRITE(6,*) "## DIV: NXM, NYM, NZM ?"

@@ -156,16 +156,16 @@ SUBROUTINE CVSOLV(IERR)
 
 ! ----- initialize for parallel computing -----
 
+  tolerance=1.D-8
 !  if (nrank.eq.0) then
 !     write(*,*) "## INPUT: tolerance"
 !     read (*,*) tolerance
 !     write(*,'(A,1P,D16.4)') " tolerance =", tolerance
 !     ddata(1)=tolerance
 !  end if
-!  
-!  call mtx_broadcast_real8(ddata,1)
-
-  tolerance=EPSWF
+  
+  call mtx_broadcast_real8(ddata,1)
+  tolerance=ddata(1)
   itype = 0
 
   call mtxc_setup(MLEN,istart,iend,MLEN)
@@ -337,9 +337,6 @@ SUBROUTINE CVSOLV(IERR)
 
   deallocate(CEQP,CRVP)
   deallocate(NEFLAG)
-
-  call mtxc_cleanup
-
   RETURN
 END SUBROUTINE CVSOLV
     

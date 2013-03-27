@@ -8,7 +8,7 @@
 
 SUBROUTINE WFANT
 
-  USE libmpi
+  use libmpi
   use libmtx
   use wfcomm
   implicit none
@@ -84,6 +84,8 @@ SUBROUTINE WFDEFA
   implicit none
   integer   :: NA,NJ,IERR
   real(8)   :: DEGN,DTHETA,THETA,DRD,RDL,X,Y,Z
+  real(8)   :: ENDR,DFZ,DFZMIN,XPT,YPT,ZPT,RX,RY,ZTEMP
+  integer:: J
   character KID*1
 
   DEGN=PI/180.D0
@@ -143,7 +145,58 @@ SUBROUTINE WFDEFA
            YJ0(NJMAX,NA)=1.5D0*RD*SIN(THETA)
            ZJ0(NJMAX,NA)=ZANT
            JNUM0(NA)=NJMAX
-           
+!
+!
+! ----- Add. By YOKOYAMA 28/02/2013 ----
+!
+!        Ellipsoidal Antenna
+!
+         ELSEIF(KID.EQ.'E') THEN
+            ENDR = 0.5D0
+    9       WRITE(6,605) ENDR,THETJ1,THETJ2,RD,NJMAX,ZANT
+  605       FORMAT(' ','## ENDR = ',F10.3/&
+                   ' ','## THETJ1,THETJ2 = ',2F10.3/&
+                   ' ','## RD,NJMAX = ',F10.3,I5/&
+                   ' ','## ZANT = ',F10.3)
+            READ(5,*,ERR=9,END=2) ENDR,THETJ1,THETJ2,RD,NJMAX,ZANT
+!
+!          Find the cross-section of magnetic flux tube with the closest.
+!          与えられたZ座標に，最も近いZ座標を持つ磁力管断面を探す．
+!           FLZ,FLX,FLY -> 'cm' unit
+!           ZPT,XPT,YPT ->  'm' unit
+            DFZMIN = 1.D2
+            DO J=1,NGFLIN
+               ZPT = FLZ(J)/1.D2
+               DFZ = ABS(ZANT-ZPT)
+               IF(DFZ.LT.DFZMIN) THEN
+                  DFZMIN = DFZ
+                  XPT = FLX(J)/1.D2
+                  YPT = FLY(J)/1.D2
+                  ZTEMP = ZPT
+               ENDIF
+            ENDDO
+!
+            RX = RD/RA * XPT
+            RY = RD/RA * YPT
+            THETA=DEGN*THETJ1
+            XJ0(1,NA)=RX*COS(THETA)+(ENDR-RX)
+            YJ0(1,NA)=RY*SIN(THETA)
+            ZJ0(1,NA)=ZANT
+            DTHETA=(THETJ2-THETJ1)/(NJMAX-3)
+            DO NJ=2,NJMAX-1
+               THETA=DEGN*(DTHETA*(NJ-2)+THETJ1)
+               XJ0(NJ,NA)=RX*COS(THETA)
+               YJ0(NJ,NA)=RY*SIN(THETA)
+               ZJ0(NJ,NA)=ZANT
+            ENDDO
+            THETA=DEGN*THETJ2
+            XJ0(NJMAX,NA)=RX*COS(THETA)-(ENDR-RX)
+            YJ0(NJMAX,NA)=RY*SIN(THETA)
+            ZJ0(NJMAX,NA)=ZANT
+            JNUM0(NA)=NJMAX
+!
+! ----- -----
+!
         ELSEIF(KID.EQ.'S') THEN
 5          WRITE(6,604) THETS1,THETS2,RD1,RD2,NJMAX,ZANT,ZWALL
 604        FORMAT(' ','## THETS1,THETJS2 = ',2F10.3/&
@@ -169,7 +222,21 @@ SUBROUTINE WFDEFA
            YJ0(NJMAX,NA)=RD2*SIN(THETA)
            ZJ0(NJMAX,NA)=ZWALL
            JNUM0(NA)=NJMAX
-           
+!
+! ----- Add. By YOKOYAMA 28/02/2013 ----
+!
+!        Antenna Along Mob-B Surface
+!
+         ELSEIF(KID.EQ.'Y') THEN
+            CALL MBDEFA(NA)
+!
+!        Bar-Type Antenna
+!
+         ELSEIF(KID.EQ.'B') THEN
+            CALL DEFBTA(NA)
+!
+! ----- -----
+!           
         ELSEIF(KID.EQ.'P') THEN
 6          WRITE(6,*) '## NUMBER OF POINTS : NJMAX=',NJMAX
            READ(5,*,ERR=6,END=2) NJMAX
@@ -204,8 +271,8 @@ END SUBROUTINE WFDEFA
 subroutine wfant_broadcast
   
   use libmpi
-  use wfcomm
   use libmtx
+  use wfcomm
   implicit none
   
   integer :: NA,NJ

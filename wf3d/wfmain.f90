@@ -22,17 +22,24 @@
 !                  V3.0   : 2003 JUN  (SIDE ELEMENTS)
 !
 !     ************************************************************
+!                  V3.0T  : 2013 FEB  (GAMMA10 tamdem mirror)
+!                  Modified by T. YOKOYAMA
+!                  Univ. of Tsukuba (GAMMA10 team)
+!                     25/02/2013-
+!
+!    This work is partially supported by the bidirectional collaborative 
+!    research program of National Institute for Fusion Science, Japan
+!    (NIFS11KUGM050) (NIFS11KUGM055)
 
 program wfmain
   
   use wfcomm
   use libmtx
   implicit none
-  integer:: ncomw
   
   ! --- initialize ---
-  call mtx_initialize
   call pl_allocate_ns
+  call mtx_initialize
 
   if(nrank.eq.0) then
      write(6,*) '## TASKX/WFX  V3.02  2010/10/09 ###'
@@ -60,6 +67,7 @@ program wfmain
   call wffld_deallocate
   call wfpwr_deallocate
   if(nrank.eq.0) call wfwin_deallocate
+  call mtx_cleanup
   call mtx_finalize
   stop
 end program wfmain
