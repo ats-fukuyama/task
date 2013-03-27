@@ -5,25 +5,25 @@ FFLAGS=$(OFLAGS)
 
 
 ##### Without PETSc library (no MPI, real8 and complex8) #####
-FLINKER=$(FCFREE)
-INCLUDE_MUMPS=.
-EXEC=testbnd testbndc
-all: $(EXEC)
-.SUFFIXES:
-.SUFFIXES: .f .f90 .mod .o .a
-.f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@
-clean :
-	-rm -f core a.out *.o *.a ./#* ./*~ ./*.mod
-
-##### With MUMPS library (real8 and complex8)
-#FLINKER=$(MF90)
-#INCLUDE_MUMPS=${PETSC_DIR}/externalpackages/MUMPS_4.10.0/include
-#EXEC=testbnd testbndc testdmumps testzmumps
+#FLINKER=$(FCFREE)
+#INCLUDE_MUMPS=.
+#EXEC=testbnd testbndc
 #all: $(EXEC)
 #.SUFFIXES:
 #.SUFFIXES: .f .f90 .mod .o .a
 #.f90.o :
+#	$(FCFREE) $(FFLAGS) -c $< -o $@
+#clean :
+#	-rm -f core a.out *.o *.a ./#* ./*~ ./*.mod
+
+#### With MUMPS library (real8 and complex8)
+FLINKER=$(MF90)
+INCLUDE_MUMPS=${PETSC_DIR}/externalpackages/MUMPS_4.10.0/include
+EXEC=testbnd testbndc testdmumps testzmumps
+all: $(EXEC)
+.SUFFIXES:
+.SUFFIXES: .f .f90 .mod .o .a
+.f90.o :
 #	$(FCFREE) $(FFLAGS) -c $< -o $@
 #clean :
 #	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod
