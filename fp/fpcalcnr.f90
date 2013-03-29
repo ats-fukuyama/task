@@ -66,11 +66,13 @@
       real(8):: DKBSL0, DKBSL1, DKBSL2, Z
 !
 !----- DEFINITION OF LOCAL QUANTITIES -------------
-!
+! 
       TMC2FD0=THETA0(NSB)
       TMC2FD =(PTFD(NR,NSB)/(AMFD(NSB)*VC))**2 
-      RGAMH=RNUD(NR,NSB,NSA)*SQRT(2.D0)*VTFD(NR,NSB)*AMFP(NSA) &
-           /(RNFP0(NSA)*PTFP0(NSA)*1.D20)
+      FACT=AEFP(NSA)**2*AEFD(NSB)**2*LNLAM(NR,NSB,NSA)/(4.D0*PI*EPS0**2)
+!      RGAMH=RNUD(NR,NSB,NSA)*SQRT(2.D0)*VTFD(NR,NSB)*AMFP(NSA) &
+!           /(RNFP0(NSA)*PTFP0(NSA)*1.D20)
+      RGAMH=FACT*AMFP(NSA)/PTFP0(NSA)**3
       NSBA=NSB_NSA(NSA)
 !
 !   --- calculation of Legendre Polynomials and its derivatives---
@@ -190,7 +192,6 @@
 
 !---- END OF INTEGRALS
 !
-
 !
 !---- PSI AND ITS DERIVATIONS
 !
@@ -536,7 +537,6 @@
          END DO
       END IF
 
-!      DO NP=2,NPMAX+1
       DO NP=NPS,NPENDWG
          RGAMA=SQRT(1.D0+PG(NP,NSBA)**2*THETA0(NSA))
          RUFP = (PTFP0(NSA)*PG(NP,NSBA))/AMFP(NSA)
@@ -588,7 +588,6 @@
 ! END FOR BOUNDARY
       END DO
 
-!      DO NP=1,NPMAX
       DO NP=NPSTARTW,NPENDWM
          RGAMA=SQRT(1.D0+PM(NP,NSBA)**2*THETA0(NSA))
          RUFP = (PTFP0(NSA)*PM(NP,NSBA))/AMFP(NSA)
@@ -1326,7 +1325,7 @@
       ELSE
          RNFDL=PLF(NS)%RN/RNFD0L
 !         RNFDL=PNT(NR,NS,NTG2)
-         RTFDL=RTT(NR,NS,NTG2)
+         RTFDL=RT_IMPL(NR,NS)
       END IF
 
       IF(MODELR.EQ.0) THEN

@@ -517,16 +517,16 @@
       CALL mtx_gather1_integer(nsaend,  insa2)
 
 
-      IF(nrank.EQ.0) THEN
-         write(6,'(A,2I10)') '  imtxsize,imtxwidth=',imtxsize,imtxwidth
-         write(6,'(A,A,A)') '     nrank   imtxstart   imtxend   npstart    npend', &
-                          '    nrstart     nrend   nmstart     nmend', &
-                          '      nsastart      nsaend'
-         DO N=1,nsize
-            write(6,'(11I10)') N,ima1(N),ima2(N),npa1(N),npa2(N),nra1(N),nra2(N), &
-                              nma1(N),nma2(N),insa1(N),insa2(N)
-         ENDDO
-      ENDIF
+!      IF(nrank.EQ.0) THEN
+!         write(6,'(A,2I10)') '  imtxsize,imtxwidth=',imtxsize,imtxwidth
+!         write(6,'(A,A,A)') '     nrank   imtxstart   imtxend   npstart    npend', &
+!                          '    nrstart     nrend   nmstart     nmend', &
+!                          '      nsastart      nsaend'
+!         DO N=1,nsize
+!            write(6,'(11I10)') N,ima1(N),ima2(N),npa1(N),npa2(N),nra1(N),nra2(N), &
+!                              nma1(N),nma2(N),insa1(N),insa2(N)
+!         ENDDO
+!      ENDIF
 
 !      IF(NRANK.eq.0) WRITE(6,*) "      NRANK, nsa_rank, nr_rank, np_rank, nrnp_rank, nsanp_rank, nsanr_rank"
 !      write(6,'(7I10)') NRANK, comm_nsa%rankl, comm_nr%rankl, &
@@ -931,7 +931,8 @@
                   ENDIF
                END IF
 
-               IF(NRSTART.eq.NRMAX) WRITE(*,*) NR,"Coulomb log",NSA,NSB,RLNRL
+!               IF(NRSTART.eq.NRMAX) WRITE(*,*) NR,"Coulomb log",NSA,NSB,RLNRL
+               LNLAM(NR,NSB,NSA)=RLNRL
                FACT=AEFP(NSA)**2*AEFD(NSB)**2*RLNRL/(4.D0*PI*EPS0**2)
                RNUD(NR,NSB,NSA)=FACT*RNFP0(NSA)*1.D20 &
                       /(SQRT(2.D0)*VTFD(NR,NSB)*PTFP0(NSA)**2)
@@ -964,11 +965,11 @@
 !==============================================================
       SUBROUTINE Coulomb_log
 
-      USE fpsave2
       IMPLICIT NONE
       INTEGER:: NTH, NP, NR, NSA, NSFP, NSFD, NSB, ISW_CLOG
       DOUBLE PRECISION:: RTE,NTE,RTA,RTB,RNA,RNB, RLNRL, FACT,RNE
       double precision,dimension(NSAMAX,NSBMAX):: CLOG
+      double precision:: VTFDL, PTFDL
 
       CALL FPSSUB2
       CALL FPSPRF2
@@ -985,6 +986,9 @@
                NSFD=NS_NSB(NSB)
                RNB=RN_IMPL(NR,NSB)
                RTB=RT_IMPL(NR,NSB)
+               vtfdl=SQRT(RT_IMPL(NR,NSB)*1.D3*AEE/AMFD(NSB))
+               ptfdl=SQRT(RT_IMPL(NR,NSB)*1.D3*AEE*AMFD(NSB))
+
                IF(ISW_CLOG.eq.0)THEN
                   IF(PZ(NSFP).eq.-1.and.PZ(NSFD).eq.-1) THEN !e-e
                      RLNRL=14.9D0-0.5D0*LOG(RNA)+LOG(RTA) 
@@ -1009,6 +1013,7 @@
                           SQRT((RNA*1.D14)*PZ(NSA)**2/(RTA*1.D3) + (RNB*1.D14)*PZ(NSB)**2/(RTB*1.D3) ) )
                   ENDIF
                END IF
+               LNLAM(NR,NSB,NSA)=RLNRL
                CLOG(NSA,NSB)=RLNRL
                FACT=AEFP(NSA)**2*AEFD(NSB)**2*RLNRL/(4.D0*PI*EPS0**2)
                RNUD(NR,NSB,NSA)=FACT*RNFP0(NSA)*1.D20 &
@@ -1017,11 +1022,154 @@
                       /(2*AMFD(NSB)*VTFD(NR,NSB)**2*PTFP0(NSA))
             ENDDO
          ENDDO
+!      WRITE(*,'(I3,A,4E16.8)') NR, "Coulomb log=", LNLAM(NR,1,1), LNLAM(NR,1,2), LNLAM(NR,2,1), LNLAM(NR,2,2)
       ENDDO
 
 !      IF(NR.eq.NRMAX) WRITE(*,'(A,1P4E16.8)') "Coulomb log",CLOG(1,1), CLOG(1,2), CLOG(2,1), CLOG(2,2)
 
       END SUBROUTINE Coulomb_log
+!==============================================================
+      SUBROUTINE FPSSUB2
+!
+      USE libmtx
+      IMPLICIT NONE
+      integer:: NR, NSA, NSB, NSBA, NP, NTH, NS, NPS
+      integer:: IERR
+      real(8):: RSUM1, RSUM3, fact
+      real(8):: PV, WPL, WPM, WPP
+      real:: gut1,gut2
+
+      CALL mtx_set_communicator(comm_np) 
+      DO NR=NRSTART,NRENDX
+         DO NSA=NSASTART,NSAEND
+            NS=NS_NSA(NSA)
+            NSBA=NSB_NSA(NSA)
+
+            RSUM1=0.D0
+            RSUM3=0.D0
+
+            IF(MODELA.eq.0)THEN
+               DO NP=NPSTART,NPEND
+                  DO NTH=1,NTHMAX
+                     RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)
+                  END DO
+               ENDDO
+            ELSE
+               DO NP=NPSTART,NPEND
+                  DO NTH=1,NTHMAX
+                     RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
+                          *RLAMDA(NTH,NR)
+                  END DO
+               ENDDO
+            END IF
+!
+            IF(MODELA.eq.0) THEN
+               IF(MODELR.EQ.0) THEN
+                  DO NP=NPSTART,NPEND
+                     DO NTH=1,NTHMAX
+                        RSUM3 = RSUM3                       &
+                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
+                             *0.5D0*PM(NP,NSBA)**2
+                     END DO
+                  ENDDO
+               ELSE
+                  DO NP=NPSTART,NPEND
+                     PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
+                     DO NTH=1,NTHMAX
+                        RSUM3 = RSUM3                       &
+                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
+                             *(PV-1.D0)/THETA0(NSA)
+                     END DO
+                  END DO
+               ENDIF
+            ELSE
+               IF(MODELR.EQ.0) THEN
+                  DO NP=NPSTART,NPEND
+                     DO NTH=1,NTHMAX
+                        RSUM3 = RSUM3                        &
+                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)  &
+                             *0.5D0*PM(NP,NSBA)**2*RLAMDA(NTH,NR)
+                     END DO
+                  ENDDO
+               ELSE
+                  DO NP=NPSTART,NPEND
+                     PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
+                     DO NTH=1,NTHMAX
+                        RSUM3 = RSUM3                        &
+                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)  &
+                             *(PV-1.D0)/THETA0(NSA)*RLAMDA(NTH,NR)
+                     END DO
+                  END DO
+               ENDIF               
+            END IF
+!     REDUCE RSUM
+            CALL p_theta_integration(RSUM1)
+            CALL p_theta_integration(RSUM3)
+! --------- end of radial transport
+               
+            FACT=RNFP0(NSA)*1.D20
+            RNSL(NR,NSA) = RSUM1*FACT*1.D-20
+
+            FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)
+            RWSL(NR,NSA) = RSUM3*FACT               *1.D-6
+         ENDDO ! NSA
+      ENDDO ! NR
+      CALL mtx_reset_communicator 
+
+      CALL FPSAVECOMM2
+
+      RETURN
+      END SUBROUTINE FPSSUB2
+!
+! *************************
+!     SAVE PROFILE DATA
+! *************************
+!
+      SUBROUTINE FPSPRF2
+!
+      IMPLICIT NONE
+      integer:: NR, NSA, NSB, NS
+      real(8):: rtemp
+
+      DO NSA=1,NSAMAX
+         DO NR=NRSTART,NRENDWM
+            RN_IMPL(NR,NSA) = RNS(NR,NSA)
+            IF(RNS(NR,NSA).NE.0.D0) THEN
+               IF(MODELR.eq.0)THEN
+                  RT_IMPL(NR,NSA) = RWS(NR,NSA)*1.D6 &
+                       /(1.5D0*RNS(NR,NSA)*1.D20*AEE*1.D3)
+               ELSEIF(MODELR.eq.1)THEN
+                  CALL FPNEWTON(NR,NSA,rtemp)
+                  RT_IMPL(NR,NSA) = rtemp
+               END IF
+            ELSE
+               RT_IMPL(NR,NSA) = 0.D0
+            ENDIF
+         ENDDO
+      ENDDO
+
+      RETURN
+      END SUBROUTINE FPSPRF2
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      SUBROUTINE FPSAVECOMM2
+
+      USE libmtx
+      IMPLICIT NONE
+      integer:: NR, NSA, NSB, NSBA, NP, NTH, NS, NSW, N
+
+      CALL mtx_set_communicator(comm_nsanr) 
+      NSW=NSAEND-NSASTART+1
+      DO N=1,NSW
+         NSA=N+NSASTART-1
+         CALL fp_gatherv_real8_sav(RNSL,SAVLEN(NRANK+1),RNS,N,NSA)
+         CALL fp_gatherv_real8_sav(RWSL,SAVLEN(NRANK+1),RWS,N,NSA)
+      END DO
+      CALL mtx_reset_communicator 
+
+      CALL mtx_broadcast_real8(RNS,NRMAX*NSAMAX)
+      CALL mtx_broadcast_real8(RWS,NRMAX*NSAMAX)
+
+      END SUBROUTINE FPSAVECOMM2
 !==============================================================
       SUBROUTINE fp_continue(ierr)
 
@@ -1051,12 +1199,9 @@
       CALL NF_REACTION_COEF
       NCALCNR=0
       CALL fusion_source_init
-      IF(NRANK.eq.0) WRITE(*,*) "source_init"
       DO NSA=NSASTART,NSAEND
          CALL FP_COEF(NSA)
-         IF(NRANK.eq.0) WRITE(*,*) "coef",nsa
          CALL FPWEIGHT(NSA,IERR)
-         IF(NRANK.eq.0) WRITE(*,*) "weight",nsa
       END DO
 !      CALL mtx_set_communicator(comm_nr)
 !      CALL source_allreduce(SPPF)
@@ -1187,6 +1332,8 @@
          CALL FPSPRF
          CALL FPWRTPRF
       ENDIF
+      CALL mtx_broadcast1_integer(NTG1)
+      CALL mtx_broadcast1_integer(NTG2)
       IERR=0
       CALL GUTIME(gut2)
       gut_prep=gut2-gut1

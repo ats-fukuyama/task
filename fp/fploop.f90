@@ -86,7 +86,7 @@
          IF(MODELE.eq.1)THEN
             EM(:)=EP(:)
 
-            IF(NRANK.eq.0) WRITE(6,'(A,6E14.6)') "E2=",(E2(NR),NR=1,6) 
+            IF(NRANK.eq.0) WRITE(6,'(A,6E14.6)') "EP=",(EP(NR),NR=1,6) 
          END IF
 
          gut_EX = 0.D0
@@ -214,7 +214,7 @@
 
             CALL Coulomb_log
             DO NSA=NSASTART,NSAEND
-                  IF (MOD(NT,NTCLSTEP).EQ.0) CALL FP_COEF(NSA)
+               IF (MOD(NT,NTCLSTEP).EQ.0) CALL FP_COEF(NSA)
             END DO
 
 !           sum up SPPF
@@ -333,6 +333,8 @@
                CALL FPWRTPRF
             ENDIF
          ENDIF
+         CALL mtx_broadcast1_integer(NTG1)
+         CALL mtx_broadcast1_integer(NTG2)
          IF(NRANK.EQ.0.AND.NTG1.GT.0) call FPWRTSNAP
          CALL GUTIME(gut2)
          IF(NRANK.eq.0) WRITE(*,'(A,E14.6)') "--------SAVE_TIME=",gut2-gut1

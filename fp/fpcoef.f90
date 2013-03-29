@@ -355,8 +355,6 @@
       integer:: NG
       real(kind8):: FACT, DELH, sum11, ETAL, X, PSIB, PCOS, sum15, ARG
 
-!      E2(:)=E1(:)
-
       DO NR=NRSTART,NREND
          DO NP=NPSTART,NPENDWG
             DO NTH=1,NTHMAX

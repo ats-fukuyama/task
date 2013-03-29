@@ -228,8 +228,8 @@
                            +DWPT(NTH,NP,NR,NSA)*DFT)
                   RSUM6 = RSUM6-PG(NP,NSBA)**2*SINM(NTH)/PV   &
                           *(FEPP(NTH,NP,NR,NSA)*FFP)
-!                  RSUM62 = RSUM62-PG(NP,NSBA)**2*SINM(NTH)/PV   &
-!                          *(FEPP_IND(NTH,NP,NR,NSA)*FFP)
+                  RSUM62 = RSUM62-PG(NP,NSBA)**2*SINM(NTH)/PV   &
+                          *(FEPP_IND(NTH,NP,NR,NSA)*FFP)
 !                  RSUM63 = RSUM63+PG(NP,NSBA)*SINM(NTH)*COSM(NTH) &
 !                       *(&
 !                       DPP(NTH,NP,NR,NSA)*DFP+DPT(NTH,NP,NR,NSA)*DFT &
@@ -437,6 +437,7 @@
             CALL p_theta_integration(RSUM4)
             CALL p_theta_integration(RSUM5)
             CALL p_theta_integration(RSUM6)
+            CALL p_theta_integration(RSUM62)
             CALL p_theta_integration(RSUM7)
             CALL p_theta_integration(RSUM8)
             CALL p_theta_integration(RSUM9)
@@ -464,7 +465,7 @@
             RPCSL(NR,NSA)=-RSUM4*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             RPWSL(NR,NSA)=-RSUM5*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             RPESL(NR,NSA)=-RSUM6*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
-!            RPESL_ind(NR,NSA)=-RSUM62*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
+            RPESL_ind(NR,NSA)=-RSUM62*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             RLHSL(NR,NSA)=-RSUM7*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             RFWSL(NR,NSA)=-RSUM8*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             RECSL(NR,NSA)=-RSUM9*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
@@ -518,7 +519,7 @@
          PPCT(NSA,NTG1)=0.D0
          PPWT(NSA,NTG1)=0.D0
          PPET(NSA,NTG1)=0.D0
-!         PPET_ind(NSA,NTG1)=0.D0
+         PPET_ind(NSA,NTG1)=0.D0
          PLHT(NSA,NTG1)=0.D0
          PFWT(NSA,NTG1)=0.D0
          PECT(NSA,NTG1)=0.D0
@@ -546,7 +547,7 @@
             PPCT(NSA,NTG1)=PPCT(NSA,NTG1)+RPCS(NR,NSA)*VOLR(NR)
             PPWT(NSA,NTG1)=PPWT(NSA,NTG1)+RPWS(NR,NSA)*VOLR(NR)
             PPET(NSA,NTG1)=PPET(NSA,NTG1)+RPES(NR,NSA)*VOLR(NR)
-!            PPET_ind(NSA,NTG1)=PPET_ind(NSA,NTG1)+RPES_ind(NR,NSA)*VOLR(NR)
+            PPET_ind(NSA,NTG1)=PPET_ind(NSA,NTG1)+RPES_ind(NR,NSA)*VOLR(NR)
             PLHT(NSA,NTG1)=PLHT(NSA,NTG1)+RLHS(NR,NSA)*VOLR(NR)
             PFWT(NSA,NTG1)=PFWT(NSA,NTG1)+RFWS(NR,NSA)*VOLR(NR)
             PECT(NSA,NTG1)=PECT(NSA,NTG1)+RECS(NR,NSA)*VOLR(NR)
@@ -809,10 +810,10 @@
                     RPCT2(NR,NSAMAX-NSA+1,NSA,NTG2), &
                     RPCT2(NR,NSA,NSA,NTG2), &
                     RPET(NR,NSA,NTG2), EP(NR), &
-!RPET_IND(NR,NSA,NTG2), &
+                    RPET_IND(NR,NSA,NTG2), &
 !                    RDIDT(NR,NSA), &
 !                    RSPST(NR,NSA,NTG2), RSPLT(NR,NSA,NTG2), &
-                    RECT(NR,NSA,NTG2),    &
+!                    RECT(NR,NSA,NTG2),    &
 !                    RSPBT(NR,NSA,NTG2),RSPFT(NR,NSA,NTG2),&
                     RPDRT(NR,NSA,NTG2), &
                     RTT_BULK(NR,NSA,NTG2),RNDRT(NR,NSA,NTG2)
@@ -838,47 +839,43 @@
 !
       IMPLICIT NONE
       integer:: NR, NSA, NSB, NP, NTH
-      real(8):: rnute, resist2, resist, dtaue, dtaui 
+      real(8):: rnute, resist, norm_sigma
       real(8):: FACT1, FACT2, rntv
-!      INCLUDE '../wr/wrcom1.inc'
+      real(8):: taue_col, sigma_sp, FACT
+
+!-----check of conductivity--------
+!      IF(NTG1.ne.1.and.NRANK.eq.0)then
+!         NR=1
+!         Do NSA=1,NSAMAX
+!         Do NSB=1,NSBMAX
+!            rnute=RNUD(NR,NSB,NSA)*SQRT(2.D0)*RNFP(NR,NSA)/RNFP0(NSA)     &
+!                 *(PTFP0(NSA)/PTFD(1,NSA))**2
+!            resist=RNUTE*AMFP(NSA)/RNFP(1,NSA)/AEFP(NSA)**2/1.D20
+!            norm_sigma=RNFP(NR,NSA)*AEFP(NSA)**2/(AMFP(NSA)*RNUTE)*1.D20
+!!----------
+!            FACT=AEFP(NSA)**2*AEFD(NSB)**2*LNLAM(NR,NSB,NSA)/(4.D0*PI*EPS0**2)
+!            taue_col=3.D0*SQRT(0.5D0*PI)/FACT*SQRT(AMFP(1)*(AEE*RTT(NR,NSA,NTG2)*1.D3)**3)/RNS(NR,NSB)*1.D-20
+!            sigma_sp=1.96D0*RNS(NR,NSA)*1.D20*AEFP(NSA)**2*taue_col/AMFP(NSA) ! P. 174
 !
-      WRITE(6,101) TIMEFP*1000
-
-!$$$      if(NTG1.ne.1)then
-!$$$c-----check of conductivity--------
-!      IF(NTG1.ne.1)then
-!!!     Spitzer
-!      Do NSA=1,NSAMAX
-!      Do NSB=1,NSBMAX
-!         rnute=RNUD(1,1,NSA)*SQRT(2.D0)*RNFP(1,NSA)/RNFP0(NSA)     &
-!              *(PTFP0(NSA)/PTFD(1,NSA))**2
-!         resist2=RNUTE*AMFP(NSA)/RNFP(1,NSA)/AEFP(NSA)**2/1.D20
-!      if(E0.ne.0.d0) &
-!         write(6,'(A,1PE16.8,A,1PE16.8)') "J/E*eta*1.D6", RJS(1,NSA)/E0*1.D6*resist2 &
-!         ,"  THETA0", THETA0(NSA)
-!      END DO
-!      END DO
-
-!      dtaue=1.09D16*(PTT(1,NTG1))**(1.5D0)/PNT(1,NTG1)/PZ(2)**2 &
-!           /15.D0*1.D-20
-!      if(nsamax.gt.1) then
-!      dtaui=6.6D17*(PTT(2,NTG1))**(1.5D0)/PNT(2,NTG1)/PZ(2)**4  &
-!           /15.D0*1.D-20*(AMFP(2)/AMFP(2))**0.5D0
-!      else
-!         dtaui=0.d0
-!      endif
-!!      write(6,*)"tau_e tau_i[ms]",dtaue*1.D3,dtaui*1.D3
-
-!      end if
+!            if(MODELE.eq.0)THEN 
+!               write(6,'(2I2,1PE16.8,A,1PE16.8,A,1PE16.8,A,1PE16.8)') NSA,NSB,&
+!                    RJS(1,NSA)/E0*1.D6," J/E*eta*1.D6= ", RJS(1,NSA)/E0*1.D6*resist, &
+!                    " sigma_Spitzer= ",sigma_sp, &
+!                    "  THETA0= ", THETA0(NSA)
+!            ELSE
+!               write(6,'(2I2,1PE16.8,A,1PE16.8,A,1PE16.8,A,1PE16.8)') NSA,NSB,&
+!                    RJS(1,NSA)/EP(1)*1.D6," J/E*eta*1.D6= ", RJS(1,NSA)/EP(1)*1.D6*resist, &
+!                    " sigma_Spitzer= ",sigma_sp, &
+!                    "  THETA0= ", THETA0(NSA)               
+!            END if
+!         END DO
+!         END DO
+!      END IF
 !----end of conductivity check---------
 
       RETURN
-!
-  101 FORMAT(1H ,' TIME=',F12.3,' ms')
 
       END SUBROUTINE FPWRTSNAP
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       Subroutine FPNEWTON(NR,NSA,rtemp)
@@ -1012,7 +1009,7 @@
          CALL fp_gatherv_real8_sav(RPCSL,SAVLEN(NRANK+1),RPCS,N,NSA)
          CALL fp_gatherv_real8_sav(RPWSL,SAVLEN(NRANK+1),RPWS,N,NSA)
          CALL fp_gatherv_real8_sav(RPESL,SAVLEN(NRANK+1),RPES,N,NSA)
-!         CALL fp_gatherv_real8_sav(RPESL_ind,SAVLEN(NRANK+1),RPES_ind,N,NSA)
+         CALL fp_gatherv_real8_sav(RPESL_ind,SAVLEN(NRANK+1),RPES_ind,N,NSA)
          CALL fp_gatherv_real8_sav(RLHSL,SAVLEN(NRANK+1),RLHS,N,NSA)
          CALL fp_gatherv_real8_sav(RFWSL,SAVLEN(NRANK+1),RFWS,N,NSA)
          CALL fp_gatherv_real8_sav(RECSL,SAVLEN(NRANK+1),RECS,N,NSA)

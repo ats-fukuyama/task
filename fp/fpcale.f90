@@ -66,6 +66,7 @@
          dimension(NTHMAX,NPSTART:NPENDWG,NRSTART:NRENDWM,NSAMAX)::FEPPS
       double precision, &
          dimension(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX)::FETHS
+      double precision:: fact2, taue_col, sigma_sp, E_dri
 
       FNS0(:,:,:,:) =FNSM(:,:,:,:)
       FEPPS(:,:,:,:)=FEPP(:,:,:,:)
@@ -77,7 +78,7 @@
       END IF
 
       DELT2=DELT
-      DELT=1.D-2
+      DELT=1.D-4
       DO NSA=NSASTART,NSAEND
          CALL fp_exec_sigma(NSA,IERR,its) ! partial j/ partial t
       END DO
@@ -87,7 +88,7 @@
          DO NR=NRSTART,NREND
             DO NP=NPSTART,NPENDWG
                DO NTH=1,NTHMAX
-                  FEPP(NTH,NP,NR,NSA)= AEFP(NSA)*(E2(NR)+DELE2)/PTFP0(NSA)*COSM(NTH)
+                  FEPP(NTH,NP,NR,NSA)= AEFP(NSA)*(E1(NR)+DELE2)/PTFP0(NSA)*COSM(NTH)
                END DO
             END DO
          END DO
@@ -96,7 +97,7 @@
          DO NR=NRSTART,NREND
             DO NP=NPSTARTW,NPENDWM
                DO NTH=1,NTHMAX+1
-                  FETH(NTH,NP,NR,NSA)=-AEFP(NSA)*(E2(NR)+DELE2)/PTFP0(NSA)*SING(NTH) 
+                  FETH(NTH,NP,NR,NSA)=-AEFP(NSA)*(E1(NR)+DELE2)/PTFP0(NSA)*SING(NTH) 
                END DO
             END DO
          END DO
@@ -158,9 +159,25 @@
          END DO
       END DO
 
+      IF(NTG1.ge.2.and.NRANK.eq.0)THEN
+         NR=1
+!         DO NR=NRSTART,NREND
+            FACT2=AEFP(1)**2*AEFD(2)**2*LNLAM(NR,2,1)/(4.D0*PI*EPS0**2)
+            taue_col=3.D0*SQRT(0.5D0*PI)/FACT2*SQRT(AMFP(1)*(AEE*RT_IMPL(NR,1)*1.D3)**3)/RN_IMPL(NR,2)*1.D-20! wesson P. 69
+            E_dri=SQRT(RT_IMPL(1,1)*1.D3*AEE*AMFP(1))/(AEFP(1)*taue_col)
+!            sigma_sp=1.96D0*RNS(NR,1)*1.D20*AEFP(1)**2*taue_col/AMFP(1) ! P. 174
+!            SIGP(NR)=sigma_sp
+!         END DO
+!      ELSE
+!         DO NR=NRSTART,NREND
+!            SIGP(NR)=0.D0
+!         END DO
+      END IF
+
       IF(N_IMPL.eq.0) SIGM(:)=SIGP(:)
       IF(NRANK.eq.0)THEN
-!         WRITE(6,'(I3,A,8E14.6)') N_IMPL,"      SIGMA= ",(SIGP(NR),NR=1,4)
+         WRITE(6,'(I3,A,8E14.6)') N_IMPL,"      SIGMA= ",(SIGP(NR),NR=NRSTART,NREND)
+         IF(NTG1.ge.2) WRITE(*,'(A,E16.8)') "E_dri=", E_dri
 !         WRITE(6,'(I3,A,8E14.6)') N_IMPL,"      RJ_M = ",(RJ_M(NR),NR=1,8)
 !         WRITE(6,'(I3,A,8E14.6)') N_IMPL,"      RJ_P = ",(RJ_P(NR),NR=1,8)
       END IF
@@ -503,7 +520,7 @@
            *(RJ_M(NR)-RJ_P(NR)+SIGP(NR)*EPM(NR)) ! implicit 
 
       IF(NSASTART.eq.1.and.NPSTART.eq.1.and.NRSTART.eq.1) &
-           WRITE(*,'(2I3,A,3E16.8)') N_IMPL,NR," l_j,L_IND, E=",l_j, L_IND, E_IND
+           WRITE(*,'(I3,A,4E16.8)') N_IMPL," l_j, L_IND, E, Vloop= ",l_j, L_IND, E_IND, E_IND*metric
 
       END SUBROUTINE POLOIDAL_FLUX
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

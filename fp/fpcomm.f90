@@ -133,7 +133,7 @@
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSBM)
            RNFD,RTFD,PTFD,VTFD
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSBM,NSAM)
-           RNUF,RNUD
+           RNUF,RNUD,LNLAM
       real(rkind),dimension(:,:,:),POINTER :: & ! (NTHM,NPM,NSAM)
            FS1,FS2,FS3
       real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSAM)
@@ -357,6 +357,7 @@
           allocate(PTFD(NRSTART:NREND+1,NSBMAX),VTFD(NRSTART:NREND+1,NSBMAX))
           allocate(RNUF(NRSTART:NREND+1,NSBMAX,NSBMAX))
           allocate(RNUD(NRSTART:NREND+1,NSBMAX,NSBMAX))
+          allocate(LNLAM(NRSTART:NREND+1,NSBMAX,NSBMAX))
 
 !          allocate(DPP(NTHMAX  ,NPMAX+1,NRSTART:NREND+1,NSAMAX))
 !          allocate(DPT(NTHMAX  ,NPMAX+1,NRSTART:NREND+1,NSAMAX))
@@ -611,7 +612,7 @@
           deallocate(WEIGHR)
 
           deallocate(RNFD,RTFD,PTFD,VTFD)
-          deallocate(RNUF,RNUD)
+          deallocate(RNUF,RNUD,LNLAM)
           deallocate(DPP,DPT)
           deallocate(DTP,DTT)
           deallocate(FPP,FTH)

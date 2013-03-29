@@ -141,7 +141,6 @@
                      rZI = -PZ(2)/PZ(1) &
                           /(14.9D0-0.5D0*LOG(RNFP(NR,NSA))+LOG(RTFP(NR,NSA)))* &
                           (15.2D0-0.5D0*LOG(RNFP(NR,NSA))+LOG(RTFP(NR,NSA)))
-!                     DO NP=1,NPMAX
                      DO NP=NPSTARTW,NPENDWM
                         RGAMA =SQRT(1.D0+PM(NP,NSA)**2*THETA0(NSA))
 !                        RGAMA =1.D0
