@@ -24,9 +24,9 @@ all: $(EXEC)
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 .f90.o :
-#	$(FCFREE) $(FFLAGS) -c $< -o $@
-#clean :
-#	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod
+	$(FCFREE) $(FFLAGS) -c $< -o $@
+clean :
+	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod
 
 ##### With PETSc library 3.2 (real8) #####
 #include ${PETSC_DIR}/conf/variables
