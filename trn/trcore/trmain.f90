@@ -45,9 +45,9 @@ PROGRAM tr
 
   CALL GSOPEN
 
-  CALL tr_init
   CALL eq_init
 !  CALL equ_init
+  CALL tr_init
 
   CALL tr_parm(1,'trparm',ierr)
   CALL eq_parm(1,'eqparm',ierr)
