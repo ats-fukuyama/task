@@ -70,7 +70,7 @@ CONTAINS
 ! ------------------------------------------------------------------------
     USE trcomm,ONLY: rkev,nsa_neq,nva_neq,mdlsrc,str,htr,  &
          poh,pnb,pec,pic,plh,pibw,pnf,prl,pwl,snb,spl,swl, &
-         jbs_nc,jex_nc,jcd_nb,jcd_ec,jcd_ic,jcd_lh
+         jbs,jex,jcd_nb,jcd_ec,jcd_ic,jcd_lh
     USE trprf, ONLY: tr_power_rf
     IMPLICIT NONE
 
@@ -102,7 +102,7 @@ CONTAINS
 
        SELECT CASE(nva)
        CASE(0) ! magnetic
-          htr(1,0:nrmax) =  jbs_nc(0:nrmax) + jex_nc(0:nrmax) &
+          htr(1,0:nrmax) =  jbs(0:nrmax)    + jex(0:nrmax)    &
                           + jcd_nb(0:nrmax) + jcd_ec(0:nrmax) &
                           + jcd_ic(0:nrmax) + jcd_lh(0:nrmax)
        CASE(1) ! density

@@ -221,11 +221,13 @@ MODULE trcomm
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
        htr_simple !  simple model of external driven current density [A/m^2]
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
-       eta   ,   &! pararell resistivity [ohm m]
+       eta   ,   &! pararell resistivity on grid [ohm m]
+       jbs   ,   &! bootstrap current density on grid [A/m^2]
+       jex   ,   &! externally driven current density (NCLASS) [A/m^2]
        jtot  ,   &! (parallel) total current density [A/m^2]
        joh   ,   &! (parallel) ohmic current density [A/m^2]
        jtor  ,   &! toroidal current density [A/m^2]
-       eta_nc,   &! neoclassical resistivity [ohm m]
+       eta_nc,   &! neoclassical resistivity on HALF grid [ohm m]
        jbs_nc,   &! bootstrap current density by neoclassical effect [A/m^2]
        jex_nc,   &! externally driven current density (NCLASS) [A/m^2]
        jcd_nb,   &! current density driven by NBI [A/m^2]
@@ -577,6 +579,8 @@ CONTAINS
           ALLOCATE(jcd_lh(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(jcd_ic(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(eta(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(jbs(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
+          ALLOCATE(jex(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(htr_simple(0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(str_simple(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
           ALLOCATE(ptot(1:nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) EXIT
@@ -735,6 +739,8 @@ CONTAINS
     IF(ALLOCATED(vtr_tb)) DEALLOCATE(vtr_tb)
     IF(ALLOCATED(ctr_ex)) DEALLOCATE(ctr_ex)
     IF(ALLOCATED(eta)) DEALLOCATE(eta)
+    IF(ALLOCATED(jbs)) DEALLOCATE(jbs)
+    IF(ALLOCATED(jex)) DEALLOCATE(jex)
     IF(ALLOCATED(jtot)) DEALLOCATE(jtot)
     IF(ALLOCATED(joh)) DEALLOCATE(joh)
     IF(ALLOCATED(jtor)) DEALLOCATE(jtor)

@@ -222,7 +222,7 @@ CONTAINS
 ! --------------------------------------------------------------------------
     USE trcomm, ONLY: pi,rmu0,nrmax,RR,ar1rho,ttrho,rmjrho,arrho,dvrho,  &
          abb1rho,abrho,abvrho,rhog,dpdrho,rdpvrho,qp,q0,qa,bp,rip,       &
-         jtot,joh,jtor,jbs_nc,jex_nc,jcd_nb,jcd_ec,jcd_lh,jcd_ic,        &
+         jtot,joh,jtor,jbs,jex,jcd_nb,jcd_ec,jcd_lh,jcd_ic,        &
          id_neq,mdlijq
 !         ,nrd3,nrd4
 
@@ -300,7 +300,7 @@ CONTAINS
 
 
     joh(0:nrmax) = jtot(0:nrmax)                &
-         - (jbs_nc(0:nrmax) + jex_nc(0:nrmax) + &
+         - (jbs(0:nrmax)    + jex(0:nrmax)    + &
             jcd_nb(0:nrmax) + jcd_ec(0:nrmax) + &
             jcd_ic(0:nrmax) + jcd_lh(0:nrmax))
 

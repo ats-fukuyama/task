@@ -311,8 +311,8 @@ CONTAINS
 ! ----------------------------------------------------------------------
 !   profile variables associated with poloidal magnetic field
 ! ----------------------------------------------------------------------
-    USE trcomm,ONLY: rkev,id_neq,ipsign,mdltr_jbs,                 &
-             rip, qp, bp, jtot,jcd_nb,jcd_ec,jcd_ic,jcd_lh,jbs_nc, &
+    USE trcomm,ONLY: rkev,id_neq,ipsign,mdltr_jbs,              &
+             rip, qp, bp, jtot,jcd_nb,jcd_ec,jcd_ic,jcd_lh,jbs, &
          tmu,ripu,qpu,bpu,jtotu,jnbu,jecu,jicu,jlhu,jbsu
     IMPLICIT NONE
 
@@ -392,12 +392,12 @@ CONTAINS
           END SELECT
        END IF
 
-       jcd_nb(0:nrmax) = - jnbug(1:nrmax+1)
-       jcd_ec(0:nrmax) = - jecug(1:nrmax+1)
-       jcd_ic(0:nrmax) = - jicug(1:nrmax+1)
-       jcd_lh(0:nrmax) = - jlhug(1:nrmax+1)
+       jcd_nb(0:nrmax) = ipsign * jnbug(1:nrmax+1)
+       jcd_ec(0:nrmax) = ipsign * jecug(1:nrmax+1)
+       jcd_ic(0:nrmax) = ipsign * jicug(1:nrmax+1)
+       jcd_lh(0:nrmax) = ipsign * jlhug(1:nrmax+1)
 
-       IF(mdltr_jbs==9) jbs_nc(0:nrmax) = - jbsug(1:nrmax+1)
+       IF(mdltr_jbs==9) jbs(0:nrmax) = ipsign * jbsug(1:nrmax+1)
     END IF
 
     RETURN

@@ -12,7 +12,7 @@ CONTAINS
   SUBROUTINE tr_calc2
     USE trcomm, ONLY: rkev,nrmax,nsamax,neqmax,nsa_neq,nva_neq,mdleqn, &
          dtr,vtr,ctr,str,htr,dtr_nc,vtr_nc,dtr_tb,vtr_tb,ctr_ex,       &
-         vtr_gma,htr_simple,jtot,joh,jcd_nb,jcd_ec,jcd_ic,jcd_lh,jbs_nc
+         vtr_gma,htr_simple,jtot,joh,jbs,jcd_nb,jcd_ec,jcd_ic,jcd_lh
     USE trcalv, ONLY: tr_calc_variables
     USE trcoeftb, ONLY: tr_coeftb
     USE trcoefnc, ONLY: tr_coefnc
@@ -44,7 +44,7 @@ CONTAINS
     ! *** htr *** this section should be in the trsource directory ??
     CALL tr_calc2_excurrent ! calculate external driven current term
 
-    joh(0:nrmax) = jtot(0:nrmax) - jbs_nc(0:nrmax)     &
+    joh(0:nrmax) = jtot(0:nrmax) - jbs(0:nrmax)        &
               -( jcd_nb(0:nrmax) + jcd_ec(0:nrmax)     &
                + jcd_ic(0:nrmax) + jcd_lh(0:nrmax))
 
@@ -86,31 +86,28 @@ CONTAINS
 !   calculate coefficients for poloidal magnetic diffusion equation
 ! -----------------------------------------------------------------------
     USE trcomm, ONLY: rmu0,nrmax,mdltr_nc, &
-                      dvrho,ttrho,arrho,abb1rho,eta,dtr,htr,nrd1,nrd2,nrd3,nrd4,abrho
+         dvrho,ttrho,arrho,abb1rho,eta_nc,dtr,htr,nrd1,nrd2,nrd3,nrd4,abrho
     IMPLICIT NONE
     INTEGER(ikind) :: nr
     REAL(rkind) :: dtrbm,dtrbp, etam,ttrhom,dvrhom,arrhom
 
     ! registivity term (half grid)
     DO nr = 1, nrmax
-!!$       etam = 0.5d0*(eta(nr)+eta(nr-1))
-!!$       ttrhom = 0.5d0*(ttrho(nr)+ttrho(nr-1))
-!!$       dvrhom = 0.5d0*(dvrho(nr)+dvrho(nr-1))
-!!$       arrhom = 0.5d0*(arrho(nr)+arrho(nr-1))
-!!$
-!!$       dtr(1,1,nr) = etam*ttrhom/(rmu0*dvrhom*arrhom)
+       ttrhom = 0.5d0*(ttrho(nr)+ttrho(nr-1))
+       dvrhom = 0.5d0*(dvrho(nr)+dvrho(nr-1))
+       arrhom = 0.5d0*(arrho(nr)+arrho(nr-1))
+
+       dtr(1,1,nr) = eta_nc(nr)*ttrhom/(rmu0*dvrhom*arrhom)
 
 !!$       dtrbm = eta(nr-1)*ttrho(nr-1)/(rmu0*dvrho(nr-1)*arrho(nr-1))
 !!$       dtrbp = eta(nr  )*ttrho(nr  )/(rmu0*dvrho(nr  )*arrho(nr  ))
 !!$       dtr(1,1,nr) = 0.5d0*(dtrbm + dtrbp)
-       dtr(1,1,nr) = eta(nr)*ttrho(nr)/(rmu0*dvrho(nr)*arrho(nr))
+!       dtr(1,1,nr) = eta(nr)*ttrho(nr)/(rmu0*dvrho(nr)*arrho(nr))
     END DO
-    dtr(1,1,0) = 0.d0
-
-    dtr(1,1,0:nrmax) = 0.05d0
+!    dtr(1,1,0) = 0.d0
 
     nrd1(0:nrmax) = dtr(1,1,0:nrmax)
-    nrd2(0:nrmax) = eta(0:nrmax)
+    nrd2(0:nrmax) = eta_nc(0:nrmax)
     nrd3(0:nrmax) = dvrho(0:nrmax)
     nrd4(0:nrmax) = dvrho(0:nrmax) * abrho(0:nrmax) / ttrho(0:nrmax)
 
