@@ -99,7 +99,7 @@ CONTAINS
        DO nr = 1, nrmax-1
           cm = drhog(nr+1) / (drhog(nr)+drhog(nr+1))
           cp = drhog(nr  ) / (drhog(nr)+drhog(nr+1))
-          logetag(nr) = cm*logetam(nr) + cp*logetag(nr+1)
+          logetag(nr) = cm*logetam(nr) + cp*logetam(nr+1)
           eta(nr) = cm*eta_ncls(nr) + cp*eta_ncls(nr+1)
           jbs(nr) = cm*jbs_ncls(nr) + cp*jbs_ncls(nr+1)
           jex(nr) = cm*jex_ncls(nr) + cp*jex_ncls(nr+1)
