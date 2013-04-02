@@ -40,10 +40,8 @@ wflib.a: $(OBJS)
 
 ../../bpsd/bpsdlib.a:
 	(cd ../../bpsd; make bpsdlib.a)
-../../task/plx/pllib.a:
-	(cd ../../plx; make pllib.a)
-../../task/eq/eqlib.a:
-	(cd ../../task/eq; make eqlib.a)
+../../task/lib/tasklib.a:
+	(cd ../../task/lib; make tasklib.a)
 ../../task/mtxp/libmtxbnd.o:
 	(cd ../../task/mtxp; make libmtxbnd.o)
 ../../task/mtxp/libmtxmumps.o:
@@ -52,30 +50,21 @@ wflib.a: $(OBJS)
 	(cd ../../task/mtxp; make libmtxmpi.o)
 ../../task/mtxp/libmtxnompi.o:
 	(cd ../../task/mtxp; make libmtxnompi.o)
-../../task/lib/tasklib.a:
-	(cd ../../task/lib; make tasklib.a)
+../../task/plx/pllib.a:
+	(cd ../../plx; make pllib.a)
+../../task/eq/eqlib.a:
+	(cd ../../task/eq; make eqlib.a)
 
 libs:
-	(cd ../../bpsd; make bpsdlib.a)
-	(cd ../../task/eq; make eqlib.a)
-	(cd ../../task/mtxp; make libmtxbnd.o libmtxmumps.o)
-	(cd ../../task/plx; make pllib.a)
 	(cd ../../task/lib; make tasklib.a)
+	(cd ../../bpsd; make bpsdlib.a)
+	(cd ../../task/mtxp; make libmtxmpi.o libmtxnompi.o \
+                                  libmtxbnd.o libmtxmumps.o)
+	(cd ../../task/eq; make eqlib.a)
+	(cd ../../task/plx; make pllib.a)
 
-wf : $(LIBS) wfmain.o
+wf : libs wflib.a wfmain.o
 	$(FLINKER) wfmain.o -o $@ $(FFLAGS) $(LIBS) $(FLIBS) $(LIBMUMPSX)
-
-save :
-	mkdir ../wfx.save
-	cp -f Makefile ../wfx.save
-	cp -f HISTORY ../wfx.save
-	cp -f *.f ../wfx.save
-	cp -f *.c ../wfx.save
-	cp -f *.inc ../wfx.save
-	mkdir ../wfx.save/in
-	cp -f in/wf.in* ../wfx.save/in
-	mkdir ../wfx.save/doc
-	cp -f doc/*.txt doc/*.tex ../wfx.save/doc
 
 clean:
 	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod
