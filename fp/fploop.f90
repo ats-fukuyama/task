@@ -229,14 +229,10 @@
             IF(MODELE.eq.1)THEN
                CALL conductivity_sigma_ind
                IF(MODELA.eq.0)THEN
-                  DO NR=NRSTART,NREND
-                     CALL INDUCTIVE_FIELD(NR)
-                  END DO
+                  CALL INDUCTIVE_FIELD
                   CALL UPDATE_FEPP
                ELSE
-                  DO NR=NRSTART,NREND
-                     CALL INDUCTIVE_FIELD_A1(NR)
-                  END DO
+                  CALL INDUCTIVE_FIELD_A1
                   CALL UPDATE_FEPP
                END IF
 !               IF(NRANK.eq.0)THEN
@@ -335,6 +331,8 @@
          ENDIF
          CALL mtx_broadcast1_integer(NTG1)
          CALL mtx_broadcast1_integer(NTG2)
+         CALL mtx_broadcast1_real8(IP_PEAK)
+         CALL mtx_broadcast1_real8(PTG2)
          IF(NRANK.EQ.0.AND.NTG1.GT.0) call FPWRTSNAP
          CALL GUTIME(gut2)
          IF(NRANK.eq.0) WRITE(*,'(A,E14.6)') "--------SAVE_TIME=",gut2-gut1

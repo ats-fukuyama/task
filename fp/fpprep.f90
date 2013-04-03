@@ -134,14 +134,7 @@
          BPG(NR)= RSRHON(RHON)*BT/(RR*QL)
       ENDDO
       DO NR=NRSTART,NREND
-         DO NTH=1,NTHMAX
-            PSIPM_P(NTH,NR)=0.D0
-         END DO
-      END DO
-      DO NR=NRSTART,NREND
-         DO NTH=1,NTHMAX+1
-            PSIPG_P(NTH,NR)=0.D0
-         END DO
+         PSIPM_P(NR)=0.D0
       END DO
 !     ----- set parallel current density -----
 
@@ -1187,13 +1180,13 @@
 !     ----- set parallel electric field -----
       DO NR=1,NRMAX
          E1(NR)=E0/(1.D0+EPSRM(NR))
-         IF(MODELE.eq.0)THEN
-            EP(NR)=0.D0 ! plus
-            EM(NR)=0.D0 ! minus
-         ELSEIF(MODELE.eq.1)THEN
-            EP(NR)=E1(NR) ! plus
-            EM(NR)=E1(NR) ! minus
-         END IF
+!         IF(MODELE.eq.0)THEN
+!            EP(NR)=0.D0 ! plus
+!            EM(NR)=0.D0 ! minus
+!         ELSEIF(MODELE.eq.1)THEN
+!            EP(NR)=E1(NR) ! plus
+!            EM(NR)=E1(NR) ! minus
+!         END IF
       ENDDO
       N_IMPL=0
       CALL NF_REACTION_COEF
@@ -1277,15 +1270,15 @@
       CALL mtx_reset_communicator
 !     ----- set parallel electric field -----
       DO NR=1,NRMAX
-!         E1(NR)=E0/(1.D0+EPSRM(NR))
-         E1(NR)=E0
-         IF(MODELE.eq.0)THEN
+         E1(NR)=E0/(1.D0+EPSRM(NR))
+!         E1(NR)=E0
+!         IF(MODELE.eq.0)THEN
             EP(NR)=0.D0 ! plus
             EM(NR)=0.D0 ! minus
-         ELSEIF(MODELE.eq.1)THEN
-            EP(NR)=E1(NR) ! plus
-            EM(NR)=E1(NR) ! minus
-         END IF
+!         ELSEIF(MODELE.eq.1)THEN
+!            EP(NR)=E1(NR) ! plus
+!            EM(NR)=E1(NR) ! minus
+!         END IF
          RJ_M(NR)=0.D0
       ENDDO
 !      IF(NRANK.eq.0)THEN

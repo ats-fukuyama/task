@@ -334,8 +334,8 @@
          DO NTH=1,NTHMAX
             DPP(NTH,NPMAX+1,NR,NSA)=0.D0
             DPT(NTH,NPMAX+1,NR,NSA)=0.D0
-!            FPP(NTH,NPMAX+1,NR,NSA)=0.D0
-            FPP(NTH,NPMAX+1,NR,NSA)=max(0.D0,FPP(NTH,NPMAX+1,NR,NSA))
+            FPP(NTH,NPMAX+1,NR,NSA)=0.D0
+!            FPP(NTH,NPMAX+1,NR,NSA)=max(0.D0,FPP(NTH,NPMAX+1,NR,NSA))
          END DO
       END DO
       END IF
@@ -940,7 +940,7 @@
                DO NP=NPSTART,NPEND
                   FL=FPMXWL_LT(PM(NP,NSBA),NR,NS)
                   DO NTH=1,NTHMAX
-!                     PPL(NTH,NP,NR,NSA)=-1.D0/TLOSS(NS)
+                     PPL(NTH,NP,NR,NSA)=-1.D0/TLOSS(NS)
                      SPPS(NTH,NP,NR,NSA)=FL/TLOSS(NS)
                   ENDDO
 !                  IF(NRANK.eq.0.and.N_IMPL.eq.1) &

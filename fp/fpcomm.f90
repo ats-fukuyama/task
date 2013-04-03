@@ -184,7 +184,7 @@
            PPCT2
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSM)
            RIPP
-      real(rkind),dimension(:,:),POINTER :: & ! (NRM)
+      real(rkind),dimension(:),POINTER :: & ! (NRM)
            PSIPM_P, PSIPM_M, PSIPG_P, PSIPG_M
 
       real(rkind),dimension(:),POINTER :: & ! (NTG2M)
@@ -224,7 +224,7 @@
            DEPS_SS, RPDRS, RNDRS
       integer:: N_IMPL, NCALCNR
       real,dimension(10):: gut_comm
-      real(rkind):: E_EDGEM
+      real(rkind):: IP_PEAK, PTG2
       real(rkind),dimension(:,:,:),POINTER:: EP_PHIM, EM_PHIM
       real(rkind),dimension(:,:,:),POINTER:: EP_PHIG, EM_PHIG
       real(rkind),dimension(:,:),POINTER:: ETHM
@@ -497,8 +497,8 @@
           allocate(RPWIC_INIT(NRSTART:NRENDX,NSAMAX))
 
           allocate(RIPP(NRMAX,NSAMAX))
-          allocate(PSIPM_P(NTHMAX,NRSTART:NRENDX)  ,PSIPM_M(NTHMAX,NRSTART:NRENDX))
-          allocate(PSIPG_P(NTHMAX+1,NRSTART:NRENDX),PSIPG_M(NTHMAX+1,NRSTART:NRENDX))
+          allocate(PSIPM_P(NRSTART:NREND),PSIPM_M(NRSTART:NREND))
+          allocate(PSIPG_P(NRMAX),PSIPG_M(NRMAX))
 !         NLMAXM= 8   ! this is for analysis without bounce average
 !         NLMAXM=11   ! this is for analysis without radial transport
           NLMAXM=15   ! this is for analysis with a simple radial transport

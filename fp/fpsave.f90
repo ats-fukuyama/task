@@ -511,6 +511,7 @@
       call fp_adjust_ntg1
 
       PTG(NTG1)=TIMEFP
+      IF(MODELE.eq.0) PTG2=PTG(NTG1)
 
       DO NSA=1,NSAMAX
          PNT(NSA,NTG1)=0.D0
@@ -741,11 +742,12 @@
                                       PSPST(NSA,NTG1),PSPLT(NSA,NTG1), &
                                       PSPST(NSA,NTG1)+PSPLT(NSA,NTG1)
       END DO
+      IF(MODELE.eq.0) IP_PEAK=rtotalIP
       write(6,105) rtotalpw,rtotalEC,rtotalIC
       write(6,107) rtotalPC
       write(6,109) rtotalSP
       write(6,110) rtotalPC2
-      WRITE(6,'("total plasma current   [MA]",1PE12.4)') rtotalIP
+      WRITE(6,'("total plasma current   [MA]",1P2E12.4," T2 [sec]", E12.4)') rtotalIP, IP_PEAK, PTG(NTG1)-PTG2
 
       RETURN
 !  113 FORMAT('        ',2I2,' PC,PW,PE,PDR=',6X,1P4E12.4)
@@ -815,8 +817,10 @@
 !                    RSPST(NR,NSA,NTG2), RSPLT(NR,NSA,NTG2), &
 !                    RECT(NR,NSA,NTG2),    &
 !                    RSPBT(NR,NSA,NTG2),RSPFT(NR,NSA,NTG2),&
-                    RPDRT(NR,NSA,NTG2), &
-                    RTT_BULK(NR,NSA,NTG2),RNDRT(NR,NSA,NTG2)
+!                    RPDRT(NR,NSA,NTG2), &
+                    PSIPG_P(NR), (PSIPG_P(NR)-PSIPG_M(NR))/DELT, &
+                    SIGP(NR)
+!                    RTT_BULK(NR,NSA,NTG2),RNDRT(NR,NSA,NTG2)
             END IF
          ENDDO
       ENDDO
@@ -828,9 +832,14 @@
            ' PNF/PIC',4X,'RPDR   ',5X,'T_BULK ',5X,'RNDR' )
   107 FORMAT( &
            'NSA/NS',5X,'RM',10X,' n',8X,' T    ',6X, &
-           ' j     ',5X,'PC     ',5X,'PE     ',5X,   &
-           'E2     ',5X,'PEC    ',5X,'PNB//PLH',4X,  &
-           ' PNF/PIC',4X,'RPDR   ',5X,'T_BULK ',5X,'RNDR' )
+           ' j     ',5X,'PC     ',5X,'PC12     ',5X,  &
+           'PC11   ',5X,'PE     ',5X,'E_ind    ',5X,  &
+           'PE_IND ',4X,'PSIP   ',5X,'DPSIP ',5X,'SIGMA' )
+!  107 FORMAT( &
+!           'NSA/NS',5X,'RM',10X,' n',8X,' T    ',6X, &
+!           ' j     ',5X,'PC     ',5X,'PE     ',5X,   &
+!           'E2     ',5X,'PEC    ',5X,'PNB//PLH',4X,  &
+!           ' PNF/PIC',4X,'PSIP   ',5X,'DPSIP ',5X,'RNDR' )
 
       END SUBROUTINE FPWRTPRF
 ! ***********************************************************
