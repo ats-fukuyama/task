@@ -71,14 +71,12 @@
 
 !     ----- Initialize ------------------------------------- 
       DO NR=NRSTART,NREND
-!         DO NP=1,NPMAX+1
          DO NP=NPSTART,NPENDWG
            DO NTH=1,NTHMAX
                DWECPP(NTH,NP,NR,NSA)=0.D0
                DWECPT(NTH,NP,NR,NSA)=0.D0
             END DO
          END DO
-!         DO NP=1,NPMAX
          DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX+1
                DWECTP(NTH,NP,NR,NSA)=0.D0
@@ -91,7 +89,6 @@
       IF(DEC.ne.0.and.NSA.eq.1) THEN
          CALL FP_CALW(NSA)
          DO NR=NRSTART,NREND
-!            DO NP=1,NPMAX+1
             DO NP=NPSTART,NPENDWG
                DO NTH=1,NTHMAX
                   DWECPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA)
@@ -100,7 +97,6 @@
                   DWPT(NTH,NP,NR,NSA)=0.D0
                END DO
             END DO
-!            DO NP=1,NPMAX
             DO NP=NPSTARTW,NPENDWM
                DO NTH=1,NTHMAX+1
                   DWECTP(NTH,NP,NR,NSA)=DWTP(NTH,NP,NR,NSA)
@@ -126,7 +122,6 @@
       ENDIF
 
       DO NR=NRSTART,NREND
-!         DO NP=1,NPMAX+1
          DO NP=NPSTART,NPENDWG
             DO NTH=1,NTHMAX
                DWICPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA)
@@ -135,7 +130,6 @@
                DWPT(NTH,NP,NR,NSA)=DWPT(NTH,NP,NR,NSA) + DWECPT(NTH,NP,NR,NSA)
             END DO
          END DO
-!         DO NP=1,NPMAX
          DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX+1
                DWTP(NTH,NP,NR,NSA)=DWTP(NTH,NP,NR,NSA) + DWECTP(NTH,NP,NR,NSA)
@@ -146,7 +140,6 @@
 
 !     POOL coef DW in order to reduce the number of call fp_calwm
       DO NR=NRSTART, NREND
-!         DO NP=1, NPMAX+1
          DO NP=NPSTART,NPENDWG
             DO NTH=1,NTHMAX
                DWPP_P(NTH,NP,NR,NSA) = DWPP(NTH,NP,NR,NSA)
@@ -157,7 +150,6 @@
                DWECPT_P(NTH,NP,NR,NSA) = DWECPT(NTH,NP,NR,NSA)
             END DO
          END DO
-!         DO NP=1,NPMAX
          DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX+1
                DWTP_P(NTH,NP,NR,NSA) = DWTP(NTH,NP,NR,NSA)
@@ -171,7 +163,6 @@
 
       IF(N_IMPL.ne.0)THEN ! N_IMPL!=0
       DO NR=NRSTART, NREND
-!         DO NP=1, NPMAX+1
          DO NP=NPSTART,NPENDWG
             DO NTH=1,NTHMAX
                DWPP(NTH,NP,NR,NSA) = DWPP_P(NTH,NP,NR,NSA)
@@ -182,7 +173,6 @@
                DWECPT(NTH,NP,NR,NSA) = DWECPT_P(NTH,NP,NR,NSA)
             END DO
          END DO
-!         DO NP=1,NPMAX
          DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX+1
                DWTP(NTH,NP,NR,NSA) = DWTP_P(NTH,NP,NR,NSA)
@@ -201,7 +191,6 @@
       NCONST_RF=3
       IF(MODELW(NSA).eq.4.and.NCONST_RF.eq.2.and.N_IMPL.ne.0)THEN ! TOTAL Pabs(r) invariant
          DO NR=NRSTART,NREND
-!            DO NP=1,NPMAX+1
             DO NP=NPSTART,NPENDWG
                DO NTH=1,NTHMAX
                   IF(RPW_IMPL(NR,NSA,N_IMPL).gt.0.D0)THEN
@@ -212,7 +201,6 @@
                   END IF
                END DO
             END DO
-!            DO NP=1,NPMAX
             DO NP=NPSTARTW,NPENDWM
                DO NTH=1,NTHMAX+1
                   IF(RPW_IMPL(NR,NSA,N_IMPL).gt.0.D0)THEN
@@ -224,7 +212,6 @@
          END DO
       ELSEIF(MODELW(NSA).eq.4.and.NCONST_RF.eq.3.and.N_IMPL.ne.0)THEN ! Pabs_EC(r), Pabs_IC(r) invariant
          DO NR=NRSTART,NREND
-!            DO NP=1,NPMAX+1
             DO NP=NPSTART,NPENDWG
                DO NTH=1,NTHMAX
                   IF(RPWEC_IMPL(NR,NSA,N_IMPL).gt.0.D0)THEN
@@ -239,7 +226,6 @@
                   DWPT(NTH,NP,NR,NSA)=DWECPT(NTH,NP,NR,NSA)+DWICPT(NTH,NP,NR,NSA)
                END DO
             END DO
-!            DO NP=1,NPMAX
             DO NP=NPSTARTW,NPENDWM
                DO NTH=1,NTHMAX+1
                   DWTPEC=0.D0
@@ -268,22 +254,6 @@
 
 !      IF(NRANK.eq.0) open(9,file='FE.dat')
       DO NR=NRSTART,NREND
-!         DO NP=1,NPMAX+1
-!         DO NTH=1,NTHMAX
-!            DPP(NTH,NP,NR,NSA)=0.D0
-!            DPT(NTH,NP,NR,NSA)=0.D0
-!            FPP(NTH,NP,NR,NSA)=0.D0
-!         ENDDO
-!         ENDDO
-!         DO NP=1,NPMAX
-!         DO NTH=1,NTHMAX+1
-!            DTP(NTH,NP,NR,NSA)=0.D0
-!            DTT(NTH,NP,NR,NSA)=0.D0
-!            FTH(NTH,NP,NR,NSA)=0.D0
-!         ENDDO
-!         ENDDO
-
-!         DO NP=1,NPMAX+1
          DO NP=NPSTART,NPENDWG
          DO NTH=1,NTHMAX
             DPP(NTH,NP,NR,NSA)=DCPP(NTH,NP,NR,NSA)+DWPP(NTH,NP,NR,NSA)
@@ -299,7 +269,6 @@
 !         IF(NRANK.eq.0) WRITE(9,*) " "
          ENDDO
 !
-!         DO NP=1,NPMAX
          DO NP=NPSTARTW,NPENDWM
          DO NTH=1,NTHMAX+1
             DTP(NTH,NP,NR,NSA)=DCTP(NTH,NP,NR,NSA)+DWTP(NTH,NP,NR,NSA)
@@ -1124,7 +1093,7 @@
       CALL PL_PROF(RHON,PLF)
       RNFDL=PLF(NS)%RN/RNFD0L
 !      RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
-      RTFDL=PTS(NS)
+      RTFDL=PTS(NS)*1.D-1
 
       IF(MODELR.EQ.0) THEN
          FACT=RNFDL/SQRT(2.D0*PI*RTFDL/RTFD0L)**3

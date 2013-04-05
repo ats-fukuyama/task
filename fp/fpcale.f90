@@ -90,11 +90,7 @@
             RHS=RMU0/DELT*( RJ_M(NR)-RJ_P(NR)+SIGP(NR)*EP(NR) )
          ELSEIF(NR.eq.NRMAX)THEN ! boundary condition E_ind at RM(NRMAX)+DELR
 !            E_EDGE=0.D0 ! 
-            time_now=PTG(NTG1)-PTG2+DELT
-            tauIp=1.D-3 ! sec
-!            E_EDGE= L_EDGE/(2.D0*PI*RR*(1.D0+EPSRM2(NR)))*IP_PEAK/tauIp*EXP(-time_now/tauIp)
-            E_EDGE= l_j/(2.D0*PI*RR*(1.D0+EPSRM2(NR))*DELT+l_j*SIGP(NR) )* &
-                 (DELT/tauIp*RJ_P(NR)+SIGP(NR)*EP(NR))
+            E_EDGE=-L_EDGE/(2*PI*RR*(1.D0+EPSRM2(NR)))*(RI_P(NR)-RI_M(NR))/DELT
             RHS=RMU0/DELT*( RJ_M(NR)-RJ_P(NR)+SIGP(NR)*EP(NR) ) &
                  + RG(NR+1)/( RM(NR)*(RA*DELR)**2 )*E_EDGE
          END IF
@@ -104,7 +100,8 @@
 !---- SOLVE
       CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC) 
 !      IF(NRANK.eq.0) write(6,*) 'E_IND_EVOL, Number of iterations    =',its
-      IF(NRSTART.eq.NRMAX.and.NPSTART.eq.1.and.NSASTART.eq.1) WRITE(*,*) "L_EDGE,E_EDGE=", L_EDGE,E_EDGE
+      IF(NRSTART.eq.NRMAX.and.NPSTART.eq.1.and.NSASTART.eq.1)  &
+           WRITE(*,'(A,4E16.8)') "L_EDGE,E_EDGE,RI_P,RI_M=", L_EDGE, E_EDGE, RI_P(NRMAX), RI_M(NRMAX)
       CALL mtx_gather_vector(EP)
 
       CALL mtx_cleanup
@@ -117,7 +114,7 @@
 
       USE fpcoef, only: FP_CALE_LAV
       IMPLICIT NONE
-      INTEGER:: NSA,NR,NP,NTH,IERR,its
+      INTEGER:: NSA,NR,NP,NTH,IERR,its, isw_test
       double precision:: DELE, DELT2
       double precision,parameter:: FACT=1.01D0, DELE2=1.D-5
       double precision,dimension(NRMAX):: RJ_PO, RJ_PP
@@ -127,116 +124,128 @@
          dimension(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX)::FETHS
       double precision:: fact2, taue_col, sigma_sp, E_dri
 
-      FNS0(:,:,:,:) =FNSM(:,:,:,:)
-      FEPPS(:,:,:,:)=FEPP(:,:,:,:)
-      FETHS(:,:,:,:)=FETH(:,:,:,:)
-
       IF(N_IMPL.eq.0)THEN
          CALL FPCURRENT(RJ_M)
          CALL j_to_i(RJ_M,RI_M)
       END IF
 
-      DELT2=DELT
-      DELT=1.D-4
-      DO NSA=NSASTART,NSAEND
-         CALL fp_exec_sigma(NSA,IERR,its) ! partial j/ partial t
-      END DO
-      CALL FPCURRENT(RJ_PP)
+      ISW_TEST=1  ! 0: pd, 1: sp, 2: J/E
 
-      DO NSA=NSASTART,NSAEND
-         DO NR=NRSTART,NREND
-            DO NP=NPSTART,NPENDWG
-               DO NTH=1,NTHMAX
-                  FEPP(NTH,NP,NR,NSA)= AEFP(NSA)*(E1(NR)+DELE2)/PTFP0(NSA)*COSM(NTH)
-               END DO
-            END DO
+      IF(ISW_TEST.eq.0)THEN
+         FNS0(:,:,:,:) =FNSM(:,:,:,:)
+         FEPPS(:,:,:,:)=FEPP(:,:,:,:)
+         FETHS(:,:,:,:)=FETH(:,:,:,:)
+
+         DELT2=DELT
+         DELT=1.D-4
+         DO NSA=NSASTART,NSAEND
+            CALL fp_exec_sigma(NSA,IERR,its) ! partial j/ partial t
          END DO
-      END DO
-      DO NSA=NSASTART,NSAEND
-         DO NR=NRSTART,NREND
-            DO NP=NPSTARTW,NPENDWM
-               DO NTH=1,NTHMAX+1
-                  FETH(NTH,NP,NR,NSA)=-AEFP(NSA)*(E1(NR)+DELE2)/PTFP0(NSA)*SING(NTH) 
-               END DO
-            END DO
-         END DO
-      END DO
-      IF(MODELA.eq.1)THEN
+         CALL FPCURRENT(RJ_PP)
+         
          DO NSA=NSASTART,NSAEND
             DO NR=NRSTART,NREND
-               CALL FP_CALE_LAV(NR,NSA)
-            END DO
-         END DO
-      END IF
-      DO NSA=NSASTART,NSAEND
-         DO NR=NRSTART,NREND
-            DO NP=NPSTART,NPENDWG
-               DO NTH=1,NTHMAX
-                  FPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)+FCPP(NTH,NP,NR,NSA) &
-                       +FEPP_IND(NTH,NP,NR,NSA)
-               END DO
-            END DO
-            DO NP=NPSTARTW,NPENDWM
-               DO NTH=1,NTHMAX+1
-                  FTH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)+FCTH(NTH,NP,NR,NSA) &
-                       +FETH_IND(NTH,NP,NR,NSA)
+               DO NP=NPSTART,NPENDWG
+                  DO NTH=1,NTHMAX
+                     FEPP(NTH,NP,NR,NSA)= AEFP(NSA)*(E1(NR)+DELE2)/PTFP0(NSA)*COSM(NTH)
+                  END DO
                END DO
             END DO
          END DO
-      END DO
-
-      DO NSA=NSASTART,NSAEND
-         CALL fp_exec_sigma(NSA,IERR,its) ! dj/ dt
-      END DO
-      CALL FPCURRENT(RJ_PO)
-      DELT=DELT2
-
-      DO NR=1,NRMAX
-         SIGP(NR)=(RJ_PO(NR) - RJ_PP(NR) )/DELE2
-      END DO
-
-      DO NSA=NSASTART,NSAEND
-         DO NR=NRSTART,NREND
-            DO NP=NPSTART,NPENDWG
-               DO NTH=1,NTHMAX
-                  FEPP(NTH,NP,NR,NSA)= FEPPS(NTH,NP,NR,NSA)
-                  FPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)+FCPP(NTH,NP,NR,NSA) &
-                       +FEPP_IND(NTH,NP,NR,NSA)
+         DO NSA=NSASTART,NSAEND
+            DO NR=NRSTART,NREND
+               DO NP=NPSTARTW,NPENDWM
+                  DO NTH=1,NTHMAX+1
+                     FETH(NTH,NP,NR,NSA)=-AEFP(NSA)*(E1(NR)+DELE2)/PTFP0(NSA)*SING(NTH) 
+                  END DO
                END DO
             END DO
          END DO
-      END DO
-      DO NSA=NSASTART,NSAEND
-         DO NR=NRSTART,NREND
-            DO NP=NPSTARTW,NPENDWM
-               DO NTH=1,NTHMAX+1
-                  FETH(NTH,NP,NR,NSA)=FETHS(NTH,NP,NR,NSA)
-                  FTH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)+FCTH(NTH,NP,NR,NSA) &
-                       +FETH_IND(NTH,NP,NR,NSA)
+         IF(MODELA.eq.1)THEN
+            DO NSA=NSASTART,NSAEND
+               DO NR=NRSTART,NREND
+                  CALL FP_CALE_LAV(NR,NSA)
+               END DO
+            END DO
+         END IF
+         DO NSA=NSASTART,NSAEND
+            DO NR=NRSTART,NREND
+               DO NP=NPSTART,NPENDWG
+                  DO NTH=1,NTHMAX
+                     FPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)+FCPP(NTH,NP,NR,NSA) &
+                          +FEPP_IND(NTH,NP,NR,NSA)
+                  END DO
+               END DO
+               DO NP=NPSTARTW,NPENDWM
+                  DO NTH=1,NTHMAX+1
+                     FTH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)+FCTH(NTH,NP,NR,NSA) &
+                          +FETH_IND(NTH,NP,NR,NSA)
+                  END DO
                END DO
             END DO
          END DO
-      END DO
-
-      IF(NTG1.ge.2.and.NRANK.eq.0)THEN
-         NR=1
-!         DO NR=NRSTART,NREND
-            FACT2=AEFP(1)**2*AEFD(2)**2*LNLAM(NR,2,1)/(4.D0*PI*EPS0**2)
-            taue_col=3.D0*SQRT(0.5D0*PI)/FACT2*SQRT(AMFP(1)*(AEE*RT_IMPL(NR,1)*1.D3)**3)/RN_IMPL(NR,2)*1.D-20! wesson P. 69
-            E_dri=SQRT(RT_IMPL(1,1)*1.D3*AEE*AMFP(1))/(AEFP(1)*taue_col)
-!            sigma_sp=1.96D0*RNS(NR,1)*1.D20*AEFP(1)**2*taue_col/AMFP(1) ! P. 174
-!            SIGP(NR)=sigma_sp
-!         END DO
-!      ELSE
-!         DO NR=NRSTART,NREND
-!            SIGP(NR)=0.D0
-!         END DO
+         
+         DO NSA=NSASTART,NSAEND
+            CALL fp_exec_sigma(NSA,IERR,its) ! dj/ dt
+         END DO
+         CALL FPCURRENT(RJ_PO)
+         DELT=DELT2
+         
+         DO NSA=NSASTART,NSAEND
+            DO NR=NRSTART,NREND
+               DO NP=NPSTART,NPENDWG
+                  DO NTH=1,NTHMAX
+                     FEPP(NTH,NP,NR,NSA)= FEPPS(NTH,NP,NR,NSA)
+                     FPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)+FCPP(NTH,NP,NR,NSA) &
+                          +FEPP_IND(NTH,NP,NR,NSA)
+                  END DO
+               END DO
+            END DO
+         END DO
+         DO NSA=NSASTART,NSAEND
+            DO NR=NRSTART,NREND
+               DO NP=NPSTARTW,NPENDWM
+                  DO NTH=1,NTHMAX+1
+                     FETH(NTH,NP,NR,NSA)=FETHS(NTH,NP,NR,NSA)
+                     FTH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)+FCTH(NTH,NP,NR,NSA) &
+                          +FETH_IND(NTH,NP,NR,NSA)
+                  END DO
+               END DO
+            END DO
+         END DO
+         DO NR=1,NRMAX
+            SIGP(NR)=(RJ_PO(NR) - RJ_PP(NR) )/DELE2
+         END DO
+      ELSEIF(ISW_TEST.eq.1)THEN
+         IF(NTG1.ge.2)THEN
+            DO NR=NRSTART,NREND
+               FACT2=AEFP(1)**2*AEFD(2)**2*LNLAM(NR,2,1)/(4.D0*PI*EPS0**2)
+               taue_col=3.D0*SQRT(0.5D0*PI)/FACT2*SQRT(AMFP(1)*(AEE*RT_IMPL(NR,1)*1.D3)**3)/RN_IMPL(NR,2)*1.D-20! wesson P. 69
+               E_dri=SQRT(RT_IMPL(1,1)*1.D3*AEE*AMFP(1))/(AEFP(1)*taue_col)
+               sigma_sp=1.96D0*RNS(NR,1)*1.D20*AEFP(1)**2*taue_col/AMFP(1) ! P. 174
+            END DO
+            CALL mtx_set_communicator(comm_nr)
+            CALL mtx_allgather1_real8(sigma_sp,SIGP)
+            CALL mtx_reset_communicator
+         ELSE
+            DO NR=NRSTART,NREND
+               SIGP(NR)=0.D0
+            END DO
+         END IF
+      ELSEIF(ISW_TEST.eq.2)THEN
+         DO NR=1,NRMAX
+            IF(N_IMPL.eq.0)THEN
+               SIGP(NR)=(RJ_M(NR))/EP(NR)
+            ELSE
+               SIGP(NR)=(RJ_P(NR))/EP(NR)
+            END IF
+         END DO
       END IF
 
       IF(N_IMPL.eq.0) SIGM(:)=SIGP(:)
       IF(NRANK.eq.0)THEN
          WRITE(6,'(I3,A,8E14.6)') N_IMPL,"      SIGMA= ",(SIGP(NR),NR=NRSTART,NREND)
-         IF(NTG1.ge.2) WRITE(*,'(A,E16.8)') "E_dri=", E_dri
+!         IF(NTG1.ge.2) WRITE(*,'(A,E16.8)') "E_dri=", E_dri
 !         WRITE(6,'(I3,A,8E14.6)') N_IMPL,"      RJ_M = ",(RJ_M(NR),NR=1,8)
 !         WRITE(6,'(I3,A,8E14.6)') N_IMPL,"      RJ_P = ",(RJ_P(NR),NR=1,8)
       END IF
@@ -425,7 +434,8 @@
       SUBROUTINE INDUCTIVE_FIELD
 
       IMPLICIT NONE
-      double precision:: E_IND, L_IND, l_j
+      double precision:: E_IND, L_IND, l_j, SUM
+      double precision,dimension(NRMAX):: SUM2
       integer:: NR
 
       EPM(:)=EP(:)
@@ -433,6 +443,14 @@
          CALL POLOIDAL_FLUX(NR,E_IND,L_IND,l_j)
       END DO
       CALL E_IND_EVOL(L_IND,l_j)
+
+!      SUM=0.D0
+!      DO NR=1,NRMAX
+!         SUM=SUM+SQRT( (EP(NR)-EPM(NR) )**2/(EPM(NR))**2 )
+!         SUM2(NR)=SQRT( (EP(NR)-EPM(NR) )**2/(EPM(NR))**2 )
+!      END DO
+!      IF(NPSTART.eq.1.and.NRSTART.eq.1.and.NSASTART.eq.1) &
+!           WRITE(*,'(A,32E10.2)') "EPS_EP=", (SUM2(NR),NR=1,NRMAX)
 
       CALL mtx_set_communicator(comm_nr)
 !      CALL mtx_allgather1_real8(E_IND,EP)
@@ -556,7 +574,8 @@
          END DO
          PSIPM_P(NR)=SUM
          PSIPM_M(NR)=SUM2
-         L_IND=(SUM-SUM2)/(RI_P(NR)-RI_M(NR)) ! inductance 0<RM<RM(NR)
+!         L_IND=(SUM-SUM2)/(RI_P(NR)-RI_M(NR)) ! inductance 0<RM<RM(NR)
+         L_IND=RMU0*RI_P(NRMAX)/(4*PI**2*RA**2*RG(NRMAX+1)**2*RJ_P(NRMAX))
          metric=1.D0
       ELSEIF(NSWE.eq.1)THEN ! torus
          SUM=0.D0
@@ -597,9 +616,9 @@
            *(RJ_M(NR)-RJ_P(NR)+SIGP(NR)*EPM(NR)) ! implicit 
       EPS_IND=SQRT( (E_IND-EPM(NR))**2/E_IND**2 )
 
-      IF(NSASTART.eq.1.and.NPSTART.eq.1.and.NRSTART.eq.1) THEN
-         WRITE(*,'(I3,E16.8,A,3E16.8)') N_IMPL, SQRT(EPS_IND)," l_j, E, Vloop= ",l_j, E_IND, E_IND*2*PI*RR
-      END IF
+!      IF(NSASTART.eq.1.and.NPSTART.eq.1.and.NRSTART.eq.1) THEN
+!         WRITE(*,'(I3,E16.8,A,3E16.8)') N_IMPL, SQRT(EPS_IND)," l_j, E, Vloop= ",l_j, E_IND, E_IND*2*PI*RR
+!      END IF
 
       END SUBROUTINE POLOIDAL_FLUX
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -715,8 +734,9 @@
       double precision,dimension(NRMAX),INTENT(OUT)::RI
 
       RI(:)=0.D0
-      DO NR=1,NRMAX
-         RI(NR)=RI(NR)+RJ(NR)*VOLR(NR)/(2.D0*PI*RR)
+      RI(1)=RJ(1)*VOLR(1)/(2.D0*PI*RR)
+      DO NR=2,NRMAX
+         RI(NR)=RI(NR-1)+RJ(NR)*VOLR(NR)/(2.D0*PI*RR)
       END DO
 
       END SUBROUTINE j_to_i

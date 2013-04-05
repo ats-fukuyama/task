@@ -675,6 +675,7 @@
             RET(NR,NTG2) = E1(NR)
             RS=RSRHON(RM(NR))
             RQT(NR,NTG2) = RS*BB*2.D0/(RR*(BP(NR)+BP(NR+1)))
+            EPTR(NR,NTG2)=EP(NR)
          ENDDO
       ENDDO
 
@@ -853,33 +854,35 @@
       real(8):: taue_col, sigma_sp, FACT
 
 !-----check of conductivity--------
-!      IF(NTG1.ne.1.and.NRANK.eq.0)then
-!         NR=1
+      IF(NTG1.ne.1.and.NRANK.eq.0)then
+         NR=1
+         NSA=1
+         NSB=2
 !         Do NSA=1,NSAMAX
 !         Do NSB=1,NSBMAX
-!            rnute=RNUD(NR,NSB,NSA)*SQRT(2.D0)*RNFP(NR,NSA)/RNFP0(NSA)     &
-!                 *(PTFP0(NSA)/PTFD(1,NSA))**2
-!            resist=RNUTE*AMFP(NSA)/RNFP(1,NSA)/AEFP(NSA)**2/1.D20
-!            norm_sigma=RNFP(NR,NSA)*AEFP(NSA)**2/(AMFP(NSA)*RNUTE)*1.D20
-!!----------
-!            FACT=AEFP(NSA)**2*AEFD(NSB)**2*LNLAM(NR,NSB,NSA)/(4.D0*PI*EPS0**2)
-!            taue_col=3.D0*SQRT(0.5D0*PI)/FACT*SQRT(AMFP(1)*(AEE*RTT(NR,NSA,NTG2)*1.D3)**3)/RNS(NR,NSB)*1.D-20
-!            sigma_sp=1.96D0*RNS(NR,NSA)*1.D20*AEFP(NSA)**2*taue_col/AMFP(NSA) ! P. 174
-!
-!            if(MODELE.eq.0)THEN 
-!               write(6,'(2I2,1PE16.8,A,1PE16.8,A,1PE16.8,A,1PE16.8)') NSA,NSB,&
-!                    RJS(1,NSA)/E0*1.D6," J/E*eta*1.D6= ", RJS(1,NSA)/E0*1.D6*resist, &
-!                    " sigma_Spitzer= ",sigma_sp, &
-!                    "  THETA0= ", THETA0(NSA)
-!            ELSE
-!               write(6,'(2I2,1PE16.8,A,1PE16.8,A,1PE16.8,A,1PE16.8)') NSA,NSB,&
-!                    RJS(1,NSA)/EP(1)*1.D6," J/E*eta*1.D6= ", RJS(1,NSA)/EP(1)*1.D6*resist, &
-!                    " sigma_Spitzer= ",sigma_sp, &
-!                    "  THETA0= ", THETA0(NSA)               
-!            END if
+            rnute=RNUD(NR,NSA,NSA)*SQRT(2.D0)*RNFP(NR,NSA)/RNFP0(NSA)     &
+                 *(PTFP0(NSA)/PTFD(1,NSA))**2
+            resist=RNUTE*AMFP(NSA)/RNFP(1,NSA)/AEFP(NSA)**2/1.D20
+            norm_sigma=RNFP(NR,NSA)*AEFP(NSA)**2/(AMFP(NSA)*RNUTE)*1.D20
+!----------
+            FACT=AEFP(NSA)**2*AEFD(NSB)**2*LNLAM(NR,NSB,NSA)/(4.D0*PI*EPS0**2)
+            taue_col=3.D0*SQRT(0.5D0*PI)/FACT*SQRT(AMFP(1)*(AEE*RTT(NR,NSA,NTG2)*1.D3)**3)/RNS(NR,NSB)*1.D-20
+            sigma_sp=1.96D0*RNS(NR,NSA)*1.D20*AEFP(NSA)**2*taue_col/AMFP(NSA) ! P. 174
+
+            if(MODELE.eq.0)THEN 
+               write(6,'(2I2,1PE16.8,A,1PE16.8,A,1PE16.8,A,1PE16.8)') NSA,NSB,&
+                    RJS(1,NSA)/E1(1)*1.D6," J/E*eta*1.D6= ", (RJS(1,1))/E1(1)*1.D6*resist, &
+                    " sigma_Spitzer= ",sigma_sp, &
+                    "  THETA0= ", THETA0(NSA)
+            ELSE
+               write(6,'(2I2,1PE16.8,A,1PE16.8,A,1PE16.8,A,1PE16.8)') NSA,NSB,&
+                    RJS(1,NSA)/EP(1)*1.D6," J/E*eta*1.D6= ", RJS(1,NSA)/EP(1)*1.D6*resist, &
+                    " sigma_Spitzer= ",sigma_sp, &
+                    "  THETA0= ", THETA0(NSA)               
+            END if
 !         END DO
 !         END DO
-!      END IF
+      END IF
 !----end of conductivity check---------
 
       RETURN

@@ -1180,13 +1180,13 @@
 !     ----- set parallel electric field -----
       DO NR=1,NRMAX
          E1(NR)=E0/(1.D0+EPSRM(NR))
-!         IF(MODELE.eq.0)THEN
-!            EP(NR)=0.D0 ! plus
-!            EM(NR)=0.D0 ! minus
-!         ELSEIF(MODELE.eq.1)THEN
-!            EP(NR)=E1(NR) ! plus
-!            EM(NR)=E1(NR) ! minus
-!         END IF
+ !        IF(MODELE.eq.0)THEN
+ !           EP(NR)=0.D0 ! plus
+ !           EM(NR)=0.D0 ! minus
+ !        ELSEIF(MODELE.eq.1)THEN
+ !           EP(NR)=E1(NR) ! plus
+ !           EM(NR)=E1(NR) ! minus
+ !        END IF
       ENDDO
       N_IMPL=0
       CALL NF_REACTION_COEF
@@ -1273,7 +1273,8 @@
          E1(NR)=E0/(1.D0+EPSRM(NR))
 !         E1(NR)=E0
 !         IF(MODELE.eq.0)THEN
-            EP(NR)=0.D0 ! plus
+!            EP(NR)=0.D0 ! plus
+            EP(NR)=E1(NR) ! plus
             EM(NR)=0.D0 ! minus
 !         ELSEIF(MODELE.eq.1)THEN
 !            EP(NR)=E1(NR) ! plus

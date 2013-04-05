@@ -229,6 +229,7 @@
       real(rkind),dimension(:,:,:),POINTER:: EP_PHIG, EM_PHIG
       real(rkind),dimension(:,:),POINTER:: ETHM
       real(rkind),dimension(:,:),POINTER:: ETHG
+      real(rkind),dimension(:,:),POINTER:: EPTR
 
       contains
 
@@ -969,6 +970,7 @@
           allocate(RPCT2(NRMAX,NSBMAX,NSAMAX,NTG2M))
           allocate(RPDRT(NRMAX,NSAMAX,NTG2M),RNDRT(NRMAX,NSAMAX,NTG2M))
           allocate(RTT_BULK(NRMAX,NSAMAX,NTG2M))
+          allocate(EPTR(NRMAX,NTG2M))
 
           NRMAX_save=NRMAX
           NSAMAX_save=NSAMAX
@@ -998,6 +1000,7 @@
           deallocate(RPCT2)
           deallocate(RPDRT,RNDRT)
           deallocate(RTT_BULK)
+          deallocate(EPTR)
 
           return
         end subroutine fp_deallocate_ntg2
@@ -1020,6 +1023,7 @@
                    DO NR=NRSTART,NREND
                       RET(NR,NTG)=RET(NR,2*NTG-1)
                       RQT(NR,NTG)=RQT(NR,2*NTG-1)
+                      EPTR(NR,NTG)=EPTR(NR,2*NTG-1)
                    ENDDO
                    DO NSA=1,NSAMAX
                       DO NR=NRSTART,NREND
@@ -1060,6 +1064,7 @@
                 allocate(tempA(NRMAX,NTG2M))
                 call fp_adjust_ntg2_A(RET,tempA,NTG2M_NEW)
                 call fp_adjust_ntg2_A(RQT,tempA,NTG2M_NEW)
+                call fp_adjust_ntg2_A(EPTR,tempA,NTG2M_NEW)
                 deallocate(tempA)
                 allocate(tempB(NRMAX,NSAMAX,NTG2M))
                 call fp_adjust_ntg2_B(RNT,tempB,NTG2M_NEW)
