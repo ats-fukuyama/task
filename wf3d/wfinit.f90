@@ -75,14 +75,10 @@ SUBROUTINE WFINIT
 !
 !            eps=1.D0+EPSABS*(X-POSABS)**2
 !                           /((POSRES-POSABS)*(POSRES-X+CI*DLTEPS))
-! ----- Add. By YOKOYAMA Mar./05/2013 ----
+
   MODELI=0
-!  ----  Mar./05/2013 ----
   MODELG=2
-! ----- Add. By YOKOYAMA Mar./05/2013 ----
-!      MODELB=0
-  MODELB=3
-!  ----  Mar./05/2013 ----
+  MODELB=0
   MODELD=0
   MODELP=0
   MODELN=0
@@ -284,14 +280,11 @@ SUBROUTINE WFINIT
       
 !     *** GRAPHICS PARAMETER ***
 !
-! ----- Add. By YOKOYAMA Mar./05/2013 ----
-!      NGXMAX = 31
-!      NGYMAX = 31
-!      NGVMAX = 31
-      NGXMAX = 101
-      NGYMAX = 101
-      NGVMAX = 101
+      NGXMAX = 31
+      NGYMAX = 31
+      NGVMAX = 31
 !
+! ----- Add. By YOKOYAMA Mar./05/2013 ----
       FRATIO = 1.D0
 ! ---- Mar./05/2013 -----
 !

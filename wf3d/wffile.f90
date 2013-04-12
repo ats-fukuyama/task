@@ -371,6 +371,7 @@ END SUBROUTINE WFRFLD
 !        NGFLIN: ファイルに記述されているデータの行数
          READ(7,*,ERR=600) KLINE1, NGFLIN
          READ(7,*,ERR=600) KLINE2
+         ALLOCATE(FLX(NGFLIN),FLY(NGFLIN),FLZ(NGFLIN),XYR(NGFLIN))
          DO J=1,NGFLIN
             READ(7,*,ERR=600)  FLZ(J),FLX(J),FLY(J),XYR(J)
 !            WRITE(6,'(4F9.4)') FLZ(J),FLX(J),FLY(J),XYR(J)

@@ -1040,6 +1040,8 @@ SUBROUTINE WFCALB
 !        ANGLE(NN)は，X軸からY軸へ向かう方向が正(右回り)
 !        波動電界の半径方向成分   E-r:     CERT(1,NN)
 !        波動電界の方位角方向成分 E-theta: CERT(2,NN)
+
+         IF(MODELB.EQ.3) THEN
           XPOS = XND(NN)
           YPOS = YND(NN)
           IF(XPOS.GT.0.D0) THEN
@@ -1071,6 +1073,7 @@ SUBROUTINE WFCALB
           IF(NN.EQ.1) THEN
              WRITE(6,*) '## IMAGINARY UNIT: CI=',CI
           ENDIF
+       ENDIF
 !
 ! ----- Mar./05/2013 -----
 !

@@ -12,10 +12,9 @@ SUBROUTINE WFSPSI(X,Y,Z,PSI)
 
   IF(MODELB.EQ.0.OR.&
  &   MODELB.EQ.1.OR.&
- &   MODELB.EQ.2.OR.&
- &   MODELB.EQ.3) THEN
+ &   MODELB.EQ.2) THEN
      PSI=(X*X+Y*Y)/(RA*RA)
-  ENDIF
+  ELSE
 !
 ! ----- Add. By YOKOYAMA Mar./05/2013 ----
 !
@@ -50,8 +49,13 @@ SUBROUTINE WFSPSI(X,Y,Z,PSI)
 !     与えられたZ座標に，最も近いZ座標を持つ磁力管断面を探す．
 !     FLZ,FLX,FLYは cm 単位
 !     ZPT,XPT,YPTは  m 単位
-      DFZMIN = 1.D2
-      DO J=1,NGFLIN
+
+      J=1
+      ZPT = FLZ(J)/1.D2
+      DFZMIN = ABS(Z-ZPT)
+      XPT = FLX(J)/1.D2
+      YPT = FLY(J)/1.D2
+      DO J=2,NGFLIN
          ZPT = FLZ(J)/1.D2
          DFZ = ABS(Z-ZPT)
          IF(DFZ.LT.DFZMIN) THEN
@@ -70,6 +74,7 @@ SUBROUTINE WFSPSI(X,Y,Z,PSI)
          FACTC = 0.D0
          FACTA = 0.D0
       ENDIF
+   ENDIF
 !
 !
 !

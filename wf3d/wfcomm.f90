@@ -217,7 +217,7 @@ module wfcomm
 !     (wfdiv.f) Elements
 !     /YAMA03/YAMA04/
    real(rkind):: RBIN,RBOUT,DXIN,DYIN,DXOUT,DYOUT
-   real(rkind):: INOD,NYTEMP,NZTEMP
+   integer(ikind):: INOD,NYTEMP,NZTEMP
 !
 !     (wfgsub.f) FRATIO
 !     /YAMA05/
@@ -225,7 +225,7 @@ module wfcomm
 !
 !     (wffile.f) B-FIELD LINE
 !    /YAMA06/07/08/
-    real(rkind):: NGFLIN
+    integer(ikind):: NGFLIN
     real(rkind),dimension(:),pointer:: FLZ,FLX,FLY,XYR
     real(rkind):: FACTC, FACTA
 !
@@ -235,8 +235,8 @@ module wfcomm
 !
 !     (wfwave.f) E-r, E-theta
 !    /YAMA10/
-	complex,dimension(:),pointer::ANGLE
-    complex,dimension(:,:),pointer:: CERT,CBRT
+	real(rkind),dimension(:),pointer::ANGLE
+    complex(rkind),dimension(:,:),pointer:: CERT,CBRT
 !
 !     (mbant.f) Rotarion Angle [deg.]
 !    /YAMA11/
@@ -244,7 +244,7 @@ module wfcomm
 !
 !     (wfwave.f) COLLISION FREQ.
 !    /YAMA12/
-      complex,dimension(:,:),pointer:: RZCO
+      real(rkind),dimension(:,:),pointer:: RZCO
 ! ----- Mar./05/2013 -----
 !        
 !       /WFDBG/
@@ -589,6 +589,7 @@ contains
     
     allocate(CESD(NSDMAX),CEF(3,NNMAX),CEP(3,NNMAX))
     allocate(CBF(3,NNMAX),CBP(3,NNMAX),EMAX(4),CRFL(NMDMAX,NBMAX))
+    allocate(ANGLE(NNMAX))
 
     NSDMAX_save = NSDMAX
      NNMAX_save = NNMAX
