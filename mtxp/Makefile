@@ -17,24 +17,28 @@ FFLAGS=$(OFLAGS)
 #	-rm -f core a.out *.o *.a ./#* ./*~ ./*.mod
 
 #### With MUMPS library (real8 and complex8)
-FLINKER=$(MF90)
-INCLUDE_MUMPS=${PETSC_DIR}/externalpackages/MUMPS_4.10.0/include
-EXEC=testbnd testbndc testdmumps testzmumps
-all: $(EXEC)
-.SUFFIXES:
-.SUFFIXES: .f .f90 .mod .o .a
-.f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@
-clean :
-	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod
-
-##### With PETSc library 3.2 (real8) #####
-#include ${PETSC_DIR}/conf/variables
-#include ${PETSC_DIR}/conf/rules
+#FLINKER=$(MF90)
 #INCLUDE_MUMPS=${PETSC_DIR}/externalpackages/MUMPS_4.10.0/include
-#INCLUDE_PETSC=${PETSC_DIR}/include
-#EXEC=testbnd testbndc testdmumps testzmumps testksp
+#EXEC=testbnd testbndc testdmumps testzmumps
 #all: $(EXEC)
+#.SUFFIXES:
+#.SUFFIXES: .f .f90 .mod .o .a
+#.f90.o :
+#	$(FCFREE) $(FFLAGS) -c $< -o $@
+#clean :
+#	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod
+
+##### With PETSc library 3.3 (real8) #####
+#for 3.2 use
+#INCLUDE_MUMPS=${PETSC_DIR}/externalpackages/MUMPS_4.10.0/include
+# and modify chebychev to chebyshev in libmtxksp.F)0
+#
+EXEC=testbnd testbndc testdmumps testzmumps testksp
+all: $(EXEC)
+include ${PETSC_DIR}/conf/variables
+include ${PETSC_DIR}/conf/rules
+INCLUDE_MUMPS=${PETSC_DIR}/externalpackages/MUMPS_4.10.0-p3/include
+INCLUDE_PETSC=${PETSC_DIR}/include
 
 INCMOD=-I $(MOD) -I../lib/$(MOD)
 LIBMOD=-L../lib -l libgrf

@@ -323,7 +323,7 @@
 !
 !        methodKSP: type of KSP solver (default=4)
 !        methodKSP= 0: Richardson (optional damping factor = 1.0)
-!        methodKSP= 1: Chebychev (optional emin=0.01 emax=100.)
+!        methodKSP= 1: Chebyshev (optional emin=0.01 emax=100.)
 !        methodKSP= 2: Conjugate Gradient
 !        methodKSP= 3: BiConjugate Gradient
 !        methodKSP= 4..7: Generalized Gradient Residual (optional max_steps=30)
@@ -468,8 +468,8 @@
          CALL KSPSetType(ksp,KSPRICHARDSON,ierr)
          CALL KSPRichardsonSetScale(ksp,damping_factor_,ierr)
       CASE(1)
-         CALL KSPSetType(ksp,KSPCHEBYCHEV,ierr)
-         CALL KSPChebychevSetEigenvalues(ksp,emax_,emin_,ierr)
+         CALL KSPSetType(ksp,KSPCHEBYSHEV,ierr)
+         CALL KSPChebyshevSetEigenvalues(ksp,emax_,emin_,ierr)
       CASE(2)
          CALL KSPSetType(ksp,KSPCG,ierr)
       CASE(3)
