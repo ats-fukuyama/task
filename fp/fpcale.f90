@@ -54,15 +54,25 @@
 
       END SUBROUTINE UPDATE_FEPP
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      SUBROUTINE E_IND_EVOL(L_EDGE,l_j)
+      SUBROUTINE E_IND_EVOL!(L_EDGE)
 
       IMPLICIT NONE
-      double precision,intent(in):: L_EDGE, l_j!,E_EDGE
-      double precision:: E_EDGE
+!      double precision,intent(in):: L_EDGE!, l_j!,E_EDGE
+      double precision:: E_EDGE, L_EDGE
       INTEGER:: NSA,NR,NP,NTH,IERR
       double precision:: coef0,coefm,coefp,RHS,tauIp,time_now
-      integer:: imtxstart1,imtxend1,its
+      integer:: imtxstart1,imtxend1,its,I_IMPL,NITE
+      double precision:: EPS_EIND
+      double precision,dimension(NRMAX):: EPS_EP
+      real:: gut1, gut2
 
+      NITE=1
+      CALL GUTIME(gut1)
+      I_IMPL=0
+!      DO WHILE(I_IMPL.le.NITE)
+         I_IMPL=I_IMPL+1
+
+      EPM(:)=EP(:)
       CALL mtx_set_communicator(comm_nr) !3D
 
       CALL mtx_setup(NRMAX,imtxstart1,imtxend1)
@@ -71,7 +81,7 @@
          coef0=2.D0/(RA*DELR)**2 + RMU0*SIGP(NR)/DELT 
 !         coef0=2.D0/(RA*DELR)**2 
          CALL mtx_set_matrix(NR,NR,coef0)
-         CALL mtx_set_vector(NR,EM(NR))
+         CALL mtx_set_vector(NR,EPM(NR))
       END DO
 !---- OFF DIAGONAL
       DO NR=NRSTART,NREND
@@ -90,7 +100,7 @@
             RHS=RMU0/DELT*( RJ_M(NR)-RJ_P(NR)+SIGP(NR)*EP(NR) )
          ELSEIF(NR.eq.NRMAX)THEN ! boundary condition E_ind at RM(NRMAX)+DELR
 !            E_EDGE=0.D0 ! 
-            E_EDGE=-L_EDGE/(2*PI*RR*(1.D0+EPSRM2(NR)))*(RI_P(NR)-RI_M(NR))/DELT
+            CALL EDGE_FIELD(E_EDGE,L_EDGE)
             RHS=RMU0/DELT*( RJ_M(NR)-RJ_P(NR)+SIGP(NR)*EP(NR) ) &
                  + RG(NR+1)/( RM(NR)*(RA*DELR)**2 )*E_EDGE
          END IF
@@ -100,15 +110,60 @@
 !---- SOLVE
       CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC) 
 !      IF(NRANK.eq.0) write(6,*) 'E_IND_EVOL, Number of iterations    =',its
-      IF(NRSTART.eq.NRMAX.and.NPSTART.eq.1.and.NSASTART.eq.1)  &
+      IF(NRSTART.eq.NRMAX.and.NPSTART.eq.1.and.NSASTART.eq.1.and.I_IMPL.eq.1)  &
            WRITE(*,'(A,4E16.8)') "L_EDGE,E_EDGE,RI_P,RI_M=", L_EDGE, E_EDGE, RI_P(NRMAX), RI_M(NRMAX)
       CALL mtx_gather_vector(EP)
-
       CALL mtx_cleanup
       CALL mtx_reset_communicator
 
-      END SUBROUTINE E_IND_EVOL
+!         EPS_EIND=0.D0
+!         DO NR=1,NRMAX
+!            EPS_EIND = EPS_EIND + (EP(NR)-EPM(NR))**2/(EP(NR))**2
+!            EPS_EP(NR) = (EP(NR)-EPM(NR))**2/(EP(NR))**2
+!         END DO
+!         EPS_EIND=SQRT(EPS_EIND)
+         IF(NRSTART.eq.NRMAX.and.NPSTART.eq.1.and.NSASTART.eq.1.and.MOD(I_IMPL,1).eq.0)THEN
+            WRITE(*,'(A,I5,2E14.6)') "I_IMPL,E_EDGE",I_IMPL, E_EDGE, SIGP_E
+!            WRITE(*,'(16E10.2)') (EPS_EP(NR),NR=1,NRMAX)
+!            WRITE(*,'(16E10.2)') (EP(NR),NR=1,NRMAX)
+         END IF
+!      END DO
 
+      CALL GUTIME(gut2)
+!      IF(NRANK.eq.0) WRITE(*,*) "GUT_EVOL_ITERATION = ",gut2-gut1
+
+      END SUBROUTINE E_IND_EVOL
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      SUBROUTINE EDGE_FIELD(E_EDGE,L_EDGE)
+
+      IMPLICIT NONE
+      DOUBLE PRECISION,intent(out):: E_EDGE, L_EDGE
+      DOUBLE PRECISION:: l_j
+      INTEGER:: ISW_L
+
+      ISW_L=3
+
+      IF(ISW_L.eq.0)THEN
+         L_EDGE=RMU0*RI_P(NRMAX)/(4*PI**2*RA**2*RG(NRMAX+1)**2*RJ_P(NRMAX))
+         E_EDGE=-L_EDGE/(2*PI*RR*(1.D0+EPSRM2(NRMAX)))*(RI_P(NRMAX)-RI_M(NRMAX))/DELT
+      ELSEIF(ISW_L.eq.1)THEN
+         l_j=RMU0*RI_P(NRMAX)/(2*PI*RA*RG(NRMAX+1) )*(RJ_P(NRMAX)-RJ_P(NRMAX-1))/DELR
+         L_EDGE=l_j
+         E_EDGE=-L_EDGE/(2*PI*RR*(1.D0+EPSRM2(NRMAX)))*(RJ_P(NRMAX)-RJ_M(NRMAX))/DELT
+      ELSEIF(ISW_L.eq.2)THEN
+         l_j=RMU0*RI_P(NRMAX)/(2*PI*RA*RG(NRMAX+1) )*(RJ_P(NRMAX)-RJ_P(NRMAX-1))/DELR
+         L_EDGE=l_j
+         E_EDGE=L_EDGE/(2*PI*RR*(1.D0+EPSRM2(NRMAX))*DELT+L_EDGE*SIGP(NRMAX) ) &
+              *(RJ_M(NRMAX)-RJ_P(NRMAX)+SIGP(NRMAX)*EP(NRMAX) )
+      ELSE
+         l_j=RMU0*RI_P(NRMAX)/(2*PI*RA*RG(NRMAX+1) )*(0.D0-RJ_P(NRMAX) )/DELR
+         L_EDGE=l_j
+         E_EDGE=L_EDGE/(2*PI*RR*(1.D0+EPSRM2(NRMAX)+DELR)*DELT+L_EDGE*SIGP_E ) &
+              *(RJ_M(NRMAX)-RJ_P(NRMAX)+SIGP_E*E_EDGEM )
+         E_EDGEM=E_EDGE
+      END IF
+
+      END SUBROUTINE EDGE_FIELD
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       SUBROUTINE conductivity_sigma_ind
 
@@ -227,6 +282,9 @@
             CALL mtx_set_communicator(comm_nr)
             CALL mtx_allgather1_real8(sigma_sp,SIGP)
             CALL mtx_reset_communicator
+
+            taue_col=3.D0*SQRT(0.5D0*PI)/FACT2*SQRT(AMFP(1)*(AEE*RT_E*1.D3)**3)/RN_E*1.D-20
+            SIGP_E=1.96D0*RN_E*1.D20*AEFP(1)**2*taue_col/AMFP(1)
          ELSE
             DO NR=NRSTART,NREND
                SIGP(NR)=0.D0
@@ -438,11 +496,11 @@
       double precision,dimension(NRMAX):: SUM2
       integer:: NR
 
-      EPM(:)=EP(:)
-      DO NR=NRSTART,NREND
-         CALL POLOIDAL_FLUX(NR,E_IND,L_IND,l_j)
-      END DO
-      CALL E_IND_EVOL(L_IND,l_j)
+!      DO NR=NRSTART,NREND
+!         CALL POLOIDAL_FLUX(NR,L_IND)
+!      END DO
+!      E_EDGEM2=EP(NRMAX)
+      CALL E_IND_EVOL!(L_IND)
 
 !      SUM=0.D0
 !      DO NR=1,NRMAX
@@ -451,6 +509,7 @@
 !      END DO
 !      IF(NPSTART.eq.1.and.NRSTART.eq.1.and.NSASTART.eq.1) &
 !           WRITE(*,'(A,32E10.2)') "EPS_EP=", (SUM2(NR),NR=1,NRMAX)
+      CALL mtx_broadcast_real8(EP,NRMAX)
 
       CALL mtx_set_communicator(comm_nr)
 !      CALL mtx_allgather1_real8(E_IND,EP)
@@ -551,11 +610,11 @@
 
       END SUBROUTINE INDUCTIVE_FIELD_A1
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      SUBROUTINE POLOIDAL_FLUX(NR,E_IND,L_IND,l_j)
+      SUBROUTINE POLOIDAL_FLUX(NR,L_IND)
 
       IMPLICIT NONE
       INTEGER,intent(in):: NR
-      double precision,intent(out):: E_IND ! inductive field
+      double precision:: E_IND ! inductive field
       double precision,intent(out):: L_IND ! inductance of whole plasma
       double precision:: l_j, metric
       double precision:: SUM, SUM2, PSIP, PSIM, rv, delrho, EPS_IND,EPM2
@@ -566,14 +625,14 @@
       IF(NSWE.eq.0)THEN ! cylindrical
          SUM=0.D0
          SUM2=0.D0
-         DO NR2=1,NR
-            SUM=SUM+RMU0/(2.D0*PI*RM(NR2))*RI_P(NR2)*DELR
-         END DO
-         DO NR2=1,NR
-            SUM2=SUM2+RMU0/(2.D0*PI*RM(NR2))*RI_M(NR2)*DELR
-         END DO
-         PSIPM_P(NR)=SUM
-         PSIPM_M(NR)=SUM2
+!         DO NR2=1,NR
+!            SUM=SUM+RMU0/(2.D0*PI*RM(NR2))*RI_P(NR2)*DELR
+!         END DO
+!         DO NR2=1,NR
+!            SUM2=SUM2+RMU0/(2.D0*PI*RM(NR2))*RI_M(NR2)*DELR
+!         END DO
+!         PSIPM_P(NR)=SUM
+!         PSIPM_M(NR)=SUM2
 !         L_IND=(SUM-SUM2)/(RI_P(NR)-RI_M(NR)) ! inductance 0<RM<RM(NR)
          L_IND=RMU0*RI_P(NRMAX)/(4*PI**2*RA**2*RG(NRMAX+1)**2*RJ_P(NRMAX))
          metric=1.D0
@@ -610,11 +669,10 @@
          metric=2.D0*PI*RR*(1.D0+EPSRM2(NR))
       END IF
 
-      l_j = L_IND*( RI_P(NR)-RI_M(NR) )/( RJ_P(NR)-RJ_M(NR) )
+!      l_j = L_IND*( RI_P(NR)-RI_M(NR) )/( RJ_P(NR)-RJ_M(NR) )
 
-      E_IND = l_j/(l_j*SIGP(NR)+DELT*metric) &
-           *(RJ_M(NR)-RJ_P(NR)+SIGP(NR)*EPM(NR)) ! implicit 
-      EPS_IND=SQRT( (E_IND-EPM(NR))**2/E_IND**2 )
+!      E_IND = l_j/(l_j*SIGP(NR)+DELT*metric) &
+!           *(RJ_M(NR)-RJ_P(NR)+SIGP(NR)*EPM(NR)) ! implicit 
 
 !      IF(NSASTART.eq.1.and.NPSTART.eq.1.and.NRSTART.eq.1) THEN
 !         WRITE(*,'(I3,E16.8,A,3E16.8)') N_IMPL, SQRT(EPS_IND)," l_j, E, Vloop= ",l_j, E_IND, E_IND*2*PI*RR

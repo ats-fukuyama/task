@@ -675,9 +675,11 @@
             RET(NR,NTG2) = E1(NR)
             RS=RSRHON(RM(NR))
             RQT(NR,NTG2) = RS*BB*2.D0/(RR*(BP(NR)+BP(NR+1)))
-            EPTR(NR,NTG2)=EP(NR)
          ENDDO
       ENDDO
+      DO NR=1,NRMAX
+         EPTR(NR,NTG2)=EP(NR)
+      END DO
 
       RETURN
       END SUBROUTINE FPSPRF
@@ -815,11 +817,11 @@
                     RPET(NR,NSA,NTG2), EP(NR), &
                     RPET_IND(NR,NSA,NTG2), &
 !                    RDIDT(NR,NSA), &
-!                    RSPST(NR,NSA,NTG2), RSPLT(NR,NSA,NTG2), &
+                    RSPST(NR,NSA,NTG2), RSPLT(NR,NSA,NTG2), &
 !                    RECT(NR,NSA,NTG2),    &
 !                    RSPBT(NR,NSA,NTG2),RSPFT(NR,NSA,NTG2),&
 !                    RPDRT(NR,NSA,NTG2), &
-                    PSIPG_P(NR), (PSIPG_P(NR)-PSIPG_M(NR))/DELT, &
+!                    PSIPG_P(NR), (PSIPG_P(NR)-PSIPG_M(NR))/DELT, &
                     SIGP(NR)
 !                    RTT_BULK(NR,NSA,NTG2),RNDRT(NR,NSA,NTG2)
             END IF

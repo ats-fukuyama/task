@@ -706,7 +706,7 @@
             DINT_F=0.D0
             DO NP=NPSTART,NPEND
                DO NTH=1,NTHMAX
-                  IF(N_IMPL.eq.0)THEN
+                  IF(NTG1.eq.0.and.N_IMPL.eq.0)THEN
                      IF(NR.eq.1)THEN
                         WRL=0.25D0 ! not necessary
                      ELSE
@@ -1004,17 +1004,19 @@
       RTFD0L=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
       PTFD0L=SQRT(RTFD0L*1.D3*AEE*AMFDL)
 
-      IF(NR.eq.NRMAX)THEN
-         RL=RM(NR)
-         RHON=RL
-      ELSEIF(NR.EQ.NRMAX+1) THEN
-         RL=RM(NRMAX)+DELR
-         RHON=MIN(RL,1.D0)
-      ENDIF
+!      IF(NR.eq.NRMAX)THEN
+!         RL=RM(NR)
+!         RHON=RL
+!      ELSEIF(NR.EQ.NRMAX+1) THEN
+!         RL=RM(NRMAX)+DELR
+!         RHON=MIN(RL,1.D0)
+!      ENDIF
 
-      CALL PL_PROF(RHON,PLF)
-      RNFDL=PLF(NS)%RN/RNFD0L
-      RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+!      CALL PL_PROF(RHON,PLF)
+!      RNFDL=PLF(NS)%RN/RNFD0L
+!      RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+      RNFDL=PNS(NS)/RNFD0L*1.D-1
+      RTFDL=PTS(NS)*1.D-2
 
       IF(MODELR.EQ.0) THEN
          FACT=RNFDL/SQRT(2.D0*PI*RTFDL/RTFD0L)**3
@@ -1052,13 +1054,13 @@
       NS=NS_NSA(NSA)
       NSBA=NSB_NSA(NSA)
 
-      FL1=FPMXWL_S(PM(NP,NSBA),NRMAX,NS) ! at RM(NRMAX)
-      FL2=FPMXWL_S(PM(NP,NSBA),NRMAX+1,NS) ! at RG(NRMAX+1)
+!      FL1=FPMXWL_S(PM(NP,NSBA),NRMAX,NS) ! at RM(NRMAX)
+!      FL2=FPMXWL_S(PM(NP,NSBA),NRMAX+1,NS) ! at RG(NRMAX+1)
 
 !     F at R=1.0+DELR/2
-!      FL=FL2+(FL2-FL1)
-!      FL = -(FL1-FL2)/(DELR-0.25D0*DELR**2)*(DELR+0.25D0*DELR**2)+FL2
-      FL=FL2*1.D-1
+!      FL=FL2*1.D-1
+
+      FL=FPMXWL_S(PM(NP,NSBA),NRMAX,NS) 
 
       RETURN
       END SUBROUTINE FPMXWL_EDGE

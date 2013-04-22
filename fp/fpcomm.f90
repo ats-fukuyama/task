@@ -230,6 +230,7 @@
       real(rkind),dimension(:,:),POINTER:: ETHM
       real(rkind),dimension(:,:),POINTER:: ETHG
       real(rkind),dimension(:,:),POINTER:: EPTR
+      real(rkind):: E_EDGEM, SIGP_E, RN_E, RT_E, RLNRL_E
 
       contains
 

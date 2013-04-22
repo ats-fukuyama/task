@@ -180,14 +180,14 @@
 
       CALL mtx_gather_vector(BMTOT)
       
-      DO NR=NRSTART,NREND
-         DO NP=NPSTARTW,NPENDWM
-            DO NTH=1,NTHMAX
-               NM=NMA(NTH,NP,NR)
-               F1(NTH,NP,NR)=BMTOT(NM)
-            ENDDO
-         ENDDO
-      ENDDO
+!      DO NR=NRSTART,NREND
+!         DO NP=NPSTARTW,NPENDWM
+!            DO NTH=1,NTHMAX
+!               NM=NMA(NTH,NP,NR)
+!               F1(NTH,NP,NR)=BMTOT(NM)
+!            ENDDO
+!         ENDDO
+!      ENDDO
       
       DO NR=NRSTARTW,NRENDWM
          DO NP=NPSTARTW,NPENDWM

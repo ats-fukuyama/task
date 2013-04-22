@@ -13,6 +13,7 @@
       USE equnit_mod
       USE fpmpi
       USE libmpi
+      USE fpcaleind
 
       contains
 
@@ -854,6 +855,8 @@
          PTFP0(NSA)=SQRT(RTFP0(NSA)*1.D3*AEE*AMFP(NSA))
          VTFP0(NSA)=SQRT(RTFP0(NSA)*1.D3*AEE/AMFP(NSA))
       ENDDO
+      RT_E=RTFPS(1)*1.D-2
+      RN_E=RNFPS(1)*1.D-1
 
       DO NSB=1,NSBMAX
          NS=NS_NSB(NSB)
@@ -893,6 +896,7 @@
 
          RNE=PLF(1)%RN
          RTE=(PLF(1)%RTPR+2.D0*PLF(1)%RTPP)/3.D0
+         E_EDGEM=0.D0
 
          ISW_CLOG=0 ! =0 Wesson, =1 NRL
          DO NSA=1,NSAMAX
@@ -1180,20 +1184,21 @@
 !     ----- set parallel electric field -----
       DO NR=1,NRMAX
          E1(NR)=E0/(1.D0+EPSRM(NR))
- !        IF(MODELE.eq.0)THEN
- !           EP(NR)=0.D0 ! plus
- !           EM(NR)=0.D0 ! minus
- !        ELSEIF(MODELE.eq.1)THEN
- !           EP(NR)=E1(NR) ! plus
- !           EM(NR)=E1(NR) ! minus
- !        END IF
       ENDDO
+
       N_IMPL=0
       CALL NF_REACTION_COEF
       NCALCNR=0
       CALL fusion_source_init
       DO NSA=NSASTART,NSAEND
          CALL FP_COEF(NSA)
+         DO NR=NRSTART,NREND
+            DO NP=NPSTARTW,NPENDWM
+               DO NTH=1,NTHMAX
+                  F(NTH,NP,NR)=FNSP(NTH,NP,NR,NSBA)
+               END DO
+            END DO
+         END DO
          CALL FPWEIGHT(NSA,IERR)
       END DO
 !      CALL mtx_set_communicator(comm_nr)

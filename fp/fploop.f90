@@ -113,7 +113,8 @@
                DO NR=NRSTART,NREND
                DO NP=NPSTARTW,NPENDWM
                DO NTH=1,NTHMAX
-                  F(NTH,NP,NR)=FNSM(NTH,NP,NR,NSBA)
+                  F(NTH,NP,NR)=FNSP(NTH,NP,NR,NSBA) ! used at fpweight only!
+!                  F(NTH,NP,NR)=FNSM(NTH,NP,NR,NSBA)
                END DO
                END DO
                END DO
@@ -143,7 +144,7 @@
                DO NP=NPSTART,NPEND
                DO NTH=1,NTHMAX
                   RSUMF(NSA)=RSUMF(NSA) &
-                         +ABS(FNSP(NTH,NP,NR,NSBA)-F1(NTH,NP,NR))**2
+                         +ABS(FNSP(NTH,NP,NR,NSBA)-FNS0(NTH,NP,NR,NSBA) )**2
                   RSUMF0(NSA)=RSUMF0(NSA) &
                          +ABS(FNSM(NTH,NP,NR,NSBA))**2
                ENDDO
@@ -176,10 +177,13 @@
             END DO
             DEPS_MAX=0.D0
             CALL mtx_set_communicator(comm_nsa) 
-            CALL mtx_reduce1_real8(DEPS,1,DEPS_MAX,ILOC1) ! convergence condition
-            CALL mtx_reset_communicator
-
+            CALL mtx_reduce1_real8(DEPS,1,DEPS_MAX,ILOC1) ! MAX DEPS among NSA
             DEPS = DEPS_MAX
+            CALL mtx_set_communicator(comm_nr) 
+            CALL mtx_reduce1_real8(DEPS,1,DEPS_MAX,ILOC1) ! MAX DEPS among NR
+            CALL mtx_reset_communicator
+            DEPS = DEPS_MAX
+
             IF(NRANK.eq.0.and.DEPS.le.EPSFP)THEN
                N_IMPL=1+LMAXFP ! exit dowhile
             ENDIF
@@ -211,6 +215,19 @@
             CALL mtx_reset_communicator
 !           end of update FNSB
 
+            CALL FPCURRENT(RJ_P)
+            CALL j_to_i(RJ_P,RI_P)
+            IF(MODELE.eq.1)THEN
+               CALL conductivity_sigma_ind
+               IF(MODELA.eq.0)THEN
+                  CALL INDUCTIVE_FIELD
+!                  CALL UPDATE_FEPP
+               ELSE
+                  CALL INDUCTIVE_FIELD_A1
+!                  CALL UPDATE_FEPP
+               END IF
+            END IF
+
             CALL Coulomb_log
             DO NSA=NSASTART,NSAEND
                IF (MOD(NT,NTCLSTEP).EQ.0) CALL FP_COEF(NSA)
@@ -223,29 +240,21 @@
 !            CALL mtx_reset_communicator
 !           end of sum up SPPF
 
-            CALL FPCURRENT(RJ_P)
-            CALL j_to_i(RJ_P,RI_P)
-            IF(MODELE.eq.1)THEN
-               CALL conductivity_sigma_ind
-               IF(MODELA.eq.0)THEN
-                  CALL INDUCTIVE_FIELD
-                  CALL UPDATE_FEPP
-               ELSE
-                  CALL INDUCTIVE_FIELD_A1
-                  CALL UPDATE_FEPP
-               END IF
-!               IF(NRANK.eq.0)THEN
-!                  DO NR=1,NRMAX
-!                     WRITE(9,'(2I3,3E14.6)') N_IMPL, NT, RM(NR), EM(NR), EP(NR)
-!                  END DO
-!                  WRITE(9,*) " "
-!                  WRITE(9,*) " "
-!               END IF
-            END IF
-
             CALL GUTIME(gut4)
             GUT_COEF = GUT_COEF + (gut4-gut3)
          END DO ! END OF DOWHILE
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+         DO NSA=NSASTART,NSAEND
+            DO NR=NRSTART,NREND
+               DO NP=NPSTARTW,NPENDWM
+                  DO NTH=1,NTHMAX
+                     F(NTH,NP,NR)=FNSP(NTH,NP,NR,NSBA) ! used at fpweight only!
+!                     F(NTH,NP,NR)=FNSM(NTH,NP,NR,NSBA)
+                  END DO
+               END DO
+            END DO
+            CALL FPWEIGHT(NSA,IERR) ! RESET FPWEIGHT FOR FPSAVE
+         END DO
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          CALL GUTIME(gut6)
          GUT_1step = gut6-gut5
@@ -339,7 +348,7 @@
          IF(NRANK.eq.0)THEN
          IF(NT.eq.NTMAX.or.NTMAX.ne.0)THEN
 !            open(9,file='power_D_5s_D0_taul1000_2kev_NB.dat')
-            open(9,file='t_prof_sp.dat')
+            open(9,file='t_prof_D_sp3.dat')
             DO NTI=1,NTG1
                WRITE(9,'(I4,F12.3,14E16.8)') NTI, PTG(NTI)*1000 &
                     ,PTT2(1,NTI),PTT2(2,NTI),PIT(1,NTI),PIT(2,NTI) &
