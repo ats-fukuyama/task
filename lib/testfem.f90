@@ -30,9 +30,10 @@ program testfem
       write(6,*) ' * id=12: Maxwell eq (cylinder) quadra + linear (discont)'
       write(6,*) ' * id=13: Maxwell eq (cylinder) E+- Hermite'
       write(6,*) ' * id=14: Maxwell eq (cylinder) Laplacian E Hermite'
+      write(6,*) ' * id=15: Maxwell eq (cylinder) Potential A,phi Hermite'
       write(6,*) ' * *******************************'
 
-      id=12
+      id=15
       nrmax=11
       npow=1
       nth=0
@@ -83,6 +84,7 @@ program testfem
       implicit none
       integer,intent(in):: id,nrmax,npow,nth,nph
       real(8),intent(in):: rf,angl
+      real(8):: rho0,rkth,rkph
       integer:: mw,ml,nr,ierr
 
       select case(id)
@@ -116,6 +118,8 @@ program testfem
             call fem_calc_r8(nrmax,npow,nth,nph,rf,angl)
          case(14)
             call fem_calc_r9(nrmax,npow,nth,nph,rf,angl)
+         case(15)
+            call fem_calc_ra(nrmax,npow,nth,nph,rf,angl)
       end select
 
 !      do ml=1,mlmax
@@ -195,6 +199,28 @@ program testfem
             cf2(nr)=0.5D0*(fvx(6*(nr-1)+1)-fvx(6*(nr-1)+3))/CI
             cf3(nr)=fvx(6*(nr-1)+5)
          enddo
+      else if(id.eq.15) then
+         do nr=1,nrmax
+            IF(nr.EQ.1) THEN
+               IF(ABS(nth).eq.1) THEN
+                  cf2(nr)=ci*fvx(8*(nr-1)+3)-ci*nth*fvx(8*(nr-1)+8)
+               ELSE
+                  cf2(nr)=0.D0
+               ENDIF
+            ELSE
+               rho0=rho(nr)
+               rkth=nth/rho0
+               cf2(nr)=ci*fvx(8*(nr-1)+3)-ci*rkth*fvx(8*(nr-1)+7)
+            ENDIF
+            rkph=nph
+            cf1(nr)=ci*fvx(8*(nr-1)+1)-fvx(8*(nr-1)+8)
+            cf3(nr)=ci*fvx(8*(nr-1)+5)-ci*rkph*fvx(8*(nr-1)+7)
+
+            cf1(nr)=ci*fvx(8*(nr-1)+1)
+            cf2(nr)=ci*fvx(8*(nr-1)+3)
+            cf3(nr)=ci*fvx(8*(nr-1)+7)
+         enddo
+
       endif
       return
       end subroutine fem_exec
@@ -3687,6 +3713,250 @@ program testfem
 
       return
       end subroutine fem_calc_r9
+
+!----- calculate coefficint matrix fma and source vector fvb -----
+
+      subroutine fem_calc_ra(nrmax,npow,nth,nph,rf,angl)
+
+      use libfem
+      implicit none
+      integer,intent(in):: nrmax  ! number of points including end points
+      integer,intent(in):: npow   ! power of mesh points
+      integer,intent(in):: nth    ! poloidal mode number
+      integer,intent(in):: nph    ! toroidal mode number
+      real(8),intent(in):: rf     ! wave frequency
+      real(8),intent(in):: angl   ! antenna angle: 0 perm, 1,para
+      integer:: nr,ml,mw,mc,nvmax,i,j,k,inod
+      real(8):: drho,rkth,rkph,factor,rkth0,rho0,rd,divj
+      complex(8),dimension(4,4,4,1):: fmd
+      complex(8),parameter:: ci=(0.d0,1.d0)
+
+      call mesh_init(nrmax,npow)
+
+      nvmax=8                ! vector/scalor potentials and their derivatives
+      mwmax=4*nvmax-1        ! width of coefficient matrix
+      mlmax=nvmax*nrmax      ! length of coeffient matrix and source vector
+     
+      call fem_init
+
+      do ml=1,mlmax
+         fvb(ml)=0.d0
+         do mw=1,mwmax
+            fma(mw,ml)=0.d0
+         enddo
+      enddo
+      mc=(mwmax+1)/2
+
+      do nr=1,nrmax-1
+         drho=rho(nr+1)-rho(nr)
+
+         factor=rf**2
+         rkph=nph
+      
+         do inod=1,1
+            do k=1,4
+               do j=1,4
+                  do i=1,4
+                     fmd(i,j,k,inod)=0.d0
+                  enddo
+               enddo
+            enddo
+         enddo
+
+         do inod=1,1
+            rho0=0.5D0*(rho(nr)+rho(nr+1))
+            rkth=nth/rho0
+
+            fmd(1,1,1,inod)= rho0*(-rkph**2-rkth**2+factor-1.D0/(rho0**2))
+            fmd(1,2,1,inod)= rho0*(-2.D0*ci*rkth/rho0)
+            fmd(1,4,3,inod)= rho0*(ci)
+            fmd(2,1,1,inod)= rho0*( 2.D0*ci*rkth/rho0)
+            fmd(2,2,1,inod)= rho0*(-rkph**2-rkth**2+factor-1.D0/(rho0**2))
+            fmd(2,4,1,inod)= rho0*(-rkth)
+            fmd(3,3,1,inod)= rho0*(-rkph**2-rkth**2+factor)
+            fmd(3,4,1,inod)= rho0*(-rkph)
+      
+            fmd(1,1,4,inod)= rho0*(-1.D0)
+            fmd(2,2,4,inod)= rho0*(-1.D0)
+            fmd(3,3,4,inod)= rho0*(-1.D0)
+
+            fmd(4,1,2,inod)= rho0*(ci)
+            fmd(4,2,1,inod)= rho0*(-rkth)
+            fmd(4,3,1,inod)= rho0*(-rkph)
+            fmd(4,4,1,inod)= rho0*(-rkph**2-rkth**2)
+            fmd(4,4,4,inod)= rho0*(-1.D0)
+         enddo
+
+         do j=1,4
+         do i=1,4
+            ml=8*(nr-1)+2*(i-1)+1
+            mw=mc+2*(j-1)-2*(i-1)
+            do inod=1,1
+
+            fma(mw  ,ml  )=fma(mw  ,ml  ) &
+     &                    +fmd(i,j,1,inod)*table_hh(1,1)*drho &
+     &                    +fmd(i,j,2,inod)*table_hh(5,1) &
+     &                    +fmd(i,j,3,inod)*table_hh(1,5) &
+     &                    +fmd(i,j,4,inod)*table_hh(5,5)/drho
+            fma(mw+1,ml  )=fma(mw+1,ml  ) &
+     &                    +fmd(i,j,1,inod)*table_hh(1,2)*drho**2 &
+     &                    +fmd(i,j,2,inod)*table_hh(5,2)*drho &
+     &                    +fmd(i,j,3,inod)*table_hh(1,6)*drho &
+     &                    +fmd(i,j,4,inod)*table_hh(5,6)
+            fma(mw+8,ml  )=fma(mw+8,ml  ) &
+     &                    +fmd(i,j,1,inod)*table_hh(1,3)*drho &
+     &                    +fmd(i,j,2,inod)*table_hh(5,3) &
+     &                    +fmd(i,j,3,inod)*table_hh(1,7) &
+     &                    +fmd(i,j,4,inod)*table_hh(5,7)/drho
+            fma(mw+9,ml  )=fma(mw+9,ml  ) &
+     &                    +fmd(i,j,1,inod)*table_hh(1,4)*drho**2 &
+     &                    +fmd(i,j,2,inod)*table_hh(5,4)*drho &
+     &                    +fmd(i,j,3,inod)*table_hh(1,8)*drho &
+     &                    +fmd(i,j,4,inod)*table_hh(5,8)
+
+            fma(mw-1,ml+1)=fma(mw-1,ml+1) &
+     &                    +fmd(i,j,1,inod)*table_hh(2,1)*drho**2 &
+     &                    +fmd(i,j,2,inod)*table_hh(6,1)*drho &
+     &                    +fmd(i,j,3,inod)*table_hh(2,5)*drho &
+     &                    +fmd(i,j,4,inod)*table_hh(6,5)
+            fma(mw  ,ml+1)=fma(mw  ,ml+1) &
+     &                    +fmd(i,j,1,inod)*table_hh(2,2)*drho**3 &
+     &                    +fmd(i,j,2,inod)*table_hh(6,2)*drho**2 &
+     &                    +fmd(i,j,3,inod)*table_hh(2,6)*drho**2 &
+     &                    +fmd(i,j,4,inod)*table_hh(6,6)*drho
+            fma(mw+7,ml+1)=fma(mw+7,ml+1) &
+     &                    +fmd(i,j,1,inod)*table_hh(2,3)*drho**2 &
+     &                    +fmd(i,j,2,inod)*table_hh(6,3)*drho &
+     &                    +fmd(i,j,3,inod)*table_hh(2,7)*drho &
+     &                    +fmd(i,j,4,inod)*table_hh(6,7)
+            fma(mw+8,ml+1)=fma(mw+8,ml+1) &
+     &                    +fmd(i,j,1,inod)*table_hh(2,4)*drho**3 &
+     &                    +fmd(i,j,2,inod)*table_hh(6,4)*drho**2 &
+     &                    +fmd(i,j,3,inod)*table_hh(2,8)*drho**2 &
+     &                    +fmd(i,j,4,inod)*table_hh(6,8)*drho
+
+            fma(mw-8,ml+8)=fma(mw-8,ml+8) &
+     &                    +fmd(i,j,1,inod)*table_hh(3,1)*drho &
+     &                    +fmd(i,j,2,inod)*table_hh(7,1) &
+     &                    +fmd(i,j,3,inod)*table_hh(3,5) &
+     &                    +fmd(i,j,4,inod)*table_hh(7,5)/drho
+            fma(mw-7,ml+8)=fma(mw-7,ml+8) &
+     &                    +fmd(i,j,1,inod)*table_hh(3,2)*drho**2 &
+     &                    +fmd(i,j,2,inod)*table_hh(7,2)*drho &
+     &                    +fmd(i,j,3,inod)*table_hh(3,6)*drho &
+     &                    +fmd(i,j,4,inod)*table_hh(7,6)
+            fma(mw  ,ml+8)=fma(mw  ,ml+8) &
+     &                    +fmd(i,j,1,inod)*table_hh(3,3)*drho &
+     &                    +fmd(i,j,2,inod)*table_hh(7,3) &
+     &                    +fmd(i,j,3,inod)*table_hh(3,7) &
+     &                    +fmd(i,j,4,inod)*table_hh(7,7)/drho
+            fma(mw+1,ml+8)=fma(mw+1,ml+8) &
+     &                    +fmd(i,j,1,inod)*table_hh(3,4)*drho**2 &
+     &                    +fmd(i,j,2,inod)*table_hh(7,4)*drho &
+     &                    +fmd(i,j,3,inod)*table_hh(3,8)*drho &
+     &                    +fmd(i,j,4,inod)*table_hh(7,8)
+
+            fma(mw-9,ml+9)=fma(mw-9,ml+9) &
+     &                    +fmd(i,j,1,inod)*table_hh(4,1)*drho**2 &
+     &                    +fmd(i,j,2,inod)*table_hh(8,1)*drho &
+     &                    +fmd(i,j,3,inod)*table_hh(4,5)*drho &
+     &                    +fmd(i,j,4,inod)*table_hh(8,5)
+            fma(mw-8,ml+9)=fma(mw-8,ml+9) &
+     &                    +fmd(i,j,1,inod)*table_hh(4,2)*drho**3 &
+     &                    +fmd(i,j,2,inod)*table_hh(8,2)*drho**2 &
+     &                    +fmd(i,j,3,inod)*table_hh(4,6)*drho**2 &
+     &                    +fmd(i,j,4,inod)*table_hh(8,6)*drho
+            fma(mw-1,ml+9)=fma(mw-1,ml+9) &
+     &                    +fmd(i,j,1,inod)*table_hh(4,3)*drho**2 &
+     &                    +fmd(i,j,2,inod)*table_hh(8,3)*drho &
+     &                    +fmd(i,j,3,inod)*table_hh(4,7)*drho &
+     &                    +fmd(i,j,4,inod)*table_hh(8,7)
+            fma(mw  ,ml+9)=fma(mw  ,ml+9) &
+     &                    +fmd(i,j,1,inod)*table_hh(4,4)*drho**3 &
+     &                    +fmd(i,j,2,inod)*table_hh(8,4)*drho**2 &
+     &                    +fmd(i,j,3,inod)*table_hh(4,8)*drho**2 &
+     &                    +fmd(i,j,4,inod)*table_hh(8,8)*drho
+               enddo
+            enddo
+         enddo
+      enddo
+
+      if(nth.eq.0) then
+         do mw=1,mwmax
+            fma(mw,1) = 0.d0
+            fma(mw,3) = 0.d0
+         enddo
+         fma(mc,1)=1.d0
+         fma(mc,3)=1.d0
+         fvb(1)=0.d0
+         fvb(3)=0.d0
+      elseif(abs(nth).eq.1) then
+         do mw=1,mwmax
+            fma(mw,1) = 0.D0
+            fma(mw,5) = 0.d0
+            fma(mw,7) = 0.d0
+         enddo
+         fma(mc,1)=-ci*nth
+         fma(mc+2,1)=1.D0
+         fma(mc+6,1)=0.D0
+         fma(mc+7,1)=0.D0
+         fma(mc,5)=1.d0
+         fma(mc,7)=1.d0
+         fvb(1)=0.d0
+         fvb(5)=0.d0
+         fvb(7)=0.d0
+      else
+         do mw=1,mwmax
+            fma(mw,1) = 0.d0
+            fma(mw,3) = 0.d0
+            fma(mw,5) = 0.d0
+            fma(mw,7) = 0.d0
+         enddo
+         fma(mc,1)=1.d0
+         fma(mc,3)=1.d0
+         fma(mc,5)=1.d0
+         fma(mc,7)=1.d0
+         fvb(1)=0.d0
+         fvb(3)=0.d0
+         fvb(5)=0.d0
+         fvb(7)=0.d0
+      endif
+
+      do mw=1,mwmax
+         fma(mw,mlmax-6) = 0.d0
+         fma(mw,mlmax-5) = 0.d0
+         fma(mw,mlmax-3) = 0.d0
+         fma(mw,mlmax-1) = 0.d0
+      enddo
+      fma(mc,mlmax-6) = 1.d0
+      fma(mc,mlmax-5) = 1.d0
+      fma(mc,mlmax-3) = 1.d0
+      fma(mc,mlmax-1) = 1.d0
+      fvb(mlmax-6) = 0.d0
+      fvb(mlmax-5) = 0.d0
+      fvb(mlmax-3) = 0.d0
+      fvb(mlmax-1) = 0.d0
+
+      rd=0.85D0
+      rkth=nth/rd
+      rkph=nph
+      do nr=1,nrmax-1
+         if((rd-rho(nr))*(rho(nr+1)-rd).ge.0.d0) then
+!$$$            write(6,'A,I5,1P4E12.4') 'Antenna:',nr,rho(nr),rho(nr+1),
+!$$$     &           rho(nr+1)-rd,rd-rho(nr)
+            divj=-ci*(rkth*(1.D0-angl)+rkph*angl)
+            drho=rho(nr+1)-rho(nr)
+            fvb(8*(nr-1)+2)=-(rho(nr+1)-rd)*divj
+            fvb(8* nr   +2)=-(rd-rho(nr)  )*divj
+            fvb(8*(nr-1)+3)=-(rho(nr+1)-rd)*(1.d0-angl)
+            fvb(8* nr   +3)=-(rd-rho(nr)  )*(1.d0-angl)
+            fvb(8*(nr-1)+5)=-(rho(nr+1)-rd)*angl
+            fvb(8* nr   +5)=-(rd-rho(nr)  )*angl
+         endif
+      enddo
+
+      return
+      end subroutine fem_calc_ra
 
       include 'testfem-sub.f90'
 
