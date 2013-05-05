@@ -264,6 +264,7 @@ CONTAINS
 !  id = 4 : complete n_i and n_imp  from Zeff, n_e  (and n_bulk)
 !  id = 5 : complete n_imp and Zeff from n_e, n_i   (and n_bulk)
 !  id = 6 : complete n_i and Zeff   from n_e, n_imp (and n_bulk)
+!  id = 7 : not defined
 !  id = 8 : complete n_i and Zeff using the assumption n_e = n_i (+ n_fast)
 !  id = 9 : complete n_i and Zeff using the assumption n_e = n_i
 ! ----------------------------------------------------------------------

@@ -476,13 +476,19 @@ CONTAINS
 !                  created.
 !
 !        MDLNI : Switch how to determine main ion density, impurity density
-!                 and effective charge number                             
+!                 and effective charge number
 !            1 : complete n_i and n_imp  from Zeff, n_e (and n_bulk)
 !            2 : complete n_imp and Zeff from n_e, n_i (and n_bulk)
-!            3 : complete n_i and Zeff   from n_e, n_imp (and n_bulk)    
+!            3 : complete n_i and Zeff   from n_e, n_imp (and n_bulk)
+!            4 : complete n_i and n_imp  from Zeff, n_e  (and n_bulk)
+!            5 : complete n_imp and Zeff from n_e, n_i   (and n_bulk)
+!            6 : complete n_i and Zeff   from n_e, n_imp (and n_bulk)
+!            7 : not defined
+!            8 : complete n_i and Zeff using the assumption n_e = n_i(+n_fast)
+!            9 : complete n_i and Zeff using the assumption n_e = n_i
 !
 !       MDLGMT :
-!            0 : Slab geometry
+!            0 : Slab geometry (for test run)
 !            1 : Cylindrical geometry
 !            2 : Toroidal geometry
 !            3 : TASK/EQ output geometry
