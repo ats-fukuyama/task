@@ -500,7 +500,7 @@ CONTAINS
       table_lgl(4,4,3)= -1.d0
       table_lgl(4,4,4)= 1.d0
 
-    !  *** triple product hhg ***
+    !  *** triple product llg ***
 
       do k=1,4
          do j=1,4
