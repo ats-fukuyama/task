@@ -1,0 +1,352 @@
+\section{ì¸óÕÉpÉâÉÅÅ[É^}
+
+
+{
+\def\baselinestretch{0.7}
+\begin{verbatim}
+C
+C     *** DEFAULT FILE NAME ***
+C
+C        KFNAME: File name of element data
+C        KFNAMA: File name of antenna data
+C        KFNAMF: File name of field data
+C        KFNAMZ: File name of zone data
+C
+      KFNAME = 'elm-data'
+      KFNAMA = 'ant-data'
+      KFNAMF = 'fld-data'
+      KFNAMZ = 'zone-data'
+C
+C     *** CONFIGURATION PARAMETERS ***
+C
+C        BB    : Magnetic field at center                        (T)
+C        RA    : Plasma minor radius                             (m)
+C
+      BB     = 0.08D0
+      RA     = 0.08D0
+C
+C     *** CONFIGURATION PARAMETERS (TOKAMAK) ***
+C
+C        RR    : Plasma major radius                             (m)
+C        Q0    : Safety factor at center
+C        QA    : Safety factor on plasma surface
+C        RKAP  : Plasma shape elongation
+C        RDEL  : Plasma shape triangularity *
+C
+      RR     = 3.D0
+      Q0     = 1.D0
+      QA     = 3.D0
+      RKAP   = 1.D0
+      RDEL   = 0.D0
+C
+C     *** CONFIGURATION PARAMETERS (MIRROR) ***
+C
+C        RMIR  : Mirror ratio
+C        ZBB   : Periodic length along magnetic axis           (m)
+C
+      RMIR   = 2.0D0
+      ZBB    = 0.15D0
+C
+C     *** CONFIGURATION PARAMETERS (HELICAL) ***
+C
+C        H1    : Helical pitch (2*pi/L) for B profile
+C        H2    : Helical pitch (2*pi/L) for metric
+C        RRC   : Coil radius                                   (m)
+C
+      H1     = 1.25D0
+      H2     = 1.25D0
+      RRC    = 0.95D0
+C
+C     *** RF PARAMETERS ***
+C
+C        RF    : Wave frequency                               (MHz)
+C        RKZ   : Wave number in (z or Z) direction          (m**-1)
+C        NPHI  : Mode number in (phi) direction
+C        NZMAX : Number of Fourier modes in (z, phi or Z) direction
+C        RZ    : Periodic length in (z or Z) direction          (m)
+C
+      RF     = 2450.D0
+      RKZ    = 2.5D0
+      NPHI   = -1
+      NZMAX  = 1
+      RZ     = 1.D0
+C
+C     *** ANTENNA PARAMETERS ***
+C
+C        NAMAX : Number of antennae
+C        AJ    : Antenna current density                       (A/m)
+C        APH   : Antenna phase                              (degree)
+C        AWD   : Antenna width in (z, phi, Z) direction     (degree)
+C        APOS  : Antenna position in (z, phi, Z) direction  (degree)
+C        APOS  : Antenna position in (z, phi, Z) direction  (degree)
+C
+      NAMAX=0
+      DO 10 NA=1,NAM
+         AJ(NA)   = 1.D0
+         IF(MOD(NA,2).EQ.1) THEN
+            APH(NA)  = 0.D0
+         ELSE
+            APH(NA)  = 180.D0
+         ENDIF
+         AWD(NA)  = 0.D0
+         APOS(NA) = 0.D0
+   10 CONTINUE
+C
+C     *** PLASMA PARAMETERS ***
+C
+C        NSMAX : Number of particle species
+C        PA    : Mass number
+C        PZ    : Charge number
+C        PN    : Density at center                     (1.0E20/Mm*3)
+C        PNS   : Density on plasma surface             (1.0E20/m**3)
+C        PTPR  : Parallel temperature at center                (keV)
+C        PTPP  : Perpendicular temperature at center           (keV)
+C        PTS   : Temperature on surface                        (keV)
+C        PZCL  : Ratio of collision frequency to wave frequency
+C
+      NSMAX= 2
+      IF(NSMAX.GT.NSM) NSMAX=NSM
+C
+         PA(1)= AME/AMP
+         PZ(1)=-1.0D0
+         PN(1)= 0.0002D0
+         PNS(1)= 0.D0
+         PTPR(1)=0.01D0
+         PTPP(1)=0.01D0
+         PTS(1)=0.D0
+         PZCL(1)= 0.02D0
+C
+      IF(NSM.GE.2) THEN
+         PA(2)= 1.0D0
+         PZ(2)= 1.0D0
+         PN(2)= 0.0002D0
+         PNS(2)= 0.0D0
+         PTPR(2)=0.01D0
+         PTPP(2)=0.01D0
+         PTS(2)=0.D0
+         PZCL(2)= 0.02D0
+      ENDIF
+C
+      IF(NSM.GE.3) THEN
+         PA(3)= 1.0D0
+         PZ(3)= 1.0D0
+         PN(3)= 0.0D0
+         PNS(3)= 0.0D0
+         PTPR(3)=0.1D0
+         PTPP(3)=0.1D0
+         PTS(3)=0.D0
+         PZCL(3)= 0.001D0
+      ENDIF
+C
+C     *** CONTROL PARAMETERS ***
+C
+C        MODELS: 0 : No symmetry
+C                1 : Axial symmetry (Y axis)
+C                2 : Axial symmetry (Y axis -RR)
+C                3 : Helical symmetry (Z axis)
+C        MODELB: 0 : X axis
+C                1 : Y axis
+C                2 : Z axis
+C                3 : Axisymmetric mirror
+C                4 : Translational mirror
+C                5 : Tokamak
+C                6 : Helical
+C        MODELD: 0 : Cold plasma model
+C                1 : Warm plasma model
+C                2 : Hot plasma model
+C        MODELP: 0 : Flat profile
+C                1 : Parabolic profile
+C        MODELW: 0 : Fixed density and fixed temperature on boundary
+C                1 : Free density and fixed temperature on boundary
+C                2 : Free Density and free temperature on boundary
+C        MODELT: 0 : Fixed temperature model
+C                1 : Density gradient model
+C                2 : Pressure gradient model
+C
+         MODELS = 1
+         MODELB = 3
+         MODELD = 0
+         MODELP = 1
+         MODELW = 0
+         MODELT = 1
+C
+C     *** OUTPUT PARAMETERS ***
+C
+C        NPRINT: Print output parameter
+C                0 - No output
+C              * 1 - Parameter and global field data
+C                2 - Local field data
+C                3 - Element data
+C        NDRAWD: Drawing parameter for elemendt divider
+C                0 : Boundary shape
+C              * 1 : Element shape
+C                2 : Element shape + Element number
+C                3 : Element shape + Element number + Node number
+C        NDRAWA: Drawing parameter for antenna generater
+C                0 : Antenna primary data
+C                1 : Antenna secondary data
+C              * 2 : Antenna secondary data + Element shape
+C        NRMAX : Number of radial mesh points
+C
+      NPRINT = 1
+      NDRAWD = 1
+      NDRAWA = 2
+      NRMAX  = 21
+C
+C     *** DIVIDER PARAMETERS ***
+C
+C        BXMIN : Minimum x (m)
+C        BXMAX : Maximum x (m)
+C        BYMIN : Minimum y (m)
+C        BYMAX : Maximum y (m)
+C        RB    : Boundary radius (m)
+C        BKAP  : Boundary elongation
+C        BDEL  : Boundary triangularity *
+C        DELX  : Typical element size in x direction (m)
+C        DELY  : Typical element size in y direction (m)
+C
+      BXMIN  = 0.0D0
+      BXMAX  = 0.1D0
+      BYMIN  =-0.15D0
+      BYMAX  = 0.15D0
+      RB     = 0.25D0
+      BKAP   = 1.D0
+      BDEL   = 0.D0
+      DELX   = 0.01D0
+      DELY   = 0.01D0
+C
+C     *** ANTENNA SHAPE PARAMETERS ***
+C
+C        PIN   : Input Power (W)
+C                   wave fields are normalized to give input power of pin
+C                   Set positive value to fix input power
+                          pin = PIN
+C                   Set 0.0 to calculate from antenna current
+C                         pin = pcalc
+C                         pcalc: absorbed power for given antena current
+C                   Set negative value to limit input power
+C                         pin = (-PIN)*pcalc/(-PIN+pcalc)
+C        RD    : Antenna radius (m)
+C        THETJ1: Start angle of arc antenna (degree)
+C        THETJ2: End angle of arc antenna (degree)
+C        NJMAX : Number of primary grid points of antenna
+C
+      PIN    = 0.D0
+      RD     = 0.22D0
+      THETJ1 = 40.D0
+      THETJ2 =-40.D0
+      NJMAX  = 41
+C
+C     *** TRANSPORT PARAMETERS ***
+C
+C     DT     : Time step size
+C     NTMAX  : Iteration number
+C     NSTEP  : Number of transport calculations after one wave calculation
+C
+      DT     = 1.D-6
+      NTMAX  = 1
+      NTSTEP = 10
+C
+C     *** TRANSPORT PLASMA PARAMETERS ***
+C
+C     PPN0   : Neutral pressure (Pa)
+C     PTN0   : Initial neutral temperarure (eV)
+C     PNE0   : Initial electron density (1.D20/m^3)
+C     PTE0   : Initial electron temperature (eV)
+C     PTI0   : Initial ion temperature (eV)
+C     PNES   : Edge electron density (1.D20/m^3)
+C     PTES   : Edge electron temperature (eV)
+C     PTIS   : Edge ion temperature (eV)
+C
+      PPN0   = 1.D0
+      PTN0   = 0.03D0
+      PNE0   = 1.D-6
+      PTE0   = 0.03D0
+      PTI0   = 0.03D0
+      PNES   = 1.D-6
+      PTES   = 0.03D0
+      PTIS   = 0.03D0
+C
+C     *** BOHM DIFFUSION ***
+C
+C     DC     : FACTOR OF BOHM DIFFUSION COEFFICIENT
+C
+      DC     = 1.D0
+C
+C     *** COMPUTATION PARAMETERS ***
+C
+C     EPSIMP : CONVERGENCE CRITERION FOR IMPLICIT TIME EVOLUTION
+C     EPSSUM : BOUNDARY BETWEEN RELATIVE ERROR AND ABSOLUTE ERROR
+C     MAXIMP : MAXIMUM LOOP COUNT FOR IMPLICIT TIME EVOLUTION
+C
+      EPSIMP = 1.D-4
+      EPSSUM = 1.D0
+      MAXIMP = 1
+C
+C     *** ARTIFICAL SOURCE ***
+C
+C     PGIVEN : MAXIMUM POWER DENSITY
+C     SGIVEN : MAXIMUM PLASMA SOURCE DENSITY
+C     XGIVEN : X COORDINATE OF THE CENTER OF THE SOURCE
+C     YGIVEN : Y COORDINATE OF THE CENTER OF THE SOURCE
+C     RGIVEN : DECAY LENGTH OF THE SOURCE
+C
+      PGIVEN = 0.D0
+      SGIVEN = 0.D0
+      XGIVEN = 0.15D0
+      YGIVEN = 0.D0
+      RGIVEN = 0.05D0
+C
+C     *** ELECTRODE PARAMETERS ***
+C
+C     RFES   : FREQUENCY OF ELECTRODE POTENTIAL
+C     PHIES  : AMPLITUDE OF ELECTRODE POTENTIAL
+C
+      RFES   = 13.56D0
+      PHIES  = 0.D0
+C
+C     *** GRAPHICS CONTROL PARAMETERS ***
+C
+C     KGINX : GRAPHIC CONTROL STRINGS
+C     KGINV : GRAPHIC CONTROL STRINGS
+C
+      KGINX(0)='EXI EYI EZR PP1C'
+      KGINX(1)='EXR EXI EYR EYI'
+      KGINX(2)='EZR EZI PP1C PP2C'
+      KGINX(3)='EXR EXI EYR EYI EZR EZI PP1C PP2C'
+      KGINX(4)='AXR AXI AYR AYI AZR AZI AFR AFI'
+      KGINX(5)='PF0C PNEC PTEC PTIC PIOC PC0C'
+      KGINX(6)='PF0Y0 PFOY0.03 PF0X0 PF0X0.05'
+      KGINX(7)='PNEY0 PNEY0.03 PNEX0 PNEX0.05'
+      KGINX(8)='PTEY0 PTEY0.03 PTEX0 PTEX0.05'
+      KGINX(9)='L2 TF0 TNE TTE TTI'
+C
+      KGINV(0)='EXR,EXI,EYR,EYI,EZR,EZI,PP1C,PP2C,PNEC,PTEC,TNE,TTE'
+      KGINV(1)='PC1C PC2C PR1C PR2C'
+      KGINV(2)='PU1C PU2C PV1C PV2C'
+      KGINV(3)='PD1C PD2C PE1C PE2C'
+      KGINV(4)='PH1C PH2C PK1C PK2C'
+      KGINV(5)='PI0C'
+      KGINV(6)='PI0C'
+      KGINV(7)='PI0C'
+      KGINV(8)='PI0C'
+      KGINV(9)='PI0C'
+C
+C     *** 3D GRAPHICS CONTROL PARAMETERS ***
+C
+      GA=-25.0
+      GB=  0.0
+      GC=-30.0
+      GD=  0.0
+      GE= 1000.0
+      GXN= 6.0
+      GYN= 9.0
+      GZN= 3.0
+      GXN1=-5.0
+      GXN2= 5.0
+      GYN1= 0.0
+      GYN2=10.0
+      IXY= 3
+      IDN=-3
+\end{verbatim}
+}

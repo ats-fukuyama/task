@@ -1,0 +1,154 @@
+\def\Xa{$\mathtt{X}_1$}
+\def\Xb{$\mathtt{X}_2$}
+\def\Xc{$\mathtt{X}_3$}
+
+\subsection{機能}
+計算結果の空間分布および時間発展を図形表示する．１つのコマンドが１つの
+図に対応し，複数のコマンドを１行に書くことによって，各コマンドに対応す
+る複数の図を１頁に出力することができる．
+
+\subsection{入力例}
+\begin{itemize}
+\item[]
+例１ \t{EXR EYI EZA}
+\begin{itemize}
+\item
+以下の３枚の図が１頁に表示される．
+\item[]
+電界の $x$ 成分 $E_x$ の実数部の等高線
+\item[]
+電界の $y$ 成分 $E_y$ の虚数部の等高線
+\item[]
+電界の $z$ 成分 $E_z$ の絶対値の等高線
+\end{itemize}
+
+\item[]
+例２ \t{EXX0.0 PTEC PNIY0.0}
+\begin{itemize}
+\item[]
+電界の x 成分の y=0.0 での x 依存性
+\item
+電子温度の等高線
+\item
+イオン密度の x=0.0 での y 依存性
+\end{itemize}
+
+\item[]
+例３ \t{TN1}
+\begin{itemize}
+\item[]
+電子密度の時間依存性（実線：平均値，破線：最大値，一点鎖線：最小値）
+\end{itemize}
+
+\item[]
+例４ \t{5}
+\begin{itemize}
+\item[]
+静電ポテンシャル，密度，温度等の空間分布の表示．
+\item
+\t{WFINIT} において \t{KGINX(5)} によって定義された文字列
+\end{itemize}
+\end{itemize}
+
+
+\subsection{コマンド定義}
+\begin{tabular}{ll}
+\t{E}\Xa\Xb & 波動電界の空間分布 \\
+\t{B}\Xa\Xb & 波動磁界の空間分布 \\
+\t{A}\Xa\Xb & 波動ポテンシャルの空間分布 \\
+\t{P}\Xa\Xb\Xc & プラズマ物理量の空間分布 \\
+\t{T}\Xa\Xb & プラズマ物理量の時間変化 \\
+$n$            & 定義済みの組み合わせの図 (\t{KGINX}) \\
+\t{V}$n$       & 定義済みの組み合わせの図 (\t{KGINV}) \\
+\t{G}$n$       & グラフ形式の指定 \\
+\t{L}$n$       & １頁中に描かれる図の横方向の数の指定 \\
+\t{X}          & 図形出力の終了
+\end{tabular}
+
+\subsection{\t{E/B/A}}
+\begin{itemize}
+\item
+\Xa
+\begin{tabular}[t]{ll}
+\t{X} & x 成分 \\
+\t{Y} & y 成分 \\
+\t{Z} & z 成分 \\
+\t{+} & 右回り偏波成分 \\
+\t{-} & 左回り偏波成分 \\
+\t{P} & 磁界方向成分
+\end{tabular}
+
+\item
+\Xb
+\begin{tabular}[t]{ll}
+\t{R} & 実数部等高線 \\
+\t{I} & 虚数部等高線 \\
+\t{A} & 絶対値等高線 \\
+\t{Xpos} & y=\t{pos} における x 依存性 \\
+\t{Ypos} & x=\t{pos} における y 依存性
+\end{tabular}
+\end{itemize}
+
+\subsection{\t{P}}
+\begin{itemize}
+\item
+\Xa
+\begin{tabular}[t]{ll}
+\t{P} & 吸収パワー \\
+\t{N} & 粒子密度 \\
+\t{T} & 温度 \\
+\t{M} & 圧力 \\
+\t{S} & 表面電荷密度 \\
+\t{F} & 静電ポテンシャル \\
+\t{C} & 電荷密度 \\
+\t{R} & 衝突周波数 \\
+\t{U} & 移動度 mu-para \\
+\t{V} & 移動度 mu-perp \\
+\t{D} & 粒子拡散係数 D-para \\
+\t{E} & 粒子拡散係数 D-perp \\
+\t{K} & 熱拡散係数 chi-para \\
+\t{H} & 熱拡散係数 chi-perp \\
+\t{I} & 電離粒子源
+\end{tabular}
+
+\item
+\Xb
+\begin{tabular}[t]{ll}
+\t{E} & 電子成分 \\
+\t{I} & イオン成分 \\
+\t{1} & 第１成分＝電子成分 \\
+\t{2} & 第２成分＝イオン成分
+\end{tabular}
+
+\item
+\Xc
+\begin{tabular}[t]{ll}
+\t{C} & 等高線 \\
+\t{Xpos} & y=\t{pos} における x 依存性 \\
+\t{Ypos} & x=\t{pos} における y 依存性
+\end{tabular}
+\end{itemize}
+
+\subsection{\t{T}}
+\begin{itemize}
+\item
+\Xa
+\begin{tabular}[t]{ll}
+\t{N} & 粒子密度 \\
+\t{T} & 温度 \\
+\t{F} & 静電ポテンシャル \\
+\t{P} & 吸収パワー
+\end{tabular}
+
+\item
+\Xb
+\begin{tabular}[t]{ll}
+\t{E} & 電子成分 \\
+\t{I} & イオン成分 \\
+\t{0} & 無関係（静電ポテンシャル等）\\
+\t{1} & 第１成分＝電子成分 \\
+\t{2} & 第２成分＝イオン成分
+\end{tabular}
+
+\end{itemize}
+

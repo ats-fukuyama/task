@@ -1,0 +1,42 @@
+\section{実行制御 ({\tt wfmain})}
+\begin{enumerate}
+\item
+機能
+\begin{itemize}
+\item
+コマンド入力の処理
+\[
+\begin{tabular}{ll@{\qquad}ll@{\qquad}ll}
+P:& パラメータの入力 &
+V:& パラメータの表示 &
+D:& 要素分割 \\
+Z:& 領域データ作成 &
+A:& アンテナデータ作成 &
+W:& 波動伝播解析 \\
+T:& プラズマ輸送解析 &
+R:& 波動・輸送解析の開始 &
+C:& 波動・輸送解析の続行 \\
+G:& 図形表示 &
+S:& ファイル出力 &
+L:& ファイル入力 \\
+B:& 特性周波数の表示 &
+Q:& 終了 \\
+\end{tabular}
+\]
+\item
+パラメータの設定
+\begin{itemize}
+\item
+サブルーチン {\tt WFINIT} における初期化
+\item
+ファイル {\tt wfparm} による入力
+\\\qquad ファイル形式：次の {\tt namelist} 文による入力と同じ
+\item
+{\tt namelist} 文による入力
+\\\qquad \verb/ &wf BB=1.0 &end/
+\\\qquad {\tt namelist} に定義されていない変数名が入力された場合には，
+\\\qquad {\tt namelist} で入力可能な変数名一覧が出力される．
+\end{itemize}
+
+\end{itemize}
+\end{enumerate}

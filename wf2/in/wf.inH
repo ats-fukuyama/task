@@ -1,0 +1,37 @@
+#0
+#f
+#wfH.gs
+#c
+####
+p
+ &wf NDRAWD=3 &end
+d
+d
+h
+0.5,-0.3,0.3
+0.05,0.05
+##g
+x
+####
+a
+a
+1
+a
+-40,40,0.28,1.72/
+###g
+x
+####
+p
+ &wf MODELS=3 MODELB=6 MODELD=2
+     BB=1.D0,RA=0.25,RF=15.D0,RKZ=8.D0,
+     NSMAX=3,PA(2)=2,PA(3)=1,PZCL(3)=0.02
+     PN=0.3,0.27,0.03
+     PTPR=1,1,1 
+     PTPP=1,1,1
+ &
+v
+w
+g
+EXR EXI EYR EYI EZR EZI PP1C PP2C PP3C
+x
+q
