@@ -8,7 +8,7 @@ LFLAGS = $(DFLAGS)
 #LFLAGS = $(DFLAGS)
 FFLAGS = $(DFLAGS)
 
-MODINCLUDE= -I$(MOD)
+MODINCLUDE= -I $(MOD)
 
 SRCSFREE  =  libbrn.f90 libinv.f90 libbnd.f90 \
              librk.f90 libsympl.f90 \
