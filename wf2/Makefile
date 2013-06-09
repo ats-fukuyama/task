@@ -4,46 +4,38 @@ include ../make.header
 .SUFFIXES:
 .SUFFIXES: .f90 .f .mod .o .a
 
-MODINCLUDE=-I ../lib/mod -I $(MOD)
-
-.f90.o:
-	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
-.f.o:
-	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
-
 LFLAGS = $(OFLAGS)
 FFLAGS = $(OFLAGS)
 
-SRCS = wfmain.f wfinit.f wfdiv.f wfzone.f wfant.f \
+MODINCLUDE=-I ../lib/mod -I $(MOD)
+
+SRCS = wfinit.f wfdiv.f wfzone.f wfant.f \
        wfwave.f wfevol.f wfgout.f \
        wffreq.f wfprof.f wffile.f wfsub.f wfgsub.f wflib.f \
        wfatmd.f
 
 OBJS = $(SRCS:.f=.o)
 
-WFLIBS = ../lib/tasklib.a
+LIBS = wflib.a ../lib/tasklib.a
 
-wf : $(OBJS) $(WFLIBS) wfcomm.inc
-	$(FCFIXED) $(OBJS) -o $@ $(FFLAGS) $(WFLIBS) $(FLIBS)
+.f90.o:
+	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+.f.o:
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+
+all: wf
+
+wflib.a: $(OBJS)
+	$(LD) $(LDFLAGS) wflib.a $(OBJS)
 
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)
 
-check : 
-	ftnchek -array=0 -usage=no-com-block-unused $(SRCS) | less
-new :
-	mkdir ../wfnew
-	cp -f Makefile ../wfnew
-	cp -f make.header.org ../wfnew
-	cp -f *.f ../wfnew
-	cp -f *.inc ../wfnew
-	cp -f HISTORY ../wfnew
-	mkdir ../wfnew/doc
-	cp -f doc/*.tex ../wfnew/doc
-	cp -f doc/*.sty ../wfnew/doc
+wf : wfcomm.inc $(LIBS) wfmain.o
+	$(FCFIXED) wfmain.o -o $@ $(FFLAGS) $(LIBS) $(FLIBS)
 
 clean:
-	rm -f core *.o *.P ./*~ mod/*.mod
+	rm -f *.o ./#* ./*~ a.out core *.a *.mod $(MOD)/*.mod
 
 veryclean: clean
 	rm -f wf
@@ -63,6 +55,3 @@ wffile.o: wffile.f wfcomm.inc
 wfsub.o: wfsub.f wfcomm.inc
 wfgsub.o: wfgsub.f wfcomm.inc
 wflib.o: wflib.f
-	$(FCFIXED) $(LFLAGS)  -c $< 
-libspl.o: libspl.f
-	$(FCFIXED) $(LFLAGS)  -c $< 
