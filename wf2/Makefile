@@ -2,6 +2,16 @@
 include ../make.header
 #include make.header
 
+.SUFFIXES:
+.SUFFIXES: .f90 .f .mod .o .a
+
+MODINCLUDE=
+
+.f90.o:
+	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+.f.o:
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+
 LFLAGS = $(OFLAGS)
 FFLAGS = $(DFLAGS)
 
@@ -14,7 +24,7 @@ SRCS = wfmain.f wfinit.f wfdiv.f wfzone.f wfant.f \
 OBJS = $(SRCS:.f=.o)
 
 wf : $(OBJS) wfcomm.inc
-	$(FC) $(OBJS) -o $@ $(FFLAGS) $(FLIBS)
+	$(FCFIXED) $(OBJS) -o $@ $(FFLAGS) $(FLIBS)
 
 check : 
 	ftnchek -array=0 -usage=no-com-block-unused $(SRCS) | less
@@ -50,6 +60,6 @@ wffile.o: wffile.f wfcomm.inc
 wfsub.o: wfsub.f wfcomm.inc
 wfgsub.o: wfgsub.f wfcomm.inc
 wflib.o: wflib.f
-	$(FC) $(LFLAGS)  -c $< 
+	$(FCFIXED) $(LFLAGS)  -c $< 
 libspl.o: libspl.f
-	$(FC) $(LFLAGS)  -c $< 
+	$(FCFIXED) $(LFLAGS)  -c $< 

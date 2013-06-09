@@ -10,7 +10,7 @@ C
 C
       INCLUDE 'wfcomm.inc'
 C
-      CHARACTER KLINE*80,KWORD*(NCHM),KWD*(NCHM)
+      CHARACTER KLINE*80,KWORD*(NCHM),KWD*(NCHM),KWTEMP*(NCHM)
       CHARACTER KID*1,KG1*1,KG2*1,KG3*1,KG4*1
       DIMENSION KWORD(NWDM)
       DIMENSION GZ(NNODM)
@@ -239,10 +239,14 @@ C
             IF(KG2.EQ.'P') THEN
                IDP=0
                CALL WFDTOG(PWRNS,GZ,IG3,KWD)
-               CALL WFDTOG(PWRNS,GZ1,IG3,'PP1X0.16')
-               CALL WFDTOG(PWRNS,GZ2,IG3,'PP1X0.15')
-               CALL WFDTOG(PWRNS,GZ3,IG3,'PP1X0.14')
-               CALL WFDTOG(PWRNS,GZ4,IG3,'PP1X0.13')
+               KWTEMP='PP1X0.16'
+               CALL WFDTOG(PWRNS,GZ1,IG3,KWTEMP)
+               KWTEMP='PP1X0.15'
+               CALL WFDTOG(PWRNS,GZ1,IG3,KWTEMP)
+               KWTEMP='PP1X0.14'
+               CALL WFDTOG(PWRNS,GZ1,IG3,KWTEMP)
+               KWTEMP='PP1X0.13'
+               CALL WFDTOG(PWRNS,GZ1,IG3,KWTEMP)
 C
 C        +++++ STATIC MAGNETIC FIELD (BABS, PSI) +++++
 C
