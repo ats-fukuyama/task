@@ -886,8 +886,8 @@ SUBROUTINE PWRRAD
            ENDDO
         ENDDO
 ! ----- Add. By YOKOYAMA Mar./05/2013 ----
-         WRITE(30,'(2I6,11E23.15)') NA,IJ,X1,Y1,Z1,X2,Y2,Z2,&
-     &                              XM,YM,ZM,CEIMP(IJ,NA)
+!         WRITE(30,'(2I6,11E23.15)') NA,IJ,X1,Y1,Z1,X2,Y2,Z2,&
+!     &                              XM,YM,ZM,CEIMP(IJ,NA)
 ! ----- Mar./05/2013 -----
      ENDDO
 ! ----- Add. By YOKOYAMA Mar./05/2013 ----

@@ -60,7 +60,7 @@ program wfmain
   
   if (nrank.eq.0) call gsclos
   if(NFOPEN.ne.0) close(26)
-  call mtx_cleanup
+  call mtxc_cleanup
   call wfelm_deallocate
   call wfsid_deallocate
   call wfsrt_deallocate
