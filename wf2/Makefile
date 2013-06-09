@@ -1,11 +1,10 @@
 ### $Id$ ###
 include ../make.header
-#include make.header
 
 .SUFFIXES:
 .SUFFIXES: .f90 .f .mod .o .a
 
-MODINCLUDE=
+MODINCLUDE=-I ../lib/mod -I $(MOD)
 
 .f90.o:
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -13,18 +12,22 @@ MODINCLUDE=
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
 LFLAGS = $(OFLAGS)
-FFLAGS = $(DFLAGS)
+FFLAGS = $(OFLAGS)
 
 SRCS = wfmain.f wfinit.f wfdiv.f wfzone.f wfant.f \
        wfwave.f wfevol.f wfgout.f \
-       libspl.f \
        wffreq.f wfprof.f wffile.f wfsub.f wfgsub.f wflib.f \
        wfatmd.f
 
 OBJS = $(SRCS:.f=.o)
 
-wf : $(OBJS) wfcomm.inc
-	$(FCFIXED) $(OBJS) -o $@ $(FFLAGS) $(FLIBS)
+WFLIBS = ../lib/tasklib.a
+
+wf : $(OBJS) $(WFLIBS) wfcomm.inc
+	$(FCFIXED) $(OBJS) -o $@ $(FFLAGS) $(WFLIBS) $(FLIBS)
+
+../lib/tasklib.a:
+	(cd ../lib; make tasklib.a)
 
 check : 
 	ftnchek -array=0 -usage=no-com-block-unused $(SRCS) | less
@@ -40,7 +43,7 @@ new :
 	cp -f doc/*.sty ../wfnew/doc
 
 clean:
-	rm -f core *.o *.P ./*~
+	rm -f core *.o *.P ./*~ mod/*.mod
 
 veryclean: clean
 	rm -f wf

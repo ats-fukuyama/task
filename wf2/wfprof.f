@@ -4,6 +4,7 @@ C     ****** PSI ******
 C
       SUBROUTINE WFSPSI(X,Y,PSI)
 C
+      USE libbes,ONLY: besin
       INCLUDE 'wfcomm.inc'
 C
       IF(MODELB.EQ.0.OR.
@@ -20,8 +21,8 @@ C
          ZL = PI* Y/ZBB
          RLA= PI*RA/ZBB
 C
-         PSI = 0.5D0*A0*X *X +A1*(ZBB/PI)**2*COS(ZL)*RL *BESSI1(RL )
-         PSIA= 0.5D0*A0*RA*RA+A1*(ZBB/PI)**2        *RLA*BESSI1(RLA)
+         PSI = 0.5D0*A0*X *X +A1*(ZBB/PI)**2*COS(ZL)*RL *BESIN(1,RL )
+         PSIA= 0.5D0*A0*RA*RA+A1*(ZBB/PI)**2        *RLA*BESIN(1,RLA)
          PSI=PSI/PSIA
       ELSEIF(MODELB.EQ.4) THEN
          A0 = 0.5D0*(1.0D0+RMIR)
@@ -47,6 +48,7 @@ C     ****** MAGNETIC FIELD PROFILE ******
 C
       SUBROUTINE WFSMAG(IN,BABS,AL)
 C
+      USE libbes,ONLY: BESIN
       INCLUDE 'wfcomm.inc'
 C
       DIMENSION BLO(3),AL(3)
@@ -69,8 +71,8 @@ C
          A0=0.5D0*(1.D0+RMIR)*BB
          A1=0.5D0*(1.D0-RMIR)*BB
          RL=0.5D0*PI*X/ZBB
-         BLO(1)=  -A1*SIN(PI*Y/ZBB)*BESSI1(RL)
-         BLO(2)=A0+A1*COS(PI*Y/ZBB)*BESSI0(RL)
+         BLO(1)=  -A1*SIN(PI*Y/ZBB)*BESIN(1,RL)
+         BLO(2)=A0+A1*COS(PI*Y/ZBB)*BESIN(0,RL)
          BLO(3)=0.D0
       ELSEIF(MODELB.EQ.4) THEN
          A0=0.5D0*(1.D0+RMIR)*BB
@@ -130,6 +132,7 @@ C     ****** MAGNETIC FLUX PROFILE ******
 C
       SUBROUTINE WFBPSI(IN,PSI)
 C
+      USE libbes,ONLY: besin
       INCLUDE 'wfcomm.inc'
 C
       X=XD(IN)
@@ -145,7 +148,7 @@ C
          A1=0.5D0*(1.D0-RMIR)*BB
          RL = PI* X/ZBB
          ZL = PI* Y/ZBB
-         PSI = 0.5D0*A0*X *X +A1*(ZBB/PI)**2*COS(ZL)*RL *BESSI1(RL )
+         PSI = 0.5D0*A0*X *X +A1*(ZBB/PI)**2*COS(ZL)*RL *BESIN(1,RL )
       ELSEIF(MODELB.EQ.4) THEN
          A0=0.5D0*(1.D0+RMIR)*BB
          A1=0.5D0*(1.D0-RMIR)*BB
@@ -193,13 +196,14 @@ C
 C
       FUNCTION APSI(RL,ZL,RC)
 C
+      USE libell,ONLY: ELLFC,ELLEC
       IMPLICIT REAL*8(A-F,H,O-Z)
       DATA PI/3.1415926D0/
 C
       RKSQ=4.D0*RC*RL/(RC**2+RL**2+ZL**2+2.D0*RC*RL)
       IF(RKSQ.LT.0.D0) WRITE(6,*) 'RKSQ:',RKSQ,RL,ZL,RC
       APSI=(2.D0*RC/PI)*SQRT(RC/RL)/SQRT(RKSQ)
-     &     *((1.D0-0.5D0*RKSQ)*CELI1(RKSQ)-CELI2(RKSQ))
+     &     *((1.D0-0.5D0*RKSQ)*ELLFC(RKSQ,IERR1)-ELLEC(RKSQ,IERR2))
       RETURN
       END
 C

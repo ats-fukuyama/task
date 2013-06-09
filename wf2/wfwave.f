@@ -55,6 +55,7 @@ C     ****** SETUP ******
 C
       SUBROUTINE WFSETW
 C
+      USE libbes,ONLY: BESKN
       INCLUDE 'wfcomm.inc'
 C
       IF(MODELS.EQ.3) THEN
@@ -62,7 +63,7 @@ C
          IF(RGAMMA.LT.1.D-5) THEN
             HA1=0.D0
          ELSE
-            HA1=RGAMMA*DKBES(1,2.D0*RGAMMA)+DKBES(2,2.D0*RGAMMA)
+            HA1=RGAMMA*BESKN(1,2.D0*RGAMMA)+BESKN(2,2.D0*RGAMMA)
          ENDIF
          RKAP=SQRT((1.D0+2.D0*HA1)/(1.D0-2.D0*HA1))
          WRITE(6,'(A,1P2E12.4)') 'HA1,RKAP=',HA1,RKAP
@@ -128,6 +129,7 @@ C     ******* SETING ANTENNA CURRENT DENSITY *******
 C
       SUBROUTINE SETANT
 C
+      USE libfft,ONLY: FFT2L
       INCLUDE 'wfcomm.inc'
 C
       DIMENSION CJ(NZM)
@@ -159,7 +161,7 @@ C
             NZ    =INT(APOS(IA)*PI/(180.D0*DZ)) + 1
             PHASE =APH(IA)*PI/180.D0
             CJ(NZ)=AJ(IA)*CDEXP(DCMPLX(0.D0,PHASE))/DZ
-            CALL FFT2L(CJ,CAJF(1,IA),CT,LIST,NZMAX/2,IFFT,1,LP)
+            CALL FFT2L(CJ,CAJF(1,IA),RFFT,LIST,NZMAX,IFFT,1)
    40    CONTINUE
       ENDIF
 C
@@ -235,6 +237,7 @@ C     ****** DIELECTRIC TENSOR ******
 C
       SUBROUTINE DTENSR(IN,CK)
 C
+      USE libdsp,ONLY: dspfn
       INCLUDE 'wfcomm.inc'
 C
       DIMENSION CK(3,3,NSM)
@@ -326,7 +329,8 @@ C
 C
                DO 30 IC=-2,2
                   CGZ=(1.D0-DBLE(IC)*CWC)*APR
-                  CALL ZETA(CGZ,CZ,CDZ,CDDZ)
+CCC                  CALL ZETA(CGZ,CZ,CDZ,CDDZ)
+                  CALL DSPFN(CGZ,CZ,CDZ)
                   CD(IC)=     -(1.D0-DBLE(IC)*CWC*RTR)*RTP*CZ*APR
                   CW(IC)=0.5D0*(1.D0-DBLE(IC)*CWC*RTR)*RTP*CDZ/RKPR**2
    30          CONTINUE
