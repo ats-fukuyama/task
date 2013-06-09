@@ -3,48 +3,12 @@
 ***** TASK : Transport Analyzing System for tokamaK *****
 *********************************************************
 
-2009/02/15
-   Major update of fp:
-      Parallel processing using PETSc library
-      Large number of radial grid points
-      Radial diffusion model included
-      Fusion reaction rate can be calculated from f.
-   mtxp directory added:
-      Interface for PETSc library
-      This will replace mtx in near future
-   plx directory added:
-      Fortran 90 version of pl
-      This will replace pl in near future
-   PETSc library can be downloaded from
-      http://www.mcs.anl.gov/petsc/
-   To use PETSs library
-      Install mpi or mpi2
-      Install PETSc library
-      Change mtxp/Makefile to use PETSc
-      make in mtxp
-      Change fp/Makefile to use PETSc
-      make in fp
-
-2008/01/27: 
-   Directory bpsd is required at the same directory level with task.
-   If you are using CVS, "cvs co bpsd" in the directory 
-   including the task directory. 
-
-   make.header.org was updated. 
-   You have to copy make.header.org to make.header and 
-   remove comment # of a required compiler group.
-
-   mod directories will be created in several components 
-   in order to store module information files.
-
--------
-
 System Requirements:
        UNIX or UNIX-like system (including Linux, MacOSX)
-       Fortran95 compiler with extention (g95, pgf95, ifort, xlf, ...)
+       Fortran95 compiler with extention (gfortran, pgf95, ifort, ...)
        X-Window library
        GSAF graphic library
-          usually distributed with TASK
+          distributed with TASK
           http://p-grp.nucleng.kyoto-u.ac.jp/~fukuyama/gsaf/
 
 Optional Libraries:
@@ -55,37 +19,55 @@ Optional Libraries:
                         http://www-unix.mcs.anl.gov/mpi/mpich/
           MDSplus   Scientific data base library
                         http://www.mdsplus.org/
+          PETSc     Paralle Matrix library
+                        http://www.mcs.anl.gov/petsc/
 
-Present modules:
-    pl: Module interface library (*)
-    eq: 2D equilibrium module (fixed boundary)
-    tr: 1D transport module (diffusive transport)
-    wr: 3D ray tracing module
-    wm: 3D full wave module
-    dp: Wave dispersion module
-    fp: 3D Fokker Planck module
-    tot: all-in-one program
-    lib: common libraries
-    mtx: common matrix libraries
+Present modules: (*: under development)
+    plx:   Module interface library
+    eq:    2D equilibrium module (fixed boundary)
+    equ:   2D equilibrium module (free boundary)
+    tr:    1D transport module (diffusive transport)
+    trn:   1D transport module (diffusive transport, new version)
+    tx:    1D transport module (dynamic transport)
+    txm:   1D transport module (dynamic transport, multi-species)*
+    fp:    3D Fokker Planck module (PETSc, MPI)
+    dp:    Wave dispersion module
+    wr:    3D ray tracing module
+    w1:    1D full wave module (FDM, MLM)
+    wm:    3D full wave module (FFT/FDM)
+    wmf:   3D full wave module (FFT/FEM)
+    wf2:   2D full wave module (FEM)
+    wf3:   3D full wave module (FEM)
+    wf2d:  2D full wave module (FEM, MUMPS, MPI)
+    wf3d:  3D full wave module (FEM, MUMPS, MPI)
+    fit3d: NBI module
+    tot:   all-in-one program (eq, tr, fp, wr, wm)
+    lib:   common libraries
+    mtxp:  parallel matrix libraries
+    tools: various tools to handle ufile
+
+To be removed near future
+    pl:    Module interface library (old verson)
+    mtx:   matrix libraries
+    mtxpc: parallel complex matrix libraries
     mpi: interface 
-    TOOLS: various tools to handle ufile
-
-    (*)   Module interfaces are not completed in the present version.
 
 Install: 
     0: Install GSAF graphic library, Before installing TASK
-          tar xvzf gsafXXX.tar.gz
-          Follow README
+          tar xvzf gsaf-yyyymmdd.tar.gz
+	  cd gsaf/sc
+	  cp ../arch/XXXXXXX/Makefile.arch
+	  make
+	  make install
     1: Expand tar.gz file
-          tar xvzf taskXXX.tar.gz
-          tar xvzf bpsdXXX.tar.gz
+          tar xvzf task-yyyymmdd.tar.gz
+          tar xvzf bpsd-yyyymmdd.tar.gz
     2: Move to task directory
           cd task
     3: Create make.header
           cp make.header.org make.header
     4: Edit make.header
-          Remove "#" of the first column of section
-          appropriate for your system.
+          Remove "#" of the first column of appropiate section
           Set the location of graphic libraries.
           If you have Lapack library, change "#"s.
           If you have MDSplus library, change "#"s.
@@ -124,7 +106,7 @@ Standard input command:
 Input parameters:
     1. Definitions and default values of input parameters are
        described in XXinit.f.  Most of common input parameters 
-       are given in pl/plinit.f.  We do not recommend you to 
+       are given in plx/plinit.f.  We do not recommend you to 
        modify XXinit.f.  You had better to use XXparm file 
        described in the next item instead.
     2. You can set standard input parameters in a text file 
@@ -144,8 +126,10 @@ Agreement:
 TASK code was originally developed by A. Fukuyama, Department of
 Nuclear Engineering, Graduate School of Engineering, Kyoto University.
 
-Users of TASK codes and modules must acknowledge the TASK system and any
-modifications made when publishing or presenting results.  If you use the transport models, NCLASS, GLF23, IFS/PPPL, you must ackowledge also NTCC.  
+Users of TASK codes and modules must acknowledge the TASK system and
+any modifications made when publishing or presenting results.  If you
+use the transport models, NCLASS, GLF23, IFS/PPPL, you must ackowledge
+also NTCC.
 
 The following components may be copyrighted by the original authors.
 
@@ -185,21 +169,27 @@ Acknowledgments:
    Electrical and Electronic Engineering, Okayama University, and
    Department of Nuclear Engineering, Kyoto University.  Many
    comments, questions and informations from the users of TASK system
-   are greatly appreciated.  The development of TASK system is a part
+   have been greatly appreciated.  The development of TASK system is a part
    of activities of Burning Plasma Simulation Initiative (BPSI:
    http://bpsi.nucleng.kyoto-u.ac.jp/bpsi/).  
 
-Declarations: 
-   
-TASK system is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; The license may be relaxed in future
-without notice in advance. 
+Licensing notification: 
 
-TASK system is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+Permission to use, reproduce, prepare derivative works, and to
+redistribute to others this software, derivatives of this software,
+and future versions of this software as well as its documentation is
+hereby granted, provided that this notice is retained thereon and on
+all copies or modifications. This permission is perpetual, world-wide,
+and provided on a royalty-free basis. Kyoto University and all other
+contributors make no representations as to the suitability and
+operability of this software for any purpose. It is provided "as is"
+without express or implied warranty.
+
+Portions of this software are copyright by Kyoto University.
+
+This license DOES NOT apply to the above-indicated components
+copyrighted by the original authors.  Each of those components are
+covered by their own copyrights and licenses.
 
 
 UPDATE:
@@ -208,6 +198,6 @@ The newest version of TASK system is available from
         http://bpsi.nucleng.kyoto-u.ac.jp/task/
 
 Your comments as well as bug information on TASK system should be mailed to
-	task@p-grp.nucleng.kyoto-u.ac.jp
+	fukuyama@nucleng.kyoto-u.ac.jp
 
 ----------------------------------------------------------------------

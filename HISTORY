@@ -1,3 +1,9 @@
+2013/06/09   V2.02
+             wf2: 2D FEM full wave solver; zone support; 
+             wf3: 3D FEM full wave solver; with edge elements
+             wf3d: 3D FEM full wave solver; with edge elements, MPI with MUMPS
+             wf2d: 2D FEM full wave solver; with edge elements, MPI with MUMPS
+
 2013/01/25   V2.01
              gfortran support
 
