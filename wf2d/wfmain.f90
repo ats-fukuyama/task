@@ -25,12 +25,14 @@
 
 program wfmain
   
+  use libmpi
+  use libmtx
   use wfcomm
-  use libmtxc
   implicit none
   
   ! --- initialize ---
-  call mtx_initialize(nrank,nprocs)
+  call pl_allocate_ns
+  call mtx_initialize
 
   if(nrank.eq.0) then
      write(6,*) '## TASKX/WFX  V3.02  2010/10/09 ###'
@@ -58,7 +60,7 @@ program wfmain
   call wffld_deallocate
   call wfpwr_deallocate
   if(nrank.eq.0) call wfwin_deallocate
-  call mtx_cleanup
+  call mtxc_cleanup
   call mtx_finalize
   stop
 end program wfmain

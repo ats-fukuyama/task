@@ -134,8 +134,9 @@ END SUBROUTINE DEFBND
 ! ****************************
 SUBROUTINE CVSOLV(IERR)
 
+  use libmpi
+  use libmtx
   use wfcomm
-  use libmtxc
   implicit none
   integer :: I,ISDMAX,ISD
   integer :: NSD,NE,NVMAX,J,KC,M
@@ -166,7 +167,7 @@ SUBROUTINE CVSOLV(IERR)
   tolerance=ddata(1)
   itype = 0
 
-  call mtx_setup(MLEN,istart,iend,MLEN)
+  call mtxc_setup(MLEN,istart,iend,MLEN)
 
 ! ----- initialize ------
 
@@ -314,24 +315,24 @@ SUBROUTINE CVSOLV(IERR)
   do j=1,MJLEN
      do i=istart,iend
         if (abs(CEQP(i-istart+1,j)).ne.0.d0) &
-             call mtx_set_matrix(i,JMIN-1+j,CEQP(i-istart+1,j))
+             call mtxc_set_matrix(i,JMIN-1+j,CEQP(i-istart+1,j))
      end do
   end do
 
   do i=istart,iend
-     call mtx_set_source(i,CRVP(i-istart+1))
+     call mtxc_set_source(i,CRVP(i-istart+1))
   end do
 
   call GUTIME(cputime1)
   
-  call mtx_solve(itype,tolerance,its)
+  call mtxc_solve(itype,tolerance,its)
   !zmumps always return "its = 0"
   if(nrank.eq.0) write(6,*) 'Iteration Number=',its
   
   call GUTIME(cputime2)
   write(*,*) nrank,cputime2-cputime1
 
-  call mtx_gather_vector(CSV)
+  call mtxc_gather_vector(CSV)
 
   deallocate(CEQP,CRVP)
   deallocate(NEFLAG)

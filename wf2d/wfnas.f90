@@ -4,7 +4,8 @@
 
 SUBROUTINE WFNAS
 
-  use libmtxc
+  use libmpi
+  use libmtx
   use wfcomm
   implicit none
   INTEGER,PARAMETER:: NNM=86200

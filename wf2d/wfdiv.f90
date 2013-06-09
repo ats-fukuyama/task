@@ -4,7 +4,8 @@
 !
 subroutine WFDIV
 
-  use libmtxc
+  use libmpi
+  use libmtx
   use wfcomm
   implicit none
   integer :: IERR,NE,NN,ID
@@ -266,7 +267,8 @@ end subroutine DFNODX
 
 subroutine DFNODC(IERR)
 
-  use libmtxc
+  use libmpi
+  use libmtx
   use wfcomm
   implicit none
   integer :: IND,NYDO,NY,ILL,NXA1(NYMH),NXR1(NYMH),NXL1(NYMH),NYU(NXM)
@@ -1050,8 +1052,9 @@ end subroutine WFLDIV
 !------------------------------------------------------------
 subroutine wfdiv_broadcast
 
+  use libmpi
+  use libmtx
   use wfcomm
-  use libmtxc
   implicit none
 
   real(8),dimension(11) :: rdata

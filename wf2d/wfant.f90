@@ -8,7 +8,8 @@
 
 SUBROUTINE WFANT
 
-  use libmtxc
+  use libmpi
+  use libmtx
   use wfcomm
   implicit none
   integer   :: IERR,NA,N
@@ -77,7 +78,8 @@ END SUBROUTINE WFANT
 
 SUBROUTINE WFDEFA
 
-  use libmtxc
+  use libmpi
+  use libmtx
   use wfcomm
   implicit none
   integer   :: NA,NJ,IERR
@@ -201,8 +203,9 @@ END SUBROUTINE WFDEFA
 !------------------------------------------------
 subroutine wfant_broadcast
   
+  use libmpi
+  use libmtx
   use wfcomm
-  use libmtxc
   implicit none
   
   integer :: NA,NJ

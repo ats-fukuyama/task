@@ -503,7 +503,8 @@ END SUBROUTINE WFVIEW
 ! --------------------------------------------------------
 subroutine wfparm_broadcast
 
-  use libmtxc
+  use libmpi
+  use libmtx
   use wfcomm
   implicit none
 

@@ -4,11 +4,12 @@ module wfcomm
 
   use bpsd
   use plcomm
+  use commpi
   implicit none
 
-  public
+!  public
 !       --- for parallel computing ---
-  integer :: nrank,nprocs
+!  integer :: nrank,nprocs
   integer :: istart,iend
 
 !       --- input parameters ---
@@ -47,7 +48,8 @@ module wfcomm
 !       /WFPRM/
   real(rkind):: RF
   integer(ikind):: NAMAX
-  real(rkind),dimension(NSM):: PZCL
+  !  real(rkind),dimension(NSM):: PZCL
+  
   real(rkind):: ZPMIN,ZPMAX,ZPLEN
   real(rkind):: PPN0,PTN0,PIN
   integer(ikind):: NPRINT,NDRAWD,NDRAWA,NGRAPH
@@ -213,7 +215,8 @@ module wfcomm
 contains
   subroutine wfdiv_initialize
 
-    use libmtxc
+    use libmpi
+    use libmtx
     implicit none
     integer :: idata(3)
 
@@ -238,7 +241,8 @@ contains
 ! ----------------------------------  
   subroutine wfdiv_allocate
 
-    use libmtxc
+    use libmpi
+    use libmtx
     implicit none
     integer,save:: NXM_save,NYM_save,NZM_save
     integer,save:: div_init=0
