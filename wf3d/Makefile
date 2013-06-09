@@ -4,6 +4,7 @@ include ../make.header
 ##### Without PETSc library #####
 #FLINKER=$(FCFREE)
 #LIBMTX=../../task/mtxp/libmtxbnd.o ../../task/mtxp/libmtxnompi.o
+#LIBMUMPSX=
 ##### With MUMPS library #####
 FLINKER=$(MF90)
 LIBMTX=../../task/mtxp/libmtxmumps.o ../../task/mtxp/libmtxmpi.o
@@ -96,5 +97,3 @@ wfgutl.o: wfgutl.f90
 	$(FCFREE) $(LFLAGS) -c $< 
 wflib.o: wflib.f90 wfcomm.f90
 	$(FCFREE) $(LFLAGS) -c $< $(MODDIR) $(MODINCLUDE)
-wfbes.o: wfbes.f90
-	$(FCFREE) $(LFLAGS) -c $< 
