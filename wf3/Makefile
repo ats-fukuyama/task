@@ -11,7 +11,7 @@ MODINCLUDE=-I ../lib/mod -I $(MOD)
 
 SRCS = wfinit.f wfdiv.f wfant.f wfwave.f wfsolv.f \
        wfprof.f wfsub.f wfnas.f wfsort.f wffile.f wflib.f \
-       wfindx.f wfefwg.f wfgout.f wfgsub.f wfgutl.f
+       wfindx.f wfefwg.f wfgout.f wfgsub.f
 
 OBJS = $(SRCS:.f=.o)
 
@@ -61,5 +61,4 @@ wfgout.o: wfgout.f wfcomm.inc
 wfgsub.o: wfgsub.f wfcomm.inc
 wfefwg.o: wfefwg.f wfcomm.inc
 wfgdum.o: wfgdum.f
-wfgutl.o: wfgutl.f
 wflib.o: wflib.f

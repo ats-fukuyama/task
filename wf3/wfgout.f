@@ -285,10 +285,10 @@ C
             DZ=(ZNDMAX-ZNDMIN)/(NGYMAX-1)
             DY=(YNDMAX-YNDMIN)/(NGXMAX-1)
             DO NGX=1,NGXMAX
-               G2X(NGX)=GCLIP(YNDMIN+DY*(NGX-1))
+               G2X(NGX)=GUCLIP(YNDMIN+DY*(NGX-1))
             ENDDO
             DO NGY=1,NGYMAX
-               G2Y(NGY)=GCLIP(ZNDMIN+DZ*(NGY-1))
+               G2Y(NGY)=GUCLIP(ZNDMIN+DZ*(NGY-1))
             ENDDO
             DO NGY=1,NGYMAX
                Z=ZNDMIN+DZ*(NGY-1)
@@ -307,11 +307,11 @@ C
                         CALL FIELDC(IE,XPOS,Y,Z,CZ,IDM,ID,ZR,ZI)
                      ENDIF
                      IF(KID.EQ.'R') THEN
-                        GZ(NGX,NGY)=GCLIP(ZR)
+                        GZ(NGX,NGY)=GUCLIP(ZR)
                      ELSE IF(KID.EQ.'I') THEN
-                        GZ(NGX,NGY)=GCLIP(ZI)
+                        GZ(NGX,NGY)=GUCLIP(ZI)
                      ELSE IF(KID.EQ.'A') THEN
-                        GZ(NGX,NGY)=GCLIP(SQRT(ZR**2+ZI**2))
+                        GZ(NGX,NGY)=GUCLIP(SQRT(ZR**2+ZI**2))
                      ENDIF
                   ENDIF
                ENDDO
@@ -321,10 +321,10 @@ C
             DZ=(ZNDMAX-ZNDMIN)/(NGYMAX-1)
             DX=(XNDMAX-XNDMIN)/(NGXMAX-1)
             DO NGX=1,NGXMAX
-               G2X(NGX)=GCLIP(XNDMIN+DX*(NGX-1))
+               G2X(NGX)=GUCLIP(XNDMIN+DX*(NGX-1))
             ENDDO
             DO NGY=1,NGYMAX
-               G2Y(NGY)=GCLIP(ZNDMIN+DZ*(NGY-1))
+               G2Y(NGY)=GUCLIP(ZNDMIN+DZ*(NGY-1))
             ENDDO
             DO NGY=1,NGYMAX
                Z=ZNDMIN+DZ*(NGY-1)
@@ -343,11 +343,11 @@ C
                         CALL FIELDC(IE,X,YPOS,Z,CZ,IDM,ID,ZR,ZI)
                      ENDIF
                      IF(KID.EQ.'R') THEN
-                        GZ(NGX,NGY)=GCLIP(ZR)
+                        GZ(NGX,NGY)=GUCLIP(ZR)
                      ELSE IF(KID.EQ.'I') THEN
-                        GZ(NGX,NGY)=GCLIP(ZI)
+                        GZ(NGX,NGY)=GUCLIP(ZI)
                      ELSE IF(KID.EQ.'A') THEN
-                        GZ(NGX,NGY)=GCLIP(SQRT(ZR**2+ZI**2))
+                        GZ(NGX,NGY)=GUCLIP(SQRT(ZR**2+ZI**2))
                      ENDIF
                   ENDIF
                ENDDO
@@ -357,10 +357,10 @@ C
             DY=(YNDMAX-YNDMIN)/(NGYMAX-1)
             DX=(XNDMAX-XNDMIN)/(NGXMAX-1)
             DO NGX=1,NGXMAX
-               G2X(NGX)=GCLIP(XNDMIN+DX*(NGX-1))
+               G2X(NGX)=GUCLIP(XNDMIN+DX*(NGX-1))
             ENDDO
             DO NGY=1,NGYMAX
-               G2Y(NGY)=GCLIP(YNDMIN+DY*(NGY-1))
+               G2Y(NGY)=GUCLIP(YNDMIN+DY*(NGY-1))
             ENDDO
             DO NGY=1,NGYMAX
                Y=YNDMIN+DY*(NGY-1)
@@ -379,11 +379,11 @@ C
                         CALL FIELDC(IE,X,Y,ZPOS,CZ,IDM,ID,ZR,ZI)
                      ENDIF
                      IF(KID.EQ.'R') THEN
-                        GZ(NGX,NGY)=GCLIP(ZR)
+                        GZ(NGX,NGY)=GUCLIP(ZR)
                      ELSE IF(KID.EQ.'I') THEN
-                        GZ(NGX,NGY)=GCLIP(ZI)
+                        GZ(NGX,NGY)=GUCLIP(ZI)
                      ELSE IF(KID.EQ.'A') THEN
-                        GZ(NGX,NGY)=GCLIP(SQRT(ZR**2+ZI**2))
+                        GZ(NGX,NGY)=GUCLIP(SQRT(ZR**2+ZI**2))
                      ENDIF
                   ENDIF
                ENDDO
@@ -400,42 +400,42 @@ C
             IF(ABS(DX2).GE.ABS(DY2)) THEN
                IF(ABS(DX2).GE.ABS(DZ2)) THEN
                   DO NGX=1,NGXMAX
-                     G2X(NGX)=GCLIP(X1+DX2*(NGX-1))
+                     G2X(NGX)=GUCLIP(X1+DX2*(NGX-1))
                   ENDDO
                ELSE
                   DO NGX=1,NGXMAX
-                     G2X(NGX)=GCLIP(Z1+DZ2*(NGX-1))
+                     G2X(NGX)=GUCLIP(Z1+DZ2*(NGX-1))
                   ENDDO
                ENDIF
             ELSE
                IF(ABS(DY2).GE.ABS(DZ2)) THEN
                   DO NGX=1,NGXMAX
-                     G2X(NGX)=GCLIP(Y1+DY2*(NGX-1))
+                     G2X(NGX)=GUCLIP(Y1+DY2*(NGX-1))
                   ENDDO
                ELSE
                   DO NGX=1,NGXMAX
-                     G2X(NGX)=GCLIP(Z1+DZ2*(NGX-1))
+                     G2X(NGX)=GUCLIP(Z1+DZ2*(NGX-1))
                   ENDDO
                ENDIF
             ENDIF
             IF(ABS(DX3).GE.ABS(DY3)) THEN
                IF(ABS(DX3).GE.ABS(DZ3)) THEN
                   DO NGY=1,NGYMAX
-                     G2Y(NGY)=GCLIP(X1+DX3*(NGY-1))
+                     G2Y(NGY)=GUCLIP(X1+DX3*(NGY-1))
                   ENDDO
                ELSE
                   DO NGY=1,NGYMAX
-                     G2Y(NGY)=GCLIP(Z1+DZ3*(NGY-1))
+                     G2Y(NGY)=GUCLIP(Z1+DZ3*(NGY-1))
                   ENDDO
                ENDIF
             ELSE
                IF(ABS(DY3).GE.ABS(DZ3)) THEN
                   DO NGY=1,NGYMAX
-                     G2Y(NGY)=GCLIP(Y1+DY2*(NGY-1))
+                     G2Y(NGY)=GUCLIP(Y1+DY2*(NGY-1))
                   ENDDO
                ELSE
                   DO NGY=1,NGYMAX
-                     G2Y(NGY)=GCLIP(Z1+DZ2*(NGY-1))
+                     G2Y(NGY)=GUCLIP(Z1+DZ2*(NGY-1))
                   ENDDO
                ENDIF
             ENDIF
@@ -463,11 +463,11 @@ C                     WRITE(6,'(2I5,1P,3E12.4)') NGX,NGY,X,Y,Z
 C                        WRITE(6,'(2I5,1P,5E12.4)') NGX,NGY,X,Y,Z,ZR,ZI
                      ENDIF
                      IF(KID.EQ.'R') THEN
-                        GZ(NGX,NGY)=GCLIP(ZR)
+                        GZ(NGX,NGY)=GUCLIP(ZR)
                      ELSE IF(KID.EQ.'I') THEN
-                        GZ(NGX,NGY)=GCLIP(ZI)
+                        GZ(NGX,NGY)=GUCLIP(ZI)
                      ELSE IF(KID.EQ.'A') THEN
-                        GZ(NGX,NGY)=GCLIP(SQRT(ZR**2+ZI**2))
+                        GZ(NGX,NGY)=GUCLIP(SQRT(ZR**2+ZI**2))
                      ENDIF
                   ENDIF
                ENDDO
@@ -480,7 +480,7 @@ C                        WRITE(6,'(2I5,1P,5E12.4)') NGX,NGY,X,Y,Z,ZR,ZI
             X=XNDMIN+DX*(NGV-1)
             CALL FEP(X,YPOS,ZPOS,IE)
             IF(IE.EQ.0) THEN
-               GX(NGV)=GCLIP(X)
+               GX(NGV)=GUCLIP(X)
                GV(NGV,1)=0.0
                GV(NGV,2)=0.0
                GV(NGV,3)=0.0
@@ -493,10 +493,10 @@ C                        WRITE(6,'(2I5,1P,5E12.4)') NGX,NGY,X,Y,Z,ZR,ZI
                ELSE
                   CALL FIELDC(IE,X,YPOS,ZPOS,CZ,IDM,ID,ZR,ZI)
                ENDIF
-               GX(NGV)=GCLIP(X)
-               GV(NGV,1)=GCLIP(ZR)
-               GV(NGV,2)=GCLIP(ZI)
-               GV(NGV,3)=GCLIP(SQRT(ZR**2+ZI**2))
+               GX(NGV)=GUCLIP(X)
+               GV(NGV,1)=GUCLIP(ZR)
+               GV(NGV,2)=GUCLIP(ZI)
+               GV(NGV,3)=GUCLIP(SQRT(ZR**2+ZI**2))
             ENDIF
          ENDDO
       ELSEIF(KID.EQ.'Y') THEN
@@ -506,7 +506,7 @@ C                        WRITE(6,'(2I5,1P,5E12.4)') NGX,NGY,X,Y,Z,ZR,ZI
             Y=YNDMIN+DY*(NGV-1)
             CALL FEP(XPOS,Y,ZPOS,IE)
             IF(IE.EQ.0) THEN
-               GX(NGV)=GCLIP(Y)
+               GX(NGV)=GUCLIP(Y)
                GV(NGV,1)=0.0
                GV(NGV,2)=0.0
                GV(NGV,3)=0.0
@@ -519,10 +519,10 @@ C                        WRITE(6,'(2I5,1P,5E12.4)') NGX,NGY,X,Y,Z,ZR,ZI
                ELSE
                   CALL FIELDC(IE,XPOS,Y,ZPOS,CZ,IDM,ID,ZR,ZI)
                ENDIF
-               GX(NGV)=GCLIP(Y)
-               GV(NGV,1)=GCLIP(ZR)
-               GV(NGV,2)=GCLIP(ZI)
-               GV(NGV,3)=GCLIP(SQRT(ZR**2+ZI**2))
+               GX(NGV)=GUCLIP(Y)
+               GV(NGV,1)=GUCLIP(ZR)
+               GV(NGV,2)=GUCLIP(ZI)
+               GV(NGV,3)=GUCLIP(SQRT(ZR**2+ZI**2))
             ENDIF
          ENDDO
       ELSEIF(KID.EQ.'Z') THEN
@@ -532,7 +532,7 @@ C                        WRITE(6,'(2I5,1P,5E12.4)') NGX,NGY,X,Y,Z,ZR,ZI
             Z=ZNDMIN+DZ*(NGV-1)
             CALL FEP(XPOS,YPOS,Z,IE)
             IF(IE.EQ.0) THEN
-               GX(NGV)=GCLIP(Z)
+               GX(NGV)=GUCLIP(Z)
                GV(NGV,1)=0.0
                GV(NGV,2)=0.0
                GV(NGV,3)=0.0
@@ -545,10 +545,10 @@ C                        WRITE(6,'(2I5,1P,5E12.4)') NGX,NGY,X,Y,Z,ZR,ZI
                ELSE
                   CALL FIELDC(IE,XPOS,YPOS,Z,CZ,IDM,ID,ZR,ZI)
                ENDIF
-               GX(NGV)=GCLIP(Z)
-               GV(NGV,1)=GCLIP(ZR)
-               GV(NGV,2)=GCLIP(ZI)
-               GV(NGV,3)=GCLIP(SQRT(ZR**2+ZI**2))
+               GX(NGV)=GUCLIP(Z)
+               GV(NGV,1)=GUCLIP(ZR)
+               GV(NGV,2)=GUCLIP(ZI)
+               GV(NGV,3)=GUCLIP(SQRT(ZR**2+ZI**2))
             ENDIF
          ENDDO
       ELSEIF(KID.EQ.'B') THEN
@@ -579,7 +579,7 @@ C
             X=X1+DX*(NGV-1)
             Y=Y1+DY*(NGV-1)
             Z=Z1+DZ*(NGV-1)
-            GX(NGV)=GCLIP(W1+DW*(NGV-1))
+            GX(NGV)=GUCLIP(W1+DW*(NGV-1))
             CALL FEP(X,Y,Z,IE)
             IF(IE.EQ.0) THEN
                GV(NGV,1)=0.0
@@ -594,9 +594,9 @@ C
                ELSE
                   CALL FIELDC(IE,X,Y,Z,CZ,IDM,ID,ZR,ZI)
                ENDIF
-               GV(NGV,1)=GCLIP(ZR)
-               GV(NGV,2)=GCLIP(ZI)
-               GV(NGV,3)=GCLIP(SQRT(ZR**2+ZI**2))
+               GV(NGV,1)=GUCLIP(ZR)
+               GV(NGV,2)=GUCLIP(ZI)
+               GV(NGV,3)=GUCLIP(SQRT(ZR**2+ZI**2))
             ENDIF
          ENDDO
       ELSE
@@ -625,10 +625,10 @@ C
             DZ=(ZNDMAX-ZNDMIN)/(NGYMAX-1)
             DY=(YNDMAX-YNDMIN)/(NGXMAX-1)
             DO NGX=1,NGXMAX
-               G2X(NGX)=GCLIP(YNDMIN+DY*(NGX-1))
+               G2X(NGX)=GUCLIP(YNDMIN+DY*(NGX-1))
             ENDDO
             DO NGY=1,NGYMAX
-               G2Y(NGY)=GCLIP(ZNDMIN+DZ*(NGY-1))
+               G2Y(NGY)=GUCLIP(ZNDMIN+DZ*(NGY-1))
             ENDDO
             DO NGY=1,NGYMAX
                Z=ZNDMIN+DZ*(NGY-1)
@@ -641,7 +641,7 @@ C                     WRITE(6,'(A,1P3E12.4,I5)')
 C     &                    'XX DTOG: X,Y,Z,IE=',XPOS,Y,Z,IE
                   ELSE
                      CALL FIELDD(IE,XPOS,Y,Z,DV,ID,V)
-                     GZ(NGX,NGY)=GCLIP(V)
+                     GZ(NGX,NGY)=GUCLIP(V)
                   ENDIF
                ENDDO
             ENDDO
@@ -650,10 +650,10 @@ C     &                    'XX DTOG: X,Y,Z,IE=',XPOS,Y,Z,IE
             DZ=(ZNDMAX-ZNDMIN)/(NGYMAX-1)
             DX=(XNDMAX-XNDMIN)/(NGXMAX-1)
             DO NGX=1,NGXMAX
-               G2X(NGX)=GCLIP(XNDMIN+DX*(NGX-1))
+               G2X(NGX)=GUCLIP(XNDMIN+DX*(NGX-1))
             ENDDO
             DO NGY=1,NGYMAX
-               G2Y(NGY)=GCLIP(ZNDMIN+DZ*(NGY-1))
+               G2Y(NGY)=GUCLIP(ZNDMIN+DZ*(NGY-1))
             ENDDO
             DO NGY=1,NGYMAX
                Z=ZNDMIN+DZ*(NGY-1)
@@ -666,7 +666,7 @@ C     &                    'XX DTOG: X,Y,Z,IE=',X,YPOS,Z,IE
                      GZ(NGX,NGY)=0.0
                   ELSE
                      CALL FIELDD(IE,X,YPOS,Z,DV,ID,V)
-                     GZ(NGX,NGY)=GCLIP(V)
+                     GZ(NGX,NGY)=GUCLIP(V)
                   ENDIF
                ENDDO
             ENDDO
@@ -675,10 +675,10 @@ C     &                    'XX DTOG: X,Y,Z,IE=',X,YPOS,Z,IE
             DY=(YNDMAX-YNDMIN)/(NGYMAX-1)
             DX=(XNDMAX-XNDMIN)/(NGXMAX-1)
             DO NGX=1,NGXMAX
-               G2X(NGX)=GCLIP(XNDMIN+DX*(NGX-1))
+               G2X(NGX)=GUCLIP(XNDMIN+DX*(NGX-1))
             ENDDO
             DO NGY=1,NGYMAX
-               G2Y(NGY)=GCLIP(YNDMIN+DY*(NGY-1))
+               G2Y(NGY)=GUCLIP(YNDMIN+DY*(NGY-1))
             ENDDO
             DO NGY=1,NGYMAX
                Y=YNDMIN+DY*(NGY-1)
@@ -691,7 +691,7 @@ C                     WRITE(6,'(A,1P3E12.4,I5)')
 C     &                    'XX DTOG: X,Y,Z,IE=',X,Y,ZPOS,IE
                   ELSE
                      CALL FIELDD(IE,X,Y,ZPOS,DV,ID,V)
-                     GZ(NGX,NGY)=GCLIP(V)
+                     GZ(NGX,NGY)=GUCLIP(V)
                   ENDIF
                ENDDO
             ENDDO
@@ -707,42 +707,42 @@ C
             IF(ABS(DX2).GE.ABS(DY2)) THEN
                IF(ABS(DX2).GE.ABS(DZ2)) THEN
                   DO NGX=1,NGXMAX
-                     G2X(NGX)=GCLIP(X1+DX2*(NGX-1))
+                     G2X(NGX)=GUCLIP(X1+DX2*(NGX-1))
                   ENDDO
                ELSE
                   DO NGX=1,NGXMAX
-                     G2X(NGX)=GCLIP(Z1+DZ2*(NGX-1))
+                     G2X(NGX)=GUCLIP(Z1+DZ2*(NGX-1))
                   ENDDO
                ENDIF
             ELSE
                IF(ABS(DY2).GE.ABS(DZ2)) THEN
                   DO NGX=1,NGXMAX
-                     G2X(NGX)=GCLIP(Y1+DY2*(NGX-1))
+                     G2X(NGX)=GUCLIP(Y1+DY2*(NGX-1))
                   ENDDO
                ELSE
                   DO NGX=1,NGXMAX
-                     G2X(NGX)=GCLIP(Z1+DZ2*(NGX-1))
+                     G2X(NGX)=GUCLIP(Z1+DZ2*(NGX-1))
                   ENDDO
                ENDIF
             ENDIF
             IF(ABS(DX3).GE.ABS(DY3)) THEN
                IF(ABS(DX3).GE.ABS(DZ3)) THEN
                   DO NGY=1,NGYMAX
-                     G2Y(NGY)=GCLIP(X1+DX3*(NGY-1))
+                     G2Y(NGY)=GUCLIP(X1+DX3*(NGY-1))
                   ENDDO
                ELSE
                   DO NGY=1,NGYMAX
-                     G2Y(NGY)=GCLIP(Z1+DZ3*(NGY-1))
+                     G2Y(NGY)=GUCLIP(Z1+DZ3*(NGY-1))
                   ENDDO
                ENDIF
             ELSE
                IF(ABS(DY3).GE.ABS(DZ3)) THEN
                   DO NGY=1,NGYMAX
-                     G2Y(NGY)=GCLIP(Y1+DY2*(NGY-1))
+                     G2Y(NGY)=GUCLIP(Y1+DY2*(NGY-1))
                   ENDDO
                ELSE
                   DO NGY=1,NGYMAX
-                     G2Y(NGY)=GCLIP(Z1+DZ2*(NGY-1))
+                     G2Y(NGY)=GUCLIP(Z1+DZ2*(NGY-1))
                   ENDDO
                ENDIF
             ENDIF
@@ -760,7 +760,7 @@ C
                      GZ(NGX,NGY)=0.0
                   ELSE
                      CALL FIELDD(IE,X,Y,Z,DV,ID,V)
-                     GZ(NGX,NGY)=GCLIP(V)
+                     GZ(NGX,NGY)=GUCLIP(V)
                   ENDIF
                ENDDO
             ENDDO
@@ -772,14 +772,14 @@ C
             X=XNDMIN+DX*(NGV-1)
             CALL FEP(X,YPOS,ZPOS,IE)
             IF(IE.EQ.0) THEN
-               GX(NGV)=GCLIP(X)
+               GX(NGV)=GUCLIP(X)
                GV(NGV,1)=0.0
                GV(NGV,2)=0.0
                GV(NGV,3)=0.0
             ELSE
                CALL FIELDD(IE,X,YPOS,ZPOS,DV,ID,V)
-               GX(NGV)=GCLIP(X)
-               GV(NGV,1)=GCLIP(Z)
+               GX(NGV)=GUCLIP(X)
+               GV(NGV,1)=GUCLIP(Z)
             ENDIF
          ENDDO
       ELSEIF(KID.EQ.'Y') THEN
@@ -789,14 +789,14 @@ C
             Y=YNDMIN+DY*(NGV-1)
             CALL FEP(XPOS,Y,ZPOS,IE)
             IF(IE.EQ.0) THEN
-               GX(NGV)=GCLIP(Y)
+               GX(NGV)=GUCLIP(Y)
                GV(NGV,1)=0.0
                GV(NGV,2)=0.0
                GV(NGV,3)=0.0
             ELSE
                CALL FIELDD(IE,XPOS,Y,ZPOS,DV,ID,V)
-               GX(NGV)=GCLIP(Y)
-               GV(NGV,1)=GCLIP(V)
+               GX(NGV)=GUCLIP(Y)
+               GV(NGV,1)=GUCLIP(V)
             ENDIF
          ENDDO
       ELSEIF(KID.EQ.'Z') THEN
@@ -806,14 +806,14 @@ C
             Z=ZNDMIN+DZ*(NGV-1)
             CALL FEP(XPOS,YPOS,Z,IE)
             IF(IE.EQ.0) THEN
-               GX(NGV)=GCLIP(Z)
+               GX(NGV)=GUCLIP(Z)
                GV(NGV,1)=0.0
                GV(NGV,2)=0.0
                GV(NGV,3)=0.0
             ELSE
                CALL FIELDD(IE,XPOS,YPOS,Z,DV,ID,V)
-               GX(NGV)=GCLIP(Z)
-               GV(NGV,1)=GCLIP(V)
+               GX(NGV)=GUCLIP(Z)
+               GV(NGV,1)=GUCLIP(V)
             ENDIF
          ENDDO
       ELSEIF(KID.EQ.'B') THEN
@@ -844,13 +844,13 @@ C
             X=X1+DX*(NGV-1)
             Y=Y1+DY*(NGV-1)
             Z=Z1+DZ*(NGV-1)
-            GX(NGV)=GCLIP(W1+DW*(NGV-1))
+            GX(NGV)=GUCLIP(W1+DW*(NGV-1))
             CALL FEP(X,Y,Z,IE)
             IF(IE.EQ.0) THEN
                GV(NGV,1)=0.0
             ELSE
                CALL FIELDD(IE,X,Y,Z,DV,ID,V)
-               GV(NGV,1)=GCLIP(V)
+               GV(NGV,1)=GUCLIP(V)
             ENDIF
          ENDDO
       ELSE
