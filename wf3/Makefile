@@ -7,13 +7,15 @@ include ../make.header
 #FFLAGS = $(DFLAGS)
 FFLAGS = $(OFLAGS)
 
+MODINCLUDE=-I ../lib/mod -I $(MOD)
+
 SRCS = wfinit.f wfdiv.f wfant.f wfwave.f wfsolv.f \
        wfprof.f wfsub.f wfnas.f wfsort.f wffile.f wflib.f \
-       wfindx.f wfefwg.f wfbes.f wfgout.f wfgsub.f wfgutl.f
+       wfindx.f wfefwg.f wfgout.f wfgsub.f wfgutl.f
 
 OBJS = $(SRCS:.f=.o)
 
-LIBS=wflib.a
+LIBS=wflib.a ../lib/tasklib.a
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -25,26 +27,17 @@ all: wf
 wflib.a: $(OBJS)
 	$(LD) $(LDFLAGS) wflib.a $(OBJS)
 
+../lib/tasklib.a:
+	(cd ../lib; make tasklib.a)
+
 wf : wfcomm.inc $(LIBS) wfmain.o
-	$(FCFIXED) wfmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+	$(FCFIXED) wfmain.o -o $@ $(FFLAGS) $(LIBS) $(FLIBS)
 
 testin: testin.f wfxnas.f wfcomm.inc
 	$(FCFIXED) testin.f wfxnas.f -o $@ $(FFLAGS) $(FLIBS)
 
 nascheck: nascheck.f
 	$(FCFIXED) nascheck.f -o $@ $(FFLAGS) $(FLIBS)
-
-save :
-	mkdir ../wfx.save
-	cp -f Makefile ../wfx.save
-	cp -f HISTORY ../wfx.save
-	cp -f *.f ../wfx.save
-	cp -f *.c ../wfx.save
-	cp -f *.inc ../wfx.save
-	mkdir ../wfx.save/in
-	cp -f in/wf.in* ../wfx.save/in
-	mkdir ../wfx.save/doc
-	cp -f doc/*.txt doc/*.tex ../wfx.save/doc
 
 clean:
 	rm -f *.o ./#* ./*~ a.out core *.a *.mod $(MOD)/*.mod
@@ -68,10 +61,5 @@ wfgout.o: wfgout.f wfcomm.inc
 wfgsub.o: wfgsub.f wfcomm.inc
 wfefwg.o: wfefwg.f wfcomm.inc
 wfgdum.o: wfgdum.f
-	$(FCFIXED) $(LFLAGS) -c $< 
 wfgutl.o: wfgutl.f
-	$(FCFIXED) $(LFLAGS) -c $< 
 wflib.o: wflib.f
-	$(FCFIXED) $(LFLAGS) -c $< 
-wfbes.o: wfbes.f
-	$(FCFIXED) $(LFLAGS) -c $< 
