@@ -1,0 +1,336 @@
+C     $Id$
+C
+C     ******* OUTPUT ELEMENT DATA *******
+C
+      SUBROUTINE WFWELM(ID)
+C
+      INCLUDE 'wfcomm.inc'
+      CHARACTER KNAME*32
+      LOGICAL LEX
+C
+    1 WRITE(6,*) '## ENTER ELEMENT FILE NAME: ',KFNAME
+      READ(5,'(A32)',ERR=1,END=9000) KNAME
+      IF(KNAME(1:2).NE.'/ ') KFNAME=KNAME
+      INQUIRE(FILE=KFNAME,EXIST=LEX)
+      IF(LEX) THEN
+         OPEN(25,FILE=KFNAME,IOSTAT=IST,STATUS='OLD',ERR=10,
+     &        FORM='UNFORMATTED')
+         WRITE(6,*) '## OLD FILE (',KFNAME,') IS ASSIGNED FOR OUTPUT.'
+         GOTO 30
+   10    WRITE(6,*) 'XX OLD FILE OPEN ERROR : IOSTAT = ',IST
+         GOTO 1
+      ELSE
+         OPEN(25,FILE=KFNAME,IOSTAT=IST,STATUS='NEW',ERR=20,
+     &        FORM='UNFORMATTED')
+         WRITE(6,*) '## NEW FILE (',KFNAME,') IS CREATED FOR OUTPUT.'
+         GOTO 30
+   20    WRITE(6,*) 'XX NEW FILE OPEN ERROR : IOSTAT = ',IST
+         GOTO 1
+      ENDIF
+C
+   30 REWIND 25
+      IF(ID.EQ.0) THEN
+         WRITE(25) 'PAF-ELM0-V01'
+         WRITE(25) NNMAX,NEMAX
+         WRITE(25) (XND(I),YND(I),ZND(I),I=1,NNMAX)
+         WRITE(25) ((NDELM(J,I),J=1,4),I=1,NEMAX)
+      ELSEIF(ID.EQ.1) THEN
+         WRITE(25) 'PAF-ELM1-V01'
+         WRITE(25) NNMAX,NEMAX,NMMAX,NBMAX
+         WRITE(25) (XND(I),YND(I),ZND(I),I=1,NNMAX)
+         WRITE(25) (KANOD(I),I=1,NNMAX)
+         WRITE(25) ((NDELM(J,I),J=1,4),I=1,NEMAX)
+         WRITE(25) ((KNELM(J,I),J=1,4),I=1,NEMAX)
+         WRITE(25) (KAELM(I),I=1,NEMAX)
+         WRITE(25) (EPSDM(NM),AMUDM(NM),SIGDM(NM),NM=1,NMMAX)
+         WRITE(25) (KABDY(NB),PHIBDY(NB),RESBDY(NB),
+     &              PWRBDY(NB),PHABDY(NB),
+     &              XGBDY(NB),YGBDY(NB),ZGBDY(NB),
+     &              (XNBDY(I,NB),YNBDY(I,NB),
+     &               ZNBDY(I,NB),I=1,3),
+     &              XPBDY(NB),YPBDY(NB),ZPBDY(NB),
+     &              SZBDY(1,NB),SZBDY(2,NB),NB=1,NBMAX)
+      ENDIF
+      CLOSE(25)
+C
+      WRITE(6,*) '## ELEMENT DATA SAVED IN FILE: ',KFNAME
+ 9000 RETURN
+      END
+C
+C     ******* INPUT ELEMENT DATA *******
+C
+      SUBROUTINE WFRELM(ID)
+C
+      INCLUDE 'wfcomm.inc'
+      LOGICAL LEX
+      CHARACTER KID*12
+C
+      INQUIRE(FILE=KFNAME,EXIST=LEX)
+      IF(LEX) THEN
+         OPEN(25,FILE=KFNAME,IOSTAT=IST,STATUS='OLD',ERR=10,
+     &        FORM='UNFORMATTED')
+         WRITE(6,*) '## FILE (',KFNAME,') IS ASSIGNED FOR ELM INPUT'
+         GOTO 30
+   10    WRITE(6,*) 'XX OLD FILE OPEN ERROR : IOSTAT = ',IST
+         GOTO 9000
+      ELSE
+         WRITE(6,*) 'XX FILE (',KFNAME,') IS NOT FOUND'
+         GOTO 9000
+      ENDIF
+C
+   30 READ(25,ERR=9100,END=9000) KID
+      IF(KID.EQ.'PAF-ELM0-V01') THEN
+         ID=0
+         READ(25,ERR=9100,END=9200) NNMAX,NEMAX
+         IF(NNMAX.GT.NNM.OR.
+     &      NEMAX.GT.NEM) THEN
+            WRITE(6,800) NNMAX,NNM,NEMAX,NEM
+  800       FORMAT(' ','XX ELEMENT DATA EXCEEDS ARAAY DIMENSION :'/
+     &             ' ','  NNMAX NNM  NEMAX NEM'/' ',4I6)
+            CLOSE(25)
+            GOTO 9000
+         ENDIF
+         READ(25,ERR=9100,END=9200) (XND(I),YND(I),ZND(I),I=1,NNMAX)
+         READ(25,ERR=9100,END=9200) ((NDELM(J,I),J=1,4),I=1,NEMAX)
+C
+         CALL WFINDX
+         CALL WFFEPI
+C
+         NKMAX=1
+         DO NE=1,NEMAX
+            KAELM(NE)=1
+         ENDDO
+         NMKA(1)=0
+         NMMAX=0
+C
+         NBMAX=0
+         DO NN=1,NNMAX
+            KANOD(NN)=0
+         ENDDO
+      ELSEIF(KID.EQ.'PAF-ELM1-V01') THEN
+         ID=1
+         READ(25,ERR=9100,END=9200) NNMAX,NEMAX,NMMAX,NBMAX
+         IF(NNMAX.GT.NNM.OR.
+     &      NEMAX.GT.NEM.OR.
+     &      NMMAX.GT.NMM.OR.
+     &      NBMAX.GT.NBM) THEN
+            WRITE(6,801) NNMAX,NNM,NEMAX,NEM,NMMAX,NMM,NBMAX,NBM
+  801       FORMAT(' ','XX ELEMENT DATA EXCEEDS ARAAY DIMENSION :'/
+     &             ' ','  NNMAX NNM   NEMAX NEM ',
+     &                 '  NMMAX NMM   NBMAX NBM'/
+     &             ' ',8I6)
+            CLOSE(25)
+            GOTO 9000
+         ENDIF
+         READ(25,ERR=9100,END=9200) (XND(I),YND(I),ZND(I),I=1,NNMAX)
+         READ(25,ERR=9100,END=9200) (KANOD(I),I=1,NNMAX)
+         READ(25,ERR=9100,END=9200) ((NDELM(J,I),J=1,4),I=1,NEMAX)
+         READ(25,ERR=9100,END=9200) ((KNELM(J,I),J=1,4),I=1,NEMAX)
+         READ(25,ERR=9100,END=9200) (KAELM(I),I=1,NEMAX)
+         READ(25,ERR=9100,END=9200) (EPSDM(NM),AMUDM(NM),SIGDM(NM),
+     &                              NM=1,NMMAX)
+         READ(25,ERR=9100,END=9200) (KABDY(NB),PHIBDY(NB),RESBDY(NB),
+     &                               PWRBDY(NB),PHABDY(NB),
+     &                               XGBDY(NB),YGBDY(NB),ZGBDY(NB),
+     &                               (XNBDY(I,NB),YNBDY(I,NB),
+     &                                ZNBDY(I,NB),I=1,3),
+     &                               XPBDY(NB),YPBDY(NB),ZPBDY(NB),
+     &                               SZBDY(1,NB),SZBDY(2,NB),NB=1,NBMAX)
+      ELSE
+         ID=9999
+         WRITE(6,*) 'XX INVALID ELEMENT DATA : KID = ',KID
+         CLOSE(25)
+         GOTO 9000
+      ENDIF
+      CLOSE(25)
+C
+ 9000 RETURN
+C
+ 9100 WRITE(6,*) 'XX ERROR IN READING FILE: ',KFNAME
+      GOTO 9000
+C
+ 9200 WRITE(6,*) 'XX UNEXPECTED END OF FILE: ',KFNAME
+      GOTO 9000
+      END
+C
+C     ******* OUTPUT ANTENNA DATA *******
+C
+      SUBROUTINE WFWANT
+C
+      INCLUDE 'wfcomm.inc'
+      CHARACTER KNAME*32
+      LOGICAL LEX
+C
+    1 WRITE(6,*) '## ENTER ANTENNA FILE NAME: ',KFNAMA
+      READ(5,'(A32)',ERR=1,END=9000) KNAME
+      IF(KNAME(1:2).NE.'/ ') KFNAMA=KNAME
+      INQUIRE(FILE=KFNAMA,EXIST=LEX)
+      IF(LEX) THEN
+         OPEN(24,FILE=KFNAMA,IOSTAT=IST,STATUS='OLD',ERR=10,
+     &        FORM='FORMATTED')
+         WRITE(6,*) '## OLD FILE (',KFNAMA,') IS ASSIGNED FOR OUTPUT.'
+         GOTO 30
+   10    WRITE(6,*) 'XX OLD FILE OPEN ERROR : IOSTAT = ',IST
+         GOTO 1
+      ELSE
+         OPEN(24,FILE=KFNAMA,IOSTAT=IST,STATUS='NEW',ERR=20,
+     &        FORM='FORMATTED')
+         WRITE(6,*) '## NEW FILE (',KFNAMA,') IS CREATED FOR OUTPUT.'
+         GOTO 30
+   20    WRITE(6,*) 'XX NEW FILE OPEN ERROR : IOSTAT = ',IST
+         GOTO 1
+      ENDIF
+C
+   30 REWIND 24
+      WRITE(24,200) NAMAX
+  200 FORMAT(I6)
+      DO 400 NA=1,NAMAX
+         WRITE(24,200) JNUM0(NA)
+         WRITE(24,300) (XJ0(I,NA),YJ0(I,NA),ZJ0(I,NA),I=1,JNUM0(NA))
+  300    FORMAT(3E23.15)
+  400 CONTINUE
+      CLOSE(24)
+C
+      WRITE(6,*) '## ANTENNA DATA SAVED IN FILE: ',KFNAMA
+ 9000 RETURN
+      END
+C
+C     ******* INPUT ANTENNA DATA FROM FILE 24 *******
+C
+      SUBROUTINE WFRANT
+C
+      INCLUDE 'wfcomm.inc'
+      LOGICAL LEX
+C
+      INQUIRE(FILE=KFNAMA,EXIST=LEX)
+      IF(LEX) THEN
+         OPEN(24,FILE=KFNAMA,IOSTAT=IST,STATUS='OLD',ERR=10,
+     &        FORM='FORMATTED')
+         WRITE(6,*) '## FILE (',KFNAMA,') IS ASSIGNED FOR ANT INPUT'
+         GOTO 30
+   10    WRITE(6,*) 'XX OLD FILE OPEN ERROR : IOSTAT = ',IST
+         GOTO 9000
+      ELSE
+         WRITE(6,*) 'XX FILE (',KFNAMA,') IS NOT FOUND'
+         GOTO 9000
+      ENDIF
+C
+   30 READ(24,150,ERR=9100,END=9200) NAMAX
+  150 FORMAT(I6)
+      IF(NAMAX.LT.1.OR.NAMAX.GT.NAM) THEN
+         WRITE(6,*) 'XX INVALID ANTENNA DATA: NAMAX,NAM = ',NAMAX,NAM
+         GOTO 9000
+      ENDIF
+C
+      DO 20 NA=1,NAMAX
+         READ(24,150,ERR=9100,END=9200) JNUM0(NA)
+         IF(JNUM0(NA).GT.NJM.OR.JNUM0(NA).LT.1) THEN
+            WRITE(6,*) 'XX INVALID ANTENNA DATA: NA,JNUM0,NJM =',
+     &                 NA,JNUM0(NA),NJM
+            GOTO 9000
+         ENDIF
+C
+         READ(24,250,ERR=9100,END=9200) 
+     &       (XJ0(I,NA),YJ0(I,NA),ZJ0(I,NA),I=1,JNUM0(NA))
+  250    FORMAT(3E23.15)
+   20 CONTINUE
+      CLOSE(24)
+C
+      CALL MODANT(IERR)
+C
+ 9000 RETURN
+C
+ 9100 WRITE(6,*) 'XX ERROR IN READING FILE: ',KFNAMA
+      GOTO 9000
+C
+ 9200 WRITE(6,*) 'XX UNEXPECTED END OF FILE: ',KFNAMA
+      GOTO 9000
+      END
+C
+C     ******* OUTPUT FIELD DATA *******
+C
+      SUBROUTINE WFWFLD
+C
+      INCLUDE 'wfcomm.inc'
+      CHARACTER KNAME*32
+      LOGICAL LEX
+C
+      IF(NFOPEN.EQ.0) THEN
+C
+    1 WRITE(6,*) '## ENTER FIELD FILE NAME: ',KFNAMF
+      READ(5,'(A32)',ERR=1,END=9000) KNAME
+      IF(KNAME(1:2).NE.'/ ') KFNAMF=KNAME
+      INQUIRE(FILE=KFNAMF,EXIST=LEX)
+      IF(LEX) THEN
+         OPEN(26,FILE=KFNAMF,IOSTAT=IST,STATUS='OLD',ERR=10,
+     &        FORM='UNFORMATTED')
+         WRITE(6,*) '## OLD FILE (',KFNAMF,') IS ASSIGNED FOR OUTPUT.'
+         GOTO 30
+   10    WRITE(6,*) 'XX OLD FILE OPEN ERROR : IOSTAT = ',IST
+         GOTO 1
+      ELSE
+         OPEN(26,FILE=KFNAMF,IOSTAT=IST,STATUS='NEW',ERR=20,
+     &        FORM='UNFORMATTED')
+         WRITE(6,*) '## NEW FILE (',KFNAMF,') IS CREATED FOR OUTPUT.'
+         GOTO 30
+   20    WRITE(6,*) 'XX NEW FILE OPEN ERROR : IOSTAT = ',IST
+         GOTO 1
+      ENDIF
+   30 NFOPEN=1
+C
+      ENDIF
+C
+      WRITE(26) MLEN
+      WRITE(26) (CSV(M),M=1,MLEN)
+C
+      WRITE(6,*) '## FIELD DATA SAVED IN FILE: ',KFNAMF
+ 9000 RETURN
+      END
+C
+C     ****** INPUT FIELD DATA ******
+C
+      SUBROUTINE WFRFLD
+C
+      INCLUDE 'wfcomm.inc'
+      LOGICAL LEX
+C
+      IF(NFOPEN.EQ.0) THEN
+C
+      INQUIRE(FILE=KFNAMF,EXIST=LEX)
+      IF(LEX) THEN
+         OPEN(26,FILE=KFNAMF,IOSTAT=IST,STATUS='OLD',ERR=10,
+     &        FORM='UNFORMATTED')
+         WRITE(6,*) '## FILE (',KFNAMF,') IS ASSIGNED FOR FLD INPUT'
+         GOTO 30
+   10    WRITE(6,*) 'XX OLD FILE OPEN ERROR : IOSTAT = ',IST
+         GOTO 9000
+      ELSE
+         WRITE(6,*) 'XX FILE (',KFNAMF,') IS NOT FOUND'
+         GOTO 9000
+      ENDIF
+   30 NFOPEN=1
+C
+      ENDIF
+C
+      READ(26,ERR=9100,END=9200) MLEN
+      READ(26,ERR=9100,END=9200) (CSV(M),M=1,MLEN)
+C
+      WRITE(6,*) '--- WFWPRE started ---'
+      CALL WFWPRE(IERR)
+         IF(IERR.NE.0) GOTO 9000
+C
+      CALL CALFLD
+      CALL PWRABS
+      CALL PWRRAD
+      CALL TERMEP
+      CALL WFCALB
+      CALL LPEFLD
+C
+ 9000 RETURN
+C
+ 9100 WRITE(6,*) 'XX ERROR IN READING FILE: ',KFNAMF
+      GOTO 9000
+C
+ 9200 WRITE(6,*) 'XX UNEXPECTED END OF FILE: ',KFNAMF
+      GOTO 9000
+      END

@@ -1,0 +1,75 @@
+03/07/28 Release of V3.01
+         wfefwg.f: coaxial WG amplitude corrected
+         wfefwg.f: coaxial WG 17 degree added as MODELN=15?
+         wfefwg.f: circular WG RHCP corrected
+         wfefwg.f: SZBDY automatically calculated
+         wfefwg.f: WG field on WG mouth is real and positive
+         wfindx.f: EFINDK corrected
+
+03/06/28 Release of V3.0
+         NGRAPH=3,4,5,6 added for bird's eye view
+	 plasma material corrected
+
+03/06/27 several correction in wfefwg.f 
+
+03/06/25 simple absorption boundary introduced
+         MODELN updated
+         coaxial WG higher mode (not completed)
+         WG multi mode 
+         plasma material updated
+
+03/06/19 clean up preparation for CVSOLV
+         MODELN updated
+         unused or rarely used aarrays deleted
+         parallel plate WG
+         circular WG rotation
+
+03/06/17 WG boundary condition updated
+         poynting flux is shown with "f", e.g. fzcx0.0
+
+03/06/16 first release of side element version
+         NSDM: maximum number of side element
+
+03/06/02 fep error corrected
+
+03/06/01 nasdata input first release
+         edge condition relaxed
+
+03/05/29 doc/def.txt updated
+         MODELI introduced to separate exp(-i omega t) and exp(j omega t)
+
+03/05/22 circular parallel plate WG added MODELN=4XX
+         WG amplitude corrected
+         absorption for new definition of CI corrected
+
+03/05/07 coaxial WG excitation corrected
+         rectangular WG excitation corrected
+         definition of CI changed from exp(-iwt) to exp(jwt)
+             this is temporary; option will change the definition in future
+         parallel plate excitation not completed yet
+
+03/04/28 MODELA added for absorption layer type
+                '0' : No absorption
+                '1' : Absorption layer in x direction
+                '2' : Absorption layer in y direction
+                '3' : Absorption layer in z direction
+            POSRES: position of resonance surface
+            POSABS: position of absorption layer surface
+            EPSABS: typical value of real part of epsilon
+            DLTABS: typical value of imag part of epsilon
+         output:     power absorption corrected
+         graphics:   power absorption in components added
+                     overwrites in elements drawing deleted
+         waveguides: normalization corrected for fundamental modes
+                     not yets for higher modes
+         inputs:     W?1  : modified for input from z=0
+                     W?1a : added for cases with absorption layer
+
+03/04/22 MODELX added:
+            MODELX=0 for plasma
+            MODELX=3 for vacuum
+            MODELX will be removed in final version
+         NGRAPH modified:
+            NGRAPH=0: text output (default fort.22)
+            NGRAPH=1: default graphic output (contour plot)
+            NGRAPH=2: graphic output (painted plot)

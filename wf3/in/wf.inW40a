@@ -1,0 +1,27 @@
+0
+f
+gsdata.W40a
+c
+#
+ MODELN=403 MODELS=6 MODELX=3 RF=2450
+ NGXMAX=101 NGYMAX=101 NGVMAX=101
+ MODELA=4 POSRES=0.25 POSABS=0.15
+d
+d
+a
+0.30,0.05,0.0,0.02
+0.01,0.01,0.01
+g
+s
+elm-data
+x
+#
+v
+w
+g
+ezrz0.01 eziz0.01
+ezx0.0,0.01
+ezy0.0,0.01
+mez0.01
+x
+q
