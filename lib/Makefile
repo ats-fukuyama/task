@@ -61,6 +61,10 @@ veryclean: clean
 testfem: tasklib.a testfem.o 
 	$(FCFREE) testfem.o tasklib.a $(FFLAGS) -o $@ $(FLIBS) $(MODINCLUDE)
 
+testfem_func: tasklib.a testfem_func.o 
+	$(FCFREE) testfem_func.o tasklib.a $(FFLAGS) -o $@ $(FLIBS) \
+	$(MODINCLUDE)
+
 testbes: tasklib.a testbes.o 
 	$(FCFIXED) testbes.o tasklib.a $(FFLAGS) -o $@ $(FLIBS)
 

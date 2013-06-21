@@ -31,6 +31,8 @@ MODULE libfem
   real(8), dimension(1:4,1:6,1:4), save, public :: table_pqp
   integer, save, public :: table_initialize_flag = 0
   public :: table_initialize, fem_integrate
+  public :: fem_func_l, fem_func_p, fem_func_h, fem_func_g
+  
 
 CONTAINS
 
@@ -4393,5 +4395,193 @@ CONTAINS
     end select
 
   end subroutine fem_integrate
+
+  FUNCTION fem_func_l(x,id,mode)
+    !  fem linear function Id=1,2, mode=0 : function
+    !                              mode=1 : derivative
+    !                              mode=2 : integral from 0 to x
+    REAL(8),INTENT(IN):: x
+    INTEGER,INTENT(IN):: id,mode
+    REAL(8):: fem_func_l
+
+    SELECT CASE(mode)
+    CASE(0)
+       SELECT CASE(id)
+       CASE(1)
+          fem_func_l = 1.D0-x
+       CASE(2)
+          fem_func_l = x
+       CASE DEFAULT
+          WRITE(6,'(A,I3)') 'XX fem_func_l: id is out of range [1,2]:',id
+       END SELECT
+    CASE(1)
+       SELECT CASE(id)
+       CASE(1)
+          fem_func_l = -1.D0
+       CASE(2)
+          fem_func_l =  1.D0
+       CASE DEFAULT
+          WRITE(6,'(A,I3)') 'XX fem_func_l: id is out of range [1,2]:',id
+       END SELECT
+    CASE(2)
+       SELECT CASE(id)
+       CASE(1)
+          fem_func_l = x - 0.5D0*x**2
+       CASE(2)
+          fem_func_l = 0.5D0*x**2
+       CASE DEFAULT
+          WRITE(6,'(A,I3)') 'XX fem_func_l: id is out of range [1,2]:',id
+       END SELECT
+    CASE DEFAULT
+       WRITE(6,'(A,I3)') 'XX fem_func_l: mode is out of range [0,2]:',mode
+    END SELECT
+  END FUNCTION fem_func_l
+
+  FUNCTION fem_func_p(x,id,mode)
+    !  fem polynomial function Id=1,2, mode=0 : function
+    !                                  mode=1 : derivative
+    !                                  mode=2 : integral from 0 to x
+    REAL(8),INTENT(IN):: x
+    INTEGER,INTENT(IN):: id,mode
+    REAL(8):: fem_func_p
+
+    SELECT CASE(mode)
+    CASE(0)
+       SELECT CASE(id)
+       CASE(1)
+          fem_func_p = -2.D0*(x-0.75D0)
+       CASE(2)
+          fem_func_p =  2.D0*(x-0.25D0)
+       CASE DEFAULT
+          WRITE(6,'(A,I3)') 'XX fem_func_p: id is out of range [1,2]:',id
+       END SELECT
+    CASE(1)
+       SELECT CASE(id)
+       CASE(1)
+          fem_func_p = -2.D0
+       CASE(2)
+          fem_func_p =  2.D0
+       CASE DEFAULT
+          WRITE(6,'(A,I3)') 'XX fem_func_p: id is out of range [1,2]:',id
+       END SELECT
+    CASE(2)
+       SELECT CASE(id)
+       CASE(1)
+          fem_func_p = -2.D0*(0.5D0*x*x-0.75D0*x)
+       CASE(2)
+          fem_func_p =  2.D0*(0.5D0*x*x-0.25D0*x)
+       CASE DEFAULT
+          WRITE(6,'(A,I3)') 'XX fem_func_p: id is out of range [1,2]:',id
+       END SELECT
+    CASE DEFAULT
+       WRITE(6,'(A,I3)') 'XX fem_func_p: mode is out of range [0,2]:',mode
+    END SELECT
+  END FUNCTION fem_func_p
+
+  FUNCTION fem_func_h(x,id,mode)
+    !  fem hermite function Id=1:4, mode=0 : function
+    !                               mode=1 : derivative
+    !                               mode=2 : integral from 0 to x
+    REAL(8),INTENT(IN):: x
+    INTEGER,INTENT(IN):: id,mode
+    REAL(8):: fem_func_h
+
+    SELECT CASE(mode)
+    CASE(0)
+       SELECT CASE(id)
+       CASE(1)
+          fem_func_h = (1.D0-x)**2*(1.D0+2.D0*x)
+       CASE(2)
+          fem_func_h = x*(1.D0-x)**2
+       CASE(3)
+          fem_func_h = x**2*(3.D0-2.D0*x)
+       CASE(4)
+          fem_func_h =-x**2*(1.D0-x)
+       CASE DEFAULT
+          WRITE(6,'(A,I3)') 'XX fem_func_h: id is out of range [1,4]:',id
+       END SELECT
+    CASE(1)
+       SELECT CASE(id)
+       CASE(1)
+          fem_func_h = -6.D0*x*(1.D0-x)
+       CASE(2)
+          fem_func_h =  (1.D0-x)*(1.D0-3.D0*x)
+       CASE(3)
+          fem_func_h =  6.D0*x*(1.D0-x)
+       CASE(4)
+          fem_func_h =  x*(-2.D0+3.D0*x)
+       CASE DEFAULT
+          WRITE(6,'(A,I3)') 'XX fem_func_h: id is out of range [1,4]:',id
+       END SELECT
+    CASE(2)
+       SELECT CASE(id)
+       CASE(1)
+          fem_func_h = x*(1.D0-x*x*(1-0.5D0*x))
+       CASE(2)
+          fem_func_h = x*x*(6.D0-8.D0*x+3.D0*x*x)/12.D0
+       CASE(3)
+          fem_func_h = x*x*x*(1.D0-0.5D0*x)
+       CASE(4)
+          fem_func_h = x*x*x*(-4.D0+3.D0*x)/12.D0
+       CASE DEFAULT
+          WRITE(6,'(A,I3)') 'XX fem_func_h: id is out of range [1,4]:',id
+       END SELECT
+    CASE DEFAULT
+       WRITE(6,'(A,I3)') 'XX fem_func_h: mode is out of range [0,2]:',mode
+    END SELECT
+  END FUNCTION fem_func_h
+
+  FUNCTION fem_func_g(x,id,mode)
+    !  fem hermite function Id=1:4, mode=0 : function
+    !                               mode=1 : derivative
+    !                               mode=2 : integral from 0 to x
+    REAL(8),INTENT(IN):: x
+    INTEGER,INTENT(IN):: id,mode
+    REAL(8):: fem_func_g
+
+    SELECT CASE(mode)
+    CASE(0)
+       SELECT CASE(id)
+       CASE(1)
+          fem_func_g = 1.D0
+       CASE(2)
+          fem_func_g = x - 0.5D0
+       CASE(3)
+          fem_func_g = (x-0.5D0)**2/2.D0
+       CASE(4)
+          fem_func_g = (x-0.5D0)**3/6.D0
+       CASE DEFAULT
+          WRITE(6,'(A,I3)') 'XX fem_func_g: id is out of range [1,4]:',id
+       END SELECT
+    CASE(1)
+       SELECT CASE(id)
+       CASE(1)
+          fem_func_g =  0.D0
+       CASE(2)
+          fem_func_g =  1.D0
+       CASE(3)
+          fem_func_g =  x-0.5D0
+       CASE(4)
+          fem_func_g =  (x-0.5D0)**2/2.D0
+       CASE DEFAULT
+          WRITE(6,'(A,I3)') 'XX fem_func_g: id is out of range [1,4]:',id
+       END SELECT
+    CASE(2)
+       SELECT CASE(id)
+       CASE(1)
+          fem_func_g = x
+       CASE(2)
+          fem_func_g = (x-0.5D0)**2/2.D0-0.125D0
+       CASE(3)
+          fem_func_g = (x-0.5D0)**3/6.D0+0.125D0/6.D0
+       CASE(4)
+          fem_func_g = (x-0.5D0)**4/24.D0-0.0625D0/24.D0
+       CASE DEFAULT
+          WRITE(6,'(A,I3)') 'XX fem_func_g: id is out of range [1,4]:',id
+       END SELECT
+    CASE DEFAULT
+       WRITE(6,'(A,I3)') 'XX fem_func_g: mode is out of range [0,2]:',mode
+    END SELECT
+  END FUNCTION fem_func_g
 
 END MODULE libfem

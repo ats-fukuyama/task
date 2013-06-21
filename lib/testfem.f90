@@ -4114,7 +4114,7 @@ program testfem
       complex(8),parameter:: ci=(0.d0,1.d0)
       integer:: ig,l
       complex(8):: moment0,moment1,moment2,moment3
-      real(8):: xi,yi
+      real(8):: xi,yi,x
       real(8),parameter:: m0=4.D0
       real(8),parameter:: m2=5.D0/16.D0
       real(8),parameter:: m4=41.D0/1024.D0
@@ -4376,12 +4376,25 @@ program testfem
       end do
 
       nr=nrd
-        divj=ci*(nth*(1.D0-angl)+nph*rd*angl)
-        fvb(8*(nr-1)+1)=(rho(nr+1)-rd)*divj
-        fvb(8*(nr-1)+3)=1.d0-angl
-        fvb(8*(nr-1)+5)=angl
+        x=(rd-rho(nr))/(rho(nr+1)-rho(nr))
+        divj=-ci*(nth*(1.D0-angl)+nph*rd*angl)*(rho(nr+1)-rho(nr))
+        fvb(8*(nr-1)+1)=divj*(fem_func_h(1.D0,1,2)-fem_func_h(x,1,2))
+        fvb(8*(nr-1)+2)=divj*(fem_func_h(1.D0,2,2)-fem_func_h(x,2,2))
+        fvb(8* nr   +1)=divj*(fem_func_h(1.D0,3,2)-fem_func_h(x,3,2))
+        fvb(8* nr   +2)=divj*(fem_func_h(1.D0,4,2)-fem_func_h(x,4,2))
+        fvb(8*(nr-1)+3)=(1.d0-angl)*fem_func_h(x,1,0)
+        fvb(8*(nr-1)+4)=(1.d0-angl)*fem_func_h(x,2,0)
+        fvb(8* nr   +3)=(1.d0-angl)*fem_func_h(x,3,0)
+        fvb(8* nr   +4)=(1.d0-angl)*fem_func_h(x,4,0)
+        fvb(8*(nr-1)+5)=angl*fem_func_h(x,1,0)
+        fvb(8*(nr-1)+6)=angl*fem_func_h(x,2,0)
+        fvb(8* nr   +5)=angl*fem_func_h(x,3,0)
+        fvb(8* nr   +6)=angl*fem_func_h(x,4,0)
       do nr=nrd+1,nrmax-1
-         fvb(8*(nr-1)+1)=(rho(nr+1)-rho(nr))*divj
+         fvb(8*(nr-1)+1)=divj*fem_func_h(1.D0,1,2)
+         fvb(8*(nr-1)+2)=divj*fem_func_h(1.D0,2,2)
+         fvb(8* nr   +1)=divj*fem_func_h(1.D0,3,2)
+         fvb(8* nr   +2)=divj*fem_func_h(1.D0,4,2)
       end do
 
       return
