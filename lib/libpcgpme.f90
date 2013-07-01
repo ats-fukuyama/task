@@ -52,7 +52,7 @@ CONTAINS
       INTEGER,INTENT(OUT):: ITROUT,IER
       REAL(8),INTENT(OUT):: EPSOUT
       REAL(8),DIMENSION(N):: B
-      REAL(8),DIMENSION(N+N2):: DD
+      REAL(8),DIMENSION(N+N2):: DD,TEMP
       REAL(8),DIMENSION(N+N2,5):: WK
       INTEGER:: I,J,K,ITR
       REAL(8):: PARM,BN,C1,RQ,ALP,AMU,SS,RN,ERR,BETA,EPS
@@ -100,12 +100,18 @@ CONTAINS
 
 !*    B=PM*B.
 
-      CALL LDUSUB(N2,AL,NL,NA,LL,N,WK,WK,DD)
+      CALL LDUSUB(N2,AL,NL,NA,LL,N,WK(1,1),TEMP,DD)
+      DO I=1,N+N2
+         WK(I,1)=TEMP(I)
+      END DO
 
 !*    Q=PM*A*X.
 
       CALL AXSUB(N2,AL,NL,NA,LL,N,D,X,WK(1,3))
-      CALL LDUSUB(N2,AL,NL,NA,LL,N,WK(1,3),WK(1,3),DD)
+      CALL LDUSUB(N2,AL,NL,NA,LL,N,WK(1,3),TEMP,DD)
+      DO I=1,N+N2
+         WK(I,3)=TEMP(I)
+      END DO
 
 !*    BN=(B,B) , P=R0=R=B-Q , C1=(R,R).
       BN=0.D0
@@ -122,7 +128,10 @@ CONTAINS
       DO K=1,ITR
 !*    Q=PM*A*P.
          CALL AXSUB(N2,AL,NL,NA,LL,N,D,WK(1,1),WK(1,3))
-         CALL LDUSUB(N2,AL,NL,NA,LL,N,WK(1,3),WK(1,3),DD)
+         CALL LDUSUB(N2,AL,NL,NA,LL,N,WK(1,3),TEMP,DD)
+         DO I=1,N+N2
+            WK(I,3)=TEMP(I)
+         END DO
 !*    ALP=C1/(R0,Q).
          RQ=0.D0
          DO I=1,N
@@ -135,7 +144,10 @@ CONTAINS
          END DO
 !*    V=PM*A*E.
          CALL AXSUB(N2,AL,NL,NA,LL,N,D,WK(1,4),WK(1,5))
-         CALL LDUSUB(N2,AL,NL,NA,LL,N,WK(1,5),WK(1,5),DD)
+         CALL LDUSUB(N2,AL,NL,NA,LL,N,WK(1,5),TEMP,DD)
+         DO I=1,N+N2
+            WK(I,5)=TEMP(I)
+         END DO
 !*    AMU=(E,V)/(V,V).
          AMU=0.D0
          SS=0.D0

@@ -1,7 +1,7 @@
 include ../../task/make.header
 
-#FFLAGS=$(OFLAGS)
-FFLAGS=$(DFLAGS)
+FFLAGS=$(OFLAGS)
+#FFLAGS=$(DFLAGS)
 
 
 ##### Without PETSc library (no MPI, real8 and complex8) #####
@@ -51,14 +51,14 @@ LIBMUMPS=$(LIBMPI) libmtxmumps.o
 LIBMUMPSX=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common -lpord -lscalapack -lblacs -lparmetis -lmetis -llapack -lblas
 
 testbnd: $(LIBBND) testmtx.o 
-	-${FLINKER} -g -o testbnd testmtx.o $(LIBBND) ../lib/libbnd.o
+	-${FCFREE} -g -o testbnd testmtx.o $(LIBBND) ../lib/libbnd.o
 
 testbndc: $(LIBBNDC) testmtxc.o 
-	-${FLINKER} -g -o testbndc testmtxc.o $(LIBBND) \
+	-$(FCFREE) -g -o testbndc testmtxc.o $(LIBBND) \
 	../lib/tasklib.a $(FLIBS)
 
 testpcg: $(LIBPCG) testmtx.o 
-	$(MF90) $(FFLAGS) -o testpcg testmtx.o $(LIBPCG) ../lib/libpcgpme.o
+	-$(FCFREE) $(FFLAGS) -o testpcg testmtx.o $(LIBPCG) ../lib/libpcgpme.o
 
 testksp: $(LIBKSP) testmtx.o
 	-${FLINKER} -g -o testksp testmtx.o $(LIBKSP) ${PETSC_KSP_LIB}

@@ -193,6 +193,7 @@
          NL(i)=0
          DO j=1,NLMAX
             LL(i,j)=0
+            AL(i,j)=0.D0
          END DO
       END DO
       DO nz=1,nzcount
