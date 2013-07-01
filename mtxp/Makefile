@@ -1,20 +1,20 @@
 include ../../task/make.header
 
-#FFLAGS=$(OFLAGS)
-FFLAGS=$(DFLAGS)
+FFLAGS=$(OFLAGS)
+#FFLAGS=$(DFLAGS)
 
 
 ##### Without PETSc library (no MPI, real8 and complex8) #####
-FLINKER=$(FCFREE)
-INCLUDE_MUMPS=.
-EXEC=testbnd testbndc testpcg
-all: $(EXEC)
-.SUFFIXES:
-.SUFFIXES: .f .f90 .mod .o .a
-.f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@
-clean :
-	-rm -f core a.out *.o *.a ./#* ./*~ ./*.mod
+#FLINKER=$(FCFREE)
+#INCLUDE_MUMPS=.
+#EXEC=testbnd testbndc testpcg
+#all: $(EXEC)
+#.SUFFIXES:
+#.SUFFIXES: .f .f90 .mod .o .a
+#.f90.o :
+#	$(FCFREE) $(FFLAGS) -c $< -o $@
+#clean :
+#	-rm -f core a.out *.o *.a ./#* ./*~ ./*.mod
 
 #### With MUMPS library (real8 and complex8)
 #FLINKER=$(MF90)
@@ -33,12 +33,12 @@ clean :
 #INCLUDE_MUMPS=${PETSC_DIR}/externalpackages/MUMPS_4.10.0/include
 # and modify chebychev to chebyshev in libmtxksp.F)0
 #
-#EXEC=testbnd testpcg testbndc testdmumps testzmumps testksp
-#all: $(EXEC)
-#include ${PETSC_DIR}/conf/variables
-#include ${PETSC_DIR}/conf/rules
-#INCLUDE_MUMPS=${PETSC_DIR}/externalpackages/MUMPS_4.10.0-p3/include
-#INCLUDE_PETSC=${PETSC_DIR}/include
+EXEC=testbnd testpcg testbndc testdmumps testzmumps testksp
+all: $(EXEC)
+include ${PETSC_DIR}/conf/variables
+include ${PETSC_DIR}/conf/rules
+INCLUDE_MUMPS=${PETSC_DIR}/externalpackages/MUMPS_4.10.0-p3/include
+INCLUDE_PETSC=${PETSC_DIR}/include
 
 INCMOD=-I $(MOD) -I../lib/$(MOD)
 LIBMOD=-L../lib -l libgrf
