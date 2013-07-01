@@ -100,16 +100,22 @@ CONTAINS
 
 !*    B=PM*B.
 
-      CALL LDUSUB(N2,AL,NL,NA,LL,N,WK(1,1),TEMP,DD)
       DO I=1,N+N2
+         TEMP(I)=WK(I,1)
+      END DO
+      CALL LDUSUB(N2,AL,NL,NA,LL,N,WK(1,1),TEMP,DD)
+      DO I=1,N
          WK(I,1)=TEMP(I)
       END DO
 
 !*    Q=PM*A*X.
 
       CALL AXSUB(N2,AL,NL,NA,LL,N,D,X,WK(1,3))
-      CALL LDUSUB(N2,AL,NL,NA,LL,N,WK(1,3),TEMP,DD)
       DO I=1,N+N2
+         TEMP(I)=WK(I,3)
+      END DO
+      CALL LDUSUB(N2,AL,NL,NA,LL,N,WK(1,3),TEMP,DD)
+      DO I=1,N
          WK(I,3)=TEMP(I)
       END DO
 
@@ -128,8 +134,11 @@ CONTAINS
       DO K=1,ITR
 !*    Q=PM*A*P.
          CALL AXSUB(N2,AL,NL,NA,LL,N,D,WK(1,1),WK(1,3))
-         CALL LDUSUB(N2,AL,NL,NA,LL,N,WK(1,3),TEMP,DD)
          DO I=1,N+N2
+            TEMP(I)=WK(I,3)
+         END DO
+         CALL LDUSUB(N2,AL,NL,NA,LL,N,WK(1,3),TEMP,DD)
+         DO I=1,N
             WK(I,3)=TEMP(I)
          END DO
 !*    ALP=C1/(R0,Q).
@@ -144,8 +153,11 @@ CONTAINS
          END DO
 !*    V=PM*A*E.
          CALL AXSUB(N2,AL,NL,NA,LL,N,D,WK(1,4),WK(1,5))
-         CALL LDUSUB(N2,AL,NL,NA,LL,N,WK(1,5),TEMP,DD)
          DO I=1,N+N2
+            TEMP(I)=WK(I,5)
+         END DO
+         CALL LDUSUB(N2,AL,NL,NA,LL,N,WK(1,5),TEMP,DD)
+         DO I=1,N
             WK(I,5)=TEMP(I)
          END DO
 !*    AMU=(E,V)/(V,V).

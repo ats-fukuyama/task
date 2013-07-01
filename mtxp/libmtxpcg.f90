@@ -82,7 +82,7 @@
       INTEGER,INTENT(OUT):: istart_,iend_  ! allocated range of lines 
       INTEGER,OPTIONAL,INTENT(IN):: jwidth ! band matrix width
       INTEGER,OPTIONAL,INTENT(IN):: nzmax  ! number of nonzero components
-      INTEGER:: i,j
+      INTEGER:: i
 
       imax=imax_
       IF(PRESENT(nzmax)) THEN
@@ -95,6 +95,9 @@
       nzcount=0
       istart_=1
       iend_=imax
+      DO i=1,imax
+         x(i)=0.D0
+      END DO
       RETURN
       END SUBROUTINE mtx_setup
 
