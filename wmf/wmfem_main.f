@@ -37,75 +37,75 @@
 
       subroutine wmfem_setup_index
 
-      integer:: nth,nph,nfc,nfc2
+      integer:: nth,nhh,nfc,nfc2
 
 !     setup an array of mode number
 
       if(nthmax.eq.1) then
-         do nph=1,nphmax
-            nfc=nph
+         do nhh=1,nhhmax
+            nfc=nhh
             nthnfc(nfc)=1
             mmnfc(nfc)=nth0
          enddo
       else
-         do nph=1,nphmax
+         do nhh=1,nhhmax
          do nth=1,nthmax
-            nfc=nthmax*(nph-1)+nth
+            nfc=nthmax*(nhh-1)+nth
             nthnfc(nfc)=nth
          enddo
          do nth=1,nthmax/2
-            nfc=nthmax*(nph-1)+nth
+            nfc=nthmax*(nhh-1)+nth
             mmnfc(nfc)=nth0+nth-1
-            nfc=nthmax*(nph-1)+nthmax+1-nth
+            nfc=nthmax*(nhh-1)+nthmax+1-nth
             mmnfc(nfc)=nth0-nth
          enddo
          enddo
       endif
 
-      if(nphmax.eq.1) then
+      if(nhhmax.eq.1) then
          do nth=1,nthmax
             nfc=nth
-            nphnfc(nfc)=1
+            nhhnfc(nfc)=1
             nnnfc(nfc)=nph0
          enddo
       else
          do nth=1,nthmax
-         do nph=1,nphmax
-            nfc=nthmax*(nph-1)+nth
-            nphnfc(nfc)=nph
+         do nhh=1,nhhmax
+            nfc=nthmax*(nhh-1)+nth
+            nhhnfc(nfc)=nhh
          enddo
-         do nph=1,nphmax/2
-            nfc=nthmax*(nph-1)+nth
-            nnnfc(nfc)=nph0+nph-1
-            nfc=nthmax*(nphmax-nph)+nth
-            nnnfc(nfc)=nph0-nph
+         do nhh=1,nhhmax/2
+            nfc=nthmax*(nhh-1)+nth
+            nnnfc(nfc)=nph0+nhh-1
+            nfc=nthmax*(nhhmax-nhh)+nth
+            nnnfc(nfc)=nph0-nhh
          enddo
          enddo
       endif
 
-      do nph=1,nphmax2
+      do nhh=1,nhhmax2
          do nth=1,nthmax2
-            nfc2=nthmax2*(nph-1)+nth
+            nfc2=nthmax2*(nhh-1)+nth
             nthnfc2(nfc2)=nth
          enddo
          do nth=1,nthmax
-            nfc2=nthmax2*(nph-1)+nth
+            nfc2=nthmax2*(nhh-1)+nth
             mmnfc2(nfc2)=nth0+nth-1
-            nfc=nthmax2*(nph-1)+nthmax2+1-nth
+            nfc=nthmax2*(nhh-1)+nthmax2+1-nth
             mmnfc2(nfc2)=nth0-nth
          enddo
       enddo
       
       do nth=1,nthmax2
-         do nph=1,nphmax2
-            nfc2=nthmax2*(nph-1)+nth
-            nphnfc2(nfc2)=nph
+         do nhh=1,nhhmax2
+            nfc2=nthmax2*(nhh-1)+nth
+            nhhnfc2(nfc2)=nhh
          enddo
-         do nph=1,nphmax
-            nfc2=nthmax2*(nph-1)+nth
-            nnnfc2(nfc2)=nph0+nph-1
-            nfc2=nthmax2*(nphmax2-nph)+nth
-            nnnfc2(nfc2)=nph0-nph
+         do nhh=1,nhhmax
+            nfc2=nthmax2*(nhh-1)+nth
+            nnnfc2(nfc2)=nph0+nhh-1
+            nfc2=nthmax2*(nhhmax2-nhh)+nth
+            nnnfc2(nfc2)=nph0-nhh
          enddo
       enddo
 
@@ -118,11 +118,11 @@
 
       complex(8),dimension(:,:),allocatable:: fma_local
       complex(8),dimension(:,:,:),allocatable:: fvb1_local,fvb2_local
-      integer:: ml,mw,ns,nfc,nth,nph,nr,mb1,mb2,mm,nn,i
+      integer:: ml,mw,ns,nfc,nth,nhh,nr,mb1,mb2,mm,nn,i
 
       allocate(fma_local(mbmax,mbmax))
-      allocate(fvb1_local(nphmax,nthmax,3))
-      allocate(fvb2_local(nphmax,nthmax,3))
+      allocate(fvb1_local(nhhmax,nthmax,3))
+      allocate(fvb2_local(nhhmax,nthmax,3))
 
       do ml=1,mlmax             ! clear global matrix fma
          do mw=1,mwmax
@@ -162,30 +162,30 @@
          call get_wmfvb(nr,  fvb1_local)
          call get_wmfvb(nr+1,fvb2_local)
          do nfc=1,nfcmax
-            nph=nphnfc(nfc)
+            nhh=nhhnfc(nfc)
             nth=nthnfc(nfc)
             i=1 ! E_perp (nr)
             ml=6*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
-            fvb(ml)=fvb(ml)+fvb1_local(nph,nth,2)
+            fvb(ml)=fvb(ml)+fvb1_local(nhh,nth,2)
             i=2 ! E_para (nr)
             ml=6*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
-            fvb(ml)=fvb(ml)+fvb1_local(nph,nth,3)
+            fvb(ml)=fvb(ml)+fvb1_local(nhh,nth,3)
             i=3 ! E_rho (nr+1/4)
             ml=6*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
-            fvb(ml)=fvb(ml)+0.75D0*fvb1_local(nph,nth,1)
-     &                     +0.25D0*fvb2_local(nph,nth,1)
+            fvb(ml)=fvb(ml)+0.75D0*fvb1_local(nhh,nth,1)
+     &                     +0.25D0*fvb2_local(nhh,nth,1)
             i=4 ! E_perp (nr+1/2)
             ml=6*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
-            fvb(ml)=fvb(ml)+0.50D0*fvb1_local(nph,nth,2)
-     &                     +0.50D0*fvb2_local(nph,nth,2)
+            fvb(ml)=fvb(ml)+0.50D0*fvb1_local(nhh,nth,2)
+     &                     +0.50D0*fvb2_local(nhh,nth,2)
             i=5 ! E_para (nr+1/2)
             ml=6*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
-            fvb(ml)=fvb(ml)+0.50D0*fvb1_local(nph,nth,3)
-     &                     +0.50D0*fvb2_local(nph,nth,3)
+            fvb(ml)=fvb(ml)+0.50D0*fvb1_local(nhh,nth,3)
+     &                     +0.50D0*fvb2_local(nhh,nth,3)
             i=6 ! E_rho (nr+3/4)
             ml=6*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
-            fvb(ml)=fvb(ml)+0.25D0*fvb1_local(nph,nth,1)
-     &                     +0.75D0*fvb2_local(nph,nth,1)
+            fvb(ml)=fvb(ml)+0.25D0*fvb1_local(nhh,nth,1)
+     &                     +0.75D0*fvb2_local(nhh,nth,1)
          enddo
       enddo
 
@@ -305,7 +305,7 @@
 
       subroutine wmfem_boundary_condition_axis1
 
-      complex(8),dimension(3,3,nthmax2,nphmax2):: mtxcl
+      complex(8),dimension(3,3,nthmax2,nhhmax2):: mtxcl
 !      complex(8),dimension(3*nfcmax,3*nfcmax):: mtxclx
       complex(8),dimension(:,:),ALLOCATABLE:: mtxclx
       complex(8),dimension(:,:),ALLOCATABLE:: mtx0,mtx1,mtx0i,mtx1i
@@ -320,7 +320,7 @@
 
       allocate(mtxclx(3*nfcmax,3*nfcmax))
 
-      CALL wmeq_get_mtxCL(nthmax2,nphmax2,mtxcl)
+      CALL wmeq_get_mtxCL(nthmax2,nhhmax2,mtxcl)
 
       do nfc1=1,nfcmax
          do nfc2=1,nfcmax
@@ -330,7 +330,7 @@
             mm2=mmnfc(nfc2)
             nn3=nn1-nn2
             mm3=mm1-mm2
-            IF(nn3.LT.0) nn3=nn3+nphmax2
+            IF(nn3.LT.0) nn3=nn3+nhhmax2
             IF(mm3.LT.0) mm3=mm3+nthmax2
             do i=1,3
                do j=1,3
@@ -676,8 +676,8 @@
 
       integer:: mwc,nr,nn,mm,mll,ml,mw,ns,nfc,imax,i
 
-      if(nphmax.gt.1) then
-         nn=nphmax/2+1
+      if(nhhmax.gt.1) then
+         nn=nhhmax/2+1
          do nr=1,nrmax
             IF(nr.EQ.nrmax) THEN
                imax=2
@@ -686,7 +686,7 @@
             END IF
             do mm=1,nthmax
                mll=6*nthmax*(nn-1)+6*(mm-1)
-               ml=6*nthmax*nphmax*(nr-1)+mll
+               ml=6*nthmax*nhhmax*(nr-1)+mll
                do i=1,imax
                   do mw=1,mwmax
                      fma(mw,ml+i)=0.d0
@@ -716,9 +716,9 @@
             ELSE
                imax=6
             END IF
-            do nn=1,nphmax
+            do nn=1,nhhmax
                mll=6*nthmax*(nn-1)+6*(mm-1)
-               ml=6*nthmax*nphmax*(nr-1)+mll
+               ml=6*nthmax*nhhmax*(nr-1)+mll
                do i=1,imax
                   do mw=1,mwmax
                      fma(mw,ml+i)=0.d0
@@ -766,7 +766,7 @@
 
       subroutine wmfem_calculate_efield
 
-      integer:: nr,nn,mm,ml,nfc,nth,nph
+      integer:: nr,nn,mm,ml,nfc,nth,nhh
       real(8):: drho
 
       nr=1
@@ -774,27 +774,27 @@
       do nfc=1,nfcmax
          nth=nthnfc(nfc)
          mm=mmnfc(nfc)
-         nph=nphnfc(nfc)
+         nhh=nhhnfc(nfc)
          nn=nnnfc(nfc)
-         ml=6*nfcmax*(nr-1)+nthmax*(nph-1)+(nth-1)
+         ml=6*nfcmax*(nr-1)+nthmax*(nhh-1)+(nth-1)
          IF(abs(mm) == 1) THEN
-            cef(1,nth,nph,nr)=(9.D0*fvx(ml+2*nfcmax+1)
+            cef(1,nth,nhh,nr)=(9.D0*fvx(ml+2*nfcmax+1)
      &                        -1.D0*fvx(ml+5*nfcmax+1))/8.D0
-            cdef(1,nth,nph,nr)=0.D0
-            cef(2,nth,nph,nr)= fvx(ml+1)
-            cdef(2,nth,nph,nr)= 0.D0
+            cdef(1,nth,nhh,nr)=0.D0
+            cef(2,nth,nhh,nr)= fvx(ml+1)
+            cdef(2,nth,nhh,nr)= 0.D0
          ELSE
-            cef(1,nth,nph,nr)=0.D0
-            cdef(1,nth,nph,nr)=fvx(ml+2*nfcmax+1)/(0.25D0*drho)
-            cef(2,nth,nph,nr)=0.D0
-            cdef(2,nth,nph,nr)=fvx(ml+3*nfcmax+1)/(0.5D0*drho)
+            cef(1,nth,nhh,nr)=0.D0
+            cdef(1,nth,nhh,nr)=fvx(ml+2*nfcmax+1)/(0.25D0*drho)
+            cef(2,nth,nhh,nr)=0.D0
+            cdef(2,nth,nhh,nr)=fvx(ml+3*nfcmax+1)/(0.5D0*drho)
          END IF
          IF(abs(mm) == 0) THEN
-            cef(3,nth,nph,nr)= fvx(ml+nfcmax+1)
-            cdef(3,nth,nph,nr)=0.D0
+            cef(3,nth,nhh,nr)= fvx(ml+nfcmax+1)
+            cdef(3,nth,nhh,nr)=0.D0
          ELSE
-            cef(3,nth,nph,nr)= 0.D0
-            cdef(3,nth,nph,nr)=fvx(ml+4*nfcmax+1)/(0.5D0*drho)
+            cef(3,nth,nhh,nr)= 0.D0
+            cdef(3,nth,nhh,nr)=fvx(ml+4*nfcmax+1)/(0.5D0*drho)
          END IF
       enddo
 
@@ -803,18 +803,18 @@
          do nfc=1,nfcmax
             nth=nthnfc(nfc)
             mm=mmnfc(nfc)
-            nph=nphnfc(nfc)
+            nhh=nhhnfc(nfc)
             nn=nnnfc(nfc)
-            ml=6*nfcmax*(nr-1)+nthmax*(nph-1)+(nth-1)
-            cef(1,nth,nph,nr)=0.5d0*(fvx(ml+2*nfcmax+1)
+            ml=6*nfcmax*(nr-1)+nthmax*(nhh-1)+(nth-1)
+            cef(1,nth,nhh,nr)=0.5d0*(fvx(ml+2*nfcmax+1)
      &                              +fvx(ml-  nfcmax+1))
-            cdef(1,nth,nph,nr)=(fvx(ml+2*nfcmax+1)
+            cdef(1,nth,nhh,nr)=(fvx(ml+2*nfcmax+1)
      &                         -fvx(ml-  nfcmax+1))/(0.5D0*drho)
-            cef(2,nth,nph,nr)=fvx(ml         +1)
-            cdef(2,nth,nph,nr)=(fvx(ml+3*nfcmax+1)
+            cef(2,nth,nhh,nr)=fvx(ml         +1)
+            cdef(2,nth,nhh,nr)=(fvx(ml+3*nfcmax+1)
      &                         -fvx(ml-3*nfcmax+1))/drho
-            cef(3,nth,nph,nr)=fvx(ml+  nfcmax+1)
-            cdef(3,nth,nph,nr)=(fvx(ml+4*nfcmax+1)
+            cef(3,nth,nhh,nr)=fvx(ml+  nfcmax+1)
+            cdef(3,nth,nhh,nr)=(fvx(ml+4*nfcmax+1)
      &                         -fvx(ml-2*nfcmax+1))/drho
          enddo
       enddo
@@ -824,18 +824,18 @@
          do nfc=1,nfcmax
             nth=nthnfc(nfc)
             mm=mmnfc(nfc)
-            nph=nphnfc(nfc)
+            nhh=nhhnfc(nfc)
             nn=nnnfc(nfc)
-            ml=6*nfcmax*(nr-1)+nthmax*(nph-1)+(nth-1)
-            cef(1,nth,nph,nr)=(3.D0*fvx(ml-  nfcmax+1)
+            ml=6*nfcmax*(nr-1)+nthmax*(nhh-1)+(nth-1)
+            cef(1,nth,nhh,nr)=(3.D0*fvx(ml-  nfcmax+1)
      &                             -fvx(ml-4*nfcmax+1))/2.D0
-            cdef(1,nth,nph,nr)=(fvx(ml-  nfcmax+1)
+            cdef(1,nth,nhh,nr)=(fvx(ml-  nfcmax+1)
      &                         -fvx(ml-4*nfcmax+1))/(0.5D0*drho)
-            cef(2,nth,nph,nr)=fvx(ml         +1)
-            cdef(2,nth,nph,nr)=(fvx(ml         +1)
+            cef(2,nth,nhh,nr)=fvx(ml         +1)
+            cdef(2,nth,nhh,nr)=(fvx(ml         +1)
      &                         -fvx(ml-3*nfcmax+1))/(0.5D0*drho)
-            cef(3,nth,nph,nr)=fvx(ml+  nfcmax+1)
-            cdef(3,nth,nph,nr)=(fvx(ml+  nfcmax+1)
+            cef(3,nth,nhh,nr)=fvx(ml+  nfcmax+1)
+            cdef(3,nth,nhh,nr)=(fvx(ml+  nfcmax+1)
      &                         -fvx(ml-2*nfcmax+1))/(0.5D0*drho)
          enddo
       return

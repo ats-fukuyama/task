@@ -6,23 +6,23 @@
 
       use wmfem_comm
       implicit none
-      integer,save:: nrmax_save=0,nthmax_save=0,nphmax_save=0
+      integer,save:: nrmax_save=0,nthmax_save=0,nhhmax_save=0
       integer,save:: mwmax_save=0,mlmax_save=0,mbmax_save=0
       integer,save:: nsmax_save=0,nfcmax_save=0
       integer,save:: mdlwmd_save=0 
 
       if((nrmax.ne.nrmax_save).or.(nthmax.ne.nthmax_save).or. 
-     &   (nphmax.ne.nphmax_save)) then
+     &   (nhhmax.ne.nhhmax_save)) then
          if(ALLOCATED(cef)) deallocate(cef)
-         allocate(cef(3,nthmax,nphmax,nrmax))
+         allocate(cef(3,nthmax,nhhmax,nrmax))
          if(ALLOCATED(cdef)) deallocate(cdef)
-         allocate(cdef(3,nthmax,nphmax,nrmax))
+         allocate(cdef(3,nthmax,nhhmax,nrmax))
          if(ALLOCATED(cbf)) deallocate(cbf)
-         allocate(cbf(3,nthmax,nphmax,nrmax))
+         allocate(cbf(3,nthmax,nhhmax,nrmax))
          if(ALLOCATED(cpp)) deallocate(cpp)
-         allocate(cpp(nthmax,nphmax,nthmax2,nphmax2,nrmax,0:nsmax))
+         allocate(cpp(nthmax,nhhmax,nthmax2,nhhmax2,nrmax,0:nsmax))
          if(ALLOCATED(cpa)) deallocate(cpa)
-         allocate(cpa(nthmax,nphmax))
+         allocate(cpa(nthmax,nhhmax))
       endif
 
       if((mwmax.ne.mwmax_save).or.(mlmax.ne.mlmax_save)) then
@@ -49,20 +49,20 @@
 
       if(nfcmax.ne.nfcmax_save) then
          if(ALLOCATED(nthnfc)) deallocate(nthnfc)
-         if(ALLOCATED(nphnfc)) deallocate(nphnfc)
+         if(ALLOCATED(nhhnfc)) deallocate(nhhnfc)
          if(ALLOCATED(mmnfc)) deallocate(mmnfc)
          if(ALLOCATED(nnnfc)) deallocate(nnnfc)
          if(nfcmax.ne.0) allocate(nthnfc(nfcmax))
-         if(nfcmax.ne.0) allocate(nphnfc(nfcmax))
+         if(nfcmax.ne.0) allocate(nhhnfc(nfcmax))
          if(nfcmax.ne.0) allocate(mmnfc(nfcmax))
          if(nfcmax.ne.0) allocate(nnnfc(nfcmax))
 
          if(ALLOCATED(nthnfc2)) deallocate(nthnfc2)
-         if(ALLOCATED(nphnfc2)) deallocate(nphnfc2)
+         if(ALLOCATED(nhhnfc2)) deallocate(nhhnfc2)
          if(ALLOCATED(mmnfc2)) deallocate(mmnfc2)
          if(ALLOCATED(nnnfc2)) deallocate(nnnfc2)
          if(nfcmax2.ne.0) allocate(nthnfc2(nfcmax2))
-         if(nfcmax2.ne.0) allocate(nphnfc2(nfcmax2))
+         if(nfcmax2.ne.0) allocate(nhhnfc2(nfcmax2))
          if(nfcmax2.ne.0) allocate(mmnfc2(nfcmax2))
          if(nfcmax2.ne.0) allocate(nnnfc2(nfcmax2))
       endif

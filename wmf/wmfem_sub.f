@@ -30,17 +30,17 @@ C     $Id$
 
 !---- interface for wm parameter
 
-      subroutine get_wmfem_size(nrmax_,nthmax_,nphmax_,nsmax_)
+      subroutine get_wmfem_size(nrmax_,nthmax_,nhhmax_,nsmax_)
       
       use wmfem_comm, only: rhoa
       include 'wmcomm.inc'
-      integer,intent(out):: nrmax_,nthmax_,nphmax_,nsmax_
+      integer,intent(out):: nrmax_,nthmax_,nhhmax_,nsmax_
       integer,save::  nrmax_save=0
       integer:: nr
 
       nrmax_=nrmax
       nthmax_=nthmax
-      nphmax_=nphmax
+      nhhmax_=nhhmax
       nsmax_=nsmax
 
       if(nrmax.ne.nrmax_save) then
@@ -233,25 +233,25 @@ c$$$      endif
 
 !     ***** calculated magnetic field from eqdata ****
 
-      subroutine wmeq_get_mtxCL(nthmax2,nphmax2,mtxcl)
+      subroutine wmeq_get_mtxCL(nthmax2,nhhmax2,mtxcl)
 
       INCLUDE '../eq/eqcomq.inc'
-      INTEGER,INTENT(IN):: nthmax2,nphmax2
-      COMPLEX(8),DIMENSION(3,3,nthmax2,nphmax2),INTENT(OUT):: mtxcl
+      INTEGER,INTENT(IN):: nthmax2,nhhmax2
+      COMPLEX(8),DIMENSION(3,3,nthmax2,nhhmax2),INTENT(OUT):: mtxcl
       real(8):: rrl,zzl,drrpsi,dzzpsi,drrchi,dzzchi,rhol
       real(8):: bprr,bpzz,bthl,bphl,ttl,absdrho,bbl
       real(8):: dth2,dph2,rho
-      INTEGER:: nth2,nph2,i,j
+      INTEGER:: nth2,nhh2,i,j
       real(8),dimension(3,3):: em
-      COMPLEX(8),dimension(nthmax2,nphmax2):: cf1,cf2
+      COMPLEX(8),dimension(nthmax2,nhhmax2):: cf1,cf2
 
       rho=0.d0
       dth2=2.d0*pi/nthmax2
-      dph2=2.d0*pi/nphmax2
-      do nph2=1,nphmax2
+      dph2=2.d0*pi/nhhmax2
+      do nhh2=1,nhhmax2
          do nth2=1,nthmax2
             th=dth2*(nth2-1)
-            ph=dph2*(nph2-1)
+            ph=dph2*(nhh2-1)
          
             select case(modelg)
             case(0,1,2)
@@ -295,52 +295,52 @@ c$$$      endif
             em(2,3)=em(3,1)*em(1,2)-em(3,2)*em(1,1)
             DO j=1,3
                DO i=1,3
-                  mtxCL(i,j,nth2,nph2)=em(i,j)
+                  mtxCL(i,j,nth2,nhh2)=em(i,j)
                END DO
             END DO
          END DO
       ENDDO
 
-!      DO nph2=1,nphmax2
+!      DO nhh2=1,nhhmax2
 !         DO nth2=1,nthmax2
 !            th=dth2*(nth2-1)
-!            ph=dph2*(nph2-1)
+!            ph=dph2*(nhh2-1)
 !            write(21,'(A,1P2E12.4)') 'th,ph=',th,ph
 !            write(21,'(A,1P6E12.4)') 
-!     &           '  e1=',(mtxcl(1,j,nth2,nph2),j=1,3)
+!     &           '  e1=',(mtxcl(1,j,nth2,nhh2),j=1,3)
 !            write(21,'(A,1P6E12.4)') 
-!     &           '  e2=',(mtxcl(2,j,nth2,nph2),j=1,3)
+!     &           '  e2=',(mtxcl(2,j,nth2,nhh2),j=1,3)
 !            write(21,'(A,1P6E12.4)') 
-!     &           '  e3=',(mtxcl(3,j,nth2,nph2),j=1,3)
+!     &           '  e3=',(mtxcl(3,j,nth2,nhh2),j=1,3)
 !         END DO
 !      END DO
 
 !     ----- Fourier transform -----
       DO j=1,3
          DO i=1,3
-            DO nph2=1,nphmax2
+            DO nhh2=1,nhhmax2
                DO nth2=1,nthmax2
-                  cf1(nth2,nph2)=mtxCL(i,j,nth2,nph2)
+                  cf1(nth2,nhh2)=mtxCL(i,j,nth2,nhh2)
                END DO
             END DO
-            CALL WMSUBFX(cf1,cf2,nthmax2,nphmax2)
-            DO nph2=1,nphmax2
+            CALL WMSUBFX(cf1,cf2,nthmax2,nhhmax2)
+            DO nhh2=1,nhhmax2
                DO nth2=1,nthmax2
-                  mtxCL(i,j,nth2,nph2)=cf2(nth2,nph2)
+                  mtxCL(i,j,nth2,nhh2)=cf2(nth2,nhh2)
                END DO
             END DO
          END DO
       ENDDO
 
-!      DO nph2=1,nphmax2
+!      DO nhh2=1,nhhmax2
 !         DO nth2=1,nthmax2
-!            write(21,'(A,2I6)') 'mm2,nn2=',nth2-1,nph2-1
+!            write(21,'(A,2I6)') 'mm2,nn2=',nth2-1,nhh2-1
 !            write(21,'(A,1P6E12.4)') 
-!     &           '  e1=',(mtxcl(1,j,nth2,nph2),j=1,3)
+!     &           '  e1=',(mtxcl(1,j,nth2,nhh2),j=1,3)
 !            write(21,'(A,1P6E12.4)') 
-!     &           '  e2=',(mtxcl(2,j,nth2,nph2),j=1,3)
+!     &           '  e2=',(mtxcl(2,j,nth2,nhh2),j=1,3)
 !            write(21,'(A,1P6E12.4)') 
-!     &           '  e3=',(mtxcl(3,j,nth2,nph2),j=1,3)
+!     &           '  e3=',(mtxcl(3,j,nth2,nhh2),j=1,3)
 !         END DO
 !      END DO
 
@@ -484,9 +484,9 @@ C
 C
          CAJ=AJ(NA)*EXP(DCMPLX(0.D0,APH(NA)*PI/180.D0))
 C   
-      DO NDX=1,NPHMAX
+      DO NDX=1,NHHMAX
          ND=NDX-1
-         IF(NPHMAX.GT.1.AND.NDX.GT.NPHMAX/2) ND=ND-NPHMAX
+         IF(NHHMAX.GT.1.AND.NDX.GT.NHHMAX/2) ND=ND-NHHMAX
          NN=NPH0+NHC*ND
          IF(NN.EQ.0.OR.ABS(PH2-PH1).LE.1.D-15) THEN
             CJN=-CI
@@ -516,7 +516,7 @@ C
       ENDDO
       ENDDO
 C
-      DO NDX=1,NPHMAX
+      DO NDX=1,NHHMAX
       DO MDX=1,NTHMAX
       DO NA=1,NAMAX
          CJANT(2,MDX,NDX)=CJANT(2,MDX,NDX)+CJT(MDX,NDX,NA)
@@ -540,7 +540,7 @@ C
       USE plprof,ONLY: pl_prof2
       INCLUDE 'wmcomm.inc'
 C
-      DIMENSION CFVP(nphmax,nthmax,3)
+      DIMENSION CFVP(nhhmax,nthmax,3)
       DIMENSION RN(NSM),RTPR(NSM),RTPP(NSM),RU(NSM)
 C
          DO MDX=1,MDSIZ
@@ -562,7 +562,7 @@ C               write(6,*) 'nr,nrant=',nr,nrant
 C
                CW=2.D0*PI*CRF*1.D6
                CC=CI*CW*RMU0
-               DPH=2.D0*PI/NPHMAX
+               DPH=2.D0*PI/NHHMAX
                DTH=2.D0*PI/NTHMAX
 C
                IF(NR+1.EQ.NRANT.OR.NR+1.EQ.NRANT+1) THEN
@@ -574,9 +574,9 @@ C
                   FACTM=(XRHO2-RD/RA)/DRHO
                   FACTP=(RD/RA-XRHO1)/DRHO
 C
-                  DO NDX=1,NPHMAX
+                  DO NDX=1,NHHMAX
                      ND=NDX-1
-                     IF(NPHMAX.GT.1.AND.NDX.GT.NPHMAX/2) ND=ND-NPHMAX
+                     IF(NHHMAX.GT.1.AND.NDX.GT.NHHMAX/2) ND=ND-NHHMAX
                      NN=NPH0+NHC*ND
                   DO MDX=1,NTHMAX
                      MD=MDX-1
@@ -622,9 +622,9 @@ c$$$     &                    'CFVP(',NDX,MDX,3,')',CFVP(NDX,MDX,3)
                   DRHO=XRHO2-XRHO1
                   XRHOC=0.5D0*(XRHO2+XRHO1)
 C
-                  DO NDX=1,NPHMAX
+                  DO NDX=1,NHHMAX
                      ND=NDX-1
-                     IF(NPHMAX.GT.1.AND.NDX.GT.NPHMAX/2) ND=ND-NPHMAX
+                     IF(NHHMAX.GT.1.AND.NDX.GT.NHHMAX/2) ND=ND-NHHMAX
                      NN=NPH0+NHC*ND
                   DO MDX=1,NTHMAX
                      MD=MDX-1
@@ -649,7 +649,7 @@ c$$$     &                    'CFVP(',NDX,MDX,3,')',CFVP(NDX,MDX,3)
                ENDIF
             ENDIF
          ELSE
-            DPH=2.D0*PI/NPHMAX
+            DPH=2.D0*PI/NHHMAX
             DTH=2.D0*PI/NTHMAX
             XRHO1=XRHO(NR+1)
             IF(NR.LT.NRMAX) THEN
@@ -694,12 +694,12 @@ C
       DIMENSION CEF1(MDM,NDM),CEF2(MDM,NDM),RMA(3,3)
 C
       do nr=1,nrmax
-         DO NDX=1,nphmax
-            if(nphmax.eq.1) then
+         DO NDX=1,nhhmax
+            if(nhhmax.eq.1) then
                NDX1=NDX
             else
-               NDX1=NDX+nphmax/2-1
-               IF(NDX1.gt.nphmax) NDX1=NDX1-nphmax
+               NDX1=NDX+nhhmax/2-1
+               IF(NDX1.gt.nhhmax) NDX1=NDX1-nhhmax
             endif
          DO MDX=1,nthmax
             if(nthmax.eq.1) then
@@ -727,10 +727,10 @@ C
             CEF1(MDX,NDX)=CEFLD(I,MDX,NDX,NR)
          ENDDO
          ENDDO
-         CALL WMSUBEX(CEF1,CEF2,NTHMAX,NPHMAX)
-         DO NPH=1,NPHMAX
+         CALL WMSUBEX(CEF1,CEF2,NTHMAX,NHHMAX)
+         DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
-            CEFLD(I,NTH,NPH,NR)=CEF2(NTH,NPH)
+            CEFLD(I,NTH,NHH,NR)=CEF2(NTH,NHH)
          ENDDO
          ENDDO
       ENDDO
@@ -740,16 +740,16 @@ C     ----- Calculate CEN from CEsup -----
 C
 C
       DO NR=1,NRMAX
-      DO NPH=1,NPHMAX
+      DO NHH=1,NHHMAX
       DO NTH=1,NTHMAX
-         CEN(1,NTH,NPH,NR)=CEFLD(1,NTH,NPH,NR)
-         CEN(2,NTH,NPH,NR)=CEFLD(1,NTH,NPH,NR)
-         CEN(3,NTH,NPH,NR)=CEFLD(1,NTH,NPH,NR)
-         CEP(1,NTH,NPH,NR)=(   CEN(1,NTH,NPH,NR)
-     &                     +CI*CEN(2,NTH,NPH,NR))/SQRT(2.D0)
-         CEP(2,NTH,NPH,NR)=(   CEN(1,NTH,NPH,NR)
-     &                     -CI*CEN(2,NTH,NPH,NR))/SQRT(2.D0)
-         CEP(3,NTH,NPH,NR)=    CEN(3,NTH,NPH,NR)
+         CEN(1,NTH,NHH,NR)=CEFLD(1,NTH,NHH,NR)
+         CEN(2,NTH,NHH,NR)=CEFLD(1,NTH,NHH,NR)
+         CEN(3,NTH,NHH,NR)=CEFLD(1,NTH,NHH,NR)
+         CEP(1,NTH,NHH,NR)=(   CEN(1,NTH,NHH,NR)
+     &                     +CI*CEN(2,NTH,NHH,NR))/SQRT(2.D0)
+         CEP(2,NTH,NHH,NR)=(   CEN(1,NTH,NHH,NR)
+     &                     -CI*CEN(2,NTH,NHH,NR))/SQRT(2.D0)
+         CEP(3,NTH,NHH,NR)=    CEN(3,NTH,NHH,NR)
       ENDDO
       ENDDO
       ENDDO
@@ -758,8 +758,8 @@ c$$$      DO K=1,3
 c$$$         DO NR=1,NRMAX
 c$$$            IF(XRHO(NR).GT.1.0D0) THEN
 c$$$               DO NTH=1,NTHMAX
-c$$$                  DO NPH=1,NPHMAX
-c$$$                     CEP(K,NTH,NPH,NR)=(0.D0,0.D0)
+c$$$                  DO NHH=1,NHHMAX
+c$$$                     CEP(K,NTH,NHH,NR)=(0.D0,0.D0)
 c$$$                  ENDDO
 c$$$               ENDDO
 c$$$            ELSE
@@ -781,12 +781,12 @@ C
       DIMENSION CBF1(MDM,NDM),CBF2(MDM,NDM),RMA(3,3)
 C
       do nr=1,nrmax
-         DO NDX=1,nphmax
-            if(nphmax.eq.1) then
+         DO NDX=1,nhhmax
+            if(nhhmax.eq.1) then
                NDX1=NDX
             else
-               NDX1=NDX+nphmax/2-1
-               IF(NDX1.gt.nphmax) NDX1=NDX1-nphmax
+               NDX1=NDX+nhhmax/2-1
+               IF(NDX1.gt.nhhmax) NDX1=NDX1-nhhmax
             endif
          DO MDX=1,nthmax
             if(nthmax.eq.1) then
@@ -814,10 +814,10 @@ C
             CBF1(MDX,NDX)=CBFLD(I,MDX,NDX,NR)
          ENDDO
          ENDDO
-         CALL WMSUBEX(CBF1,CBF2,NTHMAX,NPHMAX)
-         DO NPH=1,NPHMAX
+         CALL WMSUBEX(CBF1,CBF2,NTHMAX,NHHMAX)
+         DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
-            CBFLD(I,NTH,NPH,NR)=CBF2(NTH,NPH)
+            CBFLD(I,NTH,NHH,NR)=CBF2(NTH,NHH)
          ENDDO
          ENDDO
       ENDDO
@@ -827,16 +827,16 @@ C     ----- Calculate CBN from CBsup -----
 C
 C
       DO NR=1,NRMAX
-      DO NPH=1,NPHMAX
+      DO NHH=1,NHHMAX
       DO NTH=1,NTHMAX
-         CBN(1,NTH,NPH,NR)=CBFLD(1,NTH,NPH,NR)
-         CBN(2,NTH,NPH,NR)=CBFLD(2,NTH,NPH,NR)
-         CBN(3,NTH,NPH,NR)=CBFLD(3,NTH,NPH,NR)
-         CBP(1,NTH,NPH,NR)=(   CBN(1,NTH,NPH,NR)
-     &                     +CI*CBN(2,NTH,NPH,NR))/SQRT(2.D0)
-         CBP(2,NTH,NPH,NR)=(   CBN(1,NTH,NPH,NR)
-     &                     -CI*CBN(2,NTH,NPH,NR))/SQRT(2.D0)
-         CBP(3,NTH,NPH,NR)=    CBN(3,NTH,NPH,NR)
+         CBN(1,NTH,NHH,NR)=CBFLD(1,NTH,NHH,NR)
+         CBN(2,NTH,NHH,NR)=CBFLD(2,NTH,NHH,NR)
+         CBN(3,NTH,NHH,NR)=CBFLD(3,NTH,NHH,NR)
+         CBP(1,NTH,NHH,NR)=(   CBN(1,NTH,NHH,NR)
+     &                     +CI*CBN(2,NTH,NHH,NR))/SQRT(2.D0)
+         CBP(2,NTH,NHH,NR)=(   CBN(1,NTH,NHH,NR)
+     &                     -CI*CBN(2,NTH,NHH,NR))/SQRT(2.D0)
+         CBP(3,NTH,NHH,NR)=    CBN(3,NTH,NHH,NR)
       ENDDO
       ENDDO
       ENDDO
@@ -845,8 +845,8 @@ c$$$      DO K=1,3
 c$$$         DO NR=1,NRMAX
 c$$$            IF(XRHO(NR).GT.1.0D0) THEN
 c$$$               DO NTH=1,NTHMAX
-c$$$                  DO NPH=1,NPHMAX
-c$$$                     CBP(K,NTH,NPH,NR)=(0.D0,0.D0)
+c$$$                  DO NHH=1,NHHMAX
+c$$$                     CBP(K,NTH,NHH,NR)=(0.D0,0.D0)
 c$$$                  ENDDO
 c$$$               ENDDO
 c$$$            ELSE
@@ -862,16 +862,16 @@ C     ****** CALCULATE ABSORBED POWER ******
 C
       SUBROUTINE WMFEM_PABS
 C
-      USE wmfem_comm, only: cpp,cpa,nthmax2,nphmax2
+      USE wmfem_comm, only: cpp,cpa,nthmax2,nhhmax2
       USE plprof,ONLY: pl_prof2
       INCLUDE 'wmcomm.inc'
 C
       DIMENSION RN(NSM),RTPR(NSM),RTPP(NSM),RU(NSM)
-      DIMENSION CPF1(nthmax2,nphmax2),CPF2(nthmax2,nphmax2)
+      DIMENSION CPF1(nthmax2,nhhmax2),CPF2(nthmax2,nhhmax2)
 C
       CW=2.D0*PI*CRF*1.D6
       DTH=2.D0*PI/DBLE(NTHMAX)
-      DPH=2.D0*PI/DBLE(NPHMAX)
+      DPH=2.D0*PI/DBLE(NHHMAX)
 C
       DO NR=1,nrmax
       DO NS=1,NSMAX
@@ -893,12 +893,12 @@ C
          DO NS=1,NSMAX
             KKX=1
             LLX=1
-         DO NDX=1,nphmax
-            if(nphmax.eq.1) then
+         DO NDX=1,nhhmax
+            if(nhhmax.eq.1) then
                NDX1=NDX
             else
-               NDX1=NDX+nphmax/2-1
-               IF(NDX1.gt.nphmax) NDX1=NDX1-nphmax
+               NDX1=NDX+nhhmax/2-1
+               IF(NDX1.gt.nhhmax) NDX1=NDX1-nhhmax
             endif
          DO MDX=1,nthmax
             if(nthmax.eq.1) then
@@ -917,23 +917,23 @@ C     +++++ CALCULATE PABS IN REAL SPACE +++++
 C
          DO NS=1,NSMAX
          DO NR=1,NRMAX
-            DO NPH=1,NPHMAX
+            DO NHH=1,NHHMAX
             DO NTH=1,NTHMAX
-               PABS(NTH,NPH,NR,NS)=0.D0
+               PABS(NTH,NHH,NR,NS)=0.D0
             ENDDO
             ENDDO
             DO NDX=1,NDSIZ
             DO MDX=1,MDSIZ
-               DO KKX=1,nphmax2
+               DO KKX=1,nhhmax2
                DO LLX=1,nthmax2
                   CPF1(LLX,KKX)=cpp(MDX,NDX,LLX,KKX,NR,NS)
                ENDDO
                ENDDO
-               CALL WMSUBEX(CPF1,CPF2,NTHMAX2,NPHMAX2)
-               DO NPH=1,NPHMAX
+               CALL WMSUBEX(CPF1,CPF2,NTHMAX2,NHHMAX2)
+               DO NHH=1,NHHMAX
                DO NTH=1,NTHMAX
-                  PABS(NTH,NPH,NR,NS)=PABS(NTH,NPH,NR,NS)
-     &                               +DBLE(CPF2(2*NTH-1,2*NPH-1))
+                  PABS(NTH,NHH,NR,NS)=PABS(NTH,NHH,NR,NS)
+     &                               +DBLE(CPF2(2*NTH-1,2*NHH-1))
                ENDDO
                ENDDO
             ENDDO
@@ -944,9 +944,9 @@ C
 C     +++++ Antenna impedance +++++
 
       cradtt=(0.d0,0.d0)
-      do nph=1,nphmax
+      do nhh=1,nhhmax
          do nth=1,nthmax
-            cradtt=cradtt+cpa(nth,nph)
+            cradtt=cradtt+cpa(nth,nhh)
          end do
       end do
 
@@ -956,9 +956,9 @@ C
       ns=1
       DO nr=1,nrmax
          rho=xrho(nr)
-         DO nph=1,nphmax
+         DO nhh=1,nhhmax
          DO nth=1,nthmax
-            pcur(nth,nph,nr)=0.D0
+            pcur(nth,nhh,nr)=0.D0
          ENDDO
          ENDDO
 
@@ -983,10 +983,10 @@ C
                CPF1(LLX,KKX)=CPABS(LLX,MDX,KKX,NDX,NS,NR)
             ENDDO
             ENDDO
-            CALL WMSUBEX(CPF1,CPF2,NTHMAX,NPHMAX)
+            CALL WMSUBEX(CPF1,CPF2,NTHMAX,NHHMAX)
 
-            DO nph=1,nphmax
-               ph=dph*(nph-1)
+            DO nhh=1,nhhmax
+               ph=dph*(nhh-1)
             DO nth=1,nthmax
                th=dth*(nth-1)
                CALL wmfem_magnetic(rho,th,ph,babs,bsupth,bsupph)
@@ -995,15 +995,15 @@ C
 
                IF(ABS(ww/rkpara).LT.VC) THEN
                   w=ww/(rkpara*vte)
-                  xl=(rpst(nth,nph,nr)-raxis)/rr
-                  yl=(ZPST(NTH,NPH,NR)-zaxis)/RR
+                  xl=(rpst(nth,nhh,nr)-raxis)/rr
+                  yl=(ZPST(NTH,NHH,NR)-zaxis)/RR
                   efcd=w1cdef(ABS(w),zeff,xl,yl,1)
                   IF(w.LT.0.D0) efcd=-efcd
                   IF (rn(1).GT.0.D0) THEN
-                     pcur(nth,nph,nr)=pcur(nth,nph,nr)
+                     pcur(nth,nhh,nr)=pcur(nth,nhh,nr)
      &                    +0.384D0*rtpr(1)*efcd
-     &                    /(rn(1)*rlnlmd)*DBLE(cpf2(nth,nph))
-     &                    /(2.D0*PI*rpst(nth,nph,nr))
+     &                    /(rn(1)*rlnlmd)*DBLE(cpf2(nth,nhh))
+     &                    /(2.D0*PI*rpst(nth,nhh,nr))
                   END IF
                ENDIF
             ENDDO
@@ -1081,33 +1081,33 @@ C
 C
 C     ****** 2D FOURIER TRANSFORM ******
 C
-      SUBROUTINE WMSUBFX(CF1,CF2,NTHMAX,NPHMAX)
+      SUBROUTINE WMSUBFX(CF1,CF2,NTHMAX,NHHMAX)
 C
       implicit none
-      integer,intent(in):: nthmax,nphmax
-      complex(8),dimension(nthmax,nphmax),intent(in):: CF1
-      complex(8),dimension(nthmax,nphmax),intent(out):: CF2
+      integer,intent(in):: nthmax,nhhmax
+      complex(8),dimension(nthmax,nhhmax),intent(in):: CF1
+      complex(8),dimension(nthmax,nhhmax),intent(out):: CF2
       complex(8),dimension(nthmax):: CFM
-      complex(8),dimension(nphmax):: CFN
-      integer:: NPH,NTH
+      complex(8),dimension(nhhmax):: CFN
+      integer:: NHH,NTH
 C
-      DO NPH=1,NPHMAX
+      DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
-            CFM(NTH)=CF1(NTH,NPH)
+            CFM(NTH)=CF1(NTH,NHH)
          ENDDO
          CALL WMFFFT(CFM,NTHMAX,0)
          DO NTH=1,NTHMAX
-            CF2(NTH,NPH)=CFM(NTH)
+            CF2(NTH,NHH)=CFM(NTH)
          ENDDO
       ENDDO
 C
       DO NTH=1,NTHMAX
-         DO NPH=1,NPHMAX
-            CFN(NPH)=CF2(NTH,NPH)
+         DO NHH=1,NHHMAX
+            CFN(NHH)=CF2(NTH,NHH)
          ENDDO
-         CALL WMFFFT(CFN,NPHMAX,0)
-         DO NPH=1,NPHMAX
-            CF2(NTH,NPH)=CFN(NPH)
+         CALL WMFFFT(CFN,NHHMAX,0)
+         DO NHH=1,NHHMAX
+            CF2(NTH,NHH)=CFN(NHH)
          ENDDO
       ENDDO
       RETURN
@@ -1115,33 +1115,33 @@ C
 C
 C     ****** INVERSE 2D FOURIER TRANSFORM ******
 C
-      SUBROUTINE WMSUBEX(CF1,CF2,NTHMAX,NPHMAX)
+      SUBROUTINE WMSUBEX(CF1,CF2,NTHMAX,NHHMAX)
 C
       implicit none
-      integer,intent(in):: nthmax,nphmax
-      complex(8),dimension(nthmax,nphmax),intent(in):: CF1
-      complex(8),dimension(nthmax,nphmax),intent(out):: CF2
+      integer,intent(in):: nthmax,nhhmax
+      complex(8),dimension(nthmax,nhhmax),intent(in):: CF1
+      complex(8),dimension(nthmax,nhhmax),intent(out):: CF2
       complex(8),dimension(nthmax):: CFM
-      complex(8),dimension(nphmax):: CFN
-      integer:: NPH,NTH
+      complex(8),dimension(nhhmax):: CFN
+      integer:: NHH,NTH
 C
-      DO NPH=1,NPHMAX
+      DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
-            CFM(NTH)=CF1(NTH,NPH)
+            CFM(NTH)=CF1(NTH,NHH)
          ENDDO
          CALL WMFFFT(CFM,NTHMAX,1)
          DO NTH=1,NTHMAX
-            CF2(NTH,NPH)=CFM(NTH)
+            CF2(NTH,NHH)=CFM(NTH)
          ENDDO
       ENDDO
 C
       DO NTH=1,NTHMAX
-         DO NPH=1,NPHMAX
-            CFN(NPH)=CF2(NTH,NPH)
+         DO NHH=1,NHHMAX
+            CFN(NHH)=CF2(NTH,NHH)
          ENDDO
-         CALL WMFFFT(CFN,NPHMAX,1)
-         DO NPH=1,NPHMAX
-            CF2(NTH,NPH)=CFN(NPH)
+         CALL WMFFFT(CFN,NHHMAX,1)
+         DO NHH=1,NHHMAX
+            CF2(NTH,NHH)=CFN(NHH)
          ENDDO
       ENDDO
       RETURN

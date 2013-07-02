@@ -39,18 +39,18 @@ C
          RIOTAL=QPS(NR)
 C
          rho=xrho(NR)
-         DO NPH=1,NPHMAX
-            ph=(NPH-1)*2.D0*PI/NPHMAX
+         DO NHH=1,NHHMAX
+            ph=(NHH-1)*2.D0*PI/NHHMAX
          DO NTH=1,NTHMAX
             th=(NTH-1)*2.D0*PI/NTHMAX
             CALL wmfem_magnetic(rho,th,ph,babs,bsupth,bsupph)
             VALF=BABS/SQRT(RMU0*RHOM)
-C            CWALF(NTH,NPH)=BABS**2/(VALF**2*BSUPTH**2)
-            CWALF(NTH,NPH)=RPS(NTH,NR)**2/VALF**2
+C            CWALF(NTH,NHH)=BABS**2/(VALF**2*BSUPTH**2)
+            CWALF(NTH,NHH)=RPS(NTH,NR)**2/VALF**2
          ENDDO
          ENDDO
 C
-         CALL WMSUBFX(CWALF,CWALFK,NTHMAX,NPHMAX)
+         CALL WMSUBFX(CWALF,CWALFK,NTHMAX,NHHMAX)
 C
          DO ND=NDMIN,MAX(NDMIN,NDMAX-1)
             NDX=ND-NDMIN+1

@@ -26,16 +26,16 @@
 
       use wmfem_comm
       implicit none
-      integer:: nr,nth,nph
-      complex(8),dimension(3,nthmax,nphmax):: cbfl
+      integer:: nr,nth,nhh
+      complex(8),dimension(3,nthmax,nhhmax):: cbfl
 
       do nr=1,nrmax
          call wmfem_cbf(nr,cbfl)
-         do nph=1,nphmax
+         do nhh=1,nhhmax
             do nth=1,nthmax
-               cbf(1,nth,nph,nr)=cbfl(1,nth,nph)
-               cbf(2,nth,nph,nr)=cbfl(2,nth,nph)
-               cbf(3,nth,nph,nr)=cbfl(3,nth,nph)
+               cbf(1,nth,nhh,nr)=cbfl(1,nth,nhh)
+               cbf(2,nth,nhh,nr)=cbfl(2,nth,nhh)
+               cbf(3,nth,nhh,nr)=cbfl(3,nth,nhh)
             enddo
          enddo
       enddo
@@ -49,19 +49,19 @@
 
       implicit none
       integer,intent(in):: nr
-      complex(8),dimension(3,nthmax,nphmax):: cbf
+      complex(8),dimension(3,nthmax,nhhmax):: cbf
 
-      real(8),dimension(3,3,nthmax2,nphmax2) :: gma,muma,dmuma 
-      real(8),dimension(nthmax2,nphmax2):: gja
+      real(8),dimension(3,3,nthmax2,nhhmax2) :: gma,muma,dmuma 
+      real(8),dimension(nthmax2,nhhmax2):: gja
 
       complex(8),dimension(3,3,3):: cq
       complex(8),dimension(3,3):: cp
       complex(8),dimension(3,3,3,nfcmax2):: cqq
       complex(8),dimension(3,3,nfcmax2):: cpp
-      complex(8),dimension(nthmax2,nphmax2):: fv1,fv1f
-      integer:: i,j,k,l,nthm,nthp,nphm,nphp
-      integer:: nfc2,nph,nth,imn,ml
-      integer:: nfc1,nph1,nth1
+      complex(8),dimension(nthmax2,nhhmax2):: fv1,fv1f
+      integer:: i,j,k,l,nthm,nthp,nhhm,nhhp
+      integer:: nfc2,nhh,nth,imn,ml
+      integer:: nfc1,nhh1,nth1
       integer:: nn1,mm1,nn2,mm2,mmdiff,nndiff,nfcdiff
       real(8):: rho,dph,dth,gj
       complex(8):: cfactor
@@ -76,18 +76,18 @@
 
       do nfc2=1,nfcmax2
          nth=nthnfc2(nfc2)
-         nph=nphnfc2(nfc2)
-         if(nph.eq.1) then
-            nphm=nphmax2
+         nhh=nhhnfc2(nfc2)
+         if(nhh.eq.1) then
+            nhhm=nhhmax2
          else
-            nphm=nph-1
+            nhhm=nhh-1
          endif
-         if(nph.eq.nphmax2) then
-            nphp=1
+         if(nhh.eq.nhhmax2) then
+            nhhp=1
          else
-            nphp=nph+1
+            nhhp=nhh+1
          endif
-         dph=2*pi/nphmax2
+         dph=2*pi/nhhmax2
 
          if(nth.eq.1) then
             nthm=nthmax2
@@ -100,31 +100,31 @@
             nthp=nth+1
          endif
          dth=2*pi/nthmax2
-         gj=gja(nth,nph)
+         gj=gja(nth,nhh)
 
          do j=1,3
-            cq(1,j,1)=((muma(3,j,nthp,nph)
-     &                 -muma(3,j,nthm,nph))/dth
-     &                -(muma(2,j,nth,nphp)
-     &                 -muma(2,j,nth,nphm))/dph )/gj
-            cq(1,j,2)=+ci*muma(3,j,nth,nph)/gj
-            cq(1,j,3)=-ci*muma(2,j,nth,nph)/gj
+            cq(1,j,1)=((muma(3,j,nthp,nhh)
+     &                 -muma(3,j,nthm,nhh))/dth
+     &                -(muma(2,j,nth,nhhp)
+     &                 -muma(2,j,nth,nhhm))/dph )/gj
+            cq(1,j,2)=+ci*muma(3,j,nth,nhh)/gj
+            cq(1,j,3)=-ci*muma(2,j,nth,nhh)/gj
 
-            cq(2,j,1)=((muma(1,j,nth,nphp)
-     &                 -muma(1,j,nth,nphm))/dph
-     &                 -dmuma(3,j,nth,nph))/gj
+            cq(2,j,1)=((muma(1,j,nth,nhhp)
+     &                 -muma(1,j,nth,nhhm))/dph
+     &                 -dmuma(3,j,nth,nhh))/gj
             cq(2,j,2)=0.d0
-            cq(2,j,3)=+ci*muma(1,j,nth,nph)/gj
+            cq(2,j,3)=+ci*muma(1,j,nth,nhh)/gj
 
-            cq(3,j,1)=(dmuma(2,j,nth,nph)
-     &               -(muma(1,j,nthp,nph)
-     &                -muma(1,j,nthm,nph))/dth )/gj
-            cq(3,j,2)=-ci*muma(1,j,nth,nph)/gj
+            cq(3,j,1)=(dmuma(2,j,nth,nhh)
+     &               -(muma(1,j,nthp,nhh)
+     &                -muma(1,j,nthm,nhh))/dth )/gj
+            cq(3,j,2)=-ci*muma(1,j,nth,nhh)/gj
             cq(3,j,3)=0.d0
 
             cp(1,j)=0.d0
-            cp(2,j)=-muma(3,j,nth,nph)/gj
-            cp(3,j)= muma(2,j,nth,nph)/gj
+            cp(2,j)=-muma(3,j,nth,nhh)/gj
+            cp(3,j)= muma(2,j,nth,nhh)/gj
          enddo
 
          do imn=1,3
@@ -133,7 +133,7 @@
                   cqq(i,j,imn,nfc2)=0.d0
                   do l=1,3
                      cqq(i,j,imn,nfc2)=cqq(i,j,imn,nfc2)
-     &                 +gma(i,l,nth,nph)*cq(l,j,imn)*gj
+     &                 +gma(i,l,nth,nhh)*cq(l,j,imn)*gj
                   enddo
                enddo
             enddo
@@ -143,7 +143,7 @@
                cpp(i,j,nfc2)=0.d0
                do l=1,3
                   cpp(i,j,nfc2)=cpp(i,j,nfc2)
-     &                 +gma(i,l,nth,nph)*cp(l,j)*gj
+     &                 +gma(i,l,nth,nhh)*cp(l,j)*gj
                enddo
             enddo
          enddo
@@ -156,26 +156,26 @@
             do imn=1,3
                do nfc2=1,nfcmax2
                   nth=nthnfc2(nfc2)
-                  nph=nphnfc2(nfc2)
-                  fv1(nth,nph)=cqq(i,j,imn,nfc2)
+                  nhh=nhhnfc2(nfc2)
+                  fv1(nth,nhh)=cqq(i,j,imn,nfc2)
                enddo
-               call wmsubfx(fv1,fv1f,nthmax2,nphmax2)
+               call wmsubfx(fv1,fv1f,nthmax2,nhhmax2)
                do nfc2=1,nfcmax2
                   nth=nthnfc2(nfc2)
-                  nph=nphnfc2(nfc2)
-                  cqq(i,j,imn,nfc2)=fv1f(nth,nph)
+                  nhh=nhhnfc2(nfc2)
+                  cqq(i,j,imn,nfc2)=fv1f(nth,nhh)
                enddo
             enddo
             do nfc2=1,nfcmax2
                nth=nthnfc2(nfc2)
-               nph=nphnfc2(nfc2)
-               fv1(nth,nph)=cpp(i,j,nfc2)
+               nhh=nhhnfc2(nfc2)
+               fv1(nth,nhh)=cpp(i,j,nfc2)
             enddo
-            call wmsubfx(fv1,fv1f,nthmax2,nphmax2)
+            call wmsubfx(fv1,fv1f,nthmax2,nhhmax2)
             do nfc2=1,nfcmax2
                nth=nthnfc2(nfc2)
-               nph=nphnfc2(nfc2)
-               cpp(i,j,nfc2)=fv1f(nth,nph)
+               nhh=nhhnfc2(nfc2)
+               cpp(i,j,nfc2)=fv1f(nth,nhh)
             enddo
          enddo
       enddo
@@ -183,7 +183,7 @@
 !     ----- calculated cbf -----
       
       do nfc1=1,nfcmax
-         nph1=nphnfc(nfc1)
+         nhh1=nhhnfc(nfc1)
          nth1=nthnfc(nfc1)
          nn1=nnnfc(nfc1)
          mm1=mmnfc(nfc1)
@@ -192,23 +192,23 @@
             mm2=mmnfc(nfc2)
 
             nndiff=nn1-nn2
-            if(nndiff.lt.0) nndiff=nndiff+nphmax2
+            if(nndiff.lt.0) nndiff=nndiff+nhhmax2
             mmdiff=mm1-mm2
             if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
             nfcdiff=nthmax2*nndiff+mmdiff+1
-            ml=6*nthmax*nphmax*(nr-1)+(nfc2-1)
+            ml=6*nthmax*nhhmax*(nr-1)+(nfc2-1)
 
 !          !!!!! on axis should be considered !!!!!
 
             do i=1,3
-               cbf(i,nth1,nph1)=0.d0
+               cbf(i,nth1,nhh1)=0.d0
                do j=1,3
-                  cbf(i,nth1,nph1)=cbf(i,nth1,nph1)
+                  cbf(i,nth1,nhh1)=cbf(i,nth1,nhh1)
      &                 +cfactor*(
      &                  (cqq(i,j,1,nfcdiff)
      &                  +cqq(i,j,2,nfcdiff)*mm2
-     &                  +cqq(i,j,3,nfcdiff)*nn2)*cef(j,nth1,nph1,nr)
-     &                  +cpp(i,j,  nfcdiff)     *cdef(j,nth1,nph1,nr))
+     &                  +cqq(i,j,3,nfcdiff)*nn2)*cef(j,nth1,nhh1,nr)
+     &                  +cpp(i,j,  nfcdiff)     *cdef(j,nth1,nhh1,nr))
                enddo
             enddo
          enddo
@@ -234,9 +234,9 @@
 
       do ns=0,nsmax
          do nr=1,nrmax
-            do nn2=1,nphmax2
+            do nn2=1,nhhmax2
                do mm2=1,nthmax2
-                  do nn=1,nphmax
+                  do nn=1,nhhmax
                      do mm=1,nthmax
                         cpp(mm,nn,mm2,nn2,nr,ns)=0.d0
                      end do
@@ -261,23 +261,23 @@
 
 
             do nfc=1,nfcmax
-               nn=nphnfc(nfc)
+               nn=nhhnfc(nfc)
                mm=nthnfc(nfc)
                do i=1,8
                   mb=nfcmax*(i-1)+nfc
                   ml=6*nfcmax*(nr0-1)+mb
                   do nfc1=1,nfcmax
-                     nn1=nphnfc(nfc1)
+                     nn1=nhhnfc(nfc1)
                      mm1=nthnfc(nfc1)
                      do i1=1,8
                         mb1=nfcmax*(i1-1)+nfc
                         ml1=6*nfcmax*(nr0-1)+mb1
                         do nfc2=1,nfcmax
-                           nn2=nphnfc(nfc2)
+                           nn2=nhhnfc(nfc2)
                            mm2=nthnfc(nfc2)
                            nndiff=nnnfc(nfc2)-nnnfc(nfc1)
                            mmdiff=mmnfc(nfc2)-mmnfc(nfc1)
-                           if(nndiff.lt.0) nndiff=nndiff+nphmax2
+                           if(nndiff.lt.0) nndiff=nndiff+nhhmax2
                            if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
 
                            cpp(mm,nn,mmdiff+1,nndiff+1,nr0,ns)
@@ -320,7 +320,7 @@ c$$$     &               ns,mmdiff,csum
       do ns=0,nsmax
          csum=0.d0
          do nr=1,nrmax
-            do nn1=1,nphmax
+            do nn1=1,nhhmax
             do mm1=1,nthmax
                csum=csum+cpp(mm1,nn1,1,1,nr,ns)
             enddo
@@ -356,11 +356,11 @@ c$$$     &               ns,mmdiff,csum
 
 !     ----- calculate antenna impedance -----
 
-      do nn=1,nphmax
+      do nn=1,nhhmax
       do mm=1,nthmax
          cpa(mm,nn)=0.d0
          do nr=1,nrmax-1
-            ml=6*nthmax*nphmax*(nr-1)+6*nthmax*(nn-1)+6*(mm-1)
+            ml=6*nthmax*nhhmax*(nr-1)+6*nthmax*(nn-1)+6*(mm-1)
             do i=1,6
                cpa(mm,nn)=cpa(mm,nn)-ci*conjg(fvx(ml+i))*fvb(ml+i)
             enddo

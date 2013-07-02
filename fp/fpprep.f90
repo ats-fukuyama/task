@@ -872,7 +872,6 @@
 !     ----- set profile data -----
 
       DO NR=NRSTART,NRENDWM
-
          RHON=RM(NR)
          CALL PL_PROF(RHON,PLF)
 
@@ -882,6 +881,8 @@
             RTFP(NR,NSA)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
             PTFP(NR,NSA)=SQRT(RTFP(NR,NSA)*1.D3*AEE*AMFP(NSA))
             VTFP(NR,NSA)=SQRT(RTFP(NR,NSA)*1.D3*AEE/AMFP(NSA))
+!            write(6,'(A,2I5,1P3E12.4)') 'NR,NSA=',NR,NSA, &
+!                 PLF(NS)%RN,PLF(NS)%RTPR,PLF(NS)%RTPP
          ENDDO
 
          DO NSB=1,NSBMAX
@@ -892,6 +893,8 @@
             RTFD(NR,NSB)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
             PTFD(NR,NSB)=SQRT(RTFD(NR,NSB)*1.D3*AEE*AMFD(NSB))
             VTFD(NR,NSB)=SQRT(RTFD(NR,NSB)*1.D3*AEE/AMFD(NSB))
+!            write(6,'(A,2I5,1P3E12.4)') 'NR,NSB=',NR,NSB, &
+!                 PLF(NS)%RN,PLF(NS)%RTPR,PLF(NS)%RTPP
          ENDDO
 
          RNE=PLF(1)%RN

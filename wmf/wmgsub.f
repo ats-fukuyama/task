@@ -100,14 +100,14 @@ C
          GOTO 9000
       ENDIF
 C
-    2 IF(NPHMAX.EQ.1) THEN
-         NPH=1
+    2 IF(NHHMAX.EQ.1) THEN
+         NHH=1
       ELSE
-         WRITE(6,*) '## INPUT NPH : 1..',NPHMAX
-         READ(5,*,ERR=2,END=9000) NPH
+         WRITE(6,*) '## INPUT NHH : 1..',NHHMAX
+         READ(5,*,ERR=2,END=9000) NHH
       END IF
-      IF(NPH.LT.1.OR.NPH.GT.NPHMAX) THEN
-         WRITE(6,*) 'XX ILLEGAL NPH'
+      IF(NHH.LT.1.OR.NHH.GT.NHHMAX) THEN
+         WRITE(6,*) 'XX ILLEGAL NHH'
          GOTO 2
       ENDIF
 C
@@ -116,14 +116,14 @@ C
          IF(K2.EQ.'E'.OR.K2.EQ.'B') THEN
             IF(K2.EQ.'E') THEN
                IF(NA3.EQ.1) THEN
-                  CFL=CEFLD(NG3,NTH,NPH,NR)
+                  CFL=CEFLD(NG3,NTH,NHH,NR)
                ELSEIF(NA3.EQ.2) THEN
-                  CFL=CEN(NG3,NTH,NPH,NR)
+                  CFL=CEN(NG3,NTH,NHH,NR)
                ELSEIF(NA3.EQ.3) THEN
-                  CFL=CEP(NG3,NTH,NPH,NR)
+                  CFL=CEP(NG3,NTH,NHH,NR)
                ENDIF
             ELSEIF(K2.EQ.'B') THEN
-               CFL=CBFLD(NG3,NTH,NPH,NR)
+               CFL=CBFLD(NG3,NTH,NHH,NR)
             ENDIF
 C
             IF(K4.EQ.'R') THEN
@@ -138,13 +138,13 @@ C
             ENDIF
          ELSEIF(K2.EQ.'P') THEN
             IF(NR.LE.NRMAX) THEN
-               GY(NR,NTH)=GUCLIP(PABS(NTH,NPH,NR,NG3))
+               GY(NR,NTH)=GUCLIP(PABS(NTH,NHH,NR,NG3))
             ELSE
                GY(NR,NTH)=0.0
             ENDIF
          ELSE IF (K2.EQ.'J') THEN
             IF(NR.LE.NRMAX) THEN
-               GY(NR,NTH)=GUCLIP(PCUR(NTH,NPH,NR))
+               GY(NR,NTH)=GUCLIP(PCUR(NTH,NHH,NR))
             ELSE
                GY(NR,NTH)=0.0
             ENDIF
@@ -152,15 +152,15 @@ C
             IF(NG3.EQ.1) THEN
                GY(NR,NTH) =GUCLIP(PSIP(NR))
             ELSEIF(NG3.EQ.2) THEN
-               GY(NR,NTH) =GUCLIP(BPST(NTH,NPH,NR))
+               GY(NR,NTH) =GUCLIP(BPST(NTH,NHH,NR))
             ELSEIF(NG3.EQ.3) THEN
-               GY(NR,NTH) =GUCLIP(BFLD(3,NTH,NPH,NR)/BFLD(2,NTH,NPH,NR))
+               GY(NR,NTH) =GUCLIP(BFLD(3,NTH,NHH,NR)/BFLD(2,NTH,NHH,NR))
             ELSEIF(NG3.EQ.4) THEN
-               GY(NR,NTH) =GUCLIP(BFLD(2,NTH,NPH,NR))
+               GY(NR,NTH) =GUCLIP(BFLD(2,NTH,NHH,NR))
             ELSEIF(NG3.EQ.5) THEN
-               GY(NR,NTH) =GUCLIP(BFLD(3,NTH,NPH,NR))
+               GY(NR,NTH) =GUCLIP(BFLD(3,NTH,NHH,NR))
             ELSEIF(NG3.EQ.6) THEN
-               GY(NR,NTH) =GUCLIP(RJ(NTH,NPH,NR))
+               GY(NR,NTH) =GUCLIP(RJ(NTH,NHH,NR))
             ELSEIF(NG3.EQ.7) THEN
                GY(NR,NTH) =GUCLIP(RPS(NTH,NR))
             ELSEIF(NG3.EQ.8) THEN
@@ -179,16 +179,16 @@ C
       ENDDO
 C
       IF(NGRAPH.EQ.0) THEN
-         CALL WMGFWR(GY,NPH,K2,K3,K4)
+         CALL WMGFWR(GY,NHH,K2,K3,K4)
          GOTO 9000
       ELSEIF(NGRAPH.EQ.1) THEN
          CALL PAGES
          CALL SETCHS(0.3,0.0)
-         CALL WMGXEQ(GY,NPH,K2,K3)
+         CALL WMGXEQ(GY,NHH,K2,K3)
       ELSE IF(NGRAPH.EQ.2) THEN
          CALL PAGES
          CALL SETCHS(0.3,0.0)
-         CALL WMGXEQP(GY,NPH,K2,K3)
+         CALL WMGXEQP(GY,NHH,K2,K3)
       ELSE IF(NGRAPH.EQ.3) THEN
          IF(NTHMAX.LE.2) THEN
             WRITE(6,*) 'XX NTHMAX:',NTHMAX,'  CONDITION:NTHMAX >= 4'
@@ -196,7 +196,7 @@ C
          ENDIF
          CALL PAGES
          CALL SETCHS(0.3,0.0)
-         CALL WMG3DA(GY,NPH,K2,K3,0)
+         CALL WMG3DA(GY,NHH,K2,K3,0)
       ELSE IF(NGRAPH.EQ.4) THEN
          IF(NTHMAX.LE.2) THEN
             WRITE(6,*) 'XX NTHMAX:',NTHMAX,'  CONDITION:NTHMAX >= 4'
@@ -204,7 +204,7 @@ C
          ENDIF
          CALL PAGES
          CALL SETCHS(0.3,0.0)
-         CALL WMG3DA(GY,NPH,K2,K3,4)
+         CALL WMG3DA(GY,NHH,K2,K3,4)
       ELSE
          WRITE(6,*) 'XX WMGREQ: UNDEFINED NGRAPH: NGRAPH=',NGRAPH
          GO TO 9000
@@ -264,14 +264,14 @@ C
      &        13.8, 21.6,  1.0,  8.0/
 C
 C
-    2 IF(NPHMAX.EQ.1) THEN
-         NPH=1
+    2 IF(NHHMAX.EQ.1) THEN
+         NHH=1
       ELSE
-         WRITE(6,*) '## INPUT NPH : 1..',NPHMAX
-         READ(5,*,ERR=2,END=9000) NPH
+         WRITE(6,*) '## INPUT NHH : 1..',NHHMAX
+         READ(5,*,ERR=2,END=9000) NHH
       ENDIF
-      IF(NPH.LT.1.OR.NPH.GT.NPHMAX) THEN
-         WRITE(6,*) 'XX ILLEGAL NPH'
+      IF(NHH.LT.1.OR.NHH.GT.NHHMAX) THEN
+         WRITE(6,*) 'XX ILLEGAL NHH'
          GOTO 2
       ENDIF
 C
@@ -287,25 +287,25 @@ C
          RTITL(8)='PSI   '
          DO NTH=1,NTHMAX
          DO NR=1,NRMAX+1
-            GY(NR,NTH)=GUCLIP(RG11(NTH,NPH,NR))
+            GY(NR,NTH)=GUCLIP(RG11(NTH,NHH,NR))
          ENDDO
          ENDDO
          CALL WMGGR(GY,NTHMAX,RTITL(1),GP(1,1))
          DO NTH=1,NTHMAX
          DO NR=1,NRMAX+1
-            GY(NR,NTH)=GUCLIP(RG12(NTH,NPH,NR))
+            GY(NR,NTH)=GUCLIP(RG12(NTH,NHH,NR))
          ENDDO
          ENDDO
          CALL WMGGR(GY,NTHMAX,RTITL(2),GP(1,2))
          DO NTH=1,NTHMAX
          DO NR=1,NRMAX+1
-            GY(NR,NTH)=GUCLIP(RG13(NTH,NPH,NR))
+            GY(NR,NTH)=GUCLIP(RG13(NTH,NHH,NR))
          ENDDO
          ENDDO
          CALL WMGGR(GY,NTHMAX,RTITL(3),GP(1,3))
          DO NTH=1,NTHMAX
          DO NR=1,NRMAX+1
-            GY(NR,NTH)=GUCLIP(RG22(NTH,NPH,NR))
+            GY(NR,NTH)=GUCLIP(RG22(NTH,NHH,NR))
          ENDDO
          ENDDO
          CALL WMGGR(GY,NTHMAX,RTITL(4),GP(1,4))
@@ -315,19 +315,19 @@ C
          CALL SETCHS(0.3,0.0)
          DO NTH=1,NTHMAX
          DO NR=1,NRMAX+1
-            GY(NR,NTH)=GUCLIP(RG23(NTH,NPH,NR))
+            GY(NR,NTH)=GUCLIP(RG23(NTH,NHH,NR))
          ENDDO
          ENDDO
          CALL WMGGR(GY,NTHMAX,RTITL(5),GP(1,1))
          DO NTH=1,NTHMAX
          DO NR=1,NRMAX+1
-            GY(NR,NTH)=GUCLIP(RG33(NTH,NPH,NR))
+            GY(NR,NTH)=GUCLIP(RG33(NTH,NHH,NR))
          ENDDO
          ENDDO
          CALL WMGGR(GY,NTHMAX,RTITL(6),GP(1,2))
          DO NTH=1,NTHMAX
          DO NR=1,NRMAX+1
-            GY(NR,NTH)=GUCLIP(RJ(NTH,NPH,NR))
+            GY(NR,NTH)=GUCLIP(RJ(NTH,NHH,NR))
          ENDDO
          ENDDO
          CALL WMGGR(GY,NTHMAX,RTITL(7),GP(1,3))
@@ -359,7 +359,7 @@ C
       REAL(8),DIMENSION(3,3):: gm,mum
       REAL(8):: rhol,th,ph,gj,babs,bsupth,bsupph
       REAL(8):: dth,dph
-      INTEGER:: nth,nph
+      INTEGER:: nth,nhh
 
       DATA GP/ 3.0, 10.8,  9.5, 16.5,
      &        13.8, 21.6,  9.5, 16.5,
@@ -367,19 +367,19 @@ C
      &        13.8, 21.6,  1.0,  8.0/
 C
       dth=2.d0*pi/nthmax
-      dph=2.d0*pi/nphmax
+      dph=2.d0*pi/nhhmax
 C
-    2 IF(NPHMAX.EQ.1) THEN
-         NPH=1
+    2 IF(NHHMAX.EQ.1) THEN
+         NHH=1
       ELSE
-         WRITE(6,*) '## INPUT NPH : 1..',NPHMAX
-         READ(5,*,ERR=2,END=9000) NPH
+         WRITE(6,*) '## INPUT NHH : 1..',NHHMAX
+         READ(5,*,ERR=2,END=9000) NHH
       ENDIF
-      IF(NPH.LT.1.OR.NPH.GT.NPHMAX) THEN
-         WRITE(6,*) 'XX ILLEGAL NPH'
+      IF(NHH.LT.1.OR.NHH.GT.NHHMAX) THEN
+         WRITE(6,*) 'XX ILLEGAL NHH'
          GOTO 2
       ENDIF
-      ph=dph*(nph-1)
+      ph=dph*(nhh-1)
 C
       RTITL(1,1)='RM11  '
       RTITL(1,2)='RM12  '
@@ -467,7 +467,7 @@ C
 C
 C     ****** WRITE GRAPHIC DATA IN FILE ******
 C
-      SUBROUTINE WMGFWR(GGL,NPH,K2,K3,K4)
+      SUBROUTINE WMGFWR(GGL,NHH,K2,K3,K4)
 C
       INCLUDE 'wmcomm.inc'
 C
@@ -482,7 +482,7 @@ C
       ENDDO
 C
       NFD=23
-      WRITE(NFD,'(3A1,I8)') K2,K3,K4,NPH
+      WRITE(NFD,'(3A1,I8)') K2,K3,K4,NHH
       WRITE(NFD,'(2I8)') NRMAX+1,NTHMAX
       WRITE(NFD,'(1P3E15.7)') ((GRL(NR,NTH),GZL(NR,NTH),GGL(NR,NTH),
      &                          NR=1,NRMAX+1),NTH=1,NTHMAX)
@@ -493,7 +493,7 @@ C
 C
 C     ****** DRAW COUNTOUR IN MAGNETIC SURFACE COORDINATES ******
 C
-      SUBROUTINE WMGXEQ(GGL,NPH,K2,K3)
+      SUBROUTINE WMGXEQ(GGL,NHH,K2,K3)
 C
       USE plprof,ONLY: pl_prof2
       INCLUDE 'wmcomm.inc'
@@ -516,8 +516,8 @@ C
          NTHGMAX=NTHMAX
          DO NR=1,NRMAX+1
          DO NTH=1,NTHGMAX
-            GRL(NR,NTH)=GUCLIP(RPST(NTH,NPH,NR))
-            GZL(NR,NTH)=GUCLIP(ZPST(NTH,NPH,NR))
+            GRL(NR,NTH)=GUCLIP(RPST(NTH,NHH,NR))
+            GZL(NR,NTH)=GUCLIP(ZPST(NTH,NHH,NR))
          ENDDO
          ENDDO
       ELSE
@@ -561,19 +561,19 @@ C            else
 C               CALL WMCDEN(NR,RN,RTPR,RTPP,RU)
 C            endif
             dth=2.d0*pi/nthmax
-            dph=2.d0*pi/nphmax
+            dph=2.d0*pi/nhhmax
             DO NTH=1,NTHMAX
                NTHP=NTH+1
                IF(NTHP.GT.NTHMAX) NTHP=1
 C               if(MDLWMF.eq.1) THEN
-                  ph=dph*(nph-1)
+                  ph=dph*(nhh-1)
                   th=dth*(nth-1)
                   call wmfem_magnetic(rhol,th,ph,babs,bsupth,bsupph)
                   th=dth*(nthp-1)
                   call wmfem_magnetic(rhol,th,ph,babsp,bsupthp,bsupphp)
 C               else
-C                  CALL WMCMAG(NR,NTH, NPH,BABS, BSUPTH, BSUPPH )
-C                  CALL WMCMAG(NR,NTHP,NPH,BABSP,BSUPTHP,BSUPPHP)
+C                  CALL WMCMAG(NR,NTH, NHH,BABS, BSUPTH, BSUPPH )
+C                  CALL WMCMAG(NR,NTHP,NHH,BABSP,BSUPTHP,BSUPPHP)
 C               endif
                DO NTHG=1,NTHGS
                   NTHL=(NTH-1)*NTHGS+NTHG
@@ -721,8 +721,8 @@ C
 C     ****** DRAW PLASMA AND WALL SURFACE ****** 
 C
       DO NSU=1,NSUMAX
-         GRS(NSU)=GUCLIP(RSU(NSU,NPH))
-         GZS(NSU)=GUCLIP(ZSU(NSU,NPH))
+         GRS(NSU)=GUCLIP(RSU(NSU,NHH))
+         GZS(NSU)=GUCLIP(ZSU(NSU,NHH))
       ENDDO
       GRS(NSUMAX+1)=GRS(1)
       GZS(NSUMAX+1)=GZS(1)
@@ -730,13 +730,13 @@ C
       CALL GPLOTP(GRS,GZS,1,NSUMAX+1,1,0,0,0)
 C
 c$$$      IF(MODELG.EQ.4.OR.MODELG.EQ.6) THEN
-c$$$         NPHD=NPH
+c$$$         NHHD=NHH
 c$$$      ELSE
-c$$$         NPHD=1
+c$$$         NHHD=1
 c$$$      ENDIF
 c$$$      DO NSW=1,NSWMAX
-c$$$         GRS(NSW)=GUCLIP(RSW(NSW,NPHD))
-c$$$         GZS(NSW)=GUCLIP(ZSW(NSW,NPHD))
+c$$$         GRS(NSW)=GUCLIP(RSW(NSW,NHHD))
+c$$$         GZS(NSW)=GUCLIP(ZSW(NSW,NHHD))
 c$$$      ENDDO
 c$$$      CALL SETLIN(-1,-1,7)
 c$$$      CALL GPLOTP(GRS,GZS,1,NSWMAX,1,0,0,0)
@@ -763,7 +763,7 @@ C
 C
 C     ****** PAINT CONTOUR IN MAGNETIC SURFACE COORDINATES ******
 C
-      SUBROUTINE WMGXEQP(GGL,NPH,K2,K3)
+      SUBROUTINE WMGXEQP(GGL,NHH,K2,K3)
 C
       INCLUDE 'wmcomm.inc'
 C
@@ -786,8 +786,8 @@ C
          NTHGMAX=NTHMAX
          DO NR=1,NRMAX+1
          DO NTH=1,NTHGMAX
-            GRL(NR,NTH)=GUCLIP(RPST(NTH,NPH,NR))
-            GZL(NR,NTH)=GUCLIP(ZPST(NTH,NPH,NR))
+            GRL(NR,NTH)=GUCLIP(RPST(NTH,NHH,NR))
+            GZL(NR,NTH)=GUCLIP(ZPST(NTH,NHH,NR))
          ENDDO
          ENDDO
       ELSE
@@ -808,7 +808,7 @@ C
          DO NTHG=1,NTHGS
             NTHL=(NTH-1)*NTHGS+NTHG
             FACT=DBLE(NTHG-1)/DBLE(NTHGS)
-            VAL=(1.D0-FACT)*BPST(NTH,NPH,NR)+FACT*BPST(NTHP,NPH,NR)
+            VAL=(1.D0-FACT)*BPST(NTH,NHH,NR)+FACT*BPST(NTHP,NHH,NR)
             GBY(NR,NTHL)=GUCLIP(VAL)
             VAL=(1.D0-FACT)*DBLE(GGL(NR,NTH))+FACT*DBLE(GGL(NR,NTHP))
             GFL(NR,NTHL)=GUCLIP(VAL)
@@ -907,8 +907,8 @@ C
       ENDIF
 C
       DO NSU=1,NSUMAX
-         GRS(NSU)=GUCLIP(RSU(NSU,NPH))
-         GZS(NSU)=GUCLIP(ZSU(NSU,NPH))
+         GRS(NSU)=GUCLIP(RSU(NSU,NHH))
+         GZS(NSU)=GUCLIP(ZSU(NSU,NHH))
       ENDDO
       GRS(NSUMAX+1)=GRS(1)
       GZS(NSUMAX+1)=GZS(1)
@@ -916,13 +916,13 @@ C
       CALL GPLOTP(GRS,GZS,1,NSUMAX+1,1,0,0,0)
 C
       IF(MODELG.EQ.4.OR.MODELG.EQ.6) THEN
-         NPHD=NPH
+         NHHD=NHH
       ELSE
-         NPHD=1
+         NHHD=1
       ENDIF
       DO NSW=1,NSWMAX
-         GRS(NSW)=GUCLIP(RSW(NSW,NPHD))
-         GZS(NSW)=GUCLIP(ZSW(NSW,NPHD))
+         GRS(NSW)=GUCLIP(RSW(NSW,NHHD))
+         GZS(NSW)=GUCLIP(ZSW(NSW,NHHD))
       ENDDO
       CALL SETRGB(0.0,0.0,0.0)
       CALL GPLOTP(GRS,GZS,1,NSWMAX,1,0,0,0)
@@ -946,7 +946,7 @@ C
 C
 C     ****** DRAW BIRD-EYE VIEW IN MAGNETIC SURFACE COORDINATES ******
 C
-      SUBROUTINE WMG3DA(GFL,NPH,K2,K3,IND)
+      SUBROUTINE WMG3DA(GFL,NHH,K2,K3,IND)
 C
       INCLUDE 'wmcomm.inc'
 C
@@ -974,15 +974,15 @@ C
 C
       DO NR=1,NRMAX+1
       DO NTH=1,NTHMAX
-         RBS(NR,NTH)=RPST(NTH,NPH,NR)
-         ZBS(NR,NTH)=ZPST(NTH,NPH,NR)
+         RBS(NR,NTH)=RPST(NTH,NHH,NR)
+         ZBS(NR,NTH)=ZPST(NTH,NHH,NR)
          FBS(NR,NTH)=DBLE(GFL(NR,NTH))
       ENDDO
       ENDDO
 C
       DO NR=1,NRMAX+1
-         RBS(NR,NTHMAX+1)=RPST(1,NPH,NR)
-         ZBS(NR,NTHMAX+1)=ZPST(1,NPH,NR)
+         RBS(NR,NTHMAX+1)=RPST(1,NHH,NR)
+         ZBS(NR,NTHMAX+1)=ZPST(1,NHH,NR)
          FBS(NR,NTHMAX+1)=DBLE(GFL(NR,1))
       ENDDO
 C
@@ -1001,15 +1001,15 @@ C
       ZMAX=-1.D-32
 C
       IF(MODELG.NE.4) THEN
-         NPHD=1
+         NHHD=1
       ELSE
-         NPHD=NPH
+         NHHD=NHH
       ENDIF
       DO NSW=1,NSWMAX
-         RMIN1=RSW(NSW,NPHD)
-         RMAX1=RSW(NSW,NPHD)
-         ZMIN1=ZSW(NSW,NPHD)
-         ZMAX1=ZSW(NSW,NPHD)
+         RMIN1=RSW(NSW,NHHD)
+         RMAX1=RSW(NSW,NHHD)
+         ZMIN1=ZSW(NSW,NHHD)
+         ZMAX1=ZSW(NSW,NHHD)
          RMIN=DMIN1(RMIN,RMIN1)
          RMAX=DMAX1(RMAX,RMAX1)
          ZMIN=DMIN1(ZMIN,ZMIN1)
@@ -1038,15 +1038,15 @@ C
       MN=0
       DO I=NRMN,1,-1
          MN=MN+1
-         RSWB(MN)=RSW(I,NPHD)
-         ZSWB(MN)=ZSW(I,NPHD)
+         RSWB(MN)=RSW(I,NHHD)
+         ZSWB(MN)=ZSW(I,NHHD)
       ENDDO
 C
       MN=0
       DO I=NRMN,NSWMAX
          MN=MN+1
-         RSWF(MN)=RSW(I,NPHD)
-         ZSWF(MN)=ZSW(I,NPHD)
+         RSWF(MN)=RSW(I,NHHD)
+         ZSWF(MN)=ZSW(I,NHHD)
       ENDDO
 C
       CALL SPL1D(RSWB,ZSWB,F1,U1,NSWMAX1,0,IERR)
@@ -1218,36 +1218,36 @@ C      CALL GVALUE3DZ(0.0,2.*GZSCAL,-2,1)
 C
       CALL SETRGB(0.0,1.0,0.0)
       NSU=1
-         GRL=GUCLIP(RSU(NSU,NPH))
-         GZL=GUCLIP(ZSU(NSU,NPH))
+         GRL=GUCLIP(RSU(NSU,NHH))
+         GZL=GUCLIP(ZSU(NSU,NHH))
          CALL GTTTA(GRL,GZL,0.0,GXP,GYP)
          CALL MOVE(GXP,GYP)
       DO NSU=2,NSUMAX
-         GRL=GUCLIP(RSU(NSU,NPH))
-         GZL=GUCLIP(ZSU(NSU,NPH))
+         GRL=GUCLIP(RSU(NSU,NHH))
+         GZL=GUCLIP(ZSU(NSU,NHH))
          CALL GTTTA(GRL,GZL,0.0,GXP,GYP)
          CALL DRAW(GXP,GYP)
       ENDDO
       NSU=1
-         GRL=GUCLIP(RSU(NSU,NPH))
-         GZL=GUCLIP(ZSU(NSU,NPH))
+         GRL=GUCLIP(RSU(NSU,NHH))
+         GZL=GUCLIP(ZSU(NSU,NHH))
          CALL GTTTA(GRL,GZL,0.0,GXP,GYP)
          CALL DRAW(GXP,GYP)
 C
       IF(MODELG.NE.4) THEN
-         NPHD=1
+         NHHD=1
       ELSE
-         NPHD=NPH
+         NHHD=NHH
       ENDIF
       CALL SETRGB(0.0,0.0,0.0)
       NSW=1
-         GRL=GUCLIP(RSW(NSW,NPHD))
-         GZL=GUCLIP(ZSW(NSW,NPHD))
+         GRL=GUCLIP(RSW(NSW,NHHD))
+         GZL=GUCLIP(ZSW(NSW,NHHD))
          CALL GTTTA(GRL,GZL,0.0,GXP,GYP)
          CALL MOVE(GXP,GYP)
       DO NSW=2,NSWMAX
-         GRL=GUCLIP(RSW(NSW,NPHD))
-         GZL=GUCLIP(ZSW(NSW,NPHD))
+         GRL=GUCLIP(RSW(NSW,NHHD))
+         GZL=GUCLIP(ZSW(NSW,NHHD))
          CALL GTTTA(GRL,GZL,0.0,GXP,GYP)
          CALL DRAW(GXP,GYP)
       ENDDO

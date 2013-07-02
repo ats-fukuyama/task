@@ -243,11 +243,14 @@
 !            PCOS=ABS(RCOS)
             PCOS=RCOS
          ELSE
-            PSI=(1.D0+EPSRM(NR))/(1.D0+XM/RR)
+            PSI=(1.D0+EPSRM2(NR))/(1.D0+XM/RR)
             PSIN=SQRT(PSI)*RSIN
-!            PCOS=SQRT(1.D0-PSI*RSIN**2)
-!            write(6,'(A,I5,1P5E12.4)') 'NR:',NR,&
-!                 EPSRM(NR),X/RR,PSI,RSIN,1.D0-PSI*RSIN**2
+
+            IF(1.D0-PSI*RSIN**2.LT.0.D0) THEN
+            write(6,'(A,I5,1P5E12.4)') 'NR:',NR,&
+                 EPSRM2(NR),X/RR,PSI,RSIN,1.D0-PSI*RSIN**2
+            END IF
+
             IF (RCOS.GT.0.0D0) THEN
                PCOS= SQRT(1.D0-PSI*RSIN**2)
             ELSE

@@ -59,7 +59,7 @@ C            CALL WMTRLOAD(KNAMTR,IERR)
       ENDIF
       IF(IERR.NE.0) RETURN
 C
-      IF(NPHMAX.EQ.1) THEN
+      IF(NHHMAX.EQ.1) THEN
          NDSIZ  = 1
          NDMIN  = 0
          NDMAX  = 0
@@ -68,13 +68,13 @@ C
          KDMAX  = 0
          NDSIZX = 1
       ELSE
-         NDSIZ  = NPHMAX
-         NDMIN  =-NPHMAX/2+1
-         NDMAX  = NPHMAX/2
-         KDSIZ  = NPHMAX
-         KDMIN  =-NPHMAX/2+1
-         KDMAX  = NPHMAX/2
-         NDSIZX = 3*NPHMAX/2
+         NDSIZ  = NHHMAX
+         NDMIN  =-NHHMAX/2+1
+         NDMAX  = NHHMAX/2
+         KDSIZ  = NHHMAX
+         KDMIN  =-NHHMAX/2+1
+         KDMAX  = NHHMAX/2
+         NDSIZX = 3*NHHMAX/2
       ENDIF
 C
       IF(NTHMAX.EQ.1) THEN
@@ -135,22 +135,22 @@ C
 !     --- 3D grid, metric, Bsup ---
       do nr=1,nrmax
          rhol=xrho(nr)
-         do nph=1,nphmax
+         do nhh=1,nhhmax
             do nth=1,nthmax
-               rpst(nth,nph,nr)=rps(nth,nr)
-               zpst(nth,nph,nr)=zps(nth,nr)
+               rpst(nth,nhh,nr)=rps(nth,nr)
+               zpst(nth,nhh,nr)=zps(nth,nr)
 
-               rg11(nth,nph,nr)= ra**2
-               rg12(nth,nph,nr)= 0.d0
-               rg13(nth,nph,nr)= 0.d0
-               rg22(nth,nph,nr)= (ra*rhol)**2
-               rg23(nth,nph,nr)= 0.d0
-               rg33(nth,nph,nr)= rr**2
-               rj  (nth,nph,nr)= rr*ra**2*rhol
+               rg11(nth,nhh,nr)= ra**2
+               rg12(nth,nhh,nr)= 0.d0
+               rg13(nth,nhh,nr)= 0.d0
+               rg22(nth,nhh,nr)= (ra*rhol)**2
+               rg23(nth,nhh,nr)= 0.d0
+               rg33(nth,nhh,nr)= rr**2
+               rj  (nth,nhh,nr)= rr*ra**2*rhol
 
-               bfld(2,nth,nph,nr)=0.d0
-               bfld(3,nth,nph,nr)=bb/rr
-               BPST(NTH,NPH,NR)=bb
+               bfld(2,nth,nhh,nr)=0.d0
+               bfld(3,nth,nhh,nr)=bb/rr
+               BPST(NTH,NHH,NR)=bb
             enddo
          enddo
       enddo
@@ -218,21 +218,21 @@ C
             th=dth*(nth-1)
             call wmfem_metrics(rhol,th,0.d0,gm,gj)
             call wmfem_magnetic(rhol,th,0.d0,babs,bsupth,bsupph)
-            DO NPH=1,NPHMAX
-               RPST(NTH,NPH,NR)=RPS(NTH,NR)
-               ZPST(NTH,NPH,NR)=ZPS(NTH,NR)
+            DO NHH=1,NHHMAX
+               RPST(NTH,NHH,NR)=RPS(NTH,NR)
+               ZPST(NTH,NHH,NR)=ZPS(NTH,NR)
 
-               RG11(NTH,NPH,NR)= gm(1,1)
-               RG12(NTH,NPH,NR)= gm(1,2)
-               RG13(NTH,NPH,NR)= gm(1,3)
-               RG22(NTH,NPH,NR)= gm(2,2)
-               RG23(NTH,NPH,NR)= gm(2,3)
-               RG33(NTH,NPH,NR)= gm(3,3)
-               RJ  (NTH,NPH,NR)= gj
+               RG11(NTH,NHH,NR)= gm(1,1)
+               RG12(NTH,NHH,NR)= gm(1,2)
+               RG13(NTH,NHH,NR)= gm(1,3)
+               RG22(NTH,NHH,NR)= gm(2,2)
+               RG23(NTH,NHH,NR)= gm(2,3)
+               RG33(NTH,NHH,NR)= gm(3,3)
+               RJ  (NTH,NHH,NR)= gj
 
-               BFLD(2,NTH,NPH,NR)=bsupth
-               BFLD(3,NTH,NPH,NR)=bsupph
-               BPST(NTH,NPH,NR)=BABS
+               BFLD(2,NTH,NHH,NR)=bsupth
+               BFLD(3,NTH,NHH,NR)=bsupph
+               BPST(NTH,NHH,NR)=BABS
             ENDDO
          ENDDO
       ENDDO
@@ -345,22 +345,22 @@ C
      &                          drrrho,dzzrho,drrchi,dzzchi)
             call wmfem_metrics(rhol,th,0.d0,gm,gj)
             call wmfem_magnetic(rhol,th,0.d0,babs,bsupth,bsupph)
-            DO NPH=1,NPHMAX
-               RPST(NTH,NPH,NR)= rrl
-               ZPST(NTH,NPH,NR)= zzl
+            DO NHH=1,NHHMAX
+               RPST(NTH,NHH,NR)= rrl
+               ZPST(NTH,NHH,NR)= zzl
 
-               RG11(NTH,NPH,NR)= gm(1,1)
-!               write(6,'(3I5,1P2E12.4)') NR,NTH,NPH,gm(1,1),gm(2,2)
-               RG12(NTH,NPH,NR)= gm(1,2)
-               RG13(NTH,NPH,NR)= gm(1,3)
-               RG22(NTH,NPH,NR)= gm(2,2)
-               RG23(NTH,NPH,NR)= gm(2,3)
-               RG33(NTH,NPH,NR)= gm(3,3)
-               RJ  (NTH,NPH,NR)= gj
+               RG11(NTH,NHH,NR)= gm(1,1)
+!               write(6,'(3I5,1P2E12.4)') NR,NTH,NHH,gm(1,1),gm(2,2)
+               RG12(NTH,NHH,NR)= gm(1,2)
+               RG13(NTH,NHH,NR)= gm(1,3)
+               RG22(NTH,NHH,NR)= gm(2,2)
+               RG23(NTH,NHH,NR)= gm(2,3)
+               RG33(NTH,NHH,NR)= gm(3,3)
+               RJ  (NTH,NHH,NR)= gj
 
-               BFLD(2,NTH,NPH,NR)=bsupth
-               BFLD(3,NTH,NPH,NR)=bsupph
-               BPST(NTH,NPH,NR)=  babs
+               BFLD(2,NTH,NHH,NR)=bsupth
+               BFLD(3,NTH,NHH,NR)=bsupph
+               BPST(NTH,NHH,NR)=  babs
 !               write(6,'(A,2I5,1P5E12.4)') '%%%',NR,NTH,
 !     &              babs,bsupth,bsupph,bsupth*sqrt(gm(2,2)),
 !     &              bsupph*sqrt(gm(3,3))

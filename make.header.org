@@ -43,8 +43,8 @@ GLLIBS=-L/usr/local/lib -lgsgl
 ## for g95 32bit (intel)
 #GFLIBS=-L/usr/local/lib -lg3d-g95 -lgsp-g95 -lgdp-g95 -L/usr/X11R6/lib -lX11
 #GLLIBS=-L/usr/local/lib -lgsgl
-#OFLAGS = -g -O2 -fendian=big
-#DFLAGS = -g -fbounds-check -Wunused -ftrace=full -fendian=big
+#OFLAGS = -g -O2 
+#DFLAGS = -g -fbounds-check -Wunused -ftrace=full
 #FCFIXED= g95 -ffixed-form
 #FCFREE = g95 -ffree-form
 #MOD = mod
@@ -55,8 +55,8 @@ GLLIBS=-L/usr/local/lib -lgsgl
 ## for g95 64bit (intel)
 #GFLIBS=-L/usr/local/lib64 -lg3d-g95L -lgsp-g95L -lgdp-g95L -L/usr/X11R6/lib64 -lX11
 #GLLIBS=-L/usr/local/lib64 -lgsgl
-#OFLAGS = -g -O2 -fendian=big
-#DFLAGS = -g -fbounds-check -Wunused -ftrace=full -fendian=big
+#OFLAGS = -g -O2
+#DFLAGS = -g -fbounds-check -Wunused -ftrace=full
 #FCFIXED= g95 -ffixed-form -i4
 #FCFREE = g95 -ffree-form -i4
 #MOD = mod
@@ -104,8 +104,8 @@ GLLIBS=-L/usr/local/lib -lgsgl
 ## for Intel fortran compiler EM64T
 #GFLIBS=-L/usr/local/lib64 -lg3d-ifc64 -lgsp-ifc64 -lgdp-ifc64 -L/usr/X11R6/lib64 -lX11
 #GLLIBS=-L/usr/local/lib64 -lgsgl-ixc
-#OFLAGS = -O3 -vec-report0 -convert big_endian -mcmodel=medium -shared-intel
-#DFLAGS = -g -CB -CU -traceback -debug extended -vec-report0 -align -check all -fpe-all0 -fmath-errno -fstack-security-check -mcmodel=medium
+#OFLAGS = -O3 -vec-report0 -mcmodel=medium -shared-intel
+#DFLAGS = -g -CB -CU -traceback -debug extended -vec-report0 -align -check all -fpe-all0 -fmath-errno -fstack-security-check -mcmodel=medium -shared-intel
 #FCFIXED = ifort
 #FCFREE  = ifort
 #MOD = mod
@@ -116,8 +116,8 @@ GLLIBS=-L/usr/local/lib -lgsgl
 ## for Intel fortran compiler on IA64
 #GFLIBS=-L/home/j024/lib -lg3d-ifc64 -lgsp-ifc64 -lgdp-ifc64 -L/usr/X11R6/lib -lX11
 #GLLIBS=-L/home/j024/lib -lgsgl-ifc64
-#OFLAGS = -O3 -vec-report0 -convert big_endian
-#DFLAGS = -g -CB -w90 -w95 -traceback -vec-report0 -check uninit -convert big_endian
+#OFLAGS = -O3 -vec-report0 
+#DFLAGS = -g -CB -w90 -w95 -traceback -vec-report0 -check uninit 
 #FCFIXED = ifort
 #FCFREE = ifort
 #MOD = mod
@@ -152,7 +152,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #GFLIBS=-L/usr/local/lib -lg3d-ifc64 -lgsp-ifc64 -lgdp-ifc64 -L/usr/X11R6/lib -lX11
 #GLLIBS=-L/usr/local/lib -lgsgl-ixc
 #OFLAGS = -O3 -vec-report0
-#DFLAGS = -g -CB -CU -traceback -debug extended -vec-report0 -align -check all -fpe-all0 -fmath-errno -fstack-security-check
+#DFLAGS = -g -C -traceback -debug extended -vec-report0 -align -fpe-all0 -fmath-errno -fstack-security-check
 #FCFIXED = ifort
 #FCFREE  = ifort
 #MOD = mod

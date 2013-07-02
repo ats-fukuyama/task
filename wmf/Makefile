@@ -106,6 +106,7 @@ wminit.o : wminit.f $(WMCOMM)
 wmeign.o : wmeign.f $(WMCOMM)
 wmsetg.o : wmsetg.f $(WMCOMM)
 
+wmloop.o : wmloop.f $(WMCOMM)
 wmexec.o : wmexec.f $(WMCOMM)
 wmprof.o : wmprof.f $(WMCOMM)
 wmdisp.o : wmdisp.f $(WMCOMM)

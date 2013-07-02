@@ -86,11 +86,11 @@ C     *** MESH PARAMETERS ***
 C
 C        NRMAX  : Number of radial mesh points
 C        NTHMAX : Number of poloidal mesh points
-C        NPHMAX : Number of toroidal mesh points
+C        NHHMAX : Number of helical mesh points
 C
       NRMAX   = 50
       NTHMAX  = 1
-      NPHMAX  = 1
+      NHHMAX  = 1
       NSUMAX  = 64
       NSWMAX  = 64
 C
@@ -278,7 +278,7 @@ C
      &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
      &              PNA,PNAL,PTA,ZEFF,NDISP1,NDISP2,
      &              RF,RFI,RD,BETAJ,AJ,APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,
-     &              NRMAX,NTHMAX,NPHMAX,NTH0,NPH0,NHC,
+     &              NRMAX,NTHMAX,NHHMAX,NTH0,NPH0,NHC,
      &              NPRINT,NGRAPH,MODELG,MODELJ,MODELP,MODELN,MODELA,
      &              MODELQ,MODELM,MODELW,MODELV,MDLWMF,MDLWMX,MDLWMD,
      &              ANTANG,MWGMAX,MODEFR,MODEFW,
@@ -295,10 +295,10 @@ C
       RFI=DIMAG(CRF)
       READ(NID,WM,IOSTAT=IST,ERR=9800,END=9900)
       CRF=DCMPLX(RF,RFI)
-      IF(NPHMAX.EQ.1) THEN
-         NPHMAX2=1
+      IF(NHHMAX.EQ.1) THEN
+         NHHMAX2=1
       ELSE
-         NPHMAX2=2*NPHMAX
+         NHHMAX2=2*NHHMAX
       ENDIF
       IF(NTHMAX.EQ.1) THEN
          NTHMAX2=1
@@ -326,7 +326,7 @@ C
      &       9X,'PROFN1,PROFN2,PROFT1,PROFT2,ZEFF,'/
      &       9X,'NSMAX,PNA,PNAL,PTA,RF,RFI,RD,BETAJ,ANTANG,'/
      &       9X,'AJ,APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,MWGMAX,'/
-     &       9X,'NRMAX,NTHMAX,NPHMAX,NTH0,NPH0,NHC,'/
+     &       9X,'NRMAX,NTHMAX,NHHMAX,NTH0,NPH0,NHC,'/
      &       9X,'MODELG,MODELJ,MODELP,MODELA,MODELN,'/
      &       9X,'MODELQ,MODELM,MODELW,MDLWMF,MDLWMX,MDLWMD,'/
      &       9X,'KNAMEQ,KNAMTR,KNAMPF,MODEFR,MODEFW,'/
@@ -374,15 +374,15 @@ C
          ENDIF
       ENDIF
 C
-      IF(NPHMAX.LT.1.OR.NPHMAX.GT.NDM) THEN
-         WRITE(6,*) 'XXX INPUT ERROR : ILLEGAL NPHMAX'
-         WRITE(6,*) '                  NPHMAX,NDM =',NPHMAX,NDM
+      IF(NHHMAX.LT.1.OR.NHHMAX.GT.NDM) THEN
+         WRITE(6,*) 'XXX INPUT ERROR : ILLEGAL NHHMAX'
+         WRITE(6,*) '                  NHHMAX,NDM =',NHHMAX,NDM
          IERR=1
       ELSE
-         NDP=NINT(LOG(DBLE(NPHMAX))/LOG(2.D0))
-         IF(2**NDP.NE.NPHMAX) THEN
-            WRITE(6,*) 'XXX INPUT ERROR : ILLEGAL NPHMAX'
-            WRITE(6,*) '                  NPHMAX,NDM =',NPHMAX,NDM
+         NDP=NINT(LOG(DBLE(NHHMAX))/LOG(2.D0))
+         IF(2**NDP.NE.NHHMAX) THEN
+            WRITE(6,*) 'XXX INPUT ERROR : ILLEGAL NHHMAX'
+            WRITE(6,*) '                  NHHMAX,NDM =',NHHMAX,NDM
             IERR=1
          ENDIF
       ENDIF
@@ -527,7 +527,7 @@ C
      &             'RD    ',RD    ,'BETAJ ',BETAJ
       WRITE(6,601) 'ANTANG',ANTANG
       WRITE(6,602) 'NRMAX ',NRMAX ,'NTHMAX',NTHMAX,
-     &             'NPHMAX',NPHMAX
+     &             'NHHMAX',NHHMAX
       WRITE(6,602) 'NTH0  ',NTH0  ,'NPH0  ',NPH0  ,
      &             'NHC   ',NHC   ,'MWGMAX',MWGMAX
       WRITE(6,602) 'MODELG',MODELG,'MODELJ',MODELJ,
@@ -584,7 +584,7 @@ C
          IPARA(2) =NAMAX
          IPARA(3) =NRMAX
          IPARA(4) =NTHMAX
-         IPARA(5) =NPHMAX
+         IPARA(5) =NHHMAX
          IPARA(6) =NTH0
          IPARA(7) =NPH0
          IPARA(8) =NHC
@@ -640,7 +640,7 @@ C
          NAMAX =IPARA(2) 
          NRMAX =IPARA(3) 
          NTHMAX=IPARA(4) 
-         NPHMAX=IPARA(5) 
+         NHHMAX=IPARA(5) 
          NTH0  =IPARA(6) 
          NPH0  =IPARA(7) 
          NHC   =IPARA(8) 

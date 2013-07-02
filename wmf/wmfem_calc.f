@@ -49,12 +49,12 @@
       IMPLICIT NONE
       real(8),intent(in):: rho
       complex(8),dimension(3,3,4,nfcmax,nfcmax),intent(out):: fmd
-      complex(8),dimension(nthmax2,nphmax2):: fv1,fv1f
+      complex(8),dimension(nthmax2,nhhmax2):: fv1,fv1f
       complex(8),dimension(3,3,3,3,nfcmax2):: fmv1
       complex(8),dimension(3,3,3,nfcmax2):: fmv2,fmv3
       complex(8),dimension(3,3,nfcmax2):: fmv4
       integer:: i,j,k,nfc,nfc1,nfc2
-      integer:: nth,mm1,mm2,mmdiff,nph,nn1,nn2,nndiff
+      integer:: nth,mm1,mm2,mmdiff,nhh,nn1,nn2,nndiff
       integer:: imn,imn1,imn2,nfcdiff
 
       call wmfem_calculate_vacuum_sub(rho,fmv1,fmv2,fmv3,fmv4)
@@ -65,53 +65,53 @@
                do imn2=1,3
                   do nfc2=1,nfcmax2
                      nth=nthnfc2(nfc2)
-                     nph=nphnfc2(nfc2)
-                     fv1(nth,nph)=fmv1(i,j,imn1,imn2,nfc2)
+                     nhh=nhhnfc2(nfc2)
+                     fv1(nth,nhh)=fmv1(i,j,imn1,imn2,nfc2)
                   enddo
-                  call wmsubfx(fv1,fv1f,nthmax2,nphmax2)
+                  call wmsubfx(fv1,fv1f,nthmax2,nhhmax2)
                   do nfc2=1,nfcmax2
                      nth=nthnfc2(nfc2)
-                     nph=nphnfc2(nfc2)
-                     fmv1(i,j,imn1,imn2,nfc2)=fv1f(nth,nph)
+                     nhh=nhhnfc2(nfc2)
+                     fmv1(i,j,imn1,imn2,nfc2)=fv1f(nth,nhh)
                   enddo
                enddo
             enddo    
             do imn1=1,3
                do nfc2=1,nfcmax2
                   nth=nthnfc2(nfc2)
-                  nph=nphnfc2(nfc2)
-                  fv1(nth,nph)=fmv2(i,j,imn1,nfc2)
+                  nhh=nhhnfc2(nfc2)
+                  fv1(nth,nhh)=fmv2(i,j,imn1,nfc2)
                enddo
-               call wmsubfx(fv1,fv1f,nthmax2,nphmax2)
+               call wmsubfx(fv1,fv1f,nthmax2,nhhmax2)
                do nfc2=1,nfcmax2
                   nth=nthnfc2(nfc2)
-                  nph=nphnfc2(nfc2)
-                  fmv2(i,j,imn1,nfc2)=fv1f(nth,nph)
+                  nhh=nhhnfc2(nfc2)
+                  fmv2(i,j,imn1,nfc2)=fv1f(nth,nhh)
                enddo
             enddo
             do imn1=1,3
                do nfc2=1,nfcmax2
                   nth=nthnfc2(nfc2)
-                  nph=nphnfc2(nfc2)
-                  fv1(nth,nph)=fmv3(i,j,imn1,nfc2)
+                  nhh=nhhnfc2(nfc2)
+                  fv1(nth,nhh)=fmv3(i,j,imn1,nfc2)
                enddo
-               call wmsubfx(fv1,fv1f,nthmax2,nphmax2)
+               call wmsubfx(fv1,fv1f,nthmax2,nhhmax2)
                do nfc2=1,nfcmax2
                   nth=nthnfc2(nfc2)
-                  nph=nphnfc2(nfc2)
-                  fmv3(i,j,imn1,nfc2)=fv1f(nth,nph)
+                  nhh=nhhnfc2(nfc2)
+                  fmv3(i,j,imn1,nfc2)=fv1f(nth,nhh)
                enddo
             enddo
             do nfc2=1,nfcmax2
                nth=nthnfc2(nfc2)
-               nph=nphnfc2(nfc2)
-               fv1(nth,nph)=fmv4(i,j,nfc2)
+               nhh=nhhnfc2(nfc2)
+               fv1(nth,nhh)=fmv4(i,j,nfc2)
             enddo
-            call wmsubfx(fv1,fv1f,nthmax2,nphmax2)
+            call wmsubfx(fv1,fv1f,nthmax2,nhhmax2)
             do nfc2=1,nfcmax2
                nth=nthnfc2(nfc2)
-               nph=nphnfc2(nfc2)
-               fmv4(i,j,nfc2)=fv1f(nth,nph)
+               nhh=nhhnfc2(nfc2)
+               fmv4(i,j,nfc2)=fv1f(nth,nhh)
             enddo
          enddo
       enddo
@@ -124,7 +124,7 @@
             mm2=mmnfc(nfc2)
 
             nndiff=nn1-nn2
-            if(nndiff.lt.0) nndiff=nndiff+nphmax2
+            if(nndiff.lt.0) nndiff=nndiff+nhhmax2
             mmdiff=mm1-mm2
             if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
             nfcdiff=nthmax2*nndiff+mmdiff+1
@@ -177,14 +177,14 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       complex(8),dimension(3,3,3,nfcmax2),intent(out):: fmv2,fmv3
       complex(8),dimension(3,3,nfcmax2),intent(out):: fmv4
 
-      real(8),dimension(3,3,nthmax2,nphmax2) :: gma,muma,dmuma 
-      real(8),dimension(nthmax2,nphmax2):: gja
+      real(8),dimension(3,3,nthmax2,nhhmax2) :: gma,muma,dmuma 
+      real(8),dimension(nthmax2,nhhmax2):: gja
 
       complex(8),dimension(3,3,3):: cq
       complex(8),dimension(3,3):: cp
-      integer:: i,j,k,l,nthm,nthp,nphm,nphp
+      integer:: i,j,k,l,nthm,nthp,nhhm,nhhp
       integer:: imn1,imn2
-      integer:: nph,nth
+      integer:: nhh,nth
       real(8):: dph,dth
       complex(8):: csum1,csum2,csum3,csum4,cfactor
       integer:: nrl,nfc2
@@ -197,19 +197,19 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
 
       do nfc2=1,nfcmax2
          nth=nthnfc2(nfc2)
-         nph=nphnfc2(nfc2)
+         nhh=nhhnfc2(nfc2)
 
-         if(nph.eq.1) then
-            nphm=nphmax2
+         if(nhh.eq.1) then
+            nhhm=nhhmax2
          else
-            nphm=nph-1
+            nhhm=nhh-1
          endif
-         if(nph.eq.nphmax2) then
-            nphp=1
+         if(nhh.eq.nhhmax2) then
+            nhhp=1
          else
-            nphp=nph+1
+            nhhp=nhh+1
          endif
-         dph=2*pi/nphmax2
+         dph=2*pi/nhhmax2
 
          if(nth.eq.1) then
             nthm=nthmax2
@@ -222,31 +222,31 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
             nthp=nth+1
          endif
          dth=2*pi/nthmax2
-         gj=gja(nth,nph)
+         gj=gja(nth,nhh)
 
          do j=1,3
-            cq(1,j,1)=((muma(3,j,nthp,nph)
-     &                 -muma(3,j,nthm,nph))/dth
-     &                -(muma(2,j,nth,nphp)
-     &                 -muma(2,j,nth,nphm))/dph )/gj
-            cq(1,j,2)=+ci*muma(3,j,nth,nph)/gj
-            cq(1,j,3)=-ci*muma(2,j,nth,nph)/gj
+            cq(1,j,1)=((muma(3,j,nthp,nhh)
+     &                 -muma(3,j,nthm,nhh))/dth
+     &                -(muma(2,j,nth,nhhp)
+     &                 -muma(2,j,nth,nhhm))/dph )/gj
+            cq(1,j,2)=+ci*muma(3,j,nth,nhh)/gj
+            cq(1,j,3)=-ci*muma(2,j,nth,nhh)/gj
 
-            cq(2,j,1)=((muma(1,j,nth,nphp)
-     &                 -muma(1,j,nth,nphm))/dph
-     &                 -dmuma(3,j,nth,nph))/gj
+            cq(2,j,1)=((muma(1,j,nth,nhhp)
+     &                 -muma(1,j,nth,nhhm))/dph
+     &                 -dmuma(3,j,nth,nhh))/gj
             cq(2,j,2)=0.d0
-            cq(2,j,3)=+ci*muma(1,j,nth,nph)/gj
+            cq(2,j,3)=+ci*muma(1,j,nth,nhh)/gj
 
-            cq(3,j,1)=(dmuma(2,j,nth,nph)
-     &               -(muma(1,j,nthp,nph)
-     &                -muma(1,j,nthm,nph))/dth )/gj
-            cq(3,j,2)=-ci*muma(1,j,nth,nph)/gj
+            cq(3,j,1)=(dmuma(2,j,nth,nhh)
+     &               -(muma(1,j,nthp,nhh)
+     &                -muma(1,j,nthm,nhh))/dth )/gj
+            cq(3,j,2)=-ci*muma(1,j,nth,nhh)/gj
             cq(3,j,3)=0.d0
 
             cp(1,j)=0.d0
-            cp(2,j)=-muma(3,j,nth,nph)/gj
-            cp(3,j)= muma(2,j,nth,nph)/gj
+            cp(2,j)=-muma(3,j,nth,nhh)/gj
+            cp(3,j)= muma(2,j,nth,nhh)/gj
          enddo
 
          do imn2=1,3
@@ -257,7 +257,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
                      do k=1,3
                         do l=1,3
 C                           csum1=csum1-conjg(cq(k,i,imn1))
-C     &                                *gma(k,l,nth,nph)
+C     &                                *gma(k,l,nth,nhh)
 C     &                                *cq(l,j,imn2) *gj
                         enddo
                      enddo
@@ -280,10 +280,10 @@ C     &                                *cq(l,j,imn2) *gj
                   do k=1,3
                      do l=1,3
                         csum2=csum2-conjg(cp(k,i))
-     &                             *gma(k,l,nth,nph)
+     &                             *gma(k,l,nth,nhh)
      &                             *cq(l,j,imn1)*gj
                         csum3=csum3-conjg(cq(k,i,imn1))
-     &                             *gma(k,l,nth,nph)
+     &                             *gma(k,l,nth,nhh)
      &                             *cp(l,j)*gj
                      enddo
                   enddo
@@ -299,7 +299,7 @@ C     &                                *cq(l,j,imn2) *gj
                do k=1,3
                   do l=1,3
                      csum4=csum4-conjg(cp(k,i))
-     &                          *gma(k,l,nth,nph)
+     &                          *gma(k,l,nth,nhh)
      &                          *cp(l,j)*gj
                   enddo
                enddo
@@ -321,10 +321,10 @@ C     &                                *cq(l,j,imn2) *gj
       complex(8),dimension(3,3,4,nfcmax,nfcmax),intent(out):: fmd
 !      complex(8),dimension(3,3,4,nfcmax2,nfcmax):: fmc
       complex(8),dimension(:,:,:,:,:),ALLOCATABLE:: fmc
-      complex(8),dimension(nthmax2,nphmax2):: fv1,fv1f
+      complex(8),dimension(nthmax2,nhhmax2):: fv1,fv1f
       complex(8):: cfactor
       real(8):: rkth,rkph,rkth0,rho0
-      integer:: i,j,k,nn,mm,nth,nph
+      integer:: i,j,k,nn,mm,nth,nhh
       integer:: nfc1,nfc2
       complex(8):: csum,fmd1,fmd2,fmd3,fmd4
       integer:: mm1,mm2,nn1,nn2
@@ -386,14 +386,14 @@ C     &                                *cq(l,j,imn2) *gj
                do nfc2=1,nfcmax
                   do nfc1=1,nfcmax2
                      nth=nthnfc2(nfc1)
-                     nph=nphnfc2(nfc1)
-                     fv1(nth,nph)=fmc(i,j,k,nfc1,nfc2)
+                     nhh=nhhnfc2(nfc1)
+                     fv1(nth,nhh)=fmc(i,j,k,nfc1,nfc2)
                   enddo
-                  call wmsubfx(fv1,fv1f,nthmax2,nphmax2)
+                  call wmsubfx(fv1,fv1f,nthmax2,nhhmax2)
                   do nfc1=1,nfcmax2
                      nth=nthnfc2(nfc1)
-                     nph=nphnfc2(nfc1)
-                     fmc(i,j,k,nfc1,nfc2)=fv1f(nth,nph)
+                     nhh=nhhnfc2(nfc1)
+                     fmc(i,j,k,nfc1,nfc2)=fv1f(nth,nhh)
                   enddo
                enddo
             enddo    
@@ -410,7 +410,7 @@ C     &                                *cq(l,j,imn2) *gj
             nn1=nnnfc(nfc1)
 
             nndiff=nn1-nn2
-            if(nndiff.lt.0) nndiff=nndiff+nphmax2
+            if(nndiff.lt.0) nndiff=nndiff+nhhmax2
             mmdiff=mm1-mm2
             if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
             nfcdiff=nthmax2*nndiff+mmdiff+1
@@ -440,12 +440,12 @@ C     &                                *cq(l,j,imn2) *gj
       complex(8),dimension(3,3,4,nfcmax,nfcmax),intent(out):: fmd
 !      complex(8),dimension(3,3,4,nfcmax2,nfcmax):: fmc
       complex(8),dimension(:,:,:,:,:),ALLOCATABLE:: fmc
-      complex(8),dimension(nthmax2,nphmax2):: fv1,fv1f
-      real(8),dimension(3,3,nthmax2,nphmax2) :: gma,muma,dmuma 
-      real(8),dimension(nthmax2,nphmax2):: gja
+      complex(8),dimension(nthmax2,nhhmax2):: fv1,fv1f
+      real(8),dimension(3,3,nthmax2,nhhmax2) :: gma,muma,dmuma 
+      real(8),dimension(nthmax2,nhhmax2):: gja
 
       complex(8):: cfactor
-      integer:: i,j,k,nfc1,nfc2,nth,nph
+      integer:: i,j,k,nfc1,nfc2,nth,nhh
       integer:: nn1,nn2,nndiff,mm1,mm2,mmdiff,nfcdiff,nfcadd
       integer:: mmadd1,mmadd2,nnadd1,nnadd2
       integer:: nfcadd1,nfcadd2,nfcadd3,nfcadd4
@@ -463,15 +463,15 @@ C     &                                *cq(l,j,imn2) *gj
             do nfc2=1,nfcmax
                do nfc1=1,nfcmax2
                   nth=nthnfc2(nfc1)
-                  nph=nphnfc2(nfc1)
-                  fv1(nth,nph)=cfactor*fmc(i,j,1,nfc1,nfc2)
-     &                                *gja(nth,nph)
+                  nhh=nhhnfc2(nfc1)
+                  fv1(nth,nhh)=cfactor*fmc(i,j,1,nfc1,nfc2)
+     &                                *gja(nth,nhh)
                enddo
-               call wmsubfx(fv1,fv1f,nthmax2,nphmax2)
+               call wmsubfx(fv1,fv1f,nthmax2,nhhmax2)
                do nfc1=1,nfcmax2
                   nth=nthnfc2(nfc1)
-                  nph=nphnfc2(nfc1)
-                  fmc(i,j,1,nfc1,nfc2)=fv1f(nth,nph)
+                  nhh=nhhnfc2(nfc1)
+                  fmc(i,j,1,nfc1,nfc2)=fv1f(nth,nhh)
                enddo
             enddo    
          enddo
@@ -499,17 +499,17 @@ C     &                                *cq(l,j,imn2) *gj
             nn1=nnnfc(nfc1)
 
             nndiff=nn1-nn2
-            if(nndiff.lt.0) nndiff=nndiff+nphmax2
+            if(nndiff.lt.0) nndiff=nndiff+nhhmax2
             mmdiff=mm1-mm2
             if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
             nfcdiff=nthmax2*nndiff+mmdiff+1
 
             nnadd1=(nn1+nn2  )/2-nph0
-            if(nnadd1.lt.0)      nnadd1=nnadd1+nphmax
-            if(nnadd1.ge.nphmax) nnadd1=nnadd1-nphmax
+            if(nnadd1.lt.0)      nnadd1=nnadd1+nhhmax
+            if(nnadd1.ge.nhhmax) nnadd1=nnadd1-nhhmax
             nnadd2=(nn1+nn2+1)/2-nph0
-            if(nnadd2.lt.0)      nnadd2=nnadd2+nphmax
-            if(nnadd2.ge.nphmax) nnadd2=nnadd2-nphmax
+            if(nnadd2.lt.0)      nnadd2=nnadd2+nhhmax
+            if(nnadd2.ge.nhhmax) nnadd2=nnadd2-nhhmax
             mmadd1=(mm1+mm2  )/2-nth0
             if(mmadd1.lt.0)      mmadd1=mmadd1+nthmax
             if(mmadd1.ge.nthmax) mmadd1=mmadd1-nthmax
@@ -553,10 +553,10 @@ C     &                                *cq(l,j,imn2) *gj
       complex(8),dimension(3,3,4,nfcmax,nfcmax),intent(out):: fmd
 !      complex(8),dimension(3,3,4,nfcmax2,nfcmax):: fmc
       complex(8),dimension(:,:,:,:,:),ALLOCATABLE:: fmc
-      complex(8),dimension(nthmax2,nphmax2):: fv1,fv1f
+      complex(8),dimension(nthmax2,nhhmax2):: fv1,fv1f
 
       complex(8):: cfactor,cx
-      integer:: i,j,k,nfc1,nfc2,nth,nph
+      integer:: i,j,k,nfc1,nfc2,nth,nhh
       integer:: nn1,nn2,nndiff,mm1,mm2,mmdiff,nfcdiff,nfcadd
       integer:: mmadd1,mmadd2,nnadd1,nnadd2
       integer:: nfcadd1,nfcadd2,nfcadd3,nfcadd4
@@ -572,14 +572,14 @@ C     &                                *cq(l,j,imn2) *gj
             do nfc2=1,nfcmax
                do nfc1=1,nfcmax2
                   nth=nthnfc2(nfc1)
-                  nph=nphnfc2(nfc1)
-                  fv1(nth,nph)=cfactor*fmc(i,j,1,nfc1,nfc2)*rho
+                  nhh=nhhnfc2(nfc1)
+                  fv1(nth,nhh)=cfactor*fmc(i,j,1,nfc1,nfc2)*rho
                enddo
-               call wmsubfx(fv1,fv1f,nthmax2,nphmax2)
+               call wmsubfx(fv1,fv1f,nthmax2,nhhmax2)
                do nfc1=1,nfcmax2
                   nth=nthnfc2(nfc1)
-                  nph=nphnfc2(nfc1)
-                  fmc(i,j,1,nfc1,nfc2)=fv1f(nth,nph)
+                  nhh=nhhnfc2(nfc1)
+                  fmc(i,j,1,nfc1,nfc2)=fv1f(nth,nhh)
                enddo
             enddo    
          enddo
@@ -607,15 +607,15 @@ C     &                                *cq(l,j,imn2) *gj
             nn1=nnnfc(nfc1)
 
             nndiff=nn1-nn2
-            if(nndiff.lt.0) nndiff=nndiff+nphmax2
+            if(nndiff.lt.0) nndiff=nndiff+nhhmax2
             mmdiff=mm1-mm2
             if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
             nfcdiff=nthmax2*nndiff+mmdiff+1
 
             nnadd1=(nn1+nn2  )/2-nph0
-            if(nnadd1.lt.0) nnadd1=nnadd1+nphmax
+            if(nnadd1.lt.0) nnadd1=nnadd1+nhhmax
             nnadd2=(nn1+nn2+1)/2-nph0
-            if(nnadd2.lt.0) nnadd2=nnadd2+nphmax
+            if(nnadd2.lt.0) nnadd2=nnadd2+nhhmax
             mmadd1=(mm1+mm2  )/2-nth0
             if(mmadd1.lt.0) mmadd1=mmadd1+nthmax
             mmadd2=(mm1+mm2+1)/2-nth0
@@ -652,16 +652,16 @@ C     &                                *cq(l,j,imn2) *gj
       use wmfem_comm
       IMPLICIT NONE
       real(8),intent(in):: rho
-      real(8),intent(out),dimension(3,3,nthmax2,nphmax2):: 
+      real(8),intent(out),dimension(3,3,nthmax2,nhhmax2):: 
      &     gma,muma,dmuma
-      real(8),intent(out),dimension(nthmax2,nphmax2):: gja
+      real(8),intent(out),dimension(nthmax2,nhhmax2):: gja
       real(8),dimension(3,3):: gm,gmp,gmm,mum,mump,mumm
       real(8):: th,ph,dth,dph,drhom,drhop,gj,gjp,gjm
       real(8):: babs,bsupth,bsupph,rhol
-      integer:: nth,nph,i,j
+      integer:: nth,nhh,i,j
 
       dth=2.d0*pi/nthmax2
-      dph=2.d0*pi/nphmax2
+      dph=2.d0*pi/nhhmax2
       IF(rho.EQ.0.d0) THEN
          rhol=1.d-6
          drhom=0.d0
@@ -670,8 +670,8 @@ C     &                                *cq(l,j,imn2) *gj
          drhom=1.d-6
       endif
       drhop=1.d-6
-      DO nph=1,nphmax2
-         ph=dph*(nph-1)
+      DO nhh=1,nhhmax2
+         ph=dph*(nhh-1)
          DO nth=1,nthmax2
             th=dth*(nth-1)
             CALL wmfem_metrics(rhol,th,ph,gm,gj)
@@ -688,13 +688,13 @@ C     &                                *cq(l,j,imn2) *gj
 
             DO j=1,3
                DO i=1,3
-                  gma(i,j,nth,nph)=gm(i,j)
-                  muma(i,j,nth,nph)=mum(i,j)
-                  dmuma(i,j,nth,nph)
+                  gma(i,j,nth,nhh)=gm(i,j)
+                  muma(i,j,nth,nhh)=mum(i,j)
+                  dmuma(i,j,nth,nhh)
      &                 =(mump(i,j)-mumm(i,j))/(drhom+drhop)
                END DO
             END DO
-            gja(nth,nph)=gj
+            gja(nth,nhh)=gj
 
          ENDDO
       ENDDO
@@ -747,16 +747,16 @@ C     &                                *cq(l,j,imn2) *gj
       complex(8),dimension(3,3):: fmlp
 
       real(8):: th,ph,dth,dph
-      integer:: nth,nph,mm,nn,i,j,nfc2,nfc
+      integer:: nth,nhh,mm,nn,i,j,nfc2,nfc
       complex(8):: cx
 
       dth=2.d0*pi/nthmax2
-      dph=2.d0*pi/nphmax2
+      dph=2.d0*pi/nhhmax2
       DO nfc2=1,nfcmax2
          nth=nthnfc2(nfc2)
-         nph=nphnfc2(nfc2)
+         nhh=nhhnfc2(nfc2)
          th=dth*(nth-1)
-         ph=dph*(nph-1)
+         ph=dph*(nhh-1)
          DO nfc=1,nfcmax
             mm=mmnfc(nfc)
             nn=nnnfc(nfc)

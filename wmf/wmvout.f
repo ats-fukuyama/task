@@ -165,13 +165,13 @@ C
 C
 C     ****** COMPUTE R,Z SCALES ******
 C
-C      NPHMAX=1
+C      NHHMAX=1
 C
-C      IF(NTOR.NE.1) NPHMAX=4
+C      IF(NTOR.NE.1) NHHMAX=4
 C
       LES=1+NTHPTS*(NSRMAX-1)
 C
-      DO KZ=1,NPHMAX
+      DO KZ=1,NHHMAX
          CALL TOTZ(NTHPTS,NSRMAX,KZ,XM,XN,R,Z,RMNC,ZMNS)
          IF(KZ.GT.1) GOTO 15
          RMAX=R(LES)
@@ -188,7 +188,7 @@ c---------------------------------------------------------------------------
       print *,' zmin = ',zmin,' zmax = ',zmax
 c---------------------------------------------------------------------------
 C
-      DO KZ=1,NPHMAX
+      DO KZ=1,NHHMAX
 C
          CALL TOTZ(NTHPTS,NSRMAX,KZ,XM,XN,R,Z,RMNC,ZMNS)
          CALL TOTZ(NTHPTS,NSRMAX,KZ,XM,XN,BSQ,Z,BMOD,ZMNS)
@@ -214,7 +214,7 @@ C
          ENDDO
          ENDDO
 C
-         NDEG=IDNINT(360.D0*(KZ-1)/DBLE(NPHMAX))
+         NDEG=IDNINT(360.D0*(KZ-1)/DBLE(NHHMAX))
          WRITE(MCHAR,30)'   NDEG = ',NDEG
    30    FORMAT('$',A,I7,'$')
 C
@@ -386,8 +386,8 @@ C
 C
       PIT=1.D0/(NTH-1.D0)
 c.... updated on 05/05/03 by N^2 .. start ...........
-c     PIZ=RC/NPHMAX
-      PIZ=1.0d0/dble(nhc*NPHMAX)
+c     PIZ=RC/NHHMAX
+      PIZ=1.0d0/dble(nhc*NHHMAX)
 c.... updated on 05/05/03 by N^2 .. end .............
       NRTH=NS*NTH
 C

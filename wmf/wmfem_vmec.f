@@ -300,10 +300,10 @@ C
 C      ***** CULCULATE METRIC TENSOR AND JACOBIAN*****
 C 
       DTH=2.D0*PI/NTHMAX
-      DPH=2.D0*PI/(NHC*NPHMAX)
+      DPH=2.D0*PI/(NHC*NHHMAX)
 C
       DO NR=1,NRMAX+1
-      DO NPH=1,NPHMAX
+      DO NHH=1,NHHMAX
       DO NTH=1,NTHMAX
 C
          RPSS=0.D0
@@ -317,7 +317,7 @@ C
          DPHPH=0.D0
 C
          TH=DTH*(NTH-1)
-         PH=DPH*(NPH-1)
+         PH=DPH*(NHH-1)
          DO MN=1,MNMAX
             RSIN=SIN(XM(MN)*TH-XN(MN)*PH)
             RCOS=COS(XM(MN)*TH-XN(MN)*PH)
@@ -334,33 +334,33 @@ C
 C
 C  *****  DRS,DZS,DPHS,DRTH,DZTH,DPHTH,DRPH,DZPH,DPHPH GRAPH *****
 C            
-         RPST(  NTH,NPH,NR)=RPSS
-         ZPST(  NTH,NPH,NR)=ZPSS
+         RPST(  NTH,NHH,NR)=RPSS
+         ZPST(  NTH,NHH,NR)=ZPSS
 C
          IF(NR.NE.1) THEN
             DRS=DRS/(2.D0*PSIPA*XRHO(NR))
             DZS=DZS/(2.D0*PSIPA*XRHO(NR))
-            RG11(NTH,NPH,NR)=(DRS *DRS +DZS *DZS )*XRHO(NR)**2
-            RG12(NTH,NPH,NR)=(DRS *DRTH+DZS *DZTH)
-            RG13(NTH,NPH,NR)=(DRS *DRPH+DZS *DZPH)*XRHO(NR)
-            RG22(NTH,NPH,NR)=(DRTH*DRTH+DZTH*DZTH)/XRHO(NR)**2
-            RG23(NTH,NPH,NR)=(DRTH*DRPH+DZTH*DZPH)/XRHO(NR)
-            RG33(NTH,NPH,NR)= DRPH*DRPH+DZPH*DZPH+DPHPH*DPHPH
-            RJ  (NTH,NPH,NR)=DPHPH*(DRS*DZTH-DZS*DRTH)
+            RG11(NTH,NHH,NR)=(DRS *DRS +DZS *DZS )*XRHO(NR)**2
+            RG12(NTH,NHH,NR)=(DRS *DRTH+DZS *DZTH)
+            RG13(NTH,NHH,NR)=(DRS *DRPH+DZS *DZPH)*XRHO(NR)
+            RG22(NTH,NHH,NR)=(DRTH*DRTH+DZTH*DZTH)/XRHO(NR)**2
+            RG23(NTH,NHH,NR)=(DRTH*DRPH+DZTH*DZPH)/XRHO(NR)
+            RG33(NTH,NHH,NR)= DRPH*DRPH+DZPH*DZPH+DPHPH*DPHPH
+            RJ  (NTH,NHH,NR)=DPHPH*(DRS*DZTH-DZS*DRTH)
          ENDIF
       ENDDO
       ENDDO
       ENDDO
 C
-      DO NPH=1,NPHMAX
+      DO NHH=1,NHHMAX
       DO NTH=1,NTHMAX
-         RG11(NTH,NPH,1)=RG11(NTH,NPH,2)
-         RG12(NTH,NPH,1)=RG12(NTH,NPH,2)
-         RG13(NTH,NPH,1)=RG13(NTH,NPH,2)
-         RG22(NTH,NPH,1)=RG22(NTH,NPH,2)
-         RG23(NTH,NPH,1)=RG23(NTH,NPH,2)
-         RG33(NTH,NPH,1)=RG33(NTH,NPH,2)
-         RJ(NTH,NPH,1)  =RJ(NTH,NPH,2)
+         RG11(NTH,NHH,1)=RG11(NTH,NHH,2)
+         RG12(NTH,NHH,1)=RG12(NTH,NHH,2)
+         RG13(NTH,NHH,1)=RG13(NTH,NHH,2)
+         RG22(NTH,NHH,1)=RG22(NTH,NHH,2)
+         RG23(NTH,NHH,1)=RG23(NTH,NHH,2)
+         RG33(NTH,NHH,1)=RG33(NTH,NHH,2)
+         RJ(NTH,NHH,1)  =RJ(NTH,NHH,2)
       ENDDO
       ENDDO
 C
@@ -469,13 +469,13 @@ C
 C      ***** CULCULATE MAGNETIC FIELD *****
 C 
       DTH=2.D0*PI/NTHMAX
-      DPH=2.D0*PI/(NHC*NPHMAX)
+      DPH=2.D0*PI/(NHC*NHHMAX)
 C      DO NR=2,NRMAX+1
       DO NR=1,NRMAX+1
-      DO NPH=1,NPHMAX
+      DO NHH=1,NHHMAX
       DO NTH=1,NTHMAX
          TH=DTH*(NTH-1)
-         PH=DPH*(NPH-1)
+         PH=DPH*(NHH-1)
 C
          SBTH=0.D0
          SBPH=0.D0
@@ -485,16 +485,16 @@ C
             SBTH=SBTH+BSTH(MN,NR)*RCOS
             SBPH=SBPH+BSPH(MN,NR)*RCOS
          ENDDO
-         BFLD(2,NTH,NPH,NR)=SBTH
-         BFLD(3,NTH,NPH,NR)=SBPH
+         BFLD(2,NTH,NHH,NR)=SBTH
+         BFLD(3,NTH,NHH,NR)=SBPH
       ENDDO
       ENDDO
       ENDDO
 C
-C      DO NPH=1,NPHMAX
+C      DO NHH=1,NHHMAX
 C      DO NTH=1,NTHMAX
-C         BFLD(2,NTH,NPH,1)=(4*BFLD(2,NTH,NPH,2)-BFLD(2,NTH,NPH,3))/3
-C         BFLD(3,NTH,NPH,1)=(4*BFLD(3,NTH,NPH,2)-BFLD(3,NTH,NPH,3))/3
+C         BFLD(2,NTH,NHH,1)=(4*BFLD(2,NTH,NHH,2)-BFLD(2,NTH,NHH,3))/3
+C         BFLD(3,NTH,NHH,1)=(4*BFLD(3,NTH,NHH,2)-BFLD(3,NTH,NHH,3))/3
 C      ENDDO
 C      ENDDO
 C     
@@ -531,16 +531,16 @@ C
       NSUMAX=31
       DTHU=2.D0*PI/(NSUMAX-1)
       DO NSU=1,NSUMAX
-         DO NPH=1,NPHMAX
-            RSU(NSU,NPH)=0.D0
-            ZSU(NSU,NPH)=0.D0
+         DO NHH=1,NHHMAX
+            RSU(NSU,NHH)=0.D0
+            ZSU(NSU,NHH)=0.D0
             TH=DTHU*(NSU-1)
-            PH=DPH*(NPH-1)
+            PH=DPH*(NHH-1)
             DO MN=1,MNMAX
                RSIN=SIN(XM(MN)*TH-XN(MN)*PH)
                RCOS=COS(XM(MN)*TH-XN(MN)*PH)
-               RSU(NSU,NPH)=RSU(NSU,NPH)+RMNCC(MN,NSRMAX)*RCOS
-               ZSU(NSU,NPH)=ZSU(NSU,NPH)+ZMNSS(MN,NSRMAX)*RSIN
+               RSU(NSU,NHH)=RSU(NSU,NHH)+RMNCC(MN,NSRMAX)*RCOS
+               ZSU(NSU,NHH)=ZSU(NSU,NHH)+ZMNSS(MN,NSRMAX)*RSIN
             ENDDO
          ENDDO
       ENDDO
@@ -548,16 +548,16 @@ C
       NSWMAX=31
       DTHW=2.D0*PI/(NSWMAX-1)
       DO NSW=1,NSWMAX
-         DO NPH=1,NPHMAX
-            RSW(NSW,NPH)=0.D0
-            ZSW(NSW,NPH)=0.D0
+         DO NHH=1,NHHMAX
+            RSW(NSW,NHH)=0.D0
+            ZSW(NSW,NHH)=0.D0
             TH=DTHW*(NSW-1)
-            PH=DPH*(NPH-1)
+            PH=DPH*(NHH-1)
             DO MN=1,MNMAX
                RSIN=SIN(XM(MN)*TH-XN(MN)*PH)
                RCOS=COS(XM(MN)*TH-XN(MN)*PH)
-               RSW(NSW,NPH)=RSW(NSW,NPH)+SRMNC(MN,NRMAX+1)*RCOS
-               ZSW(NSW,NPH)=ZSW(NSW,NPH)+SZMNS(MN,NRMAX+1)*RSIN
+               RSW(NSW,NHH)=RSW(NSW,NHH)+SRMNC(MN,NRMAX+1)*RCOS
+               ZSW(NSW,NHH)=ZSW(NSW,NHH)+SZMNS(MN,NRMAX+1)*RSIN
             ENDDO
          ENDDO
       ENDDO
@@ -596,12 +596,12 @@ C
       RGMAX=RSW(1,1)
       ZGMIN=ZSW(1,1)
       ZGMAX=ZSW(1,1)
-      DO NPH=1,NPHMAX
+      DO NHH=1,NHHMAX
          DO NSW=1,NSWMAX
-            RGMIN=MIN(RGMIN,RSW(NSW,NPH))
-            RGMAX=MAX(RGMAX,RSW(NSW,NPH))
-            ZGMIN=MIN(ZGMIN,ZSW(NSW,NPH))
-            ZGMAX=MAX(ZGMAX,ZSW(NSW,NPH))
+            RGMIN=MIN(RGMIN,RSW(NSW,NHH))
+            RGMAX=MAX(RGMAX,RSW(NSW,NHH))
+            ZGMIN=MIN(ZGMIN,ZSW(NSW,NHH))
+            ZGMAX=MAX(ZGMAX,ZSW(NSW,NHH))
          ENDDO
       ENDDO
       RR=0.5D0*(RGMIN+RGMAX)

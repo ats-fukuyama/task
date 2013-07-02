@@ -26,7 +26,7 @@ C
       ENDDO
 
       DTH=2.D0*PI/NTHMAX
-      DPH=2.D0*PI/NPHMAX
+      DPH=2.D0*PI/NHHMAX
 
       SELECT CASE(MDLWM_NPHS)
       CASE(0)
@@ -44,17 +44,17 @@ C
       ALLOCATE(PABSTTS(NPHSMAX))
       ALLOCATE(PABSTS(NSMAX,NPHSMAX))
       ALLOCATE(PABSRS(NRMAX,NSMAX,NPHSMAX))
-      ALLOCATE(PABSS(NTHMAX,NPHMAX,NRMAX,NSMAX,NPHSMAX))
-      ALLOCATE(PABSKS(NTHMAX,NPHMAX,NRMAX,NSMAX,NPHSMAX))
+      ALLOCATE(PABSS(NTHMAX,NHHMAX,NRMAX,NSMAX,NPHSMAX))
+      ALLOCATE(PABSKS(NTHMAX,NHHMAX,NRMAX,NSMAX,NPHSMAX))
       ALLOCATE(PCURTS(NPHSMAX))
       ALLOCATE(PCURRS(NRMAX,NPHSMAX))
-      ALLOCATE(PCURS(NTHMAX,NPHMAX,NRMAX,NPHSMAX))
-      ALLOCATE(CEFLDKS(3,NTHMAX,NPHMAX,NRMAX,NPHSMAX))
-      ALLOCATE(CBFLDKS(3,NTHMAX,NPHMAX,NRMAX,NPHSMAX))
-      ALLOCATE(CEFLDS(3,NTHMAX,NPHMAX,NRMAX,NPHSMAX))
-      ALLOCATE(CBFLDS(3,NTHMAX,NPHMAX,NRMAX,NPHSMAX))
-      ALLOCATE(CENS(3,NTHMAX,NPHMAX,NRMAX,NPHSMAX))
-      ALLOCATE(CEPS(3,NTHMAX,NPHMAX,NRMAX,NPHSMAX))
+      ALLOCATE(PCURS(NTHMAX,NHHMAX,NRMAX,NPHSMAX))
+      ALLOCATE(CEFLDKS(3,NTHMAX,NHHMAX,NRMAX,NPHSMAX))
+      ALLOCATE(CBFLDKS(3,NTHMAX,NHHMAX,NRMAX,NPHSMAX))
+      ALLOCATE(CEFLDS(3,NTHMAX,NHHMAX,NRMAX,NPHSMAX))
+      ALLOCATE(CBFLDS(3,NTHMAX,NHHMAX,NRMAX,NPHSMAX))
+      ALLOCATE(CENS(3,NTHMAX,NHHMAX,NRMAX,NPHSMAX))
+      ALLOCATE(CEPS(3,NTHMAX,NHHMAX,NRMAX,NPHSMAX))
 
 !     ===== Main calculation loop =====
 
@@ -75,10 +75,10 @@ C
             PABST(NS)=0.D0
             DO NR=1,NRMAX
                PABSR(NR,NS)=0.D0
-               DO NPH=1,NPHMAX
+               DO NHH=1,NHHMAX
                   DO NTH=1,NTHMAX
                      PABSR(NR,NS)=PABSR(NR,NS)
-     &                    +PABS(NTH,NPH,NR,NS)*DTH*DPH
+     &                    +PABS(NTH,NHH,NR,NS)*DTH*DPH
                   END DO
                END DO
                PABST(NS)=PABST(NS)+PABSR(NR,NS)
@@ -89,9 +89,9 @@ C
          PCURT=0.D0
          DO NR=1,NRMAX
             PCURR(NR)=0.D0
-            DO NPH=1,NPHMAX
+            DO NHH=1,NHHMAX
                DO NTH=1,NTHMAX
-                  PCURR(NR)=PCURR(NR)+PCUR(NTH,NPH,NR)*DTH
+                  PCURR(NR)=PCURR(NR)+PCUR(NTH,NHH,NR)*DTH
                END DO
             END DO
             PCURT=PCURT+PCURR(NR)
@@ -102,10 +102,10 @@ C
          DO NS=1,NSMAX
             DO NR=1,NRMAX
                PABSR(NR,NS)=PABSR(NR,NS)*DVOLS(NR)
-               DO NPH=1,NPHMAX
+               DO NHH=1,NHHMAX
                   DO NTH=1,NTHMAX
-                     PABS(NTH,NPH,NR,NS)=PABS(NTH,NPH,NR,NS)
-     &                                  *DVOL(NTH,NPH,NR)
+                     PABS(NTH,NHH,NR,NS)=PABS(NTH,NHH,NR,NS)
+     &                                  *DVOL(NTH,NHH,NR)
                   END DO
                END DO
                DO ND=NDMIN,NDMAX
@@ -121,9 +121,9 @@ C
 C
          DO NR=1,NRMAX
             PCURR(NR)=PCURR(NR)*DVOLS(NR)
-            DO NPH=1,NPHMAX
+            DO NHH=1,NHHMAX
                DO NTH=1,NTHMAX
-                  PCUR(NTH,NPH,NR)=PCUR(NTH,NPH,NR)*DVOL(NTH,NPH,NR)
+                  PCUR(NTH,NHH,NR)=PCUR(NTH,NHH,NR)*DVOL(NTH,NHH,NR)
                ENDDO
             ENDDO
          ENDDO
@@ -141,10 +141,10 @@ C
             PABSTS(NS,NPHS)=PABST(NS)
             DO NR=1,NRMAX
                PABSRS(NR,NS,NPHS)=PABSR(NR,NS)
-               DO NPH=1,NPHMAX
+               DO NHH=1,NHHMAX
                   DO NTH=1,NTHMAX
-                     PABSS(NTH,NPH,NR,NS,NPHS)=PABS(NTH,NPH,NR,NS)
-                     PABSKS(NTH,NPH,NR,NS,NPHS)=PABSK(NTH,NPH,NR,NS)
+                     PABSS(NTH,NHH,NR,NS,NPHS)=PABS(NTH,NHH,NR,NS)
+                     PABSKS(NTH,NHH,NR,NS,NPHS)=PABSK(NTH,NHH,NR,NS)
                   END DO
                END DO
             END DO
@@ -153,23 +153,23 @@ C
          PCURTS(NPHS)=PCURT
          DO NR=1,NRMAX
             PCURRS(NR,NPHS)=PCURR(NR)
-            DO NPH=1,NPHMAX
+            DO NHH=1,NHHMAX
                DO NTH=1,NTHMAX
-                  PCURS(NTH,NPH,NR,NPHS)=PCUR(NTH,NPH,NR)
+                  PCURS(NTH,NHH,NR,NPHS)=PCUR(NTH,NHH,NR)
                END DO
             END DO
          END DO
 
          DO NR=1,NRMAX
-            DO NPH=1,NPHMAX
+            DO NHH=1,NHHMAX
                DO NTH=1,NTHMAX
                   DO I=1,3
-                     CEFLDKS(I,NTH,NPH,NR,NPHS)=CEFLDK(I,NTH,NPH,NR)
-                     CBFLDKS(I,NTH,NPH,NR,NPHS)=CBFLDK(I,NTH,NPH,NR)
-                     CEFLDS(I,NTH,NPH,NR,NPHS)=CEFLD(I,NTH,NPH,NR)
-                     CBFLDS(I,NTH,NPH,NR,NPHS)=CBFLD(I,NTH,NPH,NR)
-                     CENS(I,NTH,NPH,NR,NPHS)=CEN(I,NTH,NPH,NR)
-                     CEPS(I,NTH,NPH,NR,NPHS)=CEP(I,NTH,NPH,NR)
+                     CEFLDKS(I,NTH,NHH,NR,NPHS)=CEFLDK(I,NTH,NHH,NR)
+                     CBFLDKS(I,NTH,NHH,NR,NPHS)=CBFLDK(I,NTH,NHH,NR)
+                     CEFLDS(I,NTH,NHH,NR,NPHS)=CEFLD(I,NTH,NHH,NR)
+                     CBFLDS(I,NTH,NHH,NR,NPHS)=CBFLD(I,NTH,NHH,NR)
+                     CENS(I,NTH,NHH,NR,NPHS)=CEN(I,NTH,NHH,NR)
+                     CEPS(I,NTH,NHH,NR,NPHS)=CEP(I,NTH,NHH,NR)
                   END DO
                END DO
             END DO
@@ -234,12 +234,12 @@ C
             PABSTS(NS,NPHS)=PWFACT*PABSTS(NS,NPHS)
             DO NR=1,NRMAX
                PABSRS(NR,NS,NPHS)=PWFACT*PABSRS(NR,NS,NPHS)
-               DO NPH=1,NPHMAX
+               DO NHH=1,NHHMAX
                   DO NTH=1,NTHMAX
-                     PABSS(NTH,NPH,NR,NS,NPHS)
-     &                    =PWFACT*PABSS(NTH,NPH,NR,NS,NPHS)
-                     PABSKS(NTH,NPH,NR,NS,NPHS)
-     &                    =PWFACT*PABSKS(NTH,NPH,NR,NS,NPHS)
+                     PABSS(NTH,NHH,NR,NS,NPHS)
+     &                    =PWFACT*PABSS(NTH,NHH,NR,NS,NPHS)
+                     PABSKS(NTH,NHH,NR,NS,NPHS)
+     &                    =PWFACT*PABSKS(NTH,NHH,NR,NS,NPHS)
                   END DO
                END DO
             END DO
@@ -248,29 +248,29 @@ C
          PCURTS(NPHS)=PWFACT*PCURTS(NPHS)
          DO NR=1,NRMAX
             PCURRS(NR,NPHS)=PWFACT*PCURRS(NR,NPHS)
-            DO NPH=1,NPHMAX
+            DO NHH=1,NHHMAX
                DO NTH=1,NTHMAX
-                  PCURS(NTH,NPH,NR,NPHS)=PWFACT*PCURS(NTH,NPH,NR,NPHS)
+                  PCURS(NTH,NHH,NR,NPHS)=PWFACT*PCURS(NTH,NHH,NR,NPHS)
                END DO
             END DO
          END DO
 
          DO NR=1,NRMAX
-            DO NPH=1,NPHMAX
+            DO NHH=1,NHHMAX
                DO NTH=1,NTHMAX
                   DO I=1,3
-                     CEFLDKS(I,NTH,NPH,NR,NPHS)
-     &                    =CEFACT*CEFLDKS(I,NTH,NPH,NR,NPHS)
-                     CBFLDKS(I,NTH,NPH,NR,NPHS)
-     &                    =CEFACT*CBFLDKS(I,NTH,NPH,NR,NPHS)
-                     CEFLDS(I,NTH,NPH,NR,NPHS)
-     &                    =CEFACT*CEFLDS(I,NTH,NPH,NR,NPHS)
-                     CBFLDS(I,NTH,NPH,NR,NPHS)
-     &                    =CEFACT*CBFLDS(I,NTH,NPH,NR,NPHS)
-                     CENS(I,NTH,NPH,NR,NPHS)
-     &                    =CEFACT*CENS(I,NTH,NPH,NR,NPHS)
-                     CEPS(I,NTH,NPH,NR,NPHS)
-     &                    =CEFACT*CEPS(I,NTH,NPH,NR,NPHS)
+                     CEFLDKS(I,NTH,NHH,NR,NPHS)
+     &                    =CEFACT*CEFLDKS(I,NTH,NHH,NR,NPHS)
+                     CBFLDKS(I,NTH,NHH,NR,NPHS)
+     &                    =CEFACT*CBFLDKS(I,NTH,NHH,NR,NPHS)
+                     CEFLDS(I,NTH,NHH,NR,NPHS)
+     &                    =CEFACT*CEFLDS(I,NTH,NHH,NR,NPHS)
+                     CBFLDS(I,NTH,NHH,NR,NPHS)
+     &                    =CEFACT*CBFLDS(I,NTH,NHH,NR,NPHS)
+                     CENS(I,NTH,NHH,NR,NPHS)
+     &                    =CEFACT*CENS(I,NTH,NHH,NR,NPHS)
+                     CEPS(I,NTH,NHH,NR,NPHS)
+     &                    =CEFACT*CEPS(I,NTH,NHH,NR,NPHS)
                   END DO
                END DO
             END DO
@@ -285,9 +285,9 @@ C
          PABST(NS)=0.D0
          DO NR=1,NRMAX
             PABSR(NR,NS)=0.D0
-            DO NPH=1,NPHMAX
+            DO NHH=1,NHHMAX
                DO NTH=1,NTHMAX
-                  PABS(NTH,NPH,NR,NS)=0.D0
+                  PABS(NTH,NHH,NR,NS)=0.D0
                END DO
             END DO
          END DO
@@ -302,12 +302,12 @@ C
 !            write(6,*) NS,NPHS,PABST(NS),PABSTS(NS,NPHS)
             DO NR=1,NRMAX
                PABSR(NR,NS)=PABSR(NR,NS)+PABSRS(NR,NS,NPHS)
-               DO NPH=1,NPHMAX
+               DO NHH=1,NHHMAX
                   DO NTH=1,NTHMAX
-                     PABS(NTH,NPH,NR,NS)=PABS(NTH,NPH,NR,NS)
-     &                    +PABSS(NTH,NPH,NR,NS,NPHS)
-                     PABSK(NTH,NPH,NR,NS)=PABSK(NTH,NPH,NR,NS)
-     &                    +PABSKS(NTH,NPH,NR,NS,NPHS)
+                     PABS(NTH,NHH,NR,NS)=PABS(NTH,NHH,NR,NS)
+     &                    +PABSS(NTH,NHH,NR,NS,NPHS)
+                     PABSK(NTH,NHH,NR,NS)=PABSK(NTH,NHH,NR,NS)
+     &                    +PABSKS(NTH,NHH,NR,NS,NPHS)
                   END DO
                END DO
             END DO
@@ -317,9 +317,9 @@ C
       PCURT=0.D0
       DO NR=1,NRMAX
          PCURR(NR)=0.D0
-         DO NPH=1,NPHMAX
+         DO NHH=1,NHHMAX
             DO NTH=1,NTHMAX
-               PCUR(NTH,NPH,NR)=0.D0
+               PCUR(NTH,NHH,NR)=0.D0
             END DO
          END DO
       END DO
@@ -328,25 +328,25 @@ C
          PCURT=PCURT+PCURTS(NPHS)
          DO NR=1,NRMAX
             PCURR(NR)=PCURR(NR)+PCURRS(NR,NPHS)
-            DO NPH=1,NPHMAX
+            DO NHH=1,NHHMAX
                DO NTH=1,NTHMAX
-                  PCUR(NTH,NPH,NR)=PCUR(NTH,NPH,NR)
-     &                 +PCURS(NTH,NPH,NR,NPHS)
+                  PCUR(NTH,NHH,NR)=PCUR(NTH,NHH,NR)
+     &                 +PCURS(NTH,NHH,NR,NPHS)
                END DO
             END DO
          END DO
       END DO
 
       DO NR=1,NRMAX
-         DO NPH=1,NPHMAX
+         DO NHH=1,NHHMAX
             DO NTH=1,NTHMAX
                DO I=1,3
-                  CEFLDK(I,NTH,NPH,NR)=0.D0
-                  CBFLDK(I,NTH,NPH,NR)=0.D0
-                  CEFLD(I,NTH,NPH,NR)=0.D0
-                  CBFLD(I,NTH,NPH,NR)=0.D0
-                  CEN(I,NTH,NPH,NR)=0.D0
-                  CEP(I,NTH,NPH,NR)=0.D0
+                  CEFLDK(I,NTH,NHH,NR)=0.D0
+                  CBFLDK(I,NTH,NHH,NR)=0.D0
+                  CEFLD(I,NTH,NHH,NR)=0.D0
+                  CBFLD(I,NTH,NHH,NR)=0.D0
+                  CEN(I,NTH,NHH,NR)=0.D0
+                  CEP(I,NTH,NHH,NR)=0.D0
                END DO
             END DO
          END DO
@@ -355,21 +355,21 @@ C
 
       DO NPHS=1,NPHSMAX
          DO NR=1,NRMAX
-            DO NPH=1,NPHMAX
+            DO NHH=1,NHHMAX
                DO NTH=1,NTHMAX
                   DO I=1,3
-                     CEFLDK(I,NTH,NPH,NR)=CEFLDK(I,NTH,NPH,NR)
-     &                                   +CEFLDKS(I,NTH,NPH,NR,NPHS)
-                     CBFLDK(I,NTH,NPH,NR)=CBFLDK(I,NTH,NPH,NR)
-     &                                   +CBFLDKS(I,NTH,NPH,NR,NPHS)
-                     CEFLD(I,NTH,NPH,NR)=CEFLD(I,NTH,NPH,NR)
-     &                                  +CEFLDS(I,NTH,NPH,NR,NPHS)
-                     CBFLD(I,NTH,NPH,NR)=CBFLD(I,NTH,NPH,NR)
-     &                                  +CBFLDS(I,NTH,NPH,NR,NPHS)
-                     CEN(I,NTH,NPH,NR)=CEN(I,NTH,NPH,NR)
-     &                                +CENS(I,NTH,NPH,NR,NPHS)
-                     CEP(I,NTH,NPH,NR)=CEP(I,NTH,NPH,NR)
-     &                                +CEPS(I,NTH,NPH,NR,NPHS)
+                     CEFLDK(I,NTH,NHH,NR)=CEFLDK(I,NTH,NHH,NR)
+     &                                   +CEFLDKS(I,NTH,NHH,NR,NPHS)
+                     CBFLDK(I,NTH,NHH,NR)=CBFLDK(I,NTH,NHH,NR)
+     &                                   +CBFLDKS(I,NTH,NHH,NR,NPHS)
+                     CEFLD(I,NTH,NHH,NR)=CEFLD(I,NTH,NHH,NR)
+     &                                  +CEFLDS(I,NTH,NHH,NR,NPHS)
+                     CBFLD(I,NTH,NHH,NR)=CBFLD(I,NTH,NHH,NR)
+     &                                  +CBFLDS(I,NTH,NHH,NR,NPHS)
+                     CEN(I,NTH,NHH,NR)=CEN(I,NTH,NHH,NR)
+     &                                +CENS(I,NTH,NHH,NR,NPHS)
+                     CEP(I,NTH,NHH,NR)=CEP(I,NTH,NHH,NR)
+     &                                +CEPS(I,NTH,NHH,NR,NPHS)
                   END DO
                END DO
             END DO
@@ -429,21 +429,21 @@ C
       real(8):: gj1,gj2
 
       DTH=2.D0*PI/NTHMAX
-      DPH=2.D0*PI/NPHMAX
+      DPH=2.D0*PI/NHHMAX
 
       DO NR=1,NRMAX-1
          DVOLS(NR)=0.D0
          DRHO=XRHO(NR+1)-XRHO(NR)
-         DO NPH=1,NPHMAX
+         DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
             th=dth*(nth-1)
-            ph=dph*(nph-1)
+            ph=dph*(nhh-1)
             call wmfem_metrics(xrho(nr),th,ph,gm,gj1)
             call wmfem_metrics(xrho(nr+1),th,ph,gm,gj2)
 !            write(6,'(A,1P6E12.4)') 
 !     &           'gj:',xrho(nr),xrho(nr+1),th,ph,gj1,gj2
             DSSS=DRHO*0.5d0*(gj1+gj2)
-            DVOL(NTH,NPH,NR)=1.D0/DSSS
+            DVOL(NTH,NHH,NR)=1.D0/DSSS
             DVOLS(NR)=DVOLS(NR)+DSSS*DTH*DPH
          ENDDO
          ENDDO
@@ -451,8 +451,8 @@ C
       ENDDO
       DVOLS(NRMAX)=0.D0
       DO NTH=1,NTHMAX
-         DO NPH=1,NPHMAX
-            DVOL(NTH,NPH,NRMAX)=0.d0
+         DO NHH=1,NHHMAX
+            DVOL(NTH,NHH,NRMAX)=0.d0
          ENDDO
       ENDDO
 

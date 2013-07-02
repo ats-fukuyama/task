@@ -14,11 +14,11 @@
          IF(IERR.NE.0) RETURN
          CALL wmfem_setj(ierr)
          IF(IERR.NE.0) RETURN
-         CALL get_wmfem_size(nrmax,nthmax,nphmax,nsmax)
+         CALL get_wmfem_size(nrmax,nthmax,nhhmax,nsmax)
 
 !     ***** define array size  *****
 
-      nfcmax=nthmax*nphmax      ! size of block matrix 
+      nfcmax=nthmax*nhhmax      ! size of block matrix 
                                 !    (number of Fourier components)
       mlmax=nfcmax*(6*nrmax-4)  ! length of coeffient matrix and source vector
                                 !   E_perp(i)
@@ -45,12 +45,12 @@
       else
          nthmax2=nthmax*2
       endif
-      if(nphmax.eq.1) then
-         nphmax2=1
+      if(nhhmax.eq.1) then
+         nhhmax2=1
       else
-         nphmax2=nphmax*2
+         nhhmax2=nhhmax*2
       endif
-      nfcmax2=nthmax2*nphmax2
+      nfcmax2=nthmax2*nhhmax2
 
 !     ***** get additional parameters *****
 

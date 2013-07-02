@@ -18,8 +18,8 @@ FLINKER=$(FCFREE)
 .SUFFIXES:
 .SUFFIXES: .f90 .mod .o .a
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 MODINCLUDE= -I.$(MOD) -I../../task/lib/$(MOD) \
             -I../../task/plx/$(MOD) -I../../task/eq/$(MOD) \

@@ -183,7 +183,7 @@ C
 C
          IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
             Y(1)= RPI
-            Y(2)= 2.D0*PI*RR*SIN(PHII)
+            Y(2)= PHII
             Y(3)= ZPI
             Y(4)= RKRI
             Y(5)= RKPHII
@@ -373,7 +373,7 @@ CENDIDEI
          IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
             RL  =YM(1)
             IF(RR.EQ.0.D0) THEN
-               PHIL=0.D0
+               PHIL=YM(2)
             ELSE
                PHIL=ASIN(YM(2)/(2.D0*PI*RR))
             ENDIF
