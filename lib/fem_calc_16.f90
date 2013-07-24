@@ -287,8 +287,8 @@
         fvb(8*(nr-1)+5)=angl*fem_func_h(x,1,0)
         fvb(8* nr   +5)=angl*fem_func_h(x,3,0)
       do nr=nrd+1,nrmax-1
-!         fvb(8*(nr-1)+1)=fvb(8*(nr-1)+1)+divj*fem_func_h(1.D0,1,2)
-!         fvb(8* nr   +1)=fvb(8* nr   +1)+divj*fem_func_h(1.D0,3,2)
+         fvb(8*(nr-1)+1)=fvb(8*(nr-1)+1)+divj*fem_func_h(1.D0,1,2)
+         fvb(8* nr   +1)=fvb(8* nr   +1)+divj*fem_func_h(1.D0,3,2)
       end do
 
       return
