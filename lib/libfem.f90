@@ -4516,7 +4516,7 @@ CONTAINS
     CASE(2)
        SELECT CASE(id)
        CASE(1)
-          fem_func_h = x*(1.D0-x*x*(1-0.5D0*x))
+          fem_func_h = x*(1.D0-x*x*(1.D0-0.5D0*x))
        CASE(2)
           fem_func_h = x*x*(6.D0-8.D0*x+3.D0*x*x)/12.D0
        CASE(3)

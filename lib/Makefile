@@ -59,9 +59,10 @@ clean:
 
 veryclean: clean
 
-testfem: tasklib.a libtestfem.o fem_calc.o fem_calc_16.o testfem.o 
-	$(FCFREE) libtestfem.o fem_calc.o fem_calc_16.o testfem.o tasklib.a $(FFLAGS) -o $@ $(FLIBS) $(MODINCLUDE)
+testfem: tasklib.a libtestfem.o fem_calc.o fem_calc_15.o fem_calc_16.o testfem.o 
+	$(FCFREE) libtestfem.o fem_calc.o fem_calc_15.o fem_calc_16.o testfem.o tasklib.a $(FFLAGS) -o $@ $(FLIBS) $(MODINCLUDE)
 fem_calc.o:	libtestfem.f90 fem_calc.f90
+fem_calc_15.o:	libtestfem.f90 fem_calc_15.f90
 fem_calc_16.o:	libtestfem.f90 fem_calc_16.f90
 
 testfem_func: tasklib.a testfem_func.o 

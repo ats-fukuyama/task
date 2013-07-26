@@ -10,7 +10,9 @@
       real(8),intent(in):: rf     ! wave frequency
       real(8),intent(in):: angl   ! antenna angle: 0 perm, 1,para
       integer:: nr,ml,mw,mc,nvmax,i,j,k,inod,nrd
-      real(8):: drho,rkth,rkph,factor,rkth0,rho0,rd
+      real(8):: drho,rkth,rkph,factor,rkth0,rho0,rd,omega
+      real(8),parameter:: vc=3.d8
+      real(8),parameter:: pi=3.14592d0
       complex(8),dimension(4,4,4,4):: fmd
       complex(8),parameter:: ci=(0.d0,1.d0)
       integer:: ig,l
@@ -40,6 +42,9 @@
       do nr=1,nrmax-1
          drho=rho(nr+1)-rho(nr)
 
+!         omega=rf*1.D6*2.D0*pi
+!         factor=omega**2/vc**2
+         omega=rf
          factor=rf**2
          rkph=nph
       
@@ -69,20 +74,22 @@
 
             fmd(1,1,1,inod)= rho0*(-rkph**2-rkth**2+factor-1.D0/(rho0**2))
             fmd(1,2,1,inod)= rho0*(-2.D0*ci*rkth/rho0)
-            fmd(1,4,3,inod)= rho0*(ci)
             fmd(2,1,1,inod)= rho0*( 2.D0*ci*rkth/rho0)
             fmd(2,2,1,inod)= rho0*(-rkph**2-rkth**2+factor-1.D0/(rho0**2))
-            fmd(2,4,1,inod)= rho0*(-rkth)
             fmd(3,3,1,inod)= rho0*(-rkph**2-rkth**2+factor)
-            fmd(3,4,1,inod)= rho0*(-rkph)
       
             fmd(1,1,4,inod)= rho0*(-1.D0)
             fmd(2,2,4,inod)= rho0*(-1.D0)
             fmd(3,3,4,inod)= rho0*(-1.D0)
 
-            fmd(4,1,2,inod)= rho0*(ci)
-            fmd(4,2,1,inod)= rho0*( rkth)
-            fmd(4,3,1,inod)= rho0*( rkph)
+            fmd(1,4,3,inod)= rho0*(   ci*omega)
+            fmd(2,4,1,inod)= rho0*(-rkth*omega)
+            fmd(3,4,1,inod)= rho0*(-rkph*omega)
+
+            fmd(4,1,2,inod)= rho0*(   ci*omega)
+            fmd(4,2,1,inod)= rho0*( rkth*omega)
+            fmd(4,3,1,inod)= rho0*( rkph*omega)
+
             fmd(4,4,1,inod)= rho0*(-rkph**2-rkth**2)
             fmd(4,4,4,inod)= rho0*(-1.D0)
          enddo
@@ -222,51 +229,33 @@
          do mw=1,mwmax
             fma(mw,1) = 0.D0
             fma(mw,5) = 0.d0
-            fma(mw,8) = 0.d0
+            fma(mw,7) = 0.d0
          enddo
          fma(mc,1)=-ci*nth
          fma(mc+2,1)=1.D0
          fma(mc+6,1)=0.D0
          fma(mc+7,1)=0.D0
          fma(mc,5)=1.d0
-         fma(mc,8)=1.d0
+         fma(mc,7)=1.d0
          fvb(1)=0.d0
          fvb(5)=0.d0
-         fvb(8)=0.d0
+         fvb(7)=0.d0
       else
          do mw=1,mwmax
             fma(mw,1) = 0.d0
             fma(mw,3) = 0.d0
             fma(mw,5) = 0.d0
-            fma(mw,8) = 0.d0
+            fma(mw,7) = 0.d0
          enddo
          fma(mc,1)=1.d0
          fma(mc,3)=1.d0
          fma(mc,5)=1.d0
-         fma(mc,8)=1.d0
+         fma(mc,7)=1.d0
          fvb(1)=0.d0
          fvb(3)=0.d0
          fvb(5)=0.d0
-         fvb(8)=0.d0
+         fvb(7)=0.d0
       endif
-
-      do mw=1,mwmax
-         fma(mw,mlmax-7) = 0.d0
-         fma(mw,mlmax-5) = 0.d0
-         fma(mw,mlmax-3) = 0.d0
-         fma(mw,mlmax-1) = 0.d0
-      enddo
-!      fma(mc,mlmax-6) = 1.d0
-      fma(mc,mlmax-7) = 1.d0
-      fma(mc+1,mlmax-7) = 1.d0
-      fma(mc,mlmax-5) = 1.d0
-      fma(mc,mlmax-3) = 1.d0
-      fma(mc,mlmax-1) = 1.d0
-!      fvb(mlmax-6) = 0.d0
-      fvb(mlmax-7) = 0.d0
-      fvb(mlmax-5) = 0.d0
-      fvb(mlmax-3) = 0.d0
-      fvb(mlmax-1) = 0.d0
 
       rd=0.85D0
       rkth=nth/rd
@@ -278,18 +267,35 @@
 
       nr=nrd
         x=(rd-rho(nr))/(rho(nr+1)-rho(nr))
-        divj=-ci*(nth*(1.D0-angl)/rd +nph*angl)*(rho(nr+1)-rho(nr))
+        divj=-ci*(nth*(1.D0-angl)+nph*rd*angl)*(rho(nr+1)-rho(nr))
 
         fvb(8*(nr-1)+1)=divj*(fem_func_h(1.D0,1,2)-fem_func_h(x,1,2))
         fvb(8* nr   +1)=divj*(fem_func_h(1.D0,3,2)-fem_func_h(x,3,2))
-        fvb(8*(nr-1)+3)=(1.d0-angl)*fem_func_h(x,1,0)
-        fvb(8* nr   +3)=(1.d0-angl)*fem_func_h(x,3,0)
-        fvb(8*(nr-1)+5)=angl*fem_func_h(x,1,0)
-        fvb(8* nr   +5)=angl*fem_func_h(x,3,0)
+        fvb(8*(nr-1)+3)=(1.d0-angl)*fem_func_h(x,1,0)*rd
+        fvb(8* nr   +3)=(1.d0-angl)*fem_func_h(x,3,0)*rd
+        fvb(8*(nr-1)+5)=angl*fem_func_h(x,1,0)       *rd
+        fvb(8* nr   +5)=angl*fem_func_h(x,3,0)       *rd
       do nr=nrd+1,nrmax-1
-         fvb(8*(nr-1)+1)=fvb(8*(nr-1)+1)+divj*fem_func_h(1.D0,1,2)
-         fvb(8* nr   +1)=fvb(8* nr   +1)+divj*fem_func_h(1.D0,3,2)
+        divj=-ci*(nth*(1.D0-angl)+nph*rd*angl)*(rho(nr+1)-rho(nr))
+        fvb(8*(nr-1)+1)=fvb(8*(nr-1)+1)+divj*fem_func_h(1.D0,1,2)
+        fvb(8* nr   +1)=fvb(8* nr   +1)+divj*fem_func_h(1.D0,3,2)
       end do
+
+      do mw=1,mwmax
+         fma(mw,mlmax-7) = 0.d0
+         fma(mw,mlmax-5) = 0.d0
+         fma(mw,mlmax-3) = 0.d0
+         fma(mw,mlmax-1) = 0.d0
+      enddo
+      fma(mc,mlmax-7) = 1.d0
+      fma(mc+1,mlmax-7) = 1.d0
+      fma(mc,mlmax-5) = 1.d0
+      fma(mc,mlmax-3) = 1.d0
+      fma(mc,mlmax-1) = 1.d0
+      fvb(mlmax-7) = 0.d0
+      fvb(mlmax-5) = 0.d0
+      fvb(mlmax-3) = 0.d0
+      fvb(mlmax-1) = 0.d0
 
       return
       end subroutine fem_calc_16

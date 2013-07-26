@@ -4,7 +4,7 @@ program testfem
       USE libtestfem
       USE fem_calc
       implicit none
-!      complex(8),parameter:: ci=(0.d0,1.d0)
+      complex(8),parameter:: ci=(0.d0,1.d0)
       integer:: id,nrmax,npow,nth,nph,nr
       real(8):: rf,angl
 
@@ -119,7 +119,7 @@ program testfem
          case(14)
             call fem_calc_r9(nrmax,npow,nth,nph,rf,angl)
          case(15)
-            call fem_calc_ra(nrmax,npow,nth,nph,rf,angl)
+            call fem_calc_15(nrmax,npow,nth,nph,rf,angl)
          case(16)
             call fem_calc_16(nrmax,npow,nth,nph,rf,angl)
       end select
