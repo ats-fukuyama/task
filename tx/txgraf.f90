@@ -21,10 +21,12 @@ contains
   !***************************************************************
   
   SUBROUTINE TXGOUT
-    use tx_commons, only : MODEGL, T_TX, TPRE, NGT, NGVV, NGPRM, NGPVM, NGPTM, NQMAX, &
-         &                 NRMAX, NGYRM, GY, NGR, GX, GTX, GYT, NGTM, &
-         &                 MODEG, RB, RA, PI, RR, NRA, Q, R, thrp, kappa, gDIV, &
-         &                 IRPIN, DltRPn, NTCOIL, DltRP_mid, DltRP
+    use tx_commons, only : MODEGL, T_TX, TPRE, NGT, NGVV, NGPRM, NGPVM, &
+                           NGPTM, NQMAX, &
+                           NRMAX, NGYRM, GY, NGR, GX, GTX, GYT, NGTM, &
+                           MODEG, RB, RA, PI, RR, NRA, Q, R, thrp, kappa, &
+                           gDIV, IRPIN, DltRPn, NTCOIL, DltRP_mid, DltRP, &
+                           GRMIN,GRMAX
     use tx_interface, only : TXGRUR, TOUPPER, TXGLOD!, INTG_F
     use tx_ripple, only : ripple
     use libgrf, only : grd1d
@@ -2919,7 +2921,7 @@ contains
   SUBROUTINE TXGRFRX(K, GXL, GYL, NRMAX, NGMAX, STR, MODE, IND, &
        &             GXMIN, GYMAX, GYMIN, ILOGIN, GPXY_IN)
 
-    use tx_commons, only : RA, RB
+    use tx_commons, only : RA, RB, GRMIN, GRMAX
     INTEGER(4), INTENT(IN) :: K, NRMAX, NGMAX, MODE, IND
     REAL(4), DIMENSION(:), INTENT(IN) :: GXL
     REAL(4), DIMENSION(0:NRMAX,1:NGMAX+1), INTENT(IN) :: GYL
@@ -2945,12 +2947,16 @@ contains
 !!$       GPXY(4) = 17.0 -  8.5 * REAL(K/2)
     end if
 
-    GXMAX = REAL(RB/RA)
+    IF(GRMAX.LE.0.0) THEN
+       GXMAX = REAL(RB/RA)
+    ELSE
+       GXMAX = GRMAX
+    END IF
 
     IF(PRESENT(GXMIN)) THEN
        GXMINL = GXMIN
     ELSE
-       GXMINL = 0.0
+       GXMINL = GRMIN
     END IF
     IF(PRESENT(ILOGIN)) THEN
        ! Semi-Log scale
@@ -2990,7 +2996,7 @@ contains
 
   SUBROUTINE TXGRFRXS(K, GXL, GYL, NRMAX, NGMAX, STR, MODE, IND, GYMAX, ILOGIN)
 
-    use tx_commons, only : RA, RB
+    use tx_commons, only : RA, RB, GRMIN, GRMAX
     INTEGER(4), INTENT(IN) :: K, NRMAX, NGMAX, MODE, IND
     REAL(4), DIMENSION(:), INTENT(IN) :: GXL
     REAL(4), DIMENSION(0:NRMAX,1:NGMAX+1), INTENT(IN) :: GYL
@@ -2998,14 +3004,20 @@ contains
     real(4), intent(in), optional :: GYMAX
     integer(4), intent(in), optional :: ILOGIN
     integer(4) :: ILOG
-    REAL(4) :: GXMAX
+    REAL(4) :: GXMIN,GXMAX
     REAL(4), DIMENSION(4) :: GPXY
 
     GPXY(1) =   2.0 + 6.1  * MOD(K,4)
     GPXY(2) =   6.7 + 6.1  * MOD(K,4)
     GPXY(3) = 13.75 - 4.25 * REAL(K/4)
     GPXY(4) = 17.0  - 4.25 * REAL(K/4)
-    GXMAX = REAL(RB/RA)
+
+    IF(GRMAX.LE.0.0) THEN
+       GXMAX = REAL(RB/RA)
+    ELSE
+       GXMAX = GRMAX
+    END IF
+    GXMIN = GRMIN
 
     IF(PRESENT(ILOGIN)) THEN
        ILOG = ILOGIN
@@ -3015,10 +3027,10 @@ contains
 
     IF(PRESENT(GYMAX)) THEN
        CALL TXGRAF(GPXY, GXL, GYL, NRMAX+1, NRMAX+1, NGMAX+1, &
-            &            0.0, GXMAX, STR, 0.26, MODE, IND, ILOG, GYMAX)
+            &            GXMIN, GXMAX, STR, 0.26, MODE, IND, ILOG, GYMAX)
     ELSE
        CALL TXGRAF(GPXY, GXL, GYL, NRMAX+1, NRMAX+1, NGMAX+1, &
-            &            0.0, GXMAX, STR, 0.26, MODE, IND, ILOG)
+            &            GXMIN, GXMAX, STR, 0.26, MODE, IND, ILOG)
     END IF
 
     RETURN
@@ -3032,11 +3044,12 @@ contains
   !
   !***************************************************************
 
-  SUBROUTINE TXGRFRS(K, GXL, GYL, NXMAX, NGMAX, STR, MODE, IND, ILOGIN, ISIZE, KINDEX, &
-       &             GMAX, GMIN)
-    ! Forth argument, NXMAX, is not always "NRMAX" defined as the number of grid points.
+  SUBROUTINE TXGRFRS(K, GXL, GYL, NXMAX, NGMAX, STR, MODE, IND, ILOGIN, &
+                     ISIZE, KINDEX, GMAX, GMIN)
+    ! Forth argument, NXMAX, is not always "NRMAX" defined as the number of 
+    ! grid points.
 
-    use tx_commons, only : RA, RB
+    use tx_commons, only : RA, RB, GRMIN, GRMAX
     INTEGER(4), INTENT(IN) :: K, NXMAX, NGMAX, MODE, IND, ISIZE
     real(4), intent(in), optional :: GMAX, GMIN
     REAL(4), DIMENSION(:), INTENT(IN) :: GXL
@@ -3044,7 +3057,7 @@ contains
     character(len=*), INTENT(IN) :: STR, KINDEX
     integer(4), intent(in), optional :: ILOGIN
     integer(4) :: ILOG
-    REAL(4) :: GXMAX, FNTSIZE
+    REAL(4) :: GXMIN, GXMAX, FNTSIZE
     REAL(4), DIMENSION(4) :: GPXY
 
     FNTSIZE = 0.3
@@ -3092,7 +3105,13 @@ contains
        GPXY(3) = 10.5 -  8.5 * REAL(K/2)
        GPXY(4) = 17.0 -  8.5 * REAL(K/2)
     END IF
-    GXMAX = REAL(RB/RA)
+
+    IF(GRMAX.LE.0.0) THEN
+       GXMAX = REAL(RB/RA)
+    ELSE
+       GXMAX = GRMAX
+    END IF
+    GXMIN = GRMIN
 
     IF(PRESENT(ILOGIN)) THEN
        ILOG = ILOGIN
@@ -3102,14 +3121,14 @@ contains
 
     IF(KINDEX == 'STATIC') THEN
        CALL TXGRAF(GPXY, GXL, GYL(1:NXMAX+1,1:NGMAX), NXMAX+1, NXMAX+1, NGMAX, &
-            &            0.0, GXMAX, STR, FNTSIZE, MODE, IND, ILOG)
+            &            GXMIN, GXMAX, STR, FNTSIZE, MODE, IND, ILOG)
     ELSE IF(KINDEX == 'ANIME') THEN
        CALL TXGRAF(GPXY, GXL, GYL, NXMAX+1, NXMAX+1, NGMAX, &
-            &            0.0, GXMAX, STR, FNTSIZE, MODE, IND, ILOG, &
+            &            GXMIN, GXMAX, STR, FNTSIZE, MODE, IND, ILOG, &
             &            GYMAX_IN=GMAX, GYMIN_IN=GMIN)!, KINDEX=KINDEX)
     ELSE
        CALL TXGRAF(GPXY, GXL, GYL, NXMAX+1, NXMAX+1, NGMAX, &
-            &            0.0, GXMAX, STR, FNTSIZE, MODE, IND, ILOG)
+            &            GXMIN, GXMAX, STR, FNTSIZE, MODE, IND, ILOG)
     END IF
 
     RETURN
@@ -3629,12 +3648,13 @@ contains
 
   SUBROUTINE TXGRFQ(NQ,ID)
 
-    use tx_commons, only : NRMAX, NCM, NQM, NLCMAX, GQY, MODEG, RB, RA, GX
+    use tx_commons, only : NRMAX, NCM, NQM, NLCMAX, GQY, MODEG, RB, RA, GX, &
+                           GRMIN, GRMAX
     use tx_interface, only : APTOS
 
     INTEGER(4), INTENT(IN) :: NQ, ID
     INTEGER(4) :: NC, NSTR, IND
-    REAL(4) :: GXMAX
+    REAL(4) :: GXMIN, GXMAX
     REAL(4), DIMENSION(0:NRMAX,1:NCM) :: GQYL
     REAL(4), DIMENSION(1:4) :: GPXY
     REAL(4), DIMENSION(1:4,1:5) :: GPXYA
@@ -3675,10 +3695,17 @@ contains
     ELSE
        IND = 0
     END IF
-    GXMAX = REAL(RB/RA)
+
+    IF(GRMIN.LE.0.0) THEN
+       GXMAX = REAL(RB/RA)
+    ELSE
+       GXMAX = GRMIN
+    END IF
+    GXMIN = GXMAX
+
     CALL TXGRAF(GPXY, GX, GQYL, NRMAX+1, NRMAX+1, NLCMAX(NQ), &
-         &      0.0, GXMAX, '@'//STR(1:NSTR)//'@', 0.3, 2, IND, 0)
-!         &      0.0, GXMAX, '@'//STR(1:NSTR)//'@', 0.3, 4, IND, 0)
+         &      GXMIN, GXMAX, '@'//STR(1:NSTR)//'@', 0.3, 2, IND, 0)
+!         &      GXMIN, GXMAX, '@'//STR(1:NSTR)//'@', 0.3, 4, IND, 0)
     do nc=1,nlcmax(nq)
        write(6,*) nc,sum(gqyl(0:nrmax,nc))
     end do
@@ -3827,8 +3854,8 @@ contains
   !***************************************************************
 
   SUBROUTINE TXGRAF(GPXY, GX, GY, NXM, NXMAX, NGMAX, &
-       &                  GXMIN, GXMAX, STR, FONT, MODE, IND, ILOG, &
-       &                  GYMAX_IN, GYMIN_IN)!, KINDEX)
+                    GXMIN, GXMAX, STR, FONT, MODE, IND, ILOG, &
+                    GYMAX_IN, GYMIN_IN)
 
     INTEGER(4), INTENT(IN) :: NXM, NXMAX, NGMAX, MODE, IND
     REAL(4), INTENT(IN) :: GXMIN, GXMAX, FONT
@@ -3838,9 +3865,9 @@ contains
     integer(4), intent(in) :: ILOG
     REAL(4), INTENT(IN), OPTIONAL :: GYMAX_IN, GYMIN_IN
     character(len=*), INTENT(IN) :: STR
-!    character(len=*), INTENT(IN), optional :: KINDEX
 
     INTEGER(4) :: IFNT, NGV, NGULEN, ICL, IPAT, IMRK, ISTEP, NG
+    INTEGER(4) :: NX,NGXMIN,NGXMAX
     REAL(4) :: GX1, GX2, GY1, GY2, gSLEN, GSXMIN, GSXMAX, GXSTEP, &
          &        GYMIN, GYMAX, GSYMIN, GSYMAX, GYSTEP, GYORG,  &
          &        GMRK, GCHH, GXL, GYL
@@ -3878,13 +3905,20 @@ contains
 
     allocate(GYAR(size(GY,1),size(GY,2)))
     GYAR = GY
-!    IF(PRESENT(GYMAX_IN)) where(GYAR > GYMAX_IN) GYAR = GYMAX_IN
-!    IF(PRESENT(GYMIN_IN)) where(GYAR < GYMIN_IN) GYAR = GYMIN_IN
 
     CALL GQSCAL(GXMIN, GXMAX, GSXMIN, GSXMAX, GXSTEP)
     GSXMIN = GXMIN
     GSXMAX = GXMAX
-    CALL GMNMX2(GYAR,NXM,1,NXMAX,1,1,NGMAX,1,GYMIN,GYMAX)
+    NGXMIN=1
+    DO NX=1,NXMAX
+       IF(GX(NX).LT.GXMIN) NGXMIN=NX
+    END DO
+    NGXMAX=NXMAX
+    DO NX=NXMAX,1,-1
+       IF(GX(NX).GT.GXMAX) NGXMAX=NX
+    END DO
+
+    CALL GMNMX2(GYAR,NXM,NGXMIN,NGXMAX,1,1,NGMAX,1,GYMIN,GYMAX)
     IF(ILOG == 0) THEN
        IF (GYMAX > 0.0) THEN
           IF (GYMIN > 0.0) GYMIN=0.0
@@ -3892,10 +3926,10 @@ contains
           GYMAX=0.0
        END IF
     END IF
-!    IF(PRESENT(KINDEX)) THEN
-       IF(PRESENT(GYMAX_IN)) GYMAX=GYMAX_IN
-       IF(PRESENT(GYMIN_IN)) GYMIN=GYMIN_IN
-!    END IF
+
+    IF(PRESENT(GYMAX_IN)) GYMAX=GYMAX_IN
+    IF(PRESENT(GYMIN_IN)) GYMIN=GYMIN_IN
+
     CALL GQSCAL(GYMIN, GYMAX, GSYMIN, GSYMAX, GYSTEP)
     IF (GSYMIN > GYMIN) GSYMIN = GSYMIN - GYSTEP
     IF (GSYMAX < GYMAX) GSYMAX = GSYMAX + GYSTEP
@@ -3952,7 +3986,7 @@ contains
        DO NG = 1, NGMAX
           ICL = 7 - MOD(NGMAX - NG, 5)
           CALL SETLIN(0, 1, ICL)
-          CALL GPLOTP(GX, GYAR(1,NG), 1, NXMAX, 1, 0, 0, 0)
+          CALL GPLOTP(GX, GYAR(1,NG), NGXMIN, NGXMAX, 1, 0, 0, 0)
        END DO
 
        ! MODE = 1: Change Line Color and Style
@@ -3964,7 +3998,7 @@ contains
              ICL  = 7 - MOD(NG-1, 5)
              IPAT = NLTYPE(MOD(NG-1, 5))
              CALL SETLIN(0, 1, ICL)
-             CALL GPLOTP(GX, GYAR(1,NG), 1, NXMAX, 1, 0, 0, IPAT)
+             CALL GPLOTP(GX, GYAR(1,NG), NGXMIN, NGXMAX, 1, 0, 0, IPAT)
           END DO
        ELSE
           DO NG = 1, NGMAX
@@ -3972,7 +4006,7 @@ contains
              ISTEP = NXMAX / 10
              IPAT  = (NG - 1) / 5
              CALL SETLIN(0, 1, ICL)
-             CALL GPLOTP(GX, GYAR(1,NG), 1, NXMAX, 1, 0, ISTEP, IPAT)
+             CALL GPLOTP(GX, GYAR(1,NG), NGXMIN, NGXMAX, 1, 0, ISTEP, IPAT)
           END DO
        END IF
        ! Legend
@@ -4007,7 +4041,7 @@ contains
           ISTEP = NXMAX / 10
           IPAT  = (NG - 1) / 5
           CALL SETLIN(0, 1, ICL)
-          CALL GPLOTP(GX, GYAR(1,NG), 1, NXMAX, 1, -IMRK, ISTEP, IPAT)
+          CALL GPLOTP(GX, GYAR(1,NG), NGXMIN, NGXMAX, 1, -IMRK, ISTEP, IPAT)
        END DO
        ! Legend
        IF (MODE == 4) THEN

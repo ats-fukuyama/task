@@ -506,6 +506,11 @@ SUBROUTINE TXINIT
   !  -1 : message for steady state check at NGTSTP intervals
   IDIAG = 0
 
+  !   Minimum value of radial axis of TXGRFR/S (normalized radius)
+  GRMIN = 0.0
+  !   Maximum value of radial axis of TXGRFR/S (IF 0.0, RB/RA is used)
+  GRMAX = 0.0
+
   !   ***** Model parameters *****
 
   !   Mode of LAPACK
@@ -1413,7 +1418,8 @@ module tx_parameter_control
        & MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MODECV, &
        & MDOSQZ,MDLETA,MDFIXT,MDITSN,MDITST,MDINTN,MDINTT,MDINTC,MDINIT,MDVAHL,MDLETB, &
        & IDIAG,IGBDF,MDSOLV,MDLNBD,MDLMOM, & ! 09/06/17~ miki_m
-       & EpsHM, HPN  ! 10/08/06 miki_m
+       & EpsHM,HPN, & ! 10/08/06 miki_m
+       & GRMAX,GRMIN  ! 13/08/22 AF
   private :: TXPLST
 
 contains
@@ -1608,7 +1614,7 @@ contains
          &       ' ',8X,'rIPs,rIPe,'/ &
          &       ' ',8X,'MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MODECV,'/ &
          &       ' ',8X,'MDOSQZ,MDLETA,MDFIXT,MDITSN,MDITST,MDINTN,MDINTT,MDINIT,MDVAHL,MDLETB,' / & 
-         &       ' ',8X,'IDIAG,IGBDF,MDSOLV,MDLNBD,MDLMOM')
+         &       ' ',8X,'IDIAG,IGBDF,MDSOLV,MDLNBD,MDLMOM,GRMIN,GRMAX')
   END SUBROUTINE TXPLST
 
 !***************************************************************
@@ -1691,7 +1697,8 @@ contains
          &   'EpsH30 ', EpsHM(3,0), 'EpsH31 ', EpsHM(3,1), &
          &   'EpsH32 ', EpsHM(3,2), 'EpsH33 ', EpsHM(3,3), &
          &   'EpsH40 ', EpsHM(4,0), 'EpsH41 ', EpsHM(4,1), &
-         &   'EpsH42 ', EpsHM(4,2), 'EpsH43 ', EpsHM(4,3)
+         &   'EpsH42 ', EpsHM(4,2), 'EpsH43 ', EpsHM(4,3), &
+         &   'GRMIN  ', GRMIN,      'GRMAX  ', GRMAX
     WRITE(6,'((" ",A6," =",I5,3(6X,A6," =",I5)))') &
          &   'NRMAX ', NRMAX ,  &
          &   'NTMAX ', NTMAX ,  'NTSTEP', NTSTEP,  &

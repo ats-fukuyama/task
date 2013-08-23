@@ -1,4 +1,3 @@
-2004/10/16   txcomm.h renamed to txcomm.inc
-2006/04/12   Common blocks are completely vanished.
-	     As it turns out, txcomm.inc is renamed to txcomm.f90 including modules only.
-	     "Entry"s are replaced by subroutines.
+2013-08-22 New input parameters GRMIN and GRMAX added to control radial 
+           range of profile graphs.  Vertical range is adjusted for the value
+           in the rage of (GRMIN, GRMAX)

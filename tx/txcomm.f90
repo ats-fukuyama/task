@@ -118,6 +118,9 @@ module tx_commons
   ! Diagnostic message
   integer(4) :: IDIAG
 
+  ! Graphic patameters --- 4 byte real
+  real(4) :: GRMIN,GRMAX
+
   ! LAPACK
   integer(4) :: MDLPCK
 
