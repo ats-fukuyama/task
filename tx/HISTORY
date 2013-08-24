@@ -1,3 +1,4 @@
 2013-08-22 New input parameters GRMIN and GRMAX added to control radial 
-           range of profile graphs.  Vertical range is adjusted for the value
-           in the rage of (GRMIN, GRMAX)
+AF         range of profile graphs.  Vertical range is adjusted for the value
+           in the range of (GRMIN, GRMAX)
+
