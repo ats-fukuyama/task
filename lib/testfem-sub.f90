@@ -1,48 +1,56 @@
 
 !=======================================================================
-      subroutine femgr1d(ngp,x,y,nxmax,str)
+      subroutine femgr1d(ngp,x,y,nxmax,ngmax,str)
 
       implicit none
-      integer ngp,nxmax,nx
-      real*8, dimension(nxmax) :: x,y
-      real*4, dimension(:), allocatable :: gx,gy
-      character str*(*)
-      real*4 guclip
-
-      allocate(gx(nxmax))
-      allocate(gy(nxmax))
-      do nx=1,nxmax
-         gx(nx)=guclip(x(nx))
-         gy(nx)=guclip(y(nx))
-      end do
-
-      call grf1d(ngp,gx,gy,nxmax,nxmax,1,str,0)
-
-      deallocate(gy)
-      deallocate(gx)
-      return
-      end subroutine femgr1d
-!=======================================================================
-      subroutine femgr1dc(ngp,x,y,nxmax,str)
-
-      implicit none
-      integer ngp,nxmax,nx
-      real(8), dimension(nxmax) :: x
-      complex(8), dimension(nxmax) :: y
+      INTEGER,INTENT(IN)::  ngp,nxmax,ngmax
+      REAL(8),INTENT(IN),dimension(nxmax) :: x
+      REAL(8),INTENT(IN),dimension(nxmax,3) :: y
+      integer nx,ng
       real*4, dimension(:), allocatable :: gx
       real*4, dimension(:,:), allocatable :: gy
       character str*(*)
       real*4 guclip
 
       allocate(gx(nxmax))
-      allocate(gy(nxmax,2))
+      allocate(gy(nxmax,ngmax))
       do nx=1,nxmax
          gx(nx)=guclip(x(nx))
-         gy(nx,1)=guclip(real(y(nx)))
-         gy(nx,2)=guclip(imag(y(nx)))
+         do ng=1,ngmax
+            gy(nx,ng)=guclip(y(nx,ng))
+         end do
       end do
 
-      call grf1d(ngp,gx,gy,nxmax,nxmax,2,str,0)
+      call grf1d(ngp,gx,gy,nxmax,nxmax,ngmax,str,0)
+
+      deallocate(gy)
+      deallocate(gx)
+      return
+      end subroutine femgr1d
+!=======================================================================
+      subroutine femgr1dc(ngp,x,y,nxmax,ngmax,str)
+
+      implicit none
+      INTEGER,INTENT(IN)::  ngp,nxmax,ngmax
+      REAL(8),INTENT(IN),dimension(nxmax) :: x
+      COMPLEX(8),INTENT(IN),dimension(nxmax,3) :: y
+      integer nx,ng
+      real*4, dimension(:), allocatable :: gx
+      real*4, dimension(:,:), allocatable :: gy
+      character str*(*)
+      real*4 guclip
+
+      allocate(gx(nxmax))
+      allocate(gy(nxmax,2*ngmax))
+      DO nx=1,nxmax
+         gx(nx)=guclip(x(nx))
+         DO ng=1,ngmax
+            gy(nx,2*(ng-1)+1)=guclip(real(y(nx,ng)))
+            gy(nx,2*(ng-1)+2)=guclip(imag(y(nx,ng)))
+         END DO
+      END DO
+
+      call grf1d(ngp,gx,gy,nxmax,nxmax,2*ngmax,str,0)
 
       deallocate(gy)
       deallocate(gx)

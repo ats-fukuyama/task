@@ -3,7 +3,7 @@ MODULE libtestfem
   integer:: mwmax,mlmax
   complex(8),dimension(:,:),allocatable:: fma
   complex(8),dimension(:),allocatable:: fvb,fvx
-  complex(8),dimension(:),allocatable:: cf1,cf2,cf3
+  complex(8),dimension(:,:),allocatable:: cf1,cf2,cf3
   real(8),dimension(:),allocatable:: rho
 
 CONTAINS
@@ -25,9 +25,9 @@ CONTAINS
          if(allocated(cf2)) deallocate(cf2)
          if(allocated(cf3)) deallocate(cf3)
          allocate(rho(nrmax))
-         allocate(cf1(nrmax))
-         allocate(cf2(nrmax))
-         allocate(cf3(nrmax))
+         allocate(cf1(nrmax,3))
+         allocate(cf2(nrmax,3))
+         allocate(cf3(nrmax,3))
       endif
       nrmax_save=nrmax
 

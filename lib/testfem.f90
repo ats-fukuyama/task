@@ -5,7 +5,7 @@ program testfem
       USE fem_calc
       implicit none
       complex(8),parameter:: ci=(0.d0,1.d0)
-      integer:: id,nrmax,npow,nth,nph,nr
+      integer:: id,nrmax,npow,nth,nph,nr,ngmax
       real(8):: rf,angl
 
       call gsopen
@@ -55,19 +55,27 @@ program testfem
 !$$$         write(6,'(I5,1P7E10.2)') nr,rho(nr),cf1(nr),cf2(nr),cf3(nr)
 !$$$      enddo
 
+      SELECT CASE(ID)
+      CASE(15:16)
+         ngmax=3
+      CASE DEFAULT
+         ngmax=1
+      END SELECT
+
+
       call pages
       call fem_exec(id,nrmax,npow,nth,nph,rf,angl)
-      call femgr1dc( 5,rho,cf1,nrmax,'@cf1(rho)@')
-      call femgr1dc( 6,rho,cf2,nrmax,'@cf2(rho)@')
-      call femgr1dc( 7,rho,cf3,nrmax,'@cf3(rho)@')
+      call femgr1dc( 5,rho,cf1,nrmax,ngmax,'@cf1(rho)@')
+      call femgr1dc( 6,rho,cf2,nrmax,ngmax,'@cf2(rho)@')
+      call femgr1dc( 7,rho,cf3,nrmax,ngmax,'@cf3(rho)@')
       call fem_exec(id,nrmax,npow,nth+1,nph,rf,angl)
-      call femgr1dc( 8,rho,cf1,nrmax,'@cf1(rho)@')
-      call femgr1dc( 9,rho,cf2,nrmax,'@cf2(rho)@')
-      call femgr1dc(10,rho,cf3,nrmax,'@cf3(rho)@')
+      call femgr1dc( 8,rho,cf1,nrmax,ngmax,'@cf1(rho)@')
+      call femgr1dc( 9,rho,cf2,nrmax,ngmax,'@cf2(rho)@')
+      call femgr1dc(10,rho,cf3,nrmax,ngmax,'@cf3(rho)@')
       call fem_exec(id,nrmax,npow,nth+2,nph,rf,angl)
-      call femgr1dc(11,rho,cf1,nrmax,'@cf1(rho)@')
-      call femgr1dc(12,rho,cf2,nrmax,'@cf2(rho)@')
-      call femgr1dc(13,rho,cf3,nrmax,'@cf3(rho)@')
+      call femgr1dc(11,rho,cf1,nrmax,ngmax,'@cf1(rho)@')
+      call femgr1dc(12,rho,cf2,nrmax,ngmax,'@cf2(rho)@')
+      call femgr1dc(13,rho,cf3,nrmax,ngmax,'@cf3(rho)@')
       call pagee
 
       goto 1
@@ -137,90 +145,96 @@ program testfem
 
       if(id.eq.-1.or.id.eq.-2.or.id.eq.-3) then
          do nr=1,nrmax
-            cf1(nr)=fvx(2*(nr-1)+1)
-            cf2(nr)=fvx(2*(nr-1)+2)
-            cf3(nr)=0.d0
+            cf1(nr,1)=fvx(2*(nr-1)+1)
+            cf2(nr,1)=fvx(2*(nr-1)+2)
+            cf3(nr,1)=0.d0
          enddo
 
       else if(id.eq.1.or.id.eq.6) then
          do nr=1,nrmax
-            cf1(nr)=fvx(3*(nr-1)+1)
-            cf2(nr)=fvx(3*(nr-1)+2)
-            cf3(nr)=fvx(3*(nr-1)+3)
+            cf1(nr,1)=fvx(3*(nr-1)+1)
+            cf2(nr,1)=fvx(3*(nr-1)+2)
+            cf3(nr,1)=fvx(3*(nr-1)+3)
          enddo
 
       else if(id.eq.2.or.id.eq.7) then
          do nr=1,nrmax
-            cf1(nr)=fvx(3*(nr-1)+1)
-            cf2(nr)=fvx(3*(nr-1)+2)
-            cf3(nr)=fvx(3*(nr-1)+3)
+            cf1(nr,1)=fvx(3*(nr-1)+1)
+            cf2(nr,1)=fvx(3*(nr-1)+2)
+            cf3(nr,1)=fvx(3*(nr-1)+3)
          enddo
 
       else if(id.eq.3.or.id.eq.8) then
          do nr=1,nrmax
-            cf1(nr)=fvx(4*(nr-1)+1)
-            cf2(nr)=fvx(4*(nr-1)+3)
-            cf3(nr)=fvx(4*(nr-1)+4)
+            cf1(nr,1)=fvx(4*(nr-1)+1)
+            cf2(nr,1)=fvx(4*(nr-1)+3)
+            cf3(nr,1)=fvx(4*(nr-1)+4)
          enddo
 
       else if(id.eq.4.or.id.eq.9.or.id.eq.14) then
          do nr=1,nrmax
-            cf1(nr)=fvx(6*(nr-1)+1)
-            cf2(nr)=fvx(6*(nr-1)+3)
-            cf3(nr)=fvx(6*(nr-1)+5)
+            cf1(nr,1)=fvx(6*(nr-1)+1)
+            cf2(nr,1)=fvx(6*(nr-1)+3)
+            cf3(nr,1)=fvx(6*(nr-1)+5)
          enddo
 
       else if(id.eq.10) then
          do nr=1,nrmax
-            cf1(nr)=fvx(6*(nr-1)+1)
-            cf2(nr)=fvx(6*(nr-1)+3)
-            cf3(nr)=fvx(6*(nr-1)+5)
+            cf1(nr,1)=fvx(6*(nr-1)+1)
+            cf2(nr,1)=fvx(6*(nr-1)+3)
+            cf3(nr,1)=fvx(6*(nr-1)+5)
          enddo
-         cf1(nrmax)=cf1(nrmax-1)
+         cf1(nrmax,1)=cf1(nrmax-1,1)
 
       else if(id.eq.11) then
          do nr=1,nrmax
-            cf1(nr)=fvx(5*(nr-1)+1)
-            cf2(nr)=fvx(5*(nr-1)+2)
-            cf3(nr)=fvx(5*(nr-1)+4)
+            cf1(nr,1)=fvx(5*(nr-1)+1)
+            cf2(nr,1)=fvx(5*(nr-1)+2)
+            cf3(nr,1)=fvx(5*(nr-1)+4)
          enddo
-         cf1(nrmax)=cf1(nrmax-1)
+         cf1(nrmax,1)=cf1(nrmax-1,1)
       else if(id.eq.12) then
          do nr=1,nrmax-1
-            cf1(nr)=fvx(6*(nr-1)+3)
-            cf2(nr)=fvx(6*(nr-1)+1)
-            cf3(nr)=fvx(6*(nr-1)+2)
+            cf1(nr,1)=fvx(6*(nr-1)+3)
+            cf2(nr,1)=fvx(6*(nr-1)+1)
+            cf3(nr,1)=fvx(6*(nr-1)+2)
          enddo
          nr=nrmax
-         cf1(nr)=fvx(6*(nr-1)  )
-         cf2(nr)=fvx(6*(nr-1)+1)
-         cf3(nr)=fvx(6*(nr-1)+2)
+         cf1(nr,1)=fvx(6*(nr-1)  )
+         cf2(nr,1)=fvx(6*(nr-1)+1)
+         cf3(nr,1)=fvx(6*(nr-1)+2)
       else if(id.eq.13) then
          do nr=1,nrmax
-            cf1(nr)=0.5D0*(fvx(6*(nr-1)+1)+fvx(6*(nr-1)+3))
-            cf2(nr)=0.5D0*(fvx(6*(nr-1)+1)-fvx(6*(nr-1)+3))/CI
-            cf3(nr)=fvx(6*(nr-1)+5)
+            cf1(nr,1)=0.5D0*(fvx(6*(nr-1)+1)+fvx(6*(nr-1)+3))
+            cf2(nr,1)=0.5D0*(fvx(6*(nr-1)+1)-fvx(6*(nr-1)+3))/CI
+            cf3(nr,1)=fvx(6*(nr-1)+5)
          enddo
       else if(id.eq.15 .or. id.eq.16) then
          do nr=1,nrmax
             IF(nr.EQ.1) THEN
                IF(ABS(nth).eq.1) THEN
-                  cf2(nr)=ci*fvx(8*(nr-1)+3)+ci*nth*fvx(8*(nr-1)+8)
+                  cf2(nr,1)=ci*fvx(8*(nr-1)+3)
+                  cf2(nr,2)=ci*nth*fvx(8*(nr-1)+8)
                ELSE
-                  cf2(nr)=0.D0
+                  cf2(nr,1)=0.D0
+                  cf2(nr,2)=0.D0
                ENDIF
+               cf2(nr,3)=cf2(nr,1)+cf2(nr,2)
             ELSE
                rho0=rho(nr)
                rkth=nth/rho0
-               cf2(nr)=ci*fvx(8*(nr-1)+3)-ci*rkth*fvx(8*(nr-1)+7)
+               cf2(nr,1)= ci*fvx(8*(nr-1)+3)
+               cf2(nr,2)=-ci*rkth*fvx(8*(nr-1)+7)
             ENDIF
             rkph=nph
-            cf1(nr)=ci*fvx(8*(nr-1)+1)-fvx(8*(nr-1)+8)
-            cf3(nr)=ci*fvx(8*(nr-1)+5)-ci*rkph*fvx(8*(nr-1)+7)
+            cf1(nr,1)= ci*fvx(8*(nr-1)+1)
+            cf1(nr,2)=    fvx(8*(nr-1)+8)
+            cf3(nr,1)= ci*fvx(8*(nr-1)+5)
+            cf3(nr,2)=-ci*rkph*fvx(8*(nr-1)+7)
 
-            cf1(nr)=ci*fvx(8*(nr-1)+1)
-            cf2(nr)=ci*fvx(8*(nr-1)+3)
-            cf3(nr)=ci*fvx(8*(nr-1)+7)
+            cf1(nr,3)=cf1(nr,1)+cf1(nr,2)
+            cf2(nr,3)=cf2(nr,1)+cf2(nr,2)
+            cf3(nr,3)=cf3(nr,1)+cf3(nr,2)
          enddo
 
       endif
