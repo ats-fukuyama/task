@@ -22,19 +22,21 @@ LIBMUMPSX=.
 MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../plx/$(MOD) -I../eq/$(MOD) \
             -I../mtxp -I../../bpsd/$(MOD)
 
-SRC0 = wmfem_comm.f wmf_quad.f ../eq/wmeqin.f wmmenu.f wminit.f wmeign.f \
+SRCFIXED = wmfem_comm.f wmf_quad.f ../eq/wmeqin.f wmmenu.f wminit.f wmeign.f \
        wmexec.f wmloop.f \
        wmxprf.f wmdprf.f \
        wmgout.f wmgsub.f wmdout.f wmfout.f \
        wmtae.f wmfem_allocate.f wmfem_pre.f wmfem_main.f wmfem_post.f \
-       wmfem_calc.f wmfem_sub.f wmfem_setg.f wmfem_vmec.f\
+       wmfem_sub.f wmfem_setg.f wmfem_vmec.f\
        wmvout.f wmtpcs.f
+
+SRCFREE = wmfem_calc.f90
 
 # wmtrfile.f
 
 SRCS = $(SRC0)
 
-OBJS = $(SRCS:.f=.o)
+OBJS = $(SRCFIXED:.f=.o) $(SRCFREE:.f90=.o)
 
 LIB0 = ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a \
        ../eq/eqlib.a ../dp/dplib.a
@@ -132,7 +134,7 @@ wmtae.o : wmtae.f $(WMCOMM)
 wmfem.o : wmfem.f wmfem_comm.f
 wmfem_comm.o : wmfem_comm.f
 wmf_hermite.o : wmf_hermite.f
-wmfem_calc.o : wmfem_calc.f wmfem_comm.f
+wmfem_calc.o : wmfem_calc.f90 wmfem_comm.f
 wmfem_sub.o : wmfem_sub.f wmfem_comm.f $(WMCOMM)	
 wmfem_setg.o : wmfem_setg.f wmfem_comm.f $(WMCOMM)
 wmfem_vmec.o : wmfem_vmec.f wmfem_comm.f $(WMCOMM) vmcomm.inc
