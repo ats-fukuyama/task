@@ -24,9 +24,9 @@ PROGRAM testt2
      x(nx)=dx*(nx-1)
      x_ab=x(nx)
      IF(x_ab.LE.0.D0) THEN
-        f(nx)=0.D0
+        f(nx)=4.D0/(3.D0*SQRT(pi))
         err(nx)=0.D0
-        g(nx)=3.D0*SQRT(pi)/4.D0
+        g(nx)=4.D0/(3.D0*SQRT(pi))
      ELSE
         CALL integ_f(FUNC_1,f(nx),err(nx),EPS=1.D-8,ILST=1,KID='FUNC_1')
         g(nx)=(4.D0/(3.D0*SQRT(pi))) &
