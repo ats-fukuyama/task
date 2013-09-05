@@ -36,7 +36,7 @@ PROGRAM testt2
 
   WRITE(6,'(1P5E12.4)') (x(nx),f(nx),g(nx),f(nx)-g(nx),err(nx),nx=1,nxmax)
 
-  DEALLOCATE(x,f,err)
+  DEALLOCATE(x,f,g,err)
 
   GO TO 1
 
