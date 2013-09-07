@@ -2,14 +2,14 @@
 include ../../task/make.header
 
 ##### Without PETSc library #####
-LIBMTX=../mtxp/libmtxnompi.o ../mtxp/libmtxbnd.o
-PETSCLIBS=
-FLINKER=$(FCFREE)
+#LIBMTX=../mtxp/libmtxnompi.o ../mtxp/libmtxbnd.o
+#PETSCLIBS=
+#FLINKER=$(FCFREE)
 ##### With MUMPS library #####
-#include ${PETSC_DIR}/conf/variables
-#LIBMTX=../mtxp/libmtxmpi.o ../mtxp/libmtxmumps.o
-#PETSCLIBS=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lmumps_common -lpord -lscalapack -lblacs -lblas -lparmetis -lmetis
-#FLINKER=$(MF90)
+include ${PETSC_DIR}/conf/variables
+LIBMTX=../mtxp/libmtxmpi.o ../mtxp/libmtxmumps.o
+PETSCLIBS=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common -lpord -lscalapack -lparmetis -lmetis
+FLINKER=$(MF90)
 ##### With PETSc library #####
 #include ${PETSC_DIR}/conf/variables
 #LIBMTX=../mtxp/libmtxmpi.o ../mtxp/libmtxksp.o

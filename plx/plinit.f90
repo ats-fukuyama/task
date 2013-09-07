@@ -413,7 +413,6 @@
       integer,intent(in) :: NID
       integer,intent(out) :: IST,IERR
       integer,parameter:: NSM=100
-      integer:: NS
 
       NAMELIST /PL/ RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ, &
                     NSMAX,PA,PZ,PZ0,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PZCL, &

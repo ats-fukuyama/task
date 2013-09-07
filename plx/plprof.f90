@@ -74,21 +74,31 @@
          USE bpsd_kinds
          REAL(rkind),INTENT(IN):: X
          REAL(rkind),INTENT(OUT):: DATA
+         INTEGER(ikind),INTENT(IN):: NXMAX
          REAL(rkind),DIMENSION(NXMAX),INTENT(IN):: XA
          REAL(rkind),DIMENSION(4,NXMAX),INTENT(IN):: UDATA
-         INTEGER(ikind),INTENT(IN):: NXMAX
          INTEGER(ikind),INTENT(OUT):: IERR
        END SUBROUTINE SPL1DF
-       SUBROUTINE GET_RZB(rhon,th,R,Z,BR,BZ,BT,BB)
+       SUBROUTINE GET_BMINMAX(rhon,BBMIN,BBMAX)
          USE bpsd_kinds
-         REAL(rkind),INTENT(IN):: rhon,th
-         REAL(rkind),INTENT(OUT):: R,Z,BR,BZ,BT,BB
-       END SUBROUTINE GET_RZB
-       SUBROUTINE GET_RZ(rhon,th,R,Z)
+         REAL(rkind),INTENT(IN):: rhon
+         REAL(rkind),INTENT(OUT):: BBMIN,BBMAX
+       END SUBROUTINE GET_BMINMAX
+       SUBROUTINE GET_RZ(rhon,chip,R,Z)
          USE bpsd_kinds
-         REAL(rkind),INTENT(IN):: rhon,th
+         REAL(rkind),INTENT(IN):: rhon,chip
          REAL(rkind),INTENT(OUT):: R,Z
        END SUBROUTINE GET_RZ
+       SUBROUTINE GET_RZB(rhon,chip,R,Z,BR,BZ,BT,BB)
+         USE bpsd_kinds
+         REAL(rkind),INTENT(IN):: rhon,chip
+         REAL(rkind),INTENT(OUT):: R,Z,BR,BZ,BT,BB
+       END SUBROUTINE GET_RZB
+       SUBROUTINE GET_B(rhon,chip,BB)
+         USE bpsd_kinds
+         REAL(rkind),INTENT(IN):: rhon,chip
+         REAL(rkind),INTENT(OUT):: BB
+       END SUBROUTINE GET_B
     END INTERFACE
 
   CONTAINS
@@ -127,69 +137,23 @@
       REAL(rkind),INTENT(OUT):: RHON
       TYPE(pl_mag_type),INTENT(OUT):: MAG
 
-      REAL(8) :: BP, BR, BT, BX, BY, BZ, PP, QL, RL, RS, &
-                 RSINT, RCOST, RSINP, RCOSP
+      REAL(8) :: RL, BR, BT, BX, BY, BZ, &
+                 RSINT, RCOST
 
-      IF(MODELG.EQ.0) THEN
-         RS   = SQRT(X*X+Z*Z)
-         RHON = RS/RA
-         CALL pl_qprf(RHON,QL)
-         RSINT= Z/RS
-         RCOST= X/RS
-         BT   = BB
-         IF(RR.EQ.0.D0) THEN
-            BP=0.D0
-         ELSE
-            BP   = RS*BT/(RR*QL)
-         END IF
-         BX   =-BP*RSINT
-         BY   = BB
-         BZ   = BP*RCOST
-
-      ELSEIF(MODELG.EQ.1) THEN
-         RS =SQRT((X-RR)**2+Z*Z)
-         RHON=RS/RA
-         CALL pl_qprf(RHON,QL)
-         RSINT= Z/RS
-         RCOST= (X-RR)/RS
-         BT   = BB*RR/X
-         BP   = RS*BT/(RR*QL)
-         BX   =-BP*RSINT
-         BY   = BB
-         BZ   = BP*RCOST
-
-      ELSEIF(MODELG.EQ.2) THEN
+      SELECT CASE(MODELG)
+      CASE(0,1)
+         RSINT= 0.D0
+         RCOST= 1.D0
+      CASE(2,3,5,8)
          RL=SQRT(X**2+Y**2)
-         RS =SQRT((RL-RR)**2+Z**2)
-         RHON=RS/RA
-         IF(RS.LE.0.D0) THEN
-            BT   = BB
-            BR   = 0.D0
-            BZ   = 0.D0
-         ELSE
-            CALL pl_qprf(RHON,QL)
-            RSINP= Z/RS
-            RCOSP= (RL-RR)/RS
-            BT   = BB/(1.D0+RS*RCOSP/RR)
-            BP   = RS*BT/(RR*QL)
-            BR   =-BP*RSINP
-            BZ   = BP*RCOSP
-         ENDIF
-         RCOST=X/RL
-         RSINT=Y/RL
-         BX = BR*RCOST-BT*RSINT
-         BY = BR*RSINT+BT*RCOST
+         RCOST= X/RL
+         RSINT= Y/RL
+      END SELECT
 
-      ELSEIF(MODELG.EQ.3.OR.MODELG.EQ.5.OR.MODELG.EQ.8) THEN
-         RL=SQRT(X**2+Y**2)
-         PP=0.D0
-         CALL GETRZ(RL,Z,PP,BR,BZ,BT,RHON)
-!         WRITE(6,'(1P6E12.4)') RL,ZZ,BR,BZ,BT,RHON
-         RCOST=X/RL
-         RSINT=Y/RL
-         BX = BR*RCOST-BT*RSINT
-         BY = BR*RSINT+BT*RCOST
-      ENDIF
+      CALL pl_mag_rz(X,Y,Z,BR,BZ,BT,RHON)
+
+      BX = BR*RCOST-BT*RSINT
+      BY = BR*RSINT+BT*RCOST
 
       MAG%BABS = SQRT(BX**2+BY**2+BZ**2)
 
@@ -204,6 +168,73 @@
       ENDIF
       RETURN
     END SUBROUTINE pl_mag
+
+!     ****** CALCULATE LOCAL MAGNETIC FIELD ******
+
+    SUBROUTINE pl_mag_rz(X,Y,Z,BR,BZ,BT,RHON)
+
+      USE plcomm, ONLY: RA,RR,BB,MODELG
+
+      IMPLICIT NONE
+      REAL(rkind),INTENT(in):: X,Y,Z
+      REAL(rkind),INTENT(OUT):: BR,BZ,BT,RHON
+
+      REAL(8) :: BP, PP, QL, RL, RS, &
+                 RSINP, RCOSP
+
+      SELECT CASE(MODELG)
+      CASE(0)
+         RS   = SQRT(X*X+Z*Z)
+         RHON = RS/RA
+         CALL pl_qprf(RHON,QL)
+         RSINP= Z/RS
+         RCOSP= X/RS
+         BT   = BB
+         IF(RR.EQ.0.D0) THEN
+            BP=0.D0
+         ELSE
+            BP   = RS*BT/(RR*QL)
+         END IF
+         BR   =-BP*RSINP
+         BZ   = BP*RCOSP
+
+      CASE(1)
+         RS =SQRT((X-RR)**2+Z*Z)
+         RHON=RS/RA
+         CALL pl_qprf(RHON,QL)
+         RSINP= Z/RS
+         RCOSP= (X-RR)/RS
+         BT   = BB*RR/X
+         BP   = RS*BT/(RR*QL)
+         BR   =-BP*RSINP
+         BZ   = BP*RCOSP
+
+      CASE(2)
+         RL=SQRT(X**2+Y**2)
+         RS =SQRT((RL-RR)**2+Z**2)
+         RHON=RS/RA
+         IF(RS.LE.0.D0) THEN
+            BT   = BB
+            BR   = 0.D0
+            BZ   = 0.D0
+         ELSE
+            CALL pl_qprf(RHON,QL)
+            RSINP= Z/RS
+            RCOSP= (RL-RR)/RS
+            BT   = BB*RR/RL
+            BP   = RS*BT/(RR*QL)
+            BR   =-BP*RSINP
+            BZ   = BP*RCOSP
+         ENDIF
+
+      CASE(3,5,8)
+         RL=SQRT(X**2+Y**2)
+         PP=0.D0
+         CALL GETRZ(RL,Z,PP,BR,BZ,BT,RHON)
+      END SELECT
+
+      RETURN
+    END SUBROUTINE pl_mag_rz
 
 !     ****** CALCULATE PLASMA PROFILE ******
 
@@ -363,8 +394,8 @@
         IMPLICIT NONE
         REAL(rkind),INTENT(IN):: RHON
         TYPE(pl_plf_type),DIMENSION(NSMAX),INTENT(OUT):: PLF
-        REAL(rkind):: RHOL, FACTN, FACTT, FACTU, FACTITB, PTOT, PL0, &
-                      PSIN, PL, FACT, FNX, DFNX, AN, BN, FTX, DFTX, &
+        REAL(rkind):: RHOL, FACTN, FACTT, FACTU, FACTITB, PL0, &
+                      PL, FACT, FNX, DFNX, AN, BN, FTX, DFTX, &
                       AT, BT, FUX, DFUX, AU, BU, VAL
         INTEGER(ikind)  :: NS
         REAL(rkind),DIMENSION(NSMAX) :: RNPL,RTPL,RTPRPL,RTPPPL,RUPL
@@ -571,7 +602,7 @@
       REAL(rkind),INTENT(IN):: rho
       REAL(rkind),DIMENSION(nsmax),INTENT(OUT):: rn,rtpr,rtpp,ru
       TYPE(bpsd_plasmaf_type),save :: plasmaf
-      INTEGER(ikind):: ns
+      INTEGER(ikind):: ns,ierr
 
       plasmaf%nrmax=1
       plasmaf%rho(1)=rho
@@ -670,40 +701,39 @@
 
 !     ****** CALCULATE BMIN ON MAG SURFACE ******
 
-    SUBROUTINE pl_bmin(RHON,BMINL)
+    SUBROUTINE pl_bminmax(RHON,BMIN,BMAX)
 
-      USE plcomm,ONLY: MODELG,BB,RR
+      USE plcomm,ONLY: MODELG,BB,RR,RA
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: RHON
-      REAL(rkind),INTENT(OUT):: BMINL
-      REAL(rkind) :: RS, BMINP, BMINT, QL, RRMAXL, BTL, BPL
+      REAL(rkind),INTENT(OUT):: BMIN,BMAX
+      REAL(rkind) :: RS,QL,BT,BP,BTMIN,BTMAX
 
       SELECT CASE(MODELG)
       CASE(0,1)
-         RS=rsrhon(RHON)
-         BMINT= BB
+         RS=RA*RHON
+         BT= BB
          CALL GETQP(RHON,QL)
-         BMINP= RS*BMINT/(RR*QL)
-         BMINL= SQRT(BMINT**2+BMINP**2)
+         BP= RS*BB/(RR*QL)
+         BMIN= SQRT(BT**2+BP**2)
+         BMAX= SQRT(BT**2+BP**2)
       CASE(2)
-         RS=rsrhon(RHON)
-         BMINT= BB/(1+RS/RR)
+         RS=RA*RHON
+         BTMIN= BB/(1+RS/RR)
+         BTMAX= BB/(1-RS/RR)
          CALL pl_qprf(RHON,QL)
-         BMINP= RS*BMINT/((RR+RS)*QL)
-         BMINL= SQRT(BMINT**2+BMINP**2)
+         BP= RS*BB/(RR*QL)
+         BMIN= SQRT(BTMIN**2+BP**2)
+         BMAX= SQRT(BTMAX**2+BP**2)
       CASE(3,5,8)
-         CALL GETRMX(RHON,RRMAXL)
-         BTL=BB*RR/RRMAXL
-         CALL pl_qprf(RHON,QL)
-         BPL=RS*BTL/(RR*QL)
-         BMINL=SQRT(BTL**2+BPL**2)
+         CALL GET_BMINMAX(RHON,BMIN,BMAX)
       END SELECT
       RETURN
-    END SUBROUTINE pl_bmin
+    END SUBROUTINE pl_bminmax
 
 !     ****** CALCULATE RRMIN AND RRMAX ON MAG SURFACE ******
 
-    SUBROUTINE pl_rrmx(RHON,RRMINL,RRMAXL)
+    SUBROUTINE pl_rrminmax(RHON,RRMINL,RRMAXL)
 
       USE plcomm,ONLY: MODELG,RR
       IMPLICIT NONE
@@ -727,7 +757,7 @@
          CALL GETRMX(RHON,RRMAXL)
       END SELECT
       RETURN
-    END SUBROUTINE pl_rrmx
+    END SUBROUTINE pl_rrminmax
 
 !     ***** PLASMA MAGNETIC AXIS *****
 
@@ -870,32 +900,71 @@
 
 !     ****** Coordinate conversion ******
 
-    SUBROUTINE pl_getRZ(rhon,th,R,Z)
+    SUBROUTINE pl_getRZ(rhon,chip,R,Z)
 
       USE plcomm, ONLY: RA,RR,MODELG,TWOPI
 
       IMPLICIT NONE
-      REAL(rkind),INTENT(in):: rhon,th
+      REAL(rkind),INTENT(in):: rhon,chip
       REAL(rkind),INTENT(OUT):: R,Z
-
-      REAL(8) :: RL,RS
 
       SELECT CASE(MODELG)
       CASE(0)
          R=   RA*rhon
-         Z=   RA*rhon*th/TWOPI
-
+         Z=   RA*rhon*chip/TWOPI
       CASE(1)
-         R=RR+RA*rhon*COS(th)
-         Z=   RA*rhon*SIN(th)
+         R=RR+RA*rhon*COS(chip)
+         Z=   RA*rhon*SIN(chip)
 
       CASE(2)
-         R=RR+RA*rhon*COS(th)
-         Z=   RA*rhon*SIN(th)
+         R=RR+RA*rhon*COS(chip)
+         Z=   RA*rhon*SIN(chip)
 
       CASE(3,5,8)
-         CALL GET_RZ(rhon,th,R,Z)
+         CALL GET_RZ(rhon,chip,R,Z)
       END SELECT
     END SUBROUTINE pl_getRZ
+
+!     ****** Coordinate conversion and magnetic field ******
+
+    SUBROUTINE pl_getRZB(rhon,chip,R,Z,BR,BZ,BT)
+
+      USE plcomm, ONLY: RA,RR,MODELG,TWOPI
+
+      IMPLICIT NONE
+      REAL(rkind),INTENT(in):: rhon,chip
+      REAL(rkind),INTENT(OUT):: R,Z,BR,BZ,BT
+      REAL(rkind):: RHON_DUMMY
+
+      SELECT CASE(MODELG)
+      CASE(0)
+         R=   RA*rhon
+         Z=   RA*rhon*chip/TWOPI
+      CASE(1,2)
+         R=RR+RA*rhon*COS(chip)
+         Z=   RA*rhon*SIN(chip)
+      CASE(3,5,8)
+         CALL GET_RZ(rhon,chip,R,Z)
+      END SELECT
+      CALL pl_mag_rz(R,0.D0,Z,BR,BZ,BT,RHON_DUMMY)
+      RETURN
+    END SUBROUTINE pl_getRZB
+
+!     ****** calculate magnetci field ******
+
+    SUBROUTINE pl_getB(rhon,chip,B)
+
+      USE plcomm, ONLY: RA,RR,MODELG,TWOPI
+
+      IMPLICIT NONE
+      REAL(rkind),INTENT(in):: rhon,chip
+      REAL(rkind),INTENT(OUT):: B
+      REAL(rkind):: R,Z,BR,BZ,BT
+
+      CALL pl_getRZB(rhon,chip,R,Z,BR,BZ,BT)
+      B=SQRT(BR*BR+BZ*BZ+BT*BT)
+
+      RETURN
+    END SUBROUTINE pl_getB
 
   END MODULE plprof

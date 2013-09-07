@@ -340,26 +340,14 @@ C
 C
             RPS(1,NR)=YA(1,1)
             ZPS(1,NR)=YA(2,1)
-            BRPS(1,NR)=BRCHI(1)
-            BZPS(1,NR)=BZCHI(1)
-            BTPS(1,NR)=BTCHI(1)
-            BBPS(1,NR)=BBCHI(1)
             DO NTH=2,NTHMAX+1
                TH=DTH*(NTH-1)
                IF(MDLEQC.EQ.0) THEN
                   CALL SPL1DF(TH,RPS(NTH,NR),XCHI0,URCHI,NA,IERR)
                   CALL SPL1DF(TH,ZPS(NTH,NR),XCHI0,UZCHI,NA,IERR)
-                  CALL SPL1DF(TH,BRPS(NTH,NR),XCHI0,UBRCHI,NA,IERR)
-                  CALL SPL1DF(TH,BZPS(NTH,NR),XCHI0,UBZCHI,NA,IERR)
-                  CALL SPL1DF(TH,BTPS(NTH,NR),XCHI0,UBTCHI,NA,IERR)
-                  CALL SPL1DF(TH,BBPS(NTH,NR),XCHI0,UBBCHI,NA,IERR)
                ELSE
                   CALL SPL1DF(TH,RPS(NTH,NR),XCHI1,URCHI,NA,IERR)
                   CALL SPL1DF(TH,ZPS(NTH,NR),XCHI1,UZCHI,NA,IERR)
-                  CALL SPL1DF(TH,BRPS(NTH,NR),XCHI1,UBRCHI,NA,IERR)
-                  CALL SPL1DF(TH,BZPS(NTH,NR),XCHI1,UBZCHI,NA,IERR)
-                  CALL SPL1DF(TH,BTPS(NTH,NR),XCHI1,UBTCHI,NA,IERR)
-                  CALL SPL1DF(TH,BBPS(NTH,NR),XCHI1,UBBCHI,NA,IERR)
                ENDIF
             ENDDO
          ENDIF
@@ -583,18 +571,6 @@ C            call polintx(nr,npmax,nrm,dsdpsit)
                call polintxx(nr,nthmax+1,npmax,nthmp,nrm,zps)
             ENDIF
             
-            DTHL=2.D0*PI/NTHMAX
-            DO nth=1,nthmax+1
-               FACTOR=(RPS(NTH,NR)-RAXIS)/(RPS(NTH,NRPMAX)-RAXIS)
-               BRPS(NTH,NR)=BRPS(NTH,NRPMAX)/FACTOR
-               BZPS(NTH,NR)=BZPS(NTH,NRPMAX)/FACTOR
-               FACTOR=RPS(NTH,NR)/RPS(NTH,NRPMAX)
-               BTPS(NTH,NR)=BTPS(NTH,NRPMAX)/FACTOR
-               BBPS(NTH,NR)=SQRT(BRPS(NTH,NR)**2
-     &                          +BZPS(NTH,NR)**2
-     &                          +BTPS(NTH,NR)**2)
-            END DO
-
             RMIN=RAXIS
             RMAX=RAXIS
             ZMIN=ZAXIS
@@ -984,32 +960,16 @@ C        +++++ CALCULATE DERIVATIVES +++++
 C     
       DTH=2.D0*PI/NTHMAX
       DO NTH=1,NTHMAX+1
-         THIT(NTH)=DTH*(NTH-1)
+         CHIP(NTH)=DTH*(NTH-1)
       ENDDO
 C
-      CALL SPL2D(THIT,RHOT,RPS,D10,D01,D11,URPS,
+      CALL SPL2D(CHIP,RHOT,RPS,D10,D01,D11,URPS,
      &           NTHMP,NTHMAX+1,NRMAX,4,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL2D for RPS: IERR=',IERR
 C
-      CALL SPL2D(THIT,RHOT,ZPS,D10,D01,D11,UZPS,
+      CALL SPL2D(CHIP,RHOT,ZPS,D10,D01,D11,UZPS,
      &           NTHMP,NTHMAX+1,NRMAX,4,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL2D for ZPS: IERR=',IERR
-C
-      CALL SPL2D(THIT,RHOT,BRPS,D10,D01,D11,UBRPS,
-     &           NTHMP,NTHMAX+1,NRMAX,4,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX SPL2D for BRPS: IERR=',IERR
-C
-      CALL SPL2D(THIT,RHOT,BZPS,D10,D01,D11,UBZPS,
-     &           NTHMP,NTHMAX+1,NRMAX,4,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX SPL2D for BZPS: IERR=',IERR
-C
-      CALL SPL2D(THIT,RHOT,BTPS,D10,D01,D11,UBTPS,
-     &           NTHMP,NTHMAX+1,NRMAX,4,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX SPL2D for BTPS: IERR=',IERR
-C
-      CALL SPL2D(THIT,RHOT,BBPS,D10,D01,D11,UBBPS,
-     &           NTHMP,NTHMAX+1,NRMAX,4,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX SPL2D for BBPS: IERR=',IERR
 C
       DO NR=1,NRMAX
          RHOTL=RHOT(NR)
@@ -1017,11 +977,11 @@ C         write(6,'(A,I5,1P3E12.4)') 'NR,RHOT:',NR,RHOTL,RHOTL**2,
 C     &        PSITA*RHOTL**2
          QPSL=FNQPS(RHOTL)
          DO NTH=1,NTHMAX+1
-            THITL=THIT(NTH)
-            CALL SPL2DD(THITL,RHOTL,RPSL,DRCHIL,DRRHOL,
-     &                  THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
-            CALL SPL2DD(THITL,RHOTL,ZPSL,DZCHIL,DZRHOL,
-     &                  THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+            CHIPL=CHIP(NTH)
+            CALL SPL2DD(CHIPL,RHOTL,RPSL,DRCHIL,DRRHOL,
+     &                  CHIP,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+            CALL SPL2DD(CHIPL,RHOTL,ZPSL,DZCHIL,DZRHOL,
+     &                  CHIP,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
             DRPSI(NTH,NR)=DRRHOL*QPSL/(2.D0*PSITA)
             DZPSI(NTH,NR)=DZRHOL*QPSL/(2.D0*PSITA)
             DRCHI(NTH,NR)=DRCHIL
