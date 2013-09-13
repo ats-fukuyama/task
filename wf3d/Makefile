@@ -14,8 +14,8 @@ LIBMUMPSX=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common \
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-FFLAGS = $(OFLAGS)
-#FFLAGS = $(DFLAGS)
+#FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I../../task/plx/$(MOD) -I../../task/eq/$(MOD) \
             -I../../bpsd/$(MOD) -I../../task/mtxp -I $(MOD)

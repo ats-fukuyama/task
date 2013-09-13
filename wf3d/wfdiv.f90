@@ -1214,7 +1214,7 @@ subroutine wfdiv_broadcast
   use wfcomm
   implicit none
 
-  real(8),dimension(11) :: rdata
+  real(8),dimension(13) :: rdata
   integer,dimension(1)  :: idata 
   integer :: NDATA
 
@@ -1228,22 +1228,34 @@ subroutine wfdiv_broadcast
      rdata(7)=DELX
      rdata(8)=DELY
      rdata(9)=DELZ
-     if (IDDIV.eq.1.or.&
-         IDDIV.eq.2) rdata(10)=RB
-     if (IDDIV.eq.2) rdata(11)=RBAX
+     SELECT CASE(iddiv)
+     CASE(1)
+        rdata(10)=RB
+     CASE(2)
+        rdata(10)=RB
+        rdata(11)=RBAX
+     CASE(3)
+        rdata(10)=RBIN
+        rdata(11)=RBOUT
+        rdata(12)=BZMIDL
+        rdata(13)=BZMIDH
+     END SELECT
      idata(1)=IDDIV
   end if
   
   call mtx_barrier
   call mtx_broadcast_integer(idata,1)
   IDDIV=idata(1)
-  if (IDDIV.eq.0) then
+  SELECT CASE(iddiv)
+  CASE(0)
      NDATA=9
-  else if(IDDIV.eq.1) then
+  CASE(1)
      NDATA=10
-  else if(IDDIV.eq.2) then
+  CASE(2)
      NDATA=11
-  end if
+  CASE(3)
+     NDATA=13
+  END SELECT
   
   call mtx_barrier
   call mtx_broadcast_real8(rdata,NDATA)
@@ -1256,9 +1268,18 @@ subroutine wfdiv_broadcast
   DELX =rdata(7)
   DELY =rdata(8)
   DELZ =rdata(9)
-  if (IDDIV.eq.1.or.&
-      IDDIV.eq.2) RB  =rdata(10)
-  if (IDDIV.eq.2) RBAX=rdata(11)
+  SELECT CASE(iddiv)
+  CASE(1)
+     RB=rdata(10)
+  CASE(2)
+     RB=rdata(10)
+     RBAX=rdata(11)
+  CASE(3)
+     RBIN=rdata(10)
+     RBOUT=rdata(11)
+     BZMIDL=rdata(12)
+     BZMIDH=rdata(13)
+  END SELECT
 
   return 
 end subroutine wfdiv_broadcast
