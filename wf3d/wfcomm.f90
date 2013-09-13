@@ -624,6 +624,7 @@ contains
     
     allocate(PABSS(NSM),PABSK(NKMAX),PABSTN(NNMAX))
     allocate(PABSSN(NNMAX,NSM),PABSKN(NNMAX,NKMAX),PFV(NNMAX,3))
+    allocate(RZCO(NSM,NNMAX))
 
     NKMAX_save = NKMAX
     NNMAX_save = NNMAX
@@ -635,7 +636,7 @@ contains
   subroutine wfpwr_deallocate
     implicit none
 
-    deallocate(PABSS,PABSK,PABSTN,PABSSN,PABSKN,PFV)
+    deallocate(PABSS,PABSK,PABSTN,PABSSN,PABSKN,PFV,RZCO)
 
     return
   end subroutine wfpwr_deallocate

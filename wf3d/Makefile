@@ -9,7 +9,7 @@ include ../make.header
 FLINKER=$(MF90)
 LIBMTX=../../task/mtxp/libmtxmumps.o ../../task/mtxp/libmtxmpi.o
 LIBMUMPSX=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common \
-  -lpord -lscalapack -lparmetis -lmetis -llapack -lblas
+  -lpord -lscalapack -lparmetis -lblacs -lmetis -llapack -lblas
 
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
