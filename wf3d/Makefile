@@ -9,13 +9,13 @@ include ../make.header
 FLINKER=$(MF90)
 LIBMTX=../../task/mtxp/libmtxmumps.o ../../task/mtxp/libmtxmpi.o
 LIBMUMPSX=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common \
-  -lpord -lscalapack -lblacs -lparmetis -lmetis -llapack -lblas
+  -lpord -lscalapack -lparmetis -lmetis -llapack -lblas
 
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-#FFLAGS = $(OFLAGS)
-FFLAGS = $(DFLAGS)
+FFLAGS = $(OFLAGS)
+#FFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I../../task/plx/$(MOD) -I../../task/eq/$(MOD) \
             -I../../bpsd/$(MOD) -I../../task/mtxp -I $(MOD)

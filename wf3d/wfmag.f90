@@ -111,8 +111,9 @@
 !    &        access='sequential',form='formatted',action='read')
 !Y         open(unit=kisyu,file='magC1991.data',status='old',
 !Y     &        access='sequential',form='formatted')
-         open(unit=kisyu,file='mag091PU.data',status='old', &
-             access='sequential',form='formatted')
+!!         open(unit=kisyu,file='mag091PU.data',status='old', &
+!!             access='sequential',form='formatted')
+         CALL FROPEN(kisyu,'mag091PU.data',1,0,'YAMA',IERR)
 !Y1         WRITE(6,*) '## YAMA -MAG091PU.DATA- 20040815'
          WRITE(6,*) '## YAMA -MAG091PU.DATA- 20051016'
 
@@ -268,6 +269,7 @@
          ii = ii - 1
               go to 50
    60              continue
+
 !
 !*----------------------------------------------------------------------
       if( iwrite .lt. 0 )  then

@@ -282,7 +282,7 @@ contains
 
     use libmtx
     implicit none
-    integer,save:: NXM_save,NYM_save,NZM_save
+    integer,save:: NXM_save=0,NYM_save=0,NZM_save=0
     integer,save:: div_init=0
     
     if((NXM.eq.NXM_save).and.&

@@ -135,7 +135,7 @@ subroutine WFDIV
 !        GAMMA10セントラル部の場合は"SETELM"を使うべきか...?
 !        
 !         IF(IDDIV.NE.2) THEN
-         if((IDDIV.ne.2).and.(IDDIV.ne.3)) then
+     if((IDDIV.ne.2).and.(IDDIV.ne.3)) then
 ! ----- 01/03/2013 -----
 !
         call SETELM(IERR)
@@ -264,6 +264,8 @@ subroutine DFNODE(IERR)
      call DFNODC(IERR)
   elseif(IDDIV.eq.2) then
      call DFNODCX(IERR)
+  elseif(IDDIV.eq.3) then
+     call DFNODC2(IERR)
   end if
   
   return
@@ -563,6 +565,96 @@ subroutine DFNODCX(IERR)
   return
 end subroutine DFNODCX
 
+
+!  ----  Add. by Yama  06/Aug./2007 ----
+
+!     ****** Define 2-D Node Array (CIRCULAR /2-Sections) ******
+!     半径0からRBINまでの領域と，RBINからRBOUTまでの領域を，
+!     異なる要素長で分割する
+
+SUBROUTINE DFNODC2(IERR)
+
+  use wfcomm
+  implicit none
+  integer :: NY,NYMID,NYEND,NYN,NXMAX,NX,IERR
+  real(8) :: DY,R,DX,TH
+
+!  -- R方向0からRBINまでの分割 --
+!     NYMID: R方向の分割数
+!     DY: R方向の要素長
+      NYMID=NINT(RBIN/DYIN)+1
+         IF(NYMID.GT.NYM) GOTO 9100
+         IF(NYMID.LE.1)   GOTO 9100
+      DY=RBIN/(NYMID-1)
+
+      DO NY=1,NYMID
+         R=DY*(NY-1)
+!        R=0の時，節点には座標系の原点(0,0)を割り当てる
+         IF(R.LE.0.D0) THEN
+!           NXA: あるY座標を持つ節点の数（X座標の数）
+            NXA(NY)=1
+            XNDA(1,NY)=0.D0
+            YNDA(1,NY)=0.D0
+         ELSE
+!           NXMAX: 方位角方向の分割数（円周の長さ/要素長DXIN）
+            NXMAX=NINT((2.D0*PI*R)/DXIN)+1
+            IF(NXMAX.GT.NXM) GOTO 9200
+!           NXMAX=1-7ならば，NXMAX=8とおく
+!              要素分割数が少な過ぎる場合の対処か
+!              方位角方向の要素分割数NXMAXの最低値を8としている
+            NXMAX=4*((NXMAX-1)/4+1)
+            IF(NXMAX.EQ.4) NXMAX=8
+!           DX: 方位角方向の要素長[rad.]
+            DX=2.D0*PI/NXMAX
+            NXA(NY)=NXMAX
+            DO NX=1,NXMAX
+               TH=DX*(NX-1)
+               XNDA(NX,NY)=R*COS(TH)
+               YNDA(NX,NY)=R*SIN(TH)
+            ENDDO
+         ENDIF
+!         WRITE(6,'(I5,1PE12.4,I5,1PE12.4)') NY,R,NXMAX,DX
+      ENDDO
+
+!  -- R方向RBINからRBOUTまでの分割 --
+
+      NYEND=NINT((RBOUT-RBIN)/DYOUT)
+         NYMAX=NYMID+NYEND
+         IF(NYMAX.GT.NYM) GOTO 9100
+         IF(NYMAX.LE.1)   GOTO 9100
+      DY=(RBOUT-RBIN)/NYEND
+
+      NYN=0
+      DO NY=NYMID+1,NYMAX
+         NYN=NYN+1
+         R=RBIN+DY*NYN
+         NXMAX=NINT((2.D0*PI*R)/DXOUT)+1
+         IF(NXMAX.GT.NXM) GOTO 9200
+         NXMAX=4*((NXMAX-1)/4+1)
+         IF(NXMAX.EQ.4) NXMAX=8
+         DX=2.D0*PI/NXMAX
+         NXA(NY)=NXMAX
+         DO NX=1,NXMAX
+            TH=DX*(NX-1)
+            XNDA(NX,NY)=R*COS(TH)
+            YNDA(NX,NY)=R*SIN(TH)
+         ENDDO
+      ENDDO
+
+      IERR=0
+      RETURN
+
+ 9100 WRITE(6,601) NYMAX,NYM
+  601 FORMAT(' ','DFNODC2 : NYMAX EXCEEDS NYM : ',2I8)
+      IERR=1
+      RETURN
+
+ 9200 WRITE(6,602) NY,NXMAX,NXM
+  602 FORMAT(' ','DFNODC2 : NXMAX EXCEEDS NXM AT NX=',I8,' : ',2I8)
+      IERR=1
+      RETURN
+END SUBROUTINE DFNODC2
+
 !     ****** Set Node Array ******
 
 subroutine SETNOD(IERR)
@@ -579,7 +671,7 @@ subroutine SETNOD(IERR)
      ZNDA(NZ)=(NZ-1)*DZ+BZMIN
   end do
 
-  ! --- deside NNMAX ---
+  ! --- decide NNMAX ---
   IN=0
   do NY=1,NYMAX
      do NX=1,NXA(NY)
@@ -966,6 +1058,8 @@ subroutine SETELMX(IERR)
   NEMAX=IE
   
   call wfelm_allocate
+
+  IE=0
 
   do NYDO=1,NYMAX-1
      NY=NYDO
