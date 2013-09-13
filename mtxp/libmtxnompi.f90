@@ -163,15 +163,15 @@
            STOP
         ENDIF
 
-        commx1%sizeg=n1       ! number of groups
-        commx1%sizel=n2       ! number of processors in the group
-        commx1%rankg=nrank/n2 ! colors
-        commx1%rankl=nrank - commx1%rankg*n2 ! keys
+        commx1%sizeg=n2       ! number of groups
+        commx1%sizel=n1       ! number of processors in the group
+        commx1%rankg=MOD(nrank,n2) ! color1
+        commx1%rankl=nrank/n2        ! key1
 
-        commx2%sizeg=n2
-        commx2%sizel=n1
-        commx2%rankg=MOD(nrank+1,n2) ! colorr
-        commx2%rankl=nrank/n2        ! keyr
+        commx2%sizeg=n1       ! number of groups
+        commx2%sizel=n2       ! number of processors in the group
+        commx2%rankg=nrank/n2 ! color2
+        commx2%rankl=MOD(nrank,n2) ! key2
 
         commx1%comm=ncomm
         commx1%rank=nrank
@@ -185,24 +185,24 @@
 !-----
 
       SUBROUTINE mtx_comm_split3D(n1,n2,n3,commx1,commx2,commx3, &
-                                           commx4,commx5,commx6)
+                                           commx23,commx31,commx12)
         IMPLICIT NONE
         INTEGER,INTENT(IN):: n1,n2,n3 ! number of groups
         TYPE(mtx_mpi_type),intent(OUT):: commx1,commx2,commx3, &
-                                         commx4,commx5,commx6
+                                         commx23,commx31,commx12
         integer:: na, nb
 
         IF(n1*n2*n3 > nsize) THEN
            WRITE(6,*) 'XX mtx_comm_split3D: n1*n2*n3 > nsize: ',n1,n2,n3,nsize
            STOP
         ENDIF
-!       enable to communicate for each NSA 
+!       enable to communicate for each n1
         commx1%sizeg=n2*n3            ! number of groups
         commx1%sizel=n1               ! number of processors in a group
         commx1%rankg=MOD(NRANK,n2*n3) ! colors 
         commx1%rankl=nrank/(n2*n3)    ! keys = RANK
 
-!       enable to communicate for each NR
+!       enable to communicate for each n2
         commx2%sizeg=n1*n3
         commx2%sizel=n2
         na = NRANK/(n2*n3)
@@ -210,29 +210,49 @@
         commx2%rankg=mod(NRANK,n3) + nb ! colorr
         commx2%rankl= (NRANK-nb)/n3     ! keyr
 
-!       enable to communicate for each NP
+!       enable to communicate for each n3
         commx3%sizeg=n1*n2
         commx3%sizel=n3
         commx3%rankg=NRANK/n3   ! colorp
         commx3%rankl=MOD(nrank,n3) ! keyp
 
-!       enable to communicate for each NP and NR
-        commx4%sizeg=n1
-        commx4%sizel=n2*n3
-        commx4%rankg=NRANK/(n2*n3)   ! colorrp
-        commx4%rankl=MOD(nrank,n2*n3) ! keyrp
+!       enable to communicate for each n2 and n3
+        commx23%sizeg=n1
+        commx23%sizel=n2*n3
+        commx23%rankg=NRANK/(n2*n3)   ! colorrp
+        commx23%rankl=MOD(nrank,n2*n3) ! keyrp
 
-!       enable to communicate for each NP and NSA
-        commx5%sizeg=n2
-        commx5%sizel=n1*n3
-        commx5%rankg=MOD(NRANK,n2*n3)/n3   ! colorsp
-        commx5%rankl=MOD(nrank,n3) + NRANK/(n2*n3)*n3 ! keysp
+!       enable to communicate for each n3 and n1
+        commx31%sizeg=n2
+        commx31%sizel=n1*n3
+        commx31%rankg=MOD(NRANK,n2*n3)/n3   ! colorsp
+        commx31%rankl=MOD(nrank,n3) + NRANK/(n2*n3)*n3 ! keysp
 
-!       enable to communicate for each NR and NSA
-        commx6%sizeg=n3
-        commx6%sizel=n1*n2
-        commx6%rankg=MOD(NRANK,n3)   ! colorsp
-        commx6%rankl=NRANK/n3 ! keysp
+!       enable to communicate for each n1 and n2
+        commx12%sizeg=n3
+        commx12%sizel=n1*n2
+        commx12%rankg=MOD(NRANK,n3)   ! colorsp
+        commx12%rankl=NRANK/n3 ! keysp
+
+        commx1%comm=ncomm
+        commx1%rank=nrank
+        commx1%size=nsize
+        commx2%comm=ncomm
+        commx2%rank=nrank
+        commx2%size=nsize
+        commx3%comm=ncomm
+        commx3%rank=nrank
+        commx3%size=nsize
+
+        commx23%comm=ncomm
+        commx23%rank=nrank
+        commx23%size=nsize
+        commx31%comm=ncomm
+        commx31%rank=nrank
+        commx31%size=nsize
+        commx12%comm=ncomm
+        commx12%rank=nrank
+        commx12%size=nsize
         RETURN
       END SUBROUTINE mtx_comm_split3D
 !-----

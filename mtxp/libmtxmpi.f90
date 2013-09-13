@@ -169,15 +169,16 @@
            WRITE(6,*) 'XX mtx_comm_split2D: n1*n2 > nsize: ',n1,n2,nsize
            STOP
         ENDIF
-        commx1%sizeg=n1       ! number of groups
-        commx1%sizel=n2       ! number of processors in the group
-        commx1%rankg=nrank/n2 ! colors
-        commx1%rankl=nrank - commx1%rankg*n2 ! keys
 
-        commx2%sizeg=n2
-        commx2%sizel=n1
-        commx2%rankg=MOD(nrank+1,n2) ! colorr
-        commx2%rankl=nrank/n2        ! keyr
+        commx1%sizeg=n2       ! number of groups
+        commx1%sizel=n1       ! number of processors in the group
+        commx1%rankg=MOD(nrank,n2) ! color1
+        commx1%rankl=nrank/n2        ! key1
+
+        commx2%sizeg=n1       ! number of groups
+        commx2%sizel=n2       ! number of processors in the group
+        commx2%rankg=nrank/n2 ! color2
+        commx2%rankl=MOD(nrank,n2) ! key2
 
         CALL MPI_Comm_split(ncomm,commx1%rankg,commx1%rankl, &
                             commx1%comm,ierr)
@@ -206,23 +207,25 @@
 
 !-----
 
-      SUBROUTINE mtx_comm_split3D(n1,n2,n3,commx1,commx2,commx3,commx4,commx5,commx6)
+      SUBROUTINE mtx_comm_split3D(n1,n2,n3,commx1,commx2,commx3, &
+                                           commx23,commx31,commx12)
         IMPLICIT NONE
         INTEGER,INTENT(IN):: n1,n2,n3 ! number of groups
-        TYPE(mtx_mpi_type),intent(OUT):: commx1,commx2,commx3,commx4,commx5,commx6
+        TYPE(mtx_mpi_type),intent(OUT):: commx1,commx2,commx3, &
+                                         commx23,commx31,commx12
         integer:: ierr, na, nb
 
         IF(n1*n2*n3 > nsize) THEN
            WRITE(6,*) 'XX mtx_comm_split3D: n1*n2*n3 > nsize: ',n1,n2,n3,nsize
            STOP
         ENDIF
-!       enable to communicate for each NSA 
+!       enable to communicate for each n1
         commx1%sizeg=n2*n3            ! number of groups
         commx1%sizel=n1               ! number of processors in a group
         commx1%rankg=MOD(NRANK,n2*n3) ! colors 
         commx1%rankl=nrank/(n2*n3)    ! keys = RANK
 
-!       enable to communicate for each NR
+!       enable to communicate for each n2
         commx2%sizeg=n1*n3
         commx2%sizel=n2
         na = NRANK/(n2*n3)
@@ -230,29 +233,29 @@
         commx2%rankg=mod(NRANK,n3) + nb ! colorr
         commx2%rankl= (NRANK-nb)/n3     ! keyr
 
-!       enable to communicate for each NP
+!       enable to communicate for each n3
         commx3%sizeg=n1*n2
         commx3%sizel=n3
         commx3%rankg=NRANK/n3   ! colorp
         commx3%rankl=MOD(nrank,n3) ! keyp
 
-!       enable to communicate for each NP and NR
-        commx4%sizeg=n1
-        commx4%sizel=n2*n3
-        commx4%rankg=NRANK/(n2*n3)   ! colorrp
-        commx4%rankl=MOD(nrank,n2*n3) ! keyrp
+!       enable to communicate for each n2 and n3
+        commx23%sizeg=n1
+        commx23%sizel=n2*n3
+        commx23%rankg=NRANK/(n2*n3)   ! colorrp
+        commx23%rankl=MOD(nrank,n2*n3) ! keyrp
 
-!       enable to communicate for each NP and NSA
-        commx5%sizeg=n2
-        commx5%sizel=n1*n3
-        commx5%rankg=MOD(NRANK,n2*n3)/n3   ! colorsp
-        commx5%rankl=MOD(nrank,n3) + NRANK/(n2*n3)*n3 ! keysp
+!       enable to communicate for each n1 and n3
+        commx31%sizeg=n2
+        commx31%sizel=n1*n3
+        commx31%rankg=MOD(NRANK,n2*n3)/n3   ! colorsp
+        commx31%rankl=MOD(nrank,n3) + NRANK/(n2*n3)*n3 ! keysp
 
-!       enable to communicate for each NR and NSA
-        commx6%sizeg=n3
-        commx6%sizel=n1*n2
-        commx6%rankg=MOD(NRANK,n3)   ! colorsp
-        commx6%rankl=NRANK/n3 ! keysp
+!       enable to communicate for each n1 and n2
+        commx12%sizeg=n3
+        commx12%sizel=n1*n2
+        commx12%rankg=MOD(NRANK,n3)   ! colorsp
+        commx12%rankl=NRANK/n3 ! keysp
 !
         CALL MPI_Comm_split(ncomm,commx1%rankg,commx1%rankl, &
                             commx1%comm,ierr)
@@ -269,20 +272,20 @@
         IF(ierr.ne.0) WRITE(6,*) &
              "XX mtx_comm_split3D: MPI_Comm_split_3: ierr=", ierr
 !
-        CALL MPI_Comm_split(ncomm,commx4%rankg,commx4%rankl, &
-                            commx4%comm,ierr)
+        CALL MPI_Comm_split(ncomm,commx23%rankg,commx23%rankl, &
+                            commx23%comm,ierr)
         IF(ierr.ne.0) WRITE(6,*) &
-             "XX mtx_comm_split3D: MPI_Comm_split_4: ierr=", ierr
+             "XX mtx_comm_split3D: MPI_Comm_split_23: ierr=", ierr
 !
-        CALL MPI_Comm_split(ncomm,commx5%rankg,commx5%rankl, &
-                            commx5%comm,ierr)
+        CALL MPI_Comm_split(ncomm,commx31%rankg,commx31%rankl, &
+                            commx31%comm,ierr)
         IF(ierr.ne.0) WRITE(6,*) &
-             "XX mtx_comm_split3D: MPI_Comm_split_5: ierr=", ierr
+             "XX mtx_comm_split3D: MPI_Comm_split_31: ierr=", ierr
 !
-        CALL MPI_Comm_split(ncomm,commx6%rankg,commx6%rankl, &
-                            commx6%comm,ierr)
+        CALL MPI_Comm_split(ncomm,commx12%rankg,commx12%rankl, &
+                            commx12%comm,ierr)
         IF(ierr.ne.0) WRITE(6,*) &
-             "XX mtx_comm_split3D: MPI_Comm_split_6: ierr=", ierr
+             "XX mtx_comm_split3D: MPI_Comm_split_12: ierr=", ierr
 
 !!!!
         CALL MPI_Comm_rank(commx1%comm,commx1%rank,ierr)
@@ -294,15 +297,15 @@
         CALL MPI_Comm_rank(commx3%comm,commx3%rank,ierr)
         IF(ierr.ne.0) WRITE(6,*) &
              "XX mtx_comm_split: MPI_Comm_rank_3: ierr=", ierr
-        CALL MPI_Comm_rank(commx4%comm,commx4%rank,ierr)
+        CALL MPI_Comm_rank(commx23%comm,commx23%rank,ierr)
         IF(ierr.ne.0) WRITE(6,*) &
-             "XX mtx_comm_split: MPI_Comm_rank_4: ierr=", ierr
-        CALL MPI_Comm_rank(commx5%comm,commx5%rank,ierr)
+             "XX mtx_comm_split: MPI_Comm_rank_23: ierr=", ierr
+        CALL MPI_Comm_rank(commx31%comm,commx31%rank,ierr)
         IF(ierr.ne.0) WRITE(6,*) &
-             "XX mtx_comm_split: MPI_Comm_rank_5: ierr=", ierr
-        CALL MPI_Comm_rank(commx6%comm,commx6%rank,ierr)
+             "XX mtx_comm_split: MPI_Comm_rank_31: ierr=", ierr
+        CALL MPI_Comm_rank(commx12%comm,commx12%rank,ierr)
         IF(ierr.ne.0) WRITE(6,*) &
-             "XX mtx_comm_split: MPI_Comm_rank_6: ierr=", ierr
+             "XX mtx_comm_split: MPI_Comm_rank_12: ierr=", ierr
 !
         CALL MPI_Comm_size(commx1%comm,commx1%size,ierr)
         IF(ierr.ne.0) WRITE(6,*) &
@@ -313,15 +316,15 @@
         CALL MPI_Comm_size(commx3%comm,commx3%size,ierr)
         IF(ierr.ne.0) WRITE(6,*) &
              "XX mtx_comm_split: MPI_Comm_size_3: ierr=", ierr
-        CALL MPI_Comm_size(commx4%comm,commx4%size,ierr)
+        CALL MPI_Comm_size(commx23%comm,commx23%size,ierr)
         IF(ierr.ne.0) WRITE(6,*) &
-             "XX mtx_comm_split: MPI_Comm_size_4: ierr=", ierr
-        CALL MPI_Comm_size(commx5%comm,commx5%size,ierr)
+             "XX mtx_comm_split: MPI_Comm_size_23: ierr=", ierr
+        CALL MPI_Comm_size(commx31%comm,commx31%size,ierr)
         IF(ierr.ne.0) WRITE(6,*) &
-             "XX mtx_comm_split: MPI_Comm_size_5: ierr=", ierr
-        CALL MPI_Comm_size(commx6%comm,commx6%size,ierr)
+             "XX mtx_comm_split: MPI_Comm_size_31: ierr=", ierr
+        CALL MPI_Comm_size(commx12%comm,commx12%size,ierr)
         IF(ierr.ne.0) WRITE(6,*) &
-             "XX mtx_comm_split: MPI_Comm_size_6: ierr=", ierr
+             "XX mtx_comm_split: MPI_Comm_size_12: ierr=", ierr
 
         RETURN
       END SUBROUTINE mtx_comm_split3D
@@ -1203,7 +1206,7 @@
       INTEGER,INTENT(IN):: ndata,nop
       REAL(8),DIMENSION(ndata),INTENT(OUT):: vreduce
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
-      REAL(8),DIMENSION(2,ndata):: d_send, d_recv
+      REAL(8),DIMENSION(2*ndata):: d_send, d_recv
       INTEGER:: ierr, i
 
       SELECT CASE(NOP)
@@ -1218,20 +1221,20 @@
                          MPI_SUM,0,ncomm,ierr)
       CASE(4,5)! MAX/MINLOC
          DO i=1,ndata
-            d_send(1,i)=vdata(i)
-            d_send(2,i)=nrank*1.D0
+            d_send(2*i-1)=vdata(i)
+            d_send(2*i)=nrank*1.D0
          END DO
          SELECT CASE(NOP)
          CASE(4) ! MAXLOC
-            CALL MPI_REDUCE(d_send,d_recv,ndata,MPI_2DOUBLE_PRECISION, &
+            CALL MPI_REDUCE(d_send,d_recv,2*ndata,MPI_DOUBLE_PRECISION, &
                             MPI_MAXLOC,0,ncomm,ierr)
          CASE(5) ! MINLOC
-            CALL MPI_REDUCE(d_send,d_recv,ndata,MPI_2DOUBLE_PRECISION, &
+            CALL MPI_REDUCE(d_send,d_recv,2*ndata,MPI_DOUBLE_PRECISION, &
                             MPI_MINLOC,0,ncomm,ierr)
          END SELECT
          DO i=1,ndata
-            vreduce(i)=d_recv(1,i)
-            vloc(i)=idint(d_recv(2,i))
+            vreduce(i)=d_recv(2*i-1)
+            vloc(i)=idint(d_recv(2*i))
          END DO
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
@@ -1247,7 +1250,7 @@
       INTEGER,INTENT(IN):: ndata,nop
       COMPLEX(8),DIMENSION(ndata),INTENT(OUT):: vreduce
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
-      COMPLEX(8),DIMENSION(2,ndata):: d_send, d_recv
+      COMPLEX(8),DIMENSION(2*ndata):: d_send, d_recv
       INTEGER:: ierr,i
 
       SELECT CASE(NOP)
@@ -1262,20 +1265,20 @@
                          MPI_SUM,0,ncomm,ierr)
       CASE(4,5)! MAX/MINLOC
          DO i=1,ndata
-            d_send(1,i)=vdata(i)
-            d_send(2,i)=nrank*1.D0
+            d_send(2*i-1)=vdata(i)
+            d_send(2*i )=nrank*1.D0
          END DO
          SELECT CASE(NOP)
          CASE(4) ! MAXLOC
-            CALL MPI_REDUCE(d_send,d_recv,ndata,MPI_2DOUBLE_COMPLEX, &
+            CALL MPI_REDUCE(d_send,d_recv,2*ndata,MPI_DOUBLE_COMPLEX, &
                             MPI_MAXLOC,0,ncomm,ierr)
          CASE(5) ! MINLOC
-            CALL MPI_REDUCE(d_send,d_recv,ndata,MPI_2DOUBLE_COMPLEX, &
+            CALL MPI_REDUCE(d_send,d_recv,2*ndata,MPI_DOUBLE_COMPLEX, &
                             MPI_MINLOC,0,ncomm,ierr)
          END SELECT
          DO i=1,ndata
-            vreduce(i)=d_recv(1,i)
-            vloc(i)=idint(real(d_recv(2,i)))
+            vreduce(i)=d_recv(2*i-1)
+            vloc(i)=idint(real(d_recv(2*i)))
          END DO
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
@@ -1455,7 +1458,7 @@
       INTEGER,INTENT(IN):: ndata,nop
       REAL(8),DIMENSION(ndata),INTENT(OUT):: vreduce
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
-      REAL(8),DIMENSION(2,ndata):: d_send, d_recv
+      REAL(8),DIMENSION(2*ndata):: d_send, d_recv
       INTEGER:: ierr,i
 
       SELECT CASE(NOP)
@@ -1470,20 +1473,20 @@
                             MPI_SUM,ncomm,ierr)
       CASE(4,5)! MAX/MINLOC
          DO i=1,ndata
-            d_send(1,i)=vdata(i)
-            d_send(2,i)=nrank*1.D0
+            d_send(2*i-1)=vdata(i)
+            d_send(2*i)=nrank*1.D0
          END DO
          SELECT CASE(NOP)
          CASE(4) ! MAXLOC
-            CALL MPI_ALLREDUCE(d_send,d_recv,ndata,MPI_2DOUBLE_PRECISION, &
+            CALL MPI_ALLREDUCE(d_send,d_recv,2*ndata,MPI_DOUBLE_PRECISION, &
                                MPI_MAXLOC,ncomm,ierr)
          CASE(5) ! MINLOC
-            CALL MPI_ALLREDUCE(d_send,d_recv,ndata,MPI_2DOUBLE_PRECISION, &
+            CALL MPI_ALLREDUCE(d_send,d_recv,2*ndata,MPI_DOUBLE_PRECISION, &
                                MPI_MINLOC,ncomm,ierr)
          END SELECT
          DO i=1,ndata
-            vreduce(i)=d_recv(1,i)
-            vloc(i)=idint(d_recv(2,i))
+            vreduce(i)=d_recv(2*i-1)
+            vloc(i)=idint(d_recv(2*i))
          END DO
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
@@ -1499,7 +1502,7 @@
       INTEGER,INTENT(IN):: ndata,nop
       COMPLEX(8),DIMENSION(ndata),INTENT(OUT):: vreduce
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
-      COMPLEX(8),DIMENSION(2,ndata):: d_send, d_recv
+      COMPLEX(8),DIMENSION(2*ndata):: d_send, d_recv
       INTEGER:: ierr,i
 
       SELECT CASE(NOP)
@@ -1514,20 +1517,20 @@
                             MPI_SUM,ncomm,ierr)
       CASE(4,5)! MAX/MINLOC
          DO i=1,ndata
-            d_send(1,i)=vdata(i)
-            d_send(2,i)=nrank*1.D0
+            d_send(2*i-1)=vdata(i)
+            d_send(2*i)=nrank*1.D0
          END DO
          SELECT CASE(NOP)
          CASE(4) ! MAXLOC
-            CALL MPI_ALLREDUCE(d_send,d_recv,ndata,MPI_2DOUBLE_COMPLEX, &
+            CALL MPI_ALLREDUCE(d_send,d_recv,2*ndata,MPI_DOUBLE_COMPLEX, &
                                MPI_MAXLOC,ncomm,ierr)
          CASE(5) ! MINLOC
-            CALL MPI_ALLREDUCE(d_send,d_recv,ndata,MPI_2DOUBLE_COMPLEX, &
+            CALL MPI_ALLREDUCE(d_send,d_recv,2*ndata,MPI_DOUBLE_COMPLEX, &
                                MPI_MINLOC,ncomm,ierr)
          END SELECT
          DO i=1,ndata
-            vreduce(i)=d_recv(1,i)
-            vloc(i)=idint(real(d_recv(2,i)))
+            vreduce(i)=d_recv(2*i-1)
+            vloc(i)=idint(real(d_recv(2*i)))
          END DO
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &

@@ -18,7 +18,7 @@ FFLAGS=$(OFLAGS)
 
 #### With MUMPS library (real8 and complex8)
 #FLINKER=$(MF90)
-#INCLUDE_MUMPS=${PETSC_DIR}/externalpackages/MUMPS_4.10.0/include
+#INCLUDE_MUMPS=${PETSC_DIR}/externalpackages/MUMPS/include
 #EXEC=testbnd testbndc testdmumps testzmumps
 #all: $(EXEC)
 #.SUFFIXES:
@@ -29,15 +29,11 @@ FFLAGS=$(OFLAGS)
 #	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod
 
 ##### With PETSc library 3.3 (real8) #####
-#for 3.2 use
-#INCLUDE_MUMPS=${PETSC_DIR}/externalpackages/MUMPS_4.10.0/include
-# and modify chebychev to chebyshev in libmtxksp.F)0
-#
 EXEC=testbnd testpcg testbndc testdmumps testzmumps testksp
 all: $(EXEC)
 include ${PETSC_DIR}/conf/variables
 include ${PETSC_DIR}/conf/rules
-INCLUDE_MUMPS=${PETSC_DIR}/externalpackages/MUMPS_4.10.0-p3/include
+INCLUDE_MUMPS=${PETSC_DIR}/externalpackages/MUMPS/include
 INCLUDE_PETSC=${PETSC_DIR}/include
 
 INCMOD=-I $(MOD) -I../lib/$(MOD)
@@ -48,7 +44,7 @@ LIBBND=$(LIBNOMPI) libmtxbnd.o
 LIBPCG=$(LIBNOMPI) libmtxpcg.o
 LIBKSP=$(LIBMPI) libmtxksp.o
 LIBMUMPS=$(LIBMPI) libmtxmumps.o
-LIBMUMPSX=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common -lpord -lscalapack -lblacs -lparmetis -lmetis -llapack -lblas
+LIBMUMPSX=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common -lpord -lscalapack -lparmetis -lmetis -llapack -lblas
 
 testbnd: $(LIBBND) testmtx.o 
 	-${FCFREE} -g -o testbnd testmtx.o $(LIBBND) ../lib/libbnd.o
@@ -64,7 +60,7 @@ testksp: $(LIBKSP) testmtx.o
 	-${FLINKER} -g -o testksp testmtx.o $(LIBKSP) ${PETSC_KSP_LIB}
 
 testdmumps: $(LIBMUMPS) testmtx.o
-	-${MF90} -g -o testdmumps testmtx.o $(LIBMUMPS) $(LIBMUMPSX)
+	-${MF90} -g -o testdmumps testmtx.o $(LIBMUMPS) $(LIBMUMPSX) $(FLIBS)
 
 testzmumps: $(LIBMUMPS) testmtxc.o
 	-${MF90} -g -o testzmumps testmtxc.o $(LIBMUMPS) $(LIBMUMPSX) \

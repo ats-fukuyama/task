@@ -428,7 +428,6 @@
       ALLOCATE(istartx(0:nsize-1),iendx(0:nsize-1),isizex(0:nsize-1))
       ALLOCATE(nz_tot(0:nsize-1))
       ALLOCATE(bc(imax),bc_loc(iend-istart+1))
-      write(6,*) 'point 3'
       RETURN
       END SUBROUTINE mtxc_setup
       
