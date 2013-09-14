@@ -145,6 +145,7 @@ subroutine WFDIV
      if(IERR.ne.0) GOTO 2
 
      if(nrank.eq.0) write(6,*) '--- WFINDX start ---'
+     write(6,'(A,2I5)') '--nsize,nrank:',nsize,nrank
      call WFINDX
      if(nrank.eq.0) write(6,*) '--- WFFEPI start ---'
      call WFFEPI
@@ -1214,7 +1215,7 @@ subroutine wfdiv_broadcast
   use wfcomm
   implicit none
 
-  real(8),dimension(13) :: rdata
+  real(8),dimension(18) :: rdata
   integer,dimension(1)  :: idata 
   integer :: NDATA
 
@@ -1239,6 +1240,11 @@ subroutine wfdiv_broadcast
         rdata(11)=RBOUT
         rdata(12)=BZMIDL
         rdata(13)=BZMIDH
+        rdata(14)=DXIN
+        rdata(15)=DYIN
+        rdata(16)=DXOUT
+        rdata(17)=DYOUT
+        rdata(18)=DELZM
      END SELECT
      idata(1)=IDDIV
   end if
@@ -1254,7 +1260,7 @@ subroutine wfdiv_broadcast
   CASE(2)
      NDATA=11
   CASE(3)
-     NDATA=13
+     NDATA=18
   END SELECT
   
   call mtx_barrier
@@ -1279,6 +1285,11 @@ subroutine wfdiv_broadcast
      RBOUT=rdata(11)
      BZMIDL=rdata(12)
      BZMIDH=rdata(13)
+     DXIN=rdata(14)
+     DYIN=rdata(15)
+     DXOUT=rdata(16)
+     DYOUT=rdata(17)
+     DELZM=rdata(18)
   END SELECT
 
   return 

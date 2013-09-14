@@ -40,7 +40,9 @@ program wfmain
   ! --- initialize ---
   call pl_allocate_ns
   call mtx_initialize
+  if(nrank.eq.0) call wfwin_allocate
 
+!  write(6,'(A,2I5)') '-- nsize,nrank=',nsize,nrank
   if(nrank.eq.0) then
      write(6,*) '## TASKX/WFX  V3.02  2010/10/09 ###'
      call gsopen
@@ -60,7 +62,6 @@ program wfmain
   
   if (nrank.eq.0) call gsclos
   if(NFOPEN.ne.0) close(26)
-  call mtxc_cleanup
   call wfelm_deallocate
   call wfsid_deallocate
   call wfsrt_deallocate

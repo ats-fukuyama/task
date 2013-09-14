@@ -49,6 +49,9 @@
 !       main program
 !
 !
+        USE commpi
+        USE libmpi,ONLY: mtx_broadcast1_integer,mtx_broadcast1_real8, &
+                         mtx_broadcast_integer,mtx_broadcast_real8
       implicit real*8 (a-h,o-z)
 !
       common /cmline/ xline(1200),yline(1200),zline(1200),cline( 200),&
@@ -67,6 +70,7 @@
                      phaix2( 200),idphlx( 200),nhelx
       common /region/ xmax,xmin,ymax,ymin,zmax,zmin,dx,dy,dz,ix,iy,iz
       dimension xlined(6),ylined(6),zlined(6)
+      dimension idata(7),rdata(13)
       namelist /data1/ nline,nloop,narc,nhelx,npcoil,ntcoil,nbcoil
       namelist /data2/ xlined,ylined,zlined,clined,idl12d,idl23d
       namelist /data3/ xloopd,yloopd,zloopd,aloopd,cloopd,dzlpd,drlpd,&
@@ -107,27 +111,29 @@
 !
 !*----------------------------------------------------------------------
       if( iwrite .lt. 0 )  then
-!        open(unit=kisyu,file='mag.data',status='old',
-!    &        access='sequential',form='formatted',action='read')
-!Y         open(unit=kisyu,file='magC1991.data',status='old',
-!Y     &        access='sequential',form='formatted')
-!!         open(unit=kisyu,file='mag091PU.data',status='old', &
-!!             access='sequential',form='formatted')
-         CALL FROPEN(kisyu,'mag091PU.data',1,0,'YAMA',IERR)
-!Y1         WRITE(6,*) '## YAMA -MAG091PU.DATA- 20040815'
-         WRITE(6,*) '## YAMA -MAG091PU.DATA- 20051016'
-
-!Y2         open(unit=kisyu,file='magCR050PU.data',status='old',
-!Y2     &        access='sequential',form='formatted')
-!Y2         WRITE(6,*) '## YAMA -MAGCR050PU.DATA- 20040818'
-
-!Y3         open(unit=kisyu,file='magCR054PU.data',status='old',
-!Y3     &        access='sequential',form='formatted')
-!Y3         WRITE(6,*) '## YAMA -MAGCR054PU.DATA- 20040925'
+         IF(nrank.EQ.0) CALL FROPEN(kisyu,'mag091PU.data',1,0,'MAG',IERR)
       endif
 !*----------------------------------------------------------------------
 !
-      read(kisyu,data1)
+      IF(NRANK.EQ.0) THEN
+         read(kisyu,data1)
+         idata(1)=nline
+         idata(2)=nloop
+         idata(3)=narc
+         idata(4)=nhelx
+         idata(5)=npcoil
+         idata(6)=ntcoil
+         idata(7)=nbcoil
+      END IF
+      CALL mtx_broadcast_integer(idata,7)
+         nline= idata(1)
+         nloop= idata(2)
+         narc=  idata(3)
+         nhelx= idata(4)
+         npcoil=idata(5)
+         ntcoil=idata(6)
+         nbcoil=idata(7)
+
       if( iwrite .gt. 0 )  write(6,56)
       if( iwrite .gt. 0 )  write(6,data1)
 !
@@ -135,7 +141,16 @@
 !
       do 25 i = 1,nline
 !
-      read(kisyu,data2)
+      IF(NRANK.EQ.0) THEN
+         read(kisyu,data2)
+      END IF
+      CALL mtx_broadcast_real8(xlined,6)
+      CALL mtx_broadcast_real8(ylined,6)
+      CALL mtx_broadcast_real8(zlined,6)
+      CALL mtx_broadcast1_real8(clined)
+      CALL mtx_broadcast1_integer(idl12d)
+      CALL mtx_broadcast1_integer(idl23d)
+
       if( iwrite .gt. 0 )  write(6,66)
       if( iwrite .gt. 0 )  write(6,data2)
 !
@@ -169,7 +184,34 @@
 !
       do 45 i = 1,nloop
 !
-      read(kisyu,data3)
+      IF(NRANK.EQ.0) THEN
+         read(kisyu,data3)
+         rdata(1)=xloopd
+         rdata(2)=yloopd
+         rdata(3)=zloopd
+         rdata(4)=aloopd
+         rdata(5)=cloopd
+         rdata(6)=dzlpd
+         rdata(7)=drlpd
+         idata(1)=idzlpd
+         idata(2)=idrlpd
+         rdata(8)=alfad
+         rdata(9)=betad
+      END IF
+      CALL mtx_broadcast_integer(idata,2)
+      CALL mtx_broadcast_real8(rdata,9)
+         xloopd=rdata(1)
+         yloopd=rdata(2)
+         zloopd=rdata(3)
+         aloopd=rdata(4)
+         cloopd=rdata(5)
+         dzlpd=rdata(6)
+         drlpd=rdata(7)
+         idzlpd=idata(1)
+         idrlpd=idata(2)
+         alfad=rdata(8)
+         betad=rdata(9)
+
       if( iwrite .gt. 0 )  write(6,66)
       if( iwrite .gt. 0 )  write(6,data3)
 !
@@ -190,7 +232,40 @@
 !
       do 65 i = 1,narc
 !
-      read(kisyu,data4)
+      IF(NRANK.EQ.0) THEN
+         read(kisyu,data4)
+         rdata(1)= xarcd
+         rdata(2)= yarcd
+         rdata(3)= zarcd
+         rdata(4)= aarcd
+         rdata(5)= carcd
+         rdata(6)= dzarcd
+         rdata(7)= drarcd
+         idata(1)= idzard
+         idata(2)= idrard
+         rdata(8)= alfard
+         rdata(9)= betard
+         rdata(10)=phai1d
+         rdata(11)=phai2d
+         idata(3)= idphad
+      END IF
+      CALL mtx_broadcast_integer(idata,3)
+      CALL mtx_broadcast_real8(rdata,11)
+         xarcd=rdata(1)
+         yarcd=rdata(2)
+         zarcd=rdata(3)
+         aarcd=rdata(4)
+         carcd=rdata(5)
+         dzarcd=rdata(6)
+         drarcd=rdata(7)
+         idzard=idata(1)
+         idrard=idata(2)
+         alfard=rdata(8)
+         betard=rdata(9)
+         phai1d=rdata(10)
+         phai2d=rdata(11)
+         idphad=idata(3)
+
       if( iwrite .gt. 0 )  write(6,66)
       if( iwrite .gt. 0 )  write(6,data4)
 !
@@ -214,7 +289,44 @@
 !
       do 85 i = 1,nhelx
 !
-      read(kisyu,helix)
+      IF(NRANK.EQ.0) THEN
+         read(kisyu,helix)
+         rdata(1)=xhelxd
+         rdata(2)=yhelxd
+         rdata(3)=zhelxd
+         rdata(4)=ahelxd
+         rdata(5)=chelxd
+         rdata(6)=zdhlxd
+         rdata(7)=rdhlxd
+         rdata(8)=dzhlxd
+         rdata(9)=drhlxd
+         idata(1)=idzhxd
+         idata(2)=idrhxd
+         rdata(10)=alfhxd
+         rdata(11)=bethxd
+         rdata(12)=phai1d
+         rdata(13)=phai2d
+         idata(3)=idphxd
+      END IF
+      CALL mtx_broadcast_integer(idata,3)
+      CALL mtx_broadcast_real8(rdata,13)
+         xhelxd=rdata(1)
+         yhelxd=rdata(2)
+         zhelxd=rdata(3)
+         ahelxd=rdata(4)
+         chelxd=rdata(5)
+         zdhlxd=rdata(6)
+         rdhlxd=rdata(7)
+         dzhlxd=rdata(8)
+         drhlxd=rdata(9)
+         idzhxd=idata(1)
+         idrhxd=idata(2)
+         alfhxd=rdata(10)
+         bethxd=rdata(11)
+         phai1d=rdata(12)
+         phai2d=rdata(13)
+         idphxd=idata(3)
+
       if( iwrite .gt. 0 )  write(6,66)
       if( iwrite .gt. 0 )  write(6,helix)
 !
@@ -239,7 +351,44 @@
 !
          ii = npcoil
    10 if( ii .le. 0 )  go to 20
-      read(kisyu,cpcil)
+         IF(nrank.EQ.0) THEN
+            read(kisyu,cpcil)
+            rdata(1)=xpcoil
+            rdata(2)=ypcoil
+            rdata(3)=zpcoil
+            rdata(4)=rx
+            rdata(5)=ry
+            rdata(6)=rz
+            rdata(7)=cpcoil
+            rdata(8)=apclx
+            rdata(9)=apcly
+            rdata(10)=alfap
+            rdata(11)=betap
+            rdata(12)=dxp
+            rdata(13)=dyp
+            idata(1)=idxp
+            idata(2)=idyp
+            idata(3)=idphap
+      END IF
+      CALL mtx_broadcast_integer(idata,3)
+      CALL mtx_broadcast_real8(rdata,13)
+            xpcoil=rdata(1)
+            ypcoil=rdata(2)
+            zpcoil=rdata(3)
+            rx    =rdata(4)
+            ry    =rdata(5)
+            rz    =rdata(6)
+            cpcoil=rdata(7)
+            apclx =rdata(8)
+            apcly =rdata(9)
+            alfap =rdata(10)
+            betap =rdata(11)
+            dxp   =rdata(12)
+            dyp   =rdata(13)
+            idxp  =idata(1)
+            idyp  =idata(2)
+            idphap=idata(3)
+
       if( iwrite .gt. 0 )  write(6,66)
       if( iwrite .gt. 0 )  write(6,cpcil)
       call pcoil(xpcoil,ypcoil,zpcoil,rx,ry,rz,cpcoil,apclx,apcly,&
@@ -250,7 +399,40 @@
 
          ii = ntcoil
    30 if( ii .le. 0 )  go to 40
-      read(kisyu,ctcil)
+      IF(nrank.EQ.0) THEN
+         read(kisyu,ctcil)
+         rdata(1)=xtcoil
+         rdata(2)=ytcoil
+         rdata(3)=ztcoil
+         rdata(4)=rtx
+         rdata(5)=rty
+         rdata(6)=ctcoil
+         rdata(7)=atcoil
+         rdata(8)=alfat
+         rdata(9)=betat
+         rdata(10)=dyt
+         rdata(11)=dzt
+         idata(1)=idyt
+         idata(2)=idzt
+         idata(3)=idphat
+      END IF
+      CALL mtx_broadcast_integer(idata,3)
+      CALL mtx_broadcast_real8(rdata,11)
+         xtcoil=rdata(1)
+         ytcoil=rdata(2)
+         ztcoil=rdata(3)
+         rtx   =rdata(4)
+         rty   =rdata(5)
+         ctcoil=rdata(6)
+         atcoil=rdata(7)
+         alfat =rdata(8)
+         betat =rdata(9)
+         dyt   =rdata(10)
+         dzt   =rdata(11)
+         idyt  =idata(1)
+         idzt  =idata(2)
+         idphat=idata(3)
+
       if( iwrite .gt. 0 )  write(6,66)
       if( iwrite .gt. 0 )  write(6,ctcil)
       call tcoil(xtcoil,ytcoil,ztcoil,rtx,rty,ctcoil,atcoil,&
@@ -261,7 +443,42 @@
 !
          ii = nbcoil
    50 if( ii .le. 0 )  go to 60
-      read(kisyu,cbcil)
+         IF(nrank.eq.0) THEN
+            read(kisyu,cbcil)
+            rdata(1)=xbcoil
+            rdata(2)=ybcoil
+            rdata(3)=zbcoil
+            rdata(4)=rbz
+            rdata(5)=cbcoil
+            rdata(6)=abclx
+            rdata(7)=abcly
+            rdata(8)=alfab
+            rdata(9)=betab
+            rdata(10)=dxb
+            rdata(11)=dyb
+            rdata(12)=dphab
+            idata(1)=idxb
+            idata(2)=idyb
+            idata(3)=idphab
+         END IF
+         CALL mtx_broadcast_integer(idata,3)
+         CALL mtx_broadcast_real8(rdata,12)
+            xbcoil=rdata(1)
+            ybcoil=rdata(2)
+            zbcoil=rdata(3)
+            rbz=rdata(4)
+            cbcoil=rdata(5)
+            abclx=rdata(6)
+            abcly=rdata(7)
+            alfab=rdata(8)
+            betab=rdata(9)
+            dxb=rdata(10)
+            dyb=rdata(11)
+            dphab=rdata(12)
+            idxb=idata(1)
+            idyb=idata(2)
+            idphab=idata(3)
+
       if( iwrite .gt. 0 )  write(6,66)
       if( iwrite .gt. 0 )  write(6,cbcil)
       call bcoil(xbcoil,ybcoil,zbcoil,rbz,cbcoil,abclx,abcly,&

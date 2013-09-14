@@ -9,7 +9,7 @@ include ../make.header
 FLINKER=$(MF90)
 LIBMTX=../../task/mtxp/libmtxmumps.o ../../task/mtxp/libmtxmpi.o
 LIBMUMPSX=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common \
-  -lpord -lscalapack -lparmetis -lblacs -lmetis -llapack -lblas
+  -lpord -lscalapack -lparmetis -lmetis -llapack -lblas
 
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
@@ -90,10 +90,10 @@ wfgout.o: wfgout.f90 wfcomm.f90
 wfgsub.o: wfgsub.f90 wfcomm.f90
 wfefwg.o: wfefwg.f90 wfcomm.f90
 wfmag.o: wfmag.f90
-	$(FCFREE) $(LFLAGS) -c $< 
+#	$(FCFREE) $(LFLAGS) -c $< 
 wfgdum.o: wfgdum.f90
-	$(FCFREE) $(LFLAGS) -c $< 
+#	$(FCFREE) $(LFLAGS) -c $< 
 wfgutl.o: wfgutl.f90
-	$(FCFREE) $(LFLAGS) -c $< 
+#	$(FCFREE) $(LFLAGS) -c $< 
 wflib.o: wflib.f90 wfcomm.f90
-	$(FCFREE) $(LFLAGS) -c $< $(MODDIR) $(MODINCLUDE)
+#	$(FCFREE) $(LFLAGS) -c $< $(MODDIR) $(MODINCLUDE)

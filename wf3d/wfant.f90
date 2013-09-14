@@ -268,6 +268,7 @@ SUBROUTINE WFDEFA
 END SUBROUTINE WFDEFA
 
 !------------------------------------------------
+
 subroutine wfant_broadcast
   
   use libmpi
@@ -287,8 +288,8 @@ subroutine wfant_broadcast
   
   do NA=1,NAMAX
 
+     NJMAX=JNUM0(NA)
      if(nrank.eq.0) then
-        NJMAX=JNUM0(NA)
         do NJ=1,NJMAX
            ddatax(NJ)=XJ0(NJ,NA)
            ddatay(NJ)=YJ0(NJ,NA)

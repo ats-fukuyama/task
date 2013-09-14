@@ -335,6 +335,8 @@ SUBROUTINE CVSOLV(IERR)
 
   call mtxc_gather_vector(CSV)
 
+  call mtxc_cleanup
+
   deallocate(CEQP,CRVP)
   deallocate(NEFLAG)
   RETURN
