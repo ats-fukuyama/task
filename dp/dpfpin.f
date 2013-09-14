@@ -94,7 +94,7 @@ C
 C
       USE plcomm
       USE pllocal
-      USE plprof,ONLY: pl_bmin
+      USE plprof,ONLY: pl_bminmax
       INCLUDE 'dpcomm.inc'
 C
       DIMENSION THT(NTHM+2),FPT(NTHM+2),FPTX(NTHM+2)
@@ -163,7 +163,7 @@ C
       ENDDO
 C
       RHON=RHON_LOC
-      CALL PL_BMIN(RHON,BMINL)
+      CALL PL_BMINMAX(RHON,BMINL,BMAXL)
       PSIS=BABS/BMINL
 
       DO NP=1,NPMAX
