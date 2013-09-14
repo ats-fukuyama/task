@@ -14,7 +14,7 @@ subroutine wfmenu
   if(nrank.eq.0) then
      write(6,601)
 601  format(' ','## INPUT: P,V:PARM  D:DIV  A:ANT', &
-        ' W,C:WAVE, G:GRAPH  N:NAS  S,L:FILE  Y:G10  Q:QUIT')
+            '  W,C:WAVE  G:GRAPH  S,L,N:FILE  Y:G10  Q:QUIT')
      call GUFLSH
      call WFKLIN(LINE,KID,MODE)
   end if
