@@ -3696,12 +3696,12 @@ contains
        IND = 0
     END IF
 
-    IF(GRMIN.LE.0.0) THEN
+    IF(GRMAX.LE.0.0) THEN
        GXMAX = REAL(RB/RA)
     ELSE
-       GXMAX = GRMIN
+       GXMAX = GRMAX
     END IF
-    GXMIN = GXMAX
+    GXMIN = GRMIN
 
     CALL TXGRAF(GPXY, GX, GQYL, NRMAX+1, NRMAX+1, NLCMAX(NQ), &
          &      GXMIN, GXMAX, '@'//STR(1:NSTR)//'@', 0.3, 2, IND, 0)
