@@ -1,8 +1,8 @@
 ### $Id$###
 include ../make.header
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 MODINCLUDE= -I $(MOD) -I../lib/$(MOD)
 
@@ -33,6 +33,6 @@ clean:
 	-rm -f core a.out *.o *.a ./*~
 
 veryclean: clean
-	-rm -f dp
+	-rm -f wiunmag
 
 wiunmag.o: wiunmag.f
