@@ -14,13 +14,13 @@ C
 C
       CALL GSOPEN
 
-      NX=50
-      NW=50
-      XMAX=50.D0
-      PN0=0.0D0
-      ALFA=0.D0
+      NX=400
+      NW=200
+      XMAX=200.D0
+      PN0=2.0D0
+      ALFA=-0.005D0
       CFYN=(1.D0,0.D0)
-      AKY=0.1D0
+      AKY=0.2D0
       BETA=0.1D0
       CALL INITDS
 C
@@ -625,7 +625,7 @@ C
       CALL NUMBD(XMAX,'(F7.3)',7)
       CALL MOVE(15.5,16.5)
       CALL TEXT('  PN0   = ',10)
-      CALL NUMBR(PN0,'(F7.3)',7)
+      CALL NUMBD(PN0,'(F7.3)',7)
       CALL MOVE(15.5,16.0)
       CALL TEXT('  ALFA  = ',10)
       CALL NUMBD(ALFA,'(F9.5)',9)
@@ -634,7 +634,7 @@ C
       CALL NUMBD(AKY,'(F7.3)',7)
       CALL MOVE(15.5,15.0)
       CALL TEXT('  BETA  = ',10)
-      CALL NUMBR(BETA,'(F7.3)',7)
+      CALL NUMBD(BETA,'(F7.3)',7)
       CALL MOVE(15.5,14.0)
       CALL TEXT('  R     = ',10)
       R=ABS(CFY(NX*2+3))**2 
