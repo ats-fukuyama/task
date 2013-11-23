@@ -914,7 +914,7 @@ CONTAINS
     IF (U2.GT.100.D0)THEN
        ERF1=0.D0
     ELSE
-       ERF1=2/SQRT(PI)*EXP(-U2)
+       ERF1=2.D0/SQRT(PI)*EXP(-U2)
     END IF
 
     RETURN
