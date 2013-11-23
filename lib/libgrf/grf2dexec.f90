@@ -46,6 +46,8 @@ CONTAINS
        END SUBROUTINE R2Y2W
     END INTERFACE
 
+    write(6,*) 'A%MODE_2D =',A%MODE_2D
+    write(6,*) 'A%BEV_TYPE=',A%BEV_TYPE
     SELECT CASE(A%MODE_2D)
     CASE(1) ! 2D contour line
        CALL GDEFIN(A%GPXMIN,A%GPXMAX,A%GPYMIN,A%GPYMAX, &
@@ -100,17 +102,19 @@ CONTAINS
        CALL GDATA3D1(GF,NXM,NXMAX,NYMAX, &
                      A%XMIN,A%XMAX,A%YMIN,A%YMAX,A%FMIN,A%FMAX)
 
+          write(6,*) 'A%MODE_2D =',A%MODE_2D
+          write(6,*) 'A%BEV_TYPE=',A%BEV_TYPE
        SELECT CASE(A%MODE_2D)
        CASE(4)
           IF(PRESENT(PAINT_RGB_SUB)) THEN
              CALL CPLOT3D1(A%BEV_TYPE,PAINT_RGB_SUB)
           ELSE
              IF(A%FMIN*A%FMAX.LT.0.0) THEN
-                CALL CPLOT3D1(ID,R2W2B)
+                CALL CPLOT3D1(A%BEV_TYPE,R2W2B)
              ELSEIF(A%FMIN.LT.0.0) THEN
-                CALL CPLOT3D1(ID,W2G2B)
+                CALL CPLOT3D1(A%BEV_TYPE,W2G2B)
              ELSE
-                CALL CPLOT3D1(ID,R2Y2W)
+                CALL CPLOT3D1(A%BEV_TYPE,R2Y2W)
              ENDIF
           END IF
        CASE(5)

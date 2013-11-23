@@ -4245,7 +4245,7 @@ CONTAINS
 !
 !      id = -1 : a * w
 !
-!   where ' means the derivative of psi
+!   where ' means the derivative with respect to psi
 !
 !  < input >
 !     id        : mode select
