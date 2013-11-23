@@ -626,13 +626,13 @@ CONTAINS
              SELECT CASE(A%MODE_2D)
              CASE(4)
                 IF(NXMAX.GT.100.OR.NYMAX.GT.100) THEN
-                   A%BEV_TYPE=3
+                   A%BEV_TYPE=4
                 ELSE
                    A%BEV_TYPE=7
                 ENDIF
              CASE(5)
                 IF(NXMAX.GT.100.OR.NYMAX.GT.100) THEN
-                   A%BEV_TYPE=23
+                   A%BEV_TYPE=24
                 ELSE
                    A%BEV_TYPE=27
                 ENDIF
