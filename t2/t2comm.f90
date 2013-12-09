@@ -1,6 +1,6 @@
 MODULE T2COMM
   
-  USE T2CNST, ONLY: i0rkind, i0ikind
+  USE T2CNST, ONLY: i0rkind, i0ikind, i0lmaxm, i0spcsm
   
   IMPLICIT NONE
   !C------------------------------------------------------------------
@@ -69,17 +69,16 @@ MODULE T2COMM
        i0dmax1,&
        i0tmax ,& 
        i0sflg ,&
-       i0spcs
+       i0spcs ,&
+       i0pdiv_number
   
   INTEGER(i0ikind),ALLOCATABLE,DIMENSION(:)::& 
        i1nmax1,&
        i1nmax2,&
        i1emax, &
-       i1mlvl, &
        i1mlel, &
        i1rdn1, &
        i1pdn1, &
-       i1rdn2, &
        i1pdn2, &
        i1nidr, &
        i1nidc, &
@@ -96,8 +95,7 @@ MODULE T2COMM
   REAL(i0rkind),ALLOCATABLE,DIMENSION(:)::&
        d1msiz,&
        d1rsiz,&
-       d1psiz,&
-       d1rec
+       d1psiz
   REAL(i0rkind),ALLOCATABLE,DIMENSION(:,:)::&
        d2mfc1
   
@@ -153,8 +151,14 @@ MODULE T2COMM
        i0m0,i0n0
   REAL(   i0rkind)::&
        d0qc,d0qs,d0bc,d0rw
-  REAL(   i0rkind),DIMENSION(1:i0spcsm),ALLOCATABLE::&
+  REAL(   i0rkind),DIMENSION(1:i0spcsm)::&
        d1nc,d1ns,d1nw,d1tc,d1ts,d1tw,d1pa,d1pz
+  INTEGER(i0ikind),DIMENSION(0:i0lmaxm+1)::&
+       i1mlvl
+  INTEGER(i0ikind),DIMENSION(-1:i0lmaxm)::&
+       i1rdn2
+  REAL(   i0rkind),DIMENSION(0:i0lmaxm)::&
+       d1rec
   !C------------------------------------------------------------------
   !C
   !C                          FOR T2STEP
@@ -277,12 +281,12 @@ CONTAINS
           ALLOCATE(i1nmax1(1:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(i1nmax2(1:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(i1emax( 0:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(i1mlvl( 0:i0lmax+1),STAT=i0err);IF(i0err.NE.0)EXIT
+!          ALLOCATE(i1mlvl( 0:i0lmax+1),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(i1rdn1(-1:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(i1pdn1(-1:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(i1rdn2(-1:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
+!          ALLOCATE(i1rdn2(-1:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(i1pdn2(-1:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(d1rec(  0:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
+!          ALLOCATE(d1rec(  0:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d1msiz( 1:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d1rsiz( 1:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d1psiz( 1:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
@@ -292,12 +296,9 @@ CONTAINS
           i1nmax1(1:i0lmax  ) = 0
           i1nmax2(1:i0lmax  ) = 0
           i1emax( 0:i0lmax  ) = 0
-          i1mlvl( 0:i0lmax+1) = 0
           i1rdn1(-1:i0lmax  ) = 0
           i1pdn1(-1:i0lmax  ) = 0
-          i1rdn2(-1:i0lmax  ) = 0
           i1pdn2(-1:i0lmax  ) = 0
-          d1rec(  0:i0lmax  ) = 0.D0
           d1msiz( 1:i0lmax  ) = 0.D0
           d1rsiz( 1:i0lmax  ) = 0.D0
           d1psiz( 1:i0lmax  ) = 0.D0
@@ -328,25 +329,16 @@ CONTAINS
     IF(ALLOCATED(i1nmax1)) DEALLOCATE(i1nmax1)
     IF(ALLOCATED(i1nmax2)) DEALLOCATE(i1nmax2)
     IF(ALLOCATED(i1emax )) DEALLOCATE(i1emax )
-    IF(ALLOCATED(i1mlvl )) DEALLOCATE(i1mlvl )
+!    IF(ALLOCATED(i1mlvl )) DEALLOCATE(i1mlvl )
     IF(ALLOCATED(i1rdn1 )) DEALLOCATE(i1rdn1 )
     IF(ALLOCATED(i1pdn1 )) DEALLOCATE(i1pdn1 )
-    IF(ALLOCATED(i1rdn2 )) DEALLOCATE(i1rdn2 )
+!    IF(ALLOCATED(i1rdn2 )) DEALLOCATE(i1rdn2 )
     IF(ALLOCATED(i1pdn2 )) DEALLOCATE(i1pdn2 )
-    IF(ALLOCATED(d1rec  )) DEALLOCATE(d1rec  )
+!    IF(ALLOCATED(d1rec  )) DEALLOCATE(d1rec  )
     IF(ALLOCATED(d1msiz )) DEALLOCATE(d1msiz )
     IF(ALLOCATED(d1rsiz )) DEALLOCATE(d1rsiz )
     IF(ALLOCATED(d1psiz )) DEALLOCATE(d1psiz )
 
-    IF(ALLOCATED(d1nc )) DEALLOCATE(d1nc )
-    IF(ALLOCATED(d1ns )) DEALLOCATE(d1ns )
-    IF(ALLOCATED(d1nw )) DEALLOCATE(d1nw )
-    IF(ALLOCATED(d1tc )) DEALLOCATE(d1tc )
-    IF(ALLOCATED(d1ts )) DEALLOCATE(d1ts )
-    IF(ALLOCATED(d1tw )) DEALLOCATE(d1tw )
-    IF(ALLOCATED(d1pa )) DEALLOCATE(d1pa )
-    IF(ALLOCATED(d1pz )) DEALLOCATE(d1pz )
-    
     RETURN
 
   END SUBROUTINE T2NGRA_DEALLOCATE_1
@@ -829,12 +821,12 @@ CONTAINS
     IF(ALLOCATED(i1nmax1)) DEALLOCATE(i1nmax1)
     IF(ALLOCATED(i1nmax2)) DEALLOCATE(i1nmax2)
     IF(ALLOCATED(i1emax )) DEALLOCATE(i1emax )
-    IF(ALLOCATED(i1mlvl )) DEALLOCATE(i1mlvl )
+!    IF(ALLOCATED(i1mlvl )) DEALLOCATE(i1mlvl )
     IF(ALLOCATED(i1rdn1 )) DEALLOCATE(i1rdn1 )
     IF(ALLOCATED(i1pdn1 )) DEALLOCATE(i1pdn1 )
-    IF(ALLOCATED(i1rdn2 )) DEALLOCATE(i1rdn2 )
+!    IF(ALLOCATED(i1rdn2 )) DEALLOCATE(i1rdn2 )
     IF(ALLOCATED(i1pdn2 )) DEALLOCATE(i1pdn2 )
-    IF(ALLOCATED(d1rec  )) DEALLOCATE(d1rec  )
+!    IF(ALLOCATED(d1rec  )) DEALLOCATE(d1rec  )
     IF(ALLOCATED(d1msiz )) DEALLOCATE(d1msiz )
     IF(ALLOCATED(d1rsiz )) DEALLOCATE(d1rsiz )
     IF(ALLOCATED(d1psiz )) DEALLOCATE(d1psiz )

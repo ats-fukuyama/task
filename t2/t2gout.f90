@@ -1,0 +1,23 @@
+!
+!
+!
+Module T2GOUT
+
+  PRIVATE
+  PUBLIC T2_GOUT
+ 
+CONTAINS
+
+  SUBROUTINE T2_GOUT
+
+    USE T2CNST,ONLY: i0ikind,i0rkind
+    USE T2COMM
+    USE libgrf
+    IMPLICIT NONE
+
+    CALL PAGES
+!    CALL GRD1D(0,x,y,nxmax,nxmax,1,'xx')
+    CALL PAGEE
+
+  END SUBROUTINE T2_GOUT
+END Module T2GOUT

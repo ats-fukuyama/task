@@ -1,85 +1,27 @@
 !C 
 !C
 !C
-!C
-!C
-!C
-!C
-MODULE T2INIT
-  
-  USE T2CNST, ONLY: i0ikind,i0rkind
-  
-  IMPLICIT NONE
-
-  PUBLIC T2_INIT !C INITIALIZE INPUT PARAMETERS
+MODULE T2PREP
   
   PRIVATE
+  PUBLIC T2_PREP
+  
 CONTAINS
 
   !C
   !C
   !C
 
-  SUBROUTINE T2_INIT
+  SUBROUTINE T2_PREP
     
+    USE T2CNST, ONLY: &
+         i0ikind,i0rkind,i0lmaxm,i0spcsm,d0aee,d0ame,d0amp
     USE T2COMM
-    
-    USE T2CNST, ONLY: i0ltmp,i0stmp,d0aee
+    IMPLICIT NONE
 
-
-    INTEGER(i0ikind)::i0mlva,i0mlvb,i0mlvc,i1,j1
+    INTEGER(i0ikind)::i0mlva,i0mlvb,i0mlvc,i1,j1,i0mesh_level
         
-    INTEGER(i0ikind)::&
-         i0mesh_level,i0pdiv_number,&
-         i1mesh_level(  0:i0ltmp+1),&
-         i1rdiv_number(-1:i0ltmp  )
-    
-    REAL(   i0rkind)::&
-         d1rec_tmp(     0:i0ltmp  ),&
-         d1nc_tmp(1:i0stmp),d1ns_tmp(1:i0stmp),d1nw_tmp(1:i0stmp),&
-         d1tc_tmp(1:i0stmp),d1ts_tmp(1:i0stmp),d1tw_tmp(1:i0stmp),&
-         d1pa_tmp(1:i0stmp),d1pz_tmp(1:i0stmp)
-    NAMELIST /T2/ &
-         c10rname, i0dbg, i0fnum, i0mfcs, i0wstp,&
-         i0dmax0,i0amax0,&
-         i0tmax, d0tstp, d0tmax,&
-         i0spcs, i0nmax0, i0lmax, i1mesh_level,&
-         i0pdiv_number, i1rdiv_number, d1rec_tmp,&
-         i0pmax,d0eps,d0rmjr,d0rmnr,&
-         i0m0,i0n0,d0bc,&
-         d1nc_tmp,d1ns_tmp,d1nw_tmp,d1tc_tmp,d1ts_tmp,d1tw_tmp,&
-         d1pa_tmp,d1pz_tmp,&
-         d0qc,d0qs,d0rw
-!    print*,d0rmjr,d0rmnr
-    i1mesh_level(  0:i0ltmp+1) = 0
-    i1rdiv_number(-1:i0ltmp  ) = 0
-    d1rec_tmp(     0:i0ltmp  ) = 0.D0
-    
-    d1nc_tmp(1:i0stmp) = 0.D0
-    d1ns_tmp(1:i0stmp) = 0.D0 
-    d1nw_tmp(1:i0stmp) = 0.D0
-    d1tc_tmp(1:i0stmp) = 0.D0
-    d1ts_tmp(1:i0stmp) = 0.D0
-    d1tw_tmp(1:i0stmp) = 0.D0
-    d1pa_tmp(1:i0stmp) = 0.D0
-    d1pz_tmp(1:i0stmp) = 0.D0
-
-    OPEN(10,file='t2cprm.nl')
-    READ(10,T2)
-    CLOSE(10)
-  
-    IF(i0lmax.GT.i0ltmp)THEN
-       WRITE(6,*)'STACK OVERFLOW IN T2_INIT: I0LMAX'
-       WRITE(6,*)'I0LMAX=',i0lmax 
-       STOP
-    ENDIF
-    
-    !C
-    !C
-    !C
-    
     d0iar = d0rmnr/d0rmjr
-    print*,'INVERSE ASPECT RATIO =',d0iar
     d0mfcst = 1.D0
     d0btcst = 1.D0/d0iar
     d0ercst = 1.D0
@@ -95,20 +37,6 @@ CONTAINS
     d0qtcst = d0aee*1.D23/d0iar
 
     CALL T2NGRA_ALLOCATE_1
-
-    i1mlvl( 0:i0lmax+1) = i1mesh_level(  0:i0lmax+1)
-    i1rdn2(-1:i0lmax  ) = i1rdiv_number(-1:i0lmax  )
-    i1pdn2(-1:i0lmax  ) = 0
-    d1rec(  0:i0lmax  ) = d1rec_tmp(  0:i0lmax  )
-
-    d1nc(1:i0spcs) = d1nc_tmp(1:i0spcs)
-    d1ns(1:i0spcs) = d1ns_tmp(1:i0spcs)
-    d1nw(1:i0spcs) = d1nw_tmp(1:i0spcs)
-    d1tc(1:i0spcs) = d1tc_tmp(1:i0spcs)
-    d1ts(1:i0spcs) = d1ts_tmp(1:i0spcs)
-    d1tw(1:i0spcs) = d1tw_tmp(1:i0spcs)
-    d1pa(1:i0spcs) = d1pa_tmp(1:i0spcs)
-    d1pz(1:i0spcs) = d1pz_tmp(1:i0spcs)
 
     DO i1=1,i0lmax
        i0mesh_level=i1mlvl(i1)-1
@@ -287,5 +215,5 @@ CONTAINS
 
     RETURN
 
-  END SUBROUTINE T2_INIT
-END MODULE T2INIT
+  END SUBROUTINE T2_PREP
+END MODULE T2PREP
