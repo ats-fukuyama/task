@@ -45,7 +45,7 @@ CONTAINS
          d0qc,d0qs,d0rw
 
     c10rname = 'TEST'
-    i0dbg    =  4
+    i0dbg    =  0
     i0fnum   = 10
     i0mfcs   =  1
 
@@ -54,8 +54,8 @@ CONTAINS
     i0dmax0  =  2  ! mesh dim
     i0amax0  = 32  ! gauss kyuuseki number of sample points
     i0tmax   = 10  ! 
-    d0tstp   = 1.D-30  !
-    d0tmax   = 1.D-30  !
+    d0tstp   = 1.D-12  !
+    d0tmax   = 1.D-12  !
     d0eps    = 1.D-4
     i0pmax   =  49     ! iteration 
 

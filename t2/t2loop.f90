@@ -23,14 +23,14 @@ CONTAINS
     USE T2PROF, ONLY:&
          T2_PROF
     USE T2STEP, ONLY:&
-         T2STEP_MAIN
+         T2_STEP
     USE T2WRIT, ONLY:&
-         T2WRIT_MAIN,T2_WRIT_GPT
+         T2WRIT_MAIN,T2_WRIT_GPT,T2_WRIT_GP1
     
-    INTEGER(i0ikind)     :: i0err,i0tcnt,i0tflg,i0tsws
+    INTEGER(i0ikind)     :: i0tflg,i0tsws
     REAL(4),SAVE         :: e0time1
     REAL(4)              :: e0time2, e0time3, e0time4, e0time5
-    REAL(   i0rkind),SAVE:: d0tstp_save,d0tstpx
+    REAL(   i0rkind),SAVE:: d0tstp_save
 
 101 FORMAT('TIMESTEP=',I10,1X,'LAP TIME=',F10.4,'[s/step]',1X,&
          'ELAPSED TIME=',F10.4,'[s]')
@@ -50,6 +50,7 @@ CONTAINS
        
        IF(i0tstp.EQ.0) CALL T2WRIT_MAIN(d1guv,i0tstp,c10rname)
        IF(i0tstp.EQ.0) CALL T2_WRIT_GPT(20,i0tstp,d1guv)
+       IF(i0tstp.EQ.0) CALL T2_WRIT_GP1(22,i0tstp,d1guv)
        IF(i0tmax.EQ.0) EXIT
        i0tstp = i0tstp + 1
        i0tflg = 0
@@ -64,16 +65,17 @@ CONTAINS
        ENDIF
 
        d0time = d0time + d0tstp
-
+       
        !C
        !C NON-LINEAR ITERATION BY PICARD METHOD
        !C
+       
        WRITE(6,*)'++++++++++++++++++++++++++++++++++++++++++++++++++'
        WRITE(6,*)'     NON-LINEAR ITERATION BY PICARD METHOD        '
        WRITE(6,*)'TIMESTEPNUMBER=',i0tstp,'TIMESTEPWIDTH=',d0tstp
        WRITE(6,*)'TOLERANCE=',d0eps
        
-       CALL T2STEP_MAIN
+       CALL T2_STEP
        
        CALL CPU_TIME(e0time3)
        
@@ -86,7 +88,7 @@ CONTAINS
        !C WRITE CALCULATION RESULT IN VTK FORMAT
        !C
        
-       !IF(MOD(i0tstp,i0wstp).EQ.0) CALL T2WRIT_MAIN(d1guv,i0tstp,c10rname)
+       IF(MOD(i0tstp,i0wstp).EQ.0) CALL T2WRIT_MAIN(d1guv,i0tstp,c10rname)
        IF(MOD(i0tstp,i0wstp).EQ.0) CALL T2_WRIT_GPT(20,i0tstp,d1guv)       
        WRITE(6,*),'IN T2LOOP','i0tstp=',i0tstp,'i0tmax=',i0tmax
 

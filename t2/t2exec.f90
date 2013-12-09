@@ -6,37 +6,36 @@
 !C
 !C
 MODULE T2EXEC
-
+  
   USE T2CNST, ONLY:&
        i0ikind,i0rkind  
   IMPLICIT NONE
-
+  
   PUBLIC T2_EXEC
-
-PRIVATE  
+  
+  PRIVATE  
 
 CONTAINS
-
+  
   !C
   !C MAIN ROUTINE OF T2EXEC
   !C FEM SOLVER FOR SIMULTANEOUS ADVECTION-DIFFUSION EQUATIONS
   !C 
- 
+  
   SUBROUTINE T2_EXEC
-
+    
     USE T2COMM,ONLY:i0emax,i0eid
-   
+    
     INTEGER(i0ikind):: i1,j1,&
          i0vr,i0vc,i0vg,i0nr,i0nc,i0ng,i0tr,i0tc,i0tg
     
-    REAL(i0rkind)d0value
     REAL(4)::e0time1,e0time2
     
     CALL CPU_TIME(e0time1)
-
-    DO i0eid=1,i0emax
     
-       CALL T2EXEC_LOCAL
+    DO i0eid=1,i0emax
+       
+       CALL T2EXEC_LV
        CALL T2EXEC_MS
        CALL T2EXEC_AV
        CALL T2EXEC_AT
@@ -47,9 +46,9 @@ CONTAINS
        CALL T2EXEC_EV    
        CALL T2EXEC_ET
        CALL T2EXEC_SS
-    
+       
     ENDDO
-
+    
     CALL CPU_TIME(e0time2)
     WRITE(6,*)'TIME IN STIFF',e0time2-e0time1,'[s]'     
     CALL T2EXEC_DIRICHLET
@@ -59,7 +58,7 @@ CONTAINS
     RETURN
     
   END SUBROUTINE T2_EXEC
-
+  
   !C------------------------------------------------------------------ 
   !C  SUBROUTINE T2EXEC_SET_LOCAL_VARIABLES
   !C  　
@@ -69,8 +68,8 @@ CONTAINS
   !C    * SET WORKING ARRAY FOR DIFFERENTIAL
   !C------------------------------------------------------------------
   
-  SUBROUTINE T2EXEC_LOCAL
-
+  SUBROUTINE T2EXEC_LV
+    
     USE T2COMM, ONLY:&
          i0nmax0,i0dmax0,i0vmax,i0spcs,i0eid,i0lid,&
          d1rsiz,d1psiz,d2knv0,d1guv,d2ws,d2ws0,&
@@ -85,14 +84,16 @@ CONTAINS
     !C
     !C   I2ENR(1,:) : NON-DEGENERATED 
     !C   I2ENR(2,:) :     DEGENERATED
+    !C   I2ENR(3,:) :     DEGENERATED
+    !C   I2ENR(4,:) :     DEGENERATED
     !C
     
     DO i3=1,i0nmax0
-       DO i1=1,2
+       DO i1=1,4
           i2enr0(i1,i3)=i3enr(i0eid,i1,i3)
        ENDDO
     ENDDO
-
+    
     !C
     !C CALCULATE JACOBIAN OF PARAMETRIC SPACE
     !C 
@@ -112,43 +113,60 @@ CONTAINS
     d2jmpm(1,2)= 0.D0
     d2jmpm(2,1)= 0.D0
     d2jmpm(2,2)= 2.D0/d1psiz(i0lid)
-
-    !C STORE VARIABLES AT N-th TIMESTEP 
     
-    DO i3=1,i0nmax0
-       i0ln=i2enr0(2,i3)
-       DO i4=1,i0vmax
-          i0lv =i0vmax*(i0ln-1)+i4
-          d2knv0(i3,i4)=d1guv(i0lv)
-       ENDDO
+    !C STORE VARIABLES AT N-th TIMESTEP 
+
+    DO i4=1,i0vmax    
+       
+       IF(    i4.GT.3)THEN
+          DO i3=1,i0nmax0
+             i0ln = i2enr0(2,i3)
+             i0lv = i0vmax*(i0ln-1) + i4
+             d2knv0(i3,i4) = d1guv(i0lv)
+          ENDDO
+       ELSEIF(i4.LE.3)THEN
+          DO i3=1,i0nmax0
+             i0ln = i2enr0(4,i3)
+             i0lv = i0vmax*(i0ln-1) + i4
+             d2knv0(i3,i4) = d1guv(i0lv)
+          ENDDO
+       ENDIF
     ENDDO
     
     !C SET WORKING ARRAY FOR DIFFERENTIAL
+
     !C 
-    !C D2WS0(1   ,:) : B  AT L-TH PICARD ITERATION 
-    !C D2WS0(5N-3,:) : Ub AT L-TH PICARD ITERATION 
-    !C D2WS0(5N-2,:) : N  AT L-TH PICARD ITERATION 
-    !C D2WS0(5N-1,:) : Fb AT L-TH PICARD ITERATION 
-    !C D2WS0(5N  ,:) : P  AT L-TH PICARD ITERATION 
-    !C D2WS0(5N+1,:) : Qb AT L-TH PICARD ITERATION 
+    !C D2WS0(1   ,:) : B   AT L-TH PICARD ITERATION
+    !C D2WS0(2   ,:) : lnR AT L-TH PICARD ITERATION
+    !C D2WS0(5N-2,:) : Ub  AT L-TH PICARD ITERATION 
+    !C D2WS0(5N-1,:) : N   AT L-TH PICARD ITERATION 
+    !C D2WS0(5N  ,:) : Fb  AT L-TH PICARD ITERATION 
+    !C D2WS0(5N+1,:) : P   AT L-TH PICARD ITERATION 
+    !C D2WS0(5N+2,:) : Qb  AT L-TH PICARD ITERATION 
     !C
     
-    DO i3=1,i0nmax0
-       i0ln=i2enr0(1,i3)
+    DO i3 = 1, i0nmax0
+       
+       i0ln = i2enr0(1,i3)
+       
        d2ws0(1,i3) = d2ws(1,i0ln)
-       DO i4=1,i0spcs
-          i0wid             = 5*i0spcs - 4
+       d2ws0(2,i3) = d2ws(2,i0ln)
+       
+       DO i4 = 1, i0spcs
+          
+          i0wid = 5*i0spcs - 3
           d2ws0(i0wid+1,i3) = d2ws(i0wid+1,i0ln)
           d2ws0(i0wid+2,i3) = d2ws(i0wid+2,i0ln)
           d2ws0(i0wid+3,i3) = d2ws(i0wid+3,i0ln)
           d2ws0(i0wid+4,i3) = d2ws(i0wid+4,i0ln)
           d2ws0(i0wid+5,i3) = d2ws(i0wid+5,i0ln)
+          
        ENDDO
     ENDDO
     
     RETURN
     
-  END SUBROUTINE T2EXEC_LOCAL
+  END SUBROUTINE T2EXEC_LV
   
   SUBROUTINE T2EXEC_DIRICHLET
     
@@ -158,11 +176,11 @@ CONTAINS
          d1gsm,d1grv,d1guv,i0dbg
     INTEGER::&
          i0nr,i0nc,i0ng,i0vr,i0vc,i0vg,i0tr,i0tc,i0tg,&
-         i0dsta,i0dend,i0ppm
+         i0dsta,i0dend,i0pdn2
     !C------------------------------------------------------
     
-    i0ppm  = i1pdn2(i0lmax)
-    i0dsta = i0nmax2-i0ppm+1
+    i0pdn2 = i1pdn2(i0lmax)
+    i0dsta = i0nmax2-i0pdn2
     i0dend = i0nmax2
     
     !C
@@ -170,25 +188,23 @@ CONTAINS
     !C 
 
     DO i0nr= 1, i0dsta-1  
-
+       
        !C STIFFNESS MATRIX
        
-       DO i0ng=i1nidr(i0nr),i1nidr(i0nr+1)-1
-          i0nc=i1nidc(i0ng)
-          DO i0vr=1,i0vmax
-             IF((i0vr.GE.6).AND.(MOD(i0vr-6,8).GE.i0dbg))THEN
-             !IF(   (i0vr.LE.5).OR.&
-             !     ((i0vr.GE.6).AND.(MOD(i0vr-6,8).GE.i0dbg)).OR.&
-             !     ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.1)))THEN
-                DO i0vg = i1vgidr(i0vr),i1vgidr(i0vr+1)-1
+       DO i0ng = i1nidr(i0nr), i1nidr(i0nr+1)-1
+          i0nc = i1nidc(i0ng)
+          DO i0vr = 1, i0vmax
+             !IF((i0vr.GE.6).AND.(MOD(i0vr-6,8).GE.i0dbg))THEN
+             IF(i0vr.NE.3)THEN
+                DO i0vg = i1vgidr(i0vr), i1vgidr(i0vr+1)-1
                    i0vc = i1vgidc(i0vg)
                    i0tr = i0vmax*( i0nr-1)+i0vr
                    i0tc = i0vmax*( i0nc-1)+i0vc
                    i0tg = i0vgcmx*(i0ng-1)+i0vg
                    IF((i0nr.EQ.i0nc).AND.(i0vr.EQ.i0vc))THEN
-                      d1gsm(i0tg)=1.D0
+                      d1gsm(i0tg) = 1.D0
                    ELSE
-                      d1gsm(i0tg)=0.D0
+                      d1gsm(i0tg) = 0.D0
                    ENDIF
                 ENDDO
              ENDIF
@@ -198,31 +214,27 @@ CONTAINS
        !C RHS VECTOR 
        
        DO i0vr = 1, i0vmax
-          IF((i0vr.GE.6).AND.(MOD(i0vr-6,8).GE.i0dbg))THEN
-          !IF(   (i0vr.LE.5).OR.&
-          !     ((i0vr.GE.6).AND.(MOD(i0vr-6,8).GE.i0dbg)))THEN
-          !IF(   (i0vr.LE.5).OR.&
-          !     ((i0vr.GE.6).AND.(MOD(i0vr-6,8).GE.i0dbg)).OR.&
-          !     ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.1)))THEN
-             i0tr = i0vmax*( i0nr-1)+i0vr
-             d1grv(i0tr)=d1guv(i0tr)
+          !IF((i0vr.GE.6).AND.(MOD(i0vr-6,8).GE.i0dbg))THEN
+          IF(i0vr.NE.3)THEN
+             i0tr        = i0vmax*( i0nr-1)+i0vr
+             d1grv(i0tr) = d1guv(i0tr)
           ENDIF
        ENDDO
     ENDDO
     
     !C SET DIRICHLET CONDITION 
     
-    DO i0nr= i0dsta, i0dend
+    DO i0nr = i0dsta, i0dend
        
        !C STIFFNESS MATRIX
-
-       DO i0ng=i1nidr(i0nr),i1nidr(i0nr+1)-1
-          i0nc=i1nidc(i0ng)
-          DO i0vr=1,i0vmax
+       
+       DO i0ng = i1nidr(i0nr), i1nidr(i0nr+1)-1
+          i0nc = i1nidc(i0ng)
+          DO i0vr = 1, i0vmax
              !IF((i0vr.EQ.4).OR.(i0vr.EQ.5)) CYCLE
              !IF(  ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.2)))CYCLE
-             IF(  ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.2)).OR.&
-                  ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.3)))CYCLE
+             !IF(  ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.2)).OR.&
+             !     ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.3)))CYCLE
              !IF(  ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.2)).OR.&
              !     ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.3)).OR.&
              !     ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.6)).OR.&
@@ -247,15 +259,15 @@ CONTAINS
           
           !IF((i0vr.EQ.4).OR.(i0vr.EQ.5)) CYCLE
           !IF(  ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.2)))CYCLE
-          IF(  ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.2)).OR.&
-               ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.3)))CYCLE
+          !IF(  ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.2)).OR.&
+          !     ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.3)))CYCLE
           !IF(  (i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.2)) CYCLE
           !IF(  ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.2)).OR.&
           !     ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.3)).OR.&
           !     ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.6)).OR.&
           !     ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.7))) CYCLE
-          i0tr = i0vmax*( i0nr-1)+i0vr
-          d1grv(i0tr)=d1guv(i0tr)
+          i0tr        = i0vmax*(i0nr-1)+i0vr
+          d1grv(i0tr) = d1guv(i0tr)
        ENDDO
     ENDDO
     
@@ -263,13 +275,17 @@ CONTAINS
     
   END SUBROUTINE T2EXEC_DIRICHLET
   
+  !C
+  !C MODIFIED 2013-12-02
+  !C
+  !C
   SUBROUTINE T2EXEC_SOLVE
-
+    
     USE T2COMM, ONLY:&
          i0tstp,i0tmax,i0vmax,i0vgcmx,i0cmax,i0bmax,i0xmax,&
-         i0nmax2,i0nmax3,i0dbg,&
-         i1nidr,i1nidc,i1vgidr,i1vgidc,&
-         d1gsm, d1grv,d1guv_befor,d1guv_after,i2hbc2,i0cmax
+         i0nmax2,i0nmax3,i0dbg,i0lmax,&
+         i1nidr,i1nidc,i1vgidr,i1vgidc,i1pdn2,i1rdn2,&
+         d1gsm, d1grv,d1guv_befor,d1guv_after,i2hbc,i0cmax
     
     USE LIBMPI
     USE COMMPI
@@ -278,13 +294,17 @@ CONTAINS
 
     INTEGER(i0ikind)::istart,iend,its
     INTEGER(i0ikind)::itype, m1, m2,i2val(i0vmax,i0vmax)
-    REAL(   i0rkind)::tolerance,d0value
+    REAL(   i0rkind)::tolerance,d0val
     REAL(   i0rkind),POINTER,SAVE::x(:)
     REAL(4)::cputime1, cputime2 
-    INTEGER::&
-         i4,i5,i0cnt,&
+    INTEGER(i0ikind)::&
+         i1,i2,j2,i4,i5,i0cnt,&
          i0vr,i0vc,i0vg,i0nr,i0nc,i0ng,i0tr,i0tc,i0tg,&
-         i0hnu,i0hnd,i0hind,i0xid,i0xidd,i0xidu
+         i0hnu,i0hnd,i0hind,i0xid,i0xidd,i0xidu,&
+         i0pdn2,i0rdn2,i0ofs,&
+         i0trc,i0trc1,i0trc2,i0trc3,&
+         i0tcc,i0tcc1,i0tcc2,i0tcc3,&
+         i0tcl,i0tcl1,i0tcl2,i0tcl3
 
 100 FORMAT(A5,I3,A5,I3,A5,I3,A5,D15.6,A5,D15.6)
     
@@ -304,41 +324,102 @@ CONTAINS
     tolerance=1.D-7
 
     IF(nrank.EQ.0) CALL CPU_TIME(cputime1)
-
+    
     ALLOCATE(x(i0bmax))
-   
+    
     CALL MTX_SETUP(i0bmax,istart,iend,nzmax=i0cmax)
     
     i0cnt=0
     
+    !C
+    !C 
+    !C
     DO i0nr=1,i0nmax2
-       DO i0ng = i1nidr(i0nr),i1nidr(i0nr+1)-1
+       DO i0ng = i1nidr(i0nr), i1nidr(i0nr+1)-1
           i0nc = i1nidc(i0ng)
           DO i0vr = 1, i0vmax
-             DO i0vg    = i1vgidr(i0vr),i1vgidr(i0vr+1)-1
-                i0vc    = i1vgidc(i0vg)
-                i0tr    = i0vmax*( i0nr - 1) + i0vr
-                i0tc    = i0vmax*( i0nc - 1) + i0vc                
-                i0tg    = i0vgcmx*(i0ng - 1) + i0vg
-                d0value = d1gsm(i0tg)
-                CALL MTX_SET_MATRIX(i0tr,i0tc,d0value)
+             DO i0vg  = i1vgidr(i0vr), i1vgidr(i0vr+1)-1
+                i0vc  = i1vgidc(i0vg)
+                i0tr  = i0vmax*( i0nr - 1) + i0vr
+                i0tc  = i0vmax*( i0nc - 1) + i0vc
+                i0tg  = i0vgcmx*(i0ng - 1) + i0vg
+                d0val = d1gsm(i0tg)
+                
+                IF(d0val.NE.0.D0) CALL MTX_SET_MATRIX(i0tr,i0tc,d0val)
+                
              ENDDO
           ENDDO
        ENDDO
     ENDDO
     
+    !C
+    !C
+    !C
+    
+    i0ofs  = 1
+    
+    DO i1=1,i0lmax
+       
+       i0pdn2 = i1pdn2(i1)
+       i0rdn2 = i1rdn2(i1)
+       
+       DO i2=1,i0rdn2
+       DO j2=1,i0pdn2
+          
+          i0trc  = i0vmax*i0ofs
+          i0trc1 = i0trc + 1
+          i0trc2 = i0trc + 2
+          i0trc3 = i0trc + 3
+          
+          i0tcc  = i0trc
+          i0tcc1 = i0tcc + 1
+          i0tcc2 = i0tcc + 2
+          i0tcc3 = i0tcc + 3
+          
+          i0tcl  = i0trc - i0vmax
+          i0tcl1 = i0tcl + 1
+          i0tcl2 = i0tcl + 2
+          i0tcl3 = i0tcl + 3
+          
+          IF((i1.EQ.i0lmax).AND.(i2.EQ.i0rdn2)) EXIT
+          
+          IF((j2.GE.1).AND.(j2.LT.i0pdn2))THEN
+             CALL MTX_SET_MATRIX(i0trc1,i0tcc1,-1.D0)
+             CALL MTX_SET_MATRIX(i0trc2,i0tcc2,-1.D0)
+             CALL MTX_SET_MATRIX(i0trc3,i0tcc3,-1.D0)
+          ENDIF
+          IF((j2.GT.1).AND.(j2.LE.i0pdn2))THEN
+             CALL MTX_SET_MATRIX(i0trc1,i0tcl1, 1.D0)
+             CALL MTX_SET_MATRIX(i0trc2,i0tcl2, 1.D0)
+             CALL MTX_SET_MATRIX(i0trc3,i0tcl3, 1.D0)
+          ENDIF
+          
+          i0ofs = i0ofs + 1
+          
+       ENDDO
+       ENDDO
+    ENDDO
+    
+    !IF(i0ofs.NE.i0nmax2)THEN
+    !   WRITE(6,*)'ERROR IN T2EXEC_SOLVE'
+    !   STOP
+    !ENDIF
+    
+    !C
+    !C
+    !C
     DO i4=1,i0bmax
-       d0value = d1grv(i4)
-       CALL MTX_SET_SOURCE(i4,d0value)
+       d0val = d1grv(i4)
+       CALL MTX_SET_SOURCE(i4,d0val)
     ENDDO
     
     DO i4=1,i0bmax
-       d0value = d1guv_befor(i4)
-       CALL MTX_SET_VECTOR(i4,d0value)
+       d0val = d1guv_befor(i4)
+       CALL MTX_SET_VECTOR(i4,d0val)
     ENDDO
     
     CALL MTX_SOLVE(itype,tolerance,its,&
-         methodKSP=m1,methodPC=m2,max_steps = 99)
+         methodKSP=m1,methodPC=m2,max_steps = 999)
     
     CALL MTX_GATHER_VECTOR(x)
     
@@ -351,8 +432,8 @@ CONTAINS
           ENDDO
        ELSEIF((i4.GT.i0nmax2).AND.(i4.LE.i0nmax3))THEN
           i0hind          = i4-i0nmax2
-          i0hnd           = i2hbc2(i0hind,1)
-          i0hnu           = i2hbc2(i0hind,2)
+          i0hnd           = i2hbc(i0hind,1)
+          i0hnu           = i2hbc(i0hind,2)
           
           DO i5=1,i0vmax 
              i0xid              = i0vmax*(i4-1)+i5
@@ -378,7 +459,6 @@ CONTAINS
     RETURN
     
   END SUBROUTINE T2EXEC_SOLVE
-  
   
   !C
   !C SUBROUTINES FOR CALCULATING  MATRCES 
@@ -427,7 +507,7 @@ CONTAINS
           ENDDO
           ENDDO
           
-          CALL T2EXEC_STORE_SUBMATRIX
+          CALL T2EXEC_STRM
     
           DO j3=1,i0nmax0
           DO i3=1,i0nmax0
@@ -435,7 +515,8 @@ CONTAINS
           ENDDO
           ENDDO
 
-          CALL T2EXEC_STORE_SUBVECTOR
+          CALL T2EXEC_STRV
+          
        ENDDO
 
     ENDDO
@@ -488,7 +569,7 @@ CONTAINS
           ENDDO
           ENDDO
           
-          CALL T2EXEC_STORE_SUBMATRIX
+          CALL T2EXEC_STRM
           
        ENDDO
     ENDDO
@@ -501,11 +582,11 @@ CONTAINS
     USE T2COMM,ONLY:&
          i0nmax0,i0dmax0,i0vmax,i2enr0,i0vida,i0vidb,&
          d2jmpm,d0jdmp,d2smat0,&
-         i0atid,i1atidr,i1atidc,d4at,d6iatn0,i1atws,d2ws0
+         i0atid,i1atidr,i2atidc,d4at,d6iatn0,d2ws0
     
     INTEGER(i0ikind)::&
          i3,j3,k3,l3,i2,j2,k2,l2,&
-         i0atsa    
+         i0nn,i0atsa
     REAL(   i0rkind)::&
          d3velo0(1:i0nmax0,1:i0dmax0,1:i0dmax0),&
          d1atsa0(1:i0nmax0)
@@ -513,30 +594,31 @@ CONTAINS
     DO i0vida = 1, i0vmax   
        
        DO i0atid = i1atidr(i0vida),i1atidr(i0vida+1)-1
-
-          i0vidb = i1atidc(i0atid)
-          i0atsa = i1atws( i0atid)
+          
+          i0vidb = i2atidc(i0atid,1)
+          i0atsa = i2atidc(i0atid,2)
           
           !C INITIALIZATION
           
           d2smat0(1:i0nmax0,1:i0nmax0          ) = 0.D0
           d3velo0(1:i0nmax0,1:i0dmax0,1:i0dmax0) = 0.D0
           d1atsa0(1:i0nmax0                    ) = 0.D0
-          
-          DO j2 = 1, i0dmax0
-          DO i2 = 1, i0dmax0
-             DO i3 = 1, i0nmax0
-                d3velo0(i3,i2,j2)=d4at(i2,j2,i0atid,i2enr0(1,i3))
+   
+          DO i3 = 1, i0nmax0
+             i0nn = i2enr0(1,i3)
+             DO j2 = 1, i0dmax0
+             DO i2 = 1, i0dmax0
+                d3velo0(i3,i2,j2)=d4at(i2,j2,i0atid,i0nn)
              ENDDO
-          ENDDO
+             ENDDO
           ENDDO
                     
           DO i3 = 1,i0nmax0
              d1atsa0(i3) = d2ws0(i0atsa,i3)
           ENDDO
-    
+          
           !C MAIN LOOP
-    
+          
           DO l2 = 1, i0dmax0
           DO k2 = 1, i0dmax0
           DO j2 = 1, i0dmax0
@@ -562,7 +644,7 @@ CONTAINS
           ENDDO
           ENDDO
           
-          CALL T2EXEC_STORE_SUBMATRIX
+          CALL T2EXEC_STRM
           
        ENDDO
     ENDDO
@@ -627,7 +709,7 @@ CONTAINS
           ENDDO
           ENDDO
     
-          CALL T2EXEC_STORE_SUBMATRIX
+          CALL T2EXEC_STRM
 
        ENDDO
        
@@ -686,7 +768,7 @@ CONTAINS
           ENDDO
           ENDDO
 
-          CALL T2EXEC_STORE_SUBMATRIX
+          CALL T2EXEC_STRM
           
        ENDDO
     ENDDO
@@ -700,11 +782,11 @@ CONTAINS
     USE T2COMM,ONLY:&
          i0nmax0,i0dmax0,i0vmax,i0eid,i2enr0,i0vida,i0vidb,&
          d2jmpm,d0jdmp,d2smat0,&
-         i0gtid,i1gtidr,i1gtidc,d4gt,d6igtn0,i1gtws,d2ws0
+         i0gtid,i1gtidr,i2gtidc,d4gt,d6igtn0,d2ws0
     
     INTEGER(i0ikind)::&
          i3,j3,k3,l3,i2,j2,k2,l2,&
-         i0gtsa
+         i0gtsa,i0nn
     
     REAL(   i0rkind)::&
          d3grad0(1:i0nmax0,1:i0dmax0,1:i0dmax0),&
@@ -714,21 +796,22 @@ CONTAINS
        
        DO i0gtid = i1gtidr(i0vida),i1gtidr(i0vida+1)-1
           
-          i0vidb = i1gtidc(i0gtid)
-          i0gtsa = i1gtws(i0gtid)    
+          i0vidb = i2gtidc(i0gtid,1)
+          i0gtsa = i2gtidc(i0gtid,2)
 
           !C INITIALIZATION
           
           d2smat0(1:i0nmax0,1:i0nmax0          ) = 0.D0
           d3grad0(1:i0nmax0,1:i0dmax0,1:i0dmax0) = 0.D0
           d1gtsa0(1:i0nmax0                    ) = 0.D0
-    
-          DO j2 = 1, i0dmax0
-          DO i2 = 1, i0dmax0
-             DO i3 = 1, i0nmax0
-                d3grad0(i3,i2,j2)=d4gt(i2,j2,i0gtid,i2enr0(1,i3))
+          
+          DO i3 = 1, i0nmax0
+             i0nn = i2enr0(1,i3)
+             DO j2 = 1, i0dmax0
+             DO i2 = 1, i0dmax0
+                d3grad0(i3,i2,j2)=d4gt(i2,j2,i0gtid,i0nn)
              ENDDO
-          ENDDO
+             ENDDO
           ENDDO
           
           DO i3 = 1,i0nmax0
@@ -762,7 +845,7 @@ CONTAINS
           ENDDO
           ENDDO
           
-          CALL T2EXEC_STORE_SUBMATRIX
+          CALL T2EXEC_STRM
        
        ENDDO
     ENDDO
@@ -811,7 +894,7 @@ CONTAINS
           ENDDO
           ENDDO
     
-          CALL T2EXEC_STORE_SUBMATRIX
+          CALL T2EXEC_STRM
           
        ENDDO
     ENDDO
@@ -825,7 +908,7 @@ CONTAINS
     USE T2COMM,ONLY:&
          i0nmax0,i0dmax0,i0vmax,i2enr0,i0vida,i0vidb,&
          d2jmpm,d0jdmp,d2smat0,&
-         i0evid,i1evidr,i1evidc,d3ev,d5ievn0,i1evws,d2ws0
+         i0evid,i1evidr,i2evidc,d3ev,d5ievn0,d2ws0
     
     INTEGER(i0ikind)::&
          i3,j3,k3,l3,i2,j2,&
@@ -833,12 +916,12 @@ CONTAINS
     REAL(   i0rkind)::&
          d2exct0(1:i0nmax0,1:i0dmax0),&
          d1evsa0(1:i0nmax0)
-
+    
     DO i0vida = 1, i0vmax
        DO i0evid = i1evidr(i0vida),i1evidr(i0vida+1)-1
 
-          i0vidb = i1evidc(i0evid)
-          i0evsa = i1evws( i0evid)
+          i0vidb = i2evidc(i0evid,1)
+          i0evsa = i2evidc(i0evid,2)
           
           !C INITIALIZATION
           d2smat0(1:i0nmax0,1:i0nmax0) = 0.D0
@@ -877,8 +960,8 @@ CONTAINS
           ENDDO
           ENDDO
           
-          CALL T2EXEC_STORE_SUBMATRIX
-
+          CALL T2EXEC_STRM
+          
        ENDDO
     ENDDO
 
@@ -891,8 +974,7 @@ CONTAINS
     USE T2COMM,ONLY:&
          i0nmax0,i0dmax0,i0vmax,i2enr0,i0vida,i0vidb,&
          d2jmpm,d0jdmp,d2smat0,&
-         i0etid,i1etidr,i1etidc,d4et,d7ietn0,i2etws,d2ws0
-    
+         i0etid,i1etidr,i2etidc,d4et,d7ietn0,i2etws,d2ws0
     
     INTEGER(i0ikind)::&
          i3,j3,k3,l3,m3,i2,j2,k2,l2,&
@@ -902,13 +984,14 @@ CONTAINS
          d3exct0(1:i0nmax0,1:i0dmax0,1:i0dmax0),&
          d1etsa0(1:i0nmax0),&
          d1etsb0(1:i0nmax0)
+    
     DO i0vida = 1, i0vmax
        
        DO i0etid = i1etidr(i0vida),i1etidr(i0vida+1)-1
-
-          i0vidb = i1etidc( i0etid)
-          i0etsa = i2etws(1,i0etid)
-          i0etsb = i2etws(2,i0etid)
+          
+          i0vidb = i2etidc(i0etid,1)
+          i0etsa = i2etidc(i0etid,2)
+          i0etsb = i2etidc(i0etid,3)
           
           !C INITIALIZATION
           d2smat0(1:i0nmax0,1:i0nmax0          ) = 0.D0
@@ -959,7 +1042,7 @@ CONTAINS
           ENDDO
           ENDDO
           
-          CALL T2EXEC_STORE_SUBMATRIX
+          CALL T2EXEC_STRM
           
        ENDDO
     ENDDO
@@ -967,7 +1050,7 @@ CONTAINS
     RETURN
     
   END SUBROUTINE T2EXEC_ET
-
+  
   SUBROUTINE T2EXEC_SS
 
     USE T2COMM,ONLY:&
@@ -1004,7 +1087,7 @@ CONTAINS
           ENDDO
           ENDDO
           
-          CALL T2EXEC_STORE_SUBVECTOR
+          CALL T2EXEC_STRV
           
        ENDDO
     ENDDO
@@ -1012,148 +1095,288 @@ CONTAINS
     RETURN
     
   END SUBROUTINE T2EXEC_SS
-   
-  SUBROUTINE T2EXEC_STORE_SUBMATRIX
+  
+  !C
+  !C SUBROUTINE FOR STORE SUBMATRIX 
+  !C FOR BI-LINEAR RECTANGULAR ELEMENT
+  !C
+  
+  SUBROUTINE T2EXEC_STRM
     
     USE T2COMM,ONLY:&
-         i0nmax0,i0nmax2,i0vmax,i0vgcmx,i0vida,i0vidb,&
-         i1nidr,i1nidc,i2hbc2,i2vtbl,i2enr0,d2smat0,&
-         d1gsm,d1grv,i0gvid,i0eid
+         i0nmax0,i0nmax2,i0vmax,i0vida,i0vidb,i0vgcmx,&
+         i1nidr,i1nidc,i2hbc,i2vtbl,i2enr0,d2smat0,d1gsm
     
-    INTEGER::&
-         i3,j3,&
-         i0nrl,i0nrc,i0nru,i0ncl,i0ncc,i0ncu,i0ng,i0nc,i0tg
-    REAL(8)::&
+    INTEGER(i0ikind)::&
+         i3,j3,i0ng,i0nc,i0tg,i0vofs,&
+         i0nrl,i0nrc,i0nru,i0ncl,i0ncc,i0ncu
+    REAL(   i0rkind)::&
          d0smat
     !C------------------------------------------------------
     
-    DO j3 = 1,i0nmax0
-    DO i3 = 1,i0nmax0
-       
-       i0nrc  = i2enr0(  2,i3)
-       i0ncc  = i2enr0(  2,j3)
-       d0smat = d2smat0(i3,j3)
-       
-       IF(    (i0nrc.LE.i0nmax2).AND.(i0ncc.LE.i0nmax2))THEN
+    i0vofs = i2vtbl(i0vida,i0vidb)
+    
+    
+    IF(    (i0vida.GT.3).AND.(i0vidb.GT.3))THEN
+       !C
+       !C 2Dx2D
+       !C
+       DO j3 = 1, i0nmax0
+       DO i3 = 1, i0nmax0
           
-          DO i0ng=i1nidr(i0nrc),i1nidr(i0nrc+1)-1
-             IF(i1nidc(i0ng).EQ.i0ncc)THEN
-                i0tg = i0vgcmx*(i0ng-1)+i2vtbl(i0vida,i0vidb)
-                d1gsm(i0tg) = d1gsm(i0tg) + d0smat
-             ENDIF
-          ENDDO
+          i0nrc  = i2enr0(  2,i3)
+          i0ncc  = i2enr0(  2,j3)
+          d0smat = d2smat0(i3,j3)
           
-       ELSEIF((i0nrc.LE.i0nmax2).AND.(i0ncc.GT.i0nmax2))THEN
-          
-          i0ncc  = i0ncc-i0nmax2
-          i0ncl  = i2hbc2(i0ncc,1)
-          i0ncu  = i2hbc2(i0ncc,2)
-          d0smat = d0smat/2.D0
+          IF(    (i0nrc.LE.i0nmax2).AND.(i0ncc.LE.i0nmax2))THEN
+             
+             DO i0ng = i1nidr(i0nrc), i1nidr(i0nrc+1)-1
+                i0nc = i1nidc(i0ng )
+                IF(i0nc.EQ.i0ncc)THEN
+                   i0tg        = i0vgcmx*(i0ng-1) + i0vofs
+                   d1gsm(i0tg) = d1gsm(i0tg)      + d0smat
+                ENDIF
+             ENDDO
+             
+          ELSEIF((i0nrc.LE.i0nmax2).AND.(i0ncc.GT.i0nmax2))THEN
+             
+             i0ncc  = i0ncc-i0nmax2
+             i0ncl  = i2hbc(i0ncc,1)
+             i0ncu  = i2hbc(i0ncc,2)
+             d0smat = d0smat/2.D0
  
-          DO i0ng=i1nidr(i0nrc),i1nidr(i0nrc+1)-1
-             i0nc=i1nidc(i0ng)
-             IF((i0nc.EQ.i0ncl).OR.(i0nc.EQ.i0ncu))THEN
-                i0tg = i0vgcmx*(i0ng-1)+i2vtbl(i0vida,i0vidb)
-                d1gsm(i0tg)=d1gsm(i0tg)+d0smat
-             ENDIF
-          ENDDO
+             DO i0ng = i1nidr(i0nrc), i1nidr(i0nrc+1)-1
+                i0nc = i1nidc(i0ng )
+                IF((i0nc.EQ.i0ncl).OR.(i0nc.EQ.i0ncu))THEN
+                   i0tg        = i0vgcmx*(i0ng-1) + i0vofs
+                   d1gsm(i0tg) = d1gsm(i0tg)      + d0smat
+                ENDIF
+             ENDDO
+             
+          ELSEIF((i0nrc.GT.i0nmax2).AND.(i0ncc.LE.i0nmax2))THEN
+             
+             i0nrc  = i0nrc-i0nmax2
+             i0nrl  = i2hbc(i0nrc,1)
+             i0nru  = i2hbc(i0nrc,2)
+             d0smat = d0smat/2.D0
+             
+             DO i0ng = i1nidr(i0nrl), i1nidr(i0nrl+1)-1
+                i0nc = i1nidc(i0ng ) 
+                IF(i0nc.EQ.i0ncc)THEN
+                   i0tg        = i0vgcmx*(i0ng-1) + i0vofs
+                   d1gsm(i0tg) = d1gsm(i0tg)      + d0smat
+                ENDIF
+             ENDDO
+             
+             DO i0ng = i1nidr(i0nru), i1nidr(i0nru+1)-1
+                i0nc = i1nidc(i0ng ) 
+                IF(i0nc.EQ.i0ncc)THEN
+                   i0tg        = i0vgcmx*(i0ng-1) + i0vofs
+                   d1gsm(i0tg) = d1gsm(i0tg)      + d0smat
+                ENDIF
+             ENDDO
+             
+          ELSEIF((i0nrc.GT.i0nmax2).AND.(i0ncc.GT.i0nmax2))THEN
+             
+             i0nrc  = i0nrc-i0nmax2
+             i0nrl  = i2hbc(i0nrc,1)
+             i0nru  = i2hbc(i0nrc,2)
+             
+             i0ncc  = i0ncc-i0nmax2
+             i0ncl  = i2hbc(i0ncc,1)
+             i0ncu  = i2hbc(i0ncc,2)
+             
+             d0smat = d0smat/4.D0
+             
+             DO i0ng = i1nidr(i0nrl), i1nidr(i0nrl+1)-1
+                i0nc = i1nidc(i0ng )
+                IF((i0nc.EQ.i0ncl).OR.(i0nc.EQ.i0ncu))THEN
+                   i0tg        = i0vgcmx*(i0ng-1) + i0vofs
+                   d1gsm(i0tg) = d1gsm(i0tg)      + d0smat
+                ENDIF
+             ENDDO
+             
+             DO i0ng = i1nidr(i0nru), i1nidr(i0nru+1)-1
+                i0nc = i1nidc(i0ng )
+                IF((i0nc.EQ.i0ncl).OR.(i0nc.EQ.i0ncu))THEN
+                   i0tg        = i0vgcmx*(i0ng-1) + i0vofs
+                   d1gsm(i0tg) = d1gsm(i0tg)      + d0smat
+                ENDIF
+             ENDDO
+             
+          ENDIF
+       ENDDO
+       ENDDO
+       
+    ELSEIF((i0vida.GT.3).AND.(i0vidb.LE.3))THEN
+       !C
+       !C 2Dx1D
+       !C
+       DO j3 = 1, i0nmax0
+       DO i3 = 1, i0nmax0
           
-       ELSEIF((i0nrc.GT.i0nmax2).AND.(i0ncc.LE.i0nmax2))THEN
+          i0nrc  = i2enr0(  2,i3)
+          i0ncc  = i2enr0(  4,j3)
+          d0smat = d2smat0(i3,j3)
           
-          i0nrc  = i0nrc-i0nmax2
-          i0nrl  = i2hbc2(i0nrc,1)
-          i0nru  = i2hbc2(i0nrc,2)
-          d0smat = d0smat/2.D0
+          IF(    i0nrc.LE.i0nmax2)THEN
+             
+             DO i0ng = i1nidr(i0nrc), i1nidr(i0nrc+1)-1
+                i0nc = i1nidc(i0ng)
+                IF(i0nc.EQ.i0ncc)THEN
+                   i0tg        = i0vgcmx*(i0ng-1) + i0vofs
+                   d1gsm(i0tg) = d1gsm(i0tg)      + d0smat
+                ENDIF
+             ENDDO
+             
+          ELSEIF(i0nrc.GT.i0nmax2)THEN
+             
+             i0nrc  = i0nrc-i0nmax2
+             i0nrl  = i2hbc(i0nrc,1)
+             i0nru  = i2hbc(i0nrc,2)
+             d0smat = d0smat/2.D0
+             
+             DO i0ng = i1nidr(i0nrl), i1nidr(i0nrl+1)-1
+                i0nc = i1nidc(i0ng) 
+                IF(i0nc.EQ.i0ncc)THEN
+                   i0tg        = i0vgcmx*(i0ng-1) + i0vofs
+                   d1gsm(i0tg) = d1gsm(i0tg)      + d0smat
+                ENDIF
+             ENDDO
+             
+             DO i0ng = i1nidr(i0nru), i1nidr(i0nru+1)-1
+                i0nc = i1nidc(i0ng) 
+                IF(i0nc.EQ.i0ncc)THEN
+                   i0tg        = i0vgcmx*(i0ng-1) + i0vofs
+                   d1gsm(i0tg) = d1gsm(i0tg)      + d0smat
+                ENDIF
+             ENDDO
+             
+          ENDIF
+       ENDDO
+       ENDDO
+       
+    ELSEIF((i0vida.LE.3).AND.(i0vidb.GT.3))THEN
+       
+       !C
+       !C 1Dx2D
+       !C
+       
+       DO j3 = 1, i0nmax0
+       DO i3 = 1, i0nmax0
           
-          DO i0ng = i1nidr(i0nrl),i1nidr(i0nrl+1)-1
-             i0nc = i1nidc(i0ng) 
-             IF(i0nc.EQ.i0ncc)THEN
-                i0tg = i0vgcmx*(i0ng-1)+i2vtbl(i0vida,i0vidb)
-                d1gsm(i0tg)=d1gsm(i0tg)+d0smat
-             ENDIF
-          ENDDO
+          i0nrc  = i2enr0(  3,i3)
+          i0ncc  = i2enr0(  2,j3)
+          d0smat = d2smat0(i3,j3)
           
-          DO i0ng = i1nidr(i0nru),i1nidr(i0nru+1)-1
-             i0nc = i1nidc(i0ng) 
-             IF(i0nc.EQ.i0ncc)THEN
-                i0tg = i0vgcmx*(i0ng-1)+i2vtbl(i0vida,i0vidb)
-                d1gsm(i0tg)=d1gsm(i0tg)+d0smat
-             ENDIF
-          ENDDO
+          IF(    i0ncc.LE.i0nmax2)THEN
+             
+             DO i0ng = i1nidr(i0nrc), i1nidr(i0nrc+1)-1
+                i0nc = i1nidc(i0ng)
+                IF(i0nc.EQ.i0ncc)THEN
+                   i0tg        = i0vgcmx*(i0ng-1) + i0vofs
+                   d1gsm(i0tg) = d1gsm(i0tg)      + d0smat
+                ENDIF
+             ENDDO
+             
+          ELSEIF(i0ncc.GT.i0nmax2)THEN
+             
+             i0ncc  = i0ncc-i0nmax2
+             i0ncl  = i2hbc(i0ncc,1)
+             i0ncu  = i2hbc(i0ncc,2)
+             d0smat = d0smat/2.D0
+             
+             DO i0ng = i1nidr(i0nrc), i1nidr(i0nrc+1)-1
+                i0nc = i1nidc(i0ng )
+                IF((i0nc.EQ.i0ncl).OR.(i0nc.EQ.i0ncu))THEN
+                   i0tg        = i0vgcmx*(i0ng-1) + i0vofs
+                   d1gsm(i0tg) = d1gsm(i0tg)      + d0smat
+                ENDIF
+             ENDDO
+             
+          ENDIF
           
-       ELSEIF((i0nrc.GT.i0nmax2).AND.(i0ncc.GT.i0nmax2))THEN
+       ENDDO
+       ENDDO
+       
+    ELSEIF((i0vida.LE.3).AND.(i0vidb.LE.3))THEN
+       !C
+       !C 1Dx1D
+       !C
+       DO j3 = 1, i0nmax0
+       DO i3 = 1, i0nmax0
           
-          i0nrc  = i0nrc-i0nmax2
-          i0nrl  = i2hbc2(i0nrc,1)
-          i0nru  = i2hbc2(i0nrc,2)
-          i0ncc  = i0ncc-i0nmax2
-          i0ncl  = i2hbc2(i0ncc,1)
-          i0ncu  = i2hbc2(i0ncc,2)
-          d0smat = d0smat/4.D0
+          i0nrc  = i2enr0(  4,i3)
+          i0ncc  = i2enr0(  4,j3)
+          d0smat = d2smat0(i3,j3)
           
-          DO i0ng = i1nidr(i0nrl),i1nidr(i0nrl+1)-1
+          DO i0ng = i1nidr(i0nrc), i1nidr(i0nrc+1)-1
              i0nc = i1nidc(i0ng)
-             IF((i0nc.EQ.i0ncl).OR.(i0nc.EQ.i0ncu))THEN
-                i0tg = i0vgcmx*(i0ng-1)+i2vtbl(i0vida,i0vidb)
-                d1gsm(i0tg)=d1gsm(i0tg)+d0smat
+             IF(i0nc.EQ.i0ncc)THEN
+                i0tg        = i0vgcmx*(i0ng-1) + i0vofs
+                d1gsm(i0tg) = d1gsm(i0tg)      + d0smat
              ENDIF
           ENDDO
           
-          DO i0ng = i1nidr(i0nru),i1nidr(i0nru+1)-1
-             i0nc = i1nidc(i0ng)
-             IF((i0nc.EQ.i0ncl).OR.(i0nc.EQ.i0ncu))THEN
-                i0tg = i0vgcmx*(i0ng-1)+i2vtbl(i0vida,i0vidb)
-                d1gsm(i0tg)=d1gsm(i0tg)+d0smat
-             ENDIF
-          ENDDO
-
-       ENDIF
-    ENDDO
-    ENDDO
+       ENDDO
+       ENDDO
+    ENDIF
     
     RETURN
     
-  END SUBROUTINE T2EXEC_STORE_SUBMATRIX
+  END SUBROUTINE T2EXEC_STRM
   
-  SUBROUTINE T2EXEC_STORE_SUBVECTOR
+  SUBROUTINE T2EXEC_STRV
     
     USE T2COMM,ONLY:&
-         i0nmax0,i0nmax2,i0vmax,i0vgcmx,&
-         i1nidr,i1nidc,i2hbc2,i2vtbl,i2enr0,i0vida,&
-         d1gsm,d1grv,d1svec0
+         i0nmax0,i0nmax2,i0vmax,i0vida,i2enr0,&
+         i1nidr,i1nidc,i2hbc,i2vtbl,d1grv,d1svec0
     
     REAL(   i0rkind)::&
          d0lvec
     INTEGER(i0ikind)::&
          i3,i0nrl,i0nrc,i0nru,i0trl,i0trc,i0tru
     
-    DO i3=1,i0nmax0
-
-       i0nrc=i2enr0(2,i3)
-       d0lvec=d1svec0(i3)
-
-       IF(    i0nrc.LE.i0nmax2)THEN
-
-          i0trc        = i0vmax*(i0nrc-1) + i0vida
-          d1grv(i0trc) = d1grv(i0trc) + d0lvec
-
-       ELSEIF(i0nrc.GT.i0nmax2)THEN
-
-          d0lvec=d0lvec/2.D0
-          i0nrc = i0nrc-i0nmax2
-          i0nrl = i2hbc2(i0nrc,1)
-          i0nru = i2hbc2(i0nrc,2)
-          i0trl = i0vmax*(i0nrl-1)+i0vida
-          i0tru = i0vmax*(i0nru-1)+i0vida
-
-          d1grv(i0trl)=d1grv(i0trl)+d0lvec
-          d1grv(i0tru)=d1grv(i0tru)+d0lvec
-
-       ENDIF
+    IF(    i0vida.GT.3)THEN
+       DO i3=1,i0nmax0
+          
+          i0nrc=i2enr0(2,i3)
+          d0lvec = d1svec0(i3)
+          
+          IF(    i0nrc.LE.i0nmax2)THEN
+             
+             i0trc        = i0vmax*(i0nrc-1) + i0vida
+             d1grv(i0trc) = d1grv(i0trc) + d0lvec
+             
+          ELSEIF(i0nrc.GT.i0nmax2)THEN
+             
+             d0lvec = d0lvec/2.D0
+             i0nrc  = i0nrc - i0nmax2
+             i0nrl  = i2hbc(i0nrc,1)
+             i0nru  = i2hbc(i0nrc,2)
+             i0trl  = i0vmax*(i0nrl-1) + i0vida
+             i0tru  = i0vmax*(i0nru-1) + i0vida
+             
+             d1grv(i0trl)=d1grv(i0trl) + d0lvec
+             d1grv(i0tru)=d1grv(i0tru) + d0lvec
+             
+          ENDIF
+       ENDDO
+    ELSEIF(i0vida.LE.3)THEN
        
-    ENDDO
+       DO i3=1,i0nmax0
+          
+          i0nrc  = i2enr0(4,i3)
+          d0lvec = d1svec0(i3)
+          
+          i0trc        = i0vmax*(i0nrc-1) + i0vida
+          d1grv(i0trc) = d1grv(i0trc)     + d0lvec
+          
+       ENDDO
+       
+    ENDIF
     
     RETURN
     
-  END SUBROUTINE T2EXEC_STORE_SUBVECTOR
+  END SUBROUTINE T2EXEC_STRV
 END MODULE T2EXEC

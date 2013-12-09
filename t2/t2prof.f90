@@ -23,7 +23,7 @@ CONTAINS
          i0mfcs
     SELECT CASE(i0mfcs)
        ! SELECT COORDINATE TYPE
-       ! 1:     TOROIDAL COORDINATE WITHOUT EQUILIBRIUM (\rho = r  )        
+       ! 1:     TOROIDAL COORDINATE W/O EQUILIBRIUM (\rho = r  )
        
     CASE(1)
        CALL T2PROF_TOROIDAL
@@ -33,28 +33,30 @@ CONTAINS
     END SELECT
     
     RETURN
-  
+    
   END SUBROUTINE T2_PROF
-
+  
   SUBROUTINE T2PROF_TOROIDAL
-
+    
     USE T2COMM,ONLY:&
          d0mfcst,d0btcst,d0ercst,d0epcst,d0etcst,&
          d0nncst,d0frcst,d0fbcst,d0ftcst,&
          d0ppcst,d0qrcst,d0qbcst,d0qtcst,&
          i0spcs, i0vmax,&
          i0nmax1,i2crt,d0rmnr,d0rmjr,&
-         d2mfc1,d2rzc1,d2rzc3,d2jm1,d1guv,i1pdn1
+         d2mfc1,d2rzc1,d2rzc3,d2jm1,d1guv,i1pdn1,&
+         i1mfc1,i0nmax4
     
     
-    INTEGER(i0ikind)::i1,i2,i0nid3,i0vid3
+    INTEGER(i0ikind)::i1,i2,i0nid3,i0vid3,i0nid4,i0vid4
     REAL(   i0rkind)::d0mfcr,d0mfcp,d0jm1
     REAL(   i0rkind),DIMENSION(1:i0spcs)::d1n0,d1p0
     REAL(   i0rkind),DIMENSION(1:6,1:i0spcs)::d2f0
-
+    
 100 FORMAT( 6E15.8)
 110 FORMAT(10E15.8)
 120 FORMAT( 5E15.8)
+    
     
     DO i1=1,i0nmax1
        
@@ -79,13 +81,18 @@ CONTAINS
        
        i0nid3 = i2crt(i1,2) -1
        i0vid3 = i0vmax*i0nid3
+       i0nid4 = i1mfc1(i1) - 1
+
+       i0vid4 = i0vmax*i0nid4
+
+       d1guv(i0vid4+1) = fd0bp(d0mfcr,d0mfcp)*d0jm1/d0mfcst
+       d1guv(i0vid4+2) = fd0bt(d0mfcr,d0mfcp)/d0btcst
+       d1guv(i0vid4+3) = fd0et(d0mfcr,d0mfcp)/d0etcst
        
-       
-       d1guv(i0vid3+1) = fd0bp(d0mfcr,d0mfcp)*d0jm1/d0mfcst
-       d1guv(i0vid3+2) = fd0bt(d0mfcr,d0mfcp)/d0btcst
-       d1guv(i0vid3+3) = fd0er(d0mfcr,d0mfcp)/d0ercst
        d1guv(i0vid3+4) = fd0ep(d0mfcr,d0mfcp)/d0epcst
-       d1guv(i0vid3+5) = fd0et(d0mfcr,d0mfcp)/d0etcst
+       d1guv(i0vid3+5) = fd0er(d0mfcr,d0mfcp)/d0ercst
+       
+
        
        
        !C INITIAL PROFILE: Fr Fb Fb Qr Qb Qt (DIMENSIONLESS)
@@ -95,6 +102,7 @@ CONTAINS
        d2f0 = fd2f0(d0mfcr,d0mfcp)
        
        DO i2 = 1,i0spcs
+
           d1guv(i0vid3+8*i2-2) = d1n0(  i2)/d0nncst
           d1guv(i0vid3+8*i2-1) = d2f0(1,i2)/d0frcst
           d1guv(i0vid3+8*i2  ) = d2f0(2,i2)/d0fbcst
@@ -112,11 +120,11 @@ CONTAINS
        d2rzc3(i2crt(i1,2),1) = d2rzc1(i2crt(i1,1),1)
        d2rzc3(i2crt(i1,2),2) = d2rzc1(i2crt(i1,1),2)
     ENDDO
-
-!    CALL T2READ
+    
+    !CALL T2READ
     
     RETURN
-
+    
   END SUBROUTINE T2PROF_TOROIDAL
 
   SUBROUTINE T2RPROF(i0m0,i0n0,d0fc,d0fs,d0fw,d0rw,d0r,d0f0,d0f1)
@@ -146,32 +154,39 @@ CONTAINS
     d0xx = d0n0*d0m0*(d0fc-d0fs)
     d0rx = 1.D0 - d0rw
     
-    IF(i0n0.GE.2)THEN
-       IF(    i0m0.GE.3)THEN
-          d0b1 =   0.D0
-          d0b2 =   0.D0
-          d0b3 =  (d0fs-d0fw)/(d0rx**2)
-       ELSEIF(i0m0.EQ.2)THEN
-          d0b1 =   0.D0
-          d0b2 =   d0n0*d0m1*d0xx
-          d0b3 =  (d0fs-d0fw)/(d0rx**2)
-       ELSEIF(i0m0.EQ.1)THEN
-          d0b1 = - d0xx/d0rx
-          d0b2 = - d0n1*d0xx
-          d0b3 =  (d0fs-d0fw)/(d0rx**2)
+    d0a1 = 0.D0
+    d0a2 = 0.D0
+    d0a3 = 0.D0
+    d0a4 = 0.D0
+       
+    IF(d0rx.GT.0.D0)THEN
+       IF(i0n0.GE.2)THEN
+          IF(    i0m0.GE.3)THEN
+             d0b1 =   0.D0
+             d0b2 =   0.D0
+             d0b3 =  (d0fs-d0fw)/(d0rx**2)
+          ELSEIF(i0m0.EQ.2)THEN
+             d0b1 =   0.D0
+             d0b2 =   d0n0*d0m1*d0xx
+             d0b3 =  (d0fs-d0fw)/(d0rx**2)
+          ELSEIF(i0m0.EQ.1)THEN
+             d0b1 = - d0xx/d0rx
+             d0b2 = - d0n1*d0xx
+             d0b3 =  (d0fs-d0fw)/(d0rx**2)
+          ELSE
+             WRITE(6,*)'WRONG I0M'
+             STOP
+          ENDIF
        ELSE
-          WRITE(6,*)'WRONG I0M'
+          WRITE(6,*)'WRONG I0N'
           STOP
        ENDIF
-    ELSE
-       WRITE(6,*)'WRONG I0N'
-       STOP
+       
+       d0a1 = 0.D0
+       d0a2 =  -3.0D0*d0b1 + 0.5D0*d0b2 + 6.0D0*d0b3
+       d0a3 = ( 5.0D0*d0b1 - 1.0D0*d0b2 - 8.0D0*d0b3)/ d0rx
+       d0a4 = (-2.0D0*d0b1 + 0.5D0*d0b2 + 3.0D0*d0b3)/(d0rx**2)
     ENDIF
-
-    d0a1 = 0.D0
-    d0a2 =  -3.0D0*d0b1 + 0.5D0*d0b2 + 6.0D0*d0b3
-    d0a3 = ( 5.0D0*d0b1 - 1.0D0*d0b2 - 8.0D0*d0b3)/ d0rx
-    d0a4 = (-2.0D0*d0b1 + 0.5D0*d0b2 + 3.0D0*d0b3)/(d0rx**2)
     
     IF(    (d0r.GE.0.D0).AND.(d0r.LE.1.D0))THEN
        d0f0 = (d0fc-d0fs)*((1.D0-(d0r**i0n0))**i0m0) + d0fs

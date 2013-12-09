@@ -64,8 +64,12 @@ clean:
 cleand:
 	rm -f *.vtk *.dat 
 t2main.o: t2main.f90 t2comm.f90 t2cnst.f90
-t2intg.o: t2intg.f90 t2comm.f90 t2cnst.f90
+t2menu.o: t2menu.f90 t2comm.f90 t2cnst.f90
 t2init.o: t2init.f90 t2comm.f90 t2cnst.f90
+t2parm.o: t2parm.f90 t2comm.f90 t2cnst.f90
+t2prep.o: t2prep.f90 t2comm.f90 t2cnst.f90
+t2div.o:  t2div.f90  t2comm.f90 t2cnst.f90
+t2intg.o: t2intg.f90 t2comm.f90 t2cnst.f90
 t2ngra.o: t2ngra.f90 t2comm.f90 t2cnst.f90
 t2vgra.o: t2vgra.f90 t2comm.f90 t2cnst.f90
 t2wrap.o: t2wrap.f90 t2comm.f90 t2cnst.f90

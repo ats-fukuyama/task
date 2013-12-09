@@ -81,7 +81,7 @@ CONTAINS
        ENDDO
        ENDDO
     ENDDO
-
+    
     !C AT: D6IATN0 
     
     d6iatn0(1:i0nmax0,1:i0nmax0,1:i0nmax0,1:i0nmax0,&
@@ -309,25 +309,25 @@ CONTAINS
     !C SET NUMBER OF ABSCISSAS FOR GAUSS INTEGARATION
     !C
     SELECT CASE (i0amax0)
-
+       
     CASE(32)!C 32*32 POINTS 2D GAUSS INTEGRATION
        
        DO j1=1,16
           
-          i0jodd=2*j1-1
-          i0jeve=2*j1
+          i0jodd = 2*j1-1
+          i0jeve = 2*j1
           
           DO i1=1,16
              
-             i0iodd=2*i1-1
-             i0ieve=2*i1
+             i0iodd = 2*i1-1
+             i0ieve = 2*i1
              
-             d0wfct=d1wfct32(i1)*d1wfct32(j1)
-             d2wfct0(i0iodd,i0jodd)=d0wfct
-             d2wfct0(i0ieve,i0jodd)=d0wfct
-             d2wfct0(i0iodd,i0jeve)=d0wfct
-             d2wfct0(i0ieve,i0jeve)=d0wfct
-                          
+             d0wfct = d1wfct32(i1)*d1wfct32(j1)
+             d2wfct0(i0iodd,i0jodd) = d0wfct
+             d2wfct0(i0ieve,i0jodd) = d0wfct
+             d2wfct0(i0iodd,i0jeve) = d0wfct
+             d2wfct0(i0ieve,i0jeve) = d0wfct
+             
           ENDDO
           
           d0x=d1absc32(j1)

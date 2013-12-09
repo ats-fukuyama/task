@@ -5,7 +5,6 @@
 !C
 !C
 !C
-
 MODULE T2CALV
   
   USE T2CNST, ONLY:i0ikind,i0rkind
@@ -42,63 +41,61 @@ MODULE T2CALV
        d0bpi,&
        d0q0,&
        d0g1,d0g2,d0g3,d0g4,d0g5
-    
-
+  
   PRIVATE
-
+  
   PUBLIC T2_CALV
+  
 CONTAINS
-
+  
   SUBROUTINE T2_CALV
     
     USE T2COMM, ONLY: i0nmax1
     REAL(4)::e0time1,e0time2
     
     CALL CPU_TIME(e0time1)
-
+    
     DO i0nid = 1,i0nmax1
        
        CALL T2CALV_WV       
        CALL T2CALV_MS
        CALL T2CALV_AV
        CALL T2CALV_AT
-       CALL T2_CALV_DT
-       CALL T2_CALV_GV
-       CALL T2_CALV_GT
-       CALL T2_CALV_ES
-       CALL T2_CALV_EV
-       CALL T2_CALV_ET
-
+       CALL T2CALV_DT
+       CALL T2CALV_GV
+       CALL T2CALV_GT
+       CALL T2CALV_ES
+       CALL T2CALV_EV
+       CALL T2CALV_ET
+       
     ENDDO
     
     CALL CPU_TIME(e0time2)
     
-    WRITE(6,*)'TIME IN T2COEFF',e0time2-e0time1,'[s]'
+    e0time2 = e0time2-e0time1
+    
+    WRITE(6,*)'TIME IN T2COEFF',e0time2,'[s]'
     
     RETURN
     
   END SUBROUTINE T2_CALV
-
+  
   !C------------------------------------------------------------------
   !C
   !C CALCULATION OF BASIC PHYSICAL QUANTITIES 
   !C 
   !C                                                2013-11-03 CHECKED
   !C------------------------------------------------------------------
+  
   SUBROUTINE T2CALV_WV
     
     USE T2CNST
     USE T2COMM
     USE LIBT2, ONLY:integ_f
-    !,ONLY:&
-    !     d2jm1,d1guv_befor,i2crt,i0vmax,d2ws,&
-    !     d1e,d1m,d1n,d1p,d1t,d2ug,d1vt,d2cl,&
-    !     d1ur,d1up,d1ut,d1ub,d1u2,d1qr,d1qp,d1qt,d1qb,&
-    !     d1qbp,d1ni,&
-    !     d1c1,d1c2,d1c3,d1c4,d2f1,d2f2,d2f3,d2f4
     
     INTEGER(i0ikind)::&
-         i1,j1,k1,i0nid3,i0vid3,i0wid
+         i1,j1,k1,&
+         i0nid2,i0vid2,i0nid3,i0vid3,i0wid
     
     REAL(   i0rkind)::&
          d0w1,d0w2,d0w3,d0w4,d0w5,d0w6,d0w7,d0w8,d0w9,d0w3i,&
@@ -113,45 +110,51 @@ CONTAINS
          d0m00,d0m01,d0m11,&
          d0l11, d0l12, d0l21, d0l22,&
          d0lx11,d0lx12,d0lx21,d0lx22
-
+    
     REAL(   i0rkind),DIMENSION(1:i0spcs)::&
          d1mu1,d1mu2,d1mu3,d1fr,d1fb,d1ft,d1ti,d1vti
+    
     REAL(   i0rkind),DIMENSION(1:i0spcs,1:i0spcs)::&
          d2m00,d2m01,d2m10,d2m11,&
          d2n00,d2n01,d2n10,d2n11,&
          d2cl,d2nu
-
+    
     !C MASS AND ELECTRIC CHARGE
+    
     DO i1= 1,i0spcs
        d1m(i1) = d1pa(i1)*d0amp
        d1e(i1) = d1pz(i1)*d0aee
     ENDDO
     
     !C INITIALIZE 
-    i0nid3 = i2crt(i0nid,2) - 1
+    
+    i0nid2 = i2crt( i0nid,2) - 1
+    i0nid3 = i1mfc1(i0nid  ) - 1
+    d0rzcr = d2rzc1(i0nid,1)
     
     !C CONVERT VARIABLES TO SI-UNIT
     
-    i0vid3 = i0vmax*i0nid3    
+    i0vid2 = i0vmax*i0nid2
+    i0vid3 = i0vmax*i0nid3
     
     d0mf   = d0mfcst*d1guv_befor(i0vid3+1)
     d0bt   = d0btcst*d1guv_befor(i0vid3+2)
 
     DO i1 = 1, i0spcs
        
-       i0vid3   = i0vmax*i0nid3 + 8*i1
+       i0vid2   = i0vmax*i0nid2 + 8*i1-3
        
-       d0nt     = d1guv_befor(i0vid3-2)
-       d0pt     = d1guv_befor(i0vid3+2)
+       d0nt     = d1guv_befor(i0vid2+1)
+       d0pt     = d1guv_befor(i0vid2+5)
        
-       d1n( i1) = d0nncst*d1guv_befor(i0vid3-2)
-       d1fr(i1) = d0frcst*d1guv_befor(i0vid3-1)
-       d1fb(i1) = d0fbcst*d1guv_befor(i0vid3  )
-       d1ft(i1) = d0ftcst*d1guv_befor(i0vid3+1)
-       d1p( i1) = d0ppcst*d1guv_befor(i0vid3+2)
-       d1qr(i1) = d0qrcst*d1guv_befor(i0vid3+3)
-       d1qb(i1) = d0qbcst*d1guv_befor(i0vid3+4)
-       d1qt(i1) = d0qtcst*d1guv_befor(i0vid3+5)
+       d1n( i1) = d0nncst*d1guv_befor(i0vid2+1)
+       d1fr(i1) = d0frcst*d1guv_befor(i0vid2+2)
+       d1fb(i1) = d0fbcst*d1guv_befor(i0vid2+3)
+       d1ft(i1) = d0ftcst*d1guv_befor(i0vid2+4)
+       d1p( i1) = d0ppcst*d1guv_befor(i0vid2+5)
+       d1qr(i1) = d0qrcst*d1guv_befor(i0vid2+6)
+       d1qb(i1) = d0qbcst*d1guv_befor(i0vid2+7)
+       d1qt(i1) = d0qtcst*d1guv_befor(i0vid2+8)
        
        IF((d0nt.GE.0.D0).AND.(d0pt.GE.0.D0))THEN
           d1ni(i1) = 1.D0/d1n(i1)
@@ -192,9 +195,8 @@ CONTAINS
     d0bb  = SQRT(d0bb)
     d0bpb = d0bp/d0bb
     d0btb = d0bt/d0bb
-    !d0bpi = 1.D0/d0bp
     
-     IF(i0nid.GT.i1pdn1(1))THEN ! CHECKED 2013-11-01
+    IF(i0nid.GT.i1pdn1(1))THEN ! CHECKED 2013-11-01
        d0g1  =   d0jm3/d0jm2 
        d0g2  =   d0bb*d0bp/d0bp2
        d0g3  = - d0bt*d0bp*d0jm5/d0bp2
@@ -213,7 +215,7 @@ CONTAINS
        d0ur = d1fr(i1)*d1ni(i1)
        d0ub = d1fb(i1)*d1ni(i1)
        d0ut = d1ft(i1)*d1ni(i1)
-
+       
        d1ur( i1) = d0ur
        d1ub( i1) = d0ub
        d1ut( i1) = d0ut
@@ -229,19 +231,21 @@ CONTAINS
     
     !C SET WORKING ARRAY FOR DIFFERENTIAL (GROBAL)
     !C
-    !C D2WS(1,   :) : B  AT L-TH PICARD ITERATION 
-    !C D2WS(5N-3,:) : Ub AT L-TH PICARD ITERATION 
-    !C D2WS(5N-2,:) : N  AT L-TH PICARD ITERATION 
-    !C D2WS(5N-1,:) : Fb AT L-TH PICARD ITERATION 
-    !C D2WS(5N  ,:) : P  AT L-TH PICARD ITERATION 
-    !C D2WS(5N+1,:) : Qb AT L-TH PICARD ITERATION 
+    !C D2WS(1   ,:) : B   AT L-TH PICARD ITERATION 
+    !C D2WS(2   ,:) : lnR AT L-TH PICARD ITERATION 
+    !C D2WS(5N-2,:) : Ub  AT L-TH PICARD ITERATION 
+    !C D2WS(5N-1,:) : N   AT L-TH PICARD ITERATION 
+    !C D2WS(5N  ,:) : Fb  AT L-TH PICARD ITERATION 
+    !C D2WS(5N+1,:) : P   AT L-TH PICARD ITERATION 
+    !C D2WS(5N+2,:) : Qb  AT L-TH PICARD ITERATION 
     !C
     
     d2ws(         1,i0nid) = d0bb
+    d2ws(         2,i0nid) = LOG(d0rzcr)
     
     DO i1 = 1, i0spcs
        
-       i0wid = 5*i1 - 4
+       i0wid = 5*i1 - 3
        
        d2ws(i0wid+1,i0nid) = d1ub(i1)
        d2ws(i0wid+2,i0nid) = d1n( i1)
@@ -254,7 +258,7 @@ CONTAINS
     !C
     !C FOR COLLISION AND VISCOUS TERMS
     !C
-
+    
     !C THERMAL VELOCITY [m/s]
     !C VT*VT = 2T/M
     DO i1 = 1, i0spcs
@@ -539,75 +543,116 @@ CONTAINS
     !i1msidv(1:i0mscmx)=0
     
     !C
-    !C EQUATION OF BP
+    !C EQUATION OF PSI
     !C
+    
+    !C PSI'
     d2ms(1,i0nid) = d0mfcst*d0jm1
+    !i1msidv(1)=1
+
+    !C
+    !C EQUATION OF I
+    !C
+    
+    !C I
+    d2ms(2,i0nid) = d0btcst*d0jm1
+    !i1msidv(2)=2
+
+    !C
+    !C EQUATION OF Et
+    !C
+    
+    !C Et
+    d2ms(3,i0nid) = d0etcst*d0jm1*d0vci2
+    !i1msidv(3)=3
     
     !C
-    !C EQUATION OF BT
+    !C EQUATION OF Ep
     !C
-    d2ms(2,i0nid) = d0btcst*d0jm1
-
-    !C
-    !C EQUATION OF ER
-    !C
-    d2ms(3,i0nid) = 0.D0
-
-    !C
-    !C EQUATION OF EP
-    !C
+    
+    !C Ep
     d2ms(4,i0nid) = d0epcst*d0jm1*d0vci2
-
-    !C
-    !C EQUATION OF ET
-    !C
-    d2ms(5,i0nid) = d0etcst*d0jm1*d0vci2*d0jm5
-
-
-    !i1msidv(1)=1
-    !i1msidv(2)=2
-    !i1msidv(3)=3
     !i1msidv(4)=4
+    
+    !C
+    !C EQUATION OF Er
+    !C
+
+    !C Er
+    d2ms(5,i0nid) = 0.D0
     !i1msidv(5)=5
     
     i0cid = 5
     
     DO i1 = 1, i0spcs
+       
        i0vc = 8*i1-3
+       !C
+       !C EQUATION FOR N
+       !C
+       
        !C N
-       d2ms(   i0cid+1,i0nid) = d0nncst*d0jm1
-
+       d2ms(i0cid+1,i0nid) = d0nncst*d0jm1
+       !i1msidv(i0cid+1) = i0vc+1
+       
+       !C
+       !C EQUATION FOR Fr
+       !C 
+       
        !C Fr
-       d2ms(   i0cid+2,i0nid) = 0.D0
+       d2ms(i0cid+2,i0nid) = 0.D0
+       !i1msidv(i0cid+2) = i0vc+2
+       
+       !C
+       !C EQUATION FOR Fb
+       !C 
 
        !C Fb
-       d2ms(   i0cid+3,i0nid) = d0fbcst*d0jm1*d0bb
+       d2ms(i0cid+3,i0nid) = d0fbcst*d0jm1*d0bb
+       !i1msidv(i0cid+3) = i0vc+3
+       
+       !C
+       !C EQUATION FOR Ft
+       !C
 
        !C Ft
-       d2ms(   i0cid+4,i0nid) = d0ftcst*d0jm1
+       d2ms(i0cid+4,i0nid) = d0ftcst*d0jm1
+       !i1msidv(i0cid+4) = i0vc+4
+       
+       !C
+       !C EQUATION FOR P
+       !C
 
        !C P
-       d2ms(   i0cid+5,i0nid) = d0ppcst*d0jm1*1.5D0
+       d2ms(i0cid+5,i0nid) = d0ppcst*d0jm1*1.5D0
+       !i1msidv(i0cid+5) = i0vc+5
+       
+       !C
+       !C EQUATION FOR Qr
+       !C
 
        !C Qr
-       d2ms(   i0cid+6,i0nid) = 0.D0
+       d2ms(i0cid+6,i0nid) = 0.D0
+       !i1msidv(i0cid+6) = i0vc+6       
+       
+       !C
+       !C EQUATION FOR Qb
+       !C
 
        !C Qb
-       d2ms(   i0cid+7,i0nid) = d0qbcst*d0jm1*d0bb
-       
-       !C Qt
-       d2ms(   i0cid+8,i0nid) = d0qtcst*d0jm1
-
-       !i1msidv(i0cid+1) = i0vc+1
-       !i1msidv(i0cid+2) = i0vc+2
-       !i1msidv(i0cid+3) = i0vc+3
-       !i1msidv(i0cid+4) = i0vc+4
-       !i1msidv(i0cid+5) = i0vc+5
-       !i1msidv(i0cid+6) = i0vc+6       
+       d2ms(i0cid+7,i0nid) = d0qbcst*d0jm1*d0bb
        !i1msidv(i0cid+7) = i0vc+7
-       !i1msidv(i0cid+8) = i0vc+8
+       
+       !C
+       !C EQUATION FOR Qt
+       !C
 
+       !C Qt
+       d2ms(i0cid+8,i0nid) = d0qtcst*d0jm1
+       !i1msidv(i0cid+8) = i0vc+8
+       
        i0cid = i0cid + 8
+       
     ENDDO
 
     !OPEN(10,FILE='TEST_MSV.dat')
@@ -616,8 +661,8 @@ CONTAINS
     !ENDDO
     !CLOSE(10)
     !DEALLOCATE(i1msidv)
-
-    If(i0cid.EQ.i0mscmx) RETURN
+    
+    IF(i0cid.EQ.i0mscmx) RETURN
     
     WRITE(6,*)'ERROR IN T2CALV_MS_COEFF'
     STOP
@@ -652,44 +697,44 @@ CONTAINS
          d0qr,d0qp,d0qt,d0qb,&
          d0x1,d0x2
     
-!    INTEGER,DIMENSION(:),ALLOCATABLE::i1avidv
+    !INTEGER,DIMENSION(:),ALLOCATABLE::i1avidv
 
-!    ALLOCATE(i1avidv(1:i0avcmx))
-!    i1avidv(1:i0avcmx) = 0
+    !ALLOCATE(i1avidv(1:i0avcmx))
+    !i1avidv(1:i0avcmx) = 0
 
 
     !C
-    !C EQUATION FOR Bp
+    !C EQUATION FOR PSI
     !C
-
-    !C Bp
+    
+    !C PSI'
     d3av(1,1,i0nid) = d0mfcst*d0ugr
     d3av(2,1,i0nid) = d0mfcst*d0ugp
-!    i1avidv(1) = 1
+    !i1avidv(1) = 1
 
     !C
-    !C EQUATION FOR Bt
+    !C EQUATION FOR I
     !C
     
-    !C Bt
+    !C I
     d3av(1,2,i0nid) = d0btcst*d0ugr
     d3av(2,2,i0nid) = d0btcst*d0ugp
-!    i1avidv(2) = 2
+    !i1avidv(2) = 2
 
     !C
-    !C EQUATION FOR Er
+    !C EQUATION FOR Et
     !C
+    
+    !C PSI'
+    d3av(1,3,i0nid) = -d0mfcst*d0jm1*d0jm2
+    d3av(2,3,i0nid) = -d0mfcst*d0jm1*d0jm3
+    !i1avidv(3) = 1
+    
+    !C Et
+    d3av(1,4,i0nid) =  d0etcst*d0ugr*d0vci2
+    d3av(2,4,i0nid) =  d0etcst*d0ugp*d0vci2
+    !i1avidv(4) = 3
 
-    !C Er
-    d3av(1,3,i0nid) = d0ercst*d0jm1*d0jm2
-    d3av(2,3,i0nid) = d0ercst*d0jm1*d0jm3
-!    i1avidv(3) = 3
-    
-    !C Ep
-    d3av(1,4,i0nid) = d0epcst*d0jm1*d0jm3
-    d3av(2,4,i0nid) = d0epcst*d0jm1*d0jm4
-!    i1avidv(4) = 4
-    
     !C
     !C EQUATION FOR Ep
     !C
@@ -697,21 +742,22 @@ CONTAINS
     !C Ep
     d3av(1,5,i0nid) = d0epcst*d0ugr*d0vci2
     d3av(2,5,i0nid) = d0epcst*d0ugp*d0vci2
-!    i1avidv(5) = 4
+    !i1avidv(5) = 4
 
     !C
-    !C EQUATION FOR Et
+    !C EQUATION FOR Er
     !C
+
+    !C Ep
+    d3av(1,6,i0nid) = d0epcst*d0jm1*d0jm3
+    d3av(2,6,i0nid) = d0epcst*d0jm1*d0jm4
+    !i1avidv(6) = 4
     
-    !C Bp
-    d3av(1,6,i0nid) = -d0mfcst*d0jm1*d0jm2*d0jm5
-    d3av(2,6,i0nid) = -d0mfcst*d0jm1*d0jm3*d0jm5
-!    i1avidv(6) = 1
-    !C Et
-    d3av(1,7,i0nid) =  d0etcst*d0ugr*d0vci2*d0jm5
-    d3av(2,7,i0nid) =  d0etcst*d0ugp*d0vci2*d0jm5
-!    i1avidv(7) = 5
-
+    !C Er
+    d3av(1,7,i0nid) = d0ercst*d0jm1*d0jm2
+    d3av(2,7,i0nid) = d0ercst*d0jm1*d0jm3
+    !i1avidv(7) = 5
+    
     i0cid = 7
     
     DO i1 = 1, i0spcs
@@ -740,8 +786,7 @@ CONTAINS
        !C N
        d3av(1,i0cid+1,i0nid) = d0nncst*(d0ugr+d0jm1*d0ur)
        d3av(2,i0cid+1,i0nid) = d0nncst*(d0ugp+d0jm1*d0up)
-
-!       i1avidv(i0cid+1) = i0vc+1
+       !i1avidv(i0cid+1) = i0vc+1
        i0cid = i0cid + 1
        
        !C
@@ -749,15 +794,14 @@ CONTAINS
        !C
        
        !C Fb
-       
        d3av(1,i0cid+1,i0nid) = d0fbcst* d0ug1*d0bb
        d3av(2,i0cid+1,i0nid) = d0fbcst*(d0ug2*d0bb + d0jm1*d0bp*d0ub)
+       !i1avidv(i0cid+1) = i0vc+3
        
        !C P
        d3av(2,i0cid+2,i0nid) = d0ppcst*d0jm1*d0bp/d0m
-
-!       i1avidv(i0cid+1) = i0vc+3
-!       i1avidv(i0cid+2) = i0vc+5
+       !i1avidv(i0cid+2) = i0vc+5
+       
        i0cid = i0cid + 2
        
        !C
@@ -767,24 +811,23 @@ CONTAINS
        !C Ft
        d3av(1,i0cid+1,i0nid) = d0ftcst*(d0ugr + d0jm1*d0ur)
        d3av(2,i0cid+1,i0nid) = d0ftcst*(d0ugp + d0jm1*d0up)
+       !i1avidv(i0cid+1) = i0vc + 4
        
-!       i1avidv(i0cid+1) = i0vc + 4
-       i0cid            = i0cid + 1
+       i0cid = i0cid + 1
        
        !C
        !C EQUATION FOR P
        !C
-
+       
        d0x1 = 0.5D0*d0jm1*d0m*d0n*d0u2*d0pi
        d0x2 = d0jm1*d0pi
-
+       
        !C P
        d3av(1,i0cid+1,i0nid)&
             = d0ppcst*(1.5D0*d0ugr - d0x1*d0ur + d0x2*d0qr)
        d3av(2,i0cid+1,i0nid)&
             = d0ppcst*(1.5D0*d0ugp - d0x1*d0up + d0x2*d0qp)
-       
-!       i1avidv(i0cid+1) = i0vc+5
+       !i1avidv(i0cid+1) = i0vc+5
        i0cid = i0cid + 1
        
        !C
@@ -794,15 +837,17 @@ CONTAINS
        !C Fb
        d3av(2,i0cid+1,i0nid)&
             = d0fbcst*d0jm1*d0ni*(d0qb - 1.5D0*d0p*d0ub)*d0bp
+       !i1avidv(i0cid+1) = i0vc+3
+
        !C P
        d3av(2,i0cid+2,i0nid) = d0ppcst*2.5D0*d0jm1*d0t*d0bp/d0m
+       !i1avidv(i0cid+2) = i0vc+5
+       
        !C Qb
        d3av(1,i0cid+3,i0nid) = d0qbcst* d0bb*d0ugr
        d3av(2,i0cid+3,i0nid) = d0qbcst*(d0bb*d0ugp+d0jm1*d0ub*d0bp)
-       
-       !i1avidv(i0cid+1) = i0vc+3
-       !i1avidv(i0cid+2) = i0vc+5
        !i1avidv(i0cid+3) = i0vc+7
+       
        i0cid = i0cid + 3
        
        !C
@@ -812,16 +857,17 @@ CONTAINS
        !C Ft
        d3av(1,i0cid+1,i0nid) = d0ftcst*d0jm1*d0ni*(d0qr-1.5D0*d0p*d0ur)
        d3av(2,i0cid+1,i0nid) = d0ftcst*d0jm1*d0ni*(d0qp-1.5D0*d0p*d0up)
+       !i1avidv(i0cid+1) = i0vc+4
+
        !C Qt
        d3av(1,i0cid+2,i0nid) = d0qtcst*(d0ugr + d0jm1*d0ur)
        d3av(2,i0cid+2,i0nid) = d0qtcst*(d0ugp + d0jm1*d0up)
-       
-       !i1avidv(i0cid+1) = i0vc+4
        !i1avidv(i0cid+2) = i0vc+8
+       
        i0cid = i0cid + 2
        
     ENDDO
-
+    
     !OPEN(10,FILE='TEST_AVV.dat')
     !DO i1=1,i0avcmx
     !   WRITE(10,*)'i1=',i1,'I1AVIDC=',i1avidv(i1)
@@ -830,12 +876,12 @@ CONTAINS
     !DEALLOCATE(i1avidv)
 
     IF(i0cid.EQ.i0avcmx) RETURN
-
+    
     WRITE(6,*)'ERROR IN T2CALV_AV_COEFF'
     STOP
     
   END SUBROUTINE T2CALV_AV
-
+  
   !C
   !C
   !C  
@@ -855,10 +901,10 @@ CONTAINS
     REAL(   i0rkind)::&
          d0m,d0ur,d0up,d0ub,d0c1,d0c2,d0c3,d0c4,&
          d0x1,d0x2
-!    INTEGER(i0ikind),DIMENSION(:),ALLOCATABLE::i1atidv
-
-!    ALLOCATE(i1atidv(1:i0atcmx))
-!    i1atidv(1:i0atcmx) = 0
+    !INTEGER(i0ikind),DIMENSION(:),ALLOCATABLE::i1atidv
+    
+    !ALLOCATE(i1atidv(1:i0atcmx))
+    !i1atidv(1:i0atcmx) = 0
 
     i0cid = 0
     
@@ -879,21 +925,23 @@ CONTAINS
        !C EQUATION FOR Fb
        !C
        
-       d0x1                    = (2.D0*d0jm1*d0bp)/(3.D0*d0m)
-
+       d0x1 = (2.D0*d0jm1*d0bp)/(3.D0*d0m)
+       
        !C Fb (B)
        d4at(2,2,i0cid+1,i0nid) = -d0fbcst*d0x1*d0c1*d0g4
+       !i1atidv(i0cid+1) = i0vc+3
+
        !C Ft (B)
        d4at(2,2,i0cid+2,i0nid) = -d0ftcst*d0x1*d0c1*d0g5
+       !i1atidv(i0cid+2) = i0vc+4
+
        !C Qb (B)
        d4at(2,2,i0cid+3,i0nid) = -d0qbcst*d0x1*d0c2*d0g4
+       !i1atidv(i0cid+3) = i0vc+7
+
        !C Qt (B)
        d4at(2,2,i0cid+4,i0nid) = -d0qtcst*d0x1*d0c2*d0g5
-       
-!       i1atidv(i0cid+1) = i0vc+3
-!       i1atidv(i0cid+2) = i0vc+4
-!       i1atidv(i0cid+3) = i0vc+7
-!       i1atidv(i0cid+4) = i0vc+8
+       !i1atidv(i0cid+4) = i0vc+8
 
        i0cid = i0cid + 4
        
@@ -901,21 +949,22 @@ CONTAINS
        !C EQUATION FOR Ft
        !C
        
-       d0x1                    = d0jm1*d0bpb*d0btb/d0m
+       d0x1 = d0jm1*d0bpb*d0btb/d0m
        
        !C Fb (B)
        d4at(2,2,i0cid+1,i0nid) = -d0fbcst*d0x1*d0c1*d0g4
+       !i1atidv(i0cid+1) = i0vc+3
        !C Ft (B)
        d4at(2,2,i0cid+2,i0nid) = -d0ftcst*d0x1*d0c1*d0g5
+       !i1atidv(i0cid+2) = i0vc+4
+
        !C Qb (B)
        d4at(2,2,i0cid+3,i0nid) = -d0qbcst*d0x1*d0c2*d0g4
+       !i1atidv(i0cid+3) = i0vc+7
+
        !C Qt (B)
        d4at(2,2,i0cid+4,i0nid) = -d0qtcst*d0x1*d0c2*d0g5
-       
-!       i1atidv(i0cid+1) = i0vc+3
-!       i1atidv(i0cid+2) = i0vc+4
-!       i1atidv(i0cid+3) = i0vc+7
-!       i1atidv(i0cid+4) = i0vc+8
+       !i1atidv(i0cid+4) = i0vc+8       
 
        i0cid = i0cid + 4
        
@@ -923,48 +972,52 @@ CONTAINS
        !C EQUATION FOR P
        !C
 
-       d0x1                    = -d0jm1*d0ur/3.D0 
-       d0x2                    = -d0jm1*d0up/3.D0 + d0jm1*d0ub*d0bpb
+       d0x1 = -d0jm1*d0ur/3.D0 
+       d0x2 = -d0jm1*d0up/3.D0 + d0jm1*d0ub*d0bpb
        
        !C Fb
        d4at(1,2,i0cid+1,i0nid) = d0fbcst*d0x1*d0c1*d0g4
        d4at(2,2,i0cid+1,i0nid) = d0fbcst*d0x2*d0c1*d0g4
+       !i1atidv(i0cid+1) = i0vc+3
+
        !C Ft
        d4at(1,2,i0cid+2,i0nid) = d0ftcst*d0x1*d0c1*d0g5
-       d4at(2,2,i0cid+2,i0nid) = d0ftcst*d0x2*d0c1*d0g5
+       d4at(2,2,i0cid+2,i0nid) = d0ftcst*d0x2*d0c1*d0g5 
+       !i1atidv(i0cid+2) = i0vc+4
+       
        !C Qb
        d4at(1,2,i0cid+3,i0nid) = d0qbcst*d0x1*d0c2*d0g4
        d4at(2,2,i0cid+3,i0nid) = d0qbcst*d0x2*d0c2*d0g4
+       !i1atidv(i0cid+3) = i0vc+7
+
        !C Qt
        d4at(1,2,i0cid+4,i0nid) = d0qtcst*d0x1*d0c2*d0g5
        d4at(2,2,i0cid+4,i0nid) = d0qtcst*d0x2*d0c2*d0g5
-
-!       i1atidv(i0cid+1) = i0vc+3
-!       i1atidv(i0cid+2) = i0vc+4
-!       i1atidv(i0cid+3) = i0vc+7
-!       i1atidv(i0cid+4) = i0vc+8
-
+       !i1atidv(i0cid+4) = i0vc+8
+       
        i0cid = i0cid + 4
-
+       
        !C
        !C EQUATION FOR Qb
        !C 
-
-       d0x1                    = 2.D0*d0jm1*d0bp/3.D0
+       
+       d0x1 = 2.D0*d0jm1*d0bp/3.D0
        
        !C Fb
        d4at(2,2,i0cid+1,i0nid) = -d0fbcst*d0x1*d0c3*d0g4
+       !i1atidv(i0cid+1) = i0vc+3
+
        !C Ft
        d4at(2,2,i0cid+2,i0nid) = -d0ftcst*d0x1*d0c3*d0g5
+       !i1atidv(i0cid+2) = i0vc+4
+
        !C Qb
        d4at(2,2,i0cid+3,i0nid) = -d0qbcst*d0x1*d0c4*d0g4
+       !i1atidv(i0cid+3) = i0vc+7
+
        !C Qt
        d4at(2,2,i0cid+4,i0nid) = -d0qtcst*d0x1*d0c4*d0g5
-
-!       i1atidv(i0cid+1) = i0vc+3
-!       i1atidv(i0cid+2) = i0vc+4
-!       i1atidv(i0cid+3) = i0vc+7
-!       i1atidv(i0cid+4) = i0vc+8
+       !i1atidv(i0cid+4) = i0vc+8
        
        i0cid = i0cid + 4
        
@@ -972,43 +1025,47 @@ CONTAINS
        !C EQUATION FOR Qt
        !C
 
-       d0x1                    = d0jm1*d0bpb*d0btb
+       d0x1 = d0jm1*d0bpb*d0btb
 
        !C Fb
        d4at(2,2,i0cid+1,i0nid) = -d0fbcst*d0x1*d0c3*d0g4
+       !i1atidv(i0cid+1) = i0vc+3
+
        !C Ft
        d4at(2,2,i0cid+2,i0nid) = -d0ftcst*d0x1*d0c3*d0g5
+       !i1atidv(i0cid+2) = i0vc+4
+
        !C Qb
        d4at(2,2,i0cid+3,i0nid) = -d0qbcst*d0x1*d0c4*d0g4
+       !i1atidv(i0cid+3) = i0vc+7
+
        !C Qt
        d4at(2,2,i0cid+4,i0nid) = -d0qtcst*d0x1*d0c4*d0g5
-
-!       i1atidv(i0cid+1) = i0vc+3
-!       i1atidv(i0cid+2) = i0vc+4
-!       i1atidv(i0cid+3) = i0vc+7
-!       i1atidv(i0cid+4) = i0vc+8
+       !i1atidv(i0cid+4) = i0vc+8
        
        i0cid = i0cid + 4
-
+       
     ENDDO
-
-!    OPEN(10,FILE='TEST_ATV.dat')
-!    DO i1=1,i0atcmx
-!       WRITE(10,*)'i1=',i1,'I1ATIDC=',i1atidv(i1)
-!    ENDDO
-!    CLOSE(10)
-!    DEALLOCATE(i1atidv)
-    If(i0cid.EQ.i0atcmx) RETURN
+    
+    !OPEN(10,FILE='TEST_ATV.dat')
+    !DO i1=1,i0atcmx
+    !   WRITE(10,*)'i1=',i1,'I1ATIDC=',i1atidv(i1)
+    !ENDDO
+    !CLOSE(10)
+    !DEALLOCATE(i1atidv)
+    
+    IF(i0cid.EQ.i0atcmx) RETURN
     
     WRITE(6,*)'ERROR IN T2CALV_AT_COEFF'
+    
     STOP
-
+    
   END SUBROUTINE T2CALV_AT
 
   !C
   !C
   !C  
-  SUBROUTINE T2_CALV_DT
+  SUBROUTINE T2CALV_DT
     
     USE T2CNST
     USE T2COMM,ONLY:&
@@ -1024,15 +1081,16 @@ CONTAINS
     REAL(   i0rkind)::&
          d0m,d0p,d0ur,d0up,d0ub,d0qb,d0qbp,&
          d0c1,d0c2,d0c3,d0c4,d0x1,d0x2
-
+    
     INTEGER(i0ikind),DIMENSION(:),ALLOCATABLE::i1dtidv
 
     !ALLOCATE(i1dtidv(1:i0dtcmx))
     !i1dtidv(1:i0dtcmx) = 0
+    
     i0cid = 0
-
+    
     DO i1 = 1, i0spcs
-     
+       
        d0m   = d1m(  i1)
        d0p   = d1p(  i1)
        d0ur  = d1ur( i1)
@@ -1050,7 +1108,7 @@ CONTAINS
        !C   
        !C EQUATION FOR Fb
        !C
-       d0x1                    =  (2.D0*d0jm1*d0bp*d0bpb)/(3.D0*d0m)
+       d0x1 =  (2.D0*d0jm1*d0bp*d0bpb)/(3.D0*d0m)
        
        !C N
        d4dt(2,2,i0cid+1,i0nid) = - d0nncst*d0x1*d0c1*d0ub
@@ -1141,7 +1199,7 @@ CONTAINS
        !C EQUATION FOR Qt
        !C
 
-       d0x1                    =   d0jm1*d0btb*d0bpb*d0bpb
+       d0x1 = d0jm1*d0btb*d0bpb*d0bpb
 
        !C  
        d4dt(2,2,i0cid+1,i0nid) = - d0nncst*d0x1*d0c3*d0ub
@@ -1167,17 +1225,17 @@ CONTAINS
     !ENDDO
     !CLOSE(10)
     !DEALLOCATE(i1dtidv)
-    If(i0cid.EQ.i0dtcmx) RETURN
+    IF(i0cid.EQ.i0dtcmx) RETURN
     
     WRITE(6,*)'ERROR IN T2CALV_DT_COEFF'
     STOP
+    
+  END SUBROUTINE T2CALV_DT
 
-  END SUBROUTINE T2_CALV_DT
-
   !C
   !C
   !C
-  SUBROUTINE T2_CALV_GV
+  SUBROUTINE T2CALV_GV
 
     USE T2CNST
     USE T2COMM, ONLY:&
@@ -1195,36 +1253,37 @@ CONTAINS
     
     !ALLOCATE(i1gvidv(1:i0gvcmx))
     !i1gvidv(1:i0gvcmx)         = 0    
+    
     !C
-    !C EQUATION FOR BP
+    !C EQUATION FOR PSI
     !C
-
+    
     !C Et
     d3gv(1,1,i0nid) = - d0etcst*d0jm1
-    
-    !i1gvidv(1) = 5
+    !i1gvidv(1) = 3
     
     !C
-    !C EQUATION FOR BT
+    !C EQUATION FOR I
     !C
+    
     d0x1 = 1.D0/d0jm5
     
-    !C Er
-    d3gv(2,2,i0nid) = -d0ercst*d0x1
     !C Ep
-    d3gv(1,3,i0nid) =  d0epcst*d0x1
-        
-    !i1gvidv(2) = 3
-    !i1gvidv(3) = 4
+    d3gv(1,2,i0nid) =  d0epcst*d0x1
+    !i1gvidv(2) = 4
+    
+    !C Er
+    d3gv(2,3,i0nid) = -d0ercst*d0x1
+    !i1gvidv(3) = 5
     
     !C 
-    !C EQUATION FOR EP
+    !C EQUATION FOR Ep
     !C
     
-    !C BT
+    !C I
     d3gv(1,4,i0nid) =  d0btcst*(d0jm1**2)*d0jm2*d0jm5
-    
     !i1gvidv(4) = 2
+    
     i0cid = 4
     
     DO i1 = 1,i0spcs
@@ -1239,11 +1298,10 @@ CONTAINS
        !C
        !C EQUATION FOR Fr
        !C
-
+       
        !C P
        d3gv(1,i0cid+1,i0nid) =  d0ppcst*d0jm1*d0jm2/d0m
        d3gv(2,i0cid+1,i0nid) =  d0ppcst*d0jm1*d0jm3/d0m
-       
        !i1gvidv(i0cid+1) = i0vc + 5
        i0cid = i0cid + 1
        
@@ -1254,48 +1312,51 @@ CONTAINS
        !C P
        d3gv(1,i0cid+1,i0nid) = -d0ppcst*d0jm1*d0ur
        d3gv(2,i0cid+1,i0nid) = -d0ppcst*d0jm1*d0up
-       
        !i1gvidv(i0cid+1) = i0vc + 5
+       
        i0cid = i0cid + 1
-
+       
        !C
        !C EQUATION FOR Qr
        !C
-
+       
        d0x1 = 2.5D0*d0jm1*d0t/d0m
-
+       
        !C N
        d3gv(1,i0cid+1,i0nid) = -d0nncst     *d0x1*d0jm2*d0t
        d3gv(2,i0cid+1,i0nid) = -d0nncst     *d0x1*d0jm3*d0t
+       !i1gvidv(i0cid+1) = i0vc + 1
+       
        !C P
        d3gv(1,i0cid+2,i0nid) =  d0ppcst*2.D0*d0x1*d0jm2
        d3gv(2,i0cid+2,i0nid) =  d0ppcst*2.D0*d0x1*d0jm3
-
-       !i1gvidv(i0cid+1) = i0vc + 1
        !i1gvidv(i0cid+2) = i0vc + 5
+       
        i0cid = i0cid + 2
-
+       
     ENDDO
-
+    
     !OPEN(10,FILE='TEST_GVV.dat')
     !DO i1=1,i0gvcmx
     !   WRITE(10,*)'i1=',i1,'I1GVIDC=',i1gvidv(i1)
     !ENDDO
     !CLOSE(10)
     !DEALLOCATE(i1gvidv)
-    If(i0cid.EQ.i0gvcmx) RETURN
+    
+    IF(i0cid.EQ.i0gvcmx) RETURN
     
     WRITE(6,*)'ERROR IN T2CALV_GV_COEFF'
     STOP
-
+    
     RETURN
-  END SUBROUTINE T2_CALV_GV
+  
+  END SUBROUTINE T2CALV_GV
   
 
   !C
   !C
   !C
-  SUBROUTINE T2_CALV_GT
+  SUBROUTINE T2CALV_GT
     
     USE T2CNST
     USE T2COMM,ONLY:&
@@ -1314,7 +1375,7 @@ CONTAINS
 
     !ALLOCATE(i1gtidv(1:i0gtcmx))
     !i1gtidv(1:i0gtcmx) = 0
-
+    
     i0cid = 0
     
     DO i1 = 1, i0spcs
@@ -1418,18 +1479,19 @@ CONTAINS
     !CLOSE(10)
     !DEALLOCATE(i1gtidv)
     
-    If(i0cid.EQ.i0gtcmx) RETURN
+    IF(i0cid.EQ.i0gtcmx) RETURN
     
     WRITE(6,*)'ERROR IN T2CALV_GT_COEFF'
     STOP
     
     RETURN
-  END SUBROUTINE T2_CALV_GT
+
+  END SUBROUTINE T2CALV_GT
   
   !C
   !C
   !C
-  SUBROUTINE T2_CALV_ES
+  SUBROUTINE T2CALV_ES
     
     USE T2CNST,ONLY:&
          d0eps0,d0rmu0
@@ -1442,136 +1504,143 @@ CONTAINS
          i0escmx,d2es
     
     INTEGER(i0ikind)::i1,j1,i0cid,i0vc
-
+    
     REAL(   i0rkind)::&
          d0m,d0e,d0n,d0p,&
          d0f1,d0f2,d0f3,d0f4,d0hx,&
          d0x1,d0x2
     INTEGER(i0ikind),DIMENSION(:),ALLOCATABLE::i1esidv
-
+    
     !ALLOCATE(i1esidv(1:i0escmx))
     !i1esidv(1:i0escmx) = 0
     
     i0cid = 0
     
     !C
-    !C EQUATION FOR ER
-    !C
-    DO j1 = 1, i0spcs
-
-       d0e  = d1e(j1)
-       i0vc = 8*j1-3
-
-       !C N
-       d2es(i0cid+1,i0nid) = - d0nncst*d0jm1*d0e/d0eps0
-
-       !i1esidv(i0cid+1) = i0vc+1 
-       i0cid = i0cid + 1
-       
-    ENDDO
-
-    !C
-    !C EQUATION FOR EP
-    !C
-    DO j1 =1, i0spcs
-
-       d0e  = d1e(j1)
-       d0x1 = d0jm1*d0rmu0*d0e*d0bpi
-       i0vc = 8*j1-3
-
-       !C FB
-       d2es(i0cid+1,i0nid) =   d0fbcst*d0x1*d0bb
-       !C FT
-       d2es(i0cid+2,i0nid) = - d0ftcst*d0x1*d0bt*d0jm5
-       
-       !i1esidv(i0cid+1) = i0vc+3 
-       !i1esidv(i0cid+2) = i0vc+4 
-       i0cid = i0cid + 2
-       
-    ENDDO
-    
-    !C
-    !C EQUATION FOR ET
+    !C EQUATION FOR Et
     !C 
-    DO j1 =1, i0spcs
-
-       d0e = d1e(j1)
-       i0vc = 8*j1-3
-       !C FT
+    DO j1 = 1, i0spcs
        
-       d2es(i0cid+1,i0nid) = d0ftcst*d0jm1*d0rmu0*d0e*d0jm5
+       d0e  = d1e(j1)
+       i0vc = 8*j1-3
+       
+       !C Ft
+       d2es(i0cid+1,i0nid) = d0ftcst*d0jm1*d0rmu0*d0e
        !i1esidv(i0cid+1) = i0vc+4
        i0cid = i0cid + 1
        
     ENDDO
     
+    !C
+    !C EQUATION FOR Ep
+    !C
+    DO j1 =1, i0spcs
+       
+       d0e  = d1e(j1)
+       d0x1 = d0jm1*d0rmu0*d0e*d0bpi
+       i0vc = 8*j1-3
+       
+       !C Fb
+       d2es(i0cid+1,i0nid) =   d0fbcst*d0x1*d0bb
+       !i1esidv(i0cid+1) = i0vc+3 
+       
+       !C Ft
+       d2es(i0cid+2,i0nid) = - d0ftcst*d0x1*d0bt*d0jm5
+       !i1esidv(i0cid+2) = i0vc+4 
+       
+       i0cid = i0cid + 2
+       
+    ENDDO
+    
+    !C
+    !C EQUATION FOR Er
+    !C
+    DO j1 = 1, i0spcs
+       
+       d0e  = d1e(j1)
+       i0vc = 8*j1-3
+       
+       !C N
+       d2es(i0cid+1,i0nid) = - d0nncst*d0jm1*d0e/d0eps0
+       !i1esidv(i0cid+1) = i0vc+1 
+       i0cid = i0cid + 1
+       
+    ENDDO
+    
     DO i1 = 1, i0spcs
-
+       
        d0n  = d1n(i1)
        d0p  = d1p(i1)
        d0m  = d1m(i1)
        d0e  = d1e(i1)
- 
+       
        !C
        !C EQUATION FOR Fr
        !C
        
        d0x1 = d0e/d0m
        i0vc = 8*i1-3
-
-       !C ER
-       d2es(i0cid+1,i0nid) = -d0ercst*d0x1*d0jm1*d0n*d0jm2
-       !C EP
-       d2es(i0cid+2,i0nid) = -d0epcst*d0x1*d0jm1*d0n*d0jm3
-       !C FB
-       d2es(i0cid+3,i0nid) = -d0fbcst*d0x1*d0bt*d0bb*d0bpi
-       !C FT
-       d2es(i0cid+4,i0nid) =  d0ftcst*d0x1*d0bb*d0bb*d0bpi
        
-       !i1esidv(i0cid+1) = 3
-       !i1esidv(i0cid+2) = 4
+       !C Ep
+       d2es(i0cid+1,i0nid) = -d0epcst*d0x1*d0jm1*d0n*d0jm3
+       !i1esidv(i0cid+1) = 4
+       
+       !C Er
+       d2es(i0cid+2,i0nid) = -d0ercst*d0x1*d0jm1*d0n*d0jm2
+       !i1esidv(i0cid+2) = 5
+       
+       !C Fb
+       d2es(i0cid+3,i0nid) = -d0fbcst*d0x1*d0bt*d0bb*d0bpi
        !i1esidv(i0cid+3) = i0vc+3 
+       
+       !C Ft
+       d2es(i0cid+4,i0nid) =  d0ftcst*d0x1*d0bb*d0bb*d0bpi
        !i1esidv(i0cid+4) = i0vc+4 
+       
        i0cid = i0cid + 4
        
        !C
        !C EQUATION FOR Fb
        !C
-             
+       
        DO j1 = 1, i0spcs
           
           d0x1 = d0jm1*d0e*d0n/d0m 
           d0x2 = d0jm1*d0bb/d0m
           i0vc = 8*j1 - 3
-
+          d0f1 = d2f1(i1,j1)
+          d0f2 = d2f2(i1,j1)
+          
           IF(i1.EQ.j1)THEN
-             !C EP
-             d2es(i0cid+1,i0nid) = - d0epcst*d0x1*d0bp
-             !C ET
-             d2es(i0cid+2,i0nid) = - d0etcst*d0x1*d0bt*d0jm5
-             !C FB
-             d0f1 = d2f1(i1,j1)
+             
+             !C Et
+             d2es(i0cid+1,i0nid) = - d0etcst*d0x1*d0bt*d0jm5
+             !i1esidv(i0cid+1) = 3
+             
+             !C Ep
+             d2es(i0cid+2,i0nid) = - d0epcst*d0x1*d0bp
+             !i1esidv(i0cid+2) = 4
+             
+             !C Fb
              d2es(i0cid+3,i0nid) = - d0fbcst*d0x2*d0f1
-             !C QB
-             d0f2 = d2f2(i1,j1)
-             d2es(i0cid+4,i0nid) = - d0qbcst*d0x2*d0f2
-
-             !i1esidv(i0cid+1) = 4
-             !i1esidv(i0cid+2) = 5
              !i1esidv(i0cid+3) = i0vc+3 
+             
+             !C Qb
+             d2es(i0cid+4,i0nid) = - d0qbcst*d0x2*d0f2
              !i1esidv(i0cid+4) = i0vc+7 
+             
              i0cid = i0cid + 4
              
           ELSE
-             !C FB
-             d0f1 = d2f1(i1,j1)
-             d2es(i0cid+1,i0nid) = - d0fbcst*d0x2*d0f1
-             !C QB
-             d0f2 = d2f2(i1,j1)
-             d2es(i0cid+2,i0nid) = - d0qbcst*d0x2*d0f2
              
+             !C Fb
+             d2es(i0cid+1,i0nid) = - d0fbcst*d0x2*d0f1
              !i1esidv(i0cid+1) = i0vc+3 
+             
+             !C Qb
+             d2es(i0cid+2,i0nid) = - d0qbcst*d0x2*d0f2            
              !i1esidv(i0cid+2) = i0vc+7 
+             
              i0cid = i0cid + 2
              
           ENDIF
@@ -1586,43 +1655,44 @@ CONTAINS
           d0x1 = d0jm1*d0e/d0m
           d0x2 = d0jm1/d0m
           i0vc = 8*j1 - 3
+          d0f1 = d2f1(i1,j1)
+          d0f2 = d2f2(i1,j1)
           
           IF(i1.EQ.j1)THEN
              
              !C LORENTZ FORCE
              
-             !C ET
+             !C Et
              d2es(i0cid+1,i0nid) = -d0etcst*d0x1*d0n
-             !C FR
+             !i1esidv(i0cid+1) = 3
+
+             !C Fr
              d2es(i0cid+2,i0nid) = -d0frcst*d0x1*d0jm1*d0bp
-             
+             !i1esidv(i0cid+2) = i0vc+2
+
              !C FRICTION FORCE
 
-             !C FT
-             d0f1 = d2f1(i1,j1)
+             !C Ft
              d2es(i0cid+3,i0nid) = -d0ftcst*d0x2*d0f1
-             !C QT
-             d0f2 = d2f2(i1,j1)
-             d2es(i0cid+4,i0nid) = -d0qtcst*d0x2*d0f2
-             
-             !i1esidv(i0cid+1) = 5
-             !i1esidv(i0cid+2) = i0vc+2
              !i1esidv(i0cid+3) = i0vc+4 
+             
+             !C Qt
+             d2es(i0cid+4,i0nid) = -d0qtcst*d0x2*d0f2
              !i1esidv(i0cid+4) = i0vc+8 
+             
              i0cid = i0cid + 4
              
           ELSE
              !C FRICTION FORCE
 
              !C Ft
-             d0f1 = d2f1(i1,j1)
              d2es(i0cid+1,i0nid) = -d0ftcst*d0x2*d0f1
-             !C Qt
-             d0f2 = d2f2(i1,j1)
-             d2es(i0cid+2,i0nid) = -d0qtcst*d0x2*d0f2
+             !i1esidv(i0cid+1) = i0vc+4
              
-             !i1esidv(i0cid+1) = i0vc+4 
+             !C Qt
+             d2es(i0cid+2,i0nid) = -d0qtcst*d0x2*d0f2
              !i1esidv(i0cid+2) = i0vc+8 
+             
              i0cid = i0cid + 2
              
           ENDIF
@@ -1637,84 +1707,88 @@ CONTAINS
        
        d0hx = d1hx(i1)
        d2es(i0cid+1,i0nid) = d0ppcst*d0jm1*d0hx
-
        !i1esidv(i0cid+1) = i0vc+5 
        i0cid = i0cid + 1
 
        !C
        !C EQUATION FOR Qr
        !C
+       
        i0vc = 8*i1 - 3
-
        d0x1 = d0e/d0m
        d0x2 = 2.5D0*d0jm1*d0x1*d0p
-       !C Er
-       d2es(i0cid+1,i0nid) = -d0ercst*d0x2*d0jm2
+       
        !C Ep
-       d2es(i0cid+2,i0nid) = -d0epcst*d0x2*d0jm3
+       d2es(i0cid+1,i0nid) = -d0epcst*d0x2*d0jm3
+       !i1esidv(i0cid+1) = 4
+
+       !C Er
+       d2es(i0cid+2,i0nid) = -d0ercst*d0x2*d0jm2
+       !i1esidv(i0cid+2) = 5 
+
        !C Qb
        d2es(i0cid+3,i0nid) = -d0qbcst*d0x1*d0bt*d0bb*d0bpi
+       !i1esidv(i0cid+3) = i0vc+7 
+       
        !C Qt
        d2es(i0cid+4,i0nid) =  d0qtcst*d0x1*d0bb*d0bb*d0bpi
-
-       !i1esidv(i0cid+1) = 3 
-       !i1esidv(i0cid+2) = 4 
-       !i1esidv(i0cid+3) = i0vc+7 
-       !i1esidv(i0cid+4) = i0vc+8 
+       !i1esidv(i0cid+4) = i0vc+8               
+       
        i0cid = i0cid + 4
-
+       
        !C
        !C EQUATION FOR Qb
        !C
        
        DO j1 = 1, i0spcs
-
+          
           d0x1 = 2.5D0*d0jm1*d0e*d0p/d0m
-          d0x2 = d0jm1*d0bb          
+          d0x2 = d0jm1*d0bb
+          d0f3 = d2f3(i1,j1)
+          d0f4 = d2f4(i1,j1)
           i0vc = 8*j1 - 3
 
           IF(i1.EQ.j1)THEN
              
              !C LORENTZ FORCE
-
              
-             !C Ep
-             d2es(i0cid+1,i0nid) = -d0epcst*d0x1*d0bp
              !C Et
-             d2es(i0cid+2,i0nid) = -d0etcst*d0x1*d0bt*d0jm5
-             
+             d2es(i0cid+1,i0nid) = -d0etcst*d0x1*d0bt*d0jm5
+             !i1esidv(i0cid+1) = 3
+
+             !C Ep
+             d2es(i0cid+2,i0nid) = -d0epcst*d0x1*d0bp
+             !i1esidv(i0cid+2) = 4
+
              !C FRICTION FORCE
                       
-             !C Fb
-             d0f3 = d2f3(i1,j1)
+             !C Fb  
              d2es(i0cid+3,i0nid) = -d0fbcst*d0x2*d0f3
+             !i1esidv(i0cid+3) = i0vc+3
+
              !C Qb
-             d0f4 = d2f4(i1,j1)
              d2es(i0cid+4,i0nid) = -d0qbcst*d0x2*d0f4
-
-             !i1esidv(i0cid+1) = 4 
-             !i1esidv(i0cid+2) = 5
-             !i1esidv(i0cid+3) = i0vc+3 
-             !i1esidv(i0cid+4) = i0vc+7              
+             !i1esidv(i0cid+4) = i0vc+7
+             
              i0cid = i0cid + 4
-
+             
           ELSE
+             
              !C FRICTION FORCE
              
              !C Fb
-             d0f3 = d2f3(i1,j1)             
              d2es(i0cid+1,i0nid) = -d0fbcst*d0x2*d0f3
-             !C Qb
-             d0f4 = d2f4(i1,j1)
-             d2es(i0cid+2,i0nid) = -d0qbcst*d0x2*d0f4
-             
              !i1esidv(i0cid+1) = i0vc+3 
+             
+             !C Qb
+             d2es(i0cid+2,i0nid) = -d0qbcst*d0x2*d0f4            
              !i1esidv(i0cid+2) = i0vc+7
+             
              i0cid = i0cid + 2
-
+             
           END IF
        ENDDO
-
+       
        !C
        !C EQUATION FOR Qt
        !C
@@ -1722,61 +1796,61 @@ CONTAINS
        DO j1 = 1, i0spcs
 
           d0x1 = d0jm1*d0e/d0m
-          
+          d0f3 = d2f3(i1,j1)
+          d0f4 = d2f4(i1,j1)
           i0vc = 8*j1 - 3
 
           IF(i1.EQ.j1)THEN
                           
              !C Et
              d2es(i0cid+1,i0nid) = -d0etcst*d0x1*2.5D0*d0p
+             !i1esidv(i0cid+1) = 3
+
              !C Ft
-             d0f3 = d2f3(i1,j1)
              d2es(i0cid+2,i0nid) = -d0ftcst*d0jm1*d0f3
+             !i1esidv(i0cid+2) = i0vc+4
+
              !C Qr
              d2es(i0cid+3,i0nid) = -d0qrcst*d0x1*d0jm1*d0bp
+             !i1esidv(i0cid+3) = i0vc+6
+
              !C Qt
-             d0f4 = d2f4(i1,j1)
              d2es(i0cid+4,i0nid) = -d0qtcst*d0jm1*d0f4
+             !i1esidv(i0cid+4) = i0vc+8
              
-             !i1esidv(i0cid+1) = 5 
-             !i1esidv(i0cid+2) = i0vc+4
-             !i1esidv(i0cid+3) = i0vc+6 
-             !i1esidv(i0cid+4) = i0vc+8              
              i0cid = i0cid + 4
              
           ELSE
-
+             
              !C Ft
-             d0f3 = d2f3(i1,j1)
              d2es(i0cid+1,i0nid) = -d0ftcst*d0jm1*d0f3
-
-             !C Qt
-             d0f4 = d2f4(i1,j1)
-             d2es(i0cid+2,i0nid) = -d0qtcst*d0jm1*d0f4
-
              !i1esidv(i0cid+1) = i0vc+4 
+             
+             !C Qt
+             d2es(i0cid+2,i0nid) = -d0qtcst*d0jm1*d0f4
              !i1esidv(i0cid+2) = i0vc+8              
+             
              i0cid = i0cid + 2
              
           ENDIF
        ENDDO
     ENDDO
-
-!    OPEN(10,FILE='TEST_ESV.dat')
-!    DO i1=1,i0escmx
-!       WRITE(10,*)'i1=',i1,'I1ESIDC=',i1esidv(i1)
-!    ENDDO
-!    CLOSE(10)
-
-    If(i0cid.EQ.i0escmx) RETURN
+    
+    !OPEN(10,FILE='TEST_ESV.dat')
+    !DO i1=1,i0escmx
+    !   WRITE(10,*)'i1=',i1,'I1ESIDC=',i1esidv(i1)
+    !ENDDO
+    !CLOSE(10)
+    
+    IF(i0cid.EQ.i0escmx) RETURN
     
     WRITE(6,*)'ERROR IN T2CALV_ES_COEFF'
     STOP 
-
-  END SUBROUTINE T2_CALV_ES
-
-
-  SUBROUTINE T2_CALV_EV
+    
+  END SUBROUTINE T2CALV_ES
+  
+  
+  SUBROUTINE T2CALV_EV
     
     USE T2CNST
     USE T2COMM,ONLY:&
@@ -1799,8 +1873,17 @@ CONTAINS
     !ALLOCATE(i1evidv(1:i0evcmx))
     !i1evidv(1:i0evcmx) = 0
 
-    i0cid = 0
-
+    !C
+    !C EQUATION FOR Et
+    !C
+    
+    !C PSI' (ln R)
+    d3ev(1,1,i0nid) = d0mfcst*2.D0*d0jm1*d0jm2
+    d3ev(2,1,i0nid) = d0mfcst*2.D0*d0jm1*d0jm3
+    !i1evidv(1) = 1
+    
+    i0cid = 1
+    
     DO i1 = 1,i0spcs
        
        d0e   = d1e(  i1)
@@ -1817,13 +1900,14 @@ CONTAINS
        d0c2  = d1c2( i1)
        
        i0vc = 8*i1 - 3
+       
        !C
        !C EQUATION FOR Fb
        !C
-
+       
        !C Fb (B)
        d3ev(2,i0cid+1,i0nid) = -d0fbcst*d0jm1*d0ub*d0bpb
-
+       
        !i1evidv(i0cid+1) = i0vc+3
        i0cid = i0cid + 1
        
@@ -1833,46 +1917,58 @@ CONTAINS
        
        d0x1 = d0jm1*d0e*d0bp/d0m
        d0x2 = d0jm1*d0e*d0bt*d0jm5/d0m
-       d0x3 = d0c1*d0n*(d0ub*d0g4+d0ut*d0g5)+d0c2*(d0qb*d0g4+d0qt*d0g5)
+       d0x3 = d0c1*d0n*(d0ub*d0g4+d0ut*d0g5)&
+            + d0c2*(d0qb*d0g4+d0qt*d0g5)
        d0x4 = d0qb-1.5D0*d0p*d0ub
-
-       !C Ep (B)
-       d3ev(2,i0cid+ 1,i0nid) = -d0epcst*d0x1*d0x3
-       !C Ep (N)
-       d3ev(2,i0cid+ 2,i0nid) = -d0epcst*d0x1*d0c1*d0bpb*d0ub
-       !C Ep (Fb)
-       d3ev(2,i0cid+ 3,i0nid) =  d0epcst*d0x1*d0c1*d0bpb
-       !C Ep (P)
-       d3ev(2,i0cid+ 4,i0nid) = -d0epcst*d0x1*d0c2*d0bpb*d0qbp
-       !C Ep (Qb)
-       d3ev(2,i0cid+ 5,i0nid) =  d0epcst*d0x1*d0c2*d0bpb
+       
        !C Et (B)
-       d3ev(2,i0cid+ 6,i0nid) = -d0etcst*d0x2*d0x3
+       d3ev(2,i0cid+ 1,i0nid) = -d0etcst*d0x2*d0x3
+       !i1evidv(i0cid+ 1) = 3
+       
        !C Et (N)
-       d3ev(2,i0cid+ 7,i0nid) = -d0etcst*d0x2*d0c1*d0bpb*d0ub
+       d3ev(2,i0cid+ 2,i0nid) = -d0etcst*d0x2*d0c1*d0bpb*d0ub
+       !i1evidv(i0cid+ 2) = 3
+       
        !C Et (Fb)
-       d3ev(2,i0cid+ 8,i0nid) =  d0etcst*d0x2*d0c1*d0bpb
+       d3ev(2,i0cid+ 3,i0nid) =  d0etcst*d0x2*d0c1*d0bpb
+       !i1evidv(i0cid+ 3) = 3
+       
        !C Et (P)
-       d3ev(2,i0cid+ 9,i0nid) = -d0etcst*d0x2*d0c2*d0bpb*d0qbp
+       d3ev(2,i0cid+ 4,i0nid) = -d0etcst*d0x2*d0c2*d0bpb*d0qbp
+       !i1evidv(i0cid+ 4) = 3
+       
        !C Et (Qb)
-       d3ev(2,i0cid+10,i0nid) =  d0etcst*d0x2*d0c2*d0bpb
+       d3ev(2,i0cid+ 5,i0nid) =  d0etcst*d0x2*d0c2*d0bpb
+       !i1evidv(i0cid+ 5) = 3
+       
+       !C Ep (B)
+       d3ev(2,i0cid+ 6,i0nid) = -d0epcst*d0x1*d0x3
+       !i1evidv(i0cid+ 6) = 4
+       
+       !C Ep (N)
+       d3ev(2,i0cid+ 7,i0nid) = -d0epcst*d0x1*d0c1*d0bpb*d0ub
+       !i1evidv(i0cid+ 7) = 4
+       
+       !C Ep (Fb)
+       d3ev(2,i0cid+ 8,i0nid) =  d0epcst*d0x1*d0c1*d0bpb
+       !i1evidv(i0cid+ 8) = 4
+       
+       !C Ep (P)
+       d3ev(2,i0cid+ 9,i0nid) = -d0epcst*d0x1*d0c2*d0bpb*d0qbp
+       !i1evidv(i0cid+ 9) = 4
+       
+       !C Ep (Qb)
+       d3ev(2,i0cid+10,i0nid) =  d0epcst*d0x1*d0c2*d0bpb
+       !i1evidv(i0cid+10) = 4
+       
        !C Fb (B)
        d3ev(2,i0cid+11,i0nid) = -d0fbcst*d0jm1*d0ni*d0x4*d0bpb
+       !i1evidv(i0cid+11) = i0vc+3
+       
        !C Qb (B) 
        d3ev(2,i0cid+12,i0nid) = -d0qbcst*d0jm1*d0ub*d0bpb
-
-   !    i1evidv(i0cid+ 1) = 4
-   !    i1evidv(i0cid+ 2) = 4
-   !    i1evidv(i0cid+ 3) = 4
-   !    i1evidv(i0cid+ 4) = 4
-   !    i1evidv(i0cid+ 5) = 4
-   !    i1evidv(i0cid+ 6) = 5
-   !    i1evidv(i0cid+ 7) = 5
-   !    i1evidv(i0cid+ 8) = 5
-   !    i1evidv(i0cid+ 9) = 5
-   !    i1evidv(i0cid+10) = 5
-   !    i1evidv(i0cid+11) = i0vc+3
-   !    i1evidv(i0cid+12) = i0vc+7
+       !i1evidv(i0cid+12) = i0vc+7
+       
        i0cid = i0cid + 12
 
        !C
@@ -1881,59 +1977,68 @@ CONTAINS
        
        d0x1 = d0jm1*d0e*d0bpb*d0btb/d0m
        d0x2 = d0jm1*d0e*((d0btb**2)*d0jm5 -1.D0/3.D0)/d0m
-       d0x3 = d0c1*d0n*(d0ub*d0g4+d0ut*d0g5)+d0c2*(d0qb*d0g4+d0qt*d0g5)
+       d0x3 = d0c1*d0n*(d0ub*d0g4+d0ut*d0g5)&
+            + d0c2*(d0qb*d0g4+d0qt*d0g5)
+
+       !C Et (B)
+       d3ev(2,i0cid+ 1,i0nid) = -d0etcst*d0x2*d0x3
+       !i1evidv(i0cid+ 1) = 3
+       
+       !C Et (N)
+       d3ev(2,i0cid+ 2,i0nid) = -d0etcst*d0x2*d0c1*d0bpb*d0ub
+       !i1evidv(i0cid+ 2) = 3
+       
+       !C Et (Fb)
+       d3ev(2,i0cid+ 3,i0nid) =  d0etcst*d0x2*d0c1*d0bpb
+       !i1evidv(i0cid+ 3) = 3
+
+       !C Et (P)
+       d3ev(2,i0cid+ 4,i0nid) = -d0etcst*d0x2*d0c2*d0bpb*d0qbp
+       !i1evidv(i0cid+ 4) = 3
+
+       !C Et (Qb)
+       d3ev(2,i0cid+ 5,i0nid) =  d0etcst*d0x2*d0c2*d0bpb
+       !i1evidv(i0cid+ 5) = 3
 
        !C Ep (B)
-       d3ev(2,i0cid+ 1,i0nid) = -d0epcst*d0x1*d0x3
+       d3ev(2,i0cid+ 6,i0nid) = -d0epcst*d0x1*d0x3
+       !i1evidv(i0cid+ 6) = 4
+
        !C Ep (N)
-       d3ev(2,i0cid+ 2,i0nid) = -d0epcst*d0x1*d0c1*d0bpb*d0ub
-       !C Ep (Fb)
-       d3ev(2,i0cid+ 3,i0nid) =  d0epcst*d0x1*d0c1*d0bpb
-       !C Ep (P)
-       d3ev(2,i0cid+ 4,i0nid) = -d0epcst*d0x1*d0c2*d0bpb*d0qbp
-       !C Ep (Qb)
-       d3ev(2,i0cid+ 5,i0nid) =  d0epcst*d0x1*d0c2*d0bpb
-       !C Et (B)
-       d3ev(2,i0cid+ 6,i0nid) = -d0etcst*d0x2*d0x3
-       !C Et (N)
-       d3ev(2,i0cid+ 7,i0nid) = -d0etcst*d0x2*d0c1*d0bpb*d0ub
-       !C Et (Fb)
-       d3ev(2,i0cid+ 8,i0nid) =  d0etcst*d0x2*d0c1*d0bpb
-       !C Et (P)
-       d3ev(2,i0cid+ 9,i0nid) = -d0etcst*d0x2*d0c2*d0bpb*d0qbp
-       !C Et (Qb)
-       d3ev(2,i0cid+10,i0nid) =  d0etcst*d0x2*d0c2*d0bpb
+       d3ev(2,i0cid+ 7,i0nid) = -d0epcst*d0x1*d0c1*d0bpb*d0ub
+       !i1evidv(i0cid+ 7) = 4
        
-   !    i1evidv(i0cid+ 1) = 4
-   !    i1evidv(i0cid+ 2) = 4
-   !    i1evidv(i0cid+ 3) = 4
-   !    i1evidv(i0cid+ 4) = 4
-   !    i1evidv(i0cid+ 5) = 4
-   !    i1evidv(i0cid+ 6) = 5
-   !    i1evidv(i0cid+ 7) = 5
-   !    i1evidv(i0cid+ 8) = 5
-   !    i1evidv(i0cid+ 9) = 5
-   !    i1evidv(i0cid+10) = 5
+       !C Ep (Fb)
+       d3ev(2,i0cid+ 8,i0nid) =  d0epcst*d0x1*d0c1*d0bpb
+       !i1evidv(i0cid+ 8) = 4
+       
+       !C Ep (P)
+       d3ev(2,i0cid+ 9,i0nid) = -d0epcst*d0x1*d0c2*d0bpb*d0qbp
+       !i1evidv(i0cid+ 9) = 4
+       
+       !C Ep (Qb)
+       d3ev(2,i0cid+10,i0nid) =  d0epcst*d0x1*d0c2*d0bpb
+       !i1evidv(i0cid+10) = 4
+       
        i0cid = i0cid + 10
        
     ENDDO
-
-   ! OPEN(10,FILE='TEST_EVV.dat')
-   ! DO i1=1,i0evcmx
-   !    WRITE(10,*)'i1=',i1,'I1EVIDC=',i1evidv(i1)
-   ! ENDDO
-   ! CLOSE(10)
-   ! DEALLOCATE(i1evidv)
-    If(i0cid.EQ.i0evcmx) RETURN
+    
+    ! OPEN(10,FILE='TEST_EVV.dat')
+    ! DO i1=1,i0evcmx
+    !    WRITE(10,*)'i1=',i1,'I1EVIDC=',i1evidv(i1)
+    ! ENDDO
+    ! CLOSE(10)
+    ! DEALLOCATE(i1evidv)
+    IF(i0cid.EQ.i0evcmx) RETURN
     
     WRITE(6,*)'ERROR IN T2CALV_EV_COEFF'
     STOP
- 
-    RETURN
-  END SUBROUTINE T2_CALV_EV
+    
+  END SUBROUTINE T2CALV_EV
+  
 
-
-  SUBROUTINE T2_CALV_ET
+  SUBROUTINE T2CALV_ET
     
     USE T2CNST
     USE T2COMM,ONLY:&
@@ -1946,7 +2051,7 @@ CONTAINS
     
     INTEGER(i0ikind)::&
          i1,i0cid,i0vc
-
+    
     REAL(   i0rkind)::&
          d0m, d0ut,d0ub,&
          d0c1,d0c2,d0c3,d0c4,d0x1,d0x2
@@ -2060,7 +2165,7 @@ CONTAINS
 
     RETURN
   
-  END SUBROUTINE T2_CALV_ET
+  END SUBROUTINE T2CALV_ET
 
   FUNCTION fd0k11ps(d0xa2)
  

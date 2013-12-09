@@ -11,13 +11,13 @@ MODULE T2NGRA
   
   USE T2CNST,ONLY:&
        i0ikind,i0rkind
-
+  
   IMPLICIT NONE
   
   PUBLIC T2_NGRA
-
+  
   PRIVATE
-
+  
 CONTAINS 
   
   !C------------------------------------------------------------------
@@ -28,10 +28,13 @@ CONTAINS
   !C
   !C------------------------------------------------------------------
   SUBROUTINE T2_NGRA
-
+    
     USE T2COMM,ONLY:i0nmax0
     
+    CALL T2NGRA_MSC
+    
     SELECT CASE (i0nmax0)
+       
     CASE( 4) !C LINIEAR   ELEMENT
        CALL T2NGRA_NGRAPH1
     CASE( 8) !C QUADRATIC ELEMENT 
@@ -40,16 +43,15 @@ CONTAINS
        CALL T2NGRA_NGRAPH3
     END SELECT
 
-    CALL T2NGRA_MSC
     
     CALL T2NGRA_OUTPUT
     
     CALL T2NGRA_TERM
-
+    
     RETURN
-
+    
   END SUBROUTINE T2_NGRA
-
+  
   !C------------------------------------------------------------------
   !C
   !C            NODE GRAPH GENERATING ROUTINE 
@@ -63,25 +65,12 @@ CONTAINS
   !C                                       1------2
   !C
   !C------------------------------------------------------------------  
+  
   SUBROUTINE T2NGRA_NGRAPH1
-
-    USE T2COMM
-
-    INTEGER(i0ikind)::&
-         i0ecnt,i0hcnt,i0rcnt,i0ccnt,i0ncnt,&
-         i0ll,i0lr,i0ul,i0ur,&
-         i0ppc1,i0ppl2,i0ppc2,i0ppr2,&
-         i0rdc1,i0rdc2,&
-         i0jl,i0jc,i0jr,i0il,&
-         i0stc1,i0nd,i0nc,i0nu,&
-         i0stl2,i0stc2,i0str2,&
-         i0mlva,i0mlvb,i0mlvc,&
-         i1tmp06(6),i1tmp07(7),i1tmp08(8),i1tmp09(9),i1tmp11(11),&
-         i1subtot(0:i0lmax),i0offset
-    INTEGER(i0ikind)::&
-         i1,j1,i2,j2,i3
+    
     !C--------------------------------------------
     
+    !C
     !C CONSTRUCT NON-DEGENERATED NODE
     !C                    - DEGENERATED NODE GRAPH
     
@@ -90,22 +79,25 @@ CONTAINS
     !C
     !C CONSTRUCT ELEMENT - NODE GRAPH
     !C
+    
     CALL T2NGRA_ENR1
     
     !C
     !C CONSTRUCT NODE - ELEMENT  GRAPH
     !C
+    
     CALL T2NGRA_NER1
     
     !C
     !C CONSTRUCT NODE - NODE GRAPH
     !C
+    
     CALL T2NGRA_NNR1
-            
+    
     RETURN
  
   END SUBROUTINE T2NGRA_NGRAPH1
-
+  
   !C------------------------------------------------------------------
   !C
   !C            NODE GRAPH GENERATING ROUTINE 
@@ -153,14 +145,20 @@ CONTAINS
 
     INTEGER(i0ikind)::&
          i1,i2,j2,&
-         i0ncnt1,i0rdn1,i0pdn1,i0rdn2,i0pdn2
+         i0ncnt1,i0ncnt4,i0mcnt,i0rdn1,i0pdn1,i0rdn2,i0pdn2
     REAL(   i0rkind)::&
          d0rsiz,d0psiz
     REAL(i0rkind),DIMENSION(:),ALLOCATABLE::&
          d1mcr1,d1mcp1
     !C------------------------------------------------------     
     !C SET MAGNETIC COORDINATES
-    i0ncnt1 = 0
+    
+    i0ncnt1  = 0
+    i0ncnt4  = 1
+    i0mcnt   = 1
+
+    i1mfc4(i0ncnt4)= 1
+    d1mfc4(i0ncnt4)= 0.D0
     DO i1=1,i0lmax
        
        i0rdn1=i1rdn1(i1)
@@ -169,10 +167,11 @@ CONTAINS
        i0pdn2=i1pdn2(i1)
        
        ALLOCATE(d1mcr1(i0rdn1),d1mcp1(i0pdn1))
-
+       
        DO i2=1,i0rdn1
           d1mcr1(i2) = 0.D0
        ENDDO
+       
        DO i2=1,i0pdn1
           d1mcp1(i2) = 0.D0
        ENDDO
@@ -187,24 +186,35 @@ CONTAINS
        DO i2= 1,i0rdn1
           d1mcr1(i2) = d0rsiz*DBLE(i2-1)+d1rec(i1-1)
        ENDDO
+       
        DO i2=1,i0pdn1
           d1mcp1(i2) = d0psiz*DBLE(i2-1)
        ENDDO
     
        !C CONSTRUCT GEOMET
        DO j2=1,i0rdn1 
-       DO i2=1,i0pdn1
           
-          i0ncnt1=i0ncnt1+1
+          IF(j2.NE.1)THEN
+             i0ncnt4         = i0ncnt4 + 1
+             i0mcnt          = i0mcnt  + i0pdn2
+             i1mfc4(i0ncnt4) = i0mcnt
+             d1mfc4(i0ncnt4) = d1mcr1(j2)
+             print*,i1mfc4(i0ncnt4),d1mfc4(i0ncnt4)
+          ENDIF
           
-          !C
-          !C MAGNETIC FLUX COORDINATE (RHO, CHI)
-          !C
-          
-          d2mfc1(i0ncnt1,1)=d1mcr1(j2)
-          d2mfc1(i0ncnt1,2)=d1mcp1(i2)
-          
-       ENDDO
+          DO i2=1,i0pdn1
+             
+             i0ncnt1=i0ncnt1+1
+             
+             !C
+             !C MAGNETIC FLUX COORDINATE (RHO, CHI)
+             !C
+             
+             d2mfc1(i0ncnt1,1) = d1mcr1(j2)
+             d2mfc1(i0ncnt1,2) = d1mcp1(i2)
+             i1mfc1(i0ncnt1  ) = i0mcnt
+       
+          ENDDO
        ENDDO
        
        DEALLOCATE(d1mcr1,d1mcp1)
@@ -235,12 +245,13 @@ CONTAINS
        WRITE(10,'("NUM1=",I9,1X,"CRT1=",I9,1X,"CRT2=",I9)')&
             i1,i2crt(i1,1),i2crt(i1,2)
     ENDDO
+
      
     CLOSE(10)
-    OPEN(10,FILE='I2HBC2_TEST.dat')
+    OPEN(10,FILE='I2HBC_TEST.dat')
     DO i1=1,i0hmax
        WRITE(10,'("HNUM=",I9,1X,"LHN=",I9,1X,"UHN=",I9)')&
-            i1,i2hbc2(i1,1),i2hbc2(i1,2)
+            i1,i2hbc(i1,1),i2hbc(i1,2)
     ENDDO
 
     CLOSE(10)
@@ -255,6 +266,20 @@ CONTAINS
     DO i1=1,i0emax
        WRITE(10,'("ELM_NUMBER=",I9,1X,"I3ENR=",4I9)')&
             i1,i3enr(i1,2,1),i3enr(i1,2,2),i3enr(i1,2,3),i3enr(i1,2,4)
+    ENDDO
+    CLOSE(10)
+
+    OPEN(10,FILE='I3ENR3_TEST.dat')
+    DO i1=1,i0emax
+       WRITE(10,'("ELM_NUMBER=",I9,1X,"I3ENR=",4I9)')&
+            i1,i3enr(i1,3,1),i3enr(i1,3,2),i3enr(i1,3,3),i3enr(i1,3,4)
+    ENDDO
+    CLOSE(10)
+
+    OPEN(10,FILE='I3ENR4_TEST.dat')
+    DO i1=1,i0emax
+       WRITE(10,'("ELM_NUMBER=",I9,1X,"I3ENR=",4I9)')&
+            i1,i3enr(i1,4,1),i3enr(i1,4,2),i3enr(i1,4,3),i3enr(i1,4,4)
     ENDDO
     CLOSE(10)
 
@@ -291,6 +316,7 @@ CONTAINS
     ENDDO
     WRITE(10,'("TOTAL_EMAX1=",I9)')i0emax
     CLOSE(10)
+    
     !C CALCURATE NUMBER OF HANGED-NODE
     OPEN(10,FILE='MATRIX_INFO1.dat')
     WRITE(10,'("I1NIDR_ARRAY_SIZE=",I9)')i0nrmx
@@ -301,8 +327,8 @@ CONTAINS
     
     OPEN(10,FILE='MFC1_CHECK.dat')
     DO i1=1,i0nmax1
-       WRITE(10,'("i1=",I5,1X,"RHO=",D15.8,1X,"CHI=",D15.8)')&
-            i1,d2mfc1(i1,1),d2mfc1(i1,2)
+       WRITE(10,'("i1=",I5,1X,"RHO=",D15.8,1X,"CHI=",D15.8,1X,"SN=",I5)')&
+            i1,d2mfc1(i1,1),d2mfc1(i1,2),i1mfc1(i1)
     ENDDO
     CLOSE(10)
     
@@ -408,9 +434,9 @@ CONTAINS
                       i0hcnt=i0hcnt+1
                       i2crt(i0ncnt,1)= i0ncnt
                       i2crt(i0ncnt,2)= i0stm2 + i0offset + INT(j2/2)
-                      i2hbc2(i0hcnt,1)&
+                      i2hbc(i0hcnt,1)&
                            = i0stl2 + MOD(INT((j2-1)/2),i0ppl2)+1
-                      i2hbc2(i0hcnt,2)&
+                      i2hbc(i0hcnt,2)&
                            = i0stl2 + MOD(INT((j2+1)/2),i0ppl2)+1
                    ENDIF
                 ENDDO
@@ -440,14 +466,17 @@ CONTAINS
 
     INTEGER(i0ikind)::&
          i0ecnt,i0hcnt,i0rcnt,i0ccnt,i0ncnt,&
-         i0ll,i0lr,i0ul,i0ur,&
+         i0ll ,i0lr ,i0ul ,i0ur,&
+         i0ll1,i0lr1,i0ul1,i0ur1,&
+         i0ll2,i0lr2,i0ul2,i0ur2,&
+         i0ll3,i0lr3,i0ul3,i0ur3,&
+         i0ll4,i0lr4,i0ul4,i0ur4,&
          i0ppc1,i0ppl2,i0ppc2,i0ppr2,&
          i0rdc1,i0rdc2,&
          i0jl,i0jc,i0jr,i0il,&
          i0stc1,i0nd,i0nc,i0nu,&
          i0stl2,i0stc2,i0str2,&
          i0mlva,i0mlvb,i0mlvc,&
-         i1tmp06(6),i1tmp07(7),i1tmp08(8),i1tmp09(9),i1tmp11(11),&
          i1subtot(0:i0lmax),i0offset
     INTEGER(i0ikind)::&
          i1,j1,i2,j2,i3
@@ -465,21 +494,56 @@ CONTAINS
        DO i2=1,i0rdc2
        DO j2=1,i0ppc2
           i0ecnt = i0ecnt+1
-          i0ll =i0stc1+ i0ppc1*(i2-1)+j2
-          i0lr =i0stc1+ i0ppc1*i2    +j2
-          i0ur =i0stc1+ i0ppc1*i2    +j2+1
-          i0ul =i0stc1+ i0ppc1*(i2-1)+j2+1
           
-          i3enr( i0ecnt,1,1) = i2crt(i0ll,1)
-          i3enr( i0ecnt,1,2) = i2crt(i0lr,1)
-          i3enr( i0ecnt,1,3) = i2crt(i0ur,1)
-          i3enr( i0ecnt,1,4) = i2crt(i0ul,1)
+          i0ll = i0stc1 + i0ppc1*(i2-1) + j2
+          i0lr = i0stc1 + i0ppc1*i2     + j2
+          i0ur = i0stc1 + i0ppc1*i2     + j2 + 1
+          i0ul = i0stc1 + i0ppc1*(i2-1) + j2 + 1
+          
+          i0ll1 = i2crt(i0ll,1)
+          i0lr1 = i2crt(i0lr,1)
+          i0ur1 = i2crt(i0ur,1)
+          i0ul1 = i2crt(i0ul,1)
 
-          i3enr( i0ecnt,2,1) = i2crt(i0ll,2)
-          i3enr( i0ecnt,2,2) = i2crt(i0lr,2)
-          i3enr( i0ecnt,2,3) = i2crt(i0ur,2)
-          i3enr( i0ecnt,2,4) = i2crt(i0ul,2)
+          i0ll2 = i2crt(i0ll,2)
+          i0lr2 = i2crt(i0lr,2)
+          i0ur2 = i2crt(i0ur,2)
+          i0ul2 = i2crt(i0ul,2)
+
+          i0ll3 = i2crt(i0ll,2)
+          i0lr3 = i2crt(i0lr,2)
+          IF(i0ll3.GT.i0nmax2) i0ll3 = i2hbc(i0ll3-i0nmax2,1)
+          IF(i0lr3.GT.i0nmax2) i0lr3 = i2hbc(i0lr3-i0nmax2,1)
+          i0ur3 = i0lr3
+          i0ul3 = i0ll3
+          
+          i0ll4 = i1mfc1(i0ll)
+          i0lr4 = i1mfc1(i0lr)
+          i0ur4 = i1mfc1(i0ur)
+          i0ul4 = i1mfc1(i0ul)
+
+          i3enr( i0ecnt,1,1) = i0ll1
+          i3enr( i0ecnt,1,2) = i0lr1
+          i3enr( i0ecnt,1,3) = i0ur1
+          i3enr( i0ecnt,1,4) = i0ul1
+          
+          i3enr( i0ecnt,2,1) = i0ll2
+          i3enr( i0ecnt,2,2) = i0lr2
+          i3enr( i0ecnt,2,3) = i0ur2
+          i3enr( i0ecnt,2,4) = i0ul2
+
+          i3enr( i0ecnt,3,1) = i0ll3
+          i3enr( i0ecnt,3,2) = i0lr3
+          i3enr( i0ecnt,3,3) = i0ur3
+          i3enr( i0ecnt,3,4) = i0ul3
+          
+          i3enr( i0ecnt,4,1) = i0ll4
+          i3enr( i0ecnt,4,2) = i0lr4
+          i3enr( i0ecnt,4,3) = i0ur4
+          i3enr( i0ecnt,4,4) = i0ul4
+
           i1mlel(i0ecnt) = i1
+          
        ENDDO
        ENDDO
     ENDDO
@@ -646,8 +710,8 @@ CONTAINS
        i0mlvb = i1mlvl(i1)
        i0mlvc = i1mlvl(i1+1)
        
-       i0rdb = i1rdn2(i1  )   
-       i0pdb = i1pdn2(i1  )
+       i0rdb  = i1rdn2(i1  )   
+       i0pdb  = i1pdn2(i1  )
        i0sbtb = i0sbtb + i0rdb*i0pdb
        
        IF(i0mlvc.EQ.(i0mlvb+1))THEN
@@ -700,7 +764,8 @@ CONTAINS
     
     USE T2COMM
     INTEGER(i0ikind)::&
-         i0nsiz,i0esiz,i0nidr,i1,i0ecnt,i0ncnt,i0na,i0nb,i0eg,i0ec,i0nidc,&
+         i0nsiz,i0esiz,i0nidr,i1,i0ecnt,i0ncnt,&
+         i0na,i0nb,i0eg,i0ec,i0nidc,&
          i0ngx,i0ex,i0ecx,i2,i0ng
     INTEGER(i0ikind),DIMENSION(:),ALLOCATABLE::i1nstk
 

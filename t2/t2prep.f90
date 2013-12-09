@@ -49,6 +49,7 @@ CONTAINS
     i0nmax1=0
     i0nmax2=1
     i0nmax3=0
+    i0nmax4=1
     
     DO i1 =1,i0lmax
        i1rdn1(i1)= i1rdn2(i1)+1
@@ -82,6 +83,10 @@ CONTAINS
           i0mlva=i1mlvl(i1-1)
           i0mlvb=i1mlvl(i1)
           IF(i0mlva.NE.i0mlvb)i0nmax3=i0nmax3+i1pdn2(i1-1)
+       ENDDO
+
+       DO i1=1,i0lmax
+          i0nmax4 = i0nmax4 + i1rdn2(i1)
        ENDDO
        
        i0ermx = i0nmax3+1
@@ -182,7 +187,7 @@ CONTAINS
     i0vgcmx = 9*(i0spcs**2) + 48*i0spcs + 11
     
     i0vmax  = 8*i0spcs + 5
-    i0wmax  = 5*i0spcs + 1
+    i0wmax  = 5*i0spcs + 2
     i0vgrmx = i0vmax   + 1
     i0msrmx = i0vgrmx
     i0avrmx = i0vgrmx
@@ -203,7 +208,7 @@ CONTAINS
     i0gvcmx =  4 +  4*i0spcs
     i0gtcmx =      16*i0spcs
     i0escmx =      21*i0spcs + 8*(i0spcs**2)
-    i0evcmx =      23*i0spcs
+    i0evcmx =  1 + 23*i0spcs
     i0etcmx =      16*i0spcs
     i0sscmx =  5 +  8*i0spcs
      

@@ -15,6 +15,7 @@ MODULE T2WRIT
 
   PUBLIC T2WRIT_MAIN
   PUBLIC T2_WRIT_GPT
+  PUBLIC T2_WRIT_GP1
   PRIVATE
 CONTAINS
  
@@ -537,6 +538,38 @@ CONTAINS
     
   END SUBROUTINE T2_WRIT_GPT
 
+  SUBROUTINE T2_WRIT_GP1(i0dn,i0tag,d1xxx)
+    USE T2COMM,ONLY:&
+         i0spcs,i0tstp,i0tmax,i0nmax4,i1mfc4,&
+         d1mfc4,i0xmax,i0vmax,d2rzc1,d0rmjr
+    INTEGER(i0ikind),                    INTENT(IN)::i0dn
+    INTEGER(i0ikind),                    INTENT(IN)::i0tag
+    REAL(   i0rkind),DIMENSION(1:i0xmax),INTENT(IN)::d1xxx
+
+    INTEGER(i0ikind)::i1,i2,i0vid,i0mfc4
+
+1000 FORMAT(D15.8,100(',',1X,D15.8))
+    
+    IF(i0tag.EQ.0) OPEN(i0dn)
+    
+    WRITE(i0dn,*)'!**************************************************'
+    WRITE(i0dn,*)'! TIMESTEP=',i0tstp
+    WRITE(i0dn,*)'! 0:t 1:R 2:Z 3:x 4:r 5-9:EM 10-:TR                '
+    print*,'AAA'
+    DO i1 = 1,i0nmax4
+       i0mfc4 = i1mfc4(i1)
+       i0vid  = i0vmax*(i1mfc4(i1) - 1)
+       !C
+       print*,'i=',i1,i0mfc4,d1mfc4(i1)
+       !C
+       WRITE(i0dn,1000)d1mfc4(i1),(d1xxx(i0vid+i2),i2=1,3)
+    ENDDO
+    WRITE(i0dn,*)
+    WRITE(i0dn,*)
+    
+    IF(i0tag.EQ.i0tmax) CLOSE(i0dn)
+    
+  END SUBROUTINE T2_WRIT_GP1
 
  
 
