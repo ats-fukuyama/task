@@ -13,13 +13,44 @@ MODULE T2WRIT
        i0ikind,i0rkind
   IMPLICIT NONE
 
-  PUBLIC T2WRIT_MAIN
+  PRIVATE
+  PUBLIC T2_WRIT
+  PUBLIC T2_WRIT_MAIN
   PUBLIC T2_WRIT_GPT
   PUBLIC T2_WRIT_GP1
-  PRIVATE
 CONTAINS
+
+  SUBROUTINE T2_WRIT
+
+    USE T2COMM, ONLY: d1guv,c10rname
+    USE T2NGRA, ONLY: T2_NGRA_OUTPUT
+    USE T2VGRA, ONLY: T2_VGRA_OUTPUT
+    IMPLICIT NONE
+    CHARACTER(LEN=1):: kid
+
+1   CONTINUE
+    WRITE(6,*) '## write: 1:MAIN 2:GPT 3:GP1 4:NGRA 5:VGRA X:exit'
+    READ(5,'(A1)',ERR=1,END=9000) KID
+
+    SELECT CASE(KID)
+    CASE('1')
+       CALL T2_WRIT_MAIN(d1guv,0,c10rname)
+    CASE('2')
+       CALL T2_WRIT_GPT(20,0,d1guv)
+    CASE('3')
+       CALL T2_WRIT_GPT(22,0,d1guv)
+    CASE('4')
+       CALL T2_NGRA_OUTPUT
+    CASE('5')
+       CALL T2_VGRA_OUTPUT
+    CASE('X','x')
+       GOTO 9000
+    END SELECT
+9000 CONTINUE
+    RETURN
+  END SUBROUTINE T2_WRIT
  
-  SUBROUTINE T2WRIT_MAIN(d1xxx,i0tag,c10tag)
+  SUBROUTINE T2_WRIT_MAIN(d1xxx,i0tag,c10tag)
     USE T2COMM,ONLY:&
          i0fnum,i0spcs,i0nmax0,i0nmax3,i0xmax,i0vmax,&
          i1pdn2,i1rdn2,i0emax,d2rzc3,i3enr,&
@@ -187,7 +218,7 @@ CONTAINS
     
     !C WRITE SCALAR DATAS
     
-    CALL T2WRIT_CONVERT(d1xxx)
+    CALL T2_WRIT_CONVERT(d1xxx)
     !C WRITE SCALAR
     WRITE(i0fnum,180)'POINT_DATA', i0nmax3
 
@@ -442,11 +473,11 @@ CONTAINS
 
     RETURN
 
-  END SUBROUTINE T2WRIT_MAIN
+  END SUBROUTINE T2_WRIT_MAIN
 
 
  
-  SUBROUTINE T2WRIT_CONVERT(d1xxx)
+  SUBROUTINE T2_WRIT_CONVERT(d1xxx)
 
     USE T2COMM,ONLY:&
        d0mfcst,d0btcst,d0ercst,d0epcst,d0etcst,&
@@ -506,12 +537,12 @@ CONTAINS
 
     RETURN
 
-  END SUBROUTINE T2WRIT_CONVERT
+  END SUBROUTINE T2_WRIT_CONVERT
   
   SUBROUTINE T2_WRIT_GPT(i0dn,i0tag,d1xxx)
     USE T2COMM,ONLY:&
-         i0spcs,i0tstp,i0tmax,i0nmax1,i2crt,&
-         d2mfc1,i0xmax,i0vmax,d2rzc1,d0rmjr
+         i0spcs,i0nmax1,i2crt,&
+         d2mfc1,i0xmax,i0vmax,d2rzc1,d0rmjr,time_t2
     INTEGER(i0ikind),                    INTENT(IN)::i0dn
     INTEGER(i0ikind),                    INTENT(IN)::i0tag
     REAL(   i0rkind),DIMENSION(1:i0xmax),INTENT(IN)::d1xxx
@@ -520,10 +551,10 @@ CONTAINS
 
 1000 FORMAT(D15.8,100(',',1X,D15.8))
     
-    IF(i0tag.EQ.0) OPEN(i0dn)
+    OPEN(i0dn)
     
     WRITE(i0dn,*)'!**************************************************'
-    WRITE(i0dn,*)'! TIMESTEP=',i0tstp
+    WRITE(i0dn,*)'! TIME=',time_t2
     WRITE(i0dn,*)'! 0:t 1:R 2:Z 3:x 4:r 5-9:EM 10-:TR                '
     DO i1 = 1,i0nmax1
        i0vid = i0vmax*(i2crt(i1,2) - 1)
@@ -534,14 +565,14 @@ CONTAINS
     WRITE(i0dn,*)
     WRITE(i0dn,*)
     
-    IF(i0tag.EQ.i0tmax) CLOSE(i0dn)
+    CLOSE(i0dn)
     
   END SUBROUTINE T2_WRIT_GPT
 
   SUBROUTINE T2_WRIT_GP1(i0dn,i0tag,d1xxx)
     USE T2COMM,ONLY:&
-         i0spcs,i0tstp,i0tmax,i0nmax4,i1mfc4,&
-         d1mfc4,i0xmax,i0vmax,d2rzc1,d0rmjr
+         i0spcs,i0nmax4,i1mfc4,&
+         d1mfc4,i0xmax,i0vmax,d2rzc1,d0rmjr,time_t2
     INTEGER(i0ikind),                    INTENT(IN)::i0dn
     INTEGER(i0ikind),                    INTENT(IN)::i0tag
     REAL(   i0rkind),DIMENSION(1:i0xmax),INTENT(IN)::d1xxx
@@ -550,10 +581,10 @@ CONTAINS
 
 1000 FORMAT(D15.8,100(',',1X,D15.8))
     
-    IF(i0tag.EQ.0) OPEN(i0dn)
+    OPEN(i0dn)
     
     WRITE(i0dn,*)'!**************************************************'
-    WRITE(i0dn,*)'! TIMESTEP=',i0tstp
+    WRITE(i0dn,*)'! TIME=',time_t2
     WRITE(i0dn,*)'! 0:t 1:R 2:Z 3:x 4:r 5-9:EM 10-:TR                '
     print*,'AAA'
     DO i1 = 1,i0nmax4
@@ -567,7 +598,7 @@ CONTAINS
     WRITE(i0dn,*)
     WRITE(i0dn,*)
     
-    IF(i0tag.EQ.i0tmax) CLOSE(i0dn)
+    CLOSE(i0dn)
     
   END SUBROUTINE T2_WRIT_GP1
 

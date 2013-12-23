@@ -14,7 +14,7 @@ MODULE T2NGRA
   
   IMPLICIT NONE
   
-  PUBLIC T2_NGRA
+  PUBLIC T2_NGRA,T2_NGRA_OUTPUT
   
   PRIVATE
   
@@ -29,7 +29,7 @@ CONTAINS
   !C------------------------------------------------------------------
   SUBROUTINE T2_NGRA
     
-    USE T2COMM,ONLY:i0nmax0
+    USE T2COMM,ONLY:i0nmax0,idfile
     
     CALL T2NGRA_MSC
     
@@ -43,8 +43,7 @@ CONTAINS
        CALL T2NGRA_NGRAPH3
     END SELECT
 
-    
-    CALL T2NGRA_OUTPUT
+    IF(idfile.ge.4) CALL T2_NGRA_OUTPUT
     
     CALL T2NGRA_TERM
     
@@ -199,7 +198,7 @@ CONTAINS
              i0mcnt          = i0mcnt  + i0pdn2
              i1mfc4(i0ncnt4) = i0mcnt
              d1mfc4(i0ncnt4) = d1mcr1(j2)
-             print*,i1mfc4(i0ncnt4),d1mfc4(i0ncnt4)
+!             print*,i1mfc4(i0ncnt4),d1mfc4(i0ncnt4)
           ENDIF
           
           DO i2=1,i0pdn1
@@ -234,7 +233,7 @@ CONTAINS
   !C
   !C
   !C
-  SUBROUTINE T2NGRA_OUTPUT
+  SUBROUTINE T2_NGRA_OUTPUT
 
     USE T2COMM
 
@@ -332,8 +331,20 @@ CONTAINS
     ENDDO
     CLOSE(10)
     
+    OPEN(30,FILE='I1EIDR.dat')
+    DO i1 = 1,i0ermx
+       write(30,*)i1,i1eidr(i1)
+    ENDDO
+    CLOSE(30)
+
+    OPEN(30,FILE='I1EIDC.dat')
+    DO i1 = 1,i0ecmx
+       write(30,*)i1,i1eidc(i1)
+    ENDDO
+    CLOSE(30)
+
     RETURN
-  END SUBROUTINE T2NGRA_OUTPUT
+  END SUBROUTINE T2_NGRA_OUTPUT
 
   SUBROUTINE T2NGRA_CRT1
 
@@ -744,18 +755,6 @@ CONTAINS
        STOP
     ENDIF
     
-    OPEN(30,FILE='I1EIDR.dat')
-    DO i1 = 1,i0ermx
-       write(30,*)i1,i1eidr(i1)
-    ENDDO
-    CLOSE(30)
-
-    OPEN(30,FILE='I1EIDC.dat')
-    DO i1 = 1,i0ecmx
-       write(30,*)i1,i1eidc(i1)
-    ENDDO
-    CLOSE(30)
-
     RETURN
     
   END SUBROUTINE T2NGRA_NER1

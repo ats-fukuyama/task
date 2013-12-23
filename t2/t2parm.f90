@@ -51,14 +51,17 @@ CONTAINS
     USE T2COMM, ONLY: &
          c10rname, i0dbg, i0fnum, i0mfcs, i0wstp,&
          i0dmax0,i0amax0,&
-         i0tmax, d0tstp, d0tmax,&
+!         i0tmax, d0tstp, d0tmax,&
          i0spcs, i0nmax0, i0lmax, i1mlvl,&
          i0pdiv_number, i1rdn2, d1rec,&
          i0pmax,d0eps,d0rmjr,d0rmnr,&
          i0m0,i0n0,d0bc,&
          d1nc,d1ns,d1nw,d1tc,d1ts,d1tw,&
          d1pa,d1pz,&
-         d0qc,d0qs,d0rw
+         d0qc,d0qs,d0rw,&
+         dt,time_init,eps_conv, &
+         ntmax,ntstep,nt0dmax,nt0dstep,nt2dmax,nt2dstep,nconvmax, &
+         idfile,idprint,idplot,idmode,idebug
 
     IMPLICIT NONE
     INTEGER,INTENT(IN) :: NID
@@ -67,14 +70,19 @@ CONTAINS
     NAMELIST /T2/ &
          c10rname, i0dbg, i0fnum, i0mfcs, i0wstp,&
          i0dmax0,i0amax0,&
-         i0tmax, d0tstp, d0tmax,&
+!         i0tmax, d0tstp, d0tmax,&
          i0spcs, i0nmax0, i0lmax, i1mlvl,&
          i0pdiv_number, i1rdn2, d1rec,&
-         i0pmax,d0eps,d0rmjr,d0rmnr,&
+!         i0pmax,d0eps, &
+         d0rmjr,d0rmnr,&
          i0m0,i0n0,d0bc,&
          d1nc,d1ns,d1nw,d1tc,d1ts,d1tw,&
          d1pa,d1pz,&
-         d0qc,d0qs,d0rw
+         d0qc,d0qs,d0rw, &
+         dt,time_init,eps_conv, &
+         ntmax,ntstep,nt0dmax,nt0dstep,nt2dmax,nt2dstep,nconvmax, &
+         idfile,idprint,idplot,idmode,idebug
+
 
     READ(NID,T2,IOSTAT=IST,ERR=9800,END=9900)
 
@@ -93,14 +101,18 @@ CONTAINS
 
     IMPLICIT NONE
     WRITE(6,'(A)') '# &T2 : c10rname,i0dbg,i0fnum,i0mfcs,i0wstp,'
-    WRITE(6,'(A)') '        i0dmax0,i0amax0,i0tmax,d0tstp,d0tmax,'
+    WRITE(6,'(A)') '        i0dmax0,i0amax0,' !i0tmax,d0tstp,d0tmax,'
     WRITE(6,'(A)') '        i0spcs,i0nmax0,i0lmax,'
     WRITE(6,'(A)') '        i1mlvl,i0pdiv_number, i1rdn2, d1rec,'
-    WRITE(6,'(A)') '        i0pmax,d0eps,d0rmjr,d0rmnr,'
+!    WRITE(6,'(A)') '        i0pmax,d0eps,'
+    WRITE(6,'(A)') '        d0rmjr,d0rmnr,'
     WRITE(6,'(A)') '        i0m0,i0n0,d0bc,'
     WRITE(6,'(A)') '        d1nc,d1ns,d1nw,d1tc,d1ts,d1tw,'
     WRITE(6,'(A)') '        d1pa,d1pz,'
-    WRITE(6,'(A)') '        d0qc,d0qs,d0rw'
+    WRITE(6,'(A)') '        d0qc,d0qs,d0rw,'
+    WRITE(6,'(A)') '        dt,time_init,eps_conv,'
+    WRITE(6,'(A)') '        ntmax,ntstep,nt0dmax,nt0dstep,nt2dmax,nt2dstep,'
+    WRITE(6,'(A)') '        nconvmax,idfile,idprint,idplot,idmode,idebug'
     RETURN
 
   END SUBROUTINE T2_PLST
@@ -131,14 +143,18 @@ CONTAINS
          c10rname, &
          i0dbg, i0fnum, i0mfcs, i0wstp,&
          i0dmax0,i0amax0,&
-         i0tmax, d0tstp, d0tmax,&
+!         i0tmax, d0tstp, d0tmax,&
          i0spcs, i0nmax0, i0lmax, i1mlvl,&
          i0pdiv_number, i1rdn2, d1rec,&
-         i0pmax,d0eps,d0rmjr,d0rmnr,&
+!         i0pmax,d0eps,&
+         d0rmjr,d0rmnr,&
          i0m0,i0n0,d0bc,&
          d1nc,d1ns,d1nw,d1tc,d1ts,d1tw,&
          d1pa,d1pz,&
-         d0qc,d0qs,d0rw
+         d0qc,d0qs,d0rw,&
+         dt,time_init,eps_conv, &
+         ntmax,ntstep,nt0dmax,nt0dstep,nt2dmax,nt2dstep,nconvmax, &
+         idfile,idprint,idplot,idmode,idebug
 
     IMPLICIT NONE
     INTEGER(i0ikind):: i1
@@ -151,10 +167,10 @@ CONTAINS
          'i0wstp       ',i0wstp, &
          'i0dmax0      ',i0dmax0, &
          'i0amax0      ',i0amax0
-    WRITE(6,603) &
-         'i0tmax       ',i0tmax, &
-         'd0tstp       ',d0tstp, &
-         'd0tmax       ',d0tmax
+    WRITE(6,602) &
+         'ntmax        ',ntmax, &
+         'ntstep       ',ntstep, &
+         'dt           ',dt
     WRITE(6,601) &
          'i0spcs       ',i0spcs, &
          'i0nmax0      ',i0nmax0, &
@@ -167,10 +183,20 @@ CONTAINS
        WRITE(6,'(3I8,1PE12.4)') i1,i1mlvl(i1),i1rdn2(i1),d1rec(i1)
     END DO
 
-    WRITE(6,601) &
-         'i0pmax       ',i0pmax
+    WRITE(6,603) &
+         'nconvmax     ',nconvmax,&
+         'eps_conv     ',eps_conv
+
+    WRITE(6,601) &     
+         'idfile       ',idfile, &
+         'idprint      ',idprint, &
+         'idplot       ',idplot
+    WRITE(6,601) &     
+         'idmode       ',idmode, &
+         'idebug       ',idebug
+
+
     WRITE(6,604) &
-         'd0eps        ',d0eps, &
          'd0rmjr       ',d0rmjr,&
          'd0rmnr       ',d0rmnr
     WRITE(6,604) &

@@ -17,40 +17,33 @@ MODULE T2STEP
   
 CONTAINS
 
-  SUBROUTINE T2_STEP
+  SUBROUTINE T2_STEP(i_conv,residual_conv)
     
     USE T2COMM, ONLY:&
-         i0pmax, i0cmax, i0vmax, i0xmax, i0bmax, i0tstp,i0nlct,&
+         i0pmax, i0cmax, i0vmax, i0xmax, i0bmax, i0nlct,&
          d0eps,&
          i1nlct, d1rsdl,&
-         d1gsm,  d1grv,  d1guv,  d1guv_after, d1guv_befor
+         d1gsm,  d1grv,  d1guv,  d1guv_after, d1guv_befor, &
+         nconvmax,eps_conv
     
     USE T2CALV, ONLY: T2_CALV
     USE T2EXEC, ONLY: T2_EXEC
     USE T2WRIT
    
+    INTEGER(i0ikind),INTENT(OUT):: i_conv
+    REAL(i0rkind),INTENT(OUT):: residual_conv
+    INTEGER(i0ikind):: nconv
     INTEGER(i0ikind):: i0pflg, i1
     REAL(   i0rkind):: d0aft,  d0bfr, d0dif, d0ave, d0dif_max
     CHARACTER(10)::c10nl
     
-    i0nlct = 0
     c10nl='NL'
 
     DO i1=1,i0xmax
        d1guv_befor(i1)= d1guv(i1)
     ENDDO
     
-    DO
-       
-       DO i1=1,i0cmax
-          d1gsm(i1)=0.d0
-       ENDDO
-       
-       DO i1=1,i0bmax
-          d1grv(i1)=0.d0
-       ENDDO
-       
-       i0nlct = i0nlct+1
+    DO nconv=1,nconvmax
        
        !C
        !C CALCULATE PLASMA COEFFICIENTS
@@ -67,44 +60,21 @@ CONTAINS
        !C 
        !C CONVERGENCE CHECK
        !C
-       !print*,i0nlct
        
-       CALL T2STEP_CONV(i0pflg,d0dif)
+       CALL T2_STEP_CONV(residual_conv)
        
-       IF(i0pflg.EQ.1)THEN
-          WRITE(6,'("         PICARD ITERATION LOOP CONVERGED          ")')
-          WRITE(6,*)'RESIDUAL=',d0dif,'TOLERANCE=',d0eps
-          WRITE(6,'("**************************************************")')
-          EXIT
-       ENDIF
+       i_conv=nconv
+       IF(residual_conv.LE.eps_conv) EXIT
 
-       !C>>>>>> DEBUG
-       print*,'DEBUG'
-       
-       CALL T2_WRIT_GPT(21,i0nlct,d1guv_after)
-       CALL T2_WRIT_GP1(22,i0nlct,d1guv_after)
-       CALL T2WRIT_MAIN(d1guv_after,i0nlct,c10nl)
-
-       !<<<<<<
-       
        !C
        !C UPDATRE VARIABLES FOR NEXT ITERATION 
        !C
        
        DO i1=1,i0xmax
           d1guv_befor(i1) = d1guv_after(i1)
-          d1guv_after(i1) = 0.d0
        ENDDO
        
-       IF(i0nlct.EQ.i0pmax)THEN
-          WRITE(6,'("PICARD ITERATION LOOP CANNOT CONVERGED")')
-          WRITE(6,*)'ITERATION NUMBER=',i0nlct, 'RESIDUAL=',d0dif
-          STOP
-       ENDIF
     ENDDO
-    
-    i1nlct(i0tstp) = i0nlct
-    d1rsdl(i0tstp) = d0dif
     
     DO i1=1,i0xmax
        d1guv(i1) = d1guv_after(i1)
@@ -114,18 +84,16 @@ CONTAINS
     
   END SUBROUTINE T2_STEP
   
-  SUBROUTINE T2STEP_CONV(i0flg,d0dif)
+  SUBROUTINE T2_STEP_CONV(d0dif)
     
     USE T2COMM, ONLY:&
          i0spcs,i0dbg,i0vmax,i0nmax2,i0nmax4,&
          i1mfc4,d0eps,d1guv_after,d1guv_befor
     
-    INTEGER(i0ikind),INTENT(OUT)::i0flg
     REAL(   i0rkind),INTENT(OUT)::d0dif
     INTEGER(i0ikind):: i0xnt, i1, i2
     REAL(   i0rkind):: d0aft, d0bfr, d0ave, d0dif_tmp,d0dif_max
     
-    i0flg = 0   
     d0dif_max = 0.D0    
 
     DO i1=1,i0vmax
@@ -167,7 +135,7 @@ CONTAINS
        
        IF(d0ave.LE.0.D0)THEN
           WRITE(6,'("*********************************************")')
-          WRITE(6,'("       ERROR IN T2STEP_CONVERGENCE           ")')
+          WRITE(6,'("       ERROR IN T2_STEP_CONVERGENCE          ")')
           WRITE(6,'("       INDETERMINATE PROBLEM                 ")')
           WRITE(6,'("*********************************************")')
           PRINT*,i1
@@ -181,12 +149,8 @@ CONTAINS
     
     d0dif = d0dif_max
     
-    IF(d0dif_max.LT.d0eps)THEN
-       i0flg = 1
-    END IF
-    
     RETURN
     
-  END SUBROUTINE T2STEP_CONV
+  END SUBROUTINE T2_STEP_CONV
   
 END MODULE T2STEP

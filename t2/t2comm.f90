@@ -3,6 +3,27 @@ MODULE T2COMM
   USE T2CNST, ONLY: i0rkind, i0ikind, i0lmaxm, i0spcsm
   
   IMPLICIT NONE
+
+  !---- input parameters added by AF
+  INTEGER(i0ikind):: &
+       ntmax,ntstep,nconvmax, &
+       nt0dmax,nt0dstep, &
+       nt2dmax,nt2dstep, &
+       idfile,idprint,idplot,idmode,idebug
+  REAL(i0rkind):: &
+       dt,time_init,eps_conv
+
+  !---- global parameters added by AF
+  INTEGER(i0ikind):: nrhmax ! number of variables in rho
+  INTEGER(i0ikind):: nchmax ! number of variables in chi
+  INTEGER(i0ikind):: neqmax ! number of equations to be solved
+  INTEGER(i0ikind):: nv0dmax ! number of global variables to be saved
+  INTEGER(i0ikind):: nv2dmax ! number of variables in solution vector
+  REAL(i0rkind):: &
+       time_t2                            ! global time
+  REAL(i0rkind),DIMENSION(:,:),ALLOCATABLE:: &
+       vv0d,vv2d                          ! storage for 0D and 2D data
+
   !C------------------------------------------------------------------
   !C
   !C
@@ -68,7 +89,6 @@ MODULE T2COMM
        i0ecmx, &
        i0dmax0,& !C NUMBER OF DIMENSIONS
        i0dmax1,&
-       i0tmax ,& 
        i0sflg ,&
        i0spcs ,&
        i0pdiv_number
@@ -197,12 +217,12 @@ MODULE T2COMM
   !C 
   !C------------------------------------------------------------------
   INTEGER(i0ikind)::&
-       i0tstp,&
+!       i0tstp,&
        i0wstp
-  REAL(   i0rkind)::&
-       d0time,&
-       d0tstp,&
-       d0tmax
+!  REAL(   i0rkind)::&
+!       d0time,&
+!       d0tstp,&
+!       d0tmax
 
   !C------------------------------------------------------------------
   !C
@@ -278,60 +298,55 @@ MODULE T2COMM
        d1jm1,d1jm2,d1jm3,d1jm4,d1jm5
 CONTAINS
   
-    SUBROUTINE T2NGRA_ALLOCATE_1
-    INTEGER(i0ikind),SAVE::i0lmax_save=0,i0spcs_save=0
+    SUBROUTINE T2NGRA_ALLOCATE
+    INTEGER(i0ikind),SAVE::i0lmax_save=0
     INTEGER(i0ikind)     :: i0err
-    IF((i0lmax.NE.i0lmax_save).OR.&
-       (i0spcs.NE.i0spcs_save))THEN
+    IF(i0lmax.NE.i0lmax_save) THEN
        
-       IF(i0lmax_save.NE.0) CALL T2NGRA_DEALLOCATE_1
+       CALL T2NGRA_DEALLOCATE
        
        DO 
           ALLOCATE(i1nmax1(1:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(i1nmax2(1:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(i1emax( 0:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
-!          ALLOCATE(i1mlvl( 0:i0lmax+1),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(i1rdn1(-1:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(i1pdn1(-1:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
-!          ALLOCATE(i1rdn2(-1:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(i1pdn2(-1:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
-!          ALLOCATE(d1rec(  0:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d1msiz( 1:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d1rsiz( 1:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d1psiz( 1:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
           
           i0lmax_save=i0lmax
 
+          WRITE(6,'(A)') '-- T2NGRD_ALLOCATE: completed'
+          
           RETURN
        
        ENDDO
        
-       WRITE(6,*)'T2GRID_ALLOCATE_1: ALLOCATION ERROR: ECODE=',i0err
+       WRITE(6,'(A)')'XX T2NGRD_ALLOCATE: ALLOCATION ERROR: ECODE=',i0err
        STOP
        
     END IF
     
     RETURN
-  END SUBROUTINE T2NGRA_ALLOCATE_1
+  END SUBROUTINE T2NGRA_ALLOCATE
 
-  SUBROUTINE T2NGRA_DEALLOCATE_1
+  SUBROUTINE T2NGRA_DEALLOCATE
 
     IF(ALLOCATED(i1nmax1)) DEALLOCATE(i1nmax1)
     IF(ALLOCATED(i1nmax2)) DEALLOCATE(i1nmax2)
     IF(ALLOCATED(i1emax )) DEALLOCATE(i1emax )
-!    IF(ALLOCATED(i1mlvl )) DEALLOCATE(i1mlvl )
     IF(ALLOCATED(i1rdn1 )) DEALLOCATE(i1rdn1 )
     IF(ALLOCATED(i1pdn1 )) DEALLOCATE(i1pdn1 )
-!    IF(ALLOCATED(i1rdn2 )) DEALLOCATE(i1rdn2 )
     IF(ALLOCATED(i1pdn2 )) DEALLOCATE(i1pdn2 )
-!    IF(ALLOCATED(d1rec  )) DEALLOCATE(d1rec  )
     IF(ALLOCATED(d1msiz )) DEALLOCATE(d1msiz )
     IF(ALLOCATED(d1rsiz )) DEALLOCATE(d1rsiz )
     IF(ALLOCATED(d1psiz )) DEALLOCATE(d1psiz )
 
     RETURN
 
-  END SUBROUTINE T2NGRA_DEALLOCATE_1
+  END SUBROUTINE T2NGRA_DEALLOCATE
 
   SUBROUTINE T2COMM_ALLOCATE
     INTEGER(i0ikind),SAVE::&
@@ -348,12 +363,16 @@ CONTAINS
          i0mscmx_save=0,i0avcmx_save=0,i0atcmx_save=0,&
          i0dtcmx_save=0,i0gvcmx_save=0,i0gtcmx_save=0,&
          i0escmx_save=0,i0evcmx_save=0,i0etcmx_save=0,&
-         i0sscmx_save=0,i0spcs_save =0,i0tmax_save =0,&
+         i0sscmx_save=0,i0spcs_save =0, &
          i0xmax_save =0,i0bmax_save =0,i0cmax_save =0
+    INTEGER(i0ikind),SAVE::&
+         nv0dmax_save=0,nt0dmax_save=0, &
+         nv2dmax_save=0,nt2dmax_save=0
 
     INTEGER(i0ikind)     :: i0err
 
-    IF(  (i0nmax0.NE.i0nmax0_save).OR.&
+    IF(  (i0spcs .NE.i0spcs_save ).OR.&
+         (i0nmax0.NE.i0nmax0_save).OR.&
          (i0dmax0.NE.i0dmax0_save).OR.&
          (i0amax0.NE.i0amax0_save).OR.&
          (i0nmax1.NE.i0nmax1_save).OR.&
@@ -388,13 +407,15 @@ CONTAINS
          (i0evcmx.NE.i0evcmx_save).OR.&
          (i0etcmx.NE.i0etcmx_save).OR.&
          (i0sscmx.NE.i0sscmx_save).OR.&
-         (i0spcs .NE.i0spcs_save ).OR.&
-         (i0tmax .NE.i0tmax_save ).OR.&
          (i0cmax .NE.i0cmax_save ).OR.&
          (i0bmax .NE.i0bmax_save ).OR.&
-         (i0xmax .NE.i0xmax_save ))THEN
+         (i0xmax .NE.i0xmax_save ).OR.&
+         (nv0dmax.NE.nv0dmax_save).OR.&
+         (nt0dmax.NE.nt0dmax_save).OR.&
+         (nv2dmax.NE.nv2dmax_save).OR.&
+         (nt2dmax.NE.nt2dmax_save))THEN
        
-       IF(i0spcs_save.NE.0) CALL T2COMM_DEALLOCATE
+       CALL T2COMM_DEALLOCATE
 
        DO
           !C T2INTG
@@ -611,6 +632,9 @@ CONTAINS
           ALLOCATE(d1jm4(1:i0nmax3),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d1jm5(1:i0nmax3),STAT=i0err);IF(i0err.NE.0)EXIT
 
+          ALLOCATE(vv0d(nv0dmax,nt0dmax),STAT=i0err); IF(i0err.NE.0) EXIT
+          ALLOCATE(vv2d(nv2dmax,nt2dmax),STAT=i0err); IF(i0err.NE.0) EXIT
+
           i0spcs_save  = i0spcs
           i0nmax0_save = i0nmax0
           i0dmax0_save = i0dmax0
@@ -621,6 +645,8 @@ CONTAINS
           i0emax_save  = i0emax
           i0nrmx_save  = i0nrmx
           i0ncmx_save  = i0ncmx
+          i0ermx_save  = i0ermx
+          i0ecmx_save  = i0ecmx
           i0hmax_save  = i0hmax 
           i0vmax_save  = i0vmax
           i0vgrmx_save = i0vgrmx
@@ -631,6 +657,7 @@ CONTAINS
           i0gvrmx_save = i0gvrmx
           i0gtrmx_save = i0gtrmx
           i0esrmx_save = i0esrmx
+          i0evrmx_save = i0evrmx
           i0etrmx_save = i0evrmx
           i0ssrmx_save = i0ssrmx
           i0vgcmx_save = i0vgcmx
@@ -644,16 +671,22 @@ CONTAINS
           i0evcmx_save = i0evcmx
           i0etcmx_save = i0etcmx
           i0sscmx_save = i0sscmx
-          i0tmax_save = i0tmax
           i0cmax_save = i0cmax
           i0bmax_save = i0bmax
           i0xmax_save = i0xmax
 
+          nv0dmax_save = nv0dmax
+          nt0dmax_save = nt0dmax
+          nv2dmax_save = nv2dmax
+          nt2dmax_save = nt2dmax
+
+          WRITE(6,'(A)') '-- T2COMM_ALLOCATE: completed'
+          
           RETURN
 
        ENDDO
 
-       WRITE(6,*)'T2COMM_ALLOCATE: ALLOCATION ERROR: ECODE=',i0err
+       WRITE(6,'(A)') 'XX T2COMM_ALLOCATE: ALLOCATION ERROR: ECODE=',i0err
        STOP
 
     END IF
@@ -664,36 +697,35 @@ CONTAINS
   
   SUBROUTINE T2COMM_DEALLOCATE
 
-    IF(ALLOCATED(i1nmax1)) DEALLOCATE(i1nmax1)
-    IF(ALLOCATED(i1nmax2)) DEALLOCATE(i1nmax2)
-    IF(ALLOCATED(i1emax )) DEALLOCATE(i1emax )
-!    IF(ALLOCATED(i1mlvl )) DEALLOCATE(i1mlvl )
-    IF(ALLOCATED(i1rdn1 )) DEALLOCATE(i1rdn1 )
-    IF(ALLOCATED(i1pdn1 )) DEALLOCATE(i1pdn1 )
-!    IF(ALLOCATED(i1rdn2 )) DEALLOCATE(i1rdn2 )
-    IF(ALLOCATED(i1pdn2 )) DEALLOCATE(i1pdn2 )
-!    IF(ALLOCATED(d1rec  )) DEALLOCATE(d1rec  )
-    IF(ALLOCATED(d1msiz )) DEALLOCATE(d1msiz )
-    IF(ALLOCATED(d1rsiz )) DEALLOCATE(d1rsiz )
-    IF(ALLOCATED(d1psiz )) DEALLOCATE(d1psiz )
-    
+    IF(ALLOCATED(d3imsn0)) DEALLOCATE(d3imsn0)
+    IF(ALLOCATED(d4iavn0)) DEALLOCATE(d4iavn0)
+    IF(ALLOCATED(d6iatn0)) DEALLOCATE(d6iatn0)
+    IF(ALLOCATED(d5idtn0)) DEALLOCATE(d5idtn0)
+    IF(ALLOCATED(d4igvn0)) DEALLOCATE(d4igvn0)
+    IF(ALLOCATED(d6igtn0)) DEALLOCATE(d6igtn0)
+    IF(ALLOCATED(d3iesn0)) DEALLOCATE(d3iesn0)
+    IF(ALLOCATED(d5ievn0)) DEALLOCATE(d5ievn0)
+    IF(ALLOCATED(d7ietn0)) DEALLOCATE(d7ietn0)
+    IF(ALLOCATED(d2issn0)) DEALLOCATE(d2issn0)
+    IF(ALLOCATED(d1wfct0)) DEALLOCATE(d1wfct0)
+    IF(ALLOCATED(d1absc0)) DEALLOCATE(d1absc0)
+    IF(ALLOCATED(d2wfct0)) DEALLOCATE(d2wfct0)
+    IF(ALLOCATED(d4ifnc0)) DEALLOCATE(d4ifnc0)
+
     IF(ALLOCATED(i1nidr )) DEALLOCATE(i1nidr )
     IF(ALLOCATED(i1nidc )) DEALLOCATE(i1nidc )
     IF(ALLOCATED(i1eidr )) DEALLOCATE(i1eidr )
     IF(ALLOCATED(i1eidc )) DEALLOCATE(i1eidc )
+    IF(ALLOCATED(i1mlel )) DEALLOCATE(i1mlel )
     IF(ALLOCATED(i2crt  )) DEALLOCATE(i2crt  )
     IF(ALLOCATED(i1dbc2 )) DEALLOCATE(i1dbc2 )
     IF(ALLOCATED(i1mfc1 )) DEALLOCATE(i1mfc1 )
     IF(ALLOCATED(i1mfc4 )) DEALLOCATE(i1mfc4 )
     IF(ALLOCATED(d1mfc4 )) DEALLOCATE(d1mfc4 )
     IF(ALLOCATED(i3enr  )) DEALLOCATE(i3enr  )
-    IF(ALLOCATED(i1mlel )) DEALLOCATE(i1mlel )
-    IF(ALLOCATED(d2ug   )) DEALLOCATE(d2ug   )
     IF(ALLOCATED(d2mfc1 )) DEALLOCATE(d2mfc1 )
-    IF(ALLOCATED(d2rzc1 )) DEALLOCATE(d2rzc1 )
-    IF(ALLOCATED(d2rzc3 )) DEALLOCATE(d2rzc3 )
     IF(ALLOCATED(i2hbc  )) DEALLOCATE(i2hbc  )
-    
+
     IF(ALLOCATED(i2vtbl )) DEALLOCATE(i2vtbl )
     IF(ALLOCATED(i1vgidr)) DEALLOCATE(i1vgidr)
     IF(ALLOCATED(i1msidr)) DEALLOCATE(i1msidr)
@@ -729,25 +761,11 @@ CONTAINS
     IF(ALLOCATED(i1evws )) DEALLOCATE(i1evws )
     IF(ALLOCATED(i2etws )) DEALLOCATE(i2etws )
     
+    IF(ALLOCATED(d2ug   )) DEALLOCATE(d2ug   )
     IF(ALLOCATED(d2jm1  )) DEALLOCATE(d2jm1  )
     IF(ALLOCATED(d2rzc1 )) DEALLOCATE(d2rzc1 )
     IF(ALLOCATED(d2rzc3 )) DEALLOCATE(d2rzc3 )
     
-    IF(ALLOCATED(d3imsn0)) DEALLOCATE(d3imsn0)
-    IF(ALLOCATED(d4iavn0)) DEALLOCATE(d4iavn0)
-    IF(ALLOCATED(d6iatn0)) DEALLOCATE(d6iatn0)
-    IF(ALLOCATED(d5idtn0)) DEALLOCATE(d5idtn0)
-    IF(ALLOCATED(d4igvn0)) DEALLOCATE(d4igvn0)
-    IF(ALLOCATED(d6igtn0)) DEALLOCATE(d6igtn0)
-    IF(ALLOCATED(d3iesn0)) DEALLOCATE(d3iesn0)
-    IF(ALLOCATED(d5ievn0)) DEALLOCATE(d5ievn0)
-    IF(ALLOCATED(d7ietn0)) DEALLOCATE(d7ietn0)
-    IF(ALLOCATED(d2issn0)) DEALLOCATE(d2issn0)
-    IF(ALLOCATED(d1wfct0)) DEALLOCATE(d1wfct0)
-    IF(ALLOCATED(d1absc0)) DEALLOCATE(d1absc0)
-    IF(ALLOCATED(d2wfct0)) DEALLOCATE(d2wfct0)
-    IF(ALLOCATED(d4ifnc0)) DEALLOCATE(d4ifnc0)
-
     IF(ALLOCATED(d2ms)) DEALLOCATE(d2ms)
     IF(ALLOCATED(d3av)) DEALLOCATE(d3av)
     IF(ALLOCATED(d4at)) DEALLOCATE(d4at)
@@ -762,11 +780,10 @@ CONTAINS
     IF(ALLOCATED(d1e )) DEALLOCATE(d1e )
     IF(ALLOCATED(d1m )) DEALLOCATE(d1m )
     IF(ALLOCATED(d1n )) DEALLOCATE(d1n )
-    IF(ALLOCATED(d1ni)) DEALLOCATE(d1ni)
-    IF(ALLOCATED(d1pi)) DEALLOCATE(d1pi)
     IF(ALLOCATED(d1ur)) DEALLOCATE(d1ur)
     IF(ALLOCATED(d1up)) DEALLOCATE(d1up)
     IF(ALLOCATED(d1ut)) DEALLOCATE(d1ut)
+    IF(ALLOCATED(d1ub)) DEALLOCATE(d1ub)
     IF(ALLOCATED(d1u2)) DEALLOCATE(d1u2)
     IF(ALLOCATED(d1p )) DEALLOCATE(d1p )
     IF(ALLOCATED(d1qb)) DEALLOCATE(d1qb)
@@ -776,6 +793,8 @@ CONTAINS
     IF(ALLOCATED(d1qbp)) DEALLOCATE(d1qbp)
     IF(ALLOCATED(d1t )) DEALLOCATE(d1t )
     IF(ALLOCATED(d1vt)) DEALLOCATE(d1vt)
+    IF(ALLOCATED(d1ni)) DEALLOCATE(d1ni)
+    IF(ALLOCATED(d1pi)) DEALLOCATE(d1pi)
     IF(ALLOCATED(d1c1)) DEALLOCATE(d1c1)
     IF(ALLOCATED(d1c2)) DEALLOCATE(d1c2)
     IF(ALLOCATED(d1c3)) DEALLOCATE(d1c3)
@@ -789,6 +808,7 @@ CONTAINS
     IF(ALLOCATED(d2y )) DEALLOCATE(d2y )
     IF(ALLOCATED(d2z )) DEALLOCATE(d2z )
     IF(ALLOCATED(d2bcf)) DEALLOCATE(d2bcf)
+
     IF(ALLOCATED(d1bp3)) DEALLOCATE(d1bp3)
     IF(ALLOCATED(d1bt3)) DEALLOCATE(d1bt3)
     IF(ALLOCATED(d1er3)) DEALLOCATE(d1er3)
@@ -810,7 +830,6 @@ CONTAINS
     IF(ALLOCATED(d1guv_befor)) DEALLOCATE(d1guv_befor)
     IF(ALLOCATED(d1guv_after)) DEALLOCATE(d1guv_after)
     IF(ALLOCATED(d2ws       )) DEALLOCATE(d2ws       )
-
     IF(ALLOCATED(i2enr0 )) DEALLOCATE(i2enr0 )
     IF(ALLOCATED(d2ws0  )) DEALLOCATE(d2ws0  )
     IF(ALLOCATED(d2jmpm )) DEALLOCATE(d2jmpm )
@@ -818,7 +837,15 @@ CONTAINS
     IF(ALLOCATED(d2smat0)) DEALLOCATE(d2smat0)
     IF(ALLOCATED(d1svec0)) DEALLOCATE(d1svec0)
 
-   
+    IF(ALLOCATED(d1jm1  )) DEALLOCATE(d1jm1  )
+    IF(ALLOCATED(d1jm2  )) DEALLOCATE(d1jm2  )
+    IF(ALLOCATED(d1jm3  )) DEALLOCATE(d1jm3  )
+    IF(ALLOCATED(d1jm4  )) DEALLOCATE(d1jm4  )
+    IF(ALLOCATED(d1jm5  )) DEALLOCATE(d1jm5  )
+
+    IF(ALLOCATED(vv0d   )) DEALLOCATE(vv0d   )
+    IF(ALLOCATED(vv2d   )) DEALLOCATE(vv2d   )
+
     RETURN
 
   END SUBROUTINE T2COMM_DEALLOCATE

@@ -282,7 +282,7 @@ CONTAINS
   SUBROUTINE T2EXEC_SOLVE
     
     USE T2COMM, ONLY:&
-         i0tstp,i0tmax,i0vmax,i0vgcmx,i0cmax,i0bmax,i0xmax,&
+         i0vmax,i0vgcmx,i0cmax,i0bmax,i0xmax,&
          i0nmax2,i0nmax3,i0dbg,i0lmax,&
          i1nidr,i1nidc,i1vgidr,i1vgidc,i1pdn2,i1rdn2,&
          d1gsm, d1grv,d1guv_befor,d1guv_after,i2hbc,i0cmax
@@ -308,10 +308,8 @@ CONTAINS
 
 100 FORMAT(A5,I3,A5,I3,A5,I3,A5,D15.6,A5,D15.6)
     
-    !C MTX INITIALIZE AND SETUP
+    !C MTX SETUP
 
-    IF(i0tstp.eq.1) CALL MTX_INITIALIZE
-    
     itype = 0
     m1    = 4
     
@@ -331,6 +329,15 @@ CONTAINS
     
     i0cnt=0
     
+    DO i1=1,i0cmax
+       d1gsm(i1)=0.d0
+    ENDDO
+       
+    DO i1=1,i0bmax
+       d1grv(i1)=0.d0
+    ENDDO
+       
+       
     !C
     !C 
     !C
@@ -454,7 +461,7 @@ CONTAINS
     
     DEALLOCATE(x)
     
-    IF(i0tstp.eq.i0tmax) CALL MTX_FINALIZE
+!    IF(i0tstp.eq.i0tmax) CALL MTX_FINALIZE
     
     RETURN
     
@@ -467,8 +474,9 @@ CONTAINS
     
     USE T2COMM,ONLY:&
          i0nmax0,i0dmax0,i0vmax,i2enr0,i0vida,i0vidb,&
-         d0tstp,d0jdmp,d2smat0,d1svec0,d2knv0,&
-         i0msid,i1msidr,i1msidc,d2ms,d3imsn0
+         d0jdmp,d2smat0,d1svec0,d2knv0,&
+         i0msid,i1msidr,i1msidc,d2ms,d3imsn0, &
+         dt
     
     INTEGER(i0ikind):: i3,j3,k3
     REAL(   i0rkind):: d1mass0(1:i0nmax0)
@@ -503,7 +511,7 @@ CONTAINS
           
           DO j3=1,i0nmax0
           DO i3=1,i0nmax0
-             d2smat0(i3,j3) = d2smat0(i3,j3)/d0tstp
+             d2smat0(i3,j3) = d2smat0(i3,j3)/dt
           ENDDO
           ENDDO
           

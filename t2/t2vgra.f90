@@ -13,13 +13,15 @@ MODULE T2VGRA
   
   IMPLICIT NONE
   
-  PUBLIC T2_VGRA
+  PUBLIC T2_VGRA,T2_VGRA_OUTPUT
   
   PRIVATE 
   
 CONTAINS 
   
   SUBROUTINE T2_VGRA
+
+    USE T2COMM, ONLY: idfile
     
     CALL T2VGRA_VM
     CALL T2VGRA_MS
@@ -31,6 +33,8 @@ CONTAINS
     CALL T2VGRA_ES
     CALL T2VGRA_EV
     CALL T2VGRA_ET
+
+    IF(idfile.ge.5) CALL T2_VGRA_OUTPUT
     
     RETURN
     
@@ -688,23 +692,6 @@ CONTAINS
     i0vr          =  6 + 8*i0spcs
     i1vgidr(i0vr) =  i0vofs + 1
     
-    OPEN(10,FILE='TEST_VMR.dat')
-    DO i1=1,i0vgrmx
-       WRITE(10,*)'i1=',i1,'I1VGIDR=',i1vgidr(i1)
-    ENDDO
-    
-    OPEN(10,FILE='TEST_VMC.dat')
-    DO i1=1,i0vgcmx
-       WRITE(10,*)'i1=',i1,'I1VGIDC=',i1vgidc(i1)
-    ENDDO
-    
-    OPEN(10,FILE='TEST_VMX.dat')
-    DO i1=1,i0vmax
-    DO j1=1,i0vmax
-       WRITE(10,*)'i1=',i1,'j1=',j1,'I2VTBL=',i2vtbl(i1,j1)
-    ENDDO
-    ENDDO
-
     RETURN
     
   END SUBROUTINE T2VGRA_VM
@@ -914,18 +901,6 @@ CONTAINS
     i0vr                       = i0msrmx
     i1msidr(i0vr)              = i0vofs + 1
     
-    
-    OPEN(10,FILE='TEST_MSR.dat')
-    DO i1=1,i0msrmx
-       WRITE(10,*)'i1=',i1,'I1MSIDR=',i1msidr(i1)
-    ENDDO
-    CLOSE(10)
-    
-    OPEN(10,FILE='TEST_MSC.dat')
-    DO i1=1,i0mscmx
-       WRITE(10,*)'i1=',i1,'I1MSIDC=',i1msidc(i1)
-    ENDDO
-    CLOSE(10)
     
     RETURN
 
@@ -1149,18 +1124,6 @@ CONTAINS
 
     i0vr                       = i0avrmx
     i1avidr(i0vr)              = i0vofs + 1
-
-    OPEN(10,FILE='TEST_AVR.dat')
-    DO i1=1,i0avrmx
-       WRITE(10,*)'i1=',i1,'I1AVIDR=',i1avidr(i1)
-    ENDDO
-    CLOSE(10)
-
-    OPEN(10,FILE='TEST_AVC.dat')
-    DO i1=1,i0avcmx
-       WRITE(10,*)'i1=',i1,'I1AVIDC=',i1avidc(i1)
-    ENDDO
-    CLOSE(10)
 
     RETURN
     
@@ -1408,20 +1371,6 @@ CONTAINS
     i0vr                       = i0atrmx
     i1atidr(i0vr)              = i0vofs + 1
     
-    !C FOR DEBUG
-    OPEN(10,FILE='TEST_ATR.dat')
-    DO i1=1,i0atrmx
-       WRITE(10,*)'i1=',i1,'I1ATIDR=',i1atidr(i1)
-    ENDDO
-    CLOSE(10)
-
-    OPEN(10,FILE='TEST_ATC.dat')
-    DO i1=1,i0atcmx
-       WRITE(10,*)'i1=',i1,&
-            'I1ATIDC1=',i2atidc(i1,1),'I1ATIDC1=',i2atidc(i1,2)
-    ENDDO
-    CLOSE(10)
-    
     RETURN
     
   END SUBROUTINE T2VGRA_AT
@@ -1652,18 +1601,6 @@ CONTAINS
     i0vr                       = i0dtrmx
     i1dtidr(i0vr)              = i0vofs + 1
     
-    OPEN(10,FILE='TEST_DTR.dat')
-    DO i1=1,i0dtrmx
-       WRITE(10,*)'i1=',i1,'I1DTIDR=',i1dtidr(i1)
-    ENDDO
-    CLOSE(10)
-    
-    OPEN(10,FILE='TEST_DTC.dat')
-    DO i1=1,i0dtcmx
-       WRITE(10,*)'i1=',i1,'I1DTIDC=',i1dtidc(i1)
-    ENDDO
-    CLOSE(10)
-
     RETURN
     
   END SUBROUTINE T2VGRA_DT
@@ -1834,19 +1771,6 @@ CONTAINS
     
     i0vr                       = i0gvrmx
     i1gvidr(i0vr)              = i0vofs + 1
-
-    !CCCC
-    OPEN(10,FILE='TEST_GVR.dat')
-    DO i1=1,i0gvrmx
-       WRITE(10,*)'i1=',i1,'I1GVIDR=',i1gvidr(i1)
-    ENDDO
-    CLOSE(10)
-    
-    OPEN(10,FILE='TEST_GVC.dat')
-    DO i1=1,i0gvcmx
-       WRITE(10,*)'i1=',i1,'I1GVIDC=',i1gvidc(i1)
-    ENDDO
-    CLOSE(10)
 
     RETURN
 
@@ -2071,19 +1995,6 @@ CONTAINS
     i0vr                       = i0gtrmx
     i1gtidr(i0vr)              = i0vofs + 1
 
-    OPEN(10,FILE='TEST_GTR.dat')
-    DO i1=1,i0gtrmx
-       WRITE(10,*)'i1=',i1,'I1GTIDR=',i1gtidr(i1)
-    ENDDO
-    CLOSE(10)
-
-    OPEN(10,FILE='TEST_GTC.dat')
-    DO i1=1,i0gtcmx
-       WRITE(10,*)'i1=',i1,&
-            'I2GTIDC1=',i2gtidc(i1,1),'I2GTIDC2=',i2gtidc(i1,2)
-    ENDDO
-    CLOSE(10)
-    
     RETURN
     
   END SUBROUTINE T2VGRA_GT
@@ -2460,18 +2371,6 @@ CONTAINS
     i0vr          = i0esrmx
     i1esidr(i0vr) = i0vofs + 1
     
-    OPEN(10,FILE='TEST_ESR.dat')
-    DO i1=1,i0esrmx
-       WRITE(10,*)'i1=',i1,'I1ESIDR=',i1esidr(i1)
-    ENDDO
-    CLOSE(10)
-    
-    OPEN(10,FILE='TEST_ESC.dat')
-    DO i1=1,i0escmx
-       WRITE(10,*)'i1=',i1,'I1ESIDC=',i1esidc(i1)
-    ENDDO
-    CLOSE(10)
-    
     RETURN
     
   END SUBROUTINE T2VGRA_ES
@@ -2750,19 +2649,6 @@ CONTAINS
     i0vr          = i0evrmx
     i1evidr(i0vr) = i0vofs + 1
     
-    OPEN(10,FILE='TEST_EVR.dat')
-    DO i1=1,i0evrmx
-       WRITE(10,*)'i1=',i1,'I1EVIDR=',i1evidr(i1)
-    ENDDO
-    CLOSE(10)
-    
-    OPEN(10,FILE='TEST_EVC.dat')
-    DO i1=1,i0evcmx
-       WRITE(10,*)'i1=',i1,&
-            'I2EVIDC1=',i2evidc(i1,1),'I2EVIDC2=',i2evidc(i1,2)
-    ENDDO
-    CLOSE(10)
-    
     RETURN
     
   END SUBROUTINE T2VGRA_EV
@@ -3003,6 +2889,133 @@ CONTAINS
     i0vr          = i0etrmx
     i1etidr(i0vr) = i0vofs + 1
     
+    RETURN
+    
+  END SUBROUTINE T2VGRA_ET
+  
+
+  SUBROUTINE T2_VGRA_OUTPUT
+
+    USE T2COMM
+    IMPLICIT NONE
+    INTEGER(i0ikind):: i1,j1
+
+    OPEN(10,FILE='TEST_VMR.dat')
+    DO i1=1,i0vgrmx
+       WRITE(10,*)'i1=',i1,'I1VGIDR=',i1vgidr(i1)
+    ENDDO
+    
+    OPEN(10,FILE='TEST_VMC.dat')
+    DO i1=1,i0vgcmx
+       WRITE(10,*)'i1=',i1,'I1VGIDC=',i1vgidc(i1)
+    ENDDO
+    
+    OPEN(10,FILE='TEST_VMX.dat')
+    DO i1=1,i0vmax
+    DO j1=1,i0vmax
+       WRITE(10,*)'i1=',i1,'j1=',j1,'I2VTBL=',i2vtbl(i1,j1)
+    ENDDO
+    ENDDO
+
+    OPEN(10,FILE='TEST_MSR.dat')
+    DO i1=1,i0msrmx
+       WRITE(10,*)'i1=',i1,'I1MSIDR=',i1msidr(i1)
+    ENDDO
+    CLOSE(10)
+    
+    OPEN(10,FILE='TEST_MSC.dat')
+    DO i1=1,i0mscmx
+       WRITE(10,*)'i1=',i1,'I1MSIDC=',i1msidc(i1)
+    ENDDO
+    CLOSE(10)
+    
+    OPEN(10,FILE='TEST_AVR.dat')
+    DO i1=1,i0avrmx
+       WRITE(10,*)'i1=',i1,'I1AVIDR=',i1avidr(i1)
+    ENDDO
+    CLOSE(10)
+
+    OPEN(10,FILE='TEST_AVC.dat')
+    DO i1=1,i0avcmx
+       WRITE(10,*)'i1=',i1,'I1AVIDC=',i1avidc(i1)
+    ENDDO
+    CLOSE(10)
+
+    OPEN(10,FILE='TEST_ATR.dat')
+    DO i1=1,i0atrmx
+       WRITE(10,*)'i1=',i1,'I1ATIDR=',i1atidr(i1)
+    ENDDO
+    CLOSE(10)
+
+    OPEN(10,FILE='TEST_ATC.dat')
+    DO i1=1,i0atcmx
+       WRITE(10,*)'i1=',i1,&
+            'I1ATIDC1=',i2atidc(i1,1),'I1ATIDC1=',i2atidc(i1,2)
+    ENDDO
+    CLOSE(10)
+    
+    OPEN(10,FILE='TEST_DTR.dat')
+    DO i1=1,i0dtrmx
+       WRITE(10,*)'i1=',i1,'I1DTIDR=',i1dtidr(i1)
+    ENDDO
+    CLOSE(10)
+    
+    OPEN(10,FILE='TEST_DTC.dat')
+    DO i1=1,i0dtcmx
+       WRITE(10,*)'i1=',i1,'I1DTIDC=',i1dtidc(i1)
+    ENDDO
+    CLOSE(10)
+
+    OPEN(10,FILE='TEST_GVR.dat')
+    DO i1=1,i0gvrmx
+       WRITE(10,*)'i1=',i1,'I1GVIDR=',i1gvidr(i1)
+    ENDDO
+    CLOSE(10)
+    
+    OPEN(10,FILE='TEST_GVC.dat')
+    DO i1=1,i0gvcmx
+       WRITE(10,*)'i1=',i1,'I1GVIDC=',i1gvidc(i1)
+    ENDDO
+    CLOSE(10)
+
+    OPEN(10,FILE='TEST_GTR.dat')
+    DO i1=1,i0gtrmx
+       WRITE(10,*)'i1=',i1,'I1GTIDR=',i1gtidr(i1)
+    ENDDO
+    CLOSE(10)
+
+    OPEN(10,FILE='TEST_GTC.dat')
+    DO i1=1,i0gtcmx
+       WRITE(10,*)'i1=',i1,&
+            'I2GTIDC1=',i2gtidc(i1,1),'I2GTIDC2=',i2gtidc(i1,2)
+    ENDDO
+    CLOSE(10)
+    
+    OPEN(10,FILE='TEST_ESR.dat')
+    DO i1=1,i0esrmx
+       WRITE(10,*)'i1=',i1,'I1ESIDR=',i1esidr(i1)
+    ENDDO
+    CLOSE(10)
+    
+    OPEN(10,FILE='TEST_ESC.dat')
+    DO i1=1,i0escmx
+       WRITE(10,*)'i1=',i1,'I1ESIDC=',i1esidc(i1)
+    ENDDO
+    CLOSE(10)
+    
+    OPEN(10,FILE='TEST_EVR.dat')
+    DO i1=1,i0evrmx
+       WRITE(10,*)'i1=',i1,'I1EVIDR=',i1evidr(i1)
+    ENDDO
+    CLOSE(10)
+    
+    OPEN(10,FILE='TEST_EVC.dat')
+    DO i1=1,i0evcmx
+       WRITE(10,*)'i1=',i1,&
+            'I2EVIDC1=',i2evidc(i1,1),'I2EVIDC2=',i2evidc(i1,2)
+    ENDDO
+    CLOSE(10)
+    
     OPEN(10,FILE='TEST_ETR.dat')
     DO i1=1,i0etrmx
        WRITE(10,*)'i1=',i1,'I1ETIDR=',i1etidr(i1)
@@ -3017,7 +3030,6 @@ CONTAINS
     CLOSE(10)
     
     RETURN
+  END SUBROUTINE T2_VGRA_OUTPUT
     
-  END SUBROUTINE T2VGRA_ET
-  
 END MODULE T2VGRA

@@ -82,7 +82,6 @@ CONTAINS
        i0nid3 = i2crt(i1,2) -1
        i0vid3 = i0vmax*i0nid3
        i0nid4 = i1mfc1(i1) - 1
-
        i0vid4 = i0vmax*i0nid4
 
        d1guv(i0vid4+1) = fd0bp(d0mfcr,d0mfcp)*d0jm1/d0mfcst
@@ -91,9 +90,6 @@ CONTAINS
        
        d1guv(i0vid3+4) = fd0ep(d0mfcr,d0mfcp)/d0epcst
        d1guv(i0vid3+5) = fd0er(d0mfcr,d0mfcp)/d0ercst
-       
-
-       
        
        !C INITIAL PROFILE: Fr Fb Fb Qr Qb Qt (DIMENSIONLESS)
 

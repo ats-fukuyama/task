@@ -18,85 +18,63 @@ CONTAINS
   SUBROUTINE T2_LOOP
     
     USE T2COMM, ONLY:&
-         i0tmax,i0wstp,i0tstp,i0nlct,&
-         d0time,d0tstp,d0tmax,d0eps,d1guv,c10rname
-    USE T2PROF, ONLY:&
-         T2_PROF
+         i0wstp,i1nlct,d1rsdl,&
+         d1guv,c10rname, &
+         time_t2,dt,ntmax,ntstep,nt0dstep,nt0dmax,nt2dstep,nt2dmax,idfile
     USE T2STEP, ONLY:&
          T2_STEP
     USE T2WRIT, ONLY:&
-         T2WRIT_MAIN,T2_WRIT_GPT,T2_WRIT_GP1
+         T2_WRIT_MAIN,T2_WRIT_GPT,T2_WRIT_GP1
+    USE T2SAVE, ONLY:&
+         T2_SAVE_0D,T2_SAVE_2D
+    USE LIBMTX, ONLY: &
+         MTX_INITIALIZE,MTX_FINALIZE
     
-    INTEGER(i0ikind)     :: i0tflg,i0tsws
+    INTEGER(i0ikind)     :: i0tflg,i0tsws,nt
     REAL(4),SAVE         :: e0time1
     REAL(4)              :: e0time2, e0time3, e0time4, e0time5
     REAL(   i0rkind),SAVE:: d0tstp_save
+    INTEGER(i0ikind)     :: i_conv
+    REAL(i0rkind):: residual_conv
 
-101 FORMAT('TIMESTEP=',I10,1X,'LAP TIME=',F10.4,'[s/step]',1X,&
-         'ELAPSED TIME=',F10.4,'[s]')
+101 FORMAT('NT=',I6,2X,'TIME=',1P2E12.4,' [s]')
     
-    i0tsws      = 0
-    i0tstp      = 0
-    d0time      = 0.D0
-    d0tstp_save = d0tstp
+    CALL CPU_TIME(e0time1)
 
-    DO !C TIME EVOLUTION LOOP
+    CALL MTX_INITIALIZE
+
+!   ----- TIME EVOLUTION LOOP -----
+
+    DO nt=1,ntmax
        
-       !C
-       !C CALCULATE GEOMETRICAL COEFFICIENTS
-       !C
+       time_t2 = time_t2 + dt
        
-       IF(i0tstp.EQ.0) CALL T2_PROF
+       CALL T2_STEP(i_conv,residual_conv)
+       i1nlct(nt) = i_conv
+       d1rsdl(nt) = residual_conv
        
-       IF(i0tstp.EQ.0) CALL T2WRIT_MAIN(d1guv,i0tstp,c10rname)
-       IF(i0tstp.EQ.0) CALL T2_WRIT_GPT(20,i0tstp,d1guv)
-       IF(i0tstp.EQ.0) CALL T2_WRIT_GP1(22,i0tstp,d1guv)
-       IF(i0tmax.EQ.0) EXIT
-       i0tstp = i0tstp + 1
-       i0tflg = 0
-       IF(i0tstp.EQ.1) CALL CPU_TIME(e0time1)
        CALL CPU_TIME(e0time2)
-       
-       IF((d0time + d0tstp).GE.d0tmax)THEN
-          d0tstp = d0tmax - d0time
-          i0tflg = 1
-       ELSEIF(i0tstp.EQ.(i0tmax-1))THEN
-          i0tmax = i0tmax+1
-       ENDIF
 
-       d0time = d0time + d0tstp
-       
-       !C
-       !C NON-LINEAR ITERATION BY PICARD METHOD
-       !C
-       
-       WRITE(6,*)'++++++++++++++++++++++++++++++++++++++++++++++++++'
-       WRITE(6,*)'     NON-LINEAR ITERATION BY PICARD METHOD        '
-       WRITE(6,*)'TIMESTEPNUMBER=',i0tstp,'TIMESTEPWIDTH=',d0tstp
-       WRITE(6,*)'TOLERANCE=',d0eps
-       
-       CALL T2_STEP
-       
-       CALL CPU_TIME(e0time3)
-       
-       e0time4 = e0time3 - e0time2
-       e0time5 = e0time3 - e0time1
-       
-       WRITE(6,101),i0tstp,e0time4,e0time5
+       IF(MOD(nt,ntstep).EQ.0) &
+       WRITE(6,'(A,I6,2X,A,1P2E12.4,2X,A,I6,2X,A,1P2E12.4)') &
+            'NT=',nt,'TIME=',time_t2,'Loop=',i_conv,'CPU=',e0time2-e0time1
        
        !C
        !C WRITE CALCULATION RESULT IN VTK FORMAT
        !C
        
-       IF(MOD(i0tstp,i0wstp).EQ.0) CALL T2WRIT_MAIN(d1guv,i0tstp,c10rname)
-       IF(MOD(i0tstp,i0wstp).EQ.0) CALL T2_WRIT_GPT(20,i0tstp,d1guv)       
-       WRITE(6,*),'IN T2LOOP','i0tstp=',i0tstp,'i0tmax=',i0tmax
+       IF(idfile.GE.1) CALL T2_WRIT_MAIN(d1guv,nt,c10rname)
+       IF(idfile.GE.2) CALL T2_WRIT_GPT(20,nt,d1guv)
+       IF(idfile.GE.3) CALL T2_WRIT_GP1(22,nt,d1guv)
 
-       IF((i0tstp.EQ.i0tmax).OR.(i0tflg.EQ.1))THEN
-          d0tstp= d0tstp_save
-          EXIT
-       END IF
+!      ----- save data -----
+
+       IF(MOD(nt,nt0dstep).EQ.0) CALL T2_SAVE_0D
+       IF(MOD(nt,nt2dstep).EQ.0) CALL T2_SAVE_2D
+
     ENDDO
+
+    CALL MTX_FINALIZE
 
     RETURN
 

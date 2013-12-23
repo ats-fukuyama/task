@@ -14,13 +14,23 @@ CONTAINS
     USE T2VGRA, ONLY: T2_VGRA
     USE T2INTG, ONLY: T2_INTG
     IMPLICIT NONE
-  
+    REAL(4):: e0time_0,e0time_1
+
+    CALL CPU_TIME(e0time_0)
     CALL T2_NGRA
-    WRITE(6,*)'-- Node graph generated'
+    CALL CPU_TIME(e0time_1)
+    WRITE(6,'(A,F10.3,A)') '-- Node graph generated:       cpu=', &
+                           e0time_1-e0time_0,' [s]'
+    CALL CPU_TIME(e0time_0)
     CALL T2_VGRA
-    WRITE(6,*)'-- Variable graph generated'
+    CALL CPU_TIME(e0time_1)
+    WRITE(6,'(A,F10.3,A)') '-- Variable graph generated:   cpu=', &
+                           e0time_1-e0time_0,' [s]'
+    CALL CPU_TIME(e0time_0)
     CALL T2_INTG
-    WRITE(6,*)'-- Integral table calculated'
+    CALL CPU_TIME(e0time_1)
+    WRITE(6,'(A,F10.3,A)') '-- Integral table calculated:  cpu=', &
+                           e0time_1-e0time_0,' [s]'
     RETURN
 
   END SUBROUTINE T2_DIV

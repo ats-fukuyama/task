@@ -17,9 +17,12 @@ CONTAINS
     USE T2CNST, ONLY: &
          i0ikind,i0rkind,i0lmaxm,i0spcsm,d0aee,d0ame,d0amp
     USE T2COMM
+    USE T2DIV, ONLY: T2_DIV
+    USE T2PROF, ONLY: T2_PROF
+    USE T2WRIT, ONLY: T2_WRIT_MAIN,T2_WRIT_GPT,T2_WRIT_GP1
     IMPLICIT NONE
-
     INTEGER(i0ikind)::i0mlva,i0mlvb,i0mlvc,i1,j1,i0mesh_level
+    REAL(4):: e0time_0,e0time_1
         
     d0iar = d0rmnr/d0rmjr
     d0mfcst = 1.D0
@@ -36,7 +39,7 @@ CONTAINS
     d0qbcst = d0aee*1.D23
     d0qtcst = d0aee*1.D23/d0iar
 
-    CALL T2NGRA_ALLOCATE_1
+    CALL T2NGRA_ALLOCATE
 
     DO i1=1,i0lmax
        i0mesh_level=i1mlvl(i1)-1
@@ -215,8 +218,22 @@ CONTAINS
     i0cmax = i0vgcmx*i0ncmx
     i0bmax = i0vmax *i0nmax2
     i0xmax = i0vmax *i0nmax3
-    
+
     CALL T2COMM_ALLOCATE
+
+    CALL T2_DIV
+
+    CALL CPU_TIME(e0time_0)
+    CALL T2_PROF
+    CALL CPU_TIME(e0time_1)
+    WRITE(6,'(A,F10.3,A)') '-- Initial profile calculated: cpu=', &
+                         e0time_1-e0time_0,' [s]'
+
+    IF(idfile.ge.1) CALL T2_WRIT_MAIN(d1guv,0,c10rname)
+    IF(idfile.ge.2) CALL T2_WRIT_GPT(20,0,d1guv)
+    IF(idfile.ge.3) CALL T2_WRIT_GP1(22,0,d1guv)
+
+    time_t2=time_init
 
     RETURN
 
