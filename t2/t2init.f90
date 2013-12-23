@@ -67,35 +67,23 @@ CONTAINS
 
     i0spcs   =  2 
     i0nmax0  =  4      ! number of nodes in a elemnt
-    i0lmax   =  6      ! 
-    i0pdiv_number = 6  ! 
+    i0lmax   =  2      ! 
+    i0pdiv_number = 8  ! 
 
-    i1mlvl(1)=1        ! 6 x 2^0
-    i1mlvl(2)=2        ! 6 x 2^1
-    i1mlvl(3)=3
-    i1mlvl(4)=4
-    i1mlvl(5)=5        ! 6 x 2^5
-    i1mlvl(6)=5        ! 6 x 2^5
+    i1mlvl(1)=1        ! 8 x 2^0
+    i1mlvl(2)=1        ! 8 x 2^0
     i1mlvl(  0)          = 0
-    i1mlvl(  7:i0lmaxm+1) = 0
+    i1mlvl(  3:i0lmaxm+1) = 0
 
     i1rdn2(1)=  10     ! number of radial nodes in a level
-    i1rdn2(2)=  10     
-    i1rdn2(3)=  10
-    i1rdn2(4)=  10
-    i1rdn2(5)=  10
-    i1rdn2(6)=  10
+    i1rdn2(2)=  2     
     i1rdn2(-1:0)     = 0
-    i1rdn2(7:i0lmaxm) = 0
+    i1rdn2(3:i0lmaxm) = 0
 
     d1rec(0) = 0.000D0  ! least radial point in a level
-    d1rec(1) = 0.050D0
-    d1rec(2) = 0.100D0
-    d1rec(3) = 0.400D0
-    d1rec(4) = 0.700D0
-    d1rec(5) = 1.000D0
-    d1rec(6) = 1.100D0
-    d1rec(7:i0lmaxm) = 0.D0
+    d1rec(1) = 1.000D0
+    d1rec(2) = 1.100D0
+    d1rec(3:i0lmaxm) = 0.D0
 
     d0rmjr   =  3.0D0
     d0rmnr   =  1.0D0
@@ -149,7 +137,7 @@ CONTAINS
     nt2dmax   = 1       ! maximum number of profile data to be saved
     nt2dstep  = 1       ! time step to save profile data
 
-    nconvmax  = 10      ! maximum nmber of convergence steps for implicit loop
+    nconvmax  = 1       ! maximum nmber of convergence steps for implicit loop
     eps_conv  = 1.D-4   ! relative convergence criterion for implicit loop
 
     idfile    = 0       ! control id for file output: 0 for none, 9 for all

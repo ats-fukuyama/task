@@ -36,6 +36,7 @@ CONTAINS
     INTEGER(i0ikind):: i0pflg, i1
     REAL(   i0rkind):: d0aft,  d0bfr, d0dif, d0ave, d0dif_max
     CHARACTER(10)::c10nl
+    REAL(4):: e0time_0,e0time_1
     
     c10nl='NL'
 
@@ -49,7 +50,11 @@ CONTAINS
        !C CALCULATE PLASMA COEFFICIENTS
        !C
        
+       CALL CPU_TIME(e0time_0)
        CALL T2_CALV
+       CALL CPU_TIME(e0time_1)
+       WRITE(6,'(A,F10.3,A)') '-- T2_CALV completed:          cpu=', &
+                              e0time_1-e0time_0,' [s]'
        
        !C
        !C ADVECTION DIFFUSION EQUATION SOLVER (SUPG)
@@ -139,7 +144,7 @@ CONTAINS
           WRITE(6,'("       INDETERMINATE PROBLEM                 ")')
           WRITE(6,'("*********************************************")')
           PRINT*,i1
-          STOP
+          RETURN
        ENDIF
        
        d0dif_tmp = d0dif/d0ave

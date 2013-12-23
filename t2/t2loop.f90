@@ -56,7 +56,7 @@ CONTAINS
        CALL CPU_TIME(e0time2)
 
        IF(MOD(nt,ntstep).EQ.0) &
-       WRITE(6,'(A,I6,2X,A,1P2E12.4,2X,A,I6,2X,A,1P2E12.4)') &
+       WRITE(6,'(A,I6,2X,A,1PE12.4,2X,A,I6,2X,A,1PE12.4)') &
             'NT=',nt,'TIME=',time_t2,'Loop=',i_conv,'CPU=',e0time2-e0time1
        
        !C

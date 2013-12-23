@@ -29,10 +29,10 @@ CONTAINS
     INTEGER(i0ikind):: i1,j1,&
          i0vr,i0vc,i0vg,i0nr,i0nc,i0ng,i0tr,i0tc,i0tg
     
-    REAL(4)::e0time1,e0time2
+    REAL(4)::e0time_0,e0time_1
     
-    CALL CPU_TIME(e0time1)
-    
+    CALL CPU_TIME(e0time_0)
+
     DO i0eid=1,i0emax
        
        CALL T2EXEC_LV
@@ -49,11 +49,19 @@ CONTAINS
        
     ENDDO
     
-    CALL CPU_TIME(e0time2)
-    WRITE(6,*)'TIME IN STIFF',e0time2-e0time1,'[s]'     
-    CALL T2EXEC_DIRICHLET
-    print*,'SOLVE_MATRIX'
+          CALL CPU_TIME(e0time_1)
+          WRITE(6,'(A,F10.3,A)') '-- T2EXEC: completed:          cpu=', &
+                                 e0time_1-e0time_0,' [s]'
+          CALL CPU_TIME(e0time_0)
+    CALL T2EXEC_BC
+          CALL CPU_TIME(e0time_1)
+          WRITE(6,'(A,F10.3,A)') '-- T2EXEC_BC completed:        cpu=', &
+                                 e0time_1-e0time_0,' [s]'
+          CALL CPU_TIME(e0time_0)
     CALL T2EXEC_SOLVE
+          CALL CPU_TIME(e0time_1)
+          WRITE(6,'(A,F10.3,A)') '-- T2EXEC_SOLVE completed:     cpu=', &
+                                 e0time_1-e0time_0,' [s]'
     
     RETURN
     
@@ -168,7 +176,7 @@ CONTAINS
     
   END SUBROUTINE T2EXEC_LV
   
-  SUBROUTINE T2EXEC_DIRICHLET
+  SUBROUTINE T2EXEC_BC
     
     USE T2COMM, ONLY:&
          i0lmax,i0nmax2,i0vmax,i0vgcmx,&
@@ -273,7 +281,7 @@ CONTAINS
     
     RETURN
     
-  END SUBROUTINE T2EXEC_DIRICHLET
+  END SUBROUTINE T2EXEC_BC
   
   !C
   !C MODIFIED 2013-12-02
@@ -352,7 +360,13 @@ CONTAINS
                 i0tg  = i0vgcmx*(i0ng - 1) + i0vg
                 d0val = d1gsm(i0tg)
                 
-                IF(d0val.NE.0.D0) CALL MTX_SET_MATRIX(i0tr,i0tc,d0val)
+                WRITE(18,'(6I5,3I10,1PE12.4)') &
+                     i0nr,i0ng,i0nc,i0vr,i0vg,i0vc,i0tr,i0tc,i0tg,d0val
+                IF(d0val.NE.0.D0) THEN
+                   WRITE(18,'(6I5,3I10,1PE12.4)') &
+                        i0nr,i0ng,i0nc,i0vr,i0vg,i0vc,i0tr,i0tc,i0tg,d0val
+                   CALL MTX_SET_MATRIX(i0tr,i0tc,d0val)
+                END IF
                 
              ENDDO
           ENDDO
@@ -497,9 +511,9 @@ CONTAINS
              d1mass0(i3)=d2ms(i0msid,i2enr0(1,i3))
           ENDDO
           
-          DO k3=1,i0nmax0
           DO j3=1,i0nmax0
           DO i3=1,i0nmax0
+          DO k3=1,i0nmax0
              d2smat0(       i3,j3   )&
                   = d2smat0(i3,j3   )&
                   + d3imsn0(i3,j3,k3)&
@@ -542,7 +556,7 @@ CONTAINS
          i2,j2,i3,j3,k3
     
     REAL(   i0rkind)::&
-         d2velo0(1:i0nmax0,1:i0dmax0)
+         d2velo0(1:i0nmax0,1:i0dmax0),temp2d(i0nmax0,i0dmax0)
     
     DO i0vida = 1, i0vmax   
        
@@ -561,17 +575,30 @@ CONTAINS
           ENDDO
 
           DO j2=1,i0dmax0
-          DO i2=1,i0dmax0
+          DO k3=1,i0nmax0
+             temp2d(k3,j2) = 0.D0
+             DO i2=1,i0dmax0
+                temp2d(k3,j2) = temp2d(k3,    j2) &
+                              + d2velo0(k3,i2   ) &
+                              * d2jmpm(    i2,j2) 
+             END DO
+             temp2d(k3,j2) = temp2d(k3,j2)*d0jdmp
+          END DO
+          END DO
+
+          DO j3=1,i0nmax0
+          DO i3=1,i0nmax0
+             DO j2=1,i0dmax0
              DO k3=1,i0nmax0
-             DO j3=1,i0nmax0
-             DO i3=1,i0nmax0
-                d2smat0(       i3,j3         )&
-                     = d2smat0(i3,j3         )&
-                     + d4iavn0(i3,j3,k3,   j2)&
-                     * d2velo0(      k3,i2   )&
-                     * d2jmpm(          i2,j2)&
-                     * d0jdmp
-             ENDDO
+                d2smat0(       i3,j3      ) &
+                     = d2smat0(i3,j3      ) &
+                     + d4iavn0(i3,j3,k3,j2) &
+                     * temp2d(       k3,j2)
+
+!                     * d2velo0(      k3,i2   )&
+!                     * d2jmpm(          i2,j2)&
+!                     * d0jdmp
+
              ENDDO
              ENDDO
           ENDDO
@@ -597,7 +624,8 @@ CONTAINS
          i0nn,i0atsa
     REAL(   i0rkind)::&
          d3velo0(1:i0nmax0,1:i0dmax0,1:i0dmax0),&
-         d1atsa0(1:i0nmax0)
+         d1atsa0(1:i0nmax0), &
+         temp3d(1:i0nmax0,1:i0dmax0,1:i0dmax0)
     
     DO i0vida = 1, i0vmax   
        
@@ -624,31 +652,45 @@ CONTAINS
           DO i3 = 1,i0nmax0
              d1atsa0(i3) = d2ws0(i0atsa,i3)
           ENDDO
-          
-          !C MAIN LOOP
-          
+
           DO l2 = 1, i0dmax0
           DO k2 = 1, i0dmax0
-          DO j2 = 1, i0dmax0
-          DO i2 = 1, i0dmax0
+          DO l3 = 1, i0nmax0
+             temp3d(l3,k2,l2) = 0.D0
+             DO j2 = 1, i0dmax0
+             DO i2 = 1, i0dmax0
+                temp3d(l3,k2,l2) = temp3d( l3,      k2,l2) &
+                                 + d3velo0(l3,i2,j2      ) &
+                                 * d2jmpm(    i2,   k2   ) &
+                                 * d2jmpm(       j2,   l2)
+             END DO
+             END DO
+             temp3d(l3,k2,l2)=temp3d(l3,k2,l2)*d0jdmp
+          END DO
+          END DO
+          END DO
+          !C MAIN LOOP
+          
+          DO j3 = 1, i0nmax0
+          DO i3 = 1, i0nmax0
+             DO l2 = 1, i0dmax0
+             DO k2 = 1, i0dmax0
              DO l3 = 1, i0nmax0
              DO k3 = 1, i0nmax0
-             DO j3 = 1, i0nmax0
-             DO i3 = 1, i0nmax0
-                d2smat0(       i3,j3                  )&
-                     = d2smat0(i3,j3                  )&
-                     + d6iatn0(i3,j3,k3,l3,      k2,l2)&
-                     * d1atsa0(      k3               )&   
-                     * d3velo0(         l3,i2,j2      )&
-                     * d2jmpm(             i2,   k2   )&
-                     * d2jmpm(                j2,   l2)&
-                     * d0jdmp
+                d2smat0(       i3,j3            )&
+                     = d2smat0(i3,j3            )&
+                     + d6iatn0(i3,j3,k3,l3,k2,l2)&
+                     * d1atsa0(      k3         )&
+                     * temp3d(          l3,k2,l2)
+
+!                     * d3velo0(         l3,i2,j2      )&
+!                     * d2jmpm(             i2,   k2   )&
+!                     * d2jmpm(                j2,   l2)&
+!                     * d0jdmp
              ENDDO
              ENDDO
-             ENDDO
-             ENDDO
-          ENDDO
-          ENDDO
+            ENDDO
+            ENDDO
           ENDDO
           ENDDO
           
@@ -672,7 +714,8 @@ CONTAINS
          i2,j2,k2,l2,i3,j3,k3
 
     REAL(   i0rkind)::&
-         d3diff0(1:i0nmax0,1:i0dmax0,1:i0dmax0)
+         d3diff0(1:i0nmax0,1:i0dmax0,1:i0dmax0), &
+         temp3d(1:i0nmax0,1:i0dmax0,1:i0dmax0)
 
     DO i0vida = 1, i0vmax
        
@@ -697,23 +740,38 @@ CONTAINS
 
           DO l2=1,i0dmax0
           DO k2=1,i0dmax0
-          DO j2=1,i0dmax0
-          DO i2=1,i0dmax0
+          DO k3=1,i0nmax0
+             temp3d(k3,k2,l2) = 0.D0
+             DO j2=1,i0dmax0
+             DO i2=1,i0dmax0
+                temp3d(k3,k2,l2) = temp3d( k3,      k2,l2) &
+                                 + d3diff0(k3,i2,j2      ) &
+                                 * d2jmpm(    i2,   k2   ) &
+                                 * d2jmpm(       j2,   l2)
+             END DO
+             END DO
+             temp3d(k3,k2,l2) = temp3d( k3,k2,l2)*d0jdmp
+          END DO
+          END DO
+          END DO
+
+          DO j3=1,i0nmax0
+          DO i3=1,i0nmax0
+             DO l2=1,i0dmax0
+             DO k2=1,i0dmax0
              DO k3=1,i0nmax0
-             DO j3=1,i0nmax0
-             DO i3=1,i0nmax0
-                d2smat0(       i3,j3               )&
-                     = d2smat0(i3,j3               )&
-                     + d5idtn0(i3,j3,k3,      k2,l2)&
-                     * d3diff0(      k3,i2,j2      )&
-                     * d2jmpm(          i2,   k2   )&
-                     * d2jmpm(             j2,   l2)&
-                     * d0jdmp
+                d2smat0(       i3,j3         ) &
+                     = d2smat0(i3,j3         ) &
+                     + d5idtn0(i3,j3,k3,k2,l2) &
+                     * temp3d(       k3,k2,l2)
+
+!                     * d3diff0(      k3,i2,j2      )&
+!                     * d2jmpm(          i2,   k2   )&
+!                     * d2jmpm(             j2,   l2)&
+!                     * d0jdmp
              ENDDO
              ENDDO
              ENDDO
-          ENDDO
-          ENDDO
           ENDDO
           ENDDO
     
@@ -738,7 +796,8 @@ CONTAINS
          i3,j3,k3,i2,j2
     
     REAL(   i0rkind)::&
-         d2grad0(1:i0nmax0,1:i0dmax0)
+         d2grad0(1:i0nmax0,1:i0dmax0), &
+         temp2d(1:i0nmax0,1:i0dmax0)
     
     DO i0vida = 1,i0vmax
        
@@ -760,17 +819,29 @@ CONTAINS
           !C MAIN LOOP
     
           DO j2=1,i0dmax0
-          DO i2=1,i0dmax0
+          DO k3=1,i0nmax0
+             temp2d(k3,j2)=0.D0
+             DO i2=1,i0dmax0
+                temp2d(k3,j2) = temp2d( k3,   j2) &
+                              + d2grad0(k3,i2   ) &
+                              * d2jmpm(    i2,j2) 
+             END DO
+             temp2d(k3,j2)=temp2d(k3,j2)*d0jdmp
+          END DO
+          END DO
+
+          DO j3=1,i0nmax0
+          DO i3=1,i0nmax0
+             DO j2=1,i0dmax0
              DO k3=1,i0nmax0
-             DO j3=1,i0nmax0
-             DO i3=1,i0nmax0
-                d2smat0(       i3,j3         )&
-                     = d2smat0(i3,j3         )&
-                     + d4igvn0(i3,j3,k3,   j2)&
-                     * d2grad0(      k3,i2   )&
-                     * d2jmpm(          i2,j2)&
-                     * d0jdmp
-             ENDDO
+                d2smat0(       i3,j3      ) &
+                     = d2smat0(i3,j3      ) &
+                     + d4igvn0(i3,j3,k3,j2) &
+                     * temp2d(       k3,j2)
+
+!                     * d2grad0(      k3,i2   )&
+!                     * d2jmpm(          i2,j2)&
+!                     * d0jdmp
              ENDDO
              ENDDO
           ENDDO
@@ -798,7 +869,8 @@ CONTAINS
     
     REAL(   i0rkind)::&
          d3grad0(1:i0nmax0,1:i0dmax0,1:i0dmax0),&
-         d1gtsa0(1:i0nmax0)
+         d1gtsa0(1:i0nmax0), &
+         temp3d(1:i0nmax0,1:i0dmax0,1:i0dmax0)
     
     DO i0vida = 1, i0vmax
        
@@ -827,29 +899,43 @@ CONTAINS
           ENDDO
           
           !C MAIN LOOP
-    
           DO l2 = 1, i0dmax0
           DO k2 = 1, i0dmax0
-          DO j2 = 1, i0dmax0
-          DO i2 = 1, i0dmax0
+          DO l3 = 1, i0nmax0
+             temp3d(l3,k2,l2) = 0.D0
+             DO j2 = 1, i0dmax0
+             DO i2 = 1, i0dmax0
+                temp3d(l3,k2,l2) = temp3d( l3,      k2,l2) &
+                                 + d3grad0(l3,i2,j2      ) &
+                                 * d2jmpm(    i2,   k2   ) &
+                                 * d2jmpm(       j2,   l2)
+             END DO
+             END DO
+             temp3d(l3,k2,l2) = temp3d(l3,k2,l2) * d0jdmp
+          END DO
+          END DO
+          END DO
+
+          DO j3 = 1, i0nmax0
+          DO i3 = 1, i0nmax0
+             DO l2 = 1, i0dmax0
+             DO k2 = 1, i0dmax0
              DO l3 = 1, i0nmax0
              DO k3 = 1, i0nmax0
-             DO j3 = 1, i0nmax0
-             DO i3 = 1, i0nmax0
-                d2smat0(       i3,j3                  )&
-                     = d2smat0(i3,j3                  )&
-                     + d6igtn0(i3,j3,k3,l3,      k2,l2)&
-                     * d1gtsa0(      k3               )&   
-                     * d3grad0(         l3,i2,j2      )&
-                     * d2jmpm(             i2,   k2   )&
-                     * d2jmpm(                j2,   l2)&
-                     * d0jdmp
+                d2smat0(       i3,j3            ) &
+                     = d2smat0(i3,j3            ) &
+                     + d6igtn0(i3,j3,k3,l3,k2,l2) &
+                     * d1gtsa0(      k3         ) &   
+                     * temp3d(          l3,k2,l2)
+
+!                     * d3grad0(         l3,i2,j2      )&
+!                     * d2jmpm(             i2,   k2   )&
+!                     * d2jmpm(                j2,   l2)&
+!                     * d0jdmp
              ENDDO
              ENDDO
              ENDDO
              ENDDO 
-          ENDDO
-          ENDDO
           ENDDO
           ENDDO
           
@@ -890,9 +976,9 @@ CONTAINS
 
           !C MAIN LOOP
           
-          DO k3=1,i0nmax0
           DO j3=1,i0nmax0
           DO i3=1,i0nmax0
+          DO k3=1,i0nmax0
              d2smat0(       i3,j3   )&
                   = d2smat0(i3,j3   )&
                   + d3iesn0(i3,j3,k3)&
@@ -923,7 +1009,8 @@ CONTAINS
          i0evsa
     REAL(   i0rkind)::&
          d2exct0(1:i0nmax0,1:i0dmax0),&
-         d1evsa0(1:i0nmax0)
+         d1evsa0(1:i0nmax0),&
+         temp2d(1:i0nmax0,1:i0dmax0)
     
     DO i0vida = 1, i0vmax
        DO i0evid = i1evidr(i0vida),i1evidr(i0vida+1)-1
@@ -949,19 +1036,31 @@ CONTAINS
           !C MAIN LOOP
           
           DO j2 = 1, i0dmax0
-          DO i2 = 1, i0dmax0
+          DO l3 = 1, i0nmax0
+             temp2d(l3,j2) = 0.D0
+             DO i2 = 1, i0dmax0
+                temp2d(l3,j2) = temp2d( l3,   j2) &
+                              + d2exct0(l3,i2   ) &
+                              * d2jmpm(    i2,j2)
+             END DO
+             temp2d(l3,j2) = temp2d(l3,j2) * d0jdmp
+          END DO
+          END DO
+
+          DO j3 = 1, i0nmax0
+          DO i3 = 1, i0nmax0
+             DO j2 = 1, i0dmax0
              DO l3 = 1, i0nmax0
              DO k3 = 1, i0nmax0
-             DO j3 = 1, i0nmax0
-             DO i3 = 1, i0nmax0
                 d2smat0(       i3,j3            )&
                      = d2smat0(i3,j3            )&
-                     + d5ievn0(i3,j3,k3,l3,   j2)&
-                     * d1evsa0(      k3         )&   
-                     * d2exct0(         l3,i2   )&
-                     * d2jmpm(             i2,j2)&
-                     * d0jdmp
-             ENDDO
+                     + d5ievn0(i3,j3,k3,l3,j2)&
+                     * d1evsa0(      k3      )&   
+                     * temp2d(          l3,j2)
+
+!                     * d2exct0(         l3,i2   )&
+!                     * d2jmpm(             i2,j2)&
+!                     * d0jdmp
              ENDDO
              ENDDO
              ENDDO
@@ -991,7 +1090,8 @@ CONTAINS
     REAL(   i0rkind)::&
          d3exct0(1:i0nmax0,1:i0dmax0,1:i0dmax0),&
          d1etsa0(1:i0nmax0),&
-         d1etsb0(1:i0nmax0)
+         d1etsb0(1:i0nmax0), &
+         temp3d(1:i0nmax0,1:i0dmax0,1:i0dmax0)
     
     DO i0vida = 1, i0vmax
        
@@ -1024,29 +1124,44 @@ CONTAINS
           
           DO l2 = 1, i0dmax0
           DO k2 = 1, i0dmax0
-          DO j2 = 1, i0dmax0
-          DO i2 = 1, i0dmax0
           DO m3 = 1, i0nmax0
+             temp3d(m3,k2,l2) = 0.D0
+             DO j2 = 1, i0dmax0
+             DO i2 = 1, i0dmax0
+                temp3d(m3,k2,l2) = temp3d( m3,      k2,l2) &
+                                 + d3exct0(m3,i2,j2      ) &
+                                 * d2jmpm(    i2,   k2   ) &
+                                 * d2jmpm(       j2,   l2)
+             END DO
+             END DO
+             temp3d(m3,k2,l2) = temp3d(m3,k2,l2) * d0jdmp
+          END DO
+          END DO
+          END DO
+
+          DO j3 = 1, i0nmax0
+          DO i3 = 1, i0nmax0
+             DO l2 = 1, i0dmax0
+             DO k2 = 1, i0dmax0
+             DO m3 = 1, i0nmax0
              DO l3 = 1, i0nmax0
              DO k3 = 1, i0nmax0
-             DO j3 = 1, i0nmax0
-             DO i3 = 1, i0nmax0
-                d2smat0(       i3,j3                     )&
-                     = d2smat0(i3,j3                     )&
-                     + d7ietn0(i3,j3,k3,l3,m3,      k2,l2)&
-                     * d1etsa0(      k3                  )&
-                     * d1etsb0(         l3               )&
-                     * d3exct0(            m3,i2,j2      )&
-                     * d2jmpm(                i2,   k2   )&
-                     * d2jmpm(                   j2,   l2)&
-                     * d0jdmp
+                d2smat0(       i3,j3                     ) &
+                     = d2smat0(i3,j3                     ) &
+                     + d7ietn0(i3,j3,k3,l3,m3,k2,l2) &
+                     * d1etsa0(      k3            ) &
+                     * d1etsb0(         l3         ) &
+                     * temp3d(             m3,k2,l2)
+
+!                     * d3exct0(            m3,i2,j2      )&
+!                     * d2jmpm(                i2,   k2   )&
+!                     * d2jmpm(                   j2,   l2)&
+!                     * d0jdmp
              ENDDO
              ENDDO
              ENDDO
              ENDDO
              ENDDO
-          ENDDO
-          ENDDO
           ENDDO
           ENDDO
           

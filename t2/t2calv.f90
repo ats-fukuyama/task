@@ -53,8 +53,6 @@ CONTAINS
     USE T2COMM, ONLY: i0nmax1
     REAL(4)::e0time1,e0time2
     
-    CALL CPU_TIME(e0time1)
-    
     DO i0nid = 1,i0nmax1
        
        CALL T2CALV_WV       
@@ -69,12 +67,6 @@ CONTAINS
        CALL T2CALV_ET
        
     ENDDO
-    
-    CALL CPU_TIME(e0time2)
-    
-    e0time2 = e0time2-e0time1
-    
-    WRITE(6,*)'TIME IN T2COEFF',e0time2,'[s]'
     
     RETURN
     

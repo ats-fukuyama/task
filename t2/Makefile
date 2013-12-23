@@ -4,8 +4,8 @@ include ../make.header
 #PETSCLIBS=${PETSC_KSP_LIB}
 TARGETP = ./t2
 ##### Without PETSc library #####
-#LIBMTX=../mtxp/libmtxnompi.o ../mtxp/libmtxbnd.o
-LIBMTX=../mtxp/libmtxnompi.o ../mtxp/libmtxpcg.o
+LIBMTX=../mtxp/libmtxnompi.o ../mtxp/libmtxbnd.o
+#LIBMTX=../mtxp/libmtxnompi.o ../mtxp/libmtxpcg.o
 PETSCLIBS=
 FLINKER=$(FCFREE)
 ##### With PETSc library #####
