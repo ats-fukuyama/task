@@ -116,11 +116,12 @@
          ENDDO
       ELSE
          ALLOCATE(ir(imax*jmax),ic(imax*jmax),drc(imax*jmax))
-         irmax=0
-         icmin=0
-         icmax=0
-         irc=0
       END IF
+      irmax=0
+      icmin=0
+      icmax=0
+      irc=0
+
       ALLOCATE(b(imax),x(imax))
       istart_=1
       iend_=imax
@@ -322,11 +323,12 @@
          ENDDO
       ELSE
          ALLOCATE(ir(imax*jmax),ic(imax*jmax),drcc(imax*jmax))
-         irmax=0
-         icmin=0
-         icmax=0
-         irc=0
       END IF
+      irmax=0
+      icmin=0
+      icmax=0
+      irc=0
+
       ALLOCATE(bc(imax),xc(imax))
       istart_=1
       iend_=imax
