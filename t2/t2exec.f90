@@ -304,7 +304,6 @@ CONTAINS
     INTEGER(i0ikind)::itype, m1, m2,i2val(i0vmax,i0vmax)
     REAL(   i0rkind)::tolerance,d0val
     REAL(   i0rkind),POINTER,SAVE::x(:)
-    REAL(4)::cputime1, cputime2 
     INTEGER(i0ikind)::&
          i1,i2,j2,i4,i5,i0cnt,&
          i0vr,i0vc,i0vg,i0nr,i0nc,i0ng,i0tr,i0tc,i0tg,&
@@ -329,23 +328,12 @@ CONTAINS
 
     tolerance=1.D-7
 
-    IF(nrank.EQ.0) CALL CPU_TIME(cputime1)
-    
     ALLOCATE(x(i0bmax))
     
-    CALL MTX_SETUP(i0bmax,istart,iend,nzmax=i0cmax)
+    CALL MTX_SETUP(i0bmax,istart,iend,nzmax=i0cmax,idebug=0)
     
     i0cnt=0
     
-    DO i1=1,i0cmax
-       d1gsm(i1)=0.d0
-    ENDDO
-       
-    DO i1=1,i0bmax
-       d1grv(i1)=0.d0
-    ENDDO
-       
-       
     !C
     !C 
     !C
@@ -360,11 +348,9 @@ CONTAINS
                 i0tg  = i0vgcmx*(i0ng - 1) + i0vg
                 d0val = d1gsm(i0tg)
                 
-                WRITE(18,'(6I5,3I10,1PE12.4)') &
-                     i0nr,i0ng,i0nc,i0vr,i0vg,i0vc,i0tr,i0tc,i0tg,d0val
-                IF(d0val.NE.0.D0) THEN
+                IF(ABS(d0val).NE.0.D0) THEN
                    WRITE(18,'(6I5,3I10,1PE12.4)') &
-                        i0nr,i0ng,i0nc,i0vr,i0vg,i0vc,i0tr,i0tc,i0tg,d0val
+                        i0nr,i0nc,i0ng,i0vr,i0vc,i0vg,i0tr,i0tc,i0tg,d0val
                    CALL MTX_SET_MATRIX(i0tr,i0tc,d0val)
                 END IF
                 
@@ -465,11 +451,6 @@ CONTAINS
        ENDIF
        
     ENDDO
-    
-    IF(nrank.eq.0)then
-       CALL CPU_TIME(cputime2)
-       WRITE(6,'(A,F12.3)')'--cputime',cputime2 - cputime1
-    ENDIF
     
     CALL MTX_CLEANUP
     
