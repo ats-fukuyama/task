@@ -41,6 +41,9 @@ CONTAINS
        CALL T2_PREP
        CALL T2_LOOP
        INIT=1
+    ELSEIF(kid.EQ.'C') THEN
+       CALL T2_LOOP
+       INIT=1
     ELSEIF(kid.EQ.'W') THEN
        IF(INIT.EQ.0) THEN
           WRITE(6,*) 'XX data is not ready or destroyed'

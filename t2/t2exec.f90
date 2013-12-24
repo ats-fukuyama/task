@@ -349,8 +349,10 @@ CONTAINS
                 d0val = d1gsm(i0tg)
                 
                 IF(ABS(d0val).NE.0.D0) THEN
-                   WRITE(18,'(6I5,3I10,1PE12.4)') &
-                        i0nr,i0nc,i0ng,i0vr,i0vc,i0vg,i0tr,i0tc,i0tg,d0val
+                   IF(IDEBUG.EQ.1) THEN
+                      WRITE(18,'(6I5,3I10,1PE12.4)') &
+                           i0nr,i0nc,i0ng,i0vr,i0vc,i0vg,i0tr,i0tc,i0tg,d0val
+                   END IF
                    CALL MTX_SET_MATRIX(i0tr,i0tc,d0val)
                 END IF
                 
