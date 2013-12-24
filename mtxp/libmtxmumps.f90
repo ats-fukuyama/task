@@ -46,7 +46,7 @@
       COMPLEX(8),DIMENSION(:),POINTER:: bc,bc_loc
 
       INTEGER,DIMENSION(:),POINTER:: istartx,iendx,isizex,nz_tot
-      INTEGER:: imax,istart,iend,jwidth,nzcount,nzmax_save
+      INTEGER:: imax,istart,iend,jwidth,nzcount,nzmax_save,idebug_save
 
       CONTAINS
 
@@ -88,13 +88,20 @@
 !                 DMUMPS section
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-      SUBROUTINE mtx_setup(imax_,istart_,iend_,jwidth,nzmax)
+      SUBROUTINE mtx_setup(imax_,istart_,iend_,jwidth,nzmax,idebug)
 
       INTEGER,INTENT(IN):: imax_           ! total matrix size
       INTEGER,INTENT(OUT):: istart_,iend_  ! allocated range of lines 
       INTEGER,OPTIONAL,INTENT(IN):: jwidth ! band matrix width
       INTEGER,OPTIONAL,INTENT(IN):: nzmax  ! number of nonzero components
+      INTEGER,OPTIONAL,INTENT(IN):: idebug ! debug level
       INTEGER:: i,jmax,iwork1,iwork2
+
+      IF(PRESENT(idebug)) THEN
+         idebug_save=idebug
+      ELSE
+         idebug_save=0
+      END IF
 
 !     ----- define a communicator -----      
       id%COMM=ncomm
@@ -360,13 +367,20 @@
 !                 ZMUMPS section
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-      SUBROUTINE mtxc_setup(imax_,istart_,iend_,jwidth,nzmax)
+      SUBROUTINE mtxc_setup(imax_,istart_,iend_,jwidth,nzmax,idebug)
 
       INTEGER,INTENT(IN):: imax_           ! total matrix size
       INTEGER,INTENT(OUT):: istart_,iend_  ! allocated range of lines 
       INTEGER,OPTIONAL,INTENT(IN):: jwidth ! band matrix width
       INTEGER,OPTIONAL,INTENT(IN):: nzmax  ! number of nonzero components
+      INTEGER,OPTIONAL,INTENT(IN):: idebug ! debug level
       INTEGER:: i,iwork1,iwork2
+
+      IF(PRESENT(idebug)) THEN
+         idebug_save=idebug
+      ELSE
+         idebug_save=0
+      END IF
 
 !     ----- define a communicator -----      
       idc%COMM=ncomm

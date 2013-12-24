@@ -38,9 +38,9 @@ PROGRAM testmtxc
   xmax = 1.d0
   ndiv = 101
 
+1 continue
   if(nrank.eq.0) then
      write(6,'(A)') "#TEST PROGRAM : Schroedinger equation solver"
-1    continue
      write(6,"(A,/E12.4,1X,2I4,D12.4)")&
           &  "#INPUT: dt,ndiv,itype=",&
           &           dt,ndiv,itype
@@ -74,9 +74,7 @@ PROGRAM testmtxc
      x(i)=exp(-20.0D0*((i-1)*dx-0.5D0)**2)
   end do
 
-100 continue
-
-  call mtxc_setup(imax,istart,iend,jwidth)
+  call mtxc_setup(imax,istart,iend)
 
   do i=istart,iend
      if(i.gt.1) call mtxc_set_matrix(i,i-1,k)
@@ -123,7 +121,7 @@ PROGRAM testmtxc
 
   call mtxc_cleanup
   if (character.eq."c")then
-     goto 100
+     go to 1
   else if(character.ne."q")then
      go to 2
   end if

@@ -36,11 +36,14 @@
 
       TYPE(mtx_mpi_type):: mtx_global
 
-      INTEGER:: imax,jmax,joffset,ierr
+      INTEGER:: imax,jmax,joffset,ierr,mode,irmax,icmin,icmax,irc,idebug_save
       REAL(8),DIMENSION(:),POINTER:: x,b
       REAL(8),DIMENSION(:,:),POINTER:: A
+      INTEGER,DIMENSION(:),POINTER:: ir,ic
+      REAL(8),DIMENSION(:),POINTER:: drc
       COMPLEX(8),DIMENSION(:),POINTER:: xc,bc
       COMPLEX(8),DIMENSION(:,:),POINTER:: Ac
+      COMPLEX(8),DIMENSION(:),POINTER:: drcc
 
       CONTAINS
 
@@ -77,30 +80,53 @@
 !                 Beginning of bandrd section
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      SUBROUTINE mtx_setup(imax_,istart_,iend_,jwidth,nzmax)
+      SUBROUTINE mtx_setup(imax_,istart_,iend_,jwidth,nzmax,idebug)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: imax_           ! total matrix size
       INTEGER,INTENT(OUT):: istart_,iend_  ! allocated range of lines 
       INTEGER,OPTIONAL,INTENT(IN):: jwidth ! band matrix width
       INTEGER,OPTIONAL,INTENT(IN):: nzmax  ! number of nonzero components
+      INTEGER,OPTIONAL,INTENT(IN):: idebug ! debug level
       INTEGER:: i,j
+
+      IF(PRESENT(idebug)) THEN
+         idebug_save=idebug
+      ELSE
+         idebug_save=0
+      END IF
 
       imax=imax_
       IF(PRESENT(jwidth)) THEN
          jmax=jwidth
+         mode=1
       ELSE
-         jmax=2*imax_-1
-      ENDIF
-      ALLOCATE(A(jmax,imax))
+         IF(PRESENT(nzmax)) THEN
+            jmax=nzmax
+         ELSE
+            jmax=2*imax_-1
+         END IF
+         mode=2
+      END IF
+      IF(mode.EQ.1) THEN
+         ALLOCATE(A(jmax,imax))
+         DO i=1,imax
+            DO j=1,jmax
+               A(J,i)=0.D0
+            ENDDO
+         ENDDO
+      ELSE
+         ALLOCATE(ir(imax*jmax),ic(imax*jmax),drc(imax*jmax))
+         irmax=0
+         icmin=0
+         icmax=0
+         irc=0
+      END IF
       ALLOCATE(b(imax),x(imax))
       istart_=1
       iend_=imax
       joffset=(jmax+1)/2
 
       DO i=1,imax
-         DO j=1,jmax
-            A(J,i)=0.D0
-         ENDDO
          b(i)=0.D0
          x(i)=0.d0
       ENDDO
@@ -115,7 +141,24 @@
       INTEGER,INTENT(IN):: i,j  ! matrix position i=line, j=row
       REAL(8),INTENT(IN):: v    ! value to be inserted
 
-      A(j-i+joffset,i)=v
+      IF(mode.EQ.1) THEN
+         A(j-i+joffset,i)=v
+      ELSE
+         irc=irc+1
+         IF(irc.gt.imax*jmax) THEN
+            WRITE(6,'(A,I10)') &
+                 'XX libmtxbnd: mtx_set_matrix: irc overflow: irc=',irc
+         ELSE
+            ir(irc)=i
+            ic(irc)=j
+            drc(irc)=v
+            IF(idebug_save.EQ.1) &
+                 write(6,'(3I5,1PE12.4)') irc,ir(irc),ic(irc),drc(irc)
+         END IF
+      END IF
+      irmax=max(irmax,i)
+      icmin=min(icmin,j-i)
+      icmax=max(icmax,j-i)
       RETURN
       END SUBROUTINE mtx_set_matrix
       
@@ -127,6 +170,8 @@
       REAL(8),INTENT(IN):: v ! value to be inserted
 
       b(j)=v
+      IF(idebug_save.EQ.1) &
+           write(6,'(3I5,1PE12.4)') j,j,0,v
       RETURN
       END SUBROUTINE mtx_set_source
       
@@ -158,6 +203,24 @@
 !      do i=1,imax
 !         write(21,'(i5/(1P5E12.4))') i,(A(j,i),j=1,jmax)
 !      enddo
+
+      IF(MODE.EQ.2) THEN
+         jmax=2*max(-icmin,icmax)+1
+         joffset=(jmax+1)/2
+         ALLOCATE(A(jmax,imax))
+         DO i=1,imax
+            DO j=1,jmax
+               A(J,i)=0.D0
+            ENDDO
+         ENDDO
+         DO i=1,irc
+            A(ic(i)-ir(i)+joffset,ir(i))=drc(i)
+!            write(6,'(3I5,1PE12.4)') i,ir(i),ic(i),drc(i)
+         END DO
+         WRITE(6,'(A,4I8)') &
+              '-- libmtxbnd: mtx_solve: irmax,icmin,icmax,irc=', &
+                                        irmax,icmin,icmax,irc
+      END IF
          
       CALL BANDRD(A,x,imax,jmax,jmax,ierr)
       IF(ierr.ne.0) then
@@ -166,10 +229,16 @@
       ELSE
          its=0
       ENDIF
+      IF(mode.EQ.1) THEN
+         DO i=1,imax
+            DO j=1,jmax
+               A(J,i)=0.D0
+            ENDDO
+         END DO
+      ELSE
+         DEALLOCATE(A)
+      END IF
       DO i=1,imax
-         DO j=1,jmax
-            A(J,i)=0.D0
-         ENDDO
          b(i)=0.D0
       ENDDO
 
@@ -205,7 +274,11 @@
       IMPLICIT NONE
 
       DEALLOCATE(x,b)
-      DEALLOCATE(A)
+      IF(mode.EQ.1) THEN
+         DEALLOCATE(A)
+      ELSE
+         DEALLOCATE(ir,ic,drc)
+      END IF
       RETURN
       END SUBROUTINE mtx_cleanup
 
@@ -213,30 +286,53 @@
 !                 Beginning of bandcd section
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-      SUBROUTINE mtxc_setup(imax_,istart_,iend_,jwidth,nzmax)
+      SUBROUTINE mtxc_setup(imax_,istart_,iend_,jwidth,nzmax,idebug)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: imax_           ! total matrix size
       INTEGER,INTENT(OUT):: istart_,iend_  ! allocated range of lines 
       INTEGER,OPTIONAL,INTENT(IN):: jwidth ! band matrix width
       INTEGER,OPTIONAL,INTENT(IN):: nzmax  ! number of nonzero components
+      INTEGER,OPTIONAL,INTENT(IN):: idebug ! debug level
       INTEGER:: i,j
+
+      IF(PRESENT(idebug)) THEN
+         idebug_save=idebug
+      ELSE
+         idebug_save=0
+      END IF
 
       imax=imax_
       IF(PRESENT(jwidth)) THEN
          jmax=jwidth
+         mode=1
       ELSE
-         jmax=2*imax_-1
-      ENDIF
-      ALLOCATE(Ac(jmax,imax))
+         IF(PRESENT(nzmax)) THEN
+            jmax=nzmax
+         ELSE
+            jmax=2*imax_-1
+         END IF
+         mode=2
+      END IF
+      IF(mode.EQ.1) THEN
+         ALLOCATE(Ac(jmax,imax))
+         DO i=1,imax
+            DO j=1,jmax
+               Ac(J,i)=0.D0
+            ENDDO
+         ENDDO
+      ELSE
+         ALLOCATE(ir(imax*jmax),ic(imax*jmax),drcc(imax*jmax))
+         irmax=0
+         icmin=0
+         icmax=0
+         irc=0
+      END IF
       ALLOCATE(bc(imax),xc(imax))
       istart_=1
       iend_=imax
       joffset=(jmax+1)/2
 
       DO i=1,imax
-         DO j=1,jmax
-            Ac(J,i)=0.D0
-         ENDDO
          bc(i)=0.D0
          xc(i)=0.d0
       ENDDO
@@ -251,7 +347,24 @@
       INTEGER,INTENT(IN):: i,j  ! matrix position i=line, j=row
       COMPLEX(8),INTENT(IN):: v ! value to be inserted
 
-      Ac(j-i+joffset,i)=v
+      IF(mode.EQ.1) THEN
+         Ac(j-i+joffset,i)=v
+      ELSE
+         irc=irc+1
+         IF(irc.gt.imax*jmax) THEN
+            WRITE(6,'(A,I10)') &
+                 'XX libmtxbnd: mtx_set_matrix: irc overflow: irc=',irc
+         ELSE
+            ir(irc)=i
+            ic(irc)=j
+            drcc(irc)=v
+            IF(idebug_save.EQ.1) &
+                 write(6,'(3I5,1P2E12.4)') irc,ir(irc),ic(irc),drcc(irc)
+         END IF
+      END IF
+      irmax=max(irmax,i)
+      icmin=min(icmin,j-i)
+      icmax=max(icmax,j-i)
       RETURN
       END SUBROUTINE mtxc_set_matrix
       
@@ -263,6 +376,8 @@
       COMPLEX(8),INTENT(IN):: v ! value to be inserted
 
       bc(j)=v
+      IF(idebug_save.EQ.1) &
+           write(6,'(3I5,1P2E12.4)') j,j,0,v
       RETURN
       END SUBROUTINE mtxc_set_source
       
@@ -297,6 +412,24 @@
 !         write(21,'(i5/(1P5E12.4))') i,(A(j,i),j=1,jmax)
 !      enddo
          
+      IF(MODE.EQ.2) THEN
+         jmax=2*max(-icmin,icmax)+1
+         joffset=(jmax+1)/2
+         ALLOCATE(Ac(jmax,imax))
+         DO i=1,imax
+            DO j=1,jmax
+               Ac(J,i)=0.D0
+            ENDDO
+         ENDDO
+         DO i=1,irc
+            Ac(ic(i)-ir(i)+joffset,ir(i))=drcc(i)
+!            write(6,'(3I5,1PE12.4)') i,ir(i),ic(i),drcc(i)
+         END DO
+         WRITE(6,'(A,4I8)') &
+              '-- libmtxbnd: mtxc_solve: irmax,icmin,icmax,irc=', &
+                                         irmax,icmin,icmax,irc
+      END IF
+         
       CALL BANDCD(Ac,xc,imax,jmax,jmax,ierr)
       IF(ierr.ne.0) then
          WRITE(6,'(A,I5)') 'XX BANDCD in mtxc_solve: ierr=',ierr
@@ -304,10 +437,16 @@
       ELSE
          its=0
       ENDIF
+      IF(mode.EQ.1) THEN
+         DO i=1,imax
+            DO j=1,jmax
+               Ac(J,i)=0.D0
+            ENDDO
+         END DO
+      ELSE
+         DEALLOCATE(Ac)
+      END IF
       DO i=1,imax
-         DO j=1,jmax
-            Ac(j,i)=0.D0
-         ENDDO
          bc(i)=0.D0
       ENDDO
 
@@ -336,8 +475,12 @@
       SUBROUTINE mtxc_cleanup
       IMPLICIT NONE
 
+      IF(mode.EQ.1) THEN
+         DEALLOCATE(Ac)
+      ELSE
+         DEALLOCATE(ir,ic,drcc)
+      END IF
       DEALLOCATE(xc,bc)
-      DEALLOCATE(Ac)
       RETURN
       END SUBROUTINE mtxc_cleanup
 

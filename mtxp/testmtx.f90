@@ -17,13 +17,13 @@
       USE commpi
       USE libmtx 
       IMPLICIT NONE 
-      INTEGER:: idimen,isiz,isource,itype,m1,m2
+      INTEGER:: idimen,isiz,isource,itype,m1,m2,idebug
       INTEGER:: istart,iend,its 
       INTEGER:: imax,jwidth,jsource 
       INTEGER:: i,j,k,l,m,n,iskip,ncom 
       REAL(8):: v,tolerance 
       REAL(8),DIMENSION(:),POINTER:: x
-      INTEGER,DIMENSION(6):: idata 
+      INTEGER,DIMENSION(7):: idata 
       REAL(8),DIMENSION(1):: ddata
       REAL(4):: cputime1,cputime2
 
@@ -39,18 +39,21 @@
          m2=0
       ENDIF
       tolerance=1.d-7
+      idebug=0
+
     1 CONTINUE
       IF(nrank.eq.0) then
-    2    WRITE(6,'(A/6I5,1PE12.4)') &
-              '# INPUT: idimen,isiz,isource,itype,m1,m2,tolerance=', &
-                        idimen,isiz,isource,itype,m1,m2,tolerance
-         READ(5,*,END=3,ERR=2) idimen,isiz,isource,itype,m1,m2,tolerance
+    2    WRITE(6,'(A/6I5,1PE12.4,I3)') &
+              '# INPUT: idimen,isiz,isource,itype,m1,m2,tolerance,idebug=', &
+                        idimen,isiz,isource,itype,m1,m2,tolerance,idebug
+         READ(5,*,END=3,ERR=2) idimen,isiz,isource,itype,m1,m2,tolerance,idebug
          idata(1)=idimen
          idata(2)=isiz
          idata(3)=isource
          idata(4)=itype
          idata(5)=m1
          idata(6)=m2
+         idata(7)=idebug
          ddata(1)=tolerance
          IF(idimen.LT.0.OR.idimen.GT.3) THEN
             WRITE(6,*) 'XX idimen: out of range'
@@ -68,6 +71,7 @@
       itype=idata(4)
       m1=idata(5)
       m2=idata(6)
+      idebug=idata(7)
       tolerance=ddata(1)
 
       IF(idimen.EQ.0) GO TO 9000
@@ -90,7 +94,7 @@
       END SELECT
       ALLOCATE(x(imax))
 
-      CALL mtx_setup(imax,istart,iend,jwidth=jwidth)
+      CALL mtx_setup(imax,istart,iend,idebug=idebug)
 
       SELECT CASE(idimen)
       CASE(1)

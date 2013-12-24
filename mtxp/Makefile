@@ -49,7 +49,7 @@ LIBMUMPSX=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common -lpo
 testbnd: $(LIBBND) testmtx.o 
 	-${FCFREE} -g -o testbnd testmtx.o $(LIBBND) ../lib/libbnd.o
 
-testbndc: $(LIBBNDC) testmtxc.o 
+testbndc: $(LIBBND) testmtxc.o 
 	-$(FCFREE) -g -o testbndc testmtxc.o $(LIBBND) \
 	../lib/tasklib.a $(FLIBS)
 
