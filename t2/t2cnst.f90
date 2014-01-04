@@ -1,10 +1,12 @@
 MODULE T2CNST 
    
+  USE bpsd_kinds
+  USE bpsd_constants
   IMPLICIT NONE
 
   !C
-  INTEGER, PARAMETER :: i0rkind=8
-  INTEGER, PARAMETER :: i0ikind=4
+  INTEGER, PARAMETER :: i0rkind=rkind
+  INTEGER, PARAMETER :: i0ikind=ikind
   INTEGER, PARAMETER :: i0lmaxm=256
   INTEGER, PARAMETER :: i0spcsm=100
   !C PHYSICAL CONSTANTS
@@ -16,34 +18,34 @@ MODULE T2CNST
   !C D0VC   : SPEED OF LIGHT IN VACCUM
   !C D0RMU0 : PERMEABILITY OF FREE SPACE
   !C D0EPS0 : PERMITTIVITY OF FREE SPACE
-  REAL(8), PARAMETER :: d0pi   = 3.14159265358979323846D0
-  REAL(8), PARAMETER :: d0aee  = 1.602176487D-19
-  REAL(8), PARAMETER :: d0ame  = 9.10938215D-31
-  REAL(8), PARAMETER :: d0amp  = 1.672621637D-27
-  REAL(8), PARAMETER :: d0vc   = 2.99792458D8
-  REAL(8), PARAMETER :: d0rmu0 = 4.D0*d0pi*1.D-7
-  REAL(8), PARAMETER :: d0eps0 = 1.D0/(d0vc*d0vc*d0rmu0)
-  REAL(8), PARAMETER :: d0vci2  = 1.D0/(d0vc*d0vc)
+  REAL(rkind), PARAMETER :: d0pi   = PI  ! 3.14159265358979323846D0
+  REAL(rkind), PARAMETER :: d0aee  = AEE ! 1.602176487D-19
+  REAL(rkind), PARAMETER :: d0ame  = AME ! 9.10938215D-31
+  REAL(rkind), PARAMETER :: d0amp  = AMP ! 1.672621637D-27
+  REAL(rkind), PARAMETER :: d0vc   = VC  ! 2.99792458D8
+  REAL(rkind), PARAMETER :: d0rmu0 = 4.D0*d0pi*1.D-7
+  REAL(rkind), PARAMETER :: d0eps0 = 1.D0/(d0vc*d0vc*d0rmu0)
+  REAL(rkind), PARAMETER :: d0vci2  = 1.D0/(d0vc*d0vc)
   !C NUMERICAL COEFFICIENTS FOR EACH VARIABLE 
   !C 
   !C 
   !C
   !C
   !C
-!  REAL(8), PARAMETER :: d0bpcst = 1.D0 
-!  REAL(8), PARAMETER :: d0btcst = 1.D0 
-!  REAL(8), PARAMETER :: d0ercst = 1.D0 
-!  REAL(8), PARAMETER :: d0epcst = 1.D0 
-!  REAL(8), PARAMETER :: d0etcst = 1.D0 
-!  REAL(8), PARAMETER :: d0nncst = 1.D20 
-!  REAL(8), PARAMETER :: d0frcst = 1.D20 
-!  REAL(8), PARAMETER :: d0fbcst = 1.D20
-!  REAL(8), PARAMETER :: d0ftcst = 1.D20
-!  REAL(8), PARAMETER :: d0ppcst = d0aee*1.D23 
-!  REAL(8), PARAMETER :: d0qrcst = d0aee*1.D23 
-!  REAL(8), PARAMETER :: d0qbcst = d0aee*1.D23 
-!  REAL(8), PARAMETER :: d0qtcst = d0aee*1.D23 
-  REAL(8), PARAMETER :: d0de   = 4.D0/(3.D0*SQRT(d0pi))
+!  REAL(rkind), PARAMETER :: d0bpcst = 1.D0 
+!  REAL(rkind), PARAMETER :: d0btcst = 1.D0 
+!  REAL(rkind), PARAMETER :: d0ercst = 1.D0 
+!  REAL(rkind), PARAMETER :: d0epcst = 1.D0 
+!  REAL(rkind), PARAMETER :: d0etcst = 1.D0 
+!  REAL(rkind), PARAMETER :: d0nncst = 1.D20 
+!  REAL(rkind), PARAMETER :: d0frcst = 1.D20 
+!  REAL(rkind), PARAMETER :: d0fbcst = 1.D20
+!  REAL(rkind), PARAMETER :: d0ftcst = 1.D20
+!  REAL(rkind), PARAMETER :: d0ppcst = d0aee*1.D23 
+!  REAL(rkind), PARAMETER :: d0qrcst = d0aee*1.D23 
+!  REAL(rkind), PARAMETER :: d0qbcst = d0aee*1.D23 
+!  REAL(rkind), PARAMETER :: d0qtcst = d0aee*1.D23 
+  REAL(rkind), PARAMETER :: d0de   = 4.D0/(3.D0*SQRT(d0pi))
 
  
   !C ABSCISSAS AND WEIGHT FACTOR FOR GAUSIAN INTEGRATION (32 points) 
@@ -53,7 +55,7 @@ MODULE T2CNST
   !C
   !C D0ABSCXX: ABSCISSAS FOR GAUSSIAN INTEGRATION
   !C D0WFCTXX: WEIGHT FACTOR FOR GAUSSIAN INTEGRATION
-  REAL(8),DIMENSION(16),PARAMETER::&
+  REAL(rkind),DIMENSION(16),PARAMETER::&
        d1absc32(1:16)=(/&
        0.048307665687738D0, 0.144471961582796D0,& 
        0.239287362252137D0, 0.331868602282127D0,&

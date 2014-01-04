@@ -1,6 +1,6 @@
 MODULE T2COMM
   
-  USE T2CNST, ONLY: i0rkind, i0ikind, i0lmaxm, i0spcsm
+  USE T2CNST, ONLY: i0rkind, i0ikind, i0lmaxm, i0spcsm, twopi
   
   IMPLICIT NONE
 
@@ -14,11 +14,11 @@ MODULE T2COMM
        dt,time_init,eps_conv
 
   !---- global parameters added by AF
-  INTEGER(i0ikind):: nrhmax ! number of variables in rho
-  INTEGER(i0ikind):: nchmax ! number of variables in chi
-  INTEGER(i0ikind):: neqmax ! number of equations to be solved
+  INTEGER(i0ikind):: nrhomax ! number of variables in rho
+  INTEGER(i0ikind):: nchimax ! number of variables in chi
+  INTEGER(i0ikind):: nequmax ! number of equations to be solved
   INTEGER(i0ikind):: nv0dmax ! number of global variables to be saved
-  INTEGER(i0ikind):: nv2dmax ! number of variables in solution vector
+  INTEGER(i0ikind):: nv2dmax ! number of profile varibales to be saved
   REAL(i0rkind):: &
        time_t2                            ! global time
   REAL(i0rkind),DIMENSION(:,:),ALLOCATABLE:: &
@@ -79,7 +79,7 @@ MODULE T2COMM
        i0nmax2,& 
        i0nmax3,&
        i0nmax4,&
-       i0emax ,&
+       i0emax ,& ! total number of elements
        i0hmax ,&
        i0stm2 ,&
        i0lmax, &
@@ -96,7 +96,7 @@ MODULE T2COMM
   INTEGER(i0ikind),ALLOCATABLE,DIMENSION(:)::& 
        i1nmax1,&
        i1nmax2,&
-       i1emax, &
+       i1emax, & ! number of elements in the level
        i1mlel, &
        i1rdn1, &
        i1pdn1, &

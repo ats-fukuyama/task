@@ -28,7 +28,7 @@ CONTAINS
 1   CONTINUE
     ierr=0
     WRITE(6,'(A)') &
-         '## T2 MENU: P,V/PARM  R/RUN  C/CONT  W/FILE  G/GRAF  Q/QUIT'
+         '## T2 MENU: P,V/PARM  R/RUN  C/CONT  W/FILE  G/GOUT  Q/QUIT'
 
     CALL TASK_KLIN(line,kid,mode,T2_PARM)
     IF(mode /= 1) GOTO 1

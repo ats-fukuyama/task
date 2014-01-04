@@ -293,7 +293,7 @@ CONTAINS
          i0vmax,i0vgcmx,i0cmax,i0bmax,i0xmax,&
          i0nmax2,i0nmax3,i0dbg,i0lmax,&
          i1nidr,i1nidc,i1vgidr,i1vgidc,i1pdn2,i1rdn2,&
-         d1gsm, d1grv,d1guv_befor,d1guv_after,i2hbc,i0cmax
+         d1gsm, d1grv,d1guv_befor,d1guv_after,i2hbc,i0cmax,idebug
     
     USE LIBMPI
     USE COMMPI
