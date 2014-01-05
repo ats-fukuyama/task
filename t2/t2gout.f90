@@ -316,7 +316,7 @@ CONTAINS
           DO ny=1,nymax
              y=gy(ny)
              r=SQRT(x*x+y*y)
-             th=ATAN2(y,x)
+             th=ATAN2(y,x)      ! for compatibility with contour
              IF(th.LT.0.D0) th=th+TWOPI
              IF(r >= d0rw) THEN
                 gxy(nx,ny)=0.D0
@@ -343,14 +343,19 @@ CONTAINS
                   TITLE=LINE,MODE_XY=1,MODE_2D=2,TITLE_SIZE=0.4D0)
     CASE(11)
        CALL GRD2D(ngp,gx,gy,gxy,nxmax,nxmax,nymax, &
-                  TITLE=LINE,MODE_XY=0,MODE_2D=4,TITLE_SIZE=0.4D0)
+                  TITLE=LINE,MODE_XY=0,MODE_2D=4,TITLE_SIZE=0.4D0, &
+                  XMIN=-d0rw,XMAX=d0rw,YMIN=-d0rw,YMAX=d0rw, &
+                  ASPECT=1.D0)
     CASE(12)
        CALL GRD2D(ngp,gx,gy,gxy,nxmax,nxmax,nymax, &
                   TITLE=LINE,MODE_XY=0,MODE_2D=1,TITLE_SIZE=0.4D0,&
-                  XMIN=-d0rw,XMAX=d0rw,YMIN=-d0rw,YMAX=d0rw)
+                  XMIN=-d0rw,XMAX=d0rw,YMIN=-d0rw,YMAX=d0rw, &
+                  ASPECT=1.D0)
     CASE(13)
        CALL GRD2D(ngp,gx,gy,gxy,nxmax,nxmax,nymax, &
-                  TITLE=LINE,MODE_XY=0,MODE_2D=2,TITLE_SIZE=0.4D0)
+                  TITLE=LINE,MODE_XY=0,MODE_2D=2,TITLE_SIZE=0.4D0, &
+                  XMIN=-d0rw,XMAX=d0rw,YMIN=-d0rw,YMAX=d0rw, &
+                  ASPECT=1.D0)
     CASE(14)
        CALL GRD2D(ngp,gx,gy,gxy,nxmax,nxmax,nymax, &
                   TITLE=LINE,MODE_XY=0,MODE_2D=11,TITLE_SIZE=0.4D0)
