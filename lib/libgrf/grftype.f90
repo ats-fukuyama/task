@@ -68,9 +68,10 @@ MODULE grftype
      INTEGER:: XVALUE_LTYPE,YVALUE_LTYPE,FVALUE_LTYPE ! Value type for log plot
      INTEGER:: MODE_2D   ! Graph tupe
 !                           0 : 1D plot (multi lines)  GRF1D
-!                           1 : 2D contour lines       GRF2DA
-!                           2 : 2D equi-value paint    GRF2DB
+!                           1 : 2D contour lines       CONTG
+!                           2 : 2D equi-value paint    CONTP
 !                           3 : 2D contour lines and equi-value paint
+!                           4 : 2D contour lines       CONTQ fixed line prop.
 !                          11 : Bird's eye view contour lines    GRF2DC
 !                          12 : Bird's eye view equi-value paint GRF2DD
 !                          13 : Bird's eye view contour and paint
@@ -82,8 +83,8 @@ MODULE grftype
 !                          19 : Bird's eye view X and Y mesh
      INTEGER:: MODE_XY   ! Coordinate tupe
 !                           0 : Rectangular coordinates
-!                           1 : Circular coordinate
-!                           2 : Fan type coordinate
+!                           1 : Circle
+!                           2 : Half circle
      INTEGER:: MODE_PRD  ! Periodicity mode
 !                           0 : no periodicity
 !                           1 : periodic in X

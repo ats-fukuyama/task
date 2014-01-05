@@ -30,6 +30,8 @@ CONTAINS
     OPTIONAL LINE_RGB_SUB,PAINT_RGB_SUB
 
     INTEGER(4),DIMENSION(:,:),ALLOCATABLE:: KA
+    REAL(4):: FSTEP
+    INTEGER(4):: NL
     INTERFACE
        SUBROUTINE R2W2B(VALUE,RGB)
          REAL(4),INTENT(IN):: VALUE
@@ -47,13 +49,26 @@ CONTAINS
 
     SELECT CASE(A%MODE_2D)
     CASE(1) ! 2D contour line
+
        CALL GDEFIN(A%GPXMIN,A%GPXMAX,A%GPYMIN,A%GPYMAX, &
                    A%XMIN,A%XMAX,A%YMIN,A%YMAX)
 
        ALLOCATE(KA(2,NXMAX*NYMAX))
-       CALL CONTG2(GF,GX,GY,NXM,NXMAX,NYMAX, &
-                   A%LINE_VALUE,A%LINE_RGB,A%LINE_PAT,A%LINE_THICKNESS, &
-                   A%NLMAX,A%MODE_SPL,A%MODE_PRD,KA)
+       SELECT CASE(A%MODE_XY)
+       CASE(0)
+          CALL CONTG2(GF,GX,GY,NXM,NXMAX,NYMAX, &
+                      A%LINE_VALUE,A%LINE_RGB,A%LINE_PAT,A%LINE_THICKNESS, &
+                      A%NLMAX,A%MODE_SPL,A%MODE_PRD,KA)
+       CASE(1)
+          CALL CONTG3(GF,GX,NXM,NXMAX,NYMAX, &
+                      A%LINE_VALUE,A%LINE_RGB,A%LINE_PAT,A%LINE_THICKNESS, &
+                      A%NLMAX,A%MODE_SPL,KA)
+       CASE(2)
+          CALL CONTG4(GF,GX,GY,NXM,NXMAX,NYMAX, &
+                      A%LINE_VALUE,A%LINE_RGB,A%LINE_PAT,A%LINE_THICKNESS, &
+                      A%NLMAX,A%MODE_SPL,KA)
+       END SELECT
+
        DEALLOCATE(KA)
 
        IF(A%NOFRAME.EQ.0) CALL GRF_FRAME2D(A)
@@ -65,9 +80,18 @@ CONTAINS
                    A%XMIN,A%XMAX,A%YMIN,A%YMAX)
 
        CALL SETLNW(A%LINE_THICKNESS(1))
-       CALL CONTF2(GF,GX,GY,NXM,NXMAX,NYMAX, &
-                   A%PAINT_VALUE,A%PAINT_RGB,A%NPMAX-1,A%MODE_PRD)
-
+       
+       SELECT CASE(A%MODE_XY)
+       CASE(0)
+          CALL CONTF2(GF,GX,GY,NXM,NXMAX,NYMAX, &
+                      A%PAINT_VALUE,A%PAINT_RGB,A%NPMAX-1,A%MODE_PRD)
+       CASE(1)
+          CALL CONTF3(GF,GX,NXM,NXMAX,NYMAX, &
+                      A%PAINT_VALUE,A%PAINT_RGB,A%NPMAX-1)
+       CASE(2)
+          CALL CONTF4(GF,GX,GY,NXM,NXMAX,NYMAX, &
+                      A%PAINT_VALUE,A%PAINT_RGB,A%NPMAX-1)
+       END SELECT
        IF(A%NOFRAME.EQ.0) CALL GRF_FRAME2D(A)
        IF(A%NOTITLE.EQ.0) CALL GRF_TITLE(A)
        IF(A%NOINFO.EQ.0)  CALL GRF_INFO(A)
@@ -90,7 +114,37 @@ CONTAINS
        IF(A%NOTITLE.EQ.0) CALL GRF_TITLE(A)
        IF(A%NOINFO.EQ.0)  CALL GRF_INFO(A)
 
-    CASE(4:5) ! 3D Bird's eye view
+    CASE(4) ! 2D contour line
+
+       CALL GDEFIN(A%GPXMIN,A%GPXMAX,A%GPYMIN,A%GPYMAX, &
+                   A%XMIN,A%XMAX,A%YMIN,A%YMAX)
+
+       ALLOCATE(KA(8,NXMAX*NYMAX))
+       FSTEP=A%FMAX-A%FMIN
+
+       DO NL=1,A%NLMAX
+          CALL SETRGB(A%LINE_RGB(1,NL),A%LINE_RGB(2,NL),A%LINE_RGB(3,NL))
+          CALL SETLNW(A%LINE_THICKNESS(NL))
+          SELECT CASE(A%MODE_XY)
+          CASE(0)
+             CALL CONTQ2(GF,GX,GY,NXM,NXMAX,NYMAX, &
+                         A%LINE_VALUE(NL),FSTEP,1,A%MODE_PRD,A%LINE_PAT(NL),KA)
+          CASE(1)
+             CALL CONTQ3(GF,GX,NXM,NXMAX,NYMAX, &
+                         A%LINE_VALUE(NL),FSTEP,1,A%LINE_PAT(NL),KA)
+          CASE(2)
+             CALL CONTQ4(GF,GX,GY,NXM,NXMAX,NYMAX, &
+                         A%LINE_VALUE(NL),FSTEP,1,A%MODE_PRD,A%LINE_PAT(NL),KA)
+          END SELECT
+       END DO
+
+       DEALLOCATE(KA)
+
+       IF(A%NOFRAME.EQ.0) CALL GRF_FRAME2D(A)
+       IF(A%NOTITLE.EQ.0) CALL GRF_TITLE(A)
+       IF(A%NOINFO.EQ.0)  CALL GRF_INFO(A)
+
+    CASE(11:12) ! 3D Bird's eye view
        CALL GDEFIN3D(A%GPXMIN,A%GPXMAX,A%GPYMIN,A%GPYMAX, &
                      A%BEV_XLEN,A%BEV_YLEN,A%BEV_ZLEN)
        CALL GVIEW3D(A%BEV_PHI,A%BEV_CHI,A%BEV_DISTANCE,1.0,1, &
@@ -100,7 +154,7 @@ CONTAINS
                      A%XMIN,A%XMAX,A%YMIN,A%YMAX,A%FMIN,A%FMAX)
 
        SELECT CASE(A%MODE_2D)
-       CASE(4)
+       CASE(11)
           IF(PRESENT(PAINT_RGB_SUB)) THEN
              CALL CPLOT3D1(A%BEV_TYPE,PAINT_RGB_SUB)
           ELSE
@@ -112,7 +166,7 @@ CONTAINS
                 CALL CPLOT3D1(A%BEV_TYPE,R2Y2W)
              ENDIF
           END IF
-       CASE(5)
+       CASE(12)
           IF(PRESENT(PAINT_RGB_SUB)) THEN
              CALL CPLOT3D1(MOD(A%BEV_TYPE,10),PAINT_RGB_SUB)
           ELSE

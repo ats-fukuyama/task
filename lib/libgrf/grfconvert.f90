@@ -124,6 +124,7 @@ CONTAINS
     REAL(4):: GYMIN,GYMAX,GYSTEP,GYORG
     REAL(4):: GFMIN,GFMAX,GFSTEP,GFORG
     REAL(4):: GRGB(3,NLM),FACTOR
+    REAL(4):: GPC,GPD
     INTEGER:: NCH,NGULEN,NL,NLL,NP,NPL
     INTEGER:: IPAT(NLM)
     CHARACTER(LEN=80):: KTITLE
@@ -188,6 +189,33 @@ CONTAINS
     ELSE
        A%ASPECT=0.75
     END IF
+
+    SELECT CASE(A%MODE_XY)
+    CASE(1)
+       IF(A%GPXMAX-A%GPXMIN .GT. A%GPYMAX-A%GPYMIN) THEN
+          GPC=0.5*(A%GPXMAX+A%GPXMIN)
+          GPD=0.5*(A%GPYMAX-A%GPYMIN)
+          A%GPXMIN=GPC-GPD
+          A%GPXMAX=GPC+GPD
+       ELSE
+          GPC=0.5*(A%GPYMAX+A%GPYMIN)
+          GPD=0.5*(A%GPXMAX-A%GPXMIN)
+          A%GPYMIN=GPC-GPD
+          A%GPYMAX=GPC+GPD
+       END IF
+    CASE(2)
+       IF(A%GPXMAX-A%GPXMIN .GT. 2.D0*(A%GPYMAX-A%GPYMIN)) THEN
+          GPC=0.5*(A%GPXMAX+A%GPXMIN)
+          GPD=     A%GPYMAX-A%GPYMIN
+          A%GPXMIN=GPC-GPD
+          A%GPXMAX=GPC+GPD
+       ELSE
+          GPC=0.5*(A%GPYMAX+A%GPYMIN)
+          GPD=0.25*(A%GPXMAX-A%GPXMIN)
+          A%GPYMIN=GPC-GPD
+          A%GPYMAX=GPC+GPD
+       END IF
+    END SELECT
 
 !     ----- define graph size scaling factor -----
 
@@ -255,6 +283,25 @@ CONTAINS
     CALL GRFUT3(GYMINL,GYMAXL,GYMIN,GYMAX,GYSTEP,GYORG)
     CALL GRFUT3(GFMINL,GFMAXL,GFMIN,GFMAX,GFSTEP,GFORG)
 
+    SELECT CASE(A%MODE_XY)
+    CASE(1)
+       GXMIN =-GXMAX
+       GYMIN =-GXMAX
+       GYMAX = GXMAX
+       GYORG = GXORG
+       GYSTEP= GXSTEP
+       GYMINL=-GXMAXL
+       GYMAXL= GXMAXL
+    CASE(2)
+       GXMIN=-GXMAX
+       GYMIN= 0.0
+       GYMAX= GXMAX
+       GYORG = GXORG
+       GYSTEP= GXSTEP
+       GYMINL= 0.D0
+       GYMAXL= GXMAXL
+    END SELECT
+
     IF(PRESENT(XMIN)) THEN
        A%XMIN=XMIN
     ELSE
@@ -284,7 +331,11 @@ CONTAINS
     IF(PRESENT(YMAX)) THEN
        A%YMAX=YMAX
     ELSE
-       A%YMAX=GYMAXL
+       IF(A%MODE_XY == 0) THEN
+          A%YMAX=GYMAXL
+       ELSE
+          A%YMAX=GYMAX
+       ENDIF
     ENDIF
     IF(PRESENT(YSCALE_STEP)) THEN
        A%YSCALE_STEP=YSCALE_STEP
@@ -305,7 +356,7 @@ CONTAINS
     IF(PRESENT(FMAX)) THEN
        A%FMAX=FMAX
     ELSE
-       A%FMAX=GFMAXL
+       A%FMAX=GFMAX
     ENDIF
     IF(PRESENT(FSCALE_STEP)) THEN
        A%FSCALE_STEP=FSCALE_STEP
@@ -415,7 +466,7 @@ CONTAINS
           A%LINE_MARK_SIZE(1:A%NLMAX)=0.3*GFACTOR
        ENDIF
 
-    CASE(1:5) ! 2D contour line and paint and 3D Bird's ey view
+    CASE(1:) ! 2D contour line and paint and 3D Bird's ey view
 
        IF(A%FMIN*A%FMAX < 0.0) THEN
            A%FMAX=MAX(ABS(A%FMIN),ABS(A%FMAX))
@@ -588,7 +639,7 @@ CONTAINS
        ENDIF
        
        SELECT CASE(A%MODE_2D)
-       CASE(4:5)
+       CASE(11:12)
           IF(PRESENT(BEV_XLEN)) THEN
              A%BEV_XLEN=BEV_XLEN*GFACTOR
           ELSE
@@ -624,13 +675,13 @@ CONTAINS
              A%BEV_TYPE=BEV_TYPE
           ELSE
              SELECT CASE(A%MODE_2D)
-             CASE(4)
+             CASE(11)
                 IF(NXMAX.GT.100.OR.NYMAX.GT.100) THEN
                    A%BEV_TYPE=4
                 ELSE
                    A%BEV_TYPE=7
                 ENDIF
-             CASE(5)
+             CASE(12)
                 IF(NXMAX.GT.100.OR.NYMAX.GT.100) THEN
                    A%BEV_TYPE=24
                 ELSE
@@ -833,7 +884,7 @@ CONTAINS
        A%XSCALE_TYPE=XSCALE_TYPE
     ELSE
        SELECT CASE(A%MODE_2D)
-       CASE(4:5)
+       CASE(11:12)
           A%XSCALE_TYPE=1
        CASE DEFAULT
           A%XSCALE_TYPE=9
@@ -888,7 +939,7 @@ CONTAINS
        A%YSCALE_TYPE=YSCALE_TYPE
     ELSE
        SELECT CASE(A%MODE_2D)
-       CASE(4:5)
+       CASE(11:12)
           A%YSCALE_TYPE=1
        CASE DEFAULT
           A%YSCALE_TYPE=9
@@ -943,7 +994,7 @@ CONTAINS
        A%FSCALE_TYPE=FSCALE_TYPE
     ELSE
        SELECT CASE(A%MODE_2D)
-       CASE(4:5)
+       CASE(11:12)
           A%FSCALE_TYPE=1
        CASE DEFAULT
           A%FSCALE_TYPE=9
@@ -998,6 +1049,12 @@ CONTAINS
        A%NOFRAME=NOFRAME
     ELSE
        A%NOFRAME=0
+    ENDIF
+
+    IF(PRESENT(NOINFO)) THEN
+       A%NOINFO=NOINFO
+    ELSE
+       A%NOINFO=0
     ENDIF
 
     RETURN
