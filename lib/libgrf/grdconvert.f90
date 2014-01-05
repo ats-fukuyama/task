@@ -138,7 +138,7 @@ CONTAINS
     DATA GRGB/0.0,0.0,0.0, 1.0,0.0,0.0, 0.0,0.0,1.0, &
               0.0,1.0,0.0, 1.0,0.0,1.0/
 
-    IF(NGP.LT.0.OR.NGP.GT.29) THEN
+    IF(NGP.LT.0.OR.NGP.GT.54) THEN
        WRITE(6,*) 'XX GRD_CONVERT: INVALID NGP'
        RETURN
     ENDIF

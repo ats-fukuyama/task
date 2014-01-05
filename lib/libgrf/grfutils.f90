@@ -354,6 +354,13 @@ CONTAINS
           YL= 8.5*0.5
           IX=MOD(NGP-14,4)
           IY=3-(NGP-14)/4
+       ELSEIF(NGP.LE.54) THEN
+          X0= 3.0*0.4
+          XL=12.0*0.4
+          Y0= 1.75*0.4
+          YL= 8.5*0.4
+          IX=MOD(NGP-30,5)
+          IY=3-(NGP-30)/5
        ENDIF
        GP(1)=IX*XL+X0
        GP(2)=IX*XL+XL
