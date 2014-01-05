@@ -328,8 +328,8 @@ CONTAINS
     REAL*4 X0,XL,Y0,YL
 
     IF(NGP.EQ.0) THEN
-       GP(1)= 3.0
-       GP(2)=23.0
+       GP(1)= 4.0
+       GP(2)=24.0
        GP(3)= 2.0
        GP(4)=17.0
     ELSE
