@@ -360,7 +360,7 @@ CONTAINS
           Y0= 1.75*0.4
           YL= 8.5*0.4
           IX=MOD(NGP-30,5)
-          IY=3-(NGP-30)/5
+          IY=4-(NGP-30)/5
        ENDIF
        GP(1)=IX*XL+X0
        GP(2)=IX*XL+XL
