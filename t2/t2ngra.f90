@@ -499,7 +499,11 @@ CONTAINS
        i0ppc2 = i1pdn2(i1)
        i0rdc2 = i1rdn2(i1)
        i0stc1=0
-       DO i2=0,i1-1
+!
+!       DO i2=0,i1-1
+!                     modified by AF: i1rdn1(0) and i1pdn1(0) are not defined
+!
+       DO i2=1,i1-1
           i0stc1 = i0stc1+i1rdn1(i2)*i1pdn1(i2)
        ENDDO
        DO i2=1,i0rdc2
