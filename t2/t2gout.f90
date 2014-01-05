@@ -27,7 +27,7 @@ CONTAINS
     INTEGER(i0ikind)    :: ierr,mode,ind
     CHARACTER(LEN=80) :: line,kw
     CHARACTER(LEN=1) :: kid,kch
-    INTEGER(i0ikind) :: nwmax,iloc0,nw,i,ich0,nch,ich
+    INTEGER(i0ikind) :: nwmax,iloc0,nw,i,ich0,nch,ich,j
     CHARACTER(LEN=80),DIMENSION(40):: kword,kwid,knum
     INTEGER(i0ikind),DIMENSION(40):: inum
 
@@ -36,7 +36,7 @@ CONTAINS
 1   CONTINUE
     ierr=0
     WRITE(6,'(A)') &
-         '#### T2 GOUT: Rn/radial An/average Cn,Pn/contour Bn/birdseye X/exit'
+         '#### T2 GOUT: Rn An Cn Pn Bn RA AA X/exit'
     CALL TASK_KLIN(line,kid,mode,T2_PARM)
     IF(mode == 2 .OR. mode == 3) GOTO 1
 
@@ -98,6 +98,9 @@ CONTAINS
 
     END DO
 
+    IF(KWID(1)=='X') GO TO 9000
+
+    CALL PAGES
     DO NW=1,NWMAX
 !       WRITE(6,'(A,A,A,A,A,I5)') &
 !            'KID,KNUM=:',TRIM(KWID(NW)),':',TRIM(KNUM(NW)),':',INUM(NW)
@@ -105,22 +108,71 @@ CONTAINS
        CASE(1)
           SELECT CASE(KWID(NW))
           CASE('R')
-             CALL T2_GR(INUM(NW))
+             CALL T2_GR(INUM(NW),1, 0)
+          CASE('A')
+             CALL T2_GR(INUM(NW),11,0)
           CASE('C')
-             CALL T2_GC(INUM(NW),1)
+             CALL T2_GC(INUM(NW),1, 0)
           CASE('D')
-             CALL T2_GC(INUM(NW),2)
+             CALL T2_GC(INUM(NW),2, 0)
           CASE('P')
-             CALL T2_GC(INUM(NW),3)
+             CALL T2_GC(INUM(NW),3, 0)
           CASE('B')
-             CALL T2_GC(INUM(NW),14)
+             CALL T2_GC(INUM(NW),15,0)
           CASE('Y')
-             CALL T2_GC(INUM(NW),12)
-          CASE('X')
-             GO TO 9000
+             CALL T2_GC(INUM(NW),11,0)
+          END SELECT
+       CASE(2)
+          SELECT CASE(KWID(NW))
+          CASE('RA')
+             DO I=1,5
+                CALL T2_GR(I,1, 29+I)
+             END DO
+             DO J=1,4
+                DO I=4*J+2,4*J+5
+                   CALL T2_GR(I,1, 28+I+J)
+                END DO
+             END DO
+          CASE('AA')
+             DO I=1,5
+                CALL T2_GR(I,11,29+I)
+             END DO
+             DO J=1,4
+                DO I=4*J+2,4*J+5
+                   CALL T2_GR(I,11,28+I+J)
+                END DO
+             END DO
+          CASE('CA')
+             DO I=1,5
+                CALL T2_GC(I, 1,29+I)
+             END DO
+             DO J=1,4
+                DO I=4*J+2,4*J+5
+                   CALL T2_GC(I, 1,28+I+J)
+                END DO
+             END DO
+          CASE('PA')
+             DO I=1,5
+                CALL T2_GC(I, 3,29+I)
+             END DO
+             DO J=1,4
+                DO I=4*J+2,4*J+5
+                   CALL T2_GC(I, 3,28+I+J)
+                END DO
+             END DO
+          CASE('BA')
+             DO I=1,5
+                CALL T2_GC(I,15,29+I)
+             END DO
+             DO J=1,4
+                DO I=4*J+2,4*J+5
+                   CALL T2_GC(I,15,28+I+J)
+                END DO
+             END DO
           END SELECT
        END SELECT
     END DO
+    CALL PAGEE
 
     GO TO 1
 
@@ -199,7 +251,7 @@ CONTAINS
     RETURN
   END SUBROUTINE T2_GRELEASE
 
-  SUBROUTINE T2_GC(INUM,ID)
+  SUBROUTINE T2_GC(INUM,ID,NGP)
     USE libgrf,ONLY: GRD2D
     USE T2COMM, ONLY: &
          i0ikind,i0rkind,twopi,i0xmax,d1guv,i0vmax, &
@@ -207,7 +259,7 @@ CONTAINS
          nrhomax,nchimax,d0rw
     IMPLICIT NONE
     INTEGER,PARAMETER:: nxmax=41,nymax=41
-    INTEGER(i0ikind),INTENT(IN):: inum,id
+    INTEGER(i0ikind),INTENT(IN):: inum,id,ngp
     REAL(i0rkind),DIMENSION(:,:),ALLOCATABLE:: gz
     REAL(i0rkind),DIMENSION(:),ALLOCATABLE:: gzl,dgzl,chig
     REAL(i0rkind),DIMENSION(:,:),ALLOCATABLE:: ugzl
@@ -264,7 +316,7 @@ CONTAINS
           DO ny=1,nymax
              y=gy(ny)
              r=SQRT(x*x+y*y)
-             th=ATAN2(x,y)
+             th=ATAN2(y,x)
              IF(th.LT.0.D0) th=th+TWOPI
              IF(r >= d0rw) THEN
                 gxy(nx,ny)=0.D0
@@ -279,35 +331,33 @@ CONTAINS
              
     WRITE(LINE,'(A,I3,A)') '@diguv(',inum,')@'
 
-    CALL PAGES
     SELECT CASE(ID)
     CASE(1)
-       CALL GRD2D(0,rhonrho,chig,gz,nrhomax,nrhomax,nchig, &
+       CALL GRD2D(ngp,rhonrho,chig,gz,nrhomax,nrhomax,nchig, &
                   TITLE=LINE,MODE_XY=1,MODE_2D=4,TITLE_SIZE=0.4D0)
     CASE(2)
-       CALL GRD2D(0,rhonrho,chig,gz,nrhomax,nrhomax,nchig, &
+       CALL GRD2D(ngp,rhonrho,chig,gz,nrhomax,nrhomax,nchig, &
                   TITLE=LINE,MODE_XY=1,MODE_2D=1,TITLE_SIZE=0.4D0)
     CASE(3)
-       CALL GRD2D(0,rhonrho,chig,gz,nrhomax,nrhomax,nchig, &
+       CALL GRD2D(ngp,rhonrho,chig,gz,nrhomax,nrhomax,nchig, &
                   TITLE=LINE,MODE_XY=1,MODE_2D=2,TITLE_SIZE=0.4D0)
     CASE(11)
-       CALL GRD2D(0,gx,gy,gxy,nxmax,nxmax,nymax, &
+       CALL GRD2D(ngp,gx,gy,gxy,nxmax,nxmax,nymax, &
                   TITLE=LINE,MODE_XY=0,MODE_2D=4,TITLE_SIZE=0.4D0)
     CASE(12)
-       CALL GRD2D(0,gx,gy,gxy,nxmax,nxmax,nymax, &
+       CALL GRD2D(ngp,gx,gy,gxy,nxmax,nxmax,nymax, &
                   TITLE=LINE,MODE_XY=0,MODE_2D=1,TITLE_SIZE=0.4D0,&
                   XMIN=-d0rw,XMAX=d0rw,YMIN=-d0rw,YMAX=d0rw)
     CASE(13)
-       CALL GRD2D(0,gx,gy,gxy,nxmax,nxmax,nymax, &
+       CALL GRD2D(ngp,gx,gy,gxy,nxmax,nxmax,nymax, &
                   TITLE=LINE,MODE_XY=0,MODE_2D=2,TITLE_SIZE=0.4D0)
     CASE(14)
-       CALL GRD2D(0,gx,gy,gxy,nxmax,nxmax,nymax, &
+       CALL GRD2D(ngp,gx,gy,gxy,nxmax,nxmax,nymax, &
                   TITLE=LINE,MODE_XY=0,MODE_2D=11,TITLE_SIZE=0.4D0)
     CASE(15)
-       CALL GRD2D(0,gx,gy,gxy,nxmax,nxmax,nymax, &
+       CALL GRD2D(ngp,gx,gy,gxy,nxmax,nxmax,nymax, &
                   TITLE=LINE,MODE_XY=0,MODE_2D=12,TITLE_SIZE=0.4D0)
     END SELECT
-    CALL PAGEE
 
     IF(ID.GT.10) THEN
        DEALLOCATE(ddx,ddy,ddxy)
@@ -317,42 +367,51 @@ CONTAINS
     RETURN
   END SUBROUTINE T2_GC
 
-  SUBROUTINE T2_GR(INUM)
+  SUBROUTINE T2_GR(INUM,ID,NGP)
     USE libgrf,ONLY: GRD1D
     USE T2COMM, ONLY: &
          i0ikind,i0rkind,twopi,i0xmax,d1guv,i0vmax, &
          i0lmax,i0pdiv_number,i1mlvl,i1rdn2,d1rec, &
          nrhomax,nchimax
     IMPLICIT NONE
-    INTEGER(i0ikind),INTENT(IN):: inum
+    INTEGER(i0ikind),INTENT(IN):: inum,id,ngp
     REAL(i0rkind),DIMENSION(:,:),ALLOCATABLE:: gz
-    REAL(i0rkind),DIMENSION(:),ALLOCATABLE:: gzl,dgzl
+    REAL(i0rkind),DIMENSION(:),ALLOCATABLE:: gzl,dgzl,ga
     REAL(i0rkind),DIMENSION(:,:),ALLOCATABLE:: ugzl
     INTEGER(i0ikind):: nchi,nl,nrho,nchimaxl,nr,ierr
     CHARACTER(LEN=80):: LINE
 
     ALLOCATE(gz(nrhomax,nchimax+1))
     ALLOCATE(gzl(nchimax+1),dgzl(nchimax+1),ugzl(4,nchimax+1))
+    ALLOCATE(ga(nrhomax))
     DO nchi=1,nchimax+1
        gz(1,nchi)=d1guv(inum)
     END DO
+    ga(1)=d1guv(inum)
     DO nrho=2,nrhomax
        nl=nlnrho(nrho)
        nchimaxl=i0pdiv_number*2**(i1mlvl(nl)-1)
+
+       DO nchi=1,nchimaxl
+          gzl(nchi)=d1guv(i0vmax*(nnnrho(nrho)+nchi-2)+inum)
+       END DO
+       SELECT CASE(inum)
+       CASE(1:3)
+          ga(nrho)=gzl(nchimaxl)
+       CASE DEFAULT
+          ga(nrho)=0.D0
+          DO nchi=1,nchimaxl
+             ga(nrho)=ga(nrho)+gzl(nchi)
+          END DO
+          ga(nrho)=ga(nrho)/nchimaxl
+       END SELECT
+
        IF(nchimaxl==nchimax) THEN
-          DO nchi=1,nchimax
-!             write(6,'(A,6I5)') &
-!                  'nrho,nnnrho,nchi,i0vmax,i0,i=', &
-!                  nrho,nnnrho(nrho),nchi,i0vmax, &
-!                  i0vmax*(nnnrho(nrho)+nchi-2), &
-!                  i0vmax*(nnnrho(nrho)+nchi-2)+inum
-             gz(nrho,nchi)=d1guv(i0vmax*(nnnrho(nrho)+nchi-2)+inum)
+          DO nchi=1,nchimaxl
+             gz(nrho,nchi)=gzl(nchi)
           END DO
        ELSE
-          DO nchi=1,nchimaxl
-             gzl(nchi)=d1guv(i0vmax*(nnnrho(nrho)+nchi-2)+inum)
-          END DO
-          gzl(nchimaxl+1)=d1guv(i0vmax*(nnnrho(nrho)-1)+inum)
+          gzl(nchimaxl+1)=gzl(1)
           CALL SPL1D(chinl(1:nchimaxl+1,nl),gzl,dgzl,ugzl,nchimaxl+1,4,ierr)
           DO nchi=1,nchimax
              CALL SPL1DF(chinchi(nchi),gz(nrho,nchi), &
@@ -362,10 +421,13 @@ CONTAINS
     END DO
 
     WRITE(LINE,'(A,I3,A)') '@diguv(',inum,')@'
-    CALL PAGES
-    CALL GRD1D(0,rhonrho,gz,nrhomax,nrhomax,nchimax, &
-               TITLE=LINE,MODE_LS=0)
-    CALL PAGEE
+
+    SELECT CASE(id)
+    CASE(1)
+       CALL GRD1D(NGP,rhonrho,gz,nrhomax,nrhomax,nchimax,TITLE=LINE)
+    CASE(11)
+       CALL GRD1D(NGP,rhonrho,ga,nrhomax,nrhomax,1,TITLE=LINE)
+    END SELECT
 
     RETURN
   END SUBROUTINE T2_GR
