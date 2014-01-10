@@ -1,38 +1,58 @@
 ### $Id$###
 include ../make.header
 
-#FFLAGS=$(OFLAGS)
-FFLAGS=$(DFLAGS)
+.SUFFIXES:
+.SUFFIXES: .f .f90 .mod .o .a
 
-MODINCLUDE= -I $(MOD) -I../lib/$(MOD)
+FFLAGS=$(OFLAGS)
+#FFLAGS=$(DFLAGS)
 
-SRCS = wiunmag.f
-
-OBJS = $(SRCS:.f=.o) 
-
-LIBS = ../lib/tasklib.a
+MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD)
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all : wiunmag
+SRCSFIXED = 
+SRCSFREE = wicomm.f90 wiinit.f90 wiparm.f90 \
+	   wiunmag.f90 wiexec.f90 wigout.f90 \
+           wimenu.f90
 
-#dplib.a: $(OBJS)
-#	$(LD) $(LDFLAGS) dplib.a $(OBJS)
+OBJS = $(SRCSFIXED:.f=.o) $(SRCSFREE:.f90=.o) 
+
+LIBS = wilib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a
+
+all : wi wiunmag
+
+../lib/tasklib.a:
+	(cd ../lib; make tasklib.a)
+../../bpsd/bpsdlib.a:
+	(cd ../../bpsd; make bpsdlib.a)
+wilib.a: $(OBJS)
+	$(LD) $(LDFLAGS) wilib.a $(OBJS)
 
 libs:
 	(cd ../lib; make tasklib.a)
 	(cd ../../bpsd; make bpsdlib.a)
 
-wiunmag : wiunmag.o
-	$(FCFIXED) wiunmag.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+wi : $(LIBS) wimain.o
+	$(FCFREE) wimain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) \
+           $(MODDIR) $(MODINCLUDE)
+
+wiunmag : wiunmag-old.f
+	$(FCFIXED) wiunmag-old.f ../lib/tasklib.a -o $@ $(FFLAGS) $(FLIBS)
 
 clean:
-	-rm -f core a.out *.o *.a ./*~
+	-rm -f core a.out *.o *.mod ./*~ ./#* *.a $(MOD)/*.mod
 
 veryclean: clean
-	-rm -f wiunmag
+	-rm -f wi wiunmag
 
-wiunmag.o: wiunmag.f
+wiunmag.o: wiunmag.f90 wicomm.f90
+wimain.o: wimain.f90 wicomm.f90
+wimenu.o: wimenu.f90 wicomm.f90
+wiinit.o: wiinit.f90 wicomm.f90
+wiparm.o: wiparm.f90 wicomm.f90
+wiexec.o: wiexec.f90 wicomm.f90
+wigout.o: wigout.f90 wicomm.f90

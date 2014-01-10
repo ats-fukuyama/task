@@ -2,7 +2,7 @@ C
 C     *****  INTEGRAL EQUATION  *****
 C
       IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-H,O-Z)
-      PARAMETER (NXMAX=401,NWMAX=200,NLEN=NXMAX*2+3,NWID=4*NWMAX+3)
+      PARAMETER (NXMAX=400,NWMAX=200,NLEN=NXMAX*2+3,NWID=4*NWMAX+3)
       COMMON /FIELD/  CFY(NLEN)
       COMMON /PLASMA/ CWP(0:NXMAX),CWE(0:NXMAX)
       COMMON /KERNEL/ CU(2,-NXMAX:NXMAX)
@@ -99,7 +99,7 @@ C
       SUBROUTINE SUBFW(NX,XMAX,PN0,ALFA,NW,AKY,BETA)
 C
       IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-H,O-Z)
-      PARAMETER (NXMAX=401,NWMAX=200,NLEN=NXMAX*2+3,NWID=4*NWMAX+3)
+      PARAMETER (NXMAX=400,NWMAX=200,NLEN=NXMAX*2+3,NWID=4*NWMAX+3)
       COMMON /PLASMA/ CWP(0:NXMAX),CWE(0:NXMAX)
       COMMON /KERNEL/ CU(2,-NXMAX:NXMAX)
       COMMON /COEF/ G1,G2,G3,G4,G5,N1
@@ -127,7 +127,7 @@ C
       SUBROUTINE SUBCK2(NX,NW,XMAX,AKY,BETA)
 C
       IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-H,O-Z)
-      PARAMETER (NXMAX=401,NWMAX=200,NLEN=NXMAX*2+3,NWID=4*NWMAX+3)
+      PARAMETER (NXMAX=400,NWMAX=200,NLEN=NXMAX*2+3,NWID=4*NWMAX+3)
       COMMON /PLASMA/ CWP(0:NXMAX),CWE(0:NXMAX)
       COMMON /KERNEL/ CU(2,-NXMAX:NXMAX)
       COMMON /MATRIX/ CK(NWID,NLEN),CSO(NLEN)
@@ -264,7 +264,7 @@ C
       SUBROUTINE SUBINI(NX,CFYN,AKY,BETA)
 C
       IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-H,O-Z)
-      PARAMETER (NXMAX=401,NWMAX=200,NLEN=NXMAX*2+3,NWID=4*NWMAX+3)
+      PARAMETER (NXMAX=400,NWMAX=200,NLEN=NXMAX*2+3,NWID=4*NWMAX+3)
       COMMON /MATRIX/ CK(NWID,NLEN),CSO(NLEN)
       DATA CAI/(0.D0,1.D0)/
 C
@@ -283,7 +283,7 @@ C
       SUBROUTINE SUBFY(NX)
 C
       IMPLICIT COMPLEX*16(C),REAL(A-B,D-H,O-Z)
-      PARAMETER (NXMAX=401,NWMAX=200,NLEN=NXMAX*2+3,NWID=4*NWMAX+3)
+      PARAMETER (NXMAX=400,NWMAX=200,NLEN=NXMAX*2+3,NWID=4*NWMAX+3)
       COMMON /FIELD/  CFY(NLEN)
       COMMON /MATRIX/ CK(NWID,NLEN),CSO(NLEN)
 C
@@ -301,7 +301,7 @@ C
       SUBROUTINE SUBFYW(NX)
 C
       IMPLICIT COMPLEX*16(C),REAL(A-B,D-H,O-Z)
-      PARAMETER (NXMAX=401,NWMAX=200,NLEN=NXMAX*2+3,NWID=4*NWMAX+3)
+      PARAMETER (NXMAX=400,NWMAX=200,NLEN=NXMAX*2+3,NWID=4*NWMAX+3)
       COMMON /FIELD/  CFY(NLEN)
       COMMON /MATRIX/ CK(NWID,NLEN),CSO(NLEN)
 C
@@ -316,7 +316,7 @@ C
       SUBROUTINE SUBPOW(NX,NW,XMAX,AKY,BETA,PTOT)
 C
       IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-H,O-Z)
-      PARAMETER (NXMAX=401,NWMAX=200,NLEN=NXMAX*2+3,NWID=4*NWMAX+3)
+      PARAMETER (NXMAX=400,NWMAX=200,NLEN=NXMAX*2+3,NWID=4*NWMAX+3)
       COMMON /FIELD/  CFY(NLEN)
       COMMON /PLASMA/ CWP(0:NXMAX),CWE(0:NXMAX)
       COMMON /KERNEL/ CU(2,-NXMAX:NXMAX)
@@ -377,12 +377,178 @@ C
       RETURN
       END
 C
+C     *****  INVERSE OF FULL MATRIX  ***** 
+C
+      SUBROUTINE INVMCD(CK,N,ILL)
+C
+      IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-H,O-Z)
+      PARAMETER (NXMAX=400,NWMAX=200,NLEN=NXMAX*2+3,NWID=4*NWMAX+3)
+      DIMENSION NM(NLEN),CK(NWID,NLEN)
+C
+      DATA EPS/1.D-14/
+      NDUB=2*N
+      DO 10 NN=1,N
+         NM(NN)=NN
+   10 CONTINUE
+      DO 100 NN=1,N
+         P=0.D0
+         IP=NN
+         DO 20 I=NN,N
+            IF(ABS(CK(I,1)).LE.P) GO TO 20
+            P=ABS(CK(I,1))
+            IP=I
+   20    CONTINUE
+         IF(P.LE.EPS) GO TO 900
+         IF(IP.EQ.NN) GO TO 31
+         NW=NM(IP)
+         NM(IP)=NM(NN)
+         NM(NN)=NW
+         DO 30 J=1,N
+            CW=CK(IP,J)
+            CK(IP,J)=CK(NN,J)
+            CK(NN,J)=CW
+   30    CONTINUE
+   31    CW=(1.,0.)/CK(NN,1)
+         DO 40 J=2,N
+            CK(NN,J-1)=CK(NN,J)*CW
+   40    CONTINUE
+         CK(NN,N)=CW
+         DO 50 I=1,N
+            IF(I.EQ.NN) GO TO 50
+            CW=CK(I,1)
+            DO 60 J=2,N
+               CK(I,J-1)=CK(I,J)-CW*CK(NN,J-1)
+   60       CONTINUE
+            CK(I,N)=-CW*CK(NN,N)
+   50    CONTINUE
+  100 CONTINUE
+      DO 150 NN=1,N
+         DO 110 J=NN,N
+            IF(NM(J).EQ.NN) GO TO 120
+  110    CONTINUE
+         GO TO 900
+  120    IF(J.EQ.NN) GO TO 150
+         NM(J)=NM(NN)
+         DO 130 I=1,N
+            CW=CK(I,J)
+            CK(I,J)=CK(I,NN)
+            CK(I,NN)=CW
+  130    CONTINUE
+  150 CONTINUE
+      ILL=0
+      RETURN
+C
+  900 ILL=900
+      WRITE(6,600)
+      RETURN
+  600 FORMAT (1H ,'*****   SINGULAR  MATRIX   *****')
+      END
+C
+C     *****  SOLUTION OF BAND MATRIX (GAUSSIAN ELIMINATION) *****
+C
+      SUBROUTINE BANDCD( A , X , N , L , LA , IERR )
+C
+      PARAMETER (NXMAX=400,NWMAX=200,NLEN=NXMAX*2+3,NWID=4*NWMAX+3)
+      COMPLEX * 16    A( LA , N ) , X( N ) , ATMP( NWID ) , TEMP
+      REAL    *  8    EPS , ABS1 , ABS2
+      DATA EPS/ 1.D-70 /
+C
+      IF( MOD(L,2) .EQ. 0 ) GO TO 9000
+      LH  = (L+1)/2
+      LHM = LH-1
+      NM  = N -1
+C
+      DO 30 K = 1 , LHM
+         LHMK = LH-K
+         NPMK = N+1-K
+         DO 30 I = 1 , LHMK
+            LPMI = L+1-I
+            DO 40 J = 2 , L
+               A( J-1 , K ) = A( J , K )
+   40       CONTINUE
+            A( L    , K    ) = ( 0.D0 , 0.D0 )
+            A( LPMI , NPMK ) = ( 0.D0 , 0.D0 )
+   30 CONTINUE
+C
+C     DO 50 I = 1 , NM
+C        IPIVOT = I
+C        IP     = I+1
+C        DO 60 K = IP , LH
+C           IF( CDABS(A(1,K)) .GT. CDABS(A(1,IPIVOT)) ) IPIVOT=K
+C  60    CONTINUE
+C
+C
+      DO 50 I = 1 , NM
+         IPIVOT = I
+         IP     = I+1
+         ABS2   = CDABS( A(1,IPIVOT) )
+         DO 60 K = IP , LH
+            ABS1 = CDABS( A(1,K) )
+            IF( ABS1 .GT. ABS2 ) THEN
+                IPIVOT = K
+                ABS2 = ABS1
+            ENDIF
+   60    CONTINUE
+C
+         IF( CDABS(A(1,IPIVOT)) .LT. EPS ) GO TO 9002
+         IF( IPIVOT .NE. I ) THEN
+            TEMP        = X( I      )
+            X( I      ) = X( IPIVOT )
+            X( IPIVOT ) = TEMP
+            DO 90 J = 1 , L
+               ATMP( J )          = A   ( J , I      )
+               A   ( J , I      ) = A   ( J , IPIVOT )
+               A   ( J , IPIVOT ) = ATMP( J )
+   90       CONTINUE
+         END IF
+C
+         TEMP   = 1.D0   / A( 1 , I )
+         X( I ) = X( I ) * TEMP
+C
+         DO 120 J = 2 , L
+            A( J , I ) = A( J , I ) * TEMP
+  120    CONTINUE
+C
+         DO 130 K = IP , LH
+            TEMP   = A( 1 , K )
+            X( K ) = X( K ) - X( I ) * TEMP
+            DO 140 J = 2 , L
+               A( J-1 , K ) = A( J , K ) - A( J , I ) * TEMP
+  140       CONTINUE
+C
+            A( L , K ) = ( 0.D0 , 0.D0 )
+  130    CONTINUE
+         IF( LH .LT. N ) LH = LH + 1
+   50 CONTINUE
+C
+      X( N ) = X( N ) / A( 1 , N )
+      JJ = 2
+      DO 160 I = 1 , NM
+         K = N-I
+         TEMP = ( 0.D0 , 0.D0 )
+         DO 170 J = 2 , JJ
+            TEMP = A( J , K ) * X( K-1+J ) + TEMP
+  170    CONTINUE
+         X( K ) = X( K ) - TEMP
+         IF( JJ .LT. L ) JJ = JJ + 1
+  160 CONTINUE
+C
+      IERR = 0
+      RETURN
+C
+ 9000 IERR = 10000
+      RETURN
+ 9002 IERR = 30000
+      RETURN
+C
+      END
+C
 C     *****  GRAPHIC   *****
 C
       SUBROUTINE GRA(NX,NW,XMAX,PN0,ALFA,AKY,BETA,PTOT)
 C
       IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-H,O-R,T-Z),REAL*4(S)
-      PARAMETER (NXMAX=401,NWMAX=200,NLEN=NXMAX*2+3,NWID=4*NWMAX+3)
+      PARAMETER (NXMAX=400,NWMAX=200,NLEN=NXMAX*2+3,NWID=4*NWMAX+3)
       COMMON /FIELD/  CFY(NLEN)
       COMMON /POWER/  CPOWER(0:NXMAX)
       DIMENSION SVX(NXMAX),SCR(NXMAX),SCI(NXMAX),SCA(NXMAX)
@@ -525,14 +691,14 @@ C
       IF(M.NE.0) THEN 
          DO 10 K=M-1,0,-1
             G1=DBLE(K)
-            CALL DEFTC2(SR,SI,ESR,ESI,H0,EPS,ILST)
+            CALL DEFT(SR,SI,ESR,ESI,H0,EPS,ILST)
             SR1=SR1+SR
             SI1=SI1+SI
    10    CONTINUE
       ENDIF
 C
       G1=DBLE(M)
-      CALL DEFTC2(SR,SI,ESR,ESI,H0,EPS,ILST)
+      CALL DEFT(SR,SI,ESR,ESI,H0,EPS,ILST)
       A(1)=SR
       SR2=0.5D0*SR
       B(1)=SI
@@ -544,7 +710,7 @@ C
       L=L+1
       IF(L.GE.200) GOTO 9000
       G1=DBLE(M+L)
-      CALL DEFTC2(SR,SI,ESR,ESI,H0,EPS,ILST)
+      CALL DEFT(SR,SI,ESR,ESI,H0,EPS,ILST)
       A(L+1)=SR*PARITY
       B(L+1)=SI*PARITY
       DO 40 K=L,1,-1    
@@ -634,7 +800,7 @@ C
 C
 C     *****  DOUBLE EXPONENTIAL FORMULA  *****
 C
-      SUBROUTINE DEFTC2(CSR,CSI,ESR,ESI,H0,EPS,ILST)
+      SUBROUTINE DEFT(CSR,CSI,ESR,ESI,H0,EPS,ILST)
 C
 C        FINITE INTEGRAL BY DOUBLE-EXPONENTIAL FORMULA
 C                    (-1.D0, +1.D0)
@@ -758,5 +924,5 @@ C
   604 FORMAT(1H ,13X,16X,1PD24.15)
   602 FORMAT(1H ,1PD13.5,2I8,1PD24.15,1PD14.5)
   605 FORMAT(1H ,13X,16X,1PD24.15,1PD14.5)
-  603 FORMAT(1H ,'# SUB DEFTC2 # C or CR : CONTINUE / Q : QUIT')
+  603 FORMAT(1H ,'# SUB DEFT # C or CR : CONTINUE / Q : QUIT')
       END

@@ -1,0 +1,646 @@
+! $Id$
+
+MODULE wiunmag
+
+  PRIVATE
+  PUBLIC wi_unmag
+
+CONTAINS
+
+  SUBROUTINE wi_unmag(ierr)
+
+    USE wicomm
+    IMPLICIT NONE
+    INTEGER(ikind),INTENT(OUT):: ierr
+    REAL:: GT1,GT2
+
+    CALL INITDS
+
+      CALL GUTIME(GT1)
+      CALL SUBFW
+      CALL GUTIME(GT2)
+      WRITE(6,601) 'SUBFW ',GT2-GT1
+      CALL SUBCK2
+      CALL SUBINI
+      CALL GUTIME(GT2)
+      WRITE(6,601) 'SUBCK2',GT2-GT1
+      IF(NWMAX.EQ.NXMAX) THEN
+         CALL INVMCD(CK,MLEN,IERR)
+            IF(IERR.NE.0) GOTO 9900
+         CALL SUBFY
+      ELSE
+         CALL BANDCD(CK,CSO,MLEN,MWID,MWID,IERR)
+            IF(IERR.NE.0) GOTO 9900
+         CALL SUBFYW
+      ENDIF
+      CALL GUTIME(GT2)
+      WRITE(6,601) 'SOLVER',GT2-GT1
+      CALL SUBPOW
+      CALL GUTIME(GT2)
+      WRITE(6,601) 'POWER ',GT2-GT1
+9900  CONTINUE
+      RETURN
+  601 FORMAT(1H ,'## END OF ',A6,' ##  CPU TIME = ',F8.3,' SEC')
+    END SUBROUTINE wi_unmag
+
+!     *****  INITIALIZE D0,D1,D2,D3  *****
+
+    SUBROUTINE INITDS
+
+      USE wicomm
+      IMPLICIT NONE
+      INTEGER(ikind):: L,M,N
+
+      D0(0,0)=1.D0/3.D0
+      D0(0,1)=1.D0/6.D0
+      D0(1,0)=1.D0/6.D0
+      D0(1,1)=1.D0/3.D0
+      D1(0,0)=-0.5D0
+      D1(0,1)=-0.5D0
+      D1(1,0)=0.5D0
+      D1(1,1)=0.5D0
+      D2(0,0)=1.D0
+      D2(0,1)=-1.D0
+      D2(1,0)=-1.D0
+      D2(1,1)=1.D0
+      DO L=0,1
+         DO M=0,1
+            DO N=0,1
+               D3(L,M,N)=1.D0/12.D0
+            END DO
+         END DO
+      END DO
+      D3(0,0,0)=1.D0/4.D0
+      D3(1,1,1)=1.D0/4.D0
+      RETURN
+    END SUBROUTINE INITDS
+
+!     *****  SET KERNEL FUNCTION  ***** 
+
+    SUBROUTINE SUBFW
+
+      USE wicomm
+      USE wigcom
+      IMPLICIT NONE
+      REAL(rkind):: dx,rky,x
+      COMPLEX(rkind):: CS
+      INTEGER(ikind):: J,I,L
+
+      DX=XMAX/NXMAX
+      RKY=AKY*BETA
+      DO J=1,2
+         N1=J
+         DO I=0,NWMAX
+            X=I*DX
+            CALL EUL(X,RKY,CS,5,L)
+            CU(J, I)=CS
+            CU(J,-I)=CS
+         END DO
+      END DO
+      DO I=0,NXMAX
+         CWE(I)=DEXP(-ALFA*I*DX)
+         CWP(I)=PN0
+      END DO
+      RETURN
+    END SUBROUTINE SUBFW
+
+!     *****  CALCULATION OF COEFFICIENT MATRIX  ***** 
+
+    SUBROUTINE SUBCK2
+
+      USE wicomm
+      IMPLICIT NONE
+      COMPLEX(rkind),PARAMETER:: CAI=(0.D0,1.D0)
+      COMPLEX(rkind):: ciky,cbb
+      REAL(rkind):: rky,rky2,dx,dx2,beta2,dky
+      INTEGER(ikind):: NDUB,NBAND,NWDUB,NWDDUB,I,J,MM,ID,JD,NS,NE,NN
+      INTEGER(ikind):: KK,KD,KS,IOB,IO,I2
+
+      RKY=AKY*BETA
+      RKY2=RKY**2
+      DX=XMAX/DBLE(NXMAX)
+      DX2=DX**2
+      NDUB=2*NXMAX
+      BETA2=BETA*BETA
+      DKY=AKY*AKY
+      CIKY=CAI*AKY/BETA
+      CBB=CAI/(DSQRT(1.D0-AKY*AKY)*BETA)
+
+      IF(NWMAX.EQ.NXMAX) THEN
+         NBAND=0
+         NWDUB=NDUB
+         NWDDUB=NDUB
+      ELSE
+         NBAND=1
+         NWDUB=2*NWMAX
+         NWDDUB=4*NWMAX
+      ENDIF
+
+      DO I=1,NDUB+3
+         DO J=1,NWDDUB+3
+            CK(J,I)=(0.,0.)
+         END DO
+      END DO
+      DO MM=0,NXMAX-1
+         DO I=MM,MM+1
+            ID=2*I
+            DO J=MM,MM+1
+               JD=2*J
+               IF(NWMAX.NE.NXMAX) JD=2*NWMAX+1+2*J-2*I
+               CK(JD+1      ,ID+1)=CK(JD+1      ,ID+1) &
+                                    +(DKY-1.D0)*DX*D0(I-MM,J-MM)
+               CK(JD+2      ,ID+1)=CK(JD+2      ,ID+1) &
+                                    +CIKY*D1(J-MM,I-MM)
+               CK(JD+1-NBAND,ID+2)=CK(JD+1-NBAND,ID+2) &
+                                    -CIKY*D1(I-MM,J-MM)
+               CK(JD+2-NBAND,ID+2)=CK(JD+2-NBAND,ID+2) &
+                                    +D2(I-MM,J-MM)/(DX*BETA2) &
+                                    -DX*D0(I-MM,J-MM)
+            END DO
+         END DO
+      END DO
+      CK(NWDUB+3      ,NDUB+2)=-CBB
+      CK(NWDUB+2-NBAND,NDUB+3)=1.D0
+      CK(NWDUB+3-NBAND,NDUB+3)=-1.D0
+
+      DO MM=0,NXMAX-1
+         NS=MM-NWMAX+1
+         NE=MM+NWMAX-1
+         IF(NS.LE.0) NS=0
+         IF(NE.GE.NXMAX-1) NE=NXMAX-1
+         DO NN=NS,NE
+            DO I=MM,MM+1
+               ID=2*I
+               DO J=NN,NN+1
+                  JD=2*J
+                  IF(NWMAX.NE.NXMAX) JD=2*NWMAX+1+2*J-2*I
+                  DO KK=MM,MM+1
+                     DO KD=NN,NN+1
+                        CK(JD+1,ID+1)=CK(JD+1,ID+1) &
+                                     -CWP(KD)*CWE(KK)*CWE(KD) &
+                                     *(DX2*RKY2*CU(1,KK-KD) &
+                                     *D0(I-MM,KK-MM)*D0(J-NN,KD-NN) &
+                                     +(CU(1,KK-KD)-CAI*CU(2,KK-KD)) &
+                                     *D1(I-MM,KK-MM)*D1(J-NN,KD-NN))
+                        CK(JD+2,ID+1)=CK(JD+2,ID+1) &
+                                     -CWP(KD)*CWE(KK)*CWE(KD) &
+                                     *(-DX*RKY*CU(2,KK-KD) &
+                                     *D0(I-MM,KK-MM)*D1(J-NN,KD-NN))
+                        CK(JD+1-NBAND,ID+2)=CK(JD+1-NBAND,ID+2) &
+                                     -CWP(KD)*CWE(KK)*CWE(KD) &
+                                     *(DX*RKY*CU(2,KK-KD) &
+                                     *D1(I-MM,KK-MM)*D0(J-NN,KD-NN))
+                        CK(JD+2-NBAND,ID+2)=CK(JD+2-NBAND,ID+2) &
+                                     -CWP(KD)*CWE(KK)*CWE(KD) &
+                                     *(RKY2*DX2*(CU(1,KK-KD)-CAI*CU(2,KK-KD)) &
+                                     *D0(I-MM,KK-MM)*D0(J-NN,KD-NN) &
+                                     +CU(1,KK-KD) &
+                                     *D1(I-MM,KK-MM)*D1(J-NN,KD-NN))
+                     END DO
+                  END DO
+               END DO
+            END DO
+         END DO
+      END DO
+
+      DO MM=0,NXMAX-1
+         DO I=MM,MM+1
+            ID=2*I
+            DO J=MM,MM+1
+               JD=2*J
+               IF(NWMAX.NE.NXMAX) JD=2*NWMAX+1+2*J-2*I
+               DO KS=MM,MM+1
+                  CK(JD+1      ,ID+1)=CK(JD+1      ,ID+1) &
+                                     +CWP(KS)*CWE(KS)*CWE(KS)*DX &
+                                     *D3(I-MM,J-MM,KS-MM)
+                  CK(JD+2-NBAND,ID+2)=CK(JD+2-NBAND,ID+2) &
+                                     +CWP(KS)*CWE(KS)*CWE(KS)*DX &
+                                     *D3(I-MM,J-MM,KS-MM)
+               END DO
+            END DO
+         END DO
+      END DO
+
+      DO IO=1,NWDDUB+3
+         IF(NWMAX.NE.NXMAX) THEN
+            IOB=2*NWMAX+4-IO
+         ELSE
+            IOB=2
+         ENDIF
+         IF(IOB.GE.1) CK(IOB,IO)=(0.D0,0.D0)
+         CK(IO,2)=(0.D0,0.D0)
+      END DO
+      IF(NWMAX.NE.NXMAX) THEN
+         I2=2*NWMAX+2
+      ELSE
+         I2=2
+      ENDIF
+      CK(I2,2)=(1.D0,0.D0)
+      RETURN
+    END SUBROUTINE SUBCK2
+
+!     *****  CALCULATION OF RHS VECTOR  *****   
+
+    SUBROUTINE SUBINI
+
+      USE wicomm
+      IMPLICIT NONE
+      COMPLEX(rkind),PARAMETER:: CAI=(0.D0,1.D0)
+      COMPLEX(rkind):: CBB
+      INTEGER(ikind):: I
+
+      CBB=CAI/(DSQRT(1.D0-AKY*AKY)*BETA)
+
+      DO I=1,NXMAX*2+1
+         CSO(I)=(0.D0,0.D0)
+      END DO
+      CSO(NXMAX*2+2)=-CBB*CFYN
+      CSO(NXMAX*2+3)=     CFYN
+      RETURN
+    END SUBROUTINE SUBINI
+
+!     *****  SET FIELD (FULL MATRIX)  ***** 
+
+    SUBROUTINE SUBFY
+
+      USE wicomm
+      IMPLICIT NONE
+      INTEGER(ikind):: i,j
+
+      DO I=1,NXMAX*2+3
+         CFY(I)=(0.D0,0.D0)
+         DO J=1,NXMAX*2+3
+            CFY(I)=CFY(I)+CK(J,I)*CSO(J)
+         END DO
+      END DO
+      RETURN
+    END SUBROUTINE SUBFY
+
+!     *****  SET FIELD (BAND MATRIX)  ***** 
+
+    SUBROUTINE SUBFYW
+
+      USE wicomm
+      IMPLICIT NONE
+      INTEGER(ikind):: i
+
+      DO I=1,NXMAX*2+3
+         CFY(I)=CSO(I)
+      END DO
+      RETURN
+    END SUBROUTINE SUBFYW
+
+!     *****  ABSORBED POWER  *****
+
+    SUBROUTINE SUBPOW
+
+      USE wicomm
+      IMPLICIT NONE
+      COMPLEX(rkind),PARAMETER:: CAI=(0.D0,1.D0)
+      COMPLEX(ikind):: cp1,cp2,cp3,cp4,cpa
+      INTEGER(ikind):: n,mm,ns,ne,nn,i,j,id,jd,kk,kd
+      REAL(rkind):: rky,rky2,dx,dx2,AD,BD
+
+      RKY=AKY*BETA
+      RKY2=RKY**2
+      DX=XMAX/DBLE(NXMAX)
+      DX2=DX**2
+
+      DO N=0,NXMAX
+         CPOWER(N)=(0.D0,0.D0)
+      END DO
+      PTOT=0.D0
+
+      DO MM=0,NXMAX-1
+         NS=MM-NWMAX+1
+         NE=MM+NWMAX-1
+         AD=1.D0/(2.D0*DX) 
+         BD=1.D0/(2.D0*DX) 
+         IF(MM.EQ.0) AD=1.D0/DX
+         IF(MM.EQ.NXMAX-1) BD=1.D0/DX
+         IF(NS.LE.0) NS=0
+         IF(NE.GE.NXMAX-1) NE=NXMAX-1
+         DO NN=NS,NE
+            DO I=MM,MM+1
+               ID=2*I
+               DO J=NN,NN+1
+                  JD=2*J
+                  DO KK=MM,MM+1
+                     DO KD=NN,NN+1
+                        CP1=DX2*RKY2*CU(1,KK-KD) &
+                            *D0(I-MM,KK-MM)*D0(J-NN,KD-NN) &
+                           +(CU(1,KK-KD)-CAI*CU(2,KK-KD)) &
+                            *D1(I-MM,KK-MM)*D1(J-NN,KD-NN)
+                        CP2=-DX*RKY*CU(2,KK-KD) &
+                            *D0(I-MM,KK-MM)*D1(J-NN,KD-NN)
+                        CP3= DX*RKY*CU(2,KK-KD) &
+                            *D1(I-MM,KK-MM)*D0(J-NN,KD-NN)
+                       CP4=DX2*RKY2*(CU(1,KK-KD)-CAI*CU(2,KK-KD)) &
+                            *D0(I-MM,KK-MM)*D0(J-NN,KD-NN) &
+                           +CU(1,KK-KD)*D1(I-MM,KK-MM)*D1(J-NN,KD-NN)
+                        CPA=CWP(KD)*CWE(KK)*CWE(KD) &
+                            *(CONJG(CFY(ID+1))*(CP1*CFY(JD+1)+CP2*CFY(JD+2))  &
+                           +CONJG(CFY(ID+2))*(CP3*CFY(JD+1)+CP4*CFY(JD+2)))
+                        CPOWER(MM  )=CPOWER(MM  )-CAI*AD*CPA
+                        CPOWER(MM+1)=CPOWER(MM+1)-CAI*BD*CPA
+                        PTOT=PTOT-REAL(CAI*CPA)
+                     END DO
+                  END DO
+               END DO
+            END DO
+         END DO
+      END DO
+      RETURN
+    END SUBROUTINE SUBPOW
+
+!     *****  EULER TRANSFOMATION  *****
+
+    SUBROUTINE EUL(X,RKY,CS,M,L)
+
+      USE wicomm
+      USE wigcom
+      IMPLICIT NONE
+      REAL(rkind),PARAMETER:: HP=0.5D0*PI
+      INTEGER(ikind),PARAMETER:: LMAX=1000
+      REAL(rkind),INTENT(IN):: X,RKY
+      INTEGER(ikind),INTENT(IN):: M
+      INTEGER(ikind),INTENT(INOUT):: L
+      COMPLEX(rkind),INTENT(OUT):: CS
+      REAL(rkind),DIMENSION(LMAX)::  A,B
+      INTEGER(ikind):: ILST,K
+      REAL(rkind):: H0,EPS,SR1,SI1,SR,SI,ESR,ESI,SR2,SI2,PARITY,SKR,SKI
+
+      G2=HP
+      G3=X
+      G4=ALFA
+      G5=RKY
+      H0=0.5D0
+      EPS=1.D-5
+      ILST=0
+
+      SR1=0.D0
+      SI1=0.D0
+      IF(M.NE.0) THEN 
+         DO K=M-1,0,-1
+            G1=DBLE(K)
+            CALL DEFTC2(SR,SI,ESR,ESI,H0,EPS,ILST)
+            SR1=SR1+SR
+            SI1=SI1+SI
+         END DO
+      ENDIF
+
+      G1=DBLE(M)
+      CALL DEFTC2(SR,SI,ESR,ESI,H0,EPS,ILST)
+      A(1)=SR
+      SR2=0.5D0*SR
+      B(1)=SI
+      SI2=0.5D0*SI
+      PARITY=-1.D0
+      L=0
+
+   30 CONTINUE
+      L=L+1
+      IF(L.GE.LMAX) GOTO 9000
+      G1=DBLE(M+L)
+      CALL DEFTC2(SR,SI,ESR,ESI,H0,EPS,ILST)
+      A(L+1)=SR*PARITY
+      B(L+1)=SI*PARITY
+      DO K=L,1,-1    
+         A(K)=A(K+1)-A(K)
+         B(K)=B(K+1)-B(K)
+      END DO
+      SKR=A(1)*PARITY*0.5D0**(L+1)
+      SR2=SR2+SKR
+      SKI=B(1)*PARITY*0.5D0**(L+1)
+      SI2=SI2+SKI
+      PARITY=-PARITY
+      IF(DABS(SKR).GT.EPS.OR.DABS(SKI).GT.EPS) GOTO 30
+
+      SR=(SR1+SR2)/SQRT(4.D0*G2)
+      SI=(SI1+SI2)/SQRT(4.D0*G2)
+      CS=CMPLX(SR,SI)
+      RETURN
+
+ 9000 WRITE(6,*) ' ## DIMENSION OVERFLOW IN EULER TRANSFORMATION.'
+      RETURN
+    END SUBROUTINE EUL
+
+
+!     *****  REAL PART  *****
+
+    FUNCTION FUNR(X,XM,XP)
+
+      USE wicomm,ONLY: ikind,rkind
+      USE wigcom
+      IMPLICIT NONE
+      REAL(rkind),INTENT(IN):: X,XM,XP
+      REAL(rkind):: FUNR
+      REAL(rkind):: Y1,T,T2,YY,AN2
+
+      Y1=XM
+      IF(INT(G1).EQ.0) THEN 
+         T=0.5D0*G2*XP
+         T2=T*T
+         YY=-0.5D0*(G3*G3/T2+(G4*G4+G5*G5)*T2)
+         IF(ABS(YY).LT.352.D0.AND.ABS(T).LT.1.D4) THEN
+            IF(N1.EQ.1) THEN
+               AN2=1.D0
+            ELSEIF(N1.EQ.2) THEN
+               AN2=T
+            ENDIF
+               FUNR=AN2*0.5*G2*DEXP(YY)*DCOS(T)
+         ELSE
+            FUNR=0.D0
+         ENDIF 
+      ELSE
+         T=G2*(X+2.D0*G1)
+         T2=T*T
+         YY=-0.5D0*(G3*G3/T2+(G4*G4+G5*G5)*T2)
+         IF(ABS(YY).LT.352.D0.AND.ABS(T).LT.1.D4) THEN
+            IF(N1.EQ.1) THEN
+               AN2=1.D0
+            ELSEIF(N1.EQ.2) THEN
+               AN2=T
+            ENDIF
+               FUNR=AN2*G2*DEXP(YY)*DCOS(T)
+         ELSE
+            FUNR=0.D0
+         ENDIF
+      ENDIF
+      RETURN
+    END FUNCTION FUNR
+
+!     *****  IMAG PART  *****
+
+    FUNCTION FUNI(X,XM,XP)
+
+      USE wicomm,ONLY: ikind,rkind
+      USE wigcom
+      IMPLICIT NONE
+      REAL(rkind),INTENT(IN):: X,XM,XP
+      REAL(rkind):: FUNI
+      REAL(rkind):: Y1,Y2,T,T2,YY,AN2
+
+      Y1=X
+      Y2=XM
+      T=G2*(XP+2.D0*G1)
+      T2=T*T
+      YY=-0.5D0*(G3*G3/T2+(G4*G4+G5*G5)*T2)
+      IF(ABS(YY).LT.352.D0.AND.ABS(T).LT.1.D4) THEN
+         IF(N1.EQ.1) THEN
+            AN2=1.D0
+         ELSEIF(N1.EQ.2) THEN
+            AN2=T
+         ENDIF
+         FUNI=AN2*G2*DEXP(YY)*DSIN(T)
+      ELSE
+         FUNI=0.D0
+      ENDIF
+      RETURN
+    END FUNCTION FUNI
+
+!     *****  DOUBLE EXPONENTIAL FORMULA  *****
+
+    SUBROUTINE DEFTC2(CSR,CSI,ESR,ESI,H0,EPS,ILST)
+
+!        FINITE INTEGRAL BY DOUBLE-EXPONENTIAL FORMULA
+!                    (-1.D0, +1.D0)
+!         INTEGRAND SHOULD BE DEFINED BY FUNC(X,1-X,1+X)
+
+      USE wicomm,ONLY: rkind,ikind
+      IMPLICIT NONE
+      REAL(rkind),INTENT(OUT):: CSR,CSI ! Integral
+      REAL(rkind),INTENT(OUT):: ESR,ESI ! Estimated error
+      REAL(rkind),INTENT(IN)::  H0      ! Initial step size
+      REAL(rkind),INTENT(IN)::  EPS     ! Convergence thrshold
+      INTEGER,INTENT(IN)::  ILST    ! print out control: 0 for no print out
+!      INTERFACE
+!         FUNCTION FUNR(X,XM,XP)
+!           USE wicomm,ONLY: rkind,ikind
+!           REAL(rkind):: FUNR
+!           REAL(rkind),INTENT(IN):: X,XM,XP
+!         END FUNCTION FUNR
+!         FUNCTION FUNI(X,XM,XP)
+!           USE wicomm,ONLY: rkind,ikind
+!           REAL(rkind):: FUNI
+!           REAL(rkind),INTENT(IN):: X,XM,XP
+!         END FUNCTION FUNI
+!      END INTERFACE
+      REAL(rkind),PARAMETER:: HP=1.5707963267948966192D0
+
+      REAL(rkind):: EPS1,H,X,CSRP,CSIP,ATPR,ATPI,ATMR,ATMI,EPSI
+      REAL(rkind):: HN,HC,HS,CC,XM,XP,CTR,CTI,ATR,ATI
+      INTEGER:: N,NP,NM,NMIN,IND,ND
+
+      EPS1=EPS**0.75
+      H=H0
+      X=0.D0
+      CSR=HP*H*FUNR(X,1.D0-X,1.D0+X)
+      CSRP=0.D0
+      CSI=HP*H*FUNI(X,1.D0-X,1.D0+X)
+      CSIP=0.D0
+      N=0
+      NP=0
+      NM=0
+      NMIN=1
+
+    5 IND=0
+      ATPR=1.D0
+      ATPI=1.D0
+      ATMR=1.D0
+      ATMI=1.D0
+      ND=2
+      EPSI=MAX(EPS1*H,2.D-17)
+      IF(N.EQ.0) ND=1
+
+   10 N=N+ND
+      HN=DBLE(N)*H
+      HC=HP*H*COSH(HN)
+      IF(IND.NE.1) THEN
+         HS=HP*SINH(-HN)
+         X=TANH(HS)
+         CC=1.D0/COSH(HS)
+         XM=EXP(-HS)*CC
+         XP=EXP( HS)*CC
+         CTR=HC*FUNR(X,XM,XP)*CC*CC
+         CSR=CSR+CTR
+         CTI=HC*FUNI(X,XM,XP)*CC*CC
+         CSI=CSI+CTI
+         NP=NP+1
+         ATR=ATPR
+         ATPR=ABS(CTR)
+         ATI=ATPI
+         ATPI=ABS(CTI)
+         IF(N.GE.NMIN) THEN
+            IF(SQRT((ATR+ATPR)**2+(ATI+ATPI)**2) &
+                 .LT.EPSI*MAX(SQRT(CSR*CSR+CSI*CSI),1.D0)) THEN 
+               IF(IND.EQ.-1) GO TO 100
+               IND=1
+            ENDIF
+         ENDIF
+      ENDIF
+
+      IF(IND.NE.-1) THEN
+         HS=HP*SINH( HN)
+         X=TANH(HS)
+         CC=1.D0/COSH(HS)
+         XM=EXP(-HS)*CC
+         XP=EXP( HS)*CC
+         CTR=HC*FUNR(X,XM,XP)*CC*CC
+         CSR=CSR+CTR
+         CTI=HC*FUNI(X,XM,XP)*CC*CC
+         CSI=CSI+CTI
+         NM=NM+1
+         ATR=ATMR
+         ATMR=ABS(CTR)
+         ATI=ATMI
+         ATMI=ABS(CTI)
+         IF(N.GE.NMIN) THEN
+            IF(SQRT((ATR+ATMR)**2+(ATI+ATMI)**2) &
+                 .LT.EPSI*MAX(SQRT(CSR*CSR+CSI*CSI),1.D0)) THEN 
+               IF(IND.EQ.1) GO TO 100
+               IND=-1
+            ENDIF
+         ENDIF
+      ENDIF
+      GO TO 10
+
+  100 CONTINUE
+      ESR=ABS(CSR-CSRP)
+      CSRP=CSR
+      ESI=ABS(CSI-CSIP)
+      CSIP=CSI
+      IF(ILST.NE.0) THEN
+         IF(H.GE.H0) THEN
+            WRITE(6,601) H,NP,NM,CSR
+            WRITE(6,604) CSI
+         ENDIF
+         IF(H.LT.H0) THEN
+            WRITE(6,602) H,NP,NM,CSR,ESR
+            WRITE(6,605) CSI,ESI
+         ENDIF
+      ENDIF
+      IF(SQRT(ESR*ESR+ESI*ESI) &
+        .LT.EPS1*MAX(SQRT(CSR*CSR+CSI*CSI),1.D0)) GOTO 200
+
+      IF(N.GT.1000) THEN
+         WRITE(6,*) 'XX DEFTC2: Loop count exceeds 1000'
+         STOP
+      ENDIF
+
+      H=0.5D0*H
+      CSR=0.5D0*CSR
+      CSI=0.5D0*CSI
+      NMIN=N/2
+      N=-1
+      GOTO 5
+
+  200 RETURN
+
+  501 FORMAT(A1)
+  601 FORMAT(1H ,1PD13.5,2I8,1PD24.15)
+  604 FORMAT(1H ,13X,16X,1PD24.15)
+  602 FORMAT(1H ,1PD13.5,2I8,1PD24.15,1PD14.5)
+  605 FORMAT(1H ,13X,16X,1PD24.15,1PD14.5)
+    END SUBROUTINE DEFTC2
+  END MODULE wiunmag
