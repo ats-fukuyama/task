@@ -16,7 +16,7 @@ PROGRAM wi_main
   INTEGER(ikind)  :: ierr
 
   CALL GSOPEN
-  WRITE(6,*) '## TASK/WI 2014/01/10'
+  WRITE(6,'(A)') '## TASK/WI 2014/01/10'
   OPEN(7,STATUS='SCRATCH')
   
   CALL wi_init

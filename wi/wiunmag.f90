@@ -12,6 +12,7 @@ CONTAINS
     USE wicomm
     IMPLICIT NONE
     INTEGER(ikind),INTENT(OUT):: ierr
+    REAL(rkind):: ratea
     REAL:: GT1,GT2
 
     CALL INITDS
@@ -38,9 +39,11 @@ CONTAINS
       CALL SUBPOW
       CALL GUTIME(GT2)
       WRITE(6,601) 'POWER ',GT2-GT1
+      RATEA=1.D0-ABS(CFY(NXMAX*2+3))**2
+      WRITE(6,'(A,F8.5)') '## Absorption rate: ',RATEA
 9900  CONTINUE
       RETURN
-  601 FORMAT(1H ,'## END OF ',A6,' ##  CPU TIME = ',F8.3,' SEC')
+  601 FORMAT('## END OF ',A6,' ##  CPU TIME = ',F8.3,' SEC')
     END SUBROUTINE wi_unmag
 
 !     *****  INITIALIZE D0,D1,D2,D3  *****
