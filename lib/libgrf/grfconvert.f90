@@ -468,7 +468,7 @@ CONTAINS
 
     CASE(1:) ! 2D contour line and paint and 3D Bird's ey view
 
-       IF(A%FMIN*A%FMAX < 0.0) THEN
+       IF(A%FMIN < 0.0 .AND. A%FMAX > 0.0) THEN
            A%FMAX=MAX(ABS(A%FMIN),ABS(A%FMAX))
            A%FMIN=-A%FMAX
        ENDIF
@@ -477,7 +477,7 @@ CONTAINS
           A%NLMAX=NLMAX
        ELSE
           A%NLMAX=MIN(NINT(ABS((A%FMAX-A%FMIN)/A%FSCALE_STEP))+2,1001)
-          IF(A%FMIN*A%FMAX < 0.0) THEN
+          IF(A%FMIN < 0.0 .AND. A%FMAX > 0.0) THEN
              IF(MOD(A%NLMAX,2) == 0) A%NLMAX=A%NLMAX+1
           ENDIF
        ENDIF
@@ -522,7 +522,7 @@ CONTAINS
              CALL LINE_RGB_SUB(FACTOR,A%LINE_RGB(1:3,NL))
           END DO
        ELSE
-          IF(A%FMIN*A%FMAX < 0.0) THEN
+          IF(A%FMIN < 0.0 .AND. A%FMAX > 0.0) THEN
              DO NL=1,A%NLMAX
                 IF(A%LINE_VALUE(NL) > 0.0) THEN
                    A%LINE_RGB(1:3,NL)=(/1.0,0.0,0.0/)
@@ -570,7 +570,12 @@ CONTAINS
              CALL PAINT_RGB_SUB(FACTOR,A%PAINT_RGB(1:3,NP))
           END DO
        ELSE
-          IF(A%FMIN*A%FMAX >= 0.0) THEN
+          IF(A%FMIN <0.0 .AND. A%FMAX > 0.0) THEN
+             DO NP=1,A%NPMAX
+                FACTOR=FLOAT(NP-1)/FLOAT(A%NPMAX-1)
+                CALL R2W2B(FACTOR,A%PAINT_RGB(1:3,NP))
+             END DO
+          ELSE
              IF(A%FORG >= 0.0) THEN
                 DO NP=1,A%NPMAX
                    FACTOR=FLOAT(NP-1)/FLOAT(A%NPMAX-1)
@@ -582,11 +587,6 @@ CONTAINS
                    CALL W2G2B(FACTOR,A%PAINT_RGB(1:3,NP))
                 END DO
              END IF
-          ELSE
-             DO NP=1,A%NPMAX
-                FACTOR=FLOAT(NP-1)/FLOAT(A%NPMAX-1)
-                CALL R2W2B(FACTOR,A%PAINT_RGB(1:3,NP))
-             END DO
           END IF
        END IF
 
@@ -605,7 +605,7 @@ CONTAINS
              A%LINE_PAT(1:NL)=LINE_PAT(MOD(NL-1,NLL)+1)
           END DO
        ELSE
-          IF(A%FMIN*A%FMAX < 0.0) THEN
+          IF(A%FMIN < 0.0 .AND. A%FMAX > 0.0) THEN
              DO NL=1,A%NLMAX
                 IF(A%LINE_VALUE(NL) > 0.0) THEN
                    A%LINE_PAT(NL)=0

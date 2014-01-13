@@ -202,8 +202,8 @@ CONTAINS
        DO i0ng = i1nidr(i0nr), i1nidr(i0nr+1)-1
           i0nc = i1nidc(i0ng)
           DO i0vr = 1, i0vmax
-             !IF((i0vr.GE.6).AND.(MOD(i0vr-6,8).GE.i0dbg))THEN
-             IF(i0vr.NE.3)THEN
+             SELECT CASE(i0vr)
+             CASE(1:5,14:21)
                 DO i0vg = i1vgidr(i0vr), i1vgidr(i0vr+1)-1
                    i0vc = i1vgidc(i0vg)
                    i0tr = i0vmax*( i0nr-1)+i0vr
@@ -215,18 +215,18 @@ CONTAINS
                       d1gsm(i0tg) = 0.D0
                    ENDIF
                 ENDDO
-             ENDIF
+             END SELECT
           ENDDO
        ENDDO
        
        !C RHS VECTOR 
        
        DO i0vr = 1, i0vmax
-          !IF((i0vr.GE.6).AND.(MOD(i0vr-6,8).GE.i0dbg))THEN
-          IF(i0vr.NE.3)THEN
+          SELECT CASE(i0vr)
+          CASE(1:5,14:21)
              i0tr        = i0vmax*( i0nr-1)+i0vr
              d1grv(i0tr) = d1guv(i0tr)
-          ENDIF
+          END SELECT
        ENDDO
     ENDDO
     

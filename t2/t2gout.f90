@@ -277,12 +277,16 @@ CONTAINS
     DO nchi=1,nchig+1
        chig(nchi)=dchig*(nchi-1)
        gz(1,nchi)=d1guv(inum)
+       IF(gz(1,nchi).GT. 1.D10) gz(1,nchi)= 1.D10
+       IF(gz(1,nchi).LT.-1.D10) gz(1,nchi)=-1.D10
     END DO
     DO nrho=2,nrhomax
        nl=nlnrho(nrho)
        nchimaxl=i0pdiv_number*2**(i1mlvl(nl)-1)
        DO nchi=1,nchimaxl
           gzl(nchi)=d1guv(i0vmax*(nnnrho(nrho)+nchi-2)+inum)
+          IF(gzl(nchi).GT. 1.D10) gzl(nchi)= 1.D10
+          IF(gzl(nchi).LT.-1.D10) gzl(nchi)=-1.D10
        END DO
        gzl(nchimaxl+1)=d1guv(i0vmax*(nnnrho(nrho)-1)+inum)
        CALL SPL1D(chinl(1:nchimaxl+1,nl),gzl,dgzl,ugzl,nchimaxl+1,4,ierr)
@@ -391,6 +395,8 @@ CONTAINS
     ALLOCATE(ga(nrhomax))
     DO nchi=1,nchimax+1
        gz(1,nchi)=d1guv(inum)
+       IF(gz(1,nchi).GT. 1.D10) gz(1,nchi)= 1.D10
+       IF(gz(1,nchi).LT.-1.D10) gz(1,nchi)=-1.D10
     END DO
     ga(1)=d1guv(inum)
     DO nrho=2,nrhomax
@@ -399,6 +405,8 @@ CONTAINS
 
        DO nchi=1,nchimaxl
           gzl(nchi)=d1guv(i0vmax*(nnnrho(nrho)+nchi-2)+inum)
+          IF(gzl(nchi).GT. 1.D10) gzl(nchi)= 1.D10
+          IF(gzl(nchi).LT.-1.D10) gzl(nchi)=-1.D10
        END DO
        SELECT CASE(inum)
        CASE(1:3)
