@@ -18,7 +18,7 @@
      &                  PROFN2, PROFT1, PROFT2, PROFU1, PROFU2, PT, PTS, PZ, RA, RDLT, RHOA, RIPE, RIPS, RKAP, RKEV, RMU0, RR, &
      &                  SUMPBM, TIME_INT, TPRST, TSST, VC, VOID, KUFDIR, &
      MDLPR,SYNCABS,SYNCSELF, PU, PUS, PROFNU1, PROFNU2, &
-     ELMWID, ELMDUR, ELMNRD, ELMTRD, ELMENH, NSMM, MDLELM
+     ELMWID, ELMDUR, ELMNRD, ELMTRD, ELMENH, NSMM, MDLELM, KNAMEQ2
       IMPLICIT NONE
       INTEGER(4) NS, IERR
 
@@ -546,10 +546,12 @@
 !     ==== FILE NAME ====
 
 !        KNAMEQ: Filename of equilibrium data
+!        KNAMEQ2: Filename of equilibrium data
 !        KNAMTR: Filename of transport data
 !        KFNLOG : LOG FILE NAME
 
       KNAMEQ='eqdata'
+      KNAMEQ2=''
       KNAMTR='trdata'
       KFNLOG='trf.log'
 
@@ -749,7 +751,7 @@
      MDLPR, SYNCABS, SYNCSELF,  &
      &                   PELTIM, KNAMEQ, KNAMTR, KFNLOG, MDLEQB, MDLEQN, MDLEQT, MDLEQU, MDLEQZ, MDLEQ0, MDLEQE,        &
      &                   MDLEOI, NSMAX, NSZMAX, NSNMAX, KUFDIR, KUFDEV, KUFDCG, TIME_INT, MODEP, MDNI, MDLJQ,  &
-     &                   MDTC, MDLPCK, NTMAX_SAVE
+     &                   MDTC, MDLPCK, NTMAX_SAVE, knameq2
       USE TRCOM3
       IMPLICIT NONE
       INTEGER(4),INTENT(IN) :: NID
@@ -773,7 +775,7 @@
      &              PNBCD,PECCD,PLHCD,PICCD,PBSCD,MDLCD, &
      &              PELTOT,PELR0,PELRW,PELRAD,PELVEL,MDLPEL, &
                     MDLPR,SYNCABS,SYNCSELF, &
-     &              PELTIM,PELPAT,KNAMEQ,KNAMTR,KFNLOG, &
+     &              PELTIM,PELPAT,KNAMEQ,KNAMEQ2,KNAMTR,KFNLOG, &
      &              MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0,MDLEQE, &
      &              MDLEOI,NSMAX,NSZMAX,NSNMAX, &
      &              KUFDIR,KUFDEV,KUFDCG,TIME_INT,MODEP,MDNI,MDLJQ,MDTC,MDLPCK
@@ -886,7 +888,7 @@
      &       ' ',8X,'MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0'/ &
      &       ' ',8X,'MDLEQE,MDLEOI,NSMAX,NSZMAX,NSNMAX,KUFDIR,KUFDEV,KUFDCG'/ &
      &       ' ',8X,'TIME_INT,MODEP,MDNI,MDLJQ,MDTC,MDLPCK'/ &
-     &       ' ',8X,'KNAMEQ,KNAMTR,KFNLOG')
+     &       ' ',8X,'KNAMEQ,KNAMEQ2,KNAMTR,KFNLOG')
       END SUBROUTINE TRPLST
 
 !     ***** CHECK INPUT PARAMETERS *****

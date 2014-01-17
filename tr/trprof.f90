@@ -698,7 +698,7 @@
 
       subroutine trsetg(ierr)
 
-      use trcomm, only : modelg, nrmax, knameq, RR, RA
+      use trcomm, only : modelg, nrmax, knameq, knameq2, RR, RA
       use tr_bpsd, only: tr_bpsd_init,tr_bpsd_set,tr_bpsd_get
       use equnit_mod, only: eq_parm,eq_prof,eq_calc,eq_load
 !      use equunit_mod, only: equ_prof,equ_calc
@@ -710,13 +710,18 @@
       call tr_bpsd_init
       call tr_bpsd_set(ierr)
 
-      if(modelg.eq.3.or.modelg.eq.5) then
+      if(modelg.eq.3.or.modelg.eq.5.or.modelg.eq.8) then
          write(line,'(A,I5)') 'nrmax=',nrmax+1
          call eq_parm(2,line,ierr)
          write(line,'(A,I5)') 'nthmax=',64
          call eq_parm(2,line,ierr)
          write(line,'(A,I5)') 'nsumax=',0
          call eq_parm(2,line,ierr)
+         if(modelg.eq.8) then
+            write(line,'(A,A,A,A)') 'knameq2=','"',TRIM(knameq2),'"'
+            write(6,'(A,A)') 'line=',line
+            call eq_parm(2,line,ierr)
+         end if
          call eq_load(modelg,knameq,ierr) ! load eq data and calculate eq
          IF(ierr.NE.0) THEN
             WRITE(6,*) 'XX eq_load: ierr=',ierr
@@ -724,14 +729,10 @@
          ENDIF
          call tr_bpsd_get(ierr)  ! 
          if(ierr.ne.0) write(6,*) 'XX tr_bpsd_get: ierr=',ierr
+!         call trgout
       elseif(modelg.eq.7) then
          call pl_vmec(knameq,ierr) ! load vmec data
          call tr_bpsd_get(ierr)  ! 
-!         call trgout
-      elseif(modelg.eq.8) then
-!         call equ_prof ! initial calculation of eq
-!         call equ_calc         ! recalculate eq
-!         call tr_bpsd_get(ierr)  ! 
 !         call trgout
       elseif(modelg.eq.9) then
          call eq_prof ! initial calculation of eq

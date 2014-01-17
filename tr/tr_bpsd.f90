@@ -366,7 +366,7 @@
 !      pause
 
       ! Calibration in order to keep consistency between metrics and plasma current
-      if(modelg.eq.3.or.modelg.eq.5) then
+      if(modelg.eq.3.or.modelg.eq.5.or.modelg.eq.8.or.modelg.eq.9) then
          RIP  = ABVRHOG(NRMAX)*RDPVRHOG(NRMAX)/(2.D0*PI*RMU0)*1.D-6
          RIPS = RIP
          RIPE = RIP
