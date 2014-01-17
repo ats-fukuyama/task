@@ -168,7 +168,7 @@ C
       RETURN
       END
 C
-C     ***** GET BBMIN and BBMAX for rhot and th *****
+C     ***** GET BBMIN and BBMAX for rhot *****
 C
       SUBROUTINE GET_BMINMAX(rhon_,BBMIN_,BBMAX_)
 C
@@ -176,9 +176,23 @@ C
       INCLUDE '../eq/eqcomq.inc'
       REAL(rkind),INTENT(IN):: rhon_
       REAL(rkind),INTENT(OUT):: BBMIN_,BBMAX_
-      REAL(rkind):: R_,Z_,BR_,BZ_,BT_,RHON
 C
       CALL SPL1DF(rhon_,BBMIN_,RHOT,UBBMIN,NRMAX,IERR)
       CALL SPL1DF(rhon_,BBMAX_,RHOT,UBBMAX,NRMAX,IERR)
       RETURN
       END
+C
+C     ***** GET DVDRHO for rhot *****
+C
+      SUBROUTINE GET_DVDRHO(rhon_,DVDRHO_)
+C
+      USE bpsd,ONLY: rkind
+      INCLUDE '../eq/eqcomq.inc'
+      REAL(rkind),INTENT(IN):: rhon_
+      REAL(rkind),INTENT(OUT):: DVDRHO_
+
+      CALL SPL1DF(FNPSIP(rhon_),DVDRHO_,PSIP,UDVDRHO,NRMAX,IERR)
+
+      RETURN
+      END
+      
