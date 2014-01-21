@@ -30,6 +30,10 @@ MODULE T2COMM
   !C
   !C
   !C------------------------------------------------------------------
+  !C REAL(   i0rkind)::&
+  !C      d0mfcst,d0btcst,d0ercst,d0epcst,d0etcst,&
+  !C      d0nncst,d0frcst,d0fbcst,d0ftcst,&
+  !C      d0ppcst,d0qrcst,d0qbcst,d0qtcst,d0iar
   REAL(   i0rkind)::&
        d0mfcst,d0btcst,d0ercst,d0epcst,d0etcst,&
        d0nncst,d0frcst,d0fbcst,d0ftcst,&
