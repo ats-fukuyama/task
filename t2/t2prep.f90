@@ -186,7 +186,7 @@ CONTAINS
     END SELECT
     
     i0vmax  = 8*i0spcs + 5
-    i0wmax  = 5*i0spcs + 2
+    i0wmax  = 2*i0spcs + 2 ! 2014-01-27 changed
     i0vgrmx = i0vmax   + 1
     i0msrmx = i0vgrmx
     i0avrmx = i0vgrmx

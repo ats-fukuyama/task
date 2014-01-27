@@ -35,7 +35,7 @@ CONTAINS
     
     DO i0nid = 1,i0nmax1
        
-       CALL T2CALV_PQ      
+       CALL T2CALV_PQ
        CALL T2CALV_MS
        CALL T2CALV_AV
        CALL T2CALV_AT
@@ -68,7 +68,7 @@ CONTAINS
          d0ppcst,d0qrcst,d0qbcst,d0qtcst,d0iar,&
          i0xa,i0vmax,i0nmax1,d0rmjr,d0qc,d0qs,&
          i2crt,&
-         d1guv_befor,d2mfc1,d2rzc1,d2jm1,&
+         d1guv_befor,d2mfc1,d2rzc1,d2jm1,d2ws,&
          d1ee,d1mm,d1nn,d1ni,d1pp,d1pi,d1tt,d1ti,d1pa,d1pz,&
          d1ur,d1up,d1ut,d1ub,d1u2,&
          d1qr,d1qp,d1qt,d1qb,d1vb,d1vt,d1hex,&
@@ -251,8 +251,6 @@ CONTAINS
        d0cogpp =  d0cogrr*d0wv1
        
        d0ctbp  = d0ctbp/d0sqrtg
-       d0ctbpi = 1.D0/d0ctbp
-       
     ELSE
        
        d0cogrr = 0.D0
@@ -300,23 +298,23 @@ CONTAINS
        
     ENDDO
     
-    !C SET WORKING ARRAY FOR DIFFERENTIAL (GROBAL)
+    !C SET WORKING SCALAR FOR DIFFERENTIAL (GROBAL)
     !C
-    !C D2WA(1   ,:) : MAGNETIC FIELD INTENSITY    : B   
-    !C D2WA(2   ,:) : MAJOR RADIUS                : R   
-    !C D2WA(2N+1,:) : PARALLEL FLOW               : u_{a\para}  
-    !C D2WA(2N+2,:) : PARALLEL HEAT FLOW FUNCTION : Q_{a\para}/p_{a}
+    !C D2WS(1   ,:) : MAGNETIC FIELD INTENSITY    : B   
+    !C D2WS(2   ,:) : MAJOR RADIUS                : R   
+    !C D2WS(2N+1,:) : PARALLEL FLOW               : u_{a\para}  
+    !C D2WS(2N+2,:) : PARALLEL HEAT FLOW FUNCTION : Q_{a\para}/p_{a}
     !C
     
-    d2wa(         1,i0nid) = d0bb
-    d2wa(         2,i0nid) = d0rzcr
+    d2ws(         1,i0nid) = d0bb
+    d2ws(         2,i0nid) = d0rzcr
     
     DO i0sida = 1, i0spcs
        
        i0wid = 2*i0sida
-       d2wa(i0wid+1,i0nid) = d1ub(i0sida)
-       d2wa(i0wid+2,i0nid) = d1vb(i0sida)
-
+       d2ws(i0wid+1,i0nid) = d1ub(i0sida)
+       d2ws(i0wid+2,i0nid) = d1vb(i0sida)
+       
     ENDDO
     
     !C
@@ -2022,7 +2020,7 @@ CONTAINS
        !C EQUATION FOR Qr
        !C
        
-       i0vida = 8*i0vida + 3
+       i0vida = 8*i0sida + 3
        
        !C Ep
        i0vidb = 4
@@ -2033,11 +2031,11 @@ CONTAINS
        d3es(i0vida,i0vidb,i0nid) = -d0ercst*2.5D0*d0tt_a*d0c07a_2
        
        !C Qb
-       i0vidb = 8*i0sidb + 4
+       i0vidb = i0vida + 1
        d3es(i0vida,i0vidb,i0nid) = -d0qbcst*d0c07a_3
        
        !C Qt
-       i0vidb = 8*i0sidb + 5
+       i0vidb = i0vida + 2
        d3es(i0vida,i0vidb,i0nid) =  d0qtcst*d0c07a_4
        
        !C
@@ -2111,7 +2109,7 @@ CONTAINS
        ENDDO
        
     ENDDO
-    
+
     RETURN
     
   END SUBROUTINE T2CALV_ES

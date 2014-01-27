@@ -20,7 +20,7 @@ CONTAINS
     
     USE T2COMM, ONLY: &
          c10rname, i0dbg, i0fnum, i0mfcs, i0wstp,&
-         i0dmax0,i0amax0,&
+         i0dmax0,i0dmax,i0amax0,&
 !         i0tmax, d0tstp, d0tmax,&
          i0spcs, i0nmax0, i0lmax, i1mlvl,&
          i0pdiv_number, i1rdn2, d1rec,&
@@ -58,6 +58,7 @@ CONTAINS
     i0wstp   =  1  ! output timing
 
     i0dmax0  =  2  ! mesh dim
+    i0dmax   = i0dmax0
     i0amax0  = 32  ! gauss kyuuseki number of sample points
 !    i0tmax   = 10  ! 
 !    d0tstp   = 1.D-12  !
@@ -65,25 +66,48 @@ CONTAINS
 !    d0eps    = 1.D-4
 !    i0pmax   =  49     ! iteration 
 
+    !i0spcs   =  2 
+    !i0nmax0  =  4      ! number of nodes in a elemnt
+    !i0lmax   =  2      ! 
+    !i0pdiv_number = 8  ! 
+
+    !i1mlvl(1)=1        ! 8 x 2^0
+    !i1mlvl(2)=1        ! 8 x 2^0
+    !i1mlvl(  0)          = 0
+    !i1mlvl(  3:i0lmaxm+1) = 0
+
+    !i1rdn2(1)=  10     ! number of radial nodes in a level
+    !i1rdn2(2)=  2     
+    !i1rdn2(-1:0)     = 0
+    !i1rdn2(3:i0lmaxm) = 0
+
+    !d1rec(0) = 0.000D0  ! least radial point in a level
+    !d1rec(1) = 1.000D0
+    !d1rec(2) = 1.100D0
+    !d1rec(3:i0lmaxm) = 0.D0
+
     i0spcs   =  2 
     i0nmax0  =  4      ! number of nodes in a elemnt
-    i0lmax   =  2      ! 
-    i0pdiv_number = 8  ! 
+    i0lmax   =  3      ! 
+    i0pdiv_number = 3  ! 
 
-    i1mlvl(1)=1        ! 8 x 2^0
-    i1mlvl(2)=1        ! 8 x 2^0
-    i1mlvl(  0)          = 0
-    i1mlvl(  3:i0lmaxm+1) = 0
+    i1mlvl(1)=1        ! 3 x 2^0
+    i1mlvl(2)=2        ! 3 x 2^1
+    i1mlvl(3)=3        ! 3 x 2^2
+    i1mlvl(  0)           = 0
+    i1mlvl(  4:i0lmaxm+1) = 0
 
-    i1rdn2(1)=  10     ! number of radial nodes in a level
-    i1rdn2(2)=  2     
-    i1rdn2(-1:0)     = 0
-    i1rdn2(3:i0lmaxm) = 0
+    i1rdn2(1)=  2     ! number of radial nodes in a level
+    i1rdn2(2)=  3     
+    i1rdn2(3)=  2    
+    i1rdn2(-1:0)      = 0
+    i1rdn2(4:i0lmaxm) = 0
 
     d1rec(0) = 0.000D0  ! least radial point in a level
-    d1rec(1) = 1.000D0
-    d1rec(2) = 1.100D0
-    d1rec(3:i0lmaxm) = 0.D0
+    d1rec(1) = 0.500D0
+    d1rec(2) = 1.000D0
+    d1rec(3) = 1.100D0
+    d1rec(4:i0lmaxm) = 0.D0
 
     d0rmjr   =  3.0D0
     d0rmnr   =  1.0D0
@@ -137,7 +161,7 @@ CONTAINS
     nt2dmax   = 1       ! maximum number of profile data to be saved
     nt2dstep  = 1       ! time step to save profile data
 
-    nconvmax  = 1       ! maximum nmber of convergence steps for implicit loop
+    nconvmax  = 1       ! maximum number of convergence steps for implicit loop
     eps_conv  = 1.D-4   ! relative convergence criterion for implicit loop
 
     idfile    = 0       ! control id for file output: 0 for none, 9 for all

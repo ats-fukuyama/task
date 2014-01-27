@@ -171,8 +171,8 @@ CONTAINS
              i0nnc = 3
              WRITE(i0fnum,170)&
                   i0nnc,&
-                  i3enr(i0ecnt,2,1)-1,i3enr(i0ecnt,2,2)-1,&
-                  i3enr(i0ecnt,2,3)-1
+                  i3enr(2,1,i0ecnt)-1,i3enr(2,2,i0ecnt)-1,&
+                  i3enr(2,3,i0ecnt)-1
           ELSEIF((i0mlvb.NE.i0mlvc).AND.&
                (i0mlvc.NE.0).AND.&
                (i2.EQ.i0rdn2))THEN
@@ -180,14 +180,14 @@ CONTAINS
              i0mpt = i0stm2+i0ofst+j2
              WRITE(i0fnum,176)&
                   i0nnc,&
-                  i3enr(i0ecnt,2,1)-1,i3enr(i0ecnt,2,2)-1,i0mpt-1,&
-                  i3enr(i0ecnt,2,3)-1,i3enr(i0ecnt,2,4)-1
+                  i3enr(2,1,i0ecnt)-1,i3enr(2,2,i0ecnt)-1,i0mpt-1,&
+                  i3enr(2,3,i0ecnt)-1,i3enr(2,4,i0ecnt)-1
           ELSE
              i0nnc = 4
              WRITE(i0fnum,175)&
                   i0nnc,&
-                  i3enr(i0ecnt,2,1)-1,i3enr(i0ecnt,2,2)-1,&
-                  i3enr(i0ecnt,2,3)-1,i3enr(i0ecnt,2,4)-1
+                  i3enr(2,1,i0ecnt)-1,i3enr(2,2,i0ecnt)-1,&
+                  i3enr(2,3,i0ecnt)-1,i3enr(2,4,i0ecnt)-1
           ENDIF
        ENDDO
        ENDDO

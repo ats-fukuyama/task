@@ -81,7 +81,7 @@ CONTAINS
        
        i0nid3 = i2crt(i1,2) -1
        i0vid3 = i0vmax*i0nid3
-       i0nid4 = i1mfc1(i1) - 1
+       i0nid4 = i2crt(i1,3) - 1
        i0vid4 = i0vmax*i0nid4
 
        d1guv(i0vid4+1) = fd0bp(d0mfcr,d0mfcp)*d0jm1/d0mfcst
@@ -213,7 +213,7 @@ CONTAINS
   SUBROUTINE T2READ
     USE T2COMM,ONLY:&
          i0fnum,i0spcs,i0nmax0,i0nmax3,i0xmax,i0vmax,&
-         i1pdn2,i1rdn2,i0emax,d2rzc3,i3enr,d1guv,&
+         i1pdn2,i1rdn2,i0emax,d2rzc3,d1guv,&
          d0rmjr,i0lmax,i0stm2,i1mlvl,&
          !C
          d1bp3,d1bt3,d1er3,d1ep3,d1et3,&
@@ -635,7 +635,6 @@ CONTAINS
     d0bt   = fd0bt( d0mfcr,d0mfcp)
     d0q0   = fd0q0( d0mfcr,d0mfcp)
     fd0bp  = d0bt/((d0rzcr**2)*d0q0)
-    
     RETURN
     
   END FUNCTION fd0bp

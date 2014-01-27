@@ -198,7 +198,6 @@ CONTAINS
              i0mcnt          = i0mcnt  + i0pdn2
              i1mfc4(i0ncnt4) = i0mcnt
              d1mfc4(i0ncnt4) = d1mcr1(j2)
-!             print*,i1mfc4(i0ncnt4),d1mfc4(i0ncnt4)
           ENDIF
           
           DO i2=1,i0pdn1
@@ -237,7 +236,7 @@ CONTAINS
 
     USE T2COMM
 
-    INTEGER(i0ikind)::i1
+    INTEGER(i0ikind)::i1,i2
     
     OPEN(10,FILE='I2CRT_TEST.dat')
     DO i1=1,i0nmax1
@@ -257,31 +256,34 @@ CONTAINS
     OPEN(10,FILE='I3ENR1_TEST.dat')
     DO i1=1,i0emax
        WRITE(10,'("ELM_NUMBER=",I9,1X,"I3ENR=",4I9)')&
-            i1,i3enr(i1,1,1),i3enr(i1,1,2),i3enr(i1,1,3),i3enr(i1,1,4)
+            i1,(i3enr(1,i2,i1),i2=1,i0nmax0)
     ENDDO
     CLOSE(10)
 
     OPEN(10,FILE='I3ENR2_TEST.dat')
     DO i1=1,i0emax
        WRITE(10,'("ELM_NUMBER=",I9,1X,"I3ENR=",4I9)')&
-            i1,i3enr(i1,2,1),i3enr(i1,2,2),i3enr(i1,2,3),i3enr(i1,2,4)
+            i1,(i3enr(2,i2,i1),i2=1,i0nmax0)
+
     ENDDO
     CLOSE(10)
 
     OPEN(10,FILE='I3ENR3_TEST.dat')
     DO i1=1,i0emax
        WRITE(10,'("ELM_NUMBER=",I9,1X,"I3ENR=",4I9)')&
-            i1,i3enr(i1,3,1),i3enr(i1,3,2),i3enr(i1,3,3),i3enr(i1,3,4)
+            i1,(i3enr(3,i2,i1),i2=1,i0nmax0)
+
     ENDDO
     CLOSE(10)
 
     OPEN(10,FILE='I3ENR4_TEST.dat')
     DO i1=1,i0emax
        WRITE(10,'("ELM_NUMBER=",I9,1X,"I3ENR=",4I9)')&
-            i1,i3enr(i1,4,1),i3enr(i1,4,2),i3enr(i1,4,3),i3enr(i1,4,4)
+            i1,(i3enr(4,i2,i1),i2=1,i0nmax0)
+
     ENDDO
     CLOSE(10)
-
+    
     OPEN(10,FILE='CRS_TEST_INDR.dat')
     DO i1=1,i0nrmx
        IF(i1.EQ.1)THEN
@@ -346,6 +348,14 @@ CONTAINS
     RETURN
   END SUBROUTINE T2_NGRA_OUTPUT
 
+  !C-------------------------------------------------------------------
+  !C SUBROUTINE FOR NODE-MAPPING TABLE I2CRT
+  !C   
+  !C I2CRT[1:I0NMAX1,1]: NODE-NUMBER FOR COEF. CALC.
+  !C I2CRT[1:I0NMAX1,2]: NODE-NUMBER FOR 2D GRID
+  !C I2CRT[1:I0NMAX1,3]: NODE-NUMBER FOR 1D GRID
+  !C
+  !C-------------------------------------------------------------------
   SUBROUTINE T2NGRA_CRT1
 
     USE T2COMM
@@ -359,10 +369,9 @@ CONTAINS
          i0stc1,i0nd,i0nc,i0nu,&
          i0stl2,i0stc2,i0str2,&
          i0mlva,i0mlvb,i0mlvc,&
-         i1tmp06(6),i1tmp07(7),i1tmp08(8),i1tmp09(9),i1tmp11(11),&
          i1subtot(0:i0lmax),i0offset
     INTEGER(i0ikind)::&
-         i1,j1,i2,j2,i3
+         i1,j1,i2,j2,i3,i0stack1d,i0stack2d
     
     !C SUBTOTALS UP TO Nth-DOMAIN: I1SUBTOT[N]    
     DO i1=0,i0lmax
@@ -381,10 +390,13 @@ CONTAINS
     i0hcnt=0
     
     DO i1=1,i0lmax
+
        i0mlva=i1mlvl(i1-1)
        i0mlvb=i1mlvl(i1)
+
        i0ppc2 = i1pdn2(i1)
        i0ppl2 = INT(i1pdn2(i1)/2)
+
        i0ppc1 = i1pdn1(i1)
        i0rdc1 = i1rdn1(i1)
        
@@ -397,27 +409,43 @@ CONTAINS
        END IF
        
        !C SET SUBTOTALS
+
        i0stl2  = i1subtot(i1-1) - i1pdn2(i1-1)
        i0stc2  = i1subtot(i1-1)
        i0stm2  = i1subtot(i0lmax)
+
        IF(i0mlva.EQ.0)THEN
+
           !C DOMAIN WITH AXIS BOUNDARY
+
           DO i2=1,i0rdc1
              IF(i2.NE.1)THEN
+
                 !C NODES EXCEPT AXIS BOUNADRY 
+
                 i0il=i2-2
+                i0stack1d = i0stc2 + i0ppc2*i0il+i0ppc2
+
                 DO j2=1,i0ppc1
+                   
                    i0ncnt=i0ncnt+1
-                   i2crt(i0ncnt,1)= i0ncnt
-                   i2crt(i0ncnt,2)&
-                        = i0stc2+i0ppc2*i0il+MOD(j2-1,i0ppc2)+1
+                   i0stack2d =  i0stc2 + i0ppc2*i0il+MOD(j2-1,i0ppc2)+1
+                   
+                   i2crt(i0ncnt,1) = i0ncnt
+                   i2crt(i0ncnt,2) = i0stack2d 
+                   i2crt(i0ncnt,3) = i0stack1d 
+
                 ENDDO
              ELSEIF(    i2.EQ.1)THEN
                 !C NODES ON AXIS BOUNADRY 
+
                 DO j2=1,i0ppc1
+
                    i0ncnt=i0ncnt+1
-                   i2crt(i0ncnt,1)= i0ncnt
-                   i2crt(i0ncnt,2)= i0stc2
+
+                   i2crt(i0ncnt,1) = i0ncnt
+                   i2crt(i0ncnt,2) = 1
+                   i2crt(i0ncnt,3) = 1 
                 ENDDO
              ENDIF
           ENDDO
@@ -426,25 +454,44 @@ CONTAINS
           DO i2=1,i0rdc1
              IF(    i2.NE.1)THEN
                 !C NODES EXCEPT INTERFACE BOUNADRY 
+
                 i0il=i2-2
+                i0stack1d = i0stc2 + i0ppc2*i0il + i0ppc2
+
                 DO j2=1,i0ppc1
-                   i0ncnt=i0ncnt+1
-                   i2crt(i0ncnt,1)= i0ncnt
-                   i2crt(i0ncnt,2)&
-                        = i0stc2+i0ppc2*i0il+MOD(j2-1,i0ppc2)+1
+                   
+                   i0ncnt    = i0ncnt+1
+                   i0stack2d = i0stc2+i0ppc2*i0il+MOD(j2-1,i0ppc2)+1
+                   
+                   i2crt(i0ncnt,1) = i0ncnt
+                   i2crt(i0ncnt,2) = i0stack2d
+                   i2crt(i0ncnt,3) = i0stack1d
+             
                 ENDDO
+             
              ELSEIF(i2.EQ.1)THEN
                 !C NODES ON INTERFACE BOUNDARY
                 DO j2=1,i0ppc1
+                   
                    i0ncnt=i0ncnt+1
+                   i0stack1d = i0stl2 + i0ppl2 
                    IF(MOD(j2,2).EQ.1)THEN
-                      i2crt(i0ncnt,1)= i0ncnt
-                      i2crt(i0ncnt,2)&
-                           = i0stl2 + MOD(INT((j2+1)/2)-1,i0ppl2)+1
+                      
+                      i0stack2d = i0stl2 + MOD(INT((j2+1)/2)-1,i0ppl2)+1
+
+                      i2crt(i0ncnt,1) = i0ncnt
+                      i2crt(i0ncnt,2) = i0stack2d
+                      i2crt(i0ncnt,3) = i0stack1d
+                      
                    ELSEIF(MOD(j2,2).EQ.0)THEN
-                      i0hcnt=i0hcnt+1
+                      
+                      i0hcnt    = i0hcnt+1
+                      i0stack2d = i0stm2 + i0offset + INT(j2/2)
+                      
                       i2crt(i0ncnt,1)= i0ncnt
-                      i2crt(i0ncnt,2)= i0stm2 + i0offset + INT(j2/2)
+                      i2crt(i0ncnt,2)= i0stack2d
+                      i2crt(i0ncnt,3)= i0stack1d
+                      
                       i2hbc(i0hcnt,1)&
                            = i0stl2 + MOD(INT((j2-1)/2),i0ppl2)+1
                       i2hbc(i0hcnt,2)&
@@ -454,19 +501,37 @@ CONTAINS
              END IF
           ENDDO
        ELSEIF(i0mlva.EQ.i0mlvb)THEN
+          
           !C DOMAIN WITHOUT INTERFACE BOUNDARY
           DO i2=1,i0rdc1
+             
              i0il=i2-2
+             !i0stack1d = i0stc2+i0ppc2*i0il+1
+             i0stack1d = i0stc2+i0ppc2*i0il+i0ppc2
              DO j2=1,i0ppc1
+                
                 i0ncnt=i0ncnt+1
-                i2crt(i0ncnt,1)= i0ncnt
-                i2crt(i0ncnt,2)&
-                     = i0stc2+i0ppc2*i0il+MOD(j2-1,i0ppc2)+1
+                i0stack2d = i0stc2+i0ppc2*i0il+MOD(j2-1,i0ppc2)+1
+                
+                !i2crt(i0ncnt,1)= i0ncnt
+                !i2crt(i0ncnt,2)&
+                !     = i0stc2+i0ppc2*i0il+MOD(j2-1,i0ppc2)+1
+
+                i2crt(i0ncnt,1) = i0ncnt
+                i2crt(i0ncnt,2) = i0stack2d
+                i2crt(i0ncnt,3) = i0stack1d
+                
              ENDDO
           ENDDO
        ENDIF
     ENDDO
-    
+
+    OPEN(30,FILE='CRT.dat')
+    DO i1 =1,i0nmax1
+       WRITE(30,*)'i=',i1,'CRT1=',i2crt(i1,1),&
+            'CRT2=',i2crt(i1,2),'CRT3=',i2crt(i1,3)
+    ENDDO
+    CLOSE(30)
     RETURN
     
   END SUBROUTINE T2NGRA_CRT1
@@ -532,30 +597,35 @@ CONTAINS
           i0ur3 = i0lr3
           i0ul3 = i0ll3
           
-          i0ll4 = i1mfc1(i0ll)
-          i0lr4 = i1mfc1(i0lr)
-          i0ur4 = i1mfc1(i0ur)
-          i0ul4 = i1mfc1(i0ul)
+          !i0ll4 = i1mfc1(i0ll)
+          !i0lr4 = i1mfc1(i0lr)
+          !i0ur4 = i1mfc1(i0ur)
+          !i0ul4 = i1mfc1(i0ul)
 
-          i3enr( i0ecnt,1,1) = i0ll1
-          i3enr( i0ecnt,1,2) = i0lr1
-          i3enr( i0ecnt,1,3) = i0ur1
-          i3enr( i0ecnt,1,4) = i0ul1
+          i0ll4 = i2crt(i0ll,3)
+          i0lr4 = i2crt(i0lr,3)
+          i0ur4 = i2crt(i0ur,3)
+          i0ul4 = i2crt(i0ul,3)
           
-          i3enr( i0ecnt,2,1) = i0ll2
-          i3enr( i0ecnt,2,2) = i0lr2
-          i3enr( i0ecnt,2,3) = i0ur2
-          i3enr( i0ecnt,2,4) = i0ul2
+          i3enr(1,1,i0ecnt) = i0ll1
+          i3enr(1,2,i0ecnt) = i0lr1
+          i3enr(1,3,i0ecnt) = i0ur1
+          i3enr(1,4,i0ecnt) = i0ul1
+          
+          i3enr(2,1,i0ecnt) = i0ll2
+          i3enr(2,2,i0ecnt) = i0lr2
+          i3enr(2,3,i0ecnt) = i0ur2
+          i3enr(2,4,i0ecnt) = i0ul2
 
-          i3enr( i0ecnt,3,1) = i0ll3
-          i3enr( i0ecnt,3,2) = i0lr3
-          i3enr( i0ecnt,3,3) = i0ur3
-          i3enr( i0ecnt,3,4) = i0ul3
+          i3enr(3,1,i0ecnt) = i0ll3
+          i3enr(3,2,i0ecnt) = i0lr3
+          i3enr(3,3,i0ecnt) = i0ur3
+          i3enr(3,4,i0ecnt) = i0ul3
           
-          i3enr( i0ecnt,4,1) = i0ll4
-          i3enr( i0ecnt,4,2) = i0lr4
-          i3enr( i0ecnt,4,3) = i0ur4
-          i3enr( i0ecnt,4,4) = i0ul4
+          i3enr(4,1,i0ecnt) = i0ll4
+          i3enr(4,2,i0ecnt) = i0lr4
+          i3enr(4,3,i0ecnt) = i0ur4
+          i3enr(4,4,i0ecnt) = i0ul4
 
           i1mlel(i0ecnt) = i1
           
@@ -790,7 +860,7 @@ CONTAINS
           
           DO i1 = 1,i0nmax0
              
-             i0ng = i3enr(i0ec,2,i1)
+             i0ng = i3enr(2,i1,i0ec)
              
              IF(    i0ng.LE.i0nmax2)THEN
                 i0ncnt = i0ncnt + 1 
@@ -799,7 +869,7 @@ CONTAINS
                 DO i0ex  = i1eidr(i0ng),i1eidr(i0ng+1)-1
                    i0ecx = i1eidc(i0ex)
                    DO i2 = 1,i0nmax0
-                      i0ngx = i3enr(i0ecx,2,i2)
+                      i0ngx = i3enr(2,i2,i0ecx)
                       IF(i0ngx.LE.i0nmax2)THEN
                          i0ncnt = i0ncnt + 1 
                          i1nstk(i0ncnt) = i0ngx
