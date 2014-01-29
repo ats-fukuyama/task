@@ -50,9 +50,9 @@ CONTAINS
 
     USE T2COMM, ONLY: &
          c10rname, i0dbg, i0fnum, i0mfcs, i0wstp,&
-         i0dmax0,i0amax0,&
+         i0dmax,i0amax,&
 !         i0tmax, d0tstp, d0tmax,&
-         i0spcs, i0nmax0, i0lmax, i1mlvl,&
+         i0smax, i0nmax, i0lmax, i1mlvl,&
          i0pdiv_number, i1rdn2, d1rec,&
          i0pmax,d0eps,d0rmjr,d0rmnr,&
          i0m0,i0n0,d0bc,&
@@ -69,9 +69,9 @@ CONTAINS
 
     NAMELIST /T2/ &
          c10rname, i0dbg, i0fnum, i0mfcs, i0wstp,&
-         i0dmax0,i0amax0,&
+         i0dmax,i0amax,&
 !         i0tmax, d0tstp, d0tmax,&
-         i0spcs, i0nmax0, i0lmax, i1mlvl,&
+         i0smax, i0nmax, i0lmax, i1mlvl,&
          i0pdiv_number, i1rdn2, d1rec,&
 !         i0pmax,d0eps, &
          d0rmjr,d0rmnr,&
@@ -101,8 +101,8 @@ CONTAINS
 
     IMPLICIT NONE
     WRITE(6,'(A)') '# &T2 : c10rname,i0dbg,i0fnum,i0mfcs,i0wstp,'
-    WRITE(6,'(A)') '        i0dmax0,i0amax0,' !i0tmax,d0tstp,d0tmax,'
-    WRITE(6,'(A)') '        i0spcs,i0nmax0,i0lmax,'
+    WRITE(6,'(A)') '        i0dmax,i0amax,' !i0tmax,d0tstp,d0tmax,'
+    WRITE(6,'(A)') '        i0smax,i0nmax,i0lmax,'
     WRITE(6,'(A)') '        i1mlvl,i0pdiv_number, i1rdn2, d1rec,'
 !    WRITE(6,'(A)') '        i0pmax,d0eps,'
     WRITE(6,'(A)') '        d0rmjr,d0rmnr,'
@@ -142,9 +142,9 @@ CONTAINS
     USE T2COMM, ONLY: &
          c10rname, &
          i0dbg, i0fnum, i0mfcs, i0wstp,&
-         i0dmax0,i0amax0,&
+         i0dmax,i0amax,&
 !         i0tmax, d0tstp, d0tmax,&
-         i0spcs, i0nmax0, i0lmax, i1mlvl,&
+         i0smax, i0nmax, i0lmax, i1mlvl,&
          i0pdiv_number, i1rdn2, d1rec,&
 !         i0pmax,d0eps,&
          d0rmjr,d0rmnr,&
@@ -165,15 +165,15 @@ CONTAINS
          'i0mfcs       ',i0mfcs
     WRITE(6,601) &
          'i0wstp       ',i0wstp, &
-         'i0dmax0      ',i0dmax0, &
-         'i0amax0      ',i0amax0
+         'i0dmax       ',i0dmax, &
+         'i0amax       ',i0amax
     WRITE(6,602) &
          'ntmax        ',ntmax, &
          'ntstep       ',ntstep, &
          'dt           ',dt
     WRITE(6,601) &
-         'i0spcs       ',i0spcs, &
-         'i0nmax0      ',i0nmax0, &
+         'i0smax       ',i0smax, &
+         'i0nmax       ',i0nmax, &
          'i0lmax       ',i0lmax
     WRITE(6,601) &
          'i0pdiv_number',i0pdiv_number
@@ -208,7 +208,7 @@ CONTAINS
          'i0n0         ',i0n0,&
          'd0bc         ',d0bc
     WRITE(6,'(A)')
-    DO i1=1,i0spcs
+    DO i1=1,i0smax
        WRITE(6,'(I6,1P2E12.4/6X,1P6E12.4)') &
             i1,d1pa(i1),d1pz(i1),&
             d1nc(i1),d1ns(i1),d1nw(i1),d1tc(i1),d1ts(i1),d1tw(1)

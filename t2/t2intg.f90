@@ -16,273 +16,285 @@ MODULE T2INTG
   PRIVATE  
   
 CONTAINS
-  
+
+  !C-------------------------------------------------------------------
+  !C
+  !C  INTEGRAL ARRAYS
+  !C
+  !C                     2014-01-29 H.SETO     
+  !C 
+  !C-------------------------------------------------------------------
   SUBROUTINE T2_INTG
     
     USE T2COMM, ONLY:&
-         i0nmax0,i0amax0,i0dmax0,&
-         d3imsn0,d4iavn0,d6iatn0,d5idtn0,d4igvn0,d6igtn0,&
-         d3iesn0,d5ievn0,d7ietn0,d2issn0,&
-         d1wfct0,d1absc0,d2wfct0,d4ifnc0
+         i0nmax,i0amax,i0dmax,&
+         d3imsn,d4iavn,d6iatn,d5idtn,d4igvn,d6igtn,&
+         d3iesn,d5ievn,d7ietn,d2issn,&
+         d2wfct,d4ifnc
     
     INTEGER(i0ikind)::&
-         i2,j2,&
-         i3,j3,k3,l3,m3,&
-         i4,j4
+         i0nidi,i0nidj,i0nidk,i0nidl,i0nidm,&
+         i0didi,i0didj,&
+         i0aidi,i0aidj
     !C------------------------------------------------------
     
     CALL T2INTG_IFUNC
     
-    !C MS: D3IMSN0 
+    !C
+    !C MS: D3IMSN
+    !C
     
-    d3imsn0(1:i0nmax0,1:i0nmax0,1:i0nmax0)=0.D0
-    
-    DO k3=1,i0nmax0
-    DO j3=1,i0nmax0
-    DO i3=1,i0nmax0
-       DO j4= 1,i0amax0
-       DO i4= 1,i0amax0
-          d3imsn0(       i3,j3,k3)&
-               = d3imsn0(i3,j3,k3        )&
-               + d4ifnc0(i3,      0,i4,j4)&
-               * d4ifnc0(   j3,   0,i4,j4)&
-               * d4ifnc0(      k3,0,i4,j4)&
-               * d2wfct0(           i4,j4)
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax    
+    DO i0nidk = 1, i0nmax
+       d3imsn(i0nidk,i0nidi,i0nidj) = 0.D0
+       DO i0aidj = 1,i0amax
+       DO i0aidi = 1,i0amax
+          d3imsn(                       i0nidk,i0nidi,i0nidj) &
+               = d3imsn(                i0nidk,i0nidi,i0nidj) &
+               + d4ifnc(i0aidi,i0aidj,0,       i0nidi       ) &
+               * d4ifnc(i0aidi,i0aidj,0,              i0nidj) &
+               * d4ifnc(i0aidi,i0aidj,0,i0nidk              ) &
+               * d2wfct(i0aidi,i0aidj                       )
        ENDDO
        ENDDO
     ENDDO
     ENDDO
     ENDDO
 
-    !C AV: D4IAVN0 
+    !C
+    !C AV: D4IAVN 
+    !C
 
-    d4iavn0(1:i0nmax0,1:i0nmax0,1:i0nmax0,&
-            1:i0dmax0) = 0.D0
-    
-    DO i2=1,i0dmax0
-       DO k3=1,i0nmax0
-       DO j3=1,i0nmax0
-       DO i3=1,i0nmax0
-          DO j4=1,i0amax0
-          DO i4=1,i0amax0
-             d4iavn0(       i3,j3,k3,i2        )&
-                  = d4iavn0(i3,j3,k3,i2        )&
-                  + d4ifnc0(i3,         0,i4,j4)&
-                  * d4ifnc0(   j3,   i2,  i4,j4)&
-                  * d4ifnc0(      k3,   0,i4,j4)&
-                  * d2wfct0(              i4,j4)&
-                  + d4ifnc0(i3,         0,i4,j4)&
-                  * d4ifnc0(   j3,      0,i4,j4)&
-                  * d4ifnc0(      k3,i2,  i4,j4)&
-                  * d2wfct0(              i4,j4)
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax    
+    DO i0nidk = 1, i0nmax
+       DO i0didi = 1, i0dmax
+          d4iavn(i0didi,i0nidk,i0nidi,i0nidj) = 0.D0
+          DO i0aidj = 1, i0amax
+          DO i0aidi = 1, i0amax
+             d4iavn(                       i0didi,i0nidk,i0nidi,i0nidj) &
+                  = d4iavn(                i0didi,i0nidk,i0nidi,i0nidj) &
+                  + d4ifnc(i0aidi,i0aidj,0,              i0nidi       ) &
+                  * d4ifnc(i0aidi,i0aidj,  i0didi,              i0nidj) &
+                  * d4ifnc(i0aidi,i0aidj,0,       i0nidk              ) &
+                  * d2wfct(i0aidi,i0aidj                              ) &
+                  + d4ifnc(i0aidi,i0aidj,0,              i0nidi       ) &
+                  * d4ifnc(i0aidi,i0aidj,0,                     i0nidj) &
+                  * d4ifnc(i0aidi,i0aidj,  i0didi,i0nidk              ) &
+                  * d2wfct(i0aidi,i0aidj                              )
           ENDDO
           ENDDO
-       ENDDO
-       ENDDO
-       ENDDO
-    ENDDO
-    
-    !C AT: D6IATN0 
-    
-    d6iatn0(1:i0nmax0,1:i0nmax0,1:i0nmax0,1:i0nmax0,&
-            1:i0dmax0,1:i0dmax0) = 0.D0
-    
-    DO j2 = 1, i0dmax0
-    DO i2 = 1, i0dmax0
-       DO l3 = 1, i0nmax0
-       DO k3 = 1, i0nmax0
-       DO j3 = 1, i0nmax0
-       DO i3 = 1, i0nmax0
-          DO j4 = 1, i0amax0
-          DO i4 = 1, i0amax0
-             d6iatn0(       i3,j3,k3,l3,i2,j2        )&
-                  = d6iatn0(i3,j3,k3,l3,i2,j2        )&
-                  + d4ifnc0(i3,         i2,     i4,j4)&
-                  * d4ifnc0(   j3,            0,i4,j4)&
-                  * d4ifnc0(      k3,      j2,  i4,j4)&
-                  * d4ifnc0(         l3,      0,i4,j4)&
-                  * d2wfct0(                    i4,j4)
-          ENDDO
-          ENDDO
-       ENDDO
-       ENDDO
-       ENDDO
-       ENDDO
-    ENDDO
-    ENDDO
-
-    !C DT: D5IDTN0 
-    
-    d5idtn0(1:i0nmax0,1:i0nmax0,1:i0nmax0,&
-            1:i0dmax0,1:i0dmax0) = 0.D0
-    
-    DO i2=1,i0dmax0
-    DO j2=1,i0dmax0
-       DO k3=1,i0nmax0
-       DO j3=1,i0nmax0
-       DO i3=1,i0nmax0
-          DO j4=1,i0amax0
-          DO i4=1,i0amax0
-             d5idtn0(       i3,j3,k3,i2,j2        )&
-                  = d5idtn0(i3,j3,k3,i2,j2        )&
-                  + d4ifnc0(i3,      i2,     i4,j4)&
-                  * d4ifnc0(   j3,      j2,  i4,j4)&
-                  * d4ifnc0(      k3,      0,i4,j4)&
-                  * d2wfct0(                 i4,j4)
-          ENDDO
-          ENDDO
-       ENDDO
-       ENDDO
-       ENDDO
-    ENDDO
-    ENDDO
-    
-    !C GV: D4IGVN0 
-    
-    d4igvn0(1:i0nmax0,1:i0nmax0,1:i0nmax0,&
-            1:i0dmax0) = 0.D0
-
-    DO i2=1,i0dmax0
-       DO k3=1,i0nmax0
-       DO j3=1,i0nmax0
-       DO i3=1,i0nmax0
-          DO j4=1,i0amax0
-          DO i4=1,i0amax0
-             d4igvn0(       i3,j3,k3,i2        )&
-                  = d4igvn0(i3,j3,k3,i2        )&
-                  + d4ifnc0(i3,         0,i4,j4)&
-                  * d4ifnc0(   j3,   i2,  i4,j4)&                       
-                  * d4ifnc0(      k3,   0,i4,j4)&
-                  * d2wfct0(              i4,j4)
-          ENDDO
-          ENDDO
-       ENDDO
-       ENDDO
-       ENDDO
-    ENDDO
-    
-    !C GT: D6IGTN0 
-    
-    d6igtn0(1:i0nmax0,1:i0nmax0,1:i0nmax0,1:i0nmax0,&
-            1:i0dmax0,1:i0dmax0) = 0.D0
-
-    DO j2=1,i0dmax0
-    DO i2=1,i0dmax0
-       DO l3=1,i0nmax0
-       DO k3=1,i0nmax0
-       DO j3=1,i0nmax0
-       DO i3=1,i0nmax0
-          DO j4=1,i0amax0
-          DO i4=1,i0amax0
-             d6igtn0(       i3,j3,k3,l3,i2,j2        )&
-                  = d6igtn0(i3,j3,k3,l3,i2,j2        )&
-                  + d4ifnc0(i3,               0,i4,j4)&
-                  * d4ifnc0(   j3,         j2,  i4,j4)&                       
-                  * d4ifnc0(      k3,   i2,     i4,j4)&
-                  * d4ifnc0(         l3,      0,i4,j4)&
-                  * d2wfct0(                    i4,j4)
-          ENDDO
-          ENDDO
-       ENDDO
-       ENDDO
-       ENDDO
-       ENDDO
-    ENDDO
-    ENDDO
-
-    !C ES: D3IESN0 
-    
-    d3iesn0(1:i0nmax0,1:i0nmax0,1:i0nmax0) = 0.D0
-    
-    DO k3=1,i0nmax0
-    DO j3=1,i0nmax0
-    DO i3=1,i0nmax0
-       DO j4=1,i0amax0
-       DO i4=1,i0amax0
-          d3iesn0(       i3,j3,k3         )&
-               = d3iesn0(i3,j3,k3         )&
-               + d4ifnc0(i3,       0,i4,j4)&
-               * d4ifnc0(    j3,   0,i4,j4)&
-               * d4ifnc0(       k3,0,i4,j4)&
-               * d2wfct0(            i4,j4)
-       ENDDO
        ENDDO
     ENDDO
     ENDDO
     ENDDO
 
-    !C EV: D5IESN0 
+    !C
+    !C AT: D6IATN 
+    !C
     
-    d5ievn0(1:i0nmax0,1:i0nmax0,1:i0nmax0,1:i0nmax0,&
-            1:i0dmax0) = 0.D0
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax
+    DO i0nidl = 1, i0nmax
+    DO i0nidk = 1, i0nmax
+       DO i0didj = 1, i0dmax
+       DO i0didi = 1, i0dmax
+          d6iatn(i0didi,i0didj,i0nidk,i0nidl,i0nidi,i0nidj) = 0.D0
+          DO i0aidj = 1, i0amax
+          DO i0aidi = 1, i0amax
+             d6iatn(                       i0didi,i0didj,i0nidk,i0nidl,i0nidi,i0nidj) &
+                  = d6iatn(                i0didi,i0didj,i0nidk,i0nidl,i0nidi,i0nidj) &
+                  + d4ifnc(i0aidi,i0aidj,  i0didi,                     i0nidi       ) &
+                  * d4ifnc(i0aidi,i0aidj,0,                                   i0nidj) &
+                  * d4ifnc(i0aidi,i0aidj,         i0didj,i0nidk                     ) &
+                  * d4ifnc(i0aidi,i0aidj,0,                     i0nidl              ) &
+                  * d2wfct(i0aidi,i0aidj                                            ) 
+          ENDDO
+          ENDDO
+       ENDDO
+       ENDDO
+    ENDDO
+    ENDDO
+    ENDDO
+    ENDDO
     
-    DO i2=1,i0dmax0
-       DO l3=1,i0nmax0
-       DO k3=1,i0nmax0
-       DO j3=1,i0nmax0
-       DO i3=1,i0nmax0
-          DO j4=1,i0amax0
-          DO i4=1,i0amax0
-             d5ievn0(       i3,j3,k3,l3,i2        )&
-                  = d5ievn0(i3,j3,k3,l3,i2        )&
-                  + d4ifnc0(i3,            0,i4,j4)&
-                  * d4ifnc0(   j3,         0,i4,j4)&
-                  * d4ifnc0(      k3,   i2,  i4,j4)&
-                  * d4ifnc0(         l3,   0,i4,j4)&
-                  * d2wfct0(                 i4,j4)
+    !C
+    !C DT: D5IDTN 
+    !C
+    
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax
+    DO i0nidk = 1, i0nmax
+       DO i0didj = 1, i0dmax
+       DO i0didi = 1, i0dmax
+          d5idtn(i0didi,i0didj,i0nidk,i0nidi,i0nidj) = 0.D0
+          DO i0aidj = 1, i0amax
+          DO i0aidi = 1, i0amax
+             d5idtn(                       i0didi,i0didj,i0nidk,i0nidi,i0nidj) &
+                  = d5idtn(                i0didi,i0didj,i0nidk,i0nidi,i0nidj) &
+                  + d4ifnc(i0aidi,i0aidj,  i0didi,              i0nidi       ) &
+                  * d4ifnc(i0aidi,i0aidj,         i0didj,              i0nidj) &
+                  * d4ifnc(i0aidi,i0aidj,0,              i0nidk              ) &
+                  * d2wfct(i0aidi,i0aidj                                     )
+          ENDDO
+          ENDDO
+       ENDDO
+       ENDDO
+    ENDDO
+    ENDDO
+    ENDDO
+    
+    !C
+    !C GV: D4IGVN
+    !C
+    
+
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax
+    DO i0nidk = 1, i0nmax
+       DO i0didi = 1, i0dmax
+          d4igvn(i0didi,i0nidk,i0nidi,i0nidj) = 0.D0
+          DO i0aidj = 1, i0amax
+          DO i0aidi = 1, i0amax
+             d4igvn(                       i0didi,i0nidk,i0nidi,i0nidj) &
+                  = d4igvn(                i0didi,i0nidk,i0nidi,i0nidj) &
+                  + d4ifnc(i0aidi,i0aidj,0,              i0nidi       ) &
+                  * d4ifnc(i0aidi,i0aidj,  i0didi,              i0nidj) &
+                  * d4ifnc(i0aidi,i0aidj,0,       i0nidk              ) &
+                  * d2wfct(i0aidi,i0aidj                              )
           ENDDO
           ENDDO
        ENDDO
        ENDDO
        ENDDO
+    ENDDO
+    
+    !C
+    !C GT: D6IGTN
+    !C 
+    
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax
+    DO i0nidl = 1, i0nmax
+    DO i0nidk = 1, i0nmax    
+       DO i0didj = 1, i0dmax
+       DO i0didi = 1, i0dmax
+          d6igtn(i0didi,i0didj,i0nidk,i0nidl,i0nidi,i0nidj) = 0.D0
+          DO i0aidj = 1, i0amax
+          DO i0aidi = 1, i0amax
+             d6igtn(                       i0didi,i0didj,i0nidk,i0nidl,i0nidi,i0nidj) &
+                  = d6igtn(                i0didi,i0didj,i0nidk,i0nidl,i0nidi,i0nidj) &
+                  + d4ifnc(i0aidi,i0aidj,0,                            i0nidi       ) &
+                  * d4ifnc(i0aidi,i0aidj,         i0didj,                     i0nidj) & 
+                  * d4ifnc(i0aidi,i0aidj,  i0didi,       i0nidk                     ) &
+                  * d4ifnc(i0aidi,i0aidj,0,                     i0nidl              ) &
+                  * d2wfct(i0aidi,i0aidj                                            )
+          ENDDO
+          ENDDO
        ENDDO
+       ENDDO
+    ENDDO
+    ENDDO
+    ENDDO
     ENDDO
 
-    !C ET: D7IETN0 
+    !C
+    !C ES: D3IESN
+    !C
     
-    d7ietn0(1:i0nmax0,1:i0nmax0,1:i0nmax0,1:i0nmax0,1:i0nmax0,&
-            1:i0dmax0,1:i0dmax0) = 0.D0
+
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax    
+    DO i0nidk = 1, i0nmax
+       d3iesn(i0nidk,i0nidi,i0nidj) = 0.D0
+       DO i0aidj =1, i0amax
+       DO i0aidi =1, i0amax
+          d3iesn(                       i0nidi,i0nidj,i0nidk) &
+               = d3iesn(                i0nidi,i0nidj,i0nidk) &
+               + d4ifnc(i0aidi,i0aidj,0,i0nidi              ) &
+               * d4ifnc(i0aidi,i0aidj,0,       i0nidj       ) &
+               * d4ifnc(i0aidi,i0aidj,0,              i0nidk) &
+               * d2wfct(i0aidi,i0aidj                       )
+       ENDDO
+       ENDDO
+    ENDDO
+    ENDDO
+    ENDDO
     
-    DO j2 = 1, i0dmax0
-    DO i2 = 1, i0dmax0
-       DO m3 = 1, i0nmax0
-       DO l3 = 1, i0nmax0
-       DO k3 = 1, i0nmax0
-       DO j3 = 1, i0nmax0
-       DO i3 = 1, i0nmax0
-          DO j4 =1, i0amax0
-          DO i4 =1, i0amax0
-             d7ietn0(       i3,j3,k3,l3,m3,i2,j2        )&
-                  = d7ietn0(i3,j3,k3,l3,m3,i2,j2        )&
-                  + d4ifnc0(i3,                  0,i4,j4)&
-                  * d4ifnc0(   j3,               0,i4,j4)&
-                  * d4ifnc0(      k3,      i2,     i4,j4)&
-                  * d4ifnc0(         l3,      j2,  i4,j4)&
-                  * d4ifnc0(            m3,      0,i4,j4)&
-                  * d2wfct0(                       i4,j4)
+    !C
+    !C EV: D5IEVN
+    !C
+
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax
+    DO i0nidl = 1, i0nmax
+    DO i0nidk = 1, i0nmax
+       DO i0didi = 1, i0dmax
+          d5ievn(i0didi,i0nidk,i0nidl,i0nidi,i0nidj) = 0.D0
+          DO i0aidj = 1, i0amax
+          DO i0aidi = 1, i0amax
+             d5ievn(                       i0didi,i0nidk,i0nidl,i0nidi,i0nidj) &
+                  = d5ievn(                i0didi,i0nidk,i0nidl,i0nidi,i0nidj) &
+                  + d4ifnc(i0aidi,i0aidj,0,                     i0nidi       ) &
+                  * d4ifnc(i0aidi,i0aidj,0,                            i0nidj) &
+                  * d4ifnc(i0aidi,i0aidj,  i0didi,i0nidk                     ) &
+                  * d4ifnc(i0aidi,i0aidj,0,              i0nidl              ) &
+                  * d2wfct(i0aidi,i0aidj                                     )
           ENDDO
           ENDDO
        ENDDO
-       ENDDO
-       ENDDO
-       ENDDO
-       ENDDO
+    ENDDO
+    ENDDO
     ENDDO
     ENDDO
 
-    !C SS: D2ISSN0
+    !C
+    !C ET: D7IETN
+    !C
+
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax
+    DO i0nidm = 1, i0nmax
+    DO i0nidl = 1, i0nmax
+    DO i0nidk = 1, i0nmax
+       DO i0didj = 1, i0dmax
+       DO i0didi = 1, i0dmax
+          d7ietn(i0didi,i0didj,i0nidk,i0nidl,i0nidm,i0nidi,i0nidj) = 0.D0
+          DO i0aidj = 1, i0amax
+          DO i0aidi = 1, i0amax
+             d7ietn(                       i0didi,i0didj,i0nidk,i0nidl,i0nidm,i0nidi,i0nidj) &
+                  = d7ietn(                i0didi,i0didj,i0nidk,i0nidl,i0nidm,i0nidi,i0nidj) &
+                  + d4ifnc(i0aidi,i0aidj,0,                                   i0nidi       ) &
+                  * d4ifnc(i0aidi,i0aidj,0,                                          i0nidj) &
+                  * d4ifnc(i0aidi,i0aidj,  i0didi,       i0nidk                            ) &
+                  * d4ifnc(i0aidi,i0aidj,         i0didj,       i0nidl                     ) &
+                  * d4ifnc(i0aidi,i0aidj,0,                            i0nidm              ) &
+                  * d2wfct(i0aidi,i0aidj                                                   )
+          ENDDO
+          ENDDO
+       ENDDO
+       ENDDO
+    ENDDO
+    ENDDO
+    ENDDO
+    ENDDO
+    ENDDO
+
+    !C
+    !C SS: D2ISSN
+    !C
     
-    d2issn0(1:i0nmax0,1:i0nmax0) = 0.D0
-    
-    DO j3=1,i0nmax0
-    DO i3=1,i0nmax0
-       DO j4=1,i0amax0
-       DO i4=1,i0amax0
-          d2issn0(       i3,j3        )&
-               = d2issn0(i3,j3        )&
-               + d4ifnc0(i3,   0,i4,j4)&
-               * d4ifnc0(   j3,0,i4,j4)&
-               * d2wfct0(        i4,j4)
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax
+       d2issn(i0nidi,i0nidj) = 0.D0
+       DO i0aidj = 1, i0amax
+       DO i0aidi = 1, i0amax
+          d2issn(                       i0nidi,i0nidj) &
+               = d2issn(                i0nidi,i0nidj) &
+               + d4ifnc(i0aidi,i0aidj,0,i0nidi       ) &
+               * d4ifnc(i0aidi,i0aidj,0,       i0nidj) &
+               * d2wfct(i0aidi,i0aidj                )
        ENDDO
        ENDDO
     ENDDO
@@ -293,46 +305,56 @@ CONTAINS
   END SUBROUTINE T2_INTG
   
   !C------------------------------------------------------------------
-  !C SUBROUTINE SET_GAUSSIAN_QUADRATURE_ARRAYS
-  !C CHECKED 2012/06/19
+  !C
+  !C GAUSSIAN QUADRATURE ARRAYS
+  !C
+  !C                     2014-01-29 H.SETO
+  !C
   !C------------------------------------------------------------------
   SUBROUTINE T2INTG_IFUNC
     
     USE T2CNST, ONLY: d1absc32,d1wfct32
     USE T2COMM, ONLY:&
-         i0nmax0,i0amax0,i0dmax0,&
-         d1wfct0,d1absc0,d2wfct0,d4ifnc0
-
-    INTEGER(i0ikind):: i1,j1,i0iodd,i0ieve,i0jodd,i0jeve
+         i0nmax,i0amax,i0dmax,&
+         d1wfct,d1absc,d2wfct,d4ifnc
+    
+    INTEGER(i0ikind)::&
+         i0aidi,i0aidi_odd,i0aidi_eve,&
+         i0aidj,i0aidj_odd,i0aidj_eve
+    
     REAL(   i0rkind):: d0x,d0y,d0wfct
+    
     !C
     !C SET NUMBER OF ABSCISSAS FOR GAUSS INTEGARATION
     !C
-    SELECT CASE (i0amax0)
+    
+    SELECT CASE (i0amax)
        
-    CASE(32)!C 32*32 POINTS 2D GAUSS INTEGRATION
+    CASE(32) !C 32*32 POINTS 2D GAUSS INTEGRATION
        
-       DO j1=1,16
+       DO i0aidj = 1, 16
           
-          i0jodd = 2*j1-1
-          i0jeve = 2*j1
+          i0aidj_odd = 2*i0aidj - 1
+          i0aidj_eve = 2*i0aidj
           
-          DO i1=1,16
+          DO i0aidi = 1, 16
              
-             i0iodd = 2*i1-1
-             i0ieve = 2*i1
+             i0aidi_odd = 2*i0aidi - 1
+             i0aidi_eve = 2*i0aidi
              
-             d0wfct = d1wfct32(i1)*d1wfct32(j1)
-             d2wfct0(i0iodd,i0jodd) = d0wfct
-             d2wfct0(i0ieve,i0jodd) = d0wfct
-             d2wfct0(i0iodd,i0jeve) = d0wfct
-             d2wfct0(i0ieve,i0jeve) = d0wfct
+             d0wfct = d1wfct32(i0aidi)*d1wfct32(i0aidj)
+
+             d2wfct(i0aidi_odd,i0aidj_odd) = d0wfct
+             d2wfct(i0aidi_eve,i0aidj_odd) = d0wfct
+             d2wfct(i0aidi_odd,i0aidj_eve) = d0wfct
+             d2wfct(i0aidi_eve,i0aidj_eve) = d0wfct
              
           ENDDO
           
-          d0x=d1absc32(j1)
-          d1absc0(i0jodd)= - d0x
-          d1absc0(i0jeve)=   d0x
+          d0x = d1absc32(i0aidj)
+          
+          d1absc(i0aidj_odd) = - d0x
+          d1absc(i0aidj_eve) =   d0x
           
        ENDDO
        
@@ -348,7 +370,7 @@ CONTAINS
     !C
     !C SET INTERPOLATION FUNCTION 
     !C
-    SELECT CASE (i0nmax0)
+    SELECT CASE (i0nmax)
        
     CASE(4)
        !C FOR 4-NODE LINEAR LAGANGIAN RECTANGULAR ELEMENT 
@@ -362,44 +384,55 @@ CONTAINS
        !C
        !C PHI (x_i,y_i)
        !C
-       DO i1 = 1, i0amax0
-       DO j1 = 1, i0amax0
-          d0x=d1absc0(i1)
-          d0y=d1absc0(j1)
-          d4ifnc0(1,0,i1,j1) = (1.D0-d0x)*(1.D0-d0y)/4.D0
-          d4ifnc0(2,0,i1,j1) = (1.D0+d0x)*(1.D0-d0y)/4.D0
-          d4ifnc0(3,0,i1,j1) = (1.D0+d0x)*(1.D0+d0y)/4.D0
-          d4ifnc0(4,0,i1,j1) = (1.D0-d0x)*(1.D0+d0y)/4.D0
+       DO i0aidj = 1, i0amax
+       DO i0aidi = 1, i0amax
+
+          d0x = d1absc(i0aidi)
+          d0y = d1absc(i0aidj)
+          
+          d4ifnc(i0aidi,i0aidj,0,1) = (1.D0-d0x)*(1.D0-d0y)/4.D0
+          d4ifnc(i0aidi,i0aidj,0,2) = (1.D0+d0x)*(1.D0-d0y)/4.D0
+          d4ifnc(i0aidi,i0aidj,0,3) = (1.D0+d0x)*(1.D0+d0y)/4.D0
+          d4ifnc(i0aidi,i0aidj,0,4) = (1.D0-d0x)*(1.D0+d0y)/4.D0
+          
        ENDDO
        ENDDO
        
        !C
        !C dPHI/dx (x_i,y_i)
-       !C
-       DO i1 = 1, i0amax0
-       DO j1 = 1, i0amax0
-          d0y=d1absc0(j1)
-          d4ifnc0(1,1,i1,j1) = -(1.D0-d0y)/4.D0 
-          d4ifnc0(2,1,i1,j1) =  (1.D0-d0y)/4.D0 
-          d4ifnc0(3,1,i1,j1) =  (1.D0+d0y)/4.D0
-          d4ifnc0(4,1,i1,j1) = -(1.D0+d0y)/4.D0
+       !
+       DO i0aidj = 1, i0amax
+       DO i0aidi = 1, i0amax
+          
+          d0y = d1absc(i0aidj)
+          
+          d4ifnc(i0aidi,i0aidj,1,1) = -(1.D0-d0y)/4.D0 
+          d4ifnc(i0aidi,i0aidj,1,2) =  (1.D0-d0y)/4.D0 
+          d4ifnc(i0aidi,i0aidj,1,3) =  (1.D0+d0y)/4.D0
+          d4ifnc(i0aidi,i0aidj,1,4) = -(1.D0+d0y)/4.D0
+
        ENDDO
        ENDDO
 
        !C
        !C dPHI/dy (x_i,y_i)
        !C
-       DO i1 = 1, i0amax0
-       DO j1 = 1, i0amax0
-          d0x=d1absc0(i1)
-          d4ifnc0(1,2,i1,j1) = -(1.D0-d0x)/4.D0 
-          d4ifnc0(2,2,i1,j1) = -(1.D0+d0x)/4.D0 
-          d4ifnc0(3,2,i1,j1) =  (1.D0+d0x)/4.D0
-          d4ifnc0(4,2,i1,j1) =  (1.D0-d0x)/4.D0
+
+       DO i0aidj = 1, i0amax
+       DO i0aidi = 1, i0amax
+
+          d0x = d1absc(i0aidi)
+
+          d4ifnc(i0aidi,i0aidj,2,1) = -(1.D0-d0x)/4.D0 
+          d4ifnc(i0aidi,i0aidj,2,2) = -(1.D0+d0x)/4.D0 
+          d4ifnc(i0aidi,i0aidj,2,3) =  (1.D0+d0x)/4.D0
+          d4ifnc(i0aidi,i0aidj,2,4) =  (1.D0-d0x)/4.D0
+
        ENDDO
        ENDDO
 
     CASE(8)
+
        !C FOR 8-NODE QUADRADIC SERENDIPITY RECTANGULAR ELEMENT
        !C
        !C    7---6---5
@@ -412,25 +445,27 @@ CONTAINS
        !C
        !C PHI(x_i,y_i) 
        !C
-       DO i1 = 1, i0amax0
-       DO j1 = 1, i0amax0
-          d0x=d1absc0(i1)
-          d0y=d1absc0(j1)
-          d4ifnc0(1,0,i1,j1)&
+       DO i0aidj = 1, i0amax
+       DO i0aidi = 1, i0amax
+       
+          d0x = d1absc(i0aidi)
+          d0y = d1absc(i0aidj)
+
+          d4ifnc(i0aidi,i0aidj,0,1) &
                = -(1.D0-d0x)*(1.D0-d0y)*(1.D0+d0x+d0y)/4.D0
-          d4ifnc0(2,0,i1,j1)&
+          d4ifnc(i0aidi,i0aidj,0,2) &
                =  (1.D0-d0x**2)*(1.D0-d0y   )/2.D0
-          d4ifnc0(3,0,i1,j1)&
+          d4ifnc(i0aidi,i0aidj,0,3) &
                = -(1.D0+d0x)*(1.D0-d0y)*(1.D0-d0x+d0y)/4.D0
-          d4ifnc0(4,0,i1,j1)&
+          d4ifnc(i0aidi,i0aidj,0,4) &
                =  (1.D0+d0x   )*(1.D0-d0y**2)/2.D0
-          d4ifnc0(5,0,i1,j1)&
+          d4ifnc(i0aidi,i0aidj,0,5) &
                = -(1.D0+d0x)*(1.D0+d0y)*(1.D0-d0x-d0y)/4.D0
-          d4ifnc0(6,0,i1,j1)&
+          d4ifnc(i0aidi,i0aidj,0,6) &
                =  (1.D0-d0x**2)*(1.D0+d0y   )/2.D0
-          d4ifnc0(7,0,i1,j1)&
+          d4ifnc(i0aidi,i0aidj,0,7) &
                = -(1.D0-d0x)*(1.D0+d0y)*(1.D0+d0x-d0y)/4.D0
-          d4ifnc0(8,0,i1,j1)&
+          d4ifnc(i0aidi,i0aidj,0,8) &
                =  (1.D0-d0x   )*(1.D0-d0y**2)/2.D0 
        ENDDO
        ENDDO
@@ -438,38 +473,47 @@ CONTAINS
        !C
        !C dPHI/dx (x_i,y_i)
        !C
-       DO i1 = 1, i0amax0
-       DO j1 = 1, i0amax0
-          d0x=d1absc0(i1)
-          d0y=d1absc0(j1)
-          d4ifnc0(1,1,i1,j1) =  (1.D0-d0y)*(2.D0*d0x+d0y)/4.D0
-          d4ifnc0(2,1,i1,j1) = -d0x*(1.D0-d0y)
-          d4ifnc0(3,1,i1,j1) =  (1.D0-d0y)*(2.D0*d0x-d0y)/4.D0 
-          d4ifnc0(4,1,i1,j1) =  (1.D0-d0y**2)/2.D0 
-          d4ifnc0(5,1,i1,j1) =  (1.D0+d0y)*(2.D0*d0x+d0y)/4.D0
-          d4ifnc0(6,1,i1,j1) = -d0x*(1.D0+d0y)
-          d4ifnc0(7,1,i1,j1) =  (1.D0+d0y)*(2.D0*d0x-d0y)/4.D0
-          d4ifnc0(8,1,i1,j1) = -(1.D0-d0y**2)/2.D0  
+       DO i0aidj = 1, i0amax
+       DO i0aidi = 1, i0amax
+
+          d0x = d1absc(i0aidi)
+          d0y = d1absc(i0aidj)
+          
+          d4ifnc(i0aidi,i0aidj,1,1) =  (1.D0-d0y)*(2.D0*d0x+d0y)/4.D0
+          d4ifnc(i0aidi,i0aidj,1,2) = -d0x*(1.D0-d0y)
+          d4ifnc(i0aidi,i0aidj,1,3) =  (1.D0-d0y)*(2.D0*d0x-d0y)/4.D0 
+          d4ifnc(i0aidi,i0aidj,1,4) =  (1.D0-d0y**2)/2.D0 
+          d4ifnc(i0aidi,i0aidj,1,5) =  (1.D0+d0y)*(2.D0*d0x+d0y)/4.D0
+          d4ifnc(i0aidi,i0aidj,1,6) = -d0x*(1.D0+d0y)
+          d4ifnc(i0aidi,i0aidj,1,7) =  (1.D0+d0y)*(2.D0*d0x-d0y)/4.D0
+          d4ifnc(i0aidi,i0aidj,1,8) = -(1.D0-d0y**2)/2.D0
+
        ENDDO
        ENDDO
        
        !C
        !C dPHI/dy (x_i,y_i)
        !C
-       DO i1 = 1, i0amax0
-       DO j1 = 1, i0amax0
-          d0x=d1absc0(i1)
-          d0y=d1absc0(j1)
-          d4ifnc0(1,2,i1,j1) =  (1.D0-d0x)*(2.D0*d0y+d0x)/4.D0
-          d4ifnc0(2,2,i1,j1) = -(1.D0-d0x**2)/2.D0
-          d4ifnc0(3,2,i1,j1) =  (1.D0+d0x)*(2.D0*d0y-d0x)/4.D0
-          d4ifnc0(4,2,i1,j1) = -d0y*(1.D0+d0x)
-          d4ifnc0(5,2,i1,j1) =  (1.D0+d0x)*(2.D0*d0y+d0x)/4.D0 
-          d4ifnc0(6,2,i1,j1) =  (1.D0-d0x**2)/2.D0
-          d4ifnc0(7,2,i1,j1) =  (1.D0-d0x)*(2.D0*d0y-d0x)/4.D0
-          d4ifnc0(8,2,i1,j1) = -d0y*(1.D0-d0x) 
+       
+       DO i0aidj = 1, i0amax
+       DO i0aidi = 1, i0amax
+          
+
+          d0x = d1absc(i0aidi)
+          d0y = d1absc(i0aidj)
+
+          d4ifnc(i0aidi,i0aidj,2,1) =  (1.D0-d0x)*(2.D0*d0y+d0x)/4.D0
+          d4ifnc(i0aidi,i0aidj,2,2) = -(1.D0-d0x**2)/2.D0
+          d4ifnc(i0aidi,i0aidj,2,3) =  (1.D0+d0x)*(2.D0*d0y-d0x)/4.D0
+          d4ifnc(i0aidi,i0aidj,2,4) = -d0y*(1.D0+d0x)
+          d4ifnc(i0aidi,i0aidj,2,5) =  (1.D0+d0x)*(2.D0*d0y+d0x)/4.D0 
+          d4ifnc(i0aidi,i0aidj,2,6) =  (1.D0-d0x**2)/2.D0
+          d4ifnc(i0aidi,i0aidj,2,7) =  (1.D0-d0x)*(2.D0*d0y-d0x)/4.D0
+          d4ifnc(i0aidi,i0aidj,2,8) = -d0y*(1.D0-d0x)
+
        ENDDO
        ENDDO
+
     !CASE(12)
        !C FOR 12-NODE CUBIC SERENDIPITY RECTANGULAR ELEMENT
        !C
@@ -483,12 +527,16 @@ CONTAINS
        !C
        
     CASE DEFAULT
+       
        WRITE(6,*)'-------------------------------------------------'
        WRITE(6,*)'SUBROUTINE SET_INTEGRATED_INTERPOLATION FUNCTIONS'
        WRITE(6,*)'ERROR: ILLEGAL I0NMAX0'
        WRITE(6,*)'-------------------------------------------------'
        STOP
+
     END SELECT
+    
     RETURN
+  
   END SUBROUTINE T2INTG_IFUNC
 END MODULE T2INTG

@@ -187,31 +187,9 @@ CONTAINS
     
     i0vmax  = 8*i0spcs + 5
     i0wmax  = 2*i0spcs + 2 ! 2014-01-27 changed
-    i0vgrmx = i0vmax   + 1
-    i0msrmx = i0vgrmx
-    i0avrmx = i0vgrmx
-    i0atrmx = i0vgrmx
-    i0dtrmx = i0vgrmx
-    i0gvrmx = i0vgrmx
-    i0gtrmx = i0vgrmx
-    i0esrmx = i0vgrmx
-    i0evrmx = i0vgrmx
-    i0etrmx = i0vgrmx
-    i0ssrmx = i0vgrmx
-    
-    i0vgcmx = 11 + 49*i0spcs + 8*(i0spcs**2)
-    i0mscmx =  5 +  8*i0spcs    
-    i0avcmx =  7 + 10*i0spcs
-    i0atcmx =      20*i0spcs
-    i0dtcmx =      20*i0spcs
-    i0gvcmx =  4 +  4*i0spcs
-    i0gtcmx =      16*i0spcs
-    i0escmx =      21*i0spcs + 8*(i0spcs**2)
-    i0evcmx =  1 + 23*i0spcs
-    i0etcmx =      16*i0spcs
-    i0sscmx =  5 +  8*i0spcs
-     
-    i0cmax = i0vgcmx*i0ncmx
+         
+    !i0cmax = i0vgcmx*i0ncmx
+    i0cmax = i0vmax*i0ncmx! DUMMY
     i0bmax = i0vmax *i0nmax2
     i0xmax = i0vmax *i0nmax3
 

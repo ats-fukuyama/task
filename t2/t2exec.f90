@@ -8,13 +8,17 @@
 MODULE T2EXEC
   
   USE T2CNST, ONLY:&
-       i0ikind,i0rkind  
+       i0ikind,i0rkind
+
   IMPLICIT NONE
+  
+  INTEGER(i0ikind)::&
+       i0vidi,i0vidj,i0widi,i0widj,i0eidi
   
   PUBLIC T2_EXEC
   
   PRIVATE  
-
+  
 CONTAINS
   
   !C
@@ -24,44 +28,101 @@ CONTAINS
   
   SUBROUTINE T2_EXEC
     
-    USE T2COMM,ONLY:i0emax,i0eid
+    USE T2COMM,ONLY:&
+         i0emax,i0wmax,i0vmax,&
+         i2msvt,i2avvt,i2atvt,i2dtvt,i2gvvt,i2gtvt,&
+         i2esvt,i2evvt,i2etvt,i2ssvt,&
+         i3atwt,i3gtwt,i3evwt,i4etwt
     
-    INTEGER(i0ikind):: i1,j1,&
-         i0vr,i0vc,i0vg,i0nr,i0nc,i0ng,i0tr,i0tc,i0tg
+    INTEGER(i0ikind)::&
+         i0msvt,i0avvt,i0atvt,i0dtvt,i0gvvt,i0gtvt,&
+         i0esvt,i0evvt,i0etvt,i0ssvt,&
+         i0atwt,i0gtwt,i0evwt,i0etwt
     
     REAL(4)::e0time_0,e0time_1
     
     CALL CPU_TIME(e0time_0)
+    
+    DO i0eidi = 1, i0emax
+       
+       CALL T2EXEC_LV 
+       
+       DO i0vidj = 1, i0vmax
+       DO i0vidi = 1, i0vmax
+          
+          i0msvt = i2msvt(i0vidi,i0vidj)
+          i0avvt = i2avvt(i0vidi,i0vidj)
+          i0atvt = i2atvt(i0vidi,i0vidj)
+          i0dtvt = i2dtvt(i0vidi,i0vidj)
+          i0gvvt = i2gvvt(i0vidi,i0vidj)
+          i0gtvt = i2gtvt(i0vidi,i0vidj)
+          i0esvt = i2esvt(i0vidi,i0vidj)
+          i0evvt = i2evvt(i0vidi,i0vidj)
+          i0etvt = i2etvt(i0vidi,i0vidj)
+          i0ssvt = i2ssvt(i0vidi,i0vidj)
+          
+          IF(i0msvt.EQ.1)       CALL T2EXEC_MS
+          
+          IF(i0avvt.EQ.1)       CALL T2EXEC_AV
+          
+          IF(i0atvt.EQ.1)THEN
+             DO i0widi = 1, i0wmax
+                i0atwt = i3atwt(i0widi,i0vidi,i0vidj)
+                IF(i0atwt.EQ.1) CALL T2EXEC_AT
+             ENDDO
+          ENDIF
+          
+          IF(i0dtvt.EQ.1)       CALL T2EXEC_DT
+          
+          IF(i0gvvt.EQ.1)       CALL T2EXEC_GV
+          
+          IF(i0gtvt.EQ.1)THEN
+             DO i0widi = 1, i0wmax
+                i0gtwt = i3gtwt(i0widi,i0vidi,i0vidj)
+                IF(i0gtwt.EQ.1) CALL T2EXEC_GT
+             ENDDO
+          ENDIF
+          
+          IF(i0esvt.EQ.1)       CALL T2EXEC_ES
+          
+          IF(i0evvt.EQ.1)THEN
+             DO i0widi = 1, i0wmax
+                i0evwt = i3evwt(i0widi,i0vidi,i0vidj)
+                IF(i0evwt.EQ.1) CALL T2EXEC_EV
+             ENDDO
+          ENDIF
+          
+          IF(i0etvt.EQ.1)THEN          
+             DO i0widj = 1, i0wmax
+             DO i0widi = 1, i0wmax
+                i0etwt = i4etwt(i0widi,i0widj,i0vidi,i0vidj)
+                IF(i0etwt.EQ.1) CALL T2EXEC_ET
+             ENDDO
+             ENDDO
+          ENDIF
+          
+          IF(i0ssvt.EQ.1)       CALL T2EXEC_SS
+          
+       ENDDO
+       ENDDO
+       
+       CALL T2EXEC_STORE
 
-    DO i0eid=1,i0emax
-       
-       CALL T2EXEC_LV
-       CALL T2EXEC_MS
-       CALL T2EXEC_AV
-       CALL T2EXEC_AT
-       CALL T2EXEC_DT
-       CALL T2EXEC_GV
-       CALL T2EXEC_GT
-       CALL T2EXEC_ES 
-       CALL T2EXEC_EV    
-       CALL T2EXEC_ET
-       CALL T2EXEC_SS
-       
     ENDDO
     
-          CALL CPU_TIME(e0time_1)
-          WRITE(6,'(A,F10.3,A)') '-- T2EXEC: completed:          cpu=', &
-                                 e0time_1-e0time_0,' [s]'
-          CALL CPU_TIME(e0time_0)
+    CALL CPU_TIME(e0time_1)
+    WRITE(6,'(A,F10.3,A)') '-- T2EXEC: completed:          cpu=', &
+         e0time_1-e0time_0,' [s]'
+    CALL CPU_TIME(e0time_0)
     CALL T2EXEC_BC
-          CALL CPU_TIME(e0time_1)
-          WRITE(6,'(A,F10.3,A)') '-- T2EXEC_BC completed:        cpu=', &
-                                 e0time_1-e0time_0,' [s]'
-          CALL CPU_TIME(e0time_0)
+    CALL CPU_TIME(e0time_1)
+    WRITE(6,'(A,F10.3,A)') '-- T2EXEC_BC completed:        cpu=', &
+         e0time_1-e0time_0,' [s]'
+    CALL CPU_TIME(e0time_0)
     CALL T2EXEC_SOLVE
-          CALL CPU_TIME(e0time_1)
-          WRITE(6,'(A,F10.3,A)') '-- T2EXEC_SOLVE completed:     cpu=', &
-                                 e0time_1-e0time_0,' [s]'
+    CALL CPU_TIME(e0time_1)
+    WRITE(6,'(A,F10.3,A)') '-- T2EXEC_SOLVE completed:     cpu=', &
+         e0time_1-e0time_0,' [s]'
     
     RETURN
     
@@ -74,31 +135,34 @@ CONTAINS
   !C    * CALCULATE JACOBIAN OF PARAMETRIC SPACE
   !C    * STORE VARIABLES ST N-th TIMESTEP   
   !C    * SET WORKING ARRAY FOR DIFFERENTIAL
+  !C
+  !C                     2014-01-27 H.SETO
+  !C
   !C------------------------------------------------------------------
   
   SUBROUTINE T2EXEC_LV
     
     USE T2COMM, ONLY:&
-         i0nmax0,i0dmax0,i0vmax,i0spcs,i0eid,i0lid,&
-         d1rsiz,d1psiz,d2knv0,d1guv,d2ws,d2ws0,&
+         i0nmax,i0dmax,i0vmax,i0smax,i0lid,&
+         d1rsiz,d1psiz,d1guv,d2ws,d2wrks,d2kwns,&
          i2enr0,i3enr,i1mlel,&
          d2jmpm,d0jdmp,i0nmax2,i0nmax3
     
     INTEGER::&
-         i1,i3,i4,i0ln,i0lv,i0wid
+         i0ridi,i0nidi,i0sidi,i0node,i0val
     
     !C
     !C SET LOCAL NODE-ELEMENT GRAPH
     !C
-    !C   I2ENR(1,:) : NON-DEGENERATED 
-    !C   I2ENR(2,:) :     DEGENERATED
-    !C   I2ENR(3,:) :     DEGENERATED
-    !C   I2ENR(4,:) :     DEGENERATED
+    !C   I2ENR(1:i0nmax,1) : FOR COEFFICIENT CALCULATION
+    !C   I2ENR(1:i0nmax,2) : FOR 2D-2D 
+    !C   I2ENR(1:i0nmax,3) : FOR 1D-2D,1D-1D 
+    !C   I2ENR(1:i0nmax,4) : FOR 2D-1D
     !C
     
-    DO i3=1,i0nmax0
-       DO i1=1,4
-          i2enr0(i1,i3)=i3enr(i0eid,i1,i3)
+    DO i0ridi = 1, 4
+       DO i0nidi = 1, i0nmax
+          i2enr0(i0nidi,i0ridi)=i3enr(i0nidi,i0ridi,i0eidi)
        ENDDO
     ENDDO
     
@@ -109,7 +173,7 @@ CONTAINS
     !C D2JMPM: INVERSE JACOBI MATRIX OF PARAMETRIC SPACE
     !C
     
-    i0lid = i1mlel(i0eid) 
+    i0lid = i1mlel(i0eidi) 
     d0jdmp= d1rsiz(i0lid)*d1psiz(i0lid)/4.D0
     
     IF(d0jdmp.LE.0.D0)THEN
@@ -122,21 +186,23 @@ CONTAINS
     d2jmpm(2,1)= 0.D0
     d2jmpm(2,2)= 2.D0/d1psiz(i0lid)
     
+    !C
     !C STORE VARIABLES AT N-th TIMESTEP 
+    !C xyz
 
-    DO i4=1,i0vmax    
+    DO i0vidi = 1, i0vmax
        
-       IF(    i4.GT.3)THEN
-          DO i3=1,i0nmax0
-             i0ln = i2enr0(2,i3)
-             i0lv = i0vmax*(i0ln-1) + i4
-             d2knv0(i3,i4) = d1guv(i0lv)
+       IF(    i0vidi.GT.3)THEN
+          DO i0nidi = 1, i0nmax
+             i0node = i2enr0(i0nidi,2)
+             i0val  = i0vmax*(i0node - 1) + i0vidi
+             d2kwns(i0nidi,i0vidi) = d1guv(i0val)
           ENDDO
-       ELSEIF(i4.LE.3)THEN
-          DO i3=1,i0nmax0
-             i0ln = i2enr0(4,i3)
-             i0lv = i0vmax*(i0ln-1) + i4
-             d2knv0(i3,i4) = d1guv(i0lv)
+       ELSEIF(i0vidi.LE.3)THEN
+          DO i0nidi = 1, i0nmax
+             i0node = i2enr0(i0nidi,4)
+             i0val  = i0vmax*(i0node - 1) + i0vidi
+             d2kwns(i0nidi,i0vidi) = d1guv(i0val)
           ENDDO
        ENDIF
     ENDDO
@@ -144,143 +210,35 @@ CONTAINS
     !C SET WORKING ARRAY FOR DIFFERENTIAL
 
     !C 
-    !C D2WS0(1   ,:) : B   AT L-TH PICARD ITERATION
-    !C D2WS0(2   ,:) : lnR AT L-TH PICARD ITERATION
-    !C D2WS0(5N-2,:) : Ub  AT L-TH PICARD ITERATION 
-    !C D2WS0(5N-1,:) : N   AT L-TH PICARD ITERATION 
-    !C D2WS0(5N  ,:) : Fb  AT L-TH PICARD ITERATION 
-    !C D2WS0(5N+1,:) : P   AT L-TH PICARD ITERATION 
-    !C D2WS0(5N+2,:) : Qb  AT L-TH PICARD ITERATION 
+    !C D2WRKS(1   ,:) : B    AT L-TH PICARD ITERATION
+    !C D2WRKS(2   ,:) : R    AT L-TH PICARD ITERATION
+    !C D2WRKS(2N+1,:) : Ub   AT L-TH PICARD ITERATION 
+    !C D2WRKS(2N+2,:) : Qb/P AT L-TH PICARD ITERATION 
     !C
     
-    DO i3 = 1, i0nmax0
+    DO i0nidi = 1, i0nmax
        
-       i0ln = i2enr0(1,i3)
+       i0node = i2enr0(i0nidi,1)
        
-       d2ws0(1,i3) = d2ws(1,i0ln)
-       d2ws0(2,i3) = d2ws(2,i0ln)
+       d2wrks(1,i0nidi) = d2ws(1,i0node)
+       d2wrks(2,i0nidi) = d2ws(2,i0node)
        
-       DO i4 = 1, i0spcs
+       DO i0sidi = 1, i0smax
           
-          i0wid = 5*i0spcs - 3
-          d2ws0(i0wid+1,i3) = d2ws(i0wid+1,i0ln)
-          d2ws0(i0wid+2,i3) = d2ws(i0wid+2,i0ln)
-          d2ws0(i0wid+3,i3) = d2ws(i0wid+3,i0ln)
-          d2ws0(i0wid+4,i3) = d2ws(i0wid+4,i0ln)
-          d2ws0(i0wid+5,i3) = d2ws(i0wid+5,i0ln)
+          i0widi = 2*i0sidi
+          
+          d2wrks(i0widi+1,i0nidi) = d2ws(i0widi+1,i0node)
+          d2wrks(i0widi+2,i0nidi) = d2ws(i0widi+2,i0node)
           
        ENDDO
     ENDDO
-    
+        
     RETURN
     
   END SUBROUTINE T2EXEC_LV
   
   SUBROUTINE T2EXEC_BC
-    
-    USE T2COMM, ONLY:&
-         i0lmax,i0nmax2,i0vmax,i0vgcmx,&
-         i1pdn2,i1nidr,i1nidc,i1vgidr,i1vgidc,&
-         d1gsm,d1grv,d1guv,i0dbg
-    INTEGER::&
-         i0nr,i0nc,i0ng,i0vr,i0vc,i0vg,i0tr,i0tc,i0tg,&
-         i0dsta,i0dend,i0pdn2
-    !C------------------------------------------------------
-    
-    i0pdn2 = i1pdn2(i0lmax)
-    i0dsta = i0nmax2-i0pdn2
-    i0dend = i0nmax2
-    
-    !C
-    !C SET FIXED VARIALES 
-    !C 
-
-    DO i0nr= 1, i0dsta-1  
-       
-       !C STIFFNESS MATRIX
-       
-       DO i0ng = i1nidr(i0nr), i1nidr(i0nr+1)-1
-          i0nc = i1nidc(i0ng)
-          DO i0vr = 1, i0vmax
-             SELECT CASE(i0vr)
-             CASE(1:5,14:21)
-                DO i0vg = i1vgidr(i0vr), i1vgidr(i0vr+1)-1
-                   i0vc = i1vgidc(i0vg)
-                   i0tr = i0vmax*( i0nr-1)+i0vr
-                   i0tc = i0vmax*( i0nc-1)+i0vc
-                   i0tg = i0vgcmx*(i0ng-1)+i0vg
-                   IF((i0nr.EQ.i0nc).AND.(i0vr.EQ.i0vc))THEN
-                      d1gsm(i0tg) = 1.D0
-                   ELSE
-                      d1gsm(i0tg) = 0.D0
-                   ENDIF
-                ENDDO
-             END SELECT
-          ENDDO
-       ENDDO
-       
-       !C RHS VECTOR 
-       
-       DO i0vr = 1, i0vmax
-          SELECT CASE(i0vr)
-          CASE(1:5,14:21)
-             i0tr        = i0vmax*( i0nr-1)+i0vr
-             d1grv(i0tr) = d1guv(i0tr)
-          END SELECT
-       ENDDO
-    ENDDO
-    
-    !C SET DIRICHLET CONDITION 
-    
-    DO i0nr = i0dsta, i0dend
-       
-       !C STIFFNESS MATRIX
-       
-       DO i0ng = i1nidr(i0nr), i1nidr(i0nr+1)-1
-          i0nc = i1nidc(i0ng)
-          DO i0vr = 1, i0vmax
-             !IF((i0vr.EQ.4).OR.(i0vr.EQ.5)) CYCLE
-             !IF(  ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.2)))CYCLE
-             !IF(  ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.2)).OR.&
-             !     ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.3)))CYCLE
-             !IF(  ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.2)).OR.&
-             !     ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.3)).OR.&
-             !     ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.6)).OR.&
-             !     ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.7))) CYCLE
-             DO i0vg = i1vgidr(i0vr),i1vgidr(i0vr+1)-1
-                i0vc = i1vgidc(i0vg)
-                i0tr = i0vmax*( i0nr-1)+i0vr
-                i0tc = i0vmax*( i0nc-1)+i0vc
-                i0tg = i0vgcmx*(i0ng-1)+i0vg
-                IF((i0nr.EQ.i0nc).AND.(i0vr.EQ.i0vc))THEN
-                   d1gsm(i0tg)=1.D0
-                ELSE
-                   d1gsm(i0tg)=0.D0
-                ENDIF
-             ENDDO
-          ENDDO
-       ENDDO
-       
-       !C RHS VECTOR 
-       
-       DO i0vr = 1, i0vmax
-          
-          !IF((i0vr.EQ.4).OR.(i0vr.EQ.5)) CYCLE
-          !IF(  ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.2)))CYCLE
-          !IF(  ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.2)).OR.&
-          !     ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.3)))CYCLE
-          !IF(  (i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.2)) CYCLE
-          !IF(  ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.2)).OR.&
-          !     ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.3)).OR.&
-          !     ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.6)).OR.&
-          !     ((i0vr.GE.6).AND.(MOD(i0vr-6,8).EQ.7))) CYCLE
-          i0tr        = i0vmax*(i0nr-1)+i0vr
-          d1grv(i0tr) = d1guv(i0tr)
-       ENDDO
-    ENDDO
-    
     RETURN
-    
   END SUBROUTINE T2EXEC_BC
   
   !C
@@ -289,176 +247,10 @@ CONTAINS
   !C
   SUBROUTINE T2EXEC_SOLVE
     
-    USE T2COMM, ONLY:&
-         i0vmax,i0vgcmx,i0cmax,i0bmax,i0xmax,&
-         i0nmax2,i0nmax3,i0dbg,i0lmax,&
-         i1nidr,i1nidc,i1vgidr,i1vgidc,i1pdn2,i1rdn2,&
-         d1gsm, d1grv,d1guv_befor,d1guv_after,i2hbc,i0cmax,idebug
-    
+    USE T2COMM
     USE LIBMPI
     USE COMMPI
     USE LIBMTX
-    
-
-    INTEGER(i0ikind)::istart,iend,its
-    INTEGER(i0ikind)::itype, m1, m2,i2val(i0vmax,i0vmax)
-    REAL(   i0rkind)::tolerance,d0val
-    REAL(   i0rkind),POINTER,SAVE::x(:)
-    INTEGER(i0ikind)::&
-         i1,i2,j2,i4,i5,i0cnt,&
-         i0vr,i0vc,i0vg,i0nr,i0nc,i0ng,i0tr,i0tc,i0tg,&
-         i0hnu,i0hnd,i0hind,i0xid,i0xidd,i0xidu,&
-         i0pdn2,i0rdn2,i0ofs,&
-         i0trc,i0trc1,i0trc2,i0trc3,&
-         i0tcc,i0tcc1,i0tcc2,i0tcc3,&
-         i0tcl,i0tcl1,i0tcl2,i0tcl3
-
-100 FORMAT(A5,I3,A5,I3,A5,I3,A5,D15.6,A5,D15.6)
-    
-    !C MTX SETUP
-
-    itype = 0
-    m1    = 4
-    
-    IF(nsize.EQ.1)THEN
-       m2 = 5
-    ELSE
-       m2 = 0
-    ENDIF
-
-    tolerance=1.D-7
-
-    ALLOCATE(x(i0bmax))
-    
-    CALL MTX_SETUP(i0bmax,istart,iend,nzmax=i0cmax,idebug=0)
-    
-    i0cnt=0
-    
-    !C
-    !C 
-    !C
-    DO i0nr=1,i0nmax2
-       DO i0ng = i1nidr(i0nr), i1nidr(i0nr+1)-1
-          i0nc = i1nidc(i0ng)
-          DO i0vr = 1, i0vmax
-             DO i0vg  = i1vgidr(i0vr), i1vgidr(i0vr+1)-1
-                i0vc  = i1vgidc(i0vg)
-                i0tr  = i0vmax*( i0nr - 1) + i0vr
-                i0tc  = i0vmax*( i0nc - 1) + i0vc
-                i0tg  = i0vgcmx*(i0ng - 1) + i0vg
-                d0val = d1gsm(i0tg)
-                
-                IF(ABS(d0val).NE.0.D0) THEN
-                   IF(IDEBUG.EQ.1) THEN
-                      WRITE(18,'(6I5,3I10,1PE12.4)') &
-                           i0nr,i0nc,i0ng,i0vr,i0vc,i0vg,i0tr,i0tc,i0tg,d0val
-                   END IF
-                   CALL MTX_SET_MATRIX(i0tr,i0tc,d0val)
-                END IF
-                
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-    
-    !C
-    !C
-    !C
-    
-    i0ofs  = 1
-    
-    DO i1=1,i0lmax
-       
-       i0pdn2 = i1pdn2(i1)
-       i0rdn2 = i1rdn2(i1)
-       
-       DO i2=1,i0rdn2
-       DO j2=1,i0pdn2
-          
-          i0trc  = i0vmax*i0ofs
-          i0trc1 = i0trc + 1
-          i0trc2 = i0trc + 2
-          i0trc3 = i0trc + 3
-          
-          i0tcc  = i0trc
-          i0tcc1 = i0tcc + 1
-          i0tcc2 = i0tcc + 2
-          i0tcc3 = i0tcc + 3
-          
-          i0tcl  = i0trc - i0vmax
-          i0tcl1 = i0tcl + 1
-          i0tcl2 = i0tcl + 2
-          i0tcl3 = i0tcl + 3
-          
-          IF((i1.EQ.i0lmax).AND.(i2.EQ.i0rdn2)) EXIT
-          
-          IF((j2.GE.1).AND.(j2.LT.i0pdn2))THEN
-             CALL MTX_SET_MATRIX(i0trc1,i0tcc1,-1.D0)
-             CALL MTX_SET_MATRIX(i0trc2,i0tcc2,-1.D0)
-             CALL MTX_SET_MATRIX(i0trc3,i0tcc3,-1.D0)
-          ENDIF
-          IF((j2.GT.1).AND.(j2.LE.i0pdn2))THEN
-             CALL MTX_SET_MATRIX(i0trc1,i0tcl1, 1.D0)
-             CALL MTX_SET_MATRIX(i0trc2,i0tcl2, 1.D0)
-             CALL MTX_SET_MATRIX(i0trc3,i0tcl3, 1.D0)
-          ENDIF
-          
-          i0ofs = i0ofs + 1
-          
-       ENDDO
-       ENDDO
-    ENDDO
-    
-    !IF(i0ofs.NE.i0nmax2)THEN
-    !   WRITE(6,*)'ERROR IN T2EXEC_SOLVE'
-    !   STOP
-    !ENDIF
-    
-    !C
-    !C
-    !C
-    DO i4=1,i0bmax
-       d0val = d1grv(i4)
-       CALL MTX_SET_SOURCE(i4,d0val)
-    ENDDO
-    
-    DO i4=1,i0bmax
-       d0val = d1guv_befor(i4)
-       CALL MTX_SET_VECTOR(i4,d0val)
-    ENDDO
-    
-    CALL MTX_SOLVE(itype,tolerance,its,&
-         methodKSP=m1,methodPC=m2,max_steps = 999)
-    
-    CALL MTX_GATHER_VECTOR(x)
-    
-    DO i4=1,i0nmax3
-       
-       IF(i4.LE.i0nmax2)THEN
-          DO i5=1,i0vmax
-             i0xid              = i0vmax*(i4-1)+i5
-             d1guv_after(i0xid) = x(i0xid)
-          ENDDO
-       ELSEIF((i4.GT.i0nmax2).AND.(i4.LE.i0nmax3))THEN
-          i0hind          = i4-i0nmax2
-          i0hnd           = i2hbc(i0hind,1)
-          i0hnu           = i2hbc(i0hind,2)
-          
-          DO i5=1,i0vmax 
-             i0xid              = i0vmax*(i4-1)+i5
-             i0xidd             = i0vmax*(i0hnd-1)+i5
-             i0xidu             = i0vmax*(i0hnu-1)+i5
-             d1guv_after(i0xid) = 0.5D0*(x(i0xidd)+x(i0xidu))
-          ENDDO
-       ENDIF
-       
-    ENDDO
-    
-    CALL MTX_CLEANUP
-    
-    DEALLOCATE(x)
-    
-!    IF(i0tstp.eq.i0tmax) CALL MTX_FINALIZE
     
     RETURN
     
@@ -467,301 +259,340 @@ CONTAINS
   !C
   !C SUBROUTINES FOR CALCULATING  MATRCES 
   !C
+  
   SUBROUTINE T2EXEC_MS
     
     USE T2COMM,ONLY:&
-         i0nmax0,i0dmax0,i0vmax,i2enr0,i0vida,i0vidb,&
-         d0jdmp,d2smat0,d1svec0,d2knv0,&
-         i0msid,i1msidr,i1msidc,d2ms,d3imsn0, &
-         dt
+         i0nmax,i0dmax,i0vmax,i2enr0,&
+         d0jdmp,dt,&
+         d3ms,d3imsn,d4smat,d2svec,d2kwns
     
-    INTEGER(i0ikind):: i3,j3,k3
-    REAL(   i0rkind):: d1mass0(1:i0nmax0)
+    INTEGER(i0ikind)::&
+         i0nidi,i0nidj,i0nidk,&
+         i0node
     
-    !C INITIALIZE
-    DO i0vida = 1, i0vmax
-       
-       !IF((i0vida.GE.6).AND.(MOD(i0vida-6,8).GT.i0dbg)) CYCLE
-       
-       DO i0msid = i1msidr(i0vida),i1msidr(i0vida+1)-1
-          i0vidb = i1msidc(i0msid)
-          
-          d2smat0(1:i0nmax0,1:i0nmax0) = 0.D0
-          d1svec0(1:i0nmax0          ) = 0.D0
-          d1mass0(1:i0nmax0          ) = 0.D0
-          
-          DO i3=1,i0nmax0
-             d1mass0(i3)=d2ms(i0msid,i2enr0(1,i3))
-          ENDDO
-          
-          DO j3=1,i0nmax0
-          DO i3=1,i0nmax0
-          DO k3=1,i0nmax0
-             d2smat0(       i3,j3   )&
-                  = d2smat0(i3,j3   )&
-                  + d3imsn0(i3,j3,k3)&
-                  * d1mass0(      k3)&
-                  * d0jdmp
-          ENDDO
-          ENDDO
-          ENDDO 
-          
-          DO j3=1,i0nmax0
-          DO i3=1,i0nmax0
-             d2smat0(i3,j3) = d2smat0(i3,j3)/dt
-          ENDDO
-          ENDDO
-          
-          CALL T2EXEC_STRM
+    REAL(   i0rkind)::&
+         d2smat(1:i0nmax,1:i0nmax),&
+         d1svec(1:i0nmax),&
+         d1mass(1:i0nmax)
     
-          DO j3=1,i0nmax0
-          DO i3=1,i0nmax0
-             d1svec0(i3)=d1svec0(i3)+d2smat0(i3,j3)*d2knv0(j3,i0vidb)
-          ENDDO
-          ENDDO
-
-          CALL T2EXEC_STRV
-          
-       ENDDO
-
+    !C
+    !C INITIALIZATION
+    !C
+    
+    d2smat(1:i0nmax,1:i0nmax) = 0.D0
+    
+    DO i0nidi = 1, i0nmax
+       i0node = i2enr0(i0nidi,1)
+       d1mass(i0nidi)&
+            = d3ms(i0vidi,i0vidj,i0node)*d0jdmp/dt
     ENDDO
+    
+    !C
+    !C MAIN LOOP
+    !C
+    
+    DO i0nidj = 1, i0nmax       
+    DO i0nidi = 1, i0nmax         
+       d2smat(i0nidi,i0nidj) = 0.D0
+       DO i0nidk = 1, i0nmax         
+          d2smat(              i0nidi,i0nidj) &
+               = d2smat(       i0nidi,i0nidj) &
+               + d3imsn(i0nidk,i0nidi,i0nidj) &
+               * d1mass(i0nidk              )
+       ENDDO       
+    ENDDO
+    ENDDO
+    
+    DO i0nidi = 1, i0nmax
+       d1svec(i0nidi) = 0.D0
+       DO i0nidj = 1, i0nmax  
+          d1svec(       i0nidi              ) &
+               = d1svec(i0nidi              ) &
+               + d2smat(i0nidi,i0nidj       ) &
+               * d2kwns(       i0nidj,i0vidj)
+       ENDDO
+    ENDDO
+    
+    !C
+    !C STORE SUBMATRIX
+    !C
+    
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax
+       d4smat(       i0nidi,i0nidj,i0vidi,i0vidj) &
+            = d4smat(i0nidi,i0nidj,i0vidi,i0vidj) &
+            + d2smat(i0nidi,i0nidj              )
+    ENDDO
+    ENDDO
+
+    !C
+    !C STORE SUBVECTOR
+    !C
+
+    DO i0nidi = 1, i0nmax
+       d2svec(       i0nidi,i0vidi) &
+            = d2svec(i0nidi,i0vidi) & 
+            + d1svec(i0nidi       )
+    ENDDO
+    
     RETURN
     
   END SUBROUTINE T2EXEC_MS
   
+  
   SUBROUTINE T2EXEC_AV
     
     USE T2COMM,ONLY:&
-         i0nmax0,i0dmax0,i0vmax,i2enr0,i0vida,i0vidb,&
-         d0jdmp,d2jmpm,d2smat0,&
-         i0avid,i1avidr,i1avidc,d3av,d4iavn0         
+         i0nmax,i0dmax,i0vmax,i2enr0,&
+         d0jdmp,d2jmpm,&
+         d4av,d4iavn,d4smat
+    
     INTEGER(i0ikind)::&
-         i2,j2,i3,j3,k3
+         i0didi,i0didj,&
+         i0nidi,i0nidj,i0nidk,&
+         i0node
     
     REAL(   i0rkind)::&
-         d2velo0(1:i0nmax0,1:i0dmax0),temp2d(i0nmax0,i0dmax0)
+         d2smat(1:i0nmax,1:i0nmax),&
+         d2velo(1:i0dmax,1:i0nmax),&
+         d2temp(1:i0dmax,1:i0nmax)
     
-    DO i0vida = 1, i0vmax   
-       
-       DO i0avid = i1avidr(i0vida),i1avidr(i0vida+1)-1
-          i0vidb = i1avidc(i0avid)
-          
-          !C INTITIALIZE
-                    
-          d2velo0(1:i0nmax0,1:i0dmax0)=0.D0
-          d2smat0(1:i0nmax0,1:i0nmax0)=0.D0
-          
-          DO i2=1,i0dmax0
-             DO i3=1,i0nmax0
-                d2velo0(i3,i2)=d3av(i2,i0avid,i2enr0(1,i3))
-             ENDDO
-          ENDDO
-
-          DO j2=1,i0dmax0
-          DO k3=1,i0nmax0
-             temp2d(k3,j2) = 0.D0
-             DO i2=1,i0dmax0
-                temp2d(k3,j2) = temp2d(k3,    j2) &
-                              + d2velo0(k3,i2   ) &
-                              * d2jmpm(    i2,j2) 
-             END DO
-             temp2d(k3,j2) = temp2d(k3,j2)*d0jdmp
-          END DO
-          END DO
-
-          DO j3=1,i0nmax0
-          DO i3=1,i0nmax0
-             DO j2=1,i0dmax0
-             DO k3=1,i0nmax0
-                d2smat0(       i3,j3      ) &
-                     = d2smat0(i3,j3      ) &
-                     + d4iavn0(i3,j3,k3,j2) &
-                     * temp2d(       k3,j2)
-
-!                     * d2velo0(      k3,i2   )&
-!                     * d2jmpm(          i2,j2)&
-!                     * d0jdmp
-
-             ENDDO
-             ENDDO
-          ENDDO
-          ENDDO
-          
-          CALL T2EXEC_STRM
-          
+    !C
+    !C INTITIALIZATION
+    !C
+    
+    DO i0nidi = 1, i0nmax
+       i0node = i2enr0(i0nidi,1)
+       DO i0didi = 1, i0dmax
+          d2velo(     i0didi,i0nidi                     ) &
+               = d4av(i0didi,       i0vidi,i0vidj,i0node) &
+               * d0jdmp
        ENDDO
     ENDDO
-    RETURN
+    
+    !C
+    !C MAIN LOOP
+    !C
+    
+    DO i0nidk = 1, i0nmax
+       DO i0didj = 1, i0dmax
+          d2temp(i0didj,i0nidk) = 0.D0
+          DO i0didi = 1, i0dmax
+             d2temp(              i0didj,i0nidk) &
+                  = d2temp(       i0didj,i0nidk) &
+                  + d2velo(i0didi,       i0nidk) &
+                  * d2jmpm(i0didi,i0didj       ) 
+          ENDDO
+       ENDDO
+    ENDDO
+    
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax
+       d2smat(i0nidi,i0nidj) = 0.D0
+       DO i0nidk = 1, i0nmax
+          DO i0didj = 1, i0dmax
+             d2smat(                     i0nidi,i0nidj) &
+                  = d2smat(              i0nidi,i0nidj) &
+                  + d4iavn(i0didj,i0nidk,i0nidi,i0nidj) &
+                  * d2temp(i0didj,i0nidk              )
+          ENDDO
+       ENDDO
+    ENDDO
+    ENDDO
 
+    !C
+    !C STORE SUBMATRIX
+    !C
+    
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax
+       d4smat(       i0nidi,i0nidj,i0vidi,i0vidj) &
+            = d4smat(i0nidi,i0nidj,i0vidi,i0vidj) &
+            + d2smat(i0nidi,i0nidj              )
+    ENDDO
+    ENDDO
+    
+    RETURN
+    
   END SUBROUTINE T2EXEC_AV
+  
+  
   
   SUBROUTINE T2EXEC_AT
     
     USE T2COMM,ONLY:&
-         i0nmax0,i0dmax0,i0vmax,i2enr0,i0vida,i0vidb,&
-         d2jmpm,d0jdmp,d2smat0,&
-         i0atid,i1atidr,i2atidc,d4at,d6iatn0,d2ws0
+         i0nmax,i0dmax,i0vmax,i2enr0,&
+         d2jmpm,d0jdmp,&
+         d6at,d6iatn,d4smat,d2wrks
     
     INTEGER(i0ikind)::&
-         i3,j3,k3,l3,i2,j2,k2,l2,&
-         i0nn,i0atsa
-    REAL(   i0rkind)::&
-         d3velo0(1:i0nmax0,1:i0dmax0,1:i0dmax0),&
-         d1atsa0(1:i0nmax0), &
-         temp3d(1:i0nmax0,1:i0dmax0,1:i0dmax0)
+         i0nidi,i0nidj,i0nidk,i0nidl,&
+         i0didi,i0didj,i0didk,i0didl,&
+         i0node
     
-    DO i0vida = 1, i0vmax   
-       
-       DO i0atid = i1atidr(i0vida),i1atidr(i0vida+1)-1
-          
-          i0vidb = i2atidc(i0atid,1)
-          i0atsa = i2atidc(i0atid,2)
-          
-          !C INITIALIZATION
-          
-          d2smat0(1:i0nmax0,1:i0nmax0          ) = 0.D0
-          d3velo0(1:i0nmax0,1:i0dmax0,1:i0dmax0) = 0.D0
-          d1atsa0(1:i0nmax0                    ) = 0.D0
-   
-          DO i3 = 1, i0nmax0
-             i0nn = i2enr0(1,i3)
-             DO j2 = 1, i0dmax0
-             DO i2 = 1, i0dmax0
-                d3velo0(i3,i2,j2)=d4at(i2,j2,i0atid,i0nn)
-             ENDDO
-             ENDDO
-          ENDDO
-                    
-          DO i3 = 1,i0nmax0
-             d1atsa0(i3) = d2ws0(i0atsa,i3)
-          ENDDO
-
-          DO l2 = 1, i0dmax0
-          DO k2 = 1, i0dmax0
-          DO l3 = 1, i0nmax0
-             temp3d(l3,k2,l2) = 0.D0
-             DO j2 = 1, i0dmax0
-             DO i2 = 1, i0dmax0
-                temp3d(l3,k2,l2) = temp3d( l3,      k2,l2) &
-                                 + d3velo0(l3,i2,j2      ) &
-                                 * d2jmpm(    i2,   k2   ) &
-                                 * d2jmpm(       j2,   l2)
-             END DO
-             END DO
-             temp3d(l3,k2,l2)=temp3d(l3,k2,l2)*d0jdmp
-          END DO
-          END DO
-          END DO
-          !C MAIN LOOP
-          
-          DO j3 = 1, i0nmax0
-          DO i3 = 1, i0nmax0
-             DO l2 = 1, i0dmax0
-             DO k2 = 1, i0dmax0
-             DO l3 = 1, i0nmax0
-             DO k3 = 1, i0nmax0
-                d2smat0(       i3,j3            )&
-                     = d2smat0(i3,j3            )&
-                     + d6iatn0(i3,j3,k3,l3,k2,l2)&
-                     * d1atsa0(      k3         )&
-                     * temp3d(          l3,k2,l2)
-
-!                     * d3velo0(         l3,i2,j2      )&
-!                     * d2jmpm(             i2,   k2   )&
-!                     * d2jmpm(                j2,   l2)&
-!                     * d0jdmp
-             ENDDO
-             ENDDO
-            ENDDO
-            ENDDO
-          ENDDO
-          ENDDO
-          
-          CALL T2EXEC_STRM
-          
+    REAL(   i0rkind)::&
+         d3velo(1:i0dmax,1:i0dmax,1:i0nmax),&
+         d2smat(1:i0nmax,1:i0nmax),&
+         d1atwi(1:i0nmax),&
+         d3temp(1:i0nmax,1:i0dmax,1:i0dmax)
+    
+    !C
+    !C INITIALIZATION
+    !C
+    
+    DO i0nidi = 1, i0nmax
+       d1atwi(i0nidi) = d2wrks(i0nidi,i0widi)
+    ENDDO
+    
+    DO i0nidi = 1, i0nmax       
+       i0node = i2enr0(i0nidi,1)
+       DO i0didj = 1, i0dmax
+       DO i0didi = 1, i0dmax
+          d3velo(     i0didi,i0didj,i0nidi)&
+               = d6at(i0didi,i0didj,i0widi,i0vidi,i0vidj,i0node) &
+               * d0jdmp
        ENDDO
+       ENDDO
+    ENDDO
+         
+    !C
+    !C MAIN LOOP
+    !C
+    
+    DO i0nidl = 1, i0nmax
+       DO i0didl = 1, i0dmax
+       DO i0didk = 1, i0dmax
+          d3temp(i0didk,i0didl,i0nidl) = 0.D0          
+          DO i0didi = 1, i0dmax
+          DO i0didj = 1, i0dmax
+             d3temp(                     i0didk,i0didl,i0nidl) &
+                  = d3temp(              i0didk,i0didl,i0nidl) &
+                  + d3velo(i0didi,i0didj,              i0nidl) &
+                  * d2jmpm(i0didi,       i0didk              ) &
+                  * d2jmpm(       i0didj,       i0didl       )
+          END DO
+          END DO
+       END DO
+       END DO
+    END DO
+       
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax
+       d2smat(i0nidi,i0nidj) = 0.D0
+       DO i0nidl = 1, i0nmax
+       DO i0nidk = 1, i0nmax
+          DO i0didl = 1, i0dmax
+          DO i0didk = 1, i0dmax
+             d2smat(                                   i0nidi,i0nidj)&
+                  = d2smat(                            i0nidi,i0nidj)&
+                  + d6iatn(i0didk,i0didl,i0nidk,i0nidl,i0nidi,i0nidj)&
+                  * d1atwi(              i0nidk                     )&
+                  * d3temp(i0didk,i0didl,       i0nidl              )
+          ENDDO
+          ENDDO
+       ENDDO
+       ENDDO
+    ENDDO
+    ENDDO
+    
+    !C
+    !C STORE SUBMATRIX
+    !C
+    
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax
+       d4smat(       i0nidi,i0nidj,i0vidi,i0vidj) &
+            = d4smat(i0nidi,i0nidj,i0vidi,i0vidj) &
+            + d2smat(i0nidi,i0nidj              )
+    ENDDO
     ENDDO
     
     RETURN
     
   END SUBROUTINE T2EXEC_AT
+
+  
   
   SUBROUTINE T2EXEC_DT
     
     USE T2COMM,ONLY:&
-         i0nmax0,i0dmax0,i0vmax,i2enr0,i0vida,i0vidb,&
-         d2jmpm,d0jdmp,d2smat0,&
-         i0dtid,i1dtidr,i1dtidc,d4dt,d5idtn0
+         i0nmax,i0dmax,i0vmax,i2enr0,&
+         d2jmpm,d0jdmp,d4smat,&
+         d5dt,d5idtn
     
     INTEGER(i0ikind)::&
-         i2,j2,k2,l2,i3,j3,k3
+         i0nidi,i0nidj,i0nidk,&
+         i0didi,i0didj,i0didk,i0didl,&
+         i0node
 
     REAL(   i0rkind)::&
-         d3diff0(1:i0nmax0,1:i0dmax0,1:i0dmax0), &
-         temp3d(1:i0nmax0,1:i0dmax0,1:i0dmax0)
-
-    DO i0vida = 1, i0vmax
-       
-       DO i0dtid = i1dtidr(i0vida),i1dtidr(i0vida+1)-1
-          
-          i0vidb = i1dtidc(i0dtid)
-
-          !C INITIALIZATION
-          
-          d2smat0(1:i0nmax0,1:i0nmax0          ) = 0.D0
-          d3diff0(1:i0nmax0,1:i0dmax0,1:i0dmax0) = 0.D0
+         d2smat(1:i0nmax,1:i0nmax),&
+         d3diff(1:i0nmax,1:i0dmax,1:i0dmax), &
+         d3temp(1:i0nmax,1:i0dmax,1:i0dmax)
     
-          DO j2=1,i0dmax0
-          DO i2=1,i0dmax0
-             DO i3=1,i0nmax0
-                d3diff0(i3,i2,j2)=d4dt(i2,i2,i0dtid,i2enr0(1,i3))
-             ENDDO
-          ENDDO
-          ENDDO
+    !C
+    !C INITIALIZATION
+    !C
     
-          !C MAIN LOOP
-
-          DO l2=1,i0dmax0
-          DO k2=1,i0dmax0
-          DO k3=1,i0nmax0
-             temp3d(k3,k2,l2) = 0.D0
-             DO j2=1,i0dmax0
-             DO i2=1,i0dmax0
-                temp3d(k3,k2,l2) = temp3d( k3,      k2,l2) &
-                                 + d3diff0(k3,i2,j2      ) &
-                                 * d2jmpm(    i2,   k2   ) &
-                                 * d2jmpm(       j2,   l2)
-             END DO
-             END DO
-             temp3d(k3,k2,l2) = temp3d( k3,k2,l2)*d0jdmp
-          END DO
-          END DO
-          END DO
-
-          DO j3=1,i0nmax0
-          DO i3=1,i0nmax0
-             DO l2=1,i0dmax0
-             DO k2=1,i0dmax0
-             DO k3=1,i0nmax0
-                d2smat0(       i3,j3         ) &
-                     = d2smat0(i3,j3         ) &
-                     + d5idtn0(i3,j3,k3,k2,l2) &
-                     * temp3d(       k3,k2,l2)
-
-!                     * d3diff0(      k3,i2,j2      )&
-!                     * d2jmpm(          i2,   k2   )&
-!                     * d2jmpm(             j2,   l2)&
-!                     * d0jdmp
-             ENDDO
-             ENDDO
-             ENDDO
-          ENDDO
-          ENDDO
-    
-          CALL T2EXEC_STRM
-
+    DO i0nidi = 1, i0nmax
+       i0node = i2enr0(i0nidi,1)
+       DO i0didj = 1, i0dmax
+       DO i0didi = 1, i0dmax
+          d3diff(     i0didi,i0didj,i0nidi)&
+               = d5dt(i0didi,i0didj,i0vidi,i0vidj,i0node) &
+               * d0jdmp
        ENDDO
-       
+       ENDDO
+    ENDDO
+
+    !C
+    !C MAIN LOOP
+    !C
+
+    DO i0nidk = 1, i0nmax
+       DO i0didl = 1, i0dmax
+       DO i0didk = 1, i0dmax
+          d3temp(i0didk,i0didl,i0nidk) = 0.D0
+          DO i0didj = 1, i0dmax
+          DO i0didi = 1, i0dmax
+             d3temp(                     i0didk,i0didl,i0nidk) &
+                  = d3temp(              i0didk,i0didl,i0nidk) &
+                  + d3diff(i0didi,i0didj,              i0nidk) &
+                  * d2jmpm(i0didi,       i0didk              ) &
+                  * d2jmpm(       i0didj,       i0didl       )
+          END DO
+          END DO     
+       END DO
+       END DO
+    END DO
+
+    DO i0nidi = 1, i0nmax
+    DO i0nidj = 1, i0nmax
+       d2smat(i0nidi,i0nidj) = 0.D0
+       DO i0nidk = 1, i0nmax
+          DO i0didl = 1, i0dmax
+          DO i0didk = 1, i0dmax
+             d2smat(                            i0nidi,i0nidj) &
+                  = d2smat(                     i0nidi,i0nidj) &
+                  + d5idtn(i0didk,i0didl,i0nidk,i0nidi,i0nidj) &
+                  * d3temp(i0didk,i0didl,i0nidk              )
+          ENDDO
+          ENDDO
+       ENDDO
+    ENDDO
+    ENDDO
+
+    !C
+    !C STORE SUBMATRIX
+    !C
+    
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax
+       d4smat(       i0nidi,i0nidj,i0vidi,i0vidj) &
+            = d4smat(i0nidi,i0nidj,i0vidi,i0vidj) &
+            + d2smat(i0nidi,i0nidj              )
+    ENDDO
     ENDDO
     
     RETURN
@@ -769,70 +600,74 @@ CONTAINS
   END SUBROUTINE T2EXEC_DT
 
   SUBROUTINE T2EXEC_GV
-    
+
     USE T2COMM,ONLY:&
-         i0nmax0,i0dmax0,i0vmax,i2enr0,i0vida,i0vidb,&
-         d2jmpm,d0jdmp,d2smat0,&
-         i0gvid,i1gvidr,i1gvidc,d3gv,d4igvn0
+         i0nmax,i0dmax,i0vmax,i2enr0,&
+         d2jmpm,d0jdmp,d4smat,&
+         d4gv,d4igvn
     
     INTEGER(i0ikind)::&
-         i3,j3,k3,i2,j2
+         i0nidi,i0nidj,i0nidk,i0node,&
+         i0didi,i0didj
     
     REAL(   i0rkind)::&
-         d2grad0(1:i0nmax0,1:i0dmax0), &
-         temp2d(1:i0nmax0,1:i0dmax0)
+         d2smat(1:i0nmax,1:i0nmax), &
+         d2grad(1:i0dmax,1:i0nmax), &
+         d2temp(1:i0dmax,1:i0nmax)
     
-    DO i0vida = 1,i0vmax
-       
-       DO i0gvid = i1gvidr(i0vida),i1gvidr(i0vida+1)-1
+    !C
+    !C INITIALIZATION
+    !C
           
-          i0vidb = i1gvidc(i0gvid)
-          
-          !C INITIALIZATION
-          
-          d2grad0(1:i0nmax0,1:i0dmax0) = 0.D0
-          d2smat0(1:i0nmax0,1:i0nmax0) = 0.D0
-          
-          DO i2=1,i0dmax0
-             DO i3=1,i0nmax0
-                d2grad0(i3,i2)=d3gv(i2,i0gvid,i2enr0(1,i3))
-             ENDDO
-          ENDDO
-    
-          !C MAIN LOOP
-    
-          DO j2=1,i0dmax0
-          DO k3=1,i0nmax0
-             temp2d(k3,j2)=0.D0
-             DO i2=1,i0dmax0
-                temp2d(k3,j2) = temp2d( k3,   j2) &
-                              + d2grad0(k3,i2   ) &
-                              * d2jmpm(    i2,j2) 
-             END DO
-             temp2d(k3,j2)=temp2d(k3,j2)*d0jdmp
-          END DO
-          END DO
-
-          DO j3=1,i0nmax0
-          DO i3=1,i0nmax0
-             DO j2=1,i0dmax0
-             DO k3=1,i0nmax0
-                d2smat0(       i3,j3      ) &
-                     = d2smat0(i3,j3      ) &
-                     + d4igvn0(i3,j3,k3,j2) &
-                     * temp2d(       k3,j2)
-
-!                     * d2grad0(      k3,i2   )&
-!                     * d2jmpm(          i2,j2)&
-!                     * d0jdmp
-             ENDDO
-             ENDDO
-          ENDDO
-          ENDDO
-
-          CALL T2EXEC_STRM
-          
+    DO i0nidi = 1, i0nmax
+       i0node = i2enr0(i0nidi,1)
+       DO i0didi = 1, i0dmax
+          d2grad(     i0didi,i0nidi) &
+               = d4gv(i0didi,       i0vidi,i0vidj,i0node) &
+               * d0jdmp
        ENDDO
+    ENDDO
+    
+    !C
+    !C MAIN LOOP
+    !C
+    
+    DO i0nidk = 1, i0nmax
+       DO i0didj = 1, i0dmax
+          d2temp(i0didj,i0nidk) = 0.D0
+          DO i0didi = 1, i0dmax
+             d2temp(              i0didj,i0nidk) &
+                  = d2temp(       i0didj,i0nidk) &
+                  + d2grad(i0didi,       i0nidk) &
+                  * d2jmpm(i0didi,i0didj       ) 
+          ENDDO
+       ENDDO
+    ENDDO
+
+    DO i0nidi =1, i0nmax
+    DO i0nidj =1, i0nmax
+       d2smat(i0nidi,i0nidj) = 0.D0
+       DO i0nidk =1, i0nmax
+          DO i0didj = 1, i0dmax
+             d2smat(                     i0nidi,i0nidj) &
+                  = d2smat(              i0nidi,i0nidj) &
+                  + d4igvn(i0didj,i0nidk,i0nidi,i0nidj) &
+                  * d2temp(i0didj,i0nidk              )
+          ENDDO
+       ENDDO
+    ENDDO
+    ENDDO
+
+    !C
+    !C STORE SUBMATRIX
+    !C
+    
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax
+       d4smat(       i0nidi,i0nidj,i0vidi,i0vidj) &
+            = d4smat(i0nidi,i0nidj,i0vidi,i0vidj) &
+            + d2smat(i0nidi,i0nidj              )
+    ENDDO
     ENDDO
     
     RETURN
@@ -842,91 +677,93 @@ CONTAINS
   SUBROUTINE T2EXEC_GT
     
     USE T2COMM,ONLY:&
-         i0nmax0,i0dmax0,i0vmax,i0eid,i2enr0,i0vida,i0vidb,&
-         d2jmpm,d0jdmp,d2smat0,&
-         i0gtid,i1gtidr,i2gtidc,d4gt,d6igtn0,d2ws0
+         i0dmax,i0nmax,i0vmax,i2enr0,&
+         d2jmpm,d0jdmp,&
+         d6gt,d6igtn,d4smat,d2wrks
     
     INTEGER(i0ikind)::&
-         i3,j3,k3,l3,i2,j2,k2,l2,&
-         i0gtsa,i0nn
+         i0nidi,i0nidj,i0nidk,i0nidl,&
+         i0didi,i0didj,i0didk,i0didl,&
+         i0node
     
     REAL(   i0rkind)::&
-         d3grad0(1:i0nmax0,1:i0dmax0,1:i0dmax0),&
-         d1gtsa0(1:i0nmax0), &
-         temp3d(1:i0nmax0,1:i0dmax0,1:i0dmax0)
+         d3grad(1:i0dmax,1:i0dmax,1:i0nmax),&
+         d2smat(1:i0nmax,1:i0nmax),&
+         d1gtwi(1:i0nmax),&
+         d3temp(1:i0dmax,1:i0dmax,1:i0nmax)
     
-    DO i0vida = 1, i0vmax
-       
-       DO i0gtid = i1gtidr(i0vida),i1gtidr(i0vida+1)-1
-          
-          i0vidb = i2gtidc(i0gtid,1)
-          i0gtsa = i2gtidc(i0gtid,2)
-
-          !C INITIALIZATION
-          
-          d2smat0(1:i0nmax0,1:i0nmax0          ) = 0.D0
-          d3grad0(1:i0nmax0,1:i0dmax0,1:i0dmax0) = 0.D0
-          d1gtsa0(1:i0nmax0                    ) = 0.D0
-          
-          DO i3 = 1, i0nmax0
-             i0nn = i2enr0(1,i3)
-             DO j2 = 1, i0dmax0
-             DO i2 = 1, i0dmax0
-                d3grad0(i3,i2,j2)=d4gt(i2,j2,i0gtid,i0nn)
-             ENDDO
-             ENDDO
-          ENDDO
-          
-          DO i3 = 1,i0nmax0
-             d1gtsa0(i3) = d2ws0(i0gtsa,i3)
-          ENDDO
-          
-          !C MAIN LOOP
-          DO l2 = 1, i0dmax0
-          DO k2 = 1, i0dmax0
-          DO l3 = 1, i0nmax0
-             temp3d(l3,k2,l2) = 0.D0
-             DO j2 = 1, i0dmax0
-             DO i2 = 1, i0dmax0
-                temp3d(l3,k2,l2) = temp3d( l3,      k2,l2) &
-                                 + d3grad0(l3,i2,j2      ) &
-                                 * d2jmpm(    i2,   k2   ) &
-                                 * d2jmpm(       j2,   l2)
-             END DO
-             END DO
-             temp3d(l3,k2,l2) = temp3d(l3,k2,l2) * d0jdmp
-          END DO
-          END DO
-          END DO
-
-          DO j3 = 1, i0nmax0
-          DO i3 = 1, i0nmax0
-             DO l2 = 1, i0dmax0
-             DO k2 = 1, i0dmax0
-             DO l3 = 1, i0nmax0
-             DO k3 = 1, i0nmax0
-                d2smat0(       i3,j3            ) &
-                     = d2smat0(i3,j3            ) &
-                     + d6igtn0(i3,j3,k3,l3,k2,l2) &
-                     * d1gtsa0(      k3         ) &   
-                     * temp3d(          l3,k2,l2)
-
-!                     * d3grad0(         l3,i2,j2      )&
-!                     * d2jmpm(             i2,   k2   )&
-!                     * d2jmpm(                j2,   l2)&
-!                     * d0jdmp
-             ENDDO
-             ENDDO
-             ENDDO
-             ENDDO 
-          ENDDO
-          ENDDO
-          
-          CALL T2EXEC_STRM
-       
+    !C
+    !C INITIALIZATION
+    !C
+   
+    d2smat(1:i0nmax,1:i0nmax) = 0.D0
+    
+    DO i0nidi = 1, i0nmax
+       i0node = i2enr0(i0nidi,1)
+       DO i0didj = 1, i0dmax
+       DO i0didi = 1, i0dmax
+          d3grad(     i0didi,i0didj,i0nidi                     ) &
+               = d6gt(i0didi,i0didj,i0widi,i0vidi,i0vidj,i0node) &
+               * d0jdmp
+       ENDDO
        ENDDO
     ENDDO
     
+    DO i0nidi = 1, i0nmax
+       d1gtwi(i0nidi) = d2wrks(i0nidi,i0widi)
+    ENDDO
+    
+    !C
+    !C MAIN LOOP
+    !C
+
+    DO i0nidl = 1, i0nmax
+       DO i0didl = 1, i0dmax
+       DO i0didk = 1, i0dmax
+          d3temp(i0didk,i0didl,i0nidl) = 0.D0
+          DO i0didj = 1, i0dmax
+          DO i0didi = 1, i0dmax
+             d3temp(                     i0didk,i0didl,i0nidl) &
+                  = d3temp(              i0didk,i0didl,i0nidl) &
+                  + d3grad(i0didi,i0didj,              i0nidl) &
+                  * d2jmpm(i0didi,       i0didk              ) &
+                  * d2jmpm(       i0didj,       i0didl       )
+          ENDDO
+          ENDDO
+       ENDDO
+       ENDDO
+    ENDDO
+
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax
+    DO i0nidl = 1, i0nmax
+    DO i0nidk = 1, i0nmax
+       DO i0didl = 1, i0dmax
+       DO i0didk = 1, i0dmax
+          d2smat(                                   i0nidi,i0nidj) &
+               = d2smat(                            i0nidi,i0nidj) &
+               + d6igtn(i0didk,i0didl,i0nidk,i0nidl,i0nidi,i0nidj) &
+               * d1gtwi(              i0nidk                     ) &   
+               * d3temp(i0didk,i0didl,       i0nidl              )         
+       ENDDO
+       ENDDO
+    ENDDO
+    ENDDO
+    ENDDO
+    ENDDO 
+
+    !C
+    !C STORE SUBMATRIX
+    !C
+    
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax
+       d4smat(       i0nidi,i0nidj,i0vidi,i0vidj) &
+            = d4smat(i0nidi,i0nidj,i0vidi,i0vidj) &
+            + d2smat(i0nidi,i0nidj              )
+    ENDDO
+    ENDDO       
+       
     RETURN
     
   END SUBROUTINE T2EXEC_GT
@@ -934,223 +771,237 @@ CONTAINS
   SUBROUTINE T2EXEC_ES
 
     USE T2COMM,ONLY:&
-         i0nmax0,i0dmax0,i0vmax,i2enr0,i0vida,i0vidb,&
-         d2jmpm,d0jdmp,d2smat0,&
-         i0esid,i1esidr,i1esidc,d2es,d3iesn0
+         i0dmax,i0nmax,i0vmax,i2enr0,&
+         d2jmpm,d0jdmp,d4smat,&
+         d3es,d3iesn
          
     INTEGER(i0ikind)::&
-         i3,j3,k3
+         i0nidi,i0nidj,i0nidk,&
+         i0node
+
     REAL(   i0rkind)::&
-         d1exct0(1:i0nmax0)
+         d2smat(1:i0nmax,1:i0nmax),&
+         d1exct(1:i0nmax)
 
-    DO i0vida = 1, i0vmax
-       
-       DO i0esid = i1esidr(i0vida),i1esidr(i0vida+1)-1
-       
-          i0vidb = i1esidc(i0esid)    
-          
-          !C INITIALIZATION
-          d2smat0(1:i0nmax0,1:i0nmax0) = 0.D0
-          d1exct0(1:i0nmax0)           = 0.D0
-          
-          DO i3=1,i0nmax0
-             d1exct0(i3)=d2es(i0esid,i2enr0(1,i3))
-          ENDDO
-
-          !C MAIN LOOP
-          
-          DO j3=1,i0nmax0
-          DO i3=1,i0nmax0
-          DO k3=1,i0nmax0
-             d2smat0(       i3,j3   )&
-                  = d2smat0(i3,j3   )&
-                  + d3iesn0(i3,j3,k3)&
-                  * d1exct0(      k3)&
-                  * d0jdmp
-          ENDDO
-          ENDDO
-          ENDDO
-    
-          CALL T2EXEC_STRM
-          
-       ENDDO
+    !C
+    !C INITIALIZATION
+    !C
+        
+    DO i0nidi = 1,i0nmax
+       i0node = i2enr0(i0nidi,1)
+       d1exct(i0nidi)&
+            = d3es(i0vidi,i0vidj,i0node) &
+            * d0jdmp
     ENDDO
 
-    RETURN
+    !C
+    !C MAIN LOOP
+    !C
     
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax
+       d2smat(i0nidi,i0nidj) = 0.D0
+       DO i0nidk= 1, i0nmax
+          d2smat(              i0nidi,i0nidj) & 
+               = d2smat(       i0nidi,i0nidj) &
+               + d3iesn(i0nidk,i0nidi,i0nidj) &
+               * d1exct(i0nidk              )
+       ENDDO
+    ENDDO
+    ENDDO
+    
+    !C
+    !C STORE SUBMATRIX
+    !C
+    
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax
+       d4smat(       i0nidi,i0nidj,i0vidi,i0vidj) &
+            = d4smat(i0nidi,i0nidj,i0vidi,i0vidj) &
+            + d2smat(i0nidi,i0nidj              )
+    ENDDO
+    ENDDO
+
+    RETURN    
+        
   END SUBROUTINE T2EXEC_ES
   
   SUBROUTINE T2EXEC_EV
     
     USE T2COMM,ONLY:&
-         i0nmax0,i0dmax0,i0vmax,i2enr0,i0vida,i0vidb,&
-         d2jmpm,d0jdmp,d2smat0,&
-         i0evid,i1evidr,i2evidc,d3ev,d5ievn0,d2ws0
+         i0dmax,i0nmax,i0vmax,i2enr0,&
+         d2jmpm,d0jdmp,&
+         d5ev,d5ievn,d2wrks,d4smat
     
     INTEGER(i0ikind)::&
-         i3,j3,k3,l3,i2,j2,&
-         i0evsa
+         i0nidi,i0nidj,i0nidk,i0nidl,&
+         i0didi,i0didj,&
+         i0node
+
     REAL(   i0rkind)::&
-         d2exct0(1:i0nmax0,1:i0dmax0),&
-         d1evsa0(1:i0nmax0),&
-         temp2d(1:i0nmax0,1:i0dmax0)
+         d2smat(1:i0nmax,1:i0nmax),&
+         d2exct(1:i0nmax,1:i0dmax),&
+         d1evwi(1:i0nmax),&
+         d2temp(1:i0nmax,1:i0dmax)
     
-    DO i0vida = 1, i0vmax
-       DO i0evid = i1evidr(i0vida),i1evidr(i0vida+1)-1
-
-          i0vidb = i2evidc(i0evid,1)
-          i0evsa = i2evidc(i0evid,2)
-          
-          !C INITIALIZATION
-          d2smat0(1:i0nmax0,1:i0nmax0) = 0.D0
-          d2exct0(1:i0nmax0,1:i0dmax0) = 0.D0
-          d1evsa0(1:i0nmax0          ) = 0.D0
-          
-          DO i2 = 1, i0dmax0
-             DO i3 = 1, i0nmax0
-                d2exct0(i3,i2)=d3ev(i2,i0evid,i2enr0(1,i3))
-             ENDDO
-          ENDDO
-          
-          DO i3 = 1,i0nmax0
-             d1evsa0(i3) = d2ws0(i0evsa,i3)
-          ENDDO
-          
-          !C MAIN LOOP
-          
-          DO j2 = 1, i0dmax0
-          DO l3 = 1, i0nmax0
-             temp2d(l3,j2) = 0.D0
-             DO i2 = 1, i0dmax0
-                temp2d(l3,j2) = temp2d( l3,   j2) &
-                              + d2exct0(l3,i2   ) &
-                              * d2jmpm(    i2,j2)
-             END DO
-             temp2d(l3,j2) = temp2d(l3,j2) * d0jdmp
-          END DO
-          END DO
-
-          DO j3 = 1, i0nmax0
-          DO i3 = 1, i0nmax0
-             DO j2 = 1, i0dmax0
-             DO l3 = 1, i0nmax0
-             DO k3 = 1, i0nmax0
-                d2smat0(       i3,j3            )&
-                     = d2smat0(i3,j3            )&
-                     + d5ievn0(i3,j3,k3,l3,j2)&
-                     * d1evsa0(      k3      )&   
-                     * temp2d(          l3,j2)
-
-!                     * d2exct0(         l3,i2   )&
-!                     * d2jmpm(             i2,j2)&
-!                     * d0jdmp
-             ENDDO
-             ENDDO
-             ENDDO
-          ENDDO
-          ENDDO
-          
-          CALL T2EXEC_STRM
-          
+    !C
+    !C INITIALIZATION
+    !C
+    
+    DO i0nidi = 1, i0nmax
+       i0node = i2enr0(i0nidi,1)
+       DO i0didi = 1, i0dmax
+          d2exct(     i0didi,i0nidi)&
+               = d5ev(i0didi,i0widi,i0vidi,i0vidj,i0node) &
+               * d0jdmp
        ENDDO
     ENDDO
+    
+    DO i0nidi = 1, i0nmax
+       d1evwi(i0nidi) = d2wrks(i0nidi,i0widi)
+    ENDDO
 
+    !C
+    !C MAIN LOOP
+    !C 
+    
+    DO i0nidl = 1, i0nmax   
+       DO i0didj = 1, i0dmax
+          d2temp(i0didj,i0nidl) = 0.D0     
+          DO i0didi = 1, i0dmax
+             d2temp(              i0didj,i0nidl) &
+                  = d2temp(i0didj,       i0nidl) &
+                  + d2exct(i0didi,       i0nidl) &
+                  * d2jmpm(i0didi,i0didj       )
+          END DO
+       END DO
+    END DO
+    
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax
+       d2smat(i0nidi,i0nidj) = 0.D0
+       DO i0nidl = 1, i0nmax
+       DO i0nidk = 1, i0nmax
+          DO i0didj = 1, i0dmax
+             d2smat(                            i0nidi,i0nidj) &
+                  = d2smat(                     i0nidi,i0nidj) &
+                  + d5ievn(i0didj,i0nidk,i0nidl,i0nidi,i0nidj) &
+                  * d1evwi(       i0nidk                     ) &
+                  * d2temp(i0didj,       i0nidl              )
+          ENDDO
+       ENDDO
+       ENDDO
+    ENDDO
+    ENDDO
+   
+    !C
+    !C STORE SUBMATRIX
+    !C
+    
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax
+       d4smat(       i0nidi,i0nidj,i0vidi,i0vidj) &
+            = d4smat(i0nidi,i0nidj,i0vidi,i0vidj) &
+            + d2smat(i0nidi,i0nidj              )
+    ENDDO
+    ENDDO
+    
     RETURN
     
   END SUBROUTINE T2EXEC_EV
-
+  
   SUBROUTINE T2EXEC_ET
-    
+  
     USE T2COMM,ONLY:&
-         i0nmax0,i0dmax0,i0vmax,i2enr0,i0vida,i0vidb,&
-         d2jmpm,d0jdmp,d2smat0,&
-         i0etid,i1etidr,i2etidc,d4et,d7ietn0,i2etws,d2ws0
+         i0dmax,i0nmax,i0vmax,i2enr0,&
+         d2jmpm,d0jdmp,d4smat,&
+         d7et,d7ietn,d2wrks
     
     INTEGER(i0ikind)::&
-         i3,j3,k3,l3,m3,i2,j2,k2,l2,&
-         i0etsa,i0etsb
+         i0nidi,i0nidj,i0nidk,i0nidl,i0nidm,&
+         i0didi,i0didj,i0didk,i0didl,&
+         i0node
     
     REAL(   i0rkind)::&
-         d3exct0(1:i0nmax0,1:i0dmax0,1:i0dmax0),&
-         d1etsa0(1:i0nmax0),&
-         d1etsb0(1:i0nmax0), &
-         temp3d(1:i0nmax0,1:i0dmax0,1:i0dmax0)
+         d2smat(1:i0nmax,1:i0nmax),&
+         d3exct(1:i0dmax,1:i0dmax,1:i0nmax),&
+         d1etwi(1:i0nmax),&
+         d1etwj(1:i0nmax),&
+         d3temp(1:i0dmax,1:i0dmax,1:i0nmax)
     
-    DO i0vida = 1, i0vmax
-       
-       DO i0etid = i1etidr(i0vida),i1etidr(i0vida+1)-1
-          
-          i0vidb = i2etidc(i0etid,1)
-          i0etsa = i2etidc(i0etid,2)
-          i0etsb = i2etidc(i0etid,3)
-          
-          !C INITIALIZATION
-          d2smat0(1:i0nmax0,1:i0nmax0          ) = 0.D0
-          d3exct0(1:i0nmax0,1:i0dmax0,1:i0dmax0) = 0.D0
-          d1etsa0(1:i0nmax0                    ) = 0.D0
-          d1etsb0(1:i0nmax0                    ) = 0.D0
-    
-          DO j2 = 1, i0dmax0
-          DO i2 = 1, i0dmax0
-             DO i3 = 1, i0nmax0
-                d3exct0(i3,i2,j2)=d4et(i2,j2,i0etid,i2enr0(1,i3))
-             ENDDO
-          ENDDO
-          ENDDO
-
-          DO i3 = 1,i0nmax0
-             d1etsa0(i3) = d2ws0(i0etsa,i3)
-             d1etsb0(i3) = d2ws0(i0etsb,i3)
-          ENDDO
-
-          !C MAIN LOOP
-          
-          DO l2 = 1, i0dmax0
-          DO k2 = 1, i0dmax0
-          DO m3 = 1, i0nmax0
-             temp3d(m3,k2,l2) = 0.D0
-             DO j2 = 1, i0dmax0
-             DO i2 = 1, i0dmax0
-                temp3d(m3,k2,l2) = temp3d( m3,      k2,l2) &
-                                 + d3exct0(m3,i2,j2      ) &
-                                 * d2jmpm(    i2,   k2   ) &
-                                 * d2jmpm(       j2,   l2)
-             END DO
-             END DO
-             temp3d(m3,k2,l2) = temp3d(m3,k2,l2) * d0jdmp
-          END DO
-          END DO
-          END DO
-
-          DO j3 = 1, i0nmax0
-          DO i3 = 1, i0nmax0
-             DO l2 = 1, i0dmax0
-             DO k2 = 1, i0dmax0
-             DO m3 = 1, i0nmax0
-             DO l3 = 1, i0nmax0
-             DO k3 = 1, i0nmax0
-                d2smat0(       i3,j3                     ) &
-                     = d2smat0(i3,j3                     ) &
-                     + d7ietn0(i3,j3,k3,l3,m3,k2,l2) &
-                     * d1etsa0(      k3            ) &
-                     * d1etsb0(         l3         ) &
-                     * temp3d(             m3,k2,l2)
-
-!                     * d3exct0(            m3,i2,j2      )&
-!                     * d2jmpm(                i2,   k2   )&
-!                     * d2jmpm(                   j2,   l2)&
-!                     * d0jdmp
-             ENDDO
-             ENDDO
-             ENDDO
-             ENDDO
-             ENDDO
-          ENDDO
-          ENDDO
-          
-          CALL T2EXEC_STRM
-          
+    !C
+    !C INITIALIZATION
+    !C
+  
+    DO i0nidi = 1, i0nmax
+       i0node = i2enr0(i0nidi,1)
+       DO i0didj = 1, i0dmax
+       DO i0didi = 1, i0dmax
+          d3exct(     i0didi,i0didj,i0nidi)&
+               = d7et(i0didi,i0didj,i0widi,i0widj,i0vidi,i0vidj,i0node) &
+               * d0jdmp
        ENDDO
+       ENDDO
+    ENDDO
+    
+    DO i0nidi = 1, i0nmax
+       d1etwi(i0nidi) = d2wrks(i0nidi,i0widi)
+       d1etwj(i0nidi) = d2wrks(i0nidi,i0widi)
+    ENDDO
+    
+    !C
+    !C MAIN LOOP
+    !C 
+    
+    DO i0nidm = 1, i0nmax   
+       DO i0didl = 1, i0dmax
+       DO i0didk = 1, i0dmax
+          d3temp(i0didk,i0didl,i0nidm) = 0.D0
+          DO i0didj = 1, i0dmax
+          DO i0didi = 1, i0dmax
+             d3temp(                     i0didk,i0didl,i0nidm) &
+                  = d3temp(              i0didk,i0didl,i0nidm) &
+                  + d3exct(i0didi,i0didj,              i0nidm) &
+                  * d2jmpm(i0didi,       i0didk              ) &
+                  * d2jmpm(       i0didj,       i0didl       )
+          END DO
+          END DO
+       END DO
+       END DO
+    END DO
+
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax
+       d2smat(i0nidi,i0nidj) = 0.D0
+       DO i0nidm = 1, i0nmax
+       DO i0nidl = 1, i0nmax
+       DO i0nidk = 1, i0nmax
+          DO i0didl = 1, i0dmax
+          DO i0didk = 1, i0dmax
+             d2smat(                                          i0nidi,i0nidj) &
+                  = d2smat(                                   i0nidi,i0nidj) &
+                  + d7ietn(i0didk,i0didl,i0nidk,i0nidl,i0nidm,i0nidi,i0nidj) &
+                  * d1etwi(              i0nidk                            ) &
+                  * d1etwj(                     i0nidl                     ) &
+                  * d3temp(i0didk,i0didl,              i0nidm              )
+          ENDDO
+          ENDDO
+       ENDDO
+       ENDDO
+       ENDDO
+    ENDDO
+    ENDDO
+    
+    !C
+    !C STORE SUBMATRIX
+    !C
+    
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax
+       d4smat(       i0nidi,i0nidj,i0vidi,i0vidj) &
+            = d4smat(i0nidi,i0nidj,i0vidi,i0vidj) &
+            + d2smat(i0nidi,i0nidj              )
+    ENDDO
     ENDDO
     
     RETURN
@@ -1160,41 +1011,36 @@ CONTAINS
   SUBROUTINE T2EXEC_SS
 
     USE T2COMM,ONLY:&
-         i0nmax0,i0dmax0,i0vmax,i2enr0,i0vida,i0vidb,&
-         d2jmpm,d0jdmp,d1svec0,&
-         i0ssid,i1ssidr,i1ssidc,d2ss,d2issn0
+         i0dmax,i0nmax,i0vmax,i2enr0,&
+         d2jmpm,d0jdmp,&
+         d3ss,d2issn,d2svec
     
     INTEGER(i0ikind)::&
-         i3,j3
-    
+         i0nidi,i0nidj,&
+         i0node
+ 
     REAL(   i0rkind)::&
-         d1sour0(1:i0nmax0)
+         d1sour(1:i0nmax),&
+         d1svec(1:i0nmax)
     
-    DO i0vida = 1, i0vmax
-       
-       DO i0ssid = i1ssidr(i0vida),i1ssidr(i0vida+1)-1
-          i0vidb = i1ssidc(i0ssid)
-          
-          !C INITIALIZATION    
-          d1svec0(1:i0nmax0) = 0.D0
-          d1sour0(1:i0nmax0) = 0.D0
-          
-          DO i3=1,i0nmax0
-             d1sour0(i3)=d2ss(i0ssid,i2enr0(1,i3))
-          ENDDO
-          
-          DO j3=1,i0nmax0
-          DO i3=1,i0nmax0
-             d1svec0(       i3   )&
-                  = d1svec0(i3   )&
-                  + d2issn0(i3,j3)&
-                  * d1sour0(   j3)&
-                  * d0jdmp
-          ENDDO
-          ENDDO
-          
-          CALL T2EXEC_STRV
-          
+    !C
+    !C INITIALIZATION    
+    !C
+    
+    DO i0nidi = 1, i0nmax
+       i0node = i2enr0(i0nidi,1)
+       d1sour(i0nidi)&
+            = d3ss(i0vidi,i0vidj,i0node)&
+            * d0jdmp
+    ENDDO
+    
+    DO i0nidi = 1, i0nmax
+       d1svec(i0nidi) = 0.D0
+       DO i0nidj = 1, i0nmax
+          d1svec(              i0nidi) &
+               = d1svec(       i0nidi) &
+               + d2issn(i0nidj,i0nidi) &
+               * d1sour(i0nidj       )
        ENDDO
     ENDDO
     
@@ -1207,282 +1053,285 @@ CONTAINS
   !C FOR BI-LINEAR RECTANGULAR ELEMENT
   !C
   
-  SUBROUTINE T2EXEC_STRM
+  SUBROUTINE T2EXEC_STORE
     
     USE T2COMM,ONLY:&
-         i0nmax0,i0nmax2,i0vmax,i0vida,i0vidb,i0vgcmx,&
-         i1nidr,i1nidc,i2hbc,i2vtbl,i2enr0,d2smat0,d1gsm
+         i0nmax,i0nmax2,i0vmax,&
+         i1nidr,i1nidc,i2hbc,i2enr0,d4smat,d3gmat
     
     INTEGER(i0ikind)::&
-         i3,j3,i0ng,i0nc,i0tg,i0vofs,&
-         i0nrl,i0nrc,i0nru,i0ncl,i0ncc,i0ncu
-    REAL(   i0rkind)::&
-         d0smat
-    !C------------------------------------------------------
+         i0nidi,i0nidj,i0ng,&
+         i0nrl,i0nrc,i0nru,&
+         i0nc,i0ncl,i0ncc,i0ncu
     
-    i0vofs = i2vtbl(i0vida,i0vidb)
+    !C
+    !C
+    !C 1Dx1D
+    !C
+    !C
     
-    
-    IF(    (i0vida.GT.3).AND.(i0vidb.GT.3))THEN
-       !C
-       !C 2Dx2D
-       !C
-       DO j3 = 1, i0nmax0
-       DO i3 = 1, i0nmax0
-          
-          i0nrc  = i2enr0(  2,i3)
-          i0ncc  = i2enr0(  2,j3)
-          d0smat = d2smat0(i3,j3)
-          
-          IF(    (i0nrc.LE.i0nmax2).AND.(i0ncc.LE.i0nmax2))THEN
-             
-             DO i0ng = i1nidr(i0nrc), i1nidr(i0nrc+1)-1
-                i0nc = i1nidc(i0ng )
-                IF(i0nc.EQ.i0ncc)THEN
-                   i0tg        = i0vgcmx*(i0ng-1) + i0vofs
-                   d1gsm(i0tg) = d1gsm(i0tg)      + d0smat
-                ENDIF
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax         
+       i0nrc  = i2enr0(i0nidi,4)
+       i0ncc  = i2enr0(i0nidj,4)
+       DO i0ng = i1nidr(i0nrc), i1nidr(i0nrc+1)-1
+          i0nc = i1nidc(i0ng)
+          IF(i0nc.EQ.i0ncc)THEN
+             DO i0vidj = 1,3
+             DO i0vidi = 1,3
+                d3gmat(                     i0vidi,i0vidj,i0ng) &
+                     = d3gmat(              i0vidi,i0vidj,i0ng) &
+                     + d4smat(i0nidi,i0nidj,i0vidi,i0vidj     )
              ENDDO
-             
-          ELSEIF((i0nrc.LE.i0nmax2).AND.(i0ncc.GT.i0nmax2))THEN
-             
-             i0ncc  = i0ncc-i0nmax2
-             i0ncl  = i2hbc(i0ncc,1)
-             i0ncu  = i2hbc(i0ncc,2)
-             d0smat = d0smat/2.D0
- 
-             DO i0ng = i1nidr(i0nrc), i1nidr(i0nrc+1)-1
-                i0nc = i1nidc(i0ng )
-                IF((i0nc.EQ.i0ncl).OR.(i0nc.EQ.i0ncu))THEN
-                   i0tg        = i0vgcmx*(i0ng-1) + i0vofs
-                   d1gsm(i0tg) = d1gsm(i0tg)      + d0smat
-                ENDIF
              ENDDO
-             
-          ELSEIF((i0nrc.GT.i0nmax2).AND.(i0ncc.LE.i0nmax2))THEN
-             
-             i0nrc  = i0nrc-i0nmax2
-             i0nrl  = i2hbc(i0nrc,1)
-             i0nru  = i2hbc(i0nrc,2)
-             d0smat = d0smat/2.D0
-             
-             DO i0ng = i1nidr(i0nrl), i1nidr(i0nrl+1)-1
-                i0nc = i1nidc(i0ng ) 
-                IF(i0nc.EQ.i0ncc)THEN
-                   i0tg        = i0vgcmx*(i0ng-1) + i0vofs
-                   d1gsm(i0tg) = d1gsm(i0tg)      + d0smat
-                ENDIF
-             ENDDO
-             
-             DO i0ng = i1nidr(i0nru), i1nidr(i0nru+1)-1
-                i0nc = i1nidc(i0ng ) 
-                IF(i0nc.EQ.i0ncc)THEN
-                   i0tg        = i0vgcmx*(i0ng-1) + i0vofs
-                   d1gsm(i0tg) = d1gsm(i0tg)      + d0smat
-                ENDIF
-             ENDDO
-             
-          ELSEIF((i0nrc.GT.i0nmax2).AND.(i0ncc.GT.i0nmax2))THEN
-             
-             i0nrc  = i0nrc-i0nmax2
-             i0nrl  = i2hbc(i0nrc,1)
-             i0nru  = i2hbc(i0nrc,2)
-             
-             i0ncc  = i0ncc-i0nmax2
-             i0ncl  = i2hbc(i0ncc,1)
-             i0ncu  = i2hbc(i0ncc,2)
-             
-             d0smat = d0smat/4.D0
-             
-             DO i0ng = i1nidr(i0nrl), i1nidr(i0nrl+1)-1
-                i0nc = i1nidc(i0ng )
-                IF((i0nc.EQ.i0ncl).OR.(i0nc.EQ.i0ncu))THEN
-                   i0tg        = i0vgcmx*(i0ng-1) + i0vofs
-                   d1gsm(i0tg) = d1gsm(i0tg)      + d0smat
-                ENDIF
-             ENDDO
-             
-             DO i0ng = i1nidr(i0nru), i1nidr(i0nru+1)-1
-                i0nc = i1nidc(i0ng )
-                IF((i0nc.EQ.i0ncl).OR.(i0nc.EQ.i0ncu))THEN
-                   i0tg        = i0vgcmx*(i0ng-1) + i0vofs
-                   d1gsm(i0tg) = d1gsm(i0tg)      + d0smat
-                ENDIF
-             ENDDO
-             
           ENDIF
        ENDDO
-       ENDDO
+    ENDDO
+    ENDDO
+    
+    !C
+    !C
+    !C 1Dx2D
+    !C
+    !C
+   
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax
        
-    ELSEIF((i0vida.GT.3).AND.(i0vidb.LE.3))THEN
-       !C
-       !C 2Dx1D
-       !C
-       DO j3 = 1, i0nmax0
-       DO i3 = 1, i0nmax0
-          
-          i0nrc  = i2enr0(  2,i3)
-          i0ncc  = i2enr0(  4,j3)
-          d0smat = d2smat0(i3,j3)
-          
-          IF(    i0nrc.LE.i0nmax2)THEN
-             
-             DO i0ng = i1nidr(i0nrc), i1nidr(i0nrc+1)-1
-                i0nc = i1nidc(i0ng)
-                IF(i0nc.EQ.i0ncc)THEN
-                   i0tg        = i0vgcmx*(i0ng-1) + i0vofs
-                   d1gsm(i0tg) = d1gsm(i0tg)      + d0smat
-                ENDIF
-             ENDDO
-             
-          ELSEIF(i0nrc.GT.i0nmax2)THEN
-             
-             i0nrc  = i0nrc-i0nmax2
-             i0nrl  = i2hbc(i0nrc,1)
-             i0nru  = i2hbc(i0nrc,2)
-             d0smat = d0smat/2.D0
-             
-             DO i0ng = i1nidr(i0nrl), i1nidr(i0nrl+1)-1
-                i0nc = i1nidc(i0ng) 
-                IF(i0nc.EQ.i0ncc)THEN
-                   i0tg        = i0vgcmx*(i0ng-1) + i0vofs
-                   d1gsm(i0tg) = d1gsm(i0tg)      + d0smat
-                ENDIF
-             ENDDO
-             
-             DO i0ng = i1nidr(i0nru), i1nidr(i0nru+1)-1
-                i0nc = i1nidc(i0ng) 
-                IF(i0nc.EQ.i0ncc)THEN
-                   i0tg        = i0vgcmx*(i0ng-1) + i0vofs
-                   d1gsm(i0tg) = d1gsm(i0tg)      + d0smat
-                ENDIF
-             ENDDO
-             
-          ENDIF
-       ENDDO
-       ENDDO
+       i0nrc  = i2enr0(i0nidi,3)
+       i0ncc  = i2enr0(i0nidj,2)
        
-    ELSEIF((i0vida.LE.3).AND.(i0vidb.GT.3))THEN
-       
-       !C
-       !C 1Dx2D
-       !C
-       
-       DO j3 = 1, i0nmax0
-       DO i3 = 1, i0nmax0
-          
-          i0nrc  = i2enr0(  3,i3)
-          i0ncc  = i2enr0(  2,j3)
-          d0smat = d2smat0(i3,j3)
-          
-          IF(    i0ncc.LE.i0nmax2)THEN
-             
-             DO i0ng = i1nidr(i0nrc), i1nidr(i0nrc+1)-1
-                i0nc = i1nidc(i0ng)
-                IF(i0nc.EQ.i0ncc)THEN
-                   i0tg        = i0vgcmx*(i0ng-1) + i0vofs
-                   d1gsm(i0tg) = d1gsm(i0tg)      + d0smat
-                ENDIF
-             ENDDO
-             
-          ELSEIF(i0ncc.GT.i0nmax2)THEN
-             
-             i0ncc  = i0ncc-i0nmax2
-             i0ncl  = i2hbc(i0ncc,1)
-             i0ncu  = i2hbc(i0ncc,2)
-             d0smat = d0smat/2.D0
-             
-             DO i0ng = i1nidr(i0nrc), i1nidr(i0nrc+1)-1
-                i0nc = i1nidc(i0ng )
-                IF((i0nc.EQ.i0ncl).OR.(i0nc.EQ.i0ncu))THEN
-                   i0tg        = i0vgcmx*(i0ng-1) + i0vofs
-                   d1gsm(i0tg) = d1gsm(i0tg)      + d0smat
-                ENDIF
-             ENDDO
-             
-          ENDIF
-          
-       ENDDO
-       ENDDO
-       
-    ELSEIF((i0vida.LE.3).AND.(i0vidb.LE.3))THEN
-       !C
-       !C 1Dx1D
-       !C
-       DO j3 = 1, i0nmax0
-       DO i3 = 1, i0nmax0
-          
-          i0nrc  = i2enr0(  4,i3)
-          i0ncc  = i2enr0(  4,j3)
-          d0smat = d2smat0(i3,j3)
+       IF(    i0ncc.LE.i0nmax2)THEN
           
           DO i0ng = i1nidr(i0nrc), i1nidr(i0nrc+1)-1
              i0nc = i1nidc(i0ng)
              IF(i0nc.EQ.i0ncc)THEN
-                i0tg        = i0vgcmx*(i0ng-1) + i0vofs
-                d1gsm(i0tg) = d1gsm(i0tg)      + d0smat
+                DO i0vidj = 4, i0vmax
+                DO i0vidi = 1, 3
+                   d3gmat(                     i0vidi,i0vidj,i0ng) &
+                        = d3gmat(              i0vidi,i0vidj,i0ng) &
+                        + d4smat(i0nidi,i0nidj,i0vidi,i0vidj     )
+                ENDDO
+                ENDDO
              ENDIF
           ENDDO
           
-       ENDDO
-       ENDDO
-    ENDIF
+       ELSEIF(i0ncc.GT.i0nmax2)THEN
+          
+          i0ncc  = i0ncc-i0nmax2
+          i0ncl  = i2hbc(i0ncc,1)
+          i0ncu  = i2hbc(i0ncc,2)
+          
+          DO i0ng = i1nidr(i0nrc), i1nidr(i0nrc+1)-1
+             i0nc = i1nidc(i0ng )
+             IF((i0nc.EQ.i0ncl).OR.(i0nc.EQ.i0ncu))THEN
+                DO i0vidj = 4, i0vmax
+                DO i0vidi = 1, 3
+                   d3gmat(                     i0vidi,i0vidj,i0ng) &
+                        = d3gmat(              i0vidi,i0vidj,i0ng) &
+                        + d4smat(i0nidi,i0nidj,i0vidi,i0vidj     ) &
+                        * 0.5D0
+                ENDDO
+                ENDDO
+             ENDIF
+          ENDDO
+          
+       ENDIF
+       
+    ENDDO
+    ENDDO
+    
+    !C
+    !C
+    !C 2Dx1D
+    !C
+    !C
+    
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax
+
+       i0nrc  = i2enr0(i0nidi,2)
+       i0ncc  = i2enr0(i0nidj,4)
+
+       IF(    i0nrc.LE.i0nmax2)THEN
+
+          DO i0ng = i1nidr(i0nrc), i1nidr(i0nrc+1)-1
+             i0nc = i1nidc(i0ng)
+             IF(i0nc.EQ.i0ncc)THEN
+                DO i0vidj = 1, 3
+                DO i0vidi = 4, i0vmax
+                   d3gmat(                     i0vidi,i0vidj,i0ng) &
+                        = d3gmat(              i0vidi,i0vidj,i0ng) &
+                        + d4smat(i0nidi,i0nidj,i0vidi,i0vidj     )
+                ENDDO
+                ENDDO
+             ENDIF
+          ENDDO
+
+       ELSEIF(i0nrc.GT.i0nmax2)THEN
+       
+          i0nrc  = i0nrc-i0nmax2
+          i0nrl  = i2hbc(i0nrc,1)
+          i0nru  = i2hbc(i0nrc,2)
+          
+          DO i0ng = i1nidr(i0nrl), i1nidr(i0nrl+1)-1
+             i0nc = i1nidc(i0ng) 
+             IF(i0nc.EQ.i0ncc)THEN
+                DO i0vidj = 1, 3
+                DO i0vidi = 4, i0vmax
+                   d3gmat(                     i0vidi,i0vidj,i0ng) &
+                        = d3gmat(              i0vidi,i0vidj,i0ng) &
+                        + d4smat(i0nidi,i0nidj,i0vidi,i0vidj     ) &
+                        * 0.5D0
+                ENDDO
+                ENDDO
+             ENDIF
+          ENDDO
+          
+          DO i0ng = i1nidr(i0nru), i1nidr(i0nru+1)-1
+             i0nc = i1nidc(i0ng) 
+             IF(i0nc.EQ.i0ncc)THEN
+                DO i0vidj = 1, 3
+                DO i0vidi = 4, i0vmax
+                   d3gmat(                     i0vidi,i0vidj,i0ng) &
+                        = d3gmat(              i0vidi,i0vidj,i0ng) &
+                        + d4smat(i0nidi,i0nidj,i0vidi,i0vidj     ) &
+                        * 0.5D0
+                ENDDO
+                ENDDO
+             ENDIF
+          ENDDO
+
+       ENDIF
+    ENDDO
+    ENDDO
+      
+    !C
+    !C 
+    !C 2Dx2D
+    !C
+    !C
+    
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax
+       
+       i0nrc  = i2enr0(i0nidi,2)
+       i0ncc  = i2enr0(i0nidj,2)
+       
+       IF((i0nrc.LE.i0nmax2).AND.(i0ncc.LE.i0nmax2))THEN
+          
+          DO i0ng = i1nidr(i0nrc), i1nidr(i0nrc+1)-1
+             i0nc = i1nidc(i0ng )
+             IF(i0nc.EQ.i0ncc)THEN
+                DO i0vidj = 4, i0vmax
+                DO i0vidi = 4, i0vmax
+                   d3gmat(                     i0vidi,i0vidj,i0ng) &
+                        = d3gmat(              i0vidi,i0vidj,i0ng) &
+                        + d4smat(i0nidi,i0nidj,i0vidi,i0vidj     )
+                ENDDO
+                ENDDO
+             ENDIF
+          ENDDO
+             
+       ELSEIF((i0nrc.LE.i0nmax2).AND.(i0ncc.GT.i0nmax2))THEN
+          
+          i0ncc  = i0ncc-i0nmax2
+          i0ncl  = i2hbc(i0ncc,1)
+          i0ncu  = i2hbc(i0ncc,2)
+          
+          DO i0ng = i1nidr(i0nrc), i1nidr(i0nrc+1)-1
+             i0nc = i1nidc(i0ng )
+             IF((i0nc.EQ.i0ncl).OR.(i0nc.EQ.i0ncu))THEN
+                DO i0vidj = 4, i0vmax
+                DO i0vidi = 4, i0vmax
+                   d3gmat(                     i0vidi,i0vidj,i0ng) &
+                        = d3gmat(              i0vidi,i0vidj,i0ng) &
+                        + d4smat(i0nidi,i0nidj,i0vidi,i0vidj     ) &
+                        * 0.5D0
+                ENDDO
+                ENDDO
+             ENDIF
+          ENDDO
+          
+       ELSEIF((i0nrc.GT.i0nmax2).AND.(i0ncc.LE.i0nmax2))THEN
+          
+          i0nrc  = i0nrc-i0nmax2
+          i0nrl  = i2hbc(i0nrc,1)
+          i0nru  = i2hbc(i0nrc,2)
+          
+          DO i0ng = i1nidr(i0nrl), i1nidr(i0nrl+1)-1
+             i0nc = i1nidc(i0ng ) 
+             IF(i0nc.EQ.i0ncc)THEN
+                DO i0vidj = 4, i0vmax
+                DO i0vidi = 4, i0vmax
+                   d3gmat(                     i0vidi,i0vidj,i0ng) &
+                        = d3gmat(              i0vidi,i0vidj,i0ng) &
+                        + d4smat(i0nidi,i0nidj,i0vidi,i0vidj     ) &
+                        * 0.5D0
+                ENDDO
+                ENDDO
+             ENDIF
+          ENDDO
+             
+          DO i0ng = i1nidr(i0nru), i1nidr(i0nru+1)-1
+             i0nc = i1nidc(i0ng ) 
+             IF(i0nc.EQ.i0ncc)THEN
+                DO i0vidj = 4, i0vmax
+                DO i0vidi = 4, i0vmax
+                   d3gmat(                     i0vidi,i0vidj,i0ng) &
+                        = d3gmat(              i0vidi,i0vidj,i0ng) &
+                        + d4smat(i0nidi,i0nidj,i0vidi,i0vidj     ) &
+                        * 0.5D0
+                ENDDO
+                ENDDO
+             ENDIF
+          ENDDO
+          
+       ELSEIF((i0nrc.GT.i0nmax2).AND.(i0ncc.GT.i0nmax2))THEN
+          
+          i0nrc  = i0nrc-i0nmax2
+          i0nrl  = i2hbc(i0nrc,1)
+          i0nru  = i2hbc(i0nrc,2)
+          
+          i0ncc  = i0ncc-i0nmax2
+          i0ncl  = i2hbc(i0ncc,1)
+          i0ncu  = i2hbc(i0ncc,2)
+          
+          DO i0ng = i1nidr(i0nrl), i1nidr(i0nrl+1)-1
+             i0nc = i1nidc(i0ng )
+             IF((i0nc.EQ.i0ncl).OR.(i0nc.EQ.i0ncu))THEN
+                DO i0vidj = 4, i0vmax
+                DO i0vidi = 4, i0vmax
+                   d3gmat(                     i0vidi,i0vidj,i0ng) &
+                        = d3gmat(              i0vidi,i0vidj,i0ng) &
+                        + d4smat(i0nidi,i0nidj,i0vidi,i0vidj     ) &
+                        * 0.25D0
+                ENDDO
+                ENDDO
+             ENDIF
+          ENDDO
+          
+          DO i0ng = i1nidr(i0nru), i1nidr(i0nru+1)-1
+             i0nc = i1nidc(i0ng )
+             IF((i0nc.EQ.i0ncl).OR.(i0nc.EQ.i0ncu))THEN
+                DO i0vidj = 4, i0vmax
+                DO i0vidi = 4, i0vmax
+                   d3gmat(                     i0vidi,i0vidj,i0ng) &
+                        = d3gmat(              i0vidi,i0vidj,i0ng) &
+                        + d4smat(i0nidi,i0nidj,i0vidi,i0vidj     ) &
+                        * 0.25D0
+                ENDDO
+                ENDDO
+             ENDIF
+          ENDDO
+          
+       ENDIF
+
+    ENDDO
+    ENDDO
     
     RETURN
     
-  END SUBROUTINE T2EXEC_STRM
-  
-  SUBROUTINE T2EXEC_STRV
-    
-    USE T2COMM,ONLY:&
-         i0nmax0,i0nmax2,i0vmax,i0vida,i2enr0,&
-         i1nidr,i1nidc,i2hbc,i2vtbl,d1grv,d1svec0
-    
-    REAL(   i0rkind)::&
-         d0lvec
-    INTEGER(i0ikind)::&
-         i3,i0nrl,i0nrc,i0nru,i0trl,i0trc,i0tru
-    
-    IF(    i0vida.GT.3)THEN
-       DO i3=1,i0nmax0
-          
-          i0nrc=i2enr0(2,i3)
-          d0lvec = d1svec0(i3)
-          
-          IF(    i0nrc.LE.i0nmax2)THEN
-             
-             i0trc        = i0vmax*(i0nrc-1) + i0vida
-             d1grv(i0trc) = d1grv(i0trc) + d0lvec
-             
-          ELSEIF(i0nrc.GT.i0nmax2)THEN
-             
-             d0lvec = d0lvec/2.D0
-             i0nrc  = i0nrc - i0nmax2
-             i0nrl  = i2hbc(i0nrc,1)
-             i0nru  = i2hbc(i0nrc,2)
-             i0trl  = i0vmax*(i0nrl-1) + i0vida
-             i0tru  = i0vmax*(i0nru-1) + i0vida
-             
-             d1grv(i0trl)=d1grv(i0trl) + d0lvec
-             d1grv(i0tru)=d1grv(i0tru) + d0lvec
-             
-          ENDIF
-       ENDDO
-    ELSEIF(i0vida.LE.3)THEN
-       
-       DO i3=1,i0nmax0
-          
-          i0nrc  = i2enr0(4,i3)
-          d0lvec = d1svec0(i3)
-          
-          i0trc        = i0vmax*(i0nrc-1) + i0vida
-          d1grv(i0trc) = d1grv(i0trc)     + d0lvec
-          
-       ENDDO
-       
-    ENDIF
-    
-    RETURN
-    
-  END SUBROUTINE T2EXEC_STRV
+  END SUBROUTINE T2EXEC_STORE
+
 END MODULE T2EXEC

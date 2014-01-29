@@ -20,9 +20,9 @@ CONTAINS
     
     USE T2COMM, ONLY: &
          c10rname, i0dbg, i0fnum, i0mfcs, i0wstp,&
-         i0dmax0,i0dmax,i0amax0,&
-!         i0tmax, d0tstp, d0tmax,&
-         i0spcs, i0nmax0, i0lmax, i1mlvl,&
+         i0dmax,i0amax,i0nmax,i0smax,i0lmax,&
+         !         i0tmax, d0tstp, d0tmax,&
+         i0spcs, i0nmax0,i0dmax0, i1mlvl,&
          i0pdiv_number, i1rdn2, d1rec,&
          i0pmax,d0eps,d0rmjr,d0rmnr,&
          i0m0,i0n0,d0bc,&
@@ -37,7 +37,7 @@ CONTAINS
 
     NAMELIST /T2/ &
          c10rname, i0dbg, i0fnum, i0mfcs, i0wstp,&
-         i0dmax0,i0amax0,&
+         i0dmax,i0amax,&
 !         i0tmax, d0tstp, d0tmax,&
          i0spcs, i0nmax0, i0lmax, i1mlvl,&
          i0pdiv_number, i1rdn2, d1rec,&
@@ -57,9 +57,9 @@ CONTAINS
 
     i0wstp   =  1  ! output timing
 
-    i0dmax0  =  2  ! mesh dim
-    i0dmax   = i0dmax0
-    i0amax0  = 32  ! gauss kyuuseki number of sample points
+    i0dmax  =  2  ! mesh dim
+    i0dmax0 = i0dmax
+    i0amax  = 32  ! gauss kyuuseki number of sample points
 !    i0tmax   = 10  ! 
 !    d0tstp   = 1.D-12  !
 !    d0tmax   = 1.D-12  !
@@ -85,10 +85,11 @@ CONTAINS
     !d1rec(1) = 1.000D0
     !d1rec(2) = 1.100D0
     !d1rec(3:i0lmaxm) = 0.D0
-
-    i0spcs   =  2 
-    i0nmax0  =  4      ! number of nodes in a elemnt
-    i0lmax   =  3      ! 
+    i0smax = 2
+    i0spcs = i0smax 
+    i0nmax =  4      ! number of nodes in a elemnt
+    i0nmax0 = i0nmax
+    i0lmax =  3      ! 
     i0pdiv_number = 3  ! 
 
     i1mlvl(1)=1        ! 3 x 2^0

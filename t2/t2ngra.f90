@@ -608,23 +608,23 @@ CONTAINS
           i0ul4 = i2crt(i0ul,3)
           
           i3enr(1,1,i0ecnt) = i0ll1
-          i3enr(1,2,i0ecnt) = i0lr1
-          i3enr(1,3,i0ecnt) = i0ur1
-          i3enr(1,4,i0ecnt) = i0ul1
+          i3enr(2,1,i0ecnt) = i0lr1
+          i3enr(3,1,i0ecnt) = i0ur1
+          i3enr(4,1,i0ecnt) = i0ul1
           
-          i3enr(2,1,i0ecnt) = i0ll2
+          i3enr(1,2,i0ecnt) = i0ll2
           i3enr(2,2,i0ecnt) = i0lr2
-          i3enr(2,3,i0ecnt) = i0ur2
-          i3enr(2,4,i0ecnt) = i0ul2
+          i3enr(3,2,i0ecnt) = i0ur2
+          i3enr(4,2,i0ecnt) = i0ul2
 
-          i3enr(3,1,i0ecnt) = i0ll3
-          i3enr(3,2,i0ecnt) = i0lr3
+          i3enr(1,3,i0ecnt) = i0ll3
+          i3enr(2,3,i0ecnt) = i0lr3
           i3enr(3,3,i0ecnt) = i0ur3
-          i3enr(3,4,i0ecnt) = i0ul3
+          i3enr(4,3,i0ecnt) = i0ul3
           
-          i3enr(4,1,i0ecnt) = i0ll4
-          i3enr(4,2,i0ecnt) = i0lr4
-          i3enr(4,3,i0ecnt) = i0ur4
+          i3enr(1,4,i0ecnt) = i0ll4
+          i3enr(2,4,i0ecnt) = i0lr4
+          i3enr(3,4,i0ecnt) = i0ur4
           i3enr(4,4,i0ecnt) = i0ul4
 
           i1mlel(i0ecnt) = i1
