@@ -50,7 +50,7 @@ CONTAINS
 
     USE T2COMM, ONLY: &
          c10rname, i0dbg, i0fnum, i0mfcs, i0wstp,&
-         i0dmax,i0amax,&
+         i0dmax,i0qmax,&
 !         i0tmax, d0tstp, d0tmax,&
          i0smax, i0nmax, i0lmax, i1mlvl,&
          i0pdiv_number, i1rdn2, d1rec,&
@@ -69,7 +69,7 @@ CONTAINS
 
     NAMELIST /T2/ &
          c10rname, i0dbg, i0fnum, i0mfcs, i0wstp,&
-         i0dmax,i0amax,&
+         i0dmax,i0qmax,&
 !         i0tmax, d0tstp, d0tmax,&
          i0smax, i0nmax, i0lmax, i1mlvl,&
          i0pdiv_number, i1rdn2, d1rec,&
@@ -101,7 +101,7 @@ CONTAINS
 
     IMPLICIT NONE
     WRITE(6,'(A)') '# &T2 : c10rname,i0dbg,i0fnum,i0mfcs,i0wstp,'
-    WRITE(6,'(A)') '        i0dmax,i0amax,' !i0tmax,d0tstp,d0tmax,'
+    WRITE(6,'(A)') '        i0dmax,i0qmax,' !i0tmax,d0tstp,d0tmax,'
     WRITE(6,'(A)') '        i0smax,i0nmax,i0lmax,'
     WRITE(6,'(A)') '        i1mlvl,i0pdiv_number, i1rdn2, d1rec,'
 !    WRITE(6,'(A)') '        i0pmax,d0eps,'
@@ -142,7 +142,7 @@ CONTAINS
     USE T2COMM, ONLY: &
          c10rname, &
          i0dbg, i0fnum, i0mfcs, i0wstp,&
-         i0dmax,i0amax,&
+         i0dmax,i0qmax,&
 !         i0tmax, d0tstp, d0tmax,&
          i0smax, i0nmax, i0lmax, i1mlvl,&
          i0pdiv_number, i1rdn2, d1rec,&
@@ -166,7 +166,7 @@ CONTAINS
     WRITE(6,601) &
          'i0wstp       ',i0wstp, &
          'i0dmax       ',i0dmax, &
-         'i0amax       ',i0amax
+         'i0qmax       ',i0qmax
     WRITE(6,602) &
          'ntmax        ',ntmax, &
          'ntstep       ',ntstep, &

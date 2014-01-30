@@ -44,7 +44,7 @@ MODULE T2COMM
   !C
   
   INTEGER(i0ikind)::i0dbg
-  INTEGER(i0ikind)::i0amax ! NUMBER OF ABSCISSAS PAR DIRECTION
+  INTEGER(i0ikind)::i0qmax ! NUMBER OF ABSCISSAS PAR DIRECTION
   
   REAL(   i0rkind),DIMENSION(:,:,:        ),ALLOCATABLE:: d3imsn
   REAL(   i0rkind),DIMENSION(:,:,:,:      ),ALLOCATABLE:: d4iavn
@@ -193,6 +193,7 @@ MODULE T2COMM
        i0xmax,&
        i0cmax,&
        i0bmax,&
+       i0amax,&
        i0nlct
   REAL(   i0rkind)::&
        d0eps
@@ -205,7 +206,15 @@ MODULE T2COMM
        d1guv,&
        d1guv_befor,&
        d1guv_after
+  REAL(   i0rkind),DIMENSION(:,:),ALLOCATABLE::&
+       d2xvec,&
+       d2bvec,&
+       d2xvec_befor,&
+       d2xvec_after
 
+  REAL(   i0rkind),DIMENSION(:,:,:),ALLOCATABLE::&
+       d3amat
+  
   !C------------------------------------------------------------------
   !C
   !C                          FOR T2LOOP
@@ -255,7 +264,7 @@ MODULE T2COMM
   !C------------------------------------------------------------------
   
   INTEGER(i0ikind)::&
-       i0eid,i0lid,i0supg
+       i0supg,i0bvmax,i0avmax
   
   INTEGER(i0ikind),DIMENSION(:,:),ALLOCATABLE::&
        i2enr0
@@ -276,8 +285,6 @@ MODULE T2COMM
        d2kwns,d2knv
   REAL(   i0rkind),DIMENSION(:,:),ALLOCATABLE::&
        d2wrks,d2ws
-  REAL(   i0rkind),DIMENSION(:,:,:),ALLOCATABLE::&
-       d3gmat
   !C------------------------------------------------------------------
   !C
   !C                          FOR T2WRIT
@@ -352,7 +359,7 @@ CONTAINS
   SUBROUTINE T2COMM_ALLOCATE
     INTEGER(i0ikind),SAVE::&
          i0nmax0_save=0,i0nmax1_save=0,i0nmax2_save=0,&
-         i0nmax3_save=0,i0dmax0_save=0,i0amax_save=0,&
+         i0nmax3_save=0,i0dmax0_save=0,i0qmax_save=0,&
          i0emax_save =0,&
          i0nrmx_save =0,i0ncmx_save =0,&
          i0ermx_save =0,i0ecmx_save =0,&
@@ -368,7 +375,7 @@ CONTAINS
     IF(  (i0spcs .NE.i0spcs_save ).OR.&
          (i0nmax0.NE.i0nmax0_save).OR.&
          (i0dmax0.NE.i0dmax0_save).OR.&
-         (i0amax.NE.i0amax_save).OR.&
+         (i0qmax.NE.i0qmax_save).OR.&
          (i0nmax1.NE.i0nmax1_save).OR.&
          (i0nmax2.NE.i0nmax2_save).OR.&
          (i0nmax3.NE.i0nmax3_save).OR.&
@@ -412,11 +419,11 @@ CONTAINS
           ALLOCATE(d2issn(1:i0nmax0,1:i0nmax0),&
                STAT=i0err); IF(i0err.NE.0) EXIT
           
-          ALLOCATE(d1wfct(1:i0amax),STAT=i0err);IF(i0err.NE.0) EXIT
-          ALLOCATE(d1absc(1:i0amax),STAT=i0err);IF(i0err.NE.0) EXIT
-          ALLOCATE(d2wfct(1:i0amax,1:i0amax),&
+          ALLOCATE(d1wfct(1:i0qmax),STAT=i0err);IF(i0err.NE.0) EXIT
+          ALLOCATE(d1absc(1:i0qmax),STAT=i0err);IF(i0err.NE.0) EXIT
+          ALLOCATE(d2wfct(1:i0qmax,1:i0qmax),&
                STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(d4ifnc(1:i0amax,1:i0amax,0:i0dmax,1:i0nmax0),&
+          ALLOCATE(d4ifnc(1:i0qmax,1:i0qmax,0:i0dmax,1:i0nmax0),&
                STAT=i0err); IF(i0err.NE.0) EXIT
 
           !C
@@ -577,6 +584,10 @@ CONTAINS
                STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d2qt3(1:i0nmax3,1:i0spcs),&
                STAT=i0err);IF(i0err.NE.0)EXIT
+
+          !C
+          !C T2STEP
+          !C
           ALLOCATE(i1nlct(     1:10000),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d1rsdl(     1:10000),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d1gsm(      1:i0cmax),STAT=i0err);IF(i0err.NE.0)EXIT
@@ -584,6 +595,18 @@ CONTAINS
           ALLOCATE(d1guv(      1:i0xmax),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d1guv_befor(1:i0xmax),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d1guv_after(1:i0xmax),STAT=i0err);IF(i0err.NE.0)EXIT
+          
+          ALLOCATE(d3amat(      1:i0vmax,1:i0vmax,1:i0amax),&
+               STAT=i0err);IF(i0err.NE.0)EXIT
+          ALLOCATE(d2bvec(               1:i0vmax,1:i0bmax),&
+               STAT=i0err);IF(i0err.NE.0)EXIT
+          ALLOCATE(d2xvec_befor(         1:i0vmax,1:i0xmax),&
+               STAT=i0err);IF(i0err.NE.0)EXIT
+          ALLOCATE(d2xvec_after(         1:i0vmax,1:i0xmax),&
+               STAT=i0err);IF(i0err.NE.0)EXIT
+          ALLOCATE(d2xvec(               1:i0vmax,1:i0xmax),&
+               STAT=i0err);IF(i0err.NE.0)EXIT
+
           ALLOCATE(d2ws(  1:i0wmax, 1:i0nmax1),&
                STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(i2enr0( 1:i0nmax,1:4),&
@@ -603,7 +626,7 @@ CONTAINS
                STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d2svec(1:i0nmax,1:i0vmax),&
                STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(d3gmat(1:i0vmax,1:i0vmax,1:i0ncmx),&
+          ALLOCATE(d3amat(1:i0vmax,1:i0vmax,1:i0ncmx),&
                STAT=i0err);IF(i0err.NE.0)EXIT
           !C TMP
           ALLOCATE(d1jm1(1:i0nmax3),STAT=i0err);IF(i0err.NE.0)EXIT
@@ -618,7 +641,7 @@ CONTAINS
           i0spcs_save  = i0spcs
           i0nmax0_save = i0nmax0
           i0dmax0_save = i0dmax0
-          i0amax_save  = i0amax
+          i0qmax_save  = i0qmax
           i0nmax1_save = i0nmax1
           i0nmax2_save = i0nmax2
           i0nmax3_save = i0nmax3
@@ -788,6 +811,10 @@ CONTAINS
     IF(ALLOCATED(d2qr3)) DEALLOCATE(d2qr3)
     IF(ALLOCATED(d2qb3)) DEALLOCATE(d2qb3)
     IF(ALLOCATED(d2qt3)) DEALLOCATE(d2qt3)    
+    
+    !C
+    !C
+    !C
     IF(ALLOCATED(i1nlct     )) DEALLOCATE(i1nlct     ) 
     IF(ALLOCATED(d1rsdl     )) DEALLOCATE(d1rsdl     )
     IF(ALLOCATED(d1gsm      )) DEALLOCATE(d1gsm      )
@@ -796,6 +823,13 @@ CONTAINS
     IF(ALLOCATED(d1guv_befor)) DEALLOCATE(d1guv_befor)
     IF(ALLOCATED(d1guv_after)) DEALLOCATE(d1guv_after)
     IF(ALLOCATED(d2ws       )) DEALLOCATE(d2ws       )
+    
+    IF(ALLOCATED(d3amat))       DEALLOCATE(d3amat)
+    IF(ALLOCATED(d2bvec))       DEALLOCATE(d2xvec)
+    IF(ALLOCATED(d2xvec))       DEALLOCATE(d2xvec)
+    IF(ALLOCATED(d2xvec_befor)) DEALLOCATE(d2xvec_befor)
+    IF(ALLOCATED(d2xvec_after)) DEALLOCATE(d2xvec_after)
+
     IF(ALLOCATED(i2enr0 )) DEALLOCATE(i2enr0 )
     IF(ALLOCATED(d2wrks )) DEALLOCATE(d2wrks )
     IF(ALLOCATED(d2jmpm )) DEALLOCATE(d2jmpm )

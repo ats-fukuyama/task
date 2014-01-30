@@ -27,7 +27,7 @@ CONTAINS
   SUBROUTINE T2_INTG
     
     USE T2COMM, ONLY:&
-         i0nmax,i0amax,i0dmax,&
+         i0nmax,i0qmax,i0dmax,&
          d3imsn,d4iavn,d6iatn,d5idtn,d4igvn,d6igtn,&
          d3iesn,d5ievn,d7ietn,d2issn,&
          d2wfct,d4ifnc
@@ -35,7 +35,7 @@ CONTAINS
     INTEGER(i0ikind)::&
          i0nidi,i0nidj,i0nidk,i0nidl,i0nidm,&
          i0didi,i0didj,&
-         i0aidi,i0aidj
+         i0qidi,i0qidj
     REAL(   i0rkind)::&
          d0ifnci,d0ifncj,d0ifnck,d0ifncl,d0ifncm,&
          d0wfct, d0temp
@@ -51,12 +51,12 @@ CONTAINS
     DO i0nidi = 1, i0nmax    
     DO i0nidk = 1, i0nmax
        d0temp = 0.D0
-       DO i0aidj = 1, i0amax
-       DO i0aidi = 1, i0amax
-          d0ifnci = d4ifnc(i0aidi,i0aidj,0,i0nidi) 
-          d0ifncj = d4ifnc(i0aidi,i0aidj,0,i0nidj) 
-          d0ifnck = d4ifnc(i0aidi,i0aidj,0,i0nidk) 
-          d0wfct  = d2wfct(i0aidi,i0aidj         )
+       DO i0qidj = 1, i0qmax
+       DO i0qidi = 1, i0qmax
+          d0ifnci = d4ifnc(i0qidi,i0qidj,0,i0nidi) 
+          d0ifncj = d4ifnc(i0qidi,i0qidj,0,i0nidj) 
+          d0ifnck = d4ifnc(i0qidi,i0qidj,0,i0nidk) 
+          d0wfct  = d2wfct(i0qidi,i0qidj         )
           d0temp  = d0temp + d0ifnci*d0ifncj*d0ifnck*d0wfct
        ENDDO
        ENDDO
@@ -74,17 +74,17 @@ CONTAINS
     DO i0nidk = 1, i0nmax
        DO i0didi = 1, i0dmax
           d0temp = 0.D0
-          DO i0aidj = 1, i0amax
-          DO i0aidi = 1, i0amax
-             d0ifnci = d4ifnc(i0aidi,i0aidj,0,     i0nidi) 
-             d0ifncj = d4ifnc(i0aidi,i0aidj,i0didi,i0nidj) 
-             d0ifnck = d4ifnc(i0aidi,i0aidj,0,     i0nidk) 
-             d0wfct  = d2wfct(i0aidi,i0aidj              ) 
+          DO i0qidj = 1, i0qmax
+          DO i0qidi = 1, i0qmax
+             d0ifnci = d4ifnc(i0qidi,i0qidj,0,     i0nidi) 
+             d0ifncj = d4ifnc(i0qidi,i0qidj,i0didi,i0nidj) 
+             d0ifnck = d4ifnc(i0qidi,i0qidj,0,     i0nidk) 
+             d0wfct  = d2wfct(i0qidi,i0qidj              ) 
              d0temp  = d0temp + d0ifnci*d0ifncj*d0ifnck*d0wfct
-             d0ifnci = d4ifnc(i0aidi,i0aidj,0,     i0nidi) 
-             d0ifncj = d4ifnc(i0aidi,i0aidj,0,     i0nidj) 
-             d0ifnck = d4ifnc(i0aidi,i0aidj,i0didi,i0nidk) 
-             d0wfct  = d2wfct(i0aidi,i0aidj              )
+             d0ifnci = d4ifnc(i0qidi,i0qidj,0,     i0nidi) 
+             d0ifncj = d4ifnc(i0qidi,i0qidj,0,     i0nidj) 
+             d0ifnck = d4ifnc(i0qidi,i0qidj,i0didi,i0nidk) 
+             d0wfct  = d2wfct(i0qidi,i0qidj              )
              d0temp  = d0temp + d0ifnci*d0ifncj*d0ifnck*d0wfct
           ENDDO
           ENDDO
@@ -105,13 +105,13 @@ CONTAINS
        DO i0didj = 1, i0dmax
        DO i0didi = 1, i0dmax
           d0temp = 0.D0
-          DO i0aidj = 1, i0amax
-          DO i0aidi = 1, i0amax
-             d0ifnci = d4ifnc(i0aidi,i0aidj,i0didi,i0nidi)
-             d0ifncj = d4ifnc(i0aidi,i0aidj,0,     i0nidj)
-             d0ifnck = d4ifnc(i0aidi,i0aidj,i0didj,i0nidk)
-             d0ifncl = d4ifnc(i0aidi,i0aidj,0,     i0nidl)
-             d0wfct  = d2wfct(i0aidi,i0aidj              )
+          DO i0qidj = 1, i0qmax
+          DO i0qidi = 1, i0qmax
+             d0ifnci = d4ifnc(i0qidi,i0qidj,i0didi,i0nidi)
+             d0ifncj = d4ifnc(i0qidi,i0qidj,0,     i0nidj)
+             d0ifnck = d4ifnc(i0qidi,i0qidj,i0didj,i0nidk)
+             d0ifncl = d4ifnc(i0qidi,i0qidj,0,     i0nidl)
+             d0wfct  = d2wfct(i0qidi,i0qidj              )
              d0temp  = d0temp + d0ifnci*d0ifncj*d0ifnck*d0ifncl*d0wfct
           ENDDO
           ENDDO
@@ -133,12 +133,12 @@ CONTAINS
        DO i0didj = 1, i0dmax
        DO i0didi = 1, i0dmax
           d0temp = 0.D0
-          DO i0aidj = 1, i0amax
-          DO i0aidi = 1, i0amax
-             d0ifnci = d4ifnc(i0aidi,i0aidj,i0didi,i0nidi) 
-             d0ifncj = d4ifnc(i0aidi,i0aidj,i0didj,i0nidj) 
-             d0ifnck = d4ifnc(i0aidi,i0aidj,0,     i0nidk) 
-             d0wfct  = d2wfct(i0aidi,i0aidj              )
+          DO i0qidj = 1, i0qmax
+          DO i0qidi = 1, i0qmax
+             d0ifnci = d4ifnc(i0qidi,i0qidj,i0didi,i0nidi) 
+             d0ifncj = d4ifnc(i0qidi,i0qidj,i0didj,i0nidj) 
+             d0ifnck = d4ifnc(i0qidi,i0qidj,0,     i0nidk) 
+             d0wfct  = d2wfct(i0qidi,i0qidj              )
              d0temp  = d0temp + d0ifnci*d0ifncj*d0ifnck*d0wfct
           ENDDO
           ENDDO
@@ -159,12 +159,12 @@ CONTAINS
     DO i0nidk = 1, i0nmax
        DO i0didi = 1, i0dmax
           d0temp = 0.D0
-          DO i0aidj = 1, i0amax
-          DO i0aidi = 1, i0amax
-             d0ifnci = d4ifnc(i0aidi,i0aidj,0,     i0nidi) 
-             d0ifncj = d4ifnc(i0aidi,i0aidj,i0didi,i0nidj) 
-             d0ifnck = d4ifnc(i0aidi,i0aidj,0,     i0nidk) 
-             d0wfct  = d2wfct(i0aidi,i0aidj              )
+          DO i0qidj = 1, i0qmax
+          DO i0qidi = 1, i0qmax
+             d0ifnci = d4ifnc(i0qidi,i0qidj,0,     i0nidi) 
+             d0ifncj = d4ifnc(i0qidi,i0qidj,i0didi,i0nidj) 
+             d0ifnck = d4ifnc(i0qidi,i0qidj,0,     i0nidk) 
+             d0wfct  = d2wfct(i0qidi,i0qidj              )
              d0temp  = d0temp + d0ifnci*d0ifncj*d0ifnck*d0wfct
           ENDDO
           ENDDO
@@ -185,13 +185,13 @@ CONTAINS
        DO i0didj = 1, i0dmax
        DO i0didi = 1, i0dmax
           d0temp = 0.D0
-          DO i0aidj = 1, i0amax
-          DO i0aidi = 1, i0amax
-             d0ifnci = d4ifnc(i0aidi,i0aidj,0,     i0nidi)
-             d0ifncj = d4ifnc(i0aidi,i0aidj,i0didj,i0nidj) 
-             d0ifnck = d4ifnc(i0aidi,i0aidj,i0didi,i0nidk)
-             d0ifncl = d4ifnc(i0aidi,i0aidj,0,     i0nidl)
-             d0wfct  = d2wfct(i0aidi,i0aidj              )
+          DO i0qidj = 1, i0qmax
+          DO i0qidi = 1, i0qmax
+             d0ifnci = d4ifnc(i0qidi,i0qidj,0,     i0nidi)
+             d0ifncj = d4ifnc(i0qidi,i0qidj,i0didj,i0nidj) 
+             d0ifnck = d4ifnc(i0qidi,i0qidj,i0didi,i0nidk)
+             d0ifncl = d4ifnc(i0qidi,i0qidj,0,     i0nidl)
+             d0wfct  = d2wfct(i0qidi,i0qidj              )
              d0temp  = d0temp + d0ifnci*d0ifncj*d0ifnck*d0ifncl*d0wfct
           ENDDO
           ENDDO
@@ -211,12 +211,12 @@ CONTAINS
     DO i0nidi = 1, i0nmax    
     DO i0nidk = 1, i0nmax
        d0temp = 0.D0
-       DO i0aidj = 1, i0amax
-       DO i0aidi = 1, i0amax
-          d0ifnci = d4ifnc(i0aidi,i0aidj,0,i0nidi)
-          d0ifncj = d4ifnc(i0aidi,i0aidj,0,i0nidj)
-          d0ifnck = d4ifnc(i0aidi,i0aidj,0,i0nidk)
-          d0wfct  = d2wfct(i0aidi,i0aidj         )
+       DO i0qidj = 1, i0qmax
+       DO i0qidi = 1, i0qmax
+          d0ifnci = d4ifnc(i0qidi,i0qidj,0,i0nidi)
+          d0ifncj = d4ifnc(i0qidi,i0qidj,0,i0nidj)
+          d0ifnck = d4ifnc(i0qidi,i0qidj,0,i0nidk)
+          d0wfct  = d2wfct(i0qidi,i0qidj         )
           d0temp  = d0temp + d0ifnci*d0ifncj*d0ifnck*d0wfct
        ENDDO
        ENDDO
@@ -235,13 +235,13 @@ CONTAINS
     DO i0nidk = 1, i0nmax
        DO i0didi = 1, i0dmax
           d0temp = 0.D0
-          DO i0aidj = 1, i0amax
-          DO i0aidi = 1, i0amax
-             d0ifnci = d4ifnc(i0aidi,i0aidj,0,     i0nidi)
-             d0ifncj = d4ifnc(i0aidi,i0aidj,0,     i0nidj)
-             d0ifnck = d4ifnc(i0aidi,i0aidj,i0didi,i0nidk)
-             d0ifncl = d4ifnc(i0aidi,i0aidj,0,     i0nidl)
-             d0wfct  = d2wfct(i0aidi,i0aidj              )
+          DO i0qidj = 1, i0qmax
+          DO i0qidi = 1, i0qmax
+             d0ifnci = d4ifnc(i0qidi,i0qidj,0,     i0nidi)
+             d0ifncj = d4ifnc(i0qidi,i0qidj,0,     i0nidj)
+             d0ifnck = d4ifnc(i0qidi,i0qidj,i0didi,i0nidk)
+             d0ifncl = d4ifnc(i0qidi,i0qidj,0,     i0nidl)
+             d0wfct  = d2wfct(i0qidi,i0qidj              )
              d0temp  = d0temp + d0ifnci*d0ifncj*d0ifnck*d0ifncl*d0wfct
           ENDDO
           ENDDO
@@ -264,14 +264,14 @@ CONTAINS
        DO i0didj = 1, i0dmax
        DO i0didi = 1, i0dmax
           d0temp = 0.D0
-          DO i0aidj = 1, i0amax
-          DO i0aidi = 1, i0amax
-             d0ifnci = d4ifnc(i0aidi,i0aidj,0,     i0nidi)
-             d0ifncj = d4ifnc(i0aidi,i0aidj,0,     i0nidj)
-             d0ifnck = d4ifnc(i0aidi,i0aidj,i0didi,i0nidk)
-             d0ifncl = d4ifnc(i0aidi,i0aidj,i0didj,i0nidl)
-             d0ifncm = d4ifnc(i0aidi,i0aidj,0,     i0nidm)
-             d0wfct  = d2wfct(i0aidi,i0aidj              )
+          DO i0qidj = 1, i0qmax
+          DO i0qidi = 1, i0qmax
+             d0ifnci = d4ifnc(i0qidi,i0qidj,0,     i0nidi)
+             d0ifncj = d4ifnc(i0qidi,i0qidj,0,     i0nidj)
+             d0ifnck = d4ifnc(i0qidi,i0qidj,i0didi,i0nidk)
+             d0ifncl = d4ifnc(i0qidi,i0qidj,i0didj,i0nidl)
+             d0ifncm = d4ifnc(i0qidi,i0qidj,0,     i0nidm)
+             d0wfct  = d2wfct(i0qidi,i0qidj              )
              d0temp  = d0temp&
                   + d0ifnci*d0ifncj*d0ifnck*d0ifncl*d0ifncm*d0wfct
           ENDDO
@@ -293,11 +293,11 @@ CONTAINS
     DO i0nidj = 1, i0nmax
     DO i0nidi = 1, i0nmax
        d0temp = 0.D0
-       DO i0aidj = 1, i0amax
-       DO i0aidi = 1, i0amax
-          d0ifnci = d4ifnc(i0aidi,i0aidj,0,i0nidi)
-          d0ifncj = d4ifnc(i0aidi,i0aidj,0,i0nidj)
-          d0wfct  = d2wfct(i0aidi,i0aidj         )
+       DO i0qidj = 1, i0qmax
+       DO i0qidi = 1, i0qmax
+          d0ifnci = d4ifnc(i0qidi,i0qidj,0,i0nidi)
+          d0ifncj = d4ifnc(i0qidi,i0qidj,0,i0nidj)
+          d0wfct  = d2wfct(i0qidi,i0qidj         )
           d0temp  = d0temp + d0ifnci*d0ifncj*d0wfct
        ENDDO
        ENDDO
@@ -320,12 +320,12 @@ CONTAINS
     
     USE T2CNST, ONLY: d1absc32,d1wfct32
     USE T2COMM, ONLY:&
-         i0nmax,i0amax,i0dmax,&
+         i0nmax,i0qmax,i0dmax,&
          d1wfct,d1absc,d2wfct,d4ifnc
     
     INTEGER(i0ikind)::&
-         i0aidi,i0aidi_odd,i0aidi_eve,&
-         i0aidj,i0aidj_odd,i0aidj_eve
+         i0qidi,i0qidi_odd,i0qidi_eve,&
+         i0qidj,i0qidj_odd,i0qidj_eve
     
     REAL(   i0rkind):: d0x,d0y,d0wfct
     
@@ -333,40 +333,40 @@ CONTAINS
     !C SET NUMBER OF ABSCISSAS FOR GAUSS INTEGARATION
     !C
     
-    SELECT CASE (i0amax)
+    SELECT CASE (i0qmax)
        
     CASE(32) !C 32*32 POINTS 2D GAUSS INTEGRATION
        
-       DO i0aidj = 1, 16
+       DO i0qidj = 1, 16
           
-          i0aidj_odd = 2*i0aidj - 1
-          i0aidj_eve = 2*i0aidj
+          i0qidj_odd = 2*i0qidj - 1
+          i0qidj_eve = 2*i0qidj
           
-          DO i0aidi = 1, 16
+          DO i0qidi = 1, 16
              
-             i0aidi_odd = 2*i0aidi - 1
-             i0aidi_eve = 2*i0aidi
+             i0qidi_odd = 2*i0qidi - 1
+             i0qidi_eve = 2*i0qidi
              
-             d0wfct = d1wfct32(i0aidi)*d1wfct32(i0aidj)
+             d0wfct = d1wfct32(i0qidi)*d1wfct32(i0qidj)
 
-             d2wfct(i0aidi_odd,i0aidj_odd) = d0wfct
-             d2wfct(i0aidi_eve,i0aidj_odd) = d0wfct
-             d2wfct(i0aidi_odd,i0aidj_eve) = d0wfct
-             d2wfct(i0aidi_eve,i0aidj_eve) = d0wfct
+             d2wfct(i0qidi_odd,i0qidj_odd) = d0wfct
+             d2wfct(i0qidi_eve,i0qidj_odd) = d0wfct
+             d2wfct(i0qidi_odd,i0qidj_eve) = d0wfct
+             d2wfct(i0qidi_eve,i0qidj_eve) = d0wfct
              
           ENDDO
           
-          d0x = d1absc32(i0aidj)
+          d0x = d1absc32(i0qidj)
           
-          d1absc(i0aidj_odd) = - d0x
-          d1absc(i0aidj_eve) =   d0x
+          d1absc(i0qidj_odd) = - d0x
+          d1absc(i0qidj_eve) =   d0x
           
        ENDDO
        
     CASE DEFAULT
        WRITE(6,*)'-------------------------------------------------'
        WRITE(6,*)'SUBROUTINE SET_INTEGRATED_INTERPOLATION FUNCTIONS'
-       WRITE(6,*)'ERROR: ILLEGAL I0AMAX0'
+       WRITE(6,*)'ERROR: ILLEGAL I0QMAX0'
        WRITE(6,*)'-------------------------------------------------'
        STOP
     END SELECT
@@ -389,16 +389,16 @@ CONTAINS
        !C
        !C PHI (x_i,y_i)
        !C
-       DO i0aidj = 1, i0amax
-       DO i0aidi = 1, i0amax
+       DO i0qidj = 1, i0qmax
+       DO i0qidi = 1, i0qmax
 
-          d0x = d1absc(i0aidi)
-          d0y = d1absc(i0aidj)
+          d0x = d1absc(i0qidi)
+          d0y = d1absc(i0qidj)
           
-          d4ifnc(i0aidi,i0aidj,0,1) = (1.D0-d0x)*(1.D0-d0y)/4.D0
-          d4ifnc(i0aidi,i0aidj,0,2) = (1.D0+d0x)*(1.D0-d0y)/4.D0
-          d4ifnc(i0aidi,i0aidj,0,3) = (1.D0+d0x)*(1.D0+d0y)/4.D0
-          d4ifnc(i0aidi,i0aidj,0,4) = (1.D0-d0x)*(1.D0+d0y)/4.D0
+          d4ifnc(i0qidi,i0qidj,0,1) = (1.D0-d0x)*(1.D0-d0y)/4.D0
+          d4ifnc(i0qidi,i0qidj,0,2) = (1.D0+d0x)*(1.D0-d0y)/4.D0
+          d4ifnc(i0qidi,i0qidj,0,3) = (1.D0+d0x)*(1.D0+d0y)/4.D0
+          d4ifnc(i0qidi,i0qidj,0,4) = (1.D0-d0x)*(1.D0+d0y)/4.D0
           
        ENDDO
        ENDDO
@@ -406,15 +406,15 @@ CONTAINS
        !C
        !C dPHI/dx (x_i,y_i)
        !
-       DO i0aidj = 1, i0amax
-       DO i0aidi = 1, i0amax
+       DO i0qidj = 1, i0qmax
+       DO i0qidi = 1, i0qmax
           
-          d0y = d1absc(i0aidj)
+          d0y = d1absc(i0qidj)
           
-          d4ifnc(i0aidi,i0aidj,1,1) = -(1.D0-d0y)/4.D0 
-          d4ifnc(i0aidi,i0aidj,1,2) =  (1.D0-d0y)/4.D0 
-          d4ifnc(i0aidi,i0aidj,1,3) =  (1.D0+d0y)/4.D0
-          d4ifnc(i0aidi,i0aidj,1,4) = -(1.D0+d0y)/4.D0
+          d4ifnc(i0qidi,i0qidj,1,1) = -(1.D0-d0y)/4.D0 
+          d4ifnc(i0qidi,i0qidj,1,2) =  (1.D0-d0y)/4.D0 
+          d4ifnc(i0qidi,i0qidj,1,3) =  (1.D0+d0y)/4.D0
+          d4ifnc(i0qidi,i0qidj,1,4) = -(1.D0+d0y)/4.D0
 
        ENDDO
        ENDDO
@@ -423,15 +423,15 @@ CONTAINS
        !C dPHI/dy (x_i,y_i)
        !C
 
-       DO i0aidj = 1, i0amax
-       DO i0aidi = 1, i0amax
+       DO i0qidj = 1, i0qmax
+       DO i0qidi = 1, i0qmax
 
-          d0x = d1absc(i0aidi)
+          d0x = d1absc(i0qidi)
 
-          d4ifnc(i0aidi,i0aidj,2,1) = -(1.D0-d0x)/4.D0 
-          d4ifnc(i0aidi,i0aidj,2,2) = -(1.D0+d0x)/4.D0 
-          d4ifnc(i0aidi,i0aidj,2,3) =  (1.D0+d0x)/4.D0
-          d4ifnc(i0aidi,i0aidj,2,4) =  (1.D0-d0x)/4.D0
+          d4ifnc(i0qidi,i0qidj,2,1) = -(1.D0-d0x)/4.D0 
+          d4ifnc(i0qidi,i0qidj,2,2) = -(1.D0+d0x)/4.D0 
+          d4ifnc(i0qidi,i0qidj,2,3) =  (1.D0+d0x)/4.D0
+          d4ifnc(i0qidi,i0qidj,2,4) =  (1.D0-d0x)/4.D0
 
        ENDDO
        ENDDO
@@ -450,27 +450,27 @@ CONTAINS
        !C
        !C PHI(x_i,y_i) 
        !C
-       DO i0aidj = 1, i0amax
-       DO i0aidi = 1, i0amax
+       DO i0qidj = 1, i0qmax
+       DO i0qidi = 1, i0qmax
        
-          d0x = d1absc(i0aidi)
-          d0y = d1absc(i0aidj)
+          d0x = d1absc(i0qidi)
+          d0y = d1absc(i0qidj)
 
-          d4ifnc(i0aidi,i0aidj,0,1) &
+          d4ifnc(i0qidi,i0qidj,0,1) &
                = -(1.D0-d0x)*(1.D0-d0y)*(1.D0+d0x+d0y)/4.D0
-          d4ifnc(i0aidi,i0aidj,0,2) &
+          d4ifnc(i0qidi,i0qidj,0,2) &
                =  (1.D0-d0x**2)*(1.D0-d0y   )/2.D0
-          d4ifnc(i0aidi,i0aidj,0,3) &
+          d4ifnc(i0qidi,i0qidj,0,3) &
                = -(1.D0+d0x)*(1.D0-d0y)*(1.D0-d0x+d0y)/4.D0
-          d4ifnc(i0aidi,i0aidj,0,4) &
+          d4ifnc(i0qidi,i0qidj,0,4) &
                =  (1.D0+d0x   )*(1.D0-d0y**2)/2.D0
-          d4ifnc(i0aidi,i0aidj,0,5) &
+          d4ifnc(i0qidi,i0qidj,0,5) &
                = -(1.D0+d0x)*(1.D0+d0y)*(1.D0-d0x-d0y)/4.D0
-          d4ifnc(i0aidi,i0aidj,0,6) &
+          d4ifnc(i0qidi,i0qidj,0,6) &
                =  (1.D0-d0x**2)*(1.D0+d0y   )/2.D0
-          d4ifnc(i0aidi,i0aidj,0,7) &
+          d4ifnc(i0qidi,i0qidj,0,7) &
                = -(1.D0-d0x)*(1.D0+d0y)*(1.D0+d0x-d0y)/4.D0
-          d4ifnc(i0aidi,i0aidj,0,8) &
+          d4ifnc(i0qidi,i0qidj,0,8) &
                =  (1.D0-d0x   )*(1.D0-d0y**2)/2.D0 
        ENDDO
        ENDDO
@@ -478,20 +478,20 @@ CONTAINS
        !C
        !C dPHI/dx (x_i,y_i)
        !C
-       DO i0aidj = 1, i0amax
-       DO i0aidi = 1, i0amax
+       DO i0qidj = 1, i0qmax
+       DO i0qidi = 1, i0qmax
 
-          d0x = d1absc(i0aidi)
-          d0y = d1absc(i0aidj)
+          d0x = d1absc(i0qidi)
+          d0y = d1absc(i0qidj)
           
-          d4ifnc(i0aidi,i0aidj,1,1) =  (1.D0-d0y)*(2.D0*d0x+d0y)/4.D0
-          d4ifnc(i0aidi,i0aidj,1,2) = -d0x*(1.D0-d0y)
-          d4ifnc(i0aidi,i0aidj,1,3) =  (1.D0-d0y)*(2.D0*d0x-d0y)/4.D0 
-          d4ifnc(i0aidi,i0aidj,1,4) =  (1.D0-d0y**2)/2.D0 
-          d4ifnc(i0aidi,i0aidj,1,5) =  (1.D0+d0y)*(2.D0*d0x+d0y)/4.D0
-          d4ifnc(i0aidi,i0aidj,1,6) = -d0x*(1.D0+d0y)
-          d4ifnc(i0aidi,i0aidj,1,7) =  (1.D0+d0y)*(2.D0*d0x-d0y)/4.D0
-          d4ifnc(i0aidi,i0aidj,1,8) = -(1.D0-d0y**2)/2.D0
+          d4ifnc(i0qidi,i0qidj,1,1) =  (1.D0-d0y)*(2.D0*d0x+d0y)/4.D0
+          d4ifnc(i0qidi,i0qidj,1,2) = -d0x*(1.D0-d0y)
+          d4ifnc(i0qidi,i0qidj,1,3) =  (1.D0-d0y)*(2.D0*d0x-d0y)/4.D0 
+          d4ifnc(i0qidi,i0qidj,1,4) =  (1.D0-d0y**2)/2.D0 
+          d4ifnc(i0qidi,i0qidj,1,5) =  (1.D0+d0y)*(2.D0*d0x+d0y)/4.D0
+          d4ifnc(i0qidi,i0qidj,1,6) = -d0x*(1.D0+d0y)
+          d4ifnc(i0qidi,i0qidj,1,7) =  (1.D0+d0y)*(2.D0*d0x-d0y)/4.D0
+          d4ifnc(i0qidi,i0qidj,1,8) = -(1.D0-d0y**2)/2.D0
 
        ENDDO
        ENDDO
@@ -500,21 +500,21 @@ CONTAINS
        !C dPHI/dy (x_i,y_i)
        !C
        
-       DO i0aidj = 1, i0amax
-       DO i0aidi = 1, i0amax
+       DO i0qidj = 1, i0qmax
+       DO i0qidi = 1, i0qmax
           
 
-          d0x = d1absc(i0aidi)
-          d0y = d1absc(i0aidj)
+          d0x = d1absc(i0qidi)
+          d0y = d1absc(i0qidj)
 
-          d4ifnc(i0aidi,i0aidj,2,1) =  (1.D0-d0x)*(2.D0*d0y+d0x)/4.D0
-          d4ifnc(i0aidi,i0aidj,2,2) = -(1.D0-d0x**2)/2.D0
-          d4ifnc(i0aidi,i0aidj,2,3) =  (1.D0+d0x)*(2.D0*d0y-d0x)/4.D0
-          d4ifnc(i0aidi,i0aidj,2,4) = -d0y*(1.D0+d0x)
-          d4ifnc(i0aidi,i0aidj,2,5) =  (1.D0+d0x)*(2.D0*d0y+d0x)/4.D0 
-          d4ifnc(i0aidi,i0aidj,2,6) =  (1.D0-d0x**2)/2.D0
-          d4ifnc(i0aidi,i0aidj,2,7) =  (1.D0-d0x)*(2.D0*d0y-d0x)/4.D0
-          d4ifnc(i0aidi,i0aidj,2,8) = -d0y*(1.D0-d0x)
+          d4ifnc(i0qidi,i0qidj,2,1) =  (1.D0-d0x)*(2.D0*d0y+d0x)/4.D0
+          d4ifnc(i0qidi,i0qidj,2,2) = -(1.D0-d0x**2)/2.D0
+          d4ifnc(i0qidi,i0qidj,2,3) =  (1.D0+d0x)*(2.D0*d0y-d0x)/4.D0
+          d4ifnc(i0qidi,i0qidj,2,4) = -d0y*(1.D0+d0x)
+          d4ifnc(i0qidi,i0qidj,2,5) =  (1.D0+d0x)*(2.D0*d0y+d0x)/4.D0 
+          d4ifnc(i0qidi,i0qidj,2,6) =  (1.D0-d0x**2)/2.D0
+          d4ifnc(i0qidi,i0qidj,2,7) =  (1.D0-d0x)*(2.D0*d0y-d0x)/4.D0
+          d4ifnc(i0qidi,i0qidj,2,8) = -d0y*(1.D0-d0x)
 
        ENDDO
        ENDDO
