@@ -26,29 +26,9 @@ MODULE T2CNST
   REAL(rkind), PARAMETER :: d0rmu0 = 4.D0*d0pi*1.D-7
   REAL(rkind), PARAMETER :: d0eps0 = 1.D0/(d0vc*d0vc*d0rmu0)
   REAL(rkind), PARAMETER :: d0vci2  = 1.D0/(d0vc*d0vc)
-  !C NUMERICAL COEFFICIENTS FOR EACH VARIABLE 
-  !C 
-  !C 
-  !C
-  !C
-  !C
-!  REAL(rkind), PARAMETER :: d0bpcst = 1.D0 
-!  REAL(rkind), PARAMETER :: d0btcst = 1.D0 
-!  REAL(rkind), PARAMETER :: d0ercst = 1.D0 
-!  REAL(rkind), PARAMETER :: d0epcst = 1.D0 
-!  REAL(rkind), PARAMETER :: d0etcst = 1.D0 
-!  REAL(rkind), PARAMETER :: d0nncst = 1.D20 
-!  REAL(rkind), PARAMETER :: d0frcst = 1.D20 
-!  REAL(rkind), PARAMETER :: d0fbcst = 1.D20
-!  REAL(rkind), PARAMETER :: d0ftcst = 1.D20
-!  REAL(rkind), PARAMETER :: d0ppcst = d0aee*1.D23 
-!  REAL(rkind), PARAMETER :: d0qrcst = d0aee*1.D23 
-!  REAL(rkind), PARAMETER :: d0qbcst = d0aee*1.D23 
-!  REAL(rkind), PARAMETER :: d0qtcst = d0aee*1.D23 
   REAL(rkind), PARAMETER :: d0de   = 4.D0/(3.D0*SQRT(d0pi))
-
  
-  !C ABSCISSAS AND WEIGHT FACTOR FOR GAUSIAN INTEGRATION (32 points) 
+  !C ABSCISSAS AND WEIGHT FACTORS FOR GAUSSIAN INTEGRATION (32 points) 
   !C
   !C FROM HAND BOOK OF MATHEMATICAL FUNCTIONS pp.917
   !C ISBN: 0-486-61272-4
@@ -74,4 +54,5 @@ MODULE T2CNST
        0.050998059262376D0, 0.042835898022226D0,&
        0.034273862913021D0, 0.025392065309262D0,&
        0.016274394730905D0, 0.007018610009470D0/)
+
 END MODULE T2CNST

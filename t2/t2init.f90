@@ -22,7 +22,7 @@ CONTAINS
          c10rname, i0dbg, i0fnum, i0mfcs, i0wstp,&
          i0dmax,i0amax,i0nmax,i0smax,i0lmax,&
          !         i0tmax, d0tstp, d0tmax,&
-         i0spcs, i0nmax0,i0dmax0, i1mlvl,&
+         i0smax, i0nmax,i0dmax, i1mlvl,&
          i0pdiv_number, i1rdn2, d1rec,&
          i0pmax,d0eps,d0rmjr,d0rmnr,&
          i0m0,i0n0,d0bc,&
@@ -39,7 +39,7 @@ CONTAINS
          c10rname, i0dbg, i0fnum, i0mfcs, i0wstp,&
          i0dmax,i0amax,&
 !         i0tmax, d0tstp, d0tmax,&
-         i0spcs, i0nmax0, i0lmax, i1mlvl,&
+         i0smax, i0nmax, i0lmax, i1mlvl,&
          i0pdiv_number, i1rdn2, d1rec,&
          i0pmax,d0eps,d0rmjr,d0rmnr,&
          i0m0,i0n0,d0bc,&
@@ -58,7 +58,6 @@ CONTAINS
     i0wstp   =  1  ! output timing
 
     i0dmax  =  2  ! mesh dim
-    i0dmax0 = i0dmax
     i0amax  = 32  ! gauss kyuuseki number of sample points
 !    i0tmax   = 10  ! 
 !    d0tstp   = 1.D-12  !
@@ -66,8 +65,8 @@ CONTAINS
 !    d0eps    = 1.D-4
 !    i0pmax   =  49     ! iteration 
 
-    !i0spcs   =  2 
-    !i0nmax0  =  4      ! number of nodes in a elemnt
+    !i0smax   =  2 
+    !i0nmax  =  4      ! number of nodes in a elemnt
     !i0lmax   =  2      ! 
     !i0pdiv_number = 8  ! 
 
@@ -86,10 +85,8 @@ CONTAINS
     !d1rec(2) = 1.100D0
     !d1rec(3:i0lmaxm) = 0.D0
     i0smax = 2
-    i0spcs = i0smax 
-    i0nmax =  4      ! number of nodes in a elemnt
-    i0nmax0 = i0nmax
-    i0lmax =  3      ! 
+    i0nmax = 4      ! number of nodes in a elemnt
+    i0lmax = 3      ! 
     i0pdiv_number = 3  ! 
 
     i1mlvl(1)=1        ! 3 x 2^0

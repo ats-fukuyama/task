@@ -20,9 +20,8 @@ CONTAINS
   SUBROUTINE T2_STEP(i_conv,residual_conv)
     
     USE T2COMM, ONLY:&
-         i0pmax, i0cmax, i0vmax, i0xmax, i0bmax, i0nlct,&
+         i0pmax, i0cmax, i0vmax, i0xmax, i0bmax,&
          d0eps,&
-         i1nlct, d1rsdl,&
          d2xvec, d2xvec_befor, d2xvec_after,&
          nconvmax,eps_conv
     

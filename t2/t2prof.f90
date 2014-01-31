@@ -42,23 +42,22 @@ CONTAINS
          d0mfcst,d0btcst,d0ercst,d0epcst,d0etcst,&
          d0nncst,d0frcst,d0fbcst,d0ftcst,&
          d0ppcst,d0qrcst,d0qbcst,d0qtcst,&
-         i0spcs, i0vmax,&
-         i0nmax1,i2crt,d0rmnr,d0rmjr,&
-         d2mfc1,d2rzc1,d2rzc3,d2jm1,d1guv,i1pdn1,&
-         i1mfc1,i0nmax4
+         i0smax,i0vmax,i0mmax,i1pdn1,i1mfc1,i2crt,&
+         d0rmnr,d0rmjr,d2mfc1,d2rzm, d2rzx, d2jm1,d2xvec
     
+    INTEGER(i0ikind)::&
+         i0vidi,i0sidi,i0midi,i0xidi,i0xid1d,i0xid2d
     
-    INTEGER(i0ikind)::i1,i2,i0nid3,i0vid3,i0nid4,i0vid4
     REAL(   i0rkind)::d0mfcr,d0mfcp,d0jm1
-    REAL(   i0rkind),DIMENSION(1:i0spcs)::d1n0,d1p0
-    REAL(   i0rkind),DIMENSION(1:6,1:i0spcs)::d2f0
+    REAL(   i0rkind),DIMENSION(1:i0smax)::d1n0,d1p0
+    REAL(   i0rkind),DIMENSION(1:6,1:i0smax)::d2f0
     
 100 FORMAT( 6E15.8)
 110 FORMAT(10E15.8)
 120 FORMAT( 5E15.8)
     
     
-    DO i1=1,i0nmax1
+    DO i0midi = 1, i0mmax
        
        !C INITIIALIZATION
        
@@ -67,54 +66,56 @@ CONTAINS
            
        !C CYLINDRICAL COORDINATES
        
-       d0mfcr = d2mfc1(i1,1)
-       d0mfcp = d2mfc1(i1,2)
+       d0mfcr = d2mfc1(1,i0midi)
+       d0mfcp = d2mfc1(2,i0midi)
        
-       d2rzc1(i1,1)  = fd0rzcr(d0mfcr,d0mfcp)
-       d2rzc1(i1,2)  = fd0rzcz(d0mfcr,d0mfcp)
+       d2rzm(1,i0midi)  = fd0rzcr(d0mfcr,d0mfcp)
+       d2rzm(2,i0midi)  = fd0rzcz(d0mfcr,d0mfcp)
        
        !C CONTRAVARIANT GEOMETRIC TENSOR
        
-       d2jm1(1:5,i1)= fd1mc(d0mfcr,d0mfcp)
-
-       d0jm1 = d2jm1(1,i1)
+       d2jm1(1:5,i0midi)= fd1mc(d0mfcr,d0mfcp)
+       d0jm1 = d2jm1(1,i0midi)
        
-       i0nid3 = i2crt(i1,2) -1
-       i0vid3 = i0vmax*i0nid3
-       i0nid4 = i2crt(i1,3) - 1
-       i0vid4 = i0vmax*i0nid4
-
-       d1guv(i0vid4+1) = fd0bp(d0mfcr,d0mfcp)*d0jm1/d0mfcst
-       d1guv(i0vid4+2) = fd0bt(d0mfcr,d0mfcp)/d0btcst
-       d1guv(i0vid4+3) = fd0et(d0mfcr,d0mfcp)/d0etcst
-       
-       d1guv(i0vid3+4) = fd0ep(d0mfcr,d0mfcp)/d0epcst
-       d1guv(i0vid3+5) = fd0er(d0mfcr,d0mfcp)/d0ercst
+       i0xid2d = i2crt(2,i0midi)
+       i0xid1d = i2crt(3,i0midi)
+      
+       !C PSI'
+       d2xvec(1,i0xid1d) = fd0bp(d0mfcr,d0mfcp)*d0jm1/d0mfcst 
+       !C I
+       d2xvec(2,i0xid1d) = fd0bt(d0mfcr,d0mfcp)/d0btcst 
+       !C E_{\zeta}
+       d2xvec(3,i0xid1d) = fd0et(d0mfcr,d0mfcp)/d0etcst 
+       !C E_{\chi }
+       d2xvec(4,i0xid2d) = fd0ep(d0mfcr,d0mfcp)/d0epcst
+       !C E_{\rho }
+       d2xvec(5,i0xid2d) = fd0er(d0mfcr,d0mfcp)/d0ercst
        
        !C INITIAL PROFILE: Fr Fb Fb Qr Qb Qt (DIMENSIONLESS)
-
+       
        d1n0 = fd1n0(d0mfcr,d0mfcp)
        d1p0 = fd1p0(d0mfcr,d0mfcp)
        d2f0 = fd2f0(d0mfcr,d0mfcp)
        
-       DO i2 = 1,i0spcs
-
-          d1guv(i0vid3+8*i2-2) = d1n0(  i2)/d0nncst
-          d1guv(i0vid3+8*i2-1) = d2f0(1,i2)/d0frcst
-          d1guv(i0vid3+8*i2  ) = d2f0(2,i2)/d0fbcst
-          d1guv(i0vid3+8*i2+1) = d2f0(3,i2)/d0ftcst
-          d1guv(i0vid3+8*i2+2) = d1p0(  i2)/d0ppcst
-          d1guv(i0vid3+8*i2+3) = d2f0(4,i2)/d0qrcst
-          d1guv(i0vid3+8*i2+4) = d2f0(5,i2)/d0qbcst
-          d1guv(i0vid3+8*i2+5) = d2f0(6,i2)/d0qtcst
+       DO i0sidi = 1,i0smax
+          i0vidi = 8*i0sidi - 3
+          d2xvec(i0xid2d,i0vidi+1) = d1n0(  i0sidi)/d0nncst
+          d2xvec(i0xid2d,i0vidi+2) = d2f0(1,i0sidi)/d0frcst
+          d2xvec(i0xid2d,i0vidi+3) = d2f0(2,i0sidi)/d0fbcst
+          d2xvec(i0xid2d,i0vidi+4) = d2f0(3,i0sidi)/d0ftcst
+          d2xvec(i0xid2d,i0vidi+5) = d1p0(  i0sidi)/d0ppcst
+          d2xvec(i0xid2d,i0vidi+6) = d2f0(4,i0sidi)/d0qrcst
+          d2xvec(i0xid2d,i0vidi+7) = d2f0(5,i0sidi)/d0qbcst
+          d2xvec(i0xid2d,i0vidi+8) = d2f0(6,i0sidi)/d0qtcst
           
        ENDDO
        
     ENDDO
     
-    DO i1=1,i0nmax1
-       d2rzc3(i2crt(i1,2),1) = d2rzc1(i2crt(i1,1),1)
-       d2rzc3(i2crt(i1,2),2) = d2rzc1(i2crt(i1,1),2)
+    DO i0midi = 1, i0mmax
+       i0xidi = i2crt(2,i0midi)
+       d2rzx(1,i0xidi) = d2rzm(1,i0midi)
+       d2rzx(2,i0xidi) = d2rzm(2,i0midi)
     ENDDO
     
     !CALL T2READ
@@ -210,291 +211,6 @@ CONTAINS
     
   END SUBROUTINE T2RPROF
 
-  SUBROUTINE T2READ
-    USE T2COMM,ONLY:&
-         i0fnum,i0spcs,i0nmax0,i0nmax3,i0xmax,i0vmax,&
-         i1pdn2,i1rdn2,i0emax,d2rzc3,d1guv,&
-         d0rmjr,i0lmax,i0stm2,i1mlvl,&
-         !C
-         d1bp3,d1bt3,d1er3,d1ep3,d1et3,&
-         d2n3, d2fr3,d2fb3,d2ft3,&
-         d2p3, d2qr3,d2qb3,d2qt3,&
-         d1jm1,d1jm2,d1jm3,d1jm4,d1jm5
-    
-    INTEGER(i0ikind)::&
-         i1,i2,j2,i0nnc, i0csz, i0ctype,&
-         i0rdn2,i0pdn2,i0ofst,i0mpt,i0ecnt,&
-         i0mlva,i0mlvb,i0mlvc,i0vnumb,i0fnumb,i0vid
-    REAL(   i0rkind)::d0qf
-
-    CHARACTER(40)::c40fname,c40tname,c40lname
-    CHARACTER(10)::c10fnumb
-    CHARACTER( 2)::c2vnumb
-
-100 FORMAT(A26)
-110 FORMAT(A40)
-120 FORMAT(A5)
-130 FORMAT(A25)
-140 FORMAT(A6,I7,1X,A5)
-150 FORMAT(3E15.6)
-160 FORMAT(A5,I7,I7)
-170 FORMAT(4I7)
-175 FORMAT(5I7)
-176 FORMAT(6I7)
-180 FORMAT(A10,I7)
-190 FORMAT(I7)
-200 FORMAT(A20)
-210 FORMAT(E15.6)
-    PRINT*,'T2READ'
-    OPEN(i0fnum,file='T2PROF.inc')
-    
-    !C READ INITIAL PROFILE
-    
-    !C READ HEADER
-    READ(i0fnum,*)
-    READ(i0fnum,*)
-    READ(i0fnum,*)
-    READ(i0fnum,*)
-
-    !C WRITE NUMBER OF POINTS AND DATATYPE
-    READ(i0fnum,*)
-    
-    !C WRITE COODINATES OF EACH POINTS 
-    !C 0    , R-R_0      , PHI      ,Z
-    !C ................
-    !C ................
-    DO i1=1,i0nmax3
-       READ(i0fnum,*)
-    ENDDO
-
-    !C WRITE ELEMENT - NODE RELATIONS 
-   
-    READ(i0fnum,*)
-    
-    i0ecnt=0
-    
-    DO i1=1,i0lmax
-       i0mlva=i1mlvl(i1-1)
-       i0mlvb=i1mlvl(i1)
-       i0mlvc=i1mlvl(i1+1)
-       i0rdn2=i1rdn2(i1)
-       i0pdn2=i1pdn2(i1)
-       DO i2=1,i0rdn2
-       DO j2=1,i0pdn2
-          i0ecnt= i0ecnt+1
-          IF(    (i0mlva.EQ.0).AND.(i2.EQ.1))THEN
-             READ(i0fnum,*)
-          ELSEIF((i0mlvb.NE.i0mlvc).AND.&
-                 (i0mlvc.NE.0).AND.&
-                 (i2.EQ.i0rdn2))THEN
-             READ(i0fnum,*)
-          ELSE
-             READ(i0fnum,*)
-          ENDIF
-       ENDDO
-       ENDDO
-    ENDDO
-    
-    !C WRITE CELL TYPE: i0ctype
-    !C  5: VTK TRIANGLE
-    !C  9: VTK QUAD
-    READ(i0fnum,*)
-    DO i1=1,i0lmax
-       i0rdn2=i1rdn2(i1)
-       i0pdn2=i1pdn2(i1)
-       DO i2=1,i0rdn2
-       DO j2=1,i0pdn2
-          READ(i0fnum,*)
-       ENDDO
-       ENDDO
-    ENDDO
-    
-    !C WRITE SCALAR
-    READ(i0fnum,*)
-
-    !C gm1
-
-    READ(i0fnum,*)
-    READ(i0fnum,*)
-    DO i1=1,i0nmax3
-       READ(i0fnum,*)
-    ENDDO
-    !C gm2
-    READ(i0fnum,*)
-    READ(i0fnum,*)
-    DO i1=1,i0nmax3
-       READ(i0fnum,*)
-    ENDDO
-
-    !C gm3
-    READ(i0fnum,*)
-    READ(i0fnum,*)
-    DO i1=1,i0nmax3
-       READ(i0fnum,*)
-    ENDDO
-
-    !C gm4
-    READ(i0fnum,*)
-    READ(i0fnum,*)
-    DO i1=1,i0nmax3
-       READ(i0fnum,*)
-    ENDDO
-
-    !C gm5
-    READ(i0fnum,*)
-    READ(i0fnum,*)
-    DO i1=1,i0nmax3
-       READ(i0fnum,*)
-    ENDDO
-
-    !C qprof
-    READ(i0fnum,*)
-    READ(i0fnum,*)
-    DO i1=1,i0nmax3
-       READ(i0fnum,*)
-    ENDDO
-
-    !C Bp
-    READ(i0fnum,*)
-    READ(i0fnum,*)
-    DO i1=1,i0nmax3
-       i0vid = i0vmax*(i1 - 1)
-       READ(i0fnum,210)d1guv(i0vid+1)
-    ENDDO
-
-
-    !C Bt
-    READ(i0fnum,*)
-    READ(i0fnum,*)
-    DO i1=1,i0nmax3
-       i0vid = i0vmax*(i1 - 1)
-       READ(i0fnum,210)d1guv(i0vid+2)
-    ENDDO
-    !C Er
-    READ(i0fnum,*)
-    READ(i0fnum,*)
-    DO i1=1,i0nmax3
-       i0vid = i0vmax*(i1 - 1)
-       READ(i0fnum,210)d1guv(i0vid+3)
-    ENDDO
-
-    !C Ep
-    READ(i0fnum,*)
-    READ(i0fnum,*)
-    DO i1=1,i0nmax3
-       i0vid = i0vmax*(i1 - 1)
-       READ(i0fnum,210)d1guv(i0vid+4)
-    ENDDO
-
-    !C Et
-    READ(i0fnum,*)
-    READ(i0fnum,*)
-    DO i1=1,i0nmax3
-       i0vid = i0vmax*(i1 - 1)
-       READ(i0fnum,210)d1guv(i0vid+5)
-    ENDDO
-
-    !C N
-    DO i2 = 1, i0spcs
-       
-       READ(i0fnum,*)
-       READ(i0fnum,*)
-       DO i1=1,i0nmax3
-          i0vid = i0vmax*(i1 - 1) + 5 + 8*(i2-1)
-          READ(i0fnum,210)d1guv(i0vid+1)
-       ENDDO
-       
-    ENDDO
-
-    !C Fr
-    DO i2 = 1, i0spcs
-
-       READ(i0fnum,*)
-       READ(i0fnum,*)
-       DO i1=1,i0nmax3
-          i0vid = i0vmax*(i1 - 1) + 5 + 8*(i2-1)
-          READ(i0fnum,210)d1guv(i0vid+2)
-       ENDDO
-       
-    ENDDO
-    
-    !C Fb
-    DO i2 = 1, i0spcs
-       
-       READ(i0fnum,*)
-       READ(i0fnum,*)
-       DO i1=1,i0nmax3
-          i0vid = i0vmax*(i1 - 1) + 5 + 8*(i2-1)
-          READ(i0fnum,210)d1guv(i0vid+3)
-       ENDDO
-    ENDDO
-
-    !C Ft
-    DO i2 = 1, i0spcs
-
-       READ(i0fnum,*)
-       READ(i0fnum,*)
-       DO i1=1,i0nmax3
-          i0vid = i0vmax*(i1 - 1) + 5 + 8*(i2-1)
-          READ(i0fnum,210)d1guv(i0vid+4)
-       ENDDO
-
-    ENDDO
-
-    !C P
-    DO i2 = 1, i0spcs
-
-       READ(i0fnum,*)
-       READ(i0fnum,*)
-       DO i1=1,i0nmax3
-          i0vid = i0vmax*(i1 - 1) + 5 + 8*(i2-1)
-          READ(i0fnum,210)d1guv(i0vid+5)
-       ENDDO
-
-    ENDDO
-
-    !C Qr
-    DO i2 = 1, i0spcs
-
-       READ(i0fnum,*)
-       READ(i0fnum,*)
-       DO i1=1,i0nmax3
-          i0vid = i0vmax*(i1 - 1) + 5 + 8*(i2-1)
-          READ(i0fnum,210)d1guv(i0vid+6)
-       ENDDO
-
-    ENDDO
-
-    !C Qb
-    DO i2 = 1, i0spcs
-
-       READ(i0fnum,*)
-       READ(i0fnum,*)
-       DO i1=1,i0nmax3
-          i0vid = i0vmax*(i1 - 1) + 5 + 8*(i2-1)
-          READ(i0fnum,210)d1guv(i0vid+7)
-       ENDDO
-
-    ENDDO
-
-    !C Qt
-    DO i2 = 1, i0spcs
-
-       READ(i0fnum,*)
-       READ(i0fnum,*)
-       DO i1=1,i0nmax3
-          i0vid = i0vmax*(i1 - 1) + 5 + 8*(i2-1)
-          READ(i0fnum,210)d1guv(i0vid+8)
-       ENDDO
-
-    ENDDO
-
-    CLOSE(i0fnum)
-
-    RETURN
-
-  END SUBROUTINE T2READ
-  
   FUNCTION fd0rzcr(d0mfcr,d0mfcp)
     
     USE T2COMM, ONLY: d0rmjr,d0rmnr
@@ -641,7 +357,7 @@ CONTAINS
 
   FUNCTION fd0bb(d0mfcr,d0mfcp)
     
-    USE T2COMM, ONLY:i0spcs
+    USE T2COMM, ONLY:i0smax
     
     REAL(i0rkind),INTENT(IN)::d0mfcr,d0mfcp
     REAL(i0rkind)::fd0bb
@@ -662,10 +378,10 @@ CONTAINS
   FUNCTION fd0er(d0mfcr,d0mfcp)
     
     USE T2CNST, ONLY:d0aee
-    USE T2COMM, ONLY:i0spcs,d0rmjr,d0bc
+    USE T2COMM, ONLY:i0smax,d0rmjr,d0bc
     
     REAL(i0rkind),INTENT(IN)::d0mfcr,d0mfcp
-    REAL(i0rkind),DIMENSION(1:i0spcs)::d1p1,d1n0
+    REAL(i0rkind),DIMENSION(1:i0smax)::d1p1,d1n0
     REAL(i0rkind)::d0n0,d0p1,fd0er
     
     d1p1 = fd1p1(d0mfcr,d0mfcp)
@@ -682,11 +398,11 @@ CONTAINS
   FUNCTION fd0ep(d0mfcr,d0mfcp)
     
     USE T2CNST, ONLY:d0aee
-    USE T2COMM, ONLY:i0spcs,d0rmjr,d0bc
+    USE T2COMM, ONLY:i0smax,d0rmjr,d0bc
     
     REAL(i0rkind),INTENT(IN)::d0mfcr,d0mfcp
     REAL(i0rkind)::fd0ep
-    REAL(i0rkind),DIMENSION(1:i0spcs)::d1t0
+    REAL(i0rkind),DIMENSION(1:i0smax)::d1t0
     REAL(i0rkind)::&
          d0jb,d0jt,d0bp,d0bt,d0bb,d0n0,d0t0,&
          d0rzcr,d0bpi
@@ -719,11 +435,11 @@ CONTAINS
   FUNCTION fd0et(d0mfcr,d0mfcp)
     
     USE T2CNST, ONLY:d0aee
-    USE T2COMM, ONLY:i0spcs,d0rmjr,d0bc
+    USE T2COMM, ONLY:i0smax,d0rmjr,d0bc
     
     REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
     REAL(   i0rkind)::fd0et
-    REAL(   i0rkind),DIMENSION(1:i0spcs)::d1t0
+    REAL(   i0rkind),DIMENSION(1:i0smax)::d1t0
     REAL(   i0rkind)::d0jb,d0jt,d0bp,d0bt,d0t0,d0n0,d0p1,d0bpi,d0rzcr
     INTEGER(i0ikind)::i1
     
@@ -750,15 +466,15 @@ CONTAINS
   
   FUNCTION fd1n0(d0mfcr,d0mfcp)
     
-    USE T2COMM, ONLY:i0spcs,d1nc,d1ns,d1nw,d0rw
+    USE T2COMM, ONLY:i0smax,d1nc,d1ns,d1nw,d0rw
     
     REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
-    REAL(   i0rkind),DIMENSION(1:i0spcs)::fd1n0
+    REAL(   i0rkind),DIMENSION(1:i0smax)::fd1n0
     REAL(   i0rkind)::d0nc,d0ns,d0nw,d0n0,d0n1
     INTEGER(i0ikind)::i1
-    fd1n0(1:i0spcs) = 0.D0
+    fd1n0(1:i0smax) = 0.D0
     
-    DO i1 = 1,i0spcs
+    DO i1 = 1,i0smax
        
        d0nc = d1nc(i1); d0ns = d1ns(i1); d0nw = d1nw(i1)
        CALL T2RPROF(1,3,d0nc,d0ns,d0nw,d0rw,d0mfcr,d0n0,d0n1)
@@ -772,16 +488,16 @@ CONTAINS
 
   FUNCTION fd1n1(d0mfcr,d0mfcp)
     
-    USE T2COMM, ONLY:i0spcs,d1nc,d1ns,d1nw,d0rw
+    USE T2COMM, ONLY:i0smax,d1nc,d1ns,d1nw,d0rw
     
     REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
-    REAL(   i0rkind),DIMENSION(1:i0spcs)::fd1n1
+    REAL(   i0rkind),DIMENSION(1:i0smax)::fd1n1
     REAL(   i0rkind)::d0nc,d0ns,d0nw,d0n0,d0n1
     INTEGER(i0ikind)::i1
 
-    fd1n1(1:i0spcs) = 0.D0
+    fd1n1(1:i0smax) = 0.D0
     
-    DO i1 = 1,i0spcs
+    DO i1 = 1,i0smax
        
        d0nc = d1nc(i1); d0ns = d1ns(i1); d0nw = d1nw(i1)
        CALL T2RPROF(1,3,d0nc,d0ns,d0nw,d0rw,d0mfcr,d0n0,d0n1)
@@ -796,16 +512,16 @@ CONTAINS
   FUNCTION fd1t0(d0mfcr,d0mfcp)
     
     USE T2CNST, ONLY:d0aee
-    USE T2COMM, ONLY:i0spcs,d1tc,d1ts,d1tw,d0rw
+    USE T2COMM, ONLY:i0smax,d1tc,d1ts,d1tw,d0rw
     
     REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
-    REAL(   i0rkind),DIMENSION(1:i0spcs)::fd1t0
+    REAL(   i0rkind),DIMENSION(1:i0smax)::fd1t0
     REAL(   i0rkind)::d0tc,d0ts,d0tw,d0t0,d0t1
     INTEGER(i0ikind)::i1
 
-    fd1t0(1:i0spcs) = 0.D0
+    fd1t0(1:i0smax) = 0.D0
     
-    DO i1 = 1,i0spcs
+    DO i1 = 1,i0smax
        
        d0tc = d1tc(i1); d0ts = d1ts(i1); d0tw = d1tw(i1)
        CALL T2RPROF(1,3,d0tc,d0ts,d0tw,d0rw,d0mfcr,d0t0,d0t1)
@@ -820,16 +536,16 @@ CONTAINS
   FUNCTION fd1t1(d0mfcr,d0mfcp)
     
     USE T2CNST, ONLY:d0aee
-    USE T2COMM, ONLY:i0spcs,d1tc,d1ts,d1tw,d0rw
+    USE T2COMM, ONLY:i0smax,d1tc,d1ts,d1tw,d0rw
     
     REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
-    REAL(   i0rkind),DIMENSION(1:i0spcs)::fd1t1
+    REAL(   i0rkind),DIMENSION(1:i0smax)::fd1t1
     REAL(   i0rkind)::d0tc,d0ts,d0tw,d0t0,d0t1
     INTEGER(i0ikind)::i1
 
-    fd1t1(1:i0spcs) = 0.D0
+    fd1t1(1:i0smax) = 0.D0
     
-    DO i1 = 1,i0spcs
+    DO i1 = 1,i0smax
        
        d0tc = d1tc(i1); d0ts = d1ts(i1); d0tw = d1tw(i1)
        CALL T2RPROF(1,3,d0tc,d0ts,d0tw,d0rw,d0mfcr,d0t0,d0t1)
@@ -843,20 +559,20 @@ CONTAINS
 
   FUNCTION fd1p0(d0mfcr,d0mfcp)
     
-    USE T2COMM, ONLY:i0spcs
+    USE T2COMM, ONLY:i0smax
     
     REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
-    REAL(   i0rkind),DIMENSION(1:i0spcs)::fd1p0,d1n0,d1t0
+    REAL(   i0rkind),DIMENSION(1:i0smax)::fd1p0,d1n0,d1t0
     INTEGER(i0ikind)::i1
     
-    fd1p0(1:i0spcs) = 0.D0
-    d1n0( 1:i0spcs) = 0.D0
-    d1t0( 1:i0spcs) = 0.D0
+    fd1p0(1:i0smax) = 0.D0
+    d1n0( 1:i0smax) = 0.D0
+    d1t0( 1:i0smax) = 0.D0
     
-    d1n0( 1:i0spcs) = fd1n0(d0mfcr,d0mfcp)
-    d1t0( 1:i0spcs) = fd1t0(d0mfcr,d0mfcp)
+    d1n0( 1:i0smax) = fd1n0(d0mfcr,d0mfcp)
+    d1t0( 1:i0smax) = fd1t0(d0mfcr,d0mfcp)
     
-    DO i1 = 1, i0spcs
+    DO i1 = 1, i0smax
        fd1p0(i1) = d1n0(i1)*d1t0(i1)
     ENDDO
 
@@ -866,28 +582,28 @@ CONTAINS
 
   FUNCTION fd1p1(d0mfcr,d0mfcp)
 
-    USE T2COMM, ONLY:i0spcs
+    USE T2COMM, ONLY:i0smax
     
     REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
-    REAL(   i0rkind),DIMENSION(1:i0spcs)::fd1p1
-    REAL(   i0rkind),DIMENSION(1:i0spcs)::d1n0,d1n1,d1t0,d1t1
+    REAL(   i0rkind),DIMENSION(1:i0smax)::fd1p1
+    REAL(   i0rkind),DIMENSION(1:i0smax)::d1n0,d1n1,d1t0,d1t1
     INTEGER(i0ikind)::i1
     
-    fd1p1(1:i0spcs) = 0.D0
+    fd1p1(1:i0smax) = 0.D0
 
-    d1n0( 1:i0spcs) = 0.D0
-    d1n1( 1:i0spcs) = 0.D0
-    d1t0( 1:i0spcs) = 0.D0
-    d1t1( 1:i0spcs) = 0.D0
+    d1n0( 1:i0smax) = 0.D0
+    d1n1( 1:i0smax) = 0.D0
+    d1t0( 1:i0smax) = 0.D0
+    d1t1( 1:i0smax) = 0.D0
 
-    d1n0( 1:i0spcs) = fd1n0(d0mfcr,d0mfcp)    
-    d1n1( 1:i0spcs) = fd1n1(d0mfcr,d0mfcp)
+    d1n0( 1:i0smax) = fd1n0(d0mfcr,d0mfcp)    
+    d1n1( 1:i0smax) = fd1n1(d0mfcr,d0mfcp)
 
-    d1t0( 1:i0spcs) = fd1t0(d0mfcr,d0mfcp)
-    d1t1( 1:i0spcs) = fd1t1(d0mfcr,d0mfcp)
+    d1t0( 1:i0smax) = fd1t0(d0mfcr,d0mfcp)
+    d1t1( 1:i0smax) = fd1t1(d0mfcr,d0mfcp)
 
     
-    DO i1 = 1, i0spcs
+    DO i1 = 1, i0smax
        fd1p1(i1) = d1n0(i1)*d1t1(i1) +  d1n1(i1)*d1t0(i1)
     ENDDO
     
@@ -897,11 +613,11 @@ CONTAINS
   
   FUNCTION fd0jb(d0mfcr,d0mfcp)
 
-    USE T2COMM, ONLY:i0spcs,d0rw
+    USE T2COMM, ONLY:i0smax,d0rw
     
     REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
     REAL(   i0rkind)::fd0jb
-    REAL(   i0rkind),DIMENSION(1:i0spcs)::d1p1
+    REAL(   i0rkind),DIMENSION(1:i0smax)::d1p1
     REAL(   i0rkind)::&
          d0bp,d0bt,d0bb,d0jt,d0jbs,d0rzcr
     INTEGER(i0ikind)::i2
@@ -919,7 +635,7 @@ CONTAINS
        
        fd0jb = 0.D0
        
-       DO i2 = 1,i0spcs
+       DO i2 = 1,i0smax
           fd0jb = fd0jb + d1p1(i2)
        ENDDO
        
@@ -938,7 +654,7 @@ CONTAINS
        
        d0jbs = 0.D0
        
-       DO i2 = 1,i0spcs
+       DO i2 = 1,i0smax
           d0jbs = d0jbs + d1p1(i2)
        ENDDO
        
@@ -956,7 +672,7 @@ CONTAINS
   FUNCTION fd0jt(d0mfcr,d0mfcp)
     
     USE T2CNST, ONLY:d0rmu0
-    USE T2COMM, ONLY:i0spcs,d0rw,d0rmnr
+    USE T2COMM, ONLY:i0smax,d0rw,d0rmnr
     
     REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
     REAL(   i0rkind)::fd0jt
@@ -995,14 +711,14 @@ CONTAINS
   FUNCTION fd2f0(d0mfcr,d0mfcp)
     
     USE T2CNST, ONLY:d0aee
-    USE T2COMM, ONLY:i0spcs
+    USE T2COMM, ONLY:i0smax
     
     REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
-    REAL(   i0rkind),DIMENSION(1:6,1:i0spcs)::fd2f0
-    REAL(   i0rkind),DIMENSION(1:i0spcs)::d1t0
+    REAL(   i0rkind),DIMENSION(1:6,1:i0smax)::fd2f0
+    REAL(   i0rkind),DIMENSION(1:i0smax)::d1t0
     REAL(   i0rkind)::d0fb,d0ft,d0t0
     INTEGER(i0ikind)::i1
-    DO i1 = 1,i0spcs
+    DO i1 = 1,i0smax
        IF(i1.EQ.1)THEN
           d1t0 =   fd1t0(d0mfcr,d0mfcp)
           d0fb = - fd0jb(d0mfcr,d0mfcp)/d0aee
