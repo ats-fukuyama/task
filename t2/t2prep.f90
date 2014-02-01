@@ -26,6 +26,7 @@ CONTAINS
          d0fbcst,d0ftcst,d0ppcst,d0qrcst,d0qbcst,d0qtcst,&
          d0iar,  d0rmnr, d0rmjr, time_t2,time_init,&
          T2NGRA_ALLOCATE, T2COMM_ALLOCATE
+
     USE T2DIV, ONLY: T2_DIV
     USE T2PROF, ONLY: T2_PROF
 !    USE T2WRIT, ONLY: T2_WRIT_MAIN,T2_WRIT_GPT,T2_WRIT_GP1

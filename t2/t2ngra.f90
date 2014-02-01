@@ -310,7 +310,7 @@ CONTAINS
 
     
     OPEN(10,FILE='CRS_TEST_INDC.dat')
-    DO i0amax = 1, i0amax
+    DO i0aidi = 1, i0amax
        WRITE(10,'("I1=",I9,1X,"INDNC=",I9)')i0aidi,i1nidc(i0aidi)
     ENDDO
     CLOSE(10)
@@ -375,10 +375,10 @@ CONTAINS
   SUBROUTINE T2NGRA_CRT1
 
     USE T2COMM,ONLY:&
-         i0lmax,i1rdn2,i1pdn2,i1mlvl,i1pdn1,i1rdn1,i0stm2,i2crt,i2hbc
+         i0lmax,i1rdn2,i1pdn2,i1mlvl,i1pdn1,i1rdn1,i2crt,i2hbc
 
     INTEGER(i0ikind)::&
-         i0hcnt,i0mcnt,&
+         i0hcnt,i0mcnt,i0stm2,&
          i0ppc1,i0ppl2,i0ppc2,i0rdc1,&
          i0il,i0stl2,i0stc2,i0mlva,i0mlvb,&
          i1subtot(0:i0lmax),i0offset

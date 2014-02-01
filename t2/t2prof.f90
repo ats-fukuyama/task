@@ -42,7 +42,7 @@ CONTAINS
          d0mfcst,d0btcst,d0ercst,d0epcst,d0etcst,&
          d0nncst,d0frcst,d0fbcst,d0ftcst,&
          d0ppcst,d0qrcst,d0qbcst,d0qtcst,&
-         i0smax,i0vmax,i0mmax,i1pdn1,i1mfc1,i2crt,&
+         i0smax,i0vmax,i0mmax,i1pdn1,i2crt,&
          d0rmnr,d0rmjr,d2mfc1,d2rzm, d2rzx, d2jm1,d2xvec
     
     INTEGER(i0ikind)::&
@@ -56,15 +56,18 @@ CONTAINS
 110 FORMAT(10E15.8)
 120 FORMAT( 5E15.8)
     
-    
     DO i0midi = 1, i0mmax
        
+       !C
        !C INITIIALIZATION
+       !C
        
        d0mfcr = 0.D0
        d0mfcp = 0.D0
-           
+       
+       !C
        !C CYLINDRICAL COORDINATES
+       !C
        
        d0mfcr = d2mfc1(1,i0midi)
        d0mfcp = d2mfc1(2,i0midi)
@@ -72,7 +75,9 @@ CONTAINS
        d2rzm(1,i0midi)  = fd0rzcr(d0mfcr,d0mfcp)
        d2rzm(2,i0midi)  = fd0rzcz(d0mfcr,d0mfcp)
        
+       !C
        !C CONTRAVARIANT GEOMETRIC TENSOR
+       !C
        
        d2jm1(1:5,i0midi)= fd1mc(d0mfcr,d0mfcp)
        d0jm1 = d2jm1(1,i0midi)

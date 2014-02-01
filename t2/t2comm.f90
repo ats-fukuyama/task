@@ -36,57 +36,62 @@ MODULE T2COMM
   INTEGER(i0ikind) ::&
        i0vmax, & !C NUMBER OF DEPENDENT VARIABLES
        i0wmax, & !C NUMBER OF WORKING VARIABLES FOR DIFFERENTIAL
-       i0qmax, & !C NUMBER OF ABSCISSAS PAR DIRECTION
-       i0nmax, & !C NUMBER OF NODES PAR ELEMENT
-       i0mmax, & !C NUMBER OF NODES W   OVERLAP IN DOMAIN
-       i0xmax, & !C NUMBER OF NODES W/O OVERLAP W INTERPOLATION IN DOMAIN 
-       i0bmax, & !C NUMBER OF NODES W/O OVERLAP AND INTERPOLATION
-       i0rmax, & !C NUMBER OF NODES IN RADIAL DIRECTION (FOR 1D)
-       i0emax, & !C NUMBER OF ELEMENTS IN DOMAIN
-       i0hmax, & !C NUMBER OF INTERPOLATION NODES
-       i0lmax, & !C NUMBER OF SUB DOMAIN 
-       i0amax, & !C NUMBER OF NON-ZERO COMPONENTS IN STIFFNESS MATRIX (NCMX)
-       i0nrmx, & !C 
-       i0ermx, &
-       i0ecmx, &
+       i0qmax, & !C NUMBER OF INTEGRAL POINTS PAR DIRECTION
        i0dmax, & !C NUMBER OF DIMENSIONS
        i0smax, & !C NUMBER OF SPECIES
        i0pmax, & !C MAXMUM NUMBER OF PICARD ITERATION LOOP 
+       i0nmax, & !C NUMBER OF NODES PAR ELEMENT
+       i0mmax, & !C NUMBER OF NODES W   OVERLAP IN DOMAIN
+       i0xmax, & !C NUMBER OF NODES W/O OVERLAP W INTERPOLATION IN DOMAIN 
+       i0bmax, & !C NUMBER OF NODES W/O OVERLAP AND INTERPOLATION IN DOMAIN
+       i0rmax, & !C NUMBER OF NODES IN RADIAL DIRECTION (FOR 1D)
+       i0emax, & !C NUMBER OF ELEMENTS IN DOMAIN
+       i0hmax, & !C NUMBER OF INTERPOLATION NODES IN DOMAIN
+       i0lmax, & !C NUMBER OF SUB DOMAINS 
+       i0amax, & !C NUMBER OF NON-ZERO COMPONENTS OF MATRIX (CRS-METHOD)
+       i0nrmx, & !C ARRAY SIZE OF I1NIDR (CRS-METHOD) 
+       i0ermx, & !C ARRAY SIZE OF I1EIDR (CRS-METHOD) 
+       i0ecmx, & !C ARRAY SIZE OF I1EIDC (CRS-METHOD) 
        i0pdiv_number
+
   INTEGER(i0ikind)::&
        i0mfcs, & !C INDICATOR FOR COORDINATE SYSTEM (1: torus coordinate)
        i0sflg    !C INDICATOR FOR SUPG METHOD (0: w/o SUPG, 1: w SUPG)
+       i0wstp    !C INDICATOR FOR RESULT OUTPUT TIMING
   INTEGER(i0ikind)::&
        i0bvmax,& !C VECTOR SIZE OF b FOR MTXP (Ax=b)
        i0avmax   !C NUMBER OF NONZERO COMPONENT OF A FOR MTXP (Ax=b)
+
   REAL(   i0rkind)::&
-       d0mfcst,d0btcst,d0ercst,d0epcst,d0etcst,&
-       d0nncst,d0frcst,d0fbcst,d0ftcst,&
-       d0ppcst,d0qrcst,d0qbcst,d0qtcst,d0iar
-  
+       d0mfcst, & !C NORMALIZATION CONSTANT FOR \psi'
+       d0btcst, & !C NORMALIZATION CONSTANT FOR I
+       d0etcst, & !C NORMALIZATION CONSTANT FOR E_{\zeta}
+       d0epcst, & !C NORMALIZATION CONSTANT FOR E_{\chi }
+       d0ercst, & !C NORMALIZATION CONSTANT FOR E_{\rho }
+       d0nncst, & !C NORMALIZATION CONSTANT FOR n_{a}
+       d0frcst, & !C NORMALIZATION CONSTANT FOR n_{a}u_{a}^{\rho}
+       d0fbcst, & !C NORMALIZATION CONSTANT FOR n_{a}u_{a\para}
+       d0ftcst, & !C NORMALIZATION CONSTANT FOR n_{a}u_{a\zeta}
+       d0ppcst, & !C NORMALIZATION CONSTANT FOR p_{a}
+       d0qrcst, & !C NORMALIZATION CONSTANT FOR Q_{a}^{\rho }
+       d0qbcst, & !C NORMALIZATION CONSTANT FOR Q_{a\para}
+       d0qtcst, & !C NORMALIZATION CONSTANT FOR Q_{a\zeta}
+       d0rmjr,  & !C MAJOR RADIUS (R_{0} [m])
+       d0rmnr,  & !C MINOR RADIUS (a     [m])
+       d0iar,   & !C INVERSE ASPECT RATIO (a/R_{0})
+       d0eps      !C CONVERGENCE CRITERION FOR PICARD ITERATION
+
   !C--------------------------------------------------------
   !C
   !C                 FOR T2INTG: MODIFIED 2014-01-29
   !C 
   !C--------------------------------------------------------
-  
-  !C
-  !C INTEGRATION ARRAYS BY GAUSSIAN QUADRATURE
-  !C
-  REAL(   i0rkind),DIMENSION(:,:,:        ),ALLOCATABLE:: d3imsn
-  REAL(   i0rkind),DIMENSION(:,:,:,:      ),ALLOCATABLE:: d4iavn
-  REAL(   i0rkind),DIMENSION(:,:,:,:,:,:  ),ALLOCATABLE:: d6iatn
-  REAL(   i0rkind),DIMENSION(:,:,:,:,:    ),ALLOCATABLE:: d5idtn
-  REAL(   i0rkind),DIMENSION(:,:,:,:      ),ALLOCATABLE:: d4igvn
-  REAL(   i0rkind),DIMENSION(:,:,:,:,:,:  ),ALLOCATABLE:: d6igtn
-  REAL(   i0rkind),DIMENSION(:,:,:        ),ALLOCATABLE:: d3iesn
-  REAL(   i0rkind),DIMENSION(:,:,:,:,:    ),ALLOCATABLE:: d5ievn
-  REAL(   i0rkind),DIMENSION(:,:,:,:,:,:,:),ALLOCATABLE:: d7ietn
-  REAL(   i0rkind),DIMENSION(:,:          ),ALLOCATABLE:: d2issn
+
 
   !C
   !C WORKING ARRAY FOR GAUSSIAN INTEGRATION
   !C
+
   !C D1ABSC: ABSCISSAS FOR GAUSS INTEGRATION
   !C D1WFCT: WHEIGHT FACTOR (1D)
   !C D2WFCT: WHEIGHT FACTOR (2D)
@@ -97,46 +102,124 @@ MODULE T2COMM
   REAL(i0rkind),DIMENSION(:,:    ),ALLOCATABLE:: d2wfct
   REAL(i0rkind),DIMENSION(:,:,:,:),ALLOCATABLE:: d4ifnc
   
+  !C
+  !C INTEGRATION ARRAYS BY GAUSSIAN INTEGRATION
+  !C
+
+  !C
+  !C FOR W/O SUPG 
+  !C
+  !C D3IMSN: INTEGRATION ARRAY FOR MASS       SCALAR SUBMATRIX
+  !C D4IAVN: INTEGRATION ARRAY FOR ADVECTION  VECTOR SUBMATRIX
+  !C D6IATN: INTEGRATION ARRAY FOR ADVECTION  TENSOR SUBMATRIX
+  !C D5IDTN: INTEGRATION ARRAY FOR DIFFUSION  TENSOR SUBMATRIX
+  !C D4IGVN: INTEGRATION ARRAY FOR GRADIENT   VECTOR SUBMATRIX
+  !C D6IGTN: INTEGRATION ARRAY FOR GRADIENT   TENSOR SUBMATRIX
+  !C D3IESN: INTEGRATION ARRAY FOR EXCITATION SCALAR SUBMATRIX
+  !C D5IEVN: INTEGRATION ARRAY FOR EXCITATION VECTOR SUBMATRIX
+  !C D7IETN: INTEGRATION ARRAY FOR EXCITATION TENSOR SUBMATRIX
+  !C D2ISSN: INTEGRATION ARRAY FOR SOURCE     SCALAR SUBMATRIX
+  
+  REAL(   i0rkind),DIMENSION(:,:,:        ),ALLOCATABLE:: d3imsn
+  REAL(   i0rkind),DIMENSION(:,:,:,:      ),ALLOCATABLE:: d4iavn
+  REAL(   i0rkind),DIMENSION(:,:,:,:,:,:  ),ALLOCATABLE:: d6iatn
+  REAL(   i0rkind),DIMENSION(:,:,:,:,:    ),ALLOCATABLE:: d5idtn
+  REAL(   i0rkind),DIMENSION(:,:,:,:      ),ALLOCATABLE:: d4igvn
+  REAL(   i0rkind),DIMENSION(:,:,:,:,:,:  ),ALLOCATABLE:: d6igtn
+  REAL(   i0rkind),DIMENSION(:,:,:        ),ALLOCATABLE:: d3iesn
+  REAL(   i0rkind),DIMENSION(:,:,:,:,:    ),ALLOCATABLE:: d5ievn
+  REAL(   i0rkind),DIMENSION(:,:,:,:,:,:,:),ALLOCATABLE:: d7ietn
+  REAL(   i0rkind),DIMENSION(:,:          ),ALLOCATABLE:: d2issn
   
   !C------------------------------------------------------------------
   !C
   !C                          FOR T2NGRA
   !C
-  !C------------------------------------------------------------------  
-  INTEGER(i0ikind)::&
-       i0stm2 !C
+  !C------------------------------------------------------------------ 
+
+  !C
+  !C ARRAYS ALLOCATED   BY T2NGRA_ALLOCATE
+  !C        DEALLOCATED BY T2NGRA_DEALLOCATE
+  !C
+
+  !C I1MMAX : NUMBER OF NODES IN EACH SUBDOMAIN
+  !C I1BMAX : NUMBER OF NODES IN EACH SUBDOMAIN (W/O OVERLAP)
+  !C I1EMAX : NUMBER OF ELEMENTS IN EACH SUBDOMAIN
+  !C I1MLEL : MESH LEVEL OF EACH SUBDOMAIN
+  !C I1RDNM : NUMBER OF PARTITION IN RADIAL   DIREACTON IN EACH SUBDOMAIN 
+  !C I1PDNM : NUMBER OF PARTITION IN POLOIDAL DIREACTON IN EACH SUBDOMAIN
+  !C I1PDNB : NUMBER OF PARTITION IN POLOIDAL DIREACTON IN EACH SUBDOMAIN
+  !C          (W/O OVERLAP)
+  !C
 
   INTEGER(i0ikind),ALLOCATABLE,DIMENSION(:)::& 
-       i1mmax, &
-       i1bmax, &
-       i1emax, & ! number of elements in the level
-       i1mlel, &
-       i1rdn1, &
-       i1pdn1, &
-       i1pdn2
-  INTEGER(i0ikind),ALLOCATABLE,DIMENSION(:)::& 
-       i1nidr, &
-       i1nidc, &
-       i1eidr, &
-       i1eidc, &
-       i1dbc2, &
-       i1mfc1, &
-       i1mc1d 
+       i1mmax,i1bmax,i1emax,i1mlel,i1rdn1,i1pdn1,i1pdn2
+
+  !C
+  !C ARRAYS ALLOCATED   BY T2COMM_ALLOCATE
+  !C        DEALLOCATED BY T2COMM_DEALLOCATE
+  !C
   
-  INTEGER(i0ikind),ALLOCATABLE,DIMENSION(:,:)::& 
-       i2crt,&
-       i2hbc
-  INTEGER(i0ikind),ALLOCATABLE,DIMENSION(:,:,:)::&
-       i3enr 
+  !C
+  !C FOR COMPRESSED ROW STORAGE METHOD FOR NODE-NODE RERATIONS
+  !C
+  !C I1NDIR: CUMULTATIVE NUMBER OF NODE-NODE CONNECTIVITY + 1 
+  !C         UP TO EACH ROW IN MATRIX A
+  !C I1NDIC: NODE NUMBER 
+  !C
+  INTEGER(i0ikind),ALLOCATABLE,DIMENSION(:)::& 
+       i1nidr, i1nidc
 
+  !C
+  !C FOR COMPRESSED ROW STORAGE METHOD FOR NODE-ELEMENT RERATIONS
+  !C
+  !C I1EDIR: CUMULTATIVE NUMBER OF NODE-ELEMENT CONNECTIVITY + 1
+  !C         UP TO EACH NODE 
+  !C I1EDIC: ELEMENT NUMBER 
+  !C
+  INTEGER(i0ikind),ALLOCATABLE,DIMENSION(:)::&
+       i1eidr, i1eidc
+
+  !C I2CRT: INFORMATION NODE PROJECTION MAP
+  !C        1: FOR COEFFICIENT CALCULATION
+  !C        2: FOR 2D
+  !C        3: FOR 1D
+  !C
+  !C I3ENR: INFORMATION OF ELEMENT-NODE CONNECTIVITY 
+  !C        1: FOR COEFFICIENT CALCULATION
+  !C        2: FOR 2D 
+  !C        3: FOR 1D-2D 
+  !C        4: FOR 1D
+  !C
+  !C I2HBC: INFORMATION OF BOUND NODE AND BINDING NODES FOR h-MESH
+  !C
+  INTEGER(i0ikind),ALLOCATABLE,DIMENSION(:,:,:)::i3enr 
+  INTEGER(i0ikind),ALLOCATABLE,DIMENSION(:,:  )::i2crt,i2hbc
+  
+  !C
+  !C FOR 1D PROBLEM
+  !C
+  !C I1MC1D: NODE   NUMBERS   FOR DATA STOCK OF 1D VALUES
+  !C D1MC1D: RADIAL POSITIONS FOR DATA STOCK OF 1D VALUES
+  !C 
+  INTEGER(i0ikind),ALLOCATABLE,DIMENSION(:):: i1mc1d 
+  REAL(   i0rkind),ALLOCATABLE,DIMENSION(:):: d1mc1d
+
+
+
+  !C
+  !C D1MSIZ: SIZE OF ELEMENT
+  !C D1RSIZ: LENGTH IN RADIAL   DIRECTION OF ELEMENT 
+  !C D1RSIZ: LENGTH IN POLOIDAL DIRECTION OF ELEMENT 
+  !C
+  REAL(i0rkind),ALLOCATABLE,DIMENSION(:)::d1msiz,d1rsiz,d1psiz
+  
+  
+  INTEGER(i0ikind),ALLOCATABLE,DIMENSION(:)::&
+       i1dbc2, i1mfc1 
   REAL(i0rkind),ALLOCATABLE,DIMENSION(:,:)::&
        d2mfc1
 
-  REAL(i0rkind),ALLOCATABLE,DIMENSION(:)::&
-       d1msiz,&
-       d1rsiz,&
-       d1psiz,&
-       d1mc1d
   
   
   !C------------------------------------------------------------------
@@ -144,30 +227,55 @@ MODULE T2COMM
   !C                    FOR T2VGRA: MODIFIED 2014-01-28
   !C
   !C------------------------------------------------------------------
-
+  
+  !C
+  !C DEPENDENT VARIABLE GRAPHS: I2**VT[I0VIDI,I0VIDJ]
+  !C       IVIDI >>
+  !C                1     : \psi'
+  !C                2     : I
+  !C                3     : E_{\zeta}
+  !C                4     : E_{\chi }
+  !C                5     : E_{\rho }
+  !C                8*N-2 : n_{a}
+  !C                8*N-1 : n_{a}u_{a}^{\rho}
+  !C                8*N   : n_{a}u_{a\para}
+  !C                8*N+1 : n_{a}u_{a\zeta}
+  !C                8*N+2 : p_{a}
+  !C                8*N+3 : Q_{a}^{\rho}
+  !C                8*N+4 : Q_{a\para}
+  !C                8*N+5 : Q_{a\zeta}
+  !C
   INTEGER(i0ikind),ALLOCATABLE,DIMENSION(:,:)::&
        i2msvt,i2avvt,i2atvt,i2dtvt,i2gvvt,i2gtvt,&
        i2esvt,i2evvt,i2etvt,i2ssvt,i2vvvt
 
-  INTEGER(i0ikind),ALLOCATABLE,DIMENSION(:,:,:)::&
-       i3atwt,i3gtwt,i3evwt
-
-  INTEGER(i0ikind),ALLOCATABLE,DIMENSION(:,:,:,:)::&
-       i4etwt
+  !C
+  !C DEPENDENT VARIABLE & DIFFERENATIAL GRAPHS: 
+  !C 
+  !C I3**WT[I0WIDI,       I0VIDI,I0VIDJ]
+  !C I4**WT[I0WIDI,I0WIDJ,I0VIDI,I0VIDJ]
+  !C       IWIDI >>
+  !C                1     : B 
+  !C                2     : R 
+  !C                2*N+1 : u_{a\para}
+  !C                2*N+2 : Q_{a\para}/p_{a}
+  !C
+  INTEGER(i0ikind),ALLOCATABLE,DIMENSION(:,:,:  )::i3atwt,i3gtwt,i3evwt
+  INTEGER(i0ikind),ALLOCATABLE,DIMENSION(:,:,:,:)::i4etwt
 
   !C------------------------------------------------------------------
   !C
   !C                          FOR T2MFCS
   !C 
   !C------------------------------------------------------------------
-  REAL(   i0rkind)::&
-       d0rmjr,&
-       d0rmnr
-  REAL(   i0rkind),DIMENSION(:,:),ALLOCATABLE::&
-       d2ug,  &
-       d2rzm,&
-       d2rzx,&
-       d2jm1
+  
+  !C
+  !C D2UG  : FRAME MOVING VELOCITY VECTOR
+  !C D2JM1 : METRICS OF MAGNETIC SURFACE COORDINATES (will be changed) 
+  !C D2RZM : RZ COORDINATES w   OVERLAP
+  !C D2RZX : RZ COORDINATES w/o OVERLAP w INTERPOLATION 
+  !C
+  REAL(   i0rkind),DIMENSION(:,:),ALLOCATABLE:: d2ug,d2rzm,d2rzx,d2jm1
 
   !C------------------------------------------------------------------
   !C
@@ -182,8 +290,6 @@ MODULE T2COMM
        d1nc,d1ns,d1nw,d1tc,d1ts,d1tw,d1pa,d1pz
   INTEGER(i0ikind),DIMENSION(0:i0lmaxm+1)::&
        i1mlvl
-  INTEGER(i0ikind),DIMENSION(-1:i0lmaxm)::&
-       i1rdn2
   REAL(   i0rkind),DIMENSION(0:i0lmaxm)::&
        d1rec
   !C------------------------------------------------------------------
@@ -192,29 +298,23 @@ MODULE T2COMM
   !C 
   !C------------------------------------------------------------------
 
-  REAL(   i0rkind)::&
-       d0eps
-  INTEGER(i0ikind),DIMENSION(:),ALLOCATABLE::&
-       i1nlct
-  REAL(   i0rkind),DIMENSION(:),ALLOCATABLE::&
-       d1rsdl
-  REAL(   i0rkind),DIMENSION(:,:),ALLOCATABLE::&
-       d2xvec,&
-       d2bvec,&
-       d2xvec_befor,&
-       d2xvec_after
-
-  REAL(   i0rkind),DIMENSION(:,:,:),ALLOCATABLE::&
-       d3amat
-  
-  !C------------------------------------------------------------------
   !C
-  !C                          FOR T2LOOP
+  !C     Ax=b 
+  !C D3AMAT[1:I0VMAX,1:I0VMAX,1:I0AMAX]: A (CRS-METHOD)
+  !C D2XVEC[         1:I0VMAX,1:I0XMAX]: x
+  !C D2BVEC[         1:I0VMAX,1:I0BMAX]: b
+  !C D2XVEC_BEFOR[  1:I0VMAX,1:I0XMAX] : FOR PICARD ITERATION 
+  !C D2XVEC_AFTER[  1:I0VMAX,1:I0XMAX] : FOR PICARD ITERATION 
+  REAL(   i0rkind),DIMENSION(:,:,:),ALLOCATABLE::d3amat
+  REAL(   i0rkind),DIMENSION(:,:),ALLOCATABLE::&
+       d2xvec,d2bvec,d2xvec_befor,d2xvec_after
   !C 
-  !C------------------------------------------------------------------
-  INTEGER(i0ikind)::&
-       i0wstp
-
+  !C I1NLCT: NUMBER   OF ITERATION 
+  !C D1RSDL: RESIDUAL OF ITERATION 
+  !C
+  INTEGER(i0ikind),DIMENSION(:),ALLOCATABLE::i1nlct
+  REAL(   i0rkind),DIMENSION(:),ALLOCATABLE::d1rsdl
+  
   !C------------------------------------------------------------------
   !C
   !C                         FOR T2CALV
@@ -646,12 +746,15 @@ CONTAINS
     IF(ALLOCATED(i2crt )) DEALLOCATE(i2crt )
     IF(ALLOCATED(i1dbc2)) DEALLOCATE(i1dbc2)
     IF(ALLOCATED(i1mfc1)) DEALLOCATE(i1mfc1)
-    IF(ALLOCATED(i1mc1d)) DEALLOCATE(i1mc1d)
+    IF(ALLOCATED(d2mfc1)) DEALLOCATE(d2mfc1)
     IF(ALLOCATED(i3enr )) DEALLOCATE(i3enr )
     IF(ALLOCATED(i2hbc )) DEALLOCATE(i2hbc )
-
+    IF(ALLOCATED(i1mc1d)) DEALLOCATE(i1mc1d)
     IF(ALLOCATED(d1mc1d)) DEALLOCATE(d1mc1d)
-    IF(ALLOCATED(d2mfc1)) DEALLOCATE(d2mfc1)
+    
+!    IF(ALLOCATED(i1mfc1)) DEALLOCATE(i1mfc1)
+!    IF(ALLOCATED(d2mfc1)) DEALLOCATE(d2mfc1)
+    
 
     !C
     !C I2VGRA
