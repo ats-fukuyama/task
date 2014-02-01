@@ -49,7 +49,7 @@ CONTAINS
     d0qrcst = d0aee*1.D23
     d0qbcst = d0aee*1.D23
     d0qtcst = d0aee*1.D23/d0iar
-
+    
     CALL T2NGRA_ALLOCATE
 
     DO i0lidi = 1, i0lmax

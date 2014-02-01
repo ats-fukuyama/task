@@ -56,7 +56,7 @@ MODULE T2COMM
 
   INTEGER(i0ikind)::&
        i0mfcs, & !C INDICATOR FOR COORDINATE SYSTEM (1: torus coordinate)
-       i0sflg    !C INDICATOR FOR SUPG METHOD (0: w/o SUPG, 1: w SUPG)
+       i0sflg, & !C INDICATOR FOR SUPG METHOD (0: w/o SUPG, 1: w SUPG)
        i0wstp    !C INDICATOR FOR RESULT OUTPUT TIMING
   INTEGER(i0ikind)::&
        i0bvmax,& !C VECTOR SIZE OF b FOR MTXP (Ax=b)
@@ -146,9 +146,11 @@ MODULE T2COMM
   !C I1BMAX : NUMBER OF NODES IN EACH SUBDOMAIN (W/O OVERLAP)
   !C I1EMAX : NUMBER OF ELEMENTS IN EACH SUBDOMAIN
   !C I1MLEL : MESH LEVEL OF EACH SUBDOMAIN
-  !C I1RDNM : NUMBER OF PARTITION IN RADIAL   DIREACTON IN EACH SUBDOMAIN 
-  !C I1PDNM : NUMBER OF PARTITION IN POLOIDAL DIREACTON IN EACH SUBDOMAIN
-  !C I1PDNB : NUMBER OF PARTITION IN POLOIDAL DIREACTON IN EACH SUBDOMAIN
+  !C I1RDN1 : NUMBER OF PARTITION IN RADIAL   DIREACTON IN EACH SUBDOMAIN 
+  !C I1RDN2 : NUMBER OF PARTITION IN RADIAL   DIREACTON IN EACH SUBDOMAIN 
+  !C          (W/O OVERLAP)
+  !C I1PDN1 : NUMBER OF PARTITION IN POLOIDAL DIREACTON IN EACH SUBDOMAIN
+  !C I1PDN2 : NUMBER OF PARTITION IN POLOIDAL DIREACTON IN EACH SUBDOMAIN
   !C          (W/O OVERLAP)
   !C
 
@@ -290,6 +292,7 @@ MODULE T2COMM
        d1nc,d1ns,d1nw,d1tc,d1ts,d1tw,d1pa,d1pz
   INTEGER(i0ikind),DIMENSION(0:i0lmaxm+1)::&
        i1mlvl
+  INTEGER(i0ikind),DIMENSION(-1:i0lmaxm)::i1rdn2
   REAL(   i0rkind),DIMENSION(0:i0lmaxm)::&
        d1rec
   !C------------------------------------------------------------------
@@ -399,8 +402,8 @@ CONTAINS
        CALL T2NGRA_DEALLOCATE
        
        DO 
-          ALLOCATE(i1mmax(1:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(i1bmax(1:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
+          ALLOCATE(i1mmax( 1:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
+          ALLOCATE(i1bmax( 1:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(i1emax( 0:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(i1rdn1(-1:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(i1pdn1(-1:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
@@ -410,11 +413,11 @@ CONTAINS
           ALLOCATE(d1psiz( 1:i0lmax  ),STAT=i0err);IF(i0err.NE.0)EXIT
           
           i0lmax_save=i0lmax
-
+          
           WRITE(6,'(A)') '-- T2NGRD_ALLOCATE: completed'
           
           RETURN
-       
+          
        ENDDO
        
        WRITE(6,'(A)')'XX T2NGRD_ALLOCATE: ALLOCATION ERROR: ECODE=',i0err
