@@ -20,14 +20,13 @@ CONTAINS
   SUBROUTINE T2_STEP(i_conv,residual_conv)
     
     USE T2COMM, ONLY:&
-         i0pmax, i0cmax, i0vmax, i0xmax, i0bmax,&
+         i0pmax, i0xmax, i0vmax, &
          d0eps,&
-         d2xvec, d2xvec_befor, d2xvec_after,&
+         d2xvec, d2xvec_befor, d2xvec_after, &
          nconvmax,eps_conv
     
     USE T2CALV, ONLY: T2_CALV
     USE T2EXEC, ONLY: T2_EXEC
-    USE T2WRIT
    
     INTEGER(i0ikind),INTENT(OUT):: i_conv
     REAL(i0rkind),INTENT(OUT):: residual_conv
@@ -98,18 +97,23 @@ CONTAINS
   SUBROUTINE T2STEP_CONV(d0dif)
     
     USE T2COMM, ONLY:&
-         i0vmax,i0xmax,&
-         i1mfc4,d2xvec_after,d2xvec_befor
+         i0vmax,i0xmax,i0rmax,&
+         i1mc1d,d2xvec_after,d2xvec_befor
     
     REAL(   i0rkind),INTENT(OUT)::d0dif
-    INTEGER(i0ikind):: i0xidi, i0vidi
+    INTEGER(i0ikind):: i0xidi, i0vidi, i0ridi
     REAL(   i0rkind):: d0aft, d0bfr, d0ave, d0dif_tmp,d0dif_max
     REAL(   i0rkind):: d1dif(1:i0vmax),d1ave(1:i0vmax)
     
     d0dif_max = 0.D0    
     d1dif(1:i0vmax) = 0.D0
     d1ave(1:i0vmax) = 0.D0
-
+    
+    
+    !C
+    !C FOR 1D VARIABLES
+    !C
+    
     DO i0xidi = 1, i0xmax  
        DO i0vidi = 4,i0vmax
           d0aft = d2xvec_after(i0vidi,i0xidi)
@@ -119,14 +123,22 @@ CONTAINS
        ENDDO
     ENDDO
      
-    !
-    !
-    ! FOR 1D VARIABLES
-    !
-    !
+    !C
+    !C FOR 1D VARIABLES
+    !C
     
+    DO i0ridi = 1, i0rmax  
+       i0xidi = i1mc1d(i0ridi)
+       DO i0vidi = 1, 3
+          d0aft = d2xvec_after(i0vidi,i0xidi)
+          d0bfr = d2xvec_befor(i0vidi,i0xidi)
+          d1dif(i0vidi) = d1dif(i0vidi) + (d0aft-d0bfr)**2
+          d1ave(i0vidi) = d1ave(i0vidi) + d0aft**2
+       ENDDO
+    ENDDO
+  
     !C
-    !C
+    !C CHECK CONVERGENCE
     !C
     
     DO i0vidi = 1,i0vmax

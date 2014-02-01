@@ -99,14 +99,14 @@ CONTAINS
        
        DO i0sidi = 1,i0smax
           i0vidi = 8*i0sidi - 3
-          d2xvec(i0xid2d,i0vidi+1) = d1n0(  i0sidi)/d0nncst
-          d2xvec(i0xid2d,i0vidi+2) = d2f0(1,i0sidi)/d0frcst
-          d2xvec(i0xid2d,i0vidi+3) = d2f0(2,i0sidi)/d0fbcst
-          d2xvec(i0xid2d,i0vidi+4) = d2f0(3,i0sidi)/d0ftcst
-          d2xvec(i0xid2d,i0vidi+5) = d1p0(  i0sidi)/d0ppcst
-          d2xvec(i0xid2d,i0vidi+6) = d2f0(4,i0sidi)/d0qrcst
-          d2xvec(i0xid2d,i0vidi+7) = d2f0(5,i0sidi)/d0qbcst
-          d2xvec(i0xid2d,i0vidi+8) = d2f0(6,i0sidi)/d0qtcst
+          d2xvec(i0vidi+1,i0xid2d) = d1n0(  i0sidi)/d0nncst
+          d2xvec(i0vidi+2,i0xid2d) = d2f0(1,i0sidi)/d0frcst
+          d2xvec(i0vidi+3,i0xid2d) = d2f0(2,i0sidi)/d0fbcst
+          d2xvec(i0vidi+4,i0xid2d) = d2f0(3,i0sidi)/d0ftcst
+          d2xvec(i0vidi+5,i0xid2d) = d1p0(  i0sidi)/d0ppcst
+          d2xvec(i0vidi+6,i0xid2d) = d2f0(4,i0sidi)/d0qrcst
+          d2xvec(i0vidi+7,i0xid2d) = d2f0(5,i0sidi)/d0qbcst
+          d2xvec(i0vidi+8,i0xid2d) = d2f0(6,i0sidi)/d0qtcst
           
        ENDDO
        

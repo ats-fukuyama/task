@@ -11,6 +11,7 @@ MODULE T2LOOP
   IMPLICIT NONE
   
   PUBLIC T2_LOOP
+
   PRIVATE
   
 CONTAINS
@@ -19,12 +20,12 @@ CONTAINS
     
     USE T2COMM, ONLY:&
          i0wstp,i1nlct,d1rsdl,&
-         d1guv,c10rname, &
+         !d1guv,c10rname, &
          time_t2,dt,ntmax,ntstep,nt0dstep,nt0dmax,nt2dstep,nt2dmax,idfile
     USE T2STEP, ONLY:&
          T2_STEP
-    USE T2WRIT, ONLY:&
-         T2_WRIT_MAIN,T2_WRIT_GPT,T2_WRIT_GP1
+    !USE T2WRIT, ONLY:&
+    !     T2_WRIT_MAIN,T2_WRIT_GPT,T2_WRIT_GP1
     USE T2SAVE, ONLY:&
          T2_SAVE_0D,T2_SAVE_2D
     USE LIBMTX, ONLY: &
@@ -63,9 +64,9 @@ CONTAINS
        !C WRITE CALCULATION RESULT IN VTK FORMAT
        !C
        
-       IF(idfile.GE.1) CALL T2_WRIT_MAIN(d1guv,nt,c10rname)
-       IF(idfile.GE.2) CALL T2_WRIT_GPT(20,nt,d1guv)
-       IF(idfile.GE.3) CALL T2_WRIT_GP1(22,nt,d1guv)
+       !IF(idfile.GE.1) CALL T2_WRIT_MAIN(d1guv,nt,c10rname)
+       !IF(idfile.GE.2) CALL T2_WRIT_GPT(20,nt,d1guv)
+       !IF(idfile.GE.3) CALL T2_WRIT_GP1(22,nt,d1guv)
 
 !      ----- save data -----
 

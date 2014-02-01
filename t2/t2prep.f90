@@ -16,12 +16,22 @@ CONTAINS
     
     USE T2CNST, ONLY: &
          i0ikind,i0rkind,i0lmaxm,i0spcsm,d0aee,d0ame,d0amp
-    USE T2COMM
+    USE T2COMM,ONLY:&
+         i0lmax, i0vmax, i0wmax, i0qmax, i0nmax, i0mmax, i0xmax, &
+         i0bmax, i0rmax, i0emax, i0hmax, i0lmax, i0amax, i0nrmx, &
+         i0ermx, i0ecmx, i0dmax, i0smax, i0pmax, i0pdiv_number,  &
+         i1mlvl, i1pdn1, i1pdn2, i1rdn1, i1rdn2, i1mmax, i1bmax, &
+         i1emax, &
+         d0mfcst,d0btcst,d0ercst,d0epcst,d0etcst,d0nncst,d0frcst, &
+         d0fbcst,d0ftcst,d0ppcst,d0qrcst,d0qbcst,d0qtcst,&
+         d0iar,  d0rmnr, d0rmjr, time_t2,time_init,&
+         T2NGRA_ALLOCATE, T2COMM_ALLOCATE
     USE T2DIV, ONLY: T2_DIV
     USE T2PROF, ONLY: T2_PROF
 !    USE T2WRIT, ONLY: T2_WRIT_MAIN,T2_WRIT_GPT,T2_WRIT_GP1
     IMPLICIT NONE
-    INTEGER(i0ikind)::i0mlva,i0mlvb,i0mlvc,i1,j1,i0mesh_level
+    INTEGER(i0ikind)::&
+         i0mlva,i0mlvb,i0mlvc,i0lidi,i0lidj,i0mlvl
     REAL(4):: e0time_0,e0time_1
         
     d0iar = d0rmnr/d0rmjr
@@ -42,18 +52,14 @@ CONTAINS
     CALL T2NGRA_ALLOCATE
 
     DO i0lidi = 1, i0lmax
-       i0mesh_level=i1mlvl(i0lidi)-1
-       i1pdn2(i0lidi) = i0pdiv_number*(2**i0mesh_level)   
+       i0mlvl=i1mlvl(i0lidi)-1
+       i1pdn2(i0lidi) = i0pdiv_number*(2**i0mlvl)   
     ENDDO
     
+    !C
     !C CALCULATE NUMBER OF NODES IN EACH MESH LEVEL
     !C 
-        
-    !i0nmax1=0
-    !i0nmax2=1
-    !i0nmax3=0
-    !i0nmax4=1
-
+    
     i0mmax = 0
     i0bmax = 1
     i0xmax = 0
@@ -85,7 +91,7 @@ CONTAINS
           i0bmax = i0bmax + i1rdn2(i0lidi)*i1pdn2(i0lidi)
        ENDDO
        
-       i0nmax3 = i0nmax2
+       i0xmax = i0bmax
        
        DO i0lidi = 2, i0lmax
           i0mlva=i1mlvl(i0lidi-1)
@@ -142,7 +148,7 @@ CONTAINS
     !C I0NRMX,I0NCMX
     
     i0nrmx = 1 + i0bmax
-    i0ncmx = 0
+    i0amax = 0
     SELECT CASE (i0nmax)
        !C  4: LINEAR   RECTANGULAR ELEMENT (  4 POINTS)
        !C  8: QADRADIC RECTANGULAR ELEMENT (  8 POINTS)
@@ -150,30 +156,30 @@ CONTAINS
     CASE( 4)
        
        DO i0lidi = 1, i0lmax
-          i0mlva = i1mlvl(i0lid-1)
-          i0mlvb = i1mlvl(i0lid  )
-          i0mlvc = i1mlvl(i0lid+1)
+          i0mlva = i1mlvl(i0lidi-1)
+          i0mlvb = i1mlvl(i0lidi  )
+          i0mlvc = i1mlvl(i0lidi+1)
           !C POINTS ON LEFT-SIDE-EDGES 
           IF(    i0mlva.EQ.0)THEN
              !C FIRST AND SECOND EDGE POINTS ON LEFT-SIDE IN Lv-1 MESH
-             i0ncmx = i0ncmx + 1+i1pdn2(i0lidi  ) +  7*i1pdn2(i0lidi  )
+             i0amax = i0amax + 1+i1pdn2(i0lidi  ) +  7*i1pdn2(i0lidi  )
           ELSEIF(i0mlva.NE.i0mlvb)THEN
              !C SECOND EDGE POINTS ON LEFT-SIDES IN Lv-2~LMAX MESH
-             i0ncmx = i0ncmx + 8*i1pdn2(i0lidi-1) + 11*i1pdn2(i0lidi-1)
+             i0amax = i0amax + 8*i1pdn2(i0lidi-1) + 11*i1pdn2(i0lidi-1)
           ELSEIF(i0mlva.EQ.i0mlvb)THEN
-             i0ncmx = i0ncmx + 9*i1pdn2(i0lidi  )
+             i0amax = i0amax + 9*i1pdn2(i0lidi  )
           ENDIF
           !C CONTSRAINT FREE POINTS ON MIDDLE AREA
           IF(i1rdn2(i0lidi).GE.2)THEN
-             i0ncmx = i0ncmx + 9*i1pdn2(i0lidi)*(i1rdn2(i0lidi)-2)
+             i0amax = i0amax + 9*i1pdn2(i0lidi)*(i1rdn2(i0lidi)-2)
           ENDIF
           !C FIRST EDGE POINTS ON RIGHT-SIDE
           IF(    i0mlvc.EQ.0     )THEN  
-             i0ncmx = i0ncmx +  6*i1pdn2(i0lidi)
+             i0amax = i0amax +  6*i1pdn2(i0lidi)
           ELSEIF(i0mlvb.NE.i0mlvc)THEN
-             i0ncmx = i0ncmx + 11*i1pdn2(i0lidi)
+             i0amax = i0amax + 11*i1pdn2(i0lidi)
           ELSEIF(i0mlvb.EQ.i0mlvc)THEN
-             i0ncmx = i0ncmx +  9*i1pdn2(i0lidi)
+             i0amax = i0amax +  9*i1pdn2(i0lidi)
           ELSE
              WRITE(6,*)'ERROR IN SET_MATRIX_INDICES_FOR_N-CRS'
              STOP
@@ -186,7 +192,7 @@ CONTAINS
        WRITE(6,*)'UNDER CONSTRUCTION'
        STOP
     CASE DEFAULT
-       WRITE(6,*)'T2_GRPH: IMPROPER IMPUT I0NMAX0=',i0nmax0 
+       WRITE(6,*)'T2_GRPH: IMPROPER IMPUT I0NMAX=',i0nmax 
        STOP
     END SELECT
     
@@ -194,11 +200,15 @@ CONTAINS
     !C
     !C
     
-    i0vmax  = 8*i0spcs + 5
-    i0wmax  = 2*i0spcs + 2 
-    i0cmax = i0vmax*i0ncmx! DUMMY
-    i0bmax = i0vmax *i0nmax2
-    i0xmax = i0vmax *i0nmax3
+    i0vmax  = 8*i0smax + 5
+    i0wmax  = 2*i0smax + 2 
+
+    WRITE(6,*)'i0dmax=',i0dmax,'i0nmax=',i0nmax,'i0smax=',i0smax
+    WRITE(6,*)'i0lmax=',i0lmax,'i0pmax=',i0pmax,'i0qmax=',i0qmax
+    WRITE(6,*)'i0mmax=',i0mmax,'i0rmax=',i0rmax,'i0emax=',i0emax
+    WRITE(6,*)'i0amax=',i0amax,'i0xmax=',i0xmax,'i0bmax=',i0bmax
+    WRITE(6,*)'i0nrmx=',i0nrmx,'i0ermx=',i0ermx,'i0ecmx=',i0ecmx
+    WRITE(6,*)'i0wmax=',i0wmax,'i0hmax=',i0hmax
 
     CALL T2COMM_ALLOCATE
 

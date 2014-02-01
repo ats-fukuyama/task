@@ -20,7 +20,7 @@ CONTAINS
     
     USE T2COMM, ONLY: &
          c10rname, i0dbg, i0fnum, i0mfcs, i0wstp,&
-         i0dmax,i0amax,i0nmax,i0smax,i0lmax,&
+         i0dmax,i0amax,i0nmax,i0smax,i0lmax,i0qmax,&
          !         i0tmax, d0tstp, d0tmax,&
          i0smax, i0nmax,i0dmax, i1mlvl,&
          i0pdiv_number, i1rdn2, d1rec,&
@@ -58,7 +58,8 @@ CONTAINS
     i0wstp   =  1  ! output timing
 
     i0dmax  =  2  ! mesh dim
-    i0amax  = 32  ! gauss kyuuseki number of sample points
+    i0qmax  = 32  ! gauss kyuuseki number of sample points
+    i0pmax  = 49  ! iteration 
 !    i0tmax   = 10  ! 
 !    d0tstp   = 1.D-12  !
 !    d0tmax   = 1.D-12  !

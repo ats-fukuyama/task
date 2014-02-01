@@ -16,8 +16,8 @@ CONTAINS
     USE T2PREP, ONLY:T2_PREP
     USE T2DIV, ONLY: T2_DIV
     USE T2LOOP,ONLY: T2_LOOP
-    USE T2WRIT,ONLY: T2_WRIT
-    USE T2GOUT,ONLY: T2_GOUT
+!    USE T2WRIT,ONLY: T2_WRIT
+!    USE T2GOUT,ONLY: T2_GOUT
 
     IMPLICIT NONE
     INTEGER(i0ikind)    :: ierr,mode,ind
@@ -48,13 +48,13 @@ CONTAINS
        IF(INIT.EQ.0) THEN
           WRITE(6,*) 'XX data is not ready or destroyed'
        ELSE
-          CALL T2_WRIT
+!          CALL T2_WRIT
        END IF
     ELSEIF(kid.EQ.'G') THEN
        IF(INIT.EQ.0) THEN
           WRITE(6,*) 'XX data is not ready or destroyed'
        ELSE
-          CALL T2_GOUT
+!          CALL T2_GOUT
        END IF
     ELSEIF(kid.EQ.'Q') THEN
        GOTO 9000
