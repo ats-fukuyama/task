@@ -7,8 +7,8 @@ MODULE wicomm
 
 ! --- Input parameters ---
 
-  INTEGER(ikind):: nxmax,nwmax,modewi
-  REAL(rkind)::    xmax,pn0,alfa,aky,beta
+  INTEGER(ikind):: nxmax,nwmax,modewi,ntaumax
+  REAL(rkind)::    xmax,pn0,alfa,aky,beta,taumin,taumax
   COMPLEX(rkind):: cfyn
 
 ! --- Global variables ---

@@ -7,40 +7,40 @@ MODULE wiunmag
 
 CONTAINS
 
-  SUBROUTINE wi_unmag(ierr)
+  SUBROUTINE wi_unmag(ratea,iprint,ierr)
 
     USE wicomm
     IMPLICIT NONE
+    INTEGER(ikind),INTENT(IN):: iprint
     INTEGER(ikind),INTENT(OUT):: ierr
-    REAL(rkind):: ratea
+    REAL(rkind),INTENT(OUT):: ratea
     REAL:: GT1,GT2
 
-    CALL INITDS
-
-      CALL GUTIME(GT1)
-      CALL SUBFW
-      CALL GUTIME(GT2)
-      WRITE(6,601) 'SUBFW ',GT2-GT1
-      CALL SUBCK2
-      CALL SUBINI
-      CALL GUTIME(GT2)
-      WRITE(6,601) 'SUBCK2',GT2-GT1
-      IF(NWMAX.EQ.NXMAX) THEN
-         CALL INVMCD(CK,MLEN,IERR)
-            IF(IERR.NE.0) GOTO 9900
-         CALL SUBFY
-      ELSE
-         CALL BANDCD(CK,CSO,MLEN,MWID,MWID,IERR)
-            IF(IERR.NE.0) GOTO 9900
-         CALL SUBFYW
-      ENDIF
-      CALL GUTIME(GT2)
-      WRITE(6,601) 'SOLVER',GT2-GT1
-      CALL SUBPOW
-      CALL GUTIME(GT2)
-      WRITE(6,601) 'POWER ',GT2-GT1
-      RATEA=1.D0-ABS(CFY(NXMAX*2+3))**2
-      WRITE(6,'(A,F8.5)') '## Absorption rate: ',RATEA
+    CALL INITDS   ! initiaize FEM coefficients
+       CALL GUTIME(GT1)
+    CALL SUBFW    ! calculate elements of kernel function
+       CALL GUTIME(GT2)
+       IF(iprint > 0) WRITE(6,601) 'SUBFW ',GT2-GT1
+    CALL SUBCK2   ! calculate coefficient matrix
+    CALL SUBINI   ! calculate right-hand-side vector
+       CALL GUTIME(GT2)
+       IF(iprint > 0) WRITE(6,601) 'SUBCK2',GT2-GT1
+    IF(NWMAX.EQ.NXMAX) THEN
+       CALL INVMCD(CK,MLEN,IERR)   ! full matrix solver
+       IF(IERR.NE.0) GOTO 9900
+       CALL SUBFY                  ! calculate field vector
+    ELSE
+       CALL BANDCD(CK,CSO,MLEN,MWID,MWID,IERR)   ! band matrix solver
+          IF(IERR.NE.0) GOTO 9900
+       CALL SUBFYW                               ! calculate field vector
+    ENDIF
+       CALL GUTIME(GT2)
+       IF(iprint > 0) WRITE(6,601) 'SOLVER',GT2-GT1
+    CALL SUBPOW    ! calculate sbsorbed power
+       CALL GUTIME(GT2)
+       IF(iprint > 0) WRITE(6,601) 'POWER ',GT2-GT1
+       RATEA=1.D0-ABS(CFY(NXMAX*2+3))**2
+       IF(iprint > 0) WRITE(6,'(A,F8.5)') '## Absorption rate: ',RATEA
 9900  CONTINUE
       RETURN
   601 FORMAT('## END OF ',A6,' ##  CPU TIME = ',F8.3,' SEC')
@@ -338,7 +338,7 @@ CONTAINS
                             *D0(I-MM,KK-MM)*D1(J-NN,KD-NN)
                         CP3= DX*RKY*CU(2,KK-KD) &
                             *D1(I-MM,KK-MM)*D0(J-NN,KD-NN)
-                       CP4=DX2*RKY2*(CU(1,KK-KD)-CAI*CU(2,KK-KD)) &
+                        CP4=DX2*RKY2*(CU(1,KK-KD)-CAI*CU(2,KK-KD)) &
                             *D0(I-MM,KK-MM)*D0(J-NN,KD-NN) &
                            +CU(1,KK-KD)*D1(I-MM,KK-MM)*D1(J-NN,KD-NN)
                         CPA=CWP(KD)*CWE(KK)*CWE(KD) &

@@ -45,13 +45,15 @@ CONTAINS
 
   SUBROUTINE wi_nlin(NID,IST,IERR)
 
-    USE wicomm, ONLY: nxmax,nwmax,modewi,xmax,pn0,alfa,aky,beta,cfyn
+    USE wicomm, ONLY: nxmax,nwmax,modewi,xmax,pn0,alfa,aky,beta,cfyn, &
+                      ntaumax,taumin,taumax
 
     IMPLICIT NONE
     INTEGER,INTENT(IN) :: NID
     INTEGER,INTENT(OUT) :: IST,IERR
 
-    NAMELIST /WI/ nxmax,nwmax,modewi,xmax,pn0,alfa,aky,beta,cfyn
+    NAMELIST /WI/ nxmax,nwmax,modewi,xmax,pn0,alfa,aky,beta,cfyn, &
+                  ntaumax,taumin,taumax
 
     READ(NID,WI,IOSTAT=IST,ERR=9800,END=9900)
 
@@ -69,7 +71,8 @@ CONTAINS
   SUBROUTINE wi_plst
 
     IMPLICIT NONE
-    WRITE(6,'(A)') '# &WI : nxmax,nwmax,modewi,xmax,pn0,alfa,aky,beta,cfyn'
+    WRITE(6,'(A)') '# &WI : nxmax,nwmax,modewi,xmax,pn0,alfa,aky,beta,cfyn,'
+    WRITE(6,'(A)') '        ntaumax,taumin,taumax'
     RETURN
 
   END SUBROUTINE wi_plst
@@ -78,7 +81,7 @@ CONTAINS
 
   SUBROUTINE wi_check(IERR)
 
-    USE wicomm,ONLY: xmax
+    USE wicomm,ONLY: xmax,taumin,taumax
     IMPLICIT NONE
     INTEGER:: IERR
 
@@ -86,6 +89,11 @@ CONTAINS
 
     IF(xmax <= 0.D0) THEN
        WRITE(6,'(A,1PE12.4)') 'XX wi_check: INVALID xmax: xmax=',xmax
+       IERR=1
+    ENDIF
+    IF(taumax <= taumin) THEN
+       WRITE(6,'(A,A,1P2E12.4)') 'XX wi_check: INVALID taumin,taumax: ',&
+                                 'taumin,taumax =',taumin,taumax
        IERR=1
     ENDIF
     RETURN
@@ -98,20 +106,21 @@ CONTAINS
     use wicomm
     implicit none
 
-    WRITE(6,602) 'nxmax ',nxmax, 'nwmax ',nwmax , &
-                 'modewi',modewi
+    WRITE(6,602) 'nxmax   ',nxmax, 'nwmax   ',nwmax , &
+                 'modewi  ',modewi,'ntaumax ',ntaumax
 
     WRITE(6,601) 'xmax  ',xmax  ,'pn0   ',pn0   , &
                  'alfa  ',alfa  ,'aky   ',aky
-    WRITE(6,601) 'beta  ',beta
+    WRITE(6,601) 'beta  ',beta  ,'taumin',taumin, &
+                 'taumax',taumax
 
     WRITE(6,603) 'cfyn  ',cfyn
     RETURN
 
 601 FORMAT(' ',A6,'=',1PE11.3:2X,A6,'=',1PE11.3: &
             2X,A6,'=',1PE11.3:2X,A6,'=',1PE11.3)
-602 FORMAT(' ',A6,'=',I7,4X  :2X,A6,'=',I7,4X  : &
-            2X,A6,'=',I7,4X  :2X,A6,'=',I7)
+602 FORMAT(' ',A8,'=',I7,2X  :2X,A8,'=',I7,2X  : &
+            2X,A8,'=',I7,2X  :2X,A8,'=',I7)
 603 FORMAT(' ',A6,'=',1P2E11.3:2X,A6,'=',1P2E11.3)
 
   END SUBROUTINE wi_view

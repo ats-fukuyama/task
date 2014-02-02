@@ -11,6 +11,7 @@ CONTAINS
     USE wicomm,ONLY: ikind,rkind,wi_allocate,wi_deallocate,nxmax
     USE wiparm,ONLY: wi_parm,wi_view
     USE wiexec,ONLY: wi_exec
+    USE wiscan,ONLY: wi_scan
     USE wigout,ONLY: wi_gout
 
     IMPLICIT NONE
@@ -19,10 +20,11 @@ CONTAINS
     CHARACTER(LEN=80) :: line
     INTEGER(ikind)    :: init=0
     INTEGER(ikind)    :: nxmax_save=0
+    REAL(rkind)       :: ratea
 
 1   CONTINUE
     ierr=0
-    WRITE(6,'(A)') '## WI MENU: P,V/PARM  R/RUN  G/GRAF  Q/QUIT'
+    WRITE(6,'(A)') '## WI MENU: P,V/PARM  R/RUN  S/SCAN  G/GRAF  Q/QUIT'
 
     CALL TASK_KLIN(line,kid,mode,wi_parm)
     IF(mode /= 1) GOTO 1
@@ -38,6 +40,11 @@ CONTAINS
        CALL wi_allocate
        nxmax_save=nxmax
        CALL wi_exec(ierr)
+       INIT=1
+    ELSEIF(kid.EQ.'S') THEN
+       CALL wi_allocate
+       nxmax_save=nxmax
+       CALL wi_scan(ierr)
        INIT=1
     ELSEIF(kid.EQ.'G') THEN
        IF(INIT.EQ.0) THEN

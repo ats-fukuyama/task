@@ -21,6 +21,10 @@ CONTAINS
     AKY=0.2D0          ! refractive index in the y direction (k_y c/omega)
     BETA=0.1D0         ! ratio of electron thermal velocity to light velocity
 
+    NTAUMAX=51         ! number of TAU scan points
+    TAUMIN=  0.D0      ! minimum of TAU scan
+    TAUMAX=1.65D0      ! maximum of TAU scan
+
     RETURN
   END SUBROUTINE wi_init
 END MODULE wiinit
