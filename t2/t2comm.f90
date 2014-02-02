@@ -664,7 +664,7 @@ CONTAINS
           !C T2EXEC
           !C
           ALLOCATE(i2enr0(1:i0nmax,1:4     ),STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(d2wrks(1:i0wmax,1:i0nmax),STAT=i0err);IF(i0err.NE.0)EXIT
+          ALLOCATE(d2wrks(1:i0nmax,1:i0wmax),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d2jmpm(1:i0dmax,1:i0dmax),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d2kwns(1:i0nmax,1:i0vmax),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d4smat(1:i0nmax,1:i0nmax,1:i0vmax,1:i0vmax),&
