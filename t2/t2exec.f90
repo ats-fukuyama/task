@@ -129,7 +129,6 @@ CONTAINS
     WRITE(6,'(A,F10.3,A)') '-- T2EXEC_SOLVE completed:     cpu=', &
          e0time_1-e0time_0,' [s]'
 
-    
     RETURN
     
   END SUBROUTINE T2_EXEC

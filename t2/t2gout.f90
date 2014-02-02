@@ -185,7 +185,7 @@ CONTAINS
 
   SUBROUTINE T2_GSETUP
     USE T2COMM, ONLY: &
-         i0ikind,i0rkind,twopi,i0xmax,d1guv,i0vmax, &
+         i0ikind,i0rkind,twopi,i0xmax,i0vmax, &
          i0lmax,i0pdiv_number,i1mlvl,i1rdn2,d1rec, &
          nrhomax,nchimax
     IMPLICIT NONE
@@ -254,7 +254,7 @@ CONTAINS
   SUBROUTINE T2_GC(INUM,ID,NGP)
     USE libgrf,ONLY: GRD2D
     USE T2COMM, ONLY: &
-         i0ikind,i0rkind,twopi,i0xmax,d1guv,i0vmax, &
+         i0ikind,i0rkind,twopi,i0xmax,d2xvec,i0vmax, &
          i0lmax,i0pdiv_number,i1mlvl,i1rdn2,d1rec, &
          nrhomax,nchimax,d0rw
     IMPLICIT NONE
@@ -276,7 +276,7 @@ CONTAINS
     dchig=TWOPI/nchig
     DO nchi=1,nchig+1
        chig(nchi)=dchig*(nchi-1)
-       gz(1,nchi)=d1guv(inum)
+       gz(1,nchi)=d2xvec(inum,1)
        IF(gz(1,nchi).GT. 1.D10) gz(1,nchi)= 1.D10
        IF(gz(1,nchi).LT.-1.D10) gz(1,nchi)=-1.D10
     END DO
@@ -284,11 +284,11 @@ CONTAINS
        nl=nlnrho(nrho)
        nchimaxl=i0pdiv_number*2**(i1mlvl(nl)-1)
        DO nchi=1,nchimaxl
-          gzl(nchi)=d1guv(i0vmax*(nnnrho(nrho)+nchi-2)+inum)
+          gzl(nchi)=d2xvec(inum,nnnrho(nrho)+nchi-1)
           IF(gzl(nchi).GT. 1.D10) gzl(nchi)= 1.D10
           IF(gzl(nchi).LT.-1.D10) gzl(nchi)=-1.D10
        END DO
-       gzl(nchimaxl+1)=d1guv(i0vmax*(nnnrho(nrho)-1)+inum)
+       gzl(nchimaxl+1)=gzl(1)
        CALL SPL1D(chinl(1:nchimaxl+1,nl),gzl,dgzl,ugzl,nchimaxl+1,4,ierr)
        DO nchi=1,nchig+1
           CALL SPL1DF(chig(nchi),gz(nrho,nchi), &
@@ -379,7 +379,7 @@ CONTAINS
   SUBROUTINE T2_GR(INUM,ID,NGP)
     USE libgrf,ONLY: GRD1D
     USE T2COMM, ONLY: &
-         i0ikind,i0rkind,twopi,i0xmax,d1guv,i0vmax, &
+         i0ikind,i0rkind,twopi,i0xmax,d2xvec,i0vmax, &
          i0lmax,i0pdiv_number,i1mlvl,i1rdn2,d1rec, &
          nrhomax,nchimax
     IMPLICIT NONE
@@ -394,17 +394,16 @@ CONTAINS
     ALLOCATE(gzl(nchimax+1),dgzl(nchimax+1),ugzl(4,nchimax+1))
     ALLOCATE(ga(nrhomax))
     DO nchi=1,nchimax+1
-       gz(1,nchi)=d1guv(inum)
+       gz(1,nchi)=d2xvec(inum,1)
        IF(gz(1,nchi).GT. 1.D10) gz(1,nchi)= 1.D10
        IF(gz(1,nchi).LT.-1.D10) gz(1,nchi)=-1.D10
     END DO
-    ga(1)=d1guv(inum)
+    ga(1)=d2xvec(inum,1)
     DO nrho=2,nrhomax
        nl=nlnrho(nrho)
        nchimaxl=i0pdiv_number*2**(i1mlvl(nl)-1)
-
        DO nchi=1,nchimaxl
-          gzl(nchi)=d1guv(i0vmax*(nnnrho(nrho)+nchi-2)+inum)
+          gzl(nchi)=d2xvec(inum,nnnrho(nrho)+nchi-1)
           IF(gzl(nchi).GT. 1.D10) gzl(nchi)= 1.D10
           IF(gzl(nchi).LT.-1.D10) gzl(nchi)=-1.D10
        END DO
@@ -428,7 +427,7 @@ CONTAINS
           CALL SPL1D(chinl(1:nchimaxl+1,nl),gzl,dgzl,ugzl,nchimaxl+1,4,ierr)
           DO nchi=1,nchimax
              CALL SPL1DF(chinchi(nchi),gz(nrho,nchi), &
-                         chinl(1:nchimaxl+1,nl),ugzl,nchimax+1,ierr)
+                         chinl(1:nchimaxl+1,nl),ugzl,nchimaxl+1,ierr)
           END DO
        END IF
     END DO
