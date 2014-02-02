@@ -240,7 +240,6 @@ CONTAINS
     !C 
     !C STORE GLOBAL STIFFNESS MATRIX  
     !C 
-idebug=1
     DO i0nr = 1, i0bmax   
        DO i0aidi = i1nidr(i0nr), i1nidr(i0nr+1)-1
           i0nc = i1nidc(i0aidi) 
@@ -401,20 +400,6 @@ idebug=1
        ENDDO
 
     ENDDO
-
-    !DO i0vidi = 1, i0vmax
-    !   IF(    i0vidi.GT.3)THEN
-    !      DO i0nidi = 1, i0nmax
-    !         i0node = i2enr0(i0nidi,2)
-    !         d2kwns(i0nidi,i0vidi) = d2xgvec(i0vidi,i0node)
-    !      ENDDO
-    !   ELSEIF(i0vidi.LE.3)THEN
-    !      DO i0nidi = 1, i0nmax
-    !         i0node = i2enr0(i0nidi,4)
-    !         d2kwns(i0nidi,i0vidi) = d2xgvec(i0vidi,i0node)
-    !      ENDDO
-    !   ENDIF
-    !ENDDO
     
     !C
     !C STORE WORKING ARRAY FOR DIFFERENTIAL
@@ -439,7 +424,7 @@ idebug=1
     ENDDO
     
     !C
-    !C INITIALIZATION OF SYBMATRIX AND SUBVETOR
+    !C INITIALIZATION OF SUBMATRIX AND SUBVETOR
     !C
     
     d4smat(1:i0nmax,1:i0nmax,1:i0vmax,1:i0vmax) = 0.D0

@@ -143,22 +143,29 @@ CONTAINS
     
     DO i0vidi = 1,i0vmax
        
-       d0dif  = d1dif(i0vidi)
-       d0ave  = d1ave(i0vidi)
+       SELECT CASE(i0vidi)
        
-       IF(d0ave.LE.0.D0)THEN
-          WRITE(6,'("*********************************************")')
-          WRITE(6,'("       ERROR IN T2_STEP_CONVERGENCE          ")')
-          WRITE(6,'("       INDETERMINATE PROBLEM                 ")')
-          WRITE(6,'("*********************************************")')
-          PRINT*,i0vidi
-          STOP
-       ENDIF
+       CASE(6:13)
        
-       d0dif_tmp = d0dif/d0ave
-       d0dif_tmp = SQRT(d0dif_tmp)
-       WRITE(6,*),'VARIABLES=',i0vidi,'RESIDUAL=',d0dif_tmp
-       d0dif_max = MAX(d0dif_max,d0dif_tmp)
+          d0dif  = d1dif(i0vidi)
+          d0ave  = d1ave(i0vidi)
+       
+          IF(d0ave.LE.0.D0)THEN
+             WRITE(6,'("*********************************************")')
+             WRITE(6,'("       ERROR IN T2_STEP_CONVERGENCE          ")')
+             WRITE(6,'("       INDETERMINATE PROBLEM                 ")')
+             WRITE(6,'("*********************************************")')
+             PRINT*,i0vidi
+             STOP
+          ENDIF
+       
+          d0dif_tmp = d0dif/d0ave
+          d0dif_tmp = SQRT(d0dif_tmp)
+          WRITE(6,*),'VARIABLES=',i0vidi,'RESIDUAL=',d0dif_tmp
+          d0dif_max = MAX(d0dif_max,d0dif_tmp)
+
+       END SELECT
+
     ENDDO
     
     d0dif = d0dif_max
