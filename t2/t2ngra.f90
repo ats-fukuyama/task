@@ -37,13 +37,16 @@ CONTAINS
        
     CASE( 4) !C LINIEAR   ELEMENT
        CALL T2NGRA_NGRAPH1
-    CASE( 8) !C QUADRATIC ELEMENT 
+    !CASE( 8) !C QUADRATIC ELEMENT 
+    CASE( 9)
        CALL T2NGRA_NGRAPH2
-    CASE(12) !C CUBIC     ELEMENT
+    !CASE(12) !C CUBIC     ELEMENT
+    CASE(16) !C CUBIC     ELEMENT
        CALL T2NGRA_NGRAPH3
     END SELECT
-
+    
     IF(idfile.ge.4) CALL T2_NGRA_OUTPUT
+    CALL T2_NGRA_OUTPUT
     
     CALL T2NGRA_TERM
     
@@ -256,9 +259,9 @@ CONTAINS
 
     OPEN(10,FILE='I2CRT_TEST.dat')
     DO i0midi = 1, i0mmax
-       WRITE(10,'("NUM1=",I7,1X,I7,1X,I7,1X,I7,1X,I7)')&
+       WRITE(10,'("NUM1=",I7,1X,I7,1X,I7,1X,I7)')&
             i0midi,i2crt(1,i0midi),i2crt(2,i0midi),&
-            i2crt(3,i0midi),i2crt(4,i0midi)
+            i2crt(3,i0midi)
     ENDDO
     CLOSE(10)
     

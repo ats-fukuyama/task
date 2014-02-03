@@ -31,10 +31,11 @@ CONTAINS
     USE LIBMTX, ONLY: &
          MTX_INITIALIZE,MTX_FINALIZE
     
-    INTEGER(i0ikind)     :: i0tflg,i0tsws,nt
+!    INTEGER(i0ikind)     :: i0tflg,i0tsws,nt
+    INTEGER(i0ikind)     :: nt
     REAL(4),SAVE         :: e0time1
-    REAL(4)              :: e0time2, e0time3, e0time4, e0time5
-    REAL(   i0rkind),SAVE:: d0tstp_save
+    REAL(4)              :: e0time2!, e0time3, e0time4, e0time5
+!    REAL(   i0rkind),SAVE:: d0tstp_save
     INTEGER(i0ikind)     :: i_conv
     REAL(i0rkind):: residual_conv
 

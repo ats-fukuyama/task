@@ -522,7 +522,7 @@ CONTAINS
           ALLOCATE(i1eidr(    1:i0ermx),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(i1eidc(    1:i0ecmx),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(i1mlel(    1:i0emax),STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(i2crt( 1:4,1:i0mmax),STAT=i0err);IF(i0err.NE.0)EXIT
+          ALLOCATE(i2crt( 1:3,1:i0mmax),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(i1dbc2(    1:i0bmax),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(i1mfc1(    1:i0mmax),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(i1mc1d(    1:i0rmax),STAT=i0err);IF(i0err.NE.0)EXIT

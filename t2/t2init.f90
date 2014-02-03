@@ -160,7 +160,7 @@ CONTAINS
     nt2dmax   = 1       ! maximum number of profile data to be saved
     nt2dstep  = 1       ! time step to save profile data
 
-    nconvmax  = 1       ! maximum number of convergence steps for implicit loop
+    nconvmax  = 10      ! maximum number of convergence steps for implicit loop
     eps_conv  = 1.D-4   ! relative convergence criterion for implicit loop
 
     idfile    = 0       ! control id for file output: 0 for none, 9 for all

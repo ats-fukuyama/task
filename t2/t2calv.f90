@@ -64,7 +64,7 @@ CONTAINS
     USE T2COMM,ONLY:&
          d0mfcst,d0btcst,d0ercst,d0epcst,d0etcst,&
          d0nncst,d0frcst,d0fbcst,d0ftcst,&
-         d0ppcst,d0qrcst,d0qbcst,d0qtcst,d0iar,&
+         d0ppcst,d0qrcst,d0qbcst,d0qtcst,&
          i0xa,i0vmax,d0rmjr,d0qc,d0qs,&
          i2crt,&
          d2xvec_befor,d2mfc1,d2rzm,d2jm1,d2ws,&
@@ -96,12 +96,11 @@ CONTAINS
          d0nvcc1_a,  d0nvcc2_a,  d0nvcc3_a,  d0nvcc4_a
     
     REAL(i0rkind)::&
-         d0rzcr,d0mfcr,d0psip,d0g1,d0g2,d0q0,&
+         d0rzcr,d0mfcr,d0psip,d0g1,d0g2,d0q0,d0liar,&
          d0cps,d0cbn,d0tcr,d0wv1,d0wv2,d0wv3,d0wv4,&
          d0k11,  d0k12,  d0k22,&
          d0k11ps,d0k12ps,d0k22ps,&
          d0k11bn,d0k12bn,d0k22bn
-    !REAL(i0rkind),DIMENSION(1:5,1:i0nmax1)::d2mtrcs,d2wa
     
     REAL(i0rkind),DIMENSION(1:i0smax)::&
          d1fr,d1fb,d1ft,d1vti,&
@@ -153,7 +152,6 @@ CONTAINS
     i0nid2d = i2crt( 2,i0midi)
     d0rzcr  = d2rzm( 1,i0midi)
     d0mfcr  = d2mfc1(1,i0midi)   
-    
     !C CONVERT VARIABLES TO SI-UNIT
     
     DO i0sidi = 1, i0smax
@@ -162,7 +160,7 @@ CONTAINS
        
        d0nn_a = d2xvec_befor(i0vidi+1,i0nid2d)
        d0pp_a = d2xvec_befor(i0vidi+5,i0nid2d)
-       
+
        d1nn(i0sidi) = d0nncst*d2xvec_befor(i0vidi+1,i0nid2d)
        d1fr(i0sidi) = d0frcst*d2xvec_befor(i0vidi+2,i0nid2d)
        d1fb(i0sidi) = d0fbcst*d2xvec_befor(i0vidi+3,i0nid2d)
@@ -178,7 +176,7 @@ CONTAINS
           d1ni(i0sidi) = 0.D0
        ELSE
           WRITE(6,*)'NEGATIVE  DENS'
-          WRITE(6,*)'i1=',i0sidi,'N',d0nn_a,'/m3'
+          WRITE(6,*)'i1=',i0sidi,'N',d0nn_a,'10^{20} /m3'
           STOP
        ENDIF
        
@@ -197,7 +195,7 @@ CONTAINS
     !C
     !C GEOMETRICAL COEFFICIENTS
     !C
-
+    
     !C 
     !C d0sqrtg : \sqrt{g}
     !C
@@ -224,7 +222,8 @@ CONTAINS
     !C                   of POLOIDAL MAGNETIC FIELD     : 1/Bp^{2}
     !C d0bb    : INTENSITY OF MAGNETIC FIELD            : B 
     !C d0bb2   : SQUARED INTENSITY of MAGNETIC FIELD    : B^{2} 
-
+    !C
+    
     d0psip = d0mfcst*d2xvec_befor(1,i0nid1d)
     d0cobt = d0btcst*d2xvec_befor(2,i0nid1d)
     
@@ -236,26 +235,22 @@ CONTAINS
     
     d0cogtt =  1.D0/d0ctgtt
     
+    ! modified by H.SETO 2014-02-03
     IF(d0sqrtg.GT.0.D0)THEN
+       !C d0wv1  : WORKING VARIABLE: \sqrt{g}^{2}/R^{2}
+       d0wv1   =  (d0sqrtg**2)*d0ctgtt
        
-       !C d0wv1  : WORKING VARIABLE: R^{2}/\sqrt{g}^{2}   
-       
-       d0wv1    =  (d0sqrtg**2)*d0ctgtt
-       
-       d0cogrr =  d0cogpp*d0wv1
-       d0cogrp = -d0cogrp*d0wv1
-       d0cogpp =  d0cogrr*d0wv1
-       
+       d0cogrr =  d0ctgpp*d0wv1
+       d0cogrp = -d0ctgrp*d0wv1
+       d0cogpp =  d0ctgrr*d0wv1
        d0ctbp  = d0psip/d0sqrtg
+       d0ctbpi = 1.D0/d0ctbp
     ELSE
-       
        d0cogrr = 0.D0
        d0cogrp = 0.D0
        d0cogpp = 0.D0
-       
        d0ctbp  = 0.D0
        d0ctbpi = 0.D0
-       
     ENDIF
     
     d0ugr = 0.D0
@@ -265,7 +260,7 @@ CONTAINS
     
     d0bp2 = (d0ctbp**2)*d0cogpp
     d0bt2 = (d0cobt**2)*d0ctgtt
-    d0bb2  = d0bp2 + d0bt2
+    d0bb2 = d0bp2 + d0bt2
     d0bb  = SQRT(d0bb2)
     
     IF(d0bp2.GT.0.D0)THEN
@@ -317,7 +312,9 @@ CONTAINS
     
     !C THERMAL VELOCITY [m/s]
     !C v_{ta} = \sqrt{2T_{a}/M_{a}}
-    
+    !C
+    !C      checked 2014-02-03 by H.Seto
+    !C
     DO i0sidi = 1, i0smax
        d0mm_a = d1mm(i0sidi)
        d0tt_a = d1tt(i0sidi)
@@ -325,7 +322,6 @@ CONTAINS
        d1vt( i0sidi)= SQRT(2.0D0/d0mm_a*d0tt_a)
        d1vti(i0sidi)= SQRT(0.5D0*d0mm_a*d0ti_a)
     ENDDO
-    
     
     !C COULOMB LOGARITHM
     !C ref: NRL PLASMA FORMULARY 2011
@@ -343,6 +339,8 @@ CONTAINS
     !C REF: COLLISIONAL TRANSPORT IN MAGNETIZED PLASMAS
     !C      P. HELANDER AND D.J. SIGMAR (2002)  P.277
     !C
+    !C      checked 2014-02-03 by H.Seto
+    !C
     DO i0sidj = 1, i0smax
     DO i0sidi = 1, i0smax
        d0clog_ab = d2clog(i0sidi,i0sidj)
@@ -356,20 +354,20 @@ CONTAINS
             / (4.D0*d0pi*(d0eps0**2)*(d0mm_a**2))
     ENDDO
     ENDDO
-    
+
     !C
     !C COLLISION FREQUENCY [1/s]
     !C REF: COLLISIONAL TRANSPORT IN MAGNETIZED PLASMAS
     !C      P. HELANDER AND D.J. SIGMAR (2002)  P.277
     !C
-    
+    !C      checked 2014-02-03 by H.Seto
+    !C
     DO i0sidj = 1, i0smax
     DO i0sidi = 1, i0smax
        d2cfreq(i0sidi,i0sidj) &
             = d2bcf(i0sidi,i0sidj)/(0.75D0*SQRT(d0pi))
     ENDDO
     ENDDO
-    
     !C 
     !C FOR FRICTION COEFFICIENTS
     !C 
@@ -383,8 +381,8 @@ CONTAINS
     !C DEFINITION OF VARIABLES FOR DIMENSIONLESS PARAMETERS
     !C
     !C d2x   = x_ab = v_{tb}/v_{ta}
-    !C d2y   = y_ab = ma /mb
-    !C d2z   = t_ab = ta /tb
+    !C d2y   = y_ab = m_{a} /m_{b}
+    !C d2z   = t_ab = t_{a} /t_{b}
     !C d0wv2 = 1/SQRT(1 + x_{ab}^{2})
     !C
     !C DEFINITION OF VARIABLRS FOR BRAGINSKII MATRIX ELEMENTS
@@ -497,6 +495,14 @@ CONTAINS
     ENDDO
     ENDDO
 
+!    DO i0sidi =1,i0smax
+!    DO i0sidj =1,i0smax
+!       print*,i0sidi,i0sidj
+!       print*,d2nfcl11(i0sidi,i0sidj),d2nfcl12(i0sidi,i0sidj)
+!       print*,d2nfcl21(i0sidi,i0sidj),d2nfcl22(i0sidi,i0sidj)
+!    ENDDO
+!    ENDDO
+
 
     !C PARALLEL FRICTION COEFFICIENTS 
     !C          WITH RESPECT TO MOMENTUM AND TOTAL HEAT FLUX
@@ -549,8 +555,8 @@ CONTAINS
     
     DO i0sidi = 1, i0smax
     DO i0sidj = 1, i0smax
-       d0zi_ab    = d2z(i0sidj,i0sidi)
-       d0cfreq_ab = d2cfreq(i0sidi,i0sidj)
+       d0zi_ab       = d2z(i0sidj,i0sidi)
+       d0cfreq_ab    = d2cfreq(i0sidi,i0sidj)
        d1hex(i0sidi) = d1hex(i0sidi)+1.5D0*(1.D0 - d0zi_ab)*d0cfreq_ab
     ENDDO
     ENDDO
@@ -583,20 +589,22 @@ CONTAINS
     !C
     
     IF(d0mfcr.GT.0.D0)THEN
-       IF(   (d0mfcr.GT.0.D0).AND.(d0mfcr.LE.1.D0))THEN
-          !d0q0 = (d0qc-d0qs)*(1.D0 - d0mfcr**2)+d0qs
-          d0q0 = (d0qc-d0qs)*((1.D0 - d0mfcr**2)**2)+d0qs
-       ELSEIF(d0mfcr.GT.1.D0)THEN
-          !d0q0 = (d0qs-d0qc)*(       d0mfcr**2)+d0qc
-          d0q0 = d0qs
-       ELSE
-          WRITE(6,*)'WRONG RHO INPUT'
-          PRINT*,d0mfcr
-          STOP
-       ENDIF
+       !IF(   (d0mfcr.GT.0.D0).AND.(d0mfcr.LE.1.D0))THEN
+       !   d0q0 = (d0qc-d0qs)*(1.D0 - d0mfcr**2)+d0qs
+       !   !d0q0 = (d0qc-d0qs)*((1.D0 - d0mfcr**2)**2)+d0qs
+       !ELSEIF(d0mfcr.GT.1.D0)THEN
+       !   d0q0 = (d0qs-d0qc)*(       d0mfcr**2)+d0qc
+       !   !d0q0 = d0qs
+       !ELSE
+       !   WRITE(6,*)'WRONG RHO INPUT'
+       !   PRINT*,d0mfcr
+       !   STOP
+       !ENDIF
        
-       d0iar = d0mfcr/d0rmjr     !C INVERSE ASPECT RATIO (r/R0)
-       d0tcr = 1.46D0*SQRT(d0iar)/(1.D0-1.46D0*SQRT(d0iar)) 
+       d0q0 = d0ctbt*d0ctbpi
+
+       d0liar = d0mfcr/d0rmjr     !C LOCAL INVERSE ASPECT RATIO (r/R0)
+       d0tcr = 1.46D0*SQRT(d0liar)/(1.D0-1.46D0*SQRT(d0liar)) 
        
        DO i0xa = 1, i0smax
           
@@ -616,7 +624,9 @@ CONTAINS
           d0k11ps = d0cps*d0k11ps
           d0k12ps = d0cps*d0k12ps
           d0k22ps = d0cps*d0k22ps
-          
+!          print*,i0xa,d0pp_a,d2cfreq(i0xa,i0xa)
+!          print*,d0k11ps,d0k12ps,d0k22ps
+ !         stop
           !C
           !C MODIFIED VISCOSITY COEFFICIENT IN BN REGIME
           !C 
@@ -626,7 +636,7 @@ CONTAINS
           CALL INTEG_F(fd0k22bn,d0k22bn,d0err,EPS=1.D-8,ILST=0)
        
           d0cbn = 2.D0*d0mm_a*d0nn_a*d0de*d0tcr*(d0q0**2)*(d0rzcr**2)
-          d0cbn = d0cbn / (3.D0*(d0iar**2))
+          d0cbn = d0cbn / (3.D0*(d0liar**2))
           
           d0k11bn = d0cbn*d0k11bn
           d0k12bn = d0cbn*d0k12bn

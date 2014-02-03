@@ -80,21 +80,21 @@ CONTAINS
        !C
        
        d2jm1(1:5,i0midi)= fd1mc(d0mfcr,d0mfcp)
-       d0jm1 = d2jm1(1,i0midi)
+       d0jm1   = d2jm1(1,i0midi)
        
        i0xid2d = i2crt(2,i0midi)
        i0xid1d = i2crt(3,i0midi)
-      
+       
        !C PSI'
-       d2xvec(1,i0xid1d) = fd0bp(d0mfcr,d0mfcp)*d0jm1/d0mfcst 
+       d2xvec(1,i0xid1d) = fd0ctbp(d0mfcr,d0mfcp)*d0jm1/d0mfcst 
        !C I
-       d2xvec(2,i0xid1d) = fd0bt(d0mfcr,d0mfcp)/d0btcst 
+       d2xvec(2,i0xid1d) = fd0cobt(d0mfcr,d0mfcp)/d0btcst 
        !C E_{\zeta}
-       d2xvec(3,i0xid1d) = fd0et(d0mfcr,d0mfcp)/d0etcst 
+       d2xvec(3,i0xid1d) = fd0coet(d0mfcr,d0mfcp)/d0etcst 
        !C E_{\chi }
-       d2xvec(4,i0xid2d) = fd0ep(d0mfcr,d0mfcp)/d0epcst
+       d2xvec(4,i0xid2d) = fd0coep(d0mfcr,d0mfcp)/d0epcst
        !C E_{\rho }
-       d2xvec(5,i0xid2d) = fd0er(d0mfcr,d0mfcp)/d0ercst
+       d2xvec(5,i0xid2d) = fd0coer(d0mfcr,d0mfcp)/d0ercst
        
        !C INITIAL PROFILE: Fr Fb Fb Qr Qb Qt (DIMENSIONLESS)
        
@@ -112,9 +112,7 @@ CONTAINS
           d2xvec(i0vidi+6,i0xid2d) = d2f0(4,i0sidi)/d0qrcst
           d2xvec(i0vidi+7,i0xid2d) = d2f0(5,i0sidi)/d0qbcst
           d2xvec(i0vidi+8,i0xid2d) = d2f0(6,i0sidi)/d0qtcst
-          
        ENDDO
-       
     ENDDO
     
     DO i0midi = 1, i0mmax
@@ -123,12 +121,10 @@ CONTAINS
        d2rzx(2,i0xidi) = d2rzm(2,i0midi)
     ENDDO
     
-    !CALL T2READ
-    
     RETURN
     
   END SUBROUTINE T2PROF_TOROIDAL
-
+  
   SUBROUTINE T2RPROF(i0m0,i0n0,d0fc,d0fs,d0fw,d0rw,d0r,d0f0,d0f1)
     
     INTEGER(i0ikind),INTENT(IN )::i0m0,i0n0
@@ -259,16 +255,16 @@ CONTAINS
     !C    Z   =   -a*rho*SIN(chi)
     !C    phi = zeta
     !C
-    !C    FD2MC(1) : SQRT{g} 
-    !C    FD2MC(2) : g^{rho  rho } 
-    !C    FD2MC(3) : g^{rho  chi } 
-    !C    FD2MC(4) : g^{chi  chi } 
-    !C    FD2MC(5) : g^{zeta zeta} 
+    !C    FD1MC(1) : SQRT{g} 
+    !C    FD1MC(2) : g^{rho  rho } 
+    !C    FD1MC(3) : g^{rho  chi } 
+    !C    FD1MC(4) : g^{chi  chi } 
+    !C    FD1MC(5) : g^{zeta zeta} 
     !C
-  
+    
     d0rzcr = fd0rzcr(d0mfcr,d0mfcp)
     
-    IF(d0mfcr.GT.1.D-15)THEN
+    IF(d0mfcr.GT.0.D0)THEN
        fd1mc(1)= (d0rmnr**2)*d0mfcr*d0rzcr
        fd1mc(2)= 1.d0/d0rmnr**2
        fd1mc(3)= 0.d0 
@@ -315,7 +311,6 @@ CONTAINS
     REAL(i0rkind),INTENT(IN)::d0mfcr,d0mfcp
     REAL(i0rkind)::fd0q1
     
-    
     IF((d0mfcr.GE.0.D0).AND.(d0mfcr.LE.1.D0))THEN
        fd0q1 = 2.D0*(d0qs-d0qc)*d0mfcr
        !fd0q1 = 4.D0*(d0qs-d0qc)*(1.D0 - d0mfcr**2)*d0mfcr
@@ -331,34 +326,34 @@ CONTAINS
     
   END FUNCTION fd0q1
   
-  FUNCTION fd0bt(d0mfcr,d0mfcp)
+  FUNCTION fd0cobt(d0mfcr,d0mfcp)
     
     USE T2COMM, ONLY:d0rmjr,d0bc
     
     REAL(i0rkind),INTENT(IN)::d0mfcr,d0mfcp
-    REAL(i0rkind)::fd0bt
+    REAL(i0rkind)::fd0cobt
     
-    fd0bt = d0rmjr*d0bc
+    fd0cobt = d0rmjr*d0bc
     
     RETURN
     
-  END FUNCTION fd0bt
+  END FUNCTION fd0cobt
   
-  FUNCTION fd0bp(d0mfcr,d0mfcp)
+  FUNCTION fd0ctbp(d0mfcr,d0mfcp)
     
     USE T2COMM, ONLY:d0rmjr,d0bc
     
     REAL(i0rkind),INTENT(IN)::d0mfcr,d0mfcp
-    REAL(i0rkind)::fd0bp
-    REAL(i0rkind)::d0rzcr,d0bt,d0q0
+    REAL(i0rkind)::fd0ctbp
+    REAL(i0rkind)::d0rzcr,d0cobt,d0q0
     
-    d0rzcr = fd0rzcr(d0mfcr,d0mfcp)
-    d0bt   = fd0bt( d0mfcr,d0mfcp)
-    d0q0   = fd0q0( d0mfcr,d0mfcp)
-    fd0bp  = d0bt/((d0rzcr**2)*d0q0)
+    d0rzcr  = fd0rzcr(d0mfcr,d0mfcp)
+    d0cobt  = fd0cobt( d0mfcr,d0mfcp)
+    d0q0    = fd0q0( d0mfcr,d0mfcp)
+    fd0ctbp = d0cobt/((d0rzcr**2)*d0q0)
     RETURN
     
-  END FUNCTION fd0bp
+  END FUNCTION fd0ctbp
 
   FUNCTION fd0bb(d0mfcr,d0mfcp)
     
@@ -367,107 +362,107 @@ CONTAINS
     REAL(i0rkind),INTENT(IN)::d0mfcr,d0mfcp
     REAL(i0rkind)::fd0bb
     REAL(i0rkind),DIMENSION(1:5)::d1mc
-    REAL(i0rkind)::d0bp,d0bt,d0bb
+    REAL(i0rkind)::d0ctbp,d0cobt,d0bb
     
-    d0bp   = fd0bp(  d0mfcr,d0mfcp)
-    d0bt   = fd0bt(  d0mfcr,d0mfcp)
+    d0ctbp = fd0ctbp(d0mfcr,d0mfcp)
+    d0cobt = fd0cobt(d0mfcr,d0mfcp)
     d1mc   = fd1mc(  d0mfcr,d0mfcp)
     
-    d0bb = (d0bp**2)*(d1mc(1)**2)*d1mc(5)*d1mc(2)+(d0bt**2)*d1mc(5)
+    d0bb = (d0ctbp**2)*(d1mc(1)**2)*d1mc(5)*d1mc(2)+(d0cobt**2)*d1mc(5)
     fd0bb = SQRT(d0bb)
-
+    
     RETURN
 
   END FUNCTION fd0bb
   
-  FUNCTION fd0er(d0mfcr,d0mfcp)
+  FUNCTION fd0coer(d0mfcr,d0mfcp)
     
     USE T2CNST, ONLY:d0aee
     USE T2COMM, ONLY:i0smax,d0rmjr,d0bc
     
     REAL(i0rkind),INTENT(IN)::d0mfcr,d0mfcp
     REAL(i0rkind),DIMENSION(1:i0smax)::d1p1,d1n0
-    REAL(i0rkind)::d0n0,d0p1,fd0er
+    REAL(i0rkind)::d0n0,d0p1,fd0coer
     
     d1p1 = fd1p1(d0mfcr,d0mfcp)
     d1n0 = fd1n0(d0mfcr,d0mfcp)
     d0n0 = d1n0(2) 
     d0p1 = d1p1(2) 
     
-    fd0er = d0p1/(d0aee*d0n0)
+    fd0coer = d0p1/(d0aee*d0n0)
     
     RETURN
     
-  END FUNCTION fd0er
+  END FUNCTION fd0coer
   
-  FUNCTION fd0ep(d0mfcr,d0mfcp)
+  FUNCTION fd0coep(d0mfcr,d0mfcp)
     
     USE T2CNST, ONLY:d0aee
     USE T2COMM, ONLY:i0smax,d0rmjr,d0bc
     
     REAL(i0rkind),INTENT(IN)::d0mfcr,d0mfcp
-    REAL(i0rkind)::fd0ep
+    REAL(i0rkind)::fd0coep
     REAL(i0rkind),DIMENSION(1:i0smax)::d1t0
     REAL(i0rkind)::&
-         d0jb,d0jt,d0bp,d0bt,d0bb,d0n0,d0t0,&
-         d0rzcr,d0bpi
+         d0jb,d0jt,d0ctbp,d0cobt,d0bb,d0n0,d0t0,&
+         d0rzcr,d0ctbpi
     
     d0jb   = fd0jb(  d0mfcr,d0mfcp)
     d0jt   = fd0jt(  d0mfcr,d0mfcp)
-
-    d0bt   = fd0bt(  d0mfcr,d0mfcp)
-    d0bp   = fd0bp(  d0mfcr,d0mfcp)
-    d0bb   = fd0bb(  d0mfcr,d0mfcp)
+    
+    d0cobt   = fd0cobt(d0mfcr,d0mfcp)
+    d0ctbp   = fd0ctbp(d0mfcr,d0mfcp)
+    d0bb     = fd0bb(  d0mfcr,d0mfcp)
     
     d1t0   = fd1t0(  d0mfcr,d0mfcp)
     d0rzcr = fd0rzcr(d0mfcr,d0mfcp)
     
     d0t0   = d1t0(1)/(1.D3*d0aee) !C keV
     
-    IF(ABS(d0bp).GT.0.D0)THEN
-       d0bpi = 1.D0/d0bp
+    IF(ABS(d0ctbp).GT.0.D0)THEN
+       d0ctbpi = 1.D0/d0ctbp
     ELSE
-       d0bpi = 0.D0
+       d0ctbpi = 0.D0
     ENDIF
     
-    fd0ep = (1.65D-9*15.D0/(SQRT(d0t0)**3))&
-         * (d0jb*d0bb - (d0bt/(d0rzcr**2))*d0jt)*d0bpi
+    fd0coep = (1.65D-9*15.D0/(SQRT(d0t0)**3))&
+            * (d0jb*d0bb - (d0cobt/(d0rzcr**2))*d0jt)*d0ctbpi
     
     RETURN
     
-  END FUNCTION fd0ep
+  END FUNCTION fd0coep
   
-  FUNCTION fd0et(d0mfcr,d0mfcp)
+  FUNCTION fd0coet(d0mfcr,d0mfcp)
     
     USE T2CNST, ONLY:d0aee
     USE T2COMM, ONLY:i0smax,d0rmjr,d0bc
     
     REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
-    REAL(   i0rkind)::fd0et
+    REAL(   i0rkind)::fd0coet
     REAL(   i0rkind),DIMENSION(1:i0smax)::d1t0
-    REAL(   i0rkind)::d0jb,d0jt,d0bp,d0bt,d0t0,d0n0,d0p1,d0bpi,d0rzcr
+    REAL(   i0rkind)::d0jb,d0jt,d0ctbp,d0cobt,d0t0,d0n0,d0ctbpi,d0rzcr
     INTEGER(i0ikind)::i1
     
     d0jb   = fd0jb(  d0mfcr,d0mfcp)
     d0jt   = fd0jt(  d0mfcr,d0mfcp)
-    d0bt   = fd0bt(  d0mfcr,d0mfcp)
-    d0bp   = fd0bp(  d0mfcr,d0mfcp)
+    d0cobt = fd0cobt(d0mfcr,d0mfcp)
+    d0ctbp = fd0ctbp(d0mfcr,d0mfcp)
     d1t0   = fd1t0(  d0mfcr,d0mfcp)
     d0rzcr = fd0rzcr(d0mfcr,d0mfcp)
     
     d0t0   = d1t0(1)/(1.D3*d0aee) !C keV
     
-    IF(ABS(d0bp).GT.0.D0)THEN
-       d0bpi = 1.D0/d0bp
+    IF(ABS(d0ctbp).GT.0.D0)THEN
+       d0ctbpi = 1.D0/d0ctbp
     ELSE
-       d0bpi = 0.D0
+       d0ctbpi = 0.D0
     ENDIF
     
-    fd0et = (1.65D-9*15.D0/(SQRT(d0t0)**3))*d0jt
+    fd0coet = (1.65D-9*15.D0/(SQRT(d0t0)**3))*d0jt
     
     RETURN
     
-  END FUNCTION fd0et
+  END FUNCTION fd0coet
   
   FUNCTION fd1n0(d0mfcr,d0mfcp)
     
@@ -624,15 +619,15 @@ CONTAINS
     REAL(   i0rkind)::fd0jb
     REAL(   i0rkind),DIMENSION(1:i0smax)::d1p1
     REAL(   i0rkind)::&
-         d0bp,d0bt,d0bb,d0jt,d0jbs,d0rzcr
+         d0ctbp,d0cobt,d0bb,d0jt,d0jbs,d0rzcr
     INTEGER(i0ikind)::i2
     
     
     IF((d0mfcr.GE.0.D0).AND.(d0mfcr.LE.1.D0))THEN
        
        d0rzcr = fd0rzcr(d0mfcr,d0mfcp)
-       d0bp   = fd0bp(  d0mfcr,d0mfcp)
-       d0bt   = fd0bt(  d0mfcr,d0mfcp)
+       d0ctbp = fd0ctbp(d0mfcr,d0mfcp)
+       d0cobt = fd0cobt(d0mfcr,d0mfcp)
        d1p1   = fd1p1(  d0mfcr,d0mfcp)
        
        d0bb   = fd0bb(  d0mfcr,d0mfcp)
@@ -644,14 +639,14 @@ CONTAINS
           fd0jb = fd0jb + d1p1(i2)
        ENDDO
        
-       fd0jb = (fd0jb*d0mfcr*d0rzcr*d0bp)/(d0bt*d0bb)&
-            + d0bb*d0jt/d0bt
+       fd0jb = (fd0jb*d0mfcr*d0rzcr*d0ctbp)/(d0cobt*d0bb)&
+            + d0bb*d0jt/d0cobt
        
     ELSEIF(d0mfcr.GT.1.D0)THEN
        
        d0rzcr = fd0rzcr(1.D0,d0mfcp)
-       d0bp   = fd0bp(  1.D0,d0mfcp)
-       d0bt   = fd0bt(  1.D0,d0mfcp)
+       d0ctbp = fd0ctbp(1.D0,d0mfcp)
+       d0cobt = fd0cobt(1.D0,d0mfcp)
        d1p1   = fd1p1(  1.D0,d0mfcp)
        
        d0bb   = fd0bb(  1.D0,d0mfcp)
@@ -663,8 +658,8 @@ CONTAINS
           d0jbs = d0jbs + d1p1(i2)
        ENDDO
        
-       d0jbs = (d0jbs*1.D0*d0rzcr*d0bp)/(d0bt*d0bb)&
-            + d0bb*d0jt/d0bt
+       d0jbs = (d0jbs*1.D0*d0rzcr*d0ctbp)/(d0cobt*d0bb)&
+            + d0bb*d0jt/d0cobt
        
        fd0jb = d0jbs*((d0mfcr-d0rw)**2)/((1.D0-d0rw)**2) 
 
@@ -682,28 +677,28 @@ CONTAINS
     REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
     REAL(   i0rkind)::fd0jt
     REAL(   i0rkind)::&
-         d0bp,d0bt,d0bb,d0q0,d0q1,d0jts,d0r0
+         d0ctbp,d0cobt,d0bb,d0q0,d0q1,d0jts,d0r0
     
     IF((d0mfcr.GE.0.D0).AND.(d0mfcr.LE.1.D0))THEN
 
-       d0r0 = fd0rzcr(d0mfcr,d0mfcp)
-       d0bp = fd0bp(  d0mfcr,d0mfcp)
-       d0bt = fd0bt(  d0mfcr,d0mfcp)
-       d0q0 = fd0q0(  d0mfcr,d0mfcp)
-       d0q1 = fd0q1(  d0mfcr,d0mfcp)
+       d0r0   = fd0rzcr(d0mfcr,d0mfcp)
+       d0ctbp = fd0ctbp(d0mfcr,d0mfcp)
+       d0cobt = fd0cobt(d0mfcr,d0mfcp)
+       d0q0   = fd0q0(  d0mfcr,d0mfcp)
+       d0q1   = fd0q1(  d0mfcr,d0mfcp)
        
-       fd0jt = d0bp*d0r0*(2.D0 - d0mfcr*d0q1/d0q0&
+       fd0jt = d0ctbp*d0r0*(2.D0 - d0mfcr*d0q1/d0q0&
             - d0mfcr*d0rmnr*COS(d0mfcp)/d0r0)/d0rmu0
        
     ELSEIF((d0mfcr.GE.1.D0).AND.(d0mfcr.LE.d0rw))THEN
 
-       d0r0 = fd0rzcr(1.D0,d0mfcp)
-       d0bp = fd0bp(  1.D0,d0mfcp)
-       d0bt = fd0bt(  1.D0,d0mfcp)
-       d0q0 = fd0q0(  1.D0,d0mfcp)
-       d0q1 = fd0q1(  1.D0,d0mfcp)
+       d0r0   = fd0rzcr(1.D0,d0mfcp)
+       d0ctbp = fd0ctbp(1.D0,d0mfcp)
+       d0cobt = fd0cobt(1.D0,d0mfcp)
+       d0q0   = fd0q0(  1.D0,d0mfcp)
+       d0q1   = fd0q1(  1.D0,d0mfcp)
        
-       d0jts = d0bp*d0r0*(2.D0 - 1.D0*d0q1/d0q0&
+       d0jts = d0ctbp*d0r0*(2.D0 - 1.D0*d0q1/d0q0&
             - 1.D0*d0rmnr*COS(d0mfcp)/d0r0)/d0rmu0
        
        fd0jt = d0jts*((d0mfcr-d0rw)**2)/((1.D0-d0rw)**2)
@@ -722,27 +717,27 @@ CONTAINS
     REAL(   i0rkind),DIMENSION(1:6,1:i0smax)::fd2f0
     REAL(   i0rkind),DIMENSION(1:i0smax)::d1t0
     REAL(   i0rkind)::d0fb,d0ft,d0t0
-    INTEGER(i0ikind)::i1
-    DO i1 = 1,i0smax
-       IF(i1.EQ.1)THEN
+    INTEGER(i0ikind)::i0sidi
+    DO i0sidi = 1,i0smax
+       IF(i0sidi.EQ.1)THEN
           d1t0 =   fd1t0(d0mfcr,d0mfcp)
           d0fb = - fd0jb(d0mfcr,d0mfcp)/d0aee
           d0ft = - fd0jt(d0mfcr,d0mfcp)/d0aee
           d0t0 = d1t0(1)
           
-          fd2f0(1,i1) = 0.D0
-          fd2f0(2,i1) = d0fb
-          fd2f0(3,i1) = d0ft
-          fd2f0(4,i1) = 0.D0
-          fd2f0(5,i1) = 2.5D0*d0t0*d0fb
-          fd2f0(6,i1) = 2.5D0*d0t0*d0ft
+          fd2f0(1,i0sidi) = 0.D0
+          fd2f0(2,i0sidi) = d0fb
+          fd2f0(3,i0sidi) = d0ft
+          fd2f0(4,i0sidi) = 0.D0
+          fd2f0(5,i0sidi) = 2.5D0*d0t0*d0fb
+          fd2f0(6,i0sidi) = 2.5D0*d0t0*d0ft
        ELSE
-          fd2f0(1,i1) = 0.D0
-          fd2f0(2,i1) = 0.D0
-          fd2f0(3,i1) = 0.D0
-          fd2f0(4,i1) = 0.D0
-          fd2f0(5,i1) = 0.D0
-          fd2f0(6,i1) = 0.D0
+          fd2f0(1,i0sidi) = 0.D0
+          fd2f0(2,i0sidi) = 0.D0
+          fd2f0(3,i0sidi) = 0.D0
+          fd2f0(4,i0sidi) = 0.D0
+          fd2f0(5,i0sidi) = 0.D0
+          fd2f0(6,i0sidi) = 0.D0
        ENDIF
     ENDDO
   

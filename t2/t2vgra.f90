@@ -37,6 +37,7 @@ CONTAINS
     CALL T2VGRA_SS
 
     IF(idfile.ge.5) CALL T2_VGRA_OUTPUT
+    CALL T2_VGRA_OUTPUT
     
     RETURN
     
