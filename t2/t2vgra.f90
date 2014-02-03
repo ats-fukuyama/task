@@ -4,7 +4,7 @@
 !C       
 !C         VARIABLE GRAPH GENERATOR FOR TASK/T2
 !C
-!C                       2014-01-28 H.SETO
+!C                       2014-02-03 H.SETO
 !C
 !C------------------------------------------------------------------
 MODULE T2VGRA
