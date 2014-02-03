@@ -2012,14 +2012,32 @@ CONTAINS
        
        i0vidi = 8*i0sidi + 5
        
-       !C Et
+       !C Et (B, Ub, Qb/P)
        i0vidj = 3
        i2evvt(i0vidi,i0vidj) = 1
        
-       !C Ep
+       i0widi = 1
+       i3evwt(i0widi,i0vidi,i0vidj) = 1
+
+       i0widi = 2*i0sidi + 1
+       i3evwt(i0widi,i0vidi,i0vidj) = 1
+
+       i0widi = 2*i0sidi + 2
+       i3evwt(i0widi,i0vidi,i0vidj) = 1
+
+       !C Ep (B, Ub, Qb/P)
        i0vidj = 4
        i2evvt(i0vidi,i0vidj) = 1
        
+       i0widi = 1
+       i3evwt(i0widi,i0vidi,i0vidj) = 1
+
+       i0widi = 2*i0sidi + 1
+       i3evwt(i0widi,i0vidi,i0vidj) = 1
+
+       i0widi = 2*i0sidi + 2
+       i3evwt(i0widi,i0vidi,i0vidj) = 1
+
     ENDDO
     
     RETURN
@@ -2416,7 +2434,7 @@ CONTAINS
   SUBROUTINE T2_VGRA_OUTPUT
 
     USE T2COMM
-    INTEGER(i0ikind):: i0sidi,i0sidj
+    INTEGER(i0ikind):: i0sidi,i0sidj,i0widi,i0widj
 
     OPEN(10,FILE='TEST_VV.dat')
     DO i0sidi = 1, i0vmax
@@ -2494,6 +2512,60 @@ CONTAINS
     DO i0sidi = 1, i0vmax
     DO i0sidj = 1, i0vmax
        WRITE(10,*)'i=',i0sidi,'j=',i0sidj,'ET=',i2etvt(i0sidi,i0sidj)
+    ENDDO
+    ENDDO
+    CLOSE(10)
+
+    OPEN(10,FILE='TEST_SS.dat')
+    DO i0sidi = 1, i0vmax
+    DO i0sidj = 1, i0vmax
+       WRITE(10,*)'i=',i0sidi,'j=',i0sidj,'SS=',i2ssvt(i0sidi,i0sidj)
+    ENDDO
+    ENDDO
+    CLOSE(10)
+
+    OPEN(10,FILE='TEST_I3ATWT.dat')
+    DO i0sidi = 1, i0vmax
+    DO i0sidj = 1, i0vmax
+       DO i0widi = 1, i0wmax
+          WRITE(10,*)'vi=',i0sidi,'vj=',i0sidj,'wi=',i0widi,&
+               'ATWT=',i3atwt(i0widi,i0sidi,i0sidj)
+       ENDDO
+    ENDDO
+    ENDDO
+    CLOSE(10)
+
+    OPEN(10,FILE='TEST_I3GTWT.dat')
+    DO i0sidi = 1, i0vmax
+    DO i0sidj = 1, i0vmax
+       DO i0widi = 1, i0wmax
+          WRITE(10,*)'vi=',i0sidi,'vj=',i0sidj,'wi=',i0widi,&
+               'GTWT=',i3gtwt(i0widi,i0sidi,i0sidj)
+       ENDDO
+    ENDDO
+    ENDDO
+    CLOSE(10)
+
+    OPEN(10,FILE='TEST_I3EVWT.dat')
+    DO i0sidi = 1, i0vmax
+    DO i0sidj = 1, i0vmax
+       DO i0widi = 1, i0wmax
+          WRITE(10,*)'vi=',i0sidi,'vj=',i0sidj,'wi=',i0widi,&
+               'EVWT=',i3evwt(i0widi,i0sidi,i0sidj)
+       ENDDO
+    ENDDO
+    ENDDO
+    CLOSE(10)
+
+    OPEN(10,FILE='TEST_I4ETWT.dat')
+    DO i0sidi = 1, i0vmax
+    DO i0sidj = 1, i0vmax
+       DO i0widj = 1, i0wmax
+       DO i0widi = 1, i0wmax
+          WRITE(10,*)'vi=',i0sidi,'vj=',i0sidj,'wi=',i0widi,'wj=',i0widj,&
+               'ETWT=',i4etwt(i0widi,i0widj,i0sidi,i0sidj)
+       ENDDO
+       ENDDO
     ENDDO
     ENDDO
     CLOSE(10)

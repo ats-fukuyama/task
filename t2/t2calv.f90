@@ -813,7 +813,7 @@ CONTAINS
        !C EQUATION FOR P
        !C
        i0vidi = 8*i0sidi + 2
-
+       
        !C P
        i0vidj = i0vidi
        d3ms(i0vidi,i0vidj,i0midi) = d0ppcst*d0sqrtg*1.5D0
@@ -831,7 +831,7 @@ CONTAINS
        !C EQUATION FOR Qt
        !C
        i0vidi = 8*i0sidi + 5
-
+       
        !C Qt       
        i0vidj = i0vidi
        d3ms(i0vidi,i0vidj,i0midi) = d0qtcst*d0sqrtg
@@ -841,7 +841,7 @@ CONTAINS
     RETURN
     
   END SUBROUTINE T2CALV_MS
-
+  
   !C---------------------------------------------------------
   !C 
   !C CALCULATION OF ADVECTION VECTOR COEFFICIENTS
