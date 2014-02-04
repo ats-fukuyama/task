@@ -230,7 +230,6 @@ CONTAINS
     
     d0psip = d0mfcst*d2xvec_befor(1,i0nid1d)
     d0cobt = d0btcst*d2xvec_befor(2,i0nid1d)
-    print*,i0nid1d,d0psip,d0cobt
 
     d0sqrtg = d2jm1(1,i0midi)
     d0ctgrr = d2jm1(2,i0midi)
@@ -244,7 +243,6 @@ CONTAINS
     IF(d0sqrtg.GT.0.D0)THEN
        !C d0wv1  : WORKING VARIABLE: \sqrt{g}^{2}/R^{2}
        d0wv1   =  (d0sqrtg**2)*d0ctgtt
-       
        d0cogrr =  d0ctgpp*d0wv1
        d0cogrp = -d0ctgrp*d0wv1
        d0cogpp =  d0ctgrr*d0wv1
