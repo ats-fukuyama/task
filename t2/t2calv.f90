@@ -151,7 +151,8 @@ CONTAINS
     i0nid1d = i2crt( 3,i0midi)
     i0nid2d = i2crt( 2,i0midi)
     d0rzcr  = d2rzm( 1,i0midi)
-    d0mfcr  = d2mfc1(1,i0midi)   
+    d0mfcr  = d2mfc1(1,i0midi)
+    
     !C CONVERT VARIABLES TO SI-UNIT
     
     DO i0sidi = 1, i0smax
@@ -160,7 +161,7 @@ CONTAINS
        
        d0nn_a = d2xvec_befor(i0vidi+1,i0nid2d)
        d0pp_a = d2xvec_befor(i0vidi+5,i0nid2d)
-
+       
        d1nn(i0sidi) = d0nncst*d2xvec_befor(i0vidi+1,i0nid2d)
        d1fr(i0sidi) = d0frcst*d2xvec_befor(i0vidi+2,i0nid2d)
        d1fb(i0sidi) = d0fbcst*d2xvec_befor(i0vidi+3,i0nid2d)
@@ -229,7 +230,8 @@ CONTAINS
     
     d0psip = d0mfcst*d2xvec_befor(1,i0nid1d)
     d0cobt = d0btcst*d2xvec_befor(2,i0nid1d)
-    
+    print*,i0nid1d,d0psip,d0cobt
+
     d0sqrtg = d2jm1(1,i0midi)
     d0ctgrr = d2jm1(2,i0midi)
     d0ctgrp = d2jm1(3,i0midi)
