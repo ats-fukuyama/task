@@ -291,10 +291,8 @@ CONTAINS
     
     IF((d0mfcr.GE.0.D0).AND.(d0mfcr.LE.1.D0))THEN
        fd0q0 = (d0qc-d0qs)*(1.D0 - d0mfcr**2)+d0qs
-       !fd0q0 = (d0qc-d0qs)*((1.D0 - d0mfcr**2)**2)+d0qs
     ELSEIF(d0mfcr.GT.1.D0)THEN
        fd0q0 = (d0qs-d0qc)*(       d0mfcr**2)+d0qc
-       !fd0q0 = d0qs
     ELSE
        WRITE(6,*)'WRONG RHO INPUT'
        STOP
@@ -313,10 +311,8 @@ CONTAINS
     
     IF((d0mfcr.GE.0.D0).AND.(d0mfcr.LE.1.D0))THEN
        fd0q1 = 2.D0*(d0qs-d0qc)*d0mfcr
-       !fd0q1 = 4.D0*(d0qs-d0qc)*(1.D0 - d0mfcr**2)*d0mfcr
     ELSEIF(d0mfcr.GT.1.D0)THEN
        fd0q1 = 2.D0*(d0qs-d0qc)*d0mfcr
-       !d0q1 = 0.D0
     ELSE
        WRITE(6,*)'WRONG RHO INPUT'
        STOP
@@ -351,6 +347,7 @@ CONTAINS
     d0cobt  = fd0cobt( d0mfcr,d0mfcp)
     d0q0    = fd0q0( d0mfcr,d0mfcp)
     fd0ctbp = d0cobt/((d0rzcr**2)*d0q0)
+
     RETURN
     
   END FUNCTION fd0ctbp

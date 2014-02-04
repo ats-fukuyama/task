@@ -71,18 +71,14 @@ CONTAINS
     i0nmax =  4      ! number of nodes in a elemnt
     i0lmax =  2      ! 
     i0pdiv_number = 8! 
-!    i0pdiv_number = 32! 
-
 
     i1mlvl(1)=1        ! 8 x 2^0
     i1mlvl(2)=1        ! 8 x 2^0
-    i1mlvl(  0)          = 0
-    i1mlvl(  3:i0lmaxm+1) = 0
+    i1mlvl(0)           = 0
+    i1mlvl(3:i0lmaxm+1) = 0
 
-    i1rdn2(1)=  10     ! number of radial nodes in a level
-    i1rdn2(2)=  2    
-!    i1rdn2(1)=  30     ! number of radial nodes in a level
-!    i1rdn2(2)=  6    
+    i1rdn2(1) =  10     ! number of radial nodes in a level
+    i1rdn2(2) =  2    
     i1rdn2(-1:0)     = 0
     i1rdn2(3:i0lmaxm) = 0
 
