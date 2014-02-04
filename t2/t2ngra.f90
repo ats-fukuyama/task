@@ -841,8 +841,8 @@ CONTAINS
     DO i0nidr = 2,i0bmax+1
        
        i0esiz = i1eidr(i0nidr)-i1eidr(i0nidr-1)
-       i0nsiz = MAX(i0esiz,i0nmax*8)
-       
+       !i0nsiz = MAX(i0esiz,i0nmax*8)
+       i0nsiz = MAX(i0esiz,1000)
        ALLOCATE(i1nstk(1:i0nsiz))
        i1nstk(1:i0nsiz) = 0
        i0ncnt = 0       

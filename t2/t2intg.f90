@@ -3,7 +3,8 @@
 !C ALGORITHM: GAUSSIAN QUADRATURE
 !C
 !C
-!C LAST UPDATE 2013-11-11
+!C LAST UPDATE 2014-02-04
+!C
 !C -------------------------------------------------------------------
 MODULE T2INTG
   
@@ -208,7 +209,7 @@ CONTAINS
     !C
 
     DO i0nidj = 1, i0nmax
-    DO i0nidi = 1, i0nmax    
+    DO i0nidi = 1, i0nmax
     DO i0nidk = 1, i0nmax
        d0temp = 0.D0
        DO i0qidj = 1, i0qmax

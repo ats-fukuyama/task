@@ -194,52 +194,52 @@ CONTAINS
     !C ADDITIONAL COMPONENTS FOR FLUX SURFACE AVERAGING
     !C
     
-    i0offset  = 1
-
     !C
     !C FOR DEBUG 
     !C
-    
-    DO i0lidi = 1, i0lmax
-       
-       i0pdn2 = i1pdn2(i0lidi)
-       i0rdn2 = i1rdn2(i0lidi)
-       
-       DO i0ridi = 1, i0rdn2
-          DO i0pidi = 1, i0pdn2
-                
-             i0arc  = i0vmax*i0offset
-             i0arc1 = i0arc + 1
-             i0arc2 = i0arc + 2
-             i0arc3 = i0arc + 3
-                
-             i0acc  = i0arc
-             i0acc1 = i0arc1
-             i0acc2 = i0arc2
-             i0acc3 = i0arc3
-                
-             i0acl  = i0vmax*(i0offset-1)
-             i0acl1 = i0acl + 1
-             i0acl2 = i0acl + 2
-             i0acl3 = i0acl + 3
-                
-             IF((i0pidi.GE.1).AND.(i0pidi.LT.i0pdn2))THEN
-                CALL MTX_SET_MATRIX(i0arc1,i0acc1,-1.D0)
-                CALL MTX_SET_MATRIX(i0arc2,i0acc2,-1.D0)
-                CALL MTX_SET_MATRIX(i0arc3,i0acc3,-1.D0)
-             ENDIF
-             
-             IF((i0pidi.GT.1).AND.(i0pidi.LE.i0pdn2))THEN
-                CALL MTX_SET_MATRIX(i0arc1,i0acl1, 1.D0)
-                CALL MTX_SET_MATRIX(i0arc2,i0acl2, 1.D0)
-                CALL MTX_SET_MATRIX(i0arc3,i0acl3, 1.D0)
-             ENDIF
-             
-             i0offset = i0offset + 1
-             
-          ENDDO
-       ENDDO
-    ENDDO
+!
+!    i0offset  = 1
+!
+!    DO i0lidi = 1, i0lmax
+!       
+!       i0pdn2 = i1pdn2(i0lidi)
+!       i0rdn2 = i1rdn2(i0lidi)
+!       
+!       DO i0ridi = 1, i0rdn2
+!          DO i0pidi = 1, i0pdn2
+!                
+!             i0arc  = i0vmax*i0offset
+!             i0arc1 = i0arc + 1
+!             i0arc2 = i0arc + 2
+!             i0arc3 = i0arc + 3
+!                
+!             i0acc  = i0arc
+!             i0acc1 = i0arc1
+!             i0acc2 = i0arc2
+!             i0acc3 = i0arc3
+!                
+!             i0acl  = i0vmax*(i0offset-1)
+!             i0acl1 = i0acl + 1
+!             i0acl2 = i0acl + 2
+!             i0acl3 = i0acl + 3
+!                
+!             IF((i0pidi.GE.1).AND.(i0pidi.LT.i0pdn2))THEN
+!                CALL MTX_SET_MATRIX(i0arc1,i0acc1,-1.D0)
+!                CALL MTX_SET_MATRIX(i0arc2,i0acc2,-1.D0)
+!                CALL MTX_SET_MATRIX(i0arc3,i0acc3,-1.D0)
+!             ENDIF
+!             
+!             IF((i0pidi.GT.1).AND.(i0pidi.LE.i0pdn2))THEN
+!                CALL MTX_SET_MATRIX(i0arc1,i0acl1, 1.D0)
+!                CALL MTX_SET_MATRIX(i0arc2,i0acl2, 1.D0)
+!                CALL MTX_SET_MATRIX(i0arc3,i0acl3, 1.D0)
+!             ENDIF
+!             
+!             i0offset = i0offset + 1
+!             
+!          ENDDO
+!       ENDDO
+!    ENDDO
 
 
     
@@ -309,8 +309,8 @@ CONTAINS
           i0xidd = i2hbc(1,i0xidc)
           i0xidu = i2hbc(2,i0xidc)
           DO i0vidi = 1, i0vmax 
-             i0xrd             = i0vmax*(i0xidd-1) + i0vidi
-             i0xru             = i0vmax*(i0xidu-1) + i0vidi
+             i0xrd = i0vmax*(i0xidd-1) + i0vidi
+             i0xru = i0vmax*(i0xidu-1) + i0vidi
              d2xvec_after(i0vidi,i0xidi) = 0.5D0*(x(i0xrd)+x(i0xru))
           ENDDO
        ENDIF
@@ -361,19 +361,21 @@ CONTAINS
     !C   I2ENR(1:i0nmax,3) : FOR 1D-2D,1D-1D 
     !C   I2ENR(1:i0nmax,4) : FOR 2D-1D
     !C
-
+    
     DO i0ridi = 1, 4
        DO i0nidi = 1, i0nmax
           i2enr0(i0nidi,i0ridi)=i3enr(i0nidi,i0ridi,i0eidi)
        ENDDO
     ENDDO
-
+    
     !C
     !C CALCULATE JACOBIAN OF PARAMETRIC SPACE
     !C 
     !C D0JDMP: JACOBIAN OF PARAMETRIC SPACE
     !C D2JMPM: INVERSE JACOBI MATRIX OF PARAMETRIC SPACE
     !C
+    !C checked 2014-02-04 H.SETO
+    !C 
     
     i0lidi = i1mlel(i0eidi) 
     d0rsiz = d1rsiz(i0lidi)
@@ -385,21 +387,20 @@ CONTAINS
        STOP
     ENDIF
 
-    d2jmpm(1,1)= 2.D0/d0rsiz
-    d2jmpm(1,2)= 0.D0
-    d2jmpm(2,1)= 0.D0
-    d2jmpm(2,2)= 2.D0/d0psiz
-
+    d2jmpm(1,1) = 2.D0/d0rsiz
+    d2jmpm(1,2) = 0.D0
+    d2jmpm(2,1) = 0.D0
+    d2jmpm(2,2) = 2.D0/d0psiz
+    
     !C
     !C STORE DEPENDENT VARIABLES AT N-th TIMESTEP 
     !C 
     DO i0nidi = 1, i0nmax
-
        i0node1 = i2enr0(i0nidi,4)
        DO i0vidi = 1, 3
           d2kwns(i0nidi,i0vidi) = d2xvec(i0vidi,i0node1)
        ENDDO
-
+       
        i0node2 = i2enr0(i0nidi,2)
        DO i0vidi = 4, i0vmax
           d2kwns(i0nidi,i0vidi) = d2xvec(i0vidi,i0node2)
@@ -435,7 +436,7 @@ CONTAINS
     
     d4smat(1:i0nmax,1:i0nmax,1:i0vmax,1:i0vmax) = 0.D0
     d2svec(1:i0nmax,1:i0vmax) = 0.D0
-
+    
     RETURN
     
   END SUBROUTINE T2EXEC_LV
@@ -444,7 +445,7 @@ CONTAINS
   !C
   !C CALCULATION OF MASS SUBMATRCES : M
   !C
-  !C                     2014-01-30 H.SETO
+  !C                     2014-02-04 H.SETO
   !C
   !C-------------------------------------------------------------------
   SUBROUTINE T2EXEC_MS
@@ -456,7 +457,7 @@ CONTAINS
     
     INTEGER(i0ikind)::&
          i0nidi,i0nidj,i0nidk,&
-         i0node
+         i0midi
     
     REAL(   i0rkind)::&
          d2smat(1:i0nmax,1:i0nmax),&
@@ -467,20 +468,17 @@ CONTAINS
     !C INITIALIZATION
     !C
     
-    d2smat(1:i0nmax,1:i0nmax) = 0.D0
-    
     DO i0nidi = 1, i0nmax
-       i0node = i2enr0(i0nidi,1)
-       d1mass(i0nidi)&
-            = d3ms(i0vidi,i0vidj,i0node)*d0jdmp/dt
+       i0midi = i2enr0(i0nidi,1)
+       d1mass(i0nidi) = d3ms(i0vidi,i0vidj,i0midi)*d0jdmp/dt
     ENDDO
     
     !C
     !C MAIN LOOP
     !C
     
-    DO i0nidj = 1, i0nmax       
-    DO i0nidi = 1, i0nmax         
+    DO i0nidj = 1, i0nmax
+    DO i0nidi = 1, i0nmax
        d2smat(i0nidi,i0nidj) = 0.D0
        DO i0nidk = 1, i0nmax         
           d2smat(              i0nidi,i0nidj) &
@@ -544,7 +542,7 @@ CONTAINS
     INTEGER(i0ikind)::&
          i0didi,i0didj,&
          i0nidi,i0nidj,i0nidk,&
-         i0node
+         i0midi
     
     REAL(   i0rkind)::&
          d2smat(1:i0nmax,1:i0nmax),&
@@ -556,10 +554,10 @@ CONTAINS
     !C
     
     DO i0nidi = 1, i0nmax
-       i0node = i2enr0(i0nidi,1)
+       i0midi = i2enr0(i0nidi,1)
        DO i0didi = 1, i0dmax
           d2velo(     i0didi,i0nidi                     ) &
-               = d4av(i0didi,       i0vidi,i0vidj,i0node) &
+               = d4av(i0didi,       i0vidi,i0vidj,i0midi) &
                * d0jdmp
        ENDDO
     ENDDO
@@ -628,7 +626,7 @@ CONTAINS
     INTEGER(i0ikind)::&
          i0nidi,i0nidj,i0nidk,i0nidl,&
          i0didi,i0didj,i0didk,i0didl,&
-         i0node
+         i0midi
     
     REAL(   i0rkind)::&
          d3velo(1:i0dmax,1:i0dmax,1:i0nmax),&
@@ -645,11 +643,11 @@ CONTAINS
     ENDDO
     
     DO i0nidi = 1, i0nmax       
-       i0node = i2enr0(i0nidi,1)
+       i0midi = i2enr0(i0nidi,1)
        DO i0didj = 1, i0dmax
        DO i0didi = 1, i0dmax
           d3velo(     i0didi,i0didj,i0nidi)&
-               = d6at(i0didi,i0didj,i0widi,i0vidi,i0vidj,i0node) &
+               = d6at(i0didi,i0didj,i0widi,i0vidi,i0vidj,i0midi) &
                * d0jdmp
        ENDDO
        ENDDO
@@ -722,14 +720,13 @@ CONTAINS
   SUBROUTINE T2EXEC_DT
     
     USE T2COMM,ONLY:&
-         i0nmax,i0dmax,i0vmax,i2enr0,&
-         d2jmpm,d0jdmp,d4smat,&
+         i0nmax,i0dmax,i0vmax,i2enr0,d2jmpm,d0jdmp,d4smat,&
          d5dt,d5idtn
     
     INTEGER(i0ikind)::&
          i0nidi,i0nidj,i0nidk,&
          i0didi,i0didj,i0didk,i0didl,&
-         i0node
+         i0midi
 
     REAL(   i0rkind)::&
          d2smat(1:i0nmax,1:i0nmax),&
@@ -741,11 +738,11 @@ CONTAINS
     !C
     
     DO i0nidi = 1, i0nmax
-       i0node = i2enr0(i0nidi,1)
+       i0midi = i2enr0(i0nidi,1)
        DO i0didj = 1, i0dmax
        DO i0didi = 1, i0dmax
           d3diff(     i0didi,i0didj,i0nidi)&
-               = d5dt(i0didi,i0didj,i0vidi,i0vidj,i0node) &
+               = d5dt(i0didi,i0didj,i0vidi,i0vidj,i0midi) &
                * d0jdmp
        ENDDO
        ENDDO
@@ -819,8 +816,9 @@ CONTAINS
          d4gv,d4igvn
     
     INTEGER(i0ikind)::&
-         i0nidi,i0nidj,i0nidk,i0node,&
-         i0didi,i0didj
+         i0nidi,i0nidj,i0nidk,&
+         i0didi,i0didj,&
+         i0midi
     
     REAL(   i0rkind)::&
          d2smat(1:i0nmax,1:i0nmax), &
@@ -832,10 +830,10 @@ CONTAINS
     !C
           
     DO i0nidi = 1, i0nmax
-       i0node = i2enr0(i0nidi,1)
+       i0midi = i2enr0(i0nidi,1)
        DO i0didi = 1, i0dmax
           d2grad(     i0didi,i0nidi) &
-               = d4gv(i0didi,       i0vidi,i0vidj,i0node) &
+               = d4gv(i0didi,       i0vidi,i0vidj,i0midi) &
                * d0jdmp
        ENDDO
     ENDDO
@@ -897,13 +895,12 @@ CONTAINS
     
     USE T2COMM,ONLY:&
          i0dmax,i0nmax,i0vmax,i2enr0,&
-         d2jmpm,d0jdmp,&
-         d6gt,d6igtn,d4smat,d2wrks
+         d2jmpm,d0jdmp,d4smat,d2wrks,d6gt,d6igtn
     
     INTEGER(i0ikind)::&
          i0nidi,i0nidj,i0nidk,i0nidl,&
          i0didi,i0didj,i0didk,i0didl,&
-         i0node
+         i0midi
     
     REAL(   i0rkind)::&
          d3grad(1:i0dmax,1:i0dmax,1:i0nmax),&
@@ -914,15 +911,13 @@ CONTAINS
     !C
     !C INITIALIZATION
     !C
-   
-    d2smat(1:i0nmax,1:i0nmax) = 0.D0
-    
+       
     DO i0nidi = 1, i0nmax
-       i0node = i2enr0(i0nidi,1)
+       i0midi = i2enr0(i0nidi,1)
        DO i0didj = 1, i0dmax
        DO i0didi = 1, i0dmax
           d3grad(     i0didi,i0didj,i0nidi                     ) &
-               = d6gt(i0didi,i0didj,i0widi,i0vidi,i0vidj,i0node) &
+               = d6gt(i0didi,i0didj,i0widi,i0vidi,i0vidj,i0midi) &
                * d0jdmp
        ENDDO
        ENDDO
@@ -935,7 +930,7 @@ CONTAINS
     !C
     !C MAIN LOOP
     !C
-
+    
     DO i0nidl = 1, i0nmax
        DO i0didl = 1, i0dmax
        DO i0didk = 1, i0dmax
@@ -952,25 +947,26 @@ CONTAINS
        ENDDO
        ENDDO
     ENDDO
-
+    
     DO i0nidj = 1, i0nmax
     DO i0nidi = 1, i0nmax
-    DO i0nidl = 1, i0nmax
-    DO i0nidk = 1, i0nmax
-       DO i0didl = 1, i0dmax
-       DO i0didk = 1, i0dmax
-          d2smat(                                   i0nidi,i0nidj) &
-               = d2smat(                            i0nidi,i0nidj) &
-               + d6igtn(i0didk,i0didl,i0nidk,i0nidl,i0nidi,i0nidj) &
-               * d1gtwi(              i0nidk                     ) &   
-               * d3temp(i0didk,i0didl,       i0nidl              )         
+       d2smat(i0nidi,i0nidj) = 0.D0
+       DO i0nidl = 1, i0nmax
+       DO i0nidk = 1, i0nmax
+          DO i0didl = 1, i0dmax
+          DO i0didk = 1, i0dmax
+             d2smat(                                   i0nidi,i0nidj) &
+                  = d2smat(                            i0nidi,i0nidj) &
+                  + d6igtn(i0didk,i0didl,i0nidk,i0nidl,i0nidi,i0nidj) &
+                  * d1gtwi(              i0nidk                     ) &   
+                  * d3temp(i0didk,i0didl,       i0nidl              )         
+          ENDDO
+          ENDDO
        ENDDO
        ENDDO
-    ENDDO
-    ENDDO
     ENDDO
     ENDDO 
-
+    
     !C
     !C STORE SUBMATRIX
     !C
@@ -981,7 +977,7 @@ CONTAINS
             = d4smat(i0nidi,i0nidj,i0vidi,i0vidj) &
             + d2smat(i0nidi,i0nidj              )
     ENDDO
-    ENDDO       
+    ENDDO
        
     RETURN
     
@@ -998,12 +994,11 @@ CONTAINS
 
     USE T2COMM,ONLY:&
          i0dmax,i0nmax,i0vmax,i2enr0,&
-         d2jmpm,d0jdmp,d4smat,&
-         d3es,d3iesn
+         d2jmpm,d0jdmp,d4smat,d3es,d3iesn
          
     INTEGER(i0ikind)::&
          i0nidi,i0nidj,i0nidk,&
-         i0node
+         i0midi
 
     REAL(   i0rkind)::&
          d2smat(1:i0nmax,1:i0nmax),&
@@ -1014,12 +1009,12 @@ CONTAINS
     !C
         
     DO i0nidi = 1,i0nmax
-       i0node = i2enr0(i0nidi,1)
+       i0midi = i2enr0(i0nidi,1)
        d1exct(i0nidi)&
-            = d3es(i0vidi,i0vidj,i0node) &
+            = d3es(i0vidi,i0vidj,i0midi) &
             * d0jdmp
     ENDDO
-
+    
     !C
     !C MAIN LOOP
     !C
@@ -1027,7 +1022,7 @@ CONTAINS
     DO i0nidj = 1, i0nmax
     DO i0nidi = 1, i0nmax
        d2smat(i0nidi,i0nidj) = 0.D0
-       DO i0nidk= 1, i0nmax
+       DO i0nidk = 1, i0nmax
           d2smat(              i0nidi,i0nidj) & 
                = d2smat(       i0nidi,i0nidj) &
                + d3iesn(i0nidk,i0nidi,i0nidj) &
@@ -1063,14 +1058,13 @@ CONTAINS
     
     USE T2COMM,ONLY:&
          i0dmax,i0nmax,i0vmax,i2enr0,&
-         d2jmpm,d0jdmp,&
-         d5ev,d5ievn,d2wrks,d4smat
+         d2jmpm,d0jdmp,d2wrks,d4smat,d5ev,d5ievn
     
     INTEGER(i0ikind)::&
          i0nidi,i0nidj,i0nidk,i0nidl,&
          i0didi,i0didj,&
-         i0node
-
+         i0midi
+    
     REAL(   i0rkind)::&
          d2smat(1:i0nmax,1:i0nmax),&
          d2exct(1:i0dmax,1:i0nmax),&
@@ -1082,10 +1076,10 @@ CONTAINS
     !C
     
     DO i0nidi = 1, i0nmax
-       i0node = i2enr0(i0nidi,1)
+       i0midi = i2enr0(i0nidi,1)
        DO i0didi = 1, i0dmax
           d2exct(     i0didi,i0nidi)&
-               = d5ev(i0didi,i0widi,i0vidi,i0vidj,i0node) &
+               = d5ev(i0didi,i0widi,i0vidi,i0vidj,i0midi) &
                * d0jdmp
        ENDDO
     ENDDO
@@ -1093,7 +1087,7 @@ CONTAINS
     DO i0nidi = 1, i0nmax
        d1evwi(i0nidi) = d2wrks(i0nidi,i0widi)
     ENDDO
-
+    
     !C
     !C MAIN LOOP
     !C 
@@ -1103,7 +1097,7 @@ CONTAINS
           d2temp(i0didj,i0nidl) = 0.D0     
           DO i0didi = 1, i0dmax
              d2temp(              i0didj,i0nidl) &
-                  = d2temp(i0didj,       i0nidl) &
+                  = d2temp(       i0didj,i0nidl) &
                   + d2exct(i0didi,       i0nidl) &
                   * d2jmpm(i0didi,i0didj       )
           END DO
@@ -1151,16 +1145,15 @@ CONTAINS
   !C
   !C-------------------------------------------------------------------   
   SUBROUTINE T2EXEC_ET
-  
+    
     USE T2COMM,ONLY:&
          i0dmax,i0nmax,i0vmax,i2enr0,&
-         d2jmpm,d0jdmp,d4smat,&
-         d7et,d7ietn,d2wrks
+         d2jmpm,d0jdmp,d4smat,d2wrks,d7et,d7ietn
     
     INTEGER(i0ikind)::&
          i0nidi,i0nidj,i0nidk,i0nidl,i0nidm,&
          i0didi,i0didj,i0didk,i0didl,&
-         i0node
+         i0midi
     
     REAL(   i0rkind)::&
          d2smat(1:i0nmax,1:i0nmax),&
@@ -1174,11 +1167,11 @@ CONTAINS
     !C
   
     DO i0nidi = 1, i0nmax
-       i0node = i2enr0(i0nidi,1)
+       i0midi = i2enr0(i0nidi,1)
        DO i0didj = 1, i0dmax
        DO i0didi = 1, i0dmax
           d3exct(     i0didi,i0didj,i0nidi)&
-               = d7et(i0didi,i0didj,i0widi,i0widj,i0vidi,i0vidj,i0node) &
+               = d7et(i0didi,i0didj,i0widi,i0widj,i0vidi,i0vidj,i0midi) &
                * d0jdmp
        ENDDO
        ENDDO
@@ -1186,7 +1179,7 @@ CONTAINS
     
     DO i0nidi = 1, i0nmax
        d1etwi(i0nidi) = d2wrks(i0nidi,i0widi)
-       d1etwj(i0nidi) = d2wrks(i0nidi,i0widi)
+       d1etwj(i0nidi) = d2wrks(i0nidi,i0widj)
     ENDDO
     
     !C
@@ -1257,7 +1250,7 @@ CONTAINS
     
     INTEGER(i0ikind)::&
          i0nidi,i0nidj,&
-         i0node
+         i0midi
  
     REAL(   i0rkind)::&
          d1sour(1:i0nmax),&
@@ -1268,12 +1261,15 @@ CONTAINS
     !C
     
     DO i0nidi = 1, i0nmax
-       i0node = i2enr0(i0nidi,1)
+       i0midi = i2enr0(i0nidi,1)
        d1sour(i0nidi)&
-            = d3ss(i0vidi,i0vidj,i0node)&
-            * d0jdmp
+            = d3ss(i0vidi,i0vidj,i0midi) * d0jdmp
     ENDDO
-    
+
+    !C
+    !C MAIN LOOP
+    !C
+
     DO i0nidi = 1, i0nmax
        d1svec(i0nidi) = 0.D0
        DO i0nidj = 1, i0nmax
@@ -1282,6 +1278,16 @@ CONTAINS
                + d2issn(i0nidj,i0nidi) &
                * d1sour(i0nidj       )
        ENDDO
+    ENDDO
+
+    !C
+    !C STORE SUBVECTOR
+    !C
+
+    DO i0nidi = 1, i0nmax
+       d2svec(       i0nidi,i0vidi) &
+            = d2svec(i0nidi,i0vidi) & 
+            + d1svec(i0nidi       )
     ENDDO
     
     RETURN
@@ -1304,9 +1310,11 @@ CONTAINS
          d4smat,d3amat,d2svec,d2bvec
     
     INTEGER(i0ikind)::&
-         i0nidi,i0nidj,i0aidi,i0bidi,&
-         i0nrl,i0nrc,i0nru,&
-         i0nc,i0ncl,i0ncc,i0ncu
+         i0nidi,i0nidj,&
+         i0aidi,&
+         i0bidi,i0bidj,i0bidk,&
+         i0hidi,i0hidj,i0hidk,i0hidl,&
+         i0xidi,i0xidj
 
 
     !C
@@ -1321,11 +1329,11 @@ CONTAINS
     
     DO i0nidj = 1, i0nmax
     DO i0nidi = 1, i0nmax         
-       i0nrc  = i2enr0(i0nidi,4)
-       i0ncc  = i2enr0(i0nidj,4)
-       DO i0aidi = i1nidr(i0nrc), i1nidr(i0nrc+1)-1
-          i0nc = i1nidc(i0aidi)
-          IF(i0nc.EQ.i0ncc)THEN
+       i0bidi  = i2enr0(i0nidi,4)
+       i0bidj  = i2enr0(i0nidj,4)
+       DO i0aidi = i1nidr(i0bidi), i1nidr(i0bidi+1)-1
+          i0bidk = i1nidc(i0aidi)
+          IF(i0bidk.EQ.i0bidj)THEN
              DO i0vidj = 1,3
              DO i0vidi = 1,3
                 d3amat(                     i0vidi,i0vidj,i0aidi) &
@@ -1345,14 +1353,16 @@ CONTAINS
     DO i0nidj = 1, i0nmax
     DO i0nidi = 1, i0nmax
        
-       i0nrc  = i2enr0(i0nidi,3)
-       i0ncc  = i2enr0(i0nidj,2)
+       !i0nrc  = i2enr0(i0nidi,3)
+       !i0ncc  = i2enr0(i0nidj,2)
        
-       IF(    i0ncc.LE.i0bmax)THEN
-          
-          DO i0aidi = i1nidr(i0nrc), i1nidr(i0nrc+1)-1
-             i0nc = i1nidc(i0aidi)
-             IF(i0nc.EQ.i0ncc)THEN
+       i0bidi = i2enr0(i0nidi,3)
+       i0xidj = i2enr0(i0nidj,2)
+       
+       IF(    i0xidj.LE.i0bmax)THEN
+          DO i0aidi = i1nidr(i0bidi), i1nidr(i0bidi+1)-1
+             i0bidk = i1nidc(i0aidi)
+             IF(i0bidk.EQ.i0xidj)THEN
                 DO i0vidj = 4, i0vmax
                 DO i0vidi = 1, 3
                    d3amat(                     i0vidi,i0vidj,i0aidi) &
@@ -1363,15 +1373,13 @@ CONTAINS
              ENDIF
           ENDDO
           
-       ELSEIF(i0ncc.GT.i0bmax)THEN
-          
-          i0ncc  = i0ncc - i0bmax
-          i0ncl  = i2hbc(1,i0ncc)
-          i0ncu  = i2hbc(2,i0ncc)
-          
-          DO i0aidi = i1nidr(i0nrc), i1nidr(i0nrc+1)-1
-             i0nc = i1nidc(i0aidi)
-             IF((i0nc.EQ.i0ncl).OR.(i0nc.EQ.i0ncu))THEN
+       ELSEIF(i0xidj.GT.i0bmax)THEN
+          i0xidj = i0xidj - i0bmax
+          i0hidi = i2hbc(1,i0xidj)
+          i0hidj = i2hbc(2,i0xidj)
+          DO i0aidi = i1nidr(i0bidi), i1nidr(i0bidi+1)-1
+             i0bidk = i1nidc(i0aidi)
+             IF((i0bidk.EQ.i0hidi).OR.(i0bidk.EQ.i0hidj))THEN
                 DO i0vidj = 4, i0vmax
                 DO i0vidi = 1, 3
                    d3amat(                     i0vidi,i0vidj,i0aidi) &
@@ -1382,9 +1390,7 @@ CONTAINS
                 ENDDO
              ENDIF
           ENDDO
-          
        ENDIF
-       
     ENDDO
     ENDDO
     
@@ -1394,34 +1400,30 @@ CONTAINS
     
     DO i0nidj = 1, i0nmax
     DO i0nidi = 1, i0nmax
-       
-       i0nrc  = i2enr0(i0nidi,2)
-       i0ncc  = i2enr0(i0nidj,4)
-       
-       IF(    i0nrc.LE.i0bmax)THEN
-          
-          DO i0aidi = i1nidr(i0nrc), i1nidr(i0nrc+1)-1
-             i0nc = i1nidc(i0aidi)
-             IF(i0nc.EQ.i0ncc)THEN
+       i0xidi = i2enr0(i0nidi,2)
+       i0bidj = i2enr0(i0nidj,4)
+       IF(    i0xidi.LE.i0bmax)THEN
+          DO i0aidi = i1nidr(i0xidi), i1nidr(i0xidi+1)-1
+             i0bidk = i1nidc(i0aidi)
+             IF(i0bidk.EQ.i0bidj)THEN
                 DO i0vidj = 1, 3
                 DO i0vidi = 4, i0vmax
                    d3amat(                     i0vidi,i0vidj,i0aidi) &
                         = d3amat(              i0vidi,i0vidj,i0aidi) &
                         + d4smat(i0nidi,i0nidj,i0vidi,i0vidj       )
                 ENDDO
-             ENDDO
+                ENDDO
              ENDIF
           ENDDO
+       ELSEIF(i0xidi.GT.i0bmax)THEN
+       
+          i0xidi = i0xidi - i0bmax
+          i0hidi = i2hbc(1,i0xidi)
+          i0hidj = i2hbc(2,i0xidi)
           
-       ELSEIF(i0nrc.GT.i0bmax)THEN
-          
-          i0nrc  = i0nrc - i0bmax
-          i0nrl  = i2hbc(1,i0nrc)
-          i0nru  = i2hbc(2,i0nrc)
-          
-          DO i0aidi = i1nidr(i0nrl), i1nidr(i0nrl+1)-1
-             i0nc = i1nidc(i0aidi) 
-             IF(i0nc.EQ.i0ncc)THEN
+          DO i0aidi = i1nidr(i0hidi), i1nidr(i0hidi+1)-1
+             i0bidk = i1nidc(i0aidi) 
+             IF(i0bidk.EQ.i0bidj)THEN
                 DO i0vidj = 1, 3
                 DO i0vidi = 4, i0vmax
                    d3amat(                     i0vidi,i0vidj,i0aidi) &
@@ -1433,9 +1435,9 @@ CONTAINS
              ENDIF
           ENDDO
           
-          DO i0aidi = i1nidr(i0nru), i1nidr(i0nru+1)-1
-             i0nc = i1nidc(i0aidi) 
-             IF(i0nc.EQ.i0ncc)THEN
+          DO i0aidi = i1nidr(i0hidj), i1nidr(i0hidj+1)-1
+             i0bidk = i1nidc(i0aidi) 
+             IF(i0bidk.EQ.i0bidj)THEN
                 DO i0vidj = 1, 3
                 DO i0vidi = 4, i0vmax
                    d3amat(                     i0vidi,i0vidj,i0aidi) &
@@ -1446,7 +1448,7 @@ CONTAINS
                 ENDDO
              ENDIF
           ENDDO
-
+       
        ENDIF
     ENDDO
     ENDDO
@@ -1458,14 +1460,14 @@ CONTAINS
     DO i0nidj = 1, i0nmax
     DO i0nidi = 1, i0nmax
        
-       i0nrc  = i2enr0(i0nidi,2)
-       i0ncc  = i2enr0(i0nidj,2)
+       i0xidi = i2enr0(i0nidi,2)
+       i0xidj = i2enr0(i0nidj,2)
        
-       IF((i0nrc.LE.i0bmax).AND.(i0ncc.LE.i0bmax))THEN
+       IF((i0xidi.LE.i0bmax).AND.(i0xidj.LE.i0bmax))THEN
           
-          DO i0aidi = i1nidr(i0nrc), i1nidr(i0nrc+1)-1
-             i0nc = i1nidc(i0aidi)
-             IF(i0nc.EQ.i0ncc)THEN
+          DO i0aidi = i1nidr(i0xidi), i1nidr(i0xidi+1)-1
+             i0bidk = i1nidc(i0aidi)
+             IF(i0bidk.EQ.i0xidj)THEN
                 DO i0vidj = 4, i0vmax
                 DO i0vidi = 4, i0vmax
                    d3amat(                     i0vidi,i0vidj,i0aidi) &
@@ -1476,15 +1478,15 @@ CONTAINS
              ENDIF
           ENDDO
              
-       ELSEIF((i0nrc.LE.i0bmax).AND.(i0ncc.GT.i0bmax))THEN
+       ELSEIF((i0xidi.LE.i0bmax).AND.(i0xidj.GT.i0bmax))THEN
           
-          i0ncc = i0ncc - i0bmax
-          i0ncl = i2hbc(1,i0ncc)
-          i0ncu = i2hbc(2,i0ncc)
+          i0xidj = i0xidj - i0bmax
+          i0hidi = i2hbc(1,i0xidj)
+          i0hidj = i2hbc(2,i0xidj)
           
-          DO i0aidi = i1nidr(i0nrc), i1nidr(i0nrc+1)-1
-             i0nc = i1nidc(i0aidi)
-             IF((i0nc.EQ.i0ncl).OR.(i0nc.EQ.i0ncu))THEN
+          DO i0aidi = i1nidr(i0xidi), i1nidr(i0xidi+1)-1
+             i0bidk = i1nidc(i0aidi)
+             IF((i0bidk.EQ.i0hidi).OR.(i0bidk.EQ.i0hidj))THEN
                 DO i0vidj = 4, i0vmax
                 DO i0vidi = 4, i0vmax
                    d3amat(                     i0vidi,i0vidj,i0aidi) &
@@ -1496,15 +1498,15 @@ CONTAINS
              ENDIF
           ENDDO
           
-       ELSEIF((i0nrc.GT.i0bmax).AND.(i0ncc.LE.i0bmax))THEN
+       ELSEIF((i0xidi.GT.i0bmax).AND.(i0xidj.LE.i0bmax))THEN
           
-          i0nrc  = i0nrc - i0bmax
-          i0nrl  = i2hbc(1,i0nrc)
-          i0nru  = i2hbc(2,i0nrc)
+          i0xidi = i0xidi - i0bmax
+          i0hidi = i2hbc(1,i0xidi)
+          i0hidj = i2hbc(2,i0xidi)
           
-          DO i0aidi = i1nidr(i0nrl), i1nidr(i0nrl+1)-1
-             i0nc = i1nidc(i0aidi) 
-             IF(i0nc.EQ.i0ncc)THEN
+          DO i0aidi = i1nidr(i0hidi), i1nidr(i0hidi+1)-1
+             i0bidk = i1nidc(i0aidi) 
+             IF(i0bidk.EQ.i0xidj)THEN
                 DO i0vidj = 4, i0vmax
                 DO i0vidi = 4, i0vmax
                    d3amat(                     i0vidi,i0vidj,i0aidi) &
@@ -1516,9 +1518,9 @@ CONTAINS
              ENDIF
           ENDDO
              
-          DO i0aidi = i1nidr(i0nru), i1nidr(i0nru+1)-1
-             i0nc = i1nidc(i0aidi) 
-             IF(i0nc.EQ.i0ncc)THEN
+          DO i0aidi = i1nidr(i0hidj), i1nidr(i0hidj+1)-1
+             i0bidk = i1nidc(i0aidi) 
+             IF(i0bidk.EQ.i0xidj)THEN
                 DO i0vidj = 4, i0vmax
                 DO i0vidi = 4, i0vmax
                    d3amat(                     i0vidi,i0vidj,i0aidi) &
@@ -1530,19 +1532,19 @@ CONTAINS
              ENDIF
           ENDDO
           
-       ELSEIF((i0nrc.GT.i0bmax).AND.(i0ncc.GT.i0bmax))THEN
+       ELSEIF((i0xidi.GT.i0bmax).AND.(i0xidj.GT.i0bmax))THEN
           
-          i0nrc  = i0nrc - i0bmax
-          i0nrl  = i2hbc(1,i0nrc)
-          i0nru  = i2hbc(2,i0nrc)
+          i0xidi = i0xidi - i0bmax
+          i0hidi = i2hbc(1,i0xidi)
+          i0hidj = i2hbc(2,i0xidi)
           
-          i0ncc  = i0ncc - i0bmax
-          i0ncl  = i2hbc(1,i0ncc)
-          i0ncu  = i2hbc(2,i0ncc)
+          i0xidj = i0xidj - i0bmax
+          i0hidk = i2hbc(1,i0xidj)
+          i0hidl = i2hbc(2,i0xidj)
           
-          DO i0aidi = i1nidr(i0nrl), i1nidr(i0nrl+1)-1
-             i0nc = i1nidc(i0aidi)
-             IF((i0nc.EQ.i0ncl).OR.(i0nc.EQ.i0ncu))THEN
+          DO i0aidi = i1nidr(i0hidi), i1nidr(i0hidi+1)-1
+             i0bidk = i1nidc(i0aidi)
+             IF((i0bidk.EQ.i0hidk).OR.(i0bidk.EQ.i0hidl))THEN
                 DO i0vidj = 4, i0vmax
                 DO i0vidi = 4, i0vmax
                    d3amat(                     i0vidi,i0vidj,i0aidi) &
@@ -1554,9 +1556,9 @@ CONTAINS
              ENDIF
           ENDDO
           
-          DO i0aidi = i1nidr(i0nru), i1nidr(i0nru+1)-1
-             i0nc = i1nidc(i0aidi)
-             IF((i0nc.EQ.i0ncl).OR.(i0nc.EQ.i0ncu))THEN
+          DO i0aidi = i1nidr(i0hidj), i1nidr(i0hidj+1)-1
+             i0bidk = i1nidc(i0aidi)
+             IF((i0bidk.EQ.i0hidk).OR.(i0bidk.EQ.i0hidl))THEN
                 DO i0vidj = 4, i0vmax
                 DO i0vidi = 4, i0vmax
                    d3amat(                     i0vidi,i0vidj,i0aidi) &
@@ -1596,38 +1598,27 @@ CONTAINS
     !C
     
     DO i0nidi = 1, i0nmax
-       
-       i0nrc  = i2enr0(i0nidi,2)
-       
-       IF(    i0nrc.LE.i0bmax)THEN
-          
-          i0bidi = i0nrc 
+       i0xidi = i2enr0(i0nidi,2)
+       IF(    i0xidi.LE.i0bmax)THEN
           DO i0vidi = 4, i0vmax
-             d2bvec(              i0vidi,i0bidi) &
-                  = d2bvec(       i0vidi,i0bidi) &
+             d2bvec(              i0vidi,i0xidi) &
+                  = d2bvec(       i0vidi,i0xidi) &
                   + d2svec(i0nidi,i0vidi       )
           ENDDO
-
-       ELSEIF(i0nrc.GT.i0bmax)THEN
-          
-          i0nrc  = i0nrc - i0bmax
-          
-          i0bidi = i2hbc(1,i0nrc)
+       ELSEIF(i0xidi.GT.i0bmax)THEN
+          i0xidi = i0xidi - i0bmax
+          i0hidi = i2hbc(1,i0xidi)
+          i0hidj = i2hbc(2,i0xidi)
           DO i0vidi = 4, i0vmax
-             d2bvec(              i0vidi,i0bidi) &
-                  = d2bvec(       i0vidi,i0bidi) &
+             d2bvec(              i0vidi,i0hidi) &
+                  = d2bvec(       i0vidi,i0hidi) &
+                  + d2svec(i0nidi,i0vidi       ) &
+                  * 0.50D0
+             d2bvec(              i0vidi,i0hidj) &
+                  = d2bvec(       i0vidi,i0hidj) &
                   + d2svec(i0nidi,i0vidi       ) &
                   * 0.50D0
           ENDDO
-          
-          i0bidi = i2hbc(2,i0nrc)
-          DO i0vidi = 4, i0vmax
-             d2bvec(              i0vidi,i0bidi) &
-                  = d2bvec(       i0vidi,i0bidi) &
-                  + d2svec(i0nidi,i0vidi       ) &
-                  * 0.50D0
-          ENDDO
-          
        ENDIF
     ENDDO
     
@@ -1649,12 +1640,14 @@ CONTAINS
          d3amat,d2bvec,d2xvec
     
     INTEGER::&
-         i0nr,i0nc,i0aidi,i0bidi,i0vidi,i0vidj,&
-         i0dsta,i0dend,i0pdn2
+         i0aidi,&
+         i0bidi,i0bidj,&
+         i0vidi,i0vidj,&
+         i0bsta,i0bend,i0pdn2
     
     i0pdn2 = i1pdn2(i0lmax)
-    i0dsta = i0bmax - i0pdn2
-    i0dend = i0bmax
+    i0bsta = i0bmax - i0pdn2 + 1
+    i0bend = i0bmax
 
     !C
     !C
@@ -1662,20 +1655,19 @@ CONTAINS
     !C 
     !C
 
-    DO i0nr= 1, i0bmax
+    DO i0bidi= 1, i0bmax
        
        !C
        !C STIFFNESS MATRIX
        !C
        
-       DO i0aidi = i1nidr(i0nr), i1nidr(i0nr+1)-1
-          i0nc = i1nidc(i0aidi)
+       DO i0aidi = i1nidr(i0bidi), i1nidr(i0bidi+1)-1
+          i0bidj = i1nidc(i0aidi)
           DO i0vidj = 1, i0vmax
           DO i0vidi = 1, i0vmax
              SELECT CASE(i0vidi)
              CASE(1:5,14:21)
-                
-                IF((i0nr.EQ.i0nc).AND.(i0vidi.EQ.i0vidj))THEN
+                IF((i0bidi.EQ.i0bidj).AND.(i0vidi.EQ.i0vidj))THEN
                    d3amat(i0vidi,i0vidj,i0aidi) = 1.D0
                 ELSE
                    d3amat(i0vidi,i0vidj,i0aidi) = 0.D0
@@ -1688,31 +1680,30 @@ CONTAINS
        !C
        !C RHS VECTOR 
        !C
-
-       i0bidi = i0nr
+       
        DO i0vidi = 1, i0vmax
           SELECT CASE(i0vidi)
           CASE(1:5,14:21)
              d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)
           END SELECT
        ENDDO
-
+       
     ENDDO
 
     !C
     !C SET DIRICHLET CONDITION 
     !C
     
-    DO i0nr = i0dsta, i0dend
+    DO i0bidi = i0bsta, i0bend
        
        !C
        !C STIFFNESS MATRIX
        !C
-       DO i0aidi = i1nidr(i0nr), i1nidr(i0nr+1)-1
-          i0nc = i1nidc(i0aidi)
+       DO i0aidi = i1nidr(i0bidi), i1nidr(i0bidi+1)-1
+          i0bidj = i1nidc(i0aidi)
           DO i0vidj = 1, i0vmax
           DO i0vidi = 1, i0vmax
-             IF((i0nr.EQ.i0nc).AND.(i0vidi.EQ.i0vidj))THEN
+             IF((i0bidi.EQ.i0bidj).AND.(i0vidi.EQ.i0vidj))THEN
                 d3amat(i0vidi,i0vidj,i0aidi) = 1.D0
              ELSE
                 d3amat(i0vidi,i0vidj,i0aidi) = 0.D0
@@ -1724,7 +1715,6 @@ CONTAINS
        !C
        !C RHS VECTOR 
        !C
-       i0bidi = i0nr
        DO i0vidi = 1, i0vmax
           d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)
        ENDDO

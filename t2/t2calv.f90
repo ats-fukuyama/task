@@ -44,7 +44,7 @@ CONTAINS
        CALL T2CALV_ES
        CALL T2CALV_EV
        CALL T2CALV_ET
-       
+       CALL T2CALV_SS
     ENDDO
     
     RETURN
@@ -176,7 +176,9 @@ CONTAINS
           d1ni(i0sidi) = 0.D0
        ELSE
           WRITE(6,*)'NEGATIVE  DENS'
-          WRITE(6,*)'i1=',i0sidi,'N',d0nn_a,'10^{20} /m3'
+          WRITE(6,*)&
+               'SPECIS=',i0sidi,'NODE=',i0nid2d,&
+               'N',d0nn_a,'10^{20} /m3'
           STOP
        ENDIF
        
@@ -186,7 +188,8 @@ CONTAINS
           d1pi(i0sidi) = 0.D0
        ELSE
           WRITE(6,*)'NEGATIVE TEMP'
-          WRITE(6,*)'i1=',i0sidi,'P=',d0pp_a,'keV/m3'
+          WRITE(6,*)'SPECIS=',i0sidi,'NODE=',i0nid2d,&
+               'P=',d0pp_a,'keV/m3'
           STOP
        ENDIF
        
@@ -2491,6 +2494,32 @@ CONTAINS
     
   END SUBROUTINE T2CALV_ET
 
+  SUBROUTINE T2CALV_SS
+    
+    USE T2COMM, ONLY: i0vmax,d3ss
+    
+!    USE T2COMM, ONLY:&
+!         i0vmax,i0smax,d3ss,&
+!         d0mfcst,d0btcst,d0ercst,d0epcst,d0etcst,&
+!         d0nncst,d0frcst,d0fbcst,d0ftcst,&
+!         d0ppcst,d0qrcst,d0qbcst,d0qtcst
+    
+    INTEGER(i0ikind)::&
+         i0vidi,i0vidj
+    
+    !C
+    !C INITIALIZATION
+    !C
+    
+    DO i0vidj = 1, i0vmax
+    DO i0vidi = 1, i0vmax
+       d3ss(i0vidi,i0vidj,i0midi) = 0.D0
+    ENDDO
+    ENDDO
+
+    RETURN
+  END SUBROUTINE T2CALV_SS
+  
   FUNCTION fd0k11ps(d0xa2)
  
     USE LIBT2, ONLY:func_phi,func_G
