@@ -185,16 +185,18 @@ CONTAINS
        
        IF(        d0nn_a .GT.0.D0 )THEN
           d1ni(i0sidi) = 1.D0/d1nn(i0sidi)
-       ELSEIF(ABS(d0nn_a).LE.1.D-5)THEN 
+       ELSEIF(ABS(d0nn_a).LE.1.D-4)THEN 
           d1ni(i0sidi) = 0.D0
+          d1nn(i0sidi) = 0.D0
        ELSE
           i0nflag = 1
        ENDIF
        
        IF(        d0pp_a .GT.0.D0 )THEN
           d1pi(i0sidi) = 1.D0/d1pp(i0sidi)
-       ELSEIF(ABS(d0pp_a).LE.1.D-5)THEN
+       ELSEIF(ABS(d0pp_a).LE.1.D-4)THEN
           d1pi(i0sidi) = 0.D0
+          d1pp(i0sidi) = 0.D0
        ELSE
           i0nflag = 1
        ENDIF
