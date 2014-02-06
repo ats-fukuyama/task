@@ -197,49 +197,49 @@ CONTAINS
     !C
     !C FOR DEBUG 
     !C
-!
-!    i0offset  = 1
-!
-!    DO i0lidi = 1, i0lmax
-!       
-!       i0pdn2 = i1pdn2(i0lidi)
-!       i0rdn2 = i1rdn2(i0lidi)
-!       
-!       DO i0ridi = 1, i0rdn2
-!          DO i0pidi = 1, i0pdn2
-!                
-!             i0arc  = i0vmax*i0offset
-!             i0arc1 = i0arc + 1
-!             i0arc2 = i0arc + 2
-!             i0arc3 = i0arc + 3
-!                
-!             i0acc  = i0arc
-!             i0acc1 = i0arc1
-!             i0acc2 = i0arc2
-!             i0acc3 = i0arc3
-!                
-!             i0acl  = i0vmax*(i0offset-1)
-!             i0acl1 = i0acl + 1
-!             i0acl2 = i0acl + 2
-!             i0acl3 = i0acl + 3
-!                
-!             IF((i0pidi.GE.1).AND.(i0pidi.LT.i0pdn2))THEN
-!                CALL MTX_SET_MATRIX(i0arc1,i0acc1,-1.D0)
-!                CALL MTX_SET_MATRIX(i0arc2,i0acc2,-1.D0)
-!                CALL MTX_SET_MATRIX(i0arc3,i0acc3,-1.D0)
-!             ENDIF
-!             
-!             IF((i0pidi.GT.1).AND.(i0pidi.LE.i0pdn2))THEN
-!                CALL MTX_SET_MATRIX(i0arc1,i0acl1, 1.D0)
-!                CALL MTX_SET_MATRIX(i0arc2,i0acl2, 1.D0)
-!                CALL MTX_SET_MATRIX(i0arc3,i0acl3, 1.D0)
-!             ENDIF
-!             
-!             i0offset = i0offset + 1
-!             
-!          ENDDO
-!       ENDDO
-!    ENDDO
+
+    i0offset  = 1
+
+    DO i0lidi = 1, i0lmax
+       
+       i0pdn2 = i1pdn2(i0lidi)
+       i0rdn2 = i1rdn2(i0lidi)
+       
+       DO i0ridi = 1, i0rdn2
+          DO i0pidi = 1, i0pdn2
+                
+             i0arc  = i0vmax*i0offset
+             i0arc1 = i0arc + 1
+             i0arc2 = i0arc + 2
+             i0arc3 = i0arc + 3
+                
+             i0acc  = i0arc
+             i0acc1 = i0arc1
+             i0acc2 = i0arc2
+             i0acc3 = i0arc3
+                
+             i0acl  = i0vmax*(i0offset-1)
+             i0acl1 = i0acl + 1
+             i0acl2 = i0acl + 2
+             i0acl3 = i0acl + 3
+                
+             IF((i0pidi.GE.1).AND.(i0pidi.LT.i0pdn2))THEN
+                CALL MTX_SET_MATRIX(i0arc1,i0acc1,-1.D0)
+                CALL MTX_SET_MATRIX(i0arc2,i0acc2,-1.D0)
+                CALL MTX_SET_MATRIX(i0arc3,i0acc3,-1.D0)
+             ENDIF
+             
+             IF((i0pidi.GT.1).AND.(i0pidi.LE.i0pdn2))THEN
+                CALL MTX_SET_MATRIX(i0arc1,i0acl1, 1.D0)
+                CALL MTX_SET_MATRIX(i0arc2,i0acl2, 1.D0)
+                CALL MTX_SET_MATRIX(i0arc3,i0acl3, 1.D0)
+            ENDIF
+             
+             i0offset = i0offset + 1
+             
+          ENDDO
+       ENDDO
+    ENDDO
 
 
     
@@ -1666,7 +1666,7 @@ CONTAINS
           DO i0vidj = 1, i0vmax
           DO i0vidi = 1, i0vmax
              SELECT CASE(i0vidi)
-             CASE(1:5,14:21)
+             CASE(7,11,15,19)
                 IF((i0bidi.EQ.i0bidj).AND.(i0vidi.EQ.i0vidj))THEN
                    d3amat(i0vidi,i0vidj,i0aidi) = 1.D0
                 ELSE
@@ -1683,7 +1683,7 @@ CONTAINS
        
        DO i0vidi = 1, i0vmax
           SELECT CASE(i0vidi)
-          CASE(1:5,14:21)
+          CASE(7,11,15,19)
              d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)
           END SELECT
        ENDDO

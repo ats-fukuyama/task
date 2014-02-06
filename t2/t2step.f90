@@ -114,7 +114,7 @@ CONTAINS
     
     
     !C
-    !C FOR 1D VARIABLES
+    !C FOR 2D VARIABLES
     !C
     
     DO i0xidi = 1, i0xmax  
@@ -148,7 +148,7 @@ CONTAINS
        
        SELECT CASE(i0vidi)
        
-       CASE(6:13)
+       CASE(1:6,8:10,12:14,16:18,20:21)
        
           d0dif  = d1dif(i0vidi)
           d0ave  = d1ave(i0vidi)
