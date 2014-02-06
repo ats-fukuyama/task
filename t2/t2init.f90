@@ -68,27 +68,24 @@ CONTAINS
 !    i0pmax   =  49     ! iteration 
 
     i0smax =  2 
-    i0nmax =  4       ! number of nodes in a elemnt
-    i0lmax =  3       ! 
-    i0pdiv_number = 10! 
+    i0nmax =  4      ! number of nodes in a elemnt
+    i0lmax =  2      ! 
+    i0pdiv_number = 40! 
 
     i1mlvl(1)=1        ! 8 x 2^0
     i1mlvl(2)=1        ! 8 x 2^0
-    i1mlvl(3)=1        ! 8 x 2^0
     i1mlvl(0)           = 0
-    i1mlvl(4:i0lmaxm+1) = 0
-
-    i1rdn2(1) =  10     ! number of radial nodes in a level
-    i1rdn2(2) =  20     ! number of radial nodes in a level
-    i1rdn2(3) =  30     ! number of radial nodes in a level
+    i1mlvl(3:i0lmaxm+1) = 0
+    
+    i1rdn2(1) =  50     ! number of radial nodes in a level
+    i1rdn2(2) =  10     ! number of radial nodes in a level
     i1rdn2(-1:0)      = 0
-    i1rdn2(4:i0lmaxm) = 0
+    i1rdn2(3:i0lmaxm) = 0
 
     d1rec(0) = 0.000D0  ! least radial point in a level
-    d1rec(1) = 0.100D0
-    d1rec(2) = 0.800D0
-    d1rec(3) = 1.100D0
-    d1rec(4:i0lmaxm) = 0.D0
+    d1rec(1) = 1.000D0
+    d1rec(2) = 1.100D0
+    d1rec(3:i0lmaxm) = 0.D0
     
 
     d0rmjr   =  3.0D0

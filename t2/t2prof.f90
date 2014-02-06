@@ -12,8 +12,7 @@ MODULE T2PROF
   
   USE T2CNST,ONLY:&
        i0ikind,i0rkind
-  USE T2GOUT, ONLY:& 
-       T2_GOUT
+
   IMPLICIT NONE
 
 CONTAINS
@@ -47,7 +46,9 @@ CONTAINS
          d0ppcst,d0qrcst,d0qbcst,d0qtcst,&
          i0smax,i0xmax,i0vmax,i0mmax,i1pdn1,i2crt,&
          d0rmnr,d0rmjr,d2mfc1,d2rzm, d2rzx, d2jm1,d2xvec
-    
+
+  USE T2GOUT, ONLY: T2_GOUT
+  USE T2CONV, ONLY: T2_CONV
     INTEGER(i0ikind)::&
          i0vidi,i0sidi,i0midi,i0xidi,i0xid1d,i0xid2d
     
@@ -128,8 +129,8 @@ CONTAINS
        d2rzx(1,i0xidi) = d2rzm(1,i0midi)
        d2rzx(2,i0xidi) = d2rzm(2,i0midi)
     ENDDO
-
-    CALL T2_GOUT
+!    CALL T2_CONV
+!    CALL T2_GOUT
     
     RETURN
     

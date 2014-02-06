@@ -149,18 +149,18 @@ CONTAINS
           d1qr_pu(i0sidi) = d0qr*d0rmnr
           
           !C 
-          !C d1qb_pu: Parallel heat Flux [kJ*m/s]
+          !C d1qb_pu: Parallel heat Flux [MJ*m/s]
           !C
           
           d0qb = d1qb(i0sidi) - 2.5D0*d0tt*d1fb(i0sidi)
-          d1qb_pu(i0sidi) = d0qb*1.D-3
+          d1qb_pu(i0sidi) = d0qb*1.D-6
           
           !C 
-          !C d1qb_pu: Toroidal heat Flux [kJ*m/s]
+          !C d1qb_pu: Toroidal heat Flux [MJ*m/s]
           !C
           
           d0qt = d1qt(i0sidi) - 2.5D0*d0tt*d1ft(i0sidi)
-          d1qt_pu(i0sidi) = d0qt*SQRT(d0ctgtt)*1.D-3
+          d1qt_pu(i0sidi) = d0qt*SQRT(d0ctgtt)*1.D-6
        ENDDO
        
        d2xout(1,i0xid2d) = d0bp_pu

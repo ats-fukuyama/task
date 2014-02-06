@@ -253,8 +253,13 @@ CONTAINS
 
   SUBROUTINE T2_GC(INUM,ID,NGP)
     USE libgrf,ONLY: GRD2D
-    USE T2COMM, ONLY: &
-         i0ikind,i0rkind,twopi,i0xmax,d2xvec,i0vmax, &
+!    USE T2COMM, ONLY: &
+!         i0ikind,i0rkind,twopi,i0xmax,d2xvec,i0vmax, &
+!         i0lmax,i0pdiv_number,i1mlvl,i1rdn2,d1rec, &
+!         nrhomax,nchimax,d0rw
+
+    USE T2COMM, ONLY: & ! changed by 2014-02-05 H.Seto 
+         i0ikind,i0rkind,twopi,i0xmax,d2xout,i0vmax, &
          i0lmax,i0pdiv_number,i1mlvl,i1rdn2,d1rec, &
          nrhomax,nchimax,d0rw
     IMPLICIT NONE
@@ -276,7 +281,8 @@ CONTAINS
     dchig=TWOPI/nchig
     DO nchi=1,nchig+1
        chig(nchi)=dchig*(nchi-1)
-       gz(1,nchi)=d2xvec(inum,1)
+       !gz(1,nchi)=d2xvec(inum,1)
+       gz(1,nchi)=d2xout(inum,1)! changed by 2014-02-05 H.SETO
        IF(gz(1,nchi).GT. 1.D10) gz(1,nchi)= 1.D10
        IF(gz(1,nchi).LT.-1.D10) gz(1,nchi)=-1.D10
     END DO
@@ -284,7 +290,8 @@ CONTAINS
        nl=nlnrho(nrho)
        nchimaxl=i0pdiv_number*2**(i1mlvl(nl)-1)
        DO nchi=1,nchimaxl
-          gzl(nchi)=d2xvec(inum,nnnrho(nrho)+nchi-1)
+          !gzl(nchi)=d2xvec(inum,nnnrho(nrho)+nchi-1)
+          gzl(nchi)=d2xout(inum,nnnrho(nrho)+nchi-1)! changed by 2014-02-05 H.SETO
           IF(gzl(nchi).GT. 1.D10) gzl(nchi)= 1.D10
           IF(gzl(nchi).LT.-1.D10) gzl(nchi)=-1.D10
        END DO
@@ -378,10 +385,17 @@ CONTAINS
 
   SUBROUTINE T2_GR(INUM,ID,NGP)
     USE libgrf,ONLY: GRD1D
-    USE T2COMM, ONLY: &
-         i0ikind,i0rkind,twopi,i0xmax,d2xvec,i0vmax, &
+  
+    !USE T2COMM, ONLY: &
+    !     i0ikind,i0rkind,twopi,i0xmax,d2xvec,i0vmax, &
+    !     i0lmax,i0pdiv_number,i1mlvl,i1rdn2,d1rec, &
+    !     nrhomax,nchimax
+
+    USE T2COMM, ONLY: &! changed by 2014-02-05 H.SETO
+         i0ikind,i0rkind,twopi,i0xmax,d2xout,i0vmax, &
          i0lmax,i0pdiv_number,i1mlvl,i1rdn2,d1rec, &
          nrhomax,nchimax
+
     IMPLICIT NONE
     INTEGER(i0ikind),INTENT(IN):: inum,id,ngp
     REAL(i0rkind),DIMENSION(:,:),ALLOCATABLE:: gz
@@ -394,16 +408,19 @@ CONTAINS
     ALLOCATE(gzl(nchimax+1),dgzl(nchimax+1),ugzl(4,nchimax+1))
     ALLOCATE(ga(nrhomax))
     DO nchi=1,nchimax+1
-       gz(1,nchi)=d2xvec(inum,1)
+       !gz(1,nchi)=d2xvec(inum,1)
+       gz(1,nchi)=d2xout(inum,1)! changed by 2014-02-05 H.SETO
        IF(gz(1,nchi).GT. 1.D10) gz(1,nchi)= 1.D10
        IF(gz(1,nchi).LT.-1.D10) gz(1,nchi)=-1.D10
     END DO
-    ga(1)=d2xvec(inum,1)
+    !ga(1)=d2xvec(inum,1)
+    ga(1)=d2xout(inum,1)! changed by 2014-02-05 H.SETO
     DO nrho=2,nrhomax
        nl=nlnrho(nrho)
        nchimaxl=i0pdiv_number*2**(i1mlvl(nl)-1)
        DO nchi=1,nchimaxl
-          gzl(nchi)=d2xvec(inum,nnnrho(nrho)+nchi-1)
+          !gzl(nchi)=d2xvec(inum,nnnrho(nrho)+nchi-1)! changed by 2014-02-05 H.SETO
+          gzl(nchi)=d2xout(inum,nnnrho(nrho)+nchi-1)
           IF(gzl(nchi).GT. 1.D10) gzl(nchi)= 1.D10
           IF(gzl(nchi).LT.-1.D10) gzl(nchi)=-1.D10
        END DO

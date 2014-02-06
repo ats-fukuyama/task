@@ -27,7 +27,8 @@ CONTAINS
     
     USE T2CALV, ONLY: T2_CALV
     USE T2EXEC, ONLY: T2_EXEC
-   
+    USE T2CONV, ONLY: T2_CONV
+
     INTEGER(i0ikind),INTENT(OUT):: i_conv
     REAL(i0rkind),INTENT(OUT):: residual_conv
     INTEGER(i0ikind):: nconv
@@ -89,7 +90,9 @@ CONTAINS
           d2xvec(i0vidi,i0xidi) = d2xvec_after(i0vidi,i0xidi)
        ENDDO
     ENDDO
-    
+
+    CALL T2_CONV
+
     RETURN
     
   END SUBROUTINE T2_STEP

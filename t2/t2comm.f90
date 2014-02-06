@@ -222,8 +222,6 @@ MODULE T2COMM
   REAL(i0rkind),ALLOCATABLE,DIMENSION(:,:)::&
        d2mfc1
 
-  
-  
   !C------------------------------------------------------------------
   !C  
   !C                    FOR T2VGRA: MODIFIED 2014-01-28
@@ -367,6 +365,34 @@ MODULE T2COMM
        d2kwns
   REAL(   i0rkind),DIMENSION(:,:),ALLOCATABLE::&
        d2wrks
+
+  !C------------------------------------------------------------------
+  !C
+  !C                         FOR T2CONV
+  !C
+  !C------------------------------------------------------------------
+  !C 
+  !C d2xout[1   ,ixidi]: Poloidal Magnetic Field  [        T]
+  !C d2xout[2   ,ixidi]: Toroidal Magnetic Field  [        T]
+  !C d2xout[3   ,ixidi]: Toroidal Electric Field  [      V/m]
+  !C d2xout[4   ,ixidi]: Poloidal Electric Field  [     mV/m]
+  !C d2xout[5   ,ixidi]: Radial   Electric Field  [     mV/m]
+  !C d2xout[8N-2,ixidi]: Particle Density         [10^20/m^3]
+  !C d2xout[8N-1,ixidi]: Radial   Flow Velocity   [      m/s]
+  !C d2xout[8N  ,ixidi]: Parallel Flow Velocity   [      m/s]
+  !C d2xout[8N+1,ixidi]: Toroidal Rotation        [      m/s]
+  !C d2xout[8N+2,ixidi]: Temperature              [      keV]
+  !C d2xout[8N+3,ixidi]: Radial   Total Heat Flow [  keV*m/s]
+  !C d2xout[8N+4,ixidi]: Parallel Total Heat Flow [  keV*m/s]
+  !C d2xout[8N+5,ixidi]: Toroidal Total Heat Flow [  keV*m/s]
+  !C
+  !C
+  !C
+  !C
+  
+  REAL(   i0rkind),ALLOCATABLE,DIMENSION(:,:)::&
+       d2xout
+
   !C------------------------------------------------------------------
   !C
   !C                          FOR T2WRIT
@@ -661,6 +687,11 @@ CONTAINS
                STAT=i0err);IF(i0err.NE.0)EXIT
 
           !C
+          !C T2CONV
+          !C
+          ALLOCATE(d2xout(1:i0vmax,1:i0xmax),STAT=i0err);IF(i0err.NE.0)EXIT
+          
+          !C
           !C T2EXEC
           !C
           ALLOCATE(i2enr0(1:i0nmax,1:4     ),STAT=i0err);IF(i0err.NE.0)EXIT
@@ -855,7 +886,7 @@ CONTAINS
     IF(ALLOCATED(d2xvec_befor)) DEALLOCATE(d2xvec_befor)
     IF(ALLOCATED(d2xvec_after)) DEALLOCATE(d2xvec_after)
 
-
+    IF(ALLOCATED(d2xout))       DEALLOCATE(d2xout)
     !C
     !C T2EXEC
     !C
