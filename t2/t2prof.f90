@@ -645,7 +645,7 @@ CONTAINS
        !C T_{a} in keV
        !C
        
-       d1rt = fd1rf(1,3,d0tc,d0ts,d0tw,d0rw,d0mfcr)
+       d1rt = fd1rf(2,2,d0tc,d0ts,d0tw,d0rw,d0mfcr)
        
        !C
        !C T_{a} in J
@@ -687,7 +687,7 @@ CONTAINS
        !C dT_{a}/d\rho in keV
        !C
 
-       d1rt = fd1rf(1,3,d0tc,d0ts,d0tw,d0rw,d0mfcr)
+       d1rt = fd1rf(2,2,d0tc,d0ts,d0tw,d0rw,d0mfcr)
 
        !C
        !C dT_{a}/d\rho in J
@@ -729,7 +729,7 @@ CONTAINS
        !C (1/\rho) dT_{a}/d\rho in keV
        !C
 
-       d1rt = fd1rf(1,3,d0tc,d0ts,d0tw,d0rw,d0mfcr)
+       d1rt = fd1rf(2,2,d0tc,d0ts,d0tw,d0rw,d0mfcr)
 
        !C
        !C dT_{a}/d\rho in J
