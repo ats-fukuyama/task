@@ -48,6 +48,7 @@ CONTAINS
        CALL T2CALV_EV
        CALL T2CALV_ET
        CALL T2CALV_SS
+
     ENDDO
     
     RETURN
@@ -101,7 +102,7 @@ CONTAINS
          d0nvcc1_a,  d0nvcc2_a,  d0nvcc3_a,  d0nvcc4_a
     
     REAL(i0rkind)::&
-         d0rzcr,d0mfcr,d0psip,d0g1,d0g2,d0q0,d0liar,&
+         d0rzcr,d0mfcr,d0mfcp,d0psip,d0g1,d0g2,d0q0,d0liar,&
          d0cps,d0cbn,d0tcr,d0wv1,d0wv2,d0wv3,d0wv4,&
          d0k11,  d0k12,  d0k22,&
          d0k11ps,d0k12ps,d0k22ps,&
@@ -160,7 +161,7 @@ CONTAINS
     i0xid2d = i2crt( 2,i0midi)
     d0rzcr  = d2rzm( 1,i0midi)
     d0mfcr  = d2mfc1(1,i0midi)
-    
+    d0mfcp  = d2mfc1(2,i0midi)
     !C
     !C CONVERT VARIABLES TO SI-UNIT
     !C
@@ -245,7 +246,7 @@ CONTAINS
     
     d0psip = d0mfcst*d2xvec_befor(1,i0xid1d)
     d0cobt = d0btcst*d2xvec_befor(2,i0xid1d)
-    
+    !print*,d0psip,d0cobt,d0mfcr,d0mfcp
     d0sqrtg = d2jm1(1,i0midi)
     d0ctgrr = d2jm1(2,i0midi)
     d0ctgrp = d2jm1(3,i0midi)
@@ -261,7 +262,7 @@ CONTAINS
        d0cogrr =  d0ctgpp*d0wv1
        d0cogrp = -d0ctgrp*d0wv1
        d0cogpp =  d0ctgrr*d0wv1
-       d0ctbp  = d0psip/d0sqrtg
+       d0ctbp  =  d0psip/d0sqrtg
        d0ctbpi = 1.D0/d0ctbp
     ELSE
        d0cogrr = 0.D0

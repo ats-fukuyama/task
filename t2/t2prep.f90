@@ -51,6 +51,8 @@ CONTAINS
     d0qbcst = d0aee*1.D26
     d0qtcst = d0aee*1.D26/d0iar
     
+    d0iar   = d0rmnr/d0rmjr
+
     CALL T2NGRA_ALLOCATE
 
     DO i0lidi = 1, i0lmax
