@@ -172,8 +172,8 @@ CONTAINS
        
        i0vidi =  8*i0sidi - 3
        
-       d0nn_a = d2xvec_befor(i0vidi+1,i0xid2d)
-       d0pp_a = d2xvec_befor(i0vidi+5,i0xid2d)
+       d0nn_a = d2xvec_befor(i0vidi+1,i0xid2d)*1.D-20
+       d0pp_a = d2xvec_befor(i0vidi+5,i0xid2d)*1.D-23*d0aee
        
        d1nn(i0sidi) = d0nncst*d2xvec_befor(i0vidi+1,i0xid2d)
        d1fr(i0sidi) = d0frcst*d2xvec_befor(i0vidi+2,i0xid2d)

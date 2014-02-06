@@ -1666,7 +1666,7 @@ CONTAINS
           DO i0vidj = 1, i0vmax
           DO i0vidi = 1, i0vmax
              SELECT CASE(i0vidi)
-             CASE(7,11,15,19)
+             CASE(99)
                 IF((i0bidi.EQ.i0bidj).AND.(i0vidi.EQ.i0vidj))THEN
                    d3amat(i0vidi,i0vidj,i0aidi) = 1.D0
                 ELSE
@@ -1683,7 +1683,7 @@ CONTAINS
        
        DO i0vidi = 1, i0vmax
           SELECT CASE(i0vidi)
-          CASE(7,11,15,19)
+          CASE(99)
              d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)
           END SELECT
        ENDDO
@@ -1701,14 +1701,19 @@ CONTAINS
        !C
        DO i0aidi = i1nidr(i0bidi), i1nidr(i0bidi+1)-1
           i0bidj = i1nidc(i0aidi)
-          DO i0vidj = 1, i0vmax
           DO i0vidi = 1, i0vmax
-             IF((i0bidi.EQ.i0bidj).AND.(i0vidi.EQ.i0vidj))THEN
-                d3amat(i0vidi,i0vidj,i0aidi) = 1.D0
-             ELSE
-                d3amat(i0vidi,i0vidj,i0aidi) = 0.D0
-             ENDIF
-          ENDDO
+             SELECT CASE(i0vidi)
+             CASE(7,11,15,19)
+                CYCLE
+             CASE DEFAULT
+                DO i0vidj = 1, i0vmax
+                   IF((i0bidi.EQ.i0bidj).AND.(i0vidi.EQ.i0vidj))THEN
+                      d3amat(i0vidi,i0vidj,i0aidi) = 1.D0
+                   ELSE
+                      d3amat(i0vidi,i0vidj,i0aidi) = 0.D0
+                   ENDIF
+                ENDDO
+             END SELECT
           ENDDO
        ENDDO
         
@@ -1716,7 +1721,12 @@ CONTAINS
        !C RHS VECTOR 
        !C
        DO i0vidi = 1, i0vmax
-          d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)
+          SELECT CASE(i0vidi)
+          CASE(7,11,15,19)
+             CYCLE
+          CASE DEFAULT
+             d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)
+          END SELECT
        ENDDO
     ENDDO
     

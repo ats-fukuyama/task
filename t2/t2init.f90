@@ -61,11 +61,6 @@ CONTAINS
     i0qmax  = 32  ! gauss kyuuseki number of sample points
     i0pmax  = 49  ! iteration 
 
-!    i0tmax   = 10  ! 
-!    d0tstp   = 1.D-12  !
-!    d0tmax   = 1.D-12  !
-!    d0eps    = 1.D-4
-!    i0pmax   =  49     ! iteration 
 
     i0smax =  2 
     i0nmax =  4       ! number of nodes in a elemnt
@@ -76,7 +71,7 @@ CONTAINS
     i1mlvl(0)           = 0
     i1mlvl(2:i0lmaxm+1) = 0
     
-    i1rdn2(1) =  50     ! number of radial nodes in a level
+    i1rdn2(1) =  55     ! number of radial nodes in a level
     i1rdn2(-1:0)      = 0
     i1rdn2(2:i0lmaxm) = 0
 
@@ -127,7 +122,7 @@ CONTAINS
     d1pz(3:i0spcsm) = 0.D0
 
 !
-    dt        = 5.D-7   ! time step [s]
+    dt        = 1.D-4   ! time step [s]
     time_init = 0.D0    ! initial time [s]
 
     ntmax     = 1       ! number of time steps to go
