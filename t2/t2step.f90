@@ -148,7 +148,7 @@ CONTAINS
        
        SELECT CASE(i0vidi)
        
-       CASE(1:6,8:10,12:14,16:18,20:21)
+       CASE(6:13)
        
           d0dif  = d1dif(i0vidi)
           d0ave  = d1ave(i0vidi)
