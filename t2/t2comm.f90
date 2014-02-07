@@ -56,7 +56,7 @@ MODULE T2COMM
 
   INTEGER(i0ikind)::&
        i0mfcs, & !C INDICATOR FOR COORDINATE SYSTEM (1: torus coordinate)
-       i0sflg, & !C INDICATOR FOR SUPG METHOD (0: w/o SUPG, 1: w SUPG)
+       i0supg, & !C INDICATOR FOR SUPG METHOD (0: w/o SUPG, 1: w SUPG)
        i0wstp    !C INDICATOR FOR RESULT OUTPUT TIMING
   INTEGER(i0ikind)::&
        i0bvmax,& !C VECTOR SIZE OF b FOR MTXP (Ax=b)
@@ -130,6 +130,31 @@ MODULE T2COMM
   REAL(   i0rkind),DIMENSION(:,:,:,:,:    ),ALLOCATABLE:: d5ievn
   REAL(   i0rkind),DIMENSION(:,:,:,:,:,:,:),ALLOCATABLE:: d7ietn
   REAL(   i0rkind),DIMENSION(:,:          ),ALLOCATABLE:: d2issn
+
+  !C
+  !C FOR W SUPG 
+  !C
+  !C D4IMSS: INTEGRATION ARRAY FOR MASS       SCALAR SUBMATRIX
+  !C D5IAVS: INTEGRATION ARRAY FOR ADVECTION  VECTOR SUBMATRIX
+  !C D7IATS: INTEGRATION ARRAY FOR ADVECTION  TENSOR SUBMATRIX
+  !C D6IDTS: INTEGRATION ARRAY FOR DIFFUSION  TENSOR SUBMATRIX
+  !C D5IGVS: INTEGRATION ARRAY FOR GRADIENT   VECTOR SUBMATRIX
+  !C D7IGTS: INTEGRATION ARRAY FOR GRADIENT   TENSOR SUBMATRIX
+  !C D4IESS: INTEGRATION ARRAY FOR EXCITATION SCALAR SUBMATRIX
+  !C D6IEVS: INTEGRATION ARRAY FOR EXCITATION VECTOR SUBMATRIX
+  !C D8IETS: INTEGRATION ARRAY FOR EXCITATION TENSOR SUBMATRIX
+  !C D3ISSS: INTEGRATION ARRAY FOR SOURCE     SCALAR SUBMATRIX
+  
+  REAL(   i0rkind),DIMENSION(:,:,:,:,:        ),ALLOCATABLE:: d5imss
+  REAL(   i0rkind),DIMENSION(:,:,:,:,:,:      ),ALLOCATABLE:: d6iavs
+  REAL(   i0rkind),DIMENSION(:,:,:,:,:,:,:,:  ),ALLOCATABLE:: d8iats
+  REAL(   i0rkind),DIMENSION(:,:,:,:,:,:,:    ),ALLOCATABLE:: d7idts
+  REAL(   i0rkind),DIMENSION(:,:,:,:,:,:      ),ALLOCATABLE:: d6igvs
+  REAL(   i0rkind),DIMENSION(:,:,:,:,:,:,:,:  ),ALLOCATABLE:: d8igts
+  REAL(   i0rkind),DIMENSION(:,:,:,:,:        ),ALLOCATABLE:: d5iess
+  REAL(   i0rkind),DIMENSION(:,:,:,:,:,:,:    ),ALLOCATABLE:: d7ievs
+  REAL(   i0rkind),DIMENSION(:,:,:,:,:,:,:,:,:),ALLOCATABLE:: d9iets
+  REAL(   i0rkind),DIMENSION(:,:,:,:          ),ALLOCATABLE:: d4isss
   
   !C------------------------------------------------------------------
   !C
@@ -365,7 +390,8 @@ MODULE T2COMM
        d2kwns
   REAL(   i0rkind),DIMENSION(:,:),ALLOCATABLE::&
        d2wrks
-
+  REAL(   i0rkind),DIMENSION(:,:,:),ALLOCATABLE::&
+       d3eafv
   !C------------------------------------------------------------------
   !C
   !C                         FOR T2CONV
@@ -510,28 +536,7 @@ CONTAINS
           !C
           !C T2INTG
           !C
-         
-          ALLOCATE(d3imsn(1:i0nmax,1:i0nmax,1:i0nmax),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(d4iavn(1:i0dmax,1:i0nmax,1:i0nmax,1:i0nmax),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(d6iatn(1:i0dmax,1:i0dmax,1:i0nmax,1:i0nmax,1:i0nmax,&
-               1:i0nmax),STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(d5idtn(1:i0dmax,1:i0dmax,1:i0nmax,1:i0nmax,1:i0nmax),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(d4igvn(1:i0dmax,1:i0nmax,1:i0nmax,1:i0nmax),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(d6igtn(1:i0dmax,1:i0dmax,1:i0nmax,1:i0nmax,1:i0nmax,&
-               1:i0nmax),STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(d3iesn(1:i0nmax,1:i0nmax,1:i0nmax),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(d5ievn(1:i0dmax,1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(d7ietn(1:i0dmax,1:i0dmax,1:i0nmax,1:i0nmax,1:i0nmax,&
-               1:i0nmax,1:i0nmax),STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(d2issn(1:i0nmax,1:i0nmax),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-          
+
           ALLOCATE(d1wfct(1:i0qmax),STAT=i0err);IF(i0err.NE.0) EXIT
           ALLOCATE(d1absc(1:i0qmax),STAT=i0err);IF(i0err.NE.0) EXIT
           ALLOCATE(d2wfct(1:i0qmax,1:i0qmax),&
@@ -539,6 +544,67 @@ CONTAINS
           ALLOCATE(d4ifnc(1:i0qmax,1:i0qmax,0:i0dmax,1:i0nmax),&
                STAT=i0err); IF(i0err.NE.0) EXIT
 
+          !C
+          !C w/o SUPG
+          !C
+          
+          ALLOCATE(d3imsn(1:i0nmax,1:i0nmax,1:i0nmax),&
+               STAT=i0err); IF(i0err.NE.0) EXIT
+          ALLOCATE(d4iavn(1:i0dmax,1:i0nmax,1:i0nmax,1:i0nmax),&
+               STAT=i0err); IF(i0err.NE.0) EXIT
+          ALLOCATE(d6iatn(1:i0dmax,1:i0dmax,&
+               &          1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax),&
+               STAT=i0err); IF(i0err.NE.0) EXIT
+          ALLOCATE(d5idtn(1:i0dmax,1:i0dmax,1:i0nmax,1:i0nmax,1:i0nmax),&
+               STAT=i0err); IF(i0err.NE.0) EXIT
+          ALLOCATE(d4igvn(1:i0dmax,1:i0nmax,1:i0nmax,1:i0nmax),&
+               STAT=i0err); IF(i0err.NE.0) EXIT
+          ALLOCATE(d6igtn(1:i0dmax,1:i0dmax,&
+               1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax),&
+               STAT=i0err); IF(i0err.NE.0) EXIT
+          ALLOCATE(d3iesn(1:i0nmax,1:i0nmax,1:i0nmax),&
+               STAT=i0err); IF(i0err.NE.0) EXIT
+          ALLOCATE(d5ievn(1:i0dmax,1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax),&
+               STAT=i0err); IF(i0err.NE.0) EXIT
+          ALLOCATE(d7ietn(1:i0dmax,1:i0dmax,&
+               &          1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax),&
+               STAT=i0err); IF(i0err.NE.0) EXIT
+          ALLOCATE(d2issn(1:i0nmax,1:i0nmax),&
+               STAT=i0err); IF(i0err.NE.0) EXIT
+
+          !C
+          !C w SUPG
+          !C
+
+          ALLOCATE(d5imss(1:i0dmax,1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax),&
+               STAT=i0err); IF(i0err.NE.0) EXIT
+          ALLOCATE(d6iavs(1:i0dmax,1:i0dmax,&
+               &          1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax),&
+               STAT=i0err); IF(i0err.NE.0) EXIT
+          ALLOCATE(d8iats(1:i0dmax,1:i0dmax,1:i0dmax,&
+               &          1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax),&
+               STAT=i0err); IF(i0err.NE.0) EXIT
+          ALLOCATE(d7idts(1:i0dmax,1:i0dmax,1:i0dmax,&
+               &          1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax),&
+               STAT=i0err); IF(i0err.NE.0) EXIT
+          ALLOCATE(d6igvs(1:i0dmax,1:i0dmax,&
+               &          1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax),&
+               STAT=i0err); IF(i0err.NE.0) EXIT
+          ALLOCATE(d8igts(1:i0dmax,1:i0dmax,1:i0dmax,&
+               &          1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax),&
+               STAT=i0err); IF(i0err.NE.0) EXIT
+          ALLOCATE(d5iess(1:i0dmax,1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax),&
+               STAT=i0err); IF(i0err.NE.0) EXIT
+          ALLOCATE(d7ievs(1:i0dmax,1:i0dmax,&
+               &          1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax),&
+               STAT=i0err); IF(i0err.NE.0) EXIT
+          ALLOCATE(d9iets(1:i0dmax,1:i0dmax,1:i0dmax,&
+               &          1:i0nmax,1:i0nmax,1:i0nmax,&
+               &          1:i0nmax,1:i0nmax,1:i0nmax),&
+               STAT=i0err); IF(i0err.NE.0) EXIT
+          ALLOCATE(d4isss(1:i0dmax,1:i0nmax,1:i0nmax,1:i0nmax),&
+               STAT=i0err); IF(i0err.NE.0) EXIT
+          
           !C
           !C T2NGRA
           !C
@@ -696,6 +762,8 @@ CONTAINS
           !C
           ALLOCATE(i2enr0(1:i0nmax,1:4     ),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d2wrks(1:i0nmax,1:i0wmax),STAT=i0err);IF(i0err.NE.0)EXIT
+          ALLOCATE(d3eafv(1:i0dmax,1:i0nmax,1:i0vmax)&
+               ,STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d2jmpm(1:i0dmax,1:i0dmax),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d2kwns(1:i0nmax,1:i0vmax),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d4smat(1:i0nmax,1:i0nmax,1:i0vmax,1:i0vmax),&
@@ -752,6 +820,11 @@ CONTAINS
     !C T2INTG
     !C
 
+    IF(ALLOCATED(d1wfct)) DEALLOCATE(d1wfct)
+    IF(ALLOCATED(d1absc)) DEALLOCATE(d1absc)
+    IF(ALLOCATED(d2wfct)) DEALLOCATE(d2wfct)
+    IF(ALLOCATED(d4ifnc)) DEALLOCATE(d4ifnc)
+
     IF(ALLOCATED(d3imsn)) DEALLOCATE(d3imsn)
     IF(ALLOCATED(d4iavn)) DEALLOCATE(d4iavn)
     IF(ALLOCATED(d6iatn)) DEALLOCATE(d6iatn)
@@ -763,10 +836,16 @@ CONTAINS
     IF(ALLOCATED(d7ietn)) DEALLOCATE(d7ietn)
     IF(ALLOCATED(d2issn)) DEALLOCATE(d2issn)
 
-    IF(ALLOCATED(d1wfct)) DEALLOCATE(d1wfct)
-    IF(ALLOCATED(d1absc)) DEALLOCATE(d1absc)
-    IF(ALLOCATED(d2wfct)) DEALLOCATE(d2wfct)
-    IF(ALLOCATED(d4ifnc)) DEALLOCATE(d4ifnc)
+    IF(ALLOCATED(d5imss)) DEALLOCATE(d5imss)
+    IF(ALLOCATED(d6iavs)) DEALLOCATE(d6iavs)
+    IF(ALLOCATED(d8iats)) DEALLOCATE(d8iats)
+    IF(ALLOCATED(d7idts)) DEALLOCATE(d7idts)
+    IF(ALLOCATED(d6igvs)) DEALLOCATE(d6igvs)
+    IF(ALLOCATED(d8igts)) DEALLOCATE(d8igts)
+    IF(ALLOCATED(d5iess)) DEALLOCATE(d5iess)
+    IF(ALLOCATED(d7ievs)) DEALLOCATE(d7ievs)
+    IF(ALLOCATED(d9iets)) DEALLOCATE(d9iets)
+    IF(ALLOCATED(d4isss)) DEALLOCATE(d4isss)
     
     !C
     !C T2NGRA
@@ -784,11 +863,7 @@ CONTAINS
     IF(ALLOCATED(i3enr )) DEALLOCATE(i3enr )
     IF(ALLOCATED(i2hbc )) DEALLOCATE(i2hbc )
     IF(ALLOCATED(i1mc1d)) DEALLOCATE(i1mc1d)
-    IF(ALLOCATED(d1mc1d)) DEALLOCATE(d1mc1d)
-    
-!    IF(ALLOCATED(i1mfc1)) DEALLOCATE(i1mfc1)
-!    IF(ALLOCATED(d2mfc1)) DEALLOCATE(d2mfc1)
-    
+    IF(ALLOCATED(d1mc1d)) DEALLOCATE(d1mc1d)    
 
     !C
     !C I2VGRA
