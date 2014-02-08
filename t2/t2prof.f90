@@ -687,7 +687,7 @@ CONTAINS
        !C
        !C dT_{a}/d\rho in keV
        !C
-
+       
        d1rt = fd1rf(2,2,d0tc,d0ts,d0tw,d0rw,d0mfcr)
 
        !C

@@ -31,7 +31,7 @@ CONTAINS
          d0qc,d0qs,d0rw, &
          dt,time_init,eps_conv, &
          ntmax,ntstep,nt0dmax,nt0dstep,nt2dmax,nt2dstep,nconvmax, &
-         idfile,idprint,idplot,idmode,idebug
+         idfile,idprint,idplot,idmode,idebug,i0supg
 
     USE T2CNST, ONLY: i0lmaxm,i0spcsm,d0aee,d0ame,d0amp
 
@@ -54,9 +54,9 @@ CONTAINS
     i0dbg    =  0
     i0fnum   = 10
     i0mfcs   =  1
-
-    i0wstp   =  1  ! output timing
-
+    
+    i0wstp  =  1  ! output timing
+    i0supg  =  1
     i0dmax  =  2  ! mesh dim
     i0qmax  = 32  ! gauss kyuuseki number of sample points
     i0pmax  = 49  ! iteration 
@@ -71,11 +71,13 @@ CONTAINS
     i1mlvl(2)=1        ! 8 x 2^0
     i1mlvl(0)           = 0
     i1mlvl(3:i0lmaxm+1) = 0
+
     
-    i1rdn2(1) =  70    ! number of radial nodes in a level
+    i1rdn2(1) =  50    ! number of radial nodes in a level
     i1rdn2(2) =  10     ! number of radial nodes in a level
     i1rdn2(-1:0)      = 0
     i1rdn2(3:i0lmaxm) = 0
+
 
     d1rec(0) = 0.000D0  ! least radial point in a level
     d1rec(1) = 1.000D0

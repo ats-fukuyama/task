@@ -300,7 +300,8 @@ MODULE T2COMM
   !C D2RZM : RZ COORDINATES w   OVERLAP
   !C D2RZX : RZ COORDINATES w/o OVERLAP w INTERPOLATION 
   !C
-  REAL(   i0rkind),DIMENSION(:,:),ALLOCATABLE:: d2ug,d2rzm,d2rzx,d2jm1
+  REAL(   i0rkind),DIMENSION(:,:),ALLOCATABLE::&
+       d2ug,d2rzm,d2rzx,d2jm1,d2mtrc
 
   !C------------------------------------------------------------------
   !C
@@ -659,7 +660,8 @@ CONTAINS
           ALLOCATE(d2jm1(1:5,1:i0mmax),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d2rzm(1:2,1:i0mmax),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d2rzx(1:2,1:i0xmax),STAT=i0err);IF(i0err.NE.0)EXIT
-
+          ! TMP
+          ALLOCATE(d2mtrc(1:2,1:i0mmax),STAT=i0err);IF(i0err.NE.0)EXIT
           !C
           !C T2CALV
           !C
@@ -894,7 +896,7 @@ CONTAINS
     IF(ALLOCATED(d2jm1)) DEALLOCATE(d2jm1)
     IF(ALLOCATED(d2rzm)) DEALLOCATE(d2rzm)
     IF(ALLOCATED(d2rzx)) DEALLOCATE(d2rzx)
-
+    IF(ALLOCATED(d2mtrc)) DEALLOCATE(d2mtrc)
     !C
     !C FOR T2CALV
     !C

@@ -72,7 +72,7 @@ CONTAINS
          d0nncst,d0frcst,d0fbcst,d0ftcst,&
          d0ppcst,d0qrcst,d0qbcst,d0qtcst,&
          i0xa,i0vmax,d0rmjr,d0qc,d0qs,&
-         i2crt,&
+         i2crt,d2mtrc,&
          d2xvec_befor,d2mfc1,d2rzm,d2jm1,d2ws,&
          d1ee,d1mm,d1nn,d1ni,d1pp,d1pi,d1tt,d1ti,d1pa,d1pz,&
          d1ur,d1up,d1ut,d1ub,d1u2,&
@@ -271,6 +271,10 @@ CONTAINS
        d0ctbp  = 0.D0
        d0ctbpi = 0.D0
     ENDIF
+    
+    d2mtrc(1,i0midi) = d0cogrr
+    d2mtrc(2,i0midi) = d0cogpp
+
     
     d0ugr = 0.D0
     d0ugp = 0.D0

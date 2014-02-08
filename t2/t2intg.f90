@@ -329,7 +329,7 @@ CONTAINS
     DO i0nidi = 1, i0nmax
     DO i0nidl = 1, i0nmax
     DO i0nidk = 1, i0nmax
-       DO i0didi = 1, i0didi
+       DO i0didi = 1, i0dmax
           d0temp = 0.D0
           DO i0qidj = 1, i0qmax
           DO i0qidi = 1, i0qmax
@@ -493,7 +493,7 @@ CONTAINS
     ENDDO
     ENDDO
     ENDDO
-
+    
     !C
     !C GT: D8IGVS
     !C
@@ -519,8 +519,8 @@ CONTAINS
                   &  + d0ifnci*d0ifncj*d0ifnck*d0ifncl*d0ifncm*d0wfct
           ENDDO
           ENDDO
-          d8igts(i0didi,i0didj,i0didk,i0nidk,&
-               & i0nidl,i0nidm,i0nidi,i0nidj) = d0temp
+          d8igts(i0didi,i0didj,i0didk,&
+               & i0nidk,i0nidl,i0nidm,i0nidi,i0nidj) = d0temp
        ENDDO
        ENDDO
        ENDDO
@@ -547,7 +547,8 @@ CONTAINS
              d0ifnck = d4ifnc(i0qidi,i0qidj,0     ,i0nidk)
              d0ifncl = d4ifnc(i0qidi,i0qidj,0     ,i0nidl)
              d0wfct  = d2wfct(i0qidi,i0qidj              )
-             d0temp  = d0temp + d0ifnci*d0ifncj*d0ifnck*d0ifncl*d0wfct
+             d0temp  = d0temp&
+                  &  + d0ifnci*d0ifncj*d0ifnck*d0ifncl*d0wfct
           ENDDO
           ENDDO
           d5iess(i0didi,i0nidk,i0nidl,i0nidi,i0nidj) = d0temp
