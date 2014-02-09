@@ -93,6 +93,7 @@ CONTAINS
        !C PSI'
        !d2xvec(1,i0xid1d) = fd0psip(d0mfcr,d0mfcp)/d0mfcst 
        d2xvec(1,i0xid2d) = fd0psip(d0mfcr,d0mfcp)/d0mfcst 
+       
        !C I
        !d2xvec(2,i0xid1d) = fd0cobt(d0mfcr,d0mfcp)/d0btcst 
        d2xvec(2,i0xid2d) = fd0cobt(d0mfcr,d0mfcp)/d0btcst 
@@ -345,7 +346,7 @@ CONTAINS
     RETURN
     
   END FUNCTION fd0q1
-
+  
   !C-------------------------------------------------------------------
   !C
   !C INITITIAL PROFILE OF d\psi/d\rho
@@ -434,7 +435,7 @@ CONTAINS
     d1t0   = fd1t0(d0mfcr,d0mfcp)
     d0t0   = d1t0(1)/(1.D3*d0aee) !C  Electron temperature in keV
     d0clog = 17.D0 ! Coulomb logarithm for debug 
-    d0jt   = fd0jt(d0mfcr,d0mfcp)  
+    d0jt   = fd0jt1d(d0mfcr,d0mfcp)  
     
     d0eta = (1.65D-9)*d0clog/SQRT(d0t0)**3
     d0eta = d0eta/((1.D0-SQRT(d0iar*d0mfcr))**2)
@@ -853,31 +854,66 @@ CONTAINS
   END FUNCTION fd1p2
 
 
-  FUNCTION fd0jt(d0mfcr,d0mfcp)
+  FUNCTION fd0jt1d(d0mfcr,d0mfcp)
     
     USE T2COMM, ONLY:i0smax,d0iar,d0bc
     
     INTEGER(i0ikind)::i0sidi
     REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
-    REAL(   i0rkind)::fd0jt
+    REAL(   i0rkind)::fd0jt1d
     REAL(   i0rkind),DIMENSION(1:i0smax)::d1p2
     REAL(   i0rkind)::d0q0
 
-    fd0jt = 0.D0
-    d1p2  = fd1p2(d0mfcr,d0mfcp)
-    d0q0  = fd0q0(d0mfcr,d0mfcp)
+    fd0jt1d = 0.D0
+    d1p2    = fd1p2(d0mfcr,d0mfcp)
+    d0q0    = fd0q0(d0mfcr,d0mfcp)
 
     DO i0sidi = 1, i0smax
-       fd0jt = fd0jt + d1p2(i0sidi)
+       fd0jt1d = fd0jt1d + d1p2(i0sidi)
     ENDDO
     
-    fd0jt = -fd0jt*(1.D0 + 1.5D0*(d0iar**2)*(d0mfcr**2))*d0q0&
+    fd0jt1d = -fd0jt1d*(1.D0 + 1.5D0*(d0iar**2)*(d0mfcr**2))*d0q0&
          &        /(d0bc*(d0iar**2))
     
     RETURN
     
-  END FUNCTION fd0jt
+  END FUNCTION fd0jt1d
   
+  !C-------------------------------------------------------------------
+  !C
+  !C INITITIAL PROFILE OF j_{\para}
+  !C
+  !C                     2014-02-05 H.SETO
+  !C
+  !C-------------------------------------------------------------------
+  FUNCTION fd0jt(d0mfcr,d0mfcp)
+    
+    USE T2COMM, ONLY:i0smax,d0rmnr,d0bc
+    
+    INTEGER(i0ikind)::i0sidi
+    REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
+    REAL(   i0rkind)::fd0jt
+    REAL(   i0rkind),DIMENSION(1:i0smax)::d1p2
+    REAL(   i0rkind)::d0q0,d0r
+    
+    fd0jt  = 0.D0
+    d0q0   = fd0q0(  d0mfcr,d0mfcp)
+    d1p2   = fd1p2(  d0mfcr,d0mfcp)
+    d0r    = fd0rzcr(d0mfcr,d0mfcp)
+    
+    DO i0sidi = 1, i0smax
+       fd0jt = fd0jt + d1p2(i0sidi)
+    ENDDO
+    
+    fd0jt = -fd0jt*(d0r**2)*d0q0/(d0bc*(d0rmnr**2))
+    
+    RETURN
+    
+    
+    RETURN
+
+  END FUNCTION fd0jt
+
   !C-------------------------------------------------------------------
   !C
   !C INITITIAL PROFILE OF j_{\para}

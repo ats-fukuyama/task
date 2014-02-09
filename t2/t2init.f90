@@ -56,7 +56,7 @@ CONTAINS
     i0mfcs   =  1
     
     i0wstp  =  1  ! output timing
-    i0supg  =  1
+    i0supg  =  0
     i0dmax  =  2  ! mesh dim
     i0qmax  = 32  ! gauss kyuuseki number of sample points
     i0pmax  = 49  ! iteration 
@@ -64,24 +64,21 @@ CONTAINS
 
     i0smax =  2 
     i0nmax =  4       ! number of nodes in a elemnt
-    i0lmax =  2       ! 
+    i0lmax =  1       ! 
     i0pdiv_number = 60! 
 
     i1mlvl(1)=1        ! 8 x 2^0
-    i1mlvl(2)=1        ! 8 x 2^0
     i1mlvl(0)           = 0
-    i1mlvl(3:i0lmaxm+1) = 0
+    i1mlvl(2:i0lmaxm+1) = 0
 
     
-    i1rdn2(1) =  50    ! number of radial nodes in a level
-    i1rdn2(2) =  10     ! number of radial nodes in a level
+    i1rdn2(1) =  70    ! number of radial nodes in a level
     i1rdn2(-1:0)      = 0
-    i1rdn2(3:i0lmaxm) = 0
+    i1rdn2(2:i0lmaxm) = 0
 
 
     d1rec(0) = 0.000D0  ! least radial point in a level
-    d1rec(1) = 1.000D0
-    d1rec(2) = 1.100D0
+    d1rec(1) = 1.100D0
     d1rec(3:i0lmaxm) = 0.D0
     
 
@@ -127,7 +124,7 @@ CONTAINS
     d1pz(3:i0spcsm) = 0.D0
 
 !
-    dt        = 1.D-5   ! time step [s]
+    dt        = 5.D-6   ! time step [s]
     time_init = 0.D0    ! initial time [s]
 
     ntmax     = 1       ! number of time steps to go
@@ -137,7 +134,7 @@ CONTAINS
     nt2dmax   = 1       ! maximum number of profile data to be saved
     nt2dstep  = 1       ! time step to save profile data
 
-    nconvmax  = 1      ! maximum number of convergence steps for implicit loop
+    nconvmax  = 10      ! maximum number of convergence steps for implicit loop
     eps_conv  = 1.D-4   ! relative convergence criterion for implicit loop
 
     idfile    = 0       ! control id for file output: 0 for none, 9 for all

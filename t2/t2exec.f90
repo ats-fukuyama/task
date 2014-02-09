@@ -337,8 +337,7 @@ CONTAINS
   !C
   !C                     2014-02-07 H.SETO
   !C
-  !C------------------------------------------------------------------
-  
+  !C------------------------------------------------------------------  
   SUBROUTINE T2EXEC_LV
     
     USE T2COMM, ONLY:&
@@ -452,28 +451,28 @@ CONTAINS
        
        i0avvt = i2avvt(i0vidi,i0vidi)
        IF(i0avvt.EQ.0) CYCLE
-       
+       d0area = d0psiz*(d0rmnr**2)*(d0rsiz**2)*0.50
+      
        DO i0nidi = 1, i0nmax
           i0midi  = i2enr0(i0nidi,1)
-          !C \sqrt{g}^{-1}
           d0sqrtg = d2jm1(1,i0midi)
           IF(d0sqrtg.GT.0.D0)THEN
              d0sqrtgi = 1.D0/d0sqrtg
           ELSE
              d0sqrtgi = 0.D0
           ENDIF
-                    
+          d0supg = 0.D0                    
+        
           DO i0didi = 1, i0dmax
              d0mtrc = d2mtrc(i0didi,i0midi)
              d0eafv = d4av(i0didi,i0vidi,i0vidi,i0midi)*d0sqrtgi
              d1temp(i0didi) = d0eafv
              d0supg = d0supg + (d0eafv**2)*d0mtrc
           ENDDO
-          
-          d0area = d0psiz*(d0rmnr**2)*(d0rsiz**2)*0.50
+                    
           d0supg = 4.D0/(dt**2) + 4.D0*d0supg/d0area
           d0supg = 1.D0/SQRT(d0supg)
-          d0supg = dt/2.D0! for debug
+
           DO i0didj = 1, i0dmax
              d3eafv(i0didj,i0nidi,i0vidi) = 0.D0
              DO i0didi = 1, i0dmax
@@ -486,7 +485,7 @@ CONTAINS
           ENDDO
        ENDDO
     ENDDO
-
+    
     RETURN
     
   END SUBROUTINE T2EXEC_LV
@@ -503,12 +502,12 @@ CONTAINS
     USE T2COMM,ONLY:&
          i0supg,i0nmax,i0dmax,i0vmax,i2enr0,&
          d0jdmp,d2jmpm,dt,d4smat,d2svec,d2kwns,d3eafv,&
-         d3ms,d3imsn,d5imss
+         d3ms,d3imsn,d5imss,i2avvt
     
     INTEGER(i0ikind)::&
          i0nidi,i0nidj,i0nidk,i0nidl,&
          i0didi,&
-         i0midi
+         i0midi,i0avvt
     
     REAL(   i0rkind)::&
          d2smat(1:i0nmax,1:i0nmax),&
@@ -573,7 +572,10 @@ CONTAINS
             + d1svec(i0nidi       )
     ENDDO
     
+
     IF((i0supg.EQ.0).OR.(i0vidi.LE.5)) RETURN
+    i0avvt = i2avvt(i0vidi,i0vidi)
+    IF(i0avvt.EQ.0) RETURN
     
     !C
     !C MAIN LOOP (SUPG)
@@ -650,12 +652,12 @@ CONTAINS
     USE T2COMM,ONLY:&
          i0supg,i0nmax,i0dmax,i0vmax,i2enr0,&
          d0jdmp,d2jmpm,d3eafv,&
-         d4av,d4iavn,d6iavs,d4smat
+         d4av,d4iavn,d6iavs,d4smat,i2avvt
     
     INTEGER(i0ikind)::&
          i0didi,i0didj,&
          i0nidi,i0nidj,i0nidk,i0nidl,&
-         i0midi
+         i0midi,i0avvt
     
     REAL(   i0rkind)::&
          d2smat(1:i0nmax,1:i0nmax),&
@@ -719,7 +721,8 @@ CONTAINS
     ENDDO
     
     IF((i0supg.EQ.0).OR.(i0vidi.LE.5)) RETURN
-    
+    i0avvt = i2avvt(i0vidi,i0vidi)
+    IF(i0avvt.EQ.0) RETURN
     !C
     !C MAIN LOOP (SUPG)
     !C
@@ -777,12 +780,12 @@ CONTAINS
     USE T2COMM,ONLY:&
          i0supg,i0nmax,i0dmax,i0vmax,i2enr0,&
          d2jmpm,d0jdmp,d4smat,d2wrks,d3eafv,&
-         d6at,d6iatn,d8iats
+         d6at,d6iatn,d8iats,i2avvt
     
     INTEGER(i0ikind)::&
          i0nidi,i0nidj,i0nidk,i0nidl,i0nidm,&
          i0didi,i0didj,i0didk,i0didl,&
-         i0midi
+         i0midi,i0avvt
     
     REAL(   i0rkind)::&
          d3velo(1:i0dmax,1:i0dmax,1:i0nmax),&
@@ -864,7 +867,8 @@ CONTAINS
     ENDDO
     
     IF((i0supg.EQ.0).OR.(i0vidi.LE.5)) RETURN
-    
+    i0avvt = i2avvt(i0vidi,i0vidi)
+    IF(i0avvt.EQ.0) RETURN
     !C
     !C ADDITIONAL LOOP (SUPG)
     !C
@@ -929,12 +933,12 @@ CONTAINS
     USE T2COMM,ONLY:&
          i0supg,i0nmax,i0dmax,i0vmax,i2enr0,&
          d2jmpm,d0jdmp,d4smat,d3eafv,&
-         d5dt,d5idtn,d7idts
+         d5dt,d5idtn,d7idts,i2avvt
     
     INTEGER(i0ikind)::&
          i0nidi,i0nidj,i0nidk,i0nidl,&
          i0didi,i0didj,i0didk,i0didl,&
-         i0midi
+         i0midi,i0avvt
 
     REAL(   i0rkind)::&
          d2smat(1:i0nmax,1:i0nmax),&
@@ -1007,7 +1011,8 @@ CONTAINS
     ENDDO
     
     IF((i0supg.EQ.0).OR.(i0vidi.LE.5)) RETURN
-    
+    i0avvt = i2avvt(i0vidi,i0vidi)
+    IF(i0avvt.EQ.0) RETURN
     !C
     !C ADDITIONAL LOOP (SUPG)
     !C
@@ -1068,12 +1073,12 @@ CONTAINS
     USE T2COMM,ONLY:&
          i0supg,i0nmax,i0dmax,i0vmax,i2enr0,&
          d2jmpm,d0jdmp,d4smat,d3eafv,&
-         d4gv,  d4igvn,d6igvs
+         d4gv,  d4igvn,d6igvs,i2avvt
     
     INTEGER(i0ikind)::&
          i0nidi,i0nidj,i0nidk,i0nidl,&
          i0didi,i0didj,&
-         i0midi
+         i0midi,i0avvt
     
     REAL(   i0rkind)::&
          d2smat(1:i0nmax,1:i0nmax), &
@@ -1137,7 +1142,9 @@ CONTAINS
     ENDDO
 
     IF((i0supg.EQ.0).OR.(i0vidi.LE.5)) RETURN 
-    
+    i0avvt = i2avvt(i0vidi,i0vidi)
+    IF(i0avvt.EQ.0) RETURN
+
     !C
     !C ADDITIONAL LOOP (SUPG)
     !C
@@ -1195,12 +1202,12 @@ CONTAINS
     USE T2COMM,ONLY:&
          i0supg,i0nmax,i0dmax,i0vmax,i2enr0,&
          d2jmpm,d0jdmp,d4smat,d3eafv,d2wrks,&
-         d6gt,  d6igtn,d8igts
+         d6gt,  d6igtn,d8igts,i2avvt
     
     INTEGER(i0ikind)::&
          i0nidi,i0nidj,i0nidk,i0nidl,i0nidm,&
          i0didi,i0didj,i0didk,i0didl,&
-         i0midi
+         i0midi,i0avvt
     
     REAL(   i0rkind)::&
          d3grad(1:i0dmax,1:i0dmax,1:i0nmax),&
@@ -1281,7 +1288,8 @@ CONTAINS
     ENDDO
     
     IF((i0supg.EQ.0).OR.(i0vidi.LE.5)) RETURN 
-
+    i0avvt = i2avvt(i0vidi,i0vidi)
+    IF(i0avvt.EQ.0) RETURN
     !C
     !C ADDITIONAL LOOP (SUPG)
     !C
@@ -1345,12 +1353,12 @@ CONTAINS
     USE T2COMM,ONLY:&
          i0supg,i0dmax,i0nmax,i0vmax,i2enr0,&
          d2jmpm,d0jdmp,d4smat,d3eafv,&
-         d3es,  d3iesn,d5iess
+         d3es,  d3iesn,d5iess,i2avvt
          
     INTEGER(i0ikind)::&
          i0nidi,i0nidj,i0nidk,i0nidl,&
          i0didi,&
-         i0midi
+         i0midi,i0avvt
 
     REAL(   i0rkind)::&
          d2smat(1:i0nmax,1:i0nmax),&
@@ -1398,7 +1406,8 @@ CONTAINS
 
 
     IF((i0supg.EQ.0).OR.(i0vidi.LE.5)) RETURN
-
+    i0avvt = i2avvt(i0vidi,i0vidi)
+    IF(i0avvt.EQ.0) RETURN
     !C
     !C ADDITIONAL LOOP (SUPG)
     !C
@@ -1453,12 +1462,12 @@ CONTAINS
     USE T2COMM,ONLY:&
          i0supg,i0dmax,i0nmax,i0vmax,i2enr0,&
          d2jmpm,d0jdmp,d2wrks,d4smat,d3eafv,&
-         d5ev  ,d5ievn,d7ievs
+         d5ev  ,d5ievn,d7ievs,i2avvt
     
     INTEGER(i0ikind)::&
          i0nidi,i0nidj,i0nidk,i0nidl,i0nidm,&
          i0didi,i0didj,&
-         i0midi
+         i0midi,i0avvt
     
     REAL(   i0rkind)::&
          d2smat(1:i0nmax,1:i0nmax),&
@@ -1530,7 +1539,8 @@ CONTAINS
     ENDDO
 
     IF((i0supg.EQ.0).OR.(i0vidi.LE.5)) RETURN 
-    
+    i0avvt = i2avvt(i0vidi,i0vidi)
+    IF(i0avvt.EQ.0) RETURN
     !C
     !C ADDITIONAL LOOP (SUPG)
     !C
@@ -1592,12 +1602,12 @@ CONTAINS
     USE T2COMM,ONLY:&
          i0supg,i0dmax,i0nmax,i0vmax,i2enr0,&
          d2jmpm,d0jdmp,d4smat,d2wrks,d3eafv,&
-         d7et,  d7ietn,d9iets
+         d7et,  d7ietn,d9iets,i2avvt
     
     INTEGER(i0ikind)::&
          i0nidi,i0nidj,i0nidk,i0nidl,i0nidm,i0nidn,&
          i0didi,i0didj,i0didk,i0didl,&
-         i0midi
+         i0midi,i0avvt
     
     REAL(   i0rkind)::&
          d2smat(1:i0nmax,1:i0nmax),&
@@ -1684,7 +1694,8 @@ CONTAINS
     ENDDO
     
     IF((i0supg.EQ.0).OR.(i0vidi.LE.5)) RETURN
-    
+    i0avvt = i2avvt(i0vidi,i0vidi)
+    IF(i0avvt.EQ.0) RETURN    
     !C
     !C ADDITIONAL LOOP (SUPG)
     !C
@@ -1744,12 +1755,12 @@ CONTAINS
     USE T2COMM,ONLY:&
          i0supg,i0dmax,i0nmax,i0vmax,i2enr0,&
          d2jmpm,d0jdmp,d3eafv,d2svec,&
-         d3ss,  d2issn,d4isss
+         d3ss,  d2issn,d4isss,i2avvt
     
     INTEGER(i0ikind)::&
          i0nidi,i0nidj,i0nidk,&
          i0didi,&
-         i0midi
+         i0midi,i0avvt
  
     REAL(   i0rkind)::&
          d1sour(1:i0nmax),&
@@ -1791,7 +1802,8 @@ CONTAINS
     ENDDO
     
     IF((i0supg.EQ.0).OR.(i0vidi.LE.5)) RETURN
-    
+    i0avvt = i2avvt(i0vidi,i0vidi)
+    IF(i0avvt.EQ.0) RETURN
     !C
     !C ADDITIONAL LOOP (SUPG)
     !C
