@@ -2249,7 +2249,7 @@ CONTAINS
           i0bidj = i1nidc(i0aidi)
           DO i0vidi = 1, i0vmax
              SELECT CASE(i0vidi)
-             CASE(1:5,7,11,14:21)
+             CASE(1:5,6,10,14:21)
                 CYCLE
              CASE DEFAULT
                 DO i0vidj = 1, i0vmax
@@ -2268,7 +2268,7 @@ CONTAINS
        !C
        DO i0vidi = 1, i0vmax
           SELECT CASE(i0vidi)
-          CASE(1:5,7,11,14:21)
+          CASE(1:5,6,10,14:21)
              CYCLE
           CASE DEFAULT
              d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)

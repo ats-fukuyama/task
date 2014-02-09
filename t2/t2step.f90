@@ -46,17 +46,15 @@ CONTAINS
     ENDDO
     
     DO nconv=1,nconvmax
-       
+
        !C
        !C CALCULATE PLASMA COEFFICIENTS
        !C
-       
        CALL CPU_TIME(e0time_0)
        CALL T2_CALV
        CALL CPU_TIME(e0time_1)
        WRITE(6,'(A,F10.3,A)') '-- T2_CALV completed:          cpu=', &
                               e0time_1-e0time_0,' [s]'
-       
        !C
        !C ADVECTION DIFFUSION EQUATION SOLVER (SUPG)
        !C
@@ -83,16 +81,19 @@ CONTAINS
           ENDDO
        ENDDO
        
+
     ENDDO
+    
+    print*,'NLLOOP=',nconv,'EXIT'
     
     DO i0xidi = 1, i0xmax
        DO i0vidi = 1, i0vmax
           d2xvec(i0vidi,i0xidi) = d2xvec_after(i0vidi,i0xidi)
        ENDDO
     ENDDO
-
+    
     CALL T2_CONV
-
+    
     RETURN
     
   END SUBROUTINE T2_STEP

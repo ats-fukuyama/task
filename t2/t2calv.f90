@@ -48,7 +48,7 @@ CONTAINS
        CALL T2CALV_EV
        CALL T2CALV_ET
        CALL T2CALV_SS
-
+       
     ENDDO
     
     RETURN
@@ -162,18 +162,17 @@ CONTAINS
     d0rzcr  = d2rzm( 1,i0midi)
     d0mfcr  = d2mfc1(1,i0midi)
     d0mfcp  = d2mfc1(2,i0midi)
+
     !C
     !C CONVERT VARIABLES TO SI-UNIT
     !C
-    
-    i0nflag = 0
-    
-    DO i0sidi = 1, i0smax
        
+    DO i0sidi = 1, i0smax
+       i0nflag = 0
        i0vidi =  8*i0sidi - 3
        
        d0nn_a = d2xvec_befor(i0vidi+1,i0xid2d)*1.D-20
-       d0pp_a = d2xvec_befor(i0vidi+5,i0xid2d)*1.D-23*d0aee
+       d0pp_a = d2xvec_befor(i0vidi+5,i0xid2d)*1.D-23/d0aee
        
        d1nn(i0sidi) = d0nncst*d2xvec_befor(i0vidi+1,i0xid2d)
        d1fr(i0sidi) = d0frcst*d2xvec_befor(i0vidi+2,i0xid2d)
@@ -205,7 +204,7 @@ CONTAINS
        IF(i0nflag.EQ.1)THEN
           WRITE(6,*)'NEGATIVE  DENSITY or PRESSURE'
           WRITE(6,*)'SPECIS=',i0sidi,'NODE=',i0xid2d,&
-               'N',d0nn_a,'10^{20} /m3','P=',d0pp_a,'keV/m3'
+               'N',d0nn_a,'10^{20} /m3','P=',d0pp_a/d0nn_a,'keV'
           STOP       
        ENDIF
     ENDDO
@@ -246,7 +245,6 @@ CONTAINS
     
     d0psip = d0mfcst*d2xvec_befor(1,i0xid1d)
     d0cobt = d0btcst*d2xvec_befor(2,i0xid1d)
-    !print*,d0psip,d0cobt,d0mfcr,d0mfcp
     d0sqrtg = d2jm1(1,i0midi)
     d0ctgrr = d2jm1(2,i0midi)
     d0ctgrp = d2jm1(3,i0midi)
@@ -612,17 +610,6 @@ CONTAINS
     !C
     
     IF(d0mfcr.GT.0.D0)THEN
-       !IF(   (d0mfcr.GT.0.D0).AND.(d0mfcr.LE.1.D0))THEN
-       !   d0q0 = (d0qc-d0qs)*(1.D0 - d0mfcr**2)+d0qs
-       !   !d0q0 = (d0qc-d0qs)*((1.D0 - d0mfcr**2)**2)+d0qs
-       !ELSEIF(d0mfcr.GT.1.D0)THEN
-       !   d0q0 = (d0qs-d0qc)*(       d0mfcr**2)+d0qc
-       !   !d0q0 = d0qs
-       !ELSE
-       !   WRITE(6,*)'WRONG RHO INPUT'
-       !   PRINT*,d0mfcr
-       !   STOP
-       !ENDIF
        
        d0q0 = d0ctbt*d0ctbpi
 
@@ -647,9 +634,7 @@ CONTAINS
           d0k11ps = d0cps*d0k11ps
           d0k12ps = d0cps*d0k12ps
           d0k22ps = d0cps*d0k22ps
-!          print*,i0xa,d0pp_a,d2cfreq(i0xa,i0xa)
-!          print*,d0k11ps,d0k12ps,d0k22ps
- !         stop
+
           !C
           !C MODIFIED VISCOSITY COEFFICIENT IN BN REGIME
           !C 
