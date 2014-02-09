@@ -148,9 +148,10 @@ CONTAINS
     DO i0vidi = 1,i0vmax
        
        SELECT CASE(i0vidi)
-       
-       CASE(6:13)
-       
+          
+       !CASE(6:13)
+       !CASE(6:21)
+       CASE(1:21)
           d0dif  = d1dif(i0vidi)
           d0ave  = d1ave(i0vidi)
        
