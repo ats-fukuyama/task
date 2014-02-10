@@ -2210,8 +2210,8 @@ CONTAINS
           DO i0vidi = 1, i0vmax
              SELECT CASE(i0vidi)
              !CASE(1:5,14:21)
-             !CASE(1:5)
-             CASE(22:)
+             CASE(1:5)
+             !CASE(22:)
                 IF((i0bidi.EQ.i0bidj).AND.(i0vidi.EQ.i0vidj))THEN
                    d3amat(i0vidi,i0vidj,i0aidi) = 1.D0
                 ELSE
@@ -2229,8 +2229,8 @@ CONTAINS
        DO i0vidi = 1, i0vmax
           SELECT CASE(i0vidi)
          !CASE(1:5,14:21)
-          !CASE(1:5)
-          CASE(22:)
+         CASE(1:5)
+         ! CASE(22:)
              d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)
           END SELECT
        ENDDO
@@ -2251,8 +2251,8 @@ CONTAINS
           DO i0vidi = 1, i0vmax
              SELECT CASE(i0vidi)
              !CASE(1:5,6,10,14:21)
-             !CASE(1:5,6,10,14,18)
-             CASE(6,10,14,18)
+             CASE(1:5,6,10,14,18)
+             !CASE(6,10,14,18)
                 CYCLE
              CASE DEFAULT
                 DO i0vidj = 1, i0vmax
@@ -2272,8 +2272,8 @@ CONTAINS
        DO i0vidi = 1, i0vmax
           SELECT CASE(i0vidi)
           !CASE(1:5,6,10,14:21)
-          !CASE(1:5,6,10,14,18)
-          CASE(6,10,14,18)
+          CASE(1:5,6,10,14,18)
+          !CASE(6,10,14,18)
              CYCLE
           CASE DEFAULT
              d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)

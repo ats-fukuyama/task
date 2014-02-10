@@ -65,7 +65,7 @@ CONTAINS
     i0smax =  2 
     i0nmax =  4       ! number of nodes in a elemnt
     i0lmax =  3       ! 
-    i0pdiv_number = 48! 
+    i0pdiv_number = 50! 
 
 
     i1mlvl(0:i0lmaxm+1) = 0
@@ -75,12 +75,12 @@ CONTAINS
 
 
     i1rdn2(-1:i0lmaxm) = 0  
-    i1rdn2(1) = 25   ! number of radial nodes in a level
-    i1rdn2(2) = 25   ! number of radial nodes in a level
-    i1rdn2(3) = 10    ! number of radial nodes in a level
+    i1rdn2(1) = 20   ! number of radial nodes in a level
+    i1rdn2(2) = 15   ! number of radial nodes in a level
+    i1rdn2(3) = 15    ! number of radial nodes in a level
     
     d1rec(0:i0lmaxm) = 0.D0 ! least radial point in a level
-    d1rec(1) = 0.4500D0
+    d1rec(1) = 0.450D0
     d1rec(2) = 0.900D0
     d1rec(3) = 1.100D0
     d0rmjr   =  3.0D0
@@ -128,15 +128,15 @@ CONTAINS
     dt        = 1.D-5   ! time step [s]
     time_init = 0.D0    ! initial time [s]
 
-    ntmax     = 1       ! number of time steps to go
-    ntstep    = 1       ! time step to print snap shot of global data
+    ntmax     = 100    ! number of time steps to go
+    ntstep    = 10     ! time step to print snap shot of global data
     nt0dmax   = 1       ! maximim number of global data to be saved
     nt0dstep  = 1       ! time step to save global data
     nt2dmax   = 1       ! maximum number of profile data to be saved
     nt2dstep  = 1       ! time step to save profile data
 
     nconvmax  = 50      ! maximum number of convergence steps for implicit loop
-    eps_conv  = 1.D-3   ! relative convergence criterion for implicit loop
+    eps_conv  = 1.D-4   ! relative convergence criterion for implicit loop
 
     idfile    = 0       ! control id for file output: 0 for none, 9 for all
     idprint   = 9       ! control id for print output: 0 for none, 9 for all
