@@ -20,12 +20,11 @@ CONTAINS
     
     USE T2COMM, ONLY: &
          c10rname, i0dbg, i0fnum, i0mfcs, i0wstp,&
-         i0dmax,i0amax,i0nmax,i0smax,i0lmax,i0qmax,&
-         !         i0tmax, d0tstp, d0tmax,&
+         i0solv,i0dmax,i0amax,i0nmax,i0smax,i0lmax,i0qmax,&
          i0smax, i0nmax,i0dmax, i1mlvl,&
          i0pdiv_number, i1rdn2, d1rec,&
          i0pmax,d0eps,d0rmjr,d0rmnr,&
-         i0m0,i0n0,d0bc,&
+         i1nm,i1nn,i1tm,i1tn,d0bc,&
          d1nc,d1ns,d1nw,d1tc,d1ts,d1tw,&
          d1pa,d1pz,&
          d0qc,d0qs,d0rw, &
@@ -38,11 +37,10 @@ CONTAINS
     NAMELIST /T2/ &
          c10rname, i0dbg, i0fnum, i0mfcs, i0wstp,&
          i0dmax,i0amax,&
-!         i0tmax, d0tstp, d0tmax,&
          i0smax, i0nmax, i0lmax, i1mlvl,&
          i0pdiv_number, i1rdn2, d1rec,&
          i0pmax,d0eps,d0rmjr,d0rmnr,&
-         i0m0,i0n0,d0bc,&
+         d0bc,&
          d1nc,d1ns,d1nw,d1tc,d1ts,d1tw,&
          d1pa,d1pz,&
          d0qc,d0qs,d0rw, &
@@ -51,6 +49,7 @@ CONTAINS
          idfile,idprint,idplot,idmode,idebug
 
     c10rname = 'TEST'
+    i0solv   =  2
     i0dbg    =  0
     i0fnum   = 10
     i0mfcs   =  1
@@ -63,26 +62,21 @@ CONTAINS
 
 
     i0smax =  2 
-    i0nmax =  4       ! number of nodes in a elemnt
-    i0lmax =  3       ! 
-    i0pdiv_number = 50! 
+    i0nmax =  4        ! number of nodes in a elemnt
+    i0lmax =  1        ! 
+    i0pdiv_number = 30 ! 
 
 
     i1mlvl(0:i0lmaxm+1) = 0
     i1mlvl(1)=1        ! 10 x 2^0
-    i1mlvl(2)=2        ! 10 x 2^0
-    i1mlvl(3)=3        ! 10 x 2^0
 
-
+    
     i1rdn2(-1:i0lmaxm) = 0  
-    i1rdn2(1) = 20   ! number of radial nodes in a level
-    i1rdn2(2) = 15   ! number of radial nodes in a level
-    i1rdn2(3) = 15    ! number of radial nodes in a level
+    i1rdn2(1) = 30   ! number of radial nodes in a level
     
     d1rec(0:i0lmaxm) = 0.D0 ! least radial point in a level
-    d1rec(1) = 0.450D0
-    d1rec(2) = 0.900D0
-    d1rec(3) = 1.100D0
+    d1rec(1) = 1.0000D0
+
     d0rmjr   =  3.0D0
     d0rmnr   =  1.0D0
     d0rw     =  1.1D0
@@ -91,28 +85,34 @@ CONTAINS
     d0qs     =  3.0D0
 
 !   PLASMA PARAMETER
-    i0m0     =  1       ! pressure profile parameter
-    i0n0     =  3       ! pressure profile parameter
     
 !    Electron 
     d1pa(1) =  d0ame/d0amp
     d1pz(1) = -1.D0
-    d1nc(1) = 1.0D0
-    d1ns(1) = 2.0D-1
-    d1nw(1) = 5.0D-2
+    i1nm(1) = 1
+    i1nn(1) = 3
+    d1nc(1) =  1.0D0
+    d1ns(1) =  1.0D-1
+    !d1nw(1) = 5.0D-2
+    i1tm(1) = 1
+    i1tn(1) = 2
     d1tc(1) = 5.0D0
-    d1ts(1) = 1.0D0
-    d1tw(1) = 1.0D-1
+    d1ts(1) = 5.0D-1
+    !d1tw(1) = 1.0D-1
 
 !   Deuterium
     d1pa(2) = 2.D0
     d1pz(2) = 1.D0
+    i1nm(2) = 1
+    i1nn(2) = 3
     d1nc(2) = 1.D0
-    d1ns(2) = 2.D-1
-    d1nw(2) = 5.D-2
+    d1ns(2) = 1.D-1
+    !d1nw(2) = 5.D-2
+    i1tm(2) = 1
+    i1tn(2) = 2
     d1tc(2) = 5.D0
-    d1ts(2) = 1.D0
-    d1tw(2) = 1.D-1
+    d1ts(2) = 5.D-1
+    !d1tw(2) = 1.D-1
 
 !   Other plasma speces
     d1nc(3:i0spcsm) = 0.D0
@@ -124,12 +124,11 @@ CONTAINS
     d1pa(3:i0spcsm) = 0.D0
     d1pz(3:i0spcsm) = 0.D0
 
-!
+    !
     dt        = 1.D-5   ! time step [s]
     time_init = 0.D0    ! initial time [s]
-
-    ntmax     = 100    ! number of time steps to go
-    ntstep    = 10     ! time step to print snap shot of global data
+    ntmax     = 1       ! number of time steps to go
+    ntstep    = 1       ! time step to print snap shot of global data
     nt0dmax   = 1       ! maximim number of global data to be saved
     nt0dstep  = 1       ! time step to save global data
     nt2dmax   = 1       ! maximum number of profile data to be saved

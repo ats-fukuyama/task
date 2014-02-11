@@ -57,7 +57,11 @@ MODULE T2COMM
   INTEGER(i0ikind)::&
        i0mfcs, & !C INDICATOR FOR COORDINATE SYSTEM (1: torus coordinate)
        i0supg, & !C INDICATOR FOR SUPG METHOD (0: w/o SUPG, 1: w SUPG)
-       i0wstp    !C INDICATOR FOR RESULT OUTPUT TIMING
+       i0wstp, & !C INDICATOR FOR RESULT OUTPUT TIMING
+       i0solv    !C INDICATOR FOR SOLVED DEPENDENT VARIAVLES
+                 !C      1: ELECTRON
+                 !C      2: ELECTRON AND IONS
+                 !C      3: ELECTRON, IONS AND FIELDS  
   INTEGER(i0ikind)::&
        i0bvmax,& !C VECTOR SIZE OF b FOR MTXP (Ax=b)
        i0avmax   !C NUMBER OF NONZERO COMPONENT OF A FOR MTXP (Ax=b)
@@ -308,8 +312,8 @@ MODULE T2COMM
   !C                          FOR T2PROF
   !C
   !C------------------------------------------------------------------
-  INTEGER(i0ikind)::&
-       i0m0,i0n0
+  INTEGER(i0ikind),DIMENSION(1:i0spcsm)::&
+       i1nm,i1nn,i1tm,i1tn
   REAL(   i0rkind)::&
        d0qc,d0qs,d0bc,d0rw
   REAL(   i0rkind),DIMENSION(1:i0spcsm)::&

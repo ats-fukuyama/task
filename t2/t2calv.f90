@@ -34,7 +34,10 @@ CONTAINS
   SUBROUTINE T2_CALV
     
     USE T2COMM, ONLY: i0mmax
-    
+    !OPEN(10,FILE='PROF_SI.dat')
+    !OPEN(11,FILE='FIELD_SI.dat')
+    !OPEN(10,FILE='PROF_PI.dat')
+    !OPEN(11,FILE='FIELD_PI.dat')
     DO i0midi = 1, i0mmax
        
        CALL T2CALV_PQ
@@ -50,7 +53,9 @@ CONTAINS
        CALL T2CALV_SS
        
     ENDDO
-    
+    !CLOSE(10)
+    !CLOSE(11)
+    !STOP
     RETURN
     
   END SUBROUTINE T2_CALV
@@ -59,8 +64,8 @@ CONTAINS
   !C
   !C CALCULATION OF FUNDAMENTAL PHYSICAL QUANTITIES 
   !C 
-  !C     2014-01-26 H.SETO
-  !C                                        
+  !C     2014-02-10 H.SETO
+  !C            
   !C---------------------------------------------------------
   
   SUBROUTINE T2CALV_PQ
@@ -166,7 +171,7 @@ CONTAINS
     !C
     !C CONVERT VARIABLES TO SI-UNIT
     !C
-       
+    
     DO i0sidi = 1, i0smax
        i0nflag = 0
        i0vidi =  8*i0sidi - 3
@@ -182,7 +187,11 @@ CONTAINS
        d1qr(i0sidi) = d0qrcst*d2xvec_befor(i0vidi+6,i0xid2d)
        d1qb(i0sidi) = d0qbcst*d2xvec_befor(i0vidi+7,i0xid2d)
        d1qt(i0sidi) = d0qtcst*d2xvec_befor(i0vidi+8,i0xid2d)
-       
+       !write(10,'(2(A4,I5),8(A4,D15.8))')'ND=',i0midi,'SP=',i0sidi,&
+       !     'NN=',d1nn(i0sidi),'FR=',d1fr(i0sidi),&
+       !     'FB=',d1fb(i0sidi),'FT=',d1ft(i0sidi),&
+       !     'PP=',d1pp(i0sidi),'QR=',d1qr(i0sidi),&
+       !     'QB=',d1qb(i0sidi),'QT=',d1qt(i0sidi)
        IF(        d0nn_a .GT.0.D0 )THEN
           d1ni(i0sidi) = 1.D0/d1nn(i0sidi)
        ELSEIF(ABS(d0nn_a).LE.1.D-4)THEN 
@@ -208,9 +217,7 @@ CONTAINS
           STOP       
        ENDIF
     ENDDO
-    
-
-
+      
     !C
     !C GEOMETRICAL COEFFICIENTS
     !C
@@ -252,7 +259,7 @@ CONTAINS
     d0ctgtt = d2jm1(5,i0midi)
     
     d0cogtt =  1.D0/d0ctgtt
-    
+    !write(11,'(A5,I5,2(A5,D15.8))')'ND=',i0midi,'PSI=',d0psip,'BT=',d0cobt
     ! modified by H.SETO 2014-02-03
     IF(d0sqrtg.GT.0.D0)THEN
        !C d0wv1  : WORKING VARIABLE: \sqrt{g}^{2}/R^{2}
@@ -261,7 +268,7 @@ CONTAINS
        d0cogrp = -d0ctgrp*d0wv1
        d0cogpp =  d0ctgrr*d0wv1
        d0ctbp  =  d0psip/d0sqrtg
-       d0ctbpi = 1.D0/d0ctbp
+       d0ctbpi =  1.D0/d0ctbp
     ELSE
        d0cogrr = 0.D0
        d0cogrp = 0.D0
@@ -389,6 +396,7 @@ CONTAINS
             = d2bcf(i0sidi,i0sidj)/(0.75D0*SQRT(d0pi))
     ENDDO
     ENDDO
+    
     !C 
     !C FOR FRICTION COEFFICIENTS
     !C 
@@ -724,7 +732,7 @@ CONTAINS
   !C 
   !C CALCULATION OF MASS SCALAR COEFFICIENTS
   !C
-  !C             2014-01-26 H.SETO
+  !C             2014-02-10 H.SETO
   !C---------------------------------------------------------
   
   SUBROUTINE T2CALV_MS
@@ -784,7 +792,7 @@ CONTAINS
     i0vidi = 4
     i0vidj = 4
     d3ms(i0vidi,i0vidj,i0midi) = d0sqrtg*d0vci2
-        
+    
     DO i0sidi = 1, i0smax
        
        !C
@@ -851,7 +859,8 @@ CONTAINS
   !C 
   !C CALCULATION OF ADVECTION VECTOR COEFFICIENTS
   !C
-  !C             2014-01-26 H.SETO
+  !C             2014-02-10 H.SETO
+  !C
   !C---------------------------------------------------------
   SUBROUTINE T2CALV_AV
     
@@ -892,7 +901,6 @@ CONTAINS
     !C
     !C EQUATION FOR PSI'
     !C
-    
     i0vidi = 1
     
     !C PSI'
@@ -930,9 +938,9 @@ CONTAINS
     !C
     !C EQUATION FOR Ep
     !C
-
+    
     i0vidi = 4
-
+    
     !C Ep
     i0vidj = 4
     d4av(1,i0vidi,i0vidj,i0midi) =  d0ugr*d0vci2
@@ -970,7 +978,7 @@ CONTAINS
        d0qp_a = d1qp(i0sidi)
        d0qb_a = d1qb(i0sidi)
        d0qt_a = d1qt(i0sidi)
-
+       
        !C
        !C EQUATION FOR N
        !C
@@ -1060,7 +1068,9 @@ CONTAINS
             = d0ftcst*d0sqrtg*d0ni_a*(d0qp_a - 1.5D0*d0pp_a*d0up_a)/d0qtcst
        
        !C Qt
-       i0vidj = i0vidj
+       
+       i0vidj = i0vidi
+       
        d4av(1,i0vidi,i0vidj,i0midi) = d0ugr + d0sqrtg*d0ur_a
        d4av(2,i0vidi,i0vidj,i0midi) = d0ugp + d0sqrtg*d0up_a
        
@@ -1074,7 +1084,7 @@ CONTAINS
   !C 
   !C CALCULATION OF ADVECTION TENSOR COEFFICIENTS
   !C
-  !C             2014-01-26 H.SETO
+  !C             2014-02-10 H.SETO
   !C
   !C---------------------------------------------------------  
   SUBROUTINE T2CALV_AT
@@ -1183,7 +1193,7 @@ CONTAINS
        i0vidj = i0vidi
        i0widi = 1
        d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0x5*d0nvcc1_a*d0mi_a
+            =          d0x1*d0x5*d0nvcc1_a*d0mi_a
        
        !C Qb (B)
        i0vidj = i0vidi + 3
@@ -1216,14 +1226,13 @@ CONTAINS
        d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
             = -d0fbcst*d0x1*d0c1p_a*d0nvcc1_a/d0ppcst
 
-
-       !C Ft
+       !C Ft (B)
        i0vidj = i0vidi - 1
        i0widi = 1
        d6at(1,2,i0widi,i0vidi,i0vidj,i0midi)&
             =  d0ftcst*d0x1*d0c2r_a*d0nvcc1_a/d0ppcst
        d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0ftcst*d0x2*d0c2p_a*d0nvcc1_a /d0ppcst
+            =  d0ftcst*d0x1*d0c2p_a*d0nvcc1_a/d0ppcst
        
        !C Qb
        i0vidj = i0vidi + 2
@@ -1337,10 +1346,10 @@ CONTAINS
     !C
     !C INITIALIZATION
     !C 
-    DO i0didi = 1, i0dmax
-    DO i0didj = 1, i0dmax
-       DO i0vidi = 1, i0vmax
-       DO i0vidj = 1, i0vmax
+    DO i0vidi = 1, i0vmax
+    DO i0vidj = 1, i0vmax
+       DO i0didi = 1, i0dmax
+       DO i0didj = 1, i0dmax
           d5dt(i0didi,i0didj,i0vidi,i0vidj,i0midi) = 0.D0 
        ENDDO
        ENDDO
@@ -1493,7 +1502,7 @@ CONTAINS
             =  d0qbcst*d0x2*d0nvcc4_a/d0qtcst
        
     ENDDO
-
+    
     RETURN
     
   END SUBROUTINE T2CALV_DT
@@ -1502,7 +1511,8 @@ CONTAINS
   !C 
   !C CALCULATION OF GRADIENT VECTOR COEFFICIENTS
   !C
-  !C             2014-01-26 H.SETO
+  !C             2014-02-10 H.SETO
+  !C
   !C---------------------------------------------------------
   SUBROUTINE T2CALV_GV
 
@@ -1512,24 +1522,25 @@ CONTAINS
          d0mfcst,d0btcst,d0ercst,d0epcst,d0etcst,&
          d0nncst,d0frcst,d0fbcst,d0ftcst,&
          d0ppcst,d0qrcst,d0qbcst,d0qtcst,&
-         d1pp,d1tt,d1ur,d1up,d4gv
+         d1pp,d1tt,d1ur,d1up,d4gv,d1mm
     
     INTEGER(i0ikind)::&
          i0sidi,i0didi,i0vidi,i0vidj
     REAL(   i0rkind)::&
-         d0tt_a,d0ur_a,d0up_a,d0c1_a
+         d0tt_a,d0ur_a,d0up_a,d0c1_a,d0mm_a
     
     !C
     !C INITIALIZATION
     !C
-    DO i0didi = 1, i0dmax
-       DO i0vidi = 1, i0vmax
-       DO i0vidj = 1, i0vmax
+
+    DO i0vidi = 1, i0vmax
+    DO i0vidj = 1, i0vmax
+       DO i0didi = 1, i0dmax
           d4gv(i0didi,i0vidi,i0vidj,i0midi) = 0.D0
        ENDDO
-       ENDDO
     ENDDO
-
+    ENDDO
+    
     !C
     !C EQUATION FOR PSI
     !C
@@ -1570,17 +1581,17 @@ CONTAINS
        d0tt_a = d1tt(i0sidi)
        d0ur_a = d1ur(i0sidi)
        d0up_a = d1up(i0sidi)
-       
+       d0mm_a = d1mm(i0sidi)
        !C
        !C EQUATION FOR Fr
        !C
-
+       
        i0vidi = 8*i0sidi - 1
        
        !C P
        i0vidj = i0vidi + 3
-       d4gv(1,i0vidi,i0vidj,i0midi) =  d0ppcst*d0sqrtg*d0ctgrr/d0frcst
-       d4gv(2,i0vidi,i0vidj,i0midi) =  d0ppcst*d0sqrtg*d0ctgrp/d0frcst
+       d4gv(1,i0vidi,i0vidj,i0midi) =  d0ppcst*d0sqrtg*d0ctgrr/d0mm_a/d0frcst
+       d4gv(2,i0vidi,i0vidj,i0midi) =  d0ppcst*d0sqrtg*d0ctgrp/d0mm_a/d0frcst
        
        
        !C 
@@ -1604,13 +1615,13 @@ CONTAINS
        
        !C N
        i0vidj = i0vidi - 5
-       d4gv(1,i0vidi,i0vidj,i0midi) = -d0nncst*d0c1_a*d0ctgrr*d0tt_a/d0qrcst
-       d4gv(2,i0vidi,i0vidj,i0midi) = -d0nncst*d0c1_a*d0ctgrp*d0tt_a/d0qrcst
+       d4gv(1,i0vidi,i0vidj,i0midi) = -d0nncst*d0c1_a*d0ctgrr*d0tt_a/d0mm_a/d0qrcst
+       d4gv(2,i0vidi,i0vidj,i0midi) = -d0nncst*d0c1_a*d0ctgrp*d0tt_a/d0mm_a/d0qrcst
        
        !C P
        i0vidj = i0vidi - 1
-       d4gv(1,i0vidi,i0vidj,i0midi) =  d0ppcst*d0c1_a*d0ctgrr*2.D0/d0qrcst
-       d4gv(2,i0vidi,i0vidj,i0midi) =  d0ppcst*d0c1_a*d0ctgrp*2.D0/d0qrcst
+       d4gv(1,i0vidi,i0vidj,i0midi) =  d0ppcst*d0c1_a*d0ctgrr*2.D0/d0mm_a/d0qrcst
+       d4gv(2,i0vidi,i0vidj,i0midi) =  d0ppcst*d0c1_a*d0ctgrp*2.D0/d0mm_a/d0qrcst
        
     ENDDO
     
@@ -1622,7 +1633,8 @@ CONTAINS
   !C 
   !C CALCULATION OF GRADIENT TENSOR COEFFICIENTS
   !C
-  !C             2014-01-26 H.SETO
+  !C             2014-02-10 H.SETO
+  !C
   !C---------------------------------------------------------
   SUBROUTINE T2CALV_GT
     
@@ -1649,11 +1661,11 @@ CONTAINS
     !C INITIALIZATION
     !C
     
-    DO i0didi = 1, i0dmax
-    DO i0didj = 1, i0dmax
+    DO i0vidi = 1, i0vmax
+    DO i0vidj = 1, i0vmax
        DO i0widi = 1, i0wmax
-          DO i0vidi = 1, i0vmax
-          DO i0vidj = 1, i0vmax
+          DO i0didi = 1, i0dmax
+          DO i0didj = 1, i0dmax
              d6gt(i0didi,i0didj,i0widi,i0vidi,i0vidj,i0midi) = 0.D0
           ENDDO
           ENDDO
@@ -1667,7 +1679,7 @@ CONTAINS
     DO i0sidi = 1, i0smax
        
        d0mm_a    = d1mm(   i0sidi)
-       d0mi_a    = d0mm_a
+       d0mi_a    = 1.D0/d0mm_a
        d0ut_a    = d1ut(   i0sidi)
        d0ub_a    = d1ub(   i0sidi)
        d0vb_a    = d1vb(   i0sidi)
@@ -1717,7 +1729,7 @@ CONTAINS
        i0widi = 1
        d6gt(2,2,i0widi,i0vidi,i0vidj,i0midi)&
             = -d0nncst*d0x2*d0nvcc1_a*d0ub_a*d0c1_a/d0ppcst
-
+       
        !C N (Ub)
        i0vidj = i0vidi - 4
        i0widi = 2*i0sidi + 1
@@ -1799,9 +1811,10 @@ CONTAINS
 
   !C---------------------------------------------------------
   !C 
-  !C CALCULATION OF ECITATION SCALAR COEFFICIENTS
+  !C CALCULATION OF EXCITATION SCALAR COEFFICIENTS
   !C
-  !C             2014-01-26 H.SETO
+  !C             2014-02-10 H.SETO
+  !C
   !C---------------------------------------------------------
   SUBROUTINE T2CALV_ES
     
@@ -1840,7 +1853,7 @@ CONTAINS
     ENDDO
     ENDDO
     
-    d0x1 = (d0sqrtg**2)*d0bb*d0ctbpi
+    d0x1 = d0bb*d0ctbpi
     
     !C
     !C EQUATION FOR Et
@@ -1903,12 +1916,12 @@ CONTAINS
        d0mm_a  = d1mm( i0sidi)
        d0ee_a  = d1ee( i0sidi)
        d0hex_a = d1hex(i0sidi)
-       d0mi_a  = d0mm_a
+       d0mi_a  = 1.D0/d0mm_a
 
-       d0c07a_1 = d0sqrtg*d0ee_a*d0nn_a*d0ctgrp
-       d0c07a_2 = d0sqrtg*d0ee_a*d0nn_a*d0ctgrr
-       d0c07a_3 = d0x1*d0ee_a*d0cobt
-       d0c07a_4 = d0x1*d0ee_a*d0bb
+       d0c07a_1 = d0sqrtg*d0ee_a*d0nn_a*d0mi_a*d0ctgrp
+       d0c07a_2 = d0sqrtg*d0ee_a*d0nn_a*d0mi_a*d0ctgrr
+       d0c07a_3 = d0x1*d0ee_a*d0cobt*d0mi_a
+       d0c07a_4 = d0x1*d0ee_a*d0bb*d0mi_a
        
        d0c08a_1 = d0sqrtg*d0ee_a*d0nn_a*d0mi_a*d0ctbt
        d0c08a_2 = d0sqrtg*d0ee_a*d0nn_a*d0mi_a*d0ctbp
@@ -2093,13 +2106,6 @@ CONTAINS
              i0vidj = 3
              d3es(i0vidi,i0vidj,i0midi)&
                   = -d0etcst*2.5D0*d0tt_a*d0c09a_1/d0qtcst
-          ENDIF
-          
-          !C Ft
-          i0vidj = 8*i0sidj + 1
-          d3es(i0vidi,i0vidj,i0midi) = -d0ftcst*d0sqrtg*d0nfcf3_ab/d0qtcst
-          
-          IF(i0sidi.EQ.i0sidj)THEN
              
              !C Qr
              i0vidj = 8*i0sidj + 3
@@ -2107,6 +2113,10 @@ CONTAINS
 
           ENDIF
 
+          !C Ft
+          i0vidj = 8*i0sidj + 1
+          d3es(i0vidi,i0vidj,i0midi) = -d0ftcst*d0sqrtg*d0nfcf3_ab/d0qtcst
+          
           !C Qt
           i0vidj = 8*i0sidj + 5
           d3es(i0vidi,i0vidj,i0midi) = -d0qtcst*d0sqrtg*d0nfcf4_ab/d0qtcst
@@ -2123,7 +2133,8 @@ CONTAINS
   !C 
   !C CALCULATION OF ECITATION VECTOR COEFFICIENTS
   !C
-  !C             2014-01-26 H.SETO
+  !C             2014-02-10 H.SETO
+  !C
   !C---------------------------------------------------------
   SUBROUTINE T2CALV_EV
     
@@ -2151,17 +2162,17 @@ CONTAINS
     !C 
     !C INITIALIZATION
     !C
-    DO i0didi = 1, i0dmax   
+    DO i0vidj = 1, i0vmax
+    DO i0vidi = 1, i0vmax
        DO i0widi = 1, i0wmax 
-          DO i0vidi = 1, i0vmax
-          DO i0vidj = 1, i0vmax
+          DO i0didi = 1, i0dmax   
              d5ev(i0didi,i0widi,i0vidi,i0vidj,i0midi) = 0.D0
-          ENDDO
           ENDDO
        ENDDO
     ENDDO
+    ENDDO
     
-    d0x1 = 2.D0*d0sqrtg*sqrt(d0ctgtt)
+    d0x1 = 2.D0*d0sqrtg*SQRT(d0ctgtt)
     d0x2 = d0sqrtg*d0ctbp/d0bb
     d0x3 = d0bt2*d0bp2i
     d0x4 = 3.D0*d0sqrtg*(d0ctbp/d0bb)*d0ctbt
@@ -2333,12 +2344,12 @@ CONTAINS
     !C
     !C
     !C
-    DO i0didi = 1, i0dmax
-    DO i0didj = 1, i0dmax
-       DO i0widi = 1, i0wmax
+    DO i0vidj = 1, i0vmax
+    DO i0vidi = 1, i0vmax
        DO i0widj = 1, i0wmax
-          DO i0vidi = 1, i0vmax
-          DO i0vidj = 1, i0vmax
+       DO i0widi = 1, i0wmax
+          DO i0didj = 1, i0dmax
+          DO i0didi = 1, i0dmax
              d7et(i0didi,i0didj,i0widi,i0didj,i0vidi,i0vidj,i0midi) = 0.D0
           ENDDO
           ENDDO

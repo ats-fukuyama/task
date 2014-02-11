@@ -101,7 +101,7 @@ CONTAINS
   SUBROUTINE T2STEP_CONV(d0dif)
     
     USE T2COMM, ONLY:&
-         i0vmax,i0xmax,i0rmax,&
+         i0solv,i0vmax,i0xmax,i0rmax,&
          i1mc1d,d2xvec_after,d2xvec_befor
     
     REAL(   i0rkind),INTENT(OUT)::d0dif
@@ -144,17 +144,18 @@ CONTAINS
     !C
     !C CHECK CONVERGENCE
     !C
-    
-    DO i0vidi = 1,i0vmax
+    SELECT CASE(i0solv)
        
-       SELECT CASE(i0vidi)
+       !C
+       !C ELECTRON
+       !C
+
+    CASE(1)
+       DO i0vidi = 6, 13
           
-       !CASE(6:13)
-       CASE(6:21)
-       !CASE(1:21)
           d0dif  = d1dif(i0vidi)
           d0ave  = d1ave(i0vidi)
-       
+          
           IF(d0ave.LE.0.D0)THEN
              WRITE(6,'("*********************************************")')
              WRITE(6,'("       ERROR IN T2_STEP_CONVERGENCE          ")')
@@ -163,15 +164,69 @@ CONTAINS
              PRINT*,i0vidi
              STOP
           ENDIF
+          
+          d0dif_tmp = d0dif/d0ave
+          d0dif_tmp = SQRT(d0dif_tmp)
+          WRITE(6,*),'VARIABLES=',i0vidi,'RESIDUAL=',d0dif_tmp
+          d0dif_max = MAX(d0dif_max,d0dif_tmp)
+          
+       ENDDO
        
+       !C
+       !C ELECTRON AND IONS
+       !C
+
+    CASE (2)
+       
+       DO i0vidi = 6,i0vmax
+          
+          d0dif  = d1dif(i0vidi)
+          d0ave  = d1ave(i0vidi)
+          
+          IF(d0ave.LE.0.D0)THEN
+             WRITE(6,'("*********************************************")')
+             WRITE(6,'("       ERROR IN T2_STEP_CONVERGENCE          ")')
+             WRITE(6,'("       INDETERMINATE PROBLEM                 ")')
+             WRITE(6,'("*********************************************")')
+             PRINT*,i0vidi
+             STOP
+          ENDIF
+          
           d0dif_tmp = d0dif/d0ave
           d0dif_tmp = SQRT(d0dif_tmp)
           WRITE(6,*),'VARIABLES=',i0vidi,'RESIDUAL=',d0dif_tmp
           d0dif_max = MAX(d0dif_max,d0dif_tmp)
 
-       END SELECT
+       ENDDO
 
-    ENDDO
+       !C
+       !C ELECTRON, IONS AND FIELD
+       !C
+
+    CASE (3)
+       
+       DO i0vidi = 1,i0vmax
+          
+          d0dif  = d1dif(i0vidi)
+          d0ave  = d1ave(i0vidi)
+          
+          IF(d0ave.LE.0.D0)THEN
+             WRITE(6,'("*********************************************")')
+             WRITE(6,'("       ERROR IN T2_STEP_CONVERGENCE          ")')
+             WRITE(6,'("       INDETERMINATE PROBLEM                 ")')
+             WRITE(6,'("*********************************************")')
+             PRINT*,i0vidi
+             STOP
+          ENDIF
+          
+          d0dif_tmp = d0dif/d0ave
+          d0dif_tmp = SQRT(d0dif_tmp)
+          WRITE(6,*),'VARIABLES=',i0vidi,'RESIDUAL=',d0dif_tmp
+          d0dif_max = MAX(d0dif_max,d0dif_tmp)
+          
+       ENDDO
+       
+    ENDSELECT
     
     d0dif = d0dif_max
     

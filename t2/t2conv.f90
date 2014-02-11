@@ -89,10 +89,10 @@ CONTAINS
        d0et_pu = d0coet*SQRT(d0ctgtt)
        
        !C
-       !C d0ep_pu: Poroidal Electric Field [mV/m]
+       !C d0ep_pu: Poroidal Electric Field [V/m]
        !C
 
-       d0ep_pu = d0coep*SQRT(d0ctgpp)*1.D3
+       d0ep_pu = d0coep*SQRT(d0ctgpp)*1.D0
 
        !C
        !C d0er_pu: Radial   Electric Field [kV/m]

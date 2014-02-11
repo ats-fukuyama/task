@@ -18,7 +18,7 @@ FLINKER=$(FCFREE)
 .SUFFIXES: .f90 .mod .o .a 
 
 FFLAGS= $(OFLAGS)
-#FFLAGS= $(DFLAGS)
+FFLAGS= $(DFLAGS)
 
 MODINCLUDE= -I.$(MOD) -I../mtxp -I../lib/$(MOD) -I../../bpsd/$(MOD) \
               -I../t2x/$(MOD) -I../plx/$(MOD) -I../eq/$(MOD)

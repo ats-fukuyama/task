@@ -9,7 +9,7 @@ MODULE T2EXEC
   
   USE T2CNST, ONLY:&
        i0ikind,i0rkind
-  
+
   IMPLICIT NONE
   
   INTEGER(i0ikind)::&
@@ -2178,7 +2178,7 @@ CONTAINS
   SUBROUTINE T2EXEC_BCOND
     
     USE T2COMM, ONLY:&
-         i0lmax,i0bmax,i0vmax,&
+         i0solv,i0lmax,i0bmax,i0vmax,&
          i1pdn2,i1nidr,i1nidc,&
          d3amat,d2bvec,d2xvec
     
@@ -2196,92 +2196,228 @@ CONTAINS
     !C
     !C SET FIXED VARIALES 
     !C 
-    !C
-
-    DO i0bidi= 1, i0bmax
-       
-       !C
-       !C STIFFNESS MATRIX
-       !C
-       
-       DO i0aidi = i1nidr(i0bidi), i1nidr(i0bidi+1)-1
-          i0bidj = i1nidc(i0aidi)
-          DO i0vidj = 1, i0vmax
-          DO i0vidi = 1, i0vmax
-             SELECT CASE(i0vidi)
-             !CASE(1:5,14:21)
-             CASE(1:5)
-             !CASE(22:)
-                IF((i0bidi.EQ.i0bidj).AND.(i0vidi.EQ.i0vidj))THEN
-                   d3amat(i0vidi,i0vidj,i0aidi) = 1.D0
-                ELSE
-                   d3amat(i0vidi,i0vidj,i0aidi) = 0.D0
-                ENDIF
-             END SELECT
-          ENDDO
-          ENDDO
-       ENDDO
-       
-       !C
-       !C RHS VECTOR 
-       !C
-       
-       DO i0vidi = 1, i0vmax
-          SELECT CASE(i0vidi)
-         !CASE(1:5,14:21)
-         CASE(1:5)
-         ! CASE(22:)
-             d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)
-          END SELECT
-       ENDDO
-       
-    ENDDO
-
-    !C
-    !C SET DIRICHLET CONDITION 
-    !C
+    !C 
     
-    DO i0bidi = i0bsta, i0bend
+    SELECT CASE(i0solv)
        
        !C
-       !C STIFFNESS MATRIX
+       !C SOLVE ONLY ELECTRON: i0solv = 1
        !C
-       DO i0aidi = i1nidr(i0bidi), i1nidr(i0bidi+1)-1
-          i0bidj = i1nidc(i0aidi)
-          DO i0vidi = 1, i0vmax
-             SELECT CASE(i0vidi)
-             !CASE(1:5,6,10,14:21)
-             CASE(1:5,6,10,14,18)
-             !CASE(6,10,14,18)
-                CYCLE
-             CASE DEFAULT
-                DO i0vidj = 1, i0vmax
+       
+    CASE(1)
+       
+       DO i0bidi= 1, i0bmax
+          
+          !C
+          !C STIFFNESS MATRIX
+          !C
+          
+          DO i0aidi = i1nidr(i0bidi), i1nidr(i0bidi+1)-1
+             i0bidj = i1nidc(i0aidi)
+             DO i0vidj = 1, i0vmax
+             DO i0vidi = 1, i0vmax
+                SELECT CASE(i0vidi)
+                CASE(1:5,14:21)
                    IF((i0bidi.EQ.i0bidj).AND.(i0vidi.EQ.i0vidj))THEN
                       d3amat(i0vidi,i0vidj,i0aidi) = 1.D0
                    ELSE
                       d3amat(i0vidi,i0vidj,i0aidi) = 0.D0
                    ENDIF
-                ENDDO
+                CASE DEFAULT
+                   CYCLE
+                ENDSELECT
+             ENDDO
+             ENDDO
+          ENDDO
+          
+          !C
+          !C RHS VECTOR 
+          !C
+          
+          DO i0vidi = 1, i0vmax
+             SELECT CASE(i0vidi)
+             CASE(1:5,14:21)
+                d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)
+             CASE DEFAULT
+                CYCLE
+             ENDSELECT
+          ENDDO
+          
+       ENDDO
+       
+       !C
+       !C SET DIRICHLET CONDITION 
+       !C
+    
+       DO i0bidi = i0bsta, i0bend
+          
+          !C
+          !C STIFFNESS MATRIX
+          !C
+          
+          DO i0aidi = i1nidr(i0bidi), i1nidr(i0bidi+1)-1
+             i0bidj = i1nidc(i0aidi)
+             DO i0vidi = 1, i0vmax
+                SELECT CASE(i0vidi)
+                CASE(1:5,6,10,14:21)
+                   CYCLE
+                CASE DEFAULT
+                   DO i0vidj = 1, i0vmax
+                      IF((i0bidi.EQ.i0bidj).AND.(i0vidi.EQ.i0vidj))THEN
+                         d3amat(i0vidi,i0vidj,i0aidi) = 1.D0
+                      ELSE
+                         d3amat(i0vidi,i0vidj,i0aidi) = 0.D0
+                      ENDIF
+                   ENDDO
+                ENDSELECT
+             ENDDO
+          ENDDO
+        
+          !C
+          !C RHS VECTOR 
+          !C
+          
+          DO i0vidi = 1, i0vmax
+             SELECT CASE(i0vidi)
+             CASE(1:5,6,10,14:21)
+                CYCLE
+             CASE DEFAULT
+                d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)
              END SELECT
           ENDDO
        ENDDO
-        
+
        !C
-       !C RHS VECTOR 
+       !C SOLVE ELECTRON AND IONS: i0solv = 2
        !C
-       DO i0vidi = 1, i0vmax
-          SELECT CASE(i0vidi)
-          !CASE(1:5,6,10,14:21)
-          CASE(1:5,6,10,14,18)
-          !CASE(6,10,14,18)
-             CYCLE
-          CASE DEFAULT
-             d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)
-          END SELECT
+    CASE(2)
+       
+       DO i0bidi= 1, i0bmax
+          
+          !C
+          !C STIFFNESS MATRIX
+          !C
+          
+          DO i0aidi = i1nidr(i0bidi), i1nidr(i0bidi+1)-1
+             i0bidj = i1nidc(i0aidi)
+             DO i0vidj = 1, i0vmax
+             DO i0vidi = 1, i0vmax
+                SELECT CASE(i0vidi)
+                CASE(1:5)
+                   IF((i0bidi.EQ.i0bidj).AND.(i0vidi.EQ.i0vidj))THEN
+                      d3amat(i0vidi,i0vidj,i0aidi) = 1.D0
+                   ELSE
+                      d3amat(i0vidi,i0vidj,i0aidi) = 0.D0
+                   ENDIF
+                ENDSELECT
+             ENDDO
+             ENDDO
+          ENDDO
+          
+          !C
+          !C RHS VECTOR 
+          !C
+          
+          DO i0vidi = 1, i0vmax
+             SELECT CASE(i0vidi)
+             CASE(1:5)
+                d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)
+             ENDSELECT
+          ENDDO
+          
        ENDDO
-    ENDDO
+
+       !C
+       !C SET DIRICHLET CONDITION 
+       !C
+       
+       DO i0bidi = i0bsta, i0bend
+       
+          !C
+          !C STIFFNESS MATRIX
+          !C
+          DO i0aidi = i1nidr(i0bidi), i1nidr(i0bidi+1)-1
+             i0bidj = i1nidc(i0aidi)
+             DO i0vidi = 1, i0vmax
+                SELECT CASE(i0vidi)
+                CASE(1:6,10,14,18)
+                   CYCLE
+                CASE DEFAULT
+                   DO i0vidj = 1, i0vmax
+                      IF((i0bidi.EQ.i0bidj).AND.(i0vidi.EQ.i0vidj))THEN
+                         d3amat(i0vidi,i0vidj,i0aidi) = 1.D0
+                      ELSE
+                         d3amat(i0vidi,i0vidj,i0aidi) = 0.D0
+                      ENDIF
+                   ENDDO
+                END SELECT
+             ENDDO
+          ENDDO
+          
+          !C
+          !C RHS VECTOR 
+          !C
+          DO i0vidi = 1, i0vmax
+             SELECT CASE(i0vidi)
+             CASE(1:6,10,14,18)
+                CYCLE
+             CASE DEFAULT
+                d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)
+             END SELECT
+          ENDDO
+       ENDDO
+
+       !C
+       !C SOLVE ALL DEPENDENT PARAMETERS: i0solv = 3
+       !C
+
+    CASE(3)
+
+       !C
+       !C SET DIRICHLET CONDITION 
+       !C
+
+       DO i0bidi = i0bsta, i0bend
+          
+          !C
+          !C STIFFNESS MATRIX
+          !C
+          DO i0aidi = i1nidr(i0bidi), i1nidr(i0bidi+1)-1
+             i0bidj = i1nidc(i0aidi)
+             DO i0vidi = 1, i0vmax
+                SELECT CASE(i0vidi)
+                CASE(6,10,14,18)
+                   CYCLE
+                CASE DEFAULT
+                   DO i0vidj = 1, i0vmax
+                      IF((i0bidi.EQ.i0bidj).AND.(i0vidi.EQ.i0vidj))THEN
+                         d3amat(i0vidi,i0vidj,i0aidi) = 1.D0
+                      ELSE
+                         d3amat(i0vidi,i0vidj,i0aidi) = 0.D0
+                      ENDIF
+                   ENDDO
+                END SELECT
+             ENDDO
+          ENDDO
+          
+          !C
+          !C RHS VECTOR 
+          !C
+          
+          DO i0vidi = 1, i0vmax
+             SELECT CASE(i0vidi)
+             CASE(6,10,14,18)
+                CYCLE
+             CASE DEFAULT
+                d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)
+             END SELECT
+          ENDDO
+       ENDDO
+    CASE DEFAULT
+       WRITE(6,*)'INCORRECT I0SOLV'
+    ENDSELECT
     
     RETURN
     
-  END SUBROUTINE T2EXEC_BCOND  
+  END SUBROUTINE T2EXEC_BCOND
 END MODULE T2EXEC

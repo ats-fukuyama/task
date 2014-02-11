@@ -505,16 +505,19 @@ CONTAINS
   !C-------------------------------------------------------------------
   FUNCTION fd1n0(d0mfcr,d0mfcp)
     
-    USE T2COMM, ONLY:i0smax,d1nc,d1ns,d1nw,d0rw
+    USE T2COMM, ONLY:i0smax,i1nm,i1nn,d1nc,d1ns,d1nw,d0rw
     
     REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
     REAL(   i0rkind),DIMENSION(1:i0smax)::fd1n0
     REAL(   i0rkind),DIMENSION(1:3)::d1rn
     REAL(   i0rkind)::d0nc,d0ns,d0nw
-    INTEGER(i0ikind)::i0sidi
+    INTEGER(i0ikind)::i0sidi,i0nm,i0nn
         
     DO i0sidi = 1,i0smax
        
+       i0nm = i1nm(i0sidi)
+       i0nn = i1nn(i0sidi)
+
        d0nc = d1nc(i0sidi)
        d0ns = d1ns(i0sidi)
        d0nw = d1nw(i0sidi)
@@ -523,7 +526,7 @@ CONTAINS
        !C density in 10^{20} m^{-3}
        !C
        
-       d1rn = fd1rf(1,3,d0nc,d0ns,d0nw,d0rw,d0mfcr)
+       d1rn = fd1rf(i0nm,i0nn,d0nc,d0ns,d0nw,d0rw,d0mfcr)
        
        !C
        !C density in m^{-3}
@@ -546,15 +549,18 @@ CONTAINS
   !C-------------------------------------------------------------------
   FUNCTION fd1n1(d0mfcr,d0mfcp)
     
-    USE T2COMM, ONLY:i0smax,d1nc,d1ns,d1nw,d0rw
+    USE T2COMM, ONLY:i0smax,i1nm,i1nn,d1nc,d1ns,d1nw,d0rw
     
     REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
     REAL(   i0rkind),DIMENSION(1:i0smax)::fd1n1
     REAL(   i0rkind),DIMENSION(1:3)::d1rn
     REAL(   i0rkind)::d0nc,d0ns,d0nw
-    INTEGER(i0ikind)::i0sidi
+    INTEGER(i0ikind)::i0sidi,i0nm,i0nn
     
     DO i0sidi = 1, i0smax
+       
+       i0nm = i1nm(i0sidi)
+       i0nn = i1nn(i0sidi)
        
        d0nc = d1nc(i0sidi)
        d0ns = d1ns(i0sidi)
@@ -564,7 +570,7 @@ CONTAINS
        !C d n_{a} /d \rho in 10^{20} m^{-3}
        !C
        
-       d1rn = fd1rf(1,3,d0nc,d0ns,d0nw,d0rw,d0mfcr)
+       d1rn = fd1rf(i0nm,i0nn,d0nc,d0ns,d0nw,d0rw,d0mfcr)
        
        !C
        !C d n_{a} /d \rho in  m^{-3}
@@ -587,16 +593,19 @@ CONTAINS
   !C-------------------------------------------------------------------
   FUNCTION fd1n2(d0mfcr,d0mfcp)
     
-    USE T2COMM, ONLY:i0smax,d1nc,d1ns,d1nw,d0rw
+    USE T2COMM, ONLY:i0smax,i1nm,i1nn,d1nc,d1ns,d1nw,d0rw
     
     REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
     REAL(   i0rkind),DIMENSION(1:i0smax)::fd1n2
     REAL(   i0rkind),DIMENSION(1:3)::d1rn
     REAL(   i0rkind)::d0nc,d0ns,d0nw
-    INTEGER(i0ikind)::i0sidi
+    INTEGER(i0ikind)::i0sidi,i0nm,i0nn
     
     DO i0sidi = 1, i0smax
-       
+
+       i0nm = i1nm(i0sidi)
+       i0nn = i1nn(i0sidi)
+
        d0nc = d1nc(i0sidi)
        d0ns = d1ns(i0sidi)
        d0nw = d1nw(i0sidi)
@@ -604,8 +613,8 @@ CONTAINS
        !C
        !C (1/\rho)(d n_{a} /d \rho) in 10^{20} m^{-3}
        !C
-    
-       d1rn = fd1rf(1,3,d0nc,d0ns,d0nw,d0rw,d0mfcr)
+       
+       d1rn = fd1rf(i0nm,i0nn,d0nc,d0ns,d0nw,d0rw,d0mfcr)
        
        !C
        !C (1/\rho)(d n_{a} /d \rho) in m^{-3}
@@ -629,16 +638,19 @@ CONTAINS
   FUNCTION fd1t0(d0mfcr,d0mfcp)
     
     USE T2CNST, ONLY:d0aee
-    USE T2COMM, ONLY:i0smax,d1tc,d1ts,d1tw,d0rw
+    USE T2COMM, ONLY:i0smax,i1tm,i1tn,d1tc,d1ts,d1tw,d0rw
     
     REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
     REAL(   i0rkind),DIMENSION(1:i0smax)::fd1t0
     REAL(   i0rkind),DIMENSION(1:3)::d1rt
     REAL(   i0rkind)::d0tc,d0ts,d0tw
-    INTEGER(i0ikind)::i0sidi
+    INTEGER(i0ikind)::i0sidi,i0tm,i0tn
     
     DO i0sidi = 1, i0smax
        
+       i0tm = i1tm(i0sidi)
+       i0tn = i1tn(i0sidi)
+
        d0tc = d1tc(i0sidi)
        d0ts = d1ts(i0sidi)
        d0tw = d1tw(i0sidi)
@@ -647,7 +659,7 @@ CONTAINS
        !C T_{a} in keV
        !C
        
-       d1rt = fd1rf(2,2,d0tc,d0ts,d0tw,d0rw,d0mfcr)
+       d1rt = fd1rf(i0tm,i0tn,d0tc,d0ts,d0tw,d0rw,d0mfcr)
        
        !C
        !C T_{a} in J
@@ -671,15 +683,18 @@ CONTAINS
   FUNCTION fd1t1(d0mfcr,d0mfcp)
     
     USE T2CNST, ONLY:d0aee
-    USE T2COMM, ONLY:i0smax,d1tc,d1ts,d1tw,d0rw
+    USE T2COMM, ONLY:i0smax,i1tm,i1tn,d1tc,d1ts,d1tw,d0rw
     
     REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
     REAL(   i0rkind),DIMENSION(1:i0smax)::fd1t1
     REAL(   i0rkind),DIMENSION(1:3)::d1rt
     REAL(   i0rkind)::d0tc,d0ts,d0tw
-    INTEGER(i0ikind)::i0sidi
+    INTEGER(i0ikind)::i0sidi,i0tm,i0tn
     
     DO i0sidi = 1,i0smax
+
+       i0tm = i1tm(i0sidi)
+       i0tn = i1tn(i0sidi)
        
        d0tc = d1tc(i0sidi)
        d0ts = d1ts(i0sidi)
@@ -689,7 +704,7 @@ CONTAINS
        !C dT_{a}/d\rho in keV
        !C
        
-       d1rt = fd1rf(2,2,d0tc,d0ts,d0tw,d0rw,d0mfcr)
+       d1rt = fd1rf(i0tm,i0tn,d0tc,d0ts,d0tw,d0rw,d0mfcr)
 
        !C
        !C dT_{a}/d\rho in J
@@ -713,15 +728,18 @@ CONTAINS
   FUNCTION fd1t2(d0mfcr,d0mfcp)
     
     USE T2CNST, ONLY:d0aee
-    USE T2COMM, ONLY:i0smax,d1tc,d1ts,d1tw,d0rw
+    USE T2COMM, ONLY:i0smax,i1tm,i1tn,d1tc,d1ts,d1tw,d0rw
     
     REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
     REAL(   i0rkind),DIMENSION(1:i0smax)::fd1t2
     REAL(   i0rkind),DIMENSION(1:3)::d1rt
     REAL(   i0rkind)::d0tc,d0ts,d0tw
-    INTEGER(i0ikind)::i0sidi
+    INTEGER(i0ikind)::i0sidi,i0tn,i0tm
         
     DO i0sidi = 1,i0smax
+
+       i0tm = i1tm(i0sidi)
+       i0tn = i1tn(i0sidi)
        
        d0tc = d1tc(i0sidi)
        d0ts = d1ts(i0sidi)
@@ -731,8 +749,8 @@ CONTAINS
        !C (1/\rho) dT_{a}/d\rho in keV
        !C
 
-       d1rt = fd1rf(2,2,d0tc,d0ts,d0tw,d0rw,d0mfcr)
-
+       d1rt = fd1rf(i0tm,i0tn,d0tc,d0ts,d0tw,d0rw,d0mfcr)
+       
        !C
        !C dT_{a}/d\rho in J
        !C

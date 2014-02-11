@@ -55,7 +55,7 @@ CONTAINS
          i0smax, i0nmax, i0lmax, i1mlvl,&
          i0pdiv_number, i1rdn2, d1rec,&
          i0pmax,d0eps,d0rmjr,d0rmnr,&
-         i0m0,i0n0,d0bc,&
+         d0bc,&
          d1nc,d1ns,d1nw,d1tc,d1ts,d1tw,&
          d1pa,d1pz,&
          d0qc,d0qs,d0rw,&
@@ -75,7 +75,7 @@ CONTAINS
          i0pdiv_number, i1rdn2, d1rec,&
 !         i0pmax,d0eps, &
          d0rmjr,d0rmnr,&
-         i0m0,i0n0,d0bc,&
+         d0bc,&
          d1nc,d1ns,d1nw,d1tc,d1ts,d1tw,&
          d1pa,d1pz,&
          d0qc,d0qs,d0rw, &
@@ -106,7 +106,7 @@ CONTAINS
     WRITE(6,'(A)') '        i1mlvl,i0pdiv_number, i1rdn2, d1rec,'
 !    WRITE(6,'(A)') '        i0pmax,d0eps,'
     WRITE(6,'(A)') '        d0rmjr,d0rmnr,'
-    WRITE(6,'(A)') '        i0m0,i0n0,d0bc,'
+    WRITE(6,'(A)') '        d0bc,'
     WRITE(6,'(A)') '        d1nc,d1ns,d1nw,d1tc,d1ts,d1tw,'
     WRITE(6,'(A)') '        d1pa,d1pz,'
     WRITE(6,'(A)') '        d0qc,d0qs,d0rw,'
@@ -148,7 +148,7 @@ CONTAINS
          i0pdiv_number, i1rdn2, d1rec,&
 !         i0pmax,d0eps,&
          d0rmjr,d0rmnr,&
-         i0m0,i0n0,d0bc,&
+         d0bc,&
          d1nc,d1ns,d1nw,d1tc,d1ts,d1tw,&
          d1pa,d1pz,&
          d0qc,d0qs,d0rw,&
@@ -204,8 +204,8 @@ CONTAINS
          'd0qs         ',d0qs,&
          'd0rw         ',d0rw
     WRITE(6,602) &
-         'i0m0         ',i0m0, &
-         'i0n0         ',i0n0,&
+         'i0m0         ',0, &
+         'i0n0         ',0,&
          'd0bc         ',d0bc
     WRITE(6,'(A)')
     DO i1=1,i0smax
