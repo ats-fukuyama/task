@@ -49,7 +49,7 @@ CONTAINS
          idfile,idprint,idplot,idmode,idebug
 
     c10rname = 'TEST'
-    i0solv   =  2
+    i0solv   =  3
     i0dbg    =  0
     i0fnum   = 10
     i0mfcs   =  1
@@ -63,19 +63,21 @@ CONTAINS
 
     i0smax =  2 
     i0nmax =  4        ! number of nodes in a elemnt
-    i0lmax =  1        ! 
-    i0pdiv_number = 30 ! 
+    i0lmax =  2        ! 
+    i0pdiv_number = 60 ! 
 
 
     i1mlvl(0:i0lmaxm+1) = 0
     i1mlvl(1)=1        ! 10 x 2^0
-
+    i1mlvl(2)=2        ! 10 x 2^0
     
     i1rdn2(-1:i0lmaxm) = 0  
     i1rdn2(1) = 30   ! number of radial nodes in a level
-    
+    i1rdn2(2) = 30   ! number of radial nodes in a level
+
     d1rec(0:i0lmaxm) = 0.D0 ! least radial point in a level
-    d1rec(1) = 1.0000D0
+    d1rec(1) = 0.5000D0
+    d1rec(2) = 1.0000D0
 
     d0rmjr   =  3.0D0
     d0rmnr   =  1.0D0
