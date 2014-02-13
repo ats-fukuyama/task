@@ -91,16 +91,16 @@ CONTAINS
        i0xid1d = i2crt(3,i0midi)
        
        !C PSI'
-       !d2xvec(1,i0xid1d) = fd0psip(d0mfcr,d0mfcp)/d0mfcst 
-       d2xvec(1,i0xid2d) = fd0psip(d0mfcr,d0mfcp)/d0mfcst 
+       d2xvec(1,i0xid1d) = fd0psip(d0mfcr,d0mfcp)/d0mfcst 
+       !d2xvec(1,i0xid2d) = fd0psip(d0mfcr,d0mfcp)/d0mfcst 
        
        !C I
-       !d2xvec(2,i0xid1d) = fd0cobt(d0mfcr,d0mfcp)/d0btcst 
-       d2xvec(2,i0xid2d) = fd0cobt(d0mfcr,d0mfcp)/d0btcst 
+       d2xvec(2,i0xid1d) = fd0cobt(d0mfcr,d0mfcp)/d0btcst 
+       !d2xvec(2,i0xid2d) = fd0cobt(d0mfcr,d0mfcp)/d0btcst 
 
        !C E_{\zeta}
-       !d2xvec(3,i0xid1d) = fd0coet(d0mfcr,d0mfcp)/d0etcst 
-       d2xvec(3,i0xid2d) = fd0coet(d0mfcr,d0mfcp)/d0etcst 
+       d2xvec(3,i0xid1d) = fd0coet(d0mfcr,d0mfcp)/d0etcst 
+       !d2xvec(3,i0xid2d) = fd0coet(d0mfcr,d0mfcp)/d0etcst 
        !C E_{\chi }
        d2xvec(4,i0xid2d) = fd0coep(d0mfcr,d0mfcp)/d0epcst
        !C E_{\rho }
@@ -130,8 +130,8 @@ CONTAINS
        d2rzx(1,i0xidi) = d2rzm(1,i0midi)
        d2rzx(2,i0xidi) = d2rzm(2,i0midi)
     ENDDO
-!    CALL T2_CONV
-!    CALL T2_GOUT
+    CALL T2_CONV
+    CALL T2_GOUT
     
     RETURN
     

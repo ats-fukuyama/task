@@ -9,7 +9,7 @@ MODULE T2EXEC
   
   USE T2CNST, ONLY:&
        i0ikind,i0rkind
-
+  
   IMPLICIT NONE
   
   INTEGER(i0ikind)::&
@@ -87,7 +87,7 @@ CONTAINS
           ENDIF
           
           IF(i0esvt.EQ.1)       CALL T2EXEC_ES
-          
+
           IF(i0evvt.EQ.1)THEN
              DO i0widi = 1, i0wmax
                 i0evwt = i3evwt(i0widi,i0vidi,i0vidj)
@@ -317,8 +317,6 @@ CONTAINS
     
     DEALLOCATE(x)
     
-!    IF(i0tstp.eq.i0tmax) CALL MTX_FINALIZE
-    
     RETURN
     
   END SUBROUTINE T2EXEC_SOLVE
@@ -338,15 +336,15 @@ CONTAINS
   SUBROUTINE T2EXEC_LV
     
     USE T2COMM, ONLY:&
-         i0supg,i0nmax,i0dmax,i0vmax,i0smax,i2avvt,&
+         i0nmax,i0dmax,i0vmax,i0smax,&
          d1rsiz,d1psiz,d2ws,d2xvec,d2wrks,d2kwns,d2mtrc,&
          d4smat,d2svec,d4av,&
          i2enr0,i3enr,i1mlel,d0rmnr,&
-         d2jmpm,d0jdmp,dt,d2jm1,d3eafv
+         d2jmpm,d0jdmp,dt,d2jm1!,i2avvt,d3eafv,i0supg
     
     INTEGER(i0ikind)::&
          i0midi,i0didi,i0didj,i0ridi,i0nidi,i0sidi,i0lidi,&
-         i0bidi,i0xidi,i0avvt
+         i0bidi,i0xidi!,i0avvt
     
     REAL(   i0rkind)::&
          d0supg,d0rsiz,d0psiz,d0sqrtg,d0sqrtgi,&
@@ -438,53 +436,8 @@ CONTAINS
     d4smat(1:i0nmax,1:i0nmax,1:i0vmax,1:i0vmax) = 0.D0
     d2svec(1:i0nmax,1:i0vmax) = 0.D0
     
-    IF(i0supg.EQ.0) RETURN
-    
-    !C
-    !C SUPG 
-    !C
-    
-    DO i0vidi = 6, i0vmax
-       
-       i0avvt = i2avvt(i0vidi,i0vidi)
-       IF(i0avvt.EQ.0) CYCLE
-       d0area = d0psiz*(d0rmnr**2)*(d0rsiz**2)*0.50
-      
-       DO i0nidi = 1, i0nmax
-          i0midi  = i2enr0(i0nidi,1)
-          d0sqrtg = d2jm1(1,i0midi)
-          IF(d0sqrtg.GT.0.D0)THEN
-             d0sqrtgi = 1.D0/d0sqrtg
-          ELSE
-             d0sqrtgi = 0.D0
-          ENDIF
-          d0supg = 0.D0                    
-        
-          DO i0didi = 1, i0dmax
-             d0mtrc = d2mtrc(i0didi,i0midi)
-             d0eafv = d4av(i0didi,i0vidi,i0vidi,i0midi)*d0sqrtgi
-             d1temp(i0didi) = d0eafv
-             d0supg = d0supg + (d0eafv**2)*d0mtrc
-          ENDDO
-                    
-          d0supg = 4.D0/(dt**2) + 4.D0*d0supg/d0area
-          d0supg = 1.D0/SQRT(d0supg)
-
-          DO i0didj = 1, i0dmax
-             d3eafv(i0didj,i0nidi,i0vidi) = 0.D0
-             DO i0didi = 1, i0dmax
-                d3eafv(              i0didj,i0nidi,i0vidi) &
-                     = d3eafv(       i0didj,i0nidi,i0vidi) &
-                     + d1temp(i0didi                     ) &
-                     * d2jmpm(i0didi,i0didj              ) &
-                     * d0supg
-             ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-    
     RETURN
-    
+
   END SUBROUTINE T2EXEC_LV
   
   !C------------------------------------------------------------------
@@ -498,19 +451,19 @@ CONTAINS
     
     USE T2COMM,ONLY:&
          i0supg,i0nmax,i0dmax,i0vmax,i2enr0,&
-         d0jdmp,d2jmpm,dt,d4smat,d2svec,d2kwns,d3eafv,&
-         d3ms,d3imsn,d5imss,i2avvt
+         d0jdmp,d2jmpm,dt,d4smat,d2svec,d2kwns,&
+         d3ms,d3imsn!,d3eafv,d5imss,i2avvt
     
     INTEGER(i0ikind)::&
          i0nidi,i0nidj,i0nidk,i0nidl,&
          i0didi,&
-         i0midi,i0avvt
+         i0midi!,i0avvt
     
     REAL(   i0rkind)::&
          d2smat(1:i0nmax,1:i0nmax),&
          d1svec(1:i0nmax),&
-         d1mass(1:i0nmax),&
-         d2eafv(1:i0dmax,1:i0nmax)
+         d1mass(1:i0nmax)!,&
+         !d2eafv(1:i0dmax,1:i0nmax)
     
     !C
     !C INITIALIZATION
@@ -558,71 +511,7 @@ CONTAINS
             + d2smat(i0nidi,i0nidj              )
     ENDDO
     ENDDO
-
-    !C
-    !C STORE SUBVECTOR
-    !C
-
-    DO i0nidi = 1, i0nmax
-       d2svec(       i0nidi,i0vidi) &
-            = d2svec(i0nidi,i0vidi) & 
-            + d1svec(i0nidi       )
-    ENDDO
     
-
-    IF((i0supg.EQ.0).OR.(i0vidi.LE.5)) RETURN
-    i0avvt = i2avvt(i0vidi,i0vidi)
-    IF(i0avvt.EQ.0) RETURN
-    
-    !C
-    !C MAIN LOOP (SUPG)
-    !C
-     
-    DO i0nidi = 1, i0nmax
-       DO i0didi = 1, i0dmax
-          d2eafv(i0didi,i0nidi) = d3eafv(i0didi,i0nidi,i0vidi)
-       ENDDO
-    ENDDO
-
-    DO i0nidj = 1, i0nmax
-    DO i0nidi = 1, i0nmax
-       d2smat(i0nidi,i0nidj) = 0.D0
-       DO i0nidl = 1, i0nmax
-       DO i0nidk = 1, i0nmax
-          DO i0didi = 1, i0dmax
-             d2smat(                            i0nidi,i0nidj) &
-                  = d2smat(                     i0nidi,i0nidj) &
-                  + d5imss(i0didi,i0nidk,i0nidl,i0nidi,i0nidj) &
-                  * d1mass(       i0nidk                     ) &
-                  * d2eafv(i0didi,       i0nidl              ) 
-          ENDDO
-       ENDDO
-       ENDDO
-    ENDDO
-    ENDDO
-    
-    DO i0nidi = 1, i0nmax
-       d1svec(i0nidi) = 0.D0
-       DO i0nidj = 1, i0nmax  
-          d1svec(       i0nidi              ) &
-               = d1svec(i0nidi              ) &
-               + d2smat(i0nidi,i0nidj       ) &
-               * d2kwns(       i0nidj,i0vidj)
-       ENDDO
-    ENDDO
-    
-    !C
-    !C STORE SUBMATRIX
-    !C
-    
-    DO i0nidj = 1, i0nmax
-    DO i0nidi = 1, i0nmax
-       d4smat(       i0nidi,i0nidj,i0vidi,i0vidj) &
-            = d4smat(i0nidi,i0nidj,i0vidi,i0vidj) &
-            + d2smat(i0nidi,i0nidj              )
-    ENDDO
-    ENDDO
-
     !C
     !C STORE SUBVECTOR
     !C
@@ -641,26 +530,25 @@ CONTAINS
   !C
   !C CALCULATION OF ADVECTION SUBMATRCES: V1
   !C
-  !C                     2014-02-08 H.SETO
+  !C                     2014-02-12 H.SETO
   !C
   !C-------------------------------------------------------------------  
   SUBROUTINE T2EXEC_AV
     
     USE T2COMM,ONLY:&
-         i0supg,i0nmax,i0dmax,i0vmax,i2enr0,&
-         d0jdmp,d2jmpm,d3eafv,&
-         d4av,d4iavn,d6iavs,d4smat,i2avvt
+         i0nmax,i0dmax,i0vmax,i2enr0,d0jdmp,d2jmpm,&
+         d4av,d4iavn,d4smat!,i0supg,d3eafv,d6iavs,i2avvt
     
     INTEGER(i0ikind)::&
          i0didi,i0didj,&
          i0nidi,i0nidj,i0nidk,i0nidl,&
-         i0midi,i0avvt
+         i0midi!,i0avvt
     
     REAL(   i0rkind)::&
          d2smat(1:i0nmax,1:i0nmax),&
          d2velo(1:i0dmax,1:i0nmax),&
-         d2temp(1:i0dmax,1:i0nmax),&
-         d2eafv(1:i0dmax,1:i0nmax)
+         d2temp(1:i0dmax,1:i0nmax)!,&
+        !d2eafv(1:i0dmax,1:i0nmax)
     
     !C
     !C INTITIALIZATION
@@ -716,51 +604,7 @@ CONTAINS
             + d2smat(i0nidi,i0nidj              )
     ENDDO
     ENDDO
-    
-    IF((i0supg.EQ.0).OR.(i0vidi.LE.5)) RETURN
-    i0avvt = i2avvt(i0vidi,i0vidi)
-    IF(i0avvt.EQ.0) RETURN
-    !C
-    !C MAIN LOOP (SUPG)
-    !C
         
-    DO i0nidi = 1, i0nmax
-       DO i0didi = 1, i0dmax
-          d2eafv(i0didi,i0nidi) = d3eafv(i0didi,i0nidi,i0vidi)
-       ENDDO
-    ENDDO
-
-    DO i0nidj = 1, i0nmax
-    DO i0nidi = 1, i0nmax
-       d2smat(i0nidi,i0nidj) = 0.D0
-       DO i0nidl = 1, i0nmax
-       DO i0nidk = 1, i0nmax
-          DO i0didj = 1, i0dmax
-          DO i0didi = 1, i0dmax
-             d2smat(                                   i0nidi,i0nidj) &
-                  = d2smat(                            i0nidi,i0nidj) & 
-                  + d6iavs(i0didi,i0didj,i0nidk,i0nidl,i0nidi,i0nidj) &
-                  * d2temp(       i0didj,i0nidk                     ) &
-                  * d2eafv(i0didi,              i0nidl              )
-          ENDDO
-          ENDDO
-       ENDDO
-       ENDDO
-    ENDDO
-    ENDDO
-    
-    !C
-    !C STORE SUBMATRIX
-    !C
-    
-    DO i0nidj = 1, i0nmax
-    DO i0nidi = 1, i0nmax
-       d4smat(       i0nidi,i0nidj,i0vidi,i0vidj) &
-            = d4smat(i0nidi,i0nidj,i0vidi,i0vidj) &
-            + d2smat(i0nidi,i0nidj              )
-    ENDDO
-    ENDDO
-    
     RETURN
     
   END SUBROUTINE T2EXEC_AV
@@ -775,21 +619,19 @@ CONTAINS
   SUBROUTINE T2EXEC_AT
     
     USE T2COMM,ONLY:&
-         i0supg,i0nmax,i0dmax,i0vmax,i2enr0,&
-         d2jmpm,d0jdmp,d4smat,d2wrks,d3eafv,&
-         d6at,d6iatn,d8iats,i2avvt
+         i0nmax,i0dmax,i0vmax,i2enr0,&
+         d2jmpm,d0jdmp,d4smat,d2wrks,d6at,d6iatn
     
     INTEGER(i0ikind)::&
          i0nidi,i0nidj,i0nidk,i0nidl,i0nidm,&
          i0didi,i0didj,i0didk,i0didl,&
-         i0midi,i0avvt
+         i0midi
     
     REAL(   i0rkind)::&
          d3velo(1:i0dmax,1:i0dmax,1:i0nmax),&
          d2smat(1:i0nmax,1:i0nmax),&
          d1atwi(1:i0nmax),&
-         d3temp(1:i0dmax,1:i0dmax,1:i0nmax),&
-         d2eafv(1:i0dmax,1:i0nmax)
+         d3temp(1:i0dmax,1:i0dmax,1:i0nmax)
     
     !C
     !C INITIALIZATION
@@ -843,7 +685,6 @@ CONTAINS
                   + d6iatn(i0didk,i0didl,i0nidk,i0nidl,i0nidi,i0nidj) &
                   * d3temp(i0didk,i0didl,       i0nidl              ) &
                   * d1atwi(              i0nidk                     )
-          
           ENDDO
           ENDDO
        ENDDO
@@ -863,56 +704,6 @@ CONTAINS
     ENDDO
     ENDDO
     
-    IF((i0supg.EQ.0).OR.(i0vidi.LE.5)) RETURN
-    i0avvt = i2avvt(i0vidi,i0vidi)
-    IF(i0avvt.EQ.0) RETURN
-    !C
-    !C ADDITIONAL LOOP (SUPG)
-    !C
-    
-    DO i0nidi = 1, i0nmax
-       DO i0didi = 1, i0dmax
-          d2eafv(i0didi,i0nidi) = d3eafv(i0didi,i0nidi,i0vidi)
-       ENDDO
-    ENDDO
-    
-    DO i0nidj = 1, i0nmax
-    DO i0nidi = 1, i0nmax
-       d2smat(i0nidi,i0nidj) = 0.D0
-       DO i0nidm = 1, i0nmax
-       DO i0nidl = 1, i0nmax
-       DO i0nidk = 1, i0nmax
-          DO i0didk = 1, i0dmax
-          DO i0didj = 1, i0dmax
-          DO i0didi = 1, i0dmax
-             d2smat(                            i0nidi,i0nidj) &
-                  = d2smat(                     i0nidi,i0nidj) &
-                  + d8iats(i0didi,i0didj,i0didk,               &
-                  &        i0nidk,i0nidl,i0nidm,i0nidi,i0nidj) &
-                  * d1atwi(                     i0nidk              ) &
-                  * d3temp(       i0didj,i0didk,       i0nidl       ) &
-                  * d2eafv(i0didi,                            i0nidm) 
-          ENDDO
-          ENDDO
-          ENDDO
-       ENDDO
-       ENDDO
-       ENDDO
-    ENDDO
-    ENDDO
-    
-    !C
-    !C STORE SUBMATRIX (SUPG)
-    !C
-    
-    DO i0nidj = 1, i0nmax
-    DO i0nidi = 1, i0nmax
-       d4smat(       i0nidi,i0nidj,i0vidi,i0vidj) &
-            = d4smat(i0nidi,i0nidj,i0vidi,i0vidj) &
-            - d2smat(i0nidi,i0nidj              )
-    ENDDO
-    ENDDO
-    
     RETURN
     
   END SUBROUTINE T2EXEC_AT
@@ -928,20 +719,18 @@ CONTAINS
   SUBROUTINE T2EXEC_DT
     
     USE T2COMM,ONLY:&
-         i0supg,i0nmax,i0dmax,i0vmax,i2enr0,&
-         d2jmpm,d0jdmp,d4smat,d3eafv,&
-         d5dt,d5idtn,d7idts,i2avvt
+         i0nmax,i0dmax,i0vmax,i2enr0,&
+         d2jmpm,d0jdmp,d4smat,d5dt,d5idtn
     
     INTEGER(i0ikind)::&
          i0nidi,i0nidj,i0nidk,i0nidl,&
          i0didi,i0didj,i0didk,i0didl,&
-         i0midi,i0avvt
+         i0midi
 
     REAL(   i0rkind)::&
          d2smat(1:i0nmax,1:i0nmax),&
          d3diff(1:i0dmax,1:i0dmax,1:i0nmax), &
-         d3temp(1:i0dmax,1:i0dmax,1:i0nmax), &
-         d2eafv(1:i0dmax,1:i0nmax)
+         d3temp(1:i0dmax,1:i0dmax,1:i0nmax)
     
     !C
     !C INITIALIZATION
@@ -1007,53 +796,6 @@ CONTAINS
     ENDDO
     ENDDO
     
-    IF((i0supg.EQ.0).OR.(i0vidi.LE.5)) RETURN
-    i0avvt = i2avvt(i0vidi,i0vidi)
-    IF(i0avvt.EQ.0) RETURN
-    !C
-    !C ADDITIONAL LOOP (SUPG)
-    !C
-
-    DO i0nidi = 1, i0nmax
-       DO i0didi = 1, i0dmax
-          d2eafv(i0didi,i0nidi) = d3eafv(i0didi,i0nidi,i0vidi)
-       ENDDO
-    ENDDO
-    
-    DO i0nidi = 1, i0nmax
-    DO i0nidj = 1, i0nmax
-       d2smat(i0nidi,i0nidj) = 0.D0
-       DO i0nidl = 1, i0nmax
-       DO i0nidk = 1, i0nmax
-          DO i0didk = 1, i0dmax
-          DO i0didj = 1, i0dmax
-          DO i0didi = 1, i0dmax
-             d2smat(                     i0nidi,i0nidj) &
-                  = d2smat(              i0nidi,i0nidj) &
-                  + d7idts(i0didi,i0didj,i0didk,        &
-                  &        i0nidk,i0nidl,i0nidi,i0nidj) &
-                  * d3temp(       i0didj,i0didk,i0nidk       ) &
-                  * d2eafv(i0didi,                     i0nidl)
-          ENDDO
-          ENDDO
-          ENDDO
-       ENDDO
-       ENDDO
-    ENDDO
-    ENDDO
-  
-    !C
-    !C STORE SUBMATRIX (SUPG)
-    !C
-    
-    DO i0nidj = 1, i0nmax
-    DO i0nidi = 1, i0nmax
-       d4smat(       i0nidi,i0nidj,i0vidi,i0vidj) &
-            = d4smat(i0nidi,i0nidj,i0vidi,i0vidj) &
-            - d2smat(i0nidi,i0nidj              )
-    ENDDO
-    ENDDO
-    
     RETURN
     
   END SUBROUTINE T2EXEC_DT
@@ -1066,22 +808,20 @@ CONTAINS
   !C
   !C-------------------------------------------------------------------  
   SUBROUTINE T2EXEC_GV
-
+    
     USE T2COMM,ONLY:&
-         i0supg,i0nmax,i0dmax,i0vmax,i2enr0,&
-         d2jmpm,d0jdmp,d4smat,d3eafv,&
-         d4gv,  d4igvn,d6igvs,i2avvt
+         i0nmax,i0dmax,i0vmax,i2enr0,&
+         d2jmpm,d0jdmp,d4smat,d4igvn,d4gv
     
     INTEGER(i0ikind)::&
          i0nidi,i0nidj,i0nidk,i0nidl,&
          i0didi,i0didj,&
-         i0midi,i0avvt
+         i0midi
     
     REAL(   i0rkind)::&
          d2smat(1:i0nmax,1:i0nmax), &
          d2grad(1:i0dmax,1:i0nmax), &
-         d2temp(1:i0dmax,1:i0nmax), &
-         d2eafv(1:i0dmax,1:i0nmax)
+         d2temp(1:i0dmax,1:i0nmax)
     
     !C
     !C INITIALIZATION
@@ -1091,7 +831,7 @@ CONTAINS
        i0midi = i2enr0(i0nidi,1)
        DO i0didi = 1, i0dmax
           d2grad(     i0didi,i0nidi) &
-               = d4gv(i0didi,       i0vidi,i0vidj,i0midi) &
+               = d4gv(i0didi,i0vidi,i0vidj,i0midi) &
                * d0jdmp
        ENDDO
     ENDDO
@@ -1137,54 +877,9 @@ CONTAINS
             + d2smat(i0nidi,i0nidj              )
     ENDDO
     ENDDO
-
-    IF((i0supg.EQ.0).OR.(i0vidi.LE.5)) RETURN 
-    i0avvt = i2avvt(i0vidi,i0vidi)
-    IF(i0avvt.EQ.0) RETURN
-
-    !C
-    !C ADDITIONAL LOOP (SUPG)
-    !C
-    
-    DO i0nidi = 1, i0nmax
-       DO i0didi = 1, i0dmax
-          d2eafv(i0didi,i0nidi) = d3eafv(i0didi,i0nidi,i0vidi)
-       ENDDO
-    ENDDO
-    
-    DO i0nidi = 1, i0nmax
-    DO i0nidj = 1, i0nmax
-       d2smat(i0nidi,i0nidj) = 0.D0
-       DO i0nidl = 1, i0nmax
-       DO i0nidk = 1, i0nmax
-          DO i0didj = 1, i0dmax
-          DO i0didi = 1, i0dmax
-             d2smat(                                   i0nidi,i0nidj) &
-                  = d2smat(                            i0nidi,i0nidj) &
-                  + d6igvs(i0didi,i0didj,i0nidk,i0nidl,i0nidi,i0nidj) &
-                  * d2temp(       i0didj,i0nidk                     ) &
-                  * d2eafv(i0didi,              i0nidl              )
-          ENDDO
-          ENDDO
-       ENDDO
-       ENDDO
-    ENDDO
-    ENDDO
-
-    !C
-    !C STORE SUBMATRIX (SUPG)
-    !C
-    
-    DO i0nidj = 1, i0nmax
-    DO i0nidi = 1, i0nmax
-       d4smat(       i0nidi,i0nidj,i0vidi,i0vidj) &
-            = d4smat(i0nidi,i0nidj,i0vidi,i0vidj) &
-            + d2smat(i0nidi,i0nidj              )
-    ENDDO
-    ENDDO
     
     RETURN
-        
+    
   END SUBROUTINE T2EXEC_GV
   
   !C------------------------------------------------------------------
@@ -1197,21 +892,19 @@ CONTAINS
   SUBROUTINE T2EXEC_GT
     
     USE T2COMM,ONLY:&
-         i0supg,i0nmax,i0dmax,i0vmax,i2enr0,&
-         d2jmpm,d0jdmp,d4smat,d3eafv,d2wrks,&
-         d6gt,  d6igtn,d8igts,i2avvt
+         i0nmax,i0dmax,i0vmax,i2enr0,&
+         d2jmpm,d0jdmp,d4smat,d2wrks,d6igtn,d6gt
     
     INTEGER(i0ikind)::&
          i0nidi,i0nidj,i0nidk,i0nidl,i0nidm,&
          i0didi,i0didj,i0didk,i0didl,&
-         i0midi,i0avvt
+         i0midi
     
     REAL(   i0rkind)::&
          d3grad(1:i0dmax,1:i0dmax,1:i0nmax),&
          d2smat(1:i0nmax,1:i0nmax),&
          d1gtwi(1:i0nmax),&
-         d3temp(1:i0dmax,1:i0dmax,1:i0nmax),&
-         d2eafv(1:i0dmax,1:i0nmax)
+         d3temp(1:i0dmax,1:i0dmax,1:i0nmax)
     
     !C
     !C INITIALIZATION
@@ -1264,7 +957,7 @@ CONTAINS
                   = d2smat(                            i0nidi,i0nidj) &
                   + d6igtn(i0didk,i0didl,i0nidk,i0nidl,i0nidi,i0nidj) &
                   * d1gtwi(              i0nidk                     ) &
-                  * d3temp(i0didk,i0didl,       i0nidl              )         
+                  * d3temp(i0didk,i0didl,       i0nidl              )
           ENDDO
           ENDDO
        ENDDO
@@ -1274,56 +967,6 @@ CONTAINS
     
     !C
     !C STORE SUBMATRIX
-    !C
-    
-    DO i0nidj = 1, i0nmax
-    DO i0nidi = 1, i0nmax
-       d4smat(       i0nidi,i0nidj,i0vidi,i0vidj) &
-            = d4smat(i0nidi,i0nidj,i0vidi,i0vidj) &
-            + d2smat(i0nidi,i0nidj              )
-    ENDDO
-    ENDDO
-    
-    IF((i0supg.EQ.0).OR.(i0vidi.LE.5)) RETURN 
-    i0avvt = i2avvt(i0vidi,i0vidi)
-    IF(i0avvt.EQ.0) RETURN
-    !C
-    !C ADDITIONAL LOOP (SUPG)
-    !C
-
-    DO i0nidi = 1, i0nmax
-       DO i0didi = 1, i0dmax
-          d2eafv(i0didi,i0nidi) = d3eafv(i0didi,i0nidi,i0vidi)
-       ENDDO
-    ENDDO
-
-    DO i0nidj = 1, i0nmax
-    DO i0nidi = 1, i0nmax
-       d2smat(i0nidi,i0nidj) = 0.D0
-       DO i0nidm = 1, i0nmax
-       DO i0nidl = 1, i0nmax
-       DO i0nidk = 1, i0nmax
-          DO i0didk = 1, i0dmax
-          DO i0didj = 1, i0dmax
-          DO i0didi = 1, i0dmax
-             d2smat(                            i0nidi,i0nidj) &
-                  = d2smat(                     i0nidi,i0nidj) &
-                  + d8igts(i0didi,i0didj,i0didk,               &
-                  &        i0nidk,i0nidl,i0nidm,i0nidi,i0nidj) &
-                  * d1gtwi(                     i0nidk              ) &   
-                  * d3temp(       i0didj,i0didk,       i0nidl       ) &
-                  * d2eafv(i0didi,                            i0nidm)
-          ENDDO
-          ENDDO
-          ENDDO
-       ENDDO
-       ENDDO
-       ENDDO
-    ENDDO
-    ENDDO 
-    
-    !C
-    !C STORE SUBMATRIX (SUPG)
     !C
     
     DO i0nidj = 1, i0nmax
@@ -1348,19 +991,17 @@ CONTAINS
   SUBROUTINE T2EXEC_ES
 
     USE T2COMM,ONLY:&
-         i0supg,i0dmax,i0nmax,i0vmax,i2enr0,&
-         d2jmpm,d0jdmp,d4smat,d3eafv,&
-         d3es,  d3iesn,d5iess,i2avvt
+         i0dmax,i0nmax,i0vmax,i2enr0,&
+         d2jmpm,d0jdmp,d4smat,d3iesn,d3es
          
     INTEGER(i0ikind)::&
          i0nidi,i0nidj,i0nidk,i0nidl,&
          i0didi,&
-         i0midi,i0avvt
+         i0midi
 
     REAL(   i0rkind)::&
          d2smat(1:i0nmax,1:i0nmax),&
-         d1exct(1:i0nmax),&
-         d2eafv(1:i0dmax,1:i0nmax)
+         d1exct(1:i0nmax)
 
     !C
     !C INITIALIZATION
@@ -1400,48 +1041,6 @@ CONTAINS
             + d2smat(i0nidi,i0nidj              )
     ENDDO
     ENDDO
-
-
-    IF((i0supg.EQ.0).OR.(i0vidi.LE.5)) RETURN
-    i0avvt = i2avvt(i0vidi,i0vidi)
-    IF(i0avvt.EQ.0) RETURN
-    !C
-    !C ADDITIONAL LOOP (SUPG)
-    !C
-    DO i0nidi = 1, i0nmax
-       DO i0didi = 1, i0dmax
-          d2eafv(i0didi,i0nidi) = d3eafv(i0didi,i0nidi,i0vidi)
-       ENDDO
-    ENDDO
-
-    DO i0nidj = 1, i0nmax
-    DO i0nidi = 1, i0nmax
-       d2smat(i0nidi,i0nidj) = 0.D0
-       DO i0nidl = 1, i0nmax
-       DO i0nidk = 1, i0nmax
-          DO i0didi = 1, i0dmax
-             d2smat(                            i0nidi,i0nidj) & 
-                  = d2smat(                     i0nidi,i0nidj) &
-                  + d5iess(i0didi,i0nidk,i0nidl,i0nidi,i0nidj) &
-                  * d1exct(       i0nidk                     ) &
-                  * d2eafv(i0didi,       i0nidl              )
-          ENDDO
-       ENDDO
-       ENDDO
-    ENDDO
-    ENDDO
-    
-    !C
-    !C STORE SUBMATRIX (SUPG)
-    !C
-    
-    DO i0nidj = 1, i0nmax
-    DO i0nidi = 1, i0nmax
-       d4smat(       i0nidi,i0nidj,i0vidi,i0vidj) &
-            = d4smat(i0nidi,i0nidj,i0vidi,i0vidj) &
-            + d2smat(i0nidi,i0nidj              )
-    ENDDO
-    ENDDO
     
     RETURN
     
@@ -1457,21 +1056,19 @@ CONTAINS
   SUBROUTINE T2EXEC_EV
     
     USE T2COMM,ONLY:&
-         i0supg,i0dmax,i0nmax,i0vmax,i2enr0,&
-         d2jmpm,d0jdmp,d2wrks,d4smat,d3eafv,&
-         d5ev  ,d5ievn,d7ievs,i2avvt
+         i0dmax,i0nmax,i0vmax,i2enr0,&
+         d2jmpm,d0jdmp,d2wrks,d4smat,d5ievn,d5ev
     
     INTEGER(i0ikind)::&
          i0nidi,i0nidj,i0nidk,i0nidl,i0nidm,&
          i0didi,i0didj,&
-         i0midi,i0avvt
+         i0midi!,i0avvt
     
     REAL(   i0rkind)::&
          d2smat(1:i0nmax,1:i0nmax),&
          d2exct(1:i0dmax,1:i0nmax),&
          d1evwi(1:i0nmax),&
-         d2temp(1:i0dmax,1:i0nmax),&
-         d2eafv(1:i0dmax,1:i0nmax)
+         d2temp(1:i0dmax,1:i0nmax)
     
     !C
     !C INITIALIZATION
@@ -1534,54 +1131,6 @@ CONTAINS
             + d2smat(i0nidi,i0nidj              )
     ENDDO
     ENDDO
-
-    IF((i0supg.EQ.0).OR.(i0vidi.LE.5)) RETURN 
-    i0avvt = i2avvt(i0vidi,i0vidi)
-    IF(i0avvt.EQ.0) RETURN
-    !C
-    !C ADDITIONAL LOOP (SUPG)
-    !C
-
-    DO i0nidi = 1, i0nmax
-       DO i0didi = 1, i0dmax
-          d2eafv(i0didi,i0nidi) = d3eafv(i0didi,i0nidi,i0vidi)
-       ENDDO
-    ENDDO
-    
-    DO i0nidj = 1, i0nmax
-    DO i0nidi = 1, i0nmax
-       d2smat(i0nidi,i0nidj) = 0.D0
-       DO i0nidm = 1, i0nmax
-       DO i0nidl = 1, i0nmax
-       DO i0nidk = 1, i0nmax
-          DO i0didj = 1, i0dmax
-          DO i0didi = 1, i0dmax
-             d2smat(                            i0nidi,i0nidj) &
-                  = d2smat(                     i0nidi,i0nidj) &
-                  + d7ievs(i0didi,i0didj,                      &
-                  &        i0nidk,i0nidl,i0nidm,i0nidi,i0nidj) &
-                  * d1evwi(              i0nidk              ) &
-                  * d2temp(       i0didj,       i0nidl       ) &
-                  * d2eafv(i0didi,                     i0nidm) 
-          ENDDO
-          ENDDO
-       ENDDO
-       ENDDO
-       ENDDO
-    ENDDO
-    ENDDO
-    
-    !C
-    !C STORE SUBMATRIX (SUPG)
-    !C
-    
-    DO i0nidj = 1, i0nmax
-    DO i0nidi = 1, i0nmax
-       d4smat(       i0nidi,i0nidj,i0vidi,i0vidj) &
-            = d4smat(i0nidi,i0nidj,i0vidi,i0vidj) &
-            + d2smat(i0nidi,i0nidj              )
-    ENDDO
-    ENDDO
     
     RETURN
     
@@ -1597,22 +1146,20 @@ CONTAINS
   SUBROUTINE T2EXEC_ET
     
     USE T2COMM,ONLY:&
-         i0supg,i0dmax,i0nmax,i0vmax,i2enr0,&
-         d2jmpm,d0jdmp,d4smat,d2wrks,d3eafv,&
-         d7et,  d7ietn,d9iets,i2avvt
+         i0dmax,i0nmax,i0vmax,i2enr0,&
+         d2jmpm,d0jdmp,d4smat,d2wrks,d7ietn,d7et
     
     INTEGER(i0ikind)::&
          i0nidi,i0nidj,i0nidk,i0nidl,i0nidm,i0nidn,&
          i0didi,i0didj,i0didk,i0didl,&
-         i0midi,i0avvt
+         i0midi
     
     REAL(   i0rkind)::&
          d2smat(1:i0nmax,1:i0nmax),&
          d3exct(1:i0dmax,1:i0dmax,1:i0nmax),&
          d1etwi(1:i0nmax),&
          d1etwj(1:i0nmax),&
-         d3temp(1:i0dmax,1:i0dmax,1:i0nmax),&
-         d2eafv(1:i0dmax,1:i0nmax)
+         d3temp(1:i0dmax,1:i0dmax,1:i0nmax)
 
     !C
     !C INITIALIZATION
@@ -1623,8 +1170,8 @@ CONTAINS
        DO i0didj = 1, i0dmax
        DO i0didi = 1, i0dmax
           d3exct(     i0didi,i0didj,i0nidi)&
-               = d7et(i0didi,i0didj,i0widi,i0widj,i0vidi,i0vidj,i0midi) &
-               * d0jdmp
+               = d7et(i0didi,i0didj,i0widi,i0widj,&
+               &      i0vidi,i0vidj,i0midi) * d0jdmp
        ENDDO
        ENDDO
     ENDDO
@@ -1667,9 +1214,9 @@ CONTAINS
                   = d2smat(                     i0nidi,i0nidj) &
                   + d7ietn(i0didk,i0didl,&
                   &        i0nidk,i0nidl,i0nidm,i0nidi,i0nidj) &
-                  * d1etwi(              i0nidk              ) &
-                  * d1etwj(                     i0nidl       ) &
-                  * d3temp(i0didk,i0didl,              i0nidm)
+                  * d1etwi(i0nidk                            ) &
+                  * d1etwj(       i0nidl                     ) &
+                  * d3temp(i0didk,i0didl,i0nidm              )
           ENDDO
           ENDDO
        ENDDO
@@ -1690,59 +1237,6 @@ CONTAINS
     ENDDO
     ENDDO
     
-    IF((i0supg.EQ.0).OR.(i0vidi.LE.5)) RETURN
-    i0avvt = i2avvt(i0vidi,i0vidi)
-    IF(i0avvt.EQ.0) RETURN    
-    !C
-    !C ADDITIONAL LOOP (SUPG)
-    !C
-
-    DO i0nidi = 1, i0nmax
-       DO i0didi = 1, i0dmax
-          d2eafv(i0didi,i0nidi) = d3eafv(i0didi,i0nidi,i0vidi)
-       ENDDO
-    ENDDO
-    
-    DO i0nidj = 1, i0nmax
-    DO i0nidi = 1, i0nmax
-       d2smat(i0nidi,i0nidj) = 0.D0
-       DO i0nidn = 1, i0nmax
-       DO i0nidm = 1, i0nmax
-       DO i0nidl = 1, i0nmax
-       DO i0nidk = 1, i0nmax
-          DO i0didk = 1, i0dmax
-          DO i0didj = 1, i0dmax
-          DO i0didi = 1, i0dmax
-             d2smat(                                   i0nidi,i0nidj) &
-                  = d2smat(                            i0nidi,i0nidj) &
-                  + d9iets(i0didi,i0didj,i0didk,                      &
-                  &        i0nidk,i0nidl,i0nidm,i0nidn,i0nidi,i0nidj) &
-                  * d1etwi(                     i0nidk                     ) &
-                  * d1etwj(                            i0nidl              ) &
-                  * d3temp(       i0didj,i0didk,              i0nidm       ) &
-                  * d2eafv(i0didi,                                   i0nidn)
-          ENDDO
-          ENDDO
-          ENDDO
-       ENDDO
-       ENDDO
-       ENDDO
-       ENDDO
-    ENDDO
-    ENDDO
-    
-    !C
-    !C STORE SUBMATRIX (SUPG)
-    !C
-    
-    DO i0nidj = 1, i0nmax
-    DO i0nidi = 1, i0nmax
-       d4smat(       i0nidi,i0nidj,i0vidi,i0vidj) &
-            = d4smat(i0nidi,i0nidj,i0vidi,i0vidj) &
-            + d2smat(i0nidi,i0nidj              )
-    ENDDO
-    ENDDO
-    
     RETURN
     
   END SUBROUTINE T2EXEC_ET
@@ -1750,20 +1244,18 @@ CONTAINS
   SUBROUTINE T2EXEC_SS
     
     USE T2COMM,ONLY:&
-         i0supg,i0dmax,i0nmax,i0vmax,i2enr0,&
-         d2jmpm,d0jdmp,d3eafv,d2svec,&
-         d3ss,  d2issn,d4isss,i2avvt
-    
+         i0dmax,i0nmax,i0vmax,i2enr0,&
+         d2jmpm,d0jdmp,d2svec,d2issn,d3ss
+
     INTEGER(i0ikind)::&
          i0nidi,i0nidj,i0nidk,&
          i0didi,&
-         i0midi,i0avvt
+         i0midi
  
     REAL(   i0rkind)::&
          d1sour(1:i0nmax),&
-         d1svec(1:i0nmax),&
-         d2eafv(1:i0dmax,1:i0nmax)
-    
+         d1svec(1:i0nmax)
+
     !C
     !C INITIALIZATION    
     !C
@@ -1796,45 +1288,7 @@ CONTAINS
        d2svec(       i0nidi,i0vidi) &
             = d2svec(i0nidi,i0vidi) & 
             + d1svec(i0nidi       )
-    ENDDO
-    
-    IF((i0supg.EQ.0).OR.(i0vidi.LE.5)) RETURN
-    i0avvt = i2avvt(i0vidi,i0vidi)
-    IF(i0avvt.EQ.0) RETURN
-    !C
-    !C ADDITIONAL LOOP (SUPG)
-    !C
-
-    DO i0nidi = 1, i0nmax
-       DO i0didi = 1, i0dmax
-          d2eafv(i0didi,i0nidi) = d3eafv(i0didi,i0nidi,i0vidi)
-       ENDDO
-    ENDDO
-
-    DO i0nidi = 1, i0nmax
-       d1svec(i0nidi) = 0.D0
-       DO i0nidk = 1, i0nmax
-       DO i0nidj = 1, i0nmax
-          DO i0didi = 1, i0dmax
-             d1svec(                            i0nidi) &
-                  = d1svec(                     i0nidi) &
-                  + d4isss(i0didi,i0nidj,i0nidk,i0nidi) &
-                  * d1sour(       i0nidj              ) &
-                  * d2eafv(i0didi,       i0nidk       )
-          ENDDO
-       ENDDO
-       ENDDO
-    ENDDO
-
-    !C
-    !C STORE SUBVECTOR
-    !C
-
-    DO i0nidi = 1, i0nmax
-       d2svec(       i0nidi,i0vidi) &
-            = d2svec(i0nidi,i0vidi) & 
-            + d1svec(i0nidi       )
-    ENDDO
+    ENDDO    
     
     RETURN
     
@@ -2259,7 +1713,8 @@ CONTAINS
              i0bidj = i1nidc(i0aidi)
              DO i0vidi = 1, i0vmax
                 SELECT CASE(i0vidi)
-                CASE(1:5,6,10,14:21)
+                !CASE(1:5,6,10,14:21)
+                CASE(1:5,7,11,14:21)
                    CYCLE
                 CASE DEFAULT
                    DO i0vidj = 1, i0vmax
@@ -2279,7 +1734,8 @@ CONTAINS
           
           DO i0vidi = 1, i0vmax
              SELECT CASE(i0vidi)
-             CASE(1:5,6,10,14:21)
+             !CASE(1:5,6,10,14:21)
+             CASE(1:5,7,11,14:21)
                 CYCLE
              CASE DEFAULT
                 d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)
@@ -2340,7 +1796,8 @@ CONTAINS
              i0bidj = i1nidc(i0aidi)
              DO i0vidi = 1, i0vmax
                 SELECT CASE(i0vidi)
-                CASE(1:6,10,14,18)
+                !CASE(1:6,10,14,18)
+                CASE(1:5,7,11,15,19)
                    CYCLE
                 CASE DEFAULT
                    DO i0vidj = 1, i0vmax
@@ -2359,7 +1816,8 @@ CONTAINS
           !C
           DO i0vidi = 1, i0vmax
              SELECT CASE(i0vidi)
-             CASE(1:6,10,14,18)
+             !CASE(1:6,10,14,18)
+             CASE(1:5,7,11,15,19)
                 CYCLE
              CASE DEFAULT
                 d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)
@@ -2386,7 +1844,8 @@ CONTAINS
              i0bidj = i1nidc(i0aidi)
              DO i0vidi = 1, i0vmax
                 SELECT CASE(i0vidi)
-                CASE(6,10,14,18)
+                !CASE(6,10,14,18)
+                CASE(7,11,15,19)
                    CYCLE
                 CASE DEFAULT
                    DO i0vidj = 1, i0vmax
@@ -2406,7 +1865,8 @@ CONTAINS
           
           DO i0vidi = 1, i0vmax
              SELECT CASE(i0vidi)
-             CASE(6,10,14,18)
+             !CASE(6,10,14,18)
+             CASE(7,11,15,19)
                 CYCLE
              CASE DEFAULT
                 d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)

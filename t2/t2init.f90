@@ -47,9 +47,9 @@ CONTAINS
          dt,time_init,eps_conv, &
          ntmax,ntstep,nt0dmax,nt0dstep,nt2dmax,nt2dstep,nconvmax, &
          idfile,idprint,idplot,idmode,idebug
-
+    
     c10rname = 'TEST'
-    i0solv   =  3
+    i0solv   =  1
     i0dbg    =  0
     i0fnum   = 10
     i0mfcs   =  1
@@ -59,25 +59,27 @@ CONTAINS
     i0dmax  =  2  ! mesh dim
     i0qmax  = 32  ! gauss kyuuseki number of sample points
     i0pmax  = 49  ! iteration 
-
-
-    i0smax =  2 
+    
+    i0smax =  2
     i0nmax =  4        ! number of nodes in a elemnt
-    i0lmax =  2        ! 
-    i0pdiv_number = 60 ! 
+    i0lmax =  3        ! 
+    i0pdiv_number = 50 ! 
 
 
     i1mlvl(0:i0lmaxm+1) = 0
     i1mlvl(1)=1        ! 10 x 2^0
     i1mlvl(2)=2        ! 10 x 2^0
+    i1mlvl(3)=2        ! 10 x 2^0
     
     i1rdn2(-1:i0lmaxm) = 0  
-    i1rdn2(1) = 30   ! number of radial nodes in a level
-    i1rdn2(2) = 30   ! number of radial nodes in a level
-
+    i1rdn2(1) = 20   ! number of radial nodes in a level
+    i1rdn2(2) = 15   ! number of radial nodes in a level
+    i1rdn2(3) = 30   ! number of radial nodes in a level
+    
     d1rec(0:i0lmaxm) = 0.D0 ! least radial point in a level
-    d1rec(1) = 0.5000D0
-    d1rec(2) = 1.0000D0
+    d1rec(1) = 0.500D0
+    d1rec(2) = 1.000D0
+    d1rec(3) = 1.100D0
 
     d0rmjr   =  3.0D0
     d0rmnr   =  1.0D0
@@ -86,37 +88,37 @@ CONTAINS
     d0qc     =  1.0D0
     d0qs     =  3.0D0
 
-!   PLASMA PARAMETER
+    !PLASMA PARAMETER
     
-!    Electron 
+    !Electron 
     d1pa(1) =  d0ame/d0amp
     d1pz(1) = -1.D0
     i1nm(1) = 1
     i1nn(1) = 3
-    d1nc(1) =  1.0D0
-    d1ns(1) =  1.0D-1
-    !d1nw(1) = 5.0D-2
+    d1nc(1) = 1.0D0
+    d1ns(1) = 2.0D-1
+    d1nw(1) = 1.0D-2
     i1tm(1) = 1
     i1tn(1) = 2
     d1tc(1) = 5.0D0
-    d1ts(1) = 5.0D-1
-    !d1tw(1) = 1.0D-1
-
-!   Deuterium
+    d1ts(1) = 1.0D0
+    d1tw(1) = 1.0D-1
+    
+    !Deuterium
     d1pa(2) = 2.D0
     d1pz(2) = 1.D0
     i1nm(2) = 1
     i1nn(2) = 3
     d1nc(2) = 1.D0
-    d1ns(2) = 1.D-1
-    !d1nw(2) = 5.D-2
+    d1ns(2) = 2.D-1
+    d1nw(2) = 1.D-2
     i1tm(2) = 1
     i1tn(2) = 2
     d1tc(2) = 5.D0
-    d1ts(2) = 5.D-1
-    !d1tw(2) = 1.D-1
+    d1ts(2) = 1.D0
+    d1tw(2) = 1.D-1
 
-!   Other plasma speces
+    !Other plasma speces
     d1nc(3:i0spcsm) = 0.D0
     d1ns(3:i0spcsm) = 0.D0 
     d1nw(3:i0spcsm) = 0.D0
@@ -125,8 +127,7 @@ CONTAINS
     d1tw(3:i0spcsm) = 0.D0
     d1pa(3:i0spcsm) = 0.D0
     d1pz(3:i0spcsm) = 0.D0
-
-    !
+    
     dt        = 1.D-5   ! time step [s]
     time_init = 0.D0    ! initial time [s]
     ntmax     = 1       ! number of time steps to go
@@ -137,7 +138,7 @@ CONTAINS
     nt2dstep  = 1       ! time step to save profile data
 
     nconvmax  = 50      ! maximum number of convergence steps for implicit loop
-    eps_conv  = 1.D-4   ! relative convergence criterion for implicit loop
+    eps_conv  = 1.D-3   ! relative convergence criterion for implicit loop
 
     idfile    = 0       ! control id for file output: 0 for none, 9 for all
     idprint   = 9       ! control id for print output: 0 for none, 9 for all

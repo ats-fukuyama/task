@@ -121,7 +121,8 @@ CONTAINS
              d0ifnck = d4ifnc(i0qidi,i0qidj,i0didj,i0nidk)
              d0ifncl = d4ifnc(i0qidi,i0qidj,0,     i0nidl)
              d0wfct  = d2wfct(i0qidi,i0qidj              )
-             d0temp  = d0temp + d0ifnci*d0ifncj*d0ifnck*d0ifncl*d0wfct
+             d0temp  = d0temp&
+                  &  + d0ifnci*d0ifncj*d0ifnck*d0ifncl*d0wfct
           ENDDO
           ENDDO
           d6iatn(i0didi,i0didj,i0nidk,i0nidl,i0nidi,i0nidj) = d0temp
@@ -162,7 +163,6 @@ CONTAINS
     !C GV: D4IGVN
     !C
     
-
     DO i0nidj = 1, i0nmax
     DO i0nidi = 1, i0nmax
     DO i0nidk = 1, i0nmax
@@ -201,7 +201,8 @@ CONTAINS
              d0ifnck = d4ifnc(i0qidi,i0qidj,i0didi,i0nidk)
              d0ifncl = d4ifnc(i0qidi,i0qidj,0,     i0nidl)
              d0wfct  = d2wfct(i0qidi,i0qidj              )
-             d0temp  = d0temp + d0ifnci*d0ifncj*d0ifnck*d0ifncl*d0wfct
+             d0temp  = d0temp&
+                  &  + d0ifnci*d0ifncj*d0ifnck*d0ifncl*d0wfct
           ENDDO
           ENDDO
           d6igtn(i0didi,i0didj,i0nidk,i0nidl,i0nidi,i0nidj) = d0temp
@@ -251,7 +252,8 @@ CONTAINS
              d0ifnck = d4ifnc(i0qidi,i0qidj,i0didi,i0nidk)
              d0ifncl = d4ifnc(i0qidi,i0qidj,0,     i0nidl)
              d0wfct  = d2wfct(i0qidi,i0qidj              )
-             d0temp  = d0temp + d0ifnci*d0ifncj*d0ifnck*d0ifncl*d0wfct
+             d0temp  = d0temp&
+                  &  + d0ifnci*d0ifncj*d0ifnck*d0ifncl*d0wfct
           ENDDO
           ENDDO
           d5ievn(i0didi,i0nidk,i0nidl,i0nidi,i0nidj) = d0temp
