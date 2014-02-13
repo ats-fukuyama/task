@@ -195,7 +195,7 @@ CONTAINS
     !C
     
 
-    i0offset  = 1!
+    i0offset  = 1
 
     DO i0lidi = 1, i0lmax
        
@@ -455,15 +455,13 @@ CONTAINS
          d3ms,d3imsn!,d3eafv,d5imss,i2avvt
     
     INTEGER(i0ikind)::&
-         i0nidi,i0nidj,i0nidk,i0nidl,&
-         i0didi,&
-         i0midi!,i0avvt
+         i0nidi,i0nidj,i0nidk,&
+         i0midi
     
     REAL(   i0rkind)::&
          d2smat(1:i0nmax,1:i0nmax),&
          d1svec(1:i0nmax),&
-         d1mass(1:i0nmax)!,&
-         !d2eafv(1:i0dmax,1:i0nmax)
+         d1mass(1:i0nmax)
     
     !C
     !C INITIALIZATION
@@ -471,7 +469,9 @@ CONTAINS
     
     DO i0nidi = 1, i0nmax
        i0midi = i2enr0(i0nidi,1)
-       d1mass(i0nidi) = d3ms(i0vidi,i0vidj,i0midi)*d0jdmp/dt
+       d1mass(                   i0nidi) &
+            = d3ms(i0vidi,i0vidj,i0midi) &
+            * d0jdmp/dt
     ENDDO
     
     !C
@@ -537,18 +537,17 @@ CONTAINS
     
     USE T2COMM,ONLY:&
          i0nmax,i0dmax,i0vmax,i2enr0,d0jdmp,d2jmpm,&
-         d4av,d4iavn,d4smat!,i0supg,d3eafv,d6iavs,i2avvt
+         d4av,d4iavn,d4smat
     
     INTEGER(i0ikind)::&
          i0didi,i0didj,&
-         i0nidi,i0nidj,i0nidk,i0nidl,&
-         i0midi!,i0avvt
+         i0nidi,i0nidj,i0nidk,&
+         i0midi
     
     REAL(   i0rkind)::&
          d2smat(1:i0nmax,1:i0nmax),&
          d2velo(1:i0dmax,1:i0nmax),&
-         d2temp(1:i0dmax,1:i0nmax)!,&
-        !d2eafv(1:i0dmax,1:i0nmax)
+         d2temp(1:i0dmax,1:i0nmax)
     
     !C
     !C INTITIALIZATION
@@ -557,8 +556,8 @@ CONTAINS
     DO i0nidi = 1, i0nmax
        i0midi = i2enr0(i0nidi,1)
        DO i0didi = 1, i0dmax
-          d2velo(     i0didi,i0nidi                     ) &
-               = d4av(i0didi,       i0vidi,i0vidj,i0midi) &
+          d2velo(     i0didi,              i0nidi) &
+               = d4av(i0didi,i0vidi,i0vidj,i0midi) &
                * d0jdmp
        ENDDO
     ENDDO
@@ -571,9 +570,9 @@ CONTAINS
        DO i0didj = 1, i0dmax
           d2temp(i0didj,i0nidk) = 0.D0
           DO i0didi = 1, i0dmax
-             d2temp(              i0didj,i0nidk)&
-                  = d2temp(       i0didj,i0nidk)&
-                  + d2velo(i0didi,       i0nidk)&
+             d2temp(              i0didj,i0nidk) &
+                  = d2temp(       i0didj,i0nidk) &
+                  + d2velo(i0didi,       i0nidk) &
                   * d2jmpm(i0didi,i0didj       ) 
           ENDDO
        ENDDO
@@ -638,14 +637,14 @@ CONTAINS
     !C
     
     DO i0nidi = 1, i0nmax
-       d1atwi(i0nidi) = d2wrks(i0nidi,i0widi)
+      d1atwi(i0nidi) = d2wrks(i0nidi,i0widi)
     ENDDO
     
     DO i0nidi = 1, i0nmax       
        i0midi = i2enr0(i0nidi,1)
        DO i0didj = 1, i0dmax
        DO i0didi = 1, i0dmax
-          d3velo(     i0didi,i0didj,i0nidi)&
+          d3velo(     i0didi,i0didj,                     i0nidi) &
                = d6at(i0didi,i0didj,i0widi,i0vidi,i0vidj,i0midi) &
                * d0jdmp
        ENDDO
@@ -740,7 +739,7 @@ CONTAINS
        i0midi = i2enr0(i0nidi,1)
        DO i0didj = 1, i0dmax
        DO i0didi = 1, i0dmax
-          d3diff(     i0didi,i0didj,i0nidi)&
+          d3diff(     i0didi,i0didj,              i0nidi)&
                = d5dt(i0didi,i0didj,i0vidi,i0vidj,i0midi) &
                * d0jdmp
        ENDDO
@@ -830,7 +829,7 @@ CONTAINS
     DO i0nidi = 1, i0nmax
        i0midi = i2enr0(i0nidi,1)
        DO i0didi = 1, i0dmax
-          d2grad(     i0didi,i0nidi) &
+          d2grad(     i0didi,              i0nidi) &
                = d4gv(i0didi,i0vidi,i0vidj,i0midi) &
                * d0jdmp
        ENDDO
@@ -914,7 +913,7 @@ CONTAINS
        i0midi = i2enr0(i0nidi,1)
        DO i0didj = 1, i0dmax
        DO i0didi = 1, i0dmax
-          d3grad(     i0didi,i0didj,i0nidi                     ) &
+          d3grad(     i0didi,i0didj,                     i0nidi) &
                = d6gt(i0didi,i0didj,i0widi,i0vidi,i0vidj,i0midi) &
                * d0jdmp
        ENDDO
@@ -1009,7 +1008,7 @@ CONTAINS
         
     DO i0nidi = 1,i0nmax
        i0midi = i2enr0(i0nidi,1)
-       d1exct(i0nidi)&
+       d1exct(                   i0nidi) &
             = d3es(i0vidi,i0vidj,i0midi) &
             * d0jdmp
     ENDDO
@@ -1077,7 +1076,7 @@ CONTAINS
     DO i0nidi = 1, i0nmax
        i0midi = i2enr0(i0nidi,1)
        DO i0didi = 1, i0dmax
-          d2exct(     i0didi,i0nidi)&
+          d2exct(     i0didi,                     i0nidi) &
                = d5ev(i0didi,i0widi,i0vidi,i0vidj,i0midi) &
                * d0jdmp
        ENDDO
@@ -1171,7 +1170,8 @@ CONTAINS
        DO i0didi = 1, i0dmax
           d3exct(     i0didi,i0didj,i0nidi)&
                = d7et(i0didi,i0didj,i0widi,i0widj,&
-               &      i0vidi,i0vidj,i0midi) * d0jdmp
+               &      i0vidi,i0vidj,i0midi)&
+               * d0jdmp
        ENDDO
        ENDDO
     ENDDO

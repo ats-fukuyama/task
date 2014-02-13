@@ -31,16 +31,14 @@ CONTAINS
          i0nmax,i0qmax,i0dmax,&
          d3imsn,d4iavn,d6iatn,d5idtn,d4igvn,d6igtn,&
          d3iesn,d5ievn,d7ietn,d2issn,&
-         !d5imss,d6iavs,d8iats,d7idts,d6igvs,d8igts,&
-         !d5iess,d7ievs,d9iets,d4isss,&
          d2wfct,d4ifnc
     
     INTEGER(i0ikind)::&
-         i0nidi,i0nidj,i0nidk,i0nidl,i0nidm,i0nidn,&
-         i0didi,i0didj,i0didk,&
+         i0nidi,i0nidj,i0nidk,i0nidl,i0nidm,&
+         i0didi,i0didj,&
          i0qidi,i0qidj
     REAL(   i0rkind)::&
-         d0ifnci,d0ifncj,d0ifnck,d0ifncl,d0ifncm,d0ifncn,&
+         d0ifnci,d0ifncj,d0ifnck,d0ifncl,d0ifncm,&
          d0wfct, d0temp
     !C------------------------------------------------------
     
@@ -227,7 +225,8 @@ CONTAINS
           d0ifncj = d4ifnc(i0qidi,i0qidj,0,i0nidj)
           d0ifnck = d4ifnc(i0qidi,i0qidj,0,i0nidk)
           d0wfct  = d2wfct(i0qidi,i0qidj         )
-          d0temp  = d0temp + d0ifnci*d0ifncj*d0ifnck*d0wfct
+          d0temp  = d0temp&
+               &  + d0ifnci*d0ifncj*d0ifnck*d0wfct
        ENDDO
        ENDDO
        d3iesn(i0nidk,i0nidi,i0nidj) = d0temp
