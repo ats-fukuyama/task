@@ -32,12 +32,13 @@ CONTAINS
   
   SUBROUTINE T2_CALV
     
-    USE T2COMM, ONLY: i0mmax
-    !OPEN(10,FILE='PROF_SI.dat')
-    !OPEN(11,FILE='FIELD_SI.dat')
-    !OPEN(10,FILE='PROF_PI.dat')
-    !OPEN(11,FILE='FIELD_PI.dat')
-    
+    !USE T2COMM, ONLY: i0mmax
+    USE T2COMM
+    USE T2COUT, ONLY: T2_COUT
+    INTEGER(i0ikind)::&
+         i0didi,i0widi,i0vidi,&
+         i0didj,i0widj,i0vidj
+    CHARACTER(LEN=2)::c2coef
     DO i0midi = 1, i0mmax
        
        CALL T2CALV_PQ
@@ -53,9 +54,97 @@ CONTAINS
        CALL T2CALV_SS
        
     ENDDO
-    !CLOSE(10)
-    !CLOSE(11)
-    !STOP
+    
+    WRITE(6,*)'********** COEFFICIENT CHECK START**********'
+    DO
+       WRITE(6,*)'ms,av,at,dt,gv,gt,es,ev,et xx/exit'
+       READ(5,*)c2coef
+       SELECT CASE (c2coef)
+       CASE ('ms')
+          WRITE(6,*)'i0vidi,i0vidj'
+          READ(5,*)  i0vidi,i0vidj
+          IF(  (i0vidi.GT.i0vmax).OR.(i0vidi.LT.0).OR.&
+               (i0vidj.GT.i0vmax).OR.(i0vidj.LT.0)) CYCLE
+          CALL T2_COUT(d3ms(i0vidi,i0vidj,1:i0mmax))
+       CASE ('av')
+          WRITE(6,*)'i0didi,i0vidi,i0vidj'
+          READ(5,*)  i0didi,i0vidi,i0vidj
+          IF(  (i0vidi.GT.i0vmax).OR.(i0vidi.LT.0).OR.&
+               (i0vidj.GT.i0vmax).OR.(i0vidj.LT.0).OR.&
+               (i0didi.GT.i0dmax).OR.(i0didi.LT.0)) CYCLE
+          CALL T2_COUT(d4av(i0didi,i0vidi,i0vidj,1:i0mmax))
+       CASE ('at')
+          WRITE(6,*)'i0didi,i0didj,i0widi,i0vidi,i0vidj'
+          READ(5,*)  i0didi,i0didj,i0widi,i0vidi,i0vidj
+          IF(  (i0vidi.GT.i0vmax).OR.(i0vidi.LT.0).OR.&
+               (i0vidj.GT.i0vmax).OR.(i0vidj.LT.0).OR.&
+               (i0widi.GT.i0wmax).OR.(i0widi.LT.0).OR.&
+               (i0didi.GT.i0dmax).OR.(i0didi.LT.0).OR.&
+               (i0didj.GT.i0dmax).OR.(i0didj.LT.0)) CYCLE
+          CALL T2_COUT(d6at(i0didi,i0didj,i0widi,i0vidi,i0vidj,1:i0mmax))
+       CASE ('dt')
+          WRITE(6,*)'i0didi,i0didj,i0vidi,i0vidj'
+          READ(5,*)  i0didi,i0didj,i0vidi,i0vidj
+          IF(  (i0vidi.GT.i0vmax).OR.(i0vidi.LT.0).OR.&
+               (i0vidj.GT.i0vmax).OR.(i0vidj.LT.0).OR.&
+               (i0didi.GT.i0dmax).OR.(i0didi.LT.0).OR.&
+               (i0didj.GT.i0dmax).OR.(i0didj.LT.0)) CYCLE
+          CALL T2_COUT(d5dt(i0didi,i0didj,i0vidi,i0vidj,1:i0mmax))
+       CASE ('gv')
+          WRITE(6,*)'i0didi,i0vidi,i0vidj'
+          READ(5,*)  i0didi,i0vidi,i0vidj
+          IF(  (i0vidi.GT.i0vmax).OR.(i0vidi.LT.0).OR.&
+               (i0vidj.GT.i0vmax).OR.(i0vidj.LT.0).OR.&
+               (i0didi.GT.i0dmax).OR.(i0didi.LT.0)) CYCLE
+          CALL T2_COUT(d4gv(i0didi,i0vidi,i0vidj,1:i0mmax))
+       CASE ('gt')
+          WRITE(6,*)'i0didi,i0didj,i0widi,i0vidi,i0vidj'
+          READ(5,*)  i0didi,i0didj,i0widi,i0vidi,i0vidj
+          IF(  (i0vidi.GT.i0vmax).OR.(i0vidi.LT.0).OR.&
+               (i0vidj.GT.i0vmax).OR.(i0vidj.LT.0).OR.&
+               (i0widi.GT.i0wmax).OR.(i0widi.LT.0).OR.&
+               (i0didi.GT.i0dmax).OR.(i0didi.LT.0).OR.&
+               (i0didj.GT.i0dmax).OR.(i0didj.LT.0)) CYCLE
+          CALL T2_COUT(d6gt(i0didi,i0didj,i0widi,i0vidi,i0vidj,1:i0mmax))
+       CASE ('es')
+          WRITE(6,*)'i0vidi,i0vidj'
+          READ(5,*)  i0vidi,i0vidj
+          IF(  (i0vidi.GT.i0vmax).OR.(i0vidi.LT.0).OR.&
+               (i0vidj.GT.i0vmax).OR.(i0vidj.LT.0)) CYCLE
+          CALL T2_COUT(d3es(i0vidi,i0vidj,1:i0mmax))
+       CASE ('ev')
+          WRITE(6,*)'i0didi,i0widi,i0vidi,i0vidj'
+          READ(5,*)  i0didi,i0widi,i0vidi,i0vidj
+          IF(  (i0vidi.GT.i0vmax).OR.(i0vidi.LT.0).OR.&
+               (i0vidj.GT.i0vmax).OR.(i0vidj.LT.0).OR.&
+               (i0widi.GT.i0wmax).OR.(i0widi.LT.0).OR.&
+               (i0didi.GT.i0dmax).OR.(i0didi.LT.0)) CYCLE
+          CALL T2_COUT(d5ev(i0didi,i0widi,i0vidi,i0vidj,1:i0mmax))
+       CASE ('et')
+          WRITE(6,*)'i0didi,i0didj,i0widi,i0widj,i0vidi,i0vidj'
+          READ(5,*)  i0didi,i0didj,i0widi,i0widj,i0vidi,i0vidj
+          IF(  (i0vidi.GT.i0vmax).OR.(i0vidi.LT.0).OR.&
+               (i0vidj.GT.i0vmax).OR.(i0vidj.LT.0).OR.&
+               (i0widi.GT.i0wmax).OR.(i0widi.LT.0).OR.&
+               (i0widj.GT.i0wmax).OR.(i0widj.LT.0).OR.&
+               (i0didi.GT.i0dmax).OR.(i0didi.LT.0).OR.&
+               (i0didj.GT.i0dmax).OR.(i0didj.LT.0)) CYCLE
+          CALL T2_COUT(d7et(i0didi,i0didj,i0widi,i0widj,i0vidi,i0vidj,1:i0mmax))
+       CASE ('ss')
+          WRITE(6,*)'i0vidi,i0vidj'
+          READ(5,*)  i0vidi,i0vidj
+          IF(  (i0vidi.GT.i0vmax).OR.(i0vidi.LT.0).OR.&
+               (i0vidj.GT.i0vmax).OR.(i0vidj.LT.0)) CYCLE
+          CALL T2_COUT(d3ss(i0vidi,i0vidj,1:i0mmax))
+       CASE ('xx')
+          EXIT
+       CASE DEFAULT
+          CYCLE
+       END SELECT
+    ENDDO
+    
+    WRITE(6,*)'********** COEFFICIENT CHECK END  **********'
+    
     RETURN
     
   END SUBROUTINE T2_CALV
@@ -109,9 +198,9 @@ CONTAINS
     REAL(i0rkind)::&
          d0rzcr,d0mfcr,d0mfcp,d0psip,d0g1,d0g2,d0q0,d0liar,&
          d0cps,d0cbn,d0tcr,d0wv1,d0wv2,d0wv3,d0wv4,&
-         d0k11,  d0k12,  d0k22,&
-         d0k11ps,d0k12ps,d0k22ps,&
-         d0k11bn,d0k12bn,d0k22bn
+         d0k11,d0k11ps,d0k11bn,&
+         d0k12,d0k12ps,d0k12bn,&
+         d0k22,d0k22ps,d0k22bn
     
     REAL(i0rkind),DIMENSION(1:i0smax)::&
          d1fr,d1fb,d1ft,d1vti,&
@@ -124,28 +213,28 @@ CONTAINS
     REAL(i0rkind)::d0err
     
     !C
-    !C d0psip: DERIVATIVE POLOIDAL FLUX FUNCTION
-    !C         WITH RESPECT TO RHO               : \psi'
-    !C d0pcf : POLOIDAL CURRENT FUNCTION         : I
-    !C d1nn  : PARTICLE DENSITY                  : n_{a}
-    !C d1pp  : PRESSURE                          : p_{a}   
+    !C d0psip : DERIVATIVE POLOIDAL FLUX FUNCTION
+    !C          WITH RESPECT TO RHO               : \psi'
+    !C d0pcf  : POLOIDAL CURRENT FUNCTION         : I
+    !C d1nn   : PARTICLE DENSITY                  : n_{a}
+    !C d1pp   : PRESSURE                          : p_{a}   
     !C
-    !C d1ur  : CT RADIAL   FLOW                  : u_{a}^{\rho} 
-    !C d1up  : CT POLOIDAL FLOW                  : u_{a}^{\chi}
-    !C d1ut  : CO TOROIDAL FLOW                  : u_{a\zeta}
-    !C d1ub  :    PARALLEL FLOW                  : u_{a\para}
+    !C d1ur   : CT RADIAL   FLOW                  : u_{a}^{\rho} 
+    !C d1up   : CT POLOIDAL FLOW                  : u_{a}^{\chi}
+    !C d1ut   : CO TOROIDAL FLOW                  : u_{a\zeta}
+    !C d1ub   :    PARALLEL FLOW                  : u_{a\para}
     !C
-    !C d1qr  : CT RADIAL   TOTAL HEAT FLUX       : Q_{a}^{\rho}
-    !C d1qp  : CT POLOIDAL TOTAL HEAT FLUX       : Q_{a}^{\chi}
-    !C d1qt  : CO TOROIDAL TOTAL HEAT FLUX       : Q_{a\zeta}
-    !C d1qb  :    PARALLEL TOTAL HEAT FLUX       : Q_{a\para}
+    !C d1qr   : CT RADIAL   TOTAL HEAT FLUX       : Q_{a}^{\rho}
+    !C d1qp   : CT POLOIDAL TOTAL HEAT FLUX       : Q_{a}^{\chi}
+    !C d1qt   : CO TOROIDAL TOTAL HEAT FLUX       : Q_{a\zeta}
+    !C d1qb   :    PARALLEL TOTAL HEAT FLUX       : Q_{a\para}
     !C 
-    !C d1fr  : CT RADIAL   FLOW                  : n_{a}u_{a}^{\rho} 
-    !C d1fp  : CT POLOIDAL FLOW                  : n_{a}u_{a}^{\chi}
-    !C d1ft  : CO TOROIDAL FLOW                  : n_{a}u_{a\zeta}
-    !C d1fb  :    PARALLEL PARTICLE FLUX         : n_{a}n_{u\para}
+    !C d1fr   : CT RADIAL   FLOW                  : n_{a}u_{a}^{\rho} 
+    !C d1fp   : CT POLOIDAL FLOW                  : n_{a}u_{a}^{\chi}
+    !C d1ft   : CO TOROIDAL FLOW                  : n_{a}u_{a\zeta}
+    !C d1fb   :    PARALLEL PARTICLE FLUX         : n_{a}n_{u\para}
     !C
-    !C d01vb : PARALLEL TOTAL HEAT FLOW FUNCTION : Q_{a\para}/p_{a}
+    !C d01vb  : PARALLEL TOTAL HEAT FLOW FUNCTION : Q_{a\para}/p_{a}
     !C 
     !C * CO = COVARIANT, CT = CONTRAVARIANT
     
@@ -258,8 +347,8 @@ CONTAINS
     !C d0bb2   : SQUARED INTENSITY of MAGNETIC FIELD    : B^{2} 
     !C
     
-    d0psip = d0mfcst*d2xvec_befor(1,i0xid1d)
-    d0cobt = d0btcst*d2xvec_befor(2,i0xid1d)
+    d0psip  = d0mfcst*d2xvec_befor(1,i0xid1d)
+    d0cobt  = d0btcst*d2xvec_befor(2,i0xid1d)
     d0sqrtg = d2jm1(1,i0midi)
     d0ctgrr = d2jm1(2,i0midi)
     d0ctgrp = d2jm1(3,i0midi)
@@ -267,10 +356,8 @@ CONTAINS
     d0ctgtt = d2jm1(5,i0midi)
     
     d0cogtt =  1.D0/d0ctgtt
-    !write(11,'(A5,I5,2(A5,D15.8))')'ND=',i0midi,'PSI=',d0psip,'BT=',d0cobt
-    ! modified by H.SETO 2014-02-03
+    
     IF(d0sqrtg.GT.0.D0)THEN
-       !C d0wv1  : WORKING VARIABLE: \sqrt{g}^{2}/R^{2}
        d0wv1   =  (d0sqrtg**2)*d0ctgtt
        d0cogrr =  d0ctgpp*d0wv1
        d0cogrp = -d0ctgrp*d0wv1
@@ -287,7 +374,7 @@ CONTAINS
     
     d2mtrc(1,i0midi) = d0cogrr
     d2mtrc(2,i0midi) = d0cogpp
-
+    
     
     d0ugr = 0.D0
     d0ugp = 0.D0
@@ -355,8 +442,8 @@ CONTAINS
        d0mm_a = d1mm(i0sidi)
        d0tt_a = d1tt(i0sidi)
        d0ti_a = d1ti(i0sidi)
-       d1vt( i0sidi)= SQRT(2.0D0/d0mm_a*d0tt_a)
-       d1vti(i0sidi)= SQRT(0.5D0*d0mm_a*d0ti_a)
+       d1vt( i0sidi) = SQRT(2.0D0/d0mm_a*d0tt_a)
+       d1vti(i0sidi) = SQRT(0.5D0*d0mm_a*d0ti_a)
     ENDDO
     
     !C COULOMB LOGARITHM
@@ -380,8 +467,8 @@ CONTAINS
     DO i0sidj = 1, i0smax
     DO i0sidi = 1, i0smax
        d0clog_ab = d2clog(i0sidi,i0sidj)
-       d0nn_b    = d1nn(i0sidj)
-       d0ee_b    = d1ee(i0sidj)
+       d0nn_b    = d1nn( i0sidj)
+       d0ee_b    = d1ee( i0sidj)
        d0mm_a    = d1mm( i0sidi)
        d0ee_a    = d1ee( i0sidi)       
        d0vti_a   = d1vti(i0sidi)
@@ -531,16 +618,7 @@ CONTAINS
        
     ENDDO
     ENDDO
-
-!    DO i0sidi =1,i0smax
-!    DO i0sidj =1,i0smax
-!       print*,i0sidi,i0sidj
-!       print*,d2nfcl11(i0sidi,i0sidj),d2nfcl12(i0sidi,i0sidj)
-!       print*,d2nfcl21(i0sidi,i0sidj),d2nfcl22(i0sidi,i0sidj)
-!    ENDDO
-!    ENDDO
-
-
+    
     !C PARALLEL FRICTION COEFFICIENTS 
     !C          WITH RESPECT TO MOMENTUM AND TOTAL HEAT FLUX
     !C
@@ -588,14 +666,12 @@ CONTAINS
     
     DO i0sidi = 1, i0smax
        d1hex(i0sidi) = 0.D0
-    ENDDO
-    
-    DO i0sidi = 1, i0smax
-    DO i0sidj = 1, i0smax
-       d0zi_ab       = d2z(i0sidj,i0sidi)
-       d0cfreq_ab    = d2cfreq(i0sidi,i0sidj)
-       d1hex(i0sidi) = d1hex(i0sidi)+1.5D0*(1.D0 - d0zi_ab)*d0cfreq_ab
-    ENDDO
+       DO i0sidj = 1, i0smax
+          d0zi_ab       = d2z(    i0sidj,i0sidi)
+          d0cfreq_ab    = d2cfreq(i0sidi,i0sidj)
+          d1hex(       i0sidi) &
+               = d1hex(i0sidi) + 1.5D0*(1.D0 - d0zi_ab)*d0cfreq_ab
+       ENDDO
     ENDDO
     
     !C
@@ -647,6 +723,7 @@ CONTAINS
           CALL INTEG_F(fd0k22ps,d0k22ps,d0err,EPS=1.D-8,ILST=0)
           
           d0cps   = 0.4D0*d0pp_a*d0de
+
           d0k11ps = d0cps*d0k11ps
           d0k12ps = d0cps*d0k12ps
           d0k22ps = d0cps*d0k22ps
@@ -660,6 +737,7 @@ CONTAINS
           CALL INTEG_F(fd0k22bn,d0k22bn,d0err,EPS=1.D-8,ILST=0)
        
           d0cbn = 2.D0*d0mm_a*d0nn_a*d0de*d0tcr*(d0q0**2)*(d0rzcr**2)
+
           d0cbn = d0cbn / (3.D0*(d0liar**2))
           
           d0k11bn = d0cbn*d0k11bn
@@ -806,6 +884,7 @@ CONTAINS
        !C
        !C EQUATION FOR N
        !C
+
        i0vidi = 8*i0sidi - 2
        
        !C N 
@@ -815,6 +894,7 @@ CONTAINS
        !C
        !C EQUATION FOR Fb
        !C 
+
        i0vidi = 8*i0sidi
 
        !C Fb
@@ -824,6 +904,7 @@ CONTAINS
        !C
        !C EQUATION FOR Ft
        !C
+
        i0vidi = 8*i0sidi + 1
        
        !C Ft
@@ -833,6 +914,7 @@ CONTAINS
        !C
        !C EQUATION FOR P
        !C
+
        i0vidi = 8*i0sidi + 2
        
        !C P
@@ -842,6 +924,7 @@ CONTAINS
        !C
        !C EQUATION FOR Qb
        !C
+
        i0vidi = 8*i0sidi + 4
        
        !C Qb       
@@ -851,6 +934,7 @@ CONTAINS
        !C
        !C EQUATION FOR Qt
        !C
+
        i0vidi = 8*i0sidi + 5
        
        !C Qt       
