@@ -4,7 +4,7 @@
 !C       
 !C         VARIABLE GRAPH GENERATOR FOR TASK/T2
 !C
-!C                       2014-02-03 H.SETO
+!C                       2014-02-20 H.SETO
 !C
 !C------------------------------------------------------------------
 MODULE T2VGRA
@@ -47,7 +47,7 @@ CONTAINS
   !C
   !C SUBROUTINE FOR VALIABLE MATRIX ARRAY
   !C 
-  !C          MODIFIED 2014-01-27
+  !C          MODIFIED 2014-02-20
   !C
   !C-------------------------------------------------------------------
   SUBROUTINE T2VGRA_VV
@@ -120,7 +120,7 @@ CONTAINS
     DO i0sidj = 1, i0smax
 
        !C Ft
-       i0vidj = 8*i0sidj + 1
+       i0vidj = 10*i0sidj - 1
        i2vvvt(i0vidi,i0vidj) = 1
 
     ENDDO
@@ -142,12 +142,12 @@ CONTAINS
 
     DO i0sidj = 1, i0smax
     
-       !C Fb
-       i0vidj = 8*i0sidj
+       !C Fr
+       i0vidj = 10*i0sidj-3
        i2vvvt(i0vidi,i0vidj) = 1
-
-       !C Ft
-       i0vidj = 8*i0sidj + 1
+       
+       !C Fp
+       i0vidj = 10*i0sidj 
        i2vvvt(i0vidi,i0vidj) = 1
        
     ENDDO
@@ -169,7 +169,7 @@ CONTAINS
     DO i0sidj = 1, i0smax
        
        !C N
-       i0vidj = 8*i0sidj - 2
+       i0vidj = 10*i0sidj - 4
        i2vvvt(i0vidi,i0vidj) = 1
 
     ENDDO
@@ -185,18 +185,18 @@ CONTAINS
        !C
        !C EQUATION FOR N
        !C
-
-       i0vidi = 8*i0sidi - 2
-              
+       
+       i0vidi = 10*i0sidi - 4
+       
        !C N
-       i0vidj = 8*i0sidi - 2
+       i0vidj = 10*i0sidi - 4
        i2vvvt(i0vidi,i0vidj) = 1
        
        !C
        !C EQUATION FOR Fr
        !C
        
-       i0vidi= 8*i0sidi - 1
+       i0vidi= 10*i0sidi - 3
        
        !C Ep
        i0vidj = 4
@@ -207,26 +207,26 @@ CONTAINS
        i2vvvt(i0vidi,i0vidj) = 1
 
        !C Fr
-       i0vidj = 8*i0sidi - 1
+       i0vidj = 10*i0sidi - 3
        i2vvvt(i0vidi,i0vidj) = 1
 
        !C Fb
-       i0vidj = 8*i0sidi 
+       i0vidj = 10*i0sidi - 2 
        i2vvvt(i0vidi,i0vidj) = 1
 
        !C Ft
-       i0vidj = 8*i0sidi + 1
+       i0vidj = 10*i0sidi - 1
        i2vvvt(i0vidi,i0vidj) = 1
 
        !C P 
-       i0vidj = 8*i0sidi + 2
+       i0vidj = 10*i0sidi + 1
        i2vvvt(i0vidi,i0vidj) = 1
        
        !C
        !C EQUATION FOR Fb
        !C
 
-       i0vidi = 8*i0sidi
+       i0vidi = 10*i0sidi - 2
        
        DO i0sidj = 1, i0smax
           
@@ -241,30 +241,37 @@ CONTAINS
              i2vvvt(i0vidi,i0vidj) = 1
              
              !C N
-             i0vidj = 8*i0sidj - 2
+             i0vidj = 10*i0sidj - 4
+             i2vvvt(i0vidi,i0vidj) = 1
+      
+             !C Ft
+             i0vidj = 10*i0sidj - 1
              i2vvvt(i0vidi,i0vidj) = 1
 
-             
-             !C Ft
-             i0vidj = 8*i0sidj + 1
+             !C Fp
+             i0vidj = 10*i0sidj
              i2vvvt(i0vidi,i0vidj) = 1
              
              !C P
-             i0vidj = 8*i0sidj + 2
+             i0vidj = 10*i0sidj + 1
              i2vvvt(i0vidi,i0vidj) = 1
 
              !C Qt
-             i0vidj = 8*i0sidj + 5
+             i0vidj = 10*i0sidj + 4
+             i2vvvt(i0vidi,i0vidj) = 1
+
+             !C Qp
+             i0vidj = 10*i0sidj + 5
              i2vvvt(i0vidi,i0vidj) = 1
           
           ENDIF
           
           !C Fb
-          i0vidj = 8*i0sidj
+          i0vidj = 10*i0sidj - 2
           i2vvvt(i0vidi,i0vidj) = 1
 
           !C Qb
-          i0vidj = 8*i0sidj + 4
+          i0vidj = 10*i0sidj + 3
           i2vvvt(i0vidi,i0vidj) = 1
 
        ENDDO
@@ -273,7 +280,7 @@ CONTAINS
        !C EQUATION FOR Ft
        !C
 
-       i0vidi = 8*i0sidi + 1
+       i0vidi = 10*i0sidi - 1
        
        DO i0sidj = 1, i0smax
           
@@ -283,74 +290,107 @@ CONTAINS
              i0vidj = 3
              i2vvvt(i0vidi,i0vidj) = 1
 
-             
              !C N
-             i0vidj = 8*i0sidj - 2
+             i0vidj = 10*i0sidj - 4
              i2vvvt(i0vidi,i0vidj) = 1
 
              !C Fr
-             i0vidj = 8*i0sidj - 1
+             i0vidj = 10*i0sidj - 3
              i2vvvt(i0vidi,i0vidj) = 1
 
              !C Fb
-             i0vidj = 8*i0sidj 
+             i0vidj = 10*i0sidj - 2
+             i2vvvt(i0vidi,i0vidj) = 1
+
+             !C Fp
+             i0vidj = 10*i0sidj
              i2vvvt(i0vidi,i0vidj) = 1
 
              !C P
-             i0vidj = 8*i0sidj + 2
+             i0vidj = 10*i0sidj + 1
              i2vvvt(i0vidi,i0vidj) = 1
 
              !C Qb
-             i0vidj = 8*i0sidj + 4
+             i0vidj = 10*i0sidj + 3
+             i2vvvt(i0vidi,i0vidj) = 1
+             
+             !C Qp
+             i0vidj = 10*i0sidj + 5
              i2vvvt(i0vidi,i0vidj) = 1
              
           ENDIF
           
           !C Ft
-          i0vidj = 8*i0sidj + 1
+          i0vidj = 10*i0sidj - 1
           i2vvvt(i0vidi,i0vidj) = 1
           
           !C Qt
-          i0vidj = 8*i0sidj + 5
+          i0vidj = 10*i0sidj + 4
           i2vvvt(i0vidi,i0vidj) = 1
           
        ENDDO
        
        !C
+       !C EQUATION FOR Fp
+       !C
+
+       i0vidi = 10*i0sidi
+
+       !C Fb
+       i0vidj = 10*i0sidi - 2 
+       i2vvvt(i0vidi,i0vidj) = 1
+
+       !C Ft
+       i0vidj = 10*i0sidi - 1
+       i2vvvt(i0vidi,i0vidj) = 1
+
+       !C Fp
+       i0vidj = 10*i0sidi
+       i2vvvt(i0vidi,i0vidj) = 1
+       
+       !C
        !C EQUATION FOR P
        !C
        
-       i0vidi = 8*i0sidi + 2
+       i0vidi = 10*i0sidi + 1
        
        !C N
-       i0vidj = 8*i0sidi - 2
+       i0vidj = 10*i0sidi - 4
        i2vvvt(i0vidi,i0vidj) = 1
        
        !C Fb
-       i0vidj = 8*i0sidi 
+       i0vidj = 10*i0sidi - 2
        i2vvvt(i0vidi,i0vidj) = 1
        
        !C Ft
-       i0vidj = 8*i0sidi + 1
+       i0vidj = 10*i0sidi - 1
+       i2vvvt(i0vidi,i0vidj) = 1
+
+       !C Fp
+       i0vidj = 10*i0sidi
        i2vvvt(i0vidi,i0vidj) = 1
 
        !C P
-       i0vidj = 8*i0sidi + 2
+       i0vidj = 10*i0sidi + 1
        i2vvvt(i0vidi,i0vidj) = 1
 
        !C Qb
-       i0vidj = 8*i0sidi + 4
+       i0vidj = 10*i0sidi + 3
        i2vvvt(i0vidi,i0vidj) = 1
        
        !C Qt
-       i0vidj = 8*i0sidi + 5
+       i0vidj = 10*i0sidi + 4
+       i2vvvt(i0vidi,i0vidj) = 1
+
+       !C Qp
+       i0vidj = 10*i0sidi + 5
        i2vvvt(i0vidi,i0vidj) = 1
        
        !C
        !C EQUATION FOR Qr
        !C
        
-       i0vidi = 8*i0sidi + 3
+       i0vidi = 10*i0sidi + 2
        
        !C Ep
        i0vidj = 4
@@ -361,30 +401,30 @@ CONTAINS
        i2vvvt(i0vidi,i0vidj) = 1
 
        !C N
-       i0vidj = 8*i0sidi - 2
+       i0vidj = 10*i0sidi - 4
        i2vvvt(i0vidi,i0vidj) = 1
 
        !C P
-       i0vidj = 8*i0sidi + 2
+       i0vidj = 10*i0sidi + 1
        i2vvvt(i0vidi,i0vidj) = 1
 
        !C Qr
-       i0vidj = 8*i0sidi + 3
+       i0vidj = 10*i0sidi + 2
        i2vvvt(i0vidi,i0vidj) = 1
 
        !C Qb
-       i0vidj = 8*i0sidi + 4
+       i0vidj = 10*i0sidi + 3
        i2vvvt(i0vidi,i0vidj) = 1
 
        !C Qt
-       i0vidj = 8*i0sidi + 5
+       i0vidj = 10*i0sidi + 4
        i2vvvt(i0vidi,i0vidj) = 1
-
+       
        !C
        !C EQUATION FOR Qb
        !C
        
-       i0vidi = 8*i0sidi + 4
+       i0vidi = 10*i0sidi + 3
        
        DO i0sidj = 1, i0smax
           
@@ -399,29 +439,37 @@ CONTAINS
              i2vvvt(i0vidi,i0vidj) = 1             
 
              !C N
-             i0vidj = 8*i0sidj - 2
+             i0vidj = 10*i0sidj - 4
+             i2vvvt(i0vidi,i0vidj) = 1
+             
+             !C Ft
+             i0vidj = 10*i0sidj - 1
              i2vvvt(i0vidi,i0vidj) = 1
 
-             !C Ft
-             i0vidj = 8*i0sidj + 1
+             !C Fp
+             i0vidj = 10*i0sidj
              i2vvvt(i0vidi,i0vidj) = 1
 
              !C P
-             i0vidj = 8*i0sidj + 2
+             i0vidj = 10*i0sidj + 1
              i2vvvt(i0vidi,i0vidj) = 1
 
              !C Qt
-             i0vidj = 8*i0sidj + 5
+             i0vidj = 10*i0sidj + 4
+             i2vvvt(i0vidi,i0vidj) = 1
+
+             !C Qp
+             i0vidj = 10*i0sidj + 5
              i2vvvt(i0vidi,i0vidj) = 1
 
           ENDIF
           
           !C Fb
-          i0vidj = 8*i0sidj 
+          i0vidj = 10*i0sidj - 2
           i2vvvt(i0vidi,i0vidj) = 1
           
           !C Qb
-          i0vidj = 8*i0sidj + 4
+          i0vidj = 10*i0sidj + 3
           i2vvvt(i0vidi,i0vidj) = 1
 
        ENDDO
@@ -430,7 +478,7 @@ CONTAINS
        !C EQUATION FOR Qt
        !C
        
-       i0vidi = 8*i0sidi + 5
+       i0vidi = 10*i0sidi + 4
 
        DO i0sidj = 1, i0smax
           
@@ -445,37 +493,63 @@ CONTAINS
              i2vvvt(i0vidi,i0vidj) = 1
              
              !C N
-             i0vidj = 8*i0sidj - 2
+             i0vidj = 10*i0sidj - 4
              i2vvvt(i0vidi,i0vidj) = 1
              
              !C Fb
-             i0vidj = 8*i0sidj 
+             i0vidj = 10*i0sidj - 2
+             i2vvvt(i0vidi,i0vidj) = 1
+
+             !C Fp
+             i0vidj = 10*i0sidj
              i2vvvt(i0vidi,i0vidj) = 1
 
              !C P
-             i0vidj = 8*i0sidj + 2
+             i0vidj = 10*i0sidj + 1
              i2vvvt(i0vidi,i0vidj) = 1
 
              !C Qr
-             i0vidj = 8*i0sidj + 3
+             i0vidj = 10*i0sidj + 2
              i2vvvt(i0vidi,i0vidj) = 1
 
              !C Qb
-             i0vidj = 8*i0sidj + 4
+             i0vidj = 10*i0sidj + 3
              i2vvvt(i0vidi,i0vidj) = 1
 
+             !C Qp
+             i0vidj = 10*i0sidj + 5
+             i2vvvt(i0vidi,i0vidj) = 1
 
           ENDIF
           
           !C Ft
-          i0vidj = 8*i0sidj + 1
+          i0vidj = 10*i0sidj - 1
           i2vvvt(i0vidi,i0vidj) = 1
           
           !C Qt
-          i0vidj = 8*i0sidj + 5
+          i0vidj = 10*i0sidj + 4
           i2vvvt(i0vidi,i0vidj) = 1              
           
        ENDDO
+
+       !C
+       !C EQUATION FOR Qp
+       !C
+
+       i0vidi = 10*i0sidi + 5
+       
+       !C Fb
+       i0vidj = 10*i0sidi + 3 
+       i2vvvt(i0vidi,i0vidj) = 1
+       
+       !C Ft
+       i0vidj = 10*i0sidi + 4
+       i2vvvt(i0vidi,i0vidj) = 1
+       
+       !C Fp
+       i0vidj = 10*i0sidi + 5
+       i2vvvt(i0vidi,i0vidj) = 1
+       
     ENDDO
     
     RETURN
@@ -486,7 +560,7 @@ CONTAINS
   !C
   !C SUBROUTINE FOR MASS SCALAR ARRAY
   !C 
-  !C                     2014-01-27 H.SETO
+  !C                     2014-02-20 H.SETO
   !C
   !C-------------------------------------------------------------------
   SUBROUTINE T2VGRA_MS
@@ -567,10 +641,10 @@ CONTAINS
        !C EQUATION FOR N
        !C
 
-       i0vidi = 8*i0sidi - 2
+       i0vidi = 10*i0sidi - 4
               
        !C N
-       i0vidj = 8*i0sidi - 2
+       i0vidj = 10*i0sidi - 4
        i2msvt(i0vidi,i0vidj) = 1
        
        !C
@@ -581,31 +655,35 @@ CONTAINS
        !C EQUATION FOR Fb
        !C
 
-       i0vidi = 8*i0sidi
+       i0vidi = 10*i0sidi - 2
        
        
        !C Fb
-       i0vidj = 8*i0sidi
+       i0vidj = 10*i0sidi - 2
        i2msvt(i0vidi,i0vidj) = 1
        
        !C
        !C EQUATION FOR Ft
        !C
-
-       i0vidi = 8*i0sidi + 1
+       
+       i0vidi = 10*i0sidi - 1
        
        !C Ft
-       i0vidj = 8*i0sidi + 1
+       i0vidj = 10*i0sidi - 1
        i2msvt(i0vidi,i0vidj) = 1
        
+       !C
+       !C EQUATION FOR Fp
+       !C
+
        !C
        !C EQUATION FOR P
        !C
        
-       i0vidi = 8*i0sidi + 2
+       i0vidi = 10*i0sidi + 1
        
        !C P
-       i0vidj = 8*i0sidi + 2
+       i0vidj = 10*i0sidi + 1
        i2msvt(i0vidi,i0vidj) = 1
        
        !C
@@ -616,21 +694,25 @@ CONTAINS
        !C EQUATION FOR Qb
        !C
        
-       i0vidi = 8*i0sidi + 4
+       i0vidi = 10*i0sidi + 3
        
        !C Qb
-       i0vidj = 8*i0sidi + 4
+       i0vidj = 10*i0sidi + 3
        i2msvt(i0vidi,i0vidj) = 1
 
        !C
        !C EQUATION FOR Qt
        !C
        
-       i0vidi = 8*i0sidi + 5
+       i0vidi = 10*i0sidi + 4
 
        !C Qt
-       i0vidj = 8*i0sidi + 5
+       i0vidj = 10*i0sidi + 4
        i2msvt(i0vidi,i0vidj) = 1              
+       
+       !C
+       !C EQUATION FOR Qp
+       !C
        
     ENDDO
     
@@ -642,7 +724,7 @@ CONTAINS
   !C
   !C SUBROUTINE FOR ADVECTION VECTOR ARRAY
   !C 
-  !C                     2014-01-27 H.SETO
+  !C                     2014-02-20 H.SETO
   !C
   !C-------------------------------------------------------------------
   SUBROUTINE T2VGRA_AV
@@ -736,10 +818,10 @@ CONTAINS
        !C EQUATION FOR N
        !C
 
-       i0vidi = 8*i0sidi - 2
+       i0vidi = 10*i0sidi - 4
               
        !C N
-       i0vidj = 8*i0sidi - 2
+       i0vidj = 10*i0sidi - 4
        i2avvt(i0vidi,i0vidj) = 1
        
        !C
@@ -753,31 +835,35 @@ CONTAINS
        i0vidi = 8*i0sidi
        
        !C Fb
-       i0vidj = 8*i0sidi
+       i0vidj = 10*i0sidi - 2
        i2avvt(i0vidi,i0vidj) = 1
        
        !C P
-       i0vidj = 8*i0sidi + 2
+       i0vidj = 10*i0sidi + 1
        i2avvt(i0vidi,i0vidj) = 1
                      
        !C
        !C EQUATION FOR Ft
        !C
 
-       i0vidi = 8*i0sidi + 1
+       i0vidi = 10*i0sidi - 1
        
        !C Ft
-       i0vidj = 8*i0sidi + 1
+       i0vidj = 10*i0sidi - 1
        i2avvt(i0vidi,i0vidj) = 1
-   
+       
+       !C
+       !C EQUATION FOR Fp
+       !C
+
        !C
        !C EQUATION FOR P
        !C
        
-       i0vidi = 8*i0sidi + 2
+       i0vidi = 10*i0sidi + 1
        
        !C P
-       i0vidj = 8*i0sidi + 2
+       i0vidj = 10*i0sidi + 1
        i2avvt(i0vidi,i0vidj) = 1
 
        !C
@@ -788,31 +874,37 @@ CONTAINS
        !C EQUATION FOR Qb
        !C
        
-       i0vidi = 8*i0sidi + 4
+       i0vidi = 10*i0sidi + 3
 
        !C Fb
-       i0vidj = 8*i0sidi 
+       i0vidj = 10*i0sidi - 2
        i2avvt(i0vidi,i0vidj) = 1
        
        !C P
-       i0vidj = 8*i0sidi + 2
+       i0vidj = 10*i0sidi + 1
        i2avvt(i0vidi,i0vidj) = 1
        
        !C Qb
-       i0vidj = 8*i0sidi + 4
+       i0vidj = 10*i0sidi + 3
        i2avvt(i0vidi,i0vidj) = 1
        
+       !C
        !C EQUATION FOR Qt
+       !C
        
-       i0vidi = 8*i0sidi + 5
+       i0vidi = 10*i0sidi + 4
        
        !C Ft
-       i0vidj = 8*i0sidi + 1
+       i0vidj = 10*i0sidi - 1
        i2avvt(i0vidi,i0vidj) = 1
        
        !C Qt
-       i0vidj = 8*i0sidi + 5
+       i0vidj = 10*i0sidi + 4
        i2avvt(i0vidi,i0vidj) = 1              
+
+       !C
+       !C EQUATION FOR Qp
+       !C
        
     ENDDO
     
@@ -824,7 +916,7 @@ CONTAINS
   !C
   !C SUBROUTINE FOR ADVECTION TENSOR ARRAY
   !C 
-  !C                     2014-01-27 H.SETO
+  !C                     2014-02-20 H.SETO
   !C
   !C-------------------------------------------------------------------
   SUBROUTINE T2VGRA_AT
@@ -889,31 +981,31 @@ CONTAINS
        !C EQUATION FOR Fb
        !C
 
-       i0vidi = 8*i0sidi
-       
-       !C Fb (B)
-       i0vidj = 8*i0sidi
-       i2atvt(i0vidi,i0vidj) = 1
-
-       i0widi = 1
-       i3atwt(i0widi,i0vidi,i0vidj) = 1
+       i0vidi = 10*i0sidi - 2
        
        !C Ft (B)
-       i0vidj = 8*i0sidi + 1
-       i2atvt(i0vidi,i0vidj) = 1
-
-       i0widi = 1
-       i3atwt(i0widi,i0vidi,i0vidj) = 1
-
-       !C Qb (B)
-       i0vidj = 8*i0sidi + 4
+       i0vidj = 10*i0sidi - 1
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1
        
+       !C Fp (B)
+       i0vidj = 10*i0sidi 
+       i2atvt(i0vidi,i0vidj) = 1
+
+       i0widi = 1
+       i3atwt(i0widi,i0vidi,i0vidj) = 1
+
        !C Qt (B)
-       i0vidj = 8*i0sidi + 5
+       i0vidj = 10*i0sidi + 4
+       i2atvt(i0vidi,i0vidj) = 1
+
+       i0widi = 1
+       i3atwt(i0widi,i0vidi,i0vidj) = 1
+       
+       !C Qp (B)
+       i0vidj = 10*i0sidi + 5
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
@@ -923,70 +1015,74 @@ CONTAINS
        !C EQUATION FOR Ft
        !C
        
-       i0vidi = 8*i0sidi + 1
-       
-       !C Fb (B)
-       i0vidj = 8*i0sidi
-       i2atvt(i0vidi,i0vidj) = 1
-
-       i0widi = 1
-       i3atwt(i0widi,i0vidi,i0vidj) = 1
-
+       i0vidi = 10*i0sidi - 1
+      
        !C Ft (B)
-       i0vidj = 8*i0sidi + 1
+       i0vidj = 10*i0sidi - 1
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1
-
-       !C Qb (B)
-       i0vidj = 8*i0sidi + 4
+       
+       !C Fp (B)
+       i0vidj = 10*i0sidi 
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1
 
        !C Qt (B)
-       i0vidj = 8*i0sidi + 5
+       i0vidj = 10*i0sidi + 4
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1
+       
+       !C Qp (B)
+       i0vidj = 10*i0sidi + 5
+       i2atvt(i0vidi,i0vidj) = 1
+
+       i0widi = 1
+       i3atwt(i0widi,i0vidi,i0vidj) = 1 
+
+       !C
+       !C EQUATION FOR Fp
+       !C
 
        !C
        !C EQUATION FOR P
        !C
        
-       i0vidi = 8*i0sidi + 2
+       i0vidi = 10*i0sidi + 1
        
-       !C Fb (B)
-       i0vidj = 8*i0sidi 
-       i2atvt(i0vidi,i0vidj) = 1
-
-       i0widi = 1
-       i3atwt(i0widi,i0vidi,i0vidj) = 1
-
        !C Ft (B)
-       i0vidj = 8*i0sidi + 1
-       i2atvt(i0vidi,i0vidj) = 1 
-       
-       i0widi = 1
-       i3atwt(i0widi,i0vidi,i0vidj) = 1
-       
-       !C Qb (B)
-       i0vidj = 8*i0sidi + 4
+       i0vidj = 10*i0sidi - 1
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1
        
+       !C Fp (B)
+       i0vidj = 10*i0sidi 
+       i2atvt(i0vidi,i0vidj) = 1
+
+       i0widi = 1
+       i3atwt(i0widi,i0vidi,i0vidj) = 1
+
        !C Qt (B)
-       i0vidj = 8*i0sidi + 5
+       i0vidj = 10*i0sidi + 4
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1
        
+       !C Qp (B)
+       i0vidj = 10*i0sidi + 5
+       i2atvt(i0vidi,i0vidj) = 1
+
+       i0widi = 1
+       i3atwt(i0widi,i0vidi,i0vidj) = 1
+
        !C
        !C EQUATION FOR Qr
        !C
@@ -995,31 +1091,31 @@ CONTAINS
        !C EQUATION FOR Qb
        !C
        
-       i0vidi = 8*i0sidi + 4
+       i0vidi = 10*i0sidi + 3
        
-       !C Fb (B)
-       i0vidj = 8*i0sidi 
-       i2atvt(i0vidi,i0vidj) = 1
-
-       i0widi = 1
-       i3atwt(i0widi,i0vidi,i0vidj) = 1
-
        !C Ft (B)
-       i0vidj = 8*i0sidi + 1
+       i0vidj = 10*i0sidi - 1
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1
        
-       !C Qb (B)
-       i0vidj = 8*i0sidi + 4
+       !C Fp (B)
+       i0vidj = 10*i0sidi 
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1
 
-       !C Qb (B)
-       i0vidj = 8*i0sidi + 5
+       !C Qt (B)
+       i0vidj = 10*i0sidi + 4
+       i2atvt(i0vidi,i0vidj) = 1
+
+       i0widi = 1
+       i3atwt(i0widi,i0vidi,i0vidj) = 1
+       
+       !C Qp (B)
+       i0vidj = 10*i0sidi + 5
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
@@ -1029,35 +1125,39 @@ CONTAINS
        !C EQUATION FOR Qt
        !C
        
-       i0vidi = 8*i0sidi + 5
+       i0vidi = 10*i0sidi + 4
        
-       !C Fb
-       i0vidj = 8*i0sidi 
-       i2atvt(i0vidi,i0vidj) = 1
-       
-       i0widi = 1
-       i3atwt(i0widi,i0vidi,i0vidj) = 1
-
-       !C Ft
-       i0vidj = 8*i0sidi + 1
+       !C Ft (B)
+       i0vidj = 10*i0sidi - 1
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1
        
-       !C Qb
-       i0vidj = 8*i0sidi + 4
+       !C Fp (B)
+       i0vidj = 10*i0sidi 
+       i2atvt(i0vidi,i0vidj) = 1
+
+       i0widi = 1
+       i3atwt(i0widi,i0vidi,i0vidj) = 1
+
+       !C Qt (B)
+       i0vidj = 10*i0sidi + 4
+       i2atvt(i0vidi,i0vidj) = 1
+
+       i0widi = 1
+       i3atwt(i0widi,i0vidi,i0vidj) = 1
+       
+       !C Qp (B)
+       i0vidj = 10*i0sidi + 5
        i2atvt(i0vidi,i0vidj) = 1
        
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1
-       
-       !C Qt
-       i0vidj = 8*i0sidi + 5
-       i2atvt(i0vidi,i0vidj) = 1              
-       
-       i0widi = 1
-       i3atwt(i0widi,i0vidi,i0vidj) = 1
+      
+       !C
+       !C EQUATION FOR Qp
+       !C
        
     ENDDO
     
@@ -1069,7 +1169,7 @@ CONTAINS
   !C
   !C SUBROUTINE FOR DIFFUSION TENSOR ARRAY
   !C 
-  !C                     2014-01-27 H.SETO
+  !C                     2014-02-20 H.SETO
   !C
   !C-------------------------------------------------------------------
   SUBROUTINE T2VGRA_DT
@@ -1133,66 +1233,70 @@ CONTAINS
        !C EQUATION FOR Fb
        !C
 
-       i0vidi = 8*i0sidi
+       i0vidi = 10*i0sidi - 2
       
        !C N
-       i0vidj = 8*i0sidi - 2
+       i0vidj = 10*i0sidi - 4
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C Fb
-       i0vidj = 8*i0sidi
+       i0vidj = 10*i0sidi - 2
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C P
-       i0vidj = 8*i0sidi + 2
+       i0vidj = 10*i0sidi + 1
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C Qb
-       i0vidj = 8*i0sidi + 4
+       i0vidj = 10*i0sidi + 3
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C
        !C EQUATION FOR Ft
        !C
        
-       i0vidi = 8*i0sidi + 1
+       i0vidi = 10*i0sidi - 1
        
        !C N
-       i0vidj = 8*i0sidi - 2
+       i0vidj = 10*i0sidi - 4
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C Fb
-       i0vidj = 8*i0sidi 
+       i0vidj = 10*i0sidi - 2
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C P
-       i0vidj = 8*i0sidi + 2
+       i0vidj = 10*i0sidi + 1
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C Qb
-       i0vidj = 8*i0sidi + 4
+       i0vidj = 10*i0sidi + 3
        i2dtvt(i0vidi,i0vidj) = 1
-       
+
+       !C
+       !C EQUATION FOR Fp
+       !C
+
        !C
        !C EQUATION FOR P
        !C
        
-       i0vidi = 8*i0sidi + 2
+       i0vidi = 10*i0sidi + 1
        
        !C N
-       i0vidj = 8*i0sidi - 2
+       i0vidj = 10*i0sidi - 4
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C Fb
-       i0vidj = 8*i0sidi 
+       i0vidj = 10*i0sidi - 2
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C P
-       i0vidj = 8*i0sidi + 2
+       i0vidj = 10*i0sidi + 1
        i2dtvt(i0vidi,i0vidj) = 1
-
+       
        !C Qb
-       i0vidj = 8*i0sidi + 4
+       i0vidj = 10*i0sidi + 3
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C
@@ -1203,45 +1307,50 @@ CONTAINS
        !C EQUATION FOR Qb
        !C
        
-       i0vidi = 8*i0sidi + 4
+       i0vidi = 10*i0sidi + 3
        
        !C N
-       i0vidj = 8*i0sidi - 2
+       i0vidj = 10*i0sidi - 4
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C Fb
-       i0vidj = 8*i0sidi 
+       i0vidj = 10*i0sidi - 2
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C P
-       i0vidj = 8*i0sidi + 2
+       i0vidj = 10*i0sidi + 1
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C Qb
-       i0vidj = 8*i0sidi + 4
+       i0vidj = 10*i0sidi + 3
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C
        !C EQUATION FOR Qt
        !C
-       i0vidi = 8*i0sidi + 5
+       
+       i0vidi = 10*i0sidi + 4
        
        !C N
-       i0vidj = 8*i0sidi - 2
+       i0vidj = 10*i0sidi - 4
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C Fb
-       i0vidj = 8*i0sidi 
+       i0vidj = 10*i0sidi - 2
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C P
-       i0vidj = 8*i0sidi + 2
+       i0vidj = 10*i0sidi + 1
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C Qb
-       i0vidj = 8*i0sidi + 4
+       i0vidj = 10*i0sidi + 3
        i2dtvt(i0vidi,i0vidj) = 1
        
+       !C
+       !C EQUATION FOR Qp
+       !C
+
     ENDDO
     
     RETURN
@@ -1252,7 +1361,7 @@ CONTAINS
   !C
   !C SUBROUTINE FOR GRADIENT VECOTR ARRAY
   !C 
-  !C                     2014-12-05 H.SETO
+  !C                     2014-02-20 H.SETO
   !C
   !C-------------------------------------------------------------------
   SUBROUTINE T2VGRA_GV
@@ -1336,10 +1445,10 @@ CONTAINS
        !C EQUATION FOR Fr
        !C
        
-       i0vidi = 8*i0sidi - 1
+       i0vidi = 10*i0sidi - 3
        
        !C P 
-       i0vidj = 8*i0sidi + 2
+       i0vidj = 10*i0sidi + 1
        i2gvvt(i0vidi,i0vidj) = 1
        
        !C
@@ -1351,28 +1460,31 @@ CONTAINS
        !C
        
        !C
+       !C EQUATION FOR Fp
+       !C
+       
+       !C
        !C EQUATION FOR P
        !C
        
-       i0vidi = 8*i0sidi + 2
+       i0vidi = 10*i0sidi + 1
        
        !C P
-       i0vidj = 8*i0sidi + 2
+       i0vidj = 10*i0sidi + 1
        i2gvvt(i0vidi,i0vidj) = 1
-
        
        !C
        !C EQUATION FOR Qr
        !C
        
-       i0vidi = 8*i0sidi + 3
+       i0vidi = 10*i0sidi + 2
        
        !C N
-       i0vidj = 8*i0sidi - 2
+       i0vidj = 10*i0sidi - 4
        i2gvvt(i0vidi,i0vidj) = 1
        
        !C P
-       i0vidj = 8*i0sidi + 2
+       i0vidj = 10*i0sidi + 1
        i2gvvt(i0vidi,i0vidj) = 1
        
        !C
@@ -1383,6 +1495,10 @@ CONTAINS
        !C EQUATION FOR Qt
        !C
        
+       !C
+       !C EQUATION FOR Qp
+       !C
+
     ENDDO
     
     RETURN
@@ -1393,7 +1509,7 @@ CONTAINS
   !C
   !C SUBROUTINE FOR GRADIENT TENSOR ARRAY
   !C 
-  !C                     2014-01-27
+  !C                     2014-02-20 H.SETO
   !C
   !C-------------------------------------------------------------------
   SUBROUTINE T2VGRA_GT
@@ -1458,31 +1574,31 @@ CONTAINS
        !C EQUATION FOR Fb
        !C
 
-       i0vidi = 8*i0sidi
+       i0vidi = 10*i0sidi - 2
        
-       !C N (B)
-       i0vidj = 8*i0sidi - 2
+       !C N : (B)
+       i0vidj = 10*i0sidi - 4
        i2gtvt(i0vidi,i0vidj) = 1
        
        i0widi = 1
        i3gtwt(i0widi,i0vidi,i0vidj) = 1
 
-       !C Fb
-       i0vidj = 8*i0sidi
+       !C Fb : (B)
+       i0vidj = 10*i0sidi - 2
        i2gtvt(i0vidi,i0vidj) = 1
        
        i0widi = 1
        i3gtwt(i0widi,i0vidi,i0vidj) = 1
 
-       !C P
-       i0vidj = 8*i0sidi + 2
+       !C P : (B)
+       i0vidj = 10*i0sidi + 1
        i2gtvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3gtwt(i0widi,i0vidi,i0vidj) = 1
        
-       !C Qb
-       i0vidj = 8*i0sidi + 4
+       !C Qb: (B)
+       i0vidj = 10*i0sidi + 3
        i2gtvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
@@ -1493,13 +1609,17 @@ CONTAINS
        !C
        
        !C
+       !C EQUATION FOR Fp
+       !C
+
+       !C
        !C EQUATION FOR P
        !C
        
-       i0vidi = 8*i0sidi + 2
+       i0vidi = 10*i0sidi + 1
        
-       !C N (B), (Ub)
-       i0vidj = 8*i0sidi - 2
+       !C N: (B), (Ub)
+       i0vidj = 10*i0sidi - 4
        i2gtvt(i0vidi,i0vidj) = 1
        
        i0widi = 1
@@ -1508,8 +1628,8 @@ CONTAINS
        i0widi = 2*i0sidi + 1
        i3gtwt(i0widi,i0vidi,i0vidj) = 1
 
-       !C Fb
-       i0vidj = 8*i0sidi 
+       !C Fb: (B), (Ub)
+       i0vidj = 10*i0sidi - 2
        i2gtvt(i0vidi,i0vidj) = 1
        
        i0widi = 1
@@ -1518,8 +1638,8 @@ CONTAINS
        i0widi = 2*i0sidi + 1
        i3gtwt(i0widi,i0vidi,i0vidj) = 1
 
-       !C P
-       i0vidj = 8*i0sidi + 2
+       !C P: (B), (Ub)
+       i0vidj = 10*i0sidi + 1
        i2gtvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
@@ -1528,8 +1648,8 @@ CONTAINS
        i0widi = 2*i0sidi + 1
        i3gtwt(i0widi,i0vidi,i0vidj) = 1
 
-       !C Qb
-       i0vidj = 8*i0sidi + 4
+       !C Qb: (B), (Ub)
+       i0vidj = 10*i0sidi + 3
        i2gtvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
@@ -1546,31 +1666,31 @@ CONTAINS
        !C EQUATION FOR Qb
        !C
        
-       i0vidi = 8*i0sidi + 4
+       i0vidi = 10*i0sidi + 3
        
-       !C N
-       i0vidj = 8*i0sidi - 2
+       !C N : (B)
+       i0vidj = 10*i0sidi - 4
        i2gtvt(i0vidi,i0vidj) = 1
        
        i0widi = 1
        i3gtwt(i0widi,i0vidi,i0vidj) = 1
 
-       !C Fb
-       i0vidj = 8*i0sidi 
+       !C Fb: (B)
+       i0vidj = 10*i0sidi - 2
        i2gtvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3gtwt(i0widi,i0vidi,i0vidj) = 1
        
-       !C P
-       i0vidj = 8*i0sidi + 2
+       !C P : (B)
+       i0vidj = 10*i0sidi + 1
        i2gtvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3gtwt(i0widi,i0vidi,i0vidj) = 1
        
-       !C Qb
-       i0vidj = 8*i0sidi + 4
+       !C Qb: (B)
+       i0vidj = 10*i0sidi + 3
        i2gtvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
@@ -1578,6 +1698,10 @@ CONTAINS
 
        !C
        !C EQUATION FOR Qt
+       !C
+
+       !C
+       !C EQUATION FOR Qp
        !C
        
     ENDDO
@@ -1590,7 +1714,7 @@ CONTAINS
   !C
   !C SUBROUTINE FOR EXCITATION SCALAR ARRAY
   !C 
-  !C                     2014-01-27
+  !C                     2014-02-20
   !C
   !C------------------------------------------------------------------
   SUBROUTINE T2VGRA_ES
@@ -1622,6 +1746,13 @@ CONTAINS
     !C EQUATION FOR I
     !C
     
+    i0vidi = 2
+ 
+    !C Ep
+    
+    i0vidj = 4
+    i2esvt(i0vidi,i0vidj) = 1
+
     !C
     !C EQUATION FOR Et
     !C
@@ -1631,7 +1762,7 @@ CONTAINS
     DO i0sidj = 1, i0smax
        
        !C Ft
-       i0vidj = 8*i0sidj + 1
+       i0vidj = 10*i0sidj - 1
        i2esvt(i0vidi,i0vidj) = 1
        
     ENDDO
@@ -1641,15 +1772,15 @@ CONTAINS
     !C
     
     i0vidi = 4
-
-    DO i0sidj = 1, i0smax
     
-       !C Fb
-       i0vidj = 8*i0sidj
+    DO i0sidj = 1, i0smax
+       
+       !C Fr
+       i0vidj = 10*i0sidj - 3
        i2esvt(i0vidi,i0vidj) = 1
        
-       !C Ft
-       i0vidj = 8*i0sidj + 1
+       !C Fp
+       i0vidj = 10*i0sidj 
        i2esvt(i0vidi,i0vidj) = 1
        
     ENDDO
@@ -1663,9 +1794,9 @@ CONTAINS
     DO i0sidj = 1, i0smax
        
        !C N
-       i0vidj = 8*i0sidj - 2
+       i0vidj = 10*i0sidj - 4
        i2esvt(i0vidi,i0vidj) = 1
-
+       
     ENDDO
     
     !C
@@ -1684,7 +1815,7 @@ CONTAINS
        !C EQUATION FOR Fr
        !C
        
-       i0vidi= 8*i0sidi - 1
+       i0vidi= 10*i0sidi - 3
        
        !C Ep
        i0vidj = 4
@@ -1695,18 +1826,18 @@ CONTAINS
        i2esvt(i0vidi,i0vidj) = 1
 
        !C Fb
-       i0vidj = 8*i0sidi 
+       i0vidj = 10*i0sidi - 2
        i2esvt(i0vidi,i0vidj) = 1
 
        !C Ft
-       i0vidj = 8*i0sidi + 1
+       i0vidj = 10*i0sidi - 1
        i2esvt(i0vidi,i0vidj) = 1
        
        !C
        !C EQUATION FOR Fb
        !C
        
-       i0vidi = 8*i0sidi
+       i0vidi = 10*i0sidi - 2
        
        DO i0sidj = 1, i0smax
           
@@ -1723,11 +1854,11 @@ CONTAINS
           ENDIF
           
           !C Fb
-          i0vidj = 8*i0sidj
+          i0vidj = 10*i0sidj - 2
           i2esvt(i0vidi,i0vidj) = 1
           
           !C Qb
-          i0vidj = 8*i0sidj + 4
+          i0vidj = 10*i0sidj + 3
           i2esvt(i0vidi,i0vidj) = 1
           
        ENDDO
@@ -1736,7 +1867,7 @@ CONTAINS
        !C EQUATION FOR Ft
        !C
        
-       i0vidi = 8*i0sidi + 1
+       i0vidi = 10*i0sidi - 1
        
        DO i0sidj = 1, i0smax
           
@@ -1747,36 +1878,54 @@ CONTAINS
              i2esvt(i0vidi,i0vidj) = 1
 
              !C Fr
-             i0vidj = 8*i0sidj - 1
+             i0vidj = 10*i0sidj - 3
              i2esvt(i0vidi,i0vidj) = 1
 
           ENDIF
           
           !C Ft
-          i0vidj = 8*i0sidj + 1
+          i0vidj = 10*i0sidj - 1
           i2esvt(i0vidi,i0vidj) = 1
           
           !C Qt
-          i0vidj = 8*i0sidj + 5
+          i0vidj = 10*i0sidj + 4
           i2esvt(i0vidi,i0vidj) = 1
           
        ENDDO
        
        !C
+       !C EQUATION FOR Fp
+       !C
+
+       i0vidi = 10*i0sidi
+
+       !C Fb
+       i0vidj = 10*i0sidi - 2
+       i2esvt(i0vidi,i0vidj) = 1
+
+       !C Ft
+       i0vidj = 10*i0sidi - 1
+       i2esvt(i0vidi,i0vidj) = 1
+
+       !C Fp
+       i0vidj = 10*i0sidi 
+       i2esvt(i0vidi,i0vidj) = 1
+
+       !C
        !C EQUATION FOR P
        !C
        
-       i0vidi = 8*i0sidi + 2
+       i0vidi = 10*i0sidi + 1
        
        !C P
-       i0vidj = 8*i0sidi + 2
+       i0vidj = 10*i0sidi + 1
        i2esvt(i0vidi,i0vidj) = 1
        
        !C
        !C EQUATION FOR Qr
        !C
        
-       i0vidi = 8*i0sidi + 3
+       i0vidi = 10*i0sidi + 2
        
        !C Ep
        i0vidj = 4
@@ -1787,39 +1936,39 @@ CONTAINS
        i2esvt(i0vidi,i0vidj) = 1
        
        !C Qb
-       i0vidj = 8*i0sidi + 4
+       i0vidj = 10*i0sidi + 3
        i2esvt(i0vidi,i0vidj) = 1
 
        !C Qt
-       i0vidj = 8*i0sidi + 5
+       i0vidj = 10*i0sidi + 4
        i2esvt(i0vidi,i0vidj) = 1
 
        !C
        !C EQUATION FOR Qb
        !C
        
-       i0vidi = 8*i0sidi + 4
+       i0vidi = 10*i0sidi + 3
        
        DO i0sidj = 1, i0smax
           
           IF(i0sidi.EQ.i0sidj)THEN
-
+             
              !C Et
              i0vidj = 3
              i2esvt(i0vidi,i0vidj) = 1
-
+             
              !C Ep
              i0vidj = 4
              i2esvt(i0vidi,i0vidj) = 1             
-
+             
           ENDIF
           
           !C Fb
-          i0vidj = 8*i0sidj 
+          i0vidj = 10*i0sidj - 2
           i2esvt(i0vidi,i0vidj) = 1
           
           !C Qb
-          i0vidj = 8*i0sidj + 4
+          i0vidj = 10*i0sidj + 3
           i2esvt(i0vidi,i0vidj) = 1
 
        ENDDO
@@ -1828,8 +1977,8 @@ CONTAINS
        !C EQUATION FOR Qt
        !C
        
-       i0vidi = 8*i0sidi + 5
-
+       i0vidi = 10*i0sidi + 4
+       
        DO i0sidj = 1, i0smax
           
           IF(i0sidi.EQ.i0sidj)THEN
@@ -1839,20 +1988,39 @@ CONTAINS
              i2esvt(i0vidi,i0vidj) = 1
              
              !C Qr
-             i0vidj = 8*i0sidj + 3
+             i0vidj = 10*i0sidj + 2
              i2esvt(i0vidi,i0vidj) = 1
              
           ENDIF
           
           !C Ft
-          i0vidj = 8*i0sidj + 1
+          i0vidj = 10*i0sidj - 1
           i2esvt(i0vidi,i0vidj) = 1
           
           !C Qt
-          i0vidj = 8*i0sidj + 5
+          i0vidj = 10*i0sidj + 4
           i2esvt(i0vidi,i0vidj) = 1              
           
        ENDDO
+
+       !C
+       !C EQUATION FOR Qp
+       !C
+       
+       i0vidi = 10*i0sidi + 5
+
+       !C Qb
+       i0vidj = 10*i0sidi + 3
+       i2esvt(i0vidi,i0vidj) = 1
+
+       !C Qt
+       i0vidj = 10*i0sidi + 4
+       i2esvt(i0vidi,i0vidj) = 1
+       
+       !C Qp
+       i0vidj = 10*i0sidi + 5
+       i2esvt(i0vidi,i0vidj) = 1
+
     ENDDO
     
     RETURN
@@ -1863,7 +2031,7 @@ CONTAINS
   !C
   !C SUBROUTINE FOR EXCITATION VECTOR ARRAY
   !C 
-  !C                     2014-01-27
+  !C                     2014-02-20
   !C
   !C-------------------------------------------------------------------
   SUBROUTINE T2VGRA_EV
@@ -1937,10 +2105,10 @@ CONTAINS
        !C EQUATION FOR Fb
        !C
 
-       i0vidi = 8*i0sidi
+       i0vidi = 10*i0sidi - 2
        
        !C Fb (B)
-       i0vidj = 8*i0sidi
+       i0vidj = 10*i0sidi - 2
        i2evvt(i0vidi,i0vidj) = 1
        
        i0widi = 1
@@ -1948,6 +2116,10 @@ CONTAINS
 
        !C
        !C EQUATION FOR Ft
+       !C
+       
+       !C
+       !C EQUATION FOR Fp
        !C
        
        !C
@@ -1962,10 +2134,9 @@ CONTAINS
        !C EQUATION FOR Qb
        !C
        
-       i0vidi = 8*i0sidi + 4
+       i0vidi = 10*i0sidi + 3
        
-       
-       !C Et (B) (Ub) (Qb/P)
+       !C Et: (B) (Ub) (Qb/P)
        i0vidj = 3
        i2evvt(i0vidi,i0vidj) = 1
        
@@ -1978,7 +2149,7 @@ CONTAINS
        i0widi = 2*i0sidi + 2
        i3evwt(i0widi,i0vidi,i0vidj) = 1
 
-       !C Ep (B) (Ub) (Qb/P)
+       !C Ep: (B) (Ub) (Qb/P)
        i0vidj = 4
        i2evvt(i0vidi,i0vidj) = 1             
        
@@ -1991,16 +2162,16 @@ CONTAINS
        i0widi = 2*i0sidi + 2
        i3evwt(i0widi,i0vidi,i0vidj) = 1
 
-       !C Fb (B)
-       i0vidj = 8*i0sidi
+       !C Fb: (B)
+       i0vidj = 10*i0sidi - 2
        i2evvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3evwt(i0widi,i0vidi,i0vidj) = 1
 
        
-       !C Qb (B)
-       i0vidj = 8*i0sidi + 4
+       !C Qb: (B)
+       i0vidj = 10*i0sidi + 3
        i2evvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
@@ -2010,9 +2181,9 @@ CONTAINS
        !C EQUATION FOR Qt
        !C
        
-       i0vidi = 8*i0sidi + 5
+       i0vidi = 10*i0sidi + 4
        
-       !C Et (B, Ub, Qb/P)
+       !C Et: B, Ub, Wb
        i0vidj = 3
        i2evvt(i0vidi,i0vidj) = 1
        
@@ -2025,7 +2196,7 @@ CONTAINS
        i0widi = 2*i0sidi + 2
        i3evwt(i0widi,i0vidi,i0vidj) = 1
 
-       !C Ep (B, Ub, Qb/P)
+       !C Ep: B, Ub, Wb
        i0vidj = 4
        i2evvt(i0vidi,i0vidj) = 1
        
@@ -2038,6 +2209,10 @@ CONTAINS
        i0widi = 2*i0sidi + 2
        i3evwt(i0widi,i0vidi,i0vidj) = 1
 
+       !C
+       !C EQUATION FOR Qp
+       !C
+
     ENDDO
     
     RETURN
@@ -2048,7 +2223,7 @@ CONTAINS
   !C
   !C SUBROUTINE FOR EXCITATION TENSOR ARRAY
   !C 
-  !C                     2014-01-27 H.SETO
+  !C                     2014-02-20 H.SETO
   !C
   !C-------------------------------------------------------------------
   SUBROUTINE T2VGRA_ET
@@ -2113,34 +2288,34 @@ CONTAINS
        !C EQUATION FOR Fb
        !C
 
-       i0vidi = 8*i0sidi
+       i0vidi = 10*i0sidi - 2
        
-       !C Fb (B,B)
-       i0vidj = 8*i0sidi
+       !C Ft: (B,B)
+       i0vidj = 10*i0sidi - 1
        i2etvt(i0vidi,i0vidj) = 1
        
        i0widi = 1
        i0widj = 1
        i4etwt(i0widi,i0widj,i0vidi,i0vidj) = 1
 
-       !C Ft (B,B)
-       i0vidj = 8*i0sidi + 1
+       !C Fp: (B,B)
+       i0vidj = 10*i0sidi
        i2etvt(i0vidi,i0vidj) = 1
        
-       i0widi = 1
-       i0widj = 1
-       i4etwt(i0widi,i0widj,i0vidi,i0vidj) = 1
-
-       !C Qb (B,B)
-       i0vidj = 8*i0sidi + 4
-       i2etvt(i0vidi,i0vidj) = 1
-
        i0widi = 1
        i0widj = 1
        i4etwt(i0widi,i0widj,i0vidi,i0vidj) = 1
 
        !C Qt (B,B)
-       i0vidj = 8*i0sidi + 5
+       i0vidj = 10*i0sidi + 4
+       i2etvt(i0vidi,i0vidj) = 1
+
+       i0widi = 1
+       i0widj = 1
+       i4etwt(i0widi,i0widj,i0vidi,i0vidj) = 1
+
+       !C Qp (B,B)
+       i0vidj = 10*i0sidi + 5
        i2etvt(i0vidi,i0vidj) = 1
        
        i0widi = 1
@@ -2150,15 +2325,19 @@ CONTAINS
        !C
        !C EQUATION FOR Ft
        !C
+
+       !C
+       !C EQUATION FOR Fp
+       !C
        
        !C
        !C EQUATION FOR P
        !C
        
-       i0vidi = 8*i0sidi + 2
+       i0vidi = 10*i0sidi + 1
        
-       !C Fb (B,B), (Ub,B)
-       i0vidj = 8*i0sidi 
+       !C Ft: (B,B), (Ub,B)
+       i0vidj = 10*i0sidi - 1
        i2etvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
@@ -2169,8 +2348,8 @@ CONTAINS
        i0widj = 1
        i4etwt(i0widi,i0widj,i0vidi,i0vidj) = 1
        
-       !C Ft (B,B), (Ub,B)
-       i0vidj = 8*i0sidi + 1
+       !C Fp: (B,B), (Ub,B)
+       i0vidj = 10*i0sidi
        i2etvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
@@ -2181,8 +2360,8 @@ CONTAINS
        i0widj = 1
        i4etwt(i0widi,i0widj,i0vidi,i0vidj) = 1
 
-       !C Qb (B,B), (Ub,B)
-       i0vidj = 8*i0sidi + 4
+       !C Qt: (B,B), (Ub,B)
+       i0vidj = 10*i0sidi + 4
        i2etvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
@@ -2193,8 +2372,8 @@ CONTAINS
        i0widj = 1
        i4etwt(i0widi,i0widj,i0vidi,i0vidj) = 1
        
-       !C Qt (B,B), (Ub,B)
-       i0vidj = 8*i0sidi + 5
+       !C Qp: (B,B), (Ub,B)
+       i0vidj = 10*i0sidi + 5
        i2etvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
@@ -2213,34 +2392,34 @@ CONTAINS
        !C EQUATION FOR Qb
        !C
        
-       i0vidi = 8*i0sidi + 4
+       i0vidi = 10*i0sidi + 3
        
-       !C Fb (B,B)
-       i0vidj = 8*i0sidi 
+       !C Ft: (B,B)
+       i0vidj = 10*i0sidi - 1
        i2etvt(i0vidi,i0vidj) = 1
        
        i0widi = 1
        i0widj = 1
        i4etwt(i0widi,i0widj,i0vidi,i0vidj) = 1
-
-       !C Ft (B,B)
-       i0vidj = 8*i0sidi + 1
+       
+       !C Fp: (B,B)
+       i0vidj = 10*i0sidi
        i2etvt(i0vidi,i0vidj) = 1
-
+       
        i0widi = 1
        i0widj = 1
        i4etwt(i0widi,i0widj,i0vidi,i0vidj) = 1
        
-       !C Qb (B,B)
-       i0vidj = 8*i0sidi + 4
+       !C Qt: (B,B)
+       i0vidj = 10*i0sidi + 4
        i2etvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i0widj = 1
        i4etwt(i0widi,i0widj,i0vidi,i0vidj) = 1
 
-       !C Qt (B,B)
-       i0vidj = 8*i0sidi + 5
+       !C Qp: (B,B)
+       i0vidj = 10*i0sidi + 5
        i2etvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
@@ -2248,7 +2427,7 @@ CONTAINS
        i4etwt(i0widi,i0widj,i0vidi,i0vidj) = 1
        
        !C
-       !C EQUATION FOR Qt
+       !C EQUATION FOR Qp
        !C
        
     ENDDO
@@ -2261,7 +2440,7 @@ CONTAINS
   !C
   !C SUBROUTINE FOR SOURCE SCALAR ARRAY
   !C 
-  !C                     2014-01-28 H.SETO
+  !C                     2014-02-20 H.SETO
   !C
   !C-------------------------------------------------------------------
   SUBROUTINE T2VGRA_SS
@@ -2346,81 +2525,102 @@ CONTAINS
        !C EQUATION FOR N
        !C
 
-       i0vidi = 8*i0sidi - 2
+       i0vidi = 10*i0sidi - 4
               
        !C N
-       i0vidj = 8*i0sidi - 2
+       i0vidj = 10*i0sidi - 4
        i2ssvt(i0vidi,i0vidj) = 1
        
        !C
        !C EQUATION FOR Fr
        !C
        
-       i0vidi = 8*i0sidi - 1
+       i0vidi = 10*i0sidi - 3
        
        !C Qb
-       i0vidj = 8*i0sidi - 1
+       i0vidj = 10*i0sidi - 3
        i2ssvt(i0vidi,i0vidj) = 1
        
        !C
        !C EQUATION FOR Fb
        !C
 
-       i0vidi = 8*i0sidi
+       i0vidi = 10*i0sidi - 2
        
        !C Fb
-       i0vidj = 8*i0sidi
+       i0vidj = 10*i0sidi - 2
        i2ssvt(i0vidi,i0vidj) = 1
        
        !C
        !C EQUATION FOR Ft
        !C
 
-       i0vidi = 8*i0sidi + 1
+       i0vidi = 10*i0sidi - 1
        
        !C Ft
-       i0vidj = 8*i0sidi + 1
+       i0vidj = 10*i0sidi - 1
        i2ssvt(i0vidi,i0vidj) = 1
+
+       !C
+       !C EQUATION FOR Fp
+       !C
+
+       i0vidi = 10*i0sidi
+       
+       !C Fp
+       i0vidj = 10*i0sidi 
+       i2ssvt(i0vidi,i0vidj) = 1
+
        
        !C
        !C EQUATION FOR P
        !C
        
-       i0vidi = 8*i0sidi + 2
+       i0vidi = 10*i0sidi + 1
        
        !C P
-       i0vidj = 8*i0sidi + 2
+       i0vidj = 10*i0sidi + 1
        i2ssvt(i0vidi,i0vidj) = 1
        
        !C
        !C EQUATION FOR Qr
        !C
        
-       i0vidi = 8*i0sidi + 3
+       i0vidi = 10*i0sidi + 2
        
        !C Qr
-       i0vidj = 8*i0sidi + 3
+       i0vidj = 10*i0sidi + 2
        i2ssvt(i0vidi,i0vidj) = 1
        
        !C
        !C EQUATION FOR Qb
        !C
        
-       i0vidi = 8*i0sidi + 4
+       i0vidi = 10*i0sidi + 3
        
        !C Qb
-       i0vidj = 8*i0sidi + 4
+       i0vidj = 10*i0sidi + 3
        i2ssvt(i0vidi,i0vidj) = 1
 
        !C
        !C EQUATION FOR Qt
        !C
        
-       i0vidi = 8*i0sidi + 5
+       i0vidi = 10*i0sidi + 4
 
        !C Qt
-       i0vidj = 8*i0sidi + 5
-       i2ssvt(i0vidi,i0vidj) = 1              
+       i0vidj = 10*i0sidi + 4
+       i2ssvt(i0vidi,i0vidj) = 1
+
+       !C
+       !C EQUATION FOR Qp
+       !C
+       
+       i0vidi = 10*i0sidi + 5
+
+       !C Qp
+       i0vidj = 10*i0sidi + 5
+       i2ssvt(i0vidi,i0vidj) = 1
        
     ENDDO
     
