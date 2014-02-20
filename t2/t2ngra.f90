@@ -170,7 +170,9 @@ CONTAINS
     
     i1mc1d(i0rcnt) = 1
     d1mc1d(i0rcnt) = 0.D0
-    
+    !C
+    !C s = r^{2} constant width grid 
+    !C 
     DO i0lidi = 1, i0lmax
        
        i0rdn1 = i1rdn1(i0lidi)
@@ -188,7 +190,8 @@ CONTAINS
           d1mcp1(i1) = 0.D0
        ENDDO
        
-       d0rsiz = (d1rec(i0lidi)-d1rec(i0lidi-1))/DBLE(i0rdn2)
+       
+       d0rsiz = (d1rec(i0lidi)**2-d1rec(i0lidi-1)**2)/DBLE(i0rdn2)
        d0psiz = 2.d0*d0pi/DBLE(i0pdn2)
        
        d1rsiz(i0lidi) = d0rsiz
@@ -197,7 +200,8 @@ CONTAINS
        
        
        DO i1 = 1, i0rdn1
-          d1mcr1(i1) = d0rsiz*DBLE(i1-1)+d1rec(i0lidi-1)
+          d1mcr1(i1) = d0rsiz*DBLE(i1-1)+d1rec(i0lidi-1)**2
+          !d1mcr1(i1) = d0rsiz*DBLE(i1-1)+d1rec(i0lidi-1)
        ENDDO
        
        DO i1 = 1, i0pdn1

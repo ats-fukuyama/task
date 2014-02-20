@@ -50,21 +50,20 @@ CONTAINS
     d0qrcst = 1.D0
     d0qbcst = 1.D0
     d0qtcst = 1.D0
- 
-    !d0mfcst = 1.D0
-    !d0btcst = 1.D0/d0iar
-    !gd0ercst = 1.D4
-    !d0epcst = 1.D0
-    !d0etcst = 1.D0
-    !d0nncst = 1.D20
-    !d0frcst = 1.D20 
-    !d0fbcst = 1.D23
-    !d0ftcst = 1.D23/d0iar
-    !d0ppcst = d0aee*1.D23
-    !d0qrcst = d0aee*1.D23
-    !d0qbcst = d0aee*1.D26
-    !d0qtcst = d0aee*1.D26/d0iar
-
+    
+!    d0mfcst = 1.D0
+!    d0btcst = 1.D0/d0iar
+!    d0ercst = 1.D4
+!    d0epcst = 1.D0
+!    d0etcst = 1.D0
+!    d0nncst = 1.D20
+!    d0frcst = 1.D20 
+!    d0fbcst = 1.D23
+!    d0ftcst = 1.D23/d0iar
+!    d0ppcst = d0aee*1.D23
+!    d0qrcst = d0aee*1.D23
+!    d0qbcst = d0aee*1.D26
+!    d0qtcst = d0aee*1.D26/d0iar
     
 
     CALL T2NGRA_ALLOCATE
@@ -218,7 +217,7 @@ CONTAINS
     !C
     !C
     
-    i0vmax  = 8*i0smax + 5
+    i0vmax  = 10*i0smax + 5
     i0wmax  = 2*i0smax + 2 
 
     WRITE(6,*)'i0dmax=',i0dmax,'i0nmax=',i0nmax,'i0smax=',i0smax

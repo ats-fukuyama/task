@@ -11,7 +11,7 @@ CONTAINS
     
     USE T2COMM, ONLY:&
          i0smax,i0vmax,i0xmax,i0mmax,i2crt,&
-         d2xvec,d2xout,d0rmnr,d2jm1
+         d2xvec,d2xout,d0rmnr,d2jm1,d2mfc1
 
     INTEGER(i0ikind)::&
          i0sidi,i0vidi,i0midi,i0xid1d,i0xid2d
@@ -24,25 +24,32 @@ CONTAINS
          d1tt_pu,d1qr_pu,d1qb_pu,d1qt_pu
    
     REAL(   i0rkind)::&
-         d0sqrtg,d0ctgrr,d0ctgrp,d0ctgpp,d0ctgtt,&
+         d0sqrtg,d0mfcr,d0sqrtr,&
+         d0ctgrr,d0ctgrp,d0ctgpp,d0ctgtt,&
+         d0cogrr,d0cogrp,d0cogpp,d0cogtt,&
          d0nn,d0ni,d0tt,d0qr,d0qb,d0qt,&
          d0psip,d0cobt,d0coet,d0coep,d0coer 
    
     REAL(   i0rkind),DIMENSION(1:i0smax)::&
-         d1nn,d1fr,d1fb,d1ft,d1pp,d1qr,d1qb,d1qt,d1tt
+         d1nn,d1fr,d1fb,d1ft,d1pp,d1qr,d1qb,d1qt
     
     d2xout(1:i0vmax,1:i0xmax) = 0.D0
     
     DO i0midi = 1, i0mmax
        
-       i0xid2d = i2crt(2,i0midi)
-       i0xid1d = i2crt(3,i0midi)
-       
-       d0sqrtg = d2jm1(1,i0midi)
-       d0ctgrr = d2jm1(2,i0midi)
-       d0ctgrp = d2jm1(3,i0midi)
-       d0ctgpp = d2jm1(4,i0midi)
-       d0ctgtt = d2jm1(5,i0midi)
+       i0xid2d = i2crt( 2,i0midi)
+       i0xid1d = i2crt( 3,i0midi)
+       d0mfcr  = d2mfc1(1,i0midi)
+       d0sqrtr = SQRT(d0mfcr) 
+       d0sqrtg = d2jm1( 1,i0midi)
+       d0cogrr = d2jm1( 2,i0midi)
+       d0cogrp = d2jm1( 3,i0midi)
+       d0cogpp = d2jm1( 4,i0midi)
+       d0cogtt = d2jm1( 5,i0midi)
+       d0ctgrr = d2jm1( 6,i0midi)
+       d0ctgrp = d2jm1( 7,i0midi)
+       d0ctgpp = d2jm1( 8,i0midi)
+       d0ctgtt = d2jm1( 9,i0midi)
        
        !C
        !C INITTIALIZATION
@@ -92,7 +99,7 @@ CONTAINS
        !C d0ep_pu: Poroidal Electric Field [V/m]
        !C
 
-       d0ep_pu = d0coep*SQRT(d0ctgpp)*1.D0
+       d0ep_pu = d0coep*SQRT(d0ctgpp)*d0sqrtr
 
        !C
        !C d0er_pu: Radial   Electric Field [kV/m]
@@ -120,7 +127,7 @@ CONTAINS
           !C d1ur_pu: Radial velocity  [m/s]
           !C
           
-          d1ur_pu(i0sidi) = d1fr(i0sidi)*d0ni*d0rmnr
+          d1ur_pu(i0sidi) = d1fr(i0sidi)*d0ni*SQRT(d0cogrr)*d0sqrtr
           
           !C
           !C d1ub_pu: Radial velocity  [km/s]
@@ -146,7 +153,7 @@ CONTAINS
           !C
           
           d0qr = d1qr(i0sidi) - 2.5D0*d0tt*d1fr(i0sidi)
-          d1qr_pu(i0sidi) = d0qr*d0rmnr
+          d1qr_pu(i0sidi) = d0qr*SQRT(d0cogrr)*d0sqrtr
           
           !C 
           !C d1qb_pu: Parallel heat Flux [MJ*m/s]

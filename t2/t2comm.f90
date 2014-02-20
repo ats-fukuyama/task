@@ -20,9 +20,9 @@ MODULE T2COMM
   INTEGER(i0ikind):: nv0dmax ! number of global variables to be saved
   INTEGER(i0ikind):: nv2dmax ! number of profile varibales to be saved
   REAL(   i0rkind):: &
-       time_t2                            ! global time
+       time_t2               ! global time
   REAL(i0rkind),DIMENSION(:,:),ALLOCATABLE:: &
-       vv0d,vv2d                          ! storage for 0D and 2D data
+       vv0d,vv2d             ! storage for 0D and 2D data
   
   !C---------------------------------------------------------
   !C
@@ -53,7 +53,7 @@ MODULE T2COMM
        i0ermx, & !C ARRAY SIZE OF I1EIDR (CRS-METHOD) 
        i0ecmx, & !C ARRAY SIZE OF I1EIDC (CRS-METHOD) 
        i0pdiv_number
-
+  
   INTEGER(i0ikind)::&
        i0mfcs, & !C INDICATOR FOR COORDINATE SYSTEM (1: torus coordinate)
        i0supg, & !C INDICATOR FOR SUPG METHOD (0: w/o SUPG, 1: w SUPG)
@@ -70,16 +70,18 @@ MODULE T2COMM
        d0mfcst, & !C NORMALIZATION CONSTANT FOR \psi'
        d0btcst, & !C NORMALIZATION CONSTANT FOR I
        d0etcst, & !C NORMALIZATION CONSTANT FOR E_{\zeta}
-       d0epcst, & !C NORMALIZATION CONSTANT FOR E_{\chi }
+       d0epcst, & !C NORMALIZATION CONSTANT FOR \bar{E}_{\chi }
        d0ercst, & !C NORMALIZATION CONSTANT FOR E_{\rho }
        d0nncst, & !C NORMALIZATION CONSTANT FOR n_{a}
-       d0frcst, & !C NORMALIZATION CONSTANT FOR n_{a}u_{a}^{\rho}
+       d0frcst, & !C NORMALIZATION CONSTANT FOR n_{a}\bar{u}_{a}^{\rho}
        d0fbcst, & !C NORMALIZATION CONSTANT FOR n_{a}u_{a\para}
        d0ftcst, & !C NORMALIZATION CONSTANT FOR n_{a}u_{a\zeta}
+       d0fpcst, & !C NORMALIZATION CONSTANT FOR n_{a}u_{a\zeta}
        d0ppcst, & !C NORMALIZATION CONSTANT FOR p_{a}
-       d0qrcst, & !C NORMALIZATION CONSTANT FOR Q_{a}^{\rho }
+       d0qrcst, & !C NORMALIZATION CONSTANT FOR \bar{Q}_{a}^{\rho}
        d0qbcst, & !C NORMALIZATION CONSTANT FOR Q_{a\para}
        d0qtcst, & !C NORMALIZATION CONSTANT FOR Q_{a\zeta}
+       d0qpcst, & !C NORMALIZATION CONSTANT FOR Q_{a}^{\chi}
        d0rmjr,  & !C MAJOR RADIUS (R_{0} [m])
        d0rmnr,  & !C MINOR RADIUS (a     [m])
        d0iar,   & !C INVERSE ASPECT RATIO (a/R_{0})
@@ -368,7 +370,7 @@ MODULE T2COMM
   REAL(   i0rkind),DIMENSION(:),ALLOCATABLE::&
        d1ee,d1mm,d1nn,d1ni,d1pp,d1pi,d1tt,d1ti,&
        d1ur,d1up,d1ut,d1ub,d1u2,&
-       d1qr,d1qp,d1qt,d1qb,d1vb,d1vt,&
+       d1qr,d1qp,d1qt,d1qb,d1wb,d1vt,&
        d1nvcc1,d1nvcc2,d1nvcc3,d1nvcc4,d1hex
   REAL(   i0rkind),DIMENSION(:,:),ALLOCATABLE::&
        d2x,d2y,d2z,d2bcf
@@ -661,11 +663,12 @@ CONTAINS
           !C
           
           ALLOCATE(d2ug( 1:2,1:i0mmax),STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(d2jm1(1:5,1:i0mmax),STAT=i0err);IF(i0err.NE.0)EXIT
+          ALLOCATE(d2jm1(1:9,1:i0mmax),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d2rzm(1:2,1:i0mmax),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d2rzx(1:2,1:i0xmax),STAT=i0err);IF(i0err.NE.0)EXIT
           ! TMP
           ALLOCATE(d2mtrc(1:2,1:i0mmax),STAT=i0err);IF(i0err.NE.0)EXIT
+
           !C
           !C T2CALV
           !C
@@ -705,7 +708,7 @@ CONTAINS
           ALLOCATE(d1qp(1:i0smax),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d1qt(1:i0smax),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d1qb(1:i0smax),STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(d1vb(1:i0smax),STAT=i0err);IF(i0err.NE.0)EXIT
+          ALLOCATE(d1wb(1:i0smax),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d1tt(1:i0smax),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d1vt(1:i0smax),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d1ni(1:i0smax),STAT=i0err);IF(i0err.NE.0)EXIT
@@ -930,7 +933,7 @@ CONTAINS
     IF(ALLOCATED(d1qp)) DEALLOCATE(d1qp)
     IF(ALLOCATED(d1qt)) DEALLOCATE(d1qt)
     IF(ALLOCATED(d1qb)) DEALLOCATE(d1qb)
-    IF(ALLOCATED(d1vb)) DEALLOCATE(d1vb)
+    IF(ALLOCATED(d1wb)) DEALLOCATE(d1wb)
     IF(ALLOCATED(d1tt)) DEALLOCATE(d1tt)
     IF(ALLOCATED(d1vt)) DEALLOCATE(d1vt)
     IF(ALLOCATED(d1ni)) DEALLOCATE(d1ni)

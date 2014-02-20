@@ -20,9 +20,9 @@ MODULE T2CALV
   INTEGER(i0ikind)::&
        i0midi
   REAL(   i0rkind)::&
-       d0cogrr,d0cogrp,d0cogpp,d0cogtt,d0sqrtg,&
+       d0cogrr,d0cogrp,d0cogpp,d0cogtt,d0sqrtg,d0mfcr,&
        d0ctgrr,d0ctgrp,d0ctgpp,d0ctgtt,d0ugr,d0ugp,&
-       d0ctbp,d0ctbpi,d0cobt,d0ctbt,d0bp2i,d0bp2,d0bt2,d0bb,d0bb2
+       d0ctbp,d0cobt,d0ctbt,d0bp2,d0bt2,d0bb,d0bb2
   
   PRIVATE
   
@@ -56,6 +56,7 @@ CONTAINS
     ENDDO
     
     WRITE(6,*)'********** COEFFICIENT CHECK START**********'
+
     DO
        WRITE(6,*)'ms,av,at,dt,gv,gt,es,ev,et xx/exit'
        READ(5,*)c2coef
@@ -153,7 +154,7 @@ CONTAINS
   !C
   !C CALCULATION OF FUNDAMENTAL PHYSICAL QUANTITIES 
   !C 
-  !C     2014-02-10 H.SETO
+  !C     2014-02-20 H.SETO
   !C            
   !C---------------------------------------------------------
   
@@ -165,12 +166,12 @@ CONTAINS
          d0mfcst,d0btcst,d0ercst,d0epcst,d0etcst,&
          d0nncst,d0frcst,d0fbcst,d0ftcst,&
          d0ppcst,d0qrcst,d0qbcst,d0qtcst,&
-         i0xa,i0vmax,d0rmjr,d0qc,d0qs,&
+         i0xa,i0vmax,d0rmjr,d0iar,&
          i2crt,d2mtrc,&
          d2xvec_befor,d2mfc1,d2rzm,d2jm1,d2ws,&
          d1ee,d1mm,d1nn,d1ni,d1pp,d1pi,d1tt,d1ti,d1pa,d1pz,&
          d1ur,d1up,d1ut,d1ub,d1u2,&
-         d1qr,d1qp,d1qt,d1qb,d1vb,d1vt,d1hex,&
+         d1qr,d1qp,d1qt,d1qb,d1wb,d1vt,d1hex,&
          d1nvcc1,d1nvcc2,d1nvcc3,d1nvcc4,&
          d2nfcf1,d2nfcf2,d2nfcf3,d2nfcf4,&
          d2x,d2y,d2z,d2bcf
@@ -182,9 +183,7 @@ CONTAINS
     
     REAL(   i0rkind)::&
          d0mm_a,d0ee_a,d0ee_b,d0vti_a,&
-         d0nn_a,d0ni_a,d0nn_b,d0ni_b,&
-         d0pp_a,d0pi_a,       d0pi_b,&
-         d0tt_a,d0ti_a,&
+         d0nn_a,d0nn_b,d0pp_a,d0tt_a,d0ti_a,&
          d0clog_ab,d0cfreq_ab,d0cfreq_ac,&
          d0x_ab,d0y_ab,d0z_ab,d0zi_ab,&
          d0bmem00_ab,d0bmem01_ab,            d0bmem11_ab, &
@@ -193,17 +192,17 @@ CONTAINS
          d0nfcl11_ab,d0nfcl12_ab,d0nfcl21_ab,d0nfcl22_ab, &
          d0nfcf1_ab, d0nfcf2_ab, d0nfcf3_ab, d0nfcf4_ab,  &
          d0nvcm1_a,  d0nvcm2_a,  d0nvcm3_a,               &
-         d0nvcc1_a,  d0nvcc2_a,  d0nvcc3_a,  d0nvcc4_a
+         d0nvcc1_a,  d0nvcc2_a,  d0nvcc3_a,  d0nvcc4_a    
     
     REAL(i0rkind)::&
-         d0rzcr,d0mfcr,d0mfcp,d0psip,d0g1,d0g2,d0q0,d0liar,&
-         d0cps,d0cbn,d0tcr,d0wv1,d0wv2,d0wv3,d0wv4,&
+         d0rzcr,d0mfcr,d0mfcp,d0psip,&
+         d0cps,d0cbn,d0wv2,d0wv3,d0temp,&
          d0k11,d0k11ps,d0k11bn,&
          d0k12,d0k12ps,d0k12bn,&
          d0k22,d0k22ps,d0k22bn
     
     REAL(i0rkind),DIMENSION(1:i0smax)::&
-         d1fr,d1fb,d1ft,d1vti,&
+         d1fr,d1fb,d1ft,d1fp,d1vti,&
          d1nvcm1,d1nvcm2,d1nvcm3
     REAL(i0rkind),DIMENSION(1:i0smax,1:i0smax)::&
          d2clog,d2cfreq,&
@@ -211,37 +210,41 @@ CONTAINS
          d2bmen00,d2bmen01,d2bmen10,d2bmen11,&
          d2nfcl11,d2nfcl12,d2nfcl21,d2nfcl22
     REAL(i0rkind)::d0err
+
     
     !C
     !C d0psip : DERIVATIVE POLOIDAL FLUX FUNCTION
     !C          WITH RESPECT TO RHO               : \psi'
     !C d0pcf  : POLOIDAL CURRENT FUNCTION         : I
+    !C
     !C d1nn   : PARTICLE DENSITY                  : n_{a}
-    !C d1pp   : PRESSURE                          : p_{a}   
-    !C
     !C d1ur   : CT RADIAL   FLOW                  : u_{a}^{\rho} 
-    !C d1up   : CT POLOIDAL FLOW                  : u_{a}^{\chi}
-    !C d1ut   : CO TOROIDAL FLOW                  : u_{a\zeta}
     !C d1ub   :    PARALLEL FLOW                  : u_{a\para}
+    !C d1ut   : CO TOROIDAL FLOW                  : u_{a\zeta}
+    !C d1up   : CT POLOIDAL FLOW                  : u_{a}^{\chi}
     !C
+    !C d1pp   : PRESSURE                          : p_{a}   
     !C d1qr   : CT RADIAL   TOTAL HEAT FLUX       : Q_{a}^{\rho}
-    !C d1qp   : CT POLOIDAL TOTAL HEAT FLUX       : Q_{a}^{\chi}
-    !C d1qt   : CO TOROIDAL TOTAL HEAT FLUX       : Q_{a\zeta}
     !C d1qb   :    PARALLEL TOTAL HEAT FLUX       : Q_{a\para}
+    !C d1qt   : CO TOROIDAL TOTAL HEAT FLUX       : Q_{a\zeta}
+    !C d1qp   : CT POLOIDAL TOTAL HEAT FLUX       : Q_{a}^{\chi}
     !C 
     !C d1fr   : CT RADIAL   FLOW                  : n_{a}u_{a}^{\rho} 
-    !C d1fp   : CT POLOIDAL FLOW                  : n_{a}u_{a}^{\chi}
-    !C d1ft   : CO TOROIDAL FLOW                  : n_{a}u_{a\zeta}
     !C d1fb   :    PARALLEL PARTICLE FLUX         : n_{a}n_{u\para}
+    !C d1ft   : CO TOROIDAL FLOW                  : n_{a}u_{a\zeta}
+    !C d1fp   : CT POLOIDAL FLOW                  : n_{a}u_{a}^{\chi}
     !C
-    !C d01vb  : PARALLEL TOTAL HEAT FLOW FUNCTION : Q_{a\para}/p_{a}
+    !C d1wb  : PARALLEL TOTAL HEAT FLOW FUNCTION  : Q_{a\para}/p_{a}
     !C 
     !C * CO = COVARIANT, CT = CONTRAVARIANT
+    !C
+    !C      checked 2014-02-20 by H.Seto
+    !C
+   
+    !C
+    !C MASS AND ELECTRIC CHARGE [SI]
+    !C
     
-    !C
-    !C MASS AND ELECTRIC CHARGE
-    !C
-
     DO i0sidi = 1,i0smax
        d1mm(i0sidi) = d1pa(i0sidi)*d0amp
        d1ee(i0sidi) = d1pz(i0sidi)*d0aee
@@ -262,8 +265,9 @@ CONTAINS
     !C
     
     DO i0sidi = 1, i0smax
+       
        i0nflag = 0
-       i0vidi =  8*i0sidi - 3
+       i0vidi =  10*i0sidi - 5
        
        d0nn_a = d2xvec_befor(i0vidi+1,i0xid2d)*1.D-20
        d0pp_a = d2xvec_befor(i0vidi+5,i0xid2d)*1.D-23/d0aee
@@ -276,14 +280,18 @@ CONTAINS
        !d1qr(i0sidi) = d0qrcst*d2xvec_befor(i0vidi+6,i0xid2d)
        !d1qb(i0sidi) = d0qbcst*d2xvec_befor(i0vidi+7,i0xid2d)
        !d1qt(i0sidi) = d0qtcst*d2xvec_befor(i0vidi+8,i0xid2d)
-       d1nn(i0sidi) = d2xvec_befor(i0vidi+1,i0xid2d)
-       d1fr(i0sidi) = d2xvec_befor(i0vidi+2,i0xid2d)
-       d1fb(i0sidi) = d2xvec_befor(i0vidi+3,i0xid2d)
-       d1ft(i0sidi) = d2xvec_befor(i0vidi+4,i0xid2d)
-       d1pp(i0sidi) = d2xvec_befor(i0vidi+5,i0xid2d)
-       d1qr(i0sidi) = d2xvec_befor(i0vidi+6,i0xid2d)
-       d1qb(i0sidi) = d2xvec_befor(i0vidi+7,i0xid2d)
-       d1qt(i0sidi) = d2xvec_befor(i0vidi+8,i0xid2d)
+       
+       d1nn(i0sidi) = d2xvec_befor(i0vidi+ 1,i0xid2d)
+       d1fr(i0sidi) = d2xvec_befor(i0vidi+ 2,i0xid2d)*d0mfcr
+       d1fb(i0sidi) = d2xvec_befor(i0vidi+ 3,i0xid2d)
+       d1ft(i0sidi) = d2xvec_befor(i0vidi+ 4,i0xid2d)
+       d1fp(i0sidi) = d2xvec_befor(i0vidi+ 5,i0xid2d)
+       d1pp(i0sidi) = d2xvec_befor(i0vidi+ 6,i0xid2d)
+       d1qr(i0sidi) = d2xvec_befor(i0vidi+ 7,i0xid2d)*d0mfcr
+       d1qb(i0sidi) = d2xvec_befor(i0vidi+ 8,i0xid2d)
+       d1qt(i0sidi) = d2xvec_befor(i0vidi+ 9,i0xid2d)
+       d1qp(i0sidi) = d2xvec_befor(i0vidi+10,i0xid2d)
+       
        !write(10,'(2(A4,I5),8(A4,D15.8))')'ND=',i0midi,'SP=',i0sidi,&
        !     'NN=',d1nn(i0sidi),'FR=',d1fr(i0sidi),&
        !     'FB=',d1fb(i0sidi),'FT=',d1ft(i0sidi),&
@@ -291,18 +299,12 @@ CONTAINS
        !     'QB=',d1qb(i0sidi),'QT=',d1qt(i0sidi)
        IF(        d0nn_a .GT.0.D0 )THEN
           d1ni(i0sidi) = 1.D0/d1nn(i0sidi)
-       ELSEIF(ABS(d0nn_a).LE.1.D-4)THEN 
-          d1ni(i0sidi) = 0.D0
-          d1nn(i0sidi) = 0.D0
        ELSE
           i0nflag = 1
        ENDIF
        
        IF(        d0pp_a .GT.0.D0 )THEN
           d1pi(i0sidi) = 1.D0/d1pp(i0sidi)
-       ELSEIF(ABS(d0pp_a).LE.1.D-4)THEN
-          d1pi(i0sidi) = 0.D0
-          d1pp(i0sidi) = 0.D0
        ELSE
           i0nflag = 1
        ENDIF
@@ -310,39 +312,38 @@ CONTAINS
        IF(i0nflag.EQ.1)THEN
           WRITE(6,*)'NEGATIVE  DENSITY or PRESSURE'
           WRITE(6,*)'SPECIS=',i0sidi,'NODE=',i0xid2d,&
-               'N',d0nn_a,'10^{20} /m3','P=',d0pp_a/d0nn_a,'keV'
+               'N',d0nn_a,'10^{20} /m3','P=',d0pp_a,'keV*10^{20}/m^{3}'
           STOP       
        ENDIF
     ENDDO
-      
+    
     !C
     !C GEOMETRICAL COEFFICIENTS
     !C
-    
+    !C      checked 2014-02-20 by H.Seto
+    !C
+
     !C 
     !C d0sqrtg : \sqrt{g}
     !C
-    !C d0cogrr : g_{\rho\rho}
+    !C d0cogrr : g_{\rho\rho}*\rho
     !C d0cogrp : g_{\rho\chi}
     !C d0cogpp : g_{\chi\chi}
     !C d0cogtt : g_{\zeta\zeta}
     !C
     !C d0ctgrr : g^{\rho\rho}
     !C d0ctgrp : g^{\rho\chi}
-    !C d0ctgpp : g^{\chi\chi}
+    !C d0ctgpp : g^{\chi\chi}*rho
     !C d0ctgtt : g^{\zeta\zeta} 
     !C
     !C d0ugr   : CT RADIAL   FLAME MOVING VELOCITY      : u_{g}^{\rho}
     !C d0ugr   : CT POLOIDAL FLAME MOVING VELOCITY      : u_{g}^{\rho}
     !C
     !C d0ctbp  : CT POLOIDAL MAGNETIC FIELD             : B^{\chi}
-    !C d0ctbpi : INVERSE CONTRA POLOIDAL MAGNETIC FIELD : 1/B^{\chi}  
     !C d0bp2   : SQUARED INTENSITY 
     !C                   of POLOIDAL MAGENTIC FIELD     : Bp^{2}
     !C d0bt2   : SQUARED INTENSITY 
     !C                   of TOROIDAL MAGENTIC FIELD     : Bt^{2}
-    !C d0bp2i  : INVERSE SQUARED INTENSITY 
-    !C                   of POLOIDAL MAGNETIC FIELD     : 1/Bp^{2}
     !C d0bb    : INTENSITY OF MAGNETIC FIELD            : B 
     !C d0bb2   : SQUARED INTENSITY of MAGNETIC FIELD    : B^{2} 
     !C
@@ -350,74 +351,51 @@ CONTAINS
     d0psip  = d0mfcst*d2xvec_befor(1,i0xid1d)
     d0cobt  = d0btcst*d2xvec_befor(2,i0xid1d)
     d0sqrtg = d2jm1(1,i0midi)
-    d0ctgrr = d2jm1(2,i0midi)
-    d0ctgrp = d2jm1(3,i0midi)
-    d0ctgpp = d2jm1(4,i0midi)
-    d0ctgtt = d2jm1(5,i0midi)
+    d0cogrr = d2jm1(2,i0midi)
+    d0cogrp = d2jm1(3,i0midi)
+    d0cogpp = d2jm1(4,i0midi)
+    d0cogtt = d2jm1(5,i0midi)
+    d0ctgrr = d2jm1(6,i0midi)
+    d0ctgrp = d2jm1(7,i0midi)
+    d0ctgpp = d2jm1(8,i0midi)
+    d0ctgtt = d2jm1(9,i0midi)
     
-    d0cogtt =  1.D0/d0ctgtt
-    
-    IF(d0sqrtg.GT.0.D0)THEN
-       d0wv1   =  (d0sqrtg**2)*d0ctgtt
-       d0cogrr =  d0ctgpp*d0wv1
-       d0cogrp = -d0ctgrp*d0wv1
-       d0cogpp =  d0ctgrr*d0wv1
-       d0ctbp  =  d0psip/d0sqrtg
-       d0ctbpi =  1.D0/d0ctbp
-    ELSE
-       d0cogrr = 0.D0
-       d0cogrp = 0.D0
-       d0cogpp = 0.D0
-       d0ctbp  = 0.D0
-       d0ctbpi = 0.D0
-    ENDIF
-    
-    d2mtrc(1,i0midi) = d0cogrr
-    d2mtrc(2,i0midi) = d0cogpp
-    
+    d0ctbp = d0psip/d0sqrtg
+    d0ctbt = d0cobt*d0ctgtt
     
     d0ugr = 0.D0
     d0ugp = 0.D0
     
-    d0ctbt = d0cobt*d0ctgtt
-    
+
     d0bp2 = (d0ctbp**2)*d0cogpp
     d0bt2 = (d0cobt**2)*d0ctgtt
+
     d0bb2 = d0bp2 + d0bt2
     d0bb  = SQRT(d0bb2)
-
-    IF(d0bp2.GT.0.D0)THEN
-       d0bp2i= 1.D0/d0bp2
-    ELSE
-       d0bp2i = 0.D0
-    ENDIF
-    
-    d0g1 =  d0ctbp*d0bp2i*d0bb
-    d0g2 = -d0ctbp*d0bp2i*d0ctbt
     
     DO i0sidi = 1, i0smax 
        
        d1ur(i0sidi) = d1fr(i0sidi)*d1ni(i0sidi)
        d1ub(i0sidi) = d1fb(i0sidi)*d1ni(i0sidi)
        d1ut(i0sidi) = d1ft(i0sidi)*d1ni(i0sidi)
-       
-       d1up(i0sidi) = d0g1*d1ub(i0sidi) + d0g2*d1ut(i0sidi)
        d1u2(i0sidi) = d1ub(i0sidi)*d1ub(i0sidi)
        
-       d1qp(i0sidi) = d0g1*d1qb(i0sidi) + d0g2*d1qt(i0sidi)
-       d1vb(i0sidi) = d1qb(i0sidi)*d1pi(i0sidi)
+       d1wb(i0sidi) = d1qb(i0sidi)*d1pi(i0sidi)
        
        d1tt(i0sidi) = d1pp(i0sidi)*d1ni(i0sidi)
        d1ti(i0sidi) = d1nn(i0sidi)*d1pi(i0sidi)
        
     ENDDO
     
+    !C
     !C SET WORKING SCALAR FOR DIFFERENTIAL (GROBAL)
     !C
     !C D2WS(1   ,:) : MAGNETIC FIELD INTENSITY    : B   
     !C D2WS(2   ,:) : MAJOR RADIUS                : R   
     !C D2WS(2N+1,:) : PARALLEL FLOW               : u_{a\para}  
     !C D2WS(2N+2,:) : PARALLEL HEAT FLOW FUNCTION : Q_{a\para}/p_{a}
+    !C
+    !C      checked 2014-02-20 by H.Seto
     !C
     
     d2ws(         1,i0midi) = d0bb
@@ -426,18 +404,19 @@ CONTAINS
     DO i0sidi = 1, i0smax
        i0widi = 2*i0sidi
        d2ws(i0widi+1,i0midi) = d1ub(i0sidi)
-       d2ws(i0widi+2,i0midi) = d1vb(i0sidi)
+       d2ws(i0widi+2,i0midi) = d1wb(i0sidi)
     ENDDO
     
     !C
     !C FOR COLLISION AND VISCOUS TERMS
     !C
-    
+    !C
     !C THERMAL VELOCITY [m/s]
     !C v_{ta} = \sqrt{2T_{a}/M_{a}}
     !C
-    !C      checked 2014-02-03 by H.Seto
+    !C      checked 2014-02-20 by H.Seto
     !C
+    
     DO i0sidi = 1, i0smax
        d0mm_a = d1mm(i0sidi)
        d0tt_a = d1tt(i0sidi)
@@ -618,17 +597,18 @@ CONTAINS
        
     ENDDO
     ENDDO
-    
-    !C PARALLEL FRICTION COEFFICIENTS 
+       
+
+   !C PARALLEL FRICTION COEFFICIENTS 
     !C          WITH RESPECT TO MOMENTUM AND TOTAL HEAT FLUX
     !C
     !C DEFINITION OF VARIABLRS 
     !C            FOR NEOCLASSICAL FRICTION COEFFICIENTS
     !C
-    !C d2nfcf1: f^{ab}_{1}
-    !C d2nfcf2: f^{ab}_{2}
-    !C d2nfcf3: f^{ab}_{3}
-    !C d2nfcf4: f^{ab}_{4}
+    !C d2nfcf1: \bar{l}^{ab}_{1}
+    !C d2nfcf2: \bar{l}^{ab}_{2}
+    !C d2nfcf3: \bar{l}^{ab}_{3}
+    !C d2nfcf4: \bar{l}^{ab}_{4}
     
     DO i0sidj = 1, i0smax
     DO i0sidi = 1, i0smax
@@ -638,18 +618,13 @@ CONTAINS
        d0nfcl21_ab = d2nfcl21(i0sidi,i0sidj)
        d0nfcl22_ab = d2nfcl22(i0sidi,i0sidj)
        
-       d0ni_b = d1ni(i0sidj)
-       d0pi_b = d1pi(i0sidj)
+       d0nfcf1_ab =   d0nfcl11_ab + d0nfcl12_ab
+       d0nfcf2_ab = - d0nfcl12_ab * 0.4D0 
+       d0nfcf3_ab = - d0nfcl21_ab + d0nfcl22_ab
+       d0nfcf4_ab =   d0nfcl22_ab * 0.4D0
        
-       d0wv4  = d1tt(i0sidi)/d1mm(i0sidi)
-       
-       d0nfcf1_ab =   (d0nfcl11_ab+d0nfcl12_ab)*d0ni_b 
-       d0nfcf2_ab = - 0.4D0*d0nfcl12_ab*d0pi_b 
-       d0nfcf3_ab = - (d0nfcl21_ab+d0nfcl22_ab)*d0ni_b
-       d0nfcf4_ab =   0.4D0*d0nfcl22_ab*d0pi_b
-       
-       d0nfcf3_ab = d0wv4*(2.5D0*d0nfcf1_ab+d0nfcf3_ab)
-       d0nfcf4_ab = d0wv4*(2.5D0*d0nfcf2_ab+d0nfcf4_ab)
+       d0nfcf3_ab = 2.5D0*d0nfcf1_ab+d0nfcf3_ab
+       d0nfcf4_ab = 2.5D0*d0nfcf2_ab+d0nfcf4_ab
        
        d2nfcf1(i0sidi,i0sidj) = d0nfcf1_ab
        d2nfcf2(i0sidi,i0sidj) = d0nfcf2_ab
@@ -661,7 +636,7 @@ CONTAINS
     
     !C
     !C HEAT EXCHANGE COEFFICIENT
-    !C CHECKED 2013-11-14
+    !C CHECKED 2013-02-20
     !C
     
     DO i0sidi = 1, i0smax
@@ -696,129 +671,106 @@ CONTAINS
     !C d0k12  : MOD VISCOSITY COEFFICIENT              : K^{12}_{a}
     !C d0k22  : MOD VISCOSITY COEFFICIENT              : K^{22}_{a}
     !C
-    !C d1nvc1 : NEOCLASSICAL VISCOSITY COEFFICIENT     : \mu_{1a}
-    !C d1nvc2 : NEOCLASSICAL VISCOSITY COEFFICIENT     : \mu_{2a} 
-    !C d1nvc3 : NEOCLASSICAL VISCOSITY COEFFICIENT     : \mu_{3a} 
+    !C d1nvcm1 : NEOCLASSICAL VISCOSITY COEFFICIENT     : \mu_{1a}
+    !C d1nvcm2 : NEOCLASSICAL VISCOSITY COEFFICIENT     : \mu_{2a} 
+    !C d1nvcm3 : NEOCLASSICAL VISCOSITY COEFFICIENT     : \mu_{3a} 
     !C
+
+    d0temp = d0iar*SQRT(d0mfcr)
+    d0temp = SQRT(d0temp)
     
-    IF(d0mfcr.GT.0.D0)THEN
+    DO i0xa = 1, i0smax
        
-       d0q0 = d0ctbt*d0ctbpi
-
-       d0liar = d0mfcr/d0rmjr     !C LOCAL INVERSE ASPECT RATIO (r/R0)
-       d0tcr = 1.46D0*SQRT(d0liar)/(1.D0-1.46D0*SQRT(d0liar)) 
+       d0mm_a = d1mm(i0xa)
+       d0nn_a = d1nn(i0xa)
+       d0pp_a = d1pp(i0xa)
        
-       DO i0xa = 1, i0smax
-          
-          d0mm_a = d1mm(i0xa)
-          d0nn_a = d1nn(i0xa)
-          d0pp_a = d1pp(i0xa)
-          
-          !C
-          !C MODIFIED VISCOSITY COEFFICIENT IN PS REGIME
-          !C
-          
-          CALL INTEG_F(fd0k11ps,d0k11ps,d0err,EPS=1.D-8,ILST=0)
-          CALL INTEG_F(fd0k12ps,d0k12ps,d0err,EPS=1.D-8,ILST=0)
-          CALL INTEG_F(fd0k22ps,d0k22ps,d0err,EPS=1.D-8,ILST=0)
-          
-          d0cps   = 0.4D0*d0pp_a*d0de
-
-          d0k11ps = d0cps*d0k11ps
-          d0k12ps = d0cps*d0k12ps
-          d0k22ps = d0cps*d0k22ps
-
-          !C
-          !C MODIFIED VISCOSITY COEFFICIENT IN BN REGIME
-          !C 
-          
-          CALL INTEG_F(fd0k11bn,d0k11bn,d0err,EPS=1.D-8,ILST=0)
-          CALL INTEG_F(fd0k12bn,d0k12bn,d0err,EPS=1.D-8,ILST=0)
-          CALL INTEG_F(fd0k22bn,d0k22bn,d0err,EPS=1.D-8,ILST=0)
-       
-          d0cbn = 2.D0*d0mm_a*d0nn_a*d0de*d0tcr*(d0q0**2)*(d0rzcr**2)
-
-          d0cbn = d0cbn / (3.D0*(d0liar**2))
-          
-          d0k11bn = d0cbn*d0k11bn
-          d0k12bn = d0cbn*d0k12bn
-          d0k22bn = d0cbn*d0k22bn
-          
-          !C
-          !C MODIFIED VISCOSITY COEFFICIENT IN INTER-REGIMES 
-          !C
-          
-          d0k11 = d0k11ps*d0k11bn/(d0k11ps+d0k11bn)
-          d0k12 = d0k12ps*d0k12bn/(d0k12ps+d0k12bn)
-          d0k22 = d0k22ps*d0k22bn/(d0k22ps+d0k22bn)
-
-          !C
-          !C NEOCLASSICAL VISCOSITY COEFFICIENTS
-          !C
-          d1nvcm1(i0xa) = d0k11 
-          d1nvcm2(i0xa) = d0k12 - 2.5D0*d0k11 
-          d1nvcm3(i0xa) = d0k22 - 5.0D0*d0k12 + 6.25D0*d0k11
-          
-       ENDDO
-       
-       !C NEOCLASSICAL VISCOSITY COEFFICIENTS 
-       !C          WITH RESPECT TO MOMENTUM AND TOTAL HEAT FLUX
        !C
-       !C DEFINITION OF VARIABLRS 
-       !C            FOR NEOCLASSICAL VISCOSITY COEFFICIENTS
+       !C MODIFIED VISCOSITY COEFFICIENT IN PS REGIME
        !C
-       !C d2nfcf1: f^{ab}_{1}
-       !C d2nfcf2: f^{ab}_{2}
-       !C d2nfcf3: f^{ab}_{3}
-       !C d2nfcf4: f^{ab}_{4}
        
-       DO i0sidi = 1, i0smax
-          
-          d0nvcm1_a = d1nvcm1(i0sidi)
-          d0nvcm2_a = d1nvcm2(i0sidi)
-          d0nvcm3_a = d1nvcm3(i0sidi)
-          
-          d0ni_a = d1ni(i0sidi)
-          d0pi_a = d1pi(i0sidi)
-          d0tt_a = d1tt(i0sidi)
-          d0mm_a = d1mm(i0sidi)
-          
-          d0nvcc1_a =      (d0nvcm1_a-d0nvcm2_a)*d0ni_a
-          d0nvcc2_a = 0.4D0*d0nvcm2_a*d0pi_a
-          d0nvcc3_a =      (d0nvcm2_a-d0nvcm3_a)*d0ni_a
-          d0nvcc4_a = 0.4D0*d0nvcm3_a*d0pi_a
-          
-          d0nvcc3_a = (d0tt_a/d0mm_a)*(2.5D0*d0nvcc1_a + d0nvcc3_a)
-          d0nvcc4_a = (d0tt_a/d0mm_a)*(2.5D0*d0nvcc2_a + d0nvcc4_a)
-          
-          d1nvcc1(i0sidi) = d0nvcc1_a
-          d1nvcc2(i0sidi) = d0nvcc2_a
-          d1nvcc3(i0sidi) = d0nvcc3_a
-          d1nvcc4(i0sidi) = d0nvcc4_a
-      
-       ENDDO
+       CALL INTEG_F(fd0k11ps,d0k11ps,d0err,EPS=1.D-8,ILST=0)
+       CALL INTEG_F(fd0k12ps,d0k12ps,d0err,EPS=1.D-8,ILST=0)
+       CALL INTEG_F(fd0k22ps,d0k22ps,d0err,EPS=1.D-8,ILST=0)
+       
+       d0cps   = 2.5D0/(d0pp_a*d0de)
+       
+       d0k11ps = d0cps/d0k11ps
+       d0k12ps = d0cps/d0k12ps
+       d0k22ps = d0cps/d0k22ps
+       
+       !C
+       !C MODIFIED VISCOSITY COEFFICIENT IN BN REGIME
+       !C 
+       
+       CALL INTEG_F(fd0k11bn,d0k11bn,d0err,EPS=1.D-8,ILST=0)
+       CALL INTEG_F(fd0k12bn,d0k12bn,d0err,EPS=1.D-8,ILST=0)
+       CALL INTEG_F(fd0k22bn,d0k22bn,d0err,EPS=1.D-8,ILST=0)
+       
+       d0cbn = 3.D0*(d0temp**3)*(1.D0-1.46D0*d0temp)*(d0ctbp**2)
+       d0cbn = d0cbn/(2.92D0*d0mm_a*d0nn_a*d0bt2*d0de)
+       
+       d0k11bn = d0cbn/d0k11bn
+       d0k12bn = d0cbn/d0k12bn
+       d0k22bn = d0cbn/d0k22bn
+       
+       !C
+       !C MODIFIED VISCOSITY COEFFICIENT IN INTER-REGIMES 
+       !C
+       
+       d0k11 = d0k11ps + d0k11bn
+       d0k12 = d0k12ps + d0k12bn
+       d0k22 = d0k22ps + d0k22bn
+       
+       d0k11 = 1.D0/d0k11
+       d0k12 = 1.D0/d0k12
+       d0k22 = 1.D0/d0k22
 
-    ELSE
+       !C
+       !C NEOCLASSICAL VISCOSITY COEFFICIENTS: \mu_{ai}
+       !C
        
-       DO i0sidi = 1, i0smax 
-          d1nvcc1(i0sidi) = 0.D0
-          d1nvcc2(i0sidi) = 0.D0
-          d1nvcc3(i0sidi) = 0.D0
-          d1nvcc4(i0sidi) = 0.D0
-       ENDDO
+       d1nvcm1(i0xa) = d0k11 
+       d1nvcm2(i0xa) = d0k12 - 2.5D0*d0k11 
+       d1nvcm3(i0xa) = d0k22 - 5.0D0*d0k12 + 6.25D0*d0k11
        
-    ENDIF
+    ENDDO
+    
+    !C d1nvcc1 : NEOCLASSICAL VISCOSITY COEFFICIENT : \bar{\mu}_{1a}
+    !C d1nvcc2 : NEOCLASSICAL VISCOSITY COEFFICIENT : \bar{\mu}_{2a} 
+    !C d1nvcc3 : NEOCLASSICAL VISCOSITY COEFFICIENT : \bar{\mu}_{3a} 
+    !C d1nvcc3 : NEOCLASSICAL VISCOSITY COEFFICIENT : \bar{\mu}_{3a} 
+    
+    DO i0sidi = 1, i0smax
+       
+       d0nvcm1_a = d1nvcm1(i0sidi)
+       d0nvcm2_a = d1nvcm2(i0sidi)
+       d0nvcm3_a = d1nvcm3(i0sidi)
+       
+       d0nvcc1_a = d0nvcm1_a - d0nvcm2_a
+       d0nvcc2_a = d0nvcm2_a * 0.4D0
+       d0nvcc3_a = d0nvcm2_a - d0nvcm3_a
+       d0nvcc4_a = d0nvcm3_a * 0.4D0
+       
+       d0nvcc3_a = 2.5D0*d0nvcc1_a + d0nvcc3_a
+       d0nvcc4_a = 2.5D0*d0nvcc2_a + d0nvcc4_a
+       
+       d1nvcc1(i0sidi) = d0nvcc1_a
+       d1nvcc2(i0sidi) = d0nvcc2_a
+       d1nvcc3(i0sidi) = d0nvcc3_a
+       d1nvcc4(i0sidi) = d0nvcc4_a
+       
+    ENDDO
     
     RETURN
     
   END SUBROUTINE T2CALV_PQ
-
-
+  
   !C---------------------------------------------------------
   !C 
   !C CALCULATION OF MASS SCALAR COEFFICIENTS
   !C
-  !C             2014-02-12 H.SETO
+  !C             2014-02-20 H.SETO
   !C---------------------------------------------------------
   
   SUBROUTINE T2CALV_MS
@@ -877,7 +829,12 @@ CONTAINS
     !C Ep
     i0vidi = 4
     i0vidj = 4
-    d3ms(i0vidi,i0vidj,i0midi) = d0sqrtg*d0vci2
+    d3ms(i0vidi,i0vidj,i0midi) = d0sqrtg*d0mfcr*d0vci2
+    
+    !C
+    !C EQUATION FOR Er
+    !C
+    
     
     DO i0sidi = 1, i0smax
        
@@ -885,17 +842,21 @@ CONTAINS
        !C EQUATION FOR N
        !C
 
-       i0vidi = 8*i0sidi - 2
+       i0vidi = 10*i0sidi - 4
        
        !C N 
        i0vidj = i0vidi
        d3ms(i0vidi,i0vidj,i0midi) = d0sqrtg
-              
+         
+       !C
+       !C EQUATION FOR Fr
+       !C
+     
        !C
        !C EQUATION FOR Fb
        !C 
 
-       i0vidi = 8*i0sidi
+       i0vidi = 10*i0sidi - 2
 
        !C Fb
        i0vidj = i0vidi
@@ -905,27 +866,35 @@ CONTAINS
        !C EQUATION FOR Ft
        !C
 
-       i0vidi = 8*i0sidi + 1
+       i0vidi = 10*i0sidi - 1
        
        !C Ft
        i0vidj = i0vidi
        d3ms(i0vidi,i0vidj,i0midi) = d0sqrtg
        
        !C
+       !C EQUATION FOR Fp
+       !C
+
+       !C
        !C EQUATION FOR P
        !C
 
-       i0vidi = 8*i0sidi + 2
+       i0vidi = 10*i0sidi + 1
        
        !C P
        i0vidj = i0vidi
        d3ms(i0vidi,i0vidj,i0midi) = d0sqrtg*1.5D0
+
+       !C
+       !C EQUATION FOR Qr
+       !C
        
        !C
        !C EQUATION FOR Qb
        !C
 
-       i0vidi = 8*i0sidi + 4
+       i0vidi = 10*i0sidi + 3
        
        !C Qb       
        i0vidj = i0vidi
@@ -935,12 +904,16 @@ CONTAINS
        !C EQUATION FOR Qt
        !C
 
-       i0vidi = 8*i0sidi + 5
+       i0vidi = 10*i0sidi + 4
        
        !C Qt       
        i0vidj = i0vidi
        d3ms(i0vidi,i0vidj,i0midi) = d0sqrtg
        
+       !C
+       !C EQUATION FOR Qp
+       !C
+
     ENDDO
     
     RETURN
@@ -951,7 +924,7 @@ CONTAINS
   !C 
   !C CALCULATION OF ADVECTION VECTOR COEFFICIENTS
   !C
-  !C             2014-02-12 H.SETO
+  !C             2014-02-20 H.SETO
   !C
   !C---------------------------------------------------------
   SUBROUTINE T2CALV_AV
@@ -968,14 +941,14 @@ CONTAINS
          i0vmax,i0dmax,d4av
     
     INTEGER(i0ikind)::&
-         i0sidi,i0didi,i0vidi,i0vidj
+         i0sidi,i0didi,i0vidi,i0vidj,i0vofi
     
     REAL(   i0rkind)::&
          d0mm_a,d0tt_a,d0nn_a,d0pp_a,&
          d0mi_a,       d0ni_a,d0pi_a,&
          d0ur_a,d0up_a,d0ub_a,d0u2_a,&
          d0qr_a,d0qp_a,d0qt_a,d0qb_a
-
+    
     REAL(   i0rkind)::&
          d0x1,d0x2
     
@@ -994,6 +967,7 @@ CONTAINS
     !C
     !C EQUATION FOR PSI'
     !C
+    
     i0vidi = 1
     
     !C PSI'
@@ -1020,8 +994,8 @@ CONTAINS
     
     !C PSI'
     i0vidj = 1
-    d4av(1,i0vidi,i0vidj,i0midi) = -d0sqrtg*d0ctgrr*d0mfcst/d0etcst
-    d4av(2,i0vidi,i0vidj,i0midi) = -d0sqrtg*d0ctgrp*d0mfcst/d0etcst
+    d4av(1,i0vidi,i0vidj,i0midi) = -d0sqrtg*d0ctgrr * d0mfcst/d0etcst
+    d4av(2,i0vidi,i0vidj,i0midi) = -d0sqrtg*d0ctgrp * d0mfcst/d0etcst
     
     !C Et
     i0vidj = 3
@@ -1036,8 +1010,8 @@ CONTAINS
     
     !C Ep
     i0vidj = 4
-    d4av(1,i0vidi,i0vidj,i0midi) =  d0ugr*d0vci2
-    d4av(2,i0vidi,i0vidj,i0midi) =  d0ugp*d0vci2
+    d4av(1,i0vidi,i0vidj,i0midi) =  d0ugr*d0vci2*d0mfcr
+    d4av(2,i0vidi,i0vidj,i0midi) =  d0ugp*d0vci2*d0mfcr
     
     !C
     !C EQUATION FOR Er
@@ -1047,8 +1021,10 @@ CONTAINS
     
     !C Ep
     i0vidj = 4
-    d4av(1,i0vidi,i0vidj,i0midi) = d0sqrtg*d0ctgrp*d0epcst/d0ercst
-    d4av(2,i0vidi,i0vidj,i0midi) = d0sqrtg*d0ctgpp*d0epcst/d0ercst
+    d4av(1,i0vidi,i0vidj,i0midi) = d0sqrtg*d0ctgrp*d0mfcr &
+         &                       * d0epcst/d0ercst
+    d4av(2,i0vidi,i0vidj,i0midi) = d0sqrtg*d0ctgpp        &
+         &                       * d0epcst/d0ercst
     
     !C Er
     i0vidj = 5
@@ -1056,6 +1032,8 @@ CONTAINS
     d4av(2,i0vidi,i0vidj,i0midi) = d0sqrtg*d0ctgrp
     
     DO i0sidi = 1, i0smax
+       
+       i0vofi = 10*i0sidi
        
        d0mm_a = d1mm(i0sidi)
        d0tt_a = d1tt(i0sidi)
@@ -1077,75 +1055,87 @@ CONTAINS
        !C EQUATION FOR N
        !C
        
-       i0vidi = 8*i0sidi - 2
+       i0vidi = i0vofi - 4
        
        !C N
-       i0vidj = i0vidi 
+       i0vidj = i0vofi - 4 
        d4av(1,i0vidi,i0vidj,i0midi) = d0ugr + d0sqrtg*d0ur_a
        d4av(2,i0vidi,i0vidj,i0midi) = d0ugp + d0sqrtg*d0up_a
        
        !C
+       !C EQUATION FOR Fr
+       !C
+
+       !C
        !C EQUATION FOR Fb
        !C
 
-       i0vidi = 8*i0sidi
+       i0vidi = i0vofi - 2
        
        !C Fb
-       i0vidj = i0vidi
+       i0vidj = i0vofi - 2
        d4av(1,i0vidi,i0vidj,i0midi) = d0ugr*d0bb
        d4av(2,i0vidi,i0vidj,i0midi) = d0ugr*d0bb + d0sqrtg*d0ctbp*d0ub_a
        
        !C P
-       i0vidj = i0vidi + 2
+       i0vidj = i0vofi + 1
        d4av(2,i0vidi,i0vidj,i0midi)&
-            = d0sqrtg*d0ctbp*d0mi_a*d0ppcst/d0fbcst
+            = d0sqrtg*d0ctbp*d0mi_a * d0ppcst/d0fbcst
        
        !C
        !C EQUATION FOR Ft
        !C
        
-       i0vidi = 8*i0sidi + 1
+       i0vidi = i0vofi - 1
        
        !C Ft
-       i0vidj = i0vidi 
+       i0vidj = i0vofi - 1 
        d4av(1,i0vidi,i0vidj,i0midi) = d0ugr + d0sqrtg*d0ur_a
        d4av(2,i0vidi,i0vidj,i0midi) = d0ugp + d0sqrtg*d0up_a
        
        !C
+       !C EQUATION FOR Fp
+       !C
+
+       !C
        !C EQUATION FOR P
        !C
        
-       i0vidi = 8*i0sidi + 2
+       i0vidi = i0vofi + 1
        
        d0x1 = -0.5D0*d0sqrtg*d0mm_a*d0nn_a*d0u2_a*d0pi_a
        d0x2 =  d0sqrtg*d0pi_a
        
        !C P
-       i0vidj = i0vidi
+       i0vidj = i0vofi + 1
        d4av(1,i0vidi,i0vidj,i0midi)&
             = 1.5D0*d0ugr + d0x1*d0ur_a + d0x2*d0qr_a
        d4av(2,i0vidi,i0vidj,i0midi)&
             = 1.5D0*d0ugp + d0x1*d0up_a + d0x2*d0qp_a
        
        !C
+       !C EQUATION FOR Qr
+       !C
+       
+       !C
        !C EQUATION FOR Qb
        !C
        
-       i0vidi = 8*i0sidi + 4
+       i0vidi = i0vofi + 3
        
        !C Fb
-       i0vidj = i0vidi - 4
+       i0vidj = i0vofi - 2
        d4av(2,i0vidi,i0vidj,i0midi)&
-            = (d0qb_a - 1.5D0*d0pp_a*d0ub_a)&
-            * d0sqrtg*d0ctbp*d0ni_a*d0fbcst/d0qbcst
+            = (d0qb_a - 1.5D0*d0pp_a*d0ub_a) * d0sqrtg*d0ctbp*d0ni_a &
+            * d0fbcst/d0qbcst
        
        !C P
-       i0vidj = i0vidi - 2
+       i0vidj = i0vofi + 1
        d4av(2,i0vidi,i0vidj,i0midi)&
-            = 2.5D0*d0tt_a*d0mi_a*d0sqrtg*d0ctbp*d0ppcst/d0qbcst
+            = 2.5D0*d0tt_a*d0mi_a*d0sqrtg*d0ctbp * d0ppcst/d0qbcst
        
        !C Qb
-       i0vidj = i0vidi
+       i0vidj = i0vofi + 3
        d4av(1,i0vidi,i0vidj,i0midi) = d0ugr*d0bb
        d4av(2,i0vidi,i0vidj,i0midi) = d0ugp*d0bb+d0sqrtg*d0ctbp*d0ub_a
        
@@ -1153,10 +1143,10 @@ CONTAINS
        !C EQUATION FOR Qt
        !C
        
-       i0vidi = 8*i0sidi + 5
+       i0vidi = i0vofi + 4
        
        !C Ft
-       i0vidj = i0vidi - 4
+       i0vidj = i0vofi - 1
        d4av(1,i0vidi,i0vidj,i0midi)&
             = d0sqrtg*d0ni_a*(d0qr_a - 1.5D0*d0pp_a*d0ur_a)&
             * d0ftcst/d0qtcst
@@ -1166,10 +1156,14 @@ CONTAINS
        
        !C Qt
        
-       i0vidj = i0vidi
+       i0vidj = i0vofi + 4
        
        d4av(1,i0vidi,i0vidj,i0midi) = d0ugr + d0sqrtg*d0ur_a
        d4av(2,i0vidi,i0vidj,i0midi) = d0ugp + d0sqrtg*d0up_a
+       
+       !C
+       !C EQUATION FOR Qp
+       !C
        
     ENDDO
     
@@ -1181,7 +1175,7 @@ CONTAINS
   !C 
   !C CALCULATION OF ADVECTION TENSOR COEFFICIENTS
   !C
-  !C             2014-02-12 H.SETO
+  !C             2014-02-20 H.SETO
   !C
   !C---------------------------------------------------------  
   SUBROUTINE T2CALV_AT
@@ -1191,22 +1185,23 @@ CONTAINS
     USE T2COMM, ONLY:&
          i0vmax,i0dmax,i0wmax,&
          d0mfcst,d0btcst,d0ercst,d0epcst,d0etcst,&
-         d0nncst,d0frcst,d0fbcst,d0ftcst,&
-         d0ppcst,d0qrcst,d0qbcst,d0qtcst,&
+         d0nncst,d0frcst,d0fbcst,d0ftcst,d0fpcst,&
+         d0ppcst,d0qrcst,d0qbcst,d0qtcst,d0qpcst,&
          d1mm,d1tt,d1nn,d1pp,d1ni,d1pi,&
          d1ub,d1ur,d1ut,d1up,d1u2,d1qr,d1qb,d1qt,d1qp,&
          d1nvcc1,d1nvcc2,d1nvcc3,d1nvcc4,d6at    
     
     INTEGER(i0ikind)::&
-         i0sidi,i0didi,i0didj,i0widi,i0vidi,i0vidj
+         i0sidi,i0didi,i0didj,i0widi,i0vidi,i0vidj,i0vofi
     
     REAL(   i0rkind)::&
          d0mm_a,d0mi_a,d0ur_a,d0up_a,d0ub_a,&
          d0nvcc1_a,d0nvcc2_a,d0nvcc3_a,d0nvcc4_a
 
     REAL(   i0rkind)::&
-         d0x1,d0x2,d0x3,d0x4,d0x5,&
-         d0c1r_a,d0c1p_a,d0c2r_a,d0c2p_a
+         d0x1,  d0x2,  d0x3,  d0x4,  d0x5,  d0x6,&
+         d0c1_a,d0c2_a,d0c3_a,d0c4_a,d0c5_a,d0c6_a,&
+         d0usr_a,d0usp_a
 
     !C
     !C INITIALIZATION
@@ -1224,188 +1219,203 @@ CONTAINS
     ENDDO
     ENDDO
            
-    d0x1 = d0sqrtg*d0bt2*d0bp2i*d0ctbp/d0bb
-    d0x2 = 2.D0*d0ctbp/d0bb
-    d0x3 = 2.D0*d0ctbp/d0cobt
-    d0x4 = 3.D0*d0cobt*d0ctbp/(d0bb**3)
-    d0x5 = 3.D0*d0ctbp/(d0bb**2)
-    
+    d0x2 = (d0sqrtg*d0bt2*d0ctbp)/(d0bb2*d0bb)
+    d0x1 =  d0x2*d0ctbp/d0cobt
+    d0x3 =  d0x2*d0ctbp/d0bb2
+    d0x4 =  d0x2*d0cobt/d0bb2
+    d0x5 =  d0x2/d0cobt
+    d0x6 = (d0sqrtg*d0bt2)/(d0bb2*d0bb)
+
     DO i0sidi = 1, i0smax
-       
+    
+       i0vofi = 10*i0sidi
+
        d0mm_a = d1mm(i0sidi)
        d0ur_a = d1ur(i0sidi)
        d0up_a = d1up(i0sidi)
        d0ub_a = d1ub(i0sidi)
-       
+       d0ut_a = d1ut(i0sidi)
+       d0ni_a = d1ni(i0sidi)
+       d0pi_a = d1pi(i0sidi)
+       d0mi_a = 1.D0/d0mm_a
+
        d0nvcc1_a = d1nvcc1(i0sidi)
        d0nvcc2_a = d1nvcc2(i0sidi)
        d0nvcc3_a = d1nvcc3(i0sidi)
        d0nvcc4_a = d1nvcc4(i0sidi) 
        
-       d0mi_a = 1.D0/d0mm_a
-       
+       d0usr_a = d0ur_a
+       d0usp_a = d0up_a -3.D0*d0ub_a*d0ctbp/d0bb 
+
+       d0c3_a = d0nvcc1_a*d0ni_a
+       d0c4_a = d0nvcc2_a*d0pi_a
+       d0c1_a = d0c3_a*d0mi_a
+       d0c2_a = d0c4_a*d0mi_a
+       d0c5_a = d0nvcc3_a*d0tt_a*d0ni_a*d0mi_a
+       d0c6_a = d0nvcc4_a*d0tt_a*d0pi_a*d0mi_a
+
        !C
        !C EQUATION FOR Fb
        !C
        
-       i0vidi = 8*i0sidi 
-       
-       !C Fb (B)
-       i0vidj = i0vidi
-       i0widi = 1
-       d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x1*d0x2*d0nvcc1_a*d0mi_a
+       i0vidi = i0vofi - 2
        
        !C Ft (B)
-       i0vidj = i0vidi + 1
+       i0vidj = i0vofi - 1
        i0widi = 1
        d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0x3*d0nvcc1_a*d0mi_a*d0ftcst/d0fbcst
+            =  d0x1*d0c1_a*2.D0 * d0ftcst/d0fbcst
        
-       !C Qb (B)
-       i0vidj = i0vidi + 4
+       !C Fp (B)
+       i0vidj = i0vofi
        i0widi = 1
        d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x1*d0x2*d0nvcc2_a*d0mi_a*d0qbcst/d0fbcst
+            = -d0x2*d0c1_a*2.D0 * d0fpcst/d0fbcst
        
        !C Qt (B)
-       i0vidj = i0vidi + 5
+       i0vidj = i0vofi + 4
        i0widi = 1
        d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0x3*d0nvcc2_a*d0mi_a*d0qtcst/d0fbcst
+            =  d0x1*d0c2_a*2.D0 * d0qtcst/d0fbcst
+       
+       !C Qp (B)
+       i0vidj = i0vofi + 5
+       i0widi = 1
+       d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
+            = -d0x2*d0c2_a*2.D0 * d0qpcst/d0fbcst
        
        !C
        !C EQUATION FOR Ft
        !C
        
-       i0vidi = 8*i0sidi + 1
+       i0vidi = i0vofi - 1
        
-       !C Fb (B)
-       i0vidj = i0vidi - 1
-       i0widi = 1
-       d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x1*d0x4*d0nvcc1_a*d0mi_a*d0fbcst/d0ftcst
-
        !C Ft (B)
-       i0vidj = i0vidi
+       i0vidj = i0vofi - 1
        i0widi = 1
        d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0x5*d0nvcc1_a*d0mi_a
-       
-       !C Qb (B)
-       i0vidj = i0vidi + 3
-       i0widi = 1
-       d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x1*d0x4*d0nvcc2_a*d0mi_a*d0qbcst/d0ftcst
+            = d0x3*d0c1_a*3.D0
 
-       !C Qt (B)
-       i0vidj = i0vidi + 4
+       !C Fp (B)
+       i0vidj = i0vofi
        i0widi = 1
        d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0x5*d0nvcc2_a*d0mi_a*d0qtcst/d0ftcst
+            = -d0x4*d0c1_a*3.D0 * d0fpcst/d0ftcst
+       
+       !C Qt (B)
+       i0vidj = i0vofi + 4
+       i0widi = 1
+       d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
+            =  d0x3*d0c2_a*3.D0 * d0qtcst/d0ftcst
+
+       !C Qp (B)
+       i0vidj = i0vofi + 5
+       i0widi = 1
+       d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
+            = -d0x4*d0c2_a*3.D0 * d0qpcst/d0ftcst
+       
        
        !C
        !C EQUATION FOR P
        !C
 
-       i0vidi = 8*i0sidi + 2
+       i0vidi = i0vofi + 1
        
-       d0c1r_a =  d0ur_a/d0bb
-       d0c1p_a = (d0up_a - 3.D0*d0ctbp*d0ub_a/d0bb)/d0bb
-       d0c2r_a =  d0ur_a/d0cobt
-       d0c2p_a = (d0up_a - 3.D0*d0ctbp*d0ub_a/d0bb)/d0cobt
-
-       !C Fb (B)
-       i0vidj = i0vidi - 2
-       i0widi = 1
-       d6at(1,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x1*d0c1r_a*d0nvcc1_a*d0fbcst/d0ppcst
-       d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x1*d0c1p_a*d0nvcc1_a*d0fbcst/d0ppcst
-
        !C Ft (B)
-       i0vidj = i0vidi - 1
+       i0vidj = i0vofi - 1
        i0widi = 1
        d6at(1,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0c2r_a*d0nvcc1_a*d0ftcst/d0ppcst
+            =  d0x5*d0c3_a*d0usr_a * d0ftcst/d0ppcst
        d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0c2p_a*d0nvcc1_a*d0ftcst/d0ppcst
-       
-       !C Qb
-       i0vidj = i0vidi + 2
+            =  d0x5*d0c3_a*d0usp_a * d0ftcst/d0ppcst
+
+       !C Fp (B)
+       i0vidj = i0vofi
        i0widi = 1
        d6at(1,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x1*d0c1r_a*d0nvcc2_a*d0qbcst/d0ppcst
+            =  -d0x6*d0c3_a*d0usr_a * d0fpcst/d0ppcst
        d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x1*d0c1p_a*d0nvcc2_a*d0qbcst/d0ppcst
+            =  -d0x6*d0c3_a*d0usp_a * d0fpcst/d0ppcst
        
-       !C Qt
-       i0vidj = i0vidi + 3
+       !C Qt (B)
+       i0vidj = i0vofi + 4
        i0widi = 1
        d6at(1,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0c2r_a*d0nvcc2_a*d0qtcst/d0ppcst
+            =  d0x5*d0c4_a*d0usr_a * d0qtcst/d0ppcst      
        d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0c2p_a*d0nvcc2_a*d0qtcst/d0ppcst
+            =  d0x5*d0c4_a*d0usp_a * d0qtcst/d0ppcst
+
+       !C Qp (B)
+       i0vidj = i0vofi + 5
+       i0widi = 1
+       d6at(1,2,i0widi,i0vidi,i0vidj,i0midi)&
+            =  -d0x6*d0c4_a*d0usr_a * d0qpcst/d0ppcst
+       d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
+            =  -d0x6*d0c4_a*d0usp_a * d0qpcst/d0ppcst
        
+       !C
+       !C EQUATION FOR Qr
+       !C
+
        !C
        !C EQUATION FOR Qb
        !C
 
-       i0vidi = 8*i0sidi + 4
+       i0vidi = i0vofi + 3
        
-       !C Fb
-       i0vidj = i0vidi - 4
+       !C Ft: (B)
+       i0vidj = i0vofi - 1
        i0widi = 1
        d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x1*d0x2*d0nvcc3_a*d0fbcst/d0qbcst
+            =  d0x1*d0c5_a*2.D0 * d0ftcst/d0qbcst
        
-       !C Ft
-       i0vidj = i0vidi - 3
+       !C Fp: (B)
+       i0vidj = i0vofi
        i0widi = 1
        d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0x3*d0nvcc3_a*d0ftcst/d0qbcst
+            = -d0x2*d0c5_a*2.D0 * d0fpcst/d0qbcst
        
-       !C Qb
-       i0vidj = i0vidi
+       !C Qt: (B)
+       i0vidj = i0vofi + 4
        i0widi = 1
        d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x1*d0x2*d0nvcc4_a
+            =  d0x1*d0c6_a*2.D0 * d0qtcst/d0qbcst
        
-       !C Qt
-       i0vidj = i0vidi + 1
+       !C Qp: (B)
+       i0vidj = i0vofi + 5
        i0widi = 1
        d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0x3*d0nvcc4_a*d0qtcst/d0qbcst
+            = -d0x2*d0c6_a*2.D0 * d0qpcst/d0qbcst
        
        !C
        !C EQUATION FOR Qt
        !C
 
-       i0vidi = 8*i0sidi + 5
+       i0vidi = i0vofi + 4
        
-       !C Fb
-       i0vidj = i0vidi - 5
+       !C Ft: (B)
+       i0vidj = i0vofi - 1
        i0widi = 1
        d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x1*d0x4*d0nvcc3_a*d0fbcst/d0qtcst
-       
-       !C Ft
-       i0vidj = i0vidi - 4
+            = d0x3*d0c5_a*3.D0 * d0ftcst/d0qtcst
+
+       !C Fp: (B)
+       i0vidj = i0vofi
        i0widi = 1
        d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0x5*d0nvcc3_a*d0ftcst/d0qtcst
+            = -d0x4*d0c5_a*3.D0 * d0fpcst/d0qtcst
        
-       !C Qb
-       i0vidj = i0vidi - 1
+       !C Qt: (B)
+       i0vidj = i0vofi + 4
        i0widi = 1
        d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x1*d0x4*d0nvcc4_a*d0qbcst/d0qtcst
-       
-       !C Qt
-       i0vidj = i0vidi
+            =  d0x3*d0c6_a*3.D0 
+
+       !C Qp: (B)
+       i0vidj = i0vofi + 5
        i0widi = 1
        d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0x5*d0nvcc4_a
+            = -d0x4*d0c6_a*3.D0 * d0qpcst/d0qtcst
        
     ENDDO
     
@@ -1453,13 +1463,16 @@ CONTAINS
        ENDDO
     ENDDO
     ENDDO
-    
+
+
     d0x1 = 2.D0*d0sqrtg*(d0ctbp**2)/d0bb
     d0x2 = 3.D0*d0sqrtg*(d0ctbp**2)*d0cobt/(d0bb**3)
-    d0x3 = d0sqrtg*d0ctbp/d0bb
+    d0x3 = d0sqrtg*d0ctbp/d0bb    
     
     DO i0sidi = 1, i0smax
        
+       i0vofi = 10*i0sidi
+
        d0mm_a     = d1mm(i0sidi)
        d0pp_a     = d1pp(i0sidi)
        d0ur_a     = d1ur(i0sidi)
@@ -1477,127 +1490,116 @@ CONTAINS
        !C EQUATION FOR Fb
        !C
        
-       i0vidi = 8*i0sidi 
+       i0vidi = i0vofi - 2
        
        !C N
-       i0vidj = i0vidi - 2
+       i0vidj = i0vofi - 4
        d5dt(2,2,i0vidi,i0vidj,i0midi) &
-            = -d0x1*d0nvcc1_a*d0mi_a*d0ub_a*d0nncst/d0fbcst
+            =
        !C Fb
-       i0vidj = i0vidi
+       i0vidj = i0vofi - 2
        d5dt(2,2,i0vidi,i0vidj,i0midi) &
-            =  d0x1*d0nvcc1_a*d0mi_a
+            =
        !C P
-       i0vidj = i0vidi + 2
+       i0vidj = i0vofi + 1
        d5dt(2,2,i0vidi,i0vidj,i0midi) &
-            = -d0x1*d0nvcc2_a*d0mi_a*d0vb_a*d0ppcst/d0fbcst
+            =
        !C Qb
-       i0vidj = i0vidi + 4
+       i0vidj = i0vofi + 3
        d5dt(2,2,i0vidi,i0vidj,i0midi) &
-            =  d0x1*d0nvcc2_a*d0mi_a       *d0qbcst/d0fbcst
+            =
        
        !C
        !C  EQUATION FOR Ft
        !C 
 
-       i0vidi = 8*i0sidi + 1
+       i0vidi = i0vofi - 1
        
        !C N
-       i0vidj = i0vidi - 3
+       i0vidj = i0vofi - 4
        d5dt(2,2,i0vidi,i0vidj,i0midi) &
-            = -d0x2*d0nvcc1_a*d0mi_a*d0ub_a*d0nncst/d0ftcst
+            =
        !C Fb
-       i0vidj = i0vidi - 1
+       i0vidj = i0vofi - 2
        d5dt(2,2,i0vidi,i0vidj,i0midi) &
-            =  d0x2*d0nvcc1_a*d0mi_a       *d0fbcst/d0ftcst
+            =
        !C P
-       i0vidj = i0vidi + 1
+       i0vidj = i0vofi + 1
        d5dt(2,2,i0vidi,i0vidj,i0midi) &
-            = -d0x2*d0nvcc2_a*d0mi_a*d0vb_a*d0ppcst/d0ftcst
+            =
        !C Qb
-       i0vidj = i0vidi + 3
+       i0vidj = i0vofi + 3
        d5dt(2,2,i0vidi,i0vidj,i0midi) &
-            =  d0x2*d0nvcc2_a*d0mi_a       *d0qbcst/d0ftcst
-       
+            =
+
        !C
        !C EQUATION FOR P
        !C
 
-       i0vidi = 8*i0sidi + 2
-       
-       d0c1r_a = d0ur_a
-       d0c1p_a = d0up_a - 3.D0*d0ctbp*d0ub_a/d0bb
+       i0vidi = i0vofi + 1
        
        !C N
-       i0vidj = i0vidi - 4
-       d5dt(1,2,i0vidi,i0vidj,i0midi) &
-            = -d0x3*d0c1r_a*d0nvcc1_a*d0ub_a*d0nncst/d0ppcst
+       i0vidj = i0vofi - 4
        d5dt(2,2,i0vidi,i0vidj,i0midi) &
-            = -d0x3*d0c1p_a*d0nvcc1_a*d0ub_a*d0nncst/d0ppcst
+            =
        !C Fb
-       i0vidj = i0vidi - 2
-       d5dt(1,2,i0vidi,i0vidj,i0midi) &
-            =  d0x3*d0c1r_a*d0nvcc1_a       *d0fbcst/d0ppcst
+       i0vidj = i0vofi - 2
        d5dt(2,2,i0vidi,i0vidj,i0midi) &
-            =  d0x3*d0c1p_a*d0nvcc1_a       *d0fbcst/d0ppcst
+            =
        !C P
-       i0vidj = i0vidi
-       d5dt(1,2,i0vidi,i0vidj,i0midi) &
-            = -d0x3*d0c1r_a*d0nvcc2_a*d0vb_a
+       i0vidj = i0vofi + 1
        d5dt(2,2,i0vidi,i0vidj,i0midi) &
-            = -d0x3*d0c1p_a*d0nvcc2_a*d0vb_a
+            =
        !C Qb
-       i0vidj = i0vidi + 2
-       d5dt(1,2,i0vidi,i0vidj,i0midi) &
-            =  d0x3*d0c1r_a*d0nvcc2_a       *d0qbcst/d0ppcst
+       i0vidj = i0vofi + 3
        d5dt(2,2,i0vidi,i0vidj,i0midi) &
-            =  d0x3*d0c1p_a*d0nvcc2_a       *d0qbcst/d0ppcst
+            =
 
        !C   
        !C EQUATION FOR Qb
        !C
 
-       i0vidi = 8*i0sidi + 4
+       i0vidi = i0vofi + 3
        
        !C N
-       i0vidj = i0vidi - 6
-       d5dt(2,2,i0vidi,i0vidj,i0midi)&
-            = -d0x1*d0nvcc3_a*d0ub_a*d0nncst/d0qbcst
+       i0vidj = i0vofi - 4
+       d5dt(2,2,i0vidi,i0vidj,i0midi) &
+            =
        !C Fb
-       i0vidj = i0vidi - 4
-       d5dt(2,2,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0nvcc3_a       *d0fbcst/d0qbcst
+       i0vidj = i0vofi - 2
+       d5dt(2,2,i0vidi,i0vidj,i0midi) &
+            =
        !C P
-       i0vidj = i0vidi - 2
-       d5dt(2,2,i0vidi,i0vidj,i0midi)&
-            = -d0x1*d0nvcc4_a*d0vb_a*d0ppcst/d0qbcst
+       i0vidj = i0vofi + 1
+       d5dt(2,2,i0vidi,i0vidj,i0midi) &
+            =
        !C Qb
-       i0vidj = i0vidi
-       d5dt(2,2,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0nvcc4_a
+       i0vidj = i0vofi + 3
+       d5dt(2,2,i0vidi,i0vidj,i0midi) &
+            =
        
        !C
        !C  EQUATION FOR Qt
        !C 
 
-       i0vidi = 8*i0sidi + 5
+       i0vidi = i0vofi + 4
        
        !C N
-       i0vidj = i0vidi - 7
-       d5dt(2,2,i0vidi,i0vidj,i0midi)&
-            = -d0x2*d0nvcc3_a*d0ub_a*d0nncst/d0qtcst
+       i0vidj = i0vofi - 4
+       d5dt(2,2,i0vidi,i0vidj,i0midi) &
+            =
        !C Fb
-       i0vidj = i0vidi - 5
-       d5dt(2,2,i0vidi,i0vidj,i0midi)&
-            =  d0x2*d0nvcc3_a       *d0fbcst/d0qtcst
+       i0vidj = i0vofi - 2
+       d5dt(2,2,i0vidi,i0vidj,i0midi) &
+            =
        !C P
-       i0vidj = i0vidi - 3
-       d5dt(2,2,i0vidi,i0vidj,i0midi)&
-            = -d0x2*d0nvcc4_a*d0vb_a*d0ppcst/d0qtcst
+       i0vidj = i0vofi + 1
+       d5dt(2,2,i0vidi,i0vidj,i0midi) &
+            =
        !C Qb
-       i0vidj = i0vidi - 1
-       d5dt(2,2,i0vidi,i0vidj,i0midi)&
-            =  d0x2*d0nvcc4_a       *d0qbcst/d0qtcst
+       i0vidj = i0vofi + 3
+       d5dt(2,2,i0vidi,i0vidj,i0midi) &
+            =
        
     ENDDO
     
@@ -1750,7 +1752,7 @@ CONTAINS
          d0mfcst,d0btcst,d0ercst,d0epcst,d0etcst,&
          d0nncst,d0frcst,d0fbcst,d0ftcst,&
          d0ppcst,d0qrcst,d0qbcst,d0qtcst,&
-         d1mm, d1ut,d1ub,d1vb,&
+         d1mm, d1ut,d1ub,d1wb,&
          d1nvcc1,d1nvcc2,d1nvcc3,d1nvcc4,&
          d6gt 
     
