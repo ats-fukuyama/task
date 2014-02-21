@@ -370,7 +370,7 @@ MODULE T2COMM
   REAL(   i0rkind),DIMENSION(:),ALLOCATABLE::&
        d1ee,d1mm,d1nn,d1ni,d1pp,d1pi,d1tt,d1ti,&
        d1ur,d1up,d1ut,d1ub,d1u2,&
-       d1qr,d1qp,d1qt,d1qb,d1wb,d1vt,&
+       d1qr,d1qp,d1qt,d1qb,d1wb,d1wt,d1wp,d1vt,&
        d1nvcc1,d1nvcc2,d1nvcc3,d1nvcc4,d1hex
   REAL(   i0rkind),DIMENSION(:,:),ALLOCATABLE::&
        d2x,d2y,d2z,d2bcf
