@@ -2,7 +2,7 @@
 !C
 !C T2STEP
 !C
-!C
+!C                       2014-02-22 H.SETO
 !C
 !C--------------------------------------------------------------------
 MODULE T2STEP
@@ -151,7 +151,7 @@ CONTAINS
        !C
 
     CASE(1)
-       DO i0vidi = 6, 13
+       DO i0vidi = 6, 10
           
           d0dif  = d1dif(i0vidi)
           d0ave  = d1ave(i0vidi)

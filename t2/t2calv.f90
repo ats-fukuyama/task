@@ -54,7 +54,7 @@ CONTAINS
        CALL T2CALV_SS
        
     ENDDO
-    
+    RETURN
     WRITE(6,*)'********** COEFFICIENT CHECK START**********'
 
     DO
@@ -171,7 +171,8 @@ CONTAINS
          d2xvec_befor,d2mfc1,d2rzm,d2jm1,d2ws,&
          d1ee,d1mm,d1nn,d1ni,d1pp,d1pi,d1tt,d1ti,d1pa,d1pz,&
          d1ur,d1up,d1ut,d1ub,d1u2,&
-         d1qr,d1qp,d1qt,d1qb,d1wb,d1vt,d1hex,&
+         d1qr,d1qp,d1qt,d1qb,&
+         d1wb,d1wt,d1wp,d1vt,d1hex,&
          d1nvcc1,d1nvcc2,d1nvcc3,d1nvcc4,&
          d2nfcf1,d2nfcf2,d2nfcf3,d2nfcf4,&
          d2x,d2y,d2z,d2bcf
@@ -196,7 +197,7 @@ CONTAINS
     
     REAL(i0rkind)::&
          d0rzcr,d0mfcr,d0mfcp,d0psip,&
-         d0cps,d0cbn,d0wv2,d0wv3,d0temp,&
+         d0cps,d0cbn,d0wv2,d0wv3,d0temp,d0temp2,d0temp3,&
          d0k11,d0k11ps,d0k11bn,&
          d0k12,d0k12ps,d0k12bn,&
          d0k22,d0k22ps,d0k22bn
@@ -270,7 +271,7 @@ CONTAINS
        i0vidi =  10*i0sidi - 5
        
        d0nn_a = d2xvec_befor(i0vidi+1,i0xid2d)*1.D-20
-       d0pp_a = d2xvec_befor(i0vidi+5,i0xid2d)*1.D-23/d0aee
+       d0pp_a = d2xvec_befor(i0vidi+6,i0xid2d)*1.D-23/d0aee
        
        !d1nn(i0sidi) = d0nncst*d2xvec_befor(i0vidi+1,i0xid2d)
        !d1fr(i0sidi) = d0frcst*d2xvec_befor(i0vidi+2,i0xid2d)
@@ -378,9 +379,13 @@ CONTAINS
        d1ur(i0sidi) = d1fr(i0sidi)*d1ni(i0sidi)
        d1ub(i0sidi) = d1fb(i0sidi)*d1ni(i0sidi)
        d1ut(i0sidi) = d1ft(i0sidi)*d1ni(i0sidi)
+       d1up(i0sidi) = d1fp(i0sidi)*d1ni(i0sidi)
+    
        d1u2(i0sidi) = d1ub(i0sidi)*d1ub(i0sidi)
        
        d1wb(i0sidi) = d1qb(i0sidi)*d1pi(i0sidi)
+       d1wt(i0sidi) = d1qt(i0sidi)*d1pi(i0sidi)
+       d1wp(i0sidi) = d1qp(i0sidi)*d1pi(i0sidi)
        
        d1tt(i0sidi) = d1pp(i0sidi)*d1ni(i0sidi)
        d1ti(i0sidi) = d1nn(i0sidi)*d1pi(i0sidi)
@@ -594,12 +599,12 @@ CONTAINS
        d2nfcl12(i0sidi,i0sidj) = d0nfcl12_ab*d0wv3 ! l_{12}^{ab}
        d2nfcl21(i0sidi,i0sidj) = d0nfcl21_ab*d0wv3 ! l_{21}^{ab}
        d2nfcl22(i0sidi,i0sidj) = d0nfcl22_ab*d0wv3 ! l_{22}^{ab}
-       
+
     ENDDO
     ENDDO
        
 
-   !C PARALLEL FRICTION COEFFICIENTS 
+    !C PARALLEL FRICTION COEFFICIENTS 
     !C          WITH RESPECT TO MOMENTUM AND TOTAL HEAT FLUX
     !C
     !C DEFINITION OF VARIABLRS 
@@ -675,10 +680,14 @@ CONTAINS
     !C d1nvcm2 : NEOCLASSICAL VISCOSITY COEFFICIENT     : \mu_{2a} 
     !C d1nvcm3 : NEOCLASSICAL VISCOSITY COEFFICIENT     : \mu_{3a} 
     !C
-
-    d0temp = d0iar*SQRT(d0mfcr)
-    d0temp = SQRT(d0temp)
-    
+    d0temp  = SQRT(d0mfcr)!FOR DEBUG
+    IF(d0temp.LT.5.D-3)THEN
+       d0temp = 5.D-3
+    ENDIF
+    d0temp  = d0iar*d0temp
+    d0temp  = SQRT(d0temp)
+    d0temp2 = (d0temp**3)*(d0ctbp**2)
+    d0temp3 = 3.D0*(1.D0-1.46D0*d0temp)
     DO i0xa = 1, i0smax
        
        d0mm_a = d1mm(i0xa)
@@ -693,12 +702,12 @@ CONTAINS
        CALL INTEG_F(fd0k12ps,d0k12ps,d0err,EPS=1.D-8,ILST=0)
        CALL INTEG_F(fd0k22ps,d0k22ps,d0err,EPS=1.D-8,ILST=0)
        
-       d0cps   = 2.5D0/(d0pp_a*d0de)
+       d0cps   = 0.4D0*d0pp_a*d0de
        
-       d0k11ps = d0cps/d0k11ps
-       d0k12ps = d0cps/d0k12ps
-       d0k22ps = d0cps/d0k22ps
-       
+       d0k11ps = d0cps*d0k11ps
+       d0k12ps = d0cps*d0k12ps
+       d0k22ps = d0cps*d0k22ps
+
        !C
        !C MODIFIED VISCOSITY COEFFICIENT IN BN REGIME
        !C 
@@ -707,24 +716,18 @@ CONTAINS
        CALL INTEG_F(fd0k12bn,d0k12bn,d0err,EPS=1.D-8,ILST=0)
        CALL INTEG_F(fd0k22bn,d0k22bn,d0err,EPS=1.D-8,ILST=0)
        
-       d0cbn = 3.D0*(d0temp**3)*(1.D0-1.46D0*d0temp)*(d0ctbp**2)
-       d0cbn = d0cbn/(2.92D0*d0mm_a*d0nn_a*d0bt2*d0de)
+       d0cbn = 2.92D0*d0mm_a*d0nn_a*d0bt2*d0de/d0temp3
        
-       d0k11bn = d0cbn/d0k11bn
-       d0k12bn = d0cbn/d0k12bn
-       d0k22bn = d0cbn/d0k22bn
-       
+       d0k11bn = d0cbn*d0k11bn
+       d0k12bn = d0cbn*d0k12bn
+       d0k22bn = d0cbn*d0k22bn
        !C
        !C MODIFIED VISCOSITY COEFFICIENT IN INTER-REGIMES 
        !C
        
-       d0k11 = d0k11ps + d0k11bn
-       d0k12 = d0k12ps + d0k12bn
-       d0k22 = d0k22ps + d0k22bn
-       
-       d0k11 = 1.D0/d0k11
-       d0k12 = 1.D0/d0k12
-       d0k22 = 1.D0/d0k22
+       d0k11 = d0k11bn*d0k11ps/(d0k11bn + d0k11ps*d0temp2)
+       d0k12 = d0k12bn*d0k12ps/(d0k12bn + d0k12ps*d0temp2)
+       d0k22 = d0k22bn*d0k22ps/(d0k22bn + d0k22ps*d0temp2)
 
        !C
        !C NEOCLASSICAL VISCOSITY COEFFICIENTS: \mu_{ai}
@@ -733,7 +736,9 @@ CONTAINS
        d1nvcm1(i0xa) = d0k11 
        d1nvcm2(i0xa) = d0k12 - 2.5D0*d0k11 
        d1nvcm3(i0xa) = d0k22 - 5.0D0*d0k12 + 6.25D0*d0k11
-       
+       !if(i0xa.eq.1) print'(5D15.8)',SQRT(d0mfcr),&
+       !     d0k11,d0k11bn,d0k11ps,d0k11ps*d0temp2
+
     ENDDO
     
     !C d1nvcc1 : NEOCLASSICAL VISCOSITY COEFFICIENT : \bar{\mu}_{1a}
@@ -770,7 +775,8 @@ CONTAINS
   !C 
   !C CALCULATION OF MASS SCALAR COEFFICIENTS
   !C
-  !C             2014-02-20 H.SETO
+  !C             2014-02-22 H.SETO
+  !C
   !C---------------------------------------------------------
   
   SUBROUTINE T2CALV_MS
@@ -781,7 +787,7 @@ CONTAINS
     USE T2COMM, ONLY:&
          i0vmax,i0smax,d3ms
     INTEGER(i0ikind)::&
-         i0vidi,i0vidj,i0sidi
+         i0vidi,i0vidj,i0sidi,i0vofi
     
     !C
     !C INITIALIZATION
@@ -831,88 +837,69 @@ CONTAINS
     i0vidj = 4
     d3ms(i0vidi,i0vidj,i0midi) = d0sqrtg*d0mfcr*d0vci2
     
-    !C
-    !C EQUATION FOR Er
-    !C
-    
-    
     DO i0sidi = 1, i0smax
        
+       i0vofi = 10*i0sidi
+
        !C
        !C EQUATION FOR N
        !C
 
-       i0vidi = 10*i0sidi - 4
+       i0vidi = i0vofi - 4
        
        !C N 
-       i0vidj = i0vidi
+       i0vidj = i0vofi - 4
        d3ms(i0vidi,i0vidj,i0midi) = d0sqrtg
-         
-       !C
-       !C EQUATION FOR Fr
-       !C
-     
+       
        !C
        !C EQUATION FOR Fb
        !C 
 
-       i0vidi = 10*i0sidi - 2
+       i0vidi = i0vofi - 2
 
        !C Fb
-       i0vidj = i0vidi
+       i0vidj = i0vofi - 2
        d3ms(i0vidi,i0vidj,i0midi) = d0sqrtg*d0bb
        
        !C
        !C EQUATION FOR Ft
        !C
 
-       i0vidi = 10*i0sidi - 1
+       i0vidi = i0vofi - 1
        
        !C Ft
-       i0vidj = i0vidi
+       i0vidj = i0vofi - 1
        d3ms(i0vidi,i0vidj,i0midi) = d0sqrtg
        
-       !C
-       !C EQUATION FOR Fp
-       !C
-
        !C
        !C EQUATION FOR P
        !C
 
-       i0vidi = 10*i0sidi + 1
+       i0vidi = i0vofi + 1
        
        !C P
-       i0vidj = i0vidi
+       i0vidj = i0vofi + 1
        d3ms(i0vidi,i0vidj,i0midi) = d0sqrtg*1.5D0
-
-       !C
-       !C EQUATION FOR Qr
-       !C
        
        !C
        !C EQUATION FOR Qb
        !C
 
-       i0vidi = 10*i0sidi + 3
+       i0vidi = i0vofi + 3
        
        !C Qb       
-       i0vidj = i0vidi
+       i0vidj = i0vofi + 3
        d3ms(i0vidi,i0vidj,i0midi) = d0sqrtg*d0bb
        
        !C
        !C EQUATION FOR Qt
        !C
 
-       i0vidi = 10*i0sidi + 4
+       i0vidi = i0vofi + 4
        
        !C Qt       
-       i0vidj = i0vidi
+       i0vidj = i0vofi
        d3ms(i0vidi,i0vidj,i0midi) = d0sqrtg
-       
-       !C
-       !C EQUATION FOR Qp
-       !C
 
     ENDDO
     
@@ -924,7 +911,7 @@ CONTAINS
   !C 
   !C CALCULATION OF ADVECTION VECTOR COEFFICIENTS
   !C
-  !C             2014-02-20 H.SETO
+  !C             2014-02-22 H.SETO
   !C
   !C---------------------------------------------------------
   SUBROUTINE T2CALV_AV
@@ -1467,7 +1454,7 @@ CONTAINS
     d0x1 = 2.D0*d0sqrtg*(d0ctbp**2)/d0bb
     d0x2 = 3.D0*d0sqrtg*(d0ctbp**2)*d0cobt/(d0bb**3)
     d0x3 = d0sqrtg*d0ctbp/d0bb    
-    
+
     DO i0sidi = 1, i0smax
        
        i0vofi = 10*i0sidi
@@ -1507,10 +1494,12 @@ CONTAINS
        i0vidj = i0vofi - 4
        d5dt(2,2,i0vidi,i0vidj,i0midi) &
             = -d0x1*d0c1_a*d0ub_a * d0nncst/d0fbcst
+
        !C Fb
        i0vidj = i0vofi - 2
        d5dt(2,2,i0vidi,i0vidj,i0midi) &
-            =  d0x1*d0c1_a 
+            =  d0x1*d0c1_a
+       
        !C P
        i0vidj = i0vofi + 1
        d5dt(2,2,i0vidi,i0vidj,i0midi) &
@@ -1967,7 +1956,7 @@ CONTAINS
   !C 
   !C CALCULATION OF EXCITATION SCALAR COEFFICIENTS
   !C
-  !C             2014-02-12 H.SETO
+  !C             2014-02-22 H.SETO
   !C
   !C---------------------------------------------------------
   SUBROUTINE T2CALV_ES
@@ -2026,11 +2015,11 @@ CONTAINS
 
     
     DO i0sidj = 1, i0smax
-
+       
        i0vofj = 10*i0sidj
-
+       
        d0ee_b  = d1ee(i0sidj)       
-
+       
        !C
        !C EQUATION FOR Et
        !C
@@ -2119,7 +2108,7 @@ CONTAINS
        
        
        DO i0sidj = 1, i0smax
-
+          
           i0vofj = 10*i0sidj
           
           d0ni_b = d1ni(i0sidj)
@@ -2130,12 +2119,12 @@ CONTAINS
           
           d0c1_ab = d0nfcf1_ab*d0mi_a*d0ni_b
           d0c2_ab = d0nfcf2_ab*d0mi_a*d0pi_b
+
           !C
           !C EQUATION FOR Fb
           !C
           
           i0vidi = i0vofi - 2
-          
           
           IF(i0sidi.EQ.i0sidj)THEN
              
@@ -2247,12 +2236,8 @@ CONTAINS
             =  d0c1_a*d0bb2 * d0qtcst/d0qrcst
        
        DO i0sidj = 1, i0smax
-       
-          !C
-          !C EQUATION FOR Qb
-          !C
           
-          i0vidi = i0vofi + 3 
+          i0vofj = 10*i0sidj
 
           d0ni_b = d1ni(i0sidj)
           d0pi_b = d1pi(i0sidj)
@@ -2262,6 +2247,12 @@ CONTAINS
                               
           d0c3_ab = d0nfcf3_ab*d0tt_a*d0mi_a*d0ni_b
           d0c4_ab = d0nfcf4_ab*d0tt_a*d0mi_a*d0pi_b
+          
+          !C
+          !C EQUATION FOR Qb
+          !C
+          
+          i0vidi = i0vofi + 3 
           
           IF(i0sidi.EQ.i0sidj)THEN
              
@@ -2359,7 +2350,7 @@ CONTAINS
          d0mfcst,d0btcst,d0ercst,d0epcst,d0etcst,&
          d0nncst,d0frcst,d0fbcst,d0ftcst,&
          d0ppcst,d0qrcst,d0qbcst,d0qtcst,&
-         d1ee,d1mm,d1nn,d1ut,d1ub,d1pp,d1qb,d1qt,d1ni,&
+         d1ee,d1mm,d1nn,d1ub,d1ut,d1up,d1pp,d1qb,d1qt,d1ni,&
          d1wb,d1wt,d1wp,&
          d1nvcc1,d1nvcc2,&
          d5ev
@@ -2429,11 +2420,15 @@ CONTAINS
 
        d0ee_a    = d1ee(   i0sidi)
        d0mm_a    = d1mm(   i0sidi)
+       d0pp_a    = d1pp(   i0sidi)
        d0ni_a    = d1ni(   i0sidi)
-       d0ut_a    = d1ut(   i0sidi)
        d0ub_a    = d1ub(   i0sidi)
-       d0wt_a    = d1wt(   i0sidi)
+       d0ut_a    = d1ut(   i0sidi)
+       d0up_a    = d1up(   i0sidi)
+       d0qb_a    = d1qb(   i0sidi)
        d0wb_a    = d1wb(   i0sidi)
+       d0wt_a    = d1wt(   i0sidi)
+       d0wp_a    = d1wp(   i0sidi)
        d0nvcc1_a = d1nvcc1(i0sidi)
        d0nvcc2_a = d1nvcc2(i0sidi)
        
@@ -2573,9 +2568,10 @@ CONTAINS
     USE T2CNST
     USE T2COMM,ONLY:&
          i0smax,i0dmax,i0vmax,i0wmax,&
-                 d0fbcst,d0ftcst,d0fpcst,&
+         d0fbcst,d0ftcst,d0fpcst,&
          d0ppcst,d0qbcst,d0qtcst,d0qpcst,&
-         d1mm,d1ut,d1ub,d1nvcc1,d1nvcc2,d1nvcc3,d1nvcc4,&
+         d1mm,d1ni,d1pi,d1tt,d1ut,d1ub,d1up,&
+         d1nvcc1,d1nvcc2,d1nvcc3,d1nvcc4,&
          d7et
     
     INTEGER(i0ikind)::&
@@ -2624,8 +2620,12 @@ CONTAINS
        i0vofi = 10*i0sidi
 
        d0mm_a    = d1mm(   i0sidi)
+       d0ni_a    = d1ni(   i0sidi)
+       d0pi_a    = d1pi(   i0sidi)
+       d0tt_a    = d1tt(   i0sidi)
        d0ub_a    = d1ub(   i0sidi)
        d0ut_a    = d1ut(   i0sidi)
+       d0up_a    = d1up(   i0sidi)
        d0nvcc1_a = d1nvcc1(i0sidi)
        d0nvcc2_a = d1nvcc2(i0sidi)
        d0nvcc3_a = d1nvcc3(i0sidi)

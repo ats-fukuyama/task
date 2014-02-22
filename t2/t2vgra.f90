@@ -4,7 +4,7 @@
 !C       
 !C         VARIABLE GRAPH GENERATOR FOR TASK/T2
 !C
-!C                       2014-02-20 H.SETO
+!C                       2014-02-22 H.SETO
 !C
 !C------------------------------------------------------------------
 MODULE T2VGRA
@@ -57,7 +57,8 @@ CONTAINS
     
     INTEGER(i0ikind)::&
          i0sidi,i0vidi,&
-         i0sidj,i0vidj
+         i0sidj,i0vidj,&
+         i0vofi,i0vofj
     
     !C
     !C INITIALIZATION
@@ -119,10 +120,12 @@ CONTAINS
     
     DO i0sidj = 1, i0smax
 
-       !C Ft
-       i0vidj = 10*i0sidj - 1
-       i2vvvt(i0vidi,i0vidj) = 1
+       i0vofj = 10*i0sidj
 
+       !C Ft
+       i0vidj = i0vofj - 1
+       i2vvvt(i0vidi,i0vidj) = 1
+       
     ENDDO
     
     !C
@@ -142,12 +145,14 @@ CONTAINS
 
     DO i0sidj = 1, i0smax
     
+       i0vofj = 10*i0sidj
+
        !C Fr
-       i0vidj = 10*i0sidj-3
+       i0vidj = i0vofj - 3
        i2vvvt(i0vidi,i0vidj) = 1
        
        !C Fp
-       i0vidj = 10*i0sidj 
+       i0vidj = i0vofj 
        i2vvvt(i0vidi,i0vidj) = 1
        
     ENDDO
@@ -168,12 +173,14 @@ CONTAINS
     
     DO i0sidj = 1, i0smax
        
+       i0vofj = 10*i0sidj
+       
        !C N
-       i0vidj = 10*i0sidj - 4
+       i0vidj = i0vofj - 4
        i2vvvt(i0vidi,i0vidj) = 1
-
+       
     ENDDO
-
+    
     !C
     !C
     !C VARIABLES OF PLASMA AS FLUID 
@@ -181,22 +188,24 @@ CONTAINS
     !C
     
     DO i0sidi = 1, i0smax
+       
+       i0vofi = 10*i0sidi
 
        !C
        !C EQUATION FOR N
        !C
        
-       i0vidi = 10*i0sidi - 4
+       i0vidi = i0vofi - 4
        
        !C N
-       i0vidj = 10*i0sidi - 4
+       i0vidj = i0vofi - 4
        i2vvvt(i0vidi,i0vidj) = 1
        
        !C
        !C EQUATION FOR Fr
        !C
        
-       i0vidi= 10*i0sidi - 3
+       i0vidi= i0vofi - 3
        
        !C Ep
        i0vidj = 4
@@ -207,28 +216,30 @@ CONTAINS
        i2vvvt(i0vidi,i0vidj) = 1
 
        !C Fr
-       i0vidj = 10*i0sidi - 3
+       i0vidj = i0vofi - 3
        i2vvvt(i0vidi,i0vidj) = 1
 
        !C Fb
-       i0vidj = 10*i0sidi - 2 
+       i0vidj = i0vofi - 2 
        i2vvvt(i0vidi,i0vidj) = 1
 
        !C Ft
-       i0vidj = 10*i0sidi - 1
+       i0vidj = i0vofi - 1
        i2vvvt(i0vidi,i0vidj) = 1
 
        !C P 
-       i0vidj = 10*i0sidi + 1
+       i0vidj = i0vofi + 1
        i2vvvt(i0vidi,i0vidj) = 1
        
        !C
        !C EQUATION FOR Fb
        !C
 
-       i0vidi = 10*i0sidi - 2
+       i0vidi = i0vofi - 2
        
        DO i0sidj = 1, i0smax
+       
+          i0vofj = 10*i0sidj
           
           IF(i0sidi.EQ.i0sidj)THEN
              
@@ -241,37 +252,37 @@ CONTAINS
              i2vvvt(i0vidi,i0vidj) = 1
              
              !C N
-             i0vidj = 10*i0sidj - 4
+             i0vidj = i0vofj - 4
              i2vvvt(i0vidi,i0vidj) = 1
       
              !C Ft
-             i0vidj = 10*i0sidj - 1
+             i0vidj = i0vofj - 1
              i2vvvt(i0vidi,i0vidj) = 1
 
              !C Fp
-             i0vidj = 10*i0sidj
+             i0vidj = i0vofj 
              i2vvvt(i0vidi,i0vidj) = 1
              
              !C P
-             i0vidj = 10*i0sidj + 1
+             i0vidj = i0vofj + 1
              i2vvvt(i0vidi,i0vidj) = 1
 
              !C Qt
-             i0vidj = 10*i0sidj + 4
+             i0vidj = i0vofj + 4
              i2vvvt(i0vidi,i0vidj) = 1
 
              !C Qp
-             i0vidj = 10*i0sidj + 5
+             i0vidj = i0vofj + 5
              i2vvvt(i0vidi,i0vidj) = 1
           
           ENDIF
           
           !C Fb
-          i0vidj = 10*i0sidj - 2
+          i0vidj = i0vofj - 2
           i2vvvt(i0vidi,i0vidj) = 1
 
           !C Qb
-          i0vidj = 10*i0sidj + 3
+          i0vidj = i0vofj + 3
           i2vvvt(i0vidi,i0vidj) = 1
 
        ENDDO
@@ -280,10 +291,12 @@ CONTAINS
        !C EQUATION FOR Ft
        !C
 
-       i0vidi = 10*i0sidi - 1
+       i0vidi = i0vofi - 1
        
        DO i0sidj = 1, i0smax
           
+          i0vofj = 10*i0sidj
+
           IF(i0sidi.EQ.i0sidj)THEN
              
              !C Et
@@ -291,41 +304,41 @@ CONTAINS
              i2vvvt(i0vidi,i0vidj) = 1
 
              !C N
-             i0vidj = 10*i0sidj - 4
+             i0vidj = i0vofj - 4
              i2vvvt(i0vidi,i0vidj) = 1
 
              !C Fr
-             i0vidj = 10*i0sidj - 3
+             i0vidj = i0vofj - 3
              i2vvvt(i0vidi,i0vidj) = 1
 
              !C Fb
-             i0vidj = 10*i0sidj - 2
+             i0vidj = i0vofj - 2
              i2vvvt(i0vidi,i0vidj) = 1
 
              !C Fp
-             i0vidj = 10*i0sidj
+             i0vidj = i0vofj
              i2vvvt(i0vidi,i0vidj) = 1
 
              !C P
-             i0vidj = 10*i0sidj + 1
+             i0vidj = i0vofj + 1
              i2vvvt(i0vidi,i0vidj) = 1
 
              !C Qb
-             i0vidj = 10*i0sidj + 3
+             i0vidj = i0vofj + 3
              i2vvvt(i0vidi,i0vidj) = 1
              
              !C Qp
-             i0vidj = 10*i0sidj + 5
+             i0vidj = i0vofj + 5
              i2vvvt(i0vidi,i0vidj) = 1
              
           ENDIF
           
           !C Ft
-          i0vidj = 10*i0sidj - 1
+          i0vidj = i0vofj - 1
           i2vvvt(i0vidi,i0vidj) = 1
           
           !C Qt
-          i0vidj = 10*i0sidj + 4
+          i0vidj = i0vofj + 4
           i2vvvt(i0vidi,i0vidj) = 1
           
        ENDDO
@@ -334,63 +347,63 @@ CONTAINS
        !C EQUATION FOR Fp
        !C
 
-       i0vidi = 10*i0sidi
+       i0vidi = i0vofi
 
        !C Fb
-       i0vidj = 10*i0sidi - 2 
+       i0vidj = i0vofi - 2 
        i2vvvt(i0vidi,i0vidj) = 1
 
        !C Ft
-       i0vidj = 10*i0sidi - 1
+       i0vidj = i0vofi - 1
        i2vvvt(i0vidi,i0vidj) = 1
 
        !C Fp
-       i0vidj = 10*i0sidi
+       i0vidj = i0vofi
        i2vvvt(i0vidi,i0vidj) = 1
        
        !C
        !C EQUATION FOR P
        !C
        
-       i0vidi = 10*i0sidi + 1
+       i0vidi = i0vofi + 1
        
        !C N
-       i0vidj = 10*i0sidi - 4
+       i0vidj = i0vofi - 4
        i2vvvt(i0vidi,i0vidj) = 1
        
        !C Fb
-       i0vidj = 10*i0sidi - 2
+       i0vidj = i0vofi - 2
        i2vvvt(i0vidi,i0vidj) = 1
        
        !C Ft
-       i0vidj = 10*i0sidi - 1
+       i0vidj = i0vofi - 1
        i2vvvt(i0vidi,i0vidj) = 1
 
        !C Fp
-       i0vidj = 10*i0sidi
+       i0vidj = i0vofi
        i2vvvt(i0vidi,i0vidj) = 1
 
        !C P
-       i0vidj = 10*i0sidi + 1
+       i0vidj = i0vofi + 1
        i2vvvt(i0vidi,i0vidj) = 1
 
        !C Qb
-       i0vidj = 10*i0sidi + 3
+       i0vidj = i0vofi + 3
        i2vvvt(i0vidi,i0vidj) = 1
        
        !C Qt
-       i0vidj = 10*i0sidi + 4
+       i0vidj = i0vofi + 4
        i2vvvt(i0vidi,i0vidj) = 1
 
        !C Qp
-       i0vidj = 10*i0sidi + 5
+       i0vidj = i0vofi + 5
        i2vvvt(i0vidi,i0vidj) = 1
        
        !C
        !C EQUATION FOR Qr
        !C
        
-       i0vidi = 10*i0sidi + 2
+       i0vidi = i0vofi + 2
        
        !C Ep
        i0vidj = 4
@@ -401,32 +414,34 @@ CONTAINS
        i2vvvt(i0vidi,i0vidj) = 1
 
        !C N
-       i0vidj = 10*i0sidi - 4
+       i0vidj = i0vofi - 4
        i2vvvt(i0vidi,i0vidj) = 1
 
        !C P
-       i0vidj = 10*i0sidi + 1
+       i0vidj = i0vofi + 1
        i2vvvt(i0vidi,i0vidj) = 1
 
        !C Qr
-       i0vidj = 10*i0sidi + 2
+       i0vidj = i0vofi + 2
        i2vvvt(i0vidi,i0vidj) = 1
 
        !C Qb
-       i0vidj = 10*i0sidi + 3
+       i0vidj = i0vofi + 3
        i2vvvt(i0vidi,i0vidj) = 1
 
        !C Qt
-       i0vidj = 10*i0sidi + 4
+       i0vidj = i0vofi + 4
        i2vvvt(i0vidi,i0vidj) = 1
        
        !C
        !C EQUATION FOR Qb
        !C
        
-       i0vidi = 10*i0sidi + 3
+       i0vidi = i0vofi + 3
        
        DO i0sidj = 1, i0smax
+          
+          i0vofj = 10*i0sidj
           
           IF(i0sidi.EQ.i0sidj)THEN
 
@@ -439,37 +454,37 @@ CONTAINS
              i2vvvt(i0vidi,i0vidj) = 1             
 
              !C N
-             i0vidj = 10*i0sidj - 4
+             i0vidj = i0vofj - 4
              i2vvvt(i0vidi,i0vidj) = 1
              
              !C Ft
-             i0vidj = 10*i0sidj - 1
+             i0vidj = i0vofj - 1
              i2vvvt(i0vidi,i0vidj) = 1
 
              !C Fp
-             i0vidj = 10*i0sidj
+             i0vidj = i0vofj
              i2vvvt(i0vidi,i0vidj) = 1
 
              !C P
-             i0vidj = 10*i0sidj + 1
+             i0vidj = i0vofj + 1
              i2vvvt(i0vidi,i0vidj) = 1
 
              !C Qt
-             i0vidj = 10*i0sidj + 4
+             i0vidj = i0vofj + 4
              i2vvvt(i0vidi,i0vidj) = 1
 
              !C Qp
-             i0vidj = 10*i0sidj + 5
+             i0vidj = i0vofj + 5
              i2vvvt(i0vidi,i0vidj) = 1
 
           ENDIF
           
           !C Fb
-          i0vidj = 10*i0sidj - 2
+          i0vidj = i0vofj - 2
           i2vvvt(i0vidi,i0vidj) = 1
           
           !C Qb
-          i0vidj = 10*i0sidj + 3
+          i0vidj = i0vofj + 3
           i2vvvt(i0vidi,i0vidj) = 1
 
        ENDDO
@@ -478,10 +493,12 @@ CONTAINS
        !C EQUATION FOR Qt
        !C
        
-       i0vidi = 10*i0sidi + 4
+       i0vidi = i0vofi + 4
 
        DO i0sidj = 1, i0smax
-          
+       
+          i0vofj = 10*i0sidj
+
           IF(i0sidi.EQ.i0sidj)THEN
              
              !C Et
@@ -493,41 +510,41 @@ CONTAINS
              i2vvvt(i0vidi,i0vidj) = 1
              
              !C N
-             i0vidj = 10*i0sidj - 4
+             i0vidj = i0vofj - 4
              i2vvvt(i0vidi,i0vidj) = 1
              
              !C Fb
-             i0vidj = 10*i0sidj - 2
+             i0vidj = i0vofj - 2
              i2vvvt(i0vidi,i0vidj) = 1
 
              !C Fp
-             i0vidj = 10*i0sidj
+             i0vidj = i0vofj
              i2vvvt(i0vidi,i0vidj) = 1
 
              !C P
-             i0vidj = 10*i0sidj + 1
+             i0vidj = i0vofj + 1
              i2vvvt(i0vidi,i0vidj) = 1
 
              !C Qr
-             i0vidj = 10*i0sidj + 2
+             i0vidj = i0vofj + 2
              i2vvvt(i0vidi,i0vidj) = 1
 
              !C Qb
-             i0vidj = 10*i0sidj + 3
+             i0vidj = i0vofj + 3
              i2vvvt(i0vidi,i0vidj) = 1
 
              !C Qp
-             i0vidj = 10*i0sidj + 5
+             i0vidj = i0vofj + 5
              i2vvvt(i0vidi,i0vidj) = 1
 
           ENDIF
           
           !C Ft
-          i0vidj = 10*i0sidj - 1
+          i0vidj = i0vofj - 1
           i2vvvt(i0vidi,i0vidj) = 1
           
           !C Qt
-          i0vidj = 10*i0sidj + 4
+          i0vidj = i0vofj + 4
           i2vvvt(i0vidi,i0vidj) = 1              
           
        ENDDO
@@ -536,18 +553,18 @@ CONTAINS
        !C EQUATION FOR Qp
        !C
 
-       i0vidi = 10*i0sidi + 5
+       i0vidi = i0vofi + 5
        
-       !C Fb
-       i0vidj = 10*i0sidi + 3 
+       !C Qb
+       i0vidj = i0vofi + 3 
        i2vvvt(i0vidi,i0vidj) = 1
        
-       !C Ft
-       i0vidj = 10*i0sidi + 4
+       !C Qt
+       i0vidj = i0vofi + 4
        i2vvvt(i0vidi,i0vidj) = 1
        
-       !C Fp
-       i0vidj = 10*i0sidi + 5
+       !C Qp
+       i0vidj = i0vofi + 5
        i2vvvt(i0vidi,i0vidj) = 1
        
     ENDDO
@@ -724,7 +741,7 @@ CONTAINS
   !C
   !C SUBROUTINE FOR ADVECTION VECTOR ARRAY
   !C 
-  !C                     2014-02-20 H.SETO
+  !C                     2014-02-22 H.SETO
   !C
   !C-------------------------------------------------------------------
   SUBROUTINE T2VGRA_AV
@@ -733,15 +750,14 @@ CONTAINS
          i0smax,i0vmax,i2avvt
     
     INTEGER(i0ikind)::&
-         i0sidi,i0vidi,&
-                i0vidj
-    
-    
-
+         i0sidi,i0vidi,i0vidj,i0vofi
+        
+    !C
     !C INITIALIZE
+    !C
     
     i2avvt(1:i0vmax,1:i0vmax) = 0
-
+    
     !C
     !C
     !C VARIABLES OF PLASMA AS FIELD
@@ -814,109 +830,95 @@ CONTAINS
     
     DO i0sidi = 1, i0smax
 
+       i0vofi  = 10*i0sidi
+
        !C
        !C EQUATION FOR N
        !C
 
-       i0vidi = 10*i0sidi - 4
+       i0vidi = i0vofi - 4
               
        !C N
-       i0vidj = 10*i0sidi - 4
+       i0vidj = i0vofi - 4
        i2avvt(i0vidi,i0vidj) = 1
-       
-       !C
-       !C EQUATION FOR Fr
-       !C
        
        !C
        !C EQUATION FOR Fb
        !C
 
-       i0vidi = 8*i0sidi
+       i0vidi = i0vofi - 2
        
        !C Fb
-       i0vidj = 10*i0sidi - 2
+       i0vidj = i0vofi - 2
        i2avvt(i0vidi,i0vidj) = 1
        
        !C P
-       i0vidj = 10*i0sidi + 1
+       i0vidj = i0vofi + 1
        i2avvt(i0vidi,i0vidj) = 1
                      
        !C
        !C EQUATION FOR Ft
        !C
 
-       i0vidi = 10*i0sidi - 1
+       i0vidi = i0vofi - 1
        
        !C Ft
-       i0vidj = 10*i0sidi - 1
+       i0vidj = i0vofi - 1
        i2avvt(i0vidi,i0vidj) = 1
        
-       !C
-       !C EQUATION FOR Fp
-       !C
-
        !C
        !C EQUATION FOR P
        !C
        
-       i0vidi = 10*i0sidi + 1
+       i0vidi = i0vofi + 1
        
        !C P
-       i0vidj = 10*i0sidi + 1
+       i0vidj = i0vofi + 1
        i2avvt(i0vidi,i0vidj) = 1
 
-       !C
-       !C EQUATION FOR Qr
-       !C
-       
        !C
        !C EQUATION FOR Qb
        !C
        
-       i0vidi = 10*i0sidi + 3
+       i0vidi = i0vofi + 3
 
        !C Fb
-       i0vidj = 10*i0sidi - 2
+       i0vidj = i0vofi - 2
        i2avvt(i0vidi,i0vidj) = 1
        
        !C P
-       i0vidj = 10*i0sidi + 1
+       i0vidj = i0vofi + 1
        i2avvt(i0vidi,i0vidj) = 1
        
        !C Qb
-       i0vidj = 10*i0sidi + 3
+       i0vidj = i0vofi + 3
        i2avvt(i0vidi,i0vidj) = 1
        
        !C
        !C EQUATION FOR Qt
        !C
        
-       i0vidi = 10*i0sidi + 4
+       i0vidi = i0vofi + 4
        
        !C Ft
-       i0vidj = 10*i0sidi - 1
+       i0vidj = i0vofi - 1
        i2avvt(i0vidi,i0vidj) = 1
        
        !C Qt
-       i0vidj = 10*i0sidi + 4
-       i2avvt(i0vidi,i0vidj) = 1              
-
-       !C
-       !C EQUATION FOR Qp
-       !C
+       i0vidj = i0vofi + 4
+       i2avvt(i0vidi,i0vidj) = 1           
        
     ENDDO
     
     RETURN
-
+    
   END SUBROUTINE T2VGRA_AV
 
   !C-------------------------------------------------------------------
   !C
   !C SUBROUTINE FOR ADVECTION TENSOR ARRAY
   !C 
-  !C                     2014-02-20 H.SETO
+  !C                     2014-02-22 H.SETO
   !C
   !C-------------------------------------------------------------------
   SUBROUTINE T2VGRA_AT
@@ -925,8 +927,7 @@ CONTAINS
          i0smax,i0wmax,i0vmax,i2atvt,i3atwt
     
     INTEGER(i0ikind)::&
-         i0sidi,i0widi,i0vidi,&
-                       i0vidj
+         i0sidi,i0widi,i0vidi,i0vidj,i0vofi
     
     !C
     !C INITIALIZATION
@@ -937,75 +938,39 @@ CONTAINS
     
     !C
     !C
-    !C VARIABLES OF PLASMA AS FIELD
-    !C
-    !C
-
-    !C
-    !C EQUATION FOR PSI
-    !C
-    
-    !C
-    !C EQUATION FOR I
-    !C
-    
-    !C
-    !C EQUATION FOR Et
-    !C
-    
-    !C
-    !C EQUATION FOR Ep
-    !C
-
-    !C
-    !C EQUATION FOR Er
-    !C
-
-    !C
-    !C
     !C VARIABLES OF PLASMA AS FLUID 
     !C
     !C
     
     DO i0sidi = 1, i0smax
-
-       !C
-       !C EQUATION FOR N
-       !C
        
-       !C
-       !C EQUATION FOR Fr
-       !C
+       i0vofi = 10*i0sidi
 
-       !C
-       !C EQUATION FOR Fb
-       !C
-
-       i0vidi = 10*i0sidi - 2
+       i0vidi = i0vofi - 2
        
        !C Ft (B)
-       i0vidj = 10*i0sidi - 1
+       i0vidj = i0vofi - 1
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1
        
        !C Fp (B)
-       i0vidj = 10*i0sidi 
+       i0vidj = i0vofi
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1
 
        !C Qt (B)
-       i0vidj = 10*i0sidi + 4
+       i0vidj = i0vofi + 4
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1
        
        !C Qp (B)
-       i0vidj = 10*i0sidi + 5
+       i0vidj = i0vofi + 5
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
@@ -1015,107 +980,99 @@ CONTAINS
        !C EQUATION FOR Ft
        !C
        
-       i0vidi = 10*i0sidi - 1
+       i0vidi = i0vofi - 1
       
        !C Ft (B)
-       i0vidj = 10*i0sidi - 1
+       i0vidj = i0vofi - 1
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1
        
        !C Fp (B)
-       i0vidj = 10*i0sidi 
+       i0vidj = i0vofi 
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1
 
        !C Qt (B)
-       i0vidj = 10*i0sidi + 4
+       i0vidj = i0vofi + 4
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1
        
        !C Qp (B)
-       i0vidj = 10*i0sidi + 5
+       i0vidj = i0vofi + 5
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1 
-
-       !C
-       !C EQUATION FOR Fp
-       !C
-
+       
        !C
        !C EQUATION FOR P
        !C
        
-       i0vidi = 10*i0sidi + 1
+       i0vidi = i0vofi + 1
        
        !C Ft (B)
-       i0vidj = 10*i0sidi - 1
+       i0vidj = i0vofi - 1
        i2atvt(i0vidi,i0vidj) = 1
-
+       
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1
        
        !C Fp (B)
-       i0vidj = 10*i0sidi 
+       i0vidj = i0vofi
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1
 
        !C Qt (B)
-       i0vidj = 10*i0sidi + 4
+       i0vidj = i0vofi + 4
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1
        
        !C Qp (B)
-       i0vidj = 10*i0sidi + 5
+       i0vidj = i0vofi + 5
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1
-
-       !C
-       !C EQUATION FOR Qr
-       !C
        
        !C
        !C EQUATION FOR Qb
        !C
        
-       i0vidi = 10*i0sidi + 3
+       i0vidi = i0vofi + 3
        
        !C Ft (B)
-       i0vidj = 10*i0sidi - 1
+       i0vidj = i0vofi - 1
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1
        
        !C Fp (B)
-       i0vidj = 10*i0sidi 
+       i0vidj = i0vofi 
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1
 
        !C Qt (B)
-       i0vidj = 10*i0sidi + 4
+       i0vidj = i0vofi + 4
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1
        
        !C Qp (B)
-       i0vidj = 10*i0sidi + 5
+       i0vidj = i0vofi + 5
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
@@ -1125,39 +1082,35 @@ CONTAINS
        !C EQUATION FOR Qt
        !C
        
-       i0vidi = 10*i0sidi + 4
+       i0vidi = i0vofi + 4
        
        !C Ft (B)
-       i0vidj = 10*i0sidi - 1
+       i0vidj = i0vofi - 1
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1
        
        !C Fp (B)
-       i0vidj = 10*i0sidi 
+       i0vidj = i0vofi 
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1
 
        !C Qt (B)
-       i0vidj = 10*i0sidi + 4
+       i0vidj = i0vofi + 4
        i2atvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1
        
        !C Qp (B)
-       i0vidj = 10*i0sidi + 5
+       i0vidj = i0vofi + 5
        i2atvt(i0vidi,i0vidj) = 1
        
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1
-      
-       !C
-       !C EQUATION FOR Qp
-       !C
        
     ENDDO
     
@@ -1169,7 +1122,7 @@ CONTAINS
   !C
   !C SUBROUTINE FOR DIFFUSION TENSOR ARRAY
   !C 
-  !C                     2014-02-20 H.SETO
+  !C                     2014-02-22 H.SETO
   !C
   !C-------------------------------------------------------------------
   SUBROUTINE T2VGRA_DT
@@ -1178,179 +1131,128 @@ CONTAINS
          i0smax,i0vmax,i2dtvt
     
     INTEGER(i0ikind)::&
-         i0sidi,i0vidi,&
-                i0vidj
+         i0sidi,i0vidi,i0vidj,i0vofi
     
     !C
     !C INITIALIZATION
     !C
     
     i2dtvt(1:i0vmax,1:i0vmax) = 0
-
-    !C
-    !C
-    !C VARIABLES OF PLASMA AS FIELD
-    !C
-    !C
-
-    !C
-    !C EQUATION FOR PSI
-    !C
-
-    !C
-    !C EQUATION FOR I
-    !C
-
-    !C
-    !C EQUATION FOR Et
-    !C
-        
-    !C
-    !C EQUATION FOR Ep
-    !C
-    
-    !C
-    !C EQUATION FOR Er
-    !C
-    
-    !C
-    !C
-    !C VARIABLES OF PLASMA AS FLUID 
-    !C
-    !C
     
     DO i0sidi = 1, i0smax
-
-       !C
-       !C EQUATION FOR N
-       !C
-
-       !C
-       !C EQUATION FOR Fr
-       !C
+       
+       i0vofi = 10*i0sidi
        
        !C
        !C EQUATION FOR Fb
        !C
-
-       i0vidi = 10*i0sidi - 2
+       
+       i0vidi = i0vofi - 2
       
        !C N
-       i0vidj = 10*i0sidi - 4
+       i0vidj = i0vofi - 4
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C Fb
-       i0vidj = 10*i0sidi - 2
+       i0vidj = i0vofi - 2
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C P
-       i0vidj = 10*i0sidi + 1
+       i0vidj = i0vofi + 1
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C Qb
-       i0vidj = 10*i0sidi + 3
+       i0vidj = i0vofi + 3
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C
        !C EQUATION FOR Ft
        !C
        
-       i0vidi = 10*i0sidi - 1
+       i0vidi = i0vofi - 1
        
        !C N
-       i0vidj = 10*i0sidi - 4
+       i0vidj = i0vofi - 4
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C Fb
-       i0vidj = 10*i0sidi - 2
+       i0vidj = i0vofi - 2
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C P
-       i0vidj = 10*i0sidi + 1
+       i0vidj = i0vofi + 1
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C Qb
-       i0vidj = 10*i0sidi + 3
+       i0vidj = i0vofi + 3
        i2dtvt(i0vidi,i0vidj) = 1
-
-       !C
-       !C EQUATION FOR Fp
-       !C
-
+       
        !C
        !C EQUATION FOR P
        !C
        
-       i0vidi = 10*i0sidi + 1
+       i0vidi = i0vofi + 1
        
        !C N
-       i0vidj = 10*i0sidi - 4
+       i0vidj = i0vofi - 4
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C Fb
-       i0vidj = 10*i0sidi - 2
+       i0vidj = i0vofi - 2
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C P
-       i0vidj = 10*i0sidi + 1
+       i0vidj = i0vofi + 1
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C Qb
-       i0vidj = 10*i0sidi + 3
+       i0vidj = i0vofi + 3
        i2dtvt(i0vidi,i0vidj) = 1
-       
-       !C
-       !C EQUATION FOR Qr
-       !C
        
        !C
        !C EQUATION FOR Qb
        !C
        
-       i0vidi = 10*i0sidi + 3
+       i0vidi = i0vofi + 3
        
        !C N
-       i0vidj = 10*i0sidi - 4
+       i0vidj = i0vofi - 4
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C Fb
-       i0vidj = 10*i0sidi - 2
+       i0vidj = i0vofi - 2
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C P
-       i0vidj = 10*i0sidi + 1
+       i0vidj = i0vofi + 1
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C Qb
-       i0vidj = 10*i0sidi + 3
+       i0vidj = i0vofi + 3
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C
        !C EQUATION FOR Qt
        !C
        
-       i0vidi = 10*i0sidi + 4
+       i0vidi = i0vofi + 4
        
        !C N
-       i0vidj = 10*i0sidi - 4
+       i0vidj = i0vofi - 4
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C Fb
-       i0vidj = 10*i0sidi - 2
+       i0vidj = i0vofi - 2
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C P
-       i0vidj = 10*i0sidi + 1
+       i0vidj = i0vofi + 1
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C Qb
-       i0vidj = 10*i0sidi + 3
+       i0vidj = i0vofi + 3
        i2dtvt(i0vidi,i0vidj) = 1
        
-       !C
-       !C EQUATION FOR Qp
-       !C
-
     ENDDO
     
     RETURN
@@ -1361,7 +1263,7 @@ CONTAINS
   !C
   !C SUBROUTINE FOR GRADIENT VECOTR ARRAY
   !C 
-  !C                     2014-02-20 H.SETO
+  !C                     2014-02-22 H.SETO
   !C
   !C-------------------------------------------------------------------
   SUBROUTINE T2VGRA_GV
@@ -1370,8 +1272,7 @@ CONTAINS
          i0smax,i0vmax,i2gvvt
     
     INTEGER(i0ikind)::&
-         i0sidi,i0vidi,&
-                i0vidj
+         i0sidi,i0vidi,i0vidj,i0vofi
     
     !C VARIABLE-VARIABLE GRAPH
     
@@ -1410,10 +1311,6 @@ CONTAINS
     !C Er 
     i0vidj = 5
     i2gvvt(i0vidi,i0vidj) = 1
-
-    !C
-    !C EQUATION FOR Et
-    !C
     
     !C
     !C EQUATION FOR Ep
@@ -1425,80 +1322,44 @@ CONTAINS
     i0vidj = 2
     i2gvvt(i0vidi,i0vidj) = 1
     
-    !C
-    !C EQUATION FOR Er
-    !C
-
-    !C
-    !C
-    !C VARIABLES OF PLASMA AS FLUID 
-    !C
-    !C
-    
     DO i0sidi = 1, i0smax
-
-       !C
-       !C EQUATION FOR N
-       !C
-
+       
+       i0vofi = 10*i0sidi
+       
        !C
        !C EQUATION FOR Fr
        !C
        
-       i0vidi = 10*i0sidi - 3
+       i0vidi = i0vofi - 3
        
        !C P 
-       i0vidj = 10*i0sidi + 1
+       i0vidj = i0vofi + 1
        i2gvvt(i0vidi,i0vidj) = 1
-       
-       !C
-       !C EQUATION FOR Fb
-       !C
-
-       !C
-       !C EQUATION FOR Ft
-       !C
-       
-       !C
-       !C EQUATION FOR Fp
-       !C
        
        !C
        !C EQUATION FOR P
        !C
        
-       i0vidi = 10*i0sidi + 1
+       i0vidi = i0vofi + 1
        
        !C P
-       i0vidj = 10*i0sidi + 1
+       i0vidj = i0vofi + 1
        i2gvvt(i0vidi,i0vidj) = 1
        
        !C
        !C EQUATION FOR Qr
        !C
        
-       i0vidi = 10*i0sidi + 2
+       i0vidi = i0vofi + 2
        
        !C N
-       i0vidj = 10*i0sidi - 4
+       i0vidj = i0vofi - 4
        i2gvvt(i0vidi,i0vidj) = 1
        
        !C P
-       i0vidj = 10*i0sidi + 1
+       i0vidj = i0vofi + 1
        i2gvvt(i0vidi,i0vidj) = 1
        
-       !C
-       !C EQUATION FOR Qb
-       !C
-       
-       !C
-       !C EQUATION FOR Qt
-       !C
-       
-       !C
-       !C EQUATION FOR Qp
-       !C
-
     ENDDO
     
     RETURN
@@ -1518,8 +1379,7 @@ CONTAINS
          i0smax,i0wmax,i0vmax,i2gtvt,i3gtwt
     
     INTEGER(i0ikind)::&
-         i0sidi,i0widi,i0vidi,&
-                       i0vidj
+         i0sidi,i0widi,i0vidi,i0vidj,i0vofi
     
     !C
     !C INITIALIZATION
@@ -1527,99 +1387,53 @@ CONTAINS
     
     i2gtvt(         1:i0vmax,1:i0vmax) = 0
     i3gtwt(1:i0wmax,1:i0vmax,1:i0vmax) = 0
-
-    !C
-    !C
-    !C VARIABLES OF PLASMA AS FIELD
-    !C
-    !C
-    
-    !C
-    !C EQUATION FOR PSI
-    !C
-    
-    !C
-    !C EQUATION FOR I
-    !C
-
-    !C
-    !C EQUATION FOR Et
-    !C
-    
-    !C
-    !C EQUATION FOR Ep
-    !C
-    
-    !C
-    !C EQUATION FOR Er
-    !C
-
-    !C
-    !C
-    !C VARIABLES OF PLASMA AS FLUID 
-    !C
-    !C
     
     DO i0sidi = 1, i0smax
-
-       !C
-       !C EQUATION FOR N
-       !C
        
-       !C
-       !C EQUATION FOR Fr
-       !C
+       i0vofi = 10*i0sidi
        
        !C
        !C EQUATION FOR Fb
        !C
 
-       i0vidi = 10*i0sidi - 2
+       i0vidi = i0vofi - 2
        
        !C N : (B)
-       i0vidj = 10*i0sidi - 4
+       i0vidj = i0vofi - 4
        i2gtvt(i0vidi,i0vidj) = 1
        
        i0widi = 1
        i3gtwt(i0widi,i0vidi,i0vidj) = 1
 
        !C Fb : (B)
-       i0vidj = 10*i0sidi - 2
+       i0vidj = i0vofi - 2
        i2gtvt(i0vidi,i0vidj) = 1
        
        i0widi = 1
        i3gtwt(i0widi,i0vidi,i0vidj) = 1
 
        !C P : (B)
-       i0vidj = 10*i0sidi + 1
+       i0vidj = i0vofi + 1
        i2gtvt(i0vidi,i0vidj) = 1
-
+       
        i0widi = 1
        i3gtwt(i0widi,i0vidi,i0vidj) = 1
        
        !C Qb: (B)
-       i0vidj = 10*i0sidi + 3
+       i0vidj = i0vofi + 3
        i2gtvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3gtwt(i0widi,i0vidi,i0vidj) = 1
-          
-       !C
-       !C EQUATION FOR Ft
-       !C
        
-       !C
-       !C EQUATION FOR Fp
-       !C
-
        !C
        !C EQUATION FOR P
        !C
        
-       i0vidi = 10*i0sidi + 1
+       i0vidi = i0vofi + 1
        
        !C N: (B), (Ub)
-       i0vidj = 10*i0sidi - 4
+       i0vidj = i0vofi - 4
        i2gtvt(i0vidi,i0vidj) = 1
        
        i0widi = 1
@@ -1629,7 +1443,7 @@ CONTAINS
        i3gtwt(i0widi,i0vidi,i0vidj) = 1
 
        !C Fb: (B), (Ub)
-       i0vidj = 10*i0sidi - 2
+       i0vidj = i0vofi - 2
        i2gtvt(i0vidi,i0vidj) = 1
        
        i0widi = 1
@@ -1639,7 +1453,7 @@ CONTAINS
        i3gtwt(i0widi,i0vidi,i0vidj) = 1
 
        !C P: (B), (Ub)
-       i0vidj = 10*i0sidi + 1
+       i0vidj = i0vofi + 1
        i2gtvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
@@ -1649,7 +1463,7 @@ CONTAINS
        i3gtwt(i0widi,i0vidi,i0vidj) = 1
 
        !C Qb: (B), (Ub)
-       i0vidj = 10*i0sidi + 3
+       i0vidj = i0vofi + 3
        i2gtvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
@@ -1659,50 +1473,38 @@ CONTAINS
        i3gtwt(i0widi,i0vidi,i0vidj) = 1
        
        !C
-       !C EQUATION FOR Qr
-       !C
-       
-       !C
        !C EQUATION FOR Qb
        !C
        
-       i0vidi = 10*i0sidi + 3
+       i0vidi = i0vofi + 3
        
        !C N : (B)
-       i0vidj = 10*i0sidi - 4
+       i0vidj = i0vofi - 4
        i2gtvt(i0vidi,i0vidj) = 1
        
        i0widi = 1
        i3gtwt(i0widi,i0vidi,i0vidj) = 1
 
        !C Fb: (B)
-       i0vidj = 10*i0sidi - 2
+       i0vidj = i0vofi - 2
        i2gtvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3gtwt(i0widi,i0vidi,i0vidj) = 1
        
        !C P : (B)
-       i0vidj = 10*i0sidi + 1
+       i0vidj = i0vofi + 1
        i2gtvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
        i3gtwt(i0widi,i0vidi,i0vidj) = 1
        
        !C Qb: (B)
-       i0vidj = 10*i0sidi + 3
+       i0vidj = i0vofi + 3
        i2gtvt(i0vidi,i0vidj) = 1
-
+       
        i0widi = 1
        i3gtwt(i0widi,i0vidi,i0vidj) = 1
-
-       !C
-       !C EQUATION FOR Qt
-       !C
-
-       !C
-       !C EQUATION FOR Qp
-       !C
        
     ENDDO
     
@@ -1714,7 +1516,7 @@ CONTAINS
   !C
   !C SUBROUTINE FOR EXCITATION SCALAR ARRAY
   !C 
-  !C                     2014-02-20
+  !C                     2014-02-22
   !C
   !C------------------------------------------------------------------
   SUBROUTINE T2VGRA_ES
@@ -1724,23 +1526,14 @@ CONTAINS
     
     INTEGER(i0ikind)::&
          i0sidi,i0vidi,&
-         i0sidj,i0vidj
+         i0sidj,i0vidj,&
+         i0vofi,i0vofj
     
     !C
     !C INITIALIZATION
     !C
     
     i2esvt(1:i0vmax,1:i0vmax) = 0
-    
-    !C
-    !C
-    !C VARIABLES OF PLASMA AS FIELD
-    !C
-    !C
-    
-    !C
-    !C EQUATION FOR PSI
-    !C
     
     !C
     !C EQUATION FOR I
@@ -1753,93 +1546,83 @@ CONTAINS
     i0vidj = 4
     i2esvt(i0vidi,i0vidj) = 1
 
-    !C
-    !C EQUATION FOR Et
-    !C
-    
-    i0vidi = 3
     
     DO i0sidj = 1, i0smax
+       
+       i0vofj = 10*i0sidj
+       
+       !C
+       !C EQUATION FOR Et
+       !C
+       
+       i0vidi = 3
        
        !C Ft
-       i0vidj = 10*i0sidj - 1
+       i0vidj = i0vofj - 1
        i2esvt(i0vidi,i0vidj) = 1
        
-    ENDDO
-    
-    !C
-    !C EQUATION FOR Ep
-    !C
-    
-    i0vidi = 4
-    
-    DO i0sidj = 1, i0smax
+       !C
+       !C EQUATION FOR Ep
+       !C
        
+       i0vidi = 4
+    
        !C Fr
-       i0vidj = 10*i0sidj - 3
+       i0vidj = i0vofj - 3
        i2esvt(i0vidi,i0vidj) = 1
        
        !C Fp
-       i0vidj = 10*i0sidj 
+       i0vidj = i0vofj
        i2esvt(i0vidi,i0vidj) = 1
-       
-    ENDDO
-    
-    !C
-    !C EQUATION FOR Er
-    !C
+           
+       !C
+       !C EQUATION FOR Er
+       !C
 
-    i0vidi = 5
-    
-    DO i0sidj = 1, i0smax
+       i0vidi = 5
        
        !C N
-       i0vidj = 10*i0sidj - 4
+       i0vidj = i0vofj - 4
        i2esvt(i0vidi,i0vidj) = 1
        
     ENDDO
     
-    !C
-    !C
-    !C VARIABLES OF PLASMA AS FLUID 
-    !C
-    !C
-    
     DO i0sidi = 1, i0smax
-
-       !C
-       !C EQUATION FOR N
-       !C
+       
+       i0vofi = 10*i0sidi
        
        !C
        !C EQUATION FOR Fr
        !C
        
-       i0vidi= 10*i0sidi - 3
+       i0vidi= i0vofi - 3
        
        !C Ep
        i0vidj = 4
        i2esvt(i0vidi,i0vidj) = 1
-
+       
        !C Er
        i0vidj = 5
        i2esvt(i0vidi,i0vidj) = 1
-
+       
        !C Fb
-       i0vidj = 10*i0sidi - 2
+       i0vidj = i0vofi - 2
        i2esvt(i0vidi,i0vidj) = 1
 
        !C Ft
-       i0vidj = 10*i0sidi - 1
+       i0vidj = i0vofi - 1
        i2esvt(i0vidi,i0vidj) = 1
        
-       !C
-       !C EQUATION FOR Fb
-       !C
-       
-       i0vidi = 10*i0sidi - 2
        
        DO i0sidj = 1, i0smax
+
+          i0vofj = 10*i0sidj          
+          
+          !C
+          !C EQUATION FOR Fb
+          !C
+          
+          i0vidi = i0vofi - 2
           
           IF(i0sidi.EQ.i0sidj)THEN
              
@@ -1854,22 +1637,18 @@ CONTAINS
           ENDIF
           
           !C Fb
-          i0vidj = 10*i0sidj - 2
+          i0vidj = i0vofj - 2
           i2esvt(i0vidi,i0vidj) = 1
           
           !C Qb
-          i0vidj = 10*i0sidj + 3
+          i0vidj = i0vofj + 3
           i2esvt(i0vidi,i0vidj) = 1
           
-       ENDDO
-       
-       !C
-       !C EQUATION FOR Ft
-       !C
-       
-       i0vidi = 10*i0sidi - 1
-       
-       DO i0sidj = 1, i0smax
+          !C
+          !C EQUATION FOR Ft
+          !C
+          
+          i0vidi = i0vofi - 1
           
           IF(i0sidi.EQ.i0sidj)THEN
              
@@ -1878,17 +1657,17 @@ CONTAINS
              i2esvt(i0vidi,i0vidj) = 1
 
              !C Fr
-             i0vidj = 10*i0sidj - 3
+             i0vidj = i0vofj - 3
              i2esvt(i0vidi,i0vidj) = 1
 
           ENDIF
           
           !C Ft
-          i0vidj = 10*i0sidj - 1
+          i0vidj = i0vofj - 1
           i2esvt(i0vidi,i0vidj) = 1
           
           !C Qt
-          i0vidj = 10*i0sidj + 4
+          i0vidj = i0vofj + 4
           i2esvt(i0vidi,i0vidj) = 1
           
        ENDDO
@@ -1897,35 +1676,35 @@ CONTAINS
        !C EQUATION FOR Fp
        !C
 
-       i0vidi = 10*i0sidi
+       i0vidi = i0vofi
 
        !C Fb
-       i0vidj = 10*i0sidi - 2
+       i0vidj = i0vofi - 2
        i2esvt(i0vidi,i0vidj) = 1
 
        !C Ft
-       i0vidj = 10*i0sidi - 1
+       i0vidj = i0vofi - 1
        i2esvt(i0vidi,i0vidj) = 1
 
        !C Fp
-       i0vidj = 10*i0sidi 
+       i0vidj = i0vofi
        i2esvt(i0vidi,i0vidj) = 1
-
+       
        !C
        !C EQUATION FOR P
        !C
        
-       i0vidi = 10*i0sidi + 1
+       i0vidi = i0vofi + 1
        
        !C P
-       i0vidj = 10*i0sidi + 1
+       i0vidj = i0vofi + 1
        i2esvt(i0vidi,i0vidj) = 1
        
        !C
        !C EQUATION FOR Qr
        !C
        
-       i0vidi = 10*i0sidi + 2
+       i0vidi = i0vofi + 2
        
        !C Ep
        i0vidj = 4
@@ -1936,20 +1715,22 @@ CONTAINS
        i2esvt(i0vidi,i0vidj) = 1
        
        !C Qb
-       i0vidj = 10*i0sidi + 3
+       i0vidj = i0vofi + 3
        i2esvt(i0vidi,i0vidj) = 1
 
        !C Qt
-       i0vidj = 10*i0sidi + 4
+       i0vidj = i0vofi + 4
        i2esvt(i0vidi,i0vidj) = 1
 
-       !C
-       !C EQUATION FOR Qb
-       !C
-       
-       i0vidi = 10*i0sidi + 3
-       
        DO i0sidj = 1, i0smax
+          
+          i0vofj = 10*i0sidj
+
+          !C
+          !C EQUATION FOR Qb
+          !C
+          
+          i0vidi = i0vofi + 3
           
           IF(i0sidi.EQ.i0sidj)THEN
              
@@ -1964,22 +1745,18 @@ CONTAINS
           ENDIF
           
           !C Fb
-          i0vidj = 10*i0sidj - 2
+          i0vidj = i0vofj - 2
           i2esvt(i0vidi,i0vidj) = 1
           
           !C Qb
-          i0vidj = 10*i0sidj + 3
+          i0vidj = i0vofj + 3
           i2esvt(i0vidi,i0vidj) = 1
 
-       ENDDO
-
-       !C
-       !C EQUATION FOR Qt
-       !C
+          !C
+          !C EQUATION FOR Qt
+          !C
        
-       i0vidi = 10*i0sidi + 4
-       
-       DO i0sidj = 1, i0smax
+          i0vidi = i0vofi + 4
           
           IF(i0sidi.EQ.i0sidj)THEN
              
@@ -1988,39 +1765,39 @@ CONTAINS
              i2esvt(i0vidi,i0vidj) = 1
              
              !C Qr
-             i0vidj = 10*i0sidj + 2
+             i0vidj = i0vofj + 2
              i2esvt(i0vidi,i0vidj) = 1
              
           ENDIF
           
           !C Ft
-          i0vidj = 10*i0sidj - 1
+          i0vidj = i0vofj - 1
           i2esvt(i0vidi,i0vidj) = 1
           
           !C Qt
-          i0vidj = 10*i0sidj + 4
+          i0vidj = i0vofj + 4
           i2esvt(i0vidi,i0vidj) = 1              
           
        ENDDO
-
+       
        !C
        !C EQUATION FOR Qp
        !C
        
-       i0vidi = 10*i0sidi + 5
+       i0vidi = i0vofi + 5
 
        !C Qb
-       i0vidj = 10*i0sidi + 3
+       i0vidj = i0vofi + 3
        i2esvt(i0vidi,i0vidj) = 1
-
+       
        !C Qt
-       i0vidj = 10*i0sidi + 4
+       i0vidj = i0vofi + 4
        i2esvt(i0vidi,i0vidj) = 1
        
        !C Qp
-       i0vidj = 10*i0sidi + 5
+       i0vidj = i0vofi + 5
        i2esvt(i0vidi,i0vidj) = 1
-
+       
     ENDDO
     
     RETURN
@@ -2031,7 +1808,7 @@ CONTAINS
   !C
   !C SUBROUTINE FOR EXCITATION VECTOR ARRAY
   !C 
-  !C                     2014-02-20
+  !C                     2014-02-22
   !C
   !C-------------------------------------------------------------------
   SUBROUTINE T2VGRA_EV
@@ -2040,8 +1817,7 @@ CONTAINS
          i0smax,i0wmax,i0vmax,i2evvt,i3evwt
     
     INTEGER(i0ikind)::&
-         i0sidi,i0widi,i0vidi,&
-                       i0vidj
+         i0sidi,i0widi,i0vidi,i0vidj,i0vofi
     
     !C
     !C INITIALIZATION
@@ -2051,90 +1827,40 @@ CONTAINS
     i3evwt(1:i0wmax,1:i0vmax,1:i0vmax) = 0
     
     !C
-    !C
-    !C VARIABLES OF PLASMA AS FIELD
-    !C
-    !C
-    
-    !C
-    !C EQUATION FOR PSI
-    !C
-    
-    !C
-    !C EQUATION FOR I
-    !C
-
-    !C
     !C EQUATION FOR Et
     !C
     
     i0vidi = 3
 
-    !C PSI' (R)
+    !C PSI': (R)
     i0vidj = 1
     i2evvt(i0vidi,i0vidj) = 1
 
     i0widi = 2
     i3evwt(i0widi,i0vidi,i0vidj) = 1
-
-    !C
-    !C EQUATION FOR Ep
-    !C
-    
-    !C
-    !C EQUATION FOR Er
-    !C
-
-    !C
-    !C
-    !C VARIABLES OF PLASMA AS FLUID 
-    !C
-    !C
     
     DO i0sidi = 1, i0smax
 
-       !C
-       !C EQUATION FOR N
-       !C
+       i0vofi = 10*i0sidi
        
-       !C
-       !C EQUATION FOR Fr
-       !C
-
        !C
        !C EQUATION FOR Fb
        !C
 
-       i0vidi = 10*i0sidi - 2
+       i0vidi = i0vofi - 2
        
-       !C Fb (B)
-       i0vidj = 10*i0sidi - 2
+       !C Fb: (B)
+       i0vidj = i0vofi - 2
        i2evvt(i0vidi,i0vidj) = 1
        
        i0widi = 1
        i3evwt(i0widi,i0vidi,i0vidj) = 1
-
-       !C
-       !C EQUATION FOR Ft
-       !C
        
-       !C
-       !C EQUATION FOR Fp
-       !C
-       
-       !C
-       !C EQUATION FOR P
-       !C
-       
-       !C
-       !C EQUATION FOR Qr
-       !C
-
        !C
        !C EQUATION FOR Qb
        !C
        
-       i0vidi = 10*i0sidi + 3
+       i0vidi = i0vofi + 3
        
        !C Et: (B) (Ub) (Qb/P)
        i0vidj = 3
@@ -2163,25 +1889,24 @@ CONTAINS
        i3evwt(i0widi,i0vidi,i0vidj) = 1
 
        !C Fb: (B)
-       i0vidj = 10*i0sidi - 2
+       i0vidj = i0vofi - 2
        i2evvt(i0vidi,i0vidj) = 1
-
+       
        i0widi = 1
        i3evwt(i0widi,i0vidi,i0vidj) = 1
-
        
        !C Qb: (B)
-       i0vidj = 10*i0sidi + 3
+       i0vidj = i0vofi + 3
        i2evvt(i0vidi,i0vidj) = 1
-
+       
        i0widi = 1
        i3evwt(i0widi,i0vidi,i0vidj) = 1
-
+       
        !C
        !C EQUATION FOR Qt
        !C
        
-       i0vidi = 10*i0sidi + 4
+       i0vidi = i0vofi + 4
        
        !C Et: B, Ub, Wb
        i0vidj = 3
@@ -2209,10 +1934,6 @@ CONTAINS
        i0widi = 2*i0sidi + 2
        i3evwt(i0widi,i0vidi,i0vidj) = 1
 
-       !C
-       !C EQUATION FOR Qp
-       !C
-
     ENDDO
     
     RETURN
@@ -2233,7 +1954,7 @@ CONTAINS
     
     INTEGER(i0ikind)::&
          i0sidi,i0widi,i0vidi,&
-                i0widj,i0vidj
+                i0widj,i0vidj,i0vofi
     
     !C
     !C INITIALIZATION
@@ -2241,65 +1962,27 @@ CONTAINS
     
     i2etvt(                  1:i0vmax,1:i0vmax) = 0
     i4etwt(1:i0wmax,1:i0wmax,1:i0vmax,1:i0vmax) = 0
-
-    !C
-    !C
-    !C VARIABLES OF PLASMA AS FIELD
-    !C
-    !C
-    
-    !C
-    !C EQUATION FOR PSI
-    !C
-    
-    !C
-    !C EQUATION FOR I
-    !C
-    
-    !C
-    !C EQUATION FOR Et
-    !C
-    
-    !C
-    !C EQUATION FOR Ep
-    !C
-    
-    !C
-    !C EQUATION FOR Er
-    !C
-
-    !C
-    !C
-    !C VARIABLES OF PLASMA AS FLUID 
-    !C
-    !C
     
     DO i0sidi = 1, i0smax
 
-       !C
-       !C EQUATION FOR N
-       !C
-
-       !C
-       !C EQUATION FOR Fr
-       !C
+       i0vofi = 10*i0sidi
        
        !C
        !C EQUATION FOR Fb
        !C
 
-       i0vidi = 10*i0sidi - 2
+       i0vidi = i0vofi - 2
        
        !C Ft: (B,B)
-       i0vidj = 10*i0sidi - 1
+       i0vidj = i0vofi - 1
        i2etvt(i0vidi,i0vidj) = 1
        
        i0widi = 1
        i0widj = 1
        i4etwt(i0widi,i0widj,i0vidi,i0vidj) = 1
-
+       
        !C Fp: (B,B)
-       i0vidj = 10*i0sidi
+       i0vidj = i0vofi
        i2etvt(i0vidi,i0vidj) = 1
        
        i0widi = 1
@@ -2307,7 +1990,7 @@ CONTAINS
        i4etwt(i0widi,i0widj,i0vidi,i0vidj) = 1
 
        !C Qt (B,B)
-       i0vidj = 10*i0sidi + 4
+       i0vidj = i0vofi + 4
        i2etvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
@@ -2315,7 +1998,7 @@ CONTAINS
        i4etwt(i0widi,i0widj,i0vidi,i0vidj) = 1
 
        !C Qp (B,B)
-       i0vidj = 10*i0sidi + 5
+       i0vidj = i0vofi + 5
        i2etvt(i0vidi,i0vidj) = 1
        
        i0widi = 1
@@ -2323,21 +2006,13 @@ CONTAINS
        i4etwt(i0widi,i0widj,i0vidi,i0vidj) = 1
 
        !C
-       !C EQUATION FOR Ft
-       !C
-
-       !C
-       !C EQUATION FOR Fp
-       !C
-       
-       !C
        !C EQUATION FOR P
        !C
        
-       i0vidi = 10*i0sidi + 1
+       i0vidi = i0vofi + 1
        
        !C Ft: (B,B), (Ub,B)
-       i0vidj = 10*i0sidi - 1
+       i0vidj = i0vofi - 1
        i2etvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
@@ -2349,7 +2024,7 @@ CONTAINS
        i4etwt(i0widi,i0widj,i0vidi,i0vidj) = 1
        
        !C Fp: (B,B), (Ub,B)
-       i0vidj = 10*i0sidi
+       i0vidj = i0vofi
        i2etvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
@@ -2361,7 +2036,7 @@ CONTAINS
        i4etwt(i0widi,i0widj,i0vidi,i0vidj) = 1
 
        !C Qt: (B,B), (Ub,B)
-       i0vidj = 10*i0sidi + 4
+       i0vidj = i0vofi + 4
        i2etvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
@@ -2373,29 +2048,25 @@ CONTAINS
        i4etwt(i0widi,i0widj,i0vidi,i0vidj) = 1
        
        !C Qp: (B,B), (Ub,B)
-       i0vidj = 10*i0sidi + 5
+       i0vidj = i0vofi + 5
        i2etvt(i0vidi,i0vidj) = 1
-
+       
        i0widi = 1
        i0widj = 1
        i4etwt(i0widi,i0widj,i0vidi,i0vidj) = 1
-
+       
        i0widi = 2*i0sidi + 1
        i0widj = 1
        i4etwt(i0widi,i0widj,i0vidi,i0vidj) = 1
        
        !C
-       !C EQUATION FOR Qr
-       !C
-       
-       !C
        !C EQUATION FOR Qb
        !C
        
-       i0vidi = 10*i0sidi + 3
+       i0vidi = i0vofi + 3
        
        !C Ft: (B,B)
-       i0vidj = 10*i0sidi - 1
+       i0vidj = i0vofi - 1
        i2etvt(i0vidi,i0vidj) = 1
        
        i0widi = 1
@@ -2403,7 +2074,7 @@ CONTAINS
        i4etwt(i0widi,i0widj,i0vidi,i0vidj) = 1
        
        !C Fp: (B,B)
-       i0vidj = 10*i0sidi
+       i0vidj = i0vofi
        i2etvt(i0vidi,i0vidj) = 1
        
        i0widi = 1
@@ -2411,7 +2082,7 @@ CONTAINS
        i4etwt(i0widi,i0widj,i0vidi,i0vidj) = 1
        
        !C Qt: (B,B)
-       i0vidj = 10*i0sidi + 4
+       i0vidj = i0vofi + 4
        i2etvt(i0vidi,i0vidj) = 1
 
        i0widi = 1
@@ -2419,7 +2090,7 @@ CONTAINS
        i4etwt(i0widi,i0widj,i0vidi,i0vidj) = 1
 
        !C Qp: (B,B)
-       i0vidj = 10*i0sidi + 5
+       i0vidj = i0vofi + 5
        i2etvt(i0vidi,i0vidj) = 1
 
        i0widi = 1

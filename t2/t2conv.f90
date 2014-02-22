@@ -15,13 +15,13 @@ CONTAINS
 
     INTEGER(i0ikind)::&
          i0sidi,i0vidi,i0midi,i0xid1d,i0xid2d
-
-    REAL(   i0rkind)::&   
+    
+    REAL(   i0rkind)::&
          d0bp_pu,d0bt_pu,d0et_pu,d0ep_pu,d0er_pu
     
     REAL(   i0rkind),DIMENSION(1:i0smax)::&
-         d1nn_pu,d1ur_pu,d1ub_pu,d1ut_pu,&
-         d1tt_pu,d1qr_pu,d1qb_pu,d1qt_pu
+         d1nn_pu,d1ur_pu,d1ub_pu,d1ut_pu,d1up_pu,&
+         d1tt_pu,d1qr_pu,d1qb_pu,d1qt_pu,d1qp_pu
    
     REAL(   i0rkind)::&
          d0sqrtg,d0mfcr,d0sqrtr,&
@@ -31,7 +31,8 @@ CONTAINS
          d0psip,d0cobt,d0coet,d0coep,d0coer 
    
     REAL(   i0rkind),DIMENSION(1:i0smax)::&
-         d1nn,d1fr,d1fb,d1ft,d1pp,d1qr,d1qb,d1qt
+         d1nn,d1fr,d1fb,d1ft,d1fp,&
+         d1pp,d1qr,d1qb,d1qt,d1qp
     
     d2xout(1:i0vmax,1:i0xmax) = 0.D0
     
@@ -62,15 +63,17 @@ CONTAINS
        d0coer = d2xvec(5,i0xid2d)
        
        DO i0sidi = 1, i0smax
-          i0vidi = 8*i0sidi - 3
-          d1nn(i0sidi) = d2xvec(i0vidi+1,i0xid2d)
-          d1fr(i0sidi) = d2xvec(i0vidi+2,i0xid2d)
-          d1fb(i0sidi) = d2xvec(i0vidi+3,i0xid2d)
-          d1ft(i0sidi) = d2xvec(i0vidi+4,i0xid2d)
-          d1pp(i0sidi) = d2xvec(i0vidi+5,i0xid2d)
-          d1qr(i0sidi) = d2xvec(i0vidi+6,i0xid2d)
-          d1qb(i0sidi) = d2xvec(i0vidi+7,i0xid2d)
-          d1qt(i0sidi) = d2xvec(i0vidi+8,i0xid2d)
+          i0vidi = 10*i0sidi - 5
+          d1nn(i0sidi) = d2xvec(i0vidi+ 1,i0xid2d)
+          d1fr(i0sidi) = d2xvec(i0vidi+ 2,i0xid2d)
+          d1fb(i0sidi) = d2xvec(i0vidi+ 3,i0xid2d)
+          d1ft(i0sidi) = d2xvec(i0vidi+ 4,i0xid2d)
+          d1fp(i0sidi) = d2xvec(i0vidi+ 5,i0xid2d)
+          d1pp(i0sidi) = d2xvec(i0vidi+ 6,i0xid2d)
+          d1qr(i0sidi) = d2xvec(i0vidi+ 7,i0xid2d)
+          d1qb(i0sidi) = d2xvec(i0vidi+ 8,i0xid2d)
+          d1qt(i0sidi) = d2xvec(i0vidi+ 9,i0xid2d)
+          d1qp(i0sidi) = d2xvec(i0vidi+10,i0xid2d)
        ENDDO
        
        !C
@@ -81,7 +84,7 @@ CONTAINS
        !C d0bp_pu: Poroidal Magnetic Field [T]
        !C
        
-       d0bp_pu = d0psip*SQRT(d0ctgrr*d0ctgtt)
+       d0bp_pu = d0psip*SQRT(d0cogpp)/d0sqrtg
        
        !C
        !C d0bt_pu: Toroidal Magnetic Field [T]
@@ -142,6 +145,12 @@ CONTAINS
           d1ut_pu(i0sidi) = d1ft(i0sidi)*d0ni*SQRT(d0ctgtt)*1.D-3
           
           !C
+          !C d1up_pu: Poloidal velocity  [km/s]
+          !C
+          
+          d1up_pu(i0sidi) = d1fp(i0sidi)*d0ni*SQRT(d0cogpp)*1.D-3
+          
+          !C
           !C d1tt_pu: Temperature [keV]
           !C
           
@@ -149,11 +158,11 @@ CONTAINS
           d1tt_pu(i0sidi) = d0tt/d0aee*1.D-3 ! keV
           
           !C 
-          !C d1qr_pu: Radial heat Flux [J*m/s]
+          !C d1qr_pu: Radial heat Flux [kJ*m/s]
           !C
           
           d0qr = d1qr(i0sidi) - 2.5D0*d0tt*d1fr(i0sidi)
-          d1qr_pu(i0sidi) = d0qr*SQRT(d0cogrr)*d0sqrtr
+          d1qr_pu(i0sidi) = d0qr*SQRT(d0cogrr)*d0sqrtr*1.D-3 
           
           !C 
           !C d1qb_pu: Parallel heat Flux [MJ*m/s]
@@ -177,15 +186,17 @@ CONTAINS
        d2xout(5,i0xid2d) = d0er_pu
        
        DO i0sidi = 1, i0smax
-          i0vidi = 8*i0sidi - 3
-          d2xout(i0vidi+1,i0xid2d) = d1nn_pu(i0sidi)
-          d2xout(i0vidi+2,i0xid2d) = d1ur_pu(i0sidi)
-          d2xout(i0vidi+3,i0xid2d) = d1ub_pu(i0sidi)
-          d2xout(i0vidi+4,i0xid2d) = d1ut_pu(i0sidi)
-          d2xout(i0vidi+5,i0xid2d) = d1tt_pu(i0sidi)
-          d2xout(i0vidi+6,i0xid2d) = d1qr_pu(i0sidi)
-          d2xout(i0vidi+7,i0xid2d) = d1qb_pu(i0sidi)
-          d2xout(i0vidi+8,i0xid2d) = d1qt_pu(i0sidi)
+          i0vidi = 10*i0sidi - 5
+          d2xout(i0vidi+ 1,i0xid2d) = d1nn_pu(i0sidi)
+          d2xout(i0vidi+ 2,i0xid2d) = d1ur_pu(i0sidi)
+          d2xout(i0vidi+ 3,i0xid2d) = d1ub_pu(i0sidi)
+          d2xout(i0vidi+ 4,i0xid2d) = d1ut_pu(i0sidi)
+          d2xout(i0vidi+ 5,i0xid2d) = d1up_pu(i0sidi)
+          d2xout(i0vidi+ 6,i0xid2d) = d1tt_pu(i0sidi)
+          d2xout(i0vidi+ 7,i0xid2d) = d1qr_pu(i0sidi)
+          d2xout(i0vidi+ 8,i0xid2d) = d1qb_pu(i0sidi)
+          d2xout(i0vidi+ 9,i0xid2d) = d1qt_pu(i0sidi)
+          d2xout(i0vidi+10,i0xid2d) = d1qp_pu(i0sidi)
        ENDDO
        
     END DO

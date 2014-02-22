@@ -62,20 +62,20 @@ CONTAINS
     
     i0smax =  2
     i0nmax =  4        ! number of nodes in a elemnt
-    i0lmax =  2        ! 
-    i0pdiv_number = 10 ! 
+    i0lmax =  1        ! 
+    i0pdiv_number = 50 ! 
 
 
     i1mlvl(0:i0lmaxm+1) = 0
     i1mlvl(1)=1        ! 10 x 2^0
-    i1mlvl(2)=1        ! 10 x 2^0
     
     i1rdn2(-1:i0lmaxm) = 0  
-    i1rdn2(1) = 20   ! number of radial nodes in a level
-    i1rdn2(2) = 10   ! number of radial nodes in a level
+    i1rdn2(1) = 55   ! number of radial nodes in a level
+
+
     d1rec(0:i0lmaxm) = 0.D0 ! least radial point in a level
-    d1rec(1) = 1.000D0
-    d1rec(2) = 1.100D0
+    d1rec(1) = 1.10D0
+
 
     d0rmjr   =  3.0D0
     d0rmnr   =  1.0D0
@@ -124,10 +124,10 @@ CONTAINS
     d1pa(3:i0spcsm) = 0.D0
     d1pz(3:i0spcsm) = 0.D0
     
-    dt        = 1.D-5   ! time step [s]
+    dt        = 1.D-4   ! time step [s]
     time_init = 0.D0    ! initial time [s]
-    ntmax     = 1       ! number of time steps to go
-    ntstep    = 1       ! time step to print snap shot of global data
+    ntmax     = 1000    ! number of time steps to go
+    ntstep    = 100      ! time step to print snap shot of global data
     nt0dmax   = 1       ! maximim number of global data to be saved
     nt0dstep  = 1       ! time step to save global data
     nt2dmax   = 1       ! maximum number of profile data to be saved

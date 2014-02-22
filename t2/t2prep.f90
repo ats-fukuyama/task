@@ -22,8 +22,9 @@ CONTAINS
          i0ermx, i0ecmx, i0dmax, i0smax, i0pmax, i0pdiv_number,  &
          i1mlvl, i1pdn1, i1pdn2, i1rdn1, i1rdn2, i1mmax, i1bmax, &
          i1emax, &
-         d0mfcst,d0btcst,d0ercst,d0epcst,d0etcst,d0nncst,d0frcst, &
-         d0fbcst,d0ftcst,d0ppcst,d0qrcst,d0qbcst,d0qtcst,&
+         d0mfcst,d0btcst,d0ercst,d0epcst,d0etcst,&
+         d0nncst,d0frcst,d0fbcst,d0ftcst,d0fpcst,&
+         d0ppcst,d0qrcst,d0qbcst,d0qtcst,d0qpcst,&
          d0iar,  d0rmnr, d0rmjr, time_t2,time_init,&
          T2NGRA_ALLOCATE, T2COMM_ALLOCATE
 
@@ -42,15 +43,19 @@ CONTAINS
     d0ercst = 1.D0
     d0epcst = 1.D0
     d0etcst = 1.D0
+
     d0nncst = 1.D0
     d0frcst = 1.D0
     d0fbcst = 1.D0
     d0ftcst = 1.D0
+    d0fpcst = 1.D0
+
     d0ppcst = 1.D0
     d0qrcst = 1.D0
     d0qbcst = 1.D0
     d0qtcst = 1.D0
-    
+    d0qpcst = 1.D0
+
 !    d0mfcst = 1.D0
 !    d0btcst = 1.D0/d0iar
 !    d0ercst = 1.D4

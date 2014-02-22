@@ -709,6 +709,8 @@ CONTAINS
           ALLOCATE(d1qt(1:i0smax),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d1qb(1:i0smax),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d1wb(1:i0smax),STAT=i0err);IF(i0err.NE.0)EXIT
+          ALLOCATE(d1wt(1:i0smax),STAT=i0err);IF(i0err.NE.0)EXIT
+          ALLOCATE(d1wp(1:i0smax),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d1tt(1:i0smax),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d1vt(1:i0smax),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d1ni(1:i0smax),STAT=i0err);IF(i0err.NE.0)EXIT
@@ -934,6 +936,8 @@ CONTAINS
     IF(ALLOCATED(d1qt)) DEALLOCATE(d1qt)
     IF(ALLOCATED(d1qb)) DEALLOCATE(d1qb)
     IF(ALLOCATED(d1wb)) DEALLOCATE(d1wb)
+    IF(ALLOCATED(d1wt)) DEALLOCATE(d1wt)
+    IF(ALLOCATED(d1wp)) DEALLOCATE(d1wp)
     IF(ALLOCATED(d1tt)) DEALLOCATE(d1tt)
     IF(ALLOCATED(d1vt)) DEALLOCATE(d1vt)
     IF(ALLOCATED(d1ni)) DEALLOCATE(d1ni)

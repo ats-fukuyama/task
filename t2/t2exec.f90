@@ -1,10 +1,11 @@
+!C--------------------------------------------------------------------
+!C
+!C T2EXEC
+!C
+!C                       2024-02-22 H.SETO
 !C
 !C
-!C
-!C
-!C
-!C
-!C
+!C--------------------------------------------------------------------
 MODULE T2EXEC
   
   USE T2CNST, ONLY:&
@@ -340,11 +341,11 @@ CONTAINS
          d1rsiz,d1psiz,d2ws,d2xvec,d2wrks,d2kwns,d2mtrc,&
          d4smat,d2svec,d4av,&
          i2enr0,i3enr,i1mlel,d0rmnr,&
-         d2jmpm,d0jdmp,dt,d2jm1!,i2avvt,d3eafv,i0supg
+         d2jmpm,d0jdmp,dt,d2jm1,d2mfc1!,i2avvt,d3eafv,i0supg
     
     INTEGER(i0ikind)::&
-         i0midi,i0didi,i0didj,i0ridi,i0nidi,i0sidi,i0lidi,&
-         i0bidi,i0xidi!,i0avvt
+         i0midi,i0didi,i0didj,i0ridi,i0nidi,i0nidj,i0nidk,&
+         i0sidi,i0lidi,i0bidi,i0xidi!,i0avvt
     
     REAL(   i0rkind)::&
          d0supg,d0rsiz,d0psiz,d0sqrtg,d0sqrtgi,&
@@ -366,6 +367,7 @@ CONTAINS
        ENDDO
     ENDDO
     
+    
     !C
     !C CALCULATE JACOBIAN OF PARAMETRIC SPACE
     !C 
@@ -374,12 +376,16 @@ CONTAINS
     !C
     !C checked 2014-02-04 H.SETO
     !C 
-    
-    i0lidi = i1mlel(i0eidi) 
-    d0rsiz = d1rsiz(i0lidi)
-    d0psiz = d1psiz(i0lidi)
+    i0nidi = i2enr0(1,1)
+    i0nidj = i2enr0(2,1)
+    i0nidk = i2enr0(4,1)
+
+    d0rsiz = d2mfc1(1,i0nidj)-d2mfc1(1,i0nidi)
+    d0psiz = d2mfc1(2,i0nidk)-d2mfc1(2,i0nidi)
+    d0rsiz = ABS(d0rsiz)
+    d0psiz = ABS(d0psiz)
     d0jdmp = d0rsiz*d0psiz*0.25D0
-    
+
     IF(d0jdmp.LE.0.D0)THEN
        WRITE(6,'("ERROR:: D1JDMP IS SINGULAR")')
        STOP
@@ -1627,6 +1633,7 @@ CONTAINS
   !C 
   !C BOUNDARY CONDITIONS
   !C
+  !C                     2014-02-22 H.SETO
   !C
   !C-------------------------------------------------------------------
   SUBROUTINE T2EXEC_BCOND
@@ -1671,7 +1678,7 @@ CONTAINS
              DO i0vidj = 1, i0vmax
              DO i0vidi = 1, i0vmax
                 SELECT CASE(i0vidi)
-                CASE(1:5,14:21)
+                CASE(1:5,11:)
                    IF((i0bidi.EQ.i0bidj).AND.(i0vidi.EQ.i0vidj))THEN
                       d3amat(i0vidi,i0vidj,i0aidi) = 1.D0
                    ELSE
@@ -1690,7 +1697,7 @@ CONTAINS
           
           DO i0vidi = 1, i0vmax
              SELECT CASE(i0vidi)
-             CASE(1:5,14:21)
+             CASE(1:5,11:)
                 d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)
              CASE DEFAULT
                 CYCLE
@@ -1713,8 +1720,7 @@ CONTAINS
              i0bidj = i1nidc(i0aidi)
              DO i0vidi = 1, i0vmax
                 SELECT CASE(i0vidi)
-                !CASE(1:5,6,10,14:21)
-                CASE(1:5,7,11,14:21)
+                CASE(1:6,11:)
                    CYCLE
                 CASE DEFAULT
                    DO i0vidj = 1, i0vmax
@@ -1734,8 +1740,7 @@ CONTAINS
           
           DO i0vidi = 1, i0vmax
              SELECT CASE(i0vidi)
-             !CASE(1:5,6,10,14:21)
-             CASE(1:5,7,11,14:21)
+             CASE(1:6,11:)
                 CYCLE
              CASE DEFAULT
                 d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)
@@ -1796,8 +1801,7 @@ CONTAINS
              i0bidj = i1nidc(i0aidi)
              DO i0vidi = 1, i0vmax
                 SELECT CASE(i0vidi)
-                !CASE(1:6,10,14,18)
-                CASE(1:5,7,11,15,19)
+                CASE(1:6,11,16,21)
                    CYCLE
                 CASE DEFAULT
                    DO i0vidj = 1, i0vmax
@@ -1816,8 +1820,7 @@ CONTAINS
           !C
           DO i0vidi = 1, i0vmax
              SELECT CASE(i0vidi)
-             !CASE(1:6,10,14,18)
-             CASE(1:5,7,11,15,19)
+             CASE(1:6,11,16,21)
                 CYCLE
              CASE DEFAULT
                 d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)
@@ -1844,8 +1847,7 @@ CONTAINS
              i0bidj = i1nidc(i0aidi)
              DO i0vidi = 1, i0vmax
                 SELECT CASE(i0vidi)
-                !CASE(6,10,14,18)
-                CASE(7,11,15,19)
+                CASE(6,11,16,21)
                    CYCLE
                 CASE DEFAULT
                    DO i0vidj = 1, i0vmax
@@ -1865,8 +1867,7 @@ CONTAINS
           
           DO i0vidi = 1, i0vmax
              SELECT CASE(i0vidi)
-             !CASE(6,10,14,18)
-             CASE(7,11,15,19)
+             CASE(6,11,16,21)
                 CYCLE
              CASE DEFAULT
                 d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)

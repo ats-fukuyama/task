@@ -1,11 +1,11 @@
 !C--------------------------------------------------------------------
 !C 
-!C  T2MFCS
+!C  T2PROF
 !C
 !C
 !C
 !C
-!C
+!C                       2014-02-22 H.SETO
 !C
 !C--------------------------------------------------------------------
 MODULE T2PROF
@@ -54,7 +54,7 @@ CONTAINS
     
     REAL(   i0rkind)::d0mfcr,d0mfcp,d0jm1,d0cobt
     REAL(   i0rkind),DIMENSION(1:i0smax)::d1n0,d1p0
-    REAL(   i0rkind),DIMENSION(1:6,1:i0smax)::d2f0
+    REAL(   i0rkind),DIMENSION(1:8,1:i0smax)::d2f0
     
 100 FORMAT( 6E15.8)
 110 FORMAT(10E15.8)
@@ -112,15 +112,17 @@ CONTAINS
        d2f0 = fd2f0(d0mfcr,d0mfcp)
        
        DO i0sidi = 1,i0smax
-          i0vidi = 8*i0sidi - 3
-          d2xvec(i0vidi+1,i0xid2d) = d1n0(  i0sidi)/d0nncst
-          d2xvec(i0vidi+2,i0xid2d) = d2f0(1,i0sidi)/d0frcst
-          d2xvec(i0vidi+3,i0xid2d) = d2f0(2,i0sidi)/d0fbcst
-          d2xvec(i0vidi+4,i0xid2d) = d2f0(3,i0sidi)/d0ftcst
-          d2xvec(i0vidi+5,i0xid2d) = d1p0(  i0sidi)/d0ppcst
-          d2xvec(i0vidi+6,i0xid2d) = d2f0(4,i0sidi)/d0qrcst
-          d2xvec(i0vidi+7,i0xid2d) = d2f0(5,i0sidi)/d0qbcst
-          d2xvec(i0vidi+8,i0xid2d) = d2f0(6,i0sidi)/d0qtcst
+          i0vidi = 10*i0sidi - 5
+          d2xvec(i0vidi+ 1,i0xid2d) = d1n0(  i0sidi)/d0nncst
+          d2xvec(i0vidi+ 2,i0xid2d) = d2f0(1,i0sidi)/d0frcst
+          d2xvec(i0vidi+ 3,i0xid2d) = d2f0(2,i0sidi)/d0fbcst
+          d2xvec(i0vidi+ 4,i0xid2d) = d2f0(3,i0sidi)/d0ftcst
+          d2xvec(i0vidi+ 5,i0xid2d) = d2f0(4,i0sidi)/d0ftcst
+          d2xvec(i0vidi+ 6,i0xid2d) = d1p0(  i0sidi)/d0ppcst
+          d2xvec(i0vidi+ 7,i0xid2d) = d2f0(5,i0sidi)/d0qrcst
+          d2xvec(i0vidi+ 8,i0xid2d) = d2f0(6,i0sidi)/d0qbcst
+          d2xvec(i0vidi+ 9,i0xid2d) = d2f0(7,i0sidi)/d0qtcst
+          d2xvec(i0vidi+10,i0xid2d) = d2f0(8,i0sidi)/d0qtcst
        ENDDO
     ENDDO
     
@@ -367,18 +369,18 @@ CONTAINS
   !C                     2014-02-14 H.SETO
   !C
   !C-------------------------------------------------------------------
-  FUNCTION fd0q1(d0mfcr,d0mfcp)
-    
-    USE T2COMM, ONLY:d0qc,d0qs
-    
-    REAL(i0rkind),INTENT(IN)::d0mfcr,d0mfcp
-    REAL(i0rkind)::fd0q1
-    
-    fd0q1 = d0qs - d0qc
-    
-    RETURN
-    
-  END FUNCTION fd0q1
+  !  FUNCTION fd0q1(d0mfcr,d0mfcp)
+  !    
+  !    USE T2COMM, ONLY:d0qc,d0qs
+  !    
+  !    REAL(i0rkind),INTENT(IN)::d0mfcr,d0mfcp
+  !    REAL(i0rkind)::fd0q1
+  !    
+  !    fd0q1 = d0qs - d0qc
+  !    
+  !   RETURN
+  !   
+  ! END FUNCTION fd0q1
   
   !C-------------------------------------------------------------------
   !C
@@ -891,9 +893,11 @@ CONTAINS
   !C INITITIAL PROFILE OF n_{a}\bar{u}_{a}^{\rho}, 
   !C                      n_{a}u_{a\para},
   !C                      n_{a}u_{a\zeta},
+  !C                      n_{a}u_{a}^{\chi},
   !C                      \bar{Q}_{a}^{\rho}
   !C                      Q_{a\para}
   !C                      Q_{a\zeta}
+  !C                      Q_{a}^{\chi}
   !C
   !C                     2014-02-14 H.SETO
   !C
@@ -904,8 +908,8 @@ CONTAINS
     USE T2COMM, ONLY:i0smax
     
     REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
-    REAL(   i0rkind),DIMENSION(1:6,1:i0smax)::fd2f0
-    REAL(   i0rkind),DIMENSION(1:i0smax)::d1t0
+    REAL(   i0rkind),DIMENSION(1:8,1:i0smax)::fd2f0
+    REAL(   i0rkind),DIMENSION(    1:i0smax)::d1t0
     REAL(   i0rkind)::d0fb,d0ft,d0t0
     INTEGER(i0ikind)::i0sidi
     
@@ -920,15 +924,12 @@ CONTAINS
           fd2f0(2,i0sidi) = d0fb
           fd2f0(3,i0sidi) = d0ft
           fd2f0(4,i0sidi) = 0.D0
-          fd2f0(5,i0sidi) = 2.5D0*d0t0*d0fb
-          fd2f0(6,i0sidi) = 2.5D0*d0t0*d0ft
-       ELSE
-          fd2f0(1,i0sidi) = 0.D0
-          fd2f0(2,i0sidi) = 0.D0
-          fd2f0(3,i0sidi) = 0.D0
-          fd2f0(4,i0sidi) = 0.D0
           fd2f0(5,i0sidi) = 0.D0
-          fd2f0(6,i0sidi) = 0.D0
+          fd2f0(6,i0sidi) = 2.5D0*d0t0*d0fb
+          fd2f0(7,i0sidi) = 2.5D0*d0t0*d0ft
+          fd2f0(8,i0sidi) = 2.5D0*d0t0*d0ft
+       ELSE
+          fd2f0(1:8,i0sidi) = 0.D0
        ENDIF
     ENDDO
     

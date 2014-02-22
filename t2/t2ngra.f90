@@ -191,16 +191,11 @@ CONTAINS
        ENDDO
        
        
-       d0rsiz = (d1rec(i0lidi)**2-d1rec(i0lidi-1)**2)/DBLE(i0rdn2)
+       d0rsiz = (d1rec(i0lidi)-d1rec(i0lidi-1))/DBLE(i0rdn2)
        d0psiz = 2.d0*d0pi/DBLE(i0pdn2)
        
-       d1rsiz(i0lidi) = d0rsiz
-       d1psiz(i0lidi) = d0psiz
-       d1msiz(i0lidi) = SQRT(d0rsiz*d0psiz)
-       
-       
        DO i1 = 1, i0rdn1
-          d1mcr1(i1) = d0rsiz*DBLE(i1-1)+d1rec(i0lidi-1)**2
+          d1mcr1(i1) = (d0rsiz*DBLE(i1-1)+d1rec(i0lidi-1))**2
           !d1mcr1(i1) = d0rsiz*DBLE(i1-1)+d1rec(i0lidi-1)
        ENDDO
        
