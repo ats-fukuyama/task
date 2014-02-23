@@ -223,9 +223,8 @@ CONTAINS
     rhonrho(nrho)=0.D0
     nnnrho(nrho)=1
 
-
     DO nl=1,nlmax
-       drho=(d1rec(nl)**2-d1rec(nl-1)**2)/i1rdn2(nl)
+       drho=(d1rec(nl)-d1rec(nl-1))/i1rdn2(nl)
        nchimaxl=i0pdiv_number*2**(i1mlvl(nl)-1)
        dchi=twopi/nchimaxl
        DO nchi=1,nchimaxl+1
@@ -234,32 +233,13 @@ CONTAINS
        DO nr=1,i1rdn2(nl)
           nrho=nrhonl(nl)+(nr-1)
           nlnrho(nrho)=nl
-          rho_temp = d1rec(nl-1)**2 + drho*nr
-          rhonrho(nrho)= SQRT(rho_temp)
+          rhonrho(nrho)=d1rec(nl-1)+drho*nr
           nnnrho(nrho)=nnnl(nl)+nchimaxl*(nr-1)
 !          write(6,'(A,4I5,1PE12.4)') &
 !               'nl,nr,nrho,nnnrho(nrho),rhonrho(nrho)=', &
 !               nl,nr,nrho,nnnrho(nrho),rhonrho(nrho)
        END DO
     END DO
-
-!    DO nl=1,nlmax
-!       drho=(d1rec(nl)-d1rec(nl-1))/i1rdn2(nl)
-!       nchimaxl=i0pdiv_number*2**(i1mlvl(nl)-1)
-!       dchi=twopi/nchimaxl
-!       DO nchi=1,nchimaxl+1
-!          chinl(nchi,nl)=dchi*(nchi-1)
-!       END DO
-!       DO nr=1,i1rdn2(nl)
-!          nrho=nrhonl(nl)+(nr-1)
-!          nlnrho(nrho)=nl
-!          rhonrho(nrho)=d1rec(nl-1)+drho*nr
-!          nnnrho(nrho)=nnnl(nl)+nchimaxl*(nr-1)
-!!          write(6,'(A,4I5,1PE12.4)') &
-!!               'nl,nr,nrho,nnnrho(nrho),rhonrho(nrho)=', &
-!!               nl,nr,nrho,nnnrho(nrho),rhonrho(nrho)
-!       END DO
-!    END DO
 
     RETURN
 

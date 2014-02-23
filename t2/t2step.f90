@@ -178,8 +178,11 @@ CONTAINS
 
     CASE (2)
        
-       DO i0vidi = 6,i0vmax
-          
+       DO i0vidi = 1,i0vmax
+          SELECT CASE (i0vidi)
+          CASE(11:15,21:25)
+             cycle
+          END SELECT
           d0dif  = d1dif(i0vidi)
           d0ave  = d1ave(i0vidi)
           

@@ -126,8 +126,8 @@ CONTAINS
     
     dt        = 1.D-4   ! time step [s]
     time_init = 0.D0    ! initial time [s]
-    ntmax     = 1000    ! number of time steps to go
-    ntstep    = 100      ! time step to print snap shot of global data
+    ntmax     = 10      ! number of time steps to go
+    ntstep    = 1       ! time step to print snap shot of global data
     nt0dmax   = 1       ! maximim number of global data to be saved
     nt0dstep  = 1       ! time step to save global data
     nt2dmax   = 1       ! maximum number of profile data to be saved
