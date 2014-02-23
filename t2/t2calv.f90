@@ -7,7 +7,7 @@
 !C      OF ADVECTION-DIFFUSION EQUATIONS 
 !C      FOR MULTI-FLUID TRANSPORT MODEL 
 !C 
-!C                       2014-02-12
+!C                       2014-02-23
 !C
 !C-------------------------------------------------------------------
 MODULE T2CALV
@@ -20,9 +20,10 @@ MODULE T2CALV
   INTEGER(i0ikind)::&
        i0midi
   REAL(   i0rkind)::&
-       d0cogrr,d0cogrp,d0cogpp,d0cogtt,d0sqrtg,d0mfcr,&
-       d0ctgrr,d0ctgrp,d0ctgpp,d0ctgtt,d0ugr,d0ugp,&
-       d0ctbp,d0cobt,d0ctbt,d0bp2,d0bt2,d0bb,d0bb2
+       d0cogrr,d0cogrp,d0cogpp,d0cogtt,&
+       d0ctgrr,d0ctgrp,d0ctgpp,d0ctgtt,&
+       d0sqrtg,d0mfcr, d0ugr,  d0ugp,  &
+       d0ctbp, d0cobt, d0ctbt,d0bp2,d0bt2,d0bb,d0bb2
   
   PRIVATE
   
@@ -1501,7 +1502,7 @@ CONTAINS
        i0vidj = i0vofi - 2
        d5dt(2,2,i0vidi,i0vidj,i0midi) &
             =  d0x1*d0c1_a
-       
+!       if(i0sidi.eq.1) print'(4D15.8)', d0x1*d0c1_a,d0x1,d0c1_a,d0nvcc1_a
        !C P
        i0vidj = i0vofi + 1
        d5dt(2,2,i0vidi,i0vidj,i0midi) &
