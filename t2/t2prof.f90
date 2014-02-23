@@ -117,12 +117,12 @@ CONTAINS
           d2xvec(i0vidi+ 2,i0xid2d) = d2f0(1,i0sidi)/d0frcst
           d2xvec(i0vidi+ 3,i0xid2d) = d2f0(2,i0sidi)/d0fbcst
           d2xvec(i0vidi+ 4,i0xid2d) = d2f0(3,i0sidi)/d0ftcst
-          d2xvec(i0vidi+ 5,i0xid2d) = d2f0(4,i0sidi)/d0ftcst
+          d2xvec(i0vidi+ 5,i0xid2d) = d2f0(4,i0sidi)/d0fpcst
           d2xvec(i0vidi+ 6,i0xid2d) = d1p0(  i0sidi)/d0ppcst
           d2xvec(i0vidi+ 7,i0xid2d) = d2f0(5,i0sidi)/d0qrcst
           d2xvec(i0vidi+ 8,i0xid2d) = d2f0(6,i0sidi)/d0qbcst
           d2xvec(i0vidi+ 9,i0xid2d) = d2f0(7,i0sidi)/d0qtcst
-          d2xvec(i0vidi+10,i0xid2d) = d2f0(8,i0sidi)/d0qtcst
+          d2xvec(i0vidi+10,i0xid2d) = d2f0(8,i0sidi)/d0qpcst
        ENDDO
     ENDDO
     
@@ -150,7 +150,7 @@ CONTAINS
   !C             + a2*(\sqrt{\rho}-rw)^3 
   !C             + a3*(\sqrt{\rho}-rw)^4 
   !C
-  !C                     2014-02-14 H.SETO
+  !C                     2014-02-23 H.SETO checked
   !C
   !C------------------------------------------------------------------
   FUNCTION fd1rf(i0m0,i0n0,d0fc,d0fs,d0fw,d0rw,d0rho)
@@ -248,7 +248,7 @@ CONTAINS
   !C
   !C INITITIAL PROFILE OF R (R,\phi,Z)
   !C
-  !C                     2014-02-14 H.SETO
+  !C                     2014-02-23 H.SETO checked
   !C
   !C-------------------------------------------------------------------
   FUNCTION fd0rzcr(d0mfcr,d0mfcp)
@@ -268,7 +268,7 @@ CONTAINS
   !C
   !C INITITIAL PROFILE OF Z (R,\phi, Z)
   !C
-  !C                     2014-02-14 H.SETO
+  !C                     2014-02-23 H.SETO checked
   !C
   !C-------------------------------------------------------------------
   FUNCTION fd0rzcz(d0mfcr,d0mfcp)
@@ -289,7 +289,7 @@ CONTAINS
   !C
   !C INITITIAL PROFILE OF METRIC COEFFICIENTS
   !C
-  !C                     2014-02-14 H.SETO
+  !C                     2014-02-23 H.SETO checked
   !C
   !C-------------------------------------------------------------------
   FUNCTION fd1mc(d0mfcr,d0mfcp)
@@ -339,7 +339,7 @@ CONTAINS
   !C
   !C INITITIAL PROFILE OF q
   !C
-  !C                     2014-02-14 H.SETO
+  !C                     2014-02-23 H.SETO checked
   !C
   !C-------------------------------------------------------------------
   FUNCTION fd0q0(d0mfcr,d0mfcp)
@@ -361,32 +361,12 @@ CONTAINS
     RETURN
     
   END FUNCTION fd0q0
-
-  !C-------------------------------------------------------------------
-  !C
-  !C INITITIAL PROFILE OF dq/d\rho
-  !C
-  !C                     2014-02-14 H.SETO
-  !C
-  !C-------------------------------------------------------------------
-  !  FUNCTION fd0q1(d0mfcr,d0mfcp)
-  !    
-  !    USE T2COMM, ONLY:d0qc,d0qs
-  !    
-  !    REAL(i0rkind),INTENT(IN)::d0mfcr,d0mfcp
-  !    REAL(i0rkind)::fd0q1
-  !    
-  !    fd0q1 = d0qs - d0qc
-  !    
-  !   RETURN
-  !   
-  ! END FUNCTION fd0q1
   
   !C-------------------------------------------------------------------
   !C
   !C INITITIAL PROFILE OF d\psi/d\rho
   !C
-  !C                     2014-02-14 H.SETO
+  !C                     2014-02-23 H.SETO checked
   !C
   !C-------------------------------------------------------------------
   FUNCTION fd0psip(d0mfcr,d0mfcp)
@@ -412,7 +392,7 @@ CONTAINS
   !C
   !C INITITIAL PROFILE OF I
   !C
-  !C                     2014-02-14 H.SETO
+  !C                     2014-02-23 H.SETO
   !C
   !C-------------------------------------------------------------------
   FUNCTION fd0cobt(d0mfcr,d0mfcp)
@@ -432,7 +412,7 @@ CONTAINS
   !C
   !C INITITIAL PROFILE OF B
   !C
-  !C                     2014-02-14 H.SETO
+  !C                     2014-02-23 H.SETO
   !C
   !C-------------------------------------------------------------------
   FUNCTION fd0bb(d0mfcr,d0mfcp)
@@ -440,14 +420,14 @@ CONTAINS
     REAL(i0rkind),INTENT(IN)::d0mfcr,d0mfcp
     REAL(i0rkind)::fd0bb
     REAL(i0rkind),DIMENSION(1:9)::d1mc
-    REAL(i0rkind)::d0psip,d0cobt,d0bb
+    REAL(i0rkind)::d0psip,d0cobt
     
     d0psip = fd0psip(d0mfcr,d0mfcp)
     d0cobt = fd0cobt(d0mfcr,d0mfcp)
     d1mc   = fd1mc(  d0mfcr,d0mfcp)
     
-    d0bb = (d0psip**2)*d1mc(6)+(d0cobt**2)
-    d0bb = d0bb*d1mc(9)
+    fd0bb = (d0psip**2)*d1mc(6)+(d0cobt**2)
+    fd0bb = fd0bb*d1mc(9)
     fd0bb = SQRT(d0bb)
     
     RETURN
@@ -458,7 +438,7 @@ CONTAINS
   !C
   !C INITITIAL PROFILE OF E_{\zeta}
   !C
-  !C                     2014-02-14 H.SETO
+  !C                     2014-02-23 H.SETO
   !C
   !C-------------------------------------------------------------------
   FUNCTION fd0coet(d0mfcr,d0mfcp)
