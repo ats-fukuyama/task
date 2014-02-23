@@ -49,7 +49,7 @@ CONTAINS
   SUBROUTINE T2_NLIN(NID,IST,IERR)
 
     USE T2COMM, ONLY: &
-         c10rname, i0dbg, i0fnum, i0mfcs, i0wstp,&
+         c10rname, i0dbg, i0fnum, i0mfcs, i0wstp, i0cchk,&
          i0dmax,i0qmax,&
 !         i0tmax, d0tstp, d0tmax,&
          i0smax, i0nmax, i0lmax, i1mlvl,&
@@ -68,7 +68,7 @@ CONTAINS
     INTEGER,INTENT(OUT) :: IST,IERR
 
     NAMELIST /T2/ &
-         c10rname, i0dbg, i0fnum, i0mfcs, i0wstp,&
+         c10rname, i0dbg, i0fnum, i0mfcs, i0wstp, i0cchk,&
          i0dmax,i0qmax,&
 !         i0tmax, d0tstp, d0tmax,&
          i0smax, i0nmax, i0lmax, i1mlvl,&
@@ -100,7 +100,7 @@ CONTAINS
   SUBROUTINE T2_PLST
 
     IMPLICIT NONE
-    WRITE(6,'(A)') '# &T2 : c10rname,i0dbg,i0fnum,i0mfcs,i0wstp,'
+    WRITE(6,'(A)') '# &T2 : c10rname,i0dbg,i0fnum,i0mfcs,i0wstp,i0cchk,'
     WRITE(6,'(A)') '        i0dmax,i0qmax,' !i0tmax,d0tstp,d0tmax,'
     WRITE(6,'(A)') '        i0smax,i0nmax,i0lmax,'
     WRITE(6,'(A)') '        i1mlvl,i0pdiv_number, i1rdn2, d1rec,'
@@ -141,7 +141,7 @@ CONTAINS
 
     USE T2COMM, ONLY: &
          c10rname, &
-         i0dbg, i0fnum, i0mfcs, i0wstp,&
+         i0dbg, i0fnum, i0mfcs, i0wstp, i0cchk,&
          i0dmax,i0qmax,&
 !         i0tmax, d0tstp, d0tmax,&
          i0smax, i0nmax, i0lmax, i1mlvl,&
@@ -176,7 +176,8 @@ CONTAINS
          'i0nmax       ',i0nmax, &
          'i0lmax       ',i0lmax
     WRITE(6,601) &
-         'i0pdiv_number',i0pdiv_number
+         'i0pdiv_number',i0pdiv_number, &
+         'i0cchk       ',i0cchk
 
     WRITE(6,'(A)') '      i1  i1mlvl  i1rdns       d1rec'
     DO i1=1,i0lmax
