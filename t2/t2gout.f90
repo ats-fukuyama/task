@@ -125,48 +125,33 @@ CONTAINS
        CASE(2)
           SELECT CASE(KWID(NW))
           CASE('RA')
-             DO I=1,5
-                CALL T2_GR(I,1, 29+I)
-             END DO
-             DO J=1,4
-                DO I=4*J+2,4*J+5
-                   CALL T2_GR(I,1, 28+I+J)
+             DO J=1,5
+                DO I=5*(J-1)+1,5*(J-1)+5
+                   CALL T2_GR(I,1, 29+I)
                 END DO
              END DO
           CASE('AA')
-             DO I=1,5
-                CALL T2_GR(I,11,29+I)
-             END DO
-             DO J=1,4
-                DO I=4*J+2,4*J+5
-                   CALL T2_GR(I,11,28+I+J)
+             DO J=1,5
+                DO I=5*(J-1)+1,5*(J-1)+5
+                   CALL T2_GR(I,11, 29+I)
                 END DO
              END DO
           CASE('CA')
-             DO I=1,5
-                CALL T2_GC(I, 1,29+I)
-             END DO
-             DO J=1,4
-                DO I=4*J+2,4*J+5
-                   CALL T2_GC(I, 1,28+I+J)
+             DO J=1,5
+                DO I=5*(J-1)+1,5*(J-1)+5
+                   CALL T2_GC(I,1, 29+I)
                 END DO
              END DO
           CASE('PA')
-             DO I=1,5
-                CALL T2_GC(I, 3,29+I)
-             END DO
-             DO J=1,4
-                DO I=4*J+2,4*J+5
-                   CALL T2_GC(I, 3,28+I+J)
+             DO J=1,5
+                DO I=5*(J-1)+1,5*(J-1)+5
+                   CALL T2_GC(I,3, 29+I)
                 END DO
              END DO
           CASE('BA')
-             DO I=1,5
-                CALL T2_GC(I,15,29+I)
-             END DO
-             DO J=1,4
-                DO I=4*J+2,4*J+5
-                   CALL T2_GC(I,15,28+I+J)
+             DO J=1,5
+                DO I=5*(J-1)+1,5*(J-1)+5
+                   CALL T2_GC(I,15, 29+I)
                 END DO
              END DO
           END SELECT
