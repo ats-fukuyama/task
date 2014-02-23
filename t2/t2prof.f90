@@ -42,8 +42,8 @@ CONTAINS
     
     USE T2COMM,ONLY:&
          d0mfcst,d0btcst,d0ercst,d0epcst,d0etcst,&
-         d0nncst,d0frcst,d0fbcst,d0ftcst,&
-         d0ppcst,d0qrcst,d0qbcst,d0qtcst,&
+         d0nncst,d0frcst,d0fbcst,d0ftcst,d0fpcst,&
+         d0ppcst,d0qrcst,d0qbcst,d0qtcst,d0qpcst,&
          i0smax,i0xmax,i0vmax,i0mmax,i1pdn1,i2crt,&
          d0rmnr,d0rmjr,d2mfc1,d2rzm, d2rzx, d2jm1,d2xvec
 
@@ -428,7 +428,7 @@ CONTAINS
     
     fd0bb = (d0psip**2)*d1mc(6)+(d0cobt**2)
     fd0bb = fd0bb*d1mc(9)
-    fd0bb = SQRT(d0bb)
+    fd0bb = SQRT(fd0bb)
     
     RETURN
 

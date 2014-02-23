@@ -41,7 +41,7 @@ CONTAINS
        i0xid2d = i2crt( 2,i0midi)
        i0xid1d = i2crt( 3,i0midi)
        d0mfcr  = d2mfc1(1,i0midi)
-       d0sqrtr = SQRT(d0mfcr) 
+       d0sqrtr = SQRT(d0mfcr)
        d0sqrtg = d2jm1( 1,i0midi)
        d0cogrr = d2jm1( 2,i0midi)
        d0cogrp = d2jm1( 3,i0midi)
@@ -133,7 +133,7 @@ CONTAINS
           d1ur_pu(i0sidi) = d1fr(i0sidi)*d0ni*SQRT(d0cogrr)*d0sqrtr
           
           !C
-          !C d1ub_pu: Radial velocity  [km/s]
+          !C d1ub_pu: Parallel velocity  [km/s]
           !C
           
           d1ub_pu(i0sidi) = d1fb(i0sidi)*d0ni*1.D-3

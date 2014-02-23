@@ -19,7 +19,7 @@ CONTAINS
   SUBROUTINE T2_INIT
     
     USE T2COMM, ONLY: &
-         c10rname, i0dbg, i0fnum, i0mfcs, i0wstp,&
+         c10rname, i0dbg, i0fnum, i0mfcs, i0wstp,i0cchk,  &
          i0solv,i0dmax,i0amax,i0nmax,i0smax,i0lmax,i0qmax,&
          i0smax, i0nmax,i0dmax, i1mlvl,&
          i0pdiv_number, i1rdn2, d1rec,&
@@ -49,11 +49,11 @@ CONTAINS
          idfile,idprint,idplot,idmode,idebug
     
     c10rname = 'TEST'
-    i0solv   =  1
-    i0dbg    =  0
-    i0fnum   = 10
-    i0mfcs   =  1
-    
+    i0solv  =  1
+    i0dbg   =  0
+    i0fnum  = 10
+    i0mfcs  =  1
+    i0cchk  =  1
     i0wstp  =  1  ! output timing
     i0supg  =  0
     i0dmax  =  2  ! mesh dim
@@ -63,19 +63,18 @@ CONTAINS
     i0smax =  2
     i0nmax =  4        ! number of nodes in a elemnt
     i0lmax =  1        ! 
-    i0pdiv_number = 50 ! 
+    i0pdiv_number = 10 ! 
 
 
     i1mlvl(0:i0lmaxm+1) = 0
     i1mlvl(1)=1        ! 10 x 2^0
     
     i1rdn2(-1:i0lmaxm) = 0  
-    i1rdn2(1) = 55   ! number of radial nodes in a level
+    i1rdn2(1) = 11   ! number of radial nodes in a level
 
 
     d1rec(0:i0lmaxm) = 0.D0 ! least radial point in a level
     d1rec(1) = 1.10D0
-
 
     d0rmjr   =  3.0D0
     d0rmnr   =  1.0D0

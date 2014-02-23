@@ -54,7 +54,9 @@ CONTAINS
        CALL T2CALV_SS
        
     ENDDO
-    RETURN
+
+    IF(i0cchk.EQ.0) RETURN
+
     WRITE(6,*)'********** COEFFICIENT CHECK START**********'
 
     DO
@@ -196,7 +198,7 @@ CONTAINS
          d0nvcc1_a,  d0nvcc2_a,  d0nvcc3_a,  d0nvcc4_a    
     
     REAL(i0rkind)::&
-         d0rzcr,d0mfcr,d0mfcp,d0psip,&
+         d0rzcr,d0psip,d0mfcp,&
          d0cps,d0cbn,d0wv2,d0wv3,d0temp,d0temp2,d0temp3,&
          d0k11,d0k11ps,d0k11bn,&
          d0k12,d0k12ps,d0k12bn,&
@@ -836,7 +838,7 @@ CONTAINS
     i0vidi = 4
     i0vidj = 4
     d3ms(i0vidi,i0vidj,i0midi) = d0sqrtg*d0mfcr*d0vci2
-    
+
     DO i0sidi = 1, i0smax
        
        i0vofi = 10*i0sidi
@@ -1477,8 +1479,8 @@ CONTAINS
        d0usr_a = d0ur_a
        d0usp_a = d0up_a - d0ub_a*3.D0*d0ctbp/d0bb
        
-       d0c1_a = d0nvcc1_a*d0ni_a*d0mi_a
-       d0c2_a = d0nvcc2_a*d0pi_a*d0mi_a
+       d0c1_a = d0nvcc1_a*d0ni_a       *d0mi_a
+       d0c2_a = d0nvcc2_a*d0pi_a       *d0mi_a
        d0c3_a = d0nvcc1_a*d0ni_a
        d0c4_a = d0nvcc2_a*d0pi_a
        d0c5_a = d0nvcc3_a*d0tt_a*d0ni_a*d0mi_a
@@ -1494,7 +1496,7 @@ CONTAINS
        i0vidj = i0vofi - 4
        d5dt(2,2,i0vidi,i0vidj,i0midi) &
             = -d0x1*d0c1_a*d0ub_a * d0nncst/d0fbcst
-
+       
        !C Fb
        i0vidj = i0vofi - 2
        d5dt(2,2,i0vidi,i0vidj,i0midi) &

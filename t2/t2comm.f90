@@ -58,10 +58,11 @@ MODULE T2COMM
        i0mfcs, & !C INDICATOR FOR COORDINATE SYSTEM (1: torus coordinate)
        i0supg, & !C INDICATOR FOR SUPG METHOD (0: w/o SUPG, 1: w SUPG)
        i0wstp, & !C INDICATOR FOR RESULT OUTPUT TIMING
-       i0solv    !C INDICATOR FOR SOLVED DEPENDENT VARIAVLES
+       i0solv, & !C INDICATOR FOR SOLVED DEPENDENT VARIAVLES
                  !C      1: ELECTRON
                  !C      2: ELECTRON AND IONS
                  !C      3: ELECTRON, IONS AND FIELDS  
+       i0cchk    !C INDICATOR FOR COEFFICIENT CHECK (1: coefs check)
   INTEGER(i0ikind)::&
        i0bvmax,& !C VECTOR SIZE OF b FOR MTXP (Ax=b)
        i0avmax   !C NUMBER OF NONZERO COMPONENT OF A FOR MTXP (Ax=b)
