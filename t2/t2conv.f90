@@ -27,7 +27,7 @@ CONTAINS
          d0sqrtg,d0mfcr,d0sqrtr,&
          d0ctgrr,d0ctgrp,d0ctgpp,d0ctgtt,&
          d0cogrr,d0cogrp,d0cogpp,d0cogtt,&
-         d0nn,d0ni,d0tt,d0qr,d0qb,d0qt,&
+         d0nn,d0ni,d0tt,d0qr,d0qb,d0qt,d0qp,&
          d0psip,d0cobt,d0coet,d0coep,d0coer 
    
     REAL(   i0rkind),DIMENSION(1:i0smax)::&
@@ -171,12 +171,21 @@ CONTAINS
           d0qb = d1qb(i0sidi) - 2.5D0*d0tt*d1fb(i0sidi)
           d1qb_pu(i0sidi) = d0qb*1.D-6
           
+
           !C 
           !C d1qb_pu: Toroidal heat Flux [MJ*m/s]
           !C
           
           d0qt = d1qt(i0sidi) - 2.5D0*d0tt*d1ft(i0sidi)
           d1qt_pu(i0sidi) = d0qt*SQRT(d0ctgtt)*1.D-6
+
+          !C 
+          !C d1qp_pu: Toroidal heat Flux [MJ*m/s]
+          !C
+          
+          d0qp = d1qp(i0sidi) - 2.5D0*d0tt*d1fp(i0sidi)
+          d1qp_pu(i0sidi) = d0qp*SQRT(d0cogpp)*1.D-6
+
        ENDDO
        
        d2xout(1,i0xid2d) = d0bp_pu

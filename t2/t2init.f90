@@ -53,7 +53,7 @@ CONTAINS
     i0dbg   =  0
     i0fnum  = 10
     i0mfcs  =  1
-    i0cchk  =  1
+    i0cchk  =  0
     i0wstp  =  1  ! output timing
     i0supg  =  0
     i0dmax  =  2  ! mesh dim
@@ -125,7 +125,7 @@ CONTAINS
     
     dt        = 1.D-4   ! time step [s]
     time_init = 0.D0    ! initial time [s]
-    ntmax     = 10      ! number of time steps to go
+    ntmax     = 1      ! number of time steps to go
     ntstep    = 1       ! time step to print snap shot of global data
     nt0dmax   = 1       ! maximim number of global data to be saved
     nt0dstep  = 1       ! time step to save global data
