@@ -34,12 +34,9 @@ CONTAINS
   SUBROUTINE T2_CALV
     
     !USE T2COMM, ONLY: i0mmax
-    USE T2COMM
-    USE T2COUT, ONLY: T2_COUT
-    INTEGER(i0ikind)::&
-         i0didi,i0widi,i0vidi,&
-         i0didj,i0widj,i0vidj
-    CHARACTER(LEN=2)::c2coef
+    USE T2COMM, ONLY: i0mmax,i0cchk
+    USE T2CCHK, ONLY: T2_CCHK
+
     DO i0midi = 1, i0mmax
        
        CALL T2CALV_PQ
@@ -55,99 +52,8 @@ CONTAINS
        CALL T2CALV_SS
        
     ENDDO
-
-    IF(i0cchk.EQ.0) RETURN
-
-    WRITE(6,*)'********** COEFFICIENT CHECK START**********'
-
-    DO
-       WRITE(6,*)'ms,av,at,dt,gv,gt,es,ev,et xx/exit'
-       READ(5,*)c2coef
-       SELECT CASE (c2coef)
-       CASE ('ms')
-          WRITE(6,*)'i0vidi,i0vidj'
-          READ(5,*)  i0vidi,i0vidj
-          IF(  (i0vidi.GT.i0vmax).OR.(i0vidi.LT.0).OR.&
-               (i0vidj.GT.i0vmax).OR.(i0vidj.LT.0)) CYCLE
-          CALL T2_COUT(d3ms(i0vidi,i0vidj,1:i0mmax))
-       CASE ('av')
-          WRITE(6,*)'i0didi,i0vidi,i0vidj'
-          READ(5,*)  i0didi,i0vidi,i0vidj
-          IF(  (i0vidi.GT.i0vmax).OR.(i0vidi.LT.0).OR.&
-               (i0vidj.GT.i0vmax).OR.(i0vidj.LT.0).OR.&
-               (i0didi.GT.i0dmax).OR.(i0didi.LT.0)) CYCLE
-          CALL T2_COUT(d4av(i0didi,i0vidi,i0vidj,1:i0mmax))
-       CASE ('at')
-          WRITE(6,*)'i0didi,i0didj,i0widi,i0vidi,i0vidj'
-          READ(5,*)  i0didi,i0didj,i0widi,i0vidi,i0vidj
-          IF(  (i0vidi.GT.i0vmax).OR.(i0vidi.LT.0).OR.&
-               (i0vidj.GT.i0vmax).OR.(i0vidj.LT.0).OR.&
-               (i0widi.GT.i0wmax).OR.(i0widi.LT.0).OR.&
-               (i0didi.GT.i0dmax).OR.(i0didi.LT.0).OR.&
-               (i0didj.GT.i0dmax).OR.(i0didj.LT.0)) CYCLE
-          CALL T2_COUT(d6at(i0didi,i0didj,i0widi,i0vidi,i0vidj,1:i0mmax))
-       CASE ('dt')
-          WRITE(6,*)'i0didi,i0didj,i0vidi,i0vidj'
-          READ(5,*)  i0didi,i0didj,i0vidi,i0vidj
-          IF(  (i0vidi.GT.i0vmax).OR.(i0vidi.LT.0).OR.&
-               (i0vidj.GT.i0vmax).OR.(i0vidj.LT.0).OR.&
-               (i0didi.GT.i0dmax).OR.(i0didi.LT.0).OR.&
-               (i0didj.GT.i0dmax).OR.(i0didj.LT.0)) CYCLE
-          CALL T2_COUT(d5dt(i0didi,i0didj,i0vidi,i0vidj,1:i0mmax))
-       CASE ('gv')
-          WRITE(6,*)'i0didi,i0vidi,i0vidj'
-          READ(5,*)  i0didi,i0vidi,i0vidj
-          IF(  (i0vidi.GT.i0vmax).OR.(i0vidi.LT.0).OR.&
-               (i0vidj.GT.i0vmax).OR.(i0vidj.LT.0).OR.&
-               (i0didi.GT.i0dmax).OR.(i0didi.LT.0)) CYCLE
-          CALL T2_COUT(d4gv(i0didi,i0vidi,i0vidj,1:i0mmax))
-       CASE ('gt')
-          WRITE(6,*)'i0didi,i0didj,i0widi,i0vidi,i0vidj'
-          READ(5,*)  i0didi,i0didj,i0widi,i0vidi,i0vidj
-          IF(  (i0vidi.GT.i0vmax).OR.(i0vidi.LT.0).OR.&
-               (i0vidj.GT.i0vmax).OR.(i0vidj.LT.0).OR.&
-               (i0widi.GT.i0wmax).OR.(i0widi.LT.0).OR.&
-               (i0didi.GT.i0dmax).OR.(i0didi.LT.0).OR.&
-               (i0didj.GT.i0dmax).OR.(i0didj.LT.0)) CYCLE
-          CALL T2_COUT(d6gt(i0didi,i0didj,i0widi,i0vidi,i0vidj,1:i0mmax))
-       CASE ('es')
-          WRITE(6,*)'i0vidi,i0vidj'
-          READ(5,*)  i0vidi,i0vidj
-          IF(  (i0vidi.GT.i0vmax).OR.(i0vidi.LT.0).OR.&
-               (i0vidj.GT.i0vmax).OR.(i0vidj.LT.0)) CYCLE
-          CALL T2_COUT(d3es(i0vidi,i0vidj,1:i0mmax))
-       CASE ('ev')
-          WRITE(6,*)'i0didi,i0widi,i0vidi,i0vidj'
-          READ(5,*)  i0didi,i0widi,i0vidi,i0vidj
-          IF(  (i0vidi.GT.i0vmax).OR.(i0vidi.LT.0).OR.&
-               (i0vidj.GT.i0vmax).OR.(i0vidj.LT.0).OR.&
-               (i0widi.GT.i0wmax).OR.(i0widi.LT.0).OR.&
-               (i0didi.GT.i0dmax).OR.(i0didi.LT.0)) CYCLE
-          CALL T2_COUT(d5ev(i0didi,i0widi,i0vidi,i0vidj,1:i0mmax))
-       CASE ('et')
-          WRITE(6,*)'i0didi,i0didj,i0widi,i0widj,i0vidi,i0vidj'
-          READ(5,*)  i0didi,i0didj,i0widi,i0widj,i0vidi,i0vidj
-          IF(  (i0vidi.GT.i0vmax).OR.(i0vidi.LT.0).OR.&
-               (i0vidj.GT.i0vmax).OR.(i0vidj.LT.0).OR.&
-               (i0widi.GT.i0wmax).OR.(i0widi.LT.0).OR.&
-               (i0widj.GT.i0wmax).OR.(i0widj.LT.0).OR.&
-               (i0didi.GT.i0dmax).OR.(i0didi.LT.0).OR.&
-               (i0didj.GT.i0dmax).OR.(i0didj.LT.0)) CYCLE
-          CALL T2_COUT(d7et(i0didi,i0didj,i0widi,i0widj,i0vidi,i0vidj,1:i0mmax))
-       CASE ('ss')
-          WRITE(6,*)'i0vidi,i0vidj'
-          READ(5,*)  i0vidi,i0vidj
-          IF(  (i0vidi.GT.i0vmax).OR.(i0vidi.LT.0).OR.&
-               (i0vidj.GT.i0vmax).OR.(i0vidj.LT.0)) CYCLE
-          CALL T2_COUT(d3ss(i0vidi,i0vidj,1:i0mmax))
-       CASE ('xx')
-          EXIT
-       CASE DEFAULT
-          CYCLE
-       END SELECT
-    ENDDO
     
-    WRITE(6,*)'********** COEFFICIENT CHECK END  **********'
+    IF(i0cchk.EQ.1) CALL T2_CCHK
     
     RETURN
     
@@ -778,7 +684,7 @@ CONTAINS
   !C 
   !C CALCULATION OF MASS SCALAR COEFFICIENTS
   !C
-  !C             2014-02-22 H.SETO
+  !C             2014-02-25 H.SETO
   !C
   !C---------------------------------------------------------
   
@@ -901,9 +807,9 @@ CONTAINS
        i0vidi = i0vofi + 4
        
        !C Qt       
-       i0vidj = i0vofi
+       i0vidj = i0vofi + 4
        d3ms(i0vidi,i0vidj,i0midi) = d0sqrtg
-
+       
     ENDDO
     
     RETURN
