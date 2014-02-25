@@ -91,15 +91,10 @@ CONTAINS
        
        !C PSI'
        d2xvec(1,i0xid1d) = fd0psip(d0mfcr,d0mfcp)/d0mfcst 
-       !d2xvec(1,i0xid2d) = fd0psip(d0mfcr,d0mfcp)/d0mfcst 
-       
        !C I
        d2xvec(2,i0xid1d) = fd0cobt(d0mfcr,d0mfcp)/d0btcst 
-       !d2xvec(2,i0xid2d) = fd0cobt(d0mfcr,d0mfcp)/d0btcst 
-
        !C E_{\zeta}
        d2xvec(3,i0xid1d) = fd0coet(d0mfcr,d0mfcp)/d0etcst 
-       !d2xvec(3,i0xid2d) = fd0coet(d0mfcr,d0mfcp)/d0etcst 
        !C \bar{E}_{\chi }
        d2xvec(4,i0xid2d) = fd0coep(d0mfcr,d0mfcp)/d0epcst
        !C E_{\rho }
@@ -244,6 +239,7 @@ CONTAINS
     RETURN
     
   END FUNCTION fd1rf
+
   !C-------------------------------------------------------------------
   !C
   !C INITITIAL PROFILE OF R (R,\phi,Z)
@@ -904,10 +900,11 @@ CONTAINS
           fd2f0(2,i0sidi) = d0fb
           fd2f0(3,i0sidi) = d0ft
           fd2f0(4,i0sidi) = 0.D0
+
           fd2f0(5,i0sidi) = 0.D0
           fd2f0(6,i0sidi) = 2.5D0*d0t0*d0fb
           fd2f0(7,i0sidi) = 2.5D0*d0t0*d0ft
-          fd2f0(8,i0sidi) = 2.5D0*d0t0*d0ft
+          fd2f0(8,i0sidi) = 0.D0
        ELSE
           fd2f0(1:8,i0sidi) = 0.D0
        ENDIF

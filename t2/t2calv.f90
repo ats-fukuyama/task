@@ -73,8 +73,8 @@ CONTAINS
     
     USE T2COMM,ONLY:&
          d0mfcst,d0btcst,d0ercst,d0epcst,d0etcst,&
-         d0nncst,d0frcst,d0fbcst,d0ftcst,&
-         d0ppcst,d0qrcst,d0qbcst,d0qtcst,&
+         d0nncst,d0frcst,d0fbcst,d0ftcst,d0fpcst,&
+         d0ppcst,d0qrcst,d0qbcst,d0qtcst,d0qpcst,&
          i0xa,i0vmax,d0rmjr,d0iar,&
          i2crt,d2mtrc,&
          d2xvec_befor,d2mfc1,d2rzm,d2jm1,d2ws,&
@@ -179,34 +179,41 @@ CONTAINS
        i0nflag = 0
        i0vidi =  10*i0sidi - 5
        
-       d0nn_a = d2xvec_befor(i0vidi+1,i0xid2d)*1.D-20
-       d0pp_a = d2xvec_befor(i0vidi+6,i0xid2d)*1.D-23/d0aee
+       d0nn_a = d2xvec_befor(i0vidi+1,i0xid2d)! 10^{20}m^{-3}
+       d0pp_a = d2xvec_befor(i0vidi+6,i0xid2d)! keV*10^{20}m^{-3}
        
-       !d1nn(i0sidi) = d0nncst*d2xvec_befor(i0vidi+1,i0xid2d)
-       !d1fr(i0sidi) = d0frcst*d2xvec_befor(i0vidi+2,i0xid2d)
-       !d1fb(i0sidi) = d0fbcst*d2xvec_befor(i0vidi+3,i0xid2d)
-       !d1ft(i0sidi) = d0ftcst*d2xvec_befor(i0vidi+4,i0xid2d)
-       !d1pp(i0sidi) = d0ppcst*d2xvec_befor(i0vidi+5,i0xid2d)
-       !d1qr(i0sidi) = d0qrcst*d2xvec_befor(i0vidi+6,i0xid2d)
-       !d1qb(i0sidi) = d0qbcst*d2xvec_befor(i0vidi+7,i0xid2d)
-       !d1qt(i0sidi) = d0qtcst*d2xvec_befor(i0vidi+8,i0xid2d)
+       !d0nn_a = d2xvec_befor(i0vidi+1,i0xid2d)*1.D-20
+       !d0pp_a = d2xvec_befor(i0vidi+6,i0xid2d)*1.D-23/d0aee
        
-       d1nn(i0sidi) = d2xvec_befor(i0vidi+ 1,i0xid2d)
-       d1fr(i0sidi) = d2xvec_befor(i0vidi+ 2,i0xid2d)*d0mfcr
-       d1fb(i0sidi) = d2xvec_befor(i0vidi+ 3,i0xid2d)
-       d1ft(i0sidi) = d2xvec_befor(i0vidi+ 4,i0xid2d)
-       d1fp(i0sidi) = d2xvec_befor(i0vidi+ 5,i0xid2d)
-       d1pp(i0sidi) = d2xvec_befor(i0vidi+ 6,i0xid2d)
-       d1qr(i0sidi) = d2xvec_befor(i0vidi+ 7,i0xid2d)*d0mfcr
-       d1qb(i0sidi) = d2xvec_befor(i0vidi+ 8,i0xid2d)
-       d1qt(i0sidi) = d2xvec_befor(i0vidi+ 9,i0xid2d)
-       d1qp(i0sidi) = d2xvec_befor(i0vidi+10,i0xid2d)
+       d1nn(i0sidi) = d0nncst*d2xvec_befor(i0vidi+ 1,i0xid2d)
+       d1fr(i0sidi) = d0frcst*d2xvec_befor(i0vidi+ 2,i0xid2d)*d0mfcr
+       d1fb(i0sidi) = d0fbcst*d2xvec_befor(i0vidi+ 3,i0xid2d)
+       d1ft(i0sidi) = d0ftcst*d2xvec_befor(i0vidi+ 4,i0xid2d)
+       d1fp(i0sidi) = d0fpcst*d2xvec_befor(i0vidi+ 5,i0xid2d)
+       
+       d1pp(i0sidi) = d0ppcst*d2xvec_befor(i0vidi+ 6,i0xid2d)
+       d1qr(i0sidi) = d0qrcst*d2xvec_befor(i0vidi+ 7,i0xid2d)*d0mfcr
+       d1qb(i0sidi) = d0qbcst*d2xvec_befor(i0vidi+ 8,i0xid2d)
+       d1qt(i0sidi) = d0qtcst*d2xvec_befor(i0vidi+ 9,i0xid2d)
+       d1qp(i0sidi) = d0qpcst*d2xvec_befor(i0vidi+10,i0xid2d)
+       
+       !d1nn(i0sidi) = d2xvec_befor(i0vidi+ 1,i0xid2d)
+       !d1fr(i0sidi) = d2xvec_befor(i0vidi+ 2,i0xid2d)*d0mfcr
+       !d1fb(i0sidi) = d2xvec_befor(i0vidi+ 3,i0xid2d)
+       !d1ft(i0sidi) = d2xvec_befor(i0vidi+ 4,i0xid2d)
+       !d1fp(i0sidi) = d2xvec_befor(i0vidi+ 5,i0xid2d)
+       !d1pp(i0sidi) = d2xvec_befor(i0vidi+ 6,i0xid2d)
+       !d1qr(i0sidi) = d2xvec_befor(i0vidi+ 7,i0xid2d)*d0mfcr
+       !d1qb(i0sidi) = d2xvec_befor(i0vidi+ 8,i0xid2d)
+       !d1qt(i0sidi) = d2xvec_befor(i0vidi+ 9,i0xid2d)
+       !d1qp(i0sidi) = d2xvec_befor(i0vidi+10,i0xid2d)
        
        !write(10,'(2(A4,I5),8(A4,D15.8))')'ND=',i0midi,'SP=',i0sidi,&
        !     'NN=',d1nn(i0sidi),'FR=',d1fr(i0sidi),&
        !     'FB=',d1fb(i0sidi),'FT=',d1ft(i0sidi),&
        !     'PP=',d1pp(i0sidi),'QR=',d1qr(i0sidi),&
        !     'QB=',d1qb(i0sidi),'QT=',d1qt(i0sidi)
+       
        IF(        d0nn_a .GT.0.D0 )THEN
           d1ni(i0sidi) = 1.D0/d1nn(i0sidi)
        ELSE
@@ -276,8 +283,8 @@ CONTAINS
     d0ugr = 0.D0
     d0ugp = 0.D0
     !F for debug
-    d0ugr = 1.D0
-    d0ugp = 1.D0
+    !d0ugr = 1.D0
+    !d0ugp = 1.D0
     
 
     d0bp2 = (d0ctbp**2)*d0cogpp

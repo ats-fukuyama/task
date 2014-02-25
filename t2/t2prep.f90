@@ -56,23 +56,26 @@ CONTAINS
     d0qtcst = 1.D0
     d0qpcst = 1.D0
 
-!    d0mfcst = 1.D0
-!    d0btcst = 1.D0/d0iar
-!    d0ercst = 1.D4
-!    d0epcst = 1.D0
-!    d0etcst = 1.D0
-!    d0nncst = 1.D20
-!    d0frcst = 1.D20 
-!    d0fbcst = 1.D23
-!    d0ftcst = 1.D23/d0iar
-!    d0ppcst = d0aee*1.D23
-!    d0qrcst = d0aee*1.D23
-!    d0qbcst = d0aee*1.D26
-!    d0qtcst = d0aee*1.D26/d0iar
+    !d0mfcst = 1.D0
+    !d0btcst = 1.D0
+    !d0ercst = 1.D3
+    !d0epcst = 1.D0
+    !d0etcst = 1.D0/d0iar
     
-
+    !d0nncst = 1.D20
+    !d0frcst = 1.D20 
+    !d0fbcst = 1.D23
+    !d0ftcst = 1.D23/d0iar
+    !d0fpcst = 1.D23
+    
+    !d0ppcst = d0aee*1.D23
+    !d0qrcst = d0aee*1.D23
+    !d0qbcst = d0aee*1.D26
+    !d0qtcst = d0aee*1.D26/d0iar
+    !d0qpcst = d0aee*1.D26
+    
     CALL T2NGRA_ALLOCATE
-
+    
     DO i0lidi = 1, i0lmax
        i0mlvl=i1mlvl(i0lidi)-1
        i1pdn2(i0lidi) = i0pdiv_number*(2**i0mlvl)   
