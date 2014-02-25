@@ -67,7 +67,7 @@ CONTAINS
              IF(  (i0vidi.GT.i0vmax).OR.(i0vidi.LT.1).OR.&
                   (i0vidj.GT.i0vmax).OR.(i0vidj.LT.1).OR.&
                   (i0didi.GT.i0dmax).OR.(i0didi.LT.1).OR.&
-                  (i0didj.GT.i0dmax).OR.(i0didj.LT.1)) CYCLE
+                  (i0didj.GT.i0dmax).OR.(i0didj.LT.1)) EXIT
              CALL T2_COUT(d5dt(i0didi,i0didj,i0vidi,i0vidj,1:i0mmax))
           ENDDO
        CASE ('gv')
@@ -76,7 +76,7 @@ CONTAINS
              READ(5,*)  i0didi,i0vidi,i0vidj
              IF(  (i0vidi.GT.i0vmax).OR.(i0vidi.LT.1).OR.&
                   (i0vidj.GT.i0vmax).OR.(i0vidj.LT.1).OR.&
-                  (i0didi.GT.i0dmax).OR.(i0didi.LT.1)) CYCLE
+                  (i0didi.GT.i0dmax).OR.(i0didi.LT.1)) EXIT
              CALL T2_COUT(d4gv(i0didi,i0vidi,i0vidj,1:i0mmax))
           ENDDO
        CASE ('gt')
@@ -87,7 +87,7 @@ CONTAINS
                   (i0vidj.GT.i0vmax).OR.(i0vidj.LT.1).OR.&
                   (i0widi.GT.i0wmax).OR.(i0widi.LT.1).OR.&
                   (i0didi.GT.i0dmax).OR.(i0didi.LT.1).OR.&
-                  (i0didj.GT.i0dmax).OR.(i0didj.LT.1)) CYCLE
+                  (i0didj.GT.i0dmax).OR.(i0didj.LT.1)) EXIT
              CALL T2_COUT(d6gt(i0didi,i0didj,i0widi,i0vidi,i0vidj,1:i0mmax))
           ENDDO
        CASE ('es')
@@ -95,7 +95,7 @@ CONTAINS
              WRITE(6,*)'i0vidi,i0vidj'
              READ(5,*)  i0vidi,i0vidj
              IF(  (i0vidi.GT.i0vmax).OR.(i0vidi.LT.1).OR.&
-                  (i0vidj.GT.i0vmax).OR.(i0vidj.LT.1)) CYCLE
+                  (i0vidj.GT.i0vmax).OR.(i0vidj.LT.1)) EXIT
              CALL T2_COUT(d3es(i0vidi,i0vidj,1:i0mmax))
           ENDDO
        CASE ('ev')
@@ -105,7 +105,7 @@ CONTAINS
              IF(  (i0vidi.GT.i0vmax).OR.(i0vidi.LT.1).OR.&
                   (i0vidj.GT.i0vmax).OR.(i0vidj.LT.1).OR.&
                   (i0widi.GT.i0wmax).OR.(i0widi.LT.1).OR.&
-                  (i0didi.GT.i0dmax).OR.(i0didi.LT.1)) CYCLE
+                  (i0didi.GT.i0dmax).OR.(i0didi.LT.1)) EXIT
              CALL T2_COUT(d5ev(i0didi,i0widi,i0vidi,i0vidj,1:i0mmax))
           ENDDO
        CASE ('et')
@@ -117,7 +117,7 @@ CONTAINS
                   (i0widi.GT.i0wmax).OR.(i0widi.LT.1).OR.&
                   (i0widj.GT.i0wmax).OR.(i0widj.LT.1).OR.&
                   (i0didi.GT.i0dmax).OR.(i0didi.LT.1).OR.&
-                  (i0didj.GT.i0dmax).OR.(i0didj.LT.1)) CYCLE
+                  (i0didj.GT.i0dmax).OR.(i0didj.LT.1)) EXIT
              CALL T2_COUT(d7et(i0didi,i0didj,i0widi,i0widj,&
                   &            i0vidi,i0vidj,1:i0mmax))
           ENDDO
@@ -126,7 +126,7 @@ CONTAINS
              WRITE(6,*)'i0vidi,i0vidj'
              READ(5,*)  i0vidi,i0vidj
              IF(  (i0vidi.GT.i0vmax).OR.(i0vidi.LT.1).OR.&
-                  (i0vidj.GT.i0vmax).OR.(i0vidj.LT.1)) CYCLE
+                  (i0vidj.GT.i0vmax).OR.(i0vidj.LT.1)) EXIT
              CALL T2_COUT(d3ss(i0vidi,i0vidj,1:i0mmax))
           ENDDO
        CASE ('xx')

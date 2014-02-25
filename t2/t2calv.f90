@@ -275,6 +275,9 @@ CONTAINS
     
     d0ugr = 0.D0
     d0ugp = 0.D0
+    !F for debug
+    d0ugr = 1.D0
+    d0ugp = 1.D0
     
 
     d0bp2 = (d0ctbp**2)*d0cogpp
