@@ -276,15 +276,14 @@ CONTAINS
     d0ctgrp = d2jm1(7,i0midi)
     d0ctgpp = d2jm1(8,i0midi)
     d0ctgtt = d2jm1(9,i0midi)
-    
     d0ctbp = d0psip/d0sqrtg
     d0ctbt = d0cobt*d0ctgtt
     
     d0ugr = 0.D0
     d0ugp = 0.D0
     !F for debug
-    !d0ugr = 1.D0
-    !d0ugp = 1.D0
+    d0ugr = 1.D0
+    d0ugp = 1.D0
     
 
     d0bp2 = (d0ctbp**2)*d0cogpp
@@ -600,8 +599,8 @@ CONTAINS
     !C d1nvcm3 : NEOCLASSICAL VISCOSITY COEFFICIENT     : \mu_{3a} 
     !C
     d0temp  = SQRT(d0mfcr)!FOR DEBUG
-    IF(d0temp.LT.5.D-3)THEN
-       d0temp = 5.D-3
+    IF(d0temp.LT.5.D-2)THEN
+       d0temp = 5.D-2
     ENDIF
     d0temp  = d0iar*d0temp
     d0temp  = SQRT(d0temp)
@@ -1418,11 +1417,12 @@ CONTAINS
        i0vidj = i0vofi - 2
        d5dt(2,2,i0vidi,i0vidj,i0midi) &
             =  d0x1*d0c1_a
-!       if(i0sidi.eq.1) print'(4D15.8)', d0x1*d0c1_a,d0x1,d0c1_a,d0nvcc1_a
+       
        !C P
        i0vidj = i0vofi + 1
        d5dt(2,2,i0vidi,i0vidj,i0midi) &
             = -d0x1*d0c2_a*d0wb_a * d0ppcst/d0fbcst
+
        !C Qb
        i0vidj = i0vofi + 3
        d5dt(2,2,i0vidi,i0vidj,i0midi) &
@@ -1578,7 +1578,6 @@ CONTAINS
     !C Et
     i0vidj = 3
     d4gv(1,i0vidi,i0vidj,i0midi) = -d0sqrtg * d0etcst/d0mfcst
-    
     !C
     !C EQUATION FOR I
     !C
