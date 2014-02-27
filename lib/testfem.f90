@@ -213,22 +213,21 @@ program testfem
          do nr=1,nrmax
             IF(nr.EQ.1) THEN
                IF(ABS(nth).eq.1) THEN
-                  cf2(nr,1)=ci*fvx(8*(nr-1)+3)
-                  cf2(nr,2)=ci*nth*fvx(8*(nr-1)+8)
+                  cf2(nr,1)= ci    *fvx(8*(nr-1)+3)
+                  cf2(nr,2)=-ci*nth*fvx(8*(nr-1)+8)
                ELSE
                   cf2(nr,1)=0.D0
                   cf2(nr,2)=0.D0
                ENDIF
-               cf2(nr,3)=cf2(nr,1)+cf2(nr,2)
             ELSE
                rho0=rho(nr)
                rkth=nth/rho0
-               cf2(nr,1)= ci*fvx(8*(nr-1)+3)
+               cf2(nr,1)= ci     *fvx(8*(nr-1)+3)
                cf2(nr,2)=-ci*rkth*fvx(8*(nr-1)+7)
             ENDIF
             rkph=nph
             cf1(nr,1)= ci*fvx(8*(nr-1)+1)
-            cf1(nr,2)=    fvx(8*(nr-1)+8)
+            cf1(nr,2)=-   fvx(8*(nr-1)+8)
             cf3(nr,1)= ci*fvx(8*(nr-1)+5)
             cf3(nr,2)=-ci*rkph*fvx(8*(nr-1)+7)
 

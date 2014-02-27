@@ -233,8 +233,6 @@
          enddo
          fma(mc,1)=-ci*nth
          fma(mc+2,1)=1.D0
-         fma(mc+6,1)=0.D0
-         fma(mc+7,1)=0.D0
          fma(mc,5)=1.d0
          fma(mc,7)=1.d0
          fvb(1)=0.d0
@@ -288,7 +286,6 @@
          fma(mw,mlmax-1) = 0.d0
       enddo
       fma(mc,mlmax-7) = 1.d0
-      fma(mc+1,mlmax-7) = 1.d0
       fma(mc,mlmax-5) = 1.d0
       fma(mc,mlmax-3) = 1.d0
       fma(mc,mlmax-1) = 1.d0
