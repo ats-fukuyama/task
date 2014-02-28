@@ -170,7 +170,7 @@ CONTAINS
                 DO 
                    WRITE(6,*)'i0vidj,i0widi,i0widj,i0didi,i0didj'
                    READ(5,*)  i0vidj,i0widi,i0widj,i0didi,i0didj
-                   IF(i0vidi.EQ.0)THEN
+                   IF(i0vidj.EQ.0)THEN
                       EXIT
                    ELSEIF((i0vidj.GT.i0vmax).OR.(i0vidj.LT.1).OR.&
                         (  i0widi.GT.i0wmax).OR.(i0widi.LT.1).OR.&

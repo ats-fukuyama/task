@@ -68,21 +68,23 @@ MODULE T2COMM
        i0avmax   !C NUMBER OF NONZERO COMPONENT OF A FOR MTXP (Ax=b)
 
   REAL(   i0rkind)::&
-       d0mfcst, & !C NORMALIZATION CONSTANT FOR \psi'
-       d0btcst, & !C NORMALIZATION CONSTANT FOR I
-       d0etcst, & !C NORMALIZATION CONSTANT FOR E_{\zeta}
-       d0epcst, & !C NORMALIZATION CONSTANT FOR \bar{E}_{\chi }
-       d0ercst, & !C NORMALIZATION CONSTANT FOR E_{\rho }
-       d0nncst, & !C NORMALIZATION CONSTANT FOR n_{a}
-       d0frcst, & !C NORMALIZATION CONSTANT FOR n_{a}\bar{u}_{a}^{\rho}
-       d0fbcst, & !C NORMALIZATION CONSTANT FOR n_{a}u_{a\para}
-       d0ftcst, & !C NORMALIZATION CONSTANT FOR n_{a}u_{a\zeta}
-       d0fpcst, & !C NORMALIZATION CONSTANT FOR n_{a}u_{a\zeta}
-       d0ppcst, & !C NORMALIZATION CONSTANT FOR p_{a}
-       d0qrcst, & !C NORMALIZATION CONSTANT FOR \bar{Q}_{a}^{\rho}
-       d0qbcst, & !C NORMALIZATION CONSTANT FOR Q_{a\para}
-       d0qtcst, & !C NORMALIZATION CONSTANT FOR Q_{a\zeta}
-       d0qpcst, & !C NORMALIZATION CONSTANT FOR Q_{a}^{\chi}
+       d0mfcst, d0mffct,& !C NORMALIZATION CONSTANTS FOR \psi'
+       d0btcst, d0btfct,& !C NORMALIZATION CONSTANTS FOR I
+       d0etcst, d0etfct,& !C NORMALIZATION CONSTANTS FOR E_{\zeta}
+       d0epcst, d0epfct,& !C NORMALIZATION CONSTANTS FOR \bar{E}_{\chi }
+       d0ercst, d0erfct,& !C NORMALIZATION CONSTANTS FOR E_{\rho }
+       d0nncst, d0nnfct,& !C NORMALIZATION CONSTANTS FOR n_{a}
+       d0frcst, d0frfct,& !C NORMALIZATION CONSTANTS FOR n_{a}\bar{u}_{a}^{\rho}
+       d0fbcst, d0fbfct,& !C NORMALIZATION CONSTANTS FOR n_{a}u_{a\para}
+       d0ftcst, d0ftfct,& !C NORMALIZATION CONSTANTS FOR n_{a}u_{a\zeta}
+       d0fpcst, d0fpfct,& !C NORMALIZATION CONSTANTS FOR n_{a}u_{a\zeta}
+       d0ppcst, d0ppfct,& !C NORMALIZATION CONSTANTS FOR p_{a}
+       d0qrcst, d0qrfct,& !C NORMALIZATION CONSTANTS FOR \bar{Q}_{a}^{\rho}
+       d0qbcst, d0qbfct,& !C NORMALIZATION CONSTANTS FOR Q_{a\para}
+       d0qtcst, d0qtfct,& !C NORMALIZATION CONSTANTS FOR Q_{a\zeta}
+       d0qpcst, d0qpfct,& !C NORMALIZATION CONSTANTS FOR Q_{a}^{\chi}
+       d0ubcst, & !C NORMALIZATION CONSTANT FOR u_{a\para}
+       d0wbcst, & !C NORMALIZATION CONSTANT FOR w_{a\para}
        d0rmjr,  & !C MAJOR RADIUS (R_{0} [m])
        d0rmnr,  & !C MINOR RADIUS (a     [m])
        d0iar,   & !C INVERSE ASPECT RATIO (a/R_{0})

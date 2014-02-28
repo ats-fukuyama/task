@@ -23,11 +23,14 @@ CONTAINS
          i1mlvl, i1pdn1, i1pdn2, i1rdn1, i1rdn2, i1mmax, i1bmax, &
          i1emax, &
          d0mfcst,d0btcst,d0ercst,d0epcst,d0etcst,&
-         d0nncst,d0frcst,d0fbcst,d0ftcst,d0fpcst,&
-         d0ppcst,d0qrcst,d0qbcst,d0qtcst,d0qpcst,&
+         d0nncst,d0frcst,d0fbcst,d0ftcst,d0fpcst,d0ubcst,&
+         d0ppcst,d0qrcst,d0qbcst,d0qtcst,d0qpcst,d0wbcst,&
+         d0mffct,d0btfct,d0erfct,d0epfct,d0etfct,&
+         d0nnfct,d0frfct,d0fbfct,d0ftfct,d0fpfct,&
+         d0ppfct,d0qrfct,d0qbfct,d0qtfct,d0qpfct,&
          d0iar,  d0rmnr, d0rmjr, time_t2,time_init,&
          T2NGRA_ALLOCATE, T2COMM_ALLOCATE
-
+    
     USE T2DIV, ONLY: T2_DIV
     USE T2PROF, ONLY: T2_PROF
 !    USE T2WRIT, ONLY: T2_WRIT_MAIN,T2_WRIT_GPT,T2_WRIT_GP1
@@ -56,24 +59,49 @@ CONTAINS
     d0qtcst = 1.D0
     d0qpcst = 1.D0
 
+    d0ubcst = 1.D0
+    d0wbcst = 1.D0
+
+
     d0mfcst = 1.D0
     d0btcst = 1.D0
-    d0ercst = 1.D0
-    d0epcst = 1.D0
+    d0ercst = 1.D3
+    d0epcst = 1.D-3
     d0etcst = 1.D0
     
     d0nncst = 1.D20
     d0frcst = 1.D20
-    d0fbcst = 1.D25
-    d0ftcst = 1.D25
-    d0fpcst = 1.D25
+    d0fbcst = 1.D23
+    d0ftcst = 1.D23
+    d0fpcst = 1.D23
     
-    d0ppcst = d0aee*1.D20
-    d0qrcst = d0aee*1.D20
-    d0qbcst = d0aee*1.D25
-    d0qtcst = d0aee*1.D25
-    d0qpcst = d0aee*1.D25
+    d0ppcst = d0aee*1.D23
+    d0qrcst = d0aee*1.D23
+    d0qbcst = d0aee*1.D26
+    d0qtcst = d0aee*1.D26
+    d0qpcst = d0aee*1.D26
     
+    d0ubcst = 1.D3
+    d0wbcst = 1.D3
+
+    d0mffct = d0mfcst
+    d0btfct = d0ercst
+    d0etfct = d0etcst
+    d0epfct = d0btcst
+    d0erfct = d0ercst
+
+    d0nnfct = d0nncst
+    d0frfct = d0fbcst*d0aee
+    d0fbfct = d0ppcst
+    d0ftfct = d0frcst*d0aee
+    d0fpfct = d0fpcst
+    
+    d0ppfct = d0nncst
+    d0qrfct = d0qbcst*d0aee
+    d0qbfct = d0ppcst*d0ppcst/d0nncst
+    d0qtfct = d0qrcst*d0aee
+    d0qpfct = d0qpcst
+
     CALL T2NGRA_ALLOCATE
     
     DO i0lidi = 1, i0lmax
