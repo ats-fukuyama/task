@@ -1,5 +1,5 @@
-! $Id$
 
+! $Id$
 MODULE wiwarm
 
   PRIVATE
@@ -104,6 +104,7 @@ CONTAINS
       REAL(rkind):: rky,rky2,dx,dx2,beta2,dky
       INTEGER(ikind):: MLMAX,MWMAX,ML,MW,I,J,NX,ID,JD
       INTEGER(ikind):: KK,KD,IOB,IO,I2
+      REAL(rkind):: gamma=3.D0
 
       RKY=ANY*BETA
       RKY2=RKY**2
@@ -151,21 +152,21 @@ CONTAINS
                JD=3+2*J-2*I
                CK(JD+1,ID+1)=CK(JD+1,ID+1) &
                             +CWP(I)*CWE(I)*CWE(J)/(1.D0+CI*PNU) &
-                            *((1.D0-ALFA*ALFA)*D0(I-NX,J-NX)*DX &
-                             +ALFA*D1(J-NX,I-NX) &
-                             -ALFA*D1(I-NX,J-NX) &
-                             +D2(I-NX,J-NX)/DX)
+                            *((1.D0-gamma*ALFA*ALFA)*D0(I-NX,J-NX)*DX &
+                             +gamma*ALFA*D1(J-NX,I-NX) &
+                             -gamma*ALFA*D1(I-NX,J-NX) &
+                             +gamma*D2(I-NX,J-NX)/DX)
                CK(JD+2,ID+1)=CK(JD+2,ID+1) &
                             +CWP(I)*CWE(I)*CWE(J)/(1.D0+CI*PNU) &
-                            *CI*RKY*(ALFA*D0(I-NX,J-NX)*DX &
-                                    -D1(J-NX,I-NX))
+                            *CI*gamma*RKY*(ALFA*D0(I-NX,J-NX)*DX &
+                                           -D1(J-NX,I-NX))
                CK(JD,  ID+2)=CK(JD  ,ID+2) &
                             +CWP(I)*CWE(I)*CWE(J)/(1.D0+CI*PNU) &
-                            *CI*RKY*(ALFA*D0(I-NX,J-NX)*DX &
-                                    +D1(I-NX,J-NX))
+                            *CI*gamma*RKY*(ALFA*D0(I-NX,J-NX)*DX &
+                                           +D1(I-NX,J-NX))
                CK(JD+1,ID+2)=CK(JD+1,ID+2) &
                             +CWP(I)*CWE(I)*CWE(J)/(1.D0+CI*PNU) &
-                            *(1.D0+RKY*RKY)*D0(I-NX,J-NX)*DX
+                            *(1.D0+gamma*RKY*RKY)*D0(I-NX,J-NX)*DX
             END DO
          END DO
       END DO
@@ -222,6 +223,7 @@ CONTAINS
       COMPLEX(ikind):: cp1,cp2,cp3,cp4,cpa
       INTEGER(ikind):: NX,i,j,id,jd,kk,kd
       REAL(rkind):: rky,rky2,dx,dx2,AD,BD
+      REAL(rkind):: gamma=3.D0
 
       RKY=ANY*BETA
       RKY2=RKY**2
@@ -243,18 +245,18 @@ CONTAINS
             DO J=NX,NX+1
                JD=2*J
                CP1=CWP(I)*CWE(I)*CWE(J)/(1.D0+CI*PNU) &
-                            *((1.D0-ALFA*ALFA)*D0(I-NX,J-NX)*DX &
-                             +ALFA*D1(J-NX,I-NX) &
-                             -ALFA*D1(I-NX,J-NX) &
-                             +D2(I-NX,J-NX)/DX)
+                            *((1.D0-gamma*ALFA*ALFA)*D0(I-NX,J-NX)*DX &
+                             +gamma*ALFA*D1(J-NX,I-NX) &
+                             -gamma*ALFA*D1(I-NX,J-NX) &
+                             +gamma*D2(I-NX,J-NX)/DX)
                CP2=CWP(I)*CWE(I)*CWE(J)/(1.D0+CI*PNU) &
-                            *CI*RKY*(ALFA*D0(I-NX,J-NX)*DX &
-                                    -D1(J-NX,I-NX))
+                            *CI*gamma*RKY*(ALFA*D0(I-NX,J-NX)*DX &
+                                           -D1(J-NX,I-NX))
                CP3=CWP(I)*CWE(I)*CWE(J)/(1.D0+CI*PNU) &
-                            *CI*RKY*(ALFA*D0(I-NX,J-NX)*DX &
-                                    +D1(I-NX,J-NX))
+                            *CI*gamma*RKY*(ALFA*D0(I-NX,J-NX)*DX &
+                                           +D1(I-NX,J-NX))
                CP4=CWP(I)*CWE(I)*CWE(J)/(1.D0+CI*PNU) &
-                            *(1.D0+RKY*RKY)*D0(I-NX,J-NX)
+                            *(1.D0+gamma*RKY*RKY)*D0(I-NX,J-NX)
                CPA=-CONJG(CFY(ID+1))*(CP1*CFY(JD+1)+CP2*CFY(JD+2)) &
                    -CONJG(CFY(ID+2))*(CP3*CFY(JD+1)+CP4*CFY(JD+2))
                CPOWER(NX  )=CPOWER(NX  )-CI*AD*CPA
