@@ -7,14 +7,18 @@ MODULE wiunmag
 
 CONTAINS
 
-  SUBROUTINE wi_unmag(ratea,iprint,ierr)
+  SUBROUTINE wi_unmag(iprint,ratea,ierr)
 
     USE wicomm
     IMPLICIT NONE
     INTEGER(ikind),INTENT(IN):: iprint
-    INTEGER(ikind),INTENT(OUT):: ierr
     REAL(rkind),INTENT(OUT):: ratea
+    INTEGER(ikind),INTENT(OUT):: ierr
+    INTEGER(ikind):: mlmax,mwmax,ml,mw
     REAL:: GT1,GT2
+
+    mlmax=nxmax*2+3
+    mwmax=4*nwmax+3
 
     CALL INITDS   ! initiaize FEM coefficients
        CALL GUTIME(GT1)
@@ -30,7 +34,16 @@ CONTAINS
        IF(IERR.NE.0) GOTO 9900
        CALL SUBFY                  ! calculate field vector
     ELSE
-       CALL BANDCD(CK,CSO,MLEN,MWID,MWID,IERR)   ! band matrix solver
+!       DO ML=1,4
+!        WRITE(6,'(I5,1P6E12.4)') ML,(CK(MW,ML),MW=(MWMAX+1)/2-1,(MWMAX+1)/2+1)
+!       END DO
+!       DO ML=400,410
+!        WRITE(6,'(I5,1P6E12.4)') ML,(CK(MW,ML),MW=(MWMAX+1)/2-1,(MWMAX+1)/2+1)
+!       END DO
+!       DO ML=MLMAX-3,MLMAX
+!        WRITE(6,'(I5,1P6E12.4)') ML,(CK(MW,ML),MW=(MWMAX+1)/2-1,(MWMAX+1)/2+1)
+!       END DO
+       CALL BANDCD(CK,CSO,mlmax,mwmax,MWID,IERR)   ! band matrix solver
           IF(IERR.NE.0) GOTO 9900
        CALL SUBFYW                               ! calculate field vector
     ENDIF
@@ -87,22 +100,22 @@ CONTAINS
       IMPLICIT NONE
       REAL(rkind):: dx,rky,x
       COMPLEX(rkind):: CS
-      INTEGER(ikind):: J,I,L
+      INTEGER(ikind):: J,L,NX,NW
 
       DX=XMAX/NXMAX
       RKY=AKY*BETA
       DO J=1,2
          N1=J
-         DO I=0,NWMAX
-            X=I*DX
+         DO NW=0,NWMAX
+            X=NW*DX
             CALL EUL(X,RKY,CS,5,L)
-            CU(J, I)=CS
-            CU(J,-I)=CS
+            CU(J, NW)=CS
+            CU(J,-NW)=CS
          END DO
       END DO
-      DO I=0,NXMAX
-         CWE(I)=DEXP(-ALFA*I*DX)
-         CWP(I)=PN0
+      DO NX=0,NXMAX
+         CWE(NX)=DEXP(-0.5D0*ALFA*NX*DX)
+         CWP(NX)=PN0
       END DO
       RETURN
     END SUBROUTINE SUBFW
@@ -113,7 +126,6 @@ CONTAINS
 
       USE wicomm
       IMPLICIT NONE
-      COMPLEX(rkind),PARAMETER:: CAI=(0.D0,1.D0)
       COMPLEX(rkind):: ciky,cbb
       REAL(rkind):: rky,rky2,dx,dx2,beta2,dky
       INTEGER(ikind):: NDUB,NBAND,NWDUB,NWDDUB,I,J,MM,ID,JD,NS,NE,NN
@@ -126,8 +138,8 @@ CONTAINS
       NDUB=2*NXMAX
       BETA2=BETA*BETA
       DKY=AKY*AKY
-      CIKY=CAI*AKY/BETA
-      CBB=CAI/(DSQRT(1.D0-AKY*AKY)*BETA)
+      CIKY=CI*AKY/BETA
+      CBB=CI/(DSQRT(1.D0-AKY*AKY)*BETA)
 
       IF(NWMAX.EQ.NXMAX) THEN
          NBAND=0
@@ -183,7 +195,7 @@ CONTAINS
                                      -CWP(KD)*CWE(KK)*CWE(KD) &
                                      *(DX2*RKY2*CU(1,KK-KD) &
                                      *D0(I-MM,KK-MM)*D0(J-NN,KD-NN) &
-                                     +(CU(1,KK-KD)-CAI*CU(2,KK-KD)) &
+                                     +(CU(1,KK-KD)-CI*CU(2,KK-KD)) &
                                      *D1(I-MM,KK-MM)*D1(J-NN,KD-NN))
                         CK(JD+2,ID+1)=CK(JD+2,ID+1) &
                                      -CWP(KD)*CWE(KK)*CWE(KD) &
@@ -195,7 +207,7 @@ CONTAINS
                                      *D1(I-MM,KK-MM)*D0(J-NN,KD-NN))
                         CK(JD+2-NBAND,ID+2)=CK(JD+2-NBAND,ID+2) &
                                      -CWP(KD)*CWE(KK)*CWE(KD) &
-                                     *(RKY2*DX2*(CU(1,KK-KD)-CAI*CU(2,KK-KD)) &
+                                     *(RKY2*DX2*(CU(1,KK-KD)-CI*CU(2,KK-KD)) &
                                      *D0(I-MM,KK-MM)*D0(J-NN,KD-NN) &
                                      +CU(1,KK-KD) &
                                      *D1(I-MM,KK-MM)*D1(J-NN,KD-NN))
@@ -248,14 +260,13 @@ CONTAINS
 
       USE wicomm
       IMPLICIT NONE
-      COMPLEX(rkind),PARAMETER:: CAI=(0.D0,1.D0)
       COMPLEX(rkind):: CBB
-      INTEGER(ikind):: I
+      INTEGER(ikind):: ML
 
-      CBB=CAI/(DSQRT(1.D0-AKY*AKY)*BETA)
+      CBB=CI/(DSQRT(1.D0-AKY*AKY)*BETA)
 
-      DO I=1,NXMAX*2+1
-         CSO(I)=(0.D0,0.D0)
+      DO ML=1,NXMAX*2+1
+         CSO(ML)=(0.D0,0.D0)
       END DO
       CSO(NXMAX*2+2)=-CBB*CFYN
       CSO(NXMAX*2+3)=     CFYN
@@ -268,12 +279,12 @@ CONTAINS
 
       USE wicomm
       IMPLICIT NONE
-      INTEGER(ikind):: i,j
+      INTEGER(ikind):: ML,MW
 
-      DO I=1,NXMAX*2+3
-         CFY(I)=(0.D0,0.D0)
-         DO J=1,NXMAX*2+3
-            CFY(I)=CFY(I)+CK(J,I)*CSO(J)
+      DO ML=1,NXMAX*2+3
+         CFY(ML)=(0.D0,0.D0)
+         DO MW=1,NXMAX*2+3
+            CFY(ML)=CFY(ML)+CK(MW,ML)*CSO(MW)
          END DO
       END DO
       RETURN
@@ -285,10 +296,10 @@ CONTAINS
 
       USE wicomm
       IMPLICIT NONE
-      INTEGER(ikind):: i
+      INTEGER(ikind):: ML
 
-      DO I=1,NXMAX*2+3
-         CFY(I)=CSO(I)
+      DO ML=1,NXMAX*2+3
+         CFY(ML)=CSO(ML)
       END DO
       RETURN
     END SUBROUTINE SUBFYW
@@ -299,9 +310,8 @@ CONTAINS
 
       USE wicomm
       IMPLICIT NONE
-      COMPLEX(rkind),PARAMETER:: CAI=(0.D0,1.D0)
       COMPLEX(ikind):: cp1,cp2,cp3,cp4,cpa
-      INTEGER(ikind):: n,mm,ns,ne,nn,i,j,id,jd,kk,kd
+      INTEGER(ikind):: NX,ns,ne,nn,i,j,id,jd,kk,kd
       REAL(rkind):: rky,rky2,dx,dx2,AD,BD
 
       RKY=AKY*BETA
@@ -309,44 +319,44 @@ CONTAINS
       DX=XMAX/DBLE(NXMAX)
       DX2=DX**2
 
-      DO N=0,NXMAX
-         CPOWER(N)=(0.D0,0.D0)
+      DO NX=0,NXMAX
+         CPOWER(NX)=(0.D0,0.D0)
       END DO
       PTOT=0.D0
 
-      DO MM=0,NXMAX-1
-         NS=MM-NWMAX+1
-         NE=MM+NWMAX-1
+      DO NX=0,NXMAX-1
+         NS=NX-NWMAX+1
+         NE=NX+NWMAX-1
          AD=1.D0/(2.D0*DX) 
          BD=1.D0/(2.D0*DX) 
-         IF(MM.EQ.0) AD=1.D0/DX
-         IF(MM.EQ.NXMAX-1) BD=1.D0/DX
+         IF(NX.EQ.0) AD=1.D0/DX
+         IF(NX.EQ.NXMAX-1) BD=1.D0/DX
          IF(NS.LE.0) NS=0
          IF(NE.GE.NXMAX-1) NE=NXMAX-1
          DO NN=NS,NE
-            DO I=MM,MM+1
+            DO I=NX,NX+1
                ID=2*I
                DO J=NN,NN+1
                   JD=2*J
-                  DO KK=MM,MM+1
+                  DO KK=NX,NX+1
                      DO KD=NN,NN+1
                         CP1=DX2*RKY2*CU(1,KK-KD) &
-                            *D0(I-MM,KK-MM)*D0(J-NN,KD-NN) &
-                           +(CU(1,KK-KD)-CAI*CU(2,KK-KD)) &
-                            *D1(I-MM,KK-MM)*D1(J-NN,KD-NN)
+                            *D0(I-NX,KK-NX)*D0(J-NN,KD-NN) &
+                           +(CU(1,KK-KD)-CI*CU(2,KK-KD)) &
+                            *D1(I-NX,KK-NX)*D1(J-NN,KD-NN)
                         CP2=-DX*RKY*CU(2,KK-KD) &
-                            *D0(I-MM,KK-MM)*D1(J-NN,KD-NN)
+                            *D0(I-NX,KK-NX)*D1(J-NN,KD-NN)
                         CP3= DX*RKY*CU(2,KK-KD) &
-                            *D1(I-MM,KK-MM)*D0(J-NN,KD-NN)
-                        CP4=DX2*RKY2*(CU(1,KK-KD)-CAI*CU(2,KK-KD)) &
-                            *D0(I-MM,KK-MM)*D0(J-NN,KD-NN) &
-                           +CU(1,KK-KD)*D1(I-MM,KK-MM)*D1(J-NN,KD-NN)
+                            *D1(I-NX,KK-NX)*D0(J-NN,KD-NN)
+                        CP4=DX2*RKY2*(CU(1,KK-KD)-CI*CU(2,KK-KD)) &
+                            *D0(I-NX,KK-NX)*D0(J-NN,KD-NN) &
+                           +CU(1,KK-KD)*D1(I-NX,KK-NX)*D1(J-NN,KD-NN)
                         CPA=CWP(KD)*CWE(KK)*CWE(KD) &
                             *(CONJG(CFY(ID+1))*(CP1*CFY(JD+1)+CP2*CFY(JD+2))  &
                            +CONJG(CFY(ID+2))*(CP3*CFY(JD+1)+CP4*CFY(JD+2)))
-                        CPOWER(MM  )=CPOWER(MM  )-CAI*AD*CPA
-                        CPOWER(MM+1)=CPOWER(MM+1)-CAI*BD*CPA
-                        PTOT=PTOT-REAL(CAI*CPA)
+                        CPOWER(NX  )=CPOWER(NX  )-CI*AD*CPA
+                        CPOWER(NX+1)=CPOWER(NX+1)-CI*BD*CPA
+                        PTOT=PTOT-REAL(CI*CPA)
                      END DO
                   END DO
                END DO
@@ -375,7 +385,7 @@ CONTAINS
 
       G2=HP
       G3=X
-      G4=ALFA
+      G4=0.5D0*ALFA
       G5=RKY
       H0=0.5D0
       EPS=1.D-5

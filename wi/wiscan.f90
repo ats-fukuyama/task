@@ -8,9 +8,9 @@ CONTAINS
 
   SUBROUTINE wi_scan(ierr)
 
-    USE wicomm,ONLY: rkind,ikind,modewi,ntaumax,taumin,taumax,alfa,beta,aky, &
+    USE wicomm,ONLY: rkind,ikind,ntaumax,taumin,taumax,alfa,beta,aky, &
          xmax,pn0,nxmax,nwmax 
-    USE wiunmag,ONLY: wi_unmag
+    USE wiexec,ONLY: wi_exec
     USE libgrf,ONLY: grd1d
     
     IMPLICIT NONE
@@ -30,7 +30,7 @@ CONTAINS
        tau=taumin+dtau*(ntau-1)
        aky=tau/rk0l**(1.D0/3.D0)
        IF(aky < 1.0) THEN
-          CALL wi_unmag(ratea,0,ierr)
+          CALL wi_exec(0,ratea,ierr)
        ELSE
           ratea=0.D0
        END IF

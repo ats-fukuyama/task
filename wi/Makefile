@@ -15,15 +15,15 @@ MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD)
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
 SRCSFIXED = 
-SRCSFREE = wicomm.f90 wiinit.f90 wiparm.f90 \
-	   wiunmag.f90 wiexec.f90 wiscan.f90 wigout.f90 \
+SRCSFREE = wicomm.f90 wiparm.f90 \
+	   wiunmag.f90 wifluid.f90 wiexec.f90 wiscan.f90 wigout.f90 \
            wimenu.f90
 
 OBJS = $(SRCSFIXED:.f=.o) $(SRCSFREE:.f90=.o) 
 
 LIBS = wilib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a
 
-all : wi wiunmag
+all : wi
 
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)
@@ -49,11 +49,11 @@ clean:
 veryclean: clean
 	-rm -f wi wiunmag
 
-wiunmag.o: wiunmag.f90 wicomm.f90
 wimain.o: wimain.f90 wicomm.f90
 wimenu.o: wimenu.f90 wicomm.f90
-wiinit.o: wiinit.f90 wicomm.f90
 wiparm.o: wiparm.f90 wicomm.f90
 wiexec.o: wiexec.f90 wicomm.f90
+wiunmag.o: wiunmag.f90 wicomm.f90
+wifluid.o: wifluid.f90 wicomm.f90
 wiscan.o: wiscan.f90 wicomm.f90
 wigout.o: wigout.f90 wicomm.f90

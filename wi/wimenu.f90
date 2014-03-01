@@ -39,7 +39,7 @@ CONTAINS
     ELSEIF(kid.EQ.'R') THEN
        CALL wi_allocate
        nxmax_save=nxmax
-       CALL wi_exec(ierr)
+       CALL wi_exec(1,ratea,ierr)
        INIT=1
     ELSEIF(kid.EQ.'S') THEN
        CALL wi_allocate

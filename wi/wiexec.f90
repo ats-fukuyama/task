@@ -6,18 +6,25 @@ MODULE wiexec
  
 CONTAINS
 
-  SUBROUTINE wi_exec(ierr)
+  SUBROUTINE wi_exec(iprint,ratea,ierr)
 
-    USE wicomm,ONLY: rkind,modewi
+    USE wicomm,ONLY: rkind,ikind,modelg,modelp
     USE wiunmag,ONLY: wi_unmag
+    USE wifluid,ONLY: wi_fluid
     
     IMPLICIT NONE
+    INTEGER(ikind),INTENT(IN):: iprint
+    REAL(rkind),INTENT(OUT):: ratea
     INTEGER,INTENT(OUT):: ierr
-    REAL(rkind):: ratea
 
-    SELECT CASE(modewi)
-    CASE(0,1)
-       CALL wi_unmag(ratea,1,ierr)
+    SELECT CASE(modelg)
+    CASE(0)
+       SELECT CASE(modelp)
+       CASE(0)
+          CALL wi_fluid(iprint,ratea,ierr)
+       CASE(1)
+          CALL wi_unmag(iprint,ratea,ierr)
+       END SELECT
     END SELECT
 
     RETURN

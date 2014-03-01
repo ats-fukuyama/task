@@ -45,15 +45,15 @@ CONTAINS
 
   SUBROUTINE wi_nlin(NID,IST,IERR)
 
-    USE wicomm, ONLY: nxmax,nwmax,modewi,xmax,pn0,alfa,aky,beta,cfyn, &
-                      ntaumax,taumin,taumax
+    USE wicomm, ONLY: nxmax,nwmax,modelg,xmax,pn0,alfa,aky,beta,cfyn, &
+                      ntaumax,taumin,taumax,modelp,pnu
 
     IMPLICIT NONE
     INTEGER,INTENT(IN) :: NID
     INTEGER,INTENT(OUT) :: IST,IERR
 
-    NAMELIST /WI/ nxmax,nwmax,modewi,xmax,pn0,alfa,aky,beta,cfyn, &
-                  ntaumax,taumin,taumax
+    NAMELIST /WI/ nxmax,nwmax,modelg,xmax,pn0,alfa,aky,beta,cfyn, &
+                  ntaumax,taumin,taumax,modelp,pnu
 
     READ(NID,WI,IOSTAT=IST,ERR=9800,END=9900)
 
@@ -71,8 +71,8 @@ CONTAINS
   SUBROUTINE wi_plst
 
     IMPLICIT NONE
-    WRITE(6,'(A)') '# &WI : nxmax,nwmax,modewi,xmax,pn0,alfa,aky,beta,cfyn,'
-    WRITE(6,'(A)') '        ntaumax,taumin,taumax'
+    WRITE(6,'(A)') '# &WI : nxmax,nwmax,modelg,xmax,pn0,alfa,aky,beta,cfyn,'
+    WRITE(6,'(A)') '        ntaumax,taumin,taumax,modelp,pnu'
     RETURN
 
   END SUBROUTINE wi_plst
@@ -107,12 +107,13 @@ CONTAINS
     implicit none
 
     WRITE(6,602) 'nxmax   ',nxmax, 'nwmax   ',nwmax , &
-                 'modewi  ',modewi,'ntaumax ',ntaumax
+                 'modelg  ',modelg,'modelp  ',modelp
+    WRITE(6,602) 'ntaumax ',ntaumax
 
     WRITE(6,601) 'xmax  ',xmax  ,'pn0   ',pn0   , &
                  'alfa  ',alfa  ,'aky   ',aky
-    WRITE(6,601) 'beta  ',beta  ,'taumin',taumin, &
-                 'taumax',taumax
+    WRITE(6,601) 'beta  ',beta  ,'pnu   ',pnu, &
+                 'taumin',taumin,'taumax',taumax
 
     WRITE(6,603) 'cfyn  ',cfyn
     RETURN

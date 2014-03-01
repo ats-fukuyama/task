@@ -8,7 +8,7 @@ CONTAINS
 
   SUBROUTINE wi_gout
 
-    USE wicomm,ONLY: rkind,modewi 
+    USE wicomm,ONLY: rkind
     USE wiparm
     USE libgrf
     IMPLICIT NONE
@@ -16,29 +16,27 @@ CONTAINS
     CHARACTER(LEN=1):: kch
     CHARACTER(LEN=80):: line
 
-    SELECT CASE(modewi)
-    CASE(0)
-1      CONTINUE
-       ierr=0
-       WRITE(6,'(A)') &
-            '#### WI GOUT:  R/1D  X/exit'
-       CALL TASK_KLIN(line,kid,mode,wi_parm)
-       IF(mode == 2 .OR. mode == 3) GOTO 1
+1   CONTINUE
+    ierr=0
+!    WRITE(6,'(A)') &
+!         '#### WI GOUT:  R/1D  X/exit'
+!    CALL TASK_KLIN(line,kid,mode,wi_parm)
+!    IF(mode == 2 .OR. mode == 3) GOTO 1
+!
+!    ICH=ICHAR(LINE(1:1))
+!    IF(ICH.GE.97.AND.ICH.LE.122) ICH=ICH-32
+!    KCH=CHAR(ICH)
 
-       ICH=ICHAR(LINE(1:1))
-       IF(ICH.GE.97.AND.ICH.LE.122) ICH=ICH-32
-       KCH=CHAR(ICH)
+    kch='R'
 
-       SELECT CASE(kch)
-       CASE('R') 
-          CALL wigra1
-       CASE('X') 
-          GO TO 9000
-       END SELECT
-       GO TO 1
-    CASE(1)
+    SELECT CASE(kch)
+    CASE('R') 
        CALL wigra1
+    CASE('X') 
+       GO TO 9000
     END SELECT
+
+!    GO TO 1
 
 9000 CONTINUE
     RETURN

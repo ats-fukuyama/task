@@ -7,15 +7,34 @@ MODULE wicomm
 
 ! --- Input parameters ---
 
-  INTEGER(ikind):: nxmax,nwmax,modewi,ntaumax
-  REAL(rkind)::    xmax,pn0,alfa,aky,beta,taumin,taumax
-  COMPLEX(rkind):: cfyn
+  INTEGER(ikind):: modelg = 0      ! calculation mode: 0:unmag
+  INTEGER(ikind):: modelp = 1      ! plasma mode: 0:cold, 1:integral
+  INTEGER(ikind):: nxmax  = 400    ! number of grid points in the x direction
+  INTEGER(ikind):: nwmax  = 200    ! number of grid points for kernel integral
+  REAL(rkind)::    xmax   = 200.D0 ! maximum value of x (minimum value is 0.0)
+  REAL(rkind)::    pn0    = 2.D0   ! normalized plasma density at x=0 
+                                   !    [ pn0=omega_pe^2/omega^2 ]
+  REAL(rkind)::    alfa   = 0.01D0 ! normalized density gradient
+                                   !    [ n=n_0 exp(-ALFA*x) ]
+  REAL(rkind)::    aky    = 0.2D0  ! refractive index in the y direction
+                                   !    [ any = k_y c / omega ]
+  REAL(rkind)::    beta   = 0.1D0  ! ratio of thermal velocity to light veloc.
+                                   !    [ beta = vte / c ]
+  REAL(rkind)::    pnu    = 0.01D0 ! normalized collision frequency
+                                   !    [ pnu = nu / omega ]
+
+  INTEGER(ikind):: ntaumax= 51     ! number of TAU scan points
+  REAL(rkind)::    taumin = 0.D0   ! minimum of TAU scan
+  REAL(rkind)::    taumax = 1.65D0 ! maximum of TAU scan
+  COMPLEX(rkind):: cfyn = (1.D0,0.D0) ! E field of incident wave at nx=nxmax
 
 ! --- Global variables ---
 
-  INTEGER(ikind):: MLEN,MWID
-  REAL(rkind):: PTOT
+  INTEGER(ikind):: MLEN ! coefficient matrix length 
+  INTEGER(ikind):: MWID ! coefficient matrix width
+  REAL(rkind):: PTOT    ! total absorption power
   REAL(rkind):: D0(0:1,0:1),D1(0:1,0:1),D2(0:1,0:1),D3(0:1,0:1,0:1)
+                        ! FEM integral coefficients
   COMPLEX(rkind),DIMENSION(:),ALLOCATABLE:: &
        CFY,CSO,CWP,CWE,CPOWER
   COMPLEX(rkind),DIMENSION(:,:),ALLOCATABLE:: &
