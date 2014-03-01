@@ -1,13 +1,13 @@
 ! $Id$
 
-MODULE wiunmag
+MODULE wihot
 
   PRIVATE
-  PUBLIC wi_unmag
+  PUBLIC wi_hot
 
 CONTAINS
 
-  SUBROUTINE wi_unmag(iprint,ratea,ierr)
+  SUBROUTINE wi_hot(iprint,ratea,ierr)
 
     USE wicomm
     IMPLICIT NONE
@@ -57,7 +57,7 @@ CONTAINS
 9900  CONTINUE
       RETURN
   601 FORMAT('## END OF ',A6,' ##  CPU TIME = ',F8.3,' SEC')
-    END SUBROUTINE wi_unmag
+    END SUBROUTINE wi_hot
 
 !     *****  INITIALIZE D0,D1,D2,D3  *****
 
@@ -103,7 +103,7 @@ CONTAINS
       INTEGER(ikind):: J,L,NX,NW
 
       DX=XMAX/NXMAX
-      RKY=AKY*BETA
+      RKY=ANY*BETA
       DO J=1,2
          N1=J
          DO NW=0,NWMAX
@@ -131,16 +131,16 @@ CONTAINS
       INTEGER(ikind):: NDUB,NBAND,NWDUB,NWDDUB,I,J,MM,ID,JD,NS,NE,NN
       INTEGER(ikind):: KK,KD,KS,IOB,IO,I2
 
-      RKY=AKY*BETA
-      RKY2=RKY**2
       DX=XMAX/DBLE(NXMAX)
       DX2=DX**2
-      NDUB=2*NXMAX
+      RKY=ANY*BETA
+      RKY2=RKY**2
       BETA2=BETA*BETA
-      DKY=AKY*AKY
-      CIKY=CI*AKY/BETA
-      CBB=CI/(DSQRT(1.D0-AKY*AKY)*BETA)
+      DKY=ANY*ANY
+      CIKY=CI*ANY/BETA
+      CBB=CI/(DSQRT(1.D0-ANY*ANY)*BETA)
 
+      NDUB=2*NXMAX
       IF(NWMAX.EQ.NXMAX) THEN
          NBAND=0
          NWDUB=NDUB
@@ -263,7 +263,7 @@ CONTAINS
       COMPLEX(rkind):: CBB
       INTEGER(ikind):: ML
 
-      CBB=CI/(DSQRT(1.D0-AKY*AKY)*BETA)
+      CBB=CI/(DSQRT(1.D0-ANY*ANY)*BETA)
 
       DO ML=1,NXMAX*2+1
          CSO(ML)=(0.D0,0.D0)
@@ -314,7 +314,7 @@ CONTAINS
       INTEGER(ikind):: NX,ns,ne,nn,i,j,id,jd,kk,kd
       REAL(rkind):: rky,rky2,dx,dx2,AD,BD
 
-      RKY=AKY*BETA
+      RKY=ANY*BETA
       RKY2=RKY**2
       DX=XMAX/DBLE(NXMAX)
       DX2=DX**2
@@ -656,4 +656,4 @@ CONTAINS
   602 FORMAT(1H ,1PD13.5,2I8,1PD24.15,1PD14.5)
   605 FORMAT(1H ,13X,16X,1PD24.15,1PD14.5)
     END SUBROUTINE DEFTC2
-  END MODULE wiunmag
+  END MODULE wihot

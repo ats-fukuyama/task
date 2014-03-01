@@ -45,14 +45,14 @@ CONTAINS
 
   SUBROUTINE wi_nlin(NID,IST,IERR)
 
-    USE wicomm, ONLY: nxmax,nwmax,modelg,xmax,pn0,alfa,aky,beta,cfyn, &
+    USE wicomm, ONLY: nxmax,nwmax,modelg,xmax,pn0,alfa,any,beta,cfyn, &
                       ntaumax,taumin,taumax,modelp,pnu
 
     IMPLICIT NONE
     INTEGER,INTENT(IN) :: NID
     INTEGER,INTENT(OUT) :: IST,IERR
 
-    NAMELIST /WI/ nxmax,nwmax,modelg,xmax,pn0,alfa,aky,beta,cfyn, &
+    NAMELIST /WI/ nxmax,nwmax,modelg,xmax,pn0,alfa,any,beta,cfyn, &
                   ntaumax,taumin,taumax,modelp,pnu
 
     READ(NID,WI,IOSTAT=IST,ERR=9800,END=9900)
@@ -71,7 +71,7 @@ CONTAINS
   SUBROUTINE wi_plst
 
     IMPLICIT NONE
-    WRITE(6,'(A)') '# &WI : nxmax,nwmax,modelg,xmax,pn0,alfa,aky,beta,cfyn,'
+    WRITE(6,'(A)') '# &WI : nxmax,nwmax,modelg,xmax,pn0,alfa,any,beta,cfyn,'
     WRITE(6,'(A)') '        ntaumax,taumin,taumax,modelp,pnu'
     RETURN
 
@@ -81,12 +81,20 @@ CONTAINS
 
   SUBROUTINE wi_check(IERR)
 
-    USE wicomm,ONLY: xmax,taumin,taumax
+    USE wicomm,ONLY: modelg,modelp,xmax,taumin,taumax
     IMPLICIT NONE
     INTEGER:: IERR
 
     IERR=0
 
+    IF(modelg /= 0) THEN
+       WRITE(6,'(A,I6)') 'XX wi_check: INVALID modelg: modelg=',modelg
+       IERR=1
+    ENDIF
+    IF(modelp < 0 .OR. modelp > 2) THEN
+       WRITE(6,'(A,I6)') 'XX wi_check: INVALID modelp: modelp=',modelp
+       IERR=1
+    ENDIF
     IF(xmax <= 0.D0) THEN
        WRITE(6,'(A,1PE12.4)') 'XX wi_check: INVALID xmax: xmax=',xmax
        IERR=1
@@ -111,7 +119,7 @@ CONTAINS
     WRITE(6,602) 'ntaumax ',ntaumax
 
     WRITE(6,601) 'xmax  ',xmax  ,'pn0   ',pn0   , &
-                 'alfa  ',alfa  ,'aky   ',aky
+                 'alfa  ',alfa  ,'any   ',any
     WRITE(6,601) 'beta  ',beta  ,'pnu   ',pnu, &
                  'taumin',taumin,'taumax',taumax
 

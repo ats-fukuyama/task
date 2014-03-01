@@ -16,8 +16,8 @@ MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD)
 
 SRCSFIXED = 
 SRCSFREE = wicomm.f90 wiparm.f90 \
-	   wiunmag.f90 wifluid.f90 wiexec.f90 wiscan.f90 wigout.f90 \
-           wimenu.f90
+	   wicold.f90 wiwarm.f90 wihot.f90 wiexec.f90 \
+           wiscan.f90 wigout.f90 wimenu.f90
 
 OBJS = $(SRCSFIXED:.f=.o) $(SRCSFREE:.f90=.o) 
 
@@ -53,7 +53,8 @@ wimain.o: wimain.f90 wicomm.f90
 wimenu.o: wimenu.f90 wicomm.f90
 wiparm.o: wiparm.f90 wicomm.f90
 wiexec.o: wiexec.f90 wicomm.f90
-wiunmag.o: wiunmag.f90 wicomm.f90
-wifluid.o: wifluid.f90 wicomm.f90
+wicold.o: wicold.f90 wicomm.f90
+wiwarm.o: wiwarm.f90 wicomm.f90
+wihot.o: wihot.f90 wicomm.f90
 wiscan.o: wiscan.f90 wicomm.f90
 wigout.o: wigout.f90 wicomm.f90
