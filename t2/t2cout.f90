@@ -156,9 +156,10 @@ CONTAINS
     RETURN
     
   END SUBROUTINE T2_CCHK
-  
+
+
   SUBROUTINE T2_COUT(d2cm)
-    
+
     USE T2CNST,ONLY: i0ikind,i0rkind
     USE T2PARM,ONLY: T2_PARM
     USE T2COMM
@@ -167,10 +168,12 @@ CONTAINS
     
     REAL(i0rkind),DIMENSION(1:i0vmax,1:i0mmax),INTENT(IN)::d2cm
     REAL(i0rkind),DIMENSION(1:i0vmax,1:i0xmax)::d2cx
-    INTEGER(i0ikind) :: ierr,mode,ind
-    CHARACTER(LEN=80):: line,kw
+ 
+    INTEGER(i0ikind)    :: ierr,mode,ind
+    CHARACTER(LEN=80) :: line,kw
     CHARACTER(LEN=1) :: kid,kch
-    INTEGER(i0ikind) :: nwmax,iloc0,nw,i,ich0,nch,ich,j,i0midi,i0xidi
+    INTEGER(i0ikind) :: nwmax,iloc0,nw,i,ich0,nch,ich,j
+    INTEGER(i0ikind) :: i0midi,i0xidi
     CHARACTER(LEN=80),DIMENSION(40):: kword,kwid,knum
     INTEGER(i0ikind),DIMENSION(40):: inum
     
@@ -184,7 +187,7 @@ CONTAINS
 1   CONTINUE
     ierr=0
     WRITE(6,'(A)') &
-         '#### T2 COUT: R A C P X/exit'
+         '#### T2 GOUT: Rn An Cn Pn Bn RA AA X/exit'
     CALL TASK_KLIN(line,kid,mode,T2_PARM)
     IF(mode == 2 .OR. mode == 3) GOTO 1
 
@@ -273,55 +276,40 @@ CONTAINS
        CASE(2)
           SELECT CASE(KWID(NW))
           CASE('RA')
-             DO I=1,5
-                CALL T2_CR(I,1, 29+I,d2cx)
-             END DO
-             DO J=1,4
-                DO I=4*J+2,4*J+5
-                   CALL T2_CR(I,1, 28+I+J,d2cx)
+             DO J=1,5
+                DO I=5*(J-1)+1,5*(J-1)+5
+                   CALL T2_CR(I, 1, 29+I,d2cx)
                 END DO
              END DO
           CASE('AA')
-             DO I=1,5
-                CALL T2_CR(I,11,29+I,d2cx)
-             END DO
-             DO J=1,4
-                DO I=4*J+2,4*J+5
-                   CALL T2_CR(I,11,28+I+J,d2cx)
+             DO J=1,5
+                DO I=5*(J-1)+1,5*(J-1)+5
+                   CALL T2_CR(I,11, 29+I,d2cx)
                 END DO
              END DO
           CASE('CA')
-             DO I=1,5
-                CALL T2_CC(I, 1,29+I,d2cx)
-             END DO
-             DO J=1,4
-                DO I=4*J+2,4*J+5
-                   CALL T2_CC(I, 1,28+I+J,d2cx)
+             DO J=1,5
+                DO I=5*(J-1)+1,5*(J-1)+5
+                   CALL T2_CC(I, 1, 29+I,d2cx)
                 END DO
              END DO
           CASE('PA')
-             DO I=1,5
-                CALL T2_CC(I, 3,29+I,d2cx)
-             END DO
-             DO J=1,4
-                DO I=4*J+2,4*J+5
-                   CALL T2_CC(I, 3,28+I+J,d2cx)
+             DO J=1,5
+                DO I=5*(J-1)+1,5*(J-1)+5
+                   CALL T2_CC(I, 3, 29+I,d2cx)
                 END DO
              END DO
           CASE('BA')
-             DO I=1,5
-                CALL T2_CC(I,15,29+I,d2cx)
-             END DO
-             DO J=1,4
-                DO I=4*J+2,4*J+5
-                   CALL T2_CC(I,15,28+I+J,d2cx)
+             DO J=1,5
+                DO I=5*(J-1)+1,5*(J-1)+5
+                   CALL T2_CC(I,15, 29+I,d2cx)
                 END DO
              END DO
           END SELECT
        END SELECT
     END DO
     CALL PAGEE
-
+    
     GO TO 1
 
 9000 CONTINUE
@@ -339,6 +327,7 @@ CONTAINS
     IMPLICIT NONE
     INTEGER(i0ikind):: nchi,nl,nrho,nchimaxl,nr,ierr
     REAL(i0rkind):: dchi,drho
+    REAL(i0rkind):: rho_temp!added by H. SETO
 
     nlmax=i0lmax
     nchimax=i0pdiv_number*2**(i1mlvl(nlmax)-1)
@@ -369,6 +358,7 @@ CONTAINS
     nlnrho(nrho)=0
     rhonrho(nrho)=0.D0
     nnnrho(nrho)=1
+
     DO nl=1,nlmax
        drho=(d1rec(nl)-d1rec(nl-1))/i1rdn2(nl)
        nchimaxl=i0pdiv_number*2**(i1mlvl(nl)-1)
@@ -388,6 +378,7 @@ CONTAINS
     END DO
 
     RETURN
+
   END SUBROUTINE T2_GSETUP
 
   SUBROUTINE T2_GRELEASE
@@ -399,13 +390,8 @@ CONTAINS
     RETURN
   END SUBROUTINE T2_GRELEASE
 
-  SUBROUTINE T2_CC(INUM,ID,NGP,d2coef)
+  SUBROUTINE T2_CC(INUM,ID,NGP,D2CX)
     USE libgrf,ONLY: GRD2D
-!    USE T2COMM, ONLY: &
-!         i0ikind,i0rkind,twopi,i0xmax,d2xvec,i0vmax, &
-!         i0lmax,i0pdiv_number,i1mlvl,i1rdn2,d1rec, &
-!         nrhomax,nchimax,d0rw
-
     USE T2COMM, ONLY: & ! changed by 2014-02-05 H.Seto 
          i0ikind,i0rkind,twopi,i0xmax,i0vmax, &
          i0lmax,i0pdiv_number,i1mlvl,i1rdn2,d1rec, &
@@ -413,7 +399,7 @@ CONTAINS
     IMPLICIT NONE
     INTEGER,PARAMETER:: nxmax=41,nymax=41
     INTEGER(i0ikind),INTENT(IN):: inum,id,ngp
-    REAL(i0rkind),DIMENSION(1:i0vmax,1:i0xmax),INTENT(IN)::d2coef
+    REAL(i0rkind),DIMENSION(1:i0vmax,1:i0xmax),INTENT(IN)::d2cx
     REAL(i0rkind),DIMENSION(:,:),ALLOCATABLE:: gz
     REAL(i0rkind),DIMENSION(:),ALLOCATABLE:: gzl,dgzl,chig
     REAL(i0rkind),DIMENSION(:,:),ALLOCATABLE:: ugzl
@@ -430,7 +416,7 @@ CONTAINS
     dchig=TWOPI/nchig
     DO nchi=1,nchig+1
        chig(nchi)=dchig*(nchi-1)
-       gz(1,nchi)=d2coef(inum,1)
+       gz(1,nchi)=d2cx(inum,1)! changed by 2014-02-05 H.SETO
        IF(gz(1,nchi).GT. 1.D10) gz(1,nchi)= 1.D10
        IF(gz(1,nchi).LT.-1.D10) gz(1,nchi)=-1.D10
     END DO
@@ -438,7 +424,7 @@ CONTAINS
        nl=nlnrho(nrho)
        nchimaxl=i0pdiv_number*2**(i1mlvl(nl)-1)
        DO nchi=1,nchimaxl
-          gzl(nchi)=d2coef(inum,nnnrho(nrho)+nchi-1)
+          gzl(nchi)=d2cx(inum,nnnrho(nrho)+nchi-1)! changed by 2014-02-05 H.SETO
           IF(gzl(nchi).GT. 1.D10) gzl(nchi)= 1.D10
           IF(gzl(nchi).LT.-1.D10) gzl(nchi)=-1.D10
        END DO
@@ -530,7 +516,7 @@ CONTAINS
     RETURN
   END SUBROUTINE T2_CC
 
-  SUBROUTINE T2_CR(INUM,ID,NGP,d2coef)
+  SUBROUTINE T2_CR(INUM,ID,NGP,D2CX)
     USE libgrf,ONLY: GRD1D
   
     !USE T2COMM, ONLY: &
@@ -545,7 +531,7 @@ CONTAINS
 
     IMPLICIT NONE
     INTEGER(i0ikind),INTENT(IN):: inum,id,ngp
-    REAL(i0rkind),DIMENSION(1:i0vmax,1:i0xmax),INTENT(IN)::d2coef
+    REAL(i0rkind),DIMENSION(1:i0vmax,1:i0xmax),INTENT(IN):: d2cx
     REAL(i0rkind),DIMENSION(:,:),ALLOCATABLE:: gz
     REAL(i0rkind),DIMENSION(:),ALLOCATABLE:: gzl,dgzl,ga
     REAL(i0rkind),DIMENSION(:,:),ALLOCATABLE:: ugzl
@@ -556,22 +542,22 @@ CONTAINS
     ALLOCATE(gzl(nchimax+1),dgzl(nchimax+1),ugzl(4,nchimax+1))
     ALLOCATE(ga(nrhomax))
     DO nchi=1,nchimax+1
-       gz(1,nchi)=d2coef(inum,1)
+       gz(1,nchi)=d2cx(inum,1)! changed by 2014-02-05 H.SETO
        IF(gz(1,nchi).GT. 1.D10) gz(1,nchi)= 1.D10
        IF(gz(1,nchi).LT.-1.D10) gz(1,nchi)=-1.D10
     END DO
-    ga(1)=d2coef(inum,1)
+    ga(1)=d2cx(inum,1)! changed by 2014-02-05 H.SETO
     DO nrho=2,nrhomax
        nl=nlnrho(nrho)
        nchimaxl=i0pdiv_number*2**(i1mlvl(nl)-1)
        DO nchi=1,nchimaxl
-          gzl(nchi)=d2coef(inum,nnnrho(nrho)+nchi-1)
+          gzl(nchi)=d2cx(inum,nnnrho(nrho)+nchi-1)
           IF(gzl(nchi).GT. 1.D10) gzl(nchi)= 1.D10
           IF(gzl(nchi).LT.-1.D10) gzl(nchi)=-1.D10
        END DO
        SELECT CASE(inum)
-       !CASE(1:3)
-       !   ga(nrho)=gzl(nchimaxl)
+       CASE(1:3)
+          ga(nrho)=gzl(nchimaxl)
        CASE DEFAULT
           ga(nrho)=0.D0
           DO nchi=1,nchimaxl
