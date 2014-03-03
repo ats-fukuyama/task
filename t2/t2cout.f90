@@ -24,7 +24,7 @@ CONTAINS
     INTEGER(i0ikind)::&
          i0didi,i0widi,i0vidi,&
          i0didj,i0widj,i0vidj
-    REAL(   i0rkind)::d1coef(1:i0mmax)
+    REAL(   i0rkind)::d2coef(1:i0vmax,1:i0mmax)
     CHARACTER(LEN=2)::c2coef
 
     WRITE(6,*)'********** COEFFICIENT CHECK START**********'
@@ -43,161 +43,106 @@ CONTAINS
              READ(5,*)c2coef
              SELECT CASE (c2coef)
              CASE ('ms')
-                DO
-                   WRITE(6,*)'i0vidj'
-                   READ(5,*)  i0vidj
-                   IF(i0vidj.EQ.0)THEN
-                      EXIT
-                   ELSEIF((i0vidj.GT.i0vmax).OR.(i0vidj.LT.1))THEN
-                      CYCLE
-                   ELSE
-                      d1coef(1:i0mmax)=d3ms(i0vidi,i0vidj,1:i0mmax)
-                      CALL T2_COUT(d1coef)
-                   ENDIF
-                ENDDO
+                d2coef(           1:i0vmax,1:i0mmax)&
+                     =d3ms(i0vidi,1:i0vmax,1:i0mmax)
+                CALL T2_COUT(d2coef)
              CASE ('av')
                 DO 
-                   WRITE(6,*)'i0vidj,i0didi'
-                   READ(5,*)  i0vidj,i0didi
-                   IF(i0vidj.EQ.0)THEN
-                      EXIT
-                   ELSEIF((i0vidj.GT.i0vmax).OR.(i0vidj.LT.1).OR.&
-                          (i0didi.GT.i0dmax).OR.(i0didi.LT.1))THEN
-                      CYCLE
-                   ELSE
-                      d1coef(1:i0mmax)&
-                           =d4av(i0didi,i0vidi,i0vidj,1:i0mmax)
-                      CALL T2_COUT(d1coef)
-                   ENDIF
+                   WRITE(6,*)'i0didi'
+                   READ(5,*)  i0didi
+                   IF((i0didi.GT.i0dmax).OR.(i0didi.LT.1)) CYCLE
+                   
+                   d2coef(                  1:i0vmax,1:i0mmax)&
+                        =d4av(i0didi,i0vidi,1:i0vmax,1:i0mmax)
+                   CALL T2_COUT(d2coef)
+                   EXIT
+                   
                 ENDDO
              CASE ('at')
                 DO 
-                   WRITE(6,*)'i0vidj,i0widi,i0didi,i0didj,'
-                   READ(5,*)  i0vidj,i0widi,i0didi,i0didj
-                   IF(i0vidj.EQ.0)THEN
-                      EXIT
-                   ELSEIF((i0vidj.GT.i0vmax).OR.(i0vidj.LT.1).OR.&
-                        (  i0widi.GT.i0wmax).OR.(i0widi.LT.1).OR.&
-                        (  i0didi.GT.i0dmax).OR.(i0didi.LT.1).OR.&
-                        (  i0didj.GT.i0dmax).OR.(i0didj.LT.1))THEN
-                      CYCLE
-                   ELSE
-                      d1coef(1:i0mmax)&
-                           = d6at(i0didi,i0didj,i0widi,&
-                           &      i0vidi,i0vidj,1:i0mmax)
-                      CALL T2_COUT(d1coef)
-                   ENDIF
+                   WRITE(6,*)'i0widi,i0didi,i0didj'
+                   READ(5,*)  i0widi,i0didi,i0didj
+                   IF(  (i0widi.GT.i0wmax).OR.(i0widi.LT.1).OR.&
+                        (i0didi.GT.i0dmax).OR.(i0didi.LT.1).OR.&
+                        (i0didj.GT.i0dmax).OR.(i0didj.LT.1)) CYCLE
+                   
+                   d2coef(            1:i0vmax,1:i0mmax)&
+                        = d6at(i0didi,i0didj,i0widi,&
+                        &      i0vidi,1:i0vmax,1:i0mmax)
+                   CALL T2_COUT(d2coef)
+                   EXIT
                 ENDDO
              CASE ('dt')
                 DO 
-                   WRITE(6,*)'i0vidj,i0didi,i0didj,'
-                   READ(5,*)  i0vidj,i0didi,i0didj
-                   IF(i0vidj.EQ.0)THEN
-                      EXIT
-                   ELSEIF((i0vidj.GT.i0vmax).OR.(i0vidj.LT.1).OR.&
-                        (  i0didi.GT.i0dmax).OR.(i0didi.LT.1).OR.&
-                        (  i0didj.GT.i0dmax).OR.(i0didj.LT.1))THEN
-                      CYCLE
-                   ELSE
-                      d1coef(1:i0mmax)&
-                           =d5dt(i0didi,i0didj,i0vidi,i0vidj,1:i0mmax)
-                      CALL T2_COUT(d1coef)
-                   ENDIF
+                   WRITE(6,*)'i0didi,i0didj'
+                   READ(5,*)  i0didi,i0didj
+                   IF(  (i0didi.GT.i0dmax).OR.(i0didi.LT.1).OR.&
+                        (i0didj.GT.i0dmax).OR.(i0didj.LT.1)) CYCLE
+                   d2coef(                         1:i0vmax,1:i0mmax)&
+                        =d5dt(i0didi,i0didj,i0vidi,1:i0vmax,1:i0mmax)
+                   CALL T2_COUT(d2coef)
+                   EXIT
                 ENDDO
              CASE ('gv')
                 DO 
-                   WRITE(6,*)'i0vidj,i0didi'
-                   READ(5,*)  i0vidj,i0didi
-                   IF(i0vidj.EQ.0)THEN
-                      EXIT
-                   ELSEIF((i0vidj.GT.i0vmax).OR.(i0vidj.LT.1).OR.&
-                        (  i0didi.GT.i0dmax).OR.(i0didi.LT.1))THEN
-                      CYCLE
-                   ELSE
-                      d1coef(1:i0mmax)&
-                           = d4gv(i0didi,i0vidi,i0vidj,1:i0mmax)
-                      CALL T2_COUT(d1coef)
-                   ENDIF
+                   WRITE(6,*)'i0didi'
+                   READ(5,*)  i0didi
+                   IF((i0didi.GT.i0dmax).OR.(i0didi.LT.1)) CYCLE
+                   
+                   d2coef(                   1:i0vmax,1:i0mmax)&
+                        = d4gv(i0didi,i0vidi,1:i0vmax,1:i0mmax)
+                   CALL T2_COUT(d2coef)
+                   EXIT
                 ENDDO
              CASE ('gt')
                 DO 
-                   WRITE(6,*)'i0vidj,i0widi,i0didi,i0didj'
-                   READ(5,*)  i0vidj,i0widi,i0didi,i0didj
-                   IF(i0vidj.EQ.0)THEN
-                      EXIT
-                   ELSEIF((i0vidj.GT.i0vmax).OR.(i0vidj.LT.1).OR.&
-                        (  i0widi.GT.i0wmax).OR.(i0widi.LT.1).OR.&
-                        (  i0didi.GT.i0dmax).OR.(i0didi.LT.1).OR.&
-                        (  i0didj.GT.i0dmax).OR.(i0didj.LT.1))THEN
-                      CYCLE
-                   ELSE
-                      d1coef(1:i0mmax) &
-                           = d6gt(i0didi,i0didj,i0widi,&
-                           &      i0vidi,i0vidj,1:i0mmax)
-                      CALL T2_COUT(d1coef)
-                   ENDIF
+                   WRITE(6,*)'i0widi,i0didi,i0didj'
+                   READ(5,*)  i0widi,i0didi,i0didj
+                   IF(  (i0widi.GT.i0wmax).OR.(i0widi.LT.1).OR.&
+                        (i0didi.GT.i0dmax).OR.(i0didi.LT.1).OR.&
+                        (i0didj.GT.i0dmax).OR.(i0didj.LT.1)) CYCLE
+                   
+                   d2coef(            1:i0vmax,1:i0mmax) &
+                        = d6gt(i0didi,i0didj,i0widi,&
+                        &      i0vidi,1:i0vmax,1:i0mmax)
+                   CALL T2_COUT(d2coef)
+                   EXIT
                 ENDDO
              CASE ('es')
-                DO 
-                   WRITE(6,*)'i0vidj'
-                   READ(5,*)  i0vidj
-                   IF(i0vidj.EQ.0)THEN
-                      EXIT
-                   ELSEIF((i0vidj.GT.i0vmax).OR.(i0vidj.LT.1))THEN
-                      CYCLE
-                   ELSE
-                      d1coef(1:i0mmax) = d3es(i0vidi,i0vidj,1:i0mmax)
-                      CALL T2_COUT(d1coef)
-                   ENDIF
-                ENDDO
+                d2coef(            1:i0vmax,1:i0mmax)&
+                     = d3es(i0vidi,1:i0vmax,1:i0mmax)
+                CALL T2_COUT(d2coef)
              CASE ('ev')
                 DO
-                   WRITE(6,*)'i0vidj,i0widi,i0didi'
-                   READ(5,*)  i0vidj,i0widi,i0didi
-                   IF(i0vidj.EQ.0)THEN
-                      EXIT
-                   ELSEIF((i0vidj.GT.i0vmax).OR.(i0vidj.LT.1).OR.&
-                        (  i0widi.GT.i0wmax).OR.(i0widi.LT.1).OR.&
-                        (  i0didi.GT.i0dmax).OR.(i0didi.LT.1))THEN
-                      CYCLE
-                   ELSE
-                      d1coef(1:i0mmax) &
-                           = d5ev(i0didi,i0widi,i0vidi,i0vidj,1:i0mmax)
-                      CALL T2_COUT(d1coef)
-                   ENDIF
+                   WRITE(6,*)'i0widi,i0didi'
+                   READ(5,*)  i0widi,i0didi
+                   IF(  (i0widi.GT.i0wmax).OR.(i0widi.LT.1).OR.&
+                        (i0didi.GT.i0dmax).OR.(i0didi.LT.1)) CYCLE
+                   d2coef(1:i0vmax,1:i0mmax) &
+                        = d5ev(i0didi,i0widi,i0vidi,&
+                        & 1:i0vmax,1:i0mmax)
+                   CALL T2_COUT(d2coef)
+                   EXIT
                 ENDDO
              CASE ('et')
                 DO 
-                   WRITE(6,*)'i0vidj,i0widi,i0widj,i0didi,i0didj'
-                   READ(5,*)  i0vidj,i0widi,i0widj,i0didi,i0didj
-                   IF(i0vidj.EQ.0)THEN
-                      EXIT
-                   ELSEIF((i0vidj.GT.i0vmax).OR.(i0vidj.LT.1).OR.&
-                        (  i0widi.GT.i0wmax).OR.(i0widi.LT.1).OR.&
-                        (  i0widj.GT.i0wmax).OR.(i0widj.LT.1).OR.&
-                        (  i0didi.GT.i0dmax).OR.(i0didi.LT.1).OR.&
-                        (  i0didj.GT.i0dmax).OR.(i0didj.LT.1))THEN
-                      CYCLE
-                   ELSE
-                      d1coef(1:i0mmax)&
-                           = d7et(i0didi,i0didj,i0widi,i0widj,&
-                           &      i0vidi,i0vidj,1:i0mmax)
-                      CALL T2_COUT(d1coef)
-                   ENDIF
+                   WRITE(6,*)'i0widi,i0widj,i0didi,i0didj'
+                   READ(5,*)  i0widi,i0widj,i0didi,i0didj
+                   IF(  (i0widi.GT.i0wmax).OR.(i0widi.LT.1).OR.&
+                        (i0widj.GT.i0wmax).OR.(i0widj.LT.1).OR.&
+                        (i0didi.GT.i0dmax).OR.(i0didi.LT.1).OR.&
+                        (i0didj.GT.i0dmax).OR.(i0didj.LT.1)) CYCLE
+
+                   d2coef(1:i0vmax,1:i0mmax)&
+                        = d7et(i0didi,i0didj,i0widi,i0widj,i0vidi,&
+                        & 1:i0vmax,1:i0mmax)
+                   CALL T2_COUT(d2coef)
+                   EXIT
                 ENDDO
              CASE ('ss')
-                DO
-                   WRITE(6,*)'i0vidj'
-                   READ(5,*)  i0vidj
-                   IF(i0vidj.EQ.0)THEN
-                      EXIT
-                   ELSEIF((i0vidj.GT.i0vmax).OR.(i0vidj.LT.1))THEN
-                      CYCLE
-                   ELSE
-                      d1coef(1:i0mmax) = d3ss(i0vidi,i0vidj,1:i0mmax) 
-                      CALL T2_COUT(d1coef)
-                   ENDIF
-                ENDDO
+                d2coef(            1:i0vmax,1:i0mmax)&
+                     = d3ss(i0vidi,1:i0vmax,1:i0mmax) 
+                CALL T2_COUT(d2coef)
              CASE ('xx')
                 EXIT
              CASE DEFAULT
@@ -208,19 +153,20 @@ CONTAINS
     ENDDO
     
     WRITE(6,*)'********** COEFFICIENT CHECK END  **********'
+    RETURN
     
   END SUBROUTINE T2_CCHK
-
-  SUBROUTINE T2_COUT(d1cm)
-
+  
+  SUBROUTINE T2_COUT(d2cm)
+    
     USE T2CNST,ONLY: i0ikind,i0rkind
     USE T2PARM,ONLY: T2_PARM
     USE T2COMM
     USE libgrf
     IMPLICIT NONE
     
-    REAL(i0rkind),DIMENSION(1:i0mmax),INTENT(IN)::d1cm
-    REAL(i0rkind),DIMENSION(1:i0xmax)::d1cx
+    REAL(i0rkind),DIMENSION(1:i0vmax,1:i0mmax),INTENT(IN)::d2cm
+    REAL(i0rkind),DIMENSION(1:i0vmax,1:i0xmax)::d2cx
     INTEGER(i0ikind) :: ierr,mode,ind
     CHARACTER(LEN=80):: line,kw
     CHARACTER(LEN=1) :: kid,kch
@@ -230,9 +176,9 @@ CONTAINS
     
     DO i0midi =1, i0mmax
        i0xidi = i2crt(2,i0midi)
-       d1cx(i0xidi)= d1cm(i0midi)
+       d2cx(1:i0vmax,i0xidi)= d2cm(1:i0vmax,i0midi)
     ENDDO
-
+    
     CALL T2_GSETUP
 
 1   CONTINUE
@@ -310,65 +256,65 @@ CONTAINS
        CASE(1)
           SELECT CASE(KWID(NW))
           CASE('R')
-             CALL T2_CR(INUM(NW),1, 0,d1cx)
+             CALL T2_CR(INUM(NW),1, 0,d2cx)
           CASE('A')
-             CALL T2_CR(INUM(NW),11,0,d1cx)
+             CALL T2_CR(INUM(NW),11,0,d2cx)
           CASE('C')
-             CALL T2_CC(INUM(NW),1, 0,d1cx)
+             CALL T2_CC(INUM(NW),1, 0,d2cx)
           CASE('D')
-             CALL T2_CC(INUM(NW),2, 0,d1cx)
+             CALL T2_CC(INUM(NW),2, 0,d2cx)
           CASE('P')
-             CALL T2_CC(INUM(NW),3, 0,d1cx)
+             CALL T2_CC(INUM(NW),3, 0,d2cx)
           CASE('B')
-             CALL T2_CC(INUM(NW),15,0,d1cx)
+             CALL T2_CC(INUM(NW),15,0,d2cx)
           CASE('Y')
-             CALL T2_CC(INUM(NW),11,0,d1cx)
+             CALL T2_CC(INUM(NW),11,0,d2cx)
           END SELECT
        CASE(2)
           SELECT CASE(KWID(NW))
           CASE('RA')
              DO I=1,5
-                CALL T2_CR(I,1, 29+I,d1cx)
+                CALL T2_CR(I,1, 29+I,d2cx)
              END DO
              DO J=1,4
                 DO I=4*J+2,4*J+5
-                   CALL T2_CR(I,1, 28+I+J,d1cx)
+                   CALL T2_CR(I,1, 28+I+J,d2cx)
                 END DO
              END DO
           CASE('AA')
              DO I=1,5
-                CALL T2_CR(I,11,29+I,d1cx)
+                CALL T2_CR(I,11,29+I,d2cx)
              END DO
              DO J=1,4
                 DO I=4*J+2,4*J+5
-                   CALL T2_CR(I,11,28+I+J,d1cx)
+                   CALL T2_CR(I,11,28+I+J,d2cx)
                 END DO
              END DO
           CASE('CA')
              DO I=1,5
-                CALL T2_CC(I, 1,29+I,d1cx)
+                CALL T2_CC(I, 1,29+I,d2cx)
              END DO
              DO J=1,4
                 DO I=4*J+2,4*J+5
-                   CALL T2_CC(I, 1,28+I+J,d1cx)
+                   CALL T2_CC(I, 1,28+I+J,d2cx)
                 END DO
              END DO
           CASE('PA')
              DO I=1,5
-                CALL T2_CC(I, 3,29+I,d1cx)
+                CALL T2_CC(I, 3,29+I,d2cx)
              END DO
              DO J=1,4
                 DO I=4*J+2,4*J+5
-                   CALL T2_CC(I, 3,28+I+J,d1cx)
+                   CALL T2_CC(I, 3,28+I+J,d2cx)
                 END DO
              END DO
           CASE('BA')
              DO I=1,5
-                CALL T2_CC(I,15,29+I,d1cx)
+                CALL T2_CC(I,15,29+I,d2cx)
              END DO
              DO J=1,4
                 DO I=4*J+2,4*J+5
-                   CALL T2_CC(I,15,28+I+J,d1cx)
+                   CALL T2_CC(I,15,28+I+J,d2cx)
                 END DO
              END DO
           END SELECT
@@ -453,7 +399,7 @@ CONTAINS
     RETURN
   END SUBROUTINE T2_GRELEASE
 
-  SUBROUTINE T2_CC(INUM,ID,NGP,d1coef)
+  SUBROUTINE T2_CC(INUM,ID,NGP,d2coef)
     USE libgrf,ONLY: GRD2D
 !    USE T2COMM, ONLY: &
 !         i0ikind,i0rkind,twopi,i0xmax,d2xvec,i0vmax, &
@@ -467,7 +413,7 @@ CONTAINS
     IMPLICIT NONE
     INTEGER,PARAMETER:: nxmax=41,nymax=41
     INTEGER(i0ikind),INTENT(IN):: inum,id,ngp
-    REAL(i0rkind),DIMENSION(1:i0xmax),INTENT(IN)::d1coef
+    REAL(i0rkind),DIMENSION(1:i0vmax,1:i0xmax),INTENT(IN)::d2coef
     REAL(i0rkind),DIMENSION(:,:),ALLOCATABLE:: gz
     REAL(i0rkind),DIMENSION(:),ALLOCATABLE:: gzl,dgzl,chig
     REAL(i0rkind),DIMENSION(:,:),ALLOCATABLE:: ugzl
@@ -484,8 +430,7 @@ CONTAINS
     dchig=TWOPI/nchig
     DO nchi=1,nchig+1
        chig(nchi)=dchig*(nchi-1)
-       !gz(1,nchi)=d2xvec(inum,1)
-       gz(1,nchi)=d1coef(1)! changed by 2014-02-05 H.SETO
+       gz(1,nchi)=d2coef(inum,1)
        IF(gz(1,nchi).GT. 1.D10) gz(1,nchi)= 1.D10
        IF(gz(1,nchi).LT.-1.D10) gz(1,nchi)=-1.D10
     END DO
@@ -493,8 +438,7 @@ CONTAINS
        nl=nlnrho(nrho)
        nchimaxl=i0pdiv_number*2**(i1mlvl(nl)-1)
        DO nchi=1,nchimaxl
-          !gzl(nchi)=d2xvec(inum,nnnrho(nrho)+nchi-1)
-          gzl(nchi)=d1coef(nnnrho(nrho)+nchi-1)! changed by 2014-02-05 H.SETO
+          gzl(nchi)=d2coef(inum,nnnrho(nrho)+nchi-1)
           IF(gzl(nchi).GT. 1.D10) gzl(nchi)= 1.D10
           IF(gzl(nchi).LT.-1.D10) gzl(nchi)=-1.D10
        END DO
@@ -586,7 +530,7 @@ CONTAINS
     RETURN
   END SUBROUTINE T2_CC
 
-  SUBROUTINE T2_CR(INUM,ID,NGP,d1coef)
+  SUBROUTINE T2_CR(INUM,ID,NGP,d2coef)
     USE libgrf,ONLY: GRD1D
   
     !USE T2COMM, ONLY: &
@@ -601,7 +545,7 @@ CONTAINS
 
     IMPLICIT NONE
     INTEGER(i0ikind),INTENT(IN):: inum,id,ngp
-    REAL(i0rkind),DIMENSION(1:i0xmax),INTENT(IN)::d1coef
+    REAL(i0rkind),DIMENSION(1:i0vmax,1:i0xmax),INTENT(IN)::d2coef
     REAL(i0rkind),DIMENSION(:,:),ALLOCATABLE:: gz
     REAL(i0rkind),DIMENSION(:),ALLOCATABLE:: gzl,dgzl,ga
     REAL(i0rkind),DIMENSION(:,:),ALLOCATABLE:: ugzl
@@ -612,19 +556,16 @@ CONTAINS
     ALLOCATE(gzl(nchimax+1),dgzl(nchimax+1),ugzl(4,nchimax+1))
     ALLOCATE(ga(nrhomax))
     DO nchi=1,nchimax+1
-       !gz(1,nchi)=d2xvec(inum,1)
-       gz(1,nchi)=d1coef(1)! changed by 2014-02-05 H.SETO
+       gz(1,nchi)=d2coef(inum,1)
        IF(gz(1,nchi).GT. 1.D10) gz(1,nchi)= 1.D10
        IF(gz(1,nchi).LT.-1.D10) gz(1,nchi)=-1.D10
     END DO
-    !ga(1)=d2xvec(inum,1)
-    ga(1)=d1coef(1)! changed by 2014-02-05 H.SETO
+    ga(1)=d2coef(inum,1)
     DO nrho=2,nrhomax
        nl=nlnrho(nrho)
        nchimaxl=i0pdiv_number*2**(i1mlvl(nl)-1)
        DO nchi=1,nchimaxl
-          !gzl(nchi)=d2xvec(inum,nnnrho(nrho)+nchi-1)! changed by 2014-02-05 H.SETO
-          gzl(nchi)=d1coef(nnnrho(nrho)+nchi-1)
+          gzl(nchi)=d2coef(inum,nnnrho(nrho)+nchi-1)
           IF(gzl(nchi).GT. 1.D10) gzl(nchi)= 1.D10
           IF(gzl(nchi).LT.-1.D10) gzl(nchi)=-1.D10
        END DO
