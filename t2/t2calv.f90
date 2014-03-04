@@ -858,7 +858,7 @@ CONTAINS
     
     REAL(   i0rkind)::&
          d0mm_a,d0tt_a,d0nn_a,d0pp_a,&
-         d0mi_a,       d0ni_a,d0pi_a,&
+         d0ni_a,d0pi_a,&
          d0ur_a,d0up_a,d0ub_a,d0u2_a,&
          d0qr_a,d0qp_a,d0qt_a,d0qb_a
     
@@ -896,8 +896,8 @@ CONTAINS
     
     !C I
     i0vidj = 2
-    d4av(1,i0vidi,i0vidj,i0midi) = d0ugr * d0btcst * d0btcst/d0btfct
-    d4av(2,i0vidi,i0vidj,i0midi) = d0ugp * d0btcst * d0btcst/d0btfct
+    d4av(1,i0vidi,i0vidj,i0midi) = d0ugr  * d0btcst/d0btfct
+    d4av(2,i0vidi,i0vidj,i0midi) = d0ugp  * d0btcst/d0btfct
     
     !C
     !C EQUATION FOR Et
@@ -964,7 +964,7 @@ CONTAINS
        d0qp_a = d1qp(i0sidi)
        d0qb_a = d1qb(i0sidi)
        d0qt_a = d1qt(i0sidi)
-       d0mi_a = 1.D0/d0mm_a
+
 
        !C
        !C EQUATION FOR N
@@ -988,8 +988,7 @@ CONTAINS
        !C Fb
        i0vidj = i0vofi - 2
        d4av(1,i0vidi,i0vidj,i0midi)&
-            = d0ugr*d0bb*d0mm_a &
-            * d0fbcst/d0fbfct
+            = d0ugr*d0bb*d0mm_a  * d0fbcst/d0fbfct
        d4av(2,i0vidi,i0vidj,i0midi) &
             = (d0ugr*d0bb + d0sqrtg*d0ctbp*d0ub_a)*d0mm_a&
             * d0fbcst/d0fbfct
@@ -1109,7 +1108,7 @@ CONTAINS
          i0sidi,i0didi,i0didj,i0widi,i0vidi,i0vidj,i0vofi
     
     REAL(   i0rkind)::&
-         d0mm_a,d0mi_a,d0ni_a,d0pi_a,d0tt_a,d0ur_a,d0up_a,d0ub_a,&
+         d0mm_a,d0ni_a,d0pi_a,d0tt_a,d0ur_a,d0up_a,d0ub_a,&
          d0nvcc1_a,d0nvcc2_a,d0nvcc3_a,d0nvcc4_a
     
     REAL(   i0rkind)::&
@@ -1156,7 +1155,7 @@ CONTAINS
        d0ni_a = d1ni(i0sidi)
        d0pi_a = d1pi(i0sidi)
        d0tt_a = d1tt(i0sidi)
-       d0mi_a = 1.D0/d0mm_a
+
 
        d0nvcc1_a = d1nvcc1(i0sidi)
        d0nvcc2_a = d1nvcc2(i0sidi)
