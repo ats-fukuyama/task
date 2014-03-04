@@ -2110,7 +2110,7 @@ CONTAINS
 
        !C Ft
        i0vidj = i0vofi - 1
-       d3es(i0vidi,i0vidj,i0midi) = -d0x6  * d0ftcst/d0fpfct
+       d3es(i0vidi,i0vidj,i0midi) =  d0x6  * d0ftcst/d0fpfct
 
        !C Fp
        i0vidj = i0vofi
@@ -2232,7 +2232,7 @@ CONTAINS
 
        !C Qt
        i0vidj = i0vofi + 4
-       d3es(i0vidi,i0vidj,i0midi) = -d0x6  * d0qtcst/d0qpfct
+       d3es(i0vidi,i0vidj,i0midi) =  d0x6  * d0qtcst/d0qpfct
 
        !C Qp
        i0vidj = i0vofi + 5
