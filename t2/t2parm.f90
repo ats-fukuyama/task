@@ -61,7 +61,7 @@ CONTAINS
          d0qc,d0qs,d0rw,&
          dt,time_init,eps_conv, &
          ntmax,ntstep,nt0dmax,nt0dstep,nt2dmax,nt2dstep,nconvmax, &
-         idfile,idprint,idplot,idmode,idebug
+         idfile,idprint,idplot,idmode,idebug,i0solv
 
     IMPLICIT NONE
     INTEGER,INTENT(IN) :: NID
@@ -81,7 +81,7 @@ CONTAINS
          d0qc,d0qs,d0rw, &
          dt,time_init,eps_conv, &
          ntmax,ntstep,nt0dmax,nt0dstep,nt2dmax,nt2dstep,nconvmax, &
-         idfile,idprint,idplot,idmode,idebug
+         idfile,idprint,idplot,idmode,idebug,i0solv
 
 
     READ(NID,T2,IOSTAT=IST,ERR=9800,END=9900)

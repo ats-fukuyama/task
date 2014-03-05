@@ -46,10 +46,10 @@ CONTAINS
          d0qc,d0qs,d0rw, &
          dt,time_init,eps_conv, &
          ntmax,ntstep,nt0dmax,nt0dstep,nt2dmax,nt2dstep,nconvmax, &
-         idfile,idprint,idplot,idmode,idebug
+         idfile,idprint,idplot,idmode,idebug,i0solv
     
     c10rname = 'TEST'
-    i0solv  =  2
+    i0solv  =  3
     i0dbg   =  0
     i0fnum  = 10
     i0mfcs  =  1

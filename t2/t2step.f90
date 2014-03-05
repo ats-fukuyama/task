@@ -151,7 +151,7 @@ CONTAINS
        !C
 
     CASE(1)
-       DO i0vidi = 6, 10
+       DO i0vidi = 6,15
           
           d0dif  = d1dif(i0vidi)
           d0ave  = d1ave(i0vidi)
@@ -180,7 +180,7 @@ CONTAINS
        
        DO i0vidi = 1,i0vmax
           SELECT CASE (i0vidi)
-          CASE(1:5,11:15,21:25)
+          CASE(1:5)
              cycle
           END SELECT
           d0dif  = d1dif(i0vidi)
