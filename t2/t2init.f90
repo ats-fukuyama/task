@@ -74,7 +74,7 @@ CONTAINS
 
 
     d1rec(0:i0lmaxm) = 0.D0 ! least radial point in a level
-    d1rec(1) = 1.10D0
+    d1rec(1) = 1.00D0
 
     d0rmjr   =  3.0D0
     d0rmnr   =  1.0D0

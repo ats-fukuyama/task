@@ -33,7 +33,6 @@ CONTAINS
   
   SUBROUTINE T2_CALV
     
-    !USE T2COMM, ONLY: i0mmax
     USE T2COMM, ONLY: i0mmax,i0cchk
     USE T2CCHK, ONLY: T2_CCHK
 
@@ -2237,12 +2236,13 @@ CONTAINS
   !C 
   !C CALCULATION OF ECITATION VECTOR COEFFICIENTS
   !C
-  !C             2014-02-21 H.SETO
+  !C             2014-03-05 H.SETO
   !C
   !C---------------------------------------------------------
   SUBROUTINE T2CALV_EV
     
     USE T2CNST
+    
     USE T2COMM,ONLY:&
          & i0smax,i0vmax,i0dmax,i0wmax,&
          & d0mfcst,        d0etcst,d0epcst,        &
@@ -2303,9 +2303,9 @@ CONTAINS
     d0y1 = d0sqrtg*d0ctbt*3.D0              /d0bb
     d0y2 = d0sqrtg*d0ctbp*3.D0*d0mfcr       /d0bb
     d0y3 = d0sqrtg*(3.D0*d0bt2/d0bb2-1.D0)  /d0bb
-    d0y4 = d0sqrtg*d0cobt*d0ctbp*d0mfcr*3.D0/d0bb2
+    d0y4 = d0sqrtg*d0cobt*d0ctbp*d0mfcr*3.D0/(d0bb2*d0bb)
     d0y5 = d0ctbp/d0cobt
-
+    
     d0x1 = d0sqrtg*d0ctbp/d0bb
     d0x2 = d0y1*d0bt2/d0bb2
     d0x3 = d0y1*d0ctbp
@@ -2320,20 +2320,21 @@ CONTAINS
        
        i0vofi = 10*i0sidi
 
-       d0ee_a    = d1ee(   i0sidi)
-       d0mm_a    = d1mm(   i0sidi)
-       d0pp_a    = d1pp(   i0sidi)
-       d0ni_a    = d1ni(   i0sidi)
-       d0ub_a    = d1ub(   i0sidi)
-       d0ut_a    = d1ut(   i0sidi)
-       d0up_a    = d1up(   i0sidi)
-       d0qb_a    = d1qb(   i0sidi)
-       d0wb_a    = d1wb(   i0sidi)
-       d0wt_a    = d1wt(   i0sidi)
-       d0wp_a    = d1wp(   i0sidi)
+       d0ee_a    = d1ee(i0sidi)
+       d0mm_a    = d1mm(i0sidi)
+       d0pp_a    = d1pp(i0sidi)
+       d0ni_a    = d1ni(i0sidi)
+       d0ub_a    = d1ub(i0sidi)
+       d0ut_a    = d1ut(i0sidi)
+       d0up_a    = d1up(i0sidi)
+       d0qb_a    = d1qb(i0sidi)
+       d0wb_a    = d1wb(i0sidi)
+       d0wt_a    = d1wt(i0sidi)
+       d0wp_a    = d1wp(i0sidi)
+       
        d0nvcc1_a = d1nvcc1(i0sidi)
        d0nvcc2_a = d1nvcc2(i0sidi)
-             
+       
        d0udp_a = d0y5*d0ut_a - d0up_a
        d0wdp_a = d0y5*d0wt_a - d0wp_a
        
@@ -2342,8 +2343,9 @@ CONTAINS
        d0c3_a = d0ee_a*d0nvcc2_a
        d0c4_a = (d0qb_a-1.5*d0pp_a*d0ub_a)*d0mm_a*d0ni_a
        d0c5_a = d0ub_a*d0mm_a
+       
        !C
-       !C EQUATION FOR Fb
+       !C EQ_008
        !C
        
        i0vidi = i0vofi - 2
@@ -2356,7 +2358,7 @@ CONTAINS
             = -d0x1*d0ub_a*d0mm_a * d0fbcst/d0fbfct
        
        !C
-       !C EQUATION FOR Qb
+       !C EQ_013
        !C
 
        i0vidi = i0vofi + 3
@@ -2410,7 +2412,7 @@ CONTAINS
             = -d0x1*d0c5_a * d0qbcst/d0qbfct
        
        !C
-       !C EQUATION FOR Qt
+       !C EQ_014
        !C
        
        i0vidi = i0vofi + 4
@@ -2432,13 +2434,13 @@ CONTAINS
        i0widi = 2*i0sidi + 2
        d5ev(2,i0widi,i0vidi,i0vidj,i0midi)&
             =  d0x7*d0c3_a * d0wbcst*d0etcst/d0qtfct
-
+       
        !C Ep (B)
        i0vidj = 4
        i0widi = 1
        d5ev(2,i0widi,i0vidi,i0vidj,i0midi)&
             =  d0x8*d0c1_a * d0epcst/d0qtfct
-              
+       
        !C Ep (Ub)
        i0vidj = 4
        i0widi = 2*i0sidi + 1
@@ -2461,21 +2463,23 @@ CONTAINS
   !C 
   !C CALCULATION OF ECITATION VECTOR COEFFICIENTS
   !C
-  !C             2014-02-21 H.SETO
+  !C             2014-03-06 H.SETO
   !C
   !C---------------------------------------------------------
   SUBROUTINE T2CALV_ET
     
     USE T2CNST
     USE T2COMM,ONLY:&
-         i0smax,i0dmax,i0vmax,i0wmax,&
-         d0fbcst,d0ftcst,d0fpcst,d0ubcst,d0wbcst,&
-         d0ppcst,d0qbcst,d0qtcst,d0qpcst,&
-         d0fbfct,d0ftfct,d0fpfct,&
-         d0ppfct,d0qbfct,d0qtfct,d0qpfct,&
-         d1ni,d1pi,d1tt,d1ut,d1ub,d1up,&
-         d1nvcc1,d1nvcc2,d1nvcc3,d1nvcc4,&
-         d7et
+         & i0smax,i0dmax,i0vmax,i0wmax,            &
+         &                         d0ftcst,d0fpcst,&
+         & d0ubcst,                                &
+         &                         d0qtcst,d0qpcst,&
+         & d0wbcst,                                &
+         &                 d0fbfct,                &
+         & d0ppfct,        d0qbfct,                &
+         & d1ni,d1pi,d1tt,d1ut,d1ub,d1up,&
+         & d1nvcc1,d1nvcc2,d1nvcc3,d1nvcc4,&
+         & d7et
     
     INTEGER(i0ikind)::&
          i0sidi,i0didi,i0didj,i0widi,i0widj,i0vidi,i0vidj,i0vofi
@@ -2543,7 +2547,7 @@ CONTAINS
        
        
        !C
-       !C EQUATION FOR Fb
+       !C EQ_008
        !C
 
        i0vidi = i0vofi - 2
@@ -2577,7 +2581,7 @@ CONTAINS
             = -d0x2*d0c2_a * d0qtcst/d0fbfct
 
        !C
-       !C EQUATION FOR P
+       !C EQ_011
        !C
 
        i0vidi = i0vofi + 1
@@ -2616,7 +2620,7 @@ CONTAINS
        i0widi = 2*i0sidi + 1
        i0widj = 1
        d7et(2,2,i0widi,i0widj,i0vidi,i0vidj,i0midi)&
-            = -d0x5*d0c1_a        * d0ubcst*d0ftcst/d0ppfct 
+            = -d0x5*d0c1_a         * d0ubcst*d0ftcst/d0ppfct 
 
        !C Fp: (Ub,B)
        i0vidj = i0vofi
@@ -2651,14 +2655,14 @@ CONTAINS
        i0widi = 1
        i0widj = 1
        d7et(2,2,i0widi,i0widj,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0c3_a * d0ftcst/d0qbfct
+            =  d0x1*d0c3_a        * d0ftcst/d0qbfct
 
        !C Fp (B,B)
        i0vidj = i0vofi
        i0widi = 1
        i0widj = 1
        d7et(2,2,i0widi,i0widj,i0vidi,i0vidj,i0midi)&
-            =  -d0x2*d0c3_a * d0fpcst/d0qbfct
+            =  -d0x2*d0c3_a       * d0fpcst/d0qbfct
 
 
        !C Qt (B,B)
@@ -2666,14 +2670,14 @@ CONTAINS
        i0widi = 1
        i0widj = 1
        d7et(2,2,i0widi,i0widj,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0c4_a * d0qtcst/d0qbfct
+            =  d0x1*d0c4_a        * d0qtcst/d0qbfct
 
        !C Qp (B,B)
        i0vidj = i0vofi + 5
        i0widi = 1
        i0widj = 1
        d7et(2,2,i0widi,i0widj,i0vidi,i0vidj,i0midi)&
-            =  -d0x2*d0c4_a * d0qpcst/d0qbfct
+            =  -d0x2*d0c4_a       * d0qpcst/d0qbfct
        
     ENDDO
     

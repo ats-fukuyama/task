@@ -81,7 +81,6 @@ CONTAINS
           ENDDO
        ENDDO
        
-
     ENDDO
     
     print*,'NLLOOP=',nconv,'EXIT'
@@ -151,7 +150,7 @@ CONTAINS
        !C
 
     CASE(1)
-       DO i0vidi = 6,15
+       DO i0vidi = 6,10
           
           d0dif  = d1dif(i0vidi)
           d0ave  = d1ave(i0vidi)
