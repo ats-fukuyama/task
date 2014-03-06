@@ -178,11 +178,10 @@ CONTAINS
        i0nflag = 0
        i0vidi =  10*i0sidi - 5
        
-       d0nn_a = d2xvec_befor(i0vidi+1,i0xid2d)! 10^{20}m^{-3}
-       d0pp_a = d2xvec_befor(i0vidi+6,i0xid2d)! keV*10^{20}m^{-3}
-       
-       !d0nn_a = d2xvec_befor(i0vidi+1,i0xid2d)*1.D-20
-       !d0pp_a = d2xvec_befor(i0vidi+6,i0xid2d)*1.D-23/d0aee
+       !C d0nn_a: 10^{20}m^{-3}
+       !C d0pp_a: keV*10^{20}m^{-3}
+       d0nn_a = d2xvec_befor(i0vidi+1,i0xid2d)*d0nncst*1.D-20
+       d0pp_a = d2xvec_befor(i0vidi+6,i0xid2d)*d0ppcst*1.D-23/d0aee
        
        d1nn(i0sidi) = d0nncst*d2xvec_befor(i0vidi+ 1,i0xid2d)
        d1fr(i0sidi) = d0frcst*d2xvec_befor(i0vidi+ 2,i0xid2d)*d0mfcr
@@ -195,17 +194,6 @@ CONTAINS
        d1qb(i0sidi) = d0qbcst*d2xvec_befor(i0vidi+ 8,i0xid2d)
        d1qt(i0sidi) = d0qtcst*d2xvec_befor(i0vidi+ 9,i0xid2d)
        d1qp(i0sidi) = d0qpcst*d2xvec_befor(i0vidi+10,i0xid2d)
-       
-       !d1nn(i0sidi) = d2xvec_befor(i0vidi+ 1,i0xid2d)
-       !d1fr(i0sidi) = d2xvec_befor(i0vidi+ 2,i0xid2d)*d0mfcr
-       !d1fb(i0sidi) = d2xvec_befor(i0vidi+ 3,i0xid2d)
-       !d1ft(i0sidi) = d2xvec_befor(i0vidi+ 4,i0xid2d)
-       !d1fp(i0sidi) = d2xvec_befor(i0vidi+ 5,i0xid2d)
-       !d1pp(i0sidi) = d2xvec_befor(i0vidi+ 6,i0xid2d)
-       !d1qr(i0sidi) = d2xvec_befor(i0vidi+ 7,i0xid2d)*d0mfcr
-       !d1qb(i0sidi) = d2xvec_befor(i0vidi+ 8,i0xid2d)
-       !d1qt(i0sidi) = d2xvec_befor(i0vidi+ 9,i0xid2d)
-       !d1qp(i0sidi) = d2xvec_befor(i0vidi+10,i0xid2d)
        
        !write(10,'(2(A4,I5),8(A4,D15.8))')'ND=',i0midi,'SP=',i0sidi,&
        !     'NN=',d1nn(i0sidi),'FR=',d1fr(i0sidi),&
@@ -266,6 +254,7 @@ CONTAINS
     
     d0psip  = d0mfcst*d2xvec_befor(1,i0xid1d)
     d0cobt  = d0btcst*d2xvec_befor(2,i0xid1d)
+
     d0sqrtg = d2jm1(1,i0midi)
     d0cogrr = d2jm1(2,i0midi)
     d0cogrp = d2jm1(3,i0midi)
@@ -275,13 +264,13 @@ CONTAINS
     d0ctgrp = d2jm1(7,i0midi)
     d0ctgpp = d2jm1(8,i0midi)
     d0ctgtt = d2jm1(9,i0midi)
+
     d0ctbp = d0psip/d0sqrtg
     d0ctbt = d0cobt*d0ctgtt
     
     d0ugr = 0.D0
     d0ugp = 0.D0
     
-
     d0bp2 = (d0ctbp**2)*d0cogpp
     d0bt2 = (d0cobt**2)*d0ctgtt
 

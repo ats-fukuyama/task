@@ -1874,7 +1874,7 @@ CONTAINS
        ENDDO
        
        !C
-       !C i0solv = 4: ONLY EM FIELDS
+       !C i0solv = 4: 
        !C
     CASE(4)
               
@@ -1889,7 +1889,7 @@ CONTAINS
              DO i0vidj = 1, i0vmax
              DO i0vidi = 1, i0vmax
                 SELECT CASE(i0vidi)
-                CASE(6:)
+                CASE(1:5)
                    IF((i0bidi.EQ.i0bidj).AND.(i0vidi.EQ.i0vidj))THEN
                       d3amat(i0vidi,i0vidj,i0aidi) = 1.D0
                    ELSE
@@ -1908,7 +1908,7 @@ CONTAINS
           
           DO i0vidi = 1, i0vmax
              SELECT CASE(i0vidi)
-             CASE(6:)
+             CASE(1:5)
                 d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)
              CASE DEFAULT
                 CYCLE
@@ -1931,7 +1931,7 @@ CONTAINS
              i0bidj = i1nidc(i0aidi)
              DO i0vidi = 1, i0vmax
                 SELECT CASE(i0vidi)
-                CASE(6:)
+                CASE(1:6,10:11,15:16,20:21,25)
                    CYCLE
                 CASE DEFAULT
                    DO i0vidj = 1, i0vmax
@@ -1951,7 +1951,7 @@ CONTAINS
           
           DO i0vidi = 1, i0vmax
              SELECT CASE(i0vidi)
-             CASE(6:)
+             CASE(1:6,10:11,15:16,20:21,25)
                 CYCLE
              CASE DEFAULT
                 d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)
