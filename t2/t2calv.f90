@@ -22,7 +22,7 @@ MODULE T2CALV
   REAL(   i0rkind)::&
        d0cogrr,d0cogrp,d0cogpp,d0cogtt,&
        d0ctgrr,d0ctgrp,d0ctgpp,d0ctgtt,&
-       d0sqrtg,d0mfcr, d0ugr,  d0ugp,  &
+       d0sqrtg,d0mfcr, d0rzcr, d0ugr,  d0ugp,  &
        d0ctbp, d0cobt, d0ctbt,d0bp2,d0bt2,d0bb,d0bb2
   
   PRIVATE
@@ -104,7 +104,7 @@ CONTAINS
          d0nvcc1_a,  d0nvcc2_a,  d0nvcc3_a,  d0nvcc4_a    
     
     REAL(i0rkind)::&
-         d0rzcr,d0psip,d0mfcp,&
+         d0psip,&
          d0cps,d0cbn,d0wv2,d0wv3,d0temp,d0temp2,d0temp3,&
          d0k11,d0k11ps,d0k11bn,&
          d0k12,d0k12ps,d0k12bn,&
@@ -167,7 +167,7 @@ CONTAINS
     i0xid2d = i2crt( 2,i0midi)
     d0rzcr  = d2rzm( 1,i0midi)
     d0mfcr  = d2mfc1(1,i0midi)
-    d0mfcp  = d2mfc1(2,i0midi)
+
 
     !C
     !C CONVERT VARIABLES TO SI-UNIT

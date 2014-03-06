@@ -53,12 +53,12 @@ CONTAINS
     i0dbg   =  0
     i0fnum  = 10
     i0mfcs  =  1
-    i0cchk  =  0
-    i0wstp  =  1  ! output timing
+    i0cchk  =  1
+    i0wstp  =  1   ! output timing
     i0supg  =  0
-    i0dmax  =  2  ! mesh dim
-    i0qmax  = 32  ! gauss kyuuseki number of sample points
-    i0pmax  = 49  ! iteration 
+    i0dmax  =  2   ! mesh dim
+    i0qmax  = 32   ! gauss kyuuseki number of sample points
+    i0pmax  = 999  ! iteration 
     
     i0smax =  2
     i0nmax =  4        ! number of nodes in a elemnt
@@ -74,7 +74,7 @@ CONTAINS
 
 
     d1rec(0:i0lmaxm) = 0.D0 ! least radial point in a level
-    d1rec(1) = 1.00D0
+    d1rec(1) = 1.10D0
 
     d0rmjr   =  3.0D0
     d0rmnr   =  1.0D0
@@ -133,7 +133,7 @@ CONTAINS
     nt2dstep  = 1       ! time step to save profile data
 
     nconvmax  = 50      ! maximum number of convergence steps for implicit loop
-    eps_conv  = 1.D-3   ! relative convergence criterion for implicit loop
+    eps_conv  = 1.D-4   ! relative convergence criterion for implicit loop
 
     idfile    = 0       ! control id for file output: 0 for none, 9 for all
     idprint   = 9       ! control id for print output: 0 for none, 9 for all

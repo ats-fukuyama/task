@@ -105,7 +105,7 @@ CONTAINS
              ENDDO
           ENDIF
           
-          IF(i0ssvt.EQ.1)       CALL T2EXEC_SS
+          !IF(i0ssvt.EQ.1)       CALL T2EXEC_SS
           
        ENDDO
        ENDDO
@@ -189,13 +189,13 @@ CONTAINS
     
     ALLOCATE(x(i0bvmax))
     
-    CALL MTX_SETUP(i0bvmax,istart,iend,nzmax=i0avmax,idebug=0)
+    CALL MTX_SETUP(i0bvmax,istart,iend,idebug=0)
+    !CALL MTX_SETUP(i0bvmax,istart,iend,nzmax=i0avmax,idebug=0)
     
     !C
     !C ADDITIONAL COMPONENTS FOR FLUX SURFACE AVERAGING
     !C
     
-
     i0offset  = 1
 
     DO i0lidi = 1, i0lmax
@@ -238,8 +238,6 @@ CONTAINS
           ENDDO
        ENDDO
     ENDDO
-
-
     
     !C 
     !C STORE GLOBAL STIFFNESS MATRIX  
@@ -1764,7 +1762,7 @@ CONTAINS
              DO i0vidj = 1, i0vmax
              DO i0vidi = 1, i0vmax
                 SELECT CASE(i0vidi)
-                CASE(1:5)
+                CASE(1:5,11:15,21:25)
                    IF((i0bidi.EQ.i0bidj).AND.(i0vidi.EQ.i0vidj))THEN
                       d3amat(i0vidi,i0vidj,i0aidi) = 1.D0
                    ELSE
@@ -1781,7 +1779,7 @@ CONTAINS
           
           DO i0vidi = 1, i0vmax
              SELECT CASE(i0vidi)
-             CASE(1:5)
+             CASE(1:5,11:15,21:25)
                 d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)
              ENDSELECT
           ENDDO
@@ -1801,7 +1799,7 @@ CONTAINS
              i0bidj = i1nidc(i0aidi)
              DO i0vidi = 1, i0vmax
                 SELECT CASE(i0vidi)
-                CASE(1:6,10:11,15:16,20:21,25)
+                CASE(1:6,10:16,20:)
                    CYCLE
                 CASE DEFAULT
                    DO i0vidj = 1, i0vmax
@@ -1820,7 +1818,7 @@ CONTAINS
           !C
           DO i0vidi = 1, i0vmax
              SELECT CASE(i0vidi)
-             CASE(1:6,10:11,15:16,20:21,25)
+             CASE(1:6,10:16,20:)
                 CYCLE
              CASE DEFAULT
                 d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)
@@ -1874,6 +1872,93 @@ CONTAINS
              END SELECT
           ENDDO
        ENDDO
+       
+       !C
+       !C i0solv = 4: ONLY EM FIELDS
+       !C
+    CASE(4)
+              
+       DO i0bidi= 1, i0bmax
+          
+          !C
+          !C STIFFNESS MATRIX
+          !C
+          
+          DO i0aidi = i1nidr(i0bidi), i1nidr(i0bidi+1)-1
+             i0bidj = i1nidc(i0aidi)
+             DO i0vidj = 1, i0vmax
+             DO i0vidi = 1, i0vmax
+                SELECT CASE(i0vidi)
+                CASE(6:)
+                   IF((i0bidi.EQ.i0bidj).AND.(i0vidi.EQ.i0vidj))THEN
+                      d3amat(i0vidi,i0vidj,i0aidi) = 1.D0
+                   ELSE
+                      d3amat(i0vidi,i0vidj,i0aidi) = 0.D0
+                   ENDIF
+                CASE DEFAULT
+                   CYCLE
+                ENDSELECT
+             ENDDO
+             ENDDO
+          ENDDO
+          
+          !C
+          !C RHS VECTOR 
+          !C
+          
+          DO i0vidi = 1, i0vmax
+             SELECT CASE(i0vidi)
+             CASE(6:)
+                d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)
+             CASE DEFAULT
+                CYCLE
+             ENDSELECT
+          ENDDO
+          
+       ENDDO
+       
+       !C
+       !C SET DIRICHLET CONDITION 
+       !C
+    
+       DO i0bidi = i0bsta, i0bend
+          
+          !C
+          !C STIFFNESS MATRIX
+          !C
+          
+          DO i0aidi = i1nidr(i0bidi), i1nidr(i0bidi+1)-1
+             i0bidj = i1nidc(i0aidi)
+             DO i0vidi = 1, i0vmax
+                SELECT CASE(i0vidi)
+                CASE(6:)
+                   CYCLE
+                CASE DEFAULT
+                   DO i0vidj = 1, i0vmax
+                      IF((i0bidi.EQ.i0bidj).AND.(i0vidi.EQ.i0vidj))THEN
+                         d3amat(i0vidi,i0vidj,i0aidi) = 1.D0
+                      ELSE
+                         d3amat(i0vidi,i0vidj,i0aidi) = 0.D0
+                      ENDIF
+                   ENDDO
+                ENDSELECT
+             ENDDO
+          ENDDO
+        
+          !C
+          !C RHS VECTOR 
+          !C
+          
+          DO i0vidi = 1, i0vmax
+             SELECT CASE(i0vidi)
+             CASE(6:)
+                CYCLE
+             CASE DEFAULT
+                d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)
+             END SELECT
+          ENDDO
+       ENDDO
+
     CASE DEFAULT
        WRITE(6,*)'INCORRECT I0SOLV'
     ENDSELECT

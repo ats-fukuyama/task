@@ -47,7 +47,7 @@ CONTAINS
   !C
   !C SUBROUTINE FOR VALIABLE MATRIX ARRAY
   !C 
-  !C          MODIFIED 2014-02-20
+  !C          MODIFIED 2014-03-06
   !C
   !C-------------------------------------------------------------------
   SUBROUTINE T2VGRA_VV
@@ -73,7 +73,7 @@ CONTAINS
     !C
     
     !C
-    !C EQUATION FOR PSI
+    !C EQ_001
     !C
     
     i0vidi = 1
@@ -87,7 +87,7 @@ CONTAINS
     i2vvvt(i0vidi,i0vidj) = 1
     
     !C
-    !C EQUATION FOR I
+    !C EQ_002
     !C
     
     i0vidi = 2
@@ -105,7 +105,7 @@ CONTAINS
     i2vvvt(i0vidi,i0vidj) = 1
 
     !C
-    !C EQUATION FOR Et
+    !C EQ_003
     !C
     
     i0vidi = 3
@@ -129,7 +129,7 @@ CONTAINS
     ENDDO
     
     !C
-    !C EQUATION FOR Ep
+    !C EQ_004
     !C
     
     i0vidi = 4
@@ -158,7 +158,7 @@ CONTAINS
     ENDDO
     
     !C
-    !C EQUATION FOR Er
+    !C EQ_005
     !C
 
     i0vidi = 5
@@ -192,7 +192,7 @@ CONTAINS
        i0vofi = 10*i0sidi
 
        !C
-       !C EQUATION FOR N
+       !C EQ_006
        !C
        
        i0vidi = i0vofi - 4
@@ -202,7 +202,7 @@ CONTAINS
        i2vvvt(i0vidi,i0vidj) = 1
        
        !C
-       !C EQUATION FOR Fr
+       !C EQ_007
        !C
        
        i0vidi= i0vofi - 3
@@ -232,13 +232,13 @@ CONTAINS
        i2vvvt(i0vidi,i0vidj) = 1
        
        !C
-       !C EQUATION FOR Fb
+       !C EQ_008
        !C
-
+       
        i0vidi = i0vofi - 2
        
        DO i0sidj = 1, i0smax
-       
+          
           i0vofj = 10*i0sidj
           
           IF(i0sidi.EQ.i0sidj)THEN
@@ -288,7 +288,7 @@ CONTAINS
        ENDDO
        
        !C
-       !C EQUATION FOR Ft
+       !C EQ_009
        !C
 
        i0vidi = i0vofi - 1
@@ -296,7 +296,7 @@ CONTAINS
        DO i0sidj = 1, i0smax
           
           i0vofj = 10*i0sidj
-
+          
           IF(i0sidi.EQ.i0sidj)THEN
              
              !C Et
@@ -344,7 +344,7 @@ CONTAINS
        ENDDO
        
        !C
-       !C EQUATION FOR Fp
+       !C EQ_010
        !C
 
        i0vidi = i0vofi
@@ -362,7 +362,7 @@ CONTAINS
        i2vvvt(i0vidi,i0vidj) = 1
        
        !C
-       !C EQUATION FOR P
+       !C EQ_011
        !C
        
        i0vidi = i0vofi + 1
@@ -400,7 +400,7 @@ CONTAINS
        i2vvvt(i0vidi,i0vidj) = 1
        
        !C
-       !C EQUATION FOR Qr
+       !C EQ_012
        !C
        
        i0vidi = i0vofi + 2
@@ -434,7 +434,7 @@ CONTAINS
        i2vvvt(i0vidi,i0vidj) = 1
        
        !C
-       !C EQUATION FOR Qb
+       !C EQ_013
        !C
        
        i0vidi = i0vofi + 3
@@ -444,7 +444,7 @@ CONTAINS
           i0vofj = 10*i0sidj
           
           IF(i0sidi.EQ.i0sidj)THEN
-
+             
              !C Et
              i0vidj = 3
              i2vvvt(i0vidi,i0vidj) = 1
@@ -490,7 +490,7 @@ CONTAINS
        ENDDO
 
        !C
-       !C EQUATION FOR Qt
+       !C EQ_014
        !C
        
        i0vidi = i0vofi + 4
@@ -550,7 +550,7 @@ CONTAINS
        ENDDO
 
        !C
-       !C EQUATION FOR Qp
+       !C EQ_015
        !C
 
        i0vidi = i0vofi + 5
@@ -577,24 +577,24 @@ CONTAINS
   !C
   !C SUBROUTINE FOR MASS SCALAR ARRAY
   !C 
-  !C                     2014-02-20 H.SETO
+  !C                     2014-03-06 H.SETO
   !C
   !C-------------------------------------------------------------------
   SUBROUTINE T2VGRA_MS
-
+    
     USE T2COMM,ONLY:&
          i0smax,i0vmax,i2msvt
     
     INTEGER(i0ikind)::&
-         i0sidi,i0vidi,&
-                i0vidj
+         & i0sidi,i0vidi,i0vofi,&
+         &        i0vidj
     
     !C VARIABLE-VARIABLE GRAPH
-
+    
     !C INITIALIZE
-
+    
     i2msvt(1:i0vmax,1:i0vmax) = 0
-
+    
     !C
     !C
     !C VARIABLES OF PLASMA AS FIELD
@@ -602,7 +602,7 @@ CONTAINS
     !C
 
     !C
-    !C EQUATION FOR PSI
+    !C EQ_001
     !C
     
     i0vidi = 1
@@ -612,7 +612,7 @@ CONTAINS
     i2msvt(i0vidi,i0vidj) = 1
 
     !C
-    !C EQUATION FOR I
+    !C EQ_002
     !C
     
     i0vidi = 2
@@ -622,7 +622,7 @@ CONTAINS
     i2msvt(i0vidi,i0vidj) = 1
 
     !C
-    !C EQUATION FOR Et
+    !C EQ_003
     !C
     
     i0vidi = 3
@@ -632,7 +632,7 @@ CONTAINS
     i2msvt(i0vidi,i0vidj) = 1
         
     !C
-    !C EQUATION FOR Ep
+    !C EQ_004
     !C
     
     i0vidi = 4
@@ -640,11 +640,6 @@ CONTAINS
     !C Ep
     i0vidj = 4
     i2msvt(i0vidi,i0vidj) = 1
-
-    !C
-    !C EQUATION FOR Er
-    !C
-
     
     !C
     !C
@@ -654,77 +649,66 @@ CONTAINS
     
     DO i0sidi = 1, i0smax
        
-       !C
-       !C EQUATION FOR N
-       !C
+       i0vofi = 10*i0sidi
 
-       i0vidi = 10*i0sidi - 4
-              
+       !C
+       !C EQ_006
+       !C
+       
+       i0vidi = i0vofi - 4
+       
        !C N
-       i0vidj = 10*i0sidi - 4
+       i0vidj = i0vofi - 4
        i2msvt(i0vidi,i0vidj) = 1
        
        !C
-       !C EQUATION FOR Fr
+       !C EQ_008
        !C
        
-       !C
-       !C EQUATION FOR Fb
-       !C
-
-       i0vidi = 10*i0sidi - 2
-       
+       i0vidi = i0vofi - 2
        
        !C Fb
-       i0vidj = 10*i0sidi - 2
+       i0vidj = i0vofi - 2
        i2msvt(i0vidi,i0vidj) = 1
        
        !C
-       !C EQUATION FOR Ft
+       !C EQ_009
        !C
        
-       i0vidi = 10*i0sidi - 1
+       i0vidi = i0vofi - 1
        
        !C Ft
-       i0vidj = 10*i0sidi - 1
+       i0vidj = i0vofi - 1
        i2msvt(i0vidi,i0vidj) = 1
        
        !C
-       !C EQUATION FOR Fp
-       !C
-
-       !C
-       !C EQUATION FOR P
+       !C EQ_011
        !C
        
-       i0vidi = 10*i0sidi + 1
+       i0vidi = i0vofi + 1
        
        !C P
-       i0vidj = 10*i0sidi + 1
+       i0vidj = i0vofi + 1
        i2msvt(i0vidi,i0vidj) = 1
        
        !C
-       !C EQUATION FOR Qr
+       !C EQ_013
        !C
        
-       !C
-       !C EQUATION FOR Qb
-       !C
-       
-       i0vidi = 10*i0sidi + 3
+       i0vidi = i0vofi + 3
        
        !C Qb
-       i0vidj = 10*i0sidi + 3
+       i0vidj = i0vofi + 3
        i2msvt(i0vidi,i0vidj) = 1
-
+       
        !C
-       !C EQUATION FOR Qt
+       !C EQ_014
        !C
        
-       i0vidi = 10*i0sidi + 4
+       i0vidi = i0vofi + 4
 
        !C Qt
-       i0vidj = 10*i0sidi + 4
+       i0vidj = i0vofi + 4
        i2msvt(i0vidi,i0vidj) = 1              
        
        !C
@@ -741,7 +725,7 @@ CONTAINS
   !C
   !C SUBROUTINE FOR ADVECTION VECTOR ARRAY
   !C 
-  !C                     2014-02-22 H.SETO
+  !C                     2014-03-06 H.SETO
   !C
   !C-------------------------------------------------------------------
   SUBROUTINE T2VGRA_AV
@@ -765,7 +749,7 @@ CONTAINS
     !C
 
     !C
-    !C EQUATION FOR PSI
+    !C EQ_001
     !C
     
     i0vidi = 1
@@ -775,7 +759,7 @@ CONTAINS
     i2avvt(i0vidi,i0vidj) = 1
     
     !C
-    !C EQUATION FOR Bt
+    !C EQ_002
     !C
     
     i0vidi = 2
@@ -785,7 +769,7 @@ CONTAINS
     i2avvt(i0vidi,i0vidj) = 1
 
     !C
-    !C EQUATION FOR Et
+    !C EQ_003
     !C
     
     i0vidi = 3
@@ -799,7 +783,7 @@ CONTAINS
     i2avvt(i0vidi,i0vidj) = 1
     
     !C
-    !C EQUATION FOR Ep
+    !C EQ_004
     !C
     
     i0vidi = 4
@@ -809,7 +793,7 @@ CONTAINS
     i2avvt(i0vidi,i0vidj) = 1
     
     !C
-    !C EQUATION FOR Er
+    !C EQ_005
     !C
 
     i0vidi = 5
@@ -918,7 +902,7 @@ CONTAINS
   !C
   !C SUBROUTINE FOR ADVECTION TENSOR ARRAY
   !C 
-  !C                     2014-02-22 H.SETO
+  !C                     2014-03-06 H.SETO
   !C
   !C-------------------------------------------------------------------
   SUBROUTINE T2VGRA_AT
@@ -946,6 +930,9 @@ CONTAINS
        
        i0vofi = 10*i0sidi
 
+       !C
+       !C EQ_008
+       !C
        i0vidi = i0vofi - 2
        
        !C Ft (B)
@@ -977,7 +964,7 @@ CONTAINS
        i3atwt(i0widi,i0vidi,i0vidj) = 1
        
        !C
-       !C EQUATION FOR Ft
+       !C EQ_009
        !C
        
        i0vidi = i0vofi - 1
@@ -1011,7 +998,7 @@ CONTAINS
        i3atwt(i0widi,i0vidi,i0vidj) = 1 
        
        !C
-       !C EQUATION FOR P
+       !C EQ_011
        !C
        
        i0vidi = i0vofi + 1
@@ -1045,7 +1032,7 @@ CONTAINS
        i3atwt(i0widi,i0vidi,i0vidj) = 1
        
        !C
-       !C EQUATION FOR Qb
+       !C EQ_013
        !C
        
        i0vidi = i0vofi + 3
@@ -1079,7 +1066,7 @@ CONTAINS
        i3atwt(i0widi,i0vidi,i0vidj) = 1
        
        !C
-       !C EQUATION FOR Qt
+       !C EQ_014
        !C
        
        i0vidi = i0vofi + 4
@@ -1087,7 +1074,7 @@ CONTAINS
        !C Ft (B)
        i0vidj = i0vofi - 1
        i2atvt(i0vidi,i0vidj) = 1
-
+       
        i0widi = 1
        i3atwt(i0widi,i0vidi,i0vidj) = 1
        
@@ -1122,7 +1109,7 @@ CONTAINS
   !C
   !C SUBROUTINE FOR DIFFUSION TENSOR ARRAY
   !C 
-  !C                     2014-02-22 H.SETO
+  !C                     2014-03-06 H.SETO
   !C
   !C-------------------------------------------------------------------
   SUBROUTINE T2VGRA_DT
@@ -1144,7 +1131,7 @@ CONTAINS
        i0vofi = 10*i0sidi
        
        !C
-       !C EQUATION FOR Fb
+       !C EQ_008
        !C
        
        i0vidi = i0vofi - 2
@@ -1166,7 +1153,7 @@ CONTAINS
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C
-       !C EQUATION FOR Ft
+       !C EQ_009
        !C
        
        i0vidi = i0vofi - 1
@@ -1188,7 +1175,7 @@ CONTAINS
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C
-       !C EQUATION FOR P
+       !C EQ_011
        !C
        
        i0vidi = i0vofi + 1
@@ -1210,7 +1197,7 @@ CONTAINS
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C
-       !C EQUATION FOR Qb
+       !C EQ_013
        !C
        
        i0vidi = i0vofi + 3
@@ -1232,7 +1219,7 @@ CONTAINS
        i2dtvt(i0vidi,i0vidj) = 1
        
        !C
-       !C EQUATION FOR Qt
+       !C EQ_014
        !C
        
        i0vidi = i0vofi + 4
@@ -1263,7 +1250,7 @@ CONTAINS
   !C
   !C SUBROUTINE FOR GRADIENT VECOTR ARRAY
   !C 
-  !C                     2014-02-22 H.SETO
+  !C                     2014-03-06 H.SETO
   !C
   !C-------------------------------------------------------------------
   SUBROUTINE T2VGRA_GV
@@ -1289,7 +1276,7 @@ CONTAINS
     !C
 
     !C
-    !C EQUATION FOR PSI
+    !C EQ_001
     !C
     
     i0vidi = 1
@@ -1299,7 +1286,7 @@ CONTAINS
     i2gvvt(i0vidi,i0vidj) = 1
     
     !C
-    !C EQUATION FOR I
+    !C EQ_002
     !C
     
     i0vidi = 2
@@ -1313,7 +1300,7 @@ CONTAINS
     i2gvvt(i0vidi,i0vidj) = 1
     
     !C
-    !C EQUATION FOR Ep
+    !C EQ_004
     !C
     
     i0vidi = 4
@@ -1327,7 +1314,7 @@ CONTAINS
        i0vofi = 10*i0sidi
        
        !C
-       !C EQUATION FOR Fr
+       !C EQ_007
        !C
        
        i0vidi = i0vofi - 3
@@ -1337,7 +1324,7 @@ CONTAINS
        i2gvvt(i0vidi,i0vidj) = 1
        
        !C
-       !C EQUATION FOR P
+       !C EQ_011
        !C
        
        i0vidi = i0vofi + 1
@@ -1347,7 +1334,7 @@ CONTAINS
        i2gvvt(i0vidi,i0vidj) = 1
        
        !C
-       !C EQUATION FOR Qr
+       !C EQ_012
        !C
        
        i0vidi = i0vofi + 2
@@ -1370,7 +1357,7 @@ CONTAINS
   !C
   !C SUBROUTINE FOR GRADIENT TENSOR ARRAY
   !C 
-  !C                     2014-02-20 H.SETO
+  !C                     2014-03-06 H.SETO
   !C
   !C-------------------------------------------------------------------
   SUBROUTINE T2VGRA_GT
@@ -1393,7 +1380,7 @@ CONTAINS
        i0vofi = 10*i0sidi
        
        !C
-       !C EQUATION FOR Fb
+       !C EQ_008
        !C
 
        i0vidi = i0vofi - 2
@@ -1427,7 +1414,7 @@ CONTAINS
        i3gtwt(i0widi,i0vidi,i0vidj) = 1
        
        !C
-       !C EQUATION FOR P
+       !C EQ_011
        !C
        
        i0vidi = i0vofi + 1
@@ -1473,7 +1460,7 @@ CONTAINS
        i3gtwt(i0widi,i0vidi,i0vidj) = 1
        
        !C
-       !C EQUATION FOR Qb
+       !C EQ_013
        !C
        
        i0vidi = i0vofi + 3
@@ -1516,7 +1503,7 @@ CONTAINS
   !C
   !C SUBROUTINE FOR EXCITATION SCALAR ARRAY
   !C 
-  !C                     2014-02-22
+  !C                     2014-03-06
   !C
   !C------------------------------------------------------------------
   SUBROUTINE T2VGRA_ES
@@ -1536,7 +1523,7 @@ CONTAINS
     i2esvt(1:i0vmax,1:i0vmax) = 0
     
     !C
-    !C EQUATION FOR I
+    !C EQ_002
     !C
     
     i0vidi = 2
@@ -1545,14 +1532,13 @@ CONTAINS
     
     i0vidj = 4
     i2esvt(i0vidi,i0vidj) = 1
-
     
     DO i0sidj = 1, i0smax
        
        i0vofj = 10*i0sidj
        
        !C
-       !C EQUATION FOR Et
+       !C EQ_003
        !C
        
        i0vidi = 3
@@ -1562,11 +1548,11 @@ CONTAINS
        i2esvt(i0vidi,i0vidj) = 1
        
        !C
-       !C EQUATION FOR Ep
+       !C EQ_004
        !C
        
        i0vidi = 4
-    
+       
        !C Fr
        i0vidj = i0vofj - 3
        i2esvt(i0vidi,i0vidj) = 1
@@ -1574,11 +1560,11 @@ CONTAINS
        !C Fp
        i0vidj = i0vofj
        i2esvt(i0vidi,i0vidj) = 1
-           
+       
        !C
-       !C EQUATION FOR Er
+       !C EQ_005
        !C
-
+       
        i0vidi = 5
        
        !C N
@@ -1592,7 +1578,7 @@ CONTAINS
        i0vofi = 10*i0sidi
        
        !C
-       !C EQUATION FOR Fr
+       !C EQ_007
        !C
        
        i0vidi= i0vofi - 3
@@ -1615,11 +1601,11 @@ CONTAINS
        
        
        DO i0sidj = 1, i0smax
-
+          
           i0vofj = 10*i0sidj          
           
           !C
-          !C EQUATION FOR Fb
+          !C EQ_008
           !C
           
           i0vidi = i0vofi - 2
@@ -1645,7 +1631,7 @@ CONTAINS
           i2esvt(i0vidi,i0vidj) = 1
           
           !C
-          !C EQUATION FOR Ft
+          !C EQ_009
           !C
           
           i0vidi = i0vofi - 1
@@ -1655,7 +1641,7 @@ CONTAINS
              !C Et
              i0vidj = 3
              i2esvt(i0vidi,i0vidj) = 1
-
+             
              !C Fr
              i0vidj = i0vofj - 3
              i2esvt(i0vidi,i0vidj) = 1
@@ -1673,7 +1659,7 @@ CONTAINS
        ENDDO
        
        !C
-       !C EQUATION FOR Fp
+       !C EQ_010
        !C
 
        i0vidi = i0vofi
@@ -1691,7 +1677,7 @@ CONTAINS
        i2esvt(i0vidi,i0vidj) = 1
        
        !C
-       !C EQUATION FOR P
+       !C EQ_011
        !C
        
        i0vidi = i0vofi + 1
@@ -1701,7 +1687,7 @@ CONTAINS
        i2esvt(i0vidi,i0vidj) = 1
        
        !C
-       !C EQUATION FOR Qr
+       !C EQ_012
        !C
        
        i0vidi = i0vofi + 2
@@ -1709,7 +1695,7 @@ CONTAINS
        !C Ep
        i0vidj = 4
        i2esvt(i0vidi,i0vidj) = 1
-
+       
        !C Er
        i0vidj = 5
        i2esvt(i0vidi,i0vidj) = 1
@@ -1727,7 +1713,7 @@ CONTAINS
           i0vofj = 10*i0sidj
 
           !C
-          !C EQUATION FOR Qb
+          !C EQ_013
           !C
           
           i0vidi = i0vofi + 3
@@ -1751,11 +1737,11 @@ CONTAINS
           !C Qb
           i0vidj = i0vofj + 3
           i2esvt(i0vidi,i0vidj) = 1
-
+          
           !C
-          !C EQUATION FOR Qt
+          !C EQ_014
           !C
-       
+          
           i0vidi = i0vofi + 4
           
           IF(i0sidi.EQ.i0sidj)THEN
@@ -1781,11 +1767,11 @@ CONTAINS
        ENDDO
        
        !C
-       !C EQUATION FOR Qp
+       !C EQ_015
        !C
        
        i0vidi = i0vofi + 5
-
+       
        !C Qb
        i0vidj = i0vofi + 3
        i2esvt(i0vidi,i0vidj) = 1
@@ -1808,11 +1794,11 @@ CONTAINS
   !C
   !C SUBROUTINE FOR EXCITATION VECTOR ARRAY
   !C 
-  !C                     2014-02-22
+  !C                     2014-03-06
   !C
   !C-------------------------------------------------------------------
   SUBROUTINE T2VGRA_EV
-        
+    
     USE T2COMM,ONLY:&
          i0smax,i0wmax,i0vmax,i2evvt,i3evwt
     
@@ -1827,24 +1813,24 @@ CONTAINS
     i3evwt(1:i0wmax,1:i0vmax,1:i0vmax) = 0
     
     !C
-    !C EQUATION FOR Et
+    !C EQ_003
     !C
     
     i0vidi = 3
-
+    
     !C PSI': (R)
     i0vidj = 1
     i2evvt(i0vidi,i0vidj) = 1
-
+    
     i0widi = 2
     i3evwt(i0widi,i0vidi,i0vidj) = 1
     
     DO i0sidi = 1, i0smax
-
+       
        i0vofi = 10*i0sidi
        
        !C
-       !C EQUATION FOR Fb
+       !C EQ_008
        !C
 
        i0vidi = i0vofi - 2
@@ -1857,7 +1843,7 @@ CONTAINS
        i3evwt(i0widi,i0vidi,i0vidj) = 1
        
        !C
-       !C EQUATION FOR Qb
+       !C EQ_013
        !C
        
        i0vidi = i0vofi + 3
@@ -1964,13 +1950,13 @@ CONTAINS
     i4etwt(1:i0wmax,1:i0wmax,1:i0vmax,1:i0vmax) = 0
     
     DO i0sidi = 1, i0smax
-
+       
        i0vofi = 10*i0sidi
        
        !C
-       !C EQUATION FOR Fb
+       !C EQ_008
        !C
-
+       
        i0vidi = i0vofi - 2
        
        !C Ft: (B,B)
@@ -2006,7 +1992,7 @@ CONTAINS
        i4etwt(i0widi,i0widj,i0vidi,i0vidj) = 1
 
        !C
-       !C EQUATION FOR P
+       !C EQ_011
        !C
        
        i0vidi = i0vofi + 1
@@ -2097,10 +2083,6 @@ CONTAINS
        i0widj = 1
        i4etwt(i0widi,i0widj,i0vidi,i0vidj) = 1
        
-       !C
-       !C EQUATION FOR Qp
-       !C
-       
     ENDDO
     
     RETURN 
@@ -2111,7 +2093,7 @@ CONTAINS
   !C
   !C SUBROUTINE FOR SOURCE SCALAR ARRAY
   !C 
-  !C                     2014-02-20 H.SETO
+  !C                     2014-03-06 H.SETO
   !C
   !C-------------------------------------------------------------------
   SUBROUTINE T2VGRA_SS
