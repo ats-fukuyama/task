@@ -15,7 +15,7 @@ CONTAINS
   SUBROUTINE T2_PREP
     
     USE T2CNST, ONLY: &
-         i0ikind,i0rkind,i0lmaxm,i0spcsm,d0aee,d0ame,d0amp
+         i0ikind,i0rkind,i0lmaxm,i0spcsm,d0aee,d0ame,d0amp,d0vci2
     USE T2COMM,ONLY:&
          i0lmax, i0vmax, i0wmax, i0qmax, i0nmax, i0mmax, i0xmax, &
          i0bmax, i0rmax, i0emax, i0hmax, i0lmax, i0amax, i0nrmx, &

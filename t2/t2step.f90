@@ -143,6 +143,7 @@ CONTAINS
     !C
     !C CHECK CONVERGENCE
     !C
+
     SELECT CASE(i0solv)
        
        !C
@@ -150,8 +151,13 @@ CONTAINS
        !C
 
     CASE(1)
-       DO i0vidi = 6,10
           
+              
+       DO i0vidi = 1,i0vmax
+          SELECT CASE (i0vidi)
+          CASE(1:5,11:)
+             cycle
+          END SELECT
           d0dif  = d1dif(i0vidi)
           d0ave  = d1ave(i0vidi)
           
@@ -168,8 +174,9 @@ CONTAINS
           d0dif_tmp = SQRT(d0dif_tmp)
           WRITE(6,*),'VARIABLES=',i0vidi,'RESIDUAL=',d0dif_tmp
           d0dif_max = MAX(d0dif_max,d0dif_tmp)
-          
+
        ENDDO
+
        
        !C
        !C ELECTRON AND IONS
@@ -180,7 +187,7 @@ CONTAINS
        DO i0vidi = 1,i0vmax
           SELECT CASE (i0vidi)
           CASE(1:5,11:15,21:25)
-             cycle
+             CYCLE
           END SELECT
           d0dif  = d1dif(i0vidi)
           d0ave  = d1ave(i0vidi)
@@ -205,8 +212,8 @@ CONTAINS
        
        DO i0vidi = 1,i0vmax
           SELECT CASE (i0vidi)
-          CASE(1:5)
-             cycle
+          CASE(1:5,16:)
+             CYCLE
           END SELECT
           d0dif  = d1dif(i0vidi)
           d0ave  = d1ave(i0vidi)
@@ -231,7 +238,32 @@ CONTAINS
        DO i0vidi = 1,i0vmax
           SELECT CASE (i0vidi)
           CASE(1:5)
-             cycle
+             CYCLE
+          END SELECT
+          
+          d0dif  = d1dif(i0vidi)
+          d0ave  = d1ave(i0vidi)
+          
+          IF(d0ave.LE.0.D0)THEN
+             WRITE(6,'("*********************************************")')
+             WRITE(6,'("       ERROR IN T2_STEP_CONVERGENCE          ")')
+             WRITE(6,'("       INDETERMINATE PROBLEM                 ")')
+             WRITE(6,'("*********************************************")')
+             PRINT*,i0vidi
+             STOP
+          ENDIF
+          
+          d0dif_tmp = d0dif/d0ave
+          d0dif_tmp = SQRT(d0dif_tmp)
+          WRITE(6,*),'VARIABLES=',i0vidi,'RESIDUAL=',d0dif_tmp
+          d0dif_max = MAX(d0dif_max,d0dif_tmp)
+          
+       ENDDO
+    CASE (5)
+       DO i0vidi = 1,i0vmax
+          SELECT CASE (i0vidi)
+          CASE(1:5,11,21)
+             CYCLE
           END SELECT
           d0dif  = d1dif(i0vidi)
           d0ave  = d1ave(i0vidi)
@@ -251,7 +283,6 @@ CONTAINS
           d0dif_max = MAX(d0dif_max,d0dif_tmp)
           
        ENDDO
-
     ENDSELECT
     
     d0dif = d0dif_max

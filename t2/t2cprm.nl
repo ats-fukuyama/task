@@ -15,7 +15,7 @@ i0mfcs       = 1
 i0pmax = 49
 i0tmax = 10
 d0tmax = 1.D-30
-d0eps  = 1.D-4
+d0eps  = 1.D-5
 d0tstp = 1.D-30
 
 !C FOR GRID GENERATION

@@ -584,9 +584,9 @@ CONTAINS
     !C d1nvcm3 : NEOCLASSICAL VISCOSITY COEFFICIENT     : \mu_{3a} 
     !C
     d0temp  = SQRT(d0mfcr)!FOR DEBUG
-    IF(d0temp.LT.5.D-2)THEN
-       d0temp = 5.D-2
-    ENDIF
+    !IF(d0temp.LT.5.D-2)THEN
+    !   d0temp = 5.D-2
+    !ENDIF
     d0temp  = d0iar*d0temp
     d0temp  = SQRT(d0temp)
     d0temp2 = (d0temp**3)*(d0ctbp**2)
@@ -749,7 +749,6 @@ CONTAINS
     i0vidi = 4
     i0vidj = 4
     d3ms(i0vidi,i0vidj,i0midi) = d0sqrtg*d0mfcr*d0vci2  * d0epcst/d0epfct
-
     DO i0sidi = 1, i0smax
        
        i0vofi = 10*i0sidi
@@ -1918,7 +1917,6 @@ CONTAINS
     !C Ep
     i0vidj = 4
     d3es(i0vidi,i0vidj,i0midi) =  d0cogtt * d0epcst/d0btfct
-
     
     DO i0sidj = 1, i0smax
        
@@ -1947,7 +1945,7 @@ CONTAINS
        i0vidj = i0vofj - 3
        d3es(i0vidi,i0vidj,i0midi)&
             =  d0x1*d0ee_b*d0cogrp*d0mfcr * d0frcst/d0epfct
-
+       
        !C Fp
        i0vidj =i0vofj
        d3es(i0vidi,i0vidj,i0midi)&

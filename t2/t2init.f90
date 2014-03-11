@@ -92,7 +92,7 @@ CONTAINS
     i1nn(1) = 3
     d1nc(1) = 1.0D0
     d1ns(1) = 2.0D-1
-    d1nw(1) = 1.0D-2
+    d1nw(1) = 5.0D-2
     i1tm(1) = 1
     i1tn(1) = 2
     d1tc(1) = 5.0D0
@@ -106,7 +106,7 @@ CONTAINS
     i1nn(2) = 3
     d1nc(2) = 1.D0
     d1ns(2) = 2.D-1
-    d1nw(2) = 1.D-2
+    d1nw(2) = 5.D-2
     i1tm(2) = 1
     i1tn(2) = 2
     d1tc(2) = 5.D0
@@ -132,8 +132,8 @@ CONTAINS
     nt2dmax   = 1       ! maximum number of profile data to be saved
     nt2dstep  = 1       ! time step to save profile data
 
-    nconvmax  = 50      ! maximum number of convergence steps for implicit loop
-    eps_conv  = 1.D-4   ! relative convergence criterion for implicit loop
+    nconvmax  = 255     ! maximum number of convergence steps for implicit loop
+    eps_conv  = 1.D-3   ! relative convergence criterion for implicit loop
 
     idfile    = 0       ! control id for file output: 0 for none, 9 for all
     idprint   = 9       ! control id for print output: 0 for none, 9 for all
