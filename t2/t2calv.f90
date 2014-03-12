@@ -62,7 +62,7 @@ CONTAINS
   !C
   !C CALCULATION OF FUNDAMENTAL PHYSICAL QUANTITIES 
   !C 
-  !C     2014-02-20 H.SETO
+  !C     2014-03-12 H.SETO
   !C            
   !C---------------------------------------------------------
   
@@ -583,14 +583,13 @@ CONTAINS
     !C d1nvcm2 : NEOCLASSICAL VISCOSITY COEFFICIENT     : \mu_{2a} 
     !C d1nvcm3 : NEOCLASSICAL VISCOSITY COEFFICIENT     : \mu_{3a} 
     !C
-    d0temp  = SQRT(d0mfcr)!FOR DEBUG
-    !IF(d0temp.LT.5.D-2)THEN
-    !   d0temp = 5.D-2
-    !ENDIF
+
+    d0temp  = SQRT(d0mfcr)
     d0temp  = d0iar*d0temp
     d0temp  = SQRT(d0temp)
     d0temp2 = (d0temp**3)*(d0ctbp**2)
     d0temp3 = 3.D0*(1.D0-1.46D0*d0temp)
+   
     DO i0xa = 1, i0smax
        
        d0mm_a = d1mm(i0xa)
@@ -624,6 +623,7 @@ CONTAINS
        d0k11bn = d0cbn*d0k11bn
        d0k12bn = d0cbn*d0k12bn
        d0k22bn = d0cbn*d0k22bn
+       
        !C
        !C MODIFIED VISCOSITY COEFFICIENT IN INTER-REGIMES 
        !C
@@ -631,7 +631,7 @@ CONTAINS
        d0k11 = d0k11bn*d0k11ps/(d0k11bn + d0k11ps*d0temp2)
        d0k12 = d0k12bn*d0k12ps/(d0k12bn + d0k12ps*d0temp2)
        d0k22 = d0k22bn*d0k22ps/(d0k22bn + d0k22ps*d0temp2)
-
+       
        !C
        !C NEOCLASSICAL VISCOSITY COEFFICIENTS: \mu_{ai}
        !C
@@ -639,9 +639,66 @@ CONTAINS
        d1nvcm1(i0xa) = d0k11 
        d1nvcm2(i0xa) = d0k12 - 2.5D0*d0k11 
        d1nvcm3(i0xa) = d0k22 - 5.0D0*d0k12 + 6.25D0*d0k11
-       !if(i0xa.eq.1) print'(4D15.8)',SQRT(d0mfcr),&
-       !     d0k11,d0k11bn/d0temp2,d0k11ps
+       
+    ENDDO
+    
 
+    d0temp  = SQRT(d0mfcr)
+    d0temp  = d0iar*d0temp
+    d0temp  = SQRT(d0temp)
+    d0temp2 = (d0temp**3)*(d0ctbp**2)
+    d0temp3 = 3.D0*(1.D0-1.46D0*d0temp)
+   
+    DO i0xa = 1, i0smax
+       
+       d0mm_a = d1mm(i0xa)
+       d0nn_a = d1nn(i0xa)
+       d0pp_a = d1pp(i0xa)
+       
+       !C
+       !C MODIFIED VISCOSITY COEFFICIENT IN PS REGIME
+       !C
+       
+       CALL INTEG_F(fd0k11ps,d0k11ps,d0err,EPS=1.D-8,ILST=0)
+       CALL INTEG_F(fd0k12ps,d0k12ps,d0err,EPS=1.D-8,ILST=0)
+       CALL INTEG_F(fd0k22ps,d0k22ps,d0err,EPS=1.D-8,ILST=0)
+       
+       d0cps   = 0.4D0*d0pp_a*d0de
+       
+       d0k11ps = d0cps*d0k11ps
+       d0k12ps = d0cps*d0k12ps
+       d0k22ps = d0cps*d0k22ps
+
+       !C
+       !C MODIFIED VISCOSITY COEFFICIENT IN BN REGIME
+       !C 
+       
+       CALL INTEG_F(fd0k11bn,d0k11bn,d0err,EPS=1.D-8,ILST=0)
+       CALL INTEG_F(fd0k12bn,d0k12bn,d0err,EPS=1.D-8,ILST=0)
+       CALL INTEG_F(fd0k22bn,d0k22bn,d0err,EPS=1.D-8,ILST=0)
+       
+       d0cbn = 2.92D0*d0mm_a*d0nn_a*d0bt2*d0de/d0temp3
+       
+       d0k11bn = d0cbn*d0k11bn
+       d0k12bn = d0cbn*d0k12bn
+       d0k22bn = d0cbn*d0k22bn
+       
+       !C
+       !C MODIFIED VISCOSITY COEFFICIENT IN INTER-REGIMES 
+       !C
+       
+       d0k11 = d0k11bn*d0k11ps/(d0k11bn + d0k11ps*d0temp2)
+       d0k12 = d0k12bn*d0k12ps/(d0k12bn + d0k12ps*d0temp2)
+       d0k22 = d0k22bn*d0k22ps/(d0k22bn + d0k22ps*d0temp2)
+       
+       !C
+       !C NEOCLASSICAL VISCOSITY COEFFICIENTS: \mu_{ai}
+       !C
+       
+       d1nvcm1(i0xa) = d0k11 
+       d1nvcm2(i0xa) = d0k12 - 2.5D0*d0k11 
+       d1nvcm3(i0xa) = d0k22 - 5.0D0*d0k12 + 6.25D0*d0k11
+       
     ENDDO
     
     !C d1nvcc1 : NEOCLASSICAL VISCOSITY COEFFICIENT : \bar{\mu}_{1a}
@@ -667,6 +724,7 @@ CONTAINS
        d1nvcc2(i0sidi) = d0nvcc2_a
        d1nvcc3(i0sidi) = d0nvcc3_a
        d1nvcc4(i0sidi) = d0nvcc4_a
+
     ENDDO
     
     RETURN
@@ -677,7 +735,7 @@ CONTAINS
   !C 
   !C CALCULATION OF MASS SCALAR COEFFICIENTS
   !C
-  !C             2014-03-05 H.SETO
+  !C             2014-03-12 H.SETO
   !C
   !C---------------------------------------------------------
   
@@ -700,7 +758,6 @@ CONTAINS
     INTEGER(i0ikind)::&
          i0vidi,i0vidj,i0sidi,i0vofi
     
-
     !C
     !C INITIALIZATION
     !C
@@ -714,7 +771,7 @@ CONTAINS
     !C
     !C EQ_001
     !C
-
+    
     !C PSI'
     i0vidi = 1
     i0vidj = 1
@@ -824,7 +881,7 @@ CONTAINS
   !C 
   !C CALCULATION OF ADVECTION VECTOR COEFFICIENTS
   !C
-  !C             2014-03-05 H.SETO
+  !C             2014-03-12 H.SETO
   !C
   !C---------------------------------------------------------
   SUBROUTINE T2CALV_AV
@@ -1009,16 +1066,16 @@ CONTAINS
        
        i0vidi = i0vofi + 1
        
-       d0x1 = -0.5D0*d0sqrtg*d0mm_a*d0nn_a*d0u2_a*d0pi_a
+       d0x1 =  0.5D0*d0sqrtg*d0mm_a*d0nn_a*d0u2_a*d0pi_a
        d0x2 =  d0sqrtg*d0pi_a
        
        !C P
        i0vidj = i0vofi + 1
        d4av(1,i0vidi,i0vidj,i0midi)&
-            = (1.5D0*d0ugr + d0x1*d0ur_a + d0x2*d0qr_a)&
+            = (1.5D0*d0ugr - d0x1*d0ur_a + d0x2*d0qr_a)&
             * d0ppcst/d0ppfct
        d4av(2,i0vidi,i0vidj,i0midi)&
-            = (1.5D0*d0ugp + d0x1*d0up_a + d0x2*d0qp_a)&
+            = (1.5D0*d0ugp - d0x1*d0up_a + d0x2*d0qp_a)&
             * d0ppcst/d0ppfct
        
        !C
@@ -1288,7 +1345,7 @@ CONTAINS
             = -d0x2*d0c4_a         * d0qpcst/d0qbfct
        
        !C
-       !C EQUATION FOR Qt
+       !C EQ_014
        !C
        
        i0vidi = i0vofi + 4

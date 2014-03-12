@@ -96,7 +96,7 @@ CONTAINS
     d0ftfct = d0frcst*d0aee
     d0fpfct = d0fpcst
     
-    d0ppfct = d0ppcst
+    d0ppfct = d0ppcst*d0ubcst
     d0qrfct = d0qbcst*d0aee
     d0qbfct = d0ppcst*d0ppcst/d0nncst
     d0qtfct = d0qrcst*d0aee
