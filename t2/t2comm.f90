@@ -379,6 +379,12 @@ MODULE T2COMM
        d2x,d2y,d2z,d2bcf
   REAL(   i0rkind),DIMENSION(:,:),ALLOCATABLE::&
        d2nfcf1,d2nfcf2,d2nfcf3,d2nfcf4
+
+  REAL(   i0rkind)::&
+       d0ct1_anom,d0ct2_anom
+  REAL(   i0rkind),DIMENSION(:),ALLOCATABLE::&
+       d1cx1_anom,d1cx2_anom
+  
   INTEGER(i0ikind)::i0xa
   !C------------------------------------------------------------------
   !C
@@ -734,6 +740,9 @@ CONTAINS
           ALLOCATE(d2z(    1:i0smax,1:i0smax),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d2bcf(  1:i0smax,1:i0smax),STAT=i0err);IF(i0err.NE.0)EXIT
           
+          ALLOCATE(d1cx1_anom(1:i0smax),STAT=i0err);IF(i0err.NE.0)EXIT
+          ALLOCATE(d1cx2_anom(1:i0smax),STAT=i0err);IF(i0err.NE.0)EXIT
+
           !C FOR T2WRIT
           ALLOCATE(d1bp3(1:i0xmax),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d1bt3(1:i0xmax),STAT=i0err);IF(i0err.NE.0)EXIT
@@ -964,6 +973,8 @@ CONTAINS
     IF(ALLOCATED(d2y)) DEALLOCATE(d2y)
     IF(ALLOCATED(d2z)) DEALLOCATE(d2z)
 
+    IF(ALLOCATED(d1cx1_anom)) DEALLOCATE(d1cx1_anom)
+    IF(ALLOCATED(d1cx2_anom)) DEALLOCATE(d1cx2_anom)
     
     !C
     !C T2STEP

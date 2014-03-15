@@ -83,7 +83,8 @@ CONTAINS
          d1wb,d1wt,d1wp,d1vt,d1hex,&
          d1nvcc1,d1nvcc2,d1nvcc3,d1nvcc4,&
          d2nfcf1,d2nfcf2,d2nfcf3,d2nfcf4,&
-         d2x,d2y,d2z,d2bcf
+         d2x,d2y,d2z,d2bcf,&
+         d0ct1_anom,d0ct2_anom,d1cx1_anom,d1cx2_anom
     
     USE LIBT2, ONLY:integ_f
     
@@ -92,7 +93,7 @@ CONTAINS
     
     REAL(   i0rkind)::&
          d0mm_a,d0ee_a,d0ee_b,d0vti_a,&
-         d0nn_a,d0nn_b,d0pp_a,d0tt_a,d0ti_a,&
+         d0nn_a,d0nn_b,d0pp_a,d0tt_a,d0ti_a,d0ti_e,&
          d0clog_ab,d0cfreq_ab,d0cfreq_ac,&
          d0x_ab,d0y_ab,d0z_ab,d0zi_ab,&
          d0bmem00_ab,d0bmem01_ab,            d0bmem11_ab, &
@@ -101,7 +102,8 @@ CONTAINS
          d0nfcl11_ab,d0nfcl12_ab,d0nfcl21_ab,d0nfcl22_ab, &
          d0nfcf1_ab, d0nfcf2_ab, d0nfcf3_ab, d0nfcf4_ab,  &
          d0nvcm1_a,  d0nvcm2_a,  d0nvcm3_a,               &
-         d0nvcc1_a,  d0nvcc2_a,  d0nvcc3_a,  d0nvcc4_a    
+         d0nvcc1_a,  d0nvcc2_a,  d0nvcc3_a,  d0nvcc4_a,&
+         d0sign,d0d_anom,d0m_anom,d0x_anom
     
     REAL(i0rkind)::&
          d0psip,&
@@ -725,6 +727,35 @@ CONTAINS
        d1nvcc3(i0sidi) = d0nvcc3_a
        d1nvcc4(i0sidi) = d0nvcc4_a
 
+    ENDDO
+    
+    !C
+    !C COEFFICIENTS OF ANORMALOUS TRANSPORT BY QUASI-LINEAR THEORY
+    !C REF: S.I. Itoh, Phys. Fluids B, 4 796 (1992)
+    !C      K.C. Shaing, Phys. Plasmas, 31 2249 (1988)
+    !C      M. Honda et. al, Nucl. Fusion, 50 095012 
+    !C
+    IF(d0mfcr.LE.1.D0)THEN
+       d0d_anom = 0.45D0*d0mfcr+0.05D0
+       d0m_anom = 0.45D1*d0mfcr+0.05D1
+       d0x_anom = 0.45D1*d0mfcr+0.05D1
+    ELSE
+       d0d_anom = 0.5D0
+       d0m_anom = 0.5D1
+       d0x_anom = 0.5D1 
+    ENDIF
+
+    d0ti_e = d1ti(1)
+
+    d0ct1_anom = (1.5D0 - (d0m_anom/d0d_anom)) * d0psip/d0aee
+    d0ct2_anom = (2.5D0 - (d0x_anom/d0m_anom)) * d0psip/d0aee
+
+    DO i0sidi = 1, i0smax
+       d0ee_a = d1ee(i0sidi)
+       d0tt_a = d1tt(i0sidi)
+       d0sign = d0ee_a/ABS(d0ee_a)
+       d1cx1_anom(i0sidi) = d0sign*(d0aee**2)*d0ti_e*d0d_anom
+       d1cx2_anom(i0sidi) = d0sign*(d0aee**2)*d0ti_e*d0m_anom*d0tt_a
     ENDDO
     
     RETURN
@@ -1593,7 +1624,7 @@ CONTAINS
   !C 
   !C CALCULATION OF GRADIENT VECTOR COEFFICIENTS
   !C
-  !C             2014-03-05 H.SETO
+  !C             2014-03-15 H.SETO
   !C
   !C---------------------------------------------------------
   SUBROUTINE T2CALV_GV
@@ -1601,19 +1632,21 @@ CONTAINS
     USE T2CNST
     USE T2COMM, ONLY:&
          & i0vmax,i0dmax,&
-         &         d0btcst,d0etcst,d0epcst,d0ercst,&
-         & d0nncst,                                &
-         & d0ppcst,                                &
-         & d0mffct,d0btfct,        d0epfct,        &
-         &         d0frfct,                        &
-         & d0ppfct,d0qrfct,                        &
-         & d1pp,d1tt,d1ur,d1up,d4gv
+         &         d0btcst,d0etcst,d0epcst,d0ercst, &
+         & d0nncst,                                 &
+         & d0ppcst,                                 &
+         & d0mffct,d0btfct,        d0epfct,         &
+         &         d0frfct,        d0ftfct,         &
+         & d0ppfct,d0qrfct,        d0qtfct,         &
+         & d1pp,d1tt,d1ur,d1up,                     &
+         & d0ct1_anom,d0ct2_anom,d1cx1_anom,d1cx2_anom,d4gv
     
     INTEGER(i0ikind)::&
          i0sidi,i0didi,i0vidi,i0vidj,i0vofi
     REAL(   i0rkind)::&
-         d0tt_a,d0ur_a,d0up_a,&
-         d0c1_a,d0c2_a,d0x1,d0x2
+         d0tt_a,d0tt_e,d0ur_a,d0up_a,&
+         d0c1_a,d0c2_a,d0cx1_a,d0cx2_a,&
+         d0x1,d0x2,d0x3,d0x4,d0x5,d0x6
     
     !C
     !C INITIALIZATION
@@ -1660,10 +1693,18 @@ CONTAINS
     !C I
     i0vidj = 2
     d4gv(1,i0vidi,i0vidj,i0midi) =  d0cogpp        * d0btcst/d0epfct
+
+
     
     d0x1 = d0sqrtg*d0ctgrr*d0ctbp
     d0x2 = d0sqrtg*d0ctgrp*d0ctbp
-    
+
+    d0x3 = d0sqrtg*d0ct1_anom*d0ctgrr
+    d0x4 = d0sqrtg*d0ct1_anom*d0ctgrp
+    d0x5 = d0sqrtg*d0ct2_anom*d0ctgrr
+    d0x6 = d0sqrtg*d0ct2_anom*d0ctgrp
+    d0tt_e = d1tt(1)
+
     DO i0sidi = 1, i0smax
        
        i0vofi = 10*i0sidi
@@ -1675,6 +1716,9 @@ CONTAINS
        d0c1_a = 2.5D0*(d0tt_a**2)
        d0c2_a = 5.0D0* d0tt_a
        
+       d0cx1_a = d1cx1_anom(i0sidi)
+       d0cx2_a = d1cx2_anom(i0sidi)
+
        !C
        !C EQ_007
        !C
@@ -1685,6 +1729,29 @@ CONTAINS
        i0vidj = i0vofi + 1
        d4gv(1,i0vidi,i0vidj,i0midi) =  d0x1           * d0ppcst/d0frfct
        d4gv(2,i0vidi,i0vidj,i0midi) =  d0x2           * d0ppcst/d0frfct
+       
+
+       !C
+       !C EQ_009
+       !C
+       
+       i0vidi = i0vofi - 1
+
+       !C >>>> ANOMALOUS TRANSPORT >>>>
+       
+       !C Ne
+       i0vidj = 6
+       d4gv(1,i0vidi,i0vidj,i0midi) =  d0x3*d0cx1_a*d0tt_e &
+            &                                         * d0nncst/d0ftfct
+       d4gv(2,i0vidi,i0vidj,i0midi) =  d0x4*d0cx1_a*d0tt_e &
+            &                                         * d0nncst/d0ftfct
+       
+       !C Pe
+       i0vidj = 11
+       d4gv(1,i0vidi,i0vidj,i0midi) = -d0x3*d0cx1_a   * d0ppcst/d0ftfct
+       d4gv(2,i0vidi,i0vidj,i0midi) = -d0x4*d0cx1_a   * d0ppcst/d0ftfct
+       
+       !C <<<< ANOMALOUS TRANSPORT <<<<
        
        !C 
        !C EQ_011
@@ -1713,6 +1780,28 @@ CONTAINS
        d4gv(1,i0vidi,i0vidj,i0midi) =  d0x1*d0c2_a    * d0ppcst/d0qrfct
        d4gv(2,i0vidi,i0vidj,i0midi) =  d0x2*d0c2_a    * d0ppcst/d0qrfct
        
+       !C
+       !C EQ_014
+       !C
+       
+       i0vidi = i0vofi + 4
+
+       !C >>>> ANOMALOUS TRANSPORT >>>>
+       
+       !C Ne
+       i0vidj = 6
+       d4gv(1,i0vidi,i0vidj,i0midi) =  d0x5*d0cx2_a*d0tt_e &
+            &                                         * d0nncst/d0ftfct
+       d4gv(2,i0vidi,i0vidj,i0midi) =  d0x6*d0cx2_a*d0tt_e &
+            &                                         * d0nncst/d0ftfct
+       
+       !C Pe
+       i0vidj = 11
+       d4gv(1,i0vidi,i0vidj,i0midi) = -d0x5*d0cx2_a   * d0ppcst/d0ftfct
+       d4gv(2,i0vidi,i0vidj,i0midi) = -d0x6*d0cx2_a   * d0ppcst/d0ftfct
+       
+       !C <<<< ANOMALOUS TRANSPORT <<<<
+
     ENDDO
     
     RETURN
@@ -1932,7 +2021,8 @@ CONTAINS
          &         d0btfct,d0erfct,d0epfct,d0etfct,&
          &         d0frfct,d0fbfct,d0ftfct,d0fpfct,&
          & d0ppfct,d0qrfct,d0qbfct,d0qtfct,d0qpfct,&
-         & d1ee,d1nn,d1pp,d1tt,d1ni,d1pi,d1hex,&
+         & d1ee,d1nn,d1pp,d1tt,d1ti,d1ni,d1pi,d1hex,&
+         & d1cx1_anom,d1cx2_anom,&
          & d2nfcf1,d2nfcf2,d2nfcf3,d2nfcf4,d3es
     
     
@@ -1941,15 +2031,17 @@ CONTAINS
          i0sidj,i0vidj,i0vofi,i0vofj
     
     REAL(   i0rkind)::&
-         d0ee_a,d0ee_b,d0nn_a,d0pp_a,d0tt_a,&
+         d0ee_a,d0ee_b,d0nn_a,d0pp_a,d0tt_a,d0ti_e,&
          d0ni_b,d0pi_b,&
          d0nfcf1_ab,d0nfcf2_ab,d0nfcf3_ab,d0nfcf4_ab,d0hex_a
 
     REAL(   i0rkind)::&
-         d0y1,d0x1,d0x2,d0x3,d0x4,d0x5,d0x6,d0x7,d0x8,d0x9,d0x10
+         d0y1, d0x1, d0x2, d0x3, d0x4, d0x5, d0x6,&
+         d0x7, d0x8, d0x9,d0x10,d0x11,d0x12,d0x13,d0x14
     
     REAL(   i0rkind)::&
          d0c1_a, d0c2_a, d0c3_a,&
+         d0cx1_a,d0cx2_a,&
          d0c1_ab,d0c2_ab,d0c3_ab,d0c4_ab
 
     !C
@@ -2029,7 +2121,13 @@ CONTAINS
     d0x8  = d0sqrtg*d0bb
     d0x9  = d0sqrtg*d0x7
     d0x10 = d0y1*d0cogpp
- 
+    
+    d0ti_e= d1ti(1)
+    d0x11 = d0sqrtg*d0cobt*d0bb
+    d0x12 = d0sqrtg*d0bb2
+    d0x13 = d0x11*0.4D0*d0ti_e
+    d0x14 = d0x12*0.4D0*d0ti_e
+    
     DO i0sidi = 1, i0smax
        
        i0vofi = 10*i0sidi
@@ -2043,7 +2141,9 @@ CONTAINS
 
        d0c1_a = d0ee_a*d0nn_a
        d0c2_a = d0ee_a*d0pp_a*2.5D0
-
+       d0cx1_a = d1cx1_anom(i0sidi)
+       d0cx2_a = d1cx2_anom(i0sidi)
+       
        !C
        !C EQ_007
        !C
@@ -2122,11 +2222,23 @@ CONTAINS
              i0vidj = i0vofj - 3
              d3es(i0vidi,i0vidj,i0midi) = -d0x9*d0ee_a    * d0frcst/d0ftfct
              
+             !C >>>> ANOMALOUS TRANSPORT >>>>
+             
+             !C Fbe
+             i0vidj = 8
+             d3es(i0vidi,i0vidj,i0midi) = -d0cx1_a*d0x11  * d0fbcst/d0ftfct
+             !C Fte
+             i0vidj = 9
+             d3es(i0vidi,i0vidj,i0midi) =  d3es(i0vidi,i0vidj,i0midi)&
+                  &                       +d0cx1_a*d0x12  * d0ftcst/d0ftfct
+             !C <<<< ANOMALOUS TRANSPORT <<<<
+             
           ENDIF
           
           !C Ft
           i0vidj = i0vofj - 1
-          d3es(i0vidi,i0vidj,i0midi) = -d0sqrtg*d0c1_ab   * d0ftcst/d0ftfct
+          d3es(i0vidi,i0vidj,i0midi) = d3es(i0vidi,i0vidj,i0midi)&
+               &                       -d0sqrtg*d0c1_ab   * d0ftcst/d0ftfct
           
           !C Qt
           i0vidj = i0vofj + 4
@@ -2240,6 +2352,16 @@ CONTAINS
              i0vidj = i0vofj + 2
              d3es(i0vidi,i0vidj,i0midi) = -d0ee_a*d0x9    * d0qrcst/d0qtfct
              
+             !C >>>> ANOMALOUS TRANSPORT >>>>
+             
+             !C Qbe
+             i0vidj = 13
+             d3es(i0vidi,i0vidj,i0midi) = -d0cx2_a*d0x13  * d0fbcst/d0ftfct
+             !C Qte
+             i0vidj = 14
+             d3es(i0vidi,i0vidj,i0midi) =  d3es(i0vidi,i0vidj,i0midi)&
+                  &                       +d0cx2_a*d0x14  * d0ftcst/d0ftfct
+             !C <<<< ANOMALOUS TRANSPORT <<<<
           ENDIF
           
           !C Ft
@@ -2248,7 +2370,8 @@ CONTAINS
           
           !C Qt
           i0vidj = i0vofj + 4
-          d3es(i0vidi,i0vidj,i0midi) = -d0c4_ab*d0sqrtg   * d0qtcst/d0qtfct
+          d3es(i0vidi,i0vidj,i0midi) =  d3es(i0vidi,i0vidj,i0midi)&
+               &                       -d0c4_ab*d0sqrtg   * d0qtcst/d0qtfct
           
        ENDDO
        

@@ -74,10 +74,11 @@ CONTAINS
     d1rec(0:i0lmaxm) = 0.D0 ! least radial point in a level
     d1rec(1) = 1.10D0
 
-    d0rmjr   =  3.0D0
-    d0rmnr   =  1.0D0
-    d0rw     =  1.1D0
-    d0bc     =  3.0D0
+    d0rmjr   =  1.30D0
+    d0rmnr   =  0.30D0
+    d0rw     =  1.10D0
+
+    d0bc     =  1.30D0
 
     !PLASMA PARAMETER
     i0nm = 3
@@ -89,19 +90,19 @@ CONTAINS
     d1pa(1) =  d0ame/d0amp
     d1pz(1) = -1.D0
 
-    d1nc(1) = 1.0D0
-    d1ns(1) = 1.0D-1
-    d1tc(1) = 5.0D0
-    d1ts(1) = 1.0D-1
+    d1nc(1) = 0.30D0
+    d1ns(1) = 0.06D0
+    d1tc(1) = 0.50D0
+    d1ts(1) = 0.05D0
     
     !Deuterium
     d1pa(2) = 2.D0
     d1pz(2) = 1.D0
 
-    d1nc(2) = 1.D0
-    d1ns(2) = 1.D-1
-    d1tc(2) = 5.D0
-    d1ts(2) = 1.D-1
+    d1nc(2) = 0.30D0
+    d1ns(2) = 0.06D0
+    d1tc(2) = 0.50D0
+    d1ts(2) = 0.05D0
 
 
     !Other plasma speces
