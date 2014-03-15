@@ -24,10 +24,9 @@ CONTAINS
          i0smax, i0nmax,i0dmax, i1mlvl,&
          i0pdiv_number, i1rdn2, d1rec,&
          i0pmax,d0eps,d0rmjr,d0rmnr,&
-         i1nm,i1nn,i1tm,i1tn,d0bc,&
-         d1nc,d1ns,d1nw,d1tc,d1ts,d1tw,&
-         d1pa,d1pz,&
-         d0qc,d0qs,d0rw, &
+         i0nm,i0nn,i0tm,i0tn,d0bc,&
+         d1nc,d1ns,d1tc,d1ts,&
+         d1pa,d1pz,d0rw, &
          dt,time_init,eps_conv, &
          ntmax,ntstep,nt0dmax,nt0dstep,nt2dmax,nt2dstep,nconvmax, &
          idfile,idprint,idplot,idmode,idebug,i0supg
@@ -41,9 +40,8 @@ CONTAINS
          i0pdiv_number, i1rdn2, d1rec,&
          i0pmax,d0eps,d0rmjr,d0rmnr,&
          d0bc,&
-         d1nc,d1ns,d1nw,d1tc,d1ts,d1tw,&
-         d1pa,d1pz,&
-         d0qc,d0qs,d0rw, &
+         d1nc,d1ns,d1tc,d1ts,&
+         d1pa,d1pz,d0rw, &
          dt,time_init,eps_conv, &
          ntmax,ntstep,nt0dmax,nt0dstep,nt2dmax,nt2dstep,nconvmax, &
          idfile,idprint,idplot,idmode,idebug,i0solv
@@ -80,46 +78,37 @@ CONTAINS
     d0rmnr   =  1.0D0
     d0rw     =  1.1D0
     d0bc     =  3.0D0
-    d0qc     =  1.0D0
-    d0qs     =  3.0D0
 
     !PLASMA PARAMETER
+    i0nm = 3
+    i0nn = 2
+    i0tm = 3
+    i0tn = 2
     
     !Electron 
     d1pa(1) =  d0ame/d0amp
     d1pz(1) = -1.D0
-    i1nm(1) = 1
-    i1nn(1) = 3
+
     d1nc(1) = 1.0D0
-    d1ns(1) = 2.0D-1
-    d1nw(1) = 5.0D-2
-    i1tm(1) = 1
-    i1tn(1) = 2
+    d1ns(1) = 1.0D-1
     d1tc(1) = 5.0D0
-    d1ts(1) = 1.0D0
-    d1tw(1) = 1.0D-1
+    d1ts(1) = 1.0D-1
     
     !Deuterium
     d1pa(2) = 2.D0
     d1pz(2) = 1.D0
-    i1nm(2) = 1
-    i1nn(2) = 3
+
     d1nc(2) = 1.D0
-    d1ns(2) = 2.D-1
-    d1nw(2) = 5.D-2
-    i1tm(2) = 1
-    i1tn(2) = 2
+    d1ns(2) = 1.D-1
     d1tc(2) = 5.D0
-    d1ts(2) = 1.D0
-    d1tw(2) = 1.D-1
+    d1ts(2) = 1.D-1
+
 
     !Other plasma speces
     d1nc(3:i0spcsm) = 0.D0
     d1ns(3:i0spcsm) = 0.D0 
-    d1nw(3:i0spcsm) = 0.D0
     d1tc(3:i0spcsm) = 0.D0
     d1ts(3:i0spcsm) = 0.D0
-    d1tw(3:i0spcsm) = 0.D0
     d1pa(3:i0spcsm) = 0.D0
     d1pz(3:i0spcsm) = 0.D0
     

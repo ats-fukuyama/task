@@ -317,8 +317,8 @@ MODULE T2COMM
   !C                          FOR T2PROF
   !C
   !C------------------------------------------------------------------
-  INTEGER(i0ikind),DIMENSION(1:i0spcsm)::&
-       i1nm,i1nn,i1tm,i1tn
+  INTEGER(i0ikind)::&
+       i0nm,i0nn,i0tm,i0tn
   REAL(   i0rkind)::&
        d0qc,d0qs,d0bc,d0rw
   REAL(   i0rkind),DIMENSION(1:i0spcsm)::&
