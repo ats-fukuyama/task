@@ -302,27 +302,27 @@ CONTAINS
              !C Et
              i0vidj = 3
              i2vvvt(i0vidi,i0vidj) = 1
-
+             
              !C N
              i0vidj = i0vofj - 4
              i2vvvt(i0vidi,i0vidj) = 1
-
+             
              !C Fr
              i0vidj = i0vofj - 3
              i2vvvt(i0vidi,i0vidj) = 1
-
+             
              !C Fb
              i0vidj = i0vofj - 2
              i2vvvt(i0vidi,i0vidj) = 1
-
+             
              !C Fp
              i0vidj = i0vofj
              i2vvvt(i0vidi,i0vidj) = 1
-
+             
              !C P
              i0vidj = i0vofj + 1
              i2vvvt(i0vidi,i0vidj) = 1
-
+             
              !C Qb
              i0vidj = i0vofj + 3
              i2vvvt(i0vidi,i0vidj) = 1
@@ -331,6 +331,26 @@ CONTAINS
              i0vidj = i0vofj + 5
              i2vvvt(i0vidi,i0vidj) = 1
              
+             !C >>>> ANOMALOUS TRANSPORT >>>>
+             
+             !C Ne
+             i0vidj = 6
+             i2vvvt(i0vidi,i0vidj) = 1
+             
+             !C Fbe
+             i0vidj = 8
+             i2vvvt(i0vidi,i0vidj) = 1
+             
+             !C Fte 
+             i0vidj = 9
+             i2vvvt(i0vidi,i0vidj) = 1
+             
+             !C Pe
+             i0vidj = 11
+             i2vvvt(i0vidi,i0vidj) = 1
+             
+             !C <<<< ANOMALOUS TRANSPORT <<<<
+          
           ENDIF
           
           !C Ft
@@ -339,26 +359,6 @@ CONTAINS
           
           !C Qt
           i0vidj = i0vofj + 4
-          i2vvvt(i0vidi,i0vidj) = 1
-          
-          !C 
-          !C FOR ANORMALOUS TRANSPORT 
-          !C 
-          
-          !C Ne
-          i0vidj = 6
-          i2vvvt(i0vidi,i0vidj) = 1
-          
-          !C Fbe
-          i0vidj = 8
-          i2vvvt(i0vidi,i0vidj) = 1
-          
-          !C Fte 
-          i0vidj = 9
-          i2vvvt(i0vidi,i0vidj) = 1
-          
-          !C Pe
-          i0vidj = 11
           i2vvvt(i0vidi,i0vidj) = 1
           
        ENDDO
@@ -557,6 +557,26 @@ CONTAINS
              i0vidj = i0vofj + 5
              i2vvvt(i0vidi,i0vidj) = 1
 
+             !C >>>>  ANOMALOUS TRANSPORT >>>>
+
+             !C Ne
+             i0vidj = 6
+             i2vvvt(i0vidi,i0vidj) = 1
+             
+             !C Pe
+             i0vidj = 11
+             i2vvvt(i0vidi,i0vidj) = 1
+             
+             !C Qbe
+             i0vidj = 13
+             i2vvvt(i0vidi,i0vidj) = 1
+             
+             !C Qte 
+             i0vidj = 14
+             i2vvvt(i0vidi,i0vidj) = 1
+          
+             !C <<<<  ANOMALOUS TRANSPORT <<<<
+
           ENDIF
           
           !C Ft
@@ -566,27 +586,7 @@ CONTAINS
           !C Qt
           i0vidj = i0vofj + 4
           i2vvvt(i0vidi,i0vidj) = 1              
-          
-          !C 
-          !C FOR ANORMALOUS TRANSPORT 
-          !C 
-          
-          !C Ne
-          i0vidj = 6
-          i2vvvt(i0vidi,i0vidj) = 1
-          
-          !C Pe
-          i0vidj = 11
-          i2vvvt(i0vidi,i0vidj) = 1
-          
-          !C Qbe
-          i0vidj = 13
-          i2vvvt(i0vidi,i0vidj) = 1
-          
-          !C Qte 
-          i0vidj = 14
-          i2vvvt(i0vidi,i0vidj) = 1
-          
+                    
        ENDDO
        
        !C
@@ -1369,13 +1369,17 @@ CONTAINS
        
        i0vidi = i0vofi - 1
        
-       !C Ne (ANORMALOUS)
+       !C >>>> ANOMALOUS TRANSPORT >>>>
+       
+       !C Ne 
        i0vidj = 6
        i2gvvt(i0vidi,i0vidj) = 1
        
-       !C Pe (ANORMALOUS)
+       !C Pe 
        i0vidj = 11
        i2gvvt(i0vidi,i0vidj) = 1
+       
+       !C <<<< ANOMALOUS TRANSPORT <<<<
        
        !C
        !C EQ_011
@@ -1407,14 +1411,18 @@ CONTAINS
        
        i0vidi = i0vofi + 4
        
-       !C Ne (ANORMALOUS)
+       !C >>>> ANOMALOUS TRANSPORT >>>>
+
+       !C Ne 
        i0vidj = 6
        i2gvvt(i0vidi,i0vidj) = 1
        
-       !C Pe (ANORMALOUS)
+       !C Pe 
        i0vidj = 11
        i2gvvt(i0vidi,i0vidj) = 1
        
+       !C <<<< ANOMALOUS TRANSPORT <<<<
+
     ENDDO
     
     RETURN
@@ -1571,7 +1579,7 @@ CONTAINS
   !C
   !C SUBROUTINE FOR EXCITATION SCALAR ARRAY
   !C 
-  !C                     2014-03-06
+  !C                     2014-03-16
   !C
   !C------------------------------------------------------------------
   SUBROUTINE T2VGRA_ES
@@ -1714,13 +1722,17 @@ CONTAINS
              i0vidj = i0vofj - 3
              i2esvt(i0vidi,i0vidj) = 1
              
-             !C Fbe (ANORMALOUS)
+             !C >>>> ANOMALOUS TRANSPORT >>>>
+             
+             !C Fbe
              i0vidj = 8
              i2esvt(i0vidi,i0vidj) = 1
              
-             !C Fte (ANORMALOUS)
+             !C Fte
              i0vidj = 9
              i2esvt(i0vidi,i0vidj) = 1
+             
+             !C <<<< ANOMALOUS TRANSPORT <<<<
              
           ENDIF
           
@@ -1830,13 +1842,18 @@ CONTAINS
              i0vidj = i0vofj + 2
              i2esvt(i0vidi,i0vidj) = 1
              
-             !C Qbe (ANORMALOUS)
+             !C >>>> ANOMALOUS TRANSPORT >>>>
+
+             !C Qbe
              i0vidj = 13
              i2esvt(i0vidi,i0vidj) = 1
              
-             !C Qte (ANORMALOUS)
+             !C Qte
              i0vidj = 14
              i2esvt(i0vidi,i0vidj) = 1
+
+             !C <<<< ANOMALOUS TRANSPORT <<<<
+
           ENDIF
           
           !C Ft
