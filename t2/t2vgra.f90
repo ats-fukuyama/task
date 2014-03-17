@@ -574,7 +574,7 @@ CONTAINS
              !C Qte 
              i0vidj = 14
              i2vvvt(i0vidi,i0vidj) = 1
-          
+             
              !C <<<<  ANOMALOUS TRANSPORT <<<<
 
           ENDIF

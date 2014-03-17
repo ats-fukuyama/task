@@ -6,8 +6,9 @@
 !C      CALCULATION OF COEFFICIENTS 
 !C      OF ADVECTION-DIFFUSION EQUATIONS 
 !C      FOR MULTI-FLUID TRANSPORT MODEL 
-!C 
-!C                       2014-02-23
+!C      (ONLY ANOMALOUS TRANSPORT MODEL IS BASED ON TWO-FLUID MODEL)
+!C
+!C                       2014-03-16 H. SETO
 !C
 !C-------------------------------------------------------------------
 MODULE T2CALV
@@ -62,7 +63,7 @@ CONTAINS
   !C
   !C CALCULATION OF FUNDAMENTAL PHYSICAL QUANTITIES 
   !C 
-  !C     2014-03-12 H.SETO
+  !C     2014-03-16 H.SETO
   !C            
   !C---------------------------------------------------------
   
@@ -300,10 +301,10 @@ CONTAINS
     !C
     !C SET WORKING SCALAR FOR DIFFERENTIAL (GROBAL)
     !C
-    !C D2WS(1   ,:) : MAGNETIC FIELD INTENSITY    : B   
-    !C D2WS(2   ,:) : MAJOR RADIUS                : R   
-    !C D2WS(2N+1,:) : PARALLEL FLOW               : u_{a\para}  
-    !C D2WS(2N+2,:) : PARALLEL HEAT FLOW FUNCTION : Q_{a\para}/p_{a}
+    !C D2WS(1   ,:): MAGNETIC FIELD INTENSITY      : B   
+    !C D2WS(2   ,:): MAJOR RADIUS                  : R   
+    !C D2WS(2N+1,:): NORMALISED PARALLEL FLOW      : u_{a\para}/ubcst
+    !C D2WS(2N+2,:): NORMALIZED PARALLEL HEAT FLOW : Q_{a\para}/p_{a}/ubcst
     !C
     !C      checked 2014-02-20 by H.Seto
     !C
@@ -586,9 +587,7 @@ CONTAINS
     !C d1nvcm3 : NEOCLASSICAL VISCOSITY COEFFICIENT     : \mu_{3a} 
     !C
 
-    d0temp  = SQRT(d0mfcr)
-    d0temp  = d0iar*d0temp
-    d0temp  = SQRT(d0temp)
+    d0temp  = SQRT(d0iar*SQRT(d0mfcr))
     d0temp2 = (d0temp**3)*(d0ctbp**2)
     d0temp3 = 3.D0*(1.D0-1.46D0*d0temp)
    
@@ -633,6 +632,8 @@ CONTAINS
        d0k11 = d0k11bn*d0k11ps/(d0k11bn + d0k11ps*d0temp2)
        d0k12 = d0k12bn*d0k12ps/(d0k12bn + d0k12ps*d0temp2)
        d0k22 = d0k22bn*d0k22ps/(d0k22bn + d0k22ps*d0temp2)
+
+
        
        !C
        !C NEOCLASSICAL VISCOSITY COEFFICIENTS: \mu_{ai}
@@ -643,66 +644,7 @@ CONTAINS
        d1nvcm3(i0xa) = d0k22 - 5.0D0*d0k12 + 6.25D0*d0k11
        
     ENDDO
-    
-
-    d0temp  = SQRT(d0mfcr)
-    d0temp  = d0iar*d0temp
-    d0temp  = SQRT(d0temp)
-    d0temp2 = (d0temp**3)*(d0ctbp**2)
-    d0temp3 = 3.D0*(1.D0-1.46D0*d0temp)
-   
-    DO i0xa = 1, i0smax
-       
-       d0mm_a = d1mm(i0xa)
-       d0nn_a = d1nn(i0xa)
-       d0pp_a = d1pp(i0xa)
-       
-       !C
-       !C MODIFIED VISCOSITY COEFFICIENT IN PS REGIME
-       !C
-       
-       CALL INTEG_F(fd0k11ps,d0k11ps,d0err,EPS=1.D-8,ILST=0)
-       CALL INTEG_F(fd0k12ps,d0k12ps,d0err,EPS=1.D-8,ILST=0)
-       CALL INTEG_F(fd0k22ps,d0k22ps,d0err,EPS=1.D-8,ILST=0)
-       
-       d0cps   = 0.4D0*d0pp_a*d0de
-       
-       d0k11ps = d0cps*d0k11ps
-       d0k12ps = d0cps*d0k12ps
-       d0k22ps = d0cps*d0k22ps
-
-       !C
-       !C MODIFIED VISCOSITY COEFFICIENT IN BN REGIME
-       !C 
-       
-       CALL INTEG_F(fd0k11bn,d0k11bn,d0err,EPS=1.D-8,ILST=0)
-       CALL INTEG_F(fd0k12bn,d0k12bn,d0err,EPS=1.D-8,ILST=0)
-       CALL INTEG_F(fd0k22bn,d0k22bn,d0err,EPS=1.D-8,ILST=0)
-       
-       d0cbn = 2.92D0*d0mm_a*d0nn_a*d0bt2*d0de/d0temp3
-       
-       d0k11bn = d0cbn*d0k11bn
-       d0k12bn = d0cbn*d0k12bn
-       d0k22bn = d0cbn*d0k22bn
-       
-       !C
-       !C MODIFIED VISCOSITY COEFFICIENT IN INTER-REGIMES 
-       !C
-       
-       d0k11 = d0k11bn*d0k11ps/(d0k11bn + d0k11ps*d0temp2)
-       d0k12 = d0k12bn*d0k12ps/(d0k12bn + d0k12ps*d0temp2)
-       d0k22 = d0k22bn*d0k22ps/(d0k22bn + d0k22ps*d0temp2)
-       
-       !C
-       !C NEOCLASSICAL VISCOSITY COEFFICIENTS: \mu_{ai}
-       !C
-       
-       d1nvcm1(i0xa) = d0k11 
-       d1nvcm2(i0xa) = d0k12 - 2.5D0*d0k11 
-       d1nvcm3(i0xa) = d0k22 - 5.0D0*d0k12 + 6.25D0*d0k11
-       
-    ENDDO
-    
+        
     !C d1nvcc1 : NEOCLASSICAL VISCOSITY COEFFICIENT : \bar{\mu}_{1a}
     !C d1nvcc2 : NEOCLASSICAL VISCOSITY COEFFICIENT : \bar{\mu}_{2a} 
     !C d1nvcc3 : NEOCLASSICAL VISCOSITY COEFFICIENT : \bar{\mu}_{3a} 
@@ -735,6 +677,7 @@ CONTAINS
     !C      K.C. Shaing, Phys. Plasmas, 31 2249 (1988)
     !C      M. Honda et. al, Nucl. Fusion, 50 095012 
     !C
+
     IF(d0mfcr.LE.1.D0)THEN
        d0d_anom = 0.45D0*d0mfcr+0.05D0
        d0m_anom = 0.45D1*d0mfcr+0.05D1
@@ -747,9 +690,11 @@ CONTAINS
 
     d0ti_e = d1ti(1)
 
-    d0ct1_anom = (1.5D0 - (d0m_anom/d0d_anom)) * d0psip/d0aee
-    d0ct2_anom = (2.5D0 - (d0x_anom/d0m_anom)) * d0psip/d0aee
-
+    !d0ct1_anom = (1.5D0 - (d0m_anom/d0d_anom)) * d0psip/d0aee
+    !d0ct2_anom = (2.5D0 - (d0x_anom/d0m_anom)) * d0psip/d0aee
+    d0ct1_anom = (1.0D0 - 1.D0) * d0psip/d0aee
+    d0ct2_anom = (2.0D0 - 1.D0) * d0psip/d0aee
+    
     DO i0sidi = 1, i0smax
        d0ee_a = d1ee(i0sidi)
        d0tt_a = d1tt(i0sidi)
@@ -757,7 +702,7 @@ CONTAINS
        d1cx1_anom(i0sidi) = d0sign*(d0aee**2)*d0ti_e*d0d_anom
        d1cx2_anom(i0sidi) = d0sign*(d0aee**2)*d0ti_e*d0m_anom*d0tt_a
     ENDDO
-    
+
     RETURN
     
   END SUBROUTINE T2CALV_PQ
@@ -2356,12 +2301,13 @@ CONTAINS
              
              !C Qbe
              i0vidj = 13
-             d3es(i0vidi,i0vidj,i0midi) = -d0cx2_a*d0x13  * d0fbcst/d0ftfct
+             d3es(i0vidi,i0vidj,i0midi) = -d0cx2_a*d0x13  * d0qbcst/d0ftfct
              !C Qte
              i0vidj = 14
              d3es(i0vidi,i0vidj,i0midi) =  d3es(i0vidi,i0vidj,i0midi)&
-                  &                       +d0cx2_a*d0x14  * d0ftcst/d0ftfct
+                  &                       +d0cx2_a*d0x14  * d0qtcst/d0ftfct
              !C <<<< ANOMALOUS TRANSPORT <<<<
+
           ENDIF
           
           !C Ft

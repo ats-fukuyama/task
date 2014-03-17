@@ -24,8 +24,8 @@ CONTAINS
          i0smax, i0nmax,i0dmax, i1mlvl,&
          i0pdiv_number, i1rdn2, d1rec,&
          i0pmax,d0eps,d0rmjr,d0rmnr,&
-         i0nm,i0nn,i0tm,i0tn,d0bc,&
-         d1nc,d1ns,d1tc,d1ts,&
+         i0nm,i0nn,i0tm,i0tn,d0bc,d0qc,d0qs,&
+         d1nc,d1ns,d1nw,d1tc,d1ts,d1tw,&
          d1pa,d1pz,d0rw, &
          dt,time_init,eps_conv, &
          ntmax,ntstep,nt0dmax,nt0dstep,nt2dmax,nt2dstep,nconvmax, &
@@ -33,18 +33,18 @@ CONTAINS
 
     USE T2CNST, ONLY: i0lmaxm,i0spcsm,d0aee,d0ame,d0amp
 
-    NAMELIST /T2/ &
-         c10rname, i0dbg, i0fnum, i0mfcs, i0wstp,&
-         i0dmax,i0amax,&
-         i0smax, i0nmax, i0lmax, i1mlvl,&
-         i0pdiv_number, i1rdn2, d1rec,&
-         i0pmax,d0eps,d0rmjr,d0rmnr,&
-         d0bc,&
-         d1nc,d1ns,d1tc,d1ts,&
-         d1pa,d1pz,d0rw, &
-         dt,time_init,eps_conv, &
-         ntmax,ntstep,nt0dmax,nt0dstep,nt2dmax,nt2dstep,nconvmax, &
-         idfile,idprint,idplot,idmode,idebug,i0solv
+!    NAMELIST /T2/ &
+!         c10rname, i0dbg, i0fnum, i0mfcs, i0wstp,&
+!         i0dmax,i0amax,&
+!         i0smax, i0nmax, i0lmax, i1mlvl,&
+!         i0pdiv_number, i1rdn2, d1rec,&
+!         i0pmax,d0eps,d0rmjr,d0rmnr,&
+!         d0bc,&
+!         d1nc,d1ns,d1tc,d1ts,&
+!         d1pa,d1pz,d0rw, &
+!         dt,time_init,eps_conv, &
+!         ntmax,ntstep,nt0dmax,nt0dstep,nt2dmax,nt2dstep,nconvmax, &
+!         idfile,idprint,idplot,idmode,idebug,i0solv
     
     c10rname = 'TEST'
     i0solv  =  3
@@ -74,16 +74,18 @@ CONTAINS
     d1rec(0:i0lmaxm) = 0.D0 ! least radial point in a level
     d1rec(1) = 1.10D0
 
-    d0rmjr   =  1.30D0
+    d0rmjr   =  1.3D0
     d0rmnr   =  0.30D0
     d0rw     =  1.10D0
 
+    d0qc     =  1.D0
+    d0qs     =  3.D0
     d0bc     =  1.30D0
 
     !PLASMA PARAMETER
-    i0nm = 3
-    i0nn = 2
-    i0tm = 3
+    i0nm = 2
+    i0nn = 3
+    i0tm = 2
     i0tn = 2
     
     !Electron 
@@ -92,18 +94,20 @@ CONTAINS
 
     d1nc(1) = 0.30D0
     d1ns(1) = 0.06D0
+    d1nw(1) = 0.01D0
     d1tc(1) = 0.50D0
     d1ts(1) = 0.05D0
-    
+    d1tw(1) = 0.05D0
     !Deuterium
     d1pa(2) = 2.D0
     d1pz(2) = 1.D0
 
     d1nc(2) = 0.30D0
     d1ns(2) = 0.06D0
+    d1nw(2) = 0.01D0
     d1tc(2) = 0.50D0
     d1ts(2) = 0.05D0
-
+    d1tw(2) = 0.05D0
 
     !Other plasma speces
     d1nc(3:i0spcsm) = 0.D0
@@ -115,7 +119,7 @@ CONTAINS
     
     dt        = 1.D-4   ! time step [s]
     time_init = 0.D0    ! initial time [s]
-    ntmax     = 1      ! number of time steps to go
+    ntmax     = 1       ! number of time steps to go
     ntstep    = 1       ! time step to print snap shot of global data
     nt0dmax   = 1       ! maximim number of global data to be saved
     nt0dstep  = 1       ! time step to save global data

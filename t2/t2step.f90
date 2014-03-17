@@ -237,7 +237,7 @@ CONTAINS
     CASE (4)
        DO i0vidi = 1,i0vmax
           SELECT CASE (i0vidi)
-          CASE(1:6,11,16,21)
+          CASE(1:5,16:)
              CYCLE
           END SELECT
           
@@ -262,7 +262,7 @@ CONTAINS
     CASE (5)
        DO i0vidi = 1,i0vmax
           SELECT CASE (i0vidi)
-          CASE(1:5,11,21)
+          CASE(1:5)
              CYCLE
           END SELECT
           d0dif  = d1dif(i0vidi)

@@ -53,7 +53,7 @@ CONTAINS
          i0vidi,i0sidi,i0midi,i0xidi,i0xid1d,i0xid2d
     
     REAL(   i0rkind)::d0mfcr,d0mfcp,d0jm1,d0cobt
-    REAL(   i0rkind),DIMENSION(1:2,1:i0smax)::d2rn,d2rp
+    REAL(   i0rkind),DIMENSION(1:i0smax)::d1n0,d1p0
     REAL(   i0rkind),DIMENSION(1:8,1:i0smax)::d2f0
     
 100 FORMAT( 6E15.8)
@@ -102,18 +102,18 @@ CONTAINS
        
        !C INITIAL PROFILE: Fr Fb Ft Qr Qb Qt 
        
-       d2rn = fd2rn(d0mfcr,d0mfcp)
-       d2rp = fd2rp(d0mfcr,d0mfcp)
+       d1n0 = fd1n0(d0mfcr,d0mfcp)
+       d1p0 = fd1p0(d0mfcr,d0mfcp)
        d2f0 = fd2f0(d0mfcr,d0mfcp)
        
        DO i0sidi = 1,i0smax
           i0vidi = 10*i0sidi - 5
-          d2xvec(i0vidi+ 1,i0xid2d) = d2rn(1,i0sidi)/d0nncst
+          d2xvec(i0vidi+ 1,i0xid2d) = d1n0(  i0sidi)/d0nncst
           d2xvec(i0vidi+ 2,i0xid2d) = d2f0(1,i0sidi)/d0frcst
           d2xvec(i0vidi+ 3,i0xid2d) = d2f0(2,i0sidi)/d0fbcst
           d2xvec(i0vidi+ 4,i0xid2d) = d2f0(3,i0sidi)/d0ftcst
           d2xvec(i0vidi+ 5,i0xid2d) = d2f0(4,i0sidi)/d0fpcst
-          d2xvec(i0vidi+ 6,i0xid2d) = d2rp(1,i0sidi)/d0ppcst
+          d2xvec(i0vidi+ 6,i0xid2d) = d1p0(  i0sidi)/d0ppcst
           d2xvec(i0vidi+ 7,i0xid2d) = d2f0(5,i0sidi)/d0qrcst
           d2xvec(i0vidi+ 8,i0xid2d) = d2f0(6,i0sidi)/d0qbcst
           d2xvec(i0vidi+ 9,i0xid2d) = d2f0(7,i0sidi)/d0qtcst
@@ -141,48 +141,101 @@ CONTAINS
   !C   f(r) = (fc-fs)*(1-\sqrt{\rho}^n)^m + fs 
   !C
   !C for 1 < \rho < rw^2
-  !C   f(r) = fs
-  !C                     2014-03-15 H.SETO
+  !C   f(r) = fw + a1*(\sqrt{\rho}-rw)^2 
+  !C             + a2*(\sqrt{\rho}-rw)^3 
+  !C             + a3*(\sqrt{\rho}-rw)^4 
+  !C
+  !C                     2014-02-23 H.SETO checked
   !C
   !C------------------------------------------------------------------
-  FUNCTION fd1rf(i0m0,i0n0,d0fc,d0fs,d0rw,d0rho)
+  FUNCTION fd1rf(i0m0,i0n0,d0fc,d0fs,d0fw,d0rw,d0rho)
     
     INTEGER(i0ikind),INTENT(IN )::i0m0,i0n0
-    REAL(   i0rkind),INTENT(IN )::d0fc,d0fs,d0rw,d0rho
+    REAL(   i0rkind),INTENT(IN )::d0fc,d0fs,d0fw,d0rw,d0rho
     REAL(   i0rkind),DIMENSION(1:2)::fd1rf
     REAL(   i0rkind)::&
-         d0m0,d0n0,d0rr,d0rx,d0fcs
+         d0a1,d0a2,d0a3,d0b1,d0b2,d0b3,&
+         d0m0,d0n0,d0rx,d0rr,&
+         d0fcs,d0fsw,d0rsw
     INTEGER(i0ikind)::&
-         i0m1,i0n2
+         i0m1,i0n1,i0n2
     
     d0rr = SQRT(d0rho)
-    
-    IF((i0n0.LT.2).OR.(i0m0.LT.2))THEN 
-       WRITE(6,*)'INAPPROPRIATE PROFILE PARAMETER:'
-       WRITE(6,*)'n=',i0n0,'m=',i0m0
+
+    IF(i0n0.LT.2)THEN 
+       WRITE(6,*)'INAPPROPRIATE PROFILE PARAMETER: n',i0n0
        STOP
     ENDIF
-    
-    i0m1  = i0m0 - 1
-    i0n2  = i0n0 - 2
-    d0m0  = DBLE(i0m0)
+
     d0n0  = DBLE(i0n0)
-    d0fcs = d0fc-d0fs
-    d0rx = 1-d0rr**i0n0
+    d0m0  = DBLE(i0m0)
+       
+    d0fcs = d0fc - d0fs
+    i0n1  = i0n0 - 1
+    i0n2  = i0n0 - 2
+    i0m1  = i0m0 - 1
     
-
-    IF(d0rr.LE.1)THEN
-       fd1rf(1) = d0fcs*(d0rx**i0m0) + d0fs
-       IF(i0n2.EQ.0)THEN
-          fd1rf(2) = -0.5*d0m0*d0n0*d0fcs*(d0rx**i0m1)
-       ELSE
-          fd1rf(2) = -0.5*d0m0*d0n0*d0fcs*(d0rx**i0m1)*(d0rr**i0n2)
-       ENDIF
-    ELSE
-       fd1rf(1) = d0fs
-       fd1rf(2) = 0.D0
-    END IF
-
+    !C
+    !C  0 <= r <= 1
+    !C
+    
+    IF((d0rr.GE.0.D0).AND.(d0rr.LE.1.D0))THEN
+       
+       d0rx  = 1.D0-(d0rr**i0n0)
+       
+       SELECT CASE(i0m0)
+       CASE(1)
+          fd1rf(1)    =  d0fcs*d0rx + d0fs
+          IF(i0n2.NE.0)THEN
+             fd1rf(2) = -d0fcs*(d0rr**i0n2)*d0n0*0.5D0
+          ELSE
+             fd1rf(2) = -d0fcs
+          END IF
+       CASE(2:)
+          fd1rf(1)    =  d0fcs*(d0rx**i0m0) + d0fs
+          IF(i0n2.NE.0)THEN
+             fd1rf(2) = -d0fcs*(d0rr**i0n2)*(d0rx**i0m1)*d0m0*d0n0*0.5D0
+          ELSE
+             fd1rf(2) = -d0fcs             *(d0rx**i0m1)*d0m0
+          END IF
+       END SELECT
+    ELSEIF(d0rr.GT.1.D0)THEN
+       d0rsw = 1.D0/(1.D0 - d0rw)
+       d0fsw = d0fs - d0fw
+       d0rx = d0rr - d0rw
+       SELECT CASE(i0m0)
+       CASE (1)
+          d0b1 =  d0fsw*(d0rsw**2)
+          d0b2 = -d0fcs* d0rsw    *d0n0
+          d0b3 = -d0fcs           *d0n0*(d0n0-1.D0)
+          
+       CASE (2)
+          d0b1 =  d0fsw*(d0rsw**2)
+          d0b2 =  0.D0
+          d0b3 =  d0fcs           *d0n0*d0n0*2.D0
+       CASE (3:)
+          d0b1 = d0fsw*(d0rsw**2)
+          d0b2 = 0.D0
+          d0b3 = 0.D0
+       CASE DEFAULT
+          WRITE(6,*)'INAPPROPRIATE PROFILE PARAMETER: m',i0m0
+          STOP
+       END SELECT
+       
+       d0a1 =  6.0D0*d0b1 - 3.0D0*d0b2 + 0.5D0*d0b3
+       d0a2 = -8.0D0*d0b1 + 5.0D0*d0b2 - 1.0D0*d0b3
+       d0a3 =  3.0D0*d0b1 - 2.0D0*d0b2 + 0.5D0*d0b3
+       
+       d0a2 = d0a2*d0rsw
+       d0a3 = d0a3*d0rsw*d0rsw
+       
+       fd1rf(1) =      d0a1*(d0rx**2) +      d0a2*(d0rx**3)&
+            &   +      d0a3*(d0rx**4) + d0fw  
+       fd1rf(2) = 2.D0*d0a1* d0rx     + 3.D0*d0a2*(d0rx**2) &
+            &   + 4.D0*d0a3*(d0rx**3) 
+       fd1rf(2) = fd1rf(2)*0.5D0/d0rr
+    ENDIF
+    
     RETURN
     
   END FUNCTION fd1rf
@@ -191,7 +244,7 @@ CONTAINS
   !C
   !C INITITIAL PROFILE OF R (R,\phi,Z)
   !C
-  !C                     2014-03-15 H.SETO
+  !C                     2014-02-23 H.SETO checked
   !C
   !C-------------------------------------------------------------------
   FUNCTION fd0rzcr(d0mfcr,d0mfcp)
@@ -211,7 +264,7 @@ CONTAINS
   !C
   !C INITITIAL PROFILE OF Z (R,\phi, Z)
   !C
-  !C                     2014-03-15 H.SETO
+  !C                     2014-02-23 H.SETO checked
   !C
   !C-------------------------------------------------------------------
   FUNCTION fd0rzcz(d0mfcr,d0mfcp)
@@ -232,7 +285,7 @@ CONTAINS
   !C
   !C INITITIAL PROFILE OF METRIC COEFFICIENTS
   !C
-  !C                     2014-03-15 H.SETO
+  !C                     2014-02-23 H.SETO checked
   !C
   !C-------------------------------------------------------------------
   FUNCTION fd1mc(d0mfcr,d0mfcp)
@@ -277,84 +330,56 @@ CONTAINS
     RETURN
     
   END FUNCTION fd1mc
+
+  !C-------------------------------------------------------------------
+  !C
+  !C INITITIAL PROFILE OF q
+  !C
+  !C                     2014-02-23 H.SETO checked
+  !C
+  !C-------------------------------------------------------------------
+  FUNCTION fd0q0(d0mfcr,d0mfcp)
+    
+    USE T2COMM, ONLY:d0qc,d0qs
+    
+    REAL(i0rkind),INTENT(IN)::d0mfcr,d0mfcp
+    REAL(i0rkind)::fd0q0
+    
+    IF((d0mfcr.GE.0.D0).AND.(d0mfcr.LE.1.D0))THEN
+       fd0q0 = (d0qc-d0qs)*(1.D0 - d0mfcr)+d0qs
+    ELSEIF(d0mfcr.GT.1.D0)THEN
+       fd0q0 = (d0qs-d0qc)*(       d0mfcr)+d0qc
+    ELSE
+       WRITE(6,*)'WRONG RHO INPUT'
+       STOP
+    ENDIF
+    
+    RETURN
+    
+  END FUNCTION fd0q0
   
   !C-------------------------------------------------------------------
   !C
   !C INITITIAL PROFILE OF d\psi/d\rho
   !C
-  !C                     2014-03-15 H.SETO
+  !C                     2014-02-23 H.SETO checked
   !C
   !C-------------------------------------------------------------------
   FUNCTION fd0psip(d0mfcr,d0mfcp)
-    USE T2CNST, ONLY:d0rmu0,d0aee
-    USE T2COMM, ONLY:&
-         i0smax,d0rmnr,d0rmjr,&
-         i0nm,i0nn,i0tm,i0tn,d0rw,&
-         d1nc,d1ns,d1tc,d1ts
     
-    REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
-    REAL(   i0rkind)::fd0psip
-    REAL(   i0rkind)::&
-         d0a,d0b,d0c,d0d,d0e,d0f,&
-         d0coef0,d0coef1,d0coef2,d0coef3,d0coef4,d0coef5,d0coef6
-    INTEGER(i0ikind)::i0sidi
-    !IF(  (i0nm.NE.3).OR.(i0nn.NE.2).OR.&
-    !     (i0tm.NE.3).OR.(i0tn.NE.2))THEN
-    !   WRITE(6,*)'UNDERCONSTRUCTION: fd0psip'
-    !   STOP
-    !ENDIF
-    d0a = 0.D0
-    d0b = 0.D0
-    d0c = 0.D0
-    d0d = 0.D0
-    d0e = 0.D0
-    d0f = 0.D0
+    USE T2COMM, ONLY:d0rmnr,d0bc,d0iar
     
-    DO i0sidi = 1,i0smax
-       d0a = d0a + d1nc(i0sidi)
-       d0b = d0b + d1ns(i0sidi)
-       d0c = d0c + d1tc(i0sidi)
-       d0d = d0d + d1ts(i0sidi)
-    ENDDO
-    
-    d0a = d0a*1.D20
-    d0b = d0b*1.D20
-    d0c = d0c*1.D3*d0aee
-    d0d = d0d*1.D3*d0aee
-    d0e = d0rmu0*(d0rmnr**2)*(d0rmjr**2)*0.25D0
-    d0f = 1.50D0*(d0rmnr**2)/(d0rmjr**2)
-    
-    
-    d0coef0 =-d0e*3.0D0*(-2.D0*d0a*d0c+d0a*d0d+d0b*d0c)
-    
-    d0coef1 =-d0e*2.0D0*(&
-         &    d0a*( 1.0D1*d0c-8.0D0*d0d-2.0D0*d0c*d0f+1.0D0*d0d*d0f)&
-         &   +d0b*(-8.0D0*d0c+6.0D0*d0d+1.0D0*d0c*d0f              ))
-    
-    d0coef2 =-d0e*1.5D0*(&
-         &    d0a*(-2.0D1*d0c+1.9D1*d0d+1.0D1*d0c*d0f-8.0D0*d0d*d0f)&
-         &   +d0b*( 1.9D1*d0c-1.8D1*d0d-8.0D0*d0c*d0f+6.0D0*d0d*d0f))
-    
-    d0coef3 =-d0e*1.2D0*(&
-         &    d0a*( 2.0D1*d0c-2.0D1*d0d-2.0D1*d0c*d0f+1.9D1*d0d*d0f)&
-         &   +d0b*(-2.0D1*d0c+2.0D1*d0d+1.9D1*d0c*d0f-1.8D1*d0d*d0f))
-    
-    d0coef4 =-d0e*1.0D1       *(d0a-d0b)*(d0c-d0d)*( 2.D0*d0f-1.D0)
+    REAL(i0rkind),INTENT(IN)::d0mfcr,d0mfcp
+    REAL(i0rkind)::fd0psip
+    REAL(i0rkind)::d0q0,d0sqrtr,d0temp
 
-    d0coef5 =-d0e*(1.2D1/7.D0)*(d0a-d0b)*(d0c-d0d)*(-5.D0*d0f+1.D0)
-         
-    d0coef6 =-d0e*1.5D0       *(d0a-d0b)*(d0c-d0d)*( 1.D0*d0f     )
-    
-    IF(d0mfcr.LE.1.D0)THEN
-       fd0psip = d0coef0             + d0coef1* d0mfcr     &
-            &  + d0coef2*(d0mfcr**2) + d0coef3*(d0mfcr**3) &
-            &  + d0coef4*(d0mfcr**4) + d0coef5*(d0mfcr**5) &
-            &  + d0coef6*(d0mfcr**6)
-    ELSE
-       fd0psip = (d0coef0+d0coef1+d0coef2+d0coef3&
-            &    +d0coef4+d0coef5+d0coef6)/(d0mfcr**2)
-    ENDIF
-    
+    d0sqrtr = SQRT(d0mfcr)
+    d0q0    = fd0q0(d0mfcr,d0mfcp)
+    d0temp  = 1.D0 - (d0iar**2)*d0mfcr
+    d0temp  = 1.D0/SQRT(d0temp)
+
+    fd0psip = 0.5D0*d0bc*(d0rmnr**2)*d0temp/d0q0
+
     RETURN
     
   END FUNCTION fd0psip
@@ -363,7 +388,7 @@ CONTAINS
   !C
   !C INITITIAL PROFILE OF I
   !C
-  !C                     2014-03-15 H.SETO
+  !C                     2014-02-23 H.SETO
   !C
   !C-------------------------------------------------------------------
   FUNCTION fd0cobt(d0mfcr,d0mfcp)
@@ -383,7 +408,7 @@ CONTAINS
   !C
   !C INITITIAL PROFILE OF B
   !C
-  !C                     2014-03-15 H.SETO
+  !C                     2014-02-23 H.SETO
   !C
   !C-------------------------------------------------------------------
   FUNCTION fd0bb(d0mfcr,d0mfcp)
@@ -404,46 +429,33 @@ CONTAINS
     RETURN
 
   END FUNCTION fd0bb
-  
+
   !C-------------------------------------------------------------------
   !C
   !C INITITIAL PROFILE OF E_{\zeta}
   !C
-  !C                     2014-03-15 H.SETO
+  !C                     2014-02-23 H.SETO
   !C
   !C-------------------------------------------------------------------
   FUNCTION fd0coet(d0mfcr,d0mfcp)
     
     USE T2CNST, ONLY:d0aee
-    USE T2COMM, ONLY:i0smax,d0iar,d0rmjr
+    USE T2COMM, ONLY:i0smax,d0iar
     
     REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
     REAL(   i0rkind)::fd0coet
-    REAL(   i0rkind),DIMENSION(1:2,1:i0smax)::d2rt,d2rp
-    REAL(   i0rkind)::d0jt1d,d0psip,d0t0,d0clog,d0eta,d0temp
-    INTEGER(i0ikind)::i0sidi
-    d0psip = fd0psip(d0mfcr,d0mfcp)
-    d2rp   = fd2rp(  d0mfcr,d0mfcp)
-    d2rt   = fd2rt(  d0mfcr,d0mfcp)
-    d0t0   = d2rt(1,1)/(1.D3*d0aee) !C  Electron temperature in keV
+    REAL(   i0rkind),DIMENSION(1:i0smax)::d1t0
+    REAL(   i0rkind)::d0t0,d0clog,d0eta,d0jt,d0temp
     
-    d0jt1d = 0.D0
-    
-    DO i0sidi = 1, i0smax
-       d0jt1d = d0jt1d + d2rp(2,i0sidi)
-    ENDDO
-    
-    d0jt1d = -d0jt1d*(1.D0 + 1.5D0*(d0iar**2)*d0mfcr) &
-         &  * (d0rmjr**2)/d0psip
-    
-    
-
+    d1t0   = fd1t0(d0mfcr,d0mfcp)
+    d0t0   = d1t0(1)/(1.D3*d0aee) !C  Electron temperature in keV
     d0clog = 17.D0 ! Coulomb logarithm for debug 
+    d0jt   = fd0jt1d(d0mfcr,d0mfcp)  
     d0temp = (1.D0-SQRT(d0iar*SQRT(d0mfcr)))**2
     d0eta = (1.65D-9)*d0clog/(SQRT(d0t0)**3)
     d0eta = d0eta/d0temp
     
-    fd0coet = d0eta*d0jt1d
+    fd0coet = d0eta*d0jt
     
     RETURN
     
@@ -453,7 +465,7 @@ CONTAINS
   !C
   !C INITITIAL PROFILE OF \bar{E}_{\chi}
   !C
-  !C                     2014-03-15 H.SETO
+  !C                     2014-02-14 H.SETO
   !C
   !C-------------------------------------------------------------------
   FUNCTION fd0coep(d0mfcr,d0mfcp)
@@ -481,20 +493,21 @@ CONTAINS
     
     REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
     REAL(   i0rkind)::fd0coer
-    REAL(   i0rkind),DIMENSION(1:2,1:i0smax)::d2rp,d2rn
-    REAL(   i0rkind)::d0n0,d0p1
     INTEGER(i0ikind)::i0sidi
+    REAL(   i0rkind),DIMENSION(1:i0smax)::d1p1,d1n0
+    REAL(   i0rkind)::d0n0,d0p1
     
     fd0coer = 0.D0
-    
-    d2rp = fd2rp(d0mfcr,d0mfcp)
-    d2rn = fd2rn(d0mfcr,d0mfcp)
+
+    d1p1 = fd1p1(d0mfcr,d0mfcp)
+    d1n0 = fd1n0(d0mfcr,d0mfcp)
+    d0n0 = d1n0(1)     
     
     DO i0sidi = 2, i0smax
-       fd0coer = fd0coer + d2rp(2,i0sidi)
+       fd0coer = fd0coer + d1p1(i0sidi)
     ENDDO
     
-    fd0coer = fd0coer/(d0aee*d2rn(1,1))
+    fd0coer = fd0coer/(d0aee*d0n0)
     
     RETURN
     
@@ -504,172 +517,332 @@ CONTAINS
   !C
   !C INITITIAL PROFILE OF n_{a}
   !C
-  !C                     2014-03-15 H.SETO
+  !C                     2014-02-14 H.SETO
   !C
   !C-------------------------------------------------------------------
-  FUNCTION fd2rn(d0mfcr,d0mfcp)
+  FUNCTION fd1n0(d0mfcr,d0mfcp)
     
     USE T2COMM, ONLY:i0smax,i0nm,i0nn,d1nc,d1ns,d1nw,d0rw
     
     REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
-    REAL(   i0rkind),DIMENSION(1:2,1:i0smax)::fd2rn
+    REAL(   i0rkind),DIMENSION(1:i0smax)::fd1n0
     REAL(   i0rkind),DIMENSION(1:2)::d1rn
-    REAL(   i0rkind)::d0nc,d0ns
+    REAL(   i0rkind)::d0nc,d0ns,d0nw
     INTEGER(i0ikind)::i0sidi
-    
+        
     DO i0sidi = 1,i0smax
        
        d0nc = d1nc(i0sidi)
        d0ns = d1ns(i0sidi)
+       d0nw = d1nw(i0sidi)
        
        !C
        !C density in 10^{20} m^{-3}
        !C
        
-       d1rn = fd1rf(i0nm,i0nn,d0nc,d0ns,d0rw,d0mfcr)
+       d1rn = fd1rf(i0nm,i0nn,d0nc,d0ns,d0nw,d0rw,d0mfcr)
        
        !C
        !C density in m^{-3}
        !C
        
-       fd2rn(1,i0sidi) = d1rn(1)*1.D20
-       fd2rn(2,i0sidi) = d1rn(2)*1.D20
+       fd1n0(i0sidi) = d1rn(1)*1.D20
        
     ENDDO
     
     RETURN
 
-  END FUNCTION fd2rn
-  
+  END FUNCTION fd1n0
+
+  !C-------------------------------------------------------------------
+  !C
+  !C INITITIAL PROFILE OF dn_{a}/d\rho
+  !C
+  !C                     2014-02-14 H.SETO
+  !C
+  !C-------------------------------------------------------------------
+  FUNCTION fd1n1(d0mfcr,d0mfcp)
+    
+    USE T2COMM, ONLY:i0smax,i0nm,i0nn,d1nc,d1ns,d1nw,d0rw
+    
+    REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
+    REAL(   i0rkind),DIMENSION(1:i0smax)::fd1n1
+    REAL(   i0rkind),DIMENSION(1:2)::d1rn
+    REAL(   i0rkind)::d0nc,d0ns,d0nw
+    INTEGER(i0ikind)::i0sidi
+    
+    DO i0sidi = 1, i0smax
+
+       d0nc = d1nc(i0sidi)
+       d0ns = d1ns(i0sidi)
+       d0nw = d1nw(i0sidi)
+       
+       !C
+       !C d n_{a} /d \rho in 10^{20} m^{-3}
+       !C
+       
+       d1rn = fd1rf(i0nm,i0nn,d0nc,d0ns,d0nw,d0rw,d0mfcr)
+       
+       !C
+       !C d n_{a} /d \rho in  m^{-3}
+       !C
+       
+       fd1n1(i0sidi) = d1rn(2)*1.D20
+       
+    ENDDO
+    
+    RETURN
+    
+  END FUNCTION fd1n1
+ 
   !C-------------------------------------------------------------------
   !C
   !C INITITIAL PROFILE OF T_{a}
   !C
-  !C                     2014-03-15 H.SETO
+  !C                     2014-02-05 H.SETO
   !C
   !C-------------------------------------------------------------------
-  FUNCTION fd2rt(d0mfcr,d0mfcp)
+  FUNCTION fd1t0(d0mfcr,d0mfcp)
     
     USE T2CNST, ONLY:d0aee
-    USE T2COMM, ONLY:i0smax,i0tm,i0tn,d1tc,d1ts,d0rw
+    USE T2COMM, ONLY:i0smax,i0tm,i0tn,d1tc,d1ts,d1tw,d0rw
     
     REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
-    REAL(   i0rkind),DIMENSION(1:2,1:i0smax)::fd2rt
+    REAL(   i0rkind),DIMENSION(1:i0smax)::fd1t0
     REAL(   i0rkind),DIMENSION(1:2)::d1rt
     REAL(   i0rkind)::d0tc,d0ts,d0tw
     INTEGER(i0ikind)::i0sidi
     
     DO i0sidi = 1, i0smax
-       
+
        d0tc = d1tc(i0sidi)
        d0ts = d1ts(i0sidi)
+       d0tw = d1tw(i0sidi)
        
        !C
-       !C T and dT/d\rho in keV 
+       !C T_{a} in keV
        !C
        
-       d1rt = fd1rf(i0tm,i0tn,d0tc,d0ts,d0rw,d0mfcr)
+       d1rt = fd1rf(i0tm,i0tn,d0tc,d0ts,d0tw,d0rw,d0mfcr)
        
        !C
-       !C T and dT/d\rho in J
+       !C T_{a} in J
        !C
        
-       fd2rt(1,i0sidi) = d1rt(1)*1.D3*d0aee
-       fd2rt(2,i0sidi) = d1rt(2)*1.D3*d0aee
+       fd1t0(i0sidi) = d1rt(1)*1.D3*d0aee
        
     ENDDO
     
     RETURN
     
-  END FUNCTION fd2rt
+  END FUNCTION fd1t0
 
+  !C-------------------------------------------------------------------
+  !C
+  !C INITITIAL PROFILE OF dT_{a}/d\rho
+  !C
+  !C                     2014-02-14 H.SETO
+  !C
+  !C-------------------------------------------------------------------  
+  FUNCTION fd1t1(d0mfcr,d0mfcp)
+    
+    USE T2CNST, ONLY:d0aee
+    USE T2COMM, ONLY:i0smax,i0tm,i0tn,d1tc,d1ts,d1tw,d0rw
+    
+    REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
+    REAL(   i0rkind),DIMENSION(1:i0smax)::fd1t1
+    REAL(   i0rkind),DIMENSION(1:2)::d1rt
+    REAL(   i0rkind)::d0tc,d0ts,d0tw
+    INTEGER(i0ikind)::i0sidi
+    
+    DO i0sidi = 1,i0smax
+
+       d0tc = d1tc(i0sidi)
+       d0ts = d1ts(i0sidi)
+       d0tw = d1tw(i0sidi)
+
+       !C
+       !C dT_{a}/d\rho in keV
+       !C
+       
+       d1rt = fd1rf(i0tm,i0tn,d0tc,d0ts,d0tw,d0rw,d0mfcr)
+
+       !C
+       !C dT_{a}/d\rho in J
+       !C
+       
+       fd1t1(i0sidi) = d1rt(2)*1.D3*d0aee
+       
+    ENDDO
+    
+    RETURN
+    
+  END FUNCTION fd1t1
+  
   !C-------------------------------------------------------------------
   !C
   !C INITITIAL PROFILE OF p_{a}
   !C
-  !C                     2014-03-15 H.SETO
+  !C                     2014-02-14 H.SETO
   !C
   !C-------------------------------------------------------------------
-  FUNCTION fd2rp(d0mfcr,d0mfcp)
+  FUNCTION fd1p0(d0mfcr,d0mfcp)
     
     USE T2COMM, ONLY:i0smax
     
     REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
-    REAL(   i0rkind),DIMENSION(1:2,1:i0smax)::fd2rp,d2rn,d2rt
+    REAL(   i0rkind),DIMENSION(1:i0smax)::fd1p0,d1n0,d1t0
     INTEGER(i0ikind)::i0sidi
     
-    d2rn = fd2rn(d0mfcr,d0mfcp)
-    d2rt = fd2rt(d0mfcr,d0mfcp)
+    d1n0( 1:i0smax) = fd1n0(d0mfcr,d0mfcp)
+    d1t0( 1:i0smax) = fd1t0(d0mfcr,d0mfcp)
     
     DO i0sidi = 1, i0smax
 
        !C
        !C p_{a} in J/m^{3}
        !C
-       
-       fd2rp(1,i0sidi) = d2rn(1,i0sidi)*d2rt(1,i0sidi)
-       fd2rp(2,i0sidi) = d2rn(1,i0sidi)*d2rt(2,i0sidi)&
-            &           +d2rn(2,i0sidi)*d2rt(1,i0sidi)
+
+       fd1p0(i0sidi) = d1n0(i0sidi)*d1t0(i0sidi)
+
+    ENDDO
+
+    RETURN
+    
+  END FUNCTION fd1p0
+
+  !C-------------------------------------------------------------------
+  !C
+  !C INITITIAL PROFILE OF dp_{a}/d\rho
+  !C
+  !C                     2014-02-14 H.SETO
+  !C
+  !C-------------------------------------------------------------------
+  FUNCTION fd1p1(d0mfcr,d0mfcp)
+    
+    USE T2COMM, ONLY:i0smax
+    
+    REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
+    REAL(   i0rkind),DIMENSION(1:i0smax)::fd1p1
+    REAL(   i0rkind),DIMENSION(1:i0smax)::d1n0,d1n1,d1t0,d1t1
+    INTEGER(i0ikind)::i0sidi
+    
+    d1n0( 1:i0smax) = fd1n0(d0mfcr,d0mfcp)    
+    d1n1( 1:i0smax) = fd1n1(d0mfcr,d0mfcp)
+
+    d1t0( 1:i0smax) = fd1t0(d0mfcr,d0mfcp)
+    d1t1( 1:i0smax) = fd1t1(d0mfcr,d0mfcp)
+    
+
+    DO i0sidi = 1, i0smax
+
+       !C
+       !C dp_{a}/d\rho in J/m^{3}
+       !C
+
+       fd1p1(i0sidi) &
+            = d1n0(i0sidi)*d1t1(i0sidi)&
+            + d1n1(i0sidi)*d1t0(i0sidi)
     ENDDO
     
     RETURN
     
-  END FUNCTION fd2rp
+  END FUNCTION fd1p1
   
+  !C-------------------------------------------------------------------
+  !C
+  !C INITITIAL PROFILE OF <j_{\zeta}>
+  !C
+  !C                     2014-02-14 H.SETO
+  !C
+  !C-------------------------------------------------------------------
+  FUNCTION fd0jt1d(d0mfcr,d0mfcp)
+    
+    USE T2COMM, ONLY:i0smax,d0iar,d0rmjr
+    
+    INTEGER(i0ikind)::i0sidi
+    REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
+    REAL(   i0rkind)::fd0jt1d
+    REAL(   i0rkind),DIMENSION(1:i0smax)::d1p1
+    REAL(   i0rkind)::d0psip
+
+    fd0jt1d = 0.D0
+    d0psip  = fd0psip(d0mfcr,d0mfcp)
+    d1p1    = fd1p1(d0mfcr,d0mfcp)
+    
+    DO i0sidi = 1, i0smax
+       fd0jt1d = fd0jt1d + d1p1(i0sidi)
+    ENDDO
+    
+    fd0jt1d = -fd0jt1d*(1.D0 + 1.5D0*(d0iar**2)*d0mfcr) &
+         &  * (d0rmjr**2)/d0psip
+    
+    RETURN
+    
+  END FUNCTION fd0jt1d
+
   !C-------------------------------------------------------------------
   !C
   !C INITITIAL PROFILE OF j_{\zeta}
   !C
-  !C                     2014-03-15 H.SETO
+  !C                     2014-02-14 H.SETO
   !C
   !C-------------------------------------------------------------------
   FUNCTION fd0jt(d0mfcr,d0mfcp)
     
-    USE T2COMM, ONLY:i0smax
+    USE T2COMM, ONLY:i0smax,d0rmnr,d0bc
     
     INTEGER(i0ikind)::i0sidi
     REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
     REAL(   i0rkind)::fd0jt
-    REAL(   i0rkind),DIMENSION(1:2,1:i0smax)::d2rp
+    REAL(   i0rkind),DIMENSION(1:i0smax)::d1p1
     REAL(   i0rkind)::d0psip,d0rzcr
     
     fd0jt  = 0.D0
-    
+
     d0rzcr = fd0rzcr(d0mfcr,d0mfcp)
     d0psip = fd0psip(d0mfcr,d0mfcp)
-    d2rp   = fd2rp(  d0mfcr,d0mfcp)
+    d1p1   = fd1p1(  d0mfcr,d0mfcp)
     
     DO i0sidi = 1, i0smax
-       fd0jt = fd0jt + d2rp(2,i0sidi)
+       fd0jt = fd0jt + d1p1(i0sidi)
     ENDDO
     
     fd0jt = -fd0jt*(d0rzcr**2)/d0psip
     
     RETURN
-    
+
   END FUNCTION fd0jt
   
   !C-------------------------------------------------------------------
   !C
   !C INITITIAL PROFILE OF j_{\para}
   !C
-  !C                     2014-03-15 H.SETO
+  !C                     2014-02-14 H.SETO
   !C
   !C-------------------------------------------------------------------
   FUNCTION fd0jb(d0mfcr,d0mfcp)
     
+    USE T2COMM, ONLY:i0smax,d0rmnr,d0bc
+    
+    INTEGER(i0ikind)::i0sidi
     REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
     REAL(   i0rkind)::fd0jb
-    REAL(   i0rkind)::d0cobt,d0bb,d0rzcr,d0jt
+    REAL(   i0rkind),DIMENSION(1:i0smax)::d1p1
+    REAL(   i0rkind)::d0cobt,d0psip,d0bb
     
     fd0jb  = 0.D0
     
     d0cobt = fd0cobt(d0mfcr,d0mfcp)
+    d0psip = fd0psip(d0mfcr,d0mfcp)
+    d1p1   = fd1p1(  d0mfcr,d0mfcp)
     d0bb   = fd0bb(  d0mfcr,d0mfcp)
-    d0rzcr = fd0rzcr(d0mfcr,d0mfcp)
-    d0jt   = fd0jt(  d0mfcr,d0mfcp)
     
-    fd0jb  = d0jt*d0cobt/(d0bb*(d0rzcr**2))
+    DO i0sidi = 1, i0smax
+       fd0jb = fd0jb + d1p1(i0sidi)
+    ENDDO
+    
+    fd0jb = -fd0jb*d0cobt/(d0bb*d0psip)
     
     RETURN
     
@@ -690,7 +863,7 @@ CONTAINS
   !C                      Q_{a\zeta}
   !C                      Q_{a}^{\chi}
   !C
-  !C                     2014-03-15 H.SETO
+  !C                     2014-02-14 H.SETO
   !C
   !C-------------------------------------------------------------------
   FUNCTION fd2f0(d0mfcr,d0mfcp)
@@ -700,16 +873,16 @@ CONTAINS
     
     REAL(   i0rkind),INTENT(IN)::d0mfcr,d0mfcp
     REAL(   i0rkind),DIMENSION(1:8,1:i0smax)::fd2f0
-    REAL(   i0rkind),DIMENSION(1:2,1:i0smax)::d2rt
+    REAL(   i0rkind),DIMENSION(    1:i0smax)::d1t0
     REAL(   i0rkind)::d0fb,d0ft,d0t0
     INTEGER(i0ikind)::i0sidi
     
     DO i0sidi = 1,i0smax
        IF(i0sidi.EQ.1)THEN
-          d2rt =   fd2rt(d0mfcr,d0mfcp)
+          d1t0 =   fd1t0(d0mfcr,d0mfcp)
           d0fb = - fd0jb(d0mfcr,d0mfcp)/d0aee
           d0ft = - fd0jt(d0mfcr,d0mfcp)/d0aee
-          d0t0 = d2rt(1,1)
+          d0t0 = d1t0(1)
           
           fd2f0(1,i0sidi) = 0.D0
           fd2f0(2,i0sidi) = d0fb
