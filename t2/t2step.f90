@@ -212,7 +212,7 @@ CONTAINS
        
        DO i0vidi = 1,i0vmax
           SELECT CASE (i0vidi)
-          CASE(1:11,16:21)
+          CASE(1:6,11,16,21)
              CYCLE
           END SELECT
           d0dif  = d1dif(i0vidi)

@@ -50,8 +50,7 @@ CONTAINS
 
     USE T2COMM, ONLY: &
          c10rname, i0dbg, i0fnum, i0mfcs, i0wstp, i0cchk,&
-         i0dmax,i0qmax,&
-!         i0tmax, d0tstp, d0tmax,&
+         i0dmax,i0qmax,i0anom,&
          i0smax, i0nmax, i0lmax, i1mlvl,&
          i0pdiv_number, i1rdn2, d1rec,&
          i0pmax,d0eps,d0rmjr,d0rmnr,&
@@ -69,7 +68,7 @@ CONTAINS
 
     NAMELIST /T2/ &
          c10rname, i0dbg, i0fnum, i0mfcs, i0wstp, i0cchk,&
-         i0dmax,i0qmax,&
+         i0anom, i0dmax,i0qmax,&
 !         i0tmax, d0tstp, d0tmax,&
          i0smax, i0nmax, i0lmax, i1mlvl,&
          i0pdiv_number, i1rdn2, d1rec,&

@@ -59,9 +59,9 @@ MODULE T2COMM
        i0supg, & !C INDICATOR FOR SUPG METHOD (0: w/o SUPG, 1: w SUPG)
        i0wstp, & !C INDICATOR FOR RESULT OUTPUT TIMING
        i0solv, & !C INDICATOR FOR SOLVED DEPENDENT VARIAVLES
-                 !C      1: ELECTRON
-                 !C      2: ELECTRON AND IONS
-                 !C      3: ELECTRON, IONS AND FIELDS  
+       i0anom,&  !C INDICATOR FOR ANOMALOUS TRANSPORT
+                 !C      0: w/o anomalous transport 
+                 !C      1: w   anomalous transport
        i0cchk    !C INDICATOR FOR COEFFICIENT CHECK (1: coefs check)
   INTEGER(i0ikind)::&
        i0bvmax,& !C VECTOR SIZE OF b FOR MTXP (Ax=b)

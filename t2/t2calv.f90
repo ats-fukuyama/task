@@ -1576,7 +1576,7 @@ CONTAINS
 
     USE T2CNST
     USE T2COMM, ONLY:&
-         & i0vmax,i0dmax,&
+         & i0vmax,i0dmax,i0anom,&
          &         d0btcst,d0etcst,d0epcst,d0ercst, &
          & d0nncst,                                 &
          & d0ppcst,                                 &
@@ -1683,21 +1683,21 @@ CONTAINS
        i0vidi = i0vofi - 1
 
        !C >>>> ANOMALOUS TRANSPORT >>>>
-       
-       !C Ne
-       i0vidj = 6
-       d4gv(1,i0vidi,i0vidj,i0midi) =  d0x3*d0cx1_a*d0tt_e &
-            &                                         * d0nncst/d0ftfct
-       d4gv(2,i0vidi,i0vidj,i0midi) =  d0x4*d0cx1_a*d0tt_e &
-            &                                         * d0nncst/d0ftfct
-       
-       !C Pe
-       i0vidj = 11
-       d4gv(1,i0vidi,i0vidj,i0midi) = -d0x3*d0cx1_a   * d0ppcst/d0ftfct
-       d4gv(2,i0vidi,i0vidj,i0midi) = -d0x4*d0cx1_a   * d0ppcst/d0ftfct
-       
+       IF(i0anom.EQ.1)THEN
+          !C Ne
+          i0vidj = 6
+          d4gv(1,i0vidi,i0vidj,i0midi) =  d0x3*d0cx1_a*d0tt_e &
+               &                                      * d0nncst/d0ftfct
+          d4gv(2,i0vidi,i0vidj,i0midi) =  d0x4*d0cx1_a*d0tt_e &
+               &                                      * d0nncst/d0ftfct
+          
+          !C Pe
+          i0vidj = 11
+          d4gv(1,i0vidi,i0vidj,i0midi) = -d0x3*d0cx1_a* d0ppcst/d0ftfct
+          d4gv(2,i0vidi,i0vidj,i0midi) = -d0x4*d0cx1_a* d0ppcst/d0ftfct
+          
+       ENDIF
        !C <<<< ANOMALOUS TRANSPORT <<<<
-       
        !C 
        !C EQ_011
        !C
@@ -1732,19 +1732,19 @@ CONTAINS
        i0vidi = i0vofi + 4
 
        !C >>>> ANOMALOUS TRANSPORT >>>>
-       
-       !C Ne
-       i0vidj = 6
-       d4gv(1,i0vidi,i0vidj,i0midi) =  d0x5*d0cx2_a*d0tt_e &
-            &                                         * d0nncst/d0ftfct
-       d4gv(2,i0vidi,i0vidj,i0midi) =  d0x6*d0cx2_a*d0tt_e &
-            &                                         * d0nncst/d0ftfct
-       
-       !C Pe
-       i0vidj = 11
-       d4gv(1,i0vidi,i0vidj,i0midi) = -d0x5*d0cx2_a   * d0ppcst/d0ftfct
-       d4gv(2,i0vidi,i0vidj,i0midi) = -d0x6*d0cx2_a   * d0ppcst/d0ftfct
-       
+       IF(i0anom.EQ.1)THEN
+          !C Ne
+          i0vidj = 6
+          d4gv(1,i0vidi,i0vidj,i0midi) =  d0x5*d0cx2_a*d0tt_e &
+               &                                      * d0nncst/d0ftfct
+          d4gv(2,i0vidi,i0vidj,i0midi) =  d0x6*d0cx2_a*d0tt_e &
+               &                                      * d0nncst/d0ftfct
+          
+          !C Pe
+          i0vidj = 11
+          d4gv(1,i0vidi,i0vidj,i0midi) = -d0x5*d0cx2_a* d0ppcst/d0ftfct
+          d4gv(2,i0vidi,i0vidj,i0midi) = -d0x6*d0cx2_a* d0ppcst/d0ftfct
+       ENDIF
        !C <<<< ANOMALOUS TRANSPORT <<<<
 
     ENDDO
@@ -1959,7 +1959,7 @@ CONTAINS
     USE T2CNST,ONLY:&
          d0eps0,d0rmu0
     USE T2COMM,ONLY:&
-         & i0vmax,&
+         & i0vmax,i0anom,&
          &                 d0ercst,d0epcst,d0etcst,&
          & d0nncst,d0frcst,d0fbcst,d0ftcst,d0fpcst,&
          & d0ppcst,d0qrcst,d0qbcst,d0qtcst,d0qpcst,&
@@ -2168,14 +2168,17 @@ CONTAINS
              d3es(i0vidi,i0vidj,i0midi) = -d0x9*d0ee_a    * d0frcst/d0ftfct
              
              !C >>>> ANOMALOUS TRANSPORT >>>>
-             
-             !C Fbe
-             i0vidj = 8
-             d3es(i0vidi,i0vidj,i0midi) = -d0cx1_a*d0x11  * d0fbcst/d0ftfct
-             !C Fte
-             i0vidj = 9
-             d3es(i0vidi,i0vidj,i0midi) =  d3es(i0vidi,i0vidj,i0midi)&
-                  &                       +d0cx1_a*d0x12  * d0ftcst/d0ftfct
+             IF(i0anom.EQ.1)THEN
+                !C Fbe
+                i0vidj = 8
+                d3es(i0vidi,i0vidj,i0midi)&
+                     &              = -d0cx1_a*d0x11  * d0fbcst/d0ftfct
+                !C Fte
+                i0vidj = 9
+                d3es(i0vidi,i0vidj,i0midi)&
+                     &              =  d3es(i0vidi,i0vidj,i0midi)&
+                     &              +  d0cx1_a*d0x12  * d0ftcst/d0ftfct
+             ENDIF
              !C <<<< ANOMALOUS TRANSPORT <<<<
              
           ENDIF
@@ -2298,16 +2301,20 @@ CONTAINS
              d3es(i0vidi,i0vidj,i0midi) = -d0ee_a*d0x9    * d0qrcst/d0qtfct
              
              !C >>>> ANOMALOUS TRANSPORT >>>>
-             
-             !C Qbe
-             i0vidj = 13
-             d3es(i0vidi,i0vidj,i0midi) = -d0cx2_a*d0x13  * d0qbcst/d0ftfct
-             !C Qte
-             i0vidj = 14
-             d3es(i0vidi,i0vidj,i0midi) =  d3es(i0vidi,i0vidj,i0midi)&
-                  &                       +d0cx2_a*d0x14  * d0qtcst/d0ftfct
+             IF(i0anom.EQ.1)THEN
+                !C Qbe
+                i0vidj = 13
+                d3es(i0vidi,i0vidj,i0midi)&
+                     &              = -d0cx2_a*d0x13  * d0qbcst/d0ftfct
+                
+                !C Qte
+                i0vidj = 14
+                d3es(i0vidi,i0vidj,i0midi)&
+                     &              =  d3es(i0vidi,i0vidj,i0midi)&
+                     &                +d0cx2_a*d0x14  * d0qtcst/d0ftfct
+             ENDIF
              !C <<<< ANOMALOUS TRANSPORT <<<<
-
+             
           ENDIF
           
           !C Ft
@@ -2322,7 +2329,7 @@ CONTAINS
        ENDDO
        
        !C 
-       !C EQUATION FOR Qp
+       !C EQ_015
        !C
        
        i0vidi = i0vofi + 5
@@ -2330,11 +2337,11 @@ CONTAINS
        !C Qb
        i0vidj = i0vofi + 3
        d3es(i0vidi,i0vidj,i0midi) = -d0x8                 * d0qbcst/d0qpfct
-
+       
        !C Qt
        i0vidj = i0vofi + 4
        d3es(i0vidi,i0vidj,i0midi) =  d0x6                 * d0qtcst/d0qpfct
-
+       
        !C Qp
        i0vidj = i0vofi + 5
        d3es(i0vidi,i0vidj,i0midi) =  d0x10                * d0qpcst/d0qpfct 
