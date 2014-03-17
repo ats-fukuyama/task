@@ -698,7 +698,7 @@ CONTAINS
     DO i0sidi = 1, i0smax
        d0ee_a = d1ee(i0sidi)
        d0tt_a = d1tt(i0sidi)
-       d0sign = d0ee_a/ABS(d0ee_a)
+       d0sign = -d0ee_a/ABS(d0ee_a)
        d1cx1_anom(i0sidi) = d0sign*(d0aee**2)*d0ti_e*d0d_anom
        d1cx2_anom(i0sidi) = d0sign*(d0aee**2)*d0ti_e*d0m_anom*d0tt_a
     ENDDO
