@@ -28,8 +28,7 @@ CONTAINS
     !     T2_WRIT_MAIN,T2_WRIT_GPT,T2_WRIT_GP1
     USE T2SAVE, ONLY:&
          T2_SAVE_0D,T2_SAVE_2D
-    USE LIBMTX, ONLY: &
-         MTX_INITIALIZE,MTX_FINALIZE
+
     
 !    INTEGER(i0ikind)     :: i0tflg,i0tsws,nt
     INTEGER(i0ikind)     :: nt
@@ -43,7 +42,7 @@ CONTAINS
     
     CALL CPU_TIME(e0time1)
 
-    CALL MTX_INITIALIZE
+
 
 !   ----- TIME EVOLUTION LOOP -----
 
@@ -75,8 +74,6 @@ CONTAINS
        IF(MOD(nt,nt2dstep).EQ.0) CALL T2_SAVE_2D
 
     ENDDO
-
-    CALL MTX_FINALIZE
 
     RETURN
 
