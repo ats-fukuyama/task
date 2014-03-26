@@ -2,7 +2,7 @@
 !C
 !C T2EXEC
 !C
-!C                       2024-02-22 H.SETO
+!C                       2024-03-26 H.SETO
 !C
 !C
 !C--------------------------------------------------------------------
@@ -33,12 +33,14 @@ CONTAINS
   SUBROUTINE T2_EXEC
     
     USE T2COMM,ONLY:&
+         i0mmax,d3ms,&
          i0emax,i0wmax,i0vmax,&
          i2msvt,i2avvt,i2atvt,i2dtvt,i2gvvt,i2gtvt,&
          i2esvt,i2evvt,i2etvt,i2ssvt,&
          i3atwt,i3gtwt,i3evwt,i4etwt
     
     INTEGER(i0ikind)::&
+         i0midi,&
          i0msvt,i0avvt,i0atvt,i0dtvt,i0gvvt,i0gtvt,&
          i0esvt,i0evvt,i0etvt,i0ssvt,&
          i0atwt,i0gtwt,i0evwt,i0etwt
@@ -46,7 +48,7 @@ CONTAINS
     REAL(4)::e0time_0,e0time_1
     
     CALL CPU_TIME(e0time_0)
-    
+
     DO i0eidi = 1, i0emax
        
        CALL T2EXEC_LV 
@@ -167,12 +169,6 @@ CONTAINS
 
 100 FORMAT(A5,I3,A5,I3,A5,I3,A5,D15.6,A5,D15.6)
 
-    !C
-    !C
-    !C MTX SETUP
-    !C
-    !C
-
     itype = 0
     m1    = 4
     
@@ -183,14 +179,16 @@ CONTAINS
     ENDIF
     
     tolerance=1.D-7
-    
+    idebug = 0
+
     i0bvmax = i0bmax*i0vmax
     i0avmax = i0amax*i0vmax*i0vmax
     
+       
     ALLOCATE(x(i0bvmax))
     
-    CALL MTX_SETUP(i0bvmax,istart,iend,idebug=0)
-    !CALL MTX_SETUP(i0bvmax,istart,iend,nzmax=i0avmax,idebug=0)
+    !CALL MTX_SETUP(i0bvmax,istart,iend,idebug=0)
+    CALL MTX_SETUP(i0bvmax,istart,iend,nzmax=i0avmax,idebug=0)
     
     !C 
     !C STORE GLOBAL STIFFNESS MATRIX  
@@ -221,7 +219,9 @@ CONTAINS
     !C
     !C ADDITIONAL COMPONENTS FOR FLUX SURFACE AVERAGING
     !C
-    
+
+    GOTO 2000
+
     i0offset  = 1
 
     DO i0lidi = 1, i0lmax
@@ -265,6 +265,8 @@ CONTAINS
        ENDDO
     ENDDO
         
+2000 CONTINUE
+
     !C
     !C SET GLOBAL RIGHT HAND SIDE VECTOR
     !C
@@ -289,8 +291,7 @@ CONTAINS
        ENDDO
     ENDDO
     
-    CALL MTX_SOLVE(itype,tolerance,its,&
-         methodKSP=m1,methodPC=m2,max_steps = 999)
+    CALL MTX_SOLVE(itype,tolerance,its,methodKSP=m1,methodPC=m2)
     
     CALL MTX_GATHER_VECTOR(x)
     
@@ -478,7 +479,7 @@ CONTAINS
             = d3ms(i0vidi,i0vidj,i0midi) &
             * d0jdmp/dt
     ENDDO
-    
+
     !C
     !C MAIN LOOP
     !C
@@ -582,7 +583,7 @@ CONTAINS
           ENDDO
        ENDDO
     ENDDO
-    
+
     DO i0nidj = 1, i0nmax
     DO i0nidi = 1, i0nmax
        d2smat(i0nidi,i0nidj) = 0.D0
@@ -1662,7 +1663,7 @@ CONTAINS
     SELECT CASE(i0solv)
        
        !C i0solv = 1
-       !C SOLVE ONLY ELECTRON DENSITY AND MOMENTUM
+       !C SOLVE ONLY ELECTRON DENSITY 
        !C
        
     CASE(1)
@@ -1684,7 +1685,7 @@ CONTAINS
              DO i0vidj = 1, i0vmax
              DO i0vidi = 1, i0vmax
                 SELECT CASE(i0vidi)
-                CASE(1:5,11:)
+                CASE(1:5,7:)
                    IF((i0bidi.EQ.i0bidj).AND.(i0vidi.EQ.i0vidj))THEN
                       d3amat(i0vidi,i0vidj,i0aidi) = 1.D0
                    ELSE
@@ -1703,7 +1704,7 @@ CONTAINS
           
           DO i0vidi = 1, i0vmax
              SELECT CASE(i0vidi)
-             CASE(1:5,11:)
+             CASE(1:5,7:)
                 d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)
              CASE DEFAULT
                 CYCLE
@@ -1728,7 +1729,7 @@ CONTAINS
              i0bidj = i1nidc(i0aidi)
              DO i0vidi = 1, i0vmax
                 SELECT CASE(i0vidi)
-                CASE(1:6,10:)
+                CASE(1:5,7:)
                    CYCLE
                 CASE DEFAULT
                    DO i0vidj = 1, i0vmax
@@ -1748,7 +1749,7 @@ CONTAINS
           
           DO i0vidi = 1, i0vmax
              SELECT CASE(i0vidi)
-             CASE(1:6,10:)
+             CASE(1:5,7:)
                 CYCLE
              CASE DEFAULT
                 d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)

@@ -557,25 +557,25 @@ CONTAINS
              i0vidj = i0vofj + 5
              i2vvvt(i0vidi,i0vidj) = 1
 
-             !C >>>>  ANOMALOUS TRANSPORT >>>>
-
-             !C Ne
-             i0vidj = 6
-             i2vvvt(i0vidi,i0vidj) = 1
-             
-             !C Pe
-             i0vidj = 11
-             i2vvvt(i0vidi,i0vidj) = 1
-             
-             !C Qbe
-             i0vidj = 13
-             i2vvvt(i0vidi,i0vidj) = 1
-             
-             !C Qte 
-             i0vidj = 14
-             i2vvvt(i0vidi,i0vidj) = 1
-             
-             !C <<<<  ANOMALOUS TRANSPORT <<<<
+!             !C >>>>  ANOMALOUS TRANSPORT >>>>
+!
+!             !C Ne
+!             i0vidj = 6
+!             i2vvvt(i0vidi,i0vidj) = 1
+!             
+!             !C Pe
+!             i0vidj = 11
+!             i2vvvt(i0vidi,i0vidj) = 1
+!             
+!             !C Qbe
+!             i0vidj = 13
+!             i2vvvt(i0vidi,i0vidj) = 1
+!             
+!             !C Qte 
+!             i0vidj = 14
+!             i2vvvt(i0vidi,i0vidj) = 1
+!             
+!             !C <<<<  ANOMALOUS TRANSPORT <<<<
 
           ENDIF
           
@@ -1411,17 +1411,17 @@ CONTAINS
        
        i0vidi = i0vofi + 4
        
-       !C >>>> ANOMALOUS TRANSPORT >>>>
-
-       !C Ne 
-       i0vidj = 6
-       i2gvvt(i0vidi,i0vidj) = 1
-       
-       !C Pe 
-       i0vidj = 11
-       i2gvvt(i0vidi,i0vidj) = 1
-       
-       !C <<<< ANOMALOUS TRANSPORT <<<<
+!       !C >>>> ANOMALOUS TRANSPORT >>>>!
+!
+!       !C Ne 
+!       i0vidj = 6
+!       i2gvvt(i0vidi,i0vidj) = 1
+!       
+!       !C Pe 
+!       i0vidj = 11
+!       i2gvvt(i0vidi,i0vidj) = 1
+!       
+!       !C <<<< ANOMALOUS TRANSPORT <<<<
 
     ENDDO
     
@@ -1842,17 +1842,17 @@ CONTAINS
              i0vidj = i0vofj + 2
              i2esvt(i0vidi,i0vidj) = 1
              
-             !C >>>> ANOMALOUS TRANSPORT >>>>
-
-             !C Qbe
-             i0vidj = 13
-             i2esvt(i0vidi,i0vidj) = 1
-             
-             !C Qte
-             i0vidj = 14
-             i2esvt(i0vidi,i0vidj) = 1
-
-             !C <<<< ANOMALOUS TRANSPORT <<<<
+!             !C >>>> ANOMALOUS TRANSPORT >>>>!
+!
+!             !C Qbe
+!             i0vidj = 13
+!             i2esvt(i0vidi,i0vidj) = 1
+!             
+!             !C Qte
+!             i0vidj = 14
+!             i2esvt(i0vidi,i0vidj) = 1!
+!
+!             !C <<<< ANOMALOUS TRANSPORT <<<<
 
           ENDIF
           

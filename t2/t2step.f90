@@ -155,7 +155,7 @@ CONTAINS
               
        DO i0vidi = 1,i0vmax
           SELECT CASE (i0vidi)
-          CASE(1:5,11:)
+          CASE(1:5,7:)
              cycle
           END SELECT
           d0dif  = d1dif(i0vidi)

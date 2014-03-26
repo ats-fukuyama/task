@@ -52,7 +52,7 @@ CONTAINS
        CALL T2CALV_SS
        
     ENDDO
-    
+
     IF(i0cchk.EQ.1) CALL T2_CCHK
     
     RETURN
@@ -782,6 +782,7 @@ CONTAINS
     i0vidi = 4
     i0vidj = 4
     d3ms(i0vidi,i0vidj,i0midi) = d0sqrtg*d0mfcr*d0vci2  * d0epcst/d0epfct
+
     DO i0sidi = 1, i0smax
        
        i0vofi = 10*i0sidi
@@ -796,7 +797,7 @@ CONTAINS
        !C N 
        i0vidj = i0vofi - 4
        d3ms(i0vidi,i0vidj,i0midi) = d0sqrtg             * d0nncst/d0nnfct
-       
+
        !C
        !C EQ_008
        !C 
@@ -848,7 +849,7 @@ CONTAINS
        d3ms(i0vidi,i0vidj,i0midi) = d0sqrtg*d0mm_a      * d0qtcst/d0qtfct 
        
     ENDDO
-    
+
     RETURN
     
   END SUBROUTINE T2CALV_MS
