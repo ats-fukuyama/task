@@ -1570,7 +1570,7 @@ CONTAINS
   !C 
   !C CALCULATION OF GRADIENT VECTOR COEFFICIENTS
   !C
-  !C             2014-03-15 H.SETO
+  !C             2014-03-27 H.SETO
   !C
   !C---------------------------------------------------------
   SUBROUTINE T2CALV_GV
@@ -1640,10 +1640,10 @@ CONTAINS
     i0vidj = 2
     d4gv(1,i0vidi,i0vidj,i0midi) =  d0cogpp        * d0btcst/d0epfct
 
-
+    !C 2014-03-27 modified
     
-    d0x1 = d0sqrtg*d0ctgrr*d0ctbp
-    d0x2 = d0sqrtg*d0ctgrp*d0ctbp
+    d0x1 = d0sqrtg*d0ctgrr*d0ctbp*d0mfcr
+    d0x2 = d0sqrtg*d0ctgrp*d0ctbp*d0mfcr
 
     d0x3 = d0sqrtg*d0ct1_anom*d0ctgrr
     d0x4 = d0sqrtg*d0ct1_anom*d0ctgrp
@@ -1982,8 +1982,8 @@ CONTAINS
          d0nfcf1_ab,d0nfcf2_ab,d0nfcf3_ab,d0nfcf4_ab,d0hex_a
 
     REAL(   i0rkind)::&
-         d0y1, d0x1, d0x2, d0x3, d0x4, d0x5, d0x6,&
-         d0x7, d0x8, d0x9,d0x10,d0x11,d0x12,d0x13,d0x14
+         d0y1, d0y2, d0x1, d0x2, d0x3, d0x4, d0x5, d0x6,&
+         d0x7, d0x8, d0x9,d0x10,d0x11,d0x12,d0x13,d0x14,d0x15
     
     REAL(   i0rkind)::&
          d0c1_a, d0c2_a, d0c3_a,&
@@ -2058,10 +2058,16 @@ CONTAINS
             = -d0x2*d0ee_b                * d0nncst/d0erfct
        
     ENDDO
-    d0y1 = d0sqrtg*d0ctbp
-    d0x3  = d0y1*d0ctgrp*d0mfcr
-    d0x4  = d0y1*d0ctgrr
-    d0x5  = d0cobt*d0bb
+    
+    !C 2014-03-27 modified
+    
+    d0y1  = d0sqrtg*d0ctbp
+    d0y2  = d0y1 * d0mfcr
+
+    d0x3  = d0y2*d0ctgrp*d0mfcr
+    d0x4  = d0y2*d0ctgrr
+    d0x5  = d0cobt*d0bb    * d0mfcr
+    d0x15 = d0bb2          * d0mfcr
     d0x6  = d0sqrtg*d0ctbt
     d0x7  = d0y1*d0mfcr
     d0x8  = d0sqrtg*d0bb
@@ -2077,14 +2083,13 @@ CONTAINS
     DO i0sidi = 1, i0smax
        
        i0vofi = 10*i0sidi
-
+       
        d0nn_a  = d1nn( i0sidi)
        d0pp_a  = d1pp( i0sidi)
        d0tt_a  = d1tt( i0sidi)
        d0ee_a  = d1ee( i0sidi)
        d0hex_a = d1hex(i0sidi)
-
-
+       
        d0c1_a = d0ee_a*d0nn_a
        d0c2_a = d0ee_a*d0pp_a*2.5D0
        d0cx1_a = d1cx1_anom(i0sidi)
@@ -2110,8 +2115,7 @@ CONTAINS
        
        !C Ft
        i0vidj = i0vofi - 1
-       d3es(i0vidi,i0vidj,i0midi) =  d0ee_a*d0bb2 * d0ftcst/d0frfct
-       
+       d3es(i0vidi,i0vidj,i0midi) =  d0ee_a*d0x15 * d0ftcst/d0frfct
        
        DO i0sidj = 1, i0smax
           
@@ -2243,7 +2247,7 @@ CONTAINS
        
        !C Qt
        i0vidj = i0vofi + 4
-       d3es(i0vidi,i0vidj,i0midi) =  d0ee_a*d0bb2         * d0qtcst/d0qrfct
+       d3es(i0vidi,i0vidj,i0midi) =  d0ee_a*d0x15         * d0qtcst/d0qrfct
        
        DO i0sidj = 1, i0smax
           
