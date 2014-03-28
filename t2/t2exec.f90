@@ -1634,7 +1634,7 @@ CONTAINS
   !C 
   !C BOUNDARY CONDITIONS
   !C
-  !C                     2014-02-22 H.SETO
+  !C                     2014-03-27 H.SETO
   !C
   !C-------------------------------------------------------------------
   SUBROUTINE T2EXEC_BCOND
@@ -2091,9 +2091,53 @@ CONTAINS
           
        ENDDO
        
+
        !C
        !C
-       !C SET DIRICHLET CONDITION 
+       !C SET DIRICHLET CONDITION (MAGNETIC AXIS)
+       !C
+       !C
+       
+       i0bidi = 1
+       
+       !C
+       !C STIFFNESS MATRIX
+       !C
+       
+       DO i0aidi = i1nidr(i0bidi), i1nidr(i0bidi+1)-1
+          i0bidj = i1nidc(i0aidi)
+          DO i0vidi = 1, i0vmax
+             SELECT CASE(i0vidi)
+             CASE(1:6,8:11,13:16,18:21,23:25)
+                CYCLE
+             CASE DEFAULT
+                DO i0vidj = 1, i0vmax
+                   IF((i0bidi.EQ.i0bidj).AND.(i0vidi.EQ.i0vidj))THEN
+                      d3amat(i0vidi,i0vidj,i0aidi) = 1.D0
+                   ELSE
+                      d3amat(i0vidi,i0vidj,i0aidi) = 0.D0
+                   ENDIF
+                ENDDO
+             ENDSELECT
+          ENDDO
+       ENDDO
+       
+       !C
+       !C RHS VECTOR 
+       !C
+       
+       DO i0vidi = 1, i0vmax
+          SELECT CASE(i0vidi)
+          CASE(1:6,8:11,13:16,18:21,23:25)
+             CYCLE
+          CASE DEFAULT
+             d2bvec(i0vidi,i0bidi) = 0.D0
+          ENDSELECT
+       ENDDO
+       
+       !C
+       !C
+       !C SET DIRICHLET CONDITION (FIRST WALL)
        !C
        !C
        
@@ -2107,7 +2151,9 @@ CONTAINS
              i0bidj = i1nidc(i0aidi)
              DO i0vidi = 1, i0vmax
                 SELECT CASE(i0vidi)
-                CASE(1:6,10:11,15:16,20:21,25)
+                !CASE(1:6,10:11,15:16,20:21,25)
+                !CASE(1:7,10:12,15:17,20:22,25)
+                CASE(1:6,8,10:11,13,15:16,18,20:21,23,25)
                    CYCLE
                 CASE DEFAULT
                    DO i0vidj = 1, i0vmax
@@ -2120,14 +2166,16 @@ CONTAINS
                 ENDSELECT
              ENDDO
           ENDDO
-        
+          
           !C
           !C RHS VECTOR 
           !C
           
           DO i0vidi = 1, i0vmax
              SELECT CASE(i0vidi)
-             CASE(1:6,10:11,15:16,20:21,25)
+             !CASE(1:7,10:12,15:17,20:22,25)
+             !CASE(1:6,10:11,15:16,20:21,25)
+             CASE(1:6,8,10:11,13,15:16,18,20:21,23,25)
                 CYCLE
              CASE DEFAULT
                 d2bvec(i0vidi,i0bidi) = d2xvec(i0vidi,i0bidi)

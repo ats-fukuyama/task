@@ -652,9 +652,12 @@ CONTAINS
     
     DO i0sidi = 1, i0smax
        
-       d0nvcm1_a = d1nvcm1(i0sidi)
-       d0nvcm2_a = d1nvcm2(i0sidi)
-       d0nvcm3_a = d1nvcm3(i0sidi)
+       !d0nvcm1_a = d1nvcm1(i0sidi)
+       !d0nvcm2_a = d1nvcm2(i0sidi)
+       !d0nvcm3_a = d1nvcm3(i0sidi)
+       d0nvcm1_a = 0.D0
+       d0nvcm2_a = 0.D0
+       d0nvcm3_a = 0.D0
        
        d0nvcc1_a = d0nvcm1_a - d0nvcm2_a
        d0nvcc2_a = d0nvcm2_a * 0.4D0
@@ -1642,8 +1645,10 @@ CONTAINS
 
     !C 2014-03-27 modified
     
-    d0x1 = d0sqrtg*d0ctgrr*d0ctbp*d0mfcr
-    d0x2 = d0sqrtg*d0ctgrp*d0ctbp*d0mfcr
+    !d0x1 = d0sqrtg*d0ctgrr*d0ctbp*d0mfcr
+    !d0x2 = d0sqrtg*d0ctgrp*d0ctbp*d0mfcr
+    d0x1 = d0sqrtg*d0ctgrr*d0ctbp
+    d0x2 = d0sqrtg*d0ctgrp*d0ctbp
 
     d0x3 = d0sqrtg*d0ct1_anom*d0ctgrr
     d0x4 = d0sqrtg*d0ct1_anom*d0ctgrp
@@ -2062,12 +2067,15 @@ CONTAINS
     !C 2014-03-27 modified
     
     d0y1  = d0sqrtg*d0ctbp
-    d0y2  = d0y1 * d0mfcr
-
+    !d0y2  = d0y1 * d0mfcr
+    d0y2  = d0y1 
+    
     d0x3  = d0y2*d0ctgrp*d0mfcr
     d0x4  = d0y2*d0ctgrr
-    d0x5  = d0cobt*d0bb    * d0mfcr
-    d0x15 = d0bb2          * d0mfcr
+    !d0x5  = d0cobt*d0bb    * d0mfcr
+    !d0x15 = d0bb2          * d0mfcr
+    d0x5  = d0cobt*d0bb   
+    d0x15 = d0bb2         
     d0x6  = d0sqrtg*d0ctbt
     d0x7  = d0y1*d0mfcr
     d0x8  = d0sqrtg*d0bb
