@@ -27,7 +27,7 @@ CONTAINS
          d1tt_pu,d1qr_pu,d1qb_pu,d1qt_pu,d1qp_pu
    
     REAL(   i0rkind)::&
-         d0sqrtg,d0mfcr,d0sqrtr,&
+         d0sqrtg,d0mfcr,d0sqrtr,d0sqrtri,&
          d0ctgrr,d0ctgrp,d0ctgpp,d0ctgtt,&
          d0cogrr,d0cogrp,d0cogpp,d0cogtt,&
          d0nn,d0ni,d0tt,d0qr,d0qb,d0qt,d0qp,&
@@ -55,6 +55,12 @@ CONTAINS
        d0ctgpp = d2jm1( 8,i0midi)
        d0ctgtt = d2jm1( 9,i0midi)
        
+       IF(d0sqrtr.GT.0.D0)THEN
+          d0sqrtri = 1.D0/d0sqrtr
+       ELSE
+          d0sqrtri = 0.D0
+       ENDIF
+       
        !C
        !C INITTIALIZATION
        !C
@@ -68,12 +74,12 @@ CONTAINS
        DO i0sidi = 1, i0smax
           i0vidi = 10*i0sidi - 5
           d1nn(i0sidi) = d2xvec(i0vidi+ 1,i0xid2d)*d0nncst
-          d1fr(i0sidi) = d2xvec(i0vidi+ 2,i0xid2d)*d0frcst*d0sqrtr
+          d1fr(i0sidi) = d2xvec(i0vidi+ 2,i0xid2d)*d0frcst
           d1fb(i0sidi) = d2xvec(i0vidi+ 3,i0xid2d)*d0fbcst
           d1ft(i0sidi) = d2xvec(i0vidi+ 4,i0xid2d)*d0ftcst
           d1fp(i0sidi) = d2xvec(i0vidi+ 5,i0xid2d)*d0fpcst
           d1pp(i0sidi) = d2xvec(i0vidi+ 6,i0xid2d)*d0ppcst
-          d1qr(i0sidi) = d2xvec(i0vidi+ 7,i0xid2d)*d0qrcst*d0sqrtr
+          d1qr(i0sidi) = d2xvec(i0vidi+ 7,i0xid2d)*d0qrcst
           d1qb(i0sidi) = d2xvec(i0vidi+ 8,i0xid2d)*d0qbcst
           d1qt(i0sidi) = d2xvec(i0vidi+ 9,i0xid2d)*d0qtcst
           d1qp(i0sidi) = d2xvec(i0vidi+10,i0xid2d)*d0qpcst
@@ -136,7 +142,7 @@ CONTAINS
           !C d1ur_pu: Radial velocity  [m/s]
           !C
           
-          d1ur_pu(i0sidi) = d1fr(i0sidi)*d0ni*SQRT(d0cogrr)
+          d1ur_pu(i0sidi) = d1fr(i0sidi)*d0ni*SQRT(d0cogrr)*d0sqrtri
           
           !C
           !C d1ub_pu: Parallel velocity  [km/s]
@@ -168,7 +174,7 @@ CONTAINS
           !C
           
           d0qr = d1qr(i0sidi) - 2.5D0*d0tt*d1fr(i0sidi)
-          d1qr_pu(i0sidi) = d0qr*SQRT(d0cogrr)*1.D-3 
+          d1qr_pu(i0sidi) = d0qr*SQRT(d0cogrr)*d0sqrtri*1.D-3 
           
           
           !C 
