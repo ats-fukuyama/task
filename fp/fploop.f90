@@ -51,7 +51,7 @@
 
 !     +++++ Time loop +++++
 
-!      OPEN(9,file="EPEM.dat")
+!      OPEN(9,file="diag_fnsp.dat")
       DO NT=1,NTMAX
          
 !     +++++ Iteration loop for toroidal electric field +++++
@@ -82,7 +82,7 @@
             END DO
          END DO
  
-         CALL conductivity_sigma_ind
+!         CALL conductivity_sigma_ind
          IF(MODELE.eq.1)THEN
             EM(:)=EP(:)
             IF(NRANK.eq.0) WRITE(6,'(A,6E14.6)') "EP=",(EP(NR),NR=1,6) 
@@ -205,7 +205,6 @@
                     ,(ILOC(NSA),NSA=1,NSAMAX)
             ENDIF
 !---------- end of convergence 
-
             CALL GUTIME(gut3)
             CALL fusion_source_init
 
@@ -250,6 +249,10 @@
                   DO NTH=1,NTHMAX
                      F(NTH,NP,NR)=FNSP(NTH,NP,NR,NSBA) ! used at fpweight only!
 !                     F(NTH,NP,NR)=FNSM(NTH,NP,NR,NSBA)
+!                     IF(FNSP(NTH,NP,NR,NSA).lt.0)THEN
+!                        WRITE(9,'(5I5,3E16.8)') NT, NTH, NP, NR, NSA, &
+!                             FNSP(NTH,NP,NR,NSA), DPP(NTH,NP,NR,NSA), FPP(NTH,NP,NR,NSA)
+!                     END IF
                   END DO
                END DO
             END DO
@@ -347,14 +350,19 @@
 
          IF(NRANK.eq.0)THEN
          IF(NT.eq.NTMAX.or.NTMAX.ne.0)THEN
-!            open(9,file='power_D_5s_D0_taul1000_2kev_NB.dat')
-            open(9,file='t_prof_D_sp3.dat')
-            DO NTI=1,NTG1
-               WRITE(9,'(I4,F12.3,14E16.8)') NTI, PTG(NTI)*1000 &
-                    ,PTT2(1,NTI),PTT2(2,NTI),PIT(1,NTI),PIT(2,NTI) &
-                    ,EPTR(1,NTI),EPTR(NRMAX,NTI) &
-                    ,RTT(1,1,NTI),RTT(1,2,NTI),RTT(NRMAX,1,NTI),RTT(NRMAX,2,NTI) &
-                    ,RJT(1,1,NTI),RJT(1,2,NTI),RJT(NRMAX,1,NTI),RJT(NRMAX,2,NTI)
+!            open(10,file='time_evolution.dat')
+!            open(9,file='t_prof_D_sp3.dat')
+!            DO NTI=1,NTG1
+!               WRITE(10,'(I4,F12.3,1P2E16.8)')NTI, PTG(NTI)*1000, &
+!                    RJT(1,1,NTI)/(ABS(AEFP(1))*RNT(1,1,NTI)*1.D20*VTFP0(1))*1.D6, &
+!                    rate_runaway(1,1,NTI)
+
+
+!               WRITE(9,'(I4,F12.3,14E16.8)') NTI, PTG(NTI)*1000 &
+!                    ,PTT2(1,NTI),PTT2(2,NTI),PIT(1,NTI),PIT(2,NTI) &
+!                    ,EPTR(1,NTI),EPTR(NRMAX,NTI) &
+!                    ,RTT(1,1,NTI),RTT(1,2,NTI),RTT(NRMAX,1,NTI),RTT(NRMAX,2,NTI) &
+!                    ,RJT(1,1,NTI),RJT(1,2,NTI),RJT(NRMAX,1,NTI),RJT(NRMAX,2,NTI)
 !               WRITE(9,645) NTI, PTG(NTI)*1000 &
 !                    ,PPCT2(1,1,NTI),PPCT2(2,1,NTI),PPCT2(3,1,NTI),PPCT2(4,1,NTI),PPCT(1,NTI) &
 !                    ,PPCT2(1,2,NTI),PPCT2(2,2,NTI),PPCT2(3,2,NTI),PPCT2(4,2,NTI),PPCT(2,NTI) &
@@ -368,8 +376,8 @@
 !                    ,PTT_BULK(1,NTI),PTT_BULK(2,NTI),PTT_BULK(3,NTI),PTT_BULK(4,NTI) &
 !                    ,PSPBT(2,NTI),PSPFT(2,NTI),PSPFT(3,NTI),PSPFT(4,NTI) &
 !                   ,PECT(1,NTI)
-            END DO
-            close(9)
+!            END DO
+!            close(10)
          END IF
          END IF
 

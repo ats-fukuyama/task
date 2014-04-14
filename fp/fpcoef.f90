@@ -303,8 +303,8 @@
          DO NTH=1,NTHMAX
             DPP(NTH,NPMAX+1,NR,NSA)=0.D0
             DPT(NTH,NPMAX+1,NR,NSA)=0.D0
-            FPP(NTH,NPMAX+1,NR,NSA)=0.D0
-!            FPP(NTH,NPMAX+1,NR,NSA)=max(0.D0,FPP(NTH,NPMAX+1,NR,NSA))
+!            FPP(NTH,NPMAX+1,NR,NSA)=0.D0
+            FPP(NTH,NPMAX+1,NR,NSA)=max(0.D0,FPP(NTH,NPMAX+1,NR,NSA))
          END DO
       END DO
       END IF
@@ -945,12 +945,6 @@
       IF(NR.eq.0)THEN
          RL=0.D0
          RHON=ABS(RL)
-!      ELSEIF(NR.EQ.NRSTART-1) THEN
-!         RL=RM(NRSTART)-DELR
-!         RHON=ABS(RL)
-!      ELSEIF(NR.EQ.NREND+1.and.NR.ne.NRMAX+1) THEN
-!         RL=RM(NREND)+DELR
-!         RHON=MIN(RL,1.D0)
       ELSEIF(NR.EQ.NRMAX+1) THEN
          RL=RM(NRMAX)+DELR
          RHON=MIN(RL,1.D0)
@@ -965,24 +959,16 @@
       IF(MODELR.EQ.0) THEN
          FACT=RNFDL/SQRT(2.D0*PI*RTFDL/RTFD0L)**3
          EX=PML**2/(2.D0*RTFDL/RTFD0L)
-!         IF(EX.GT.100.D0) THEN
-!            FPMXWL=0.D0
-!         ELSE
-            FPMXWL=FACT*EXP(-EX)
-!         ENDIF
+         FPMXWL=FACT*EXP(-EX)
       ELSE
          THETA0L=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)
          THETAL=THETA0L*RTFDL/RTFD0L
          Z=1.D0/THETAL
-            DKBSL=BESEKN(2,Z)
-            FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DKBSL) &
-             *RTFD0L
-            EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
-!         IF(EX.LT.-100.D0) THEN
-!            FPMXWL=0.D0
-!         ELSE
-            FPMXWL=FACT*EXP(EX)
-!         ENDIF
+         DKBSL=BESEKN(2,Z)
+         FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DKBSL) &
+              *RTFD0L
+         EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
+         FPMXWL=FACT*EXP(EX)
       END IF
 
       RETURN

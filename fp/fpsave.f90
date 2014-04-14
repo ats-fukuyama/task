@@ -29,7 +29,6 @@
       real(8):: DFP, DFT, FFP, testa, testb, FACT, DFDP, WRL, WRH, DINT_DFDT_R1, DINT_DFDT_R2
       real(8):: DFDR_R1, DFDR_R2, DFDT_R1, DFDT_R2, DINT_DR, RSUM_DR,RGAMA,F_R1,F_R2, RSUMN_DR
       real(8),dimension(NSBMAX):: RSUM10
-      real(8),dimension(NTHMAX+1,NPMAX+1):: R_FLUX
       real(8),dimension(NPMAX):: RSUMNP_E
       real(8),dimension(NTHMAX,NPMAX):: T_BULK
       integer,dimension(NRSTART:NRENDX,NSBMAX):: NP_BULK
@@ -37,6 +36,7 @@
       real(8):: SRHOR1, SRHOR2, RSUM_DRS, RSUMN_DRS
       real(8):: DSDR, SRHOP, SRHOM, RSUM62, RSUM63
       real:: gut1,gut2
+      real(8)::FLUXS_PMAX
 
       IF(ISAVE.NE.0) RETURN
       CALL GUTIME(gut1)
@@ -154,12 +154,6 @@
                ENDIF               
             END IF
 
-!            open(8,file='F_DFDP_r0c4_w.dat')
-!            open(8,file='nth1_r1c4_x.dat')
-!            open(8,file='T_BULK.dat')
-!            IF(NRANK.eq.0) open(9,file='PE.dat')
-
-!            DO NP=2,NPMAX
             IF(NPSTART.eq.1)THEN
                NPS=2
             ELSE
@@ -218,11 +212,6 @@
                         +DCPT(NTH,NP,NR,NSA)*DFT           &
                         -FCPP(NTH,NP,NR,NSA)*FFP           &
                           )
-                  R_FLUX(NTH,NP) = -  &
-                       (DPP(NTH,NP,NR,NSA)*DFP           &
-                       +DPT(NTH,NP,NR,NSA)*DFT           &
-                       -FPP(NTH,NP,NR,NSA)*FFP           &
-                       )
                   RSUM5 = RSUM5+PG(NP,NSBA)**2*SINM(NTH)/PV   &
                           *(DWPP(NTH,NP,NR,NSA)*DFP           &
                            +DWPT(NTH,NP,NR,NSA)*DFT)
@@ -230,14 +219,6 @@
                           *(FEPP(NTH,NP,NR,NSA)*FFP)
                   RSUM62 = RSUM62-PG(NP,NSBA)**2*SINM(NTH)/PV   &
                           *(FEPP_IND(NTH,NP,NR,NSA)*FFP)
-!                  RSUM63 = RSUM63+PG(NP,NSBA)*SINM(NTH)*COSM(NTH) &
-!                       *(&
-!                       DPP(NTH,NP,NR,NSA)*DFP+DPT(NTH,NP,NR,NSA)*DFT &
-!                       -FPP(NTH,NP,NR,NSA)*FFP)/(PV**3) &
-!                       -PG(NP,NSBA)*SINM(NTH)**2*(&
-!                       DTP(NTH,NP,NR,NSA)*DFP+DTT(NTH,NP,NR,NSA)*DFT &
-!                       -FTH(NTH,NP,NR,NSA)*FFP/(PV**3) &
-!                       )
 
                   RSUM7 = RSUM7+PG(NP,NSBA)**2*SINM(NTH)/PV   &
                           *(DWLHPP(NTH,NP,NR,NSA)*DFP         &
@@ -262,17 +243,20 @@
                               +DPT(NTH,NP,NR,NSA)*DFT           &
                               -FPP(NTH,NP,NR,NSA)*FFP           &
                               )
-!                  IF(NRANK.eq.0)THEN
-!                     WRITE(9,'(7E16.8)') PM(NP,NSBA)*COSM(NTH), PM(NP,NSBA)*SINM(NTH), &
-!                          -PG(NP,NSBA)**2*SINM(NTH)/PV*(FEPP(NTH,NP,NR,NSA)*FFP), &
-!                          FFP, FPP(NTH,NP,NR,NSA),FEPP(NTH,NP,NR,NSA),FCPP(NTH,NP,NR,NSA)
-!                  END IF
-
                ENDDO
-!               IF(NRANK.eq.0) WRITE(9,*) " "
-!               IF(NRANK.eq.0) WRITE(9,*) " "
             ENDDO
-!            IF(NRANK.eq.0) close(9)
+
+! FLUX S_p across pmax
+            FLUXS_PMAX=0.D0
+            IF(NPEND.eq.NPMAX)THEN
+               DO NTH=1,NTHMAX
+                  FFP=    PG(NPMAX+1,NSBA)*FNSP(NTH,NPMAX,NR,NSBA)
+
+                  FLUXS_PMAX = FLUXS_PMAX +  &
+                       FPP(NTH,NPMAX+1,NR,NSA)*tau_ta0(NSA)*FFP  &
+                       * PG(NPMAX+1,NSBA)*SINM(NTH)
+               END DO
+            END IF
 
 !      SOURCE POWER
             IF(MODELR.eq.1)THEN
@@ -449,15 +433,14 @@
             DO NSB=1,NSBMAX
                CALL p_theta_integration(RSUM10(NSB))
             END DO
+            CALL p_theta_integration(FLUXS_PMAX)
                
  888        FORMAT(2I4,12E14.6)
             FACT=RNFP0(NSA)*1.D20/RFSADG(NR)
             RNSL(NR,NSA) = RSUM1*FACT*1.D-20!*RCOEFNG(NR)
             RJSL(NR,NSA) = RSUM2*FACT*AEFP(NSA)*PTFP0(NSA) &
                            /AMFP(NSA)*1.D-6!*RCOEFJG(NR)
-
-!            RDIDTL(NR,NSA) = -RSUM63*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6 &
-!                 *AEFP(NSA)*PTFP0(NSA)/AMFP(NSA)*DELT
+            RFPL(NR,NSA)=2.D0*PI*DELTH* FLUXS_PMAX / RSUM1
 
             FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)/RFSADG(NR)!*RCOEFNG(NR)
             RWSL(NR,NSA) = RSUM3*FACT               *1.D-6
@@ -475,7 +458,6 @@
                     *FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             END DO
 
-!            FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)*0.5D0!*RCOEFNG(NR)
             FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)!/RFSADG(NR)*RCOEFNG(NR)
             RSPBL(NR,NSA)= RSUM11B*FACT*2.D0*PI*DELP(NSBA)*DELTH*1.D-6
             RSPFL(NR,NSA)= RSUM11F*FACT*2.D0*PI*DELP(NSBA)*DELTH*1.D-6
@@ -487,10 +469,8 @@
 
       CALL FPSAVECOMM
 
-!      IF(NRANK.eq.0)THEN
-!         WRITE(*,'(A,I4,6E14.6)') "RWS", nrank,RWS(1,1),RWSL(1,1),RNS(1,1),RNSL(1,1),RJS(1,1),RJSL(1,1)
-!      END IF
       CALL GUTIME(gut2)
+!      IF(NRANK.eq.0) WRITE(6,'(A,2E16.8)') "FNSP ",FNSP(1,2,1,1), FNSP(NTHMAX,2,1,1)
       IF(NRANK.eq.0) WRITE(6,'(A,E14.6)') "-----FPSSUB=", gut2-gut1
 
       ISAVE=1
@@ -634,6 +614,7 @@
          DO NR=1,NRMAX
             RNT(NR,NSA,NTG2) = RNS(NR,NSA)
 !            RNT_test(NR,NSA,NTG2) = RNS_test(NR,NSA)
+            rate_runaway(NR,NSA,NTG2)=RFP(NR,NSA)
             RJT(NR,NSA,NTG2) = RJS(NR,NSA)
             RWT(NR,NSA,NTG2) = RWS(NR,NSA)
             RPCT(NR,NSA,NTG2)= RPCS(NR,NSA)
@@ -778,7 +759,7 @@
       real(8):: RTFDL, RTFD0L, THETAL, rtemp, rtemp2
       character:: fmt0*50
 !
-      WRITE(fmt0,'(a15)') '(2I3,1P13E12.4)'
+      WRITE(fmt0,'(a15)') '(2I3,1P9E12.4)'
 
       WRITE(6,*)"-----Radial profile data"
       WRITE(6,'(A,F12.3)') " TIME=", TIMEFP*1000
@@ -802,12 +783,14 @@
                     RJT(NR,NSA,NTG2),RPCT(NR,NSA,NTG2),       &
                     RPET(NR,NSA,NTG2), &
 !                    RDIDT(NR,NSA), &
-                    RPCT2(NR,NSAMAX-NSA+1,NSA,NTG2), &
+!                    RPCT2(NR,NSAMAX-NSA+1,NSA,NTG2), &
                     RPCT2(NR,NSA,NSA,NTG2), &
 !                    RPWT(NR,NSA,NTG2),&
 !                    RECT(NR,NSA,NTG2),    &
-                    RSPBT(NR,NSA,NTG2),RSPFT(NR,NSA,NTG2),RPDRT(NR,NSA,NTG2), &
-                    RTT_BULK(NR,NSA,NTG2),RNDRT(NR,NSA,NTG2)
+!                    RSPBT(NR,NSA,NTG2),RSPFT(NR,NSA,NTG2),RPDRT(NR,NSA,NTG2), &
+                    RTT_BULK(NR,NSA,NTG2), &
+                    RATE_RUNAWAY(NR,NSA,NTG2)
+!,RNDRT(NR,NSA,NTG2)
             ELSE
                WRITE(6,fmt0) NSA,NS_NSA(NSA),&
                     RM(NR),RNT(NR,NSA,NTG2),RTT(NR,NSA,NTG2), &
@@ -831,18 +814,12 @@
   106 FORMAT( &
            'NSA/NS',5X,'RM',10X,' n',8X,' T    ',6X, &
            ' j     ',5X,'PC     ',5X,'PE     ',5X,   &
-           'PW      ',5X,'PEC    ',5X,'PNB//PLH',4X,  &
-           ' PNF/PIC',4X,'RPDR   ',5X,'T_BULK ',5X,'RNDR' )
+           'PC_aa  ',5X,'T_BULK ',5X,'RATE_RUNAWAY' )
   107 FORMAT( &
            'NSA/NS',5X,'RM',10X,' n',8X,' T    ',6X, &
            ' j     ',5X,'PC     ',5X,'PC12     ',5X,  &
            'PC11   ',5X,'PE     ',5X,'E_ind    ',5X,  &
            'PE_IND ',4X,'PSIP   ',5X,'DPSIP ',5X,'SIGMA' )
-!  107 FORMAT( &
-!           'NSA/NS',5X,'RM',10X,' n',8X,' T    ',6X, &
-!           ' j     ',5X,'PC     ',5X,'PE     ',5X,   &
-!           'E2     ',5X,'PEC    ',5X,'PNB//PLH',4X,  &
-!           ' PNF/PIC',4X,'PSIP   ',5X,'DPSIP ',5X,'RNDR' )
 
       END SUBROUTINE FPWRTPRF
 ! ***********************************************************
@@ -851,7 +828,7 @@
 !
       IMPLICIT NONE
       integer:: NR, NSA, NSB, NP, NTH
-      real(8):: rnute, resist, norm_sigma
+      real(8):: rnute, resist
       real(8):: FACT1, FACT2, rntv
       real(8):: taue_col, sigma_sp, FACT
 
@@ -865,17 +842,21 @@
             rnute=RNUD(NR,NSA,NSA)*SQRT(2.D0)*RNFP(NR,NSA)/RNFP0(NSA)     &
                  *(PTFP0(NSA)/PTFD(1,NSA))**2
             resist=RNUTE*AMFP(NSA)/RNFP(1,NSA)/AEFP(NSA)**2/1.D20
-            norm_sigma=RNFP(NR,NSA)*AEFP(NSA)**2/(AMFP(NSA)*RNUTE)*1.D20
 !----------
             FACT=AEFP(NSA)**2*AEFD(NSB)**2*LNLAM(NR,NSB,NSA)/(4.D0*PI*EPS0**2)
             taue_col=3.D0*SQRT(0.5D0*PI)/FACT*SQRT(AMFP(1)*(AEE*RTT(NR,NSA,NTG2)*1.D3)**3)/RNS(NR,NSB)*1.D-20
             sigma_sp=1.96D0*RNS(NR,NSA)*1.D20*AEFP(NSA)**2*taue_col/AMFP(NSA) ! P. 174
 
             if(MODELE.eq.0)THEN 
-               write(6,'(2I2,1PE16.8,A,1PE16.8,A,1PE16.8,A,1PE16.8)') NSA,NSB,&
-                    RJS(1,NSA)/E1(1)*1.D6," J/E*eta*1.D6= ", (RJS(1,1))/E1(1)*1.D6*resist, &
+               write(6,'(2I2,A,1PE16.8,A,1PE16.8,A,1PE16.8,A,1PE16.8)') NSA,NSB,&
+                    " sigma_norm= ",(RJS(1,1)+RJS(1,2))/E1(1)*1.D6*resist, &
+                    " sigma=j/E*1.D6=", (RJS(1,NSA)+RJS(1,2))/E1(1)*1.D6, &
                     " sigma_Spitzer= ",sigma_sp, &
                     "  THETA0= ", THETA0(NSA)
+               WRITE(6,'(A,1PE14.6,A,1PE14.6,A,1PE14.6)') &
+                    " j_norm=j/q_e n(t) v_ta0=", RJS(1,NSA)/(ABS(AEFP(1))*RNS(1,NSA)*1.D20*VTFP0(1))*1.D6, &
+                    " j_norm=sigma_norm*E0=",(RJS(1,1))/E1(1)*1.D6*resist*E0, &
+                    " j_norm=(j_e+j_i)/q_e n(t) v_ta0=", (RJS(1,1)+RJS(1,2))/(ABS(AEFP(1))*RNS(1,NSA)*1.D20*VTFP0(1))*1.D6
             ELSE
                write(6,'(2I2,1PE16.8,A,1PE16.8,A,1PE16.8,A,1PE16.8)') NSA,NSB,&
                     RJS(1,NSA)/EP(1)*1.D6," J/E*eta*1.D6= ", RJS(1,NSA)/EP(1)*1.D6*resist, &
@@ -1017,6 +998,7 @@
       DO N=1,NSW
          NSA=N+NSASTART-1
          CALL fp_gatherv_real8_sav(RNSL,SAVLEN(NRANK+1),RNS,N,NSA)
+         CALL fp_gatherv_real8_sav(RFPL,SAVLEN(NRANK+1),RFP,N,NSA)
          CALL fp_gatherv_real8_sav(RJSL,SAVLEN(NRANK+1),RJS,N,NSA)
          CALL fp_gatherv_real8_sav(RWSL,SAVLEN(NRANK+1),RWS,N,NSA)
          CALL fp_gatherv_real8_sav(RWS123L,SAVLEN(NRANK+1),RWS123,N,NSA)

@@ -526,6 +526,9 @@
 !      write(6,'(7I10)') NRANK, comm_nsa%rankl, comm_nr%rankl, &
 !           comm_np%rankl, comm_nrnp%rankl, comm_nsanp%rankl, comm_nsanr%rankl
 
+      IF(NRANK.eq.0) WRITE(6,*) "RANK, NSAS, NSAE,  NRS,  NRE,  NPS,  NPE"
+      WRITE(6,'(7I6)') NRANK, NSASTART, NSAEND, NRSTART, NREND, NPSTART, NPEND
+
       CALL mtx_cleanup
 
 
@@ -618,7 +621,6 @@
          NS=NS_NSB(NSB)
          DO NR=NRSTARTW,NRENDWM
             IF(NR.ge.1.and.NR.le.NRMAX)THEN
-!               DO NP=1,NPMAX
                DO NP=NPSTARTW,NPENDWM
                   FL=FPMXWL(PM(NP,NSB),NR,NS)
                   DO NTH=1,NTHMAX
@@ -629,7 +631,6 @@
             END IF
          END DO
          NR=NRMAX+1
-!         DO NP=1,NPMAX
          DO NP=NPSTARTW,NPENDWM
             FL=FPMXWL(PM(NP,NSB),NR,NS)
             DO NTH=1,NTHMAX
@@ -639,11 +640,9 @@
       END DO
 !     ----- set boundary distribution functions -----
       
-!      DO NSA=1,NSAMAX
       DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
          NSBA=NSB_NSA(NSA)
-!         DO NP=1,NPMAX
          DO NP=NPSTARTW,NPENDWM
             FL=FPMXWL(PM(NP,NSBA),0,NS)
             DO NTH=1,NTHMAX
@@ -652,7 +651,6 @@
          ENDDO
       END DO
 !
-!      DO NSA=1,NSAMAX
       DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
          DO NP=NPSTARTW,NPENDWM
@@ -901,6 +899,7 @@
          RTE=(PLF(1)%RTPR+2.D0*PLF(1)%RTPP)/3.D0
          E_EDGEM=0.D0
 
+!-----   Coulomb log
          ISW_CLOG=0 ! =0 Wesson, =1 NRL
          DO NSA=1,NSAMAX
             NSFP=NS_NSB(NSA)
@@ -908,8 +907,8 @@
             RTA=RTFP(NR,NSA)
             DO NSB=1,NSBMAX
                NSFD=NS_NSB(NSB)
-               RNB=RNFP(NR,NSB)
-               RTB=RTFP(NR,NSB)
+               RNB=RNFD(NR,NSB)
+               RTB=RTFD(NR,NSB)
                IF(ISW_CLOG.eq.0)THEN
                   IF(PZ(NSFP).eq.-1.and.PZ(NSFD).eq.-1) THEN !e-e
                      RLNRL=14.9D0-0.5D0*LOG(RNE)+LOG(RTE) 
@@ -938,9 +937,18 @@
                       /(SQRT(2.D0)*VTFD(NR,NSB)*PTFP0(NSA)**2)
                RNUF(NR,NSB,NSA)=FACT*RNFP0(NSA)*1.D20 &
                       /(2*AMFD(NSB)*VTFD(NR,NSB)**2*PTFP0(NSA))
+
             ENDDO
+            IF(NRANK.eq.0)THEN
+               tau_ta0(NSA)=(4.D0*PI*EPS0**2)*PTFP0(NSA)**3 &
+                    /( AMFP(NSA)*AEFP(NSA)**4*LNLAM(1,NSA,NSA)*RNFP0(NSA)*1.D20 )
+               E_norm(NSA)=PTFP0(NSA)/(ABS(AEFP(NSA))*tau_ta0(NSA) )
+!            E_norm(NSA)=1.D0
+            END IF
          ENDDO
       ENDDO
+      call mtx_broadcast_real8(tau_ta0,nsamax)
+      call mtx_broadcast_real8(E_norm,nsamax)
 
 !     ----- set relativistic parameters -----
 
@@ -974,8 +982,8 @@
       CALL FPSSUB2
       CALL FPSPRF2
 
+      IF(MODELE.eq.1)THEN
       DO NR=NRSTART,NRENDWM
-
          ISW_CLOG=0 ! =0 Wesson, =1 NRL
          RNE=RN_IMPL(NR,1)
          DO NSA=1,NSAMAX
@@ -1024,7 +1032,7 @@
          ENDDO
 !      WRITE(*,'(I3,A,4E16.8)') NR, "Coulomb log=", LNLAM(NR,1,1), LNLAM(NR,1,2), LNLAM(NR,2,1), LNLAM(NR,2,2)
       ENDDO
-
+      END IF
 !      IF(NR.eq.NRMAX) WRITE(*,'(A,1P4E16.8)') "Coulomb log",CLOG(1,1), CLOG(1,2), CLOG(2,1), CLOG(2,2)
 
       END SUBROUTINE Coulomb_log
@@ -1186,7 +1194,8 @@
 
 !     ----- set parallel electric field -----
       DO NR=1,NRMAX
-         E1(NR)=E0/(1.D0+EPSRM(NR))
+         E1(NR)=E0*E_norm(1)
+!         E1(NR)=E0/(1.D0+EPSRM(NR))
       ENDDO
 
       N_IMPL=0
@@ -1195,6 +1204,7 @@
       CALL fusion_source_init
       DO NSA=NSASTART,NSAEND
          CALL FP_COEF(NSA)
+         NSBA=NSB_NSA(NSA)
          DO NR=NRSTART,NREND
             DO NP=NPSTARTW,NPENDWM
                DO NTH=1,NTHMAX
@@ -1228,6 +1238,8 @@
       integer :: ierr,NSA,NSB,NS,NR,NP,NTH,NSBA,N,NSW,j
       INTEGER:: NSEND, NSWI
       real:: gut1, gut2, gut_prep
+      real(8):: alp, z_i, h_alpha_z, lambda_alpha, gamma_alpha_z, G_conner
+      real(8):: G_conner_nr, G_conner_lm
 
       CALL GUTIME(gut1)
 !     ----- Initialize time counter -----
@@ -1278,7 +1290,8 @@
       CALL mtx_reset_communicator
 !     ----- set parallel electric field -----
       DO NR=1,NRMAX
-         E1(NR)=E0/(1.D0+EPSRM(NR))
+         E1(NR)=E0*E_norm(1)
+!/(1.D0+EPSRM(NR))
 !         E1(NR)=E0
 !         IF(MODELE.eq.0)THEN
 !            EP(NR)=0.D0 ! plus
@@ -1315,6 +1328,44 @@
          END DO
          CALL FPWEIGHT(NSA,IERR)
       END DO
+      IF(NRANK.eq.0)THEN
+         WRITE(6,'(A,1P2E14.6)') &
+              " tau_ta0[sec]=", tau_ta0(1), tau_ta0(2)
+         IF(E0.ne.0)THEN
+            IF(MODELR.eq.0)THEN
+               WRITE(6,'(A,1P3E14.6,A,1PE14.6)') &
+                    "E0*E_norm=E1[V/m] ->",E0, E_NORM(1), E1(1)&
+                    ," p_{c_runaway}=",1.D0/SQRT(E0)
+            ELSE
+               WRITE(6,'(A,1P3E14.6)') &
+                    "E0*E_norm=E1[V/m] ->",E0, E_NORM(1), E1(1)
+               WRITE(6,'(A,1PE14.6,A,1PE14.6)') &
+                    " p_{c_runaway}=",1.D0/SQRT(E0)           &
+                    ," p_{cr_runaway}=",1.D0/SQRT(E0-THETA0(1))
+
+               alp = E0/THETA0(1)
+               z_i = PZ(2)
+               h_alpha_z=( alp*(z_i+1.D0) - z_i + 7.D0 + &
+                    2.D0*SQRT(alp/(alp-1.D0))*(1.D0+z_i)*(alp-2.D0) ) &
+                    /( 16.D0*(alp-1.D0) )
+               lambda_alpha=8.D0*alp*(alp-0.5D0-SQRT(alp*(alp-1.D0)) )
+               gamma_alpha_z=SQRT( (1.0+z_i)*alp**2/(8.D0*(alp-1.D0)) )&
+                    *(0.5D0*PI-ASIN(1.D0-2.D0/alp))
+
+               G_conner=0.35D0* E0**(-h_alpha_z)*EXP(-0.25D0*lambda_alpha/E0 &
+                    -SQRT(2.D0/E0)*gamma_alpha_z )
+
+               G_conner_nr=0.35D0*E0**(-3.D0*(Z_i+1.D0)/16.D0)&
+                    *EXP(-0.25D0/E0 -SQRT( (1.D0+z_i)/E0 ) )
+               G_conner_lm=G_conner_nr &
+                    *EXP(-THETA0(1)*(0.125D0/E0**2 + 2.D0/3.D0/SQRT(E0**3)*SQRT(1.D0+z_i) ) )
+
+               WRITE(6,'(A,1PE14.6,A,1PE14.6)') " alpha = ", alp, " G_conner= ", G_conner
+               WRITE(6,'(A,1PE14.6,A,1PE14.6)') " G_Conner_nr = ", &
+                    G_conner_nr, " G_conner_lm = ", G_conner_lm
+            END IF
+         END IF
+      END IF
 !      DO NP=1,NPMAX+1
 !         WRITE(*,'(I4,11E16.8)') NP, PG(NP,NSBA) &
 !              , DCPP2(1,NP,1,1,1)-DCPP2(1,NP,1,2,1), DCPP2(1,NP,1,1,2)-DCPP2(1,NP,1,2,2) &

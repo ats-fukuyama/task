@@ -22,7 +22,6 @@
 !      integer,optional:: methodKSP, methodPC
 
       NSBA=NSB_NSA(NSA)
-!      WRITE(*,*) "NRANK, NSA = ",NRANK,NSA
 
 !      CALL mtx_set_communicator(comm_nr) !2D
       CALL mtx_set_communicator(comm_nrnp) !3D
