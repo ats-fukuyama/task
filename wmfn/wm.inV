@@ -1,0 +1,55 @@
+0
+f
+gsdata.V
+c
+p
+ &wm modelg=0,modelp=0,q0=1.D4,qa=1.D4,nph0=0,mdlwmf=2
+     pn=0,0,pns=0,0,
+     modelj=21 nth0=0 nrmax=50 &end
+r
+g
+rea
+x
+p
+ &wm modelj=21 nth0=1 &end
+r
+g
+rea
+x
+p
+ &wm modelj=21 nth0=2 &end
+r
+g
+rea
+x
+p
+ &wm modelj=21 nth0=3 &end
+r
+g
+rea
+x
+p
+ &wm modelj=31 nth0=0 &end
+r
+g
+rea
+x
+p
+ &wm modelj=31 nth0=1 &end
+r
+g
+rea
+x
+p
+ &wm modelj=31 nth0=2 &end
+r
+g
+rea
+x
+p
+ &wm modelj=31 nth0=3 &end
+r
+g
+rea
+x
+q
