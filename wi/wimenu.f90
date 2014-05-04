@@ -9,7 +9,7 @@ CONTAINS
   SUBROUTINE wi_menu
 
     USE wicomm,ONLY: ikind,rkind,wi_deallocate,alfa,beta,xmax,pn0,any, &
-                     nxmax,nwmax,pnu,dx0,dxw,dxmin,dxwid,modelp
+                     nxmax,nwmax,pnu,dx0,xwint,dxmin,xwmin,modelp
     USE wiparm,ONLY: wi_parm,wi_view
     USE wiprep,ONLY: wi_prep
     USE wiexec,ONLY: wi_exec
@@ -22,8 +22,8 @@ CONTAINS
     CHARACTER(LEN=80) :: line
     INTEGER(ikind)    :: init=0
     REAL(rkind)       :: dx0_save=0.D0,dxmin_save=0.D0
-    REAL(rkind)       :: dxwid_save=0.D0,xmax_save=0.D0
-    REAL(rkind)       :: dxw_save=0.D0
+    REAL(rkind)       :: xwmin_save=0.D0,xmax_save=0.D0
+    REAL(rkind)       :: xwint_save=0.D0
     REAL(rkind)       :: ratea,rk0l
 
 1   CONTINUE
@@ -33,9 +33,9 @@ CONTAINS
     CALL TASK_KLIN(line,kid,mode,wi_parm)
     IF(mode /= 1) GOTO 1
     IF(dx0  .NE.dx0_save   .OR. &
-       dxw  .NE.dxw_save   .OR. &
+       xwint.NE.xwint_save .OR. &
        dxmin.NE.dxmin_save .OR. &
-       dxwid.NE.dxwid_save .OR. &
+       xwmin.NE.xwmin_save .OR. &
        xmax .NE.xmax_save) THEN  ! x array was modified
        INIT=0
     END IF
@@ -52,16 +52,16 @@ CONTAINS
                                        xmax,nxmax,nwmax,modelp
        SELECT CASE(modelp)
        CASE(0,1)
-          write(6,'(A,1P4E12.4)')     '## dx0,pnu,dxmin,dxwid     =', &
-                                          dx0,pnu,dxmin,dxwid
+          write(6,'(A,1P4E12.4)')     '## dx0,pnu,dxmin,xwmin     =', &
+                                          dx0,pnu,dxmin,xwmin
        CASE(2)
-          write(6,'(A,1P4E12.4)')     '## dx0,dxw,dxmin,dxwid     =', &
-                                          dx0,dxw,dxmin,dxwid
+          write(6,'(A,1P4E12.4)')     '## dx0,xwint,dxmin,xwmin   =', &
+                                          dx0,xwint,dxmin,xwmin
        END SELECT
        dx0_save  =dx0
-       dxw_save  =dxw
+       xwint_save=xwint
        dxmin_save=dxmin
-       dxwid_save=dxwid
+       xwmin_save=xwmin
        xmax_save =xmax
        CALL wi_exec(1,ratea,ierr)
        INIT=1
@@ -74,16 +74,16 @@ CONTAINS
                                        xmax,nxmax,nwmax,modelp
        SELECT CASE(modelp)
        CASE(0,1)
-          write(6,'(A,1P4E12.4)')     '## dx0,pnu,dxmin,dxwid     =', &
-                                          dx0,pnu,dxmin,dxwid
+          write(6,'(A,1P4E12.4)')     '## dx0,pnu,dxmin,xwmin     =', &
+                                          dx0,pnu,dxmin,xwmin
        CASE(2)
-          write(6,'(A,1P4E12.4)')     '## dx0,dxw,dxmin,dxwid     =', &
-                                          dx0,dxw,dxmin,dxwid
+          write(6,'(A,1P4E12.4)')     '## dx0,xwint,dxmin,xwmin   =', &
+                                          dx0,xwint,dxmin,xwmin
        END SELECT
        dx0_save  =dx0
-       dxw_save  =dxw
+       xwint_save=xwint
        dxmin_save=dxmin
-       dxwid_save=dxwid
+       xwmin_save=xwmin
        xmax_save =xmax
        CALL wi_scan(ierr)
        INIT=1

@@ -58,7 +58,7 @@ CONTAINS
 
       USE libgrf,ONLY: GRD1D
       USE wicomm,ONLY: &
-           ikind,rkind,dxmin,dx0,dxwid,dxw,alfa,pn0,xmax,nxmax,nwmax,xgrid, &
+           ikind,rkind,dxmin,dx0,xwmin,xwint,alfa,pn0,xmax,nxmax,nwmax,xgrid, &
            modelp,idebug
       IMPLICIT NONE
 
@@ -74,14 +74,14 @@ CONTAINS
          x=0.D0
          nx=0
          DO WHILE (x.LT.xmax)
-            factor=((x-xres)/dxwid)**2
+            factor=((x-xres)/xwmin)**2
             IF(FACTOR.GT.100) THEN
                dx1=dx0
             ELSE
                dx1=dx0*dxmin/(dx0*EXP(-FACTOR)+dxmin)
             ENDIF
             x=x+dx1
-            factor=((x-xres)/dxwid)**2
+            factor=((x-xres)/xwmin)**2
             IF(FACTOR.GT.100) THEN
                dx2=dx0
             ELSE
@@ -108,14 +108,14 @@ CONTAINS
          nx=0
          xgrid(nx)=x
          DO WHILE (x.LT.xmax)
-            factor=((x-xres)/dxwid)**2
+            factor=((x-xres)/xwmin)**2
             IF(FACTOR.GT.100) THEN
                dx1=dx0
             ELSE
                dx1=dx0*dxmin/(dx0*EXP(-FACTOR)+dxmin)
             ENDIF
             x=x+dx1
-            factor=((x-xres)/dxwid)**2
+            factor=((x-xres)/xwmin)**2
             IF(FACTOR.GT.100) THEN
                dx2=dx0
             ELSE
@@ -137,7 +137,7 @@ CONTAINS
          DO WHILE(nx2.LT.nxmax)
             range=xgrid(nx2)-xgrid(nx1)
             IF(nx2-nx1.GT.nwmax) nwmax=nx2-nx1
-            IF(range.LT.dxw) THEN
+            IF(range.LT.xwint) THEN
                nx2=nx2+1
             ELSE
                nx1=nx1+1

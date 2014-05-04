@@ -25,10 +25,10 @@ MODULE wicomm
   INTEGER(ikind):: ntaumax= 51     ! number of TAU scan points
   REAL(rkind)::    taumin = 0.D0   ! minimum of TAU scan
   REAL(rkind)::    taumax = 1.65D0 ! maximum of TAU scan
-  REAL(rkind)::    dxw    = 100.D0 ! range of kernel integral
+  REAL(rkind)::    xwint  = 100.D0 ! range of kernel integral
   REAL(rkind)::    dx0    = 0.5D0  ! default grid size
   REAL(rkind)::    dxmin  = 0.D0   ! minimum grid size at omegape = omega
-  REAL(rkind)::    dxwid  = 1.D0   ! reduction reange near omegape = omega
+  REAL(rkind)::    xwmin  = 1.D0   ! range of reduction near omegape = omega
   COMPLEX(rkind):: cfyn = (1.D0,0.D0) ! E field of incident wave at nx=nxmax
   INTEGER(ikind):: idebug = 0      ! debug option index
 
