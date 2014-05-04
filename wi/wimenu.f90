@@ -14,7 +14,8 @@ CONTAINS
     USE wiprep,ONLY: wi_prep
     USE wiexec,ONLY: wi_exec
     USE wiscan,ONLY: wi_scan
-    USE wigout,ONLY: wi_gout
+    USE wigout,ONLY: wi_gout,wi_mesh
+    USE libgrf
 
     IMPLICIT NONE
     INTEGER(ikind)    :: ierr,mode,ind
@@ -28,7 +29,7 @@ CONTAINS
 
 1   CONTINUE
     ierr=0
-    WRITE(6,'(A)') '## WI MENU: P,V/PARM  R/RUN  S/SCAN  G/GRAF  Q/QUIT'
+    WRITE(6,'(A)') '## WI MENU: P,V/PARM  R/RUN  S/SCAN  G,M/GRAF  Q/QUIT'
 
     CALL TASK_KLIN(line,kid,mode,wi_parm)
     IF(mode /= 1) GOTO 1
@@ -92,6 +93,12 @@ CONTAINS
           WRITE(6,*) 'XX data is not ready or destroyed'
        ELSE
           CALL wi_gout
+       END IF
+    ELSEIF(kid.EQ.'M') THEN
+       IF(INIT.EQ.0) THEN
+          WRITE(6,*) 'XX xgrid is not ready or destroyed'
+       ELSE
+          CALL wi_mesh
        END IF
     ELSEIF(kid.EQ.'Q') THEN
        GOTO 9000

@@ -145,17 +145,6 @@ CONTAINS
          END DO
       END SELECT
 
-      IF(idebug.EQ.1) THEN
-         CALL PAGES
-         ALLOCATE(xid(nxmax))
-         DO nx=1,nxmax
-            xid(nx)=dble(nx)
-         END DO
-         CALL GRD1D(0,xid,xgrid,nxmax,nxmax,1,'@xgrid vs nx@')
-         DEALLOCATE(xid)
-         CALL PAGEE
-      END IF
-
       RETURN
     END SUBROUTINE set_grid
 

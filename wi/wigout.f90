@@ -2,7 +2,7 @@
 
 Module wigout
   PRIVATE
-  PUBLIC wi_gout
+  PUBLIC wi_gout,wi_mesh
  
 CONTAINS
 
@@ -173,4 +173,22 @@ CONTAINS
     CALL PAGEE
     RETURN
   END SUBROUTINE wigra1
+
+  SUBROUTINE wi_mesh
+    USE libgrf,ONLY: GRD1D
+    USE wicomm,ONLY: ikind,rkind,nxmax,xgrid
+      IMPLICIT NONE
+      INTEGER(ikind):: nx
+      REAL(rkind),DIMENSION(:),ALLOCATABLE:: xid
+
+    CALL PAGES
+    ALLOCATE(xid(nxmax))
+    DO nx=1,nxmax
+       xid(nx)=dble(nx)
+    END DO
+    CALL GRD1D(0,xid,xgrid,nxmax,nxmax,1,'@xgrid vs nx@')
+    DEALLOCATE(xid)
+    CALL PAGEE
+    RETURN
+  END SUBROUTINE wi_mesh
 END Module wigout
