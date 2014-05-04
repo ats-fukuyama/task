@@ -22,10 +22,7 @@ CONTAINS
     any_save=any
     rk0l=beta/alfa
     dtau=(taumax-taumin)/(ntaumax-1)
-    write(6,'(A,1P4E12.4)') '## alfa,beta,rk0l,rk0l**(1/3)=', &
-                             alfa,beta,rk0l,rk0l**(1.D0/3.D0)
-    write(6,'(A,1P2E12.4,2I12)') '## xmax,pn0,nxmax,nwmax=', &
-                             xmax,pn0,nxmax,nwmax
+
     DO ntau=1,ntaumax
        tau=taumin+dtau*(ntau-1)
        any=tau/rk0l**(1.D0/3.D0)

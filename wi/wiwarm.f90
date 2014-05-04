@@ -1,5 +1,5 @@
-
 ! $Id$
+
 MODULE wiwarm
 
   PRIVATE
@@ -14,13 +14,11 @@ CONTAINS
     INTEGER(ikind),INTENT(IN):: iprint
     REAL(rkind),INTENT(OUT):: ratea
     INTEGER(ikind),INTENT(OUT):: ierr
-    INTEGER(ikind):: mlmax,mwmax,ml,mw
+    INTEGER(ikind):: ml,mw
     
     mlmax=nxmax*2+3
     mwmax=7
     
-    CALL INITDS   ! initiaize FEM coefficients
-    CALL SUBFW    ! calculate elements of kernel function
     CALL SUBCK2   ! calculate coefficient matrix
     CALL SUBINI   ! calculate right-hand-side vector
 !       DO ML=1,4
@@ -43,57 +41,6 @@ CONTAINS
   601 FORMAT('## END OF ',A6,' ##  CPU TIME = ',F8.3,' SEC')
     END SUBROUTINE wi_warm
 
-!     *****  INITIALIZE D0,D1,D2,D3  *****
-
-    SUBROUTINE INITDS
-
-      USE wicomm
-      IMPLICIT NONE
-      INTEGER(ikind):: L,M,N
-
-      D0(0,0)=1.D0/3.D0
-      D0(0,1)=1.D0/6.D0
-      D0(1,0)=1.D0/6.D0
-      D0(1,1)=1.D0/3.D0
-      D1(0,0)=-0.5D0
-      D1(0,1)=-0.5D0
-      D1(1,0)=0.5D0
-      D1(1,1)=0.5D0
-      D2(0,0)=1.D0
-      D2(0,1)=-1.D0
-      D2(1,0)=-1.D0
-      D2(1,1)=1.D0
-      DO L=0,1
-         DO M=0,1
-            DO N=0,1
-               D3(L,M,N)=1.D0/12.D0
-            END DO
-         END DO
-      END DO
-      D3(0,0,0)=1.D0/4.D0
-      D3(1,1,1)=1.D0/4.D0
-      RETURN
-    END SUBROUTINE INITDS
-
-!     *****  SET KERNEL FUNCTION  ***** 
-
-    SUBROUTINE SUBFW
-
-      USE wicomm
-      USE wigcom
-      IMPLICIT NONE
-      REAL(rkind):: dx,rky,x
-      COMPLEX(rkind):: CS
-      INTEGER(ikind):: J,L,NX,NW
-
-      DX=XMAX/NXMAX
-      DO NX=0,NXMAX
-         CWE(NX)=DEXP(-0.5D0*ALFA*NX*DX)
-         CWP(NX)=PN0
-      END DO
-      RETURN
-    END SUBROUTINE SUBFW
-
 !     *****  CALCULATION OF COEFFICIENT MATRIX  ***** 
 
     SUBROUTINE SUBCK2
@@ -101,22 +48,17 @@ CONTAINS
       USE wicomm
       IMPLICIT NONE
       COMPLEX(rkind):: ciky,cbb
-      REAL(rkind):: rky,rky2,dx,dx2,beta2,dky
-      INTEGER(ikind):: MLMAX,MWMAX,ML,MW,I,J,NX,ID,JD
+      REAL(rkind):: rky,rky2,dx,beta2,dky
+      INTEGER(ikind):: ML,MW,I,J,NX,ID,JD
       INTEGER(ikind):: KK,KD,IOB,IO,I2
       REAL(rkind):: gamma=3.D0
 
       RKY=ANY*BETA
       RKY2=RKY**2
-      DX=XMAX/DBLE(NXMAX)
-      DX2=DX**2
       BETA2=BETA*BETA
       DKY=ANY*ANY
       CIKY=CI*ANY/BETA
       CBB=CI/(DSQRT(1.D0-ANY*ANY)*BETA)
-
-      MLMAX=2*NXMAX+3
-      MWMAX=7
 
       DO ML=1,MLMAX
          DO MW=1,MWMAX
@@ -125,6 +67,7 @@ CONTAINS
       END DO
 
       DO NX=0,NXMAX-1
+         DX=xgrid(nx+1)-xgrid(nx)
          DO I=NX,NX+1
             ID=2*I
             DO J=NX,NX+1
@@ -146,6 +89,7 @@ CONTAINS
       CK(4,MLMAX)=-1.D0
 
       DO NX=0,NXMAX-1
+         DX=xgrid(nx+1)-xgrid(nx)
          DO I=NX,NX+1
             ID=2*I
             DO J=NX,NX+1
@@ -222,13 +166,11 @@ CONTAINS
       IMPLICIT NONE
       COMPLEX(ikind):: cp1,cp2,cp3,cp4,cpa
       INTEGER(ikind):: NX,i,j,id,jd,kk,kd
-      REAL(rkind):: rky,rky2,dx,dx2,AD,BD
+      REAL(rkind):: rky,rky2,dx,AD,BD
       REAL(rkind):: gamma=3.D0
 
       RKY=ANY*BETA
       RKY2=RKY**2
-      DX=XMAX/DBLE(NXMAX)
-      DX2=DX**2
 
       DO NX=0,NXMAX
          CPOWER(NX)=(0.D0,0.D0)
@@ -236,6 +178,7 @@ CONTAINS
       PTOT=0.D0
 
       DO NX=0,NXMAX-1
+         DX=xgrid(nx+1)-xgrid(nx)
          AD=1.D0/(2.D0*DX) 
          BD=1.D0/(2.D0*DX) 
          IF(NX.EQ.0) AD=1.D0/DX

@@ -48,7 +48,6 @@ CONTAINS
 
     USE wicomm
     IMPLICIT NONE
-    REAL(rkind):: dx
     COMPLEX(rkind):: CZ
     REAL,DIMENSION(nxmax+1):: SVX,SCR,SCI,SCA,SCER,SCEI,SCEA,SPOWR 
     REAL:: SMINX,SMAXX,SMINF,SMAXF,SMINE,SMAXE,SMINP,SMAXP
@@ -58,10 +57,9 @@ CONTAINS
     INTEGER:: J,JD
     
 
-    DX=XMAX/DBLE(NXMAX)
     DO J=1,NXMAX+1 
        JD=2*(J-1) 
-       SVX(J)=(J-1)*DX
+       SVX(J)=xgrid(J-1)
        SCR(J)=REAL(CFY(JD+1))
        SCI(J)=AIMAG(CFY(JD+1))
        SCA(J)=ABS(CFY(JD+1))
@@ -126,7 +124,7 @@ CONTAINS
     CALL NUMBI(NWMAX,'(I7)',8)
     CALL MOVE(15.5,16.0)
     CALL TEXT('  XMAX  = ',10)
-    CALL NUMBD(XMAX,'(F7.3)',7)
+    CALL NUMBD(XMAX,'(F7.1)',7)
     CALL MOVE(15.5,15.5)
     CALL TEXT('  PN0   = ',10)
     CALL NUMBD(PN0,'(F7.3)',7)

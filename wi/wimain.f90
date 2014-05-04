@@ -15,7 +15,7 @@ PROGRAM wi_main
   INTEGER(ikind)  :: ierr
 
   CALL GSOPEN
-  WRITE(6,'(A)') '## TASK/WI 2014/03/01'
+  WRITE(6,'(A)') '## TASK/WI 2014/05/03'
   OPEN(7,STATUS='SCRATCH')
   
   CALL wi_parm(1,'wiparm.nl',ierr)

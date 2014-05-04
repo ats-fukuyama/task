@@ -8,8 +8,10 @@ CONTAINS
 
   SUBROUTINE wi_menu
 
-    USE wicomm,ONLY: ikind,rkind,wi_allocate,wi_deallocate,nxmax
+    USE wicomm,ONLY: ikind,rkind,wi_deallocate,alfa,beta,xmax,pn0,any, &
+                     nxmax,nwmax,pnu,dx0,dxw,dxmin,dxwid,modelp
     USE wiparm,ONLY: wi_parm,wi_view
+    USE wiprep,ONLY: wi_prep
     USE wiexec,ONLY: wi_exec
     USE wiscan,ONLY: wi_scan
     USE wigout,ONLY: wi_gout
@@ -19,8 +21,10 @@ CONTAINS
     CHARACTER         :: kid
     CHARACTER(LEN=80) :: line
     INTEGER(ikind)    :: init=0
-    INTEGER(ikind)    :: nxmax_save=0
-    REAL(rkind)       :: ratea
+    REAL(rkind)       :: dx0_save=0.D0,dxmin_save=0.D0
+    REAL(rkind)       :: dxwid_save=0.D0,xmax_save=0.D0
+    REAL(rkind)       :: dxw_save=0.D0
+    REAL(rkind)       :: ratea,rk0l
 
 1   CONTINUE
     ierr=0
@@ -28,7 +32,11 @@ CONTAINS
 
     CALL TASK_KLIN(line,kid,mode,wi_parm)
     IF(mode /= 1) GOTO 1
-    IF(nxmax.NE.nxmax_save) THEN  ! data structure was modified
+    IF(dx0  .NE.dx0_save   .OR. &
+       dxw  .NE.dxw_save   .OR. &
+       dxmin.NE.dxmin_save .OR. &
+       dxwid.NE.dxwid_save .OR. &
+       xmax .NE.xmax_save) THEN  ! x array was modified
        INIT=0
     END IF
 
@@ -37,13 +45,46 @@ CONTAINS
     ELSEIF(kid.EQ.'V') THEN
        CALL wi_view
     ELSEIF(kid.EQ.'R') THEN
-       CALL wi_allocate
-       nxmax_save=nxmax
+       CALL wi_prep
+       write(6,'(A,1P4E12.4)')     '## alfa,beta,pn0,any       =', &
+                                       alfa,beta,pn0,any
+       write(6,'(A,1PE12.4,3I12)') '## xmax,nxmax,nwmax,modelp =', &
+                                       xmax,nxmax,nwmax,modelp
+       SELECT CASE(modelp)
+       CASE(0,1)
+          write(6,'(A,1P4E12.4)')     '## dx0,pnu,dxmin,dxwid     =', &
+                                          dx0,pnu,dxmin,dxwid
+       CASE(2)
+          write(6,'(A,1P4E12.4)')     '## dx0,dxw,dxmin,dxwid     =', &
+                                          dx0,dxw,dxmin,dxwid
+       END SELECT
+       dx0_save  =dx0
+       dxw_save  =dxw
+       dxmin_save=dxmin
+       dxwid_save=dxwid
+       xmax_save =xmax
        CALL wi_exec(1,ratea,ierr)
        INIT=1
     ELSEIF(kid.EQ.'S') THEN
-       CALL wi_allocate
-       nxmax_save=nxmax
+       CALL wi_prep
+       rk0l=beta/alfa
+       write(6,'(A,1P4E12.4)')     '## alfa,beta,pn0,rk0l      =', &
+                                       alfa,beta,pn0,any
+       write(6,'(A,1PE12.4,3I12)') '## xmax,nxmax,nwmax,modelp =', &
+                                       xmax,nxmax,nwmax,modelp
+       SELECT CASE(modelp)
+       CASE(0,1)
+          write(6,'(A,1P4E12.4)')     '## dx0,pnu,dxmin,dxwid     =', &
+                                          dx0,pnu,dxmin,dxwid
+       CASE(2)
+          write(6,'(A,1P4E12.4)')     '## dx0,dxw,dxmin,dxwid     =', &
+                                          dx0,dxw,dxmin,dxwid
+       END SELECT
+       dx0_save  =dx0
+       dxw_save  =dxw
+       dxmin_save=dxmin
+       dxwid_save=dxwid
+       xmax_save =xmax
        CALL wi_scan(ierr)
        INIT=1
     ELSEIF(kid.EQ.'G') THEN

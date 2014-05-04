@@ -14,21 +14,15 @@ CONTAINS
     INTEGER(ikind),INTENT(IN):: iprint
     REAL(rkind),INTENT(OUT):: ratea
     INTEGER(ikind),INTENT(OUT):: ierr
-    INTEGER(ikind):: mlmax,mwmax,ml,mw
+    INTEGER(ikind):: ml,mw
     REAL:: GT1,GT2
 
     mlmax=nxmax*2+3
     mwmax=4*nwmax+3
 
-    CALL INITDS   ! initiaize FEM coefficients
-       CALL GUTIME(GT1)
     CALL SUBFW    ! calculate elements of kernel function
-       CALL GUTIME(GT2)
-       IF(iprint > 0) WRITE(6,601) 'SUBFW ',GT2-GT1
     CALL SUBCK2   ! calculate coefficient matrix
     CALL SUBINI   ! calculate right-hand-side vector
-       CALL GUTIME(GT2)
-       IF(iprint > 0) WRITE(6,601) 'SUBCK2',GT2-GT1
     IF(NWMAX.EQ.NXMAX) THEN
        CALL INVMCD(CK,MLEN,IERR)   ! full matrix solver
        IF(IERR.NE.0) GOTO 9900
@@ -47,49 +41,13 @@ CONTAINS
           IF(IERR.NE.0) GOTO 9900
        CALL SUBFYW                               ! calculate field vector
     ENDIF
-       CALL GUTIME(GT2)
-       IF(iprint > 0) WRITE(6,601) 'SOLVER',GT2-GT1
     CALL SUBPOW    ! calculate sbsorbed power
-       CALL GUTIME(GT2)
-       IF(iprint > 0) WRITE(6,601) 'POWER ',GT2-GT1
        RATEA=1.D0-ABS(CFY(NXMAX*2+3))**2
        IF(iprint > 0) WRITE(6,'(A,F8.5)') '## Absorption rate: ',RATEA
 9900  CONTINUE
       RETURN
   601 FORMAT('## END OF ',A6,' ##  CPU TIME = ',F8.3,' SEC')
     END SUBROUTINE wi_hot
-
-!     *****  INITIALIZE D0,D1,D2,D3  *****
-
-    SUBROUTINE INITDS
-
-      USE wicomm
-      IMPLICIT NONE
-      INTEGER(ikind):: L,M,N
-
-      D0(0,0)=1.D0/3.D0
-      D0(0,1)=1.D0/6.D0
-      D0(1,0)=1.D0/6.D0
-      D0(1,1)=1.D0/3.D0
-      D1(0,0)=-0.5D0
-      D1(0,1)=-0.5D0
-      D1(1,0)=0.5D0
-      D1(1,1)=0.5D0
-      D2(0,0)=1.D0
-      D2(0,1)=-1.D0
-      D2(1,0)=-1.D0
-      D2(1,1)=1.D0
-      DO L=0,1
-         DO M=0,1
-            DO N=0,1
-               D3(L,M,N)=1.D0/12.D0
-            END DO
-         END DO
-      END DO
-      D3(0,0,0)=1.D0/4.D0
-      D3(1,1,1)=1.D0/4.D0
-      RETURN
-    END SUBROUTINE INITDS
 
 !     *****  SET KERNEL FUNCTION  ***** 
 
@@ -112,10 +70,6 @@ CONTAINS
             CU(J, NW)=CS
             CU(J,-NW)=CS
          END DO
-      END DO
-      DO NX=0,NXMAX
-         CWE(NX)=DEXP(-0.5D0*ALFA*NX*DX)
-         CWP(NX)=PN0
       END DO
       RETURN
     END SUBROUTINE SUBFW

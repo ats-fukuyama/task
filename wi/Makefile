@@ -15,7 +15,7 @@ MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD)
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
 SRCSFIXED = 
-SRCSFREE = wicomm.f90 wiparm.f90 \
+SRCSFREE = wicomm.f90 wiparm.f90 wiprep.f90 \
 	   wicold.f90 wiwarm.f90 wihot.f90 wiexec.f90 \
            wiscan.f90 wigout.f90 wimenu.f90
 
@@ -53,6 +53,7 @@ wimain.o: wimain.f90 wicomm.f90
 wimenu.o: wimenu.f90 wicomm.f90
 wiparm.o: wiparm.f90 wicomm.f90
 wiexec.o: wiexec.f90 wicomm.f90
+wiprep.o: wiscan.f90 wicomm.f90
 wicold.o: wicold.f90 wicomm.f90
 wiwarm.o: wiwarm.f90 wicomm.f90
 wihot.o: wihot.f90 wicomm.f90

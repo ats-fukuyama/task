@@ -9,8 +9,6 @@ MODULE wicomm
 
   INTEGER(ikind):: modelg = 0      ! calculation mode: 0:unmag
   INTEGER(ikind):: modelp = 2      ! plasma mode: 0:cold, 1:warm, 2:hot
-  INTEGER(ikind):: nxmax  = 400    ! number of grid points in the x direction
-  INTEGER(ikind):: nwmax  = 200    ! number of grid points for kernel integral
   REAL(rkind)::    xmax   = 200.D0 ! maximum value of x (minimum value is 0.0)
   REAL(rkind)::    pn0    = 2.D0   ! normalized plasma density at x=0 
                                    !    [ pn0 = omega_pe^2 / omega^2 ]
@@ -27,15 +25,27 @@ MODULE wicomm
   INTEGER(ikind):: ntaumax= 51     ! number of TAU scan points
   REAL(rkind)::    taumin = 0.D0   ! minimum of TAU scan
   REAL(rkind)::    taumax = 1.65D0 ! maximum of TAU scan
+  REAL(rkind)::    dxw    = 100.D0 ! range of kernel integral
+  REAL(rkind)::    dx0    = 0.5D0  ! default grid size
+  REAL(rkind)::    dxmin  = 0.D0   ! minimum grid size at omegape = omega
+  REAL(rkind)::    dxwid  = 1.D0   ! reduction reange near omegape = omega
   COMPLEX(rkind):: cfyn = (1.D0,0.D0) ! E field of incident wave at nx=nxmax
+  INTEGER(ikind):: idebug = 0      ! debug option index
+
 
 ! --- Global variables ---
 
-  INTEGER(ikind):: MLEN ! coefficient matrix length 
-  INTEGER(ikind):: MWID ! coefficient matrix width
-  REAL(rkind):: PTOT    ! total absorption power
+  INTEGER(ikind):: nxmax ! number of grid points in the x direction
+  INTEGER(ikind):: nwmax ! number of grid points for kernel integral
+  INTEGER(ikind):: mlmax ! matrix length
+  INTEGER(ikind):: mwmax ! matrix width
+  INTEGER(ikind):: MLEN  ! coefficient matrix length
+  INTEGER(ikind):: MWID  ! coefficient matrix width
+  REAL(rkind):: PTOT     ! total absorption power
   REAL(rkind):: D0(0:1,0:1),D1(0:1,0:1),D2(0:1,0:1),D3(0:1,0:1,0:1)
-                        ! FEM integral coefficients
+                         ! FEM integral coefficients
+  REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
+       XGRID
   COMPLEX(rkind),DIMENSION(:),ALLOCATABLE:: &
        CFY,CSO,CWP,CWE,CPOWER
   COMPLEX(rkind),DIMENSION(:,:),ALLOCATABLE:: &

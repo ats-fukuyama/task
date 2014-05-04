@@ -45,15 +45,15 @@ CONTAINS
 
   SUBROUTINE wi_nlin(NID,IST,IERR)
 
-    USE wicomm, ONLY: nxmax,nwmax,modelg,xmax,pn0,alfa,any,beta,cfyn, &
-                      ntaumax,taumin,taumax,modelp,pnu
+    USE wicomm, ONLY: modelg,xmax,dx0,dxw,pn0,alfa,any,beta,cfyn, &
+                      ntaumax,taumin,taumax,modelp,pnu,dxmin,dxwid,idebug
 
     IMPLICIT NONE
     INTEGER,INTENT(IN) :: NID
     INTEGER,INTENT(OUT) :: IST,IERR
 
-    NAMELIST /WI/ nxmax,nwmax,modelg,xmax,pn0,alfa,any,beta,cfyn, &
-                  ntaumax,taumin,taumax,modelp,pnu
+    NAMELIST /WI/ modelg,xmax,dx0,dxw,pn0,alfa,any,beta,cfyn, &
+                  ntaumax,taumin,taumax,modelp,pnu,dxmin,dxwid,idebug
 
     READ(NID,WI,IOSTAT=IST,ERR=9800,END=9900)
 
@@ -71,8 +71,9 @@ CONTAINS
   SUBROUTINE wi_plst
 
     IMPLICIT NONE
-    WRITE(6,'(A)') '# &WI : nxmax,nwmax,modelg,xmax,pn0,alfa,any,beta,cfyn,'
-    WRITE(6,'(A)') '        ntaumax,taumin,taumax,modelp,pnu'
+    WRITE(6,'(A)') '# &WI : modelg,xmax,dx0,dxw,pn0,alfa,any,beta,cfyn,'
+    WRITE(6,'(A)') '        ntaumax,taumin,taumax,modelp,pnu,dxmin,dxwid,'
+    WRITE(6,'(A)') '        idebug'
     RETURN
 
   END SUBROUTINE wi_plst
@@ -114,15 +115,14 @@ CONTAINS
     use wicomm
     implicit none
 
-    WRITE(6,602) 'nxmax   ',nxmax, 'nwmax   ',nwmax , &
-                 'modelg  ',modelg,'modelp  ',modelp
-    WRITE(6,602) 'ntaumax ',ntaumax
-
+    WRITE(6,602) 'modelg  ',modelg, 'modelp  ',modelp, &
+                 'ntaumax ',ntaumax,'idebug  ',idebug
     WRITE(6,601) 'xmax  ',xmax  ,'pn0   ',pn0   , &
                  'alfa  ',alfa  ,'any   ',any
     WRITE(6,601) 'beta  ',beta  ,'pnu   ',pnu, &
                  'taumin',taumin,'taumax',taumax
-
+    WRITE(6,601) 'dx0   ',dx0   ,'dxw   ',dxw, &
+                 'dxmin ',dxmin ,'dxwid ',dxwid
     WRITE(6,603) 'cfyn  ',cfyn
     RETURN
 
