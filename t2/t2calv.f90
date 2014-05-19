@@ -52,7 +52,7 @@ CONTAINS
        CALL T2CALV_SS
        
     ENDDO
-
+    
     IF(i0cchk.EQ.1) CALL T2_CCHK
     
     RETURN
@@ -123,7 +123,6 @@ CONTAINS
          d2nfcl11,d2nfcl12,d2nfcl21,d2nfcl22
     REAL(i0rkind)::d0err
 
-    
     !C
     !C d0psip : DERIVATIVE POLOIDAL FLUX FUNCTION
     !C          WITH RESPECT TO RHO               : \psi'
@@ -150,9 +149,9 @@ CONTAINS
     !C 
     !C * CO = COVARIANT, CT = CONTRAVARIANT
     !C
-    !C      checked 2014-02-20 by H.Seto
+    !C      checked 2014-04-01 by H.Seto
     !C
-   
+    
     !C
     !C MASS AND ELECTRIC CHARGE [SI]
     !C
@@ -163,15 +162,14 @@ CONTAINS
     ENDDO
     
     !C
-    !C INITIALIZE     
+    !C INITIALIZE
     !C
     
     i0xid1d = i2crt( 3,i0midi)
     i0xid2d = i2crt( 2,i0midi)
     d0rzcr  = d2rzm( 1,i0midi)
     d0mfcr  = d2mfc1(1,i0midi)
-
-
+    
     !C
     !C CONVERT VARIABLES TO SI-UNIT
     !C
@@ -181,23 +179,11 @@ CONTAINS
        i0nflag = 0
        i0vidi =  10*i0sidi - 5
        
-       !C d0nn_a: 10^{20}m^{-3}
-       !C d0pp_a: keV*10^{20}m^{-3}
+       !C n in 10^20 m^-3
+       !C p in 10^20 keV*m^-3
        d0nn_a = d2xvec_befor(i0vidi+1,i0xid2d)*d0nncst*1.D-20
        d0pp_a = d2xvec_befor(i0vidi+6,i0xid2d)*d0ppcst*1.D-23/d0aee
        
-       !d1nn(i0sidi) = d0nncst*d2xvec_befor(i0vidi+ 1,i0xid2d)
-       !d1fr(i0sidi) = d0frcst*d2xvec_befor(i0vidi+ 2,i0xid2d)*d0mfcr
-       !d1fb(i0sidi) = d0fbcst*d2xvec_befor(i0vidi+ 3,i0xid2d)
-       !d1ft(i0sidi) = d0ftcst*d2xvec_befor(i0vidi+ 4,i0xid2d)
-       !d1fp(i0sidi) = d0fpcst*d2xvec_befor(i0vidi+ 5,i0xid2d)
-       !d1pp(i0sidi) = d0ppcst*d2xvec_befor(i0vidi+ 6,i0xid2d)
-       !d1qr(i0sidi) = d0qrcst*d2xvec_befor(i0vidi+ 7,i0xid2d)*d0mfcr
-       !d1qb(i0sidi) = d0qbcst*d2xvec_befor(i0vidi+ 8,i0xid2d)
-       !d1qt(i0sidi) = d0qtcst*d2xvec_befor(i0vidi+ 9,i0xid2d)
-       !d1qp(i0sidi) = d0qpcst*d2xvec_befor(i0vidi+10,i0xid2d)
-
-       !C modified by H.Seto 2014-03-29
        d1nn(i0sidi) = d0nncst*d2xvec_befor(i0vidi+ 1,i0xid2d)
        d1fr(i0sidi) = d0frcst*d2xvec_befor(i0vidi+ 2,i0xid2d)
        d1fb(i0sidi) = d0fbcst*d2xvec_befor(i0vidi+ 3,i0xid2d)
@@ -210,13 +196,13 @@ CONTAINS
        d1qt(i0sidi) = d0qtcst*d2xvec_befor(i0vidi+ 9,i0xid2d)
        d1qp(i0sidi) = d0qpcst*d2xvec_befor(i0vidi+10,i0xid2d)
        
-       IF(        d0nn_a .GT.0.D0 )THEN
+       IF(        d0nn_a.GT.0.D0 )THEN
           d1ni(i0sidi) = 1.D0/d1nn(i0sidi)
        ELSE
           i0nflag = 1
        ENDIF
        
-       IF(        d0pp_a .GT.0.D0 )THEN
+       IF(        d0pp_a.GT.0.D0 )THEN
           d1pi(i0sidi) = 1.D0/d1pp(i0sidi)
        ELSE
           i0nflag = 1
@@ -644,8 +630,8 @@ CONTAINS
        !C NEOCLASSICAL VISCOSITY COEFFICIENTS: \mu_{ai}
        !C
        
-       d1nvcm1(i0xa) = d0k11 
-       d1nvcm2(i0xa) = d0k12 - 2.5D0*d0k11 
+       d1nvcm1(i0xa) = d0k11
+       d1nvcm2(i0xa) = d0k12 - 2.5D0*d0k11
        d1nvcm3(i0xa) = d0k22 - 5.0D0*d0k12 + 6.25D0*d0k11
        
     ENDDO
@@ -697,15 +683,17 @@ CONTAINS
 
     !d0ct1_anom = (1.5D0 - (d0m_anom/d0d_anom)) * d0psip/d0aee
     !d0ct2_anom = (2.5D0 - (d0x_anom/d0m_anom)) * d0psip/d0aee
-    d0ct1_anom = (1.0D0 - 1.D0) * d0psip/d0aee
-    d0ct2_anom = (2.0D0 - 2.D0) * d0psip/d0aee
+    d0ct1_anom = (1.0D0 ) * d0psip/d0aee
+    !d0ct2_anom = (2.0D0 - 2.D0) * d0psip/d0aee
+    d0ct2_anom = 0.D0
     
     DO i0sidi = 1, i0smax
        d0ee_a = d1ee(i0sidi)
        d0tt_a = d1tt(i0sidi)
        d0sign = d0ee_a/ABS(d0ee_a)
        d1cx1_anom(i0sidi) = d0sign*(d0aee**2)*d0ti_e*d0d_anom
-       d1cx2_anom(i0sidi) = d0sign*(d0aee**2)*d0ti_e*d0m_anom*d0tt_a
+       !d1cx2_anom(i0sidi) = d0sign*(d0aee**2)*d0ti_e*d0m_anom*d0tt_a
+       d1cx2_anom(i0sidi) = 0.D0
     ENDDO
 
     RETURN
@@ -716,7 +704,7 @@ CONTAINS
   !C 
   !C CALCULATION OF MASS SCALAR COEFFICIENTS
   !C
-  !C             2014-03-29 H.SETO
+  !C             2014-04-01 H.SETO
   !C
   !C---------------------------------------------------------
   
@@ -818,7 +806,7 @@ CONTAINS
        !C
        !C EQ_009
        !C
-
+       
        i0vidi = i0vofi - 1
        
        !C Ft
@@ -854,7 +842,7 @@ CONTAINS
 
        i0vidi = i0vofi + 4
        
-       !C Qt       
+       !C Qt
        i0vidj = i0vofi + 4
        d3ms(i0vidi,i0vidj,i0midi)&
             &             = d0sqrtg*d0mm_a      * d0qtcst/d0qtfct 
@@ -869,7 +857,7 @@ CONTAINS
   !C 
   !C CALCULATION OF ADVECTION VECTOR COEFFICIENTS
   !C
-  !C             2014-03-29 H.SETO
+  !C             2014-04-01 H.SETO
   !C
   !C---------------------------------------------------------
   SUBROUTINE T2CALV_AV
@@ -1019,7 +1007,7 @@ CONTAINS
        !C
        !C EQ_008
        !C
-
+       
        i0vidi = i0vofi - 2
        
        !C Fb

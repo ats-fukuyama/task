@@ -31,6 +31,7 @@ MODULE T2COMM
   !C 
   !C
   !C---------------------------------------------------------
+  
   INTEGER(i0ikind)::i0dbg
 
   INTEGER(i0ikind) ::&
