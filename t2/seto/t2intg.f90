@@ -7,7 +7,7 @@
 !C T2INTG requires following variables:
 !C
 !C        rkind,ikind,abcsArrayXX,wghtArrayXX [from T2CNST]
-!C        nnmax,nqmax,ndmax                   [from T2COMM] 
+!C        NNMAX,NQMAX,NDMAX                   [from T2COMM] 
 !C
 !C T2INTG provides following variables:
 !C
@@ -31,7 +31,7 @@
 MODULE T2INTG
   
   USE T2CNST, ONLY: rkind,ikind
-  USE T2COMM, ONLY: nnmax,nqmax,ndmax
+  USE T2COMM, ONLY: NNMAX,NQMAX,NDMAX
 
   IMPLICIT NONE
 
@@ -78,22 +78,21 @@ CONTAINS
     !C------------------------------------------------------
     
     CALL T2INTG_PUBLIC_ALLOCATE
-
+    
     CALL T2INTG_SETUP_WORKING_ARRAYS
+
+    !
+    ! INTEGRAL ARRAYS FOR PG-FEM
+    !
     
+    ! for mass scalar term
     
-    !C
-    !C INTEGRAL ARRAYS FOR PG-FEM
-    !C
-    
-    !C for mass scalar term
-    
-    DO j_n = 1, nnmax
-    DO i_n = 1, nnmax    
-    DO k_n = 1, nnmax
+    DO j_n = 1, NNMAX
+    DO i_n = 1, NNMAX    
+    DO k_n = 1, NNMAX
        sumGaussQuad = 0.D0
-       DO i_q = 1, nqmax
-       DO j_q = 1, nqmax
+       DO i_q = 1, NQMAX
+       DO j_q = 1, NQMAX
           intgNi = intgArray(i_q,j_q,0,i_n) 
           intgNj = intgArray(i_q,j_q,0,j_n) 
           intgNk = intgArray(i_q,j_q,0,k_n) 
@@ -107,15 +106,15 @@ CONTAINS
     ENDDO
     ENDDO
     
-    !C for advection vector term
+    ! for advection vector term
 
-    DO j_n = 1, nnmax
-    DO i_n = 1, nnmax    
-    DO k_n = 1, nnmax
-       DO i_d = 1, ndmax
+    DO j_n = 1, NNMAX
+    DO i_n = 1, NNMAX    
+    DO k_n = 1, NNMAX
+       DO i_d = 1, NDMAX
           sumGaussQuad =  0.D0
-          DO j_q = 1, nqmax
-          DO i_q = 1, nqmax
+          DO j_q = 1, NQMAX
+          DO i_q = 1, NQMAX
              intgNi = intgArray(i_q,j_q,0,  i_n) 
              intgNj = intgArray(i_q,j_q,i_d,j_n) 
              intgNk = intgArray(i_q,j_q,0,  k_n) 
@@ -132,17 +131,17 @@ CONTAINS
     ENDDO
     ENDDO
 
-    !C for advection tensor term
+    ! for advection tensor term
     
-    DO j_n = 1, nnmax
-    DO i_n = 1, nnmax
-    DO l_n = 1, nnmax
-    DO k_n = 1, nnmax
-       DO j_d = 1, ndmax
-       DO i_d = 1, ndmax
+    DO j_n = 1, NNMAX
+    DO i_n = 1, NNMAX
+    DO l_n = 1, NNMAX
+    DO k_n = 1, NNMAX
+       DO j_d = 1, NDMAX
+       DO i_d = 1, NDMAX
           sumGaussQuad = 0.D0
-          DO j_q = 1, nqmax
-          DO i_q = 1, nqmax
+          DO j_q = 1, NQMAX
+          DO i_q = 1, NQMAX
              intgNi = intgArray(i_q,j_q,i_d,i_n)
              intgNj = intgArray(i_q,j_q,0,  j_n)
              intgNk = intgArray(i_q,j_q,j_d,k_n)
@@ -160,21 +159,22 @@ CONTAINS
     ENDDO
     ENDDO
     
-    !C for diffusion tensor term
+    ! for diffusion tensor term
     
-    DO j_n = 1, nnmax
-    DO i_n = 1, nnmax
-    DO k_n = 1, nnmax
-       DO j_d = 1, ndmax
-       DO i_d = 1, ndmax
+    DO j_n = 1, NNMAX
+    DO i_n = 1, NNMAX
+    DO k_n = 1, NNMAX
+       DO j_d = 1, NDMAX
+       DO i_d = 1, NDMAX
           sumGaussQuad = 0.D0
-          DO j_q = 1, nqmax
-          DO i_q = 1, nqmax
+          DO j_q = 1, NQMAX
+          DO i_q = 1, NQMAX
              intgNi = intgArray(i_q,j_q,i_d,i_n) 
              intgNj = intgArray(i_q,j_q,j_d,j_n) 
              intgNk = intgArray(i_q,j_q,0,  k_n) 
              weight = wghtArray(i_q,j_q        )
-             sumGaussQuad = sumGaussQuad + intgNi*intgNj*intgNk*weight
+             sumGaussQuad = sumGaussQuad &
+                  &       + intgNi*intgNj*intgNk*weight
           ENDDO
           ENDDO
           diffTenIntgPG(i_d,j_d,k_n,i_n,j_n) = sumGaussQuad
@@ -184,15 +184,15 @@ CONTAINS
     ENDDO
     ENDDO
 
-    !C for gradient vector term
+    ! for gradient vector term
     
-    DO j_n = 1, nnmax
-    DO i_n = 1, nnmax
-    DO k_n = 1, nnmax
-       DO i_d = 1, ndmax
+    DO j_n = 1, NNMAX
+    DO i_n = 1, NNMAX
+    DO k_n = 1, NNMAX
+       DO i_d = 1, NDMAX
           sumGaussQuad = 0.D0
-          DO j_q = 1, nqmax
-          DO i_q = 1, nqmax
+          DO j_q = 1, NQMAX
+          DO i_q = 1, NQMAX
              intgNi = intgArray(i_q,j_q,0,  i_n) 
              intgNj = intgArray(i_q,j_q,i_d,j_n) 
              intgNk = intgArray(i_q,j_q,0,  k_n) 
@@ -207,17 +207,17 @@ CONTAINS
     ENDDO
     ENDDO
 
-    !C for gradient tensor term
+    ! for gradient tensor term
     
-    DO j_n = 1, nnmax
-    DO i_n = 1, nnmax
-    DO l_n = 1, nnmax
-    DO k_n = 1, nnmax    
-       DO j_d = 1, ndmax
-       DO i_d = 1, ndmax
+    DO j_n = 1, NNMAX
+    DO i_n = 1, NNMAX
+    DO l_n = 1, NNMAX
+    DO k_n = 1, NNMAX    
+       DO j_d = 1, NDMAX
+       DO i_d = 1, NDMAX
           sumGaussQuad = 0.D0
-          DO j_q = 1, nqmax
-          DO i_q = 1, nqmax
+          DO j_q = 1, NQMAX
+          DO i_q = 1, NQMAX
              intgNi = intgArray(i_q,j_q,0,  i_n)
              intgNj = intgArray(i_q,j_q,j_d,j_n) 
              intgNk = intgArray(i_q,j_q,i_d,k_n)
@@ -235,14 +235,14 @@ CONTAINS
     ENDDO
     ENDDO
 
-    !C for excitation scalar term
+    ! for excitation scalar term
 
-    DO j_n = 1, nnmax
-    DO i_n = 1, nnmax
-    DO k_n = 1, nnmax
+    DO j_n = 1, NNMAX
+    DO i_n = 1, NNMAX
+    DO k_n = 1, NNMAX
        sumGaussQuad = 0.D0
-       DO j_q = 1, nqmax
-       DO i_q = 1, nqmax
+       DO j_q = 1, NQMAX
+       DO i_q = 1, NQMAX
           intgNi = intgArray(i_q,j_q,0,i_n)
           intgNj = intgArray(i_q,j_q,0,j_n)
           intgNk = intgArray(i_q,j_q,0,k_n)
@@ -256,16 +256,16 @@ CONTAINS
     ENDDO
     ENDDO
     
-    !C for excitation vecor term
+    ! for excitation vecor term
 
-    DO j_n = 1, nnmax
-    DO i_n = 1, nnmax
-    DO l_n = 1, nnmax
-    DO k_n = 1, nnmax
-       DO i_d = 1, ndmax
+    DO j_n = 1, NNMAX
+    DO i_n = 1, NNMAX
+    DO l_n = 1, NNMAX
+    DO k_n = 1, NNMAX
+       DO i_d = 1, NDMAX
           sumGaussQuad = 0.D0
-          DO j_q = 1, nqmax
-          DO i_q = 1, nqmax
+          DO j_q = 1, NQMAX
+          DO i_q = 1, NQMAX
              intgNi = intgArray(i_q,j_q,0,  i_n)
              intgNj = intgArray(i_q,j_q,0,  j_n)
              intgNk = intgArray(i_q,j_q,i_d,k_n)
@@ -282,18 +282,18 @@ CONTAINS
     ENDDO
     ENDDO
 
-    !C for excitation tensor term
+    ! for excitation tensor term
 
-    DO j_n = 1, nnmax
-    DO i_n = 1, nnmax
-    DO m_n = 1, nnmax
-    DO l_n = 1, nnmax
-    DO k_n = 1, nnmax
-       DO j_d = 1, ndmax
-       DO i_d = 1, ndmax
+    DO j_n = 1, NNMAX
+    DO i_n = 1, NNMAX
+    DO m_n = 1, NNMAX
+    DO l_n = 1, NNMAX
+    DO k_n = 1, NNMAX
+       DO j_d = 1, NDMAX
+       DO i_d = 1, NDMAX
           sumGaussQuad = 0.D0
-          DO j_q = 1, nqmax
-          DO i_q = 1, nqmax
+          DO j_q = 1, NQMAX
+          DO i_q = 1, NQMAX
              intgNi = intgArray(i_q,j_q,0,  i_n)
              intgNj = intgArray(i_q,j_q,0,  j_n)
              intgNk = intgArray(i_q,j_q,i_d,k_n)
@@ -313,13 +313,13 @@ CONTAINS
     ENDDO
     ENDDO
 
-    !C for source scalar term
+    ! for source scalar term
     
-    DO j_n = 1, nnmax
-    DO i_n = 1, nnmax
+    DO j_n = 1, NNMAX
+    DO i_n = 1, NNMAX
        sumGaussQuad = 0.D0
-       DO j_q = 1, nqmax
-       DO i_q = 1, nqmax
+       DO j_q = 1, NQMAX
+       DO i_q = 1, NQMAX
           intgNi = intgArray(i_q,j_q,0,i_n)
           intgNj = intgArray(i_q,j_q,0,j_n)
           weight = wghtArray(i_q,j_q      )
@@ -337,85 +337,83 @@ CONTAINS
     
   END SUBROUTINE T2_INTG
   
-  !C-------------------------------------------------------------
-  !C
-  !C T2_INTG_TERMINATE (PUBLIC)
-  !C
-  !C                2014-05-20 H.Seto
-  !C
-  !C-------------------------------------------------------------
+  !-------------------------------------------------------------
+  !
+  !  T2_INTG_TERMINATE (PUBLIC)
+  !
+  !                2014-05-20 H.Seto
+  !
+  !-------------------------------------------------------------
   SUBROUTINE T2_INTG_TERMINATE
     CALL T2INTG_PUBLIC_DEALLOCATE
     RETURN
   END SUBROUTINE T2_INTG_TERMINATE
 
-  !C-------------------------------------------------------------
-  !C
-  !C T2INTG_PUBLIC_ALLOCATE (PRIVATE)
-  !C
-  !C                2014-05-20 H.Seto 
-  !C
-  !C-------------------------------------------------------------
+  !-------------------------------------------------------------
+  !
+  !  T2INTG_PUBLIC_ALLOCATE (PRIVATE)
+  !
+  !                2014-05-20 H.Seto 
+  !
+  !-------------------------------------------------------------
   SUBROUTINE T2INTG_PUBLIC_ALLOCATE
     
     INTEGER(ikind),SAVE::&
-         nnmax_save=0,ndmax_save=0,nqmax_save=0
+         NNMAX_save=0,NDMAX_save=0,NQMAX_save=0
     
     INTEGER(ikind):: i0err
     
-    IF(  (nnmax .NE.nnmax_save ).OR.&
-         (ndmax .NE.ndmax_save ).OR.&
-         (nqmax .NE.nqmax_save ))THEN
+    IF(  (NNMAX .NE.NNMAX_save ).OR.&
+         (NDMAX .NE.NDMAX_save ).OR.&
+         (NQMAX .NE.NQMAX_save ))THEN
        
        CALL T2INTG_PUBLIC_DEALLOCATE
        
        DO
           ! for PG-FEM
-          ALLOCATE(massScaIntgPG(1:nnmax,1:nnmax,1:nnmax),&
+          ALLOCATE(massScaIntgPG(1:NNMAX,1:NNMAX,1:NNMAX),&
                STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(adveVecIntgPG(1:ndmax,&
-               &                 1:nnmax,1:nnmax,1:nnmax),&
+          ALLOCATE(adveVecIntgPG(1:NDMAX,&
+               &                 1:NNMAX,1:NNMAX,1:NNMAX),&
                STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(adveTenIntgPG(1:ndmax,1:ndmax,&
-               &                 1:nnmax,1:nnmax,1:nnmax,1:nnmax),&
+          ALLOCATE(adveTenIntgPG(1:NDMAX,1:NDMAX,&
+               &                 1:NNMAX,1:NNMAX,1:NNMAX,1:NNMAX),&
                STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(diffTenIntgPG(1:ndmax,1:ndmax,&
-               &                 1:nnmax,1:nnmax,1:nnmax),&
+          ALLOCATE(diffTenIntgPG(1:NDMAX,1:NDMAX,&
+               &                 1:NNMAX,1:NNMAX,1:NNMAX),&
                STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(gradVecIntgPG(1:ndmax,&
-               &                 1:nnmax,1:nnmax,1:nnmax),&
+          ALLOCATE(gradVecIntgPG(1:NDMAX,&
+               &                 1:NNMAX,1:NNMAX,1:NNMAX),&
                STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(gradTenIntgPG(1:ndmax,1:ndmax,&
-               &                 1:nnmax,1:nnmax,1:nnmax,1:nnmax),&
+          ALLOCATE(gradTenIntgPG(1:NDMAX,1:NDMAX,&
+               &                 1:NNMAX,1:NNMAX,1:NNMAX,1:NNMAX),&
                STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(exciScaIntgPG(1:nnmax,1:nnmax,1:nnmax),&
+          ALLOCATE(exciScaIntgPG(1:NNMAX,1:NNMAX,1:NNMAX),&
                STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(exciVecIntgPG(1:ndmax,&
-               &                 1:nnmax,1:nnmax,1:nnmax,1:nnmax),&
+          ALLOCATE(exciVecIntgPG(1:NDMAX,&
+               &                 1:NNMAX,1:NNMAX,1:NNMAX,1:NNMAX),&
                STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(exciTenIntgPG(1:ndmax,1:ndmax,&
-               &                 1:nnmax,1:nnmax,1:nnmax,1:nnmax,1:nnmax),&
+          ALLOCATE(exciTenIntgPG(1:NDMAX,1:NDMAX,&
+               &                 1:NNMAX,1:NNMAX,1:NNMAX,1:NNMAX,1:NNMAX),&
                STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(sourScaIntgPG(1:nnmax,1:nnmax),&
+          ALLOCATE(sourScaIntgPG(1:NNMAX,1:NNMAX),&
                STAT=i0err); IF(i0err.NE.0) EXIT
           
-          !C
-          !C for SUPG-FEM
-          !C
+          ! for SUPG-FEM
 
-          !ALLOCATE(massScaIntgSUPG(1:ndmax,&
-          !     &                   1:nnmax,1:nnmax,1:nnmax,1:nnmax),&
+          !ALLOCATE(massScaIntgSUPG(1:NDMAX,&
+          !     &                   1:NNMAX,1:NNMAX,1:NNMAX,1:NNMAX),&
           !     STAT=i0err); IF(i0err.NE.0) EXIT
-          !ALLOCATE(adveVecIntgSUPG(1:ndmax,1:ndmax,&
-          !     &                   1:nnmax,1:nnmax,1:nnmax,1:nnmax),&
+          !ALLOCATE(adveVecIntgSUPG(1:NDMAX,1:NDMAX,&
+          !     &                   1:NNMAX,1:NNMAX,1:NNMAX,1:NNMAX),&
           !     STAT=i0err); IF(i0err.NE.0) EXIT
-          !ALLOCATE(sourScaIntgSUPG(1:ndmax,&
-          !     &                   1:nnmax,1:nnmax,1:nnmax),&
+          !ALLOCATE(sourScaIntgSUPG(1:NDMAX,&
+          !     &                   1:NNMAX,1:NNMAX,1:NNMAX),&
           !     STAT=i0err); IF(i0err.NE.0) EXIT
           
-          nnmax_save = nnmax
-          ndmax_save = ndmax
-          nqmax_save = nqmax
+          NNMAX_save = NNMAX
+          NDMAX_save = NDMAX
+          NQMAX_save = NQMAX
           
           WRITE(6,'(A)') '-- T2INTG_PUBLIC_ALLOCATE: SUCCESSED'
           
@@ -432,16 +430,16 @@ CONTAINS
     
   END SUBROUTINE T2INTG_PUBLIC_ALLOCATE
   
-  !C-------------------------------------------------------------
-  !C
-  !C T2INTG_PUBLIC_DEALLOCATE (PRIVATE)
-  !C
-  !C                2014-05-20 H.Seto 
-  !C
-  !C-------------------------------------------------------------
+  !-------------------------------------------------------------
+  !
+  !  T2INTG_PUBLIC_DEALLOCATE (PRIVATE)
+  !
+  !                2014-05-20 H.Seto 
+  !
+  !-------------------------------------------------------------
   SUBROUTINE T2INTG_PUBLIC_DEALLOCATE
 
-    !C for PG-FEM
+    ! for PG-FEM
 
     IF(ALLOCATED(massScaIntgPG)) DEALLOCATE(massScaIntgPG)
     IF(ALLOCATED(adveVecIntgPG)) DEALLOCATE(adveVecIntgPG)
@@ -464,39 +462,39 @@ CONTAINS
 
   END SUBROUTINE T2INTG_PUBLIC_DEALLOCATE
 
-  !C------------------------------------------------------------------
-  !C
-  !C T2INTG_SETUP_WORKING_ARRAYS (PRIVATE)
-  !C 
-  !C                2014-05-20 H.Seto
-  !C
-  !C------------------------------------------------------------------
+  !-------------------------------------------------------------------
+  !
+  ! T2INTG_SETUP_WORKING_ARRAYS (PRIVATE)
+  ! 
+  !                2014-05-20 H.Seto
+  !
+  !-------------------------------------------------------------------
   SUBROUTINE T2INTG_SETUP_WORKING_ARRAYS
     
     USE T2CNST, ONLY: abscArray32,wghtArray32
-    USE T2COMM, ONLY: nnmax,nqmax,ndmax
+    USE T2COMM, ONLY: NNMAX,NQMAX,NDMAX
     
     INTEGER(ikind)::&
          i_q,i_q_odd,i_q_eve,&
          j_q,j_q_odd,j_q_eve
     
-    REAL(   rkind):: abscissa,weight,x,y,abscArray(1:nqmax)
+    REAL(   rkind):: abscissa,weight,x,y,abscArray(1:NQMAX)
 
     ! allocate and initialize working arrays
     
-    ALLOCATE(wghtArray(1:nqmax,1:nqmax),&
-         &   intgArray(1:nqmax,1:nqmax,1:ndmax,1:nnmax))
+    ALLOCATE(wghtArray(1:NQMAX,1:NQMAX),&
+         &   intgArray(1:NQMAX,1:NQMAX,1:NDMAX,1:NNMAX))
     
-    abscArray(1:nqmax) = 0.D0
-    wghtArray(1:nqmax,1:nqmax) = 0.D0
-    intgArray(1:nqmax,1:nqmax,1:ndmax,1:nnmax) = 0.D0
+    abscArray(1:NQMAX) = 0.D0
+    wghtArray(1:NQMAX,1:NQMAX) = 0.D0
+    intgArray(1:NQMAX,1:NQMAX,1:NDMAX,1:NNMAX) = 0.D0
     
     
-    !C
-    !C SET NUMBER OF ABSCISSAS FOR GAUSS INTEGARATION
-    !C
+    !
+    ! SET NUMBER OF ABSCISSAS FOR GAUSS INTEGARATION
+    !
     
-    SELECT CASE (nqmax)
+    SELECT CASE (NQMAX)
        
     CASE(32) !C 32*32 POINTS 2D GAUSSIAN INTEGRATION
        
@@ -534,30 +532,31 @@ CONTAINS
        STOP
     END SELECT
     
-    !C
-    !C SET INTERPOLATION FUNCTION 
-    !C
+    !
+    ! SET INTERPOLATION FUNCTION 
+    !
 
-    SELECT CASE (nnmax)
+    SELECT CASE (NNMAX)
        
     CASE(4)
-       !C FOR 4-NODE LINEAR LAGANGIAN RECTANGULAR ELEMENT 
-       !C
-       !C     y
-       !C     ^
-       !C     |  4-----3
-       !C     |  |     |
-       !C     |  |     |
-       !C     |  1-----2
-       !C   --+------------> x
-       !C     |
-       !C
-       !C
+       !
+       !   04-points Bilinear Lagrangian Rectangular Element
+       !
+       !   (-1, 1)            ( 1, 1)         
+       !         04----------03            
+       !          |           |            
+       !          |           |            y
+       !          |           |            ^ 
+       !          |           |            | 
+       !          |           |            | 
+       !         01----------02          --+------> x
+       !   (-1,-1)            ( 1,-1)      |
+       !                                     
 
-       !C PHI (x_i,y_i)
-       !C
-       DO j_q = 1, nqmax
-       DO i_q = 1, nqmax
+       ! PHI (x_i,y_i)
+
+       DO j_q = 1, NQMAX
+       DO i_q = 1, NQMAX
 
           x = abscArray(i_q)
           y = abscArray(j_q)
@@ -570,11 +569,10 @@ CONTAINS
        ENDDO
        ENDDO
        
-       !C
-       !C dPHI/dx (x_i,y_i)
-       !
-       DO j_q = 1, nqmax
-       DO i_q = 1, nqmax
+       ! dPHI/dx (x_i,y_i)
+
+       DO j_q = 1, NQMAX
+       DO i_q = 1, NQMAX
           
           y = abscArray(j_q)
           
@@ -586,12 +584,10 @@ CONTAINS
        ENDDO
        ENDDO
 
-       !C
-       !C dPHI/dy (x_i,y_i)
-       !C
+       ! dPHI/dy (x_i,y_i)
 
-       DO j_q = 1, nqmax
-       DO i_q = 1, nqmax
+       DO j_q = 1, NQMAX
+       DO i_q = 1, NQMAX
 
           x = abscArray(i_q)
 
@@ -621,10 +617,10 @@ CONTAINS
        !C
        !C
 
-       !C PHI(x_i,y_i) 
-       !C
-       DO j_q = 1, nqmax
-       DO i_q = 1, nqmax
+       ! F_i(Q_j)  
+  
+       DO j_q = 1, NQMAX
+       DO i_q = 1, NQMAX
           x = abscArray(i_q)
           y = abscArray(j_q)
           intgArray(i_q,j_q,0,1) = -(1.D0-x)*(1.D0-y)*(1.D0+x+y)/4.D0
@@ -638,11 +634,11 @@ CONTAINS
        ENDDO
        ENDDO
  
-       !C
-       !C dPHI/dx (x_i,y_i)
-       !C
-       DO j_q = 1, nqmax
-       DO i_q = 1, nqmax
+       
+       ! d F_i/dx (Q_j)
+       
+       DO j_q = 1, NQMAX
+       DO i_q = 1, NQMAX
 
           x = abscArray(i_q)
           y = abscArray(j_q)
@@ -659,12 +655,10 @@ CONTAINS
        ENDDO
        ENDDO
        
-       !C
-       !C dPHI/dy (x_i,y_i)
-       !C
-       
-       DO j_q = 1, nqmax
-       DO i_q = 1, nqmax
+       ! d F_i/dy (Q_j)
+
+       DO j_q = 1, NQMAX
+       DO i_q = 1, NQMAX
           
           x = abscArray(i_q)
           y = abscArray(j_q)
@@ -681,17 +675,51 @@ CONTAINS
        ENDDO
        ENDDO
 
-    !CASE(12)
-       !C FOR 12-NODE CUBIC SERENDIPITY RECTANGULAR ELEMENT
-       !C
-       !C    10--09--08--07
-       !C     |           |
-       !C    11          06
-       !C     |           |
-       !C    12          05
-       !C     |           |
-       !C    01--02--03--04
-       !C
+       ! dd F_i/dxdx (Q_j)
+       ! dd F_i/dxdy (Q_j)
+       ! dd F_i/dydy (Q_j)
+
+    !CASE ( 9)
+       !
+       !   09-points Biquadradic Lagrangian Rectangular Element
+       !
+       !   (-1, 1)            ( 1, 1)         
+       !         04----07----03            
+       !          |           |            
+       !          |           |            y
+       !         08    09    06            ^ 
+       !          |           |            | 
+       !          |           |            | 
+       !         01----05----02          --+------> x
+       !   (-1,-1)            ( 1,-1)      |
+       !                                     
+
+       !  d F_i/dx   (Q_j)
+       !  d F_i/dy   (Q_j)
+       ! dd F_i/dxdx (Q_j)
+       ! dd F_i/dxdy (Q_j)
+       ! dd F_i/dydy (Q_j)
+
+    !CASE(16)
+       !
+       !   16-points Bicubic Lagrangian Rectangular Element
+       !
+       !   (-1, 1)            ( 1, 1)         
+       !         04--11--07--03            
+       !          |           |            
+       !         08  16  15  10            y
+       !          |           |            ^ 
+       !         12  13  14  06            | 
+       !          |           |            | 
+       !         01--05--09--02          --+------> x
+       !   (-1,-1)            ( 1,-1)      |
+       !                                     
+
+       !  d F_i/dx   (Q_j)
+       !  d F_i/dy   (Q_j)
+       ! dd F_i/dxdx (Q_j)
+       ! dd F_i/dxdy (Q_j)
+       ! dd F_i/dydy (Q_j)
        
     CASE DEFAULT
        
@@ -714,13 +742,13 @@ CONTAINS
   !C                2014-05-20 H.Seto
   !C
   !C------------------------------------------------------------------  
-  SUBROUTINE T2INITG_TERMINATE_WORKING_ARRAYS
+  SUBROUTINE T2INTG_TERMINATE_WORKING_ARRAYS
     
     IF(ALLOCATED(wghtArray)) DEALLOCATE(wghtArray)
     IF(ALLOCATED(intgArray)) DEALLOCATE(intgArray)
     
     RETURN
-
-  END SUBROUTINE T2INITG_TERMINATE_WORKING_ARRAYS
+    
+  END SUBROUTINE T2INTG_TERMINATE_WORKING_ARRAYS
   
 END MODULE T2INTG
