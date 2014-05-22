@@ -12,7 +12,7 @@ CONTAINS
 
     USE T2NGRA, ONLY: T2_NGRA
     USE T2VGRA, ONLY: T2_VGRA
-    USE T2INTG, ONLY: T2_INTG
+    USE T2INTG, ONLY: T2INTG_EXECUTE
     IMPLICIT NONE
     REAL(4):: e0time_0,e0time_1
 
@@ -27,7 +27,7 @@ CONTAINS
     WRITE(6,'(A,F10.3,A)') '-- Variable graph generated:   cpu=', &
                            e0time_1-e0time_0,' [s]'
     CALL CPU_TIME(e0time_0)
-    CALL T2_INTG
+    CALL T2INTG_EXECUTE
     CALL CPU_TIME(e0time_1)
     WRITE(6,'(A,F10.3,A)') '-- Integral table calculated:  cpu=', &
                            e0time_1-e0time_0,' [s]'

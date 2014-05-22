@@ -31,12 +31,12 @@
 MODULE T2INTG
   
   USE T2CNST, ONLY: rkind,ikind
-  USE T2COMM, ONLY: NNMAX,NQMAX,NDMAX
+  !USE T2COMM, ONLY: NNMAX,NQMAX,NDMAX
 
   IMPLICIT NONE
 
   PRIVATE  
-
+  
   REAL(   rkind),ALLOCATABLE,SAVE::&
        MassScaIntgPG(:,:,:        ), AdveVecIntgPG(:,:,:,:      ),&
        AdveTenIntgPG(:,:,:,:,:,:  ), DiffTenIntgPG(:,:,:,:,:    ),&
@@ -44,29 +44,52 @@ MODULE T2INTG
        ExciScaIntgPG(:,:,:        ), ExciVecIntgPG(:,:,:,:,:    ),&
        ExciTenIntgPG(:,:,:,:,:,:,:), SourScaIntgPG(:,:          )
 
-  !C
-  !C WORKING ARRAY FOR GAUSSIAN INTEGRATION
-  !C
+
+  ! WORKING ARRAY FOR GAUSSIAN INTEGRATION
+
   
   REAL(rkind),DIMENSION(:,:    ),ALLOCATABLE,SAVE:: wghtArray
   REAL(rkind),DIMENSION(:,:,:,:),ALLOCATABLE,SAVE:: intgArray
-
+  
+  ! T2INTG_ADHOC
+  INTEGER(ikind),SAVE::NNMAX,NQMAX,NDMAX
+  
   PUBLIC &
        massScaIntgPG, adveVecIntgPG, adveTenIntgPG, diffTenIntgPG,&
        gradVecIntgPG, gradTenIntgPG, exciScaIntgPG, exciVecIntgPG,&
        exciTenIntgPG, sourScaIntgPG,&
-       T2_INTG,&
-       T2_INTG_TERMINATE
-
+       T2INTG_EXECUTE,&
+       T2INTG_TERMINATE
+  
 CONTAINS
-  !C-------------------------------------------------------------
-  !C
-  !C T2INTG_INITIALIZE (PUBLIC)
-  !C
-  !C                2014-05-20 H.Seto
-  !C
-  !C-------------------------------------------------------------
-  SUBROUTINE T2_INTG
+
+  !-------------------------------------------------------------
+  !
+  ! T2INTG_ADHOC (PRIVATE)
+  !
+  !                2014-05-22 H.Seto
+  !
+  !-------------------------------------------------------------
+  SUBROUTINE T2INTG_ADHOC
+    
+    USE T2COMM,ONLY:i0nmax,i0qmax,i0dmax
+    
+    NNMAX = i0nmax
+    NQMAX = i0qmax
+    NDMAX = i0dmax
+    
+    RETURN
+
+  END SUBROUTINE T2INTG_ADHOC
+  
+  !-------------------------------------------------------------
+  !
+  ! T2INTG_INITIALIZE (PUBLIC)
+  !
+  !                2014-05-22 H.Seto
+  !
+  !-------------------------------------------------------------
+  SUBROUTINE T2INTG_EXECUTE
     
     INTEGER(ikind)::&
          i_n,j_n,k_n,l_n,m_n,&
@@ -76,6 +99,8 @@ CONTAINS
          intgNi,intgNj,intgNk,intgNl,intgNm,&
          weight, sumGaussQuad
     !C------------------------------------------------------
+    
+    CALL T2INTG_ADHOC
     
     CALL T2INTG_PUBLIC_ALLOCATE
     
@@ -335,25 +360,26 @@ CONTAINS
     
     RETURN
     
-  END SUBROUTINE T2_INTG
+  END SUBROUTINE T2INTG_EXECUTE
   
   !-------------------------------------------------------------
   !
   !  T2_INTG_TERMINATE (PUBLIC)
   !
-  !                2014-05-20 H.Seto
+  !                2014-05-22 H.Seto
   !
   !-------------------------------------------------------------
-  SUBROUTINE T2_INTG_TERMINATE
+  SUBROUTINE T2INTG_TERMINATE
     CALL T2INTG_PUBLIC_DEALLOCATE
+    CALL T2INTG_PRIVATE_DEALLOCATE
     RETURN
-  END SUBROUTINE T2_INTG_TERMINATE
+  END SUBROUTINE T2INTG_TERMINATE
 
   !-------------------------------------------------------------
   !
   !  T2INTG_PUBLIC_ALLOCATE (PRIVATE)
   !
-  !                2014-05-20 H.Seto 
+  !                2014-05-22 H.Seto 
   !
   !-------------------------------------------------------------
   SUBROUTINE T2INTG_PUBLIC_ALLOCATE
@@ -472,7 +498,7 @@ CONTAINS
   SUBROUTINE T2INTG_SETUP_WORKING_ARRAYS
     
     USE T2CNST, ONLY: abscArray32,wghtArray32
-    USE T2COMM, ONLY: NNMAX,NQMAX,NDMAX
+    !USE T2COMM, ONLY: NNMAX,NQMAX,NDMAX
     
     INTEGER(ikind)::&
          i_q,i_q_odd,i_q_eve,&
