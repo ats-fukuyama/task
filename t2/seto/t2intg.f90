@@ -1,33 +1,36 @@
-!C-------------------------------------------------------------------- 
-!C MODULE FOR INTERPORATION FUNCTION INTEGRATION 
-!C                          BY GAUSSIAN QUADRATURE
-!C
-!C                  LAST UPDATE 2014-05-20 H.SETO
-!C
-!C T2INTG requires following variables:
-!C
-!C        rkind,ikind,abcsArrayXX,wghtArrayXX [from T2CNST]
-!C        NNMAX,NQMAX,NDMAX                   [from T2COMM] 
-!C
-!C T2INTG provides following variables:
-!C
-!C        massScaIntgPG: INTEGRATION ARRAY FOR MASS SCALAR SUBMATRIX
-!C        adveVecIntgPG: INTEGRATION ARRAY FOR ADVE VECTOR SUBMATRIX
-!C        adveTenIntgPG: INTEGRATION ARRAY FOR ADVE TENSOR SUBMATRIX
-!C        diffTenIntgPG: INTEGRATION ARRAY FOR DIFF TENSOR SUBMATRIX
-!C        gradVecIntgPG: INTEGRATION ARRAY FOR GRAD VECTOR SUBMATRIX
-!C        gradTenIntgPG: INTEGRATION ARRAY FOR GRAD TENSOR SUBMATRIX
-!C        exciScaIntgPG: INTEGRATION ARRAY FOR EXCI SCALAR SUBMATRIX
-!C        exciVecIntgPG: INTEGRATION ARRAY FOR EXCI VECTOR SUBMATRIX
-!C        exciTenIntgPG: INTEGRATION ARRAY FOR EXCI TENSOR SUBMATRIX
-!C        sourScaIntgPG: INTEGRATION ARRAY FOR SOUR SCALAR SUBMATRIX
-!C
-!C  and subroutines:
-!C
-!C        T2_INTG
-!C        T2_INTG_TERMINATE
-!C
-!C -------------------------------------------------------------------
+!-------------------------------------------------------------------- 
+!
+!   MODULE FOR INTERPORATION FUNCTION INTEGRATION 
+!                          BY GAUSSIAN QUADRATURE
+!
+!                  LAST UPDATE 2014-05-20 H.SETO
+!
+!   T2INTG requires following variables:
+!
+!   [from T2CNST]
+!        rkind,ikind,abcsArrayXX,wghtArrayXX 
+!   [from T2COMM] 
+!        NNMAX,NQMAX,NDMAX                   
+!
+!   T2INTG provides following variables:
+!
+!        massScaIntgPG: INTEGRATION ARRAY FOR MASS SCALAR SUBMATRIX
+!        adveVecIntgPG: INTEGRATION ARRAY FOR ADVE VECTOR SUBMATRIX
+!        adveTenIntgPG: INTEGRATION ARRAY FOR ADVE TENSOR SUBMATRIX
+!        diffTenIntgPG: INTEGRATION ARRAY FOR DIFF TENSOR SUBMATRIX
+!        gradVecIntgPG: INTEGRATION ARRAY FOR GRAD VECTOR SUBMATRIX
+!        gradTenIntgPG: INTEGRATION ARRAY FOR GRAD TENSOR SUBMATRIX
+!        exciScaIntgPG: INTEGRATION ARRAY FOR EXCI SCALAR SUBMATRIX
+!        exciVecIntgPG: INTEGRATION ARRAY FOR EXCI VECTOR SUBMATRIX
+!        exciTenIntgPG: INTEGRATION ARRAY FOR EXCI TENSOR SUBMATRIX
+!        sourScaIntgPG: INTEGRATION ARRAY FOR SOUR SCALAR SUBMATRIX
+!
+!   and subroutines:
+!
+!        T2INTG_EXECUTE
+!        T2INTG_TERMINATE
+!
+! -------------------------------------------------------------------
 MODULE T2INTG
   
   USE T2CNST, ONLY: rkind,ikind

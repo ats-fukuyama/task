@@ -16,7 +16,7 @@ MODULE T2STEP
   PRIVATE
   
 CONTAINS
-
+  
   SUBROUTINE T2_STEP(i_conv,residual_conv)
     
     USE T2COMM, ONLY:&
@@ -26,7 +26,7 @@ CONTAINS
          nconvmax,eps_conv
     
     USE T2CALV, ONLY: T2_CALV
-    USE T2EXEC, ONLY: T2_EXEC
+    USE T2EXEC, ONLY: T2EXEC_EXECUTE
     USE T2CONV, ONLY: T2_CONV
 
     INTEGER(i0ikind),INTENT(OUT):: i_conv
@@ -59,7 +59,7 @@ CONTAINS
        !C ADVECTION DIFFUSION EQUATION SOLVER (SUPG)
        !C
        
-       CALL T2_EXEC
+       CALL T2EXEC_EXECUTE
 
        !C 
        !C CONVERGENCE CHECK
