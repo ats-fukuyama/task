@@ -20,23 +20,33 @@
 
       nfcmax=nthmax*nhhmax      ! size of block matrix 
                                 !    (number of Fourier components)
-      mlmax=nfcmax*(6*nrmax-4)  ! length of coeffient matrix and source vector
-                                !   E_perp(i)
-                                !   E_para(i)
-                                !   E_rho (i+1/4)
-                                !   E_perp(i+1/2)
-                                !   E_para(i+1/2)
-                                !   E_rho (i+3/4)
+      mlmax=nfcmax*(8*nrmax)    ! length of coeffient matrix and source vector
+                                !   A_perp(i)
+                                !   A_para(i)
+                                !   A_rho (i)
+                                !   PHI   (i)
+                                !   DA_perp/DRHO(i)
+                                !   DA_para/DRHO(i)
+                                !   DA_rho/DRHO (i)
+                                !   DPHI/DRHO   (i)
 
-      mbmax=nfcmax*8            ! size of block matrix
-                                !   E_perp(i)
-                                !   E_para(i)
-                                !   E_rho (i+1/4)
-                                !   E_perp(i+1/2)
-                                !   E_para(i+1/2)
-                                !   E_rho (i+3/4)
-                                !   E_perp(i+1)
-                                !   E_para(i+1)
+      mbmax=nfcmax*16           ! size of block matrix
+                                !   A_perp(i)
+                                !   A_para(i)
+                                !   A_rho (i)
+                                !   PHI   (i)
+                                !   DA_perp/DRHO(i)
+                                !   DA_para/DRHO(i)
+                                !   DA_rho/DRHO (i)
+                                !   DPHI/DRHO   (i)
+                                !   A_perp(i+1)
+                                !   A_para(i+1)
+                                !   A_rho (i+1)
+                                !   PHI   (i+1)
+                                !   DA_perp/DRHO(i+1)
+                                !   DA_para/DRHO(i+1)
+                                !   DA_rho/DRHO (i+1)
+                                !   DPHI/DRHO   (i+1)
       mwmax=2*mbmax-1           ! width of coefficient matrix
       mwc=mbmax                 ! position of diagonal coponent
 

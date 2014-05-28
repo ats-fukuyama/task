@@ -357,7 +357,7 @@ C
       CHARACTER RTITL(6,4)*6
       CHARACTER K2,K3,K4
       REAL(8),DIMENSION(3,3):: gm,mum
-      REAL(8):: rhol,th,ph,gj,babs,bsupth,bsupph
+      REAL(8):: rhol,th,ph,gj,babs,bsuprh,bsupth,bsupph
       REAL(8):: dth,dph
       INTEGER:: nth,nhh
 
@@ -416,9 +416,10 @@ C
                   rhol=xrho(nr)
                   IF(rhol.EQ.0.d0) rhol=1.d-6
                   CALL wmfem_metrics(rhol,th,ph,gm,gj)
-                  CALL wmfem_magnetic(rhol,th,ph,babs,bsupth,bsupph)
+                  CALL wmfem_magnetic(rhol,th,ph,
+     &                                babs,bsuprh,bsupth,bsupph)
                   CALL wmfem_rotation_tensor(gm,gj,
-     &                                       babs,bsupth,bsupph,mum)
+     &                                babs,bsuprh,bsupth,bsupph,mum)
                   select case(i)
                   case(1:3)
                      gy(nr,nth)=mum(i,j)
@@ -568,9 +569,11 @@ C            endif
 C               if(MDLWMF.eq.1) THEN
                   ph=dph*(nhh-1)
                   th=dth*(nth-1)
-                  call wmfem_magnetic(rhol,th,ph,babs,bsupth,bsupph)
+                  call wmfem_magnetic(rhol,th,ph, 
+     &                                babs,bsuprh,bsupth,bsupph)
                   th=dth*(nthp-1)
-                  call wmfem_magnetic(rhol,th,ph,babsp,bsupthp,bsupphp)
+                  call wmfem_magnetic(rhol,th,ph,
+     &                                babsp,bsuprhp,bsupthp,bsupphp)
 C               else
 C                  CALL WMCMAG(NR,NTH, NHH,BABS, BSUPTH, BSUPPH )
 C                  CALL WMCMAG(NR,NTHP,NHH,BABSP,BSUPTHP,BSUPPHP)

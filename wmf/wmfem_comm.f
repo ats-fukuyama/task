@@ -25,6 +25,7 @@
       complex(8),dimension(:,:,:,:),ALLOCATABLE:: fma_save 
      &                          !(mbmax,mbmax,nrmax,0:nsmax)
       complex(8),dimension(:),ALLOCATABLE:: fvb,fvx !(mlmax)
+      complex(8),dimension(:),ALLOCATABLE:: fvx_ef !(mlmax)
 
       integer,dimension(:),ALLOCATABLE :: nthnfc,mmnfc
       integer,dimension(:),ALLOCATABLE :: nhhnfc,nnnfc

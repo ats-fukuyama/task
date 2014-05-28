@@ -35,7 +35,8 @@
      &   (nsmax.ne.nsmax_save).or.mdlwmd.ne.mdlwmd_save) then
          if(ALLOCATED(fma_save)) deallocate(fma_save)
          if(mdlwmd.ge.1) then
-            allocate(fma_save(mbmax,mbmax,nrmax,0:nsmax))
+            allocate(fma_save(mwmax,mbmax,nrmax,0:nsmax))
+!            allocate(fma_save(mbmax,mbmax,nrmax,0:nsmax))
          endif 
       endif
       endif
@@ -43,8 +44,10 @@
       if(mlmax.ne.mlmax_save) then
          if(ALLOCATED(fvb)) deallocate(fvb)
          if(ALLOCATED(fvx)) deallocate(fvx)
+         if(ALLOCATED(fvx_ef)) deallocate(fvx_ef)
          allocate(fvb(mlmax))
          allocate(fvx(mlmax))
+         allocate(fvx_ef(mlmax))
       endif
 
       if(nfcmax.ne.nfcmax_save) then

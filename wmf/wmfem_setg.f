@@ -148,6 +148,7 @@ C
                rg33(nth,nhh,nr)= rr**2
                rj  (nth,nhh,nr)= rr*ra**2*rhol
 
+               bfld(1,nth,nhh,nr)=0.d0
                bfld(2,nth,nhh,nr)=0.d0
                bfld(3,nth,nhh,nr)=bb/rr
                BPST(NTH,NHH,NR)=bb
@@ -217,7 +218,7 @@ C
             rhol=xrho(nr)
             th=dth*(nth-1)
             call wmfem_metrics(rhol,th,0.d0,gm,gj)
-            call wmfem_magnetic(rhol,th,0.d0,babs,bsupth,bsupph)
+            call wmfem_magnetic(rhol,th,0.d0,babs,bsuprh,bsupth,bsupph)
             DO NHH=1,NHHMAX
                RPST(NTH,NHH,NR)=RPS(NTH,NR)
                ZPST(NTH,NHH,NR)=ZPS(NTH,NR)
@@ -230,6 +231,7 @@ C
                RG33(NTH,NHH,NR)= gm(3,3)
                RJ  (NTH,NHH,NR)= gj
 
+               BFLD(1,NTH,NHH,NR)=bsuprh
                BFLD(2,NTH,NHH,NR)=bsupth
                BFLD(3,NTH,NHH,NR)=bsupph
                BPST(NTH,NHH,NR)=BABS
@@ -344,7 +346,7 @@ C
             call wmeq_get_posrz(rhol,th,rrl,zzl,
      &                          drrrho,dzzrho,drrchi,dzzchi)
             call wmfem_metrics(rhol,th,0.d0,gm,gj)
-            call wmfem_magnetic(rhol,th,0.d0,babs,bsupth,bsupph)
+            call wmfem_magnetic(rhol,th,0.d0,babs,bsuprh,bsupth,bsupph)
             DO NHH=1,NHHMAX
                RPST(NTH,NHH,NR)= rrl
                ZPST(NTH,NHH,NR)= zzl
@@ -358,6 +360,7 @@ C
                RG33(NTH,NHH,NR)= gm(3,3)
                RJ  (NTH,NHH,NR)= gj
 
+               BFLD(1,NTH,NHH,NR)=bsuprh
                BFLD(2,NTH,NHH,NR)=bsupth
                BFLD(3,NTH,NHH,NR)=bsupph
                BPST(NTH,NHH,NR)=  babs
