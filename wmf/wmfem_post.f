@@ -47,6 +47,7 @@
 
       subroutine wmfem_cbf(nr,cbf)
 
+      USE wmcalc,ONLY: wmfem_inverse_tensor,wmfem_tensors
       implicit none
       integer,intent(in):: nr
       complex(8),dimension(3,nthmax,nhhmax):: cbf
@@ -223,6 +224,7 @@
 
       subroutine wmfem_calculate_power
 
+      USE wmcalc,ONLY: wmfem_calculate_local
       implicit none
       integer:: mc,mb,mb1,mb2,mw,nr,ns,mm,nn,i,j
       integer:: ir,nr1,mm1,nn1,mm2,nn2,nndiff,mmdiff

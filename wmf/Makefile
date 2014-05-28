@@ -22,21 +22,24 @@ LIBMUMPSX=.
 MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../plx/$(MOD) -I../eq/$(MOD) \
             -I../mtxp -I../../bpsd/$(MOD)
 
-SRCFIXED = wmfem_comm.f  ../eq/wmeqin.f wmmenu.f wminit.f wmeign.f \
-       wmexec.f wmloop.f \
+SRCFIXED1 = wmfem_comm.f  ../eq/wmeqin.f
+SRCFIXED2 =        wmexec.f wmloop.f \
        wmxprf.f wmdprf.f \
-       wmgout.f wmgsub.f wmdout.f wmfout.f wmtae.f \
-       wmfem_allocate.f wmfem_calc.f wmfem_pre.f wmfem_main.f wmfem_post.f \
+       wmgout.f 
+SRCFIXED3 = wmgsub.f wmdout.f wmfout.f wmtae.f \
+       wmfem_allocate.f wmfem_pre.f wmfem_main.f wmfem_post.f \
        wmfem_sub.f wmfem_setg.f wmfem_vmec.f\
-       wmvout.f wmtpcs.f
+       wmvout.f wmtpcs.f \
+       wmmenu.f wminit.f wmeign.f
 
-SRCFREE = fem_hhg.f90
+SRCFREE1 = fem_hhg.f90
+SRCFREE2 = wmfem_calc.f90
 
 # wmtrfile.f
 
 SRCS = $(SRC0)
 
-OBJS = $(SRCFIXED:.f=.o) $(SRCFREE:.f90=.o)
+OBJS = $(SRCFIXED1:.f=.o) $(SRCFREE1:.f90=.o) $(SRCFIXED2:.f=.o) $(SRCFREE2:.f90=.o) $(SRCFIXED3:.f=.o) 
 
 LIB0 = ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a \
        ../eq/eqlib.a ../dp/dplib.a
@@ -134,7 +137,7 @@ wmtae.o : wmtae.f $(WMCOMM)
 wmfem.o : wmfem.f wmfem_comm.f
 wmfem_comm.o : wmfem_comm.f
 wmf_hermite.o : wmf_hermite.f
-wmfem_calc.o : wmfem_calc.f wmfem_comm.f
+wmfem_calc.o : wmfem_calc.f90 wmfem_comm.f
 wmfem_sub.o : wmfem_sub.f wmfem_comm.f $(WMCOMM)	
 wmfem_setg.o : wmfem_setg.f wmfem_comm.f $(WMCOMM)
 wmfem_vmec.o : wmfem_vmec.f wmfem_comm.f $(WMCOMM) vmcomm.inc

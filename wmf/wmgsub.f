@@ -351,6 +351,7 @@ C     ****** DRAW 1D RADIAL GRAPHS ******
 C
       SUBROUTINE WMGREQM(K2,K3,K4)
 C
+      USE wmcalc,ONLY: wmfem_rotation_tensor
       INCLUDE 'wmcomm.inc'
 C
       DIMENSION GY(NRM,MDM),GP(4,4)

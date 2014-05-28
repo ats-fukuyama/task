@@ -113,6 +113,7 @@
 
       subroutine wmfem_calculate_matrix
       use libfem
+      USE wmcalc,ONLY: wmfem_calculate_local
 
       complex(8),dimension(:,:),allocatable:: fma_local
       complex(8),dimension(:,:,:),allocatable:: fvb1_local,fvb2_local
@@ -506,6 +507,7 @@
 
       subroutine wmfem_nabla_phi_sub(rho,
      &                 fmv_7_1,fmv_7_2,fmv_7_3,fmv_8_1,fmv_8_2,fmv_8_3)
+      USE wmcalc,ONLY: wmfem_inverse_tensor,wmfem_tensors
        IMPLICIT NONE
       real(8),intent(in):: rho
       complex(8),dimension(nthmax2,nhhmax2):: fv_7_12, fv_7_13
@@ -1087,6 +1089,7 @@
       end subroutine wmfem_boundary_condition_wall
       subroutine wmfem_boundary_condition_div_sub(rho,
      &                             fmv_1,fmv_2,fmv_3,fmv_4,fmv_5,fmv_6)
+      USE wmcalc,ONLY: wmfem_inverse_tensor,wmfem_tensors
        IMPLICIT NONE
       real(8),intent(in):: rho
       complex(8),dimension(nthmax2,nhhmax2):: fv_1, fv_1m, fv_1n
@@ -1243,6 +1246,7 @@
 
       subroutine wmfem_boundary_condition_wall_sub(
      &                                     fmv_1,fmv_2,fmv_4,fmv_6)
+      USE wmcalc,ONLY: wmfem_inverse_tensor,wmfem_tensors
        IMPLICIT NONE
 !      real(8),intent(in):: rho
       complex(8),dimension(nthmax2,nhhmax2):: fv_1, fv_1m, fv_1n
