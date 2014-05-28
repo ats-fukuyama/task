@@ -131,8 +131,7 @@
 
       cfactor=(2.d0*pi*crf*1.d6)
 
-!      allocate(fma_local(mbmax,mbmax))
-      allocate(fma_local(mwmax,mbmax))
+      allocate(fma_local(mbmax,mbmax))
       allocate(fvb1_local(nhhmax,nthmax,3))
       allocate(fvb2_local(nhhmax,nthmax,3))
 
@@ -148,23 +147,19 @@
             print *, ns,nr
             call wmfem_calculate_local(nr,ns,fma_local)
 
-!            if(mdlwmd.ge.1) then
-!               do mb2=1,mbmax
-!                  do mb1=1,mbmax
-!                     fma_save(mb1,mb2,nr,ns)=fma_local(mb1,mb2)
-!                  enddo
-!               enddo
-!            endif
+            if(mdlwmd.ge.1) then
+               do mb2=1,mbmax
+                  do mb1=1,mbmax
+                     fma_save(mb1,mb2,nr,ns)=fma_local(mb1,mb2)
+                  enddo
+               enddo
+            endif
 
             do mb2=1,mbmax
-!               do mb1=1,mbmax
-!                  fma(mwc+mb1-mb2,8*nfcmax*(nr-1)+mb2)
-!     &           =fma(mwc+mb1-mb2,8*nfcmax*(nr-1)+mb2)
-!     &           +fma_local(mb1,mb2)
-               do mw1=1,mwmax
-                  fma(mw1,8*nfcmax*(nr-1)+mb2)
-     &           =fma(mw1,8*nfcmax*(nr-1)+mb2)
-     &           +fma_local(mw1,mb2)
+               do mb1=1,mbmax
+                  fma(mwc+mb2-mb1,8*nfcmax*(nr-1)+mb1)
+     &           =fma(mwc+mb2-mb1,8*nfcmax*(nr-1)+mb1)
+     &           +fma_local(mb1,mb2)
                enddo
             enddo
          enddo

@@ -22,7 +22,7 @@ LIBMUMPSX=.
 MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../plx/$(MOD) -I../eq/$(MOD) \
             -I../mtxp -I../../bpsd/$(MOD)
 
-SRCFIXED = wmfem_comm.f wmf_quad.f ../eq/wmeqin.f wmmenu.f wminit.f wmeign.f \
+SRCFIXED = wmfem_comm.f  ../eq/wmeqin.f wmmenu.f wminit.f wmeign.f \
        wmexec.f wmloop.f \
        wmxprf.f wmdprf.f \
        wmgout.f wmgsub.f wmdout.f wmfout.f wmtae.f \
@@ -30,7 +30,7 @@ SRCFIXED = wmfem_comm.f wmf_quad.f ../eq/wmeqin.f wmmenu.f wminit.f wmeign.f \
        wmfem_sub.f wmfem_setg.f wmfem_vmec.f\
        wmvout.f wmtpcs.f
 
-SRCFREE = 
+SRCFREE = fem_hhg.f90
 
 # wmtrfile.f
 
