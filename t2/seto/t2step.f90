@@ -1,14 +1,15 @@
-!C--------------------------------------------------------------------
-!C
-!C T2STEP
-!C
-!C                       2014-02-22 H.SETO
-!C
-!C--------------------------------------------------------------------
+!--------------------------------------------------------------------
+!
+!    MODULE FOR NONLINEAR ITERATION 
+!                             BY PICARD ITETRATION
+!
+!                   LAST UPDATE 2014-05-28 H.Seto
+!
+!--------------------------------------------------------------------
 MODULE T2STEP
   
   USE T2CNST,ONLY:&
-       i0ikind,i0rkind
+       ikind,rkind
   
   IMPLICIT NONE
   
@@ -19,31 +20,22 @@ CONTAINS
   
   SUBROUTINE T2_STEP(i_conv,residual_conv)
     
-    USE T2COMM, ONLY:&
-         i0pmax, i0xmax, i0vmax, &
-         d0eps,&
-         d2xvec, d2xvec_befor, d2xvec_after, &
-         nconvmax,eps_conv
+    USE T2COMM,ONLY: NXMAX, NVMAX,NRMAX,&
+         &           XvecIn, XvecOut,&
+         &           nconvmax,eps_conv
     
-    USE T2CALV, ONLY: T2_CALV
-    USE T2EXEC, ONLY: T2EXEC_EXECUTE
-    USE T2CONV, ONLY: T2_CONV
-
-    INTEGER(i0ikind),INTENT(OUT):: i_conv
-    REAL(i0rkind),INTENT(OUT):: residual_conv
-    INTEGER(i0ikind):: nconv
-    INTEGER(i0ikind):: i0xidi,i0vidi
+    USE T2CALV,ONLY: T2_CALV
+    USE T2EXEC,ONLY: T2EXEC_EXECUTE
+    USE T2CONV,ONLY: T2_CONV
+    
+    INTEGER(ikind),INTENT(OUT):: i_conv
+    REAL(   rkind),INTENT(OUT):: residual_conv
+    INTEGER(ikind):: nconv
+    INTEGER(ikind):: i_x,i_v
     CHARACTER(10)::c10nl
     REAL(4):: e0time_0,e0time_1
     
     c10nl='NL'
-    
-    DO i0xidi = 1, i0xmax
-       DO i0vidi = 1, i0vmax
-          d2xvec_befor( i0vidi,i0xidi)&
-               = d2xvec(i0vidi,i0xidi)
-       ENDDO
-    ENDDO
     
     DO nconv=1,nconvmax
 
@@ -67,29 +59,19 @@ CONTAINS
        
        CALL T2STEP_CONV(residual_conv)
        
-       i_conv=nconv
-       IF(residual_conv.LE.eps_conv) EXIT
-
-       !C
-       !C UPDATRE VARIABLES FOR NEXT ITERATION 
-       !C
-       
-       DO i0xidi = 1, i0xmax
-          DO i0vidi = 1, i0vmax
-             d2xvec_befor(       i0vidi,i0xidi)&
-                  = d2xvec_after(i0vidi,i0xidi)
+       ! UPDATRE VARIABLES FOR NEXT ITERATION 
+       DO i_x = 1, NXMAX
+          DO i_v = 1, NVMAX
+             XvecIn(i_v,i_x) = XvecOut(i_v,i_x)
           ENDDO
        ENDDO
        
+       i_conv=nconv
+       IF(residual_conv.LE.eps_conv) EXIT
+       
     ENDDO
     
-    print*,'NLLOOP=',nconv,'EXIT'
-    
-    DO i0xidi = 1, i0xmax
-       DO i0vidi = 1, i0vmax
-          d2xvec(i0vidi,i0xidi) = d2xvec_after(i0vidi,i0xidi)
-       ENDDO
-    ENDDO
+    WRITE(6,*)'NLLOOP=',nconv,'EXIT'
     
     CALL T2_CONV
     
@@ -97,222 +79,73 @@ CONTAINS
     
   END SUBROUTINE T2_STEP
   
-  SUBROUTINE T2STEP_CONV(d0dif)
+  SUBROUTINE T2STEP_CONV(residualMax)
     
     USE T2COMM, ONLY:&
-         i0solv,i0vmax,i0xmax,i0rmax,&
-         i1mc1d,d2xvec_after,d2xvec_befor
+         NVMAX,NXMAX,NRMAX,&
+         LockEqs,&
+         XvecIn,XvecOut,&
+         i1mc1d
     
-    REAL(   i0rkind),INTENT(OUT)::d0dif
-    INTEGER(i0ikind):: i0xidi, i0vidi, i0ridi
-    REAL(   i0rkind):: d0aft, d0bfr, d0ave, d0dif_tmp,d0dif_max
-    REAL(   i0rkind):: d1dif(1:i0vmax),d1ave(1:i0vmax)
+    REAL(   rkind),INTENT(OUT)::residualMax
+
+    INTEGER(ikind):: i_x, i_v, i_r
+    REAL(   rkind)::&
+         valIn,valOut,residual,resDenominator,resNumerator,&
+         resNumeratorSquared(  1:NVMAX),&
+         resDenominatorSquared(1:NVMAX)
+
+    ! initialization
+    residualMax = 0.D0
+    resNumeratorSquared(  1:NVMAX) = 0.D0
+    resDenominatorSquared(1:NVMAX) = 0.D0
     
-    d0dif_max = 0.D0    
-    d1dif(1:i0vmax) = 0.D0
-    d1ave(1:i0vmax) = 0.D0
-    
-    
-    !C
-    !C FOR 2D VARIABLES
-    !C
-    
-    DO i0xidi = 1, i0xmax  
-       DO i0vidi = 4,i0vmax
-          d0aft = d2xvec_after(i0vidi,i0xidi)
-          d0bfr = d2xvec_befor(i0vidi,i0xidi)
-          d1dif(i0vidi) = d1dif(i0vidi) + (d0aft-d0bfr)**2
-          d1ave(i0vidi) = d1ave(i0vidi) + d0aft**2
+    ! for 1D dependent variables (FSA)
+    DO i_r = 1, NRMAX
+       i_x = i1mc1d(i_r)
+       DO i_v = 1, 3
+          valOut = XvecOut(i_v,i_x)
+          valIn  = XvecIn( i_v,i_x)
+          resNumeratorSquared(  i_v)&
+               = resNumeratorSquared(  i_v) + (valOut-valIn)**2
+          resDenominatorSquared(i_v)&
+               = resDenominatorSquared(i_v) + valOut**2
        ENDDO
     ENDDO
-     
-    !C
-    !C FOR 1D VARIABLES
-    !C
     
-    DO i0ridi = 1, i0rmax  
-       i0xidi = i1mc1d(i0ridi)
-       DO i0vidi = 1, 3
-          d0aft = d2xvec_after(i0vidi,i0xidi)
-          d0bfr = d2xvec_befor(i0vidi,i0xidi)
-          d1dif(i0vidi) = d1dif(i0vidi) + (d0aft-d0bfr)**2
-          d1ave(i0vidi) = d1ave(i0vidi) + d0aft**2
+    ! for 2D dependent variables
+    DO i_x = 1, NXMAX
+       DO i_v = 4,NVMAX
+          valOut = XvecOut(i_v,i_x)
+          valIn  = XvecIn( i_v,i_x)
+          resNumeratorSquared(  i_v)&
+               = resNumeratorSquared(  i_v) + (valOut-valIn)**2
+          resDenominatorSquared(i_v)&
+               = resDenominatorSquared(i_v) + valOut**2
        ENDDO
     ENDDO
-  
-    !C
-    !C CHECK CONVERGENCE
-    !C
-
-    SELECT CASE(i0solv)
-       
-       !C
-       !C ELECTRON
-       !C
-
-    CASE(1)
-          
-              
-       DO i0vidi = 1,i0vmax
-          SELECT CASE (i0vidi)
-          CASE(1:5,7:)
-             cycle
-          END SELECT
-          d0dif  = d1dif(i0vidi)
-          d0ave  = d1ave(i0vidi)
-          
-          IF(d0ave.LE.0.D0)THEN
-             WRITE(6,'("*********************************************")')
-             WRITE(6,'("       ERROR IN T2_STEP_CONVERGENCE          ")')
-             WRITE(6,'("       INDETERMINATE PROBLEM                 ")')
-             WRITE(6,'("*********************************************")')
-             PRINT*,i0vidi
-             STOP
-          ENDIF
-          
-          d0dif_tmp = d0dif/d0ave
-          d0dif_tmp = SQRT(d0dif_tmp)
-          WRITE(6,*),'VARIABLES=',i0vidi,'RESIDUAL=',d0dif_tmp
-          d0dif_max = MAX(d0dif_max,d0dif_tmp)
-
-       ENDDO
-
-       
-       !C
-       !C ELECTRON AND IONS
-       !C
-
-    CASE (2)
-       
-       DO i0vidi = 1,i0vmax
-          SELECT CASE (i0vidi)
-          CASE(1:5,11:15,21:25)
-             CYCLE
-          END SELECT
-          d0dif  = d1dif(i0vidi)
-          d0ave  = d1ave(i0vidi)
-          
-          IF(d0ave.LE.0.D0)THEN
-             WRITE(6,'("*********************************************")')
-             WRITE(6,'("       ERROR IN T2_STEP_CONVERGENCE          ")')
-             WRITE(6,'("       INDETERMINATE PROBLEM                 ")')
-             WRITE(6,'("*********************************************")')
-             PRINT*,i0vidi
-             STOP
-          ENDIF
-          
-          d0dif_tmp = d0dif/d0ave
-          d0dif_tmp = SQRT(d0dif_tmp)
-          WRITE(6,*),'VARIABLES=',i0vidi,'RESIDUAL=',d0dif_tmp
-          d0dif_max = MAX(d0dif_max,d0dif_tmp)
-
-       ENDDO
-
-    CASE(3)
-       
-       DO i0vidi = 1,i0vmax
-          SELECT CASE (i0vidi)
-          CASE(1:6,11,16,21)
-             CYCLE
-          END SELECT
-          d0dif  = d1dif(i0vidi)
-          d0ave  = d1ave(i0vidi)
-          
-          IF(d0ave.LE.0.D0)THEN
-             WRITE(6,'("*********************************************")')
-             WRITE(6,'("       ERROR IN T2_STEP_CONVERGENCE          ")')
-             WRITE(6,'("       INDETERMINATE PROBLEM                 ")')
-             WRITE(6,'("*********************************************")')
-             PRINT*,i0vidi
-             STOP
-          ENDIF
-          
-          d0dif_tmp = d0dif/d0ave
-          d0dif_tmp = SQRT(d0dif_tmp)
-          WRITE(6,*),'VARIABLES=',i0vidi,'RESIDUAL=',d0dif_tmp
-          d0dif_max = MAX(d0dif_max,d0dif_tmp)
-
-       ENDDO
-       
-    CASE (4)
-       DO i0vidi = 1,i0vmax
-          SELECT CASE (i0vidi)
-          CASE(1:5,16:)
-             CYCLE
-          END SELECT
-          
-          d0dif  = d1dif(i0vidi)
-          d0ave  = d1ave(i0vidi)
-          
-          IF(d0ave.LE.0.D0)THEN
-             WRITE(6,'("*********************************************")')
-             WRITE(6,'("       ERROR IN T2_STEP_CONVERGENCE          ")')
-             WRITE(6,'("       INDETERMINATE PROBLEM                 ")')
-             WRITE(6,'("*********************************************")')
-             PRINT*,i0vidi
-             STOP
-          ENDIF
-          
-          d0dif_tmp = d0dif/d0ave
-          d0dif_tmp = SQRT(d0dif_tmp)
-          WRITE(6,*),'VARIABLES=',i0vidi,'RESIDUAL=',d0dif_tmp
-          d0dif_max = MAX(d0dif_max,d0dif_tmp)
-          
-       ENDDO
-    CASE (5)
-       DO i0vidi = 1,i0vmax
-          SELECT CASE (i0vidi)
-          CASE(1:5)
-             CYCLE
-          END SELECT
-          d0dif  = d1dif(i0vidi)
-          d0ave  = d1ave(i0vidi)
-          
-          IF(d0ave.LE.0.D0)THEN
-             WRITE(6,'("*********************************************")')
-             WRITE(6,'("       ERROR IN T2_STEP_CONVERGENCE          ")')
-             WRITE(6,'("       INDETERMINATE PROBLEM                 ")')
-             WRITE(6,'("*********************************************")')
-             PRINT*,i0vidi
-             STOP
-          ENDIF
-          
-          d0dif_tmp = d0dif/d0ave
-          d0dif_tmp = SQRT(d0dif_tmp)
-          WRITE(6,*),'VARIABLES=',i0vidi,'RESIDUAL=',d0dif_tmp
-          d0dif_max = MAX(d0dif_max,d0dif_tmp)
-          
-       ENDDO
-    CASE (10)
-       DO i0vidi = 1,i0vmax
-          SELECT CASE (i0vidi)
-          CASE(6:)
-             CYCLE
-          END SELECT
-          d0dif  = d1dif(i0vidi)
-          d0ave  = d1ave(i0vidi)
-          
-          IF(d0ave.LE.0.D0)THEN
-             WRITE(6,'("*********************************************")')
-             WRITE(6,'("       ERROR IN T2_STEP_CONVERGENCE          ")')
-             WRITE(6,'("       INDETERMINATE PROBLEM                 ")')
-             WRITE(6,'("*********************************************")')
-             PRINT*,i0vidi
-             STOP
-          ENDIF
-          
-          d0dif_tmp = d0dif/d0ave
-          d0dif_tmp = SQRT(d0dif_tmp)
-          WRITE(6,*),'VARIABLES=',i0vidi,'RESIDUAL=',d0dif_tmp
-          d0dif_max = MAX(d0dif_max,d0dif_tmp)
-          
-       ENDDO
-    ENDSELECT
     
-    d0dif = d0dif_max
-    
+    ! CHECK CONVERGENCE
+    DO i_v = 1,NVMAX
+       IF(.NOT.LockEqs(i_v))THEN
+          IF(resDenominatorSquared(i_v).LE.0)THEN
+             WRITE(6,'("*********************************************")')
+             WRITE(6,'("       ERROR IN T2STEP_CONVERGENCE           ")')
+             WRITE(6,'("       INDETERMINATE PROBLEM                 ")')
+             WRITE(6,'("*********************************************")')
+             WRITE(6,*)i_v
+             STOP
+          ENDIF
+
+          resDenominator = SQRT(resDenominatorSquared(i_v))
+          resNumerator   = SQRT(resNumeratorSquared(  i_v))
+          residual       = resNumerator/resDenominator
+          WRITE(6,*),'VARIABLES=',i_v,'RESIDUAL=',residual
+          residualMax = MAX(residualMax,residual)
+       ENDIF
+    ENDDO
+   
     RETURN
     
   END SUBROUTINE T2STEP_CONV
-  
 END MODULE T2STEP

@@ -13,7 +13,7 @@
 !C-------------------------------------------------------------------
 MODULE T2CALV
   
-  USE T2CNST, ONLY:i0ikind,i0rkind
+  USE T2CNST, ONLY:ikind,rkind
   USE T2COMM, ONLY:i0smax
   
   IMPLICIT NONE
@@ -34,10 +34,12 @@ CONTAINS
   
   SUBROUTINE T2_CALV
     
-    USE T2COMM, ONLY: i0mmax,i0cchk
-    USE T2CCHK, ONLY: T2_CCHK
+    !USE T2COMM, ONLY: i0mmax,i0cchk
+    !USE T2CCHK, ONLY: T2_CCHK
+    
+    CALL T2CALV_ADHOC
 
-    DO i0midi = 1, i0mmax
+    DO i0midi = 1, NMMAX
        
        CALL T2CALV_PQ
        CALL T2CALV_MS
@@ -53,12 +55,16 @@ CONTAINS
        
     ENDDO
     
-    IF(i0cchk.EQ.1) CALL T2_CCHK
+    !IF(i0cchk.EQ.1) 
+    CALL T2_CCHK
     
     RETURN
     
   END SUBROUTINE T2_CALV
-  
+
+  SUBROUTINE T2CALV_ADHOC
+    RETURN
+  END SUBROUTINE T2CALV_ADHOC
   !C---------------------------------------------------------
   !C
   !C CALCULATION OF FUNDAMENTAL PHYSICAL QUANTITIES 
@@ -152,74 +158,56 @@ CONTAINS
     !C      checked 2014-04-01 by H.Seto
     !C
     
-    !C
-    !C MASS AND ELECTRIC CHARGE [SI]
-    !C
-    
-    DO i0sidi = 1,i0smax
-       d1mm(i0sidi) = d1pa(i0sidi)*d0amp
-       d1ee(i0sidi) = d1pz(i0sidi)*d0aee
+
+    ! convert mass and electric charge into SI unit
+    DO i_s = 1,NSMAX
+       mm(i_s) = Pa(i_s)*Amp
+       ee(i_s) = Pz(i_s)*Aee
     ENDDO
     
-    !C
-    !C INITIALIZE
-    !C
-    
-    i0xid1d = i2crt( 3,i0midi)
-    i0xid2d = i2crt( 2,i0midi)
+
+    ! initialization
+    i_x1d = i2crt( 3,i0midi)
+    i_x2d = i2crt( 2,i0midi)
     d0rzcr  = d2rzm( 1,i0midi)
     d0mfcr  = d2mfc1(1,i0midi)
     
-    !C
-    !C CONVERT VARIABLES TO SI-UNIT
-    !C
-    
-    DO i0sidi = 1, i0smax
+
+    ! convert physical quantities into SI-unit
+    DO i_s = 1, NSMAX
        
-       i0nflag = 0
-       i0vidi =  10*i0sidi - 5
+       vOffset =  10*(i_s - 1) + 5
        
-       !C n in 10^20 m^-3
-       !C p in 10^20 keV*m^-3
-       d0nn_a = d2xvec_befor(i0vidi+1,i0xid2d)*d0nncst*1.D-20
-       d0pp_a = d2xvec_befor(i0vidi+6,i0xid2d)*d0ppcst*1.D-23/d0aee
-       
-       d1nn(i0sidi) = d0nncst*d2xvec_befor(i0vidi+ 1,i0xid2d)
-       d1fr(i0sidi) = d0frcst*d2xvec_befor(i0vidi+ 2,i0xid2d)
-       d1fb(i0sidi) = d0fbcst*d2xvec_befor(i0vidi+ 3,i0xid2d)
-       d1ft(i0sidi) = d0ftcst*d2xvec_befor(i0vidi+ 4,i0xid2d)
-       d1fp(i0sidi) = d0fpcst*d2xvec_befor(i0vidi+ 5,i0xid2d)
-       
-       d1pp(i0sidi) = d0ppcst*d2xvec_befor(i0vidi+ 6,i0xid2d)
-       d1qr(i0sidi) = d0qrcst*d2xvec_befor(i0vidi+ 7,i0xid2d)
-       d1qb(i0sidi) = d0qbcst*d2xvec_befor(i0vidi+ 8,i0xid2d)
-       d1qt(i0sidi) = d0qtcst*d2xvec_befor(i0vidi+ 9,i0xid2d)
-       d1qp(i0sidi) = d0qpcst*d2xvec_befor(i0vidi+10,i0xid2d)
-       
-       IF(        d0nn_a.GT.0.D0 )THEN
-          d1ni(i0sidi) = 1.D0/d1nn(i0sidi)
-       ELSE
-          i0nflag = 1
-       ENDIF
-       
-       IF(        d0pp_a.GT.0.D0 )THEN
-          d1pi(i0sidi) = 1.D0/d1pp(i0sidi)
-       ELSE
-          i0nflag = 1
-       ENDIF
-       
-       IF(i0nflag.EQ.1)THEN
+       nnA    = NnNF*XvecIn(vOffset+ 1,i_x2d)
+       ppA    = PpNF*XvecIn(vOffset+ 6,i_x2d)
+
+       IF((nnA.LT.0.D0).OR.(ppA.LT.0.D0))THEN
           WRITE(6,*)'NEGATIVE  DENSITY or PRESSURE'
-          WRITE(6,*)'SPECIS=',i0sidi,'NODE=',i0xid2d,&
-               'N',d0nn_a,'10^{20} /m3','P=',d0pp_a,'keV*10^{20}/m^{3}'
+          WRITE(6,*)'SPECIS=',i_s,'NODE=',i_x2d,&
+               'N=',nnA*1.D-20,'1.D20/m3',&
+               'P=',ppA*1.D-23/Aee,'keV*1.D20/m3'
           STOP       
        ENDIF
+       
+       nn(i_s) = nnA
+       fr(i_s) = FrNF*XvecIn(vOffset+ 2,i_x2d)
+       fb(i_s) = FbNF*XvecIn(vOffset+ 3,i_x2d)
+       ft(i_s) = FtNF*XvecIn(vOffset+ 4,i_x2d)
+       fp(i_s) = FpNF*XvecIn(vOffset+ 5,i_x2d)
+       
+       pp(i_s) = ppA
+       qr(i_s) = QrNF*XvecIn(vOffset+ 7,i_x2d)
+       qb(i_s) = QbNF*XvecIn(vOffset+ 8,i_x2d)
+       qt(i_s) = QtNF*XvecIn(vOffset+ 9,i_x2d)
+       qp(i_s) = QpNF*XvecIn(vOffset+10,i_x2d)
+       
+       nr(i_s) = 1.D0/nnA
+       pr(i_s) = 1.D0/ppA
+       
     ENDDO
     
-    !C
-    !C GEOMETRICAL COEFFICIENTS
-    !C
-    !C
+
+    ! GEOMETRICAL COEFFICIENTS
     
     !C 
     !C d0sqrtg : \sqrt{g}
@@ -273,10 +261,10 @@ CONTAINS
     
     DO i0sidi = 1, i0smax 
        
-       d1ur(i0sidi) = d1fr(i0sidi)*d1ni(i0sidi)
-       d1ub(i0sidi) = d1fb(i0sidi)*d1ni(i0sidi)
-       d1ut(i0sidi) = d1ft(i0sidi)*d1ni(i0sidi)
-       d1up(i0sidi) = d1fp(i0sidi)*d1ni(i0sidi)
+       ur(i0sidi) = d1fr(i0sidi)*d1ni(i0sidi)
+       ub(i0sidi) = d1fb(i0sidi)*d1ni(i0sidi)
+       ut(i0sidi) = d1ft(i0sidi)*d1ni(i0sidi)
+       up(i0sidi) = d1fp(i0sidi)*d1ni(i0sidi)
     
        d1u2(i0sidi) = d1ub(i0sidi)*d1ub(i0sidi)
        

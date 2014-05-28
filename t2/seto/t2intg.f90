@@ -1,89 +1,58 @@
 !-------------------------------------------------------------------- 
 !
-!   MODULE FOR INTERPORATION FUNCTION INTEGRATION 
-!                          BY GAUSSIAN QUADRATURE
+!    MODULE FOR INTERPORATION FUNCTION INTEGRATION 
+!                             BY GAUSSIAN QUADRATURE
 !
-!                  LAST UPDATE 2014-05-20 H.SETO
+!                  LAST UPDATE 2014-05-27 H.Seto
 !
 !   T2INTG requires following variables:
 !
 !   [from T2CNST]
-!        rkind,ikind,abcsArrayXX,wghtArrayXX 
+!
+!        rkind,ikind,AbcsArrayXX,WghtArrayXX 
+!
 !   [from T2COMM] 
-!        NNMAX,NQMAX,NDMAX                   
 !
-!   T2INTG provides following variables:
+!        NNMAX: NUMBER OF NODES PAR ELEMENT
+!        NQMAX: NUMBER OF FOR GAUSSIAN-QUAD PAR DIRECTION
+!        NDMAX: NUMBER OF DIMENSIONS
 !
-!        massScaIntgPG: INTEGRATION ARRAY FOR MASS SCALAR SUBMATRIX
-!        adveVecIntgPG: INTEGRATION ARRAY FOR ADVE VECTOR SUBMATRIX
-!        adveTenIntgPG: INTEGRATION ARRAY FOR ADVE TENSOR SUBMATRIX
-!        diffTenIntgPG: INTEGRATION ARRAY FOR DIFF TENSOR SUBMATRIX
-!        gradVecIntgPG: INTEGRATION ARRAY FOR GRAD VECTOR SUBMATRIX
-!        gradTenIntgPG: INTEGRATION ARRAY FOR GRAD TENSOR SUBMATRIX
-!        exciScaIntgPG: INTEGRATION ARRAY FOR EXCI SCALAR SUBMATRIX
-!        exciVecIntgPG: INTEGRATION ARRAY FOR EXCI VECTOR SUBMATRIX
-!        exciTenIntgPG: INTEGRATION ARRAY FOR EXCI TENSOR SUBMATRIX
-!        sourScaIntgPG: INTEGRATION ARRAY FOR SOUR SCALAR SUBMATRIX
+!        MassScaIntgPG: INTEGRATION ARRAY FOR MASS SCALAR SUBMATRIX
+!        AdveVecIntgPG: INTEGRATION ARRAY FOR ADVE VECTOR SUBMATRIX
+!        AdveTenIntgPG: INTEGRATION ARRAY FOR ADVE TENSOR SUBMATRIX
+!        DiffTenIntgPG: INTEGRATION ARRAY FOR DIFF TENSOR SUBMATRIX
+!        GradVecIntgPG: INTEGRATION ARRAY FOR GRAD VECTOR SUBMATRIX
+!        GradTenIntgPG: INTEGRATION ARRAY FOR GRAD TENSOR SUBMATRIX
+!        ExciScaIntgPG: INTEGRATION ARRAY FOR EXCI SCALAR SUBMATRIX
+!        ExciVecIntgPG: INTEGRATION ARRAY FOR EXCI VECTOR SUBMATRIX
+!        ExciTenIntgPG: INTEGRATION ARRAY FOR EXCI TENSOR SUBMATRIX
+!        SourScaIntgPG: INTEGRATION ARRAY FOR SOUR SCALAR SUBMATRIX
 !
-!   and subroutines:
+!   T2INTG sets up following variables 
 !
-!        T2INTG_EXECUTE
-!        T2INTG_TERMINATE
+!        MassScaIntgPG AdveVecIntgPG AdveTenIntgPG DiffTenIntgPG
+!        GradVecIntgPG GradTenIntgPG ExciScaIntgPG ExciVecIntgPG
+!        ExciTenIntgPG SourScaIntgPG
+!
+!   through  subroutine: T2INTG_EXECUTE
 !
 ! -------------------------------------------------------------------
 MODULE T2INTG
   
   USE T2CNST, ONLY: rkind,ikind
-  !USE T2COMM, ONLY: NNMAX,NQMAX,NDMAX
-
+  
   IMPLICIT NONE
-
+  
   PRIVATE  
   
-  REAL(   rkind),ALLOCATABLE,SAVE::&
-       MassScaIntgPG(:,:,:        ), AdveVecIntgPG(:,:,:,:      ),&
-       AdveTenIntgPG(:,:,:,:,:,:  ), DiffTenIntgPG(:,:,:,:,:    ),&
-       GradVecIntgPG(:,:,:,:      ), GradTenIntgPG(:,:,:,:,:,:  ),&
-       ExciScaIntgPG(:,:,:        ), ExciVecIntgPG(:,:,:,:,:    ),&
-       ExciTenIntgPG(:,:,:,:,:,:,:), SourScaIntgPG(:,:          )
-
-
   ! WORKING ARRAY FOR GAUSSIAN INTEGRATION
-
   
   REAL(rkind),DIMENSION(:,:    ),ALLOCATABLE,SAVE:: wghtArray
   REAL(rkind),DIMENSION(:,:,:,:),ALLOCATABLE,SAVE:: intgArray
   
-  ! T2INTG_ADHOC
-  INTEGER(ikind),SAVE::NNMAX,NQMAX,NDMAX
-  
-  PUBLIC &
-       massScaIntgPG, adveVecIntgPG, adveTenIntgPG, diffTenIntgPG,&
-       gradVecIntgPG, gradTenIntgPG, exciScaIntgPG, exciVecIntgPG,&
-       exciTenIntgPG, sourScaIntgPG,&
-       T2INTG_EXECUTE,&
-       T2INTG_TERMINATE
+  PUBLIC T2INTG_EXECUTE
   
 CONTAINS
-
-  !-------------------------------------------------------------
-  !
-  ! T2INTG_ADHOC (PRIVATE)
-  !
-  !                2014-05-22 H.Seto
-  !
-  !-------------------------------------------------------------
-  SUBROUTINE T2INTG_ADHOC
-    
-    USE T2COMM,ONLY:i0nmax,i0qmax,i0dmax
-    
-    NNMAX = i0nmax
-    NQMAX = i0qmax
-    NDMAX = i0dmax
-    
-    RETURN
-
-  END SUBROUTINE T2INTG_ADHOC
   
   !-------------------------------------------------------------
   !
@@ -94,6 +63,13 @@ CONTAINS
   !-------------------------------------------------------------
   SUBROUTINE T2INTG_EXECUTE
     
+    USE T2COMM, ONLY: &
+         NNMAX,NQMAX,NDMAX,&
+         !
+         MassScaIntgPG, AdveVecIntgPG, AdveTenIntgPG, DiffTenIntgPG,&
+         GradVecIntgPG, GradTenIntgPG, ExciScaIntgPG, ExciVecIntgPG,&
+         ExciTenIntgPG, SourScaIntgPG
+
     INTEGER(ikind)::&
          i_n,j_n,k_n,l_n,m_n,&
          i_d,j_d,&
@@ -102,10 +78,6 @@ CONTAINS
          intgNi,intgNj,intgNk,intgNl,intgNm,&
          weight, sumGaussQuad
     !C------------------------------------------------------
-    
-    CALL T2INTG_ADHOC
-    
-    CALL T2INTG_PUBLIC_ALLOCATE
     
     CALL T2INTG_SETUP_WORKING_ARRAYS
 
@@ -129,7 +101,7 @@ CONTAINS
                &        + intgNi*intgNj*intgNk*weight
        ENDDO
        ENDDO
-       massScaIntgPG(k_n,i_n,j_n) = sumGaussQuad
+       MassScaIntgPG(k_n,i_n,j_n) = sumGaussQuad
     ENDDO
     ENDDO
     ENDDO
@@ -153,7 +125,7 @@ CONTAINS
              sumGaussQuad = sumGaussQuad + intgNi*intgNj*intgNk*weight
           ENDDO
           ENDDO
-          adveVecIntgPG(i_d,k_n,i_n,j_n) = sumGaussQuad
+          AdveVecIntgPG(i_d,k_n,i_n,j_n) = sumGaussQuad
        ENDDO
     ENDDO
     ENDDO
@@ -179,7 +151,7 @@ CONTAINS
                   &        + intgNi*intgNj*intgNk*intgNl*weight
           ENDDO
           ENDDO
-          adveTenIntgPG(i_d,j_d,k_n,l_n,i_n,j_n) = sumGaussQuad
+          AdveTenIntgPG(i_d,j_d,k_n,l_n,i_n,j_n) = sumGaussQuad
        ENDDO
        ENDDO
     ENDDO
@@ -205,7 +177,7 @@ CONTAINS
                   &       + intgNi*intgNj*intgNk*weight
           ENDDO
           ENDDO
-          diffTenIntgPG(i_d,j_d,k_n,i_n,j_n) = sumGaussQuad
+          DiffTenIntgPG(i_d,j_d,k_n,i_n,j_n) = sumGaussQuad
        ENDDO
        ENDDO
     ENDDO
@@ -229,7 +201,7 @@ CONTAINS
                   &       + intgNi*intgNj*intgNk*weight
           ENDDO
           ENDDO
-          gradVecIntgPG(i_d,k_n,i_n,j_n) = sumGaussQuad
+          GradVecIntgPG(i_d,k_n,i_n,j_n) = sumGaussQuad
        ENDDO
     ENDDO
     ENDDO
@@ -255,7 +227,7 @@ CONTAINS
                   &       + intgNi*intgNj*intgNk*intgNl*weight
           ENDDO
           ENDDO
-          gradTenIntgPG(i_d,j_d,k_n,l_n,i_n,j_n) = sumGaussQuad
+          GradTenIntgPG(i_d,j_d,k_n,l_n,i_n,j_n) = sumGaussQuad
        ENDDO
        ENDDO
     ENDDO
@@ -279,7 +251,7 @@ CONTAINS
                &       + intgNi*intgNj*intgNk*weight
        ENDDO
        ENDDO
-       exciScaIntgPG(k_n,i_n,j_n) = sumGaussQuad
+       ExciScaIntgPG(k_n,i_n,j_n) = sumGaussQuad
     ENDDO
     ENDDO
     ENDDO
@@ -303,7 +275,7 @@ CONTAINS
                   &       + intgNi*intgNj*intgNk*intgNl*weight
           ENDDO
           ENDDO
-          exciVecIntgPG(i_d,k_n,l_n,i_n,j_n) = sumGaussQuad
+          ExciVecIntgPG(i_d,k_n,l_n,i_n,j_n) = sumGaussQuad
        ENDDO
     ENDDO
     ENDDO
@@ -332,7 +304,7 @@ CONTAINS
                   &       + intgNi*intgNj*intgNk*intgNl*intgNm*weight
           ENDDO
           ENDDO
-          exciTenIntgPG(i_d,j_d,k_n,l_n,m_n,i_n,j_n) = sumGaussQuad
+          ExciTenIntgPG(i_d,j_d,k_n,l_n,m_n,i_n,j_n) = sumGaussQuad
        ENDDO
        ENDDO
     ENDDO
@@ -355,142 +327,17 @@ CONTAINS
                &       + intgNi*intgNj*weight
        ENDDO
        ENDDO
-       sourScaIntgPG(i_n,j_n) = sumGaussQuad
+       SourScaIntgPG(i_n,j_n) = sumGaussQuad
     ENDDO
     ENDDO
     
-    CALL T2INTG_TERMINATE_WORKING_ARRAYS
+    IF(ALLOCATED(wghtArray)) DEALLOCATE(wghtArray)
+    IF(ALLOCATED(intgArray)) DEALLOCATE(intgArray)
     
     RETURN
     
   END SUBROUTINE T2INTG_EXECUTE
   
-  !-------------------------------------------------------------
-  !
-  !  T2_INTG_TERMINATE (PUBLIC)
-  !
-  !                2014-05-22 H.Seto
-  !
-  !-------------------------------------------------------------
-  SUBROUTINE T2INTG_TERMINATE
-    CALL T2INTG_PUBLIC_DEALLOCATE
-    CALL T2INTG_PRIVATE_DEALLOCATE
-    RETURN
-  END SUBROUTINE T2INTG_TERMINATE
-
-  !-------------------------------------------------------------
-  !
-  !  T2INTG_PUBLIC_ALLOCATE (PRIVATE)
-  !
-  !                2014-05-22 H.Seto 
-  !
-  !-------------------------------------------------------------
-  SUBROUTINE T2INTG_PUBLIC_ALLOCATE
-    
-    INTEGER(ikind),SAVE::&
-         NNMAX_save=0,NDMAX_save=0,NQMAX_save=0
-    
-    INTEGER(ikind):: i0err
-    
-    IF(  (NNMAX .NE.NNMAX_save ).OR.&
-         (NDMAX .NE.NDMAX_save ).OR.&
-         (NQMAX .NE.NQMAX_save ))THEN
-       
-       CALL T2INTG_PUBLIC_DEALLOCATE
-       
-       DO
-          ! for PG-FEM
-          ALLOCATE(massScaIntgPG(1:NNMAX,1:NNMAX,1:NNMAX),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(adveVecIntgPG(1:NDMAX,&
-               &                 1:NNMAX,1:NNMAX,1:NNMAX),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(adveTenIntgPG(1:NDMAX,1:NDMAX,&
-               &                 1:NNMAX,1:NNMAX,1:NNMAX,1:NNMAX),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(diffTenIntgPG(1:NDMAX,1:NDMAX,&
-               &                 1:NNMAX,1:NNMAX,1:NNMAX),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(gradVecIntgPG(1:NDMAX,&
-               &                 1:NNMAX,1:NNMAX,1:NNMAX),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(gradTenIntgPG(1:NDMAX,1:NDMAX,&
-               &                 1:NNMAX,1:NNMAX,1:NNMAX,1:NNMAX),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(exciScaIntgPG(1:NNMAX,1:NNMAX,1:NNMAX),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(exciVecIntgPG(1:NDMAX,&
-               &                 1:NNMAX,1:NNMAX,1:NNMAX,1:NNMAX),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(exciTenIntgPG(1:NDMAX,1:NDMAX,&
-               &                 1:NNMAX,1:NNMAX,1:NNMAX,1:NNMAX,1:NNMAX),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(sourScaIntgPG(1:NNMAX,1:NNMAX),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-          
-          ! for SUPG-FEM
-
-          !ALLOCATE(massScaIntgSUPG(1:NDMAX,&
-          !     &                   1:NNMAX,1:NNMAX,1:NNMAX,1:NNMAX),&
-          !     STAT=i0err); IF(i0err.NE.0) EXIT
-          !ALLOCATE(adveVecIntgSUPG(1:NDMAX,1:NDMAX,&
-          !     &                   1:NNMAX,1:NNMAX,1:NNMAX,1:NNMAX),&
-          !     STAT=i0err); IF(i0err.NE.0) EXIT
-          !ALLOCATE(sourScaIntgSUPG(1:NDMAX,&
-          !     &                   1:NNMAX,1:NNMAX,1:NNMAX),&
-          !     STAT=i0err); IF(i0err.NE.0) EXIT
-          
-          NNMAX_save = NNMAX
-          NDMAX_save = NDMAX
-          NQMAX_save = NQMAX
-          
-          WRITE(6,'(A)') '-- T2INTG_PUBLIC_ALLOCATE: SUCCESSED'
-          
-          RETURN
-          
-       ENDDO
-       
-       WRITE(6,'(A)') 'XX T2COMM_ALLOCATE: ALLOCATION ERROR: ECODE=',i0err
-       STOP
-       
-    END IF
-    
-    RETURN
-    
-  END SUBROUTINE T2INTG_PUBLIC_ALLOCATE
-  
-  !-------------------------------------------------------------
-  !
-  !  T2INTG_PUBLIC_DEALLOCATE (PRIVATE)
-  !
-  !                2014-05-20 H.Seto 
-  !
-  !-------------------------------------------------------------
-  SUBROUTINE T2INTG_PUBLIC_DEALLOCATE
-
-    ! for PG-FEM
-
-    IF(ALLOCATED(massScaIntgPG)) DEALLOCATE(massScaIntgPG)
-    IF(ALLOCATED(adveVecIntgPG)) DEALLOCATE(adveVecIntgPG)
-    IF(ALLOCATED(adveTenIntgPG)) DEALLOCATE(adveTenIntgPG)
-    IF(ALLOCATED(diffTenIntgPG)) DEALLOCATE(diffTenIntgPG)
-    IF(ALLOCATED(gradVecIntgPG)) DEALLOCATE(gradVecIntgPG)
-    IF(ALLOCATED(gradTenIntgPG)) DEALLOCATE(gradTenIntgPG)
-    IF(ALLOCATED(exciScaIntgPG)) DEALLOCATE(exciScaIntgPG)
-    IF(ALLOCATED(exciVecIntgPG)) DEALLOCATE(exciVecIntgPG)
-    IF(ALLOCATED(exciTenIntgPG)) DEALLOCATE(exciTenIntgPG)
-    IF(ALLOCATED(sourScaIntgPG)) DEALLOCATE(sourScaIntgPG)
-    
-    !C for SUPG-FEM
-    
-    !IF(ALLOCATED(massScaIntgSUPG)) DEALLOCATE(massScaIntgSUPG)
-    !IF(ALLOCATED(adveVecIntgSUPG)) DEALLOCATE(adveVecIntgSUPG)
-    !IF(ALLOCATED(sourScaIntgSUPG)) DEALLOCATE(sourScaIntgSUPG)
-   
-    RETURN
-
-  END SUBROUTINE T2INTG_PUBLIC_DEALLOCATE
-
   !-------------------------------------------------------------------
   !
   ! T2INTG_SETUP_WORKING_ARRAYS (PRIVATE)
@@ -501,7 +348,7 @@ CONTAINS
   SUBROUTINE T2INTG_SETUP_WORKING_ARRAYS
     
     USE T2CNST, ONLY: abscArray32,wghtArray32
-    !USE T2COMM, ONLY: NNMAX,NQMAX,NDMAX
+    USE T2COMM, ONLY: NNMAX,NQMAX,NDMAX
     
     INTEGER(ikind)::&
          i_q,i_q_odd,i_q_eve,&
@@ -703,12 +550,13 @@ CONTAINS
 
        ENDDO
        ENDDO
-
+       
        ! dd F_i/dxdx (Q_j)
        ! dd F_i/dxdy (Q_j)
        ! dd F_i/dydy (Q_j)
-
+       
     !CASE ( 9)
+       
        !
        !   09-points Biquadradic Lagrangian Rectangular Element
        !
@@ -757,27 +605,10 @@ CONTAINS
        WRITE(6,*)'ERROR: ILLEGAL I0NMAX0'
        WRITE(6,*)'-------------------------------------------------'
        STOP
-
+       
     END SELECT
     
     RETURN
     
   END SUBROUTINE T2INTG_SETUP_WORKING_ARRAYS
-
-  !C------------------------------------------------------------------
-  !C
-  !C T2INTG_TERMINATE_WORKING_ARRAYS (PRIVATE)
-  !C 
-  !C                2014-05-20 H.Seto
-  !C
-  !C------------------------------------------------------------------  
-  SUBROUTINE T2INTG_TERMINATE_WORKING_ARRAYS
-    
-    IF(ALLOCATED(wghtArray)) DEALLOCATE(wghtArray)
-    IF(ALLOCATED(intgArray)) DEALLOCATE(intgArray)
-    
-    RETURN
-    
-  END SUBROUTINE T2INTG_TERMINATE_WORKING_ARRAYS
-  
 END MODULE T2INTG

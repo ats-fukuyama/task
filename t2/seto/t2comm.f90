@@ -1,27 +1,27 @@
 MODULE T2COMM
   
-  USE T2CNST, ONLY: i0rkind, i0ikind, i0lmaxm, i0spcsm, twopi
+  USE T2CNST, ONLY: rkind, ikind, i0lmaxm, i0spcsm, twopi
   
   IMPLICIT NONE
 
   !---- input parameters added by AF
-  INTEGER(i0ikind):: &
+  INTEGER(ikind):: &
        ntmax,ntstep,nconvmax, &
        nt0dmax,nt0dstep, &
        nt2dmax,nt2dstep, &
        idfile,idprint,idplot,idmode,idebug
-  REAL(i0rkind):: &
-       dt,time_init,eps_conv
+  REAL(rkind):: &
+       Dt,time_init,eps_conv
 
   !---- global parameters added by AF
-  INTEGER(i0ikind):: nrhomax ! number of variables in rho
-  INTEGER(i0ikind):: nchimax ! number of variables in chi
-  INTEGER(i0ikind):: nequmax ! number of equations to be solved
-  INTEGER(i0ikind):: nv0dmax ! number of global variables to be saved
-  INTEGER(i0ikind):: nv2dmax ! number of profile varibales to be saved
-  REAL(   i0rkind):: &
+  INTEGER(ikind):: nrhomax ! number of variables in rho
+  INTEGER(ikind):: nchimax ! number of variables in chi
+  INTEGER(ikind):: nequmax ! number of equations to be solved
+  INTEGER(ikind):: nv0dmax ! number of global variables to be saved
+  INTEGER(ikind):: nv2dmax ! number of profile varibales to be saved
+  REAL(   rkind):: &
        time_t2               ! global time
-  REAL(i0rkind),DIMENSION(:,:),ALLOCATABLE:: &
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
        vv0d,vv2d             ! storage for 0D and 2D data
   
   !C---------------------------------------------------------
@@ -32,9 +32,9 @@ MODULE T2COMM
   !C
   !C---------------------------------------------------------
   
-  INTEGER(i0ikind)::i0dbg
-
-  INTEGER(i0ikind) ::&
+  INTEGER(ikind)::i0dbg
+  
+  INTEGER(ikind) ::&
        i0vmax, & !C NUMBER OF DEPENDENT VARIABLES
        i0wmax, & !C NUMBER OF WORKING VARIABLES FOR DIFFERENTIAL
        i0qmax, & !C NUMBER OF INTEGRAL POINTS PAR DIRECTION
@@ -54,8 +54,38 @@ MODULE T2COMM
        i0ermx, & !C ARRAY SIZE OF I1EIDR (CRS-METHOD) 
        i0ecmx, & !C ARRAY SIZE OF I1EIDC (CRS-METHOD) 
        i0pdiv_number
-  
-  INTEGER(i0ikind)::&
+
+  !---------------------------------------------------------
+  !
+  !
+  !       GLOBAL PARAMETERS (NEW)
+  ! 
+  !
+  !---------------------------------------------------------
+  INTEGER(ikind),SAVE::&
+       NNMAX,&
+       NQMAX,&
+       NDMAX,&
+       NSMAX,&
+       NVMAX,&
+       NRMAX,&
+       NKMAX,& 
+       NEMAX,&
+       NBMAX,&
+       NXMAX,&
+       NMMAX,&
+       NHMAX,&
+       NAMAX,&
+       NNRMX,&
+       NERMX,&
+       NECMX,&
+       NLMAX,&
+       NPMAX,&
+       NPMIN,&
+       NAVMX,& !    i0avmax = i0amax*i0vmax*i0vmax
+       NBVMX   !    i0bvmax = i0bmax*i0vmax
+
+  INTEGER(ikind)::&
        i0mfcs, & !C INDICATOR FOR COORDINATE SYSTEM (1: torus coordinate)
        i0supg, & !C INDICATOR FOR SUPG METHOD (0: w/o SUPG, 1: w SUPG)
        i0wstp, & !C INDICATOR FOR RESULT OUTPUT TIMING
@@ -64,11 +94,11 @@ MODULE T2COMM
                  !C      0: w/o anomalous transport 
                  !C      1: w   anomalous transport
        i0cchk    !C INDICATOR FOR COEFFICIENT CHECK (1: coefs check)
-  INTEGER(i0ikind)::&
+  INTEGER(ikind)::&
        i0bvmax,& !C VECTOR SIZE OF b FOR MTXP (Ax=b)
        i0avmax   !C NUMBER OF NONZERO COMPONENT OF A FOR MTXP (Ax=b)
 
-  REAL(   i0rkind)::&
+  REAL(   rkind)::&
        d0mfcst, d0mffct,& !C NORMALIZATION CONSTANTS FOR \psi'
        d0btcst, d0btfct,& !C NORMALIZATION CONSTANTS FOR I
        d0etcst, d0etfct,& !C NORMALIZATION CONSTANTS FOR E_{\zeta}
@@ -91,80 +121,116 @@ MODULE T2COMM
        d0iar,   & !C INVERSE ASPECT RATIO (a/R_{0})
        d0eps      !C CONVERGENCE CRITERION FOR PICARD ITERATION
 
-  !C--------------------------------------------------------
-  !C
-  !C                 FOR T2INTG: MODIFIED 2014-01-29
-  !C 
-  !C--------------------------------------------------------
+  REAL(   rkind)::&
+       BpNF,&
+       BtNF,&
+       EtNF,&
+       EpNF,&
+       ErNF,&
+       NnNF,&
+       FrNF,&
+       FbNF,&
+       FtNF,&
+       FpNF,&
+       PpNF,&
+       QrNF,&
+       QbNF,&
+       QtNF,&
+       QpNF
 
+  !-------------------------------------------------------------------
+  !
+  !       DEFINITION OF GLOBAL VARIABLES  FOR T2INTG
+  !
+  !                                     LAST UPDATE 2014-05-27
+  ! 
+  !-------------------------------------------------------------------
 
-  !C
-  !C WORKING ARRAY FOR GAUSSIAN INTEGRATION
-  !C
-
-  !C D1ABSC: ABSCISSAS FOR GAUSS INTEGRATION
-  !C D1WFCT: WHEIGHT FACTOR (1D)
-  !C D2WFCT: WHEIGHT FACTOR (2D)
-  !C D4IFNC: INTERPOLATION FUNCTIONS 
+  !
+  ! INTEGRATION ARRAYS BY GAUSSIAN INTEGRATION
+  !
   
-  REAL(i0rkind),DIMENSION(:      ),ALLOCATABLE:: d1absc    
-  REAL(i0rkind),DIMENSION(:      ),ALLOCATABLE:: d1wfct
-  REAL(i0rkind),DIMENSION(:,:    ),ALLOCATABLE:: d2wfct
-  REAL(i0rkind),DIMENSION(:,:,:,:),ALLOCATABLE:: d4ifnc
-  
-  !C
-  !C INTEGRATION ARRAYS BY GAUSSIAN INTEGRATION
-  !C
+  !  MassScaIntgPG: INTEGRATION ARRAY FOR MASS SCALAR SUBMATRIX
+  !  AdveVecIntgPG: INTEGRATION ARRAY FOR ADVE VECTOR SUBMATRIX
+  !  AdveTenIntgPG: INTEGRATION ARRAY FOR ADVE TENSOR SUBMATRIX
+  !  DiffTenIntgPG: INTEGRATION ARRAY FOR DIFF TENSOR SUBMATRIX
+  !  GradVecIntgPG: INTEGRATION ARRAY FOR GRAD VECTOR SUBMATRIX
+  !  GradTenIntgPG: INTEGRATION ARRAY FOR GRAD TENSOR SUBMATRIX
+  !  ExciScaIntgPG: INTEGRATION ARRAY FOR EXCI SCALAR SUBMATRIX
+  !  ExciVecIntgPG: INTEGRATION ARRAY FOR EXCI VECTOR SUBMATRIX
+  !  ExciTenIntgPG: INTEGRATION ARRAY FOR EXCI TENSOR SUBMATRIX
+  !  SourScaIntgPG: INTEGRATION ARRAY FOR SOUR SCALAR SUBMATRIX
 
-  !C
-  !C FOR W/O SUPG 
-  !C
-  !C D3IMSN: INTEGRATION ARRAY FOR MASS       SCALAR SUBMATRIX
-  !C D4IAVN: INTEGRATION ARRAY FOR ADVECTION  VECTOR SUBMATRIX
-  !C D6IATN: INTEGRATION ARRAY FOR ADVECTION  TENSOR SUBMATRIX
-  !C D5IDTN: INTEGRATION ARRAY FOR DIFFUSION  TENSOR SUBMATRIX
-  !C D4IGVN: INTEGRATION ARRAY FOR GRADIENT   VECTOR SUBMATRIX
-  !C D6IGTN: INTEGRATION ARRAY FOR GRADIENT   TENSOR SUBMATRIX
-  !C D3IESN: INTEGRATION ARRAY FOR EXCITATION SCALAR SUBMATRIX
-  !C D5IEVN: INTEGRATION ARRAY FOR EXCITATION VECTOR SUBMATRIX
-  !C D7IETN: INTEGRATION ARRAY FOR EXCITATION TENSOR SUBMATRIX
-  !C D2ISSN: INTEGRATION ARRAY FOR SOURCE     SCALAR SUBMATRIX
-  
-  REAL(   i0rkind),DIMENSION(:,:,:        ),ALLOCATABLE:: d3imsn
-  REAL(   i0rkind),DIMENSION(:,:,:,:      ),ALLOCATABLE:: d4iavn
-  REAL(   i0rkind),DIMENSION(:,:,:,:,:,:  ),ALLOCATABLE:: d6iatn
-  REAL(   i0rkind),DIMENSION(:,:,:,:,:    ),ALLOCATABLE:: d5idtn
-  REAL(   i0rkind),DIMENSION(:,:,:,:      ),ALLOCATABLE:: d4igvn
-  REAL(   i0rkind),DIMENSION(:,:,:,:,:,:  ),ALLOCATABLE:: d6igtn
-  REAL(   i0rkind),DIMENSION(:,:,:        ),ALLOCATABLE:: d3iesn
-  REAL(   i0rkind),DIMENSION(:,:,:,:,:    ),ALLOCATABLE:: d5ievn
-  REAL(   i0rkind),DIMENSION(:,:,:,:,:,:,:),ALLOCATABLE:: d7ietn
-  REAL(   i0rkind),DIMENSION(:,:          ),ALLOCATABLE:: d2issn
+  REAL(   rkind),ALLOCATABLE,SAVE::&
+       MassScaIntgPG(:,:,:        ), AdveVecIntgPG(:,:,:,:      ),&
+       AdveTenIntgPG(:,:,:,:,:,:  ), DiffTenIntgPG(:,:,:,:,:    ),&
+       GradVecIntgPG(:,:,:,:      ), GradTenIntgPG(:,:,:,:,:,:  ),&
+       ExciScaIntgPG(:,:,:        ), ExciVecIntgPG(:,:,:,:,:    ),&
+       ExciTenIntgPG(:,:,:,:,:,:,:), SourScaIntgPG(:,:          )
 
-  !C
-  !C FOR W SUPG 
-  !C
-  !C D4IMSS: INTEGRATION ARRAY FOR MASS       SCALAR SUBMATRIX
-  !C D5IAVS: INTEGRATION ARRAY FOR ADVECTION  VECTOR SUBMATRIX
-  !C D7IATS: INTEGRATION ARRAY FOR ADVECTION  TENSOR SUBMATRIX
-  !C D6IDTS: INTEGRATION ARRAY FOR DIFFUSION  TENSOR SUBMATRIX
-  !C D5IGVS: INTEGRATION ARRAY FOR GRADIENT   VECTOR SUBMATRIX
-  !C D7IGTS: INTEGRATION ARRAY FOR GRADIENT   TENSOR SUBMATRIX
-  !C D4IESS: INTEGRATION ARRAY FOR EXCITATION SCALAR SUBMATRIX
-  !C D6IEVS: INTEGRATION ARRAY FOR EXCITATION VECTOR SUBMATRIX
-  !C D8IETS: INTEGRATION ARRAY FOR EXCITATION TENSOR SUBMATRIX
-  !C D3ISSS: INTEGRATION ARRAY FOR SOURCE     SCALAR SUBMATRIX
-  
-  !REAL(   i0rkind),DIMENSION(:,:,:,:,:        ),ALLOCATABLE:: d5imss
-  !REAL(   i0rkind),DIMENSION(:,:,:,:,:,:      ),ALLOCATABLE:: d6iavs
-  !REAL(   i0rkind),DIMENSION(:,:,:,:,:,:,:,:  ),ALLOCATABLE:: d8iats
-  !REAL(   i0rkind),DIMENSION(:,:,:,:,:,:,:    ),ALLOCATABLE:: d7idts
-  !REAL(   i0rkind),DIMENSION(:,:,:,:,:,:      ),ALLOCATABLE:: d6igvs
-  !REAL(   i0rkind),DIMENSION(:,:,:,:,:,:,:,:  ),ALLOCATABLE:: d8igts
-  !REAL(   i0rkind),DIMENSION(:,:,:,:,:        ),ALLOCATABLE:: d5iess
-  !REAL(   i0rkind),DIMENSION(:,:,:,:,:,:,:    ),ALLOCATABLE:: d7ievs
-  !REAL(   i0rkind),DIMENSION(:,:,:,:,:,:,:,:,:),ALLOCATABLE:: d9iets
-  !REAL(   i0rkind),DIMENSION(:,:,:,:          ),ALLOCATABLE:: d4isss
+
+  !-------------------------------------------------------------------
+  !
+  !       DEFINITION OF GLOBAL VARIABLES  FOR T2VGRA
+  !
+  !                                     LAST UPDATE 2014-05-27
+  ! 
+  !-------------------------------------------------------------------
+  LOGICAL,SAVE::&
+       UsePotentialDescription,&
+       UseNormalization,&
+       !
+       SolveField,&
+       SolveElectron,&
+       SolveIons,&
+       SolveDensity,&
+       SolveFlux,&
+       SolvePressure,&
+       SolveHeatFlux,&
+       !
+       LockPoloidalMageticFieldOnAxis,&
+       LockToroidalMageticFieldOnAxis,&
+       LockRadialElectricFieldOnAxis,&
+       LockPoloidalElectricFieldOnAxis,&
+       LockToroidalElectricFieldOnAxis,&
+       LockDensityOnAxis,&
+       LockRaidalFluxOnAxis,&
+       LockParallelFluxOnAxis,&
+       LockToroidalFluxOnAxis,&
+       LockPoroidalFluxOnAxis,&
+       LockPressureOnAxis,&
+       LockRaidalHeatFluxOnAxis,&
+       LockParallelHeatFluxOnAxis,&
+       LockToroidalHeatFluxOnAxis,&
+       LockPoroidalHeatFluxOnAxis,&
+       !
+       LockPoloidalMageticFieldOnWall,&
+       LockToroidalMageticFieldOnWall,&
+       LockRadialElectricFieldOnWall,&
+       LockPoloidalElectricFieldOnWall,&
+       LockToroidalElectricFieldOnWall,&
+       LockDensityOnWall,&
+       LockRaidalFluxOnWall,&
+       LockParallelFluxOnWall,&
+       LockToroidalFluxOnWall,&
+       LockPoroidalFluxOnWall,&
+       LockPressureOnWall,&
+       LockRaidalHeatFluxOnWall,&
+       LockParallelHeatFluxOnWall,&
+       LockToroidalHeatFluxOnWall,&
+       LockPoroidalHeatFluxOnWall
+
+  LOGICAL,SAVE,ALLOCATABLE::&
+       HaveMassScaCoef(:,:    ),HaveAdveVecCoef(:,:    ),&
+       HaveAdveTenCoef(:,:    ),HaveDiffTenCoef(:,:    ),&
+       HaveGradVecCoef(:,:    ),HaveGradTenCoef(:,:    ),&
+       HaveExciScaCoef(:,:    ),HaveExciVecCoef(:,:    ),&
+       HaveExciTenCoef(:,:    ),HaveSourScaCoef(:,:    ),&
+       !
+       HaveAdveTenKval(:,:,:  ),HaveGradTenKval(:,:,:  ),&
+       HaveExciVecKval(:,:,:  ),HaveExciTenKval(:,:,:,:),&
+       !
+       HaveMat(:,:), LockEqs(:),  LockAxi(:),  LockWal(:)
   
   !C------------------------------------------------------------------
   !C
@@ -189,7 +255,7 @@ MODULE T2COMM
   !C          (W/O OVERLAP)
   !C
 
-  INTEGER(i0ikind),ALLOCATABLE,DIMENSION(:)::& 
+  INTEGER(ikind),ALLOCATABLE,DIMENSION(:)::& 
        i1mmax,i1bmax,i1emax,i1mlel,i1rdn1,i1pdn1,i1pdn2
 
   !C
@@ -204,8 +270,9 @@ MODULE T2COMM
   !C         UP TO EACH ROW IN MATRIX A
   !C I1NDIC: NODE NUMBER 
   !C
-  INTEGER(i0ikind),ALLOCATABLE,DIMENSION(:)::& 
-       i1nidr, i1nidc
+  INTEGER(ikind),ALLOCATABLE,DIMENSION(:)::& 
+       i1nidr,&
+       i1nidc
 
   !C
   !C FOR COMPRESSED ROW STORAGE METHOD FOR NODE-ELEMENT RERATIONS
@@ -214,7 +281,7 @@ MODULE T2COMM
   !C         UP TO EACH NODE 
   !C I1EDIC: ELEMENT NUMBER 
   !C
-  INTEGER(i0ikind),ALLOCATABLE,DIMENSION(:)::&
+  INTEGER(ikind),ALLOCATABLE,DIMENSION(:)::&
        i1eidr, i1eidc
 
   !C I2CRT: INFORMATION NODE PROJECTION MAP
@@ -230,8 +297,8 @@ MODULE T2COMM
   !C
   !C I2HBC: INFORMATION OF BOUND NODE AND BINDING NODES FOR h-MESH
   !C
-  INTEGER(i0ikind),ALLOCATABLE,DIMENSION(:,:,:)::i3enr 
-  INTEGER(i0ikind),ALLOCATABLE,DIMENSION(:,:  )::i2crt,i2hbc
+  INTEGER(ikind),ALLOCATABLE,DIMENSION(:,:,:)::i3enr 
+  INTEGER(ikind),ALLOCATABLE,DIMENSION(:,:  )::i2crt,i2hbc
   
   !C
   !C FOR 1D PROBLEM
@@ -240,8 +307,8 @@ MODULE T2COMM
   !C D1MC1D: RADIAL POSITIONS FOR DATA STOCK OF 1D VALUES
   !C 
 
-  INTEGER(i0ikind),ALLOCATABLE,DIMENSION(:):: i1mc1d 
-  REAL(   i0rkind),ALLOCATABLE,DIMENSION(:):: d1mc1d
+  INTEGER(ikind),ALLOCATABLE,DIMENSION(:):: i1mc1d 
+  REAL(   rkind),ALLOCATABLE,DIMENSION(:):: d1mc1d
 
 
 
@@ -250,54 +317,13 @@ MODULE T2COMM
   !C D1RSIZ: LENGTH IN RADIAL   DIRECTION OF ELEMENT 
   !C D1RSIZ: LENGTH IN POLOIDAL DIRECTION OF ELEMENT 
   !C
-  REAL(i0rkind),ALLOCATABLE,DIMENSION(:)::d1msiz,d1rsiz,d1psiz
+  REAL(rkind),ALLOCATABLE,DIMENSION(:)::d1msiz,d1rsiz,d1psiz
   
   
-  INTEGER(i0ikind),ALLOCATABLE,DIMENSION(:)::&
+  INTEGER(ikind),ALLOCATABLE,DIMENSION(:)::&
        i1dbc2, i1mfc1 
-  REAL(i0rkind),ALLOCATABLE,DIMENSION(:,:)::&
+  REAL(rkind),ALLOCATABLE,DIMENSION(:,:)::&
        d2mfc1
-
-  !C------------------------------------------------------------------
-  !C  
-  !C                    FOR T2VGRA: MODIFIED 2014-01-28
-  !C
-  !C------------------------------------------------------------------
-  
-  !C
-  !C DEPENDENT VARIABLE GRAPHS: I2**VT[I0VIDI,I0VIDJ]
-  !C       IVIDI >>
-  !C                1     : \psi'
-  !C                2     : I
-  !C                3     : E_{\zeta}
-  !C                4     : E_{\chi }
-  !C                5     : E_{\rho }
-  !C                8*N-2 : n_{a}
-  !C                8*N-1 : n_{a}u_{a}^{\rho}
-  !C                8*N   : n_{a}u_{a\para}
-  !C                8*N+1 : n_{a}u_{a\zeta}
-  !C                8*N+2 : p_{a}
-  !C                8*N+3 : Q_{a}^{\rho}
-  !C                8*N+4 : Q_{a\para}
-  !C                8*N+5 : Q_{a\zeta}
-  !C
-  INTEGER(i0ikind),ALLOCATABLE,DIMENSION(:,:)::&
-       i2msvt,i2avvt,i2atvt,i2dtvt,i2gvvt,i2gtvt,&
-       i2esvt,i2evvt,i2etvt,i2ssvt,i2vvvt
-
-  !C
-  !C DEPENDENT VARIABLE & DIFFERENATIAL GRAPHS: 
-  !C 
-  !C I3**WT[I0WIDI,       I0VIDI,I0VIDJ]
-  !C I4**WT[I0WIDI,I0WIDJ,I0VIDI,I0VIDJ]
-  !C       IWIDI >>
-  !C                1     : B 
-  !C                2     : R 
-  !C                2*N+1 : u_{a\para}
-  !C                2*N+2 : Q_{a\para}/p_{a}
-  !C
-  INTEGER(i0ikind),ALLOCATABLE,DIMENSION(:,:,:  )::i3atwt,i3gtwt,i3evwt
-  INTEGER(i0ikind),ALLOCATABLE,DIMENSION(:,:,:,:)::i4etwt
 
   !C------------------------------------------------------------------
   !C
@@ -311,7 +337,7 @@ MODULE T2COMM
   !C D2RZM : RZ COORDINATES w   OVERLAP
   !C D2RZX : RZ COORDINATES w/o OVERLAP w INTERPOLATION 
   !C
-  REAL(   i0rkind),DIMENSION(:,:),ALLOCATABLE::&
+  REAL(   rkind),DIMENSION(:,:),ALLOCATABLE::&
        d2ug,d2rzm,d2rzx,d2jm1,d2mtrc
 
   !C------------------------------------------------------------------
@@ -319,16 +345,16 @@ MODULE T2COMM
   !C                          FOR T2PROF
   !C
   !C------------------------------------------------------------------
-  INTEGER(i0ikind)::&
+  INTEGER(ikind)::&
        i0nm,i0nn,i0tm,i0tn
-  REAL(   i0rkind)::&
+  REAL(   rkind)::&
        d0qc,d0qs,d0bc,d0rw
-  REAL(   i0rkind),DIMENSION(1:i0spcsm)::&
+  REAL(   rkind),DIMENSION(1:i0spcsm)::&
        d1nc,d1ns,d1nw,d1tc,d1ts,d1tw,d1pa,d1pz
-  INTEGER(i0ikind),DIMENSION(0:i0lmaxm+1)::&
+  INTEGER(ikind),DIMENSION(0:i0lmaxm+1)::&
        i1mlvl
-  INTEGER(i0ikind),DIMENSION(-1:i0lmaxm)::i1rdn2
-  REAL(   i0rkind),DIMENSION(0:i0lmaxm)::&
+  INTEGER(ikind),DIMENSION(-1:i0lmaxm)::i1rdn2
+  REAL(   rkind),DIMENSION(0:i0lmaxm)::&
        d1rec
   !C------------------------------------------------------------------
   !C
@@ -338,20 +364,18 @@ MODULE T2COMM
 
   !C
   !C     Ax=b 
-  !C D3AMAT[1:I0VMAX,1:I0VMAX,1:I0AMAX]: A (CRS-METHOD)
   !C D2XVEC[         1:I0VMAX,1:I0XMAX]: x
   !C D2BVEC[         1:I0VMAX,1:I0BMAX]: b
   !C D2XVEC_BEFOR[  1:I0VMAX,1:I0XMAX] : FOR PICARD ITERATION 
   !C D2XVEC_AFTER[  1:I0VMAX,1:I0XMAX] : FOR PICARD ITERATION 
-  REAL(   i0rkind),DIMENSION(:,:,:),ALLOCATABLE::d3amat
-  REAL(   i0rkind),DIMENSION(:,:),ALLOCATABLE::&
-       d2xvec,d2bvec,d2xvec_befor,d2xvec_after
-  !C 
   !C I1NLCT: NUMBER   OF ITERATION 
   !C D1RSDL: RESIDUAL OF ITERATION 
-  !C
-  INTEGER(i0ikind),DIMENSION(:),ALLOCATABLE::i1nlct
-  REAL(   i0rkind),DIMENSION(:),ALLOCATABLE::d1rsdl
+  REAL(   rkind),SAVE,ALLOCATABLE::&
+       d2xvec(:,:),XvecIn(:,:),XvecOut(:,:)
+  INTEGER(ikind),SAVE,ALLOCATABLE::&
+       i1nlct(:)
+  REAL(   rkind),SAVE,ALLOCATABLE::&
+       d1rsdl(:)
   
   !C------------------------------------------------------------------
   !C
@@ -359,57 +383,36 @@ MODULE T2COMM
   !C
   !C------------------------------------------------------------------ 
   
-  REAL(   i0rkind),DIMENSION(:,:,:        ),ALLOCATABLE::d3ms
-  REAL(   i0rkind),DIMENSION(:,:,:,:      ),ALLOCATABLE::d4av
-  REAL(   i0rkind),DIMENSION(:,:,:,:,:,:  ),ALLOCATABLE::d6at
-  REAL(   i0rkind),DIMENSION(:,:,:,:,:    ),ALLOCATABLE::d5dt
-  REAL(   i0rkind),DIMENSION(:,:,:,:      ),ALLOCATABLE::d4gv
-  REAL(   i0rkind),DIMENSION(:,:,:,:,:,:  ),ALLOCATABLE::d6gt
-  REAL(   i0rkind),DIMENSION(:,:,:        ),ALLOCATABLE::d3es
-  REAL(   i0rkind),DIMENSION(:,:,:,:,:    ),ALLOCATABLE::d5ev
-  REAL(   i0rkind),DIMENSION(:,:,:,:,:,:,:),ALLOCATABLE::d7et
-  REAL(   i0rkind),DIMENSION(:,:,:        ),ALLOCATABLE::d3ss
+  REAL(   rkind),DIMENSION(:,:,:        ),ALLOCATABLE::d3ms
+  REAL(   rkind),DIMENSION(:,:,:,:      ),ALLOCATABLE::d4av
+  REAL(   rkind),DIMENSION(:,:,:,:,:,:  ),ALLOCATABLE::d6at
+  REAL(   rkind),DIMENSION(:,:,:,:,:    ),ALLOCATABLE::d5dt
+  REAL(   rkind),DIMENSION(:,:,:,:      ),ALLOCATABLE::d4gv
+  REAL(   rkind),DIMENSION(:,:,:,:,:,:  ),ALLOCATABLE::d6gt
+  REAL(   rkind),DIMENSION(:,:,:        ),ALLOCATABLE::d3es
+  REAL(   rkind),DIMENSION(:,:,:,:,:    ),ALLOCATABLE::d5ev
+  REAL(   rkind),DIMENSION(:,:,:,:,:,:,:),ALLOCATABLE::d7et
+  REAL(   rkind),DIMENSION(:,:,:        ),ALLOCATABLE::d3ss
 
-  REAL(   i0rkind),DIMENSION(:,:          ),ALLOCATABLE::d2ws
+  REAL(   rkind),DIMENSION(:,:          ),ALLOCATABLE::d2ws
 
-  REAL(   i0rkind),DIMENSION(:),ALLOCATABLE::&
+  REAL(   rkind),DIMENSION(:),ALLOCATABLE::&
        d1ee,d1mm,d1nn,d1ni,d1pp,d1pi,d1tt,d1ti,&
        d1ur,d1up,d1ut,d1ub,d1u2,&
        d1qr,d1qp,d1qt,d1qb,d1wb,d1wt,d1wp,d1vt,&
        d1nvcc1,d1nvcc2,d1nvcc3,d1nvcc4,d1hex
-  REAL(   i0rkind),DIMENSION(:,:),ALLOCATABLE::&
+  REAL(   rkind),DIMENSION(:,:),ALLOCATABLE::&
        d2x,d2y,d2z,d2bcf
-  REAL(   i0rkind),DIMENSION(:,:),ALLOCATABLE::&
+  REAL(   rkind),DIMENSION(:,:),ALLOCATABLE::&
        d2nfcf1,d2nfcf2,d2nfcf3,d2nfcf4
 
-  REAL(   i0rkind)::&
+  REAL(   rkind)::&
        d0ct1_anom,d0ct2_anom
-  REAL(   i0rkind),DIMENSION(:),ALLOCATABLE::&
+  REAL(   rkind),DIMENSION(:),ALLOCATABLE::&
        d1cx1_anom,d1cx2_anom
   
-  INTEGER(i0ikind)::i0xa
-  !C------------------------------------------------------------------
-  !C
-  !C                         FOR T2EXEC
-  !C
-  !C------------------------------------------------------------------
-  
-  INTEGER(i0ikind),DIMENSION(:,:),ALLOCATABLE::&
-       i2enr0
-  REAL(   i0rkind)::&
-       d0jdmp
-  REAL(   i0rkind),DIMENSION(:,:),ALLOCATABLE::&
-       d2jmpm
-  REAL(   i0rkind),DIMENSION(:,:,:,:),ALLOCATABLE::&
-       d4smat
-  REAL(   i0rkind),DIMENSION(:,:),ALLOCATABLE::&
-       d2svec
-  REAL(   i0rkind),DIMENSION(:,:),ALLOCATABLE::&
-       d2kwns
-  REAL(   i0rkind),DIMENSION(:,:),ALLOCATABLE::&
-       d2wrks
-  REAL(   i0rkind),DIMENSION(:,:,:),ALLOCATABLE::&
-       d3eafv
+  INTEGER(ikind)::i0xa
+
   !C------------------------------------------------------------------
   !C
   !C                         FOR T2CONV
@@ -434,7 +437,7 @@ MODULE T2COMM
   !C
   !C
   
-  REAL(   i0rkind),ALLOCATABLE,DIMENSION(:,:)::&
+  REAL(   rkind),ALLOCATABLE,DIMENSION(:,:)::&
        d2xout
 
   !C------------------------------------------------------------------
@@ -444,17 +447,17 @@ MODULE T2COMM
   !C------------------------------------------------------------------
  
   CHARACTER(10)::c10rname
-  INTEGER(i0ikind)::i0fnum
-  REAL(   i0rkind),ALLOCATABLE,DIMENSION(:  )::&
+  INTEGER(ikind)::i0fnum
+  REAL(   rkind),ALLOCATABLE,DIMENSION(:  )::&
        d1bp3,d1bt3,d1er3,d1ep3,d1et3
-  REAL(   i0rkind),ALLOCATABLE,DIMENSION(:,:)::&
+  REAL(   rkind),ALLOCATABLE,DIMENSION(:,:)::&
        d2n3, d2fr3,d2fb3,d2ft3,&
        d2p3, d2qr3,d2qb3,d2qt3
 
   !C
   !C TMP
   !C
-  REAL(   i0rkind),ALLOCATABLE,DIMENSION(:)::&
+  REAL(   rkind),ALLOCATABLE,DIMENSION(:)::&
        d1jm1,d1jm2,d1jm3,d1jm4,d1jm5
 CONTAINS
 
@@ -465,8 +468,8 @@ CONTAINS
   !C
   !C
   SUBROUTINE T2NGRA_ALLOCATE
-    INTEGER(i0ikind),SAVE::i0lmax_save=0
-    INTEGER(i0ikind)     :: i0err
+    INTEGER(ikind),SAVE::i0lmax_save=0
+    INTEGER(ikind)     :: i0err
     IF(i0lmax.NE.i0lmax_save) THEN
        
        CALL T2NGRA_DEALLOCATE
@@ -497,7 +500,7 @@ CONTAINS
     
     RETURN
   END SUBROUTINE T2NGRA_ALLOCATE
-
+  
   SUBROUTINE T2NGRA_DEALLOCATE
 
     IF(ALLOCATED(i1mmax)) DEALLOCATE(i1mmax)
@@ -514,19 +517,50 @@ CONTAINS
 
   END SUBROUTINE T2NGRA_DEALLOCATE
 
+  !-------------------------------------------------------------------
+  !
+  !
+  !
+  !
+  !
+  !-------------------------------------------------------------------
   SUBROUTINE T2COMM_ALLOCATE
     
-    INTEGER(i0ikind),SAVE::&
+    CALL T2COMM_ADHOC
+    
+    CALL T2COMM_ALLOCATE_INTG
+    CALL T2COMM_ALLOCATE_VGRA
+    
+    CALL T2COMM_ALLOCATE_REMAINS
+    
+    RETURN
+
+  END SUBROUTINE T2COMM_ALLOCATE
+  
+  SUBROUTINE T2COMM_DEALLOCATE
+
+    CALL T2COMM_DEALLOCATE_INTG
+    CALL T2COMM_DEALLOCATE_VGRA
+
+    CALL T2COMM_DEALLOCATE_REMAINS
+
+    RETURN
+
+  END SUBROUTINE T2COMM_DEALLOCATE
+
+  SUBROUTINE T2COMM_ALLOCATE_REMAINS
+    
+    INTEGER(ikind),SAVE::&
          i0vmax_save=0,i0nmax_save=0,i0smax_save=0,i0dmax_save=0,&
          i0emax_save=0,i0hmax_save=0,i0qmax_save=0,&
          i0mmax_save=0,i0xmax_save=0,i0bmax_save=0,i0amax_save=0,&
          i0nrmx_save=0,i0ermx_save=0,i0ecmx_save=0
     
-    INTEGER(i0ikind),SAVE::&
+    INTEGER(ikind),SAVE::&
          nv0dmax_save=0,nt0dmax_save=0, &
          nv2dmax_save=0,nt2dmax_save=0
     
-    INTEGER(i0ikind)     :: i0err
+    INTEGER(ikind)     :: i0err
 
     IF(  (i0smax .NE.i0smax_save ).OR.&
          (i0nmax .NE.i0nmax_save ).OR.&
@@ -547,82 +581,10 @@ CONTAINS
          (nv2dmax.NE.nv2dmax_save).OR.&
          (nt2dmax.NE.nt2dmax_save))THEN
        
-       CALL T2COMM_DEALLOCATE
+       CALL T2COMM_DEALLOCATE_REMAINS
 
        DO
-          
-          !C
-          !C T2INTG
-          !C
-
-          ALLOCATE(d1wfct(1:i0qmax),STAT=i0err);IF(i0err.NE.0) EXIT
-          ALLOCATE(d1absc(1:i0qmax),STAT=i0err);IF(i0err.NE.0) EXIT
-          ALLOCATE(d2wfct(1:i0qmax,1:i0qmax),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(d4ifnc(1:i0qmax,1:i0qmax,0:i0dmax,1:i0nmax),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-
-          !C
-          !C w/o SUPG
-          !C
-          
-          ALLOCATE(d3imsn(1:i0nmax,1:i0nmax,1:i0nmax),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(d4iavn(1:i0dmax,1:i0nmax,1:i0nmax,1:i0nmax),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(d6iatn(1:i0dmax,1:i0dmax,&
-               &          1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(d5idtn(1:i0dmax,1:i0dmax,1:i0nmax,1:i0nmax,1:i0nmax),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(d4igvn(1:i0dmax,1:i0nmax,1:i0nmax,1:i0nmax),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(d6igtn(1:i0dmax,1:i0dmax,&
-               1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(d3iesn(1:i0nmax,1:i0nmax,1:i0nmax),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(d5ievn(1:i0dmax,1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(d7ietn(1:i0dmax,1:i0dmax,&
-               &          1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-          ALLOCATE(d2issn(1:i0nmax,1:i0nmax),&
-               STAT=i0err); IF(i0err.NE.0) EXIT
-
-          !C
-          !C w SUPG
-          !C
-
-          !ALLOCATE(d5imss(1:i0dmax,1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax),&
-          !     STAT=i0err); IF(i0err.NE.0) EXIT
-          !ALLOCATE(d6iavs(1:i0dmax,1:i0dmax,&
-          !     &          1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax),&
-          !     STAT=i0err); IF(i0err.NE.0) EXIT
-          !ALLOCATE(d8iats(1:i0dmax,1:i0dmax,1:i0dmax,&
-          !     &          1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax),&
-          !     STAT=i0err); IF(i0err.NE.0) EXIT
-          !ALLOCATE(d7idts(1:i0dmax,1:i0dmax,1:i0dmax,&
-          !     &          1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax),&
-          !     STAT=i0err); IF(i0err.NE.0) EXIT
-          !ALLOCATE(d6igvs(1:i0dmax,1:i0dmax,&
-          !     &          1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax),&
-          !     STAT=i0err); IF(i0err.NE.0) EXIT
-          !ALLOCATE(d8igts(1:i0dmax,1:i0dmax,1:i0dmax,&
-          !     &          1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax),&
-          !     STAT=i0err); IF(i0err.NE.0) EXIT
-          !ALLOCATE(d5iess(1:i0dmax,1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax),&
-          !     STAT=i0err); IF(i0err.NE.0) EXIT
-          !ALLOCATE(d7ievs(1:i0dmax,1:i0dmax,&
-          !     &          1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax,1:i0nmax),&
-          !     STAT=i0err); IF(i0err.NE.0) EXIT
-          !ALLOCATE(d9iets(1:i0dmax,1:i0dmax,1:i0dmax,&
-          !     &          1:i0nmax,1:i0nmax,1:i0nmax,&
-          !     &          1:i0nmax,1:i0nmax,1:i0nmax),&
-          !     STAT=i0err); IF(i0err.NE.0) EXIT
-          !ALLOCATE(d4isss(1:i0dmax,1:i0nmax,1:i0nmax,1:i0nmax),&
-          !     STAT=i0err); IF(i0err.NE.0) EXIT
-          
+                    
           !C
           !C T2NGRA
           !C
@@ -643,32 +605,7 @@ CONTAINS
           IF(i0hmax.NE.0)&
                ALLOCATE(i2hbc(1:2,1:i0hmax),STAT=i0err);&
                IF(i0err.NE.0)EXIT
-          
-          !C
-          !C T2VGRA
-          !C
-          
-          ALLOCATE(i2msvt(1:i0vmax,1:i0vmax),STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(i2avvt(1:i0vmax,1:i0vmax),STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(i2atvt(1:i0vmax,1:i0vmax),STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(i2dtvt(1:i0vmax,1:i0vmax),STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(i2gvvt(1:i0vmax,1:i0vmax),STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(i2gtvt(1:i0vmax,1:i0vmax),STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(i2esvt(1:i0vmax,1:i0vmax),STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(i2evvt(1:i0vmax,1:i0vmax),STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(i2etvt(1:i0vmax,1:i0vmax),STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(i2ssvt(1:i0vmax,1:i0vmax),STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(i2vvvt(1:i0vmax,1:i0vmax),STAT=i0err);IF(i0err.NE.0)EXIT
-          
-          ALLOCATE(i3atwt(1:i0wmax,         1:i0vmax,1:i0vmax), &
-               STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(i3gtwt(1:i0wmax,         1:i0vmax,1:i0vmax), &
-               STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(i3evwt(1:i0wmax,         1:i0vmax,1:i0vmax), &
-               STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(i4etwt(1:i0wmax,1:i0wmax,1:i0vmax,1:i0vmax), &
-               STAT=i0err);IF(i0err.NE.0)EXIT
-          
+                    
           !C
           !C T2MFCS
           !C
@@ -763,37 +700,13 @@ CONTAINS
           !C
           !C T2STEP
           !C
-          
           ALLOCATE(i1nlct(     1:10000),STAT=i0err);IF(i0err.NE.0)EXIT
           ALLOCATE(d1rsdl(     1:10000),STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(d3amat(1:i0vmax,1:i0vmax,1:i0amax),&
-               STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(d2bvec(      1:i0vmax,1:i0bmax),&
-               STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(d2xvec(      1:i0vmax,1:i0xmax),&
-               STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(d2xvec_befor(1:i0vmax,1:i0xmax),&
-               STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(d2xvec_after(1:i0vmax,1:i0xmax),&
-               STAT=i0err);IF(i0err.NE.0)EXIT
-
           !C
           !C T2CONV
           !C
           ALLOCATE(d2xout(1:i0vmax,1:i0xmax),STAT=i0err);IF(i0err.NE.0)EXIT
           
-          !C
-          !C T2EXEC
-          !C
-          ALLOCATE(i2enr0(1:i0nmax,1:4     ),STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(d2wrks(1:i0nmax,1:i0wmax),STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(d3eafv(1:i0dmax,1:i0nmax,1:i0vmax)&
-               ,STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(d2jmpm(1:i0dmax,1:i0dmax),STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(d2kwns(1:i0nmax,1:i0vmax),STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(d4smat(1:i0nmax,1:i0nmax,1:i0vmax,1:i0vmax),&
-               STAT=i0err);IF(i0err.NE.0)EXIT
-          ALLOCATE(d2svec(1:i0nmax,1:i0vmax),STAT=i0err);IF(i0err.NE.0)EXIT
           !C TMP
 
           ALLOCATE(d1jm1(1:i0xmax),STAT=i0err);IF(i0err.NE.0)EXIT
@@ -837,41 +750,10 @@ CONTAINS
     
     RETURN
     
-  END SUBROUTINE T2COMM_ALLOCATE
+  END SUBROUTINE T2COMM_ALLOCATE_REMAINS
   
-  SUBROUTINE T2COMM_DEALLOCATE
-    
-    !C
-    !C T2INTG
-    !C
-
-    IF(ALLOCATED(d1wfct)) DEALLOCATE(d1wfct)
-    IF(ALLOCATED(d1absc)) DEALLOCATE(d1absc)
-    IF(ALLOCATED(d2wfct)) DEALLOCATE(d2wfct)
-    IF(ALLOCATED(d4ifnc)) DEALLOCATE(d4ifnc)
-
-    IF(ALLOCATED(d3imsn)) DEALLOCATE(d3imsn)
-    IF(ALLOCATED(d4iavn)) DEALLOCATE(d4iavn)
-    IF(ALLOCATED(d6iatn)) DEALLOCATE(d6iatn)
-    IF(ALLOCATED(d5idtn)) DEALLOCATE(d5idtn)
-    IF(ALLOCATED(d4igvn)) DEALLOCATE(d4igvn)
-    IF(ALLOCATED(d6igtn)) DEALLOCATE(d6igtn)
-    IF(ALLOCATED(d3iesn)) DEALLOCATE(d3iesn)
-    IF(ALLOCATED(d5ievn)) DEALLOCATE(d5ievn)
-    IF(ALLOCATED(d7ietn)) DEALLOCATE(d7ietn)
-    IF(ALLOCATED(d2issn)) DEALLOCATE(d2issn)
-
-    !IF(ALLOCATED(d5imss)) DEALLOCATE(d5imss)
-    !IF(ALLOCATED(d6iavs)) DEALLOCATE(d6iavs)
-    !IF(ALLOCATED(d8iats)) DEALLOCATE(d8iats)
-    !IF(ALLOCATED(d7idts)) DEALLOCATE(d7idts)
-    !IF(ALLOCATED(d6igvs)) DEALLOCATE(d6igvs)
-    !IF(ALLOCATED(d8igts)) DEALLOCATE(d8igts)
-    !IF(ALLOCATED(d5iess)) DEALLOCATE(d5iess)
-    !IF(ALLOCATED(d7ievs)) DEALLOCATE(d7ievs)
-    !IF(ALLOCATED(d9iets)) DEALLOCATE(d9iets)
-    !IF(ALLOCATED(d4isss)) DEALLOCATE(d4isss)
-    
+  SUBROUTINE T2COMM_DEALLOCATE_REMAINS
+        
     !C
     !C T2NGRA
     !C
@@ -890,26 +772,6 @@ CONTAINS
     IF(ALLOCATED(i1mc1d)) DEALLOCATE(i1mc1d)
     IF(ALLOCATED(d1mc1d)) DEALLOCATE(d1mc1d)    
 
-    !C
-    !C I2VGRA
-    !C
-
-    IF(ALLOCATED(i2msvt)) DEALLOCATE(i2msvt)
-    IF(ALLOCATED(i2avvt)) DEALLOCATE(i2avvt)
-    IF(ALLOCATED(i2atvt)) DEALLOCATE(i2atvt)
-    IF(ALLOCATED(i2dtvt)) DEALLOCATE(i2dtvt)
-    IF(ALLOCATED(i2gvvt)) DEALLOCATE(i2gvvt)
-    IF(ALLOCATED(i2gtvt)) DEALLOCATE(i2gtvt)
-    IF(ALLOCATED(i2esvt)) DEALLOCATE(i2esvt)
-    IF(ALLOCATED(i2evvt)) DEALLOCATE(i2evvt)
-    IF(ALLOCATED(i2etvt)) DEALLOCATE(i2etvt)
-    IF(ALLOCATED(i2ssvt)) DEALLOCATE(i2ssvt)
-    IF(ALLOCATED(i2vvvt)) DEALLOCATE(i2vvvt)
-    
-    IF(ALLOCATED(i3atwt)) DEALLOCATE(i3atwt)
-    IF(ALLOCATED(i3gtwt)) DEALLOCATE(i3gtwt)
-    IF(ALLOCATED(i3evwt)) DEALLOCATE(i3evwt)
-    IF(ALLOCATED(i4etwt)) DEALLOCATE(i4etwt)
     
     !C
     !C T2MFCS
@@ -984,25 +846,9 @@ CONTAINS
     
     IF(ALLOCATED(i1nlct))       DEALLOCATE(i1nlct) 
     IF(ALLOCATED(d1rsdl))       DEALLOCATE(d1rsdl)
-    IF(ALLOCATED(d3amat))       DEALLOCATE(d3amat)
-    IF(ALLOCATED(d2bvec))       DEALLOCATE(d2bvec)
-    IF(ALLOCATED(d2xvec))       DEALLOCATE(d2xvec)
-    IF(ALLOCATED(d2xvec_befor)) DEALLOCATE(d2xvec_befor)
-    IF(ALLOCATED(d2xvec_after)) DEALLOCATE(d2xvec_after)
-
+    
     IF(ALLOCATED(d2xout))       DEALLOCATE(d2xout)
-    !C
-    !C T2EXEC
-    !C
-
-    IF(ALLOCATED(d4smat)) DEALLOCATE(d4smat)
-    IF(ALLOCATED(d2svec)) DEALLOCATE(d2svec)
-
-    IF(ALLOCATED(i2enr0 )) DEALLOCATE(i2enr0 )
-    IF(ALLOCATED(d2wrks )) DEALLOCATE(d2wrks )
-    IF(ALLOCATED(d2jmpm )) DEALLOCATE(d2jmpm )
-    IF(ALLOCATED(d2kwns )) DEALLOCATE(d2kwns )
-
+    
     !C
     !C  FOR T2WRIT
     !C
@@ -1037,6 +883,251 @@ CONTAINS
 
     RETURN
 
-  END SUBROUTINE T2COMM_DEALLOCATE
+  END SUBROUTINE T2COMM_DEALLOCATE_REMAINS
+
+  SUBROUTINE T2COMM_ADHOC
+    
+    NNMAX = i0nmax
+    NDMAX = i0dmax
+    NQMAX = i0qmax
+    NSMAX = i0smax
+    NVMAX = i0vmax
+    NRMAX = i0rmax
+    NKMAX = i0wmax
+    NMMAX = i0mmax
+    NXMAX = i0xmax
+    NBMAX = i0bmax
+    NEMAX = i0emax
+    NHMAX = i0hmax
+    NLMAX = i0lmax
+    NAMAX = i0amax
+    NNRMX = i0nrmx
+
+    RETURN
+    
+  END SUBROUTINE T2COMM_ADHOC
+
+  !-------------------------------------------------------------------
+  !
+  !       ALLOCATOR OF GLOBAL VARIABLES  FOR T2INTG
+  !
+  !                                     LAST UPDATE 2014-05-27
+  ! 
+  !-------------------------------------------------------------------  
+  SUBROUTINE T2COMM_ALLOCATE_INTG
+    
+    INTEGER(ikind),SAVE::&
+         NNMAX_save=0,NDMAX_save=0,NQMAX_save=0
+    
+    INTEGER(ikind):: ierr
+    
+    IF(  (NNMAX .NE.NNMAX_save ).OR.&
+         (NDMAX .NE.NDMAX_save ).OR.&
+         (NQMAX .NE.NQMAX_save ))THEN
+       
+       CALL T2COMM_DEALLOCATE_INTG
+       
+       DO
+          ! for PG-FEM
+          ALLOCATE(MassScaIntgPG(1:NNMAX,1:NNMAX,1:NNMAX),&
+               STAT=ierr); IF(ierr.NE.0) EXIT
+          ALLOCATE(AdveVecIntgPG(1:NDMAX,&
+               &                 1:NNMAX,1:NNMAX,1:NNMAX),&
+               STAT=ierr); IF(ierr.NE.0) EXIT
+          ALLOCATE(AdveTenIntgPG(1:NDMAX,1:NDMAX,&
+               &                 1:NNMAX,1:NNMAX,1:NNMAX,1:NNMAX),&
+               STAT=ierr); IF(ierr.NE.0) EXIT
+          ALLOCATE(DiffTenIntgPG(1:NDMAX,1:NDMAX,&
+               &                 1:NNMAX,1:NNMAX,1:NNMAX),&
+               STAT=ierr); IF(ierr.NE.0) EXIT
+          ALLOCATE(GradVecIntgPG(1:NDMAX,&
+               &                 1:NNMAX,1:NNMAX,1:NNMAX),&
+               STAT=ierr); IF(ierr.NE.0) EXIT
+          ALLOCATE(GradTenIntgPG(1:NDMAX,1:NDMAX,&
+               &                 1:NNMAX,1:NNMAX,1:NNMAX,1:NNMAX),&
+               STAT=ierr); IF(ierr.NE.0) EXIT
+          ALLOCATE(ExciScaIntgPG(1:NNMAX,1:NNMAX,1:NNMAX),&
+               STAT=ierr); IF(ierr.NE.0) EXIT
+          ALLOCATE(ExciVecIntgPG(1:NDMAX,&
+               &                 1:NNMAX,1:NNMAX,1:NNMAX,1:NNMAX),&
+               STAT=ierr); IF(ierr.NE.0) EXIT
+          ALLOCATE(ExciTenIntgPG(1:NDMAX,1:NDMAX,&
+               &                 1:NNMAX,1:NNMAX,1:NNMAX,1:NNMAX,1:NNMAX),&
+               STAT=ierr); IF(ierr.NE.0) EXIT
+          ALLOCATE(SourScaIntgPG(1:NNMAX,1:NNMAX),&
+               STAT=ierr); IF(ierr.NE.0) EXIT
+          
+          ! for SUPG-FEM
+
+          !ALLOCATE(massScaIntgSUPG(1:NDMAX,&
+          !     &                   1:NNMAX,1:NNMAX,1:NNMAX,1:NNMAX),&
+          !     STAT=ierr); IF(i0err.NE.0) EXIT
+          !ALLOCATE(adveVecIntgSUPG(1:NDMAX,1:NDMAX,&
+          !     &                   1:NNMAX,1:NNMAX,1:NNMAX,1:NNMAX),&
+          !     STAT=ierr); IF(i0err.NE.0) EXIT
+          !ALLOCATE(sourScaIntgSUPG(1:NDMAX,&
+          !     &                   1:NNMAX,1:NNMAX,1:NNMAX),&
+          !     STAT=ierr); IF(i0err.NE.0) EXIT
+          
+          NNMAX_save = NNMAX
+          NDMAX_save = NDMAX
+          NQMAX_save = NQMAX
+          
+          WRITE(6,'(A)') '-- T2INTG_PUBLIC_ALLOCATE: SUCCESSED'
+          
+          RETURN
+          
+       ENDDO
+       
+       WRITE(6,'(A)') 'XX T2COMM_ALLOCATE: ALLOCATION ERROR: ECODE=',ierr
+       STOP
+       
+    END IF
+    
+    RETURN
+    
+  END SUBROUTINE T2COMM_ALLOCATE_INTG
   
+  !-------------------------------------------------------------------
+  !
+  !       DEALLOCATOR OF GLOBAL VARIABLES  FOR T2INTG
+  !
+  !                                     LAST UPDATE 2014-05-27
+  ! 
+  !-------------------------------------------------------------------
+  SUBROUTINE T2COMM_DEALLOCATE_INTG
+    
+    ! for PG-FEM
+
+    IF(ALLOCATED(massScaIntgPG)) DEALLOCATE(massScaIntgPG)
+    IF(ALLOCATED(adveVecIntgPG)) DEALLOCATE(adveVecIntgPG)
+    IF(ALLOCATED(adveTenIntgPG)) DEALLOCATE(adveTenIntgPG)
+    IF(ALLOCATED(diffTenIntgPG)) DEALLOCATE(diffTenIntgPG)
+    IF(ALLOCATED(gradVecIntgPG)) DEALLOCATE(gradVecIntgPG)
+    IF(ALLOCATED(gradTenIntgPG)) DEALLOCATE(gradTenIntgPG)
+    IF(ALLOCATED(exciScaIntgPG)) DEALLOCATE(exciScaIntgPG)
+    IF(ALLOCATED(exciVecIntgPG)) DEALLOCATE(exciVecIntgPG)
+    IF(ALLOCATED(exciTenIntgPG)) DEALLOCATE(exciTenIntgPG)
+    IF(ALLOCATED(sourScaIntgPG)) DEALLOCATE(sourScaIntgPG)
+    
+    !C for SUPG-FEM
+    
+    !IF(ALLOCATED(massScaIntgSUPG)) DEALLOCATE(massScaIntgSUPG)
+    !IF(ALLOCATED(adveVecIntgSUPG)) DEALLOCATE(adveVecIntgSUPG)
+    !IF(ALLOCATED(sourScaIntgSUPG)) DEALLOCATE(sourScaIntgSUPG)
+   
+    RETURN
+
+  END SUBROUTINE T2COMM_DEALLOCATE_INTG
+
+  !-------------------------------------------------------------------
+  !
+  !       ALLOCATOR OF GLOBAL VARIABLES  FOR T2VGRA
+  !
+  !                                     LAST UPDATE 2014-05-27
+  ! 
+  !-------------------------------------------------------------------  
+  SUBROUTINE T2COMM_ALLOCATE_VGRA
+    
+    INTEGER(ikind),SAVE::&
+         NVMAX_save=0,NKMAX_save=0
+    
+    INTEGER(ikind):: ierr
+    
+    IF(  (NVMAX.NE.NVMAX_save).OR.&
+         (NKMAX.NE.NKMAX_save))THEN
+       
+       CALL T2COMM_DEALLOCATE_VGRA
+       
+       DO
+          
+          ALLOCATE(HaveMassScaCoef(1:NVMAX,1:NVMAX),&
+               &                    STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(HaveAdveVecCoef(1:NVMAX,1:NVMAX),&
+               &                    STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(HaveAdveTenCoef(1:NVMAX,1:NVMAX),&
+               &                    STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(HaveDiffTenCoef(1:NVMAX,1:NVMAX),&
+               &                    STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(HaveGradVecCoef(1:NVMAX,1:NVMAX),&
+               &                    STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(HaveGradTenCoef(1:NVMAX,1:NVMAX),&
+               &                    STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(HaveExciScaCoef(1:NVMAX,1:NVMAX),&
+               &                    STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(HaveExciVecCoef(1:NVMAX,1:NVMAX),&
+               &                    STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(HaveExciTenCoef(1:NVMAX,1:NVMAX),&
+               &                    STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(HaveSourScaCoef(1:NVMAX,1:NVMAX),&
+               &                    STAT=ierr);IF(ierr.NE.0)EXIT
+    
+          ALLOCATE(HaveAdveTenKval(1:NKMAX,        1:NVMAX,1:NVMAX),&
+               &                    STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(HaveGradTenKval(1:NKMAX,        1:NVMAX,1:NVMAX),&
+               &                    STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(HaveExciVecKval(1:NKMAX,        1:NVMAX,1:NVMAX),&
+               &                    STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(HaveExciTenKval(1:NKMAX,1:NKMAX,1:NVMAX,1:NVMAX),&
+               &                    STAT=ierr);IF(ierr.NE.0)EXIT
+    
+          ALLOCATE(HaveMat(1:NVMAX,1:NVMAX),&
+               &                    STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(LockEqs(1:NVMAX),STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(LockAxi(1:NVMAX),STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(LockWal(1:NVMAX),STAT=ierr);IF(ierr.NE.0)EXIT
+          
+          NVMAX_save = NVMAX
+          NKMAX_save = NKMAX 
+                 
+          WRITE(6,'(A)') '-- T2VGRA_ALLOCATE: completed'
+          
+          RETURN
+          
+       ENDDO
+       
+       WRITE(6,'(A)')&
+            '--T2VGRA_ALLOCATE: ALLOCATION ERROR: ECODE=',ierr
+       STOP
+       
+    ENDIF
+    
+    RETURN
+    
+  END SUBROUTINE T2COMM_ALLOCATE_VGRA
+
+  !-------------------------------------------------------------------
+  !
+  !       DEALLOCATOR OF GLOBAL VARIABLES  FOR T2VGRA
+  !
+  !                                     LAST UPDATE 2014-05-27
+  ! 
+  !-------------------------------------------------------------------  
+  SUBROUTINE T2COMM_DEALLOCATE_VGRA
+    
+    IF(ALLOCATED(HaveMassScaCoef))  DEALLOCATE(HaveMassScaCoef)
+    IF(ALLOCATED(HaveAdveVecCoef))  DEALLOCATE(HaveAdveVecCoef)
+    IF(ALLOCATED(HaveAdveTenCoef))  DEALLOCATE(HaveAdveTenCoef)
+    IF(ALLOCATED(HaveDiffTenCoef))  DEALLOCATE(HaveDiffTenCoef)
+    IF(ALLOCATED(HaveGradVecCoef))  DEALLOCATE(HaveGradVecCoef)
+    IF(ALLOCATED(HaveGradTenCoef))  DEALLOCATE(HaveGradTenCoef)
+    IF(ALLOCATED(HaveExciScaCoef))  DEALLOCATE(HaveExciScaCoef)
+    IF(ALLOCATED(HaveExciVecCoef))  DEALLOCATE(HaveExciVecCoef)
+    IF(ALLOCATED(HaveExciTenCoef))  DEALLOCATE(HaveExciTenCoef)
+    IF(ALLOCATED(HaveSourScaCoef))  DEALLOCATE(HaveSourScaCoef)
+    
+    IF(ALLOCATED(HaveAdveTenKval))  DEALLOCATE(HaveAdveTenKval)
+    IF(ALLOCATED(HaveGradTenKval))  DEALLOCATE(HaveGradTenKval)
+    IF(ALLOCATED(HaveExciVecKval))  DEALLOCATE(HaveExciVecKval)
+    IF(ALLOCATED(HaveExciTenKval))  DEALLOCATE(HaveExciTenKval)
+    
+    IF(ALLOCATED(HaveMat))          DEALLOCATE(HaveMat)
+    IF(ALLOCATED(LockEqs))          DEALLOCATE(LockEqs)
+    IF(ALLOCATED(LockAxi))          DEALLOCATE(LockAxi)
+    IF(ALLOCATED(LockWal))          DEALLOCATE(LockWal)
+    
+    RETURN
+    
+  END SUBROUTINE T2COMM_DEALLOCATE_VGRA
+
 END MODULE T2COMM
