@@ -25,8 +25,8 @@ MODULE T2CNST
   REAL(rkind), PARAMETER :: d0vc   = VC  ! 2.99792458D8
   REAL(rkind), PARAMETER :: d0rmu0 = 4.D0*d0pi*1.D-7
   REAL(rkind), PARAMETER :: d0eps0 = 1.D0/(d0vc*d0vc*d0rmu0)
-  REAL(rkind), PARAMETER :: d0vci2  = 1.D0/(d0vc*d0vc)
-  REAL(rkind), PARAMETER :: d0de   = 4.D0/(3.D0*SQRT(d0pi))
+  REAL(rkind), PARAMETER :: d0vci2 = 1.D0/(d0vc*d0vc)
+  REAL(rkind), PARAMETER :: DeCoef = 4.D0/(3.D0*SQRT(Pi))
  
   !C ABSCISSAS AND WEIGHT FACTORS FOR GAUSSIAN INTEGRATION (32 points) 
   !C

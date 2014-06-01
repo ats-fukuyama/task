@@ -4,32 +4,32 @@
 Module T2GOUT
 
   USE T2COMM, ONLY: &
-         i0ikind,i0rkind
+         ikind,rkind
 
   PRIVATE
   PUBLIC T2_GOUT
  
-  REAL(i0rkind),DIMENSION(:),ALLOCATABLE:: rhonrho,chinchi
-  INTEGER(i0ikind),DIMENSION(:),ALLOCATABLE:: nlnrho,nnnrho
-  INTEGER(i0ikind),DIMENSION(:),ALLOCATABLE:: nrhonl,nnnl
-  REAL(i0rkind),DIMENSION(:,:),ALLOCATABLE:: chinl
-  INTEGER(i0ikind):: nlmax,nnmax
+  REAL(rkind),DIMENSION(:),ALLOCATABLE:: rhonrho,chinchi
+  INTEGER(ikind),DIMENSION(:),ALLOCATABLE:: nlnrho,nnnrho
+  INTEGER(ikind),DIMENSION(:),ALLOCATABLE:: nrhonl,nnnl
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: chinl
+  INTEGER(ikind):: nlmax,nnmax
 
 CONTAINS
 
   SUBROUTINE T2_GOUT
 
-    USE T2CNST,ONLY: i0ikind,i0rkind
+    USE T2CNST,ONLY: ikind,rkind
     USE T2PARM,ONLY: T2_PARM
     USE T2COMM
     USE libgrf
     IMPLICIT NONE
-    INTEGER(i0ikind)    :: ierr,mode,ind
+    INTEGER(ikind)    :: ierr,mode,ind
     CHARACTER(LEN=80) :: line,kw
     CHARACTER(LEN=1) :: kid,kch
-    INTEGER(i0ikind) :: nwmax,iloc0,nw,i,ich0,nch,ich,j
+    INTEGER(ikind) :: nwmax,iloc0,nw,i,ich0,nch,ich,j
     CHARACTER(LEN=80),DIMENSION(40):: kword,kwid,knum
-    INTEGER(i0ikind),DIMENSION(40):: inum
+    INTEGER(ikind),DIMENSION(40):: inum
 
     CALL T2_GSETUP
 
@@ -170,13 +170,13 @@ CONTAINS
 
   SUBROUTINE T2_GSETUP
     USE T2COMM, ONLY: &
-         i0ikind,i0rkind,twopi,i0xmax,i0vmax, &
+         ikind,rkind,twopi,i0xmax,i0vmax, &
          i0lmax,i0pdiv_number,i1mlvl,i1rdn2,d1rec, &
          nrhomax,nchimax
     IMPLICIT NONE
-    INTEGER(i0ikind):: nchi,nl,nrho,nchimaxl,nr,ierr
-    REAL(i0rkind):: dchi,drho
-    REAL(i0rkind):: rho_temp!added by H. SETO
+    INTEGER(ikind):: nchi,nl,nrho,nchimaxl,nr,ierr
+    REAL(rkind):: dchi,drho
+    REAL(rkind):: rho_temp!added by H. SETO
 
     nlmax=i0lmax
     nchimax=i0pdiv_number*2**(i1mlvl(nlmax)-1)
@@ -242,25 +242,25 @@ CONTAINS
   SUBROUTINE T2_GC(INUM,ID,NGP)
     USE libgrf,ONLY: GRD2D
 !    USE T2COMM, ONLY: &
-!         i0ikind,i0rkind,twopi,i0xmax,d2xvec,i0vmax, &
+!         ikind,rkind,twopi,i0xmax,d2xvec,i0vmax, &
 !         i0lmax,i0pdiv_number,i1mlvl,i1rdn2,d1rec, &
 !         nrhomax,nchimax,d0rw
 
     USE T2COMM, ONLY: & ! changed by 2014-02-05 H.Seto 
-         i0ikind,i0rkind,twopi,i0xmax,d2xout,i0vmax, &
+         ikind,rkind,twopi,i0xmax,d2xout,i0vmax, &
          i0lmax,i0pdiv_number,i1mlvl,i1rdn2,d1rec, &
          nrhomax,nchimax,d0rw
     IMPLICIT NONE
     INTEGER,PARAMETER:: nxmax=41,nymax=41
-    INTEGER(i0ikind),INTENT(IN):: inum,id,ngp
-    REAL(i0rkind),DIMENSION(:,:),ALLOCATABLE:: gz
-    REAL(i0rkind),DIMENSION(:),ALLOCATABLE:: gzl,dgzl,chig
-    REAL(i0rkind),DIMENSION(:,:),ALLOCATABLE:: ugzl
-    REAL(i0rkind),DIMENSION(:),ALLOCATABLE:: gx,gy
-    REAL(i0rkind),DIMENSION(:,:),ALLOCATABLE:: ddx,ddy,ddxy,gxy
-    REAL(i0rkind),DIMENSION(:,:,:,:),ALLOCATABLE:: ugz
-    INTEGER(i0ikind):: nchi,nl,nrho,nchimaxl,nr,ierr,nchig,nx,ny
-    REAL(i0rkind):: dchig,xmin,xmax,ymin,ymax,dx,dy,x,y,r,th
+    INTEGER(ikind),INTENT(IN):: inum,id,ngp
+    REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: gz
+    REAL(rkind),DIMENSION(:),ALLOCATABLE:: gzl,dgzl,chig
+    REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: ugzl
+    REAL(rkind),DIMENSION(:),ALLOCATABLE:: gx,gy
+    REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: ddx,ddy,ddxy,gxy
+    REAL(rkind),DIMENSION(:,:,:,:),ALLOCATABLE:: ugz
+    INTEGER(ikind):: nchi,nl,nrho,nchimaxl,nr,ierr,nchig,nx,ny
+    REAL(rkind):: dchig,xmin,xmax,ymin,ymax,dx,dy,x,y,r,th
     CHARACTER(LEN=80):: LINE
 
     nchig=MAX(nchimax,72)
@@ -375,21 +375,21 @@ CONTAINS
     USE libgrf,ONLY: GRD1D
   
     !USE T2COMM, ONLY: &
-    !     i0ikind,i0rkind,twopi,i0xmax,d2xvec,i0vmax, &
+    !     ikind,rkind,twopi,i0xmax,d2xvec,i0vmax, &
     !     i0lmax,i0pdiv_number,i1mlvl,i1rdn2,d1rec, &
     !     nrhomax,nchimax
 
     USE T2COMM, ONLY: &! changed by 2014-02-05 H.SETO
-         i0ikind,i0rkind,twopi,i0xmax,d2xout,i0vmax, &
+         ikind,rkind,twopi,i0xmax,d2xout,i0vmax, &
          i0lmax,i0pdiv_number,i1mlvl,i1rdn2,d1rec, &
          nrhomax,nchimax
 
     IMPLICIT NONE
-    INTEGER(i0ikind),INTENT(IN):: inum,id,ngp
-    REAL(i0rkind),DIMENSION(:,:),ALLOCATABLE:: gz
-    REAL(i0rkind),DIMENSION(:),ALLOCATABLE:: gzl,dgzl,ga
-    REAL(i0rkind),DIMENSION(:,:),ALLOCATABLE:: ugzl
-    INTEGER(i0ikind):: nchi,nl,nrho,nchimaxl,nr,ierr
+    INTEGER(ikind),INTENT(IN):: inum,id,ngp
+    REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: gz
+    REAL(rkind),DIMENSION(:),ALLOCATABLE:: gzl,dgzl,ga
+    REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: ugzl
+    INTEGER(ikind):: nchi,nl,nrho,nchimaxl,nr,ierr
     CHARACTER(LEN=80):: LINE
 
     ALLOCATE(gz(nrhomax,nchimax+1))

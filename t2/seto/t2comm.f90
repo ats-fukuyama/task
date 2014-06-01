@@ -377,11 +377,11 @@ MODULE T2COMM
   REAL(   rkind),SAVE,ALLOCATABLE::&
        d1rsdl(:)
   
-  !C------------------------------------------------------------------
-  !C
-  !C                         FOR T2CALV
-  !C
-  !C------------------------------------------------------------------ 
+  !------------------------------------------------------------------
+  !
+  !                         FOR T2CALV
+  !
+  !------------------------------------------------------------------ 
   
   REAL(   rkind),DIMENSION(:,:,:        ),ALLOCATABLE::d3ms
   REAL(   rkind),DIMENSION(:,:,:,:      ),ALLOCATABLE::d4av
@@ -413,6 +413,89 @@ MODULE T2COMM
   
   INTEGER(ikind)::i0xa
 
+  !------------------------------------------------------------------
+  !
+  !                         FOR T2CALV
+  !
+  !------------------------------------------------------------------ 
+
+  REAL(   rkind),SAVE::&
+       GRt,&
+       G11xCo,&
+       G12Co,&
+       G22Co,&
+       G33Co,&
+       G11Ct,&
+       G12Ct,&
+       G22xCt,&
+       G33Ct,&  
+       UgrCt,&
+       UgpCt,&
+       R_rz,&
+       R_mc
+
+  REAL(   rkind),SAVE::&
+       BtCo,& ! covariant     toroidal magnetic field [T*m]
+       BtCt,& ! contravariant toroidal magnetic field [T/m]
+       BtSq,& ! squared       toroidal megnetic field [T^2]
+       BpCo,& ! covariant     poloidal magnetic field [T*m]
+       BpCt,& ! contravariant poloidal magnetic field [T/m]
+       BpSq,& ! squared       poloidal megnetic field [T^2]
+       Bb,&   !                        megnetic field [T  ]
+       BbSq,& ! squared                megnetic field [T^2]
+       RR,RA
+  REAL(   rkind),SAVE,DIMENSION(:),ALLOCATABLE::&
+       Pa,Pz,&
+       Ee,&   ! electric charge                        [C]
+       Mm,&   ! particle mass                          [kg]
+       Nn,&   ! number density                         [ /m^3]
+       Vv,&   ! thermal velocity                       [m/s     ]
+       FrCt,& ! contravariant radial particle flux     [ /m^3*s ]
+       Fb,&   ! parallel particle flux                 [ /m^2*s ]
+       FtCo,& ! covariant toroildal particle flux      [ /m  *s ]
+       FpCt,& ! contravariant poloidal particle flux   [ /m^3*s ]
+       UrCt,& ! contravariant radial flow velocity     [   /s   ]
+       Ub,&   ! parallel flow velocity                 [  m/s   ]
+       UtCo,& ! covariant toroildal flow velocity      [m^2/s   ]
+       UpCt,& ! contravariant flow velocity            [   /s   ]
+       UuSq,& ! squared flow velocity                  [m^2/s^2 ]
+       Pp,&   ! pressure                               [ J/m^3  ]
+       QrCt,& ! contravariant radial total heat flux   [ J/m^3*s]
+       Qb,&   ! parallel total heat flux               [ J/m^2*s]
+       QtCo,& ! covariant toroildal total heat flux    [ J/m  *s]
+       QpCt,& ! contravariant poloidal total heat flux [ J/m^3*s]
+       WrCt,& ! contravariant radial energy velocity   [   /s   ]
+       Wb,&   ! parallel energy flow velocity          [  m/s   ]
+       WtCo,& ! covariant toroildal flow velocity      [m^2/s   ]
+       WpCt,& ! contravariant flow velocity            [   /s   ]
+       Tt     ! temperature                            [J       ]
+
+  REAL(   rkind),SAVE,DIMENSION(:,:),ALLOCATABLE::&
+       X,&    ! X_ab = Vth_b/Vth_a
+       Y,&    ! Y_ab = m_a/m_b
+       Z,&    ! Z_ab = T_a/T_b
+       BaseNu ! base collision frequency [Hz]
+
+  REAL(   rkind),SAVE,DIMENSION(:,:),ALLOCATABLE::&
+       L11,L12,L21,L22,Lx1,Lx2,Lx3,Lx4
+  REAL(   rkind),SAVE,DIMENSION(:),ALLOCATABLE::&
+       Hex ! Heat Exchange Rate [Hz]
+  REAL(   rkind),SAVE,DIMENSION(:),ALLOCATABLE::&
+       Mu1,Mu2,Mu3,Mux1,Mux2,Mux3,Mux4
+  REAL(   rkind),SAVE,DIMENSION(:),ALLOCATABLE::&
+       FtAnom1,&
+       FtAnom2,&
+       FtAnom3,&
+       FtAnom4,&
+       FtAnom5,&
+       GtAnom1,&
+       GtAnom2,&
+       GtAnom3,&
+       GtAnom4,&
+       GtAnom5
+       
+  INTEGER(ikind),SAVE::&
+       I_xa
   !C------------------------------------------------------------------
   !C
   !C                         FOR T2CONV
