@@ -121,7 +121,7 @@ MODULE T2COMM
        d0iar,   & !C INVERSE ASPECT RATIO (a/R_{0})
        d0eps      !C CONVERGENCE CRITERION FOR PICARD ITERATION
 
-  REAL(   rkind)::&
+  REAL(   rkind),SAVE::&
        BpNF,&
        BtNF,&
        EtNF,&
@@ -137,6 +137,15 @@ MODULE T2COMM
        QbNF,&
        QtNF,&
        QpNF
+  REAL(   rkind),SAVE::&
+       EqFaraday,&
+       EqAmpere,&
+       EqGauss,&
+       EqConti,&
+       EqMotion,&
+       EqEnergy,&
+       EqHFlux
+       
 
   !-------------------------------------------------------------------
   !
@@ -179,6 +188,8 @@ MODULE T2COMM
   LOGICAL,SAVE::&
        UsePotentialDescription,&
        UseNormalization,&
+       UseAnomalousTransportFT,&
+       UseAnomalousTransportGT,&
        !
        SolveField,&
        SolveElectron,&
@@ -496,6 +507,21 @@ MODULE T2COMM
        
   INTEGER(ikind),SAVE::&
        I_xa
+
+  REAL(   rkind),SAVE,ALLOCATABLE::&
+       KnownVar(:,:),&              ! d2ws
+       !
+       MassScaCoef(:,:,:        ),& ! d3ms
+       AdveVecCoef(:,:,:,:      ),& ! d4av
+       AdveTenCoef(:,:,:,:,:,:  ),& ! d6at
+       DiffTenCoef(:,:,:,:,:    ),& ! d5dt
+       GradVecCoef(:,:,:,:      ),& ! d4gv
+       GradTenCoef(:,:,:,:,:,:  ),& ! d6gt
+       ExciScaCoef(:,:,:        ),& ! d3es
+       ExciVecCoef(:,:,:,:,:    ),& ! d5ev
+       ExciTenCoef(:,:,:,:,:,:,:),& ! d7et
+       SourScaCoef(:,:,:        )   ! d3ss 
+
   !C------------------------------------------------------------------
   !C
   !C                         FOR T2CONV

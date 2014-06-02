@@ -280,17 +280,11 @@ CONTAINS
 
        i_v = 12 + vOffsetA    ! Equation for Q_{a}^{\rho}
 
-       !C
-       !C EQUATION FOR Qb
-       !C
        i_v = 13 + vOffsetA    ! Equation for Q_{a\para}
        j_v =  8 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
        j_v = 11 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
        j_v = 13 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
-       
-       !C
-       !C EQUATION FOR Qt
-       !C
+
        i_v = 14 + vOffsetA    ! Equation for Q_{a\zeta}
        j_v =  9 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
        j_v = 14 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
@@ -387,6 +381,8 @@ CONTAINS
        j_v = 15 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.    
        i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.   
        
+       i_v = 12 + vOffsetA    ! Equation for Q_{a}^{rho}
+
        i_v = 13 + vOffsetA    ! Equation for Q_{a\para}
        j_v =  9 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
        i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
@@ -462,7 +458,6 @@ CONTAINS
        vOffsetB = vOffsetA
 
        i_v =  6 + vOffsetA    ! Equation for n_{a}
-       
        i_v =  7 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
        
        i_v =  8 + vOffsetA    ! Equation for Gamma_{a\para}
@@ -667,7 +662,6 @@ CONTAINS
        i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
        
        i_v =  9 + vOffsetA    ! Equation for Gamma_{a\zeta}
-
        i_v = 10 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
 
        i_v = 11 + vOffsetA    ! Equation for p_{a}
@@ -696,8 +690,7 @@ CONTAINS
        j_v = 13 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
        i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
        
-       i_v = 14 + vOffsetA    ! Equation for Q_{a\zeta}
-       
+       i_v = 14 + vOffsetA    ! Equation for Q_{a\zeta}      
        i_v = 15 + vOffsetA    ! Equation for Q_{a}^{\chi}
        
     ENDDO

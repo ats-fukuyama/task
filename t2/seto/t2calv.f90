@@ -416,23 +416,7 @@ CONTAINS
           Hex(i_s) = Hex(i_s) + 1.5D0*(1.D0 - zBA)*nuAB
        ENDDO
     ENDDO
-    
-    
- !   ! COEFFICIENTS OF ANORMALOUS TRANSPORT BY QUASI-LINEAR THEORY
- !   ! REF: S.I. Itoh, Phys. Fluids B, 4 796 (1992)
- !   !      K.C. Shaing, Phys. Plasmas, 31 2249 (1988)
- !   !      M. Honda et. al, Nucl. Fusion, 50 095012 
- !   !
- !   IF(r_mc.LE.1.D0)THEN
- !      d_anom = 0.45D0*r_mc+0.05D0
- !      m_anom = 0.45D1*r_mc+0.05D1
- !      x_anom = 0.45D1*r_mc+0.05D1
- !   ELSE
- !      d_anom = 0.5D0
- !      m_anom = 0.5D1
- !      x_anom = 0.5D1 
- !   ENDIF
-    
+        
     RETURN
     
   END SUBROUTINE T2CALV_FRICTION_COEFFICIENT
@@ -842,10 +826,10 @@ CONTAINS
     ttE = Tt(1)
     temp = (Aee**2)*d_anom/ttE
     
-    ftAnom1E =  temp*(1.5D0-m_anom/d_anom)*GRt*BpCt*G11Ct/Aee
-    ftAnom2E = -FtAnom1E*ttE
-    ftAnom3E =  temp*BtCo*Bb
-    ftAnom4E = -temp*BbSq
+    ftAnom1E = -temp*(1.5D0-m_anom/d_anom)*GRt*BpCt*G11Ct*ttE/Aee !ne
+    ftAnom2E =  temp*(1.5D0-m_anom/d_anom)*GRt*BpCt*G11Ct    /Aee !pe
+    ftAnom3E =  temp*BtCo*Bb !Gamma_{e\para}
+    ftAnom4E = -temp*BbSq    !Gamma_{e\zeta}
     
     FtAnom1(1) = ftAnom1E
     FtAnom2(1) = ftAnom2E
