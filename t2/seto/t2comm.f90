@@ -144,7 +144,8 @@ MODULE T2COMM
        EqConti,&
        EqMotion,&
        EqEnergy,&
-       EqHFlux
+       EqHFlux,&
+       EqPolCom
        
 
   !-------------------------------------------------------------------
@@ -188,6 +189,7 @@ MODULE T2COMM
   LOGICAL,SAVE::&
        UsePotentialDescription,&
        UseNormalization,&
+       CheckCoefficients,&
        UseAnomalousTransportFT,&
        UseAnomalousTransportGT,&
        !

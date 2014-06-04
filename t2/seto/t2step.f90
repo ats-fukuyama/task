@@ -24,7 +24,7 @@ CONTAINS
          &           XvecIn, XvecOut,&
          &           nconvmax,eps_conv
     
-    USE T2CALV,ONLY: T2_CALV
+    USE T2COEF,ONLY: T2COEF_EXECUTE
     USE T2EXEC,ONLY: T2EXEC_EXECUTE
     USE T2CONV,ONLY: T2_CONV
     
@@ -39,24 +39,19 @@ CONTAINS
     
     DO nconv=1,nconvmax
 
-       !C
-       !C CALCULATE PLASMA COEFFICIENTS
-       !C
+
+       ! CALCULATE PLASMA COEFFICIENTS
        CALL CPU_TIME(e0time_0)
-       CALL T2_CALV
+       CALL T2COEF_EXECUTE
        CALL CPU_TIME(e0time_1)
        WRITE(6,'(A,F10.3,A)') '-- T2_CALV completed:          cpu=', &
-                              e0time_1-e0time_0,' [s]'
-       !C
-       !C ADVECTION DIFFUSION EQUATION SOLVER (SUPG)
-       !C
+            e0time_1-e0time_0,' [s]'
        
+       ! ADVECTION DIFFUSION EQUATION SOLVER (SUPG)
        CALL T2EXEC_EXECUTE
 
-       !C 
-       !C CONVERGENCE CHECK
-       !C
-       
+
+       ! CONVERGENCE CHECK
        CALL T2STEP_CONV(residual_conv)
        
        ! UPDATRE VARIABLES FOR NEXT ITERATION 
