@@ -3,9 +3,10 @@
 !    MODULE FOR GENERATING GLOBAL PARAMETERS AND INITIAL PROFILES
 !
 !
-!                   LAST UPDATE 2014-05-28 H.Seto
+!                   LAST UPDATE 2014-06-05 H.Seto
 !
 !---------------------------------------------------------------------
+
 MODULE T2PREP
   
   USE T2CNST,ONLY: ikind,rkind
@@ -28,35 +29,25 @@ CONTAINS
     
     USE T2COMM,ONLY: time_t2,time_init
     USE T2DIV, ONLY: T2_DIV
-    USE T2PROF,ONLY: T2_PROF
     
     REAL(4):: e0time_0,e0time_1
     
-    !d0iar   = d0rmnr/d0rmjr
+    CALL CPU_TIME(e0time_0)    
     
     ! set up normalization factors for T2CALV
-    CALL T2PREP_SETUP_NORMALIZATION_FACTOR 
-    
+    CALL T2PREP_SETUP_NORMALIZATION_FACTOR   
     ! set up global parameters for T2COMM
     CALL T2PREP_SETUP_GLOBAL_PARAMETER
-    
-    ! set up initial profiles
-    CALL T2PREP_SETUP_INITIAL_PROFILES
-    
     CALL T2_DIV
-    
-    CALL CPU_TIME(e0time_0)
-    CALL T2_PROF
+    ! set up initial profiles
+
+    CALL T2PREP_SETUP_INITIAL_PROFILES
+
     CALL CPU_TIME(e0time_1)
-    WRITE(6,'(A,F10.3,A)') '-- Initial profile calculated: cpu=', &
-                         e0time_1-e0time_0,' [s]'
-
- !   IF(idfile.ge.1) CALL T2_WRIT_MAIN(d1guv,0,c10rname)
- !   IF(idfile.ge.2) CALL T2_WRIT_GPT(20,0,d1guv)
- !   IF(idfile.ge.3) CALL T2_WRIT_GP1(22,0,d1guv)
-
+    WRITE(6,'(A,F10.3,A)') '-- Initial settings completed: cpu=', &
+         e0time_1-e0time_0,' [s]'
     time_t2=time_init
-
+    
     RETURN
 
   END SUBROUTINE T2_PREP
@@ -95,6 +86,10 @@ CONTAINS
           QbNF = FbNF*1.D3*Aee         ! [10^23 keV/m2s]
           QtNF = FtNF*1.D3*Aee         ! [10^23 keV/m2s]
           QpNF = FpNF*1.D3*Aee         ! [10^23 keV/m2s]
+          EqFaraday = 
+          EqFaraday = 
+          EqFaraday = 
+          EqFaraday = 
        ELSE
           BpNF = 1.D0         ! 
           BtNF = 1.D0         ! 
@@ -134,7 +129,7 @@ CONTAINS
     USE T2COMM,ONLY:&
          NLMAX, NVMAX, NKMAX, NQMAX, NNMAX, NMMAX, NXMAX, &
          NBMAX, NRMAX, NEMAX, NHMAX, NAMAX, NNRMX, NERMX, &
-         NECMX, NDMAX, NSMAX, NPMAX, NPMIN,        &
+         NECMX, NDMAX, NSMAX, NPMAX, NPMIN, NAVMX, NBVMX, &
          !
          UsePotentialDescription,&
          !
@@ -143,8 +138,8 @@ CONTAINS
          T2NGRA_ALLOCATE, T2COMM_ALLOCATE
 
     INTEGER(ikind)::&
-         i0mlva,i0mlvb,i0mlvc,i_l,i0lidj,i0mlvl
-    
+         i0mlva,i0mlvb,i0mlvc,i_l,j_l,i0mlvl
+
     CALL T2NGRA_ALLOCATE
     
     DO i_l = 1, NLMAX
@@ -293,12 +288,27 @@ CONTAINS
        STOP
     END IF
     
-    WRITE(6,*)'NDMAX=',NDMAX,'NNMAX=',NNMAX,'NSMAX=',NSMAX
-    WRITE(6,*)'NLMAX=',NLMAX,'NPMAX=',NPMAX,'NQMAX=',NQMAX
-    WRITE(6,*)'NMMAX=',NMMAX,'NRMAX=',NRMAX,'NEMAX=',NEMAX
-    WRITE(6,*)'NAMAX=',NAMAX,'NXMAX=',NXMAX,'NBMAX=',NBMAX
+    NAVMX = NAMAX*NVMAX*NVMAX
+    NBVMX = NBMAX*NVMAX
+    !print*,'AAAA'
+    !WRITE(6,*)'NDMAX=',NDMAX,'NNMAX=',NNMAX,'NSMAX=',NSMAX
+    !WRITE(6,*)'NLMAX=',NLMAX,'NPMAX=',NPMAX,'NQMAX=',NQMAX
+    !WRITE(6,*)'NMMAX=',NMMAX,'NRMAX=',NRMAX,'NEMAX=',NEMAX
+    !WRITE(6,*)'NAMAX=',NAMAX,'NXMAX=',NXMAX,'NBMAX=',NBMAX
+    !WRITE(6,*)'NNRMX=',NNRMX,'NERMX=',NERMX,'NECMX=',NECMX
+    !WRITE(6,*)'NKMAX=',NKMAX,'NHMAX=',NHMAX
+    !print*,'AAA'
+
+    !stop
+    WRITE(6,*)'NNMAX=',NNMAX,'NQMAX=',NQMAX,'NDMAX=',NDMAX
+    WRITE(6,*)'NSMAX=',NSMAX,'NPMIN=',NPMIN,'NLMAX=',NLMAX    
+    
+    WRITE(6,*)'NVMAX=',NVMAX,'NRMAX=',NRMAX,'NKMAX=',NKMAX
+    WRITE(6,*)'NEMAX=',NEMAX,'NBMAX=',NBMAX,'NXMAX=',NXMAX
+    WRITE(6,*)'NMMAX=',NMMAX,'NHMAX=',NHMAX,'NAMAX=',NAMAX
     WRITE(6,*)'NNRMX=',NNRMX,'NERMX=',NERMX,'NECMX=',NECMX
-    WRITE(6,*)'NKMAX=',NKMAX,'NHMAX=',NHMAX
+    WRITE(6,*)'NAVMX=',NAVMX,'NBVMX=',NBVMX
+    
     
     CALL T2COMM_ALLOCATE
     
@@ -327,17 +337,17 @@ CONTAINS
   SUBROUTINE T2PROF_TOROIDAL_COORDINATE_AREA
     
     USE T2COMM,ONLY:&
-         BpNF,BtNF,EtNF,EpNF,EtNF,&
+         BpNF,BtNF,EtNF,EpNF,ErNF,&
          NnNF,FrNF,FbNF,FtNF,FpNF,&
          PpNF,QrNF,QbNF,QtNF,QpNF,&
          NSMAX,NXMAX,NVMAX,NMMAX, &
          i1pdn1,i2crt,&
-         d2mfc1,d2rzm,d2rzx,Metrics,XvecIn
+         GlobalCrd,d2rzm,Metric,XvecIn
     
     USE T2GOUT, ONLY: T2_GOUT
     USE T2CONV, ONLY: T2_CONV
-    INTEGER(i0ikind)::&
-         i_v,i_s,i_m,i_x,i_x1d,i_x2d
+    INTEGER(ikind)::&
+         i_v,i_s,i_m,i_x,i_x1d,i_x2d,vOffsetA
     
     REAL(   rkind)::r_mc,p_mc
     REAL(   rkind),DIMENSION(    1:NSMAX)::nn,pp
@@ -352,8 +362,8 @@ CONTAINS
     DO i_m = 1, NMMAX
        
        !  INITIIALIZATION     
-       r_mc = d2mfc1(1,i_m)
-       p_mc = d2mfc1(2,i_m)
+       r_mc = GlobalCrd(1,i_m)
+       p_mc = GlobalCrd(2,i_m)
        
        !  R,Z in cylindrical coordinate (R,\vp,Z)
        d2rzm(1,i_m)  = FUNC_r_rz(r_mc,p_mc)
@@ -361,15 +371,16 @@ CONTAINS
        
        !  CONTRAVARIANT GEOMETRIC TENSOR
        
-       Metrics(1:9,i_m)= FUNC_metrics(r_mc,p_mc)
+       Metric(1:9,i_m)= FUNC_metric(r_mc,p_mc)
        i_x2d = i2crt(2,i_m)
        i_x1d = i2crt(3,i_m)
-       
+
        !  INITIAL PROFILES
        
        !
        !  variables as field (from i_v= 1 to i_v = 5)
        !       
+       
        XvecIn(1,i_x1d) = FUNC_dpsidr(r_mc,p_mc)/BpNF ! dPsidr
        XvecIn(2,i_x1d) = FUNC_btCo(  r_mc,p_mc)/BtNF ! I
        XvecIn(3,i_x1d) = FUNC_etCo(  r_mc,p_mc)/EtNF ! E_{\zeta}
@@ -397,7 +408,8 @@ CONTAINS
           XvecIn(15+vOffsetA,i_x2d) = ff(8,i_s)/QpNF
        ENDDO
     ENDDO
-    
+
+
     CALL T2_CONV
     CALL T2_GOUT
     
@@ -429,7 +441,7 @@ CONTAINS
     REAL(   rkind),DIMENSION(1:2)::FUNC_rprof
     REAL(   rkind)::&
          d0a1,d0a2,d0a3,d0b1,d0b2,d0b3,&
-         d0m0,d0n0,d0rx,d0rr,&
+         d0m0,d0n0,d0rx,&
          d0fcs,d0fsw,d0rsw
     INTEGER(ikind)::&
          i0m1,i0n1,i0n2
@@ -606,12 +618,12 @@ CONTAINS
     
     USE T2COMM, ONLY:d0qc,d0qs
     
-    REAL(i0rkind),INTENT(IN)::r_mc,p_mc
-    REAL(i0rkind)::FUNC_q
+    REAL(rkind),INTENT(IN)::r_mc,p_mc
+    REAL(rkind)::FUNC_q
     
-    IF((r_mc.GE.0.D0).AND.(r_mc.LE.1.D0))THEN
+    IF(   (r_mc.GE.0.D0).AND.(r_mc.LE.1.D0))THEN
        FUNC_q = (d0qc-d0qs)*(1.D0 - r_mc)+d0qs
-    ELSEIF(d0mfcr.GT.1.D0)THEN
+    ELSEIF(r_mc.GT.1.D0)THEN
        FUNC_q = (d0qs-d0qc)*(       r_mc)+d0qc
     ELSE
        WRITE(6,*)'WRONG RHO INPUT'
@@ -657,8 +669,8 @@ CONTAINS
     
     USE T2COMM,ONLY:RR,d0bc
     
-    REAL(i0rkind),INTENT(IN)::r_mc,p_mc
-    REAL(i0rkind)::FUNC_BtCo
+    REAL(rkind),INTENT(IN)::r_mc,p_mc
+    REAL(rkind)::FUNC_BtCo
     
     FUNC_BtCo = RR*d0bc
     
@@ -676,9 +688,9 @@ CONTAINS
   FUNCTION FUNC_bb(r_mc,p_mc)
     
     REAL(rkind),INTENT(IN)::r_mc,p_mc
-    REAL(rkind)::FUNC_Bb
+    REAL(rkind)::FUNC_bb
     REAL(rkind),DIMENSION(1:9)::metric
-    REAL(rkind)::dPsidr,btCo,g11Ct,g33Ct,bbSq,FUNC_bb
+    REAL(rkind)::dPsidr,btCo,g11Ct,g33Ct,bbSq
     
     dPsidr  = FUNC_dPsidr(r_mc,p_mc)
     btCo    = FUNC_btCo(  r_mc,p_mc)
@@ -701,26 +713,29 @@ CONTAINS
   !-------------------------------------------------------------------
   FUNCTION FUNC_etCo(r_mc,p_mc)
     
-    USE T2CNST,ONLY:Aee,RR,RA
-    USE T2COMM,ONLY:NSMAX
+    USE T2CNST,ONLY:Aee
+    USE T2COMM,ONLY:NSMAX,RR,RA
     
     REAL(   rkind),INTENT(IN)::r_mc,p_mc
     REAL(   rkind)::FUNC_etCo
-    REAL(   rkind),DIMENSION(1:NSMAX)::tt
-    REAL(   rkind)::ttE_keV,lnLamb,eta,jtCo,d0temp
+    REAL(   rkind),DIMENSION(1:NSMAX)::tt,nn
+    REAL(   rkind)::nnE,ttE_eV,ttE_keV,lnLamb,eta_sp,eta_nc,jtCo
     
     tt      = FUNC_tt(r_mc,p_mc)
-    ttE_keV = tt(1)/(1.D3*Aee)   ! electron temperature in keV
-    lnLamb  = 17.D0 ! Coulomb logarithm for debug 
+    nn      = FUNC_nn(r_mc,p_mc)
+    nnE     = nn(1)
+    ttE_eV  = tt(1)/Aee    ! electron temperature in  eV
+    ttE_keV = ttE_eV*1.D-3 ! electron temperature in keV
+    lnLamb  = 18.4D0 -1.15D0*LOG10(nnE)+2.30D0*LOG10(ttE_eV)
     jtCo    = FUNC_jtCo1d(r_mc,p_mc)
-    d0eta = (1.65D-9)*lnLamb/(SQRT(ttE_keV)**3)
-    d0eta = d0eta/((1.D0-SQRT(RA*SQRT(r_mc)/RR))**2)
+    eta_sp = (1.65D-9)*lnLamb/(SQRT(ttE_keV)**3)
+    eta_nc = eta_sp/((1.D0-SQRT(RA*SQRT(r_mc)/RR))**2)
     
-    fd0coet = d0eta*d0jt
+    FUNC_etCo = eta_nc*jtCo
     
     RETURN
     
-  END FUNCTION fd0coet
+  END FUNCTION FUNC_etCo
   
   !-------------------------------------------------------------------
   !
@@ -786,7 +801,7 @@ CONTAINS
     USE T2COMM,ONLY:NSMAX,i0nm,i0nn,d1nc,d1ns,d1nw,d0rw
     
     REAL(   rkind),INTENT(IN)::r_mc,p_mc
-    REAL(   rkind),DIMENSION(1:i0smax)::FUNC_nn
+    REAL(   rkind),DIMENSION(1:NSMAX)::FUNC_nn
     REAL(   rkind),DIMENSION(1:2)::d1rn
     REAL(   rkind)::d0nc,d0ns,d0nw,rho
     INTEGER(ikind)::i_s
@@ -1023,7 +1038,7 @@ CONTAINS
     REAL(   rkind),INTENT(IN)::r_mc,p_mc
     REAL(   rkind)::FUNC_jtCo
     REAL(   rkind),DIMENSION(1:NSMAX)::dpdr
-    REAL(   rkind)::dpsidp,r_rz
+    REAL(   rkind)::dpsidr,r_rz
     
     FUNC_jtCo = 0.D0
     
@@ -1090,35 +1105,35 @@ CONTAINS
   !                 LAST UPDATE    2014-06-04 H.Seto
   !
   !-------------------------------------------------------------------
-  FUNCTION FUNC_flux(r_mc,p_mc)
+  FUNCTION FUNC_ff(r_mc,p_mc)
     
     USE T2CNST, ONLY:Aee
     USE T2COMM, ONLY:NSMAX
     
     REAL(   rkind),INTENT(IN)::r_mc,p_mc
-    REAL(   rkind),DIMENSION(1:8,1:NSMAX)::FUNC_flux
+    REAL(   rkind),DIMENSION(1:8,1:NSMAX)::FUNC_ff
     REAL(   rkind),DIMENSION(    1:NSMAX)::tt
-    REAL(   rkind)::fb,ftCo,ttE
+    REAL(   rkind)::fbE,ftCoE,ttE
     INTEGER(ikind)::i_s
     
     tt   =  FUNC_tt(  r_mc,p_mc)
-    fb   = -FUNC_jb(  r_mc,p_mc)/Aee
-    ftCo = -FUNC_jtCo(r_mc,p_mc)/Aee
+    fbE   = -FUNC_jb(  r_mc,p_mc)/Aee
+    ftCoE = -FUNC_jtCo(r_mc,p_mc)/Aee
     ttE  =  tt(1)
     
     ! electron
-    FUNC_flux(1,i_s) = 0.D0
-    FUNC_flux(2,i_s) = fb
-    FUNC_flux(3,i_s) = ftCo
-    FUNC_flux(4,i_s) = 0.D0
-    FUNC_flux(5,i_s) = 0.D0
-    FUNC_flux(6,i_s) = 2.5D0*ttE*fb
-    FUNC_flux(7,i_s) = 2.5D0*ttE*ftCo
-    FUNC_flux(8,i_s) = 0.D0
+    FUNC_ff(1,1) = 0.D0
+    FUNC_ff(2,1) = fbE
+    FUNC_ff(3,1) = ftCoE
+    FUNC_ff(4,1) = 0.D0
+    FUNC_ff(5,1) = 0.D0
+    FUNC_ff(6,1) = 2.5D0*ttE*fbE
+    FUNC_ff(7,1) = 2.5D0*ttE*ftCoE
+    FUNC_ff(8,1) = 0.D0
     ! ions
-    FUNC_flux(1:8,2:NSMAX) = 0.D0
+    FUNC_ff(1:8,2:NSMAX) = 0.D0
     
     RETURN
     
-  END FUNCTION FUNC_flux
+  END FUNCTION FUNC_ff
 END MODULE T2PREP

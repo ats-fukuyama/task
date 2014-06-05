@@ -42,7 +42,9 @@ CONTAINS
 
        ! CALCULATE PLASMA COEFFICIENTS
        CALL CPU_TIME(e0time_0)
+
        CALL T2COEF_EXECUTE
+
        CALL CPU_TIME(e0time_1)
        WRITE(6,'(A,F10.3,A)') '-- T2_CALV completed:          cpu=', &
             e0time_1-e0time_0,' [s]'

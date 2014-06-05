@@ -36,16 +36,18 @@ CONTAINS
   SUBROUTINE T2CALV_EXECUTE(i_m)
     
     INTEGER,INTENT(IN)::i_m
-    
+
     CALL T2CALV_SETUP(i_m)
-    
+
+
     CALL T2CALV_FRICTION_COEFFICIENT  ! L11, L12, L21, L22
 
     CALL T2CALV_VISCOUS_COEFFICIENT   ! Mu1, Mu2, Mu3
-    
+
     CALL T2CALV_ANOMALOUS_COEFFICIENT !
-    
-    CALL T2CALV_MODIFY_COEFFICIENT    ! Lx1 ~ Lx4, Mux1 ~ Mux4
+
+    CALL T2CALV_MODIFY_COEFFICIENT    ! Lx1 ~ Lx4, Mux1 ~ Mux
+
     RETURN
 
   END SUBROUTINE T2CALV_EXECUTE
@@ -58,7 +60,7 @@ CONTAINS
          & NSMAX,BpNF,BtNF,&
          & NnNF,FrNF,FbNF,FtNF,FpNF,&
          & PpNF,QrNF,QbNF,QtNF,QpNF,&
-         & i2crt,d2rzm,d2mfc1,d2jm1,&
+         & i2crt,d2rzm,GlobalCrd,Metric,&
          !
          & XvecIn,&
          & Pa, Pz, R_rz,  R_mc,&
@@ -115,17 +117,17 @@ CONTAINS
     i_m1d = i2crt( 3,i_m)
     i_m2d = i2crt( 2,i_m)
     R_rz  = d2rzm( 1,i_m)
-    R_mc  = d2mfc1(1,i_m)
+    R_mc  = GlobalCrd(1,i_m)
         
-    GRt      = d2jm1(1,i_m)
-    G11xCo   = d2jm1(2,i_m)
-    G12Co    = d2jm1(3,i_m)
-    G22Co    = d2jm1(4,i_m)
-    G33Co    = d2jm1(5,i_m)
-    G11Ct    = d2jm1(6,i_m)
-    G12Ct    = d2jm1(7,i_m)
-    G22xCt   = d2jm1(8,i_m)
-    G33Ct    = d2jm1(9,i_m)
+    GRt      = Metric(1,i_m)
+    G11xCo   = Metric(2,i_m)
+    G12Co    = Metric(3,i_m)
+    G22Co    = Metric(4,i_m)
+    G33Co    = Metric(5,i_m)
+    G11Ct    = Metric(6,i_m)
+    G12Ct    = Metric(7,i_m)
+    G22xCt   = Metric(8,i_m)
+    G33Ct    = Metric(9,i_m)
     
     UgrCt  = 0.D0
     UgpCt  = 0.D0
@@ -151,7 +153,7 @@ CONTAINS
     
     BbSq = BpSq + BtSq
     Bb   = SQRT(BbSq)
-    
+
     DO i_s = 1, NSMAX
        
        vOffset =  10*(i_s - 1) + 5
@@ -212,15 +214,16 @@ CONTAINS
        Tt(i_s) = ppA/nnA
 
     ENDDO
-    
+
     ! THERMAL VELOCITY [m/s]
     ! v_{ta} = \sqrt{2T_{a}/M_{a}}
     DO i_s = 1, NSMAX
        ttA = Tt(i_s)
        mmA = Mm(i_s)
+       print*,mmA
        Vv(i_s) = SQRT(2.0D0*ttA/mmA)
-    ENDDO
-    
+    ENDDO 
+
     ! COULOMB LOGARITHM lnLamb 
     ! ref: COLLISIONAL TRANSPORT IN MAGNETIZED PLASMAS
     !      P. HELANDER AND D.J. SIGMAR (2002)  P.4
@@ -231,7 +234,7 @@ CONTAINS
        lnLamb(i_s,j_s) = 18.4D0 -1.15D0*LOG10(nnE)+2.3D0*LOG10(ttE_eV)
     ENDDO
     ENDDO
-    
+
     !  basic collision frequency [Hz]
     !  ref: COLLISIONAL TRANSPORT IN MAGNETIZED PLASMAS
     !      P. HELANDER AND D.J. SIGMAR (2002)  P.277
@@ -483,7 +486,8 @@ CONTAINS
          & bnCoef,k11bn,k12bn,k22bn,&
          &        k11,  k12,  k22,derr
     
-    IF((R_mc.GT.0.D0).OR.(R_mc.LT.1.D0))THEN
+    IF((R_mc.GT.0.D0).AND.(R_mc.LT.1.D0))THEN
+
        
        iar   = RA*SQRT(R_mc)/RR
        iarRt = SQRT(iar)
@@ -491,17 +495,17 @@ CONTAINS
        f_c   = 1.D0 - f_t
        q     = btCt/bpCt 
        temp  = (2.D0*(q**2)*(r_rz**2)*f_t*DeCoef) /(3.D0*(iar**2)*f_c)
-       
+
        DO I_xa = 1, NSMAX
           mmA = mm(I_xa)
           nnA = nn(I_xa)
           ppA = pp(I_xa)
-          
+
           !C MODIFIED VISCOSITY COEFFICIENT IN PS REGIME
           CALL INTEG_F(FUNC_k11ps,k11ps,derr,EPS=1.D-8,ILST=0)
           CALL INTEG_F(FUNC_k12ps,k12ps,derr,EPS=1.D-8,ILST=0)
           CALL INTEG_F(FUNC_k22ps,k22ps,derr,EPS=1.D-8,ILST=0)
-          
+
           psCoef = 0.4D0*ppA*DeCoef
           
           k11ps = psCoef*k11ps

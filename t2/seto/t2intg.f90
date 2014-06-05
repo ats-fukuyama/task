@@ -359,11 +359,11 @@ CONTAINS
     ! allocate and initialize working arrays
     
     ALLOCATE(wghtArray(1:NQMAX,1:NQMAX),&
-         &   intgArray(1:NQMAX,1:NQMAX,1:NDMAX,1:NNMAX))
+         &   intgArray(1:NQMAX,1:NQMAX,0:NDMAX,1:NNMAX))
     
     abscArray(1:NQMAX) = 0.D0
     wghtArray(1:NQMAX,1:NQMAX) = 0.D0
-    intgArray(1:NQMAX,1:NQMAX,1:NDMAX,1:NNMAX) = 0.D0
+    intgArray(1:NQMAX,1:NQMAX,0:NDMAX,1:NNMAX) = 0.D0
     
     
     !

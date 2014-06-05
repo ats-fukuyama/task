@@ -3,7 +3,7 @@
 !C
 MODULE T2PARM
   
-  USE T2CNST, ONLY: i0ikind,i0rkind
+  USE T2CNST, ONLY: ikind,rkind
   
   PRIVATE
   PUBLIC T2_PARM,T2_VIEW
@@ -48,39 +48,116 @@ CONTAINS
 
   SUBROUTINE T2_NLIN(NID,IST,IERR)
 
-    USE T2COMM, ONLY: &
-         c10rname, i0dbg, i0fnum, i0mfcs, i0wstp, i0cchk,&
-         i0dmax,i0qmax,i0anom,&
-         i0smax, i0nmax, i0lmax, i1mlvl,&
-         i0pdiv_number, i1rdn2, d1rec,&
-         i0pmax,d0eps,d0rmjr,d0rmnr,&
-         d0bc,&
-         d1nc,d1ns,d1nw,d1tc,d1ts,d1tw,&
-         d1pa,d1pz,&
-         d0qc,d0qs,d0rw,&
+
+    USE T2COMM,ONLY:&
+         c10rname,i0fnum,&
+         NNMAX,NQMAX,NDMAX,NSMAX,NPMIN,NLMAX,&
+         !
+         CoordinateSwitch,&
+         !
+         i1mlvl,i1rdn2,d1rec,d0rw,RR,RA,&
+         i0nm,i0nn,i0tm,i0tn,d0qc,d0qs,d0bc,&
+         d1nc,d1ns,d1nw,d1tc,d1ts,d1tw,Pa,Pz,&
+         ! AF
          dt,time_init,eps_conv, &
          ntmax,ntstep,nt0dmax,nt0dstep,nt2dmax,nt2dstep,nconvmax, &
-         idfile,idprint,idplot,idmode,idebug,i0solv
+         idfile,idprint,idplot,idmode,idebug,&
+         !
+         UsePotentialDescription,UseNormalization,&
+         UseSUPGFEM,             UseCoefficientCheck,&
+         UseAnomalousTransportFT,UseAnomalousTransportGT,&
+         !
+         SolveField,  SolveElectron,SolveIons,&
+         SolveDensity,SolveFlux,    SolvePressure,SolveHeatFlux,&
+         !
+         LockPoloidalMageticFieldOnAxis,&
+         LockToroidalMageticFieldOnAxis,&
+         LockRadialElectricFieldOnAxis,&
+         LockPoloidalElectricFieldOnAxis,&
+         LockToroidalElectricFieldOnAxis,&
+         LockDensityOnAxis,&
+         LockRadialFluxOnAxis,&
+         LockParallelFluxOnAxis,&
+         LockToroidalFluxOnAxis,&
+         LockPoroidalFluxOnAxis,&
+         LockPressureOnAxis,&
+         LockRadialHeatFluxOnAxis,&
+         LockParallelHeatFluxOnAxis,&
+         LockToroidalHeatFluxOnAxis,&
+         LockPoroidalHeatFluxOnAxis,&
+         !
+         LockPoloidalMageticFieldOnWall,&
+         LockToroidalMageticFieldOnWall,&
+         LockRadialElectricFieldOnWall,&
+         LockPoloidalElectricFieldOnWall,&
+         LockToroidalElectricFieldOnWall,&
+         LockDensityOnWall,&
+         LockRadialFluxOnWall,&
+         LockParallelFluxOnWall,&
+         LockToroidalFluxOnWall,&
+         LockPoroidalFluxOnWall,&
+         LockPressureOnWall,&
+         LockRadialHeatFluxOnWall,&
+         LockParallelHeatFluxOnWall,&
+         LockToroidalHeatFluxOnWall,&
+         LockPoroidalHeatFluxOnWall
 
     IMPLICIT NONE
     INTEGER,INTENT(IN) :: NID
     INTEGER,INTENT(OUT) :: IST,IERR
 
     NAMELIST /T2/ &
-         c10rname, i0dbg, i0fnum, i0mfcs, i0wstp, i0cchk,&
-         i0anom, i0dmax,i0qmax,&
-!         i0tmax, d0tstp, d0tmax,&
-         i0smax, i0nmax, i0lmax, i1mlvl,&
-         i0pdiv_number, i1rdn2, d1rec,&
-!         i0pmax,d0eps, &
-         d0rmjr,d0rmnr,&
-         d0bc,&
-         d1nc,d1ns,d1nw,d1tc,d1ts,d1tw,&
-         d1pa,d1pz,&
-         d0qc,d0qs,d0rw, &
+         c10rname,i0fnum,&
+         NNMAX,NQMAX,NDMAX,NSMAX,NPMIN,NLMAX,&
+         !
+         CoordinateSwitch,&
+         !
+         i1mlvl,i1rdn2,d1rec,d0rw,RR,RA,&
+         i0nm,i0nn,i0tm,i0tn,d0qc,d0qs,d0bc,&
+         d1nc,d1ns,d1nw,d1tc,d1ts,d1tw,Pa,Pz,&
+         ! AF
          dt,time_init,eps_conv, &
          ntmax,ntstep,nt0dmax,nt0dstep,nt2dmax,nt2dstep,nconvmax, &
-         idfile,idprint,idplot,idmode,idebug,i0solv
+         idfile,idprint,idplot,idmode,idebug,&
+         !
+         UsePotentialDescription,UseNormalization,&
+         UseSUPGFEM,             UseCoefficientCheck,&
+         UseAnomalousTransportFT,UseAnomalousTransportGT,&
+         !
+         SolveField,  SolveElectron,SolveIons,&
+         SolveDensity,SolveFlux,    SolvePressure,SolveHeatFlux,&
+         !
+         LockPoloidalMageticFieldOnAxis,&
+         LockToroidalMageticFieldOnAxis,&
+         LockRadialElectricFieldOnAxis,&
+         LockPoloidalElectricFieldOnAxis,&
+         LockToroidalElectricFieldOnAxis,&
+         LockDensityOnAxis,&
+         LockRadialFluxOnAxis,&
+         LockParallelFluxOnAxis,&
+         LockToroidalFluxOnAxis,&
+         LockPoroidalFluxOnAxis,&
+         LockPressureOnAxis,&
+         LockRadialHeatFluxOnAxis,&
+         LockParallelHeatFluxOnAxis,&
+         LockToroidalHeatFluxOnAxis,&
+         LockPoroidalHeatFluxOnAxis,&
+         !
+         LockPoloidalMageticFieldOnWall,&
+         LockToroidalMageticFieldOnWall,&
+         LockRadialElectricFieldOnWall,&
+         LockPoloidalElectricFieldOnWall,&
+         LockToroidalElectricFieldOnWall,&
+         LockDensityOnWall,&
+         LockRadialFluxOnWall,&
+         LockParallelFluxOnWall,&
+         LockToroidalFluxOnWall,&
+         LockPoroidalFluxOnWall,&
+         LockPressureOnWall,&
+         LockRadialHeatFluxOnWall,&
+         LockParallelHeatFluxOnWall,&
+         LockToroidalHeatFluxOnWall,&
+         LockPoroidalHeatFluxOnWall
 
 
     READ(NID,T2,IOSTAT=IST,ERR=9800,END=9900)
@@ -99,130 +176,84 @@ CONTAINS
   SUBROUTINE T2_PLST
 
     IMPLICIT NONE
-    WRITE(6,'(A)') '# &T2 : c10rname,i0dbg,i0fnum,i0mfcs,i0wstp,i0cchk,'
-    WRITE(6,'(A)') '        i0dmax,i0qmax,' !i0tmax,d0tstp,d0tmax,'
-    WRITE(6,'(A)') '        i0smax,i0nmax,i0lmax,'
-    WRITE(6,'(A)') '        i1mlvl,i0pdiv_number, i1rdn2, d1rec,'
-!    WRITE(6,'(A)') '        i0pmax,d0eps,'
-    WRITE(6,'(A)') '        d0rmjr,d0rmnr,'
-    WRITE(6,'(A)') '        d0bc,'
-    WRITE(6,'(A)') '        d1nc,d1ns,d1nw,d1tc,d1ts,d1tw,'
-    WRITE(6,'(A)') '        d1pa,d1pz,'
-    WRITE(6,'(A)') '        d0qc,d0qs,d0rw,'
-    WRITE(6,'(A)') '        dt,time_init,eps_conv,'
-    WRITE(6,'(A)') '        ntmax,ntstep,nt0dmax,nt0dstep,nt2dmax,nt2dstep,'
-    WRITE(6,'(A)') '        nconvmax,idfile,idprint,idplot,idmode,idebug'
+    WRITE(6,'(A)') '# NAMELIST T2 contains followings'
+    WRITE(6,'(A)') 'c10rname,i0fnum'
+    WRITE(6,'(A)') 'NNMAX,NQMAX,NDMAX,NSMAX,NPMIN,NLMAX'
+    WRITE(6,'(A)') 'CoordinateSwitch'
+         !
+             !
+    WRITE(6,'(A)') 'i1mlvl,i1rdn2,d1rec,d0rw,RR,RA'
+    WRITE(6,'(A)') 'i0nm,i0nn,i0tm,i0tn,d0qc,d0qs,d0bc'
+    WRITE(6,'(A)') 'd1nc,d1ns,d1nw,d1tc,d1ts,d1tw,Pa,Pz'
+    ! AF
+    WRITE(6,'(A)') 'dt,time_init,eps_conv'
+    WRITE(6,'(A)') 'ntmax,ntstep,nt0dmax,nt0dstep,nt2dmax,'
+    WRITE(6,'(A)') 'nt2dstep,nconvmaxidfile,idprint,idplot'
+    WRITE(6,'(A)') 'idmode,idebug'
+         !
+    WRITE(6,'(A)') 'UsePotentialDescription,UseNormalization'
+    WRITE(6,'(A)') 'UseSUPGFEM,UseCoefficientCheck'
+    WRITE(6,'(A)') 'UseAnomalousTransportFT,UseAnomalousTransportGT'
+    !
+    WRITE(6,'(A)') 'SolveField,  SolveElectron,SolveIons'
+    WRITE(6,'(A)') 'SolveDensity,SolveFlux,SolvePressure,SolveHeatFlux'
+         !
+    WRITE(6,'(A)') 'LockPoloidalMageticFieldOnAxis'
+    WRITE(6,'(A)') 'LockToroidalMageticFieldOnAxis'
+    WRITE(6,'(A)') 'LockRadialElectricFieldOnAxis'
+    WRITE(6,'(A)') 'LockPoloidalElectricFieldOnAxis'
+    WRITE(6,'(A)') 'LockToroidalElectricFieldOnAxis'
+    WRITE(6,'(A)') 'LockDensityOnAxis'
+    WRITE(6,'(A)') 'LockRadialFluxOnAxis'
+    WRITE(6,'(A)') 'LockParallelFluxOnAxis'
+    WRITE(6,'(A)') 'LockToroidalFluxOnAxis'
+    WRITE(6,'(A)') 'LockPoroidalFluxOnAxis'
+    WRITE(6,'(A)') 'LockPressureOnAxis'
+    WRITE(6,'(A)') 'LockRadialHeatFluxOnAxis'
+    WRITE(6,'(A)') 'LockParallelHeatFluxOnAxis'
+    WRITE(6,'(A)') 'LockToroidalHeatFluxOnAxis'
+    WRITE(6,'(A)') 'LockPoroidalHeatFluxOnAxis'
+         !
+    WRITE(6,'(A)') 'LockPoloidalMageticFieldOnWall'
+    WRITE(6,'(A)') 'LockToroidalMageticFieldOnWall'
+    WRITE(6,'(A)') 'LockRadialElectricFieldOnWall'
+    WRITE(6,'(A)') 'LockPoloidalElectricFieldOnWall'
+    WRITE(6,'(A)') 'LockToroidalElectricFieldOnWall'
+    WRITE(6,'(A)') 'LockDensityOnWall'
+    WRITE(6,'(A)') 'LockRadialFluxOnWall'
+    WRITE(6,'(A)') 'LockParallelFluxOnWall'
+    WRITE(6,'(A)') 'LockToroidalFluxOnWall'
+    WRITE(6,'(A)') 'LockPoroidalFluxOnWall'
+    WRITE(6,'(A)') 'LockPressureOnWall'
+    WRITE(6,'(A)') 'LockRadialHeatFluxOnWall'
+    WRITE(6,'(A)') 'LockParallelHeatFluxOnWall'
+    WRITE(6,'(A)') 'LockToroidalHeatFluxOnWall'
+    WRITE(6,'(A)') 'LockPoroidalHeatFluxOnWall'
+    
     RETURN
 
   END SUBROUTINE T2_PLST
 
-!     ****** CHECK INPUT PARAMETER ******
-
+  !     ****** CHECK INPUT PARAMETER ******
+  
   SUBROUTINE T2_CHECK(IERR)
 
-    USE T2COMM,ONLY: i0pdiv_number
+    USE T2COMM,ONLY: NPMIN
     IMPLICIT NONE
     INTEGER:: IERR
 
     IERR=0
 
-    IF(i0pdiv_number <= 0) THEN
+    IF(NPMIN <= 0) THEN
        WRITE(6,'(A,I12)') &
-            'XX T2_check: INVALID i0pdiv_number: ',i0pdiv_number
+            'XX T2_check: INVALID NPMIN: ',NPMIN
        IERR=1
     ENDIF
     RETURN
   END SUBROUTINE T2_CHECK
 
 !     ****** SHOW PARAMETERS ******
-
   SUBROUTINE T2_VIEW
-
-    USE T2COMM, ONLY: &
-         c10rname, &
-         i0dbg, i0fnum, i0mfcs, i0wstp, i0cchk,&
-         i0dmax,i0qmax,&
-!         i0tmax, d0tstp, d0tmax,&
-         i0smax, i0nmax, i0lmax, i1mlvl,&
-         i0pdiv_number, i1rdn2, d1rec,&
-!         i0pmax,d0eps,&
-         d0rmjr,d0rmnr,&
-         d0bc,&
-         d1nc,d1ns,d1nw,d1tc,d1ts,d1tw,&
-         d1pa,d1pz,&
-         d0qc,d0qs,d0rw,&
-         dt,time_init,eps_conv, &
-         ntmax,ntstep,nt0dmax,nt0dstep,nt2dmax,nt2dstep,nconvmax, &
-         idfile,idprint,idplot,idmode,idebug
-
-    IMPLICIT NONE
-    INTEGER(i0ikind):: i1
-
-    WRITE(6,601) &
-         'i0dbg        ',i0dbg , &
-         'i0fnum       ',i0fnum, &
-         'i0mfcs       ',i0mfcs
-    WRITE(6,601) &
-         'i0wstp       ',i0wstp, &
-         'i0dmax       ',i0dmax, &
-         'i0qmax       ',i0qmax
-    WRITE(6,602) &
-         'ntmax        ',ntmax, &
-         'ntstep       ',ntstep, &
-         'dt           ',dt
-    WRITE(6,601) &
-         'i0smax       ',i0smax, &
-         'i0nmax       ',i0nmax, &
-         'i0lmax       ',i0lmax
-    WRITE(6,601) &
-         'i0pdiv_number',i0pdiv_number, &
-         'i0cchk       ',i0cchk
-
-    WRITE(6,'(A)') '      i1  i1mlvl  i1rdns       d1rec'
-    DO i1=1,i0lmax
-       WRITE(6,'(3I8,1PE12.4)') i1,i1mlvl(i1),i1rdn2(i1),d1rec(i1)
-    END DO
-
-    WRITE(6,603) &
-         'nconvmax     ',nconvmax,&
-         'eps_conv     ',eps_conv
-
-    WRITE(6,601) &     
-         'idfile       ',idfile, &
-         'idprint      ',idprint, &
-         'idplot       ',idplot
-    WRITE(6,601) &     
-         'idmode       ',idmode, &
-         'idebug       ',idebug
-
-
-    WRITE(6,604) &
-         'd0rmjr       ',d0rmjr,&
-         'd0rmnr       ',d0rmnr
-    WRITE(6,604) &
-         'd0qc         ',d0qc, &
-         'd0qs         ',d0qs,&
-         'd0rw         ',d0rw
-    WRITE(6,602) &
-         'i0m0         ',0, &
-         'i0n0         ',0,&
-         'd0bc         ',d0bc
-    WRITE(6,'(A)')
-    DO i1=1,i0smax
-       WRITE(6,'(I6,1P2E12.4/6X,1P6E12.4)') &
-            i1,d1pa(i1),d1pz(i1),&
-            d1nc(i1),d1ns(i1),d1nw(i1),d1tc(i1),d1ts(i1),d1tw(1)
-    END DO
     RETURN
-
-601 FORMAT(' ',A11,'=',I8,4X  :2X,A11,'=',I8,4X  : &
-            2X,A11,'=',I8)
-602 FORMAT(' ',A11,'=',I8,4X  :2X,A11,'=',I8,4X  : &
-            2X,A11,'=',1PE12.4)
-603 FORMAT(' ',A11,'=',I8,4X  :2X,A11,'=',1PE12.4: &
-            2X,A11,'=',1PE12.4)
-604 FORMAT(' ',A11,'=',1PE12.4:2X,A11,'=',1PE12.4: &
-            2X,A11,'=',1PE12.4)
   END SUBROUTINE T2_VIEW
-
 END MODULE T2PARM

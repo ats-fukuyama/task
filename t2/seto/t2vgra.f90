@@ -1265,12 +1265,12 @@ CONTAINS
          &            LockPoloidalElectricFieldOnAxis,&
          &            LockToroidalElectricFieldOnAxis,&
          &            LockDensityOnAxis,&
-         &            LockRaidalFluxOnAxis,&
+         &            LockRadialFluxOnAxis,&
          &            LockParallelFluxOnAxis,&
          &            LockToroidalFluxOnAxis,&
          &            LockPoroidalFluxOnAxis,&
          &            LockPressureOnAxis,&
-         &            LockRaidalHeatFluxOnAxis,&
+         &            LockRadialHeatFluxOnAxis,&
          &            LockParallelHeatFluxOnAxis,&
          &            LockToroidalHeatFluxOnAxis,&
          &            LockPoroidalHeatFluxOnAxis
@@ -1290,12 +1290,12 @@ CONTAINS
 
     IF(SolveElectron)THEN
        LockAxi( 6) = LockDensityOnAxis
-       LockAxi( 7) = LockRaidalFluxOnAxis
+       LockAxi( 7) = LockRadialFluxOnAxis
        LockAxi( 8) = LockParallelFluxOnAxis
        LockAxi( 9) = LockToroidalFluxOnAxis
        LockAxi(10) = LockPoroidalFluxOnAxis 
        LockAxi(11) = LockPressureOnAxis 
-       LockAxi(12) = LockRaidalHeatFluxOnAxis 
+       LockAxi(12) = LockRadialHeatFluxOnAxis 
        LockAxi(13) = LockParallelHeatFluxOnAxis
        LockAxi(14) = LockToroidalHeatFluxOnAxis
        LockAxi(15) = LockPoroidalHeatFluxOnAxis 
@@ -1305,12 +1305,12 @@ CONTAINS
        DO i_s = 1,NSMAX-1
           vOffsetA = 10*i_s
           LockAxi( 6+vOffsetA) = LockDensityOnAxis
-          LockAxi( 7+vOffsetA) = LockRaidalFluxOnAxis
+          LockAxi( 7+vOffsetA) = LockRadialFluxOnAxis
           LockAxi( 8+vOffsetA) = LockParallelFluxOnAxis
           LockAxi( 9+vOffsetA) = LockToroidalFluxOnAxis
           LockAxi(10+vOffsetA) = LockPoroidalFluxOnAxis 
           LockAxi(11+vOffsetA) = LockPressureOnAxis 
-          LockAxi(12+vOffsetA) = LockRaidalHeatFluxOnAxis 
+          LockAxi(12+vOffsetA) = LockRadialHeatFluxOnAxis 
           LockAxi(13+vOffsetA) = LockParallelHeatFluxOnAxis
           LockAxi(14+vOffsetA) = LockToroidalHeatFluxOnAxis
           LockAxi(15+vOffsetA) = LockPoroidalHeatFluxOnAxis 
@@ -1344,12 +1344,12 @@ CONTAINS
          &           LockPoloidalElectricFieldOnWall,&
          &           LockToroidalElectricFieldOnWall,&
          &           LockDensityOnWall,&
-         &           LockRaidalFluxOnWall,&
+         &           LockRadialFluxOnWall,&
          &           LockParallelFluxOnWall,&
          &           LockToroidalFluxOnWall,&
          &           LockPoroidalFluxOnWall,&
          &           LockPressureOnWall,&
-         &           LockRaidalHeatFluxOnWall,&
+         &           LockRadialHeatFluxOnWall,&
          &           LockParallelHeatFluxOnWall,&
          &           LockToroidalHeatFluxOnWall,&
          &           LockPoroidalHeatFluxOnWall
@@ -1369,12 +1369,12 @@ CONTAINS
 
     IF(SolveElectron)THEN
        LockWal( 6) = LockDensityOnWall
-       LockWal( 7) = LockRaidalFluxOnWall
+       LockWal( 7) = LockRadialFluxOnWall
        LockWal( 8) = LockParallelFluxOnWall
        LockWal( 9) = LockToroidalFluxOnWall
        LockWal(10) = LockPoroidalFluxOnWall 
        LockWal(11) = LockPressureOnWall
-       LockWal(12) = LockRaidalHeatFluxOnWall
+       LockWal(12) = LockRadialHeatFluxOnWall
        LockWal(13) = LockParallelHeatFluxOnWall
        LockWal(14) = LockToroidalHeatFluxOnWall
        LockWal(15) = LockPoroidalHeatFluxOnWall 
@@ -1384,12 +1384,12 @@ CONTAINS
        DO i_s = 1,NSMAX-1
           vOffsetA = 10*i_s
           LockWal( 6+vOffsetA) = LockDensityOnWall
-          LockWal( 7+vOffsetA) = LockRaidalFluxOnWall
+          LockWal( 7+vOffsetA) = LockRadialFluxOnWall
           LockWal( 8+vOffsetA) = LockParallelFluxOnWall
           LockWal( 9+vOffsetA) = LockToroidalFluxOnWall
           LockWal(10+vOffsetA) = LockPoroidalFluxOnWall
           LockWal(11+vOffsetA) = LockPressureOnWall 
-          LockWal(12+vOffsetA) = LockRaidalHeatFluxOnWall 
+          LockWal(12+vOffsetA) = LockRadialHeatFluxOnWall 
           LockWal(13+vOffsetA) = LockParallelHeatFluxOnWall
           LockWal(14+vOffsetA) = LockToroidalHeatFluxOnWall
           LockWal(15+vOffsetA) = LockPoroidalHeatFluxOnWall
