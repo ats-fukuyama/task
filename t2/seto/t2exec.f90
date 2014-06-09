@@ -85,8 +85,9 @@ MODULE T2EXEC
        StartWal,EndWal
 
   
-  PUBLIC T2EXEC_EXECUTE
-
+  PUBLIC T2EXEC_EXECUTE,&
+         T2EXEC_DEALLOCATE
+         
 CONTAINS
   
   !C------------------------------------------------------------------
@@ -107,9 +108,8 @@ CONTAINS
          &           HaveAdveTenKval,HaveGradTenKval,HaveExciVecKval,&
          &           HaveExciTenKval,&
          &           HaveMat,&
-         &           LockEqs,        LockAxi,        LockWal,&
-         ! the following will be removed
-         &           NBMAX,NLMAX,i1pdn2
+         &           StartEqs,EndEqs,LockEqs,StartAxi,EndAxi,LockAxi,&
+         &           StartWal,EndWal,LockWal
     
     INTEGER(ikind)::&
          i_v,j_v,i_k,j_k,i_e
@@ -120,8 +120,14 @@ CONTAINS
     
 
     CALL T2EXEC_ALLOCATE
+    ! INITIALIZATION
+    amat(    :,:,:)   = 0.D0
+    bvec(    :,:)     = 0.D0
     
     DO i_e = 1, NEMAX
+       
+       amatElem(:,:,:,:) = 0.D0    
+       bvecElem(:,:)     = 0.D0
        
        CALL T2EXEC_SETUP_ELEMENT_VARIABLES(i_e)
        
@@ -130,7 +136,7 @@ CONTAINS
           
           IF(HaveMassScaCoef(i_v,j_v))&
                &     CALL T2EXEC_MS_SUBMATRIX(i_v,j_v        )
-          
+
           IF(HaveAdveVecCoef(i_v,j_v))&
                &     CALL T2EXEC_AV_SUBMATRIX(i_v,j_v        )
           
@@ -188,23 +194,8 @@ CONTAINS
          '-- T2EXEC: matrix construction was completed: cpu=', &
          e0time_1-e0time_0,' [s]'
     
-    !
-    ! set boundary conditions 
-    !
-
-    ! >>>>
-    StartEqs = 1
-    EndEqs   = NBMAX
-
-    StartAxi = 1
-    EndAxi   = 1
-
-    StartWal = NBMAX + 1 - i1pdn2(NLMAX)
-    EndWal   = NBMAX
-    ! <<<<
 
     CALL CPU_TIME(e0time_0)
-    
     ! set equations to be locked
     CALL T2EXEC_LOCK_VALUES(StartEqs,EndEqs,LockEqs)
     ! set dirichlet boundary condition on magnetic axis
@@ -243,59 +234,35 @@ CONTAINS
     
     USE T2COMM,ONLY: NDMAX,NNMAX,NVMAX,NKMAX,NBMAX,NXMAX,NAMAX
 
-    INTEGER(ikind),SAVE::&
-         NNMAX_save=0,NDMAX_save=0,NVMAX_save=0,NKMAX_save=0,&
-         NBMAX_save=0,NAMAX_save=0
-    
     INTEGER(ikind):: ierr
     
-    IF(  (NNMAX .NE.NNMAX_save ).OR.&
-         (NDMAX .NE.NDMAX_save ).OR.&
-         (NVMAX .NE.NVMAX_save ).OR.&
-         (NKMAX .NE.NKMAX_save ).OR.&
-         (NAMAX .NE.NAMAX_save ).OR.&
-         (NBMAX .NE.NBMAX_save )      )THEN
+    DO 
+       ALLOCATE(elementNodeGraphElem(1:NNMAX,1:4),&
+            &                   STAT=ierr); IF(ierr.NE.0) EXIT
+       ALLOCATE(jacInvLocCrd(1:NDMAX,1:NDMAX),&
+            &                   STAT=ierr); IF(ierr.NE.0) EXIT
+       ALLOCATE(knownVarElem(1:NNMAX,1:NKMAX),&
+            &                   STAT=ierr); IF(ierr.NE.0) EXIT
+       ALLOCATE(bvecElem(    1:NNMAX,1:NVMAX),&
+            &                   STAT=ierr); IF(ierr.NE.0) EXIT
+       ALLOCATE(amatElem(    1:NNMAX,1:NNMAX,1:NVMAX,1:NVMAX),&
+            &                   STAT=ierr); IF(ierr.NE.0) EXIT
+       ALLOCATE(bvecElemTF(  1:NVMAX,1:NNMAX),&
+            &                   STAT=ierr); IF(ierr.NE.0) EXIT
+       ALLOCATE(amatElemTF(  1:NVMAX,1:NVMAX,1:NNMAX,1:NNMAX),&
+            &                   STAT=ierr); IF(ierr.NE.0) EXIT
+       ALLOCATE(amat(        1:NVMAX,1:NVMAX,1:NAMAX),&
+            &                   STAT=ierr); IF(ierr.NE.0) EXIT
+       ALLOCATE(bvec(        1:NVMAX,1:NBMAX),&
+            &                   STAT=ierr); IF(ierr.NE.0) EXIT
        
-       CALL T2EXEC_DEALLOCATE
+       RETURN
        
-       DO 
-          ALLOCATE(jacInvLocCrd(1:NDMAX,1:NDMAX),&
-               &                   STAT=ierr); IF(ierr.NE.0) EXIT
-          ALLOCATE(knownVarElem(1:NNMAX,1:NKMAX),&
-               &                   STAT=ierr); IF(ierr.NE.0) EXIT
-          ALLOCATE(bvecElem(    1:NNMAX,1:NVMAX),&
-               &                   STAT=ierr); IF(ierr.NE.0) EXIT
-          ALLOCATE(amatElem(    1:NNMAX,1:NNMAX,1:NVMAX,1:NVMAX),&
-               &                   STAT=ierr); IF(ierr.NE.0) EXIT
-          ALLOCATE(bvecElemTF(  1:NVMAX,1:NNMAX),&
-               &                   STAT=ierr); IF(ierr.NE.0) EXIT
-          ALLOCATE(amatElemTF(  1:NVMAX,1:NVMAX,1:NNMAX,1:NNMAX),&
-               &                   STAT=ierr); IF(ierr.NE.0) EXIT
-          ALLOCATE(amat(        1:NVMAX,1:NVMAX,1:NAMAX),&
-               &                   STAT=ierr); IF(ierr.NE.0) EXIT
-          ALLOCATE(bvec(        1:NVMAX,1:NBMAX),&
-               &                   STAT=ierr); IF(ierr.NE.0) EXIT
-          
-          NNMAX_save = NNMAX
-          NDMAX_save = NDMAX
-          NVMAX_save = NVMAX
-          NKMAX_save = NKMAX
-          NAMAX_save = NAMAX
-          NBMAX_save = NBMAX
-          
-          WRITE(6,'(A)') 'T2EXEC_ALLOCATE: SUCCESSED'
-          
-          RETURN
-          
-       ENDDO
-       
-       WRITE(6,'(A)') 'T2EXEC_ALLOCATE: ALLOCATION ERROR: ECODE=',ierr
-       
-       STOP
-       
-    END IF
+    ENDDO
     
-    RETURN
+    WRITE(6,'(A)') 'T2EXEC_ALLOCATE: ALLOCATION ERROR: ECODE=',ierr
+    
+    STOP
     
   END SUBROUTINE T2EXEC_ALLOCATE
 
@@ -310,15 +277,16 @@ CONTAINS
   !-------------------------------------------------------------------  
   SUBROUTINE T2EXEC_DEALLOCATE
     
-    IF(ALLOCATED(jacInvLocCrd)) DEALLOCATE(jacInvLocCrd)
-    IF(ALLOCATED(knownVarElem)) DEALLOCATE(knownVarElem)
-    IF(ALLOCATED(bvecElem))     DEALLOCATE(bvecElem)
-    IF(ALLOCATED(amatElem))     DEALLOCATE(amatElem)
-    IF(ALLOCATED(bvecElemTF))   DEALLOCATE(bvecElemTF)
-    IF(ALLOCATED(amatElemTF))   DEALLOCATE(amatElemTF)
-    IF(ALLOCATED(amat))         DEALLOCATE(amat)
-    IF(ALLOCATED(bvec))         DEALLOCATE(bvec)
-  
+    IF(ALLOCATED(elementNodeGraphElem)) DEALLOCATE(elementNodeGraphElem)
+    IF(ALLOCATED(jacInvLocCrd))         DEALLOCATE(jacInvLocCrd)
+    IF(ALLOCATED(knownVarElem))         DEALLOCATE(knownVarElem)
+    IF(ALLOCATED(bvecElem))             DEALLOCATE(bvecElem)
+    IF(ALLOCATED(amatElem))             DEALLOCATE(amatElem)
+    IF(ALLOCATED(bvecElemTF))           DEALLOCATE(bvecElemTF)
+    IF(ALLOCATED(amatElemTF))           DEALLOCATE(amatElemTF)
+    IF(ALLOCATED(amat))                 DEALLOCATE(amat)
+    IF(ALLOCATED(bvec))                 DEALLOCATE(bvec)
+    
     RETURN
     
   END SUBROUTINE T2EXEC_DEALLOCATE
@@ -393,10 +361,10 @@ CONTAINS
     !
     ! STORE WORKING ARRAY FOR DIFFERENTIAL
     !
-    ! KnownVarElem(:,1   ) : B    AT L-TH PICARD ITERATION
-    ! KnownVarElem(:,2   ) : R    AT L-TH PICARD ITERATION
-    ! KnownVarElem(:,2N+1) : Ub   AT L-TH PICARD ITERATION 
-    ! KnownVarElem(:,2N+2) : Qb/P AT L-TH PICARD ITERATION 
+    ! KnownVarElem(:,1   ) : B  AT L-TH PICARD ITERATION
+    ! KnownVarElem(:,2   ) : R  AT L-TH PICARD ITERATION
+    ! KnownVarElem(:,2N+1) : Ub AT L-TH PICARD ITERATION 
+    ! KnownVarElem(:,2N+2) : Wb AT L-TH PICARD ITERATION 
     !
     
     DO i_n = 1, NNMAX
@@ -420,7 +388,7 @@ CONTAINS
   SUBROUTINE T2EXEC_MS_SUBMATRIX(i_v,j_v)
     
     USE T2COMM,ONLY: NNMAX,NDMAX,NVMAX,Dt,&
-         &           MassScaIntgPG,MassScaCoef,XvecIn
+         &           MassScaIntgPG,MassScaCoef,Xvec
     
     INTEGER(ikind),INTENT(IN):: i_v,j_v
 
@@ -431,7 +399,7 @@ CONTAINS
          massScaMatElem( 1:NNMAX,1:NNMAX),&
          massScaVecElem( 1:NNMAX        ),&
          massScaCoefElem(1:NNMAX        ),&
-         xvecInElem(     1:NNMAX        )
+         xvecElem(     1:NNMAX        )
     
     ! initialization   
     DO i_n = 1, NNMAX
@@ -446,12 +414,12 @@ CONTAINS
     CASE (1:3)   ! for FSA variables 
        DO i_n = 1, NNMAX
           i_b = ElementNodeGraphElem(i_n,4)
-          xvecInElem(i_n) = XvecIn(i_b,j_v)
+          xvecElem(i_n) = Xvec(j_v,i_b)
        ENDDO
     CASE DEFAULT ! for 2D dependent variables
        DO i_n = 1, NNMAX
           i_x = ElementNodeGraphElem(i_n,2)
-          xvecInElem(i_n) = XvecIn(i_x,j_v)          
+          xvecElem(i_n) = Xvec(j_v,i_x)          
        ENDDO
     END SELECT
     
@@ -474,7 +442,7 @@ CONTAINS
        massScaVecElem(       i_n    ) &
             = massScaVecElem(i_n    ) &
             + massScaMatElem(i_n,j_n) &
-            * xvecInElem(        j_n)
+            * xvecElem(        j_n)
     ENDDO
     ENDDO
     
@@ -1262,26 +1230,23 @@ CONTAINS
             
     ! i_v: 1D value (FSA)
     ! j_v: 2D value
-    
     CALL T2EXEC_STORE_MATRIX(1    ,3    ,nodeTableB,& ! row
          &                   4    ,NVMAX,nodeTableC)  ! column
 
     ! i_v: 2D value 
     ! j_v: 1D value (FSA) 
-    
     CALL T2EXEC_STORE_MATRIX(4    ,NVMAX,nodeTableC,& ! row
          &                   1    ,3    ,nodeTableA)  ! column
 
     ! i_v: 2D value
     ! j_v: 2D value
-    
     CALL T2EXEC_STORE_MATRIX(4    ,NVMAX,nodeTableC,& ! row
          &                   4    ,NVMAX,nodeTableC)  ! column
 
     !
     ! for RHS vector
     !
-    
+   
     ! i_v: 1D value (FSA)
     CALL T2EXEC_STORE_VECTOR(1    ,3    ,nodeTableA) ! row
     
@@ -1511,17 +1476,16 @@ CONTAINS
   SUBROUTINE T2EXEC_LOCK_VALUES(nodeStart,nodeEnd,varLockTable)
     
     USE T2COMM,ONLY: NVMAX,NodeRowCRS, NodeColCRS,XvecIn
-
+    
     INTEGER(ikind),INTENT(IN)::nodeStart,nodeEnd
     LOGICAL,INTENT(IN)::varLockTable(1:NVMAX)
     
-   
     INTEGER(ikind)::&
          i_a,i_v,j_v,i_row,i_col
     
     DO i_row = nodeStart, nodeEnd
        
-       ! stiffness matrix     
+       ! stiffness matrix
        DO i_a = NodeRowCRS(i_row), NodeRowCRS(i_row+1)-1
           i_col = NodeColCRS(i_a)
           DO j_v = 1, NVMAX
@@ -1536,7 +1500,7 @@ CONTAINS
           ENDDO
           ENDDO
        ENDDO
-       
+    
        ! RHS vector 
        DO i_v = 1, NVMAX
           IF(varLockTable(i_v))THEN
@@ -1550,7 +1514,6 @@ CONTAINS
     
   END SUBROUTINE T2EXEC_LOCK_VALUES
   
-
   !-------------------------------------------------------------------
   !
   !       SUBROUTINE T2EXEC_SOLVE
@@ -1600,19 +1563,15 @@ CONTAINS
     
     tolerance=1.D-7
     idebug = 0
-
-    NBVMX = NBMAX*NVMAX!       comm
-    NAVMX = NAMAX*NVMAX*NVMAX! comm
-    
        
     ALLOCATE(x(NBVMX))
     
     !CALL MTX_SETUP(NBVMX,istart,iend,idebug=0)
     CALL MTX_SETUP(NBVMX,istart,iend,nzmax=NAVMX,idebug=0)
     
-    !C 
-    !C STORE GLOBAL STIFFNESS MATRIX  
-    !C 
+    ! 
+    ! STORE GLOBAL STIFFNESS MATRIX  
+    ! 
     DO i_rowN = 1, NBMAX   
        DO i_a = NodeRowCRS(i_rowN), NodeRowCRS(i_rowN+1)-1
           i_colN = NodeColCRS(i_a) 
@@ -1623,16 +1582,17 @@ CONTAINS
                 i_rowNV  = NVMAX*(i_rowN-1) + i_rowV
                 i_colNV  = NVMAX*(i_colN-1) + i_colV
                 CALL MTX_SET_MATRIX(i_rowNV,i_colNV,val)
-                IF(IDEBUG.EQ.1) THEN
-                   WRITE(18,'(2I5,I10,2I3,2I7,1PE12.4)') &
-                        i_rowN,i_colN,i_a,i_rowV,i_colV,i_rowNV,i_colNV,val
-                END IF
+                !IF(IDEBUG.EQ.1) &
+                !                     & 
+                !IF((i_rowV.EQ.7).OR.(i_rowV.Eq.17))&
+                !WRITE(*,'(2I5,I10,2I3,2I7,1PE12.4)') &
+                !     & i_rowN,i_colN,i_a,i_rowV,i_colV,i_rowNV,i_colNV,val
              END IF
           ENDDO
           ENDDO
        ENDDO
     ENDDO
-
+    
     !
     ! ADDITIONAL COMPONENTS FOR FLUX SURFACE AVERAGING
     !
@@ -1692,7 +1652,7 @@ CONTAINS
        ENDDO
     ENDDO
     
-    ! SET GLOBAL RIGHT HAND SIDE VECTOR
+    ! SET INITIAL GUESS
     DO i_rowN = 1, NBMAX
        DO i_rowV = 1, NVMAX
           i_rowNV  = NVMAX*(i_rowN-1) + i_rowV

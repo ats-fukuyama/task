@@ -136,7 +136,6 @@ MODULE T2COMM
        NNRMX,& ! ARRAY SIZE OF NodeRowCRS (CRS-METHOD) 
        NERMX,& ! ARRAY SIZE OF I1EIDR     (CRS-METHOD) 
        NECMX,& ! ARRAY SIZE OF I1EIDC     (CRS-METHOD) 
-       NPMAX,& 
        NAVMX,& ! i0avmax = i0amax*i0vmax*i0vmax
        NBVMX   ! i0bvmax = i0bmax*i0vmax
   INTEGER(ikind)::&
@@ -167,6 +166,17 @@ MODULE T2COMM
        EqEnergy,&
        EqHFlux,&
        EqPolCom
+  INTEGER(ikind),SAVE::&
+       StartEqs,EndEqs,StartAxi,EndAxi,StartWal,EndWal
+  !-------------------------------------------------------------------
+  !
+  !       DEFINITION OF GLOBAL VARIABLES 
+  !
+  !                                     LAST UPDATE 2014-05-27
+  ! 
+  !-------------------------------------------------------------------
+  REAL(   rkind),SAVE,DIMENSION(:,:),ALLOCATABLE::&
+       Xvec  ! [1:NVMAX,1:NXMAX]: 
   
   !-------------------------------------------------------------------
   !
@@ -279,11 +289,10 @@ MODULE T2COMM
   !                          FOR T2STEP
   ! 
   !------------------------------------------------------------------
-  
   !    Amat*Xvec = Bvec
-  REAL(   rkind),SAVE,ALLOCATABLE::&
-       XvecIn(:,:),& ! [1:NVMAX,1:NXMAX]: FOR PICARD ITERATION
-       XvecOut(:,:)  ! [1:NVMAX,1:NXMAX]: FOR PICARD ITERATION 
+  REAL(   rkind),SAVE,DIMENSION(:,:),ALLOCATABLE::&
+       XvecIn,& ! [1:NVMAX,1:NXMAX]: FOR PICARD ITERATION
+       XvecOut  ! [1:NVMAX,1:NXMAX]: FOR PICARD ITERATION 
   INTEGER(ikind),SAVE,ALLOCATABLE::&
        i1nlct(:)     ! [1:10000]: num. of NL-its. in each time step
   REAL(   rkind),SAVE,ALLOCATABLE::&
@@ -317,7 +326,7 @@ MODULE T2COMM
        BpCo,& ! covariant     poloidal magnetic field [T*m]
        BpCt,& ! contravariant poloidal magnetic field [T/m]
        BpSq,& ! squared       poloidal megnetic field [T^2]
-       Bb,&   !                        megnetic field [T  ]
+       Bb,  & !                        megnetic field [T  ]
        BbSq   ! squared                megnetic field [T^2]
    
   REAL(   rkind),SAVE,DIMENSION(:),ALLOCATABLE::&
@@ -515,6 +524,7 @@ CONTAINS
           ALLOCATE(d2rzm(1:2,1:NMMAX) ,STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(Metric(1:9,1:NMMAX),STAT=ierr);IF(ierr.NE.0)EXIT
           ! T2STEP
+          ALLOCATE(Xvec(   1:NVMAX,1:NXMAX),STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(XvecIn( 1:NVMAX,1:NXMAX),STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(XvecOut(1:NVMAX,1:NXMAX),STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(i1nlct(     1:10000),STAT=ierr);IF(ierr.NE.0)EXIT
@@ -558,6 +568,7 @@ CONTAINS
     IF(ALLOCATED(i1nlct))  DEALLOCATE(i1nlct) 
     IF(ALLOCATED(d1rsdl))  DEALLOCATE(d1rsdl)
     ! T2CONV
+    IF(ALLOCATED(Xvec   )) DEALLOCATE(Xvec   )
     IF(ALLOCATED(XvecIn )) DEALLOCATE(XvecIn )
     IF(ALLOCATED(XvecOut)) DEALLOCATE(XvecOut)
     IF(ALLOCATED(d2xout )) DEALLOCATE(d2xout )

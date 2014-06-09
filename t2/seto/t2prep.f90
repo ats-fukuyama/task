@@ -3,7 +3,7 @@
 !    MODULE FOR GENERATING GLOBAL PARAMETERS AND INITIAL PROFILES
 !
 !
-!                   LAST UPDATE 2014-06-05 H.Seto
+!                   LAST UPDATE 2014-06-08 H.Seto
 !
 !---------------------------------------------------------------------
 
@@ -14,7 +14,7 @@ MODULE T2PREP
   IMPLICIT NONE
 
   PRIVATE
-  PUBLIC T2_PREP
+  PUBLIC T2PREP_EXECUTE
   
 CONTAINS
 
@@ -25,7 +25,7 @@ CONTAINS
   !
   !
   !-------------------------------------------------------------------
-  SUBROUTINE T2_PREP
+  SUBROUTINE T2PREP_EXECUTE
     
     USE T2COMM,ONLY: time_t2,time_init
     USE T2DIV, ONLY: T2_DIV
@@ -50,14 +50,14 @@ CONTAINS
     
     RETURN
 
-  END SUBROUTINE T2_PREP
+  END SUBROUTINE T2PREP_EXECUTE
   
   !--------------------------------------------------------------
   ! 
   !       SET NORMALIZATION FACTORS FOR EQAUTIONS 
   !       IN ORDER TO IMPROVE CONVERGENCE CHARACTERISTIC
   !
-  !                           LAST UPDATE 2014-05-28 H.Seto          
+  !                           LAST UPDATE 2014-06-08 H.Seto          
   !
   !--------------------------------------------------------------
   SUBROUTINE T2PREP_SETUP_NORMALIZATION_FACTOR
@@ -67,7 +67,9 @@ CONTAINS
          !
          &          BpNF, BtNF, EtNF, EpNF, ErNF,&
          &          NnNF, FrNF, FbNF, FtNF, FpNF,&
-         &          PpNF, QrNF, QbNF, QtNF, QpNF
+         &          PpNF, QrNF, QbNF, QtNF, QpNF,&
+         & EqFaraday, EqAmpere, EqGauss, EqConti,&
+         & EqMotion, EqEnergy, EqHFlux, EqPolCom 
     
     IF(.NOT.UsePotentialDescription)THEN
        IF(UseNormalization)THEN
@@ -86,11 +88,16 @@ CONTAINS
           QbNF = FbNF*1.D3*Aee         ! [10^23 keV/m2s]
           QtNF = FtNF*1.D3*Aee         ! [10^23 keV/m2s]
           QpNF = FpNF*1.D3*Aee         ! [10^23 keV/m2s]
-          EqFaraday = 
-          EqFaraday = 
-          EqFaraday = 
-          EqFaraday = 
+          EqFaraday = 1.D0
+          EqAmpere = 1.D0
+          EqGauss  = 1.D0
+          EqConti  = 1.D0
+          EqMotion = 1.D0
+          EqEnergy = 1.D0
+          EqHFlux  = 1.D0
+          EqPolCom = 1.D0
        ELSE
+          STOP ! for debug
           BpNF = 1.D0         ! 
           BtNF = 1.D0         ! 
           EtNF = 1.D0         !
@@ -121,7 +128,7 @@ CONTAINS
   ! 
   !       SET GLOBAL PARAMETERS FOR T2COMM_ALLOCATE
   !
-  !                           LAST UPDATE 2014-05-28 H.Seto          
+  !                           LAST UPDATE 2014-06-08 H.Seto          
   !
   !--------------------------------------------------------------
   SUBROUTINE T2PREP_SETUP_GLOBAL_PARAMETER
@@ -129,8 +136,9 @@ CONTAINS
     USE T2COMM,ONLY:&
          NLMAX, NVMAX, NKMAX, NQMAX, NNMAX, NMMAX, NXMAX, &
          NBMAX, NRMAX, NEMAX, NHMAX, NAMAX, NNRMX, NERMX, &
-         NECMX, NDMAX, NSMAX, NPMAX, NPMIN, NAVMX, NBVMX, &
+         NECMX, NDMAX, NSMAX, NPMIN, NAVMX, NBVMX, &
          !
+         StartEqs,EndEqs,StartAxi,EndAxi,StartWal,EndWal,&
          UsePotentialDescription,&
          !
          i1mlvl,i1pdn1,i1pdn2,i1rdn1,i1rdn2,i1mmax,i1bmax,i1emax,&
@@ -290,16 +298,21 @@ CONTAINS
     
     NAVMX = NAMAX*NVMAX*NVMAX
     NBVMX = NBMAX*NVMAX
-    !print*,'AAAA'
-    !WRITE(6,*)'NDMAX=',NDMAX,'NNMAX=',NNMAX,'NSMAX=',NSMAX
-    !WRITE(6,*)'NLMAX=',NLMAX,'NPMAX=',NPMAX,'NQMAX=',NQMAX
-    !WRITE(6,*)'NMMAX=',NMMAX,'NRMAX=',NRMAX,'NEMAX=',NEMAX
-    !WRITE(6,*)'NAMAX=',NAMAX,'NXMAX=',NXMAX,'NBMAX=',NBMAX
-    !WRITE(6,*)'NNRMX=',NNRMX,'NERMX=',NERMX,'NECMX=',NECMX
-    !WRITE(6,*)'NKMAX=',NKMAX,'NHMAX=',NHMAX
-    !print*,'AAA'
 
-    !stop
+    !
+    ! set boundary conditions 
+    !
+
+    
+    StartEqs = 1
+    EndEqs   = NBMAX
+
+    StartAxi = 1
+    EndAxi   = 1
+
+    StartWal = NBMAX + 1 - i1pdn2(NLMAX)
+    EndWal   = NBMAX
+      
     WRITE(6,*)'NNMAX=',NNMAX,'NQMAX=',NQMAX,'NDMAX=',NDMAX
     WRITE(6,*)'NSMAX=',NSMAX,'NPMIN=',NPMIN,'NLMAX=',NLMAX    
     
@@ -313,6 +326,7 @@ CONTAINS
     CALL T2COMM_ALLOCATE
     
     RETURN
+    
   END SUBROUTINE T2PREP_SETUP_GLOBAL_PARAMETER
   
   SUBROUTINE T2PREP_SETUP_INITIAL_PROFILES
@@ -333,7 +347,16 @@ CONTAINS
     END SELECT
     RETURN
   END SUBROUTINE T2PREP_SETUP_INITIAL_PROFILES
-
+  
+  !-------------------------------------------------------------------
+  !
+  !       SUBROUTINE FOR INITIAL PROFILES IN AREA-BASED 
+  !                  TOROIDAL COORDINATE SYSTEM (\sigma,\chi,zeta)
+  !
+  !                 LAST UPDATE    2014-06-08 H.Seto
+  !
+  !  
+  !-------------------------------------------------------------------
   SUBROUTINE T2PROF_TOROIDAL_COORDINATE_AREA
     
     USE T2COMM,ONLY:&
@@ -342,7 +365,7 @@ CONTAINS
          PpNF,QrNF,QbNF,QtNF,QpNF,&
          NSMAX,NXMAX,NVMAX,NMMAX, &
          i1pdn1,i2crt,&
-         GlobalCrd,d2rzm,Metric,XvecIn
+         GlobalCrd,d2rzm,Metric,Xvec
     
     USE T2GOUT, ONLY: T2_GOUT
     USE T2CONV, ONLY: T2_CONV
@@ -357,7 +380,7 @@ CONTAINS
 110 FORMAT(10E15.8)
 120 FORMAT( 5E15.8)
     
-    XvecIn(1:NVMAX,1:NXMAX) = 0.D0
+    Xvec(1:NVMAX,1:NXMAX) = 0.D0
     
     DO i_m = 1, NMMAX
        
@@ -381,11 +404,11 @@ CONTAINS
        !  variables as field (from i_v= 1 to i_v = 5)
        !       
        
-       XvecIn(1,i_x1d) = FUNC_dpsidr(r_mc,p_mc)/BpNF ! dPsidr
-       XvecIn(2,i_x1d) = FUNC_btCo(  r_mc,p_mc)/BtNF ! I
-       XvecIn(3,i_x1d) = FUNC_etCo(  r_mc,p_mc)/EtNF ! E_{\zeta}
-       XvecIn(4,i_x2d) = FUNC_epCo(  r_mc,p_mc)/EpNF !\bar{E}_{\chi}
-       XvecIn(5,i_x2d) = FUNC_erCo(  r_mc,p_mc)/ErNF ! E_{\sigma}
+       Xvec(1,i_x1d) = FUNC_dpsidr(r_mc,p_mc)/BpNF ! dPsidr
+       Xvec(2,i_x1d) = FUNC_btCo(  r_mc,p_mc)/BtNF ! I
+       Xvec(3,i_x1d) = FUNC_etCo(  r_mc,p_mc)/EtNF ! E_{\zeta}
+       Xvec(4,i_x2d) = FUNC_epCo(  r_mc,p_mc)/EpNF !\bar{E}_{\chi}
+       Xvec(5,i_x2d) = FUNC_erCo(  r_mc,p_mc)/ErNF ! E_{\sigma}
        
        !
        !  variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)
@@ -396,16 +419,16 @@ CONTAINS
        
        DO i_s = 1,NSMAX
           vOffsetA = 10*(i_s-1) 
-          XvecIn( 6+vOffsetA,i_x2d) = nn(  i_s)/NnNF
-          XvecIn( 7+vOffsetA,i_x2d) = ff(1,i_s)/FrNF
-          XvecIn( 8+vOffsetA,i_x2d) = ff(2,i_s)/FbNF
-          XvecIn( 9+vOffsetA,i_x2d) = ff(3,i_s)/FtNF
-          XvecIn(10+vOffsetA,i_x2d) = ff(4,i_s)/FpNF
-          XvecIn(11+vOffsetA,i_x2d) = pp(  i_s)/PpNF
-          XvecIn(12+vOffsetA,i_x2d) = ff(5,i_s)/QrNF
-          XvecIn(13+vOffsetA,i_x2d) = ff(6,i_s)/QbNF
-          XvecIn(14+vOffsetA,i_x2d) = ff(7,i_s)/QtNF
-          XvecIn(15+vOffsetA,i_x2d) = ff(8,i_s)/QpNF
+          Xvec( 6+vOffsetA,i_x2d) = nn(  i_s)/NnNF
+          Xvec( 7+vOffsetA,i_x2d) = ff(1,i_s)/FrNF
+          Xvec( 8+vOffsetA,i_x2d) = ff(2,i_s)/FbNF
+          Xvec( 9+vOffsetA,i_x2d) = ff(3,i_s)/FtNF
+          Xvec(10+vOffsetA,i_x2d) = ff(4,i_s)/FpNF
+          Xvec(11+vOffsetA,i_x2d) = pp(  i_s)/PpNF
+          Xvec(12+vOffsetA,i_x2d) = ff(5,i_s)/QrNF
+          Xvec(13+vOffsetA,i_x2d) = ff(6,i_s)/QbNF
+          Xvec(14+vOffsetA,i_x2d) = ff(7,i_s)/QtNF
+          Xvec(15+vOffsetA,i_x2d) = ff(8,i_s)/QpNF
        ENDDO
     ENDDO
 
@@ -726,7 +749,8 @@ CONTAINS
     nnE     = nn(1)
     ttE_eV  = tt(1)/Aee    ! electron temperature in  eV
     ttE_keV = ttE_eV*1.D-3 ! electron temperature in keV
-    lnLamb  = 18.4D0 -1.15D0*LOG10(nnE)+2.30D0*LOG10(ttE_eV)
+    !lnLamb  = 18.4D0 -1.15D0*LOG10(nnE)+2.30D0*LOG10(ttE_eV)
+    lnLamb = 17.D0
     jtCo    = FUNC_jtCo1d(r_mc,p_mc)
     eta_sp = (1.65D-9)*lnLamb/(SQRT(ttE_keV)**3)
     eta_nc = eta_sp/((1.D0-SQRT(RA*SQRT(r_mc)/RR))**2)
@@ -1042,7 +1066,7 @@ CONTAINS
     
     FUNC_jtCo = 0.D0
     
-    r_rz   = FUNC_z_rz(  r_mc,p_mc)
+    r_rz   = FUNC_r_rz(  r_mc,p_mc)
     dpsidr = FUNC_dpsidr(r_mc,p_mc)
     dpdr   = FUNC_dpdr(  r_mc,p_mc)
     
@@ -1116,10 +1140,10 @@ CONTAINS
     REAL(   rkind)::fbE,ftCoE,ttE
     INTEGER(ikind)::i_s
     
-    tt   =  FUNC_tt(  r_mc,p_mc)
+    tt    =  FUNC_tt(  r_mc,p_mc)
     fbE   = -FUNC_jb(  r_mc,p_mc)/Aee
     ftCoE = -FUNC_jtCo(r_mc,p_mc)/Aee
-    ttE  =  tt(1)
+    ttE   =  tt(1)
     
     ! electron
     FUNC_ff(1,1) = 0.D0

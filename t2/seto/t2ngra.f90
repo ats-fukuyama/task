@@ -20,13 +20,13 @@ MODULE T2NGRA
   
 CONTAINS 
   
-  !C------------------------------------------------------------------
-  !C
-  !C          T2NGRA_MAIN
-  !C
-  !C          MAIN SUBROUTINE OF T2NGRA
-  !C
-  !C------------------------------------------------------------------
+  !------------------------------------------------------------------
+  !
+  !          T2_NGRA
+  !
+  !          MAIN SUBROUTINE OF T2NGRA
+  !
+  !------------------------------------------------------------------
   SUBROUTINE T2_NGRA
     
     USE T2COMM,ONLY:NNMAX,idfile
@@ -37,10 +37,8 @@ CONTAINS
        
     CASE( 4) !C LINIEAR   ELEMENT
        CALL T2NGRA_NGRAPH1
-    !CASE( 8) !C QUADRATIC ELEMENT 
     CASE( 9)
        CALL T2NGRA_NGRAPH2
-    !CASE(12) !C CUBIC     ELEMENT
     CASE(16) !C CUBIC     ELEMENT
        CALL T2NGRA_NGRAPH3
     END SELECT
@@ -54,91 +52,38 @@ CONTAINS
     
   END SUBROUTINE T2_NGRA
   
-  !C------------------------------------------------------------------
-  !C
-  !C            NODE GRAPH GENERATING ROUTINE 
-  !C                 FOR  MULTI-FLUID EQUATIONS FEM SOLVER
-  !C             
-  !C             COMPRESSED ROW STRAGE FORMAT
-  !C
-  !C      FOR LINEAR RECTANGULAR ELEMENT   4------3 
-  !C                                       |      |
-  !C                                       |      |
-  !C                                       1------2
-  !C
-  !C------------------------------------------------------------------  
+  !------------------------------------------------------------------
+  !
+  !            NODE GRAPH GENERATING ROUTINE 
+  !                 FOR  MULTI-FLUID EQUATIONS FEM SOLVER
+  !             
+  !             COMPRESSED ROW STRAGE FORMAT
+  !
+  !      FOR LINEAR RECTANGULAR ELEMENT   4------3 
+  !                                       |      |
+  !                                       |      |
+  !                                       1------2
+  !
+  !------------------------------------------------------------------  
   
   SUBROUTINE T2NGRA_NGRAPH1
     
-    !C--------------------------------------------
-    
-    !C
-    !C CONSTRUCT NON-DEGENERATED NODE
-    !C                    - DEGENERATED NODE GRAPH
-    
+    ! CONSTRUCT NON-DEGENERATED NODE
+    !                    - DEGENERATED NODE GRAPH
     CALL T2NGRA_CRT1    
-    
-    !C
-    !C CONSTRUCT ELEMENT - NODE GRAPH
-    !C
-    
+        
+    ! CONSTRUCT ELEMENT - NODE GRAPH
     CALL T2NGRA_ENR1
     
-    !C
-    !C CONSTRUCT NODE - ELEMENT  GRAPH
-    !C
-    
+    ! CONSTRUCT NODE - ELEMENT  GRAPH
     CALL T2NGRA_NER1
     
-    !C
-    !C CONSTRUCT NODE - NODE GRAPH
-    !C
-    
+    ! CONSTRUCT NODE - NODE GRAPH
     CALL T2NGRA_NNR1
     
     RETURN
  
   END SUBROUTINE T2NGRA_NGRAPH1
-  
-  !C------------------------------------------------------------------
-  !C
-  !C            NODE GRAPH GENERATING ROUTINE 
-  !C                 FOR  MULTI-FLUID EQUATIONS FEM SOLVER
-  !C             
-  !C             COMPRESSED ROW STRAGE FORMAT
-  !C
-  !C      FOR QUADRADICR RECTANGULAR ELEMENT  
-  !C                                            7---6---5 
-  !C                                            |       |
-  !C                                            8       4
-  !C                                            |       |
-  !C                                            1---2---3
-  !C      (WILL BE IMPLEMENTATED)  
-  !C------------------------------------------------------------------  
-  SUBROUTINE T2NGRA_NGRAPH2
-    RETURN
-  END SUBROUTINE T2NGRA_NGRAPH2
-  
-  !C------------------------------------------------------------------
-  !C
-  !C            NODE GRAPH GENERATING ROUTINE 
-  !C                 FOR  MULTI-FLUID EQUATIONS FEM SOLVER
-  !C             
-  !C             COMPRESSED ROW STRAGE FORMAT
-  !C
-  !C      FOR CUBIC RECTANGULAR ELEMENT  
-  !C                                            10--09--08--07
-  !C                                            |            |
-  !C                                            11          06 
-  !C                                            |            |
-  !C                                            12          05
-  !C                                            |            |
-  !C                                            01--02--03--04
-  !C      (WILL BE IMPLEMENTATED)  
-  !C------------------------------------------------------------------  
-  SUBROUTINE T2NGRA_NGRAPH3
-    RETURN
-  END SUBROUTINE T2NGRA_NGRAPH3
   
   !C
   !C
@@ -217,9 +162,7 @@ CONTAINS
              
              i0mcnt = i0mcnt + 1
              
-             !C
              !C MAGNETIC FLUX COORDINATE (RHO, CHI)
-             !C
              GlobalCrd(1,i0mcnt) = d1mcr1(j1)
              GlobalCrd(2,i0mcnt) = d1mcp1(i1)
              i1mfc1(  i0mcnt) = i0bcnt
@@ -249,7 +192,8 @@ CONTAINS
     USE T2COMM,ONLY:&
          NAMAX,NBMAX,NXMAX,NHMAX,NEMAX,NMMAX,NLMAX,NNMAX,&
          NNRMX,NERMX,NECMX,&
-         HangedNodeTable, ElementNodeGraph, i2crt, NodeRowCRS,NodeColCRS,i1eidr,i1eidc,&
+         HangedNodeTable, ElementNodeGraph,&
+         i2crt, NodeRowCRS,NodeColCRS,i1eidr,i1eidc,&
          i1mlvl,i1mmax,i1bmax,i1emax,GlobalCrd,i1mfc1
 
     INTEGER(ikind)::i1
@@ -909,6 +853,13 @@ CONTAINS
     RETURN
   END SUBROUTINE T2NGRA_TERM
 
+  SUBROUTINE T2NGRA_NGRAPH2
+    RETURN
+  END SUBROUTINE T2NGRA_NGRAPH2
+
+  SUBROUTINE T2NGRA_NGRAPH3
+    RETURN
+  END SUBROUTINE T2NGRA_NGRAPH3
   !C------------------------------------------------------------------
   !C 
   !C         BUBLE SORT ALGORITHM

@@ -240,7 +240,7 @@ CONTAINS
   SUBROUTINE T2_GC(INUM,ID,NGP)
     USE libgrf,ONLY: GRD2D
 !    USE T2COMM, ONLY: &
-!         ikind,rkind,twopi,NXMAX,XvecIn,NVMAX, &
+!         ikind,rkind,twopi,NXMAX,Xvec,NVMAX, &
 !         NLMAX,NPMIN,i1mlvl,i1rdn2,d1rec, &
 !         nrhomax,nchimax,d0rw
 
@@ -267,7 +267,7 @@ CONTAINS
     dchig=TWOPI/nchig
     DO nchi=1,nchig+1
        chig(nchi)=dchig*(nchi-1)
-       !gz(1,nchi)=XvecIn(inum,1)
+       !gz(1,nchi)=Xvec(inum,1)
        gz(1,nchi)=d2xout(inum,1)! changed by 2014-02-05 H.SETO
        IF(gz(1,nchi).GT. 1.D10) gz(1,nchi)= 1.D10
        IF(gz(1,nchi).LT.-1.D10) gz(1,nchi)=-1.D10
@@ -276,7 +276,7 @@ CONTAINS
        nl=nlnrho(nrho)
        nchimaxl=NPMIN*2**(i1mlvl(nl)-1)
        DO nchi=1,nchimaxl
-          !gzl(nchi)=XvecIn(inum,nnnrho(nrho)+nchi-1)
+          !gzl(nchi)=Xvec(inum,nnnrho(nrho)+nchi-1)
           gzl(nchi)=d2xout(inum,nnnrho(nrho)+nchi-1)! changed by 2014-02-05 H.SETO
           IF(gzl(nchi).GT. 1.D10) gzl(nchi)= 1.D10
           IF(gzl(nchi).LT.-1.D10) gzl(nchi)=-1.D10
@@ -373,7 +373,7 @@ CONTAINS
     USE libgrf,ONLY: GRD1D
   
     !USE T2COMM, ONLY: &
-    !     ikind,rkind,twopi,NXMAX,XvecIn,NVMAX, &
+    !     ikind,rkind,twopi,NXMAX,Xvec,NVMAX, &
     !     NLMAX,NPMIN,i1mlvl,i1rdn2,d1rec, &
     !     nrhomax,nchimax
 
@@ -394,18 +394,18 @@ CONTAINS
     ALLOCATE(gzl(nchimax+1),dgzl(nchimax+1),ugzl(4,nchimax+1))
     ALLOCATE(ga(nrhomax))
     DO nchi=1,nchimax+1
-       !gz(1,nchi)=XvecIn(inum,1)
+       !gz(1,nchi)=Xvec(inum,1)
        gz(1,nchi)=d2xout(inum,1)! changed by 2014-02-05 H.SETO
        IF(gz(1,nchi).GT. 1.D10) gz(1,nchi)= 1.D10
        IF(gz(1,nchi).LT.-1.D10) gz(1,nchi)=-1.D10
     END DO
-    !ga(1)=XvecIn(inum,1)
+    !ga(1)=Xvec(inum,1)
     ga(1)=d2xout(inum,1)! changed by 2014-02-05 H.SETO
     DO nrho=2,nrhomax
        nl=nlnrho(nrho)
        nchimaxl=NPMIN*2**(i1mlvl(nl)-1)
        DO nchi=1,nchimaxl
-          !gzl(nchi)=XvecIn(inum,nnnrho(nrho)+nchi-1)! changed by 2014-02-05 H.SETO
+          !gzl(nchi)=Xvec(inum,nnnrho(nrho)+nchi-1)! changed by 2014-02-05 H.SETO
           gzl(nchi)=d2xout(inum,nnnrho(nrho)+nchi-1)
           IF(gzl(nchi).GT. 1.D10) gzl(nchi)= 1.D10
           IF(gzl(nchi).LT.-1.D10) gzl(nchi)=-1.D10

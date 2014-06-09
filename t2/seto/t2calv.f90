@@ -114,9 +114,9 @@ CONTAINS
     ! BbSq   : SQUARED INTENSITY of MAGNETIC FIELD : B^{2} 
     
     ! initialization
-    i_m1d = i2crt( 3,i_m)
-    i_m2d = i2crt( 2,i_m)
-    R_rz  = d2rzm( 1,i_m)
+    i_m1d = i2crt(    3,i_m)
+    i_m2d = i2crt(    2,i_m)
+    R_rz  = d2rzm(    1,i_m)
     R_mc  = GlobalCrd(1,i_m)
         
     GRt      = Metric(1,i_m)
@@ -137,17 +137,14 @@ CONTAINS
        Ee(i_s) = Pz(i_s)*Aee ! electric charge
     ENDDO
     
-    dPsiDr = BpNF*XvecIn(1,i_m1d)
-    
-    BtCo = BtNF*XvecIn(2,i_m1d)
-    BtCt = BtCo*G33Ct
+    dPsiDr = XvecIn(1,i_m1d)*BpNF
+   
+    BtCo   = XvecIn(2,i_m1d)*BtNF
+    BtCt   = BtCo*G33Ct
     
     BpCt = dPsiDr/GRt
     BpCo = BpCt*G22Co
-    
-    UgrCt = 0.D0
-    UgpCt = 0.D0
-    
+     
     BpSq = bpCo*bpCt
     BtSq = btCo*btCt
     
@@ -155,11 +152,9 @@ CONTAINS
     Bb   = SQRT(BbSq)
 
     DO i_s = 1, NSMAX
-       
        vOffset =  10*(i_s - 1) + 5
-       
-       nnA    = NnNF*XvecIn(vOffset+ 1,i_m2d)
-       ppA    = PpNF*XvecIn(vOffset+ 6,i_m2d)
+       nnA    = XvecIn(vOffset+ 1,i_m2d)*NnNF
+       ppA    = XvecIn(vOffset+ 6,i_m2d)*PpNF
        IF((nnA.LT.0.D0).OR.(ppA.LT.0.D0))THEN
           WRITE(6,*)'NEGATIVE  DENSITY or PRESSURE'
           WRITE(6,*)'SPECIS=',i_s,'NODE=',i_m2d,&
@@ -168,20 +163,20 @@ CONTAINS
           STOP       
        ENDIF
        
-       frCtA = FrNF*XvecIn(vOffset+ 2,i_m2d)*R_mc
-       fbA   = FbNF*XvecIn(vOffset+ 3,i_m2d)
-       ftCoA = FtNF*XvecIn(vOffset+ 4,i_m2d)
-       fpCtA = FpNF*XvecIn(vOffset+ 5,i_m2d)
+       frCtA = XvecIn(vOffset+ 2,i_m2d)*R_mc*FrNF
+       fbA   = XvecIn(vOffset+ 3,i_m2d)     *FbNF
+       ftCoA = XvecIn(vOffset+ 4,i_m2d)     *FtNF
+       fpCtA = XvecIn(vOffset+ 5,i_m2d)     *FpNF
        
        urCtA = frCtA/nnA
        ubA   = fbA  /nnA
        utCoA = ftCoA/nnA
        upCtA = fpCtA/nnA
 
-       qrCtA = QrNF*XvecIn(vOffset+ 7,i_m2d)*R_mc
-       qbA   = QbNF*XvecIn(vOffset+ 8,i_m2d)
-       qtCoA = QtNF*XvecIn(vOffset+ 9,i_m2d)
-       qpCtA = QpNF*XvecIn(vOffset+10,i_m2d)
+       qrCtA = XvecIn(vOffset+ 7,i_m2d)*R_mc*QrNF
+       qbA   = XvecIn(vOffset+ 8,i_m2d)     *QbNF
+       qtCoA = XvecIn(vOffset+ 9,i_m2d)     *QtNF
+       qpCtA = XvecIn(vOffset+10,i_m2d)     *QpNF
        
        wrCtA = qrCtA/ppA
        wbA   = qbA  /ppA
@@ -198,6 +193,7 @@ CONTAINS
        Ub(  i_s) = ubA
        UtCo(i_s) = utCoA
        UpCt(i_s) = upCtA
+       !U^2 = Up^{2} + Ut^{2} (Ur is neglected for simplicity)
        UuSq(i_s) = upCtA*upCtA*G22Co + utCoA*utCoA*G33Ct
        
        Pp(  i_s) = ppA
@@ -210,28 +206,33 @@ CONTAINS
        Wb(  i_s) = wbA
        WtCo(i_s) = wtCoA
        WpCt(i_s) = wpCtA
-
+       
        Tt(i_s) = ppA/nnA
-
     ENDDO
-
+    
     ! THERMAL VELOCITY [m/s]
     ! v_{ta} = \sqrt{2T_{a}/M_{a}}
     DO i_s = 1, NSMAX
        ttA = Tt(i_s)
        mmA = Mm(i_s)
-       print*,mmA
        Vv(i_s) = SQRT(2.0D0*ttA/mmA)
     ENDDO 
 
     ! COULOMB LOGARITHM lnLamb 
-    ! ref: COLLISIONAL TRANSPORT IN MAGNETIZED PLASMAS
-    !      P. HELANDER AND D.J. SIGMAR (2002)  P.4
-    nnE    = Nn(1)
-    ttE_eV = Tt(1)/Aee
+    ! ref: Tokamaks 3rd Ed. J.Wesson et al., P.740
+    !nnE_E20 = Nn(1)*1.D-20
+    !ttE_keV = Tt(1)*1.D-3/Aee
+    ! electron-electron collision
+    !lnLamb(1,1)        = 14.9D0 - 0.5D0*LOG(nnE_E20) + LOG(ttE_keV)
+    !! electron-ion collision
+    !DO i_s = 1, NSMAX!
+    !   lnLamb(i_s,  1) = 15.2D0 - 0.5D0*LOG(nnE_E20) + LOG(ttE_keV)
+    !   lnLamb(  1,i_s) = lnLamb(  1,i_s)
+    !ENDDO
+
     DO j_s = 1, NSMAX
     DO i_s = 1, NSMAX
-       lnLamb(i_s,j_s) = 18.4D0 -1.15D0*LOG10(nnE)+2.3D0*LOG10(ttE_eV)
+       lnLamb(i_s,j_s) = 17.D0! for debug
     ENDDO
     ENDDO
 
@@ -602,6 +603,7 @@ CONTAINS
     !   d0nut = 0.D0
     ELSE
        WRITE(6,*)'ERROR IN FUNC_K11PS'
+       WRITE(6,*)nut
        STOP
     END IF
     
@@ -798,17 +800,16 @@ CONTAINS
     USE T2CNST,ONLY:Aee
     
     USE T2COMM,ONLY:&
-         & NSMAX,R_mc,Mm,Nn,Tt,BpCt,BtCo,BbSq,Bb,GRt,G11Ct, &
+         & NSMAX,R_mc,Ee,Nn,Tt,BpCt,BtCo,BbSq,Bb,GRt,G11Ct, &
          & FtAnom1,FtAnom2,FtAnom3,FtAnom4,FtAnom5,  &
          & GtAnom1,GtAnom2,GtAnom3,GtAnom4,GtAnom5
 
     INTEGER(ikind)::&
          i_s
     REAL(   rkind)::&
-         ttE,&
-         mmA,eeA,eeB,vvA,&
-         d_anom,m_anom,x_anom,temp,&
-         ftAnom1E,ftAnom2E,ftAnom3E,ftAnom4E
+         eeE,ttE,eeA,ttA,&
+         d_anom,m_anom,x_anom,temp1,temp2
+
     
     !
     ! COEFFICIENTS OF ANORMALOUS TRANSPORT BY QUASI-LINEAR THEORY
@@ -828,28 +829,39 @@ CONTAINS
     
     ! Toroidal Force by Anomalous Transport (1)
     ttE = Tt(1)
-    temp = (Aee**2)*d_anom/ttE
-    
-    ftAnom1E = -temp*(1.5D0-m_anom/d_anom)*GRt*BpCt*G11Ct*ttE/Aee !ne
-    ftAnom2E =  temp*(1.5D0-m_anom/d_anom)*GRt*BpCt*G11Ct    /Aee !pe
-    ftAnom3E =  temp*BtCo*Bb !Gamma_{e\para}
-    ftAnom4E = -temp*BbSq    !Gamma_{e\zeta}
-    
-    FtAnom1(1) = ftAnom1E
-    FtAnom2(1) = ftAnom2E
-    FtAnom3(1) = ftAnom3E
-    FtAnom4(1) = ftAnom4E
+    eeE = Ee(1)
+    DO i_s = 1,NSMAX
+       eeA = Ee(i_s)
+       temp1 = (-eeA/ABS(eeA))*((eeE**2)*d_anom/ttE)
+       temp2 = ((m_anom/d_anom) - 1.5D0)*G11Ct*GRt*BpCt/eeE
+       FtAnom1(i_s) =  temp1*temp2*ttE
+       FtAnom2(i_s) = -temp1*temp2
+       FtAnom3(i_s) = -temp1*BtCo*Bb
+       FtAnom4(i_s) =  temp1*BbSq
+       
+    ENDDO
+    ! Toroidal Force by Anomalous Transport (2)
+    DO i_s = 1, NSMAX
+       !FtAnom5(i_s) = Mm(i_s)*Nn(i_s)*m_anom
+       FtAnom5(i_s) = 0.D0
+    ENDDO
 
-    DO i_s =2, NSMAX
-       FtAnom1(i_s) = -ftAnom1E
-       FtAnom2(i_s) = -ftAnom2E
-       FtAnom3(i_s) = -ftAnom3E
-       FtAnom4(i_s) = -ftAnom4E
+    ! EW Toroidal Force by Anomalous Transport (1)
+    DO i_s =1, NSMAX
+       ttA   = Tt(i_s)
+       eeA   = Ee(i_s)
+       temp1 = (eeA**2)*m_anom/ttA
+       temp2 = ((x_anom/m_anom) -2.5D0)*GRt*BpCt*G11Ct*ttA/eeA
+
+       GtAnom1(i_s) =  temp1*temp2*ttA
+       GtAnom2(i_s) = -temp1*temp2
+       GtAnom3(i_s) = -temp1*BtCo*Bb*2.5D0
+       GtAnom4(i_s) =  temp1*BbSq*2.5D0
     ENDDO
 
     ! Toroidal Force by Anomalous Transport (2)
     DO i_s = 1, NSMAX
-       FtAnom5(i_s) = Mm(i_s)*Nn(i_s)*m_anom
+       GtAnom5(i_s) = 0.D0
     ENDDO
     
     RETURN

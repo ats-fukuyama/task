@@ -140,8 +140,8 @@ CONTAINS
     d1ns(3:i0spcsm) = 0.D0 
     d1tc(3:i0spcsm) = 0.D0
     d1ts(3:i0spcsm) = 0.D0
-    Pa(3:i0spcsm) = 0.D0
-    Pz(3:i0spcsm) = 0.D0
+    Pa(3:i0spcsm)   = 0.D0
+    Pz(3:i0spcsm)   = 0.D0
     
     dt        = 1.D-4   ! time step [s]
     time_init = 0.D0    ! initial time [s]
@@ -193,12 +193,12 @@ CONTAINS
     LockPoloidalElectricFieldOnAxis = .FALSE. 
     LockToroidalElectricFieldOnAxis = .FALSE. 
     LockDensityOnAxis               = .FALSE.
-    LockRadialFluxOnAxis            = .TRUE.
+    LockRadialFluxOnAxis            = .FALSE.
     LockParallelFluxOnAxis          = .FALSE.
     LockToroidalFluxOnAxis          = .FALSE.
     LockPoroidalFluxOnAxis          = .FALSE.
     LockPressureOnAxis              = .FALSE.
-    LockRadialHeatFluxOnAxis        = .TRUE.
+    LockRadialHeatFluxOnAxis        = .FALSE.
     LockParallelHeatFluxOnAxis      = .FALSE.
     LockToroidalHeatFluxOnAxis      = .FALSE.
     LockPoroidalHeatFluxOnAxis      = .FALSE.
@@ -210,12 +210,12 @@ CONTAINS
     LockPoloidalElectricFieldOnWall = .FALSE.
     LockToroidalElectricFieldOnWall = .FALSE.
     LockDensityOnWall               = .FALSE.
-    LockRadialFluxOnWall            = .FALSE.
+    LockRadialFluxOnWall            = .TRUE.
     LockParallelFluxOnWall          = .TRUE.
-    LockToroidalFluxOnWall          = .TRUE.
+    LockToroidalFluxOnWall          = .TRUE. 
     LockPoroidalFluxOnWall          = .FALSE.
     LockPressureOnWall              = .FALSE.
-    LockRadialHeatFluxOnWall        = .FALSE.
+    LockRadialHeatFluxOnWall        = .TRUE.
     LockParallelHeatFluxOnWall      = .TRUE.
     LockToroidalHeatFluxOnWall      = .TRUE.
     LockPoroidalHeatFluxOnWall      = .FALSE.

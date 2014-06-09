@@ -14,7 +14,7 @@ CONTAINS
          BpNF,BtNF,EtNF,EpNF,ErNF,&
          NnNF,FrNF,FbNF,FtNF,FpNF,&
          PpNF,QrNF,QbNF,QtNF,QpNF,&
-         XvecIn,d2xout,Metric,GlobalCrd
+         Xvec,d2xout,Metric,GlobalCrd
 
     INTEGER(ikind)::&
          i0sidi,i0vidi,i0midi,i0xid1d,i0xid2d
@@ -65,24 +65,24 @@ CONTAINS
        !C INITTIALIZATION
        !C
        
-       d0psip = XvecIn(1,i0xid1d)*BpNF
-       d0cobt = XvecIn(2,i0xid1d)*BtNF
-       d0coet = XvecIn(3,i0xid1d)*EtNF
-       d0coep = XvecIn(4,i0xid2d)*EpNF*d0sqrtr
-       d0coer = XvecIn(5,i0xid2d)*ErNF
+       d0psip = Xvec(1,i0xid1d)*BpNF
+       d0cobt = Xvec(2,i0xid1d)*BtNF
+       d0coet = Xvec(3,i0xid1d)*EtNF
+       d0coep = Xvec(4,i0xid2d)*EpNF*d0sqrtr
+       d0coer = Xvec(5,i0xid2d)*ErNF
        
        DO i0sidi = 1, NSMAX
           i0vidi = 10*i0sidi - 5
-          d1nn(i0sidi) = XvecIn(i0vidi+ 1,i0xid2d)*NnNF
-          d1fr(i0sidi) = XvecIn(i0vidi+ 2,i0xid2d)*FrNF
-          d1fb(i0sidi) = XvecIn(i0vidi+ 3,i0xid2d)*FbNF
-          d1ft(i0sidi) = XvecIn(i0vidi+ 4,i0xid2d)*FtNF
-          d1fp(i0sidi) = XvecIn(i0vidi+ 5,i0xid2d)*FpNF
-          d1pp(i0sidi) = XvecIn(i0vidi+ 6,i0xid2d)*PpNF
-          d1qr(i0sidi) = XvecIn(i0vidi+ 7,i0xid2d)*QrNF
-          d1qb(i0sidi) = XvecIn(i0vidi+ 8,i0xid2d)*QbNF
-          d1qt(i0sidi) = XvecIn(i0vidi+ 9,i0xid2d)*QtNF
-          d1qp(i0sidi) = XvecIn(i0vidi+10,i0xid2d)*QpNF
+          d1nn(i0sidi) = Xvec(i0vidi+ 1,i0xid2d)*NnNF
+          d1fr(i0sidi) = Xvec(i0vidi+ 2,i0xid2d)*FrNF
+          d1fb(i0sidi) = Xvec(i0vidi+ 3,i0xid2d)*FbNF
+          d1ft(i0sidi) = Xvec(i0vidi+ 4,i0xid2d)*FtNF
+          d1fp(i0sidi) = Xvec(i0vidi+ 5,i0xid2d)*FpNF
+          d1pp(i0sidi) = Xvec(i0vidi+ 6,i0xid2d)*PpNF
+          d1qr(i0sidi) = Xvec(i0vidi+ 7,i0xid2d)*QrNF
+          d1qb(i0sidi) = Xvec(i0vidi+ 8,i0xid2d)*QbNF
+          d1qt(i0sidi) = Xvec(i0vidi+ 9,i0xid2d)*QtNF
+          d1qp(i0sidi) = Xvec(i0vidi+10,i0xid2d)*QpNF
        ENDDO
        
        !C
@@ -155,7 +155,7 @@ CONTAINS
           !C
           
           d1ut_pu(i0sidi) = d1ft(i0sidi)*d0ni*SQRT(d0ctgtt)*1.D-3
-          
+
           !C
           !C d1up_pu: Poloidal velocity  [km/s]
           !C
