@@ -7,7 +7,11 @@
 !       FOR MULTI-FLUID TRANSPORT MODEL 
 !      (ANOMALOUS TRANSPORT MODEL IS BASED ON TWO-FLUID MODEL)
 !
-!                       2014-05-31 H.Seto
+!      VALIDITY OF VISCOUS AND FRICTION COEFFICIENTS 
+!      ARE PARTLY CONFIRMED BY THE COMPARISON WITH 
+!      TASK/T2 RESULTS AND ANALITICAL VALUES IN CTMP.
+!
+!                   LAST UPDATE    2014-06-08 H.Seto
 !
 !-------------------------------------------------------------------
 MODULE T2CALV
@@ -68,7 +72,7 @@ CONTAINS
          &        G11Ct,  G12Ct, G22xCt, G33Ct,&  
          & UgrCt, UgpCt,&
          & BtCo, BtCt, BtSq, BpCo, BpCt, BpSq, Bb, BbSq,&
-         & Mm, Ee,Vv,BaseNu,X,Y,Z,&
+         & Mm, Ee,Vv,BaseNu,Nu,X,Y,Z,&
          & Nn, FrCt, Fb, FtCo, FpCt, UrCt, Ub, UtCo, UpCt, UuSq,&
          & Pp, QrCt, Qb, QtCo, QpCt, WrCt, Wb, WtCo, WpCt, Tt
     
@@ -137,16 +141,16 @@ CONTAINS
        Ee(i_s) = Pz(i_s)*Aee ! electric charge
     ENDDO
     
-    dPsiDr = XvecIn(1,i_m1d)*BpNF
-   
+    dpsidr = XvecIn(1,i_m1d)*BpNF
+    
     BtCo   = XvecIn(2,i_m1d)*BtNF
     BtCt   = BtCo*G33Ct
     
-    BpCt = dPsiDr/GRt
+    BpCt = dpsidr/GRt
     BpCo = BpCt*G22Co
-     
-    BpSq = bpCo*bpCt
-    BtSq = btCo*btCt
+    
+    BpSq = BpCo*BpCt
+    BtSq = BtCo*BtCt
     
     BbSq = BpSq + BtSq
     Bb   = SQRT(BbSq)
@@ -248,8 +252,17 @@ CONTAINS
           vvA = Vv(i_s)
           lnLambAB = lnLamb(i_s,j_s)
           BaseNu(i_s,j_s) = (nnB*(eeA**2)*(eeB**2)*lnLambAB) &
-               &          / (4.D0*Pi*(Eps0**2)*(vvA**3)*(mmA**2))
+               &          / (4.D0*Pi*(Eps0**2)*(mmA**2)*(vvA**3))
        ENDDO
+    ENDDO
+
+    ! COLLISION FREQUENCY [1/s]
+    ! REF: COLLISIONAL TRANSPORT IN MAGNETIZED PLASMAS
+    !      P. HELANDER AND D.J. SIGMAR (2002)  P.277
+    DO j_s = 1, NSMAX
+    DO i_s = 1, NSMAX
+       Nu(i_s,j_s) = BaseNu(i_s,j_s)/(0.75D0*SQRT(Pi))
+    ENDDO
     ENDDO
     
     ! DEFINITION OF DIMENSIONLESS PARAMETERS 
@@ -257,7 +270,7 @@ CONTAINS
     ! x(i_s,j_s) = x_ab = v_{tb}/v_{ta}
     ! y(i_s,j_s) = y_ab = m_{ a}/m_{ b}
     ! z(i_s,j_s) = z_ab = t_{ a}/t_{ b}
-
+    
     DO j_s = 1, NSMAX
        vvB = Vv(j_s)
        mmB = Mm(j_s)
@@ -271,23 +284,7 @@ CONTAINS
           Z(i_s,j_s) = ttA/ttB
        ENDDO
     ENDDO
-   
-!    ! set known variables for T2EXEC: KnownVar
-!    !
-!    ! KnownVar(1   ,:): MAGNETIC FIELD INTENSITY      : B   
-!    ! KnownVar(2   ,:): MAJOR RADIUS                  : R   
-!    ! KnownVar(2N+1,:): NORMALISED PARALLEL FLOW      : u_{a\para}
-!    ! KnownVar(2N+2,:): NORMALIZED PARALLEL HEAT FLOW : w_{a\para}
-!    
-!    KnownVar(1,i_m) = bb
-!    KnownVar(2,i_m) = r_rz
-!    
-!    DO i_s = 0, NSMAX-1
-!       i_w = 2*i_s + 2
-!       KnownVar(i_w+1,i_m) = ub(i_s)
-!       KnownVar(i_w+2,i_m) = wb(i_s)
-!    ENDDO
-
+    
     RETURN
 
   END SUBROUTINE T2CALV_SETUP
@@ -313,12 +310,31 @@ CONTAINS
   ! l12[i_s,j_s] : l^{ab}_{12} [kg/m2*s2]
   ! l21[i_s,j_s] : l^{ab}_{21} [kg/m2*s2]
   ! l22[i_s,j_s] : l^{ab}_{22} [kg/m2*s2] 
+  !
+  !
+  !
+  ! RESULT OF TEST CALCULATION
+  !
+  !  TASK/T2 with lnLamb=17.D0   H and S .P242 with Z=1.D0
+  !
+  ! l^{ee}_{11}/Coef = 0.9986       1.00
+  ! l^{ee}_{12}/Coef = 1.4994       1.50
+  ! l^{ee}_{21}/Coef = 1.4994       1.50
+  ! l^{ee}_{22}/Coef = 4.6631       4.66
+  !
+  !  TASK/T2 with lnLamb=17.D0   H and S .P242 with Z=1.D0
+  !
+  ! l^{ei}_{11}/Coef = 0.9986       1.00
+  ! l^{ei}_{12}/Coef = 4.0830D-4    0
+  ! l^{ei}_{21}/Coef = 1.4994       1.50
+  ! l^{ei}_{22}/Coef = 1.8368D-3    0
+  !
   SUBROUTINE T2CALV_FRICTION_COEFFICIENT
     
-    USE T2CNST,ONLY: Eps0,Pi
+    USE T2CNST,ONLY: Eps0,Pi,Aee
     
     USE T2COMM,ONLY:&
-         & NSMAX, R_rz, R_mc, BaseNu, X, Y, Z, Mm, Nn,&
+         & NSMAX, R_rz, R_mc, BaseNu,Nu,X, Y, Z, Mm, Nn,&
          & L11,L12,L21,L22,Hex
     
     INTEGER(ikind)::i_s,j_s,k_s
@@ -330,17 +346,9 @@ CONTAINS
          &      l11AB,l12AB,l21AB,l22AB
     
     REAL(   rkind),DIMENSION(1:NSMAX,1:NSMAX)::&
-         nu,m00,m01,m10,m11,n00,n01,n10,n11
-    
-    ! COLLISION FREQUENCY [1/s]
-    ! REF: COLLISIONAL TRANSPORT IN MAGNETIZED PLASMAS
-    !      P. HELANDER AND D.J. SIGMAR (2002)  P.277
-    DO j_s = 1, NSMAX
-    DO i_s = 1, NSMAX
-       nu(i_s,j_s) = BaseNu(i_s,j_s)/(0.75D0*SQRT(Pi))
-    ENDDO
-    ENDDO
-    
+         m00,m01,m10,m11,n00,n01,n10,n11
+
+    !REAL(   rkind):: mmE,nnE,nuEI,temp2
     ! Braginsikii matrix elements: M^{ab]_{ij}, N^{ab}_{ij}
     DO j_s = 1, NSMAX
     DO i_s = 1, NSMAX
@@ -375,7 +383,7 @@ CONTAINS
     
     DO j_s = 1, NSMAX
     DO i_s = 1, NSMAX
-       nuAB  = nu( i_s,j_s)
+       nuAB  = Nu( i_s,j_s)
 
        n00AB = n00(i_s,j_s)
        n01AB = n01(i_s,j_s)
@@ -389,7 +397,7 @@ CONTAINS
        
        IF(i_s.EQ.j_s)THEN
           DO k_s = 1, NSMAX
-             nuAC  = nu( i_s,k_s)
+             nuAC  = Nu( i_s,k_s)
              
              m00AC = m00(i_s,k_s)
              m01AC = m01(i_s,k_s)
@@ -410,13 +418,28 @@ CONTAINS
        L22(i_s,j_s) = l22AB*temp ! l_{22}^{ab}
     ENDDO
     ENDDO       
+
+    ! >>>>> ********** for debug ************* >>>>>
+    !mmE   = Mm(1)
+    !nnE   = Nn(1)
+    !nuEI  = Nu(1,2)
+    !temp2 = -mmE*nnE*nuEI
+    !print*,'r=',SQRT(R_mc)
+    !print*,'L^{ee}_{11}=',L11(1,1)/temp2,'L^{ee}_{12}/C =',L12(1,1)/temp2
+    !print*,'L^{ee}_{21}=',L21(1,1)/temp2,'L^{ee}_{12}/C =',L22(1,1)/temp2
+    !temp2 = mmE*nnE*nuEI
+    !print*,'r=',SQRT(R_mc)
+    !print*,'L^{ei}_{11}=',L11(1,2)/temp2,'L^{ei}_{12}/C =',L12(1,2)/temp2
+    !print*,'L^{ei}_{21}=',L21(1,2)/temp2,'L^{ei}_{12}/C =',L22(1,2)/temp2
     
+    ! <<<<< ********** for debug ************* <<<<<
+
     ! HEAT EXCHANGE COEFFICIENT
     DO i_s = 1, NSMAX
        Hex(i_s) = 0.D0
        DO j_s = 1, NSMAX
           zBA  = Z( j_s,i_s)
-          nuAB = nu(i_s,j_s)
+          nuAB = Nu(i_s,j_s)
           Hex(i_s) = Hex(i_s) + 1.5D0*(1.D0 - zBA)*nuAB
        ENDDO
     ENDDO
@@ -428,6 +451,8 @@ CONTAINS
   ! NEOCLASSICAL PARALLEL COEFFICIENTS
   ! Ref: COLLISIONAL TRANSPORT IN MAGNETIZED PLASMAS
   !      P. HELANDER AND D.J. SIGMAR (2002)  CHAP.12 AND P.279
+  !
+  !                 LAST UPDATE 2014-06-09 H.Seto 
   !
   !      trapped particle fraction rate is defined by
   !
@@ -470,16 +495,29 @@ CONTAINS
   ! mu1 : NEOCLASSICAL VISCOSITY COEFFICIENT          : mu_{1a}
   ! mu2 : NEOCLASSICAL VISCOSITY COEFFICIENT          : mu_{2a} 
   ! mu3 : NEOCLASSICAL VISCOSITY COEFFICIENT          : mu_{3a}
+  !
+  !  *****  RESULT OF TEST CALCULATION *****
+  ! in Banana Regime 
+  !   TASK/T2 with lnLamb= 17.D0    H & S P241 (12.48)
+  !  \hat{mu}_i1 = Coef*( 0.554)    Coef*( 0.533) 
+  !  \hat{mu}_i2 = Coef*(-0.634)    Coef*(-0.625)
+  !  \hat{mu}_i3 = Coef*( 1.413)    Coef*( 1.387)
+  !
+  ! in P-S Regime 
+  !
+  !   TASK/T2 with lnLamb= 17.D0    H & S P241 (12.48)
+  !   K_i11 = Coef*( 1.26)          Coef*( 1.19) 
+  !   K_i12 = Coef*( 5.99)          Coef*( 5.56)
+  !   K_i22 = Coef*( 34.9)          Coef*( 31.8)
+  !
   SUBROUTINE T2CALV_VISCOUS_COEFFICIENT
 
     USE T2CNST,ONLY: DeCoef
     USE T2COMM,ONLY: NSMAX,RA,RR,R_mc,R_rz,I_xa,&
-         & Mm,Nn,Pp,BtCt,BpCt,&
-         & Mu1,Mu2,Mu3
-
+         &           Mm,Nn,Pp,BtCt,BpCt,Mu1,Mu2,Mu3
     USE LIBT2, ONLY:integ_f
     
-
+    
     REAL(   rkind)::&
          & iar,iarRt,f_t,f_c,q,temp,&
          & mmA,nnA,ppA,&
@@ -488,20 +526,19 @@ CONTAINS
          &        k11,  k12,  k22,derr
     
     IF((R_mc.GT.0.D0).AND.(R_mc.LT.1.D0))THEN
-
        
        iar   = RA*SQRT(R_mc)/RR
        iarRt = SQRT(iar)
        f_t   = 1.46D0*iarRt - 0.46D0*(iarRt**3)
        f_c   = 1.D0 - f_t
-       q     = btCt/bpCt 
+       q     = BtCt/BpCt 
        temp  = (2.D0*(q**2)*(r_rz**2)*f_t*DeCoef) /(3.D0*(iar**2)*f_c)
-
+       
        DO I_xa = 1, NSMAX
           mmA = mm(I_xa)
           nnA = nn(I_xa)
           ppA = pp(I_xa)
-
+          
           !C MODIFIED VISCOSITY COEFFICIENT IN PS REGIME
           CALL INTEG_F(FUNC_k11ps,k11ps,derr,EPS=1.D-8,ILST=0)
           CALL INTEG_F(FUNC_k12ps,k12ps,derr,EPS=1.D-8,ILST=0)
@@ -512,7 +549,6 @@ CONTAINS
           k11ps = psCoef*k11ps
           k12ps = psCoef*k12ps
           k22ps = psCoef*k22ps
-          
           ! MODIFIED VISCOSITY COEFFICIENT IN BN REGIME
           CALL INTEG_F(FUNC_k11bn,k11bn,derr,EPS=1.D-8,ILST=0)
           CALL INTEG_F(FUNC_k12bn,k12bn,derr,EPS=1.D-8,ILST=0)
@@ -533,6 +569,7 @@ CONTAINS
           Mu1(I_xa) = k11
           Mu2(I_xa) = k12 - 2.5D0*k11
           Mu3(I_xa) = k22 - 5.0D0*k12 + 6.25D0*k11
+          
        ENDDO
     ELSE       
        DO I_xa = 1, NSMAX
@@ -559,7 +596,6 @@ CONTAINS
           Mu1(I_xa) = k11
           Mu2(I_xa) = k12 - 2.5D0*k11
           Mu3(I_xa) = k22 - 5.0D0*k12 + 6.25D0*k11
-
        ENDDO
     ENDIF
     
@@ -567,7 +603,7 @@ CONTAINS
     
   END SUBROUTINE T2CALV_VISCOUS_COEFFICIENT
 
-! CALCULATE K11_PS 
+  ! CALCULATE K11_PS 
   !        BY DOUBLE EXPONENTIAL INTEGRATION FORMULA
   FUNCTION FUNC_k11ps(xaSq)
  
@@ -589,7 +625,7 @@ CONTAINS
        yBA      = Y(  i_xb,I_xa)    ! m_b/m_a
        zAB      = Z(  I_xa,i_xb)    ! T_a/T_b
        baseNuAB = BaseNu(I_xa,i_xb) 
-       xB  = xA*xBA            ! (V/Vt_a) * (Vt_a/Vt_b)
+       xB  = xA*xBA                 ! (V/Vt_a) * (Vt_a/Vt_b)
        nuD =      baseNuAB*(func_phi(xB)-func_G(xB))/(xA**3)
        nuS = 2.D0*baseNuAB*zAB*(1.D0+yBA)*func_G(xB)/xA 
        nuB = 2.D0*baseNuAB*func_G(xB)/(Xa**3)
@@ -599,15 +635,13 @@ CONTAINS
     
     IF(    nuT.GT.0.D0)THEN 
        nuT = 1.D0/nuT
-    !ELSEIF(nuT.EQ.0.D0)THEN
-    !   d0nut = 0.D0
     ELSE
        WRITE(6,*)'ERROR IN FUNC_K11PS'
        WRITE(6,*)nut
        STOP
     END IF
     
-    FUNC_K11PS = EXP(-xA**2)*(xA**5)*nuT
+    FUNC_k11ps = EXP(-xA**2)*(xA**5)*nuT
     
     RETURN
     
@@ -627,15 +661,13 @@ CONTAINS
          nuS,nuB,nuD,nuT
     
     xA = SQRT(xASq) ! V/Vt_a
-    
     nuT = 0.D0
-    
     DO i_xb  = 1, NSMAX
        xBA      = X(  i_xb,I_xa)    ! Vt_a/Vt_b
        yBA      = Y(  i_xb,I_xa)    ! m_b/m_a
        zAB      = Z(  I_xa,i_xb)    ! T_a/T_b
        BaseNuAB = baseNu(I_xa,i_xb) 
-       xB  = xA*xBA            ! (V/Vt_a) * (Vt_a/Vt_b)
+       xB  = xA*xBA                 ! (V/Vt_a) * (Vt_a/Vt_b)
        nuD =      baseNuAB*(func_phi(xB)-func_G(xB))/(xA**3)
        nuS = 2.D0*baseNuAB*zAB*(1.D0+yBA)*func_G(xB)/xA 
        nuB = 2.D0*baseNuAB*func_G(xB)/(Xa**3)
@@ -644,14 +676,12 @@ CONTAINS
     
     IF(    nuT.GT.0.D0)THEN 
        nuT = 1.D0/nuT
-    !ELSEIF(nuT.EQ.0.D0)THEN
-    !   d0nut = 0.D0
     ELSE
        WRITE(6,*)'ERROR IN FUNC_K11PS'
        STOP
     END IF
     
-    FUNC_K12PS = EXP(-xA**2)*(xA**7)*nuT
+    FUNC_k12ps = EXP(-xA**2)*(xA**7)*nuT
     
     RETURN
     
@@ -671,9 +701,7 @@ CONTAINS
          nuS,nuB,nuD,nuT
     
     xA = SQRT(xASq) ! V/Vt_a
-    
     nuT = 0.D0
-    
     DO i_xb  = 1, NSMAX
        xBA      = X(  i_xb,I_xa)    ! Vt_a/Vt_b
        yBA      = Y(  i_xb,I_xa)    ! m_b/m_a
@@ -688,14 +716,12 @@ CONTAINS
     
     IF(    nuT.GT.0.D0)THEN 
        nuT = 1.D0/nuT
-       !ELSEIF(nuT.EQ.0.D0)THEN
-    !   d0nut = 0.D0
     ELSE
        WRITE(6,*)'ERROR IN FUNC_K11PS'
        STOP
     END IF
     
-    FUNC_K22PS = EXP(-xA**2)*(xA**9)*nuT
+    FUNC_k22ps = EXP(-xA**2)*(xA**9)*nuT
     
     RETURN
     
@@ -704,7 +730,7 @@ CONTAINS
   ! CALCULATE K11_BN 
   !        BY DOUBLE EXPONENTIAL INTEGRATION FORMULA
   FUNCTION FUNC_k11bn(xaSq)
-        
+    
     USE LIBT2, ONLY:func_phi,func_G
     USE T2COMM,ONLY:NSMAX,I_xa,X,BaseNu
     INTEGER(ikind)::i_xb
@@ -885,12 +911,12 @@ CONTAINS
     USE T2COMM,ONLY:&
          & NSMAX,L11,L12,L21,L22,Mu1, Mu2, Mu3,&
          &       Lx1,Lx2,Lx3,Lx4,Mux1,Mux2,Mux3,Mux4
-
+    
     INTEGER(ikind)::i_s,j_s
     REAL(   rkind)::&
          & l11AB,l12AB,l21AB,l22AB,lx1AB,lx2AB,lx3AB,lx4AB,&
          & mu1A, mu2A, mu3A,       mux1A,mux2A,mux3A,mux4A
-
+    
     DO j_s = 1, NSMAX
     DO i_s = 1, NSMAX
        

@@ -355,10 +355,11 @@ MODULE T2COMM
        Tt     ! temperature                            [J       ]
 
   REAL(   rkind),SAVE,DIMENSION(:,:),ALLOCATABLE::&
-       X,&    ! X_ab = Vth_b/Vth_a
-       Y,&    ! Y_ab = m_a/m_b
-       Z,&    ! Z_ab = T_a/T_b
-       BaseNu ! base collision frequency [Hz]
+       X,&      ! X_ab = Vth_b/Vth_a
+       Y,&      ! Y_ab = m_a/m_b
+       Z,&      ! Z_ab = T_a/T_b
+       BaseNu,& ! base collision frequency [Hz]
+       Nu
 
   REAL(   rkind),SAVE,DIMENSION(:,:),ALLOCATABLE::&
        L11,L12,L21,L22,Lx1,Lx2,Lx3,Lx4
@@ -949,6 +950,8 @@ CONTAINS
                &                 STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(BaseNu( 1:NSMAX,1:NSMAX),&
                &                 STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(Nu(     1:NSMAX,1:NSMAX),&
+               &                 STAT=ierr);IF(ierr.NE.0)EXIT
           
           ALLOCATE(L11(    1:NSMAX,1:NSMAX),&
                &                 STAT=ierr);IF(ierr.NE.0)EXIT
@@ -1054,10 +1057,11 @@ CONTAINS
     IF(ALLOCATED(WpCt))    DEALLOCATE(WpCt)
     IF(ALLOCATED(Tt  ))    DEALLOCATE(Tt  )
     
-    IF(ALLOCATED(X     ))  DEALLOCATE(X)
-    IF(ALLOCATED(Y     ))  DEALLOCATE(Y)
-    IF(ALLOCATED(Z     ))  DEALLOCATE(Z)
+    IF(ALLOCATED(X     ))  DEALLOCATE(X     )
+    IF(ALLOCATED(Y     ))  DEALLOCATE(Y     )
+    IF(ALLOCATED(Z     ))  DEALLOCATE(Z     )
     IF(ALLOCATED(BaseNu))  DEALLOCATE(BaseNu)
+    IF(ALLOCATED(Nu    ))  DEALLOCATE(Nu    )
           
     IF(ALLOCATED(L11))     DEALLOCATE(L11)
     IF(ALLOCATED(L12))     DEALLOCATE(L12)
