@@ -37,43 +37,27 @@ CONTAINS
          UseSUPGFEM,             UseCoefficientCheck,&
          UseAnomalousTransportFT,UseAnomalousTransportGT,&
          !
-         SolveField,  SolveElectron,SolveIons,&
-         SolveDensity,SolveFlux,    SolvePressure,SolveHeatFlux,&
+         SolveElectron,SolveIons,&
+         SolveBp,SolveBt,SolveEt,SolveEp,SolveEr,&
+         SolveNn,SolveFr,SolveFb,SolveFt,SolveFp,&
+         SolvePp,SolveQr,SolveQb,SolveQt,SolveQp,&
          !
-         LockPoloidalMageticFieldOnAxis,&
-         LockToroidalMageticFieldOnAxis,&
-         LockRadialElectricFieldOnAxis,&
-         LockPoloidalElectricFieldOnAxis,&
-         LockToroidalElectricFieldOnAxis,&
-         LockDensityOnAxis,&
-         LockRadialFluxOnAxis,&
-         LockParallelFluxOnAxis,&
-         LockToroidalFluxOnAxis,&
-         LockPoroidalFluxOnAxis,&
-         LockPressureOnAxis,&
-         LockRadialHeatFluxOnAxis,&
-         LockParallelHeatFluxOnAxis,&
-         LockToroidalHeatFluxOnAxis,&
-         LockPoroidalHeatFluxOnAxis,&
+         LockBpOnAxis,LockBtOnAxis,LockEtOnAxis,LockEpOnAxis,&
+         LockErOnAxis,&
+         LockNnOnAxis,LockFrOnAxis,LockFbOnAxis,LockFtOnAxis,&
+         LockFpOnAxis,&
+         LockPpOnAxis,LockQrOnAxis,LockQbOnAxis,LockQtOnAxis,&
+         LockQpOnAxis,&
          !
-         LockPoloidalMageticFieldOnWall,&
-         LockToroidalMageticFieldOnWall,&
-         LockRadialElectricFieldOnWall,&
-         LockPoloidalElectricFieldOnWall,&
-         LockToroidalElectricFieldOnWall,&
-         LockDensityOnWall,&
-         LockRadialFluxOnWall,&
-         LockParallelFluxOnWall,&
-         LockToroidalFluxOnWall,&
-         LockPoroidalFluxOnWall,&
-         LockPressureOnWall,&
-         LockRadialHeatFluxOnWall,&
-         LockParallelHeatFluxOnWall,&
-         LockToroidalHeatFluxOnWall,&
-         LockPoroidalHeatFluxOnWall,&
+         LockBpOnWall,LockBpOnWall,LockEtOnWall,LockEpOnWall,&
+         LockErOnWall,&
+         LockNnOnWall,LockFrOnWall,LockFbOnWall,LockFtOnWall,&
+         LockFpOnWall,&
+         LockPpOnWall,LockQrOnWall,LockQbOnWall,LockQtOnWall,&
+         LockQpOnWall,&
          !
          CoordinateSwitch
-
+    
     ! ----------------------------------------------------------------
 
     c10rname = 'TEST'
@@ -101,7 +85,7 @@ CONTAINS
     i1mlvl(1)=1        ! 10 x 2^0
     
     i1rdn2(-1:i0lmaxm) = 0  
-    i1rdn2(1) = 10   ! number of radial nodes in a level
+    i1rdn2(1) = 11   ! number of radial nodes in a level
 
     ! plasma parameters
     
@@ -109,8 +93,8 @@ CONTAINS
     d0qs     =  3.D0
     d0bc     =  1.30D0
 
-    i0nm = 2
-    i0nn = 3
+    i0nm = 3
+    i0nn = 2
     i0tm = 3
     i0tn = 2
     
@@ -153,7 +137,7 @@ CONTAINS
     nt2dstep  = 1       ! time step to save profile data
 
     nconvmax  = 255     ! maximum number of convergence steps for implicit loop
-    eps_conv  = 1.D-3   ! relative convergence criterion for implicit loop
+    eps_conv  = 1.D-4   ! relative convergence criterion for implicit loop
 
     idfile    = 0       ! control id for file output: 0 for none, 9 for all
     idprint   = 9       ! control id for print output: 0 for none, 9 for all
@@ -173,53 +157,64 @@ CONTAINS
     UsePotentialDescription = .FALSE.
     UseNormalization        = .TRUE.
     UseSUPGFEM              = .FALSE.
-    UseCoefficientCheck     = .TRUE.
-    UseAnomalousTransportFT = .TRUE.
-    UseAnomalousTransportGT = .TRUE.
+    UseCoefficientCheck     = .FALSE.
+    UseAnomalousTransportFT = .FALSE.
+    UseAnomalousTransportGT = .FALSE.
     
     ! set equations to be solved
-    SolveField              = .FALSE.
-    SolveElectron           = .TRUE.
-    SolveIons               = .TRUE.
-    SolveDensity            = .TRUE.
-    SolveFlux               = .TRUE.
-    SolvePressure           = .TRUE.
-    SolveHeatFlux           = .TRUE.
+    SolveElectron = .TRUE.
+    SolveIons     = .TRUE.
+    SolveBp       = .TRUE.
+    SolveBt       = .TRUE.
+    SolveEt       = .TRUE.
+    SolveEp       = .TRUE.
+    SolveEr       = .TRUE.
+    SolveNn       = .TRUE.
+    SolveFr       = .TRUE.
+    SolveFb       = .TRUE.
+    SolveFt       = .TRUE.
+    SolveFp       = .TRUE.
+    SolvePp       = .TRUE.
+    SolveQr       = .TRUE.
+    SolveQb       = .TRUE.
+    SolveQt       = .TRUE.
+    SolveQp       = .TRUE.
     
     ! set dirichlet boundary condition on magnetic axis
-    LockPoloidalMageticFieldOnAxis  = .FALSE. 
-    LockToroidalMageticFieldOnAxis  = .FALSE. 
-    LockRadialElectricFieldOnAxis   = .FALSE. 
-    LockPoloidalElectricFieldOnAxis = .FALSE. 
-    LockToroidalElectricFieldOnAxis = .FALSE. 
-    LockDensityOnAxis               = .FALSE.
-    LockRadialFluxOnAxis            = .FALSE.
-    LockParallelFluxOnAxis          = .FALSE.
-    LockToroidalFluxOnAxis          = .FALSE.
-    LockPoroidalFluxOnAxis          = .FALSE.
-    LockPressureOnAxis              = .FALSE.
-    LockRadialHeatFluxOnAxis        = .FALSE.
-    LockParallelHeatFluxOnAxis      = .FALSE.
-    LockToroidalHeatFluxOnAxis      = .FALSE.
-    LockPoroidalHeatFluxOnAxis      = .FALSE.
+    LockBpOnAxis  = .FALSE.
+    LockBtOnAxis  = .FALSE.
+    LockEtOnAxis  = .FALSE.
+    LockEpOnAxis  = .FALSE.
+    LockErOnAxis  = .FALSE.
+    LockNnOnAxis  = .FALSE.
+    LockFrOnAxis  = .FALSE.
+    LockFbOnAxis  = .FALSE.
+    LockFtOnAxis  = .FALSE.
+    LockFpOnAxis  = .FALSE.
+    LockPpOnAxis  = .FALSE.
+    LockQrOnAxis  = .FALSE.
+    LockQbOnAxis  = .FALSE.
+    LockQtOnAxis  = .FALSE.
+    LockQpOnAxis  = .FALSE.
     
     ! set dirichlet boundary condition on first wall
-    LockPoloidalMageticFieldOnWall  = .FALSE.
-    LockToroidalMageticFieldOnWall  = .FALSE.
-    LockRadialElectricFieldOnWall   = .FALSE.
-    LockPoloidalElectricFieldOnWall = .FALSE.
-    LockToroidalElectricFieldOnWall = .FALSE.
-    LockDensityOnWall               = .FALSE.
-    LockRadialFluxOnWall            = .TRUE.
-    LockParallelFluxOnWall          = .TRUE.
-    LockToroidalFluxOnWall          = .TRUE. 
-    LockPoroidalFluxOnWall          = .FALSE.
-    LockPressureOnWall              = .FALSE.
-    LockRadialHeatFluxOnWall        = .TRUE.
-    LockParallelHeatFluxOnWall      = .TRUE.
-    LockToroidalHeatFluxOnWall      = .TRUE.
-    LockPoroidalHeatFluxOnWall      = .FALSE.
-    
+
+    LockBpOnWall  = .TRUE.
+    LockBpOnWall  = .TRUE.
+    LockEtOnWall  = .TRUE.
+    LockEpOnWall  = .TRUE.
+    LockErOnWall  = .TRUE.
+    LockNnOnWall  = .FALSE.
+    LockFrOnWall  = .TRUE.
+    LockFbOnWall  = .TRUE.
+    LockFtOnWall  = .TRUE.
+    LockFpOnWall  = .FALSE.
+    LockPpOnWall  = .FALSE.
+    LockQrOnWall  = .TRUE.
+    LockQbOnWall  = .TRUE.
+    LockQtOnWall  = .TRUE.
+    LockQpOnWall  = .FALSE.
+
     RETURN
     
   END SUBROUTINE T2_INIT

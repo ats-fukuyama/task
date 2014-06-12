@@ -61,46 +61,19 @@ MODULE T2COMM
        UseAnomalousTransportFT,&
        UseAnomalousTransportGT,&
        !
-       SolveField,&
-       SolveElectron,&
-       SolveIons,&
-       SolveDensity,&
-       SolveFlux,&
-       SolvePressure,&
-       SolveHeatFlux,&
+       SolveElectron,SolveIons,&
+       SolveBp,SolveBt,SolveEt,SolveEp,SolveEr,&
+       SolveNn,SolveFr,SolveFb,SolveFt,SolveFp,&
+       SolvePp,SolveQr,SolveQb,SolveQt,SolveQp,&
        !
-       LockPoloidalMageticFieldOnAxis,&
-       LockToroidalMageticFieldOnAxis,&
-       LockRadialElectricFieldOnAxis,&
-       LockPoloidalElectricFieldOnAxis,&
-       LockToroidalElectricFieldOnAxis,&
-       LockDensityOnAxis,&
-       LockRadialFluxOnAxis,&
-       LockParallelFluxOnAxis,&
-       LockToroidalFluxOnAxis,&
-       LockPoroidalFluxOnAxis,&
-       LockPressureOnAxis,&
-       LockRadialHeatFluxOnAxis,&
-       LockParallelHeatFluxOnAxis,&
-       LockToroidalHeatFluxOnAxis,&
-       LockPoroidalHeatFluxOnAxis,&
+       LockBpOnAxis,LockBtOnAxis,LockEtOnAxis,LockEpOnAxis,LockErOnAxis,&
+       LockNnOnAxis,LockFrOnAxis,LockFbOnAxis,LockFtOnAxis,LockFpOnAxis,&
+       LockPpOnAxis,LockQrOnAxis,LockQbOnAxis,LockQtOnAxis,LockQpOnAxis,&
        !
-       LockPoloidalMageticFieldOnWall,&
-       LockToroidalMageticFieldOnWall,&
-       LockRadialElectricFieldOnWall,&
-       LockPoloidalElectricFieldOnWall,&
-       LockToroidalElectricFieldOnWall,&
-       LockDensityOnWall,&
-       LockRadialFluxOnWall,&
-       LockParallelFluxOnWall,&
-       LockToroidalFluxOnWall,&
-       LockPoroidalFluxOnWall,&
-       LockPressureOnWall,&
-       LockRadialHeatFluxOnWall,&
-       LockParallelHeatFluxOnWall,&
-       LockToroidalHeatFluxOnWall,&
-       LockPoroidalHeatFluxOnWall
-
+       LockBpOnWall,LockBtOnWall,LockEtOnWall,LockEpOnWall,LockErOnWall,&
+       LockNnOnWall,LockFrOnWall,LockFbOnWall,LockFtOnWall,LockFpOnWall,&
+       LockPpOnWall,LockQrOnWall,LockQbOnWall,LockQtOnWall,LockQpOnWall
+       
   INTEGER(ikind),SAVE::&
        CoordinateSwitch
   CHARACTER(10)::c10rname
@@ -156,16 +129,23 @@ MODULE T2COMM
        QrNF,&
        QbNF,&
        QtNF,&
-       QpNF
-  REAL(   rkind),SAVE::&
-       EqFaraday,&
-       EqAmpere,&
-       EqGauss,&
-       EqConti,&
-       EqMotion,&
-       EqEnergy,&
-       EqHFlux,&
-       EqPolCom
+       QpNF,&
+       EqBpNF,&
+       EqBtNF,&
+       EqEtNF,&
+       EqEpNF,&
+       EqErNF,&
+       EqNnNF,&
+       EqFrNF,&
+       EqFbNF,&
+       EqFtNF,&
+       EqFpNF,&
+       EqPpNF,&
+       EqQrNF,&
+       EqQbNF,&
+       EqQtNF,&
+       EqQpNF
+  
   INTEGER(ikind),SAVE::&
        StartEqs,EndEqs,StartAxi,EndAxi,StartWal,EndWal
   !-------------------------------------------------------------------
@@ -359,7 +339,8 @@ MODULE T2COMM
        Y,&      ! Y_ab = m_a/m_b
        Z,&      ! Z_ab = T_a/T_b
        BaseNu,& ! base collision frequency [Hz]
-       Nu
+       Nu,&     !      collision frequency [Hz]
+       Nuh      ! heat exchange  frequency [Hz]
 
   REAL(   rkind),SAVE,DIMENSION(:,:),ALLOCATABLE::&
        L11,L12,L21,L22,Lx1,Lx2,Lx3,Lx4
@@ -382,6 +363,26 @@ MODULE T2COMM
   INTEGER(ikind),SAVE::&
        I_xa
 
+  ! additional intermidiate variables 
+  REAL(   rkind),SAVE::&
+       & BNCXb1,BNCXb2,BNCXb3,BNCXb4,BNCXb5,BNCXb6,&
+       & BNCXt1,BNCXt2,BNCXt3,&
+       & BNCPp1,BNCPp2,BNCPp3,BNCPp4,BNCPp5,BNCPp6,&
+       & BNCPp7,BNCPp8,BNCPp9,&
+       & BNCQb1,BNCQb2,BNCQb3,BNCQb4,&
+       & BNCQt1,BNCQt2,BNCQt3,BNCQt4
+       
+  REAL(   rkind),SAVE,DIMENSION(:),ALLOCATABLE::&
+       & CNCV01,CNCV02,CNCV03,CNCV04,CNCV05,&
+       & CNCV06,CNCV07,CNCV08,CNCV09,CNCV10,&
+       & CNCV11,CNCV12,CNCV13
+
+  REAL(   rkind),SAVE,DIMENSION(:,:),ALLOCATABLE::&
+       & CNCF01,CNCF02,CNCF03,CNCF04
+
+  ! 
+  !  T2COEF
+  !
   REAL(   rkind),SAVE,ALLOCATABLE::&
        KnownVar(:,:),&              ! d2ws
        !
@@ -952,7 +953,9 @@ CONTAINS
                &                 STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(Nu(     1:NSMAX,1:NSMAX),&
                &                 STAT=ierr);IF(ierr.NE.0)EXIT
-          
+          ALLOCATE(Nuh(    1:NSMAX,1:NSMAX),&
+               &                 STAT=ierr);IF(ierr.NE.0)EXIT
+
           ALLOCATE(L11(    1:NSMAX,1:NSMAX),&
                &                 STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(L12(    1:NSMAX,1:NSMAX),&
@@ -960,14 +963,6 @@ CONTAINS
           ALLOCATE(L21(    1:NSMAX,1:NSMAX),&
                &                 STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(L22(    1:NSMAX,1:NSMAX),&
-               &                 STAT=ierr);IF(ierr.NE.0)EXIT
-          ALLOCATE(Lx1(    1:NSMAX,1:NSMAX),&
-               &                 STAT=ierr);IF(ierr.NE.0)EXIT
-          ALLOCATE(Lx2(    1:NSMAX,1:NSMAX),&
-               &                 STAT=ierr);IF(ierr.NE.0)EXIT
-          ALLOCATE(Lx3(    1:NSMAX,1:NSMAX),&
-               &                 STAT=ierr);IF(ierr.NE.0)EXIT
-          ALLOCATE(Lx4(    1:NSMAX,1:NSMAX),&
                &                 STAT=ierr);IF(ierr.NE.0)EXIT
 
           ALLOCATE(Hex(    1:NSMAX),&
@@ -977,6 +972,15 @@ CONTAINS
           ALLOCATE(Mu2(    1:NSMAX),&
                &                 STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(Mu3(    1:NSMAX),&
+               &                 STAT=ierr);IF(ierr.NE.0)EXIT
+
+          ALLOCATE(Lx1(    1:NSMAX,1:NSMAX),&
+               &                 STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(Lx2(    1:NSMAX,1:NSMAX),&
+               &                 STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(Lx3(    1:NSMAX,1:NSMAX),&
+               &                 STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(Lx4(    1:NSMAX,1:NSMAX),&
                &                 STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(Mux1(   1:NSMAX),&
                &                 STAT=ierr);IF(ierr.NE.0)EXIT
@@ -1008,6 +1012,42 @@ CONTAINS
           ALLOCATE(GtAnom5(1:NSMAX),&
                &                 STAT=ierr);IF(ierr.NE.0)EXIT
           
+          ALLOCATE(CNCV01(1:NSMAX),&
+               &                 STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(CNCV02(1:NSMAX),&
+               &                 STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(CNCV03(1:NSMAX),&
+               &                 STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(CNCV04(1:NSMAX),&
+               &                 STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(CNCV05(1:NSMAX),&
+               &                STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(CNCV06(1:NSMAX),&
+               &                 STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(CNCV07(1:NSMAX),&
+               &                 STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(CNCV08(1:NSMAX),&
+               &                 STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(CNCV09(1:NSMAX),&
+               &                 STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(CNCV10(1:NSMAX),&
+               &                 STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(CNCV11(1:NSMAX),&
+               &                 STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(CNCV12(1:NSMAX),&
+               &                 STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(CNCV13(1:NSMAX),&
+               &                 STAT=ierr);IF(ierr.NE.0)EXIT
+
+          ALLOCATE(CNCF01(1:NSMAX,1:NSMAX),&
+               &                 STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(CNCF02(1:NSMAX,1:NSMAX),&
+               &                 STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(CNCF03(1:NSMAX,1:NSMAX),&
+               &                 STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(CNCF04(1:NSMAX,1:NSMAX),&
+               &                 STAT=ierr);IF(ierr.NE.0)EXIT
+
           NSMAX_save = NSMAX
           
           WRITE(6,'(A)') '-- T2VGRA_ALLOCATE: completed'
@@ -1062,20 +1102,22 @@ CONTAINS
     IF(ALLOCATED(Z     ))  DEALLOCATE(Z     )
     IF(ALLOCATED(BaseNu))  DEALLOCATE(BaseNu)
     IF(ALLOCATED(Nu    ))  DEALLOCATE(Nu    )
+    IF(ALLOCATED(Nuh   ))  DEALLOCATE(Nuh   )
           
     IF(ALLOCATED(L11))     DEALLOCATE(L11)
     IF(ALLOCATED(L12))     DEALLOCATE(L12)
     IF(ALLOCATED(L21))     DEALLOCATE(L21)
     IF(ALLOCATED(L22))     DEALLOCATE(L22)
-    IF(ALLOCATED(Lx1))     DEALLOCATE(Lx1)
-    IF(ALLOCATED(Lx2))     DEALLOCATE(Lx2)
-    IF(ALLOCATED(Lx3))     DEALLOCATE(Lx3)
-    IF(ALLOCATED(Lx4))     DEALLOCATE(Lx4)
     
     IF(ALLOCATED(Hex ))    DEALLOCATE(Hex )
     IF(ALLOCATED(Mu1 ))    DEALLOCATE(Mu1 )
     IF(ALLOCATED(Mu2 ))    DEALLOCATE(Mu2 )
     IF(ALLOCATED(Mu3 ))    DEALLOCATE(Mu3 )
+
+    IF(ALLOCATED(Lx1))     DEALLOCATE(Lx1)
+    IF(ALLOCATED(Lx2))     DEALLOCATE(Lx2)
+    IF(ALLOCATED(Lx3))     DEALLOCATE(Lx3)
+    IF(ALLOCATED(Lx4))     DEALLOCATE(Lx4)
     IF(ALLOCATED(Mux1))    DEALLOCATE(Mux1)
     IF(ALLOCATED(Mux2))    DEALLOCATE(Mux2)
     IF(ALLOCATED(Mux3))    DEALLOCATE(Mux3)
@@ -1092,6 +1134,25 @@ CONTAINS
     IF(ALLOCATED(GtAnom4)) DEALLOCATE(GtAnom4)
     IF(ALLOCATED(GtAnom5)) DEALLOCATE(GtAnom5)
     
+    IF(ALLOCATED(CNCV01)) DEALLOCATE(CNCV01)
+    IF(ALLOCATED(CNCV02)) DEALLOCATE(CNCV02)
+    IF(ALLOCATED(CNCV03)) DEALLOCATE(CNCV03)
+    IF(ALLOCATED(CNCV04)) DEALLOCATE(CNCV04)
+    IF(ALLOCATED(CNCV05)) DEALLOCATE(CNCV05)
+    IF(ALLOCATED(CNCV06)) DEALLOCATE(CNCV06)
+    IF(ALLOCATED(CNCV07)) DEALLOCATE(CNCV07)
+    IF(ALLOCATED(CNCV08)) DEALLOCATE(CNCV08)
+    IF(ALLOCATED(CNCV09)) DEALLOCATE(CNCV09)
+    IF(ALLOCATED(CNCV10)) DEALLOCATE(CNCV10)
+    IF(ALLOCATED(CNCV11)) DEALLOCATE(CNCV11)
+    IF(ALLOCATED(CNCV12)) DEALLOCATE(CNCV12)
+    IF(ALLOCATED(CNCV13)) DEALLOCATE(CNCV13)
+
+    IF(ALLOCATED(CNCF01)) DEALLOCATE(CNCF01)
+    IF(ALLOCATED(CNCF02)) DEALLOCATE(CNCF02)
+    IF(ALLOCATED(CNCF03)) DEALLOCATE(CNCF03)
+    IF(ALLOCATED(CNCF04)) DEALLOCATE(CNCF04)
+
     RETURN
   
   END SUBROUTINE T2COMM_DEALLOCATE_CALV
@@ -1151,14 +1212,14 @@ CONTAINS
           NDMAX_save = NDMAX
           NMMAX_save = NMMAX
           
-          WRITE(6,'(A)') '-- T2EXEC_ADHOC_ALLOCATE: completed'
+          WRITE(6,'(A)') '-- T2COMM_ALLOCATE_COEF: completed'
           
           RETURN
           
        ENDDO
        
        WRITE(6,'(A)')&
-            '--T2EXEC_ADHOC_ALLOCATE: ALLOCATION ERROR: ECODE=',ierr
+            '--T2COMM_ALLOCATE_COEF: ALLOCATION ERROR: ECODE=',ierr
        STOP
        
     ENDIF

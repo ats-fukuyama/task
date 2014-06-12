@@ -11,7 +11,7 @@
 !      ARE PARTLY CONFIRMED BY THE COMPARISON WITH 
 !      TASK/T2 RESULTS AND ANALITICAL VALUES IN CTMP.
 !
-!                   LAST UPDATE    2014-06-08 H.Seto
+!                   LAST UPDATE    2014-06-11 H.Seto
 !
 !-------------------------------------------------------------------
 MODULE T2CALV
@@ -43,14 +43,13 @@ CONTAINS
 
     CALL T2CALV_SETUP(i_m)
 
-
     CALL T2CALV_FRICTION_COEFFICIENT  ! L11, L12, L21, L22
 
     CALL T2CALV_VISCOUS_COEFFICIENT   ! Mu1, Mu2, Mu3
 
-    CALL T2CALV_ANOMALOUS_COEFFICIENT !
-
-    CALL T2CALV_MODIFY_COEFFICIENT    ! Lx1 ~ Lx4, Mux1 ~ Mux
+    CALL T2CALV_ANOMALOUS_COEFFICIENT ! F^{QL}_{a\zeta}, G^{QL}_{a\zeta}
+    
+    CALL T2CALV_ADDITIONAL_COEFFICIENT
 
     RETURN
 
@@ -72,10 +71,9 @@ CONTAINS
          &        G11Ct,  G12Ct, G22xCt, G33Ct,&  
          & UgrCt, UgpCt,&
          & BtCo, BtCt, BtSq, BpCo, BpCt, BpSq, Bb, BbSq,&
-         & Mm, Ee,Vv,BaseNu,Nu,X,Y,Z,&
+         & Mm, Ee,Vv,BaseNu,Nu,Nuh,X,Y,Z,&
          & Nn, FrCt, Fb, FtCo, FpCt, UrCt, Ub, UtCo, UpCt, UuSq,&
          & Pp, QrCt, Qb, QtCo, QpCt, WrCt, Wb, WtCo, WpCt, Tt
-    
     
     INTEGER(ikind),INTENT(IN)::i_m
     INTEGER(ikind)::&
@@ -87,7 +85,7 @@ CONTAINS
          & ppA,qrCtA,qbA,qtCoA,qpCtA,wrCtA,wbA,wtCoA,wpCtA,&
          !
          & ttA,ttB,mmA,mmB,vvA,vvB,eeA,eeB,nnB,&
-         & nnE,ttE_eV,dPsiDr,lnLambAB
+         & nnE,ttE_eV,dPsiDr,lnLambAB,temp
     
     ! R_rz   : Local major radisu: R
     ! R_mc   : radial flux label : r, \rho, \sigma etc...
@@ -264,6 +262,16 @@ CONTAINS
        Nu(i_s,j_s) = BaseNu(i_s,j_s)/(0.75D0*SQRT(Pi))
     ENDDO
     ENDDO
+
+    ! HEAT EXCHANGE FREQUENCY [Hz]
+    temp = 3.D0*SQRT(2.D0)*(SQRT(PI)**3)*(EPS0**2)
+    DO j_s = 1,NSMAX
+    DO i_s = 1,NSMAX
+       Nuh(i_s,j_s) = temp*Mm(i_s)*Mm(j_s)&
+            &  * (SQRT(Tt(i_s)/Mm(i_s) + Tt(j_s)/Mm(j_s))**3) &
+            &  /(Nn(j_s)*(Ee(i_s)**2)*(Ee(j_s)**2)*lnLamb(i_s,j_s))
+    ENDDO
+    ENDDO
     
     ! DEFINITION OF DIMENSIONLESS PARAMETERS 
     !
@@ -346,7 +354,7 @@ CONTAINS
          &      l11AB,l12AB,l21AB,l22AB
     
     REAL(   rkind),DIMENSION(1:NSMAX,1:NSMAX)::&
-         m00,m01,m10,m11,n00,n01,n10,n11
+         m00,m01,m10,m11,n00,n01,n10,n11,nuh
 
     !REAL(   rkind):: mmE,nnE,nuEI,temp2
     ! Braginsikii matrix elements: M^{ab]_{ij}, N^{ab}_{ij}
@@ -433,17 +441,15 @@ CONTAINS
     !print*,'L^{ei}_{21}=',L21(1,2)/temp2,'L^{ei}_{12}/C =',L22(1,2)/temp2
     
     ! <<<<< ********** for debug ************* <<<<<
-
-    ! HEAT EXCHANGE COEFFICIENT
+   
+    ! HEAT EXCHANGE TERM
     DO i_s = 1, NSMAX
        Hex(i_s) = 0.D0
        DO j_s = 1, NSMAX
-          zBA  = Z( j_s,i_s)
-          nuAB = Nu(i_s,j_s)
-          Hex(i_s) = Hex(i_s) + 1.5D0*(1.D0 - zBA)*nuAB
+          Hex(i_s) = Hex(i_s) + 1.5D0*(1.D0 - Z(j_s,i_s))*nuh(i_s,j_s)
        ENDDO
     ENDDO
-        
+    
     RETURN
     
   END SUBROUTINE T2CALV_FRICTION_COEFFICIENT
@@ -826,7 +832,7 @@ CONTAINS
     USE T2CNST,ONLY:Aee
     
     USE T2COMM,ONLY:&
-         & NSMAX,R_mc,Ee,Nn,Tt,BpCt,BtCo,BbSq,Bb,GRt,G11Ct, &
+         & NSMAX,R_mc,Mm,Ee,Nn,Tt,BpCt,BtCo,BbSq,Bb,GRt,G11Ct, &
          & FtAnom1,FtAnom2,FtAnom3,FtAnom4,FtAnom5,  &
          & GtAnom1,GtAnom2,GtAnom3,GtAnom4,GtAnom5
 
@@ -835,7 +841,6 @@ CONTAINS
     REAL(   rkind)::&
          eeE,ttE,eeA,ttA,&
          d_anom,m_anom,x_anom,temp1,temp2
-
     
     !
     ! COEFFICIENTS OF ANORMALOUS TRANSPORT BY QUASI-LINEAR THEORY
@@ -858,33 +863,33 @@ CONTAINS
     eeE = Ee(1)
     DO i_s = 1,NSMAX
        eeA = Ee(i_s)
-       temp1 = (-eeA/ABS(eeA))*((eeE**2)*d_anom/ttE)
-       temp2 = ((m_anom/d_anom) - 1.5D0)*G11Ct*GRt*BpCt/eeE
-       FtAnom1(i_s) =  temp1*temp2*ttE
-       FtAnom2(i_s) = -temp1*temp2
-       FtAnom3(i_s) = -temp1*BtCo*Bb
-       FtAnom4(i_s) =  temp1*BbSq
+       temp1 = (eeA/ABS(eeA))*((eeE**2)*d_anom/ttE)
+       temp2 = (1.5D0 - (m_anom/d_anom))*G11Ct*GRt*BpCt/eeE
+       !FtAnom1(i_s) = -temp1*temp2*ttE
+       !FtAnom2(i_s) =  temp1*temp2
+       FtAnom1(i_s) = 0.D0
+       FtAnom2(i_s) = 0.D0
+       FtAnom3(i_s) =  temp1*BtCo*Bb
+       FtAnom4(i_s) = -temp1*BbSq
        
     ENDDO
     ! Toroidal Force by Anomalous Transport (2)
     DO i_s = 1, NSMAX
-       !FtAnom5(i_s) = Mm(i_s)*Nn(i_s)*m_anom
-       FtAnom5(i_s) = 0.D0
+       FtAnom5(i_s) = Mm(i_s)*Nn(i_s)*m_anom*G11Ct
     ENDDO
-
+    
     ! EW Toroidal Force by Anomalous Transport (1)
     DO i_s =1, NSMAX
        ttA   = Tt(i_s)
        eeA   = Ee(i_s)
-       temp1 = (eeA**2)*m_anom/ttA
-       temp2 = ((x_anom/m_anom) -2.5D0)*GRt*BpCt*G11Ct*ttA/eeA
-
+       temp1 =  (eeA**2)*m_anom/ttA
+       temp2 = -(2.5D0-(x_anom/m_anom))*GRt*BpCt*G11Ct*ttA/eeA
        GtAnom1(i_s) =  temp1*temp2*ttA
        GtAnom2(i_s) = -temp1*temp2
-       GtAnom3(i_s) = -temp1*BtCo*Bb*2.5D0
-       GtAnom4(i_s) =  temp1*BbSq*2.5D0
+       GtAnom3(i_s) = -temp1*BtCo*Bb*0.4D0
+       GtAnom4(i_s) =  temp1*BbSq   *0.4D0
     ENDDO
-
+    
     ! Toroidal Force by Anomalous Transport (2)
     DO i_s = 1, NSMAX
        GtAnom5(i_s) = 0.D0
@@ -893,82 +898,134 @@ CONTAINS
     RETURN
     
   END SUBROUTINE T2CALV_ANOMALOUS_COEFFICIENT
-
-
-  SUBROUTINE T2CALV_MODIFY_COEFFICIENT
-
-    ! PARALLEL FRICTION COEFFICIENTS 
-    !          WITH RESPECT TO MOMENTUM AND TOTAL HEAT FLUX
-    !
-    ! DEFINITION OF VARIABLRS 
-    !            FOR NEOCLASSICAL FRICTION COEFFICIENTS
-    !
-    ! l01: \bar{l}^{ab}_{01} [kg/m2*s2/m3]
-    ! l02: \bar{l}^{ab}_{02} [kg/m2*s2/m3]
-    ! l03: \bar{l}^{ab}_{03} [kg/m2*s2/J ]
-    ! l04: \bar{l}^{ab}_{04} [kg/m2*s2/J ]
-
+  
+  SUBROUTINE T2CALV_ADDITIONAL_COEFFICIENT
+    
     USE T2COMM,ONLY:&
-         & NSMAX,L11,L12,L21,L22,Mu1, Mu2, Mu3,&
-         &       Lx1,Lx2,Lx3,Lx4,Mux1,Mux2,Mux3,Mux4
-    
-    INTEGER(ikind)::i_s,j_s
+         & NSMAX,&
+         & GRt,BpCt,BtCo,BtCt,BtSq,Bb,BbSq,R_mc,&
+         & Nn,Pp,Tt,Ee,UrCt,Ub,UtCo,UpCt,WtCo,WpCt,&
+         & Mu1,Mu2,Mu3,L11,L12,L21,L22,&
+         & BNCXb1,BNCXb2,BNCXb3,BNCXb4,BNCXb5,BNCXb6,&
+         & BNCXt1,BNCXt2,BNCXt3,&
+         & BNCPp1,BNCPp2,BNCPp3,BNCPp4,BNCPp5,BNCPp6,&
+         & BNCPp7,BNCPp8,BNCPp9,&
+         & BNCQb1,BNCQb2,BNCQb3,BNCQb4,&
+         & BNCQt1,BNCQt2,BNCQt3,BNCQt4,&
+         & CNCV01,CNCV02,CNCV03,CNCV04,CNCV05,CNCV06,CNCV07,&
+         & CNCV08,CNCV09,CNCV10,CNCV11,CNCV12,CNCV13,&
+         & CNCF01,CNCF02,CNCF03,CNCF04
+
+    INTEGER(ikind)::i_s,j_s    
+    REAL(   rkind)::b01,b02,b03,b04,b05,b06,b07,b08,b09,b10,b11,b12
     REAL(   rkind)::&
-         & l11AB,l12AB,l21AB,l22AB,lx1AB,lx2AB,lx3AB,lx4AB,&
-         & mu1A, mu2A, mu3A,       mux1A,mux2A,mux3A,mux4A
+         & usrCt(1:NSMAX),uspCt(1:NSMAX),udpCt(1:NSMAX),wdpCt(1:NSMAX),&
+         & mux1( 1:NSMAX),mux2( 1:NSMAX),mux3( 1:NSMAX),mux4( 1:NSMAX),&
+         & lx1(  1:NSMAX,1:NSMAX),lx2(  1:NSMAX,1:NSMAX),&
+         & lx3(  1:NSMAX,1:NSMAX),lx4(  1:NSMAX,1:NSMAX)
+
+    b01 = 3.D0*GRt
+    b02 = BtSq/(Bb**3)
+    b03 = 2.D0*BpCt/3.D0
+    b04 = BpCt/BtCo
+    b05 = BpCt/Bb 
+    b06 = b05*b05
+    b07 = BpCt*BtCo/BbSq
+    b08 = b02*b02
+    b09 = 2.D0*BtCt     /3.D0
+    b10 = 2.D0*BpCt*R_mc/3.D0
+    b11 = BtSq/BbSq-1.D0/3.D0
+    b12 = BpCt*BtCo*R_mc/BbSq
+
+    !        b01*b02*b03*b04*b05*b06*b07*b08*b09*b10*b11*b12
+    BNCXb1 = b01*b02*b03*b04
+    BNCXb2 = b01*b02*b03
+    BNCXb3 = b01    *b03    *b05
+    BNCXb4 = b01                *b06
+    BNCXb5 = b01*b02    *b04*b05
+    BNCXb6 = b01*b02        *b05
+    !        b01*b02*b03*b04*b05*b06*b07*b08*b09*b10*b11*b12
+    BNCXt1 = b01*b02    *b04        *b07
+    BNCXt2 = b01*b02                *b07
+    BNCXt3 = b01            *b05    *b07
+    !        b01*b02*b03*b04*b05*b06*b07*b08*b09*b10*b11*b12
+    BNCPp1 = b01*b02    *b04
+    BNCPp2 = b01*b02
+    BNCPp3 = b01            *b05
+    BNCPp4 = b01*b02        *b05
+    BNCPp5 = b01        *b04            *b08
+    BNCPp6 = b01                        *b08
+    BNCPp7 = b01                *b06        
+    BNCPp8 = b01*b02    *b04*b05                    
+    BNCPp9 = b01*b02        *b05              
+    !        b01*b02*b03*b04*b05*b06*b07*b08*b09*b10*b11*b12
+    BNCQb1 = b01*b02                        *b09
+    BNCQb2 = b01            *b05            *b09
+    BNCQb3 = b01*b02                            *b10
+    BNCQb4 = b01            *b05                *b10
+    !        b01*b02*b03*b04*b05*b06*b07*b08*b09*b10*b11*b12
+    BNCQt1 = b01*b02                                *b11
+    BNCQt2 = b01            *b05                    *b11
+    BNCQt3 = b01*b02                                    *b12
+    BNCQt4 = b01            *b05                        *b12
     
-    DO j_s = 1, NSMAX
-    DO i_s = 1, NSMAX
-       
-       l11AB = L11(i_s,j_s)
-       l12AB = L12(i_s,j_s)
-       l21AB = L21(i_s,j_s)
-       l22AB = L22(i_s,j_s)
-       
-       lx1AB =  l11AB + l12AB
-       lx2AB = -0.4D0 * l12AB
-       lx3AB =  l21AB + l22AB
-       lx4AB = -0.4D0 * l22AB
-
-       lx3AB = 2.5D0*lx1AB - lx3AB
-       lx4AB = 2.5D0*lx2AB - lx4AB
-       
-       Lx1(i_s,j_s) = lx1AB
-       Lx2(i_s,j_s) = lx2AB 
-       Lx3(i_s,j_s) = lx3AB
-       Lx4(i_s,j_s) = lx4AB
-       
+    DO i_s = 1, NSMAX       
+       usrCt(i_s) = UrCt(i_s)/3.D0 
+       uspCt(i_s) = UpCt(i_s)/3.D0 - Ub(  i_s)*b05
+       udpCt(i_s) = UtCo(i_s)*b04  - UpCt(i_s)
+       wdpCt(i_s) = WtCo(i_s)*b04  - WpCt(i_s) 
     ENDDO
-    ENDDO
-
+    
     ! mux1 : NEOCLASSICAL VISCOSITY COEFFICIENT : \bar{\mu}_{1a}
     ! mux2 : NEOCLASSICAL VISCOSITY COEFFICIENT : \bar{\mu}_{2a} 
     ! mux3 : NEOCLASSICAL VISCOSITY COEFFICIENT : \bar{\mu}_{3a} 
     ! mux3 : NEOCLASSICAL VISCOSITY COEFFICIENT : \bar{\mu}_{3a} 
-    
-    DO i_s = 1, NSMAX
-       
-       mu1A = Mu1(i_s)
-       mu2A = Mu2(i_s)
-       mu3A = Mu3(i_s)
-       
-       mux1A = mu1A - mu2A
-       mux2A = 0.4D0* mu2A 
-       mux3A = mu2A - mu3A
-       mux4A = 0.4D0* mu3A
-       
-       mux3A = 2.5D0*mux1A + mux3A
-       mux4A = 2.5D0*mux2A + mux4A
-       
-       Mux1(i_s) = mux1A
-       Mux2(i_s) = mux2A
-       Mux3(i_s) = mux3A
-       Mux4(i_s) = mux4A
-
+    DO i_s = 1, NSMAX       
+       mux1(i_s) = Mu1(i_s) - Mu2(i_s)
+       mux2(i_s) =    0.4D0 * Mu2(i_s)
+       mux3(i_s) = Mu2(i_s) - Mu3(i_s) + 2.5D0*(Mu1(i_s) - Mu2(i_s))
+       mux4(i_s) =    0.4D0 * Mu3(i_s) + Mu2(i_s)
     ENDDO
     
+    DO i_s = 1,NSMAX
+       CNCV01(i_s) = mux1(i_s)        /Nn(i_s) 
+       CNCV02(i_s) = mux2(i_s)        /Pp(i_s)
+       CNCV03(i_s) = mux3(i_s)*Tt(i_s)/Nn(i_s)
+       CNCV04(i_s) = mux4(i_s)*Tt(i_s)/Pp(i_s)
+       ! for viscous heating
+       CNCV05(i_s) = mux1(i_s)*usrCt(i_s)/Nn(i_s) 
+       CNCV06(i_s) = mux1(i_s)*uspCt(i_s)/Nn(i_s) 
+       CNCV07(i_s) = mux2(i_s)*usrCt(i_s)/Pp(i_s)
+       CNCV08(i_s) = mux2(i_s)*uspCt(i_s)/Pp(i_s)
+       CNCV09(i_s) = mux1(i_s)*udpCt(i_s)/Nn(i_s) 
+       CNCV10(i_s) = mux2(i_s)*udpCt(i_s)/Pp(i_s) 
+       ! for lorentz
+       CNCV11(i_s) =  Ee(i_s)*mux1(i_s)*udpCt(i_s) &
+            &        +Ee(i_s)*mux2(i_s)*wdpCt(i_s)
+       CNCV12(i_s) =  Ee(i_s)*mux1(i_s)
+       CNCV13(i_s) =  Ee(i_s)*mux2(i_s)
+    ENDDO
+    
+    DO j_s = 1, NSMAX
+    DO i_s = 1, NSMAX
+       lx1(i_s,j_s) =         L11(i_s,j_s) + L12(i_s,j_s) 
+       lx2(i_s,j_s) =               -0.4D0 * L12(i_s,j_s) 
+       lx3(i_s,j_s) =  2.5D0*(L11(i_s,j_s) + L12(i_s,j_s))&
+            &               -(L21(i_s,j_s) + L22(i_s,j_s))
+       lx4(i_s,j_s) = -L12(i_s,j_s) +0.4D0 * L22(i_s,j_s)
+    ENDDO
+    ENDDO
+    
+    DO j_s=1,NSMAX
+    DO i_s=1,NSMAX
+       CNCF01(i_s,j_s) = GRt*lx1(i_s,j_s)        /Nn(j_s)
+       CNCF02(i_s,j_s) = GRt*lx2(i_s,j_s)        /Pp(j_s)
+       CNCF03(i_s,j_s) = GRt*lx3(i_s,j_s)*Tt(i_s)/Nn(j_s)
+       CNCF04(i_s,j_s) = GRt*lx4(i_s,j_s)*Tt(i_s)/Pp(j_s)
+    ENDDO
+    ENDDO
+
     RETURN
-  
-  END SUBROUTINE T2CALV_MODIFY_COEFFICIENT
-  
+    
+  END SUBROUTINE T2CALV_ADDITIONAL_COEFFICIENT
 END MODULE T2CALV

@@ -72,18 +72,6 @@ MODULE T2EXEC
        amatElemTF(:,:,:,:),&
        amat(:,:,:),&
        bvec(:,:)
-
-
-  !
-  ! for T2EXEC_ADHOC: they will be removed as soon as possible
-  !
-  
-  ! from T2NGRA
-  INTEGER(ikind),SAVE::&
-       StartEqs,EndEqs,&
-       StartAxi,EndAxi,&
-       StartWal,EndWal
-
   
   PUBLIC T2EXEC_EXECUTE,&
          T2EXEC_DEALLOCATE
@@ -382,12 +370,12 @@ CONTAINS
   !
   !    MASS SCALAR SUBMATRCES (PRIVATE)
   !
-  !                     2014-05-22 H.Seto
+  !                     2014-06-09 H.Seto
   !
   !-------------------------------------------------------------------
   SUBROUTINE T2EXEC_MS_SUBMATRIX(i_v,j_v)
     
-    USE T2COMM,ONLY: NNMAX,NDMAX,NVMAX,Dt,&
+    USE T2COMM,ONLY: NNMAX,NDMAX,NVMAX,&
          &           MassScaIntgPG,MassScaCoef,Xvec
     
     INTEGER(ikind),INTENT(IN):: i_v,j_v
@@ -399,14 +387,14 @@ CONTAINS
          massScaMatElem( 1:NNMAX,1:NNMAX),&
          massScaVecElem( 1:NNMAX        ),&
          massScaCoefElem(1:NNMAX        ),&
-         xvecElem(     1:NNMAX        )
+         xvecElem(       1:NNMAX        )
     
     ! initialization   
     DO i_n = 1, NNMAX
        i_m = ElementNodeGraphElem(i_n,1)
        massScaCoefElem(   i_n            ) &
             = MassScaCoef(    i_v,j_v,i_m) &
-            * JacDetLocCrd/Dt
+            * JacDetLocCrd
     ENDDO
     
     SELECT CASE(j_v)
@@ -1475,7 +1463,7 @@ CONTAINS
   !-------------------------------------------------------------------
   SUBROUTINE T2EXEC_LOCK_VALUES(nodeStart,nodeEnd,varLockTable)
     
-    USE T2COMM,ONLY: NVMAX,NodeRowCRS, NodeColCRS,XvecIn
+    USE T2COMM,ONLY: NVMAX,NodeRowCRS, NodeColCRS,Xvec
     
     INTEGER(ikind),INTENT(IN)::nodeStart,nodeEnd
     LOGICAL,INTENT(IN)::varLockTable(1:NVMAX)
@@ -1504,7 +1492,7 @@ CONTAINS
        ! RHS vector 
        DO i_v = 1, NVMAX
           IF(varLockTable(i_v))THEN
-             bvec(i_v,i_row) = XvecIn(i_v,i_row)
+             bvec(i_v,i_row) = Xvec(i_v,i_row)
           ENDIF
        ENDDO
        
@@ -1660,7 +1648,7 @@ CONTAINS
           CALL MTX_SET_VECTOR(i_rowNV,val)
        ENDDO
     ENDDO
-    
+
     CALL MTX_SOLVE(itype,tolerance,its,methodKSP=m1,methodPC=m2)
     
     CALL MTX_GATHER_VECTOR(x)
@@ -1690,5 +1678,4 @@ CONTAINS
     RETURN
     
   END SUBROUTINE T2EXEC_SOLVE
-
 END MODULE T2EXEC

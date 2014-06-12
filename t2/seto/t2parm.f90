@@ -67,41 +67,21 @@ CONTAINS
          UseSUPGFEM,             UseCoefficientCheck,&
          UseAnomalousTransportFT,UseAnomalousTransportGT,&
          !
-         SolveField,  SolveElectron,SolveIons,&
-         SolveDensity,SolveFlux,    SolvePressure,SolveHeatFlux,&
+         SolveElectron,SolveIons,&
+         SolveBp,SolveBt,SolveEt,SolveEp,SolveEr,&
+         SolveNn,SolveFr,SolveFb,SolveFt,SolveFp,&
+         SolvePp,SolveQr,SolveQb,SolveQt,SolveQp,&
          !
-         LockPoloidalMageticFieldOnAxis,&
-         LockToroidalMageticFieldOnAxis,&
-         LockRadialElectricFieldOnAxis,&
-         LockPoloidalElectricFieldOnAxis,&
-         LockToroidalElectricFieldOnAxis,&
-         LockDensityOnAxis,&
-         LockRadialFluxOnAxis,&
-         LockParallelFluxOnAxis,&
-         LockToroidalFluxOnAxis,&
-         LockPoroidalFluxOnAxis,&
-         LockPressureOnAxis,&
-         LockRadialHeatFluxOnAxis,&
-         LockParallelHeatFluxOnAxis,&
-         LockToroidalHeatFluxOnAxis,&
-         LockPoroidalHeatFluxOnAxis,&
+         LockBpOnAxis,LockBtOnAxis,LockEtOnAxis,LockEpOnAxis,&
+         LockErOnAxis,LockNnOnAxis,LockFrOnAxis,LockFbOnAxis,&
+         LockFtOnAxis,LockFpOnAxis,LockPpOnAxis,LockQrOnAxis,&
+         LockQbOnAxis,LockQtOnAxis,LockQpOnAxis,&
          !
-         LockPoloidalMageticFieldOnWall,&
-         LockToroidalMageticFieldOnWall,&
-         LockRadialElectricFieldOnWall,&
-         LockPoloidalElectricFieldOnWall,&
-         LockToroidalElectricFieldOnWall,&
-         LockDensityOnWall,&
-         LockRadialFluxOnWall,&
-         LockParallelFluxOnWall,&
-         LockToroidalFluxOnWall,&
-         LockPoroidalFluxOnWall,&
-         LockPressureOnWall,&
-         LockRadialHeatFluxOnWall,&
-         LockParallelHeatFluxOnWall,&
-         LockToroidalHeatFluxOnWall,&
-         LockPoroidalHeatFluxOnWall
-
+         LockBpOnWall,LockBtOnWall,LockEtOnWall,LockEpOnWall,&
+         LockErOnWall,LockNnOnWall,LockFrOnWall,LockFbOnWall,&
+         LockFtOnWall,LockFpOnWall,LockPpOnWall,LockQrOnWall,&
+         LockQbOnWall,LockQtOnWall,LockQpOnWall
+         
     IMPLICIT NONE
     INTEGER,INTENT(IN) :: NID
     INTEGER,INTENT(OUT) :: IST,IERR
@@ -124,40 +104,20 @@ CONTAINS
          UseSUPGFEM,             UseCoefficientCheck,&
          UseAnomalousTransportFT,UseAnomalousTransportGT,&
          !
-         SolveField,  SolveElectron,SolveIons,&
-         SolveDensity,SolveFlux,    SolvePressure,SolveHeatFlux,&
+         SolveElectron,SolveIons,&
+         SolveBp,SolveBt,SolveEt,SolveEp,SolveEr,&
+         SolveNn,SolveFr,SolveFb,SolveFt,SolveFp,&
+         SolvePp,SolveQr,SolveQb,SolveQt,SolveQp,&
          !
-         LockPoloidalMageticFieldOnAxis,&
-         LockToroidalMageticFieldOnAxis,&
-         LockRadialElectricFieldOnAxis,&
-         LockPoloidalElectricFieldOnAxis,&
-         LockToroidalElectricFieldOnAxis,&
-         LockDensityOnAxis,&
-         LockRadialFluxOnAxis,&
-         LockParallelFluxOnAxis,&
-         LockToroidalFluxOnAxis,&
-         LockPoroidalFluxOnAxis,&
-         LockPressureOnAxis,&
-         LockRadialHeatFluxOnAxis,&
-         LockParallelHeatFluxOnAxis,&
-         LockToroidalHeatFluxOnAxis,&
-         LockPoroidalHeatFluxOnAxis,&
+         LockBpOnAxis,LockBtOnAxis,LockEtOnAxis,LockEpOnAxis,&
+         LockErOnAxis,LockNnOnAxis,LockFrOnAxis,LockFbOnAxis,&
+         LockFtOnAxis,LockFpOnAxis,LockPpOnAxis,LockQrOnAxis,&
+         LockQbOnAxis,LockQtOnAxis,LockQpOnAxis,&
          !
-         LockPoloidalMageticFieldOnWall,&
-         LockToroidalMageticFieldOnWall,&
-         LockRadialElectricFieldOnWall,&
-         LockPoloidalElectricFieldOnWall,&
-         LockToroidalElectricFieldOnWall,&
-         LockDensityOnWall,&
-         LockRadialFluxOnWall,&
-         LockParallelFluxOnWall,&
-         LockToroidalFluxOnWall,&
-         LockPoroidalFluxOnWall,&
-         LockPressureOnWall,&
-         LockRadialHeatFluxOnWall,&
-         LockParallelHeatFluxOnWall,&
-         LockToroidalHeatFluxOnWall,&
-         LockPoroidalHeatFluxOnWall
+         LockBpOnWall,LockBtOnWall,LockEtOnWall,LockEpOnWall,&
+         LockErOnWall,LockNnOnWall,LockFrOnWall,LockFbOnWall,&
+         LockFtOnWall,LockFpOnWall,LockPpOnWall,LockQrOnWall,&
+         LockQbOnWall,LockQtOnWall,LockQpOnWall
 
 
     READ(NID,T2,IOSTAT=IST,ERR=9800,END=9900)

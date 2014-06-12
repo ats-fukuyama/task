@@ -1,6 +1,6 @@
 include ../../make.header
 TARGETP = ./t2
-#FFLAGS= $(OFLAGS)
+FFLAGS= $(OFLAGS)
 FFLAGS= $(DFLAGS)
 
 ##### Without PETSc library #####

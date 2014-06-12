@@ -37,7 +37,11 @@ CONTAINS
     
     c10nl='NL'
     
-    XvecIn = Xvec
+    DO i_x = 1, NXMAX
+       DO i_v = 1, NVMAX
+          XvecIn(i_v,i_x) = Xvec(i_v,i_x)
+       ENDDO
+    ENDDO
     
     DO nconv=1,nconvmax
        
@@ -60,11 +64,19 @@ CONTAINS
        IF(residual_conv.LE.eps_conv) EXIT
        
        ! UPDATRE VARIABLES FOR NEXT ITERATION 
-       XvecIn = XvecOut
+       DO i_x = 1, NXMAX
+          DO i_v = 1, NVMAX
+             XvecIn(i_v,i_x) = XvecOut(i_v,i_x)
+          ENDDO
+       ENDDO
        
     ENDDO
     
-    Xvec = XvecOut
+    DO i_x = 1, NXMAX
+       DO i_v = 1, NVMAX
+          Xvec(i_v,i_x) = XvecOut(i_v,i_x)
+       ENDDO
+    ENDDO
     
     WRITE(6,*)'NLLOOP=',nconv,'EXIT'
     
@@ -115,9 +127,9 @@ CONTAINS
           IF(LockEqs(i_v))CYCLE
           valOut = XvecOut(i_v,i_x)
           valIn  = XvecIn( i_v,i_x)
-          !IF(i_v.EQ.7)THEN
-          !   print*,i_v,i_x,valIn,valOut
-          !END IF
+          IF(i_v.EQ.7)THEN
+             print*,i_v,i_x,valIn,valOut
+          END IF
           resNumeratorSquared(         i_v)&
                = resNumeratorSquared(  i_v) + (valOut-valIn)**2
           resDenominatorSquared(i_v)&

@@ -1193,50 +1193,58 @@ CONTAINS
   ! CREATE TABLE ABOUT WHICH EQUATIONS ARE TO BE LOCKED
   !
   !
-  !                     LAST UPDATE     2014-05-24 H.Seto
-  !                     OPERATION CHECK 2014-05-26 H.Seto
+  !                     LAST UPDATE     2014-06-12 H.Seto
   !
   !-------------------------------------------------------------------
   SUBROUTINE T2VGRA_LOCK_EQUA_EB
     
-    USE T2COMM, ONLY: NSMAX,NVMAX, LockEqs,&
-         &            SolveField,    SolveElectron, SolveIons,&
-         &            SolveDensity,  SolveFlux,&
-         &            SolvePressure, SolveHeatFlux
-
+    USE T2COMM, ONLY:&
+         & NSMAX,NVMAX,                            &
+         & SolveElectron,SolveIons,                &
+         & SolveBp,SolveBt,SolveEt,SolveEp,SolveEr,&
+         & SolveNn,SolveFr,SolveFb,SolveFt,SolveFp,&
+         & SolvePp,SolveQr,SolveQb,SolveQt,SolveQp,& 
+         & LockEqs
+    
     INTEGER(ikind)::i_s,vOffsetA
     
     ! initialization
     LockEqs(1:NVMAX) = .TRUE.
     
-    IF(SolveField) LockEqs(1:5) = .FALSE.
+    ! field
+    LockEqs( 1)    = .NOT.SolveBp
+    LockEqs( 2)    = .NOT.SolveBt
+    LockEqs( 3)    = .NOT.SolveEt
+    LockEqs( 4)    = .NOT.SolveEp
+    LockEqs( 5)    = .NOT.SolveEr
+    
     
     IF(SolveElectron)THEN
-       LockEqs( 6) = .NOT.SolveDensity
-       LockEqs( 7) = .NOT.SolveFlux
-       LockEqs( 8) = .NOT.SolveFlux
-       LockEqs( 9) = .NOT.SolveFlux
-       LockEqs(10) = .NOT.SolveFlux
-       LockEqs(11) = .NOT.SolvePressure
-       LockEqs(12) = .NOT.SolveHeatFlux
-       LockEqs(13) = .NOT.SolveHeatFlux
-       LockEqs(14) = .NOT.SolveHeatFlux
-       LockEqs(15) = .NOT.SolveHeatFlux
+       LockEqs( 6) = .NOT.SolveNn
+       LockEqs( 7) = .NOT.SolveFr
+       LockEqs( 8) = .NOT.SolveFb
+       LockEqs( 9) = .NOT.SolveFt
+       LockEqs(10) = .NOT.SolveFp
+       LockEqs(11) = .NOT.SolvePp
+       LockEqs(12) = .NOT.SolveQr
+       LockEqs(13) = .NOT.SolveQb
+       LockEqs(14) = .NOT.SolveQt
+       LockEqs(15) = .NOT.SolveQp
     ENDIF
     
     IF(SolveIons)THEN
        DO i_s = 1, NSMAX-1
           vOffsetA = 10*i_s
-          LockEqs( 6+vOffsetA) = .NOT.SolveDensity
-          LockEqs( 7+vOffsetA) = .NOT.SolveFlux
-          LockEqs( 8+vOffsetA) = .NOT.SolveFlux
-          LockEqs( 9+vOffsetA) = .NOT.SolveFlux
-          LockEqs(10+vOffsetA) = .NOT.SolveFlux
-          LockEqs(11+vOffsetA) = .NOT.SolvePressure
-          LockEqs(12+vOffsetA) = .NOT.SolveHeatFlux
-          LockEqs(13+vOffsetA) = .NOT.SolveHeatFlux
-          LockEqs(14+vOffsetA) = .NOT.SolveHeatFlux
-          LockEqs(15+vOffsetA) = .NOT.SolveHeatFlux
+          LockEqs( 6+vOffsetA) = .NOT.SolveNn
+          LockEqs( 7+vOffsetA) = .NOT.SolveFr
+          LockEqs( 8+vOffsetA) = .NOT.SolveFb
+          LockEqs( 9+vOffsetA) = .NOT.SolveFt
+          LockEqs(10+vOffsetA) = .NOT.SolveFp
+          LockEqs(11+vOffsetA) = .NOT.SolvePp
+          LockEqs(12+vOffsetA) = .NOT.SolveQr
+          LockEqs(13+vOffsetA) = .NOT.SolveQb
+          LockEqs(14+vOffsetA) = .NOT.SolveQt
+          LockEqs(15+vOffsetA) = .NOT.SolveQp
        ENDDO
     ENDIF
     
@@ -1249,101 +1257,61 @@ CONTAINS
   ! CREATE TABLE ABOUT WHICH VARIABLES ARE TO BE LOCKED ON AXIS
   !
   !
-  !                     LAST UPDATE     2014-05-24 H.Seto
-  !                     OPERATION CHECK 2014-05-26 H.Seto
+  !                     LAST UPDATE     2014-06-12 H.Seto
   !
   !-------------------------------------------------------------------
   SUBROUTINE T2VGRA_LOCK_AXIS_EB
     
-    USE T2COMM, ONLY: NSMAX,NVMAX,LockAxi,LockEqs,&
+    USE T2COMM, ONLY:&
+         & NSMAX,NVMAX,LockAxi,LockEqs,&
          !
-         &            SolveField,&
-         &            SolveElectron,&
-         &            SolveIons,&
-         !
-         &            LockPoloidalMageticFieldOnAxis,&
-         &            LockToroidalMageticFieldOnAxis,&
-         &            LockRadialElectricFieldOnAxis,&
-         &            LockPoloidalElectricFieldOnAxis,&
-         &            LockToroidalElectricFieldOnAxis,&
-         &            LockDensityOnAxis,&
-         &            LockRadialFluxOnAxis,&
-         &            LockParallelFluxOnAxis,&
-         &            LockToroidalFluxOnAxis,&
-         &            LockPoroidalFluxOnAxis,&
-         &            LockPressureOnAxis,&
-         &            LockRadialHeatFluxOnAxis,&
-         &            LockParallelHeatFluxOnAxis,&
-         &            LockToroidalHeatFluxOnAxis,&
-         &            LockPoroidalHeatFluxOnAxis
+         & LockBpOnAxis,LockBtOnAxis,LockEtOnAxis,LockEpOnAxis,&
+         & LockErOnAxis,&
+         & LockNnOnAxis,LockFrOnAxis,LockFbOnAxis,LockFtOnAxis,&
+         & LockFpOnAxis,&
+         & LockPpOnAxis,LockQrOnAxis,LockQbOnAxis,LockQtOnAxis,&
+         & LockQpOnAxis
     
     INTEGER(ikind)::i_s,vOffsetA
 
     ! initialization
     LockAxi(1:NVMAX) = .FALSE.    
     
-    IF(SolveField)THEN
-       IF(.NOT.LockEqs(1))&
-            LockAxi(   1) = LockPoloidalMageticFieldOnAxis
-       IF(.NOT.LockEqs(2))&
-            LockAxi(   2) = LockToroidalMageticFieldOnAxis
-       IF(.NOT.LockEqs(3))&
-            LockAxi(   3) = LockRadialElectricFieldOnAxis
-       IF(.NOT.LockEqs(4))&
-            LockAxi(   4) = LockPoloidalElectricFieldOnAxis
-       IF(.NOT.LockEqs(5))&
-            LockAxi(   5) = LockToroidalElectricFieldOnAxis
-    ENDIF
-
-    IF(SolveElectron)THEN
-       IF(.NOT.LockEqs( 6))&
-            LockAxi(    6) = LockDensityOnAxis
-       IF(.NOT.LockEqs( 7))&
-            LockAxi(    7) = LockRadialFluxOnAxis
-       IF(.NOT.LockEqs( 8))&
-            LockAxi(    8) = LockParallelFluxOnAxis
-       IF(.NOT.LockEqs( 9))&
-            LockAxi(    9) = LockToroidalFluxOnAxis
-       IF(.NOT.LockEqs(10))&
-            LockAxi(   10) = LockPoroidalFluxOnAxis 
-       IF(.NOT.LockEqs(11))&
-            LockAxi(   11) = LockPressureOnAxis 
-       IF(.NOT.LockEqs(12))&
-            LockAxi(   12) = LockRadialHeatFluxOnAxis 
-       IF(.NOT.LockEqs(13))&
-            LockAxi(   13) = LockParallelHeatFluxOnAxis
-       IF(.NOT.LockEqs(14))&
-            LockAxi(   14) = LockToroidalHeatFluxOnAxis
-       IF(.NOT.LockEqs(15))&
-            LockAxi(   15) = LockPoroidalHeatFluxOnAxis 
-    ENDIF
-
-    IF(SolveIons)THEN
-       DO i_s = 1,NSMAX-1
-          vOffsetA = 10*i_s
-          IF(.NOT.LockEqs( 6+vOffsetA))&
-               &  LockAxi( 6+vOffsetA) = LockDensityOnAxis
-          IF(.NOT.LockEqs( 7+vOffsetA))&
-               &  LockAxi( 7+vOffsetA) = LockRadialFluxOnAxis
-          IF(.NOT.LockEqs( 8+vOffsetA))&
-               &  LockAxi( 8+vOffsetA) = LockParallelFluxOnAxis
-          IF(.NOT.LockEqs( 9+vOffsetA))&
-               &  LockAxi( 9+vOffsetA) = LockToroidalFluxOnAxis
-          IF(.NOT.LockEqs(10+vOffsetA))&
-               &  LockAxi(10+vOffsetA) = LockPoroidalFluxOnAxis 
-          IF(.NOT.LockEqs(11+vOffsetA))&
-               &  LockAxi(11+vOffsetA) = LockPressureOnAxis 
-          IF(.NOT.LockEqs(12+vOffsetA))&
-               &  LockAxi(12+vOffsetA) = LockRadialHeatFluxOnAxis 
-          IF(.NOT.LockEqs(13+vOffsetA))&
-               &  LockAxi(13+vOffsetA) = LockParallelHeatFluxOnAxis
-          IF(.NOT.LockEqs(14+vOffsetA))&
-               &  LockAxi(14+vOffsetA) = LockToroidalHeatFluxOnAxis
-          IF(.NOT.LockEqs(15+vOffsetA))&
-               &  LockAxi(15+vOffsetA) = LockPoroidalHeatFluxOnAxis 
-       ENDDO
-    ENDIF
+    IF(.NOT.LockEqs(1))&
+         LockAxi(   1) = LockBpOnAxis
+    IF(.NOT.LockEqs(2))&
+         LockAxi(   2) = LockBtOnAxis
+    IF(.NOT.LockEqs(3))&
+         LockAxi(   3) = LockEtOnAxis
+    IF(.NOT.LockEqs(4))&
+         LockAxi(   4) = LockEpOnAxis
+    IF(.NOT.LockEqs(5))&
+         LockAxi(   5) = LockErOnAxis
     
+    DO i_s = 0,NSMAX-1
+       vOffsetA = 10*i_s
+       IF(.NOT.LockEqs( 6+vOffsetA))&
+            &  LockAxi( 6+vOffsetA) = LockNnOnAxis
+       IF(.NOT.LockEqs( 7+vOffsetA))&
+            &  LockAxi( 7+vOffsetA) = LockFrOnAxis
+       IF(.NOT.LockEqs( 8+vOffsetA))&
+            &  LockAxi( 8+vOffsetA) = LockFbOnAxis
+       IF(.NOT.LockEqs( 9+vOffsetA))&
+            &  LockAxi( 9+vOffsetA) = LockFtOnAxis
+       IF(.NOT.LockEqs(10+vOffsetA))&
+            &  LockAxi(10+vOffsetA) = LockFpOnAxis 
+       IF(.NOT.LockEqs(11+vOffsetA))&
+            &  LockAxi(11+vOffsetA) = LockPpOnAxis 
+       IF(.NOT.LockEqs(12+vOffsetA))&
+            &  LockAxi(12+vOffsetA) = LockQrOnAxis 
+       IF(.NOT.LockEqs(13+vOffsetA))&
+            &  LockAxi(13+vOffsetA) = LockQbOnAxis
+       IF(.NOT.LockEqs(14+vOffsetA))&
+            &  LockAxi(14+vOffsetA) = LockQtOnAxis
+       IF(.NOT.LockEqs(15+vOffsetA))&
+            &  LockAxi(15+vOffsetA) = LockQpOnAxis
+    ENDDO
+
     RETURN
     
   END SUBROUTINE T2VGRA_LOCK_AXIS_EB
@@ -1359,96 +1327,59 @@ CONTAINS
   !-------------------------------------------------------------------
   SUBROUTINE  T2VGRA_LOCK_WALL_EB
     
-    USE T2COMM,ONLY: NSMAX,NVMAX,LockWal,LockEqs,&
+    USE T2COMM,ONLY:&
+         & NSMAX,NVMAX,LockWal,LockEqs,&
          !
-         &           SolveField,&
-         &           SolveElectron,&
-         &           SolveIons,&
          !
-         &           LockPoloidalMageticFieldOnWall,&
-         &           LockToroidalMageticFieldOnWall,&
-         &           LockRadialElectricFieldOnWall,&
-         &           LockPoloidalElectricFieldOnWall,&
-         &           LockToroidalElectricFieldOnWall,&
-         &           LockDensityOnWall,&
-         &           LockRadialFluxOnWall,&
-         &           LockParallelFluxOnWall,&
-         &           LockToroidalFluxOnWall,&
-         &           LockPoroidalFluxOnWall,&
-         &           LockPressureOnWall,&
-         &           LockRadialHeatFluxOnWall,&
-         &           LockParallelHeatFluxOnWall,&
-         &           LockToroidalHeatFluxOnWall,&
-         &           LockPoroidalHeatFluxOnWall
+         & LockBpOnWall,LockBtOnWall,LockEtOnWall,LockEpOnWall,&
+         & LockErOnWall,&
+         & LockNnOnWall,LockFrOnWall,LockFbOnWall,LockFtOnWall,&
+         & LockFpOnWall,&
+         & LockPpOnWall,LockQrOnWall,LockQbOnWall,LockQtOnWall,&
+         & LockQpOnWall
 
     INTEGER(ikind)::i_s,vOffsetA
 
     ! initialization
     LockWal(1:NVMAX) = .FALSE.    
 
-    IF(SolveField)THEN
-       IF(.NOT.LockEqs( 1))&
-            &  LockWal( 1) = LockPoloidalMageticFieldOnWall
-       IF(.NOT.LockEqs( 2))&
-            &  LockWal( 2) = LockToroidalMageticFieldOnWall
-       IF(.NOT.LockEqs( 3))&
-            &  LockWal( 3) = LockRadialElectricFieldOnWall
-       IF(.NOT.LockEqs( 4))&
-            &  LockWal( 4) = LockPoloidalElectricFieldOnWall
-       IF(.NOT.LockEqs( 5))&
-            &  LockWal( 5) = LockToroidalElectricFieldOnWall
-    ENDIF
+    
+    IF(.NOT.LockEqs( 1))&
+         &  LockWal( 1) = LockBpOnWall
+    IF(.NOT.LockEqs( 2))&
+         &  LockWal( 2) = LockBtOnWall
+    IF(.NOT.LockEqs( 3))&
+         &  LockWal( 3) = LockEtOnWall
+    IF(.NOT.LockEqs( 4))&
+         &  LockWal( 4) = LockEpOnWall
+    IF(.NOT.LockEqs( 5))&
+         &  LockWal( 5) = LockEtOnWall
+    
 
-    IF(SolveElectron)THEN
-       IF(.NOT.LockEqs( 6))&
-            &  LockWal( 6) = LockDensityOnWall
-       IF(.NOT.LockEqs( 7))&
-            &  LockWal( 7) = LockRadialFluxOnWall
-       IF(.NOT.LockEqs( 8))&
-            &  LockWal( 8) = LockParallelFluxOnWall
-       IF(.NOT.LockEqs( 9))&
-            &  LockWal( 9) = LockToroidalFluxOnWall
-       IF(.NOT.LockEqs(10))&
-            &  LockWal(10) = LockPoroidalFluxOnWall 
-       IF(.NOT.LockEqs(11))&
-            &  LockWal(11) = LockPressureOnWall
-       IF(.NOT.LockEqs(12))&
-            &  LockWal(12) = LockRadialHeatFluxOnWall
-       IF(.NOT.LockEqs(13))&
-            &  LockWal(13) = LockParallelHeatFluxOnWall
-       IF(.NOT.LockEqs(14))&
-            &  LockWal(14) = LockToroidalHeatFluxOnWall
-       IF(.NOT.LockEqs(15))&
-            &  LockWal(15) = LockPoroidalHeatFluxOnWall 
-    ENDIF
-
-    IF(SolveIons)THEN
-       DO i_s = 1,NSMAX-1
-          vOffsetA = 10*i_s
-          IF(.NOT.LockEqs( 6+vOffsetA))&
-            &     LockWal( 6+vOffsetA) = LockDensityOnWall
-          IF(.NOT.LockEqs( 7+vOffsetA))&
-            &     LockWal( 7+vOffsetA) = LockRadialFluxOnWall
-          IF(.NOT.LockEqs( 8+vOffsetA))&
-            &     LockWal( 8+vOffsetA) = LockParallelFluxOnWall
-          IF(.NOT.LockEqs( 9+vOffsetA))&
-            &     LockWal( 9+vOffsetA) = LockToroidalFluxOnWall
-          IF(.NOT.LockEqs(10+vOffsetA))&
-            &     LockWal(10+vOffsetA) = LockPoroidalFluxOnWall
-          IF(.NOT.LockEqs(11+vOffsetA))&
-            &     LockWal(11+vOffsetA) = LockPressureOnWall 
-          IF(.NOT.LockEqs(12+vOffsetA))&
-            &     LockWal(12+vOffsetA) = LockRadialHeatFluxOnWall 
-          IF(.NOT.LockEqs(13+vOffsetA))&
-            &     LockWal(13+vOffsetA) = LockParallelHeatFluxOnWall
-          IF(.NOT.LockEqs(14+vOffsetA))&
-            &     LockWal(14+vOffsetA) = LockToroidalHeatFluxOnWall
-          IF(.NOT.LockEqs(15+vOffsetA))&
-            &     LockWal(15+vOffsetA) = LockPoroidalHeatFluxOnWall
-       ENDDO
-    ENDIF
-
-    RETURN
+    DO i_s = 0,NSMAX-1
+       vOffsetA = 10*i_s
+       IF(.NOT.LockEqs( 6+vOffsetA))&
+            &  LockWal( 6+vOffsetA) = LockNnOnWall
+       IF(.NOT.LockEqs( 7+vOffsetA))&
+            &  LockWal( 7+vOffsetA) = LockFrOnWall
+       IF(.NOT.LockEqs( 8+vOffsetA))&
+            &  LockWal( 8+vOffsetA) = LockFbOnWall
+       IF(.NOT.LockEqs( 9+vOffsetA))&
+            &  LockWal( 9+vOffsetA) = LockFtOnWall
+       IF(.NOT.LockEqs(10+vOffsetA))&
+            &  LockWal(10+vOffsetA) = LockFpOnWall
+       IF(.NOT.LockEqs(11+vOffsetA))&
+            &  LockWal(11+vOffsetA) = LockPpOnWall 
+       IF(.NOT.LockEqs(12+vOffsetA))&
+            &  LockWal(12+vOffsetA) = LockQrOnWall 
+       IF(.NOT.LockEqs(13+vOffsetA))&
+            &  LockWal(13+vOffsetA) = LockQbOnWall
+       IF(.NOT.LockEqs(14+vOffsetA))&
+            &  LockWal(14+vOffsetA) = LockQtOnWall
+       IF(.NOT.LockEqs(15+vOffsetA))&
+            &  LockWal(15+vOffsetA) = LockQpOnWall
+    ENDDO
+    
   END SUBROUTINE T2VGRA_LOCK_WALL_EB
   
   SUBROUTINE T2VGRA_OUTPUT

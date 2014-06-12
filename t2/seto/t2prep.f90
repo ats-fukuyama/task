@@ -61,15 +61,18 @@ CONTAINS
   !
   !--------------------------------------------------------------
   SUBROUTINE T2PREP_SETUP_NORMALIZATION_FACTOR
-    USE T2CNST,ONLY:Aee
+    USE T2CNST,ONLY:Aee,EPS0
     USE T2COMM,ONLY:UsePotentialDescription,&
          &          UseNormalization,&
          !
-         &          BpNF, BtNF, EtNF, EpNF, ErNF,&
-         &          NnNF, FrNF, FbNF, FtNF, FpNF,&
-         &          PpNF, QrNF, QbNF, QtNF, QpNF,&
-         & EqFaraday, EqAmpere, EqGauss, EqConti,&
-         & EqMotion, EqEnergy, EqHFlux, EqPolCom 
+         &   BpNF,   BtNF,   EtNF,   EpNF,   ErNF, &
+         &   NnNF,   FrNF,   FbNF,   FtNF,   FpNF, &
+         &   PpNF,   QrNF,   QbNF,   QtNF,   QpNF, &
+         & EqBpNF, EqBtNF, EqEtNF, EqEpNF, EqErNF, &
+         & EqNnNF, EqFrNF, EqFbNF, EqFtNF, EqFpNF, &
+         & EqPpNF, EqQrNF, EqQbNF, EqQtNF, EqQpNF
+    
+    REAL(rkind),PARAMETER::TtNF = 1.D3*Aee
     
     IF(.NOT.UsePotentialDescription)THEN
        IF(UseNormalization)THEN
@@ -83,19 +86,27 @@ CONTAINS
           FbNF = NnNF*1.D3             ! [10^23    /m2s]
           FtNF = NnNF*1.D3             ! [10^23    /m2s]
           FpNF = NnNF*1.D3             ! [10^23    /m2s]
-          PpNF = NnNF*1.D3*Aee         ! [10^20 keV/m3 ]
-          QrNF = FrNF*1.D3*Aee         ! [10^20 keV/m2s]
-          QbNF = FbNF*1.D3*Aee         ! [10^23 keV/m2s]
-          QtNF = FtNF*1.D3*Aee         ! [10^23 keV/m2s]
-          QpNF = FpNF*1.D3*Aee         ! [10^23 keV/m2s]
-          EqFaraday = 1.D0
-          EqAmpere = 1.D0
-          EqGauss  = 1.D0
-          EqConti  = 1.D0
-          EqMotion = 1.D0
-          EqEnergy = 1.D0
-          EqHFlux  = 1.D0
-          EqPolCom = 1.D0
+          PpNF = NnNF*TtNF             ! [10^20 keV/m3 ]
+          QrNF = FrNF*TtNF             ! [10^20 keV/m2s]
+          QbNF = FbNF*TtNF             ! [10^23 keV/m2s]
+          QtNF = FtNF*TtNF             ! [10^23 keV/m2s]
+          QpNF = FpNF*TtNF             ! [10^23 keV/m2s]
+
+          EqBpNF=1.D0
+          EqBtNF=1.D0
+          EqEtNF=1.D0
+          EqEpNF=1.D0
+          EqErNF=1.D0/EPS0
+          EqNnNF=NnNF
+          EqFrNF=PpNF
+          EqFbNF=PpNF
+          EqFtNF=PpNF
+          EqFpNF=FpNF
+          EqPpNF=PpNF
+          EqQrNF=PpNF*TtNF
+          EqQbNF=PpNF*TtNF
+          EqQtNF=PpNF*TtNF
+          EqQpNF=QpNF
        ELSE
           STOP ! for debug
           BpNF = 1.D0         ! 
@@ -113,6 +124,21 @@ CONTAINS
           QbNF = 1.D0         !
           QtNF = 1.D0         !
           QpNF = 1.D0         !
+          EqBpNF=1.D0
+          EqBtNF=1.D0
+          EqEtNF=1.D0
+          EqEpNF=1.D0
+          EqErNF=1.D0
+          EqNnNF=1.D0
+          EqFrNF=1.D0
+          EqFbNF=1.D0
+          EqFtNF=1.D0
+          EqFpNF=1.D0
+          EqPpNF=1.D0
+          EqQrNF=1.D0
+          EqQbNF=1.D0
+          EqQtNF=1.D0
+          EqQpNF=1.D0
        ENDIF
     ELSE
        WRITE(6,*)"T2PREP_SETUP_NORMALIZATION_FACTOR              "
