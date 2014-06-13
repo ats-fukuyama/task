@@ -30,10 +30,15 @@
          allocate(fma(mwmax,mlmax))
       endif
 
+      if(mdlwmd.ge.1) then
       if((mwmax.ne.mwmax_save).or.(mlmax.ne.mlmax_save).or.
      &   (nsmax.ne.nsmax_save).or.mdlwmd.ne.mdlwmd_save) then
          if(ALLOCATED(fma_save)) deallocate(fma_save)
-         allocate(fma_save(mbmax,mbmax,nrmax,0:nsmax))
+         if(mdlwmd.ge.1) then
+            allocate(fma_save(mwmax,mbmax,nrmax,0:nsmax))
+!            allocate(fma_save(mbmax,mbmax,nrmax,0:nsmax))
+         endif 
+      endif
       endif
 
       if(mlmax.ne.mlmax_save) then

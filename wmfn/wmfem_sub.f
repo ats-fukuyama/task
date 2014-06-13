@@ -118,29 +118,31 @@ C     $Id$
          
 !     ****** CALCULATE MAGNETIC FIELD ******
 
-      SUBROUTINE wmfem_magnetic(rho,th,ph,babs,bsupr,bsupth,bsupph)
+      SUBROUTINE wmfem_magnetic(rho,th,ph,babs,bsupth,bsupph)
+!      SUBROUTINE wmfem_magnetic(rho,th,ph,babs,bsupr,bsupth,bsupph)
 
       INCLUDE 'wmcomm.inc'
       real(8),intent(in):: rho,th,ph
-      real(8),intent(out):: babs,bsupr,bsupth,bsupph
+      real(8),intent(out):: babs,bsupth,bsupph
+!      real(8),intent(out):: babs,bsupr,bsupth,bsupph
       real(8):: rrl,qinv
 
       select case(modelg)
       case(0)
          call wmfem_qprofile(rho,qinv)
-         bsupr=0.d0
+!         bsupr=0.d0
          bsupth=(bb*qinv)/rr
          bsupph=bb/rr
          babs=bb*sqrt(1.d0+(ra*rho*qinv/rr)**2)
       case(1,2)
          call wmfem_qprofile(rho,qinv)
          rrl   = rr + ra*rho*cos(th)
-         bsupr=0.d0
+!         bsupr=0.d0
          bsupth=(bb*qinv)/rrl
          bsupph=bb/rrl
          babs=bb*sqrt(1.d0+(ra*rho*qinv/rr)**2)*rr/rrl
       case(3,5)
-         bsupr=0.d0
+!         bsupr=0.d0
          call wmeq_get_magnetic(rho,th,babs,bsupth,bsupph)
       case default
          stop 'wmfem_magnetic: undefined modelg is input'

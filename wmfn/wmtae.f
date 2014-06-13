@@ -43,7 +43,7 @@ C
             ph=(NHH-1)*2.D0*PI/NHHMAX
          DO NTH=1,NTHMAX
             th=(NTH-1)*2.D0*PI/NTHMAX
-            CALL wmfem_magnetic(rho,th,ph,babs,bsupr,bsupth,bsupph)
+            CALL wmfem_magnetic(rho,th,ph,babs,bsupth,bsupph)
             VALF=BABS/SQRT(RMU0*RHOM)
 C            CWALF(NTH,NHH)=BABS**2/(VALF**2*BSUPTH**2)
             CWALF(NTH,NHH)=RPS(NTH,NR)**2/VALF**2

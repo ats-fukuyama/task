@@ -131,7 +131,8 @@
 
       cfactor=(2.d0*pi*crf*1.d6)
 
-      allocate(fma_local(mbmax,mbmax))
+!      allocate(fma_local(mbmax,mbmax))
+      allocate(fma_local(mwmax,mbmax))
       allocate(fvb1_local(nhhmax,nthmax,3))
       allocate(fvb2_local(nhhmax,nthmax,3))
 
@@ -147,17 +148,23 @@
             print *, ns,nr
             call wmfem_calculate_local(nr,ns,fma_local)
 
-            do mb2=1,mbmax
-               do mb1=1,mbmax
-                  fma_save(mb1,mb2,nr,ns)=fma_local(mb1,mb2)
-               enddo
-            enddo
+!            if(mdlwmd.ge.1) then
+!               do mb2=1,mbmax
+!                  do mb1=1,mbmax
+!                     fma_save(mb1,mb2,nr,ns)=fma_local(mb1,mb2)
+!                  enddo
+!               enddo
+!            endif
 
             do mb2=1,mbmax
-               do mb1=1,mbmax
-                  fma(mwc+mb1-mb2,8*nfcmax*(nr-1)+mb2)
-     &           =fma(mwc+mb1-mb2,8*nfcmax*(nr-1)+mb2)
-     &           +fma_local(mb1,mb2)
+!               do mb1=1,mbmax
+!                  fma(mwc+mb1-mb2,8*nfcmax*(nr-1)+mb2)
+!     &           =fma(mwc+mb1-mb2,8*nfcmax*(nr-1)+mb2)
+!     &           +fma_local(mb1,mb2)
+               do mw1=1,mwmax
+                  fma(mw1,8*nfcmax*(nr-1)+mb2)
+     &           =fma(mw1,8*nfcmax*(nr-1)+mb2)
+     &           +fma_local(mw1,mb2)
                enddo
             enddo
          enddo
@@ -174,26 +181,32 @@
          do nfc=1,nfcmax
             nhh=nhhnfc(nfc)
             nth=nthnfc(nfc)
-!            i=1 ! E_perp (nr)
-!            ml=8*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
-!            fvb(ml)=fvb(ml)+fvb1_local(nhh,nth,2)
+            i=1 !
+            ml=8*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
+            fvb(ml)=fvb(ml)+fvb1_local(nhh,nth,1)
+            i=3 ! 
+            ml=8*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
+            fvb(ml)=fvb(ml)+fvb1_local(nhh,nth,2)
+            i=5 !
+            ml=8*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
+            fvb(ml)=fvb(ml)+fvb1_local(nhh,nth,3)
 !            i=2 ! E_para (nr)
 !            ml=8*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
 !            fvb(ml)=fvb(ml)+fvb1_local(nhh,nth,3)
-            i=3 ! E_rho (nr+1/4)
-            ml=8*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
+!            i=3 ! E_rho (nr+1/4)
+!            ml=8*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
 !            fvb(ml)=1d-3 
-            fvb(ml)=fvb(ml)+0.75D0*fvb1_local(nhh,nth,1)
-     &                     +0.25D0*fvb2_local(nhh,nth,1)
+!            fvb(ml)=fvb(ml)+0.75D0*fvb1_local(nhh,nth,1)
+!     &                     +0.25D0*fvb2_local(nhh,nth,1)
 !            i=4 ! E_perp (nr+1/2)
 !            ml=8*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
 !            fvb(ml)=fvb(ml)+0.50D0*fvb1_local(nhh,nth,2)
 !     &                     +0.50D0*fvb2_local(nhh,nth,2)
-            i=5 ! E_para (nr+1/2)
-            ml=8*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
+!            i=5 ! E_para (nr+1/2)
+!            ml=8*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
 !            fvb(ml)=1d-3 
-            fvb(ml)=fvb(ml)+0.50D0*fvb1_local(nhh,nth,3)
-     &                     +0.50D0*fvb2_local(nhh,nth,3)
+!            fvb(ml)=fvb(ml)+0.50D0*fvb1_local(nhh,nth,3)
+!     &                     +0.50D0*fvb2_local(nhh,nth,3)
 !            i=6 ! E_rho (nr+3/4)
 !            ml=8*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
 !            fvb(ml)=fvb(ml)+0.25D0*fvb1_local(nhh,nth,1)
@@ -201,46 +214,64 @@
          enddo
       enddo
       
-      do ml=1,mlmax             ! clear RHS vector fvb
-         fvb(ml)=0.d0
-      enddo
-            i=3 ! E_rho (nr+1/4)
-         do nfc=1,nfcmax
-            ml=8*nfcmax*int(nrmax*0.9)+nfcmax*(i-1)+nfc
-            fvb(ml)=1d0
-         enddo
+!      do ml=1,mlmax             ! clear RHS vector fvb
+!         fvb(ml)=0.d0
+!      enddo
+!            i=3
+!         do nfc=1,nfcmax
+!            ml=8*nfcmax*int(nrmax*0.9)+nfcmax*(i-1)+nfc
+!            fvb(ml)=1d0
+!         enddo
+!          i=3 ! E_rho (nr+1/4)
+!          do nfc=1,nfcmax
+!             mm=mmnfc(nfc)
+!             i=3 ! E_rho (nr+1/4)
+!             ml=8*nfcmax*(int(nrmax*0.9)-1)+nfcmax*(i-1)+nfc
+!             fvb(ml)=(ci/pi/dble(mm))
+!             print *,fvb(ml)
+!              ml=8*nfcmax*(int(nrmax*0.9)-1)+nfc
+!              DR=rhoa(int(nrmax*0.9))-rhoa(int(nrmax*0.9)-1)
+!              fvb(ml)=(1d0/pi)*DR
+!             print *,fvb(ml)
+!           do nr=int(nrmax*0.9)+1,nrmax
+!              ml=8*nfcmax*(nr-1)+nfc
+!              fvb(ml)=(1d0/pi)*DR*rhoa(int(nrmax*0.9))/rhoa(nr)
+!           enddo
+!          enddo
 
-      do nr=2,nrmax-1
-         call wmfem_boundary_condition_div_sub(rhoa(nr),
-     &                             fmv_1,fmv_2,fmv_3,fmv_4,fmv_5,fmv_6)
-         DR=rhoa(nr+1)-rhoa(nr)
-         do nfc=1,nfcmax
-            i=7 ! E_rho (nr+3/4)
-            ml0 =8*nfcmax*(nr-1)+nfc
-            ml_p=8*nfcmax*nr    +nfc
-            ml=8*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
-            fvb(ml)=fvb(ml)
-     &             + fvb(ml0)*fmv_1(nfc)
-     &             + fvb(ml0+ 2*nfcmax)*fmv_3(nfc)
-     &             + fvb(ml0+ 4*nfcmax)*fmv_5(nfc)
-     &    + (fvb(ml_p          )- fvb(ml0          ))*fmv_2(nfc)/DR
-     &    + (fvb(ml_p+ 2*nfcmax)- fvb(ml0+ 2*nfcmax))*fmv_4(nfc)/DR
-     &    + (fvb(ml_p+ 4*nfcmax)- fvb(ml0+ 4*nfcmax))*fmv_6(nfc)/DR
-         enddo
-      enddo
-!      
-      do nr=1,nrmax-1
-         do nfc=1,nfcmax
-            i=7 ! E_rho (nr+3/4)
-            ml=8*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
+
+
+!      do nr=2,nrmax-1
+!         call wmfem_boundary_condition_div_sub(rhoa(nr),
+!     &                             fmv_1,fmv_2,fmv_3,fmv_4,fmv_5,fmv_6)
+!         DR=rhoa(nr+1)-rhoa(nr)
+!         do nfc=1,nfcmax
+!            i=7 ! E_rho (nr+3/4)
+!            ml0 =8*nfcmax*(nr-1)+nfc
+!            ml_p=8*nfcmax*nr    +nfc
+!            ml=8*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
 !            fvb(ml)=fvb(ml)
-            fvb(ml)=-ci*fvb(ml)*vc**2/cfactor
-!            fvb(ml)=-2.5d0*ci*fvb(ml)*vc**2/cfactor
-!            fvb(ml)=2d15
-         fvb(ml)=0d0
-            print *,nr,fvb(ml)
-         enddo
-      enddo
+!     &             + fvb(ml0)*fmv_1(nfc)
+!     &             + fvb(ml0+ 2*nfcmax)*fmv_3(nfc)
+!     &             + fvb(ml0+ 4*nfcmax)*fmv_5(nfc)
+!     &    + (fvb(ml_p          )- fvb(ml0          ))*fmv_2(nfc)/DR
+!     &    + (fvb(ml_p+ 2*nfcmax)- fvb(ml0+ 2*nfcmax))*fmv_4(nfc)/DR
+!     &    + (fvb(ml_p+ 4*nfcmax)- fvb(ml0+ 4*nfcmax))*fmv_6(nfc)/DR
+!         enddo
+!      enddo
+!      
+!      do nr=1,nrmax-1
+!         do nfc=1,nfcmax
+!            i=7 ! E_rho (nr+3/4)
+!            ml=8*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
+!!            fvb(ml)=fvb(ml)
+!            fvb(ml)=-ci*fvb(ml)*vc**2/cfactor
+!!            fvb(ml)=-2.5d0*ci*fvb(ml)*vc**2/cfactor
+!!            fvb(ml)=2d15
+!            fvb(ml)=0d0
+!            print *,nr,fvb(ml)
+!         enddo
+!      enddo
 
 !      do ml=1,mlmax             ! clear RHS vector fvb
 !         fvb(ml)=0.d0
@@ -374,6 +405,7 @@
                fma(mw,ml) = fma(mw,ml) 
      &                    + ci*mm*fma(mw+2*nfcmax,ml-2*nfcmax)
             end do
+               fvb(ml)=fvb(ml)+ci*mm*fvb(ml-2*nfcmax)
 
             ml =nfc
             do mw=1,mwmax
@@ -399,9 +431,10 @@
                fma(mw,ml) = fma(mw,ml) 
      &                    + ci*mm*fma(mw+2*nfcmax,ml-2*nfcmax)
             end do
+             fvb(ml)=fvb(ml)+ci*mm*fvb(ml-2*nfcmax)
 
             ml =nfc+nfcmax
-            do mw=1,mwmax
+           do mw=1,mwmax
               fma(mw,ml) = 0.d0
              end do
             fma(mwc-nfcmax,ml)=fmv_1(nfc)
@@ -412,14 +445,20 @@
             fma(mwc+4*nfcmax,ml)=fmv_6(nfc)
 
             fvb(ml)=0.d0
-!
 
-!            ml=nfc + 6*nfcmax
-!            do mw=1,mwmax
-!               fma(mw,ml) = 0.d0
-!            end do
-!            fma(mwc,ml)=1d0
-!            fvb(ml)=0.d0
+            ml=nfc + 4*nfcmax
+            do mw=1,mwmax
+              fma(mw,ml) = 0.d0
+            end do
+            fma(mwc,ml)=1d0
+            fvb(ml)=0.d0
+
+            ml=nfc + 6*nfcmax
+            do mw=1,mwmax
+              fma(mw,ml) = 0.d0
+            end do
+            fma(mwc,ml)=1d0
+            fvb(ml)=0.d0
 
 !            if(mdlwmd.ge.1) then
 !               do mw=1,mwmax
@@ -441,6 +480,7 @@
          else   
 !            do mlfactor =1,4
             do mlfactor =1,3
+!             if (mlfactor == 3)cycle
               ml=nfc + (mlfactor-1)*2*nfcmax
               do mw=1,mwmax
                  fma(mw,ml) = 0.d0
@@ -985,12 +1025,11 @@
      &                             fmv_1,fmv_2,fmv_3,fmv_4,fmv_5,fmv_6)
 
       do nfc=1,nfcmax
-
          ml=8*nfcmax*(nr-1)+1*nfcmax+nfc
          do mw=1,mwmax
            fma(mw,ml) = 0.d0
          enddo
-         fma(mwc-1*nfcmax,ml)  =fmv_1(nfc)
+         fma(mwc-1*nfcmax,ml)=fmv_1(nfc)
          fma(mwc+0*nfcmax,ml)=fmv_2(nfc)
          fma(mwc+1*nfcmax,ml)=fmv_3(nfc)
          fma(mwc+2*nfcmax,ml)=fmv_4(nfc)
@@ -1006,9 +1045,7 @@
                enddo
            end do
         end if
-
-
-         
+        
          ml=8*nfcmax*(nr-1)+2*nfcmax+nfc
          do mw=1,mwmax
             fma(mw,ml) = 0.d0
@@ -1016,16 +1053,17 @@
          fma(mwc,ml)=1.d0
          fvb(ml)=0.d0
          if(mdlwmd.ge.1) then
-            do mw=1,mwmax
+           do mw=1,mwmax
                fma_save(ml,ml,nr,0)=fma(mw,ml)
                do ns=1,nsmax
                   fma_save(mw,ml,nr,ns)=0.d0
                enddo
-            end do
+           end do
          end if
-!
+
+
         ml=8*nfcmax*(nr-1)+4*nfcmax+nfc
-         do mw=1,mwmax
+        do mw=1,mwmax
             fma(mw,ml) = 0.d0
         enddo
         fma(mwc,ml)=1.d0
@@ -1038,7 +1076,7 @@
               enddo
             end do
          end if
-!       
+       
         ml=8*nfcmax*(nr-1)+6*nfcmax+nfc
         do mw=1,mwmax
             fma(mw,ml) = 0.d0
@@ -1054,12 +1092,12 @@
             end do
          end if
 
-            ml=8*nfcmax*(nr-1)+7*nfcmax+nfc
-           do mw=1,mwmax
-               fma(mw,ml) = 0.d0
-            end do
-            fma(mwc,ml)=1d0
-            fvb(ml)=0.d0
+!            ml=8*nfcmax*(nr-1)+7*nfcmax+nfc
+!           do mw=1,mwmax
+!               fma(mw,ml) = 0.d0
+!            end do
+!            fma(mwc,ml)=1d0
+!            fvb(ml)=0.d0
       enddo
 
       do nr = 1,0!nrmax
@@ -1149,7 +1187,7 @@
      &                   +(gja(nth,nphp)*gmuma(3,1,nth,nphp)
      &                     -gja(nth,nphm)*gmuma(3,1,nth,nphm))/dph
      &                   )/gj
- 
+
            fv_1m(nth,nph)= ci*gmuma(2,1,nth,nph)  
            fv_1n(nth,nph)= ci*gmuma(3,1,nth,nph)  
 
@@ -1176,7 +1214,6 @@
            fv_2(nth,nph)= gmuma(1,1,nth,nph)  
            fv_4(nth,nph)= gmuma(1,2,nth,nph)  
            fv_6(nth,nph)= gmuma(1,3,nth,nph)  
-   
         enddo
         
         call wmsubfx(fv_1,fvf_1,nthmax2,nhhmax2)
@@ -1356,16 +1393,17 @@
          nn=nhhmax/2+1
          do nr=1,nrmax
 !!!!!!!!!!!!???????????????????!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            IF(nr.EQ.nrmax) THEN
-               imax=2
-            ELSE
-               imax=6
-            END IF
+!            IF(nr.EQ.nrmax) THEN
+!               imax=2
+!            ELSE
+!               imax=6
+!            END IF
 !!!!!!!!!!!!???????????????????!!!!!!!!!!!!!!!!!!!!!!!!!!!
             do mm=1,nthmax
                mll=8*nthmax*(nn-1)+8*(mm-1)
                ml=8*nthmax*nhhmax*(nr-1)+mll
-               do i=1,imax
+               do i=1,8
+!               do i=1,imax
                   do mw=1,mwmax
                      fma(mw,ml+i)=0.d0
                   end do
@@ -1374,7 +1412,8 @@
                end do
                if(mdlwmd.ge.1) then
                   do mw=1,mwmax
-                     do i=1,imax
+!                     do i=1,imax
+                     do i=1,8
                         fma_save(mw,mll+i,nr,0)=fma(mw,ml+i)
                         DO ns=1,nsmax
                            fma_save(mw,mll+i,nr,ns)=0.d0
@@ -1390,16 +1429,17 @@
          mm=nthmax/2+1
          do nr=1,nrmax
 !!!!!!!!!!!!???????????????????!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            IF(nr.EQ.nrmax) THEN
-               imax=2
-            ELSE
-               imax=8
-            END IF
+!            IF(nr.EQ.nrmax) THEN
+!               imax=2
+!            ELSE
+!               imax=8
+!            END IF
 !!!!!!!!!!!!???????????????????!!!!!!!!!!!!!!!!!!!!!!!!!!!
             do nn=1,nhhmax
                mll=8*nthmax*(nn-1)+8*(mm-1)
                ml=8*nthmax*nhhmax*(nr-1)+mll
-               do i=1,imax
+!               do i=1,imax
+               do i=1,8
                   do mw=1,mwmax
                      fma(mw,ml+i)=0.d0
                   end do
@@ -1408,7 +1448,8 @@
                end do
                if(mdlwmd.ge.1) then
                   do mw=1,mwmax
-                     do i=1,imax
+!                     do i=1,imax
+                     do i=1,8
                         fma_save(mw,mll+i,nr,0)=fma(mw,ml+i)
                         do ns=1,nsmax
                            fma_save(mw,mll+i,nr,ns)=0.d0
@@ -1565,6 +1606,9 @@
 
       call wmfem_boundary_condition_div_sub(rhoa(nr),
      &                             fmv_1,fmv_2,fmv_3,fmv_4,fmv_5,fmv_6)
+!      print *,fmv_1,fmv_3,fmv_5
+!      print *,fmv_2,fmv_4,fmv_6
+
       div_A=0d0
       do nfc=1,nfcmax
            mm=mmnfc(nfc)
@@ -1575,11 +1619,11 @@
        !!!!????????!!!!!!!
            ml2=6*nfcmax*(nr-1)+nfc
            div_A = div_A + fvx(ml1         )*fmv_1(nfc)
-     &           + fvx(ml1 + 1d0*nfcmax)*fmv_2(nfc)
-     &           + fvx(ml1 + 2d0*nfcmax)*fmv_3(nfc)
-     &           + fvx(ml1 + 3d0*nfcmax)*fmv_4(nfc)
-     &           + fvx(ml1 + 4d0*nfcmax)*fmv_5(nfc)
-     &           + fvx(ml1 + 5d0*nfcmax)*fmv_6(nfc)
+     &           + fvx(ml1 + 1*nfcmax)*fmv_2(nfc)
+     &           + fvx(ml1 + 2*nfcmax)*fmv_3(nfc)
+     &           + fvx(ml1 + 3*nfcmax)*fmv_4(nfc)
+     &           + fvx(ml1 + 4*nfcmax)*fmv_5(nfc)
+     &           + fvx(ml1 + 5*nfcmax)*fmv_6(nfc)
 
        write(26, '(18es15.6,1x)')real(nr),
      & REAL(fvx(ml1 )*cfactor),IMAG(fvx(ml1 )*cfactor),

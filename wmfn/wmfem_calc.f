@@ -5,7 +5,7 @@
       use wmfem_comm
       IMPLICIT NONE
       integer,intent(in):: nr,ns
-      complex(8),dimension(mbmax,mbmax),intent(out):: fml
+      complex(8),dimension(mwmax,mbmax),intent(out):: fml
       complex(8),dimension(:,:,:,:,:,:),pointer :: fmd
       complex(8),dimension(:,:,:,:,:,:),pointer :: fmd_p
       complex(8):: moment0,moment1,moment2,moment3
@@ -693,14 +693,14 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
             do i=1,3
                fmd(i,4,1,nfc1,nfc2)
      &                    =fmca41_d(i,1) 
-     &                    +fmca41_d(i,2)*mm1
-     &                    +fmca41_d(i,3)*nn1
+     &                    +fmca41_d(i,2)     *mm2
+     &                    +fmca41_d(i,3)     *nn2
                fmd(i,4,3,nfc1,nfc2)
      &                    =fmca43_d(i) 
                fmd(4,i,1,nfc1,nfc2)
      &                    =fmc4a1_d(i,1) 
-     &                    +fmc4a1_d(i,2)     *mm2
-     &                    +fmc4a1_d(i,3)     *nn2
+     &                    +fmc4a1_d(i,2)*mm1
+     &                    +fmc4a1_d(i,3)*nn1
                fmd(4,i,2,nfc1,nfc2)
      &                    =fmc4a2_d(i) 
 
@@ -758,17 +758,17 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
 
       allocate(fmc(3,3,4,nfcmax2,nfcmax))
 
-      cfactora4=ci*(2.d0*pi*crf*1.d6)/vc**2
-!      cfactora4=ci/vc**2
-!      cfactora4=0d0 
-      cfactor4a=ci*(2.d0*pi*crf*1.d6)
-!      cfactor4a=ci
-!      cfactor4a=0d0
-!      cfactor4a=(2.d0*pi*crf*1.d6)**2/vc**2
+      cfactora4=ci*(2.d0*pi*crf*1.d6)/vc
+!!!!!!!!!!      cfactora4=ci/vc**2
+!!!!!!!!!!       cfactora4=0d0 
+       cfactor4a=ci*(2.d0*pi*crf*1.d6)/vc
+!!!!!!!!!!      cfactor4a=ci
+!!!!!!!!!!       cfactor4a=0d0
+!!!!!!!!!!      cfactor4a=(2.d0*pi*crf*1.d6)**2/vc**2
       cfactor44=-1d0
-!      cfactor44=-1d0/(2.d0*pi*crf*1.d6)
-!      cfactor44=ci*(2.d0*pi*crf*1.d6)/vc**2
-!      cfactor44=00
+!!!!!!!!!      cfactor44=-1d0/(2.d0*pi*crf*1.d6)
+!!!!!!!!!      cfactor44=ci*(2.d0*pi*crf*1.d6)/vc**2
+!!!!!!!!!      cfactor44=00
 
       call wmfem_tensors(rho,gma,gpa,muma,dmuma,gja,gmuma,dgjgmuma)
 
@@ -878,6 +878,8 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
 
       end subroutine wmfem_calculate_plasma_sub
 
+!----- calculate coefficint matrix fmd (E cylindrical +,-,para)-----
+
 !     ****** CALCULATE METRIC AND CONVERSION TENSOR ******
 
 !      SUBROUTINE wmfem_tensors(rho,gma,muma,dmuma,gja)
@@ -912,27 +914,26 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
          drhom=1.d-6
       endif
       drhop=1.d-6
+      bsuprh=0d0
 !      print *,rho
       DO nph=1,nhhmax2
          ph=dph*(nph-1)
          DO nth=1,nthmax2
             th=dth*(nth-1)
             CALL wmfem_metrics(rhol,th,ph,gm,gj)
-            CALL wmfem_magnetic(rhol,th,ph,babs,bsuprh,bsupth,bsupph)
+            CALL wmfem_magnetic(rhol,th,ph,babs,bsupth,bsupph)
             CALL wmfem_rotation_tensor(
      &           gm,gj,babs,bsuprh,bsupth,bsupph,mum)
             CALL wmfem_div_tensor(gm,gj,gp)
 
             CALL wmfem_metrics(rhol-drhom,th,ph,gmm,gjm)
-            CALL wmfem_magnetic(rhol-drhom,th,ph,
-     &                          babs,bsuprh,bsupth,bsupph)
+            CALL wmfem_magnetic(rhol-drhom,th,ph,babs,bsupth,bsupph)
             CALL wmfem_rotation_tensor(
      &           gmm,gjm,babs,bsuprh,bsupth,bsupph,mumm)
             CALL wmfem_div_tensor(gmm,gjm,gpm)
 
             CALL wmfem_metrics(rhol+drhop,th,ph,gmp,gjp)
-            CALL wmfem_magnetic(rhol+drhop,th,ph,
-     &                          babs,bsuprh,bsupth,bsupph)
+            CALL wmfem_magnetic(rhol+drhop,th,ph,babs,bsupth,bsupph)
             CALL wmfem_rotation_tensor(
      &           gmp,gjp,babs,bsuprh,bsupth,bsupph,mump)
             CALL wmfem_div_tensor(gmp,gjp,gpp)
@@ -1111,10 +1112,10 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       complex(8),dimension(3,3),intent(out):: fml
       complex(8):: cw,ckpara,ckperp
       complex(8):: ckppf,ckpps
-      real(8):: babs,bsupr,bsupth,bsupph
+      real(8):: babs,bsupth,bsupph
 
       cw=2.d0*pi*crf*1.d6
-      CALL wmfem_magnetic(rho,th,ph,babs,bsupr,bsupth,bsupph)
+      CALL wmfem_magnetic(rho,th,ph,babs,bsupth,bsupph)
       ckpara=mm*bsupth/babs+nn*bsupph/babs
       ckperp=(0.d0,0.d0)
 

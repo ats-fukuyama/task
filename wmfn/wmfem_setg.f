@@ -107,6 +107,8 @@ C
 
       ierr=0
 
+      print *,'MODELG=0'
+
       call wmfem_setr(ierr)
 
 !     --- q profile ---
@@ -187,6 +189,8 @@ C
 
       ierr=0
 
+      print *,'MODELG=1'
+
       call wmfem_setr(ierr)
 
 !     --- q profile ---
@@ -217,7 +221,7 @@ C
             rhol=xrho(nr)
             th=dth*(nth-1)
             call wmfem_metrics(rhol,th,0.d0,gm,gj)
-            call wmfem_magnetic(rhol,th,0.d0,babs,bsuprh,bsupth,bsupph)
+            call wmfem_magnetic(rhol,th,0.d0,babs,bsupth,bsupph)
             DO NHH=1,NHHMAX
                RPST(NTH,NHH,NR)=RPS(NTH,NR)
                ZPST(NTH,NHH,NR)=ZPS(NTH,NR)
