@@ -11,7 +11,7 @@
 !      ARE PARTLY CONFIRMED BY THE COMPARISON WITH 
 !      TASK/T2 RESULTS AND ANALITICAL VALUES IN CTMP.
 !
-!                   LAST UPDATE    2014-06-12 H.Seto
+!                   LAST UPDATE    2014-06-15 H.Seto
 !
 !-------------------------------------------------------------------
 MODULE T2CALV
@@ -1380,6 +1380,8 @@ CONTAINS
     ENDDO
     ENDDO    
 
+    CLOSE(30)
+    
     RETURN
 
   END SUBROUTINE T2CALV_COEF_CHECK
