@@ -51,6 +51,11 @@ CONTAINS
     
     CALL T2CALV_ADDITIONAL_COEFFICIENT
 
+    !IF(i_m.EQ.53)THEN ! for debug
+    !   CALL T2CALV_COEF_CHECK
+    !   STOP
+    !ENDIF
+
     RETURN
 
   END SUBROUTINE T2CALV_EXECUTE
@@ -1047,4 +1052,335 @@ CONTAINS
     RETURN
     
   END SUBROUTINE T2CALV_ADDITIONAL_COEFFICIENT
+
+  !
+  !
+  !
+  !
+  SUBROUTINE T2CALV_COEF_CHECK
+
+    USE T2COMM,ONLY:&
+         & NSMAX,&
+         & GRt,G11xCo,G12Co,G22Co, G33Co,&
+         &     G11Ct, G12Ct,G22xCt,G33Ct,&  
+         &     UgrCt, UgpCt,R_rz,R_mc,   &
+         !
+         & BtCo,BtCt,BtSq,BpCo,BpCt,BpSq,Bb,BbSq,&
+         !
+         & Ee,Mm,Nn,Vv,FrCt,Fb,FtCo,FpCt,UrCt,Ub,&
+         & UtCo,UpCt,UuSq,Pp,QrCt,Qb,QtCo,QpCt,WrCt,&
+         & Wb,WtCo,WpCt,Tt,&
+         !
+         & X,Y,Z,BaseNu,Nu,Nuh,&
+         !
+         & L11,L12,L21,L22,Mu1,Mu2,Mu3,Hex,&   
+         & FtAnom1,FtAnom2,FtAnom3,FtAnom4,FtAnom5,&
+         & GtAnom1,GtAnom2,GtAnom3,GtAnom4,GtAnom5,&
+         & BNCXb1,BNCXb2,BNCXb3,BNCXb4,BNCXb5,BNCXb6,&
+         & BNCXt1,BNCXt2,BNCXt3,&
+         & BNCPp1,BNCPp2,BNCPp3,BNCPp4,BNCPp5,BNCPp6,&
+         & BNCPp7,BNCPp8,BNCPp9,&
+         & BNCQb1,BNCQb2,BNCQb3,BNCQb4,&
+         & BNCQt1,BNCQt2,BNCQt3,BNCQt4,& 
+         !
+         & CNCV01,CNCV02,CNCV03,CNCV04,CNCV05,&
+         & CNCV06,CNCV07,CNCV08,CNCV09,CNCV10,&
+         & CNCV11,CNCV12,CNCV13,&
+         & CNCF01,CNCF02,CNCF03,CNCF04
+
+
+    INTEGER(ikind)::i_s,j_s
+
+    OPEN(30,FILE="TEST_T2CALV.txt")
+100 FORMAT(A10,1X,'val=',1X,D15.8)
+110 FORMAT(A10,1X,'i=',I1,1X,'val=',D15.8)
+120 FORMAT(A10,1X,'i=',I1,1X,'j=',I1,1X,'val=',D15.8)
+    
+    WRITE(30,100)"GRt    ",GRt
+    WRITE(30,100)"G11xCo ",G11xCo
+    WRITE(30,100)"G12Co  ",G12Co
+    WRITE(30,100)"G22Co  ",G22Co
+    WRITE(30,100)"G33Co  ",G33Co
+    WRITE(30,100)"G11Ct  ",G11Ct
+    WRITE(30,100)"G12Ct  ",G12Ct
+    WRITE(30,100)"G22xCt ",G22xCt
+    WRITE(30,100)"G33Ct  ",G33Ct
+    WRITE(30,100)"UgrCt  ",UgrCt
+    WRITE(30,100)"UgpCt  ",UgpCt
+    WRITE(30,100)"R_rz   ",R_rz
+    WRITE(30,100)"R_mc   ",R_mc
+    
+    WRITE(30,100)"BtCo   ",BtCo
+    WRITE(30,100)"BtCt   ",BtCt
+    WRITE(30,100)"BtSq   ",BtSq
+    WRITE(30,100)"BpCo   ",BpCo
+    WRITE(30,100)"BpCt   ",BpCt
+    WRITE(30,100)"BpSq   ",BpSq
+    WRITE(30,100)"Bb     ",Bb
+    WRITE(30,100)"BbSq   ",BbSq
+    
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"Ee     ",i_s,Ee(  i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"Mm     ",i_s,Mm(  i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"Tt     ",i_s,Tt(  i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"Vv     ",i_s,Vv(  i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"Nn     ",i_s,Nn(  i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"FrCt   ",i_s,FrCt(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"Fb     ",i_s,Fb(  i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"FtCo   ",i_s,FtCo(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"FpCt   ",i_s,FpCt(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"UrCt   ",i_s,UrCt(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"Ub     ",i_s,Ub(  i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"UtCo   ",i_s,UtCo(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"UpCt   ",i_s,UpCt(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"UuSq   ",i_s,UuSq(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"Pp     ",i_s,Pp(  i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"QrCt   ",i_s,QrCt(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"Qb     ",i_s,Qb(  i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"QtCo   ",i_s,QtCo(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"QtCo   ",i_s,QtCo(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"QpCt   ",i_s,QpCt(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"WrCt   ",i_s,WrCt(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"Wb     ",i_s,Wb(  i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"WtCo   ",i_s,WtCo(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"WpCt   ",i_s,WpCt(i_s)
+    ENDDO
+
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"Mu1    ",i_s,Mu1(  i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"Mu2    ",i_s,Mu2(  i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"Mu3    ",i_s,Mu3(  i_s)
+    ENDDO
+
+    DO i_s = 1, NSMAX
+    DO j_s = 1, NSMAX
+       WRITE(30,120)"X      ",i_s,j_s,X(     i_s,j_s)
+    ENDDO
+    ENDDO
+    DO i_s = 1, NSMAX
+    DO j_s = 1, NSMAX
+       WRITE(30,120)"Y      ",i_s,j_s,Y(     i_s,j_s)
+    ENDDO
+    ENDDO
+    DO i_s = 1, NSMAX
+    DO j_s = 1, NSMAX
+        WRITE(30,120)"Z     ",i_s,j_s,Z(     i_s,j_s)
+    ENDDO
+    ENDDO
+    DO i_s = 1, NSMAX
+    DO j_s = 1, NSMAX
+       WRITE(30,120)"BaseNu ",i_s,j_s,BaseNu(i_s,j_s)
+    ENDDO
+    ENDDO
+    DO i_s = 1, NSMAX
+    DO j_s = 1, NSMAX
+       WRITE(30,120)"Nu     ",i_s,j_s,Nu(    i_s,j_s)
+    ENDDO
+    ENDDO
+    DO i_s = 1, NSMAX
+    DO j_s = 1, NSMAX
+       WRITE(30,120)"Nuh    ",i_s,j_s,Nuh(   i_s,j_s)
+    ENDDO
+    ENDDO
+
+    DO i_s = 1, NSMAX
+    DO j_s = 1, NSMAX
+       WRITE(30,120)"L11    ",i_s,j_s,L11(i_s,j_s)
+    ENDDO
+    ENDDO    
+    DO i_s = 1, NSMAX
+    DO j_s = 1, NSMAX
+       WRITE(30,120)"L12    ",i_s,j_s,L12(i_s,j_s)    
+    ENDDO
+    ENDDO    
+    DO i_s = 1, NSMAX
+    DO j_s = 1, NSMAX
+       WRITE(30,120)"L21    ",i_s,j_s,L21(i_s,j_s)
+    ENDDO
+    ENDDO    
+    DO i_s = 1, NSMAX
+    DO j_s = 1, NSMAX
+       WRITE(30,120)"L22    ",i_s,j_s,L22(i_s,j_s)
+    ENDDO
+    ENDDO    
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"Hex    ",i_s,Hex(i_s)
+    ENDDO    
+
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"FtAnom1",i_s,FtAnom1(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"FtAnom2",i_s,FtAnom2(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"FtAnom3",i_s,FtAnom3(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"FtAnom4",i_s,FtAnom4(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"FtAnom5",i_s,FtAnom5(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"GtAnom1",i_s,GtAnom1(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"GtAnom2",i_s,GtAnom2(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"GtAnom3",i_s,GtAnom3(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"GtAnom4",i_s,GtAnom4(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"GtAnom5",i_s,GtAnom5(i_s)
+    ENDDO
+
+    WRITE(30,100)"BNCXb1 ",BNCXb1
+    WRITE(30,100)"BNCXb2 ",BNCXb2
+    WRITE(30,100)"BNCXb3 ",BNCXb3
+    WRITE(30,100)"BNCXb4 ",BNCXb4
+    WRITE(30,100)"BNCXb5 ",BNCXb5
+    WRITE(30,100)"BNCXb6 ",BNCXb6
+
+    WRITE(30,100)"BNCXt1 ",BNCXt1
+    WRITE(30,100)"BNCXt2 ",BNCXt2
+    WRITE(30,100)"BNCXt3 ",BNCXt3
+
+    WRITE(30,100)"BNCPp1 ",BNCPp1
+    WRITE(30,100)"BNCPp2 ",BNCPp2
+    WRITE(30,100)"BNCPp3 ",BNCPp3
+    WRITE(30,100)"BNCPp4 ",BNCPp4
+    WRITE(30,100)"BNCPp5 ",BNCPp5
+    WRITE(30,100)"BNCPp6 ",BNCPp6
+    WRITE(30,100)"BNCPp7 ",BNCPp7
+    WRITE(30,100)"BNCPp8 ",BNCPp8
+    WRITE(30,100)"BNCPp9 ",BNCPp9
+
+    WRITE(30,100)"BNCQb1 ",BNCQb1
+    WRITE(30,100)"BNCQb2 ",BNCQb2
+    WRITE(30,100)"BNCQb3 ",BNCQb3
+    WRITE(30,100)"BNCQb4 ",BNCQb4
+
+    WRITE(30,100)"BNCQt1 ",BNCQt1
+    WRITE(30,100)"BNCQt2 ",BNCQt2
+    WRITE(30,100)"BNCQt3 ",BNCQt3
+    WRITE(30,100)"BNCQt4 ",BNCQt4
+
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"CNCV01 ",i_s,CNCV01(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"CNCV02 ",i_s,CNCV02(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"CNCV03 ",i_s,CNCV03(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"CNCV04 ",i_s,CNCV04(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"CNCV05 ",i_s,CNCV05(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"CNCV06 ",i_s,CNCV06(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"CNCV07 ",i_s,CNCV07(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"CNCV08 ",i_s,CNCV08(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"CNCV09 ",i_s,CNCV09(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"CNCV10 ",i_s,CNCV10(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"CNCV11 ",i_s,CNCV11(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"CNCV12 ",i_s,CNCV12(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"CNCV13 ",i_s,CNCV13(i_s)
+    ENDDO
+
+    DO i_s = 1, NSMAX
+    DO j_s = 1, NSMAX
+       WRITE(30,120)"CNCF01 ",i_s,j_s,CNCF01(i_s,j_s)
+    ENDDO
+    ENDDO
+    DO i_s = 1, NSMAX
+    DO j_s = 1, NSMAX
+       WRITE(30,120)"CNCF02 ",i_s,j_s,CNCF02(i_s,j_s)
+    ENDDO
+    ENDDO
+    DO i_s = 1, NSMAX
+    DO j_s = 1, NSMAX
+       WRITE(30,120)"CNCF03 ",i_s,j_s,CNCF03(i_s,j_s)
+    ENDDO
+    ENDDO
+    DO i_s = 1, NSMAX
+    DO j_s = 1, NSMAX
+       WRITE(30,120)"CNCF04 ",i_s,j_s,CNCF04(i_s,j_s)
+    ENDDO
+    ENDDO    
+
+    RETURN
+
+  END SUBROUTINE T2CALV_COEF_CHECK
 END MODULE T2CALV

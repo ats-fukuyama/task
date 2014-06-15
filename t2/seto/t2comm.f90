@@ -343,11 +343,11 @@ MODULE T2COMM
        Nuh      ! heat exchange  frequency [Hz]
 
   REAL(   rkind),SAVE,DIMENSION(:,:),ALLOCATABLE::&
-       L11,L12,L21,L22,Lx1,Lx2,Lx3,Lx4
+       L11,L12,L21,L22
   REAL(   rkind),SAVE,DIMENSION(:),ALLOCATABLE::&
        Hex ! Heat Exchange Rate [Hz]
   REAL(   rkind),SAVE,DIMENSION(:),ALLOCATABLE::&
-       Mu1,Mu2,Mu3,Mux1,Mux2,Mux3,Mux4
+       Mu1,Mu2,Mu3
   REAL(   rkind),SAVE,DIMENSION(:),ALLOCATABLE::&
        FtAnom1,&
        FtAnom2,&
@@ -974,23 +974,6 @@ CONTAINS
           ALLOCATE(Mu3(    1:NSMAX),&
                &                 STAT=ierr);IF(ierr.NE.0)EXIT
 
-          ALLOCATE(Lx1(    1:NSMAX,1:NSMAX),&
-               &                 STAT=ierr);IF(ierr.NE.0)EXIT
-          ALLOCATE(Lx2(    1:NSMAX,1:NSMAX),&
-               &                 STAT=ierr);IF(ierr.NE.0)EXIT
-          ALLOCATE(Lx3(    1:NSMAX,1:NSMAX),&
-               &                 STAT=ierr);IF(ierr.NE.0)EXIT
-          ALLOCATE(Lx4(    1:NSMAX,1:NSMAX),&
-               &                 STAT=ierr);IF(ierr.NE.0)EXIT
-          ALLOCATE(Mux1(   1:NSMAX),&
-               &                 STAT=ierr);IF(ierr.NE.0)EXIT
-          ALLOCATE(Mux2(   1:NSMAX),&
-               &                 STAT=ierr);IF(ierr.NE.0)EXIT
-          ALLOCATE(Mux3(   1:NSMAX),&
-               &                 STAT=ierr);IF(ierr.NE.0)EXIT
-          ALLOCATE(Mux4(   1:NSMAX),&
-               &                 STAT=ierr);IF(ierr.NE.0)EXIT
-
           ALLOCATE(FtAnom1(1:NSMAX),&
                &                 STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(FtAnom2(1:NSMAX),&
@@ -1047,7 +1030,7 @@ CONTAINS
                &                 STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(CNCF04(1:NSMAX,1:NSMAX),&
                &                 STAT=ierr);IF(ierr.NE.0)EXIT
-
+          
           NSMAX_save = NSMAX
           
           WRITE(6,'(A)') '-- T2VGRA_ALLOCATE: completed'
@@ -1114,15 +1097,6 @@ CONTAINS
     IF(ALLOCATED(Mu2 ))    DEALLOCATE(Mu2 )
     IF(ALLOCATED(Mu3 ))    DEALLOCATE(Mu3 )
 
-    IF(ALLOCATED(Lx1))     DEALLOCATE(Lx1)
-    IF(ALLOCATED(Lx2))     DEALLOCATE(Lx2)
-    IF(ALLOCATED(Lx3))     DEALLOCATE(Lx3)
-    IF(ALLOCATED(Lx4))     DEALLOCATE(Lx4)
-    IF(ALLOCATED(Mux1))    DEALLOCATE(Mux1)
-    IF(ALLOCATED(Mux2))    DEALLOCATE(Mux2)
-    IF(ALLOCATED(Mux3))    DEALLOCATE(Mux3)
-    IF(ALLOCATED(Mux4))    DEALLOCATE(Mux4)
-    
     IF(ALLOCATED(FtAnom1)) DEALLOCATE(FtAnom1)
     IF(ALLOCATED(FtAnom2)) DEALLOCATE(FtAnom2)
     IF(ALLOCATED(FtAnom3)) DEALLOCATE(FtAnom3)

@@ -289,7 +289,7 @@ CONTAINS
   !------------------------------------------------------------------ 
   !
   !  T2EXEC_SETUP_ELEMENT_VARIABLES (PRIVATE)
-  !   　
+  !   
   !     * SET LOCAL NODE-ELEMENT GRAPH
   !     * CALCULATE JACOBIAN OF LOCAL COORDINATES
   !     * SET KNOWN VARIABLES FOR DIFFERENTIAL
