@@ -3,7 +3,7 @@
 !    MODULE FOR INTERPORATION FUNCTION INTEGRATION 
 !                             BY GAUSSIAN QUADRATURE
 !
-!                  LAST UPDATE 2014-05-27 H.Seto
+!                  LAST UPDATE 2014-06-12 H.Seto
 !
 !   T2INTG requires following variables:
 !
@@ -58,7 +58,7 @@ CONTAINS
   !
   ! T2INTG_INITIALIZE (PUBLIC)
   !
-  !                2014-05-22 H.Seto
+  !                2014-06-13 H.Seto
   !
   !-------------------------------------------------------------
   SUBROUTINE T2INTG_EXECUTE
@@ -85,8 +85,7 @@ CONTAINS
     ! INTEGRAL ARRAYS FOR PG-FEM
     !
     
-    ! for mass scalar term
-    
+    ! for mass scalar term: checked 2014-06-13
     DO j_n = 1, NNMAX
     DO i_n = 1, NNMAX    
     DO k_n = 1, NNMAX
@@ -98,16 +97,15 @@ CONTAINS
           intgNk = intgArray(i_q,j_q,0,k_n) 
           weight = wghtArray(i_q,j_q      )
           sumGaussQuad  = sumGaussQuad &
-               &        + intgNi*intgNj*intgNk*weight
+               &         +intgNi*intgNj*intgNk*weight
        ENDDO
        ENDDO
        MassScaIntgPG(k_n,i_n,j_n) = sumGaussQuad
     ENDDO
     ENDDO
     ENDDO
-    
-    ! for advection vector term
 
+    ! for advection vector term: checked 2014-06-13
     DO j_n = 1, NNMAX
     DO i_n = 1, NNMAX    
     DO k_n = 1, NNMAX
@@ -131,8 +129,7 @@ CONTAINS
     ENDDO
     ENDDO
 
-    ! for advection tensor term
-    
+    ! for advection tensor term: checked 2014-06-13
     DO j_n = 1, NNMAX
     DO i_n = 1, NNMAX
     DO l_n = 1, NNMAX
@@ -158,9 +155,10 @@ CONTAINS
     ENDDO
     ENDDO
     ENDDO
+
+
     
-    ! for diffusion tensor term
-    
+    ! for diffusion tensor term: checked 2014-06-13
     DO j_n = 1, NNMAX
     DO i_n = 1, NNMAX
     DO k_n = 1, NNMAX
@@ -184,8 +182,7 @@ CONTAINS
     ENDDO
     ENDDO
 
-    ! for gradient vector term
-    
+    ! for gradient vector term: checked 2014-06-13   
     DO j_n = 1, NNMAX
     DO i_n = 1, NNMAX
     DO k_n = 1, NNMAX
@@ -206,9 +203,8 @@ CONTAINS
     ENDDO
     ENDDO
     ENDDO
-
-    ! for gradient tensor term
     
+    ! for gradient tensor term: checked 2014-06-13
     DO j_n = 1, NNMAX
     DO i_n = 1, NNMAX
     DO l_n = 1, NNMAX
@@ -234,9 +230,8 @@ CONTAINS
     ENDDO
     ENDDO
     ENDDO
-
-    ! for excitation scalar term
-
+    
+    ! for excitation scalar term: checked 2014-06-13
     DO j_n = 1, NNMAX
     DO i_n = 1, NNMAX
     DO k_n = 1, NNMAX
@@ -256,8 +251,7 @@ CONTAINS
     ENDDO
     ENDDO
     
-    ! for excitation vecor term
-
+    ! for excitation vecor term: checked 2014-06-13
     DO j_n = 1, NNMAX
     DO i_n = 1, NNMAX
     DO l_n = 1, NNMAX
@@ -281,9 +275,8 @@ CONTAINS
     ENDDO
     ENDDO
     ENDDO
-
-    ! for excitation tensor term
-
+        
+    ! for excitation tensor term* checked 2014-06-12
     DO j_n = 1, NNMAX
     DO i_n = 1, NNMAX
     DO m_n = 1, NNMAX
@@ -314,7 +307,6 @@ CONTAINS
     ENDDO
 
     ! for source scalar term
-    
     DO j_n = 1, NNMAX
     DO i_n = 1, NNMAX
        sumGaussQuad = 0.D0
@@ -342,7 +334,7 @@ CONTAINS
   !
   ! T2INTG_SETUP_WORKING_ARRAYS (PRIVATE)
   ! 
-  !                2014-05-20 H.Seto
+  !                 LAST UPDATE 2014-06-12 H.Seto
   !
   !-------------------------------------------------------------------
   SUBROUTINE T2INTG_SETUP_WORKING_ARRAYS
@@ -365,41 +357,28 @@ CONTAINS
     wghtArray(1:NQMAX,1:NQMAX) = 0.D0
     intgArray(1:NQMAX,1:NQMAX,0:NDMAX,1:NNMAX) = 0.D0
     
-    
     !
     ! SET NUMBER OF ABSCISSAS FOR GAUSS INTEGARATION
     !
-    
     SELECT CASE (NQMAX)
        
     CASE(32) !C 32*32 POINTS 2D GAUSSIAN INTEGRATION
-       
        DO j_q = 1, 16
-          
           j_q_odd = 2*j_q - 1
           j_q_eve = 2*j_q
-          
           DO i_q = 1, 16
-             
              i_q_odd = 2*i_q - 1
              i_q_eve = 2*i_q
-             
              weight = wghtArray32(i_q)*wghtArray32(j_q)
-
              wghtArray(i_q_odd,j_q_odd) = weight
              wghtArray(i_q_eve,j_q_odd) = weight
              wghtArray(i_q_odd,j_q_eve) = weight
              wghtArray(i_q_eve,j_q_eve) = weight
-             
           ENDDO
-          
           abscissa = abscArray32(j_q)
-          
           abscArray(j_q_odd) = - abscissa
           abscArray(j_q_eve) =   abscissa
-          
        ENDDO
-       
     CASE DEFAULT
        WRITE(6,*)'-------------------------------------------------'
        WRITE(6,*)'SUBROUTINE SET_INTEGRATED_INTERPOLATION FUNCTIONS'
@@ -411,7 +390,6 @@ CONTAINS
     !
     ! SET INTERPOLATION FUNCTION 
     !
-
     SELECT CASE (NNMAX)
        
     CASE(4)
@@ -433,15 +411,12 @@ CONTAINS
 
        DO j_q = 1, NQMAX
        DO i_q = 1, NQMAX
-
           x = abscArray(i_q)
           y = abscArray(j_q)
-          
           intgArray(i_q,j_q,0,1) = (1.D0-x)*(1.D0-y)/4.D0
           intgArray(i_q,j_q,0,2) = (1.D0+x)*(1.D0-y)/4.D0
           intgArray(i_q,j_q,0,3) = (1.D0+x)*(1.D0+y)/4.D0
           intgArray(i_q,j_q,0,4) = (1.D0-x)*(1.D0+y)/4.D0
-          
        ENDDO
        ENDDO
        
@@ -449,14 +424,11 @@ CONTAINS
 
        DO j_q = 1, NQMAX
        DO i_q = 1, NQMAX
-          
           y = abscArray(j_q)
-          
           intgArray(i_q,j_q,1,1) = -(1.D0-y)/4.D0 
           intgArray(i_q,j_q,1,2) =  (1.D0-y)/4.D0 
           intgArray(i_q,j_q,1,3) =  (1.D0+y)/4.D0
           intgArray(i_q,j_q,1,4) = -(1.D0+y)/4.D0
-
        ENDDO
        ENDDO
 
@@ -464,34 +436,31 @@ CONTAINS
 
        DO j_q = 1, NQMAX
        DO i_q = 1, NQMAX
-
           x = abscArray(i_q)
-
           intgArray(i_q,j_q,2,1) = -(1.D0-x)/4.D0 
           intgArray(i_q,j_q,2,2) = -(1.D0+x)/4.D0 
           intgArray(i_q,j_q,2,3) =  (1.D0+x)/4.D0
           intgArray(i_q,j_q,2,4) =  (1.D0-x)/4.D0
-
        ENDDO
        ENDDO
 
     CASE(8)! this part will be replaced 
            ! by quadradic lagrangian rectangular element 
            ! for the compatibility with FSA algorithm
-
-       !C FOR 8-NODE QUADRADIC SERENDIPITY RECTANGULAR ELEMENT
-       !C
-       !C   y
-       !C   ^
-       !C   |   7---6---5
-       !C   |   |       |
-       !C   |   8       4
-       !C   |   |       |
-       !C   |   1---2---3
-       !C --+---------------> x
-       !C   |
-       !C
-       !C
+       
+       ! FOR 8-NODE QUADRADIC SERENDIPITY RECTANGULAR ELEMENT
+       !
+       !   y
+       !   ^
+       !   |   7---6---5
+       !   |   |       |
+       !   |   8       4
+       !   |   |       |
+       !   |   1---2---3
+       ! --+---------------> x
+       !   |
+       !
+       !
 
        ! F_i(Q_j)  
   

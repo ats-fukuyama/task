@@ -582,8 +582,8 @@ CONTAINS
 
        i_v = 14 + vOffsetA    ! Equation for Q_{a\zeta}       
        ! >>>> ANOMALOUS TRANSPORT * two-fluid model >>>>
-       j_v =  6;              HaveGradVecCoef(i_v,j_v) = .TRUE.
-       j_v = 11;              HaveGradVecCoef(i_v,j_v) = .TRUE.
+       j_v =  6 + vOffsetB;   HaveGradVecCoef(i_v,j_v) = .TRUE.
+       j_v = 11 + vOffsetB;   HaveGradVecCoef(i_v,j_v) = .TRUE.
        ! <<<< ANOMALOUS TRANSPORT * two-fluid model <<<<<
        
        i_v = 15 + vOffsetA    ! Equation for Q_{a\zeta}
@@ -819,8 +819,8 @@ CONTAINS
        j_v =  3;              HaveExciScaCoef(i_v,j_v) = .TRUE.
        j_v = 12 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
        !  >>>> ANOMALOUS TRANSPORT * two-fluid model >>>>
-       j_v = 13;              HaveExciScaCoef(i_v,j_v) = .TRUE.
-       j_v = 14;              HaveExciScaCoef(i_v,j_v) = .TRUE.       
+       j_v = 13 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+       j_v = 14 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.       
        !  <<<< ANOMALOUS TRANSPORT * two-fluid model <<<<
        DO j_s = 0, NSMAX-1
           vOffsetB = 10*j_s

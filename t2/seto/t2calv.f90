@@ -11,7 +11,7 @@
 !      ARE PARTLY CONFIRMED BY THE COMPARISON WITH 
 !      TASK/T2 RESULTS AND ANALITICAL VALUES IN CTMP.
 !
-!                   LAST UPDATE    2014-06-11 H.Seto
+!                   LAST UPDATE    2014-06-12 H.Seto
 !
 !-------------------------------------------------------------------
 MODULE T2CALV
@@ -42,9 +42,9 @@ CONTAINS
     INTEGER,INTENT(IN)::i_m
 
     CALL T2CALV_SETUP(i_m)
-
+    
     CALL T2CALV_FRICTION_COEFFICIENT  ! L11, L12, L21, L22
-
+    
     CALL T2CALV_VISCOUS_COEFFICIENT   ! Mu1, Mu2, Mu3
 
     CALL T2CALV_ANOMALOUS_COEFFICIENT ! F^{QL}_{a\zeta}, G^{QL}_{a\zeta}
@@ -154,9 +154,18 @@ CONTAINS
     Bb   = SQRT(BbSq)
 
     DO i_s = 1, NSMAX
-       vOffset =  10*(i_s - 1) + 5
-       nnA    = XvecIn(vOffset+ 1,i_m2d)*NnNF
-       ppA    = XvecIn(vOffset+ 6,i_m2d)*PpNF
+       vOffset =  10*(i_s - 1)
+       nnA   = XvecIn(vOffset+ 6,i_m2d)     *NnNF
+       frCtA = XvecIn(vOffset+ 7,i_m2d)*R_mc*FrNF
+       fbA   = XvecIn(vOffset+ 8,i_m2d)     *FbNF
+       ftCoA = XvecIn(vOffset+ 9,i_m2d)     *FtNF
+       fpCtA = XvecIn(vOffset+10,i_m2d)     *FpNF
+       ppA   = XvecIn(vOffset+11,i_m2d)     *PpNF
+       qrCtA = XvecIn(vOffset+12,i_m2d)*R_mc*QrNF
+       qbA   = XvecIn(vOffset+13,i_m2d)     *QbNF
+       qtCoA = XvecIn(vOffset+14,i_m2d)     *QtNF
+       qpCtA = XvecIn(vOffset+15,i_m2d)     *QpNF
+
        IF((nnA.LT.0.D0).OR.(ppA.LT.0.D0))THEN
           WRITE(6,*)'NEGATIVE  DENSITY or PRESSURE'
           WRITE(6,*)'SPECIS=',i_s,'NODE=',i_m2d,&
@@ -165,20 +174,11 @@ CONTAINS
           STOP       
        ENDIF
        
-       frCtA = XvecIn(vOffset+ 2,i_m2d)*R_mc*FrNF
-       fbA   = XvecIn(vOffset+ 3,i_m2d)     *FbNF
-       ftCoA = XvecIn(vOffset+ 4,i_m2d)     *FtNF
-       fpCtA = XvecIn(vOffset+ 5,i_m2d)     *FpNF
-       
        urCtA = frCtA/nnA
        ubA   = fbA  /nnA
        utCoA = ftCoA/nnA
        upCtA = fpCtA/nnA
-
-       qrCtA = XvecIn(vOffset+ 7,i_m2d)*R_mc*QrNF
-       qbA   = XvecIn(vOffset+ 8,i_m2d)     *QbNF
-       qtCoA = XvecIn(vOffset+ 9,i_m2d)     *QtNF
-       qpCtA = XvecIn(vOffset+10,i_m2d)     *QpNF
+       
        
        wrCtA = qrCtA/ppA
        wbA   = qbA  /ppA
@@ -195,9 +195,8 @@ CONTAINS
        Ub(  i_s) = ubA
        UtCo(i_s) = utCoA
        UpCt(i_s) = upCtA
-       !U^2 = Up^{2} + Ut^{2} (Ur is neglected for simplicity)
        UuSq(i_s) = upCtA*upCtA*G22Co + utCoA*utCoA*G33Ct
-       
+
        Pp(  i_s) = ppA
        QrCt(i_s) = qrCtA
        Qb(  i_s) = qbA
@@ -354,9 +353,9 @@ CONTAINS
          &      l11AB,l12AB,l21AB,l22AB
     
     REAL(   rkind),DIMENSION(1:NSMAX,1:NSMAX)::&
-         m00,m01,m10,m11,n00,n01,n10,n11,nuh
-
-    !REAL(   rkind):: mmE,nnE,nuEI,temp2
+         & m00,m01,m10,m11,n00,n01,n10,n11,nuh
+    
+    ! REAL(   rkind):: mmE,nnE,nuEI,temp2! for debug
     ! Braginsikii matrix elements: M^{ab]_{ij}, N^{ab}_{ij}
     DO j_s = 1, NSMAX
     DO i_s = 1, NSMAX
@@ -427,7 +426,7 @@ CONTAINS
     ENDDO
     ENDDO       
 
-    ! >>>>> ********** for debug ************* >>>>>
+    !>>>>> ********** for debug ************* >>>>>
     !mmE   = Mm(1)
     !nnE   = Nn(1)
     !nuEI  = Nu(1,2)
@@ -439,7 +438,7 @@ CONTAINS
     !print*,'r=',SQRT(R_mc)
     !print*,'L^{ei}_{11}=',L11(1,2)/temp2,'L^{ei}_{12}/C =',L12(1,2)/temp2
     !print*,'L^{ei}_{21}=',L21(1,2)/temp2,'L^{ei}_{12}/C =',L22(1,2)/temp2
-    
+    !stop
     ! <<<<< ********** for debug ************* <<<<<
    
     ! HEAT EXCHANGE TERM
@@ -512,15 +511,15 @@ CONTAINS
   ! in P-S Regime 
   !
   !   TASK/T2 with lnLamb= 17.D0    H & S P241 (12.48)
-  !   K_i11 = Coef*( 1.26)          Coef*( 1.19) 
-  !   K_i12 = Coef*( 5.99)          Coef*( 5.56)
-  !   K_i22 = Coef*( 34.9)          Coef*( 31.8)
+  !   K_i11 = Coef*( 1.19)          Coef*( 1.26) 
+  !   K_i12 = Coef*( 5.56)          Coef*( 5.99)
+  !   K_i22 = Coef*( 31.8)          Coef*( 39.4)
   !
   SUBROUTINE T2CALV_VISCOUS_COEFFICIENT
 
     USE T2CNST,ONLY: DeCoef
     USE T2COMM,ONLY: NSMAX,RA,RR,R_mc,R_rz,I_xa,&
-         &           Mm,Nn,Pp,BtCt,BpCt,Mu1,Mu2,Mu3
+         &           Mm,Nn,Pp,BtCt,BpCt,Mu1,Mu2,Mu3,Nu
     USE LIBT2, ONLY:integ_f
     
     
@@ -530,6 +529,8 @@ CONTAINS
          & psCoef,k11ps,k12ps,k22ps,&
          & bnCoef,k11bn,k12bn,k22bn,&
          &        k11,  k12,  k22,derr
+    REAL(   rkind)::&
+         temp2,nuII,mu1I,mu2I,mu3I
     
     IF((R_mc.GT.0.D0).AND.(R_mc.LT.1.D0))THEN
        
@@ -555,10 +556,28 @@ CONTAINS
           k11ps = psCoef*k11ps
           k12ps = psCoef*k12ps
           k22ps = psCoef*k22ps
+          
+          !>>>>> ********** for debug ************* >>>>>
+          !IF(i_xa.eq.2)THEN
+          !   temp2 = Pp(2)/Nu(2,2)
+          !   print*,'r=',SQRT(R_mc),'K11PS=',k11ps/temp2,&
+          !        'K12PS=',k12ps/temp2,'K22PS=',k22ps/temp2
+          !ENDIF
+          ! <<<<< ********** for debug ************* <<<<<
+
           ! MODIFIED VISCOSITY COEFFICIENT IN BN REGIME
           CALL INTEG_F(FUNC_k11bn,k11bn,derr,EPS=1.D-8,ILST=0)
           CALL INTEG_F(FUNC_k12bn,k12bn,derr,EPS=1.D-8,ILST=0)
           CALL INTEG_F(FUNC_k22bn,k22bn,derr,EPS=1.D-8,ILST=0)
+          !>>>>> ********** for debug ************* >>>>>
+          !IF(i_xa.eq.2)THEN
+          !   nuII = Nu(2,2)
+          !   mu1i = DeCoef/nuII* k11bn
+          !   mu2i = DeCoef/nuII*(k12bn-2.50D0*k11bn)
+          !   mu3i = DeCoef/nuII*(k22bn-5.00D0*k12bn + 6.25D0*k11bn)
+          !   print*,'r=',SQRT(R_mc),'mu1i=',mu1i,'mu2i=',mu2i,'mu3i=',mu3i
+          !ENDIF
+          ! <<<<< ********** for debug ************* <<<<<
           
           bnCoef = mmA*nnA*temp
           

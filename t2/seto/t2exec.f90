@@ -64,31 +64,31 @@ MODULE T2EXEC
        jacDetLocCrd       ! jacobian of local coordinates
 
   REAL(   rkind),SAVE,ALLOCATABLE::&
-       jacInvLocCrd(:,:),&! inverse jacobi matrix of local coordinates
-       knownVarElem(:,:),&! known variables at nodes in an element 
-       bvecElem(:,:),&    ! element right hand side vector  (Ax=b)
-       amatElem(:,:,:,:),&! element stiffness matrix        (Ax=b)
-       bvecElemTF(:,:),&
+       jacInvLocCrd(:,:),  &! inverse jacobi matrix of local coordinates
+       knownVarElem(:,:),  &! known variables at nodes in an element 
+       bvecElem(:,:),      &! element right hand side vector  (Ax=b)
+       amatElem(:,:,:,:),  &! element stiffness matrix        (Ax=b)
+       bvecElemTF(:,:),    &
        amatElemTF(:,:,:,:),&
-       amat(:,:,:),&
+       amat(:,:,:),        &
        bvec(:,:)
   
   PUBLIC T2EXEC_EXECUTE,&
-         T2EXEC_DEALLOCATE
-         
+       & T2EXEC_DEALLOCATE
+  
 CONTAINS
   
-  !C------------------------------------------------------------------
-  !C
-  !C T2EXEC (PUBLIC)
-  !C FEM SOLVER FOR SIMULTANEOUS ADVECTION-DIFFUSION EQUATIONS
-  !C 
-  !C                2014-05-22 H.SETO
-  !C
-  !C------------------------------------------------------------------
+  !------------------------------------------------------------------
+  !
+  !  T2EXEC (PUBLIC)
+  !  FEM SOLVER FOR SIMULTANEOUS ADVECTION-DIFFUSION EQUATIONS
+  ! 
+  !                2014-05-22 H.SETO
+  !
+  !------------------------------------------------------------------
   SUBROUTINE T2EXEC_EXECUTE
     
-    USE T2COMM,ONLY: NNMAX,NEMAX,NKMAX,NVMAX,&
+    USE T2COMM,ONLY: NNMAX,NEMAX,NKMAX,NVMAX,NBMAX,NAMAX,NDMAX,&
          &           HaveMassScaCoef,HaveAdveVecCoef,HaveAdveTenCoef,&
          &           HaveDiffTenCoef,HaveGradVecCoef,HaveGradTenCoef,&
          &           HaveExciScaCoef,HaveExciVecCoef,HaveExciTenCoef,&
@@ -101,22 +101,19 @@ CONTAINS
     
     INTEGER(ikind)::&
          i_v,j_v,i_k,j_k,i_e
-    
     REAL(4)::e0time_0,e0time_1
-    
     CALL CPU_TIME(e0time_0)
     
-
     CALL T2EXEC_ALLOCATE
+    
     ! INITIALIZATION
-    amat(    :,:,:)   = 0.D0
-    bvec(    :,:)     = 0.D0
+    amat(1:NVMAX,1:NVMAX,1:NAMAX) = 0.D0
+    bvec(1:NVMAX,1:NBMAX)         = 0.D0
     
     DO i_e = 1, NEMAX
-       
-       amatElem(:,:,:,:) = 0.D0    
-       bvecElem(:,:)     = 0.D0
-       
+         
+    amatElem(1:NNMAX,1:NNMAX,1:NVMAX,1:NVMAX) = 0.D0
+    bvecElem(1:NNMAX,1:NVMAX)                 = 0.D0
        CALL T2EXEC_SETUP_ELEMENT_VARIABLES(i_e)
        
        DO j_v = 1, NVMAX
@@ -124,7 +121,7 @@ CONTAINS
           
           IF(HaveMassScaCoef(i_v,j_v))&
                &     CALL T2EXEC_MS_SUBMATRIX(i_v,j_v        )
-
+          
           IF(HaveAdveVecCoef(i_v,j_v))&
                &     CALL T2EXEC_AV_SUBMATRIX(i_v,j_v        )
           
@@ -244,6 +241,16 @@ CONTAINS
        ALLOCATE(bvec(        1:NVMAX,1:NBMAX),&
             &                   STAT=ierr); IF(ierr.NE.0) EXIT
        
+       elementNodeGraphElem(1:NNMAX,1:4) = 0
+       jacInvLocCrd(1:NDMAX,1:NDMAX)     = 0.D0
+       knownVarElem(1:NNMAX,1:NKMAX)     = 0.D0
+       bvecElem(    1:NNMAX,1:NVMAX)     = 0.D0
+       amatElem(    1:NNMAX,1:NNMAX,1:NVMAX,1:NVMAX)  = 0.D0
+       bvecElemTF(  1:NVMAX,1:NNMAX)                  = 0.D0
+       amatElemTF(  1:NVMAX,1:NVMAX,1:NNMAX,1:NNMAX ) = 0.D0
+       amat(        1:NVMAX,1:NVMAX,1:NAMAX)          = 0.D0
+       bvec(        1:NVMAX,1:NBMAX)                  = 0.D0
+
        RETURN
        
     ENDDO
@@ -753,8 +760,8 @@ CONTAINS
     ENDDO
 
     ! main loop
-    DO i_n = 1, NNMAX
     DO j_n = 1, NNMAX
+    DO i_n = 1, NNMAX
        gradVecMatElem(i_n,j_n) = 0.D0
        DO k_n = 1, NNMAX
           DO j_d = 1, NDMAX
@@ -1553,7 +1560,7 @@ CONTAINS
     idebug = 0
        
     ALLOCATE(x(NBVMX))
-    
+    x = 0.D0
     !CALL MTX_SETUP(NBVMX,istart,iend,idebug=0)
     CALL MTX_SETUP(NBVMX,istart,iend,nzmax=NAVMX,idebug=0)
     

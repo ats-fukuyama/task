@@ -1,32 +1,33 @@
  &t2
  ntmax=1
  ntstep=1
- dt=1.D-20
+ dt=1.D-10
  idebug=0
  NLMAX = 1
- NPMIN = 10
+ NPMIN = 20
  i1mlvl(1) = 1
- i1rdn2(1) = 11
+ i1rdn2(1) = 22
  eps_conv = 1.D-2
 
     ! 
     UsePotentialDescription = .FALSE.
     UseNormalization        = .TRUE.
     UseSUPGFEM              = .FALSE.
-    UseCoefficientCheck     = .FALSE.
+    UseCoefficientCheck     = .TRUE.
     UseAnomalousTransportFT = .TRUE.
     UseAnomalousTransportGT = .TRUE.
     
     ! set equations to be solved
     SolveElectron = .TRUE.
     SolveIons     = .TRUE.
+
     SolveBp       = .FALSE.
     SolveBt       = .FALSE.
     SolveEt       = .FALSE.
     SolveEp       = .FALSE.
     SolveEr       = .FALSE.
     SolveNn       = .TRUE.
-    SolveFr       = .TRUE.
+    SolveFr       = .FALSE.
     SolveFb       = .TRUE.
     SolveFt       = .TRUE.
     SolveFp       = .TRUE.
@@ -45,8 +46,8 @@
     LockNnOnAxis  = .FALSE.
     LockFrOnAxis  = .FALSE.
     LockFbOnAxis  = .FALSE.
-    LockFtOnAxis  = .FALSE.
-    LockFpOnAxis  = .FALSE.
+    LockFtOnAxis  = .TRUE.
+    LockFpOnAxis  = .TRUE.
     LockPpOnAxis  = .FALSE.
     LockQrOnAxis  = .FALSE.
     LockQbOnAxis  = .FALSE.
@@ -64,7 +65,7 @@
     LockFrOnWall  = .FALSE.
     LockFbOnWall  = .TRUE.
     LockFtOnWall  = .TRUE.
-    LockFpOnWall  = .TRUE.
+    LockFpOnWall  = .FALSE.
     LockPpOnWall  = .FALSE.
     LockQrOnWall  = .FALSE.
     LockQbOnWall  = .FALSE.
