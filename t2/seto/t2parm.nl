@@ -4,16 +4,16 @@
  dt=1.D-10
  idebug=0
  NLMAX = 1
- NPMIN = 20
+ NPMIN = 60
  i1mlvl(1) = 1
- i1rdn2(1) = 22
+ i1rdn2(1) = 66
  eps_conv = 1.D-2
 
     ! 
     UsePotentialDescription = .FALSE.
     UseNormalization        = .TRUE.
     UseSUPGFEM              = .FALSE.
-    UseCoefficientCheck     = .TRUE.
+    UseCoefficientCheck     = .FALSE.
     UseAnomalousTransportFT = .TRUE.
     UseAnomalousTransportGT = .TRUE.
     
@@ -27,7 +27,7 @@
     SolveEp       = .FALSE.
     SolveEr       = .FALSE.
     SolveNn       = .TRUE.
-    SolveFr       = .FALSE.
+    SolveFr       = .TRUE.
     SolveFb       = .TRUE.
     SolveFt       = .TRUE.
     SolveFp       = .TRUE.
@@ -46,8 +46,8 @@
     LockNnOnAxis  = .FALSE.
     LockFrOnAxis  = .FALSE.
     LockFbOnAxis  = .FALSE.
-    LockFtOnAxis  = .TRUE.
-    LockFpOnAxis  = .TRUE.
+    LockFtOnAxis  = .FALSE.
+    LockFpOnAxis  = .FALSE.
     LockPpOnAxis  = .FALSE.
     LockQrOnAxis  = .FALSE.
     LockQbOnAxis  = .FALSE.
@@ -62,7 +62,7 @@
     LockEpOnWall  = .FALSE.
     LockErOnWall  = .FALSE.
     LockNnOnWall  = .FALSE.
-    LockFrOnWall  = .FALSE.
+    LockFrOnWall  = .TRUE.
     LockFbOnWall  = .TRUE.
     LockFtOnWall  = .TRUE.
     LockFpOnWall  = .FALSE.

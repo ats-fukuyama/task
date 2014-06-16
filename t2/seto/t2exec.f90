@@ -124,7 +124,7 @@ CONTAINS
           
           IF(HaveAdveVecCoef(i_v,j_v))&
                &     CALL T2EXEC_AV_SUBMATRIX(i_v,j_v        )
-          
+           
           IF(HaveAdveTenCoef(i_v,j_v))THEN
              DO i_k = 1, NKMAX
                 IF(HaveAdveTenKval(i_k,i_v,j_v))&
@@ -132,9 +132,9 @@ CONTAINS
              ENDDO
           ENDIF
           
-          IF(HaveDiffTenCoef(i_v,j_v))&
+          IF(HaveDiffTenCoef(i_v,j_v))&! error 
                &     CALL T2EXEC_DT_SUBMATRIX(i_v,j_v        )
-          
+           
           IF(HaveGradVecCoef(i_v,j_v))&
                &     CALL T2EXEC_GV_SUBMATRIX(i_v,j_v        )
           
@@ -174,6 +174,8 @@ CONTAINS
        
     ENDDO
     
+    !CALL T2EXEC_CHECK
+    
     CALL CPU_TIME(e0time_1)
     WRITE(6,'(A,F10.3,A)')&
          '-- T2EXEC: matrix construction was completed: cpu=', &
@@ -206,6 +208,56 @@ CONTAINS
   END SUBROUTINE T2EXEC_EXECUTE
   
 
+  SUBROUTINE T2EXEC_CHECK
+
+    USE T2COMM, ONLY:NAMAX,NBMAX,NVMAX,NXMAX,Xvec
+    
+    INTEGER(ikind)::i_v,j_v,i_a,i_b,i_x
+
+110 FORMAT('AMAT',1X,'iv=',I2,1X,'jv=',I2,1X,'ia=',I8,1X,'val=',D15.6)
+120 FORMAT('BVEC',1X,'iv=',I2,1X,'jv=',I2,1X,'ia=',I8,1X,'val=',D15.6)
+130 FORMAT('XVEC',1X,'iv=',I2,1X,'jv=',I2,1X,'ix=',I8,1X,'val=',D15.6)
+
+    OPEN(32,FILE='TEST_AMAT.txt')
+
+    DO i_v = 1, NVMAX
+       DO j_v = 1, NVMAX
+          WRITE(32,110)i_v,j_v,27,amat(i_v,j_v,27)
+       ENDDO
+    ENDDO
+
+    CLOSE(32)
+    OPEN(32,FILE='TEST_BVEC.txt')
+    
+    DO i_v = 1, NVMAX
+       !DO j_v = 1, NVMAX
+       WRITE(32,120)i_v,0,27,bvec(i_v,27)
+       !ENDDO
+    ENDDO
+   
+    CLOSE(32)
+    OPEN(32,FILE='TEST_XVEC.txt')
+    
+    DO i_v = 1, NVMAX
+       !DO j_v = 1, NVMAX
+       WRITE(32,130)i_v,0,27,Xvec(i_v,27)
+       !ENDDO
+    ENDDO
+    CLOSE(32)
+    !OPEN(32,FILE='TEST_XVEC.txt')
+    !DO i_x = 1,NXMAX
+    !   DO i_v = 1, NVMAX
+    !   !DO j_v = 1, NVMAX
+    !      WRITE(32,130)i_v,0,i_a,Xvec(i_v,i_x)
+    !   !ENDDO
+    !   ENDDO
+    !ENDDO
+    !CLOSE(32)
+    STOP
+    ! <<<<< ***** for debug  ***** <<<<<
+    RETURN
+
+  END SUBROUTINE T2EXEC_CHECK
   !-------------------------------------------------------------------
   !
   !       ALLOCATOR OF GLOBAL VARIABLES  FOR T2EXEC
@@ -667,7 +719,7 @@ CONTAINS
     DO k_n = 1, NNMAX
        DO l_d = 1, NDMAX
        DO k_d = 1, NDMAX
-          diffTenCoefLoc(k_d,l_d,k_d) = 0.D0
+          diffTenCoefLoc(k_d,l_d,k_n) = 0.D0
           DO j_d = 1, NDMAX
           DO i_d = 1, NDMAX
              diffTenCoefLoc(                k_d,l_d,k_n) &
@@ -1524,7 +1576,7 @@ CONTAINS
          NVMAX,NBMAX,NXMAX,NAMAX,NLMAX,NBVMX,NAVMX,&
          NodeRowCRS,NodeColCRS,HangedNodeTable,&
          i0dbg,idebug,i1pdn2,i1rdn2,HaveMat,&
-         XvecIn,XvecOut,HangedNodeTable
+         Xvec,XvecIn,XvecOut,HangedNodeTable
     
     USE LIBMPI
     USE COMMPI
@@ -1544,12 +1596,14 @@ CONTAINS
          i0acc,i0acc1,i0acc2,i0acc3,&
          i0acl,i0acl1,i0acl2,i0acl3,&
          i0offset,i0lidi,i0ridi,i0pidi
+    
+    INTEGER(ikind)::i_v,j_v,i_b,i_x
 
 100 FORMAT(A5,I3,A5,I3,A5,I3,A5,D15.6,A5,D15.6)
 
     itype = 0
     m1    = 4
-    
+        
     IF(nsize.EQ.1)THEN
        m2 = 5
     ELSE

@@ -181,6 +181,22 @@ CONTAINS
     ENDDO
     ENDDO
     ENDDO
+    ! >>>>> ***** debug ***** >>>>>
+    !OPEN(34,FILE="INTG_DT.txt")
+    !DO j_n = 1, NNMAX
+    !DO i_n = 1, NNMAX
+    !DO k_n = 1, NNMAX
+    !   DO j_d = 1, NDMAX
+    !   DO i_d = 1, NDMAX
+    !      WRITE(34,*)DiffTenIntgPG(i_d,j_d,k_n,i_n,j_n)
+    !   ENDDO
+    !   ENDDO
+    !ENDDO
+    !ENDDO
+    !ENDDO
+    !CLOSE(34)
+    !STOP
+    ! <<<<< ***** debug ***** <<<<<
 
     ! for gradient vector term: checked 2014-06-13   
     DO j_n = 1, NNMAX
