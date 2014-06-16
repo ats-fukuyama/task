@@ -10,50 +10,50 @@ CONTAINS
   SUBROUTINE T2_CONV
     
     USE T2COMM, ONLY:&
-         i0smax,i0vmax,i0xmax,i0mmax,i2crt,&
-         d0mfcst,d0btcst,d0etcst,d0epcst,d0ercst,&
-         d0nncst,d0frcst,d0fbcst,d0ftcst,d0fpcst,&
-         d0ppcst,d0qrcst,d0qbcst,d0qtcst,d0qpcst,&
-         d2xvec,d2xout,d0rmnr,d2jm1,d2mfc1
+         NSMAX,NVMAX,NXMAX,NMMAX,i2crt,&
+         BpNF,BtNF,EtNF,EpNF,ErNF,&
+         NnNF,FrNF,FbNF,FtNF,FpNF,&
+         PpNF,QrNF,QbNF,QtNF,QpNF,&
+         Xvec,d2xout,Metric,GlobalCrd
 
-    INTEGER(i0ikind)::&
+    INTEGER(ikind)::&
          i0sidi,i0vidi,i0midi,i0xid1d,i0xid2d
     
-    REAL(   i0rkind)::&
+    REAL(   rkind)::&
          d0bp_pu,d0bt_pu,d0et_pu,d0ep_pu,d0er_pu
     
-    REAL(   i0rkind),DIMENSION(1:i0smax)::&
+    REAL(   rkind),DIMENSION(1:NSMAX)::&
          d1nn_pu,d1ur_pu,d1ub_pu,d1ut_pu,d1up_pu,&
          d1tt_pu,d1qr_pu,d1qb_pu,d1qt_pu,d1qp_pu
    
-    REAL(   i0rkind)::&
+    REAL(   rkind)::&
          d0sqrtg,d0mfcr,d0sqrtr,d0sqrtri,&
          d0ctgrr,d0ctgrp,d0ctgpp,d0ctgtt,&
          d0cogrr,d0cogrp,d0cogpp,d0cogtt,&
          d0nn,d0ni,d0tt,d0qr,d0qb,d0qt,d0qp,&
          d0psip,d0cobt,d0coet,d0coep,d0coer 
    
-    REAL(   i0rkind),DIMENSION(1:i0smax)::&
+    REAL(   rkind),DIMENSION(1:NSMAX)::&
          d1nn,d1fr,d1fb,d1ft,d1fp,&
          d1pp,d1qr,d1qb,d1qt,d1qp
     
-    d2xout(1:i0vmax,1:i0xmax) = 0.D0
+    d2xout(1:NVMAX,1:NXMAX) = 0.D0
     
-    DO i0midi = 1, i0mmax
+    DO i0midi = 1, NMMAX
        
        i0xid2d = i2crt( 2,i0midi)
        i0xid1d = i2crt( 3,i0midi)
-       d0mfcr  = d2mfc1(1,i0midi)
+       d0mfcr  = GlobalCrd(1,i0midi)
        d0sqrtr = SQRT(d0mfcr)
-       d0sqrtg = d2jm1( 1,i0midi)
-       d0cogrr = d2jm1( 2,i0midi)
-       d0cogrp = d2jm1( 3,i0midi)
-       d0cogpp = d2jm1( 4,i0midi)
-       d0cogtt = d2jm1( 5,i0midi)
-       d0ctgrr = d2jm1( 6,i0midi)
-       d0ctgrp = d2jm1( 7,i0midi)
-       d0ctgpp = d2jm1( 8,i0midi)
-       d0ctgtt = d2jm1( 9,i0midi)
+       d0sqrtg = Metric( 1,i0midi)
+       d0cogrr = Metric( 2,i0midi)
+       d0cogrp = Metric( 3,i0midi)
+       d0cogpp = Metric( 4,i0midi)
+       d0cogtt = Metric( 5,i0midi)
+       d0ctgrr = Metric( 6,i0midi)
+       d0ctgrp = Metric( 7,i0midi)
+       d0ctgpp = Metric( 8,i0midi)
+       d0ctgtt = Metric( 9,i0midi)
        
        IF(d0sqrtr.GT.0.D0)THEN
           d0sqrtri = 1.D0/d0sqrtr
@@ -65,24 +65,24 @@ CONTAINS
        !C INITTIALIZATION
        !C
        
-       d0psip = d2xvec(1,i0xid1d)*d0mfcst
-       d0cobt = d2xvec(2,i0xid1d)*d0btcst
-       d0coet = d2xvec(3,i0xid1d)*d0etcst
-       d0coep = d2xvec(4,i0xid2d)*d0epcst*d0sqrtr
-       d0coer = d2xvec(5,i0xid2d)*d0ercst
+       d0psip = Xvec(1,i0xid1d)*BpNF
+       d0cobt = Xvec(2,i0xid1d)*BtNF
+       d0coet = Xvec(3,i0xid1d)*EtNF
+       d0coep = Xvec(4,i0xid2d)*EpNF*d0sqrtr
+       d0coer = Xvec(5,i0xid2d)*ErNF
        
-       DO i0sidi = 1, i0smax
+       DO i0sidi = 1, NSMAX
           i0vidi = 10*i0sidi - 5
-          d1nn(i0sidi) = d2xvec(i0vidi+ 1,i0xid2d)*d0nncst
-          d1fr(i0sidi) = d2xvec(i0vidi+ 2,i0xid2d)*d0frcst
-          d1fb(i0sidi) = d2xvec(i0vidi+ 3,i0xid2d)*d0fbcst
-          d1ft(i0sidi) = d2xvec(i0vidi+ 4,i0xid2d)*d0ftcst
-          d1fp(i0sidi) = d2xvec(i0vidi+ 5,i0xid2d)*d0fpcst
-          d1pp(i0sidi) = d2xvec(i0vidi+ 6,i0xid2d)*d0ppcst
-          d1qr(i0sidi) = d2xvec(i0vidi+ 7,i0xid2d)*d0qrcst
-          d1qb(i0sidi) = d2xvec(i0vidi+ 8,i0xid2d)*d0qbcst
-          d1qt(i0sidi) = d2xvec(i0vidi+ 9,i0xid2d)*d0qtcst
-          d1qp(i0sidi) = d2xvec(i0vidi+10,i0xid2d)*d0qpcst
+          d1nn(i0sidi) = Xvec(i0vidi+ 1,i0xid2d)*NnNF
+          d1fr(i0sidi) = Xvec(i0vidi+ 2,i0xid2d)*FrNF
+          d1fb(i0sidi) = Xvec(i0vidi+ 3,i0xid2d)*FbNF
+          d1ft(i0sidi) = Xvec(i0vidi+ 4,i0xid2d)*FtNF
+          d1fp(i0sidi) = Xvec(i0vidi+ 5,i0xid2d)*FpNF
+          d1pp(i0sidi) = Xvec(i0vidi+ 6,i0xid2d)*PpNF
+          d1qr(i0sidi) = Xvec(i0vidi+ 7,i0xid2d)*QrNF
+          d1qb(i0sidi) = Xvec(i0vidi+ 8,i0xid2d)*QbNF
+          d1qt(i0sidi) = Xvec(i0vidi+ 9,i0xid2d)*QtNF
+          d1qp(i0sidi) = Xvec(i0vidi+10,i0xid2d)*QpNF
        ENDDO
        
        !C
@@ -122,7 +122,7 @@ CONTAINS
        
        d0er_pu = d0coer*SQRT(d0ctgrr)*1.D-3
        
-       DO i0sidi = 1, i0smax
+       DO i0sidi = 1, NSMAX
           
           d0nn = d1nn(i0sidi)
           
@@ -155,7 +155,7 @@ CONTAINS
           !C
           
           d1ut_pu(i0sidi) = d1ft(i0sidi)*d0ni*SQRT(d0ctgtt)*1.D-3
-          
+
           !C
           !C d1up_pu: Poloidal velocity  [km/s]
           !C
@@ -206,7 +206,7 @@ CONTAINS
        d2xout(4,i0xid2d) = d0ep_pu
        d2xout(5,i0xid2d) = d0er_pu
        
-       DO i0sidi = 1, i0smax
+       DO i0sidi = 1, NSMAX
           i0vidi = 10*i0sidi - 5
           d2xout(i0vidi+ 1,i0xid2d) = d1nn_pu(i0sidi)
           d2xout(i0vidi+ 2,i0xid2d) = d1ur_pu(i0sidi)

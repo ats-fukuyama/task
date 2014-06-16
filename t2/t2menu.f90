@@ -10,20 +10,20 @@ CONTAINS
 
   SUBROUTINE T2_MENU
 
-    USE T2CNST,ONLY: i0ikind,i0rkind
+    USE T2CNST,ONLY: ikind,rkind
     USE T2COMM,ONLY: T2COMM_DEALLOCATE,T2NGRA_DEALLOCATE
     USE T2PARM,ONLY: T2_PARM,T2_VIEW
-    USE T2PREP, ONLY:T2_PREP
+    USE T2PREP,ONLY: T2PREP_EXECUTE
     USE T2DIV, ONLY: T2_DIV
     USE T2LOOP,ONLY: T2_LOOP
-!    USE T2WRIT,ONLY: T2_WRIT
     USE T2GOUT,ONLY: T2_GOUT
 
     IMPLICIT NONE
-    INTEGER(i0ikind)    :: ierr,mode,ind
+
+    INTEGER(ikind)    :: ierr,mode,ind
     CHARACTER         :: kid
     CHARACTER(LEN=80) :: line
-    INTEGER(i0ikind)    :: init=0
+    INTEGER(ikind)    :: init=0
 
 1   CONTINUE
     ierr=0
@@ -38,7 +38,7 @@ CONTAINS
     ELSEIF(kid.EQ.'V') THEN
        CALL T2_VIEW
     ELSEIF(kid.EQ.'R') THEN
-       CALL T2_PREP
+       CALL T2PREP_EXECUTE
        CALL T2_LOOP
        INIT=1
     ELSEIF(kid.EQ.'C') THEN

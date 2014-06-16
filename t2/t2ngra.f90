@@ -1,16 +1,16 @@
-!C------------------------------------------------------------------
-!C
-!C         MODULE T2NGRA
-!C       
-!C         NODE GRAPH GENERATOR FOR TASK/T2
-!C
-!C
-!C------------------------------------------------------------------
+!------------------------------------------------------------------
+!
+!         MODULE T2NGRA
+!       
+!         NODE GRAPH GENERATOR FOR TASK/T2
+!
+!
+!------------------------------------------------------------------
 
 MODULE T2NGRA
   
   USE T2CNST,ONLY:&
-       i0ikind,i0rkind
+       ikind,rkind
   
   IMPLICIT NONE
   
@@ -20,27 +20,25 @@ MODULE T2NGRA
   
 CONTAINS 
   
-  !C------------------------------------------------------------------
-  !C
-  !C          T2NGRA_MAIN
-  !C
-  !C          MAIN SUBROUTINE OF T2NGRA
-  !C
-  !C------------------------------------------------------------------
+  !------------------------------------------------------------------
+  !
+  !          T2_NGRA
+  !
+  !          MAIN SUBROUTINE OF T2NGRA
+  !
+  !------------------------------------------------------------------
   SUBROUTINE T2_NGRA
     
-    USE T2COMM,ONLY:i0nmax,idfile
+    USE T2COMM,ONLY:NNMAX,idfile
     
     CALL T2NGRA_MSC
     
-    SELECT CASE (i0nmax)
+    SELECT CASE (NNMAX)
        
     CASE( 4) !C LINIEAR   ELEMENT
        CALL T2NGRA_NGRAPH1
-    !CASE( 8) !C QUADRATIC ELEMENT 
     CASE( 9)
        CALL T2NGRA_NGRAPH2
-    !CASE(12) !C CUBIC     ELEMENT
     CASE(16) !C CUBIC     ELEMENT
        CALL T2NGRA_NGRAPH3
     END SELECT
@@ -54,91 +52,38 @@ CONTAINS
     
   END SUBROUTINE T2_NGRA
   
-  !C------------------------------------------------------------------
-  !C
-  !C            NODE GRAPH GENERATING ROUTINE 
-  !C                 FOR  MULTI-FLUID EQUATIONS FEM SOLVER
-  !C             
-  !C             COMPRESSED ROW STRAGE FORMAT
-  !C
-  !C      FOR LINEAR RECTANGULAR ELEMENT   4------3 
-  !C                                       |      |
-  !C                                       |      |
-  !C                                       1------2
-  !C
-  !C------------------------------------------------------------------  
+  !------------------------------------------------------------------
+  !
+  !            NODE GRAPH GENERATING ROUTINE 
+  !                 FOR  MULTI-FLUID EQUATIONS FEM SOLVER
+  !             
+  !             COMPRESSED ROW STRAGE FORMAT
+  !
+  !      FOR LINEAR RECTANGULAR ELEMENT   4------3 
+  !                                       |      |
+  !                                       |      |
+  !                                       1------2
+  !
+  !------------------------------------------------------------------  
   
   SUBROUTINE T2NGRA_NGRAPH1
     
-    !C--------------------------------------------
-    
-    !C
-    !C CONSTRUCT NON-DEGENERATED NODE
-    !C                    - DEGENERATED NODE GRAPH
-    
+    ! CONSTRUCT NON-DEGENERATED NODE
+    !                    - DEGENERATED NODE GRAPH
     CALL T2NGRA_CRT1    
-    
-    !C
-    !C CONSTRUCT ELEMENT - NODE GRAPH
-    !C
-    
+        
+    ! CONSTRUCT ELEMENT - NODE GRAPH
     CALL T2NGRA_ENR1
     
-    !C
-    !C CONSTRUCT NODE - ELEMENT  GRAPH
-    !C
-    
+    ! CONSTRUCT NODE - ELEMENT  GRAPH
     CALL T2NGRA_NER1
     
-    !C
-    !C CONSTRUCT NODE - NODE GRAPH
-    !C
-    
+    ! CONSTRUCT NODE - NODE GRAPH
     CALL T2NGRA_NNR1
     
     RETURN
  
   END SUBROUTINE T2NGRA_NGRAPH1
-  
-  !C------------------------------------------------------------------
-  !C
-  !C            NODE GRAPH GENERATING ROUTINE 
-  !C                 FOR  MULTI-FLUID EQUATIONS FEM SOLVER
-  !C             
-  !C             COMPRESSED ROW STRAGE FORMAT
-  !C
-  !C      FOR QUADRADICR RECTANGULAR ELEMENT  
-  !C                                            7---6---5 
-  !C                                            |       |
-  !C                                            8       4
-  !C                                            |       |
-  !C                                            1---2---3
-  !C      (WILL BE IMPLEMENTATED)  
-  !C------------------------------------------------------------------  
-  SUBROUTINE T2NGRA_NGRAPH2
-    RETURN
-  END SUBROUTINE T2NGRA_NGRAPH2
-  
-  !C------------------------------------------------------------------
-  !C
-  !C            NODE GRAPH GENERATING ROUTINE 
-  !C                 FOR  MULTI-FLUID EQUATIONS FEM SOLVER
-  !C             
-  !C             COMPRESSED ROW STRAGE FORMAT
-  !C
-  !C      FOR CUBIC RECTANGULAR ELEMENT  
-  !C                                            10--09--08--07
-  !C                                            |            |
-  !C                                            11          06 
-  !C                                            |            |
-  !C                                            12          05
-  !C                                            |            |
-  !C                                            01--02--03--04
-  !C      (WILL BE IMPLEMENTATED)  
-  !C------------------------------------------------------------------  
-  SUBROUTINE T2NGRA_NGRAPH3
-    RETURN
-  END SUBROUTINE T2NGRA_NGRAPH3
   
   !C
   !C
@@ -149,19 +94,19 @@ CONTAINS
     
     USE T2CNST,ONLY:d0pi
     USE T2COMM,ONLY:&
-         i0mmax,i0lmax,&
+         NMMAX,NLMAX,&
          i1rdn1,i1pdn1,i1rdn2,i1pdn2,i1mc1d,&
-         d1mc1d,d1rsiz,d1psiz,d1msiz,d1rec,&
-         d2mfc1,i1mfc1
+         d1mc1d,d1rec,&
+         GlobalCrd,i1mfc1
     
-    INTEGER(i0ikind)::&
+    INTEGER(ikind)::&
          i0lidi
-    INTEGER(i0ikind)::&
+    INTEGER(ikind)::&
          i1,j1,&
          i0mcnt,i0bcnt,i0rcnt,i0rdn1,i0pdn1,i0rdn2,i0pdn2
-    REAL(   i0rkind)::&
+    REAL(   rkind)::&
          d0rsiz,d0psiz
-    REAL(i0rkind),DIMENSION(:),ALLOCATABLE::&
+    REAL(rkind),DIMENSION(:),ALLOCATABLE::&
          d1mcr1,d1mcp1
     
     i0mcnt  = 0
@@ -173,7 +118,7 @@ CONTAINS
     !C
     !C s = r^{2} constant width grid 
     !C 
-    DO i0lidi = 1, i0lmax
+    DO i0lidi = 1, NLMAX
        
        i0rdn1 = i1rdn1(i0lidi)
        i0pdn1 = i1pdn1(i0lidi)
@@ -217,11 +162,9 @@ CONTAINS
              
              i0mcnt = i0mcnt + 1
              
-             !C
              !C MAGNETIC FLUX COORDINATE (RHO, CHI)
-             !C
-             d2mfc1(1,i0mcnt) = d1mcr1(j1)
-             d2mfc1(2,i0mcnt) = d1mcp1(i1)
+             GlobalCrd(1,i0mcnt) = d1mcr1(j1)
+             GlobalCrd(2,i0mcnt) = d1mcp1(i1)
              i1mfc1(  i0mcnt) = i0bcnt
           ENDDO
        ENDDO
@@ -230,7 +173,7 @@ CONTAINS
        
     ENDDO
     
-    IF(i0mcnt.NE.i0mmax)THEN
+    IF(i0mcnt.NE.NMMAX)THEN
        WRITE(6,*)'CHECK SUM ERROR'
        STOP
     ENDIF
@@ -247,118 +190,119 @@ CONTAINS
   SUBROUTINE T2_NGRA_OUTPUT
 
     USE T2COMM,ONLY:&
-         i0amax,i0bmax,i0xmax,i0hmax,i0emax,i0mmax,i0lmax,i0nmax,&
-         i0nrmx,i0ermx,i0ecmx,&
-         i2hbc, i3enr, i2crt, i1nidr,i1nidc,i1eidr,i1eidc,&
-         i1mlvl,i1mmax,i1bmax,i1emax,d2mfc1,i1mfc1
+         NAMAX,NBMAX,NXMAX,NHMAX,NEMAX,NMMAX,NLMAX,NNMAX,&
+         NNRMX,NERMX,NECMX,&
+         HangedNodeTable, ElementNodeGraph,&
+         i2crt, NodeRowCRS,NodeColCRS,i1eidr,i1eidc,&
+         i1mlvl,i1mmax,i1bmax,i1emax,GlobalCrd,i1mfc1
 
-    INTEGER(i0ikind)::i1
-    INTEGER(i0ikind)::&
+    INTEGER(ikind)::i1
+    INTEGER(ikind)::&
          i0midi,i0hidi,i0eidi,i0lidi,i0aidi,i0nidi
 
     OPEN(10,FILE='I2CRT_TEST.dat')
-    DO i0midi = 1, i0mmax
+    DO i0midi = 1, NMMAX
        WRITE(10,'("NUM1=",I7,1X,I7,1X,I7,1X,I7)')&
             i0midi,i2crt(1,i0midi),i2crt(2,i0midi),&
             i2crt(3,i0midi)
     ENDDO
     CLOSE(10)
     
-    OPEN(10,FILE='I2HBC_TEST.dat')
-    DO i0hidi = 1, i0hmax
+    OPEN(10,FILE='HANGEDNODETABLE_TEST.dat')
+    DO i0hidi = 1, NHMAX
        WRITE(10,'("HNUM=",I9,1X,"LHN=",I9,1X,"UHN=",I9)')&
-            i0hidi,i2hbc(1,i0hidi),i2hbc(2,i0hidi)
+            i0hidi,HangedNodeTable(1,i0hidi),HangedNodeTable(2,i0hidi)
     ENDDO    
     CLOSE(10)
 
-    OPEN(10,FILE='I3ENR1_TEST.dat')
-    DO i0eidi = 1, i0emax
-       WRITE(10,'("ELM_NUMBER=",I9,1X,"I3ENR=",4I9)')&
-            i0eidi,(i3enr(i0nidi,1,i0eidi),i0nidi = 1, i0nmax)
+    OPEN(10,FILE='ELEMENTNODEGRAPH1_TEST.dat')
+    DO i0eidi = 1, NEMAX
+       WRITE(10,'("ELM_NUMBER=",I9,1X,"ELEMENTNODEGRAPH=",4I9)')&
+            i0eidi,(ElementNodeGraph(i0nidi,1,i0eidi),i0nidi = 1, NNMAX)
     ENDDO
     CLOSE(10)
 
-    OPEN(10,FILE='I3ENR2_TEST.dat')
-    DO i0eidi = 1, i0emax
-       WRITE(10,'("ELM_NUMBER=",I9,1X,"I3ENR=",4I9)')&
-            i0eidi,(i3enr(i0nidi,2,i0eidi),i0nidi = 1, i0nmax)
+    OPEN(10,FILE='ELEMENTNODEGRAPH2_TEST.dat')
+    DO i0eidi = 1, NEMAX
+       WRITE(10,'("ELM_NUMBER=",I9,1X,"ELEMENTNODEGRAPH=",4I9)')&
+            i0eidi,(ElementNodeGraph(i0nidi,2,i0eidi),i0nidi = 1, NNMAX)
     ENDDO
     CLOSE(10)
 
-    OPEN(10,FILE='I3ENR3_TEST.dat')
-    DO i0eidi = 1, i0emax
-       WRITE(10,'("ELM_NUMBER=",I9,1X,"I3ENR=",4I9)')&
-            i0eidi,(i3enr(i0nidi,3,i0eidi),i0nidi = 1, i0nmax)
+    OPEN(10,FILE='ELEMENTNODEGRAPH3_TEST.dat')
+    DO i0eidi = 1, NEMAX
+       WRITE(10,'("ELM_NUMBER=",I9,1X,"ELEMENTNODEGRAPH=",4I9)')&
+            i0eidi,(ElementNodeGraph(i0nidi,3,i0eidi),i0nidi = 1, NNMAX)
     ENDDO
     CLOSE(10)
 
-    OPEN(10,FILE='I3ENR4_TEST.dat')
-    DO i0eidi = 1, i0emax
-       WRITE(10,'("ELM_NUMBER=",I9,1X,"I3ENR=",4I9)')&
-            i0eidi,(i3enr(i0nidi,4,i0eidi),i0nidi = 1, i0nmax)
+    OPEN(10,FILE='ELEMENTNODEGRAPH4_TEST.dat')
+    DO i0eidi = 1, NEMAX
+       WRITE(10,'("ELM_NUMBER=",I9,1X,"ELEMENTNODEGRAPH=",4I9)')&
+            i0eidi,(ElementNodeGraph(i0nidi,4,i0eidi),i0nidi = 1, NNMAX)
     ENDDO
     CLOSE(10)
     
     OPEN(10,FILE='CRS_TEST_INDR.dat')
-    DO i1=1,i0nrmx
+    DO i1=1,NNRMX
        IF(i1.EQ.1)THEN
-          WRITE(10,'("I1=",I9,1X,"INDNR=",I9)')i1,i1nidr(i1)
+          WRITE(10,'("I1=",I9,1X,"INDNR=",I9)')i1,NodeRowCRS(i1)
        ELSE
           WRITE(10,'("I1=",I9,1X,"INDNR=",I9,1X,"J1=",I9,1X,"NOC=",I9)')&
-               i1,i1nidr(i1),i1-1,i1nidr(i1)-i1nidr(i1-1)
+               i1,NodeRowCRS(i1),i1-1,NodeRowCRS(i1)-NodeRowCRS(i1-1)
        ENDIF
     ENDDO
     CLOSE(10)
 
     
     OPEN(10,FILE='CRS_TEST_INDC.dat')
-    DO i0aidi = 1, i0amax
-       WRITE(10,'("I1=",I9,1X,"INDNC=",I9)')i0aidi,i1nidc(i0aidi)
+    DO i0aidi = 1, NAMAX
+       WRITE(10,'("I1=",I9,1X,"INDNC=",I9)')i0aidi,NodeColCRS(i0aidi)
     ENDDO
     CLOSE(10)
     
     OPEN(10,FILE='TEST_NMAX.dat')
-    DO i0lidi = 1, i0lmax
+    DO i0lidi = 1, NLMAX
        WRITE(10,'("MESH_NUMBER=",I3,1X,"MESH_LEVEL=",I3)')&
             i0lidi, i1mlvl(i0lidi)
        WRITE(10,'("MMAX=",I9,1X,"BMAX=",I9)')&
             i1mmax(i0lidi),i1bmax(i0lidi)
     ENDDO
     WRITE(10,'("TOTAL_MMAX=",I9,1X,"TOTAL_BMAX=",I9)')&
-         i0mmax,i0bmax
+         NMMAX,NBMAX
     CLOSE(10)
     
     OPEN(10,FILE='TEST_EMAX.dat')
-    DO i0lidi = 0, i0lmax
+    DO i0lidi = 0, NLMAX
        WRITE(10,'("MESH_NUMBER=",I3,1X,"EMAX=",I9)')&
             i0lidi,i1emax(i0lidi)
     ENDDO
-    WRITE(10,'("TOTAL_EMAX=",I9)')i0emax
+    WRITE(10,'("TOTAL_EMAX=",I9)')NEMAX
     CLOSE(10)
     
     !C CALCURATE NUMBER OF HANGED-NODE
     OPEN(10,FILE='MATRIX_INFO1.dat')
-    WRITE(10,'("I1NIDR_ARRAY_SIZE=",I9)')i0nrmx
-    WRITE(10,'("I1NIDC_ARRAY_SIZE=",I9)')i0amax
-    WRITE(10,'("D2XVEC_ARRAY_SIZE=",I9)')i0xmax
-    WRITE(10,'("D2BVEC_ARRAY_SIZE=",I9)')i0bmax
+    WRITE(10,'("NODEROWCRS_ARRAY_SIZE=",I9)')NNRMX
+    WRITE(10,'("NODECOLCRS_ARRAY_SIZE=",I9)')NAMAX
+    WRITE(10,'("D2XVEC_ARRAY_SIZE=",I9)')NXMAX
+    WRITE(10,'("D2BVEC_ARRAY_SIZE=",I9)')NBMAX
     CLOSE(10)
     
     OPEN(10,FILE='MFC1_CHECK.dat')
-    DO i0midi = 1, i0mmax
+    DO i0midi = 1, NMMAX
        WRITE(10,'("i1=",I5,1X,"RHO=",D15.8,1X,"CHI=",D15.8,1X,"SN=",I5)')&
-            i0midi,d2mfc1(1,i0midi),d2mfc1(2,i0midi),i1mfc1(i0midi)
+            i0midi,GlobalCrd(1,i0midi),GlobalCrd(2,i0midi),i1mfc1(i0midi)
     ENDDO
     CLOSE(10)
     
     OPEN(30,FILE='I1EIDR.dat')
-    DO i1 = 1,i0ermx
+    DO i1 = 1,NERMX
        write(30,*)i1,i1eidr(i1)
     ENDDO
     CLOSE(30)
 
     OPEN(30,FILE='I1EIDC.dat')
-    DO i1 = 1,i0ecmx
+    DO i1 = 1,NECMX
        write(30,*)i1,i1eidc(i1)
     ENDDO
     CLOSE(30)
@@ -369,31 +313,31 @@ CONTAINS
   !C-------------------------------------------------------------------
   !C SUBROUTINE FOR NODE-MAPPING TABLE I2CRT
   !C   
-  !C I2CRT[1,1:I0MMAX1]: NODE-NUMBER FOR COEF. CALC.
-  !C I2CRT[2,1:I0MMAX1]: NODE-NUMBER FOR 2D GRID
-  !C I2CRT[3,1:I0MMAX1]: NODE-NUMBER FOR 1D GRID
+  !C I2CRT[1,1:NMMAX1]: NODE-NUMBER FOR COEF. CALC.
+  !C I2CRT[2,1:NMMAX1]: NODE-NUMBER FOR 2D GRID
+  !C I2CRT[3,1:NMMAX1]: NODE-NUMBER FOR 1D GRID
   !C
   !C-------------------------------------------------------------------
   SUBROUTINE T2NGRA_CRT1
 
     USE T2COMM,ONLY:&
-         i0lmax,i1rdn2,i1pdn2,i1mlvl,i1pdn1,i1rdn1,i2crt,i2hbc
+         NLMAX,i1rdn2,i1pdn2,i1mlvl,i1pdn1,i1rdn1,i2crt,HangedNodeTable
 
-    INTEGER(i0ikind)::&
+    INTEGER(ikind)::&
          i0hcnt,i0mcnt,i0stm2,&
          i0ppc1,i0ppl2,i0ppc2,i0rdc1,&
          i0il,i0stl2,i0stc2,i0mlva,i0mlvb,&
-         i1subtot(0:i0lmax),i0offset
-    INTEGER(i0ikind)::&
+         i1subtot(0:NLMAX),i0offset
+    INTEGER(ikind)::&
          i0lidi,i0lidj,&
          i2,j2,i0stack1d,i0stack2d
     
     !C SUBTOTALS UP TO Nth-DOMAIN: I1SUBTOT[N]    
-    DO i0lidi = 0, i0lmax
+    DO i0lidi = 0, NLMAX
        i1subtot(i0lidi) = 1
     ENDDO
     
-    DO i0lidi=1,i0lmax
+    DO i0lidi=1,NLMAX
        DO i0lidj = 1, i0lidi
           i1subtot(i0lidi)=i1subtot(i0lidi)+i1rdn2(i0lidj)*i1pdn2(i0lidj)
        ENDDO
@@ -404,7 +348,7 @@ CONTAINS
     i0mcnt = 0
     i0hcnt = 0
     
-    DO i0lidi= 1, i0lmax
+    DO i0lidi= 1, NLMAX
        
        i0mlva=i1mlvl(i0lidi-1)
        i0mlvb=i1mlvl(i0lidi  )
@@ -428,7 +372,7 @@ CONTAINS
        !C
        i0stl2  = i1subtot(i0lidi-1) - i1pdn2(i0lidi-1)
        i0stc2  = i1subtot(i0lidi-1)
-       i0stm2  = i1subtot(i0lmax)
+       i0stm2  = i1subtot(NLMAX)
        
        IF(i0mlva.EQ.0)THEN
           !C
@@ -505,9 +449,9 @@ CONTAINS
                       i2crt(2,i0mcnt)= i0stack2d
                       i2crt(3,i0mcnt)= i0stack1d
 
-                      i2hbc(1,i0hcnt)&
+                      HangedNodeTable(1,i0hcnt)&
                            = i0stl2 + MOD(INT((j2-1)/2),i0ppl2)+1
-                      i2hbc(2,i0hcnt)&
+                      HangedNodeTable(2,i0hcnt)&
                            = i0stl2 + MOD(INT((j2+1)/2),i0ppl2)+1
                    ENDIF
                 ENDDO
@@ -540,10 +484,10 @@ CONTAINS
   SUBROUTINE T2NGRA_ENR1
     
     USE T2COMM,ONLY:&
-         i0lmax,i0bmax,&
-         i1pdn1,i1pdn2,i1rdn1,i1rdn2,i2crt,i2hbc,i3enr,i1mlel
+         NLMAX,NBMAX,&
+         i1pdn1,i1pdn2,i1rdn1,i1rdn2,i2crt,HangedNodeTable,ElementNodeGraph,i1mlel
 
-    INTEGER(i0ikind)::&
+    INTEGER(ikind)::&
          i2,    j2,    i0lidi,i0ecnt,&
          i0ll , i0lr , i0ul , i0ur,&
          i0ll1, i0lr1, i0ul1, i0ur1,&
@@ -554,7 +498,7 @@ CONTAINS
          
     i0ecnt = 0
     
-    DO i0lidi = 1, i0lmax
+    DO i0lidi = 1, NLMAX
        i0ppc1 = i1pdn1(i0lidi)
        i0ppc2 = i1pdn2(i0lidi)
        i0rdc2 = i1rdn2(i0lidi)
@@ -588,8 +532,8 @@ CONTAINS
 
           i0ll3 = i2crt(2,i0ll)
           i0lr3 = i2crt(2,i0lr)
-          IF(i0ll3.GT.i0bmax) i0ll3 = i2hbc(1,i0ll3-i0bmax)
-          IF(i0lr3.GT.i0bmax) i0lr3 = i2hbc(1,i0lr3-i0bmax)
+          IF(i0ll3.GT.NBMAX) i0ll3 = HangedNodeTable(1,i0ll3-NBMAX)
+          IF(i0lr3.GT.NBMAX) i0lr3 = HangedNodeTable(1,i0lr3-NBMAX)
           i0ur3 = i0lr3
           i0ul3 = i0ll3
           
@@ -598,25 +542,25 @@ CONTAINS
           i0ur4 = i2crt(3,i0ur)
           i0ul4 = i2crt(3,i0ul)
           
-          i3enr(1,1,i0ecnt) = i0ll1
-          i3enr(2,1,i0ecnt) = i0lr1
-          i3enr(3,1,i0ecnt) = i0ur1
-          i3enr(4,1,i0ecnt) = i0ul1
+          ElementNodeGraph(1,1,i0ecnt) = i0ll1
+          ElementNodeGraph(2,1,i0ecnt) = i0lr1
+          ElementNodeGraph(3,1,i0ecnt) = i0ur1
+          ElementNodeGraph(4,1,i0ecnt) = i0ul1
           
-          i3enr(1,2,i0ecnt) = i0ll2
-          i3enr(2,2,i0ecnt) = i0lr2
-          i3enr(3,2,i0ecnt) = i0ur2
-          i3enr(4,2,i0ecnt) = i0ul2
+          ElementNodeGraph(1,2,i0ecnt) = i0ll2
+          ElementNodeGraph(2,2,i0ecnt) = i0lr2
+          ElementNodeGraph(3,2,i0ecnt) = i0ur2
+          ElementNodeGraph(4,2,i0ecnt) = i0ul2
 
-          i3enr(1,3,i0ecnt) = i0ll3
-          i3enr(2,3,i0ecnt) = i0lr3
-          i3enr(3,3,i0ecnt) = i0ur3
-          i3enr(4,3,i0ecnt) = i0ul3
+          ElementNodeGraph(1,3,i0ecnt) = i0ll3
+          ElementNodeGraph(2,3,i0ecnt) = i0lr3
+          ElementNodeGraph(3,3,i0ecnt) = i0ur3
+          ElementNodeGraph(4,3,i0ecnt) = i0ul3
           
-          i3enr(1,4,i0ecnt) = i0ll4
-          i3enr(2,4,i0ecnt) = i0lr4
-          i3enr(3,4,i0ecnt) = i0ur4
-          i3enr(4,4,i0ecnt) = i0ul4
+          ElementNodeGraph(1,4,i0ecnt) = i0ll4
+          ElementNodeGraph(2,4,i0ecnt) = i0lr4
+          ElementNodeGraph(3,4,i0ecnt) = i0ur4
+          ElementNodeGraph(4,4,i0ecnt) = i0ul4
 
           i1mlel(i0ecnt) = i0lidi
           
@@ -631,9 +575,9 @@ CONTAINS
   SUBROUTINE T2NGRA_NER1
 
     USE T2COMM,ONLY:&
-         i0lmax,i0ecmx,i1eidr,i1eidc,i1pdn2,i1rdn2,i1mlvl
+         NLMAX,NECMX,i1eidr,i1eidc,i1pdn2,i1rdn2,i1mlvl
 
-    INTEGER(i0ikind)::&
+    INTEGER(ikind)::&
          i0lidi,i0ecnt,i0ncnt,&
          i0ll,i0lr,i0ul,i0ur,&
          i0mlva,               i0rda,i0pda,i0sbta,&
@@ -647,7 +591,7 @@ CONTAINS
     i1eidr(i0ncnt) = 1
     i0sbta = 0
     i0sbtb = 0
-    DO i0lidi = 1, i0lmax
+    DO i0lidi = 1, NLMAX
        
        i0mlva = i1mlvl(i0lidi-1)
        i0mlvb = i1mlvl(i0lidi  )
@@ -780,7 +724,7 @@ CONTAINS
 
     i0sbtb = 0
     
-    DO i0lidi = 1, i0lmax
+    DO i0lidi = 1, NLMAX
        
        i0mlvb = i1mlvl(i0lidi  )
        i0mlvc = i1mlvl(i0lidi+1)
@@ -813,8 +757,8 @@ CONTAINS
           ENDDO
        ENDIF
     ENDDO
-    IF(i0ecnt.NE.i0ecmx)THEN
-       print*,i0ecnt,i0ecmx
+    IF(i0ecnt.NE.NECMX)THEN
+       print*,i0ecnt,NECMX
        WRITE(6,*)'ERROR IN NER'
        STOP
     ENDIF
@@ -826,21 +770,21 @@ CONTAINS
   SUBROUTINE T2NGRA_NNR1
     
     USE T2COMM, ONLY:&
-         i0nmax,i0bmax,i0lmax,i1nidr,i1nidc,i1eidr,i1eidc,i3enr
-    INTEGER(i0ikind)::&
+         NNMAX,NBMAX,NLMAX,NodeRowCRS,NodeColCRS,i1eidr,i1eidc,ElementNodeGraph
+    INTEGER(ikind)::&
          i0nidi,i0nidj,&
          i0nsiz,i0esiz,i0nidr,i1,i0ncnt,&
          i0na,i0nb,i0eg,i0ec,i0nidc,&
          i0ngx,i0ex,i0ecx,i0ng
-    INTEGER(i0ikind),DIMENSION(:),ALLOCATABLE::i1nstk
+    INTEGER(ikind),DIMENSION(:),ALLOCATABLE::i1nstk
 
-    i1nidr(1) = 1
+    NodeRowCRS(1) = 1
     i0nidc = 0
 
-    DO i0nidr = 2,i0bmax+1
+    DO i0nidr = 2,NBMAX+1
        
        i0esiz = i1eidr(i0nidr)-i1eidr(i0nidr-1)
-       !i0nsiz = MAX(i0esiz,i0nmax*8)
+       !i0nsiz = MAX(i0esiz,NNMAX*8)
        i0nsiz = MAX(i0esiz,1000)
        ALLOCATE(i1nstk(1:i0nsiz))
        i1nstk(1:i0nsiz) = 0
@@ -850,19 +794,19 @@ CONTAINS
           
           i0ec = i1eidc(i0eg)
           
-          DO i0nidi = 1,i0nmax
+          DO i0nidi = 1,NNMAX
              
-             i0ng = i3enr(i0nidi,2,i0ec)
+             i0ng = ElementNodeGraph(i0nidi,2,i0ec)
              
-             IF(    i0ng.LE.i0bmax)THEN
+             IF(    i0ng.LE.NBMAX)THEN
                 i0ncnt = i0ncnt + 1 
                 i1nstk(i0ncnt) = i0ng
-             ELSEIF(i0ng.GT.i0bmax)THEN
+             ELSEIF(i0ng.GT.NBMAX)THEN
                 DO i0ex  = i1eidr(i0ng),i1eidr(i0ng+1)-1
                    i0ecx = i1eidc(i0ex)
-                   DO i0nidj = 1, i0nmax
-                      i0ngx = i3enr(i0nidj,2,i0ecx)
-                      IF(i0ngx.LE.i0bmax)THEN
+                   DO i0nidj = 1, NNMAX
+                      i0ngx = ElementNodeGraph(i0nidj,2,i0ecx)
+                      IF(i0ngx.LE.NBMAX)THEN
                          i0ncnt = i0ncnt + 1 
                          i1nstk(i0ncnt) = i0ngx
                       ENDIF
@@ -886,11 +830,11 @@ CONTAINS
           
           IF(i0na.NE.i0nb)THEN
              i0nidc = i0nidc + 1
-             i1nidc(i0nidc) = i0nb
+             NodeColCRS(i0nidc) = i0nb
           ENDIF
        ENDDO
        
-       i1nidr(i0nidr) = i0nidc+1
+       NodeRowCRS(i0nidr) = i0nidc+1
        
        DEALLOCATE(i1nstk)
        
@@ -909,6 +853,13 @@ CONTAINS
     RETURN
   END SUBROUTINE T2NGRA_TERM
 
+  SUBROUTINE T2NGRA_NGRAPH2
+    RETURN
+  END SUBROUTINE T2NGRA_NGRAPH2
+
+  SUBROUTINE T2NGRA_NGRAPH3
+    RETURN
+  END SUBROUTINE T2NGRA_NGRAPH3
   !C------------------------------------------------------------------
   !C 
   !C         BUBLE SORT ALGORITHM
@@ -916,9 +867,9 @@ CONTAINS
   !C------------------------------------------------------------------
   SUBROUTINE SORT_ARRAY(i0asiz, i1array)
   
-    INTEGER(i0ikind),INTENT(IN)::i0asiz
-    INTEGER(i0ikind),DIMENSION(i0asiz),INTENT(INOUT)::i1array
-    INTEGER(i0ikind)::&
+    INTEGER(ikind),INTENT(IN)::i0asiz
+    INTEGER(ikind),DIMENSION(i0asiz),INTENT(INOUT)::i1array
+    INTEGER(ikind)::&
          i0mtmp, i0mloc,i1
     
     DO i1 = 1, i0asiz-1

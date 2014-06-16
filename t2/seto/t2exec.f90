@@ -175,7 +175,7 @@ CONTAINS
        
     ENDDO
     
-    !CALL T2EXEC_CHECK
+    CALL T2EXEC_CHECK
     
     CALL CPU_TIME(e0time_1)
     WRITE(6,'(A,F10.3,A)')&
@@ -223,7 +223,7 @@ CONTAINS
 
     DO i_v = 1, NVMAX
        DO j_v = 1, NVMAX
-          WRITE(32,110)i_v,j_v,1,amat(i_v,j_v,1)
+          WRITE(32,110)i_v,j_v,255,amat(i_v,j_v,255)
        ENDDO
     ENDDO
 
@@ -1346,6 +1346,7 @@ CONTAINS
                 DO j_v = colValStart, colValEnd
                 DO i_v = rowValStart, rowValEnd
                    IF(HaveMat(i_v,j_v))THEN
+                      !IF((i_v.EQ.1).AND.(j_v.EQ.1)) print*,i_a
                       amat(             i_v,j_v,        i_a) &
                            = amat(      i_v,j_v,        i_a) &
                            + amatElemTF(i_v,j_v,i_n,j_n    )

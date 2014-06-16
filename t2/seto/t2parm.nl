@@ -1,7 +1,7 @@
  &t2
  ntmax=1
  ntstep=1
- dt=1.D-10
+ dt=1.D-6
  idebug=0
  NLMAX = 1
  NPMIN = 10

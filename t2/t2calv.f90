@@ -1,3082 +1,1388 @@
-!C--------------------------------------------------------------------
-!C
-!C MODULE T2CALV
-!C 
-!C
-!C      CALCULATION OF COEFFICIENTS 
-!C      OF ADVECTION-DIFFUSION EQUATIONS 
-!C      FOR MULTI-FLUID TRANSPORT MODEL 
-!C      (ONLY ANOMALOUS TRANSPORT MODEL IS BASED ON TWO-FLUID MODEL)
-!C
-!C                       2014-03-16 H. SETO
-!C
-!C-------------------------------------------------------------------
+!--------------------------------------------------------------------
+!
+! MODULE T2CALV
+! 
+!
+!      CALCULATION OF PLASMA PARAMETERS  
+!       FOR MULTI-FLUID TRANSPORT MODEL 
+!      (ANOMALOUS TRANSPORT MODEL IS BASED ON TWO-FLUID MODEL)
+!
+!      VALIDITY OF VISCOUS AND FRICTION COEFFICIENTS 
+!      ARE PARTLY CONFIRMED BY THE COMPARISON WITH 
+!      TASK/T2 RESULTS AND ANALITICAL VALUES IN CTMP.
+!
+!                   LAST UPDATE    2014-06-15 H.Seto
+!
+!-------------------------------------------------------------------
 MODULE T2CALV
   
-  USE T2CNST, ONLY:i0ikind,i0rkind
-  USE T2COMM, ONLY:i0smax
+  USE T2CNST, ONLY:ikind,rkind
   
   IMPLICIT NONE
   
-  INTEGER(i0ikind)::&
-       i0midi
-  REAL(   i0rkind)::&
-       d0cogrr,d0cogrp,d0cogpp,d0cogtt,&
-       d0ctgrr,d0ctgrp,d0ctgpp,d0ctgtt,&
-       d0sqrtg,d0mfcr, d0rzcr, d0ugr,  d0ugp,  &
-       d0ctbp, d0cobt, d0ctbt,d0bp2,d0bt2,d0bb,d0bb2
-  
   PRIVATE
   
-  PUBLIC T2_CALV
+  PUBLIC T2CALV_EXECUTE
   
 CONTAINS
   
-  SUBROUTINE T2_CALV
+  
+  !---------------------------------------------------------
+  !
+  !       CALCULATION OF FUNDAMENTAL PHYSICAL QUANTITIES 
+  ! 
+  !
+  !                     LAST UPDATE 2014-05-31 H.Seto
+  !
+  !
+  !---------------------------------------------------------
+  
+  SUBROUTINE T2CALV_EXECUTE(i_m)
     
-    USE T2COMM, ONLY: i0mmax,i0cchk
-    USE T2CCHK, ONLY: T2_CCHK
+    INTEGER,INTENT(IN)::i_m
 
-    DO i0midi = 1, i0mmax
-       
-       CALL T2CALV_PQ
-       CALL T2CALV_MS
-       CALL T2CALV_AV
-       CALL T2CALV_AT
-       CALL T2CALV_DT
-       CALL T2CALV_GV
-       CALL T2CALV_GT
-       CALL T2CALV_ES
-       CALL T2CALV_EV
-       CALL T2CALV_ET
-       CALL T2CALV_SS
-       
-    ENDDO
+    CALL T2CALV_SETUP(i_m)
     
-    IF(i0cchk.EQ.1) CALL T2_CCHK
+    CALL T2CALV_FRICTION_COEFFICIENT  ! L11, L12, L21, L22
     
+    CALL T2CALV_VISCOUS_COEFFICIENT   ! Mu1, Mu2, Mu3
+
+    CALL T2CALV_ANOMALOUS_COEFFICIENT ! F^{QL}_{a\zeta}, G^{QL}_{a\zeta}
+    
+    CALL T2CALV_ADDITIONAL_COEFFICIENT
+
+    !IF(i_m.EQ.53)THEN ! for debug
+    !   CALL T2CALV_COEF_CHECK
+    !   STOP
+    !ENDIF
+
     RETURN
-    
-  END SUBROUTINE T2_CALV
+
+  END SUBROUTINE T2CALV_EXECUTE
   
-  !C---------------------------------------------------------
-  !C
-  !C CALCULATION OF FUNDAMENTAL PHYSICAL QUANTITIES 
-  !C 
-  !C     2014-03-29 H.SETO
-  !C            
-  !C---------------------------------------------------------
-  
-  SUBROUTINE T2CALV_PQ
+  SUBROUTINE T2CALV_SETUP(i_m)
     
-    USE T2CNST
+    USE T2CNST,ONLY: Amp,Aee,Pi,Eps0
     
     USE T2COMM,ONLY:&
-         d0mfcst,d0btcst,d0ercst,d0epcst,d0etcst,&
-         d0nncst,d0frcst,d0fbcst,d0ftcst,d0fpcst,d0ubcst,&
-         d0ppcst,d0qrcst,d0qbcst,d0qtcst,d0qpcst,d0wbcst,&
-         i0xa,i0vmax,d0rmjr,d0iar,&
-         i2crt,d2mtrc,&
-         d2xvec_befor,d2mfc1,d2rzm,d2jm1,d2ws,&
-         d1ee,d1mm,d1nn,d1ni,d1pp,d1pi,d1tt,d1ti,d1pa,d1pz,&
-         d1ur,d1up,d1ut,d1ub,d1u2,&
-         d1qr,d1qp,d1qt,d1qb,&
-         d1wb,d1wt,d1wp,d1vt,d1hex,&
-         d1nvcc1,d1nvcc2,d1nvcc3,d1nvcc4,&
-         d2nfcf1,d2nfcf2,d2nfcf3,d2nfcf4,&
-         d2x,d2y,d2z,d2bcf,&
-         d0ct1_anom,d0ct2_anom,d1cx1_anom,d1cx2_anom
+         & NSMAX,BpNF,BtNF,&
+         & NnNF,FrNF,FbNF,FtNF,FpNF,&
+         & PpNF,QrNF,QbNF,QtNF,QpNF,&
+         & i2crt,d2rzm,GlobalCrd,Metric,&
+         !
+         & XvecIn,&
+         & Pa, Pz, R_rz,  R_mc,&
+         & GRt  , G11xCo, G12Co, G22Co,  G33Co,&
+         &        G11Ct,  G12Ct, G22xCt, G33Ct,&  
+         & UgrCt, UgpCt,&
+         & BtCo, BtCt, BtSq, BpCo, BpCt, BpSq, Bb, BbSq,&
+         & Mm, Ee,Vv,BaseNu,Nu,Nuh,X,Y,Z,&
+         & Nn, FrCt, Fb, FtCo, FpCt, UrCt, Ub, UtCo, UpCt, UuSq,&
+         & Pp, QrCt, Qb, QtCo, QpCt, WrCt, Wb, WtCo, WpCt, Tt
     
-    USE LIBT2, ONLY:integ_f
+    INTEGER(ikind),INTENT(IN)::i_m
+    INTEGER(ikind)::&
+         i_m1d,i_m2d,i_s,j_s,vOffset
+    REAL(   rkind),DIMENSION(1:NSMAX,1:NSMAX)::&
+         lnLamb
+    REAL(   rkind)::&
+         & nnA,frCtA,fbA,ftCoA,fpCtA,urCtA,ubA,utCoA,upCtA,&
+         & ppA,qrCtA,qbA,qtCoA,qpCtA,wrCtA,wbA,wtCoA,wpCtA,&
+         !
+         & ttA,ttB,mmA,mmB,vvA,vvB,eeA,eeB,nnB,&
+         & nnE,ttE_eV,dPsiDr,lnLambAB,temp
     
-    INTEGER(i0ikind)::&
-         i0xid1d,i0xid2d,i0widi,i0vidi,i0sidi,i0sidj,i0sidk,i0nflag
+    ! R_rz   : Local major radisu: R
+    ! R_mc   : radial flux label : r, \rho, \sigma etc...
+    ! GRt    : \sqrt{g} 
+    ! G11xCo : g_{\sig\sig}*R_mc
+    ! G12Co  : g_{\sig\chi}
+    ! G22Co  : g_{\chi\chi}
+    ! G33Co  : g_{\zeta\zeta}
+    !
+    ! G11Ct  : g^{\sig\sig}
+    ! G12Ct  : g^{\sig\chi}
+    ! G22xCt : g^{\chi\chi}*R_mc
+    ! G33Ct  : g^{\zeta\zeta} 
+    !
+    ! UgrCt  : CT RADIAL   FLAME MOVING VELOCITY: default 0
+    ! UgrCt  : CT POLOIDAL FLAME MOVING VELOCITY: default 0
     
-    REAL(   i0rkind)::&
-         d0mm_a,d0ee_a,d0ee_b,d0vti_a,&
-         d0nn_a,d0nn_b,d0pp_a,d0tt_a,d0ti_a,d0ti_e,&
-         d0clog_ab,d0cfreq_ab,d0cfreq_ac,&
-         d0x_ab,d0y_ab,d0z_ab,d0zi_ab,&
-         d0bmem00_ab,d0bmem01_ab,            d0bmem11_ab, &
-         d0bmem00_ac,d0bmem01_ac,d0bmem10_ac,d0bmem11_ac, &
-         d0bmen00_ab,d0bmen01_ab,d0bmen10_ab,d0bmen11_ab, &
-         d0nfcl11_ab,d0nfcl12_ab,d0nfcl21_ab,d0nfcl22_ab, &
-         d0nfcf1_ab, d0nfcf2_ab, d0nfcf3_ab, d0nfcf4_ab,  &
-         d0nvcm1_a,  d0nvcm2_a,  d0nvcm3_a,               &
-         d0nvcc1_a,  d0nvcc2_a,  d0nvcc3_a,  d0nvcc4_a,&
-         d0sign,d0d_anom,d0m_anom,d0x_anom
+    ! BpCt   : CT POLOIDAL MAGNETIC FIELD          : B^{\chi}
+    ! BpCo   : Co POLOIDAL MAGNETIC FIELD          : B_{\chi}
+    ! BpSq   : SQUARED INTENSITY 
+    !                  of POLOIDAL MAGENTIC FIELD  : Bp^{2}
+    !
+    ! BtCt   : CT Toroidal magnetic field          : B^{\zeta}
+    ! BtCo   : CO Toroidal magnetic field          : B_{\zeta}
+    ! BtSq   : SQUARED INTENSITY 
+    !                  of TOROIDAL MAGENTIC FIELD  : Bt^{2}
+    ! Bb     : INTENSITY OF MAGNETIC FIELD         : B 
+    ! BbSq   : SQUARED INTENSITY of MAGNETIC FIELD : B^{2} 
     
-    REAL(i0rkind)::&
-         d0psip,&
-         d0cps,d0cbn,d0wv2,d0wv3,d0temp,d0temp2,d0temp3,&
-         d0k11,d0k11ps,d0k11bn,&
-         d0k12,d0k12ps,d0k12bn,&
-         d0k22,d0k22ps,d0k22bn
+    ! initialization
+    i_m1d = i2crt(    3,i_m)
+    i_m2d = i2crt(    2,i_m)
+    R_rz  = d2rzm(    1,i_m)
+    R_mc  = GlobalCrd(1,i_m)
+        
+    GRt      = Metric(1,i_m)
+    G11xCo   = Metric(2,i_m)
+    G12Co    = Metric(3,i_m)
+    G22Co    = Metric(4,i_m)
+    G33Co    = Metric(5,i_m)
+    G11Ct    = Metric(6,i_m)
+    G12Ct    = Metric(7,i_m)
+    G22xCt   = Metric(8,i_m)
+    G33Ct    = Metric(9,i_m)
     
-    REAL(i0rkind),DIMENSION(1:i0smax)::&
-         d1fr,d1fb,d1ft,d1fp,d1vti,&
-         d1nvcm1,d1nvcm2,d1nvcm3
-    REAL(i0rkind),DIMENSION(1:i0smax,1:i0smax)::&
-         d2clog,d2cfreq,&
-         d2bmem00,d2bmem01,d2bmem10,d2bmem11,&
-         d2bmen00,d2bmen01,d2bmen10,d2bmen11,&
-         d2nfcl11,d2nfcl12,d2nfcl21,d2nfcl22
-    REAL(i0rkind)::d0err
+    UgrCt  = 0.D0
+    UgpCt  = 0.D0
 
-    !C
-    !C d0psip : DERIVATIVE POLOIDAL FLUX FUNCTION
-    !C          WITH RESPECT TO RHO               : \psi'
-    !C d0pcf  : POLOIDAL CURRENT FUNCTION         : I
-    !C
-    !C d1nn   : PARTICLE DENSITY                  : n_{a}
-    !C d1ur   : CT RADIAL   FLOW                  : u_{a}^{\rho} 
-    !C d1ub   :    PARALLEL FLOW                  : u_{a\para}
-    !C d1ut   : CO TOROIDAL FLOW                  : u_{a\zeta}
-    !C d1up   : CT POLOIDAL FLOW                  : u_{a}^{\chi}
-    !C
-    !C d1pp   : PRESSURE                          : p_{a}   
-    !C d1qr   : CT RADIAL   TOTAL HEAT FLUX       : Q_{a}^{\rho}
-    !C d1qb   :    PARALLEL TOTAL HEAT FLUX       : Q_{a\para}
-    !C d1qt   : CO TOROIDAL TOTAL HEAT FLUX       : Q_{a\zeta}
-    !C d1qp   : CT POLOIDAL TOTAL HEAT FLUX       : Q_{a}^{\chi}
-    !C 
-    !C d1fr   : CT RADIAL   FLOW                  : n_{a}u_{a}^{\rho} 
-    !C d1fb   :    PARALLEL PARTICLE FLUX         : n_{a}n_{u\para}
-    !C d1ft   : CO TOROIDAL FLOW                  : n_{a}u_{a\zeta}
-    !C d1fp   : CT POLOIDAL FLOW                  : n_{a}u_{a}^{\chi}
-    !C
-    !C d1wb  : PARALLEL TOTAL HEAT FLOW FUNCTION  : Q_{a\para}/p_{a}
-    !C 
-    !C * CO = COVARIANT, CT = CONTRAVARIANT
-    !C
-    !C      checked 2014-04-01 by H.Seto
-    !C
-    
-    !C
-    !C MASS AND ELECTRIC CHARGE [SI]
-    !C
-    
-    DO i0sidi = 1,i0smax
-       d1mm(i0sidi) = d1pa(i0sidi)*d0amp
-       d1ee(i0sidi) = d1pz(i0sidi)*d0aee
+    DO i_s = 1,NSMAX
+       Mm(i_s) = Pa(i_s)*Amp ! mass 
+       Ee(i_s) = Pz(i_s)*Aee ! electric charge
     ENDDO
     
-    !C
-    !C INITIALIZE
-    !C
+    dpsidr = XvecIn(1,i_m1d)*BpNF
     
-    i0xid1d = i2crt( 3,i0midi)
-    i0xid2d = i2crt( 2,i0midi)
-    d0rzcr  = d2rzm( 1,i0midi)
-    d0mfcr  = d2mfc1(1,i0midi)
+    BtCo   = XvecIn(2,i_m1d)*BtNF
+    BtCt   = BtCo*G33Ct
     
-    !C
-    !C CONVERT VARIABLES TO SI-UNIT
-    !C
+    BpCt = dpsidr/GRt
+    BpCo = BpCt*G22Co
     
-    DO i0sidi = 1, i0smax
-       
-       i0nflag = 0
-       i0vidi =  10*i0sidi - 5
-       
-       !C n in 10^20 m^-3
-       !C p in 10^20 keV*m^-3
-       d0nn_a = d2xvec_befor(i0vidi+1,i0xid2d)*d0nncst*1.D-20
-       d0pp_a = d2xvec_befor(i0vidi+6,i0xid2d)*d0ppcst*1.D-23/d0aee
-       
-       d1nn(i0sidi) = d0nncst*d2xvec_befor(i0vidi+ 1,i0xid2d)
-       d1fr(i0sidi) = d0frcst*d2xvec_befor(i0vidi+ 2,i0xid2d)
-       d1fb(i0sidi) = d0fbcst*d2xvec_befor(i0vidi+ 3,i0xid2d)
-       d1ft(i0sidi) = d0ftcst*d2xvec_befor(i0vidi+ 4,i0xid2d)
-       d1fp(i0sidi) = d0fpcst*d2xvec_befor(i0vidi+ 5,i0xid2d)
-       
-       d1pp(i0sidi) = d0ppcst*d2xvec_befor(i0vidi+ 6,i0xid2d)
-       d1qr(i0sidi) = d0qrcst*d2xvec_befor(i0vidi+ 7,i0xid2d)
-       d1qb(i0sidi) = d0qbcst*d2xvec_befor(i0vidi+ 8,i0xid2d)
-       d1qt(i0sidi) = d0qtcst*d2xvec_befor(i0vidi+ 9,i0xid2d)
-       d1qp(i0sidi) = d0qpcst*d2xvec_befor(i0vidi+10,i0xid2d)
-       
-       IF(        d0nn_a.GT.0.D0 )THEN
-          d1ni(i0sidi) = 1.D0/d1nn(i0sidi)
-       ELSE
-          i0nflag = 1
-       ENDIF
-       
-       IF(        d0pp_a.GT.0.D0 )THEN
-          d1pi(i0sidi) = 1.D0/d1pp(i0sidi)
-       ELSE
-          i0nflag = 1
-       ENDIF
-       
-       IF(i0nflag.EQ.1)THEN
+    BpSq = BpCo*BpCt
+    BtSq = BtCo*BtCt
+    
+    BbSq = BpSq + BtSq
+    Bb   = SQRT(BbSq)
+
+    DO i_s = 1, NSMAX
+       vOffset =  10*(i_s - 1)
+       nnA   = XvecIn(vOffset+ 6,i_m2d)     *NnNF
+       frCtA = XvecIn(vOffset+ 7,i_m2d)*R_mc*FrNF
+       fbA   = XvecIn(vOffset+ 8,i_m2d)     *FbNF
+       ftCoA = XvecIn(vOffset+ 9,i_m2d)     *FtNF
+       fpCtA = XvecIn(vOffset+10,i_m2d)     *FpNF
+       ppA   = XvecIn(vOffset+11,i_m2d)     *PpNF
+       qrCtA = XvecIn(vOffset+12,i_m2d)*R_mc*QrNF
+       qbA   = XvecIn(vOffset+13,i_m2d)     *QbNF
+       qtCoA = XvecIn(vOffset+14,i_m2d)     *QtNF
+       qpCtA = XvecIn(vOffset+15,i_m2d)     *QpNF
+
+       IF((nnA.LT.0.D0).OR.(ppA.LT.0.D0))THEN
           WRITE(6,*)'NEGATIVE  DENSITY or PRESSURE'
-          WRITE(6,*)'SPECIS=',i0sidi,'NODE=',i0xid2d,&
-               'N',d0nn_a,'10^{20} /m3','P=',d0pp_a,'keV*10^{20}/m^{3}'
+          WRITE(6,*)'SPECIS=',i_s,'NODE=',i_m2d,&
+               'N=',nnA*1.D-20,'1.D20/m3',&
+               'P=',ppA*1.D-23/Aee,'keV*1.D20/m3'
           STOP       
        ENDIF
-    ENDDO
-    
-    !C
-    !C GEOMETRICAL COEFFICIENTS
-    !C
-    !C
-    
-    !C 
-    !C d0sqrtg : \sqrt{g}
-    !C
-    !C d0cogrr : g_{\rho\rho}*\rho
-    !C d0cogrp : g_{\rho\chi}
-    !C d0cogpp : g_{\chi\chi}
-    !C d0cogtt : g_{\zeta\zeta}
-    !C
-    !C d0ctgrr : g^{\rho\rho}
-    !C d0ctgrp : g^{\rho\chi}
-    !C d0ctgpp : g^{\chi\chi}*\rho
-    !C d0ctgtt : g^{\zeta\zeta} 
-    !C
-    !C d0ugr   : CT RADIAL   FLAME MOVING VELOCITY   : u_{g}^{\rho}
-    !C d0ugr   : CT POLOIDAL FLAME MOVING VELOCITY   : u_{g}^{\rho}
-    !C
-    !C d0ctbp  : CT POLOIDAL MAGNETIC FIELD          : B^{\chi}
-    !C d0bp2   : SQUARED INTENSITY 
-    !C                   of POLOIDAL MAGENTIC FIELD  : Bp^{2}
-    !C d0bt2   : SQUARED INTENSITY 
-    !C                   of TOROIDAL MAGENTIC FIELD  : Bt^{2}
-    !C d0bb    : INTENSITY OF MAGNETIC FIELD         : B 
-    !C d0bb2   : SQUARED INTENSITY of MAGNETIC FIELD : B^{2} 
-    !C
-    
-    d0psip  = d0mfcst*d2xvec_befor(1,i0xid1d)
-    d0cobt  = d0btcst*d2xvec_befor(2,i0xid1d)
-    
-    d0sqrtg = d2jm1(1,i0midi)
-    d0cogrr = d2jm1(2,i0midi)
-    d0cogrp = d2jm1(3,i0midi)
-    d0cogpp = d2jm1(4,i0midi)
-    d0cogtt = d2jm1(5,i0midi)
-    d0ctgrr = d2jm1(6,i0midi)
-    d0ctgrp = d2jm1(7,i0midi)
-    d0ctgpp = d2jm1(8,i0midi)
-    d0ctgtt = d2jm1(9,i0midi)
+       
+       urCtA = frCtA/nnA
+       ubA   = fbA  /nnA
+       utCoA = ftCoA/nnA
+       upCtA = fpCtA/nnA
+       
+       
+       wrCtA = qrCtA/ppA
+       wbA   = qbA  /ppA
+       wtCoA = qtCoA/ppA
+       wpCtA = qpCtA/ppA
+       
+       Nn(  i_s) = nnA
+       FrCt(i_s) = frCtA
+       Fb(  i_s) = fbA
+       FtCo(i_s) = ftCoA
+       FpCt(i_s) = fpCtA
 
-    d0ctbp = d0psip/d0sqrtg
-    d0ctbt = d0cobt*d0ctgtt
-    
-    d0ugr = 0.D0
-    d0ugp = 0.D0
-    
-    d0bp2 = (d0ctbp**2)*d0cogpp
-    d0bt2 = (d0cobt**2)*d0ctgtt
+       UrCt(i_s) = urCtA
+       Ub(  i_s) = ubA
+       UtCo(i_s) = utCoA
+       UpCt(i_s) = upCtA
+       UuSq(i_s) = upCtA*upCtA*G22Co + utCoA*utCoA*G33Ct
 
-    d0bb2 = d0bp2 + d0bt2
-    d0bb  = SQRT(d0bb2)
-    
-    DO i0sidi = 1, i0smax 
+       Pp(  i_s) = ppA
+       QrCt(i_s) = qrCtA
+       Qb(  i_s) = qbA
+       QtCo(i_s) = qtCoA
+       QpCt(i_s) = qpCtA
+
+       WrCt(i_s) = wrCtA
+       Wb(  i_s) = wbA
+       WtCo(i_s) = wtCoA
+       WpCt(i_s) = wpCtA
        
-       d1ur(i0sidi) = d1fr(i0sidi)*d1ni(i0sidi)
-       d1ub(i0sidi) = d1fb(i0sidi)*d1ni(i0sidi)
-       d1ut(i0sidi) = d1ft(i0sidi)*d1ni(i0sidi)
-       d1up(i0sidi) = d1fp(i0sidi)*d1ni(i0sidi)
-    
-       d1u2(i0sidi) = d1ub(i0sidi)*d1ub(i0sidi)
-       
-       d1wb(i0sidi) = d1qb(i0sidi)*d1pi(i0sidi)
-       d1wt(i0sidi) = d1qt(i0sidi)*d1pi(i0sidi)
-       d1wp(i0sidi) = d1qp(i0sidi)*d1pi(i0sidi)
-       
-       d1tt(i0sidi) = d1pp(i0sidi)*d1ni(i0sidi)
-       d1ti(i0sidi) = d1nn(i0sidi)*d1pi(i0sidi)
-       
+       Tt(i_s) = ppA/nnA
     ENDDO
     
-    !C
-    !C SET WORKING SCALAR FOR DIFFERENTIAL (GROBAL)
-    !C
-    !C D2WS(1   ,:): MAGNETIC FIELD INTENSITY      : B   
-    !C D2WS(2   ,:): MAJOR RADIUS                  : R   
-    !C D2WS(2N+1,:): NORMALISED PARALLEL FLOW      : u_{a\para}/ubcst
-    !C D2WS(2N+2,:): NORMALIZED PARALLEL HEAT FLOW : w_{a\para}/wbcst
-    !C
-    !C      checked 2014-02-20 by H.Seto
-    !C
-    
-    d2ws(         1,i0midi) = d0bb
-    d2ws(         2,i0midi) = d0rzcr
-    
-    DO i0sidi = 1, i0smax
-       i0widi = 2*i0sidi
-       d2ws(i0widi+1,i0midi) = d1ub(i0sidi)/d0ubcst
-       d2ws(i0widi+2,i0midi) = d1wb(i0sidi)/d0wbcst
-    ENDDO
-    
-    !C
-    !C FOR COLLISION AND VISCOUS TERMS
-    !C
-    !C
-    !C THERMAL VELOCITY [m/s]
-    !C v_{ta} = \sqrt{2T_{a}/M_{a}}
-    !C
-    !C      checked 2014-02-20 by H.Seto
-    !C
-    
-    DO i0sidi = 1, i0smax
-       d0mm_a = d1mm(i0sidi)
-       d0tt_a = d1tt(i0sidi)
-       d0ti_a = d1ti(i0sidi)
-       d1vt( i0sidi) = SQRT(2.0D0/d0mm_a*d0tt_a)
-       d1vti(i0sidi) = SQRT(0.5D0*d0mm_a*d0ti_a)
-    ENDDO
-    
-    !C COULOMB LOGARITHM
-    !C ref: NRL PLASMA FORMULARY 2011
-    !C FOR DEBUG lnA = 17
-    !C d2clog: COULOMB LOGARITHM
-    
-    DO i0sidi = 1, i0smax
-    DO i0sidj = 1, i0smax
-       d2clog(i0sidi,i0sidj) = 17.D0
-    ENDDO
-    ENDDO
-    
-    !C
-    !C BASIC COLLISION FREQUENCY  [1/s]
-    !C REF: COLLISIONAL TRANSPORT IN MAGNETIZED PLASMAS
-    !C      P. HELANDER AND D.J. SIGMAR (2002)  P.277
-    !C
-    !C      checked 2014-02-12 by H.Seto
-    !C
-    DO i0sidj = 1, i0smax
-    DO i0sidi = 1, i0smax
-       d0clog_ab = d2clog(i0sidi,i0sidj)
-       d0nn_b    = d1nn( i0sidj)
-       d0ee_b    = d1ee( i0sidj)
-       d0mm_a    = d1mm( i0sidi)
-       d0ee_a    = d1ee( i0sidi)       
-       d0vti_a   = d1vti(i0sidi)
-       d2bcf(i0sidi,i0sidj)&
-            = (d0nn_b*(d0ee_a**2)*(d0ee_b**2)*d0clog_ab*(d0vti_a**3))&
-            / (4.D0*d0pi*(d0eps0**2)*(d0mm_a**2))
+    ! THERMAL VELOCITY [m/s]
+    ! v_{ta} = \sqrt{2T_{a}/M_{a}}
+    DO i_s = 1, NSMAX
+       ttA = Tt(i_s)
+       mmA = Mm(i_s)
+       Vv(i_s) = SQRT(2.0D0*ttA/mmA)
+    ENDDO 
+
+    ! COULOMB LOGARITHM lnLamb 
+    ! ref: Tokamaks 3rd Ed. J.Wesson et al., P.740
+    !nnE_E20 = Nn(1)*1.D-20
+    !ttE_keV = Tt(1)*1.D-3/Aee
+    ! electron-electron collision
+    !lnLamb(1,1)        = 14.9D0 - 0.5D0*LOG(nnE_E20) + LOG(ttE_keV)
+    !! electron-ion collision
+    !DO i_s = 1, NSMAX!
+    !   lnLamb(i_s,  1) = 15.2D0 - 0.5D0*LOG(nnE_E20) + LOG(ttE_keV)
+    !   lnLamb(  1,i_s) = lnLamb(  1,i_s)
+    !ENDDO
+
+    DO j_s = 1, NSMAX
+    DO i_s = 1, NSMAX
+       lnLamb(i_s,j_s) = 17.D0! for debug
     ENDDO
     ENDDO
 
-    !C
-    !C COLLISION FREQUENCY [1/s]
-    !C REF: COLLISIONAL TRANSPORT IN MAGNETIZED PLASMAS
-    !C      P. HELANDER AND D.J. SIGMAR (2002)  P.277
-    !C
-    !C      checked 2014-02-12 by H.Seto
-    !C
-    DO i0sidj = 1, i0smax
-    DO i0sidi = 1, i0smax
-       d2cfreq(i0sidi,i0sidj) &
-            = d2bcf(i0sidi,i0sidj)/(0.75D0*SQRT(d0pi))
+    !  basic collision frequency [Hz]
+    !  ref: COLLISIONAL TRANSPORT IN MAGNETIZED PLASMAS
+    !      P. HELANDER AND D.J. SIGMAR (2002)  P.277
+    DO j_s = 1, NSMAX
+       eeB   = Ee(j_s)
+       nnB   = Nn(j_s)
+       DO i_s = 1, NSMAX
+          eeA = Ee(i_s)
+          mmA = Mm(i_s)
+          vvA = Vv(i_s)
+          lnLambAB = lnLamb(i_s,j_s)
+          BaseNu(i_s,j_s) = (nnB*(eeA**2)*(eeB**2)*lnLambAB) &
+               &          / (4.D0*Pi*(Eps0**2)*(mmA**2)*(vvA**3))
+       ENDDO
     ENDDO
-    ENDDO
-    
-    !C 
-    !C FOR FRICTION COEFFICIENTS
-    !C 
 
-    !C
-    !C BRAGINSKII'S MATRIX ELEMENT OF COLLISION OPERATOR
-    !C REF: COLLISIONAL TRANSPORT IN MAGNETIZED PLASMAS
-    !C      P. HELANDER AND D.J. SIGMAR (2002)
-    !C      P.278
-    !C
-    !C DEFINITION OF VARIABLES FOR DIMENSIONLESS PARAMETERS
-    !C
-    !C d2x   = x_ab = v_{tb}/v_{ta}
-    !C d2y   = y_ab = m_{a} /m_{b}
-    !C d2z   = t_ab = t_{a} /t_{b}
-    !C d0wv2 = 1/SQRT(1 + x_{ab}^{2})
-    !C
-    !C DEFINITION OF VARIABLRS FOR BRAGINSKII MATRIX ELEMENTS
-    !C 
-    !C d2bmem00: M_{ab}^{00}
-    !C d2bmem01: M_{ab}^{01}
-    !C d2bmem10: M_{ab}^{10}
-    !C d2bmem11: M_{ab}^{11}
-    !C d2bmen00: N_{ab}^{00}
-    !C d2bmen01: N_{ab}^{01}
-    !C d2bmen10: N_{ab}^{10}
-    !C d2bmen11: N_{ab}^{11}    
-    !C
+    ! COLLISION FREQUENCY [1/s]
+    ! REF: COLLISIONAL TRANSPORT IN MAGNETIZED PLASMAS
+    !      P. HELANDER AND D.J. SIGMAR (2002)  P.277
+    DO j_s = 1, NSMAX
+    DO i_s = 1, NSMAX
+       Nu(i_s,j_s) = BaseNu(i_s,j_s)/(0.75D0*SQRT(Pi))
+    ENDDO
+    ENDDO
 
-    DO i0sidj = 1, i0smax
-    DO i0sidi = 1, i0smax 
-       d2x(i0sidi,i0sidj) = d1vti(i0sidi)*d1vt(i0sidj)
-       d2y(i0sidi,i0sidj) = d1mm( i0sidi)/d1mm(i0sidj)
-       d2z(i0sidi,i0sidj) = d1tt( i0sidi)*d1ti(i0sidj)
+    ! HEAT EXCHANGE FREQUENCY [Hz]
+    temp = 3.D0*SQRT(2.D0)*(SQRT(PI)**3)*(EPS0**2)
+    DO j_s = 1,NSMAX
+    DO i_s = 1,NSMAX
+       Nuh(i_s,j_s) = temp*Mm(i_s)*Mm(j_s)&
+            &  * (SQRT(Tt(i_s)/Mm(i_s) + Tt(j_s)/Mm(j_s))**3) &
+            &  /(Nn(j_s)*(Ee(i_s)**2)*(Ee(j_s)**2)*lnLamb(i_s,j_s))
     ENDDO
     ENDDO
     
-    DO i0sidj = 1, i0smax
-    DO i0sidi = 1, i0smax
-       
-       d0x_ab  = d2x(i0sidi,i0sidj) 
-       d0y_ab  = d2y(i0sidi,i0sidj)
-       d0z_ab  = d2z(i0sidi,i0sidj)
-       d0zi_ab = d2z(i0sidj,i0sidi)
-       
-       d0wv2   = 1.D0/SQRT(1.D0 + d0x_ab**2)
-       
-       d0bmem00_ab = -        (1.D0+d0y_ab)*(d0wv2**3)
-       d0bmem01_ab = -  1.5D0*(1.D0+d0y_ab)*(d0wv2**5)
-       d0bmem11_ab = - (3.25D0+4.D0*(d0x_ab**2)&
-                     +  7.50D0*(d0x_ab**4))*(d0wv2**5)
-       
-       d2bmem00(i0sidi,i0sidj) = d0bmem00_ab
-       d2bmem01(i0sidi,i0sidj) = d0bmem01_ab
-       d2bmem10(i0sidi,i0sidj) = d0bmem01_ab
-       d2bmem11(i0sidi,i0sidj) = d0bmem11_ab
-       
-       d2bmen00(i0sidi,i0sidj) = - d0bmem00_ab
-       d2bmen01(i0sidj,i0sidi) = - d0bmem01_ab*d0x_ab*d0zi_ab
-       d2bmen10(i0sidi,i0sidj) = - d0bmem01_ab
-       d2bmen11(i0sidi,i0sidj) = 6.75D0*d0z_ab*(d0x_ab**2)*(d0wv2**5)
-       
-    ENDDO
-    ENDDO
+    ! DEFINITION OF DIMENSIONLESS PARAMETERS 
+    !
+    ! x(i_s,j_s) = x_ab = v_{tb}/v_{ta}
+    ! y(i_s,j_s) = y_ab = m_{ a}/m_{ b}
+    ! z(i_s,j_s) = z_ab = t_{ a}/t_{ b}
     
-    !C
-    !C PARALLEL FRICTION COEFFICIENTS
-    !C REF: COLLISIONAL TRANSPORT IN MAGNETIZED PLASMAS
-    !C      P. HELANDER AND D.J. SIGMAR (2002) P.239 
-    !C 
-    !C DEFINITION OF VARIABLRS FOR NEOCLASSICAL FRICTION COEFFICIENTS
-    !C
-    !C d2nfcl11: l^{ab}_{11}
-    !C d2nfcl12: l^{ab}_{12}
-    !C d2nfcl21: l^{ab}_{21}
-    !C d2nfcl22: l^{ab}_{22}
-
-    d0nfcl11_ab = 0.D0
-    d0nfcl12_ab = 0.D0
-    d0nfcl21_ab = 0.D0
-    d0nfcl22_ab = 0.D0
-    
-    DO i0sidj = 1, i0smax
-    DO i0sidi = 1, i0smax
-       
-       d0cfreq_ab  = d2cfreq( i0sidi,i0sidj)
-       
-       d0bmen00_ab = d2bmen00(i0sidi,i0sidj)
-       d0bmen01_ab = d2bmen01(i0sidi,i0sidj)
-       d0bmen10_ab = d2bmen10(i0sidi,i0sidj)
-       d0bmen11_ab = d2bmen11(i0sidi,i0sidj)
-       
-       d0nfcl11_ab = d0bmen00_ab*d0cfreq_ab
-       d0nfcl12_ab = d0bmen01_ab*d0cfreq_ab
-       d0nfcl21_ab = d0bmen10_ab*d0cfreq_ab
-       d0nfcl22_ab = d0bmen11_ab*d0cfreq_ab
-       
-       IF(i0sidi.EQ.i0sidj)THEN
-          
-          DO i0sidk = 1, i0smax
-             
-             d0cfreq_ac  = d2cfreq( i0sidi,i0sidk)
-             
-             d0bmem00_ac = d2bmem00(i0sidi,i0sidk)
-             d0bmem01_ac = d2bmem01(i0sidi,i0sidk)
-             d0bmem10_ac = d2bmem10(i0sidi,i0sidk)
-             d0bmem11_ac = d2bmem11(i0sidi,i0sidk)
-             
-             d0nfcl11_ab = d0nfcl11_ab + d0bmem00_ac*d0cfreq_ac
-             d0nfcl12_ab = d0nfcl12_ab + d0bmem01_ac*d0cfreq_ac
-             d0nfcl21_ab = d0nfcl21_ab + d0bmem10_ac*d0cfreq_ac
-             d0nfcl22_ab = d0nfcl22_ab + d0bmem11_ac*d0cfreq_ac
-             
-          ENDDO
-          
-       ENDIF
-       
-       d0wv3 = d1mm(i0sidi)*d1nn(i0sidi)
-       
-       d2nfcl11(i0sidi,i0sidj) = d0nfcl11_ab*d0wv3 ! l_{11}^{ab}
-       d2nfcl12(i0sidi,i0sidj) = d0nfcl12_ab*d0wv3 ! l_{12}^{ab}
-       d2nfcl21(i0sidi,i0sidj) = d0nfcl21_ab*d0wv3 ! l_{21}^{ab}
-       d2nfcl22(i0sidi,i0sidj) = d0nfcl22_ab*d0wv3 ! l_{22}^{ab}
-
-    ENDDO
-    ENDDO
-       
-
-    !C PARALLEL FRICTION COEFFICIENTS 
-    !C          WITH RESPECT TO MOMENTUM AND TOTAL HEAT FLUX
-    !C
-    !C DEFINITION OF VARIABLRS 
-    !C            FOR NEOCLASSICAL FRICTION COEFFICIENTS
-    !C
-    !C d2nfcf1: \bar{l}^{ab}_{1}
-    !C d2nfcf2: \bar{l}^{ab}_{2}
-    !C d2nfcf3: \bar{l}^{ab}_{3}
-    !C d2nfcf4: \bar{l}^{ab}_{4}
-    
-    DO i0sidj = 1, i0smax
-    DO i0sidi = 1, i0smax
-       
-       d0nfcl11_ab = d2nfcl11(i0sidi,i0sidj)
-       d0nfcl12_ab = d2nfcl12(i0sidi,i0sidj)
-       d0nfcl21_ab = d2nfcl21(i0sidi,i0sidj)
-       d0nfcl22_ab = d2nfcl22(i0sidi,i0sidj)
-       
-       d0nfcf1_ab =   d0nfcl11_ab + d0nfcl12_ab
-       d0nfcf2_ab = - d0nfcl12_ab * 0.4D0 
-       d0nfcf3_ab = - d0nfcl21_ab + d0nfcl22_ab
-       d0nfcf4_ab =   d0nfcl22_ab * 0.4D0
-       
-       d0nfcf3_ab = 2.5D0*d0nfcf1_ab+d0nfcf3_ab
-       d0nfcf4_ab = 2.5D0*d0nfcf2_ab+d0nfcf4_ab
-       
-       d2nfcf1(i0sidi,i0sidj) = d0nfcf1_ab
-       d2nfcf2(i0sidi,i0sidj) = d0nfcf2_ab
-       d2nfcf3(i0sidi,i0sidj) = d0nfcf3_ab
-       d2nfcf4(i0sidi,i0sidj) = d0nfcf4_ab
-       
-    ENDDO
-    ENDDO
-    
-    !C
-    !C HEAT EXCHANGE COEFFICIENT
-    !C CHECKED 2013-02-20
-    !C
-    
-    DO i0sidi = 1, i0smax
-       d1hex(i0sidi) = 0.D0
-       DO i0sidj = 1, i0smax
-          d0zi_ab       = d2z(    i0sidj,i0sidi)
-          d0cfreq_ab    = d2cfreq(i0sidi,i0sidj)
-          d1hex(       i0sidi) &
-               = d1hex(i0sidi) + 1.5D0*(1.D0 - d0zi_ab)*d0cfreq_ab
+    DO j_s = 1, NSMAX
+       vvB = Vv(j_s)
+       mmB = Mm(j_s)
+       ttB = Tt(j_s)
+       DO i_s = 1, NSMAX 
+          vvA = Vv(i_s)
+          mmA = Mm(i_s)
+          ttA = Tt(i_s)
+          X(i_s,j_s) = vvB/vvA
+          Y(i_s,j_s) = mmA/mmB
+          Z(i_s,j_s) = ttA/ttB
        ENDDO
     ENDDO
     
-    !C
-    !C NEOCLASSICAL PARALLEL COEFFICIENTS
-    !C REF: COLLISIONAL TRANSPORT IN MAGNETIZED PLASMAS
-    !C      P. HELANDER AND D.J. SIGMAR (2002)  CHAP.12 AND P.279
-    !C
-    !C d0iar: INVERSE ASPECT RATIO: r/R
-    !C d0tcr: TRAPPED/CIRCULATING RATE: f_t/f_c
-    !C d0cbn: COEFFICIENT FOR BANANA REGIME
-    !C d0cps: COEFFICIENT FOR PS     REGIME
-    !C
-    !C d0k11ps: MOD VISCOSITY COEFFICIENT IN PS REGIME : K^{11}_{aPS}
-    !C d0k12ps: MOD VISCOSITY COEFFICIENT IN PS REGIME : K^{12}_{aPS}
-    !C d0k22ps: MOD VISCOSITY COEFFICIENT IN PS REGIME : K^{22}_{aPS}
-    !C
-    !C d0k11bn: MOD VISCOSITY COEFFICIENT IN BN REGIME : K^{11}_{aBN}
-    !C d0k12bn: MOD VISCOSITY COEFFICIENT IN BN REGIME : K^{12}_{aBN}
-    !C d0k22bn: MOD VISCOSITY COEFFICIENT IN BN REGIME : K^{22}_{aBN}
-    !C
-    !C d0k11  : MOD VISCOSITY COEFFICIENT              : K^{11}_{a}
-    !C d0k12  : MOD VISCOSITY COEFFICIENT              : K^{12}_{a}
-    !C d0k22  : MOD VISCOSITY COEFFICIENT              : K^{22}_{a}
-    !C
-    !C d1nvcm1 : NEOCLASSICAL VISCOSITY COEFFICIENT     : \mu_{1a}
-    !C d1nvcm2 : NEOCLASSICAL VISCOSITY COEFFICIENT     : \mu_{2a} 
-    !C d1nvcm3 : NEOCLASSICAL VISCOSITY COEFFICIENT     : \mu_{3a} 
-    !C
+    RETURN
 
-    d0temp  = SQRT(d0iar*SQRT(d0mfcr))
-    d0temp2 = (d0temp**3)*(d0ctbp**2)
-    d0temp3 = 3.D0*(1.D0-1.46D0*d0temp)
+  END SUBROUTINE T2CALV_SETUP
+
+  ! BRAGINSKII'S MATRIX ELEMENT OF COLLISION OPERATOR
+  ! REF: COLLISIONAL TRANSPORT IN MAGNETIZED PLASMAS
+  !      P. HELANDER AND D.J. SIGMAR (2002)
+  !      P.239, P.278
+  !
+  ! temp = 1/SQRT(1 + x_{ab}^{2})
+  !
+  ! DEFINITION OF VARIABLRS FOR BRAGINSKII MATRIX ELEMENTS
+  ! 
+  ! m00[i_s,j_s] : M_{ab}^{00} [ND]
+  ! m01[i_s,j_s] : M_{ab}^{01} [ND]
+  ! m10[i_s,j_s] : M_{ab}^{10} [ND]
+  ! m11[i_s,j_s] : M_{ab}^{11} [ND]
+  ! n00[i_s,j_s] : N_{ab}^{00} [ND]
+  ! n01[i_s,j_s] : N_{ab}^{01} [ND]
+  ! n10[i_s,j_s] : N_{ab}^{10} [ND]
+  ! n11[i_s,j_s] : N_{ab}^{11} [ND]
+  ! l11[i_s,j_s] : l^{ab}_{11} [kg/m2*s2]
+  ! l12[i_s,j_s] : l^{ab}_{12} [kg/m2*s2]
+  ! l21[i_s,j_s] : l^{ab}_{21} [kg/m2*s2]
+  ! l22[i_s,j_s] : l^{ab}_{22} [kg/m2*s2] 
+  !
+  !
+  !
+  ! RESULT OF TEST CALCULATION
+  !
+  !  TASK/T2 with lnLamb=17.D0   H and S .P242 with Z=1.D0
+  !
+  ! l^{ee}_{11}/Coef = 0.9986       1.00
+  ! l^{ee}_{12}/Coef = 1.4994       1.50
+  ! l^{ee}_{21}/Coef = 1.4994       1.50
+  ! l^{ee}_{22}/Coef = 4.6631       4.66
+  !
+  !  TASK/T2 with lnLamb=17.D0   H and S .P242 with Z=1.D0
+  !
+  ! l^{ei}_{11}/Coef = 0.9986       1.00
+  ! l^{ei}_{12}/Coef = 4.0830D-4    0
+  ! l^{ei}_{21}/Coef = 1.4994       1.50
+  ! l^{ei}_{22}/Coef = 1.8368D-3    0
+  !
+  SUBROUTINE T2CALV_FRICTION_COEFFICIENT
+    
+    USE T2CNST,ONLY: Eps0,Pi,Aee
+    
+    USE T2COMM,ONLY:&
+         & NSMAX, R_rz, R_mc, BaseNu,Nu,X, Y, Z, Mm, Nn,&
+         & L11,L12,L21,L22,Hex
+    
+    INTEGER(ikind)::i_s,j_s,k_s
+    REAL(   rkind)::&
+         & temp,xAB,yAB,zAB,zBA,&
+         & nuAB,m00AB,m01AB,m10AB,m11AB, &
+         & nuAC,m00AC,m01AC,m10AC,m11AC, &
+         &      n00AB,n01AB,n10AB,n11AB, &
+         &      l11AB,l12AB,l21AB,l22AB
+    
+    REAL(   rkind),DIMENSION(1:NSMAX,1:NSMAX)::&
+         & m00,m01,m10,m11,n00,n01,n10,n11,nuh
+    
+    ! REAL(   rkind):: mmE,nnE,nuEI,temp2! for debug
+    ! Braginsikii matrix elements: M^{ab]_{ij}, N^{ab}_{ij}
+    DO j_s = 1, NSMAX
+    DO i_s = 1, NSMAX
+       
+       xAB  = X(i_s,j_s) 
+       yAB  = Y(i_s,j_s)
+       zAB  = Z(i_s,j_s)
+       
+       temp = 1.D0/SQRT(1.D0+xAB**2)
+       m00AB = -(temp**3)*(1.D0+yAB)
+       m01AB = -(temp**5)*(1.D0+yAB)*1.5D0
+       m11AB = -(temp**5)*(3.25D0+4.D0*(xAB**2)+7.50D0*(xAB**4))
+       
+       m00(i_s,j_s) =  m00AB
+       m01(i_s,j_s) =  m01AB
+       m10(i_s,j_s) =  m01AB
+       m11(i_s,j_s) =  m11AB
+       
+       n00(i_s,j_s) = -m00AB
+       n01(j_s,i_s) = -m01AB*xAB/zAB
+       n10(i_s,j_s) = -m01AB
+       n11(i_s,j_s) = (temp**5)*6.75D0*zAB*(xAB**2)
+       
+    ENDDO
+    ENDDO
+    
+    ! PARALLEL FRICTION COEFFICIENTS: l^{ab]_{ij}
+    l11AB = 0.D0
+    l12AB = 0.D0
+    l21AB = 0.D0
+    l22AB = 0.D0
+    
+    DO j_s = 1, NSMAX
+    DO i_s = 1, NSMAX
+       nuAB  = Nu( i_s,j_s)
+
+       n00AB = n00(i_s,j_s)
+       n01AB = n01(i_s,j_s)
+       n10AB = n10(i_s,j_s)
+       n11AB = n11(i_s,j_s)
+       
+       l11AB = n00AB*nuAB
+       l12AB = n01AB*nuAB
+       l21AB = n10AB*nuAB
+       l22AB = n11AB*nuAB
+       
+       IF(i_s.EQ.j_s)THEN
+          DO k_s = 1, NSMAX
+             nuAC  = Nu( i_s,k_s)
+             
+             m00AC = m00(i_s,k_s)
+             m01AC = m01(i_s,k_s)
+             m10AC = m10(i_s,k_s)
+             m11AC = m11(i_s,k_s)
+             
+             l11AB = l11AB + m00AC*nuAC
+             l12AB = l12AB + m01AC*nuAC
+             l21AB = l21AB + m10AC*nuAC
+             l22AB = l22AB + m11AC*nuAC
+          ENDDO
+       ENDIF
+
+       temp = Mm(i_s)*Nn(i_s)
+       L11(i_s,j_s) = l11AB*temp ! l_{11}^{ab}
+       L12(i_s,j_s) = l12AB*temp ! l_{12}^{ab}
+       L21(i_s,j_s) = l21AB*temp ! l_{21}^{ab}
+       L22(i_s,j_s) = l22AB*temp ! l_{22}^{ab}
+    ENDDO
+    ENDDO       
+
+    !>>>>> ********** for debug ************* >>>>>
+    !mmE   = Mm(1)
+    !nnE   = Nn(1)
+    !nuEI  = Nu(1,2)
+    !temp2 = -mmE*nnE*nuEI
+    !print*,'r=',SQRT(R_mc)
+    !print*,'L^{ee}_{11}=',L11(1,1)/temp2,'L^{ee}_{12}/C =',L12(1,1)/temp2
+    !print*,'L^{ee}_{21}=',L21(1,1)/temp2,'L^{ee}_{12}/C =',L22(1,1)/temp2
+    !temp2 = mmE*nnE*nuEI
+    !print*,'r=',SQRT(R_mc)
+    !print*,'L^{ei}_{11}=',L11(1,2)/temp2,'L^{ei}_{12}/C =',L12(1,2)/temp2
+    !print*,'L^{ei}_{21}=',L21(1,2)/temp2,'L^{ei}_{12}/C =',L22(1,2)/temp2
+    !stop
+    ! <<<<< ********** for debug ************* <<<<<
    
-    DO i0xa = 1, i0smax
-       
-       d0mm_a = d1mm(i0xa)
-       d0nn_a = d1nn(i0xa)
-       d0pp_a = d1pp(i0xa)
-       
-       !C
-       !C MODIFIED VISCOSITY COEFFICIENT IN PS REGIME
-       !C
-       
-       CALL INTEG_F(fd0k11ps,d0k11ps,d0err,EPS=1.D-8,ILST=0)
-       CALL INTEG_F(fd0k12ps,d0k12ps,d0err,EPS=1.D-8,ILST=0)
-       CALL INTEG_F(fd0k22ps,d0k22ps,d0err,EPS=1.D-8,ILST=0)
-       
-       d0cps   = 0.4D0*d0pp_a*d0de
-       
-       d0k11ps = d0cps*d0k11ps
-       d0k12ps = d0cps*d0k12ps
-       d0k22ps = d0cps*d0k22ps
-
-       !C
-       !C MODIFIED VISCOSITY COEFFICIENT IN BN REGIME
-       !C 
-       
-       CALL INTEG_F(fd0k11bn,d0k11bn,d0err,EPS=1.D-8,ILST=0)
-       CALL INTEG_F(fd0k12bn,d0k12bn,d0err,EPS=1.D-8,ILST=0)
-       CALL INTEG_F(fd0k22bn,d0k22bn,d0err,EPS=1.D-8,ILST=0)
-       
-       d0cbn = 2.92D0*d0mm_a*d0nn_a*d0bt2*d0de/d0temp3
-       
-       d0k11bn = d0cbn*d0k11bn
-       d0k12bn = d0cbn*d0k12bn
-       d0k22bn = d0cbn*d0k22bn
-       
-       !C
-       !C MODIFIED VISCOSITY COEFFICIENT IN INTER-REGIMES 
-       !C
-       
-       d0k11 = d0k11bn*d0k11ps/(d0k11bn + d0k11ps*d0temp2)
-       d0k12 = d0k12bn*d0k12ps/(d0k12bn + d0k12ps*d0temp2)
-       d0k22 = d0k22bn*d0k22ps/(d0k22bn + d0k22ps*d0temp2)
-
-
-       
-       !C
-       !C NEOCLASSICAL VISCOSITY COEFFICIENTS: \mu_{ai}
-       !C
-       
-       d1nvcm1(i0xa) = d0k11
-       d1nvcm2(i0xa) = d0k12 - 2.5D0*d0k11
-       d1nvcm3(i0xa) = d0k22 - 5.0D0*d0k12 + 6.25D0*d0k11
-       
-    ENDDO
-        
-    !C d1nvcc1 : NEOCLASSICAL VISCOSITY COEFFICIENT : \bar{\mu}_{1a}
-    !C d1nvcc2 : NEOCLASSICAL VISCOSITY COEFFICIENT : \bar{\mu}_{2a} 
-    !C d1nvcc3 : NEOCLASSICAL VISCOSITY COEFFICIENT : \bar{\mu}_{3a} 
-    !C d1nvcc3 : NEOCLASSICAL VISCOSITY COEFFICIENT : \bar{\mu}_{3a} 
-    
-    DO i0sidi = 1, i0smax
-       
-       d0nvcm1_a = d1nvcm1(i0sidi)
-       d0nvcm2_a = d1nvcm2(i0sidi)
-       d0nvcm3_a = d1nvcm3(i0sidi)
-       
-       d0nvcc1_a = d0nvcm1_a - d0nvcm2_a
-       d0nvcc2_a = d0nvcm2_a * 0.4D0
-       d0nvcc3_a = d0nvcm2_a - d0nvcm3_a
-       d0nvcc4_a = d0nvcm3_a * 0.4D0
-       
-       d0nvcc3_a = 2.5D0*d0nvcc1_a + d0nvcc3_a
-       d0nvcc4_a = 2.5D0*d0nvcc2_a + d0nvcc4_a
-       
-       d1nvcc1(i0sidi) = d0nvcc1_a
-       d1nvcc2(i0sidi) = d0nvcc2_a
-       d1nvcc3(i0sidi) = d0nvcc3_a
-       d1nvcc4(i0sidi) = d0nvcc4_a
-
+    ! HEAT EXCHANGE TERM
+    DO i_s = 1, NSMAX
+       Hex(i_s) = 0.D0
+       DO j_s = 1, NSMAX
+          Hex(i_s) = Hex(i_s) + 1.5D0*(1.D0 - Z(j_s,i_s))*nuh(i_s,j_s)
+       ENDDO
     ENDDO
     
-    !C
-    !C COEFFICIENTS OF ANORMALOUS TRANSPORT BY QUASI-LINEAR THEORY
-    !C REF: S.I. Itoh, Phys. Fluids B, 4 796 (1992)
-    !C      K.C. Shaing, Phys. Plasmas, 31 2249 (1988)
-    !C      M. Honda et. al, Nucl. Fusion, 50 095012 
-    !C
+    RETURN
+    
+  END SUBROUTINE T2CALV_FRICTION_COEFFICIENT
 
-    IF(d0mfcr.LE.1.D0)THEN
-       d0d_anom = 0.45D0*d0mfcr+0.05D0
-       d0m_anom = 0.45D1*d0mfcr+0.05D1
-       d0x_anom = 0.45D1*d0mfcr+0.05D1
-    ELSE
-       d0d_anom = 0.5D0
-       d0m_anom = 0.5D1
-       d0x_anom = 0.5D1 
+  ! NEOCLASSICAL PARALLEL COEFFICIENTS
+  ! Ref: COLLISIONAL TRANSPORT IN MAGNETIZED PLASMAS
+  !      P. HELANDER AND D.J. SIGMAR (2002)  CHAP.12 AND P.279
+  !
+  !                 LAST UPDATE 2014-06-09 H.Seto 
+  !
+  !      trapped particle fraction rate is defined by
+  !
+  !      f_t = 1.46*(r/R0)^{1/2} - 0.46*(r/R0)^{3/2}
+  !      
+  ! Ref: Y.B. Kim et al., Phys. Fluids B 3 (1991) 2050
+  !
+  ! In TASK/T2 Kij is defined as follows 
+  !
+  ! On magnetic axis and outside LCFS
+  !
+  !            Kij = Kij_PS  (1)
+  !
+  ! inside LCFS except for magnetic axis
+  !
+  !            Kij = Kij_PS*Kij_BN/(Kij_PS+Kij_BN) (2)
+  ! 
+  ! (2) become (1) in the limit where r -> 0 or  r -> 1, 
+  ! since Kij_BN -> +infty and K_ij = Kij_PS
+  !
+  ! iar  : INVERSE ASPECT RATIO: r/R0
+  ! iarRt: Square root of inverse aspect ratio: SQRT(r/R0)  
+  ! f_t  : trapped particle fraction rate
+  ! q    : safety factor (in TASK/T2 q is defined 
+  !        by local magnetic slope
+  !                                   q =  B^{\zeta}/B^{\chi}
+  !
+  ! k11ps: MODIFIED VISCOSITY COEFFICIENT IN PS REGIME: K^{11}_{aPS}
+  ! k12ps: MODIFIED VISCOSITY COEFFICIENT IN PS REGIME: K^{12}_{aPS}
+  ! k22ps: MODIFIED VISCOSITY COEFFICIENT IN PS REGIME: K^{22}_{aPS}
+  !
+  ! k11bn: MODIFIED VISCOSITY COEFFICIENT IN BN REGIME: K^{11}_{aBN}
+  ! k12bn: MODIFIED VISCOSITY COEFFICIENT IN BN REGIME: K^{12}_{aBN}
+  ! k22bn: MODIFIED VISCOSITY COEFFICIENT IN BN REGIME: K^{22}_{aBN}
+  !
+  ! k11  : MODIFIED VISCOSITY COEFFICIENT             : K^{11}_{a}
+  ! k12  : MODIFIED VISCOSITY COEFFICIENT             : K^{12}_{a}
+  ! k22  : MODIFIED VISCOSITY COEFFICIENT             : K^{22}_{a}
+  !
+  ! mu1 : NEOCLASSICAL VISCOSITY COEFFICIENT          : mu_{1a}
+  ! mu2 : NEOCLASSICAL VISCOSITY COEFFICIENT          : mu_{2a} 
+  ! mu3 : NEOCLASSICAL VISCOSITY COEFFICIENT          : mu_{3a}
+  !
+  !  *****  RESULT OF TEST CALCULATION *****
+  ! in Banana Regime 
+  !   TASK/T2 with lnLamb= 17.D0    H & S P241 (12.48)
+  !  \hat{mu}_i1 = Coef*( 0.554)    Coef*( 0.533) 
+  !  \hat{mu}_i2 = Coef*(-0.634)    Coef*(-0.625)
+  !  \hat{mu}_i3 = Coef*( 1.413)    Coef*( 1.387)
+  !
+  ! in P-S Regime 
+  !
+  !   TASK/T2 with lnLamb= 17.D0    H & S P241 (12.48)
+  !   K_i11 = Coef*( 1.19)          Coef*( 1.26) 
+  !   K_i12 = Coef*( 5.56)          Coef*( 5.99)
+  !   K_i22 = Coef*( 31.8)          Coef*( 39.4)
+  !
+  SUBROUTINE T2CALV_VISCOUS_COEFFICIENT
+
+    USE T2CNST,ONLY: DeCoef
+    USE T2COMM,ONLY: NSMAX,RA,RR,R_mc,R_rz,I_xa,&
+         &           Mm,Nn,Pp,BtCt,BpCt,Mu1,Mu2,Mu3,Nu
+    USE LIBT2, ONLY:integ_f
+    
+    
+    REAL(   rkind)::&
+         & iar,iarRt,f_t,f_c,q,temp,&
+         & mmA,nnA,ppA,&
+         & psCoef,k11ps,k12ps,k22ps,&
+         & bnCoef,k11bn,k12bn,k22bn,&
+         &        k11,  k12,  k22,derr
+    REAL(   rkind)::&
+         temp2,nuII,mu1I,mu2I,mu3I
+    
+    IF((R_mc.GT.0.D0).AND.(R_mc.LT.1.D0))THEN
+       
+       iar   = RA*SQRT(R_mc)/RR
+       iarRt = SQRT(iar)
+       f_t   = 1.46D0*iarRt - 0.46D0*(iarRt**3)
+       f_c   = 1.D0 - f_t
+       q     = BtCt/BpCt 
+       temp  = (2.D0*(q**2)*(r_rz**2)*f_t*DeCoef) /(3.D0*(iar**2)*f_c)
+       
+       DO I_xa = 1, NSMAX
+          mmA = mm(I_xa)
+          nnA = nn(I_xa)
+          ppA = pp(I_xa)
+          
+          !C MODIFIED VISCOSITY COEFFICIENT IN PS REGIME
+          CALL INTEG_F(FUNC_k11ps,k11ps,derr,EPS=1.D-8,ILST=0)
+          CALL INTEG_F(FUNC_k12ps,k12ps,derr,EPS=1.D-8,ILST=0)
+          CALL INTEG_F(FUNC_k22ps,k22ps,derr,EPS=1.D-8,ILST=0)
+
+          psCoef = 0.4D0*ppA*DeCoef
+          
+          k11ps = psCoef*k11ps
+          k12ps = psCoef*k12ps
+          k22ps = psCoef*k22ps
+          
+          !>>>>> ********** for debug ************* >>>>>
+          !IF(i_xa.eq.2)THEN
+          !   temp2 = Pp(2)/Nu(2,2)
+          !   print*,'r=',SQRT(R_mc),'K11PS=',k11ps/temp2,&
+          !        'K12PS=',k12ps/temp2,'K22PS=',k22ps/temp2
+          !ENDIF
+          ! <<<<< ********** for debug ************* <<<<<
+
+          ! MODIFIED VISCOSITY COEFFICIENT IN BN REGIME
+          CALL INTEG_F(FUNC_k11bn,k11bn,derr,EPS=1.D-8,ILST=0)
+          CALL INTEG_F(FUNC_k12bn,k12bn,derr,EPS=1.D-8,ILST=0)
+          CALL INTEG_F(FUNC_k22bn,k22bn,derr,EPS=1.D-8,ILST=0)
+          !>>>>> ********** for debug ************* >>>>>
+          !IF(i_xa.eq.2)THEN
+          !   nuII = Nu(2,2)
+          !   mu1i = DeCoef/nuII* k11bn
+          !   mu2i = DeCoef/nuII*(k12bn-2.50D0*k11bn)
+          !   mu3i = DeCoef/nuII*(k22bn-5.00D0*k12bn + 6.25D0*k11bn)
+          !   print*,'r=',SQRT(R_mc),'mu1i=',mu1i,'mu2i=',mu2i,'mu3i=',mu3i
+          !ENDIF
+          ! <<<<< ********** for debug ************* <<<<<
+          
+          bnCoef = mmA*nnA*temp
+          
+          k11bn = bnCoef*k11bn
+          k12bn = bnCoef*k12bn
+          k22bn = bnCoef*k22bn
+          
+          ! MODIFIED VISCOSITY COEFFICIENT IN INTER-REGIMES 
+          k11 = k11bn*k11ps/(k11bn + k11ps)
+          k12 = k12bn*k12ps/(k12bn + k12ps)
+          k22 = k22bn*k22ps/(k22bn + k22ps)
+          
+          ! NEOCLASSICAL VISCOSITY COEFFICIENTS: \mu_{ai}
+          Mu1(I_xa) = k11
+          Mu2(I_xa) = k12 - 2.5D0*k11
+          Mu3(I_xa) = k22 - 5.0D0*k12 + 6.25D0*k11
+          
+       ENDDO
+    ELSE       
+       DO I_xa = 1, NSMAX
+          
+          ppA = pp(I_xa)
+          
+          !C MODIFIED VISCOSITY COEFFICIENT IN PS REGIME
+          CALL INTEG_F(FUNC_k11ps,k11ps,derr,EPS=1.D-8,ILST=0)
+          CALL INTEG_F(FUNC_k12ps,k12ps,derr,EPS=1.D-8,ILST=0)
+          CALL INTEG_F(FUNC_k22ps,k22ps,derr,EPS=1.D-8,ILST=0)
+          
+          psCoef = 0.4D0*ppA*DeCoef
+          
+          k11ps = psCoef*k11ps
+          k12ps = psCoef*k12ps
+          k22ps = psCoef*k22ps
+          
+          ! MODIFIED VISCOSITY COEFFICIENT IN INTER-REGIMES 
+          k11 = k11ps
+          k12 = k12ps
+          k22 = k22ps
+          
+          ! NEOCLASSICAL VISCOSITY COEFFICIENTS: \mu_{ai}
+          Mu1(I_xa) = k11
+          Mu2(I_xa) = k12 - 2.5D0*k11
+          Mu3(I_xa) = k22 - 5.0D0*k12 + 6.25D0*k11
+       ENDDO
     ENDIF
-
-    d0ti_e = d1ti(1)
-
-    !d0ct1_anom = (1.5D0 - (d0m_anom/d0d_anom)) * d0psip/d0aee
-    !d0ct2_anom = (2.5D0 - (d0x_anom/d0m_anom)) * d0psip/d0aee
-    d0ct1_anom = (1.0D0 ) * d0psip/d0aee
-    !d0ct2_anom = (2.0D0 - 2.D0) * d0psip/d0aee
-    d0ct2_anom = 0.D0
-    
-    DO i0sidi = 1, i0smax
-       d0ee_a = d1ee(i0sidi)
-       d0tt_a = d1tt(i0sidi)
-       d0sign = d0ee_a/ABS(d0ee_a)
-       d1cx1_anom(i0sidi) = d0sign*(d0aee**2)*d0ti_e*d0d_anom
-       !d1cx2_anom(i0sidi) = d0sign*(d0aee**2)*d0ti_e*d0m_anom*d0tt_a
-       d1cx2_anom(i0sidi) = 0.D0
-    ENDDO
-
-    RETURN
-    
-  END SUBROUTINE T2CALV_PQ
-  
-  !C---------------------------------------------------------
-  !C 
-  !C CALCULATION OF MASS SCALAR COEFFICIENTS
-  !C
-  !C             2014-04-01 H.SETO
-  !C
-  !C---------------------------------------------------------
-  
-  SUBROUTINE T2CALV_MS
-    
-    USE T2CNST, ONLY:&
-         d0vci2
-    
-    USE T2COMM, ONLY:&
-         & d0mfcst,d0btcst,d0etcst,d0epcst,        &
-         & d0nncst,        d0fbcst,d0ftcst,        &
-         & d0ppcst,        d0qbcst,d0qtcst,        &
-         & d0mffct,d0btfct,d0etfct,d0epfct,        &
-         & d0nnfct,        d0fbfct,d0ftfct,        &
-         & d0ppfct,        d0qbfct,d0qtfct,        &
-         & i0vmax,i0smax,d1mm,d3ms
-
-    REAL(   i0rkind)::&
-         d0mm_a
-    INTEGER(i0ikind)::&
-         i0vidi,i0vidj,i0sidi,i0vofi
-    
-    !C
-    !C INITIALIZATION
-    !C
-    
-    DO i0vidj = 1, i0vmax
-    DO i0vidi = 1, i0vmax
-       d3ms(i0vidi,i0vidj,i0midi) = 0.D0
-    ENDDO
-    ENDDO
-
-    !C
-    !C EQ_001
-    !C
-    
-    !C PSI'
-    i0vidi = 1
-    i0vidj = 1
-    d3ms(i0vidi,i0vidj,i0midi) = d0sqrtg        * d0mfcst/d0mffct
-    
-    !C
-    !C EQ_002
-    !C
-    
-    !C I
-    
-    i0vidi = 2
-    i0vidj = 2
-    d3ms(i0vidi,i0vidj,i0midi) = d0sqrtg        * d0btcst/d0btfct
-    
-
-    !C
-    !C EQ_003
-    !C
-    
-    !C Et
-    i0vidi = 3
-    i0vidj = 3
-    d3ms(i0vidi,i0vidj,i0midi) = d0sqrtg*d0vci2 * d0etcst/d0etfct
-    
-    
-    !C
-    !C EQ_004
-    !C
-    
-    !C \bar{Ep}
-    i0vidi = 4
-    i0vidj = 4
-    d3ms(i0vidi,i0vidj,i0midi)&
-         &              = d0sqrtg*d0mfcr*d0vci2 * d0epcst/d0epfct
-    
-    DO i0sidi = 1, i0smax
-       
-       i0vofi = 10*i0sidi
-       d0mm_a = d1mm(i0sidi)
-       
-       !C
-       !C EQ_006
-       !C
-       
-       i0vidi = i0vofi - 4
-       
-       !C N 
-       i0vidj = i0vofi - 4
-       d3ms(i0vidi,i0vidj,i0midi) = d0sqrtg     * d0nncst/d0nnfct
-
-       !C
-       !C EQ_008
-       !C 
-       
-       i0vidi = i0vofi - 2
-       
-       !C Fb
-       i0vidj = i0vofi - 2
-       d3ms(i0vidi,i0vidj,i0midi)&
-            &             = d0sqrtg*d0mm_a*d0bb * d0fbcst/d0fbfct
-       
-       !C
-       !C EQ_009
-       !C
-       
-       i0vidi = i0vofi - 1
-       
-       !C Ft
-       i0vidj = i0vofi - 1
-       d3ms(i0vidi,i0vidj,i0midi)&
-            &             = d0sqrtg*d0mm_a      * d0ftcst/d0ftfct
-       
-       !C
-       !C EQ_011
-       !C
-
-       i0vidi = i0vofi + 1
-       
-       !C P
-       i0vidj = i0vofi + 1
-       d3ms(i0vidi,i0vidj,i0midi)&
-            &             = d0sqrtg*1.5D0       * d0ppcst/d0ppfct 
-       
-       !C
-       !C EQ_013
-       !C
-
-       i0vidi = i0vofi + 3
-       
-       !C Qb       
-       i0vidj = i0vofi + 3
-       d3ms(i0vidi,i0vidj,i0midi)&
-            &             = d0sqrtg*d0mm_a*d0bb * d0qbcst/d0qbfct
-       
-       !C
-       !C EQ_014
-       !C
-
-       i0vidi = i0vofi + 4
-       
-       !C Qt
-       i0vidj = i0vofi + 4
-       d3ms(i0vidi,i0vidj,i0midi)&
-            &             = d0sqrtg*d0mm_a      * d0qtcst/d0qtfct 
-       
-    ENDDO
     
     RETURN
     
-  END SUBROUTINE T2CALV_MS
-  
-  !C---------------------------------------------------------
-  !C 
-  !C CALCULATION OF ADVECTION VECTOR COEFFICIENTS
-  !C
-  !C             2014-04-01 H.SETO
-  !C
-  !C---------------------------------------------------------
-  SUBROUTINE T2CALV_AV
-    
-    USE T2CNST, ONLY:&
-         d0vci2
-    
-    USE T2COMM, ONLY:&
-         & d0mfcst,d0btcst,d0etcst,d0epcst,d0ercst,&
-         & d0nncst,        d0fbcst,d0ftcst,        &
-         & d0ppcst,        d0qbcst,d0qtcst,        &
-         & d0mffct,d0btfct,d0etfct,d0epfct,d0erfct,&
-         & d0nnfct,        d0fbfct,d0ftfct,        &
-         & d0ppfct,        d0qbfct,d0qtfct,        &
-         & d1mm,d1tt,d1nn,d1pp,d1ni,d1pi,&
-         & d1ub,d1ur,d1ut,d1up,d1u2,d1qr,d1qb,d1qt,d1qp,&
-         & i0vmax,i0dmax,d4av
-    
-    INTEGER(i0ikind)::&
-         i0sidi,i0didi,i0vidi,i0vidj,i0vofi
-    
-    REAL(   i0rkind)::&
-         d0mm_a,d0tt_a,d0nn_a,d0pp_a,&
-         d0ni_a,d0pi_a,&
-         d0ur_a,d0up_a,d0ub_a,d0u2_a,&
-         d0qr_a,d0qp_a,d0qt_a,d0qb_a
-    
-    REAL(   i0rkind)::&
-         d0x1,d0x2
-    
-    !C
-    !C INITIALIZATION
-    !C
-    
-    DO i0vidj = 1, i0vmax
-    DO i0vidi = 1, i0vmax
-       DO i0didi = 1, i0dmax
-          d4av(i0didi,i0vidi,i0vidj,i0midi) = 0.D0
-       ENDDO
-    ENDDO
-    ENDDO
-    
-    !C
-    !C EQ_001
-    !C
-    
-    i0vidi = 1
-    
-    !C PSI'
-    i0vidj = 1
-    d4av(1,i0vidi,i0vidj,i0midi) = d0ugr            * d0mfcst/d0mffct
-    d4av(2,i0vidi,i0vidj,i0midi) = d0ugp            * d0mfcst/d0mffct
-    
-    !C
-    !C EQ_002
-    !C
-
-    i0vidi = 2
-    
-    !C I
-    i0vidj = 2
-    d4av(1,i0vidi,i0vidj,i0midi) = d0ugr            * d0btcst/d0btfct
-    d4av(2,i0vidi,i0vidj,i0midi) = d0ugp            * d0btcst/d0btfct
-    
-    !C
-    !C EQ_003
-    !C
-
-    i0vidi = 3
-    
-    !C PSI'
-    i0vidj = 1
-    d4av(1,i0vidi,i0vidj,i0midi) = -d0sqrtg*d0ctgrr * d0mfcst/d0etfct
-    d4av(2,i0vidi,i0vidj,i0midi) = -d0sqrtg*d0ctgrp * d0mfcst/d0etfct
-    
-    !C Et
-    i0vidj = 3
-    d4av(1,i0vidi,i0vidj,i0midi) =  d0ugr*d0vci2    * d0etcst/d0etfct
-    d4av(2,i0vidi,i0vidj,i0midi) =  d0ugp*d0vci2    * d0etcst/d0etfct
-    
-    !C
-    !C EQ_004
-    !C
-    
-    i0vidi = 4
-    
-    !C \bar{Ep}
-    i0vidj = 4
-    d4av(1,i0vidi,i0vidj,i0midi)&
-         &               =  d0ugr*d0vci2*d0mfcr     * d0epcst/d0epfct
-    d4av(2,i0vidi,i0vidj,i0midi)&
-         &               =  d0ugp*d0vci2*d0mfcr     * d0epcst/d0epfct
-    
-    !C
-    !C EQ_005
-    !C
-    
-    i0vidi = 5
-    
-    !C \bar{Ep}
-    i0vidj = 4
-    d4av(1,i0vidi,i0vidj,i0midi)&
-         &               =  d0sqrtg*d0ctgrp*d0mfcr  * d0epcst/d0erfct
-    d4av(2,i0vidi,i0vidj,i0midi)&
-         &               =  d0sqrtg*d0ctgpp         * d0epcst/d0erfct
-    
-    !C Er
-    i0vidj = 5
-    d4av(1,i0vidi,i0vidj,i0midi)&
-         &               =  d0sqrtg*d0ctgrr         * d0ercst/d0erfct
-    d4av(2,i0vidi,i0vidj,i0midi)&
-         &               =  d0sqrtg*d0ctgrp         * d0ercst/d0erfct
-    
-    DO i0sidi = 1, i0smax
-       
-       i0vofi = 10*i0sidi
-       
-       d0mm_a = d1mm(i0sidi)
-       d0tt_a = d1tt(i0sidi)
-       d0nn_a = d1nn(i0sidi)
-       d0ni_a = d1ni(i0sidi)
-       d0pi_a = d1pi(i0sidi)
-       d0ur_a = d1ur(i0sidi)
-       d0up_a = d1up(i0sidi)
-       d0ub_a = d1ub(i0sidi)
-       d0pp_a = d1pp(i0sidi)
-       d0u2_a = d1u2(i0sidi)
-       d0qr_a = d1qr(i0sidi)
-       d0qp_a = d1qp(i0sidi)
-       d0qb_a = d1qb(i0sidi)
-       d0qt_a = d1qt(i0sidi)
-
-
-       !C
-       !C EQ_006
-       !C
-       
-       i0vidi = i0vofi - 4
-       
-       !C N
-       i0vidj = i0vofi - 4 
-       d4av(1,i0vidi,i0vidj,i0midi)&
-            = (d0ugr + d0sqrtg*d0ur_a) * d0nncst/d0nnfct
-       d4av(2,i0vidi,i0vidj,i0midi)&
-            = (d0ugp + d0sqrtg*d0up_a) * d0nncst/d0nnfct
-       
-       !C
-       !C EQ_008
-       !C
-       
-       i0vidi = i0vofi - 2
-       
-       !C Fb
-       i0vidj = i0vofi - 2
-       d4av(1,i0vidi,i0vidj,i0midi)&
-            = d0ugr*d0bb*d0mm_a        * d0fbcst/d0fbfct
-       d4av(2,i0vidi,i0vidj,i0midi) &
-            = (d0ugr*d0bb + d0sqrtg*d0ctbp*d0ub_a)&
-            * d0mm_a                   * d0fbcst/d0fbfct
-       
-       !C P
-       i0vidj = i0vofi + 1
-       d4av(2,i0vidi,i0vidj,i0midi)&
-            = d0sqrtg*d0ctbp           * d0ppcst/d0fbfct
-       
-       !C
-       !C EQ_009
-       !C
-       
-       i0vidi = i0vofi - 1
-       
-       !C Ft
-       i0vidj = i0vofi - 1 
-       d4av(1,i0vidi,i0vidj,i0midi)&
-            = (d0ugr + d0sqrtg*d0ur_a)*d0mm_a * d0ftcst/d0ftfct
-       d4av(2,i0vidi,i0vidj,i0midi)&
-            = (d0ugp + d0sqrtg*d0up_a)*d0mm_a * d0ftcst/d0ftfct
-       
-       !C
-       !C EQ_011
-       !C
-       
-       i0vidi = i0vofi + 1
-       
-       d0x1 =  0.5D0*d0sqrtg*d0mm_a*d0nn_a*d0u2_a*d0pi_a
-       d0x2 =  d0sqrtg*d0pi_a
-       
-       !C P
-       i0vidj = i0vofi + 1
-       d4av(1,i0vidi,i0vidj,i0midi)&
-            = (1.5D0*d0ugr - d0x1*d0ur_a + d0x2*d0qr_a)&
-            * d0ppcst/d0ppfct
-       d4av(2,i0vidi,i0vidj,i0midi)&
-            = (1.5D0*d0ugp - d0x1*d0up_a + d0x2*d0qp_a)&
-            * d0ppcst/d0ppfct
-       
-       !C
-       !C EQ_013
-       !C
-       
-       i0vidi = i0vofi + 3
-       
-       !C Fb
-       i0vidj = i0vofi - 2
-       d4av(2,i0vidi,i0vidj,i0midi)&
-            = (d0qb_a - 1.5D0*d0pp_a*d0ub_a)&
-            * d0sqrtg*d0ctbp*d0ni_a*d0mm_a * d0fbcst/d0qbfct
-       
-       !C P
-       i0vidj = i0vofi + 1
-       d4av(2,i0vidi,i0vidj,i0midi)&
-            = 2.5D0*d0sqrtg*d0tt_a*d0ctbp  * d0ppcst/d0qbfct
-       
-       !C Qb
-       i0vidj = i0vofi + 3
-       d4av(1,i0vidi,i0vidj,i0midi)&
-            =  d0ugr*d0bb*d0mm_a           * d0qbcst/d0qbfct
-       d4av(2,i0vidi,i0vidj,i0midi)&
-            = (d0ugp*d0bb + d0sqrtg*d0ctbp*d0ub_a)&
-            * d0mm_a                       * d0qbcst/d0qbfct
-       
-       !C
-       !C EQ_014
-       !C
-       
-       i0vidi = i0vofi + 4
-       
-       !C Ft
-       i0vidj = i0vofi - 1
-       d4av(1,i0vidi,i0vidj,i0midi)&
-            = (d0qr_a - 1.5D0*d0pp_a*d0ur_a)&
-            * d0sqrtg*d0ni_a*d0mm_a           * d0ftcst/d0qtfct
-       d4av(2,i0vidi,i0vidj,i0midi)&
-            = (d0qp_a - 1.5D0*d0pp_a*d0up_a)&
-            * d0sqrtg*d0ni_a*d0mm_a           * d0ftcst/d0qtfct
-       
-       !C Qt
-       i0vidj = i0vofi + 4
-       d4av(1,i0vidi,i0vidj,i0midi)&
-            = (d0ugr + d0sqrtg*d0ur_a)*d0mm_a * d0qtcst/d0qtfct
-       d4av(2,i0vidi,i0vidj,i0midi)&
-            = (d0ugp + d0sqrtg*d0up_a)*d0mm_a * d0qtcst/d0qtfct
-       
-    ENDDO
-    
-    RETURN
-    
-  END SUBROUTINE T2CALV_AV
-
-  !C---------------------------------------------------------
-  !C 
-  !C CALCULATION OF ADVECTION TENSOR COEFFICIENTS
-  !C
-  !C             2014-03-05 H.SETO
-  !C
-  !C---------------------------------------------------------  
-  SUBROUTINE T2CALV_AT
-    
-    USE T2CNST
-    
-    USE T2COMM, ONLY:&
-         & i0vmax,i0dmax,i0wmax,&
-         &                         d0ftcst,d0fpcst,&
-         &                         d0qtcst,d0qpcst,&
-         &                 d0fbfct,d0ftfct,        &
-         & d0ppfct,        d0qbfct,d0qtfct,        &
-         & d1tt,d1ni,d1pi,d1ub,d1ur,d1up,&
-         & d1nvcc1,d1nvcc2,d1nvcc3,d1nvcc4,d6at    
-    
-    INTEGER(i0ikind)::&
-         i0sidi,i0didi,i0didj,i0widi,i0vidi,i0vidj,i0vofi
-    
-    REAL(   i0rkind)::&
-         d0mm_a,d0ni_a,d0pi_a,d0tt_a,d0ur_a,d0up_a,d0ub_a,&
-         d0nvcc1_a,d0nvcc2_a,d0nvcc3_a,d0nvcc4_a
-    
-    REAL(   i0rkind)::&
-         d0y1,  d0y2,  d0y3,&
-         d0x1,  d0x2,  d0x3,  d0x4,  d0x5,  d0x6,&
-         d0c1_a,d0c2_a,d0c3_a,d0c4_a,&
-         d0usr_a,d0usp_a
-    
-    !C
-    !C INITIALIZATION
-    !C
-
-    DO i0vidj = 1, i0vmax
-    DO i0vidi = 1, i0vmax
-       DO i0widi = 1, i0wmax
-          DO i0didj = 1, i0dmax
-          DO i0didi = 1, i0dmax
-             d6at(i0didi,i0didj,i0widi,i0vidi,i0vidj,i0midi) = 0.D0
-          ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-    ENDDO
-           
-    d0y1 = (d0sqrtg*d0bt2)/(d0bb2*d0bb)
-    d0y2 = d0ctbp/d0cobt
-    d0y3 = d0ctbp/d0bb2
-    
-    d0x1 =  d0y1*d0y2     *d0ctbp       *2.D0
-    d0x2 =  d0y1          *d0ctbp       *2.D0
-    d0x3 =  d0y1     *d0y3*d0ctbp       *3.D0
-    d0x4 =  d0y1     *d0y3       *d0cobt*3.D0
-    d0x5 =  d0y1*d0y2
-    d0x6 =  d0y1
-    
-    DO i0sidi = 1, i0smax
-    
-       i0vofi = 10*i0sidi
-
-       d0ur_a = d1ur(i0sidi)
-       d0up_a = d1up(i0sidi)
-       d0ub_a = d1ub(i0sidi)
-       d0ni_a = d1ni(i0sidi)
-       d0pi_a = d1pi(i0sidi)
-       d0tt_a = d1tt(i0sidi)
-
-
-       d0nvcc1_a = d1nvcc1(i0sidi)
-       d0nvcc2_a = d1nvcc2(i0sidi)
-       d0nvcc3_a = d1nvcc3(i0sidi)
-       d0nvcc4_a = d1nvcc4(i0sidi) 
-       
-       d0usr_a = d0ur_a
-       d0usp_a = d0up_a -3.D0*d0ub_a*d0ctbp/d0bb 
-       
-       d0c1_a = d0nvcc1_a*d0ni_a
-       d0c2_a = d0nvcc2_a*d0pi_a
-       d0c3_a = d0nvcc3_a*d0ni_a*d0tt_a
-       d0c4_a = d0nvcc4_a*d0pi_a*d0tt_a
-       
-       !C
-       !C EQ_008
-       !C
-       
-       i0vidi = i0vofi - 2
-       
-       !C Ft: (B) 
-       i0vidj = i0vofi - 1
-       i0widi = 1
-       d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0c1_a         * d0ftcst/d0fbfct
-       
-       !C Fp: (B)
-       i0vidj = i0vofi
-       i0widi = 1
-       d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x2*d0c1_a         * d0fpcst/d0fbfct
-       
-       !C Qt: (B)
-       i0vidj = i0vofi + 4
-       i0widi = 1
-       d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0c2_a         * d0qtcst/d0fbfct
-       
-       !C Qp: (B)
-       i0vidj = i0vofi + 5
-       i0widi = 1
-       d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x2*d0c2_a         * d0qpcst/d0fbfct
-       
-       !C
-       !C EQ_009
-       !C
-       
-       i0vidi = i0vofi - 1
-       
-       !C Ft: (B)
-       i0vidj = i0vofi - 1
-       i0widi = 1
-       d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x3*d0c1_a         * d0ftcst/d0ftfct
-
-       !C Fp (B)
-       i0vidj = i0vofi
-       i0widi = 1
-       d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x4*d0c1_a         * d0fpcst/d0ftfct
-       
-       !C Qt (B)
-       i0vidj = i0vofi + 4
-       i0widi = 1
-       d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x3*d0c2_a         * d0qtcst/d0ftfct
-
-       !C Qp (B)
-       i0vidj = i0vofi + 5
-       i0widi = 1
-       d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x4*d0c2_a         * d0qpcst/d0ftfct
-       
-       !C
-       !C EQ_011
-       !C
-       
-       i0vidi = i0vofi + 1
-       
-       !C Ft: (B)
-       i0vidj = i0vofi - 1
-       i0widi = 1
-       d6at(1,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x5*d0c1_a*d0usr_a * d0ftcst/d0ppfct
-       d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x5*d0c1_a*d0usp_a * d0ftcst/d0ppfct
-       
-       !C Fp: (B)
-       i0vidj = i0vofi
-       i0widi = 1
-       d6at(1,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x6*d0c1_a*d0usr_a * d0fpcst/d0ppfct
-       d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x6*d0c1_a*d0usp_a * d0fpcst/d0ppfct
-       
-       !C Qt: (B)
-       i0vidj = i0vofi + 4
-       i0widi = 1
-       d6at(1,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x5*d0c2_a*d0usr_a * d0qtcst/d0ppfct
-       d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x5*d0c2_a*d0usp_a * d0qtcst/d0ppfct
-
-       !C Qp: (B)
-       i0vidj = i0vofi + 5
-       i0widi = 1
-       d6at(1,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x6*d0c2_a*d0usr_a * d0qpcst/d0ppfct
-       d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x6*d0c2_a*d0usp_a * d0qpcst/d0ppfct
-       
-       !C
-       !C EQ_013
-       !C
-
-       i0vidi = i0vofi + 3
-       
-       !C Ft: (B)
-       i0vidj = i0vofi - 1
-       i0widi = 1
-       d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0c3_a         * d0ftcst/d0qbfct
-       
-       !C Fp: (B)
-       i0vidj = i0vofi
-       i0widi = 1
-       d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x2*d0c3_a         * d0fpcst/d0qbfct
-       
-       !C Qt: (B)
-       i0vidj = i0vofi + 4
-       i0widi = 1
-       d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0c4_a         * d0qtcst/d0qbfct
-       
-       !C Qp: (B)
-       i0vidj = i0vofi + 5
-       i0widi = 1
-       d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x2*d0c4_a         * d0qpcst/d0qbfct
-       
-       !C
-       !C EQ_014
-       !C
-       
-       i0vidi = i0vofi + 4
-       
-       !C Ft: (B)
-       i0vidj = i0vofi - 1
-       i0widi = 1
-       d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x3*d0c3_a         * d0ftcst/d0qtfct
-
-       !C Fp: (B)
-       i0vidj = i0vofi
-       i0widi = 1
-       d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x4*d0c3_a         * d0fpcst/d0qtfct
-       
-       !C Qt: (B)
-       i0vidj = i0vofi + 4
-       i0widi = 1
-       d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x3*d0c4_a         * d0qtcst/d0qtfct
-       
-       !C Qp: (B)
-       i0vidj = i0vofi + 5
-       i0widi = 1
-       d6at(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x4*d0c4_a         * d0qpcst/d0qtfct
-       
-    ENDDO
-    
-    RETURN
-    
-  END SUBROUTINE T2CALV_AT
-  
-  !C---------------------------------------------------------
-  !C 
-  !C CALCULATION OF DIFFUSION TENSOR COEFFICIENTS
-  !C
-  !C             2014-03-05 H.SETO
-  !C
-  !C---------------------------------------------------------  
-  SUBROUTINE T2CALV_DT
-    
-    USE T2CNST
-    USE T2COMM,ONLY:&
-         & i0vmax,i0dmax,i0vmax,&
-         & d0nncst,        d0fbcst,                &
-         & d0ppcst,        d0qbcst,                &
-         &                 d0fbfct,d0ftfct,        &
-         & d0ppfct,        d0qbfct,d0qtfct,        &
-         & d1ni,d1pi,d1tt,d1ur,d1up,d1ub,d1wb,&
-         & d1nvcc1,d1nvcc2,d1nvcc3,d1nvcc4,&
-         & d5dt
-    
-    INTEGER(i0ikind)::&
-         i0sidi,i0didi,i0didj,i0vidi,i0vidj,i0vofi
-    
-    REAL(   i0rkind)::&
-         d0ni_a,d0pi_a,d0tt_a,&
-         d0ur_a,d0up_a,d0ub_a,d0wb_a,&
-         d0usr_a,  d0usp_a,&
-         d0nvcc1_a,d0nvcc2_a,d0nvcc3_a,d0nvcc4_a
-    REAL(   i0rkind)::&
-         d0y1,&
-         d0x1,  d0x2,  d0x3,&
-         d0c1_a,d0c2_a,d0c3_a,d0c4_a
-
-    !C
-    !C INITIALIZATION
-    !C
-    
-    DO i0vidj = 1, i0vmax
-    DO i0vidi = 1, i0vmax
-       DO i0didj = 1, i0dmax
-       DO i0didi = 1, i0dmax
-          d5dt(i0didi,i0didj,i0vidi,i0vidj,i0midi) = 0.D0 
-       ENDDO
-       ENDDO
-    ENDDO
-    ENDDO
-    
-    d0y1 = d0sqrtg*d0ctbp/d0bb
-    d0x1 = d0y1*2.D0*d0ctbp
-    d0x2 = d0y1*3.D0*d0ctbp*d0cobt/d0bb2
-    d0x3 = d0y1
-    
-    DO i0sidi = 1, i0smax
-       
-       i0vofi = 10*i0sidi
-       
-       d0tt_a     = d1tt(i0sidi)
-       d0ni_a     = d1ni(i0sidi)
-       d0pi_a     = d1pi(i0sidi)
-       d0ur_a     = d1ur(i0sidi)
-       d0up_a     = d1up(i0sidi)
-       d0ub_a     = d1ub(i0sidi)
-       d0wb_a     = d1wb(i0sidi)
-
-       d0nvcc1_a  = d1nvcc1(i0sidi)
-       d0nvcc2_a  = d1nvcc2(i0sidi)
-       d0nvcc3_a  = d1nvcc3(i0sidi)
-       d0nvcc4_a  = d1nvcc4(i0sidi)
-       
-       d0usr_a = d0ur_a
-       d0usp_a = d0up_a - d0ub_a*3.D0*d0ctbp/d0bb
-       
-       d0c1_a = d0nvcc1_a*d0ni_a
-       d0c2_a = d0nvcc2_a*d0pi_a
-       d0c3_a = d0nvcc3_a*d0ni_a*d0tt_a
-       d0c4_a = d0nvcc4_a*d0pi_a*d0tt_a
-       
-       !C
-       !C EQ_008
-       !C
-       
-       i0vidi = i0vofi - 2
-       
-       !C N
-       i0vidj = i0vofi - 4
-       d5dt(2,2,i0vidi,i0vidj,i0midi)&
-            = -d0x1*d0c1_a        *d0ub_a * d0nncst/d0fbfct
-       
-       !C Fb
-       i0vidj = i0vofi - 2
-       d5dt(2,2,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0c1_a                * d0fbcst/d0fbfct
-       
-       !C P
-       i0vidj = i0vofi + 1
-       d5dt(2,2,i0vidi,i0vidj,i0midi)&
-            = -d0x1*d0c2_a        *d0wb_a * d0ppcst/d0fbfct
-       
-       !C Qb
-       i0vidj = i0vofi + 3
-       d5dt(2,2,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0c2_a                * d0qbcst/d0fbfct
-       
-       !C
-       !C  EQ_009
-       !C 
-       
-       i0vidi = i0vofi - 1
-       
-       !C N
-       i0vidj = i0vofi - 4
-       d5dt(2,2,i0vidi,i0vidj,i0midi)&
-            = -d0x2*d0c1_a        *d0ub_a * d0nncst/d0ftfct
-       !C Fb
-       i0vidj = i0vofi - 2
-       d5dt(2,2,i0vidi,i0vidj,i0midi)&
-            =  d0x2*d0c1_a                * d0fbcst/d0ftfct
-       !C P
-       i0vidj = i0vofi + 1
-       d5dt(2,2,i0vidi,i0vidj,i0midi)&
-            = -d0x2*d0c2_a        *d0wb_a * d0ppcst/d0ftfct
-       !C Qb
-       i0vidj = i0vofi + 3
-       d5dt(2,2,i0vidi,i0vidj,i0midi)&
-            =  d0x2*d0c2_a                * d0qbcst/d0ftfct
-       
-       !C
-       !C EQ_011
-       !C
-
-       i0vidi = i0vofi + 1
-       
-       !C N
-       i0vidj = i0vofi - 4
-       d5dt(1,2,i0vidi,i0vidj,i0midi) &
-            = -d0x3*d0c1_a*d0usr_a*d0ub_a * d0nncst/d0ppfct
-       d5dt(2,2,i0vidi,i0vidj,i0midi) &
-            = -d0x3*d0c1_a*d0usp_a*d0ub_a * d0nncst/d0ppfct
-       !C Fb
-       i0vidj = i0vofi - 2
-       d5dt(1,2,i0vidi,i0vidj,i0midi) &
-            =  d0x3*d0c1_a*d0usr_a        * d0fbcst/d0ppfct
-       d5dt(2,2,i0vidi,i0vidj,i0midi) &
-            =  d0x3*d0c1_a*d0usp_a        * d0fbcst/d0ppfct
-       !C P
-       i0vidj = i0vofi + 1
-       d5dt(1,2,i0vidi,i0vidj,i0midi) &
-            = -d0x3*d0c2_a*d0usr_a*d0wb_a * d0ppcst/d0ppfct
-       d5dt(2,2,i0vidi,i0vidj,i0midi) &
-            = -d0x3*d0c2_a*d0usp_a*d0wb_a * d0ppcst/d0ppfct
-       !C Qb
-       i0vidj = i0vofi + 3
-       d5dt(1,2,i0vidi,i0vidj,i0midi) &
-            =  d0x3*d0c2_a*d0usr_a        * d0qbcst/d0ppfct
-       d5dt(2,2,i0vidi,i0vidj,i0midi) &
-            =  d0x3*d0c2_a*d0usp_a        * d0qbcst/d0ppfct
-       
-       !C   
-       !C  EQ_013
-       !C
-       
-       i0vidi = i0vofi + 3
-       
-       !C N 
-       i0vidj = i0vofi - 4
-       d5dt(2,2,i0vidi,i0vidj,i0midi)&
-            = -d0x1*d0c3_a*d0ub_a         * d0nncst/d0qbfct
-       !C Fb
-       i0vidj = i0vofi - 2
-       d5dt(2,2,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0c3_a                * d0fbcst/d0qbfct
-       !C P 
-       i0vidj = i0vofi + 1
-       d5dt(2,2,i0vidi,i0vidj,i0midi)&
-            = -d0x1*d0c4_a*d0wb_a         * d0ppcst/d0qbfct
-       !C Qb
-       i0vidj = i0vofi + 3
-       d5dt(2,2,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0c4_a                * d0qbcst/d0qbfct
-       
-       !C
-       !C  EQ_014
-       !C 
-       
-       i0vidi = i0vofi + 4
-       
-       !C N
-       i0vidj = i0vofi - 4
-       d5dt(2,2,i0vidi,i0vidj,i0midi)&
-            = -d0x2*d0c3_a*d0ub_a         * d0nncst/d0qtfct
-       !C Fb
-       i0vidj = i0vofi - 2
-       d5dt(2,2,i0vidi,i0vidj,i0midi)&
-            =  d0x2*d0c3_a                * d0fbcst/d0qtfct
-       !C P
-       i0vidj = i0vofi + 1
-       d5dt(2,2,i0vidi,i0vidj,i0midi)&
-            = -d0x2*d0c4_a*d0wb_a         * d0ppcst/d0qtfct
-       !C Qb
-       i0vidj = i0vofi + 3
-       d5dt(2,2,i0vidi,i0vidj,i0midi)&
-            =  d0x2*d0c4_a                * d0qbcst/d0qtfct
-       
-    ENDDO
-    
-    RETURN
-    
-  END SUBROUTINE T2CALV_DT
-
-  !C---------------------------------------------------------
-  !C 
-  !C CALCULATION OF GRADIENT VECTOR COEFFICIENTS
-  !C
-  !C             2014-03-29 H.SETO
-  !C
-  !C---------------------------------------------------------
-  SUBROUTINE T2CALV_GV
-
-    USE T2CNST
-    USE T2COMM, ONLY:&
-         & i0vmax,i0dmax,i0anom,&
-         &         d0btcst,d0etcst,d0epcst,d0ercst, &
-         & d0nncst,                                 &
-         & d0ppcst,                                 &
-         & d0mffct,d0btfct,        d0epfct,         &
-         &         d0frfct,        d0ftfct,         &
-         & d0ppfct,d0qrfct,        d0qtfct,         &
-         & d1pp,d1tt,d1ur,d1up,                     &
-         & d0ct1_anom,d0ct2_anom,d1cx1_anom,d1cx2_anom,d4gv
-    
-    INTEGER(i0ikind)::&
-         i0sidi,i0didi,i0vidi,i0vidj,i0vofi
-    REAL(   i0rkind)::&
-         d0tt_a,d0tt_e,d0ur_a,d0up_a,&
-         d0c1_a,d0c2_a,d0cx1_a,d0cx2_a,&
-         d0x1,d0x2,d0x3,d0x4,d0x5,d0x6
-    
-    !C
-    !C INITIALIZATION
-    !C
-
-    DO i0vidj = 1, i0vmax
-    DO i0vidi = 1, i0vmax
-       DO i0didi = 1, i0dmax
-          d4gv(i0didi,i0vidi,i0vidj,i0midi) = 0.D0
-       ENDDO
-    ENDDO
-    ENDDO
-    
-    !C
-    !C EQ_001
-    !C
-    
-    i0vidi = 1
-    
-    !C Et
-    i0vidj = 3
-    d4gv(1,i0vidi,i0vidj,i0midi) = -d0sqrtg        * d0etcst/d0mffct
-
-    !C
-    !C EQ_002
-    !C
-    
-    i0vidi = 2
-    
-    !C Ep
-    i0vidj = 4 
-    d4gv(1,i0vidi,i0vidj,i0midi) =  d0cogtt*d0mfcr * d0epcst/d0btfct
-    
-    !C Er
-    i0vidj = 5
-    d4gv(2,i0vidi,i0vidj,i0midi) = -d0cogtt        * d0ercst/d0btfct
-    
-    !C 
-    !C EQ_004
-    !C
-    
-    i0vidi = 4
-    
-    !C I
-    i0vidj = 2
-    d4gv(1,i0vidi,i0vidj,i0midi) =  d0cogpp        * d0btcst/d0epfct
-
-    d0x1 = d0sqrtg*d0ctgrr*d0ctbp
-    d0x2 = d0sqrtg*d0ctgrp*d0ctbp
-    
-    d0x3 = d0sqrtg*d0ct1_anom*d0ctgrr
-    d0x4 = d0sqrtg*d0ct1_anom*d0ctgrp
-    d0x5 = d0sqrtg*d0ct2_anom*d0ctgrr
-    d0x6 = d0sqrtg*d0ct2_anom*d0ctgrp
-    d0tt_e = d1tt(1)
-    
-    DO i0sidi = 1, i0smax
-       
-       i0vofi = 10*i0sidi
-       
-       d0tt_a = d1tt(i0sidi)
-       d0ur_a = d1ur(i0sidi)
-       d0up_a = d1up(i0sidi)
-
-       d0c1_a = 2.5D0*(d0tt_a**2)
-       d0c2_a = 5.0D0* d0tt_a
-       
-       d0cx1_a = d1cx1_anom(i0sidi)
-       d0cx2_a = d1cx2_anom(i0sidi)
-
-       !C
-       !C EQ_007
-       !C
-       
-       i0vidi = i0vofi - 3
-       
-       !C P
-       i0vidj = i0vofi + 1
-       d4gv(1,i0vidi,i0vidj,i0midi) =  d0x1  * d0ppcst/d0frfct
-       d4gv(2,i0vidi,i0vidj,i0midi) =  d0x2  * d0ppcst/d0frfct
-       
-
-       !C
-       !C EQ_009
-       !C
-       
-       i0vidi = i0vofi - 1
-
-       !C >>>> ANOMALOUS TRANSPORT >>>>
-       IF(i0anom.EQ.1)THEN
-          !C Ne
-          i0vidj = 6
-          d4gv(1,i0vidi,i0vidj,i0midi)&
-               &        =  d0x3*d0cx1_a*d0tt_e * d0nncst/d0ftfct
-          d4gv(2,i0vidi,i0vidj,i0midi)&
-               &        =  d0x4*d0cx1_a*d0tt_e * d0nncst/d0ftfct
-          
-          !C Pe
-          i0vidj = 11
-          d4gv(1,i0vidi,i0vidj,i0midi)&
-               &        = -d0x3*d0cx1_a        * d0ppcst/d0ftfct
-          d4gv(2,i0vidi,i0vidj,i0midi)&
-               &        = -d0x4*d0cx1_a        * d0ppcst/d0ftfct
-          
-       ENDIF
-       !C <<<< ANOMALOUS TRANSPORT <<<<
-       
-       !C 
-       !C EQ_011
-       !C
-       
-       i0vidi = i0vofi + 1
-       
-       !C P
-       i0vidj = i0vofi + 1
-       d4gv(1,i0vidi,i0vidj,i0midi)&
-            &               = -d0sqrtg*d0ur_a * d0ppcst/d0ppfct
-       d4gv(2,i0vidi,i0vidj,i0midi)&
-            &               = -d0sqrtg*d0up_a * d0ppcst/d0ppfct
-       
-       !C
-       !C EQ_012
-       !C
-       
-       i0vidi = i0vofi + 2
-       
-       !C N
-       i0vidj = i0vofi - 4
-       d4gv(1,i0vidi,i0vidj,i0midi)&
-            &               = -d0x1*d0c1_a    * d0nncst/d0qrfct
-       d4gv(2,i0vidi,i0vidj,i0midi)&
-            &               = -d0x2*d0c1_a    * d0nncst/d0qrfct
-       
-       !C P
-       i0vidj = i0vofi + 1
-       d4gv(1,i0vidi,i0vidj,i0midi)&
-            &               =  d0x1*d0c2_a    * d0ppcst/d0qrfct
-       d4gv(2,i0vidi,i0vidj,i0midi)&
-            &               =  d0x2*d0c2_a    * d0ppcst/d0qrfct
-       
-       !C
-       !C EQ_014
-       !C
-       
-       i0vidi = i0vofi + 4
-
-       !C >>>> ANOMALOUS TRANSPORT >>>>
-       IF(i0anom.EQ.1)THEN
-          !C Ne
-          i0vidj = 6
-          d4gv(1,i0vidi,i0vidj,i0midi)&
-               &        =  d0x5*d0cx2_a*d0tt_e * d0nncst/d0ftfct
-          d4gv(2,i0vidi,i0vidj,i0midi)&
-               &        =  d0x6*d0cx2_a*d0tt_e * d0nncst/d0ftfct
-          
-          !C Pe
-          i0vidj = 11
-          d4gv(1,i0vidi,i0vidj,i0midi)&
-               &        = -d0x5*d0cx2_a        * d0ppcst/d0ftfct
-          d4gv(2,i0vidi,i0vidj,i0midi)&
-               &        = -d0x6*d0cx2_a        * d0ppcst/d0ftfct
-       ENDIF
-       !C <<<< ANOMALOUS TRANSPORT <<<<
-
-    ENDDO
-    
-    RETURN
-    
-  END SUBROUTINE T2CALV_GV
-
-  !C---------------------------------------------------------
-  !C 
-  !C CALCULATION OF GRADIENT TENSOR COEFFICIENTS
-  !C
-  !C             2014-03-06 H.SETO
-  !C
-  !C---------------------------------------------------------
-  SUBROUTINE T2CALV_GT
-    
-    USE T2CNST
-    USE T2COMM,ONLY:&
-         & i0smax,i0vmax,i0wmax,i0dmax,            &
-         & d0nncst,        d0fbcst,                &
-         & d0ubcst,                                &
-         & d0ppcst,        d0qbcst,                & 
-         &                 d0fbfct,                &
-         & d0ppfct,        d0qbfct,                &
-         & d1ni,d1pi,d1tt,d1ub,d1ut,d1up,d1wb,     &
-         & d1nvcc1,d1nvcc2,d1nvcc3,d1nvcc4,d6gt 
-    
-    INTEGER(i0ikind)::&
-         i0sidi,i0didi,i0didj,i0widi,i0vidi,i0vidj,i0vofi
-    
-    REAL(   i0rkind)::&
-         d0ni_a,d0pi_a,d0tt_a,&
-         d0up_a,d0ub_a,d0ut_a,d0wb_a,d0udp_a,&
-         d0nvcc1_a,d0nvcc2_a,d0nvcc3_a,d0nvcc4_a
-    REAL(   i0rkind)::&
-         d0x1,d0x2,&
-         d0c1_a,d0c2_a,d0c3_a,d0c4_a,d0c5_a,d0c6_a
-    
-    !C
-    !C INITIALIZATION
-    !C
-
-    DO i0vidj = 1, i0vmax
-    DO i0vidi = 1, i0vmax
-       DO i0widi = 1, i0wmax
-          DO i0didj = 1, i0dmax
-          DO i0didi = 1, i0dmax
-             d6gt(i0didi,i0didj,i0widi,i0vidi,i0vidj,i0midi) = 0.D0
-          ENDDO
-          ENDDO
-       ENDDO
-    ENDDO
-    ENDDO
-    
-    d0x1 = 3.D0*d0sqrtg*(d0ctbp**2)/d0bb2
-    d0x2 = 3.D0*d0sqrtg*d0bt2*d0ctbp/(d0bb2**2)
-    
-    DO i0sidi = 1, i0smax
-       
-       i0vofi = 10*i0sidi
-       
-       d0ni_a = d1ni(i0sidi)
-       d0pi_a = d1pi(i0sidi)
-       d0tt_a = d1tt(i0sidi)
-       d0up_a = d1up(i0sidi)
-       d0ut_a = d1ut(i0sidi)
-       d0ub_a = d1ub(i0sidi)
-       d0wb_a = d1wb(i0sidi)
-
-       d0nvcc1_a = d1nvcc1(i0sidi)
-       d0nvcc2_a = d1nvcc2(i0sidi)
-       d0nvcc3_a = d1nvcc3(i0sidi)
-       d0nvcc4_a = d1nvcc4(i0sidi)
-
-       d0c1_a = d0nvcc1_a*d0ni_a
-       d0c2_a = d0nvcc2_a*d0pi_a
-       d0c3_a = d0nvcc3_a*d0ni_a*d0tt_a
-       d0c4_a = d0nvcc4_a*d0pi_a*d0tt_a
-       
-       d0udp_a = d0ut_a*d0ctbp/d0cobt - d0up_a       
-
-       !C
-       !C EQ_008
-       !C
-       
-       i0vidi = i0vofi - 2
-       
-       !C N : (B)
-       i0vidj = i0vofi - 4
-       i0widi = 1
-       d6gt(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x1*d0c1_a        *d0ub_a * d0nncst/d0fbfct
-       
-       !C Fb: (B)
-       i0vidj = i0vofi - 2
-       i0widi = 1
-       d6gt(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0c1_a                * d0fbcst/d0fbfct
-       
-       !C P : (B)
-       i0vidj = i0vofi + 1
-       i0widi = 1
-       d6gt(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x1*d0c2_a        *d0wb_a * d0ppcst/d0fbfct
-       
-       !C Qb: (B)
-       i0vidj = i0vofi + 3
-       i0widi = 1
-       d6gt(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0c2_a                * d0qbcst/d0fbfct
-       
-       !C
-       !C EQ_011
-       !C
-       
-       i0vidi = i0vofi + 1
-       
-       !C N: (B)
-       i0vidj = i0vofi - 4
-       i0widi = 1
-       d6gt(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x2*d0c1_a*d0udp_a*d0ub_a * d0nncst/d0ppfct
-       
-       !C Fb (B)
-       i0vidj = i0vofi - 2
-       i0widi = 1
-       d6gt(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x2*d0c1_a*d0udp_a        * d0fbcst/d0ppfct
-
-       !C P (B)
-       i0vidj = i0vofi + 1 
-       i0widi = 1
-       d6gt(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x2*d0c2_a*d0udp_a*d0wb_a * d0ppcst/d0ppfct
-
-       !C Qb (B)
-       i0vidj = i0vofi + 3
-       i0widi = 1
-       d6gt(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x2*d0c2_a*d0udp_a        * d0qbcst/d0ppfct
-       
-       !C N: (Ub)
-       i0vidj = i0vofi - 4
-       i0widi = 2*i0sidi + 1
-       d6gt(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0c1_a        *d0ub_a * d0ubcst*d0nncst/d0ppfct
-              
-       !C Fb (Ub)
-       i0vidj = i0vofi - 2
-       i0widi = 2*i0sidi + 1
-       d6gt(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x1*d0c1_a                * d0ubcst*d0fbcst/d0ppfct
-       
-       !C P (Ub)
-       i0vidj = i0vofi + 1
-       i0widi = 2*i0sidi + 1
-       d6gt(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0c2_a        *d0wb_a * d0ubcst*d0ppcst/d0ppfct
-       
-       !C Qb (Ub)
-       i0vidj = i0vofi + 3
-       i0widi = 2*i0sidi + 1
-       d6gt(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x1*d0c2_a                * d0ubcst*d0qbcst/d0ppfct
-       
-       !C
-       !C EQ_013
-       !C
-     
-       i0vidi = i0vofi + 3
-       
-       !C N  (B)
-       i0vidj = i0vofi - 4
-       i0widi = 1
-       d6gt(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x1*d0c3_a        *d0ub_a * d0nncst/d0qbfct
-       
-       !C Fb (B)
-       i0vidj = i0vofi - 2
-       i0widi = 1
-       d6gt(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0c3_a                * d0fbcst/d0qbfct
-       
-       !C P  (B)
-       i0vidj = i0vofi + 1
-       i0widi = 1
-       d6gt(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x1*d0c4_a        *d0wb_a * d0ppcst/d0qbfct
-
-       !C Qb (B)
-       i0vidj = i0vofi + 3
-       i0widi = 1
-       d6gt(2,2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0c4_a                * d0qbcst/d0qbfct
-       
-    ENDDO
-    
-    RETURN
-    
-  END SUBROUTINE T2CALV_GT
-
-  !C---------------------------------------------------------
-  !C 
-  !C CALCULATION OF EXCITATION SCALAR COEFFICIENTS
-  !C
-  !C             2014-03-05 H.SETO
-  !C
-  !C---------------------------------------------------------
-  SUBROUTINE T2CALV_ES
-    
-    USE T2CNST,ONLY:&
-         d0eps0,d0rmu0
-    USE T2COMM,ONLY:&
-         & i0vmax,i0anom,&
-         &                 d0ercst,d0epcst,d0etcst,&
-         & d0nncst,d0frcst,d0fbcst,d0ftcst,d0fpcst,&
-         & d0ppcst,d0qrcst,d0qbcst,d0qtcst,d0qpcst,&
-         &         d0btfct,d0erfct,d0epfct,d0etfct,&
-         &         d0frfct,d0fbfct,d0ftfct,d0fpfct,&
-         & d0ppfct,d0qrfct,d0qbfct,d0qtfct,d0qpfct,&
-         & d1ee,d1nn,d1pp,d1tt,d1ti,d1ni,d1pi,d1hex,&
-         & d1cx1_anom,d1cx2_anom,&
-         & d2nfcf1,d2nfcf2,d2nfcf3,d2nfcf4,d3es
-    
-    
-    INTEGER(i0ikind)::&
-         i0sidi,i0vidi,&
-         i0sidj,i0vidj,i0vofi,i0vofj
-    
-    REAL(   i0rkind)::&
-         d0ee_a,d0ee_b,d0nn_a,d0pp_a,d0tt_a,d0ti_e,&
-         d0ni_b,d0pi_b,&
-         d0nfcf1_ab,d0nfcf2_ab,d0nfcf3_ab,d0nfcf4_ab,d0hex_a
-
-    REAL(   i0rkind)::&
-         d0y1, d0y2, d0x1, d0x2, d0x3, d0x4, d0x5, d0x6,&
-         d0x7, d0x8, d0x9,d0x10,d0x11,d0x12,d0x13,d0x14,d0x15
-    
-    REAL(   i0rkind)::&
-         d0c1_a, d0c2_a, d0c3_a,&
-         d0cx1_a,d0cx2_a,&
-         d0c1_ab,d0c2_ab,d0c3_ab,d0c4_ab
-
-    !C
-    !C INITIALIZATION
-    !C
-
-    DO i0vidj = 1, i0vmax
-    DO i0vidi = 1, i0vmax
-       d3es(i0vidi,i0vidj,i0midi) = 0.D0
-    ENDDO
-    ENDDO
-    
-    d0x1 = d0sqrtg*d0rmu0
-    d0x2 = d0sqrtg/d0eps0
-
-    !C
-    !C EQ_002
-    !C
-
-    i0vidi = 2
-    
-    !C Ep
-    i0vidj = 4
-    d3es(i0vidi,i0vidj,i0midi) =  d0cogtt * d0epcst/d0btfct
-    
-    DO i0sidj = 1, i0smax
-       
-       i0vofj = 10*i0sidj
-       
-       d0ee_b  = d1ee(i0sidj)
-       
-       !C
-       !C EQ_003
-       !C
-       
-       i0vidi = 3
-       
-       !C Ft
-       i0vidj = i0vofj - 1
-       d3es(i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0ee_b                * d0ftcst/d0etfct
-       
-       !C
-       !C EQ_004
-       !C
-       
-       i0vidi = 4
-       
-       !C Fr
-       i0vidj = i0vofj - 3
-       d3es(i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0ee_b*d0cogrp        * d0frcst/d0epfct
-       
-       !C Fp
-       i0vidj =i0vofj
-       d3es(i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0ee_b*d0cogpp        * d0fpcst/d0epfct
-       
-       !C
-       !C EQ_005
-       !C
-       
-       i0vidi = 5
-       
-       !C N
-       i0vidj = i0vofj - 4
-       d3es(i0vidi,i0vidj,i0midi)&
-            = -d0x2*d0ee_b                * d0nncst/d0erfct
-       
-    ENDDO
-    
-    !C 2014-03-27 modified
-    
-    d0y1  = d0sqrtg*d0ctbp
-    d0y2  = d0y1 
-    
-    d0x3  = d0y2*d0ctgrp*d0mfcr
-    d0x4  = d0y2*d0ctgrr
-    d0x5  = d0cobt*d0bb   
-    d0x15 = d0bb2
-    
-    d0x6  = d0sqrtg*d0ctbt
-    d0x7  = d0y1*d0mfcr
-    d0x8  = d0sqrtg*d0bb
-    d0x9  = d0sqrtg*d0y1
-    d0x10 = d0y1*d0cogpp
-    
-    d0ti_e= d1ti(1)
-    d0x11 = d0sqrtg*d0cobt*d0bb
-    d0x12 = d0sqrtg*d0bb2
-    d0x13 = d0x11*0.4D0*d0ti_e
-    d0x14 = d0x12*0.4D0*d0ti_e
-    
-    DO i0sidi = 1, i0smax
-       
-       i0vofi = 10*i0sidi
-       
-       d0nn_a  = d1nn( i0sidi)
-       d0pp_a  = d1pp( i0sidi)
-       d0tt_a  = d1tt( i0sidi)
-       d0ee_a  = d1ee( i0sidi)
-       d0hex_a = d1hex(i0sidi)
-       
-       d0c1_a = d0ee_a*d0nn_a
-       d0c2_a = d0ee_a*d0pp_a*2.5D0
-       d0cx1_a = d1cx1_anom(i0sidi)
-       d0cx2_a = d1cx2_anom(i0sidi)
-       
-       !C
-       !C EQ_007
-       !C
-       
-       i0vidi = i0vofi - 3
-       
-       !C Ep
-       i0vidj = 4
-       d3es(i0vidi,i0vidj,i0midi) = -d0c1_a*d0x3  * d0epcst/d0frfct
-       
-       !C Er
-       i0vidj = 5
-       d3es(i0vidi,i0vidj,i0midi) = -d0c1_a*d0x4  * d0ercst/d0frfct
-       
-       !C Fb
-       i0vidj = i0vofi - 2
-       d3es(i0vidi,i0vidj,i0midi) = -d0ee_a*d0x5  * d0fbcst/d0frfct
-       
-       !C Ft
-       i0vidj = i0vofi - 1
-       d3es(i0vidi,i0vidj,i0midi) =  d0ee_a*d0x15 * d0ftcst/d0frfct
-       
-       DO i0sidj = 1, i0smax
-          
-          i0vofj = 10*i0sidj
-          
-          d0ni_b = d1ni(i0sidj)
-          d0pi_b = d1pi(i0sidj)
-          
-          d0nfcf1_ab = d2nfcf1(i0sidi,i0sidj)
-          d0nfcf2_ab = d2nfcf2(i0sidi,i0sidj)
-          
-          d0c1_ab = d0nfcf1_ab*d0ni_b
-          d0c2_ab = d0nfcf2_ab*d0pi_b
-
-          !C
-          !C EQ_008
-          !C
-          
-          i0vidi = i0vofi - 2
-          
-          IF(i0sidi.EQ.i0sidj)THEN
-             
-             !C Et
-             i0vidj = 3
-             d3es(i0vidi,i0vidj,i0midi)&
-                  &             = -d0x6*d0c1_a * d0etcst/d0fbfct
-             
-             !C Ep
-             i0vidj = 4
-             d3es(i0vidi,i0vidj,i0midi)&
-                  &             = -d0x7*d0c1_a * d0epcst/d0fbfct
-             
-          ENDIF
-          
-          !C Fb
-          i0vidj = i0vofj - 2
-          d3es(i0vidi,i0vidj,i0midi)&
-               &             = -d0x8*d0c1_ab   * d0fbcst/d0fbfct
-          
-          !C Qb
-          i0vidj = i0vofj + 3
-          d3es(i0vidi,i0vidj,i0midi)&
-               &             = -d0x8*d0c2_ab   * d0qbcst/d0fbfct
-          
-          !C
-          !C EQ_009
-          !C
-          
-          i0vidi = i0vofi - 1
-          
-          IF(i0sidi.EQ.i0sidj)THEN
-             
-             !C Et
-             i0vidj = 3
-             d3es(i0vidi,i0vidj,i0midi)&
-                  &             = -d0sqrtg*d0c1_a * d0etcst/d0ftfct
-             
-             !C Fr
-             i0vidj = i0vofj - 3
-             d3es(i0vidi,i0vidj,i0midi)&
-                  &             = -d0x9*d0ee_a    * d0frcst/d0ftfct
-             
-             !C >>>> ANOMALOUS TRANSPORT >>>>
-             IF(i0anom.EQ.1)THEN
-                !C Fbe
-                i0vidj = 8
-                d3es(i0vidi,i0vidj,i0midi)&
-                     &              = -d0cx1_a*d0x11  * d0fbcst/d0ftfct
-                !C Fte
-                i0vidj = 9
-                d3es(i0vidi,i0vidj,i0midi)&
-                     &              =  d3es(i0vidi,i0vidj,i0midi)&
-                     &              +  d0cx1_a*d0x12  * d0ftcst/d0ftfct
-             ENDIF
-             !C <<<< ANOMALOUS TRANSPORT <<<<
-             
-          ENDIF
-          
-          !C Ft
-          i0vidj = i0vofj - 1
-          d3es(i0vidi,i0vidj,i0midi) = d3es(i0vidi,i0vidj,i0midi)&
-               &                       -d0sqrtg*d0c1_ab   * d0ftcst/d0ftfct
-          
-          !C Qt
-          i0vidj = i0vofj + 4
-          d3es(i0vidi,i0vidj,i0midi) = -d0sqrtg*d0c2_ab   * d0qtcst/d0ftfct
-          
-       ENDDO
-       
-       !C 
-       !C EQ_010
-       !C
-       
-       i0vidi = i0vofi 
-       
-       !C Fb
-       i0vidj = i0vofi - 2
-       d3es(i0vidi,i0vidj,i0midi) = -d0x8                 * d0fbcst/d0fpfct
-
-       !C Ft
-       i0vidj = i0vofi - 1
-       d3es(i0vidi,i0vidj,i0midi) =  d0x6                 * d0ftcst/d0fpfct
-
-       !C Fp
-       i0vidj = i0vofi
-       d3es(i0vidi,i0vidj,i0midi) =  d0x10                * d0fpcst/d0fpfct 
-       
-       !C
-       !C EQ_011
-       !C
-       
-       i0vidi = i0vofi + 1
-       
-       !C P
-       i0vidj = i0vofi + 1 
-       d3es(i0vidi,i0vidj,i0midi) = d0sqrtg*d0hex_a       * d0ppcst/d0ppfct
-       
-       !C
-       !C EQ_012
-       !C
-       
-       i0vidi = i0vofi  + 2
-       
-       !C Ep
-       i0vidj = 4
-       d3es(i0vidi,i0vidj,i0midi) = -d0c2_a*d0x3          * d0epcst/d0qrfct
-       
-       !C Er
-       i0vidj = 5
-       d3es(i0vidi,i0vidj,i0midi) = -d0c2_a*d0x4          * d0ercst/d0qrfct
-       
-       !C Qb
-       i0vidj = i0vofi + 3
-       d3es(i0vidi,i0vidj,i0midi) = -d0ee_a*d0x5          * d0qbcst/d0qrfct
-       
-       !C Qt
-       i0vidj = i0vofi + 4
-       d3es(i0vidi,i0vidj,i0midi) =  d0ee_a*d0x15         * d0qtcst/d0qrfct
-       
-       DO i0sidj = 1, i0smax
-          
-          i0vofj = 10*i0sidj
-          
-          d0ni_b = d1ni(i0sidj)
-          d0pi_b = d1pi(i0sidj)
-          
-          d0nfcf3_ab = d2nfcf3(i0sidi,i0sidj)
-          d0nfcf4_ab = d2nfcf4(i0sidi,i0sidj)
-          
-          d0c3_ab = d0nfcf3_ab*d0tt_a*d0ni_b
-          d0c4_ab = d0nfcf4_ab*d0tt_a*d0pi_b
-          
-          !C
-          !C EQ_013
-          !C
-          
-          i0vidi = i0vofi + 3 
-          
-          IF(i0sidi.EQ.i0sidj)THEN
-             
-             !C Et
-             i0vidj = 3
-             d3es(i0vidi,i0vidj,i0midi) = -d0c2_a*d0x6    * d0etcst/d0qbfct
-             
-             !C Ep
-             i0vidj = 4
-             d3es(i0vidi,i0vidj,i0midi) = -d0c2_a*d0x7    * d0epcst/d0qbfct
-             
-          ENDIF
-          
-          !C Fb  
-          i0vidj = i0vofj - 2
-          d3es(i0vidi,i0vidj,i0midi) = -d0c3_ab*d0x8      * d0fbcst/d0qbfct
-          
-          !C Qb
-          i0vidj = i0vofj + 3
-          d3es(i0vidi,i0vidj,i0midi) = -d0c4_ab*d0x8      * d0qbcst/d0qbfct
-          
-       
-          !C
-          !C EQ_014
-          !C
-          
-          i0vidi = i0vofi + 4
-          
-          IF(i0sidi.EQ.i0sidj)THEN
-             
-             !C Et
-             i0vidj = 3
-             d3es(i0vidi,i0vidj,i0midi)&
-                  &             = -d0c2_a*d0sqrtg * d0etcst/d0qtfct
-             
-             !C Qr
-             i0vidj = i0vofj + 2
-             d3es(i0vidi,i0vidj,i0midi)&
-                  &             = -d0ee_a*d0x9    * d0qrcst/d0qtfct
-             
-             !C >>>> ANOMALOUS TRANSPORT >>>>
-             IF(i0anom.EQ.1)THEN
-                !C Qbe
-                i0vidj = 13
-                d3es(i0vidi,i0vidj,i0midi)&
-                     &          = -d0cx2_a*d0x13  * d0qbcst/d0ftfct
-                
-                !C Qte
-                i0vidj = 14
-                d3es(i0vidi,i0vidj,i0midi)&
-                     &             =  d3es(i0vidi,i0vidj,i0midi)&
-                     &               +d0cx2_a*d0x14 * d0qtcst/d0ftfct
-             ENDIF
-             !C <<<< ANOMALOUS TRANSPORT <<<<
-             
-          ENDIF
-          
-          !C Ft
-          i0vidj = i0vofj - 1
-          d3es(i0vidi,i0vidj,i0midi)&
-               &             = -d0c3_ab*d0sqrtg   * d0ftcst/d0qtfct
-          
-          !C Qt
-          i0vidj = i0vofj + 4
-          d3es(i0vidi,i0vidj,i0midi)&
-               &             =  d3es(i0vidi,i0vidj,i0midi)&
-               &               -d0c4_ab*d0sqrtg   * d0qtcst/d0qtfct
-          
-       ENDDO
-       
-       !C 
-       !C EQ_015
-       !C
-       
-       i0vidi = i0vofi + 5
-       
-       !C Qb
-       i0vidj = i0vofi + 3
-       d3es(i0vidi,i0vidj,i0midi) = -d0x8           * d0qbcst/d0qpfct
-       
-       !C Qt
-       i0vidj = i0vofi + 4
-       d3es(i0vidi,i0vidj,i0midi) =  d0x6           * d0qtcst/d0qpfct
-       
-       !C Qp
-       i0vidj = i0vofi + 5
-       d3es(i0vidi,i0vidj,i0midi) =  d0x10          * d0qpcst/d0qpfct 
-       
-    ENDDO
-    
-    RETURN
-    
-  END SUBROUTINE T2CALV_ES
-
-  !C---------------------------------------------------------
-  !C 
-  !C CALCULATION OF ECITATION VECTOR COEFFICIENTS
-  !C
-  !C             2014-03-05 H.SETO
-  !C
-  !C---------------------------------------------------------
-  SUBROUTINE T2CALV_EV
-    
-    USE T2CNST
-    
-    USE T2COMM,ONLY:&
-         & i0smax,i0vmax,i0dmax,i0wmax,&
-         & d0mfcst,        d0etcst,d0epcst,        &
-         &                 d0fbcst,                &
-         & d0ubcst,                                &
-         &                 d0qbcst,                &
-         & d0wbcst,                                &
-         &                 d0etfct,                &
-         &                 d0fbfct,                &
-         &                 d0qbfct,d0qtfct,        &
-         & d1ee,d1mm,d1nn,d1ub,d1ut,d1up,d1pp,d1qb,d1qt,d1ni,&
-         & d1wb,d1wt,d1wp,&
-         & d1nvcc1,d1nvcc2,d5ev
-    
-    INTEGER(i0ikind)::&
-         i0sidi,i0vidi,i0vidj,i0widi,i0didi,i0vofi
-    REAL(   i0rkind)::&
-         d0ee_a,d0mm_a,d0ni_a,d0pp_a,&
-         d0ub_a,d0ut_a,d0up_a,&
-         d0qb_a,&
-         d0wb_a,d0wt_a,d0wp_a,&
-         d0udp_a,d0wdp_a,&
-         d0nvcc1_a,d0nvcc2_a
-    REAL(   i0rkind)::&
-         d0x1,d0x2,d0x3,d0x4,d0x5,d0x6,d0x7,d0x8,d0x9,&
-         d0y1,d0y2,d0y3,d0y4,d0y5
-    REAL(   i0rkind)::&
-         d0c1_a,d0c2_a,d0c3_a,d0c4_a,d0c5_a
-    
-    !C 
-    !C INITIALIZATION
-    !C
-
-    DO i0vidj = 1, i0vmax
-    DO i0vidi = 1, i0vmax
-       DO i0widi = 1, i0wmax 
-          DO i0didi = 1, i0dmax   
-             d5ev(i0didi,i0widi,i0vidi,i0vidj,i0midi) = 0.D0
-          ENDDO
-       ENDDO
-    ENDDO
-    ENDDO
-    
-    !C
-    !C EQ_003
-    !C
-
-    i0vidi = 3
- 
-    !C PSI' (R)
-    i0vidj = 1
-    i0widi = 2
-    d5ev(1,i0widi,i0vidi,i0vidj,i0midi)&
-         = d0sqrtg*2.D0*SQRT(d0ctgtt)*d0ctgrr * d0mfcst/d0etcst
-    d5ev(2,i0widi,i0vidi,i0vidj,i0midi)&
-         = d0sqrtg*2.D0*SQRT(d0ctgtt)*d0ctgrp * d0mfcst/d0etcst
-
-    d0y1 = d0sqrtg*d0ctbt*3.D0              /d0bb
-    d0y2 = d0sqrtg*d0ctbp*3.D0*d0mfcr       /d0bb
-    d0y3 = d0sqrtg*(3.D0*d0bt2/d0bb2-1.D0)  /d0bb
-    d0y4 = d0sqrtg*d0cobt*d0ctbp*d0mfcr*3.D0/(d0bb2*d0bb)
-    d0y5 = d0ctbp/d0cobt
-    
-    d0x1 = d0sqrtg*d0ctbp/d0bb
-    d0x2 = d0y1*d0bt2/d0bb2
-    d0x3 = d0y1*d0ctbp
-    d0x4 = d0y2*d0bt2/d0bb2
-    d0x5 = d0y2*d0ctbp
-    d0x6 = d0y3*d0bt2/d0bb2
-    d0x7 = d0y3*d0ctbp
-    d0x8 = d0y4*d0bt2/d0bb2
-    d0x9 = d0y4*d0ctbp
-  
-    DO i0sidi = 1, i0smax
-       
-       i0vofi = 10*i0sidi
-
-       d0ee_a    = d1ee(i0sidi)
-       d0mm_a    = d1mm(i0sidi)
-       d0pp_a    = d1pp(i0sidi)
-       d0ni_a    = d1ni(i0sidi)
-       d0ub_a    = d1ub(i0sidi)
-       d0ut_a    = d1ut(i0sidi)
-       d0up_a    = d1up(i0sidi)
-       d0qb_a    = d1qb(i0sidi)
-       d0wb_a    = d1wb(i0sidi)
-       d0wt_a    = d1wt(i0sidi)
-       d0wp_a    = d1wp(i0sidi)
-       
-       d0nvcc1_a = d1nvcc1(i0sidi)
-       d0nvcc2_a = d1nvcc2(i0sidi)
-       
-       d0udp_a = d0y5*d0ut_a - d0up_a
-       d0wdp_a = d0y5*d0wt_a - d0wp_a
-       
-       d0c1_a = d0ee_a*(d0nvcc1_a*d0udp_a+d0nvcc2_a*d0wdp_a) 
-       d0c2_a = d0ee_a*d0nvcc1_a
-       d0c3_a = d0ee_a*d0nvcc2_a
-       d0c4_a = (d0qb_a-1.5*d0pp_a*d0ub_a)*d0mm_a*d0ni_a
-       d0c5_a = d0ub_a*d0mm_a
-       
-       !C
-       !C EQ_008
-       !C
-       
-       i0vidi = i0vofi - 2
-       
-       !C Fb: (B)
-       
-       i0vidj = i0vofi - 2
-       i0widi = 1
-       d5ev(2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x1*d0ub_a*d0mm_a * d0fbcst/d0fbfct
-       
-       !C
-       !C EQ_013
-       !C
-
-       i0vidi = i0vofi + 3
-       
-       !C Et (B)
-       i0vidj = 3
-       i0widi = 1
-       d5ev(2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x2*d0c1_a * d0etcst/d0qbfct
-       
-       !C Et (Ub)
-       i0vidj = 3
-       i0widi = 2*i0sidi + 1
-       d5ev(2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x3*d0c2_a * d0ubcst*d0etcst/d0qbfct
-              
-       !C Et (Qb/P)
-       i0vidj = 3
-       i0widi = 2*i0sidi + 2
-       d5ev(2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x3*d0c3_a * d0wbcst*d0etcst/d0qbfct
-       
-       !C Ep (B)
-       i0vidj = 4
-       i0widi = 1
-       d5ev(2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x4*d0c1_a * d0epcst/d0qbfct
-       
-       !C Ep (Ub)
-       i0vidj = 4
-       i0widi = 2*i0sidi + 1
-       d5ev(2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x5*d0c2_a * d0ubcst*d0epcst/d0qbfct
-       
-       !C Ep (Qb/P)
-       i0vidj = 4
-       i0widi = 2*i0sidi + 2
-       d5ev(2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x5*d0c3_a * d0wbcst*d0epcst/d0qbfct
-       
-       !C Fb (B)
-       i0vidj = i0vofi - 2
-       i0widi = 1
-       d5ev(2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x1*d0c4_a * d0fbcst/d0qbfct
-       
-       !C Qb (B) 
-       i0vidj = i0vofi + 3
-       i0widi = 1
-       d5ev(2,i0widi,i0vidi,i0vidj,i0midi)&
-            = -d0x1*d0c5_a * d0qbcst/d0qbfct
-       
-       !C
-       !C EQ_014
-       !C
-       
-       i0vidi = i0vofi + 4
-       
-       !C Et (B)
-       i0vidj = 3
-       i0widi = 1
-       d5ev(2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x6*d0c1_a * d0etcst/d0qtfct
-       
-       !C Et (Ub)
-       i0vidj = 3
-       i0widi = 2*i0sidi + 1
-       d5ev(2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x7*d0c2_a * d0ubcst*d0etcst/d0qtfct
-       
-       !C Et (Qb/P)
-       i0vidj = 3
-       i0widi = 2*i0sidi + 2
-       d5ev(2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x7*d0c3_a * d0wbcst*d0etcst/d0qtfct
-       
-       !C Ep (B)
-       i0vidj = 4
-       i0widi = 1
-       d5ev(2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x8*d0c1_a * d0epcst/d0qtfct
-       
-       !C Ep (Ub)
-       i0vidj = 4
-       i0widi = 2*i0sidi + 1
-       d5ev(2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x9*d0c2_a * d0ubcst*d0epcst/d0qtfct
-       
-       !C Ep (Qb)
-       i0vidj = 4
-       i0widi = 2*i0sidi + 2
-       d5ev(2,i0widi,i0vidi,i0vidj,i0midi)&
-            =  d0x9*d0c3_a * d0wbcst*d0epcst/d0qtfct
-       
-    ENDDO
-    
-    RETURN
-    
-  END SUBROUTINE T2CALV_EV
-  
-  !C---------------------------------------------------------
-  !C 
-  !C CALCULATION OF ECITATION VECTOR COEFFICIENTS
-  !C
-  !C             2014-03-06 H.SETO
-  !C
-  !C---------------------------------------------------------
-  SUBROUTINE T2CALV_ET
-    
-    USE T2CNST
-    USE T2COMM,ONLY:&
-         & i0smax,i0dmax,i0vmax,i0wmax,            &
-         &                         d0ftcst,d0fpcst,&
-         & d0ubcst,                                &
-         &                         d0qtcst,d0qpcst,&
-         & d0wbcst,                                &
-         &                 d0fbfct,                &
-         & d0ppfct,        d0qbfct,                &
-         & d1ni,d1pi,d1tt,d1ut,d1ub,d1up,&
-         & d1nvcc1,d1nvcc2,d1nvcc3,d1nvcc4,&
-         & d7et
-    
-    INTEGER(i0ikind)::&
-         i0sidi,i0didi,i0didj,i0widi,i0widj,i0vidi,i0vidj,i0vofi
-    
-    REAL(   i0rkind)::&
-         d0tt_a,d0pi_a,d0ni_a,d0ut_a,d0ub_a,d0up_a,d0udp_a,&
-         d0nvcc1_a,d0nvcc2_a,d0nvcc3_a,d0nvcc4_a
-    REAL(   i0rkind)::&
-         d0x1,  d0x2,  d0x3,  d0x4,  d0x5,  d0x6,&
-         d0y1,  d0y2,  d0y3,  d0y4,&
-         d0c1_a,d0c2_a,d0c3_a,d0c4_a,d0c5_a,d0c6_a
-  
-    !C
-    !C
-    !C
-    DO i0vidj = 1, i0vmax
-    DO i0vidi = 1, i0vmax
-       DO i0widj = 1, i0wmax
-       DO i0widi = 1, i0wmax
-          DO i0didj = 1, i0dmax
-          DO i0didi = 1, i0dmax
-             d7et(i0didi,i0didj,i0widi,i0didj,i0vidi,i0vidj,i0midi) = 0.D0
-          ENDDO
-          ENDDO
-       ENDDO
-       ENDDO
-    ENDDO
-    ENDDO
-    
-    d0y1 = 3.D0*d0sqrtg*d0bt2*d0ctbp/(d0bb2**2)
-    d0y2 = 3.D0*d0sqrtg*(d0bt2**2)  /(d0bb2**3)
-    d0y3 = 3.D0*d0sqrtg*d0bt2*d0ctbp/(d0bb2**2)
-    d0y4 = d0ctbp/d0cobt
-
-    d0x1 = d0y1*d0y4
-    d0x2 = d0y1
-    d0x3 = d0y2*d0y4
-    d0x4 = d0y2
-    d0x5 = d0y3*d0y4
-    d0x6 = d0y3
-
-    DO i0sidi = 1, i0smax
-
-       i0vofi = 10*i0sidi
-
-       d0ni_a    = d1ni(   i0sidi)
-       d0pi_a    = d1pi(   i0sidi)
-       d0tt_a    = d1tt(   i0sidi)
-       d0ub_a    = d1ub(   i0sidi)
-       d0ut_a    = d1ut(   i0sidi)
-       d0up_a    = d1up(   i0sidi)
-       d0nvcc1_a = d1nvcc1(i0sidi)
-       d0nvcc2_a = d1nvcc2(i0sidi)
-       d0nvcc3_a = d1nvcc3(i0sidi)
-       d0nvcc4_a = d1nvcc4(i0sidi)
-       
-
-       d0udp_a = d0y4*d0ut_a - d0up_a 
-
-       d0c1_a = d0nvcc1_a*d0ni_a
-       d0c2_a = d0nvcc2_a*d0pi_a
-       d0c3_a = d0nvcc3_a*d0ni_a*d0tt_a
-       d0c4_a = d0nvcc4_a*d0pi_a*d0tt_a
-
-       
-       
-       !C
-       !C EQ_008
-       !C
-
-       i0vidi = i0vofi - 2
-       
-       !C Ft: (B,B)
-       i0vidj = i0vofi - 1
-       i0widi = 1
-       i0widj = 1
-       d7et(2,2,i0widi,i0widj,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0c1_a * d0ftcst/d0fbfct
-       
-       !C Fp: (B,B)
-       i0vidj = i0vofi
-       i0widi = 1
-       i0widj = 1
-       d7et(2,2,i0widi,i0widj,i0vidi,i0vidj,i0midi)&
-            = -d0x2*d0c1_a * d0fpcst/d0fbfct
-       
-       !C Qt: (B,B)
-       i0vidj = i0vofi + 4
-       i0widi = 1
-       i0widj = 1
-       d7et(2,2,i0widi,i0widj,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0c2_a * d0qtcst/d0fbfct
-
-       !C Qp: (B,B)
-       i0vidj = i0vofi + 5
-       i0widi = 1
-       i0widj = 1
-       d7et(2,2,i0widi,i0widj,i0vidi,i0vidj,i0midi)&
-            = -d0x2*d0c2_a * d0qtcst/d0fbfct
-
-       !C
-       !C EQ_011
-       !C
-
-       i0vidi = i0vofi + 1
-
-       !C Ft: (B,B)
-       i0vidj = i0vofi - 1
-       i0widi = 1
-       i0widj = 1
-       d7et(2,2,i0widi,i0widj,i0vidi,i0vidj,i0midi)&
-            = -d0x3*d0c1_a*d0udp_a * d0ftcst/d0ppfct 
-
-
-       !C Fp: (B,B)
-       i0vidj = i0vofi
-       i0widi = 1
-       i0widj = 1
-       d7et(2,2,i0widi,i0widj,i0vidi,i0vidj,i0midi)&
-            =  d0x4*d0c1_a*d0udp_a * d0fpcst/d0ppfct 
-
-       !C Qt: (B,B)
-       i0vidj = i0vofi + 4
-       i0widi = 1
-       i0widj = 1
-       d7et(2,2,i0widi,i0widj,i0vidi,i0vidj,i0midi)&
-            = -d0x3*d0c2_a*d0udp_a * d0qtcst/d0ppfct 
-
-       !C Qp (B,B)
-       i0vidj = i0vofi + 5
-       i0widi = 1
-       i0widj = 1
-       d7et(2,2,i0widi,i0widj,i0vidi,i0vidj,i0midi)&
-            =  d0x4*d0c2_a*d0udp_a * d0qpcst/d0ppfct 
-
-       !C Ft: (Ub,B)
-       i0vidj = i0vofi - 1
-       i0widi = 2*i0sidi + 1
-       i0widj = 1
-       d7et(2,2,i0widi,i0widj,i0vidi,i0vidj,i0midi)&
-            = -d0x5*d0c1_a         * d0ubcst*d0ftcst/d0ppfct 
-
-       !C Fp: (Ub,B)
-       i0vidj = i0vofi
-       i0widi = 2*i0sidi + 1
-       i0widj = 1
-       d7et(2,2,i0widi,i0widj,i0vidi,i0vidj,i0midi)&
-            =  d0x6*d0c1_a        * d0ubcst*d0fpcst/d0ppfct 
-
-
-       !C Qt: (ub,B)
-       i0vidj = i0vofi + 4
-       i0widi = 2*i0sidi + 1
-       i0widj = 1
-       d7et(2,2,i0widi,i0widj,i0vidi,i0vidj,i0midi)&
-            = -d0x5*d0c2_a        * d0ubcst*d0qtcst/d0ppfct 
-
-       !C Qp (ub,B)
-       i0vidj = i0vofi + 5
-       i0widi = 2*i0sidi + 1
-       i0widj = 1
-       d7et(2,2,i0widi,i0widj,i0vidi,i0vidj,i0midi)&
-            =  d0x6*d0c2_a        * d0ubcst*d0qpcst/d0ppfct 
-
-       !C
-       !C EQUATION FOR Qb
-       !C
-
-       i0vidi = i0vofi + 3
-
-       !C Ft (B,B)
-       i0vidj = i0vofi - 1
-       i0widi = 1
-       i0widj = 1
-       d7et(2,2,i0widi,i0widj,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0c3_a        * d0ftcst/d0qbfct
-
-       !C Fp (B,B)
-       i0vidj = i0vofi
-       i0widi = 1
-       i0widj = 1
-       d7et(2,2,i0widi,i0widj,i0vidi,i0vidj,i0midi)&
-            =  -d0x2*d0c3_a       * d0fpcst/d0qbfct
-
-
-       !C Qt (B,B)
-       i0vidj = i0vofi + 4
-       i0widi = 1
-       i0widj = 1
-       d7et(2,2,i0widi,i0widj,i0vidi,i0vidj,i0midi)&
-            =  d0x1*d0c4_a        * d0qtcst/d0qbfct
-
-       !C Qp (B,B)
-       i0vidj = i0vofi + 5
-       i0widi = 1
-       i0widj = 1
-       d7et(2,2,i0widi,i0widj,i0vidi,i0vidj,i0midi)&
-            =  -d0x2*d0c4_a       * d0qpcst/d0qbfct
-       
-    ENDDO
-    
-    RETURN
-    
-  END SUBROUTINE T2CALV_ET
-
-  SUBROUTINE T2CALV_SS
-    
-    USE T2COMM, ONLY: i0vmax,d3ss
-    
-!    USE T2COMM, ONLY:&
-!         i0vmax,i0smax,d3ss,&
-!         d0mfcst,d0btcst,d0ercst,d0epcst,d0etcst,&
-!         d0nncst,d0frcst,d0fbcst,d0ftcst,&
-!         d0ppcst,d0qrcst,d0qbcst,d0qtcst
-    
-    INTEGER(i0ikind)::&
-         i0vidi,i0vidj
-    
-    !C
-    !C INITIALIZATION
-    !C
-    
-    DO i0vidj = 1, i0vmax
-    DO i0vidi = 1, i0vmax
-       d3ss(i0vidi,i0vidj,i0midi) = 0.D0
-    ENDDO
-    ENDDO
-
-    RETURN
-  END SUBROUTINE T2CALV_SS
-  
-  FUNCTION fd0k11ps(d0xa2)
+  END SUBROUTINE T2CALV_VISCOUS_COEFFICIENT
+
+  ! CALCULATE K11_PS 
+  !        BY DOUBLE EXPONENTIAL INTEGRATION FORMULA
+  FUNCTION FUNC_k11ps(xaSq)
  
     USE LIBT2, ONLY:func_phi,func_G
-    USE T2COMM,ONLY:i0xa,d2x,d2y,d2z,d2bcf    
-    INTEGER(i0ikind)::i0xb
-    REAL(   i0rkind),INTENT(IN)::d0xa2
-    REAL(   i0rkind)::fd0k11ps
-    REAL(   i0rkind)::&
-         d0xa,d0xb,d0bcf,d0x,d0y,d0z,&
-         d0nus,d0nub,d0nud,d0nut
+    USE T2COMM,ONLY:NSMAX,I_xa,X,Y,Z,BaseNu
+    INTEGER(ikind)::i_xb
+    REAL(   rkind),INTENT(IN)::xaSq
+    REAL(   rkind)::FUNC_k11ps
+    REAL(   rkind)::&
+         xA,xB,baseNuAB,xBA,yBA,zAB,&
+         nuS,nuB,nuD,nuT
     
-    d0xa = SQRT(d0xa2) ! V/Vt_a
+    xA = SQRT(xASq) ! V/Vt_a
     
-    d0nut = 0.D0
+    nuT = 0.D0
     
-    DO i0xb  = 1, i0smax
-
-       d0x   = d2x(  i0xb,i0xa)  ! Vt_a/Vt_b
-       d0y   = d2y(  i0xb,i0xa)  ! m_b/m_a
-       d0z   = d2z(  i0xa,i0xb)  ! T_a/T_b
-       d0bcf = d2bcf(i0xa,i0xb)
-       d0xb  = d0xa*d0x          ! V/Vt_b
-       d0nud =      d0bcf*(func_phi(d0xb)-func_G(d0xb))/(d0xa**3)
-       d0nus = 2.D0*d0bcf*d0z*(1.D0+d0y)*func_G(d0xb)/d0xa 
-       d0nub = 2.D0*d0bcf*func_G(d0xb)/(d0xa**3)
+    DO i_xb  = 1, NSMAX
+       xBA      = X(  i_xb,I_xa)    ! Vt_a/Vt_b
+       yBA      = Y(  i_xb,I_xa)    ! m_b/m_a
+       zAB      = Z(  I_xa,i_xb)    ! T_a/T_b
+       baseNuAB = BaseNu(I_xa,i_xb) 
+       xB  = xA*xBA                 ! (V/Vt_a) * (Vt_a/Vt_b)
+       nuD =      baseNuAB*(func_phi(xB)-func_G(xB))/(xA**3)
+       nuS = 2.D0*baseNuAB*zAB*(1.D0+yBA)*func_G(xB)/xA 
+       nuB = 2.D0*baseNuAB*func_G(xB)/(Xa**3)
        
-       d0nut = d0nut + 2.D0*d0nus - d0nub + d0nud
-       
+       nuT = nuT + 2.D0*nuS - nuB + nuD
     ENDDO
     
-    IF(    d0nut.GT.0.D0)THEN 
-       d0nut = 1.D0/d0nut
-    ELSEIF(d0nut.EQ.0.D0)THEN
-       d0nut = 0.D0
+    IF(    nuT.GT.0.D0)THEN 
+       nuT = 1.D0/nuT
     ELSE
-       WRITE(6,*)'ERROR IN FD0K11PS'
+       WRITE(6,*)'ERROR IN FUNC_K11PS'
+       WRITE(6,*)nut
        STOP
     END IF
     
-    fd0k11ps = EXP(-d0xa**2)*(d0xa**5)*d0nut
+    FUNC_k11ps = EXP(-xA**2)*(xA**5)*nuT
     
     RETURN
     
-  END FUNCTION fd0k11ps
+  END FUNCTION FUNC_k11ps
+  
+  ! CALCULATE K12_PS 
+  !        BY DOUBLE EXPONENTIAL INTEGRATION FORMULA
+  FUNCTION FUNC_k12ps(xaSq)
  
-  FUNCTION fd0k12ps(d0xa2)
-    
     USE LIBT2, ONLY:func_phi,func_G
-    USE T2COMM,ONLY:i0xa,d2x,d2y,d2z,d2bcf    
+    USE T2COMM,ONLY:NSMAX,I_xa,X,Y,Z,BaseNu
+    INTEGER(ikind)::i_xb
+    REAL(   rkind),INTENT(IN)::xaSq
+    REAL(   rkind)::FUNC_k12ps
+    REAL(   rkind)::&
+         xA,xB,baseNuAB,xBA,yBA,zAB,&
+         nuS,nuB,nuD,nuT
     
-    INTEGER(i0ikind)::i0xb
-    REAL(   i0rkind),INTENT(IN)::d0xa2
-    REAL(   i0rkind)::fd0k12ps
-    REAL(   i0rkind)::&
-         d0xa,d0xb,d0bcf,d0x,d0y,d0z,&
-         d0nus,d0nub,d0nud,d0nut
-    
-    d0xa = SQRT(d0xa2) ! V/Vt_a
-
-    d0nut = 0.D0
-
-    DO i0xb  = 1, i0smax
-
-       d0x   = d2x(  i0xb,i0xa)  ! Vt_a/Vt_b
-       d0y   = d2y(  i0xb,i0xa)  ! m_b/m_a
-       d0z   = d2z(  i0xa,i0xb)  ! T_a/T_b
-       d0bcf = d2bcf(i0xa,i0xb)
-       d0xb  = d0xa*d0x          ! V/Vt_b
-       d0nud =      d0bcf*(func_phi(d0xb)-func_G(d0xb))/(d0xa**3)
-       d0nus = 2.D0*d0bcf*d0z*(1.D0+d0y)*func_G(d0xb)/d0xa 
-       d0nub = 2.D0*d0bcf*func_G(d0xb)/(d0xa**3)
-       
-       d0nut = d0nut + 2.D0*d0nus - d0nub + d0nud
+    xA = SQRT(xASq) ! V/Vt_a
+    nuT = 0.D0
+    DO i_xb  = 1, NSMAX
+       xBA      = X(  i_xb,I_xa)    ! Vt_a/Vt_b
+       yBA      = Y(  i_xb,I_xa)    ! m_b/m_a
+       zAB      = Z(  I_xa,i_xb)    ! T_a/T_b
+       BaseNuAB = baseNu(I_xa,i_xb) 
+       xB  = xA*xBA                 ! (V/Vt_a) * (Vt_a/Vt_b)
+       nuD =      baseNuAB*(func_phi(xB)-func_G(xB))/(xA**3)
+       nuS = 2.D0*baseNuAB*zAB*(1.D0+yBA)*func_G(xB)/xA 
+       nuB = 2.D0*baseNuAB*func_G(xB)/(Xa**3)
+       nuT = nuT + 2.D0*nuS - nuB + nuD
     ENDDO
-
-    IF(    d0nut.GT.0.D0)THEN 
-       d0nut = 1.D0/d0nut
-    ELSEIF(d0nut.EQ.0.D0)THEN
-       d0nut = 0.D0
+    
+    IF(    nuT.GT.0.D0)THEN 
+       nuT = 1.D0/nuT
     ELSE
-       WRITE(6,*)'ERROR IN FD0K12PS'
+       WRITE(6,*)'ERROR IN FUNC_K11PS'
        STOP
     END IF
     
-    fd0k12ps = EXP(-d0xa**2)*(d0xa**7)*d0nut
+    FUNC_k12ps = EXP(-xA**2)*(xA**7)*nuT
     
     RETURN
     
-  END FUNCTION fd0k12ps
-
-  FUNCTION fd0k22ps(d0xa2)
+  END FUNCTION FUNC_k12ps
+  
+  ! CALCULATE K22_PS 
+  !        BY DOUBLE EXPONENTIAL INTEGRATION FORMULA
+  FUNCTION FUNC_k22ps(xaSq)
     
     USE LIBT2, ONLY:func_phi,func_G
-    USE T2COMM,ONLY:i0xa,d2x,d2y,d2z,d2bcf    
+    USE T2COMM,ONLY:NSMAX,I_xa,X,Y,Z,BaseNu
+    INTEGER(ikind)::i_xb
+    REAL(   rkind),INTENT(IN)::xaSq
+    REAL(   rkind)::FUNC_k22ps
+    REAL(   rkind)::&
+         xA,xB,baseNuAB,xBA,yBA,zAB,&
+         nuS,nuB,nuD,nuT
     
-    INTEGER(i0ikind)::i0xb
-    REAL(   i0rkind),INTENT(IN)::d0xa2
-    REAL(   i0rkind)::fd0k22ps
-    REAL(   i0rkind)::&
-         d0xa,d0xb,d0bcf,d0x,d0y,d0z,&
-         d0nus,d0nub,d0nud,d0nut
-    
-    d0xa = SQRT(d0xa2) ! V/Vt_a
-
-    d0nut = 0.D0
-
-    DO i0xb  = 1, i0smax
-
-       d0x   = d2x(  i0xb,i0xa)  ! Vt_a/Vt_b
-       d0y   = d2y(  i0xb,i0xa)  ! m_b/m_a
-       d0z   = d2z(  i0xa,i0xb)  ! T_a/T_b
-       d0bcf = d2bcf(i0xa,i0xb)
-       d0xb  = d0xa*d0x          ! V/Vt_b
-       d0nud =      d0bcf*(func_phi(d0xb)-func_G(d0xb))/(d0xa**3)
-       d0nus = 2.D0*d0bcf*d0z*(1.D0+d0y)*func_G(d0xb)/d0xa 
-       d0nub = 2.D0*d0bcf*func_G(d0xb)/(d0xa**3)
-       
-       d0nut = d0nut + 2.D0*d0nus - d0nub + d0nud
-
+    xA = SQRT(xASq) ! V/Vt_a
+    nuT = 0.D0
+    DO i_xb  = 1, NSMAX
+       xBA      = X(  i_xb,I_xa)    ! Vt_a/Vt_b
+       yBA      = Y(  i_xb,I_xa)    ! m_b/m_a
+       zAB      = Z(  I_xa,i_xb)    ! T_a/T_b
+       baseNuAB = BaseNu(I_xa,i_xb) 
+       xB  = xA*xBA            ! (V/Vt_a) * (Vt_a/Vt_b)
+       nuD =      baseNuAB*(func_phi(xB)-func_G(xB))/(xA**3)
+       nuS = 2.D0*baseNuAB*zAB*(1.D0+yBA)*func_G(xB)/xA 
+       nuB = 2.D0*baseNuAB*func_G(xB)/(Xa**3)
+       nuT = nuT + 2.D0*nuS - nuB + nuD
     ENDDO
     
-    IF(    d0nut.GT.0.D0)THEN 
-       d0nut = 1.D0/d0nut
-    ELSEIF(d0nut.EQ.0.D0)THEN
-       d0nut = 0.D0
+    IF(    nuT.GT.0.D0)THEN 
+       nuT = 1.D0/nuT
     ELSE
-       WRITE(6,*)'ERROR IN FD0K22PS'
+       WRITE(6,*)'ERROR IN FUNC_K11PS'
        STOP
     END IF
-
-    fd0k22ps = EXP(-d0xa**2)*(d0xa**9)*d0nut
+    
+    FUNC_k22ps = EXP(-xA**2)*(xA**9)*nuT
     
     RETURN
     
-  END FUNCTION fd0k22ps
+  END FUNCTION FUNC_k22ps
 
-  FUNCTION fd0k11bn(d0xa2)
+  ! CALCULATE K11_BN 
+  !        BY DOUBLE EXPONENTIAL INTEGRATION FORMULA
+  FUNCTION FUNC_k11bn(xaSq)
+    
+    USE LIBT2, ONLY:func_phi,func_G
+    USE T2COMM,ONLY:NSMAX,I_xa,X,BaseNu
+    INTEGER(ikind)::i_xb
+    REAL(   rkind),INTENT(IN)::xaSq
+    REAL(   rkind)::FUNC_k11bn
+    REAL(   rkind)::&
+         xA,xB,baseNuAB,xBA,nuD,nuT
+    
+    xA = SQRT(XaSq) !C V/Vt_a
+
+    nuT = 0.D0
+
+    DO i_xb  = 1, NSMAX
+       
+       xBA      = X(  i_xb,I_xa)  ! Vt_a/Vt_b
+       baseNuAB = BaseNu(I_xa,i_xb)
+       xB       = xA*xBA          ! V/Vt_b = (V/Vt_a)*(Vt_a/Vt_b)
+       nuD      = baseNuAB*(func_phi(xB)-func_G(xB))/(xA**3)
+       nuT      = nuT + nuD
+    ENDDO
+    
+    FUNC_k11bn = EXP(-xA**2)*(xA**3)*nuT
+    
+    RETURN
+    
+  END FUNCTION FUNC_k11bn
+  
+  ! CALCULATE K12_BN 
+  !        BY DOUBLE EXPONENTIAL INTEGRATION FORMULA
+  FUNCTION FUNC_k12bn(xaSq)
         
     USE LIBT2, ONLY:func_phi,func_G
-    USE T2COMM,ONLY:i0xa,d2x,d2bcf
-    INTEGER(i0ikind)::i0xb
-    REAL(   i0rkind),INTENT(IN)::d0xa2
-    REAL(   i0rkind)::fd0k11bn
-    REAL(   i0rkind)::&
-         d0xa,d0xb,d0bcf,d0x,d0y,d0z,&
-         d0nud,d0nut
+    USE T2COMM,ONLY:NSMAX,I_xa,X,BaseNu
+    INTEGER(ikind)::i_xb
+    REAL(   rkind),INTENT(IN)::xaSq
+    REAL(   rkind)::FUNC_k12bn
+    REAL(   rkind)::&
+         xA,xB,baseNuAB,xBA,nuD,nuT
     
-    d0xa = SQRT(d0xa2) !C V/Vt_a
+    xA = SQRT(XaSq) !C V/Vt_a
 
-    d0nut = 0.D0
+    nuT = 0.D0
 
-    DO i0xb  = 1, i0smax
-
-       d0x   = d2x(  i0xb,i0xa)  ! Vt_a/Vt_b
-       d0bcf = d2bcf(i0xa,i0xb)
-       d0xb  = d0xa*d0x          ! V/Vt_b
-       d0nud = d0bcf*(func_phi(d0xb)-func_G(d0xb))/(d0xa**3)
-      
-       d0nut = d0nut + d0nud
+    DO i_xb  = 1, NSMAX
+       
+       xBA      = X(  i_xb,I_xa)  ! Vt_a/Vt_b
+       baseNuAB = BaseNu(I_xa,i_xb)
+       xB       = xA*xBA          ! V/Vt_b = (V/Vt_a)*(Vt_a/Vt_b)
+       nuD      = baseNuAB*(func_phi(xB)-func_G(xB))/(xA**3)
+       nuT      = nuT + nuD
     ENDDO
     
-    fd0k11bn = EXP(-d0xa**2)*(d0xa**3)*d0nut
+    FUNC_k12bn = EXP(-xA**2)*(xA**5)*nuT
     
     RETURN
     
-  END FUNCTION fd0k11bn
+  END FUNCTION FUNC_k12bn
 
-  FUNCTION fd0k12bn(d0xa2)
+
+  ! CALCULATE K22_BN 
+  !        BY DOUBLE EXPONENTIAL INTEGRATION FORMULA
+  FUNCTION FUNC_k22bn(xaSq)
     
-    USE LIBT2,ONLY:func_phi,func_G
-    USE T2COMM,ONLY:i0xa,d2x,d2bcf
-
-    INTEGER(i0ikind)::i0xb
-    REAL(   i0rkind),INTENT(IN)::d0xa2
-    REAL(   i0rkind)::fd0k12bn
-    REAL(   i0rkind)::&
-         d0xa,d0xb,d0bcf,d0x,d0nud,d0nut
+    USE LIBT2, ONLY:func_phi,func_G
+    USE T2COMM,ONLY:NSMAX,I_xa,X,BaseNu
+    INTEGER(ikind)::i_xb
+    REAL(   rkind),INTENT(IN)::xaSq
+    REAL(   rkind)::FUNC_k22bn
+    REAL(   rkind)::&
+         xA,xB,baseNuAB,xBA,nuD,nuT
     
-    d0xa = SQRT(d0xa2) ! V/Vt_a
+    xA = SQRT(XaSq) !C V/Vt_a
 
-    d0nut = 0.D0
+    nuT = 0.D0
 
-    DO i0xb  = 1, i0smax
-       d0x   = d2x(  i0xb,i0xa)  ! Vt_a/Vt_b
-       d0bcf = d2bcf(i0xa,i0xb)
-       d0xb  = d0xa*d0x ! V/Vt_b
-       d0nud = d0bcf*(func_phi(d0xb)-func_G(d0xb))/(d0xa**3)
-       d0nut = d0nut + d0nud
+    DO i_xb  = 1, NSMAX
+       
+       xBA      = X(     i_xb,I_xa)  ! Vt_a/Vt_b
+       baseNuAB = BaseNu(I_xa,i_xb)
+       xB       = xA*xBA          ! V/Vt_b = (V/Vt_a)*(Vt_a/Vt_b)
+       nuD      = baseNuAB*(func_phi(xB)-func_G(xB))/(xA**3)
+       nuT      = nuT + nuD
     ENDDO
     
-    fd0k12bn = EXP(-d0xa**2)*(d0xa**5)*d0nut
+    FUNC_k22bn = EXP(-xA**2)*(xA**7)*nuT
     
     RETURN
     
-  END FUNCTION fd0k12bn
+  END FUNCTION FUNC_k22bn
 
-  FUNCTION fd0k22bn(d0xa2)
+  SUBROUTINE T2CALV_ANOMALOUS_COEFFICIENT
     
-    USE LIBT2,ONLY:func_phi,func_G
-    USE T2COMM,ONLY:i0xa,d2x,d2bcf
+    USE T2CNST,ONLY:Aee
+    
+    USE T2COMM,ONLY:&
+         & NSMAX,R_mc,Mm,Ee,Nn,Tt,BpCt,BtCo,BbSq,Bb,GRt,G11Ct, &
+         & FtAnom1,FtAnom2,FtAnom3,FtAnom4,FtAnom5,  &
+         & GtAnom1,GtAnom2,GtAnom3,GtAnom4,GtAnom5
 
-    INTEGER(i0ikind)::i0xb
-    REAL(   i0rkind),INTENT(IN)::d0xa2
-    REAL(   i0rkind)::fd0k22bn
-    REAL(   i0rkind)::&
-         d0xa,d0xb,d0bcf,d0x,d0nud,d0nut
+    INTEGER(ikind)::&
+         i_s
+    REAL(   rkind)::&
+         eeE,ttE,eeA,ttA,&
+         d_anom,m_anom,x_anom,temp1,temp2
     
-    d0xa = SQRT(d0xa2) ! V/Vt_a
+    !
+    ! COEFFICIENTS OF ANORMALOUS TRANSPORT BY QUASI-LINEAR THEORY
+    ! REF: S.I. Itoh, Phys. Fluids B, 4 796         (1992)
+    !      K.C. Shaing, Phys. Plasmas, 31 2249      (1988)
+    !      M. Honda et. al, Nucl. Fusion, 50 095012 (2010)
+    !
+    IF(R_mc.LE.1.D0)THEN
+       d_anom = 0.45D0*R_mc+0.05D0
+       m_anom = 0.45D1*R_mc+0.05D1
+       x_anom = 0.45D1*R_mc+0.05D1
+    ELSE
+       d_anom = 0.5D0
+       m_anom = 0.5D1
+       x_anom = 0.5D1 
+    ENDIF
     
-    d0nut = 0.D0
-    
-    DO i0xb  = 1, i0smax
-       d0x   = d2x(  i0xb,i0xa)  ! Vt_a/Vt_b
-       d0bcf = d2bcf(i0xa,i0xb)
-       d0xb  = d0xa*d0x ! V/Vt_b
-       d0nud = d0bcf*(func_phi(d0xb)-func_G(d0xb))/(d0xa**3)
-       d0nut = d0nut + d0nud
+    ! Toroidal Force by Anomalous Transport (1)
+    ttE = Tt(1)
+    eeE = Ee(1)
+    DO i_s = 1,NSMAX
+       eeA = Ee(i_s)
+       temp1 = (eeA/ABS(eeA))*((eeE**2)*d_anom/ttE)
+       temp2 = (1.5D0 - (m_anom/d_anom))*G11Ct*GRt*BpCt/eeE
+       !FtAnom1(i_s) = -temp1*temp2*ttE
+       !FtAnom2(i_s) =  temp1*temp2
+       FtAnom1(i_s) = 0.D0
+       FtAnom2(i_s) = 0.D0
+       FtAnom3(i_s) =  temp1*BtCo*Bb
+       FtAnom4(i_s) = -temp1*BbSq
+       
+    ENDDO
+    ! Toroidal Force by Anomalous Transport (2)
+    DO i_s = 1, NSMAX
+       FtAnom5(i_s) = Mm(i_s)*Nn(i_s)*m_anom*G11Ct
     ENDDO
     
-    fd0k22bn = EXP(-d0xa**2)*(d0xa**7)*d0nut
+    ! EW Toroidal Force by Anomalous Transport (1)
+    DO i_s =1, NSMAX
+       ttA   = Tt(i_s)
+       eeA   = Ee(i_s)
+       temp1 =  (eeA**2)*m_anom/ttA
+       temp2 = -(2.5D0-(x_anom/m_anom))*GRt*BpCt*G11Ct*ttA/eeA
+       GtAnom1(i_s) =  temp1*temp2*ttA
+       GtAnom2(i_s) = -temp1*temp2
+       GtAnom3(i_s) = -temp1*BtCo*Bb*0.4D0
+       GtAnom4(i_s) =  temp1*BbSq   *0.4D0
+    ENDDO
+    
+    ! Toroidal Force by Anomalous Transport (2)
+    DO i_s = 1, NSMAX
+       GtAnom5(i_s) = 0.D0
+    ENDDO
     
     RETURN
     
-  END FUNCTION fd0k22bn
+  END SUBROUTINE T2CALV_ANOMALOUS_COEFFICIENT
+  
+  SUBROUTINE T2CALV_ADDITIONAL_COEFFICIENT
+    
+    USE T2COMM,ONLY:&
+         & NSMAX,&
+         & GRt,BpCt,BtCo,BtCt,BtSq,Bb,BbSq,R_mc,&
+         & Nn,Pp,Tt,Ee,UrCt,Ub,UtCo,UpCt,WtCo,WpCt,&
+         & Mu1,Mu2,Mu3,L11,L12,L21,L22,&
+         & BNCXb1,BNCXb2,BNCXb3,BNCXb4,BNCXb5,BNCXb6,&
+         & BNCXt1,BNCXt2,BNCXt3,&
+         & BNCPp1,BNCPp2,BNCPp3,BNCPp4,BNCPp5,BNCPp6,&
+         & BNCPp7,BNCPp8,BNCPp9,&
+         & BNCQb1,BNCQb2,BNCQb3,BNCQb4,&
+         & BNCQt1,BNCQt2,BNCQt3,BNCQt4,&
+         & CNCV01,CNCV02,CNCV03,CNCV04,CNCV05,CNCV06,CNCV07,&
+         & CNCV08,CNCV09,CNCV10,CNCV11,CNCV12,CNCV13,&
+         & CNCF01,CNCF02,CNCF03,CNCF04
+
+    INTEGER(ikind)::i_s,j_s    
+    REAL(   rkind)::b01,b02,b03,b04,b05,b06,b07,b08,b09,b10,b11,b12
+    REAL(   rkind)::&
+         & usrCt(1:NSMAX),uspCt(1:NSMAX),udpCt(1:NSMAX),wdpCt(1:NSMAX),&
+         & mux1( 1:NSMAX),mux2( 1:NSMAX),mux3( 1:NSMAX),mux4( 1:NSMAX),&
+         & lx1(  1:NSMAX,1:NSMAX),lx2(  1:NSMAX,1:NSMAX),&
+         & lx3(  1:NSMAX,1:NSMAX),lx4(  1:NSMAX,1:NSMAX)
+
+    b01 = 3.D0*GRt
+    b02 = BtSq/(Bb**3)
+    b03 = 2.D0*BpCt/3.D0
+    b04 = BpCt/BtCo
+    b05 = BpCt/Bb 
+    b06 = b05*b05
+    b07 = BpCt*BtCo/BbSq
+    b08 = b02*b02
+    b09 = 2.D0*BtCt     /3.D0
+    b10 = 2.D0*BpCt*R_mc/3.D0
+    b11 = BtSq/BbSq-1.D0/3.D0
+    b12 = BpCt*BtCo*R_mc/BbSq
+
+    !        b01*b02*b03*b04*b05*b06*b07*b08*b09*b10*b11*b12
+    BNCXb1 = b01*b02*b03*b04
+    BNCXb2 = b01*b02*b03
+    BNCXb3 = b01    *b03    *b05
+    BNCXb4 = b01                *b06
+    BNCXb5 = b01*b02    *b04*b05
+    BNCXb6 = b01*b02        *b05
+    !        b01*b02*b03*b04*b05*b06*b07*b08*b09*b10*b11*b12
+    BNCXt1 = b01*b02    *b04        *b07
+    BNCXt2 = b01*b02                *b07
+    BNCXt3 = b01            *b05    *b07
+    !        b01*b02*b03*b04*b05*b06*b07*b08*b09*b10*b11*b12
+    BNCPp1 = b01*b02    *b04
+    BNCPp2 = b01*b02
+    BNCPp3 = b01            *b05
+    BNCPp4 = b01*b02        *b05
+    BNCPp5 = b01        *b04            *b08
+    BNCPp6 = b01                        *b08
+    BNCPp7 = b01                *b06        
+    BNCPp8 = b01*b02    *b04*b05                    
+    BNCPp9 = b01*b02        *b05              
+    !        b01*b02*b03*b04*b05*b06*b07*b08*b09*b10*b11*b12
+    BNCQb1 = b01*b02                        *b09
+    BNCQb2 = b01            *b05            *b09
+    BNCQb3 = b01*b02                            *b10
+    BNCQb4 = b01            *b05                *b10
+    !        b01*b02*b03*b04*b05*b06*b07*b08*b09*b10*b11*b12
+    BNCQt1 = b01*b02                                *b11
+    BNCQt2 = b01            *b05                    *b11
+    BNCQt3 = b01*b02                                    *b12
+    BNCQt4 = b01            *b05                        *b12
+    
+    DO i_s = 1, NSMAX       
+       usrCt(i_s) = UrCt(i_s)/3.D0 
+       uspCt(i_s) = UpCt(i_s)/3.D0 - Ub(  i_s)*b05
+       udpCt(i_s) = UtCo(i_s)*b04  - UpCt(i_s)
+       wdpCt(i_s) = WtCo(i_s)*b04  - WpCt(i_s) 
+    ENDDO
+    
+    ! mux1 : NEOCLASSICAL VISCOSITY COEFFICIENT : \bar{\mu}_{1a}
+    ! mux2 : NEOCLASSICAL VISCOSITY COEFFICIENT : \bar{\mu}_{2a} 
+    ! mux3 : NEOCLASSICAL VISCOSITY COEFFICIENT : \bar{\mu}_{3a} 
+    ! mux3 : NEOCLASSICAL VISCOSITY COEFFICIENT : \bar{\mu}_{3a} 
+    DO i_s = 1, NSMAX       
+       mux1(i_s) = Mu1(i_s) - Mu2(i_s)
+       mux2(i_s) =    0.4D0 * Mu2(i_s)
+       mux3(i_s) = Mu2(i_s) - Mu3(i_s) + 2.5D0*(Mu1(i_s) - Mu2(i_s))
+       mux4(i_s) =    0.4D0 * Mu3(i_s) + Mu2(i_s)
+    ENDDO
+    
+    DO i_s = 1,NSMAX
+       CNCV01(i_s) = mux1(i_s)        /Nn(i_s) 
+       CNCV02(i_s) = mux2(i_s)        /Pp(i_s)
+       CNCV03(i_s) = mux3(i_s)*Tt(i_s)/Nn(i_s)
+       CNCV04(i_s) = mux4(i_s)*Tt(i_s)/Pp(i_s)
+       ! for viscous heating
+       CNCV05(i_s) = mux1(i_s)*usrCt(i_s)/Nn(i_s) 
+       CNCV06(i_s) = mux1(i_s)*uspCt(i_s)/Nn(i_s) 
+       CNCV07(i_s) = mux2(i_s)*usrCt(i_s)/Pp(i_s)
+       CNCV08(i_s) = mux2(i_s)*uspCt(i_s)/Pp(i_s)
+       CNCV09(i_s) = mux1(i_s)*udpCt(i_s)/Nn(i_s) 
+       CNCV10(i_s) = mux2(i_s)*udpCt(i_s)/Pp(i_s) 
+       ! for lorentz
+       CNCV11(i_s) =  Ee(i_s)*mux1(i_s)*udpCt(i_s) &
+            &        +Ee(i_s)*mux2(i_s)*wdpCt(i_s)
+       CNCV12(i_s) =  Ee(i_s)*mux1(i_s)
+       CNCV13(i_s) =  Ee(i_s)*mux2(i_s)
+    ENDDO
+    
+    DO j_s = 1, NSMAX
+    DO i_s = 1, NSMAX
+       lx1(i_s,j_s) =         L11(i_s,j_s) + L12(i_s,j_s) 
+       lx2(i_s,j_s) =               -0.4D0 * L12(i_s,j_s) 
+       lx3(i_s,j_s) =  2.5D0*(L11(i_s,j_s) + L12(i_s,j_s))&
+            &               -(L21(i_s,j_s) + L22(i_s,j_s))
+       lx4(i_s,j_s) = -L12(i_s,j_s) +0.4D0 * L22(i_s,j_s)
+    ENDDO
+    ENDDO
+    
+    DO j_s=1,NSMAX
+    DO i_s=1,NSMAX
+       CNCF01(i_s,j_s) = GRt*lx1(i_s,j_s)        /Nn(j_s)
+       CNCF02(i_s,j_s) = GRt*lx2(i_s,j_s)        /Pp(j_s)
+       CNCF03(i_s,j_s) = GRt*lx3(i_s,j_s)*Tt(i_s)/Nn(j_s)
+       CNCF04(i_s,j_s) = GRt*lx4(i_s,j_s)*Tt(i_s)/Pp(j_s)
+    ENDDO
+    ENDDO
+
+    RETURN
+    
+  END SUBROUTINE T2CALV_ADDITIONAL_COEFFICIENT
+
+  !
+  !
+  !
+  !
+  SUBROUTINE T2CALV_COEF_CHECK
+
+    USE T2COMM,ONLY:&
+         & NSMAX,&
+         & GRt,G11xCo,G12Co,G22Co, G33Co,&
+         &     G11Ct, G12Ct,G22xCt,G33Ct,&  
+         &     UgrCt, UgpCt,R_rz,R_mc,   &
+         !
+         & BtCo,BtCt,BtSq,BpCo,BpCt,BpSq,Bb,BbSq,&
+         !
+         & Ee,Mm,Nn,Vv,FrCt,Fb,FtCo,FpCt,UrCt,Ub,&
+         & UtCo,UpCt,UuSq,Pp,QrCt,Qb,QtCo,QpCt,WrCt,&
+         & Wb,WtCo,WpCt,Tt,&
+         !
+         & X,Y,Z,BaseNu,Nu,Nuh,&
+         !
+         & L11,L12,L21,L22,Mu1,Mu2,Mu3,Hex,&   
+         & FtAnom1,FtAnom2,FtAnom3,FtAnom4,FtAnom5,&
+         & GtAnom1,GtAnom2,GtAnom3,GtAnom4,GtAnom5,&
+         & BNCXb1,BNCXb2,BNCXb3,BNCXb4,BNCXb5,BNCXb6,&
+         & BNCXt1,BNCXt2,BNCXt3,&
+         & BNCPp1,BNCPp2,BNCPp3,BNCPp4,BNCPp5,BNCPp6,&
+         & BNCPp7,BNCPp8,BNCPp9,&
+         & BNCQb1,BNCQb2,BNCQb3,BNCQb4,&
+         & BNCQt1,BNCQt2,BNCQt3,BNCQt4,& 
+         !
+         & CNCV01,CNCV02,CNCV03,CNCV04,CNCV05,&
+         & CNCV06,CNCV07,CNCV08,CNCV09,CNCV10,&
+         & CNCV11,CNCV12,CNCV13,&
+         & CNCF01,CNCF02,CNCF03,CNCF04
+
+
+    INTEGER(ikind)::i_s,j_s
+
+    OPEN(30,FILE="TEST_T2CALV.txt")
+100 FORMAT(A10,1X,'val=',1X,D15.8)
+110 FORMAT(A10,1X,'i=',I1,1X,'val=',D15.8)
+120 FORMAT(A10,1X,'i=',I1,1X,'j=',I1,1X,'val=',D15.8)
+    
+    WRITE(30,100)"GRt    ",GRt
+    WRITE(30,100)"G11xCo ",G11xCo
+    WRITE(30,100)"G12Co  ",G12Co
+    WRITE(30,100)"G22Co  ",G22Co
+    WRITE(30,100)"G33Co  ",G33Co
+    WRITE(30,100)"G11Ct  ",G11Ct
+    WRITE(30,100)"G12Ct  ",G12Ct
+    WRITE(30,100)"G22xCt ",G22xCt
+    WRITE(30,100)"G33Ct  ",G33Ct
+    WRITE(30,100)"UgrCt  ",UgrCt
+    WRITE(30,100)"UgpCt  ",UgpCt
+    WRITE(30,100)"R_rz   ",R_rz
+    WRITE(30,100)"R_mc   ",R_mc
+    
+    WRITE(30,100)"BtCo   ",BtCo
+    WRITE(30,100)"BtCt   ",BtCt
+    WRITE(30,100)"BtSq   ",BtSq
+    WRITE(30,100)"BpCo   ",BpCo
+    WRITE(30,100)"BpCt   ",BpCt
+    WRITE(30,100)"BpSq   ",BpSq
+    WRITE(30,100)"Bb     ",Bb
+    WRITE(30,100)"BbSq   ",BbSq
+    
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"Ee     ",i_s,Ee(  i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"Mm     ",i_s,Mm(  i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"Tt     ",i_s,Tt(  i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"Vv     ",i_s,Vv(  i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"Nn     ",i_s,Nn(  i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"FrCt   ",i_s,FrCt(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"Fb     ",i_s,Fb(  i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"FtCo   ",i_s,FtCo(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"FpCt   ",i_s,FpCt(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"UrCt   ",i_s,UrCt(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"Ub     ",i_s,Ub(  i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"UtCo   ",i_s,UtCo(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"UpCt   ",i_s,UpCt(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"UuSq   ",i_s,UuSq(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"Pp     ",i_s,Pp(  i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"QrCt   ",i_s,QrCt(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"Qb     ",i_s,Qb(  i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"QtCo   ",i_s,QtCo(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"QtCo   ",i_s,QtCo(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"QpCt   ",i_s,QpCt(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"WrCt   ",i_s,WrCt(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"Wb     ",i_s,Wb(  i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"WtCo   ",i_s,WtCo(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"WpCt   ",i_s,WpCt(i_s)
+    ENDDO
+
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"Mu1    ",i_s,Mu1(  i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"Mu2    ",i_s,Mu2(  i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"Mu3    ",i_s,Mu3(  i_s)
+    ENDDO
+
+    DO i_s = 1, NSMAX
+    DO j_s = 1, NSMAX
+       WRITE(30,120)"X      ",i_s,j_s,X(     i_s,j_s)
+    ENDDO
+    ENDDO
+    DO i_s = 1, NSMAX
+    DO j_s = 1, NSMAX
+       WRITE(30,120)"Y      ",i_s,j_s,Y(     i_s,j_s)
+    ENDDO
+    ENDDO
+    DO i_s = 1, NSMAX
+    DO j_s = 1, NSMAX
+        WRITE(30,120)"Z     ",i_s,j_s,Z(     i_s,j_s)
+    ENDDO
+    ENDDO
+    DO i_s = 1, NSMAX
+    DO j_s = 1, NSMAX
+       WRITE(30,120)"BaseNu ",i_s,j_s,BaseNu(i_s,j_s)
+    ENDDO
+    ENDDO
+    DO i_s = 1, NSMAX
+    DO j_s = 1, NSMAX
+       WRITE(30,120)"Nu     ",i_s,j_s,Nu(    i_s,j_s)
+    ENDDO
+    ENDDO
+    DO i_s = 1, NSMAX
+    DO j_s = 1, NSMAX
+       WRITE(30,120)"Nuh    ",i_s,j_s,Nuh(   i_s,j_s)
+    ENDDO
+    ENDDO
+
+    DO i_s = 1, NSMAX
+    DO j_s = 1, NSMAX
+       WRITE(30,120)"L11    ",i_s,j_s,L11(i_s,j_s)
+    ENDDO
+    ENDDO    
+    DO i_s = 1, NSMAX
+    DO j_s = 1, NSMAX
+       WRITE(30,120)"L12    ",i_s,j_s,L12(i_s,j_s)    
+    ENDDO
+    ENDDO    
+    DO i_s = 1, NSMAX
+    DO j_s = 1, NSMAX
+       WRITE(30,120)"L21    ",i_s,j_s,L21(i_s,j_s)
+    ENDDO
+    ENDDO    
+    DO i_s = 1, NSMAX
+    DO j_s = 1, NSMAX
+       WRITE(30,120)"L22    ",i_s,j_s,L22(i_s,j_s)
+    ENDDO
+    ENDDO    
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"Hex    ",i_s,Hex(i_s)
+    ENDDO    
+
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"FtAnom1",i_s,FtAnom1(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"FtAnom2",i_s,FtAnom2(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"FtAnom3",i_s,FtAnom3(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"FtAnom4",i_s,FtAnom4(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"FtAnom5",i_s,FtAnom5(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"GtAnom1",i_s,GtAnom1(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"GtAnom2",i_s,GtAnom2(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"GtAnom3",i_s,GtAnom3(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"GtAnom4",i_s,GtAnom4(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"GtAnom5",i_s,GtAnom5(i_s)
+    ENDDO
+
+    WRITE(30,100)"BNCXb1 ",BNCXb1
+    WRITE(30,100)"BNCXb2 ",BNCXb2
+    WRITE(30,100)"BNCXb3 ",BNCXb3
+    WRITE(30,100)"BNCXb4 ",BNCXb4
+    WRITE(30,100)"BNCXb5 ",BNCXb5
+    WRITE(30,100)"BNCXb6 ",BNCXb6
+
+    WRITE(30,100)"BNCXt1 ",BNCXt1
+    WRITE(30,100)"BNCXt2 ",BNCXt2
+    WRITE(30,100)"BNCXt3 ",BNCXt3
+
+    WRITE(30,100)"BNCPp1 ",BNCPp1
+    WRITE(30,100)"BNCPp2 ",BNCPp2
+    WRITE(30,100)"BNCPp3 ",BNCPp3
+    WRITE(30,100)"BNCPp4 ",BNCPp4
+    WRITE(30,100)"BNCPp5 ",BNCPp5
+    WRITE(30,100)"BNCPp6 ",BNCPp6
+    WRITE(30,100)"BNCPp7 ",BNCPp7
+    WRITE(30,100)"BNCPp8 ",BNCPp8
+    WRITE(30,100)"BNCPp9 ",BNCPp9
+
+    WRITE(30,100)"BNCQb1 ",BNCQb1
+    WRITE(30,100)"BNCQb2 ",BNCQb2
+    WRITE(30,100)"BNCQb3 ",BNCQb3
+    WRITE(30,100)"BNCQb4 ",BNCQb4
+
+    WRITE(30,100)"BNCQt1 ",BNCQt1
+    WRITE(30,100)"BNCQt2 ",BNCQt2
+    WRITE(30,100)"BNCQt3 ",BNCQt3
+    WRITE(30,100)"BNCQt4 ",BNCQt4
+
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"CNCV01 ",i_s,CNCV01(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"CNCV02 ",i_s,CNCV02(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"CNCV03 ",i_s,CNCV03(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"CNCV04 ",i_s,CNCV04(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"CNCV05 ",i_s,CNCV05(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"CNCV06 ",i_s,CNCV06(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"CNCV07 ",i_s,CNCV07(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"CNCV08 ",i_s,CNCV08(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"CNCV09 ",i_s,CNCV09(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"CNCV10 ",i_s,CNCV10(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"CNCV11 ",i_s,CNCV11(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"CNCV12 ",i_s,CNCV12(i_s)
+    ENDDO
+    DO i_s = 1, NSMAX
+       WRITE(30,110)"CNCV13 ",i_s,CNCV13(i_s)
+    ENDDO
+
+    DO i_s = 1, NSMAX
+    DO j_s = 1, NSMAX
+       WRITE(30,120)"CNCF01 ",i_s,j_s,CNCF01(i_s,j_s)
+    ENDDO
+    ENDDO
+    DO i_s = 1, NSMAX
+    DO j_s = 1, NSMAX
+       WRITE(30,120)"CNCF02 ",i_s,j_s,CNCF02(i_s,j_s)
+    ENDDO
+    ENDDO
+    DO i_s = 1, NSMAX
+    DO j_s = 1, NSMAX
+       WRITE(30,120)"CNCF03 ",i_s,j_s,CNCF03(i_s,j_s)
+    ENDDO
+    ENDDO
+    DO i_s = 1, NSMAX
+    DO j_s = 1, NSMAX
+       WRITE(30,120)"CNCF04 ",i_s,j_s,CNCF04(i_s,j_s)
+    ENDDO
+    ENDDO    
+
+    CLOSE(30)
+    
+    RETURN
+
+  END SUBROUTINE T2CALV_COEF_CHECK
 END MODULE T2CALV

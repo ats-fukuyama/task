@@ -1,122 +1,131 @@
-!C
-!C
-!C
+!---------------------------------------------------------------------
+!
+!         MODULE FOR SETUP DEFAULT INPUT PARAMETER 
+!
+!                   LAST UPDATE 2014-06-05 H.Seto
+!
+!---------------------------------------------------------------------
 MODULE T2INIT
   
-  USE T2CNST, ONLY: i0ikind,i0rkind
-  
   IMPLICIT NONE
+  PRIVATE
 
   PUBLIC T2_INIT !C INITIALIZE INPUT PARAMETERS
   
-  PRIVATE
 CONTAINS
-
-  !C
-  !C
-  !C
-
+  
+  !
+  !
+  !
   SUBROUTINE T2_INIT
     
-    USE T2COMM, ONLY: &
-         c10rname, i0dbg, i0fnum, i0mfcs, i0wstp,i0anom,i0cchk,  &
-         i0solv,i0dmax,i0amax,i0nmax,i0smax,i0lmax,i0qmax,&
-         i0smax, i0nmax,i0dmax, i1mlvl,&
-         i0pdiv_number, i1rdn2, d1rec,&
-         i0pmax,d0eps,d0rmjr,d0rmnr,&
-         i0nm,i0nn,i0tm,i0tn,d0bc,d0qc,d0qs,&
-         d1nc,d1ns,d1nw,d1tc,d1ts,d1tw,&
-         d1pa,d1pz,d0rw, &
+    USE T2CNST, ONLY: i0lmaxm,i0spcsm,Ame,Amp
+    
+    USE T2COMM,ONLY:&
+         c10rname,i0fnum,&
+         NNMAX,NQMAX,NDMAX,NSMAX,NPMIN,NLMAX,&
+         !
+         i1mlvl,i1rdn2,d1rec,d0rw,RR,RA,&
+         i0nm,i0nn,i0tm,i0tn,d0qc,d0qs,d0bc,&
+         d1nc,d1ns,d1nw,d1tc,d1ts,d1tw,Pa,Pz,&
+         ! AF
          dt,time_init,eps_conv, &
          ntmax,ntstep,nt0dmax,nt0dstep,nt2dmax,nt2dstep,nconvmax, &
-         idfile,idprint,idplot,idmode,idebug,i0supg
-
-    USE T2CNST, ONLY: i0lmaxm,i0spcsm,d0aee,d0ame,d0amp
-
-!    NAMELIST /T2/ &
-!         c10rname, i0dbg, i0fnum, i0mfcs, i0wstp,&
-!         i0dmax,i0amax,&
-!         i0smax, i0nmax, i0lmax, i1mlvl,&
-!         i0pdiv_number, i1rdn2, d1rec,&
-!         i0pmax,d0eps,d0rmjr,d0rmnr,&
-!         d0bc,&
-!         d1nc,d1ns,d1tc,d1ts,&
-!         d1pa,d1pz,d0rw, &
-!         dt,time_init,eps_conv, &
-!         ntmax,ntstep,nt0dmax,nt0dstep,nt2dmax,nt2dstep,nconvmax, &
-!         idfile,idprint,idplot,idmode,idebug,i0solv
+         idfile,idprint,idplot,idmode,idebug,&
+         !
+         UsePotentialDescription,UseNormalization,&
+         UseSUPGFEM,             UseCoefficientCheck,&
+         UseAnomalousTransportFT,UseAnomalousTransportGT,&
+         !
+         SolveElectron,SolveIons,&
+         SolveBp,SolveBt,SolveEt,SolveEp,SolveEr,&
+         SolveNn,SolveFr,SolveFb,SolveFt,SolveFp,&
+         SolvePp,SolveQr,SolveQb,SolveQt,SolveQp,&
+         !
+         LockBpOnAxis,LockBtOnAxis,LockEtOnAxis,LockEpOnAxis,&
+         LockErOnAxis,&
+         LockNnOnAxis,LockFrOnAxis,LockFbOnAxis,LockFtOnAxis,&
+         LockFpOnAxis,&
+         LockPpOnAxis,LockQrOnAxis,LockQbOnAxis,LockQtOnAxis,&
+         LockQpOnAxis,&
+         !
+         LockBpOnWall,LockBpOnWall,LockEtOnWall,LockEpOnWall,&
+         LockErOnWall,&
+         LockNnOnWall,LockFrOnWall,LockFbOnWall,LockFtOnWall,&
+         LockFpOnWall,&
+         LockPpOnWall,LockQrOnWall,LockQbOnWall,LockQtOnWall,&
+         LockQpOnWall,&
+         !
+         CoordinateSwitch
     
+    ! ----------------------------------------------------------------
+
     c10rname = 'TEST'
-    i0solv  =  3
-    i0dbg   =  0
     i0fnum  = 10
-    i0anom  =  1
-    i0mfcs  =  1
-    i0cchk  =  1
-    i0wstp  =  1   ! output timing
-    i0supg  =  0
-    i0dmax  =  2   ! mesh dim
-    i0qmax  = 32   ! gauss kyuuseki number of sample points
-    i0pmax  = 999  ! iteration 
-    
-    i0smax =  2
-    i0nmax =  4        ! number of nodes in a elemnt
-    i0lmax =  1        ! 
-    i0pdiv_number = 30 ! 
+    !
+    CoordinateSwitch = 1
 
+    ! settings for computational domain
+    NNMAX =  4
+    NQMAX = 32
+    NDMAX =  2
+    NSMAX =  2
+    NPMIN = 10
+    NLMAX =  1
+    
+    RR   =  1.30D0
+    RA   =  0.30D0
+    d0rw =  1.10D0
+    
+    d1rec(0:i0lmaxm) = 0.D0 ! least radial point in a level
+    d1rec(1) = d0rw
+    
 
     i1mlvl(0:i0lmaxm+1) = 0
     i1mlvl(1)=1        ! 10 x 2^0
     
     i1rdn2(-1:i0lmaxm) = 0  
-    i1rdn2(1) = 33   ! number of radial nodes in a level
+    i1rdn2(1) = 11   ! number of radial nodes in a level
 
-
-    d1rec(0:i0lmaxm) = 0.D0 ! least radial point in a level
-    d1rec(1) = 1.10D0
-
-    d0rmjr   =  1.3D0
-    d0rmnr   =  0.30D0
-    d0rw     =  1.10D0
-
+    ! plasma parameters
+    
     d0qc     =  1.D0
     d0qs     =  3.D0
     d0bc     =  1.30D0
 
-    !PLASMA PARAMETER
-    i0nm = 2
-    i0nn = 3
-    i0tm = 2
+    i0nm = 3
+    i0nn = 2
+    i0tm = 3
     i0tn = 2
     
     !Electron 
-    d1pa(1) =  d0ame/d0amp
-    d1pz(1) = -1.D0
-
+    Pa(1) =  Ame/Amp
+    Pz(1) = -1.D0
+    
     d1nc(1) = 0.30D0
     d1ns(1) = 0.06D0
-    d1nw(1) = 0.01D0
+    d1nw(1) = 0.06D0
     d1tc(1) = 0.50D0
     d1ts(1) = 0.05D0
     d1tw(1) = 0.05D0
     !Deuterium
-    d1pa(2) = 2.D0
-    d1pz(2) = 1.D0
-
+    Pa(2) = 2.D0
+    Pz(2) = 1.D0
+    
     d1nc(2) = 0.30D0
     d1ns(2) = 0.06D0
-    d1nw(2) = 0.01D0
+    d1nw(2) = 0.06D0
     d1tc(2) = 0.50D0
     d1ts(2) = 0.05D0
     d1tw(2) = 0.05D0
-
+    
     !Other plasma speces
     d1nc(3:i0spcsm) = 0.D0
     d1ns(3:i0spcsm) = 0.D0 
     d1tc(3:i0spcsm) = 0.D0
     d1ts(3:i0spcsm) = 0.D0
-    d1pa(3:i0spcsm) = 0.D0
-    d1pz(3:i0spcsm) = 0.D0
+    Pa(3:i0spcsm)   = 0.D0
+    Pz(3:i0spcsm)   = 0.D0
     
     dt        = 1.D-4   ! time step [s]
     time_init = 0.D0    ! initial time [s]
@@ -128,7 +137,7 @@ CONTAINS
     nt2dstep  = 1       ! time step to save profile data
 
     nconvmax  = 255     ! maximum number of convergence steps for implicit loop
-    eps_conv  = 1.D-3   ! relative convergence criterion for implicit loop
+    eps_conv  = 1.D-4   ! relative convergence criterion for implicit loop
 
     idfile    = 0       ! control id for file output: 0 for none, 9 for all
     idprint   = 9       ! control id for print output: 0 for none, 9 for all
@@ -143,9 +152,71 @@ CONTAINS
                         !     7 with flux surface average
                         !     8 with equilibrium
     idebug    = 0       ! control id for debug mode
+    
+    ! 
+    UsePotentialDescription = .FALSE.
+    UseNormalization        = .TRUE.
+    UseSUPGFEM              = .FALSE.
+    UseCoefficientCheck     = .FALSE.
+    UseAnomalousTransportFT = .FALSE.
+    UseAnomalousTransportGT = .FALSE.
+    
+    ! set equations to be solved
+    SolveElectron = .TRUE.
+    SolveIons     = .TRUE.
+    SolveBp       = .TRUE.
+    SolveBt       = .TRUE.
+    SolveEt       = .TRUE.
+    SolveEp       = .TRUE.
+    SolveEr       = .TRUE.
+    SolveNn       = .TRUE.
+    SolveFr       = .TRUE.
+    SolveFb       = .TRUE.
+    SolveFt       = .TRUE.
+    SolveFp       = .TRUE.
+    SolvePp       = .TRUE.
+    SolveQr       = .TRUE.
+    SolveQb       = .TRUE.
+    SolveQt       = .TRUE.
+    SolveQp       = .TRUE.
+    
+    ! set dirichlet boundary condition on magnetic axis
+    LockBpOnAxis  = .FALSE.
+    LockBtOnAxis  = .FALSE.
+    LockEtOnAxis  = .FALSE.
+    LockEpOnAxis  = .FALSE.
+    LockErOnAxis  = .FALSE.
+    LockNnOnAxis  = .FALSE.
+    LockFrOnAxis  = .FALSE.
+    LockFbOnAxis  = .FALSE.
+    LockFtOnAxis  = .FALSE.
+    LockFpOnAxis  = .FALSE.
+    LockPpOnAxis  = .FALSE.
+    LockQrOnAxis  = .FALSE.
+    LockQbOnAxis  = .FALSE.
+    LockQtOnAxis  = .FALSE.
+    LockQpOnAxis  = .FALSE.
+    
+    ! set dirichlet boundary condition on first wall
+
+    LockBpOnWall  = .TRUE.
+    LockBpOnWall  = .TRUE.
+    LockEtOnWall  = .TRUE.
+    LockEpOnWall  = .TRUE.
+    LockErOnWall  = .TRUE.
+    LockNnOnWall  = .FALSE.
+    LockFrOnWall  = .TRUE.
+    LockFbOnWall  = .TRUE.
+    LockFtOnWall  = .TRUE.
+    LockFpOnWall  = .FALSE.
+    LockPpOnWall  = .FALSE.
+    LockQrOnWall  = .TRUE.
+    LockQbOnWall  = .TRUE.
+    LockQtOnWall  = .TRUE.
+    LockQpOnWall  = .FALSE.
 
     RETURN
-
+    
   END SUBROUTINE T2_INIT
 END MODULE T2INIT
     
