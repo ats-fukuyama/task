@@ -80,10 +80,10 @@ CONTAINS
   
   !------------------------------------------------------------------
   !
-  !  T2EXEC (PUBLIC)
+  !  T2EXEC_EXECUTE
   !  FEM SOLVER FOR SIMULTANEOUS ADVECTION-DIFFUSION EQUATIONS
   ! 
-  !                2014-05-22 H.SETO
+  !                2014-06-16 H.SETO
   !
   !------------------------------------------------------------------
   SUBROUTINE T2EXEC_EXECUTE
@@ -111,9 +111,10 @@ CONTAINS
     bvec(1:NVMAX,1:NBMAX)         = 0.D0
     
     DO i_e = 1, NEMAX
-         
-    amatElem(1:NNMAX,1:NNMAX,1:NVMAX,1:NVMAX) = 0.D0
-    bvecElem(1:NNMAX,1:NVMAX)                 = 0.D0
+       
+       amatElem(1:NNMAX,1:NNMAX,1:NVMAX,1:NVMAX) = 0.D0
+       bvecElem(1:NNMAX,1:NVMAX)                 = 0.D0
+       
        CALL T2EXEC_SETUP_ELEMENT_VARIABLES(i_e)
        
        DO j_v = 1, NVMAX
@@ -132,7 +133,7 @@ CONTAINS
              ENDDO
           ENDIF
           
-          IF(HaveDiffTenCoef(i_v,j_v))&! error 
+          IF(HaveDiffTenCoef(i_v,j_v))&
                &     CALL T2EXEC_DT_SUBMATRIX(i_v,j_v        )
            
           IF(HaveGradVecCoef(i_v,j_v))&
@@ -222,7 +223,7 @@ CONTAINS
 
     DO i_v = 1, NVMAX
        DO j_v = 1, NVMAX
-          WRITE(32,110)i_v,j_v,27,amat(i_v,j_v,27)
+          WRITE(32,110)i_v,j_v,1,amat(i_v,j_v,1)
        ENDDO
     ENDDO
 
@@ -231,7 +232,7 @@ CONTAINS
     
     DO i_v = 1, NVMAX
        !DO j_v = 1, NVMAX
-       WRITE(32,120)i_v,0,27,bvec(i_v,27)
+       WRITE(32,120)i_v,0,25,bvec(i_v,25)
        !ENDDO
     ENDDO
    
@@ -240,7 +241,7 @@ CONTAINS
     
     DO i_v = 1, NVMAX
        !DO j_v = 1, NVMAX
-       WRITE(32,130)i_v,0,27,Xvec(i_v,27)
+       WRITE(32,130)i_v,0,25,Xvec(i_v,25)
        !ENDDO
     ENDDO
     CLOSE(32)
@@ -1277,9 +1278,10 @@ CONTAINS
             
     ! i_v: 1D value (FSA)
     ! j_v: 2D value
-    CALL T2EXEC_STORE_MATRIX(1    ,3    ,nodeTableB,& ! row
+    !CALL T2EXEC_STORE_MATRIX(1    ,3    ,nodeTableB,& ! row
+    !     &                   4    ,NVMAX,nodeTableC)  ! column
+    CALL T2EXEC_STORE_MATRIX(1    ,3    ,nodeTableA,& ! row
          &                   4    ,NVMAX,nodeTableC)  ! column
-
     ! i_v: 2D value 
     ! j_v: 1D value (FSA) 
     CALL T2EXEC_STORE_MATRIX(4    ,NVMAX,nodeTableC,& ! row

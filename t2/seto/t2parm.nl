@@ -4,10 +4,10 @@
  dt=1.D-10
  idebug=0
  NLMAX = 1
- NPMIN = 60
+ NPMIN = 10
  i1mlvl(1) = 1
- i1rdn2(1) = 66
- eps_conv = 1.D-2
+ i1rdn2(1) = 22
+ eps_conv = 1.D-4
 
     ! 
     UsePotentialDescription = .FALSE.
@@ -26,16 +26,16 @@
     SolveEt       = .FALSE.
     SolveEp       = .FALSE.
     SolveEr       = .FALSE.
-    SolveNn       = .TRUE.
-    SolveFr       = .TRUE.
+    SolveNn       = .FALSE.
+    SolveFr       = .FALSE.
     SolveFb       = .TRUE.
     SolveFt       = .TRUE.
     SolveFp       = .TRUE.
     SolvePp       = .FALSE.
     SolveQr       = .FALSE.
-    SolveQb       = .FALSE.
-    SolveQt       = .FALSE.
-    SolveQp       = .FALSE.
+    SolveQb       = .TRUE.
+    SolveQt       = .TRUE.
+    SolveQp       = .TRUE.
     
     ! set dirichlet boundary condition on magnetic axis
     LockBpOnAxis  = .FALSE.
@@ -62,14 +62,14 @@
     LockEpOnWall  = .FALSE.
     LockErOnWall  = .FALSE.
     LockNnOnWall  = .FALSE.
-    LockFrOnWall  = .TRUE.
-    LockFbOnWall  = .TRUE.
+    LockFrOnWall  = .FALSE.
+    LockFbOnWall  = .FALSE.
     LockFtOnWall  = .TRUE.
-    LockFpOnWall  = .FALSE.
+    LockFpOnWall  = .TRUE.
     LockPpOnWall  = .FALSE.
     LockQrOnWall  = .FALSE.
     LockQbOnWall  = .FALSE.
-    LockQtOnWall  = .FALSE.
-    LockQpOnWall  = .FALSE.
+    LockQtOnWall  = .TRUE.
+    LockQpOnWall  = .TRUE.
 
  &end

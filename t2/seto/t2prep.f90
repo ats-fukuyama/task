@@ -96,19 +96,33 @@ CONTAINS
           EqBtNF=1.D0
           EqEtNF=1.D0
           EqEpNF=1.D0
-          EqErNF=1.D0/EPS0
+          EqErNF=1.D0
           EqNnNF=NnNF
           EqFrNF=PpNF
-          EqFbNF=PpNF
-          EqFtNF=PpNF
-          EqFpNF=FpNF
+          EqFbNF=PpNF*1.D-6
+          EqFtNF=PpNF*1.D-6
+          EqFpNF=FpNF*1.D-3
           EqPpNF=PpNF
           EqQrNF=PpNF*TtNF
           EqQbNF=PpNF*TtNF
           EqQtNF=PpNF*TtNF
           EqQpNF=QpNF
+
+          EqBpNF=1.D0
+          EqBtNF=1.D0
+          EqEtNF=1.D0
+          EqEpNF=1.D0
+          EqErNF=1.D0
+
+          !EqFrNF=1.D0
+          !EqFbNF=1.D-5
+          !EqFtNF=1.D-5
+
+          !EqQrNF=1.D-15
+          !EqQbNF=1.D-20
+          !EqQtNF=1.D-20
+          !EqQpNF=QpNF*1.D-5
        ELSE
-          STOP ! for debug
           BpNF = 1.D0         ! 
           BtNF = 1.D0         ! 
           EtNF = 1.D0         !
