@@ -254,7 +254,6 @@ CONTAINS
     !   ENDDO
     !ENDDO
     !CLOSE(32)
-    STOP
     ! <<<<< ***** for debug  ***** <<<<<
     RETURN
 

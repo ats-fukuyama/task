@@ -1421,10 +1421,13 @@ CONTAINS
 
   SUBROUTINE T2COEF_SS_COEF_EB(i_m)
     
-    USE T2COMM, ONLY: NVMAX,SourScaCoef
+    USE T2CNST, ONLY: EPS0,RMU0
+    USE T2COMM, ONLY: NVMAX,NSMAX,Ee,Nn,FtCo,GRt,SourScaCoef,EqErNF,EqEtNF
     
     INTEGER(ikind),INTENT(IN)::i_m
-    INTEGER(ikind)::i_v,j_v
+    INTEGER(ikind)::&
+         & i_v,i_s,vOffsetA,&
+         & j_v,j_s        
     
     ! initialization
     DO j_v = 1, NVMAX
@@ -1433,7 +1436,47 @@ CONTAINS
     ENDDO
     ENDDO
     
+    !
+    ! variables as field (from i_v= 1 to i_v = 5)
+    !
+    i_v = 1                   ! Equation for psi'
+    i_v = 2                   ! Equation for I
+    i_v = 3                   ! Equation for E_{\zeta}
+    j_v = 3
+    DO j_s = 1, NSMAX
+       SourScaCoef(i_v,j_v,i_m) = SourScaCoef(i_v,j_v,i_m)&
+            &                    +GRt*RMU0*Ee(j_s)*FtCo(j_s) /EqEtNF
+    ENDDO
+    i_v = 4                   ! Equation for E_{\chi}
+
+    i_v = 5                   ! Equation for E_{\rho}
+    j_v = 5
+    DO j_s = 1, NSMAX
+       SourScaCoef(i_v,j_v,i_m) = SourScaCoef(i_v,j_v,i_m)&
+            &                    -GRt*Ee(j_s)*Nn(j_s)/EPS0 /EqErNF
+       
+    ENDDO
+    !
+    ! variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)
+    !
+    DO i_s = 1, NSMAX
+       
+       vOffsetA = 10*(i_s-1)
+       i_v =  6 + vOffsetA    ! Equation for n_{a}
+       i_v =  7 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
+       i_v =  8 + vOffsetA    ! Equation for Gamma_{a\para}
+       i_v =  9 + vOffsetA    ! Equation for Gamma_{a\zeta}
+       i_v = 10 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
+       i_v = 11 + vOffsetA    ! Equation for p_{a}
+       i_v = 12 + vOffsetA    ! Equation for \bar{Q}^{\rho}_{a}
+       i_v = 13 + vOffsetA    ! Equation for Q_{a\para}
+       i_v = 14 + vOffsetA    ! Equation for Q_{a\zeta}
+       i_v = 15 + vOffsetA    ! Equation for Q^{\chi}_{a}
+
+    ENDDO
+    !
     RETURN
+
   END SUBROUTINE T2COEF_SS_COEF_EB
 
   SUBROUTINE T2COEF_MS_COEF_PhiA(i_m)

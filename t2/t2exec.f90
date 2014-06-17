@@ -136,8 +136,8 @@ CONTAINS
           IF(HaveDiffTenCoef(i_v,j_v))&
                &     CALL T2EXEC_DT_SUBMATRIX(i_v,j_v        )
            
-          IF(HaveGradVecCoef(i_v,j_v))&
-               &     CALL T2EXEC_GV_SUBMATRIX(i_v,j_v        )
+          !IF(HaveGradVecCoef(i_v,j_v))&
+          !     &     CALL T2EXEC_GV_SUBMATRIX(i_v,j_v        )
           
           IF(HaveGradTenCoef(i_v,j_v))THEN
              DO i_k = 1, NKMAX
@@ -185,6 +185,7 @@ CONTAINS
 
     CALL CPU_TIME(e0time_0)
     ! set equations to be locked
+
     CALL T2EXEC_LOCK_VALUES(StartEqs,EndEqs,LockEqs)
     ! set dirichlet boundary condition on magnetic axis
     CALL T2EXEC_LOCK_VALUES(StartAxi,EndAxi,LockAxi)
@@ -254,7 +255,7 @@ CONTAINS
     !   ENDDO
     !ENDDO
     !CLOSE(32)
-    STOP
+    !STOP
     ! <<<<< ***** for debug  ***** <<<<<
     RETURN
 
@@ -484,14 +485,15 @@ CONTAINS
     ENDDO
     ENDDO
 
-    massScaVecElem(1:NNMAX) = 0.D0
-    DO j_n = 1, NNMAX  
-    DO i_n = 1, NNMAX
-       massScaVecElem(       i_n    ) &
-            = massScaVecElem(i_n    ) &
-            + massScaMatElem(i_n,j_n) &
-            * xvecElem(        j_n)
-    ENDDO
+
+    DO i_n = 1, NNMAX  
+       massScaVecElem(i_n) = 0.D0
+       DO j_n = 1, NNMAX
+          massScaVecElem(       i_n    ) &
+               = massScaVecElem(i_n    ) &
+               + massScaMatElem(i_n,j_n) &
+               * xvecElem(          j_n)
+       ENDDO
     ENDDO
     
     ! store submatrix
@@ -1270,12 +1272,12 @@ CONTAINS
     !
     ! for stiffness matrix
     !
-
+    
     ! i_v: 1D value (FSA)
     ! j_v: 1D value (FSA)
     CALL T2EXEC_STORE_MATRIX(1    ,3    ,nodeTableA,& ! row
          &                   1    ,3    ,nodeTableA)  ! column
-            
+    !print*,nodeTableA(1),nodeTableA(2),nodeTableA(3),nodeTableA(4)        
     ! i_v: 1D value (FSA)
     ! j_v: 2D value
     !CALL T2EXEC_STORE_MATRIX(1    ,3    ,nodeTableB,& ! row
@@ -1346,7 +1348,6 @@ CONTAINS
                 DO j_v = colValStart, colValEnd
                 DO i_v = rowValStart, rowValEnd
                    IF(HaveMat(i_v,j_v))THEN
-                      !IF((i_v.EQ.1).AND.(j_v.EQ.1)) print*,i_a
                       amat(             i_v,j_v,        i_a) &
                            = amat(      i_v,j_v,        i_a) &
                            + amatElemTF(i_v,j_v,i_n,j_n    )
@@ -1567,7 +1568,7 @@ CONTAINS
   !-------------------------------------------------------------------
   !
   !       SUBROUTINE T2EXEC_SOLVE
-  !
+  !v
   !
   !
   !
@@ -1624,6 +1625,7 @@ CONTAINS
     ! 
     ! STORE GLOBAL STIFFNESS MATRIX  
     ! 
+!    OPEN(35,FILE="MATRIX.txt")
     DO i_rowN = 1, NBMAX   
        DO i_a = NodeRowCRS(i_rowN), NodeRowCRS(i_rowN+1)-1
           i_colN = NodeColCRS(i_a) 
@@ -1634,66 +1636,71 @@ CONTAINS
                 i_rowNV  = NVMAX*(i_rowN-1) + i_rowV
                 i_colNV  = NVMAX*(i_colN-1) + i_colV
                 CALL MTX_SET_MATRIX(i_rowNV,i_colNV,val)
+ !               IF((i_rowV.EQ.1).AND.(i_colV.EQ.1))THEN
+  !                 WRITE(35,'("in=",I5,1X,"jn=",I5,1X,"v=",D15.8)')&
+   !                     i_rowN,i_colN,val
+    !            ENDIF
                 !IF(IDEBUG.EQ.1) &
                 !                     & 
                 !IF((i_rowV.EQ.7).OR.(i_rowV.Eq.17))&
                 !WRITE(*,'(2I5,I10,2I3,2I7,1PE12.4)') &
-                !     & i_rowN,i_colN,i_a,i_rowV,i_colV,i_rowNV,i_colNV,val
+                   !     & i_rowN,i_colN,i_a,i_rowV,i_colV,i_rowNV,i_colNV,val
              END IF
           ENDDO
           ENDDO
        ENDDO
     ENDDO
-    
+    !CLOSE(35)
+
     !
     ! ADDITIONAL COMPONENTS FOR FLUX SURFACE AVERAGING
     !
-    GOTO 2000
-
-    i0offset  = 1
-
-    DO i0lidi = 1, NLMAX
-       
-       i0pdn2 = i1pdn2(i0lidi)
-       i0rdn2 = i1rdn2(i0lidi)
-       
-       DO i0ridi = 1, i0rdn2
-          DO i0pidi = 1, i0pdn2
-                
-             i0arc  = NVMAX*i0offset
-             i0arc1 = i0arc + 1
-             i0arc2 = i0arc + 2
-             i0arc3 = i0arc + 3
-                
-             i0acc  = i0arc
-             i0acc1 = i0arc1
-             i0acc2 = i0arc2
-             i0acc3 = i0arc3
-                
-             i0acl  = NVMAX*(i0offset-1)
-             i0acl1 = i0acl + 1
-             i0acl2 = i0acl + 2
-             i0acl3 = i0acl + 3
-                
-             IF((i0pidi.GE.1).AND.(i0pidi.LT.i0pdn2))THEN
-                CALL MTX_SET_MATRIX(i0arc1,i0acc1,-1.D0)
-                CALL MTX_SET_MATRIX(i0arc2,i0acc2,-1.D0)
-                CALL MTX_SET_MATRIX(i0arc3,i0acc3,-1.D0)
-             ENDIF
-             
-             IF((i0pidi.GT.1).AND.(i0pidi.LE.i0pdn2))THEN!
-                CALL MTX_SET_MATRIX(i0arc1,i0acl1, 1.D0)
-                CALL MTX_SET_MATRIX(i0arc2,i0acl2, 1.D0)
-                CALL MTX_SET_MATRIX(i0arc3,i0acl3, 1.D0)
-            ENDIF
-             
-             i0offset = i0offset + 1
-             
-          ENDDO
-       ENDDO
-    ENDDO
-        
-2000 CONTINUE
+!    GOTO 2000!
+!
+!    i0offset  = 1
+!
+!    DO i0lidi = 1, NLMAX
+!       
+!       i0pdn2 = i1pdn2(i0lidi)
+!       i0rdn2 = i1rdn2(i0lidi)
+!       
+!       DO i0ridi = 1, i0rdn2
+!          DO i0pidi = 1, i0pdn2
+!                
+!             i0arc  = NVMAX*i0offset
+!             i0arc1 = i0arc + 1
+!             i0arc2 = i0arc + 2
+!             i0arc3 = i0arc + 3
+!                
+!             i0acc  = i0arc
+!             i0acc1 = i0arc1
+!             i0acc2 = i0arc2
+!             i0acc3 = i0arc3
+!                
+!             i0acl  = NVMAX*(i0offset-1)
+!             i0acl1 = i0acl + 1
+!             i0acl2 = i0acl + 2
+!             i0acl3 = i0acl + 3
+!                
+!             IF((i0pidi.GE.1).AND.(i0pidi.LT.i0pdn2))THEN
+!                CALL MTX_SET_MATRIX(i0arc1,i0acc1,-1.D0)
+!                CALL MTX_SET_MATRIX(i0arc2,i0acc2,-1.D0)
+!                CALL MTX_SET_MATRIX(i0arc3,i0acc3,-1.D0)
+!             ENDIF
+!             
+!             IF((i0pidi.GT.1).AND.(i0pidi.LE.i0pdn2))THEN!
+!                CALL MTX_SET_MATRIX(i0arc1,i0acl1, 1.D0)
+!                CALL MTX_SET_MATRIX(i0arc2,i0acl2, 1.D0)
+!                CALL MTX_SET_MATRIX(i0arc3,i0acl3, 1.D0)
+!            ENDIF
+!             
+!             i0offset = i0offset + 1
+!             
+!          ENDDO
+!       ENDDO
+!    ENDDO
+!        
+!2000 CONTINUE
 
     ! SET GLOBAL RIGHT HAND SIDE VECTOR
     DO i_rowN = 1, NBMAX

@@ -737,10 +737,10 @@ CONTAINS
     j_v = 4;                  HaveExciScaCoef(i_v,j_v) = .TRUE.
     
     i_v = 3                   ! Equation for E_{\zeta}
-    DO j_s = 0, NSMAX-1
-       vOffsetB = 10*j_s
-       j_v =  9 + vOffsetB;   HaveExciScaCoef(i_v,j_v) = .TRUE.
-    ENDDO
+    !DO j_s = 0, NSMAX-1
+    !   vOffsetB = 10*j_s
+    !   j_v =  9 + vOffsetB;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+    !ENDDO
     
     i_v = 4                   ! Equation for E_{\chi}
     DO j_s = 0, NSMAX-1
@@ -750,10 +750,10 @@ CONTAINS
     ENDDO
 
     i_v = 5                   ! Equation for E_{\rho}
-    DO j_s = 0, NSMAX-1
-       vOffsetB = 10*j_s
-       j_v =  6 + vOffsetB;   HaveExciScaCoef(i_v,j_v) = .TRUE.
-    ENDDO
+    !DO j_s = 0, NSMAX-1
+    !   vOffsetB = 10*j_s
+    !   j_v =  6 + vOffsetB;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+    !ENDDO
     
     !
     ! variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)

@@ -98,9 +98,9 @@ CONTAINS
           EqEpNF=1.D0
           EqErNF=1.D0
           EqNnNF=NnNF
-          EqFrNF=PpNF
-          EqFbNF=PpNF*1.D-6
-          EqFtNF=PpNF*1.D-6
+          EqFrNF=PpNF*1.D-7
+          EqFbNF=PpNF*1.D-10
+          EqFtNF=PpNF*1.D-10
           EqFpNF=FpNF*1.D-3
           EqPpNF=PpNF
           EqQrNF=PpNF*TtNF
@@ -398,7 +398,7 @@ CONTAINS
   !  
   !-------------------------------------------------------------------
   SUBROUTINE T2PROF_TOROIDAL_COORDINATE_AREA
-    
+    USE T2CNST,ONLY:Aee
     USE T2COMM,ONLY:&
          BpNF,BtNF,EtNF,EpNF,ErNF,&
          NnNF,FrNF,FbNF,FtNF,FpNF,&

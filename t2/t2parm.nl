@@ -1,12 +1,12 @@
  &t2
  ntmax=1
  ntstep=1
- dt=1.D-6
+ dt=1.D-10
  idebug=0
  NLMAX = 1
- NPMIN = 10
+ NPMIN = 3
  i1mlvl(1) = 1
- i1rdn2(1) = 22
+ i1rdn2(1) = 3
  eps_conv = 1.D-4
 
     ! 
@@ -21,21 +21,21 @@
     SolveElectron = .TRUE.
     SolveIons     = .TRUE.
 
-    SolveBp       = .FALSE.
+    SolveBp       = .TRUE.
     SolveBt       = .FALSE.
     SolveEt       = .FALSE.
     SolveEp       = .FALSE.
     SolveEr       = .FALSE.
     SolveNn       = .FALSE.
     SolveFr       = .FALSE.
-    SolveFb       = .TRUE.
-    SolveFt       = .TRUE.
-    SolveFp       = .TRUE.
+    SolveFb       = .FALSE.
+    SolveFt       = .FALSE.
+    SolveFp       = .FALSE.
     SolvePp       = .FALSE.
     SolveQr       = .FALSE.
-    SolveQb       = .TRUE.
-    SolveQt       = .TRUE.
-    SolveQp       = .TRUE.
+    SolveQb       = .FALSE.
+    SolveQt       = .FALSE.
+    SolveQp       = .FALSE.
     
     ! set dirichlet boundary condition on magnetic axis
     LockBpOnAxis  = .FALSE.
@@ -56,20 +56,20 @@
     
     ! set dirichlet boundary condition on first wall
 
+    LockBpOnWall  = .TRUE.
     LockBpOnWall  = .FALSE.
-    LockBpOnWall  = .FALSE.
-    LockEtOnWall  = .FALSE.
+    LockEtOnWall  = .TRUE.
     LockEpOnWall  = .FALSE.
     LockErOnWall  = .FALSE.
     LockNnOnWall  = .FALSE.
     LockFrOnWall  = .FALSE.
     LockFbOnWall  = .FALSE.
-    LockFtOnWall  = .TRUE.
-    LockFpOnWall  = .TRUE.
+    LockFtOnWall  = .FALSE.
+    LockFpOnWall  = .FALSE.
     LockPpOnWall  = .FALSE.
     LockQrOnWall  = .FALSE.
     LockQbOnWall  = .FALSE.
-    LockQtOnWall  = .TRUE.
-    LockQpOnWall  = .TRUE.
+    LockQtOnWall  = .FALSE.
+    LockQpOnWall  = .FALSE.
 
  &end

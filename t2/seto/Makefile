@@ -1,7 +1,7 @@
 include ../../make.header
 TARGETP = ./t2
 FFLAGS= $(OFLAGS)
-FFLAGS= $(DFLAGS)
+#FFLAGS= $(DFLAGS)
 
 ##### Without PETSc library #####
 #FLINKER=$(FCFREE)
@@ -46,7 +46,7 @@ all: t2
 
 ../../lib/tasklib.a:
 	(cd ../../lib; make tasklib.a)
-../../bpsd/bpsdlib.a:
+../../../bpsd/bpsdlib.a:
 	(cd ../../bpsd; make bpsdlib.a)
 ../../plx/pllib.a:
 	(cd ../../plx; make pllib.a)

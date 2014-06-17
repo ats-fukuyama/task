@@ -1,7 +1,7 @@
 include ../make.header
 TARGETP = ./t2
 FFLAGS= $(OFLAGS)
-FFLAGS= $(DFLAGS)
+#FFLAGS= $(DFLAGS)
 
 ##### Without PETSc library #####
 #FLINKER=$(FCFREE)
