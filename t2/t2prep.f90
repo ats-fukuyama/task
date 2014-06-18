@@ -35,7 +35,7 @@ CONTAINS
     CALL CPU_TIME(e0time_0)    
     
     ! set up normalization factors for T2CALV
-    CALL T2PREP_SETUP_NORMALIZATION_FACTOR   
+    CALL T2PREP_SETUP_NORMALIZATION_FACTOR
     ! set up global parameters for T2COMM
     CALL T2PREP_SETUP_GLOBAL_PARAMETER
     CALL T2_DIV
@@ -178,8 +178,10 @@ CONTAINS
          NBMAX, NRMAX, NEMAX, NHMAX, NAMAX, NNRMX, NERMX, &
          NECMX, NDMAX, NSMAX, NPMIN, NAVMX, NBVMX, &
          !
+         CoordinateSwitch,&
+         !
          StartEqs,EndEqs,StartAxi,EndAxi,StartWal,EndWal,&
-         UsePotentialDescription,&
+         UsePotentialDescription,CoordinateSwitch,&
          !
          i1mlvl,i1pdn1,i1pdn2,i1rdn1,i1rdn2,i1mmax,i1bmax,i1emax,&
          !
@@ -197,7 +199,7 @@ CONTAINS
     
     ! CALCULATE NUMBER OF NODES IN EACH MESH LEVEL    
     NMMAX = 0
-    NBMAX = 1
+    NBMAX = 0
     NXMAX = 0
     NRMAX = 1
     
@@ -212,19 +214,14 @@ CONTAINS
        ! 16: CUBIC    RECTANGULAR ELEMENT ( 16 POINTS)
     CASE( 4)
        DO i_l = 1, NLMAX
-          i0mlva = i1mlvl(i_l-1)
-          i0mlvb = i1mlvl(i_l  )
-          i0mlvc = i1mlvl(i_l+1)
-          i1mmax(i_l) = i1rdn1(i_l)*i1pdn1(i_l)
-          IF(i0mlva.EQ.0)THEN
-             i1bmax(i_l) = i1rdn2(i_l)*i1pdn2(i_l)+1
-          ELSEIF(i0mlva.NE.i0mlvb)THEN
-             i1bmax(i_l) = i1rdn2(i_l)*i1pdn2(i_l)+i1pdn2(i_l-1)
-          ELSEIF(i0mlva.EQ.i0mlvb)THEN
-             i1bmax(i_l) = i1rdn2(i_l)*i1pdn2(i_l)+i1pdn2(i_l)
-          ENDIF
           NMMAX = NMMAX + i1rdn1(i_l)*i1pdn1(i_l)
           NBMAX = NBMAX + i1rdn2(i_l)*i1pdn2(i_l)
+          SELECT CASE(CoordinateSwitch)
+          CASE(1)
+             NBMAX = NBMAX + 1
+          CASE(2)
+             NBMAX = NBMAX + NPMIN
+          END SELECT
        ENDDO
        
        NXMAX = NBMAX
@@ -240,8 +237,14 @@ CONTAINS
        ENDDO
        
        NERMX = NXMAX + 1
-       NECMX = i1pdn2(1) + 4*(NBMAX - i1pdn1(NLMAX))&
-            + 2*(NXMAX - NBMAX +i1pdn2(NLMAX))
+       SELECT CASE(CoordinateSwitch)
+       CASE (1)
+          NECMX =   i1pdn2(1) + 4*(NBMAX - i1pdn1(NLMAX))&
+               & +2*(NXMAX - NBMAX +i1pdn2(NLMAX))
+       CASE (2)
+          NECMX = 2*i1pdn2(1) + 4*(NBMAX - i1pdn2(1) - i1pdn2(NLMAX))&
+               & +2*(NXMAX - NBMAX +i1pdn2(NLMAX))
+       END SELECT
     CASE ( 9)
        WRITE(6,*)'UNDER CONSTRUCTION'
        STOP
@@ -281,6 +284,7 @@ CONTAINS
     
     NNRMX = 1 + NBMAX
     NAMAX = 0
+    print*,'NAMAX initial',NAMAX
     SELECT CASE (NNMAX)
        !   4: LINEAR   RECTANGULAR ELEMENT (  4 POINTS)
        !   9: QADRADIC RECTANGULAR ELEMENT (  9 POINTS)
@@ -292,14 +296,19 @@ CONTAINS
           i0mlvb = i1mlvl(i_l  )
           i0mlvc = i1mlvl(i_l+1)
           !C POINTS ON LEFT-SIDE-EDGES 
-          IF(    i0mlva.EQ.0)THEN
+          IF(i0mlva.EQ.0)THEN
              !C FIRST AND SECOND EDGE POINTS ON LEFT-SIDE IN Lv-1 MESH
-             NAMAX = NAMAX + 1+i1pdn2(i_l  ) +  7*i1pdn2(i_l  )
+             SELECT CASE(CoordinateSwitch)
+             CASE (1)
+                NAMAX = NAMAX + 1+i1pdn2(i_l) + 7*i1pdn2(i_l)
+             CASE (2)
+                NAMAX = NAMAX + 6*i1pdn2(i_l) + 9*i1pdn2(i_l)
+             END SELECT
           ELSEIF(i0mlva.NE.i0mlvb)THEN
              !C SECOND EDGE POINTS ON LEFT-SIDES IN Lv-2~LMAX MESH
              NAMAX = NAMAX + 8*i1pdn2(i_l-1) + 11*i1pdn2(i_l-1)
           ELSEIF(i0mlva.EQ.i0mlvb)THEN
-             NAMAX = NAMAX + 9*i1pdn2(i_l  )
+             NAMAX = NAMAX + 9*i1pdn2(i_l)
           ENDIF
           !C CONTSRAINT FREE POINTS ON MIDDLE AREA
           IF(i1rdn2(i_l).GE.2)THEN
@@ -327,15 +336,21 @@ CONTAINS
        WRITE(6,*)'T2PREP: IMPROPER IMPUT NNMAX=',NNMAX 
        STOP
     END SELECT
-    
-    IF(.NOT.UsePotentialDescription)THEN
-       NVMAX  = 10*NSMAX + 5
-       NKMAX  =  2*NSMAX + 2 
-    ELSE
-       WRITE(6,*)"Potential Description Ver. is underconstruction"
-       STOP
-    END IF
-    
+    SELECT CASE(CoordinateSwitch)
+    CASE (1)
+       IF(.NOT.UsePotentialDescription)THEN
+          NVMAX  = 10*NSMAX + 5
+          NKMAX  =  2*NSMAX + 2 
+       ELSE
+          WRITE(6,*)"Potential Description Ver. is underconstruction"
+          STOP
+       END IF
+    CASE(2)
+       NSMAX = 0
+       NVMAX = 1
+       NKMAX = 1
+    END SELECT
+
     NAVMX = NAMAX*NVMAX*NVMAX
     NBVMX = NBMAX*NVMAX
 
@@ -343,16 +358,27 @@ CONTAINS
     ! set boundary conditions 
     !
 
-    
-    StartEqs = 1
-    EndEqs   = NBMAX
+    SELECT CASE (CoordinateSwitch)
+    CASE (1)
+       StartEqs = 1
+       EndEqs   = NBMAX
+       
+       StartAxi = 1
+       EndAxi   = 1
+       
+       StartWal = NBMAX + 1 - i1pdn2(NLMAX)
+       EndWal   = NBMAX
+    CASE (2)
+       StartEqs = 1
+       EndEqs   = NBMAX
+       
+       StartAxi = 1
+       EndAxi   = NPMIN
+       
+       StartWal = NBMAX + 1 - i1pdn2(NLMAX)
+       EndWal   = NBMAX
+    END SELECT
 
-    StartAxi = 1
-    EndAxi   = 1
-
-    StartWal = NBMAX + 1 - i1pdn2(NLMAX)
-    EndWal   = NBMAX
-      
     WRITE(6,*)'NNMAX=',NNMAX,'NQMAX=',NQMAX,'NDMAX=',NDMAX
     WRITE(6,*)'NSMAX=',NSMAX,'NPMIN=',NPMIN,'NLMAX=',NLMAX    
     
@@ -379,8 +405,14 @@ CONTAINS
        !                                          [0,(b/a)^2]
        !       \chi  : geometrical poloidal angle [0,2\pi]
        !       \chi  : geometrical toroidal angle [0,2\pi]
-    CASE(1)
+    CASE (1)
        CALL T2PROF_TOROIDAL_COORDINATE_AREA
+    CASE (2)
+       ! 
+       ! 2: Cartesian coordinate with periodic boundary on y direction
+       !
+       !   x: [0,1], y[0,1]
+       CALL T2PROF_CARTESIAN
     CASE DEFAULT
        WRITE(6,*)'IMPROPER INPUT >> I0MFCS'
        STOP
@@ -480,6 +512,43 @@ CONTAINS
     
   END SUBROUTINE T2PROF_TOROIDAL_COORDINATE_AREA
 
+  SUBROUTINE T2PROF_CARTESIAN
+    
+    USE T2COMM,ONLY:NVMAX,NXMAX,NMMAX,Xvec,i2crt,GlobalCrd,TestCase
+
+    INTEGER(ikind)::i_m,i_x2d
+    REAL(   rkind)::x_crd,y_crd,r
+
+    Xvec(1:NVMAX,1:NXMAX) = 0.D0
+    
+    DO i_m = 1, NMMAX
+       i_x2d = i2crt(2,i_m)
+       !  INITIIALIZATION     
+       x_crd = GlobalCrd(1,i_m)
+       y_crd = GlobalCrd(2,i_m)
+      
+       SELECT CASE (TestCase)
+
+       CASE(1)
+          IF((x_crd.GT.0.4D0).AND.(x_crd.LT.0.6D0))THEN
+             Xvec(1,i_x2d) = -1.D2*(x_crd-0.4D0)*(x_crd-0.6D0)
+          ELSE
+             Xvec(1,i_x2d) = 0.D0
+          ENDIF
+       CASE (2)
+          
+          IF(   (x_crd.GE.0.4D0).AND.(x_crd.LE.0.6D0).AND.&
+               &(y_crd.GE.0.4D0).AND.(y_crd.LE.0.6D0)) THEN
+             Xvec(1,i_x2d) = 1.D0
+          ELSE
+             Xvec(1,i_x2d) = 0.D0
+          ENDIF
+       END SELECT
+    ENDDO
+
+    RETURN
+    
+  END SUBROUTINE T2PROF_CARTESIAN
   !------------------------------------------------------------------
   !
   !       Function for generating radial profile 
@@ -497,6 +566,7 @@ CONTAINS
   !                     2014-02-23 H.Seto checked
   !
   !------------------------------------------------------------------
+
   FUNCTION FUNC_rprof(i0m0,i0n0,d0fc,d0fs,d0fw,d0rw,d0rr)
     
     INTEGER(ikind),INTENT(IN )::i0m0,i0n0

@@ -53,7 +53,7 @@ CONTAINS
          c10rname,i0fnum,&
          NNMAX,NQMAX,NDMAX,NSMAX,NPMIN,NLMAX,&
          !
-         CoordinateSwitch,&
+         CoordinateSwitch,TestCase,&
          !
          i1mlvl,i1rdn2,d1rec,d0rw,RR,RA,&
          i0nm,i0nn,i0tm,i0tn,d0qc,d0qs,d0bc,&
@@ -80,7 +80,10 @@ CONTAINS
          LockBpOnWall,LockBtOnWall,LockEtOnWall,LockEpOnWall,&
          LockErOnWall,LockNnOnWall,LockFrOnWall,LockFbOnWall,&
          LockFtOnWall,LockFpOnWall,LockPpOnWall,LockQrOnWall,&
-         LockQbOnWall,LockQtOnWall,LockQpOnWall
+         LockQbOnWall,LockQtOnWall,LockQpOnWall,&
+         !
+         TestMS,TestAV,TestAT,TestDT,TestGV,TestGT,&
+         TestES,TestEV,TestET,TestSS,TestLEQ,TestLAX,TestLWL
          
     IMPLICIT NONE
     INTEGER,INTENT(IN) :: NID
@@ -90,7 +93,7 @@ CONTAINS
          c10rname,i0fnum,&
          NNMAX,NQMAX,NDMAX,NSMAX,NPMIN,NLMAX,&
          !
-         CoordinateSwitch,&
+         CoordinateSwitch,TestCase,&
          !
          i1mlvl,i1rdn2,d1rec,d0rw,RR,RA,&
          i0nm,i0nn,i0tm,i0tn,d0qc,d0qs,d0bc,&
@@ -117,8 +120,10 @@ CONTAINS
          LockBpOnWall,LockBtOnWall,LockEtOnWall,LockEpOnWall,&
          LockErOnWall,LockNnOnWall,LockFrOnWall,LockFbOnWall,&
          LockFtOnWall,LockFpOnWall,LockPpOnWall,LockQrOnWall,&
-         LockQbOnWall,LockQtOnWall,LockQpOnWall
-
+         LockQbOnWall,LockQtOnWall,LockQpOnWall,&
+         !
+         TestMS,TestAV,TestAT,TestDT,TestGV,TestGT,&
+         TestES,TestEV,TestET,TestSS,TestLEQ,TestLAX,TestLWL
 
     READ(NID,T2,IOSTAT=IST,ERR=9800,END=9900)
 

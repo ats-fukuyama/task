@@ -1,14 +1,32 @@
  &t2
- ntmax=1
- ntstep=1
- dt=1.D-10
- idebug=0
+ ntmax = 10
+ ntstep= 10
+ dt    = 1.D-2
+ idebug= 0
  NLMAX = 1
- NPMIN = 3
+ NPMIN = 500
+ NSMAX = 0
  i1mlvl(1) = 1
- i1rdn2(1) = 3
- eps_conv = 1.D-4
+ i1rdn2(1) = 499
+ eps_conv  = 1.D-1
+ 
+ CoordinateSwitch = 2
+ TestCase         = 2
 
+    TestMS  = .TURE.
+    TestAV  = .TURE.
+    TestAT  = .FALSE.
+    TestDT  = .FALSE.
+    TestGV  = .FALSE.
+    TestGT  = .FALSE.
+    TestES  = .FALSE.
+    TestEV  = .FALSE.
+    TestET  = .FALSE.
+    TestSS  = .FALSE.
+    TestLEQ = .FALSE.
+    TestLAX = .TRUE.
+    TestLWL = .TRUE.
+    
     ! 
     UsePotentialDescription = .FALSE.
     UseNormalization        = .TRUE.

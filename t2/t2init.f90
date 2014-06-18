@@ -75,7 +75,7 @@ CONTAINS
     
     RR   =  1.30D0
     RA   =  0.30D0
-    d0rw =  1.10D0
+    d0rw =  1.00D0
     
     d1rec(0:i0lmaxm) = 0.D0 ! least radial point in a level
     d1rec(1) = d0rw

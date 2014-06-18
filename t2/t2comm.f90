@@ -72,10 +72,12 @@ MODULE T2COMM
        !
        LockBpOnWall,LockBtOnWall,LockEtOnWall,LockEpOnWall,LockErOnWall,&
        LockNnOnWall,LockFrOnWall,LockFbOnWall,LockFtOnWall,LockFpOnWall,&
-       LockPpOnWall,LockQrOnWall,LockQbOnWall,LockQtOnWall,LockQpOnWall
-       
+       LockPpOnWall,LockQrOnWall,LockQbOnWall,LockQtOnWall,LockQpOnWall,&
+       TestMS,TestAV,TestAT,TestDT,TestGV,TestGT,TestES,TestEV,TestET,TestSS,&
+       TestLEQ,TestLAX,TestLWL
+  
   INTEGER(ikind),SAVE::&
-       CoordinateSwitch
+       CoordinateSwitch,TestCase
   CHARACTER(10)::c10rname
   INTEGER(ikind)::i0fnum
   

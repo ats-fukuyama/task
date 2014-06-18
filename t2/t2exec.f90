@@ -59,7 +59,10 @@ MODULE T2EXEC
   PRIVATE
   
   INTEGER(ikind),SAVE,ALLOCATABLE::& 
-       elementNodeGraphElem(:,:)! node-element graph table in en element
+       nodeTableA(:),&    ! node-element graph table in en element
+       nodeTableB(:),&    ! node-element graph table in en element
+       nodeTableC(:),&    ! node-element graph table in en element
+       nodeTableD(:)      ! node-element graph table in en element
   REAL(   rkind),SAVE::&
        jacDetLocCrd       ! jacobian of local coordinates
 
@@ -89,6 +92,7 @@ CONTAINS
   SUBROUTINE T2EXEC_EXECUTE
     
     USE T2COMM,ONLY: NNMAX,NEMAX,NKMAX,NVMAX,NBMAX,NAMAX,NDMAX,&
+         &           CoordinateSwitch,&
          &           HaveMassScaCoef,HaveAdveVecCoef,HaveAdveTenCoef,&
          &           HaveDiffTenCoef,HaveGradVecCoef,HaveGradTenCoef,&
          &           HaveExciScaCoef,HaveExciVecCoef,HaveExciTenCoef,&
@@ -136,8 +140,8 @@ CONTAINS
           IF(HaveDiffTenCoef(i_v,j_v))&
                &     CALL T2EXEC_DT_SUBMATRIX(i_v,j_v        )
            
-          !IF(HaveGradVecCoef(i_v,j_v))&
-          !     &     CALL T2EXEC_GV_SUBMATRIX(i_v,j_v        )
+          IF(HaveGradVecCoef(i_v,j_v))&
+               &     CALL T2EXEC_GV_SUBMATRIX(i_v,j_v        )
           
           IF(HaveGradTenCoef(i_v,j_v))THEN
              DO i_k = 1, NKMAX
@@ -171,8 +175,14 @@ CONTAINS
        ENDDO
        ENDDO
 
-       CALL T2EXEC_STORE
-       
+       SELECT CASE(CoordinateSwitch)
+          
+       CASE (1)
+          CALL T2EXEC_STORE
+       CASE (2)
+          CALL T2EXEC_STORE_TEST
+       END SELECT
+    
     ENDDO
     
     !CALL T2EXEC_CHECK
@@ -276,26 +286,32 @@ CONTAINS
     INTEGER(ikind):: ierr
     
     DO 
-       ALLOCATE(elementNodeGraphElem(1:NNMAX,1:4),&
-            &                   STAT=ierr); IF(ierr.NE.0) EXIT
+       ALLOCATE(nodeTableA(  1:NNMAX),STAT=ierr); IF(ierr.NE.0) EXIT
+       ALLOCATE(nodeTableB(  1:NNMAX),STAT=ierr); IF(ierr.NE.0) EXIT
+       ALLOCATE(nodeTableC(  1:NNMAX),STAT=ierr); IF(ierr.NE.0) EXIT
+       ALLOCATE(nodeTableD(  1:NNMAX),STAT=ierr); IF(ierr.NE.0) EXIT
        ALLOCATE(jacInvLocCrd(1:NDMAX,1:NDMAX),&
-            &                   STAT=ierr); IF(ierr.NE.0) EXIT
+            &                         STAT=ierr); IF(ierr.NE.0) EXIT
        ALLOCATE(knownVarElem(1:NNMAX,1:NKMAX),&
-            &                   STAT=ierr); IF(ierr.NE.0) EXIT
+            &                         STAT=ierr); IF(ierr.NE.0) EXIT
        ALLOCATE(bvecElem(    1:NNMAX,1:NVMAX),&
-            &                   STAT=ierr); IF(ierr.NE.0) EXIT
+            &                         STAT=ierr); IF(ierr.NE.0) EXIT
        ALLOCATE(amatElem(    1:NNMAX,1:NNMAX,1:NVMAX,1:NVMAX),&
-            &                   STAT=ierr); IF(ierr.NE.0) EXIT
+            &                         STAT=ierr); IF(ierr.NE.0) EXIT
        ALLOCATE(bvecElemTF(  1:NVMAX,1:NNMAX),&
-            &                   STAT=ierr); IF(ierr.NE.0) EXIT
+            &                         STAT=ierr); IF(ierr.NE.0) EXIT
        ALLOCATE(amatElemTF(  1:NVMAX,1:NVMAX,1:NNMAX,1:NNMAX),&
-            &                   STAT=ierr); IF(ierr.NE.0) EXIT
+            &                         STAT=ierr); IF(ierr.NE.0) EXIT
        ALLOCATE(amat(        1:NVMAX,1:NVMAX,1:NAMAX),&
-            &                   STAT=ierr); IF(ierr.NE.0) EXIT
+            &                         STAT=ierr); IF(ierr.NE.0) EXIT
        ALLOCATE(bvec(        1:NVMAX,1:NBMAX),&
-            &                   STAT=ierr); IF(ierr.NE.0) EXIT
+            &                         STAT=ierr); IF(ierr.NE.0) EXIT
        
-       elementNodeGraphElem(1:NNMAX,1:4) = 0
+       nodeTableA(1:NNMAX) = 0
+       nodeTableB(1:NNMAX) = 0
+       nodeTableC(1:NNMAX) = 0
+       nodeTableD(1:NNMAX) = 0
+
        jacInvLocCrd(1:NDMAX,1:NDMAX)     = 0.D0
        knownVarElem(1:NNMAX,1:NKMAX)     = 0.D0
        bvecElem(    1:NNMAX,1:NVMAX)     = 0.D0
@@ -326,15 +342,18 @@ CONTAINS
   !-------------------------------------------------------------------  
   SUBROUTINE T2EXEC_DEALLOCATE
     
-    IF(ALLOCATED(elementNodeGraphElem)) DEALLOCATE(elementNodeGraphElem)
-    IF(ALLOCATED(jacInvLocCrd))         DEALLOCATE(jacInvLocCrd)
-    IF(ALLOCATED(knownVarElem))         DEALLOCATE(knownVarElem)
-    IF(ALLOCATED(bvecElem))             DEALLOCATE(bvecElem)
-    IF(ALLOCATED(amatElem))             DEALLOCATE(amatElem)
-    IF(ALLOCATED(bvecElemTF))           DEALLOCATE(bvecElemTF)
-    IF(ALLOCATED(amatElemTF))           DEALLOCATE(amatElemTF)
-    IF(ALLOCATED(amat))                 DEALLOCATE(amat)
-    IF(ALLOCATED(bvec))                 DEALLOCATE(bvec)
+    IF(ALLOCATED(nodeTableA))   DEALLOCATE(nodeTableA)
+    IF(ALLOCATED(nodeTableB))   DEALLOCATE(nodeTableB)
+    IF(ALLOCATED(nodeTableC))   DEALLOCATE(nodeTableC)
+    IF(ALLOCATED(nodeTableD))   DEALLOCATE(nodeTableD)
+    IF(ALLOCATED(jacInvLocCrd)) DEALLOCATE(jacInvLocCrd)
+    IF(ALLOCATED(knownVarElem)) DEALLOCATE(knownVarElem)
+    IF(ALLOCATED(bvecElem))     DEALLOCATE(bvecElem)
+    IF(ALLOCATED(amatElem))     DEALLOCATE(amatElem)
+    IF(ALLOCATED(bvecElemTF))   DEALLOCATE(bvecElemTF)
+    IF(ALLOCATED(amatElemTF))   DEALLOCATE(amatElemTF)
+    IF(ALLOCATED(amat))         DEALLOCATE(amat)
+    IF(ALLOCATED(bvec))         DEALLOCATE(bvec)
     
     RETURN
     
@@ -371,12 +390,12 @@ CONTAINS
     !   ElementNodeGraphElem(1:NNMAX,4): FOR 2D-1D
     !
     
-    DO i_r = 1, 4
-       DO i_n = 1, NNMAX
-          elementNodeGraphElem(i_n,i_r)=elementNodeGraph(i_n,i_r,i_e)
-       ENDDO
+    DO i_n = 1, NNMAX
+       nodeTableA(i_n) = ElementNodeGraph(i_n,1,i_e)
+       nodeTableB(i_n) = ElementNodeGraph(i_n,2,i_e)
+       nodeTableC(i_n) = ElementNodeGraph(i_n,3,i_e)
+       nodeTableD(i_n) = ElementNodeGraph(i_n,4,i_e)
     ENDDO
-    
     
     !
     ! CALCULATE JACOBIAN OF LOCAL COORDINATE 
@@ -385,16 +404,16 @@ CONTAINS
     ! JacInvLocCrd: INVERSE JACOBI MATRIX OF LOCAL COORDINATES
     ! 
     
-    i_n = elementNodeGraphElem(1,1)
-    j_n = elementNodeGraphElem(2,1)
-    k_n = elementNodeGraphElem(4,1)
-
+    i_n = nodeTableA(1)
+    j_n = nodeTableA(2)
+    k_n = nodeTableA(4)
+    
     gridSizeRad = GlobalCrd(1,j_n)-GlobalCrd(1,i_n)
     gridSizePol = GlobalCrd(2,k_n)-GlobalCrd(2,i_n)
 
     gridSizePol  = ABS(gridSizePol)
     gridSizeRad  = ABS(gridSizeRad)
-
+    
     jacDetLocCrd = gridSizeRad*gridSizePol*0.25D0
 
     IF(JacDetLocCrd.LE.0.D0)THEN
@@ -417,7 +436,7 @@ CONTAINS
     !
     
     DO i_n = 1, NNMAX
-       i_m = elementNodeGraphElem(i_n,1)
+       i_m = nodeTableA(i_n)
        DO i_k = 1, NKMAX
           knownVarElem(i_n,i_k) = KnownVar(i_k,i_m)
        ENDDO
@@ -436,7 +455,7 @@ CONTAINS
   !-------------------------------------------------------------------
   SUBROUTINE T2EXEC_MS_SUBMATRIX(i_v,j_v)
     
-    USE T2COMM,ONLY: NNMAX,NDMAX,NVMAX,&
+    USE T2COMM,ONLY: NNMAX,NDMAX,NVMAX,CoordinateSwitch,&
          &           MassScaIntgPG,MassScaCoef,Xvec
     
     INTEGER(ikind),INTENT(IN):: i_v,j_v
@@ -452,26 +471,33 @@ CONTAINS
     
     ! initialization   
     DO i_n = 1, NNMAX
-       i_m = ElementNodeGraphElem(i_n,1)
+       i_m = nodeTableA(  i_n)
        massScaCoefElem(   i_n            ) &
             = MassScaCoef(    i_v,j_v,i_m) &
             * JacDetLocCrd
     ENDDO
     
-    SELECT CASE(j_v)
-       
-    CASE (1:3)   ! for FSA variables 
+    SELECT CASE(CoordinateSwitch)
+    CASE (1)
+       SELECT CASE(j_v)
+          
+       CASE (1:3)   ! for FSA variables 
+          DO i_n = 1, NNMAX
+             i_b = nodeTableD(i_n)
+             xvecElem(i_n) = Xvec(j_v,i_b)
+          ENDDO
+       CASE DEFAULT ! for 2D dependent variables
+          DO i_n = 1, NNMAX
+             i_x = nodeTableB(i_n)
+             xvecElem(i_n) = Xvec(j_v,i_x)          
+          ENDDO
+       END SELECT
+    CASE (2)
        DO i_n = 1, NNMAX
-          i_b = ElementNodeGraphElem(i_n,4)
-          xvecElem(i_n) = Xvec(j_v,i_b)
-       ENDDO
-    CASE DEFAULT ! for 2D dependent variables
-       DO i_n = 1, NNMAX
-          i_x = ElementNodeGraphElem(i_n,2)
+          i_x = nodeTableB(i_n)
           xvecElem(i_n) = Xvec(j_v,i_x)          
        ENDDO
     END SELECT
-    
     ! main loop    
     DO i_n = 1, NNMAX
     DO j_n = 1, NNMAX
@@ -542,7 +568,7 @@ CONTAINS
     ! initialization
     
     DO i_n = 1, NNMAX
-       i_m = elementNodeGraphElem(i_n,1)
+       i_m = nodeTableA(i_n)
        DO i_d = 1, NDMAX
           adveVecCoefElem(   i_d,i_n            ) &
                = AdveVecCoef(i_d,    i_v,j_v,i_m) &
@@ -622,7 +648,7 @@ CONTAINS
     ENDDO
     
     DO i_n = 1, NNMAX
-       i_m = elementNodeGraphElem(i_n,1)
+       i_m = nodeTableA(i_n)
        DO j_d = 1, NDMAX
        DO i_d = 1, NDMAX
           adveTenCoefElem(   i_d,j_d,i_n                ) &
@@ -709,7 +735,7 @@ CONTAINS
     ! initialization
     
     DO i_n = 1, NNMAX
-       i_m = elementNodeGraphElem(i_n,1)
+       i_m = nodeTableA(i_n)
        DO j_d = 1, NDMAX
        DO i_d = 1, NDMAX
           diffTenCoefElem(   i_d,j_d,i_n            ) &
@@ -794,7 +820,7 @@ CONTAINS
     ! initialization
           
     DO i_n = 1, NNMAX
-       i_m = elementNodeGraphElem(i_n,1)
+       i_m = nodeTableA(i_n)
        DO i_d = 1, NDMAX
           gradVecCoefElem(   i_d,i_n            ) &
                = GradVecCoef(i_d,    i_v,j_v,i_m) &
@@ -868,7 +894,7 @@ CONTAINS
     
     ! initialization  
     DO i_n = 1, NNMAX
-       i_m = elementNodeGraphElem(i_n,1)
+       i_m = nodeTableA(i_n)
        DO j_d = 1, NDMAX
        DO i_d = 1, NDMAX
           gradTenCoefElem(   i_d,j_d,i_n                ) &
@@ -957,7 +983,7 @@ CONTAINS
     ! initialization
         
     DO i_n = 1,NNMAX
-       i_m = elementNodeGraphElem(i_n,1)
+       i_m = nodeTableA(i_n)
        exciScaCoefElem(   i_n            ) &
             = ExciScaCoef(    i_v,j_v,i_m) &
             * jacDetLocCrd
@@ -1018,7 +1044,7 @@ CONTAINS
     ! initialization
     
     DO i_n = 1, NNMAX
-       i_m = elementNodeGraphElem(i_n,1)
+       i_m = nodeTableA(i_n)
        DO i_d = 1, NDMAX
           exciVecCoefElem(   i_d,i_n                ) &
                = ExciVecCoef(i_d,    i_k,i_v,j_v,i_m) &
@@ -1072,7 +1098,7 @@ CONTAINS
     RETURN
     
   END SUBROUTINE T2EXEC_EV_SUBMATRIX
-
+  
   !-------------------------------------------------------------------
   !
   !     EXCITATION TENESOR SUBMATRCES (PRIVATE)
@@ -1101,7 +1127,7 @@ CONTAINS
     ! initialization
   
     DO i_n = 1, NNMAX
-       i_m = elementNodeGraphElem(i_n,1)
+       i_m = nodeTableA(i_n)
        DO j_d = 1, NDMAX
        DO i_d = 1, NDMAX
           exciTenCoefElem(   i_d,j_d,i_n)&
@@ -1190,7 +1216,7 @@ CONTAINS
     
     ! initialization
     DO i_n = 1, NNMAX
-       i_m = ElementNodeGraphElem(i_n,1)
+       i_m = nodeTableA(i_n)
        sourScaCoefElem(   i_n            ) &
             = SourScaCoef(    i_v,j_v,i_m) &
             * jacDetLocCrd
@@ -1232,10 +1258,7 @@ CONTAINS
          &           NodeRowCRS,NodeColCRS,HangedNodeTable
     INTEGER(ikind)::&
          i_n,j_n,&
-         i_v,j_v,&
-         nodeTableA(1:NNMAX),& ! 1D node table
-         nodeTableB(1:NNMAX),& ! 1D node table for FSA
-         nodeTableC(1:NNMAX)   ! 2D node table
+         i_v,j_v
     
     ! transform AmatElem to AmatElemTF and clear AmatElem
     
@@ -1263,50 +1286,93 @@ CONTAINS
     
     ! set node tables 
     
-    DO i_n = 1, NNMAX
-       nodeTableA(i_n) = ElementNodeGraphElem(i_n,4)
-       nodeTableB(i_n) = ElementNodeGraphElem(i_n,3)
-       nodeTableC(i_n) = ElementNodeGraphElem(i_n,2)
-    ENDDO
-    
     !
     ! for stiffness matrix
     !
     
     ! i_v: 1D value (FSA)
     ! j_v: 1D value (FSA)
-    CALL T2EXEC_STORE_MATRIX(1    ,3    ,nodeTableA,& ! row
-         &                   1    ,3    ,nodeTableA)  ! column
-    !print*,nodeTableA(1),nodeTableA(2),nodeTableA(3),nodeTableA(4)        
+    CALL T2EXEC_STORE_MATRIX(1    ,3    ,nodeTableD,& ! row
+         &                   1    ,3    ,nodeTableD)  ! column
     ! i_v: 1D value (FSA)
     ! j_v: 2D value
-    !CALL T2EXEC_STORE_MATRIX(1    ,3    ,nodeTableB,& ! row
-    !     &                   4    ,NVMAX,nodeTableC)  ! column
-    CALL T2EXEC_STORE_MATRIX(1    ,3    ,nodeTableA,& ! row
-         &                   4    ,NVMAX,nodeTableC)  ! column
+    CALL T2EXEC_STORE_MATRIX(1    ,3    ,nodeTableD,& ! row
+         &                   4    ,NVMAX,nodeTableB)  ! column
     ! i_v: 2D value 
     ! j_v: 1D value (FSA) 
-    CALL T2EXEC_STORE_MATRIX(4    ,NVMAX,nodeTableC,& ! row
-         &                   1    ,3    ,nodeTableA)  ! column
+    CALL T2EXEC_STORE_MATRIX(4    ,NVMAX,nodeTableB,& ! row
+         &                   1    ,3    ,nodeTableD)  ! column
 
     ! i_v: 2D value
     ! j_v: 2D value
-    CALL T2EXEC_STORE_MATRIX(4    ,NVMAX,nodeTableC,& ! row
-         &                   4    ,NVMAX,nodeTableC)  ! column
+    CALL T2EXEC_STORE_MATRIX(4    ,NVMAX,nodeTableB,& ! row
+         &                   4    ,NVMAX,nodeTableB)  ! column
 
     !
     ! for RHS vector
     !
    
     ! i_v: 1D value (FSA)
-    CALL T2EXEC_STORE_VECTOR(1    ,3    ,nodeTableA) ! row
+    CALL T2EXEC_STORE_VECTOR(1    ,3    ,nodeTableD) ! row
     
     ! i_v 2D value
-    CALL T2EXEC_STORE_VECTOR(4    ,NVMAX,nodeTableC) ! row
+    CALL T2EXEC_STORE_VECTOR(4    ,NVMAX,nodeTableB) ! row
     
     RETURN
     
   END SUBROUTINE T2EXEC_STORE
+
+  !-------------------------------------------------------------------
+  !
+  ! SUBROUTINE FOR STORE SUBMATRIX 
+  ! FOR BI-LINEAR RECTANGULAR ELEMENT
+  !
+  !
+  !
+  !-------------------------------------------------------------------
+  SUBROUTINE T2EXEC_STORE_TEST
+    
+    USE T2COMM,ONLY: NNMAX,NVMAX, HaveMat,&
+         &           NodeRowCRS,NodeColCRS,HangedNodeTable
+    INTEGER(ikind)::&
+         i_n,j_n,i_v,j_v
+    
+    ! transform AmatElem to AmatElemTF and clear AmatElem
+    
+    DO j_v = 1, NVMAX
+    DO i_v = 1, NVMAX
+       IF(HaveMat(i_v,j_v))THEN
+          DO j_n = 1, NNMAX
+          DO i_n = 1, NNMAX
+             AmatElemTF(i_v,j_v,i_n,j_n) = AmatElem(i_n,j_n,i_v,j_v)
+             AmatElem(  i_n,j_n,i_v,j_v) = 0.D0
+          ENDDO
+          ENDDO
+       ENDIF
+    ENDDO
+    ENDDO
+    
+    ! transform BvecElem to BvecElemTF and clear BvecElem  
+    
+    DO I_v = 1, NVMAX
+       DO i_n = 1, NNMAX
+          BvecElemTF(i_v,i_n) = BvecElem(i_n,i_v)
+          BvecElem(  i_n,i_v) = 0.D0
+       ENDDO
+    ENDDO
+    
+    ! set node tables 
+    
+    
+    ! for stiffness matrix
+    CALL T2EXEC_STORE_MATRIX(1    ,1    ,nodeTableB,& ! row
+         &                   1    ,1    ,nodeTableB)  ! column
+    ! for RHS vector 
+    CALL T2EXEC_STORE_VECTOR(1    ,1    ,nodeTableB) ! row
+    
+    RETURN
+    
+  END SUBROUTINE T2EXEC_STORE_TEST
 
   !-------------------------------------------------------------------
   !
@@ -1568,8 +1634,6 @@ CONTAINS
   !-------------------------------------------------------------------
   !
   !       SUBROUTINE T2EXEC_SOLVE
-  !v
-  !
   !
   !
   !

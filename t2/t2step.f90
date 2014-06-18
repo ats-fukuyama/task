@@ -20,7 +20,7 @@ CONTAINS
   
   SUBROUTINE T2_STEP(i_conv,residual_conv)
     
-    USE T2COMM,ONLY: NXMAX, NVMAX,NRMAX,&
+    USE T2COMM,ONLY: NXMAX, NVMAX,NRMAX,CoordinateSwitch,&
          &           Xvec, XvecIn, XvecOut,&
          &           nconvmax,eps_conv
     
@@ -58,8 +58,13 @@ CONTAINS
        CALL T2EXEC_EXECUTE
        
        ! CONVERGENCE CHECK
-       CALL T2STEP_CONV(residual_conv)
-       
+       SELECT CASE (CoordinateSwitch)
+       CASE (1)
+          CALL T2STEP_CONV(residual_conv)
+       CASE (2)
+          CALL T2STEP_CONV_TEST(residual_conv)
+       END SELECT
+
        i_conv=nconv
        IF(residual_conv.LE.eps_conv) EXIT
        
@@ -79,9 +84,13 @@ CONTAINS
     ENDDO
     
     WRITE(6,*)'NLLOOP=',nconv,'EXIT'
-    
-    CALL T2_CONV
-    
+
+    SELECT CASE (CoordinateSwitch)
+    CASE (1)
+       CALL T2_CONV
+    CASE (2)
+       CALL T2STEP_GNUPLOT
+    END SELECT
     RETURN
     
   END SUBROUTINE T2_STEP
@@ -160,4 +169,82 @@ CONTAINS
     RETURN
     
   END SUBROUTINE T2STEP_CONV
+
+  SUBROUTINE T2STEP_CONV_TEST(residualMax)
+    
+    USE T2COMM, ONLY:&
+         NVMAX,NXMAX,NRMAX,&
+         LockEqs,&
+         XvecIn,XvecOut,&
+         i1mc1d
+    
+    REAL(   rkind),INTENT(OUT)::residualMax
+
+    INTEGER(ikind):: i_x, i_v, i_r
+    REAL(   rkind)::&
+         valIn,valOut,residual,resDenominator,resNumerator,&
+         resNumeratorSquared(  1:NVMAX),&
+         resDenominatorSquared(1:NVMAX)
+
+    ! initialization
+    residualMax = 0.D0
+    resNumeratorSquared(  1:NVMAX) = 0.D0
+    resDenominatorSquared(1:NVMAX) = 0.D0
+
+    DO i_x = 1, NXMAX
+       DO i_v = 1,NVMAX
+          IF(LockEqs(i_v))CYCLE
+          valOut = XvecOut(i_v,i_x)
+          valIn  = XvecIn( i_v,i_x)
+          resNumeratorSquared(         i_v)&
+               = resNumeratorSquared(  i_v) + (valOut-valIn)**2
+          resDenominatorSquared(i_v)&
+               = resDenominatorSquared(i_v) + valOut**2
+       ENDDO
+    ENDDO
+
+    ! CHECK CONVERGENCE
+    DO i_v = 1,NVMAX
+       IF(.NOT.LockEqs(i_v))THEN
+          IF(resDenominatorSquared(i_v).LE.0.D0)THEN
+             WRITE(6,'("*********************************************")')
+             WRITE(6,'("       ERROR IN T2STEP_CONVERGENCE           ")')
+             WRITE(6,'("       INDETERMINATE PROBLEM                 ")')
+             WRITE(6,'("*********************************************")')
+             WRITE(6,*)i_v,resDenominatorSquared(i_v)
+             STOP
+          ENDIF
+          
+          resDenominator = SQRT(resDenominatorSquared(i_v))
+          resNumerator   = SQRT(resNumeratorSquared(  i_v))
+          residual       = resNumerator/resDenominator
+          WRITE(6,*),'VARIABLES=',i_v,'RESIDUAL=',residual
+          residualMax = MAX(residualMax,residual)
+       ENDIF
+    ENDDO
+    
+    RETURN
+    
+  END SUBROUTINE T2STEP_CONV_TEST
+
+  SUBROUTINE T2STEP_GNUPLOT
+    
+    USE T2COMM,ONLY:NMMAX,GlobalCrd,Xvec,i2crt
+
+    INTEGER(ikind)::i_m,i_x
+    REAL(   rkind)::x_crd,y_crd,val
+    OPEN(40,FILE="gnuplot.dat")
+    DO i_m = 1,NMMAX
+       i_x   = i2crt(2,i_m)
+       x_crd = GlobalCrd(1,i_m)
+       y_crd = GlobalCrd(2,i_m)
+       val   = Xvec(1,i_x)
+       IF(ABS(val).LE.1.D-15) val = 0
+       !print'(3(E15.8,1X))',x_crd,y_crd,val
+       WRITE(40,'(3(E15.8,1X))')x_crd,y_crd,val
+    ENDDO
+    CLOSE(40)
+    RETURN
+  END SUBROUTINE T2STEP_GNUPLOT
+
 END MODULE T2STEP

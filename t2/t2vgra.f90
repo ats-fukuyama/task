@@ -75,49 +75,85 @@ CONTAINS
   !-------------------------------------------------------------------
   SUBROUTINE T2VGRA_EXECUTE
         
-    USE T2COMM,ONLY: UsePotentialDescription
+    USE T2COMM,ONLY:&
+         UsePotentialDescription,CoordinateSwitch,&
+         HaveMassScaCoef,HaveAdveVecCoef,HaveAdveTenCoef,&
+         HaveDiffTenCoef,HaveGradVecCoef,HaveGradTenCoef,&
+         HaveExciScaCoef,HaveExciVecCoef,HaveExciTenCoef,&
+         HaveSourScaCoef,&
+         !
+         HaveAdveTenKval,HaveGradTenKval,HaveExciVecKval,&
+         HaveExciTenKval,&
+         !
+         HaveMat,LockEqs,LockAxi,LockWal,TestLEQ,TestLAX,TestLWL
     
-    IF(.NOT.UsePotentialDescription)THEN 
+    SELECT CASE (CoordinateSwitch)
+    CASE(1)
+       IF(.NOT.UsePotentialDescription)THEN 
+          
+          CALL T2VGRA_MS_COEF_EB
+          CALL T2VGRA_AV_COEF_EB
+          CALL T2VGRA_AT_COEF_EB
+          CALL T2VGRA_DT_COEF_EB
+          CALL T2VGRA_GV_COEF_EB
+          CALL T2VGRA_GT_COEF_EB
+          CALL T2VGRA_ES_COEF_EB
+          CALL T2VGRA_EV_COEF_EB
+          CALL T2VGRA_ET_COEF_EB
+          CALL T2VGRA_SS_COEF_EB
+
+          CALL T2VGRA_LOCK_EQUA_EB
+          CALL T2VGRA_LOCK_AXIS_EB
+          CALL T2VGRA_LOCK_WALL_EB
+
+       ELSE
+          
+          CALL T2VGRA_MS_COEF_PhiA
+          CALL T2VGRA_AV_COEF_PhiA
+          CALL T2VGRA_AT_COEF_PhiA
+          CALL T2VGRA_DT_COEF_PhiA
+          CALL T2VGRA_GV_COEF_PhiA
+          CALL T2VGRA_GT_COEF_PhiA
+          CALL T2VGRA_ES_COEF_PhiA
+          CALL T2VGRA_EV_COEF_PhiA
+          CALL T2VGRA_ET_COEF_PhiA
+          CALL T2VGRA_SS_COEF_PhiA
+          
+          CALL T2VGRA_LOCK_EQUA_PhiA
+          CALL T2VGRA_LOCK_AXIS_PhiA
+          CALL T2VGRA_LOCK_WALL_PhiA
+          
+       ENDIF
+
+       CALL T2VGRA_VAR_MAT
        
-       CALL T2VGRA_MS_COEF_EB
-       CALL T2VGRA_AV_COEF_EB
-       CALL T2VGRA_AT_COEF_EB
-       CALL T2VGRA_DT_COEF_EB
-       CALL T2VGRA_GV_COEF_EB
-       CALL T2VGRA_GT_COEF_EB
-       CALL T2VGRA_ES_COEF_EB
-       CALL T2VGRA_EV_COEF_EB
-       CALL T2VGRA_ET_COEF_EB
-       CALL T2VGRA_SS_COEF_EB
+    CASE (2)
 
-       CALL T2VGRA_LOCK_EQUA_EB
-       CALL T2VGRA_LOCK_AXIS_EB
-       CALL T2VGRA_LOCK_WALL_EB
+       HaveMassScaCoef(1,1) =.TRUE.
+       HaveAdveVecCoef(1,1) =.TRUE.
+       HaveAdveTenCoef(1,1) =.TRUE.
+       HaveDiffTenCoef(1,1) =.TRUE.
+       HaveGradVecCoef(1,1) =.TRUE.
+       HaveGradTenCoef(1,1) =.TRUE.
+       HaveExciScaCoef(1,1) =.TRUE.
+       HaveExciVecCoef(1,1) =.TRUE.
+       HaveExciTenCoef(1,1) =.TRUE.
+       HaveSourScaCoef(1,1) =.TRUE.
+       !
+       HaveAdveTenKval(1,1,1) =.TRUE.
+       HaveGradTenKval(1,1,1) =.TRUE.
+       HaveExciVecKval(1,1,1) =.TRUE.
+       HaveExciTenKval(1,1,1,1) =.TRUE.
+       !
+       HaveMat(1,1) =.TRUE.
+       LockEqs(1)   = TestLEQ
+       LockAxi(1)   = TestLAX
+       LockWal(1)   = TestLWL
 
-    ELSE
+    END SELECT
+       !IF(idfile.ge.5) &
+       CALL T2VGRA_OUTPUT
        
-       CALL T2VGRA_MS_COEF_PhiA
-       CALL T2VGRA_AV_COEF_PhiA
-       CALL T2VGRA_AT_COEF_PhiA
-       CALL T2VGRA_DT_COEF_PhiA
-       CALL T2VGRA_GV_COEF_PhiA
-       CALL T2VGRA_GT_COEF_PhiA
-       CALL T2VGRA_ES_COEF_PhiA
-       CALL T2VGRA_EV_COEF_PhiA
-       CALL T2VGRA_ET_COEF_PhiA
-       CALL T2VGRA_SS_COEF_PhiA
-
-       CALL T2VGRA_LOCK_EQUA_PhiA
-       CALL T2VGRA_LOCK_AXIS_PhiA
-       CALL T2VGRA_LOCK_WALL_PhiA
-              
-    ENDIF
-
-    CALL T2VGRA_VAR_MAT
-    
-    !IF(idfile.ge.5) &
-    CALL T2VGRA_OUTPUT
-    
     RETURN
     
   END SUBROUTINE T2VGRA_EXECUTE

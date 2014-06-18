@@ -31,7 +31,7 @@ CONTAINS
     
     USE T2COMM,ONLY:NNMAX,idfile
     
-    CALL T2NGRA_MSC
+    CALL T2NGRA_COORDINATE
     
     SELECT CASE (NNMAX)
        
@@ -70,37 +70,37 @@ CONTAINS
     
     ! CONSTRUCT NON-DEGENERATED NODE
     !                    - DEGENERATED NODE GRAPH
-    CALL T2NGRA_CRT1    
+    CALL T2NGRA_CRT1    ! checked i2crt
         
     ! CONSTRUCT ELEMENT - NODE GRAPH
-    CALL T2NGRA_ENR1
+    CALL T2NGRA_ENR1    ! checked i3enr
     
     ! CONSTRUCT NODE - ELEMENT  GRAPH
-    CALL T2NGRA_NER1
+    CALL T2NGRA_NER1    ! checked i1eidr,i1eidc
     
     ! CONSTRUCT NODE - NODE GRAPH
-    CALL T2NGRA_NNR1
+    CALL T2NGRA_NNR1    ! NodeColCRS, NodeRowCRS
     
     RETURN
  
   END SUBROUTINE T2NGRA_NGRAPH1
   
-  !C
-  !C
-  !C
-  !C                     2014-01-30 H.SETO
-  !C
-  SUBROUTINE T2NGRA_MSC
+  !
+  !
+  !
+  !                     2014-06-18 H. Seto
+  !
+  SUBROUTINE T2NGRA_COORDINATE
     
-    USE T2CNST,ONLY:d0pi
+    USE T2CNST,ONLY:PI
     USE T2COMM,ONLY:&
-         NMMAX,NLMAX,&
+         NMMAX,NLMAX,NRMAX,CoordinateSwitch,&
          i1rdn1,i1pdn1,i1rdn2,i1pdn2,i1mc1d,&
          d1mc1d,d1rec,&
          GlobalCrd,i1mfc1
     
     INTEGER(ikind)::&
-         i0lidi
+         i_l
     INTEGER(ikind)::&
          i1,j1,&
          i0mcnt,i0bcnt,i0rcnt,i0rdn1,i0pdn1,i0rdn2,i0pdn2
@@ -109,219 +109,151 @@ CONTAINS
     REAL(rkind),DIMENSION(:),ALLOCATABLE::&
          d1mcr1,d1mcp1
     
-    i0mcnt  = 0
-    i0rcnt  = 1
-    i0bcnt  = 1
+    SELECT CASE (CoordinateSwitch)
     
-    i1mc1d(i0rcnt) = 1
-    d1mc1d(i0rcnt) = 0.D0
-    !C
-    !C s = r^{2} constant width grid 
-    !C 
-    DO i0lidi = 1, NLMAX
+    CASE (1) ! polar system
        
-       i0rdn1 = i1rdn1(i0lidi)
-       i0pdn1 = i1pdn1(i0lidi)
-       i0rdn2 = i1rdn2(i0lidi)
-       i0pdn2 = i1pdn2(i0lidi)
-       
-       ALLOCATE(d1mcr1(i0rdn1),d1mcp1(i0pdn1))
-       
-       DO i1 = 1, i0rdn1
-          d1mcr1(i1) = 0.D0
-       ENDDO
-       
-       DO i1 = 1, i0pdn1
-          d1mcp1(i1) = 0.D0
-       ENDDO
-       
-       
-       d0rsiz = (d1rec(i0lidi)-d1rec(i0lidi-1))/DBLE(i0rdn2)
-       d0psiz = 2.d0*d0pi/DBLE(i0pdn2)
-       
-       DO i1 = 1, i0rdn1
-          d1mcr1(i1) = (d0rsiz*DBLE(i1-1)+d1rec(i0lidi-1))**2
-          !d1mcr1(i1) = d0rsiz*DBLE(i1-1)+d1rec(i0lidi-1)
-       ENDDO
-       
-       DO i1 = 1, i0pdn1
-          d1mcp1(i1) = d0psiz*DBLE(i1-1)
-       ENDDO
+       i0mcnt  = 0
+       i0rcnt  = 1
+       i0bcnt  = 1
     
-       !C CONSTRUCT GEOMET
-       DO j1 = 1, i0rdn1 
+       i1mc1d(i0rcnt) = 1
+       d1mc1d(i0rcnt) = 0.D0
+       
+       ! s = r^{2} constant width grid 
+       DO i_l = 1, NLMAX
+          i0rdn1 = i1rdn1(i_l)
+          i0pdn1 = i1pdn1(i_l)
+          i0rdn2 = i1rdn2(i_l)
+          i0pdn2 = i1pdn2(i_l)
           
-          IF(j1.NE.1)THEN
-             i0rcnt         = i0rcnt + 1
-             i0bcnt         = i0bcnt + i0pdn2
-             i1mc1d(i0rcnt) = i0bcnt
-             d1mc1d(i0rcnt) = d1mcr1(j1)
-          ENDIF
+          ALLOCATE(d1mcr1(i0rdn1),d1mcp1(i0pdn1))
+          
+          DO i1 = 1, i0rdn1
+             d1mcr1(i1) = 0.D0
+          ENDDO
           
           DO i1 = 1, i0pdn1
-             
-             i0mcnt = i0mcnt + 1
-             
-             !C MAGNETIC FLUX COORDINATE (RHO, CHI)
-             GlobalCrd(1,i0mcnt) = d1mcr1(j1)
-             GlobalCrd(2,i0mcnt) = d1mcp1(i1)
-             i1mfc1(  i0mcnt) = i0bcnt
+             d1mcp1(i1) = 0.D0
           ENDDO
+       
+          d0rsiz = (d1rec(i_l)-d1rec(i_l-1))/DBLE(i0rdn2)
+          d0psiz = 2.d0*PI/DBLE(i0pdn2)
+          
+          DO i1 = 1, i0rdn1
+             d1mcr1(i1) = (d0rsiz*DBLE(i1-1)+d1rec(i_l-1))**2
+          ENDDO
+          
+          DO i1 = 1, i0pdn1
+             d1mcp1(i1) = d0psiz*DBLE(i1-1)
+          ENDDO
+          
+          ! CONSTRUCT GEOMET
+          DO j1 = 1, i0rdn1 
+             IF(j1.NE.1)THEN
+                i0rcnt         = i0rcnt + 1
+                i0bcnt         = i0bcnt + i0pdn2
+                i1mc1d(i0rcnt) = i0bcnt
+                d1mc1d(i0rcnt) = d1mcr1(j1)
+             ENDIF
+             
+             DO i1 = 1, i0pdn1
+                i0mcnt = i0mcnt + 1
+                !C MAGNETIC FLUX COORDINATE (RHO, CHI)
+                GlobalCrd(1,i0mcnt) = d1mcr1(j1)
+                GlobalCrd(2,i0mcnt) = d1mcp1(i1)
+                i1mfc1(     i0mcnt) = i0bcnt
+             ENDDO
+          ENDDO
+          
+          DEALLOCATE(d1mcr1,d1mcp1)
+          
        ENDDO
        
-       DEALLOCATE(d1mcr1,d1mcp1)
+    CASE (2)! cartesian ! y pediodic
        
-    ENDDO
+       i0mcnt  = 0
+       i0rcnt  = 0
+       i0bcnt  = 0
+       
+       DO i_l = 1, NLMAX
+          i0rdn1 = i1rdn1(i_l)
+          i0pdn1 = i1pdn1(i_l)
+          i0rdn2 = i1rdn2(i_l)
+          i0pdn2 = i1pdn2(i_l)
+          
+          ALLOCATE(d1mcr1(i0rdn1),d1mcp1(i0pdn1))
+          
+          DO i1 = 1, i0rdn1
+             d1mcr1(i1) = 0.D0
+          ENDDO
+          
+          DO i1 = 1, i0pdn1
+             d1mcp1(i1) = 0.D0
+          ENDDO
+          
+          d0rsiz = (d1rec(i_l)-d1rec(i_l-1))/DBLE(i0rdn2)
+          d0psiz = 1.D0/DBLE(i0pdn2)
+          
+          DO i1 = 1, i0rdn1
+             d1mcr1(i1) = d0rsiz*DBLE(i1-1)+d1rec(i_l-1)
+          ENDDO
+          
+          DO i1 = 1, i0pdn1
+             d1mcp1(i1) = d0psiz*DBLE(i1-1)
+          ENDDO
+          
+          ! construct geometry
+          DO j1 = 1, i0rdn1 
+             IF((i_l.EQ.1).OR.(j1.NE.1))THEN
+                i0rcnt         = i0rcnt + 1
+                i0bcnt         = i0bcnt + i0pdn2
+                i1mc1d(i0rcnt) = i0bcnt
+                d1mc1d(i0rcnt) = d1mcr1(j1)
+             ENDIF
+             
+             DO i1 = 1, i0pdn1
+                i0mcnt = i0mcnt + 1
+                ! cartesian coordinate
+                GlobalCrd(1,i0mcnt) = d1mcr1(j1)
+                GlobalCrd(2,i0mcnt) = d1mcp1(i1)
+                i1mfc1(     i0mcnt) = i0bcnt
+             ENDDO
+          ENDDO
+          
+          DEALLOCATE(d1mcr1,d1mcp1)
+          
+       ENDDO
+       
+    END SELECT
     
+    !DO i1 = 1,NRMAX
+    !   print*,i1,i1mc1d(i1),d1mc1d(i1)
+    !ENDDO
+
     IF(i0mcnt.NE.NMMAX)THEN
        WRITE(6,*)'CHECK SUM ERROR'
        STOP
     ENDIF
-    
+       
     RETURN
     
-  END SUBROUTINE T2NGRA_MSC
+  END SUBROUTINE T2NGRA_COORDINATE
   
-  !C
-  !C
-  !C
-  !C
-  !C
-  SUBROUTINE T2_NGRA_OUTPUT
-
-    USE T2COMM,ONLY:&
-         NAMAX,NBMAX,NXMAX,NHMAX,NEMAX,NMMAX,NLMAX,NNMAX,&
-         NNRMX,NERMX,NECMX,&
-         HangedNodeTable, ElementNodeGraph,&
-         i2crt, NodeRowCRS,NodeColCRS,i1eidr,i1eidc,&
-         i1mlvl,i1mmax,i1bmax,i1emax,GlobalCrd,i1mfc1
-
-    INTEGER(ikind)::i1
-    INTEGER(ikind)::&
-         i0midi,i0hidi,i0eidi,i0lidi,i0aidi,i0nidi
-
-    OPEN(10,FILE='I2CRT_TEST.dat')
-    DO i0midi = 1, NMMAX
-       WRITE(10,'("NUM1=",I7,1X,I7,1X,I7,1X,I7)')&
-            i0midi,i2crt(1,i0midi),i2crt(2,i0midi),&
-            i2crt(3,i0midi)
-    ENDDO
-    CLOSE(10)
-    
-    OPEN(10,FILE='HANGEDNODETABLE_TEST.dat')
-    DO i0hidi = 1, NHMAX
-       WRITE(10,'("HNUM=",I9,1X,"LHN=",I9,1X,"UHN=",I9)')&
-            i0hidi,HangedNodeTable(1,i0hidi),HangedNodeTable(2,i0hidi)
-    ENDDO    
-    CLOSE(10)
-
-    OPEN(10,FILE='ELEMENTNODEGRAPH1_TEST.dat')
-    DO i0eidi = 1, NEMAX
-       WRITE(10,'("ELM_NUMBER=",I9,1X,"ELEMENTNODEGRAPH=",4I9)')&
-            i0eidi,(ElementNodeGraph(i0nidi,1,i0eidi),i0nidi = 1, NNMAX)
-    ENDDO
-    CLOSE(10)
-
-    OPEN(10,FILE='ELEMENTNODEGRAPH2_TEST.dat')
-    DO i0eidi = 1, NEMAX
-       WRITE(10,'("ELM_NUMBER=",I9,1X,"ELEMENTNODEGRAPH=",4I9)')&
-            i0eidi,(ElementNodeGraph(i0nidi,2,i0eidi),i0nidi = 1, NNMAX)
-    ENDDO
-    CLOSE(10)
-
-    OPEN(10,FILE='ELEMENTNODEGRAPH3_TEST.dat')
-    DO i0eidi = 1, NEMAX
-       WRITE(10,'("ELM_NUMBER=",I9,1X,"ELEMENTNODEGRAPH=",4I9)')&
-            i0eidi,(ElementNodeGraph(i0nidi,3,i0eidi),i0nidi = 1, NNMAX)
-    ENDDO
-    CLOSE(10)
-
-    OPEN(10,FILE='ELEMENTNODEGRAPH4_TEST.dat')
-    DO i0eidi = 1, NEMAX
-       WRITE(10,'("ELM_NUMBER=",I9,1X,"ELEMENTNODEGRAPH=",4I9)')&
-            i0eidi,(ElementNodeGraph(i0nidi,4,i0eidi),i0nidi = 1, NNMAX)
-    ENDDO
-    CLOSE(10)
-    
-    OPEN(10,FILE='CRS_TEST_INDR.dat')
-    DO i1=1,NNRMX
-       IF(i1.EQ.1)THEN
-          WRITE(10,'("I1=",I9,1X,"INDNR=",I9)')i1,NodeRowCRS(i1)
-       ELSE
-          WRITE(10,'("I1=",I9,1X,"INDNR=",I9,1X,"J1=",I9,1X,"NOC=",I9)')&
-               i1,NodeRowCRS(i1),i1-1,NodeRowCRS(i1)-NodeRowCRS(i1-1)
-       ENDIF
-    ENDDO
-    CLOSE(10)
-
-    
-    OPEN(10,FILE='CRS_TEST_INDC.dat')
-    DO i0aidi = 1, NAMAX
-       WRITE(10,'("I1=",I9,1X,"INDNC=",I9)')i0aidi,NodeColCRS(i0aidi)
-    ENDDO
-    CLOSE(10)
-    
-    OPEN(10,FILE='TEST_NMAX.dat')
-    DO i0lidi = 1, NLMAX
-       WRITE(10,'("MESH_NUMBER=",I3,1X,"MESH_LEVEL=",I3)')&
-            i0lidi, i1mlvl(i0lidi)
-       WRITE(10,'("MMAX=",I9,1X,"BMAX=",I9)')&
-            i1mmax(i0lidi),i1bmax(i0lidi)
-    ENDDO
-    WRITE(10,'("TOTAL_MMAX=",I9,1X,"TOTAL_BMAX=",I9)')&
-         NMMAX,NBMAX
-    CLOSE(10)
-    
-    OPEN(10,FILE='TEST_EMAX.dat')
-    DO i0lidi = 0, NLMAX
-       WRITE(10,'("MESH_NUMBER=",I3,1X,"EMAX=",I9)')&
-            i0lidi,i1emax(i0lidi)
-    ENDDO
-    WRITE(10,'("TOTAL_EMAX=",I9)')NEMAX
-    CLOSE(10)
-    
-    !C CALCURATE NUMBER OF HANGED-NODE
-    OPEN(10,FILE='MATRIX_INFO1.dat')
-    WRITE(10,'("NODEROWCRS_ARRAY_SIZE=",I9)')NNRMX
-    WRITE(10,'("NODECOLCRS_ARRAY_SIZE=",I9)')NAMAX
-    WRITE(10,'("D2XVEC_ARRAY_SIZE=",I9)')NXMAX
-    WRITE(10,'("D2BVEC_ARRAY_SIZE=",I9)')NBMAX
-    CLOSE(10)
-    
-    OPEN(10,FILE='MFC1_CHECK.dat')
-    DO i0midi = 1, NMMAX
-       WRITE(10,'("i1=",I5,1X,"RHO=",D15.8,1X,"CHI=",D15.8,1X,"SN=",I5)')&
-            i0midi,GlobalCrd(1,i0midi),GlobalCrd(2,i0midi),i1mfc1(i0midi)
-    ENDDO
-    CLOSE(10)
-    
-    OPEN(30,FILE='I1EIDR.dat')
-    DO i1 = 1,NERMX
-       write(30,*)i1,i1eidr(i1)
-    ENDDO
-    CLOSE(30)
-
-    OPEN(30,FILE='I1EIDC.dat')
-    DO i1 = 1,NECMX
-       write(30,*)i1,i1eidc(i1)
-    ENDDO
-    CLOSE(30)
-
-    RETURN
-  END SUBROUTINE T2_NGRA_OUTPUT
-
-  !C-------------------------------------------------------------------
-  !C SUBROUTINE FOR NODE-MAPPING TABLE I2CRT
-  !C   
-  !C I2CRT[1,1:NMMAX1]: NODE-NUMBER FOR COEF. CALC.
-  !C I2CRT[2,1:NMMAX1]: NODE-NUMBER FOR 2D GRID
-  !C I2CRT[3,1:NMMAX1]: NODE-NUMBER FOR 1D GRID
-  !C
-  !C-------------------------------------------------------------------
+  
+  !-------------------------------------------------------------------
+  !  SUBROUTINE FOR NODE-MAPPING TABLE I2CRT
+  !   
+  !  I2CRT[1,1:NMMAX1]: NODE-NUMBER FOR COEF. CALC.
+  !  I2CRT[2,1:NMMAX1]: NODE-NUMBER FOR 2D GRID
+  !  I2CRT[3,1:NMMAX1]: NODE-NUMBER FOR 1D GRID
+  !
+  !-------------------------------------------------------------------
   SUBROUTINE T2NGRA_CRT1
 
     USE T2COMM,ONLY:&
-         NLMAX,i1rdn2,i1pdn2,i1mlvl,i1pdn1,i1rdn1,i2crt,HangedNodeTable
+         NLMAX,NPMIN,CoordinateSwitch,i1rdn2,i1pdn2,i1mlvl,&
+         i1pdn1,i1rdn1,i2crt,HangedNodeTable
 
     INTEGER(ikind)::&
          i0hcnt,i0mcnt,i0stm2,&
@@ -329,60 +261,78 @@ CONTAINS
          i0il,i0stl2,i0stc2,i0mlva,i0mlvb,&
          i1subtot(0:NLMAX),i0offset
     INTEGER(ikind)::&
-         i0lidi,i0lidj,&
+         i_l,i0lidj,&
          i2,j2,i0stack1d,i0stack2d
     
     !C SUBTOTALS UP TO Nth-DOMAIN: I1SUBTOT[N]    
-    DO i0lidi = 0, NLMAX
-       i1subtot(i0lidi) = 1
-    ENDDO
-    
-    DO i0lidi=1,NLMAX
-       DO i0lidj = 1, i0lidi
-          i1subtot(i0lidi)=i1subtot(i0lidi)+i1rdn2(i0lidj)*i1pdn2(i0lidj)
+    SELECT CASE (CoordinateSwitch)
+    CASE (1)
+       DO i_l = 0, NLMAX
+          i1subtot(i_l) = 1
+       ENDDO
+    CASE (2)
+       DO i_l = 0, NLMAX
+          i1subtot(i_l) = NPMIN
+       ENDDO
+    END SELECT
+
+    DO i_l=1,NLMAX
+       DO i0lidj = 1, i_l
+          i1subtot(i_l)=i1subtot(i_l)+i1rdn2(i0lidj)*i1pdn2(i0lidj)
        ENDDO
     ENDDO
-    !C
-    !C SET NODE NUMBER 
-    !C
+    
+    ! SET NODE NUMBER 
     i0mcnt = 0
     i0hcnt = 0
     
-    DO i0lidi= 1, NLMAX
+    DO i_l= 1, NLMAX
        
-       i0mlva=i1mlvl(i0lidi-1)
-       i0mlvb=i1mlvl(i0lidi  )
+       i0mlva=i1mlvl(i_l-1)
+       i0mlvb=i1mlvl(i_l  )
        
-       i0ppc2 = i1pdn2(i0lidi)
+       i0ppc2 = i1pdn2(i_l)
        i0ppl2 = INT(i0ppc2/2)
-       i0ppc1 = i1pdn1(i0lidi)
-       i0rdc1 = i1rdn1(i0lidi)
-       !C 
-       !C SET OFFSET
-       !C
+       i0ppc1 = i1pdn1(i_l)
+       i0rdc1 = i1rdn1(i_l)
+       ! 
+       ! SET OFFSET
+       !
        i0offset = 0
        
-       IF(i1mlvl(i0lidi).GE.3)THEN
-          DO i2 = 0, i1mlvl(i0lidi) - 3
+       IF(i1mlvl(i_l).GE.3)THEN
+          DO i2 = 0, i1mlvl(i_l) - 3
              i0offset = i0offset+i1pdn2(1)*(2**i2)
           ENDDO
        END IF
-       !C
-       !C SET SUBTOTALS
-       !C
-       i0stl2  = i1subtot(i0lidi-1) - i1pdn2(i0lidi-1)
-       i0stc2  = i1subtot(i0lidi-1)
+
+       ! SET SUBTOTALS
+       i0stl2  = i1subtot(i_l-1) - i1pdn2(i_l-1)
+       i0stc2  = i1subtot(i_l-1)
        i0stm2  = i1subtot(NLMAX)
        
        IF(i0mlva.EQ.0)THEN
-          !C
-          !C DOMAIN WITH AXIS BOUNDARY
-          !C
+          ! DOMAIN WITH x = 0 AXIS BOUNDARY
           DO i2=1,i0rdc1
-             IF(i2.NE.1)THEN
-                !C
-                !C NODES EXCEPT AXIS BOUNADRY 
-                !C
+             IF(i2.EQ.1)THEN
+                !C FOR AXIS IN POLAR COODRINATE
+                SELECT CASE(CoordinateSwitch)
+                CASE (1)
+                   DO j2 = 1, i0ppc1
+                      i0mcnt = i0mcnt + 1
+                      i2crt(1,i0mcnt) = i0mcnt
+                      i2crt(2,i0mcnt) = 1
+                      i2crt(3,i0mcnt) = 1 
+                   ENDDO
+                CASE (2)
+                   DO j2=1,i0ppc1
+                      i0mcnt = i0mcnt + 1
+                      i2crt(1,i0mcnt) = i0mcnt
+                      i2crt(2,i0mcnt) = MOD(j2-1,i0ppc2)+1 
+                      i2crt(3,i0mcnt) = i0ppc2
+                   ENDDO
+                END SELECT
+             ELSE
                 i0il = i2 - 2
                 i0stack1d = i0stc2 + i0ppc2*i0il+i0ppc2               
                 DO j2=1,i0ppc1
@@ -391,18 +341,6 @@ CONTAINS
                    i2crt(1,i0mcnt) = i0mcnt
                    i2crt(2,i0mcnt) = i0stack2d 
                    i2crt(3,i0mcnt) = i0stack1d 
-                ENDDO
-             ELSEIF(    i2.EQ.1)THEN
-                !C
-                !C NODES ON AXIS BOUNADRY 
-                !C
-                DO j2 = 1, i0ppc1
-                   
-                   i0mcnt = i0mcnt + 1
-
-                   i2crt(1,i0mcnt) = i0mcnt
-                   i2crt(2,i0mcnt) = 1
-                   i2crt(3,i0mcnt) = 1 
                 ENDDO
              ENDIF
           ENDDO
@@ -476,7 +414,7 @@ CONTAINS
           ENDDO
        ENDIF
     ENDDO
-
+    
     RETURN
     
   END SUBROUTINE T2NGRA_CRT1
@@ -488,7 +426,7 @@ CONTAINS
          i1pdn1,i1pdn2,i1rdn1,i1rdn2,i2crt,HangedNodeTable,ElementNodeGraph,i1mlel
 
     INTEGER(ikind)::&
-         i2,    j2,    i0lidi,i0ecnt,&
+         i2,    j2,    i_l,i0ecnt,&
          i0ll , i0lr , i0ul , i0ur,&
          i0ll1, i0lr1, i0ul1, i0ur1,&
          i0ll2, i0lr2, i0ul2, i0ur2,&
@@ -498,16 +436,16 @@ CONTAINS
          
     i0ecnt = 0
     
-    DO i0lidi = 1, NLMAX
-       i0ppc1 = i1pdn1(i0lidi)
-       i0ppc2 = i1pdn2(i0lidi)
-       i0rdc2 = i1rdn2(i0lidi)
+    DO i_l = 1, NLMAX
+       i0ppc1 = i1pdn1(i_l)
+       i0ppc2 = i1pdn2(i_l)
+       i0rdc2 = i1rdn2(i_l)
        i0stc1 = 0
 !
 !       DO i2=0,i1-1
 !                     modified by AF: i1rdn1(0) and i1pdn1(0) are not defined
 !
-       DO i2 = 1, i0lidi - 1
+       DO i2 = 1, i_l - 1
           i0stc1 = i0stc1+i1rdn1(i2)*i1pdn1(i2)
        ENDDO
        
@@ -562,7 +500,7 @@ CONTAINS
           ElementNodeGraph(3,4,i0ecnt) = i0ur4
           ElementNodeGraph(4,4,i0ecnt) = i0ul4
 
-          i1mlel(i0ecnt) = i0lidi
+          i1mlel(i0ecnt) = i_l
           
        ENDDO
        ENDDO
@@ -575,10 +513,10 @@ CONTAINS
   SUBROUTINE T2NGRA_NER1
 
     USE T2COMM,ONLY:&
-         NLMAX,NECMX,i1eidr,i1eidc,i1pdn2,i1rdn2,i1mlvl
+         CoordinateSwitch,NLMAX,NECMX,i1eidr,i1eidc,i1pdn2,i1rdn2,i1mlvl
 
     INTEGER(ikind)::&
-         i0lidi,i0ecnt,i0ncnt,&
+         i_l,i0ecnt,i0ncnt,&
          i0ll,i0lr,i0ul,i0ur,&
          i0mlva,               i0rda,i0pda,i0sbta,&
          i0mlvb,i0rb,i0pb,i0xb,i0rdb,i0pdb,i0sbtb,&
@@ -591,32 +529,46 @@ CONTAINS
     i1eidr(i0ncnt) = 1
     i0sbta = 0
     i0sbtb = 0
-    DO i0lidi = 1, NLMAX
+    DO i_l = 1, NLMAX
        
-       i0mlva = i1mlvl(i0lidi-1)
-       i0mlvb = i1mlvl(i0lidi  )
-       i0mlvc = i1mlvl(i0lidi+1)
+       i0mlva = i1mlvl(i_l-1)
+       i0mlvb = i1mlvl(i_l  )
+       i0mlvc = i1mlvl(i_l+1)
 
-       i0pda = i1pdn2(i0lidi-1)       
-       i0pdb = i1pdn2(i0lidi  )
-       i0rda = i1rdn2(i0lidi-1)
-       i0rdb = i1rdn2(i0lidi  )
+       i0pda = i1pdn2(i_l-1)       
+       i0pdb = i1pdn2(i_l  )
+       i0rda = i1rdn2(i_l-1)
+       i0rdb = i1rdn2(i_l  )
        
        i0sbta = i0sbta + i0rda*i0pda
        
        !C PROCESS FOR THE POINT OF ORIGIN
 
        IF(i0mlva.EQ.0)THEN
-          
-          i0ncnt = i0ncnt+1
-          
-          DO i0pb=1,i0pdb
-             i1eidc(i0ecnt+1)= i0pb
-             i0ecnt = i0ecnt + 1
-          ENDDO
-          
-          i1eidr(i0ncnt)= i0ecnt+1
-          
+          SELECT CASE(CoordinateSwitch)
+
+          CASE (1)
+             i0ncnt = i0ncnt+1
+             DO i0pb=1,i0pdb
+                i1eidc(i0ecnt+1)= i0pb
+                i0ecnt = i0ecnt + 1
+             ENDDO
+             i1eidr(i0ncnt)= i0ecnt+1
+          CASE (2)
+             DO i0pb = 0, i0pdb-1
+                
+                i0ncnt = i0ncnt + 1
+                i0xb = i0pb+i0pdb
+                i0lr =  MOD(i0xb-1,i0pdb)+1 + i0sbta
+                i0ur =  MOD(i0xb  ,i0pdb)+1 + i0sbta
+             
+                i1eidc(i0ecnt+1)= i0lr
+                i1eidc(i0ecnt+2)= i0ur
+                
+                i0ecnt = i0ecnt + 2
+                i1eidr(i0ncnt)= i0ecnt+1
+             ENDDO
+          END SELECT
        ENDIF
        
        DO i0rb = 0, i0rdb-2
@@ -662,8 +614,8 @@ CONTAINS
           
        ELSEIF(i0mlvc.EQ.i0mlvb)THEN
           
-          i0pdc = i1pdn2(i0lidi+1)
-          i0rdc = i1rdn2(i0lidi+1)
+          i0pdc = i1pdn2(i_l+1)
+          i0rdc = i1rdn2(i_l+1)
           
           DO i0pb = 0,i0pdb-1
              
@@ -688,8 +640,8 @@ CONTAINS
           
        ELSEIF(i0mlvc.EQ.(i0mlvb+1))THEN
        
-          i0pdc = i1pdn2(i0lidi+1)
-          i0rdc = i1rdn2(i0lidi+1)
+          i0pdc = i1pdn2(i_l+1)
+          i0rdc = i1rdn2(i_l+1)
           
           DO i0pb = 0, i0pdb-1
              
@@ -724,19 +676,19 @@ CONTAINS
 
     i0sbtb = 0
     
-    DO i0lidi = 1, NLMAX
+    DO i_l = 1, NLMAX
        
-       i0mlvb = i1mlvl(i0lidi  )
-       i0mlvc = i1mlvl(i0lidi+1)
+       i0mlvb = i1mlvl(i_l  )
+       i0mlvc = i1mlvl(i_l+1)
        
-       i0rdb  = i1rdn2(i0lidi  )   
-       i0pdb  = i1pdn2(i0lidi  )
+       i0rdb  = i1rdn2(i_l  )   
+       i0pdb  = i1pdn2(i_l  )
        i0sbtb = i0sbtb + i0rdb*i0pdb
        
        IF(i0mlvc.EQ.(i0mlvb+1))THEN
           
-          i0pdc = i1pdn2(i0lidi+1)            
-          i0rdc = i1rdn2(i0lidi+1)
+          i0pdc = i1pdn2(i_l+1)            
+          i0rdc = i1rdn2(i_l+1)
           
           DO i0pb = 1,i0pdb
              
@@ -770,7 +722,8 @@ CONTAINS
   SUBROUTINE T2NGRA_NNR1
     
     USE T2COMM, ONLY:&
-         NNMAX,NBMAX,NLMAX,NodeRowCRS,NodeColCRS,i1eidr,i1eidc,ElementNodeGraph
+         NNMAX,NBMAX,NLMAX,NodeRowCRS,NodeColCRS,&
+         i1eidr,i1eidc,ElementNodeGraph
     INTEGER(ikind)::&
          i0nidi,i0nidj,&
          i0nsiz,i0esiz,i0nidr,i1,i0ncnt,&
@@ -884,4 +837,127 @@ CONTAINS
     RETURN
     
   END SUBROUTINE SORT_ARRAY
+
+  SUBROUTINE T2_NGRA_OUTPUT
+
+    USE T2COMM,ONLY:&
+         NAMAX,NBMAX,NXMAX,NHMAX,NEMAX,NMMAX,NLMAX,NNMAX,&
+         NNRMX,NERMX,NECMX,&
+         HangedNodeTable, ElementNodeGraph,&
+         i2crt, NodeRowCRS,NodeColCRS,i1eidr,i1eidc,&
+         i1mlvl,i1mmax,i1bmax,i1emax,GlobalCrd,i1mfc1
+
+    INTEGER(ikind)::i1
+    INTEGER(ikind)::&
+         i0midi,i0hidi,i0eidi,i_l,i0aidi,i0nidi
+
+    OPEN(10,FILE='I2CRT_TEST.dat')
+    DO i0midi = 1, NMMAX
+       WRITE(10,'("NUM1=",I7,1X,I7,1X,I7,1X,I7)')&
+            i0midi,i2crt(1,i0midi),i2crt(2,i0midi),&
+            i2crt(3,i0midi)
+    ENDDO
+    CLOSE(10)
+    
+    OPEN(10,FILE='HANGEDNODETABLE_TEST.dat')
+    DO i0hidi = 1, NHMAX
+       WRITE(10,'("HNUM=",I9,1X,"LHN=",I9,1X,"UHN=",I9)')&
+            i0hidi,HangedNodeTable(1,i0hidi),HangedNodeTable(2,i0hidi)
+    ENDDO    
+    CLOSE(10)
+
+    OPEN(10,FILE='ELEMENTNODEGRAPH1_TEST.dat')
+    DO i0eidi = 1, NEMAX
+       WRITE(10,'("ELM_NUMBER=",I9,1X,"ELEMENTNODEGRAPH=",4I9)')&
+            i0eidi,(ElementNodeGraph(i0nidi,1,i0eidi),i0nidi = 1, NNMAX)
+    ENDDO
+    CLOSE(10)
+
+    OPEN(10,FILE='ELEMENTNODEGRAPH2_TEST.dat')
+    DO i0eidi = 1, NEMAX
+       WRITE(10,'("ELM_NUMBER=",I9,1X,"ELEMENTNODEGRAPH=",4I9)')&
+            i0eidi,(ElementNodeGraph(i0nidi,2,i0eidi),i0nidi = 1, NNMAX)
+    ENDDO
+    CLOSE(10)
+
+    OPEN(10,FILE='ELEMENTNODEGRAPH3_TEST.dat')
+    DO i0eidi = 1, NEMAX
+       WRITE(10,'("ELM_NUMBER=",I9,1X,"ELEMENTNODEGRAPH=",4I9)')&
+            i0eidi,(ElementNodeGraph(i0nidi,3,i0eidi),i0nidi = 1, NNMAX)
+    ENDDO
+    CLOSE(10)
+
+    OPEN(10,FILE='ELEMENTNODEGRAPH4_TEST.dat')
+    DO i0eidi = 1, NEMAX
+       WRITE(10,'("ELM_NUMBER=",I9,1X,"ELEMENTNODEGRAPH=",4I9)')&
+            i0eidi,(ElementNodeGraph(i0nidi,4,i0eidi),i0nidi = 1, NNMAX)
+    ENDDO
+    CLOSE(10)
+    
+    OPEN(10,FILE='CRS_TEST_INDR.dat')
+    DO i1=1,NNRMX
+       IF(i1.EQ.1)THEN
+          WRITE(10,'("I1=",I9,1X,"INDNR=",I9)')i1,NodeRowCRS(i1)
+       ELSE
+          WRITE(10,'("I1=",I9,1X,"INDNR=",I9,1X,"J1=",I9,1X,"NOC=",I9)')&
+               i1,NodeRowCRS(i1),i1-1,NodeRowCRS(i1)-NodeRowCRS(i1-1)
+       ENDIF
+    ENDDO
+    CLOSE(10)
+
+    
+    OPEN(10,FILE='CRS_TEST_INDC.dat')
+    DO i0aidi = 1, NAMAX
+       WRITE(10,'("I1=",I9,1X,"INDNC=",I9)')i0aidi,NodeColCRS(i0aidi)
+    ENDDO
+    CLOSE(10)
+    
+    OPEN(10,FILE='TEST_NMAX.dat')
+    DO i_l = 1, NLMAX
+       WRITE(10,'("MESH_NUMBER=",I3,1X,"MESH_LEVEL=",I3)')&
+            i_l, i1mlvl(i_l)
+       WRITE(10,'("MMAX=",I9,1X,"BMAX=",I9)')&
+            i1mmax(i_l),i1bmax(i_l)
+    ENDDO
+    WRITE(10,'("TOTAL_MMAX=",I9,1X,"TOTAL_BMAX=",I9)')&
+         NMMAX,NBMAX
+    CLOSE(10)
+    
+    OPEN(10,FILE='TEST_EMAX.dat')
+    DO i_l = 0, NLMAX
+       WRITE(10,'("MESH_NUMBER=",I3,1X,"EMAX=",I9)')&
+            i_l,i1emax(i_l)
+    ENDDO
+    WRITE(10,'("TOTAL_EMAX=",I9)')NEMAX
+    CLOSE(10)
+    
+    !C CALCURATE NUMBER OF HANGED-NODE
+    OPEN(10,FILE='MATRIX_INFO1.dat')
+    WRITE(10,'("NODEROWCRS_ARRAY_SIZE=",I9)')NNRMX
+    WRITE(10,'("NODECOLCRS_ARRAY_SIZE=",I9)')NAMAX
+    WRITE(10,'("D2XVEC_ARRAY_SIZE=",I9)')NXMAX
+    WRITE(10,'("D2BVEC_ARRAY_SIZE=",I9)')NBMAX
+    CLOSE(10)
+    
+    OPEN(10,FILE='MFC1_CHECK.dat')
+    DO i0midi = 1, NMMAX
+       WRITE(10,'("i1=",I5,1X,"RHO=",D15.8,1X,"CHI=",D15.8,1X,"SN=",I5)')&
+            i0midi,GlobalCrd(1,i0midi),GlobalCrd(2,i0midi),i1mfc1(i0midi)
+    ENDDO
+    CLOSE(10)
+    
+    OPEN(30,FILE='I1EIDR.dat')
+    DO i1 = 1,NERMX
+       write(30,*)i1,i1eidr(i1)
+    ENDDO
+    CLOSE(30)
+
+    OPEN(30,FILE='I1EIDC.dat')
+    DO i1 = 1,NECMX
+       write(30,*)i1,i1eidc(i1)
+    ENDDO
+    CLOSE(30)
+
+    RETURN
+  END SUBROUTINE T2_NGRA_OUTPUT
 END MODULE T2NGRA

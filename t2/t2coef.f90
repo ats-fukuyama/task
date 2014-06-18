@@ -26,51 +26,69 @@ CONTAINS
   
   SUBROUTINE T2COEF_EXECUTE
     
-    USE T2COMM,ONLY: NMMAX,UsePotentialDescription,UseCoefficientCheck
+    USE T2COMM,ONLY:&
+         NMMAX,CoordinateSwitch,&
+         UsePotentialDescription,UseCoefficientCheck
     USE T2COUT,ONLY: T2COUT_EXECUTE
     USE T2CALV,ONLY: T2CALV_EXECUTE
     
-    IF(.NOT.UsePotentialDescription)THEN 
+    SELECT CASE (CoordinateSwitch)
+    CASE (1)
+       STOP
+       IF(.NOT.UsePotentialDescription)THEN 
+          DO i_m = 1, NMMAX
+             CALL T2CALV_EXECUTE(   i_m)
+             CALL T2COEF_KV_EB(     i_m)
+             CALL T2COEF_MS_COEF_EB(i_m)
+             CALL T2COEF_AV_COEF_EB(i_m)
+             CALL T2COEF_AT_COEF_EB(i_m)
+             CALL T2COEF_DT_COEF_EB(i_m)
+             CALL T2COEF_GV_COEF_EB(i_m)
+             CALL T2COEF_GT_COEF_EB(i_m)
+             CALL T2COEF_ES_COEF_EB(i_m)
+             CALL T2COEF_EV_COEF_EB(i_m)
+             CALL T2COEF_ET_COEF_EB(i_m)
+             CALL T2COEF_SS_COEF_EB(i_m)
+             
+             !IF(i_m.EQ.1)THEN
+             !   CALL T2COEF_CHECK(i_m)
+             !   STOP
+             !ENDIF
+             IF(UseCoefficientCheck) CALL T2COUT_EXECUTE
+             
+          ENDDO
+       ELSE
+          
+          DO i_m = 1, NMMAX
+             
+             CALL T2CALV_EXECUTE(     i_m)         
+             CALL T2COEF_MS_COEF_PhiA(i_m)
+             CALL T2COEF_AV_COEF_PhiA(i_m)
+             CALL T2COEF_AT_COEF_PhiA(i_m)
+             CALL T2COEF_DT_COEF_PhiA(i_m)
+             CALL T2COEF_GV_COEF_PhiA(i_m)
+             CALL T2COEF_GT_COEF_PhiA(i_m)
+             CALL T2COEF_ES_COEF_PhiA(i_m)
+             CALL T2COEF_EV_COEF_PhiA(i_m)
+             CALL T2COEF_ET_COEF_PhiA(i_m)
+             CALL T2COEF_SS_COEF_PhiA(i_m)
+          ENDDO
+       ENDIF
+    CASE (2)
        DO i_m = 1, NMMAX
-          CALL T2CALV_EXECUTE(   i_m)
-          CALL T2COEF_KV_EB(     i_m)
-          CALL T2COEF_MS_COEF_EB(i_m)
-          CALL T2COEF_AV_COEF_EB(i_m)
-          CALL T2COEF_AT_COEF_EB(i_m)
-          CALL T2COEF_DT_COEF_EB(i_m)
-          CALL T2COEF_GV_COEF_EB(i_m)
-          CALL T2COEF_GT_COEF_EB(i_m)
-          CALL T2COEF_ES_COEF_EB(i_m)
-          CALL T2COEF_EV_COEF_EB(i_m)
-          CALL T2COEF_ET_COEF_EB(i_m)
-          CALL T2COEF_SS_COEF_EB(i_m)
-          
-          !IF(i_m.EQ.1)THEN
-          !   CALL T2COEF_CHECK(i_m)
-          !   STOP
-          !ENDIF
-          
+          CALL T2COEF_KV_TEST(     i_m)
+          CALL T2COEF_MS_COEF_TEST(i_m)
+          CALL T2COEF_AV_COEF_TEST(i_m)
+          CALL T2COEF_AT_COEF_TEST(i_m)
+          CALL T2COEF_DT_COEF_TEST(i_m)
+          CALL T2COEF_GV_COEF_TEST(i_m)
+          CALL T2COEF_GT_COEF_TEST(i_m)
+          CALL T2COEF_ES_COEF_TEST(i_m)
+          CALL T2COEF_EV_COEF_TEST(i_m)
+          CALL T2COEF_ET_COEF_TEST(i_m)
+          CALL T2COEF_SS_COEF_TEST(i_m)
        ENDDO
-    ELSE
-       
-       DO i_m = 1, NMMAX
-          
-          CALL T2CALV_EXECUTE(     i_m)         
-          CALL T2COEF_MS_COEF_PhiA(i_m)
-          CALL T2COEF_AV_COEF_PhiA(i_m)
-          CALL T2COEF_AT_COEF_PhiA(i_m)
-          CALL T2COEF_DT_COEF_PhiA(i_m)
-          CALL T2COEF_GV_COEF_PhiA(i_m)
-          CALL T2COEF_GT_COEF_PhiA(i_m)
-          CALL T2COEF_ES_COEF_PhiA(i_m)
-          CALL T2COEF_EV_COEF_PhiA(i_m)
-          CALL T2COEF_ET_COEF_PhiA(i_m)
-          CALL T2COEF_SS_COEF_PhiA(i_m)
-       ENDDO
-       
-    ENDIF
-    
-    IF(UseCoefficientCheck) CALL T2COUT_EXECUTE
+    END SELECT
     
     RETURN
     
@@ -1685,4 +1703,267 @@ CONTAINS
     
   END SUBROUTINE T2COEF_CHECK
 
+  SUBROUTINE T2COEF_KV_TEST(     i_m)
+    
+    USE T2COMM,ONLY: GlobalCrd,KnownVar,TestCase 
+    
+    INTEGER(ikind),INTENT(IN)::i_m
+
+    SELECT CASE (TestCase)
+    CASE (1)
+       KnownVar(1,i_m) = GlobalCrd(1,i_m)
+    CASE (2)
+       KnownVar(1,i_m) = GlobalCrd(2,i_m)
+    END SELECT
+
+    RETURN
+  END SUBROUTINE T2COEF_KV_TEST
+  
+  SUBROUTINE  T2COEF_MS_COEF_TEST(i_m)
+    USE T2COMM,ONLY: NVMAX,TestMS,MassScaCoef,dt
+    INTEGER(ikind),INTENT(IN)::i_m
+    INTEGER(ikind)::i_v,j_v
+
+    ! INITIALIZATION
+    DO j_v = 1, NVMAX
+    DO i_v = 1, NVMAX
+       MassScaCoef(i_v,j_v,i_m) = 0.D0
+    ENDDO
+    ENDDO
+
+    IF(TestMS) MassScaCoef(1,1,i_m) = 1.D0/dt
+
+    RETURN
+
+  END SUBROUTINE T2COEF_MS_COEF_TEST
+ 
+  SUBROUTINE T2COEF_AV_COEF_TEST(i_m)
+    
+    USE T2COMM,ONLY: NVMAX,NDMAX,TestAV,AdveVecCoef,TestCase
+    INTEGER(ikind),INTENT(IN)::i_m
+    INTEGER(ikind)::i_v,j_v,i_d
+    ! initialization    
+    DO j_v = 1, NVMAX
+    DO i_v = 1, NVMAX
+       DO i_d = 1, NDMAX
+          AdveVecCoef(i_d,i_v,j_v,i_m) = 0.D0
+       ENDDO
+    ENDDO
+    ENDDO
+    
+    IF(TestAV)THEN
+       SELECT CASE (TestCase)
+       CASE (1)
+          AdveVecCoef(1,1,1,i_m) = 1.D0
+       CASE (2)
+          AdveVecCoef(2,1,1,i_m) = 1.D0
+       END SELECT
+    ENDIF
+    
+    RETURN
+    
+  END SUBROUTINE T2COEF_AV_COEF_TEST
+
+  SUBROUTINE  T2COEF_AT_COEF_TEST(i_m)
+    USE T2COMM,ONLY: NVMAX,NKMAX,NDMAX,TestAT,TestCase,AdveTenCoef 
+    INTEGER(ikind),INTENT(IN)::i_m
+    INTEGER(ikind)::i_v,j_v,i_d,j_d,i_k
+
+    ! INITIALIZATION
+    DO j_v = 1, NVMAX
+    DO i_v = 1, NVMAX
+       DO i_k = 1, NKMAX
+          DO j_d = 1, NDMAX
+          DO i_d = 1, NDMAX
+             AdveTenCoef(i_d,j_d,i_k,i_v,j_v,i_m) = 0.D0
+          ENDDO
+          ENDDO
+       ENDDO
+    ENDDO
+    ENDDO
+
+    IF(TestAT)THEN
+       SELECT CASE (TestCase)
+       CASE (1)
+          AdveTenCoef(1,1,1,1,1,i_m) = -1.D0
+       CASE (2)
+          AdveTenCoef(2,2,1,1,1,i_m) = -1.D0
+       END SELECT
+    ENDIF
+
+    RETURN
+
+  END SUBROUTINE T2COEF_AT_COEF_TEST
+
+  SUBROUTINE T2COEF_DT_COEF_TEST(i_m)
+    USE T2COMM,ONLY: NVMAX,NDMAX,TestDT,TestCase,DiffTenCoef
+    INTEGER(ikind),INTENT(IN)::i_m
+    INTEGER(ikind)::i_v,j_v,i_d,j_d
+
+    ! initialization
+    DO j_v = 1, NVMAX
+    DO i_v = 1, NVMAX
+       DO j_d = 1, NDMAX
+       DO i_d = 1, NDMAX
+          DiffTenCoef(i_d,j_d,i_v,j_v,i_m) = 0.D0 
+       ENDDO
+       ENDDO
+    ENDDO
+    ENDDO
+
+    IF(TestDT) DiffTenCoef(1,1,1,1,i_m) = 1.D0
+    
+    RETURN
+
+  END SUBROUTINE T2COEF_DT_COEF_TEST
+  
+  SUBROUTINE  T2COEF_GV_COEF_TEST(i_m)
+
+    USE T2COMM,ONLY: NVMAX,NDMAX,TestGV,TestCase,GradVecCoef
+    INTEGER(ikind),INTENT(IN)::i_m
+    INTEGER(ikind)::i_v,j_v,i_d
+
+    ! initialization
+    DO j_v = 1, NVMAX
+    DO i_v = 1, NVMAX
+       DO i_d = 1, NDMAX
+          GradVecCoef(i_d,i_v,j_v,i_m) = 0.D0
+       ENDDO
+    ENDDO
+    ENDDO
+    
+    IF(TestGV)THEN
+       SELECT CASE (TestCase)
+       CASE (1)
+          GradVecCoef(1,1,1,i_m) = 1.D0
+       CASE (2)
+          GradVecCoef(2,1,1,i_m) = 1.D0
+       END SELECT
+    ENDIF
+
+    RETURN
+    
+  END SUBROUTINE T2COEF_GV_COEF_TEST
+  
+  SUBROUTINE  T2COEF_GT_COEF_TEST(i_m)
+    
+    USE T2COMM,ONLY: NVMAX,NDMAX,NKMAX,TestGT,TestCase,GradTenCoef
+    INTEGER(ikind),INTENT(IN)::i_m
+    INTEGER(ikind)::i_d,i_k,i_v,j_d,    j_v
+    
+    ! initialization
+    DO j_v = 1, NVMAX
+    DO i_v = 1, NVMAX
+       DO i_k = 1, NKMAX
+          DO j_d = 1, NDMAX
+          DO i_d = 1, NDMAX
+             GradTenCoef(i_d,j_d,i_k,i_v,j_v,i_m) = 0.D0
+          ENDDO
+          ENDDO
+       ENDDO
+    ENDDO
+    ENDDO
+    
+    IF(TestGT)THEN
+       SELECT CASE (TestCase)
+       CASE (1)
+          GradTenCoef(1,1,1,1,1,i_m) = 1.D0
+       CASE (2)
+          GradTenCoef(2,2,1,1,1,i_m) = 1.D0
+       END SELECT
+    END IF
+
+    RETURN
+
+  END SUBROUTINE T2COEF_GT_COEF_TEST
+  
+  SUBROUTINE T2COEF_ES_COEF_TEST(i_m)
+    
+    USE T2COMM, ONLY: NVMAX,TestES,ExciScaCoef
+    INTEGER(ikind),INTENT(IN)::i_m
+    INTEGER(ikind)::i_v,j_v
+    
+    ! initialization
+    DO j_v = 1, NVMAX
+    DO i_v = 1, NVMAX
+       ExciScaCoef(i_v,j_v,i_m) = 0.D0
+    ENDDO
+    ENDDO
+    
+    IF(TestES) ExciScaCoef(1,1,i_m) = LOG(2.D0)
+    
+    RETURN
+  
+  END SUBROUTINE T2COEF_ES_COEF_TEST
+  
+  SUBROUTINE  T2COEF_EV_COEF_TEST(i_m)
+
+    USE T2COMM, ONLY: NVMAX,NKMAX,NDMAX,TestEV,ExciVecCoef
+
+    INTEGER(ikind),INTENT(IN)::i_m
+    INTEGER(ikind)::i_v,i_k,i_d,j_v
+  
+    ! initialization
+    DO j_v = 1, NVMAX
+    DO i_v = 1, NVMAX
+       DO i_k = 1, NKMAX 
+          DO i_d = 1, NDMAX
+             ExciVecCoef(i_d,i_k,i_v,j_v,i_m) = 0.D0
+          ENDDO
+       ENDDO
+    ENDDO
+    ENDDO
+    
+    IF(TestEV) ExciVecCoef(1,1,1,1,i_m) = LOG(2.D0)
+    
+    RETURN
+  
+  END SUBROUTINE T2COEF_EV_COEF_TEST
+  
+  SUBROUTINE T2COEF_ET_COEF_TEST(i_m)
+
+    USE T2COMM,ONLY:NVMAX,NKMAX,NDMAX,TestET,ExciTenCoef
+    INTEGER(ikind),INTENT(IN)::i_m
+    INTEGER(ikind)::i_d,i_k,i_v,j_d,j_k,j_v
+
+    ! initialization
+    DO j_v = 1, NVMAX
+    DO i_v = 1, NVMAX
+       DO j_k = 1, NKMAX
+       DO i_k = 1, NKMAX
+          DO j_d = 1, NDMAX
+          DO i_d = 1, NDMAX
+             ExciTenCoef(i_d,j_d,i_k,j_k,i_v,j_v,i_m) = 0.D0
+          ENDDO
+          ENDDO
+       ENDDO
+       ENDDO
+    ENDDO
+    ENDDO
+    
+    IF(TestET) ExciTenCoef(1,1,1,1,1,1,i_m) = LOG(2.D0)
+    
+    RETURN
+    
+  END SUBROUTINE T2COEF_ET_COEF_TEST
+  
+  SUBROUTINE T2COEF_SS_COEF_TEST(i_m)
+    
+    USE T2COMM, ONLY: NVMAX,TestSS,SourScaCoef
+    
+    INTEGER(ikind),INTENT(IN)::i_m
+    INTEGER(ikind)::i_v,j_v
+    
+    ! initialization
+    DO j_v = 1, NVMAX
+    DO i_v = 1, NVMAX
+       SourScaCoef(i_v,j_v,i_m) = 0.D0
+    ENDDO
+    ENDDO
+    
+    IF(TestSS) SourScaCoef(1,1,i_m) = 1.D0
+
+    RETURN
+    
+  END SUBROUTINE T2COEF_SS_COEF_TEST
 END MODULE T2COEF
