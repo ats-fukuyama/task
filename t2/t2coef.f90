@@ -1713,7 +1713,9 @@ CONTAINS
     CASE (1)
        KnownVar(1,i_m) = GlobalCrd(1,i_m)
     CASE (2)
-       KnownVar(1,i_m) = GlobalCrd(2,i_m)
+       KnownVar(1,i_m) = GlobalCrd(1,i_m)
+    CASE (3)
+       KnownVar(1,i_m) = GlobalCrd(1,i_m)
     END SELECT
 
     RETURN
@@ -1756,7 +1758,9 @@ CONTAINS
        CASE (1)
           AdveVecCoef(1,1,1,i_m) = 1.D0
        CASE (2)
-          AdveVecCoef(2,1,1,i_m) = 1.D0
+          AdveVecCoef(1,1,1,i_m) = 1.D0
+       CASE (3)
+          AdveVecCoef(1,1,1,i_m) = 1.D0
        END SELECT
     ENDIF
     
@@ -1787,7 +1791,7 @@ CONTAINS
        CASE (1)
           AdveTenCoef(1,1,1,1,1,i_m) = -1.D0
        CASE (2)
-          AdveTenCoef(2,2,1,1,1,i_m) = -1.D0
+          AdveTenCoef(2,1,1,1,1,i_m) = -1.D0
        END SELECT
     ENDIF
 

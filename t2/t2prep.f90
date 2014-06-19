@@ -516,13 +516,14 @@ CONTAINS
     
     USE T2COMM,ONLY:NVMAX,NXMAX,NMMAX,Xvec,i2crt,GlobalCrd,TestCase
 
-    INTEGER(ikind)::i_m,i_x2d
+    INTEGER(ikind)::i_m,i_x2d,i_x1d
     REAL(   rkind)::x_crd,y_crd,r
 
     Xvec(1:NVMAX,1:NXMAX) = 0.D0
     
     DO i_m = 1, NMMAX
        i_x2d = i2crt(2,i_m)
+       i_x1d = i2crt(3,i_m)
        !  INITIIALIZATION     
        x_crd = GlobalCrd(1,i_m)
        y_crd = GlobalCrd(2,i_m)
@@ -531,7 +532,7 @@ CONTAINS
 
        CASE(1)
           IF((x_crd.GT.0.4D0).AND.(x_crd.LT.0.6D0))THEN
-             Xvec(1,i_x2d) = -1.D2*(x_crd-0.4D0)*(x_crd-0.6D0)
+             Xvec(1,i_x2d) = 1.D0!-1.D2*(x_crd-0.4D0)*(x_crd-0.6D0)
           ELSE
              Xvec(1,i_x2d) = 0.D0
           ENDIF
@@ -542,6 +543,12 @@ CONTAINS
              Xvec(1,i_x2d) = 1.D0
           ELSE
              Xvec(1,i_x2d) = 0.D0
+          ENDIF
+       CASE (3)
+          IF((x_crd.GT.0.4D0).AND.(x_crd.LT.0.6D0))THEN
+             Xvec(1,i_x1d) = 1.D0!-1.D2*(x_crd-0.4D0)*(x_crd-0.6D0)
+          ELSE
+             Xvec(1,i_x1d) = 0.D0
           ENDIF
        END SELECT
     ENDDO

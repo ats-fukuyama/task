@@ -174,7 +174,7 @@ CONTAINS
     
     USE T2COMM, ONLY:&
          NVMAX,NXMAX,NRMAX,&
-         LockEqs,&
+         LockEqs,TestCase,&
          XvecIn,XvecOut,&
          i1mc1d
     
@@ -191,17 +191,36 @@ CONTAINS
     resNumeratorSquared(  1:NVMAX) = 0.D0
     resDenominatorSquared(1:NVMAX) = 0.D0
 
-    DO i_x = 1, NXMAX
-       DO i_v = 1,NVMAX
-          IF(LockEqs(i_v))CYCLE
-          valOut = XvecOut(i_v,i_x)
-          valIn  = XvecIn( i_v,i_x)
-          resNumeratorSquared(         i_v)&
-               = resNumeratorSquared(  i_v) + (valOut-valIn)**2
-          resDenominatorSquared(i_v)&
-               = resDenominatorSquared(i_v) + valOut**2
+    SELECT CASE (TestCase)
+
+    CASE (1:2)
+       ! for 2D dependent variables
+       DO i_x = 1, NXMAX
+          DO i_v = 1,NVMAX
+             IF(LockEqs(i_v))CYCLE
+             valOut = XvecOut(i_v,i_x)
+             valIn  = XvecIn( i_v,i_x)
+             resNumeratorSquared(         i_v)&
+                  = resNumeratorSquared(  i_v) + (valOut-valIn)**2
+             resDenominatorSquared(i_v)&
+                  = resDenominatorSquared(i_v) + valOut**2
+          ENDDO
        ENDDO
-    ENDDO
+    CASE (3)
+       ! for 1D dependent variables (FSA)
+       DO i_r = 1, NRMAX
+          i_x = i1mc1d(i_r)
+          DO i_v = 1,NVMAX
+             IF(LockEqs(i_v))CYCLE
+             valOut = XvecOut(i_v,i_x)
+             valIn  = XvecIn( i_v,i_x)
+             resNumeratorSquared(  i_v)&
+                  = resNumeratorSquared(  i_v) + (valOut-valIn)**2
+             resDenominatorSquared(i_v)&
+                  = resDenominatorSquared(i_v) + valOut**2
+          ENDDO
+       ENDDO
+    END SELECT
 
     ! CHECK CONVERGENCE
     DO i_v = 1,NVMAX

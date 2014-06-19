@@ -212,7 +212,9 @@ MODULE T2COMM
   INTEGER(ikind),ALLOCATABLE,DIMENSION(:)::& 
        NodeRowCRS,& ! CUMULTATIVE NUMBER OF NODE-NODE CONNECTIVITY+1 
                     !     UP TO EACH ROW IN MATRIX A
-       NodeColCRS   ! NODE NUMBER 
+       NodeColCRS,& ! NODE NUMBER 
+       NodeDiaCRS   ! Position of DIagonal component in MATRIX A 
+  
   INTEGER(ikind),ALLOCATABLE,DIMENSION(:)::&
        i1eidr,&     ! CUMULTATIVE NUMBER OF NODE-ELEMENT CONNECTIVITY + 1
                     !      UP TO EACH NODE 
@@ -596,13 +598,14 @@ CONTAINS
     INTEGER(ikind),SAVE::&
          NNMAX_save=0,NDMAX_save=0,NEMAX_save=0,NHMAX_save=0,&
          NMMAX_save=0,NAMAX_save=0,NNRMX_save=0,NERMX_save=0,&
-         NECMX_save=0
+         NECMX_save=0,NBMAX_save=0
     
     INTEGER(ikind):: ierr
     
     IF(  (NNMAX.NE.NNMAX_save).OR.&
          (NDMAX.NE.NDMAX_save).OR.&
          (NMMAX.NE.NMMAX_save).OR.&
+         (NBMAX.NE.NBMAX_save).OR.&
          (NAMAX.NE.NAMAX_save).OR.&
          (NEMAX.NE.NEMAX_save).OR.&
          (NNRMX.NE.NNRMX_save).OR.&
@@ -615,6 +618,7 @@ CONTAINS
        DO
           ALLOCATE(NodeRowCRS(1:NNRMX),STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(NodeColCRS(1:NAMAX),STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(NodeDiaCRS(1:NBMAX),STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(ElementNodeGraph(1:NNMAX,1:4,1:NEMAX),&
                &                       STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(GlobalCrd(1:NDMAX,1:NMMAX),&
@@ -666,6 +670,7 @@ CONTAINS
     
     IF(ALLOCATED(NodeRowCRS)) DEALLOCATE(NodeRowCRS)
     IF(ALLOCATED(NodeColCRS)) DEALLOCATE(NodeColCRS)
+    IF(ALLOCATED(NodeDiaCRS)) DEALLOCATE(NodeDiaCRS)
     IF(ALLOCATED(GlobalCrd)) DEALLOCATE(GlobalCrd)
     IF(ALLOCATED(ElementNodeGraph)) DEALLOCATE(ElementNodeGraph)
     IF(ALLOCATED(HangedNodeTable )) DEALLOCATE(HangedNodeTable )

@@ -111,9 +111,9 @@ CONTAINS
     CALL T2EXEC_ALLOCATE
     
     ! INITIALIZATION
-    amat(1:NVMAX,1:NVMAX,1:NAMAX) = 0.D0
-    bvec(1:NVMAX,1:NBMAX)         = 0.D0
-    
+
+    CALL T2EXEC_INITIALIZE_MATRIX(1)
+
     DO i_e = 1, NEMAX
        
        amatElem(1:NNMAX,1:NNMAX,1:NVMAX,1:NVMAX) = 0.D0
@@ -219,7 +219,27 @@ CONTAINS
     
   END SUBROUTINE T2EXEC_EXECUTE
   
+  SUBROUTINE T2EXEC_INITIALIZE_MATRIX(nvfmx)
+    
+    USE T2COMM,ONLY: NodeDiaCRS,NVMAX,NAMAX,NBMAX,NPMIN
+    
+    INTEGER(ikind),INTENT(IN)::nvfmx
+    INTEGER(ikind)::i_b,i_v,i_a
+    amat(1:NVMAX,1:NVMAX,1:NAMAX) = 0.D0
+    bvec(1:NVMAX,1:NBMAX)         = 0.D0
+    
+    DO i_b = 1,NBMAX
+       IF(MOD(i_b,NPMIN).NE.0)THEN
+          i_a = NodeDiaCRS(i_b)
+          DO i_v =1,nvfmx
+             amat(i_v,i_v,i_a) = 1.D0
+          ENDDO
+       END IF
+    ENDDO
 
+    RETURN
+
+  END SUBROUTINE T2EXEC_INITIALIZE_MATRIX
   SUBROUTINE T2EXEC_CHECK
 
     USE T2COMM, ONLY:NAMAX,NBMAX,NVMAX,NXMAX,Xvec
@@ -456,7 +476,7 @@ CONTAINS
   SUBROUTINE T2EXEC_MS_SUBMATRIX(i_v,j_v)
     
     USE T2COMM,ONLY: NNMAX,NDMAX,NVMAX,CoordinateSwitch,&
-         &           MassScaIntgPG,MassScaCoef,Xvec
+         &           MassScaIntgPG,MassScaCoef,Xvec,TestCase
     
     INTEGER(ikind),INTENT(IN):: i_v,j_v
 
@@ -493,10 +513,18 @@ CONTAINS
           ENDDO
        END SELECT
     CASE (2)
-       DO i_n = 1, NNMAX
-          i_x = nodeTableB(i_n)
-          xvecElem(i_n) = Xvec(j_v,i_x)          
-       ENDDO
+       SELECT CASE (TestCase)
+       CASE(1:2)          
+          DO i_n = 1, NNMAX
+             i_x = nodeTableB(i_n)
+             xvecElem(i_n) = Xvec(j_v,i_x)          
+          ENDDO
+       CASE (3)
+          DO i_n = 1, NNMAX
+             i_b = nodeTableD(i_n)
+             xvecElem(i_n) = Xvec(j_v,i_b)
+          ENDDO
+       END SELECT
     END SELECT
     ! main loop    
     DO i_n = 1, NNMAX
@@ -1332,7 +1360,7 @@ CONTAINS
   !-------------------------------------------------------------------
   SUBROUTINE T2EXEC_STORE_TEST
     
-    USE T2COMM,ONLY: NNMAX,NVMAX, HaveMat,&
+    USE T2COMM,ONLY: NNMAX,NVMAX, HaveMat,TestCase,&
          &           NodeRowCRS,NodeColCRS,HangedNodeTable
     INTEGER(ikind)::&
          i_n,j_n,i_v,j_v
@@ -1362,14 +1390,19 @@ CONTAINS
     ENDDO
     
     ! set node tables 
-    
-    
+        
     ! for stiffness matrix
-    CALL T2EXEC_STORE_MATRIX(1    ,1    ,nodeTableB,& ! row
-         &                   1    ,1    ,nodeTableB)  ! column
-    ! for RHS vector 
-    CALL T2EXEC_STORE_VECTOR(1    ,1    ,nodeTableB) ! row
-    
+    SELECT CASE (TestCase)
+    CASE (1:2)
+       CALL T2EXEC_STORE_MATRIX(1    ,1    ,nodeTableB,& ! row
+            &                   1    ,1    ,nodeTableB)  ! column
+       ! for RHS vector 
+       CALL T2EXEC_STORE_VECTOR(1    ,1    ,nodeTableB) ! row
+    CASE (3)
+       CALL T2EXEC_STORE_MATRIX(1    ,1    ,nodeTableD,& ! row
+            &                   1    ,1    ,nodeTableD)  ! column
+       CALL T2EXEC_STORE_VECTOR(1    ,1    ,nodeTableD)  ! row
+    END SELECT
     RETURN
     
   END SUBROUTINE T2EXEC_STORE_TEST
@@ -1641,7 +1674,7 @@ CONTAINS
   SUBROUTINE T2EXEC_SOLVE
     
     USE T2COMM, ONLY:&
-         NVMAX,NBMAX,NXMAX,NAMAX,NLMAX,NBVMX,NAVMX,&
+         NPMIN,NVMAX,NBMAX,NXMAX,NAMAX,NLMAX,NBVMX,NAVMX,&
          NodeRowCRS,NodeColCRS,HangedNodeTable,&
          i0dbg,idebug,i1pdn2,i1rdn2,HaveMat,&
          Xvec,XvecIn,XvecOut,HangedNodeTable
@@ -1665,7 +1698,7 @@ CONTAINS
          i0acl,i0acl1,i0acl2,i0acl3,&
          i0offset,i0lidi,i0ridi,i0pidi
     
-    INTEGER(ikind)::i_v,j_v,i_b,i_x
+    INTEGER(ikind)::i_v,j_v,i_b,i_x,i1
 
 100 FORMAT(A5,I3,A5,I3,A5,I3,A5,D15.6,A5,D15.6)
 
@@ -1689,7 +1722,7 @@ CONTAINS
     ! 
     ! STORE GLOBAL STIFFNESS MATRIX  
     ! 
-!    OPEN(35,FILE="MATRIX.txt")
+    !    OPEN(35,FILE="MATRIX.txt")
     DO i_rowN = 1, NBMAX   
        DO i_a = NodeRowCRS(i_rowN), NodeRowCRS(i_rowN+1)-1
           i_colN = NodeColCRS(i_a) 
@@ -1721,49 +1754,13 @@ CONTAINS
     !
 !    GOTO 2000!
 !
-!    i0offset  = 1
-!
-!    DO i0lidi = 1, NLMAX
-!       
-!       i0pdn2 = i1pdn2(i0lidi)
-!       i0rdn2 = i1rdn2(i0lidi)
-!       
-!       DO i0ridi = 1, i0rdn2
-!          DO i0pidi = 1, i0pdn2
-!                
-!             i0arc  = NVMAX*i0offset
-!             i0arc1 = i0arc + 1
-!             i0arc2 = i0arc + 2
-!             i0arc3 = i0arc + 3
-!                
-!             i0acc  = i0arc
-!             i0acc1 = i0arc1
-!             i0acc2 = i0arc2
-!             i0acc3 = i0arc3
-!                
-!             i0acl  = NVMAX*(i0offset-1)
-!             i0acl1 = i0acl + 1
-!             i0acl2 = i0acl + 2
-!             i0acl3 = i0acl + 3
-!                
-!             IF((i0pidi.GE.1).AND.(i0pidi.LT.i0pdn2))THEN
-!                CALL MTX_SET_MATRIX(i0arc1,i0acc1,-1.D0)
-!                CALL MTX_SET_MATRIX(i0arc2,i0acc2,-1.D0)
-!                CALL MTX_SET_MATRIX(i0arc3,i0acc3,-1.D0)
-!             ENDIF
-!             
-!             IF((i0pidi.GT.1).AND.(i0pidi.LE.i0pdn2))THEN!
-!                CALL MTX_SET_MATRIX(i0arc1,i0acl1, 1.D0)
-!                CALL MTX_SET_MATRIX(i0arc2,i0acl2, 1.D0)
-!                CALL MTX_SET_MATRIX(i0arc3,i0acl3, 1.D0)
-!            ENDIF
-!             
-!             i0offset = i0offset + 1
-!             
-!          ENDDO
-!       ENDDO
-!    ENDDO
-!        
+
+    !IF((i0pidi.GT.1).AND.(i0pidi.LE.i0pdn2))THEN!
+    !   CALL MTX_SET_MATRIX(i0arc,i0acl, 1.D0)
+    !ENDIF
+    
+    
+    
 !2000 CONTINUE
 
     ! SET GLOBAL RIGHT HAND SIDE VECTOR

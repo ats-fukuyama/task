@@ -1,20 +1,20 @@
  &t2
- ntmax = 10
- ntstep= 10
- dt    = 1.D-2
+ ntmax = 100
+ ntstep= 100
+ dt    = 1.D-3
  idebug= 0
  NLMAX = 1
- NPMIN = 500
+ NPMIN = 300
  NSMAX = 0
  i1mlvl(1) = 1
- i1rdn2(1) = 499
+ i1rdn2(1) = 299
  eps_conv  = 1.D-1
  
  CoordinateSwitch = 2
- TestCase         = 2
+ TestCase         = 3
 
     TestMS  = .TURE.
-    TestAV  = .TURE.
+    TestAV  = .TRUE.
     TestAT  = .FALSE.
     TestDT  = .FALSE.
     TestGV  = .FALSE.

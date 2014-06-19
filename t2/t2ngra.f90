@@ -722,7 +722,7 @@ CONTAINS
   SUBROUTINE T2NGRA_NNR1
     
     USE T2COMM, ONLY:&
-         NNMAX,NBMAX,NLMAX,NodeRowCRS,NodeColCRS,&
+         NNMAX,NBMAX,NLMAX,NodeRowCRS,NodeColCRS,NodeDiaCRS,&
          i1eidr,i1eidc,ElementNodeGraph
     INTEGER(ikind)::&
          i0nidi,i0nidj,&
@@ -734,16 +734,16 @@ CONTAINS
     NodeRowCRS(1) = 1
     i0nidc = 0
 
-    DO i0nidr = 2,NBMAX+1
-       
-       i0esiz = i1eidr(i0nidr)-i1eidr(i0nidr-1)
-       !i0nsiz = MAX(i0esiz,NNMAX*8)
+    !DO i0nidr = 2,NBMAX+1
+    DO i0nidr = 1,NBMAX
+       !i0esiz = i1eidr(i0nidr)-i1eidr(i0nidr-1)
+       i0esiz = i1eidr(i0nidr+1)-i1eidr(i0nidr)
        i0nsiz = MAX(i0esiz,1000)
        ALLOCATE(i1nstk(1:i0nsiz))
        i1nstk(1:i0nsiz) = 0
        i0ncnt = 0       
-       
-       DO i0eg = i1eidr(i0nidr-1),i1eidr(i0nidr)-1
+       !DO i0eg = i1eidr(i0nidr-1),i1eidr(i0nidr)-1
+       DO i0eg = i1eidr(i0nidr),i1eidr(i0nidr+1)-1
           
           i0ec = i1eidc(i0eg)
           
@@ -784,10 +784,10 @@ CONTAINS
           IF(i0na.NE.i0nb)THEN
              i0nidc = i0nidc + 1
              NodeColCRS(i0nidc) = i0nb
+             IF(i0nidr.EQ.i0nb) NodeDiaCRS(i0nidr)=i0nidc
           ENDIF
        ENDDO
-       
-       NodeRowCRS(i0nidr) = i0nidc+1
+       NodeRowCRS(i0nidr+1) = i0nidc+1
        
        DEALLOCATE(i1nstk)
        
