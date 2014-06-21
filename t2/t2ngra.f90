@@ -3,8 +3,14 @@
 !         MODULE T2NGRA
 !       
 !         NODE GRAPH GENERATOR FOR TASK/T2
+! 
+!                   LAST UPDATE 2014-06-20 H.Seto
 !
+!    NodeRowCRS NodeColCRS NodeDiaCRS ElementNodeGraph  
+!    HangedNodeTable
 !
+!    i1eidr, i1eidc i2crt i1mc1d,d1mc1d,i1mfc1 
+!   
 !------------------------------------------------------------------
 
 MODULE T2NGRA
@@ -68,21 +74,21 @@ CONTAINS
   
   SUBROUTINE T2NGRA_NGRAPH1
     
-    ! CONSTRUCT NON-DEGENERATED NODE
-    !                    - DEGENERATED NODE GRAPH
+    ! CONSTRUCT NON-DEGENERATED NODE 
+    !             - DEGENERATED NODE GRAPH! CHECKED 
     CALL T2NGRA_CRT1    ! checked i2crt
         
-    ! CONSTRUCT ELEMENT - NODE GRAPH
+    ! CONSTRUCT ELEMENT - NODE GRAPH      ! CHECKED 
     CALL T2NGRA_ENR1    ! checked i3enr
     
-    ! CONSTRUCT NODE - ELEMENT  GRAPH
-    CALL T2NGRA_NER1    ! checked i1eidr,i1eidc
+    ! CONSTRUCT NODE - ELEMENT  GRAPH     ! CHECKED
+    CALL T2NGRA_NER1    ! i1eidr,i1eidc
     
-    ! CONSTRUCT NODE - NODE GRAPH
-    CALL T2NGRA_NNR1    ! NodeColCRS, NodeRowCRS
+    ! CONSTRUCT NODE - NODE GRAPH ! CHECKED 
+    CALL T2NGRA_NNR1    ! NodeColCRS, NodeRowCRS, NodeDiaCRS
     
     RETURN
- 
+    
   END SUBROUTINE T2NGRA_NGRAPH1
   
   !
@@ -423,7 +429,8 @@ CONTAINS
     
     USE T2COMM,ONLY:&
          NLMAX,NBMAX,&
-         i1pdn1,i1pdn2,i1rdn1,i1rdn2,i2crt,HangedNodeTable,ElementNodeGraph,i1mlel
+         i1pdn1,i1pdn2,i1rdn1,i1rdn2,i2crt,&
+         HangedNodeTable,ElementNodeGraph
 
     INTEGER(ikind)::&
          i2,    j2,    i_l,i0ecnt,&
@@ -500,7 +507,7 @@ CONTAINS
           ElementNodeGraph(3,4,i0ecnt) = i0ur4
           ElementNodeGraph(4,4,i0ecnt) = i0ul4
 
-          i1mlel(i0ecnt) = i_l
+          !i1mlel(i0ecnt) = i_l
           
        ENDDO
        ENDDO
@@ -844,14 +851,14 @@ CONTAINS
          NAMAX,NBMAX,NXMAX,NHMAX,NEMAX,NMMAX,NLMAX,NNMAX,&
          NNRMX,NERMX,NECMX,&
          HangedNodeTable, ElementNodeGraph,&
-         i2crt, NodeRowCRS,NodeColCRS,i1eidr,i1eidc,&
-         i1mlvl,i1mmax,i1bmax,i1emax,GlobalCrd,i1mfc1
-
-    INTEGER(ikind)::i1
+         i2crt, NodeRowCRS,NodeColCRS,NodeDiaCRS,i1eidr,i1eidc,&
+         i1mlvl,i1emax,GlobalCrd,i1mfc1
+       
+         INTEGER(ikind)::i1
     INTEGER(ikind)::&
          i0midi,i0hidi,i0eidi,i_l,i0aidi,i0nidi
 
-    OPEN(10,FILE='I2CRT_TEST.dat')
+    OPEN(10,FILE='T2NGRA_I2CRT.dat')
     DO i0midi = 1, NMMAX
        WRITE(10,'("NUM1=",I7,1X,I7,1X,I7,1X,I7)')&
             i0midi,i2crt(1,i0midi),i2crt(2,i0midi),&
@@ -859,42 +866,42 @@ CONTAINS
     ENDDO
     CLOSE(10)
     
-    OPEN(10,FILE='HANGEDNODETABLE_TEST.dat')
+    OPEN(10,FILE='T2NGRA_HANGEDNODETABLE.dat')
     DO i0hidi = 1, NHMAX
        WRITE(10,'("HNUM=",I9,1X,"LHN=",I9,1X,"UHN=",I9)')&
             i0hidi,HangedNodeTable(1,i0hidi),HangedNodeTable(2,i0hidi)
     ENDDO    
     CLOSE(10)
 
-    OPEN(10,FILE='ELEMENTNODEGRAPH1_TEST.dat')
+    OPEN(10,FILE='T2NGRA_ELEMENTNODEGRAPH1_TEST.dat')
     DO i0eidi = 1, NEMAX
        WRITE(10,'("ELM_NUMBER=",I9,1X,"ELEMENTNODEGRAPH=",4I9)')&
             i0eidi,(ElementNodeGraph(i0nidi,1,i0eidi),i0nidi = 1, NNMAX)
     ENDDO
     CLOSE(10)
 
-    OPEN(10,FILE='ELEMENTNODEGRAPH2_TEST.dat')
+    OPEN(10,FILE='T2NGRA_ELEMENTNODEGRAPH2_TEST.dat')
     DO i0eidi = 1, NEMAX
        WRITE(10,'("ELM_NUMBER=",I9,1X,"ELEMENTNODEGRAPH=",4I9)')&
             i0eidi,(ElementNodeGraph(i0nidi,2,i0eidi),i0nidi = 1, NNMAX)
     ENDDO
     CLOSE(10)
 
-    OPEN(10,FILE='ELEMENTNODEGRAPH3_TEST.dat')
+    OPEN(10,FILE='T2NGRA_ELEMENTNODEGRAPH3_TEST.dat')
     DO i0eidi = 1, NEMAX
        WRITE(10,'("ELM_NUMBER=",I9,1X,"ELEMENTNODEGRAPH=",4I9)')&
             i0eidi,(ElementNodeGraph(i0nidi,3,i0eidi),i0nidi = 1, NNMAX)
     ENDDO
     CLOSE(10)
 
-    OPEN(10,FILE='ELEMENTNODEGRAPH4_TEST.dat')
+    OPEN(10,FILE='T2NGRA_ELEMENTNODEGRAPH4_TEST.dat')
     DO i0eidi = 1, NEMAX
        WRITE(10,'("ELM_NUMBER=",I9,1X,"ELEMENTNODEGRAPH=",4I9)')&
             i0eidi,(ElementNodeGraph(i0nidi,4,i0eidi),i0nidi = 1, NNMAX)
     ENDDO
     CLOSE(10)
     
-    OPEN(10,FILE='CRS_TEST_INDR.dat')
+    OPEN(10,FILE='T2NGRA_NodeRowCRS.dat')
     DO i1=1,NNRMX
        IF(i1.EQ.1)THEN
           WRITE(10,'("I1=",I9,1X,"INDNR=",I9)')i1,NodeRowCRS(i1)
@@ -904,26 +911,29 @@ CONTAINS
        ENDIF
     ENDDO
     CLOSE(10)
-
     
-    OPEN(10,FILE='CRS_TEST_INDC.dat')
+    OPEN(10,FILE='T2NGRA_NodeColCRS.dat')
     DO i0aidi = 1, NAMAX
-       WRITE(10,'("I1=",I9,1X,"INDNC=",I9)')i0aidi,NodeColCRS(i0aidi)
+       WRITE(10,'("I1=",I9,1X,"COL=",I9)')i0aidi,NodeColCRS(i0aidi)
+    ENDDO
+    CLOSE(10)
+
+    OPEN(10,FILE='T2NGRA_NodeDiaCRS.dat')
+    DO i0aidi = 1, NBMAX
+       WRITE(10,'("I1=",I9,1X,"DIA=",I9)')i0aidi,NodeDiaCRS(i0aidi)
     ENDDO
     CLOSE(10)
     
-    OPEN(10,FILE='TEST_NMAX.dat')
+    OPEN(10,FILE='T2NGRA_I1MLVL.dat')
     DO i_l = 1, NLMAX
        WRITE(10,'("MESH_NUMBER=",I3,1X,"MESH_LEVEL=",I3)')&
             i_l, i1mlvl(i_l)
-       WRITE(10,'("MMAX=",I9,1X,"BMAX=",I9)')&
-            i1mmax(i_l),i1bmax(i_l)
     ENDDO
     WRITE(10,'("TOTAL_MMAX=",I9,1X,"TOTAL_BMAX=",I9)')&
          NMMAX,NBMAX
     CLOSE(10)
     
-    OPEN(10,FILE='TEST_EMAX.dat')
+    OPEN(10,FILE='T2NGRA_I1EMAX.dat')
     DO i_l = 0, NLMAX
        WRITE(10,'("MESH_NUMBER=",I3,1X,"EMAX=",I9)')&
             i_l,i1emax(i_l)
@@ -932,32 +942,33 @@ CONTAINS
     CLOSE(10)
     
     !C CALCURATE NUMBER OF HANGED-NODE
-    OPEN(10,FILE='MATRIX_INFO1.dat')
+    OPEN(10,FILE='T2NGRA_MATRIX.dat')
     WRITE(10,'("NODEROWCRS_ARRAY_SIZE=",I9)')NNRMX
     WRITE(10,'("NODECOLCRS_ARRAY_SIZE=",I9)')NAMAX
     WRITE(10,'("D2XVEC_ARRAY_SIZE=",I9)')NXMAX
     WRITE(10,'("D2BVEC_ARRAY_SIZE=",I9)')NBMAX
     CLOSE(10)
     
-    OPEN(10,FILE='MFC1_CHECK.dat')
+    OPEN(10,FILE='T2NGRA_MFC1.dat')
     DO i0midi = 1, NMMAX
        WRITE(10,'("i1=",I5,1X,"RHO=",D15.8,1X,"CHI=",D15.8,1X,"SN=",I5)')&
             i0midi,GlobalCrd(1,i0midi),GlobalCrd(2,i0midi),i1mfc1(i0midi)
     ENDDO
     CLOSE(10)
     
-    OPEN(30,FILE='I1EIDR.dat')
+    OPEN(30,FILE='T2NGRA_I1EIDR.dat')
     DO i1 = 1,NERMX
        write(30,*)i1,i1eidr(i1)
     ENDDO
     CLOSE(30)
 
-    OPEN(30,FILE='I1EIDC.dat')
+    OPEN(30,FILE='T2NGRA_I1EIDC.dat')
     DO i1 = 1,NECMX
        write(30,*)i1,i1eidc(i1)
     ENDDO
     CLOSE(30)
 
+    
     RETURN
   END SUBROUTINE T2_NGRA_OUTPUT
 END MODULE T2NGRA

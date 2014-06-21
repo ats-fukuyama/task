@@ -53,7 +53,7 @@ CONTAINS
          c10rname,i0fnum,&
          NNMAX,NQMAX,NDMAX,NSMAX,NPMIN,NLMAX,&
          !
-         CoordinateSwitch,TestCase,&
+         CoordinateSwitch,TestCase,EqSet,&
          !
          i1mlvl,i1rdn2,d1rec,d0rw,RR,RA,&
          i0nm,i0nn,i0tm,i0tn,d0qc,d0qs,d0bc,&
@@ -93,7 +93,7 @@ CONTAINS
          c10rname,i0fnum,&
          NNMAX,NQMAX,NDMAX,NSMAX,NPMIN,NLMAX,&
          !
-         CoordinateSwitch,TestCase,&
+         CoordinateSwitch,TestCase,EqSet,&
          !
          i1mlvl,i1rdn2,d1rec,d0rw,RR,RA,&
          i0nm,i0nn,i0tm,i0tn,d0qc,d0qs,d0bc,&

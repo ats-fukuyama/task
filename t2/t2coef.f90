@@ -8,7 +8,7 @@
 !      FOR MULTI-FLUID TRANSPORT MODEL 
 !      (ONLY ANOMALOUS TRANSPORT MODEL IS BASED ON TWO-FLUID MODEL)
 !
-!                       2014-06-15 H. Seto
+!                       2014-06-20 H. Seto
 !
 !-------------------------------------------------------------------
 MODULE T2COEF
@@ -34,7 +34,7 @@ CONTAINS
     
     SELECT CASE (CoordinateSwitch)
     CASE (1)
-       STOP
+
        IF(.NOT.UsePotentialDescription)THEN 
           DO i_m = 1, NMMAX
              CALL T2CALV_EXECUTE(   i_m)
@@ -118,7 +118,7 @@ CONTAINS
   ! 
   !       CALCULATION OF MASS SCALAR COEFFICIENTS
   !
-  !                 LAST UPDATE 2014-06-12 H.Seto
+  !                 LAST UPDATE 2014-06-20 H.Seto
   !
   !---------------------------------------------------------
   SUBROUTINE T2COEF_MS_COEF_EB(i_m)
@@ -132,7 +132,7 @@ CONTAINS
          & EqNnNF,       EqFbNF,EqFtNF,      &
          & EqPpNF,       EqQbNF,EqQtNF,      &        
          !
-         & NVMAX,NSMAX,GRt,Bb,R_mc,Mm,Dt,MassScaCoef
+         & NVMAX,NSMAX,GRt,G33Ct,Bb,R_mc,Mm,Dt,MassScaCoef,EqSet
     
     INTEGER(ikind),INTENT(IN)::i_m
     REAL(   rkind)::mmA
@@ -148,23 +148,45 @@ CONTAINS
     !
     ! variables as field (from i_v= 1 to i_v = 5)
     !
-    i_v = 1                   ! Equation for psi'
-    j_v = 1
-    MassScaCoef(i_v,j_v,i_m) = GRt/Dt             * BpNF/EqBpNF
+    SELECT CASE (EqSet)
+    CASE (1)
+       i_v = 1                   ! Equation for psi'
+       j_v = 1
+       MassScaCoef(i_v,j_v,i_m) = GRt/Dt              * BpNF/EqBpNF
+
+       i_v = 2                   ! Equation for I
+       j_v = 2 
+       MassScaCoef(i_v,j_v,i_m) = GRt/Dt              * BtNF/EqBtNF
+
+       i_v = 3                   ! Equation for E_{\zeta}
+       j_v = 3
+       MassScaCoef(i_v,j_v,i_m) = GRt/Dt*VcSqRe       * EtNF/EqEtNF
+
+       i_v = 4                   ! Equation for E_{\chi}
+       j_v = 4
+       MassScaCoef(i_v,j_v,i_m) = GRt/Dt*VcSqRe*R_mc  * EpNF/EqEpNF
+
+       i_v = 5                   ! Equation for E_{\rho}
+
+    CASE (2)
+       i_v = 1                   ! Equation for psi'
+       j_v = 3
+       MassScaCoef(i_v,j_v,i_m) = GRt*G33Ct/Dt*VcSqRe * EtNF/EqBpNF
+       
+       i_v = 2                   ! Equation for I
+       j_v = 4
+       MassScaCoef(i_v,j_v,i_m) = GRt*R_mc/Dt*VcSqRe  * EpNF/EqBtNF
+       
+       i_v = 3                   ! Equation for E_{\zeta}
+       j_v = 1
+       MassScaCoef(i_v,j_v,i_m) = GRt/Dt              * BpNF/EqEtNF
+       
+       i_v = 4                   ! Equation for I
+       j_v = 2 
+       MassScaCoef(i_v,j_v,i_m) = GRt/Dt              * BtNF/EqBpNF
     
-    i_v = 2                   ! Equation for I
-    j_v = 2 
-    MassScaCoef(i_v,j_v,i_m) = GRt/Dt             * BtNF/EqBtNF
-    
-    i_v = 3                   ! Equation for E_{\zeta}
-    j_v = 3
-    MassScaCoef(i_v,j_v,i_m) = GRt/Dt*VcSqRe      * EtNF/EqEtNF
-    
-    i_v = 4                   ! Equation for E_{\chi}
-    j_v = 4
-    MassScaCoef(i_v,j_v,i_m) = GRt/Dt*VcSqRe*R_mc * EpNF/EqEpNF
-    
-    i_v = 5                   ! Equation for E_{\rho}
+       i_v = 5                   ! Equation for E_{\rho}
+    END SELECT
     
     !
     ! variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)
@@ -218,7 +240,7 @@ CONTAINS
   ! 
   !       CALCULATION OF ADVECTION VECTOR COEFFICIENTS
   !
-  !                 LAST UPDATE 2014-06-12 H.Seto
+  !                 LAST UPDATE 2014-06-20 H.Seto
   !
   !---------------------------------------------------------
   SUBROUTINE T2COEF_AV_COEF_EB(i_m)
@@ -234,8 +256,8 @@ CONTAINS
          & EqPpNF,         EqQbNF, EqQtNF,         &
          !
          & Mm,Tt,Nn,UrCt,UpCt,Ub,UuSq,WrCt,WpCt,Pp,QrCt,QpCt,Wb,&
-         & GRt,G11Ct,G12Ct,G22xCt,UgrCt,UgpCt,R_mc,Bb,BpCt,&
-         & NVMAX,NDMAX,AdveVecCoef
+         & GRt,G11Ct,G12Ct,G22xCt,G33Ct,UgrCt,UgpCt,R_mc,Bb,BpCt,&
+         & NVMAX,NDMAX,AdveVecCoef,EqSet
     
     INTEGER(ikind),INTENT(IN)::i_m
     INTEGER(ikind)::&
@@ -261,37 +283,74 @@ CONTAINS
     !
     ! variables as field (from i_v= 1 to i_v = 5)
     !
-    i_v = 1                   ! Equation for psi'
-    j_v = 1
-    AdveVecCoef(1,i_v,j_v,i_m) = -GRt*UgrCt              * BpNF/EqBpNF
-    AdveVecCoef(2,i_v,j_v,i_m) = -GRt*UgpCt              * BpNF/EqBpNF
+    SELECT CASE (EqSet)
+    CASE (1)
+       i_v = 1                   ! Equation for psi'
+       j_v = 1
+       AdveVecCoef(1,i_v,j_v,i_m) = -GRt*UgrCt             * BpNF/EqBpNF
+       AdveVecCoef(2,i_v,j_v,i_m) = -GRt*UgpCt             * BpNF/EqBpNF
+              
+       i_v = 2                   ! Equation for I
+       j_v = 2
+       AdveVecCoef(1,i_v,j_v,i_m) = -GRt*UgrCt             * BtNF/EqBtNF
+       AdveVecCoef(2,i_v,j_v,i_m) = -GRt*UgpCt             * BtNF/EqBtNF
+
+       i_v = 3                   ! Equation for E_{\zeta}
+       j_v = 1
+       AdveVecCoef(1,i_v,j_v,i_m) = -GRt*G11Ct             * BpNF/EqEtNF
+       AdveVecCoef(2,i_v,j_v,i_m) = -GRt*G12Ct             * BpNF/EqEtNF
+       j_v = 3
+       AdveVecCoef(1,i_v,j_v,i_m) = -GRt*ugrCt*VcSqRe      * EtNF/EqEtNF
+       AdveVecCoef(2,i_v,j_v,i_m) = -GRt*ugpCt*VcSqRe      * EtNF/EqEtNF
+
+       i_v = 4                   ! Equation for E_{\chi}
+       j_v = 4
+       AdveVecCoef(1,i_v,j_v,i_m) = -GRt*ugrCt*VcSqRe*R_mc * EpNF/EqEpNF
+       AdveVecCoef(2,i_v,j_v,i_m) = -GRt*ugpCt*VcSqRe*R_mc * EpNF/EqEpNF
+
+       i_v = 5                   ! Equation for E_{\rho}
+       j_v = 4
+       AdveVecCoef(1,i_v,j_v,i_m) =  GRt*G12Ct*R_mc        * EpNF/EqErNF
+       AdveVecCoef(2,i_v,j_v,i_m) =  GRt*G22xCt            * EpNF/EqErNF
+       j_v = 5
+       AdveVecCoef(1,i_v,j_v,i_m) =  GRt*G11Ct             * ErNF/EqErNF
+       AdveVecCoef(2,i_v,j_v,i_m) =  GRt*G12Ct             * ErNF/EqErNF
+    CASE (2)
+       i_v = 1                  ! Equation for psi'
+       j_v = 1
+       AdveVecCoef(1,i_v,j_v,i_m) = -GRt*G33Ct*G11Ct        * BpNF/EqBpNF
+       AdveVecCoef(2,i_v,j_v,i_m) = -GRt*G33Ct*G12Ct        * BpNF/EqBpNF
+       j_v = 3
+       AdveVecCoef(1,i_v,j_v,i_m) = -GRt*G33Ct*ugrCt*VcSqRe * EtNF/EqBpNF
+       AdveVecCoef(2,i_v,j_v,i_m) = -GRt*G33Ct*ugpCt*VcSqRe * EtNF/EqBpNF
+       
+       i_v = 2                   ! Equation for I
+       j_v = 4
+       AdveVecCoef(1,i_v,j_v,i_m) = -GRt*ugrCt*VcSqRe*R_mc  * EpNF/EqBtNF
+       AdveVecCoef(2,i_v,j_v,i_m) = -GRt*ugpCt*VcSqRe*R_mc  * EpNF/EqBtNF
+       
+       i_v = 3                   ! Equation for E_{\zeta}
+       j_v = 1
+       AdveVecCoef(1,i_v,j_v,i_m) = -GRt*UgrCt              * BpNF/EqEtNF
+       AdveVecCoef(2,i_v,j_v,i_m) = -GRt*UgpCt              * BpNF/EqEtNF
+
+       i_v = 4                   ! Equation for E_{\chi}
+       j_v = 2
+       AdveVecCoef(1,i_v,j_v,i_m) = -GRt*UgrCt              * BtNF/EqEpNF
+       AdveVecCoef(2,i_v,j_v,i_m) = -GRt*UgpCt              * BtNF/EqEpNF
+
+       i_v = 5                   ! Equation for E_{\rho}
+       j_v = 4
+       AdveVecCoef(1,i_v,j_v,i_m) =  GRt*G12Ct*R_mc        * EpNF/EqErNF
+       AdveVecCoef(2,i_v,j_v,i_m) =  GRt*G22xCt            * EpNF/EqErNF
+       j_v = 5
+       AdveVecCoef(1,i_v,j_v,i_m) =  GRt*G11Ct             * ErNF/EqErNF
+       AdveVecCoef(2,i_v,j_v,i_m) =  GRt*G12Ct             * ErNF/EqErNF
+    END SELECT
     
-    i_v = 2                   ! Equation for I
-    j_v = 2
-    AdveVecCoef(1,i_v,j_v,i_m) = -GRt*UgrCt              * BtNF/EqBtNF
-    AdveVecCoef(2,i_v,j_v,i_m) = -GRt*UgpCt              * BtNF/EqBtNF
-    
-    i_v = 3                   ! Equation for E_{\zeta}
-    j_v = 1
-    AdveVecCoef(1,i_v,j_v,i_m) = -GRt*G11Ct              * BpNF/EqEtNF
-    AdveVecCoef(2,i_v,j_v,i_m) = -GRt*G12Ct              * BpNF/EqEtNF
-    j_v = 3
-    AdveVecCoef(1,i_v,j_v,i_m) = -GRt*ugrCt*VcSqRe       * EtNF/EqEtNF
-    AdveVecCoef(2,i_v,j_v,i_m) = -GRt*ugpCt*VcSqRe       * EtNF/EqEtNF
-    
-    i_v = 4                   ! Equation for E_{\chi}
-    j_v = 4
-    AdveVecCoef(1,i_v,j_v,i_m) = -GRt*ugrCt*VcSqRe*R_mc  * EpNF/EqEpNF
-    AdveVecCoef(2,i_v,j_v,i_m) = -GRt*ugpCt*VcSqRe*R_mc  * EpNF/EqEpNF
-    
-    i_v = 5                   ! Equation for E_{\rho}
-    j_v = 4
-    AdveVecCoef(1,i_v,j_v,i_m) =  GRt*G12Ct*R_mc         * EpNF/EqErNF
-    AdveVecCoef(2,i_v,j_v,i_m) =  GRt*G22xCt             * EpNF/EqErNF
-    j_v = 5
-    AdveVecCoef(1,i_v,j_v,i_m) =  GRt*G11Ct              * ErNF/EqErNF
-    AdveVecCoef(2,i_v,j_v,i_m) =  GRt*G12Ct              * ErNF/EqErNF
-    
+    !
+    ! variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)
+    !    
     DO i_s = 1, NSMAX
        
        vOffsetA = 10*(i_s-1)
@@ -645,7 +704,7 @@ CONTAINS
   ! 
   !       CALCULATION OF GRADIENT VECTOR COEFFICIENTS
   !
-  !                 LAST UPDATE 2014-06-11 H.Seto
+  !                 LAST UPDATE 2014-06-20 H.Seto
   !
   !---------------------------------------------------------
   SUBROUTINE T2COEF_GV_COEF_EB(i_m)
@@ -654,10 +713,10 @@ CONTAINS
          & UseAnomalousTransportFT, UseAnomalousTransportGT,        & 
          & NSMAX,NVMAX,NDMAX,                                       &
          & BtNF,EtNF,EpNF,ErNF,NnNF,PpNF,                           &
-         & EqBpNF,EqBtNF,EqEpNF,EqFrNF,EqFtNF,EqPpNF,EqQrNF,EqQtNF, &
+         & EqBpNF,EqBtNF,EqEtNF,EqEpNF,EqFrNF,EqFtNF,EqPpNF,EqQrNF,EqQtNF, &
          & GRt,G11Ct,G12Ct,G22Co,G33Co,R_mc,BpCt,                   &
          & Pp,Tt,UrCt,UpCt,FtAnom1,FtAnom2,GtAnom1,GtAnom2,         &
-         & GradVecCoef
+         & GradVecCoef,EqSet
     
     INTEGER(ikind),INTENT(IN)::i_m
     INTEGER(ikind)::&
@@ -680,23 +739,46 @@ CONTAINS
     !
     ! variables as field (from i_v= 1 to i_v = 5)
     !
-    i_v =  1                  ! Equation for psi'
-    j_v =  3
-    GradVecCoef(1,i_v,j_v,i_m) = -GRt                    * EtNF/EqBpNF
 
-    i_v =  2                  ! Equation for I
-    j_v =  4
-    GradVecCoef(1,i_v,j_v,i_m) =  G33Co*R_mc             * EpNF/EqBtNF
-    j_v =  5
-    GradVecCoef(2,i_v,j_v,i_m) = -G33Co                  * ErNF/EqBtNF
-    
-    i_v =  3                  ! Equation for E_{\zeta}
+    SELECT CASE (EqSet)
+    CASE (1)
+       i_v =  1                 ! Equation for psi'
+       j_v =  3
+       GradVecCoef(1,i_v,j_v,i_m) = -GRt                    * EtNF/EqBpNF
 
-    i_v =  4                  ! Equation for E_{\chi}
-    j_v =  2
-    GradVecCoef(1,i_v,j_v,i_m) =  G22Co                  * BtNF/EqEpNF
-    
-    i_v =  5                  ! Equation for E_{\rho}    
+       i_v =  2                  ! Equation for I
+       j_v =  4
+       GradVecCoef(1,i_v,j_v,i_m) =  G33Co*R_mc             * EpNF/EqBtNF
+       j_v =  5
+       GradVecCoef(2,i_v,j_v,i_m) = -G33Co                  * ErNF/EqBtNF
+       
+       i_v =  3                  ! Equation for E_{\zeta}
+       
+       i_v =  4                  ! Equation for E_{\chi}
+       j_v =  2
+       GradVecCoef(1,i_v,j_v,i_m) =  G22Co                  * BtNF/EqEpNF
+       
+       i_v =  5                  ! Equation for E_{\rho}    
+       
+    CASE (2)
+       i_v =  1                  ! Equation for psi
+       
+       i_v =  2                  ! Equation for I
+       j_v =  2
+       GradVecCoef(1,i_v,j_v,i_m) =  G22Co                  * BtNF/EqBtNF
+       
+       i_v =  3                  ! Equation for psi'
+       j_v =  3
+       GradVecCoef(1,i_v,j_v,i_m) = -GRt                    * EtNF/EqEtNF
+       
+       i_v =  4                  ! Equation for \bar{E}_{\chi}
+       j_v =  4
+       GradVecCoef(1,i_v,j_v,i_m) =  G33Co*R_mc             * EpNF/EqEpNF
+       j_v =  5
+       GradVecCoef(2,i_v,j_v,i_m) = -G33Co                  * ErNF/EqEpNF
+       
+       i_v =  5                  ! Equation for E_{\rho}
+    END SELECT
     
     !
     ! variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)
@@ -934,7 +1016,7 @@ CONTAINS
          & GRt,G12Ct,G11Ct,G12Co,G22Co,G33Co,R_mc,BpCt,BtCo,BtCt,Bb,BbSq,&
          & Ee,Nn,Pp,Tt,Hex,CNCF01,CNCF02,CNCF03,CNCF04,&
          & FtAnom3,FtAnom4,GtAnom3,GtAnom4,&
-         & ExciScaCoef
+         & ExciScaCoef,EqSet
     
     INTEGER(ikind),INTENT(IN)::i_m
     INTEGER(ikind)::&
@@ -957,38 +1039,51 @@ CONTAINS
     !
     ! variables as field (from i_v= 1 to i_v = 5)
     !
-    i_v = 1                   ! Equation for psi'
+    SELECT CASE (EqSet)
+    CASE (1)
+       i_v = 1                   ! Equation for psi'
 
-    i_v = 2                   ! Equation for I
-    j_v = 4
-    ExciScaCoef(i_v,j_v,i_m) =  G33Co                    * EpNF/EqBtNF
-    
-    i_v = 3                   ! Equation for E_{\zeta}
-    DO j_s = 1, NSMAX
-       vOffsetB = 10*(j_s-1)
-       eeB = Ee(j_s)
-       j_v =  9 + vOffsetB
-       ExciScaCoef(i_v,j_v,i_m) = GRt*Rmu0*eeB           * FtNF/EqEtNF
-    ENDDO
-    
-    i_v = 4                   ! Equation for E_{\chi}
-    DO j_s = 1, NSMAX
-       vOffsetB = 10*(j_s-1)
-       eeB = Ee(j_s)
+       i_v = 2                   ! Equation for I
+       j_v = 4
+       ExciScaCoef(i_v,j_v,i_m) =  G33Co                 * EpNF/EqBtNF
+
+       i_v = 3                   ! Equation for E_{\zeta}
+       !DO j_s = 1, NSMAX
+       !   vOffsetB = 10*(j_s-1)
+       !   eeB = Ee(j_s)
+       !   j_v =  9 + vOffsetB
+       !   ExciScaCoef(i_v,j_v,i_m) = GRt*Rmu0*eeB       * FtNF/EqEtNF
+       !ENDDO
+
+       i_v = 4                   ! Equation for E_{\chi}
+       !DO j_s = 1, NSMAX
+       !   vOffsetB = 10*(j_s-1)
+       !   eeB = Ee(j_s)      
+       !   j_v =  7 + vOffsetB
+       !   ExciScaCoef(i_v,j_v,i_m)= GRt*Rmu0*G12Co*eeB*R_mc * FrNF/EqEpNF
+       !   j_v = 10 + vOffsetB
+       !   ExciScaCoef(i_v,j_v,i_m)= GRt*Rmu0*G22Co*eeB      * FpNF/EqEpNF
+       !ENDDO
+
+       i_v = 5                   ! Equation for E_{\rho}
+       !DO j_s = 1, NSMAX
+       !   vOffsetB = 10*(j_s-1)
+       !   eeB = Ee(j_s)
+       !   j_v =  6 + vOffsetB
+       !   ExciScaCoef(i_v,j_v,i_m) = -GRt*eeB/Eps0          * NnNF/EqErNF
+       !ENDDO
+
+    CASE (2)
+       i_v = 1                   ! Equation for psi'
+       i_v = 2                   ! Equation for I
+       i_v = 3                   ! Equation for E_{\zeta}
        
-       j_v =  7 + vOffsetB
-       ExciScaCoef(i_v,j_v,i_m)= GRt*Rmu0*G12Co*eeB*R_mc * FrNF/EqEpNF
-       j_v = 10 + vOffsetB
-       ExciScaCoef(i_v,j_v,i_m)= GRt*Rmu0*G22Co*eeB      * FpNF/EqEpNF
-    ENDDO
-    
-    i_v = 5                   ! Equation for E_{\rho}
-    DO j_s = 1, NSMAX
-       vOffsetB = 10*(j_s-1)
-       eeB = Ee(j_s)
-       j_v =  6 + vOffsetB
-       ExciScaCoef(i_v,j_v,i_m) = -GRt*eeB/Eps0          * NnNF/EqErNF
-    ENDDO
+       i_v = 4                   ! Equation for \bar{E}_{\chi}
+       j_v = 4
+       ExciScaCoef(i_v,j_v,i_m) =  G33Co              * EpNF/EqEpNF
+       
+       i_v = 5                   ! Equation for E_{\rho}
+    END SELECT
     
     !
     ! variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)
@@ -1183,11 +1278,11 @@ CONTAINS
     USE T2COMM,ONLY:&
          & NSMAX,NVMAX,NDMAX,NKMAX,                                &
          & BpNF,EtNF,EpNF,FbNF,QbNF,                               &
-         & EqEtNF,EqFbNF,EqQbNF,EqQtNF,                            & 
+         & EqBpNF,EqEtNF,EqFbNF,EqQbNF,EqQtNF,                     & 
          & GRt,BpCt,Bb,G11Ct,G12Ct,R_mc,R_rz,Mm,Tt,Ub,Wb,          &
          & BNCQb1,BNCQb2,BNCQb3,BNCQb4,BNCQt1,BNCQt2,BNCQt3,BNCQt4,&
          & CNCV11,CNCV12,CNCV13,                                   &
-         & ExciVecCoef
+         & ExciVecCoef,EqSet
     
     INTEGER(ikind),INTENT(IN)::i_m
     INTEGER(ikind)::&
@@ -1211,17 +1306,26 @@ CONTAINS
     !
     ! variables as field (from i_v= 1 to i_v = 5)
     !
-    i_v = 1                   ! Equation for psi'
-    i_v = 2                   ! Equation for I
-    
-    i_v = 3                   ! Equation for E_{\zeta}
-    j_v = 1; i_k = 2
-    ExciVecCoef(1,i_k,i_v,j_v,i_m)=  2.D0*GRt*G11Ct/R_rz * BpNF/EqEtNF
-    ExciVecCoef(2,i_k,i_v,j_v,i_m)=  2.D0*GRt*G12Ct/R_rz * BpNF/EqEtNF
-    
-    i_v = 4                   ! Equation for E_{\chi}
-    i_v = 5                   ! Equation for E_{\rho}
-    
+    SELECT CASE (EqSet)
+    CASE (1)
+       i_v = 1                   ! Equation for psi'
+       i_v = 2                   ! Equation for I
+
+       i_v = 3                   ! Equation for E_{\zeta}
+       j_v = 1; i_k = 2
+       ExciVecCoef(1,i_k,i_v,j_v,i_m)=  2.D0*GRt*G11Ct/R_rz * BpNF/EqEtNF
+       ExciVecCoef(2,i_k,i_v,j_v,i_m)=  2.D0*GRt*G12Ct/R_rz * BpNF/EqEtNF
+       
+       i_v = 4                   ! Equation for E_{\chi}
+       i_v = 5                   ! Equation for E_{\rho}
+    CASE (2)
+       i_v = 1                   ! Equation for psi'
+       i_v = 2                   ! Equation for I
+       i_v = 3                   ! Equation for E_{\zeta}
+       i_v = 4                   ! Equation for E_{\chi}
+       i_v = 5                   ! Equation for E_{\rho}
+    END SELECT
+        
     !
     ! variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)
     !
@@ -1321,9 +1425,7 @@ CONTAINS
     
     REAL(   rkind)::&
          & cncv01A,cncv02A,cncv03A,cncv04A,cncv09A,cncv10A
-    
-    
-    
+        
     ! initialization
     DO j_v = 1, NVMAX
     DO i_v = 1, NVMAX
@@ -1439,19 +1541,86 @@ CONTAINS
 
   SUBROUTINE T2COEF_SS_COEF_EB(i_m)
     
-    USE T2COMM, ONLY: NVMAX,SourScaCoef
+    USE T2CNST, ONLY: Rmu0,EPS0
+    USE T2COMM, ONLY: NVMAX,NSMAX,GRt,Ee,Nn,FpCo,FtCo,FtCt,SourScaCoef,&
+         &            EqBpNF,EqBtNF,EqEtNF,EqEpNF,EqErNF,EqSet
     
     INTEGER(ikind),INTENT(IN)::i_m
-    INTEGER(ikind)::i_v,j_v
-    
+    INTEGER(ikind)::i_v,j_v,j_s
+    REAL(   rkind)::eeB,ftCoB,ftCtB,fpCoB,nnB
+
     ! initialization
     DO j_v = 1, NVMAX
     DO i_v = 1, NVMAX
        SourScaCoef(i_v,j_v,i_m) = 0.D0
     ENDDO
     ENDDO
+
+    SELECT CASE (EqSet)
+    CASE (1)
+       i_v = 1                   ! Equation for psi'
+       i_v = 2                   ! Equation for I
+       
+       i_v = 3                   ! Equation for E_{\zeta}
+       j_v = 3
+       DO j_s = 1, NSMAX
+          eeB   = Ee(  j_s)
+          ftCoB = FtCo(j_s)
+          SourScaCoef(i_v,j_v,i_m) =  SourScaCoef(i_v,j_v,i_m)&
+               &                     -GRt*Rmu0*eeB*ftCoB / EqEtNF
+       ENDDO
+       
+       i_v = 4                   ! Equation for E_{\chi}
+       j_v = 4
+       DO j_s = 1, NSMAX
+          eeB   = Ee(  j_s)
+          fpCoB = FpCo(j_s)
+          SourScaCoef(i_v,j_v,i_m) =  SourScaCoef(i_v,j_v,i_m)&
+               &                     -GRt*Rmu0*eeB*fpCoB / EqEpNF
+       ENDDO
+       
+       i_v = 5                   ! Equation for E_{\rho}
+       j_v = 5
+       DO j_s = 1, NSMAX
+          eeB = Ee(j_s)
+          nnB = Nn(j_s)
+          SourScaCoef(i_v,j_v,i_m) =  SourScaCoef(i_v,j_v,i_m)&
+               &                     +GRt*eeB*nnB/Eps0   / EqErNF
+       ENDDO
+    CASE (2)
+       i_v = 1                   ! Equation for psi'
+       j_v = 1
+       DO j_s = 1, NSMAX
+          eeB   = Ee(  j_s)
+          ftCtB = FtCt(j_s)
+          SourScaCoef(i_v,j_v,i_m) =  SourScaCoef(i_v,j_v,i_m)&
+               &                     -GRt*Rmu0*eeB*ftCtB / EqBpNF
+       ENDDO
+
+       i_v = 2                   ! Equation for I
+       j_v = 2
+       DO j_s = 1, NSMAX
+          eeB   = Ee(  j_s)
+          fpCoB = FpCo(j_s)
+          SourScaCoef(i_v,j_v,i_m) =  SourScaCoef(i_v,j_v,i_m)&
+               &                     -GRt*Rmu0*eeB*fpCoB / EqBtNF
+       ENDDO
+    
+       i_v = 3                   ! Equation for E_{\zeta}
+       i_v = 4                   ! Equation for E_{\chi}
+
+       i_v = 5                   ! Equation for E_{\rho}
+       j_v = 5
+       DO j_s = 1, NSMAX
+          eeB = Ee(j_s)
+          nnB = Nn(j_s)
+          SourScaCoef(i_v,j_v,i_m) =  SourScaCoef(i_v,j_v,i_m)&
+               &                     +GRt*eeB*nnB/Eps0   / EqErNF
+       ENDDO
+    END SELECT
     
     RETURN
+    
   END SUBROUTINE T2COEF_SS_COEF_EB
 
   SUBROUTINE T2COEF_MS_COEF_PhiA(i_m)

@@ -70,11 +70,11 @@ CONTAINS
   
   !-------------------------------------------------------------------
   !
-  !       T2VGRA_EXCUTE (PUBLIC)
+  !       T2VGRA_EXCUTE 
   !
   !-------------------------------------------------------------------
   SUBROUTINE T2VGRA_EXECUTE
-        
+    
     USE T2COMM,ONLY:&
          UsePotentialDescription,CoordinateSwitch,&
          HaveMassScaCoef,HaveAdveVecCoef,HaveAdveTenCoef,&
@@ -170,42 +170,57 @@ CONTAINS
   !                           is exist in equation system.
   !
   !                     
-  !                     LAST UPDATE     2014-05-23 H.Seto
-  !                     OPERATION CHECK 2014-05-26 H.Seto
+  !                     LAST UPDATE     2014-06-20 H.Seto
+  !                     OPERATION CHECK 2014-06-20 H.Seto
   !
   !-------------------------------------------------------------------
   SUBROUTINE T2VGRA_MS_COEF_EB
     
-    USE T2COMM,ONLY:NSMAX,NVMAX,HaveMassScaCoef
+    USE T2COMM,ONLY:NSMAX,NVMAX,HaveMassScaCoef,EqSet
     INTEGER(ikind)::&
          & i_s,i_v,vOffsetA,&
          &     j_v,vOffsetB
-        
+    
     !C initialization
     HaveMassScaCoef(1:NVMAX,1:NVMAX) = .FALSE.
-
+    
     !
     ! variables as field (from i_v= 1 to i_v = 5)
     !
- 
-    i_v = 1                   ! Equation for psi'
-    j_v = 1;                  HaveMassScaCoef(i_v,j_v) = .TRUE.
+    SELECT CASE (EqSet)
+    CASE (1)
+       i_v = 1                   ! Equation for psi'
+       j_v = 1;                  HaveMassScaCoef(i_v,j_v) = .TRUE.
+       
+       i_v = 2                   ! Equation for I
+       j_v = 2;                  HaveMassScaCoef(i_v,j_v) = .TRUE.
     
-    i_v = 2                   ! Equation for I
-    j_v = 2;                  HaveMassScaCoef(i_v,j_v) = .TRUE.
- 
-    i_v = 3                   ! Equation for E_{\zeta}
-    j_v = 3;                  HaveMassScaCoef(i_v,j_v) = .TRUE.
+       i_v = 3                   ! Equation for E_{\zeta}
+       j_v = 3;                  HaveMassScaCoef(i_v,j_v) = .TRUE.
+
+       i_v = 4                   ! Equation for E_{\chi}
+       j_v = 4;                  HaveMassScaCoef(i_v,j_v) = .TRUE.
+       
+       i_v = 5                   ! Equation for E_{\rho}
+    CASE (2)
+       i_v = 1                   ! Equation for psi'
+       j_v = 3;                  HaveMassScaCoef(i_v,j_v) = .TRUE.
     
-    i_v = 4                   ! Equation for E_{\chi}
-    j_v = 4;                  HaveMassScaCoef(i_v,j_v) = .TRUE.
-    
-    i_v = 5                   ! Equation for E_{\rho}
+       i_v = 2                   ! Equation for I
+       j_v = 4;                  HaveMassScaCoef(i_v,j_v) = .TRUE.
+
+       i_v = 3                   ! Equation for E_{\zeta}
+       j_v = 1;                  HaveMassScaCoef(i_v,j_v) = .TRUE.
+
+       i_v = 4                   ! Equation for \bar{E}_{\chi}
+       j_v = 2;                  HaveMassScaCoef(i_v,j_v) = .TRUE.
+
+       i_v = 5                   ! Equation for E_{\rho}
+    END SELECT
     
     !
     ! variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)
     !
-    
     DO i_s = 0, NSMAX-1
        
        vOffsetA = 10*i_s  
@@ -253,13 +268,13 @@ CONTAINS
   !                 the term "div (\vec{V}_{i_v,j_v}*f_{j_v})" 
   !                           is exist in equation system.
   !
-  !                     LAST UPDATE     2014-05-23 H.Seto
-  !                     OPERATION CHECK 2014-05-26 H.Seto
+  !                     LAST UPDATE     2014-06-20 H.Seto
+  !                     OPERATION CHECK 2014-06-20 H.Seto
   !
   !-------------------------------------------------------------------
   SUBROUTINE T2VGRA_AV_COEF_EB
     
-    USE T2COMM,ONLY: NSMAX,NVMAX,HaveAdveVecCoef
+    USE T2COMM,ONLY: NSMAX,NVMAX,HaveAdveVecCoef,EqSet
     
     INTEGER(ikind)::&
          & i_s,i_v,vOffsetA,&
@@ -271,23 +286,44 @@ CONTAINS
     !
     ! variables as field (from i_v= 1 to i_v = 5)
     !
-    i_v = 1                   ! Equation for psi'
-    j_v = 1;                  HaveAdveVecCoef(i_v,j_v) = .TRUE.
-    
-    i_v = 2                   ! Equation for I
-    j_v = 2;                  HaveAdveVecCoef(i_v,j_v) = .TRUE.
-    
-    i_v = 3                   ! Equation for E_{\zeta}
-    j_v = 1;                  HaveAdveVecCoef(i_v,j_v) = .TRUE.
-    j_v = 3;                  HaveAdveVecCoef(i_v,j_v) = .TRUE.
+    SELECT CASE (EqSet)
 
-    i_v = 4                   ! Equation for E_{\chi}
-    j_v = 4;                  HaveAdveVecCoef(i_v,j_v) = .TRUE.
-    
-    i_v = 5                   ! Equation for E_{\rho}
-    j_v = 4;                  HaveAdveVecCoef(i_v,j_v) = .TRUE.
-    j_v = 5;                  HaveAdveVecCoef(i_v,j_v) = .TRUE.
+    CASE (1)
+       i_v = 1                   ! Equation for psi'
+       j_v = 1;                  HaveAdveVecCoef(i_v,j_v) = .TRUE.
 
+       i_v = 2                   ! Equation for I
+       j_v = 2;                  HaveAdveVecCoef(i_v,j_v) = .TRUE.
+
+       i_v = 3                   ! Equation for E_{\zeta}
+       j_v = 1;                  HaveAdveVecCoef(i_v,j_v) = .TRUE.
+       j_v = 3;                  HaveAdveVecCoef(i_v,j_v) = .TRUE.
+
+       i_v = 4                   ! Equation for E_{\chi}
+       j_v = 4;                  HaveAdveVecCoef(i_v,j_v) = .TRUE.
+       
+       i_v = 5                   ! Equation for E_{\rho}
+       j_v = 4;                  HaveAdveVecCoef(i_v,j_v) = .TRUE.
+       j_v = 5;                  HaveAdveVecCoef(i_v,j_v) = .TRUE.
+    CASE (2)
+       i_v = 1                   ! Equation for psi'
+       j_v = 1;                  HaveAdveVecCoef(i_v,j_v) = .TRUE.
+       j_v = 3;                  HaveAdveVecCoef(i_v,j_v) = .TRUE.
+    
+       i_v = 2                   ! Equation for I
+       j_v = 4;                  HaveAdveVecCoef(i_v,j_v) = .TRUE.
+    
+       i_v = 3                   ! Equation for E_{\zeta}
+       j_v = 1;                  HaveAdveVecCoef(i_v,j_v) = .TRUE.   
+   
+       i_v = 4                   ! Equation for E_{\chi}
+       j_v = 2;                  HaveAdveVecCoef(i_v,j_v) = .TRUE.
+       
+       i_v = 5                   ! Equation for E_{\rho}
+       j_v = 4;                  HaveAdveVecCoef(i_v,j_v) = .TRUE.
+       j_v = 5;                  HaveAdveVecCoef(i_v,j_v) = .TRUE.
+    END SELECT
+    
     !
     ! variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)
     !
@@ -330,7 +366,7 @@ CONTAINS
     RETURN
     
   END SUBROUTINE T2VGRA_AV_COEF_EB
-
+  
   !-------------------------------------------------------------------
   !
   ! CREATE VARIABLE GRAPH OF ADVECTION TENSOR TERMS 
@@ -347,8 +383,8 @@ CONTAINS
   !       the physical quantitiy "g_{ik} " 
   !                           is exist in equation system.
   ! 
-  !                     LAST UPDATE     2014-05-23 H.Seto
-  !                     OPERATION CHECK 2014-05-26 H.Seto
+  !                     LAST UPDATE     2014-06-20 H.Seto
+  !                     OPERATION CHECK 2014-06-20 H.Seto
   !
   !-------------------------------------------------------------------
   SUBROUTINE T2VGRA_AT_COEF_EB
@@ -458,14 +494,14 @@ CONTAINS
   !
   !                           is exist in equation system.
   !
-  !                     LAST UPDATE     2014-05-23 H.Seto
-  !                     OPERATION CHECK 2014-05-26 H.Seto
+  !                     LAST UPDATE     2014-06-20 H.Seto
+  !                     OPERATION CHECK 2014-06-20 H.Seto
   !
   !-------------------------------------------------------------------
   SUBROUTINE T2VGRA_DT_COEF_EB
     
     USE T2COMM,ONLY: NSMAX, NVMAX, HaveDiffTenCoef
-        
+    
     INTEGER(ikind)::&
          & i_s,i_v,vOffsetA,&
          &     j_v,vOffsetB
@@ -550,13 +586,13 @@ CONTAINS
   !
   !                           is exist in equation system.
   !
-  !                     LAST UPDATE     2014-05-23 H.Seto
-  !                     OPERATION CHECK 2014-05-26 H.Seto
+  !                     LAST UPDATE     2014-06-20 H.Seto
+  !                     OPERATION CHECK 2014-06-20 H.Seto
   !
   !-------------------------------------------------------------------
   SUBROUTINE T2VGRA_GV_COEF_EB
 
-    USE T2COMM, ONLY: NSMAX,NVMAX,HaveGradVecCoef
+    USE T2COMM, ONLY: NSMAX,NVMAX,HaveGradVecCoef,EqSet
 
     INTEGER(ikind)::&
          & i_s,i_v,vOffsetA,&
@@ -569,21 +605,37 @@ CONTAINS
     !
     ! variables as field (from i_v= 1 to i_v = 5)
     !
+    SELECT CASE (EqSet)
+    CASE (1)
+       i_v =  1                  ! Equation for psi'
+       j_v =  3;                 HaveGradVecCoef(i_v,j_v) = .TRUE.
+       
+       i_v =  2                  ! Equation for I
+       j_v =  4;                 HaveGradVecCoef(i_v,j_v) = .TRUE.
+       j_v =  5;                 HaveGradVecCoef(i_v,j_v) = .TRUE.
+       
+       i_v =  3                  ! Equation for E_{\zeta}
+       
+       i_v =  4                  ! Equation for E_{\chi}
+       j_v =  2;                 HaveGradVecCoef(i_v,j_v) = .TRUE.
+       
+       i_v =  5                  ! Equation for E_{\rho}    
+    CASE (2)
+       i_v =  1                  ! Equation for psi'
+       
+       i_v =  2                  ! Equation for I
+       j_v =  2;                 HaveGradVecCoef(i_v,j_v) = .TRUE.
 
-    i_v =  1                  ! Equation for psi'
-    j_v =  3;                 HaveGradVecCoef(i_v,j_v) = .TRUE.
-
-    i_v =  2                  ! Equation for I
-    j_v =  4;                 HaveGradVecCoef(i_v,j_v) = .TRUE.
-    j_v =  5;                 HaveGradVecCoef(i_v,j_v) = .TRUE.
-
-    i_v =  3                  ! Equation for E_{\zeta}
-
-    i_v =  4                  ! Equation for E_{\chi}
-    j_v =  2;                 HaveGradVecCoef(i_v,j_v) = .TRUE.
+       i_v =  3                  ! Equation for E_{\zeta}
+       j_v =  3;                 HaveGradVecCoef(i_v,j_v) = .TRUE.
     
-    i_v =  5                  ! Equation for E_{\rho}    
+       i_v =  4                  ! Equation for I
+       j_v =  4;                 HaveGradVecCoef(i_v,j_v) = .TRUE.
+       j_v =  5;                 HaveGradVecCoef(i_v,j_v) = .TRUE.
 
+       i_v =  5                  ! Equation for E_{\rho}
+    END SELECT
+    
     !
     ! variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)
     !    
@@ -604,9 +656,9 @@ CONTAINS
        j_v =  6;              HaveGradVecCoef(i_v,j_v) = .TRUE.
        j_v = 11;              HaveGradVecCoef(i_v,j_v) = .TRUE.
        ! <<<< ANOMALOUS TRANSPORT * two-fluid model <<<<<
-
+       
        i_v = 10 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
-
+       
        i_v = 11 + vOffsetA    ! Equation for p_{a}
        j_v = 11 + vOffsetB;   HaveGradVecCoef(i_v,j_v) = .TRUE.
        
@@ -648,8 +700,8 @@ CONTAINS
   !       the physical quantitiy "g_{ik} " 
   !                           is exist in equation system.
   !
-  !                     LAST UPDATE     2014-05-23 H.Seto
-  !                     OPERATION CHECK 2014-05-26 H.Seto
+  !                     LAST UPDATE     2014-06-20 H.Seto
+  !                     OPERATION CHECK 2014-06-20 H.Seto
   !
   !-------------------------------------------------------------------
   SUBROUTINE T2VGRA_GT_COEF_EB
@@ -747,14 +799,14 @@ CONTAINS
   !
   !                           is exist in equation system.
   !
-  !                     LAST UPDATE     2014-05-23 H.Seto
-  !                     OPERATION CHECK 2014-05-26 H.Seto
+  !                     LAST UPDATE     2014-06-20 H.Seto
+  !                     OPERATION CHECK 2014-06-20 H.Seto
   !
   !-------------------------------------------------------------------
   SUBROUTINE T2VGRA_ES_COEF_EB
-
+    
     USE T2COMM, ONLY: NSMAX, NVMAX,&
-         &            HaveExciScaCoef
+         &            HaveExciScaCoef,EqSet
     
     INTEGER(ikind)::&
          i_s,i_v,vOffsetA,&
@@ -763,33 +815,30 @@ CONTAINS
     !initialization
     
     HaveExciScaCoef(1:NVMAX,1:NVMAX) = .FALSE.
-    
+
     !
     ! variables as field (from i_v= 1 to i_v = 5)
-    !
-    i_v = 1                   ! Equation for psi'
+    !    
+    SELECT CASE (EqSet)
+    CASE (1)
+       i_v = 1                   ! Equation for psi'
 
-    i_v = 2                   ! Equation for I
-    j_v = 4;                  HaveExciScaCoef(i_v,j_v) = .TRUE.
-    
-    i_v = 3                   ! Equation for E_{\zeta}
-    DO j_s = 0, NSMAX-1
-       vOffsetB = 10*j_s
-       j_v =  9 + vOffsetB;   HaveExciScaCoef(i_v,j_v) = .TRUE.
-    ENDDO
-    
-    i_v = 4                   ! Equation for E_{\chi}
-    DO j_s = 0, NSMAX-1
-       vOffsetB = 10*j_s
-       j_v =  7 + vOffsetB;   HaveExciScaCoef(i_v,j_v) = .TRUE.
-       j_v = 10 + vOffsetB;   HaveExciScaCoef(i_v,j_v) = .TRUE.
-    ENDDO
+       i_v = 2                   ! Equation for I
+       j_v = 4;                  HaveExciScaCoef(i_v,j_v) = .TRUE.       
 
-    i_v = 5                   ! Equation for E_{\rho}
-    DO j_s = 0, NSMAX-1
-       vOffsetB = 10*j_s
-       j_v =  6 + vOffsetB;   HaveExciScaCoef(i_v,j_v) = .TRUE.
-    ENDDO
+       i_v = 3                   ! Equation for E_{\zeta}
+       i_v = 4                   ! Equation for E_{\chi}           
+       i_v = 5                   ! Equation for E_{\rho}
+    CASE (2)
+       i_v = 1                   ! Equation for psi'   
+       i_v = 2                   ! Equation for I
+       i_v = 3                   ! Equation for E_{\zeta}
+
+       i_v = 4                   ! Equation for E_{\chi}
+       j_v = 4;                  HaveExciScaCoef(i_v,j_v) = .TRUE.
+
+       i_v = 5                   ! Equation for E_{\rho}
+    END SELECT
     
     !
     ! variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)
@@ -896,7 +945,7 @@ CONTAINS
   SUBROUTINE T2VGRA_EV_COEF_EB
 
     USE T2COMM, ONLY: NSMAX, NVMAX, NKMAX,&
-         &            HaveExciVecCoef,HaveExciVecKval
+         &            HaveExciVecCoef,HaveExciVecKval,EqSet
 
     INTEGER(ikind)::&
          & i_s,i_v,i_k,vOffsetA,kOffsetX,&
@@ -909,15 +958,24 @@ CONTAINS
     !
     ! variables as field (from i_v= 1 to i_v = 5)
     !
-    i_v = 1                   ! Equation for psi'
-    i_v = 2                   ! Equation for I
-
-    i_v = 3                   ! Equation for E_{\zeta}
-    j_v = 1;                  HaveExciVecCoef(i_v,j_v) = .TRUE.
-    i_k = 2;                  HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-   
-    i_v = 4                   ! Equation for E_{\chi}
-    i_v = 5                   ! Equation for E_{\rho}
+    SELECT CASE (EqSet)
+    CASE (1)
+       i_v = 1                   ! Equation for psi'
+       i_v = 2                   ! Equation for I
+       
+       i_v = 3                   ! Equation for E_{\zeta}
+       j_v = 1;                  HaveExciVecCoef(i_v,j_v) = .TRUE.
+       i_k = 2;                  HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+       
+       i_v = 4                   ! Equation for E_{\chi}
+       i_v = 5                   ! Equation for E_{\rho}
+    CASE (2)
+       i_v = 1                   ! Equation for psi'
+       i_v = 2                   ! Equation for I
+       i_v = 3                   ! Equation for E_{\zeta}
+       i_v = 4                   ! Equation for E_{\chi}
+       i_v = 5                   ! Equation for E_{\rho}
+    END SELECT
     
     !
     ! variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)
@@ -932,7 +990,7 @@ CONTAINS
        i_v =  7 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
 
        i_v =  8 + vOffsetA    ! Equation for Gamma_{a\para}
-       j_v =  8 + vOffsetB;   HaveExciVecCoef(i_v,j_v) = .TRUE.
+       j_v =  8 + vOffsetB;   HaveExciVecCoef(i_v,j_v)     = .TRUE.
        i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
        
        i_v =  9 + vOffsetA    ! Equation for Gamma_{a\zeta}
@@ -941,25 +999,25 @@ CONTAINS
        i_v = 12 + vOffsetA    ! Equation for Q_{a}^{\rho}
 
        i_v = 13 + vOffsetA    ! Equation for Q_{a\para}
-       j_v =  3;              HaveExciVecCoef(i_v,j_v) = .TRUE.
+       j_v =  3;              HaveExciVecCoef(i_v,j_v)     = .TRUE.
        i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
        i_k =  3+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
        i_k =  4+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-       j_v =  4;              HaveExciVecCoef(i_v,j_v) = .TRUE.
+       j_v =  4;              HaveExciVecCoef(i_v,j_v)     = .TRUE.
        i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
        i_k =  3+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
        i_k =  4+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-       j_v =  8 + vOffsetB;   HaveExciVecCoef(i_v,j_v) = .TRUE.
+       j_v =  8 + vOffsetB;   HaveExciVecCoef(i_v,j_v)     = .TRUE.
        i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-       j_v = 13 + vOffsetB;   HaveExciVecCoef(i_v,j_v) = .TRUE.
+       j_v = 13 + vOffsetB;   HaveExciVecCoef(i_v,j_v)     = .TRUE.
        i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
 
        i_v = 14 + vOffsetA    ! Equation for Q_{a\zeta}
-       j_v =  3;              HaveExciVecCoef(i_v,j_v) = .TRUE.
+       j_v =  3;              HaveExciVecCoef(i_v,j_v)     = .TRUE.
        i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
        i_k =  3+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
        i_k =  4+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-       j_v =  4;              HaveExciVecCoef(i_v,j_v) = .TRUE.
+       j_v =  4;              HaveExciVecCoef(i_v,j_v)     = .TRUE.
        i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
        i_k =  3+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
        i_k =  4+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
@@ -1433,15 +1491,15 @@ CONTAINS
 
     INTEGER(ikind):: i_v,j_v,i_k,j_k
 
-    OPEN(10,FILE='TEST_VMC.dat')
+    OPEN(10,FILE='T2VGRA_HMMC.dat')
     DO i_v = 1, NVMAX
     DO j_v = 1, NVMAX
-       WRITE(10,*)'iv=',i_v,'jv=',j_v,'HaveMat=',HaveMat(i_v,j_v)
+       WRITE(10,*)'iv=',i_v,'jv=',j_v,'MC=',HaveMat(i_v,j_v)
     ENDDO
     ENDDO
     CLOSE(10)
 
-    OPEN(10,FILE='TEST_MSC.dat')
+    OPEN(10,FILE='T2VGRA_HMSC.dat')
     DO i_v = 1, NVMAX
     DO j_v = 1, NVMAX
        WRITE(10,*)'iv=',i_v,'jv=',j_v,'MS=',HaveMassScaCoef(i_v,j_v)
@@ -1449,7 +1507,7 @@ CONTAINS
     ENDDO
     CLOSE(10)
 
-    OPEN(10,FILE='TEST_AVC.dat')
+    OPEN(10,FILE='T2VGRA_HAVC.dat')
     DO i_v = 1, NVMAX
     DO j_v = 1, NVMAX
        WRITE(10,*)'iv=',i_v,'jv=',j_v,'AV=',HaveAdveVecCoef(i_v,j_v)
@@ -1457,7 +1515,7 @@ CONTAINS
     ENDDO
     CLOSE(10)
 
-    OPEN(10,FILE='TEST_ATC.dat')
+    OPEN(10,FILE='T2VGRA_HATC.dat')
     DO i_v = 1, NVMAX
     DO j_v = 1, NVMAX
        WRITE(10,*)'iv=',i_v,'jv=',j_v,'AT=',HaveAdveTenCoef(i_v,j_v)
@@ -1465,7 +1523,7 @@ CONTAINS
     ENDDO
     CLOSE(10)
 
-    OPEN(10,FILE='TEST_DTC.dat')
+    OPEN(10,FILE='T2VGRA_HDTC.dat')
     DO i_v = 1, NVMAX
     DO j_v = 1, NVMAX
        WRITE(10,*)'iv=',i_v,'jv=',j_v,'DT=',HaveDiffTenCoef(i_v,j_v)
@@ -1473,7 +1531,7 @@ CONTAINS
     ENDDO
     CLOSE(10)
 
-    OPEN(10,FILE='TEST_GVC.dat')
+    OPEN(10,FILE='T2VGRA_HGVC.dat')
     DO i_v = 1, NVMAX
     DO j_v = 1, NVMAX
        WRITE(10,*)'iv=',i_v,'jv=',j_v,'GV=',HaveGradVecCoef(i_v,j_v)
@@ -1481,7 +1539,7 @@ CONTAINS
     ENDDO
     CLOSE(10)
 
-    OPEN(10,FILE='TEST_GTC.dat')
+    OPEN(10,FILE='T2VGRA_HGTC.dat')
     DO i_v = 1, NVMAX
     DO j_v = 1, NVMAX
        WRITE(10,*)'iv=',i_v,'jv=',j_v,'GT=',HaveGradTenCoef(i_v,j_v)
@@ -1489,7 +1547,7 @@ CONTAINS
     ENDDO
     CLOSE(10)
 
-    OPEN(10,FILE='TEST_ESC.dat')
+    OPEN(10,FILE='T2VGRA_HESC.dat')
     DO i_v = 1, NVMAX
     DO j_v = 1, NVMAX
        WRITE(10,*)'iv=',i_v,'jv=',j_v,'ES=',HaveExciScaCoef(i_v,j_v)
@@ -1497,7 +1555,7 @@ CONTAINS
     ENDDO
     CLOSE(10)
 
-    OPEN(10,FILE='TEST_EVC.dat')
+    OPEN(10,FILE='T2VGRA_HEVC.dat')
     DO i_v = 1, NVMAX
     DO j_v = 1, NVMAX
        WRITE(10,*)'iv=',i_v,'jv=',j_v,'EV=',HaveExciVecCoef(i_v,j_v)
@@ -1505,7 +1563,7 @@ CONTAINS
     ENDDO
     CLOSE(10)
 
-    OPEN(10,FILE='TEST_ETC.dat')
+    OPEN(10,FILE='T2VGRA_HETC.dat')
     DO i_v = 1, NVMAX
     DO j_v = 1, NVMAX
        WRITE(10,*)'iv=',i_v,'jv=',j_v,'ET=',HaveExciTenCoef(i_v,j_v)
@@ -1513,15 +1571,15 @@ CONTAINS
     ENDDO
     CLOSE(10)
 
-    OPEN(10,FILE='TEST_SSC.dat')
+    OPEN(10,FILE='T2VGRA_HSSC.dat')
     DO i_v = 1, NVMAX
     DO j_v = 1, NVMAX
        WRITE(10,*)'iv=',i_v,'jv=',j_v,'SS=',HaveSourScaCoef(i_v,j_v)
     ENDDO
     ENDDO
     CLOSE(10)
-
-    OPEN(10,FILE='TEST_ATK.dat')
+    
+    OPEN(10,FILE='T2VGRA_HATK.dat')
     DO i_k = 1, NKMAX
        DO i_v = 1, NVMAX
        DO j_v = 1, NVMAX
@@ -1532,7 +1590,7 @@ CONTAINS
     ENDDO
     CLOSE(10)
     
-    OPEN(10,FILE='TEST_GTK.dat')
+    OPEN(10,FILE='T2VGRA_HGTK.dat')
     DO i_k = 1, NKMAX
        DO i_v = 1, NVMAX
        DO j_v = 1, NVMAX
@@ -1543,7 +1601,7 @@ CONTAINS
     ENDDO
     CLOSE(10)
 
-    OPEN(10,FILE='TEST_EVK.dat')
+    OPEN(10,FILE='T2VGRA_HEVK.dat')
     DO i_k = 1, NKMAX
        DO i_v = 1, NVMAX
        DO j_v = 1, NVMAX
@@ -1554,7 +1612,7 @@ CONTAINS
     ENDDO
     CLOSE(10)
     
-    OPEN(10,FILE='TEST_ETK.dat')
+    OPEN(10,FILE='T2VGRA_HETK.dat')
     DO i_k = 1, NKMAX
     DO j_k = 1, NKMAX
        DO i_v = 1, NVMAX
@@ -1567,19 +1625,19 @@ CONTAINS
     ENDDO
     CLOSE(10)
 
-    OPEN(10,FILE='TEST_LEQ.dat')
+    OPEN(10,FILE='T2VGRA_LEQ.dat')
     DO i_v = 1, NVMAX
        WRITE(10,*)'iv=',i_v,'LEQ=',LockEqs(i_v)
     ENDDO
     CLOSE(10)
 
-    OPEN(10,FILE='TEST_LAX.dat')
+    OPEN(10,FILE='T2VGRA_LAX.dat')
     DO i_v = 1, NVMAX
        WRITE(10,*)'iv=',i_v,'LAX=',LockAxi(i_v)
     ENDDO
     CLOSE(10)
 
-    OPEN(10,FILE='TEST_LWL.dat')
+    OPEN(10,FILE='T2VGRA_LWL.dat')
     DO i_v = 1, NVMAX
        WRITE(10,*)'iv=',i_v,'LEQ=',LockWal(i_v)
     ENDDO

@@ -77,7 +77,7 @@ MODULE T2COMM
        TestLEQ,TestLAX,TestLWL
   
   INTEGER(ikind),SAVE::&
-       CoordinateSwitch,TestCase
+       CoordinateSwitch,TestCase,EqSet
   CHARACTER(10)::c10rname
   INTEGER(ikind)::i0fnum
   
@@ -100,6 +100,7 @@ MODULE T2COMM
   !
   INTEGER(ikind),SAVE::&
        NVMAX,& ! NUMBER OF DEPENDENT VARIABLES
+       NVFMX,& ! NUMBER OF DEPENDENT VARIABLES (1D)
        NRMAX,& ! NUMBER OF NODES IN RADIAL DIRECTION (FOR 1D)
        NKMAX,& ! NUMBER OF WORKING VARIABLES FOR DIFFERENTIAL
        NEMAX,& ! NUMBER OF ELEMENTS IN DOMAIN
@@ -199,10 +200,7 @@ MODULE T2COMM
   !
   !------------------------------------------------------------------ 
   INTEGER(ikind),ALLOCATABLE,DIMENSION(:)::& 
-       i1mmax,&     ! NUMBER OF NODES IN EACH SUBDOMAIN
-       i1bmax,&     ! NUMBER OF NODES IN EACH SUBDOMAIN (W/O OVERLAP)
        i1emax,&     ! NUMBER OF ELEMENTS IN EACH SUBDOMAIN
-       i1mlel,&     ! MESH LEVEL OF EACH SUBDOMAIN
        i1rdn1,&     ! NUMBER OF PARTITION IN RADIAL   DIREACTON
                     !      IN EACH SUBDOMAIN 
        i1pdn1,&     ! NUMBER OF PARTITION IN POLOIDAL DIREACTON
@@ -237,8 +235,6 @@ MODULE T2COMM
        d1mc1d ! RADIAL POSITIONS FOR DATA STOCK OF 1D VALUES
   INTEGER(ikind),ALLOCATABLE,DIMENSION(:)::&
        i1mfc1 
-  REAL(rkind),ALLOCATABLE,DIMENSION(:,:)::&
-       GlobalCrd
   
   !-------------------------------------------------------------------
   !
@@ -268,6 +264,8 @@ MODULE T2COMM
        d2ug,&  ! FRAME MOVING VELOCITY VECTOR  with OVERLAP
        d2rzm,& ! RZ COORDINATES                with OVERLAP
        Metric  ! Metrics                       with OVERLAP 
+  REAL(rkind),ALLOCATABLE,DIMENSION(:,:)::&
+       GlobalCrd
   !------------------------------------------------------------------
   !
   !                          FOR T2STEP
@@ -320,8 +318,10 @@ MODULE T2COMM
        Vv,&   ! thermal velocity                       [m/s     ]
        FrCt,& ! contravariant radial particle flux     [ /m^3*s ]
        Fb,&   ! parallel particle flux                 [ /m^2*s ]
-       FtCo,& ! covariant toroildal particle flux      [ /m  *s ]
+       FtCo,& ! covariant toroildal particle flux      [ /m^3*s ]
+       FtCt,& ! contravariant toroildal particle flux  [ /m  *s ]
        FpCt,& ! contravariant poloidal particle flux   [ /m^3*s ]
+       FpCo,& ! covariant poloidal particle flux       [ /m  *s ]
        UrCt,& ! contravariant radial flow velocity     [   /s   ]
        Ub,&   ! parallel flow velocity                 [  m/s   ]
        UtCo,& ! covariant toroildal flow velocity      [m^2/s   ]
@@ -436,8 +436,8 @@ CONTAINS
        CALL T2NGRA_DEALLOCATE
        
        DO 
-          ALLOCATE(i1mmax( 1:NLMAX  ),STAT=ierr);IF(ierr.NE.0)EXIT
-          ALLOCATE(i1bmax( 1:NLMAX  ),STAT=ierr);IF(ierr.NE.0)EXIT
+          !ALLOCATE(i1mmax( 1:NLMAX  ),STAT=ierr);IF(ierr.NE.0)EXIT
+          !ALLOCATE(i1bmax( 1:NLMAX  ),STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(i1emax( 0:NLMAX  ),STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(i1rdn1(-1:NLMAX  ),STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(i1pdn1(-1:NLMAX  ),STAT=ierr);IF(ierr.NE.0)EXIT
@@ -462,8 +462,8 @@ CONTAINS
   
   SUBROUTINE T2NGRA_DEALLOCATE
     
-    IF(ALLOCATED(i1mmax)) DEALLOCATE(i1mmax)
-    IF(ALLOCATED(i1bmax)) DEALLOCATE(i1bmax)
+    !IF(ALLOCATED(i1mmax)) DEALLOCATE(i1mmax)
+    !IF(ALLOCATED(i1bmax)) DEALLOCATE(i1bmax)
     IF(ALLOCATED(i1emax)) DEALLOCATE(i1emax)
     IF(ALLOCATED(i1rdn1)) DEALLOCATE(i1rdn1)
     IF(ALLOCATED(i1pdn1)) DEALLOCATE(i1pdn1)
@@ -628,7 +628,6 @@ CONTAINS
 
           ALLOCATE(i1eidr(    1:NERMX),STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(i1eidc(    1:NECMX),STAT=ierr);IF(ierr.NE.0)EXIT
-          ALLOCATE(i1mlel(    1:NEMAX),STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(i2crt( 1:3,1:NMMAX),STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(i1mfc1(    1:NMMAX),STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(i1mc1d(    1:NRMAX),STAT=ierr);IF(ierr.NE.0)EXIT
@@ -676,7 +675,6 @@ CONTAINS
     IF(ALLOCATED(HangedNodeTable )) DEALLOCATE(HangedNodeTable )
     IF(ALLOCATED(i1eidr)) DEALLOCATE(i1eidr)
     IF(ALLOCATED(i1eidc)) DEALLOCATE(i1eidc)
-    IF(ALLOCATED(i1mlel)) DEALLOCATE(i1mlel)
     IF(ALLOCATED(i2crt )) DEALLOCATE(i2crt )
     IF(ALLOCATED(i1mfc1)) DEALLOCATE(i1mfc1)
     IF(ALLOCATED(i1mc1d)) DEALLOCATE(i1mc1d)
@@ -933,7 +931,9 @@ CONTAINS
           ALLOCATE(FrCt(1:NSMAX),STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(Fb(  1:NSMAX),STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(FtCo(1:NSMAX),STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(FtCt(1:NSMAX),STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(FpCt(1:NSMAX),STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(FpCo(1:NSMAX),STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(UrCt(1:NSMAX),STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(Ub(  1:NSMAX),STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(UtCo(1:NSMAX),STAT=ierr);IF(ierr.NE.0)EXIT
@@ -1070,6 +1070,8 @@ CONTAINS
     IF(ALLOCATED(FrCt))    DEALLOCATE(FrCt)
     IF(ALLOCATED(Fb  ))    DEALLOCATE(Fb  )
     IF(ALLOCATED(FtCo))    DEALLOCATE(FtCo)
+    IF(ALLOCATED(FtCt))    DEALLOCATE(FtCt)
+    IF(ALLOCATED(FpCo))    DEALLOCATE(FpCo)
     IF(ALLOCATED(FpCt))    DEALLOCATE(FpCt)
     IF(ALLOCATED(UrCt))    DEALLOCATE(UrCt)
     IF(ALLOCATED(Ub  ))    DEALLOCATE(Ub  )

@@ -1,7 +1,7 @@
 !-------------------------------------------------------------------- 
 !  MODULE FOR SOLVING ADVECTION-DIFFUSION PROBLEM BY FEM
 ! 
-!                   LAST UPDATE 2014-05-20 H.SETO
+!                   LAST UPDATE 2014-06-20 H.SETO
 !
 !  T2EXEC provides following variables:
 !
@@ -59,10 +59,10 @@ MODULE T2EXEC
   PRIVATE
   
   INTEGER(ikind),SAVE,ALLOCATABLE::& 
-       nodeTableA(:),&    ! node-element graph table in en element
-       nodeTableB(:),&    ! node-element graph table in en element
-       nodeTableC(:),&    ! node-element graph table in en element
-       nodeTableD(:)      ! node-element graph table in en element
+       nodeTableA(:),&    ! node-element graph table in element
+       nodeTableB(:),&    ! node-element graph table in element
+       nodeTableC(:),&    ! node-element graph table in element
+       nodeTableD(:)      ! node-element graph table in element
   REAL(   rkind),SAVE::&
        jacDetLocCrd       ! jacobian of local coordinates
 
@@ -75,6 +75,9 @@ MODULE T2EXEC
        amatElemTF(:,:,:,:),&
        amat(:,:,:),        &
        bvec(:,:)
+  
+  ! for debug
+  INTEGER(ikind),SAVE::i_elm
   
   PUBLIC T2EXEC_EXECUTE,&
        & T2EXEC_DEALLOCATE
@@ -91,7 +94,7 @@ CONTAINS
   !------------------------------------------------------------------
   SUBROUTINE T2EXEC_EXECUTE
     
-    USE T2COMM,ONLY: NNMAX,NEMAX,NKMAX,NVMAX,NBMAX,NAMAX,NDMAX,&
+    USE T2COMM,ONLY: NNMAX,NEMAX,NKMAX,NVMAX,NBMAX,NAMAX,NDMAX,NVFMX,&
          &           CoordinateSwitch,&
          &           HaveMassScaCoef,HaveAdveVecCoef,HaveAdveTenCoef,&
          &           HaveDiffTenCoef,HaveGradVecCoef,HaveGradTenCoef,&
@@ -104,7 +107,7 @@ CONTAINS
          &           StartWal,EndWal,LockWal
     
     INTEGER(ikind)::&
-         i_v,j_v,i_k,j_k,i_e
+         i_v,j_v,i_k,j_k!,i_e
     REAL(4)::e0time_0,e0time_1
     CALL CPU_TIME(e0time_0)
     
@@ -112,14 +115,14 @@ CONTAINS
     
     ! INITIALIZATION
 
-    CALL T2EXEC_INITIALIZE_MATRIX(1)
+    CALL T2EXEC_INITIALIZE_MATRIX
 
-    DO i_e = 1, NEMAX
+    DO i_elm = 1, NEMAX
        
        amatElem(1:NNMAX,1:NNMAX,1:NVMAX,1:NVMAX) = 0.D0
        bvecElem(1:NNMAX,1:NVMAX)                 = 0.D0
        
-       CALL T2EXEC_SETUP_ELEMENT_VARIABLES(i_e)
+       CALL T2EXEC_SETUP_ELEMENT_VARIABLES(i_elm)
        
        DO j_v = 1, NVMAX
        DO i_v = 1, NVMAX
@@ -185,7 +188,7 @@ CONTAINS
     
     ENDDO
     
-    !CALL T2EXEC_CHECK
+    CALL T2EXEC_CHECK
     
     CALL CPU_TIME(e0time_1)
     WRITE(6,'(A,F10.3,A)')&
@@ -208,6 +211,8 @@ CONTAINS
          e0time_1-e0time_0,' [s]'
     
     CALL CPU_TIME(e0time_0)
+    !print*,'TESTEND'
+    !STOP
     CALL T2EXEC_SOLVE
     CALL CPU_TIME(e0time_1)
     WRITE(6,'(A,F10.3,A)') '-- T2EXEC_SOLVE completed:  cpu=', &
@@ -219,33 +224,46 @@ CONTAINS
     
   END SUBROUTINE T2EXEC_EXECUTE
   
-  SUBROUTINE T2EXEC_INITIALIZE_MATRIX(nvfmx)
+  SUBROUTINE T2EXEC_INITIALIZE_MATRIX
     
-    USE T2COMM,ONLY: NodeDiaCRS,NVMAX,NAMAX,NBMAX,NPMIN
+    USE T2COMM,ONLY: NodeDiaCRS,NVMAX,NAMAX,NBMAX,NPMIN,NVFMX,CoordinateSwitch
     
-    INTEGER(ikind),INTENT(IN)::nvfmx
     INTEGER(ikind)::i_b,i_v,i_a
     amat(1:NVMAX,1:NVMAX,1:NAMAX) = 0.D0
     bvec(1:NVMAX,1:NBMAX)         = 0.D0
     
-    DO i_b = 1,NBMAX
-       IF(MOD(i_b,NPMIN).NE.0)THEN
-          i_a = NodeDiaCRS(i_b)
-          DO i_v =1,nvfmx
-             amat(i_v,i_v,i_a) = 1.D0
-          ENDDO
-       END IF
-    ENDDO
-
+    SELECT CASE (CoordinateSwitch)
+    CASE (1)
+       DO i_b = 1,NBMAX
+          IF((i_b.NE.1).AND.(MOD(i_b-1,NPMIN).NE.0))THEN
+             i_a = NodeDiaCRS(i_b)
+             DO i_v =1,NVFMX
+                amat(i_v,i_v,i_a) = 1.D0
+                !print*,i_v,i_v,i_a,i_b,NVFMX
+             ENDDO
+          ENDIF
+       ENDDO
+    CASE(2)
+       DO i_b = 1,NBMAX
+          IF(MOD(i_b,NPMIN).NE.0)THEN
+             i_a = NodeDiaCRS(i_b)
+             DO i_v =1,NVFMX
+                amat(i_v,i_v,i_a) = 1.D0
+             ENDDO
+          END IF
+       ENDDO
+    END SELECT
+    
     RETURN
-
+    
   END SUBROUTINE T2EXEC_INITIALIZE_MATRIX
+  
   SUBROUTINE T2EXEC_CHECK
-
+    
     USE T2COMM, ONLY:NAMAX,NBMAX,NVMAX,NXMAX,Xvec
     
     INTEGER(ikind)::i_v,j_v,i_a,i_b,i_x
-
+    
 110 FORMAT('AMAT',1X,'iv=',I2,1X,'jv=',I2,1X,'ia=',I8,1X,'val=',D15.6)
 120 FORMAT('BVEC',1X,'iv=',I2,1X,'jv=',I2,1X,'ia=',I8,1X,'val=',D15.6)
 130 FORMAT('XVEC',1X,'iv=',I2,1X,'jv=',I2,1X,'ix=',I8,1X,'val=',D15.6)
@@ -254,7 +272,7 @@ CONTAINS
 
     DO i_v = 1, NVMAX
        DO j_v = 1, NVMAX
-          WRITE(32,110)i_v,j_v,255,amat(i_v,j_v,255)
+          WRITE(32,110)i_v,j_v,49,amat(i_v,j_v,49)
        ENDDO
     ENDDO
 
@@ -263,7 +281,7 @@ CONTAINS
     
     DO i_v = 1, NVMAX
        !DO j_v = 1, NVMAX
-       WRITE(32,120)i_v,0,25,bvec(i_v,25)
+       WRITE(32,120)i_v,0,7,bvec(i_v,7)
        !ENDDO
     ENDDO
    
@@ -272,7 +290,7 @@ CONTAINS
     
     DO i_v = 1, NVMAX
        !DO j_v = 1, NVMAX
-       WRITE(32,130)i_v,0,25,Xvec(i_v,25)
+       WRITE(32,130)i_v,0,7,Xvec(i_v,7)
        !ENDDO
     ENDDO
     CLOSE(32)
@@ -475,7 +493,7 @@ CONTAINS
   !-------------------------------------------------------------------
   SUBROUTINE T2EXEC_MS_SUBMATRIX(i_v,j_v)
     
-    USE T2COMM,ONLY: NNMAX,NDMAX,NVMAX,CoordinateSwitch,&
+    USE T2COMM,ONLY: NNMAX,NDMAX,NVMAX,NVFMX,CoordinateSwitch,&
          &           MassScaIntgPG,MassScaCoef,Xvec,TestCase
     
     INTEGER(ikind),INTENT(IN):: i_v,j_v
@@ -499,19 +517,20 @@ CONTAINS
     
     SELECT CASE(CoordinateSwitch)
     CASE (1)
-       SELECT CASE(j_v)
-          
-       CASE (1:3)   ! for FSA variables 
+       IF(    (j_v.GE.1    ).AND.(j_v.LE.NVFMX))THEN
           DO i_n = 1, NNMAX
              i_b = nodeTableD(i_n)
              xvecElem(i_n) = Xvec(j_v,i_b)
+             !IF(i_elm.EQ.4)THEN
+             !   print*,i_n,i_b,i_v,j_v,Xvec(j_v,i_b)
+             !END IF
           ENDDO
-       CASE DEFAULT ! for 2D dependent variables
+       ELSEIF((j_v.GT.NVFMX).AND.(j_v.LE.NVMAX))THEN
           DO i_n = 1, NNMAX
              i_x = nodeTableB(i_n)
              xvecElem(i_n) = Xvec(j_v,i_x)          
           ENDDO
-       END SELECT
+       ENDIF
     CASE (2)
        SELECT CASE (TestCase)
        CASE(1:2)          
@@ -526,6 +545,7 @@ CONTAINS
           ENDDO
        END SELECT
     END SELECT
+
     ! main loop    
     DO i_n = 1, NNMAX
     DO j_n = 1, NNMAX
@@ -640,6 +660,13 @@ CONTAINS
             + adveVecMatElem(i_n,j_n        )
     ENDDO
     ENDDO
+    !IF((i_v.Eq.5).AND.(j_v.Eq.5))THEN
+    !   DO i_n = 1, NNMAX
+    !      DO j_n = 1, NNMAX
+    !         print*,i_m,i_v,j_v,amatElem(             i_n,j_n,i_v,j_v)
+    !      ENDDO
+    !   ENDDO
+    !END IF
     
     RETURN
     
@@ -1282,7 +1309,7 @@ CONTAINS
   !-------------------------------------------------------------------
   SUBROUTINE T2EXEC_STORE
     
-    USE T2COMM,ONLY: NNMAX,NVMAX, HaveMat,&
+    USE T2COMM,ONLY: NNMAX,NVMAX,NVFMX,HaveMat,&
          &           NodeRowCRS,NodeColCRS,HangedNodeTable
     INTEGER(ikind)::&
          i_n,j_n,&
@@ -1292,14 +1319,14 @@ CONTAINS
     
     DO j_v = 1, NVMAX
     DO i_v = 1, NVMAX
-       IF(HaveMat(i_v,j_v))THEN
+       !IF(HaveMat(i_v,j_v))THEN
           DO j_n = 1, NNMAX
           DO i_n = 1, NNMAX
              AmatElemTF(i_v,j_v,i_n,j_n) = AmatElem(i_n,j_n,i_v,j_v)
              AmatElem(  i_n,j_n,i_v,j_v) = 0.D0
           ENDDO
           ENDDO
-       ENDIF
+       !ENDIF
     ENDDO
     ENDDO
     
@@ -1312,40 +1339,31 @@ CONTAINS
        ENDDO
     ENDDO
     
-    ! set node tables 
-    
     !
     ! for stiffness matrix
-    !
-    
     ! i_v: 1D value (FSA)
     ! j_v: 1D value (FSA)
-    CALL T2EXEC_STORE_MATRIX(1    ,3    ,nodeTableD,& ! row
-         &                   1    ,3    ,nodeTableD)  ! column
+    CALL T2EXEC_STORE_MATRIX(1      ,NVFMX,nodeTableD,& ! row
+         &                   1      ,NVFMX,nodeTableD)  ! column
     ! i_v: 1D value (FSA)
     ! j_v: 2D value
-    CALL T2EXEC_STORE_MATRIX(1    ,3    ,nodeTableD,& ! row
-         &                   4    ,NVMAX,nodeTableB)  ! column
+    CALL T2EXEC_STORE_MATRIX(1      ,NVFMX,nodeTableD,& ! row
+         &                   NVFMX+1,NVMAX,nodeTableB)  ! column
     ! i_v: 2D value 
     ! j_v: 1D value (FSA) 
-    CALL T2EXEC_STORE_MATRIX(4    ,NVMAX,nodeTableB,& ! row
-         &                   1    ,3    ,nodeTableD)  ! column
-
+    CALL T2EXEC_STORE_MATRIX(NVFMX+1,NVMAX,nodeTableB,& ! row
+         &                   1      ,NVMAX,nodeTableD)  ! column
     ! i_v: 2D value
     ! j_v: 2D value
-    CALL T2EXEC_STORE_MATRIX(4    ,NVMAX,nodeTableB,& ! row
-         &                   4    ,NVMAX,nodeTableB)  ! column
+    CALL T2EXEC_STORE_MATRIX(NVFMX+1,NVMAX,nodeTableB,& ! row
+         &                   NVFMX+1,NVMAX,nodeTableB)  ! column
 
     !
     ! for RHS vector
-    !
-   
     ! i_v: 1D value (FSA)
-    CALL T2EXEC_STORE_VECTOR(1    ,3    ,nodeTableD) ! row
-    
+    CALL T2EXEC_STORE_VECTOR(1      ,NVFMX,nodeTableD) ! row
     ! i_v 2D value
-    CALL T2EXEC_STORE_VECTOR(4    ,NVMAX,nodeTableB) ! row
-    
+    CALL T2EXEC_STORE_VECTOR(NVFMX+1,NVMAX,nodeTableB) ! row
     RETURN
     
   END SUBROUTINE T2EXEC_STORE
@@ -1432,7 +1450,7 @@ CONTAINS
          !
          i_rowN,j_rowN,k_rowN,&
          i_colN,j_colN,k_colN,l_colN
-    
+
     DO j_n = 1, NNMAX
     DO i_n = 1, NNMAX
        
@@ -1692,10 +1710,6 @@ CONTAINS
          i_rowN, j_rowN, k_rowN, &
          i_rowNV,j_rowNV,k_rowNV,&
          i_colN, i_colNV,i_rowV, i_colV,i_a,&
-         ! for FSA
-         i0arc,i0arc1,i0arc2,i0arc3,&
-         i0acc,i0acc1,i0acc2,i0acc3,&
-         i0acl,i0acl1,i0acl2,i0acl3,&
          i0offset,i0lidi,i0ridi,i0pidi
     
     INTEGER(ikind)::i_v,j_v,i_b,i_x,i1
@@ -1716,7 +1730,6 @@ CONTAINS
        
     ALLOCATE(x(NBVMX))
     x = 0.D0
-    !CALL MTX_SETUP(NBVMX,istart,iend,idebug=0)
     CALL MTX_SETUP(NBVMX,istart,iend,nzmax=NAVMX,idebug=0)
     
     ! 
@@ -1733,7 +1746,7 @@ CONTAINS
                 i_rowNV  = NVMAX*(i_rowN-1) + i_rowV
                 i_colNV  = NVMAX*(i_colN-1) + i_colV
                 CALL MTX_SET_MATRIX(i_rowNV,i_colNV,val)
- !               IF((i_rowV.EQ.1).AND.(i_colV.EQ.1))THEN
+  !               IF((i_rowV.EQ.1).AND.(i_colV.EQ.1))THEN
   !                 WRITE(35,'("in=",I5,1X,"jn=",I5,1X,"v=",D15.8)')&
    !                     i_rowN,i_colN,val
     !            ENDIF
@@ -1748,21 +1761,7 @@ CONTAINS
        ENDDO
     ENDDO
     !CLOSE(35)
-
-    !
-    ! ADDITIONAL COMPONENTS FOR FLUX SURFACE AVERAGING
-    !
-!    GOTO 2000!
-!
-
-    !IF((i0pidi.GT.1).AND.(i0pidi.LE.i0pdn2))THEN!
-    !   CALL MTX_SET_MATRIX(i0arc,i0acl, 1.D0)
-    !ENDIF
     
-    
-    
-!2000 CONTINUE
-
     ! SET GLOBAL RIGHT HAND SIDE VECTOR
     DO i_rowN = 1, NBMAX
        DO i_rowV = 1, NVMAX

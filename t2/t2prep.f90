@@ -80,7 +80,7 @@ CONTAINS
           BtNF = 1.D0                  ! [        T    ]
           EtNF = 1.D0                  ! [        V/m  ]
           EpNF = 1.D0                  ! [        V/m  ]
-          ErNF = 1.D3                  ! [       kV/m  ] 
+          ErNF = 1.D0                  ! [       kV/m  ] 
           NnNF = 1.D20                 ! [10^20    /m3 ]
           FrNF = NnNF                  ! [10^20    /m2s]
           FbNF = NnNF*1.D3             ! [10^23    /m2s]
@@ -99,9 +99,9 @@ CONTAINS
           EqErNF=1.D0
           EqNnNF=NnNF
           EqFrNF=PpNF
-          EqFbNF=PpNF*1.D-6
-          EqFtNF=PpNF*1.D-6
-          EqFpNF=FpNF*1.D-3
+          EqFbNF=PpNF!*1.D-6
+          EqFtNF=PpNF!*1.D-6
+          EqFpNF=FpNF!*1.D-3
           EqPpNF=PpNF
           EqQrNF=PpNF*TtNF
           EqQbNF=PpNF*TtNF
@@ -176,14 +176,14 @@ CONTAINS
     USE T2COMM,ONLY:&
          NLMAX, NVMAX, NKMAX, NQMAX, NNMAX, NMMAX, NXMAX, &
          NBMAX, NRMAX, NEMAX, NHMAX, NAMAX, NNRMX, NERMX, &
-         NECMX, NDMAX, NSMAX, NPMIN, NAVMX, NBVMX, &
+         NECMX, NDMAX, NSMAX, NPMIN, NAVMX, NBVMX, NVFMX, &
          !
          CoordinateSwitch,&
          !
          StartEqs,EndEqs,StartAxi,EndAxi,StartWal,EndWal,&
          UsePotentialDescription,CoordinateSwitch,&
          !
-         i1mlvl,i1pdn1,i1pdn2,i1rdn1,i1rdn2,i1mmax,i1bmax,i1emax,&
+         i1mlvl,i1pdn1,i1pdn2,i1rdn1,i1rdn2,i1emax,&
          !
          T2NGRA_ALLOCATE, T2COMM_ALLOCATE
 
@@ -341,6 +341,7 @@ CONTAINS
        IF(.NOT.UsePotentialDescription)THEN
           NVMAX  = 10*NSMAX + 5
           NKMAX  =  2*NSMAX + 2 
+          NVFMX  = 3
        ELSE
           WRITE(6,*)"Potential Description Ver. is underconstruction"
           STOP
@@ -349,6 +350,7 @@ CONTAINS
        NSMAX = 0
        NVMAX = 1
        NKMAX = 1
+       NVFMX = 1
     END SELECT
 
     NAVMX = NAMAX*NVMAX*NVMAX

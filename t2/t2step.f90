@@ -136,9 +136,9 @@ CONTAINS
           IF(LockEqs(i_v))CYCLE
           valOut = XvecOut(i_v,i_x)
           valIn  = XvecIn( i_v,i_x)
-          IF(i_v.EQ.7)THEN
-             print*,i_v,i_x,valIn,valOut
-          END IF
+!          IF(i_v.EQ.5)THEN
+!             print*,i_v,i_x,valIn,valOut
+!          END IF
           resNumeratorSquared(         i_v)&
                = resNumeratorSquared(  i_v) + (valOut-valIn)**2
           resDenominatorSquared(i_v)&
@@ -149,15 +149,18 @@ CONTAINS
     ! CHECK CONVERGENCE
     DO i_v = 1,NVMAX
        IF(.NOT.LockEqs(i_v))THEN
-          IF(resDenominatorSquared(i_v).LE.0.D0)THEN
-             WRITE(6,'("*********************************************")')
-             WRITE(6,'("       ERROR IN T2STEP_CONVERGENCE           ")')
-             WRITE(6,'("       INDETERMINATE PROBLEM                 ")')
-             WRITE(6,'("*********************************************")')
-             WRITE(6,*)i_v,resDenominatorSquared(i_v)
-             STOP
-          ENDIF
-
+          IF(resDenominatorSquared(i_v).EQ.0.D0)THEN
+             IF(resNumeratorSquared(i_v).EQ.0.D0)THEN
+                residual = 0.D0
+             ELSE
+                WRITE(6,'("*********************************************")')
+                WRITE(6,'("       ERROR IN T2STEP_CONVERGENCE           ")')
+                WRITE(6,'("       INDETERMINATE PROBLEM                 ")')
+                WRITE(6,'("*********************************************")')
+                WRITE(6,*)i_v,resDenominatorSquared(i_v)
+                STOP
+             ENDIF
+          END IF
           resDenominator = SQRT(resDenominatorSquared(i_v))
           resNumerator   = SQRT(resNumeratorSquared(  i_v))
           residual       = resNumerator/resDenominator

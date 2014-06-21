@@ -77,7 +77,7 @@ CONTAINS
          & UgrCt, UgpCt,&
          & BtCo, BtCt, BtSq, BpCo, BpCt, BpSq, Bb, BbSq,&
          & Mm, Ee,Vv,BaseNu,Nu,Nuh,X,Y,Z,&
-         & Nn, FrCt, Fb, FtCo, FpCt, UrCt, Ub, UtCo, UpCt, UuSq,&
+         & Nn, FrCt, Fb, FtCo, FtCt, FpCo, FpCt, UrCt, Ub, UtCo, UpCt, UuSq,&
          & Pp, QrCt, Qb, QtCo, QpCt, WrCt, Wb, WtCo, WpCt, Tt
     
     INTEGER(ikind),INTENT(IN)::i_m
@@ -194,7 +194,9 @@ CONTAINS
        FrCt(i_s) = frCtA
        Fb(  i_s) = fbA
        FtCo(i_s) = ftCoA
+       FtCt(i_s) = ftCoA*G33Ct
        FpCt(i_s) = fpCtA
+       FpCo(i_s) = frCtA*G12Co + fpCtA*G22Co
 
        UrCt(i_s) = urCtA
        Ub(  i_s) = ubA
@@ -360,7 +362,7 @@ CONTAINS
     REAL(   rkind),DIMENSION(1:NSMAX,1:NSMAX)::&
          & m00,m01,m10,m11,n00,n01,n10,n11,nuh
     
-    ! REAL(   rkind):: mmE,nnE,nuEI,temp2! for debug
+    !REAL(   rkind):: mmE,nnE,nuEI,temp2! for debug
     ! Braginsikii matrix elements: M^{ab]_{ij}, N^{ab}_{ij}
     DO j_s = 1, NSMAX
     DO i_s = 1, NSMAX
@@ -888,11 +890,12 @@ CONTAINS
     DO i_s = 1,NSMAX
        eeA = Ee(i_s)
        temp1 = (eeA/ABS(eeA))*((eeE**2)*d_anom/ttE)
-       temp2 = (1.5D0 - (m_anom/d_anom))*G11Ct*GRt*BpCt/eeE
-       !FtAnom1(i_s) = -temp1*temp2*ttE
-       !FtAnom2(i_s) =  temp1*temp2
-       FtAnom1(i_s) = 0.D0
-       FtAnom2(i_s) = 0.D0
+       temp2 = 0.5D0*G11Ct*GRt*BpCt/eeE
+       !temp2 = (1.5D0 - (m_anom/d_anom))*G11Ct*GRt*BpCt/eeE
+       FtAnom1(i_s) = -temp1*temp2*ttE
+       FtAnom2(i_s) =  temp1*temp2
+       !FtAnom1(i_s) = 0.D0
+       !FtAnom2(i_s) = 0.D0
        FtAnom3(i_s) =  temp1*BtCo*Bb
        FtAnom4(i_s) = -temp1*BbSq
        
