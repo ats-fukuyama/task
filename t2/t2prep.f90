@@ -168,17 +168,17 @@ CONTAINS
   ! 
   !       SET GLOBAL PARAMETERS FOR T2COMM_ALLOCATE
   !
-  !                           LAST UPDATE 2014-06-08 H.Seto          
+  !                           LAST UPDATE 2014-06-22 H.Seto          
   !
   !--------------------------------------------------------------
   SUBROUTINE T2PREP_SETUP_GLOBAL_PARAMETER
     
     USE T2COMM,ONLY:&
-         NLMAX, NVMAX, NKMAX, NQMAX, NNMAX, NMMAX, NXMAX, &
+         NLMAX, NVMAX, NFMAX, NKMAX, NQMAX, NNMAX, NMMAX, NXMAX, &
          NBMAX, NRMAX, NEMAX, NHMAX, NAMAX, NNRMX, NERMX, &
          NECMX, NDMAX, NSMAX, NPMIN, NAVMX, NBVMX, NVFMX, &
          !
-         CoordinateSwitch,&
+         CoordinateSwitch,EqSet,&
          !
          StartEqs,EndEqs,StartAxi,EndAxi,StartWal,EndWal,&
          UsePotentialDescription,CoordinateSwitch,&
@@ -339,9 +339,18 @@ CONTAINS
     SELECT CASE(CoordinateSwitch)
     CASE (1)
        IF(.NOT.UsePotentialDescription)THEN
-          NVMAX  = 10*NSMAX + 5
-          NKMAX  =  2*NSMAX + 2 
-          NVFMX  = 3
+          SELECT CASE (EqSet)
+          CASE (1)
+             NFMAX  = 5
+             NVMAX  = 10*NSMAX + NFMAX
+             NKMAX  =  2*NSMAX + 2 
+             NVFMX  = 3
+          CASE (2)
+             NFMAX  = 6
+             NVMAX  = 10*NSMAX + NFMAX
+             NKMAX  =  2*NSMAX + 2 
+             NVFMX  = 3
+          END SELECT
        ELSE
           WRITE(6,*)"Potential Description Ver. is underconstruction"
           STOP
@@ -382,11 +391,10 @@ CONTAINS
     END SELECT
 
     WRITE(6,*)'NNMAX=',NNMAX,'NQMAX=',NQMAX,'NDMAX=',NDMAX
-    WRITE(6,*)'NSMAX=',NSMAX,'NPMIN=',NPMIN,'NLMAX=',NLMAX    
-    
-    WRITE(6,*)'NVMAX=',NVMAX,'NRMAX=',NRMAX,'NKMAX=',NKMAX
-    WRITE(6,*)'NEMAX=',NEMAX,'NBMAX=',NBMAX,'NXMAX=',NXMAX
-    WRITE(6,*)'NMMAX=',NMMAX,'NHMAX=',NHMAX,'NAMAX=',NAMAX
+    WRITE(6,*)'NPMIN=',NPMIN,'NLMAX=',NLMAX    
+    WRITE(6,*)'NSMAX=',NSMAX,'NVMAX=',NVMAX,'NFMAX=',NFMAX,'NKMAX=',NKMAX
+    WRITE(6,*)'NMMAX=',NMMAX,'NHMAX=',NHMAX,'NEMAX=',NEMAX,'NRMAX=',NRMAX
+    WRITE(6,*)'NAMAX=',NAMAX,'NBMAX=',NBMAX,'NXMAX=',NXMAX
     WRITE(6,*)'NNRMX=',NNRMX,'NERMX=',NERMX,'NECMX=',NECMX
     WRITE(6,*)'NAVMX=',NAVMX,'NBVMX=',NBVMX
     

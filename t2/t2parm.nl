@@ -4,10 +4,10 @@
  dt    = 1.D-5
  idebug= 0
  NLMAX = 1
- NPMIN = 50
+ NPMIN = 5
 ! NSMAX = 0
  i1mlvl(1) = 1
- i1rdn2(1) = 50
+ i1rdn2(1) = 5
  eps_conv  = 1.D-3
  
  CoordinateSwitch = 1
@@ -43,7 +43,7 @@
     SolveBp       = .TRUE.
     SolveBt       = .TRUE.
     SolveEt       = .TRUE.
-    SolveEp       = .TRUE.
+    SolveEp       = .FALSE.
     SolveEr       = .FALSE.
     SolveNn       = .FALSE.
     SolveFr       = .TRUE.

@@ -272,28 +272,28 @@ CONTAINS
 
     DO i_v = 1, NVMAX
        DO j_v = 1, NVMAX
-          WRITE(32,110)i_v,j_v,49,amat(i_v,j_v,49)
+          WRITE(32,110)i_v,j_v,12,amat(i_v,j_v,12)
        ENDDO
     ENDDO
 
     CLOSE(32)
-    OPEN(32,FILE='TEST_BVEC.txt')
-    
-    DO i_v = 1, NVMAX
-       !DO j_v = 1, NVMAX
-       WRITE(32,120)i_v,0,7,bvec(i_v,7)
-       !ENDDO
-    ENDDO
+    !OPEN(32,FILE='TEST_BVEC.txt')
+   ! 
+   ! DO i_v = 1, NVMAX
+   !    !DO j_v = 1, NVMAX
+   !    WRITE(32,120)i_v,0,7,bvec(i_v,7)
+   !    !ENDDO
+   ! ENDDO
    
-    CLOSE(32)
-    OPEN(32,FILE='TEST_XVEC.txt')
-    
-    DO i_v = 1, NVMAX
-       !DO j_v = 1, NVMAX
-       WRITE(32,130)i_v,0,7,Xvec(i_v,7)
-       !ENDDO
-    ENDDO
-    CLOSE(32)
+    !CLOSE(32)
+    !OPEN(32,FILE='TEST_XVEC.txt')
+   ! 
+   ! DO i_v = 1, NVMAX
+   !    !DO j_v = 1, NVMAX
+   !    WRITE(32,130)i_v,0,7,Xvec(i_v,7)
+   !    !ENDDO
+   ! ENDDO
+   ! CLOSE(32)
     !OPEN(32,FILE='TEST_XVEC.txt')
     !DO i_x = 1,NXMAX
     !   DO i_v = 1, NVMAX
@@ -305,6 +305,7 @@ CONTAINS
     !CLOSE(32)
     !STOP
     ! <<<<< ***** for debug  ***** <<<<<
+    
     RETURN
 
   END SUBROUTINE T2EXEC_CHECK
@@ -1465,6 +1466,9 @@ CONTAINS
                 DO j_v = colValStart, colValEnd
                 DO i_v = rowValStart, rowValEnd
                    IF(HaveMat(i_v,j_v))THEN
+                      !IF(i_elm.EQ.12)THEN
+                         !print'(5(I3,1X),D15.8)',i_v,j_v,i_n,j_n,i_a,amatElemTF(i_v,j_v,i_n,j_n)
+                      !END IF
                       amat(             i_v,j_v,        i_a) &
                            = amat(      i_v,j_v,        i_a) &
                            + amatElemTF(i_v,j_v,i_n,j_n    )

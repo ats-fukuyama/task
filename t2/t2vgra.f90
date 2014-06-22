@@ -3,7 +3,7 @@
 !   MODULE FOR GENERATING VARIABLE-VARIABLE GRAPH 
 !       
 !                      
-!                       LAST UPDATE 2014-06-09 H.Seto
+!                       LAST UPDATE 2014-06-22 H.Seto
 !
 !   T2INTG requires following variables:
 !
@@ -170,13 +170,13 @@ CONTAINS
   !                           is exist in equation system.
   !
   !                     
-  !                     LAST UPDATE     2014-06-20 H.Seto
-  !                     OPERATION CHECK 2014-06-20 H.Seto
+  !                     LAST UPDATE     2014-06-22 H.Seto
+  !                     OPERATION CHECK 2014-06-22 H.Seto
   !
   !-------------------------------------------------------------------
   SUBROUTINE T2VGRA_MS_COEF_EB
     
-    USE T2COMM,ONLY:NSMAX,NVMAX,HaveMassScaCoef,EqSet
+    USE T2COMM,ONLY:NSMAX,NVMAX,NFMAX,HaveMassScaCoef,EqSet
     INTEGER(ikind)::&
          & i_s,i_v,vOffsetA,&
          &     j_v,vOffsetB
@@ -202,6 +202,42 @@ CONTAINS
        j_v = 4;                  HaveMassScaCoef(i_v,j_v) = .TRUE.
        
        i_v = 5                   ! Equation for E_{\rho}
+
+       !
+       ! variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)
+       !
+       DO i_s = 0, NSMAX-1
+          
+          vOffsetA = 10*i_s   + NFMAX
+          vOffsetB = vOffsetA
+          
+          i_v =  1 + vOffsetA    ! Equation for n_{a}
+          j_v =  1 + vOffsetB;   HaveMassScaCoef(i_v,j_v) = .TRUE.
+          
+          i_v =  2 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
+          
+          i_v =  3 + vOffsetA    ! Equation for Gamma_{a\para}
+          j_v =  3 + vOffsetB;   HaveMassScaCoef(i_v,j_v) = .TRUE.
+          
+          i_v =  4 + vOffsetA    ! Equation for Gamma_{a\zeta}
+          j_v =  4 + vOffsetB;   HaveMassScaCoef(i_v,j_v) = .TRUE.
+          
+          i_v =  5 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
+          
+          i_v =  6 + vOffsetA    ! Equation for p_{a}
+          j_v =  6 + vOffsetB;   HaveMassScaCoef(i_v,j_v) = .TRUE.
+          
+          i_v =  7 + vOffsetA    ! Equation for Q_{a}^{\rho}
+          
+          i_v =  8 + vOffsetA    ! Equation for Q_{a\para}
+          j_v =  8 + vOffsetB;   HaveMassScaCoef(i_v,j_v) = .TRUE.
+          
+          i_v =  9 + vOffsetA    ! Equation for Q_{a\zeta}
+          j_v =  9 + vOffsetB;   HaveMassScaCoef(i_v,j_v) = .TRUE.
+          
+          i_v = 10 + vOffsetA    ! Equation for Q_{a}^{\chi}
+          
+       ENDDO
     CASE (2)
        i_v = 1                   ! Equation for psi'
        j_v = 3;                  HaveMassScaCoef(i_v,j_v) = .TRUE.
@@ -209,50 +245,55 @@ CONTAINS
        i_v = 2                   ! Equation for I
        j_v = 4;                  HaveMassScaCoef(i_v,j_v) = .TRUE.
 
-       i_v = 3                   ! Equation for E_{\zeta}
+       i_v = 3                   ! Equation for E_{\tor}
        j_v = 1;                  HaveMassScaCoef(i_v,j_v) = .TRUE.
 
-       i_v = 4                   ! Equation for \bar{E}_{\chi}
+       i_v = 4                   ! Equation for {E}_{\pol}
        j_v = 2;                  HaveMassScaCoef(i_v,j_v) = .TRUE.
 
-       i_v = 5                   ! Equation for E_{\rho}
+       i_v = 5                   ! Equation for E_{\rad}
+
+       i_v = 6                   ! Equation for E^{\pol}
+
+       !
+       ! variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)
+       !
+       DO i_s = 0, NSMAX-1
+          
+          vOffsetA = 10*i_s   + NFMAX
+          vOffsetB = vOffsetA
+          
+          i_v =  1 + vOffsetA    ! Equation for n_{a}
+          j_v =  1 + vOffsetB;   HaveMassScaCoef(i_v,j_v) = .TRUE.
+       
+          i_v =  2 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
+          j_v =  4 + vOffsetB;   HaveMassScaCoef(i_v,j_v) = .TRUE.
+      
+          i_v =  3 + vOffsetA    ! Equation for Gamma_{a\para}
+          j_v =  3 + vOffsetB;   HaveMassScaCoef(i_v,j_v) = .TRUE.
+          
+          i_v =  4 + vOffsetA    ! Equation for Gamma_{a\zeta}
+          
+          i_v =  5 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
+       
+          i_v =  6 + vOffsetA    ! Equation for p_{a}
+          j_v =  6 + vOffsetB;   HaveMassScaCoef(i_v,j_v) = .TRUE.
+          
+          i_v =  7 + vOffsetA    ! Equation for Q_{a}^{\rho}
+          j_v =  9 + vOffsetB;   HaveMassScaCoef(i_v,j_v) = .TRUE.
+          
+          i_v =  8 + vOffsetA    ! Equation for Q_{a\para}
+          j_v =  8 + vOffsetB;   HaveMassScaCoef(i_v,j_v) = .TRUE.
+          
+          i_v =  9 + vOffsetA    ! Equation for Q_{a\zeta}
+          
+          i_v = 10 + vOffsetA    ! Equation for Q_{a}^{\chi}
+          
+       ENDDO
+       
     END SELECT
     
-    !
-    ! variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)
-    !
-    DO i_s = 0, NSMAX-1
-       
-       vOffsetA = 10*i_s  
-       vOffsetB = vOffsetA
 
-       i_v =  6 + vOffsetA    ! Equation for n_{a}
-       j_v =  6 + vOffsetB;   HaveMassScaCoef(i_v,j_v) = .TRUE.
-       
-       i_v =  7 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
-       
-       i_v =  8 + vOffsetA    ! Equation for Gamma_{a\para}
-       j_v =  8 + vOffsetB;   HaveMassScaCoef(i_v,j_v) = .TRUE.
-       
-       i_v =  9 + vOffsetA    ! Equation for Gamma_{a\zeta}
-       j_v =  9 + vOffsetB;   HaveMassScaCoef(i_v,j_v) = .TRUE.
-       
-       i_v = 10 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
-       
-       i_v = 11 + vOffsetA    ! Equation for p_{a}
-       j_v = 11 + vOffsetB;   HaveMassScaCoef(i_v,j_v) = .TRUE.
-       
-       i_v = 12 + vOffsetA    ! Equation for Q_{a}^{\rho}
-       
-       i_v = 13 + vOffsetA    ! Equation for Q_{a\para}
-       j_v = 13 + vOffsetB;   HaveMassScaCoef(i_v,j_v) = .TRUE.
-       
-       i_v = 14 + vOffsetA    ! Equation for Q_{a\zeta}
-       j_v = 14 + vOffsetB;   HaveMassScaCoef(i_v,j_v) = .TRUE.
-       
-       i_v = 15 + vOffsetA    ! Equation for Q_{a}^{\chi}
-       
-    ENDDO
     
     RETURN
     
@@ -268,13 +309,13 @@ CONTAINS
   !                 the term "div (\vec{V}_{i_v,j_v}*f_{j_v})" 
   !                           is exist in equation system.
   !
-  !                     LAST UPDATE     2014-06-20 H.Seto
-  !                     OPERATION CHECK 2014-06-20 H.Seto
+  !                     LAST UPDATE     2014-06-22 H.Seto
+  !                     OPERATION CHECK 2014-06-22 H.Seto
   !
   !-------------------------------------------------------------------
   SUBROUTINE T2VGRA_AV_COEF_EB
     
-    USE T2COMM,ONLY: NSMAX,NVMAX,HaveAdveVecCoef,EqSet
+    USE T2COMM,ONLY: NSMAX,NVMAX,NFMAX,HaveAdveVecCoef,EqSet
     
     INTEGER(ikind)::&
          & i_s,i_v,vOffsetA,&
@@ -305,6 +346,46 @@ CONTAINS
        i_v = 5                   ! Equation for E_{\rho}
        j_v = 4;                  HaveAdveVecCoef(i_v,j_v) = .TRUE.
        j_v = 5;                  HaveAdveVecCoef(i_v,j_v) = .TRUE.
+
+       !
+       ! variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)
+       !
+       
+       DO i_s = 0, NSMAX-1
+          
+          vOffsetA = 10*i_s + NFMAX
+          vOffsetB = vOffsetA
+          
+          i_v =  1 + vOffsetA    ! Equation for n_{a}
+          j_v =  1 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
+          
+          i_v =  2 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
+          
+          i_v =  3 + vOffsetA    ! Equation for Gamma_{a\para}
+          j_v =  3 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
+          j_v =  6 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
+          
+          i_v =  4 + vOffsetA    ! Equation for Gamma_{a\zeta}
+          j_v =  4 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
+          
+          i_v =  5 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
+          
+          i_v =  6 + vOffsetA    ! Equation for p_{a}
+          j_v =  6 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
+          
+          i_v =  7 + vOffsetA    ! Equation for Q_{a}^{\rho}
+          
+          i_v =  8 + vOffsetA    ! Equation for Q_{a\para}
+          j_v =  3 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
+          j_v =  6 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
+          j_v =  8 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
+          
+          i_v =  9 + vOffsetA    ! Equation for Q_{a\zeta}
+          j_v =  4 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
+          j_v =  9 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
+          
+          i_v = 10 + vOffsetA    ! Equation for Q^{\chi}_{a}
+       ENDDO
     CASE (2)
        i_v = 1                   ! Equation for psi'
        j_v = 1;                  HaveAdveVecCoef(i_v,j_v) = .TRUE.
@@ -322,46 +403,48 @@ CONTAINS
        i_v = 5                   ! Equation for E_{\rho}
        j_v = 4;                  HaveAdveVecCoef(i_v,j_v) = .TRUE.
        j_v = 5;                  HaveAdveVecCoef(i_v,j_v) = .TRUE.
+       j_v = 6;                  HaveAdveVecCoef(i_v,j_v) = .TRUE.
+
+       i_v = 6                   ! Equation for E^{\chi}
+       
+       DO i_s = 0, NSMAX-1
+          
+          vOffsetA = 10*i_s + NFMAX
+          vOffsetB = vOffsetA
+          
+          i_v =  1 + vOffsetA    ! Equation for n_{a}
+          j_v =  1 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
+          
+          i_v =  2 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
+          j_v =  4 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
+          
+          i_v =  3 + vOffsetA    ! Equation for Gamma_{a\para}
+          j_v =  3 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
+          j_v =  6 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
+          
+          i_v =  4 + vOffsetA    ! Equation for Gamma_{a\zeta}
+                 
+          i_v =  5 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
+          
+          i_v =  6 + vOffsetA    ! Equation for p_{a}
+          j_v =  6 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
+          
+          i_v =  7 + vOffsetA    ! Equation for Q_{a}^{\rho}
+          j_v =  4 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
+          j_v =  9 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
+          
+          i_v =  8 + vOffsetA    ! Equation for Q_{a\para}
+          j_v =  3 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
+          j_v =  6 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
+          j_v =  8 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
+          
+          i_v =  9 + vOffsetA    ! Equation for Q_{a\zeta}
+          
+          i_v = 10 + vOffsetA    ! Equation for Q^{\chi}_{a}
+          
+       ENDDO
+
     END SELECT
-    
-    !
-    ! variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)
-    !
-
-    DO i_s = 0, NSMAX-1
-       
-       vOffsetA = 10*i_s
-       vOffsetB = vOffsetA
-       
-       i_v =  6 + vOffsetA    ! Equation for n_{a}
-       j_v =  6 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
- 
-       i_v =  7 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
-       
-       i_v =  8 + vOffsetA    ! Equation for Gamma_{a\para}
-       j_v =  8 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
-       j_v = 11 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
-       
-       i_v =  9 + vOffsetA    ! Equation for Gamma_{a\zeta}
-       j_v =  9 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
-       
-       i_v = 10 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
-       
-       i_v = 11 + vOffsetA    ! Equation for p_{a}
-       j_v = 11 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
-
-       i_v = 12 + vOffsetA    ! Equation for Q_{a}^{\rho}
-
-       i_v = 13 + vOffsetA    ! Equation for Q_{a\para}
-       j_v =  8 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
-       j_v = 11 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
-       j_v = 13 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
-
-       i_v = 14 + vOffsetA    ! Equation for Q_{a\zeta}
-       j_v =  9 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
-       j_v = 14 + vOffsetB;   HaveAdveVecCoef(i_v,j_v) = .TRUE.
-       
-    ENDDO
     
     RETURN
     
@@ -383,13 +466,13 @@ CONTAINS
   !       the physical quantitiy "g_{ik} " 
   !                           is exist in equation system.
   ! 
-  !                     LAST UPDATE     2014-06-20 H.Seto
-  !                     OPERATION CHECK 2014-06-20 H.Seto
+  !                     LAST UPDATE     2014-06-22 H.Seto
+  !                     OPERATION CHECK 2014-06-22 H.Seto
   !
   !-------------------------------------------------------------------
   SUBROUTINE T2VGRA_AT_COEF_EB
     
-    USE T2COMM,ONLY: NSMAX, NVMAX, NKMAX,&
+    USE T2COMM,ONLY: NSMAX,NVMAX,NFMAX,NKMAX,EqSet,&
          &           HaveAdveTenCoef, HaveAdveTenKval
     
     INTEGER(ikind)::&
@@ -400,83 +483,163 @@ CONTAINS
     HaveAdveTenCoef(        1:NVMAX,1:NVMAX) = .FALSE.
     HaveAdveTenKval(1:NKMAX,1:NVMAX,1:NVMAX) = .FALSE.
     
-    !
-    ! variables as field (from i_v= 1 to i_v = 5)
-    !
-    i_v = 1                   ! Equation for psi'
-    i_v = 2                   ! Equation for I
-    i_v = 3                   ! Equation for E_{\zeta}
-    i_v = 4                   ! Equation for E_{\chi}
-    i_v = 5                   ! Equation for E_{\rho}
-    
-    !
-    ! variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)
-    !
-    DO i_s = 0, NSMAX-1
-       
-       vOffsetA = 10*i_s
-       vOffsetB = vOffsetA
-       
-       i_v =  6 + vOffsetA    ! Equation for n_{a}
-       
-       i_v =  7 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
-       
-       i_v =  8 + vOffsetA    ! Equation for Gamma_{a\para}
-       j_v =  9 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
-       j_v = 10 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
-       j_v = 14 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
-       j_v = 15 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
-       
-       i_v =  9 + vOffsetA    ! Equation for Gamma_{a\zeta}
-       j_v =  9 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
-       j_v = 10 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
-       j_v = 14 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
-       j_v = 15 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+    SELECT CASE (EqSet)
 
-       i_v = 10 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
+    CASE (1)
+       !
+       ! variables as field (from i_v= 1 to i_v = NFMAX)
+       !
+       i_v = 1                   ! Equation for psi'
+       i_v = 2                   ! Equation for I
+       i_v = 3                   ! Equation for E_{\zeta}
+       i_v = 4                   ! Equation for E_{\chi}
+       i_v = 5                   ! Equation for E_{\rho}
+       
+       !
+       ! variables as fluid (from i_v = NFMAX+1 to i_v = NVMAX)
+       !
+       DO i_s = 0, NSMAX-1
+          
+          vOffsetA = 10*i_s + NFMAX
+          vOffsetB = vOffsetA
+          
+          i_v =  1 + vOffsetA    ! Equation for n_{a}
+          
+          i_v =  2 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
+       
+          i_v =  3 + vOffsetA    ! Equation for Gamma_{a\para}
+          j_v =  4 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  5 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  9 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v = 10 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          
+          i_v =  4 + vOffsetA    ! Equation for Gamma_{a\zeta}
+          j_v =  4 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  5 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  9 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v = 10 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          
+          i_v =  5 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
+          
+          i_v =  6 + vOffsetA    ! Equation for p_{a}
+          j_v =  4 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  5 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  9 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v = 10 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.    
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.   
+       
+          i_v =  7 + vOffsetA    ! Equation for Q_{a}^{rho}
+          
+          i_v =  8 + vOffsetA    ! Equation for Q_{a\para}
+          j_v =  4 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  5 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  9 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v = 10 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+       
+          i_v =  9 + vOffsetA    ! Equation for Q_{a\zeta}
+          j_v =  4 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  5 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  9 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v = 10 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          
+       ENDDO
+    CASE (2)
+       !
+       ! variables as field (from i_v= 1 to i_v = NFMAX)
+       !
+       i_v = 1                   ! Equation for psi'
+       i_v = 2                   ! Equation for I
+       i_v = 3                   ! Equation for E_{\zeta}
+       i_v = 4                   ! Equation for E_{\chi}
+       i_v = 5                   ! Equation for E_{\rho}
+       i_v = 6                   ! Equation for E^{\chi}
+       !
+       ! variables as fluid (from i_v = NFMAX+1 to i_v = NVMAX)
+       !
+       DO i_s = 0, NSMAX-1
+          
+          vOffsetA = 10*i_s + NFMAX
+          vOffsetB = vOffsetA
+          
+          i_v =  1 + vOffsetA    ! Equation for n_{a}
+          
+          i_v =  2 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
+          j_v =  4 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  5 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  9 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v = 10 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
 
-       i_v = 11 + vOffsetA    ! Equation for p_{a}
-       j_v =  9 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
-       j_v = 10 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
-       j_v = 14 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
-       j_v = 15 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.    
-       i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.   
+          i_v =  3 + vOffsetA    ! Equation for Gamma_{a\para}
+          j_v =  4 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  5 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  9 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v = 10 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          
+          i_v =  4 + vOffsetA    ! Equation for Gamma_{a\zeta}
+          i_v =  5 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
+          
+          i_v =  6 + vOffsetA    ! Equation for p_{a}
+          j_v =  4 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  5 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  9 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v = 10 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.    
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.   
        
-       i_v = 12 + vOffsetA    ! Equation for Q_{a}^{rho}
+          i_v =  7 + vOffsetA    ! Equation for Q_{a}^{rho}
+          j_v =  4 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  5 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  9 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v = 10 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
 
-       i_v = 13 + vOffsetA    ! Equation for Q_{a\para}
-       j_v =  9 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
-       j_v = 10 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
-       j_v = 14 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
-       j_v = 15 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          i_v =  8 + vOffsetA    ! Equation for Q_{a\para}
+          j_v =  4 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  5 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  9 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v = 10 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
        
-       i_v = 14 + vOffsetA    ! Equation for Q_{a\zeta}
-       j_v =  9 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
-       j_v = 10 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
-       j_v = 14 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
-       j_v = 15 + vOffsetB;   HaveAdveTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveAdveTenKval(i_k,i_v,j_v) = .TRUE.
-       
-    ENDDO
-    
+          i_v =  9 + vOffsetA    ! Equation for Q_{a\zeta}
+          i_v = 10 + vOffsetA    ! Equation for Q^{\chi}_{a}
+          
+       ENDDO
+    END SELECT
     RETURN
     
   END SUBROUTINE T2VGRA_AT_COEF_EB
@@ -494,13 +657,13 @@ CONTAINS
   !
   !                           is exist in equation system.
   !
-  !                     LAST UPDATE     2014-06-20 H.Seto
-  !                     OPERATION CHECK 2014-06-20 H.Seto
+  !                     LAST UPDATE     2014-06-22 H.Seto
+  !                     OPERATION CHECK 2014-06-22 H.Seto
   !
   !-------------------------------------------------------------------
   SUBROUTINE T2VGRA_DT_COEF_EB
     
-    USE T2COMM,ONLY: NSMAX, NVMAX, HaveDiffTenCoef
+    USE T2COMM,ONLY: NSMAX, NVMAX, NFMAX, EqSet, HaveDiffTenCoef
     
     INTEGER(ikind)::&
          & i_s,i_v,vOffsetA,&
@@ -510,66 +673,127 @@ CONTAINS
     
     HaveDiffTenCoef(1:NVMAX,1:NVMAX) = .FALSE.
 
-    !
-    ! variables as field (from i_v= 1 to i_v = 5)
-    !
-    
-    i_v = 1                   ! Equation for psi'
-    i_v = 2                   ! Equation for I
-    i_v = 3                   ! Equation for E_{\zeta}
-    i_v = 4                   ! Equation for E_{\chi}
-    i_v = 5                   ! Equation for E_{\rho}
+    SELECT CASE (EqSet)
 
-    !
-    ! variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)
-    !
-    
-    DO i_s = 0, NSMAX-1
+    CASE (1)
+       !
+       ! variables as field (from i_v= 1 to i_v = NFMAX)
+       !
        
-       vOffsetA = 10*i_s
-       vOffsetB = vOffsetA
+       i_v = 1                   ! Equation for psi'
+       i_v = 2                   ! Equation for I
+       i_v = 3                   ! Equation for E_{\zeta}
+       i_v = 4                   ! Equation for E_{\chi}
+       i_v = 5                   ! Equation for E_{\rho}
 
-       i_v =  6 + vOffsetA    ! Equation for n_{a}
-       i_v =  7 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
+       !
+       ! variables as fluid (from i_v = NFMAX+1 to i_v = NVMAX)
+       !
+       DO i_s = 0, NSMAX-1
+          
+          vOffsetA = 10*i_s + NFMAX
+          vOffsetB = vOffsetA
+
+          i_v =  1 + vOffsetA    ! Equation for n_{a}
+          i_v =  2 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
+          
+          i_v =  3 + vOffsetA    ! Equation for Gamma_{a\para}
+          j_v =  1 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  3 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  6 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  8 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+
+          i_v =  4 + vOffsetA    ! Equation for Gamma_{a\zeta}
+          j_v =  1 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  3 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  6 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  8 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
        
-       i_v =  8 + vOffsetA    ! Equation for Gamma_{a\para}
-       j_v =  6 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
-       j_v =  8 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
-       j_v = 11 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
-       j_v = 13 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          i_v =  5 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
 
-       i_v =  9 + vOffsetA    ! Equation for Gamma_{a\zeta}
-       j_v =  6 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
-       j_v =  8 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
-       j_v = 11 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
-       j_v = 13 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
-       
-       i_v = 10 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
+          i_v =  6 + vOffsetA    ! Equation for p_{a}
+          j_v =  1 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  3 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  6 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  8 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          
+          i_v =  7 + vOffsetA    ! Equation for Q_{a}^{\rho}
 
-       i_v = 11 + vOffsetA    ! Equation for p_{a}
-       j_v =  6 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
-       j_v =  8 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
-       j_v = 11 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
-       j_v = 13 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
-       
-       i_v = 12 + vOffsetA    ! Equation for Q_{a}^{\rho}
+          i_v =  8 + vOffsetA    ! Equation for Q_{a\para}
+          j_v =  1 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  3 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  6 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  8 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
 
-       i_v = 13 + vOffsetA    ! Equation for Q_{a\para}
-       j_v =  6 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
-       j_v =  8 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
-       j_v = 11 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
-       j_v = 13 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
-
-       i_v = 14 + vOffsetA    ! Equation for Q_{a\zeta}
-       j_v =  6 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
-       j_v =  8 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
-       j_v = 11 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
-       j_v = 13 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
-
-       i_v = 15 + vOffsetA    ! Equation for Q_{a}^{\chi}
+          i_v =  9 + vOffsetA    ! Equation for Q_{a\zeta}
+          j_v =  1 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  3 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  6 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  8 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          
+          i_v = 10 + vOffsetA    ! Equation for Q_{a}^{\chi}
     
-    ENDDO
-    
+       ENDDO
+    CASE (2)
+       !
+       ! variables as field (from i_v= 1 to i_v = NFMAX)
+       !
+       i_v = 1                   ! Equation for psi'
+       i_v = 2                   ! Equation for I
+       i_v = 3                   ! Equation for E_{\zeta}
+       i_v = 4                   ! Equation for E_{\chi}
+       i_v = 5                   ! Equation for E_{\rho}
+       i_v = 6                   ! Equation for E^{\chi}
+       
+       !
+       ! variables as fluid (from i_v = NFMAX+1 to i_v = NVMAX)
+       !
+       DO i_s = 0, NSMAX-1
+          
+          vOffsetA = 10*i_s + NFMAX
+          vOffsetB = vOffsetA
+
+          i_v =  1 + vOffsetA    ! Equation for n_{a}
+
+          i_v =  2 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
+          j_v =  1 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  3 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  6 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  8 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+
+          i_v =  3 + vOffsetA    ! Equation for Gamma_{a\para}
+          j_v =  1 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  3 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  6 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  8 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+
+          i_v =  4 + vOffsetA    ! Equation for Gamma_{a\zeta}
+          i_v =  5 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
+
+          i_v =  6 + vOffsetA    ! Equation for p_{a}
+          j_v =  1 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  3 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  6 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  8 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          
+          i_v =  7 + vOffsetA    ! Equation for Q_{a}^{\rho}
+          j_v =  1 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  3 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  6 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  8 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          
+          i_v =  8 + vOffsetA    ! Equation for Q_{a\para}
+          j_v =  1 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  3 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  6 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          j_v =  8 + vOffsetB;   HaveDiffTenCoef(i_v,j_v) = .TRUE.
+          
+          i_v =  9 + vOffsetA    ! Equation for Q_{a\zeta}          
+          i_v = 10 + vOffsetA    ! Equation for Q_{a}^{\chi}
+          
+       ENDDO
+    END SELECT
+
     RETURN
     
   END SUBROUTINE T2VGRA_DT_COEF_EB
@@ -586,13 +810,13 @@ CONTAINS
   !
   !                           is exist in equation system.
   !
-  !                     LAST UPDATE     2014-06-20 H.Seto
-  !                     OPERATION CHECK 2014-06-20 H.Seto
+  !                     LAST UPDATE     2014-06-22 H.Seto
+  !                     OPERATION CHECK 2014-06-22 H.Seto
   !
   !-------------------------------------------------------------------
   SUBROUTINE T2VGRA_GV_COEF_EB
 
-    USE T2COMM, ONLY: NSMAX,NVMAX,HaveGradVecCoef,EqSet
+    USE T2COMM, ONLY: NSMAX,NVMAX,NFMAX,HaveGradVecCoef,EqSet
 
     INTEGER(ikind)::&
          & i_s,i_v,vOffsetA,&
@@ -603,7 +827,7 @@ CONTAINS
     HaveGradVecCoef(1:NVMAX,1:NVMAX) = .FALSE.
     
     !
-    ! variables as field (from i_v= 1 to i_v = 5)
+    ! variables as field (from i_v= 1 to i_v = NFMAX)
     !
     SELECT CASE (EqSet)
     CASE (1)
@@ -620,6 +844,49 @@ CONTAINS
        j_v =  2;                 HaveGradVecCoef(i_v,j_v) = .TRUE.
        
        i_v =  5                  ! Equation for E_{\rho}    
+  
+       !
+       ! variables as fluid (from i_v = NFMAX+1 to i_v = NVMAX)
+       !    
+       DO i_s = 0, NSMAX-1
+          
+          vOffsetA = 10*i_s + NFMAX
+          vOffsetB = vOffsetA
+       
+          i_v =  1 + vOffsetA    ! Equation for n_{a}
+          
+          i_v =  2 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
+          j_v =  6 + vOffsetB;   HaveGradVecCoef(i_v,j_v) = .TRUE.
+       
+          i_v =  3 + vOffsetA    ! Equation for Gamma_{a\para}
+       
+          i_v =  4 + vOffsetA    ! Equation for Gamma_{a\zeta}
+          ! >>>> ANOMALOUS TRANSPORT * two-fluid model >>>>
+          j_v =  1 + NFMAX;      HaveGradVecCoef(i_v,j_v) = .TRUE.
+          j_v =  6 + NFMAX;      HaveGradVecCoef(i_v,j_v) = .TRUE.
+          ! <<<< ANOMALOUS TRANSPORT * two-fluid model <<<<<
+       
+          i_v =  5 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
+          
+          i_v =  6 + vOffsetA    ! Equation for p_{a}
+          j_v =  6 + vOffsetB;   HaveGradVecCoef(i_v,j_v) = .TRUE.
+       
+          i_v =  7 + vOffsetA    ! Equation for Q_{a}^{\rho}
+          j_v =  1 + vOffsetB;   HaveGradVecCoef(i_v,j_v) = .TRUE.
+          j_v =  6 + vOffsetB;   HaveGradVecCoef(i_v,j_v) = .TRUE.
+
+          i_v =  8 + vOffsetA    ! Equation for Q_{a\para}
+
+          i_v =  9 + vOffsetA    ! Equation for Q_{a\zeta}       
+          ! >>>> ANOMALOUS TRANSPORT * two-fluid model >>>>
+          j_v =  1 + vOffsetB;   HaveGradVecCoef(i_v,j_v) = .TRUE.
+          j_v =  6 + vOffsetB;   HaveGradVecCoef(i_v,j_v) = .TRUE.
+          ! <<<< ANOMALOUS TRANSPORT * two-fluid model <<<<<
+          
+          i_v = 10 + vOffsetA    ! Equation for Q_{a\zeta}
+          
+       ENDDO
+  
     CASE (2)
        i_v =  1                  ! Equation for psi'
        
@@ -634,54 +901,55 @@ CONTAINS
        j_v =  5;                 HaveGradVecCoef(i_v,j_v) = .TRUE.
 
        i_v =  5                  ! Equation for E_{\rho}
+       i_v =  6                  ! Equation for E^{\chi}
+
+       !
+       ! variables as fluid (from i_v = NFMAX+1 to i_v = NVMAX)
+       !    
+       DO i_s = 0, NSMAX-1
+          
+          vOffsetA = 10*i_s + NFMAX
+          vOffsetB = vOffsetA
+       
+          i_v =  1 + vOffsetA    ! Equation for n_{a}
+          
+          i_v =  2 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
+          ! >>>> ANOMALOUS TRANSPORT * two-fluid model >>>>
+          j_v =  1 + NFMAX;      HaveGradVecCoef(i_v,j_v) = .TRUE.
+          j_v =  6 + NFMAX;      HaveGradVecCoef(i_v,j_v) = .TRUE.
+          ! <<<< ANOMALOUS TRANSPORT * two-fluid model <<<<<
+       
+          i_v =  3 + vOffsetA    ! Equation for Gamma_{a\para}
+       
+          i_v =  4 + vOffsetA    ! Equation for Gamma_{a\zeta}
+          j_v =  6 + vOffsetB;   HaveGradVecCoef(i_v,j_v) = .TRUE.
+       
+          i_v =  5 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
+          
+          i_v =  6 + vOffsetA    ! Equation for p_{a}
+          j_v =  6 + vOffsetB;   HaveGradVecCoef(i_v,j_v) = .TRUE.
+       
+          i_v =  7 + vOffsetA    ! Equation for Q_{a}^{\rho}
+          ! >>>> ANOMALOUS TRANSPORT * two-fluid model >>>>
+          j_v =  1 + vOffsetB;   HaveGradVecCoef(i_v,j_v) = .TRUE.
+          j_v =  6 + vOffsetB;   HaveGradVecCoef(i_v,j_v) = .TRUE.
+          ! <<<< ANOMALOUS TRANSPORT * two-fluid model <<<<<
+
+          i_v =  8 + vOffsetA    ! Equation for Q_{a\para}
+
+          i_v =  9 + vOffsetA    ! Equation for Q_{a\zeta}       
+          j_v =  1 + vOffsetB;   HaveGradVecCoef(i_v,j_v) = .TRUE.
+          j_v =  6 + vOffsetB;   HaveGradVecCoef(i_v,j_v) = .TRUE.
+          
+          i_v = 10 + vOffsetA    ! Equation for Q_{a\zeta}
+          
+       ENDDO
     END SELECT
-    
-    !
-    ! variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)
-    !    
-    DO i_s = 0, NSMAX-1
-       
-       vOffsetA = 10*i_s
-       vOffsetB = vOffsetA
-       
-       i_v =  6 + vOffsetA    ! Equation for n_{a}
-       
-       i_v =  7 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
-       j_v = 11 + vOffsetB;   HaveGradVecCoef(i_v,j_v) = .TRUE.
-       
-       i_v =  8 + vOffsetA    ! Equation for Gamma_{a\para}
-       
-       i_v =  9 + vOffsetA    ! Equation for Gamma_{a\zeta}
-       ! >>>> ANOMALOUS TRANSPORT * two-fluid model >>>>
-       j_v =  6;              HaveGradVecCoef(i_v,j_v) = .TRUE.
-       j_v = 11;              HaveGradVecCoef(i_v,j_v) = .TRUE.
-       ! <<<< ANOMALOUS TRANSPORT * two-fluid model <<<<<
-       
-       i_v = 10 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
-       
-       i_v = 11 + vOffsetA    ! Equation for p_{a}
-       j_v = 11 + vOffsetB;   HaveGradVecCoef(i_v,j_v) = .TRUE.
-       
-       i_v = 12 + vOffsetA    ! Equation for Q_{a}^{\rho}
-       j_v =  6 + vOffsetB;   HaveGradVecCoef(i_v,j_v) = .TRUE.
-       j_v = 11 + vOffsetB;   HaveGradVecCoef(i_v,j_v) = .TRUE.
-
-       i_v = 13 + vOffsetA    ! Equation for Q_{a\para}
-
-       i_v = 14 + vOffsetA    ! Equation for Q_{a\zeta}       
-       ! >>>> ANOMALOUS TRANSPORT * two-fluid model >>>>
-       j_v =  6 + vOffsetB;   HaveGradVecCoef(i_v,j_v) = .TRUE.
-       j_v = 11 + vOffsetB;   HaveGradVecCoef(i_v,j_v) = .TRUE.
-       ! <<<< ANOMALOUS TRANSPORT * two-fluid model <<<<<
-       
-       i_v = 15 + vOffsetA    ! Equation for Q_{a\zeta}
-       
-    ENDDO
-    
+        
     RETURN
     
   END SUBROUTINE T2VGRA_GV_COEF_EB
-
+  
   !-------------------------------------------------------------------
   !
   ! CREATE VARIABLE GRAPH OF GRADINET TENSOR TERMS 
@@ -700,13 +968,13 @@ CONTAINS
   !       the physical quantitiy "g_{ik} " 
   !                           is exist in equation system.
   !
-  !                     LAST UPDATE     2014-06-20 H.Seto
-  !                     OPERATION CHECK 2014-06-20 H.Seto
+  !                     LAST UPDATE     2014-06-22 H.Seto
+  !                     OPERATION CHECK 2014-06-22 H.Seto
   !
   !-------------------------------------------------------------------
   SUBROUTINE T2VGRA_GT_COEF_EB
     
-    USE T2COMM, ONLY: NSMAX, NVMAX, NKMAX,&
+    USE T2COMM, ONLY: NSMAX, NVMAX, NFMAX, NKMAX, EqSet,&
          &            HaveGradTenCoef,HaveGradTenKval
 
     INTEGER(ikind)::&
@@ -716,73 +984,142 @@ CONTAINS
     ! initialization
     HaveGradTenCoef(        1:NVMAX,1:NVMAX) = .FALSE.
     HaveGradTenKval(1:NKMAX,1:NVMAX,1:NVMAX) = .FALSE.
-
-    !
-    ! variables as field (from i_v= 1 to i_v = 5)
-    !
-    i_v = 1                   ! Equation for psi'
-    i_v = 2                   ! Equation for I
-    i_v = 3                   ! Equation for E_{\zeta}
-    i_v = 4                   ! Equation for E_{\chi}
-    i_v = 5                   ! Equation for E_{\rho}
-
-    !
-    ! variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)
-    !    
-    DO i_s = 0, NSMAX-1
-       
-       vOffsetA = 10*i_s
-       vOffsetB = vOffsetA 
-       kOffsetX =  2*i_s
-
-       i_v =  6 + vOffsetA    ! Equation for n_{a}
-       
-       i_v =  7 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
-       
-       i_v =  8 + vOffsetA    ! Equation for Gamma_{a\para}
-       j_v =  6 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
-       j_v =  8 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
-       j_v = 11 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
-       j_v = 13 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
-       
-       i_v =  9 + vOffsetA    ! Equation for Gamma_{a\zeta}
-       i_v = 10 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
-
-       i_v = 11 + vOffsetA    ! Equation for p_{a}
-       j_v =  6 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
-       i_k =  3 + kOffsetX;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
-       j_v =  8 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
-       i_k =  3 + kOffsetX;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
-       j_v = 11 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
-       i_k =  3 + kOffsetX;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
-       j_v = 13 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
-       i_k =  3 + kOffsetX;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
-       
-       i_v = 12 + vOffsetA    ! Equation for Q_{a}^{\rho}
-       
-       i_v = 13 + vOffsetA    ! Equation for Q_{a\para}
-       j_v =  6 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
-       j_v =  8 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
-       j_v = 11 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
-       j_v = 13 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
-       
-       i_v = 14 + vOffsetA    ! Equation for Q_{a\zeta}      
-       i_v = 15 + vOffsetA    ! Equation for Q_{a}^{\chi}
-       
-    ENDDO
     
+    SELECT CASE (EqSet)
+
+    CASE (1)
+       !
+       ! variables as field (from i_v= 1 to i_v = 5)
+       !
+       i_v = 1                   ! Equation for psi'
+       i_v = 2                   ! Equation for I
+       i_v = 3                   ! Equation for E_{\zeta}
+       i_v = 4                   ! Equation for E_{\chi}
+       i_v = 5                   ! Equation for E_{\rho}
+       
+       !
+       ! variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)
+       !    
+       DO i_s = 0, NSMAX-1
+          
+          vOffsetA = 10*i_s + NFMAX
+          vOffsetB = vOffsetA 
+          kOffsetX =  2*i_s
+          
+          i_v =  1 + vOffsetA    ! Equation for n_{a}
+          i_v =  2 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
+          
+          i_v =  3 + vOffsetA    ! Equation for Gamma_{a\para}
+          j_v =  1 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  3 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  6 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  8 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+          
+          i_v =  4 + vOffsetA    ! Equation for Gamma_{a\zeta}
+          i_v =  5 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
+
+          i_v =  6 + vOffsetA    ! Equation for p_{a}
+          j_v =  1 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+          i_k =  3 + kOffsetX;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  3 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+          i_k =  3 + kOffsetX;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  6 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+          i_k =  3 + kOffsetX;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  8 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+          i_k =  3 + kOffsetX;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+       
+          i_v =  7 + vOffsetA    ! Equation for Q_{a}^{\rho}
+          
+          i_v =  8 + vOffsetA    ! Equation for Q_{a\para}
+          j_v =  1 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  3 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  6 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  8 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+       
+          i_v =  9 + vOffsetA    ! Equation for Q_{a\zeta}      
+          i_v = 10 + vOffsetA    ! Equation for Q^{\chi}_{a}
+       
+       ENDDO
+    CASE (2)
+       !
+       ! variables as field (from i_v= 1 to i_v = 5)
+       !
+       i_v = 1                   ! Equation for psi'
+       i_v = 2                   ! Equation for I
+       i_v = 3                   ! Equation for E_{\zeta}
+       i_v = 4                   ! Equation for E_{\chi}
+       i_v = 5                   ! Equation for E_{\rho}
+       i_v = 6                   ! Equation for E^{\chi}
+
+       !
+       ! variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)
+       !    
+       DO i_s = 0, NSMAX-1
+          
+          vOffsetA = 10*i_s + NFMAX
+          vOffsetB = vOffsetA 
+          kOffsetX =  2*i_s
+          
+          i_v =  1 + vOffsetA    ! Equation for n_{a}
+          i_v =  2 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
+          
+          i_v =  3 + vOffsetA    ! Equation for Gamma_{a\para}
+          j_v =  1 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  3 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  6 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  8 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+          
+          i_v =  4 + vOffsetA    ! Equation for Gamma_{a\zeta}
+          i_v =  5 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
+
+          i_v =  6 + vOffsetA    ! Equation for p_{a}
+          j_v =  1 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+          i_k =  3 + kOffsetX;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  3 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+          i_k =  3 + kOffsetX;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  6 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+          i_k =  3 + kOffsetX;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  8 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+          i_k =  3 + kOffsetX;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+       
+          i_v =  7 + vOffsetA    ! Equation for Q_{a}^{\rho}
+          
+          i_v =  8 + vOffsetA    ! Equation for Q_{a\para}
+          j_v =  1 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  3 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  6 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  8 + vOffsetB;   HaveGradTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1           ;   HaveGradTenKval(i_k,i_v,j_v) = .TRUE.
+       
+          i_v =  9 + vOffsetA    ! Equation for Q_{a\zeta}      
+          i_v = 10 + vOffsetA    ! Equation for Q^{\chi}_{a}
+          
+       ENDDO
+    END SELECT
+
     RETURN
     
   END SUBROUTINE T2VGRA_GT_COEF_EB
@@ -799,13 +1136,13 @@ CONTAINS
   !
   !                           is exist in equation system.
   !
-  !                     LAST UPDATE     2014-06-20 H.Seto
-  !                     OPERATION CHECK 2014-06-20 H.Seto
+  !                     LAST UPDATE     2014-06-22 H.Seto
+  !                     OPERATION CHECK 2014-06-22 H.Seto
   !
   !-------------------------------------------------------------------
   SUBROUTINE T2VGRA_ES_COEF_EB
     
-    USE T2COMM, ONLY: NSMAX, NVMAX,&
+    USE T2COMM, ONLY: NSMAX, NVMAX,NFMAX,EqSet,&
          &            HaveExciScaCoef,EqSet
     
     INTEGER(ikind)::&
@@ -816,109 +1153,194 @@ CONTAINS
     
     HaveExciScaCoef(1:NVMAX,1:NVMAX) = .FALSE.
 
-    !
-    ! variables as field (from i_v= 1 to i_v = 5)
-    !    
     SELECT CASE (EqSet)
-    CASE (1)
-       i_v = 1                   ! Equation for psi'
 
+    CASE (1)
+       !
+       ! variables as field (from i_v= 1 to i_v = NFMAX)
+       !    
+       i_v = 1                   ! Equation for psi'
+       
        i_v = 2                   ! Equation for I
        j_v = 4;                  HaveExciScaCoef(i_v,j_v) = .TRUE.       
-
+       
        i_v = 3                   ! Equation for E_{\zeta}
        i_v = 4                   ! Equation for E_{\chi}           
        i_v = 5                   ! Equation for E_{\rho}
+
+       !
+       ! variables as fluid (from i_v = NFMAX+1 to i_v = NVMAX)
+       !    
+       DO i_s = 0, NSMAX-1
+          
+          vOffsetA = 10*i_s + NFMAX
+          
+          i_v =  1 + vOffsetA    ! Equation for n_{a}
+          
+          i_v =  2 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
+          j_v =  4;              HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  5;              HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  3 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  4 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+          
+          i_v =  3 + vOffsetA    ! Equation for Gamma_{a\para}
+          j_v =  3;              HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  4;              HaveExciScaCoef(i_v,j_v) = .TRUE.
+          DO j_s = 0, NSMAX-1
+             vOffsetB = 10*j_s + NFMAX
+             j_v =  3 + vOffsetB;HaveExciScaCoef(i_v,j_v) = .TRUE.
+             j_v =  8 + vOffsetB;HaveExciScaCoef(i_v,j_v) = .TRUE.
+          ENDDO
+
+          i_v =  4 + vOffsetA    ! Equation for Gamma_{a\zeta}
+          j_v =  3;              HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  2 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+          !  >>>> ANOMALOUS TRANSPORT * two-fluid model >>>>
+          j_v =  3 + NFMAX;      HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  4 + NFMAX;      HaveExciScaCoef(i_v,j_v) = .TRUE.       
+          !  <<<< ANOMALOUS TRANSPORT * two-fluid model <<<<
+          DO j_s = 0, NSMAX-1
+             vOffsetB = 10*j_s + NFMAX
+             j_v =  4 + vOffsetB;HaveExciScaCoef(i_v,j_v) = .TRUE.
+             j_v =  9 + vOffsetB;HaveExciScaCoef(i_v,j_v) = .TRUE.
+          ENDDO
+          
+          i_v =  5 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
+          j_v =  3 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  4 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  5 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+          
+          i_v =  6 + vOffsetA    ! Equation for p_{a}
+          j_v =  6 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+
+          i_v =  7 + vOffsetA    ! Equation for Q_{a}^{\rho}
+          j_v =  4;              HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  5;              HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  8 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  9 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+       
+          i_v =  8 + vOffsetA    ! Equation for Q_{a\para}
+          j_v =  3;              HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  4;              HaveExciScaCoef(i_v,j_v) = .TRUE.
+          DO j_s = 0, NSMAX-1
+             vOffsetB = 10*j_s + NFMAX
+             j_v =  3 + vOffsetB;HaveExciScaCoef(i_v,j_v) = .TRUE.
+             j_v =  8 + vOffsetB;HaveExciScaCoef(i_v,j_v) = .TRUE.
+          ENDDO
+          
+          i_v =  9 + vOffsetA    ! Equation for Q_{a\zeta}
+          j_v =  3;              HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  7 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+          !  >>>> ANOMALOUS TRANSPORT * two-fluid model >>>>
+          j_v =  8 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  9 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.       
+          !  <<<< ANOMALOUS TRANSPORT * two-fluid model <<<<
+          DO j_s = 0, NSMAX-1
+             vOffsetB = 10*j_s + NFMAX
+             j_v =  4 + vOffsetB;HaveExciScaCoef(i_v,j_v) = .TRUE.
+             j_v =  9 + vOffsetB;HaveExciScaCoef(i_v,j_v) = .TRUE.
+          ENDDO
+          
+          i_v = 10 + vOffsetA    ! Equation for Q_{a}^{\chi}
+          j_v =  8 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  9 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v = 10 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+       ENDDO
     CASE (2)
+       !
+       ! variables as field (from i_v= 1 to i_v = NFMAX)
+       !    
        i_v = 1                   ! Equation for psi'   
        i_v = 2                   ! Equation for I
        i_v = 3                   ! Equation for E_{\zeta}
-
        i_v = 4                   ! Equation for E_{\chi}
-       j_v = 4;                  HaveExciScaCoef(i_v,j_v) = .TRUE.
-
        i_v = 5                   ! Equation for E_{\rho}
+
+       i_v = 6                   ! Equation for E^{\chi}
+       j_v = 4;                  HaveExciScaCoef(i_v,j_v) = .TRUE.
+       j_v = 5;                  HaveExciScaCoef(i_v,j_v) = .TRUE.
+       j_v = 6;                  HaveExciScaCoef(i_v,j_v) = .TRUE.
+
+       !
+       ! variables as fluid (from i_v = NFMAX+1 to i_v = NVMAX)
+       !    
+       DO i_s = 0, NSMAX-1
+          
+          vOffsetA = 10*i_s + NFMAX
+          
+          i_v =  1 + vOffsetA    ! Equation for n_{a}
+          
+          i_v =  2 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
+          j_v =  3;              HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  2 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+          !  >>>> ANOMALOUS TRANSPORT * two-fluid model >>>>
+          j_v =  3 + NFMAX;      HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  4 + NFMAX;      HaveExciScaCoef(i_v,j_v) = .TRUE.       
+          !  <<<< ANOMALOUS TRANSPORT * two-fluid model <<<<
+          DO j_s = 0, NSMAX-1
+             vOffsetB = 10*j_s + NFMAX
+             j_v =  4 + vOffsetB;HaveExciScaCoef(i_v,j_v) = .TRUE.
+             j_v =  9 + vOffsetB;HaveExciScaCoef(i_v,j_v) = .TRUE.
+          ENDDO
+          
+          i_v =  3 + vOffsetA    ! Equation for Gamma_{a\para}
+          j_v =  3;              HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  4;              HaveExciScaCoef(i_v,j_v) = .TRUE.
+          DO j_s = 0, NSMAX-1
+             vOffsetB = 10*j_s + NFMAX
+             j_v =  3 + vOffsetB;HaveExciScaCoef(i_v,j_v) = .TRUE.
+             j_v =  8 + vOffsetB;HaveExciScaCoef(i_v,j_v) = .TRUE.
+          ENDDO
+
+          i_v =  4 + vOffsetA    ! Equation for Gamma_{a\zeta}
+          j_v =  4;              HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  5;              HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  3 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  4 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+          
+          i_v =  5 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
+          j_v =  3 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  4 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  5 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+          
+          i_v =  6 + vOffsetA    ! Equation for p_{a}
+          j_v =  6 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+
+          i_v =  7 + vOffsetA    ! Equation for Q_{a}^{\rho}
+          j_v =  3;              HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  7 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+          !  >>>> ANOMALOUS TRANSPORT * two-fluid model >>>>
+          j_v =  8 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  9 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.       
+          !  <<<< ANOMALOUS TRANSPORT * two-fluid model <<<<
+          DO j_s = 0, NSMAX-1
+             vOffsetB = 10*j_s + NFMAX
+             j_v =  4 + vOffsetB;HaveExciScaCoef(i_v,j_v) = .TRUE.
+             j_v =  9 + vOffsetB;HaveExciScaCoef(i_v,j_v) = .TRUE.
+          ENDDO
+       
+          i_v =  8 + vOffsetA    ! Equation for Q_{a\para}
+          j_v =  3;              HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  4;              HaveExciScaCoef(i_v,j_v) = .TRUE.
+          DO j_s = 0, NSMAX-1
+             vOffsetB = 10*j_s + NFMAX
+             j_v =  3 + vOffsetB;HaveExciScaCoef(i_v,j_v) = .TRUE.
+             j_v =  8 + vOffsetB;HaveExciScaCoef(i_v,j_v) = .TRUE.
+          ENDDO
+          
+          i_v =  9 + vOffsetA    ! Equation for Q_{a\zeta}
+          j_v =  4;              HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  5;              HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  8 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  9 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+          
+          i_v = 10 + vOffsetA    ! Equation for Q_{a}^{\chi}
+          j_v =  8 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v =  9 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+          j_v = 10 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
+       ENDDO
     END SELECT
-    
-    !
-    ! variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)
-    !    
-    DO i_s = 0, NSMAX-1
        
-       vOffsetA = 10*i_s
-       
-       i_v =  6 + vOffsetA    ! Equation for n_{a}
-       
-       i_v =  7 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
-       j_v =  4;              HaveExciScaCoef(i_v,j_v) = .TRUE.
-       j_v =  5;              HaveExciScaCoef(i_v,j_v) = .TRUE.
-       j_v =  8 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
-       j_v =  9 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
-       
-       i_v =  8 + vOffsetA    ! Equation for Gamma_{a\para}
-       j_v =  3;              HaveExciScaCoef(i_v,j_v) = .TRUE.
-       j_v =  4;              HaveExciScaCoef(i_v,j_v) = .TRUE.
-       DO j_s = 0, NSMAX-1
-          vOffsetB = 10*j_s
-          j_v =  8 + vOffsetB;HaveExciScaCoef(i_v,j_v) = .TRUE.
-          j_v = 13 + vOffsetB;HaveExciScaCoef(i_v,j_v) = .TRUE.
-       ENDDO
-
-       i_v =  9 + vOffsetA    ! Equation for Gamma_{a\zeta}
-       j_v =  3;              HaveExciScaCoef(i_v,j_v) = .TRUE.
-       j_v =  7 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
-       !  >>>> ANOMALOUS TRANSPORT * two-fluid model >>>>
-       j_v =  8;              HaveExciScaCoef(i_v,j_v) = .TRUE.
-       j_v =  9;              HaveExciScaCoef(i_v,j_v) = .TRUE.       
-       !  <<<< ANOMALOUS TRANSPORT * two-fluid model <<<<
-       DO j_s = 0, NSMAX-1
-          vOffsetB = 10*j_s
-          j_v =  9 + vOffsetB;HaveExciScaCoef(i_v,j_v) = .TRUE.
-          j_v = 14 + vOffsetB;HaveExciScaCoef(i_v,j_v) = .TRUE.
-       ENDDO
-       
-       i_v = 10 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
-       j_v =  8 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
-       j_v =  9 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
-       j_v = 10 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
-       
-       i_v = 11 + vOffsetA    ! Equation for p_{a}
-       j_v = 11 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
-
-       i_v = 12 + vOffsetA    ! Equation for Q_{a}^{\rho}
-       j_v =  4;              HaveExciScaCoef(i_v,j_v) = .TRUE.
-       j_v =  5;              HaveExciScaCoef(i_v,j_v) = .TRUE.
-       j_v = 13 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
-       j_v = 14 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
-       
-       i_v = 13 + vOffsetA    ! Equation for Q_{a\para}
-       j_v =  3;              HaveExciScaCoef(i_v,j_v) = .TRUE.
-       j_v =  4;              HaveExciScaCoef(i_v,j_v) = .TRUE.
-       DO j_s = 0, NSMAX-1
-          vOffsetB = 10*j_s
-          j_v =  8 + vOffsetB;HaveExciScaCoef(i_v,j_v) = .TRUE.
-          j_v = 13 + vOffsetB;HaveExciScaCoef(i_v,j_v) = .TRUE.
-       ENDDO
-
-       i_v = 14 + vOffsetA    ! Equation for Q_{a\zeta}
-       j_v =  3;              HaveExciScaCoef(i_v,j_v) = .TRUE.
-       j_v = 12 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
-       !  >>>> ANOMALOUS TRANSPORT * two-fluid model >>>>
-       j_v = 13 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
-       j_v = 14 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.       
-       !  <<<< ANOMALOUS TRANSPORT * two-fluid model <<<<
-       DO j_s = 0, NSMAX-1
-          vOffsetB = 10*j_s
-          j_v =  9 + vOffsetB;HaveExciScaCoef(i_v,j_v) = .TRUE.
-          j_v = 14 + vOffsetB;HaveExciScaCoef(i_v,j_v) = .TRUE.
-       ENDDO
-       
-       i_v = 15 + vOffsetA    ! Equation for Q_{a}^{\chi}
-       j_v = 13 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
-       j_v = 14 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
-       j_v = 15 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
-    ENDDO
-    
     RETURN
     
   END SUBROUTINE T2VGRA_ES_COEF_EB
@@ -938,15 +1360,15 @@ CONTAINS
   !        
   !       C_{iv,jv} = grad f_{ik} dot vec{C}_{iv,jv,ik} 
   !
-  !                     LAST UPDATE     2014-05-23 H.Seto
-  !                     OPERATION CHECK 2014-05-26 H.Seto
+  !                     LAST UPDATE     2014-06-22 H.Seto
+  !                     OPERATION CHECK 2014-06-22 H.Seto
   !
   !-------------------------------------------------------------------
   SUBROUTINE T2VGRA_EV_COEF_EB
 
-    USE T2COMM, ONLY: NSMAX, NVMAX, NKMAX,&
+    USE T2COMM, ONLY: NSMAX,NVMAX,NFMAX,NKMAX,&
          &            HaveExciVecCoef,HaveExciVecKval,EqSet
-
+    
     INTEGER(ikind)::&
          & i_s,i_v,i_k,vOffsetA,kOffsetX,&
          &     j_v,    vOffsetB
@@ -955,11 +1377,12 @@ CONTAINS
     HaveExciVecCoef(        1:NVMAX,1:NVMAX) = .FALSE.
     HaveExciVecKVal(1:NKMAX,1:NVMAX,1:NVMAX) = .FALSE.
     
-    !
-    ! variables as field (from i_v= 1 to i_v = 5)
-    !
+    
     SELECT CASE (EqSet)
     CASE (1)
+       !
+       ! variables as field (from i_v= 1 to i_v = 5)
+       !
        i_v = 1                   ! Equation for psi'
        i_v = 2                   ! Equation for I
        
@@ -969,62 +1392,112 @@ CONTAINS
        
        i_v = 4                   ! Equation for E_{\chi}
        i_v = 5                   ! Equation for E_{\rho}
+
+       !
+       ! variables as fluid (from i_v = NFMAX+1 to i_v = NVMAX)
+       !    
+       DO i_s = 0, NSMAX-1
+       
+          vOffsetA = 10*i_s + NFMAX
+          vOffsetB = vOffsetA
+          kOffsetX =  2*i_s
+          
+          i_v =  1 + vOffsetA    ! Equation for n_{a}
+          i_v =  2 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
+          
+          i_v =  3 + vOffsetA    ! Equation for Gamma_{a\para}
+          j_v =  3 + vOffsetB;   HaveExciVecCoef(i_v,j_v)     = .TRUE.
+          i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          
+          i_v =  4 + vOffsetA    ! Equation for Gamma_{a\zeta}
+          i_v =  5 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
+          i_v =  6 + vOffsetA    ! Equation for p_{a}
+          i_v =  7 + vOffsetA    ! Equation for Q_{a}^{\rho}
+          
+          i_v =  8 + vOffsetA    ! Equation for Q_{a\para}
+          j_v =  3;              HaveExciVecCoef(i_v,j_v)     = .TRUE.
+          i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          i_k =  3 + kOffsetX;   HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          i_k =  4 + kOffsetX;   HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  4;              HaveExciVecCoef(i_v,j_v)     = .TRUE.
+          i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          i_k =  3 + kOffsetX;   HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          i_k =  4 + kOffsetX;   HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  3 + vOffsetB;   HaveExciVecCoef(i_v,j_v)     = .TRUE.
+          i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  8 + vOffsetB;   HaveExciVecCoef(i_v,j_v)     = .TRUE.
+          i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          
+          i_v =  9 + vOffsetA    ! Equation for Q_{a\zeta}
+          j_v =  3;              HaveExciVecCoef(i_v,j_v)     = .TRUE.
+          i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          i_k =  3+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          i_k =  4+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  4;              HaveExciVecCoef(i_v,j_v)     = .TRUE.
+          i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          i_k =  3+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          i_k =  4+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+       
+          i_v = 10 + vOffsetA    ! Equation for Q_{a}^{\chi}
+          
+       ENDDO
+
     CASE (2)
        i_v = 1                   ! Equation for psi'
        i_v = 2                   ! Equation for I
        i_v = 3                   ! Equation for E_{\zeta}
        i_v = 4                   ! Equation for E_{\chi}
        i_v = 5                   ! Equation for E_{\rho}
+       i_v = 6                   ! Equation for E^{\chi}
+
+       !
+       ! variables as fluid (from i_v = NFMAX+1 to i_v = NVMAX)
+       !    
+       DO i_s = 0, NSMAX-1
+       
+          vOffsetA = 10*i_s + NFMAX
+          vOffsetB = vOffsetA
+          kOffsetX =  2*i_s
+          
+          i_v =  1 + vOffsetA    ! Equation for n_{a}
+          i_v =  2 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
+          
+          i_v =  3 + vOffsetA    ! Equation for Gamma_{a\para}
+          j_v =  3 + vOffsetB;   HaveExciVecCoef(i_v,j_v)     = .TRUE.
+          i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          
+          i_v =  4 + vOffsetA    ! Equation for Gamma_{a\zeta}
+          i_v =  5 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
+          i_v =  6 + vOffsetA    ! Equation for p_{a}
+          
+          i_v =  7 + vOffsetA    ! Equation for Q_{a}^{\rho}
+          j_v =  3;              HaveExciVecCoef(i_v,j_v)     = .TRUE.
+          i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          i_k =  3+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          i_k =  4+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  4;              HaveExciVecCoef(i_v,j_v)     = .TRUE.
+          i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          i_k =  3+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          i_k =  4+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+
+          i_v =  8 + vOffsetA    ! Equation for Q_{a\para}
+          j_v =  3;              HaveExciVecCoef(i_v,j_v)     = .TRUE.
+          i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          i_k =  3 + kOffsetX;   HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          i_k =  4 + kOffsetX;   HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  4;              HaveExciVecCoef(i_v,j_v)     = .TRUE.
+          i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          i_k =  3 + kOffsetX;   HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          i_k =  4 + kOffsetX;   HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  3 + vOffsetB;   HaveExciVecCoef(i_v,j_v)     = .TRUE.
+          i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          j_v =  8 + vOffsetB;   HaveExciVecCoef(i_v,j_v)     = .TRUE.
+          i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          
+          i_v =  9 + vOffsetA    ! Equation for Q_{a\zeta}
+          i_v = 10 + vOffsetA    ! Equation for Q_{a}^{\chi}
+       ENDDO
     END SELECT
-    
-    !
-    ! variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)
-    !    
-    DO i_s = 0, NSMAX-1
-       
-       vOffsetA = 10*i_s
-       vOffsetB = vOffsetA
-       kOffsetX =  2*i_s
-
-       i_v =  6 + vOffsetA    ! Equation for n_{a}
-       i_v =  7 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
-
-       i_v =  8 + vOffsetA    ! Equation for Gamma_{a\para}
-       j_v =  8 + vOffsetB;   HaveExciVecCoef(i_v,j_v)     = .TRUE.
-       i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-       
-       i_v =  9 + vOffsetA    ! Equation for Gamma_{a\zeta}
-       i_v = 10 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
-       i_v = 11 + vOffsetA    ! Equation for p_{a}
-       i_v = 12 + vOffsetA    ! Equation for Q_{a}^{\rho}
-
-       i_v = 13 + vOffsetA    ! Equation for Q_{a\para}
-       j_v =  3;              HaveExciVecCoef(i_v,j_v)     = .TRUE.
-       i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-       i_k =  3+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-       i_k =  4+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-       j_v =  4;              HaveExciVecCoef(i_v,j_v)     = .TRUE.
-       i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-       i_k =  3+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-       i_k =  4+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-       j_v =  8 + vOffsetB;   HaveExciVecCoef(i_v,j_v)     = .TRUE.
-       i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-       j_v = 13 + vOffsetB;   HaveExciVecCoef(i_v,j_v)     = .TRUE.
-       i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-
-       i_v = 14 + vOffsetA    ! Equation for Q_{a\zeta}
-       j_v =  3;              HaveExciVecCoef(i_v,j_v)     = .TRUE.
-       i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-       i_k =  3+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-       i_k =  4+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-       j_v =  4;              HaveExciVecCoef(i_v,j_v)     = .TRUE.
-       i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-       i_k =  3+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-       i_k =  4+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-       
-       i_v = 15 + vOffsetA    ! Equation for Q_{a}^{\chi}
-       
-    ENDDO
     
     RETURN
     
@@ -1046,14 +1519,14 @@ CONTAINS
   !       C_{iv,jv} = grad g_{ik} dot vec{C}_{iv,jv,ik,jk} 
   !                                                dot grad g_{jk} 
   !
-  !                     LAST UPDATE     2014-06-08 H.Seto
-  !                     OPERATION CHECK 2014-06-08 H.Seto
+  !                     LAST UPDATE     2014-06-22 H.Seto
+  !                     OPERATION CHECK 2014-06-22 H.Seto
   !
   !-------------------------------------------------------------------
   SUBROUTINE T2VGRA_ET_COEF_EB
-
-    USE T2COMM, ONLY: NSMAX, NVMAX, NKMAX,&
-         &            HaveExciTenCoef,HaveExciTenKval
+    
+    USE T2COMM, ONLY: NSMAX,NVMAX,NKMAX,NFMAX,&
+         &            HaveExciTenCoef,HaveExciTenKval,EqSet
     
     INTEGER(ikind)::&
          & i_s,i_v,i_k,kOffsetX,vOffsetA,&
@@ -1063,88 +1536,172 @@ CONTAINS
     HaveExciTenCoef(                1:NVMAX,1:NVMAX) = .FALSE.
     HaveExciTenKval(1:NKMAX,1:NKMAX,1:NVMAX,1:NVMAX) = .FALSE.
     
-    !
-    ! variables as field (from i_v= 1 to i_v = 5)
-    !
-    i_v = 1                   ! Equation for psi'
-    i_v = 2                   ! Equation for I
-    i_v = 3                   ! Equation for E_{\zeta}
-    i_v = 4                   ! Equation for E_{\chi}
-    i_v = 5                   ! Equation for E_{\rho}
+    SELECT CASE (EqSet)
 
-    !
-    ! variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)
-    !
-    DO i_s = 0, NSMAX-1
+    CASE (1)
+       !
+       ! variables as field (from i_v= 1 to i_v = NFMAX)
+       !
+       i_v = 1                   ! Equation for psi'
+       i_v = 2                   ! Equation for I
+       i_v = 3                   ! Equation for E_{\zeta}
+       i_v = 4                   ! Equation for E_{\chi}
+       i_v = 5                   ! Equation for E_{\rho}
        
-       vOffsetA = 10*i_s
-       vOffsetB = vOffsetA
-       kOffsetX =  2*i_s
-       kOffsetY = kOffsetX
+       !
+       ! variables as fluid (from i_v = NFMAX+1 to i_v = NVMAX)
+       !
+       DO i_s = 0, NSMAX-1
        
-       i_v =  6 + vOffsetA    ! Equation for n_{a}
-       i_v =  7 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
+          vOffsetA = 10*i_s + NFMAX
+          vOffsetB = vOffsetA
+          kOffsetX =  2*i_s
+          kOffsetY = kOffsetX
+          
+          i_v =  1 + vOffsetA    ! Equation for n_{a}
+          i_v =  2 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
+          
+          i_v =  3 + vOffsetA ! Equation for Gamma_{a\para}
+          j_v =  4 + vOffsetA;HaveExciTenCoef(i_v,j_v) = .TRUE.
+          i_k = 1
+          j_k = 1;            HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE.
+          j_v =  5 + vOffsetA;HaveExciTenCoef(i_v,j_v) = .TRUE.
+          i_k = 1
+          j_k = 1;            HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          j_v =  9 + vOffsetA;HaveExciTenCoef(i_v,j_v) = .TRUE.
+          i_k = 1
+          j_k = 1;            HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          j_v = 10 + vOffsetA;HaveExciTenCoef(i_v,j_v) = .TRUE.
+          i_k = 1
+          j_k = 1;            HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
 
-       i_v =  8 + vOffsetA    ! Equation for Gamma_{a\para}
-       j_v =  9 + vOffsetA;   HaveExciTenCoef(i_v,j_v) = .TRUE.
-       i_k = 1
-       j_k = 1;               HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
-       j_v = 10 + vOffsetA;   HaveExciTenCoef(i_v,j_v) = .TRUE.
-       i_k = 1
-       j_k = 1;               HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
-       j_v = 14 + vOffsetA;   HaveExciTenCoef(i_v,j_v) = .TRUE.
-       i_k = 1
-       j_k = 1;               HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
-       j_v = 15 + vOffsetA;   HaveExciTenCoef(i_v,j_v) = .TRUE.
-       i_k = 1
-       j_k = 1;               HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          i_v =  4 + vOffsetA ! Equation for Gamma_{a\zeta}
+          i_v =  5 + vOffsetA ! Equation for Gamma_{a}^{\chi}
 
-       i_v =  9 + vOffsetA    ! Equation for Gamma_{a\zeta}
-       i_v = 10 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
+          i_v =  6 + vOffsetA ! Equation for p_{a}
+          j_v =  4 + vOffsetA;HaveExciTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1
+          j_k =  1;           HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          i_k =  3 + kOffsetX
+          j_k =  1;           HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          j_v =  5 + vOffsetA;HaveExciTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1
+          j_k =  1;           HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          i_k =  3 + kOffsetX
+          j_k =  1;           HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          j_v =  9 + vOffsetA;HaveExciTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1
+          j_k =  1;           HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          i_k =  3 + kOffsetX
+          j_k =  1;           HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          j_v = 10 + vOffsetA;HaveExciTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1
+          j_k =  1;           HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          i_k =  3 + kOffsetX
+          j_k =  1;           HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          
+          i_v =  7 + vOffsetA ! Equation for Q_{a}^{\rho}
+          
+          i_v =  8 + vOffsetA ! Equation for Q_{a\para}
+          j_v =  4 + vOffsetA;HaveExciTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1
+          j_k =  1;           HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          j_v =  5 + vOffsetA;HaveExciTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1
+          j_k =  1;           HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          j_v =  9 + vOffsetA;HaveExciTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1
+          j_k =  1;           HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          j_v = 10 + vOffsetA;HaveExciTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1
+          j_k =  1;           HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
 
-       i_v = 11 + vOffsetA    ! Equation for p_{a}
-       j_v =  9 + vOffsetA;   HaveExciTenCoef(i_v,j_v) = .TRUE.
-       i_k = 1
-       j_k = 1;               HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
-       i_k = 3 + kOffsetX
-       j_k = 1;               HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          i_v =  9 + vOffsetA ! Equation for Q_{a\zeta}
+          i_v = 10 + vOffsetA ! Equation for Q_{a}^{\chi}
+       ENDDO
+    CASE (2)
+       !
+       ! variables as field (from i_v= 1 to i_v = NFMAX)
+       !
+       i_v = 1                   ! Equation for psi'
+       i_v = 2                   ! Equation for I
+       i_v = 3                   ! Equation for E_{\zeta}
+       i_v = 4                   ! Equation for E_{\chi}
+       i_v = 5                   ! Equation for E_{\rho}
+       i_v = 6                   ! Equation for E^{\chi}
 
-       j_v = 10 + vOffsetA;   HaveExciTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1
-       j_k =  1;              HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
-       i_k =  3 + kOffsetX
-       j_k =  1;              HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
-       j_v = 14 + vOffsetA;   HaveExciTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1
-       j_k =  1;              HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
-       i_k =  3 + kOffsetX
-       j_k =  1;              HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
-       j_v = 15 + vOffsetA;   HaveExciTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1
-       j_k =  1;              HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
-       i_k =  3 + kOffsetX
-       j_k =  1;              HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+       !
+       ! variables as fluid (from i_v = NFMAX+1 to i_v = NVMAX)
+       !
+       DO i_s = 0, NSMAX-1
+       
+          vOffsetA = 10*i_s + NFMAX
+          vOffsetB = vOffsetA
+          kOffsetX =  2*i_s
+          kOffsetY = kOffsetX
+          
+          i_v =  1 + vOffsetA    ! Equation for n_{a}
+          i_v =  2 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
+          
+          i_v =  3 + vOffsetA ! Equation for Gamma_{a\para}
+          j_v =  4 + vOffsetA;HaveExciTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1
+          j_k =  1;           HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE.
+          j_v =  5 + vOffsetA;HaveExciTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1
+          j_k =  1;           HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          j_v =  9 + vOffsetA;HaveExciTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1
+          j_k =  1;           HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          j_v = 10 + vOffsetA;HaveExciTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1
+          j_k =  1;           HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
 
-       i_v = 12 + vOffsetA    ! Equation for Q_{a}^{\rho}
+          i_v =  4 + vOffsetA ! Equation for Gamma_{a\zeta}
+          i_v =  5 + vOffsetA ! Equation for Gamma_{a}^{\chi}
 
-       i_v = 13 + vOffsetA    ! Equation for Q_{a\para}
-       j_v =  9 + vOffsetA;   HaveExciTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1
-       j_k =  1;              HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
-       j_v = 10 + vOffsetA;   HaveExciTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1
-       j_k =  1;              HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
-       j_v = 14 + vOffsetA;   HaveExciTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1
-       j_k =  1;              HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
-       j_v = 15 + vOffsetA;   HaveExciTenCoef(i_v,j_v) = .TRUE.
-       i_k =  1
-       j_k =  1;              HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          i_v =  6 + vOffsetA ! Equation for p_{a}
+          j_v =  4 + vOffsetA;HaveExciTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1
+          j_k =  1;           HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          i_k =  3 + kOffsetX
+          j_k =  1;           HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          j_v =  5 + vOffsetA;HaveExciTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1
+          j_k =  1;           HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          i_k =  3 + kOffsetX
+          j_k =  1;           HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          j_v =  9 + vOffsetA;HaveExciTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1
+          j_k =  1;           HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          i_k =  3 + kOffsetX
+          j_k =  1;           HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          j_v = 10 + vOffsetA;HaveExciTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1
+          j_k =  1;           HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          i_k =  3 + kOffsetX
+          j_k =  1;           HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          
+          i_v =  7 + vOffsetA ! Equation for Q_{a}^{\rho}
+          
+          i_v =  8 + vOffsetA ! Equation for Q_{a\para}
+          j_v =  4 + vOffsetA;HaveExciTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1
+          j_k =  1;           HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          j_v =  5 + vOffsetA;HaveExciTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1
+          j_k =  1;           HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          j_v =  9 + vOffsetA;HaveExciTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1
+          j_k =  1;           HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
+          j_v = 10 + vOffsetA;HaveExciTenCoef(i_v,j_v) = .TRUE.
+          i_k =  1
+          j_k =  1;           HaveExciTenKval(i_k,j_k,i_v,j_v) = .TRUE. 
 
-       i_v = 14 + vOffsetA    ! Equation for Q_{a\zeta}
-       i_v = 15 + vOffsetA    ! Equation for Q_{a}^{\chi}
-    
-    ENDDO
+          i_v =  9 + vOffsetA ! Equation for Q_{a\zeta}
+          i_v = 10 + vOffsetA ! Equation for Q_{a}^{\chi}
+       ENDDO
+    END SELECT
     
     RETURN 
 
@@ -1293,55 +1850,95 @@ CONTAINS
   SUBROUTINE T2VGRA_LOCK_EQUA_EB
     
     USE T2COMM, ONLY:&
-         & NSMAX,NVMAX,                            &
+         & NSMAX,NVMAX,NFMAX,                      &
          & SolveElectron,SolveIons,                &
          & SolveBp,SolveBt,SolveEt,SolveEp,SolveEr,&
          & SolveNn,SolveFr,SolveFb,SolveFt,SolveFp,&
          & SolvePp,SolveQr,SolveQb,SolveQt,SolveQp,& 
-         & LockEqs
+         & LockEqs,EqSet
     
     INTEGER(ikind)::i_s,vOffsetA
     
     ! initialization
     LockEqs(1:NVMAX) = .TRUE.
     
-    ! field
-    LockEqs( 1)    = .NOT.SolveBp
-    LockEqs( 2)    = .NOT.SolveBt
-    LockEqs( 3)    = .NOT.SolveEt
-    LockEqs( 4)    = .NOT.SolveEp
-    LockEqs( 5)    = .NOT.SolveEr
+    SELECT CASE (EqSet)
+    CASE (1)
+       ! field
+       LockEqs( 1)    = .NOT.SolveBp
+       LockEqs( 2)    = .NOT.SolveBt
+       LockEqs( 3)    = .NOT.SolveEt
+       LockEqs( 4)    = .NOT.SolveEp
+       LockEqs( 5)    = .NOT.SolveEr
     
+       
+       IF(SolveElectron)THEN
+          LockEqs( 1 + NFMAX) = .NOT.SolveNn
+          LockEqs( 2 + NFMAX) = .NOT.SolveFr
+          LockEqs( 3 + NFMAX) = .NOT.SolveFb
+          LockEqs( 4 + NFMAX) = .NOT.SolveFt
+          LockEqs( 5 + NFMAX) = .NOT.SolveFp
+          LockEqs( 6 + NFMAX) = .NOT.SolvePp
+          LockEqs( 7 + NFMAX) = .NOT.SolveQr
+          LockEqs( 8 + NFMAX) = .NOT.SolveQb
+          LockEqs( 9 + NFMAX) = .NOT.SolveQt
+          LockEqs(10 + NFMAX) = .NOT.SolveQp
+       ENDIF
     
-    IF(SolveElectron)THEN
-       LockEqs( 6) = .NOT.SolveNn
-       LockEqs( 7) = .NOT.SolveFr
-       LockEqs( 8) = .NOT.SolveFb
-       LockEqs( 9) = .NOT.SolveFt
-       LockEqs(10) = .NOT.SolveFp
-       LockEqs(11) = .NOT.SolvePp
-       LockEqs(12) = .NOT.SolveQr
-       LockEqs(13) = .NOT.SolveQb
-       LockEqs(14) = .NOT.SolveQt
-       LockEqs(15) = .NOT.SolveQp
-    ENDIF
+       IF(SolveIons)THEN
+          DO i_s = 1, NSMAX-1
+             vOffsetA = 10*i_s + NFMAX
+             LockEqs( 1 + vOffsetA) = .NOT.SolveNn
+             LockEqs( 2 + vOffsetA) = .NOT.SolveFr
+             LockEqs( 3 + vOffsetA) = .NOT.SolveFb
+             LockEqs( 4 + vOffsetA) = .NOT.SolveFt
+             LockEqs( 5 + vOffsetA) = .NOT.SolveFp
+             LockEqs( 6 + vOffsetA) = .NOT.SolvePp
+             LockEqs( 7 + vOffsetA) = .NOT.SolveQr
+             LockEqs( 8 + vOffsetA) = .NOT.SolveQb
+             LockEqs( 9 + vOffsetA) = .NOT.SolveQt
+             LockEqs(10 + vOffsetA) = .NOT.SolveQp
+          ENDDO
+       ENDIF
+    CASE (2)
+       ! field
+       LockEqs( 1)    = .NOT.SolveBp
+       LockEqs( 2)    = .NOT.SolveBt
+       LockEqs( 3)    = .NOT.SolveEt
+       LockEqs( 4)    = .NOT.SolveEp
+       LockEqs( 5)    = .NOT.SolveEr
+       LockEqs( 6)    = .NOT.SolveEp
+       
+       IF(SolveElectron)THEN
+          LockEqs( 1 + NFMAX) = .NOT.SolveNn
+          LockEqs( 2 + NFMAX) = .NOT.SolveFr
+          LockEqs( 3 + NFMAX) = .NOT.SolveFb
+          LockEqs( 4 + NFMAX) = .NOT.SolveFt
+          LockEqs( 5 + NFMAX) = .NOT.SolveFp
+          LockEqs( 6 + NFMAX) = .NOT.SolvePp
+          LockEqs( 7 + NFMAX) = .NOT.SolveQr
+          LockEqs( 8 + NFMAX) = .NOT.SolveQb
+          LockEqs( 9 + NFMAX) = .NOT.SolveQt
+          LockEqs(10 + NFMAX) = .NOT.SolveQp
+       ENDIF
     
-    IF(SolveIons)THEN
-       DO i_s = 1, NSMAX-1
-          vOffsetA = 10*i_s
-          LockEqs( 6+vOffsetA) = .NOT.SolveNn
-          LockEqs( 7+vOffsetA) = .NOT.SolveFr
-          LockEqs( 8+vOffsetA) = .NOT.SolveFb
-          LockEqs( 9+vOffsetA) = .NOT.SolveFt
-          LockEqs(10+vOffsetA) = .NOT.SolveFp
-          LockEqs(11+vOffsetA) = .NOT.SolvePp
-          LockEqs(12+vOffsetA) = .NOT.SolveQr
-          LockEqs(13+vOffsetA) = .NOT.SolveQb
-          LockEqs(14+vOffsetA) = .NOT.SolveQt
-          LockEqs(15+vOffsetA) = .NOT.SolveQp
-       ENDDO
-    ENDIF
-    
+       IF(SolveIons)THEN
+          DO i_s = 1, NSMAX-1
+             vOffsetA = 10*i_s + NFMAX
+             LockEqs( 1 + vOffsetA) = .NOT.SolveNn
+             LockEqs( 2 + vOffsetA) = .NOT.SolveFr
+             LockEqs( 3 + vOffsetA) = .NOT.SolveFb
+             LockEqs( 4 + vOffsetA) = .NOT.SolveFt
+             LockEqs( 5 + vOffsetA) = .NOT.SolveFp
+             LockEqs( 6 + vOffsetA) = .NOT.SolvePp
+             LockEqs( 7 + vOffsetA) = .NOT.SolveQr
+             LockEqs( 8 + vOffsetA) = .NOT.SolveQb
+             LockEqs( 9 + vOffsetA) = .NOT.SolveQt
+             LockEqs(10 + vOffsetA) = .NOT.SolveQp
+          ENDDO
+       ENDIF
+    END SELECT
+
     RETURN
     
   END SUBROUTINE T2VGRA_LOCK_EQUA_EB
@@ -1351,13 +1948,14 @@ CONTAINS
   ! CREATE TABLE ABOUT WHICH VARIABLES ARE TO BE LOCKED ON AXIS
   !
   !
-  !                     LAST UPDATE     2014-06-12 H.Seto
+  !                     LAST UPDATE     2014-06-22 H.Seto
+  !                     OPERATION CHECK 2014-05-26 H.Seto
   !
   !-------------------------------------------------------------------
   SUBROUTINE T2VGRA_LOCK_AXIS_EB
     
     USE T2COMM, ONLY:&
-         & NSMAX,NVMAX,LockAxi,LockEqs,&
+         & NSMAX,NVMAX,NFMAX,LockAxi,LockEqs,&
          !
          & LockBpOnAxis,LockBtOnAxis,LockEtOnAxis,LockEpOnAxis,&
          & LockErOnAxis,&
@@ -1367,45 +1965,45 @@ CONTAINS
          & LockQpOnAxis
     
     INTEGER(ikind)::i_s,vOffsetA
-
+    
     ! initialization
     LockAxi(1:NVMAX) = .FALSE.    
     
     IF(.NOT.LockEqs(1))&
-         LockAxi(   1) = LockBpOnAxis
+         &  LockAxi(1) = LockBpOnAxis
     IF(.NOT.LockEqs(2))&
-         LockAxi(   2) = LockBtOnAxis
+         &  LockAxi(2) = LockBtOnAxis
     IF(.NOT.LockEqs(3))&
-         LockAxi(   3) = LockEtOnAxis
+         &  LockAxi(3) = LockEtOnAxis
     IF(.NOT.LockEqs(4))&
-         LockAxi(   4) = LockEpOnAxis
+         &  LockAxi(4) = LockEpOnAxis
     IF(.NOT.LockEqs(5))&
-         LockAxi(   5) = LockErOnAxis
+         &  LockAxi(5) = LockErOnAxis
     
-    DO i_s = 0,NSMAX-1
-       vOffsetA = 10*i_s
-       IF(.NOT.LockEqs( 6+vOffsetA))&
-            &  LockAxi( 6+vOffsetA) = LockNnOnAxis
-       IF(.NOT.LockEqs( 7+vOffsetA))&
-            &  LockAxi( 7+vOffsetA) = LockFrOnAxis
-       IF(.NOT.LockEqs( 8+vOffsetA))&
-            &  LockAxi( 8+vOffsetA) = LockFbOnAxis
-       IF(.NOT.LockEqs( 9+vOffsetA))&
-            &  LockAxi( 9+vOffsetA) = LockFtOnAxis
-       IF(.NOT.LockEqs(10+vOffsetA))&
-            &  LockAxi(10+vOffsetA) = LockFpOnAxis 
-       IF(.NOT.LockEqs(11+vOffsetA))&
-            &  LockAxi(11+vOffsetA) = LockPpOnAxis 
-       IF(.NOT.LockEqs(12+vOffsetA))&
-            &  LockAxi(12+vOffsetA) = LockQrOnAxis 
-       IF(.NOT.LockEqs(13+vOffsetA))&
-            &  LockAxi(13+vOffsetA) = LockQbOnAxis
-       IF(.NOT.LockEqs(14+vOffsetA))&
-            &  LockAxi(14+vOffsetA) = LockQtOnAxis
-       IF(.NOT.LockEqs(15+vOffsetA))&
-            &  LockAxi(15+vOffsetA) = LockQpOnAxis
+    DO i_s = 0, NSMAX-1
+       vOffsetA = 10*i_s + NFMAX
+       IF(.NOT.LockEqs( 1 + vOffsetA))&
+            &  LockAxi( 1 + vOffsetA) = LockNnOnAxis
+       IF(.NOT.LockEqs( 2 + vOffsetA))&
+            &  LockAxi( 2 + vOffsetA) = LockFrOnAxis
+       IF(.NOT.LockEqs( 3 + vOffsetA))&
+            &  LockAxi( 3 + vOffsetA) = LockFbOnAxis
+       IF(.NOT.LockEqs( 4 + vOffsetA))&
+            &  LockAxi( 4 + vOffsetA) = LockFtOnAxis
+       IF(.NOT.LockEqs( 5 + vOffsetA))&
+            &  LockAxi( 5 + vOffsetA) = LockFpOnAxis 
+       IF(.NOT.LockEqs( 6 + vOffsetA))&
+            &  LockAxi( 6 + vOffsetA) = LockPpOnAxis 
+       IF(.NOT.LockEqs( 7 + vOffsetA))&
+            &  LockAxi( 7 + vOffsetA) = LockQrOnAxis 
+       IF(.NOT.LockEqs( 8 + vOffsetA))&
+            &  LockAxi( 8 + vOffsetA) = LockQbOnAxis
+       IF(.NOT.LockEqs( 9 + vOffsetA))&
+            &  LockAxi( 9 + vOffsetA) = LockQtOnAxis
+       IF(.NOT.LockEqs(10 + vOffsetA))&
+            &  LockAxi(10 + vOffsetA) = LockQpOnAxis
     ENDDO
-
+    
     RETURN
     
   END SUBROUTINE T2VGRA_LOCK_AXIS_EB
@@ -1422,7 +2020,7 @@ CONTAINS
   SUBROUTINE  T2VGRA_LOCK_WALL_EB
     
     USE T2COMM,ONLY:&
-         & NSMAX,NVMAX,LockWal,LockEqs,&
+         & NSMAX,NVMAX,NFMAX,LockWal,LockEqs,&
          !
          !
          & LockBpOnWall,LockBtOnWall,LockEtOnWall,LockEpOnWall,&
@@ -1436,7 +2034,7 @@ CONTAINS
 
     ! initialization
     LockWal(1:NVMAX) = .FALSE.    
-
+    
     
     IF(.NOT.LockEqs( 1))&
          &  LockWal( 1) = LockBpOnWall
@@ -1451,27 +2049,27 @@ CONTAINS
     
 
     DO i_s = 0,NSMAX-1
-       vOffsetA = 10*i_s
-       IF(.NOT.LockEqs( 6+vOffsetA))&
-            &  LockWal( 6+vOffsetA) = LockNnOnWall
-       IF(.NOT.LockEqs( 7+vOffsetA))&
-            &  LockWal( 7+vOffsetA) = LockFrOnWall
-       IF(.NOT.LockEqs( 8+vOffsetA))&
-            &  LockWal( 8+vOffsetA) = LockFbOnWall
-       IF(.NOT.LockEqs( 9+vOffsetA))&
-            &  LockWal( 9+vOffsetA) = LockFtOnWall
-       IF(.NOT.LockEqs(10+vOffsetA))&
-            &  LockWal(10+vOffsetA) = LockFpOnWall
-       IF(.NOT.LockEqs(11+vOffsetA))&
-            &  LockWal(11+vOffsetA) = LockPpOnWall 
-       IF(.NOT.LockEqs(12+vOffsetA))&
-            &  LockWal(12+vOffsetA) = LockQrOnWall 
-       IF(.NOT.LockEqs(13+vOffsetA))&
-            &  LockWal(13+vOffsetA) = LockQbOnWall
-       IF(.NOT.LockEqs(14+vOffsetA))&
-            &  LockWal(14+vOffsetA) = LockQtOnWall
-       IF(.NOT.LockEqs(15+vOffsetA))&
-            &  LockWal(15+vOffsetA) = LockQpOnWall
+       vOffsetA = 10*i_s + NFMAX
+       IF(.NOT.LockEqs( 1 + vOffsetA))&
+            &  LockWal( 1 + vOffsetA) = LockNnOnWall
+       IF(.NOT.LockEqs( 2 + vOffsetA))&
+            &  LockWal( 2 + vOffsetA) = LockFrOnWall
+       IF(.NOT.LockEqs( 3 + vOffsetA))&
+            &  LockWal( 3 + vOffsetA) = LockFbOnWall
+       IF(.NOT.LockEqs( 4 + vOffsetA))&
+            &  LockWal( 4 + vOffsetA) = LockFtOnWall
+       IF(.NOT.LockEqs( 5 + vOffsetA))&
+            &  LockWal( 5 + vOffsetA) = LockFpOnWall
+       IF(.NOT.LockEqs( 6 + vOffsetA))&
+            &  LockWal( 6 + vOffsetA) = LockPpOnWall 
+       IF(.NOT.LockEqs( 7 + vOffsetA))&
+            &  LockWal( 7 + vOffsetA) = LockQrOnWall 
+       IF(.NOT.LockEqs( 8 + vOffsetA))&
+            &  LockWal( 8 + vOffsetA) = LockQbOnWall
+       IF(.NOT.LockEqs( 9 + vOffsetA))&
+            &  LockWal( 9 + vOffsetA) = LockQtOnWall
+       IF(.NOT.LockEqs(10 + vOffsetA))&
+            &  LockWal(10 + vOffsetA) = LockQpOnWall
     ENDDO
     
   END SUBROUTINE T2VGRA_LOCK_WALL_EB
