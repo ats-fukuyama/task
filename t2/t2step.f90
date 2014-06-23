@@ -26,7 +26,8 @@ CONTAINS
     
     USE T2COEF,ONLY: T2COEF_EXECUTE
     USE T2EXEC,ONLY: T2EXEC_EXECUTE
-    USE T2CONV,ONLY: T2_CONV
+    USE T2CONV,ONLY: T2CONV_EXECUTE
+    USE T2VOUT,ONLY: T2VOUT_EXECUTE
     
     INTEGER(ikind),INTENT(OUT):: i_conv
     REAL(   rkind),INTENT(OUT):: residual_conv
@@ -55,12 +56,12 @@ CONTAINS
             e0time_1-e0time_0,' [s]'
        
        ! ADVECTION DIFFUSION EQUATION SOLVER (SUPG)
-       CALL T2EXEC_EXECUTE
+       CALL T2EXEC_EXECUTE(NVMAX)
        
        ! CONVERGENCE CHECK
        SELECT CASE (CoordinateSwitch)
        CASE (1)
-          CALL T2STEP_CONV(residual_conv)
+          CALL T2CONV_EXECUTE(NVMAX,residual_conv)
        CASE (2)
           CALL T2STEP_CONV_TEST(residual_conv)
        END SELECT
@@ -87,7 +88,7 @@ CONTAINS
 
     SELECT CASE (CoordinateSwitch)
     CASE (1)
-       CALL T2_CONV
+       CALL T2VOUT_EXECUTE
     CASE (2)
        CALL T2STEP_GNUPLOT
     END SELECT
@@ -95,84 +96,6 @@ CONTAINS
     
   END SUBROUTINE T2_STEP
   
-  SUBROUTINE T2STEP_CONV(residualMax)
-    
-    USE T2COMM, ONLY:&
-         NVMAX,NXMAX,NRMAX,&
-         LockEqs,&
-         XvecIn,XvecOut,&
-         i1mc1d
-    
-    REAL(   rkind),INTENT(OUT)::residualMax
-
-    INTEGER(ikind):: i_x, i_v, i_r
-    REAL(   rkind)::&
-         valIn,valOut,residual,resDenominator,resNumerator,&
-         resNumeratorSquared(  1:NVMAX),&
-         resDenominatorSquared(1:NVMAX)
-
-    ! initialization
-    residualMax = 0.D0
-    resNumeratorSquared(  1:NVMAX) = 0.D0
-    resDenominatorSquared(1:NVMAX) = 0.D0
-
-    ! for 1D dependent variables (FSA)
-    DO i_r = 1, NRMAX
-       i_x = i1mc1d(i_r)
-       DO i_v = 1, 3
-          IF(LockEqs(i_v))CYCLE
-          valOut = XvecOut(i_v,i_x)
-          valIn  = XvecIn( i_v,i_x)
-          resNumeratorSquared(  i_v)&
-               = resNumeratorSquared(  i_v) + (valOut-valIn)**2
-          resDenominatorSquared(i_v)&
-               = resDenominatorSquared(i_v) + valOut**2
-       ENDDO
-    ENDDO
-
-    ! for 2D dependent variables
-    DO i_x = 1, NXMAX
-       DO i_v = 4,NVMAX
-          IF(LockEqs(i_v))CYCLE
-          valOut = XvecOut(i_v,i_x)
-          valIn  = XvecIn( i_v,i_x)
-!          IF(i_v.EQ.5)THEN
-!             print*,i_v,i_x,valIn,valOut
-!          END IF
-          resNumeratorSquared(         i_v)&
-               = resNumeratorSquared(  i_v) + (valOut-valIn)**2
-          resDenominatorSquared(i_v)&
-               = resDenominatorSquared(i_v) + valOut**2
-       ENDDO
-    ENDDO
-
-    ! CHECK CONVERGENCE
-    DO i_v = 1,NVMAX
-       IF(.NOT.LockEqs(i_v))THEN
-          IF(resDenominatorSquared(i_v).EQ.0.D0)THEN
-             IF(resNumeratorSquared(i_v).EQ.0.D0)THEN
-                residual = 0.D0
-             ELSE
-                WRITE(6,'("*********************************************")')
-                WRITE(6,'("       ERROR IN T2STEP_CONVERGENCE           ")')
-                WRITE(6,'("       INDETERMINATE PROBLEM                 ")')
-                WRITE(6,'("*********************************************")')
-                WRITE(6,*)i_v,resDenominatorSquared(i_v)
-                STOP
-             ENDIF
-          END IF
-          resDenominator = SQRT(resDenominatorSquared(i_v))
-          resNumerator   = SQRT(resNumeratorSquared(  i_v))
-          residual       = resNumerator/resDenominator
-          WRITE(6,*),'VARIABLES=',i_v,'RESIDUAL=',residual
-          residualMax = MAX(residualMax,residual)
-       ENDIF
-    ENDDO
-   
-    RETURN
-    
-  END SUBROUTINE T2STEP_CONV
-
   SUBROUTINE T2STEP_CONV_TEST(residualMax)
     
     USE T2COMM, ONLY:&

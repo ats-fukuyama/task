@@ -450,7 +450,7 @@ CONTAINS
          GlobalCrd,d2rzm,Metric,Xvec
     
     USE T2GOUT, ONLY: T2_GOUT
-    USE T2CONV, ONLY: T2_CONV
+    USE T2VOUT, ONLY: T2VOUT_EXECUTE
     INTEGER(ikind)::&
          i_v,i_s,i_m,i_x,i_x1d,i_x2d,vOffsetA
     
@@ -520,7 +520,7 @@ CONTAINS
     ENDDO
 
 
-    CALL T2_CONV
+    CALL T2VOUT_EXECUTE
     CALL T2_GOUT
     
     RETURN

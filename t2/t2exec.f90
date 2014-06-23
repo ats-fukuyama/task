@@ -77,7 +77,7 @@ MODULE T2EXEC
        bvec(:,:)
   
   ! for debug
-  INTEGER(ikind),SAVE::i_elm
+  INTEGER(ikind),SAVE::i_elm,nvmx
   
   PUBLIC T2EXEC_EXECUTE,&
        & T2EXEC_DEALLOCATE
@@ -92,7 +92,7 @@ CONTAINS
   !                2014-06-23 H.SETO
   !
   !------------------------------------------------------------------
-  SUBROUTINE T2EXEC_EXECUTE
+  SUBROUTINE T2EXEC_EXECUTE(nvmx_in)
     
     USE T2COMM,ONLY: NNMAX,NEMAX,NKMAX,NVMAX,NBMAX,NAMAX,NDMAX,NVFMX,&
          &           CoordinateSwitch,&
@@ -106,11 +106,15 @@ CONTAINS
          &           StartEqs,EndEqs,LockEqs,StartAxi,EndAxi,LockAxi,&
          &           StartWal,EndWal,LockWal
     
+    INTEGER(ikind),INTENT(IN)::nvmx_in
     INTEGER(ikind)::&
          i_v,j_v,i_k,j_k!,i_e
     REAL(4)::e0time_0,e0time_1
+
     CALL CPU_TIME(e0time_0)
-    
+
+    nvmx = nvmx_in
+
     CALL T2EXEC_ALLOCATE
     
     ! INITIALIZATION
@@ -1648,28 +1652,35 @@ CONTAINS
   !           
   !
   !-------------------------------------------------------------------
-  SUBROUTINE T2EXEC_LOCK_VALUES(nodeStart,nodeEnd,varLockTable)
+  SUBROUTINE T2EXEC_LOCK_VALUES(nodeStart,nodeEnd,varLockTableIn)
     
     USE T2COMM,ONLY: NVMAX,NodeRowCRS, NodeColCRS,Xvec
     
     INTEGER(ikind),INTENT(IN)::nodeStart,nodeEnd
-    LOGICAL,INTENT(IN)::varLockTable(1:NVMAX)
+    LOGICAL       ,INTENT(IN)::varLockTableIn(1:NVMAX)
     
+    LOGICAL::varLockTable(  1:NVMAX)
     INTEGER(ikind)::&
-         i_a,i_v,j_v,i_row,i_col
+         ia,iv,jv,i_row,i_col
     
+    varLockTable(1:NVMAX) = .TRUE.
+
+    DO iv = 1,nvmx
+       varLockTable(iv) = varLockTableIn(iv)
+    ENDDO
+
     DO i_row = nodeStart, nodeEnd
        
        ! stiffness matrix
-       DO i_a = NodeRowCRS(i_row), NodeRowCRS(i_row+1)-1
-          i_col = NodeColCRS(i_a)
-          DO j_v = 1, NVMAX
-          DO i_v = 1, NVMAX
-             IF(varLockTable(i_v))THEN
-                IF((i_row.EQ.i_col).AND.(i_v.EQ.j_v))THEN
-                   amat(i_v,j_v,i_a) = 1.D0
+       DO ia = NodeRowCRS(i_row), NodeRowCRS(i_row+1)-1
+          i_col = NodeColCRS(ia)
+          DO jv = 1, NVMAX
+          DO iv = 1, NVMAX
+             IF(varLockTable(iv))THEN
+                IF((i_row.EQ.i_col).AND.(iv.EQ.jv))THEN
+                   amat(iv,jv,ia) = 1.D0
                 ELSE
-                   amat(i_v,j_v,i_a) = 0.D0
+                   amat(iv,jv,ia) = 0.D0
                 ENDIF
              ENDIF
           ENDDO
@@ -1677,9 +1688,9 @@ CONTAINS
        ENDDO
     
        ! RHS vector 
-       DO i_v = 1, NVMAX
-          IF(varLockTable(i_v))THEN
-             bvec(i_v,i_row) = Xvec(i_v,i_row)
+       DO iv = 1, NVMAX
+          IF(varLockTable(iv))THEN
+             bvec(iv,i_row) = Xvec(iv,i_row)
           ENDIF
        ENDDO
        

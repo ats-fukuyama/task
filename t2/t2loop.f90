@@ -21,6 +21,7 @@ CONTAINS
     USE T2COMM,ONLY:&
          i0wstp,i1nlct,d1rsdl,&
          time_t2,dt,ntmax,ntstep,nt0dstep,nt0dmax,nt2dstep,nt2dmax,idfile
+    USE T2PREC,ONLY: T2PREC_EXECUTE
     USE T2STEP,ONLY: T2_STEP
     USE T2SAVE,ONLY: T2_SAVE_0D,T2_SAVE_2D
 

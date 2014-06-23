@@ -4,10 +4,10 @@
  dt    = 1.D-5
  idebug= 0
  NLMAX = 1
- NPMIN = 50
+ NPMIN = 10
 ! NSMAX = 0
  i1mlvl(1) = 1
- i1rdn2(1) = 50
+ i1rdn2(1) = 10
  eps_conv  = 1.D-3
  
  CoordinateSwitch = 1
@@ -30,15 +30,15 @@
     
     ! 
     UsePotentialDescription = .FALSE.
-    !UseNormalization        = .TRUE.
-    UseNormalization        = .FALSE.
+    UseNormalization        = .TRUE.
+    !UseNormalization        = .FALSE.
     UseSUPGFEM              = .FALSE.
     UseCoefficientCheck     = .FALSE.
     UseAnomalousTransportFT = .TRUE.
     UseAnomalousTransportGT = .TRUE.
     
     ! set equations to be solved
-    SolveElectron = .FALSE.
+    SolveElectron = .TRUE.
     SolveIons     = .FALSE.
 
     SolveBp       = .TRUE.
@@ -47,15 +47,15 @@
     SolveEp       = .FALSE.
     SolveEr       = .FALSE.
     SolveNn       = .TRUE.
-    SolveFr       = .FALSE.
+    SolveFr       = .TRUE.
     SolveFb       = .TRUE.
     SolveFt       = .TRUE.
     SolveFp       = .TRUE.
-    SolvePp       = .FALSE.
-    SolveQr       = .FALSE.
-    SolveQb       = .FALSE.
-    SolveQt       = .FALSE.
-    SolveQp       = .FALSE.
+    SolvePp       = .TRUE.
+    SolveQr       = .TRUE.
+    SolveQb       = .TRUE.
+    SolveQt       = .TRUE.
+    SolveQp       = .TRUE.
     
     ! set dirichlet boundary condition on magnetic axis
     LockBpOnAxis  = .TRUE.
@@ -69,7 +69,7 @@
     LockFtOnAxis  = .FALSE.
     LockFpOnAxis  = .FALSE.
     LockPpOnAxis  = .FALSE.
-    LockQrOnAxis  = .FALSE.
+    LockQrOnAxis  = .TRUE.
     LockQbOnAxis  = .FALSE.
     LockQtOnAxis  = .FALSE.
     LockQpOnAxis  = .FALSE.
@@ -85,11 +85,11 @@
     LockFrOnWall  = .FALSE.
     LockFbOnWall  = .FALSE.
     LockFtOnWall  = .TRUE.
-    LockFpOnWall  = .TRUE.
+    LockFpOnWall  = .FALSE.
     LockPpOnWall  = .FALSE.
     LockQrOnWall  = .FALSE.
     LockQbOnWall  = .FALSE.
     LockQtOnWall  = .TRUE.
-    LockQpOnWall  = .TRUE.
+    LockQpOnWall  = .FALSE.
 
  &end
