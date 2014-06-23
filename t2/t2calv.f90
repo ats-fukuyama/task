@@ -65,7 +65,7 @@ CONTAINS
     USE T2CNST,ONLY: Amp,Aee,Pi,Eps0
     
     USE T2COMM,ONLY:&
-         & NSMAX,BpNF,BtNF,&
+         & NSMAX,BpNF,BtNF,EqSet,NFMAX,&
          & NnNF,FrNF,FbNF,FtNF,FpNF,&
          & PpNF,QrNF,QbNF,QtNF,QpNF,&
          & i2crt,d2rzm,GlobalCrd,Metric,&
@@ -157,20 +157,35 @@ CONTAINS
     
     BbSq = BpSq + BtSq
     Bb   = SQRT(BbSq)
-
+    
     DO i_s = 1, NSMAX
-       vOffset =  10*(i_s - 1)
-       nnA   = XvecIn(vOffset+ 6,i_m2d)     *NnNF
-       frCtA = XvecIn(vOffset+ 7,i_m2d)*R_mc*FrNF
-       fbA   = XvecIn(vOffset+ 8,i_m2d)     *FbNF
-       ftCoA = XvecIn(vOffset+ 9,i_m2d)     *FtNF
-       fpCtA = XvecIn(vOffset+10,i_m2d)     *FpNF
-       ppA   = XvecIn(vOffset+11,i_m2d)     *PpNF
-       qrCtA = XvecIn(vOffset+12,i_m2d)*R_mc*QrNF
-       qbA   = XvecIn(vOffset+13,i_m2d)     *QbNF
-       qtCoA = XvecIn(vOffset+14,i_m2d)     *QtNF
-       qpCtA = XvecIn(vOffset+15,i_m2d)     *QpNF
-
+       SELECT CASE (EqSet)
+       CASE (1)
+          vOffset =  10*(i_s - 1) + NFMAX
+          nnA   = XvecIn(vOffset+ 1,i_m2d)     *NnNF
+          frCtA = XvecIn(vOffset+ 2,i_m2d)*R_mc*FrNF
+          fbA   = XvecIn(vOffset+ 3,i_m2d)     *FbNF
+          ftCoA = XvecIn(vOffset+ 4,i_m2d)     *FtNF
+          fpCtA = XvecIn(vOffset+ 5,i_m2d)     *FpNF
+          ppA   = XvecIn(vOffset+ 6,i_m2d)     *PpNF
+          qrCtA = XvecIn(vOffset+ 7,i_m2d)*R_mc*QrNF
+          qbA   = XvecIn(vOffset+ 8,i_m2d)     *QbNF
+          qtCoA = XvecIn(vOffset+ 9,i_m2d)     *QtNF
+          qpCtA = XvecIn(vOffset+10,i_m2d)     *QpNF
+       CASE (2)
+          vOffset =  10*(i_s - 1) + NFMAX
+          nnA   = XvecIn(vOffset+ 1,i_m2d)     *NnNF
+          frCtA = XvecIn(vOffset+ 2,i_m2d)     *FrNF
+          fbA   = XvecIn(vOffset+ 3,i_m2d)     *FbNF
+          ftCoA = XvecIn(vOffset+ 4,i_m2d)     *FtNF
+          fpCtA = XvecIn(vOffset+ 5,i_m2d)     *FpNF
+          ppA   = XvecIn(vOffset+ 6,i_m2d)     *PpNF
+          qrCtA = XvecIn(vOffset+ 7,i_m2d)     *QrNF
+          qbA   = XvecIn(vOffset+ 8,i_m2d)     *QbNF
+          qtCoA = XvecIn(vOffset+ 9,i_m2d)     *QtNF
+          qpCtA = XvecIn(vOffset+10,i_m2d)     *QpNF
+       END SELECT
+       
        IF((nnA.LT.0.D0).OR.(ppA.LT.0.D0))THEN
           WRITE(6,*)'NEGATIVE  DENSITY or PRESSURE'
           WRITE(6,*)'SPECIS=',i_s,'NODE=',i_m2d,&
@@ -930,7 +945,7 @@ CONTAINS
     
     USE T2COMM,ONLY:&
          & NSMAX,&
-         & GRt,BpCt,BtCo,BtCt,BtSq,Bb,BbSq,R_mc,&
+         & GRt,BpCt,BtCo,BtCt,BtSq,Bb,BbSq,&
          & Nn,Pp,Tt,Ee,UrCt,Ub,UtCo,UpCt,WtCo,WpCt,&
          & Mu1,Mu2,Mu3,L11,L12,L21,L22,&
          & BNCXb1,BNCXb2,BNCXb3,BNCXb4,BNCXb5,BNCXb6,&
@@ -959,10 +974,10 @@ CONTAINS
     b06 = b05*b05
     b07 = BpCt*BtCo/BbSq
     b08 = b02*b02
-    b09 = 2.D0*BtCt     /3.D0
-    b10 = 2.D0*BpCt*R_mc/3.D0
+    b09 = 2.D0*BtCt/3.D0
+    b10 = 2.D0*BpCt/3.D0
     b11 = BtSq/BbSq-1.D0/3.D0
-    b12 = BpCt*BtCo*R_mc/BbSq
+    b12 = BpCt*BtCo/BbSq
 
     !        b01*b02*b03*b04*b05*b06*b07*b08*b09*b10*b11*b12
     BNCXb1 = b01*b02*b03*b04

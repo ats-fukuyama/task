@@ -114,7 +114,9 @@ MODULE T2COMM
        NERMX,& ! ARRAY SIZE OF I1EIDR     (CRS-METHOD) 
        NECMX,& ! ARRAY SIZE OF I1EIDC     (CRS-METHOD) 
        NAVMX,& ! i0avmax = i0amax*i0vmax*i0vmax
-       NBVMX   ! i0bvmax = i0bmax*i0vmax
+       NBVMX,& ! i0bvmax = i0bmax*i0vmax
+       NFAMX
+  
   INTEGER(ikind)::&
        i0wstp  ! INDICATOR FOR RESULT OUTPUT TIMING    
      
@@ -213,7 +215,7 @@ MODULE T2COMM
                     !     UP TO EACH ROW IN MATRIX A
        NodeColCRS,& ! NODE NUMBER 
        NodeDiaCRS   ! Position of DIagonal component in MATRIX A 
-  
+
   INTEGER(ikind),ALLOCATABLE,DIMENSION(:)::&
        i1eidr,&     ! CUMULTATIVE NUMBER OF NODE-ELEMENT CONNECTIVITY + 1
                     !      UP TO EACH NODE 
@@ -229,6 +231,7 @@ MODULE T2COMM
                        !      1: FOR COEFFICIENT CALCULATION
                        !      2: FOR 2D
                        !      3: FOR 1D
+       NodeFSA,&
        HangedNodeTable ! INFORMATION OF BOUND NODE AND BINDING NODES
     INTEGER(ikind),ALLOCATABLE,DIMENSION(:)::&
        i1mc1d ! NODE   NUMBERS   FOR DATA STOCK OF 1D VALUES
@@ -620,6 +623,7 @@ CONTAINS
           ALLOCATE(NodeRowCRS(1:NNRMX),STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(NodeColCRS(1:NAMAX),STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(NodeDiaCRS(1:NBMAX),STAT=ierr);IF(ierr.NE.0)EXIT
+          ALLOCATE(NodeFSA(1:2,1:NBMAX),STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(ElementNodeGraph(1:NNMAX,1:4,1:NEMAX),&
                &                       STAT=ierr);IF(ierr.NE.0)EXIT
           ALLOCATE(GlobalCrd(1:NDMAX,1:NMMAX),&
@@ -671,6 +675,7 @@ CONTAINS
     IF(ALLOCATED(NodeRowCRS)) DEALLOCATE(NodeRowCRS)
     IF(ALLOCATED(NodeColCRS)) DEALLOCATE(NodeColCRS)
     IF(ALLOCATED(NodeDiaCRS)) DEALLOCATE(NodeDiaCRS)
+    IF(ALLOCATED(NodeFSA)) DEALLOCATE(NodeFSA)
     IF(ALLOCATED(GlobalCrd)) DEALLOCATE(GlobalCrd)
     IF(ALLOCATED(ElementNodeGraph)) DEALLOCATE(ElementNodeGraph)
     IF(ALLOCATED(HangedNodeTable )) DEALLOCATE(HangedNodeTable )

@@ -87,10 +87,34 @@ CONTAINS
     ! CONSTRUCT NODE - NODE GRAPH ! CHECKED 
     CALL T2NGRA_NNR1    ! NodeColCRS, NodeRowCRS, NodeDiaCRS
     
+    CALL T2NGRA_FSA1    ! 
     RETURN
     
   END SUBROUTINE T2NGRA_NGRAPH1
   
+  SUBROUTINE T2NGRA_FSA1
+    
+    USE T2COMM,ONLY:NMMAX,NFAMX,i2crt,NodeFSA
+    INTEGER(ikind)::im,cnt,crtb,crtc,crtb_tmp
+    
+    cnt = 0
+    crtb_tmp = 1
+    DO im = 1, NMMAX
+       crtb = i2crt(2,im)
+       crtc = i2crt(3,im)
+       IF((crtb.GT.crtb_tmp).AND.(crtb.NE.crtc))THEN
+          cnt = cnt + 1
+          NodeFSA(1,cnt) = crtb-1
+          NodeFSA(2,cnt) = crtc-1
+       ENDIF
+       crtb_tmp = crtb
+    ENDDO
+    
+    NFAMX = cnt
+    
+    RETURN
+
+  END SUBROUTINE T2NGRA_FSA1
   !
   !
   !
@@ -415,7 +439,6 @@ CONTAINS
                 i2crt(1,i0mcnt) = i0mcnt
                 i2crt(2,i0mcnt) = i0stack2d
                 i2crt(3,i0mcnt) = i0stack1d
-                
              ENDDO
           ENDDO
        ENDIF

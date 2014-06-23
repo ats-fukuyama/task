@@ -99,9 +99,9 @@ CONTAINS
           EqErNF=1.D0
           EqNnNF=NnNF
           EqFrNF=PpNF
-          EqFbNF=PpNF!*1.D-6
-          EqFtNF=PpNF!*1.D-6
-          EqFpNF=FpNF!*1.D-3
+          EqFbNF=PpNF
+          EqFtNF=PpNF
+          EqFpNF=FpNF
           EqPpNF=PpNF
           EqQrNF=PpNF*TtNF
           EqQbNF=PpNF*TtNF
@@ -114,9 +114,9 @@ CONTAINS
           EqEpNF=1.D0
           EqErNF=1.D0
 
-          !EqFrNF=1.D0
+          !EqFtNF=1.D0
           !EqFbNF=1.D-5
-          !EqFtNF=1.D-5
+          !EqFrNF=1.D-5
 
           !EqQrNF=1.D-15
           !EqQbNF=1.D-20
@@ -445,7 +445,7 @@ CONTAINS
          BpNF,BtNF,EtNF,EpNF,ErNF,&
          NnNF,FrNF,FbNF,FtNF,FpNF,&
          PpNF,QrNF,QbNF,QtNF,QpNF,&
-         NSMAX,NXMAX,NVMAX,NMMAX, &
+         NSMAX,NXMAX,NVMAX,NMMAX,NFMAX, &
          i1pdn1,i2crt,&
          GlobalCrd,d2rzm,Metric,Xvec
     
@@ -489,6 +489,11 @@ CONTAINS
        Xvec(1,i_x1d) = FUNC_dpsidr(r_mc,p_mc)/BpNF ! dPsidr
        Xvec(2,i_x1d) = FUNC_btCo(  r_mc,p_mc)/BtNF ! I
        Xvec(3,i_x1d) = FUNC_etCo(  r_mc,p_mc)/EtNF ! E_{\zeta}
+       ! >>>> for debug >>>> 
+       !Xvec(1,i_x2d) = FUNC_dpsidr(r_mc,p_mc)/BpNF ! dPsidr
+       !Xvec(2,i_x2d) = FUNC_btCo(  r_mc,p_mc)/BtNF ! I
+       !Xvec(3,i_x2d) = FUNC_etCo(  r_mc,p_mc)/EtNF ! E_{\zeta}
+       ! <<<< for debug <<<<
        Xvec(4,i_x2d) = FUNC_epCo(  r_mc,p_mc)/EpNF !\bar{E}_{\chi}
        Xvec(5,i_x2d) = FUNC_erCo(  r_mc,p_mc)/ErNF ! E_{\sigma}
        
@@ -500,17 +505,17 @@ CONTAINS
        ff = FUNC_ff(r_mc,p_mc)
        
        DO i_s = 1,NSMAX
-          vOffsetA = 10*(i_s-1) 
-          Xvec( 6+vOffsetA,i_x2d) = nn(  i_s)/NnNF
-          Xvec( 7+vOffsetA,i_x2d) = ff(1,i_s)/FrNF
-          Xvec( 8+vOffsetA,i_x2d) = ff(2,i_s)/FbNF
-          Xvec( 9+vOffsetA,i_x2d) = ff(3,i_s)/FtNF
-          Xvec(10+vOffsetA,i_x2d) = ff(4,i_s)/FpNF
-          Xvec(11+vOffsetA,i_x2d) = pp(  i_s)/PpNF
-          Xvec(12+vOffsetA,i_x2d) = ff(5,i_s)/QrNF
-          Xvec(13+vOffsetA,i_x2d) = ff(6,i_s)/QbNF
-          Xvec(14+vOffsetA,i_x2d) = ff(7,i_s)/QtNF
-          Xvec(15+vOffsetA,i_x2d) = ff(8,i_s)/QpNF
+          vOffsetA = 10*(i_s-1) + NFMAX 
+          Xvec( 1+vOffsetA,i_x2d) = nn(  i_s)/NnNF
+          Xvec( 2+vOffsetA,i_x2d) = ff(1,i_s)/FrNF
+          Xvec( 3+vOffsetA,i_x2d) = ff(2,i_s)/FbNF
+          Xvec( 4+vOffsetA,i_x2d) = ff(3,i_s)/FtNF
+          Xvec( 5+vOffsetA,i_x2d) = ff(4,i_s)/FpNF
+          Xvec( 6+vOffsetA,i_x2d) = pp(  i_s)/PpNF
+          Xvec( 7+vOffsetA,i_x2d) = ff(5,i_s)/QrNF
+          Xvec( 8+vOffsetA,i_x2d) = ff(6,i_s)/QbNF
+          Xvec( 9+vOffsetA,i_x2d) = ff(7,i_s)/QtNF
+          Xvec(10+vOffsetA,i_x2d) = ff(8,i_s)/QpNF
        ENDDO
     ENDDO
 

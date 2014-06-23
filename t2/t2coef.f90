@@ -1490,14 +1490,14 @@ CONTAINS
          Eps0,Rmu0
     USE T2COMM,ONLY:&
          & UseAnomalousTransportFT,UseAnomalousTransportGT,&
-         & NSMAX,NVMAX,& 
+         & NSMAX,NVMAX,NFMAX,& 
          &           EtNF,EpNF,ErNF,&
          & NnNF,FrNF,FbNF,FtNF,FpNF,&
          & PpNF,QrNF,QbNF,QtNF,QpNF,&
          & EqBtNF,EqEtNF,EqEpNF,EqErNF,&
          &        EqFrNF,EqFbNF,EqFtNF,EqFpNF,&
          & EqPpNF,EqQrNF,EqQbNF,EqQtNF,EqQpNF,&
-         & GRt,G12Ct,G11Ct,G12Co,G22Co,G33Co, &
+         & GRt,G12Ct,G11Ct,G22xCt,G12Co,G22Co,G33Co, &
          & R_mc,BpCt,BtCo,BtCt,Bb,BbSq,       &
          & Ee,Nn,Pp,Tt,Hex,CNCF01,CNCF02,CNCF03,CNCF04,&
          & FtAnom3,FtAnom4,GtAnom3,GtAnom4,&
@@ -1544,7 +1544,7 @@ CONTAINS
        gCoef11 = GRt*G11Ct*BpCt
        DO j_s = 1, NSMAX
           
-          vOffsetB = 10*(j_s-1) +NFMAX
+          vOffsetB = 10*(j_s-1) + NFMAX
           nnB = Nn(j_s)
           ppB = Pp(j_s)
           
@@ -1658,7 +1658,13 @@ CONTAINS
                      &          = -2.5D0*GRt*eeA*ppA     * EtNF/EqQtNF
                 j_v =  7 + vOffsetB
                 ExciScaCoef(i_v,j_v,i_m)&
-                     &          = -GRt*GRt*BpCt*R_mc*eeA * QrNF/EqQtNF
+                     &          = -GRt*GRt*BpCt*R_mc*eeA * QrNF/EqQtNF 
+                j_v =  4 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)= -cncf03AB      * FtNF/EqQtNF
+                
+                j_v =  9 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)=  ExciScaCoef(i_v,j_v,i_m) &
+                     &                    -cncf04AB      * QtNF/EqQtNF
                 !  >>>> ANOMALOUS TRANSPORT * two-fluid model >>>>
                 IF(UseAnomalousTransportGT)THEN
                    j_v =  8 + vOffsetB
@@ -1670,12 +1676,6 @@ CONTAINS
                         &               +GRt*gtAnom4A    * QtNF/EqQtNF
                 ENDIF
                 !  <<<< ANOMALOUS TRANSPORT * two-fluid model <<<<
-                j_v =  4 + vOffsetB
-                ExciScaCoef(i_v,j_v,i_m)= -cncf03AB      * FtNF/EqQtNF
-                
-                j_v =  9 + vOffsetB
-                ExciScaCoef(i_v,j_v,i_m)=  ExciScaCoef(i_v,j_v,i_m) &
-                     &                    -cncf04AB      * QtNF/EqQtNF
                 
                 i_v = 10 + vOffsetA    ! Equation for Q_{a}^{\chi}
                 j_v =  8 + vOffsetB
@@ -1721,185 +1721,192 @@ CONTAINS
        i_v = 5                   ! Equation for E_{\rho}
 
        i_v = 6                   ! Equation for \bar{E}_{\chi}
-       ! KOKOMADE
-    END SELECT
-    
-    !
-    ! variables as fluid (from i_v = NFMAX+1 to i_v = NVMAX)
-    !
-    gCoef12 = GRt*G12Ct*BpCt*R_mc
-    gCoef11 = GRt*G11Ct*BpCt
-    DO j_s = 1, NSMAX
+       j_v = 4
+       ExciScaCoef(i_v,j_v,i_m)=  GRt*R_mc               * EpNF/EqEpNF
+       j_v = 5
+       ExciScaCoef(i_v,j_v,i_m)= -GRt*R_mc*G12Ct         * ErNF/EqEpNF
+       j_v = 6
+       ExciScaCoef(i_v,j_v,i_m)= -GRt     *G22xCt        * EpNF/EqEpNF
        
-       vOffsetB = 10*(j_s-1)
-       nnB = Nn(j_s)
-       ppB = Pp(j_s)
-       
-       DO i_s = 1, NSMAX
+       !
+       ! variables as fluid (from i_v = NFMAX+1 to i_v = NVMAX)
+       !
+       gCoef12 = GRt*G12Ct*BpCt
+       gCoef11 = GRt*G11Ct*BpCt
+       DO j_s = 1, NSMAX
           
-          vOffsetA = 10*(i_s-1)
-          cncf01AB = CNCF01(i_s,j_s) 
-          cncf02AB = CNCF02(i_s,j_s) 
-          cncf03AB = CNCF03(i_s,j_s) 
-          cncf04AB = CNCF04(i_s,j_s)
+          vOffsetB = 10*(j_s-1) + NFMAX
+          nnB = Nn(j_s)
+          ppB = Pp(j_s)
           
-          IF(i_s.EQ.j_s)THEN
+          DO i_s = 1, NSMAX
              
-             nnA      = Nn( i_s)
-             ppA      = Pp( i_s)
-             eeA      = Ee( i_s)
-             hexA     = Hex(i_s)
-             ftAnom3A = FtAnom3(i_s)
-             ftAnom4A = FtAnom4(i_s)
-             gtAnom3A = GtAnom3(i_s)
-             gtAnom4A = GtAnom4(i_s)
+             vOffsetA = 10*(i_s-1) + NFMAX
+             cncf01AB = CNCF01(i_s,j_s) 
+             cncf02AB = CNCF02(i_s,j_s) 
+             cncf03AB = CNCF03(i_s,j_s) 
+             cncf04AB = CNCF04(i_s,j_s)
              
-             
-             i_v =  6 + vOffsetA    ! Equation for n_{a}
-             
-             i_v =  7 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
-             j_v =  4
-             ExciScaCoef(i_v,j_v,i_m) = -gCoef12*eeA*nnA * EpNF/EqFrNF
-             j_v =  5
-             ExciScaCoef(i_v,j_v,i_m) = -gCoef11*eeA*nnA * ErNF/EqFrNF
-             j_v =  8 + vOffsetB
-             ExciScaCoef(i_v,j_v,i_m) = -BtCo*Bb*eeA     * FbNF/EqFrNF
-             j_v =  9 + vOffsetB
-             ExciScaCoef(i_v,j_v,i_m) =  BbSq   *eeA     * FtNF/EqFrNF
-             
-             i_v =  8 + vOffsetA    ! Equation for Gamma_{a\para}
-             j_v =  3
-             ExciScaCoef(i_v,j_v,i_m)= -GRt*BtCt*eeA*nnA * EtNF/EqFbNF
-             j_v =  4
-             ExciScaCoef(i_v,j_v,i_m)&
-                  &             = -GRt*BpCt*eeA*nnA*R_mc * EpNF/EqFbNF
-             j_v =  8 + vOffsetB
-             ExciScaCoef(i_v,j_v,i_m)= -cncf01AB*Bb      * FbNF/EqFbNF
-             j_v = 13 + vOffsetB
-             ExciScaCoef(i_v,j_v,i_m)= -cncf02AB*Bb  * QbNF/EqFbNF
-             
-             i_v =  9 + vOffsetA    ! Equation for Gamma_{a\zeta}
-             !j_v =  3
-             ExciScaCoef(i_v,j_v,i_m)= -GRt*eeA*nnA      * EtNF/EqFtNF
-             j_v =  7 + vOffsetB
-             ExciScaCoef(i_v,j_v,i_m)&
-                  &             = -GRt*GRt*BpCt*R_mc*eeA * FrNF/EqFtNF
-             j_v =  9 + vOffsetB
-             ExciScaCoef(i_v,j_v,i_m)=  ExciScaCoef(i_v,j_v,i_m) &
-                  &                    -cncf01AB         * FtNF/EqFtNF
-             j_v = 14 + vOffsetB
-             ExciScaCoef(i_v,j_v,i_m)= -cncf02AB         * QtNF/EqFtNF
-             !  >>>> ANOMALOUS TRANSPORT * two-fluid model >>>>
-             IF(UseAnomalousTransportFT)THEN
-                j_v =  8
-                ExciScaCoef(i_v,j_v,i_m)&
-                     &             =  GRt*ftAnom3A       * FbNF/EqFtNF
-                j_v =  9
-                ExciScaCoef(i_v,j_v,i_m)&
-                     &             =  ExciScaCoef(i_v,j_v,i_m) &
-                     &               +GRt*ftAnom4A       * FtNF/EqFtNF
-             ENDIF
-             !  <<<< ANOMALOUS TRANSPORT * two-fluid model <<<<
-             
-             i_v = 10 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
-             j_v =  8 + vOffsetB
-             ExciScaCoef(i_v,j_v,i_m) = -GRt*Bb          * FbNF/EqFpNF
-             j_v =  9 + vOffsetB
-             ExciScaCoef(i_v,j_v,i_m) =  GRt*BtCt        * FtNF/EqFpNF
-             j_v = 10 + vOffsetB
-             ExciScaCoef(i_v,j_v,i_m) =  GRt*G22Co*BpCt  * FpNF/EqFpNF
-             
-             i_v = 11 + vOffsetA    ! Equation for p_{a}
-             j_v = 11 + vOffsetA
-             ExciScaCoef(i_v,j_v,i_m) =  GRt*hexA        * PpNF/EqPpNF
+             IF(i_s.EQ.j_s)THEN
+                
+                nnA      = Nn( i_s)
+                ppA      = Pp( i_s)
+                eeA      = Ee( i_s)
+                hexA     = Hex(i_s)
+                ftAnom3A = FtAnom3(i_s)
+                ftAnom4A = FtAnom4(i_s)
+                gtAnom3A = GtAnom3(i_s)
+                gtAnom4A = GtAnom4(i_s)
                          
-             i_v = 12 + vOffsetA    ! Equation for Q_{a}^{\rho}
-             j_v =  4
-             ExciScaCoef(i_v,j_v,i_m)&
-                  &             = -2.5D0*gCoef12*eeA*ppA * EpNF/EqQrNF
-             j_v =  5
-             ExciScaCoef(i_v,j_v,i_m)&
-                  &             = -2.5D0*gCoef11*eeA*ppA * ErNF/EqQrNF
-             j_v = 13 + vOffsetB
-             ExciScaCoef(i_v,j_v,i_m)&
-                  &             = -BtCo*Bb*eeA           * QbNF/EqQrNF
-             j_v = 14 + vOffsetB
-             ExciScaCoef(i_v,j_v,i_m)&
-                  &             =  BbSq*eeA              * QtNF/EqQrNF
-             
-             i_v = 13 + vOffsetA    ! Equation for Q_{a\para}
-             j_v =  3
-             ExciScaCoef(i_v,j_v,i_m)&
-                  &       = -2.5D0*GRt*BtCt     *eeA*ppA * EtNF/EqQbNF
-             j_v =  4
-             ExciScaCoef(i_v,j_v,i_m)&
-                  &       = -2.5D0*GRt*BpCt*R_mc*eeA*ppA * EpNF/EqQbNF
-             j_v =  8 + vOffsetB
-             ExciScaCoef(i_v,j_v,i_m)= -cncf03AB*Bb      * FbNF/EqQbNF
-             j_v = 13 + vOffsetB
-             ExciScaCoef(i_v,j_v,i_m)= -cncf04AB*Bb      * QbNF/EqQbNF
-             
-             i_v = 14 + vOffsetA    ! Equation for Q_{a\zeta}
-             j_v =  3
-             ExciScaCoef(i_v,j_v,i_m)= -2.5D0*GRt*eeA*ppA* EtNF/EqQtNF
-             j_v = 12 + vOffsetB
-             ExciScaCoef(i_v,j_v,i_m)&
-                  &              = -GRt*GRt*BpCt*R_mc*eeA* QrNF/EqQtNF
-             !  >>>> ANOMALOUS TRANSPORT * two-fluid model >>>>
-             IF(UseAnomalousTransportGT)THEN
-                j_v = 13 + vOffsetB
+                i_v =  1 + vOffsetA    ! Equation for n_{a}
+                
+                i_v =  2 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
+                j_v =  3
+                ExciScaCoef(i_v,j_v,i_m)= -GRt*eeA*nnA   * EtNF/EqFrNF
+                j_v =  2 + vOffsetB
                 ExciScaCoef(i_v,j_v,i_m)&
-                     &             =  GRt*gtAnom3A       * QbNF/EqQtNF
-                j_v = 14 + vOffsetB
+                     &               = -GRt*GRt*BpCt*eeA * FrNF/EqFrNF
+                j_v =  4 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)=  ExciScaCoef(i_v,j_v,i_m) &
+                     &                    -cncf01AB      * FtNF/EqFrNF
+                j_v =  9 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)= -cncf02AB      * QtNF/EqFrNF
+                !  >>>> ANOMALOUS TRANSPORT * two-fluid model >>>>
+                IF(UseAnomalousTransportFT)THEN
+                   j_v =  3 + NFMAX
+                   ExciScaCoef(i_v,j_v,i_m)&
+                        &           =  GRt*ftAnom3A      * FbNF/EqFrNF
+                   j_v =  4 + NFMAX
+                   ExciScaCoef(i_v,j_v,i_m)&
+                        &           =  ExciScaCoef(i_v,j_v,i_m) &
+                        &             +GRt*ftAnom4A      * FtNF/EqFrNF
+                ENDIF
+                !  <<<< ANOMALOUS TRANSPORT * two-fluid model <<<<
+                
+                i_v =  3 + vOffsetA    ! Equation for Gamma_{a\para}
+                j_v =  3
                 ExciScaCoef(i_v,j_v,i_m)&
-                     &             =  ExciScaCoef(i_v,j_v,i_m) &
-                     &               +GRt*gtAnom4A       * QtNF/EqQtNF
-             ENDIF
-             !  <<<< ANOMALOUS TRANSPORT * two-fluid model <<<<
-             j_v =  9 + vOffsetB
-             ExciScaCoef(i_v,j_v,i_m)= -cncf03AB         * FtNF/EqQtNF
+                     &               = -GRt*BtCt*eeA*nnA * EtNF/EqFbNF
+                j_v =  4
+                ExciScaCoef(i_v,j_v,i_m)&
+                     &               = -GRt*BpCt*eeA*nnA * EpNF/EqFbNF
+                j_v =  3 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)= -cncf01AB*Bb   * FbNF/EqFbNF
+                j_v =  8 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)= -cncf02AB*Bb   * QbNF/EqFbNF
+                
+                i_v =  4 + vOffsetA    ! Equation for Gamma_{a\zeta}
+                j_v =  4
+                ExciScaCoef(i_v,j_v,i_m)= -gCoef12*eeA*nnA*EpNF/EqFtNF
+                j_v =  5
+                ExciScaCoef(i_v,j_v,i_m)= -gCoef11*eeA*nnA*ErNF/EqFtNF
+                j_v =  3 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)= -BtCo*Bb*eeA    *FbNF/EqFtNF
+                j_v =  4 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)=  BbSq   *eeA    *FtNF/EqFtNF
              
-             j_v = 14 + vOffsetB
-             ExciScaCoef(i_v,j_v,i_m)=  ExciScaCoef(i_v,j_v,i_m) &
-                  &                    -cncf04AB         * QtNF/EqQtNF
-       
-             i_v = 15 + vOffsetA    ! Equation for Q_{a}^{\chi}
-             j_v = 13 + vOffsetB
-             ExciScaCoef(i_v,j_v,i_m)= -GRt*Bb           * QbNF/EqQpNF
-             j_v = 14 + vOffsetB
-             ExciScaCoef(i_v,j_v,i_m)=  GRt*BtCt         * QtNF/EqQpNF
-             j_v = 15 + vOffsetB
-             ExciScaCoef(i_v,j_v,i_m)=  GRt*G22Co*BpCt   * QpNF/EqQpNF
-          ELSE
-             i_v =  8 + vOffsetA    ! Equation for Gamma_{a\para}
-             j_v =  8 + vOffsetB
-             ExciScaCoef(i_v,j_v,i_m)= -cncf01AB*Bb      * FbNF/EqFbNF
-             j_v = 13 + vOffsetB
-             ExciScaCoef(i_v,j_v,i_m)= -cncf02AB*Bb      * QbNF/EqFbNF
+                i_v =  5 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
+                j_v =  3 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)= -GRt*Bb        * FbNF/EqFpNF
+                j_v =  4 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)=  GRt*BtCt      * FtNF/EqFpNF
+                j_v =  5 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)=  GRt*G22Co*BpCt* FpNF/EqFpNF
              
-             i_v =  9 + vOffsetA    ! Equation for Gamma_{a\zeta}
-             j_v =  9 + vOffsetB
-             ExciScaCoef(i_v,j_v,i_m)=  ExciScaCoef(i_v,j_v,i_m) &
-                  &                    -cncf01AB         * FtNF/EqFtNF
-             j_v = 14 + vOffsetB
-             ExciScaCoef(i_v,j_v,i_m)= -cncf02AB         * QtNF/EqFtNF
+                i_v =  6 + vOffsetA    ! Equation for p_{a}
+                j_v =  6 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)=  GRt*hexA      * PpNF/EqPpNF
+                         
+                i_v =  7 + vOffsetA    ! Equation for Q_{a}^{\rho}
+                j_v =  3
+                ExciScaCoef(i_v,j_v,i_m)&
+                     &              = -2.5D0*GRt*eeA*ppA * EtNF/EqQrNF
+                j_v =  7 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)&
+                     &              = -GRt*GRt*BpCt*eeA  * QrNF/EqQrNF
+                j_v =  4 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)= -cncf03AB      * FtNF/EqQrNF
+                j_v =  9 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)=  ExciScaCoef(i_v,j_v,i_m) &
+                     &                    -cncf04AB      * QtNF/EqQrNF
+                !  >>>> ANOMALOUS TRANSPORT * two-fluid model >>>>
+                IF(UseAnomalousTransportGT)THEN
+                   j_v =  8 + vOffsetB
+                   ExciScaCoef(i_v,j_v,i_m)&
+                        &             =  GRt*gtAnom3A    * QbNF/EqQrNF
+                   j_v =  9 + vOffsetB
+                   ExciScaCoef(i_v,j_v,i_m)&
+                        &             =  ExciScaCoef(i_v,j_v,i_m) &
+                        &               +GRt*gtAnom4A    * QtNF/EqQrNF
+                ENDIF
+                !  <<<< ANOMALOUS TRANSPORT * two-fluid model <<<<
+                
+                i_v =  8 + vOffsetA    ! Equation for Q_{a\para}
+                j_v =  3
+                ExciScaCoef(i_v,j_v,i_m)&
+                  &            = -2.5D0*GRt*BtCt*eeA*ppA * EtNF/EqQbNF
+                j_v =  4
+                ExciScaCoef(i_v,j_v,i_m)&
+                     &         = -2.5D0*GRt*BpCt*eeA*ppA * EpNF/EqQbNF
+                j_v =  3 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)= -cncf03AB*Bb   * FbNF/EqQbNF
+                j_v =  8 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)= -cncf04AB*Bb   * QbNF/EqQbNF
+                
+                i_v =  9 + vOffsetA    ! Equation for Q_{a\zeta}      
+                j_v =  4
+                ExciScaCoef(i_v,j_v,i_m)&
+                     &          = -2.5D0*gCoef12*eeA*ppA * EpNF/EqQtNF
+                j_v =  5
+                ExciScaCoef(i_v,j_v,i_m)&
+                     &          = -2.5D0*gCoef11*eeA*ppA * ErNF/EqQtNF
+                j_v =  8 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)&
+                     &             = -BtCo*Bb*eeA        * QbNF/EqQtNF
+                j_v =  9 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)&
+                     &             =  BbSq*eeA           * QtNF/EqQtNF
+                
+                i_v = 10 + vOffsetA    ! Equation for Q_{a}^{\chi}
+                j_v =  8 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)= -GRt*Bb        * QbNF/EqQpNF
+                j_v =  9 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)=  GRt*BtCt      * QtNF/EqQpNF
+                j_v = 10 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)=  GRt*G22Co*BpCt* QpNF/EqQpNF
 
-             i_v = 13 + vOffsetA    ! Equation for Q_{a\para}
-             j_v =  8 + vOffsetB
-             ExciScaCoef(i_v,j_v,i_m)= -cncf03AB*Bb      * FbNF/EqQbNF
-             j_v = 13 + vOffsetB
-             ExciScaCoef(i_v,j_v,i_m)= -cncf04AB*Bb      * QbNF/EqQbNF
-             
-             i_v = 14 + vOffsetA    ! Equation for Q_{a\zeta}
-             j_v =  9 + vOffsetB
-             ExciScaCoef(i_v,j_v,i_m)= -cncf03AB         * FtNF/EqQtNF
-             
-             j_v = 14 + vOffsetB
-             ExciScaCoef(i_v,j_v,i_m)=  ExciScaCoef(i_v,j_v,i_m) &
-                  &                    -cncf04AB         * QtNF/EqQtNF
-          ENDIF
+             ELSE
+                
+                i_v =  2 + vOffsetA    ! Equation for Gamma^{\rho}_{a}
+                j_v =  4 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)=  ExciScaCoef(i_v,j_v,i_m) &
+                     &                    -cncf01AB      * FtNF/EqFrNF
+                j_v =  9 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)= -cncf02AB      * QtNF/EqFrNF
+                
+                i_v =  3 + vOffsetA    ! Equation for Gamma_{a\para}
+                j_v =  3 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)= -cncf01AB*Bb   * FbNF/EqFbNF
+                j_v =  8 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)= -cncf02AB*Bb   * QbNF/EqFbNF
+                
+                i_v =  7 + vOffsetA    ! Equation for Q^{\rho}_{a}
+                j_v =  4 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)= -cncf03AB      * FtNF/EqQrNF
+                j_v =  9 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)=  ExciScaCoef(i_v,j_v,i_m) &
+                     &                    -cncf04AB      * QtNF/EqQrNF
+                
+                i_v =  8 + vOffsetA    ! Equation for Q_{a\para}
+                j_v =  3 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)= -cncf03AB*Bb   * FbNF/EqQbNF
+                j_v =  8 + vOffsetB
+                ExciScaCoef(i_v,j_v,i_m)= -cncf04AB*Bb   * QbNF/EqQbNF
+                
+             ENDIF
+          ENDDO
        ENDDO
-    ENDDO
+    END SELECT
     
     RETURN
     
@@ -1909,15 +1916,15 @@ CONTAINS
   ! 
   !       CALCULATION OF ECITATION VECTOR COEFFICIENTS
   !
-  !                 LAST UPDATE 2014-06-03 H.Seto
+  !                 LAST UPDATE 2014-06-23 H.Seto
   !
   !---------------------------------------------------------
   SUBROUTINE T2COEF_EV_COEF_EB(i_m)
     
     USE T2COMM,ONLY:&
-         & NSMAX,NVMAX,NDMAX,NKMAX,                                &
+         & NSMAX,NFMAX,NVMAX,NDMAX,NKMAX,                          &
          & BpNF,EtNF,EpNF,FbNF,QbNF,                               &
-         & EqBpNF,EqEtNF,EqFbNF,EqQbNF,EqQtNF,                     & 
+         & EqBpNF,EqEtNF,EqFbNF,EqQrNF,EqQbNF,EqQtNF,              & 
          & GRt,BpCt,Bb,G11Ct,G12Ct,R_mc,R_rz,Mm,Tt,Ub,Wb,          &
          & BNCQb1,BNCQb2,BNCQb3,BNCQb4,BNCQt1,BNCQt2,BNCQt3,BNCQt4,&
          & CNCV11,CNCV12,CNCV13,                                   &
@@ -1952,89 +1959,188 @@ CONTAINS
 
        i_v = 3                   ! Equation for E_{\zeta}
        j_v = 1; i_k = 2
-       ExciVecCoef(1,i_k,i_v,j_v,i_m)=  2.D0*GRt*G11Ct/R_rz * BpNF/EqEtNF
-       ExciVecCoef(2,i_k,i_v,j_v,i_m)=  2.D0*GRt*G12Ct/R_rz * BpNF/EqEtNF
+       ExciVecCoef(1,i_k,i_v,j_v,i_m)&
+            &                     =  2.D0*GRt*G11Ct/R_rz * BpNF/EqEtNF
+       ExciVecCoef(2,i_k,i_v,j_v,i_m)&
+            &                     =  2.D0*GRt*G12Ct/R_rz * BpNF/EqEtNF
        
        i_v = 4                   ! Equation for E_{\chi}
        i_v = 5                   ! Equation for E_{\rho}
+       
+       !
+       ! variables as fluid (from i_v = NFMAX+1 to i_v = NVMAX)
+       !
+       b01 = GRt*BpCt/Bb
+       
+       DO i_s = 1, NSMAX
+          
+          vOffsetA = 10*(i_s-1) + NFMAX
+          vOffsetB = vOffsetA
+          kOffsetX =  2*(i_s-1)
+          
+          mmA     = Mm(    i_s)
+          ttA     = Tt(    i_s)
+          ubA     = Ub(    i_s)
+          wbA     = Wb(    i_s)
+          cncv11A = CNCV11(i_s)
+          cncv12A = CNCV12(i_s)
+          cncv13A = CNCV13(i_s)
+          
+          u01A = wbA -1.5D0*ubA      
+          
+          i_v =  1 + vOffsetA    ! Equation for n_{a}
+          i_v =  2 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
+          
+          i_v =  3 + vOffsetA    ! Equation for Gamma_{a\para}
+          j_v =  3 + vOffsetB; i_k =  1
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)= -b01*mmA*ubA   * FbNF/EqFbNF
+          
+          i_v =  4 + vOffsetA    ! Equation for Gamma_{a\zeta}
+          i_v =  5 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
+          i_v =  6 + vOffsetA    ! Equation for p_{a}
+          i_v =  7 + vOffsetA    ! Equation for Q_{a}^{\rho}
+          
+          i_v =  8 + vOffsetA    ! Equation for Q_{a\para}
+          j_v =  3; i_k =  1
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)&
+               &                  =  BNCQb1*cncv11A      * EtNF/EqQbNF
+          j_v =  3; i_k =  3+kOffsetX
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)&
+               &                  =  BNCQb2*cncv12A      * EtNF/EqQbNF
+          j_v =  3; i_k =  4+kOffsetX
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)&
+               &                  =  BNCQb2*cncv13A      * EtNF/EqQbNF
+          j_v =  4; i_k =  1
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)&
+               &                  =  BNCQb3*cncv11A*R_mc * EpNF/EqQbNF
+          j_v =  4; i_k =  3+kOffsetX
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)&
+               &                  =  BNCQb4*cncv12A*R_mc * EpNF/EqQbNF
+          j_v =  4; i_k =  4+kOffsetX
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)&
+               &                  =  BNCQb4*cncv13A*R_mc * EtNF/EqQbNF
+          
+          j_v =  3 + vOffsetB; i_k =  1
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)&
+               &                  = -b01*mmA*u01A*ttA    * FbNF/EqQbNF
+          j_v =  8 + vOffsetB; i_k =  1
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)&
+               &                  = -b01*mmA*ubA         * QbNF/EqQbNF
+          
+          i_v =  9 + vOffsetA    ! Equation for Q_{a\zeta}
+          j_v =  3; i_k =  1
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)&
+               &                  =  BNCQt1*cncv11A      * EtNF/EqQtNF
+          j_v =  3; i_k =  3+kOffsetX;
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)&
+               &                  =  BNCQt2*cncv12A      * EtNF/EqQtNF
+          j_v =  3; i_k =  4+kOffsetX;
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)&
+               &                  =  BNCQt2*cncv13A      * EtNF/EqQtNF
+          j_v =  4; i_k =  1;
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)&
+               &                  =  BNCQt3*cncv11A*R_mc * EpNF/EqQtNF
+          j_v =  4; i_k =  3+kOffsetX;
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)&
+               &                  =  BNCQt4*cncv12A*R_mc * EpNF/EqQtNF
+          j_v =  4; i_k =  4+kOffsetX;
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)&
+               &                  =  BNCQt4*cncv13A*R_mc * EpNF/EqQtNF
+          
+          i_v = 10 + vOffsetA    ! Equation for Q_{a}^{\chi}
+          
+       ENDDO
     CASE (2)
        i_v = 1                   ! Equation for psi'
        i_v = 2                   ! Equation for I
        i_v = 3                   ! Equation for E_{\zeta}
        i_v = 4                   ! Equation for E_{\chi}
        i_v = 5                   ! Equation for E_{\rho}
+       i_v = 6                   ! Equation for E^{\chi}
+
+       !
+       ! variables as fluid (from i_v = NFMAX+1 to i_v = NVMAX)
+       !
+       b01 = GRt*BpCt/Bb
+       
+       DO i_s = 1, NSMAX
+          
+          vOffsetA = 10*(i_s-1) + NFMAX
+          vOffsetB = vOffsetA
+          kOffsetX =  2*(i_s-1)
+          
+          mmA     = Mm(    i_s)
+          ttA     = Tt(    i_s)
+          ubA     = Ub(    i_s)
+          wbA     = Wb(    i_s)
+          cncv11A = CNCV11(i_s)
+          cncv12A = CNCV12(i_s)
+          cncv13A = CNCV13(i_s)
+          
+          u01A = wbA -1.5D0*ubA      
+          
+          i_v =  1 + vOffsetA    ! Equation for n_{a}
+          i_v =  2 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
+          
+          i_v =  3 + vOffsetA    ! Equation for Gamma_{a\para}
+          j_v =  3 + vOffsetB; i_k =  1
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)= -b01*mmA*ubA   * FbNF/EqFbNF
+          
+          i_v =  4 + vOffsetA    ! Equation for Gamma_{a\zeta}
+          i_v =  5 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
+          i_v =  6 + vOffsetA    ! Equation for p_{a}
+
+          i_v =  7 + vOffsetA    ! Equation for Q_{a}^{\rho}
+          j_v =  3; i_k =  1
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)&
+               &                       =  BNCQt1*cncv11A * EtNF/EqQrNF
+          j_v =  3; i_k =  3+kOffsetX;
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)&
+               &                       =  BNCQt2*cncv12A * EtNF/EqQrNF
+          j_v =  3; i_k =  4+kOffsetX;
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)&
+               &                       =  BNCQt2*cncv13A * EtNF/EqQrNF
+          j_v =  4; i_k =  1;
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)&
+               &                       =  BNCQt3*cncv11A * EpNF/EqQrNF
+          j_v =  4; i_k =  3+kOffsetX;
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)&
+               &                       =  BNCQt4*cncv12A * EpNF/EqQrNF
+          j_v =  4; i_k =  4+kOffsetX;
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)&
+               &                       =  BNCQt4*cncv13A * EpNF/EqQrNF
+
+          i_v =  8 + vOffsetA    ! Equation for Q_{a\para}
+          j_v =  3; i_k =  1
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)&
+               &                       =  BNCQb1*cncv11A * EtNF/EqQbNF
+          j_v =  3; i_k =  3+kOffsetX
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)&
+               &                       =  BNCQb2*cncv12A * EtNF/EqQbNF
+          j_v =  3; i_k =  4+kOffsetX
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)&
+               &                       =  BNCQb2*cncv13A * EtNF/EqQbNF
+          j_v =  4; i_k =  1
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)&
+               &                       =  BNCQb3*cncv11A * EpNF/EqQbNF
+          j_v =  4; i_k =  3+kOffsetX
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)&
+               &                       =  BNCQb4*cncv12A * EpNF/EqQbNF
+          j_v =  4; i_k =  4+kOffsetX
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)&
+               &                       =  BNCQb4*cncv13A * EtNF/EqQbNF
+          j_v =  3 + vOffsetB; i_k =  1
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)&
+               &                  = -b01*mmA*u01A*ttA    * FbNF/EqQbNF
+          j_v =  8 + vOffsetB; i_k =  1
+          ExciVecCoef(2,i_k,i_v,j_v,i_m)= -b01*mmA*ubA   * QbNF/EqQbNF
+          
+          i_v =  9 + vOffsetA    ! Equation for Q_{a\zeta}
+          i_v = 10 + vOffsetA    ! Equation for Q_{a}^{\chi}
+          
+       ENDDO
     END SELECT
-        
-    !
-    ! variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)
-    !
-    b01 = GRt*BpCt/Bb
-    
-    DO i_s = 1, NSMAX
-       
-       vOffsetA = 10*(i_s-1)
-       vOffsetB = vOffsetA
-       kOffsetX =  2*(i_s-1)
-       
-       mmA     = Mm(    i_s)
-       ttA     = Tt(    i_s)
-       ubA     = Ub(    i_s)
-       wbA     = Wb(    i_s)
-       cncv11A = CNCV11(i_s)
-       cncv12A = CNCV12(i_s)
-       cncv13A = CNCV13(i_s)
-       
-       u01A = wbA -1.5D0*ubA      
-       
-       i_v =  6 + vOffsetA    ! Equation for n_{a}
-       i_v =  7 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
-       
-       i_v =  8 + vOffsetA    ! Equation for Gamma_{a\para}
-       j_v =  8 + vOffsetB; i_k =  1
-       ExciVecCoef(2,i_k,i_v,j_v,i_m)= -b01*mmA*ubA      * FbNF/EqFbNF
-
-       i_v =  9 + vOffsetA    ! Equation for Gamma_{a\zeta}
-       i_v = 10 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
-       i_v = 11 + vOffsetA    ! Equation for p_{a}
-       i_v = 12 + vOffsetA    ! Equation for Q_{a}^{\rho}
-
-       i_v = 13 + vOffsetA    ! Equation for Q_{a\para}
-       j_v =  3; i_k =  1
-       ExciVecCoef(2,i_k,i_v,j_v,i_m)=  BNCQb1*cncv11A   * EtNF/EqQbNF
-       j_v =  3; i_k =  3+kOffsetX
-       ExciVecCoef(2,i_k,i_v,j_v,i_m)=  BNCQb2*cncv12A   * EtNF/EqQbNF
-       j_v =  3; i_k =  4+kOffsetX
-       ExciVecCoef(2,i_k,i_v,j_v,i_m)=  BNCQb2*cncv13A   * EtNF/EqQbNF
-       j_v =  4; i_k =  1
-       ExciVecCoef(2,i_k,i_v,j_v,i_m)=  BNCQb3*cncv11A   * EpNF/EqQbNF
-       j_v =  4; i_k =  3+kOffsetX
-       ExciVecCoef(2,i_k,i_v,j_v,i_m)=  BNCQb4*cncv12A   * EpNF/EqQbNF
-       j_v =  4; i_k =  4+kOffsetX
-       ExciVecCoef(2,i_k,i_v,j_v,i_m)=  BNCQb4*cncv13A   * EtNF/EqQbNF
-       
-       j_v =  8 + vOffsetB; i_k =  1
-       ExciVecCoef(2,i_k,i_v,j_v,i_m)= -b01*mmA*u01A*ttA * FbNF/EqQbNF
-       j_v = 13 + vOffsetB; i_k =  1
-       ExciVecCoef(2,i_k,i_v,j_v,i_m)= -b01*mmA*ubA      * QbNF/EqQbNF
-       
-       i_v = 14 + vOffsetA    ! Equation for Q_{a\zeta}
-       j_v =  3; i_k =  1
-       ExciVecCoef(2,i_k,i_v,j_v,i_m)=  BNCQt1*cncv11A   * EtNF/EqQtNF
-       j_v =  3; i_k =  3+kOffsetX;
-       ExciVecCoef(2,i_k,i_v,j_v,i_m)=  BNCQt2*cncv12A   * EtNF/EqQtNF
-       j_v =  3; i_k =  4+kOffsetX;
-       ExciVecCoef(2,i_k,i_v,j_v,i_m)=  BNCQt2*cncv13A   * EtNF/EqQtNF
-       j_v =  4; i_k =  1;
-       ExciVecCoef(2,i_k,i_v,j_v,i_m)=  BNCQt3*cncv11A   * EpNF/EqQtNF
-       j_v =  4; i_k =  3+kOffsetX;
-       ExciVecCoef(2,i_k,i_v,j_v,i_m)=  BNCQt4*cncv12A   * EpNF/EqQtNF
-       j_v =  4; i_k =  4+kOffsetX;
-       ExciVecCoef(2,i_k,i_v,j_v,i_m)=  BNCQt4*cncv13A   * EpNF/EqQtNF
-
-       i_v = 15 + vOffsetA    ! Equation for Q_{a}^{\chi}
    
-    ENDDO
-    
     RETURN
     
   END SUBROUTINE T2COEF_EV_COEF_EB
@@ -2043,19 +2149,18 @@ CONTAINS
   ! 
   !       CALCULATION OF ECITATION VECTOR COEFFICIENTS
   !
-  !                 LAST UPDATE 2014-06-11 H.Seto
+  !                 LAST UPDATE 2014-06-23 H.Seto
   !
   !---------------------------------------------------------
   SUBROUTINE T2COEF_ET_COEF_EB(i_m)
     
-
     USE T2COMM,ONLY:&
-         & NSMAX,NDMAX,NVMAX,NKMAX,                   &
+         & NSMAX,NFMAX,NDMAX,NVMAX,NKMAX,             &
          & FtNF,FpNF,QtNF,QpNF,                       &
          & EqFbNF,EqPpNF,EqQbNF,                      &
          & BNCXb5,BNCXb6,BNCPp5,BNCPp6,BNCPp8,BNCPp9, &
          & CNCV01,CNCV02,CNCV03,CNCV04,CNCV09,CNCV10, &
-         & ExciTenCoef
+         & ExciTenCoef,EqSet
     
     INTEGER(ikind),INTENT(IN)::i_m
     INTEGER(ikind)::&
@@ -2080,99 +2185,198 @@ CONTAINS
     ENDDO
     ENDDO
 
-    !
-    ! variables as field (from i_v= 1 to i_v = 5)
-    !
-    i_v = 1                   ! Equation for psi'
-    i_v = 2                   ! Equation for I
-    i_v = 3                   ! Equation for E_{\zeta}
-    i_v = 4                   ! Equation for E_{\chi}
-    i_v = 5                   ! Equation for E_{\rho}
+    SELECT CASE (EqSet)
+
+    CASE(1)
+       !
+       ! variables as field (from i_v= 1 to i_v = NFMAX)
+       !
+       i_v = 1                   ! Equation for psi'
+       i_v = 2                   ! Equation for I
+       i_v = 3                   ! Equation for E_{\zeta}
+       i_v = 4                   ! Equation for E_{\chi}
+       i_v = 5                   ! Equation for E_{\rho}
     
-    !
-    ! variables as fluid (from i_v = 6 to i_v = 10*NSMAX+5)
-    !
-    DO i_s = 1, NSMAX
+       !
+       ! variables as fluid (from i_v = 1+ NFMAX to i_v = NVMAX)
+       !
+       DO i_s = 1, NSMAX
        
-       vOffsetA = 10*(i_s-1)
-       vOffsetB = vOffsetA
-       kOffsetX =  2*(i_s-1)
-       kOffsetY = kOffsetX
+          vOffsetA = 10*(i_s-1) + NFMAX
+          vOffsetB = vOffsetA
+          kOffsetX =  2*(i_s-1)
+          kOffsetY = kOffsetX
+          
+          cncv01A = CNCV01(i_s)
+          cncv02A = CNCV02(i_s)
+          cncv03A = CNCV03(i_s)
+          cncv04A = CNCV04(i_s)
+          cncv09A = CNCV09(i_s)
+          cncv10A = CNCV10(i_s)
+          
+          i_v =  1 + vOffsetA    ! Equation for n_{a}
+          i_v =  2 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
+          
+          i_v =  3 + vOffsetA    ! Equation for Gamma_{a\para}
+          j_v =  4 + vOffsetB; i_k = 1; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                       =  BNCXb5*cncv01A * FtNF/EqFbNF
+          j_v =  5 + vOffsetB; i_k = 1; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                       = -BNCXb6*cncv01A * FpNF/EqFbNF
+          j_v =  9 + vOffsetB; i_k = 1; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                       =  BNCXb5*cncv02A * QtNF/EqFbNF
+          j_v = 10 + vOffsetB; i_k = 1; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                       = -BNCXb6*cncv02A * QpNF/EqFbNF
+          
+          i_v =  4 + vOffsetA    ! Equation for Gamma_{a\zeta}
+          i_v =  5 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
+          
+          i_v =  6 + vOffsetA    ! Equation for p_{a}
+          j_v =  4 + vOffsetB; i_k = 1           ; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                       = -BNCPp5*cncv09A * FtNF/EqPpNF
+          j_v =  5 + vOffsetB; i_k = 1           ; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                       =  BNCPp6*cncv09A * FpNF/EqPpNF
+          j_v =  9 + vOffsetB; i_k = 1           ; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                       = -BNCPp5*cncv10A * QtNF/EqPpNF
+          j_v = 10 + vOffsetB; i_k = 1           ; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                       =  BNCPp6*cncv10A * QpNF/EqPpNF
+          
+          j_v =  4 + vOffsetB; i_k = 3 + kOffsetX; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                       = -BNCPp8*cncv01A * FtNF/EqPpNF
+          j_v =  5 + vOffsetB; i_k = 3 + kOffsetX; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                       =  BNCPp9*cncv01A * FpNF/EqPpNF
+          j_v =  9 + vOffsetB; i_k = 3 + kOffsetX; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                       = -BNCPp8*cncv02A * QtNF/EqPpNF
+          j_v = 10 + vOffsetB; i_k = 3 + kOffsetX; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                       =  BNCPp9*cncv02A * QpNF/EqPpNF
        
-       cncv01A = CNCV01(i_s)
-       cncv02A = CNCV02(i_s)
-       cncv03A = CNCV03(i_s)
-       cncv04A = CNCV04(i_s)
-       cncv09A = CNCV09(i_s)
-       cncv10A = CNCV10(i_s)
- 
-       i_v =  6 + vOffsetA    ! Equation for n_{a}
-       i_v =  7 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
+          i_v =  7 + vOffsetA    ! Equation for \bar{Q}^{\rho}_{a}
+          
+          i_v =  8 + vOffsetA    ! Equation for Q_{a\para}
+          j_v =  4 + vOffsetB; i_k = 1; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                         =  BNCXb5*cncv03A * FtNF/EqQbNF
+          j_v =  5 + vOffsetB; i_k = 1; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                         = -BNCXb6*cncv03A * FpNF/EqQbNF
+          j_v =  9 + vOffsetB; i_k = 1; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                         =  BNCXb5*cncv04A * QtNF/EqQbNF
+          j_v = 10 + vOffsetB; i_k = 1; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                         = -BNCXb6*cncv04A * QpNF/EqQbNF
+          
+          i_v =  9 + vOffsetA    ! Equation for Q_{a\zeta}
+          i_v = 10 + vOffsetA    ! Equation for Q^{\chi}_{a}
 
-       i_v =  8 + vOffsetA    ! Equation for Gamma_{a\para}
-       j_v =  9 + vOffsetB; i_k = 1; j_k = 1
-       ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
-            &                          =  BNCXb5*cncv01A * FtNF/EqFbNF
-       j_v = 10 + vOffsetB; i_k = 1; j_k = 1
-       ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
-            &                          = -BNCXb6*cncv01A * FpNF/EqFbNF
-       j_v = 14 + vOffsetB; i_k = 1; j_k = 1
-       ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
-            &                          =  BNCXb5*cncv02A * QtNF/EqFbNF
-       j_v = 15 + vOffsetB; i_k = 1; j_k = 1
-       ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
-            &                          = -BNCXb6*cncv02A * QpNF/EqFbNF
+       ENDDO
+    CASE (2)
+       !
+       ! variables as field (from i_v= 1 to i_v = NFMAX)
+       !
+       i_v = 1                   ! Equation for psi'
+       i_v = 2                   ! Equation for I
+       i_v = 3                   ! Equation for E_{\zeta}
+       i_v = 4                   ! Equation for E_{\chi}
+       i_v = 5                   ! Equation for E_{\rho}
+       i_v = 6                   ! Equation for E^{\chi}
        
-       i_v =  9 + vOffsetA    ! Equation for Gamma_{a\zeta}
-       i_v = 10 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
+       !
+       ! variables as fluid (from i_v = 1+ NFMAX to i_v = NVMAX)
+       !
+       DO i_s = 1, NSMAX
+          
+          vOffsetA = 10*(i_s-1) + NFMAX
+          vOffsetB = vOffsetA
+          kOffsetX =  2*(i_s-1)
+          kOffsetY = kOffsetX
+          
+          cncv01A = CNCV01(i_s)
+          cncv02A = CNCV02(i_s)
+          cncv03A = CNCV03(i_s)
+          cncv04A = CNCV04(i_s)
+          cncv09A = CNCV09(i_s)
+          cncv10A = CNCV10(i_s)
+          
+          i_v =  1 + vOffsetA    ! Equation for n_{a}
+          i_v =  2 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
+          
+          i_v =  3 + vOffsetA    ! Equation for Gamma_{a\para}
+          j_v =  4 + vOffsetB; i_k = 1; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                       =  BNCXb5*cncv01A * FtNF/EqFbNF
+          j_v =  5 + vOffsetB; i_k = 1; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                       = -BNCXb6*cncv01A * FpNF/EqFbNF
+          j_v =  9 + vOffsetB; i_k = 1; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                       =  BNCXb5*cncv02A * QtNF/EqFbNF
+          j_v = 10 + vOffsetB; i_k = 1; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                       = -BNCXb6*cncv02A * QpNF/EqFbNF
+          
+          i_v =  4 + vOffsetA    ! Equation for Gamma_{a\zeta}
+          i_v =  5 + vOffsetA    ! Equation for Gamma_{a}^{\chi}
+          
+          i_v =  6 + vOffsetA    ! Equation for p_{a}
+          j_v =  4 + vOffsetB; i_k = 1           ; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                       = -BNCPp5*cncv09A * FtNF/EqPpNF
+          j_v =  5 + vOffsetB; i_k = 1           ; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                       =  BNCPp6*cncv09A * FpNF/EqPpNF
+          j_v =  9 + vOffsetB; i_k = 1           ; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                       = -BNCPp5*cncv10A * QtNF/EqPpNF
+          j_v = 10 + vOffsetB; i_k = 1           ; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                       =  BNCPp6*cncv10A * QpNF/EqPpNF
+          
+          j_v =  4 + vOffsetB; i_k = 3 + kOffsetX; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                       = -BNCPp8*cncv01A * FtNF/EqPpNF
+          j_v =  5 + vOffsetB; i_k = 3 + kOffsetX; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                       =  BNCPp9*cncv01A * FpNF/EqPpNF
+          j_v =  9 + vOffsetB; i_k = 3 + kOffsetX; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                       = -BNCPp8*cncv02A * QtNF/EqPpNF
+          j_v = 10 + vOffsetB; i_k = 3 + kOffsetX; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                       =  BNCPp9*cncv02A * QpNF/EqPpNF
        
-       i_v = 11 + vOffsetA    ! Equation for p_{a}
-       j_v =  9 + vOffsetB; i_k = 1           ; j_k = 1
-       ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
-            &                         = -BNCPp5*cncv09A * FtNF/EqPpNF
-       j_v = 10 + vOffsetB; i_k = 1           ; j_k = 1
-       ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
-            &                         =  BNCPp6*cncv09A * FpNF/EqPpNF
-       j_v = 14 + vOffsetB; i_k = 1           ; j_k = 1
-       ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
-            &                         = -BNCPp5*cncv10A * QtNF/EqPpNF
-       j_v = 15 + vOffsetB; i_k = 1           ; j_k = 1
-       ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
-            &                         =  BNCPp6*cncv10A * QpNF/EqPpNF
-       
-       j_v =  9 + vOffsetB; i_k = 3 + kOffsetX; j_k = 1
-       ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
-            &                         = -BNCPp8*cncv01A * FtNF/EqPpNF
-       j_v = 10 + vOffsetB; i_k = 3 + kOffsetX; j_k = 1
-       ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
-            &                         =  BNCPp9*cncv01A * FpNF/EqPpNF
-       j_v = 14 + vOffsetB; i_k = 3 + kOffsetX; j_k = 1
-       ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
-            &                         = -BNCPp8*cncv02A * QtNF/EqPpNF
-       j_v = 15 + vOffsetB; i_k = 3 + kOffsetX; j_k = 1
-       ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
-            &                         =  BNCPp9*cncv02A * QpNF/EqPpNF
-       
-       i_v = 12 + vOffsetA    ! Equation for \bar{Q}^{\rho}_{a}
+          i_v =  7 + vOffsetA    ! Equation for \bar{Q}^{\rho}_{a}
+          
+          i_v =  8 + vOffsetA    ! Equation for Q_{a\para}
+          j_v =  4 + vOffsetB; i_k = 1; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                       =  BNCXb5*cncv03A * FtNF/EqQbNF
+          j_v =  5 + vOffsetB; i_k = 1; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                       = -BNCXb6*cncv03A * FpNF/EqQbNF
+          j_v =  9 + vOffsetB; i_k = 1; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                       =  BNCXb5*cncv04A * QtNF/EqQbNF
+          j_v = 10 + vOffsetB; i_k = 1; j_k = 1
+          ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
+               &                       = -BNCXb6*cncv04A * QpNF/EqQbNF
+          
+          i_v =  9 + vOffsetA    ! Equation for Q_{a\zeta}
+          i_v = 10 + vOffsetA    ! Equation for Q^{\chi}_{a}
 
-       i_v = 13 + vOffsetA    ! Equation for Q_{a\para}
-       j_v =  9 + vOffsetB; i_k = 1; j_k = 1
-       ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
-            &                         =  BNCXb5*cncv03A * FtNF/EqQbNF
-       j_v = 10 + vOffsetB; i_k = 1; j_k = 1
-       ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
-            &                         = -BNCXb6*cncv03A * FpNF/EqQbNF
-       j_v = 14 + vOffsetB; i_k = 1; j_k = 1
-       ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
-            &                         =  BNCXb5*cncv04A * QtNF/EqQbNF
-       j_v = 15 + vOffsetB; i_k = 1; j_k = 1
-       ExciTenCoef(2,2,i_k,j_k,i_v,j_v,i_m)&
-            &                         = -BNCXb6*cncv04A * QpNF/EqQbNF
-
-       i_v = 14 + vOffsetA    ! Equation for Q_{a\zeta}
-       i_v = 15 + vOffsetA    ! Equation for Q^{\chi}_{a}
-
-    ENDDO
+       ENDDO
+    END SELECT
     
     RETURN
     
@@ -2256,6 +2460,9 @@ CONTAINS
           SourScaCoef(i_v,j_v,i_m) =  SourScaCoef(i_v,j_v,i_m)&
                &                     +GRt*eeB*nnB/Eps0   / EqErNF
        ENDDO
+
+       i_v = 6                   ! Equation for E^{\chi}
+
     END SELECT
     
     RETURN

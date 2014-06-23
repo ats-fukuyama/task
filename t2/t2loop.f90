@@ -34,7 +34,9 @@ CONTAINS
 101 FORMAT('NT=',I6,2X,'TIME=',1P2E12.4,' [s]')
     
     CALL CPU_TIME(e0time1)
-
+    
+    CALL T2PREC_EXECUTE
+    
     ! time evolution loop
     DO nt=1,ntmax
        

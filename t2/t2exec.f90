@@ -1,4 +1,4 @@
-!-------------------------------------------------------------------- 
+!--------------------------------------------------------------------
 !  MODULE FOR SOLVING ADVECTION-DIFFUSION PROBLEM BY FEM
 ! 
 !                   LAST UPDATE 2014-06-20 H.SETO
@@ -89,7 +89,7 @@ CONTAINS
   !  T2EXEC_EXECUTE
   !  FEM SOLVER FOR SIMULTANEOUS ADVECTION-DIFFUSION EQUATIONS
   ! 
-  !                2014-06-16 H.SETO
+  !                2014-06-23 H.SETO
   !
   !------------------------------------------------------------------
   SUBROUTINE T2EXEC_EXECUTE
@@ -188,7 +188,7 @@ CONTAINS
     
     ENDDO
     
-    CALL T2EXEC_CHECK
+    !CALL T2EXEC_CHECK
     
     CALL CPU_TIME(e0time_1)
     WRITE(6,'(A,F10.3,A)')&
@@ -211,8 +211,7 @@ CONTAINS
          e0time_1-e0time_0,' [s]'
     
     CALL CPU_TIME(e0time_0)
-    !print*,'TESTEND'
-    !STOP
+    
     CALL T2EXEC_SOLVE
     CALL CPU_TIME(e0time_1)
     WRITE(6,'(A,F10.3,A)') '-- T2EXEC_SOLVE completed:  cpu=', &
@@ -226,7 +225,9 @@ CONTAINS
   
   SUBROUTINE T2EXEC_INITIALIZE_MATRIX
     
-    USE T2COMM,ONLY: NodeDiaCRS,NVMAX,NAMAX,NBMAX,NPMIN,NVFMX,CoordinateSwitch
+    USE T2COMM,ONLY:&
+         NVMAX,NAMAX,NBMAX,NPMIN,NVFMX,&
+         NodeDiaCRS,CoordinateSwitch
     
     INTEGER(ikind)::i_b,i_v,i_a
     amat(1:NVMAX,1:NVMAX,1:NAMAX) = 0.D0
@@ -522,14 +523,14 @@ CONTAINS
           DO i_n = 1, NNMAX
              i_b = nodeTableD(i_n)
              xvecElem(i_n) = Xvec(j_v,i_b)
-             !IF(i_elm.EQ.4)THEN
+             !IF((i_elm.EQ.4).AND.(i_v.EQ.4).AND.(j_v.EQ.2))THEN
              !   print*,i_n,i_b,i_v,j_v,Xvec(j_v,i_b)
              !END IF
           ENDDO
        ELSEIF((j_v.GT.NVFMX).AND.(j_v.LE.NVMAX))THEN
           DO i_n = 1, NNMAX
              i_x = nodeTableB(i_n)
-             xvecElem(i_n) = Xvec(j_v,i_x)          
+             xvecElem(i_n) = Xvec(j_v,i_x)
           ENDDO
        ENDIF
     CASE (2)
@@ -1320,14 +1321,14 @@ CONTAINS
     
     DO j_v = 1, NVMAX
     DO i_v = 1, NVMAX
-       !IF(HaveMat(i_v,j_v))THEN
+       IF(HaveMat(i_v,j_v))THEN
           DO j_n = 1, NNMAX
           DO i_n = 1, NNMAX
              AmatElemTF(i_v,j_v,i_n,j_n) = AmatElem(i_n,j_n,i_v,j_v)
              AmatElem(  i_n,j_n,i_v,j_v) = 0.D0
           ENDDO
           ENDDO
-       !ENDIF
+       ENDIF
     ENDDO
     ENDDO
     
@@ -1353,7 +1354,9 @@ CONTAINS
     ! i_v: 2D value 
     ! j_v: 1D value (FSA) 
     CALL T2EXEC_STORE_MATRIX(NVFMX+1,NVMAX,nodeTableB,& ! row
-         &                   1      ,NVMAX,nodeTableD)  ! column
+         &                   1      ,NVFMX,nodeTableD)  ! column
+    !CALL T2EXEC_STORE_MATRIX(NVFMX+1,NVMAX,nodeTableB,& ! row
+    !     &                   1      ,NVFMX,nodeTableB)  ! column
     ! i_v: 2D value
     ! j_v: 2D value
     CALL T2EXEC_STORE_MATRIX(NVFMX+1,NVMAX,nodeTableB,& ! row
@@ -1699,7 +1702,9 @@ CONTAINS
          NPMIN,NVMAX,NBMAX,NXMAX,NAMAX,NLMAX,NBVMX,NAVMX,&
          NodeRowCRS,NodeColCRS,HangedNodeTable,&
          i0dbg,idebug,i1pdn2,i1rdn2,HaveMat,&
-         Xvec,XvecIn,XvecOut,HangedNodeTable
+         Xvec,XvecIn,XvecOut,HangedNodeTable,&
+         !
+         NVFMX,NFAMX,NodeFSA
     
     USE LIBMPI
     USE COMMPI
@@ -1718,6 +1723,8 @@ CONTAINS
     
     INTEGER(ikind)::i_v,j_v,i_b,i_x,i1
 
+    INTEGER(ikind)::im,iv,ifsa,jfsa
+
 100 FORMAT(A5,I3,A5,I3,A5,I3,A5,D15.6,A5,D15.6)
 
     itype = 0
@@ -1735,7 +1742,7 @@ CONTAINS
     ALLOCATE(x(NBVMX))
     x = 0.D0
     CALL MTX_SETUP(NBVMX,istart,iend,nzmax=NAVMX,idebug=0)
-    
+    !CALL MTX_SETUP(NBVMX,istart,iend,nzmax=NAVMX+2*NFAMX*NVFMX,idebug=0)
     ! 
     ! STORE GLOBAL STIFFNESS MATRIX  
     ! 
@@ -1750,22 +1757,33 @@ CONTAINS
                 i_rowNV  = NVMAX*(i_rowN-1) + i_rowV
                 i_colNV  = NVMAX*(i_colN-1) + i_colV
                 CALL MTX_SET_MATRIX(i_rowNV,i_colNV,val)
-  !               IF((i_rowV.EQ.1).AND.(i_colV.EQ.1))THEN
-  !                 WRITE(35,'("in=",I5,1X,"jn=",I5,1X,"v=",D15.8)')&
-   !                     i_rowN,i_colN,val
-    !            ENDIF
+                !IF((i_rowV.EQ.1).AND.(i_colV.EQ.1))THEN
+                !WRITE(35,'("in=",I5,1X,"jn=",I5,1X,"v=",D15.8)')&
+                !                     i_rowN,i_colN,val
+                !            ENDIF
                 !IF(IDEBUG.EQ.1) &
                 !                     & 
                 !IF((i_rowV.EQ.7).OR.(i_rowV.Eq.17))&
                 !WRITE(*,'(2I5,I10,2I3,2I7,1PE12.4)') &
-                   !     & i_rowN,i_colN,i_a,i_rowV,i_colV,i_rowNV,i_colNV,val
+                !     & i_rowN,i_colN,i_a,i_rowV,i_colV,i_rowNV,i_colNV,val
              END IF
           ENDDO
           ENDDO
        ENDDO
     ENDDO
+
+    ! >>>> for debug >>>>>
+    !DO im = 1, NFAMX
+    !   DO iv = 1, NVFMX
+    !      ifsa = NodeFSA(1,im)*NVMAX
+    !      jfsa = NodeFSA(2,im)*NVMAX
+    !      CALL MTX_SET_MATRIX(ifsa+iv,ifsa+iv, 1.D0)
+    !      CALL MTX_SET_MATRIX(ifsa+iv,jfsa+iv,-1.D0)
+    !   ENDDO
+    !ENDDO
+    ! <<<< for debug <<<<<
+
     !CLOSE(35)
-    
     ! SET GLOBAL RIGHT HAND SIDE VECTOR
     DO i_rowN = 1, NBMAX
        DO i_rowV = 1, NVMAX
