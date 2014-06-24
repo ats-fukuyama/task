@@ -29,8 +29,10 @@ CONTAINS
        ENDDO
 
        CALL T2COEF_EXECUTE
-       CALL T2EXEC_EXECUTE(NFMAX)
-       CALL T2CONV_EXECUTE(NFMAX,res)
+       !CALL T2EXEC_EXECUTE(NFMAX)
+       !CALL T2CONV_EXECUTE(NFMAX,res)
+       CALL T2EXEC_EXECUTE(3)
+       CALL T2CONV_EXECUTE(3,res)
 
        DO ix = 1, NXMAX
           DO iv = 1, NVMAX
@@ -38,7 +40,7 @@ CONTAINS
           ENDDO
        ENDDO
        
-       IF(res.LE.1.D-8) EXIT
+       IF(res.LE.1.D-7) EXIT
 
        IF(cnt.GE.100)THEN
           WRITE(6,*)'T2PREC did not converge'

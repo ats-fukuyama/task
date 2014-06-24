@@ -2382,87 +2382,118 @@ CONTAINS
     
   END SUBROUTINE T2COEF_ET_COEF_EB
 
-  SUBROUTINE T2COEF_SS_COEF_EB(i_m)
+  SUBROUTINE T2COEF_SS_COEF_EB(im)
     
     USE T2CNST, ONLY: Rmu0,EPS0
-    USE T2COMM, ONLY: NVMAX,NSMAX,GRt,Ee,Nn,FpCo,FtCo,FtCt,SourScaCoef,&
-         &            EqBpNF,EqBtNF,EqEtNF,EqEpNF,EqErNF,EqSet
+    USE T2COMM, ONLY: NVMAX,NSMAX,NFMAX,GRt,Ee,Nn,FpCo,FtCo,FtCt,SourScaCoef,&
+         &            EqBpNF,EqBtNF,EqEtNF,EqEpNF,EqErNF,EqFrNF,EqFbNF,&
+         &            EqQrNF,EqQbNF,EqSet,&
+         &            Pp,BtCt,EtCo
     
-    INTEGER(ikind),INTENT(IN)::i_m
-    INTEGER(ikind)::i_v,j_v,j_s
-    REAL(   rkind)::eeB,ftCoB,ftCtB,fpCoB,nnB
-
+    INTEGER(ikind),INTENT(IN)::im
+    INTEGER(ikind)::is,iv,jv,js,vOffsetA,vOffsetB
+    REAL(   rkind)::eeA,eeB,nnA,ppA,ftCoB,ftCtB,fpCoB,nnB
+    
     ! initialization
-    DO j_v = 1, NVMAX
-    DO i_v = 1, NVMAX
-       SourScaCoef(i_v,j_v,i_m) = 0.D0
+    DO jv = 1, NVMAX
+    DO iv = 1, NVMAX
+       SourScaCoef(iv,jv,im) = 0.D0
     ENDDO
     ENDDO
 
     SELECT CASE (EqSet)
     CASE (1)
-       i_v = 1                   ! Equation for psi'
-       i_v = 2                   ! Equation for I
+       iv = 1                   ! Equation for psi'
+       iv = 2                   ! Equation for I
        
-       i_v = 3                   ! Equation for E_{\zeta}
-       j_v = 3
-       DO j_s = 1, NSMAX
-          eeB   = Ee(  j_s)
-          ftCoB = FtCo(j_s)
-          SourScaCoef(i_v,j_v,i_m) =  SourScaCoef(i_v,j_v,i_m)&
-               &                     -GRt*Rmu0*eeB*ftCoB / EqEtNF
+       iv = 3                   ! Equation for E_{\zeta}
+       jv = 3
+       DO js = 1, NSMAX
+          eeB   = Ee(  js)
+          ftCoB = FtCo(js)
+          SourScaCoef(iv,jv,im) =  SourScaCoef(iv,jv,im)&
+               &                  -GRt*Rmu0*eeB*ftCoB / EqEtNF
        ENDDO
        
-       i_v = 4                   ! Equation for E_{\chi}
-       j_v = 4
-       DO j_s = 1, NSMAX
-          eeB   = Ee(  j_s)
-          fpCoB = FpCo(j_s)
-          SourScaCoef(i_v,j_v,i_m) =  SourScaCoef(i_v,j_v,i_m)&
-               &                     -GRt*Rmu0*eeB*fpCoB / EqEpNF
+       iv = 4                   ! Equation for E_{\chi}
+       jv = 4
+       DO js = 1, NSMAX
+          eeB   = Ee(  js)
+          fpCoB = FpCo(js)
+          SourScaCoef(iv,jv,im) =  SourScaCoef(iv,jv,im)&
+               &                  -GRt*Rmu0*eeB*fpCoB / EqEpNF
        ENDDO
        
-       i_v = 5                   ! Equation for E_{\rho}
-       j_v = 5
-       DO j_s = 1, NSMAX
-          eeB = Ee(j_s)
-          nnB = Nn(j_s)
-          SourScaCoef(i_v,j_v,i_m) =  SourScaCoef(i_v,j_v,i_m)&
-               &                     +GRt*eeB*nnB/Eps0   / EqErNF
+       iv = 5                   ! Equation for E_{\rho}
+       jv = 5
+       DO js = 1, NSMAX
+          eeB = Ee(js)
+          nnB = Nn(js)
+          SourScaCoef(iv,jv,im) =  SourScaCoef(iv,jv,im)&
+               &                  +GRt*eeB*nnB/Eps0   / EqErNF
        ENDDO
     CASE (2)
-       i_v = 1                   ! Equation for psi'
-       j_v = 1
-       DO j_s = 1, NSMAX
-          eeB   = Ee(  j_s)
-          ftCtB = FtCt(j_s)
-          SourScaCoef(i_v,j_v,i_m) =  SourScaCoef(i_v,j_v,i_m)&
-               &                     -GRt*Rmu0*eeB*ftCtB / EqBpNF
+       iv = 1                   ! Equation for psi'
+       jv = 1
+       DO js = 1, NSMAX
+          eeB   = Ee(  js)
+          ftCtB = FtCt(js)
+          SourScaCoef(iv,jv,im) =  SourScaCoef(iv,jv,im)&
+               &                  -GRt*Rmu0*eeB*ftCtB / EqBpNF
        ENDDO
 
-       i_v = 2                   ! Equation for I
-       j_v = 2
-       DO j_s = 1, NSMAX
-          eeB   = Ee(  j_s)
-          fpCoB = FpCo(j_s)
-          SourScaCoef(i_v,j_v,i_m) =  SourScaCoef(i_v,j_v,i_m)&
+       iv = 2                   ! Equation for I
+       jv = 2
+       DO js = 1, NSMAX
+          eeB   = Ee(  js)
+          fpCoB = FpCo(js)
+          SourScaCoef(iv,jv,im) =  SourScaCoef(iv,jv,im)&
                &                     -GRt*Rmu0*eeB*fpCoB / EqBtNF
        ENDDO
     
-       i_v = 3                   ! Equation for E_{\zeta}
-       i_v = 4                   ! Equation for E_{\chi}
+       iv = 3                   ! Equation for E_{\zeta}
+       iv = 4                   ! Equation for E_{\chi}
 
-       i_v = 5                   ! Equation for E_{\rho}
-       j_v = 5
-       DO j_s = 1, NSMAX
-          eeB = Ee(j_s)
-          nnB = Nn(j_s)
-          SourScaCoef(i_v,j_v,i_m) =  SourScaCoef(i_v,j_v,i_m)&
-               &                     +GRt*eeB*nnB/Eps0   / EqErNF
+       iv = 5                   ! Equation for E_{\rho}
+       jv = 5
+       DO js = 1, NSMAX
+          eeB = Ee(js)
+          nnB = Nn(js)
+          SourScaCoef(iv,jv,im) =  SourScaCoef(iv,jv,im)&
+               &                  +GRt*eeB*nnB/Eps0   / EqErNF
        ENDDO
 
-       i_v = 6                   ! Equation for E^{\chi}
+       iv = 6                   ! Equation for E^{\chi}
+       
+       !
+       ! variables as fluid (from i_v = NFMAX+1 to i_v = NVMAX)
+       !
+       DO is = 1, NSMAX
+          
+          vOffsetA = 10*(is-1) + NFMAX
+          vOffsetB = vOffsetA
+          
+          eeA = Ee(is)
+          nnA = Nn(is)
+          ppA = Pp(is)
 
+          iv = vOffsetA + 2 ! Equation for F^{\rho}_{a}
+          jv = vOffsetB + 2
+          SourScaCoef(iv,jv,im) =       GRt*eeA*nnA*EtCo      / EqFrNF
+          
+          iv = vOffsetA + 3 ! Equation for F_{a\para}
+          jv = vOffsetB + 3
+          SourScaCoef(iv,jv,im) =       GRt*eeA*nnA*EtCo*BtCt / EqFbNF
+
+          iv = vOffsetA + 7 ! Equation for Q^{\rho}_{a}
+          jv = vOffsetB + 7
+          SourScaCoef(iv,jv,im) = 2.5D0*GRt*eeA*ppA*EtCo      / EqQrNF
+          
+          iv = vOffsetA + 8 ! Equation for Q_{a\para}
+          jv = vOffsetB + 8
+          SourScaCoef(iv,jv,im) = 2.5D0*GRt*eeA*nnA*EtCo*BtCt / EqFbNF
+
+       ENDDO
     END SELECT
     
     RETURN

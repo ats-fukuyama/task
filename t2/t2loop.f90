@@ -19,7 +19,7 @@ CONTAINS
   SUBROUTINE T2_LOOP
     
     USE T2COMM,ONLY:&
-         i0wstp,i1nlct,d1rsdl,&
+         i0wstp,i1nlct,d1rsdl,LockEqs,&
          time_t2,dt,ntmax,ntstep,nt0dstep,nt0dmax,nt2dstep,nt2dmax,idfile
     USE T2PREC,ONLY: T2PREC_EXECUTE
     USE T2STEP,ONLY: T2_STEP
@@ -37,7 +37,12 @@ CONTAINS
     CALL CPU_TIME(e0time1)
     
     CALL T2PREC_EXECUTE
-    
+    LockEqs(1) = .TRUE.
+    LockEqs(2) = .TRUE.
+    LockEqs(3) = .TRUE.
+    LockEqs(4) = .TRUE.
+    !LockEqs(5) = .TRUE.
+    LockEqs(6) = .TRUE.
     ! time evolution loop
     DO nt=1,ntmax
        

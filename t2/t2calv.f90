@@ -63,19 +63,20 @@ CONTAINS
   SUBROUTINE T2CALV_SETUP(i_m)
     
     USE T2CNST,ONLY: Amp,Aee,Pi,Eps0
-    
+    USE T2VOUT,ONLY: T2VOUT_EXECUTE    
+    USE T2GOUT,ONLY: T2_GOUT
     USE T2COMM,ONLY:&
-         & NSMAX,BpNF,BtNF,EqSet,NFMAX,&
+         & NSMAX,EtNF,BpNF,BtNF,EqSet,NFMAX,&
          & NnNF,FrNF,FbNF,FtNF,FpNF,&
          & PpNF,QrNF,QbNF,QtNF,QpNF,&
          & i2crt,d2rzm,GlobalCrd,Metric,&
          !
-         & XvecIn,&
+         & XvecIn,Xvec,&
          & Pa, Pz, R_rz,  R_mc,&
          & GRt  , G11xCo, G12Co, G22Co,  G33Co,&
          &        G11Ct,  G12Ct, G22xCt, G33Ct,&  
          & UgrCt, UgpCt,&
-         & BtCo, BtCt, BtSq, BpCo, BpCt, BpSq, Bb, BbSq,&
+         & BtCo, BtCt, BtSq, BpCo, BpCt, BpSq, Bb, BbSq,EtCo,&
          & Mm, Ee,Vv,BaseNu,Nu,Nuh,X,Y,Z,&
          & Nn, FrCt, Fb, FtCo, FtCt, FpCo, FpCt, UrCt, Ub, UtCo, UpCt, UuSq,&
          & Pp, QrCt, Qb, QtCo, QpCt, WrCt, Wb, WtCo, WpCt, Tt
@@ -147,6 +148,8 @@ CONTAINS
     dpsidr = XvecIn(1,i_m1d)*BpNF
     
     BtCo   = XvecIn(2,i_m1d)*BtNF
+    EtCo   = XvecIn(3,i_m1d)*EtNF
+
     BtCt   = BtCo*G33Ct
     
     BpCt = dpsidr/GRt
@@ -157,7 +160,7 @@ CONTAINS
     
     BbSq = BpSq + BtSq
     Bb   = SQRT(BbSq)
-    
+
     DO i_s = 1, NSMAX
        SELECT CASE (EqSet)
        CASE (1)
@@ -191,6 +194,9 @@ CONTAINS
           WRITE(6,*)'SPECIS=',i_s,'NODE=',i_m2d,&
                'N=',nnA*1.D-20,'1.D20/m3',&
                'P=',ppA*1.D-23/Aee,'keV*1.D20/m3'
+          Xvec = XvecIn
+          CALL T2VOUT_EXECUTE
+          CALL T2_GOUT
           STOP       
        ENDIF
        
@@ -891,6 +897,7 @@ CONTAINS
     !
     IF(R_mc.LE.1.D0)THEN
        d_anom = 0.45D0*R_mc+0.05D0
+       !d_anom = 0.3D0
        m_anom = 0.45D1*R_mc+0.05D1
        x_anom = 0.45D1*R_mc+0.05D1
     ELSE

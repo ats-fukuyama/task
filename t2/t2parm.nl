@@ -1,13 +1,13 @@
- &t2	
+ &t2
  ntmax = 1
- ntstep= 1	 
- dt    = 1.D-5
+ ntstep= 1 
+ dt    = 1.D-6
  idebug= 0
  NLMAX = 1
- NPMIN = 10
+ NPMIN = 200
 ! NSMAX = 0
  i1mlvl(1) = 1
- i1rdn2(1) = 10
+ i1rdn2(1) = 100
  eps_conv  = 1.D-3
  
  CoordinateSwitch = 1
@@ -31,7 +31,6 @@
     ! 
     UsePotentialDescription = .FALSE.
     UseNormalization        = .TRUE.
-    !UseNormalization        = .FALSE.
     UseSUPGFEM              = .FALSE.
     UseCoefficientCheck     = .FALSE.
     UseAnomalousTransportFT = .TRUE.
@@ -39,7 +38,7 @@
     
     ! set equations to be solved
     SolveElectron = .TRUE.
-    SolveIons     = .FALSE.
+    SolveIons     = .TRUE.
 
     SolveBp       = .TRUE.
     SolveBt       = .TRUE.
@@ -51,25 +50,25 @@
     SolveFb       = .TRUE.
     SolveFt       = .TRUE.
     SolveFp       = .TRUE.
-    SolvePp       = .TRUE.
-    SolveQr       = .TRUE.
-    SolveQb       = .TRUE.
-    SolveQt       = .TRUE.
-    SolveQp       = .TRUE.
+    SolvePp       = .FALSE.
+    SolveQr       = .FALSE.
+    SolveQb       = .FALSE.
+    SolveQt       = .FALSE.
+    SolveQp       = .FALSE.
     
     ! set dirichlet boundary condition on magnetic axis
     LockBpOnAxis  = .TRUE.
     LockBtOnAxis  = .TRUE.
     LockEtOnAxis  = .TRUE.
     LockEpOnAxis  = .TRUE.
-    LockErOnAxis  = .TRUE.
+    LockErOnAxis  = .FALSE.
     LockNnOnAxis  = .FALSE.
-    LockFrOnAxis  = .TRUE.
+    LockFrOnAxis  = .FALSE.
     LockFbOnAxis  = .FALSE.
     LockFtOnAxis  = .FALSE.
     LockFpOnAxis  = .FALSE.
     LockPpOnAxis  = .FALSE.
-    LockQrOnAxis  = .TRUE.
+    LockQrOnAxis  = .FALSE.
     LockQbOnAxis  = .FALSE.
     LockQtOnAxis  = .FALSE.
     LockQpOnAxis  = .FALSE.
@@ -80,16 +79,16 @@
     LockBtOnWall  = .FALSE.
     LockEtOnWall  = .FALSE.
     LockEpOnWall  = .FALSE.
-    LockErOnWall  = .FALSE.
+    LockErOnWall  = .TRUE.
     LockNnOnWall  = .FALSE.
-    LockFrOnWall  = .FALSE.
+    LockFrOnWall  = .TRUE.
     LockFbOnWall  = .FALSE.
     LockFtOnWall  = .TRUE.
-    LockFpOnWall  = .FALSE.
+    LockFpOnWall  = .TRUE.
     LockPpOnWall  = .FALSE.
-    LockQrOnWall  = .FALSE.
+    LockQrOnWall  = .TRUE.
     LockQbOnWall  = .FALSE.
     LockQtOnWall  = .TRUE.
-    LockQpOnWall  = .FALSE.
+    LockQpOnWall  = .TRUE.
 
  &end

@@ -1271,7 +1271,7 @@ CONTAINS
           i_v =  1 + vOffsetA    ! Equation for n_{a}
           
           i_v =  2 + vOffsetA    ! Equation for Gamma_{a}^{\rho}
-          j_v =  3;              HaveExciScaCoef(i_v,j_v) = .TRUE.
+          !j_v =  3;              HaveExciScaCoef(i_v,j_v) = .TRUE.
           j_v =  2 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
           !  >>>> ANOMALOUS TRANSPORT * two-fluid model >>>>
           j_v =  3 + NFMAX;      HaveExciScaCoef(i_v,j_v) = .TRUE.
@@ -1284,7 +1284,7 @@ CONTAINS
           ENDDO
           
           i_v =  3 + vOffsetA    ! Equation for Gamma_{a\para}
-          j_v =  3;              HaveExciScaCoef(i_v,j_v) = .TRUE.
+          !j_v =  3;              HaveExciScaCoef(i_v,j_v) = .TRUE.
           j_v =  4;              HaveExciScaCoef(i_v,j_v) = .TRUE.
           DO j_s = 0, NSMAX-1
              vOffsetB = 10*j_s + NFMAX
@@ -1307,7 +1307,7 @@ CONTAINS
           j_v =  6 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
 
           i_v =  7 + vOffsetA    ! Equation for Q_{a}^{\rho}
-          j_v =  3;              HaveExciScaCoef(i_v,j_v) = .TRUE.
+          !j_v =  3;              HaveExciScaCoef(i_v,j_v) = .TRUE.
           j_v =  7 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
           !  >>>> ANOMALOUS TRANSPORT * two-fluid model >>>>
           j_v =  8 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
@@ -1320,7 +1320,7 @@ CONTAINS
           ENDDO
        
           i_v =  8 + vOffsetA    ! Equation for Q_{a\para}
-          j_v =  3;              HaveExciScaCoef(i_v,j_v) = .TRUE.
+          !j_v =  3;              HaveExciScaCoef(i_v,j_v) = .TRUE.
           j_v =  4;              HaveExciScaCoef(i_v,j_v) = .TRUE.
           DO j_s = 0, NSMAX-1
              vOffsetB = 10*j_s + NFMAX
@@ -1471,24 +1471,24 @@ CONTAINS
           i_v =  6 + vOffsetA    ! Equation for p_{a}
           
           i_v =  7 + vOffsetA    ! Equation for Q_{a}^{\rho}
-          j_v =  3;              HaveExciVecCoef(i_v,j_v)     = .TRUE.
-          i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-          i_k =  3+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-          i_k =  4+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-          j_v =  4;              HaveExciVecCoef(i_v,j_v)     = .TRUE.
-          i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-          i_k =  3+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-          i_k =  4+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          !j_v =  3;              HaveExciVecCoef(i_v,j_v)     = .TRUE.
+          !i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          !i_k =  3+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          !i_k =  4+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          !j_v =  4;              HaveExciVecCoef(i_v,j_v)     = .TRUE.
+          !i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          !i_k =  3+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          !i_k =  4+kOffsetX;     HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
 
           i_v =  8 + vOffsetA    ! Equation for Q_{a\para}
-          j_v =  3;              HaveExciVecCoef(i_v,j_v)     = .TRUE.
-          i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-          i_k =  3 + kOffsetX;   HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-          i_k =  4 + kOffsetX;   HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-          j_v =  4;              HaveExciVecCoef(i_v,j_v)     = .TRUE.
-          i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-          i_k =  3 + kOffsetX;   HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
-          i_k =  4 + kOffsetX;   HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          !j_v =  3;              HaveExciVecCoef(i_v,j_v)     = .TRUE.
+          !i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          !i_k =  3 + kOffsetX;   HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          !i_k =  4 + kOffsetX;   HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          !j_v =  4;              HaveExciVecCoef(i_v,j_v)     = .TRUE.
+          !i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          !i_k =  3 + kOffsetX;   HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
+          !i_k =  4 + kOffsetX;   HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
           j_v =  3 + vOffsetB;   HaveExciVecCoef(i_v,j_v)     = .TRUE.
           i_k =  1;              HaveExciVecKval(i_k,i_v,j_v) = .TRUE.
           j_v =  8 + vOffsetB;   HaveExciVecCoef(i_v,j_v)     = .TRUE.

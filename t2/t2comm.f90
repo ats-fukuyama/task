@@ -313,8 +313,9 @@ MODULE T2COMM
        BpCt,& ! contravariant poloidal magnetic field [T/m]
        BpSq,& ! squared       poloidal megnetic field [T^2]
        Bb,  & !                        megnetic field [T  ]
-       BbSq   ! squared                megnetic field [T^2]
-   
+       BbSq,& ! squared                megnetic field [T^2]
+       EtCo
+
   REAL(   rkind),SAVE,DIMENSION(:),ALLOCATABLE::&
        Ee,&   ! electric charge                        [C]
        Mm,&   ! particle mass                          [kg]
