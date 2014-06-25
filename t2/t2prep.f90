@@ -92,21 +92,21 @@ CONTAINS
           QtNF = FtNF*TtNF             ! [10^23 keV/m2s]
           QpNF = FpNF*TtNF             ! [10^23 keV/m2s]
 
-          EqBpNF=1.D0
-          EqBtNF=1.D0
+          EqBpNF=1.D0*1.D-5
+          EqBtNF=1.D0*1.D-5
           EqEtNF=1.D0
           EqEpNF=1.D0
           EqErNF=1.D0
           EqNnNF=NnNF
-          EqFrNF=PpNF
-          EqFbNF=PpNF
-          EqFtNF=PpNF
-          EqFpNF=FpNF
+          EqFrNF=PpNF*1.D-8
+          EqFbNF=PpNF*1.D-8
+          EqFtNF=PpNF*1.D-5
+          EqFpNF=FpNF*1.D-8
           EqPpNF=PpNF
-          EqQrNF=PpNF*TtNF
-          EqQbNF=PpNF*TtNF
-          EqQtNF=PpNF*TtNF
-          EqQpNF=QpNF
+          EqQrNF=PpNF*TtNF*1.D-8
+          EqQbNF=PpNF*TtNF*1.D-8
+          EqQtNF=PpNF*TtNF*1.D-5
+          EqQpNF=PpNF*TtNF*1.D-8
 
           EqBpNF=1.D0
           EqBtNF=1.D0

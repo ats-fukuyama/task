@@ -22,8 +22,8 @@ CONTAINS
     
     USE T2COMM,ONLY: NXMAX, NVMAX,NRMAX,CoordinateSwitch,&
          &           Xvec, XvecIn, XvecOut,d2xout,&
-         &           nconvmax,eps_conv
-    
+         &           nconvmax,eps_conv,LockEqs
+
     USE T2COEF,ONLY: T2COEF_EXECUTE
     USE T2EXEC,ONLY: T2EXEC_EXECUTE
     USE T2CONV,ONLY: T2CONV_EXECUTE
@@ -88,8 +88,8 @@ CONTAINS
 
     SELECT CASE (CoordinateSwitch)
     CASE (1)
-       CALL T2VOUT_EXECUTE
-       !d2xout = Xvec
+       !CALL T2VOUT_EXECUTE
+       d2xout = Xvec
     CASE (2)
        CALL T2STEP_GNUPLOT
     END SELECT

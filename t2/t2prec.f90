@@ -10,6 +10,7 @@ CONTAINS
 
     USE T2COMM,ONLY:NXMAX,NVMAX,NFMAX,Xvec,XvecIn,XvecOut,d2xout
     USE T2EXEC,ONLY:T2EXEC_EXECUTE
+    USE T2VOUT
     USE T2GOUT,ONLY:T2_GOUT
     USE T2CONV,ONLY:T2CONV_EXECUTE
     USE T2COEF,ONLY:T2COEF_EXECUTE
@@ -32,15 +33,15 @@ CONTAINS
        CALL T2COEF_EXECUTE
        !CALL T2EXEC_EXECUTE(NFMAX)
        !CALL T2CONV_EXECUTE(NFMAX,res)
-       CALL T2EXEC_EXECUTE(6)
-       CALL T2CONV_EXECUTE(6,res)
+       CALL T2EXEC_EXECUTE(NVMAX)
+       CALL T2CONV_EXECUTE(NVMAX,res)
 
        DO ix = 1, NXMAX
           DO iv = 1, NVMAX
              Xvec(iv,ix) = XvecOut(iv,ix)
           ENDDO
        ENDDO
-       
+
        IF(res.LE.1.D-7) EXIT
 
        IF(cnt.GE.100)THEN
@@ -51,7 +52,8 @@ CONTAINS
        END IF
        
     ENDDO
-    
+       CALL T2VOUT_EXECUTE
+       CALL T2_GOUT    
     RETURN
     
   END SUBROUTINE T2PREC_EXECUTE

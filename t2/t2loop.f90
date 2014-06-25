@@ -36,25 +36,117 @@ CONTAINS
     
     CALL CPU_TIME(e0time1)
     
+!    CALL T2PREC_EXECUTE
+!    LockEqs(1) = .TRUE.
+!    LockEqs(2) = .TRUE.
+!    LockEqs(3) = .TRUE.
+!    LockEqs(4) = .TRUE.
+!    LockEqs(5) = .TRUE.
+!    LockEqs(6) = .TRUE.
+    ! time evolution loop
+
+    LockEqs( 1)  = .FALSE.
+    LockEqs( 2)  = .FALSE.
+    LockEqs( 3)  = .FALSE.
+    LockEqs( 4)  = .TRUE.
+    LockEqs( 5)  = .TRUE.
+    LockEqs( 6)  = .TRUE.
+
+    LockEqs( 7)  = .TRUE.
+    LockEqs( 8)  = .TRUE.
+    LockEqs( 9)  = .TRUE.
+    LockEqs(10)  = .TRUE.
+    LockEqs(11)  = .TRUE.
+    LockEqs(12)  = .TRUE.
+    LockEqs(13)  = .TRUE.
+    LockEqs(14)  = .TRUE.
+    LockEqs(15)  = .TRUE.
+    LockEqs(16)  = .TRUE.
+
+    LockEqs(17)  = .TRUE.
+    LockEqs(18)  = .TRUE.
+    LockEqs(19)  = .TRUE.
+    LockEqs(20)  = .TRUE.
+    LockEqs(21)  = .TRUE.
+    LockEqs(22)  = .TRUE.
+    LockEqs(23)  = .TRUE.
+    LockEqs(24)  = .TRUE.
+    LockEqs(25)  = .TRUE.
+    LockEqs(26)  = .TRUE.
+
+    CALL T2PREC_EXECUTE
+
+    LockEqs( 1)  = .truE.
+    LockEqs( 2)  = .truE.
+    LockEqs( 3)  = .truE.
+    LockEqs( 4)  = .TRUE.
+    LockEqs( 5)  = .TRUE.
+    LockEqs( 6)  = .TRUE.
+
+    LockEqs( 7)  = .TRUE.
+    LockEqs( 8)  = .FALSE.
+    LockEqs( 9)  = .TRUE.
+    LockEqs(10)  = .TRUE.
+    LockEqs(11)  = .FALSE.
+    LockEqs(12)  = .TRUE.
+    LockEqs(13)  = .TRUE.
+    LockEqs(14)  = .TRUE.
+    LockEqs(15)  = .TRUE.
+    LockEqs(16)  = .TRUE.
+
+    LockEqs(17)  = .TRUE.
+    LockEqs(18)  = .FALSE.
+    LockEqs(19)  = .TRUE.
+    LockEqs(20)  = .TRUE.
+    LockEqs(21)  = .TRUE.
+    LockEqs(22)  = .TRUE.
+    LockEqs(23)  = .TRUE.
+    LockEqs(24)  = .TRUE.
+    LockEqs(25)  = .TRUE.
+    LockEqs(26)  = .TRUE.
     CALL T2PREC_EXECUTE
     LockEqs(1) = .TRUE.
     LockEqs(2) = .TRUE.
     LockEqs(3) = .TRUE.
-    LockEqs(4) = .TRUE.
-   ! LockEqs(5) = .TRUE.
-    LockEqs(6) = .TRUE.
-    ! time evolution loop
+    LockEqs( 4)  = .TRUE.
+    LockEqs( 5)  = .TRUE.
+    LockEqs( 6)  = .TRUE.
+
+    LockEqs( 7)  = .FALSE.
+    LockEqs( 8)  = .FALSE.
+    LockEqs( 9)  = .FALSE.
+    LockEqs(10)  = .FALSE.
+    LockEqs(11)  = .FALSE.
+    LockEqs(12)  = .TRUE.
+    LockEqs(13)  = .TRUE.
+    LockEqs(14)  = .TRUE.
+    LockEqs(15)  = .TRUE.
+    LockEqs(16)  = .TRUE.
+
+    LockEqs(17)  = .FALSE.
+    LockEqs(18)  = .FALSE.
+    LockEqs(19)  = .FALSE.
+    LockEqs(20)  = .FALSE.
+    LockEqs(21)  = .FALSE.
+    LockEqs(22)  = .TRUE.
+    LockEqs(23)  = .TRUE.
+    LockEqs(23)  = .TRUE.
+    LockEqs(25)  = .TRUE.
+    LockEqs(26)  = .TRUE.
+    
     DO nt=1,ntmax
        
        time_t2 = time_t2 + dt
+
        CALL T2_STEP(i_conv,residual_conv)
        i1nlct(nt) = i_conv
        d1rsdl(nt) = residual_conv
        
-       CALL CPU_TIME(e0time2)
 
+       CALL CPU_TIME(e0time2)
+       
        IF(MOD(nt,ntstep).EQ.0) &
-       WRITE(6,'(A,I6,2X,A,1PE12.4,2X,A,I6,2X,A,1PE12.4)') &
+            WRITE(6,'(A,I6,2X,A,1PE12.4,2X,A,I6,2X,A,1PE12.4)') &
             'NT=',nt,'TIME=',time_t2,'Loop=',i_conv,'CPU=',e0time2-e0time1
        
 !      ----- save data -----

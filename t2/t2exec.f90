@@ -192,7 +192,7 @@ CONTAINS
     
     ENDDO
     
-    !CALL T2EXEC_CHECK
+    CALL T2EXEC_CHECK
     
     CALL CPU_TIME(e0time_1)
     WRITE(6,'(A,F10.3,A)')&
@@ -206,9 +206,10 @@ CONTAINS
     CALL T2EXEC_LOCK_VALUES(StartEqs,EndEqs,LockEqs)
     ! set dirichlet boundary condition on magnetic axis
     CALL T2EXEC_LOCK_VALUES(StartAxi,EndAxi,LockAxi)
+
     ! set dirichlet boundary condition on first wall
     CALL T2EXEC_LOCK_VALUES(StartWal,EndWal,LockWal)
-    
+    !print*,StartWal,EndWal    
     CALL CPU_TIME(e0time_1)
     WRITE(6,'(A,F10.3,A)')&
          '-- T2EXEC: boundary setting was completed:    cpu=', &
@@ -277,7 +278,7 @@ CONTAINS
 
     DO i_v = 1, NVMAX
        DO j_v = 1, NVMAX
-          WRITE(32,110)i_v,j_v,12,amat(i_v,j_v,12)
+          WRITE(32,110)i_v,j_v,83,amat(i_v,j_v,83)
        ENDDO
     ENDDO
 
