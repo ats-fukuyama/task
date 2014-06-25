@@ -11,7 +11,9 @@ CONTAINS
   SUBROUTINE T2_MENU
 
     USE T2CNST,ONLY: ikind,rkind
-    USE T2COMM,ONLY: T2COMM_DEALLOCATE,T2NGRA_DEALLOCATE
+    USE T2COMM,ONLY: T2COMM_DEALLOCATE,T2NGRA_DEALLOCATE,&!
+         !debug
+         d2xout,Xvec
     USE T2PARM,ONLY: T2_PARM,T2_VIEW
     USE T2PREP,ONLY: T2PREP_EXECUTE
     USE T2DIV, ONLY: T2_DIV
@@ -54,6 +56,8 @@ CONTAINS
        IF(INIT.EQ.0) THEN
           WRITE(6,*) 'XX data is not ready or destroyed'
        ELSE
+          !print*,'AAAAA'
+          !d2xout = Xvec!for_debug
           CALL T2_GOUT
        END IF
     ELSEIF(kid.EQ.'Q') THEN

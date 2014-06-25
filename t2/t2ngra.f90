@@ -167,15 +167,16 @@ CONTAINS
              d1mcp1(i1) = 0.D0
           ENDDO
        
-          d0rsiz = (d1rec(i_l)-d1rec(i_l-1))/DBLE(i0rdn2)
-          !d0rsiz = (d1rec(i_l)**2-d1rec(i_l-1)**2)/DBLE(i0rdn2)
+          !d0rsiz = (d1rec(i_l)-d1rec(i_l-1))/DBLE(i0rdn2)
+          d0rsiz = ((d1rec(i_l))**2-(d1rec(i_l-1)**2))/DBLE(i0rdn2)
           d0psiz = 2.d0*PI/DBLE(i0pdn2)
           
           DO i1 = 1, i0rdn1
-             d1mcr1(i1) = (d0rsiz*DBLE(i1-1)+d1rec(i_l-1))**2
-             !d1mcr1(i1) = d0rsiz*DBLE(i1-1)+d1rec(i_l-1)**2
+             !d1mcr1(i1) = (d0rsiz*DBLE(i1-1)+d1rec(i_l-1))**2
+             d1mcr1(i1) = d0rsiz*DBLE(i1-1)+d1rec(i_l-1)**2
+             !print*,d1mcr1(i1),SQRT(d1mcr1(i1))
           ENDDO
-          
+          !stop
           DO i1 = 1, i0pdn1
              d1mcp1(i1) = d0psiz*DBLE(i1-1)
           ENDDO

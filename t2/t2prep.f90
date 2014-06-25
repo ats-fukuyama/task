@@ -447,7 +447,7 @@ CONTAINS
          PpNF,QrNF,QbNF,QtNF,QpNF,&
          NSMAX,NXMAX,NVMAX,NMMAX,NFMAX, &
          i1pdn1,i2crt,&
-         GlobalCrd,d2rzm,Metric,Xvec
+         GlobalCrd,d2rzm,Metric,Xvec,d2xout
     
     USE T2GOUT, ONLY: T2_GOUT
     USE T2VOUT, ONLY: T2VOUT_EXECUTE
@@ -486,13 +486,13 @@ CONTAINS
        !  variables as field (from i_v= 1 to i_v = 5)
        !       
        
-       Xvec(1,i_x1d) = FUNC_dpsidr(r_mc,p_mc)/BpNF ! dPsidr
-       Xvec(2,i_x1d) = FUNC_btCo(  r_mc,p_mc)/BtNF ! I
-       Xvec(3,i_x1d) = FUNC_etCo(  r_mc,p_mc)/EtNF ! E_{\zeta}
+       !Xvec(1,i_x1d) = FUNC_dpsidr(r_mc,p_mc)/BpNF ! dPsidr
+       !Xvec(2,i_x1d) = FUNC_btCo(  r_mc,p_mc)/BtNF ! I
+       !Xvec(3,i_x1d) = FUNC_etCo(  r_mc,p_mc)/EtNF ! E_{\zeta}
        ! >>>> for debug >>>> 
-       !Xvec(1,i_x2d) = FUNC_dpsidr(r_mc,p_mc)/BpNF ! dPsidr
-       !Xvec(2,i_x2d) = FUNC_btCo(  r_mc,p_mc)/BtNF ! I
-       !Xvec(3,i_x2d) = FUNC_etCo(  r_mc,p_mc)/EtNF ! E_{\zeta}
+       Xvec(1,i_x2d) = FUNC_dpsidr(r_mc,p_mc)/BpNF ! dPsidr
+       Xvec(2,i_x2d) = FUNC_btCo(  r_mc,p_mc)/BtNF ! I
+       Xvec(3,i_x2d) = FUNC_etCo(  r_mc,p_mc)/EtNF ! E_{\zeta}
        ! <<<< for debug <<<<
        Xvec(4,i_x2d) = FUNC_epCo(  r_mc,p_mc)/EpNF !\bar{E}_{\chi}
        Xvec(5,i_x2d) = FUNC_erCo(  r_mc,p_mc)/ErNF ! E_{\sigma}
@@ -520,7 +520,8 @@ CONTAINS
     ENDDO
 
 
-    CALL T2VOUT_EXECUTE
+    !CALL T2VOUT_EXECUTE
+    d2xout = Xvec
     CALL T2_GOUT
     
     RETURN

@@ -69,7 +69,7 @@ CONTAINS
          & NSMAX,EtNF,BpNF,BtNF,EqSet,NFMAX,&
          & NnNF,FrNF,FbNF,FtNF,FpNF,&
          & PpNF,QrNF,QbNF,QtNF,QpNF,&
-         & i2crt,d2rzm,GlobalCrd,Metric,&
+         & i2crt,d2rzm,GlobalCrd,Metric,d2xout,&
          !
          & XvecIn,Xvec,&
          & Pa, Pz, R_rz,  R_mc,&
@@ -194,8 +194,8 @@ CONTAINS
           WRITE(6,*)'SPECIS=',i_s,'NODE=',i_m2d,&
                'N=',nnA*1.D-20,'1.D20/m3',&
                'P=',ppA*1.D-23/Aee,'keV*1.D20/m3'
-          Xvec = XvecIn
-          CALL T2VOUT_EXECUTE
+          d2xout = XvecIn
+          !CALL T2VOUT_EXECUTE
           CALL T2_GOUT
           STOP       
        ENDIF

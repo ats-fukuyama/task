@@ -70,7 +70,8 @@ CONTAINS
                 WRITE(6,'("       ERROR IN T2STEP_CONVERGENCE           ")')
                 WRITE(6,'("       INDETERMINATE PROBLEM                 ")')
                 WRITE(6,'("*********************************************")')
-                WRITE(6,*)i_v,resDenominatorSquared(i_v)
+                WRITE(6,*),i_v,resNumeratorSquared(i_v),&
+                     &     '/',resDenominatorSquared(i_v)
                 STOP
              ENDIF
           END IF

@@ -207,7 +207,8 @@ CONTAINS
     nnnrho(nrho)=1
 
     DO nl=1,nlmax_g
-       drho=(d1rec(nl)-d1rec(nl-1))/i1rdn2(nl)
+       !drho=(d1rec(nl)-d1rec(nl-1))/i1rdn2(nl)
+       drho=(d1rec(nl)**2-d1rec(nl-1)**2)/i1rdn2(nl)
        nchimaxl=NPMIN*2**(i1mlvl(nl)-1)
        dchi=twopi/nchimaxl
        DO nchi=1,nchimaxl+1
@@ -216,7 +217,8 @@ CONTAINS
        DO nr=1,i1rdn2(nl)
           nrho=nrhonl(nl)+(nr-1)
           nlnrho(nrho)=nl
-          rhonrho(nrho)=d1rec(nl-1)+drho*nr
+          !rhonrho(nrho)=d1rec(nl-1)+drho*nr
+          rhonrho(nrho)=SQRT(d1rec(nl-1)**2+drho*nr)
           nnnrho(nrho)=nnnl(nl)+nchimaxl*(nr-1)
 !          write(6,'(A,4I5,1PE12.4)') &
 !               'nl,nr,nrho,nnnrho(nrho),rhonrho(nrho)=', &

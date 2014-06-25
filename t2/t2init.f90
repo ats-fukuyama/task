@@ -75,8 +75,6 @@ CONTAINS
     
     RR   =  1.30D0
     RA   =  0.30D0
-    !RA = 0.1D0
-    !RR = 1.D5
     d0rw =  1.00D0
     d1rec(0:i0lmaxm) = 0.D0 ! least radial point in a level
     d1rec(1) = d0rw
@@ -92,10 +90,10 @@ CONTAINS
     
     d0qc     =  1.D0
     d0qs     =  3.D0
-    d0bc     =  1.30D0
+    d0bc     =  1.00D0
 
     i0nm = 2
-    i0nn = 2
+    i0nn = 3
     i0tm = 2
     i0tn = 2
     
@@ -114,8 +112,8 @@ CONTAINS
     Pz(2) = 1.D0
     
     d1nc(2) = 0.30D0
-    d1ns(2) = 0.06D0
-    d1nw(2) = 0.06D0
+    d1ns(2) = 0.03D0
+    d1nw(2) = 0.03D0
     d1tc(2) = 0.50D0
     d1ts(2) = 0.05D0
     d1tw(2) = 0.05D0

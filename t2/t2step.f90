@@ -21,7 +21,7 @@ CONTAINS
   SUBROUTINE T2_STEP(i_conv,residual_conv)
     
     USE T2COMM,ONLY: NXMAX, NVMAX,NRMAX,CoordinateSwitch,&
-         &           Xvec, XvecIn, XvecOut,&
+         &           Xvec, XvecIn, XvecOut,d2xout,&
          &           nconvmax,eps_conv
     
     USE T2COEF,ONLY: T2COEF_EXECUTE
@@ -89,9 +89,11 @@ CONTAINS
     SELECT CASE (CoordinateSwitch)
     CASE (1)
        CALL T2VOUT_EXECUTE
+       !d2xout = Xvec
     CASE (2)
        CALL T2STEP_GNUPLOT
     END SELECT
+
     RETURN
     
   END SUBROUTINE T2_STEP
@@ -152,6 +154,7 @@ CONTAINS
     DO i_v = 1,NVMAX
        IF(.NOT.LockEqs(i_v))THEN
           IF(resDenominatorSquared(i_v).LE.0.D0)THEN
+
              WRITE(6,'("*********************************************")')
              WRITE(6,'("       ERROR IN T2STEP_CONVERGENCE           ")')
              WRITE(6,'("       INDETERMINATE PROBLEM                 ")')

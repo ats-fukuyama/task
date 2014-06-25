@@ -4,22 +4,22 @@ FFLAGS= $(OFLAGS)
 #FFLAGS= $(DFLAGS)
 
 ##### Without PETSc library #####
-FLINKER=$(FCFREE)
+#FLINKER=$(FCFREE)
 # BAND DIRECTIVE SOLVER
-LIBMTX=../mtxp/libmtxnompi.o ../mtxp/libmtxbnd.o
+#LIBMTX=../mtxp/libmtxnompi.o ../mtxp/libmtxbnd.o
 # PCG  ITERATIVE SOLVER
 #LIBMTX=../mtxp/libmtxnompi.o ../mtxp/libmtxpcg.o
 
 ##### With PETSc library #####
-#FLINKER=$(MF90)
-#INCLUDE_MUMPS=${PETSC_DIR}/externalpackages/MUMPS/include
+FLINKER=$(MF90)
+INCLUDE_MUMPS=${PETSC_DIR}/externalpackages/MUMPS/include
 
 .SUFFIXES:
 .SUFFIXES: .f90 .mod .o .a 
 
-#LIBMTX= ../mtxp/libmtxmpi.o ../mtxp/libmtxmumps.o
+LIBMTX= ../mtxp/libmtxmpi.o ../mtxp/libmtxmumps.o
 #LIBMTX= ../mtxp/libmtxmpi.o ../mtxp/libmtxksp.o
-#LIBMUMPSX=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common -lpord -lscalapack -lparmetis -lmetis -llapack -lblas
+LIBMUMPSX=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common -lpord -lscalapack -lparmetis -lmetis -llapack -lblas
 
 #### ####
 
