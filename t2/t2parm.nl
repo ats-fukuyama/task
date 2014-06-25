@@ -4,10 +4,10 @@
  dt    = 1.D-6
  idebug= 0
  NLMAX = 1
- NPMIN = 200
+ NPMIN = 10
 ! NSMAX = 0
  i1mlvl(1) = 1
- i1rdn2(1) = 100
+ i1rdn2(1) = 10
  eps_conv  = 1.D-3
  
  CoordinateSwitch = 1
@@ -43,8 +43,8 @@
     SolveBp       = .TRUE.
     SolveBt       = .TRUE.
     SolveEt       = .TRUE.
-    SolveEp       = .FALSE.
-    SolveEr       = .FALSE.
+    SolveEp       = .TRUE.
+    SolveEr       = .TRUE.
     SolveNn       = .TRUE.
     SolveFr       = .TRUE.
     SolveFb       = .TRUE.
@@ -61,9 +61,9 @@
     LockBtOnAxis  = .TRUE.
     LockEtOnAxis  = .TRUE.
     LockEpOnAxis  = .TRUE.
-    LockErOnAxis  = .FALSE.
+    LockErOnAxis  = .TRUE.
     LockNnOnAxis  = .FALSE.
-    LockFrOnAxis  = .FALSE.
+    LockFrOnAxis  = .TRUE.
     LockFbOnAxis  = .FALSE.
     LockFtOnAxis  = .FALSE.
     LockFpOnAxis  = .FALSE.
@@ -79,12 +79,12 @@
     LockBtOnWall  = .FALSE.
     LockEtOnWall  = .FALSE.
     LockEpOnWall  = .FALSE.
-    LockErOnWall  = .TRUE.
+    LockErOnWall  = .FALSE.
     LockNnOnWall  = .FALSE.
     LockFrOnWall  = .TRUE.
     LockFbOnWall  = .FALSE.
     LockFtOnWall  = .TRUE.
-    LockFpOnWall  = .TRUE.
+    LockFpOnWall  = .FALSE.
     LockPpOnWall  = .FALSE.
     LockQrOnWall  = .TRUE.
     LockQbOnWall  = .FALSE.

@@ -41,7 +41,7 @@ CONTAINS
     LockEqs(2) = .TRUE.
     LockEqs(3) = .TRUE.
     LockEqs(4) = .TRUE.
-    !LockEqs(5) = .TRUE.
+    LockEqs(5) = .TRUE.
     LockEqs(6) = .TRUE.
     ! time evolution loop
     DO nt=1,ntmax

@@ -1979,7 +1979,8 @@ CONTAINS
          &  LockAxi(4) = LockEpOnAxis
     IF(.NOT.LockEqs(5))&
          &  LockAxi(5) = LockErOnAxis
-    
+    IF(.NOT.LockEqs(6))&
+         &  LockAxi(6) = LockEpOnAxis
     DO i_s = 0, NSMAX-1
        vOffsetA = 10*i_s + NFMAX
        IF(.NOT.LockEqs( 1 + vOffsetA))&
@@ -2045,8 +2046,9 @@ CONTAINS
     IF(.NOT.LockEqs( 4))&
          &  LockWal( 4) = LockEpOnWall
     IF(.NOT.LockEqs( 5))&
-         &  LockWal( 5) = LockEtOnWall
-    
+         &  LockWal( 5) = LockErOnWall
+    IF(.NOT.LockEqs( 6))&
+         &  LockWal( 6) = LockEpOnWall
 
     DO i_s = 0,NSMAX-1
        vOffsetA = 10*i_s + NFMAX
