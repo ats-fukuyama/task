@@ -14,6 +14,7 @@
       use libmpi
       use fpmpi
       use fpcaleind
+      use fpdisrupt
       contains
 
 !-----------------------------
@@ -32,8 +33,8 @@
       integer:: NT, NR, NP, NTH, NSA, NTI, NSBA, NTE
       integer:: L, IERR, I
       real(kind8):: RSUM, DELEM, RJNL, dw, RSUM1, RSUM2
-      real(4):: gut, gut1, gut2, gut3, gut4, gut5, gut6
-      real(4):: gut_ex, gut_coef, gut_1step
+      real(4):: gut, gut1, gut2, gut3, gut4, gut5, gut6, gut7
+      real(4):: gut_ex, gut_coef, gut_1step, gut_conv, gut_cale
       real(kind8),DIMENSION(nsize):: RSUMA
       integer,dimension(NSAMAX)::NTCLSTEP2
       real(kind8):: DEPS_MAX, DEPS, DEPS1, DEPSE
@@ -45,33 +46,21 @@
       real(kind8):: temp_send, temp_recv
       character:: fmt*40
       integer:: modela_temp, NSW, NSWI,its
-      integer:: ILOC1, nsend,j, ISW_D
+      integer:: ILOC1, nsend,j, ISW_D, NDIMPL
+      real(8):: sigma, ip_all, ip_ohm, ip_run, DEPS_E
 
 !      IF(MODELE.NE.0) CALL FPNEWE
 
 !     +++++ Time loop +++++
 
-!      OPEN(9,file="diag_fnsp.dat")
       DO NT=1,NTMAX
          
-!     +++++ Iteration loop for toroidal electric field +++++
-
-!         L=0
-!         IF(MODELE.NE.0) THEN
-!            DO NR=NRSTART,NREND
-!               E3(NR)=0.D0
-!               RJ3(NR)=0.D0
-!            ENDDO
-!         ENDIF
-!         L=L+1
-
          N_IMPL=0
          DEPS=1.D0
          DO NSA=NSASTART,NSAEND
             NSBA=NSB_NSA(NSA)
             DO NR=NRSTART-1,NREND+1 ! local
                IF(NR.ge.1.and.NR.le.NRMAX)THEN
-!                  DO NP=1,NPMAX
                   DO NP=NPSTARTW,NPENDWM
                      DO NTH=1,NTHMAX
 !                        FNSP(NTH,NP,NR,NSBA)=FNS(NTH,NP,NR,NSBA)  ! new step: variant each N_IMPL ! for fp_load
@@ -82,28 +71,29 @@
             END DO
          END DO
  
-!         CALL conductivity_sigma_ind
-         IF(MODELE.eq.1)THEN
-            EM(:)=EP(:)
-            IF(NRANK.eq.0) WRITE(6,'(A,6E14.6)') "EP=",(EP(NR),NR=1,6) 
-         END IF
-
          gut_EX = 0.D0
+         gut_conv=0.D0
          gut_COEF= 0.D0
          gut_1step= 0.D0
+         gut_cale=0.D0
          CALL GUTIME(gut5)
 
-!         IF(NRSTART.eq.NRMAX)THEN
-!            DO NSA=1,NSAMAX
-!               DO NP=1,NPMAX
-!                  WRITE(*,'(3I4,5E16.8)') NT,NSA,NP, PM(NP,NSA), FNSP(1,NP,NRSTART,NSA), &
-!                       DCPP(1,NP,NRSTART,NSA),FCPP(1,NP,NRSTART,NSA),DCPT(1,NP,NRSTART,NSA)
-!               END DO
-!               WRITE(*,*) " "
-!               WRITE(*,*) " "
-!            END DO
-!         END IF
-
+         IF(MODEL_DISRUPT.ne.0)THEN
+            DO NR=NRSTART,NREND
+               EM(NR)=E1(NR)
+               EP(NR)=E1(NR)
+               SIGMA_SPM(NR)=conduct_sp(NR)
+            END DO
+            CALL Tquench_trans
+            CALL set_post_disrupt_Clog
+            DO NR=NRSTART,NREND
+               CALL SPITZER_SIGMA(NR,sigma)
+               SIGMA_SPP(NR)=sigma
+            END DO
+            CALL mtx_set_communicator(comm_nr)
+            call mtx_allgather_real8(SIGMA_SPP,NREND-NRSTART+1,conduct_sp)
+            CALL mtx_reset_communicator
+         END IF
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          nsw = NSAEND-NSASTART+1
          DO WHILE(N_IMPL.le.LMAXFP) ! start do while
@@ -114,7 +104,6 @@
                DO NP=NPSTARTW,NPENDWM
                DO NTH=1,NTHMAX
                   F(NTH,NP,NR)=FNSP(NTH,NP,NR,NSBA) ! used at fpweight only!
-!                  F(NTH,NP,NR)=FNSM(NTH,NP,NR,NSBA)
                END DO
                END DO
                END DO
@@ -131,6 +120,7 @@
                   END IF
                ELSEIF(ISW_D.eq.1)THEN ! 
                   CALL fp_exec(NSA,IERR,its) ! F1 and FNS0 changed
+                  IERR=0
                END IF
 
                IF(IERR.NE.0) GOTO 250
@@ -197,6 +187,7 @@
             CALL mtx_gather_integer(ILOCL,nsw,ILOC) 
             CALL mtx_reset_communicator
 
+            IF (MOD(NT,NTG1STEP).EQ.0) THEN
             IF(nrank.eq.0) THEN
                WRITE(fmt,'(a16,I1,a6,I1,a3)') &
                     '(A,1PE12.4,I4,1P',NSAMAX,'E12.4,',NSAMAX,'I4)'
@@ -204,29 +195,45 @@
                     DEPS,N_IMPL,(DEPS_MAXV(NSA),NSA=1,NSAMAX) &
                     ,(ILOC(NSA),NSA=1,NSAMAX)
             ENDIF
+            END IF
 !---------- end of convergence 
             CALL GUTIME(gut3)
+            gut_conv = gut_conv + (gut3-gut2)
+
             CALL fusion_source_init
 
 !           update FNSB 
-            CALL mtx_set_communicator(comm_nsa)
-            CALL update_fnsb
-            CALL mtx_reset_communicator
+            IF(MODELC.ge.2)THEN
+               CALL mtx_set_communicator(comm_nsa)
+               CALL update_fnsb
+               CALL mtx_reset_communicator
+            END IF
 !           end of update FNSB
 
-            CALL FPCURRENT(RJ_P)
-            CALL j_to_i(RJ_P,RI_P)
-            IF(MODELE.eq.1)THEN
-               CALL conductivity_sigma_ind
-               IF(MODELA.eq.0)THEN
-                  CALL INDUCTIVE_FIELD
-!                  CALL UPDATE_FEPP
-               ELSE
-                  CALL INDUCTIVE_FIELD_A1
-!                  CALL UPDATE_FEPP
-               END IF
+!
+            IF(MODEL_DISRUPT.ne.0)THEN
+               NDIMPL=0
+               DEPS_E=0.D0
+               DO while(NDIMPL.le.2)
+                  NDIMPL=NDIMPL+1
+                  call calculation_runaway_rate
+                  CALL AVALANCHE
+                  CALL E_IND_IMPLICIT
+                  DEPS_E=(E1(NRSTART)-EP(NRSTART))**2/EM(NRSTART)**2
+                  DO NR=NRSTART,NREND
+                     EP(NR)=E1(NR)
+                  END DO
+                  DO NSA=NSASTART, NSAEND
+                     CALL FP_CALE(NSA)
+                  END DO
+                  CALL update_fpp
+               END DO
+               IF (MOD(NT,NTG1STEP).EQ.0.and.NRANK.eq.0) &
+                    WRITE(6,'(A,E14.6)') "CALE_CONVERSION = ", DEPS_E                  
             END IF
-
+            CALL GUTIME(gut7)
+            gut_cale = gut_cale + gut7-gut3
+!
             CALL Coulomb_log
             DO NSA=NSASTART,NSAEND
                IF (MOD(NT,NTCLSTEP).EQ.0) CALL FP_COEF(NSA)
@@ -240,80 +247,32 @@
 !           end of sum up SPPF
 
             CALL GUTIME(gut4)
-            GUT_COEF = GUT_COEF + (gut4-gut3)
+            GUT_COEF = GUT_COEF + (gut4-gut7)
          END DO ! END OF DOWHILE
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          DO NSA=NSASTART,NSAEND
             DO NR=NRSTART,NREND
                DO NP=NPSTARTW,NPENDWM
                   DO NTH=1,NTHMAX
                      F(NTH,NP,NR)=FNSP(NTH,NP,NR,NSBA) ! used at fpweight only!
-!                     F(NTH,NP,NR)=FNSM(NTH,NP,NR,NSBA)
-!                     IF(FNSP(NTH,NP,NR,NSA).lt.0)THEN
-!                        WRITE(9,'(5I5,3E16.8)') NT, NTH, NP, NR, NSA, &
-!                             FNSP(NTH,NP,NR,NSA), DPP(NTH,NP,NR,NSA), FPP(NTH,NP,NR,NSA)
-!                     END IF
                   END DO
                END DO
             END DO
-            CALL FPWEIGHT(NSA,IERR) ! RESET FPWEIGHT FOR FPSAVE
+            CALL FPWEIGHT(NSA,IERR) ! SET FPWEIGHT FOR FPSAVE
          END DO
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
          CALL GUTIME(gut6)
          GUT_1step = gut6-gut5
 
+         IF (MOD(NT,NTG1STEP).EQ.0) THEN
          IF(NRANK.eq.0) &
-              WRITE(*,'(" GUT_EXEC = ", E12.4, ", GUT_COEF = ", E12.4, ", GUT_1step = ", E12.4, ", EXEC_RATIO = ",E12.4)') &
-              GUT_EX, GUT_COEF, GUT_1step, GUT_EX/GUT_1step
-
-!     ----- calculation of current density -----
-
-!         IF(MODELE.NE.0) THEN
-!            DO NSA=NSASTART,NSAEND
-!            NSBA=NSB_NSA(NSA)
-!               DO NR=2,NRMAX
-!                  RSUM=0.D0
-!                  DO NP=1,NPMAX
-!                  DO NTH=1,NTHMAX
-!                     RSUM=RSUM+VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSA)*PM(NP,NSBA)
-!                  ENDDO
-!                  ENDDO
-!                  RJNS(NR,NSA)=AEFP(NSA)*RNFP0(NSA)*1.D20 &
-!                          *PTFP0(NSA)*DELP(NSBA)*RSUM/(AMFP(NSA)*RM(NR)*RA)
-!               ENDDO
-!               RJNS(1,NSA)=(4.D0*RJNS(2,NSA)-RJNS(3,NSA))/3.D0
-!            ENDDO
-
-!     ----- calculation of toroidal electric field -----
-
-!            DELEM=0.D0
-!            DO NR=NRSTART,NREND
-!               RJNL=0.D0
-!               DO NSA=NSASTART,NSAEND
-!                  RJNL=RJNL+RJNS(NR,NSA)
-!               END DO
-!               RJN(NR)=RJNL
-!               IF(ABS(RJNL-RJ3(NR)).GT.1.D-20) THEN
-!                  DELE(NR)=(RJNL-RJ2(NR))*(E2(NR)-E3(NR)) &
-!                          /(RJNL-RJ3(NR))
-!                  E3(NR)=E2(NR)
-!                  RJ3(NR)=RJNL
-!                  E2(NR)=E2(NR)-DELE(NR)
-!                  DELEM=MAX(ABS(DELE(NR))/MAX(ABS(E1(NR)),1.D-6),DELEM)
-!               ENDIF
-!            ENDDO
-
-!            IF (L.LT.LMAXE.AND.DELEM.GT.EPSE) GO TO 1
-!            IF (L.GE.LMAXE) WRITE(6,*) 'L IS LARGER THAN LMAXE'
-
-!            DO NR=NRSTART,NREND
-!               E1(NR)=E2(NR)
-!               RJ1(NR)=RJN(NR)
-!            ENDDO
-!            CALL FPNEWE
-!         ENDIF
-
-!     +++++ end of toroidal electric field loop +++++
+              WRITE(6,'(A,E12.4, A,E12.4, A,E12.4, A,E12.4, A,E12.4, A,E12.4)') &
+              " GUT_EXEC= ", GUT_EX,   " GUT_CONV= ",GUT_conv, &
+              " GUT_CALE= ", gut_cale, &
+              " GUT_COEF= ", GUT_COEF, " GUT_1step= ", GUT_1step, &
+              " EXEC_RATIO = ", GUT_EX/GUT_1step
+         END IF
 !
   250    CONTINUE
 !
@@ -321,11 +280,23 @@
 !         CALL FPGRAC('F1-2',F1,4)
 
 !     +++++ calculate and save global data +++++
+!         CALL mtx_set_communicator(comm_nr)
+!         call mtx_allgather_real8(EP,NREND-NRSTART+1,E1)
+!         CALL mtx_reset_communicator
 
          CALL GUTIME(gut1)
          TIMEFP=TIMEFP+DELT
 
          ISAVE=0
+         IF(MODEL_DISRUPT.ne.0)THEN
+            CALL update_disruption_quantities(IP_all, IP_ohm, IP_run)
+            IF (MOD(NT,NTG1STEP).EQ.0) THEN
+            IF(NRANK.eq.0)THEN
+               WRITE(*,'(A,1P3E14.6)') "IP_post_disruption [MA] = ", IP_all, IP_ohm, IP_run
+            END IF
+            END IF
+         END IF
+
          IF (MOD(NT,NTG1STEP).EQ.0) THEN
             CALL FPSSUB
             IF(NRANK.EQ.0) THEN
@@ -340,23 +311,40 @@
                CALL FPWRTPRF
             ENDIF
          ENDIF
+         CALL mtx_broadcast_real8(RT_T,NRMAX*NSAMAX)
+         CALL mtx_broadcast_real8(RNS,NRMAX*NSAMAX)
          CALL mtx_broadcast1_integer(NTG1)
          CALL mtx_broadcast1_integer(NTG2)
-         CALL mtx_broadcast1_real8(IP_PEAK)
-         CALL mtx_broadcast1_real8(PTG2)
-         IF(NRANK.EQ.0.AND.NTG1.GT.0) call FPWRTSNAP
+!         IF(NRANK.EQ.0.AND.NTG1.GT.0) call FPWRTSNAP
          CALL GUTIME(gut2)
-         IF(NRANK.eq.0) WRITE(*,'(A,E14.6)') "--------SAVE_TIME=",gut2-gut1
+         IF (MOD(NT,NTG1STEP).EQ.0) THEN
+            IF(NRANK.eq.0) WRITE(*,'(A,E14.6)') "--------SAVE_TIME=",gut2-gut1
+         END IF
 
+         IF(IERR.NE.0) RETURN
+         
          IF(NRANK.eq.0)THEN
-         IF(NT.eq.NTMAX.or.NTMAX.ne.0)THEN
-!            open(10,file='time_evolution.dat')
-!            open(9,file='t_prof_D_sp3.dat')
-!            DO NTI=1,NTG1
-!               WRITE(10,'(I4,F12.3,1P2E16.8)')NTI, PTG(NTI)*1000, &
-!                    RJT(1,1,NTI)/(ABS(AEFP(1))*RNT(1,1,NTI)*1.D20*VTFP0(1))*1.D6, &
-!                    rate_runaway(1,1,NTI)
+               WRITE(10,'(I4,1P30E16.8)') NT, TIMEFP, &
+                    E1(1),E1(NRMAX),E1(NRMAX-1), E1(NRMAX-2), &
+                    RT_quench(1), RJ_disrupt(1), &
+                    RJ_runaway(1), RN_disrupt(1), RN_runaway(1), &
+                    IP_all, ip_ohm, ip_run, &
+                    Rconner(1)*RN_disrupt(1)*1.D20, &
+                    RFP(1)*RN_disrupt(1)*1.D20, &
+                    RFP_ava(1)*RN_disrupt(1)*1.D20, &
+                    RJ_runaway(14), E1(14), ER_drei(1),ER_drei(NRMAX),ER_drei(14)
 
+         END IF
+      ENDDO ! END OF NT LOOP
+!      CLOSE(10)
+!      CLOSE(9)
+
+!     +++++ end of time loop +++++
+!
+      IF(NRANK.eq.0)THEN
+!         open(10,file='time_evol.dat')
+!         DO NTI=1,NTG1
+!            WRITE(10,'(I4,F12.3,1P8E16.8)') NTI, PTG(NTI)*1000, &
 
 !               WRITE(9,'(I4,F12.3,14E16.8)') NTI, PTG(NTI)*1000 &
 !                    ,PTT2(1,NTI),PTT2(2,NTI),PIT(1,NTI),PIT(2,NTI) &
@@ -376,22 +364,25 @@
 !                    ,PTT_BULK(1,NTI),PTT_BULK(2,NTI),PTT_BULK(3,NTI),PTT_BULK(4,NTI) &
 !                    ,PSPBT(2,NTI),PSPFT(2,NTI),PSPFT(3,NTI),PSPFT(4,NTI) &
 !                   ,PECT(1,NTI)
-!            END DO
-!            close(10)
-         END IF
-         END IF
+!         END DO
+!         close(10)
+      END IF
 
-         IF(IERR.NE.0) RETURN
 
-      ENDDO ! END OF NT LOOP
-!      CLOSE(9)
 
-!     +++++ end of time loop +++++
-!
       CALL GUTIME(gut1)
       CALL update_fns
       CALL GUTIME(gut2)
       IF(NRANK.eq.0) WRITE(6,'(A,E14.6)') "---------TIME UPDATE FNS =",gut2-gut1
+
+      IF(NRANK.eq.0)THEN
+         DO NP=1,NPMAX
+            WRITE(9,'(1PE12.4,I6,1P5E16.8)') PTG(NTG1)*1000, NP, PM(NP,1), PM(NP,1)**2, &
+                 PTFP0(1)**2*PM(NP,1)**2/(AEE*AMFP(1)*1.D3), FNS(1,NP,1,1), FNS(NTHMAX,NP,1,1)
+         END DO
+         WRITE(9,*) " "
+         WRITE(9,*) " "
+      END IF
 
 !      IF(NRANK.eq.0)THEN
 !         DO NSA=1,NSAMAX

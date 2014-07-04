@@ -24,6 +24,7 @@
       DO NR=NRSTART,NREND
          vtemp(NR)=vsend(nr,nsa)
       END DO
+!      call mtx_gather_real8(vtemp,nscnt,vrecv)
       call mtx_gather_real8(vtemp,nscnt,vrecv)
 
       IF(NRANK.eq.0)THEN

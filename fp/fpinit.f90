@@ -266,6 +266,8 @@
 
       MODEL_KSP=5
       MODEL_PC =1
+
+      MODEL_DISRUPT=0
 !-----------------------------------------------------------------------
 !     LLMAX : dimension of legendre polynomials's calculation
 
@@ -293,6 +295,15 @@
 
       NTG1M=0
       NTG2M=0
+
+!-----------------------------------------------------------------------
+!     Parameters relevant with DISRUPTION 
+!
+!     T0_quench : temperature after thermal quench [keV] at r=0
+!     tau_quench: thermal quench time [sec]
+
+      T0_quench=2.D-2
+      tau_quench=1.D-3
 
 !-----------------------------------------------------------------------
 !     MPI Partition number : 
@@ -371,7 +382,8 @@
            NSSPB,SPBTOT,SPBR0,SPBRW,SPBENG,SPBANG,SPBPANG,&
            NSSPF,SPFTOT,SPFR0,SPFRW,SPFENG,&
            LMAXFP, EPSFP,NCMIN,NCMAX, DRRS, MODEL_KSP, MODEL_PC, &
-           N_partition_s, N_partition_r, N_partition_p
+           N_partition_s, N_partition_r, N_partition_p, MODEL_DISRUPT, &
+           T0_quench, tau_quench
 
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: nid
@@ -399,7 +411,8 @@
            NSSPF,SPFTOT,SPFR0,SPFRW,SPFENG, &
            pmax,tloss,LMAXFP,EPSFP,MODELS,NBEAMMAX, &
            nsamax,nsbmax,ns_nsa,ns_nsb,NCMIN,NCMAX,DRRS, MODEL_KSP, MODEL_PC, &
-           N_partition_s, N_partition_r, N_partition_p
+           N_partition_s, N_partition_r, N_partition_p, MODEL_DISRUPT, &
+           T0_quench, tau_quench
 
       READ(nid,FP,IOSTAT=ist,ERR=9800,END=9900)
 
@@ -437,7 +450,8 @@
       WRITE(6,*) '      ZEFF,DELT,RIMPL,EPSM,EPSE,EPSDE,H0DE,'
       WRITE(6,*) '      nsamax,nsbmax,ns_nsa,ns_nsb,pmax,tloss,'
       WRITE(6,*) '      MODELS,NBEAMMAX,DRRS,MODEL_KSP,MODEL_PC'
-      WRITE(6,*) '      N_partition_s, N_partition_r, N_partition_p'
+      WRITE(6,*) '      N_partition_s, N_partition_r, N_partition_p, MODEL_DISRUPT'
+      WRITE(6,*) '      T0_quench, tau_quench'
 
       RETURN
     END SUBROUTINE fp_plst
@@ -463,8 +477,8 @@
       USE libmpi
       USE libmtx
       IMPLICIT NONE
-      INTEGER,DIMENSION(37):: idata
-      real(8),DIMENSION(44):: rdata
+      INTEGER,DIMENSION(99):: idata
+      real(8),DIMENSION(99):: rdata
       complex(8),DIMENSION(3):: cdata
 
 !----- PL input parameters -----     
@@ -596,7 +610,8 @@
       idata(35)=N_partition_s
       idata(36)=N_partition_r
       idata(37)=N_partition_p
-      CALL mtx_broadcast_integer(idata,37)
+      idata(38)=MODEL_DISRUPT
+      CALL mtx_broadcast_integer(idata,38)
       NPMAX   =idata( 1)
       NTHMAX  =idata( 2)
       NRMAX   =idata( 3)
@@ -636,6 +651,7 @@
       N_partition_s = idata(35)
       N_partition_r = idata(36)
       N_partition_p = idata(37)
+      MODEL_DISRUPT = idata(38)
 
       CALL mtx_broadcast_integer(NS_NSA,NSAMAX)
       CALL mtx_broadcast_integer(NS_NSB,NSBMAX)
@@ -688,7 +704,9 @@
       rdata(42)=DRRS
       rdata(43)=PEC3
       rdata(44)=PEC4
-      CALL mtx_broadcast_real8(rdata,44)
+      rdata(45)=T0_quench
+      rdata(46)=tau_quench
+      CALL mtx_broadcast_real8(rdata,46)
       DELT  =rdata( 1)
       RMIN  =rdata( 2)
       RMAX  =rdata( 3)
@@ -733,6 +751,8 @@
       DRRS  =rdata(42)
       PEC3  =rdata(43)
       PEC4  =rdata(44)
+      T0_quench=rdata(45)
+      tau_quench=rdata(46)
 
       CALL mtx_broadcast_real8(pmax,NSAMAX)
       CALL mtx_broadcast_real8(TLOSS,NSMAX)
@@ -783,7 +803,8 @@
            ZEFF,DELT,RIMPL,EPSM,EPSE,EPSDE,H0DE, &
            nsamax,nsbmax,ns_nsa,ns_nsb,pmax,tloss,MODELS,NCMIN,NCMAX, &
            nbeammax,DRRS,MODEL_KSP,MODEL_PC,N_partition_s,N_partition_r,N_partition_p, &
-           nsize
+           nsize, MODEL_DISRUPT, T0_quench, tau_quench
+
       IMPLICIT NONE
       integer:: nsa,nsb,ns,NBEAM
 

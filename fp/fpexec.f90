@@ -167,11 +167,11 @@
 
 !     ----- Solve matrix equation -----
 
-      CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC)
+      CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC) ! ncom is nessesary for MUMPS not PETSc
       IF(MODELD_temp.eq.0)THEN
-         if(nrank.eq.0) then
-            write(6,*) 'Number of iterations, NSA    =',its,NSA
-         endif
+!         if(nrank.eq.0) then
+!            write(6,*) 'Number of iterations, NSA    =',its,NSA
+!         endif
       END IF
       ierr=0
 
@@ -220,9 +220,8 @@
 
       IMPLICIT NONE
       integer:: NTH, NP, NR, NSA, NSBA, NM, NRS, NPS
-!      double precision,dimension(NTHMAX,NPMAX,NRSTART-1:NREND+1,NSAMAX), &
-!           intent(IN):: func_in
-      double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSAMAX), &
+!      double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSAMAX), &
+      double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND), &
            intent(IN):: func_in
 
       IF(NRSTART.eq.1)THEN

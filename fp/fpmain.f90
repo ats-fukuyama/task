@@ -33,7 +33,8 @@
          CALL GSOPEN
          OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
       ENDIF
-!      OPEN(9,file="diag_fnsp.dat")
+      OPEN(9,file="f1_1.dat")
+      open(10,file='time_evol.dat') 
 
       CALL pl_init
       CALL eq_init
@@ -46,7 +47,8 @@
       CALL fp_menu
 
       CLOSE(7)
-!      close(9)
+      close(9)
+      close(10)
       IF(nrank.EQ.0) CALL GSCLOS
       CALL mtx_finalize
       CALL fp_wr_deallocate

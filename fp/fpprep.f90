@@ -14,6 +14,7 @@
       USE fpmpi
       USE libmpi
       USE fpcaleind
+      USE fpdisrupt
 
       contains
 
@@ -113,8 +114,9 @@
          BP= RSRHON(RHON)*BT/(RR*QL)
          EPSRM(NR)=RSRHON(RHON)/RR
          BPM(NR)= RSRHON(RHON)*BT/(RR*QL)
-!         write(6,'(A,I5,1P4E12.4)') 'nr,rm,epsrm,bpm=', &
-!              NR,RM(NR),RSRHON(RHON),EPSRM(NR),BPM(NR)
+!         IF(NRANK.eq.0) &
+!         write(6,'(A,I5,1P5E12.4)') 'nr,rm,rsrhon,epsrm,bpm,ql=', &
+!              NR,RM(NR),RSRHON(RHON),EPSRM(NR),BPM(NR),QL
       ENDDO
 !      RHON=RG(NRMAX+1)
       RHON=RM(NRMAX)+DELR
@@ -134,9 +136,6 @@
          EPSRG(NR)=RSRHON(RHON)/RR
          BPG(NR)= RSRHON(RHON)*BT/(RR*QL)
       ENDDO
-      DO NR=NRSTART,NREND
-         PSIPM_P(NR)=0.D0
-      END DO
 !     ----- set parallel current density -----
 
       DO NR=1,NRMAX
@@ -190,6 +189,9 @@
          TVOLR=TVOLR+VOLR(NR)
       ENDDO
 
+      IF(NRANK.eq.0) THEN
+         WRITE(6,'(A,2E14.6)') "DEVICE", RR, RA
+      END IF
 !     ----- set bounce-average parameters -----
 
       IF (MODELA.EQ.0) THEN
@@ -526,8 +528,8 @@
 !      write(6,'(7I10)') NRANK, comm_nsa%rankl, comm_nr%rankl, &
 !           comm_np%rankl, comm_nrnp%rankl, comm_nsanp%rankl, comm_nsanr%rankl
 
-      IF(NRANK.eq.0) WRITE(6,*) "RANK, NSAS, NSAE,  NRS,  NRE,  NPS,  NPE"
-      WRITE(6,'(7I6)') NRANK, NSASTART, NSAEND, NRSTART, NREND, NPSTART, NPEND
+!      IF(NRANK.eq.0) WRITE(6,*) "RANK, NSAS, NSAE,  NRS,  NRE,  NPS,  NPE"
+!      WRITE(6,'(7I6)') NRANK, NSASTART, NSAEND, NRSTART, NREND, NPSTART, NPEND
 
       CALL mtx_cleanup
 
@@ -615,26 +617,24 @@
       INTEGER:: NTH,NP,NR,NSA,NSB,NS,NSBA
       REAL(8):: FL
 
-
-
-      DO NSB=NSASTART,NSAEND
-         NS=NS_NSB(NSB)
+      DO NSA=NSASTART,NSAEND
+         NS=NS_NSB(NSA)
          DO NR=NRSTARTW,NRENDWM
             IF(NR.ge.1.and.NR.le.NRMAX)THEN
                DO NP=NPSTARTW,NPENDWM
-                  FL=FPMXWL(PM(NP,NSB),NR,NS)
+                  FL=FPMXWL(PM(NP,NSA),NR,NS)
                   DO NTH=1,NTHMAX
-                     FNSP(NTH,NP,NR,NSB)=FL
-                     FNS0(NTH,NP,NR,NSB)=FL
+                     FNSP(NTH,NP,NR,NSA)=FL
+                     FNS0(NTH,NP,NR,NSA)=FL
                   END DO
                ENDDO
             END IF
          END DO
          NR=NRMAX+1
          DO NP=NPSTARTW,NPENDWM
-            FL=FPMXWL(PM(NP,NSB),NR,NS)
+            FL=FPMXWL(PM(NP,NSA),NR,NS)
             DO NTH=1,NTHMAX
-               FS3(NTH,NP,NSB)=FL ! rho=1.0
+               FS3(NTH,NP,NSA)=FL ! rho=1.0
             END DO
          ENDDO
       END DO
@@ -837,9 +837,9 @@
 
       USE plprof
       IMPLICIT NONE
-      INTEGER:: NSA, NSB, NS, NSBA, NSFP, NSFD, NR, ISW_CLOG
+      INTEGER:: NSA, NSB, NS, NSBA, NSFP, NSFD, NR, ISW_CLOG, NP
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
-      real(kind8):: RTFD0L, RHON, RNE, RTE, RLNRL, FACT, RNA, RTA, RNB, RTB
+      real(kind8):: RTFD0L, RHON, RNE, RTE, RLNRL, FACT, RNA, RTA, RNB, RTB, SUM
 
       DO NSA=1,NSAMAX
          NS=NS_NSA(NSA)
@@ -862,6 +862,8 @@
          AMFD(NSB)=PA(NS)*AMP
          RTFD0L=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
          RNFD0(NSB)=PN(NS)
+         RTFD0(NSB)=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
+         RTFDS(NSB)=PTS(NS)
 
          PTFD0(NSB)=SQRT(RTFD0L*1.D3*AEE*AMFD(NSB))
          VTFD0(NSB)=SQRT(RTFD0L*1.D3*AEE/AMFD(NSB))
@@ -870,6 +872,7 @@
 !     ----- set profile data -----
 
       DO NR=NRSTART,NRENDWM
+
          RHON=RM(NR)
          CALL PL_PROF(RHON,PLF)
 
@@ -879,8 +882,6 @@
             RTFP(NR,NSA)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
             PTFP(NR,NSA)=SQRT(RTFP(NR,NSA)*1.D3*AEE*AMFP(NSA))
             VTFP(NR,NSA)=SQRT(RTFP(NR,NSA)*1.D3*AEE/AMFP(NSA))
-!            write(6,'(A,2I5,1P3E12.4)') 'NR,NSA=',NR,NSA, &
-!                 PLF(NS)%RN,PLF(NS)%RTPR,PLF(NS)%RTPP
          ENDDO
 
          DO NSB=1,NSBMAX
@@ -891,14 +892,11 @@
             RTFD(NR,NSB)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
             PTFD(NR,NSB)=SQRT(RTFD(NR,NSB)*1.D3*AEE*AMFD(NSB))
             VTFD(NR,NSB)=SQRT(RTFD(NR,NSB)*1.D3*AEE/AMFD(NSB))
-!            write(6,'(A,2I5,1P3E12.4)') 'NR,NSB=',NR,NSB, &
-!                 PLF(NS)%RN,PLF(NS)%RTPR,PLF(NS)%RTPP
          ENDDO
 
          RNE=PLF(1)%RN
          RTE=(PLF(1)%RTPR+2.D0*PLF(1)%RTPP)/3.D0
          E_EDGEM=0.D0
-
 !-----   Coulomb log
          ISW_CLOG=0 ! =0 Wesson, =1 NRL
          DO NSA=1,NSAMAX
@@ -942,14 +940,21 @@
             IF(NRANK.eq.0)THEN
                tau_ta0(NSA)=(4.D0*PI*EPS0**2)*PTFP0(NSA)**3 &
                     /( AMFP(NSA)*AEFP(NSA)**4*LNLAM(1,NSA,NSA)*RNFP0(NSA)*1.D20 )
-               E_norm(NSA)=PTFP0(NSA)/(ABS(AEFP(NSA))*tau_ta0(NSA) )
-!            E_norm(NSA)=1.D0
             END IF
          ENDDO
       ENDDO
-      call mtx_broadcast_real8(tau_ta0,nsamax)
-      call mtx_broadcast_real8(E_norm,nsamax)
 
+      IF(NRANK.eq.0.and.NSBMAX.ge.2)THEN
+         SUM=0.D0
+         DO NSB=2,NSBMAX
+            SUM = SUM + &
+                 LNLAM(1,NSB,1)*RNFD(1,NSB)*AEFD(NSB)**2
+         END DO
+         ZEFF = SUM/( LNLAM(1,1,1)*RNFD(1,1)*AEFD(1)**2 )
+         WRITE(6,'(A,1PE12.4)') " ZEFF = ", ZEFF
+      END IF
+
+      call mtx_broadcast_real8(tau_ta0,nsamax)
 !     ----- set relativistic parameters -----
 
       IF (MODELR.EQ.0) THEN
@@ -968,6 +973,13 @@
          ENDDO
       ENDIF
 
+! ----set runaway
+      IF(MODEL_DISRUPT.ne.0)THEN 
+         CALL set_initial_disrupt_param
+         CALL set_post_disrupt_Clog_f
+         CALL set_post_disrupt_Clog
+         call mtx_broadcast_real8(POST_tau_ta0_f,nsamax)
+      END IF
 
       END SUBROUTINE fp_set_normalize_param
 !==============================================================
@@ -988,14 +1000,28 @@
          RNE=RN_IMPL(NR,1)
          DO NSA=1,NSAMAX
             NSFP=NS_NSB(NSA)
-            RNA=RN_IMPL(NR,NSA)
-            RTA=RT_IMPL(NR,NSA)
+!            IF(MODEL_disrupt.eq.0)THEN
+               RNA=RNS(NR,NSA)
+               RTA=RT_T(NR,NSA)
+!            ELSE
+!               RNA=RNS(NR,NSA)
+!               RTA=RT_quench(NR)
+!            END IF
+
+!            RNA=RN_IMPL(NR,NSA)
+!            RTA=RT_IMPL(NR,NSA)
             DO NSB=1,NSBMAX
                NSFD=NS_NSB(NSB)
-               RNB=RN_IMPL(NR,NSB)
-               RTB=RT_IMPL(NR,NSB)
-               vtfdl=SQRT(RT_IMPL(NR,NSB)*1.D3*AEE/AMFD(NSB))
-               ptfdl=SQRT(RT_IMPL(NR,NSB)*1.D3*AEE*AMFD(NSB))
+!               IF(MODEL_disrupt.eq.0)THEN
+                  RNB=RN_IMPL(NR,NSB)
+                  RTB=RT_IMPL(NR,NSB)
+!               ELSE
+!                  RNB=RN_IMPL(NR,NSB)
+!                  RTB=RT_quench(NR)
+!               END IF
+
+               vtfdl=SQRT(RTB*1.D3*AEE/AMFD(NSB))
+               ptfdl=SQRT(RTB*1.D3*AEE*AMFD(NSB))
 
                IF(ISW_CLOG.eq.0)THEN
                   IF(PZ(NSFP).eq.-1.and.PZ(NSFD).eq.-1) THEN !e-e
@@ -1194,7 +1220,7 @@
 
 !     ----- set parallel electric field -----
       DO NR=1,NRMAX
-         E1(NR)=E0*E_norm(1)
+!         E1(NR)=E0*E_drei0(1)
 !         E1(NR)=E0/(1.D0+EPSRM(NR))
       ENDDO
 
@@ -1239,7 +1265,8 @@
       INTEGER:: NSEND, NSWI
       real:: gut1, gut2, gut_prep
       real(8):: alp, z_i, h_alpha_z, lambda_alpha, gamma_alpha_z, G_conner
-      real(8):: G_conner_nr, G_conner_lm
+      real(8):: G_conner_nr, G_conner_lm, SIGMA
+      real(8),dimension(:),allocatable:: conduct_temp, E1_temp
 
       CALL GUTIME(gut1)
 !     ----- Initialize time counter -----
@@ -1289,28 +1316,34 @@
       CALL update_fnsb
       CALL mtx_reset_communicator
 !     ----- set parallel electric field -----
-      DO NR=1,NRMAX
-         E1(NR)=E0*E_norm(1)
-!/(1.D0+EPSRM(NR))
-!         E1(NR)=E0
-!         IF(MODELE.eq.0)THEN
-!            EP(NR)=0.D0 ! plus
+!      DO NR=1,NRMAX
+!      DO NR=NRSTART,NRENDWM
+      DO NR=NRSTART,NREND
+         IF(MODEL_DISRUPT.eq.0)THEN
+            E1(NR)=E0*E_drei0(1)
             EP(NR)=E1(NR) ! plus
             EM(NR)=0.D0 ! minus
-!         ELSEIF(MODELE.eq.1)THEN
-!            EP(NR)=E1(NR) ! plus
-!            EM(NR)=E1(NR) ! minus
-!         END IF
-         RJ_M(NR)=0.D0
+            RJ_M(NR)=0.D0
+         ELSE
+            allocate(conduct_temp(NRSTART:NREND))
+            allocate(E1_temp(NRSTART:NREND))
+            CALL SPITZER_SIGMA(NR,SIGMA)
+            conduct_temp(NR)=sigma
+            E1_temp(NR)=RJ_disrupt(NR)/SIGMA*1.D6
+!            E1_temp(NR)=E0*E_drei0(1)
+         END IF
       ENDDO
+      IF(MODEL_DISRUPT.ne.0)THEN
+         CALL mtx_set_communicator(comm_nr)
+         call mtx_allgather_real8(conduct_temp,NREND-NRSTART+1,conduct_sp)
+         call mtx_allgather_real8(E1_temp,NREND-NRSTART+1,E1)
+         CALL mtx_reset_communicator
+      END IF
 !      IF(NRANK.eq.0)THEN
 !         DO NR=1,NRMAX
 !            WRITE(*,*) NR, RM(NR), E1(NR)
 !         END DO
 !      END IF
-
-      EP_PHIM(:,:,:)=0.D0
-      EP_PHIG(:,:,:)=0.D0
 
       N_IMPL=0
       CALL NF_REACTION_COEF
@@ -1329,43 +1362,9 @@
          CALL FPWEIGHT(NSA,IERR)
       END DO
       IF(NRANK.eq.0)THEN
-         WRITE(6,'(A,1P2E14.6)') &
-              " tau_ta0[sec]=", tau_ta0(1), tau_ta0(2)
-         IF(E0.ne.0)THEN
-            IF(MODELR.eq.0)THEN
-               WRITE(6,'(A,1P3E14.6,A,1PE14.6)') &
-                    "E0*E_norm=E1[V/m] ->",E0, E_NORM(1), E1(1)&
-                    ," p_{c_runaway}=",1.D0/SQRT(E0)
-            ELSE
-               WRITE(6,'(A,1P3E14.6)') &
-                    "E0*E_norm=E1[V/m] ->",E0, E_NORM(1), E1(1)
-               WRITE(6,'(A,1PE14.6,A,1PE14.6)') &
-                    " p_{c_runaway}=",1.D0/SQRT(E0)           &
-                    ," p_{cr_runaway}=",1.D0/SQRT(E0-THETA0(1))
-
-               alp = E0/THETA0(1)
-               z_i = PZ(2)
-               h_alpha_z=( alp*(z_i+1.D0) - z_i + 7.D0 + &
-                    2.D0*SQRT(alp/(alp-1.D0))*(1.D0+z_i)*(alp-2.D0) ) &
-                    /( 16.D0*(alp-1.D0) )
-               lambda_alpha=8.D0*alp*(alp-0.5D0-SQRT(alp*(alp-1.D0)) )
-               gamma_alpha_z=SQRT( (1.0+z_i)*alp**2/(8.D0*(alp-1.D0)) )&
-                    *(0.5D0*PI-ASIN(1.D0-2.D0/alp))
-
-               G_conner=0.35D0* E0**(-h_alpha_z)*EXP(-0.25D0*lambda_alpha/E0 &
-                    -SQRT(2.D0/E0)*gamma_alpha_z )
-
-               G_conner_nr=0.35D0*E0**(-3.D0*(Z_i+1.D0)/16.D0)&
-                    *EXP(-0.25D0/E0 -SQRT( (1.D0+z_i)/E0 ) )
-               G_conner_lm=G_conner_nr &
-                    *EXP(-THETA0(1)*(0.125D0/E0**2 + 2.D0/3.D0/SQRT(E0**3)*SQRT(1.D0+z_i) ) )
-
-               WRITE(6,'(A,1PE14.6,A,1PE14.6)') " alpha = ", alp, " G_conner= ", G_conner
-               WRITE(6,'(A,1PE14.6,A,1PE14.6)') " G_Conner_nr = ", &
-                    G_conner_nr, " G_conner_lm = ", G_conner_lm
-            END IF
-         END IF
+         CALL display_disrupt_initials
       END IF
+
 !      DO NP=1,NPMAX+1
 !         WRITE(*,'(I4,11E16.8)') NP, PG(NP,NSBA) &
 !              , DCPP2(1,NP,1,1,1)-DCPP2(1,NP,1,2,1), DCPP2(1,NP,1,1,2)-DCPP2(1,NP,1,2,2) &
@@ -1381,10 +1380,12 @@
       CALL FPSSUB
       IF(nrank.EQ.0) THEN
          CALL FPSGLB
-         CALL FPWRTGLB
          CALL FPSPRF
+         CALL FPWRTGLB
          CALL FPWRTPRF
       ENDIF
+      CALL mtx_broadcast_real8(RT_T,NRMAX*NSAMAX)
+      CALL mtx_broadcast_real8(RNS,NRMAX*NSAMAX)
       CALL mtx_broadcast1_integer(NTG1)
       CALL mtx_broadcast1_integer(NTG2)
       IERR=0

@@ -39,7 +39,6 @@
             DPT(NTH,NP,NR,NSA)=0.D0
             FPP(NTH,NP,NR,NSA)=0.D0
             FEPP(NTH,NP,NR,NSA)=0.D0
-            FEPP_IND(NTH,NP,NR,NSA)=0.D0
          ENDDO
          ENDDO
          DO NP=NPSTARTW,NPENDWM
@@ -48,7 +47,6 @@
             DTT(NTH,NP,NR,NSA)=0.D0
             FTH(NTH,NP,NR,NSA)=0.D0
             FETH(NTH,NP,NR,NSA)=0.D0
-            FETH_IND(NTH,NP,NR,NSA)=0.D0
          ENDDO
          ENDDO
       ENDDO
@@ -59,9 +57,6 @@
 !      IF(E0.ne.0.D0)THEN
          CALL FP_CALE(NSA)
 !      END IF
-         IF(MODELE.eq.1)THEN
-            CALL FP_CALE_IND(NSA)
-         END IF
 !
 !     ----- Quasi-linear wave-particle interaction term -----
 
@@ -258,8 +253,7 @@
          DO NTH=1,NTHMAX
             DPP(NTH,NP,NR,NSA)=DCPP(NTH,NP,NR,NSA)+DWPP(NTH,NP,NR,NSA)
             DPT(NTH,NP,NR,NSA)=DCPT(NTH,NP,NR,NSA)+DWPT(NTH,NP,NR,NSA)
-            FPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)+FCPP(NTH,NP,NR,NSA) &
-                 +FEPP_IND(NTH,NP,NR,NSA)
+            FPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)+FCPP(NTH,NP,NR,NSA)
 !            IF(NRANK.eq.0)THEN
 !               WRITE(9,'(4E16.8)') PG(NP,NSA)*COSM(NTH), PG(NP,NSA)*SINM(NTH), &
 !                 DCPP(NTH,NP,NR,NSA),FCPP(NTH,NP,NR,NSA)
@@ -273,8 +267,7 @@
          DO NTH=1,NTHMAX+1
             DTP(NTH,NP,NR,NSA)=DCTP(NTH,NP,NR,NSA)+DWTP(NTH,NP,NR,NSA)
             DTT(NTH,NP,NR,NSA)=DCTT(NTH,NP,NR,NSA)+DWTT(NTH,NP,NR,NSA)
-            FTH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)+FCTH(NTH,NP,NR,NSA) &
-                 +FETH_IND(NTH,NP,NR,NSA)
+            FTH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)+FCTH(NTH,NP,NR,NSA)
          ENDDO
          ENDDO
       ENDDO
@@ -327,7 +320,7 @@
       DO NR=NRSTART,NREND
          DO NP=NPSTART,NPENDWG
             DO NTH=1,NTHMAX
-               FEPP(NTH,NP,NR,NSA)= AEFP(NSA)*E1(NR)/PTFP0(NSA)*COSM(NTH)
+               FEPP(NTH,NP,NR,NSA)= AEFP(NSA)*EP(NR)/PTFP0(NSA)*COSM(NTH)
             ENDDO
          ENDDO
       ENDDO
@@ -335,7 +328,7 @@
       DO NR=NRSTART,NREND
          DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX+1
-               FETH(NTH,NP,NR,NSA)=-AEFP(NSA)*E1(NR)/PTFP0(NSA)*SING(NTH)
+               FETH(NTH,NP,NR,NSA)=-AEFP(NSA)*EP(NR)/PTFP0(NSA)*SING(NTH)
             ENDDO
          ENDDO
       ENDDO
@@ -348,51 +341,6 @@
       
       RETURN
       END SUBROUTINE FP_CALE
-!----------------------------------------
-      SUBROUTINE FP_CALE_IND(NSA)
-       
-      IMPLICIT NONE
-      integer:: NSA, NSB, NR, NTH, NP
-      real(kind8):: PSP, SUML, ANGSP, SPL, FPMAX
-      integer:: NG
-      real(kind8):: FACT, DELH, sum11, ETAL, X, PSIB, PCOS, sum15, ARG
-
-      IF(MODELA.eq.0)THEN
-         DO NR=NRSTART,NREND
-            DO NP=NPSTART,NPENDWG
-               DO NTH=1,NTHMAX
-                  FEPP_IND(NTH,NP,NR,NSA)= AEFP(NSA)*EP(NR)/PTFP0(NSA)*COSM(NTH)
-               ENDDO
-            ENDDO
-         ENDDO
-         
-         DO NR=NRSTART,NREND
-            DO NP=NPSTARTW,NPENDWM
-               DO NTH=1,NTHMAX+1
-                  FETH_IND(NTH,NP,NR,NSA)=-AEFP(NSA)*EP(NR)/PTFP0(NSA)*SING(NTH)
-               ENDDO
-            ENDDO
-         ENDDO
-      ELSE
-         DO NR=NRSTART,NREND
-            DO NP=NPSTART,NPENDWG
-               DO NTH=1,NTHMAX
-                  FEPP_IND(NTH,NP,NR,NSA)= AEFP(NSA)*ETHM(NTH,NR)/PTFP0(NSA)*COSM(NTH)
-               ENDDO
-            ENDDO
-         ENDDO
-
-         DO NR=NRSTART,NREND
-            DO NP=NPSTARTW,NPENDWM
-               DO NTH=1,NTHMAX+1
-                  FETH_IND(NTH,NP,NR,NSA)=-AEFP(NSA)*ETHG(NTH,NR)/PTFP0(NSA)*SING(NTH)
-               ENDDO
-            ENDDO
-         ENDDO
-      END IF
-
-
-      END SUBROUTINE FP_CALE_IND
 ! ****************************************
 !     BOUNCE AVERAGING FEPP, FETH
 ! ****************************************
