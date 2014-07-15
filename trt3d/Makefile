@@ -3,8 +3,8 @@ include ../make.header
 .SUFFIXES:
 .SUFFIXES: .f .f90 .c .mod .o .a
 
-FFLAGS = $(OFLAGS)
-#FFLAGS = $(DFLAGS)
+#FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
 CFLAGS = $(OCFLAGS)
 
 # without eq
@@ -35,7 +35,7 @@ SRC90=trcom0.f90 trcom1.f90 trcom2.f90 trcom3.f90 trcomm.f90 tr_bpsd.f90\
       trinit.f90 t3d_trprof.f90 t3d_trfile_20090422.f90 trhelp.f90 t3d_nogsaf.f90 \
 	  t3d_nccoef_dgn_lhd.f90 \
 	  t3d_er_param.f90 \
- 	  t3d_tentative_flags.f90 \
+	  t3d_tentative_flags.f90 \
           t3d_FILE_io.f90 \
           t3d_powerbalance.f90 \
 	  t3d_fit3d_exec.f90 \
@@ -50,7 +50,7 @@ SRC90=trcom0.f90 trcom1.f90 trcom2.f90 trcom3.f90 trcomm.f90 tr_bpsd.f90\
       t3d_vmec2tr.f90 t3d_input_prof.f90  \
 	  t3d_trmenu.f90 \
 	  t3d_trloop.f90 \
-  	  depsum_100208.f90 \
+	  depsum_100208.f90 \
 	  BOZdata_translation.f90 \
 	  t3d_parasurvey_loop.f90 \
 	  fit_read20_100208.f90
