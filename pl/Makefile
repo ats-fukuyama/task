@@ -52,11 +52,9 @@ new:
 	cp -f *.f ../plnew
 	cp -f *.inc ../plnew
 
-WMCOMM = ../wmf/wmcomm.inc ../wmf/wmcom0.inc ../wmf/wmcom1.inc ../mpi/mpicom.inc ../dp/dpcom1.inc
-
 plmain.o: plmain.f plcomm.f90 plcom0.f90 plcom1.inc
 plmenu.o: plmenu.f plcomm.inc plcom0.inc plcom1.inc
 plinit.o: plinit.f plcomm.inc plcom0.inc plcom1.inc plcnst.inc
 plintf.o: plintf.f plcomm.inc plcom0.inc plcom1.inc
-plprof.o: plprof.f plcomm.inc plcom0.inc plcom1.inc plcom2.inc plxprf.inc $(WMCOMM)
+plprof.o: plprof.f plcomm.inc plcom0.inc plcom1.inc plcom2.inc plxprf.inc
 pldata.o: pldata.f plcomd.inc plcom0.inc plcom3.inc
