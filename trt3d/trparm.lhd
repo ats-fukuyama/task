@@ -29,7 +29,7 @@
    PECR0=0.0
    PECRW=0.2
    MDLUF=2
-   KUFDIR='../profile_data'
+   KUFDIR='../../task3d/profile_data'
    KUFDEV='lhd'
    KUFDCG='109081'
    TIME_INT=4.2400
