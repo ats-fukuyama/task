@@ -44,7 +44,7 @@
       call bpsd_set_data(device,ierr)
 
       if(species%nsmax.ne.nsmax) then
-         if(allocated(species%data)) then
+         if(associated(species%data)) then
             deallocate(species%data)
          endif
          species%nsmax=nsmax
@@ -59,63 +59,63 @@
       call bpsd_set_data(species,ierr)
 
       if((equ1D%nrmax.ne.nrmax+1)) then
-         if(allocated(equ1D%s)) then
-            deallocate(equ1D%s)
+         if(associated(equ1D%rho)) then
+            deallocate(equ1D%rho)
          endif
-         if(allocated(equ1D%data)) then
+         if(associated(equ1D%data)) then
             deallocate(equ1D%data)
          endif
          equ1D%nrmax=nrmax+1
-         allocate(equ1D%s(equ1D%nrmax))
+         allocate(equ1D%rho(equ1D%nrmax))
          allocate(equ1D%data(equ1D%nrmax))
       endif
 
       equ1D%time=0.d0
-      equ1D%s(1)=0.d0
+      equ1D%rho(1)=0.d0
       do nr=1,nrmax
-         equ1D%s(nr+1)=rg(nr)**2
+         equ1D%rho(nr+1)=rg(nr)
       enddo
 
       if((metric1D%nrmax.ne.nrmax+1)) then
-         if(allocated(metric1D%s)) then
-            deallocate(metric1D%s)
+         if(associated(metric1D%rho)) then
+            deallocate(metric1D%rho)
          endif
-         if(allocated(metric1D%data)) then
+         if(associated(metric1D%data)) then
             deallocate(metric1D%data)
          endif
          metric1D%nrmax=nrmax+1
-         allocate(metric1D%s(metric1D%nrmax))
+         allocate(metric1D%rho(metric1D%nrmax))
          allocate(metric1D%data(metric1D%nrmax))
       endif
 
       metric1D%time=0.d0
-      metric1D%s(1)=0.d0
+      metric1D%rho(1)=0.d0
       do nr=1,nrmax
-         metric1D%s(nr+1)=rg(nr)**2
+         metric1D%rho(nr+1)=rg(nr)
       enddo
 
       if((plasmaf%nsmax.ne.nsmax).or. &
      &   (plasmaf%nrmax.ne.nrmax+1)) then
-         if(allocated(plasmaf%s)) then
-            deallocate(plasmaf%s)
+         if(associated(plasmaf%rho)) then
+            deallocate(plasmaf%rho)
          endif
-         if(allocated(plasmaf%data)) then
+         if(associated(plasmaf%data)) then
             deallocate(plasmaf%data)
          endif
-         if(allocated(plasmaf%qinv)) then
+         if(associated(plasmaf%qinv)) then
             deallocate(plasmaf%qinv)
          endif
          plasmaf%nsmax=nsmax
          plasmaf%nrmax=nrmax+1
-         allocate(plasmaf%s(plasmaf%nrmax))
+         allocate(plasmaf%rho(plasmaf%nrmax))
          allocate(plasmaf%data(plasmaf%nrmax,plasmaf%nsmax))
          allocate(plasmaf%qinv(plasmaf%nrmax))
       endif
 
       plasmaf%time=0.d0
-      plasmaf%s(1)=0.d0
+      plasmaf%rho(1)=0.d0
       do nr=1,nrmax
-         plasmaf%s(nr+1)=rg(nr)**2
+         plasmaf%rho(nr+1)=rg(nr)
       enddo
       do ns=1,nsmax
          call mesh_convert_mtog(rn(1,ns),temp(1,ns,1),nrmax)
@@ -136,9 +136,9 @@
       do nr=2,plasmaf%nrmax
          plasmaf%qinv(nr)=1.d0/qp(nr-1)
       enddo
-      plasmaf%qinv(1)=(plasmaf%s(3)*plasmaf%qinv(2) &
-     &                -plasmaf%s(2)*plasmaf%qinv(3)) &
-     &               /(plasmaf%s(3)-plasmaf%s(2))
+      plasmaf%qinv(1)=(plasmaf%rho(3)*plasmaf%qinv(2) &
+     &                -plasmaf%rho(2)*plasmaf%qinv(3)) &
+     &               /(plasmaf%rho(3)-plasmaf%rho(2))
 
       call bpsd_set_data(plasmaf,ierr)
       return
@@ -182,9 +182,9 @@
          plasmaf%qinv(nr) &
          & =(4.D0*PI**2*RDP(nr))/(TTRHOG(nr)*ARRHOG(nr)*DVRHOG(nr))
       enddo
-      plasmaf%qinv(1)=(plasmaf%s(3)*plasmaf%qinv(2) &
-     &                -plasmaf%s(2)*plasmaf%qinv(3)) &
-     &               /(plasmaf%s(3)-plasmaf%s(2))
+      plasmaf%qinv(1)=(plasmaf%rho(3)*plasmaf%qinv(2) &
+     &                -plasmaf%rho(2)*plasmaf%qinv(3)) &
+     &               /(plasmaf%rho(3)-plasmaf%rho(2))
 
 !      write(6,*) 'end of tr_bpsd_set:qp'
 !      write(6,'(1P5E12.4)') (qp(nr),nr=1,nrmax)

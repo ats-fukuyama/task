@@ -70,9 +70,9 @@ LIBS2=$(PLLIBS) $(EQLIBS) tr2lib.a ../lib/tasklib.a ../lib/mdslib.a
 LIBS3=$(PLLIBS) $(EQLIBS) tr3lib.a ../lib/tasklib.a ../lib/mdslib.a
 
 .f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+	$(FCFIXED) $(FFLAGS) -fpp -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
-	$(FCFREE)  $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+	$(FCFREE)  $(FFLAGS) -fpp -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .c.o :
 	$(CC) $(CFLAGS) -c $< -o $@
 
@@ -109,13 +109,13 @@ libs:
 	(cd ../eq; make treqin.o)
 
 trt3d: $(LIBS2) t3d_trmain.o 
-	$(FCFREE) t3d_trmain.o $(LIBS2) -o $@ $(FFLAGS) $(GFLIBS) $(MDSLIB) $(OBJLA) $(MODULE) $(MODO) $(MODINCLUDE)
+	$(FCFREE) t3d_trmain.o $(LIBS2) -o $@ $(FFLAGS) $(GFLIBS) $(MDSLIB) $(LIBLA) $(MODULE) $(MODO) $(MODINCLUDE)
 
 tr2: $(LIBS2) t3d_trmain.o 
-	$(FCFREE) t3d_trmain.o $(LIBS2) -o $@ $(FFLAGS) $(GFLIBS) $(MDSLIB) $(OBJLA) $(MODULE) $(MODO) $(MODINCLUDE)
+	$(FCFREE) t3d_trmain.o $(LIBS2) -o $@ $(FFLAGS) $(GFLIBS) $(MDSLIB) $(LIBLA) $(MODULE) $(MODO) $(MODINCLUDE)
 
 tr3: $(LIBS3) t3d_trmain.o 
-	$(FCFREE) t3d_trmain.o $(LIBS3) -o $@ $(FFLAGS) $(GLLIBS) $(MDSLIB) $(OBJLA) $(MODINCLUDE)
+	$(FCFREE) t3d_trmain.o $(LIBS3) -o $@ $(FFLAGS) $(GLLIBS) $(MDSLIB) $(LIBLA) $(MODINCLUDE)
 
 check : $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRCE) $(SRCL) $(SRC2D) $(SRCNC) $(FCKPIPE) | less

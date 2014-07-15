@@ -34,6 +34,8 @@
 !     ***************************************************************
 
       USE TRCOMM, ONLY : GTCPU1, NFM, NGM, NRM, NSM, NTM
+      USE TRCOM2
+      USE TRCOM3
       use bpsd
       use equnit_mod
       use equunit_mod
@@ -48,6 +50,8 @@
 
       CALL GSOPEN
       CALL GUTIME(GTCPU1)
+      CALL TRCOM2_INIT
+      CALL TRCOM3_INIT
 
       call eq_init
       call equ_init
