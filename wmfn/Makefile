@@ -2,7 +2,7 @@
 include ../make.header
 
 #FFLAGS = $(OFLAGS)
-FFLAGS = $(DFLAGS)
+FFLAGS = $(DFLAGS) -warn
 
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
