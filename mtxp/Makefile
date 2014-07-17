@@ -5,16 +5,16 @@ FFLAGS=$(OFLAGS)
 
 
 ##### Without PETSc library (no MPI, real8 and complex8) #####
-#FLINKER=$(FCFREE)
-#INCLUDE_MUMPS=.
-#EXEC=testbnd testbndc testpcg
-#all: $(EXEC)
-#.SUFFIXES:
-#.SUFFIXES: .f .f90 .mod .o .a
-#.f90.o :
-#	$(FCFREE) $(FFLAGS) -c $< -o $@
-#clean :
-#	-rm -f core a.out *.o *.a ./#* ./*~ ./*.mod
+FLINKER=$(FCFREE)
+INCLUDE_MUMPS=.
+EXEC=testbnd testbndc testpcg
+all: $(EXEC)
+.SUFFIXES:
+.SUFFIXES: .f .f90 .mod .o .a
+.f90.o :
+	$(FCFREE) $(FFLAGS) -c $< -o $@
+clean :
+	-rm -f core a.out *.o *.a ./#* ./*~ ./*.mod
 
 #### With MUMPS library (real8 and complex8)
 #FLINKER=$(MF90)
@@ -29,12 +29,12 @@ FFLAGS=$(OFLAGS)
 #	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod
 
 ##### With PETSc library 3.3 (real8) #####
-EXEC=testbnd testpcg testbndc testdmumps testzmumps testksp
-all: $(EXEC)
-include ${PETSC_DIR}/conf/variables
-include ${PETSC_DIR}/conf/rules
-INCLUDE_MUMPS=${PETSC_DIR}/externalpackages/MUMPS/include
-INCLUDE_PETSC=${PETSC_DIR}/include
+#EXEC=testbnd testpcg testbndc testdmumps testzmumps testksp
+#all: $(EXEC)
+#include ${PETSC_DIR}/conf/variables
+#include ${PETSC_DIR}/conf/rules
+#INCLUDE_MUMPS=${PETSC_DIR}/externalpackages/MUMPS/include
+#INCLUDE_PETSC=${PETSC_DIR}/include
 
 INCMOD=-I $(MOD) -I../lib/$(MOD)
 LIBMOD=-L../lib -l libgrf
