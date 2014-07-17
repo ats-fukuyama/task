@@ -3,7 +3,7 @@ f
 gsdata.V
 c
 p
- &wm modelg=0,modelp=0,q0=1.D4,qa=1.D4,nph0=0,mdlwmf=2
+ &wm modelg=0,modelp=0,q0=1.D4,qa=1.D4,nph0=0,mdlwmf=1
      pn=0,0,pns=0,0,
      modelj=21 nth0=0 nrmax=50 &end
 r

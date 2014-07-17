@@ -36,7 +36,7 @@ c$$$         CALL MPSYNC
 c$$$         IF(IERR.NE.0) EXIT
 c$$$C
 c$$$         IF(NRANK.EQ.0) THEN
-c$$$            CALL WMPOUT(NPH0)
+c$$$            CALL WMPOUT
 c$$$            IF(MODELW.EQ.1) CALL WMDOUT(IERR)
 c$$$         ENDIF
 c$$$C
