@@ -131,7 +131,8 @@ C     $Id$
       case(0)
          call wmfem_qprofile(rho,qinv)
 !         bsupr=0.d0
-         bsupth=(bb*qinv)/rr
+!         bsupth=(bb*qinv)/rr
+         bsupth=0d0
          bsupph=bb/rr
          babs=bb*sqrt(1.d0+(ra*rho*qinv/rr)**2)
       case(1,2)

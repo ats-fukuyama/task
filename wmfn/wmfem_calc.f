@@ -19,8 +19,8 @@
       real(8) ::drho
 
       allocate(fmd_p(4,4,4,nfcmax,nfcmax,4))
-
-      drho=rhoa(nr+1)-rhoa(nr)
+      fmd_p=0d0
+      drho=rhoa(nr+1)-rhoa(nr) 
       do inod=1,4
          select case(inod)
            case(1)
@@ -41,7 +41,7 @@
 !          endif
         else
 !          if(mdlwmf.eq.1) then
-            call wmfem_calculate_plasma(rho0,ns,fmd_p(:,:,:,:,:,inod))
+!            call wmfem_calculate_plasma(rho0,ns,fmd_p(:,:,:,:,:,inod))
 !          else if(mdlwmf.eq.2) then
 !            call wmfem_calculate_plasma_c(rho0,ns,fmd_p(:,:,:,:,:,inod))
 !          endif
@@ -51,6 +51,7 @@
       
 ! ------ calculate coefficients of basis for profile from four points 
       allocate(fmd(4,4,4,nfcmax,nfcmax,4))
+        fmd=0d0
         do nfc2=1,nfcmax
         do nfc1=1,nfcmax
         do k=1,4
@@ -164,9 +165,22 @@
          enddo
       enddo
 
+      fmd_plasma = 0d0
 !      call wmfem_calculate_plasma(rho,0,fmd)
       call wmfem_calculate_plasma(rho,0,fmd_plasma)
-      fmd(:,4,:,:,:)=fmd_plasma(:,4,:,:,:)
+!      do i=1,4 
+!          do nfc1=1,nfcmax
+!             do nfc2=1,nfcmax
+!      fmd(4,4,:,:,:)=fmd_plasma(4,4,:,:,:)
+!      fmd(4,4,i,nfc1,nfc2)=fmd_plasma(4,4,i,nfc1,nfc2)
+!             enddo
+!          enddo
+!       enddo
+
+      fmd(1,4,:,:,:)=fmd_plasma(1,4,:,:,:)
+      fmd(2,4,:,:,:)=fmd_plasma(2,4,:,:,:)
+      fmd(3,4,:,:,:)=fmd_plasma(3,4,:,:,:)
+      fmd(4,4,:,:,:)=fmd_plasma(4,4,:,:,:)
       fmd(4,1,:,:,:)=fmd_plasma(4,1,:,:,:)
       fmd(4,2,:,:,:)=fmd_plasma(4,2,:,:,:)
       fmd(4,3,:,:,:)=fmd_plasma(4,3,:,:,:)
@@ -259,7 +273,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
 
       cfactor=(2.d0*pi*crf*1.d6)**2/vc**2
 
-      cfactor_div=1d0 !(2.d0*pi*crf*1.d6)
+       cfactor_div=1d0 !(2.d0*pi*crf*1.d6)
 !      cfactor_div=0d0 !(2.d0*pi*crf*1.d6)**2
 
 !!!!
@@ -322,7 +336,8 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
             cp(2,j)=-muma(3,j,nth,nph) /gj
             cp(3,j)= muma(2,j,nth,nph) /gj
 
-            
+ 
+
             cqd(j,1)= (dgjgmuma(j,nth,nph)
      &                +( gja(nthp,nph)*gmuma(2,j,nthp,nph)
      &                  - gja(nthm,nph)*gmuma(2,j,nthm,nph))/dth
@@ -366,6 +381,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
                      endif
                   enddo
                enddo
+!               pause
             enddo
          enddo
             
@@ -622,7 +638,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
             mmadd2=(mm1+mm2+1)/2-nth0
             if(mmadd2.lt.0)      mmadd2=mmadd2+nthmax
             if(mmadd2.ge.nthmax) mmadd2=mmadd2-nthmax
-
+!
             nfcadd1=nthmax*nnadd1+mmadd1+1
             nfcadd2=nthmax*nnadd1+mmadd2+1
             nfcadd3=nthmax*nnadd2+mmadd1+1
@@ -683,8 +699,8 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
      &                    +fmc42_d(3)*nn1
             fmd(4,4,3,nfc1,nfc2)
      &                    =fmc43_d(1) 
-     &                    +fmc43_d(2)*mm2
-     &                    +fmc43_d(3)*nn2
+     &                    +fmc43_d(2)       *mm2
+     &                    +fmc43_d(3)       *nn2
             fmd(4,4,4,nfc1,nfc2)
      &                    =0.25d0*fmc44(nfcdiff,nfcadd1)
      &                    +0.25d0*fmc44(nfcdiff,nfcadd2)
@@ -781,7 +797,6 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       else
         call wmfem_disp_tensor(rho,ns,fmc)
       endif
-      
       do nfc2=1,nfcmax
           do nfc1=1,nfcmax2
               nth=nthnfc2(nfc1)
@@ -841,8 +856,8 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
                   csuma12=0d0
                   csuma13=0d0
                   do id = 1,3
-                     csuma3=csuma3 
-     &                   + fmc(i,id,2,nfc1,nfc2)*cinv(id,1)
+                     csuma3=csuma3
+     &                   + fmc(i,id,3,nfc1,nfc2)*cinv(id,1)
                      csuma12=csuma12 
      &                   + fmc(i,id,1,nfc1,nfc2)*cinv(id,2)
                      csuma13=csuma13 
@@ -854,24 +869,23 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
               enddo
 
               do i =1,3
-                  csuma3=0d0
+                  csuma2=0d0
                   csuma12=0d0
                   csuma13=0d0
                   do id = 1,3
-                     csuma3=csuma3 
-     &                   + fmc(id,i,3,nfc1,nfc2)*conjg(cinv(id,1))
+                     csuma2=csuma2 
+     &                   + fmc(id,i,2,nfc1,nfc2)*conjg(cinv(id,1))
                      csuma12=csuma12 
      &                   + fmc(id,i,1,nfc1,nfc2)*conjg(cinv(id,2))
                      csuma13=csuma13 
      &                   + fmc(id,i,1,nfc1,nfc2)*conjg(cinv(id,3))
                   enddo
-                  fmc4a2(i,nfc1,nfc2)= cfactor4a * csuma3*gj
+                  fmc4a2(i,nfc1,nfc2)= cfactor4a * csuma2*gj
                   fmc4a1(i,2,nfc1,nfc2)= cfactor4a * csuma12*gj
                   fmc4a1(i,3,nfc1,nfc2)= cfactor4a * csuma13*gj
               enddo
           enddo    
       enddo
-
       deallocate(fmc)
 
       return

@@ -146,6 +146,7 @@
 
          do nr=1,nrmax-1        ! loop for elements
             print *, ns,nr
+            fma_local=0d0
             call wmfem_calculate_local(nr,ns,fma_local)
 
 !            if(mdlwmd.ge.1) then
@@ -169,7 +170,6 @@
             enddo
          enddo
       enddo
-
       do ml=1,mlmax             ! clear RHS vector fvb
          fvb(ml)=0.d0
       enddo
@@ -183,13 +183,16 @@
             nth=nthnfc(nfc)
             i=1 !
             ml=8*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
-            fvb(ml)=fvb(ml)+fvb1_local(nhh,nth,1)
+            fvb(ml)=fvb(ml)+ fvb1_local(nhh,nth,1)
+!            fvb(ml)=0d0 
             i=3 ! 
             ml=8*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
             fvb(ml)=fvb(ml)+fvb1_local(nhh,nth,2)
+!            fvb(ml)=0d0 
             i=5 !
             ml=8*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
             fvb(ml)=fvb(ml)+fvb1_local(nhh,nth,3)
+!            fvb(ml)=0d0
 !            i=2 ! E_para (nr)
 !            ml=8*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
 !            fvb(ml)=fvb(ml)+fvb1_local(nhh,nth,3)
@@ -292,6 +295,15 @@
 !         divj=-ci*(nth*(1.D0-angl)+nhh*rd*angl)*(rhoa(nr+1)-rhoa(nr))
 !         i=1
 !         ml=8*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
+!        fvb(ml)=0d0
+!         i=3
+!         ml=8*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
+!         fvb(ml)=0d0
+!         i=5
+!         ml=8*nfcmax*(nr-1)+nfcmax*(i-1)+nfc
+!         fvb(ml)=1d0
+
+
 !         ml1=8*nfcmax*(nr)+nfcmax*(i-1)+nfc
 !         fvb(ml)=divj*(fem_func_h(1.D0,1,2)-fem_func_h(x,1,2))
 !!         fvb(ml-1)=divj*(fem_func_h(1.D0,3,2)-fem_func_h(x,3,2))
@@ -1037,7 +1049,8 @@
          fma(mwc+4*nfcmax,ml)=fmv_6(nfc)
 
          fvb(ml)=0.d0
-         if(mdlwmd.ge.1) then
+
+        if(mdlwmd.ge.1) then
             do mw=1,mwmax
                fma_save(ml,ml,nr,0)=fma(mw,ml)
                do ns=1,nsmax
