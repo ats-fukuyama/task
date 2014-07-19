@@ -8,22 +8,22 @@ FFLAGS = $(DFLAGS)
 CFLAGS = $(OCFLAGS)
 
 # without eq
-MODINCLUDE= -I.$(MOD) -I../../bpsd/$(MOD) -I../pl/$(MOD)
+MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../pl/$(MOD)
 EQLIBS= ../pl/noeqlib.o ../pl/noequlib.o 
 MAKE_TPXLIB=
 
 # with task/eq
-#MODINCLUDE= -I.$(MOD) -I../../bpsd$(MOD) -I../eq$(MOD) -I../pl$(MOD)
+#MODINCLUDE= -I$(MOD) -I../../bpsd$(MOD) -I../eq$(MOD) -I../pl$(MOD)
 #EQLIBS= ../eq/eqlib.a ../pl/noequlib.o 
 #MAKE_TPXLIB=
 
 # with topics/equ
-#MODINCLUDE= -I.$(MOD) -I../../bpsd$(MOD) -I../pl$(MOD) -I../../topics/src$(MOD)
+#MODINCLUDE= -I$(MOD) -I../../bpsd$(MOD) -I../pl$(MOD) -I../../topics/src$(MOD)
 #EQLIBS= ../../topics/src/tpxlib.a ../../topics/src/eqlib.a  ../pl/noeqlib.o 
 #MAKE_TPXLIB= (cd ../../topics/src; make tpxlib.a eqlib.a)
 
 # with task/eq and topics/equ
-#MODINCLUDE= -I.$(MOD) -I../../bpsd$(MOD) -I../eq$(MOD) -I../pl$(MOD) -I../../topics/src$(MOD)
+#MODINCLUDE= -I$(MOD) -I../../bpsd$(MOD) -I../eq$(MOD) -I../pl$(MOD) -I../../topics/src$(MOD)
 #EQLIBS= ../eq/eqlib.a ../../topics/src/tpxlib.a ../../topics/src/eqlib.a
 #MAKE_TPXLIB= (cd ../../topics/src; make tpxlib.a eqlib.a)
 
@@ -109,22 +109,16 @@ libs:
 	(cd ../eq; make treqin.o)
 
 trt3d: $(LIBS2) t3d_trmain.o 
-	$(FCFREE) t3d_trmain.o $(LIBS2) -o $@ $(FFLAGS) $(GFLIBS) $(MDSLIB) $(LIBLA) $(MODULE) $(MODO) $(MODINCLUDE)
+	$(FCFREE) t3d_trmain.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS)
 
 tr2: $(LIBS2) t3d_trmain.o 
-	$(FCFREE) t3d_trmain.o $(LIBS2) -o $@ $(FFLAGS) $(GFLIBS) $(MDSLIB) $(LIBLA) $(MODULE) $(MODO) $(MODINCLUDE)
-
-tr3: $(LIBS3) t3d_trmain.o 
-	$(FCFREE) t3d_trmain.o $(LIBS3) -o $@ $(FFLAGS) $(GLLIBS) $(MDSLIB) $(LIBLA) $(MODINCLUDE)
-
-check : $(SRCS)
-	ftnchek $(FCKFLAGS) $(SRCS) $(SRCE) $(SRCL) $(SRC2D) $(SRCNC) $(FCKPIPE) | less
+	$(FCFREE) t3d_trmain.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS)
 
 clean : 
-	rm -f ./#* ./*~ *.o nclass/*.o itg/*.o glf/*.o a.out core *.a *.mod .$(MOD)/*.mod
+	rm -f ./#* ./*~ *.o a.out core *.a *.mod $(MOD)/*.mod
 
 veryclean : clean
-	rm -f tr2 tr3
+	rm -f tr2
 
 distclean: clean
 	cd ../pl && make clean
