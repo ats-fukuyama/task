@@ -1,13 +1,14 @@
  &t2
  ntmax = 1
  ntstep= 1
- dt    = 1.D-6
+ dt    = 1.D-7
  idebug= 0
  NLMAX = 1
  NPMIN = 10
 ! NSMAX = 0
  i1mlvl(1) = 1
  i1rdn2(1) = 10
+ d1rec( 1) = 1.D0
  eps_conv  = 1.D-3
  
  CoordinateSwitch = 1
@@ -38,7 +39,7 @@
     
     ! set equations to be solved
     SolveElectron = .TRUE.
-    SolveIons     = .TRUE.
+    SolveIons     = .FALSE.
 
     SolveBp       = .TRUE.
     SolveBt       = .TRUE.
@@ -63,11 +64,11 @@
     LockEpOnAxis  = .FALSE.
     LockErOnAxis  = .FALSE.
     LockNnOnAxis  = .FALSE.
-    LockFrOnAxis  = .FALSE.
+    LockFrOnAxis  = .TRUE.
     LockFbOnAxis  = .FALSE.
-    LockFtOnAxis  = .TRUE.
-    LockFpOnAxis  = .FALSE.
-    LockPpOnAxis  = .TRUE.
+    LockFtOnAxis  = .FALSE.
+    LockFpOnAxis  = .TRUE.
+    LockPpOnAxis  = .FALSE.
     LockQrOnAxis  = .FALSE.
     LockQbOnAxis  = .FALSE.
     LockQtOnAxis  = .FALSE.
@@ -79,7 +80,7 @@
     LockBtOnWall  = .FALSE.
     LockEtOnWall  = .FALSE.
     LockEpOnWall  = .FALSE.
-    LockErOnWall  = .TRUE.
+    LockErOnWall  = .FALSE.
     LockNnOnWall  = .FALSE.
     LockFrOnWall  = .TRUE.
     LockFbOnWall  = .FALSE.

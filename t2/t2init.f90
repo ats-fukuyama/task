@@ -93,7 +93,7 @@ CONTAINS
     d0bc     =  1.00D0
 
     i0nm = 2
-    i0nn = 3
+    i0nn = 2
     i0tm = 2
     i0tn = 2
     

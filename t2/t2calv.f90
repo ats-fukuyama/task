@@ -11,7 +11,7 @@
 !      ARE PARTLY CONFIRMED BY THE COMPARISON WITH 
 !      TASK/T2 RESULTS AND ANALITICAL VALUES IN CTMP.
 !
-!                   LAST UPDATE    2014-06-15 H.Seto
+!                   LAST UPDATE    2014-07-01 H.Seto
 !
 !-------------------------------------------------------------------
 MODULE T2CALV
@@ -32,7 +32,7 @@ CONTAINS
   !       CALCULATION OF FUNDAMENTAL PHYSICAL QUANTITIES 
   ! 
   !
-  !                     LAST UPDATE 2014-05-31 H.Seto
+  !                     LAST UPDATE 2014-07-01 H.Seto
   !
   !
   !---------------------------------------------------------
@@ -50,12 +50,7 @@ CONTAINS
     CALL T2CALV_ANOMALOUS_COEFFICIENT ! F^{QL}_{a\zeta}, G^{QL}_{a\zeta}
     
     CALL T2CALV_ADDITIONAL_COEFFICIENT
-
-    !IF(i_m.EQ.53)THEN ! for debug
-    !   CALL T2CALV_COEF_CHECK
-    !   STOP
-    !ENDIF
-
+    
     RETURN
 
   END SUBROUTINE T2CALV_EXECUTE
@@ -66,7 +61,7 @@ CONTAINS
     USE T2VOUT,ONLY: T2VOUT_EXECUTE    
     USE T2GOUT,ONLY: T2_GOUT
     USE T2COMM,ONLY:&
-         & NSMAX,EtNF,BpNF,BtNF,EqSet,NFMAX,&
+         & NSMAX,EtNF,BpNF,BtNF,NFMAX,&
          & NnNF,FrNF,FbNF,FtNF,FpNF,&
          & PpNF,QrNF,QbNF,QtNF,QpNF,&
          & i2crt,d2rzm,GlobalCrd,Metric,d2xout,&
@@ -120,8 +115,9 @@ CONTAINS
     !                  of TOROIDAL MAGENTIC FIELD  : Bt^{2}
     ! Bb     : INTENSITY OF MAGNETIC FIELD         : B 
     ! BbSq   : SQUARED INTENSITY of MAGNETIC FIELD : B^{2} 
-    
+    !
     ! initialization
+    !
     i_m1d = i2crt(    3,i_m)
     i_m2d = i2crt(    2,i_m)
     R_rz  = d2rzm(    1,i_m)
@@ -146,48 +142,33 @@ CONTAINS
     ENDDO
     
     dpsidr = XvecIn(1,i_m1d)*BpNF
-    
     BtCo   = XvecIn(2,i_m1d)*BtNF
     EtCo   = XvecIn(3,i_m1d)*EtNF
 
     BtCt   = BtCo*G33Ct
     
-    BpCt = dpsidr/GRt
-    BpCo = BpCt*G22Co
+    BpCt   = dpsidr/GRt
+    BpCo   = BpCt*G22Co
     
-    BpSq = BpCo*BpCt
-    BtSq = BtCo*BtCt
+    BpSq   = BpCo*BpCt
+    BtSq   = BtCo*BtCt
     
-    BbSq = BpSq + BtSq
-    Bb   = SQRT(BbSq)
+    BbSq   = BpSq + BtSq
+    Bb     = SQRT(BbSq)
 
     DO i_s = 1, NSMAX
-       SELECT CASE (EqSet)
-       CASE (1)
-          vOffset =  10*(i_s - 1) + NFMAX
-          nnA   = XvecIn(vOffset+ 1,i_m2d)     *NnNF
-          frCtA = XvecIn(vOffset+ 2,i_m2d)*R_mc*FrNF
-          fbA   = XvecIn(vOffset+ 3,i_m2d)     *FbNF
-          ftCoA = XvecIn(vOffset+ 4,i_m2d)     *FtNF
-          fpCtA = XvecIn(vOffset+ 5,i_m2d)     *FpNF
-          ppA   = XvecIn(vOffset+ 6,i_m2d)     *PpNF
-          qrCtA = XvecIn(vOffset+ 7,i_m2d)*R_mc*QrNF
-          qbA   = XvecIn(vOffset+ 8,i_m2d)     *QbNF
-          qtCoA = XvecIn(vOffset+ 9,i_m2d)     *QtNF
-          qpCtA = XvecIn(vOffset+10,i_m2d)     *QpNF
-       CASE (2)
-          vOffset =  10*(i_s - 1) + NFMAX
-          nnA   = XvecIn(vOffset+ 1,i_m2d)     *NnNF
-          frCtA = XvecIn(vOffset+ 2,i_m2d)     *FrNF
-          fbA   = XvecIn(vOffset+ 3,i_m2d)     *FbNF
-          ftCoA = XvecIn(vOffset+ 4,i_m2d)     *FtNF
-          fpCtA = XvecIn(vOffset+ 5,i_m2d)     *FpNF
-          ppA   = XvecIn(vOffset+ 6,i_m2d)     *PpNF
-          qrCtA = XvecIn(vOffset+ 7,i_m2d)     *QrNF
-          qbA   = XvecIn(vOffset+ 8,i_m2d)     *QbNF
-          qtCoA = XvecIn(vOffset+ 9,i_m2d)     *QtNF
-          qpCtA = XvecIn(vOffset+10,i_m2d)     *QpNF
-       END SELECT
+       
+       vOffset =  10*(i_s - 1) + NFMAX
+       nnA   = XvecIn(vOffset+ 1,i_m2d)*NnNF
+       frCtA = XvecIn(vOffset+ 2,i_m2d)*FrNF
+       fbA   = XvecIn(vOffset+ 3,i_m2d)*FbNF
+       ftCoA = XvecIn(vOffset+ 4,i_m2d)*FtNF
+       fpCtA = XvecIn(vOffset+ 5,i_m2d)*FpNF
+       ppA   = XvecIn(vOffset+ 6,i_m2d)*PpNF
+       qrCtA = XvecIn(vOffset+ 7,i_m2d)*QrNF
+       qbA   = XvecIn(vOffset+ 8,i_m2d)*QbNF
+       qtCoA = XvecIn(vOffset+ 9,i_m2d)*QtNF
+       qpCtA = XvecIn(vOffset+10,i_m2d)*QpNF
        
        IF((nnA.LT.0.D0).OR.(ppA.LT.0.D0))THEN
           WRITE(6,*)'NEGATIVE  DENSITY or PRESSURE'
@@ -204,8 +185,7 @@ CONTAINS
        ubA   = fbA  /nnA
        utCoA = ftCoA/nnA
        upCtA = fpCtA/nnA
-       
-       
+              
        wrCtA = qrCtA/ppA
        wbA   = qbA  /ppA
        wtCoA = qtCoA/ppA
@@ -268,6 +248,7 @@ CONTAINS
     !  basic collision frequency [Hz]
     !  ref: COLLISIONAL TRANSPORT IN MAGNETIZED PLASMAS
     !      P. HELANDER AND D.J. SIGMAR (2002)  P.277
+
     DO j_s = 1, NSMAX
        eeB   = Ee(j_s)
        nnB   = Nn(j_s)
@@ -284,6 +265,7 @@ CONTAINS
     ! COLLISION FREQUENCY [1/s]
     ! REF: COLLISIONAL TRANSPORT IN MAGNETIZED PLASMAS
     !      P. HELANDER AND D.J. SIGMAR (2002)  P.277
+
     DO j_s = 1, NSMAX
     DO i_s = 1, NSMAX
        Nu(i_s,j_s) = BaseNu(i_s,j_s)/(0.75D0*SQRT(Pi))
@@ -291,6 +273,7 @@ CONTAINS
     ENDDO
 
     ! HEAT EXCHANGE FREQUENCY [Hz]
+
     temp = 3.D0*SQRT(2.D0)*(SQRT(PI)**3)*(EPS0**2)
     DO j_s = 1,NSMAX
     DO i_s = 1,NSMAX
@@ -345,8 +328,7 @@ CONTAINS
   ! l12[i_s,j_s] : l^{ab}_{12} [kg/m2*s2]
   ! l21[i_s,j_s] : l^{ab}_{21} [kg/m2*s2]
   ! l22[i_s,j_s] : l^{ab}_{22} [kg/m2*s2] 
-  !
-  !
+
   !
   ! RESULT OF TEST CALCULATION
   !
@@ -433,12 +415,10 @@ CONTAINS
        IF(i_s.EQ.j_s)THEN
           DO k_s = 1, NSMAX
              nuAC  = Nu( i_s,k_s)
-             
              m00AC = m00(i_s,k_s)
              m01AC = m01(i_s,k_s)
              m10AC = m10(i_s,k_s)
              m11AC = m11(i_s,k_s)
-             
              l11AB = l11AB + m00AC*nuAC
              l12AB = l12AB + m01AC*nuAC
              l21AB = l21AB + m10AC*nuAC
@@ -452,8 +432,8 @@ CONTAINS
        L21(i_s,j_s) = l21AB*temp ! l_{21}^{ab}
        L22(i_s,j_s) = l22AB*temp ! l_{22}^{ab}
     ENDDO
-    ENDDO       
-
+    ENDDO
+    
     !>>>>> ********** for debug ************* >>>>>
     !mmE   = Mm(1)
     !nnE   = Nn(1)
@@ -896,8 +876,8 @@ CONTAINS
     !      M. Honda et. al, Nucl. Fusion, 50 095012 (2010)
     !
     IF(R_mc.LE.1.D0)THEN
-       d_anom = 0.45D0*R_mc+0.05D0
-       !d_anom = 0.3D0
+       !d_anom = 0.45D0*R_mc+0.05D0
+       d_anom = 0.03D0
        m_anom = 0.45D1*R_mc+0.05D1
        x_anom = 0.45D1*R_mc+0.05D1
     ELSE

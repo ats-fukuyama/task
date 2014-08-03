@@ -96,7 +96,7 @@ CONTAINS
           EqBtNF=1.D0*1.D-5
           EqEtNF=1.D0
           EqEpNF=1.D0
-          EqErNF=1.D0
+          EqErNF=1.D0*1.D-5
           EqNnNF=NnNF
           EqFrNF=PpNF*1.D-8
           EqFbNF=PpNF*1.D-8

@@ -91,7 +91,7 @@ MODULE T2COMM
        i1mlvl
   INTEGER(ikind),DIMENSION(-1:i0lmaxm)::&
        i1rdn2  ! NUMBER OF PARTITION IN RADIAL DIREACTON
-               !      IN EACH SUBDOMAIN 
+  !                                  IN EACH SUBDOMAIN 
   REAL(   rkind),DIMENSION(0:i0lmaxm)::&
        d1rec
   
@@ -194,7 +194,6 @@ MODULE T2COMM
        ExciScaIntgPG(:,:,:        ), ExciVecIntgPG(:,:,:,:,:    ),&
        ExciTenIntgPG(:,:,:,:,:,:,:), SourScaIntgPG(:,:          )
   
-
   !------------------------------------------------------------------
   !
   !       DEFINITION OF GLOBAL VARIABLES FOR T2NGRA

@@ -1193,7 +1193,7 @@ CONTAINS
           ENDDO
 
           i_v =  4 + vOffsetA    ! Equation for Gamma_{a\zeta}
-          j_v =  3;              HaveExciScaCoef(i_v,j_v) = .TRUE.
+          !j_v =  3;              HaveExciScaCoef(i_v,j_v) = .TRUE.
           j_v =  2 + vOffsetA;   HaveExciScaCoef(i_v,j_v) = .TRUE.
           !  >>>> ANOMALOUS TRANSPORT * two-fluid model >>>>
           j_v =  3 + NFMAX;      HaveExciScaCoef(i_v,j_v) = .TRUE.
@@ -1841,10 +1841,11 @@ CONTAINS
 
   !-------------------------------------------------------------------
   ! 
-  ! CREATE TABLE ABOUT WHICH EQUATIONS ARE TO BE LOCKED
+  ! CREATE TABLE ABOUT WHICH EQUATIONS SHOULD BE LOCKED
   !
   !
-  !                     LAST UPDATE     2014-06-12 H.Seto
+  !                     LAST UPDATE     2014-07-02 H.Seto
+  !                     LAST UPDATE     2014-07-02 H.Seto
   !
   !-------------------------------------------------------------------
   SUBROUTINE T2VGRA_LOCK_EQUA_EB
@@ -1862,147 +1863,102 @@ CONTAINS
     ! initialization
     LockEqs(1:NVMAX) = .TRUE.
     
-    SELECT CASE (EqSet)
-    CASE (1)
-       ! field
-       LockEqs( 1)    = .NOT.SolveBp
-       LockEqs( 2)    = .NOT.SolveBt
-       LockEqs( 3)    = .NOT.SolveEt
-       LockEqs( 4)    = .NOT.SolveEp
-       LockEqs( 5)    = .NOT.SolveEr
     
-       
-       IF(SolveElectron)THEN
-          LockEqs( 1 + NFMAX) = .NOT.SolveNn
-          LockEqs( 2 + NFMAX) = .NOT.SolveFr
-          LockEqs( 3 + NFMAX) = .NOT.SolveFb
-          LockEqs( 4 + NFMAX) = .NOT.SolveFt
-          LockEqs( 5 + NFMAX) = .NOT.SolveFp
-          LockEqs( 6 + NFMAX) = .NOT.SolvePp
-          LockEqs( 7 + NFMAX) = .NOT.SolveQr
-          LockEqs( 8 + NFMAX) = .NOT.SolveQb
-          LockEqs( 9 + NFMAX) = .NOT.SolveQt
-          LockEqs(10 + NFMAX) = .NOT.SolveQp
-       ENDIF
-    
-       IF(SolveIons)THEN
-          DO i_s = 1, NSMAX-1
-             vOffsetA = 10*i_s + NFMAX
-             LockEqs( 1 + vOffsetA) = .NOT.SolveNn
-             LockEqs( 2 + vOffsetA) = .NOT.SolveFr
-             LockEqs( 3 + vOffsetA) = .NOT.SolveFb
-             LockEqs( 4 + vOffsetA) = .NOT.SolveFt
-             LockEqs( 5 + vOffsetA) = .NOT.SolveFp
-             LockEqs( 6 + vOffsetA) = .NOT.SolvePp
-             LockEqs( 7 + vOffsetA) = .NOT.SolveQr
-             LockEqs( 8 + vOffsetA) = .NOT.SolveQb
-             LockEqs( 9 + vOffsetA) = .NOT.SolveQt
-             LockEqs(10 + vOffsetA) = .NOT.SolveQp
-          ENDDO
-       ENDIF
-    CASE (2)
-       ! field
-       LockEqs( 1)    = .NOT.SolveBp
-       LockEqs( 2)    = .NOT.SolveBt
-       LockEqs( 3)    = .NOT.SolveEt
-       LockEqs( 4)    = .NOT.SolveEp
-       LockEqs( 5)    = .NOT.SolveEr
-       LockEqs( 6)    = .NOT.SolveEp
-       
-       IF(SolveElectron)THEN
-          LockEqs( 1 + NFMAX) = .NOT.SolveNn
-          LockEqs( 2 + NFMAX) = .NOT.SolveFr
-          LockEqs( 3 + NFMAX) = .NOT.SolveFb
-          LockEqs( 4 + NFMAX) = .NOT.SolveFt
-          LockEqs( 5 + NFMAX) = .NOT.SolveFp
-          LockEqs( 6 + NFMAX) = .NOT.SolvePp
-          LockEqs( 7 + NFMAX) = .NOT.SolveQr
-          LockEqs( 8 + NFMAX) = .NOT.SolveQb
-          LockEqs( 9 + NFMAX) = .NOT.SolveQt
-          LockEqs(10 + NFMAX) = .NOT.SolveQp
-       ENDIF
-    
-       IF(SolveIons)THEN
-          DO i_s = 1, NSMAX-1
-             vOffsetA = 10*i_s + NFMAX
-             LockEqs( 1 + vOffsetA) = .NOT.SolveNn
-             LockEqs( 2 + vOffsetA) = .NOT.SolveFr
-             LockEqs( 3 + vOffsetA) = .NOT.SolveFb
-             LockEqs( 4 + vOffsetA) = .NOT.SolveFt
-             LockEqs( 5 + vOffsetA) = .NOT.SolveFp
-             LockEqs( 6 + vOffsetA) = .NOT.SolvePp
-             LockEqs( 7 + vOffsetA) = .NOT.SolveQr
-             LockEqs( 8 + vOffsetA) = .NOT.SolveQb
-             LockEqs( 9 + vOffsetA) = .NOT.SolveQt
-             LockEqs(10 + vOffsetA) = .NOT.SolveQp
-          ENDDO
-       ENDIF
-    END SELECT
+    ! field
+    LockEqs( 1)    = .NOT.SolveBp
+    LockEqs( 2)    = .NOT.SolveBt
+    LockEqs( 3)    = .NOT.SolveEt
+    LockEqs( 4)    = .NOT.SolveEp
+    LockEqs( 5)    = .NOT.SolveEr
+    LockEqs( 6)    = .NOT.SolveEp
 
+    IF(SolveElectron)THEN
+       LockEqs( 1 + NFMAX) = .NOT.SolveNn
+       LockEqs( 2 + NFMAX) = .NOT.SolveFr
+       LockEqs( 3 + NFMAX) = .NOT.SolveFb
+       LockEqs( 4 + NFMAX) = .NOT.SolveFt
+       LockEqs( 5 + NFMAX) = .NOT.SolveFp
+       LockEqs( 6 + NFMAX) = .NOT.SolvePp
+       LockEqs( 7 + NFMAX) = .NOT.SolveQr
+       LockEqs( 8 + NFMAX) = .NOT.SolveQb
+       LockEqs( 9 + NFMAX) = .NOT.SolveQt
+       LockEqs(10 + NFMAX) = .NOT.SolveQp
+    ENDIF
+    
+    IF(SolveIons)THEN
+       DO i_s = 1, NSMAX-1
+          vOffsetA = 10*i_s + NFMAX
+          LockEqs( 1 + vOffsetA) = .NOT.SolveNn
+          LockEqs( 2 + vOffsetA) = .NOT.SolveFr
+          LockEqs( 3 + vOffsetA) = .NOT.SolveFb
+          LockEqs( 4 + vOffsetA) = .NOT.SolveFt
+          LockEqs( 5 + vOffsetA) = .NOT.SolveFp
+          LockEqs( 6 + vOffsetA) = .NOT.SolvePp
+          LockEqs( 7 + vOffsetA) = .NOT.SolveQr
+          LockEqs( 8 + vOffsetA) = .NOT.SolveQb
+          LockEqs( 9 + vOffsetA) = .NOT.SolveQt
+          LockEqs(10 + vOffsetA) = .NOT.SolveQp
+       ENDDO
+    ENDIF
+    
     RETURN
     
   END SUBROUTINE T2VGRA_LOCK_EQUA_EB
-      
+  
   !-------------------------------------------------------------------
   ! 
   ! CREATE TABLE ABOUT WHICH VARIABLES ARE TO BE LOCKED ON AXIS
   !
   !
-  !                     LAST UPDATE     2014-06-22 H.Seto
-  !                     OPERATION CHECK 2014-05-26 H.Seto
+  !                     LAST UPDATE     2014-07-02 H.Seto
+  !                     OPERATION CHECK 2014-07-02 H.Seto
   !
   !-------------------------------------------------------------------
+  
   SUBROUTINE T2VGRA_LOCK_AXIS_EB
     
     USE T2COMM, ONLY:&
          & NSMAX,NVMAX,NFMAX,LockAxi,LockEqs,&
          !
-         & LockBpOnAxis,LockBtOnAxis,LockEtOnAxis,LockEpOnAxis,&
-         & LockErOnAxis,&
-         & LockNnOnAxis,LockFrOnAxis,LockFbOnAxis,LockFtOnAxis,&
-         & LockFpOnAxis,&
-         & LockPpOnAxis,LockQrOnAxis,LockQbOnAxis,LockQtOnAxis,&
-         & LockQpOnAxis
+         & LockBpOnAxis,LockBtOnAxis,LockEtOnAxis,LockEpOnAxis,LockErOnAxis,&
+         & LockNnOnAxis,LockFrOnAxis,LockFbOnAxis,LockFtOnAxis,LockFpOnAxis,&
+         & LockPpOnAxis,LockQrOnAxis,LockQbOnAxis,LockQtOnAxis,LockQpOnAxis
     
+    INTEGER(ikind),SAVE::i=0
     INTEGER(ikind)::i_s,vOffsetA
     
     ! initialization
-    LockAxi(1:NVMAX) = .FALSE.    
+    LockAxi(1:NVMAX) = .FALSE.
     
-    IF(.NOT.LockEqs(1))&
-         &  LockAxi(1) = LockBpOnAxis
-    IF(.NOT.LockEqs(2))&
-         &  LockAxi(2) = LockBtOnAxis
-    IF(.NOT.LockEqs(3))&
-         &  LockAxi(3) = LockEtOnAxis
-    IF(.NOT.LockEqs(4))&
-         &  LockAxi(4) = LockEpOnAxis
-    IF(.NOT.LockEqs(5))&
-         &  LockAxi(5) = LockErOnAxis
-    IF(.NOT.LockEqs(6))&
-         &  LockAxi(6) = LockEpOnAxis
+    IF(.NOT.LockEqs(1)) LockAxi(1) = LockBpOnAxis
+    IF(.NOT.LockEqs(2)) LockAxi(2) = LockBtOnAxis
+    IF(.NOT.LockEqs(3)) LockAxi(3) = LockEtOnAxis
+    IF(.NOT.LockEqs(4)) LockAxi(4) = LockEpOnAxis
+    IF(.NOT.LockEqs(5)) LockAxi(5) = LockErOnAxis
+    IF(.NOT.LockEqs(6)) LockAxi(6) = LockEpOnAxis
+    
     DO i_s = 0, NSMAX-1
        vOffsetA = 10*i_s + NFMAX
-       IF(.NOT.LockEqs( 1 + vOffsetA))&
-            &  LockAxi( 1 + vOffsetA) = LockNnOnAxis
-       IF(.NOT.LockEqs( 2 + vOffsetA))&
-            &  LockAxi( 2 + vOffsetA) = LockFrOnAxis
-       IF(.NOT.LockEqs( 3 + vOffsetA))&
-            &  LockAxi( 3 + vOffsetA) = LockFbOnAxis
-       IF(.NOT.LockEqs( 4 + vOffsetA))&
-            &  LockAxi( 4 + vOffsetA) = LockFtOnAxis
-       IF(.NOT.LockEqs( 5 + vOffsetA))&
-            &  LockAxi( 5 + vOffsetA) = LockFpOnAxis 
-       IF(.NOT.LockEqs( 6 + vOffsetA))&
-            &  LockAxi( 6 + vOffsetA) = LockPpOnAxis 
-       IF(.NOT.LockEqs( 7 + vOffsetA))&
-            &  LockAxi( 7 + vOffsetA) = LockQrOnAxis 
-       IF(.NOT.LockEqs( 8 + vOffsetA))&
-            &  LockAxi( 8 + vOffsetA) = LockQbOnAxis
-       IF(.NOT.LockEqs( 9 + vOffsetA))&
-            &  LockAxi( 9 + vOffsetA) = LockQtOnAxis
-       IF(.NOT.LockEqs(10 + vOffsetA))&
-            &  LockAxi(10 + vOffsetA) = LockQpOnAxis
+       IF(.NOT.LockEqs( 1+vOffsetA))&
+            &  LockAxi( 1+vOffsetA) = LockNnOnAxis
+       IF(.NOT.LockEqs( 2+vOffsetA))&
+            &  LockAxi( 2+vOffsetA) = LockFrOnAxis
+       IF(.NOT.LockEqs( 3+vOffsetA))&
+            &  LockAxi( 3+vOffsetA) = LockFbOnAxis
+       IF(.NOT.LockEqs( 4+vOffsetA))&
+            &  LockAxi( 4+vOffsetA) = LockFtOnAxis
+       IF(.NOT.LockEqs( 5+vOffsetA))&
+            &  LockAxi( 5+vOffsetA) = LockFpOnAxis
+       IF(.NOT.LockEqs( 6+vOffsetA))&
+            &  LockAxi( 6+vOffsetA) = LockPpOnAxis 
+       IF(.NOT.LockEqs( 7+vOffsetA))&
+            &  LockAxi( 7+vOffsetA) = LockQrOnAxis 
+       IF(.NOT.LockEqs( 8+vOffsetA))&
+            &  LockAxi( 8+vOffsetA) = LockQbOnAxis
+       IF(.NOT.LockEqs( 9+vOffsetA))&
+            &  LockAxi( 9+vOffsetA) = LockQtOnAxis
+       IF(.NOT.LockEqs(10+vOffsetA))&
+            &  LockAxi(10+vOffsetA) = LockQpOnAxis
     ENDDO
     
     RETURN
@@ -2024,54 +1980,44 @@ CONTAINS
          & NSMAX,NVMAX,NFMAX,LockWal,LockEqs,&
          !
          !
-         & LockBpOnWall,LockBtOnWall,LockEtOnWall,LockEpOnWall,&
-         & LockErOnWall,&
-         & LockNnOnWall,LockFrOnWall,LockFbOnWall,LockFtOnWall,&
-         & LockFpOnWall,&
-         & LockPpOnWall,LockQrOnWall,LockQbOnWall,LockQtOnWall,&
-         & LockQpOnWall
+         & LockBpOnWall,LockBtOnWall,LockEtOnWall,LockEpOnWall,LockErOnWall,&
+         & LockNnOnWall,LockFrOnWall,LockFbOnWall,LockFtOnWall,LockFpOnWall,&
+         & LockPpOnWall,LockQrOnWall,LockQbOnWall,LockQtOnWall,LockQpOnWall
 
     INTEGER(ikind)::i_s,vOffsetA
-
+    
     ! initialization
     LockWal(1:NVMAX) = .FALSE.    
     
-    
-    IF(.NOT.LockEqs( 1))&
-         &  LockWal( 1) = LockBpOnWall
-    IF(.NOT.LockEqs( 2))&
-         &  LockWal( 2) = LockBtOnWall
-    IF(.NOT.LockEqs( 3))&
-         &  LockWal( 3) = LockEtOnWall
-    IF(.NOT.LockEqs( 4))&
-         &  LockWal( 4) = LockEpOnWall
-    IF(.NOT.LockEqs( 5))&
-         &  LockWal( 5) = LockErOnWall
-    IF(.NOT.LockEqs( 6))&
-         &  LockWal( 6) = LockEpOnWall
+    IF(.NOT.LockEqs( 1)) LockWal( 1) = LockBpOnWall
+    IF(.NOT.LockEqs( 2)) LockWal( 2) = LockBtOnWall
+    IF(.NOT.LockEqs( 3)) LockWal( 3) = LockEtOnWall
+    IF(.NOT.LockEqs( 4)) LockWal( 4) = LockEpOnWall
+    IF(.NOT.LockEqs( 5)) LockWal( 5) = LockErOnWall
+    IF(.NOT.LockEqs( 6)) LockWal( 6) = LockEpOnWall
 
     DO i_s = 0,NSMAX-1
        vOffsetA = 10*i_s + NFMAX
-       IF(.NOT.LockEqs( 1 + vOffsetA))&
-            &  LockWal( 1 + vOffsetA) = LockNnOnWall
-       IF(.NOT.LockEqs( 2 + vOffsetA))&
-            &  LockWal( 2 + vOffsetA) = LockFrOnWall
-       IF(.NOT.LockEqs( 3 + vOffsetA))&
-            &  LockWal( 3 + vOffsetA) = LockFbOnWall
-       IF(.NOT.LockEqs( 4 + vOffsetA))&
-            &  LockWal( 4 + vOffsetA) = LockFtOnWall
-       IF(.NOT.LockEqs( 5 + vOffsetA))&
-            &  LockWal( 5 + vOffsetA) = LockFpOnWall
-       IF(.NOT.LockEqs( 6 + vOffsetA))&
-            &  LockWal( 6 + vOffsetA) = LockPpOnWall 
-       IF(.NOT.LockEqs( 7 + vOffsetA))&
-            &  LockWal( 7 + vOffsetA) = LockQrOnWall 
-       IF(.NOT.LockEqs( 8 + vOffsetA))&
-            &  LockWal( 8 + vOffsetA) = LockQbOnWall
-       IF(.NOT.LockEqs( 9 + vOffsetA))&
-            &  LockWal( 9 + vOffsetA) = LockQtOnWall
-       IF(.NOT.LockEqs(10 + vOffsetA))&
-            &  LockWal(10 + vOffsetA) = LockQpOnWall
+       IF(.NOT.LockEqs( 1+vOffsetA))&
+            &  LockWal( 1+vOffsetA) = LockNnOnWall
+       IF(.NOT.LockEqs( 2+vOffsetA))&
+            &  LockWal( 2+vOffsetA) = LockFrOnWall
+       IF(.NOT.LockEqs( 3+vOffsetA))&
+            &  LockWal( 3+vOffsetA) = LockFbOnWall
+       IF(.NOT.LockEqs( 4+vOffsetA))&
+            &  LockWal( 4+vOffsetA) = LockFtOnWall
+       IF(.NOT.LockEqs( 5+vOffsetA))&
+            &  LockWal( 5+vOffsetA) = LockFpOnWall
+       IF(.NOT.LockEqs( 6+vOffsetA))&
+            &  LockWal( 6+vOffsetA) = LockPpOnWall 
+       IF(.NOT.LockEqs( 7+vOffsetA))&
+            &  LockWal( 7+vOffsetA) = LockQrOnWall 
+       IF(.NOT.LockEqs( 8+vOffsetA))&
+            &  LockWal( 8+vOffsetA) = LockQbOnWall
+       IF(.NOT.LockEqs( 9+vOffsetA))&
+            &  LockWal( 9+vOffsetA) = LockQtOnWall
+       IF(.NOT.LockEqs(10+vOffsetA))&
+            &  LockWal(10+vOffsetA) = LockQpOnWall
     ENDDO
     
   END SUBROUTINE T2VGRA_LOCK_WALL_EB

@@ -30,6 +30,7 @@ CONTAINS
     REAL(4),SAVE  :: e0time1
     REAL(4)       :: e0time2!, e0time3, e0time4, e0time5
     INTEGER(ikind):: i_conv
+    integer(ikind),save::i_init=0
     REAL(   rkind):: residual_conv
 
 101 FORMAT('NT=',I6,2X,'TIME=',1P2E12.4,' [s]')
@@ -45,94 +46,99 @@ CONTAINS
 !    LockEqs(6) = .TRUE.
     ! time evolution loop
 
-    LockEqs( 1)  = .FALSE.
-    LockEqs( 2)  = .FALSE.
-    LockEqs( 3)  = .FALSE.
-    LockEqs( 4)  = .TRUE.
-    LockEqs( 5)  = .TRUE.
-    LockEqs( 6)  = .TRUE.
+!    if(i_init.eq.0)THEN
+!       LockEqs( 1)  = .FALSE.
+!       LockEqs( 2)  = .FALSE.
+!       LockEqs( 3)  = .FALSE.
+!       LockEqs( 4)  = .TRUE.
+!       LockEqs( 5)  = .TRUE.
+!       LockEqs( 6)  = .TRUE.
+!       
+!       LockEqs( 7)  = .TRUE.
+!       LockEqs( 8)  = .TRUE.
+!       LockEqs( 9)  = .TRUE.
+!       LockEqs(10)  = .TRUE.
+!       LockEqs(11)  = .TRUE.
+!       LockEqs(12)  = .TRUE.
+!       LockEqs(13)  = .TRUE.
+!       LockEqs(14)  = .TRUE.
+!       LockEqs(15)  = .TRUE.
+!       LockEqs(16)  = .TRUE.
+       
+!       LockEqs(17)  = .TRUE.
+!       LockEqs(18)  = .TRUE.
+!       LockEqs(19)  = .TRUE.
+ !      LockEqs(20)  = .TRUE.
+!       LockEqs(21)  = .TRUE.
+!       LockEqs(22)  = .TRUE.
+!       LockEqs(23)  = .TRUE.
+!       LockEqs(24)  = .TRUE.
+!       LockEqs(25)  = .TRUE.
+!       LockEqs(26)  = .TRUE.
+!       
+!       CALL T2PREC_EXECUTE
+!       
+!       LockEqs( 1)  = .TRUE.
+!       LockEqs( 2)  = .TRUE.
+!       LockEqs( 3)  = .TRUE.
+!       LockEqs( 4)  = .TRUE.
+!       LockEqs( 5)  = .TRUE.
+!       LockEqs( 6)  = .TRUE.
+!       
+!       LockEqs( 7)  = .TRUE.
+!       LockEqs( 8)  = .FALSE.
+!       LockEqs( 9)  = .TRUE.
+!       LockEqs(10)  = .FALSE.
+!       LockEqs(11)  = .FALSE.
+!
+!       LockEqs(12)  = .TRUE.
+!       LockEqs(13)  = .TRUE.
+!       LockEqs(14)  = .TRUE.
+!       LockEqs(15)  = .TRUE.
+!       LockEqs(16)  = .TRUE.
+!
+!       LockEqs(17)  = .TRUE.
+!       LockEqs(18)  = .TRUE.
+ !      LockEqs(19)  = .TRUE.
+!       LockEqs(20)  = .TRUE.
+!       LockEqs(21)  = .TRUE.!
 
-    LockEqs( 7)  = .TRUE.
-    LockEqs( 8)  = .TRUE.
-    LockEqs( 9)  = .TRUE.
-    LockEqs(10)  = .TRUE.
-    LockEqs(11)  = .TRUE.
-    LockEqs(12)  = .TRUE.
-    LockEqs(13)  = .TRUE.
-    LockEqs(14)  = .TRUE.
-    LockEqs(15)  = .TRUE.
-    LockEqs(16)  = .TRUE.
+!       LockEqs(22)  = .TRUE.
+!       LockEqs(23)  = .TRUE.
+!       LockEqs(24)  = .TRUE.
+!       LockEqs(25)  = .TRUE.
+!       LockEqs(26)  = .TRUE.
+!       CALL T2PREC_EXECUTE
+!       LockEqs(1) = .TRUE.
+!       LockEqs(2) = .TRUE.
+!       LockEqs(3) = .TRUE.
+!       LockEqs( 4)  = .TRUE.
+!       LockEqs( 5)  = .TRUE.
+!       LockEqs( 6)  = .TRUE.
 
-    LockEqs(17)  = .TRUE.
-    LockEqs(18)  = .TRUE.
-    LockEqs(19)  = .TRUE.
-    LockEqs(20)  = .TRUE.
-    LockEqs(21)  = .TRUE.
-    LockEqs(22)  = .TRUE.
-    LockEqs(23)  = .TRUE.
-    LockEqs(24)  = .TRUE.
-    LockEqs(25)  = .TRUE.
-    LockEqs(26)  = .TRUE.
+!       LockEqs( 7)  = .FALSE.
+!       LockEqs( 8)  = .FALSE.
+!       LockEqs( 9)  = .TRUE.
+!       LockEqs(10)  = .FALSE.
+!       LockEqs(11)  = .FALSE.
+!       LockEqs(12)  = .TRUE.
+!       LockEqs(13)  = .TRUE.
+!       LockEqs(14)  = .TRUE.
+!       LockEqs(15)  = .TRUE.
+!       LockEqs(16)  = .TRUE.
 
-    CALL T2PREC_EXECUTE
-
-    LockEqs( 1)  = .truE.
-    LockEqs( 2)  = .truE.
-    LockEqs( 3)  = .truE.
-    LockEqs( 4)  = .TRUE.
-    LockEqs( 5)  = .TRUE.
-    LockEqs( 6)  = .TRUE.
-
-    LockEqs( 7)  = .TRUE.
-    LockEqs( 8)  = .FALSE.
-    LockEqs( 9)  = .TRUE.
-    LockEqs(10)  = .TRUE.
-    LockEqs(11)  = .FALSE.
-    LockEqs(12)  = .TRUE.
-    LockEqs(13)  = .TRUE.
-    LockEqs(14)  = .TRUE.
-    LockEqs(15)  = .TRUE.
-    LockEqs(16)  = .TRUE.
-
-    LockEqs(17)  = .TRUE.
-    LockEqs(18)  = .FALSE.
-    LockEqs(19)  = .TRUE.
-    LockEqs(20)  = .TRUE.
-    LockEqs(21)  = .TRUE.
-    LockEqs(22)  = .TRUE.
-    LockEqs(23)  = .TRUE.
-    LockEqs(24)  = .TRUE.
-    LockEqs(25)  = .TRUE.
-    LockEqs(26)  = .TRUE.
-    CALL T2PREC_EXECUTE
-    LockEqs(1) = .TRUE.
-    LockEqs(2) = .TRUE.
-    LockEqs(3) = .TRUE.
-    LockEqs( 4)  = .TRUE.
-    LockEqs( 5)  = .TRUE.
-    LockEqs( 6)  = .TRUE.
-
-    LockEqs( 7)  = .FALSE.
-    LockEqs( 8)  = .FALSE.
-    LockEqs( 9)  = .FALSE.
-    LockEqs(10)  = .FALSE.
-    LockEqs(11)  = .FALSE.
-    LockEqs(12)  = .TRUE.
-    LockEqs(13)  = .TRUE.
-    LockEqs(14)  = .TRUE.
-    LockEqs(15)  = .TRUE.
-    LockEqs(16)  = .TRUE.
-
-    LockEqs(17)  = .FALSE.
-    LockEqs(18)  = .FALSE.
-    LockEqs(19)  = .FALSE.
-    LockEqs(20)  = .FALSE.
-    LockEqs(21)  = .FALSE.
-    LockEqs(22)  = .TRUE.
-    LockEqs(23)  = .TRUE.
-    LockEqs(23)  = .TRUE.
-    LockEqs(25)  = .TRUE.
-    LockEqs(26)  = .TRUE.
+!       LockEqs(17)  = .FALSE.
+!       LockEqs(18)  = .FALSE.
+!       LockEqs(19)  = .TRUE.
+!       LockEqs(20)  = .FALSE.
+!       LockEqs(21)  = .FALSE.
+!       LockEqs(22)  = .TRUE.
+!       LockEqs(23)  = .TRUE.
+!       LockEqs(23)  = .TRUE.
+!       LockEqs(25)  = .TRUE.
+!       LockEqs(26)  = .TRUE.
+!       i_init = 1
+!    ENDIF
     
     DO nt=1,ntmax
        
