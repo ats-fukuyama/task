@@ -2,14 +2,14 @@
 include ../../task/make.header
 
 ##### Without PETSc library #####
-#LIBMTX=../../task/mtxp/libmtxbnd.o ../../task/mtxp/libmtxnompi.o
-#PETSCLIBS=
+LIBMTX=../../task/mtxp/libmtxbnd.o ../../task/mtxp/libmtxnompi.o
+PETSCLIBS=
 
 ##### With PETSc library #####
-include ${PETSC_DIR}/conf/variables
+#include ${PETSC_DIR}/conf/variables
 
-LIBMTX=../../task/mtxp/libmtxksp.o ../../task/mtxp/libmtxmpi.o
-PETSCLIBS=-lpetsc
+#LIBMTX=../../task/mtxp/libmtxksp.o ../../task/mtxp/libmtxmpi.o
+#PETSCLIBS=-lpetsc
 
 .SUFFIXES:
 .SUFFIXES: .f90 .mod .o .a
