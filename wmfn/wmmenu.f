@@ -23,28 +23,28 @@ C
      &      'G/GRAPH T/TAE O/OUT S,W/SAVE Q/QUIT')
             CALL TASK_KLIN(LINE,KID,MODE,WMPARM)
          ENDIF
-         CALL MPBCIA(MODE)
+         CALL mtx_broadcast1_integer(MODE)
          IF(MODE.EQ.2) CALL WMPRBC
       IF(MODE.NE.1) GOTO 1
 C
     2 CONTINUE
-         CALL MPBCKA(KID)
+         CALL mtx_broadcast1_character(KID)
 C
          IF (KID.EQ.'P') THEN
             IF(NRANK.EQ.0) CALL WMPARM(0,'WM',IERR)
-            CALL MPSYNC
+            CALL mtx_barrier
             CALL WMPRBC
             KID=' '
          ELSE IF(KID.EQ.'V') THEN
             IF(NRANK.EQ.0) CALL WMVIEW
-            CALL MPSYNC
+            CALL mtx_barrier
             KID=' '
 C
 C        *** WAVE CALCULATION ***
 C
          ELSEIF (KID.EQ.'R') THEN
             CALL WMLOOP(IERR)
-            CALL MPSYNC
+            CALL mtx_barrier
             IF(IERR.NE.0) GOTO 1
             KID=' '
 C
@@ -73,7 +73,7 @@ C        *** GRAPHICS ***
 C
          ELSE IF (KID.EQ.'G') THEN
             IF(NRANK.EQ.0) CALL WMGOUT
-            CALL MPSYNC
+            CALL mtx_barrier
             KID=' '
 C
 C        *** FILE OUTPUT ***
@@ -82,7 +82,7 @@ C
             IF(NRANK.EQ.0) THEN
                CALL WMSAVE
             ENDIF
-            CALL MPSYNC
+            CALL mtx_barrier
             KID=' '
          ELSE IF (KID.EQ.'W') THEN
             IF(NRANK.EQ.0) THEN
@@ -92,7 +92,7 @@ C
                ENDIF
                CALL WMWOUT
             ENDIF
-            CALL MPSYNC
+            CALL mtx_barrier
             KID=' '
 C
 C        *** TAE FREQUENCY ***
@@ -104,14 +104,14 @@ C
             CALL wmfem_setj(IERR)
                IF(IERR.NE.0) GOTO 1
             IF(NRANK.EQ.0) CALL WMTAE
-            CALL MPSYNC
+            CALL mtx_barrier
             KID=' '
 C
 C        *** Pabs(r,s) output for TOPICS ***
 C
          ELSE IF (KID.EQ.'O') THEN
             CALL WMLOOP(IERR,0)
-            CALL MPSYNC
+            CALL mtx_barrier
             IF(IERR.NE.0) GOTO 1
             KID=' '
 c$$$            CALL WM_TOPICS(IERR)

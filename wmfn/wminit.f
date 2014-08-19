@@ -573,6 +573,7 @@ C     ****** BROADCAST PARAMETERS ******
 C
       SUBROUTINE WMPRBC
 C
+      USE libmpi
       INCLUDE 'wmcomm.inc'
 C
       DIMENSION IPARA(21),DPARA(28)
@@ -632,8 +633,8 @@ C
          DPARA(28)=PRFIN
       ENDIF
 C
-      CALL MPBCIN(IPARA,21)
-      CALL MPBCDN(DPARA,28)
+      CALL mtx_broadcast_integer(IPARA,21)
+      CALL mtx_broadcast_real8(DPARA,28)
 C
       IF(NRANK.NE.0) THEN
          NSMAX =IPARA(1) 
@@ -689,29 +690,29 @@ C
          CRF=DCMPLX(RF,RFI)
       ENDIF
 C
-      CALL MPBCDN(PA,NSMAX)
-      CALL MPBCDN(PZ,NSMAX)
-      CALL MPBCDN(PN,NSMAX)
-      CALL MPBCDN(PNS,NSMAX)
-      CALL MPBCDN(PZCL,NSMAX)
-      CALL MPBCDN(PTPR,NSMAX)
-      CALL MPBCDN(PTPP,NSMAX)
-      CALL MPBCDN(PTS,NSMAX)
-      CALL MPBCDN(PU,NSMAX)
-      CALL MPBCDN(PUS,NSMAX)
-      CALL MPBCDN(PNITB,NSMAX)
-      CALL MPBCDN(PTITB,NSMAX)
-      CALL MPBCDN(PUITB,NSMAX)
-      CALL MPBCIN(MODELP,NSMAX)
-      CALL MPBCDN(AJ,NAMAX)
-      CALL MPBCDN(APH,NAMAX)
-      CALL MPBCDN(THJ1,NAMAX)
-      CALL MPBCDN(THJ2,NAMAX)
-      CALL MPBCDN(PHJ1,NAMAX)
-      CALL MPBCDN(PHJ2,NAMAX)
-      CALL MPBCKN(KNAMEQ,80)
-      CALL MPBCKN(KNAMTR,80)
-      CALL MPBCKN(KNAMPF,80)
+      CALL mtx_broadcast_real8(PA,NSMAX)
+      CALL mtx_broadcast_real8(PZ,NSMAX)
+      CALL mtx_broadcast_real8(PN,NSMAX)
+      CALL mtx_broadcast_real8(PNS,NSMAX)
+      CALL mtx_broadcast_real8(PZCL,NSMAX)
+      CALL mtx_broadcast_real8(PTPR,NSMAX)
+      CALL mtx_broadcast_real8(PTPP,NSMAX)
+      CALL mtx_broadcast_real8(PTS,NSMAX)
+      CALL mtx_broadcast_real8(PU,NSMAX)
+      CALL mtx_broadcast_real8(PUS,NSMAX)
+      CALL mtx_broadcast_real8(PNITB,NSMAX)
+      CALL mtx_broadcast_real8(PTITB,NSMAX)
+      CALL mtx_broadcast_real8(PUITB,NSMAX)
+      CALL mtx_broadcast_integer(MODELP,NSMAX)
+      CALL mtx_broadcast_real8(AJ,NAMAX)
+      CALL mtx_broadcast_real8(APH,NAMAX)
+      CALL mtx_broadcast_real8(THJ1,NAMAX)
+      CALL mtx_broadcast_real8(THJ2,NAMAX)
+      CALL mtx_broadcast_real8(PHJ1,NAMAX)
+      CALL mtx_broadcast_real8(PHJ2,NAMAX)
+      CALL mtx_broadcast_character(KNAMEQ,80)
+      CALL mtx_broadcast_character(KNAMTR,80)
+      CALL mtx_broadcast_character(KNAMPF,80)
 C
       RETURN
       END

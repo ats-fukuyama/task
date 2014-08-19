@@ -41,7 +41,7 @@ OBJS = $(SRCFIXED:.f=.o) $(SRCFREE:.f90=.o)
 LIB0 = ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a \
        ../eq/eqlib.a ../dp/dplib.a
 
-LIBS = $(LIBMTXP) ../mpi/mpilib.o ../mtx/mtxlib.a $(LIB0) wmlib.a  
+LIBS = $(LIBMTXP) ../mtx/mtxlib.a $(LIB0) wmlib.a  
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -63,8 +63,6 @@ wmlib.a: $(OBJS)
 	(cd ../mtxp; make libmtxmumps.o)
 ../mtxp/libmtxbnd.o:
 	(cd ../mtxp; make libmtxbnd.o)
-../mpi/mpilib.o:
-	(cd ../mpi; make mpilib.o)
 ../mtx/mtxlib.a:
 	(cd ../mtx; make mtxlib.a)
 ../mtx/mpimtxlib.a:
@@ -83,7 +81,6 @@ libs:
 	(cd ../mtxp; make libmtxbnd.o)
 	(cd ../mtxp; make libmtxmpi.o)
 	(cd ../mtxp; make libmtxmumps.o)
-	(cd ../mpi; make mpilib.o)
 	(cd ../mtx; make mtxlib.a)
 	(cd ../mtx; make mpimtxlib.a)
 	(cd ../plx; make pllib.a)
@@ -94,7 +91,7 @@ wm : wmmain.o $(LIBS)
 	$(FCFIXED) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 clean:
-	rm -f core *.o ./*~ ../mtx/*.o *.a $(MOD)/*.mod
+	rm -f core *.o ./*~ ../mtx/*.o *.a $(MOD)/*.mod $(MOD)/*.f90
 
 veryclean: clean
 	rm -f wm
