@@ -1113,24 +1113,24 @@
 !            fvb(ml)=0.d0
       enddo
 
-      do nr = 1,0!nrmax
-         do nfc=1,nfcmax
-
-            ml=8*nfcmax*(nr-1)+6*nfcmax+nfc
-           do mw=1,mwmax
-               fma(mw,ml) = 0.d0
-            end do
-            fma(mwc,ml)=1d0
-            fvb(ml)=0.d0
-
-            ml=8*nfcmax*(nr-1)+7*nfcmax+nfc
-           do mw=1,mwmax
-               fma(mw,ml) = 0.d0
-            end do
-            fma(mwc,ml)=1d0
-            fvb(ml)=0.d0
-        enddo
-      enddo
+!      do nr = 1,0!nrmax
+!         do nfc=1,nfcmax
+!
+!            ml=8*nfcmax*(nr-1)+6*nfcmax+nfc
+!           do mw=1,mwmax
+!               fma(mw,ml) = 0.d0
+!            end do
+!            fma(mwc,ml)=1d0
+!            fvb(ml)=0.d0
+!
+!            ml=8*nfcmax*(nr-1)+7*nfcmax+nfc
+!           do mw=1,mwmax
+!               fma(mw,ml) = 0.d0
+!            end do
+!            fma(mwc,ml)=1d0
+!            fvb(ml)=0.d0
+!        enddo
+!      enddo
 
       return
       end subroutine wmfem_boundary_condition_wall
@@ -1163,6 +1163,13 @@
       real(8),dimension(nthmax2,nhhmax2):: gja
       real(8),dimension(3,nthmax2,nhhmax2) :: dgjgmuma
       integer::nphm,nphp,nthp,nthm
+
+      fmv_1=0d0
+      fmv_3=0d0
+      fmv_5=0d0
+      fmv_2=0d0
+      fmv_4=0d0
+      fmv_6=0d0
 
       call wmfem_tensors(rho,gma,gpa,muma,dmuma,gja,gmuma,dgjgmuma)
       
@@ -1312,6 +1319,11 @@
       real(8),dimension(nthmax2,nhhmax2):: gja
       real(8),dimension(3,nthmax2,nhhmax2) :: dgjgmuma
       integer::nphm,nphp,nthp,nthm
+
+      fmv_1=0d0
+      fmv_2=0d0
+      fmv_4=0d0
+      fmv_6=0d0
 
       call wmfem_tensors(rhoa(nrmax),
      &   gma,gpa,muma,dmuma,gja,gmuma,dgjgmuma)
@@ -1606,12 +1618,13 @@
      &      fmv_1,fmv_2,fmv_3,fmv_4,fmv_5,fmv_6
       complex(8) ::div_A
 
-
       cfactor=(2.d0*pi*crf*1.d6)*ci
+!      cfactor=(2.d0*pi*crf)*ci
 !      cfactor=ci
 !      do ml=1,mlmax
 !         print *,ml,fvx(ml)
 !      enddo
+      fvx_ef=0d0
       div_A=0d0
       do nr=1, nrmax
       call wmfem_nabla_phi_sub(rhoa(nr),

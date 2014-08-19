@@ -17,6 +17,7 @@
          table_initialize_flag=1
       endif
 
+      fml=0d0
       !!!!!!!!!!!!!!!!atteru?
       mr=8*nfcmax  ! line interval between radial points
       mc=16*nfcmax ! diagonal column at the top line

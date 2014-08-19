@@ -180,10 +180,11 @@ c$$$      end subroutine wmfem_plasma
       real(8),intent(in):: rho,th
       real(8),intent(out):: rrl,zzl,drrrho,dzzrho,drrchi,dzzchi
 
-      CALL spl2dd(th,rho,rrl,drrchi,drrrho,
-     &                  THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
-      CALL spl2dd(th,rho,zzl,dzzchi,dzzrho,
-     &                  THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+!!!!seki       CALL spl2dd(th,rho,rrl,drrchi,drrrho,
+!!!!seki      &                  THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+!!!!seki       CALL spl2dd(th,rho,zzl,dzzchi,dzzrho,
+!!!!seki      &                  THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+      pause
       return
       end subroutine wmeq_get_posrz
 
@@ -205,10 +206,11 @@ c$$$      end subroutine wmfem_plasma
       ENDIF
 
       psipl=fnpsip(rhol)
-      CALL spl2dd(th,rhol,rrl,drrchi,drrrho,
-     &                  THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
-      CALL spl2dd(th,rhol,zzl,dzzchi,dzzrho,
-     &                  THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+!!!!seki       CALL spl2dd(th,rhol,rrl,drrchi,drrrho,
+!!!!seki      &                  THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+!!!!seki       CALL spl2dd(th,rhol,zzl,dzzchi,dzzrho,
+!!!!seki      &                  THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+      pause
       gm(2,2)= drrchi**2+dzzchi**2
       gm(2,3)= 0.d0
       gm(3,3)= rrl**2
@@ -265,10 +267,11 @@ c$$$      endif
                dzzrho=ra*sin(th)
             case(3,5)
                psipl=fnpsip(rho)
-               CALL spl2dd(th,rho,rrl,drrchi,drrrho,
-     &                     THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
-               CALL spl2dd(th,rho,zzl,dzzchi,dzzrho,
-     &                     THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+!!!!seki                CALL spl2dd(th,rho,rrl,drrchi,drrrho,
+!!!!seki      &                     THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+!!!!seki                CALL spl2dd(th,rho,zzl,dzzchi,dzzrho,
+!!!!seki      &                     THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+              pause
             end select
             absdrho=sqrt(drrrho**2+dzzrho**2)
             em(1,1)=drrrho/absdrho

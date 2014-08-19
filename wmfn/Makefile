@@ -44,9 +44,9 @@ LIB0 = ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a \
 LIBS = $(LIBMTXP) ../mtx/mtxlib.a $(LIB0) wmlib.a  
 
 .f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+	$(FCFIXED)  $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+	$(FCFREE)   $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
 all: wm
 
@@ -81,6 +81,7 @@ libs:
 	(cd ../mtxp; make libmtxbnd.o)
 	(cd ../mtxp; make libmtxmpi.o)
 	(cd ../mtxp; make libmtxmumps.o)
+#	(cd ../mpi; make mpilib.o)
 	(cd ../mtx; make mtxlib.a)
 	(cd ../mtx; make mpimtxlib.a)
 	(cd ../plx; make pllib.a)

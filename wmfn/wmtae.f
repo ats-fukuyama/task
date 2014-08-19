@@ -86,8 +86,9 @@ C            EM(NWW)=DBLE(CWALFK(1-MDMIN+1,0-NDMIN+1))
          ENDDO
          ENDDO
 C
-         CALL LAPACK_DSBTRD('N','L',MMMAX,MHMAX,
-     &                      FM,MMM,DM,EM,QM,1,WORK,INFO1)
+!!!!seki         CALL LAPACK_DSBTRD('N','L',MMMAX,MHMAX,
+!!!!seki      &                      FM,MMM,DM,EM,QM,1,WORK,INFO1)
+        pause
 C
          EPSEG=0.D0
          VU=1.D0/(2.D0*PI*1.D6*WAEMIN)**2
@@ -95,9 +96,10 @@ C
 C         VU=(2.D0*PI*1.D6*OME)**2
 C         VL=(2.D0*PI*1.D6*OMS)**2
 C
-         CALL LAPACK_DSTEBZ('V','B',MMMAX,VL,VU,IMIN,IMAX,EPSEG,
-     &               DM,EM,INMAX,NSPLIT,W,
-     &               IBLOCK,ISPLIT,WORK,IWORK,INFO2)
+!!!!seki          CALL LAPACK_DSTEBZ('V','B',MMMAX,VL,VU,IMIN,IMAX,EPSEG,
+!!!!seki      &               DM,EM,INMAX,NSPLIT,W,
+!!!!seki      &               IBLOCK,ISPLIT,WORK,IWORK,INFO2)
+          pause
 C         WRITE(6,*) 'NR,INFO1,INFO2,INMAX=',NR,INFO1,INFO2,INMAX
 C         WRITE(6,601) (W(IN),IN=1,INMAX)
 C  601    FORMAT(1P5E14.6)

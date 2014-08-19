@@ -14,20 +14,23 @@
       if((nrmax.ne.nrmax_save).or.(nthmax.ne.nthmax_save).or. 
      &   (nhhmax.ne.nhhmax_save)) then
          if(ALLOCATED(cef)) deallocate(cef)
-         allocate(cef(3,nthmax,nhhmax,nrmax))
+         allocate(cef(3,nthmax,nhhmax,nrmax));cef=0d0
          if(ALLOCATED(cdef)) deallocate(cdef)
-         allocate(cdef(3,nthmax,nhhmax,nrmax))
+         allocate(cdef(3,nthmax,nhhmax,nrmax));cdef=0d0
          if(ALLOCATED(cbf)) deallocate(cbf)
-         allocate(cbf(3,nthmax,nhhmax,nrmax))
+         allocate(cbf(3,nthmax,nhhmax,nrmax));cbf=0d0
          if(ALLOCATED(cpp)) deallocate(cpp)
          allocate(cpp(nthmax,nhhmax,nthmax2,nhhmax2,nrmax,0:nsmax))
+         cpp=0d0
          if(ALLOCATED(cpa)) deallocate(cpa)
          allocate(cpa(nthmax,nhhmax))
+         cpa=0d0
       endif
 
       if((mwmax.ne.mwmax_save).or.(mlmax.ne.mlmax_save)) then
          if(ALLOCATED(fma)) deallocate(fma)
          allocate(fma(mwmax,mlmax))
+         fma=0d0
       endif
 
       if(mdlwmd.ge.1) then
@@ -36,6 +39,7 @@
          if(ALLOCATED(fma_save)) deallocate(fma_save)
          if(mdlwmd.ge.1) then
             allocate(fma_save(mwmax,mbmax,nrmax,0:nsmax))
+            fma_save=0d0
 !            allocate(fma_save(mbmax,mbmax,nrmax,0:nsmax))
          endif 
       endif
@@ -45,9 +49,9 @@
          if(ALLOCATED(fvb)) deallocate(fvb)
          if(ALLOCATED(fvx)) deallocate(fvx)
          if(ALLOCATED(fvx_ef)) deallocate(fvx_ef)
-         allocate(fvb(mlmax))
-         allocate(fvx(mlmax))
-         allocate(fvx_ef(mlmax))
+         allocate(fvb(mlmax))   ;fvb=0d0
+         allocate(fvx(mlmax))   ;fvx=0d0
+         allocate(fvx_ef(mlmax));fvx_ef=0d0
       endif
 
       if(nfcmax.ne.nfcmax_save) then
@@ -57,7 +61,7 @@
          if(ALLOCATED(nnnfc)) deallocate(nnnfc)
          if(nfcmax.ne.0) allocate(nthnfc(nfcmax))
          if(nfcmax.ne.0) allocate(nhhnfc(nfcmax))
-         if(nfcmax.ne.0) allocate(mmnfc(nfcmax))
+         if(nfcmax.ne.0) allocate(mmnfc(nfcmax)) 
          if(nfcmax.ne.0) allocate(nnnfc(nfcmax))
 
          if(ALLOCATED(nthnfc2)) deallocate(nthnfc2)

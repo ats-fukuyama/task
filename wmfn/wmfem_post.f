@@ -293,13 +293,11 @@
                            if(nndiff.lt.0) nndiff=nndiff+nhhmax2
                            if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
                            cpp(mm,nn,mmdiff+1,nndiff+1,nr0,ns)
-       !!!!????????!!!!!!!
+      !!!!????????!!!!!!!
      &                          =cpp(mm,nn,mmdiff+1,nndiff+1,nr0,ns)
      &                          -ci*conjg(fvx_ef(ml))
      &                             *fma_local(mc+mb-mb1,mb1)*fvx_ef(ml1)
-
        !!!!????????!!!!!!!
-!     &                                *fma_local(mb,mb1)*fvx_ef(ml1)
                         end do
                      end do
                   end do
@@ -405,8 +403,8 @@ c$$$     &               ns,mmdiff,csum
       IMPLICIT NONE
       integer,intent(in):: nr,ns
       complex(8),dimension(mwmax,mbmax),intent(out):: fml
-      complex(8),dimension(:,:,:,:,:,:),pointer :: fmd
-      complex(8),dimension(:,:,:,:,:,:),pointer :: fmd_p
+      complex(8),dimension(:,:,:,:,:,:),allocatable :: fmd
+      complex(8),dimension(:,:,:,:,:,:),allocatable :: fmd_p
       complex(8):: moment0,moment1,moment2,moment3
       real(8):: rho0,xi,yi
       real(8),parameter:: m0=4.D0
@@ -418,7 +416,7 @@ c$$$     &               ns,mmdiff,csum
       real(8) ::drho
 
       allocate(fmd_p(4,4,4,nfcmax,nfcmax,4))
-
+      fmd_p=0d0
       drho=rhoa(nr+1)-rhoa(nr)
       do inod=1,4
          select case(inod)
@@ -446,9 +444,9 @@ c$$$     &               ns,mmdiff,csum
 !          endif
         endif
       enddo
-
 ! ------ calculate coefficients of basis for profile from four points 
       allocate(fmd(4,4,4,nfcmax,nfcmax,4))
+        fmd=0d0
         do nfc2=1,nfcmax
         do nfc1=1,nfcmax
         do k=1,4
@@ -500,6 +498,8 @@ c$$$     &               ns,mmdiff,csum
       integer:: imn,imn1,imn2,nfcdiff
 
       call wmfem_calculate_vacuum_sub(rho,fmv1,fmv2,fmv3,fmv4)
+
+      fmd=0d0
 
       do i=1,3
          do j=1,3
@@ -640,6 +640,12 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
 !      call wmfem_tensors(rho,gma,muma,dmuma,gja)
       call wmfem_tensors(rho,gma,gpa,muma,dmuma,gja,gmuma,dgjgmuma)
 
+      fmv1=0d0
+      fmv2=0d0
+      fmv3=0d0
+      fmv4=0d0
+      
+
       do nfc2=1,nfcmax2
          nth=nthnfc2(nfc2)
          nph=nhhnfc2(nfc2)
@@ -766,7 +772,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       integer,intent(in):: ns
       complex(8),dimension(4,4,4,nfcmax,nfcmax),intent(out):: fmd
 !      complex(8),dimension(3,3,4,nfcmax2,nfcmax):: fmc
-      complex(8),dimension(:,:,:,:,:),pointer:: fmc
+      complex(8),dimension(:,:,:,:,:),allocatable:: fmc
       complex(8),dimension(nthmax2,nhhmax2):: fv1,fv1f
       real(8),dimension(3,3,nthmax2,nhhmax2) :: gma,muma,dmuma
       real(8),dimension(3,3,nthmax2,nhhmax2) :: gpa,gmuma
@@ -788,6 +794,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
 
       call wmfem_disp_tensor(rho,ns,fmc)
       
+      fmd=0d0
       fmc(:,:,2:4,:,:)=0d0
 
       do j=1,3

@@ -6,8 +6,8 @@
       IMPLICIT NONE
       integer,intent(in):: nr,ns
       complex(8),dimension(mwmax,mbmax),intent(out):: fml
-      complex(8),dimension(:,:,:,:,:,:),pointer :: fmd
-      complex(8),dimension(:,:,:,:,:,:),pointer :: fmd_p
+      complex(8),dimension(:,:,:,:,:,:),allocatable :: fmd
+      complex(8),dimension(:,:,:,:,:,:),allocatable :: fmd_p
       complex(8):: moment0,moment1,moment2,moment3
       real(8):: rho0,xi,yi
       real(8),parameter:: m0=4.D0
@@ -281,7 +281,10 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       call wmfem_tensors(rho,gma,gpa,muma,dmuma,gja,gmuma,dgjgmuma)
 !      call wmfem_inverse_tensor(muma,muminva)
 
-
+      cp=0d0
+      cq=0d0
+      cpd=0d0
+      cqd=0d0
 
       do nfc2=1,nfcmax2
          nth=nthnfc2(nfc2)
@@ -448,7 +451,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       integer,intent(in):: ns
       complex(8),dimension(4,4,4,nfcmax,nfcmax),intent(out):: fmd
 !      complex(8),dimension(3,3,4,nfcmax2,nfcmax):: fmc
-      complex(8),dimension(:,:,:,:,:),pointer:: fmc
+      complex(8),dimension(:,:,:,:,:),allocatable:: fmc
       complex(8),dimension(nthmax2,nhhmax2):: fv1,fv1f
 
       complex(8),dimension(3,3,nfcmax2,nfcmax)::
@@ -473,6 +476,8 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       integer:: nfcadd1,nfcadd2,nfcadd3,nfcadd4
 
       allocate(fmc(3,3,4,nfcmax2,nfcmax))
+
+      fmd=0d0
 
       cfactor=(2.d0*pi*crf*1.d6)**2/vc**2
 
@@ -734,7 +739,6 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       enddo
 
       return
-
       end subroutine wmfem_calculate_plasma
 
       subroutine wmfem_calculate_plasma_sub(rho,ns,
@@ -750,7 +754,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
      &                                    fmc42,fmc43,fmc4a2,fmca43
       complex(8),dimension(nfcmax2,nfcmax),intent(out):: fmc44
 !      complex(8),dimension(3,3,4,nfcmax2,nfcmax):: fmc
-      complex(8),dimension(:,:,:,:,:),pointer:: fmc
+      complex(8),dimension(:,:,:,:,:),allocatable:: fmc
       real(8),dimension(3,3,nthmax2,nhhmax2) :: gma,muma,dmuma
       real(8),dimension(3,3,nthmax2,nhhmax2) :: gpa,gmuma
       real(8),dimension(3,nthmax2,nhhmax2) :: dgjgmuma
@@ -777,14 +781,23 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       cfactora4=ci*(2.d0*pi*crf*1.d6)/vc
 !!!!!!!!!!      cfactora4=ci/vc**2
 !!!!!!!!!!       cfactora4=0d0 
-       cfactor4a=ci*(2.d0*pi*crf*1.d6)/vc
-!!!!!!!!!!      cfactor4a=ci
+      cfactor4a=ci*(2.d0*pi*crf*1.d6)/vc
+!!!!!!!!!!       cfactor4a=ci
 !!!!!!!!!!       cfactor4a=0d0
 !!!!!!!!!!      cfactor4a=(2.d0*pi*crf*1.d6)**2/vc**2
       cfactor44=-1d0
 !!!!!!!!!      cfactor44=-1d0/(2.d0*pi*crf*1.d6)
 !!!!!!!!!      cfactor44=ci*(2.d0*pi*crf*1.d6)/vc**2
 !!!!!!!!!      cfactor44=00
+
+      fmc41=0d0
+      fmc4a1=0d0
+      fmca41=0d0
+      fmc42=0d0
+      fmc43=0d0
+      fmc4a2=0d0
+      fmca43=0d0
+
 
       call wmfem_tensors(rho,gma,gpa,muma,dmuma,gja,gmuma,dgjgmuma)
 
@@ -916,6 +929,14 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       real(8):: th,ph,dth,dph,drhom,drhop,gj,gjp,gjm
       real(8):: babs,bsuprh,bsupth,bsupph,rhol
       integer:: nth,nph,i,j
+
+      gma=0d0
+      muma=0d0
+      dmuma=0d0
+      gpa=0d0
+      gmuma=0d0
+      dgjgmuma=0d0
+      gja=0d0
 
       dth=2.d0*pi/nthmax2
       dph=2.d0*pi/nhhmax2
@@ -1093,6 +1114,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
 
       dth=2.d0*pi/nthmax2
       dph=2.d0*pi/nhhmax2
+      fmc=0d0
       DO nfc2=1,nfcmax2
          nth=nthnfc2(nfc2)
          nph=nhhnfc2(nfc2)
