@@ -41,7 +41,7 @@
 !          endif
         else
 !          if(mdlwmf.eq.1) then
-!            call wmfem_calculate_plasma(rho0,ns,fmd_p(:,:,:,:,:,inod))
+            call wmfem_calculate_plasma(rho0,ns,fmd_p(:,:,:,:,:,inod))
 !          else if(mdlwmf.eq.2) then
 !            call wmfem_calculate_plasma_c(rho0,ns,fmd_p(:,:,:,:,:,inod))
 !          endif
@@ -273,8 +273,8 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
 
       cfactor=(2.d0*pi*crf*1.d6)**2/vc**2
 
-       cfactor_div=1d0 !(2.d0*pi*crf*1.d6)
-!      cfactor_div=0d0 !(2.d0*pi*crf*1.d6)**2
+!       cfactor_div=1d0 !(2.d0*pi*crf*1.d6)
+      cfactor_div=1d0 !(2.d0*pi*crf*1.d6)**2
 
 !!!!
 
@@ -960,7 +960,6 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
             CALL wmfem_rotation_tensor(
      &           gm,gj,babs,bsuprh,bsupth,bsupph,mum)
             CALL wmfem_div_tensor(gm,gj,gp)
-
             CALL wmfem_metrics(rhol-drhom,th,ph,gmm,gjm)
             CALL wmfem_magnetic(rhol-drhom,th,ph,babs,bsupth,bsupph)
             CALL wmfem_rotation_tensor(
