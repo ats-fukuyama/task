@@ -16,11 +16,12 @@ MODINCLUDE= -I $(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-SRCSFIXED= w1lib.f w1init.f w1prep.f w1prof.f \
+SRCSFIXED= w1lib.f w1prep.f w1prof.f \
            w1disp.f w1mlm.f w1fem.f w1intg.f w1bcnd.f \
            w1rslt.f w1out.f w1grf1.f w1grf2.f
 SRCSFREE1=  w1comm.f90
-SRCSFREE2=  
+SRCSFREE2=  w1gout.f90 w1gdsp.f90 w1init.f90 w1exec.f90 w1parm.f90 \
+            w1init.f90 w1menu.f90 
 
 OBJS = $(SRCSFREE1:.f90=.o) $(SRCSFIXED:.f=.o) $(SRCSFREE2:.f90=.o) 
 
@@ -48,8 +49,12 @@ clean:
 veryclean: clean
 	-rm -f w1
 
-w1main.o: w1comm.f90 w1main.f
-w1init.o: w1comm.f90 w1init.f
+w1main.o: w1comm.f90 w1main.f90
+w1init.o: w1comm.f90 w1init.f90
+w1menu.o: w1comm.f90 w1menu.f90
+w1parm.o: w1comm.f90 w1parm.f90
+w1exec.o: w1comm.f90 w1exec.f90
+w1gout.o: w1comm.f90 w1gout.f90
 w1prep.o: w1comm.f90 w1prep.f
 w1prof.o: w1comm.f90 w1prof.f
 w1bcnd.o: w1comm.f90 w1bcnd.f
