@@ -4,8 +4,8 @@ include ../make.header
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-#LFLAGS = -g $(OFLAGS)
-LFLAGS = $(DFLAGS)
+LFLAGS = -g $(OFLAGS)
+#LFLAGS = $(DFLAGS)
 FFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I $(MOD)
