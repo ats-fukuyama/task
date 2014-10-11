@@ -354,6 +354,8 @@ C
       CALL PL_PROF_OLD(RHON)
 C
 C      IF(NS.EQ.1.AND.NR.EQ.1) THEN
+C      IF(NS.EQ.1) THEN
+C         WRITE(6,'(A,I5)')       'NR  :',NR
 C         WRITE(6,'(A,1P6E12.4)') 'RN  :',(RN(NS1),NS1=1,NSMAX)
 C         WRITE(6,'(A,1P6E12.4)') 'RTPR:',(RTPR(NS1),NS1=1,NSMAX)
 C         WRITE(6,'(A,1P6E12.4)') 'RTPP:',(RTPP(NS1),NS1=1,NSMAX)

@@ -17,7 +17,6 @@ C
       IF(IERR.NE.0) RETURN
       CALL WMSETEW
 
-         print *,'seki'
       CALL WMSOLV
       CALL WMEFLD
       CALL WMBFLD

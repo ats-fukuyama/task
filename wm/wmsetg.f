@@ -25,6 +25,11 @@ C     ****** EQUILIBRIUM (TASK/EQ) ******
 C
       ELSEIF(MODELG.EQ.3) THEN
          CALL WMXRZF(IERR)
+C         IF(MODEL_UHR.EQ.0) THEN
+C            CALL WMXRZF(IERR)
+C         ELSEIF(MODEL_UHR.EQ.1) THEN
+C            CALL WMXRZF_UHR(IERR)
+C         ENDIF
 C
 C     ****** EQUILIBRIUM (VMEC) ******
 C

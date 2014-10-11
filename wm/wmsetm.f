@@ -594,7 +594,7 @@ C
                         CFVP(NDX,MDX,2)=CJTHM
                         CFVP(NDX,MDX,3)=CJPHM
                      ELSE IF(NR+1.EQ.NRANT+1) THEN
-                        CFVP(NDX,MDX,1)= CJR
+                        CFVP(NDX,MDX,1)=CJR
                         CFVP(NDX,MDX,2)=CJTHP
                         CFVP(NDX,MDX,3)=CJPHP
                      ENDIF
@@ -685,7 +685,6 @@ C               CFVP(NDX,MDX,1)=CJR
                CFVP(NDX,MDX,1)=0.D0
                CFVP(NDX,MDX,2)=CJTHM
                CFVP(NDX,MDX,3)=CJPHM
-               print *,'seki'
             ENDDO
             ENDDO
          ENDIF
