@@ -99,6 +99,11 @@
          REAL(rkind),INTENT(IN):: rhon,chip
          REAL(rkind),INTENT(OUT):: BB
        END SUBROUTINE GET_B
+       SUBROUTINE GET_DVDRHO(rhon,dvdrho)
+         USE bpsd_kinds
+         REAL(rkind),INTENT(IN):: rhon
+         REAL(rkind),INTENT(OUT):: dvdrho
+       END SUBROUTINE GET_DVDRHO
     END INTERFACE
 
   CONTAINS
@@ -388,7 +393,7 @@
     SUBROUTINE pl_prof(RHON,PLF)
 
         USE plcomm,ONLY: PZ,PN,PTPR,PTPP,PU,PNS,PTS,PUS, &
-             NSMAX,MODELN, &
+             NSMAX,MODELN,RA,RB, &
              PROFN1,PROFN2,PROFT1,PROFT2, PROFU1,PROFU2, &
              PNITB,PTITB,PUITB,RHOITB,RHOEDG
         IMPLICIT NONE
@@ -402,16 +407,23 @@
 
         IF(RHON.LE.0.D0) THEN
            RHOL=0.D0
-        ELSEIF(RHON.GE.1.D0) THEN
-           RHOL=1.D0
+! Modified by AF on 2014-10-11
+!        ELSEIF(RHON.GE.1.D0) THEN
+        ELSEIF(RHON.GE.RB/RA) THEN
+           RHOL=RB/RA
         ELSE
            RHOL=RHON
         ENDIF
 
-        IF(MODELN.EQ.0) THEN
+        SELECT CASE(MODELN)
+        CASE(0,1)
            IF(RHOL.GT.1.D0) THEN
               DO NS=1,NSMAX
-                 PLF(NS)%RN  =0.D0
+                 IF(MODELN.EQ.0) THEN
+                    PLF(NS)%RN  =0.D0
+                 ELSE
+                    PLF(NS)%RN  =PNS(NS)
+                 END IF
                  PLF(NS)%RTPR=PTS(NS)
                  PLF(NS)%RTPP=PTS(NS)
                  PLF(NS)%RU  =PUS(NS)
@@ -436,35 +448,7 @@
             ENDDO
          ENDIF
 
-      ELSEIF(MODELN.EQ.1) THEN
-         IF(RHOL.GT.1.D0) THEN
-            DO NS=1,NSMAX
-               PLF(NS)%RN  =PNS(NS)
-               PLF(NS)%RTPR=PTS(NS)
-               PLF(NS)%RTPP=PTS(NS)
-               PLF(NS)%RU  =PUS(NS)
-            ENDDO
-         ELSE
-            FACTN=(1.D0-RHOL**PROFN1)**PROFN2
-            FACTT=(1.D0-RHOL**PROFT1)**PROFT2
-            FACTU=(1.D0-RHOL**PROFU1)**PROFU2
-
-            DO NS=1,NSMAX
-               PLF(NS)%RN  =(PN(NS)  -PNS(NS))*FACTN+PNS(NS)
-               PLF(NS)%RTPR=(PTPR(NS)-PTS(NS))*FACTT+PTS(NS)
-               PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACTT+PTS(NS)
-               PLF(NS)%RU  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
-               IF(RHOL.LT.RHOITB) THEN
-                  FACTITB =(1.D0-(RHOL/RHOITB)**4)**2
-                  PLF(NS)%RN  =PLF(NS)%RN  +PNITB(NS)*FACTITB
-                  PLF(NS)%RTPR=PLF(NS)%RTPR+PTITB(NS)*FACTITB
-                  PLF(NS)%RTPP=PLF(NS)%RTPP+PTITB(NS)*FACTITB
-                  PLF(NS)%RU  =PLF(NS)%RU  +PUITB(NS)*FACTITB
-               ENDIF
-            ENDDO
-         ENDIF
-
-      ELSEIF(MODELN.EQ.2) THEN
+      CASE(2)
          IF(RHOL.GE.1.D0) THEN
             DO NS=1,NSMAX
                PLF(NS)%RN  =PNS(NS)
@@ -485,7 +469,7 @@
             ENDDO
          ENDIF
 
-      ELSEIF(MODELN.EQ.3) THEN
+      CASE(3)
          IF(RHOL.GE.1.D0) THEN
             DO NS=1,NSMAX
                PLF(NS)%RN  =PNS(NS)
@@ -536,8 +520,7 @@
             ENDDO
          ENDIF
 
-      ELSEIF(MODELN.EQ.8) THEN
-
+      CASE(8)
          DO NS=1,NSMAX
             CALL WMSPL_PROF(Rhol,NS,RNPL(NS),RTPL(NS))
          ENDDO
@@ -583,7 +566,7 @@
             ENDDO
          ENDIF
 
-      ELSEIF(MODELN.EQ.9) THEN
+      CASE(9)
          CALL pl_bpsd_get(RHOL,RNPL,RTPRPL,RTPPPL,RUPL)
          DO NS=1,NSMAX
             PLF(NS)%RN  =RNPL(NS)
@@ -591,7 +574,7 @@
             PLF(NS)%RTPP=RTPPPL(NS)
             PLF(NS)%RU  =RUPL(NS)
          ENDDO
-      ENDIF
+      END SELECT
 
       RETURN
     END SUBROUTINE pl_prof
@@ -758,6 +741,24 @@
       END SELECT
       RETURN
     END SUBROUTINE pl_rrminmax
+
+!     ****** CALCULATE RRMIN AND RRMAX ON MAG SURFACE ******
+
+    SUBROUTINE pl_dvdrho(RHON,DVDRHO)
+
+      USE plcomm,ONLY: MODELG,TWOPI,RR,RA,RKAP
+      IMPLICIT NONE
+      REAL(8),INTENT(IN):: RHON
+      REAL(8),INTENT(OUT):: DVDRHO
+
+      SELECT CASE(MODELG)
+      CASE(0,1,2)
+         DVDRHO=TWOPI*RR*TWOPI*RA**2*RKAP*RHON
+      CASE(3,5,8)
+         CALL GET_DVDRHO(RHON,DVDRHO)
+      END SELECT
+      RETURN
+    END SUBROUTINE pl_dvdrho
 
 !     ***** PLASMA MAGNETIC AXIS *****
 
