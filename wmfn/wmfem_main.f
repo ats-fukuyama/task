@@ -126,7 +126,7 @@
       complex(8)::cfactor
       integer :: nrd,ml1
       real(8) :: rd,angl,x
-      complex(8) ::divj
+      complex(8) ::divj,div_A
 !----- boundary conditions on axis -----
 
       cfactor=(2.d0*pi*crf*1.d6)
@@ -178,6 +178,9 @@
       do nr=1,nrmax-1
          call get_wmfvb(nr,  fvb1_local)
          call get_wmfvb(nr+1,fvb2_local)
+         call wmfem_boundary_condition_div_sub(rhoa(nr),
+     &                             fmv_1,fmv_2,fmv_3,fmv_4,fmv_5,fmv_6)
+         div_A=0d0
          do nfc=1,nfcmax
             nhh=nhhnfc(nfc)
             nth=nthnfc(nfc)
@@ -340,21 +343,24 @@
       subroutine wmfem_boundary_condition_axis0
 
       integer:: mc,mr,nr,mm,mll,ml,mw,ns,nfc,nn
+      integer::nfc2,mm2,nn2
+      integer::mw1o,mw2o,mw3o,mw4o,mw5o,mw6o,mw7o,mw8o
 
       complex(8):: cx,cy
       integer:: id_base=1
 
       integer::mlfactor
 
-      complex(8),dimension(nfcmax):: 
+      complex(8),dimension(nfcmax,nfcmax):: 
      &      fmv_7_1,fmv_7_2,fmv_7_3,fmv_8_1,fmv_8_2,fmv_8_3
-      complex(8),dimension(nfcmax):: 
+      complex(8),dimension(nfcmax,nfcmax):: 
      &      fmv_1,fmv_2,fmv_3,fmv_4,fmv_5,fmv_6
       complex(8)::cfactor
 !----- boundary conditions on axis -----
 
       nr=1
-      cfactor=(2.d0*pi*crf*1.d6)*ci
+!      cfactor=(2.d0*pi*crf*1.d6)*ci
+      cfactor=(2.d0*pi*crf*1.d6)*ci/vc
 
       call wmfem_nabla_phi_sub(rhoa(1),
      &                  fmv_7_1,fmv_7_2,fmv_7_3,fmv_8_1,fmv_8_2,fmv_8_3)
@@ -410,7 +416,7 @@
             fma(mwc,ml)=1d0
             fvb(ml)=0.d0
 
-!           ml=nfc + 7*nfcmax
+!           ml=nfc + 1*nfcmax
 !           do mw=1,mwmax
 !              fma(mw,ml) = 0.d0
 !           end do
@@ -430,10 +436,19 @@
             do mw=1,mwmax
                fma(mw,ml) = 0.d0
             end do
+!           A,phi->E
             fma(mwc,ml)=cfactor
             fma(mwc+2*nfcmax,ml)=cfactor*ci*mm
-            fma(mwc+6*nfcmax,ml)=fmv_7_1(ml) + ci*mm*fmv_7_2(ml) 
-            fma(mwc+7*nfcmax,ml)=fmv_8_1(ml) + ci*mm*fmv_8_2(ml) 
+            mw7o=mwc+6*nfcmax-nfc
+            mw8o=mwc+7*nfcmax-nfc
+            do nfc2=1,nfcmax
+              fma(mw7o+nfc2,ml)=    fma(mw7o+nfc2,ml)
+     &                            + fmv_7_1(nfc2,nfc) 
+     &                            + ci*mm*fmv_7_2(nfc2,nfc) 
+              fma(mw8o+nfc2,ml)=    fma(mw8o+nfc2,ml)
+     &                            + fmv_8_1(nfc2,nfc) 
+     &                            + ci*mm*fmv_8_2(nfc2,nfc) 
+            enddo
             fvb(ml)=0.d0
 !!            if(mdlwmd.ge.1) then
 !               do mw=1,mwmax
@@ -451,7 +466,7 @@
 !     &                    + ci*mm*fma(mw+2*nfcmax,ml-2*nfcmax)
 !            end do
 !             fvb(ml)=fvb(ml)+ci*mm*fvb(ml-2*nfcmax)
-!!
+!!!
 !            ml =nfc+nfcmax
 !           do mw=1,mwmax
 !              fma(mw,ml) = 0.d0
@@ -462,7 +477,7 @@
 !            fma(mwc+2*nfcmax,ml)=fmv_4(nfc)
 !            fma(mwc+3*nfcmax,ml)=fmv_5(nfc)
 !            fma(mwc+4*nfcmax,ml)=fmv_6(nfc)
-!!
+!
 !            fvb(ml)=0.d0
 
             ml=nfc + 4*nfcmax
@@ -479,7 +494,12 @@
             fma(mwc,ml)=1d0
             fvb(ml)=0.d0
 
-
+!           ml=nfc + 1*nfcmax
+!           do mw=1,mwmax
+!              fma(mw,ml) = 0.d0
+!           end do
+!           fma(mwc,ml)=1d0
+!           fvb(ml)=0.d0
 !            if(mdlwmd.ge.1) then
 !               do mw=1,mwmax
 !                  fma_save(mw,ml,nr,0)=fma(mw,ml)
@@ -555,7 +575,7 @@
 !                  enddo
 !               enddo
 !            end if
-
+!
 !            ml=nfc + 7*nfcmax
 !            do mw=1,mwmax
 !               fma(mw,ml) = 0.d0
@@ -584,7 +604,7 @@
       complex(8),dimension(nfcmax2)::
      &            fmv_7_12,fmv_7_13,fmv_7_22,fmv_7_23,fmv_7_32,fmv_7_33,
      &            fmv_8_1d,fmv_8_2d,fmv_8_3d
-      complex(8),dimension(nfcmax),intent(out)::
+      complex(8),dimension(nfcmax,nfcmax),intent(out)::
      &                  fmv_7_1,fmv_7_2,fmv_7_3,fmv_8_1,fmv_8_2,fmv_8_3
       integer:: i,j,k,nfc,nfc1,nfc2
       integer:: nth,mm1,mm2,mmdiff,nph,nn1,nn2,nndiff
@@ -648,12 +668,12 @@
            fv_8_21(nth,nph)= -muminv(2,1)
            fv_8_31(nth,nph)= -muminv(3,1)
            if (rho < 1d-6)then
-             fv_7_12(nth,nph)= 0d0
-             fv_8_11(nth,nph)= -muminv(1,1) - muminv(1,2)*1d-6
-             fv_7_22(nth,nph)= 0d0
-             fv_8_21(nth,nph)= -muminv(2,1) - muminv(2,2)*1d-6
-             fv_7_32(nth,nph)= 0d0
-             fv_8_31(nth,nph)= -muminv(3,1) - muminv(3,2)*1d-6
+              fv_7_12(nth,nph)= 0d0
+              fv_8_11(nth,nph)= -muminv(1,1) - muminv(1,2)*1d-6
+              fv_7_22(nth,nph)= 0d0
+              fv_8_21(nth,nph)= -muminv(2,1) - muminv(2,2)*1d-6
+              fv_7_32(nth,nph)= 0d0
+              fv_8_31(nth,nph)= -muminv(3,1) - muminv(3,2)*1d-6
            endif
            !do i = 1,3
            !  fv_7_12(nth,nph)= fv_7_12(nth,nph)-muminv(1,i)*gp(i,2)
@@ -696,20 +716,24 @@
         do nfc1=1,nfcmax
            nn1=nnnfc(nfc1)
            mm1=mmnfc(nfc1)
-           nndiff=nn1-nph0
-           if(nndiff.lt.0) nndiff=nndiff+nhhmax2
-           mmdiff=mm1-nth0
-           if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
-           nfcdiff=nthmax2*nndiff+mmdiff+1
-           fmv_7_1(nfc1) = fmv_7_12(nfcdiff)*ci*mm1
-     &                   + fmv_7_13(nfcdiff)*ci     *nn1
-           fmv_7_2(nfc1) = fmv_7_22(nfcdiff)*ci*mm1
-     &                   + fmv_7_23(nfcdiff)*ci     *nn1
-           fmv_7_3(nfc1) = fmv_7_32(nfcdiff)*ci*mm1 
-     &                   + fmv_7_33(nfcdiff)*ci     *nn1
-           fmv_8_1(nfc1) = fmv_8_1d(nfcdiff)
-           fmv_8_2(nfc1) = fmv_8_2d(nfcdiff)
-           fmv_8_3(nfc1) = fmv_8_3d(nfcdiff)
+           do nfc2=1,nfcmax
+              nn2=nnnfc(nfc2)
+              mm2=mmnfc(nfc2)
+              nndiff=nn1-nn2
+              if(nndiff.lt.0) nndiff=nndiff+nhhmax2
+              mmdiff=mm1-mm2
+              if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
+              nfcdiff=nthmax2*nndiff+mmdiff+1
+           fmv_7_1(nfc1,nfc2) = fmv_7_12(nfcdiff)*ci*mm2
+     &                        + fmv_7_13(nfcdiff)*ci     *nn2
+           fmv_7_2(nfc1,nfc2) = fmv_7_22(nfcdiff)*ci*mm2
+     &                        + fmv_7_23(nfcdiff)*ci     *nn2
+           fmv_7_3(nfc1,nfc2) = fmv_7_32(nfcdiff)*ci*mm2 
+     &                        + fmv_7_33(nfcdiff)*ci     *nn2
+           fmv_8_1(nfc1,nfc2) = fmv_8_1d(nfcdiff)
+           fmv_8_2(nfc1,nfc2) = fmv_8_2d(nfcdiff)
+           fmv_8_3(nfc1,nfc2) = fmv_8_3d(nfcdiff)
+           enddo
         enddo
       end subroutine wmfem_nabla_phi_sub
 
@@ -1050,8 +1074,10 @@
 
 !      complex(8),dimension(nfcmax):: fmv_1
 !      complex(8),dimension(nfcmax):: fmv_2,fmv_4,fmv_6
-      complex(8),dimension(nfcmax):: fmv_1,fmv_3,fmv_5
-      complex(8),dimension(nfcmax):: fmv_2,fmv_4,fmv_6
+      complex(8),dimension(nfcmax,nfcmax):: fmv_1,fmv_3,fmv_5
+      complex(8),dimension(nfcmax,nfcmax):: fmv_2,fmv_4,fmv_6
+      integer :: mw1o,mw2o,mw3o,mw4o,mw5o,mw6o
+      integer ::nfc2
 
 !      call wmfem_boundary_condition_wall_sub(fmv_1,fmv_2,fmv_4,fmv_6)
       nr=nrmax
@@ -1064,13 +1090,20 @@
          do mw=1,mwmax
            fma(mw,ml) = 0.d0
          enddo
-         fma(mwc-1*nfcmax,ml)=fmv_1(nfc)
-         fma(mwc+0*nfcmax,ml)=fmv_2(nfc)
-         fma(mwc+1*nfcmax,ml)=fmv_3(nfc)
-         fma(mwc+2*nfcmax,ml)=fmv_4(nfc)
-         fma(mwc+3*nfcmax,ml)=fmv_5(nfc)
-         fma(mwc+4*nfcmax,ml)=fmv_6(nfc)
-
+         mw1o=mwc-1*nfcmax-nfc
+         mw2o=mwc+0*nfcmax-nfc
+         mw3o=mwc+1*nfcmax-nfc
+         mw4o=mwc+2*nfcmax-nfc
+         mw5o=mwc+3*nfcmax-nfc
+         mw6o=mwc+4*nfcmax-nfc
+         do nfc2=1,nfcmax
+           fma(mw1o+nfc2,ml)=fmv_1(nfc2,nfc)
+           fma(mw2o+nfc2,ml)=fmv_2(nfc2,nfc)
+           fma(mw3o+nfc2,ml)=fmv_3(nfc2,nfc)
+           fma(mw4o+nfc2,ml)=fmv_4(nfc2,nfc)
+           fma(mw5o+nfc2,ml)=fmv_5(nfc2,nfc)
+           fma(mw6o+nfc2,ml)=fmv_6(nfc2,nfc)
+         enddo
          fvb(ml)=0.d0
 
         if(mdlwmd.ge.1) then
@@ -1174,8 +1207,8 @@
       complex(8),dimension(nfcmax2):: fmv_1m,fmv_1n
       complex(8),dimension(nfcmax2):: fmv_3m,fmv_3n
       complex(8),dimension(nfcmax2):: fmv_5m,fmv_5n
-      complex(8),dimension(nfcmax),intent(out):: fmv_1,fmv_3,fmv_5
-      complex(8),dimension(nfcmax),intent(out):: fmv_2,fmv_4,fmv_6
+      complex(8),dimension(nfcmax,nfcmax),intent(out)::fmv_1,fmv_3,fmv_5
+      complex(8),dimension(nfcmax,nfcmax),intent(out)::fmv_2,fmv_4,fmv_6
       integer:: i,j,k,nfc,nfc1,nfc2
       integer:: nth,mm1,mm2,mmdiff,nph,nn1,nn2,nndiff
       integer:: imn,imn1,imn2,nfcdiff
@@ -1257,24 +1290,6 @@
            fv_2(nth,nph)= gmuma(1,1,nth,nph)  
            fv_4(nth,nph)= gmuma(1,2,nth,nph)  
            fv_6(nth,nph)= gmuma(1,3,nth,nph) 
-           print *,1
-           print *, fv_1(nth,nph)
-           print *, fv_1m(nth,nph)
-           print *, fv_1n(nth,nph)
-           print *,2
-           print *, fv_2(nth,nph)
-           print *,3
-           print *, fv_3(nth,nph)
-           print *, fv_3m(nth,nph)
-           print *, fv_3n(nth,nph)
-           print *,4
-           print *, fv_4(nth,nph)
-           print *,5
-           print *, fv_5(nth,nph)
-           print *, fv_5m(nth,nph)
-           print *, fv_5n(nth,nph)
-           print *,6
-           print *, fv_6(nth,nph)
         enddo
         
         call wmsubfx(fv_1,fvf_1,nthmax2,nhhmax2)
@@ -1316,137 +1331,31 @@
         do nfc1=1,nfcmax
            nn1=nnnfc(nfc1)
            mm1=mmnfc(nfc1)
-
-           nndiff=nn1-nph0
-           if(nndiff.lt.0) nndiff=nndiff+nhhmax2
-           mmdiff=mm1-nth0
-           if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
-           nfcdiff=nthmax2*nndiff+mmdiff+1
-           fmv_1(nfc1)= fmv_1d(nfcdiff) 
-     &              + fmv_1m(nfcdiff)*mm1
-     &              + fmv_1n(nfcdiff)     *nn1
-           fmv_3(nfc1)= fmv_3d(nfcdiff) 
-     &              + fmv_3m(nfcdiff)*mm1
-     &              + fmv_3n(nfcdiff)     *nn1
-           fmv_5(nfc1)= fmv_5d(nfcdiff) 
-     &              + fmv_5m(nfcdiff)*mm1
-     &              + fmv_5n(nfcdiff)     *nn1
-           fmv_2(nfc1)= fmv_2d(nfcdiff) 
-           fmv_4(nfc1)= fmv_4d(nfcdiff) 
-           fmv_6(nfc1)= fmv_6d(nfcdiff) 
-         enddo
+           do nfc2=1,nfcmax
+              nn2=nnnfc(nfc2)
+              mm2=mmnfc(nfc2)
+  
+              nndiff=nn1-nn2
+              if(nndiff.lt.0) nndiff=nndiff+nhhmax2
+              mmdiff=mm1-mm2
+              if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
+              nfcdiff=nthmax2*nndiff+mmdiff+1
+           fmv_1(nfc1,nfc2)= fmv_1d(nfcdiff) 
+     &                + fmv_1m(nfcdiff)*mm2
+     &                + fmv_1n(nfcdiff)     *nn2
+           fmv_3(nfc1,nfc2)= fmv_3d(nfcdiff) 
+     &                + fmv_3m(nfcdiff)*mm2
+     &                + fmv_3n(nfcdiff)     *nn2
+           fmv_5(nfc1,nfc2)= fmv_5d(nfcdiff) 
+     &                + fmv_5m(nfcdiff)*mm2
+     &                + fmv_5n(nfcdiff)     *nn2
+           fmv_2(nfc1,nfc2)= fmv_2d(nfcdiff) 
+           fmv_4(nfc1,nfc2)= fmv_4d(nfcdiff) 
+           fmv_6(nfc1,nfc2)= fmv_6d(nfcdiff) 
+           enddo
+        enddo
       end subroutine wmfem_boundary_condition_div_sub
 
-      subroutine wmfem_boundary_condition_wall_sub(
-     &                                     fmv_1,fmv_2,fmv_4,fmv_6)
-       IMPLICIT NONE
-!      real(8),intent(in):: rho
-      complex(8),dimension(nthmax2,nhhmax2):: fv_1, fv_1m, fv_1n
-      complex(8),dimension(nthmax2,nhhmax2):: fvf_1,fvf_1m,fvf_1n
-      complex(8),dimension(nthmax2,nhhmax2):: fv_2, fv_4, fv_6
-      complex(8),dimension(nthmax2,nhhmax2):: fvf_2,fvf_4,fvf_6
-      complex(8),dimension(nfcmax2):: fmv_1d
-      complex(8),dimension(nfcmax2):: fmv_2d,fmv_4d,fmv_6d
-      complex(8),dimension(nfcmax2):: fmv_1m,fmv_1n
-      complex(8),dimension(nfcmax),intent(out):: fmv_1
-      complex(8),dimension(nfcmax),intent(out):: fmv_2,fmv_4,fmv_6
-      integer:: i,j,k,nfc,nfc1,nfc2
-      integer:: nth,mm1,mm2,mmdiff,nph,nn1,nn2,nndiff
-      integer:: imn,imn1,imn2,nfcdiff
-
-      real(8)::gj,dth,dph
-      real(8),dimension(3,3,nthmax2,nhhmax2) :: gma,muma,dmuma
-      real(8),dimension(3,3,nthmax2,nhhmax2) :: gpa,gmuma
-      real(8),dimension(nthmax2,nhhmax2):: gja
-      real(8),dimension(3,nthmax2,nhhmax2) :: dgjgmuma
-      integer::nphm,nphp,nthp,nthm
-
-      fmv_1=0d0
-      fmv_2=0d0
-      fmv_4=0d0
-      fmv_6=0d0
-
-      call wmfem_tensors(rhoa(nrmax),
-     &   gma,gpa,muma,dmuma,gja,gmuma,dgjgmuma)
-
-      do nfc2=1,nfcmax2
-         nth=nthnfc2(nfc2)
-         nph=nhhnfc2(nfc2)
-         if(nph.eq.1) then
-            nphm=nhhmax2
-          else
-            nphm=nph-1
-          endif
-          if(nph.eq.nhhmax2) then
-             nphp=1
-          else
-             nphp=nph+1
-          endif
-
-          dph=2*pi/nhhmax2
-
-          if(nth.eq.1) then
-             nthm=nthmax2
-           else
-             nthm=nth-1
-           endif
-           if(nth.eq.nthmax2) then
-              nthp=1
-           else
-              nthp=nth+1
-           endif
-           dth=2*pi/nthmax2
-           gj=gja(nth,nph)
-           fv_1(nth,nph)= (dgjgmuma(1,nth,nph)  
-     &                   +(gja(nthp,nph)*gmuma(2,1,nthp,nph)
-     &                     -gja(nthm,nph)*gmuma(2,1,nthm,nph))/dth
-     &                   +(gja(nth,nphp)*gmuma(3,1,nth,nphp)
-     &                     -gja(nth,nphm)*gmuma(3,1,nth,nphm))/dph
-     &                   )/gj
- 
-           fv_1m(nth,nph)= gmuma(2,1,nth,nph)  
-           fv_1n(nth,nph)= gmuma(3,1,nth,nph)  
-           fv_2(nth,nph)= gmuma(1,1,nth,nph)  
-           fv_4(nth,nph)= gmuma(1,2,nth,nph)  
-           fv_6(nth,nph)= gmuma(1,3,nth,nph)  
-   
-        enddo
-        
-        call wmsubfx(fv_1,fvf_1,nthmax2,nhhmax2)
-        call wmsubfx(fv_1m,fvf_1m,nthmax2,nhhmax2)
-        call wmsubfx(fv_1n,fvf_1n,nthmax2,nhhmax2)
-        call wmsubfx(fv_2,fvf_2,nthmax2,nhhmax2)
-        call wmsubfx(fv_4,fvf_4,nthmax2,nhhmax2)
-        call wmsubfx(fv_6,fvf_6,nthmax2,nhhmax2)
- 
-        do nfc2=1,nfcmax2
-           nth=nthnfc2(nfc2)
-           nph=nhhnfc2(nfc2)
-           fmv_1d(nfc2)=fvf_1(nth,nph)
-           fmv_1m(nfc2)=fvf_1m(nth,nph)
-           fmv_1n(nfc2)=fvf_1n(nth,nph)
-           fmv_2d(nfc2)=fvf_2(nth,nph)
-           fmv_4d(nfc2)=fvf_4(nth,nph)
-           fmv_6d(nfc2)=fvf_6(nth,nph)
-        enddo
-
-        do nfc1=1,nfcmax
-           nn1=nnnfc(nfc1)
-           mm1=mmnfc(nfc1)
-
-           nndiff=nn1-nph0
-           if(nndiff.lt.0) nndiff=nndiff+nhhmax2
-           mmdiff=mm1-nth0
-           if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
-           nfcdiff=nthmax2*nndiff+mmdiff+1
-           fmv_1(nfc1)= fmv_1d(nfcdiff) 
-     &              + fmv_1m(nfcdiff)* ci*mm1
-     &              + fmv_1n(nfcdiff)* ci     *nn1
-           fmv_2(nfc1)= fmv_2d(nfcdiff) 
-           fmv_4(nfc1)= fmv_4d(nfcdiff) 
-           fmv_6(nfc1)= fmv_6d(nfcdiff) 
-         enddo
-      end subroutine wmfem_boundary_condition_wall_sub
 
 !     -----     boundary condition for fourier components -----
 
@@ -1645,19 +1554,22 @@
 
       integer:: mc,mr,nr,mm,mll,ml,mw,ns,nfc,nn
       integer:: ml0,ml1,ml2
+      integer::nfc2,nn2,mm2
       integer:: nth,nhh
+      integer::mlo
       real(8):: drho
 
       complex(8):: cx,cy
       integer:: id_base=1
 
-      complex(8),dimension(nfcmax)::
+      complex(8),dimension(nfcmax,nfcmax)::
      &             fmv_7_1,fmv_7_2,fmv_7_3,fmv_8_1,fmv_8_2,fmv_8_3
       complex(8)::cfactor
 
-      complex(8),dimension(nfcmax):: 
+      complex(8),dimension(nfcmax,nfcmax):: 
      &      fmv_1,fmv_2,fmv_3,fmv_4,fmv_5,fmv_6
       complex(8) ::div_A
+      complex(8) ::div_A_local
 
       cfactor=(2.d0*pi*crf*1.d6)*ci/vc
 !      cfactor=(2.d0*pi*crf)*ci
@@ -1677,6 +1589,7 @@
 !      print *,fmv_2,fmv_4,fmv_6
 
       div_A=0d0
+      mlo=8*nfcmax*(nr-1)
       do nfc=1,nfcmax
            mm=mmnfc(nfc)
            nn=nnnfc(nfc)
@@ -1685,31 +1598,35 @@
            ml1=8*nfcmax*(nr-1)+nfc
        !!!!????????!!!!!!!
            ml2=6*nfcmax*(nr-1)+nfc
-           div_A = div_A + fvx(ml1         )*fmv_1(nfc)
-     &           + fvx(ml1 + 1*nfcmax)*fmv_2(nfc)
-     &           + fvx(ml1 + 2*nfcmax)*fmv_3(nfc)
-     &           + fvx(ml1 + 3*nfcmax)*fmv_4(nfc)
-     &           + fvx(ml1 + 4*nfcmax)*fmv_5(nfc)
-     &           + fvx(ml1 + 5*nfcmax)*fmv_6(nfc)
-
-       write(36, '(30es11.3,1x)')real(nr),
-     &  fvx(ml1         )*fmv_1(nfc),
-     &  fmv_1(nfc),
-     &  fvx(ml1 + 1*nfcmax)*fmv_2(nfc),
-     &  fmv_2(nfc),
-     &  fvx(ml1 + 2*nfcmax)*fmv_3(nfc),
-     &  fmv_3(nfc),
-     &  fvx(ml1 + 3*nfcmax)*fmv_4(nfc),
-     &  fmv_4(nfc),
-     &  fvx(ml1 + 4*nfcmax)*fmv_5(nfc),
-     &  fmv_5(nfc),
-     &  fvx(ml1 + 5*nfcmax)*fmv_6(nfc),
-     &  fmv_6(nfc), fvx(ml1         )*fmv_1(nfc)
-     &           + fvx(ml1 + 1*nfcmax)*fmv_2(nfc)
-     &           + fvx(ml1 + 2*nfcmax)*fmv_3(nfc)
-     &           + fvx(ml1 + 3*nfcmax)*fmv_4(nfc)
-     &           + fvx(ml1 + 4*nfcmax)*fmv_5(nfc)
-     &           + fvx(ml1 + 5*nfcmax)*fmv_6(nfc)
+           div_A_local=0d0
+           do nfc2=1,nfcmax
+           div_A_local = div_A_local
+     &         + fvx(mlo         +nfc2)*fmv_1(nfc,nfc2)
+     &         + fvx(mlo+1*nfcmax+nfc2)*fmv_2(nfc,nfc2)
+     &         + fvx(mlo+2*nfcmax+nfc2)*fmv_3(nfc,nfc2)
+     &         + fvx(mlo+3*nfcmax+nfc2)*fmv_4(nfc,nfc2)
+     &         + fvx(mlo+4*nfcmax+nfc2)*fmv_5(nfc,nfc2)
+     &         + fvx(mlo+5*nfcmax+nfc2)*fmv_6(nfc,nfc2)
+           enddo
+           div_A=div_A + div_A_local 
+       write(36, '(30es11.3,1x)')real(nr),div_A_local
+!     &  fvx(ml1         )*fmv_1(nfc),
+!     &  fmv_1(nfc),
+!     &  fvx(ml1 + 1*nfcmax)*fmv_2(nfc),
+!     &  fmv_2(nfc),
+!     &  fvx(ml1 + 2*nfcmax)*fmv_3(nfc),
+!     &  fmv_3(nfc),
+!     &  fvx(ml1 + 3*nfcmax)*fmv_4(nfc),
+!     &  fmv_4(nfc),
+!     &  fvx(ml1 + 4*nfcmax)*fmv_5(nfc),
+!     &  fmv_5(nfc),
+!     &  fvx(ml1 + 5*nfcmax)*fmv_6(nfc),
+!     &  fmv_6(nfc), fvx(ml1         )*fmv_1(nfc)
+!     &           + fvx(ml1 + 1*nfcmax)*fmv_2(nfc)
+!     &           + fvx(ml1 + 2*nfcmax)*fmv_3(nfc)
+!     &           + fvx(ml1 + 3*nfcmax)*fmv_4(nfc)
+!     &           + fvx(ml1 + 4*nfcmax)*fmv_5(nfc)
+!     &           + fvx(ml1 + 5*nfcmax)*fmv_6(nfc)
 
 
        write(26, '(18es15.6,1x)')real(nr),
@@ -1738,38 +1655,25 @@
      & REAL(fvx(ml1+7*nfcmax )),
      & IMAG(fvx(ml1+7*nfcmax ))
 
+           ml1=8*nfcmax*(nr-1)+nfc
+           ml2=6*nfcmax*(nr-1)+nfc
            fvx_ef(ml2 )=cfactor*fvx(ml1) 
-     &               + fmv_8_1(nfc)*fvx(ml0+ 7*nfcmax)
-     &               + fmv_7_1(nfc)*fvx(ml0+ 6*nfcmax)
-
-!           print *,ml2,REAL(fvx_ef(ml2 )),IMAG(fvx_ef(ml2 ))
-           ml1=8*nfcmax*(nr-1)+nfc + 2*nfcmax
-       !!!!????????!!!!!!!
-           ml2=6*nfcmax*(nr-1)+nfc + 2*nfcmax
-!           if (nr == 1)then
-!             fvx_ef(ml2 )=cfactor*fvx(ml1) 
-!     &                 + fmv_8_2(nfc)*fvx(ml0+ 7*nfcmax)
-!     &                 + fvx(ml0+ 7*nfcmax)
-!           else
-             fvx_ef(ml2 )=cfactor*fvx(ml1) 
-     &                 + fmv_8_2(nfc)*fvx(ml0+ 7*nfcmax)
-     &                 + fmv_7_2(nfc)*fvx(ml0+ 6*nfcmax)
-!           endif
-!           print *,ml2,REAL(fvx_ef(ml2 )),IMAG(fvx_ef(ml2 ))
-!         if (nr ==nrmax) print *, fvx(ml1 )
-           ml1=8*nfcmax*(nr-1)+nfc + 4*nfcmax
-       !!!!????????!!!!!!!
-           ml2=6*nfcmax*(nr-1)+nfc + 4*nfcmax
-           fvx_ef(ml2)=cfactor*fvx(ml1) 
-     &               + fmv_8_3(nfc)*fvx(ml0+ 7*nfcmax)
-     &               + fmv_7_3(nfc)*fvx(ml0+ 6*nfcmax)
-!         print *,ml1,REAL(fvx(ml1 )),IMAG(fvx(ml1 ))
-           ml1=8*nfcmax*(nr-1)+nfc + 6*nfcmax
-       !!!!????????!!!!!!!
-!         print *,ml1,REAL(fvx(ml1 )),IMAG(fvx(ml1 ))
-!         if (nr ==nrmax) print *, fvx(ml1 )
+           fvx_ef(ml2+ 2*nfcmax )=cfactor*fvx(ml1+ 2*nfcmax) 
+           fvx_ef(ml2+ 4*nfcmax )=cfactor*fvx(ml1+ 4*nfcmax) 
+           do nfc2 = 1, nfcmax
+              ml0=8*nfcmax*(nr-1)+nfc2
+              fvx_ef(ml2 )=fvx_ef(ml2 )
+     &                    + fmv_8_1(nfc,nfc2)*fvx(ml0+ 7*nfcmax)
+     &                    + fmv_7_1(nfc,nfc2)*fvx(ml0+ 6*nfcmax)
+              fvx_ef(ml2+ 2*nfcmax )=fvx_ef(ml2+ 2*nfcmax )
+     &                    + fmv_8_2(nfc,nfc2)*fvx(ml0+ 7*nfcmax)
+     &                    + fmv_7_2(nfc,nfc2)*fvx(ml0+ 6*nfcmax)
+              fvx_ef(ml2+ 4*nfcmax )=fvx_ef(ml2+ 4*nfcmax )
+     &                    + fmv_8_3(nfc,nfc2)*fvx(ml0+ 7*nfcmax)
+     &                    + fmv_7_3(nfc,nfc2)*fvx(ml0+ 6*nfcmax)
+           enddo   
          enddo
-         print *,rhoa(nr),div_A*imag(cfactor)
+         print *,rhoa(nr),div_A_local*imag(cfactor)
        enddo
        write(36, '(30es11.3,1x)')
        write(36, '(30es11.3,1x)')
