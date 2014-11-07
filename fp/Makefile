@@ -2,20 +2,21 @@
 include ../../task/make.header
 
 ##### Without PETSc library #####
-LIBMTX=../../task/mtxp/libmtxbnd.o ../../task/mtxp/libmtxnompi.o
-PETSCLIBS=
+#LIBMTX=../../task/mtxp/libmtxbnd.o ../../task/mtxp/libmtxnompi.o
+#PETSCLIBS=
 
 ##### With PETSc library #####
-#include ${PETSC_DIR}/conf/variables
+include ${PETSC_DIR}/intel130/conf/petscvariables
 
-#LIBMTX=../../task/mtxp/libmtxksp.o ../../task/mtxp/libmtxmpi.o
-#PETSCLIBS=-lpetsc
+LIBMTX=../../task/mtxp/libmtxksp.o ../../task/mtxp/libmtxmpi.o
+PETSCLIBS=${PETSC_KSP_LIB}
+#-I${PETSC_DIR}/intel130/lib/ -lpetsc
 
 .SUFFIXES:
 .SUFFIXES: .f90 .mod .o .a
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 MODINCLUDE= -I.$(MOD) -I../../task/lib/$(MOD) \
             -I../../task/plx/$(MOD) -I../../task/eq/$(MOD) \
@@ -35,7 +36,7 @@ LIBS = fplib.a ../../task/plx/pllib.a ../../task/eq/eqlib.a   \
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE) -heap-arrays
 
 all: libs fp
 
@@ -67,7 +68,7 @@ libs:
 	(cd ../../task/lib; make tasklib.a)
 
 fp : $(LIBS) fpmain.o 
-	$(FCFREE) fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(PETSCLIBS)
+	$(FCFREE) fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(PETSCLIBS) 
 
 # $(MODDIR) $(MODINCLUDE)
 
