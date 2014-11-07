@@ -3,6 +3,7 @@ include ../../task/make.header
 FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
+all: $(EXEC)
 
 ##### Without PETSc library (no MPI, real8 and complex8) #####
 #FLINKER=$(FCFREE)
@@ -20,14 +21,12 @@ FFLAGS=$(OFLAGS)
 #FLINKER=$(MF90)
 #INCLUDE_MUMPS=${PETSC_DIR}/externalpackages/MUMPS/include
 #EXEC=testbnd testbndc testdmumps testzmumps
-#all: $(EXEC)
 #.SUFFIXES:
 #.SUFFIXES: .f .f90 .mod .o .a
 #.f90.o :
 #	$(FCFREE) $(FFLAGS) -c $< -o $@
 #clean :
 #	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod
-
 ##### With PETSc library 3.3 (real8) #####
 EXEC=testbnd testpcg testbndc testdmumps testzmumps testksp
 all: $(EXEC)
@@ -61,25 +60,31 @@ testpcg: $(LIBPCG) testmtx.o
 	-$(FCFREE) $(FFLAGS) -o testpcg testmtx.o $(LIBPCG) ../lib/libpcgpme.o
 
 testksp: $(LIBKSP) testmtx.o
-	-${FLINKER} -g -o testksp testmtx.o $(LIBKSP) ${PETSC_KSP_LIB}
+	-${FLINKER} -g -o testksp testmtx.o $(LIBKSP) -lpetsc -mkl 
+#${PETSCLIBS}
+#${PETSC_KSP_LIB}
 
 testdmumps: $(LIBMUMPS) testmtx.o
 	-${MF90} -g -o testdmumps testmtx.o $(LIBMUMPS) $(LIBMUMPSX) $(FLIBS)
 
-testzmumps: $(LIBMUMPS) testmtxc.o
-	-${MF90} -g -o testzmumps testmtxc.o $(LIBMUMPS) $(LIBMUMPSX) \
+#testzmumps: $(LIBMUMPS) testmtxc.o
+#	-${MF90} -g -o testzmumps testmtxc.o $(LIBMUMPS) $(LIBMUMPSX) \
 	../lib/tasklib.a $(FLIBS)
 
+
 testmtx.o: testmtx.f90
-	$(FCFREE) $(FFLAGS) -c testmtx.f90 $(INCMOD)
+	$(MF90) $(FFLAGS) -c testmtx.f90 $(INCMOD)
 testmtxc.o: testmtxc.f90
-	$(FCFREE) $(FFLAGS) -c testmtxc.f90 $(INCMOD)
+	$(MF90) $(FFLAGS) -c testmtxc.f90 $(INCMOD)
 libmtxmpi.o: libmtxmpi.f90
 	$(MF90) $(FFLAGS) -c libmtxmpi.f90 $(INCMOD)
 libmtxnompi.o: libmtxnompi.f90
+	$(MF90) $(FFLAGS) -c libmtxnompi.f90 $(INCMOD)
 libmtxbnd.o: libmtxbnd.f90
 libmtxpcg.o: libmtxpcg.f90
 	$(FCFREE) $(FFLAGS) -c libmtxpcg.f90 $(INCMOD)
 libmtxmumps.o: libmtxmumps.f90
 	$(MF90) $(FFLAGS) -c libmtxmumps.f90 -I$(INCLUDE_MUMPS)
 libmtxksp.o: libmtxksp.F90
+	$(MF90) $(FFLAGS) -c libmtxksp.F90 $(INCMOD)
+ 

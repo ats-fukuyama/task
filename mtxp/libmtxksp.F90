@@ -74,7 +74,7 @@
 !#include "finclude/petscpc.h"
 !#include "finclude/petscksp.h"
 !#include "finclude/petscsys.h"
-#include "finclude/petsckspdef.h"
+!#include "finclude/petsckspdef.h"
 #include "finclude/petscvec.h90"
 !
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -631,8 +631,10 @@
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_gather_vector: VecRestoreArrayF90: ierr=',ierr
 
-      imax_=imax
+      imax_=imax      
+
       call mtx_allgatherv_real8(v,iend-istart,x_,imax_,isizex,istartx)
+
       RETURN
       END SUBROUTINE mtx_gather_vector
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!
