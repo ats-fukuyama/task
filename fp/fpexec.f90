@@ -168,11 +168,11 @@
 !     ----- Solve matrix equation -----
 
       CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC) ! ncom is nessesary for MUMPS not PETSc
-      IF(MODELD_temp.eq.0)THEN
+!      IF(MODELD_temp.eq.0)THEN
 !         if(nrank.eq.0) then
 !            write(6,*) 'Number of iterations, NSA    =',its,NSA
 !         endif
-      END IF
+!      END IF
       ierr=0
 
 !     ----- Get solution vector -----
@@ -1000,7 +1000,8 @@
       SPP(NTH,NP,NR,NSA) &
               =( SPPB(NTH,NP,NR,NSA) &
                 +SPPF(NTH,NP,NR,NSA) &
-                +SPPS(NTH,NP,NR,NSA) )
+                +SPPS(NTH,NP,NR,NSA) &
+                +SPPI(NTH,NP,NR,NSA) )
 
       IF(MODELD.GT.0.AND.NR.EQ.NRMAX) THEN
          SPPD(NTH,NP,NSA)= FS2(NTH,NP,NSA) &

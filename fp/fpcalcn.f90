@@ -607,12 +607,12 @@
                     +DCPP2(ITU(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
                DCPP2(ITU(NR),NP,NR,NSB,NSA)=DCPP2(ITL(NR),NP,NR,NSB,NSA)
             ELSE
-               DCPP2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)*0.25D0 &
-                    *( DCPP2B(1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
-                    +DCPP2B(2,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR)   &
-                    +DCPP2B(3,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR)   &
-                    +DCPP2B(4,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
-               DCPP2(ITU(NR),NP,NR,NSB,NSA)=DCPP2(ITL(NR),NP,NR,NSB,NSA)
+!               DCPP2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)*0.25D0 &
+!                    *( DCPP2B(1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
+!                    +DCPP2B(2,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR)   &
+!                    +DCPP2B(3,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR)   &
+!                    +DCPP2B(4,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
+!               DCPP2(ITU(NR),NP,NR,NSB,NSA)=DCPP2(ITL(NR),NP,NR,NSB,NSA)
             END IF
          END DO ! END NP
       END DO ! END NSB
@@ -634,12 +634,12 @@
                     +FCPP2(ITU(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
                FCPP2(ITU(NR),NP,NR,NSB,NSA)=FCPP2(ITL(NR),NP,NR,NSB,NSA)
             ELSE
-               FCPP2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)*0.25D0     &
-                    *( FCPP2B(1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
-                    +FCPP2B(2,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR) &
-                    +FCPP2B(3,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR) &
-                    +FCPP2B(4,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
-               FCPP2(ITU(NR),NP,NR,NSB,NSA)=FCPP2(ITL(NR),NP,NR,NSB,NSA)
+!               FCPP2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)*0.25D0     &
+!                    *( FCPP2B(1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
+!                    +FCPP2B(2,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR) &
+!                    +FCPP2B(3,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR) &
+!                    +FCPP2B(4,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
+!               FCPP2(ITU(NR),NP,NR,NSB,NSA)=FCPP2(ITL(NR),NP,NR,NSB,NSA)
             END IF
          END DO ! END NP
       END DO ! END NSB
@@ -666,12 +666,12 @@
 !               DCPT2(ITU(NR),NP,NR,NSB,NSA)=DCPT2(ITL(NR),NP,NR,NSB,NSA) ! symmetry
                DCPT2(ITU(NR),NP,NR,NSB,NSA)=-DCPT2(ITL(NR),NP,NR,NSB,NSA) ! assymmetry
             ELSE
-               DCPT2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)*0.25D0     &
-                    *( DCPT2B(1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
-                    +DCPT2B(2,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR) &
-                    +DCPT2B(3,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR) &
-                    +DCPT2B(4,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
-               DCPT2(ITU(NR),NP,NR,NSB,NSA)=-DCPT2(ITL(NR),NP,NR,NSB,NSA)
+!               DCPT2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)*0.25D0     &
+!                    *( DCPT2B(1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
+!                    +DCPT2B(2,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR) &
+!                    +DCPT2B(3,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR) &
+!                    +DCPT2B(4,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
+!               DCPT2(ITU(NR),NP,NR,NSB,NSA)=-DCPT2(ITL(NR),NP,NR,NSB,NSA)
             END IF
          END DO ! END NP
       END DO ! END NSB
@@ -1286,7 +1286,7 @@
          RHON=RL
       ENDIF
       CALL PL_PROF(RHON,PLF)
-      IF(NTG2.eq.0)THEN
+      IF(NT_init.eq.0)THEN
          RNFDL=PLF(NS)%RN/RNFD0L
          RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
       ELSE

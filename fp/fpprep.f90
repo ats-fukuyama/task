@@ -190,7 +190,7 @@
       ENDDO
 
       IF(NRANK.eq.0) THEN
-         WRITE(6,'(A,2E14.6)') "DEVICE", RR, RA
+         WRITE(6,'(A,3E14.6)') "DEVICE, RR, RA, BB", RR, RA, BB
       END IF
 !     ----- set bounce-average parameters -----
 
@@ -361,20 +361,42 @@
 
       DO NSA=1,NSAMAX
       DO NR=NRSTART,NREND
-!         DO NP=1,NPMAX+1
          DO NP=NPSTART,NPENDWG
          DO NTH=1,NTHMAX
             DPP(NTH,NP,NR,NSA)=0.D0
             DPT(NTH,NP,NR,NSA)=0.D0
             FPP(NTH,NP,NR,NSA)=0.D0
+
+            DCPP(NTH,NP,NR,NSA)=0.D0
+            DCPT(NTH,NP,NR,NSA)=0.D0
+            FCPP(NTH,NP,NR,NSA)=0.D0
+
+            FEPP(NTH,NP,NR,NSA)=0.D0
+            FSPP(NTH,NP,NR,NSA)=0.D0
+
+            DWPP(NTH,NP,NR,NSA)=0.D0
+            DWPT(NTH,NP,NR,NSA)=0.D0
+
+            DLPP(NTH,NP,NR,NSA)=0.D0
+            FLPP(NTH,NP,NR,NSA)=0.D0
          ENDDO
          ENDDO
-!         DO NP=1,NPMAX
+
          DO NP=NPSTARTW,NPENDWM
          DO NTH=1,NTHMAX+1
             DTP(NTH,NP,NR,NSA)=0.D0
             DTT(NTH,NP,NR,NSA)=0.D0
             FTH(NTH,NP,NR,NSA)=0.D0
+
+            DCTP(NTH,NP,NR,NSA)=0.D0
+            DCTT(NTH,NP,NR,NSA)=0.D0
+            FCTH(NTH,NP,NR,NSA)=0.D0
+
+            FETH(NTH,NP,NR,NSA)=0.D0
+            FSTH(NTH,NP,NR,NSA)=0.D0
+
+            DWTP(NTH,NP,NR,NSA)=0.D0
+            DWTT(NTH,NP,NR,NSA)=0.D0
          ENDDO
          ENDDO
       ENDDO
@@ -994,31 +1016,36 @@
       CALL FPSSUB2
       CALL FPSPRF2
 
-      IF(MODELE.eq.1)THEN
       DO NR=NRSTART,NRENDWM
          ISW_CLOG=0 ! =0 Wesson, =1 NRL
-         RNE=RN_IMPL(NR,1)
          DO NSA=1,NSAMAX
             NSFP=NS_NSB(NSA)
-!            IF(MODEL_disrupt.eq.0)THEN
-               RNA=RNS(NR,NSA)
+            IF(MODEL_disrupt.eq.0)THEN
+               RNA=RN_IMPL(NR,NSA)
                RTA=RT_T(NR,NSA)
-!            ELSE
-!               RNA=RNS(NR,NSA)
-!               RTA=RT_quench(NR)
-!            END IF
+               RNE=RN_IMPL(NR,1)
+            ELSE
+               RNE=RNFP(NR,1)
+               RNA=RNS(NR,NSA)
+               RTA=RT_quench(NR)
+            END IF
 
 !            RNA=RN_IMPL(NR,NSA)
 !            RTA=RT_IMPL(NR,NSA)
             DO NSB=1,NSBMAX
                NSFD=NS_NSB(NSB)
-!               IF(MODEL_disrupt.eq.0)THEN
-                  RNB=RN_IMPL(NR,NSB)
-                  RTB=RT_IMPL(NR,NSB)
-!               ELSE
-!                  RNB=RN_IMPL(NR,NSB)
-!                  RTB=RT_quench(NR)
-!               END IF
+               IF(MODEL_disrupt.eq.0)THEN
+                  IF(NSB.le.NSAMAX)THEN
+                     RNB=RN_IMPL(NR,NSB)
+                     RTB=RT_IMPL(NR,NSB)
+                  ELSE
+                     RNB=RNFD(NR,NSB)
+                     RTB=RTFD(NR,NSB)
+                  END IF
+               ELSE
+                  RNB=RNFD(NR,NSB)
+                  RTB=RT_quench(NR)
+               END IF
 
                vtfdl=SQRT(RTB*1.D3*AEE/AMFD(NSB))
                ptfdl=SQRT(RTB*1.D3*AEE*AMFD(NSB))
@@ -1058,7 +1085,6 @@
          ENDDO
 !      WRITE(*,'(I3,A,4E16.8)') NR, "Coulomb log=", LNLAM(NR,1,1), LNLAM(NR,1,2), LNLAM(NR,2,1), LNLAM(NR,2,2)
       ENDDO
-      END IF
 !      IF(NR.eq.NRMAX) WRITE(*,'(A,1P4E16.8)') "Coulomb log",CLOG(1,1), CLOG(1,2), CLOG(2,1), CLOG(2,2)
 
       END SUBROUTINE Coulomb_log
@@ -1225,9 +1251,10 @@
       ENDDO
 
       N_IMPL=0
-      CALL NF_REACTION_COEF
       NCALCNR=0
-      CALL fusion_source_init
+      IF(MODELS.ne.0) CALL NF_REACTION_COEF
+      IF(MODELS.ne.0) CALL fusion_source_init
+
       DO NSA=NSASTART,NSAEND
          CALL FP_COEF(NSA)
          NSBA=NSB_NSA(NSA)
@@ -1274,6 +1301,7 @@
       TIMEFP=0.D0
       NTG1=0
       NTG2=0
+      NT_init=0
       gut_comm(:)=0.0
 
       CALL fp_comm_setup
@@ -1307,6 +1335,8 @@
       CALL fp_mesh(ierr)
 !     ----- Initialize velocity distribution function of all species -----
       CALL FNSP_INIT
+!     ----- Initialize diffusion coef. -----
+      call FPCINI
 !     ----- normalize bounce average parameter ---------
       CALL fp_set_bounceaverage_param
 !     ----- set parameters for target species -----
@@ -1320,17 +1350,21 @@
 !      DO NR=NRSTART,NRENDWM
       DO NR=NRSTART,NREND
          IF(MODEL_DISRUPT.eq.0)THEN
-            E1(NR)=E0*E_drei0(1)
+            E1(NR)=E0!*E_drei0(1)
             EP(NR)=E1(NR) ! plus
             EM(NR)=0.D0 ! minus
-            RJ_M(NR)=0.D0
          ELSE
             allocate(conduct_temp(NRSTART:NREND))
             allocate(E1_temp(NRSTART:NREND))
             CALL SPITZER_SIGMA(NR,SIGMA)
             conduct_temp(NR)=sigma
-            E1_temp(NR)=RJ_disrupt(NR)/SIGMA*1.D6
-!            E1_temp(NR)=E0*E_drei0(1)
+            IF(MODELE.eq.0)THEN
+               E1_temp(NR)=RJ_ohm(NR)/SIGMA*1.D6 ! fit to initial current prof
+            ELSEIF(MODELE.eq.1)THEN
+               E1_temp(NR)=E0*E_drei0(1) ! uniform
+            ELSEIF(MODELE.eq.2)THEN
+               E1_temp(NR)=E0*(1.D0-RM(NR)**1.5)**1 ! arbitrary profile
+            END IF
          END IF
       ENDDO
       IF(MODEL_DISRUPT.ne.0)THEN
@@ -1346,7 +1380,7 @@
 !      END IF
 
       N_IMPL=0
-      CALL NF_REACTION_COEF
+      IF(MODELS.ne.0) CALL NF_REACTION_COEF
       NCALCNR=0
       CALL fusion_source_init
       DO NSA=NSASTART,NSAEND
@@ -1361,7 +1395,7 @@
          END DO
          CALL FPWEIGHT(NSA,IERR)
       END DO
-      IF(NRANK.eq.0)THEN
+      IF(NRANK.eq.0.and.MODEL_disrupt.ne.0)THEN
          CALL display_disrupt_initials
       END IF
 
@@ -1376,7 +1410,8 @@
 !      CALL source_allreduce(SPPF)
       CALL mtx_reset_communicator
       ISAVE=0
-      IF(NTG1.eq.0) CALL FPWAVE_CONST ! all nrank must have RPWT  
+      IF(NTG1.eq.0.and.MODEL_WAVE.ne.0) CALL FPWAVE_CONST ! all nrank must have RPWT  
+
       CALL FPSSUB
       IF(nrank.EQ.0) THEN
          CALL FPSGLB

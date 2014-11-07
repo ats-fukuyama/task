@@ -141,6 +141,7 @@
 !
 !      open(8,file='FPL_t1.dat')
 !      NS=NS_NSB(NSB)
+
       CALL mtx_set_communicator(comm_np) 
       DO L=LLMIN,LLMAX
          DO NP=NPSTART,NPEND
@@ -1319,31 +1320,24 @@
          RHON=RL
       ENDIF
       CALL PL_PROF(RHON,PLF)
-      IF(NTG2.eq.0)THEN
+      IF(NT_init.eq.0)THEN
          RNFDL=PLF(NS)%RN/RNFD0L
          RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
       ELSE
-         RNFDL=PLF(NS)%RN/RNFD0L
-!         RNFDL=PNT(NR,NS,NTG2)
+!         RNFDL=PLF(NS)%RN/RNFD0L
+         RNFDL=RN_IMPL(NR,NS)/RNFD0L
          RTFDL=RT_IMPL(NR,NS)
       END IF
 
-      IF(MODELR.EQ.0) THEN
-         FACT=RNFDL/SQRT(2.D0*PI*RTFDL/RTFD0L)**3
-!         EX=PML**2/(2.D0*RTFDL/RTFD0L)
-         EX=0.D0
-         FPMXWL_calcnr=FACT*EXP(-EX)
-      ELSE
-         THETA0L=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)
-         THETAL=THETA0L*RTFDL/RTFD0L
-         Z=1.D0/THETAL
-            DKBSL=BESEKN(2,Z)
-            FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DKBSL) &
-             *RTFD0L
-!            EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
-            EX=0.D0
-            FPMXWL_calcnr=FACT*EXP(EX)
-      END IF
+      THETA0L=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)
+      THETAL=THETA0L*RTFDL/RTFD0L
+      Z=1.D0/THETAL
+      DKBSL=BESEKN(2,Z)
+      FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DKBSL) &
+           *RTFD0L
+!      EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
+      EX=0.D0
+      FPMXWL_calcnr=FACT*EXP(EX)
 
       RETURN
       END FUNCTION FPMXWL_calcnr

@@ -39,6 +39,12 @@
             DPT(NTH,NP,NR,NSA)=0.D0
             FPP(NTH,NP,NR,NSA)=0.D0
             FEPP(NTH,NP,NR,NSA)=0.D0
+
+            DWPP(NTH,NP,NR,NSA)=0.D0
+            DWPT(NTH,NP,NR,NSA)=0.D0
+            DLPP(NTH,NP,NR,NSA)=0.D0
+            FLPP(NTH,NP,NR,NSA)=0.D0
+            FSPP(NTH,NP,NR,NSA)=0.D0
          ENDDO
          ENDDO
          DO NP=NPSTARTW,NPENDWM
@@ -47,19 +53,22 @@
             DTT(NTH,NP,NR,NSA)=0.D0
             FTH(NTH,NP,NR,NSA)=0.D0
             FETH(NTH,NP,NR,NSA)=0.D0
+
+            FSTH(NTH,NP,NR,NSA)=0.D0
+            DWTP(NTH,NP,NR,NSA)=0.D0
+            DWTT(NTH,NP,NR,NSA)=0.D0
          ENDDO
          ENDDO
       ENDDO
-
 !
 !     ----- Parallel electric field accleration term -----
 !
 !      IF(E0.ne.0.D0)THEN
-         CALL FP_CALE(NSA)
+      CALL FP_CALE(NSA)
 !      END IF
 !
 !     ----- Quasi-linear wave-particle interaction term -----
-
+      IF(MODEL_WAVE.ne.0)THEN
 !!!   reduce the number of call of fp_calwm and fp_calw
 !     include 2 IF
       IF(N_IMPL.eq.0)THEN ! N_IMPL=0
@@ -243,36 +252,38 @@
             END DO
          END DO
       END IF
+      END IF ! end MODEL_WAVE
 !     ----- Collisional slowing down and diffusion term -----
       CALL FP_CALC(NSA)
+!     ----- Particle source term -----
+      IF(MODEL_synch.ne.0)THEN
+         CALL synchrotron(NSA)
+      END IF
+      IF(MODEL_LOSS.ne.0) CALL loss_for_CNL(NSA)
 !     ----- Sum up velocity diffusion terms -----
 
-!      IF(NRANK.eq.0) open(9,file='FE.dat')
       DO NR=NRSTART,NREND
          DO NP=NPSTART,NPENDWG
          DO NTH=1,NTHMAX
-            DPP(NTH,NP,NR,NSA)=DCPP(NTH,NP,NR,NSA)+DWPP(NTH,NP,NR,NSA)
+            DPP(NTH,NP,NR,NSA)=DCPP(NTH,NP,NR,NSA)+DWPP(NTH,NP,NR,NSA) &
+                 + DLPP(NTH,NP,NR,NSA)
             DPT(NTH,NP,NR,NSA)=DCPT(NTH,NP,NR,NSA)+DWPT(NTH,NP,NR,NSA)
-            FPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)+FCPP(NTH,NP,NR,NSA)
-!            IF(NRANK.eq.0)THEN
-!               WRITE(9,'(4E16.8)') PG(NP,NSA)*COSM(NTH), PG(NP,NSA)*SINM(NTH), &
-!                 DCPP(NTH,NP,NR,NSA),FCPP(NTH,NP,NR,NSA)
-!            ENDIF
+            FPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)+FCPP(NTH,NP,NR,NSA) &
+                 + FSPP(NTH,NP,NR,NSA) + FLPP(NTH,NP,NR,NSA)
          ENDDO
-!         IF(NRANK.eq.0) WRITE(9,*) " "
-!         IF(NRANK.eq.0) WRITE(9,*) " "
          ENDDO
 !
          DO NP=NPSTARTW,NPENDWM
          DO NTH=1,NTHMAX+1
             DTP(NTH,NP,NR,NSA)=DCTP(NTH,NP,NR,NSA)+DWTP(NTH,NP,NR,NSA)
             DTT(NTH,NP,NR,NSA)=DCTT(NTH,NP,NR,NSA)+DWTT(NTH,NP,NR,NSA)
-            FTH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)+FCTH(NTH,NP,NR,NSA)
+            FTH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)+FCTH(NTH,NP,NR,NSA) &
+                 +FSTH(NTH,NP,NR,NSA)
          ENDDO
          ENDDO
       ENDDO
-!      IF(NRANK.eq.0) close(9)
-
+!      IF(NRANK.eq.0) &
+!           WRITE(6,'(A,E14.6,A,E14.6)') "FEPP = ", FEPP(1,2,1,1), " FLPP = ", FLPP(1,2,1,1)
 !     ----- Radial diffusion term -----
 
       IF(MODELD.ge.1) THEN
@@ -285,7 +296,6 @@
 !     ----- Particle source term -----
 
       CALL FP_CALS(NSA)
-
 !
 !     ****************************
 !     Boundary condition at p=pmax
@@ -296,8 +306,15 @@
          DO NTH=1,NTHMAX
             DPP(NTH,NPMAX+1,NR,NSA)=0.D0
             DPT(NTH,NPMAX+1,NR,NSA)=0.D0
-!            FPP(NTH,NPMAX+1,NR,NSA)=0.D0
-            FPP(NTH,NPMAX+1,NR,NSA)=max(0.D0,FPP(NTH,NPMAX+1,NR,NSA))
+            IF(MODEL_disrupt.eq.1)THEN
+               IF(MODEL_RE_pmax.eq.0)THEN
+                  FPP(NTH,NPMAX+1,NR,NSA)=max(0.D0,FPP(NTH,NPMAX+1,NR,NSA))
+               ELSE
+                  FPP(NTH,NPMAX+1,NR,NSA)=0.D0
+               END IF
+            ELSE
+               FPP(NTH,NPMAX+1,NR,NSA)=0.D0
+            END IF
          END DO
       END DO
       END IF
@@ -313,9 +330,8 @@
 
       IMPLICIT NONE
       integer:: NSA, NSB, NR, NTH, NP
-      real(kind8):: PSP, SUML, ANGSP, SPL, FPMAX
+!      real(kind8):: PSP, SUML, ANGSP, SPL, FPMAX
       integer:: NG
-      real(kind8):: FACT, DELH, sum11, ETAL, X, PSIB, PCOS, sum15, ARG
 
       DO NR=NRSTART,NREND
          DO NP=NPSTART,NPENDWG
@@ -616,10 +632,10 @@
       real(kind8):: sum1, temp1, SRHODP, SRHODM, SRHOFP, SRHOFM
       real(kind8):: WRH, DFDR_D, DFDR_F, F_R2, DFDR_R2, F_R1, DFDR_R1
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
-      double precision:: densm, densp
+      double precision:: densm, densp, deltaB_B, rgama
       INTEGER:: ISW_D
 
-      ISW_D=MOD(MODELD,5)
+      ISW_D=MOD(MODELD,10)
       NS=NS_NSA(NSA)
       NSBA=NSB_NSA(NSA)
       DO NR=NRSTART,NRENDWG
@@ -631,26 +647,33 @@
                SELECT CASE(ISW_D)
                CASE(0) ! no transport
                   FACTP=0.D0
+                  FACTR= (DRR0-DRRS)*(1.D0-RHON**2)+DRRS 
                CASE(1) ! no p dependence
                   FACTP=1.D0
+                  FACTR= (DRR0-DRRS)*(1.D0-RHON**2)+DRRS 
                CASE(2) ! depend on 1/p
                   FACTP=1.D0/SQRT(RTFPL+PM(NP,NSBA)**2*SINM(NTH)**2)
+                  FACTR= (DRR0-DRRS)*(1.D0-RHON**2)+DRRS 
                CASE(3) ! depend on 1/sqrt{p}
                   FACTP=1.D0/SQRT(RTFPL+PM(NP,NSBA)*SINM(NTH))
+                  FACTR= (DRR0-DRRS)*(1.D0-RHON**2)+DRRS 
                CASE(4) ! depend on 1/p^2
                   FACTP=1.D0/(RTFPL+PM(NP,NSBA)**2*SINM(NTH)**2)
-                END SELECT
-
-               FACTR= (DRR0-DRRS)*(1.D0-RHON**2)+DRRS 
-               DRR(NTH,NP,NR,NSA)= FACTR &
-                    *FACTP      /(RA*RA)
+                  FACTR= (DRR0-DRRS)*(1.D0-RHON**2)+DRRS 
+               CASE(5) ! stochastic delta B /B
+                  deltaB_B=1.D-4
+                  RGAMA=SQRT(1.D0+THETA0(NSBA)*PM(NP,NSBA)**2)
+                  FACTP=PI*RR*PM(NP,NSBA)*ABS(COSM(NTH))/RGAMA *PTFP0(NSBA)/AMFP(NSBA)
+                  FACTR=QLM(NR)*deltaB_B**2
+               END SELECT
+                  DRR(NTH,NP,NR,NSA)= FACTR*FACTP/(RA**2)
             ENDDO
          ENDDO
 
 ! ------ SET PINCH TERM
          DINT_D=0.D0
          DINT_F=1.D0
-         IF(MODELD.ge.6)THEN
+         IF(MODELD.ge.10)THEN
             DINT_F=0.D0
             DO NP=NPSTART,NPEND
                DO NTH=1,NTHMAX
@@ -705,7 +728,6 @@
 
       ENDDO ! NR
 
-
       RETURN
       END SUBROUTINE FP_CALR2
 
@@ -734,18 +756,20 @@
                PPL(NTH,NP,NR,NSA)=0.D0
                SPPB(NTH,NP,NR,NSA)=0.D0
                SPPS(NTH,NP,NR,NSA)=0.D0
+               SPPI(NTH,NP,NR,NSA)=0.D0
                SPPD(NTH,NP,NSA)=0.D0
             ENDDO
          ENDDO
       ENDDO
 !     ----- NBI source term -----
 
-      IF(MODELA.eq.0)THEN
-         CALL NBI_SOURCE_A0(NSA)
-      ELSE
-         CALL NBI_SOURCE_A1(NSA)
+      IF(MODEL_NBI.ne.0)THEN
+         IF(MODELA.eq.0)THEN
+            CALL NBI_SOURCE_A0(NSA)
+         ELSE
+            CALL NBI_SOURCE_A1(NSA)
+         END IF
       END IF
-
 !     ----- Fixed fusion source term -----
 
       IF(MODELS.EQ.1) THEN
@@ -819,19 +843,17 @@
          END IF
       END IF ! MODELS=1
 
-!     ----- Calcluated fusion source term -----
+!     ----- non-Maxwell fusion source term -----
       IF(MODELS.EQ.2) THEN
          IF(MODELA.eq.0)THEN
             CALL FUSION_SOURCE_S2A0(NSA)
          ELSE
             CALL FUSION_SOURCE_S2A1(NSA)            
          END IF
-
       ENDIF ! MODELS=2
 !
 !     ----- Particle loss and source terms -----
 !
-
       ISW_LOSS=1
       IF(TLOSS(NS).EQ.0.D0) THEN
          DO NR=NRSTART,NREND
@@ -866,6 +888,10 @@
             ENDDO
          END IF
       ENDIF
+
+      IF(MODEL_IMPURITY.ne.0.and.TIMEFP.le.tau_quench)THEN
+         CALL IMPURITY_SOURCE(NSA)
+      END IF
 
       RETURN
       END SUBROUTINE FP_CALS
@@ -1573,5 +1599,143 @@
 
       END SUBROUTINE fusion_source_init
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      SUBROUTINE synchrotron(NSA)
 
+      IMPLICIT NONE
+      real(8):: alpha, rgama_para, u, rgama
+      integer:: NTH, NP, NR
+      integer, intent(in):: NSA
+
+      DO NR=NRSTART, NREND
+
+         DO NP=NPSTART, NPENDWG
+            rgama=SQRT(1.D0+THETA0(NSA)*PG(NP,NSA)**2)
+            alpha=(2.D0*AEE**4)/(3*AMFP(NSA)**3*VC**5*RGAMA)*1.e30
+            u=PTFP0(NSA)*PG(NP,NSA)/AMFP(NSA)
+            DO NTH=1, NTHMAX
+               rgama_para=SQRT(1.D0+THETA0(NSA)*PG(NP,NSA)**2*COSM(NTH)**2)
+               
+               FSPP(NTH,NP,NR,NSA)= -&
+                    alpha*BB**2*rgama_para**2*U*SINM(NTH)**2* &
+                    (1.D0+ (U/(rgama_para*VC))**2*COSM(NTH)**2 ) &
+                    *AMFP(NSA)/PTFP0(NSA)
+            END DO
+         END DO
+         
+         DO NP=NPSTARTW, NPENDWM
+            rgama=SQRT(1.D0+THETA0(NSA)*PM(NP,NSA)**2)
+            alpha=(2.D0*AEE**4)/(3*AMFP(NSA)**3*VC**5*RGAMA)*1.e30
+            u=PTFP0(NSA)*PM(NP,NSA)/AMFP(NSA)
+            DO NTH=1, NTHMAX+1
+               rgama_para=SQRT(1.D0+THETA0(NSA)*PM(NP,NSA)**2*COSG(NTH)**2)
+               
+               FSTH(NTH,NP,NR,NSA)= -&
+                    alpha*BB**2*rgama_para**2*U*SING(NTH)*COSG(NTH)* &
+                    (1.D0-U**2/(rgama_para*VC)**2*SING(NTH)**2 ) &
+                    *AMFP(NSA)/PTFP0(NSA)
+            END DO
+         END DO
+         
+      END DO
+      
+      END SUBROUTINE synchrotron
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      SUBROUTINE loss_for_CNL(NSA)
+
+      IMPLICIT NONE
+      INTEGER,INTENT(IN):: NSA
+      real(8):: rgama
+      INTEGER:: NTH, NP, NR
+
+      DO NR=NRSTART, NREND
+      DO NP=NPSTART, NPENDWG
+         rgama=SQRT(1.D0+THETA0(NSA)*PG(NP,NSA)**2)
+         IF(NP.ne.1)THEN
+            DO NTH=1,NTHMAX
+               FLPP(NTH,NP,NR,NSA)=-1.D0/tau_quench!/PG(NP,NSA)**2
+               DLPP(NTH,NP,NR,NSA)=-FLPP(NTH,NP,NR,NSA) * &
+                    (RT_quench(NR)*rgama)/(RTFP0(NSA)*PG(NP,NSA))
+            END DO
+         ELSE
+            DO NTH=1,NTHMAX
+               FLPP(NTH,NP,NR,NSA)=0.D0
+               DLPP(NTH,NP,NR,NSA)=0.D0
+            END DO
+         END IF
+      END DO
+      END DO
+
+      END SUBROUTINE loss_for_CNL
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      SUBROUTINE IMPURITY_SOURCE(NSA)
+
+      IMPLICIT NONE
+      INTEGER,INTENT(IN):: NSA
+      INTEGER:: NS,NTH,NP,NR
+      real(kind8):: tau_imp
+
+      tau_imp=tau_quench
+
+      NS=NS_NSA(NSA)
+      DO NR=NRSTART,NREND
+         DO NP=NPSTART, NPEND
+            DO NTH=1,NTHMAX
+               SPPI(NTH,NP,NR,NSA)=&
+                    FPMXWL_IMP(PM(NP,NS),NR,NS,2)/tau_imp
+            END DO
+         END DO
+      END DO
+
+      END SUBROUTINE IMPURITY_SOURCE
+!-------------------------------------------------------------
+      FUNCTION FPMXWL_IMP(PML,NR,NSA,N_ion)
+
+      implicit none
+      integer,intent(in):: NR,NSA,N_ion
+      real(kind8),intent(in):: PML
+      real(kind8):: amfpl,aefpl,rnfp0l,rtfp0l,ptfp0l
+      real(kind8):: rnfpl,rtfpl,fact,ex,theta0l,thetal,z,dkbsl
+      real(kind8):: FPMXWL_IMP, target_Z, target_ne, target_ni
+
+      AMFPL=PA(NSA)*AMP
+      AEFPL=PZ(NSA)*AEE
+      RNFP0L=PN(NSA)
+      RTFP0L=(PTPR(NSA)+2.D0*PTPP(NSA))/3.D0
+      PTFP0L=SQRT(RTFD0L*1.D3*AEE*AMFPL)
+
+      target_z=2.D0
+      target_ni=(target_Z-1.D0)/(PZ(n_ion)**2-target_z*PZ(n_ion))*RNFP(NR,1)
+      target_ne=PZ(n_ion)*target_ni
+
+      IF(NSA.eq.1)THEN
+         RNFPL=target_ne/RNFP0(NSA)
+      ELSE
+         RNFPL=target_ni/RNFP0(NSA)
+      END IF
+      RTFPL=RT_quench_f(NR)*1.D1
+
+      IF(MODELR.EQ.0) THEN
+         FACT=RNFPL/SQRT(2.D0*PI*RTFPL/RTFP0L)**3
+         EX=PML**2/(2.D0*RTFPL/RTFP0L)
+         IF(EX.GT.100.D0) THEN
+            FPMXWL_IMP=0.D0
+         ELSE
+            FPMXWL_IMP=FACT*EXP(-EX)
+         ENDIF
+      ELSE
+!         THETA0L=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)
+         THETA0L=THETA0(NSA)
+         THETAL=THETA0L*RTFPL/RTFP0L
+         Z=1.D0/THETAL
+            DKBSL=BESEKN(2,Z)
+            FACT=RNFPL*SQRT(THETA0L)/(4.D0*PI*RTFPL*DKBSL) &
+             *RTFP0L
+            EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
+            FPMXWL_IMP=FACT*EXP(EX)
+      END IF
+
+      RETURN
+      END FUNCTION FPMXWL_IMP
+!-------------------------------------------------------------
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       END MODULE fpcoef

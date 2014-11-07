@@ -267,7 +267,20 @@
       MODEL_KSP=5
       MODEL_PC =1
 
-      MODEL_DISRUPT=0
+      MODEL_LOSS=0
+      MODEL_synch=0
+      MODEL_NBI=0
+      MODEL_WAVE=0 ! 0=no wave calc., 1=wave calc.
+      MODEL_IMPURITY=0
+
+      MODEL_DISRUPT=0 ! 0=no disruption, 1=disruption calc.
+      MODEL_Conner_FP=0 ! runaway rate 0= Conner, 1=FP
+      MODEL_BS=0 ! bootstrap current 0= off, 1=simple model
+      MODEL_jfp=0 ! current evaluation 0= independent on f, 1=depend on f
+      MODEL_LNL=0 ! Coulomb logarithm 0= variable w T , 1=fixed initial value, 2=fixed disrupted value
+      MODEL_RE_pmax=0 ! RE non-RE boundary 0=NPMAX, 1=NPC_runaway
+      time_quench_start=0.D0
+      RJPROF2=2.D0
 !-----------------------------------------------------------------------
 !     LLMAX : dimension of legendre polynomials's calculation
 
@@ -383,7 +396,9 @@
            NSSPF,SPFTOT,SPFR0,SPFRW,SPFENG,&
            LMAXFP, EPSFP,NCMIN,NCMAX, DRRS, MODEL_KSP, MODEL_PC, &
            N_partition_s, N_partition_r, N_partition_p, MODEL_DISRUPT, &
-           T0_quench, tau_quench
+           MODEL_synch, MODEL_LOSS, T0_quench, tau_quench, &
+           MODEL_NBI, MODEL_WAVE, MODEL_IMPURITY, MODEL_Conner_FP, MODEL_BS, MODEL_jfp, &
+           MODEL_LNL, time_quench_start, MODEL_RE_pmax, RJPROF2
 
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: nid
@@ -412,7 +427,9 @@
            pmax,tloss,LMAXFP,EPSFP,MODELS,NBEAMMAX, &
            nsamax,nsbmax,ns_nsa,ns_nsb,NCMIN,NCMAX,DRRS, MODEL_KSP, MODEL_PC, &
            N_partition_s, N_partition_r, N_partition_p, MODEL_DISRUPT, &
-           T0_quench, tau_quench
+           MODEL_synch, MODEL_LOSS, T0_quench, tau_quench, &
+           MODEL_NBI, MODEL_WAVE, MODEL_IMPURITY, MODEL_Conner_FP, MODEL_BS, MODEL_jfp, &
+           MODEL_LNL, time_quench_start, MODEL_RE_pmax, RJPROF2
 
       READ(nid,FP,IOSTAT=ist,ERR=9800,END=9900)
 
@@ -451,7 +468,9 @@
       WRITE(6,*) '      nsamax,nsbmax,ns_nsa,ns_nsb,pmax,tloss,'
       WRITE(6,*) '      MODELS,NBEAMMAX,DRRS,MODEL_KSP,MODEL_PC'
       WRITE(6,*) '      N_partition_s, N_partition_r, N_partition_p, MODEL_DISRUPT'
-      WRITE(6,*) '      T0_quench, tau_quench'
+      WRITE(6,*) '      MODEL_synch, MODEL_loss, T0_quench, tau_quench'
+      WRITE(6,*) '      MODEL_NBI, MODEL_WAVE, MODEL_IMPURITY, MODEL_Conner_FP, MODEL_BS, MODEL_jfp'
+      WRITE(6,*) '      MODEL_LNL, time_quench_start, MODEL_RE_pmax, RJPROF2'
 
       RETURN
     END SUBROUTINE fp_plst
@@ -522,7 +541,8 @@
       rdata(20)=RHOITB
       rdata(21)=RHOGMN
       rdata(22)=RHOGMX
-      CALL mtx_broadcast_real8(rdata,22)
+      rdata(23)=RJPROF2
+      CALL mtx_broadcast_real8(rdata,23)
       RR    =rdata( 1)
       RA    =rdata( 2)
       RB    =rdata( 3)
@@ -545,6 +565,7 @@
       RHOITB=rdata(20)
       RHOGMN=rdata(21)
       RHOGMX=rdata(22)
+      RJPROF2=rdata(23)
 
       CALL mtx_broadcast_real8(PA,NSMAX)
       CALL mtx_broadcast_real8(PZ,NSMAX)
@@ -611,7 +632,17 @@
       idata(36)=N_partition_r
       idata(37)=N_partition_p
       idata(38)=MODEL_DISRUPT
-      CALL mtx_broadcast_integer(idata,38)
+      idata(39)=MODEL_synch
+      idata(40)=MODEL_loss
+      idata(41)=MODEL_NBI
+      idata(42)=MODEL_IMPURITY
+      idata(43)=MODEL_Conner_FP
+      idata(44)=MODEL_BS
+      idata(45)=MODEL_jfp
+      idata(46)=MODEL_LNL
+      idata(47)=MODEL_RE_pmax
+      idata(48)=MODEL_WAVE
+      CALL mtx_broadcast_integer(idata,48)
       NPMAX   =idata( 1)
       NTHMAX  =idata( 2)
       NRMAX   =idata( 3)
@@ -652,6 +683,16 @@
       N_partition_r = idata(36)
       N_partition_p = idata(37)
       MODEL_DISRUPT = idata(38)
+      MODEL_synch = idata(39)
+      MODEL_loss  = idata(40)
+      MODEL_NBI  = idata(41)
+      MODEL_IMPURITY  = idata(42)
+      MODEL_Conner_FP  = idata(43)
+      MODEL_BS  = idata(44)
+      MODEL_jfp  = idata(45)
+      MODEL_LNL  = idata(46)
+      MODEL_RE_pmax  = idata(47)
+      MODEL_WAVE = idata(48)
 
       CALL mtx_broadcast_integer(NS_NSA,NSAMAX)
       CALL mtx_broadcast_integer(NS_NSB,NSBMAX)
@@ -706,7 +747,8 @@
       rdata(44)=PEC4
       rdata(45)=T0_quench
       rdata(46)=tau_quench
-      CALL mtx_broadcast_real8(rdata,46)
+      rdata(47)=time_quench_start
+      CALL mtx_broadcast_real8(rdata,47)
       DELT  =rdata( 1)
       RMIN  =rdata( 2)
       RMAX  =rdata( 3)
@@ -753,6 +795,7 @@
       PEC4  =rdata(44)
       T0_quench=rdata(45)
       tau_quench=rdata(46)
+      time_quench_start=rdata(47)
 
       CALL mtx_broadcast_real8(pmax,NSAMAX)
       CALL mtx_broadcast_real8(TLOSS,NSMAX)
@@ -803,7 +846,9 @@
            ZEFF,DELT,RIMPL,EPSM,EPSE,EPSDE,H0DE, &
            nsamax,nsbmax,ns_nsa,ns_nsb,pmax,tloss,MODELS,NCMIN,NCMAX, &
            nbeammax,DRRS,MODEL_KSP,MODEL_PC,N_partition_s,N_partition_r,N_partition_p, &
-           nsize, MODEL_DISRUPT, T0_quench, tau_quench
+           nsize, MODEL_DISRUPT, MODEL_synch, MODEL_LOSS, T0_quench, tau_quench, &
+           MODEL_NBI, MODEL_WAVE, MODEL_IMPURITY, MODEL_Conner_FP, MODEL_BS, MODEL_jfp, MODEL_LNL, &
+           time_quench_start, MODEL_RE_pmax, RJPROF2
 
       IMPLICIT NONE
       integer:: nsa,nsb,ns,NBEAM

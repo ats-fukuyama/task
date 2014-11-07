@@ -1049,7 +1049,8 @@
        
       IMPLICIT NONE
       REAL(8),DIMENSION(:,:,:,:):: FGA
-      REAL(8),dimension(NTHMAX+1,NPMAX+1,NRMAX+1):: TEMP
+!      REAL(8),dimension(NTHMAX+1,NPMAX+1,NRMAX+1):: TEMP
+      REAL(8),dimension(NTHMAX,NPMAX,NRMAX):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       integer:: NR, NP, NTH, NSB
@@ -1240,8 +1241,10 @@
       SUBROUTINE FPGRAC_2(STRING,FG,MODE,NSB)
 !       
       IMPLICIT NONE
-      real(8),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1):: FG
-      real(4),DIMENSION(NPMAX+1,NTHMAX+1):: GF
+!      real(8),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1):: FG
+!      real(4),DIMENSION(NPMAX+1,NTHMAX+1):: GF
+      real(8),DIMENSION(NTHMAX,NPMAX,NRMAX):: FG
+      real(4),DIMENSION(NPMAX,NTHMAX):: GF
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       INTEGER,PARAMETER:: NGLM=30
@@ -1306,8 +1309,10 @@
       ELSEIF(MODE.EQ.4) THEN
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX
-               IF(FG(NTH,NP,NR).LT.1.D-70) THEN
-                  GF(NP,NTH)=-70.0
+!               IF(FG(NTH,NP,NR).LT.1.D-70) THEN
+!                  GF(NP,NTH)=-70.0
+               IF(FG(NTH,NP,NR).LT.1.D-12) THEN
+                  GF(NP,NTH)=-12.0
                ELSE
                   GF(NP,NTH)=GUCLIP(LOG10(ABS(FG(NTH,NP,NR))))
                ENDIF
@@ -1325,10 +1330,14 @@
       SUBROUTINE FPGRACX_2(STRING,GF,MODE,NSB)
 !       
       IMPLICIT NONE
-      real(4),DIMENSION(NPMAX+1,NTHMAX+1):: GF
-      real(4),dimension(NPMAX+1):: GP
-      real(4),dimension(NTHMAX+1):: GTH
-      real(8),dimension(8,NPMAX+1,NTHMAX+1)::KA
+      real(4),DIMENSION(NPMAX,NTHMAX):: GF
+      real(4),dimension(NPMAX):: GP
+      real(4),dimension(NTHMAX):: GTH
+      real(8),dimension(8,NPMAX,NTHMAX)::KA
+!      real(4),DIMENSION(NPMAX+1,NTHMAX+1):: GF
+!      real(4),dimension(NPMAX+1):: GP
+!      real(4),dimension(NTHMAX+1):: GTH
+!      real(8),dimension(8,NPMAX+1,NTHMAX+1)::KA
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       INTEGER,PARAMETER:: NGLM=30
@@ -1377,7 +1386,8 @@
       CALL SETCHS(.3,0.)
       CALL SETFNT(32)
 !
-      CALL GMNMX2(GF,NPM,1,NPG,1,1,NTHG,1,GFMIN,GFMAX)
+      CALL GMNMX2(GF,NPM-1,1,NPG,1,1,NTHG,1,GFMIN,GFMAX)
+!      CALL GMNMX2(GF,NPM,1,NPG,1,1,NTHG,1,GFMIN,GFMAX)
       CALL GQSCAL(GFMIN,GFMAX,GFMIN1,GFMAX1,GFSTEP)
       CALL GQSCAL(0.0,GPMAX,GPMIN1,GPMAX1,GPSTEP)
 !
@@ -1457,10 +1467,15 @@
             ILN(NGL)=0
             WLN(NGL)=0.07
          ENDDO
-         CALL CONTG4X(GF,GP,GTH,NPM,NPG,NTHG,ZL,RGB,ILN,WLN,NGLINE,0)
+!         CALL CONTG4X(GF,GP,GTH,NPM,NPG,NTHG,ZL,RGB,ILN,WLN,NGLINE,0)
+         CALL CONTG4X(GF,GP,GTH,NPG,NPG,NTHG,ZL,RGB,ILN,WLN,NGLINE,0)
+
 !            CALL SETLIN(0,0,7-MOD(I-1,5))
 !            CALL SETLNW(0.07)
 !            CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,        &
+!                 GLIN,GFSTEP*100,1,0,KA)
+
+!            CALL CONTQ4(GF,GP,GTH,NPM-1,NPG,NTHG,        &
 !                 GLIN,GFSTEP*100,1,0,KA)
       ENDIF
 !

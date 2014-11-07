@@ -22,9 +22,8 @@
       IMPLICIT NONE
       CHARACTER(LEN=1)::  KID
       CHARACTER(LEN=80):: LINE
-      INTEGER:: IERR,NSA,NGRAPH_SAVE,NR,NTH,NP
-      REAL(rkind):: P1,P2,FL1
-      INTEGER,DIMENSION(1):: mode
+      integer:: ierr,NSA,NGRAPH_SAVE
+      integer,DIMENSION(1):: mode
       REAL(4):: cputime1,cputime2
 
     1 CONTINUE
@@ -104,36 +103,6 @@
       ELSEIF (KID.EQ.'L') THEN
          if(nrank.eq.0) CALL fp_load
          CALL mtx_barrier
-
-      ELSEIF (KID.EQ.'T') THEN
-         IF(nrank.EQ.0) THEN
-            CALL FROPEN(49,'FNS01.DAT',1,0,'FNS',IERR)
-            NSAMAX=1
-            NSBMAX=1
-            NSB_NSA(1)=1
-            PMAX(1)=23
-            NGLINE=30
-            NRMAX=1
-            NTHMAX=64
-            NPMAX=1024
-            NTMAX=0
-            TIMEFP=0.D0
-            NTG1=0
-            NTG2=0
-            CALL fp_allocate
-            call fp_allocate_ntg1
-            call fp_allocate_ntg2
-            READ(49,*)
-            READ(49,*)
-            DO NP=1,NPMAX
-               DO NTH=1,NTHMAX
-                  READ(49,*) PM(NP,1),THM(NTH),P1,P2,FNS(NTH,NP,1,1),FL1
-               END DO
-            END DO
-            CLOSE(49)
-         END IF
-         CALL mtx_barrier
-
       ELSEIF (KID.EQ.'Q') THEN
          GO TO 9000
 

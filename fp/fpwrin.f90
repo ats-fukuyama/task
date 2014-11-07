@@ -309,7 +309,7 @@
 
       DO NR=1,NRMAX
          RHOL =RM(NR)
-         CALL pl_rrminmax(RHOL,RRMIN(NR),RRMAX(NR))
+         CALL pl_rrmx(RHOL,RRMIN(NR),RRMAX(NR))
 !         WRITE(6,602) NR,RHOL,RRMIN(NR),RRMAX(NR)
 !  602    FORMAT('# NR,RHOL,RRMIN,RRMAX=',I3,1P3E15.7)
       ENDDO

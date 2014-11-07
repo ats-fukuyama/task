@@ -33,8 +33,20 @@
          CALL GSOPEN
          OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
       ENDIF
-      OPEN(9,file="f1_1.dat")
-      open(10,file='time_evol.dat') 
+
+      N_f1=0
+         OPEN(9,file="f1_1.dat")
+!      IF(model_disrupt.ne.0)THEN
+         open(10,file='time_evol.dat') 
+         open(11,file='efield_e1.dat') 
+         open(12,file='dndt.dat') 
+         open(13,file='radial.dat') 
+         open(14,file='nth-re.dat')
+         open(15,file='re_pitch.dat')
+!         OPEN(16,file="FNS01.dat")
+!         OPEN(17,file="FNS03.dat")
+!         OPEN(18,file="FNS05.dat")
+!      END IF
 
       CALL pl_init
       CALL eq_init
@@ -46,9 +58,19 @@
       ENDIF
       CALL fp_menu
 
-      CLOSE(7)
-      close(9)
-      close(10)
+         close(9)
+ !     IF(model_disrupt.ne.0)THEN
+         CLOSE(7)
+         close(10)
+         close(11)
+         close(12)
+         close(13)
+         close(14)
+         close(15)
+!         close(16)
+!         close(17)
+!         close(18)
+ !     END IF
       IF(nrank.EQ.0) CALL GSCLOS
       CALL mtx_finalize
       CALL fp_wr_deallocate
