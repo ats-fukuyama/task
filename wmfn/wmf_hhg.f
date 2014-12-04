@@ -21,8 +21,8 @@
       !!!!!!!!!!!!!!!!atteru?
       mr=8*nfcmax  ! line interval between radial points
       mc=16*nfcmax ! diagonal column at the top line
-         do nf2=1,nfcmax
-         do nf1=1,nfcmax
+         do nf2=1, nfcmax
+         do nf1=1, nfcmax
          do j=1,4
          do i=1,4
       !!!!!!!!!!!!!!!!atteru?
@@ -50,7 +50,6 @@
      &               +fmd(i,j,2,nf1,nf2,inod)*table_hhg(5,4,ig)*drho
      &               +fmd(i,j,3,nf1,nf2,inod)*table_hhg(1,8,ig)*drho
      &               +fmd(i,j,4,nf1,nf2,inod)*table_hhg(5,8,ig)
-
                fml(mw-1   ,ml+1   )=fml(mw-1   ,ml+1   )
      &               +fmd(i,j,1,nf1,nf2,inod)*table_hhg(2,1,ig)*drho**2
      &               +fmd(i,j,2,nf1,nf2,inod)*table_hhg(6,1,ig)*drho

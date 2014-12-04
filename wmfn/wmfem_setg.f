@@ -151,6 +151,7 @@ C
                rj  (nth,nhh,nr)= rr*ra**2*rhol
 
                bfld(2,nth,nhh,nr)=0.d0
+!!!!!!               bfld(2,nth,nhh,nr)=1d0/rj(nth,nhh,nr)
                bfld(3,nth,nhh,nr)=bb/rr
                BPST(NTH,NHH,NR)=bb
             enddo

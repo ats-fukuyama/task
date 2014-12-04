@@ -198,19 +198,27 @@
             if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
             nfcdiff=nthmax2*nndiff+mmdiff+1
 !            if(nfcdiff.le.0) nfcdiff=nfcdiff+nfcmax2
-
             do j=1,3
                do i=1,3
                   fmd(i,j,1,nfc1,nfc2)
      &                 =fmv1(i,j,1,1,nfcdiff)
-     &                 +fmv1(i,j,2,1,nfcdiff)*mm1
-     &                 +fmv1(i,j,3,1,nfcdiff)*nn1
-     &                 +fmv1(i,j,1,2,nfcdiff)    *mm2
-     &                 +fmv1(i,j,2,2,nfcdiff)*mm1*mm2
-     &                 +fmv1(i,j,3,2,nfcdiff)*nn1*mm2
-     &                 +fmv1(i,j,1,3,nfcdiff)    *nn2
-     &                 +fmv1(i,j,2,3,nfcdiff)*mm1*nn2
-     &                 +fmv1(i,j,3,3,nfcdiff)*nn1*nn2
+     &                 +fmv1(i,j,2,1,nfcdiff)*mm2
+     &                 +fmv1(i,j,3,1,nfcdiff)*nn2
+     &                 +fmv1(i,j,1,2,nfcdiff)    *mm1
+     &                 +fmv1(i,j,2,2,nfcdiff)*mm2*mm1
+     &                 +fmv1(i,j,3,2,nfcdiff)*nn2*mm1
+     &                 +fmv1(i,j,1,3,nfcdiff)    *nn1
+     &                 +fmv1(i,j,2,3,nfcdiff)*mm2*nn1
+     &                 +fmv1(i,j,3,3,nfcdiff)*nn2*nn1
+!     &                 =fmv1(i,j,1,1,nfcdiff)
+!     &                 +fmv1(i,j,2,1,nfcdiff)*mm1
+!     &                 +fmv1(i,j,3,1,nfcdiff)*nn1
+!     &                 +fmv1(i,j,1,2,nfcdiff)    *mm2
+!     &                 +fmv1(i,j,2,2,nfcdiff)*mm1*mm2
+!     &                 +fmv1(i,j,3,2,nfcdiff)*nn1*mm2
+!     &                 +fmv1(i,j,1,3,nfcdiff)    *nn2
+!     &                 +fmv1(i,j,2,3,nfcdiff)*mm1*nn2
+!     &                 +fmv1(i,j,3,3,nfcdiff)*nn1*nn2
                   fmd(i,j,2,nfc1,nfc2)
      &                 =fmv2(i,j,1,nfcdiff)
      &                 +fmv2(i,j,2,nfcdiff)*mm1
@@ -274,8 +282,10 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       cfactor=(2.d0*pi*crf*1.d6)**2/vc**2
 
 !       cfactor_div=1d0 !(2.d0*pi*crf*1.d6)
+
       cfactor_div=1d0 !(2.d0*pi*crf*1.d6)**2
 
+!!      cfactor_div=1d3 !(2.d0*pi*crf*1.d6)**2
 !!!!
 
       call wmfem_tensors(rho,gma,gpa,muma,dmuma,gja,gmuma,dgjgmuma)
@@ -690,14 +700,22 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
             enddo
             fmd(4,4,1,nfc1,nfc2)
      &                    =fmc41_d(1,1) 
-     &                    +fmc41_d(2,1)*mm1
-     &                    +fmc41_d(3,1)*nn1
-     &                    +fmc41_d(1,2)     *mm2
-     &                    +fmc41_d(2,2)*mm1 *mm2
-     &                    +fmc41_d(3,2)*nn1 *mm2
-     &                    +fmc41_d(1,3)     *nn2
-     &                    +fmc41_d(2,3)*mm1 *nn2
-     &                    +fmc41_d(3,3)*nn1 *nn2
+     &                    +fmc41_d(2,1)*mm2
+     &                    +fmc41_d(3,1)*nn2
+     &                    +fmc41_d(1,2)     *mm1
+     &                    +fmc41_d(2,2)*mm2 *mm1
+     &                    +fmc41_d(3,2)*nn2 *mm1
+     &                    +fmc41_d(1,3)     *nn1
+     &                    +fmc41_d(2,3)*mm2 *nn1
+     &                    +fmc41_d(3,3)*nn2 *nn1
+!     &                    +fmc41_d(2,1)*mm1
+!     &                    +fmc41_d(3,1)*nn1
+!     &                    +fmc41_d(1,2)     *mm2
+!     &                    +fmc41_d(2,2)*mm1 *mm2
+!     &                    +fmc41_d(3,2)*nn1 *mm2
+!     &                    +fmc41_d(1,3)     *nn2
+!     &                    +fmc41_d(2,3)*mm1 *nn2
+!     &                    +fmc41_d(3,3)*nn1 *nn2
             fmd(4,4,2,nfc1,nfc2)
      &                    =fmc42_d(1) 
      &                    +fmc42_d(2)*mm1
@@ -714,14 +732,18 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
             do i=1,3
                fmd(i,4,1,nfc1,nfc2)
      &                    =fmca41_d(i,1) 
-     &                    +fmca41_d(i,2)     *mm2
-     &                    +fmca41_d(i,3)     *nn2
+     &                    +fmca41_d(i,2)*mm1
+     &                    +fmca41_d(i,3)*nn1
+!     &                    +fmca41_d(i,2)     *mm2
+!     &                    +fmca41_d(i,3)     *nn2
                fmd(i,4,3,nfc1,nfc2)
      &                    =fmca43_d(i) 
                fmd(4,i,1,nfc1,nfc2)
      &                    =fmc4a1_d(i,1) 
-     &                    +fmc4a1_d(i,2)*mm1
-     &                    +fmc4a1_d(i,3)*nn1
+     &                    +fmc4a1_d(i,2)    *mm2
+     &                    +fmc4a1_d(i,3)    *nn2
+!     &                    +fmc4a1_d(i,2)*mm1
+!     &                    +fmc4a1_d(i,3)*nn1
                fmd(4,i,2,nfc1,nfc2)
      &                    =fmc4a2_d(i) 
 
@@ -733,7 +755,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
      &                    +0.25d0*fmc(i,j,1,nfcdiff,nfcadd2)
      &                    +0.25d0*fmc(i,j,1,nfcdiff,nfcadd3)
      &                    +0.25d0*fmc(i,j,1,nfcdiff,nfcadd4)
-                enddo
+               enddo
             enddo
          enddo
       enddo
@@ -782,7 +804,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
 !!!!!!!!!!      cfactora4=ci/vc**2
 !!!!!!!!!!       cfactora4=0d0 
       cfactor4a=ci*(2.d0*pi*crf*1.d6)/vc
-!!!!!!!!!!       cfactor4a=ci
+!!!!!!!!!!       CFACTOR4A=ci
 !!!!!!!!!!       cfactor4a=0d0
 !!!!!!!!!!      cfactor4a=(2.d0*pi*crf*1.d6)**2/vc**2
       cfactor44=-1d0
@@ -833,7 +855,8 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
      &                   * conjg(cinv(id,jm))*cinv(jd,im)
                          enddo
                      enddo
-                     fmc41(im,jm,nfc1,nfc2)=cfactor44 * csum1*gj
+!                     fmc41(im,jm,nfc1,nfc2)=cfactor44 * csum1*gj
+                      fmc41(jm,im,nfc1,nfc2)=cfactor44 * csum1*gj
                   enddo
               enddo
               do im=2,3
@@ -842,11 +865,11 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
                    do id =1,3 
                        do jd= 1,3
                        csum2=csum2
-     &                 + fmc(id,jd,2,nfc1,nfc2)
+     &                 + fmc(id,jd,1,nfc1,nfc2)
      &                 * conjg(cinv(id,1))*cinv(jd,im)
 
                        csum3=csum3
-     &                 + fmc(id,jd,3,nfc1,nfc2)
+     &                 + fmc(id,jd,1,nfc1,nfc2)
      &                 * conjg(cinv(id,im))*cinv(jd,1)
                        enddo
                    enddo
@@ -858,7 +881,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
               do id =1,3 
                   do jd= 1,3
                     csum4=csum4 
-     &                   + fmc(id,jd,4,nfc1,nfc2)
+     &                   + fmc(id,jd,1,nfc1,nfc2)
      &                   * conjg(cinv(id,1))*cinv(jd,1)
                   enddo
               enddo
@@ -870,7 +893,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
                   csuma13=0d0
                   do id = 1,3
                      csuma3=csuma3
-     &                   + fmc(i,id,3,nfc1,nfc2)*cinv(id,1)
+     &                   + fmc(i,id,1,nfc1,nfc2)*cinv(id,1)
                      csuma12=csuma12 
      &                   + fmc(i,id,1,nfc1,nfc2)*cinv(id,2)
                      csuma13=csuma13 
@@ -887,7 +910,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
                   csuma13=0d0
                   do id = 1,3
                      csuma2=csuma2 
-     &                   + fmc(id,i,2,nfc1,nfc2)*conjg(cinv(id,1))
+     &                   + fmc(id,i,1,nfc1,nfc2)*conjg(cinv(id,1))
                      csuma12=csuma12 
      &                   + fmc(id,i,1,nfc1,nfc2)*conjg(cinv(id,2))
                      csuma13=csuma13 
