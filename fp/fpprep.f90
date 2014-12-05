@@ -476,7 +476,6 @@
 !      CALL mtx_set_communicator(comm_nr)! 2D
       CALL mtx_set_communicator(comm_nrnp)! 3D
       CALL mtx_setup(imtxsize,imtxstart,imtxend,imtxwidth)
-      CALL mtx_reset_communicator
 
       nrstart=(imtxstart-1)/(nthmax*npmax)+1
       nrend=  (imtxend  -1)/(nthmax*npmax)+1
@@ -555,6 +554,7 @@
 
       CALL mtx_cleanup
 
+!      WRITE(6,'(A,7I6)') "config MPI ", NRANK, NMSTART, NMEND, NPSTART, NPEND, NRSTART, NREND
 
       END SUBROUTINE fp_comm_setup
 !-------------------------------------------------------------
@@ -1396,7 +1396,7 @@
          CALL FPWEIGHT(NSA,IERR)
       END DO
       IF(NRANK.eq.0.and.MODEL_disrupt.ne.0)THEN
-         CALL display_disrupt_initials
+!         CALL display_disrupt_initials
       END IF
 
 !      DO NP=1,NPMAX+1

@@ -16,6 +16,7 @@
       PUBLIC mtx_solve
       PUBLIC mtx_get_vector
       PUBLIC mtx_gather_vector
+      PUBLIC mtx_vector
       PUBLIC mtx_cleanup
 
       PUBLIC mtxc_setup
@@ -106,7 +107,6 @@
       INTEGER,PARAMETER:: ione=1
       REAL(8),PARAMETER:: one=1.D0
       INTEGER,DIMENSION(:),POINTER:: istartx,iendx,isizex
-      INTEGER:: idebug_save
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !                 Beginning of program
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -147,20 +147,13 @@
 
 !-----
 
-      SUBROUTINE mtx_setup(imax_,istart_,iend_,jwidth,nzmax,idebug)
+      SUBROUTINE mtx_setup(imax_,istart_,iend_,jwidth,nzmax)
 
       INTEGER,INTENT(IN):: imax_           ! total matrix size
       INTEGER,INTENT(OUT):: istart_,iend_  ! allocated range of lines 
       INTEGER,OPTIONAL,INTENT(IN):: jwidth ! band matrix width, not used in KSP
       INTEGER,OPTIONAL,INTENT(IN):: nzmax  ! number of nonzero components
-      INTEGER,OPTIONAL,INTENT(IN):: idebug ! debug level
       INTEGER:: i,ierr
-
-      IF(PRESENT(idebug)) THEN
-         idebug_save=idebug
-      ELSE
-         idebug_save=0
-      END IF
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !      Compute the matrix and right-hand-side vector that define
@@ -331,7 +324,7 @@
 !
 !        methodKSP: type of KSP solver (default=4)
 !        methodKSP= 0: Richardson (optional damping factor = 1.0)
-!        methodKSP= 1: Chebyshev (optional emin=0.01 emax=100.)
+!        methodKSP= 1: Chebychev (optional emin=0.01 emax=100.)
 !        methodKSP= 2: Conjugate Gradient
 !        methodKSP= 3: BiConjugate Gradient
 !        methodKSP= 4..7: Generalized Gradient Residual (optional max_steps=30)
@@ -427,10 +420,10 @@
 
 !  Set operators. Here the matrix that defines the linear system
 !  also serves as the preconditioning matrix.
-
       SELECT CASE(itype/2)
       CASE(0)
-         CALL KSPSetOperators(ksp,A,A,DIFFERENT_NONZERO_PATTERN,ierr)
+!         CALL KSPSetOperators(ksp,A,A,DIFFERENT_NONZERO_PATTERN,ierr)
+         CALL KSPSetOperators(ksp,A,A,ierr)
       CASE(1)
          CALL KSPSetOperators(ksp,A,A,SAME_NONZERO_PATTERN,ierr)
       CASE(2)
@@ -444,7 +437,6 @@
          IF(ierr.NE.0) WRITE(6,*) &
               'XX mtx_solve: KSPSetInitialGuessNonzero: ierr=',ierr
       END IF
-
 
 !  Set linear solver defaults for this problem (optional).
 !   - By extracting the KSP and PC contexts from the KSP context,
@@ -476,7 +468,7 @@
          CALL KSPSetType(ksp,KSPRICHARDSON,ierr)
          CALL KSPRichardsonSetScale(ksp,damping_factor_,ierr)
       CASE(1)
-         CALL KSPSetType(ksp,KSPCHEBYSHEV,ierr)
+         CALL KSPSetType(ksp,KSPCHEBYCHEV,ierr)
          CALL KSPChebyshevSetEigenvalues(ksp,emax_,emin_,ierr)
       CASE(2)
          CALL KSPSetType(ksp,KSPCG,ierr)
@@ -547,10 +539,15 @@
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_solve: PC: methodPC,ierr=',methodPC_,ierr
 
+!      call KSPSetTolerances(ksp,tolerance, &
+!           PETSC_DEFAULT_DOUBLE_PRECISION, &
+!           PETSC_DEFAULT_DOUBLE_PRECISION, &
+!           PETSC_DEFAULT_INTEGER,ierr)
       call KSPSetTolerances(ksp,tolerance, &
-           PETSC_DEFAULT_DOUBLE_PRECISION, &
-           PETSC_DEFAULT_DOUBLE_PRECISION, &
+           PETSC_DEFAULT_REAL, &
+           PETSC_DEFAULT_REAL, &
            PETSC_DEFAULT_INTEGER,ierr)
+
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_solve: KSPSetTolerances: ierr=',ierr
 
@@ -637,6 +634,25 @@
 
       RETURN
       END SUBROUTINE mtx_gather_vector
+!!!
+      SUBROUTINE mtx_vector(v)
+
+      REAL(8),DIMENSION(ilen),intent(out):: v
+      PetscScalar,pointer:: x_value(:)
+      INTEGER:: j,ierr,imax_
+
+      call VecGetArrayF90(x,x_value,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_gather_vector: VecGetArrayF90: ierr=',ierr
+      do j=1,ilen
+         v(j)=x_value(j)
+      enddo
+      call VecRestoreArrayF90(x,x_value,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_gather_vector: VecRestoreArrayF90: ierr=',ierr
+
+      RETURN
+      END SUBROUTINE mtx_vector
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!
       SUBROUTINE mtx_cleanup
       INTEGER:: ierr
@@ -666,13 +682,12 @@
 !                 Complex inteface for compatibility
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-      SUBROUTINE mtxc_setup(imax_,istart_,iend_,jwidth,nzmax,idebug)
+      SUBROUTINE mtxc_setup(imax_,istart_,iend_,jwidth,nzmax)
 
       INTEGER,INTENT(IN):: imax_           ! total matrix size
       INTEGER,INTENT(OUT):: istart_,iend_  ! allocated range of lines 
       INTEGER,OPTIONAL,INTENT(IN):: jwidth ! band matrix width
       INTEGER,OPTIONAL,INTENT(IN):: nzmax  ! number of nonzero components
-      INTEGER,OPTIONAL,INTENT(IN):: idebug ! debug level
 
       istart_=0
       iend_=0

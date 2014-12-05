@@ -146,4 +146,124 @@
 
       END SUBROUTINE fpl_comm
 !-----
+      SUBROUTINE shadow_comm_np(NR,NSBA)
+
+      USE MPI
+      IMPLICIT NONE
+      double precision,dimension(nthmax)::sendbuf
+      double precision,dimension(nthmax)::recvbuf
+      integer,intent(in):: NR,NSBA
+      integer:: sendcount, dest, source, ierr, nth
+!      integer,dimension(MPI_STATUS_SIZE):: istatus
+      integer:: istatus(MPI_STATUS_SIZE)
+
+      DO NTH=1,NTHMAX
+         sendbuf(nth)=FNS0(NTH,NPEND,NR,NSBA)
+         recvbuf(nth)=0.D0
+      END DO
+      
+      sendcount=nthmax
+      dest=nrank+1
+      source=nrank-1
+      IF(dest.ge.nsize) dest=MPI_PROC_NULL
+      IF(source.lt.0) source=MPI_PROC_NULL
+
+      CALL MPI_SENDRECV(sendbuf, sendcount, MPI_DOUBLE_PRECISION, DEST, 0, &
+           recvbuf, sendcount, MPI_DOUBLE_PRECISION, SOURCE, 0, ncomm, &
+           ISTATUS, IERR)
+
+      IF(NPSTART.ne.NPSTARTW)THEN
+         DO NTH=1,NTHMAX
+            FNS0(NTH,NPSTARTW,NR,NSBA)=recvbuf(nth)
+         END DO
+      END IF
+!============
+      DO NTH=1,NTHMAX
+         sendbuf(nth)=FNS0(NTH,NPSTART,NR,NSBA)
+         recvbuf(nth)=0.D0
+      END DO
+      
+      dest=nrank-1
+      source=nrank+1
+      IF(source.ge.nsize) source=MPI_PROC_NULL
+      IF(dest.lt.0)         dest=MPI_PROC_NULL
+
+      CALL MPI_SENDRECV(sendbuf, sendcount, MPI_DOUBLE_PRECISION, DEST, 0, &
+           recvbuf, sendcount, MPI_DOUBLE_PRECISION, SOURCE, 0, ncomm, &
+           ISTATUS, IERR)
+
+      IF(NPEND.ne.NPENDWM)THEN
+         DO NTH=1,NTHMAX
+            FNS0(NTH,NPENDWM,NR,NSBA)=recvbuf(nth)
+         END DO
+      END IF
+
+      END SUBROUTINE shadow_comm_np
+!-----
+      SUBROUTINE shadow_comm_nr(NSBA)
+
+      USE MPI
+      IMPLICIT NONE
+      double precision,dimension(nthmax*(npendwm-npstartw+1))::sendbuf
+      double precision,dimension(nthmax*(npendwm-npstartw+1))::recvbuf
+      integer,intent(in):: NSBA
+      integer:: sendcount, dest, source, ierr, nth, np, NM
+      integer:: istatus(MPI_STATUS_SIZE)
+
+      DO NP=NPSTARTW,NPENDWM
+         DO NTH=1,NTHMAX
+            NM=NTH+NTHMAX*(NP-NPSTARTW)
+            sendbuf(NM)=FNS0(NTH,NP,NREND,NSBA)
+            recvbuf(NM)=0.D0
+         END DO
+      END DO
+
+      sendcount=nthmax*(npendwm-npstartw+1)
+      dest=nrank+1
+      source=nrank-1
+      IF(dest.ge.nsize) dest=MPI_PROC_NULL
+      IF(source.lt.0) source=MPI_PROC_NULL
+
+      CALL MPI_SENDRECV(sendbuf, sendcount, MPI_DOUBLE_PRECISION, DEST, 0, &
+           recvbuf, sendcount, MPI_DOUBLE_PRECISION, SOURCE, 0, ncomm, &
+           ISTATUS, IERR)
+
+      IF(NRSTART.ne.NRSTARTW)THEN
+         DO NP=NPSTARTW, NPENDWM
+            DO NTH=1,NTHMAX
+               NM=NTH+NTHMAX*(NP-NPSTARTW)
+               FNS0(NTH,NP,NRSTARTW,NSBA)=recvbuf(NM)
+            END DO
+         END DO
+      END IF
+!===
+      DO NP=NPSTARTW,NPENDWM
+         DO NTH=1,NTHMAX
+            NM=NTH+NTHMAX*(NP-NPSTARTW)
+            sendbuf(NM)=FNS0(NTH,NP,NRSTART,NSBA)
+            recvbuf(NM)=0.D0
+         END DO
+      END DO
+
+      sendcount=nthmax*(npendwm-npstartw+1)
+      dest=nrank-1
+      source=nrank+1
+      IF(source.ge.nsize) source=MPI_PROC_NULL
+      IF(dest.lt.0) dest=MPI_PROC_NULL
+
+      CALL MPI_SENDRECV(sendbuf, sendcount, MPI_DOUBLE_PRECISION, DEST, 0, &
+           recvbuf, sendcount, MPI_DOUBLE_PRECISION, SOURCE, 0, ncomm, &
+           ISTATUS, IERR)
+
+      IF(NREND.ne.NRENDWM)THEN
+         DO NP=NPSTARTW, NPENDWM
+            DO NTH=1,NTHMAX
+               NM=NTH+NTHMAX*(NP-NPSTARTW)
+               FNS0(NTH,NP,NRENDWM,NSBA)=recvbuf(NM)
+            END DO
+         END DO
+      END IF
+
+      END SUBROUTINE shadow_comm_nr
+!-----
       END MODULE FPMPI

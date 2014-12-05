@@ -8,7 +8,7 @@
 
       USE fpcomm
       use fpexec
-      use fpdrexec
+!      use fpdrexec
       use fpcoef
       use fpsave
       use libmpi
@@ -51,8 +51,8 @@
       real(8):: sigma, ip_all, ip_ohm, ip_run, DEPS_E, jbs, IP_bs, l_ind, IP_prim, DEPS_E2
       real(8),dimension(NRSTART:NREND):: E_SIGMA
       real(8):: IP_all_FP, FPL
-!      real(8),dimension(NPSTART:NPEND):: DCPP_L1, DCPP_L2, FCPP_L1, FCPP_L2, DCTT_L1, DCTT_L2, DPP_L, FPP_L, DTT_L
-!      real(8),dimension(NPMAX):: DCPP_1, DCPP_2, FCPP_1, FCPP_2, DCTT_1, DCTT_2, DPP_A, FPP_A, DTT_A
+      real(8),dimension(NPSTART:NPEND):: DCPP_L1, DCPP_L2, FCPP_L1, FCPP_L2, DCTT_L1, DCTT_L2, DPP_L, FPP_L, DTT_L
+      real(8),dimension(NPMAX):: DCPP_1, DCPP_2, FCPP_1, FCPP_2, DCTT_1, DCTT_2, DPP_A, FPP_A, DTT_A
 
 !     +++++ Time loop +++++
 
@@ -151,7 +151,7 @@
                   CALL fp_exec(NSA,IERR,its) ! F1 and FNS0 changed
                   modeld=modeld_temp
                   IF(MODELD.ge.1)THEN
-                     CALL fp_drexec(NSA,IERR,its)
+ !                    CALL fp_drexec(NSA,IERR,its)
                   END IF
                ELSEIF(ISW_D.eq.1)THEN ! 
                   CALL fp_exec(NSA,IERR,its) ! F1 and FNS0 changed
@@ -255,7 +255,7 @@
                   NDIMPL=NDIMPL+1
                   call calculation_runaway_rate
                   CALL AVALANCHE
-                  IF(TIMEFP.ge.time_quench_start) CALL E_IND_IMPLICIT
+!                  IF(TIMEFP.ge.time_quench_start) CALL E_IND_IMPLICIT
                   DEPS_E=(E1(NRSTART)-EP(NRSTART))**2/EM(NRSTART)**2
 
                   DO NR=NRSTART,NREND
@@ -264,7 +264,7 @@
                   DO NSA=NSASTART, NSAEND
                      CALL FP_CALE(NSA)
                   END DO
-                  CALL update_fpp
+!                  CALL update_fpp
                END DO
                IF (MOD(NT,NTG1STEP).EQ.0.and.NRANK.eq.0) &
                     WRITE(6,'(A,E14.6)') "CALE_CONVERSION = ", DEPS_E
@@ -500,7 +500,7 @@
 !         call mtx_allgather_real8(DTT_L,NPEND-NPSTART+1,DTT_A)
 !         call mtx_allgather_real8(DPP_L,NPEND-NPSTART+1,DPP_A)
 !         call mtx_allgather_real8(FPP_L,NPEND-NPSTART+1,FPP_A)
-!         CALL mtx_reset_communicator
+         CALL mtx_reset_communicator
 
 !
       IF(NRANK.eq.0)THEN
@@ -543,7 +543,7 @@
                  PM(NP,1)*PTFP0(1)/AMFP(1)/VC/SQRT(1.D0+PM(NP,1)**2*THETA0(1)), &
                  PM(NP,1)**2, &
                  PTFP0(1)**2*PM(NP,1)**2/(AEE*AMFP(1)*1.D3), FNS(1,NP,1,1), FNS(NTHMAX,NP,1,1), &
-                 FNS(NTHMAX/2,NP,1,1)
+                 FNS(NTHMAX/2,NP,1,1) !&
 !                 , DCPP_1(NP), DCPP_2(NP), FCPP_1(NP), FCPP_2(NP), DCTT_1(NP), DCTT_2(NP), &
 !                 DPP_A(NP), DTT_A(NP), FPP_A(NP), (1.D0-SQRT(1.D0+PM(NP,1)**2*THETA0(1)))/THETA0(1)
          END DO

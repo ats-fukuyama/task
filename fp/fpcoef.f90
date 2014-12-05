@@ -308,7 +308,8 @@
             DPT(NTH,NPMAX+1,NR,NSA)=0.D0
             IF(MODEL_disrupt.eq.1)THEN
                IF(MODEL_RE_pmax.eq.0)THEN
-                  FPP(NTH,NPMAX+1,NR,NSA)=max(0.D0,FPP(NTH,NPMAX+1,NR,NSA))
+!                  FPP(NTH,NPMAX+1,NR,NSA)=max(0.D0,FPP(NTH,NPMAX+1,NR,NSA))
+                  FPP(NTH,NPMAX+1,NR,NSA)=max(0.D0,FPP(NTH,NPMAX+1,NR,NSA))*0
                ELSE
                   FPP(NTH,NPMAX+1,NR,NSA)=0.D0
                END IF

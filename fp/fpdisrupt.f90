@@ -1,18 +1,19 @@
      MODULE fpdisrupt
 
-      USE fpcomm
+     USE fpcomm
 
-!      real(8),parameter:: Z_ef=3.D0
-      real(8),parameter:: Z_ef=5.D0
+      real(8),parameter:: Z_ef=3.D0
+!      real(8),parameter:: Z_ef=5.D0
 !      real(8),parameter:: Z_ef=1.D0
 !      real(8),parameter:: Z_ef=2.D0
 
 !      real(8),parameter:: IP_init=1.8D6 ! [A] ! JET
 !      real(8),parameter:: IP_init=1.9D6 ! [A] ! JET 2008
 !     real(8),parameter:: IP_init=1.052D6 ! [A] !60 ITB
-     real(8),parameter:: IP_init=1.04D6 ! [A] !60 49255
+!     real(8),parameter:: IP_init=1.04D6 ! [A] !60 49255
 !      real(8),parameter:: IP_init=2.D6 ! [A] ! 60 typical
 !      real(8),parameter:: IP_init=9.D6 ! [A] ! ITER
+     real(8),parameter:: IP_init=1.0D3 ! [A] !test
 
       integer,parameter:: ISW_Z=0 !0=Z_ef, 1=ZEFF
 
@@ -20,6 +21,7 @@
 !      real(8),parameter:: lnL_ED=10.D0
       real(8),parameter:: lnL_ED=18.D0
       integer,parameter:: ISW_NOTAIL=0
+      integer,parameter:: ISW_Q=2 ! 2=exponential, 5=2step quench
       contains
 
 ! ------------------------------------------
@@ -448,14 +450,10 @@
       USE fpmpi
       USE libmpi
       IMPLICIT NONE
-      INTEGER:: NR, NSA, N, NSW, ISW_Q
+      INTEGER:: NR, NSA, N, NSW
       real(8):: k, T0, Ts, Tf, r_tauq
       real(8),dimension(NRSTART:NREND):: RT1_temp
       real(8),save:: T_switch, time_switch
-
-!      ISW_Q=2 ! SWITCH
-      ISW_Q=3 ! 2type quench
-!      ISW_Q=5
 
       IF(ISW_Q.eq.0)THEN ! linear 
          IF(TIMEFP+DELT.le.tau_quench)THEN
@@ -967,18 +965,24 @@
       RTE=RT_quench(NR)*1.D3*AEE
       RTI=RT_quench(NR)*1.D3*AEE
       RNE=RN_disrupt(NR)*1.D20
-      IF(NR.eq.1)THEN
-         dndr=(RN_disrupt(NR+1)-RN_disrupt(NR))/(DELR*RA)*1.D20
-         dtedr=(RT_quench(NR+1)-RT_quench(NR))/(DELR*RA)*1.D3*AEE
-         dtidr=dtedr
-      ELSEIF(NR.eq.NRMAX)THEN
-         dndr=(RN_disrupt(NRMAX)-RN_disrupt(NR-1))/(DELR*RA)*1.D20
-         dtedr=(RT_quench(NRMAX)-RT_quench(NR-1))/(DELR*RA)*1.D3*AEE
-         dtidr=dtedr
+      IF(NRMAX.ne.1)THEN
+         IF(NR.eq.1)THEN
+            dndr=(RN_disrupt(NR+1)-RN_disrupt(NR))/(DELR*RA)*1.D20
+            dtedr=(RT_quench(NR+1)-RT_quench(NR))/(DELR*RA)*1.D3*AEE
+            dtidr=dtedr
+         ELSEIF(NR.eq.NRMAX)THEN
+            dndr=(RN_disrupt(NRMAX)-RN_disrupt(NR-1))/(DELR*RA)*1.D20
+            dtedr=(RT_quench(NRMAX)-RT_quench(NR-1))/(DELR*RA)*1.D3*AEE
+            dtidr=dtedr
+         ELSE
+            dndr=(RN_disrupt(NR+1)-RN_disrupt(NR-1))/(2.D0*DELR*RA)*1.D20
+            dtedr=(RT_quench(NR+1)-RT_quench(NR-1))/(2.D0*DELR*RA)*1.D3*AEE
+            dtidr=dtedr            
+         END IF
       ELSE
-         dndr=(RN_disrupt(NR+1)-RN_disrupt(NR-1))/(2.D0*DELR*RA)*1.D20
-         dtedr=(RT_quench(NR+1)-RT_quench(NR-1))/(2.D0*DELR*RA)*1.D3*AEE
-         dtidr=dtedr            
+         dndr=-PROFN1*R1**(PROFN1-1.D0)*(1-R1**PROFN1)**(PROFN2-1.D0)*PROFN2*(PN(1)-PNS(1))*1.D20/RA
+         dtedr=-PROFT1*R1**(PROFT1-1.D0)*(1-R1**PROFT1)**(PROFT2-1.D0)*PROFT2*(PTPR(1)-PTS(1))*1.D3*AEE/RA
+         dtidr=dtedr
       END IF
 
       RHON=RM(NR)

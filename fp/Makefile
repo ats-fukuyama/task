@@ -6,23 +6,22 @@ include ../../task/make.header
 #PETSCLIBS=
 
 ##### With PETSc library #####
-include ${PETSC_DIR}/intel130/conf/petscvariables
+include ${PETSC_DIR}/conf/variables
 
 LIBMTX=../../task/mtxp/libmtxksp.o ../../task/mtxp/libmtxmpi.o
-PETSCLIBS=${PETSC_KSP_LIB}
-#-I${PETSC_DIR}/intel130/lib/ -lpetsc
+PETSCLIBS=-lpetsc
 
 .SUFFIXES:
 .SUFFIXES: .f90 .mod .o .a
 
-#FFLAGS=$(OFLAGS)
-FFLAGS=$(DFLAGS)
+FFLAGS=$(OFLAGS)
+#FFLAGS=$(DFLAGS)
 
 MODINCLUDE= -I.$(MOD) -I../../task/lib/$(MOD) \
             -I../../task/plx/$(MOD) -I../../task/eq/$(MOD) \
             -I../../bpsd/$(MOD) -I../../task/mtxp
 
-SRCS = fpcomm.f90 fpinit.f90 fpmpi.f90 fpbroadcast.f90 fpexec.f90 fpdrexec.f90 fpsave.f90 \
+SRCS = fpcomm.f90 fpinit.f90 fpmpi.f90 fpbroadcast.f90 fpexec.f90 fpsave.f90 \
        fpwmin.f90 fpwrin.f90 fpcalw.f90 fpcalwm.f90 fpcalwr.f90 \
        fpcalcn.f90 fpcalcnr.f90 fpcalc.f90 fpnfrr.f90 fpcoef.f90 fpcale.f90 \
        fpbounce.f90 fpdisrupt.f90 fpprep.f90 fploop.f90 \
@@ -36,7 +35,7 @@ LIBS = fplib.a ../../task/plx/pllib.a ../../task/eq/eqlib.a   \
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE) -heap-arrays
+	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
 all: libs fp
 
@@ -68,7 +67,7 @@ libs:
 	(cd ../../task/lib; make tasklib.a)
 
 fp : $(LIBS) fpmain.o 
-	$(FCFREE) fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(PETSCLIBS) 
+	$(FCFREE) fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(PETSCLIBS)
 
 # $(MODDIR) $(MODINCLUDE)
 

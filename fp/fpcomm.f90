@@ -222,7 +222,7 @@
       real(rkind),dimension(:,:),POINTER :: & ! (NMM,NLM)
            AL
       real(rkind),dimension(:),POINTER :: & ! (NRM*NTHM*NPM)
-           FM,BMTOT
+           FM, FM_shadow_m, FM_shadow_p!,BMTOT
 
       real(rkind),dimension(:,:,:,:,:),POINTER :: & 
            SIGMAV_NF ! (NTHMAX+1,NPMAX+1,NTHMAX+1,NPMAX+1,6)
@@ -518,15 +518,16 @@
           NLMAXM=15   ! this is for analysis with a simple radial transport
           NMMAX=NRMAX*NTHMAX*NPMAX
 
-!          allocate(NMA(NTHMAX,NPMAX,NRMAX))
-          allocate(NMA(NTHMAX,NPSTARTW:NPENDWM,NRMAX))
+          allocate(NMA(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM))
           allocate(NLMAX(NMSTART:NMEND))
           allocate(LL(NMSTART:NMEND,NLMAXM))
           allocate(DL(NMSTART:NMEND),BM(NMSTART:NMEND))
           allocate(AL(NMSTART:NMEND,NLMAXM))
-          allocate(FM(1+NTHMAX*(NPSTARTW-1)+NTHMAX*NPMAX*(NRSTARTW-1):NPMAX*NTHMAX*NRENDWM) )
-!          allocate(FM(1+NPMAX*NTHMAX*(NRSTARTW-1):NTHMAX*NPMAX*NRMAX) )
-          allocate(BMTOT(NMMAX))
+          allocate(FM(NMSTART-NTHMAX:NMEND+NTHMAX))
+          allocate(FM_shadow_m(NMSTART-NTHMAX-NTHMAX*NPMAX:NMEND+NTHMAX-NTHMAX*NPMAX))
+          allocate(FM_shadow_p(NMSTART-NTHMAX+NTHMAX*NPMAX:NMEND+NTHMAX+NTHMAX*NPMAX))
+!          allocate(FM(1+NTHMAX*(NPSTARTW-1)+NTHMAX*NPMAX*(NRSTARTW-1):NPMAX*NTHMAX*NRENDWM) )
+!          allocate(BMTOT(NMMAX))
 
           IF(MODELS.eq.2)THEN
              allocate(SIGMAV_NF(NTHMAX,NPMAX,NTHMAX,NPMAX,6))
@@ -698,7 +699,9 @@
           deallocate(NLMAX,LL)
           deallocate(DL,BM)
           deallocate(AL)
-          deallocate(FM,BMTOT)
+          deallocate(FM)
+          deallocate(FM_shadow_m, FM_shadow_p)
+!          deallocate(BMTOT)
 
           IF(MODELS.eq.2)THEN
              deallocate(SIGMAV_NF,RATE_NF)

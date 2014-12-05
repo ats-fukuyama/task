@@ -14,12 +14,16 @@
 
       USE libmpi
       USE libmtx
+      USE fpmpi
       IMPLICIT NONE
-      integer:: NSA, NP, NTH, NR, NL, NM, NSBA
+      integer:: NSA, NP, NTH, NR, NL, NM, NSBA, NN
       integer:: NTHS, NLL
       integer:: IERR,its,i,j,ll1
       integer:: imtxstart1,imtxend1
 !      integer,optional:: methodKSP, methodPC
+      real(8),dimension(nmend-nmstart+1):: BM_L
+      real(8),dimension(nthmax):: sendbuf_p, recvbuf_p
+      real(8),dimension(nthmax*(npend-npstart+1)):: sendbuf_r, recvbuf_r
 
       NSBA=NSB_NSA(NSA)
 
@@ -142,28 +146,46 @@
          ENDIF
       ENDDO
 
-      DO NR=NRSTART,NREND
-      DO NP=NPSTART,NPEND
-      DO NTH=NTHMAX/2+1,ITU(NR)
-         NM=NMA(NTH,NP,NR)
-         IF(LL(NM,NL).NE.0) WRITE(6,'(A,5I5,1PE12.4)') &
-              'NR,NP,NTH,NM.NL,AL=',NR,NP,NTH,NM,NL,AL(NM,NL)
-      ENDDO
-      ENDDO
-      ENDDO
+!      DO NR=NRSTART,NREND
+!      DO NP=NPSTART,NPEND
+!      DO NTH=NTHMAX/2+1,ITU(NR)
+!         NM=NMA(NTH,NP,NR)
+!         IF(LL(NM,NL).NE.0) WRITE(6,'(A,5I5,1PE12.4)') &
+!              'NR,NP,NTH,NM.NL,AL=',NR,NP,NTH,NM,NL,AL(NM,NL)
+!      ENDDO
+!      ENDDO
+!      ENDDO
 
 !     ----- Source vector: contribution from off-diagonal term -----
 
       DO NM=NMSTART,NMEND ! RHS
          DO NL=1,NLMAX(NM)
-            IF(LL(NM,NL).NE.0) THEN
-               BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM(LL(NM,NL))
+            NN=LL(NM,NL)
+            IF(NN.NE.0) THEN
+               IF(NN.ge.NMSTART-NTHMAX.and.NN.le.NMEND+NTHMAX)THEN
+                  BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM(NN)
+               ELSEIF(NN.lt.NMSTART-NTHMAX)THEN
+                  BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM_shadow_m(NN)
+               ELSE
+                  BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM_shadow_p(NN)
+               END IF
             ENDIF
          ENDDO
          IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
             CALL mtx_set_source(nm,BM(NM))
          ENDIF
       ENDDO
+
+!      DO NM=NMSTART,NMEND ! RHS
+!         DO NL=1,NLMAX(NM)
+!            IF(LL(NM,NL).NE.0) THEN
+!               BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM(LL(NM,NL))
+!            ENDIF
+!         ENDDO
+!         IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
+!            CALL mtx_set_source(nm,BM(NM))
+!         ENDIF
+!      ENDDO
 
 !     ----- Solve matrix equation -----
 
@@ -177,31 +199,31 @@
 
 !     ----- Get solution vector -----
 
-      CALL mtx_gather_vector(BMTOT)
-      
-!      DO NR=NRSTART,NREND
+      CALL mtx_vector(BM_L)
+      DO NR=NRSTART, NREND
+         DO NP=NPSTART, NPEND
+            DO NTH=1,NTHMAX
+               NM=NMA(NTH,NP,NR)
+               FNS0(NTH,NP,NR,NSBA)=BM_L(NM-NMSTART+1)
+            END DO
+         END DO
+      END DO
+!     shadow requires to communicate
+      CALL mtx_set_communicator(comm_np)
+      DO NR=NRSTART, NREND
+         CALL shadow_comm_np(NR,NSBA)
+      END DO
+      CALL mtx_set_communicator(comm_nr)
+      CALL shadow_comm_nr(NSBA)
+      CALL mtx_set_communicator(comm_nrnp) !3D
+
+
+!      CALL mtx_gather_vector(BMTOT)
+!      DO NR=NRSTARTW,NRENDWM
 !         DO NP=NPSTARTW,NPENDWM
 !            DO NTH=1,NTHMAX
 !               NM=NMA(NTH,NP,NR)
-!               F1(NTH,NP,NR)=BMTOT(NM)
-!            ENDDO
-!         ENDDO
-!      ENDDO
-      
-      DO NR=NRSTARTW,NRENDWM
-         DO NP=NPSTARTW,NPENDWM
-            DO NTH=1,NTHMAX
-               NM=NMA(NTH,NP,NR)
-               FNS0(NTH,NP,NR,NSBA)=BMTOT(NM)
-            ENDDO
-         ENDDO
-      ENDDO
-
-!      DO NR=1,NRMAX
-!         DO NP=1,NPMAX
-!            DO NTH=1,NTHMAX
-!               NM=NMA(NTH,NP,NR)
-!               FNS(NTH,NP,NR,NSBA)=BMTOT(NM)
+!               FNS0(NTH,NP,NR,NSBA)=BMTOT(NM)
 !            ENDDO
 !         ENDDO
 !      ENDDO
@@ -220,7 +242,6 @@
 
       IMPLICIT NONE
       integer:: NTH, NP, NR, NSA, NSBA, NM, NRS, NPS
-!      double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSAMAX), &
       double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND), &
            intent(IN):: func_in
 
@@ -230,9 +251,7 @@
          NRS=NRSTART-1
       END IF
 
-!      DO NR=1,NRMAX
       DO NR=NRSTARTW,NRENDWM
-!         DO NP=1,NPMAX
          DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX
                NM=NTH+NTHMAX*(NP-1)+NPMAX*NTHMAX*(NR-1)
@@ -242,15 +261,41 @@
       END DO
 
       NSBA=NSB_NSA(NSA)
-      DO NR=NRSTARTW,NRENDWM
+      DO NR=NRSTART,NREND
          DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX
-               NM=NTH+NTHMAX*(NP-1)+NPMAX*NTHMAX*(NR-1)
-!                  NMA(NTH,NP,NR)=NM
+               NM=NMA(NTH,NP,NR)
                FM(NM)=func_in(NTH,NP,NR,NSBA)
             ENDDO
          ENDDO
       ENDDO
+      NR=NRSTARTW
+      IF(NR.ne.NRSTART)THEN
+         DO NP=NPSTARTW,NPENDWM
+            DO NTH=1,NTHMAX
+               NM=NMA(NTH,NP,NR)
+               FM_shadow_m(NM)=func_in(NTH,NP,NR,NSBA)
+            ENDDO
+         ENDDO
+      END IF
+      NR=NRENDWM
+      IF(NR.ne.NREND)THEN
+         DO NP=NPSTARTW,NPENDWM
+            DO NTH=1,NTHMAX
+               NM=NMA(NTH,NP,NR)
+               FM_shadow_p(NM)=func_in(NTH,NP,NR,NSBA)
+            ENDDO
+         ENDDO
+      END IF
+
+!      DO NR=NRSTARTW,NRENDWM
+!         DO NP=NPSTARTW,NPENDWM
+!            DO NTH=1,NTHMAX
+!               NM=NMA(NTH,NP,NR)
+!               FM(NM)=func_in(NTH,NP,NR,NSA)
+!            ENDDO
+!         ENDDO
+!      ENDDO
       
       END SUBROUTINE SET_FM_NMA
 

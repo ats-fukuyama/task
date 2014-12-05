@@ -744,8 +744,8 @@
                        *RNFD(NR,NSB)*1.D20
                   FCPPL=0.D0
                ELSE
-                  PFPL=PG(NP,NSBA)*PTFP0(NSA)
-                  VFPL=PFPL/SQRT(AMFP(NSA)**2+PFPL**2/VC**2)
+!                  PFPL=PG(NP,NSBA)*PTFP0(NSA)
+!                  VFPL=PFPL/SQRT(AMFP(NSA)**2+PFPL**2/VC**2)
                   PNFPL=PG(NP,NSBA)
                   PNFP=PNFPL
                   vtatb=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))
@@ -813,8 +813,8 @@
             ENDDO
 
             DO NP=NPSTARTW,NPENDWM
-               PFPL=PM(NP,NSA)*PTFP0(NSA)
-               VFPL=PFPL/SQRT(AMFP(NSA)**2+PTFP(NR,NSA)**2/VC**2)
+!               PFPL=PM(NP,NSA)*PTFP0(NSA)
+!               VFPL=PFPL/SQRT(AMFP(NSA)**2+PTFP(NR,NSA)**2/VC**2)
                PNFPL=PM(NP,NSBA)
                PNFP=PNFPL
                vtatb=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))
@@ -896,11 +896,10 @@
                     *RNFD(NR,NSB)*1.D20
                FCPPL=0.D0
             ELSE
-               PFPL=PG(NP,NSBA)*PTFP0(NSA)
-               VFPL=PFPL/SQRT(AMFP(NSA)**2+PFPL**2/VC**2)
                PNFPL=PG(NP,NSBA)
                PNFP=PNFPL
                RGAMA=SQRT(1.D0+PNFP**2*THETA0(NSA))
+               VFPL=PG(NP,NSBA)*PTFP0(NSA)/(AMFP(NSA)*RGAMA)
                vtatb=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))
                ptatb=PG(NP,NSBA)/RGAMA
                PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2)) &
@@ -908,7 +907,8 @@
 
                EX=(1.D0-SQRT(1.D0+PG(NP,NSA)**2*TMC2FD0))/TMC2FD
 
-               IF(EX.ge.-500.D0.and.NSA.eq.NSB)THEN
+               IF(VFPL.le.v_thermal*10)THEN
+!               IF(EX.ge.-500.D0.and.NSA.eq.NSB)THEN
 !               IF(PTFP0(NSA)/Pe_thermal*PG(NP,NSBA).le.PMAX(NSA).and.NSA.eq.NSB) THEN ! normal velocity
 !               IF(PTFP0(NSA)/Pe_thermal*PG(NP,NSBA).le.PMAX(NSA)) THEN ! normal velocity
 !               IF(PTFP0(NSA)*PG(NP,NSBA).le.PTFP0(NSA)*PMAX(NSA)*2) THEN ! normal velocity
@@ -991,18 +991,18 @@
          ENDDO
 
          DO NP=NPSTARTW,NPENDWM
-            PFPL=PM(NP,NSA)*PTFP0(NSA)
-            VFPL=PFPL/SQRT(AMFP(NSA)**2+PTFP(NR,NSA)**2/VC**2)
             PNFPL=PM(NP,NSBA)
             PNFP=PNFPL
             RGAMA=SQRT(1.D0+PNFP**2*THETA0(NSA))
+            VFPL=PM(NP,NSBA)*PTFP0(NSA)/(AMFP(NSA)*RGAMA)
             vtatb=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))
             ptatb=PM(NP,NSA)/RGAMA
             PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2)) &
                  *ptatb
 
             EX=(1.D0-SQRT(1.D0+PM(NP,NSA)**2*TMC2FD0))/TMC2FD
-            IF(EX.ge.-500.D0.and.NSA.eq.NSB)THEN
+            IF(VFPL.le.v_thermal*10)THEN
+!            IF(EX.ge.-500.D0.and.NSA.eq.NSB)THEN
 !            IF(PTFP0(NSA)/Pe_thermal*PG(NP,NSBA).le.PMAX(NSA).and.NSA.eq.NSB) THEN ! normal velocity
 !            IF(PTFP0(NSA)/P_thermal*PG(NP,NSBA).le.PMAX(NSB))THEN
 !            IF(PTFP0(NSA)*PG(NP,NSBA).le.PE_thermal*PMAX(NSA)*2) THEN ! normal velocity
