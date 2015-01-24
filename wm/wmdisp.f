@@ -586,14 +586,19 @@ C
             IF(ABS(RKPR).LT.1.D-5) RKPR=1.D-5
 C
             CX=CW/(ABS(RKPR)*VTA)
-            IF(ABS(CX).GT.5.D0) THEN
-               CEX=(0.D0,0.D0)
+
+            IF(MODEFA.EQ.0) THEN
+               IF(ABS(CX).GT.5.D0) THEN
+                  CEX=(0.D0,0.D0)
+               ELSE
+                  CEX=CX*EXP(-CX*CX)
+               ENDIF
+               CPM=CFN*COEF*RHOR*RHOR*CEX*CX*(1.D0+CX*CX*(2.D0+CX*CX))
+               CQM=CFN*COEF*RHOR     *CEX*CX*CX*(1.D0+2.D0*CX*CX)
+               CRM=CFN*COEF          *CEX*CX*CX*CX*2.D0
             ELSE
-               CEX=CX*EXP(-CX*CX)
+               CALL WMDPFA(CX,CPM,CQM,CRM,MODEFA)
             ENDIF
-            CPM=CFN*COEF*RHOR*RHOR*CEX*CX*(1.D0+2.D0*CX*CX+CX*CX*CX*CX)
-            CQM=CFN*COEF*RHOR     *CEX*CX*CX*(1.D0+2.D0*CX*CX)
-            CRM=CFN*COEF          *CEX*CX*CX*CX*2.D0
 C
 C            CTNSR(1,1,MD,ND,NTH,NHH)=CPM*COS(ANGTH)**2
 C            CTNSR(1,2,MD,ND,NTH,NHH)=CPM*COS(ANGTH)*SIN(ANGTH)

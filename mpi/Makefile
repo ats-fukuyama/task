@@ -4,7 +4,7 @@ include ../make.header
 #FFLAGS=$(OFLAGS)
 FFLAGS=$(DFLAGS)
 
-MODINCLUDE=-I../mtxp/
+MODINCLUDE=-I../mtxp/mod
 SRCS = mpilib.f
 
 OBJS = $(SRCS:.f=.o)

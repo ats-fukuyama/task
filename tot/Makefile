@@ -1,30 +1,27 @@
 ### $Id$ ###
 include ../make.header
+include ../mtxp/make.mtxp
+#LIBX_MTX=$(LIBX_MTX_BND)
+#LIBX_MTX=$(LIBX_MTX_PCG)
+#LIBX_MTX=$(LIBX_MTX_MUMPS)
+LIBX_MTX=$(LIBX_MTX_KSP)
 
 #FFLAGS=$(OFLAGS)
 FFLAGS=$(DFLAGS)
 
-MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD) -I../fp/$(MOD) -I../mtxp
+MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD) -I../fp/$(MOD) -I../mtxp/$(MOD)
 EQLIBS= ../plx/noequlib.o ../eq/eqlib.a 
-
-##### Without PETSc library #####
-LIBMTXP=../mtxp/libmtxbnd.o ../mtxp/libmtxnompi.o
-PETSCLIBS=
-##### With PETSc library #####
-#include ${PETSC_DIR}/conf/variables
-#LIBMTXP=../mtxp/libmtxksp.o ../mtxp/libmtxmpi.o
-#PETSCLIBS=${PETSC_KSP_LIB}
 
 SRCS = main.f
 
 OBJS = $(SRCS:.f=.o)
 
 LIBS = ../lib/mdslib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a \
-       $(LIBMTXP) ../mtx/mtxlib.a ../mpi/mpilib.o \
+       ../mtx/mtxlib.a ../mpi/mpilib.o \
        ../plx/pllib.a \
        ../tr/trcom2.o ../tr/trcom3.o $(EQLIBS) \
        ../tr/tr2lib.a ../dp/dplib.a ../wr/wrlib.a ../wm/wmlib.a \
-       ../fp/fplib.a
+       ../fp/fplib.a $(LIB_MTX)
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -100,10 +97,10 @@ libs:
 	(cd ../fp; make fplib.a)
 
 tot : libs main.o
-	$(FCFIXED) main.o -o $@ $(FFLAGS) $(MODINCLUDE) $(LIBS) $(FLIBS) 
+	$(FLINKER) main.o -o $@ $(FFLAGS) $(MODINCLUDE) $(LIBS) $(FLIBS) $(LIBX_MTX)
 
 mpitot : $(LIBM) main.o
-	$(MF90) main.o -o $@ $(FFLAGS) $(MODINCLUDE) $(LIB) $(FLIBS) $(PETSCLIBS) 
+	$(FLINKER) main.o -o $@ $(FFLAGS) $(MODINCLUDE) $(LIB) $(FLIBS) $(LIBX_MTX)
 
 clean:
 	-rm -f core a.out *.o *.mod ./*~ *.a $(MOD)/*.mod

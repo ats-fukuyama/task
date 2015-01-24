@@ -22,6 +22,7 @@
       PUBLIC mtx_set_source
       PUBLIC mtx_set_vector
       PUBLIC mtx_solve
+      PUBLIC mtx_get_vector_j
       PUBLIC mtx_get_vector
       PUBLIC mtx_gather_vector
       PUBLIC mtx_cleanup
@@ -31,6 +32,7 @@
       PUBLIC mtxc_set_source
       PUBLIC mtxc_set_vector
       PUBLIC mtxc_solve
+      PUBLIC mtxc_get_vector_j
       PUBLIC mtxc_get_vector
       PUBLIC mtxc_gather_vector
       PUBLIC mtxc_cleanup
@@ -46,7 +48,7 @@
       COMPLEX(8),DIMENSION(:),POINTER:: bc,bc_loc
 
       INTEGER,DIMENSION(:),POINTER:: istartx,iendx,isizex,nz_tot
-      INTEGER:: imax,istart,iend,jwidth,nzcount,nzmax_save,idebug_save
+      INTEGER:: imax,istart,iend,irange,jwidth,nzcount,nzmax_save,idebug_save
 
       CONTAINS
 
@@ -128,6 +130,7 @@
       
       istart_=istart
       iend_=iend
+      irange=iend-istart+1
       IF(PRESENT(nzmax)) THEN
          nzmax_save=nzmax
       ELSE
@@ -322,13 +325,26 @@
 
 !-----
 
-      SUBROUTINE mtx_get_vector(j,v)
+      SUBROUTINE mtx_get_vector_j(j,v)
 
-      INTEGER,INTENT(IN):: j
-      REAL(8),INTENT(OUT):: v
+        INTEGER,INTENT(IN):: j
+        REAL(8),INTENT(OUT):: v
 
-      v=id%RHS(j)
+        v=id%RHS(j)
       RETURN
+      END SUBROUTINE mtx_get_vector_j
+
+!-----
+
+      SUBROUTINE mtx_get_vector(v)
+
+        REAL(8),DIMENSION(irange),INTENT(OUT):: v
+        INTEGER:: j
+
+        DO j=1,irange
+           v(j)=id%RHS(istart+j-1)
+        ENDDO
+        RETURN
       END SUBROUTINE mtx_get_vector
 
 !-----
@@ -407,6 +423,7 @@
       
       istart_=istart
       iend_=iend
+      irange=iend-istart
 
       IF(PRESENT(nzmax)) THEN
          nzmax_save=nzmax
@@ -602,26 +619,39 @@
 
 !-----
 
-      SUBROUTINE mtxc_get_vector(j,v)
+      SUBROUTINE mtxc_get_vector_j(j,v)
 
-      INTEGER,INTENT(IN):: j
-      COMPLEX(8),INTENT(OUT):: v
+        INTEGER,INTENT(IN):: j
+        COMPLEX(8),INTENT(OUT):: v
 
-      v=idc%RHS(j)
-      RETURN
+        v=idc%RHS(j)
+        RETURN
+      END SUBROUTINE mtxc_get_vector_j
+
+!-----
+
+      SUBROUTINE mtxc_get_vector(v)
+
+        COMPLEX(8),DIMENSION(irange),INTENT(OUT):: v
+        INTEGER:: j
+
+        DO j=1,irange
+           v(j)=idc%RHS(j+istart-1)
+        ENDDO
+        RETURN
       END SUBROUTINE mtxc_get_vector
 
 !-----
 
       SUBROUTINE mtxc_gather_vector(v)
 
-      COMPLEX(8),DIMENSION(imax),INTENT(OUT):: v
-      INTEGER:: j
+        COMPLEX(8),DIMENSION(imax),INTENT(OUT):: v
+        INTEGER:: j
 
-      DO j=1,imax
-         v(j)=idc%RHS(j)
-      ENDDO
-      RETURN
+        DO j=1,imax
+           v(j)=idc%RHS(j)
+        ENDDO
+        RETURN
       END SUBROUTINE mtxc_gather_vector
 
 !-----

@@ -18,9 +18,9 @@
       PUBLIC mtx_setup
       PUBLIC mtx_set_matrix
       PUBLIC mtx_set_source
-      
       PUBLIC mtx_set_vector
       PUBLIC mtx_solve
+      PUBLIC mtx_get_vector_j
       PUBLIC mtx_get_vector
       PUBLIC mtx_gather_vector
       PUBLIC mtx_cleanup
@@ -30,6 +30,7 @@
       PUBLIC mtxc_set_source
       PUBLIC mtxc_set_vector
       PUBLIC mtxc_solve
+      PUBLIC mtxc_get_vector_j
       PUBLIC mtxc_get_vector
       PUBLIC mtxc_gather_vector
       PUBLIC mtxc_cleanup
@@ -248,24 +249,37 @@
 
 !-----
 
-      SUBROUTINE mtx_get_vector(j,v)
-      IMPLICIT NONE
-      INTEGER,INTENT(IN):: j
-      REAL(8),INTENT(OUT):: v
-      v=x(j)
+      SUBROUTINE mtx_get_vector_j(j,v)
+        IMPLICIT NONE
+        INTEGER,INTENT(IN):: j
+        REAL(8),INTENT(OUT):: v
+        v=x(j)
+        RETURN
+      END SUBROUTINE mtx_get_vector_j
+
+!-----
+
+      SUBROUTINE mtx_get_vector(v)
+        IMPLICIT NONE
+        REAL(8),DIMENSION(imax),INTENT(OUT):: v
+        INTEGER:: i
+
+        DO i=1,imax
+           v(i)=x(i)
+        ENDDO
       RETURN
       END SUBROUTINE mtx_get_vector
 
 !-----
 
       SUBROUTINE mtx_gather_vector(v)
-      IMPLICIT NONE
-      REAL(8),DIMENSION(imax),INTENT(OUT):: v
-      INTEGER:: i
+        IMPLICIT NONE
+        REAL(8),DIMENSION(imax),INTENT(OUT):: v
+        INTEGER:: i
 
-      DO i=1,imax
-         v(i)=x(i)
-      ENDDO
+        DO i=1,imax
+           v(i)=x(i)
+        ENDDO
       RETURN
       END SUBROUTINE mtx_gather_vector
 

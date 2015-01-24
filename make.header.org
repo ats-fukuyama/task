@@ -15,10 +15,12 @@
 #LIBLA = /home/j024/lib/lapack.a /home/j024/lib/blas.a
 #LIBLA = -L/opt/intel/Compiler/11.1/059/mkl/lib/32 -lmkl_intel -lmkl_intel_thread -lmkl_core -lguide -lpthread -lmkl_lapack95
 #LIBLA = -L/opt/intel/mkl/10.2.0.013/lib/em64t -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -lguide -lpthread -lmkl_lapack95_lp64
+#LIBLA = -L/opt/intel/composerxe/mkl/lib -lmkl_intel -lmkl_sequential -lmkl_core -lpthread -lm
 #MODLA95 = -I/usr/local/lib/lapack95_modules
 #MODLA95 = -I/usr/local/lib/lapack95-ifc_modules
 #MODLA95 = -I/usr/local/lib/lapack95-ifc64_modules
 #MODLA95 = -I/opt/intel/mkl/10.2.0.013/include/em64t/lp64
+#MODLA95 = -lmkl_lapack95
 ## else
 LAPACK = nolapack.f
 LIBLA =
@@ -152,7 +154,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #GFLIBS=-L/usr/local/lib -lg3d-ifc64 -lgsp-ifc64 -lgdp-ifc64 -L/usr/X11R6/lib -lX11
 #GLLIBS=-L/usr/local/lib -lgsgl-ixc
 #OFLAGS = -O3 -vec-report0
-#DFLAGS = -g -C -traceback -debug extended -vec-report0 -align -fpe-all0 -fmath-errno -fstack-security-check
+#DFLAGS = -g -vec-report0 -C -traceback -debug extended -align -fpe-all0 -fmath-errno -fstack-security-check -no-ftz
 #FCFIXED = ifort
 #FCFREE  = ifort
 #MOD = mod

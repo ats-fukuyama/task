@@ -144,6 +144,7 @@ C                  10: BSTABCDBM
 C        MODELW: Control writing a data of absorped power
 C                   0: Not writting
 C                   1: Writting
+C        MODEFA: Type of fast particle contribution
 C
       NPRINT = 2
       NGRAPH = 1
@@ -151,6 +152,7 @@ C
       MODELA = 0
       MODELM = 0
       MODELW = 0
+      MODEFA = 0
 C
 C     *** EIGEN VALUE PARAMETERS ***
 C
@@ -178,14 +180,9 @@ C        EPSNW : Convergence criterion in Newton method
 C        LMAXNW: Maximum iteration count in Newton method
 C        LISTNW: Listing in Newton method
 C        MODENW: Type of Newton method
+C        MODEFA: Type of fast particle contribution
 C
 C        NCONT : Number of contour lines
-C        ILN1  : Line type of lower contours
-C        IBL1  : Line boldness of lower contours
-C        ICL1  : Line color of lower contours
-C        ILN2  : Line type of higher contours
-C        IBL2  : Line boldness of higher contours
-C        ICL2  : Line color of higher contours
 C
       FRMIN = 0.1D0
       FRMAX = 1.D0
@@ -271,11 +268,11 @@ C
      &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
      &              PNA,PNAL,PTA,ZEFF,NDISP1,NDISP2,
      &              RF,RFI,RD,BETAJ,AJ,AEWGT,AEWGZ,
-     &              APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,
+     &              APH,THJ1,THJ2,PHJ1,PHJ2,ANTANG,NAMAX,MWGMAX,
      &              NRMAX,NTHMAX,NHHMAX,NTH0,NPH0,NHC,
      &              NPRINT,NGRAPH,MODELG,MODELJ,MODELP,MODELN,MODELA,
-     &              MODELQ,MODELM,MODELW,MODELV,
-     &              MWGMAX,MODEFR,MODEFW,ANTANG,
+     &              MODELQ,MODELM,MODELW,MODELV,MODEFA,
+     &              MODEFR,MODEFW,
      &              FRMIN,FRMAX,FIMIN,FIMAX,FI0,FRINI,FIINI,
      &              NGFMAX,NGXMAX,NGYMAX,SCMIN,SCMAX,NSCMAX,LISTEG,
      &              DLTNW,EPSNW,LMAXNW,LISTNW,MODENW,NCONT,
@@ -319,15 +316,16 @@ C
      &       9X,'PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,'/
      &       9X,'PROFN1,PROFN2,PROFT1,PROFT2,ZEFF,'/
      &       9X,'NSMAX,PNA,PNAL,PTA,RF,RFI,RD,BETAJ,'/
-     &       9X,'AJ,AEWGT,AEWGZ,APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,MWGMAX,'/
+     &       9X,'AJ,APH,THJ1,THJ2,PHJ1,PHJ2,ANTANG,NAMAX,'/
+     &       9X,'AEWGT,AEWGZ,MWGMAX,'/
      &       9X,'NRMAX,NTHMAX,NHHMAX,NTH0,NPH0,NHC,'/
      &       9X,'MODELG,MODELJ,MODELP,MODELA,MODELN,'/
-     &       9X,'MODELQ,MODELM,MODELW,,'/
+     &       9X,'MODELQ,MODELM,MODELW,MODEFA,'/
      &       9X,'KNAMEQ,KNAMTR,KNAMPF,MODEFR,MODEFW,'/
      &       9X,'NPRINT,NGRAPH,PRFIN,MODELPR,MODELVR,'/
      &       9X,'FRMIN,FRMAX,FIMIN,FIMAX,FI0,'/
      &       9X,'FRINI,FIINI,NGFMAX,NGXMAX,NGYMAX,'/
-     &       9X,'SCMIN,SCMAX,NSCMAX,LISTEG,ANTANG,'/
+     &       9X,'SCMIN,SCMAX,NSCMAX,LISTEG,'/
      &       9X,'DLTNW,EPSNW,LMAXNW,LISTNW,MODENW,NCONT,'/
      &       9X,'RHOMIN,QMIN,PU,PUS,PROFU1,PROFU2'/
      &       9X,'RHOITB,PNITB,PTITB,PUITB'/
@@ -484,11 +482,12 @@ C
       WRITE(6,602) 'NRMAX ',NRMAX ,'NTHMAX',NTHMAX,
      &             'NHHMAX',NHHMAX
       WRITE(6,602) 'NTH0  ',NTH0  ,'NPH0  ',NPH0  ,
-     &             'NHC   ',NHC   ,'MWGMAX',MWGMAX
+     &             'NHC   ',NHC
       WRITE(6,602) 'MODELG',MODELG,'MODELJ',MODELJ,
      &             'MODELN',MODELN,'MODELA',MODELA
       WRITE(6,602) 'MODELM',MODELM,'MODELQ',MODELQ,
      &             'MODEFR',MODEFR,'MODEFW',MODEFW
+      WRITE(6,602) 'MODEFA',MODEFA,'MWGMAX',MWGMAX
 C
       WRITE(6,692)
       DO NS=1,NSMAX

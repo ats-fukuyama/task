@@ -14,9 +14,9 @@
       PUBLIC mtx_set_source
       PUBLIC mtx_set_vector
       PUBLIC mtx_solve
+      PUBLIC mtx_get_vector_j
       PUBLIC mtx_get_vector
       PUBLIC mtx_gather_vector
-      PUBLIC mtx_vector
       PUBLIC mtx_cleanup
 
       PUBLIC mtxc_setup
@@ -24,6 +24,7 @@
       PUBLIC mtxc_set_source
       PUBLIC mtxc_set_vector
       PUBLIC mtxc_solve
+      PUBLIC mtxc_get_vector_j
       PUBLIC mtxc_get_vector
       PUBLIC mtxc_gather_vector
       PUBLIC mtxc_cleanup
@@ -99,7 +100,7 @@
 !  However, local vector data can be easily accessed via VecGetArray().
 !  See the Fortran section of the PETSc users manual for details.
 !  
-      PetscInt       istart,iend,ilen,imax
+      PetscInt       istart,iend,irange,imax
       Vec            x,b
       Mat            A 
       KSP            ksp
@@ -184,7 +185,7 @@
            'XX mtx_setup: MatGetOwnershipRange: ierr=',ierr
       istart_=istart+1
       iend_=iend
-      ilen=iend-istart
+      irange=iend-istart
 
       call VecCreate(ncomm,b,ierr)
       IF(ierr.NE.0) WRITE(6,*) &
@@ -593,7 +594,7 @@
       RETURN
       END SUBROUTINE mtx_solve
 
-      SUBROUTINE mtx_get_vector(j,v)
+      SUBROUTINE mtx_get_vector_j(j,v)
 
       INTEGER,INTENT(IN):: j
       REAL(8),INTENT(OUT):: v
@@ -609,19 +610,38 @@
            'XX mtx_get_vector: VecRestoreArrayF90: ierr=',ierr
 
       RETURN
-      END SUBROUTINE mtx_get_vector
+      END SUBROUTINE mtx_get_vector_j
 
-      SUBROUTINE mtx_gather_vector(x_)
+      SUBROUTINE mtx_get_vector(v)
 
-      REAL(8),DIMENSION(imax),INTENT(OUT):: x_
-      REAL(8),DIMENSION(ilen):: v
+      REAL(8),DIMENSION(irange),intent(out):: v
       PetscScalar,pointer:: x_value(:)
       INTEGER:: j,ierr,imax_
 
       call VecGetArrayF90(x,x_value,ierr)
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_gather_vector: VecGetArrayF90: ierr=',ierr
-      do j=1,ilen
+      do j=1,irange
+         v(j)=x_value(j)
+      enddo
+      call VecRestoreArrayF90(x,x_value,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_gather_vector: VecRestoreArrayF90: ierr=',ierr
+
+      RETURN
+      END SUBROUTINE mtx_get_vector
+
+      SUBROUTINE mtx_gather_vector(x_)
+
+      REAL(8),DIMENSION(imax),INTENT(OUT):: x_
+      REAL(8),DIMENSION(irange):: v
+      PetscScalar,pointer:: x_value(:)
+      INTEGER:: j,ierr,imax_
+
+      call VecGetArrayF90(x,x_value,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_gather_vector: VecGetArrayF90: ierr=',ierr
+      do j=1,irange
          v(j)=x_value(j)
       enddo
       call VecRestoreArrayF90(x,x_value,ierr)
@@ -634,26 +654,7 @@
 
       RETURN
       END SUBROUTINE mtx_gather_vector
-!!!
-      SUBROUTINE mtx_vector(v)
 
-      REAL(8),DIMENSION(ilen),intent(out):: v
-      PetscScalar,pointer:: x_value(:)
-      INTEGER:: j,ierr,imax_
-
-      call VecGetArrayF90(x,x_value,ierr)
-      IF(ierr.NE.0) WRITE(6,*) &
-           'XX mtx_gather_vector: VecGetArrayF90: ierr=',ierr
-      do j=1,ilen
-         v(j)=x_value(j)
-      enddo
-      call VecRestoreArrayF90(x,x_value,ierr)
-      IF(ierr.NE.0) WRITE(6,*) &
-           'XX mtx_gather_vector: VecRestoreArrayF90: ierr=',ierr
-
-      RETURN
-      END SUBROUTINE mtx_vector
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       SUBROUTINE mtx_cleanup
       INTEGER:: ierr
 
@@ -737,28 +738,37 @@
 
 !-----
 
-      SUBROUTINE mtxc_get_vector(j,v)
-      INTEGER,INTENT(IN):: j
-      COMPLEX(8),INTENT(OUT):: v
+      SUBROUTINE mtxc_get_vector_j(j,v)
+        INTEGER,INTENT(IN):: j
+        COMPLEX(8),INTENT(OUT):: v
 
-      v=0.D0
-      RETURN
+        v=0.D0
+        RETURN
+      END SUBROUTINE mtxc_get_vector_j
+
+!-----
+
+      SUBROUTINE mtxc_get_vector(v)
+        COMPLEX(8),DIMENSION(irange),INTENT(OUT):: v
+
+        v(1:irange)=0.D0
+        RETURN
       END SUBROUTINE mtxc_get_vector
 
 !-----
 
       SUBROUTINE mtxc_gather_vector(v)
-      COMPLEX(8),DIMENSION(imax),INTENT(OUT):: v
+        COMPLEX(8),DIMENSION(imax),INTENT(OUT):: v
 
-      v(1)=0.D0
-      RETURN
+        v(1:imax)=0.D0
+        RETURN
       END SUBROUTINE mtxc_gather_vector
 
 !-----
 
       SUBROUTINE mtxc_cleanup
 
-      RETURN
+        RETURN
       END SUBROUTINE mtxc_cleanup
 
       END MODULE libmtx

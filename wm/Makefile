@@ -29,7 +29,7 @@ SRC0 = wmmenu.f wminit.f wmeign.f wmsetg.f \
        wmexec.f wmloop.f wmtae.f \
        wmvmec.f wmbooz.f wmvout.f wmtpcs.f
 
-SRCX = wmcont.f90 wmtest.f90
+SRCX = wmcont.f90 wmtest.f90 wmdpfa.f90
 
 # wmtrfile.f
 
