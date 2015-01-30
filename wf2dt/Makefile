@@ -1,10 +1,6 @@
-### $Id$
+### $Id: Makefile,v 1.20 2012/03/05 06:29:02 maruyama Exp $
 include ../../task/make.header
-include ../../task/mtxp/make.mtxp
-#LIB_MTX=$(LIB_MTX_BND)
-#LIB_MTX=$(LIB_MTX_PCG)
-LIB_MTX=$(LIB_MTX_MUMPS)
-#LIB_MTX=$(LIB_MTX_KSP)
+include ../mtxp/make.mtxp
 #LIBX_MTX=$(LIBX_MTX_BND)
 #LIBX_MTX=$(LIBX_MTX_PCG)
 LIBX_MTX=$(LIBX_MTX_MUMPS)
@@ -13,16 +9,15 @@ LIBX_MTX=$(LIBX_MTX_MUMPS)
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-#FFLAGS = $(OFLAGS)
-FFLAGS = $(DFLAGS)
+FFLAGS = $(OFLAGS)
+#FFLAGS = $(DFLAGS)
 
-MODINCLUDE= -I../../task/plx/$(MOD) -I../../task/eq/$(MOD) \
-            -I../../bpsd/$(MOD) -I../../task/mtxp/$(MOD) -I.$(MOD)
+MODINCLUDE= -I.$(MOD) -I../../task/plx/$(MOD) -I../../task/eq/$(MOD) \
+            -I../../bpsd/$(MOD) -I../../task/mtxp/$(MOD)
 
-SRCS = wfcomm.f90 wfmenu.f90 wfinit.f90 wfdiv.f90 wfant.f90 wfwave.f90 \
-       wfsolv.f90 wfprof.f90 wfsub.f90 wfnas.f90 wfsort.f90 wffile.f90 \
-       wflib.f90  wfindx.f90 wfefwg.f90 wfbes.f90 wfgout.f90 \
-       wfgsub.f90 wfgutl.f90
+SRCS = 	wfcomm.f90 wfmenu.f90 wfinit.f90 wfdiv.f90 wflib.f90 wfsub.f90 \
+        wfindx.f90 wfsort.f90 wfgsub.f90 wfgutl.f90 wfant.f90 wfwave.f90 \
+	wfsolv.f90 wfgout.f90 wfprof.f90
 
 OBJS = $(SRCS:.f90=.o)
 
@@ -45,14 +40,6 @@ wflib.a: $(OBJS)
 	(cd ../plx; make pllib.a)
 ../../task/eq/eqlib.a:
 	(cd ../../task/eq; make eqlib.a)
-../../task/mtxp/libmtxmumps.o:
-	(cd ../../task/mtxp; make libmtxmumps.o)
-../../task/mtxpc/libmtxbnd.o:
-	(cd ../../task/mtxp; make libmtxbnd.o)
-../../task/mtxp/libmtxmpi.o:
-	(cd ../../task/mtxp; make libmtxmpi.o)
-../../task/mtxp/libmtxnompi.o:
-	(cd ../../task/mtxp; make libmtxnompi.o)
 ../../task/lib/tasklib.a:
 	(cd ../../task/lib; make tasklib.a)
 
@@ -63,14 +50,26 @@ libs:
 	(cd ../../task/plx; make pllib.a)
 	(cd ../../task/lib; make tasklib.a)
 
-wf : libs wflib.a wfmain.o
-	$(FLINKER) wfmain.o -o $@ $(FFLAGS) $(LIBS) $(FLIBS) $(LIBX_MTX)
+wf : $(LIBS) wfmain.o
+	$(FLINKER) wfmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
+
+save :
+	mkdir ../wfx.save
+	cp -f Makefile ../wfx.save
+	cp -f HISTORY ../wfx.save
+	cp -f *.f90 ../wfx.save
+	cp -f *.c ../wfx.save
+	cp -f *.inc ../wfx.save
+	mkdir ../wfx.save/in
+	cp -f in/wf.in* ../wfx.save/in
+	mkdir ../wfx.save/doc
+	cp -f doc/*.txt doc/*.tex ../wfx.save/doc
 
 clean:
 	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod
 
 veryclean: clean
-	rm -f wf testin nascheck
+	rm -f wf testin 
 
 wfmain.o: wfmain.f90 wfcomm.f90
 wfmenu.o: wfmenu.f90 wfcomm.f90
@@ -94,3 +93,5 @@ wfgutl.o: wfgutl.f90
 	$(FCFREE) $(LFLAGS) -c $< 
 wflib.o: wflib.f90 wfcomm.f90
 	$(FCFREE) $(LFLAGS) -c $< $(MODDIR) $(MODINCLUDE)
+wfbes.o: wfbes.f90
+	$(FCFREE) $(LFLAGS) -c $< 

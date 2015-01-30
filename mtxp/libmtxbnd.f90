@@ -1,4 +1,4 @@
-!     $Id$
+!     $Id: libmtxbnd.f90,v 1.20 2013/12/24 09:29:19 fukuyama Exp $
 
 ! -----------------------------------------------------------------------
 !
@@ -18,9 +18,9 @@
       PUBLIC mtx_setup
       PUBLIC mtx_set_matrix
       PUBLIC mtx_set_source
+      
       PUBLIC mtx_set_vector
       PUBLIC mtx_solve
-      PUBLIC mtx_get_vector_j
       PUBLIC mtx_get_vector
       PUBLIC mtx_gather_vector
       PUBLIC mtx_cleanup
@@ -30,14 +30,14 @@
       PUBLIC mtxc_set_source
       PUBLIC mtxc_set_vector
       PUBLIC mtxc_solve
-      PUBLIC mtxc_get_vector_j
       PUBLIC mtxc_get_vector
       PUBLIC mtxc_gather_vector
       PUBLIC mtxc_cleanup
 
       TYPE(mtx_mpi_type):: mtx_global
 
-      INTEGER:: imax,jmax,joffset,ierr,mode,irmax,icmin,icmax,irc,idebug_save
+      INTEGER:: imax,jmax,nzzmax
+      INTEGER:: joffset,ierr,mode,irmax,icmin,icmax,irc,idebug_save
       REAL(8),DIMENSION(:),POINTER:: x,b
       REAL(8),DIMENSION(:,:),POINTER:: A
       INTEGER,DIMENSION(:),POINTER:: ir,ic
@@ -102,9 +102,11 @@
          mode=1
       ELSE
          IF(PRESENT(nzmax)) THEN
-            jmax=nzmax
+            nzzmax=nzmax
+            jmax=nzzmax/imax
          ELSE
             jmax=2*imax_-1
+            nzzmax=imax*jmax
          END IF
          mode=2
       END IF
@@ -116,7 +118,7 @@
             ENDDO
          ENDDO
       ELSE
-         ALLOCATE(ir(imax*jmax),ic(imax*jmax),drc(imax*jmax))
+         ALLOCATE(ir(nzzmax),ic(nzzmax),drc(nzzmax))
       END IF
       irmax=0
       icmin=0
@@ -147,7 +149,7 @@
          A(j-i+joffset,i)=v
       ELSE
          irc=irc+1
-         IF(irc.gt.imax*jmax) THEN
+         IF(irc.gt.nzzmax) THEN
             WRITE(6,'(A,I10)') &
                  'XX libmtxbnd: mtx_set_matrix: irc overflow: irc=',irc
          ELSE
@@ -249,37 +251,24 @@
 
 !-----
 
-      SUBROUTINE mtx_get_vector_j(j,v)
-        IMPLICIT NONE
-        INTEGER,INTENT(IN):: j
-        REAL(8),INTENT(OUT):: v
-        v=x(j)
-        RETURN
-      END SUBROUTINE mtx_get_vector_j
-
-!-----
-
-      SUBROUTINE mtx_get_vector(v)
-        IMPLICIT NONE
-        REAL(8),DIMENSION(imax),INTENT(OUT):: v
-        INTEGER:: i
-
-        DO i=1,imax
-           v(i)=x(i)
-        ENDDO
+      SUBROUTINE mtx_get_vector(j,v)
+      IMPLICIT NONE
+      INTEGER,INTENT(IN):: j
+      REAL(8),INTENT(OUT):: v
+      v=x(j)
       RETURN
       END SUBROUTINE mtx_get_vector
 
 !-----
 
       SUBROUTINE mtx_gather_vector(v)
-        IMPLICIT NONE
-        REAL(8),DIMENSION(imax),INTENT(OUT):: v
-        INTEGER:: i
+      IMPLICIT NONE
+      REAL(8),DIMENSION(imax),INTENT(OUT):: v
+      INTEGER:: i
 
-        DO i=1,imax
-           v(i)=x(i)
-        ENDDO
+      DO i=1,imax
+         v(i)=x(i)
+      ENDDO
       RETURN
       END SUBROUTINE mtx_gather_vector
 
@@ -322,9 +311,11 @@
          mode=1
       ELSE
          IF(PRESENT(nzmax)) THEN
-            jmax=nzmax
+            nzzmax=nzmax
+            jmax=nzmax/imax
          ELSE
             jmax=2*imax_-1
+            nzzmax=imax*jmax
          END IF
          mode=2
       END IF
@@ -336,7 +327,7 @@
             ENDDO
          ENDDO
       ELSE
-         ALLOCATE(ir(imax*jmax),ic(imax*jmax),drcc(imax*jmax))
+         ALLOCATE(ir(nzzmax),ic(nzzmax),drcc(nzzmax))
       END IF
       irmax=0
       icmin=0
@@ -367,7 +358,7 @@
          Ac(j-i+joffset,i)=v
       ELSE
          irc=irc+1
-         IF(irc.gt.imax*jmax) THEN
+         IF(irc.gt.nzzmax) THEN
             WRITE(6,'(A,I10)') &
                  'XX libmtxbnd: mtx_set_matrix: irc overflow: irc=',irc
          ELSE
