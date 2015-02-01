@@ -1030,10 +1030,9 @@
       SUBROUTINE mtx_sendrecv_integer(sendbuf,sendcount,dest, &
                                       recvbuf,recvcount,source)
         IMPLICIT NONE
+        INTEGER,INTENT(IN):: sendcount,recvcount
         INTEGER,INTENT(IN),DIMENSION(sendcount):: sendbuf
-        INTEGER,INTENT(IN):: sendcount
         INTEGER,INTENT(OUT),DIMENSION(recvcount):: recvbuf
-        INTEGER,INTENT(IN):: recvcount
         INTEGER,INTENT(IN):: dest,source
         INTEGER:: i
 
@@ -1048,10 +1047,9 @@
       SUBROUTINE mtx_sendrecv_real4(sendbuf,sendcount,dest, &
                                     recvbuf,recvcount,source)
         IMPLICIT NONE
+        INTEGER,INTENT(IN):: sendcount,recvcount
         REAL(4),INTENT(IN),DIMENSION(sendcount):: sendbuf
-        INTEGER,INTENT(IN):: sendcount
         REAL(4),INTENT(OUT),DIMENSION(recvcount):: recvbuf
-        INTEGER,INTENT(IN):: recvcount
         INTEGER,INTENT(IN):: dest,source
         INTEGER:: i
 
@@ -1066,10 +1064,9 @@
       SUBROUTINE mtx_sendrecv_real8(sendbuf,sendcount,dest, &
                                     recvbuf,recvcount,source)
         IMPLICIT NONE
+        INTEGER,INTENT(IN):: sendcount,recvcount
         REAL(8),INTENT(IN),DIMENSION(sendcount):: sendbuf
-        INTEGER,INTENT(IN):: sendcount
         REAL(8),INTENT(OUT),DIMENSION(recvcount):: recvbuf
-        INTEGER,INTENT(IN):: recvcount
         INTEGER,INTENT(IN):: dest,source
         INTEGER:: i
 
@@ -1084,10 +1081,9 @@
       SUBROUTINE mtx_sendrecv_complex8(sendbuf,sendcount,dest, &
                                     recvbuf,recvcount,source)
         IMPLICIT NONE
+        INTEGER,INTENT(IN):: sendcount,recvcount
         COMPLEX(8),INTENT(IN),DIMENSION(sendcount):: sendbuf
-        INTEGER,INTENT(IN):: sendcount
         COMPLEX(8),INTENT(OUT),DIMENSION(recvcount):: recvbuf
-        INTEGER,INTENT(IN):: recvcount
         INTEGER,INTENT(IN):: dest,source
         INTEGER:: i
 
