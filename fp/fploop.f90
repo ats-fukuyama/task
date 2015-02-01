@@ -405,11 +405,15 @@
          END IF
 
          IF(MODEL_DISRUPT.ne.0)THEN
-            CALL update_disruption_quantities(IP_all, IP_ohm, IP_run, IP_prim, IP_bs, l_ind)
+            CALL update_disruption_quantities(IP_all, IP_ohm, IP_run, &
+                                              IP_prim, IP_bs, l_ind)
             IF (MOD(NT,NTG1STEP).EQ.0) THEN
             IF(NRANK.eq.0)THEN
-               WRITE(6,'(7A14)') "IP_all","IP_ohm", "IP_run", "IP_primary", "IP_bs", "DEL_RJS", "sigma*E"
-               WRITE(6,'(1P7E14.6)') IP_all, IP_ohm, IP_run, IP_prim, IP_bs, (RJS(1,1)-RJS_M(1,1))*1.D6, SIGMA_SPP(1)*EP(1)-SIGMA_SPM(1)*EM(1)
+               WRITE(6,'(7A14)') "IP_all","IP_ohm", "IP_run", "IP_primary", &
+                    "IP_bs", "DEL_RJS", "sigma*E"
+               WRITE(6,'(1P7E14.6)') IP_all, IP_ohm, IP_run, IP_prim, IP_bs, &
+                    (RJS(1,1)-RJS_M(1,1))*1.D6, &
+                    SIGMA_SPP(1)*EP(1)-SIGMA_SPM(1)*EM(1)
                WRITE(6,'(A,1PE14.6)') "Zeff= ", ZEFF
             END IF
             END IF

@@ -94,6 +94,11 @@
       PUBLIC mtx_allreduce_real8
       PUBLIC mtx_allreduce_complex8
 
+      PUBLIC mtx_sendrecv_integer
+      PUBLIC mtx_sendrecv_real4
+      PUBLIC mtx_sendrecv_real8
+      PUBLIC mtx_sendrecv_comple8
+
       TYPE(mtx_mpi_type):: mtx_global
       INTEGER:: ncomm,nrank,nsize
 
@@ -1535,7 +1540,123 @@
            'XX mtx_allreduce_complex8: MPI_ALLREDUCE: ierr=',ierr
       RETURN
       END SUBROUTINE mtx_allreduce_complex8
-      
+
+!-----
+
+      SUBROUTINE mtx_sendrecv_integer(sendbuf,sendcount,dest, &
+                                    recvbuf,recvcount,source)
+        IMPLICIT NONE
+        INTEGER,INTENT(IN):: sendcount,recvcount
+        INTEGER,INTENT(IN),DIMENSION(sendcount):: sendbuf
+        INTEGER,INTENT(OUT),DIMENSION(recvcount):: recvbuf
+        INTEGER,INTENT(IN):: dest,source
+        INTEGER:: dest_,source_,ierr
+        integer:: istatus(MPI_STATUS_SIZE)
+
+        IF(dest.ge.nsize) THEN
+           dest_=MPI_PROC_NULL
+        ELSE
+           dest_=dest
+        END IF
+        IF(source.lt.0) THEN
+           source_=MPI_PROC_NULL
+        ELSE
+           source_=source
+        END IF
+
+        CALL MPI_SENDRECV(sendbuf, sendcount, MPI_INTEGER, dest_, 0,&
+                          recvbuf, sendcount, MPI_INTEGER, source_, 0,&
+                          ncomm, ISTATUS, IERR)
+        RETURN
+      END SUBROUTINE mtx_sendrecv_integer
+
+!-----
+
+      SUBROUTINE mtx_sendrecv_real4(sendbuf,sendcount,dest, &
+                                    recvbuf,recvcount,source)
+        IMPLICIT NONE
+        INTEGER,INTENT(IN):: sendcount,recvcount
+        REAL(4),INTENT(IN),DIMENSION(sendcount):: sendbuf
+        REAL(4),INTENT(OUT),DIMENSION(recvcount):: recvbuf
+        INTEGER,INTENT(IN):: dest,source
+        INTEGER:: dest_,source_,ierr
+        integer:: istatus(MPI_STATUS_SIZE)
+
+        IF(dest.ge.nsize) THEN
+           dest_=MPI_PROC_NULL
+        ELSE
+           dest_=dest
+        END IF
+        IF(source.lt.0) THEN
+           source_=MPI_PROC_NULL
+        ELSE
+           source_=source
+        END IF
+
+        CALL MPI_SENDRECV(sendbuf, sendcount, MPI_REAL, dest_, 0,&
+                          recvbuf, sendcount, MPI_REAL, source_, 0,&
+                          ncomm, ISTATUS, IERR)
+        RETURN
+      END SUBROUTINE mtx_sendrecv_real4
+
+!-----
+
+      SUBROUTINE mtx_sendrecv_real8(sendbuf,sendcount,dest, &
+                                    recvbuf,recvcount,source)
+        IMPLICIT NONE
+        INTEGER,INTENT(IN):: sendcount,recvcount
+        REAL(8),INTENT(IN),DIMENSION(sendcount):: sendbuf
+        REAL(8),INTENT(OUT),DIMENSION(recvcount):: recvbuf
+        INTEGER,INTENT(IN):: dest,source
+        INTEGER:: dest_,source_,ierr
+        integer:: istatus(MPI_STATUS_SIZE)
+
+        IF(dest.ge.nsize) THEN
+           dest_=MPI_PROC_NULL
+        ELSE
+           dest_=dest
+        END IF
+        IF(source.lt.0) THEN
+           source_=MPI_PROC_NULL
+        ELSE
+           source_=source
+        END IF
+
+        CALL MPI_SENDRECV(sendbuf, sendcount, MPI_DOUBLE_PRECISION, dest_,  0,&
+                          recvbuf, sendcount, MPI_DOUBLE_PRECISION, source_,0,&
+                          ncomm, ISTATUS, IERR)
+        RETURN
+      END SUBROUTINE mtx_sendrecv_real8
+
+!-----
+
+      SUBROUTINE mtx_sendrecv_complex8(sendbuf,sendcount,dest, &
+                                    recvbuf,recvcount,source)
+        IMPLICIT NONE
+        INTEGER,INTENT(IN):: sendcount,recvcount
+        COMPLEX(8),INTENT(IN),DIMENSION(sendcount):: sendbuf
+        COMPLEX(8),INTENT(OUT),DIMENSION(recvcount):: recvbuf
+        INTEGER,INTENT(IN):: dest,source
+        INTEGER:: dest_,source_,ierr
+        integer:: istatus(MPI_STATUS_SIZE)
+
+        IF(dest.ge.nsize) THEN
+           dest_=MPI_PROC_NULL
+        ELSE
+           dest_=dest
+        END IF
+        IF(source.lt.0) THEN
+           source_=MPI_PROC_NULL
+        ELSE
+           source_=source
+        END IF
+
+        CALL MPI_SENDRECV(sendbuf, sendcount, MPI_DOUBLE_COMPLEX, dest_, 0,&
+                          recvbuf, sendcount, MPI_DOUBLE_COMPLEX, source_, 0,&
+                          ncomm, ISTATUS, IERR)
+        RETURN
+      END SUBROUTINE mtx_sendrecv_complex8
+
 !-----
       END MODULE libmpi
 

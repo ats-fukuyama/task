@@ -29,6 +29,7 @@ mtxp/testdmumps
 mtxp/testksp
 mtxp/testpcg
 mtxp/testzmumps
+mtxp/libmtxksp.i90
 plx/pl
 plx/plparm
 t2/t2

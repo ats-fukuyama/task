@@ -16,24 +16,30 @@ MODINCLUDE=-I $(MOD) -I../lib/$(MOD)
 all: $(EXEC)
 
 testbnd: $(LIB_MTX_BND) testmtx.o 
-	-$(FCFREE) -g -o testbnd testmtx.o $(LIBX_MTX_BND)
+	-$(FCFREE) -g -o testbnd testmtx.o $(LIBX_MTX_BND) \
+	../lib/tasklib.a $(FLIBS)
 
 testbndc: $(LIB_MTX_BND) testmtxc.o 
 	-$(FCFREE) -g -o testbndc testmtxc.o $(LIBX_MTX_BND) \
 	../lib/tasklib.a $(FLIBS)
 
 testpcg: $(LIB_MTX_PCG) testmtx.o 
-	-$(FCFREE) $(FFLAGS) -o testpcg testmtx.o $(LIBX_MTX_PCG) 
+	-$(FCFREE) $(FFLAGS) -o testpcg testmtx.o $(LIBX_MTX_PCG) \
+	../lib/tasklib.a $(FLIBS)
+
 
 testdmumps: $(LIB_MTX_MUMPS) testmtx.o
-	-${FLINKER} -g -o testdmumps testmtx.o $(LIBX_MTX_MUMPS)
+	-${FLINKER} -g -o testdmumps testmtx.o $(LIBX_MTX_MUMPS) \
+	../lib/tasklib.a $(FLIBS)
+
 
 testzmumps: $(LIB_MTX_MUMPS) testmtxc.o
 	-${FLINKER} -g -o testzmumps testmtxc.o $(LIBX_MTX_MUMPS) \
 	../lib/tasklib.a $(FLIBS)
 
 testksp: $(LIB_MTX_KSP) testmtx.o
-	-${FLINKER} -g -o testksp testmtx.o $(LIBX_MTX_KSP)
+	-${FLINKER} -g -o testksp testmtx.o $(LIBX_MTX_KSP) \
+	../lib/tasklib.a $(FLIBS)
 
 testmtx.o: testmtx.f90
 	$(FLINKER) $(FFLAGS) -c testmtx.f90 $(MODINCLUDE)

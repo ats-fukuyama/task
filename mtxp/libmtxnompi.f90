@@ -92,6 +92,11 @@
       PUBLIC mtx_allreduce_real8
       PUBLIC mtx_allreduce_complex8
 
+      PUBLIC mtx_sendrecv_integer
+      PUBLIC mtx_sendrecv_real4
+      PUBLIC mtx_sendrecv_real8
+      PUBLIC mtx_sendrecv_comple8
+
       TYPE(mtx_mpi_type):: mtx_global
       INTEGER:: ncomm,nrank,nsize
 
@@ -1020,5 +1025,77 @@
       RETURN
       END SUBROUTINE mtx_allreduce_complex8
       
-      END MODULE libmpi
+!-----
+
+      SUBROUTINE mtx_sendrecv_integer(sendbuf,sendcount,dest, &
+                                      recvbuf,recvcount,source)
+        IMPLICIT NONE
+        INTEGER,INTENT(IN),DIMENSION(sendcount):: sendbuf
+        INTEGER,INTENT(IN):: sendcount
+        INTEGER,INTENT(OUT),DIMENSION(recvcount):: recvbuf
+        INTEGER,INTENT(IN):: recvcount
+        INTEGER,INTENT(IN):: dest,source
+        INTEGER:: i
+
+        DO i=1,sendcount
+           recvbuf(i)=sendbuf(i)
+        END DO
+        RETURN
+      END SUBROUTINE mtx_sendrecv_integer
+
+!-----
+
+      SUBROUTINE mtx_sendrecv_real4(sendbuf,sendcount,dest, &
+                                    recvbuf,recvcount,source)
+        IMPLICIT NONE
+        REAL(4),INTENT(IN),DIMENSION(sendcount):: sendbuf
+        INTEGER,INTENT(IN):: sendcount
+        REAL(4),INTENT(OUT),DIMENSION(recvcount):: recvbuf
+        INTEGER,INTENT(IN):: recvcount
+        INTEGER,INTENT(IN):: dest,source
+        INTEGER:: i
+
+        DO i=1,sendcount
+           recvbuf(i)=sendbuf(i)
+        END DO
+        RETURN
+      END SUBROUTINE mtx_sendrecv_real4
+
+!-----
+
+      SUBROUTINE mtx_sendrecv_real8(sendbuf,sendcount,dest, &
+                                    recvbuf,recvcount,source)
+        IMPLICIT NONE
+        REAL(8),INTENT(IN),DIMENSION(sendcount):: sendbuf
+        INTEGER,INTENT(IN):: sendcount
+        REAL(8),INTENT(OUT),DIMENSION(recvcount):: recvbuf
+        INTEGER,INTENT(IN):: recvcount
+        INTEGER,INTENT(IN):: dest,source
+        INTEGER:: i
+
+        DO i=1,sendcount
+           recvbuf(i)=sendbuf(i)
+        END DO
+        RETURN
+      END SUBROUTINE mtx_sendrecv_real8
+
+!-----
+
+      SUBROUTINE mtx_sendrecv_complex8(sendbuf,sendcount,dest, &
+                                    recvbuf,recvcount,source)
+        IMPLICIT NONE
+        COMPLEX(8),INTENT(IN),DIMENSION(sendcount):: sendbuf
+        INTEGER,INTENT(IN):: sendcount
+        COMPLEX(8),INTENT(OUT),DIMENSION(recvcount):: recvbuf
+        INTEGER,INTENT(IN):: recvcount
+        INTEGER,INTENT(IN):: dest,source
+        INTEGER:: i
+
+        DO i=1,sendcount
+           recvbuf(i)=sendbuf(i)
+        END DO
+        RETURN
+      END SUBROUTINE mtx_sendrecv_complex8
+
+    END MODULE libmpi
 

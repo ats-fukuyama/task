@@ -1,9 +1,9 @@
 include ../../task/make.header
 include ../mtxp/make.mtxp
 #LIBX_MTX=$(LIBX_MTX_BND)
-#LIBX_MTX=$(LIBX_MTX_PCG)
+LIBX_MTX=$(LIBX_MTX_PCG)
 #LIBX_MTX=$(LIBX_MTX_MUMPS)
-LIBX_MTX=$(LIBX_MTX_KSP)
+#LIBX_MTX=$(LIBX_MTX_KSP)
 
 FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
@@ -29,7 +29,7 @@ SRCS = fpcomm.f90 fpinit.f90 fpmpi.f90 fpbroadcast.f90 fpexec.f90 fpsave.f90 \
 OBJS = $(SRCS:.f90=.o)
 
 LIBS = fplib.a ../../task/plx/pllib.a ../../task/eq/eqlib.a   \
-        ../../task/lib/tasklib.a ../../bpsd/bpsdlib.a $(LIBMTX)
+        ../../task/lib/tasklib.a ../../bpsd/bpsdlib.a
 
 all: libs fp
 
@@ -42,21 +42,13 @@ fplib.a: $(OBJS)
 	(cd ../plx; make pllib.a)
 ../../task/eq/eqlib.a:
 	(cd ../../task/eq; make eqlib.a)
-../../task/mtxp/libmtxksp.o:
-	(cd ../../task/mtxp; make libmtxksp.o)
-../../task/mtxp/libmtxbnd.o:
-	(cd ../../task/mtxp; make libmtxbnd.o)
-../../task/mtxp/libmtxmpi.o:
-	(cd ../../task/mtxp; make libmtxmpi.o)
-../../task/mtxp/libmtxnompi.o:
-	(cd ../../task/mtxp; make libmtxnompi.o)
 ../../task/lib/tasklib.a:
 	(cd ../../task/lib; make tasklib.a)
 
 libs:
 	(cd ../../bpsd; make bpsdlib.a)
 	(cd ../../task/eq; make eqlib.a)
-	(cd ../../task/mtxp; make libmtxbnd.o libmtxksp.o)
+	(cd ../../task/mtxp; make)
 	(cd ../../task/plx; make pllib.a)
 	(cd ../../task/lib; make tasklib.a)
 

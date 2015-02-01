@@ -5,7 +5,7 @@
 #PETSC_KSP_LIB=
 
 #### With PETSc
-# define FLINKER and PETSC_KSP_LIB
+#define FLINKER and PETSC_KSP_LIB
 include ${PETSC_DIR}/conf/variables
 ##### select either of below items
 #PETSc 3.4.2
@@ -17,23 +17,23 @@ INCLUDE_MTX_PETSC=-I${PETSC_DIR}/include -I${PETSC_DIR}/${PETSC_ARCH}/include
 MUMPS_LIB=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common -lpord -lscalapack -lparmetis -lmetis -llapack -lblas ../lib/tasklib.a
 
 ##### Non-paralle solver (no MPI, real8 and complex8) #####
-EXEC=testbnd testbndc testpcg
-FLINKER=$(FCFREE)
+#EXEC=testbnd testbndc testpcg
+#FLINKER=$(FCFREE)
 
 #### With MUMPS library (MPI, real8 and complex8)
 #EXEC=testbnd testbndc testpcg testdmumps testzmumps
 #FLINKER=$(MF90)
 
 ##### With PETSc library (real8) #####
-#EXEC=testbnd testpcg testbndc testdmumps testzmumps testksp
+EXEC=testbnd testpcg testbndc testdmumps testzmumps testksp
 
 ##### End of configurable section #####
 
 LIBMPI=../mtxp/libmtxmpi.o
 LIBNOMPI=../mtxp/libmtxnompi.o
 
-LIB_MTX_BND=$(LIBNOMPI) ../mtxp/libmtxbnd.o ../lib/libbnd.o
-LIB_MTX_PCG=$(LIBNOMPI) ../mtxp/libmtxpcg.o ../lib/libpcgpme.o
+LIB_MTX_BND=$(LIBNOMPI) ../mtxp/libmtxbnd.o
+LIB_MTX_PCG=$(LIBNOMPI) ../mtxp/libmtxpcg.o
 LIB_MTX_MUMPS=$(LIBMPI) ../mtxp/libmtxmumps.o
 LIB_MTX_KSP=$(LIBMPI) ../mtxp/libmtxksp.o
 
