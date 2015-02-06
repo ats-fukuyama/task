@@ -1550,23 +1550,30 @@
         INTEGER,INTENT(IN),DIMENSION(sendcount):: sendbuf
         INTEGER,INTENT(OUT),DIMENSION(recvcount):: recvbuf
         INTEGER,INTENT(IN):: dest,source
-        INTEGER:: dest_,source_,ierr
+        INTEGER:: dest_,source_,ierr,i
         integer:: istatus(MPI_STATUS_SIZE)
 
-        IF(dest.ge.nsize) THEN
-           dest_=MPI_PROC_NULL
+        IF(nsize.eq.1) then
+           DO i=1,sendcount
+              recvbuf(i)=sendbuf(i)
+           END DO
         ELSE
-           dest_=dest
-        END IF
-        IF(source.lt.0) THEN
-           source_=MPI_PROC_NULL
-        ELSE
-           source_=source
-        END IF
+           IF(dest.ge.nsize) THEN
+              dest_=MPI_PROC_NULL
+           ELSE
+              dest_=dest
+           END IF
+           IF(source.lt.0) THEN
+              source_=MPI_PROC_NULL
+           ELSE
+              source_=source
+           END IF
 
-        CALL MPI_SENDRECV(sendbuf, sendcount, MPI_INTEGER, dest_, 0,&
-                          recvbuf, sendcount, MPI_INTEGER, source_, 0,&
-                          ncomm, ISTATUS, IERR)
+           CALL MPI_SENDRECV( &
+                sendbuf, sendcount, MPI_INTEGER, dest_,  0,&
+                recvbuf, recvcount, MPI_INTEGER, source_,0,&
+                ncomm, ISTATUS, IERR)
+        END IF
         RETURN
       END SUBROUTINE mtx_sendrecv_integer
 
@@ -1579,23 +1586,30 @@
         REAL(4),INTENT(IN),DIMENSION(sendcount):: sendbuf
         REAL(4),INTENT(OUT),DIMENSION(recvcount):: recvbuf
         INTEGER,INTENT(IN):: dest,source
-        INTEGER:: dest_,source_,ierr
+        INTEGER:: dest_,source_,ierr,i
         integer:: istatus(MPI_STATUS_SIZE)
 
-        IF(dest.ge.nsize) THEN
-           dest_=MPI_PROC_NULL
+        IF(nsize.eq.1) then
+           DO i=1,sendcount
+              recvbuf(i)=sendbuf(i)
+           END DO
         ELSE
-           dest_=dest
-        END IF
-        IF(source.lt.0) THEN
-           source_=MPI_PROC_NULL
-        ELSE
-           source_=source
-        END IF
+           IF(dest.ge.nsize) THEN
+              dest_=MPI_PROC_NULL
+           ELSE
+              dest_=dest
+           END IF
+           IF(source.lt.0) THEN
+              source_=MPI_PROC_NULL
+           ELSE
+              source_=source
+           END IF
 
-        CALL MPI_SENDRECV(sendbuf, sendcount, MPI_REAL, dest_, 0,&
-                          recvbuf, sendcount, MPI_REAL, source_, 0,&
-                          ncomm, ISTATUS, IERR)
+           CALL MPI_SENDRECV( &
+                sendbuf, sendcount, MPI_REAL, dest_,  0,&
+                recvbuf, recvcount, MPI_REAL, source_,0,&
+                ncomm, ISTATUS, IERR)
+        END IF
         RETURN
       END SUBROUTINE mtx_sendrecv_real4
 
@@ -1608,23 +1622,30 @@
         REAL(8),INTENT(IN),DIMENSION(sendcount):: sendbuf
         REAL(8),INTENT(OUT),DIMENSION(recvcount):: recvbuf
         INTEGER,INTENT(IN):: dest,source
-        INTEGER:: dest_,source_,ierr
+        INTEGER:: dest_,source_,ierr,i
         integer:: istatus(MPI_STATUS_SIZE)
 
-        IF(dest.ge.nsize) THEN
-           dest_=MPI_PROC_NULL
+        IF(nsize.eq.1) then
+           DO i=1,sendcount
+              recvbuf(i)=sendbuf(i)
+           END DO
         ELSE
-           dest_=dest
-        END IF
-        IF(source.lt.0) THEN
-           source_=MPI_PROC_NULL
-        ELSE
-           source_=source
-        END IF
+           IF(dest.ge.nsize) THEN
+              dest_=MPI_PROC_NULL
+           ELSE
+              dest_=dest
+           END IF
+           IF(source.lt.0) THEN
+              source_=MPI_PROC_NULL
+           ELSE
+              source_=source
+           END IF
 
-        CALL MPI_SENDRECV(sendbuf, sendcount, MPI_DOUBLE_PRECISION, dest_,  0,&
-                          recvbuf, sendcount, MPI_DOUBLE_PRECISION, source_,0,&
-                          ncomm, ISTATUS, IERR)
+           CALL MPI_SENDRECV( &
+                sendbuf, sendcount, MPI_DOUBLE_PRECISION, dest_,  0,&
+                recvbuf, recvcount, MPI_DOUBLE_PRECISION, source_,0,&
+                ncomm, ISTATUS, IERR)
+        END IF
         RETURN
       END SUBROUTINE mtx_sendrecv_real8
 
@@ -1637,23 +1658,30 @@
         COMPLEX(8),INTENT(IN),DIMENSION(sendcount):: sendbuf
         COMPLEX(8),INTENT(OUT),DIMENSION(recvcount):: recvbuf
         INTEGER,INTENT(IN):: dest,source
-        INTEGER:: dest_,source_,ierr
+        INTEGER:: dest_,source_,ierr,i
         integer:: istatus(MPI_STATUS_SIZE)
 
-        IF(dest.ge.nsize) THEN
-           dest_=MPI_PROC_NULL
+        IF(nsize.eq.1) then
+           DO i=1,sendcount
+              recvbuf(i)=sendbuf(i)
+           END DO
         ELSE
-           dest_=dest
-        END IF
-        IF(source.lt.0) THEN
-           source_=MPI_PROC_NULL
-        ELSE
-           source_=source
-        END IF
+           IF(dest.ge.nsize) THEN
+              dest_=MPI_PROC_NULL
+           ELSE
+              dest_=dest
+           END IF
+           IF(source.lt.0) THEN
+              source_=MPI_PROC_NULL
+           ELSE
+              source_=source
+           END IF
 
-        CALL MPI_SENDRECV(sendbuf, sendcount, MPI_DOUBLE_COMPLEX, dest_, 0,&
-                          recvbuf, sendcount, MPI_DOUBLE_COMPLEX, source_, 0,&
-                          ncomm, ISTATUS, IERR)
+           CALL MPI_SENDRECV( &
+                sendbuf, sendcount, MPI_DOUBLE_COMPLEX, dest_,  0,&
+                recvbuf, recvcount, MPI_DOUBLE_COMPLEX, source_,0,&
+                ncomm, ISTATUS, IERR)
+        END IF
         RETURN
       END SUBROUTINE mtx_sendrecv_complex8
 
