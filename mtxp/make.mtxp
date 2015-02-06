@@ -11,7 +11,9 @@ include ${PETSC_DIR}/conf/variables
 #PETSc 3.4.2
 #INCLUDE_MTX_MUMPS=-I${PETSC_DIR}/externalpackages/MUMPS/include
 #PETSc 3.5.2
-INCLUDE_MTX_MUMPS=-I${PETSC_DIR}/${PETSC_ARCH}/externalpackages/MUMPS/include
+#INCLUDE_MTX_MUMPS=-I${PETSC_DIR}/${PETSC_ARCH}/externalpackages/MUMPS/include
+#PETSc 3.5.3
+INCLUDE_MTX_MUMPS=-I${PETSC_DIR}/${PETSC_ARCH}/externalpackages/MUMPS_4.10.0-p3/include
 #####
 INCLUDE_MTX_PETSC=-I${PETSC_DIR}/include -I${PETSC_DIR}/${PETSC_ARCH}/include
 MUMPS_LIB=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common -lpord -lscalapack -lparmetis -lmetis -llapack -lblas ../lib/tasklib.a

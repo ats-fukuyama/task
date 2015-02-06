@@ -1268,15 +1268,15 @@
                          MPI_SUM,0,ncomm,ierr)
       CASE(4,5)! MAX/MINLOC
          DO i=1,ndata
-            d_send(1,i)=vdata(i)
+            d_send(1,i)=abs(vdata(i))
             d_send(2,i)=nrank*1.D0
          END DO
          SELECT CASE(NOP)
          CASE(4) ! MAXLOC
-            CALL MPI_REDUCE(d_send,d_recv,ndata,MPI_2DOUBLE_COMPLEX, &
+            CALL MPI_REDUCE(d_send,d_recv,ndata,MPI_2DOUBLE_PRECISION, &
                             MPI_MAXLOC,0,ncomm,ierr)
          CASE(5) ! MINLOC
-            CALL MPI_REDUCE(d_send,d_recv,ndata,MPI_2DOUBLE_COMPLEX, &
+            CALL MPI_REDUCE(d_send,d_recv,ndata,MPI_2DOUBLE_PRECISION, &
                             MPI_MINLOC,0,ncomm,ierr)
          END SELECT
          DO i=1,ndata
@@ -1520,15 +1520,15 @@
                             MPI_SUM,ncomm,ierr)
       CASE(4,5)! MAX/MINLOC
          DO i=1,ndata
-            d_send(1,i)=vdata(i)
+            d_send(1,i)=abs(vdata(i))
             d_send(2,i)=nrank*1.D0
          END DO
          SELECT CASE(NOP)
          CASE(4) ! MAXLOC
-            CALL MPI_ALLREDUCE(d_send,d_recv,ndata,MPI_2DOUBLE_COMPLEX, &
+            CALL MPI_ALLREDUCE(d_send,d_recv,ndata,MPI_DOUBLE_PRECISION, &
                                MPI_MAXLOC,ncomm,ierr)
          CASE(5) ! MINLOC
-            CALL MPI_ALLREDUCE(d_send,d_recv,ndata,MPI_2DOUBLE_COMPLEX, &
+            CALL MPI_ALLREDUCE(d_send,d_recv,ndata,MPI_DOUBLE_PRECISION, &
                                MPI_MINLOC,ncomm,ierr)
          END SELECT
          DO i=1,ndata
