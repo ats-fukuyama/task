@@ -17,6 +17,7 @@
       SUBROUTINE FP_CALW(NSA)
 !
       USE plprof, only: rsrhon
+      USE fpsub, ONLY: fpbave_dpp,fpbave_dth
       IMPLICIT NONE
       integer:: NSA, NRDO, NR, NP, NTH
       real(8):: DLHA, DFWA, DECA, DECB, DECC, DLHL, DFWL, DECL
@@ -28,141 +29,33 @@
       DO NRDO=NRSTART,NREND
          NR=NRDO
          DO NTH=1,NTHMAX
-            IF(NTH.EQ.ITL(NR).OR.NTH.EQ.ITU(NR)) GOTO 101
-            DO NP=1,NPMAX+1
-               CALL FPSUMW(ETAM(NTH,NR),SINM(NTH),COSM(NTH),PG(NP,NSA),NR, &
-                           DLHA,DFWA,DECA,DECB,DECC,NSA)
-               DWPP(NTH,NP,NR,NSA)  =ABS(COSM(NTH))  &
-                                     *(DLHA+DFWA+SINM(NTH)**2*DECA)
-               DWLHPP(NTH,NP,NR,NSA)=ABS(COSM(NTH))*DLHA
-               DWFWPP(NTH,NP,NR,NSA)=ABS(COSM(NTH))*DFWA
-               DWECPP(NTH,NP,NR,NSA)=ABS(COSM(NTH))*SINM(NTH)**2*DECA
-               IF(NTH.LE.NTHMAX/2) THEN
-                  DWPT(NTH,NP,NR,NSA)  =-SINM(NTH)*(DLHA+DFWA-DECB)
-                  DWLHPT(NTH,NP,NR,NSA)=-SINM(NTH)*DLHA
-                  DWFWPT(NTH,NP,NR,NSA)=-SINM(NTH)*DFWA
-                  DWECPT(NTH,NP,NR,NSA)= SINM(NTH)*DECB
-               ELSE
-                  DWPT(NTH,NP,NR,NSA)  = SINM(NTH)*(DLHA+DFWA-DECB)
-                  DWLHPT(NTH,NP,NR,NSA)= SINM(NTH)*DLHA
-                  DWFWPT(NTH,NP,NR,NSA)= SINM(NTH)*DFWA
-                  DWECPT(NTH,NP,NR,NSA)=-SINM(NTH)*DECB
-               ENDIF
-            ENDDO
-  101       CONTINUE
+            IF(NTH.NE.ITL(NR).AND.NTH.NE.ITU(NR)) THEN
+               DO NP=1,NPMAX+1
+                  CALL FPSUMW(ETAM(NTH,NR),SINM(NTH),COSM(NTH),PG(NP,NSA),NR, &
+                              DLHA,DFWA,DECA,DECB,DECC,NSA)
+                  DWLHPP(NTH,NP,NR,NSA)=ABS(COSM(NTH))*DLHA
+                  DWFWPP(NTH,NP,NR,NSA)=ABS(COSM(NTH))*DFWA
+                  DWECPP(NTH,NP,NR,NSA)=ABS(COSM(NTH))*SINM(NTH)**2*DECA
+                  IF(NTH.LE.NTHMAX/2) THEN
+                     DWLHPT(NTH,NP,NR,NSA)=-SINM(NTH)*DLHA
+                     DWFWPT(NTH,NP,NR,NSA)=-SINM(NTH)*DFWA
+                     DWECPT(NTH,NP,NR,NSA)= SINM(NTH)*DECB
+                  ELSE
+                     DWLHPT(NTH,NP,NR,NSA)= SINM(NTH)*DLHA
+                     DWFWPT(NTH,NP,NR,NSA)= SINM(NTH)*DFWA
+                     DWECPT(NTH,NP,NR,NSA)=-SINM(NTH)*DECB
+                  ENDIF
+               ENDDO
+            END IF
          ENDDO
 !
          IF(MODELA.EQ.1) THEN
-            DO NP=1,NPMAX+1
-               DO NTH=ITL(NR)+1,NTHMAX/2
-                  DWPP(NTH,NP,NR,NSA)  =(DWPP(NTH,NP,NR,NSA) &
-                                  +DWPP(NTHMAX-NTH+1,NP,NR,NSA))*FACT
-                  DWPT(NTH,NP,NR,NSA)  =(DWPT(NTH,NP,NR,NSA) &
-                                  +DWPT(NTHMAX-NTH+1,NP,NR,NSA))*FACT
-                  DWLHPP(NTH,NP,NR,NSA)=(DWLHPP(NTH,NP,NR,NSA) &
-                                  +DWLHPP(NTHMAX-NTH+1,NP,NR,NSA))*FACT
-                  DWLHPT(NTH,NP,NR,NSA)=(DWLHPT(NTH,NP,NR,NSA) &
-                                  +DWLHPT(NTHMAX-NTH+1,NP,NR,NSA))*FACT
-                  DWFWPP(NTH,NP,NR,NSA)=(DWFWPP(NTH,NP,NR,NSA) &
-                                  +DWFWPP(NTHMAX-NTH+1,NP,NR,NSA))*FACT
-                  DWFWPT(NTH,NP,NR,NSA)=(DWFWPT(NTH,NP,NR,NSA) &
-                                  +DWFWPT(NTHMAX-NTH+1,NP,NR,NSA))*FACT
-                  DWECPP(NTH,NP,NR,NSA)=(DWECPP(NTH,NP,NR,NSA) &
-                                  +DWECPP(NTHMAX-NTH+1,NP,NR,NSA))*FACT
-                  DWECPT(NTH,NP,NR,NSA)=(DWECPT(NTH,NP,NR,NSA) &
-                                  +DWECPT(NTHMAX-NTH+1,NP,NR,NSA))*FACT
-                  DWPP(NTHMAX-NTH+1,NP,NR,NSA)  =DWPP(NTH,NP,NR,NSA)
-                  DWPT(NTHMAX-NTH+1,NP,NR,NSA)  =DWPT(NTH,NP,NR,NSA)
-                  DWLHPP(NTHMAX-NTH+1,NP,NR,NSA)=DWLHPP(NTH,NP,NR,NSA)
-                  DWLHPT(NTHMAX-NTH+1,NP,NR,NSA)=DWLHPT(NTH,NP,NR,NSA)
-                  DWFWPP(NTHMAX-NTH+1,NP,NR,NSA)=DWFWPP(NTH,NP,NR,NSA)
-                  DWFWPT(NTHMAX-NTH+1,NP,NR,NSA)=DWFWPT(NTH,NP,NR,NSA)
-                  DWECPP(NTHMAX-NTH+1,NP,NR,NSA)=DWECPP(NTH,NP,NR,NSA)
-                  DWECPT(NTHMAX-NTH+1,NP,NR,NSA)=DWECPT(NTH,NP,NR,NSA)
-               ENDDO
-               DWPP(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)/4.D0     &
-                        *( DWPP(ITL(NR)-1,NP,NR,NSA)               &
-                                             /RLAMDA(ITL(NR)-1,NR) &
-                          +DWPP(ITL(NR)+1,NP,NR,NSA)               &
-                                            /RLAMDA(ITL(NR)+1,NR)  &
-                          +DWPP(ITU(NR)-1,NP,NR,NSA)               &
-                                             /RLAMDA(ITU(NR)-1,NR) &
-                          +DWPP(ITU(NR)+1,NP,NR,NSA)               &
-                                             /RLAMDA(ITU(NR)+1,NR)) 
-               DWLHPP(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)/4.D0   &
-                        *( DWLHPP(ITL(NR)-1,NP,NR,NSA)             &
-                                             /RLAMDA(ITL(NR)-1,NR) &
-                          +DWLHPP(ITL(NR)+1,NP,NR,NSA)             &
-                                             /RLAMDA(ITL(NR)+1,NR) &
-                          +DWLHPP(ITU(NR)-1,NP,NR,NSA)             &
-                                             /RLAMDA(ITU(NR)-1,NR) &
-                          +DWLHPP(ITU(NR)+1,NP,NR,NSA)             &
-                                             /RLAMDA(ITU(NR)+1,NR))
-               DWFWPP(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)/4.D0   &
-                        *( DWFWPP(ITL(NR)-1,NP,NR,NSA)             &
-                                             /RLAMDA(ITL(NR)-1,NR) &
-                          +DWFWPP(ITL(NR)+1,NP,NR,NSA)             &
-                                             /RLAMDA(ITL(NR)+1,NR) &
-                          +DWFWPP(ITU(NR)-1,NP,NR,NSA)             &
-                                             /RLAMDA(ITU(NR)-1,NR) &
-                          +DWFWPP(ITU(NR)+1,NP,NR,NSA)             &
-                                             /RLAMDA(ITU(NR)+1,NR))
-               DWECPP(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)/4.D0   &
-                        *( DWECPP(ITL(NR)-1,NP,NR,NSA)             &
-                                             /RLAMDA(ITL(NR)-1,NR) &
-                          +DWECPP(ITL(NR)+1,NP,NR,NSA)             &
-                                             /RLAMDA(ITL(NR)+1,NR) &
-                          +DWECPP(ITU(NR)-1,NP,NR,NSA)             &
-                                             /RLAMDA(ITU(NR)-1,NR) &
-                          +DWECPP(ITU(NR)+1,NP,NR,NSA)             &
-                                             /RLAMDA(ITU(NR)+1,NR))
-!
-               DWPT(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)/4.D0     &
-                        *( DWPT(ITL(NR)-1,NP,NR,NSA)               &
-                                             /RLAMDA(ITL(NR)-1,NR) &
-                          +DWPT(ITL(NR)+1,NP,NR,NSA)               &
-                                             /RLAMDA(ITL(NR)+1,NR) &
-                          +DWPT(ITU(NR)-1,NP,NR,NSA)               &
-                                             /RLAMDA(ITU(NR)-1,NR) &
-                          +DWPT(ITU(NR)+1,NP,NR,NSA)               &
-                                             /RLAMDA(ITU(NR)+1,NR))
-               DWLHPT(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)/4.D0   &
-                        *( DWLHPT(ITL(NR)-1,NP,NR,NSA)             &
-                                             /RLAMDA(ITL(NR)-1,NR) &
-                          +DWLHPT(ITL(NR)+1,NP,NR,NSA)             &
-                                             /RLAMDA(ITL(NR)+1,NR) &
-                          +DWLHPT(ITU(NR)-1,NP,NR,NSA)             &
-                                             /RLAMDA(ITU(NR)-1,NR) &
-                          +DWLHPT(ITU(NR)+1,NP,NR,NSA)             &
-                                             /RLAMDA(ITU(NR)+1,NR))
-               DWFWPT(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)/4.D0   &
-                        *( DWFWPT(ITL(NR)-1,NP,NR,NSA)             &
-                                             /RLAMDA(ITL(NR)-1,NR) &
-                          +DWFWPT(ITL(NR)+1,NP,NR,NSA)             &
-                                             /RLAMDA(ITL(NR)+1,NR) &
-                          +DWFWPT(ITU(NR)-1,NP,NR,NSA)             &
-                                             /RLAMDA(ITU(NR)-1,NR) &
-                          +DWFWPT(ITU(NR)+1,NP,NR,NSA)             &
-                                             /RLAMDA(ITU(NR)+1,NR))
-               DWECPT(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)/4.D0   &
-                        *( DWECPT(ITL(NR)-1,NP,NR,NSA)             &
-                                             /RLAMDA(ITL(NR)-1,NR) &
-                          +DWECPT(ITL(NR)+1,NP,NR,NSA)             &
-                                             /RLAMDA(ITL(NR)+1,NR) &
-                          +DWECPT(ITU(NR)-1,NP,NR,NSA)             &
-                                             /RLAMDA(ITU(NR)-1,NR) &
-                          +DWECPT(ITU(NR)+1,NP,NR,NSA)             &
-                                             /RLAMDA(ITU(NR)+1,NR))
-               DWPP(ITU(NR),NP,NR,NSA)  =DWPP(ITL(NR),NP,NR,NSA)
-               DWPT(ITU(NR),NP,NR,NSA)  =DWPT(ITL(NR),NP,NR,NSA)
-               DWLHPP(ITU(NR),NP,NR,NSA)=DWLHPP(ITL(NR),NP,NR,NSA)
-               DWLHPT(ITU(NR),NP,NR,NSA)=DWLHPT(ITL(NR),NP,NR,NSA)
-               DWFWPP(ITU(NR),NP,NR,NSA)=DWFWPP(ITL(NR),NP,NR,NSA)
-               DWFWPT(ITU(NR),NP,NR,NSA)=DWFWPT(ITL(NR),NP,NR,NSA)
-               DWECPP(ITU(NR),NP,NR,NSA)=DWECPP(ITL(NR),NP,NR,NSA)
-               DWECPT(ITU(NR),NP,NR,NSA)=DWECPT(ITL(NR),NP,NR,NSA)
-
-            END DO
+            CALL fpbave_dpp(DWLHPP,NR,NSA,0)
+            CALL fpbave_dpp(DWLHPT,NR,NSA,1)
+            CALL fpbave_dpp(DWFWPP,NR,NSA,0)
+            CALL fpbave_dpp(DWFWPT,NR,NSA,1)
+            CALL fpbave_dpp(DWECPP,NR,NSA,0)
+            CALL fpbave_dpp(DWECPT,NR,NSA,1)
          ENDIF
       END DO
 !
@@ -178,12 +71,17 @@
                               NR,DLHA,DFWA,DECA,DECB,DECC,NSA)
 !
                   IF(NTH.LE.NTHMAX/2) THEN
-                     DWTP(NTH,NP,NR,NSA)=-SING(NTH)*(DLHA+DFWA-DECB)
+                     DWLHTP(NTH,NP,NR,NSA)=-SING(NTH)*DLHA
+                     DWFWTP(NTH,NP,NR,NSA)=-SING(NTH)*DFWA
+                     DWECTP(NTH,NP,NR,NSA)= SING(NTH)*DECB
                   ELSE
-                     DWTP(NTH,NP,NR,NSA)= SING(NTH)*(DLHA+DFWA-DECB)
+                     DWLHTP(NTH,NP,NR,NSA)= SING(NTH)*DLHA
+                     DWFWTP(NTH,NP,NR,NSA)= SING(NTH)*DFWA
+                     DWECTP(NTH,NP,NR,NSA)=-SING(NTH)*DECB
                   ENDIF
-                  DWTT(NTH,NP,NR,NSA)=(SING(NTH)**2*(DLHA+DFWA)+DECC) &
-                                     /ABS(COSG(NTH))
+                  DWLHTT(NTH,NP,NR,NSA)=SING(NTH)**2*DLHA/ABS(COSG(NTH))
+                  DWFWTT(NTH,NP,NR,NSA)=SING(NTH)**2*DFWA/ABS(COSG(NTH))
+                  DWECTT(NTH,NP,NR,NSA)=             DECC/ABS(COSG(NTH))
                ENDDO
             ENDIF
          ENDDO
@@ -191,21 +89,21 @@
          DO NP=1,NPMAX
             CALL FPWAVE(PM(NP,NSA),0.D0,NR,RSRHON(RM(NR)),0.0D0, &
                         DLHL,DFWL,DECL,NSA)
-            DWTP(NTHMAX/2+1,NP,NR,NSA)=0.D0
-            DWTT(NTHMAX/2+1,NP,NR,NSA)=DLHL+DFWL
+            DWLHTP(NTHMAX/2+1,NP,NR,NSA)=0.D0
+            DWFWTP(NTHMAX/2+1,NP,NR,NSA)=0.D0
+            DWECTP(NTHMAX/2+1,NP,NR,NSA)=0.D0
+            DWLHTT(NTHMAX/2+1,NP,NR,NSA)=DLHL
+            DWFWTT(NTHMAX/2+1,NP,NR,NSA)=DFWL
+            DWECTT(NTHMAX/2+1,NP,NR,NSA)=0.D0
          ENDDO
 !
          IF(MODELA.EQ.1) THEN
-            DO NTH=ITL(NR)+1,NTHMAX/2
-               DO NP=1,NPMAX
-                  DWTP(NTH,NP,NR,NSA)=(DWTP(NTH,NP,NR,NSA) &
-                                 -DWTP(NTHMAX-NTH+2,NP,NR,NSA))*FACT
-                  DWTT(NTH,NP,NR,NSA)=(DWTT(NTH,NP,NR,NSA) &
-                                 +DWTT(NTHMAX-NTH+2,NP,NR,NSA))*FACT
-                  DWTP(NTHMAX-NTH+2,NP,NR,NSA)=-DWTP(NTH,NP,NR,NSA)
-                  DWTT(NTHMAX-NTH+2,NP,NR,NSA)= DWTT(NTH,NP,NR,NSA)
-               ENDDO
-            ENDDO
+            CALL fpbave_dth(DWLHTP,NR,NSA,1)
+            CALL fpbave_dth(DWLHTT,NR,NSA,0)
+            CALL fpbave_dth(DWFWTP,NR,NSA,1)
+            CALL fpbave_dth(DWFWTT,NR,NSA,0)
+            CALL fpbave_dth(DWECTP,NR,NSA,1)
+            CALL fpbave_dth(DWECTT,NR,NSA,0)
          ENDIF
       ENDDO
 !
@@ -240,28 +138,26 @@
          IF(MODELA.EQ.0) THEN
             PSI=1.D0
             PSIN=RSIN
-!            PCOS=ABS(RCOS)
             PCOS=RCOS
          ELSE
             PSI=(1.D0+EPSRM(NR))/(1.D0+XM/RR)
             PSIN=SQRT(PSI)*RSIN
-!            PCOS=SQRT(1.D0-PSI*RSIN**2)
-!            write(6,'(A,I5,1P5E12.4)') 'NR:',NR,&
-!                 EPSRM(NR),X/RR,PSI,RSIN,1.D0-PSI*RSIN**2
-            IF (RCOS.GT.0.0D0) THEN
-               PCOS= SQRT(1.D0-PSI*RSIN**2)
+!            write(6,'(A,I5,1P6E12.4)') 'NR:',NR,&
+!                 EPSRM(NR),X/RR,PSI,RSIN,1.D0-PSI*RSIN**2,PSIN
+            IF(PSIN.GT.1.D0) THEN
+               PSIN=1.D0
+               PCOS=0.D0
             ELSE
-               PCOS=-SQRT(1.D0-PSI*RSIN**2)
+               IF (RCOS.GT.0.0D0) THEN
+                  PCOS= SQRT(1.D0-PSIN**2)
+               ELSE
+                  PCOS=-SQRT(1.D0-PSIN**2)
+               END IF
             END IF
          ENDIF
-!
          PPERP=P*PSIN
-!         IF (RCOS.GT.0.0) THEN
-            PPARA =  P*PCOS
-!         ELSE
-!            PPARA = -P*PCOS
-!         END IF
-!
+         PPARA =  P*PCOS
+
          CALL FPWAVE(PPARA,PPERP,NR,X,Y,DLHL,DFWL,DECL,NSA)
 !
          SUM1=SUM1+PCOS       *DLHL
@@ -269,7 +165,11 @@
 !         SUM3=SUM3+PSI/PCOS   *DECL
 !         SUM4=SUM4+PCOS       *DECL
 !         SUM5=SUM5+PCOS**3/PSI*DECL
-         SUM3=SUM3+DECL*RCOS/PCOS
+         IF(PCOS.LE.0.D0) THEN
+            SUM3=SUM3+DECL
+         ELSE
+            SUM3=SUM3+DECL*RCOS/PCOS
+         END IF
          SUM4=SUM4+DECL/SQRT(PSI)
          SUM5=SUM5+DECL*PCOS/RCOS/PSI
 !!! unverified for LH, FW

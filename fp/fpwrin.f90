@@ -285,8 +285,10 @@
                IF((PSIPRE-PSICR)*(PSIL-PSICR).LT.0.D0.OR. &
                    PSIL-PSICR.EQ.0.D0) THEN
                   CALL FPCROS(PSICR,NIT,NRAY,SICR)
+                  IF(nrank.EQ.0) THEN
                   WRITE(6,'(A,3I6,1P2E15.6)') '# NR,NRAY,NIT,PSICR,SICR=', &
                                                  NR,NRAY,NIT,PSICR,SICR
+                  END IF
                   CALL FPCREK(SICR,NRAY,CEX,CEY,CEZ,RKX,RKY,RKZ,RX,RY,RZ)
                   IF(NCR.LT.NCRMAXM) THEN
                      NCR=NCR+1

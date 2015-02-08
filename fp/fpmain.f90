@@ -29,7 +29,7 @@
 
       CALL mtx_initialize
       IF(nrank.EQ.0) THEN
-         WRITE(6,*) '***** TASK/FP 2009/09/18 *****'
+         WRITE(6,*) '***** TASK/FP 2015/02/08 *****'
          CALL GSOPEN
          OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
       ENDIF

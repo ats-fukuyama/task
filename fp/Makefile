@@ -2,8 +2,8 @@ include ../../task/make.header
 include ../mtxp/make.mtxp
 #LIBX_MTX=$(LIBX_MTX_BND)
 #LIBX_MTX=$(LIBX_MTX_PCG)
-#LIBX_MTX=$(LIBX_MTX_MUMPS)
-LIBX_MTX=$(LIBX_MTX_KSP)
+LIBX_MTX=$(LIBX_MTX_MUMPS)
+#LIBX_MTX=$(LIBX_MTX_KSP)
 
 FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
@@ -20,7 +20,8 @@ MODINCLUDE= -I./$(MOD) -I../../task/lib/$(MOD) \
             -I../../task/plx/$(MOD) -I../../task/eq/$(MOD) \
             -I../../bpsd/$(MOD) -I../../task/mtxp/$(MOD)
 
-SRCS = fpcomm.f90 fpinit.f90 fpmpi.f90 fpbroadcast.f90 fpexec.f90 fpsave.f90 \
+SRCS = fpcomm.f90 fpmpi.f90 fpbroadcast.f90 fpsub.f90 \
+       fpinit.f90 fpexec.f90 fpsave.f90 \
        fpwmin.f90 fpwrin.f90 fpcalw.f90 fpcalwm.f90 fpcalwr.f90 \
        fpcalcn.f90 fpcalcnr.f90 fpcalc.f90 fpnfrr.f90 fpcoef.f90 fpcale.f90 \
        fpbounce.f90 fpdisrupt.f90 fpprep.f90 fploop.f90 \

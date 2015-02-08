@@ -3,11 +3,11 @@ include ../make.header
 include ../mtxp/make.mtxp
 #LIBX_MTX=$(LIBX_MTX_BND)
 #LIBX_MTX=$(LIBX_MTX_PCG)
-#LIBX_MTX=$(LIBX_MTX_MUMPS)
-LIBX_MTX=$(LIBX_MTX_KSP)
+LIBX_MTX=$(LIBX_MTX_MUMPS)
+#LIBX_MTX=$(LIBX_MTX_KSP)
 
-#FFLAGS=$(OFLAGS)
-FFLAGS=$(DFLAGS)
+FFLAGS=$(OFLAGS)
+#FFLAGS=$(DFLAGS)
 
 MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD) -I../fp/$(MOD) -I../mtxp/$(MOD)
 EQLIBS= ../plx/noequlib.o ../eq/eqlib.a 

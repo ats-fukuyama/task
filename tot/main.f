@@ -9,6 +9,7 @@ C                  URL: http://p-grp.nucleng.kyoto-u.ac.jp/wm/
 C***********************************************************************
 C
       USE plinit,ONLY:pl_init,pl_parm
+      USE equnit_mod,ONLY:eq_init
       USE fpinit,ONLY:fp_init,fp_parm
       USE commpi
       USE libmtx
@@ -22,7 +23,7 @@ C
       CALL MPSYNC
 C
       CALL PL_INIT
-      CALL EQINIT
+      CALL EQ_INIT
       CALL TRINIT
       CALL DPINIT
       CALL WRINIT

@@ -248,11 +248,14 @@
 !     MODELS : 0 No fusion reaction
 !              1 DT reaction source (NSSPF,SPFTOT,SPFR0,SPFRW,SPFENG)
 !              2 DT reaction source (self-consistent reactioin rate)
-!     MODELW(ns): 0 for given diffusion coefficient model
-!                 1 for wave E field calculated by WR(without beam radius)
-!                 2 for wave E field calculated by WR(with beam radius)
-!                 3 for given wave E field model
-!                 4 for wave E field calculated by WM
+!     MODELW(ns): 0 without quasi-linear diffusion
+!                 1 for given quasi-linear diffusion coefficient model
+!     MODELWR(ns): 0 without WR results
+!                  1 for wave E field calculated by WR(without beam radius)
+!                  2 for wave E field calculated by WR(with beam radius)
+!     MODELWM(ns): 0 without WM results
+!                  1 for given wave E field model
+!                  2 for wave E field calculated by WM
 
       MODELE= 0
       MODELA= 1
@@ -261,7 +264,9 @@
       MODELD= 0
       MODELS= 0
       DO NS=1,NSM
-         MODELW(NS)=0
+         MODELW(NS)=1
+         MODELWR(NS)=0
+         MODELWM(NS)=0
       END DO
 
       MODEL_KSP=5
@@ -270,7 +275,7 @@
       MODEL_LOSS=0
       MODEL_synch=0
       MODEL_NBI=0
-      MODEL_WAVE=0 ! 0=no wave calc., 1=wave calc.
+      MODEL_WAVE=0 ! 0=no wave calc., 1=wave calc. ! interally defined
       MODEL_IMPURITY=0
 
       MODEL_DISRUPT=0 ! 0=no disruption, 1=disruption calc.
@@ -391,14 +396,14 @@
            ZEFF,DELT,RIMPL,EPSM,EPSE,EPSDE,H0DE, &
            nsamax,nsbmax, &
            ns_nsa,ns_nsb, &
-           pmax,tloss,MODELW,MODELS,NBEAMMAX, &
+           pmax,tloss,MODELW,MODELWR,MODELWM,MODELS,NBEAMMAX, &
            NSSPB,SPBTOT,SPBR0,SPBRW,SPBENG,SPBANG,SPBPANG,&
            NSSPF,SPFTOT,SPFR0,SPFRW,SPFENG,&
            LMAXFP, EPSFP,NCMIN,NCMAX, DRRS, MODEL_KSP, MODEL_PC, &
            N_partition_s, N_partition_r, N_partition_p, MODEL_DISRUPT, &
            MODEL_synch, MODEL_LOSS, T0_quench, tau_quench, &
-           MODEL_NBI, MODEL_WAVE, MODEL_IMPURITY, MODEL_Conner_FP, MODEL_BS, MODEL_jfp, &
-           MODEL_LNL, time_quench_start, MODEL_RE_pmax, RJPROF2
+           MODEL_NBI, MODEL_WAVE, MODEL_IMPURITY, MODEL_Conner_FP, MODEL_BS, &
+           MODEL_jfp, MODEL_LNL, time_quench_start, MODEL_RE_pmax, RJPROF2
 
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: nid
@@ -414,7 +419,8 @@
            MODEFR,MODEFW,IDEBUG, &
            NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX,IMTX, &
            NTMAX,NTCLSTEP,LMAXE,NGLINE,NGRAPH,LMAXNWR, &
-           MODELE,MODELA,MODELC,MODELW,MODELR,MODELD,LLMAX,IDBGFP, &
+           MODELE,MODELA,MODELC,MODELW,MODELWR,MODELWM,MODELR,MODELD, &
+           LLMAX,IDBGFP, &
            NTG1STEP,NTG1MIN,NTG1MAX, &
            NTG2STEP,NTG2MIN,NTG2MAX, &
            DRR0,E0,R1,DELR1,RMIN,RMAX, &
@@ -428,8 +434,8 @@
            nsamax,nsbmax,ns_nsa,ns_nsb,NCMIN,NCMAX,DRRS, MODEL_KSP, MODEL_PC, &
            N_partition_s, N_partition_r, N_partition_p, MODEL_DISRUPT, &
            MODEL_synch, MODEL_LOSS, T0_quench, tau_quench, &
-           MODEL_NBI, MODEL_WAVE, MODEL_IMPURITY, MODEL_Conner_FP, MODEL_BS, MODEL_jfp, &
-           MODEL_LNL, time_quench_start, MODEL_RE_pmax, RJPROF2
+           MODEL_NBI, MODEL_WAVE, MODEL_IMPURITY, MODEL_Conner_FP, MODEL_BS, &
+           MODEL_jfp, MODEL_LNL, time_quench_start, MODEL_RE_pmax, RJPROF2
 
       READ(nid,FP,IOSTAT=ist,ERR=9800,END=9900)
 
@@ -454,8 +460,8 @@
       WRITE(6,*) '      KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF,KNAMEQ2,'
       WRITE(6,*) '      MODEFR,MODEFW,IDEBUG,'
       WRITE(6,*) '      NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX,IMTX,'
-      WRITE(6,*) '      NTMAX,NTCLSTEP,LMAXE,NGLINE,NGRAPH,LMAXNWR,'
-      WRITE(6,*) '      MODELE,MODELA,MODELC,MODELW,MODELR,MODELD,'
+      WRITE(6,*) '      NTMAX,NTCLSTEP,LMAXE,NGLINE,NGRAPH,LMAXNWR,MODELE,'
+      WRITE(6,*) '      MODELA,MODELC,MODELW,MODELWR,MODELWM,MODELR,MODELD,'
       WRITE(6,*) '      NTG1STEP,NTG1MIN,NTG1MAX,LLMAX,IDBGFP,'
       WRITE(6,*) '      NTG2STEP,NTG2MIN,NTG2MAX,'
       WRITE(6,*) '      DRR0,E0,R1,DELR1,RMIN,RMAX,'
@@ -482,6 +488,20 @@
       USE fpcomm
       IMPLICIT NONE
       integer,intent(out):: ierr
+      INTEGER:: ID,NS,NSA
+
+      ID=0
+      DO NSA=1,NSAMAX
+         NS=NS_NSA(NSA)
+         IF(MODELW(NS).GT.0.OR. &
+            MODELWR(NS).GT.0.OR. &
+            MODELWM(NS).GT.9) ID=1
+      END DO
+      IF(ID.EQ.0) THEN
+         model_wave=0
+      ELSE
+         model_wave=1
+      END IF
 
       ierr=0
 
@@ -697,6 +717,8 @@
       CALL mtx_broadcast_integer(NS_NSA,NSAMAX)
       CALL mtx_broadcast_integer(NS_NSB,NSBMAX)
       CALL mtx_broadcast_integer(MODELW,NSMAX)
+      CALL mtx_broadcast_integer(MODELWR,NSMAX)
+      CALL mtx_broadcast_integer(MODELWM,NSMAX)
       CALL mtx_broadcast_integer(NCMIN,NSMAX)
       CALL mtx_broadcast_integer(NCMAX,NSMAX)
       CALL mtx_broadcast_integer(NSSPB,NBEAMMAX)
@@ -834,7 +856,8 @@
            MODEFR,MODEFW,IDEBUG, &
            NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX,IMTX, &
            NTMAX,NTCLSTEP,LMAXE,NGLINE,NGRAPH,LMAXNWR, &
-           MODELE,MODELA,MODELC,MODELW,MODELR,MODELD,LLMAX,IDBGFP, &
+           MODELE,MODELA,MODELC,MODELW,MODELWR,MODELWM,MODELR,MODELD, &
+           LLMAX,IDBGFP, &
            NTG1STEP,NTG1MIN,NTG1MAX, &
            NTG2STEP,NTG2MIN,NTG2MAX, &
            DRR0,E0,R1,DELR1,RMIN,RMAX, &
@@ -881,7 +904,7 @@
          NS=NS_NSA(NSA)
          WRITE(6,'(A,I2,A,I2)') 'NSA = ',NSA,'  NS  = ',NS
          
-         IF(MODELW(NS).EQ.0) THEN
+         IF(MODELW(NS).NE.0) THEN
             
             WRITE(6,600) 'DEC     ',DEC     ,'RFEC    ',RFEC  
             WRITE(6,600) 'PEC1    ',PEC1    ,'PEC2    ',PEC2    ,'DELYEC  ',DELYEC
@@ -890,48 +913,46 @@
             WRITE(6,600) 'PLH1    ',PLH1    ,'PLH2    ',PLH2
             WRITE(6,600) 'DFW     ',DFW     ,'RFW     ',RFW
             WRITE(6,600) 'PFW1    ',PFW1    ,'PFW2    ',PFW2
-            
-         ELSEIF(MODELW(NS).EQ.1) THEN
+         END IF
+         IF(MODELWR(NS).EQ.1) THEN
             WRITE(6,600) 'RFDW    ',RFDW    ,'DELNPR  ',DELNPR
             WRITE(6,600) 'PWAVE   ',PWAVE   ,'DELYEC  ',DELYEC
             WRITE(6,602) 'EPSNWR  ',EPSNWR  ,'LMAXNW  ',LMAXNWR
-            
-         ELSEIF(MODELW(NS).EQ.2) THEN
+         ELSEIF(MODELWR(NS).EQ.2) THEN
             WRITE(6,600) 'RFDW    ',RFDW    ,'DELNPR  ',DELNPR
             WRITE(6,600) 'PWAVE   ',PWAVE   ,'DELYEC  ',DELYEC
             WRITE(6,602) 'EPSNWR  ',EPSNWR  ,'LMAXNW  ',LMAXNWR
-            
-         ELSEIF(MODELW(NS).EQ.3) THEN
+         END IF
+         IF(MODELWM(NS).EQ.1) THEN
             WRITE(6,600) 'RFDW    ',RFDW    ,'DELNPR  ',DELNPR
             WRITE(6,600) 'CEWR/R  ',DBLE(CEWR) ,'CEWR/I  ',DIMAG(CEWR)
             WRITE(6,600) 'CEWTH/R ',DBLE(CEWTH),'CEWTH/I ',DIMAG(CEWTH)
             WRITE(6,600) 'CEWPH/R ',DBLE(CEWPH),'CEWPH/I ',DIMAG(CEWPH)
             WRITE(6,600) 'REWY    ',REWY    ,'DREWY   ',DREWY
-            WRITE(6,600) 'RKWR    ',RKWR    ,'RKWTH   ',RKWTH   ,'RKWPH   ',RKWPH
-            
-         ELSEIF(MODELW(NS).EQ.4) THEN
+            WRITE(6,600) 'RKWR    ',RKWR    ,'RKWTH   ',RKWTH   , &
+                         'RKWPH   ',RKWPH
+         ELSEIF(MODELWM(NS).EQ.2) THEN
             WRITE(6,600) 'RFDW    ',RFDW    ,'DELNPR  ',DELNPR
             WRITE(6,600) 'FACTWM  ',FACTWM
-         ENDIF
+         END IF
          
          IF(TLOSS(NS).NE.0.D0) THEN
             WRITE(6,600) 'TLOSS   ',TLOSS(NS)
          ENDIF
 
-         IF(MODELW(NS).EQ.0)THEN
+         IF(MODELW(NS).EQ.1)THEN
             WRITE(6,*) 'GIVEN WAVE DIFFUSION COEFFICIENTS'
-         ELSE IF(MODELW(NS).EQ.1)THEN
-            WRITE(6,*) 'RAY TRACING WAVE DATA'
-         ELSE IF(MODELW(NS).EQ.2)THEN
-            WRITE(6,*) 'BEAM TRACING WAVE DATA'
-         ELSE IF(MODELW(NS).EQ.3)THEN
-            WRITE(6,*) 'GIVEN WAVE AMPLITUDE'
-         ELSE IF(MODELW(NS).EQ.4)THEN
-            WRITE(6,*) 'FULL WAVE DATA'
-         ELSE
-            WRITE(6,*) 'XX UNKNOWN MODELW: MODELW =',MODELW(NSA)
          END IF
-      
+         IF(MODELWR(NS).EQ.1)THEN
+            WRITE(6,*) 'RAY TRACING WAVE DATA'
+         ELSE IF(MODELWR(NS).EQ.2)THEN
+            WRITE(6,*) 'BEAM TRACING WAVE DATA'
+         END IF
+         IF(MODELWM(NS).EQ.1)THEN
+            WRITE(6,*) 'GIVEN WAVE AMPLITUDE'
+         ELSE IF(MODELWM(NS).EQ.2)THEN
+            WRITE(6,*) 'FULL WAVE DATA'
+         END IF
       END DO
 
       DO NBEAM=1,NBEAMMAX

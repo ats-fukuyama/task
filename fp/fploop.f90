@@ -543,16 +543,16 @@
 
       IF(NRANK.eq.0)THEN
          DO NP=1,NPMAX
-            WRITE(9,'(1PE12.4,I6,1P20E17.8e3)') PTG(NTG1)*1000, NP, PM(NP,1), &
-                 PM(NP,1)*PTFP0(1)/AMFP(1)/VC/SQRT(1.D0+PM(NP,1)**2*THETA0(1)), &
-                 PM(NP,1)**2, &
-                 PTFP0(1)**2*PM(NP,1)**2/(AEE*AMFP(1)*1.D3), FNS(1,NP,1,1), FNS(NTHMAX,NP,1,1), &
-                 FNS(NTHMAX/2,NP,1,1) !&
+!            WRITE(9,'(1PE12.4,I6,1P20E17.8e3)') PTG(NTG1)*1000, NP, PM(NP,1), &
+!                 PM(NP,1)*PTFP0(1)/AMFP(1)/VC/SQRT(1.D0+PM(NP,1)**2*THETA0(1)), &
+!                 PM(NP,1)**2, &
+!                 PTFP0(1)**2*PM(NP,1)**2/(AEE*AMFP(1)*1.D3), FNS(1,NP,1,1), FNS(NTHMAX,NP,1,1), &
+!                 FNS(NTHMAX/2,NP,1,1) !&
 !                 , DCPP_1(NP), DCPP_2(NP), FCPP_1(NP), FCPP_2(NP), DCTT_1(NP), DCTT_2(NP), &
 !                 DPP_A(NP), DTT_A(NP), FPP_A(NP), (1.D0-SQRT(1.D0+PM(NP,1)**2*THETA0(1)))/THETA0(1)
          END DO
-         WRITE(9,*) " "
-         WRITE(9,*) " "
+!         WRITE(9,*) " "
+!         WRITE(9,*) " "
 !         WRITE(16,'(A, 1PE15.6e3)') "# TIME ", TIMEFP
 !         DO NP=1, NPMAX
 !            DO NTH=1,NTHMAX

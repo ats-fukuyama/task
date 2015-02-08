@@ -1,0 +1,67 @@
+0
+f
+fp.demo2014.gs
+c
+fp
+p
+ &fp
+   modelg=3,KNAMEQ='eqdata.demo2014',
+   modelwr=1,KNAMWR='wrdata.demo2014',
+             KNAMFP='fpdata.demo2014'
+   NSMAX=3
+   NSAMAX=1
+   NSBMAX=3
+   PN=1.0,0.5,0.5
+   PNS=0.01,0.005,0.005
+   PTPR=20.0,20.0,20.0
+   PTPP=20.0,20.0,20.0
+   PROFN2=0.7
+   MODELN=1
+   r1=0.7D0
+   Rmin=0.0D0
+   Rmax=1.0D0
+   PMAX=10.D0
+   NPMAX=50
+   NTHMAX=50
+   MODELC=4
+   MODELR=1
+   MODELA=1
+   NRMAX=10
+   NTMAX=10	
+   DELT=1.d-3
+   DELYEC=0.3
+   pwave=1.0D0
+ &end
+r
+g
+rt
+rpw
+ri
+ti
+f2
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+0
+dwpp
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+0
+x
+q
+q

@@ -12,6 +12,7 @@
       USE plprof
       USE fpwmin
       USE libbes,ONLY: bessjn
+      USE fpsub,ONLY: fpbave_dpp,fpbave_dth
 
       contains
 !
@@ -48,8 +49,7 @@
       real(8),DIMENSION(NSBMAX):: sum11,sum12,sum13,sum14,sum15,sum16
       integer:: NSA, NR, NRDO, NTH, NP, NSBA
       real(8):: FACT, ETA, DWPPS, DWPTS, DWTPS, DWTTS, RHOL, P
-      real(8):: DWPPL, DWPTL, DWTPL, DWTTL
-      real(4):: gut, gut1, gut2
+      real(8):: DWPPL, DWPTL, DWTPL, DWTTL, FACTOR
 !
 ! =============  CALCULATION OF DWPP AND DWPT  ===============
 !
@@ -60,87 +60,38 @@
          NR=NRDO
          DO NP=1,NPMAX+1
          DO NTH=1,NTHMAX
-            IF(NTH.eq.ITL(NR).or.NTH.eq.ITU(NR))THEN
-!
-            ELSE
+            IF(NTH.NE.ITL(NR).AND.NTH.NE.ITU(NR))THEN
                CALL FPSUMV(NTH,NP,NR,NSA,0,DWPPS,DWPTS)                     
-               DWPP(NTH,NP,NR,NSA)=DWPPS
-               DWPT(NTH,NP,NR,NSA)=DWPTS
+               DWWMPP(NTH,NP,NR,NSA)=DWPPS
+               DWWMPT(NTH,NP,NR,NSA)=DWPTS
             END IF
          END DO
          END DO
 
          IF(MODELA.EQ.1) THEN
-            DO NP=1,NPMAX+1
-               DO NTH=ITL(NR)+1,NTHMAX/2
-                  DWPP(NTH,NP,NR,NSA)  =(DWPP(NTH,NP,NR,NSA)           &
-                       +DWPP(NTHMAX-NTH+1,NP,NR,NSA))*0.5D0
-                  DWPT(NTH,NP,NR,NSA)  =(DWPT(NTH,NP,NR,NSA)           &
-                       +DWPT(NTHMAX-NTH+1,NP,NR,NSA))*0.5D0
-                  DWPP(NTHMAX-NTH+1,NP,NR,NSA)  =DWPP(NTH,NP,NR,NSA)
-                  DWPT(NTHMAX-NTH+1,NP,NR,NSA)  =DWPT(NTH,NP,NR,NSA)
-               END DO
-               DWPP(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)*0.25D0        &
-                    *( DWPP(ITL(NR)-1,NP,NR,NSA)            &
-                                     /RLAMDA(ITL(NR)-1,NR)  &
-                      +DWPP(ITL(NR)+1,NP,NR,NSA)            &
-                                     /RLAMDA(ITL(NR)+1,NR)  &
-                      +DWPP(ITU(NR)-1,NP,NR,NSA)            &
-                                     /RLAMDA(ITU(NR)-1,NR)  &
-                      +DWPP(ITU(NR)+1,NP,NR,NSA)            &
-                                     /RLAMDA(ITU(NR)+1,NR))
-               
-               DWPT(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)*0.25D0        &
-                    *( DWPT(ITL(NR)-1,NP,NR,NSA)            &
-                                     /RLAMDA(ITL(NR)-1,NR)  &
-                      +DWPT(ITL(NR)+1,NP,NR,NSA)            &
-                                     /RLAMDA(ITL(NR)+1,NR)  &
-                      +DWPT(ITU(NR)-1,NP,NR,NSA)            &
-                                     /RLAMDA(ITU(NR)-1,NR)  &
-                      +DWPT(ITU(NR)+1,NP,NR,NSA)            &
-                                    /RLAMDA(ITU(NR)+1,NR))
-               DWPP(ITU(NR),NP,NR,NSA)  =DWPP(ITL(NR),NP,NR,NSA)
-               DWPT(ITU(NR),NP,NR,NSA)  =-DWPT(ITL(NR),NP,NR,NSA)
-            END DO
+            CALL fpbave_dpp(DWWMPP,NR,NSA,0)
+            CALL fpbave_dpp(DWWMPT,NR,NSA,1)
          ENDIF
+
 ! Dw=0 at rho=0, 1 
-         IF(RM(NR).le.2.D-2)THEN
-            DO NP=1,NPMAX+1
-               DO NTH=1,NTHMAX
-                  DWPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA) &
-                       *0.D0
-                  DWPT(NTH,NP,NR,NSA)=DWPT(NTH,NP,NR,NSA) &
-                       *0.D0
-               END DO
-            END DO
-         ELSEIF(RM(NR).le.1.D-1)THEN
-            DO NP=1,NPMAX+1
-               DO NTH=1,NTHMAX
-                  DWPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA) &
-                       *(RM(NR)/1.D-1)**4
-                  DWPT(NTH,NP,NR,NSA)=DWPT(NTH,NP,NR,NSA) &
-                       *(RM(NR)/1.D-1)**4
-               END DO
-            END DO
+
+         IF(RM(NR).le.0.02D0)THEN
+            FACTOR=0.D0
+         ELSEIF(RM(NR).le.0.1D0)THEN
+            FACTOR=(RM(NR)/0.1D0)**4
          ELSEIF(RM(NR).ge.0.98D0)THEN
-            DO NP=1,NPMAX+1
-               DO NTH=1,NTHMAX
-                  DWPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA) &
-                       *0.D0
-                  DWPT(NTH,NP,NR,NSA)=DWPT(NTH,NP,NR,NSA) &
-                       *0.D0
-               END DO
-            END DO
-         ELSEIF(RM(NR).ge.9.D-1)THEN
-            DO NP=1,NPMAX+1
-               DO NTH=1,NTHMAX
-                  DWPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA) &
-                       *( (1.D0-RM(NR))/1.D-1)**4
-                  DWPT(NTH,NP,NR,NSA)=DWPT(NTH,NP,NR,NSA) &
-                       *( (1.D0-RM(NR))/1.D-1)**4
-               END DO
-            END DO
+            FACTOR=0.D0
+         ELSEIF(RM(NR).ge.0.9D0)THEN
+            FACTOR=( (1.D0-RM(NR))/0.1D0)**4
+         ELSE
+            FACTOR=1.D0
          END IF
+         DO NP=1,NPMAX+1
+            DO NTH=1,NTHMAX
+               DWWMPP(NTH,NP,NR,NSA)=FACTOR*DWWMPP(NTH,NP,NR,NSA)
+               DWWMPT(NTH,NP,NR,NSA)=FACTOR*DWWMPT(NTH,NP,NR,NSA)
+            END DO
+         END DO
       END DO
 !
 ! =============  CALCULATION OF DWTP AND DWTT  ===============
@@ -152,73 +103,41 @@
             DO NTH=1,NTHMAX+1
                IF(NTH.NE.NTHMAX/2+1) THEN
                   CALL FPSUMV(NTH,NP,NR,NSA,1,DWTPS,DWTTS)
-                  DWTP(NTH,NP,NR,NSA)=DWTPS
-                  DWTT(NTH,NP,NR,NSA)=DWTTS
+                  DWWMTP(NTH,NP,NR,NSA)=DWTPS
+                  DWWMTT(NTH,NP,NR,NSA)=DWTTS
                ELSE
-!                  P=PM(NP,NSA)
-!                  ETA=ETAG(NTH,NR)
-!                  CALL FPWAVV(RHOL,ETA,SING(NTH),COSG(NTH),P,SING(NTH),COSG(NTH),NSA,1, &
-!                       DWTPL,DWTTL)
-                  DWTP(NTH,NP,NR,NSA)=0.D0
-                  DWTT(NTH,NP,NR,NSA)=0.D0
-!                  DWTT(NTH,NP,NR,NSA)=DWTTL
+                  DWWMTP(NTH,NP,NR,NSA)=0.D0
+                  DWWMTT(NTH,NP,NR,NSA)=0.D0
                ENDIF
             END DO
          END DO
 
          IF(MODELA.EQ.1) THEN
-            DO NTH=ITL(NR)+1,NTHMAX/2
-            DO NP=1,NPMAX
-               DWTP(NTH,NP,NR,NSA)=(DWTP(NTH,NP,NR,NSA)                &
-                                   +DWTP(NTHMAX-NTH+2,NP,NR,NSA))*0.5D0
-               DWTT(NTH,NP,NR,NSA)=(DWTT(NTH,NP,NR,NSA)                &
-                                   +DWTT(NTHMAX-NTH+2,NP,NR,NSA))*0.5D0
-               DWTP(NTHMAX-NTH+2,NP,NR,NSA)= DWTP(NTH,NP,NR,NSA)
-               DWTT(NTHMAX-NTH+2,NP,NR,NSA)= DWTT(NTH,NP,NR,NSA)
-            END DO
-            END DO
-         ENDIF
-
-         IF(RM(NR).le.2.D-2)THEN
-            DO NP=1,NPMAX
-               DO NTH=1,NTHMAX+1
-                  DWTP(NTH,NP,NR,NSA)=DWTP(NTH,NP,NR,NSA) &
-                       *0.D0
-                  DWTT(NTH,NP,NR,NSA)=DWTT(NTH,NP,NR,NSA) &
-                       *0.D0
-               END DO
-            END DO
-         ELSEIF(RM(NR).le.1.D-1)THEN
-            DO NP=1,NPMAX
-               DO NTH=1,NTHMAX+1
-                  DWTP(NTH,NP,NR,NSA)=DWTP(NTH,NP,NR,NSA) &
-                       *(RM(NR)/1.D-1)**4
-                  DWTT(NTH,NP,NR,NSA)=DWTT(NTH,NP,NR,NSA) &
-                       *(RM(NR)/1.D-1)**4
-               END DO
-            END DO
-         ELSEIF(RM(NR).ge.0.98D0)THEN
-            DO NP=1,NPMAX
-               DO NTH=1,NTHMAX+1
-                  DWTP(NTH,NP,NR,NSA)=DWTP(NTH,NP,NR,NSA) &
-                       *0.D0
-                  DWTT(NTH,NP,NR,NSA)=DWTT(NTH,NP,NR,NSA) &
-                       *0.D0
-               END DO
-            END DO
-         ELSEIF(RM(NR).ge.9.D-1)THEN
-            DO NP=1,NPMAX
-               DO NTH=1,NTHMAX+1
-                  DWTP(NTH,NP,NR,NSA)=DWTP(NTH,NP,NR,NSA) &
-                       *( (1.D0-RM(NR))/1.D-1)**4
-                  DWTT(NTH,NP,NR,NSA)=DWTT(NTH,NP,NR,NSA) &
-                       *( (1.D0-RM(NR))/1.D-1)**4
-               END DO
-            END DO
+            CALL fpbave_dth(DWWMTP,NR,NSA,1)
+            CALL fpbave_dth(DWWMTT,NR,NSA,0)
          END IF
+
+! Dw=0 at rho=0, 1 
+
+         IF(RM(NR).le.0.02D0)THEN
+            FACTOR=0.D0
+         ELSEIF(RM(NR).le.0.1D0)THEN
+            FACTOR=(RM(NR)/0.1D0)**4
+         ELSEIF(RM(NR).ge.0.98D0)THEN
+            FACTOR=0.D0
+         ELSEIF(RM(NR).ge.0.9D0)THEN
+            FACTOR=( (1.D0-RM(NR))/0.1D0)**4
+         ELSE
+            FACTOR=1.D0
+         END IF
+         DO NP=1,NPMAX+1
+            DO NTH=1,NTHMAX
+               DWWMTP(NTH,NP,NR,NSA)=FACTOR*DWWMTP(NTH,NP,NR,NSA)
+               DWWMTT(NTH,NP,NR,NSA)=FACTOR*DWWMTT(NTH,NP,NR,NSA)
+            END DO
+         END DO
       END DO
 
-!      WRITE(*,*)"NCM",NCMIN(NSa),NCMAX(NSA)
       RETURN
       END SUBROUTINE FP_CALWM
 !
@@ -236,7 +155,6 @@
       REAL(8):: DELH, RHOL, ETAL, PSIN, PCOS, BMIN, BMAX, PSI
       REAL(8):: DWPPL, DWPTL, DWTPL, DWTTL
       integer:: N
-      real(4):: gut2, gut1, gut
 
       IF(NSW_PT.eq.0)THEN
          DELH=2.D0*ETAM(NTH,NR)/NAVMAX
@@ -459,7 +377,7 @@
       INTEGER:: NSA, IERR
       REAL(8):: Y, ARG, FACT, PHL
 
-      IF(MODELW(NS_NSA(NSA)).EQ.3) THEN
+      IF(MODELWM(NS_NSA(NSA)).EQ.1) THEN
          Y=RHOL*RA*SIN(ETAL)
 
          DREWY=1.D1

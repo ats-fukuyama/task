@@ -84,7 +84,7 @@
       ID=0
       DO NSA=1,NSAMAX
          NS=NS_NSA(NSA)
-         IF(MODELW(NS).EQ.1.OR.MODELW(NS).EQ.2) ID=1
+         IF(MODELWR(NS).NE.0) ID=1
       ENDDO
       IF(ID.EQ.1) THEN
          CALL fp_wr_read(IERR)
@@ -96,7 +96,7 @@
       ID=0
       DO NSA=1,NSAMAX
          NS=NS_NSA(NSA)
-         IF(MODELW(NS).EQ.4) ID=1
+         IF(MODELWM(NS).EQ.2) ID=1
       ENDDO
       IF(ID.EQ.1) THEN
          CALL fp_wm_read(IERR)
@@ -190,7 +190,7 @@
       ENDDO
 
       IF(NRANK.eq.0) THEN
-         WRITE(6,'(A,3E14.6)') "DEVICE, RR, RA, BB", RR, RA, BB
+         WRITE(6,'(A,1P3E12.4)') "DEVICE: RR, RA, BB", RR, RA, BB
       END IF
 !     ----- set bounce-average parameters -----
 
