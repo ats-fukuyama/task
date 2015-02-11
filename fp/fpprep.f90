@@ -47,18 +47,16 @@
             ENDIF
          ENDIF
          CALL fp_eq_broadcast
-!         write(LINE,'(A,I5)') 'nrmax=',51
-!         call eq_parm(2,line,ierr)
-!         write(LINE,'(A,I5)') 'nthmax=',64
-!         call eq_parm(2,line,ierr)
-!         write(LINE,'(A,I5)') 'nsumax=',64
-!         call eq_parm(2,line,ierr)
+         write(LINE,'(A,I5)') 'nrmax=',51
+         call eq_parm(2,line,ierr)
+         write(LINE,'(A,I5)') 'nthmax=',64
+         call eq_parm(2,line,ierr)
+         write(LINE,'(A,I5)') 'nsumax=',64
+         call eq_parm(2,line,ierr)
          CALL eqcalq(IERR)
          CALL eqgetb(BB,RR,RIP,RA,RKAP,RDLT,RB)
       ENDIF
-!      WRITE(6,*) 'RKAP=',RKAP,' set to 1.0'
-      RKAP=1.D0
-
+      write(6,*) 'AF: end of eqload'
 !     ----- set radial mesh -----
 
       IF(NRMAX.EQ.1) THEN
@@ -103,11 +101,13 @@
          IF(IERR.NE.0) RETURN
       ENDIF
 
+      write(6,*) 'AF: start of Bpol'
 
 !     ----- set approximate poloidal magneticl field -----
 
       DO NR=1,NRMAX
          RHON=RM(NR)
+         WRITE(6,*) 'ZZ rhon=',rhon
          CALL pl_qprf(RHON,QL)
          QLM(NR)=QL
          BT=BB
@@ -120,6 +120,7 @@
       ENDDO
 !      RHON=RG(NRMAX+1)
       RHON=RM(NRMAX)+DELR
+         WRITE(6,*) 'ZZ rhon=',rhon
       CALL pl_qprf(RHON,QL)
       QLM(NRMAX+1)=QL
       BT=BB
@@ -129,6 +130,7 @@
 !      IF(NRANK.eq.0) WRITE(*,*) "BP=", BP
       DO NR=1,NRMAX+1
          RHON=RG(NR)
+         WRITE(6,*) 'ZZ rhon=',rhon
          CALL pl_qprf(RHON,QL)
          QLG(NR)=QL
          BT=BB
@@ -188,6 +190,8 @@
       DO NR=1,NRMAX
          TVOLR=TVOLR+VOLR(NR)
       ENDDO
+
+      write(6,*) 'AF: end of Bpol'
 
       IF(NRANK.eq.0) THEN
          WRITE(6,'(A,1P3E12.4)') "DEVICE: RR, RA, BB", RR, RA, BB
@@ -266,12 +270,15 @@
             RFSAD_GG(NR)=1.D0
          END DO
       ELSE
+         WRITE(6,*) 'ZZ bouce NR=',NR
          DO NR=NRSTART,NREND
+           WRITE(6,*) 'ZZ bouce NR=',NR
             CALL SET_BOUNCE_PARAM(NR)
          END DO
          CALL SET_BOUNCE_PARAM(NRMAX+1)
          DO NR=1,NRMAX+1
-            CALL SET_RFSAD(NR)
+           WRITE(6,*) 'ZZ rfsad NR=',NR
+          CALL SET_RFSAD(NR)
          END DO
       END IF ! MODELA
 

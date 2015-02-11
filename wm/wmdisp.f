@@ -597,7 +597,7 @@ C
                CQM=CFN*COEF*RHOR     *CEX*CX*CX*(1.D0+2.D0*CX*CX)
                CRM=CFN*COEF          *CEX*CX*CX*CX*2.D0
             ELSE
-               CALL WMDPFA(CX,CPM,CQM,CRM,MODEFA)
+               CALL WMDPFA(CX,CFN,COEF,RHOR,CPM,CQM,CRM,MODEFA)
             ENDIF
 C
 C            CTNSR(1,1,MD,ND,NTH,NHH)=CPM*COS(ANGTH)**2

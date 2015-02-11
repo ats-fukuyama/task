@@ -4,7 +4,7 @@
 !     ----                             by futakuchi
  
 SUBROUTINE WMDPFA(CX,CFN,COEF,RHOR,CPM,CQM,CRM,MODEFA)
-
+  USE libdsp
   USE bpsd_constants,ONLY : CI,PI
   IMPLICIT NONE
   COMPLEX(8),INTENT(IN):: CX,CFN,COEF
@@ -12,59 +12,98 @@ SUBROUTINE WMDPFA(CX,CFN,COEF,RHOR,CPM,CQM,CRM,MODEFA)
   COMPLEX(8),INTENT(OUT):: CPM,CQM,CRM
   INTEGER,INTENT(IN):: MODEFA
 
-  COMPLEX(8):: SUM
-  COMPLEX(8):: Fun
-  REAL(8):: vp, vn
-  REAL(8):: dv, dh
-  INTEGER::  i
+  COMPLEX(8):: SUMf,Zf,DZf,CEX
+  COMPLEX(8):: Pdis
+  REAL(8):: vpf, vnf
+  REAL(8):: dvf, dhf
+  INTEGER::  if
 
-  SUM=(0.D0,0.D0)
-  dh=1.D-8
-  dv=1.D-2
-  vp=REAL(CX)+dh
-  vn=REAL(CX)-dh
+  IF(ABS(CX).GT.5.D0) THEN
+     CEX=(0.D0,0.D0)
+  ELSE
+     CEX=CX*EXP(-CX*CX)
+  ENDIF
 
-  DO i=1,200
+  SUMf=(0.D0,0.D0)
 
-     SUM=SUM &
-        +dv*(Fun(vp,CX)+Fun(vp+dv,CX)+Fun(vn,CX)+Fun(vn-dv,CX))/2.D0
+  IF(MODEFA.EQ.1) THEN
+!---use libdsp-plasma dispersion function Z     
+     CALL DSPFN(CX,Zf,DZf)
+     SUMf=-SQRT(PI)*Zf
+     CPM=CFN*COEF*RHOR*RHOR*(CX*(5.D-1+CX*CX+CX*CX*CX*CX)*SUMf &
+                            -CX*CX*(1.5D0+CX*CX)*SQRT(PI))*5.D-1*CI/PI
+     CQM=CFN*COEF*RHOR*     (CX*CX*(5.D-1+CX*CX)*SUMf &
+                            -CX*(1.D0+CX*CX)*SQRT(PI))*CI/PI
+     CRM=CFN*COEF*         ((CX*CX*CX)*SUMf &
+                            -(CX*CX)*SQRT(PI))*2.D0*CI/PI
+!---           
+  ELSE
+!--suuchisekibunn
+     dhf=1.D-8
+     dvf=1.D-2
+     vpf=REAL(CX)+dhf
+     vnf=REAL(CX)-dhf
 
-     vp=vp+dv
-     vn=vn-dv
-  END DO
+     DO if=1,200
+        SUMf=SUMf &
+            +dvf*(Pdis(vpf,CX) &
+                 +Pdis(vpf+dvf,CX) &
+                 +Pdis(vnf,CX) &
+                 +Pdis(vnf-dvf,CX))/2.D0
+        vpf=vpf+dvf
+        vnf=vnf-dvf
+     END DO
+     dvf=5.D-1
+     DO if=1,200
+        SUMf=SUMf &
+           +dvf*(Pdis(vpf,CX) &
+                +Pdis(vpf+dvf,CX) &
+                +Pdis(vnf,CX) &
+                +Pdis(vnf-dvf,CX))/2.D0
+        vpf=vpf+dvf
+        vnf=vnf-dvf
+     END DO
 
-  dv=5.D-1
+     CPM=CFN*COEF*RHOR*RHOR*(CX*(5.D-1+CX*CX+CX*CX*CX*CX)*SUMf &
+                            -CX*CX*(1.5D0+CX*CX)*SQRT(PI))*5.D-1*CI/PI
+     CQM=CFN*COEF*RHOR*     (CX*CX*(5.D-1+CX*CX)*SUMf &
+                            -CX*(1.D0+CX*CX)*SQRT(PI))*CI/PI
+     CRM=CFN*COEF*          (CX*CX*CX*SUMf &
+                            -(CX*CX)*SQRT(PI))*2.D0*CI/PI
+     IF(AIMAG(CX).EQ.0.D0) THEN
+        CPM=CPM &
+           +CFN*COEF*RHOR*RHOR*CEX*CX*(5.D-1+CX*CX+CX*CX*CX*CX)*5.D-1
+        CQM=CQM &
+           +CFN*COEF*RHOR     *CEX*CX*CX*(5.D-1+CX*CX)
+        CRM=CRM &
+           +CFN*COEF          *CEX*(CX*CX*CX)*2.D0
+     ELSE
+        CPM=CPM &
+           +2.D0*CFN*COEF*RHOR*RHOR*CEX*CX*(5.D-1+CX*CX+CX*CX*CX*CX)*5.D-1
+        CQM=CQM &
+           +2.D0*CFN*COEF*RHOR     *CEX*CX*CX*(5.D-1+CX*CX)
+        CRM=CRM &
+           +2.D0*CFN*COEF          *CEX*(CX*CX*CX)*2.D0
+     ENDIF
+!--
+  ENDIF
 
-  DO i=1,200
-     SUM=SUM &
-          +dv*(Fun(vp,CX)+Fun(vp+dv,CX)+Fun(vn,CX)+Fun(vn-dv,CX))/2.D0
-
-     vp=vp+dv
-     vn=vn-dv
-  END DO
-
-  CPM=CFN*COEF*RHOR*RHOR*(CX*(1.D0/2.D0+CX*CX+CX*CX*CX*CX)*SUM &
-                         -CX*CX*(3.D0+2.D0*CX)*(PI**0.5D0))*CI
-  CQM=CFN*COEF*RHOR*     (CX*CX*(1.D0/2.D0+CX*CX)*SUM &
-                         -CX*(2.D0+2.D0*CX*CX)*(PI**0.5D0))*CI
-  CRM=CFN*COEF*         ((CX*CX*CX)*SUM &
-                         -2.D0*(CX*CX)*(PI**0.5D0))*CI
   RETURN
 END SUBROUTINE WMDPFA
     
-FUNCTION Fun(v,CX)
+FUNCTION Pdis(v,CX)
   IMPLICIT NONE
   REAL(8),INTENT(IN):: v
   COMPLEX(8),INTENT(IN):: CX
-  COMPLEX(8):: Fun
-  REAL(8):: EXPV
+  COMPLEX(8):: Pdis
+  REAL(8):: EXPVV
 
   IF(ABS(v).LT.5.D0) THEN
-     EXPV=EXP(-v*v)
+     EXPVV=EXP(-v*v)
   ELSE
-     EXPV=0.D0
+     EXPVV=0.D0
   END IF
 
-  Fun=EXPV/(CX-v)
+  Pdis=EXPVV/(CX-v)
 
-END FUNCTION Fun
+END FUNCTION Pdis
