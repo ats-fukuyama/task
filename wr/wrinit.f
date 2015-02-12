@@ -47,10 +47,12 @@ C              4 : SYMPLECTIC METHOD, FIXED STEPSIZE (not completed)
 C
 C     MDLWRW : Level of PRINT OUTPUT
 C              0 : NO output
-C              1 : Write initial kr calculation
-C              2 : Write data every 100 steps
-C              3 : Write data every 10 steps
-C              4 : Write data every step
+C             -1 : Write initial kr calculation
+C              1 : Write data every step
+C              2 : Write data every 10 steps
+C              3 : Write data every 100 step
+C              4 : Write data every 1000 step
+C              5 : Write data every 10000 step
 C
 C     RCURVA : INITIAL WAVE-FRONT CURVATURE RADIUS (0 for Plane wave)
 C     RCURVB : INITIAL WAVE-FRONT CURVATURE RADIUS (0 for Plane wave)
@@ -230,12 +232,12 @@ C
          IF(INITEQ.EQ.0) THEN
             CALL EQLOAD(3,KNAMEQ,IERR)
             IF(IERR.EQ.0) THEN
-               write(LINE,'(A,I5)') 'nrmax=',51
-               call eqparm(3,line,ierr)
+               write(LINE,'(A,I5)') 'nrmax =',51
+               call eqparm(2,line,ierr)
                write(LINE,'(A,I5)') 'nthmax=',64
-               call eqparm(3,line,ierr)
+               call eqparm(2,line,ierr)
                write(LINE,'(A,I5)') 'nsumax=',64
-               call eqparm(3,line,ierr)
+               call eqparm(2,line,ierr)
                CALL EQCALQ(IERR)
                CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
                INITEQ=1

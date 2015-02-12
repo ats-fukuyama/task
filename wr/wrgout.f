@@ -637,11 +637,25 @@ C
       DIMENSION FRLRO1(0:NRADMX+1),FZLRO1(0:NRADMX+1)
       DIMENSION FRLRO2(0:NRADMX+1),FZLRO2(0:NRADMX+1)
       DIMENSION GPAY(NITM+1,NRAYM)
-      DIMENSION RLMA1(0:NITM+1,0:NRADMX),ZLMA1(0:NITM+1,0:NRADMX)
-      DIMENSION RLMA2(0:NITM+1,0:NRADMX),ZLMA2(0:NITM+1,0:NRADMX)
-      DIMENSION FASSX1(0:NITM+1,0:NRADMX),FASSZ1(0:NITM+1,0:NRADMX)
-      DIMENSION DELP1(0:NITM+1,0:NRADMX),DELP2(0:NITM+1,0:NRADMX)
-      DIMENSION FASSX2(0:NITM+1,0:NRADMX),FASSZ2(0:NITM+1,0:NRADMX)
+      REAL(8),DIMENSION(:,:),ALLOCATABLE::
+     &     RLMA1,ZLMA1,FASSX1,FASSZ1,DELP1,
+     &     RLMA2,ZLMA2,FASSX2,FASSZ2,DELP2
+C      DIMENSION RLMA1(0:NITM+1,0:NRADMX),ZLMA1(0:NITM+1,0:NRADMX)
+C      DIMENSION RLMA2(0:NITM+1,0:NRADMX),ZLMA2(0:NITM+1,0:NRADMX)
+C      DIMENSION FASSX1(0:NITM+1,0:NRADMX),FASSZ1(0:NITM+1,0:NRADMX)
+C      DIMENSION DELP1(0:NITM+1,0:NRADMX),DELP2(0:NITM+1,0:NRADMX)
+C      DIMENSION FASSX2(0:NITM+1,0:NRADMX),FASSZ2(0:NITM+1,0:NRADMX)
+
+      ALLOCATE(RLMA1(0:NITM+1,0:NRADMX))
+      ALLOCATE(RLMA2(0:NITM+1,0:NRADMX))
+      ALLOCATE(ZLMA1(0:NITM+1,0:NRADMX))
+      ALLOCATE(ZLMA2(0:NITM+1,0:NRADMX))
+      ALLOCATE(FASSX1(0:NITM+1,0:NRADMX))
+      ALLOCATE(FASSX2(0:NITM+1,0:NRADMX))
+      ALLOCATE(FASSZ1(0:NITM+1,0:NRADMX))
+      ALLOCATE(FASSZ2(0:NITM+1,0:NRADMX))
+      ALLOCATE(DELP1(0:NITM+1,0:NRADMX))
+      ALLOCATE(DELP2(0:NITM+1,0:NRADMX))
 C
       CALL PAGES
       CALL SETFNT(32)
@@ -658,7 +672,6 @@ C
             ZL=RAYS(3,IT,NRAY)
             CALL PL_MAG_OLD(XL,YL,ZL,RHON)
             GKX( IT+1,NRAY)=GUCLIP(RHON)
-C            GKX( IT+1,NRAY)=GUCLIP(RAYB(0,IT))
          ENDDO
       ENDDO
 C
@@ -750,7 +763,6 @@ C
          DO IT=0,NITMAX(NRAY)
             GKY(IT+1,1)=GUCLIP(RAYB(25,IT))
             GKY(IT+1,2)=GUCLIP(RAYB(26,IT))
-C             GKY(IT+1,1)=GUCLIP(RAYB(20,IT))
          ENDDO
       ENDDO
 C
@@ -786,46 +798,36 @@ C     -------------------------------------------------------------------
 C
       DO NRAY=1,NRAYMX
          DO IT=0,NITMAX(NRAY)-1
-            RLA =SQRT(RAYS(1,IT,NRAY)**2+RAYS(2,IT,NRAY)**2)
-            ZLA =RAYS(3,IT,NRAY)
-            CALL GETRZ(RLA,ZLA,PHIL,BR,BZ,BPHI,RHON1)
-C            XL=RAYS(1,IT,NRAY)
-C            YL=RAYS(2,IT,NRAY)
-C            ZL=RAYS(3,IT,NRAY)
-C            CALL PL_MAG_OLD(XL,YL,ZL,RHON1)
+            CALL pl_mag_old(RAYS(1,IT,NRAY),RAYS(2,IT,NRAY)**2,
+     &                      RAYS(3,IT,NRAY),RHON1)
 	    NRS1=INT(RHON1/DRHO)+1
-            RLAD=SQRT(RAYS(1,IT+1,NRAY)**2+RAYS(2,IT+1,NRAY)**2)
-            ZLAD=RAYS(3,IT+1,NRAY)
-            CALL GETRZ(RLAD,ZLAD,PHIL,BR,BZ,BPHI,RHON2)            
-C            XL=RAYS(1,IT+1,NRAY)
-C            YL=RAYS(2,IT+1,NRAY)
-C            ZL=RAYS(3,IT+1,NRAY)
-C            CALL PL_MAG_OLD(XL,YL,ZL,RHON2)
+            CALL pl_mag_old(RAYS(1,IT+1,NRAY),RAYS(2,IT+1,NRAY)**2,
+     &                      RAYS(3,IT+1,NRAY),RHON2)
             NRS2=INT(RHON2/DRHO)+1
             NDR=ABS(NRS2-NRS1)
 C
             IF(NDR.EQ.0) THEN
                GPY(NRS1,NRAY)=GPY(NRS1,NRAY)+GUCLIP(RAYS(8,IT+1,NRAY))
             ELSE IF(NRS1.LT.NRS2) THEN
-               SDR=(RHO2-RHO1)/DRHO
+               SDR=(RHON2-RHON1)/DRHO
                DELP=RAYS(8,IT+1,NRAY)/SDR
                GPY(NRS1,NRAY)=GPY(NRS1,NRAY)
-     &                       +GUCLIP((DBLE(NRS1)-RHO1/DRHO)*DELP)              
+     &                       +GUCLIP((DBLE(NRS1)-RHON1/DRHO)*DELP)              
                DO NR=NRS1+1,NRS2-1
                   GPY(NR,NRAY)=GPY(NR,NRAY)+GUCLIP(DELP)
                ENDDO
                GPY(NRS2,NRAY)=GPY(NRS2,NRAY)
-     &                       +GUCLIP((RHO2/DRHO-DBLE(NRS2-1))*DELP)
+     &                       +GUCLIP((RHON2/DRHO-DBLE(NRS2-1))*DELP)
             ELSE
-               SDR=(RHO1-RHO2)/DRHO
+               SDR=(RHON1-RHON2)/DRHO
                DELP=RAYS(8,IT+1,NRAY)/SDR
                GPY(NRS2,NRAY)=GPY(NRS2,NRAY)
-     &                       +GUCLIP((DBLE(NRS2)-RHO2/DRHO)*DELP)
+     &                       +GUCLIP((DBLE(NRS2)-RHON2/DRHO)*DELP)
                DO NR=NRS2+1,NRS1-1
                   GPY(NR,NRAY)=GPY(NR,NRAY)+GUCLIP(DELP)
                ENDDO
                GPY(NRS1,NRAY)=GPY(NRS1,NRAY)
-     &                       +GUCLIP((RHO1/DRHO-DBLE(NRS1-1))*DELP)
+     &                       +GUCLIP((RHON1/DRHO-DBLE(NRS1-1))*DELP)
             ENDIF
             ENDDO
 C         WRITE(6,'(5(I3,1PE12.4))') (NRZ,GPY(NRZ,NRAY),NRZ=1,NRZMAX)
@@ -883,22 +885,20 @@ C        ----- JUDGE MAGNETIC SURFACE-----------------------------
 C            ---------------------------------------------
 C
 C            ------ REFERENCE DIRECTION ------------------
-C               CALL GETRZ(RLA,ZLA,PHIL,BR,BZ,BPHI,PSINR)
-C               RHOR=SQRT(PSINR)
+C               CALL GETRZ(RLA,ZLA,PHIL,BR,BZ,BPHI,RHOR)
 C               NRSR=INT(RHOR/DRHO)+1
-C               CALL GETRZ(RLAD,ZLAD,PHIL,BR,BZ,BPHI,PSINDR)
-C               RHODR=SQRT(PSINDR)
+C               CALL GETRZ(RLAD,ZLAD,PHIL,BR,BZ,BPHI,RHODR)
 C               NRSDR=INT(RHODR/DRHO)+1
 C            ---------------------------------------------
 C            
 C            ------ BEAM RADIAL DIRECTION ----------------
                RLDMAX1=FRLRO1(NRADMX)
                ZLDMAX1=FZLRO1(NRADMX)
-               CALL GETRZ(RLDMAX1,ZLDMAX1,PHIL,BR,BZ,BPHI,PSINDMAX1)
-               RHOMAX1=SQRT(PSINDMAX1)
+               CALL GETRZ(RLDMAX1,ZLDMAX1,PHIL,BR,BZ,BPHI,RHOMAX1)
+C               WRITE(6,'(A,1P3E12.4)') 'RLD: ',RLDMAX1,ZLDMAX1,RHOMIN1
                NRSMAX1=INT(RHOMAX1/DRHO)+1
-               CALL GETRZ(RLA,ZLA,PHIL,BR,BZ,BPHI,PSINDMIN1)
-               RHOMIN1=SQRT(PSINDMIN1)
+               CALL GETRZ(RLA,ZLA,PHIL,BR,BZ,BPHI,RHOMIN1)
+C               WRITE(6,'(A,1P3E12.4)') 'RLA: ',RLA,ZLA,RHOMIN1
                NRSMIN1=INT(RHOMIN1/DRHO)+1
                NDBRD1=(NRSMAX1-NRSMIN1)
                NABSM1=ABS(NDBRD1)
@@ -907,14 +907,14 @@ C
            DO NRAD=0,NRADMX-1
                RL1=FRLRO1(NRAD)
                ZL1=FZLRO1(NRAD)
-               CALL GETRZ(RL1,ZL1,PHIL,BR,BZ,BPHI,PSIN1)
-               RHO1=SQRT(PSIN1)
-               NRSA1=INT(RHO1/DRHO)+1
+               CALL GETRZ(RL1,ZL1,PHIL,BR,BZ,BPHI,RHON1)
+C               WRITE(6,'(A,1P3E12.4)') 'RL1: ',RL1,ZL1,RHON1
+               NRSA1=INT(RHON1/DRHO)+1
 C
                RLD1=FRLRO1(NRAD+1)
                ZLD1=FZLRO1(NRAD+1)
-               CALL GETRZ(RLD1,ZLD1,PHIL,BR,BZ,BPHI,PSIND1)
-               RHOD1=SQRT(PSIND1)
+               CALL GETRZ(RLD1,ZLD1,PHIL,BR,BZ,BPHI,RHOD1)
+C               WRITE(6,'(A,1P3E12.4)') 'RLD1: ',RLD1,ZLD1,RHOD1
                NRSDA1=INT(RHOD1/DRHO)+1
 C
                 IF (NRSDA1.NE.NRSA1) THEN
@@ -984,11 +984,11 @@ C      ------ JUDGE MAGNETIC SURFACE ------------------------
 C
                RLDMAX2=FRLRO2(NRADMX)
                ZLDMAX2=FZLRO2(NRADMX)
-               CALL GETRZ(RLDMAX2,ZLDMAX2,PHIL,BR,BZ,BPHI,PSINDMAX2)
-               RHOMAX2=SQRT(PSINDMAX2)
+               CALL GETRZ(RLDMAX2,ZLDMAX2,PHIL,BR,BZ,BPHI,RHOMAX2)
+C               WRITE(6,'(A,1P3E12.4)') 'RLD: ',RLDMAX2,ZLDMAX2,RHOMAX2
                NRSMAX2=INT(RHOMAX2/DRHO)+1
-               CALL GETRZ(RLA,ZLA,PHIL,BR,BZ,BPHI,PSINDMIN2)
-               RHOMIN2=SQRT(PSINDMIN2)
+               CALL GETRZ(RLA,ZLA,PHIL,BR,BZ,BPHI,RHOMIN2)
+C               WRITE(6,'(A,1P3E12.4)') 'RLA: ',RLA,ZLA,RHOMIN2
                NRSMIN2=INT(RHOMIN2/DRHO)+1
                NDBRD2=(NRSMAX2-NRSMIN2)
                NABSM2=ABS(NDBRD2)
@@ -996,14 +996,14 @@ C
             DO NRAD=0,NRADMX-1
                RL2=FRLRO2(NRAD)
                ZL2=FZLRO2(NRAD)
-               CALL GETRZ(RL2,ZL2,PHIL,BR,BZ,BPHI,PSIN2)
-               RHO2=SQRT(PSIN2)
-               NRSA2=INT(RHO2/DRHO)+1
+               CALL GETRZ(RL2,ZL2,PHIL,BR,BZ,BPHI,RHON2)
+C              WRITE(6,'(A,1P3E12.4)') 'RL2: ',RL2,ZL2,RHON2
+               NRSA2=INT(RHON2/DRHO)+1
 C
                RLD2=FRLRO2(NRAD+1)
                ZLD2=FZLRO2(NRAD+1)
-               CALL GETRZ(RLD2,ZLD2,PHIL,BR,BZ,BPHI,PSIND2)
-               RHOD2=SQRT(PSIND2)
+               CALL GETRZ(RLD2,ZLD2,PHIL,BR,BZ,BPHI,RHOD2)
+C               WRITE(6,'(A,1P3E12.4)') 'RL2D:',RLD2,ZLD2,RHOD2
                NRSDA2=INT(RHOD2/DRHO)+1
 C            
                IF (NRSDA2.NE.NRSA2) THEN
@@ -1101,6 +1101,16 @@ C
          CALL GPLOTP(GPX,GPAY(1,NRAY),1,NRADMX,1,0,0,0)
          CALL SETRGB(1.0,0.0,0.0)
       ENDDO     
+      DEALLOCATE(RLMA1)
+      DEALLOCATE(RLMA2)
+      DEALLOCATE(ZLMA1)
+      DEALLOCATE(ZLMA2)
+      DEALLOCATE(FASSX1)
+      DEALLOCATE(FASSX2)
+      DEALLOCATE(FASSZ1)
+      DEALLOCATE(FASSZ2)
+      DEALLOCATE(DELP1)
+      DEALLOCATE(DELP2)
 C
       CALL WRGPRM
       CALL PAGEE
@@ -1266,7 +1276,7 @@ C
             YL=RAYS(2,IT,NRAY)
             ZL=RAYS(3,IT,NRAY)
             CALL PL_MAG_OLD(XL,YL,ZL,RHON)
-            GKX( IT+1,NRAY)=GUCLIP(RAYB(0,IT))
+            GKX( IT+1,NRAY)=GUCLIP(RHON)
          ENDDO
       ENDDO
 C

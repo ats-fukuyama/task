@@ -280,15 +280,19 @@ C
          RKPERP=SQRT((YM(4)*YM(4)+YM(5)*YM(5)+YM(6)*YM(6))-RKPARA**2)
 
 C
-         IF(MDLWRW.GE.2) THEN
+         IF(MDLWRW.GE.1) THEN
             ID=0
             SELECT CASE(MDLWRW)
-            CASE(2)
-               IF(MOD(IT-1,100).EQ.0) ID=1
-            CASE(3)
-               IF(MOD(IT-1,10).EQ.0) ID=1
-            CASE(4)
+            CASE(1)
                ID=1
+            CASE(2)
+               IF(MOD(IT-1,10).EQ.0) ID=1
+            CASE(3)
+               IF(MOD(IT-1,100).EQ.0) ID=1
+            CASE(4)
+               IF(MOD(IT-1,1000).EQ.0) ID=1
+            CASE(5)
+               IF(MOD(IT-1,10000).EQ.0) ID=1
             END SELECT
             IF(ID.EQ.1) 
      &           WRITE(6,'(1P7E11.3)') XE,RL,PHIL,ZL,RKRL,YM(7),YN(8,IT)
@@ -314,7 +318,7 @@ C
  11   IF(YN(7,NIT).LT.0.D0) THEN
          YN(7,NIT)=0.D0
       ENDIF
-      IF(MDLWRW.GE.2) THEN
+      IF(MDLWRW.GE.1) THEN
          IF(ID.EQ.0) 
      &        WRITE(6,'(1P7E11.3)') XE,RL,PHIL,ZL,RKRL,YM(7),YN(8,IT)
       ENDIF
@@ -398,15 +402,19 @@ C     &	               RNPHI_IDEI
 C 6001    FORMAT(1H ,1P14E13.5)
 
 C
-         IF(MDLWRW.GE.2) THEN
+         IF(MDLWRW.GE.1) THEN
             ID=0
             SELECT CASE(MDLWRW)
-            CASE(2)
-               IF(MOD(IT-1,100).EQ.0) ID=1
-            CASE(3)
-               IF(MOD(IT-1,10).EQ.0) ID=1
-            CASE(4)
+            CASE(1)
                ID=1
+            CASE(2)
+               IF(MOD(IT-1,10).EQ.0) ID=1
+            CASE(3)
+               IF(MOD(IT-1,100).EQ.0) ID=1
+            CASE(4)
+               IF(MOD(IT-1,1000).EQ.0) ID=1
+            CASE(5)
+               IF(MOD(IT-1,10000).EQ.0) ID=1
             END SELECT
             IF(ID.EQ.1) 
      &           WRITE(6,'(1P7E11.3)') XE,RL,PHIL,ZL,RKRL,YM(7),YN(8,IT)
@@ -432,9 +440,9 @@ C
  11   IF(YN(7,NIT).LT.0.D0) THEN
          YN(7,NIT)=0.D0
       ENDIF
-      IF(MDLWRW.GE.2) THEN
+      IF(MDLWRW.GE.1) THEN
          IF(ID.EQ.0) 
-     &        WRITE(6,'(1P7E11.3)') XE,RL,PHIL,ZL,RKRL,YM(7),YN(8,IT)
+     &        WRITE(6,'(1P7E11.3)') XE,RL,PHIL,ZL,RKRL,YM(7),YN(8,NIT)
       ENDIF
 C
       RETURN
@@ -488,15 +496,19 @@ C
             RKRL=(YM(4)*YM(1)+YM(5)*YM(2))/RL
          ENDIF
 C
-         IF(MDLWRW.GE.2) THEN
+         IF(MDLWRW.GE.1) THEN
             ID=0
             SELECT CASE(MDLWRW)
-            CASE(2)
-               IF(MOD(IT-1,100).EQ.0) ID=1
-            CASE(3)
-               IF(MOD(IT-1,10).EQ.0) ID=1
-            CASE(4)
+            CASE(1)
                ID=1
+            CASE(2)
+               IF(MOD(IT-1,10).EQ.0) ID=1
+            CASE(3)
+               IF(MOD(IT-1,100).EQ.0) ID=1
+            CASE(4)
+               IF(MOD(IT-1,1000).EQ.0) ID=1
+            CASE(5)
+               IF(MOD(IT-1,10000).EQ.0) ID=1
             END SELECT
             IF(ID.EQ.1) 
      &           WRITE(6,'(1P7E11.3)') XE,RL,PHIL,ZL,RKRL,YM(7),YN(8,IT)
@@ -522,7 +534,7 @@ C
  11   IF(YN(7,NIT).LT.0.D0) THEN
          YN(7,NIT)=0.D0
       ENDIF
-      IF(MDLWRW.GE.2) THEN
+      IF(MDLWRW.GE.1) THEN
          IF(ID.EQ.0) 
      &        WRITE(6,'(1P7E11.3)') XE,RL,PHIL,ZL,RKRL,YM(7),YN(8,IT)
       ENDIF
@@ -611,15 +623,19 @@ C
          RKPARA=YM(4)*BNX+YM(5)*BNY+YM(6)*BNZ
          RKPERP=SQRT((YM(4)*YM(4)+YM(5)*YM(5)+YM(6)*YM(6))-RKPARA**2)
 
-         IF(MDLWRW.GE.2) THEN
+         IF(MDLWRW.GE.1) THEN
             ID=0
             SELECT CASE(MDLWRW)
-            CASE(2)
-               IF(MOD(IT-1,100).EQ.0) ID=1
-            CASE(3)
-               IF(MOD(IT-1,10).EQ.0) ID=1
-            CASE(4)
+            CASE(1)
                ID=1
+            CASE(2)
+               IF(MOD(IT-1,10).EQ.0) ID=1
+            CASE(3)
+               IF(MOD(IT-1,100).EQ.0) ID=1
+            CASE(4)
+               IF(MOD(IT-1,1000).EQ.0) ID=1
+            CASE(5)
+               IF(MOD(IT-1,10000).EQ.0) ID=1
             END SELECT
             IF(ID.EQ.1) 
      &           WRITE(6,'(1P7E11.3)') XE,RL,PHIL,ZL,RKRL,YM(7),YN(8,IT)
@@ -652,7 +668,7 @@ C
  11   IF(YN(7,NIT).LT.0.D0) THEN
          YN(7,NIT)=0.D0
       ENDIF
-      IF(MDLWRW.GE.2) THEN
+      IF(MDLWRW.GE.1) THEN
          IF(ID.EQ.0) 
      &        WRITE(6,'(1P7E11.3)') XE,RL,PHIL,ZL,RKRL,YM(7),YN(8,IT)
       ENDIF
@@ -897,15 +913,19 @@ c_zhenya
 c_zhenya
          delta=DISPXR(Y(1),Y(2),Y(3),Y(4),Y(5),Y(6),OMG)
 C
-         IF(MDLWRW.GE.2) THEN
+         IF(MDLWRW.GE.1) THEN
             ID=0
             SELECT CASE(MDLWRW)
-            CASE(2)
-               IF(MOD(IT-1,100).EQ.0) ID=1
-            CASE(3)
-               IF(MOD(IT-1,10).EQ.0) ID=1
-            CASE(4)
+            CASE(1)
                ID=1
+            CASE(2)
+               IF(MOD(IT-1,10).EQ.0) ID=1
+            CASE(3)
+               IF(MOD(IT-1,100).EQ.0) ID=1
+            CASE(4)
+               IF(MOD(IT-1,1000).EQ.0) ID=1
+            CASE(5)
+               IF(MOD(IT-1,10000).EQ.0) ID=1
             END SELECT
             IF(ID.EQ.1) 
      &           WRITE(6,'(1P7E11.3)') XE,RL,PHIL,ZL,RKRL,Y(7),YN(8,IT)
@@ -928,7 +948,7 @@ C
  11   IF(YN(7,NIT).LT.0.D0) THEN
          YN(7,NIT)=0.D0
       ENDIF
-      IF(MDLWRW.GE.2) THEN
+      IF(MDLWRW.GE.1) THEN
          IF(ID.EQ.0) 
      &        WRITE(6,'(1P7E11.3)') XE,RL,PHIL,ZL,RKRL,Y(7),YN(8,IT)
       ENDIF
@@ -1100,7 +1120,7 @@ C
 C
 C      WRITE(6,*) S,T,S/T
       RKR=RKRI-S/T
-      IF(MDLWRW.GE.1) 
+      IF(MDLWRW.NE.0) 
      &     WRITE(6,'(1P3E12.4)') RKR,RKRI,-S/T
 C
       IF(ABS((RKR-RKRI)/RKRI).LE.EPSNW) GOTO 9000

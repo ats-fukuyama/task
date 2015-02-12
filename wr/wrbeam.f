@@ -13,8 +13,8 @@ C
 C 
       CALL GUTIME(TIME1)
 C
-      CALL DPCHEK(IERR)
-      IF(IERR.NE.0) RETURN
+C      CALL DPCHEK(IERR)
+C      IF(IERR.NE.0) RETURN
 C
       IF(MDLWRI.EQ.0) THEN
          WRITE(6,*) '# default values: RF,RP,ZP,PHI,RKR0,RNZ,RNPHI'
@@ -445,12 +445,12 @@ C
 C
 C     calculating beam radius
 C
-      IF(RBLAM1.EQ.0.D0)THEN
+      IF(RBLAM1.LE.0.D0)THEN
          RB1=0.D0
       ELSE
          RB1=SQRT(2.D0/RBLAM1)
       ENDIF
-      IF(RBLAM2.EQ.0.D0)THEN
+      IF(RBLAM2.LE.0.D0)THEN
          RB2=0.D0
       ELSE
          RB2=SQRT(2.D0/RBLAM2)
@@ -556,7 +556,8 @@ C         WRITE(6,6003) RCA,RCB,RBA,RBB,RTH
 C
       DO IT = 1,ITMAX
          YPRE=Y(19)
-         CALL ODERK(NBEQ,WRFDRVB,X0,XE,1,Y,YM,WORK)
+C         CALL ODERK(NBEQ,WRFDRVB,X0,XE,1,Y,YM,WORK)
+         CALL ODERK(NBEQ,WRFDRVB,X0,XE,10,Y,YM,WORK)
          YN(0,IT)=XE
          DO I=1,19
            YN(I,IT)=YM(I)
@@ -584,14 +585,30 @@ C
             RKRL=(YM(4)*YM(1)+YM(5)*YM(2))/RL
          ENDIF
 C
-         WRITE(6,6001) XE,RL,PHIL,ZL,RKRL,YM(19),YN(20,IT)
- 6001    FORMAT(1H ,1P7E11.3)
+         IF(MDLWRW.GE.1) THEN
+            ID=0
+            SELECT CASE(MDLWRW)
+            CASE(1)
+               ID=1
+            CASE(2)
+               IF(MOD(IT-1,10).EQ.0) ID=1
+            CASE(3)
+               IF(MOD(IT-1,100).EQ.0) ID=1
+            CASE(4)
+               IF(MOD(IT-1,1000).EQ.0) ID=1
+            CASE(5)
+               IF(MOD(IT-1,10000).EQ.0) ID=1
+            END SELECT
+            IF(ID.EQ.1) THEN
+               WRITE(6,'(1P7E11.3)') XE,RL,PHIL,ZL,RKRL,YM(19),YN(20,IT)
+               WRITE(6,'(11X,1P6E11.3)') YN(21,IT),YN(22,IT),YN(23,IT),
+     &                                   YN(24,IT),YN(25,IT),YN(26,IT)
+            END IF
+         ENDIF
+C
 C         WRITE(6,6002) Y( 7),Y( 8),Y( 9),Y(10),Y(11),Y(12)
 C         WRITE(6,6002) Y(13),Y(14),Y(15),Y(16),Y(17),Y(18)
 C 6002    FORMAT(1H ,11X,1P6E11.3)
-         WRITE(6,6003) YN(21,IT),YN(22,IT),YN(23,IT),YN(24,IT),
-     &                 YN(25,IT),YN(26,IT)
- 6003    FORMAT(1H ,11X,1P6E11.3)
 C
          DO I=1,19
             Y(I)=YM(I)
@@ -604,8 +621,8 @@ C
             GOTO 10
          ENDIF         
          CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
-C         IF(RHON.GT.RB/RA) THEN
-          IF(PSIN.GT.2.D0) THEN
+         IF(RHON.GT.RB/RA) THEN
+C          IF(PSIN.GT.2.D0) THEN
             NIT = IT
             WRITE(6,*) '--- Out of bounds ---'
             GOTO 10
@@ -615,6 +632,13 @@ C         IF(RHON.GT.RB/RA) THEN
 C     
  10   IF(YN(19,NIT).LT.0.D0) THEN
          YN(19,NIT)=0.D0
+      ENDIF
+      IF(MDLWRW.GE.1) THEN
+         IF(ID.EQ.0) THEN
+            WRITE(6,'(1P7E11.3)') XE,RL,PHIL,ZL,RKRL,YM(19),YN(20,NIT)
+            WRITE(6,'(11X,1P6E11.3)') YN(21,NIT),YN(22,NIT),YN(23,NIT),
+     &                                YN(24,NIT),YN(25,NIT),YN(26,NIT)
+         END IF
       ENDIF
 C
       RETURN

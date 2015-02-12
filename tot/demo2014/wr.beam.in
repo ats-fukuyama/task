@@ -1,0 +1,73 @@
+0
+f
+wr.beam.gs
+c
+eq
+p
+ &eq 
+   RR=8.5
+   RA=2.42
+   RKAP=1.65
+   RDLT=0.33
+   RB=2.60
+   BB=5.94
+   RIP=12.3
+   KNAMEQ='eqdata.demo2014'
+ &end
+r
+c
+ 0.64/
+s
+q
+wr
+p
+&wr
+   modelg=3,KNAMEQ='eqdata.demo2014',
+   NSMAX=3
+   PA(2)=2.0,PA(3)=3.0
+   modelp=205,1,1
+   modelv=3,0,0
+   PN=1.0,0.5,0.5
+   PNS=0.01,0.005,0.005
+   PTPR=20.0,20.0,20.0
+   PTPP=20.0,20.0,20.0
+   PROFN2=0.7
+   MODELN=1
+   MDLWRI=11
+   NRAYMX=1
+   NRZMAX=500
+   NRADMX=1000
+   smax=4.00
+   dels=0.0001
+   delder=5.D-6
+   mdlwrq=0
+   mdlwrw=3
+   RFIN=200.D3
+   RPIN=11.1 
+   ZPIN=0.0
+   PHIIN=0.0
+   RKRIN=-5000
+   ANGZIN=0
+   ANGPHIN=20.D0
+   RBRADAIN=0.1 
+   RBRADBIN=0.1
+   RCURVAIN=-2.0 
+   RCURVBIN=-2.0
+   UUIN=1.D0
+&end
+v
+r
+g
+1
+2
+3
+x
+b
+g
+1
+2
+3
+4
+x
+q
+q
