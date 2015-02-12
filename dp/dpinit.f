@@ -87,6 +87,10 @@ C
          modelv(NS)= 0
       ENDDO
 C
+      DO NS=1,NSM
+         PMAX(NS)= 7.D0
+      ENDDO
+C
       RF0    = 160.D3
       RFI0   =   0.D0
       RKX0   = 800.D0
@@ -117,7 +121,6 @@ C
       NTHMAX=50
       NRMAX=3
       NSAMAX=2
-      PMAX=7.D0
       RMIN=0.1D0
       RMAX=0.3D0
 C
@@ -253,17 +256,16 @@ C
 C
       WRITE(6,100)
       DO NS=1,NSMAX
-        WRITE(6,110) NS,MODELP(NS),MODELV(NS),NDISP1(NS),NDISP2(NS)
+        WRITE(6,110) NS,MODELP(NS),MODELV(NS),NDISP1(NS),NDISP2(NS),PMAX(NS)
       ENDDO
-      WRITE(6,601) 'PMAX  ',PMAX  ,'RMIN  ',RMIN,
-     &             'RMAX  ',RMAX
+      WRITE(6,601) 'RMIN  ',RMIN  ,'RMAX  ',RMAX
       WRITE(6,602) 'NPMAX ',NPMAX ,'NTHMAX',NTHMAX,
      &             'NRMAX ',NRMAX ,'NSAMAX',NSAMAX
 C
       RETURN
 C
-  100 FORMAT(1H ,'NS    MODELP  MODELV  NDISP1  NDISP2')
-  110 FORMAT(1H ,I2,' ',4I8)                               
+  100 FORMAT(1H ,'NS    MODELP  MODELV  NDISP1  NDISP2  PMAX')
+  110 FORMAT(1H ,I2,' ',4I8,1PE12.4)                               
   601 FORMAT(' ',A6,'=',1PE11.3 :2X,A6,'=',1PE11.3:
      &        2X,A6,'=',1PE11.3 :2X,A6,'=',1PE11.3)
   602 FORMAT(1H ,A6,'=',I7,4X  :2X,A6,'=',I7,4X  :
