@@ -391,7 +391,6 @@
       INTEGER(4)  :: ID1, ID2, NX
       COMPLEX(8) :: T11, T21, T31, T41
 
-
       IERR=0
 
       ID1=MOD(ID,2)

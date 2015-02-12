@@ -28,6 +28,7 @@
       integer:: IERR
 
       CALL mtx_initialize
+      write(6,*) 'nsize,nrank,ncomm=',nsize,nrank,ncomm
       IF(nrank.EQ.0) THEN
          WRITE(6,*) '***** TASK/FP 2015/02/08 *****'
          CALL GSOPEN
@@ -35,14 +36,14 @@
       ENDIF
 
       N_f1=0
-         OPEN(9,file="f1_1.dat")
+!         OPEN(9,file="f1_1.dat")
 !      IF(model_disrupt.ne.0)THEN
-         open(10,file='time_evol.dat') 
-         open(11,file='efield_e1.dat') 
-         open(12,file='dndt.dat') 
-         open(13,file='radial.dat') 
-         open(14,file='nth-re.dat')
-         open(15,file='re_pitch.dat')
+!         open(10,file='time_evol.dat') 
+!         open(11,file='efield_e1.dat') 
+!         open(12,file='dndt.dat') 
+!         open(13,file='radial.dat') 
+!         open(14,file='nth-re.dat')
+!         open(15,file='re_pitch.dat')
 !         OPEN(16,file="FNS01.dat")
 !         OPEN(17,file="FNS03.dat")
 !         OPEN(18,file="FNS05.dat")
@@ -58,15 +59,15 @@
       ENDIF
       CALL fp_menu
 
-         close(9)
+!         close(9)
  !     IF(model_disrupt.ne.0)THEN
          CLOSE(7)
-         close(10)
-         close(11)
-         close(12)
-         close(13)
-         close(14)
-         close(15)
+!         close(10)
+!         close(11)
+!         close(12)
+!         close(13)
+!         close(14)
+!         close(15)
 !         close(16)
 !         close(17)
 !         close(18)
