@@ -9,7 +9,7 @@ C
 C
       CHARACTER KSTR*5,K1,K2,K3,K4
 C
-    1 WRITE(6,*) ' ## INPUT GSTR : R/AEB/ATMN  CPM/P/123  CP/J',
+    1 WRITE(6,*) ' ## INPUT GSTR : R/AENPB/ATMN  CPM/P/123  CP/J',
      &           '  P/F/SBQ23J   R/GZ  S'
       WRITE(6,*) '                 CMP/EB/RTZsbh+-P/RIA',
      &           '  G/01234  EQ  ?/HELP  X/EXIT'
@@ -87,7 +87,9 @@ C
       GXMIN=GUCLIP(XR(1))
       GXMAX=GUCLIP(XR(NRMAX+1))
 C
-      IF(K2.EQ.'E') THEN
+      IF(K2.EQ.'E'.OR.
+     &   K2.EQ.'N'.OR.
+     &   K2.EQ.'P') THEN
          NR=1
             GX1(NR)=GUCLIP(       XR(NR))
             GX2(NR)=GUCLIP(       XR(NR))
@@ -98,9 +100,19 @@ C
          NX1=NRMAX+1
          NX2=NRMAX+1
          NG4=NSMAX
-         KTITL(1)='Er    '
-         KTITL(2)='Etheta'
-         KTITL(3)='Ez    '
+         IF(K2.EQ.'E') THEN
+            KTITL(1)='Er    '
+            KTITL(2)='Etheta'
+            KTITL(3)='Ez    '
+         ELSEIF(K2.EQ.'N') THEN
+            KTITL(1)='Er    '
+            KTITL(2)='Eperp '
+            KTITL(3)='Epara '
+         ELSEIF(K2.EQ.'P') THEN
+            KTITL(1)='E+    '
+            KTITL(2)='E-    '
+            KTITL(3)='Epara '
+         END IF
          KTITL(4)='Pabs  '
       ELSEIF(K2.EQ.'A') THEN
          NR=1
@@ -160,6 +172,48 @@ C
             DO I=1,3
             DO NR=1,NRMAX+1
                CF(NR,I)=CEFLD(I,NTH,NHH,NR)
+            ENDDO
+            ENDDO
+            IF(K3.EQ.'A') THEN
+               DO NS=1,NSMAX
+                  DO NR=1,NRMAX
+                     POWER(NR,NS)=PABSR(NR,NS)
+                  ENDDO
+                  POWER(NRMAX+1,NS)=0.D0
+               ENDDO
+            ELSE
+               DO NS=1,NSMAX
+                  DO NR=1,NRMAX
+                     POWER(NR,NS)=PABS(NTH,NHH,NR,NS)
+                  ENDDO
+                  POWER(NRMAX+1,NS)=0.D0
+               ENDDO
+            ENDIF
+         ELSE IF(K2.EQ.'N') THEN
+            DO I=1,3
+            DO NR=1,NRMAX+1
+               CF(NR,I)=CEN(I,NTH,NHH,NR)
+            ENDDO
+            ENDDO
+            IF(K3.EQ.'A') THEN
+               DO NS=1,NSMAX
+                  DO NR=1,NRMAX
+                     POWER(NR,NS)=PABSR(NR,NS)
+                  ENDDO
+                  POWER(NRMAX+1,NS)=0.D0
+               ENDDO
+            ELSE
+               DO NS=1,NSMAX
+                  DO NR=1,NRMAX
+                     POWER(NR,NS)=PABS(NTH,NHH,NR,NS)
+                  ENDDO
+                  POWER(NRMAX+1,NS)=0.D0
+               ENDDO
+            ENDIF
+         ELSE IF(K2.EQ.'P') THEN
+            DO I=1,3
+            DO NR=1,NRMAX+1
+               CF(NR,I)=CEP(I,NTH,NHH,NR)
             ENDDO
             ENDDO
             IF(K3.EQ.'A') THEN
