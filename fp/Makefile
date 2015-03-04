@@ -54,7 +54,7 @@ libs:
 	(cd ../../task/lib; make tasklib.a)
 
 fp : $(LIBS) fpmain.o 
-	$(FLINKER) fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
+	$(FLINKER) fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX) -L/usr/local/lib -lpmi
 
 clean :
 	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod

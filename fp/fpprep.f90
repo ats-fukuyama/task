@@ -56,7 +56,6 @@
          CALL eqcalq(IERR)
          CALL eqgetb(BB,RR,RIP,RA,RKAP,RDLT,RB)
       ENDIF
-      write(6,*) 'AF: end of eqload'
 !     ----- set radial mesh -----
 
       IF(NRMAX.EQ.1) THEN
@@ -100,8 +99,6 @@
          CALL fp_wm_read(IERR)
          IF(IERR.NE.0) RETURN
       ENDIF
-
-      write(6,*) 'AF: start of Bpol'
 
 !     ----- set approximate poloidal magneticl field -----
 
@@ -188,8 +185,6 @@
          TVOLR=TVOLR+VOLR(NR)
       ENDDO
 
-      write(6,*) 'AF: end of Bpol'
-
       IF(NRANK.eq.0) THEN
          WRITE(6,'(A,1P3E12.4)') "DEVICE: RR, RA, BB", RR, RA, BB
       END IF
@@ -221,8 +216,6 @@
             EPSRM2(NR) = EPSRM(NR)
             EPSRM(NR)=EPSL
          ENDDO
-
-         IF(NRANK.eq.1) WRITE(6,*) " "
 
          DO NR=1,NRMAX+1
             A1=ACOS(SQRT(2.D0*EPSRG(NR)/(1.D0+EPSRG(NR))))
@@ -267,14 +260,11 @@
             RFSAD_GG(NR)=1.D0
          END DO
       ELSE
-         WRITE(6,*) 'ZZ bouce NR=',NR
          DO NR=NRSTART,NREND
-           WRITE(6,*) 'ZZ bouce NR=',NR
             CALL SET_BOUNCE_PARAM(NR)
          END DO
          CALL SET_BOUNCE_PARAM(NRMAX+1)
          DO NR=1,NRMAX+1
-           WRITE(6,*) 'ZZ rfsad NR=',NR
           CALL SET_RFSAD(NR)
          END DO
       END IF ! MODELA
