@@ -10,33 +10,33 @@
 
       INTEGER:: NRAYMAX,NITMAXM
       INTEGER,PARAMETER:: NCRMAXM=5
-      INTEGER,DIMENSION(:),POINTER:: NITMAX  !(NRAYMAX)
+      INTEGER,DIMENSION(:),ALLOCATABLE:: NITMAX  !(NRAYMAX)
 
-      REAL(rkind),DIMENSION(:,:),POINTER:: RAYIN !(8,NRAYMAX)
-      COMPLEX(rkind),DIMENSION(:,:),POINTER:: &  !(0:NITMAXM,NRAYMAX)
+      REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: RAYIN !(8,NRAYMAX)
+      COMPLEX(rkind),DIMENSION(:,:),ALLOCATABLE:: &  !(0:NITMAXM,NRAYMAX)
            CEXS,CEYS,CEZS
-      REAL(rkind),DIMENSION(:,:),POINTER:: &  !(0:NITMAXM,NRAYMAX)
+      REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &  !(0:NITMAXM,NRAYMAX)
            RKXS,RKYS,RKZS,RXS,RYS,RZS,RAYRB1,RAYRB2
-      REAL(rkind),DIMENSION(:,:,:),POINTER:: &  !(0:8,0:NITMAXM,NRAYMAX)
+      REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: &  !(0:8,0:NITMAXM,NRAYMAX)
            RAYS
 
-      REAL(rkind),DIMENSION (:,:),POINTER:: PSIX,SI      !(0:NITM,NRAYM)
-      COMPLEX(rkind),DIMENSION (:,:,:),POINTER:: CU1,CU2,CU3
+      REAL(rkind),DIMENSION (:,:),ALLOCATABLE:: PSIX,SI      !(0:NITM,NRAYM)
+      COMPLEX(rkind),DIMENSION (:,:,:),ALLOCATABLE:: CU1,CU2,CU3
                                                          !(4,0:NITM,NRAYM)
-      REAL(rkind),DIMENSION (:,:,:),POINTER:: U4,U5,U6,U7,U8,U9,U10
+      REAL(rkind),DIMENSION (:,:,:),ALLOCATABLE:: U4,U5,U6,U7,U8,U9,U10
                                                          !(4,0:NITM,NRAYM)
 
-      INTEGER,DIMENSION(:,:),POINTER:: NCRMAX            !(NRM,NRAYM)
-      COMPLEX(rkind),DIMENSION(:,:,:,:),POINTER:: CECR   !(3,NCRM,NRM,NRAYM)
-      REAL(rkind),DIMENSION(:,:,:,:),POINTER:: RKCR,RCR  !(3,NCRM,NRM,NRAYM)
+      INTEGER,DIMENSION(:,:),ALLOCATABLE:: NCRMAX            !(NRM,NRAYM)
+      COMPLEX(rkind),DIMENSION(:,:,:,:),ALLOCATABLE:: CECR   !(3,NCRM,NRM,NRAYM)
+      REAL(rkind),DIMENSION(:,:,:,:),ALLOCATABLE:: RKCR,RCR  !(3,NCRM,NRM,NRAYM)
 
-      REAL(rkind),DIMENSION(:),POINTER:: RRMIN,RRMAX     !(NRM)
+      REAL(rkind),DIMENSION(:),ALLOCATABLE:: RRMIN,RRMAX     !(NRM)
 
-      REAL(rkind),DIMENSION(:,:,:,:),POINTER:: ARGB      !(NRM,NTHM,NAVM,NRAYM)
-      REAL(rkind),DIMENSION(:,:,:,:),POINTER:: RBCR      !(2,NCRM,NRM,NRAYM)
-      COMPLEX(rkind),DIMENSION(:,:,:,:,:),POINTER:: CEB 
+      REAL(rkind),DIMENSION(:,:,:,:),ALLOCATABLE:: ARGB      !(NRM,NTHM,NAVM,NRAYM)
+      REAL(rkind),DIMENSION(:,:,:,:),ALLOCATABLE:: RBCR      !(2,NCRM,NRM,NRAYM)
+      COMPLEX(rkind),DIMENSION(:,:,:,:,:),ALLOCATABLE:: CEB 
                                                        !(3,NRM,NTHM,NAVM,NRAYM)
-      REAL(rkind),DIMENSION(:,:,:,:,:),POINTER:: RKB,RBB 
+      REAL(rkind),DIMENSION(:,:,:,:,:),ALLOCATABLE:: RKB,RBB 
                                                        !(3,NRM,NTHM,NAVM,NRAYM)
 
       CONTAINS
@@ -149,10 +149,10 @@
       IMPLICIT NONE
 
       INTEGER,INtent(OUT):: IERR
-      COMPLEX(rkind),DIMENSION (:),POINTER:: CFD
-      REAL(rkind),DIMENSION (:),POINTER:: FD
+      COMPLEX(rkind),DIMENSION (:),ALLOCATABLE:: CFD
+      REAL(rkind),DIMENSION (:),ALLOCATABLE:: FD
       INTEGER,DIMENSION(2):: idata
-      REAL(rkind),DIMENSION(:),POINTER:: rdata
+      REAL(rkind),DIMENSION(:),ALLOCATABLE:: rdata
       tYPE(pl_mag_type):: MAG
       INTEGER:: NRAY,NIT,I,NITMX,NR,NCR
       REAL(rkind):: RHON,RHOL,PSICR,PSIPRE,PSIL,SICR

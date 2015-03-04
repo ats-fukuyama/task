@@ -107,7 +107,6 @@
 
       DO NR=1,NRMAX
          RHON=RM(NR)
-         WRITE(6,*) 'ZZ rhon=',rhon
          CALL pl_qprf(RHON,QL)
          QLM(NR)=QL
          BT=BB
@@ -120,7 +119,6 @@
       ENDDO
 !      RHON=RG(NRMAX+1)
       RHON=RM(NRMAX)+DELR
-         WRITE(6,*) 'ZZ rhon=',rhon
       CALL pl_qprf(RHON,QL)
       QLM(NRMAX+1)=QL
       BT=BB
@@ -130,7 +128,6 @@
 !      IF(NRANK.eq.0) WRITE(*,*) "BP=", BP
       DO NR=1,NRMAX+1
          RHON=RG(NR)
-         WRITE(6,*) 'ZZ rhon=',rhon
          CALL pl_qprf(RHON,QL)
          QLG(NR)=QL
          BT=BB
