@@ -107,7 +107,21 @@ C
 C
 C     ----- Calculate CEN from CEsup -----
 C
-      DO NR=2,NRMAX+1
+      DO NR=1,2
+      DO NHH=1,NHHMAX
+      DO NTH=1,NTHMAX
+         CEN(1,NTH,NHH,NR)=0.D0
+         CEN(2,NTH,NHH,NR)=0.D0
+         CEN(3,NTH,NHH,NR)=0.D0
+         CEP(1,NTH,NHH,NR)=0.D0
+         CEP(2,NTH,NHH,NR)=0.D0
+         CEP(3,NTH,NHH,NR)=0.D0
+      END DO
+      END DO
+      END DO
+
+
+      DO NR=3,NRMAX+1
 C
          XRI=1.D0/XRHO(NR)
          XRL=XRHO(NR)
@@ -1067,13 +1081,17 @@ C
 C
 C     +++++ CALCULATE DRIVEN CURRENT IN REAL SPACE +++++
 C
-      NS=1
-      DO NR=1,NRMAX+1
+         DO NR=1,NRMAX+1
          DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
             PCUR(NTH,NHH,NR)=0.D0
          ENDDO
          ENDDO
+         ENDDO
+
+      IF(NSMAX.GE.1) THEN
+      NS=1
+      DO NR=1,NRMAX+1
          CALL WMCDEN(NR,RN,RTPR,RTPP,RU)
          VTE=SQRT(RTPR(1)*AEE*1.D3/(PA(1)*AMP))
          WW=DBLE(CW)
@@ -1119,6 +1137,7 @@ C
          ENDDO
          ENDDO
       ENDDO
+      ENDIF
 C
       DO NR=1,NRMAX
          PCURR(NR)=0.D0
