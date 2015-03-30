@@ -73,6 +73,10 @@ subroutine WFWPRE(IERR)
   call MODANT(IERR)
   if(IERR.ne.0) return
   
+  if (nrank.eq.0) write(6,*) '----- SETEWG start ---'
+  call SETEWG
+  if(IERR.ne.0) return
+  
   if (nrank.eq.0) write(6,*) '----- DEFMLEN start ---'
   call DEFMLEN
   
@@ -171,7 +175,7 @@ subroutine DTENSR(NE,DTENS)
         CDUMP=CII*PZCL(NSMAX)
         IF(R-BRMIN.LT.WDUMP) THEN
            DR=R-BRMIN
-           DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1)+(WDUMP-DR)/(DR-CDUMP)
+!           DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1)+(WDUMP-DR)/(DR-CDUMP)
            DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+(WDUMP-DR)/(DR-CDUMP)
            DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+(WDUMP-DR)/(DR-CDUMP)
         END IF
@@ -179,13 +183,13 @@ subroutine DTENSR(NE,DTENS)
            DZ=Z-BZMIN
            DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1)+(WDUMP-DZ)/(DZ-CDUMP)
            DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+(WDUMP-DZ)/(DZ-CDUMP)
-           DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+(WDUMP-DZ)/(DZ-CDUMP)
+!           DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+(WDUMP-DZ)/(DZ-CDUMP)
         END IF
         IF(BZMAX-Z.LT.WDUMP) THEN
            DZ=BZMAX-Z
            DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1)+(WDUMP-DZ)/(DZ-CDUMP)
            DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+(WDUMP-DZ)/(DZ-CDUMP)
-           DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+(WDUMP-DZ)/(DZ-CDUMP)
+!           DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+(WDUMP-DZ)/(DZ-CDUMP)
         END IF
      END IF
   end do
@@ -206,8 +210,14 @@ subroutine MUTENSR(NE,MU)
 
   do ISD=1,3
      NSD=ABS(NSDELM(ISD,NE))
-     L(ISD)=LSID(NSD)
+        L(ISD)=LSID(NSD)
+!     IF(NSDELM(ISD,NE).GT.0.D0) THEN
+!        L(ISD)=LSID(NSD)
+!     ELSE
+!        L(ISD)=-LSID(NSD)
+!     END IF
   end do
+
   call WFABC(NE,A,B,C)
 
   do K=1,6
@@ -245,10 +255,10 @@ SUBROUTINE CVCALC
 
   use wfcomm
   implicit none
-  integer    :: NE,NA,IJ,IV,I
+  integer    :: NE,NA,IJ,IV,I,J
   real(8)    :: RW,PHASE,MU(3,3,6),A(3),B(3),C(3)
   real(8)    :: R1,Z1,R2,Z2,LIF(3),R21,Z21
-  complex(8) :: CJ(3),CVJ
+  complex(8) :: CJ(3),CVJ,TEMP
 
   RW=2.D0*PI*RF*1.D6
 
@@ -322,23 +332,41 @@ SUBROUTINE CVCALC
            end do
         END SELECT
         call MUTENSR(NE,MU)
+
+!        WRITE(16,*) NE
+!        DO I=1,3
+!           DO J=1,3
+!              WRITE(16,'(2I3,1P6E12.4)') I,J,MU(I,J,1:6)
+!           END DO
+!        END DO
+
         do I=1,3
            do IV=1,6
               CVTOT(IV,NE)= CVTOT(IV,NE)&
                            +LIF(I)*( MU(I,1,IV)*CJ(1)&
                                     +MU(I,2,IV)*CJ(2)&
                                     +MU(I,3,IV)*CJ(3))
+!                         TEMP=LIF(I)*( MU(I,1,IV)*CJ(1)&
+!                                    +MU(I,2,IV)*CJ(2)&
+!                                    +MU(I,3,IV)*CJ(3))
+!                         IF(ABS(TEMP).ne.0.D0) THEN
+!                           WRITE(16,'(2I6,1P3E12.4)') I,IV,LIF(I),TEMP
+!                           WRITE(16,'(1P3E12.4)') MU(I,1,IV),CJ(1)
+!                           WRITE(16,'(1P3E12.4)') MU(I,2,IV),CJ(2)
+!                           WRITE(16,'(1P3E12.4)') MU(I,3,IV),CJ(3)
+!                        END IF
            end do
         end do
      end DO
      END IF
   end DO
+
 !  do NE=1,NEMAX
 !     do IV=1,6
 !        if(nrank.eq.0.and.CVTOT(IV,NE).ne.(0.d0,0.d0)) &
-!                                   & write(6,*) NE,IV,CVTOT(IV,NE)
+!                                   & write(16,*) NE,IV,CVTOT(IV,NE)
 !     end do
-! end do
+!  end do
 
   RETURN
 END SUBROUTINE CVCALC
@@ -455,11 +483,11 @@ SUBROUTINE CMCALC(NE)
                           *(AW(J)-BW(J)*Z(K)) &
                          +C(I) &
                           *(CW(J)-BW(J)*R(K))) &
-                       *S*AIF1(K)&
+                       *S*AIF1(K)
 !
-                      +(CII*real(NPH))&
-                       *(-(AW(J)-BW(J)*Z(K))/RR)&
-                      *S*AIF2(I,K)
+!                      +(CII*real(NPH)) &
+!                       *(-(AW(J)-BW(J)*Z(K))/RR) &
+!                      *S*AIF2(I,K)
            end do
         end do
      end do
@@ -510,11 +538,11 @@ SUBROUTINE CMCALC(NE)
                           *(AW(I)-BW(I)*Z(K)) &
                          +C(J)&
                           *(CW(I)-BW(I)*R(K))) &
-                        *S*AIF1(K) &
+                        *S*AIF1(K)
 !
-                      -(CII*real(NPH)) &
-                       *(-(AW(I)-BW(I)*Z(K))/RR) &
-                        *S*AIF2(J,K)
+!                      -(CII*real(NPH)) &
+!                       *(-(AW(I)-BW(I)*Z(K))/RR) &
+!                        *S*AIF2(J,K)
            end do
         end do
      end do
@@ -558,10 +586,10 @@ SUBROUTINE CMCALC(NE)
         do J=1,3
            do I=1,3
               CM1(I,J)=CM1(I,J) &
-                      +(B(I)*B(J)+C(I)*C(J))*RR*S*AIF1(K) &
-                      +B(J)*S*AIF2(I,K) &
-                      +B(I)*S*AIF2(J,K) &
-                      +1.D0/RR*S*AIF3(I,J,K)
+                      +(B(I)*B(J)+C(I)*C(J))*RR*S*AIF1(K)
+!                      +B(J)*S*AIF2(I,K) &
+!                      +B(I)*S*AIF2(J,K) &
+!                      +1.D0/RR*S*AIF3(I,J,K)
            end do
         end do
      end do

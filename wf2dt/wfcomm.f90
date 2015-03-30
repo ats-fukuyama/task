@@ -51,6 +51,7 @@ module wfcomm
   real(rkind),DIMENSION(3):: r_corner,z_corner
   real(rkind),DIMENSION(3):: br_corner,bz_corner,bt_corner
   real(rkind),DIMENSION(3,NSM):: pn_corner,ptpr_corner,ptpp_corner
+  real(rkind):: R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG,AMPWG,ANGWG
 
 !       /WFPRK/
   character(len=32) :: KFNAME,KFNAMA,KFNAMF,KFNAMN
@@ -70,7 +71,7 @@ module wfcomm
 !       /WFELM/
   integer(ikind):: NNMAX,NEMAX
   real(rkind)   ,dimension(:)  ,pointer :: RNODE,ZNODE !(NNMAX)
-  integer(ikind),dimension(:)  ,pointer :: KANOD       !(NNMAX)
+  integer(ikind),dimension(:)  ,pointer :: KANOD,KBNOD !(NNMAX)
   real(rkind)   ,dimension(:)  ,pointer :: SELM        !(NEMAX)
   integer(ikind),dimension(:)  ,pointer :: KAELM,NBELM !(NEMAX)
   real(rkind)   ,dimension(:)  ,pointer :: REMIN,ZEMIN !(NEMAX)
@@ -84,7 +85,7 @@ module wfcomm
   real(ikind)   ,dimension(:)  ,pointer :: LSID       !(NSDMAX)
   integer(ikind),dimension(:,:),pointer :: NDSID      !(2,NSDMAX)
   integer(ikind),dimension(:)  ,pointer :: INSID,NESID!(NSDMAX) 
-  integer(ikind),dimension(:)  ,pointer :: KASID      !(NSDMAX) 
+  integer(ikind),dimension(:)  ,pointer :: KASID,KBSID!(NSDMAX) 
   integer(ikind),dimension(:,:),pointer :: NSDELM     !(3,NEM)
   integer(ikind),dimension(:)  ,pointer :: NVNSD      !(NSDMAX)
         
@@ -111,6 +112,9 @@ module wfcomm
   real(rkind)   ,dimension(:,:),pointer :: SZBDY             !(2,NBMAX)
   integer(ikind),dimension(:)  ,pointer :: NDBDY,NMBDY,NBPMAX!(NBMAX)
   integer(ikind),dimension(:,:),pointer :: NENBP,NDNBP       !(NBPM,NBMAX)
+
+  INTEGER(ikind),DIMENSION(:),ALLOCATABLE:: NSDBS,NNDBS
+  COMPLEX(rkind),DIMENSION(:),ALLOCATABLE:: CEBSD,CEBND
         
 !       /WFSLV/
   integer(ikind):: MLEN,NNBMAX
@@ -236,7 +240,8 @@ contains
           end if
        end if
 
-       allocate(RNODE(NNMAX),ZNODE(NNMAX),KANOD(NNMAX),NVNN(NNMAX))
+       allocate(RNODE(NNMAX),ZNODE(NNMAX),KANOD(NNMAX),KBNOD(NNMAX))
+       ALLOCATE(NVNN(NNMAX))
        elminit = 1
        NNMAX_save = NNMAX
 
@@ -255,7 +260,7 @@ contains
   subroutine wfelm_deallocate
     implicit none
 
-    deallocate(RNODE,ZNODE,KANOD,SELM,KAELM,NBELM)
+    deallocate(RNODE,ZNODE,KANOD,KBNOD,SELM,KAELM,NBELM)
     deallocate(REMIN,ZEMIN,REMAX,ZEMAX,NDELM,KNELM,NVNN)
 
     return
@@ -274,7 +279,7 @@ contains
        end if
     end if
 
-    allocate(NDSID(2,NSDMAX),KASID(NSDMAX),INSID(NSDMAX))
+    allocate(NDSID(2,NSDMAX),KASID(NSDMAX),KBSID(NSDMAX),INSID(NSDMAX))
     allocate(NESID(NSDMAX),NSDELM(3,NEMAX),LSID(NSDMAX),NVNSD(NSDMAX))
 
     NSDMAX_save = NSDMAX
@@ -286,7 +291,7 @@ contains
   subroutine wfsid_deallocate
     implicit none
 
-    deallocate(NDSID,KASID,NSDELM,INSID,NESID,LSID,NVNSD)
+    deallocate(NDSID,KASID,KBSID,NSDELM,INSID,NESID,LSID,NVNSD)
 
     return
   end subroutine wfsid_deallocate

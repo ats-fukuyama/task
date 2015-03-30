@@ -37,7 +37,7 @@ SUBROUTINE CVSOLV
   integer :: NE,NN
   integer :: I,J,KK,LL
   integer :: JNSD,JNN,INSD,INN
-  integer :: IN,INV,JNV
+  integer :: IN,INV,JNV,KB
   integer :: itype
   integer :: its
   integer :: JMIN,JMAX,MILEN,MJLEN
@@ -46,6 +46,7 @@ SUBROUTINE CVSOLV
   integer :: ORIENTJ,ORIENTI
   real(8),dimension(1) :: ddata
   real(4) :: cputime1,cputime2
+  complex(8):: CEB
   complex(8),dimension(:)  ,pointer :: CRVP
   complex(8),dimension(:,:),pointer :: CEQP
 
@@ -206,31 +207,74 @@ SUBROUTINE CVSOLV
            JNV=NVNN(JNN)
         end if
         LL=JNV
-        if ((LL.lt.JMIN).or.(LL.gt.JMAX)) goto 8200
 
-        KK=0
-        DO I=1,6
-           ORIENTI=1
-           if(I.ge.1.and.I.le.3) then
-              INSD=NSDELM(I,NE)
-              if(INSD.lt.0) then
-                 INSD=-INSD
-                 ORIENTI=-1
+        if ((LL.GE.JMIN).AND.(LL.LE.JMAX)) THEN
+
+           KK=0
+           DO I=1,6
+              ORIENTI=1
+              if(I.ge.1.and.I.le.3) then
+                 INSD=NSDELM(I,NE)
+                 if(INSD.lt.0) then
+                    INSD=-INSD
+                    ORIENTI=-1
+                 end if
+                 INV =NVNSD(INSD)
+              else
+                 INN=NDELM(I-3,NE)
+                 INV=NVNN(INN)
               end if
-              INV =NVNSD(INSD)
-           else
-              INN=NDELM(I-3,NE)
-              INV=NVNN(INN)
+              KK=INV
+              if((KK.ge.istart).and.&
+                   (KK.le.iend  )) then
+                 CEQP(KK-istart+1,LL-JMIN+1) &
+                      =CEQP(KK-istart+1,LL-JMIN+1)+ORIENTJ*ORIENTI*CM(I,J)
+                 if(abs(CM(I,J)).ne.0.d0) NNZME=NNZME+1
+              end if
+           END DO
+
+        END if
+     ENDDO
+
+     KK=0
+     DO I=1,6
+        ORIENTI=1
+        if(I.ge.1.and.I.le.3) then
+           INSD=NSDELM(I,NE)
+           if(INSD.lt.0) then
+              INSD=-INSD
+              ORIENTI=-1
            end if
-           KK=INV
-           if((KK.ge.istart).and.&
-              (KK.le.iend  )) then
-              CEQP(KK-istart+1,LL-JMIN+1) &
-             =CEQP(KK-istart+1,LL-JMIN+1)+ORIENTJ*ORIENTI*CM(I,J)
-              if(abs(CM(I,J)).ne.0.d0) NNZME=NNZME+1
-           end if
-        END DO
-8200    continue
+           INV =NVNSD(ISD)
+        else
+           INN=NDELM(I-3,NE)
+           INV=NVNN(INN)
+        end if
+        KK=JNV
+
+        if ((KK.GE.JMIN).AND.(KK.LE.JMAX)) THEN
+           DO J=1,6
+              ORIENTJ=1
+              if(J.ge.1.and.J.le.3) then
+                 JNSD=NSDELM(J,NE)
+                 if(JNSD.lt.0) then
+                    JNSD=-JNSD
+                    ORIENTJ=-1
+                 end if
+                 KB=KBSID(JNSD)
+                 IF(KB.NE.0) CEB=CEBSD(KB)
+              else
+                 JNN=NDELM(J-3,NE)
+                 KB=KBNOD(JNN)
+                 IF(KB.NE.0) CEB=CEBND(KB)
+              end if
+              IF(KB.NE.0) THEN
+              write(16,'(3I5,1P4E12.4)') NE,I,J,CEB,ORIENTI*ORIENTJ*CM(I,J)*CEB
+              CRVP(KK-istart+1)=CRVP(KK-istart+1)+ORIENTI*ORIENTJ*CM(I,J)*CEB
+              END IF
+           END DO
+
+        END if
      ENDDO
 
      KK=0

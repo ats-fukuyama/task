@@ -230,6 +230,15 @@ SUBROUTINE WFINIT
   THETJ1 = 40.D0
   THETJ2 =-40.D0
   NJMAX  = 41
+
+  R1WG=0.5D0
+  Z1WG=0.0D0
+  R2WG=0.5D0
+  Z2WG=0.05D0
+  PH1WG=0.D0
+  PH2WG=180.D0
+  AMPWG=0.D0
+  ANGWG=0.D0
   
 !     PPN0   : Neutral pressure (Pa)  1 Torr = 1 mmHg = 133.322 Pa
 !     PTN0   : Initial neutral temperarure (eV)
@@ -279,6 +288,7 @@ SUBROUTINE WFPLST
      WRITE(6,*) '     BXMIN,BXMAX,BYMIN,BYMAX,BZMIN,BZMAX,'
      WRITE(6,*) '     DELR,DELZ,'
      WRITE(6,*) '     PIN,RD,THETJ1,THETJ2,NJMAX,ZANT,ZWALL,'
+     WRITE(6,*) '     R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG,AMPWG,ANGWG,'
      WRITE(6,*) '     NGXMAX,NGYMAX,NGVMAX,IDEBUG,'
      WRITE(6,*) '     br_corner,bz_corner,bt_corner,'
      WRITE(6,*) '     pn_corner,ptpr_corner,ptpp_corner,'
@@ -306,6 +316,7 @@ SUBROUTINE WFPARM(KID)
                 BRMIN,BRMAX,BZMIN,BZMAX,&
                 DELR,DELZ,&
                 PIN,RD,THETJ1,THETJ2,NJMAX,&
+                R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG,AMPWG,ANGWG, &
                 NGXMAX,NGYMAX,NGVMAX,IDEBUG, &
                 br_corner,bz_corner,bt_corner, &
                 pn_corner,ptpr_corner,ptpp_corner, &
@@ -403,6 +414,13 @@ SUBROUTINE WFVIEW
         WRITE(6,610) NA,AJ(NA),APH(NA),AWD(NA),APOS(NA)
      ENDDO
   ENDIF
+
+  IF(AMPWG.GT.0.D0) THEN
+     WRITE(6,601) 'R1WG  ',R1WG  ,'Z1WG  ',Z1WG  , &
+                  'R2WG  ',R2WG  ,'Z2WG  ',Z2WG
+     WRITE(6,601) 'PH1WG ',PH1WG ,'PH2WG ',PH2WG , &
+                  'AMPWG ',AMPWG ,'ANGWG ',ANGWG
+  END IF
   
   IF(NSMAX.GT.0) THEN
      WRITE(6,*) '***** COLD *****'
