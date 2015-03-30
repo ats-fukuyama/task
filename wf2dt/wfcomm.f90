@@ -48,6 +48,9 @@ module wfcomm
   integer(ikind):: NPRINT,NDRAWD,NDRAWA,NDRAWE,NGRAPH,NDRAWV
   integer(ikind):: MODELI,MODELB
   integer(ikind):: MODELD,MODELP
+  real(rkind),DIMENSION(3):: r_corner,z_corner
+  real(rkind),DIMENSION(3):: br_corner,bz_corner,bt_corner
+  real(rkind),DIMENSION(3,NSM):: pn_corner,ptpr_corner,ptpp_corner
 
 !       /WFPRK/
   character(len=32) :: KFNAME,KFNAMA,KFNAMF,KFNAMN
@@ -59,6 +62,7 @@ module wfcomm
   real(rkind):: RD,THETJ1,THETJ2
   integer(ikind):: NJMAX
   real(rkind),dimension(NAM):: AJ,APH,APOS,AWD
+  real(rkind):: WDUMP
 
 !       /WFDIV/
   integer(ikind):: iddiv

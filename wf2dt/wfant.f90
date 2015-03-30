@@ -163,11 +163,14 @@ SUBROUTINE WFDEFA
      END DO
   end if
 
-  do NA=1,NAMAX
-     do NJ=1,NJMAX
-        RJ0(NJ,NA)=RJ0(NJ,NA)+RR
+  SELECT CASE(MODELG)
+  CASE(2)
+     do NA=1,NAMAX
+        do NJ=1,NJMAX
+           RJ0(NJ,NA)=RJ0(NJ,NA)+RR
+        end do
      end do
-  end do
+  END SELECT
 
   call mtx_barrier
   call wfant_broadcast

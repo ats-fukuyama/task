@@ -57,6 +57,7 @@ SUBROUTINE CVSOLV
 
   ! --- decide istart,iend ---
 
+  write(6,*) 'MLEN=',MLEN
   call mtxc_setup(MLEN,istart,iend,0)
   call mtxc_cleanup
 

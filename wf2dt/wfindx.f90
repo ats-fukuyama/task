@@ -157,20 +157,25 @@ SUBROUTINE FEP(R,Z,IE)
 
   use wfcomm
   implicit none
-  integer,intent(out):: IE
-  integer :: ICOUNT,INMIN,NN1,NN2,NN3,NELMAX,NELMIN,IES,I,IDELT,J
   real(8),intent(in) :: R,Z
+  integer,intent(inout):: IE
+  integer :: ICOUNT,INMIN,NN1,NN2,NN3,NELMAX,NELMIN,IES,I,IDELT,J
   real(8),parameter :: EPS = 1.d-12
   real(8) :: WGT(3),WGTMIN,RC,ZC,RES,SIDX,FINDEX
+  INTEGER:: IN,NN
   
-  IF(IE.NE.0) THEN
+  IF(IE.NE.0) THEN   ! with initial guess
+
+!    move to a neighboring element colser to the point
+
      ICOUNT=0
      
 1000 CONTINUE
      ICOUNT=ICOUNT+1
-     IF(ICOUNT.GT.NEMAX/3)  GOTO 2000
-!     write(6,'(A,I10,1P2E12.4)') 'FEP: IE,R,Z=',IE,R,Z
+     IF(ICOUNT.GT.NEMAX/3)  GOTO 2000 ! Could not find, try another method
+
      CALL WFWGT(IE,R,Z,WGT)
+
      WGTMIN=WGT(1)
      INMIN=1
      IF(WGT(2).LT.WGTMIN) THEN
@@ -183,30 +188,28 @@ SUBROUTINE FEP(R,Z,IE)
      ENDIF
 
      IF(IDEBUG.NE.0) THEN
-        NN1=NDELM(1,IE)
-        NN2=NDELM(2,IE)
-        NN3=NDELM(3,IE)
-        RC=(RNODE(NN1)+RNODE(NN2)+RNODE(NN3))/3.D0
-        ZC=(ZNODE(NN1)+ZNODE(NN2)+ZNODE(NN3))/3.D0
-        RES=SQRT((R-RC)**2+(Z-ZC)**2)
-        if (nrank.eq.0) WRITE(6,'(A,I5,1P4E12.4)') 'IE,WGT:', &
-             &              IE,WGT(1),WGT(2),WGT(3),RES
+        if (nrank.eq.0) THEN
+           WRITE(6,'(A,I8,1P5E12.4)') 'IE,WGT,R,Z:', &
+                        IE,WGT(1),WGT(2),WGT(3),R,Z
+           DO IN=1,3
+              NN=NDELM(IN,IE)
+              WRITE(6,'(A,3I8,1P2E12.4)') 'IE,IN,NN,R,Z,:', &
+                        IE,IN,NN,RNODE(NN),ZNODE(NN)
+           END DO
+        END if
      ENDIF
      
      IF(WGTMIN.GE.-EPS) RETURN
      
      IE=KNELM(INMIN,IE)
-     IF(IE.LE.0) GOTO 2000
+     IF(IE.LE.0) GOTO 2000 ! out of region
      GOTO 1000
   ENDIF
-  
+
+! without initial guess or could not find by sequential scheme
+! find the element using the index of elements
+
 2000 SIDX=FINDEX(R,Z)
-  if (nrank.eq.0) then
-     IF(IDEBUG.NE.0) WRITE(6,'(A,1P3E12.4)') 'SIDX:MIN=',&
-          &     SIDX,SINDEX_MIN(1),SINDEX_MIN(NEMAX)
-     IF(IDEBUG.NE.0) WRITE(6,'(A,1P3E12.4)') 'SIDX:MAX=',&
-          &     SIDX,SINDEX_MAX(1),SINDEX_MAX(NEMAX)
-  end  if
   IF(SIDX.GE.SINDEX_MIN(1)) THEN
      IF(SIDX.GT.SINDEX_MIN(NEMAX)) THEN
         NELMAX=NEMAX
@@ -221,32 +224,23 @@ SUBROUTINE FEP(R,Z,IE)
         ENDIF
         
         IES=(NELMIN+NELMAX)/2
-        if (nrank.eq.0) then
-           IF(IDEBUG.NE.0) WRITE(6,*) 'IE,NELMIN,NELMAX=',IE,NELMIN,NELMAX
-        end if
         DO I=0,MAX(NELMAX-IES,IES-NELMIN)+1
            IDELT=I
            DO J=1,2
               IDELT=-IDELT
               IE=IES+IDELT
               IF(IE.GE.1.AND.IE.LE.NEMAX) THEN
-!                 if (nrank.eq.0) then!
-!                    WRITE(6,'(A,1P3E12.4)') 'R:',REMIN(IE),R,REMAX(IE)!
-!                    WRITE(6,'(A,1P3E12.4)') 'Z:',ZEMIN(IE),Z,ZEMAX(IE)!
-!                 end if!
-                 CALL WFWGT(IE,R,Z,WGT)
-!                 if (nrank.eq.0) then
-!                    IF(IDEBUG.NE.0) WRITE(6,'(A,I8,1PE12.4)')&
-!                         &                 'IE,WGTMIN=',IE,WGTMIN
-!                 end if
                  IF(R.GE.REMIN(IE).AND.R.LE.REMAX(IE).AND.&
                   & Z.GE.ZEMIN(IE).AND.Z.LE.ZEMAX(IE)) THEN
                     CALL WFWGT(IE,R,Z,WGT)
                     WGTMIN=MIN(WGT(1),WGT(2),WGT(3))
                     if (nrank.eq.0) then
-                       IF(IDEBUG.NE.0) WRITE(6,'(A,I8,1PE12.4)')&
-                            &                 'IE,WGTMIN=',IE,WGTMIN
-                    end if
+                       IF(IDEBUG.NE.0) THEN
+                          WRITE(6,'(A,I8,1P3E12.4)') &
+                                     'IE,R,Z,WGTMIN=', &
+                                      IE,R,Z,WGTMIN
+                       end if
+                    END if
                     IF(WGTMIN.GE.-EPS) RETURN
                  ENDIF
               ENDIF

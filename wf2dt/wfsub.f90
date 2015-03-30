@@ -14,7 +14,12 @@ SUBROUTINE WFSLIM
   RNDMAX=RNODE(1)
   ZNDMIN=ZNODE(1)
   ZNDMAX=ZNODE(1)
-  LNODE=SQRT((RNODE(1)-RR)**2+ZNODE(1)**2)
+  SELECT CASE(MODELG)
+  CASE(0)
+     LNODE=SQRT(RNODE(1)**2+ZNODE(1)**2)
+  CASE(2)
+     LNODE=SQRT((RNODE(1)-RR)**2+ZNODE(1)**2)
+  END SELECT
   LNDMIN=LNODE
   LNDMAX=LNODE
      
@@ -23,7 +28,12 @@ SUBROUTINE WFSLIM
      RNDMAX=MAX(RNDMAX,RNODE(IN))
      ZNDMIN=MIN(ZNDMIN,ZNODE(IN))
      ZNDMAX=MAX(ZNDMAX,ZNODE(IN))
-     LNODE =SQRT((RNODE(IN)-RR)**2+ZNODE(IN)**2)
+     SELECT CASE(MODELG)
+     CASE(0)
+        LNODE=SQRT(RNODE(IN)**2+ZNODE(IN)**2)
+     CASE(2)
+        LNODE=SQRT((RNODE(IN)-RR)**2+ZNODE(IN)**2)
+     END SELECT
      LNDMIN=MIN(LNDMIN,LNODE)
      LNDMAX=MAX(LNDMAX,LNODE)
   ENDDO
@@ -61,6 +71,63 @@ SUBROUTINE WFSELM
 
   RETURN
 END SUBROUTINE WFSELM
+
+!     ******* Classify point location *******
+
+SUBROUTINE WFCLASS(NE,R,Z,WGT,IND)
+!
+!   IND = 0 : point inside the element
+!         1 : on the edge 1
+!         2 : on the edge 2
+!         3 : on the edge 3
+!         4 : on the node 1
+!         5 : on the node 2
+!         6 : on the node 3
+!         7 : inconsistent (area of element is zero)
+!        -1 : outside of the element
+!  
+  use wfcomm
+  implicit none
+  integer,intent(in) :: NE
+  real(rkind),intent(in) :: R,Z
+  real(rkind),intent(out):: WGT(3)
+  integer,intent(out) :: IND
+  integer :: IN
+  REAL(rkind),PARAMETER:: eps=1.D-12
+
+  CALL WFWGT(NE,R,Z,WGT)
+
+  IF(WGT(1).GT.eps) THEN
+     IF(WGT(2).GT.eps) THEN
+        IF(WGT(3).GT.eps) THEN
+           IND=0
+        ELSE IF(WGT(3).GT.-eps) THEN
+           IND=3
+        END IF
+     ELSE IF(WGT(2).GT.-eps) THEN
+        IF(WGT(3).GT.eps) THEN
+           IND=2
+        ELSE IF(WGT(3).GT.-eps) THEN
+           IND=4
+        END IF
+     END IF
+  ELSE IF(WGT(1).GT.-eps) THEN
+     IF(WGT(2).GT.eps) THEN
+        IF(WGT(3).GT.eps) THEN
+           IND=1
+        ELSE IF(WGT(3).GT.-eps) THEN
+           IND=5
+        END IF
+     ELSE IF(WGT(2).GT.-eps) THEN
+        IF(WGT(3).GT.eps) THEN
+           IND=6
+        ELSE IF(WGT(3).GT.-eps) THEN
+           IND=7
+        END IF
+     END IF
+  END IF
+  RETURN
+END SUBROUTINE WFCLASS
 
 !     ******* WEIGHT CALCULATION *******
 !     WEIGHT MEANS AREA COORDINATE
@@ -433,31 +500,30 @@ SUBROUTINE MODANT(IERR)
   NE=0
   DO NA=1,NAMAX
      CALL FEP(RJ0(1,NA),ZJ0(1,NA),NE)
-     
-!        WHEN FIRST POINT IS OUT OF REGION
+
+!    outside starting point
 
      IF(NE.EQ.0) THEN
-        IF(JNUM0(NA).EQ.1) GOTO 8500
-        DO NSD=1,NSDMAX
+        IF(JNUM0(NA).EQ.1) GOTO 8500 ! error: one point and outside
+        DO NSD=1,NSDMAX              ! look for crossing boundary
            L =INSID(NSD)
            NE=NESID(NSD)
            KN=KNELM(L,NE)
 
-           ! -- side is boundary --
            IF(KN.eq.0) THEN 
               CALL CROS(RJ0(1,NA),ZJ0(1,NA),&
                    &    RJ0(2,NA),ZJ0(2,NA),&
                    &    NE,L,RC,ZC,IERR)
               IF(IERR.EQ.0) THEN
                  LS=L
-                 GOTO 1000
+                 GOTO 1000   ! crossing point on boundary found
               ENDIF
            ENDIF
 
         ENDDO
-        GOTO 8000
+        GOTO 8000 ! error: no crossing boundary found
         
-1000    CONTINUE
+1000    CONTINUE  ! set starting point (N=1)
         N=1
         RJ(N,NA)=RC
         ZJ(N,NA)=ZC
@@ -466,6 +532,9 @@ SUBROUTINE MODANT(IERR)
            if(nrank.eq.0) WRITE(6,'(A,3I8,1P3E12.4)') 'NA,N,NE,R,Z=' ,&
                 &NA,N,NE,RJ(N,NA),ZJ(N,NA)
         ENDIF
+
+!    inside starting point
+
      ELSE
         N=1
         RJ(N,NA)=RJ0(1,NA)
@@ -482,21 +551,21 @@ SUBROUTINE MODANT(IERR)
         NENEXT=NE
         CALL FEP(RJ0(ID,NA),ZJ0(ID,NA),NENEXT)
 3000    CONTINUE
-        IF(NENEXT.EQ.NE) GOTO 4500
-        DO L=1,3
+        IF(NENEXT.EQ.NE) GOTO 4500 ! next antenna node in the same element
+        DO L=1,3                   ! look for crossing point
            IF(L.NE.LS) THEN
               CALL CROS(RJ (N ,NA),ZJ (N ,NA),&
                    &    RJ0(ID,NA),ZJ0(ID,NA),&
                    &         NE,L,RC,ZC,IERR)
               IF(IERR.EQ.0) THEN
                  LS=L
-                 GOTO 4000
+                 GOTO 4000 ! crossing point found
               ENDIF
            ENDIF
         ENDDO
-        GOTO 8100
+        GOTO 8100 
         
-4000    IF(N+1.GT.NJM) GOTO 8200
+4000    IF(N+1.GT.NJM) GOTO 8200 ! error: number of antenna nodes overflow 
         N=N+1
         RJ(N,NA)=RC
         ZJ(N,NA)=ZC
@@ -505,23 +574,24 @@ SUBROUTINE MODANT(IERR)
            if(nrank.eq.0) WRITE(6,'(A,3I8,1P3E12.4)') 'NA,N,NE,R,Z=',&
                 &NA,N,NE,RJ(N,NA),ZJ(N,NA)
         ENDIF
-        NENEW=KNELM(LS,NE)
-        IF(NENEW.GT.0) THEN
+        NENEW=KNELM(LS,NE) ! look for neighboring element
+        IF(NENEW.GT.0) THEN ! element found
            DO L=1,3
               IF(KNELM(L,NENEW).EQ.NE) LS=L
            ENDDO
-           NE=NENEW
+           NE=NENEW         ! set side LS and element NE
         ELSE
-           IF(ID.EQ.JNUM0(NA).AND.NENEXT.LE.0) GOTO 6000
-           GOTO 8400
+           IF(ID.EQ.JNUM0(NA).AND.NENEXT.LE.0) GOTO 6000 ! last point outside
+           GOTO 8400 ! error: cross point to outside
         ENDIF
-        GOTO 3000
+        GOTO 3000 ! look for next cross point 
         
-4500    IF(N+1.GT.NJM) GOTO 8200
+4500    IF(N+1.GT.NJM) GOTO 8200 ! error: number of antenna nodes overflow 
         N=N+1
         RJ(N,NA)=RJ0(ID,NA)
         ZJ(N,NA)=ZJ0(ID,NA)
         JELMT(N,NA)=NE
+        LS=0
         IF(IDEBUG.NE.0) THEN
            if(nrank.eq.0) WRITE(6,'(A,3I8,1P3E12.4)') 'NA,N,NE,R,Z=',&
                 & NA,N,NE,RJ(N,NA),ZJ(N,NA)

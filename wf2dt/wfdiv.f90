@@ -48,6 +48,12 @@ subroutine WFDIV
            read(5,*,ERR=4,END=2) DELR,DELZ
            if(abs(DELR).le.1.d-6.or.abs(DELZ).le.1.d-6) goto 2
            iddiv=1
+           r_corner(1)=BRMIN
+           z_corner(1)=BZMIN
+           r_corner(2)=BRMAX
+           z_corner(2)=BZMIN
+           r_corner(3)=BRMIN
+           z_corner(3)=BZMAX
            
         elseif(KID.eq.'C') then
 5          write(6,'(A15,F10.4)') '## DIV:   RB = ',RB
@@ -62,6 +68,12 @@ subroutine WFDIV
            read(5,*,ERR=6,END=2) DELR
            if(abs(DELR).le.1.D-6) goto 2
            iddiv=2
+           r_corner(1)=BRMIN
+           z_corner(1)=BZMIN
+           r_corner(2)=BRMAX
+           z_corner(2)=BZMIN
+           r_corner(3)=BRMIN
+           z_corner(3)=BZMAX
 
         end if
 

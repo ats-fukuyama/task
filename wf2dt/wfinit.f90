@@ -6,7 +6,7 @@ SUBROUTINE WFINIT
   
   use wfcomm
   implicit none
-  integer :: NA,NM
+  integer :: NA,NM,NS
 
 !     *** CONTROL PARAMETERS ***
 !
@@ -111,7 +111,7 @@ SUBROUTINE WFINIT
   PNS(1) = 0.0D0
   PTPR(1)= 1.0D0
   PTPP(1)= 1.0D0
-  PTS(1) = 0.0D0
+  PTS(1) = 0.1D0
   PZCL(1)= 3.0D-3
   
   IF(NSM.GE.2) THEN
@@ -121,20 +121,39 @@ SUBROUTINE WFINIT
      PNS(2) = 0.0D0
      PTPR(2)= 1.D0
      PTPP(2)= 1.D0
-     PTS(2) = 0.0D0
+     PTS(2) = 0.1D0
      PZCL(2)= 3.0D-3
   ENDIF
   
-  IF(NSM.GE.3) THEN
-     PA(3)  = 1.0D0
-     PZ(3)  = 1.0D0
-     PN(3)  = 0.0D0
-     PNS(3) = 0.0D0
-     PTPR(3)= 1.0D0
-     PTPP(3)= 1.0D0
-     PTS(3) = 0.0D0
-     PZCL(3)= 3.0D-3
-  ENDIF
+  DO NS=3,NSM
+     PA(NSM)  = 1.0D0
+     PZ(NSM)  = 1.0D0
+     PN(NSM)  = 0.0D0
+     PNS(NSM) = 0.0D0
+     PTPR(NSM)= 1.0D0
+     PTPP(NSM)= 1.0D0
+     PTS(NSM) = 0.1D0
+     PZCL(NSM)= 3.0D-3
+  END DO
+
+!     *** PLANE  PARAMETERS ***
+  br_corner(1:3)=0.D0
+  bz_corner(1:3)=0.D0
+  bt_corner(1:3)=BB
+
+  DO ns=1,nsm
+     pn_corner(1,ns)=pn(ns)
+     pn_corner(2,ns)=pns(ns)
+     pn_corner(3,ns)=pn(ns)
+     ptpr_corner(1,ns)=ptpr(ns)
+     ptpr_corner(2,ns)=pts(ns)
+     ptpr_corner(3,ns)=ptpr(ns)
+     ptpp_corner(1,ns)=ptpp(ns)
+     ptpp_corner(2,ns)=pts(ns)
+     ptpp_corner(3,ns)=ptpp(ns)
+  END DO
+
+  WDUMP=0.D0
 
 !     *** MEDIUM PARAMETERS ***
 
@@ -261,7 +280,9 @@ SUBROUTINE WFPLST
      WRITE(6,*) '     DELR,DELZ,'
      WRITE(6,*) '     PIN,RD,THETJ1,THETJ2,NJMAX,ZANT,ZWALL,'
      WRITE(6,*) '     NGXMAX,NGYMAX,NGVMAX,IDEBUG,'
-     WRITE(6,*) '     tolerance'
+     WRITE(6,*) '     br_corner,bz_corner,bt_corner,'
+     WRITE(6,*) '     pn_corner,ptpr_corner,ptpp_corner,'
+     WRITE(6,*) '     tolerance,wdump'
   end if
   RETURN
 END SUBROUTINE WFPLST
@@ -286,7 +307,9 @@ SUBROUTINE WFPARM(KID)
                 DELR,DELZ,&
                 PIN,RD,THETJ1,THETJ2,NJMAX,&
                 NGXMAX,NGYMAX,NGVMAX,IDEBUG, &
-                tolerance
+                br_corner,bz_corner,bt_corner, &
+                pn_corner,ptpr_corner,ptpp_corner, &
+                tolerance,wdump
   
   MODE=0
 1000 continue
@@ -390,6 +413,23 @@ SUBROUTINE WFVIEW
         WRITE(6,610) NS,PA(NS),PZ(NS),PN(NS),PNS(NS),PZCL(NS)
      ENDDO
   ENDIF
+
+  IF(MODELG.EQ.0) THEN
+     WRITE(6,601) 'br_c1 ',br_corner(1),'br_c2 ',br_corner(2), &
+                  'br_c3 ',br_corner(3)
+     WRITE(6,601) 'bz_c1 ',bz_corner(1),'bz_c2 ',bz_corner(2), &
+                  'bz_c3 ',bz_corner(3)
+     WRITE(6,601) 'bt_c1 ',bt_corner(1),'bt_c2 ',bt_corner(2), &
+                  'bt_c3 ',bt_corner(3)
+     DO NS=1,NSMAX
+        WRITE(6,611) 'PN  ',ns,pn_corner(1,ns),pn_corner(2,ns), &
+                               pn_corner(3,ns)
+        WRITE(6,611) 'PTPR',ns,ptpr_corner(1,ns),ptpr_corner(2,ns), &
+                               ptpr_corner(3,ns)
+        WRITE(6,611) 'PTPP',ns,ptpp_corner(1,ns),ptpp_corner(2,ns), &
+                               ptpp_corner(3,ns)
+     ENDDO
+  END IF
   
   WRITE(6,*) '***** CONTROL *****'
   WRITE(6,604) 'MODELG',MODELG,'MODELB',MODELB,&
@@ -400,7 +440,7 @@ SUBROUTINE WFVIEW
   WRITE(6,604) 'NGXMAX',NGXMAX,'NGYMAX',NGYMAX,&
                'NGVMAX',NGVMAX,'NGRAPH',NGRAPH
   WRITE(6,601) 'PPN0  ',PPN0  ,'PTN0  ',PTN0  
-  WRITE(6,602) 'tolerance',tolerance
+  WRITE(6,602) 'tolerance',tolerance,'wdump     ',wdump
   RETURN
   
 601 FORMAT(' ',A6,'=',1PE11.3:2X,A6,'=',1PE11.3:&
@@ -410,7 +450,8 @@ SUBROUTINE WFVIEW
 604 FORMAT(' ',A6,'=',I6     :2X,A6,'=',I6     :&
           & 2X,A6,'=',I6     :2X,A6,'=',I6     :&
           & 2X,A6,'=',I6)
-610 FORMAT(' ',I1,7(1PE11.3))
+610 FORMAT(' ',I2,7(1PE11.3))
+611 FORMAT(' ',A4,I2,3(1PE11.3))
 
 END SUBROUTINE WFVIEW
 ! --------------------------------------------------------
@@ -421,7 +462,7 @@ subroutine wfparm_broadcast
   implicit none
 
   integer,dimension(19) :: idata
-  real(8),dimension(17) :: ddata
+  real(8),dimension(18) :: ddata
   
 ! ---  broadcast integer data -----
 
@@ -489,6 +530,7 @@ subroutine wfparm_broadcast
      ddata(15)=PTN0
      ddata(16)=RR
      ddata(17)=tolerance
+     ddata(18)=wdump
   end if
 
   call mtx_broadcast_real8(ddata,17)
@@ -510,19 +552,28 @@ subroutine wfparm_broadcast
   PTN0  =ddata(15)
   RR    =ddata(16)
   tolerance =ddata(17)
+  wdump =ddata(18)
 
   call mtx_broadcast_real8(AJ  ,8)
   call mtx_broadcast_real8(APH ,8)
   call mtx_broadcast_real8(AWD ,8)
   call mtx_broadcast_real8(APOS,8)
-  call mtx_broadcast_real8(PA  ,3)
-  call mtx_broadcast_real8(PZ  ,3)
-  call mtx_broadcast_real8(PN  ,3)
-  call mtx_broadcast_real8(PNS ,3)
-  call mtx_broadcast_real8(PZCL,3)
-  call mtx_broadcast_real8(PTPR,3)
-  call mtx_broadcast_real8(PTPP,3)
-  call mtx_broadcast_real8(PTS ,3)
+  call mtx_broadcast_real8(PA  ,nsmax)
+  call mtx_broadcast_real8(PZ  ,nsmax)
+  call mtx_broadcast_real8(PN  ,nsmax)
+  call mtx_broadcast_real8(PNS ,nsmax)
+  call mtx_broadcast_real8(PZCL,nsmax)
+  call mtx_broadcast_real8(PTPR,nsmax)
+  call mtx_broadcast_real8(PTPP,nsmax)
+  call mtx_broadcast_real8(PTS ,nsmax)
+  call mtx_broadcast_real8(br_corner,3)
+  call mtx_broadcast_real8(bz_corner,3)
+  call mtx_broadcast_real8(bt_corner,3)
+  call mtx_broadcast_real8(pn_corner,3*nsmax)
+  call mtx_broadcast_real8(ptpr_corner,3*nsmax)
+  call mtx_broadcast_real8(ptpp_corner,3*nsmax)
+
+
 
 ! ------ broadcast character ------
 

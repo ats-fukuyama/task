@@ -2,22 +2,122 @@
 
 !     ****** set psi ******
 
-SUBROUTINE WFSPSI(LR,LZ,PSI)
+SUBROUTINE WFSPSI(RL,ZL,PSI)
 
-  use wfcomm
+  use wfcomm,ONLY: RA
   implicit none
-  real(8),intent(in) :: LR,LZ
+  real(8),intent(in) :: RL,ZL
   real(8),intent(out):: PSI
 
-!  MODELB=0
-  PSI=(LR*LR+LZ*LZ)/(RA*RA)
+  PSI=(RL*RL+ZL*ZL)/(RA*RA)
 
   RETURN
 END SUBROUTINE WFSPSI
 
+SUBROUTINE WFCOLL(rn,rtpr,rtpp,rzcl)
+  USE wfcomm
+  IMPLICIT NONE
+  REAL(8),DIMENSION(NSM):: rn,rtpr,rtpp,rzcl
+  REAL(8):: TE,TI,RNTI,RNZI,RLAMEE,RLAMEI,RLAMII,SN,PNN0
+  REAL(8):: VTE,RNUEE,RNUEI,RNUEN,RNUE
+  REAL(8):: VTI,RNUIE,RNUII,RNUIN,RNUI
+  INTEGER:: ns
+
+  ! --- set collision frequency ---
+  
+  IF(rn(1).GT.0.D0) THEN
+     TE=(RTPR(1)+2.D0*RTPP(1))*1.D3/3.D0
+     RNTI=0.D0
+     RNZI=0.D0
+     DO ns=2,nsmax
+        RNTI=RNTI+RN(ns)*(RTPR(ns)+2.D0*RTPP(ns))*1.D3/3.D0
+        RNZI=RNZI+RN(ns)*PZ(ns)**2
+     END DO
+     TI=RNTI/rn(1)
+     RLAMEE= 8.0D0+2.3D0*(LOG10(TE)-0.5D0*LOG10(RN(1)))
+     RLAMEI= RLAMEE+0.3D0
+     RLAMII=12.1D0+2.3D0*(LOG10(TI)-0.5D0*LOG10(RN(1)))
+
+     SN=1.D-20 ! tytpical ionizatioin crosssection
+     PNN0=PPN0/(PTN0*AEE) ! neutral density
+
+     DO NS=1,NSMAX
+        IF(PZCL(NS).EQ.0) THEN
+           IF(NS.EQ.1) THEN
+              VTE=SQRT(2.D0*TE*AEE/AME)
+              RNUEE=RN(1)*RLAMEE/(1.24D-4*SQRT(TE*1.D-3)**3)
+              RNUEI=RNZI*RLAMEI/(1.51D-4*SQRT(TE*1.D-3)**3)
+              RNUEN=PNN0*SN*0.88D0*VTE
+              RNUE=RNUEE+RNUEI+RNUEN
+              RZCL(NS)=RNUE/(2.D6*PI*RF)
+           ELSE
+              TI=(RTPR(NS)+2.D0*RTPP(NS))*1.D3/3.D0
+              VTI=SQRT(2.D0*TI*AEE/(PA(NS)*AMP))
+              RNUIE=PZ(NS)**2*RN(1)*RLAMEI &
+                       /(2.00D-1*SQRT(TE*1.D-3)**3*PA(NS))
+              RNUII=RNZI*RLAMII &
+                       /(5.31D-3*SQRT(TI*1.D-3)**3*SQRT(PA(NS)))
+              RNUIN=PNN0*SN*0.88D0*VTI
+              RNUI=RNUIE+RNUII+RNUIN
+              RZCL(NS)=RNUI/(2.D6*PI*RF)
+           ENDIF
+        ELSE
+           RZCL(NS)=PZCL(NS)
+        ENDIF
+     ENDDO
+  ELSE
+     DO NS=1,NSMAX
+        RZCL(NS)=0.D0
+     ENDDO
+  ENDIF
+  RETURN
+END SUBROUTINE WFCOLL
+
+
 !     ****** set magnetic field ******
 
 SUBROUTINE WFSMAG(R,Z,BABS,AL)
+
+  use wfcomm,ONLY: MODELG
+  implicit none
+  real(8),intent(in) :: R,Z
+  real(8),intent(out):: BABS,AL(3)
+
+  SELECT CASE(MODELG)
+  CASE(0)
+     CALL WFSMAG0(R,Z,BABS,AL)
+  CASE(2)
+     CALL WFSMAG2(R,Z,BABS,AL)
+  END SELECT
+  RETURN
+END SUBROUTINE WFSMAG
+
+SUBROUTINE WFSMAG0(R,Z,BABS,AL)
+
+  use wfcomm
+  implicit none
+  integer :: I
+  real(8),intent(in) :: R,Z
+  real(8),intent(out):: BABS,AL(3)
+  real(8) :: rfactor,zfactor,br,bz,bt
+
+  rfactor=(r-r_corner(1))/(r_corner(2)-r_corner(1))
+  zfactor=(z-z_corner(1))/(z_corner(3)-z_corner(1))
+
+  br=br_corner(1)+(br_corner(2)-br_corner(1))*rfactor &
+                 +(br_corner(3)-br_corner(1))*zfactor
+  bt=bt_corner(1)+(bt_corner(2)-bt_corner(1))*rfactor &
+                 +(bt_corner(3)-bt_corner(1))*zfactor
+  bz=bz_corner(1)+(bz_corner(2)-bz_corner(1))*rfactor &
+                 +(bz_corner(3)-bz_corner(1))*zfactor
+  babs=SQRT(br*br+bt*bt+bz*bz)
+  al(1)=br/babs
+  al(2)=bt/babs
+  al(3)=bz/babs
+  RETURN
+END SUBROUTINE WFSMAG0
+
+SUBROUTINE WFSMAG2(R,Z,BABS,AL)
 
   use wfcomm
   implicit none
@@ -63,11 +163,59 @@ SUBROUTINE WFSMAG(R,Z,BABS,AL)
   ENDDO
   
   RETURN
-END SUBROUTINE WFSMAG
+END SUBROUTINE WFSMAG2
 
 !     ****** set density & collision frequency ******
 
 SUBROUTINE WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
+
+  use wfcomm,ONLY: modelg,nsm
+  implicit none
+  real(8),intent(in) :: R,Z
+  real(8),intent(out):: RN(NSM),RTPR(NSM),RTPP(NSM),RZCL(NSM)
+
+  SELECT CASE(MODELG)
+  CASE(0)
+     CALL WFSDEN0(R,Z,RN,RTPR,RTPP,RZCL)
+  CASE(2)
+     CALL WFSDEN2(R,Z,RN,RTPR,RTPP,RZCL)
+  END SELECT
+  RETURN
+END SUBROUTINE WFSDEN
+
+SUBROUTINE WFSDEN0(R,Z,RN,RTPR,RTPP,RZCL)
+
+  use wfcomm
+  implicit none
+  real(8),intent(in) :: R,Z
+  real(8),intent(out):: RN(NSM),RTPR(NSM),RTPP(NSM),RZCL(NSM)
+  real(8) :: rfactor,zfactor
+  INTEGER :: ns
+
+  ! --- set FACT ---
+
+  rfactor=(r-r_corner(1))/(r_corner(2)-r_corner(1))
+  zfactor=(z-z_corner(1))/(z_corner(3)-z_corner(1))
+
+  ! --- set DENSITY
+
+  DO ns=1,nsmax
+     rn(ns)=pn_corner(1,ns) &
+           +(pn_corner(2,ns)-pn_corner(1,ns))*rfactor &
+           +(pn_corner(3,ns)-pn_corner(1,ns))*zfactor
+     rtpr(ns)=ptpr_corner(1,ns) &
+             +(ptpr_corner(2,ns)-ptpr_corner(1,ns))*rfactor &
+             +(ptpr_corner(3,ns)-ptpr_corner(1,ns))*zfactor
+     rtpp(ns)=ptpp_corner(1,ns) &
+             +(ptpp_corner(2,ns)-ptpp_corner(1,ns))*rfactor &
+             +(ptpp_corner(3,ns)-ptpp_corner(1,ns))*zfactor
+  END DO
+  CALL WFCOLL(rn,rtpr,rtpp,rzcl)
+
+  RETURN
+END SUBROUTINE WFSDEN0
+
+SUBROUTINE WFSDEN2(R,Z,RN,RTPR,RTPP,RZCL)
 
   use wfcomm
   implicit none
@@ -109,57 +257,8 @@ SUBROUTINE WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
 
   ! --- set collision frequency ---
   
-  if(RN(1).gt.0.D0) then
-     TE=(RTPR(1)+2.D0*RTPP(1))*1.D3/3.D0
-     TI=(RTPR(2)+2.D0*RTPP(2))*1.D3/3.D0
-     RLAMEE= 8.0D0+2.3D0*(LOG10(TE)-0.5D0*LOG10(RN(1)))
-     RLAMEI= RLAMEE+0.3D0
-     RLAMII=12.1D0+2.3D0*(LOG10(TI)-0.5D0*LOG10(RN(1)))
-     SN=1.D-20
-     PNN0=PPN0/(PTN0*AEE)
+  CALL WFCOLL(rn,rtpr,rtpp,rzcl)
 
-     DO NS=1,NSMAX
-        IF(PZCL(NS).EQ.0) THEN
-           IF(NS.EQ.1) THEN
-              TE=(RTPR(1)+2.D0*RTPP(1))*1.D3/3.D0
-              VTE=SQRT(2.D0*TE*AEE/AME)
-
-              RNUEE=RN(1)*RLAMEE &
-                   &    /(1.24D-4*SQRT(TE*1.D-3)**3)
-              RNUEI=0.D0
-              DO NSI=2,NSMAX
-                 RNUEI=RNUEI+PZ(NSI)**2*RN(NSI)
-              ENDDO
-              RNUEI=RNUEI*RLAMEI/(1.51D-4*SQRT(TE*1.D-3)**3)
-              RNUEN=PNN0*SN*0.88D0*VTE
-              RNUE=RNUEE+RNUEI+RNUEN
-              RZCL(NS)=RNUE/(2.D6*PI*RF)
-           ELSE
-              TI=(RTPR(NS)+2.D0*RTPP(NS))*1.D3/3.D0
-              VTI=SQRT(2.D0*TI*AEE/(PA(NS)*AMP))
-              RNUIE=PZ(NS)**2*RN(1)*RLAMEI &
-                   &    /(2.00D-1*SQRT(TE*1.D-3)**3*PA(NS))
-              RNUII=0.D0
-              DO NSI=2,NSMAX
-                 RNUII=RNUII+PZ(NSI)**2*RN(NSI)
-              ENDDO
-              RNUII=RNUII*RLAMII &
-                   &    /(5.31D-3*SQRT(TI*1.D-3)**3*SQRT(PA(NS)))
-              RNUIN=PNN0*SN*0.88D0*VTI
-              RNUI=RNUIE+RNUII+RNUIN
-              RZCL(NS)=RNUI/(2.D6*PI*RF)
-           ENDIF
-        ELSE
-           RZCL(NS)=PZCL(NS)
-        ENDIF
-     ENDDO
-     
-  ELSE
-     DO NS=1,NSMAX
-        RZCL(NS)=0.D0
-     ENDDO
-  ENDIF
-  
 !  WRITE(6,*) 'ZND= ',ZND(IN)
 !  WRITE(6,*) 'RN = ',RN(1),RN(2)
 !  WRITE(6,*) 'RT = ',RTPR(1),RTPR(2)
@@ -169,4 +268,5 @@ SUBROUTINE WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
 !  STOP
 
   RETURN
-END SUBROUTINE WFSDEN
+END SUBROUTINE WFSDEN2
+
