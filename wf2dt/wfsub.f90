@@ -466,7 +466,7 @@ SUBROUTINE SETEWG
   use wfcomm
   implicit none
   INTEGER:: NBSID,NSD,NN1,NN2,NBNOD,NN,NBSD,NBND
-  REAL(rkind):: ANGLE,R,Z,PHASE,PROD
+  REAL(rkind):: ANGLE,R,Z,PHASE,PROD,FACTOR
 
   ANGLE=ANGWG*PI/180.D0
 
@@ -501,15 +501,21 @@ SUBROUTINE SETEWG
         (Z.GE.Z1WG).AND.(Z.LE.Z2WG)) THEN
         PROD=(R2WG-R1WG)*(RNODE(NN2)-RNODE(NN1)) &
             +(Z2WG-Z1WG)*(ZNODE(NN2)-ZNODE(NN1))
+        IF(ABS(R1WG-R2WG).LT.1.D-8) THEN
+           FACTOR=(Z-0.5D0*(Z1WG+Z2WG))**2/(Z1WG-Z2WG)**2
+        ELSE IF(ABS(Z1WG-Z2WG).LT.1.D-8) THEN
+           FACTOR=(R-0.5D0*(R1WG+R2WG))**2/(R1WG-R2WG)**2
+        ELSE
+           FACTOR=(R-0.5D0*(R1WG+R2WG))**2/(R1WG-R2WG)**2 &
+                 +(Z-0.5D0*(Z1WG+Z2WG))**2/(Z1WG-Z2WG)**2
+        END IF
         PHASE=((PH2WG-PH1WG) &
                *SQRT((R-R1WG)**2+(Z-Z1WG)**2) &
                /SQRT((R2WG-R1WG)**2+(Z2WG-Z1WG)**2) &
                +PH1WG)*PI/180.D0
-        IF(PROD.GT.0.D0) THEN
-           CEBSD(NBSD)= AMPWG*EXP(CII*PHASE)*COS(ANGLE)
-        ELSE
-           CEBSD(NBSD)=-AMPWG*EXP(CII*PHASE)*COS(ANGLE)
-        END IF
+        CEBSD(NBSD)= AMPWG*EXP(CII*PHASE)*COS(ANGLE)
+        IF(NSHWG.EQ.1) CEBSD(NBSD)=CEBSD(NBSD)*EXP(-10.D0*FACTOR)
+        IF(PROD.GT.0.D0) CEBSD(NBSD)=-CEBSD(NBSD)
         WRITE(6,'(A,I5,1P6E12.4)') 'SD:',NSD,CEBSD(NBSD),AMPWG,PHASE,ANGLE,PROD
      ELSE
         CEBSD(NBSD)=(0.D0,0.D0)
@@ -543,11 +549,20 @@ SUBROUTINE SETEWG
      Z=ZNODE(NN)
      IF((R.GE.R1WG).AND.(R.LE.R2WG).AND. &
         (Z.GE.Z1WG).AND.(Z.LE.Z2WG)) THEN
+        IF(ABS(R1WG-R2WG).LT.1.D-8) THEN
+           FACTOR=(Z-0.5D0*(Z1WG+Z2WG))**2/(Z1WG-Z2WG)**2
+        ELSE IF(ABS(Z1WG-Z2WG).LT.1.D-8) THEN
+           FACTOR=(R-0.5D0*(R1WG+R2WG))**2/(R1WG-R2WG)**2
+        ELSE
+           FACTOR=(R-0.5D0*(R1WG+R2WG))**2/(R1WG-R2WG)**2 &
+                 +(Z-0.5D0*(Z1WG+Z2WG))**2/(Z1WG-Z2WG)**2
+        END IF
         PHASE=((PH2WG-PH1WG) &
                *SQRT((R-R1WG)**2+(Z-Z1WG)**2) &
                /SQRT((R2WG-R1WG)**2+(Z2WG-Z1WG)**2) &
                +PH1WG)*PI/180.D0
         CEBND(NBND)=AMPWG*EXP(CII*PHASE)*SIN(ANGLE)
+        IF(NSHWG.EQ.1) CEBND(NBND)=CEBND(NBND)*EXP(-10.D0*FACTOR)
         WRITE(6,'(A,I5,1P5E12.4)') 'ND:',NN,CEBND(NBND),AMPWG,PHASE,ANGLE
      ELSE
         CEBND(NBND)=(0.D0,0.D0)

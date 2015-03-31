@@ -240,6 +240,7 @@ SUBROUTINE WFINIT
   PH2WG=180.D0
   AMPWG=0.D0
   ANGWG=0.D0
+  NSHWG=1           ! Profile: 0: step function, 1: gaussian
   
 !     PPN0   : Neutral pressure (Pa)  1 Torr = 1 mmHg = 133.322 Pa
 !     PTN0   : Initial neutral temperarure (eV)
@@ -289,7 +290,7 @@ SUBROUTINE WFPLST
      WRITE(6,*) '     BXMIN,BXMAX,BYMIN,BYMAX,BZMIN,BZMAX,'
      WRITE(6,*) '     DELR,DELZ,'
      WRITE(6,*) '     PIN,RD,THETJ1,THETJ2,NJMAX,ZANT,ZWALL,'
-     WRITE(6,*) '     R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG,AMPWG,ANGWG,'
+     WRITE(6,*) '     R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG,AMPWG,ANGWG,NSHWG,'
      WRITE(6,*) '     NGXMAX,NGYMAX,NGVMAX,IDEBUG,'
      WRITE(6,*) '     br_corner,bz_corner,bt_corner,'
      WRITE(6,*) '     pn_corner,ptpr_corner,ptpp_corner,'
@@ -317,7 +318,7 @@ SUBROUTINE WFPARM(KID)
                 BRMIN,BRMAX,BZMIN,BZMAX,&
                 DELR,DELZ,&
                 PIN,RD,THETJ1,THETJ2,NJMAX,&
-                R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG,AMPWG,ANGWG, &
+                R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG,AMPWG,ANGWG,NSHWG, &
                 NGXMAX,NGYMAX,NGVMAX,IDEBUG, &
                 br_corner,bz_corner,bt_corner, &
                 pn_corner,ptpr_corner,ptpp_corner, &
@@ -421,6 +422,7 @@ SUBROUTINE WFVIEW
                   'R2WG  ',R2WG  ,'Z2WG  ',Z2WG
      WRITE(6,601) 'PH1WG ',PH1WG ,'PH2WG ',PH2WG , &
                   'AMPWG ',AMPWG ,'ANGWG ',ANGWG
+     WRITE(6,604) 'NSHWG ',NSHWG
   END IF
   
   IF(NSMAX.GT.0) THEN
@@ -481,7 +483,7 @@ subroutine wfparm_broadcast
   use wfcomm
   implicit none
 
-  integer,dimension(19) :: idata
+  integer,dimension(20) :: idata
   real(8),dimension(27) :: ddata
   
 ! ---  broadcast integer data -----
@@ -506,9 +508,10 @@ subroutine wfparm_broadcast
      idata(17)=NGVMAX
      idata(18)=IDEBUG
      idata(19)=NPH
+     idata(20)=NSHWG
   end if
   
-  call mtx_broadcast_integer(idata,19)
+  call mtx_broadcast_integer(idata,20)
   
   NSMAX =idata(1)
   NAMAX =idata(2)
@@ -529,6 +532,7 @@ subroutine wfparm_broadcast
   NGVMAX=idata(17)
   IDEBUG=idata(18)
   NPH   =idata(19)
+  NSHWG =idata(20)
 
 ! ----- broadcast real(8) data ------
 

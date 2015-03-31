@@ -53,6 +53,7 @@ module wfcomm
   real(rkind),DIMENSION(3):: br_corner,bz_corner,bt_corner
   real(rkind),DIMENSION(3,NSM):: pn_corner,ptpr_corner,ptpp_corner
   real(rkind):: R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG,AMPWG,ANGWG
+  integer(ikind):: NSHWG
 
 !       /WFPRK/
   character(len=32) :: KFNAME,KFNAMA,KFNAMF,KFNAMN
