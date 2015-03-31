@@ -37,11 +37,12 @@ subroutine WFWAVE
   GTSOLV=GTSOLV+GCPUT2-GCPUT1
   GTMAIN=GTMAIN+GCPUT3-GCPUT2+GCPUT1-GCPUT0
 
-  if (nrank.eq.0) write (*,*) "GCPUT0,GCPUT1,GCPUT2,GCPUT3,GTSOLV",&
-                               GCPUT0,GCPUT1,GCPUT2,GCPUT3,GTSOLV
+!  if (nrank.eq.0) write (6,'(A/5F12.3)') &
+!       "GCPUT0,GCPUT1,GCPUT2,GCPUT3,GTSOLV=", &
+!        GCPUT0,GCPUT1,GCPUT2,GCPUT3,GTSOLV
 !  if (nrank.eq.0) CALL LPEFLD
-  if (nrank.eq.0) write(6,100) GTMAIN,GTSOLV
 
+  if (nrank.eq.0) write(6,100) GTMAIN,GTSOLV
 100 format(' ','****** CPU TIME : MAIN = ',F10.3,' SEC',5X,&
          &                     ': SOLV = ',F10.3,' SEC ******')
   

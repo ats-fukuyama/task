@@ -430,9 +430,16 @@ SUBROUTINE WFVIEW
      WRITE(6,698)
 698     FORMAT(' ','NS    PA',9X,'PZ',9X,'PN',9X,'PNS',&
              &                8X,'PZCL')
-     DO NS=1,NSMAX
-        WRITE(6,610) NS,PA(NS),PZ(NS),PN(NS),PNS(NS),PZCL(NS)
-     ENDDO
+     IF(MODELG.EQ.0) THEN
+        DO NS=1,NSMAX
+           WRITE(6,610) NS,PA(NS),PZ(NS),pn_corner(1,NS),pn_corner(2,NS), &
+                        PZCL(NS)
+        ENDDO
+     ELSE
+        DO NS=1,NSMAX
+           WRITE(6,610) NS,PA(NS),PZ(NS),PN(NS),PNS(NS),PZCL(NS)
+        ENDDO
+     ENDIF
   ENDIF
 
   IF(MODELG.EQ.0) THEN

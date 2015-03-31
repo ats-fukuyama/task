@@ -24,6 +24,7 @@ SRCSFREE  =  libbrn.f90 libinv.f90 libbnd.f90 \
 	     libgrf/grf2d.f90 libgrf/grd2d.f90 libgrf.f90 \
              libbes.f90 libde.f90 libdsp.f90 libell.f90 libspf.f90 \
 	     libfft.f90 \
+             libqsort.f90 \
              libufile/ufinit.f90 libufile/uflist.f90 libufile/ufread.f90
 
 SRCSFIXED =  netlib-bes.f $(LAPACK)
@@ -83,6 +84,8 @@ mmconvert: mmconvert.o
 
 testgrf: tasklib.a testgrf.o 
 	$(FCFIXED) testgrf.o tasklib.a $(FFLAGS) -o $@ $(FLIBS)
+testqsort: tasklib.a testqsort.o 
+	$(FCFREE) testqsort.o tasklib.a $(FFLAGS) -o $@ $(FLIBS)
 testgrd: tasklib.a testgrd.o 
 	$(FCFIXED) testgrd.o tasklib.a $(FFLAGS) -o $@ $(FLIBS)
 

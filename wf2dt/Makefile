@@ -13,7 +13,8 @@ FFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I.$(MOD) -I../../task/plx/$(MOD) -I../../task/eq/$(MOD) \
-            -I../../bpsd/$(MOD) -I../../task/mtxp/$(MOD)
+            -I../../bpsd/$(MOD) -I../../task/mtxp/$(MOD) \
+            -I../../task/lib/$(MOD)
 
 SRCS = 	wfcomm.f90 wfmenu.f90 wfinit.f90 wfdiv.f90 wflib.f90 wfsub.f90 \
         wfindx.f90 wfsort.f90 wfgsub.f90 wfgutl.f90 wfant.f90 wfwave.f90 \
@@ -50,7 +51,7 @@ libs:
 	(cd ../../task/plx; make pllib.a)
 	(cd ../../task/lib; make tasklib.a)
 
-wf : $(LIBS) wfmain.o
+wf : libs $(LIBS) wfmain.o
 	$(FLINKER) wfmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 save :

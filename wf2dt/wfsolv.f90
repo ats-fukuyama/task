@@ -32,6 +32,7 @@ SUBROUTINE CVSOLV
   use wfcomm
   use libmpi
   use libmtx
+  use libqsort
   implicit none
   integer :: ISD,NSD,NV
   integer :: NE,NN
@@ -41,14 +42,15 @@ SUBROUTINE CVSOLV
   integer :: itype
   integer :: its
   integer :: JMIN,JMAX,MILEN,MJLEN
-  integer :: NNZME         !Number of Non-Zero Matrix Element
-  integer,dimension(:),pointer :: NEFLAG
+  integer :: NNZ,NNZMAX,NNZME      !Number of Non-Zero Matrix Element
+  integer,dimension(:),ALLOCATABLE :: NEFLAG
   integer :: ORIENTJ,ORIENTI
   real(8),dimension(1) :: ddata
   real(4) :: cputime1,cputime2
   complex(8):: CEB
-  complex(8),dimension(:)  ,pointer :: CRVP
-  complex(8),dimension(:,:),pointer :: CEQP
+  complex(8),dimension(:),ALLOCATABLE :: CRVP,CEQP
+  integer(8),dimension(:),ALLOCATABLE :: NSEQ
+  INTEGER(8):: IX,IY
 
   ! ----- initialize ------
   
@@ -165,24 +167,71 @@ SUBROUTINE CVSOLV
 8100 continue
   end do
 
+! ------ Count non-zero component -------
+
+  NNZ=0
+
+  DO NE=1,NEMAX
+     IF(NEFLAG(NE).NE.0) THEN
+
+        LL=0
+        DO J=1,6
+           IF(J.ge.1.and.J.le.3) then
+              JNSD=NSDELM(J,NE)
+              if(JNSD.lt.0) then
+                 JNSD=-JNSD
+              end if
+              JNV =NVNSD(JNSD)
+           else
+              JNN=NDELM(J-3,NE)
+              JNV=NVNN(JNN)
+           END IF
+           LL=JNV
+
+           if ((LL.GE.JMIN).AND.(LL.LE.JMAX)) THEN
+
+              KK=0
+              DO I=1,6
+                 if(I.ge.1.and.I.le.3) then
+                    INSD=NSDELM(I,NE)
+                    if(INSD.lt.0) then
+                       INSD=-INSD
+                    end if
+                    INV =NVNSD(INSD)
+                 else
+                    INN=NDELM(I-3,NE)
+                    INV=NVNN(INN)
+                 end if
+                 KK=INV
+
+                 if((KK.ge.istart).and.&
+                      (KK.le.iend  )) then
+                    NNZ=NNZ+1
+                 end if
+              END DO
+           END if
+        ENDDO
+     END IF
+  END DO
+
+  NNZMAX=NNZ
   MILEN=iend-istart+1
   MJLEN=JMAX-JMIN+1
 
   ! ----- set CEQP,CRVP -----
 
-  allocate(CEQP(MILEN,MJLEN),CRVP(MILEN))
-  do J=1,MJLEN
-     do I=1,MILEN
-        CEQP(I,J)=(0.d0,0.d0)
-     end do
-  end do
-  do I=1,MILEN
+  allocate(CEQP(NNZMAX),NSEQ(NNZMAX),CRVP(MILEN))
+  DO NNZ=1,NNZMAX
+     CEQP(NNZ)=(0.d0,0.d0)
+     NSEQ(NNZ)=0  ! (i-istart)*MJLEN+j-jmin
+  END DO
+  DO I=1,MILEN
      CRVP(I)=(0.d0,0.d0)
-  end do
+  END DO
 
 ! ------ set grobal matrix -------
 
-  NNZME=0
+  NNZ=0
 
   do NE=1,NEMAX
      if(NEFLAG(NE).eq.0) goto 8000
@@ -229,9 +278,13 @@ SUBROUTINE CVSOLV
               KK=INV
               if((KK.ge.istart).and.&
                    (KK.le.iend  )) then
-                 CEQP(KK-istart+1,LL-JMIN+1) &
-                      =CEQP(KK-istart+1,LL-JMIN+1)+ORIENTJ*ORIENTI*CM(I,J)
-                 if(abs(CM(I,J)).ne.0.d0) NNZME=NNZME+1
+                 if(abs(CM(I,J)).ne.0.d0) THEN 
+                    NNZ=NNZ+1
+                    IX=KK-istart
+                    IY=MJLEN
+                    NSEQ(NNZ)=IX*IY+LL-jmin
+                    CEQP(NNZ)=ORIENTJ*ORIENTI*CM(I,J)
+                 END if
               end if
            END DO
         END if
@@ -275,7 +328,7 @@ SUBROUTINE CVSOLV
               KK=INV
               if((KK.ge.istart).and.&
                  (KK.le.iend  )) then
-              write(6,'(3I5,1P4E12.4)') NE,I,J,CEB,ORIENTI*ORIENTJ*CM(I,J)*CEB
+!              write(6,'(3I5,1P4E12.4)') NE,I,J,CEB,ORIENTI*ORIENTJ*CM(I,J)*CEB
               CRVP(KK-istart+1)=CRVP(KK-istart+1)-ORIENTI*ORIENTJ*CM(I,J)*CEB
               end if
            END DO
@@ -308,21 +361,43 @@ SUBROUTINE CVSOLV
 8000 continue
   end do
 
-  if(nrank.eq.0) write(6,'(56A)') "  nrank   IMIN   IMAX  MILEN   JMIN   JMAX  MJLEN  NNZME"
+  write(6,*) 'wfsolv: sort started'
+  CALL qsort_lc(NSEQ,CEQP)
+  write(6,*) 'wfsolv: reduction started'
+  NNZME=1
+  DO NNZ=2,NNZMAX
+     IF(NSEQ(NNZ).EQ.NSEQ(NNZME)) THEN
+        CEQP(NNZME)=CEQP(NNZME)+CEQP(NNZ)
+     ELSE
+        NNZME=NNZME+1
+        NSEQ(NNZME)=NSEQ(NNZ)
+        CEQP(NNZME)=CEQP(NNZ)
+     END IF
+  END DO
+
+
+
+  if(nrank.eq.0) write(6,'(A72)') "   nrank    IMIN    IMAX   MILEN    JMIN    JMAX   MJLEN  NNZMAX   NNZME"
   call mtx_barrier
-  write(6,'(8I7)') nrank,istart,iend,iend-istart+1,JMIN,JMAX,JMAX-JMIN+1,NNZME
+  write(6,'(9I8)') nrank,istart,iend,iend-istart+1,JMIN,JMAX,JMAX-JMIN+1, &
+                   NNZMAX,NNZME
 
   ! ----- initialize for parallel computing -----
 
   itype = 0
   call mtxc_setup(MLEN,istart,iend,nzmax=NNZME)
 
-  do j=1,MJLEN
-     do i=istart,iend
-        if (abs(CEQP(i-istart+1,j)).ne.0.d0) then
-           call mtxc_set_matrix(i,JMIN-1+j,CEQP(i-istart+1,j))
-        end if
-     end do
+  do NNZ=1,NNZME
+     IF(ABS(CEQP(NNZ)).GT.0.D0) THEN
+        i=NSEQ(NNZ)/MJLEN
+        j=NSEQ(NNZ)-i*MJLEN
+        if(i+istart.lt.0) then
+           WRITE(6,'(A/6I12)') 'NNZ,NSEQ(NNZ),i,istart,i+istart,iend=', &
+                               NNZ,NSEQ(NNZ),i,istart,i+istart,iend
+           STOP
+        END if
+        call mtxc_set_matrix(i+istart,j+jmin,CEQP(NNZ))
+     END IF
   end do
 
   do i=istart,iend
@@ -339,7 +414,7 @@ SUBROUTINE CVSOLV
 
   call mtxc_gather_vector(CSV)
 
-  deallocate(CEQP,CRVP)
+  deallocate(CEQP,NSEQ,CRVP)
   deallocate(NEFLAG)
   call mtxc_cleanup
   RETURN
