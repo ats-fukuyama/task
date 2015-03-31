@@ -466,9 +466,9 @@ SUBROUTINE SETEWG
   use wfcomm
   implicit none
   INTEGER:: NBSID,NSD,NN1,NN2,NBNOD,NN,NBSD,NBND
-  REAL(rkind):: ANGLE,R,Z,PHASE
+  REAL(rkind):: ANGLE,R,Z,PHASE,PROD
 
-  ANGLE=ANGWG*2.D0*PI/180.D0
+  ANGLE=ANGWG*PI/180.D0
 
 ! --- WG Electric field on boundary side ---  
 
@@ -499,12 +499,18 @@ SUBROUTINE SETEWG
      Z=0.5D0*(ZNODE(NN1)+ZNODE(NN2))
      IF((R.GE.R1WG).AND.(R.LE.R2WG).AND. &
         (Z.GE.Z1WG).AND.(Z.LE.Z2WG)) THEN
+        PROD=(R2WG-R1WG)*(RNODE(NN2)-RNODE(NN1)) &
+            +(Z2WG-Z1WG)*(ZNODE(NN2)-ZNODE(NN1))
         PHASE=((PH2WG-PH1WG) &
                *SQRT((R-R1WG)**2+(Z-Z1WG)**2) &
                /SQRT((R2WG-R1WG)**2+(Z2WG-Z1WG)**2) &
-               +PH1WG)*2.D0*PI/180.D0
-        CEBSD(NBSD)=AMPWG*EXP(CII*PHASE)*COS(ANGLE)
-        WRITE(6,'(A,I5,1P5E12.4)') 'SD:',NSD,CEBSD(NBSD),AMPWG,PHASE,ANGLE
+               +PH1WG)*PI/180.D0
+        IF(PROD.GT.0.D0) THEN
+           CEBSD(NBSD)= AMPWG*EXP(CII*PHASE)*COS(ANGLE)
+        ELSE
+           CEBSD(NBSD)=-AMPWG*EXP(CII*PHASE)*COS(ANGLE)
+        END IF
+        WRITE(6,'(A,I5,1P6E12.4)') 'SD:',NSD,CEBSD(NBSD),AMPWG,PHASE,ANGLE,PROD
      ELSE
         CEBSD(NBSD)=(0.D0,0.D0)
      END IF
@@ -540,7 +546,7 @@ SUBROUTINE SETEWG
         PHASE=((PH2WG-PH1WG) &
                *SQRT((R-R1WG)**2+(Z-Z1WG)**2) &
                /SQRT((R2WG-R1WG)**2+(Z2WG-Z1WG)**2) &
-               +PH1WG)*2.D0*PI/180.D0
+               +PH1WG)*PI/180.D0
         CEBND(NBND)=AMPWG*EXP(CII*PHASE)*SIN(ANGLE)
         WRITE(6,'(A,I5,1P5E12.4)') 'ND:',NN,CEBND(NBND),AMPWG,PHASE,ANGLE
      ELSE

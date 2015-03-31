@@ -1,0 +1,62 @@
+0
+f
+wf.test.gs
+c
+p
+ &wf
+ modelg=0
+ idebug=0
+ RF=10000
+ RR=1.0D0
+ BB=2.4D0
+ br_corner=0.D0,0.D0,0.D0
+ bt_corner=0.D0,0.D0,0.D0
+ bz_corner=1.2D0,1.2D0,1.2D0
+ nsmax=3
+ PA(3)=1.D0
+ PZ(3)=1.D0
+ pn_corner=0.0D0,0.D0,0.0D0, 0.0D0,0.D0,0.0D0, 0.D0,0.D0,0.D0
+ ptpr_corner=1.D0,0.1D0,1.D0, 1.D0,0.1D0,1.D0, 1.D0,0.1D0,1.D0
+ ptpp_corner=1.D0,0.1D0,1.D0, 1.D0,0.1D0,1.D0, 1.D0,0.1D0,1.D0
+ PZCL(1)=1.0d-3
+ PZCL(2)=1.0d-3
+ PZCL(3)=1.0d-1
+ NDRAWE=0
+ NDRAWD=2
+ NGRAPH=1
+ NGXMAX=151
+ NGYMAX=151
+ AJ(1)=0.D0
+ r1wg=0.5
+ z1wg=0.4
+ r2wg=0.5
+ z2wg=0.6
+ ph1wg=0.0
+ ph2wg=0.0
+ AMPWG=1.D0
+ ANGWG=90.0
+ wdamp=0.1
+ fdamp=10.0
+ PZCL(3)=1.0d-1
+ &end
+v
+d
+d
+x
+0.0D0 0.5D0 0.0D0 1.0D0
+0.01 0.01
+g
+x
+a
+a
+1
+p
+1
+0.474 0.1
+g
+x
+w
+g
+ME
+x
+q

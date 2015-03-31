@@ -64,7 +64,7 @@ module wfcomm
   real(rkind):: RD,THETJ1,THETJ2
   integer(ikind):: NJMAX
   real(rkind),dimension(NAM):: AJ,APH,APOS,AWD
-  real(rkind):: WDUMP
+  real(rkind):: WDAMP,FDAMP
 
 !       /WFDIV/
   integer(ikind):: iddiv

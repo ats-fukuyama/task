@@ -200,8 +200,7 @@ SUBROUTINE WFGPPC(NW,NWMAX,KWD)
   integer :: NS,NSDO
   real(8) :: X,Y,WC(NSMAX),WP(NSMAX),WW
   real(8) :: BABS,AL(3),RTPR(NSM),RTPP(NSM),RZCL(NSM),RN(NSM)
-  real(8) :: TCO(NGXM,NGYM),TCR(NGXM,NGYM),THR(NGXM,NGYM)
-  real(8) :: TRC(NGXM,NGYM),TLC(NGXM,NGYM)
+  REAL(8),DIMENSION(:,:),ALLOCATABLE:: TCO,TCR,THR,TRC,TLC
   real(4) :: GUCLIP
   integer,DIMENSION (:,:,:),ALLOCATABLE :: KA
   real(4),DIMENSION (:),ALLOCATABLE :: GAX,GAY
@@ -213,6 +212,8 @@ SUBROUTINE WFGPPC(NW,NWMAX,KWD)
   ALLOCATE(GAX(NGXM),GAY(NGYM))
   ALLOCATE(GTCO(NGXM,NGYM),GTCR(NGXM,NGYM),GTHR(NGXM,NGYM))
   ALLOCATE(GTRC(NGXM,NGYM),GTLC(NGXM,NGYM))
+  ALLOCATE(TCO(NGXM,NGYM),TCR(NGXM,NGYM),THR(NGXM,NGYM))
+  ALLOCATE(TRC(NGXM,NGYM),TLC(NGXM,NGYM))
   
   ! --- initialize ---
 
@@ -357,34 +358,34 @@ SUBROUTINE WFGPPC(NW,NWMAX,KWD)
   end if
 
   ! --- smoozing Z ---
-  do NGY=1,NGYMAX
-     do NGX=1,NGXMAX
-        GZ_temp(NGX,NGY)=GZ(NGX,NGY)
-     end do
-  end do
-
-  do NGY=1,NGYMAX
-     do NGX=1,NGXMAX
-        GZ(NGX,NGY)=0.0
-        if(NGX.ne.1.and.NGY.ne.1) &
-             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX-1,NGY-1)*0.0625
-        if(NGY.ne.1) &
-             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX  ,NGY-1)*0.125
-        if(NGX.ne.NGXMAX.and.NGY.ne.1) &
-             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX+1,NGY-1)*0.0625
-        if(NGX.ne.1) &
-             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX-1,NGY  )*0.125
-        GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX  ,NGY  )*0.25
-        if(NGX.ne.NGXMAX) &
-             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX+1,NGY  )*0.125
-        if(NGX.ne.1.and.NGY.ne.NGYMAX) &
-             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX-1,NGY+1)*0.0625
-        if(NGY.ne.NGYMAX) &
-             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX  ,NGY+1)*0.125
-        if(NGX.ne.NGXMAX.and.NGY.ne.NGYMAX) &
-             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX+1,NGY+1)*0.0625
-     end do
-  end do
+!  do NGY=1,NGYMAX
+!     do NGX=1,NGXMAX
+!        GZ_temp(NGX,NGY)=GZ(NGX,NGY)
+!     end do
+!  end do
+!
+!  do NGY=1,NGYMAX
+!     do NGX=1,NGXMAX
+!        GZ(NGX,NGY)=0.0
+!        if(NGX.ne.1.and.NGY.ne.1) &
+!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX-1,NGY-1)*0.0625
+!        if(NGY.ne.1) &
+!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX  ,NGY-1)*0.125
+!        if(NGX.ne.NGXMAX.and.NGY.ne.1) &
+!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX+1,NGY-1)*0.0625
+!        if(NGX.ne.1) &
+!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX-1,NGY  )*0.125
+!        GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX  ,NGY  )*0.25
+!        if(NGX.ne.NGXMAX) &
+!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX+1,NGY  )*0.125
+!        if(NGX.ne.1.and.NGY.ne.NGYMAX) &
+!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX-1,NGY+1)*0.0625
+!        if(NGY.ne.NGYMAX) &
+!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX  ,NGY+1)*0.125
+!        if(NGX.ne.NGXMAX.and.NGY.ne.NGYMAX) &
+!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX+1,NGY+1)*0.0625
+!     end do
+!  end do
 
   ! --- scaling Z & PLOT---
 
@@ -403,7 +404,8 @@ SUBROUTINE WFGPPC(NW,NWMAX,KWD)
 
   CALL SETLIN(0,0,7)
   IF(GZMIN*GZMAX.GT.0.0) THEN
-     GZORG=GQZMIN-GZDEL
+!     GZORG=GQZMIN-GZDEL
+     GZORG=0.5*GZDEL
   ELSE
      GZORG=0.5*GZDEL
   ENDIF
@@ -434,8 +436,10 @@ SUBROUTINE WFGPPC(NW,NWMAX,KWD)
   CALL TEXT('STP=',4)
   CALL NUMBR(GZDEL,'(1PE9.2)',9)
 
+  DEALLOCATE(KA)
   DEALLOCATE(GAX,GAY)
   DEALLOCATE(GTCO,GTCR,GTHR,GTRC,GTLC)
+  DEALLOCATE(TCO,TCR,THR,TRC,TLC)
   RETURN
 END SUBROUTINE WFGPPC
 

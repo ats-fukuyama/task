@@ -192,6 +192,8 @@ SUBROUTINE CVSOLV
 !    If KK (or LL) is out of assigned range,  
 !      CVSOLV do not save the matrix element. 
 
+!    --- inside of the boundary ---
+
      LL=0
      DO J=1,6
         ORIENTJ=1
@@ -232,50 +234,55 @@ SUBROUTINE CVSOLV
                  if(abs(CM(I,J)).ne.0.d0) NNZME=NNZME+1
               end if
            END DO
-
         END if
      ENDDO
 
-     KK=0
-     DO I=1,6
-        ORIENTI=1
-        if(I.ge.1.and.I.le.3) then
-           INSD=NSDELM(I,NE)
-           if(INSD.lt.0) then
-              INSD=-INSD
-              ORIENTI=-1
+!    --- Contribution from the boundary ---
+
+     LL=0
+     DO J=1,6
+        ORIENTJ=1
+        if(J.ge.1.and.J.le.3) then
+           JNSD=NSDELM(J,NE)
+           if(JNSD.lt.0) then
+              JNSD=-JNSD
+              ORIENTJ=-1
            end if
-           INV =NVNSD(ISD)
+           KB =KBSID(JNSD)
+           IF(KB.NE.0) CEB=CEBSD(KB)
         else
-           INN=NDELM(I-3,NE)
-           INV=NVNN(INN)
+           JNN=NDELM(J-3,NE)
+            KB=KBNOD(JNN)
+            IF(KB.NE.0) CEB=CEBND(KB)
         end if
-        KK=JNV
 
-        if ((KK.GE.JMIN).AND.(KK.LE.JMAX)) THEN
-           DO J=1,6
-              ORIENTJ=1
-              if(J.ge.1.and.J.le.3) then
-                 JNSD=NSDELM(J,NE)
-                 if(JNSD.lt.0) then
-                    JNSD=-JNSD
-                    ORIENTJ=-1
+        IF(KB.NE.0.AND.ABS(CEB).GT.0.D0) THEN
+
+           KK=0
+           DO I=1,6
+              ORIENTI=1
+              if(I.ge.1.and.I.le.3) then
+                 INSD=NSDELM(I,NE)
+                 if(INSD.lt.0) then
+                    INSD=-INSD
+                    ORIENTI=-1
                  end if
-                 KB=KBSID(JNSD)
-                 IF(KB.NE.0) CEB=CEBSD(KB)
+                 INV =NVNSD(INSD)
               else
-                 JNN=NDELM(J-3,NE)
-                 KB=KBNOD(JNN)
-                 IF(KB.NE.0) CEB=CEBND(KB)
+                 INN=NDELM(I-3,NE)
+                 INV=NVNN(INN)
               end if
-              IF(KB.NE.0) THEN
-              write(16,'(3I5,1P4E12.4)') NE,I,J,CEB,ORIENTI*ORIENTJ*CM(I,J)*CEB
-              CRVP(KK-istart+1)=CRVP(KK-istart+1)+ORIENTI*ORIENTJ*CM(I,J)*CEB
-              END IF
+              KK=INV
+              if((KK.ge.istart).and.&
+                 (KK.le.iend  )) then
+              write(6,'(3I5,1P4E12.4)') NE,I,J,CEB,ORIENTI*ORIENTJ*CM(I,J)*CEB
+              CRVP(KK-istart+1)=CRVP(KK-istart+1)-ORIENTI*ORIENTJ*CM(I,J)*CEB
+              end if
            END DO
-
         END if
      ENDDO
+
+!    --- Contribution from the antenna current ---
 
      KK=0
      DO I=1,6

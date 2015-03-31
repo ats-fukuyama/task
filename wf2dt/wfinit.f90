@@ -153,7 +153,8 @@ SUBROUTINE WFINIT
      ptpp_corner(3,ns)=ptpp(ns)
   END DO
 
-  WDUMP=0.D0
+  WDAMP=0.D0
+  FDAMP=0.3D0
 
 !     *** MEDIUM PARAMETERS ***
 
@@ -292,7 +293,7 @@ SUBROUTINE WFPLST
      WRITE(6,*) '     NGXMAX,NGYMAX,NGVMAX,IDEBUG,'
      WRITE(6,*) '     br_corner,bz_corner,bt_corner,'
      WRITE(6,*) '     pn_corner,ptpr_corner,ptpp_corner,'
-     WRITE(6,*) '     tolerance,wdump'
+     WRITE(6,*) '     tolerance,wdamp,fdamp'
   end if
   RETURN
 END SUBROUTINE WFPLST
@@ -320,7 +321,7 @@ SUBROUTINE WFPARM(KID)
                 NGXMAX,NGYMAX,NGVMAX,IDEBUG, &
                 br_corner,bz_corner,bt_corner, &
                 pn_corner,ptpr_corner,ptpp_corner, &
-                tolerance,wdump
+                tolerance,wdamp,fdamp
   
   MODE=0
 1000 continue
@@ -458,7 +459,8 @@ SUBROUTINE WFVIEW
   WRITE(6,604) 'NGXMAX',NGXMAX,'NGYMAX',NGYMAX,&
                'NGVMAX',NGVMAX,'NGRAPH',NGRAPH
   WRITE(6,601) 'PPN0  ',PPN0  ,'PTN0  ',PTN0  
-  WRITE(6,602) 'tolerance',tolerance,'wdump     ',wdump
+  WRITE(6,602) 'tolerance',tolerance,'wdamp     ',wdamp, &
+               'fdamp    ',fdamp
   RETURN
   
 601 FORMAT(' ',A6,'=',1PE11.3:2X,A6,'=',1PE11.3:&
@@ -480,7 +482,7 @@ subroutine wfparm_broadcast
   implicit none
 
   integer,dimension(19) :: idata
-  real(8),dimension(26) :: ddata
+  real(8),dimension(27) :: ddata
   
 ! ---  broadcast integer data -----
 
@@ -548,18 +550,19 @@ subroutine wfparm_broadcast
      ddata(15)=PTN0
      ddata(16)=RR
      ddata(17)=tolerance
-     ddata(18)=wdump
-     ddata(19)=r1wg
-     ddata(20)=z1wg
-     ddata(21)=r2wg
-     ddata(22)=z2wg
-     ddata(23)=ph1wg
-     ddata(24)=ph2wg
-     ddata(25)=ampwg
-     ddata(26)=angwg
+     ddata(18)=wdamp
+     ddata(19)=fdamp
+     ddata(20)=r1wg
+     ddata(21)=z1wg
+     ddata(22)=r2wg
+     ddata(23)=z2wg
+     ddata(24)=ph1wg
+     ddata(25)=ph2wg
+     ddata(26)=ampwg
+     ddata(27)=angwg
   end if
 
-  call mtx_broadcast_real8(ddata,26)
+  call mtx_broadcast_real8(ddata,27)
   
   BB    =ddata(1)
   RA    =ddata(2)
@@ -578,15 +581,16 @@ subroutine wfparm_broadcast
   PTN0  =ddata(15)
   RR    =ddata(16)
   tolerance =ddata(17)
-  wdump =ddata(18)
-  r1wg=ddata(19)
-  z1wg=ddata(20)
-  r2wg=ddata(21)
-  z2wg=ddata(22)
-  ph1wg=ddata(23)
-  ph2wg=ddata(24)
-  ampwg=ddata(25)
-  angwg=ddata(26)
+  wdamp =ddata(18)
+  fdamp =ddata(19)
+  r1wg  =ddata(20)
+  z1wg  =ddata(21)
+  r2wg  =ddata(22)
+  z2wg  =ddata(23)
+  ph1wg =ddata(24)
+  ph2wg =ddata(25)
+  ampwg =ddata(26)
+  angwg =ddata(27)
 
   call mtx_broadcast_real8(AJ  ,8)
   call mtx_broadcast_real8(APH ,8)

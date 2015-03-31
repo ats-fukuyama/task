@@ -98,8 +98,8 @@ subroutine DTENSR(NE,DTENS)
   complex(8),intent(out):: DTENS(NSM,3,3,3)
   integer    :: NS,NN
   real(8)    :: R,Z,WW,WP(NSM),WC(NSM),BABS,AL(3),RN(NSM),RTPR(NSM)
-  real(8)    :: RTPP(NSM),RZCL(NSM),FP,FR,FZ,DR,DZ
-  complex(8) :: CWP,CWC,CDT0,CDX0,CDP0,CDT,CDP,CDX,CDUMP
+  real(8)    :: RTPP(NSM),RZCL(NSM),FP,FR,FZ,DR,DZ,F
+  complex(8) :: CWP,CWC,CDT0,CDX0,CDP0,CDT,CDP,CDX,CDAMP
   complex(8) :: CRR,CRP,CRZ,CPR,CPP,CPZ,CZR,CZP,CZZ
 
   ! ----- initialize -----  
@@ -171,25 +171,26 @@ subroutine DTENSR(NE,DTENS)
 
      end do
 
-     IF(WDUMP.GT.0.D0) THEN
-        CDUMP=CII*PZCL(NSMAX)
-        IF(R-BRMIN.LT.WDUMP) THEN
+     IF(WDAMP.GT.0.D0) THEN
+        CDAMP=CII*PZCL(NSMAX)
+        F=FDAMP
+        IF(R-BRMIN.LT.WDAMP) THEN
            DR=R-BRMIN
-!           DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1)+(WDUMP-DR)/(DR-CDUMP)
-           DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+(WDUMP-DR)/(DR-CDUMP)
-           DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+(WDUMP-DR)/(DR-CDUMP)
+!           DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1)+F*(WDAMP-DR)/(DR-CDAMP)
+           DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+F*(WDAMP-DR)/(DR-CDAMP)
+           DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+F*(WDAMP-DR)/(DR-CDAMP)
         END IF
-        IF(Z-BZMIN.LT.WDUMP) THEN
+        IF(Z-BZMIN.LT.WDAMP) THEN
            DZ=Z-BZMIN
-           DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1)+(WDUMP-DZ)/(DZ-CDUMP)
-           DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+(WDUMP-DZ)/(DZ-CDUMP)
-!           DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+(WDUMP-DZ)/(DZ-CDUMP)
+           DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1)+F*(WDAMP-DZ)/(DZ-CDAMP)
+           DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+F*(WDAMP-DZ)/(DZ-CDAMP)
+!           DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+F*(WDAMP-DZ)/(DZ-CDAMP)
         END IF
-        IF(BZMAX-Z.LT.WDUMP) THEN
+        IF(BZMAX-Z.LT.WDAMP) THEN
            DZ=BZMAX-Z
-           DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1)+(WDUMP-DZ)/(DZ-CDUMP)
-           DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+(WDUMP-DZ)/(DZ-CDUMP)
-!           DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+(WDUMP-DZ)/(DZ-CDUMP)
+           DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1)+F*(WDAMP-DZ)/(DZ-CDAMP)
+           DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+F*(WDAMP-DZ)/(DZ-CDAMP)
+!           DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+F*(WDAMP-DZ)/(DZ-CDAMP)
         END IF
      END IF
   end do
@@ -738,7 +739,11 @@ SUBROUTINE CALFLD
   DO NSD=1,NSDMAX
      NV=NVNSD(NSD)
      if (NV.eq.0) then
-        CESD(NSD)=(0.d0,0.d0)
+        IF(KBSID(NSD).NE.0) THEN
+           CESD(NSD)=CEBSD(KBSID(NSD))
+        ELSE
+           CESD(NSD)=(0.d0,0.d0)
+        END IF
      else
         CESD(NSD)=CSV(NV)
      end if
@@ -747,7 +752,11 @@ SUBROUTINE CALFLD
   DO NN=1,NNMAX
      NV=NVNN(NN)
      if (NV.eq.0) then
-        CEND(NN)=(0.d0,0.d0)
+        IF(KBNOD(NN).NE.0) THEN
+           CEND(NN)=CEBND(KBNOD(NN))
+        ELSE
+           CEND(NN)=(0.d0,0.d0)
+        END IF
      else
         CEND(NN)=CSV(NV)
      end if
