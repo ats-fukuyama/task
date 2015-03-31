@@ -480,7 +480,7 @@ subroutine wfparm_broadcast
   implicit none
 
   integer,dimension(19) :: idata
-  real(8),dimension(18) :: ddata
+  real(8),dimension(26) :: ddata
   
 ! ---  broadcast integer data -----
 
@@ -549,9 +549,17 @@ subroutine wfparm_broadcast
      ddata(16)=RR
      ddata(17)=tolerance
      ddata(18)=wdump
+     ddata(19)=r1wg
+     ddata(20)=z1wg
+     ddata(21)=r2wg
+     ddata(22)=z2wg
+     ddata(23)=ph1wg
+     ddata(24)=ph2wg
+     ddata(25)=ampwg
+     ddata(26)=angwg
   end if
 
-  call mtx_broadcast_real8(ddata,17)
+  call mtx_broadcast_real8(ddata,26)
   
   BB    =ddata(1)
   RA    =ddata(2)
@@ -571,6 +579,14 @@ subroutine wfparm_broadcast
   RR    =ddata(16)
   tolerance =ddata(17)
   wdump =ddata(18)
+  r1wg=ddata(19)
+  z1wg=ddata(20)
+  r2wg=ddata(21)
+  z2wg=ddata(22)
+  ph1wg=ddata(23)
+  ph2wg=ddata(24)
+  ampwg=ddata(25)
+  angwg=ddata(26)
 
   call mtx_broadcast_real8(AJ  ,8)
   call mtx_broadcast_real8(APH ,8)

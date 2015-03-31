@@ -189,12 +189,9 @@ subroutine wfant_broadcast
   implicit none
   
   integer :: NA,NJ
-  integer,dimension(NAM)::idata
   real(8),dimension(NJM)::ddatar,ddataz
 
-  if(nrank.eq.0) idata(1)=NAMAX
-  call mtx_broadcast_integer(idata,1)
-  NAMAX=idata(1)
+  call mtx_broadcast1_integer(NAMAX)
 
   call mtx_broadcast_integer(JNUM0,NAMAX)
   
@@ -208,9 +205,11 @@ subroutine wfant_broadcast
         end do
      end if
      
+     call mtx_broadcast1_integer(NJMAX)
      call mtx_broadcast_real8(ddatar,NJMAX)
      call mtx_broadcast_real8(ddataz,NJMAX)
 
+     JNUM0(NA)=NJMAX
      do NJ=1,NJMAX
         RJ0(NJ,NA)=ddatar(NJ)
         ZJ0(NJ,NA)=ddataz(NJ)
