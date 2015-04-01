@@ -12,7 +12,7 @@ LIBX_MTX=$(LIBX_MTX_MUMPS)
 FFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
 
-MODINCLUDE= -I.$(MOD) -I../../task/plx/$(MOD) -I../../task/eq/$(MOD) \
+MODINCLUDE= -I./$(MOD) -I../../task/plx/$(MOD) -I../../task/eq/$(MOD) \
             -I../../bpsd/$(MOD) -I../../task/mtxp/$(MOD) \
             -I../../task/lib/$(MOD)
 
