@@ -683,12 +683,13 @@
 !                 Complex inteface for compatibility
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-      SUBROUTINE mtxc_setup(imax_,istart_,iend_,jwidth,nzmax)
+      SUBROUTINE mtxc_setup(imax_,istart_,iend_,jwidth,nzmax,idebug)
 
       INTEGER,INTENT(IN):: imax_           ! total matrix size
       INTEGER,INTENT(OUT):: istart_,iend_  ! allocated range of lines 
       INTEGER,OPTIONAL,INTENT(IN):: jwidth ! band matrix width
       INTEGER,OPTIONAL,INTENT(IN):: nzmax  ! number of nonzero components
+      INTEGER,OPTIONAL,INTENT(IN):: idebug ! debug level
 
       istart_=0
       iend_=0
