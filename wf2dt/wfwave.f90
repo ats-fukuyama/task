@@ -776,7 +776,7 @@ SUBROUTINE PWRABS
 
   integer    :: NE,IN,NN,NSD,NS
   integer    :: I,J,K,II,JJ
-  real(8),dimension(:,:),pointer:: PABS
+  real(8),dimension(:,:),ALLOCATABLE:: PABS
   real(8)    :: RW,S,MU(3,3,6),R(3),Z(3)
   complex(8) :: DTENS(NSM,3,3,3),CTENS(NSM,3,3,3)
   complex(8) :: CIWE,CINT(NSM,6,6),CE(6)

@@ -60,7 +60,7 @@ SUBROUTINE CVSOLV
 
   ! --- decide istart,iend ---
 
-  write(6,*) 'MLEN=',MLEN
+  IF(nrank.EQ.0) write(6,*) 'MLEN=',MLEN
   call mtxc_setup(MLEN,istart,iend,0)
   call mtxc_cleanup
 
@@ -242,7 +242,6 @@ SUBROUTINE CVSOLV
 !      CVSOLV do not save the matrix element. 
 
 !    --- inside of the boundary ---
-
      LL=0
      DO J=1,6
         ORIENTJ=1
@@ -305,8 +304,8 @@ SUBROUTINE CVSOLV
            IF(KB.NE.0) CEB=CEBSD(KB)
         else
            JNN=NDELM(J-3,NE)
-            KB=KBNOD(JNN)
-            IF(KB.NE.0) CEB=CEBND(KB)
+           KB=KBNOD(JNN)
+           IF(KB.NE.0) CEB=CEBND(KB)
         end if
 
         IF(KB.NE.0.AND.ABS(CEB).GT.0.D0) THEN
@@ -328,7 +327,7 @@ SUBROUTINE CVSOLV
               KK=INV
               if((KK.ge.istart).and.&
                  (KK.le.iend  )) then
-!              write(6,'(3I5,1P4E12.4)') NE,I,J,CEB,ORIENTI*ORIENTJ*CM(I,J)*CEB
+!              write(6,'(4I8,1P4E12.4)') NE,KK,I,J,CEB,CM(I,J)
               CRVP(KK-istart+1)=CRVP(KK-istart+1)-ORIENTI*ORIENTJ*CM(I,J)*CEB
               end if
            END DO
@@ -361,9 +360,9 @@ SUBROUTINE CVSOLV
 8000 continue
   end do
 
-  write(6,*) 'wfsolv: sort started'
+  IF(nrank.EQ.0) write(6,*) 'wfsolv: sort started'
   CALL qsort_lc(NSEQ,CEQP)
-  write(6,*) 'wfsolv: reduction started'
+  IF(nrank.EQ.0) write(6,*) 'wfsolv: reduction started'
   NNZME=1
   DO NNZ=2,NNZMAX
      IF(NSEQ(NNZ).EQ.NSEQ(NNZME)) THEN
@@ -377,10 +376,11 @@ SUBROUTINE CVSOLV
 
 
 
-  if(nrank.eq.0) write(6,'(A72)') "   nrank    IMIN    IMAX   MILEN    JMIN    JMAX   MJLEN  NNZMAX   NNZME"
+  if(nrank.eq.0) write(6,'(A72)') &
+  '   nrank  istart    iend   MILEN    JMIN    JMAX   MJLEN  NNZMAX   NNZME'
+  write(6,'(9I8)') nrank,istart,iend,iend-istart+1, &
+                   JMIN,JMAX,JMAX-JMIN+1,NNZMAX,NNZME
   call mtx_barrier
-  write(6,'(9I8)') nrank,istart,iend,iend-istart+1,JMIN,JMAX,JMAX-JMIN+1, &
-                   NNZMAX,NNZME
 
   ! ----- initialize for parallel computing -----
 

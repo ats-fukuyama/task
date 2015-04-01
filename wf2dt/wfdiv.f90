@@ -482,5 +482,8 @@ subroutine wfdiv_broadcast
   DELZ =rdata(6)
   RB   =rdata(7)
 
+  call mtx_broadcast_real8(r_corner,3)
+  call mtx_broadcast_real8(z_corner,3)
+
   return 
 end subroutine wfdiv_broadcast

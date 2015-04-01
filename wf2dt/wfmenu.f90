@@ -5,7 +5,6 @@ subroutine wfmenu
   implicit none
   
   integer  :: MODE
-  integer,dimension(1) :: idata
   integer  :: IERR
   character:: KID*1,LINE*80
 
@@ -18,10 +17,8 @@ subroutine wfmenu
      call WFKLIN(LINE,KID,MODE)
   end if
 
-  call mtx_broadcast_character(KID,1)
-  if(nrank.eq.0) idata(1)=MODE
-  call mtx_broadcast_integer(idata,1)
-  MODE=idata(1)
+  call mtx_broadcast1_character(KID)
+  call mtx_broadcast1_integer(MODE)
   call mtx_barrier
   if(MODE.ne.1) goto 1
 
@@ -66,6 +63,7 @@ end subroutine wfmenu
 
 subroutine WFKLIN(LINE,KID,MODE)
 
+  USE wfcomm
   implicit none
   integer,intent(out) :: MODE
   integer :: ID,I
@@ -103,7 +101,7 @@ subroutine WFKLIN(LINE,KID,MODE)
   MODE=0
   return
   
-2 write(6,*) 'XX INPUT ERROR !'
+2 IF(nrank.EQ.0) write(6,*) 'XX INPUT ERROR !'
   MODE=3
   return
   
