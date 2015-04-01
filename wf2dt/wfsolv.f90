@@ -376,11 +376,11 @@ SUBROUTINE CVSOLV
 
 
 
-  if(nrank.eq.0) write(6,'(A72)') &
-  '   nrank  istart    iend   MILEN    JMIN    JMAX   MJLEN  NNZMAX   NNZME'
-  write(6,'(9I8)') nrank,istart,iend,iend-istart+1, &
-                   JMIN,JMAX,JMAX-JMIN+1,NNZMAX,NNZME
+  if(nrank.eq.0) write(6,'(A77)') &
+  '      nrank     istart       iend      MILEN      MJLEN     NNZMAX      NNZME'
   call mtx_barrier
+  write(6,'(7I11)') nrank,istart,iend,iend-istart+1, &
+                    JMAX-JMIN+1,NNZMAX,NNZME
 
   ! ----- initialize for parallel computing -----
 
