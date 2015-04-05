@@ -23,6 +23,7 @@ C
          GOTO 9000
       ENDIF
 C
+      CALL WFGINI
       CALL WFCALB
       CALL WFCALD
 C
@@ -829,7 +830,7 @@ C
 C
       DO IS=1,NSMAX
          WP(IS)=PZ(IS)*PZ(IS)*AEE*AEE*1.D20/(PA(IS)*AMP*EPS0*WW*WW)
-         WC(IS)=PZ(IS)*AEE*BB/(PA(IS)*AMP*WW)
+         WC(IS)=PZ(IS)*AEE/(PA(IS)*AMP*WW)
       ENDDO
 C
       DO IN=1,NNOD
@@ -841,11 +842,7 @@ C
          CDX=0.D0
          DO IS=1,NSMAX
             CWP=WP(IS)*RN(IS)/DCMPLX(1.D0,RZCL(IS))
-            IF(BB.GT.0.D0) THEN
-               CWC=WC(IS)*BABS/(BB*DCMPLX(1.D0,RZCL(IS)))
-            ELSE
-               CWC=(0.D0,0.D0)
-            ENDIF
+            CWC=WC(IS)*BABS/(DCMPLX(1.D0,RZCL(IS)))
             CDT=CDT+   CWP    /(1.D0-CWC**2)
             CDX=CDX+CI*CWP*CWC/(1.D0-CWC**2)
             CDP=CDP+   CWP
@@ -853,8 +850,8 @@ C
 C
          WPE= WP(1)*RN(1)
          WPI= WP(2)*RN(2)
-         WCE= WC(1)*BABS/BB
-         WCI= WC(2)*BABS/BB
+         WCE= WC(1)*BABS
+         WCI= WC(2)*BABS
 C
          DISPG(IN,1)= 1.D0-WPE-WPI
          DISPG(IN,2)= (1.D0-WCE*WCE)*(1.D0-WCI*WCI)

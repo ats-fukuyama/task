@@ -187,23 +187,24 @@ C
       ELSE
          DZ=1.D-6
          DR=MIN(1.D-6,0.5D0*RL)
-         BR= (APSI(RL,ZL+DZ,RC)-APSI(RL,ZL-DZ,RC))/(2.D0*DZ)
-         BZ=-((RL+DR)*APSI(RL+DR,ZL,RC)-(RL-DR)*APSI(RL-DR,ZL,RC))
+         BR= (APSI(RL,ZL+DZ,RC)-APSI(RL,ZL-DZ,RC))/(2.D0*RL*DZ)
+         BZ=-(APSI(RL+DR,ZL,RC)-APSI(RL-DR,ZL,RC))
      &       /(2.D0*DR*RL)
       ENDIF
       RETURN
       END
 C
       FUNCTION APSI(RL,ZL,RC)
-C
+C        R*A_psi
       USE libell,ONLY: ELLFC,ELLEC
       IMPLICIT REAL*8(A-F,H,O-Z)
       DATA PI/3.1415926D0/
 C
-      RKSQ=4.D0*RC*RL/(RC**2+RL**2+ZL**2+2.D0*RC*RL)
-      IF(RKSQ.LT.0.D0) WRITE(6,*) 'RKSQ:',RKSQ,RL,ZL,RC
-      APSI=(2.D0*RC/PI)*SQRT(RC/RL)/SQRT(RKSQ)
-     &     *((1.D0-0.5D0*RKSQ)*ELLFC(RKSQ,IERR1)-ELLEC(RKSQ,IERR2))
+      RX=SQRT(RC**2+RL**2+ZL**2+2.D0*RC*RL)
+      RK=SQRT(4.D0*RC*RL)/RX
+      IF(RK.LT.0.D0) WRITE(6,*) 'APSI:RK:',RK,RL,ZL,RC
+      APSI=(RC/PI)*RX
+     &     *((1.D0-0.5D0*RK**2)*ELLFC(RK,IERR1)-ELLEC(RK,IERR2))
       RETURN
       END
 C
@@ -264,6 +265,11 @@ C
                   FACT=0.D0
                ENDIF
             ELSE
+               FACT=0.D0
+            ENDIF
+         ELSEIF(MODELP.EQ.6) THEN
+            FACT=1.D0-((XD(IN)-RA)**2+YD(IN)**2)/ZBB**2
+            IF(FACT.LT.0.D0) THEN
                FACT=0.D0
             ENDIF
          ELSE

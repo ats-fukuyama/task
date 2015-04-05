@@ -253,7 +253,7 @@ C
 C
       DO 10 IS=1,NSMAX
          WP(IS)=PZ(IS)*PZ(IS)*AEE*AEE*1.D20/(PA(IS)*AMP*EPS0*WW*WW)
-         WC(IS)=PZ(IS)*AEE*BB/(PA(IS)*AMP*WW)
+         WC(IS)=PZ(IS)*AEE/(PA(IS)*AMP*WW)
          TN(IS)=AEE*1.D3/(PA(IS)*AMP*VC*VC)
    10 CONTINUE
 C
@@ -276,11 +276,7 @@ C
          IF(MODELD.EQ.2) THEN
             R=1.D0
             DO 20 IS=1,NSMAX
-               IF(BB.GT.0.D0) THEN
-                  R=R-WP(IS)*RN(IS)/(1.D0+WC(IS)*BABS/BB)
-               ELSE
-                  R=R-WP(IS)*RN(IS)
-               ENDIF
+               R=R-WP(IS)*RN(IS)/(1.D0+WC(IS)*BABS)
    20       CONTINUE
             RKPP2=WC2*R-RKPR*RKPR
             IF(RKPP2.GT.0.D0) THEN
@@ -297,11 +293,7 @@ C
      &         RTPR(IS).LE.0.D0.OR.
      &         RTPP(IS).LE.0.D0) THEN
                CWP=WP(IS)*RN(IS)/DCMPLX(1.D0,RZCL(IS))
-               IF(BB.GT.0.D0) THEN
-                  CWC=WC(IS)*BABS/(BB*DCMPLX(1.D0,RZCL(IS)))
-               ELSE
-                  CWC=(0.D0,0.D0)
-               ENDIF
+               CWC=WC(IS)*BABS/(DCMPLX(1.D0,RZCL(IS)))
                CDT0= CWP/(1.D0-CWC**2)
                CDX0= CI*CWP*CWC/(1.D0-CWC**2)
                CDP0= CWP
@@ -312,7 +304,7 @@ C
             ELSE
                CWP=WP(IS)*RN(IS)
                IF(BB.GT.0.D0) THEN
-                  CWC=WC(IS)*BABS/BB
+                  CWC=WC(IS)*BABS
                ELSE
                   CWC=(0.D0,0.D0)
                ENDIF
@@ -727,7 +719,7 @@ C
                      XM=XJ(IJ,NA)
                      YM=YJ(IJ,NA)
                      IE=JAELM(IJ,NA)
-                     CVJ=CNST*CAJ(NA)*CI*RD/NPHI
+                     CVJ=CNST*CAJ(NA)*CI*XM/NPHI
                      CALL WFABC(IE,A,B,C,S)
                      CJ(1)=(0.D0,0.D0)
                      CJ(2)=(0.D0,0.D0)
@@ -741,7 +733,7 @@ C
                      XM=XJ(IJ-1,NA)
                      YM=YJ(IJ-1,NA)
                      IE=JAELM(IJ-1,NA)
-                     CVJ=-CNST*CAJ(NA)*CI*RD/NPHI*EXP(CI*PHL)
+                     CVJ=-CNST*CAJ(NA)*CI*XM/NPHI*EXP(CI*PHL)
                      CALL WFABC(IE,A,B,C,S)
                      CJ(1)=(0.D0,0.D0)
                      CJ(2)=(0.D0,0.D0)
@@ -761,7 +753,7 @@ C
                   CVJ=CNST*CAJ(NA)*EXP(CI*PHL*(YM-ZJH1)/(ZJH2-ZJH1))
                   CJ(1)=CVJ*(X2-X1)
                   CJ(2)=CVJ*(Y2-Y1)
-                  CJ(3)=-CVJ*PHL*RD/((ZJH2-ZJH1)*NPHI)*(Y2-Y1)
+                  CJ(3)=-CVJ*PHL*XM/((ZJH2-ZJH1)*NPHI)*(Y2-Y1)
                ENDIF
 C               WRITE(6,'(A,I3,1P6E12.4)') 'CV=',IJ,(CJ(I),I=1,3)
             ELSE
@@ -1423,7 +1415,7 @@ C
                      XM=XJ(IJ,NA)
                      YM=YJ(IJ,NA)
                      IE=JAELM(IJ,NA)
-                     CVJ=CAJ(NA)*CI*RD/NPHI
+                     CVJ=CAJ(NA)*CI*XM/NPHI
                      CALL WFABC(IE,A,B,C,S)
                      CJ(1)=(0.D0,0.D0)
                      CJ(2)=(0.D0,0.D0)
@@ -1437,7 +1429,7 @@ C
                      XM=XJ(IJ-1,NA)
                      YM=YJ(IJ-1,NA)
                      IE=JAELM(IJ-1,NA)
-                     CVJ=-CAJ(NA)*CI*RD/NPHI*EXP(CI*PHL)
+                     CVJ=-CAJ(NA)*CI*XM/NPHI*EXP(CI*PHL)
                      CALL WFABC(IE,A,B,C,S)
                      CJ(1)=(0.D0,0.D0)
                      CJ(2)=(0.D0,0.D0)
@@ -1455,7 +1447,7 @@ C
                   CVJ=CAJ(NA)*EXP(CI*PHL*(YM-ZJH1)/(ZJH2-ZJH1))
                   CJ(1)=CVJ*(X2-X1)
                   CJ(2)=CVJ*(Y2-Y1)
-                  CJ(3)=-CVJ*PHL*RD/((ZJH2-ZJH1)*NPHI)*(Y2-Y1)
+                  CJ(3)=-CVJ*PHL*XM/((ZJH2-ZJH1)*NPHI)*(Y2-Y1)
                ENDIF
             ELSE
                IF(IJ.EQ.1) GOTO 50
@@ -1553,7 +1545,7 @@ C
 C
       DIMENSION EABS(3)
 C
-      IF(PIN.EQ.0.D0) THEN
+      IF(PIN.EQ.0.D0.OR.ABS(PWR).EQ.0.D0) THEN
          FACT=1.D0
       ELSEIF(PIN.GT.0.D0) THEN
          FACT=PIN/ABS(PWR)
