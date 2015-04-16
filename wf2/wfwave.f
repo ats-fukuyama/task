@@ -257,7 +257,7 @@ C
          TN(IS)=AEE*1.D3/(PA(IS)*AMP*VC*VC)
    10 CONTINUE
 C
-         CALL WFSMAG(IN,BABS,AL)
+         CALL WFBMAG(XD(IN),YD(IN),BABS,AL)
          CALL WFSDEN(IN,RN,RTPR,RTPP,RZCL)
 C
          IF(MODELS.EQ.2) THEN
@@ -696,7 +696,7 @@ C
    11 CONTINUE
 C
       DO 10 NA=1,NAMAX
-         IF(NTYPJ0(NA).NE.0.OR.JNUM0(NA).EQ.2) THEN
+         IF(NTYPJ0(NA).GE.0.OR.JNUM0(NA).EQ.2) THEN
             IJMAX=JNUM(NA)+1
          ELSE
             IJMAX=JNUM(NA)
@@ -711,36 +711,59 @@ C
                CJ(1)=(0.D0,0.D0)
                CJ(2)=(0.D0,0.D0)
                CJ(3)=CVJ
-            ELSEIF(NTYPJ0(NA).NE.0.OR.JNUM0(NA).EQ.2) THEN
+            ELSEIF(NTYPJ0(NA).LT.0.AND.JNUM0(NA).EQ.2) THEN
+               IF(IJ.EQ.1) THEN
+                  XM=XJ(IJ,NA)
+                  YM=YJ(IJ,NA)
+                  IE=JAELM(IJ,NA)
+                  CVJ= CNST*CAJ(NA)*CI*XM/NPHI
+                  CALL WFABC(IE,A,B,C,S)
+                  CJ(1)=(0.D0,0.D0)
+                  CJ(2)=(0.D0,0.D0)
+                  CJ(3)=CVJ
+               ELSEIF(IJ.EQ.IJMAX) THEN
+                  XM=XJ(IJ-1,NA)
+                  YM=YJ(IJ-1,NA)
+                  IE=JAELM(IJ-1,NA)
+                  CVJ=-CNST*CAJ(NA)*CI*XM/NPHI
+                  CALL WFABC(IE,A,B,C,S)
+                  CJ(1)=(0.D0,0.D0)
+                  CJ(2)=(0.D0,0.D0)
+                  CJ(3)=CVJ
+               ELSE
+                  X1=XJ(IJ-1,NA)
+                  Y1=YJ(IJ-1,NA)
+                  X2=XJ(IJ,NA)
+                  Y2=YJ(IJ,NA)
+                  IE=JAELM(IJ,NA)
+                  CALL WFABC(IE,A,B,C,S)
+                  XM=0.5D0*(X1+X2)
+                  YM=0.5D0*(Y1+Y2)
+                  CVJ=CNST*CAJ(NA)
+                  CJ(1)=CVJ*(X2-X1)
+                  CJ(2)=CVJ*(Y2-Y1)
+                  CJ(3)=0.D0
+               ENDIF
+            ELSEIF(NTYPJ0(NA).GE.0) THEN
                PHL=PHJ0(NA)*PI/180.D0
                IF(IJ.EQ.1) THEN
-                  IF(NTYPJ0(NA).EQ.0.OR.
-     &               NTYPJ0(NA).EQ.2) THEN
-                     XM=XJ(IJ,NA)
-                     YM=YJ(IJ,NA)
-                     IE=JAELM(IJ,NA)
-                     CVJ=CNST*CAJ(NA)*CI*XM/NPHI
-                     CALL WFABC(IE,A,B,C,S)
-                     CJ(1)=(0.D0,0.D0)
-                     CJ(2)=(0.D0,0.D0)
-                     CJ(3)=CVJ
-                  ELSE
-                     GOTO 20
-                  ENDIF
+                  XM=XJ(IJ,NA)
+                  YM=YJ(IJ,NA)
+                  IE=JAELM(IJ,NA)
+                  CVJ=CNST*CAJ(NA)*CI*XM/NPHI
+                  CALL WFABC(IE,A,B,C,S)
+                  CJ(1)=(0.D0,0.D0)
+                  CJ(2)=(0.D0,0.D0)
+                  CJ(3)=CVJ
                ELSEIF(IJ.EQ.IJMAX) THEN
-                  IF(NTYPJ0(NA).EQ.0.OR.
-     &               NTYPJ0(NA).EQ.1) THEN
-                     XM=XJ(IJ-1,NA)
-                     YM=YJ(IJ-1,NA)
-                     IE=JAELM(IJ-1,NA)
-                     CVJ=-CNST*CAJ(NA)*CI*XM/NPHI*EXP(CI*PHL)
-                     CALL WFABC(IE,A,B,C,S)
-                     CJ(1)=(0.D0,0.D0)
-                     CJ(2)=(0.D0,0.D0)
-                     CJ(3)=CVJ
-                  ELSE
-                     GOTO 20
-                  ENDIF
+                  XM=XJ(IJ-1,NA)
+                  YM=YJ(IJ-1,NA)
+                  IE=JAELM(IJ-1,NA)
+                  CVJ=-CNST*CAJ(NA)*CI*XM/NPHI*EXP(CI*PHL)
+                  CALL WFABC(IE,A,B,C,S)
+                  CJ(1)=(0.D0,0.D0)
+                  CJ(2)=(0.D0,0.D0)
+                  CJ(3)=CVJ
                ELSE
                   X1=XJ(IJ-1,NA)
                   Y1=YJ(IJ-1,NA)

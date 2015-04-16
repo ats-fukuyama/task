@@ -2,59 +2,39 @@ C     $Id$
 C
 C     ****** PSI ******
 C
-      SUBROUTINE WFSPSI(X,Y,PSI)
+      SUBROUTINE WFSPSI(X,Y,PSIN)
 C
       USE libbes,ONLY: besin
       INCLUDE 'wfcomm.inc'
 C
-      IF(MODELB.EQ.0.OR.
-     &   MODELB.EQ.1.OR.
-     &   MODELB.EQ.2.OR.
-     &   MODELB.EQ.7.OR.
-     &   MODELB.EQ.8.OR.
-     &   MODELB.EQ.9) THEN
-         PSI=X*X/(RA*RA)
-      ELSEIF(MODELB.EQ.3) THEN
-         A0 = 0.25D0*(1.0D0+RMIR)
-         A1 = 0.25D0*(1.0D0-RMIR)
-         RL = PI* X/ZBB
-         ZL = PI* Y/ZBB
-         RLA= PI*RA/ZBB
-C
-         PSI = 0.5D0*A0*X *X +A1*(ZBB/PI)**2*COS(ZL)*RL *BESIN(1,RL )
-         PSIA= 0.5D0*A0*RA*RA+A1*(ZBB/PI)**2        *RLA*BESIN(1,RLA)
-         PSI=PSI/PSIA
-      ELSEIF(MODELB.EQ.4) THEN
-         A0 = 0.5D0*(1.0D0+RMIR)
-         A1 = 0.5D0*(1.0D0-RMIR)
-         RL = PI* X/ZBB
-         ZL = PI* Y/ZBB
-         RLA= PI*RA/ZBB
-         PSI = A0*X +A1*(ZBB/PI)*COS(ZL)*SINH(RL )
-         PSIA= A0*RA+A1*(ZBB/PI)        *SINH(RLA)
-         PSI=PSI/PSIA
-      ELSEIF(MODELB.EQ.5) THEN
-         PSI=(X*X+Y*Y/(RKAP*RKAP))/(RA*RA)
-      ELSEIF(MODELB.EQ.6) THEN
-         PSIA=(1.D0+2.D0*HA1)*(RA*H1)**2
-         XH1=H1*X
-         YH1=H1*Y
-         PSI=(XH1**2+YH1**2+2.D0*HA1*(XH1**2-YH1**2))/PSIA
-      ENDIF
+      SELECT CASE(MODELB)
+      CASE(0)
+         PSIN=Y*Y/(RA*RA)
+      CASE(1)
+         PSIN=X*X/(RA*RA)
+      CASE(2)
+         PSIN=(X*X+Y*Y)/(RA*RA)
+      CASE(3,5,6,7)
+         CALL WFBPSI(X,Y,PSI)
+         CALL WFBPSI(RA,0.D0,PSIA)
+         PSIN=PSI/PSIA
+      CASE(4)
+         CALL WFBPSI(X,Y,PSI)
+         CALL WFBPSI(RA,0.D0,PSIA)
+         PSIN=PSI**2/PSIA**2
+      END SELECT
       RETURN
       END
 C
 C     ****** MAGNETIC FIELD PROFILE ******
 C
-      SUBROUTINE WFSMAG(IN,BABS,AL)
+      SUBROUTINE WFBMAG(X,Y,BABS,AL)
 C
       USE libbes,ONLY: BESIN
       INCLUDE 'wfcomm.inc'
 C
       DIMENSION BLO(3),AL(3)
 C
-      X=XD(IN)
-      Y=YD(IN)
       IF(MODELB.EQ.0) THEN
          BLO(1)=BB
          BLO(2)=0.D0
@@ -130,13 +110,11 @@ C
 C
 C     ****** MAGNETIC FLUX PROFILE ******
 C
-      SUBROUTINE WFBPSI(IN,PSI)
+      SUBROUTINE WFBPSI(X,Y,PSI)
 C
       USE libbes,ONLY: besin
       INCLUDE 'wfcomm.inc'
 C
-      X=XD(IN)
-      Y=YD(IN)
       IF(MODELB.EQ.0) THEN
          PSI= BB*Y
       ELSEIF(MODELB.EQ.1) THEN
@@ -158,10 +136,9 @@ C
       ELSEIF(MODELB.EQ.5) THEN
          PSI=(X*X+Y*Y/(RKAP*RKAP))/(RA*RA)
       ELSEIF(MODELB.EQ.6) THEN
-         PSIA=(1.D0+2.D0*HA1)*(RA*H1)**2
          XH1=H1*X
          YH1=H1*Y
-         PSI=(XH1**2+YH1**2+2.D0*HA1*(XH1**2-YH1**2))/PSIA
+         PSI=(XH1**2+YH1**2+2.D0*HA1*(XH1**2-YH1**2))
       ELSEIF(MODELB.EQ.7) THEN
          PSI=0.D0
          DO NC=1,NCMAX

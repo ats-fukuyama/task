@@ -82,7 +82,7 @@ C
    30       CONTINUE
             JNUM0(NA)=NJMAX
             PHJ0(NA)=0.D0
-            NTYPJ0(NA)=0
+            NTYPJ0(NA)=-1
 C
          ELSEIF(KID.EQ.'A') THEN
     4       WRITE(6,603) THETJ1,THETJ2,RD,RKAP,NJMAX
@@ -104,7 +104,7 @@ C
             YJ0(NJMAX,NA)=1.5D0*RD*SIN(THETA)*RKAP
             JNUM0(NA)=NJMAX
             PHJ0(NA)=0.D0
-            NTYPJ0(NA)=0
+            NTYPJ0(NA)=-1
 C
          ELSEIF(KID.EQ.'P') THEN
     5       WRITE(6,*) '## NUMBER OF POINTS : NJMAX=',NJMAX
@@ -117,7 +117,7 @@ C
    50       CONTINUE
             JNUM0(NA)=NJMAX
             PHJ0(NA)=0.D0
-            NTYPJ0(NA)=0
+            NTYPJ0(NA)=-1
 C
          ELSEIF(KID.EQ.'H') THEN
     7       WRITE(6,604) ZJH1,ZJH2,RD,PHJH,NTYPJH

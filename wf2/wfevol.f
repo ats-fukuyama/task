@@ -975,7 +975,7 @@ C
 C
 C     *** SET LOCAL VALUES ***
 C
-      CALL WFSMAG(IN,BABS,AL)
+      CALL WFBMAG(XD(IN),YD(IN),BABS,AL)
 C
       RN(1)=PNE(IN)
       RT(1)=PTE(IN)

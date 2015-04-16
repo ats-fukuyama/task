@@ -17,6 +17,7 @@ subroutine WFWAVE
   if (nrank.eq.0) write(6,*) '--- WFWPRE start ---'
   call WFWPRE(IERR)
   if(IERR.ne.0) goto 9000
+
   if (nrank.eq.0) write(6,*) '--- CVCALC start ---'
   call CVCALC
   
@@ -26,13 +27,14 @@ subroutine WFWAVE
   call CVSOLV
   
   call GUTIME(GCPUT2)
-  if(IERR.ne.0) goto 9000
 
+  if (nrank.eq.0) write(6,*) '--- CALFLD start ---'
   call CALFLD
   call PWRABS
   call PWRRAD
 !  CALL TERMEP
 !  CALL WFCALB
+
   call GUTIME(GCPUT3)
   GTSOLV=GTSOLV+GCPUT2-GCPUT1
   GTMAIN=GTMAIN+GCPUT3-GCPUT2+GCPUT1-GCPUT0
@@ -95,7 +97,7 @@ subroutine DTENSR(NE,DTENS)
   use wfcomm
   implicit none
   integer,intent(in) :: NE
-  integer :: IN,I,J
+  integer :: IN,I,J,ID
   complex(8),intent(out):: DTENS(NSM,3,3,3)
   integer    :: NS,NN
   real(8)    :: R,Z,WW,WP(NSM),WC(NSM),BABS,AL(3),RN(NSM),RTPR(NSM)
@@ -175,23 +177,49 @@ subroutine DTENSR(NE,DTENS)
      IF(WDAMP.GT.0.D0) THEN
         CDAMP=CII*PZCL(NSMAX)
         F=FDAMP
-        IF(R-BRMIN.LT.WDAMP) THEN
-           DR=R-BRMIN
-!           DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1)+F*(WDAMP-DR)/(DR-CDAMP)
-           DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+F*(WDAMP-DR)/(DR-CDAMP)
-           DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+F*(WDAMP-DR)/(DR-CDAMP)
+        IF(R-BDRMIN.LT.WDAMP) THEN
+           ID=1
+           IF(MDAMP.EQ.1.AND. &
+              Z.GT.ZDAMP_MIN.AND.Z.LT.ZDAMP_MAX) ID=0
+           IF(ID.EQ.1) THEN
+              DR=R-BDRMIN
+!              DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1)+F*(WDAMP-DR)/(DR-CDAMP)
+              DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+F*(WDAMP-DR)/(DR-CDAMP)
+              DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+F*(WDAMP-DR)/(DR-CDAMP)
+           END IF
         END IF
-        IF(Z-BZMIN.LT.WDAMP) THEN
-           DZ=Z-BZMIN
-           DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1)+F*(WDAMP-DZ)/(DZ-CDAMP)
-           DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+F*(WDAMP-DZ)/(DZ-CDAMP)
-!           DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+F*(WDAMP-DZ)/(DZ-CDAMP)
+        IF(BDRMAX-R.LT.WDAMP) THEN
+           ID=1
+           IF(MDAMP.EQ.2.AND. &
+              Z.GT.ZDAMP_MIN.AND.Z.LT.ZDAMP_MAX) ID=0
+           IF(ID.EQ.1) THEN
+              DR=BDRMAX-R
+!              DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1)+F*(WDAMP-DR)/(DR-CDAMP)
+              DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+F*(WDAMP-DR)/(DR-CDAMP)
+              DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+F*(WDAMP-DR)/(DR-CDAMP)
+           END IF
         END IF
-        IF(BZMAX-Z.LT.WDAMP) THEN
-           DZ=BZMAX-Z
-           DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1)+F*(WDAMP-DZ)/(DZ-CDAMP)
-           DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+F*(WDAMP-DZ)/(DZ-CDAMP)
-!           DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+F*(WDAMP-DZ)/(DZ-CDAMP)
+        IF(Z-BDZMIN.LT.WDAMP) THEN
+           ID=1
+           IF(MDAMP.EQ.3.AND. &
+              R.GT.RDAMP_MIN.AND.R.LT.RDAMP_MAX) ID=0
+           IF(ID.EQ.1) THEN
+              DZ=Z-BDZMIN
+              DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1)+F*(WDAMP-DZ)/(DZ-CDAMP)
+!              DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+F*(WDAMP-DZ)/(DZ-CDAMP)
+              DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+F*(WDAMP-DZ)/(DZ-CDAMP)
+           END IF
+        END IF
+        IF(BDZMAX-R.LT.WDAMP) THEN
+           ID=1
+           IF(MDAMP.EQ.4.AND. &
+              R.GT.RDAMP_MIN.AND.R.LT.RDAMP_MAX) ID=0
+           IF(ID.EQ.1) THEN
+              DZ=BDZMAX-R
+              DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1)+F*(WDAMP-DZ)/(DZ-CDAMP)
+!              DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+F*(WDAMP-DZ)/(DZ-CDAMP)
+              DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+F*(WDAMP-DZ)/(DZ-CDAMP)
+           END IF
         END IF
      END IF
   end do

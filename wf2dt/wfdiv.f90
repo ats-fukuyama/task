@@ -39,41 +39,41 @@ subroutine WFDIV
 
      if(nrank.eq.0)then
         if(KID.eq.'X') then
-3          write(6,'(A35,4F10.4)') '## DIV:   BRMIN,BRMAX,BZMIN,BZMAX = ',&
-                                              BRMIN,BRMAX,BZMIN,BZMAX
-           write(6,'(A35)')        '## INPUT: BRMIN,BRMAX,BZMIN,BZMAX ? '
-           read(5,*,ERR=3,END=2)              BRMIN,BRMAX,BZMIN,BZMAX
-4          write(6,'(A22,2F10.4)') '## DIV:   DELR,DELZ = ',DELR,DELZ
-           write(6,'(A22)')        '## INPUT: DELR,DELZ ? '
+3          write(6,'(A,4F10.4)') '## DIV:   BDRMIN,BDRMAX,BDZMIN,BDZMAX = ',&
+                                            BDRMIN,BDRMAX,BDZMIN,BDZMAX
+           write(6,'(A)')        '## INPUT: BDRMIN,BDRMAX,BDZMIN,BDZMAX ? '
+           read(5,*,ERR=3,END=2)            BDRMIN,BDRMAX,BDZMIN,BDZMAX
+4          write(6,'(A,2F10.4)') '## DIV:   DELR,DELZ = ',DELR,DELZ
+           write(6,'(A)')        '## INPUT: DELR,DELZ ? '
            read(5,*,ERR=4,END=2) DELR,DELZ
            if(abs(DELR).le.1.d-6.or.abs(DELZ).le.1.d-6) goto 2
            iddiv=1
-           r_corner(1)=BRMIN
-           z_corner(1)=BZMIN
-           r_corner(2)=BRMAX
-           z_corner(2)=BZMIN
-           r_corner(3)=BRMIN
-           z_corner(3)=BZMAX
+           r_corner(1)=BDRMIN
+           z_corner(1)=BDZMIN
+           r_corner(2)=BDRMAX
+           z_corner(2)=BDZMIN
+           r_corner(3)=BDRMIN
+           z_corner(3)=BDZMAX
            
         elseif(KID.eq.'C') then
 5          write(6,'(A15,F10.4)') '## DIV:   RB = ',RB
            write(6,'(A15)')       '## INPUT: RB ? '
            read(5,*,ERR=5,END=2) RB
-           BRMIN=-RB
-           BRMAX= RB
-           BZMIN=-RB
-           BZMAX= RB
+           BDRMIN=-RB
+           BDRMAX= RB
+           BDZMIN=-RB
+           BDZMAX= RB
 6          write(6,'(A17,F10.4)') '## DIV:   DELR = ',DELR
            write(6,'(A17)')       '## INPUT: DELR ? '
            read(5,*,ERR=6,END=2) DELR
            if(abs(DELR).le.1.D-6) goto 2
            iddiv=2
-           r_corner(1)=BRMIN
-           z_corner(1)=BZMIN
-           r_corner(2)=BRMAX
-           z_corner(2)=BZMIN
-           r_corner(3)=BRMIN
-           z_corner(3)=BZMAX
+           r_corner(1)=BDRMIN
+           z_corner(1)=BDZMIN
+           r_corner(2)=BDRMAX
+           z_corner(2)=BDZMIN
+           r_corner(3)=BDRMIN
+           z_corner(3)=BDZMAX
 
         end if
 
@@ -143,18 +143,18 @@ subroutine SETNODX
   integer :: NN1,NN2,NN3,NN4
   integer :: NR,NZ
   integer :: NRMAX,NZMAX
-  real(8) :: DR,DZ,BRLEN,BZLEN
+  real(8) :: DR,DZ,BDRLEN,BDZLEN
 
-  BRLEN=BRMAX-BRMIN
-  BZLEN=BZMAX-BZMIN
+  BDRLEN=BDRMAX-BDRMIN
+  BDZLEN=BDZMAX-BDZMIN
 
   ! --- set NNMAX ---
-  NRMAX=NINT(BRLEN/DELR)
+  NRMAX=NINT(BDRLEN/DELR)
   if(MOD(NRMAX,2).eq.0) NRMAX=NRMAX+1
-  DR=DBLE(BRLEN/(NRMAX-1))
-  NZMAX=NINT(BZLEN/DELZ)
+  DR=DBLE(BDRLEN/(NRMAX-1))
+  NZMAX=NINT(BDZLEN/DELZ)
   if(MOD(NZMAX,2).eq.0) NZMAX=NZMAX+1
-  DZ=DBLE(BZLEN/(NZMAX-1))
+  DZ=DBLE(BDZLEN/(NZMAX-1))
   NNMAX=NRMAX*NZMAX
 
   ! --- set NEMAX ---
@@ -167,8 +167,8 @@ subroutine SETNODX
   do NZ=1,NZMAX
      do NR=1,NRMAX
         NN=NN+1
-        RNODE(NN)=BRMIN+DR*(NR-1)
-        ZNODE(NN)=BZMIN+DZ*(NZ-1)
+        RNODE(NN)=BDRMIN+DR*(NR-1)
+        ZNODE(NN)=BDZMIN+DZ*(NZ-1)
      end do
   end do
   
@@ -462,10 +462,10 @@ subroutine wfdiv_broadcast
   real(8),dimension(7) :: rdata
 
   if (nrank.eq.0) then
-     rdata(1)=BRMIN
-     rdata(2)=BRMAX
-     rdata(3)=BZMIN
-     rdata(4)=BZMAX
+     rdata(1)=BDRMIN
+     rdata(2)=BDRMAX
+     rdata(3)=BDZMIN
+     rdata(4)=BDZMAX
      rdata(5)=DELR
      rdata(6)=DELZ
      rdata(7)=RB
@@ -474,13 +474,13 @@ subroutine wfdiv_broadcast
   call mtx_barrier
   call mtx_broadcast_real8(rdata,7)
 
-  BRMIN=rdata(1)
-  BRMAX=rdata(2)
-  BZMIN=rdata(3)
-  BZMAX=rdata(4)
-  DELR =rdata(5)
-  DELZ =rdata(6)
-  RB   =rdata(7)
+  BDRMIN=rdata(1)
+  BDRMAX=rdata(2)
+  BDZMIN=rdata(3)
+  BDZMAX=rdata(4)
+  DELR  =rdata(5)
+  DELZ  =rdata(6)
+  RB    =rdata(7)
 
   call mtx_broadcast_real8(r_corner,3)
   call mtx_broadcast_real8(z_corner,3)

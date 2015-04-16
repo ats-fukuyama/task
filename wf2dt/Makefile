@@ -10,7 +10,9 @@ LIBX_MTX=$(LIBX_MTX_MUMPS)
 .SUFFIXES: .f .f90 .mod .o .a
 
 FFLAGS = $(OFLAGS)
+LFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
+#LFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I./$(MOD) -I../../task/plx/$(MOD) -I../../task/eq/$(MOD) \
             -I../../bpsd/$(MOD) -I../../task/mtxp/$(MOD) \
@@ -46,10 +48,10 @@ wflib.a: $(OBJS)
 
 libs:
 	(cd ../../bpsd; make bpsdlib.a)
-	(cd ../../task/eq; make eqlib.a)
+	(cd ../../task/lib; make tasklib.a)
 	(cd ../../task/mtxp; make)
 	(cd ../../task/plx; make pllib.a)
-	(cd ../../task/lib; make tasklib.a)
+	(cd ../../task/eq; make eqlib.a)
 
 wf : libs $(LIBS) wfmain.o
 	$(FLINKER) wfmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)

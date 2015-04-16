@@ -253,8 +253,8 @@ C        +++++ STATIC MAGNETIC FIELD (BABS, PSI) +++++
 C
             ELSEIF(KG2.EQ.'B') THEN
                DO IN=1,NNOD
-                  CALL WFSMAG(IN,TEMP(IN,1),AL)
-                  CALL WFBPSI(IN,TEMP(IN,2))
+                  CALL WFBMAG(XD(IN),YD(IN),TEMP(IN,1),AL)
+                  CALL WFBPSI(XD(IN),YD(IN),TEMP(IN,2))
                ENDDO
                CALL WFDTOG(TEMP,GZ,IG3,KWD)
 C
@@ -792,7 +792,7 @@ C
    50 CONTINUE
 C
       DO 110 N=1,NNOD
-         CALL WFSMAG(N,BABS,AL)
+         CALL WFBMAG(XD(N),YD(N),BABS,AL)
          SUM=SQRT(AL(1)*AL(1)+AL(3)*AL(3))
          IF(SUM.EQ.0.D0) THEN
             CE1=CEF(3,N)
@@ -834,7 +834,7 @@ C
       ENDDO
 C
       DO IN=1,NNOD
-         CALL WFSMAG(IN,BABS,AL)
+         CALL WFBMAG(XD(IN),YD(IN),BABS,AL)
          CALL WFSDEN(IN,RN,RTPR,RTPP,RZCL)
 C
          CDT=1.D0

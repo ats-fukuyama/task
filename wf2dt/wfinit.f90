@@ -213,10 +213,10 @@ SUBROUTINE WFINIT
   RB     = 0.2D0
   DELR   = 0.05D0
   DELZ   = 0.05D0
-  BRMIN  = 0.01d0
-  BRMAX  = 0.5d0
-  BZMIN  =-0.5d0
-  BZMAX  = 0.5d0
+  BDRMIN = 0.01d0
+  BDRMAX = 0.5d0
+  BDZMIN =-0.5d0
+  BDZMAX = 0.5d0
 
 !     *** ANTENNA SHAPE PARAMETERS ***
 !
@@ -253,6 +253,8 @@ SUBROUTINE WFINIT
   NGXMAX = 31
   NGYMAX = 31
   NGVMAX = 31  
+
+  GFACTOR= 0.5
   
 !     *** Numerical computation parameter ***
 
@@ -294,7 +296,8 @@ SUBROUTINE WFPLST
      WRITE(6,*) '     NGXMAX,NGYMAX,NGVMAX,IDEBUG,'
      WRITE(6,*) '     br_corner,bz_corner,bt_corner,'
      WRITE(6,*) '     pn_corner,ptpr_corner,ptpp_corner,'
-     WRITE(6,*) '     tolerance,wdamp,fdamp'
+     WRITE(6,*) '     tolerance,wdamp,fdamp,gfactor,'
+     WRITE(6,*) '     mdamp,rdamp_min,rdamp_max,zdamp_min,zdamp_max'
   end if
   RETURN
 END SUBROUTINE WFPLST
@@ -315,14 +318,15 @@ SUBROUTINE WFPARM(KID)
                 MODELG,MODELB,MODELD,MODELP,MODELN,&
                 NPRINT,NDRAWD,NDRAWA,NDRAWE,NGRAPH,NDRAWV,&
                 KFNAME,KFNAMA,KFNAMF,KFNAMN,KFNAMB,&
-                BRMIN,BRMAX,BZMIN,BZMAX,&
+                BDRMIN,BDRMAX,BDZMIN,BDZMAX,&
                 DELR,DELZ,&
                 PIN,RD,THETJ1,THETJ2,NJMAX,&
                 R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG,AMPWG,ANGWG,NSHWG, &
                 NGXMAX,NGYMAX,NGVMAX,IDEBUG, &
                 br_corner,bz_corner,bt_corner, &
                 pn_corner,ptpr_corner,ptpp_corner, &
-                tolerance,wdamp,fdamp
+                tolerance,wdamp,fdamp,gfactor, &
+                mdamp,rdamp_min,rdamp_max,zdamp_min,zdamp_max
   
   MODE=0
 1000 continue
@@ -468,8 +472,11 @@ SUBROUTINE WFVIEW
   WRITE(6,604) 'NGXMAX',NGXMAX,'NGYMAX',NGYMAX,&
                'NGVMAX',NGVMAX,'NGRAPH',NGRAPH
   WRITE(6,601) 'PPN0  ',PPN0  ,'PTN0  ',PTN0  
-  WRITE(6,602) 'tolerance',tolerance,'wdamp     ',wdamp, &
-               'fdamp    ',fdamp
+  WRITE(6,602) 'tolerance ',tolerance,'wdamp     ',wdamp, &
+               'fdamp     ',fdamp
+  WRITE(6,604) 'mdamp ',mdamp
+  WRITE(6,602) 'rdamp_min ',rdamp_min,'rdamp_max ',rdamp_max
+  WRITE(6,602) 'zdamp_min ',zdamp_min,'zdamp_max ',zdamp_max
   RETURN
   
 601 FORMAT(' ',A6,'=',1PE11.3:2X,A6,'=',1PE11.3:&
@@ -490,8 +497,8 @@ subroutine wfparm_broadcast
   use wfcomm
   implicit none
 
-  integer,dimension(20) :: idata
-  real(8),dimension(27) :: ddata
+  integer,dimension(21) :: idata
+  real(8),dimension(32) :: ddata
   
 ! ---  broadcast integer data -----
 
@@ -516,6 +523,7 @@ subroutine wfparm_broadcast
      idata(18)=IDEBUG
      idata(19)=NPH
      idata(20)=NSHWG
+     idata(21)=MDAMP
   end if
   
   call mtx_broadcast_integer(idata,20)
@@ -540,6 +548,7 @@ subroutine wfparm_broadcast
   IDEBUG=idata(18)
   NPH   =idata(19)
   NSHWG =idata(20)
+  MDAMP =idata(21)
 
 ! ----- broadcast real(8) data ------
 
@@ -547,10 +556,10 @@ subroutine wfparm_broadcast
      ddata(1) =BB
      ddata(2) =RA
      ddata(3) =RF
-     ddata(4) =BRMIN
-     ddata(5) =BRMAX
-     ddata(6) =BZMIN
-     ddata(7) =BZMAX
+     ddata(4) =BDRMIN
+     ddata(5) =BDRMAX
+     ddata(6) =BDZMIN
+     ddata(7) =BDZMAX
      ddata(8) =DELR
      ddata(9) =DELZ
      ddata(10)=PIN
@@ -571,17 +580,22 @@ subroutine wfparm_broadcast
      ddata(25)=ph2wg
      ddata(26)=ampwg
      ddata(27)=angwg
+     ddata(28)=gfactor
+     ddata(29)=rdamp_min
+     ddata(30)=rdamp_max
+     ddata(31)=zdamp_min
+     ddata(32)=zdamp_max
   end if
 
-  call mtx_broadcast_real8(ddata,27)
+  call mtx_broadcast_real8(ddata,28)
   
   BB    =ddata(1)
   RA    =ddata(2)
   RF    =ddata(3)
-  BRMIN =ddata(4)
-  BRMAX =ddata(5)
-  BZMIN =ddata(6)
-  BZMAX =ddata(7)
+  BDRMIN=ddata(4)
+  BDRMAX=ddata(5)
+  BDZMIN=ddata(6)
+  BDZMAX=ddata(7)
   DELR  =ddata(8)
   DELZ  =ddata(9)
   PIN   =ddata(10)
@@ -602,6 +616,11 @@ subroutine wfparm_broadcast
   ph2wg =ddata(25)
   ampwg =ddata(26)
   angwg =ddata(27)
+  gfactor=ddata(28)
+  rdamp_min=ddata(29)
+  rdamp_max=ddata(30)
+  zdamp_min=ddata(31)
+  zdamp_max=ddata(32)
 
   call mtx_broadcast_real8(AJ  ,8)
   call mtx_broadcast_real8(APH ,8)

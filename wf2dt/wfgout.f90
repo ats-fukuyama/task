@@ -90,6 +90,7 @@ SUBROUTINE WFGOUT
   IF(NGRAPH.GE.1) CALL PAGES
   DO NW=1,NWMAX
      KWD=KWORD(NW)
+     WRITE(6,*) 'KWD=',KWD(1:4)
      KID=KWD(1:1)
      IF(    KID.EQ.'E') THEN
         KID=KWD(2:2)
@@ -127,6 +128,7 @@ SUBROUTINE WFGOUT
         GOTO 1000
      ENDIF
      KID=KWD(3:3)
+     WRITE(6,*) 'KID,NGRAPH=',KID,NGRAPH
      IF(    KID.EQ.'R'.OR.&
        &    KID.EQ.'I'.OR.&
        &    KID.EQ.'A'.OR.&
@@ -294,7 +296,8 @@ SUBROUTINE WFCTOG(CF,ID,KWD)
      ENDDO
   end if
   
-9000 RETURN
+9000 CONTINUE
+  RETURN
 END SUBROUTINE WFCTOG
 
 !     ****** WRITE 2D PROFILE IN TEXT FILE ******
@@ -358,7 +361,7 @@ subroutine wfgout_2d_vector
   complex(8):: CE
   real(8):: DX,DY,X,Y,theta
   REAL(4):: GCLIP
-  real(8),dimension(:,:),pointer::GZ_r,GZ_z
+  real(8),dimension(:,:),ALLOCATABLE::GZ_r,GZ_z
 
   allocate(GZ_r(NGXMAX,NGYMAX),GZ_z(NGXMAX,NGYMAX))
   IE=0

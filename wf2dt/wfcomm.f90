@@ -31,9 +31,9 @@ module wfcomm
   integer,parameter::   NAM =   8  ! Maximum number of antenna
   integer,parameter::   NJM = 800  ! Maximum number of antenna current
   
-  integer,parameter::  NGXM = 301  ! resolution in x direction
-  integer,parameter::  NGYM = 301  ! resolution in y direction
-  integer,parameter::  NGVM = 301  ! resolution used by 1D plot
+!  integer,parameter::  NGXM = 301  ! resolution in x direction
+!  integer,parameter::  NGYM = 301  ! resolution in y direction
+!  integer,parameter::  NGVM = 301  ! resolution used by 1D plot
   integer,parameter::   NGM =   3
   
   integer,parameter::  NWDM = 12
@@ -54,18 +54,20 @@ module wfcomm
   real(rkind),DIMENSION(3,NSM):: pn_corner,ptpr_corner,ptpp_corner
   real(rkind):: R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG,AMPWG,ANGWG
   integer(ikind):: NSHWG
+  real(rkind):: gfactor
 
 !       /WFPRK/
   character(len=32) :: KFNAME,KFNAMA,KFNAMF,KFNAMN
   character(len=32) :: KFNAMB
 
 !       /WFPRD/
-  real(rkind):: BRMIN,BRMAX,BZMIN,BZMAX
+  real(rkind):: BDRMIN,BDRMAX,BDZMIN,BDZMAX
   real(rkind):: DELR,DELZ
   real(rkind):: RD,THETJ1,THETJ2
   integer(ikind):: NJMAX
   real(rkind),dimension(NAM):: AJ,APH,APOS,AWD
-  real(rkind):: WDAMP,FDAMP
+  integer(ikind):: MDAMP
+  real(rkind):: WDAMP,FDAMP,rdamp_min,rdamp_max,zdamp_min,zdamp_max
 
 !       /WFDIV/
   integer(ikind):: iddiv
@@ -526,24 +528,24 @@ contains
 !-----
   subroutine wfwin_allocate
     implicit none
-    integer,save :: NGXM_save,NGYM_save,NGVM_save
+    integer,save :: NGXMAX_save,NGYMAX_save,NGVMAX_save
 
     if(wininit.eq.1) then
-       if((NGXM.eq.NGXM_save).and.&
-         &(NGYM.eq.NGYM_save).and.&
-         &(NGVM.eq.NGVM_save)) then
+       if((NGXMAX.eq.NGXMAX_save).and.&
+         &(NGYMAX.eq.NGYMAX_save).and.&
+         &(NGVMAX.eq.NGVMAX_save)) then
           return
        else
           call wfwin_deallocate
        end if
     end if
 
-    allocate(GZ(NGXM,NGYM),GZ_temp(NGXM,NGYM),G2X(NGXM),G2Y(NGYM))
-    allocate(GV(NGVM,NGM),GX(NGVM))
+    allocate(GZ(NGXMAX,NGYMAX),GZ_temp(NGXMAX,NGYMAX),G2X(NGXMAX),G2Y(NGYMAX))
+    allocate(GV(NGVMAX,3),GX(NGVMAX))
 
-    NGXM_save = NGXM
-    NGYM_save = NGYM
-    NGVM_save = NGVM
+    NGXMAX_save = NGXMAX
+    NGYMAX_save = NGYMAX
+    NGVMAX_save = NGVMAX
     wininit = 1
     
     return
