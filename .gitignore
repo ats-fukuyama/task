@@ -6,6 +6,7 @@
 *.gs
 *.dat
 *.i
+.DS_Store
 make.header
 lib/testbes
 lib/testbrn
@@ -16,10 +17,12 @@ lib/testgrd
 lib/testgrf
 lib/testspl
 lib/testspl3d
+lib/testqsort
 dp/dp
 dp/dpparm
 eq/eq
 eq/eqparm
+exec
 fp/fp
 fp/fpparm
 mtxp/testbnd
