@@ -246,6 +246,7 @@
                            +DWPT(NTH,NP,NR,NSA)*DFT)
                   RSUM6 = RSUM6-PG(NP,NSBA)**2*SINM(NTH)/PV   &
                           *(FEPP(NTH,NP,NR,NSA)*FFP)
+                  IF(model_wave.NE.0) THEN
                   RSUM7 = RSUM7+PG(NP,NSBA)**2*SINM(NTH)/PV   &
                           *(DWLHPP(NTH,NP,NR,NSA)*DFP         &
                            +DWLHPT(NTH,NP,NR,NSA)*DFT)
@@ -261,6 +262,7 @@
                   RSUM_WM = RSUM_WM+PG(NP,NSBA)**2*SINM(NTH)/PV   &
                               *(DWWMPP(NTH,NP,NR,NSA)*DFP         &
                                +DWWMPT(NTH,NP,NR,NSA)*DFT)
+                  END IF
                   RSUM_synch = RSUM_synch + &
                        PG(NP,NSBA)**2*SINM(NTH)/PV   &
                        *( -FSPP(NTH,NP,NR,NSA)*FFP )
