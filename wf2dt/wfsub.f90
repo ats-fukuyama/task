@@ -466,7 +466,7 @@ SUBROUTINE SETEWG
   use wfcomm
   implicit none
   INTEGER:: NBSID,NSD,NN1,NN2,NBNOD,NN,NBSD,NBND
-  REAL(rkind):: ANGLE,R,Z,PHASE,PROD,FACTOR
+  REAL(rkind):: ANGLE,R,Z,PHASE,PROD,FACTOR,SN
 
   ANGLE=ANGWG*PI/180.D0
 
@@ -509,11 +509,10 @@ SUBROUTINE SETEWG
            FACTOR=(R-0.5D0*(R1WG+R2WG))**2/(R1WG-R2WG)**2 &
                  +(Z-0.5D0*(Z1WG+Z2WG))**2/(Z1WG-Z2WG)**2
         END IF
-        PHASE=((PH2WG-PH1WG) &
-               *SQRT((R-R1WG)**2+(Z-Z1WG)**2) &
-               /SQRT((R2WG-R1WG)**2+(Z2WG-Z1WG)**2) &
-               +PH1WG)*PI/180.D0
-        CEBSD(NBSD)= AMPWG*EXP(CII*PHASE)*COS(ANGLE)
+        SN=SQRT((R   -R1WG)**2+(Z   -Z1WG)**2) &
+          /SQRT((R2WG-R1WG)**2+(Z2WG-Z1WG)**2) ! SN=0 at 1, 1 at 2
+        PHASE=(PH1WG+(PH2WG-PH1WG)*SN+DPHWG*4.D0*SN*(1.D0-SN))*PI/180.D0
+        CEBSD(NBSD)= AMPWG*EXP(CII*PHASE)*(COS(ANGLE)+CII*ELPWG*SIN(ANGLE))
         IF(NSHWG.EQ.1) CEBSD(NBSD)=CEBSD(NBSD)*EXP(-10.D0*FACTOR)
         IF(PROD.GT.0.D0) CEBSD(NBSD)=-CEBSD(NBSD)
         IF(nrank.EQ.0) &
@@ -558,11 +557,10 @@ SUBROUTINE SETEWG
            FACTOR=(R-0.5D0*(R1WG+R2WG))**2/(R1WG-R2WG)**2 &
                  +(Z-0.5D0*(Z1WG+Z2WG))**2/(Z1WG-Z2WG)**2
         END IF
-        PHASE=((PH2WG-PH1WG) &
-               *SQRT((R-R1WG)**2+(Z-Z1WG)**2) &
-               /SQRT((R2WG-R1WG)**2+(Z2WG-Z1WG)**2) &
-               +PH1WG)*PI/180.D0
-        CEBND(NBND)=AMPWG*EXP(CII*PHASE)*SIN(ANGLE)
+        SN=SQRT((R   -R1WG)**2+(Z   -Z1WG)**2) &
+          /SQRT((R2WG-R1WG)**2+(Z2WG-Z1WG)**2) ! SN=0 at 1, 1 at 2
+        PHASE=(PH1WG+(PH2WG-PH1WG)*SN+DPHWG*4.D0*SN*(1.D0-SN))*PI/180.D0
+        CEBND(NBND)= AMPWG*EXP(CII*PHASE)*(SIN(ANGLE)-CII*ELPWG*COS(ANGLE))
         IF(NSHWG.EQ.1) CEBND(NBND)=CEBND(NBND)*EXP(-10.D0*FACTOR)
         IF(nrank.EQ.0) &
              WRITE(6,'(A,2I8,1P5E12.4)') 'ND:',NN,NBND,CEBND(NBND),AMPWG,PHASE,ANGLE

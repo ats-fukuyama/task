@@ -238,8 +238,10 @@ SUBROUTINE WFINIT
   Z2WG=0.05D0
   PH1WG=0.D0
   PH2WG=180.D0
-  AMPWG=0.D0
-  ANGWG=0.D0
+  AMPWG=0.D0        ! Amplitude of waveguide electric field
+  ANGWG=0.D0        ! Polarization angle wrt z axis
+  ELPWG=0.D0        ! Polarization ellipticity
+  DPHWG=0.D0        ! Phase curvature for focusing
   NSHWG=1           ! Profile: 0: step function, 1: gaussian
   
 !     PPN0   : Neutral pressure (Pa)  1 Torr = 1 mmHg = 133.322 Pa
@@ -292,7 +294,8 @@ SUBROUTINE WFPLST
      WRITE(6,*) '     BXMIN,BXMAX,BYMIN,BYMAX,BZMIN,BZMAX,'
      WRITE(6,*) '     DELR,DELZ,'
      WRITE(6,*) '     PIN,RD,THETJ1,THETJ2,NJMAX,ZANT,ZWALL,'
-     WRITE(6,*) '     R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG,AMPWG,ANGWG,NSHWG,'
+     WRITE(6,*) '     R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG,'
+     WRITE(6,*) '     AMPWG,ANGWG,ELPWG,DPHWG,NSHWG,'
      WRITE(6,*) '     NGXMAX,NGYMAX,NGVMAX,IDEBUG,'
      WRITE(6,*) '     br_corner,bz_corner,bt_corner,'
      WRITE(6,*) '     pn_corner,ptpr_corner,ptpp_corner,'
@@ -321,7 +324,8 @@ SUBROUTINE WFPARM(KID)
                 BDRMIN,BDRMAX,BDZMIN,BDZMAX,&
                 DELR,DELZ,&
                 PIN,RD,THETJ1,THETJ2,NJMAX,&
-                R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG,AMPWG,ANGWG,NSHWG, &
+                R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG, &
+                AMPWG,ANGWG,ELPWG,DPHWG,NSHWG, &
                 NGXMAX,NGYMAX,NGVMAX,IDEBUG, &
                 br_corner,bz_corner,bt_corner, &
                 pn_corner,ptpr_corner,ptpp_corner, &
@@ -426,6 +430,7 @@ SUBROUTINE WFVIEW
                   'R2WG  ',R2WG  ,'Z2WG  ',Z2WG
      WRITE(6,601) 'PH1WG ',PH1WG ,'PH2WG ',PH2WG , &
                   'AMPWG ',AMPWG ,'ANGWG ',ANGWG
+     WRITE(6,601) 'ELPWG ',ELPWG ,'DPHWG ',DPHWG
      WRITE(6,604) 'NSHWG ',NSHWG
   END IF
   
@@ -498,7 +503,7 @@ subroutine wfparm_broadcast
   implicit none
 
   integer,dimension(21) :: idata
-  real(8),dimension(32) :: ddata
+  real(8),dimension(34) :: ddata
   
 ! ---  broadcast integer data -----
 
@@ -526,7 +531,7 @@ subroutine wfparm_broadcast
      idata(21)=MDAMP
   end if
   
-  call mtx_broadcast_integer(idata,20)
+  call mtx_broadcast_integer(idata,21)
   
   NSMAX =idata(1)
   NAMAX =idata(2)
@@ -580,14 +585,16 @@ subroutine wfparm_broadcast
      ddata(25)=ph2wg
      ddata(26)=ampwg
      ddata(27)=angwg
-     ddata(28)=gfactor
-     ddata(29)=rdamp_min
-     ddata(30)=rdamp_max
-     ddata(31)=zdamp_min
-     ddata(32)=zdamp_max
+     ddata(28)=elpwg
+     ddata(29)=dphwg
+     ddata(30)=gfactor
+     ddata(31)=rdamp_min
+     ddata(32)=rdamp_max
+     ddata(33)=zdamp_min
+     ddata(34)=zdamp_max
   end if
 
-  call mtx_broadcast_real8(ddata,28)
+  call mtx_broadcast_real8(ddata,34)
   
   BB    =ddata(1)
   RA    =ddata(2)
@@ -616,11 +623,13 @@ subroutine wfparm_broadcast
   ph2wg =ddata(25)
   ampwg =ddata(26)
   angwg =ddata(27)
-  gfactor=ddata(28)
-  rdamp_min=ddata(29)
-  rdamp_max=ddata(30)
-  zdamp_min=ddata(31)
-  zdamp_max=ddata(32)
+  elpwg =ddata(28)
+  dphwg =ddata(29)
+  gfactor=ddata(30)
+  rdamp_min=ddata(31)
+  rdamp_max=ddata(32)
+  zdamp_min=ddata(33)
+  zdamp_max=ddata(34)
 
   call mtx_broadcast_real8(AJ  ,8)
   call mtx_broadcast_real8(APH ,8)

@@ -206,8 +206,8 @@ subroutine DTENSR(NE,DTENS)
            IF(ID.EQ.1) THEN
               DZ=Z-BDZMIN
               DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1)+F*(WDAMP-DZ)/(DZ-CDAMP)
-!              DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+F*(WDAMP-DZ)/(DZ-CDAMP)
-              DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+F*(WDAMP-DZ)/(DZ-CDAMP)
+              DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+F*(WDAMP-DZ)/(DZ-CDAMP)
+!              DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+F*(WDAMP-DZ)/(DZ-CDAMP)
            END IF
         END IF
         IF(BDZMAX-R.LT.WDAMP) THEN
@@ -217,8 +217,8 @@ subroutine DTENSR(NE,DTENS)
            IF(ID.EQ.1) THEN
               DZ=BDZMAX-R
               DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1)+F*(WDAMP-DZ)/(DZ-CDAMP)
-!              DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+F*(WDAMP-DZ)/(DZ-CDAMP)
-              DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+F*(WDAMP-DZ)/(DZ-CDAMP)
+              DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+F*(WDAMP-DZ)/(DZ-CDAMP)
+!              DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+F*(WDAMP-DZ)/(DZ-CDAMP)
            END IF
         END IF
      END IF
