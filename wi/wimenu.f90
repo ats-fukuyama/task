@@ -8,7 +8,7 @@ CONTAINS
 
   SUBROUTINE wi_menu
 
-    USE wicomm,ONLY: ikind,rkind,wi_deallocate,alfa,beta,xmax,pn0,any, &
+    USE wicomm,ONLY: ikind,rkind,wi_deallocate,alfa,beta,xmin,xmax,pn0,any, &
                      nxmax,nwmax,pnu,dx0,xwint,dxmin,xwmin,modelp
     USE wiparm,ONLY: wi_parm,wi_view
     USE wiprep,ONLY: wi_prep
@@ -23,7 +23,7 @@ CONTAINS
     CHARACTER(LEN=80) :: line
     INTEGER(ikind)    :: init=0
     REAL(rkind)       :: dx0_save=0.D0,dxmin_save=0.D0
-    REAL(rkind)       :: xwmin_save=0.D0,xmax_save=0.D0
+    REAL(rkind)       :: xwmin_save=0.D0,xmax_save=0.D0,xmin_save=0.D0
     REAL(rkind)       :: xwint_save=0.D0
     REAL(rkind)       :: ratea,rk0l
 
@@ -37,6 +37,7 @@ CONTAINS
        xwint.NE.xwint_save .OR. &
        dxmin.NE.dxmin_save .OR. &
        xwmin.NE.xwmin_save .OR. &
+       xmin .NE.xmin_save  .OR. &
        xmax .NE.xmax_save) THEN  ! x array was modified
        INIT=0
     END IF
@@ -49,20 +50,23 @@ CONTAINS
        CALL wi_prep
        write(6,'(A,1P4E12.4)')     '## alfa,beta,pn0,any       =', &
                                        alfa,beta,pn0,any
-       write(6,'(A,1PE12.4,3I12)') '## xmax,nxmax,nwmax,modelp =', &
-                                       xmax,nxmax,nwmax,modelp
+       write(6,'(A,1P3E12.4)')     '## xmin,xmax,dx0 =', &
+                                        xmax,xmax,dx0
+       write(6,'(A,3I12)')         '## nxmax,nwmax,modelp =', &
+                                        nxmax,nwmax,modelp
        SELECT CASE(modelp)
        CASE(0,1)
-          write(6,'(A,1P4E12.4)')     '## dx0,pnu,dxmin,xwmin     =', &
-                                          dx0,pnu,dxmin,xwmin
+          write(6,'(A,1P4E12.4)')     '## pnu,dxmin,xwmin     =', &
+                                          pnu,dxmin,xwmin
        CASE(2)
-          write(6,'(A,1P4E12.4)')     '## dx0,xwint,dxmin,xwmin   =', &
-                                          dx0,xwint,dxmin,xwmin
+          write(6,'(A,1P4E12.4)')     '## xwint,dxmin,xwmin   =', &
+                                          xwint,dxmin,xwmin
        END SELECT
        dx0_save  =dx0
        xwint_save=xwint
        dxmin_save=dxmin
        xwmin_save=xwmin
+       xmin_save =xmin
        xmax_save =xmax
        CALL wi_exec(1,ratea,ierr)
        INIT=1
@@ -85,6 +89,7 @@ CONTAINS
        xwint_save=xwint
        dxmin_save=dxmin
        xwmin_save=xwmin
+       xmin_save =xmin
        xmax_save =xmax
        CALL wi_scan(ierr)
        INIT=1

@@ -58,8 +58,8 @@ CONTAINS
 
       USE libgrf,ONLY: GRD1D
       USE wicomm,ONLY: &
-           ikind,rkind,dxmin,dx0,xwmin,xwint,alfa,pn0,xmax,nxmax,nwmax,xgrid, &
-           modelp,idebug
+           ikind,rkind,dxmin,dx0,xwmin,xwint,alfa,pn0,xmin,xmax,nxmax,nwmax, &
+           xgrid,modelp,idebug
       IMPLICIT NONE
 
       REAL(rkind):: xres,x,factor,dx1,dx2,range
@@ -68,10 +68,10 @@ CONTAINS
       REAL(rkind),DIMENSION(:),ALLOCATABLE:: xid
 
       IF(dxmin .LE. 0.D0) THEN
-         nxmax=xmax/dx0
+         nxmax=(xmax-xmin)/dx0
       ELSE
          xres=LOG(pn0)/alfa    ! resonance position (omegape=omega)
-         x=0.D0
+         x=xmin
          nx=0
          DO WHILE (x.LT.xmax)
             factor=((x-xres)/xwmin)**2
@@ -100,11 +100,11 @@ CONTAINS
 
       IF(dxmin .LE. 0.D0) THEN
          DO nx=0,nxmax
-            xgrid(nx)=dx0*nx
+            xgrid(nx)=xmin+dx0*nx
          END DO
       ELSE
          xres=LOG(pn0)/alfa    ! resonance position (omegape=omega)
-         x=0.D0
+         x=xmin
          nx=0
          xgrid(nx)=x
          DO WHILE (x.LT.xmax)

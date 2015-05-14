@@ -60,7 +60,7 @@ CONTAINS
       COMPLEX(rkind):: CS
       INTEGER(ikind):: J,L,NX,NW
 
-      DX=XMAX/NXMAX
+      DX=(XMAX-XMIN)/NXMAX
       RKY=ANY*BETA
       DO J=1,2
          N1=J
@@ -85,8 +85,6 @@ CONTAINS
       INTEGER(ikind):: NDUB,NBAND,NWDUB,NWDDUB,I,J,MM,ID,JD,NS,NE,NN
       INTEGER(ikind):: KK,KD,KS,IOB,IO,I2
 
-      DX=XMAX/DBLE(NXMAX)
-      DX2=DX**2
       RKY=ANY*BETA
       RKY2=RKY**2
       BETA2=BETA*BETA
@@ -111,6 +109,8 @@ CONTAINS
          END DO
       END DO
       DO MM=0,NXMAX-1
+         DX=xgrid(MM+1)-xgrid(MM)
+         DX2=DX*DX
          DO I=MM,MM+1
             ID=2*I
             DO J=MM,MM+1
@@ -218,7 +218,6 @@ CONTAINS
       INTEGER(ikind):: ML
 
       CBB=CI/(DSQRT(1.D0-ANY*ANY)*BETA)
-
       DO ML=1,NXMAX*2+1
          CSO(ML)=(0.D0,0.D0)
       END DO
@@ -270,8 +269,6 @@ CONTAINS
 
       RKY=ANY*BETA
       RKY2=RKY**2
-      DX=XMAX/DBLE(NXMAX)
-      DX2=DX**2
 
       DO NX=0,NXMAX
          CPOWER(NX)=(0.D0,0.D0)
@@ -279,6 +276,8 @@ CONTAINS
       PTOT=0.D0
 
       DO NX=0,NXMAX-1
+         DX=xgrid(nx+1)-xgrid(nx)
+         DX2=DX*DX
          NS=NX-NWMAX+1
          NE=NX+NWMAX-1
          AD=1.D0/(2.D0*DX) 

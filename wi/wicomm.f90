@@ -9,12 +9,15 @@ MODULE wicomm
 
   INTEGER(ikind):: modelg = 0      ! calculation mode: 0:unmag
   INTEGER(ikind):: modelp = 2      ! plasma mode: 0:cold, 1:warm, 2:hot
-  REAL(rkind)::    xmax   = 200.D0 ! maximum value of x (minimum value is 0.0)
-  REAL(rkind)::    pn0    = 2.D0   ! normalized plasma density at x=0 
+  REAL(rkind)::    xmin   = 0.D0   ! minimum value of x
+  REAL(rkind)::    xmax   = 200.D0 ! maximum value of x
+  REAL(rkind)::    pn0    = 2.D0   ! normalized plasma density at x=xmin
                                    !    [ pn0 = omega_pe^2 / omega^2 ]
+                                   !    pn0=1.d0 for modewi=1
   REAL(rkind)::    alfa   = 0.01D0 ! normalized density gradient 
                                    !    [ alfa = vte / L omega ]
                                    !    [ n=n_0 exp(-x/L) ]
+                                   !    [ alfa = c / L omega ]
   REAL(rkind)::    any    = 0.2D0  ! refractive index in the y direction
                                    !    [ any = k_y c / omega ]
   REAL(rkind)::    beta   = 0.1D0  ! ratio of thermal velocity to light veloc.
@@ -25,11 +28,13 @@ MODULE wicomm
   INTEGER(ikind):: ntaumax= 51     ! number of TAU scan points
   REAL(rkind)::    taumin = 0.D0   ! minimum of TAU scan
   REAL(rkind)::    taumax = 1.65D0 ! maximum of TAU scan
-  REAL(rkind)::    xwint  = 10.D0  ! range of kernel integral
+  REAL(rkind)::    xwint  = 100.D0 ! range of kernel integral in vte
   REAL(rkind)::    dx0    = 0.5D0  ! default grid size
   REAL(rkind)::    dxmin  = 0.D0   ! minimum grid size at omegape = omega
   REAL(rkind)::    xwmin  = 1.D0   ! range of reduction near omegape = omega
   COMPLEX(rkind):: cfyn = (1.D0,0.D0) ! E field of incident wave at nx=nxmax
+  INTEGER(ikind):: modewi = 0      ! modewi=0: original vte normalization
+                                   !        1: c normalization and x=0 at res
   INTEGER(ikind):: idebug = 0      ! debug option index
 
 

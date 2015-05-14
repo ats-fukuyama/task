@@ -59,7 +59,11 @@ CONTAINS
 
     DO J=1,NXMAX+1 
        JD=2*(J-1) 
-       SVX(J)=xgrid(J-1)
+       IF(modewi.eq.0) THEN
+          SVX(J)=xgrid(J-1)
+       ELSE
+          SVX(J)=xgrid(J-1)*beta
+       ENDIF
        SCR(J)=REAL(CFY(JD+1))
        SCI(J)=AIMAG(CFY(JD+1))
        SCA(J)=ABS(CFY(JD+1))
@@ -124,13 +128,21 @@ CONTAINS
     CALL NUMBI(NWMAX,'(I7)',8)
     CALL MOVE(15.5,16.0)
     CALL TEXT('  XMAX  = ',10)
-    CALL NUMBD(XMAX,'(F7.1)',7)
+    IF(modewi.eq.0) THEN
+       CALL NUMBD(XMAX,'(F7.1)',7)
+    ELSE
+       CALL NUMBD(XMAX*BETA,'(F7.1)',7)
+    END IF
     CALL MOVE(15.5,15.5)
     CALL TEXT('  PN0   = ',10)
     CALL NUMBD(PN0,'(F7.3)',7)
     CALL MOVE(15.5,15.0)
     CALL TEXT('  ALFA  = ',10)
-    CALL NUMBD(ALFA,'(F9.5)',9)
+    IF(modewi.eq.0) THEN
+       CALL NUMBD(ALFA,'(F9.5)',9)
+    ELSE
+       CALL NUMBD(ALFA/BETA,'(F9.5)',9)
+    ENDIF
     CALL MOVE(15.5,14.5)
     CALL TEXT('  ANY   = ',10)
     CALL NUMBD(ANY,'(F7.3)',7)
