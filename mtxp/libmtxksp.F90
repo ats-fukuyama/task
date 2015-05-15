@@ -148,12 +148,13 @@
 
 !-----
 
-      SUBROUTINE mtx_setup(imax_,istart_,iend_,jwidth,nzmax)
+      SUBROUTINE mtx_setup(imax_,istart_,iend_,jwidth,nzmax,idebug)
 
       INTEGER,INTENT(IN):: imax_           ! total matrix size
       INTEGER,INTENT(OUT):: istart_,iend_  ! allocated range of lines 
       INTEGER,OPTIONAL,INTENT(IN):: jwidth ! band matrix width, not used in KSP
       INTEGER,OPTIONAL,INTENT(IN):: nzmax  ! number of nonzero components
+      INTEGER,OPTIONAL,INTENT(IN):: idebug ! debug level
       INTEGER:: i,ierr
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -165,6 +166,12 @@
 !  When using MatCreate(), the matrix format can be specified at
 !  runtime. Also, the parallel partitioning of the matrix is
 !  determined by PETSc at runtime.
+
+      IF(PRESENT(idebug)) THEN
+         idebug_save=idebug
+      ELSE
+         idebug_save=0
+      END IF
 
       imax=imax_
       call MatCreate(ncomm,A,ierr)
