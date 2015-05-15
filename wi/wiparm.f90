@@ -47,7 +47,7 @@ CONTAINS
 
     USE wicomm, ONLY: modelg,xmin,xmax,dx0,xwint,pn0,alfa,any,beta,cfyn, &
                       ntaumax,taumin,taumax,modelp,pnu,dxmin,xwmin, &
-                      modewi,idebug,rkind
+                      modewi,kfscan,idebug,rkind
 
     IMPLICIT NONE
     INTEGER,INTENT(IN) :: NID
@@ -56,7 +56,7 @@ CONTAINS
 
     NAMELIST /WI/ modelg,xmin,xmax,dx0,xwint,pn0,alfa,any,beta,cfyn, &
                   ntaumax,taumin,taumax,modelp,pnu,dxmin,xwmin, &
-                  modewi,idebug
+                  modewi,kfscan,idebug
 
     IF(modewi.EQ.1) THEN
        pn0=pn0_save
@@ -96,7 +96,7 @@ CONTAINS
     IMPLICIT NONE
     WRITE(6,'(A)') '# &WI : modelg,xmin,xmax,dx0,xwint,pn0,alfa,any,beta,cfyn,'
     WRITE(6,'(A)') '        ntaumax,taumin,taumax,modelp,pnu,dxmin,xwmin,'
-    WRITE(6,'(A)') '        modewi,idebug'
+    WRITE(6,'(A)') '        modewi,kfscan,idebug'
     RETURN
 
   END SUBROUTINE wi_plst

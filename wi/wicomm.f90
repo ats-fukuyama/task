@@ -36,7 +36,7 @@ MODULE wicomm
   INTEGER(ikind):: modewi = 0      ! modewi=0: original vte normalization
                                    !        1: c normalization and x=0 at res
   INTEGER(ikind):: idebug = 0      ! debug option index
-
+  CHARACTER(len=80):: kfscan=''    ! filename to save scan data
 
 ! --- Global variables ---
 
