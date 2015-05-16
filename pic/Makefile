@@ -1,0 +1,55 @@
+include ../make.header
+
+.SUFFIXES:
+.SUFFIXES: .f .f90 .mod .o .a
+
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
+
+MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD)
+FINCLUDE=-I /usr/local/mpich313-ifort-gcc/include
+
+.f.o :
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE) $(FINCLUDE)
+.f90.o :
+	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE) $(FINCLUDE)
+
+SRCSFREE = piccomm.f90 picinit.f90 picparm.f90 \
+           picfield.f90 picprep.f90 picexec.f90 \
+           picgout.f90 picmenu.f90
+
+OBJS = $(SRCSFREE:.f90=.o) 
+
+LIBS = piclib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a
+
+all : pic
+
+../lib/tasklib.a:
+	(cd ../lib; make tasklib.a)
+../../bpsd/bpsdlib.a:
+	(cd ../../bpsd; make bpsdlib.a)
+piclib.a: $(OBJS)
+	$(LD) $(LDFLAGS) piclib.a $(OBJS)
+
+libs:
+	(cd ../lib; make tasklib.a)
+	(cd ../../bpsd; make bpsdlib.a)
+
+pic : $(LIBS) picmain.o
+	$(MF90) picmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) \
+           $(MODDIR) $(MODINCLUDE)
+
+clean:
+	-rm -f core a.out *.o *.mod ./*~ ./#* *.a $(MOD)/*.mod
+
+veryclean: clean
+	-rm -f pic
+
+picmain.o: picmain.f90 piccomm.f90
+picmenu.o: picmenu.f90 piccomm.f90
+picinit.o: picinit.f90 piccomm.f90
+picparm.o: picparm.f90 piccomm.f90
+picfield.o: picfield.f90 piccomm.f90
+picprep.o: picprep.f90 piccomm.f90
+picexec.o: picexec.f90 piccomm.f90
+picgout.o: picgout.f90 piccomm.f90

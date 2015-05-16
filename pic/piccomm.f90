@@ -1,0 +1,73 @@
+!  ***** TASK/PIC COMMON *****
+
+MODULE piccomm_parm
+
+  USE bpsd_kinds
+  USE bpsd_constants
+
+  INTEGER:: npx,npy,nx,ny,iend,nhmod
+  REAL(rkind):: dt,me,mi,chrge,chrgi,te,ti,eps
+
+END MODULE piccomm_parm
+
+MODULE piccomm
+
+  USE piccomm_parm
+
+  INTEGER:: np,nxh1,nx1,ny1,nxy
+  REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: ex,ey,rho,phi
+  REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: awk
+  REAL(rkind),ALLOCATABLE,DIMENSION(:):: xe,ye,vxe,vye, &
+                                         xi,yi,vxi,vyi
+  REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: cform
+  COMPLEX(rkind),ALLOCATABLE,DIMENSION(:,:):: rhof,phif,afwk
+
+  REAL(8) :: ctome, ctomi,       &
+             vte, vti, cfact, cfacti,              &
+             akine , akini , aktot , apot , atot ,         &
+             akine0, akini0, aktot0, apot0, atot0,         &
+             akine1, akine2, akini1, akini2, time,         &
+             x1, x2, y1, y2, alx, aly,                &
+             wkword, wtime, wtime1, wtime2
+  integer :: iloop, ifset, ipssn, iran, iene
+  integer :: ierr, myid, nodes
+
+CONTAINS
+
+  SUBROUTINE pic_allocate
+
+    INTEGER,SAVE:: nx_save=0, ny_save=0
+    INTEGER,SAVE:: npx_save=0, npy_save=0
+
+    IF(nx  == nx_save  .AND. &
+       ny  == ny_save  .AND. &
+       npx == npx_save .AND. &
+       npy == npy_save) RETURN
+       
+    IF(ALLOCATED(ex)) CALL pic_deallocate
+
+    ALLOCATE(ex(0:nx,0:ny),ey(0:nx,0:ny))
+    ALLOCATE(rho(0:nx,0:ny),phi(0:nx,0:ny))
+    ALLOCATE(awk(nx,ny))
+    ALLOCATE(xe(np),ye(np),vxe(np),vye(np))
+    ALLOCATE(xi(np),yi(np),vxi(np),vyi(np))
+    ALLOCATE(cform(nxh1,ny))
+    ALLOCATE(rhof(nxh1,ny),phif(nxh1,ny),afwk(nxh1,ny))
+
+    nx_save=nx
+    ny_save=ny
+    npx_save=npx
+    npy_save=npy
+
+    RETURN
+  END SUBROUTINE pic_allocate
+
+  SUBROUTINE pic_deallocate
+
+    DEALLOCATE(ex,ey,rho,phi,awk)
+    DEALLOCATE(xe,ye,vxe,vye,xi,yi,vxi,vyi)
+    DEALLOCATE(cform,rhof,phif,afwk)
+
+    RETURN
+  END SUBROUTINE pic_deallocate
+END MODULE piccomm
