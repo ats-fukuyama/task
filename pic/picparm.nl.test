@@ -1,0 +1,5 @@
+ &pic
+  npx=300
+  npy=300
+  iend=100
+ &end

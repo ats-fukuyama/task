@@ -3,7 +3,7 @@
 Module picparm
 
   PRIVATE
-  PUBLIC pic_parm, pic_view
+  PUBLIC pic_parm, pic_view,pic_broadcast
 
 CONTAINS
 
@@ -90,6 +90,56 @@ CONTAINS
     ENDIF
     RETURN
   END SUBROUTINE pic_check
+
+!     ***** BROADCAST INPUT PARAMETERS *****
+
+  SUBROUTINE pic_broadcast
+
+    USE piccomm,ONLY: myid
+    USE piccomm_parm
+    USE libmpi
+    IMPLICIT NONE
+    INTEGER:: idata(6)
+    REAL(8):: ddata(8)
+
+    IF(myid == 0) THEN
+       idata(1)=npx
+       idata(2)=npy
+       idata(3)=nx
+       idata(4)=ny
+       idata(5)=iend
+       idata(6)=nhmod
+    END IF
+    CALL mtx_broadcast_integer(idata,6)
+       npx=idata(1)
+       npy=idata(2)
+       nx=idata(3)
+       ny=idata(4)
+       iend=idata(5)
+       nhmod=idata(6)
+
+    IF(myid == 0) THEN
+       ddata(1)=me
+       ddata(2)=mi
+       ddata(3)=chrge
+       ddata(4)=chrgi
+       ddata(5)=te
+       ddata(6)=ti
+       ddata(7)=dt
+       ddata(8)=eps
+    END IF
+    CALL mtx_broadcast_real8(ddata,8)
+       me=ddata(1)
+       mi=ddata(2)
+       chrge=ddata(3)
+       chrgi=ddata(4)
+       te=ddata(5)
+       ti=ddata(6)
+       dt=ddata(7)
+       eps=ddata(8)
+    RETURN
+
+  END SUBROUTINE pic_broadcast
 
 !     ****** SHOW PARAMETERS ******
 

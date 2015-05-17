@@ -22,6 +22,8 @@ MODULE piccomm
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: cform
   COMPLEX(rkind),ALLOCATABLE,DIMENSION(:,:):: rhof,phif,afwk
 
+  REAL(rkind),ALLOCATABLE,DIMENSION(:):: timet,akinet,akinit,aktott,apott,atott
+
   REAL(8) :: ctome, ctomi,       &
              vte, vti, cfact, cfacti,              &
              akine , akini , aktot , apot , atot ,         &
@@ -29,7 +31,7 @@ MODULE piccomm
              akine1, akine2, akini1, akini2, time,         &
              x1, x2, y1, y2, alx, aly,                &
              wkword, wtime, wtime1, wtime2
-  integer :: iloop, ifset, ipssn, iran, iene
+  integer :: iloop, ifset, ipssn, iran, iene, ienemax
   integer :: ierr, myid, nodes
 
 CONTAINS
@@ -64,9 +66,16 @@ CONTAINS
 
   SUBROUTINE pic_deallocate
 
-    DEALLOCATE(ex,ey,rho,phi,awk)
-    DEALLOCATE(xe,ye,vxe,vye,xi,yi,vxi,vyi)
-    DEALLOCATE(cform,rhof,phif,afwk)
+    IF(ALLOCATED(ex)) THEN
+       DEALLOCATE(ex,ey,rho,phi,awk)
+       DEALLOCATE(xe,ye,vxe,vye,xi,yi,vxi,vyi)
+       DEALLOCATE(cform,rhof,phif,afwk)
+    END IF
+
+    IF(ALLOCATED(timet)) THEN
+       DEALLOCATE(timet,akinet,akinit,aktott,apott,atott)
+    END IF
+
 
     RETURN
   END SUBROUTINE pic_deallocate

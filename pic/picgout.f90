@@ -18,7 +18,7 @@ CONTAINS
     REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: work
     REAL(rkind),ALLOCATABLE,DIMENSION(:):: x,y
 
-    ALLOCATE(x(nx+1),y(ny+1),work(nx+1,ny+1))
+    ALLOCATE(x(nx+1),y(ny+1))
     DO i=1,nx+1
        x(i)=DBLE(i-1)/DBLE(nx)
     END DO
@@ -41,9 +41,16 @@ CONTAINS
 
     SELECT CASE(kch)
     CASE('T1')
+       ALLOCATE(work(ienemax,5))
+       work(1:ienemax,1)=akinet(1:ienemax)
+       work(1:ienemax,2)=akinit(1:ienemax)
+       work(1:ienemax,3)=aktott(1:ienemax)
+       work(1:ienemax,4)=apott(1:ienemax)
+       work(1:ienemax,5)=atott(1:ienemax)
        CALL PAGES
-!       CALL GRD1D(1,x,y,nxmax,nxmax,1,'@xx@')
+       CALL GRD1D(0,timet,work,ienemax,ienemax,5,'@Ke,Ki,Ktot,Ptot,Wtot vs t@')
        CALL PAGEE
+       DEALLOCATE(work)
     CASE('E1')
        CALL PAGES
        CALL GRD2D(1,x,y,ex,nx+1,nx+1,ny+1,'@Ex@')
@@ -57,7 +64,7 @@ CONTAINS
     GO TO 1
 
 9000 CONTINUE
-    DEALLOCATE(x,y,work)
+    DEALLOCATE(x,y)
     RETURN
   END SUBROUTINE pic_gout
 END Module picgout

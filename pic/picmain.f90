@@ -11,6 +11,7 @@ PROGRAM pic_main
   USE picinit,ONLY: pic_init
   USE picparm,ONLY: pic_parm
   USE picmenu,ONLY: pic_menu
+  USE libmpi
 
   IMPLICIT none
   INCLUDE 'mpif.h'
@@ -25,6 +26,7 @@ PROGRAM pic_main
   call mpi_comm_rank(mpi_comm_world,myid,ierr)
   call mpi_comm_size(mpi_comm_world,nodes,ierr)
      if( myid .eq. 0 ) write(*,*) '*** number of nodes = ***', nodes
+  CALL mtx_mpi(mpi_comm_world,myid,nodes)
 
   CALL pic_init
   CALL pic_parm(1,'picparm.nl',ierr)

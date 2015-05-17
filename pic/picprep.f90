@@ -25,7 +25,8 @@ CONTAINS
       vte    = sqrt( te / me )  !: electron thermal velocity
       vti    = sqrt( ti / mi )  !: ion thermal velocity
 
-      iene   = 0                !: conuter for energy outputs
+      iene   = 0                !: counter for energy outputs
+      time   = 0.D0             !: time
       iran   = 14142 * myid     !: initial parameter for random number
 
       !..... factors for chrage density and field energy 

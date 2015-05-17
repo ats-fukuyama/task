@@ -15,20 +15,63 @@ CONTAINS
     IMPLICIT NONE
     INCLUDE 'mpif.h'
     INTEGER,INTENT(OUT):: iout
+    REAL(8),DIMENSION(:,:),ALLOCATABLE:: work
+    INTEGER:: ienemax_old
 
+!-----------------------------------------------------------------------
+!----- allocate time hisotry data -------------------------------------------
+!-----------------------------------------------------------------------
+
+   IF(iene.eq.0) THEN
+      IF(ALLOCATED(timet)) &
+         DEALLOCATE(timet,akinet,akinit,aktott,apott,atott)
+      ienemax=iend/nhmod
+      ALLOCATE(timet(ienemax))
+      ALLOCATE(akinet(ienemax))
+      ALLOCATE(akinit(ienemax))
+      ALLOCATE(aktott(ienemax))
+      ALLOCATE(apott(ienemax))
+      ALLOCATE(atott(ienemax))
+   ELSE
+      ALLOCATE(work(ienemax,6))
+      work(1:ienemax,1)=timet (1:ienemax)
+      work(1:ienemax,2)=akinet(1:ienemax)
+      work(1:ienemax,3)=akinit(1:ienemax)
+      work(1:ienemax,4)=aktott(1:ienemax)
+      work(1:ienemax,5)=apott (1:ienemax)
+      work(1:ienemax,6)=atott (1:ienemax)
+      DEALLOCATE(timet,akinet,akinit,aktott,apott,atott)
+      ienemax_old=ienemax
+      ienemax=ienemax+iend/nhmod
+      ALLOCATE(timet(ienemax))
+      ALLOCATE(akinet(ienemax))
+      ALLOCATE(akinit(ienemax))
+      ALLOCATE(aktott(ienemax))
+      ALLOCATE(apott(ienemax))
+      ALLOCATE(atott(ienemax))
+      timet (1:ienemax_old)=work(1:ienemax_old,1)
+      akinet(1:ienemax_old)=work(1:ienemax_old,2)
+      akinit(1:ienemax_old)=work(1:ienemax_old,3)
+      aktott(1:ienemax_old)=work(1:ienemax_old,4)
+      apott (1:ienemax_old)=work(1:ienemax_old,5)
+      atott (1:ienemax_old)=work(1:ienemax_old,6)
+      DEALLOCATE(work)
+   END IF
+      
 !-----------------------------------------------------------------------
 !----- start of main do-loop -------------------------------------------
 !-----------------------------------------------------------------------
       do iloop = 1, iend
 
-         time = iloop * dt
+!         time = iloop * dt
+         time = time + dt
 
 !----- output particle positions
 !        write(41,1000) xe(100),ye(100),xe(5000),ye(5000), &
 !                       xi(100),yi(100)
 !1000    format(6e20.4)
 
-         if( myid .eq. 0 ) write(*,*) iloop
+         if( myid .eq. 0 ) write(6,'(2I8,1PE12.4)') iloop, iene+1, time
 
          !----- charge assignment
          rho(:,:) = 0.d0
@@ -98,6 +141,13 @@ CONTAINS
             apot  = apot  - apot0
             atot  = atot  - atot0
 
+            timet(iene)=time
+            akinet(iene)=akine
+            akinit(iene)=akini
+            aktott(iene)=aktot
+            apott(iene)=apot
+            atott(iene)=atot
+
             if( myid .eq. 0 ) &
                write(21,*) time, akine, akini, aktot, apot, atot
          endif
@@ -113,6 +163,8 @@ CONTAINS
       wtime  = wtime2 - wtime1
 
       if( myid .eq. 0 ) write(*,*) '*** wall clock time = ***', wtime
+
+      ienemax=iene
       iout=1
 
     END SUBROUTINE pic_exec

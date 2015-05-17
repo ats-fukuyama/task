@@ -14,7 +14,7 @@ FINCLUDE=-I /usr/local/mpich313-ifort-gcc/include
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE) $(FINCLUDE)
 
-SRCSFREE = piccomm.f90 picinit.f90 picparm.f90 \
+SRCSFREE = picmpi.f90 piccomm.f90 picinit.f90 picparm.f90 \
            picfield.f90 picprep.f90 picexec.f90 \
            picgout.f90 picmenu.f90
 
@@ -53,3 +53,4 @@ picfield.o: picfield.f90 piccomm.f90
 picprep.o: picprep.f90 piccomm.f90
 picexec.o: picexec.f90 piccomm.f90
 picgout.o: picgout.f90 piccomm.f90
+picmpi.o: picmpi.f90 piccomm.f90

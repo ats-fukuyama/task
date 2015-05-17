@@ -9,41 +9,51 @@ CONTAINS
 
   SUBROUTINE pic_menu
 
-    USE piccomm,ONLY: ikind,rkind,pic_allocate,pic_deallocate
-    USE picparm,ONLY: pic_parm,pic_view
+    USE piccomm,ONLY: ikind,rkind,myid,pic_allocate,pic_deallocate
+    USE picparm,ONLY: pic_parm,pic_view,pic_broadcast
     USE picprep,ONLY: pic_prep
     USE picexec,ONLY: pic_exec
     USE picgout,ONLY: pic_gout
+    USE libmpi
 
     IMPLICIT NONE
-    INTEGER(ikind)    :: ierr,mode,ind
+    INTEGER(ikind)    :: ierr,mode,ind,init=0
     CHARACTER         :: kid
     CHARACTER(LEN=80) :: line
 
 1   CONTINUE
-    ierr=0
-    WRITE(6,'(A)') '## PIC MENU: P,V/Parm  R/Run  C/Continue G/Graf  Q/QUIT'
-
-    CALL TASK_KLIN(line,kid,mode,pic_parm)
+    IF(myid == 0) THEN
+       ierr=0
+       WRITE(6,'(A)') '## PIC MENU: P,V/Parm  R/Run  C/Continue G/Graf  Q/QUIT'
+       CALL TASK_KLIN(line,kid,mode,pic_parm)
+    END IF
+    CALL mtx_barrier
+    CALL mtx_broadcast1_character(KID)
+    CALL mtx_broadcast1_integer(MODE)
     IF(mode /= 1) GOTO 1
 
+    CALL pic_broadcast
+
     IF(kid.EQ.'P') THEN
-       CALL pic_parm(0,'PIC',ierr)
+       IF(myid == 0) CALL pic_parm(0,'PIC',ierr)
+       CALL pic_broadcast
     ELSEIF(kid.EQ.'V') THEN
-       CALL pic_view
+       IF(myid == 0) CALL pic_view
     ELSEIF(kid.EQ.'R') THEN
        CALL pic_prep(ierr)
-       if(ierr == 1) GO TO 1
+       if(ierr /= 0) GO TO 1
+       init=1
        CALL pic_exec(ierr)
     ELSEIF(kid.EQ.'C') THEN
-       CALL pic_exec(ierr)
+       IF(init /= 0) CALL pic_exec(ierr)
     ELSEIF(kid.EQ.'G') THEN
-       CALL pic_gout
+       IF(myid == 0 .AND. init /= 0) CALL pic_gout
     ELSEIF(kid.EQ.'Q') THEN
        GOTO 9000
     ELSE
        WRITE(6,*) 'XX PICMENU: UNKNOWN kid: kid = ',kid
     ENDIF
+    CALL mtx_barrier
     GOTO 1
 
 9000 CONTINUE
