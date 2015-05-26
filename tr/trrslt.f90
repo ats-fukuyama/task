@@ -31,10 +31,10 @@
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
 
 !     *** Local beta ***
-!        BETA  : toroidal beta
-!        BETAL : volume-averaged toroidal beta
-!        BETAP : poloidal beta
-!        BETAPL: volume-averaged poloidal beta
+!        BETAL : toroidal beta
+!        BETA  : volume-averaged toroidal beta
+!        BETAPL: poloidal beta
+!        BETAP : volume-averaged poloidal beta
 !        BETAQ : toroidal beta for reaction rate
 !               (ref. TOKAMAKS 3rd, p115)
 
