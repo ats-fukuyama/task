@@ -5,7 +5,7 @@ MODULE piccomm_parm
   USE bpsd_kinds
   USE bpsd_constants
 
-  INTEGER:: npx,npy,nx,ny,iend,nhmod
+  INTEGER:: npx,npy,npz,nx,ny,nz,iend,nhmod
   REAL(rkind):: dt,me,mi,chrge,chrgi,te,ti,eps
 
 END MODULE piccomm_parm
