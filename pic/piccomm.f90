@@ -17,7 +17,7 @@ MODULE piccomm
   INTEGER:: np,nxh1,nx1,ny1,nxy
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: ex,ey,rho,phi
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: awk
-  REAL(rkind),ALLOCATABLE,DIMENSION(:):: xe,ye,vxe,vye, &
+  REAL(rkind),ALLOCATABLE,DIMENSION(:):: xe,ye,ze,vxe,vye, &
                                          xi,yi,vxi,vyi
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: cform
   COMPLEX(rkind),ALLOCATABLE,DIMENSION(:,:):: rhof,phif,afwk
