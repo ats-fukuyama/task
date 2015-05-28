@@ -11,8 +11,8 @@ MODULE piccomm_parm
 
 END MODULE piccomm_parm
 
-MODULE piccomm
-
+MODULE piccomm !
+		
   USE piccomm_parm
 
   INTEGER:: np,nxh1,nx1,ny1,nxy
