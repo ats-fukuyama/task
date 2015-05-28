@@ -16,7 +16,7 @@ MODULE piccomm
   USE piccomm_parm
 
   INTEGER:: np,nxh1,nx1,ny1,nxy
-  REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: ex,ey,rho,phi
+  REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: ex,ey,rho,phi !
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: awk
   REAL(rkind),ALLOCATABLE,DIMENSION(:):: xe,ye,ze,vxe,vye,vze &
                                          xi,yi,ze,vxi,vyi,vzi
