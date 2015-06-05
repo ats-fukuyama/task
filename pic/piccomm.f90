@@ -15,7 +15,7 @@ MODULE piccomm !
 		
   USE piccomm_parm
 
-  INTEGER:: np,nxh1,nx1,ny1,nxy
+  INTEGER:: np,nxh1,nx1,ny1,nz1,nxy
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: ex,ey,rho,phi !
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: awk
   REAL(rkind),ALLOCATABLE,DIMENSION(:):: xe,ye,ze,vxe,vye,vze &
@@ -30,7 +30,7 @@ MODULE piccomm !
              akine , akini , aktot , apot , atot ,         &
              akine0, akini0, aktot0, apot0, atot0,         &
              akine1, akine2, akini1, akini2, time,         &
-             x1, x2, y1, y2, alx, aly,                &
+             x1, x2, y1, y2, z1, z3 ,alx, aly, alz                &
              wkword, wtime, wtime1, wtime2
   integer :: iloop, ifset, ipssn, iran, iene, ienemax
   integer :: ierr, myid, nodes
@@ -39,13 +39,15 @@ CONTAINS
 
   SUBROUTINE pic_allocate
 
-    INTEGER,SAVE:: nx_save=0, ny_save=0
-    INTEGER,SAVE:: npx_save=0, npy_save=0
+    INTEGER,SAVE:: nx_save=0, ny_save=0, nz_save=0
+    INTEGER,SAVE:: npx_save=0, npy_save=0, npz_save=0
 
     IF(nx  == nx_save  .AND. &
        ny  == ny_save  .AND. &
+       nz  == nz_save  .AND. &  
        npx == npx_save .AND. &
-       npy == npy_save) RETURN
+       npy == npy_save .AND. &
+       npz == npz_save .AND. ) RETURN
        
     IF(ALLOCATED(ex)) CALL pic_deallocate
 
@@ -59,8 +61,10 @@ CONTAINS
 
     nx_save=nx
     ny_save=ny
+    nz_save=nz
     npx_save=npx
     npy_save=npy
+    npz_save=npz
 
     RETURN
   END SUBROUTINE pic_allocate

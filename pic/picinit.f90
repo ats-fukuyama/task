@@ -23,10 +23,12 @@ CONTAINS
 !............. nhmod : output energies in each nhmod steps       .......
 !.......................................................................
 
-      npx = 1000
-      npy = 1000
+      npx = 100
+      npy = 100
+      npz = 100
       nx = 128
       ny = 128
+      nz = 128
       iend = 1000
       nhmod = 1
 
