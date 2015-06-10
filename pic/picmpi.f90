@@ -1,4 +1,4 @@
-      MODULE libmpi
+MODULE libmpi
 
       PRIVATE
 
@@ -69,7 +69,7 @@
       PUBLIC mtx_sendrecv_real8
       PUBLIC mtx_sendrecv_comple8
 
-      INCLUDE 'mpif.h'
+      INCLUDE '/usr/local/mpich3-intel140/include/mpif.h'
       INTEGER:: ncomm,nrank,nsize
 
       CONTAINS
@@ -1108,7 +1108,7 @@
 !-----
 
       SUBROUTINE mtx_allreduce_integer(vdata,ndata,nop,vreduce,vloc)
-      IMPLICIT NONE
+        IMPLICIT NONE
       INTEGER,DIMENSION(ndata),INTENT(IN):: vdata
       INTEGER,INTENT(IN):: ndata,nop
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vreduce

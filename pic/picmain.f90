@@ -14,7 +14,7 @@ PROGRAM pic_main
   USE libmpi
 
   IMPLICIT none
-  INCLUDE 'mpif.h'
+  INCLUDE '/usr/local/mpich3-intel140/include/mpif.h'
   INTEGER :: ierr
 
   CALL GSOPEN

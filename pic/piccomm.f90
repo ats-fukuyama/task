@@ -18,8 +18,8 @@ MODULE piccomm !
   INTEGER:: np,nxh1,nx1,ny1,nz1,nxy
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: ex,ey,rho,phi !
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: awk
-  REAL(rkind),ALLOCATABLE,DIMENSION(:):: xe,ye,ze,vxe,vye,vze &
-                                         xi,yi,ze,vxi,vyi,vzi
+  REAL(rkind),ALLOCATABLE,DIMENSION(:):: xe,ye,ze,vxe,vye,vze, &
+                                         xi,yi,zi,vxi,vyi,vzi
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: cform
   COMPLEX(rkind),ALLOCATABLE,DIMENSION(:,:):: rhof,phif,afwk
 
@@ -30,7 +30,7 @@ MODULE piccomm !
              akine , akini , aktot , apot , atot ,         &
              akine0, akini0, aktot0, apot0, atot0,         &
              akine1, akine2, akini1, akini2, time,         &
-             x1, x2, y1, y2, z1, z3 ,alx, aly, alz                &
+             x1, x2, y1, y2, z1, z2 ,alx, aly, alz,                &
              wkword, wtime, wtime1, wtime2
   integer :: iloop, ifset, ipssn, iran, iene, ienemax
   integer :: ierr, myid, nodes
@@ -47,7 +47,7 @@ CONTAINS
        nz  == nz_save  .AND. &  
        npx == npx_save .AND. &
        npy == npy_save .AND. &
-       npz == npz_save .AND. ) RETURN
+       npz == npz_save )  RETURN
        
     IF(ALLOCATED(ex)) CALL pic_deallocate
 

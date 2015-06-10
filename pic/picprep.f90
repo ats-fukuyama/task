@@ -11,7 +11,7 @@ CONTAINS
     USE piccomm
     USE picfield,ONLY: poissn,fftpic
     IMPLICIT NONE
-    INCLUDE 'mpif.h'
+    INCLUDE '/usr/local/mpich3-intel140/include/mpif.h'
     INTEGER,INTENT(OUT):: iout
 
       np = npx * npy * npz 
@@ -56,11 +56,11 @@ CONTAINS
 
       !..... initialize poisson solver
       ipssn = 0
-      call poissn(nx,ny,nz,nxh1,rhof,phif,cform,ipssn)
+      call poissn(nx,ny,nxh1,rhof,phif,cform,ipssn)
 
       !..... initialize FFT 
       ifset = 0
-      call fftpic(nx,ny,nz,nxh1,nx1,ny1,nz1,rho,rhof,awk,afwk,ifset)
+      call fftpic(nx,ny,nxh1,nx1,ny1,rho,rhof,awk,afwk,ifset)
 
       !..... initialize wall clock time
       call mpi_barrier(mpi_comm_world,ierr)
@@ -70,11 +70,11 @@ CONTAINS
   END SUBROUTINE pic_prep
 
 !***********************************************************************
-      subroutine iniset(np,npx,npy,npz,nx,ny,nz,x,y,z,vx,vy,vz,vt,iran)
+      subroutine iniset(np,npx,npy,npz,nx,ny,nz,x,y,vx,vy,vt,iran)
 !***********************************************************************
       implicit none
       real(8), dimension(np) :: x, y, z, vx, vy, vz
-      real(8) :: vt, alx, aly, factx, facty, factz, rvx, rvy, rvz
+      real(8) :: vt, alx, aly, alz, factx, facty, factz, rvx, rvy, rvz
       integer :: np, npx, npy, npz, nx, ny, nz, ix, iy, iz, i, iran
 
       alx = dble(nx)
@@ -107,7 +107,7 @@ CONTAINS
       subroutine gauss(rvx,rvy,rvz,iran)
 !***********************************************************************
       implicit none
-      real(8) :: rvx, rvy, rvz, r1, r2, rv
+      real(8) :: rvx, rvy, rvz, r1, r2, r3, rv
       real(8) :: pi, twopi, eps, aln 
       real(8) :: rmod = 2147483648.d0, ramda = 65539.d0, wran
       integer :: iran
@@ -133,12 +133,20 @@ CONTAINS
       iran  = wran
       r2    = wran / rmod
 
+       !----- generate third random number
+      if( iran .lt. 0 ) iran = -iran
+      if( iran .eq. 0 ) iran = 3907
+      wran     = iran
+      wran     = mod( ramda * wran, rmod )
+      iran  = wran
+      r3    = wran / rmod
+
       !----- generate two gaussian random number
       r1  = eps + aln * r1
       rv  = sqrt( -2.d0 * log(r1) )
 
-      rvx = rv * cos( twopi * r2 )
-      rvy = rv * sin( twopi * r2 )
-
+      rvx = rv * cos( twopi * r2 ) * sin(twopi * r3)
+      rvy = rv * sin( twopi * r2 ) * sin(twopi * r3)
+      rvz = rv * cos( twopi * r3 )
       end subroutine gauss
 END Module picprep
