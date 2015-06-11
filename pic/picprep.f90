@@ -11,7 +11,7 @@ CONTAINS
     USE piccomm
     USE picfield,ONLY: poissn,fftpic
     IMPLICIT NONE
-    INCLUDE '/usr/local/mpich3-intel140/include/mpif.h'
+    INCLUDE 'mpif.h'
     INTEGER,INTENT(OUT):: iout
 
       np = npx * npy * npz 
@@ -148,5 +148,6 @@ CONTAINS
       rvx = rv * cos( twopi * r2 ) * sin(twopi * r3)
       rvy = rv * sin( twopi * r2 ) * sin(twopi * r3)
       rvz = rv * cos( twopi * r3 )
+
       end subroutine gauss
 END Module picprep

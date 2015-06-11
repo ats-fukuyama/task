@@ -13,7 +13,7 @@ CONTAINS
 
     USE picfield,ONLY: poissn,fftpic
     IMPLICIT NONE
-    INCLUDE '/usr/local/mpich3-intel140/include/mpif.h'
+    INCLUDE 'mpif.h'
     INTEGER,INTENT(OUT):: iout
     REAL(8),DIMENSION(:,:),ALLOCATABLE:: work
     INTEGER:: ienemax_old
@@ -385,7 +385,7 @@ CONTAINS
     subroutine sumdim(nodes,myid,a,b,ndim)
 !***********************************************************************
       implicit real*8(a-h,o-z)
-      include'/usr/local/mpich3-intel140/include/mpif.h'
+      include 'mpif.h'
       integer stat1(mpi_status_size)
       integer stat2(mpi_status_size)
       dimension a(ndim), b(ndim)
@@ -430,7 +430,7 @@ CONTAINS
     subroutine sumdim1(nodes,myid,a1,b1)
 !***********************************************************************
       implicit real*8(a-h,o-z)
-      include'/usr/local/mpich3-intel140/include/mpif.h'
+      include 'mpif.h'
       integer stat1(mpi_status_size)
       integer stat2(mpi_status_size)
       dimension a(1), b(1)

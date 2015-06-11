@@ -69,7 +69,7 @@ MODULE libmpi
       PUBLIC mtx_sendrecv_real8
       PUBLIC mtx_sendrecv_comple8
 
-      INCLUDE '/usr/local/mpich3-intel140/include/mpif.h'
+      INCLUDE 'mpif.h'
       INTEGER:: ncomm,nrank,nsize
 
       CONTAINS
