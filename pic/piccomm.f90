@@ -16,7 +16,7 @@ MODULE piccomm !
   USE piccomm_parm
 
   INTEGER:: np,nxh1,nx1,ny1,nz1,nxy
-  REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: ex,ey,rho,phi !
+  REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: ex,ey,ez,rho,phi !
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: awk
   REAL(rkind),ALLOCATABLE,DIMENSION(:):: xe,ye,ze,vxe,vye,vze, &
                                          xi,yi,zi,vxi,vyi,vzi
@@ -54,8 +54,8 @@ CONTAINS
     ALLOCATE(ex(0:nx,0:ny),ey(0:nx,0:ny))
     ALLOCATE(rho(0:nx,0:ny),phi(0:nx,0:ny))
     ALLOCATE(awk(nx,ny))
-    ALLOCATE(xe(np),ye(np),vxe(np),vye(np))
-    ALLOCATE(xi(np),yi(np),vxi(np),vyi(np))
+    ALLOCATE(xe(np),ye(np),ze(np),vxe(np),vye(np),vze(np))
+    ALLOCATE(xi(np),yi(np),zi(np),vxi(np),vyi(np),vzi(np))
     ALLOCATE(cform(nxh1,ny))
     ALLOCATE(rhof(nxh1,ny),phif(nxh1,ny),afwk(nxh1,ny))
 
@@ -73,7 +73,7 @@ CONTAINS
 
     IF(ALLOCATED(ex)) THEN
        DEALLOCATE(ex,ey,rho,phi,awk)
-       DEALLOCATE(xe,ye,vxe,vye,xi,yi,vxi,vyi)
+       DEALLOCATE(xe,ye,ze,vxe,vye,vze,xi,yi,zi,vxi,vyi,vzi)
        DEALLOCATE(cform,rhof,phif,afwk)
     END IF
 

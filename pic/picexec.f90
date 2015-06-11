@@ -112,8 +112,8 @@ CONTAINS
          call push(np,nx,ny,xi,yi,vxi,vyi,ex,ey,dt,ctomi)
 
          !----- treat particles being out of the boundary
-         call bound(np,xe,ye,x1,x2,y1,y2,alx,aly)
-         call bound(np,xi,yi,x1,x2,y1,y2,alx,aly)
+         call bound(np,xe,ye,ze,x1,x2,y1,y2,z1,z2,alx,aly,alz)
+         call bound(np,xi,yi,zi,x1,x2,y1,y2,z1,z2,alx,aly,alz)
 
          !..... diagnostics to check energy conservation
          !.....            after pushing 
@@ -210,11 +210,11 @@ CONTAINS
     end subroutine push
 
 !***********************************************************************
-    subroutine bound(np,x,y,x1,x2,y1,y2,alx,aly)
+    subroutine bound(np,x,y,z,x1,x2,y1,y2,z1,z2,alx,aly,alz)
 !***********************************************************************
       implicit none
-      real(8), dimension(np) :: x, y
-      real(8) :: alx, aly, x1, x2, y1, y2
+      real(8), dimension(np) :: x, y, z
+      real(8) :: alx, aly, alz, x1, x2, y1, y2, z1, z2
       integer :: np, i
 
       do i = 1, np
@@ -229,6 +229,13 @@ CONTAINS
          elseif( y(i) .gt. y2 ) then
              y(i) = y(i) - aly
          endif
+
+         if( z(i) .lt. z1 ) then
+             z(i) = z(i) + alz
+         elseif( z(i) .gt. z2 ) then
+             z(i) = z(i) - alz
+         endif
+          
       end do
 
     end subroutine bound

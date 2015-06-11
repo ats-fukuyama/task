@@ -51,8 +51,8 @@ CONTAINS
       CALL pic_allocate
 
       !..... set initial positions and velocities of electrons 
-      call iniset(np,npx,npy,npz,nx,ny,nz,xe,ye,vxe,vye,vte,iran)
-      call iniset(np,npx,npy,npz,nx,ny,nz,xi,yi,vxi,vyi,vti,iran)
+      call iniset(np,npx,npy,npz,nx,ny,nz,xe,ye,ze,vxe,vye,vze,vte,iran)
+      call iniset(np,npx,npy,npz,nx,ny,nz,xi,yi,zi,vxi,vyi,vzi,vti,iran)
 
       !..... initialize poisson solver
       ipssn = 0
@@ -70,7 +70,7 @@ CONTAINS
   END SUBROUTINE pic_prep
 
 !***********************************************************************
-      subroutine iniset(np,npx,npy,npz,nx,ny,nz,x,y,vx,vy,vt,iran)
+      subroutine iniset(np,npx,npy,npz,nx,ny,nz,x,y,z,vx,vy,vz,vt,iran)
 !***********************************************************************
       implicit none
       real(8), dimension(np) :: x, y, z, vx, vy, vz
