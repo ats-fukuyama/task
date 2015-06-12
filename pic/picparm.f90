@@ -49,7 +49,7 @@ CONTAINS
     INTEGER,INTENT(IN) :: NID
     INTEGER,INTENT(OUT) :: IST,IERR
 
-    NAMELIST /PIC/ npx,npy,nx,ny,iend,nhmod, &
+    NAMELIST /PIC/ npx,npy,npz,nx,ny,iend,nhmod, &
                    me,mi,chrge,chrgi,te,ti,dt,eps
 
     READ(NID,PIC,IOSTAT=IST,ERR=9800,END=9900)
@@ -68,7 +68,7 @@ CONTAINS
   SUBROUTINE pic_plst
 
     IMPLICIT NONE
-    WRITE(6,'(A/)') '# &PIC : npx,npy,nx,ny,iend,nhmod,', &
+    WRITE(6,'(A/)') '# &PIC : npx,npy,npz,nx,ny,iend,nhmod,', &
                     '         me,mi,chrge,chrgi,te,ti,dt,eps'
     RETURN
 
@@ -99,24 +99,26 @@ CONTAINS
     USE piccomm_parm
     USE libmpi
     IMPLICIT NONE
-    INTEGER:: idata(6)
+    INTEGER:: idata(7)
     REAL(8):: ddata(8)
 
     IF(myid == 0) THEN
        idata(1)=npx
        idata(2)=npy
-       idata(3)=nx
-       idata(4)=ny
-       idata(5)=iend
-       idata(6)=nhmod
+       idata(3)=npz
+       idata(4)=nx
+       idata(5)=ny
+       idata(6)=iend
+       idata(7)=nhmod
     END IF
-    CALL mtx_broadcast_integer(idata,6)
+    CALL mtx_broadcast_integer(idata,7)
        npx=idata(1)
        npy=idata(2)
-       nx=idata(3)
-       ny=idata(4)
-       iend=idata(5)
-       nhmod=idata(6)
+       npz=idata(3)
+       nx=idata(4)
+       ny=idata(5)
+       iend=idata(6)
+       nhmod=idata(7)
 
     IF(myid == 0) THEN
        ddata(1)=me
@@ -149,7 +151,8 @@ CONTAINS
     implicit none
 
     WRITE(6,601) 'npx   ',npx   ,'npy   ',npy  , &
-                 'nx    ',nx    ,'ny    ',ny 
+                 'npz   ',npz
+    WRITE(6,601) 'nx    ',nx    ,'ny    ',ny 
     WRITE(6,601) 'iend  ',iend  ,'nhmod ',nhmod
     WRITE(6,602) 'me    ',me    ,'mi    ',mi   , &
                  'chrge ',chrge ,'chrgi ',chrgi
