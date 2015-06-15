@@ -96,6 +96,10 @@ CONTAINS
          !.......... calculate ex and ey
          call efield(nx,ny,phi,ex,ey)
 
+         !.......... calculate bxg and byg and bzg
+         call bfield(nx,ny,nz,bx,by,bz,bxg,byg,bzg)
+         
+
          !..... diagnostics to check energy conservation 
          !.....            before pushing 
          if( mod(iloop,nhmod) .eq. 0 ) then
@@ -108,8 +112,8 @@ CONTAINS
          endif
 
          !----- push particles
-         call push(np,nx,ny,nz,xe,ye,ze,vxe,vye,vze,ex,ey,bx,by,bz,dt,ctome)
-         call push(np,nx,ny,nz,xi,yi,ze,vxi,vyi,vzi,ex,ey,bx,by,bz,dt,ctomi)
+         call push(np,nx,ny,nz,xe,ye,ze,vxe,vye,vze,ex,ey,bxg,byg,bzg,dt,ctome)
+         call push(np,nx,ny,nz,xi,yi,ze,vxi,vyi,vzi,ex,ey,bxg,byg,bzg,dt,ctomi)
 
          !----- treat particles being out of the boundary
          call bound(np,xe,ye,ze,x1,x2,y1,y2,z1,z2,alx,aly,alz)
@@ -171,14 +175,14 @@ CONTAINS
 
 
 !***********************************************************************
-      subroutine push(np,nx,ny,nz,x,y,z,vx,vy,vz,ex,ey,bx,by,bz,dt,ctom)
+      subroutine push(np,nx,ny,nz,x,y,z,vx,vy,vz,ex,ey,bxg,byg,bzg,dt,ctom)
 !***********************************************************************
       implicit none
       real(8), dimension(np) :: x, y, z, vx, vy, vz
       real(8), dimension(0:nx,0:ny) :: ex, ey
-      real(8) :: ctom, dx, dy, dx1, dy1, dt, exx, eyy, bxx, byy, bzz, &
-           bx, by, bz
-      integer :: np, nx, ny, nz, i, ip, jp
+      real(8), dimension(0:nx,0:ny,0:nz) :: bxg, byg, bzg
+      real(8) :: ctom, dx, dy, dz,dx1, dy1, dz1, dt, exx, eyy, bxx, byy, bzz
+      integer :: np, nx, ny, nz, i, ip, jp, kp
 
       do i = 1, np
 
@@ -186,11 +190,14 @@ CONTAINS
 
       ip = x(i)
       jp = y(i)
+      kp = z(i)
 
       dx = x(i) - dble(ip)
       dy = y(i) - dble(jp)
+      dz = z(i) - dble(kp)
       dx1 = 1.0d0 - dx
       dy1 = 1.0d0 - dy
+      dz1 = 1.0d0 - dz
 
 ! electric field
  
@@ -199,12 +206,30 @@ CONTAINS
       eyy =    ey(ip ,jp  )*dx1*dy1 + ey(ip+1,jp  )*dx*dy1   &
              + ey(ip ,jp+1)*dx1*dy  + ey(ip+1,jp+1)*dx*dy
 
+! magnetic field
+
+    bxx =    bxg(ip  ,jp  ,kp  )*dx1*dy1*dz1 + bxg(ip+1,jp  ,kp  )*dx*dy1*dz1 &
+           + bxg(ip  ,jp+1,kp  )*dx1*dy*dz1  + bxg(ip  ,jp  ,kp+1)*dx1*dy1*dz &
+           + bxg(ip+1,jp+1,kp  )*dx*dy*dz1   + bxg(ip  ,jp+1,kp+1)*dx1*dy*dz &
+           + bxg(ip+1,jp  ,kp+1)*dx*dy1*dz   + bxg(ip+1,jp+1,kp+1)*dx*dy*dz
+
+    byy =    byg(ip  ,jp  ,kp  )*dx1*dy1*dz1 + byg(ip+1,jp  ,kp  )*dx*dy1*dz1 &
+           + byg(ip  ,jp+1,kp  )*dx1*dy*dz1  + byg(ip  ,jp  ,kp+1)*dx1*dy1*dz &
+           + byg(ip+1,jp+1,kp  )*dx*dy*dz1   + byg(ip  ,jp+1,kp+1)*dx1*dy*dz &
+           + byg(ip+1,jp  ,kp+1)*dx*dy1*dz   + byg(ip+1,jp+1,kp+1)*dx*dy*dz
+
+    bzz =    bzg(ip  ,jp  ,kp  )*dx1*dy1*dz1 + bzg(ip+1,jp  ,kp  )*dx*dy1*dz1 &
+           + bzg(ip  ,jp+1,kp  )*dx1*dy*dz1  + bzg(ip  ,jp  ,kp+1)*dx1*dy1*dz &
+           + bzg(ip+1,jp+1,kp  )*dx*dy*dz1   + bzg(ip  ,jp+1,kp+1)*dx1*dy*dz &
+           + bzg(ip+1,jp  ,kp+1)*dx*dy1*dz   + bzg(ip+1,jp+1,kp+1)*dx*dy*dz
 ! push particles by dt
 
-      vx(i) = vx(i) + ctom * exx * dt
-      vy(i) = vy(i) + ctom * eyy * dt
+      vx(i) = vx(i) + ctom * (exx + vy(i) * bzz - vz(i) * byy) * dt
+      vy(i) = vy(i) + ctom * (eyy + vz(i) * bxx - vx(i) * bzz) * dt
+      vz(i) = vz(i) + ctom * (      vx(i) * byy - vy(i) * bxx) * dt
       x(i)  = x(i)  + vx(i) * dt
       y(i)  = y(i)  + vy(i) * dt
+      z(i)  = z(i)  + vz(i) * dt
 
       end do
 
@@ -315,6 +340,44 @@ CONTAINS
       end do
 
     end subroutine efield
+!***********************************************************************
+    subroutine bfield(nx,ny,nz,bx,by,bz,bxg,byg,bzg)
+!***********************************************************************
+      implicit none
+      real(rkind), dimension(0:nx,0:ny,0:nz) :: bxg, byg, bzg
+      integer :: nx, ny, nz, i, j, k, im, ip, jm, jp, km, kp
+      real(rkind)::bx, by, bz
+
+      do j = 0, ny
+         do i = 0, nx
+            do k = 0, nz
+
+         im = i - 1
+         ip = i + 1
+         jm = j - 1
+         jp = j + 1
+         km = k - 1
+         kp = k + 1
+
+         if( i .eq. 0  ) im = nx - 1
+         if( i .eq. nx ) ip = 1
+         if( j .eq. 0  ) jm = ny - 1
+         if( j .eq. ny ) jp = 1
+         if( k .eq. 0  ) km = nz - 1
+         if( k .eq. ny ) kp = 1
+         
+
+         bxg(i,j,k) = bx
+         byg(i,j,k) = by
+         bzg(i,j,k) = bz
+
+      end do
+      end do
+      end do
+
+    end subroutine bfield
+
+    
 
 !***********************************************************************
     subroutine d2phi(nx,ny,phi,rho)

@@ -28,7 +28,7 @@ CONTAINS
       npz = 100
       nx = 128
       ny = 128
-      nz = 1
+      nz = 10
       iend = 1000
       nhmod = 1
 
