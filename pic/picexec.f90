@@ -75,8 +75,8 @@ CONTAINS
 
          !----- charge assignment
          rho(:,:) = 0.d0
-         call source(np,nx,ny,xe,ye,rho,chrge,cfact)
-         call source(np,nx,ny,xi,yi,rho,chrgi,cfact)
+         call source(np,nx,ny,nz,xe,ye,rho,chrge,cfact)
+         call source(np,nx,ny,nz,xi,yi,rho,chrgi,cfact)
                      !..... sum charge densities over cores
          call sumdim(nodes,myid,rho,phi,nxy)
 
@@ -113,7 +113,7 @@ CONTAINS
 
          !----- push particles
          call push(np,nx,ny,nz,xe,ye,ze,vxe,vye,vze,ex,ey,bxg,byg,bzg,dt,ctome)
-         call push(np,nx,ny,nz,xi,yi,ze,vxi,vyi,vzi,ex,ey,bxg,byg,bzg,dt,ctomi)
+         call push(np,nx,ny,nz,xi,yi,zi,vxi,vyi,vzi,ex,ey,bxg,byg,bzg,dt,ctomi)
 
          !----- treat particles being out of the boundary
          call bound(np,xe,ye,ze,x1,x2,y1,y2,z1,z2,alx,aly,alz)
@@ -208,6 +208,7 @@ CONTAINS
 
 ! magnetic field
 
+      
     bxx =    bxg(ip  ,jp  ,kp  )*dx1*dy1*dz1 + bxg(ip+1,jp  ,kp  )*dx*dy1*dz1 &
            + bxg(ip  ,jp+1,kp  )*dx1*dy*dz1  + bxg(ip  ,jp  ,kp+1)*dx1*dy1*dz &
            + bxg(ip+1,jp+1,kp  )*dx*dy*dz1   + bxg(ip  ,jp+1,kp+1)*dx1*dy*dz &
@@ -222,6 +223,7 @@ CONTAINS
            + bzg(ip  ,jp+1,kp  )*dx1*dy*dz1  + bzg(ip  ,jp  ,kp+1)*dx1*dy1*dz &
            + bzg(ip+1,jp+1,kp  )*dx*dy*dz1   + bzg(ip  ,jp+1,kp+1)*dx1*dy*dz &
            + bzg(ip+1,jp  ,kp+1)*dx*dy1*dz   + bzg(ip+1,jp+1,kp+1)*dx*dy*dz
+
 ! push particles by dt
 
       vx(i) = vx(i) + ctom * (exx + vy(i) * bzz - vz(i) * byy) * dt
@@ -267,17 +269,17 @@ CONTAINS
     end subroutine bound
 
 !***********************************************************************
-    subroutine source(np,nx,ny,x,y,rho,chrg,cfact)
+    subroutine source(np,nx,ny,nz,x,y,rho,chrg,cfact)
 !***********************************************************************
       implicit none
       real(8), dimension(np)        :: x,y
       real(8), dimension(0:nx,0:ny) :: rho
       real(8) :: chrg, dx, dy, dx1, dy1, cfact
-      integer :: np, nx, ny, i, ip, jp, ix, iy
+      integer :: np, nx, ny, nz, i, ip, jp, ix, iy
 
 !*poption parallel, psum(rho)
 
-      do i = 1, np
+      do i = 1, np/nz
 
          ip = x(i)
          jp = y(i)
