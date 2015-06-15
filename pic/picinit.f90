@@ -40,7 +40,10 @@ CONTAINS
       chrgi  =    1.0d0     !: ion charge
       te     =    1.0d0     !: electron temperature
       ti     =    1.0d0     !: ion temperature
-      
+      bx     =    0.0d0     !: x magnetic flux density
+      by     =    0.0d0     !: y magnetic flux density
+      bz     =    0.0d0     !: z magnetic flux density
+ 
       eps = 0.00000001d0    !: constants to define boundary condition
 !---------------------------------------------------------
 

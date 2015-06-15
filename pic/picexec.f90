@@ -108,8 +108,8 @@ CONTAINS
          endif
 
          !----- push particles
-         call push(np,nx,ny,xe,ye,vxe,vye,ex,ey,dt,ctome)
-         call push(np,nx,ny,xi,yi,vxi,vyi,ex,ey,dt,ctomi)
+         call push(np,nx,ny,nz,xe,ye,ze,vxe,vye,vze,ex,ey,bx,by,bz,dt,ctome)
+         call push(np,nx,ny,nz,xi,yi,ze,vxi,vyi,vzi,ex,ey,bx,by,bz,dt,ctomi)
 
          !----- treat particles being out of the boundary
          call bound(np,xe,ye,ze,x1,x2,y1,y2,z1,z2,alx,aly,alz)
@@ -171,13 +171,14 @@ CONTAINS
 
 
 !***********************************************************************
-      subroutine push(np,nx,ny,x,y,vx,vy,ex,ey,dt,ctom)
+      subroutine push(np,nx,ny,nz,x,y,z,vx,vy,vz,ex,ey,bx,by,bz,dt,ctom)
 !***********************************************************************
       implicit none
-      real(8), dimension(np) :: x, y, vx, vy
+      real(8), dimension(np) :: x, y, z, vx, vy, vz
       real(8), dimension(0:nx,0:ny) :: ex, ey
-      real(8) :: ctom, dx, dy, dx1, dy1, dt, exx, eyy
-      integer :: np, nx, ny, i, ip, jp
+      real(8) :: ctom, dx, dy, dx1, dy1, dt, exx, eyy, bxx, byy, bzz, &
+           bx, by, bz
+      integer :: np, nx, ny, nz, i, ip, jp
 
       do i = 1, np
 

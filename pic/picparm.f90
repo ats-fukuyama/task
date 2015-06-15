@@ -49,8 +49,8 @@ CONTAINS
     INTEGER,INTENT(IN) :: NID
     INTEGER,INTENT(OUT) :: IST,IERR
 
-    NAMELIST /PIC/ npx,npy,npz,nx,ny,iend,nhmod, &
-                   me,mi,chrge,chrgi,te,ti,dt,eps
+    NAMELIST /PIC/ npx,npy,npz,nx,ny,nz,iend,nhmod, &
+                   me,mi,chrge,chrgi,te,ti,dt,eps,bx,by,bz
 
     READ(NID,PIC,IOSTAT=IST,ERR=9800,END=9900)
 
@@ -69,7 +69,7 @@ CONTAINS
 
     IMPLICIT NONE
     WRITE(6,'(A/)') '# &PIC : npx,npy,npz,nx,ny,iend,nhmod,', &
-                    '         me,mi,chrge,chrgi,te,ti,dt,eps'
+                    '         me,mi,chrge,chrgi,te,ti,dt,eps,bx,by,bz'
     RETURN
 
   END SUBROUTINE pic_plst
@@ -99,8 +99,8 @@ CONTAINS
     USE piccomm_parm
     USE libmpi
     IMPLICIT NONE
-    INTEGER:: idata(7)
-    REAL(8):: ddata(8)
+    INTEGER:: idata(11)
+    REAL(8):: ddata(11)
 
     IF(myid == 0) THEN
        idata(1)=npx
@@ -108,17 +108,25 @@ CONTAINS
        idata(3)=npz
        idata(4)=nx
        idata(5)=ny
-       idata(6)=iend
-       idata(7)=nhmod
+       idata(6)=nz
+       idata(7)=iend
+       idata(8)=nhmod
+       idata(9)=bx
+       idata(10)=by
+       idata(11)=bz
     END IF
-    CALL mtx_broadcast_integer(idata,7)
+    CALL mtx_broadcast_integer(idata,11)
        npx=idata(1)
        npy=idata(2)
        npz=idata(3)
        nx=idata(4)
        ny=idata(5)
-       iend=idata(6)
-       nhmod=idata(7)
+       nz=idata(6)
+       iend=idata(7)
+       nhmod=idata(8)
+       bx=idata(9)
+       by=idata(10)
+       bz=idata(11)
 
     IF(myid == 0) THEN
        ddata(1)=me
@@ -152,12 +160,14 @@ CONTAINS
 
     WRITE(6,601) 'npx   ',npx   ,'npy   ',npy  , &
                  'npz   ',npz
-    WRITE(6,601) 'nx    ',nx    ,'ny    ',ny 
+    WRITE(6,601) 'nx    ',nx    ,'ny    ',ny   , &
+                 'nz    ',nz
     WRITE(6,601) 'iend  ',iend  ,'nhmod ',nhmod
     WRITE(6,602) 'me    ',me    ,'mi    ',mi   , &
                  'chrge ',chrge ,'chrgi ',chrgi
     WRITE(6,602) 'te    ',te    ,'ti    ',ti   , &
-                 'dt    ',dt    ,'eps   ',eps
+         'dt    ',dt    ,'eps   ',eps
+    WRITE(6,602) 'bx    ',bx    ,'by    ',by   ,  'bz    ',bz   
     RETURN
 
 601 FORMAT(' ',A6,'=',I7,4X  :2X,A6,'=',I7,4X  : &
