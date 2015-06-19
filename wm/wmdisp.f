@@ -544,7 +544,12 @@ C
       SUBROUTINE WMTNAX(NR)
 C
       INCLUDE 'wmcomm.inc'
+!      IMPLICIT NONE
+      COMPLEX*16 :: CPM1,CPM2,CQM1,CQM2,CRM1,CRM2 
+      DOUBLE PRECISION :: RHOL
+      INTEGER :: NS
 C
+      NS=3
       CW=2.D0*PI*CRF*1.D6
 C
       CALL WMCPOS(NR,XL)
@@ -596,9 +601,24 @@ C
                CPM=CFN*COEF*RHOR*RHOR*CEX*CX*(1.D0+CX*CX*(2.D0+CX*CX))
                CQM=CFN*COEF*RHOR     *CEX*CX*CX*(1.D0+2.D0*CX*CX)
                CRM=CFN*COEF          *CEX*CX*CX*CX*2.D0
-            ELSE
+            ELSEIF((MODEFA.EQ.1).OR.(MODEFA.EQ.2)) THEN 
                CALL WMDPFA(CX,CFN,COEF,RHOR,CPM,CQM,CRM,MODEFA)
+            ELSE 
+               RHOL=XRHO(NR)
+!             CALL WMDPFA2(NS,CW,RHOL,RKPR,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
+         CALL WMDPFA2(CW,AM,RHOL,RKPR,VTA,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
+!             WRITE(6,'(i5,1P2E12.4)') NS,RHOL,RKPR
+!             WRITE(6,'(1P6E12.4)') CPM1,CPM2,CQM1
+!             WRITE(6,'(1P6E12.4)') CQM2,CRM1,CRM2
+             CPM=5.D-1*PI*WP2/(CW*CW*WC*WC*RR*RR)*
+     &           (-CPM1-2.D0*CPM2*MM/(AM*CW*WC*PNAL*PNAL))/4.D0
+             CQM=1.D0 *PI*WP2/(CW*CW*WC*RR)*
+     &           (-CQM1-2.D0*CQM2*MM/(AM*CW*WC*PNAL*PNAL))/2.D0
+             CRM=2.D0 *PI*WP2/(CW*CW)*
+     &           (-CRM1-2.D0*CRM2*MM/(AM*CW*WC*PNAL*PNAL))
             ENDIF
+!             WRITE(6,'(i5,1P2E12.4)') NS,RHOL,RKPR
+!             WRITE(6,'(1P6E12.4)') CPM,CQM,CRM
 C
 C            CTNSR(1,1,MD,ND,NTH,NHH)=CPM*COS(ANGTH)**2
 C            CTNSR(1,2,MD,ND,NTH,NHH)=CPM*COS(ANGTH)*SIN(ANGTH)

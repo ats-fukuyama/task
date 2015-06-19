@@ -6,8 +6,8 @@ LIBX_MTX=$(LIBX_MTX_BND)
 #LIBX_MTX=$(LIBX_MTX_MUMPS)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
-FFLAGS = $(OFLAGS)
-#FFLAGS = $(DFLAGS)
+#FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
@@ -22,7 +22,7 @@ SRC0 = wmmenu.f wminit.f wmeign.f wmsetg.f \
        wmexec.f wmloop.f wmtae.f \
        wmvmec.f wmbooz.f wmvout.f wmtpcs.f
 
-SRCX = wmcont.f90 wmtest.f90 wmdpfa.f90
+SRCX = wmcont.f90 wmtest.f90 wmdpfa.f90 wmdpfa2.f90
 
 # wmtrfile.f
 
