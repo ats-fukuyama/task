@@ -62,7 +62,6 @@
               moment2=0.D0
               moment3=0.D0
               do inod=1,4
-!                 print *, fmd_p(i,j,k,nfc1,nfc2,inod)
                  xi=0.125D0*(2*inod-1)
                  yi=xi-0.5D0
                  moment0=moment0+      fmd_p(i,j,k,nfc1,nfc2,inod)
@@ -83,6 +82,12 @@
         enddo
         enddo
         enddo
+!       fmd(1,4,:,:,:,:)=0d0
+!       fmd(2,4,:,:,:,:)=0d0
+!       fmd(3,4,:,:,:,:)=0d0
+!       fmd(4,1,:,:,:,:)=0d0
+!       fmd(4,2,:,:,:,:)=0d0
+!       fmd(4,3,:,:,:,:)=0d0
        call fem_hhg(fmd,drho,fml)
        deallocate(fmd,fmd_p)
        return
@@ -166,16 +171,7 @@
       enddo
 
       fmd_plasma = 0d0
-!      call wmfem_calculate_plasma(rho,0,fmd)
       call wmfem_calculate_plasma(rho,0,fmd_plasma)
-!      do i=1,4 
-!          do nfc1=1,nfcmax
-!             do nfc2=1,nfcmax
-!      fmd(4,4,:,:,:)=fmd_plasma(4,4,:,:,:)
-!      fmd(4,4,i,nfc1,nfc2)=fmd_plasma(4,4,i,nfc1,nfc2)
-!             enddo
-!          enddo
-!       enddo
 
       fmd(1,4,:,:,:)=fmd_plasma(1,4,:,:,:)
       fmd(2,4,:,:,:)=fmd_plasma(2,4,:,:,:)
@@ -197,7 +193,7 @@
             mmdiff=mm1-mm2
             if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
             nfcdiff=nthmax2*nndiff+mmdiff+1
-!            if(nfcdiff.le.0) nfcdiff=nfcdiff+nfcmax2
+            if(nfcdiff.le.0) nfcdiff=nfcdiff+nfcmax2
             do j=1,3
                do i=1,3
                   fmd(i,j,1,nfc1,nfc2)
@@ -278,15 +274,11 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
 
       complex(8):: cfactor
       complex(8):: cfactor_div
+      complex(8):: cfactor_rote
 
       cfactor=(2.d0*pi*crf*1.d6)**2/vc**2
 
-!       cfactor_div=1d0 !(2.d0*pi*crf*1.d6)
-
       cfactor_div=1d0 !(2.d0*pi*crf*1.d6)**2
-
-!!      cfactor_div=1d3 !(2.d0*pi*crf*1.d6)**2
-!!!!
 
       call wmfem_tensors(rho,gma,gpa,muma,dmuma,gja,gmuma,dgjgmuma)
 !      call wmfem_inverse_tensor(muma,muminva)
@@ -382,19 +374,12 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
                      if(i.eq.j.and.imn1.eq.1.and.imn2.eq.1) then
                         fmv1(i,j,imn1,imn2,nfc2)
      &                       =csum1+csumd1*cfactor_div +cfactor*gj
-!     &                       =csum1+csumd1 +cfactor*gj
-!     &                       =csum1-csumd1 +cfactor*gj
-!     &                       =csum1 +cfactor*gj
                      else
                         fmv1(i,j,imn1,imn2,nfc2)=csum1 
      &                   + csumd1*cfactor_div
-!                        fmv1(i,j,imn1,imn2,nfc2)=csum1 +csumd1
-!                        fmv1(i,j,imn1,imn2,nfc2)=csum1 -csumd1
-!                        fmv1(i,j,imn1,imn2,nfc2)=csum1
                      endif
                   enddo
                enddo
-!               pause
             enddo
          enddo
             
@@ -419,12 +404,6 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
 
                   fmv2(i,j,imn1,nfc2)=csum2 + csumd2*cfactor_div
                   fmv3(i,j,imn1,nfc2)=csum3 + csumd3*cfactor_div
-!                  fmv2(i,j,imn1,nfc2)=csum2 + csumd2
-!                  fmv3(i,j,imn1,nfc2)=csum3 + csumd3
-!                  fmv2(i,j,imn1,nfc2)=csum2 - csumd2
-!                  fmv3(i,j,imn1,nfc2)=csum3 - csumd3
-!                  fmv2(i,j,imn1,nfc2)=csum2
-!                  fmv3(i,j,imn1,nfc2)=csum3
                enddo
            enddo
          enddo
@@ -442,8 +421,6 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
                csumd4=-conjg(cpd(i))*cpd(j)  *gj
 
                fmv4(i,j,nfc2)=csum4 + csumd4* cfactor_div
-!               fmv4(i,j,nfc2)=csum4 - csumd4
-!               fmv4(i,j,nfc2)=csum4
             enddo
          enddo
 
@@ -460,7 +437,6 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       real(8),intent(in):: rho
       integer,intent(in):: ns
       complex(8),dimension(4,4,4,nfcmax,nfcmax),intent(out):: fmd
-!      complex(8),dimension(3,3,4,nfcmax2,nfcmax):: fmc
       complex(8),dimension(:,:,:,:,:),allocatable:: fmc
       complex(8),dimension(nthmax2,nhhmax2):: fv1,fv1f
 
@@ -477,7 +453,6 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       real(8),dimension(nthmax2,nhhmax2):: gja
       real(8),dimension(3,nthmax2,nhhmax2) :: dgjgmuma
 !      real(8),dimension(3,3,nthmax2,nhhmax2) :: muminva 
-!      real(8),dimension(3,3) :: muminva 
 
       complex(8):: cfactor
       integer:: i,j,k,nfc1,nfc2,nth,nph
@@ -488,7 +463,6 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       allocate(fmc(3,3,4,nfcmax2,nfcmax))
 
       fmd=0d0
-
       cfactor=(2.d0*pi*crf*1.d6)**2/vc**2
 
       call wmfem_tensors(rho,gma,gpa,muma,dmuma,gja,gmuma,dgjgmuma)
@@ -722,8 +696,8 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
      &                    +fmc42_d(3)*nn1
             fmd(4,4,3,nfc1,nfc2)
      &                    =fmc43_d(1) 
-     &                    +fmc43_d(2)       *mm2
-     &                    +fmc43_d(3)       *nn2
+     &                    +fmc43_d(2)      *mm2
+     &                    +fmc43_d(3)      *nn2
             fmd(4,4,4,nfc1,nfc2)
      &                    =0.25d0*fmc44(nfcdiff,nfcadd1)
      &                    +0.25d0*fmc44(nfcdiff,nfcadd2)
@@ -801,16 +775,10 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       allocate(fmc(3,3,4,nfcmax2,nfcmax))
 
       cfactora4=ci*(2.d0*pi*crf*1.d6)/vc
-!!!!!!!!!!      cfactora4=ci/vc**2
-!!!!!!!!!!       cfactora4=0d0 
+
       cfactor4a=ci*(2.d0*pi*crf*1.d6)/vc
-!!!!!!!!!!       CFACTOR4A=ci
-!!!!!!!!!!       cfactor4a=0d0
-!!!!!!!!!!      cfactor4a=(2.d0*pi*crf*1.d6)**2/vc**2
+
       cfactor44=-1d0
-!!!!!!!!!      cfactor44=-1d0/(2.d0*pi*crf*1.d6)
-!!!!!!!!!      cfactor44=ci*(2.d0*pi*crf*1.d6)/vc**2
-!!!!!!!!!      cfactor44=00
 
       fmc41=0d0
       fmc4a1=0d0
@@ -932,7 +900,6 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
 
 !     ****** CALCULATE METRIC AND CONVERSION TENSOR ******
 
-!      SUBROUTINE wmfem_tensors(rho,gma,muma,dmuma,gja)
       SUBROUTINE wmfem_tensors(
      &      rho,gma,gpa,muma,dmuma,gja,gmuma,dgjgmuma)
 
@@ -1019,15 +986,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
 !              gja(nth,nph)=0d0
 !            ENDIF
 
-!                 print *,nph,nhhmax2,nth
-!                 print *,'gm'
-!                 print *,gp
-!                 print *,'gmp'
-!                 print *,gpm
-!                 print *,'gmm'
-!                 print *,gpp
          ENDDO
-!                 print *,ph,th
       ENDDO
       RETURN
       END SUBROUTINE wmfem_tensors
@@ -1133,6 +1092,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       real(8):: th,ph,dth,dph
       integer:: nth,nph,mm,nn,i,j,nfc2,nfc
       complex(8):: cx
+      integer   :: i2,j2
 
       dth=2.d0*pi/nthmax2
       dph=2.d0*pi/nhhmax2
@@ -1147,11 +1107,17 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
             nn=nnnfc(nfc)
             CALL wmfem_dielectric(rho,th,ph,mm,nn,ns,fml)
             DO j=1,3
+               j2=j
+!               if (j==2)j2=3
+!               if (j==3)j2=2
                DO i=1,3
-                  fmc(i,j,1,nfc2,nfc)=fml(i,j)
-                  fmc(i,j,2,nfc2,nfc)=fml(i,j)
-                  fmc(i,j,3,nfc2,nfc)=fml(i,j)
-                  fmc(i,j,4,nfc2,nfc)=fml(i,j)
+                 i2=i
+!                 if (i==2)i2=3
+!                 if (i==3)i2=2
+                  fmc(i2,j2,1,nfc2,nfc)=fml(i,j)
+                  fmc(i2,j2,2,nfc2,nfc)=fml(i,j)
+                  fmc(i2,j2,3,nfc2,nfc)=fml(i,j)
+                  fmc(i2,j2,4,nfc2,nfc)=fml(i,j)
                END DO
             END DO
          END DO

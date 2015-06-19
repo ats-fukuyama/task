@@ -1,4 +1,4 @@
-C     $Id$
+C     $Id: wmfem_sub.f,v 1.6 2015/03/05 09:58:17 seki Exp $
 
 !---- interface for wm parameter
 
@@ -141,7 +141,7 @@ C     $Id$
 !         bsupr=0.d0
          bsupth=(bb*qinv)/rrl
          bsupph=bb/rrl
-         babs=bb*sqrt(1.d0+(ra*rho*qinv/rr)**2)*rr/rrl
+         babs= bb*sqrt(1.d0+(ra*rho*qinv/rr)**2)*rr/rrl
       case(3,5)
 !         bsupr=0.d0
          call wmeq_get_magnetic(rho,th,babs,bsupth,bsupph)
@@ -180,11 +180,10 @@ c$$$      end subroutine wmfem_plasma
       real(8),intent(in):: rho,th
       real(8),intent(out):: rrl,zzl,drrrho,dzzrho,drrchi,dzzchi
 
-!!!!seki       CALL spl2dd(th,rho,rrl,drrchi,drrrho,
-!!!!seki      &                  THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
-!!!!seki       CALL spl2dd(th,rho,zzl,dzzchi,dzzrho,
-!!!!seki      &                  THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
-      pause
+       CALL spl2dd(th,rho,rrl,drrchi,drrrho,
+     &                  THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+       CALL spl2dd(th,rho,zzl,dzzchi,dzzrho,
+     &                  THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
       return
       end subroutine wmeq_get_posrz
 
@@ -206,11 +205,10 @@ c$$$      end subroutine wmfem_plasma
       ENDIF
 
       psipl=fnpsip(rhol)
-!!!!seki       CALL spl2dd(th,rhol,rrl,drrchi,drrrho,
-!!!!seki      &                  THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
-!!!!seki       CALL spl2dd(th,rhol,zzl,dzzchi,dzzrho,
-!!!!seki      &                  THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
-      pause
+      CALL spl2dd(th,rhol,rrl,drrchi,drrrho,
+     &                  THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+      CALL spl2dd(th,rhol,zzl,dzzchi,dzzrho,
+     &                  THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
       gm(2,2)= drrchi**2+dzzchi**2
       gm(2,3)= 0.d0
       gm(3,3)= rrl**2
@@ -267,11 +265,10 @@ c$$$      endif
                dzzrho=ra*sin(th)
             case(3,5)
                psipl=fnpsip(rho)
-!!!!seki                CALL spl2dd(th,rho,rrl,drrchi,drrrho,
-!!!!seki      &                     THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
-!!!!seki                CALL spl2dd(th,rho,zzl,dzzchi,dzzrho,
-!!!!seki      &                     THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
-              pause
+               CALL spl2dd(th,rho,rrl,drrchi,drrrho,
+     &                     THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+               CALL spl2dd(th,rho,zzl,dzzchi,dzzrho,
+     &                     THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
             end select
             absdrho=sqrt(drrrho**2+dzzrho**2)
             em(1,1)=drrrho/absdrho
@@ -560,6 +557,7 @@ C
             ENDDO
          ENDDO
 C
+
          IF(MODEEG.EQ.0) THEN
             DO NRI=1,NRMAX 
                IF(XR(NRI)/RD.LT.1.D0) NRANT=NRI
@@ -570,7 +568,9 @@ C
 C               write(6,*) 'nr,nrant=',nr,nrant
 C
                CW=2.D0*PI*CRF*1.D6
-               CC=CI*CW*RMU0
+C               CC=CI*CW*RMU0
+               CC=-VC*RMU0
+
                DPH=2.D0*PI/NHHMAX
                DTH=2.D0*PI/NTHMAX
 C
@@ -647,6 +647,7 @@ C
                      CJR  =-(CI*MM*CJTHM+CI*NN*CJPHM)*DRHO
      &                             /XRHOC
                      CFVP(NDX,MDX,1)=CJR
+
 c$$$                     WRITE(6,'(A,3I5,A,1P2E12.4)') 
 c$$$     &                    'CFVP(',NDX,MDX,1,')',CFVP(NDX,MDX,1)
 c$$$                     WRITE(6,'(A,3I5,A,1P2E12.4)')
@@ -962,14 +963,17 @@ C     +++++ Antenna impedance +++++
 C
 C     +++++ CALCULATE DRIVEN CURRENT IN REAL SPACE +++++
 C
-      ns=1
       DO nr=1,nrmax
-         rho=xrho(nr)
          DO nhh=1,nhhmax
          DO nth=1,nthmax
             pcur(nth,nhh,nr)=0.D0
          ENDDO
          ENDDO
+      ENDDO
+      IF (nsmax .GE. 1 )THEN
+      ns=1
+      DO nr=1,nrmax
+         rho=xrho(nr)
 
          CALL pl_prof2(rho,rn,rtpr,rtpp,ru)
          vte=SQRT(rtpr(1)*aee*1.D3/(pa(1)*amp))
@@ -1020,6 +1024,7 @@ C
          ENDDO
          ENDDO
       ENDDO
+      ENDIF
 C
       RETURN
       END
