@@ -86,9 +86,9 @@ CONTAINS
       factz = alz / dble(npz)
 
       i = 0
+      do iz = 1, npz
       do iy = 1, npy
-      do ix = 1, npx
-      do iz = 1, npz      
+      do ix = 1, npx      
          i  = i + 1
          x(i) = ( dble(ix) - 0.5d0 ) * factx
          y(i) = ( dble(iy) - 0.5d0 ) * facty
@@ -145,9 +145,10 @@ CONTAINS
       r1  = eps + aln * r1
       rv  = sqrt( -2.d0 * log(r1) )
 
-      rvx = rv * cos( twopi * r2 ) * sin(twopi * r3)
-      rvy = rv * sin( twopi * r2 ) * sin(twopi * r3)
+      rvx = rv * cos( twopi * r2 ) * sin( twopi * r3 )
+      rvy = rv * sin( twopi * r2 ) * sin( twopi * r3 )
       rvz = rv * cos( twopi * r3 )
 
-      end subroutine gauss
+    end subroutine gauss
+    
 END Module picprep
