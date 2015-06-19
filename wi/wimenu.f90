@@ -51,7 +51,7 @@ CONTAINS
        write(6,'(A,1P4E12.4)')     '## alfa,beta,pn0,any       =', &
                                        alfa,beta,pn0,any
        write(6,'(A,1P3E12.4)')     '## xmin,xmax,dx0 =', &
-                                        xmax,xmax,dx0
+                                        xmin,xmax,dx0
        write(6,'(A,3I12)')         '## nxmax,nwmax,modelp =', &
                                         nxmax,nwmax,modelp
        SELECT CASE(modelp)
