@@ -247,9 +247,13 @@ CONTAINS
 
       do i = 1, np
          if( x(i) .lt. x1 ) then
-            x(i) = x(i) + alx
-         elseif( x(i) .gt. x2 ) then
-            x(i) = x(i) - alx
+            do while(x(i) .lt. x1)
+               x(i) = x(i) + alx
+               end do
+            elseif( x(i) .gt. x2 ) then
+               do while(x(i) .gt.x2)
+                  x(i) = x(i) - alx
+                  end do
          endif
  
          if( y(i) .lt. y1 ) then
@@ -272,7 +276,7 @@ CONTAINS
     subroutine source(np,nx,ny,nz,x,y,rho,chrg,cfact)
 !***********************************************************************
       implicit none
-      real(8), dimension(np)        :: x,y
+      real(8), dimension(np)        :: x, y
       real(8), dimension(0:nx,0:ny) :: rho
       real(8) :: chrg, dx, dy, dx1, dy1, cfact
       integer :: np, nx, ny, nz, i, ip, jp, ix, iy
