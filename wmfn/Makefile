@@ -20,7 +20,7 @@ LIBMUMPSX=.
 #LIBMUMPSX=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common -lpord -lscalapack -lblacs -lparmetis -lmetis -llapack -lblas
 
 MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../plx/$(MOD) -I../eq/$(MOD) \
-            -I../mtxp -I../../bpsd/$(MOD)
+            -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
 SRCFIXED = wmfem_comm.f wmf_hhg.f ../eq/wmeqin.f wmmenu.f wminit.f wmeign.f \
        wmexec.f wmloop.f \
