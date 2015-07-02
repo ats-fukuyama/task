@@ -249,23 +249,31 @@ CONTAINS
          if( x(i) .lt. x1 ) then
             do while(x(i) .lt. x1)
                x(i) = x(i) + alx
-               end do
-            elseif( x(i) .gt. x2 ) then
-               do while(x(i) .gt.x2)
-                  x(i) = x(i) - alx
-                  end do
+            end do
+         elseif( x(i) .gt. x2 ) then
+            do while(x(i) .gt.x2)
+               x(i) = x(i) - alx
+            end do
          endif
  
          if( y(i) .lt. y1 ) then
-             y(i) = y(i) + aly
+            do while(y(i) .lt. y1)
+               y(i) = y(i) + aly
+            end do
          elseif( y(i) .gt. y2 ) then
-             y(i) = y(i) - aly
+            do while(y(i) .gt. x2)
+               y(i) = y(i) - aly
+            end do
          endif
 
          if( z(i) .lt. z1 ) then
-             z(i) = z(i) + alz
+            do while(z(i) .lt. z1)
+               z(i) = z(i) + alz
+            end do
          elseif( z(i) .gt. z2 ) then
-             z(i) = z(i) - alz
+            do while(z(i) .gt. z2)
+               z(i) = z(i) - alz
+            end do
          endif
           
       end do
