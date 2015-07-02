@@ -104,8 +104,8 @@ CONTAINS
          !.....            before pushing 
          if( mod(iloop,nhmod) .eq. 0 ) then
             iene = iene + 1
-            call kine(np,vxe,vye,akine1,me)
-            call kine(np,vxi,vyi,akini1,mi)
+            call kine(np,vxe,vye,vze,akine1,me)
+            call kine(np,vxi,vyi,vzi,akini1,mi)
             call pote(nx,ny,ex,ey,apot,cfacti)
             call sumdim1(nodes,myid,akine1,wkword)
             call sumdim1(nodes,myid,akini1,wkword)
@@ -122,8 +122,8 @@ CONTAINS
          !..... diagnostics to check energy conservation
          !.....            after pushing 
          if( mod(iloop,nhmod) .eq. 0 ) then
-            call kine(np,vxe,vye,akine2,me)
-            call kine(np,vxi,vyi,akini2,mi)
+            call kine(np,vxe,vye,vze,akine2,me)
+            call kine(np,vxi,vyi,vzi,akini2,mi)
             call sumdim1(nodes,myid,akine2,wkword)
             call sumdim1(nodes,myid,akini2,wkword)
             akine = 0.5d0 * ( akine1 + akine2 )
@@ -283,7 +283,7 @@ CONTAINS
 
 !*poption parallel, psum(rho)
 
-      do i = 1, np/nz
+      do i = 1, np
 
          ip = x(i)
          jp = y(i)
@@ -416,20 +416,19 @@ CONTAINS
     end subroutine d2phi
 
 !***********************************************************************
-    subroutine kine(np,vx,vy,akin,mass)
+    subroutine kine(np,vx,vy,vz,akin,mass)
 !***********************************************************************
       implicit none
-      real(8), dimension(np) :: vx, vy
+      real(8), dimension(np) :: vx, vy, vz
       real(8) :: akin, mass 
       integer(4) :: np, i
 
       akin = 0.d0
       do i = 1, np
-         akin = akin + vx(i)*vx(i) + vy(i)*vy(i)
+         akin = akin + vx(i)*vx(i) + vy(i)*vy(i) + vz(i)*vz(i)
       end do
 
       akin = 0.5 * akin * mass
-
     end subroutine kine
 
 !***********************************************************************
