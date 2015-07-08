@@ -181,7 +181,8 @@ CONTAINS
       real(8), dimension(np) :: x, y, z, vx, vy, vz
       real(8), dimension(0:nx,0:ny) :: ex, ey
       real(8), dimension(0:nx,0:ny,0:nz) :: bxg, byg, bzg
-      real(8) :: ctom, dx, dy, dz,dx1, dy1, dz1, dt, exx, eyy, bxx, byy, bzz
+      real(8) :: ctom, dx, dy, dz, dx1, dy1, dz1, dt, exx, eyy, bxx, byy, bzz,&
+           a, b, c
       integer :: np, nx, ny, nz, i, ip, jp, kp
 
       do i = 1, np
@@ -224,11 +225,15 @@ CONTAINS
            + bzg(ip+1,jp+1,kp  )*dx*dy*dz1   + bzg(ip  ,jp+1,kp+1)*dx1*dy*dz &
            + bzg(ip+1,jp  ,kp+1)*dx*dy1*dz   + bzg(ip+1,jp+1,kp+1)*dx*dy*dz
 
-! push particles by dt
+    ! push particles by dt
+    a = vx(i)
+    b = vy(i)
+    c = vz(i)
+     
 
-      vx(i) = vx(i) + ctom * (exx + vy(i) * bzz - vz(i) * byy) * dt
-      vy(i) = vy(i) + ctom * (eyy + vz(i) * bxx - vx(i) * bzz) * dt
-      vz(i) = vz(i) + ctom * (      vx(i) * byy - vy(i) * bxx) * dt
+      vx(i) = vx(i) + ctom * (exx + b * bzz - c * byy) * dt
+      vy(i) = vy(i) + ctom * (eyy + c * bxx - a * bzz) * dt
+      vz(i) = vz(i) + ctom * (      a * byy - b * bxx) * dt
       x(i)  = x(i)  + vx(i) * dt
       y(i)  = y(i)  + vy(i) * dt
       z(i)  = z(i)  + vz(i) * dt

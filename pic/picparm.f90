@@ -99,7 +99,7 @@ CONTAINS
     USE piccomm_parm
     USE libmpi
     IMPLICIT NONE
-    INTEGER:: idata(11)
+    integer:: idata(8)
     REAL(8):: ddata(11)
 
     IF(myid == 0) THEN
@@ -111,9 +111,7 @@ CONTAINS
        idata(6)=nz
        idata(7)=iend
        idata(8)=nhmod
-       idata(9)=bx
-       idata(10)=by
-       idata(11)=bz
+     
     END IF
     CALL mtx_broadcast_integer(idata,11)
        npx=idata(1)
@@ -124,9 +122,7 @@ CONTAINS
        nz=idata(6)
        iend=idata(7)
        nhmod=idata(8)
-       bx=idata(9)
-       by=idata(10)
-       bz=idata(11)
+       
 
     IF(myid == 0) THEN
        ddata(1)=me
@@ -137,6 +133,9 @@ CONTAINS
        ddata(6)=ti
        ddata(7)=dt
        ddata(8)=eps
+       ddata(9)=bx
+       ddata(10)=by
+       ddata(11)=bz
     END IF
     CALL mtx_broadcast_real8(ddata,8)
        me=ddata(1)
@@ -147,6 +146,9 @@ CONTAINS
        ti=ddata(6)
        dt=ddata(7)
        eps=ddata(8)
+       bx=ddata(9)
+       by=ddata(10)
+       bz=ddata(11)
     RETURN
 
   END SUBROUTINE pic_broadcast
