@@ -78,7 +78,7 @@ CONTAINS
          call source(np,nx,ny,nz,xe,ye,rho,chrge,cfact)
          call source(np,nx,ny,nz,xi,yi,rho,chrgi,cfact)
                      !..... sum charge densities over cores
-         call sumdim(nodes,myid,rho,phi,nxy)
+         call sumdim(nodes,myid,rho,phi,nxyz)
 
          !----- calculate electric field
          !.......... fourier transform rho
@@ -94,7 +94,7 @@ CONTAINS
          call fftpic(nx,ny,nxh1,nx1,ny1,phi,phif,awk,afwk,ifset)
 
          !.......... calculate ex and ey
-         call efield(nx,ny,phi,ex,ey)
+         call efield(nx,ny,nz,phi,ex,ey)
 
          !.......... calculate bxg and byg and bzg
          call bfield(nx,ny,nz,bx,by,bz,bxg,byg,bzg)
@@ -106,8 +106,8 @@ CONTAINS
             iene = iene + 1
             call kine(np,vxe,vye,vze,akine1,me)
             call kine(np,vxi,vyi,vzi,akini1,mi)
-            call pote(nx,ny,ex,ey,apot,cfacti)
-            call sumdim1(nodes,myid,akine1,wkword)
+            call pote(nx,ny,nz,ex,ey,apot,cfacti)
+            call sumdim(nodes,myid,akine1,wkword)
             call sumdim1(nodes,myid,akini1,wkword)
          endif
 
@@ -179,8 +179,7 @@ CONTAINS
 !***********************************************************************
       implicit none
       real(8), dimension(np) :: x, y, z, vx, vy, vz
-      real(8), dimension(0:nx,0:ny) :: ex, ey
-      real(8), dimension(0:nx,0:ny,0:nz) :: bxg, byg, bzg
+      real(8), dimension(0:nx,0:ny,0:nz) :: ex, ey, bxg, byg, bzg
       real(8) :: ctom, dx, dy, dz, dx1, dy1, dz1, dt, exx, eyy, bxx, byy, bzz,&
            a, b, c
       integer :: np, nx, ny, nz, i, ip, jp, kp
@@ -202,10 +201,16 @@ CONTAINS
 
 ! electric field
  
-      exx =    ex(ip ,jp  )*dx1*dy1 + ex(ip+1,jp  )*dx*dy1   &
-             + ex(ip ,jp+1)*dx1*dy  + ex(ip+1,jp+1)*dx*dy
-      eyy =    ey(ip ,jp  )*dx1*dy1 + ey(ip+1,jp  )*dx*dy1   &
-             + ey(ip ,jp+1)*dx1*dy  + ey(ip+1,jp+1)*dx*dy
+      exx =  ex(ip  ,jp  ,kp  )*dx1*dy1*dz1 + ex(ip+1,jp  ,kp  )*dx*dy1*dz1 &
+           + ex(ip  ,jp+1,kp  )*dx1*dy*dz1  + ex(ip  ,jp  ,kp+1)*dx1*dy1*dz &
+           + ex(ip+1,jp+1,kp  )*dx*dy*dz1   + ex(ip  ,jp+1,kp+1)*dx1*dy*dz &
+           + ex(ip+1,jp  ,kp+1)*dx*dy1*dz   + ex(ip+1,jp+1,kp+1)*dx*dy*dz
+
+      eyy =  ey(ip  ,jp  ,kp  )*dx1*dy1*dz1 + ey(ip+1,jp  ,kp  )*dx*dy1*dz1 &
+           + ey(ip  ,jp+1,kp  )*dx1*dy*dz1  + ey(ip  ,jp  ,kp+1)*dx1*dy1*dz &
+           + ey(ip+1,jp+1,kp  )*dx*dy*dz1   + ey(ip  ,jp+1,kp+1)*dx1*dy*dz &
+           + ey(ip+1,jp  ,kp+1)*dx*dy1*dz   + ey(ip+1,jp+1,kp+1)*dx*dy*dz
+
 
 ! magnetic field
 
@@ -286,13 +291,13 @@ CONTAINS
     end subroutine bound
 
 !***********************************************************************
-    subroutine source(np,nx,ny,nz,x,y,rho,chrg,cfact)
+    subroutine source(np,nx,ny,nz,x,y,z,rho,chrg,cfact)
 !***********************************************************************
       implicit none
       real(8), dimension(np)        :: x, y
-      real(8), dimension(0:nx,0:ny) :: rho
-      real(8) :: chrg, dx, dy, dx1, dy1, cfact
-      integer :: np, nx, ny, nz, i, ip, jp, ix, iy
+      real(8), dimension(0:nx,0:ny,0:nz) :: rho
+      real(8) :: chrg, dx, dy, dz, dx1, dy1, dz1, cfact
+      integer :: np, nx, ny, nz, i, ip, jp, kp, ix, iy, iz
 
 !*poption parallel, psum(rho)
 
@@ -300,32 +305,41 @@ CONTAINS
 
          ip = x(i)
          jp = y(i)
+         kp = z(i)
 
          dx  = x(i) - dble(ip)
          dy  = y(i) - dble(jp)
+         dz  = z(i) - dble(kp)
          dx1 = 1.0d0 - dx
          dy1 = 1.0d0 - dy
+         dz1 = 1.0d0 - dz
 
-         rho(ip  ,jp  ) = rho(ip  ,jp  ) + dx1 * dy1 * chrg
-         rho(ip+1,jp  ) = rho(ip+1,jp  ) + dx  * dy1 * chrg
-         rho(ip  ,jp+1) = rho(ip  ,jp+1) + dx1 * dy  * chrg
-         rho(ip+1,jp+1) = rho(ip+1,jp+1) + dx  * dy  * chrg
+         rho(ip  ,jp  ,kp  ) = rho(ip  ,jp  ,kp  ) + dx1 * dy1 * dz1 * chrg
+         rho(ip+1,jp  ,kp  ) = rho(ip+1,jp  ,kp  ) + dx  * dy1 * dz1 * chrg
+         rho(ip  ,jp+1,kp  ) = rho(ip  ,jp+1,kp  ) + dx1 * dy  * dz1 * chrg
+         rho(ip  ,jp  ,kp+1) = rho(ip  ,jp  ,kp+1) + dx1 * dy1 * dz  * chrg
+         rho(ip+1,jp+1,kp+1) = rho(ip+1,jp+1,kp+1) + dx  * dy  * dz  * chrg
 
       end do
 
       !..... set charge densities at the boundary
       if( chrg .gt. 0.d0 ) then
          do iy = 0, ny
-            rho(0,iy) = rho(0,iy) + rho(nx,iy)
+            rho(0,iy,0) = rho(0,iy,0) + rho(nx,iy,nz)
          end do
 
          do ix = 0, nx
-            rho(ix,0) = rho(ix,0) + rho(ix,ny)
+            rho(ix,0,0) = rho(ix,0,0) + rho(ix,ny,nz)
          end do
 
+         do iz = 0, nz
+            rho(0,0,iz) = rho(0,0,iz) + rho(nx,ny,iz) 
+         end do
          do iy = 0, ny
-         do ix = 0, nx
-            rho(ix,iy) = cfact * rho(ix,iy)
+            do ix = 0, nx
+               do iz = 0, nz
+            rho(ix,iy,iz) = cfact * rho(ix,iy,iz)
+         end do
          end do
          end do
       endif
@@ -333,31 +347,36 @@ CONTAINS
     end subroutine source
 
 !***********************************************************************
-    subroutine efield(nx,ny,phi,ex,ey)
+    subroutine efield(nx,ny,nz,phi,ex,ey)
 !***********************************************************************
       implicit none
-      real(8), dimension(0:nx,0:ny) :: phi, ex, ey
-      integer :: nx, ny, i, j, im, ip, jm, jp
+      real(8), dimension(0:nx,0:ny,0:nz) :: phi, ex, ey
+      integer :: nx, ny, nz, i, j, im, ip, jm, jp
 
       do j = 0, ny
-      do i = 0, nx
+         do i = 0, nx
+            do k = 0, nz
 
          im = i - 1
          ip = i + 1
          jm = j - 1
          jp = j + 1
+         km = k - 1
+         kp = k + 1
 
          if( i .eq. 0  ) im = nx - 1
          if( i .eq. nx ) ip = 1
          if( j .eq. 0  ) jm = ny - 1
          if( j .eq. ny ) jp = 1
+         if( k .eq. 0  ) km = nz - 1
+         if( k .eq. nz ) kp = 1
 
-         ex(i,j) = 0.5d0 * ( phi(im,j ) - phi(ip,j ) )
-         ey(i,j) = 0.5d0 * ( phi(i ,jm) - phi(i ,jp) )
+         ex(i,j,k) = 0.5d0 * ( phi(im,j ,k ) - phi(ip,j ,k ) )
+         ey(i,j,k) = 0.5d0 * ( phi(i ,jm,k ) - phi(i ,jp,k ) )
 
       end do
       end do
-
+      end do
     end subroutine efield
 !***********************************************************************
     subroutine bfield(nx,ny,nz,bx,by,bz,bxg,byg,bzg)
@@ -445,17 +464,19 @@ CONTAINS
     end subroutine kine
 
 !***********************************************************************
-    subroutine pote(nx,ny,ex,ey,apot,cfacti)
+    subroutine pote(nx,ny,nz,ex,ey,apot,cfacti)
 !***********************************************************************
       implicit none
-      real(8), dimension(0:nx,0:ny) :: ex, ey 
+      real(8), dimension(0:nx,0:ny,0:nz) :: ex, ey 
       real(8) :: apot, cfacti 
-      integer(4) :: nx, ny, ix, iy 
+      integer(4) :: nx, ny, nz, ix, iy, iz 
 
       apot = 0.d0
       do iy = 0, ny-1
       do ix = 0, nx-1
-         apot = apot + ex(ix,iy)*ex(ix,iy) + ey(ix,iy)*ey(ix,iy)
+      do iz = 0, nz-1      
+         apot = apot + ex(ix,iy,iz)*ex(ix,iy,iz) + ey(ix,iy,iz)*ey(ix,iy,iz)
+      end do
       end do
       end do
 

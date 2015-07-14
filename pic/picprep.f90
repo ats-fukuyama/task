@@ -19,7 +19,7 @@ CONTAINS
       nx1 = nx + 1
       ny1 = ny + 1
       nz1 = nz + 1
-      nxy = nx1 * ny1 * nz1
+      nxyz = nx1 * ny1 * nz1
 
       ctome  = chrge / me       !: charge to mass ratio of electrons
       ctomi  = chrgi / mi       !: charge to mass ratio of ions

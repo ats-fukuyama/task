@@ -16,7 +16,7 @@ MODULE piccomm
   USE piccomm_parm
 
   INTEGER:: np,nxh1,nx1,ny1,nz1,nxy
-  REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: ex,ey,ez,rho,phi !
+  REAL(rkind),ALLOCATABLE,DIMENSION(:,:,:):: ex,ey,ez,rho,phi
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:,:):: bxg,byg,bzg
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: awk
   REAL(rkind),ALLOCATABLE,DIMENSION(:):: xe,ye,ze,vxe,vye,vze, &
@@ -52,9 +52,9 @@ CONTAINS
        
     IF(ALLOCATED(ex)) CALL pic_deallocate
 
-    ALLOCATE(ex(0:nx,0:ny),ey(0:nx,0:ny))
+    ALLOCATE(ex(0:nx,0:ny,0:nz),ey(0:nx,0:ny,0:nz))
     ALLOCATE(bxg(0:nx,0:ny,0:nz),byg(0:nx,0:ny,0:nz),bzg(0:nx,0:ny,0:nz))
-    ALLOCATE(rho(0:nx,0:ny),phi(0:nx,0:ny))
+    ALLOCATE(rho(0:nx,0:ny,0:nz),phi(0:nx,0:ny,0:nz))
     ALLOCATE(awk(nx,ny))
     ALLOCATE(xe(np),ye(np),ze(np),vxe(np),vye(np),vze(np))
     ALLOCATE(xi(np),yi(np),zi(np),vxi(np),vyi(np),vzi(np))
@@ -74,7 +74,7 @@ CONTAINS
   SUBROUTINE pic_deallocate
 
     IF(ALLOCATED(ex)) THEN
-       DEALLOCATE(ex,ey,rho,phi,awk)
+       DEALLOCATE(ex,ey,ez,rho,phi,awk)
        DEALLOCATE(bxg,byg,bzg)
        DEALLOCATE(xe,ye,ze,vxe,vye,vze,xi,yi,zi,vxi,vyi,vzi)
        DEALLOCATE(cform,rhof,phif,afwk)
