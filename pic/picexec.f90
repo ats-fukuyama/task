@@ -184,7 +184,7 @@ ctomi)
       implicit none
       real(8), dimension(np) :: x, y, z, vx, vy, vz
       real(8), dimension(0:nx,0:ny,0:nz) :: ex, ey, ezg, bxg, byg, bzg
-      real(8) :: ctom, dx, dy, dz, dx1, dy1, dz1, dt, exx, eyy, ezz,ez, bxx,&
+      real(8) :: ctom, dx, dy, dz, dx1, dy1, dz1, dt, exx, eyy, ezz, ez, bxx,&
  byy, bzz, a, b, c
       integer :: np, nx, ny, nz, i, ip, jp, kp
 
