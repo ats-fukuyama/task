@@ -118,8 +118,8 @@ ctome)
 ctomi)
 
          !----- treat particles being out of the boundary
-         call bound(np,xe,ye,ze,x1,x2,y1,y2,z1,z2,alx,aly,alz)
-         call bound(np,xi,yi,zi,x1,x2,y1,y2,z1,z2,alx,aly,alz)
+         call bound(np,nx,ny,nz,xe,ye,ze,x1,x2,y1,y2,z1,z2,alx,aly,alz)
+         call bound(np,nx,ny,nz,xi,yi,zi,x1,x2,y1,y2,z1,z2,alx,aly,alz)
 
          !..... diagnostics to check energy conservation
          !.....            after pushing 
@@ -256,42 +256,48 @@ ctomi)
     end subroutine push
 
 !***********************************************************************
-    subroutine bound(np,x,y,z,x1,x2,y1,y2,z1,z2,alx,aly,alz)
+    subroutine bound(np,nx,ny,nz,x,y,z,x1,x2,y1,y2,z1,z2,alx,aly,alz)
 !***********************************************************************
       implicit none
       real(8), dimension(np) :: x, y, z
       real(8) :: alx, aly, alz, x1, x2, y1, y2, z1, z2
-      integer :: np, i
+      integer :: np, i, nx, ny, nz
 
       do i = 1, np
          if( x(i) .lt. x1 ) then
-            do while(x(i) .lt. x1)
-               x(i) = x(i) + alx
+            do while(x(i) .lt. x1 + nx)
+               x(i) = x(i) + dble(nx)
             end do
+         x(i) = x(i)+ alx
          elseif( x(i) .gt. x2 ) then
-            do while(x(i) .gt.x2)
-               x(i) = x(i) - alx
+            do while(x(i) .gt. x2 - nx)
+               x(i) = x(i) - dble(nx)
             end do
+         x(i) = x(i) - alx
          endif
  
          if( y(i) .lt. y1 ) then
-            do while(y(i) .lt. y1)
-               y(i) = y(i) + aly
+            do while(y(i) .lt. y1 + ny)
+               y(i) = y(i) + dble(ny)
             end do
+         y(i) = y(i) - aly
          elseif( y(i) .gt. y2 ) then
-            do while(y(i) .gt. x2)
-               y(i) = y(i) - aly
+            do while(y(i) .gt. y2 - ny)
+               y(i) = y(i) - dble(ny)
             end do
+         y(i) = y(i) - aly
          endif
 
          if( z(i) .lt. z1 ) then
-            do while(z(i) .lt. z1)
-               z(i) = z(i) + alz
+            do while(z(i) .lt. z1 + nz)
+               z(i) = z(i) + dble(nz)
             end do
+         z(i) = z(i) + alz
          elseif( z(i) .gt. z2 ) then
-            do while(z(i) .gt. z2)
-               z(i) = z(i) - alz
+            do while(z(i) .gt. z2 - nz)
+               z(i) = z(i) - dble(nz)
             end do
+         z(i) = z(i) - alz
          endif
           
       end do
@@ -349,7 +355,7 @@ ctomi)
     end subroutine source
 
 !***********************************************************************
-    subroutine efield(nx,ny,nz,phi,ex,ey,ez,ezg)
+   subroutine efield(nx,ny,nz,phi,ex,ey,ez,ezg)
 !***********************************************************************
       implicit none
       real(8), dimension(0:nx,0:ny) :: phi
@@ -459,7 +465,6 @@ ctomi)
       real(8), dimension(np) :: vx, vy, vz
       real(8) :: akin, mass 
       integer(4) :: np, i
-
       akin = 0.d0
       do i = 1, np
          akin = akin + vx(i)*vx(i) + vy(i)*vy(i) + vz(i)*vz(i)
