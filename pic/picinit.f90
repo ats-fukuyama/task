@@ -40,6 +40,7 @@ CONTAINS
       chrgi  =    1.0d0     !: ion charge
       te     =    1.0d0     !: electron temperature
       ti     =    1.0d0     !: ion temperature
+      ez     =    0.0d0     !: z electric field
       bx     =    0.0d0     !: x magnetic flux density
       by     =    0.0d0     !: y magnetic flux density
       bz     =    0.0d0     !: z magnetic flux density
