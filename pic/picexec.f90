@@ -118,8 +118,8 @@ ctome)
 ctomi)
 
          !----- treat particles being out of the boundary
-         call bound(np,nx,ny,nz,xe,ye,ze,x1,x2,y1,y2,z1,z2,alx,aly,alz)
-         call bound(np,nx,ny,nz,xi,yi,zi,x1,x2,y1,y2,z1,z2,alx,aly,alz)
+         call bound(np,xe,ye,ze,x1,x2,y1,y2,z1,z2,alx,aly,alz)
+         call bound(np,xi,yi,zi,x1,x2,y1,y2,z1,z2,alx,aly,alz)
 
          !..... diagnostics to check energy conservation
          !.....            after pushing 
@@ -256,48 +256,42 @@ ctomi)
     end subroutine push
 
 !***********************************************************************
-    subroutine bound(np,nx,ny,nz,x,y,z,x1,x2,y1,y2,z1,z2,alx,aly,alz)
+    subroutine bound(np,x,y,z,x1,x2,y1,y2,z1,z2,alx,aly,alz)
 !***********************************************************************
       implicit none
       real(8), dimension(np) :: x, y, z
       real(8) :: alx, aly, alz, x1, x2, y1, y2, z1, z2
-      integer :: np, i, nx, ny, nz
+      integer :: np, i
 
       do i = 1, np
          if( x(i) .lt. x1 ) then
-            do while(x(i) .lt. x1 + nx)
-               x(i) = x(i) + dble(nx)
+            do while(x(i) .lt. x1)
+               x(i) = x(i) + alx
             end do
-         x(i) = x(i)+ alx
          elseif( x(i) .gt. x2 ) then
-            do while(x(i) .gt. x2 - nx)
-               x(i) = x(i) - dble(nx)
+            do while(x(i) .gt. x2)
+               x(i) = x(i) - alx
             end do
-         x(i) = x(i) - alx
          endif
  
          if( y(i) .lt. y1 ) then
-            do while(y(i) .lt. y1 + ny)
-               y(i) = y(i) + dble(ny)
+            do while(y(i) .lt. y1)
+               y(i) = y(i) + aly
             end do
-         y(i) = y(i) - aly
          elseif( y(i) .gt. y2 ) then
-            do while(y(i) .gt. y2 - ny)
-               y(i) = y(i) - dble(ny)
+            do while(y(i) .gt. y2)
+               y(i) = y(i) - aly
             end do
-         y(i) = y(i) - aly
          endif
 
          if( z(i) .lt. z1 ) then
-            do while(z(i) .lt. z1 + nz)
-               z(i) = z(i) + dble(nz)
+            do while(z(i) .lt. z1)
+               z(i) = z(i) + alz
             end do
-         z(i) = z(i) + alz
          elseif( z(i) .gt. z2 ) then
-            do while(z(i) .gt. z2 - nz)
-               z(i) = z(i) - dble(nz)
+            do while(z(i) .gt. z2)
+               z(i) = z(i) - alz
             end do
-         z(i) = z(i) - alz
          endif
           
       end do
@@ -331,7 +325,7 @@ ctomi)
          rho(ip  ,jp  ) = rho(ip  ,jp  ) + dx1 * dy1 * chrg
          rho(ip+1,jp  ) = rho(ip+1,jp  ) + dx  * dy1 * chrg
          rho(ip  ,jp+1) = rho(ip  ,jp+1) + dx1 * dy  * chrg
-         rho(ip  ,jp  ) = rho(ip  ,jp  ) + dx1 * dy1 * chrg
+         rho(ip+1,jp+1) = rho(ip+1,jp+1) + dx  * dy  * chrg
          !rho(ip+1,jp+1,kp+1) = rho(ip+1,jp+1,kp+1) + dx  * dy  * dz  * chrg
 
       end do
@@ -362,6 +356,7 @@ ctomi)
       real(8), dimension(0:nx,0:ny,0:nz) :: ex, ey, ezg
       integer :: nx, ny, nz, i, j, im, ip, jm, jp, k, km, kp
       real(rkind)::ez
+      ez = 0
 
       do j = 0, ny
       do i = 0, nx
@@ -371,19 +366,21 @@ ctomi)
          ip = i + 1
          jm = j - 1
          jp = j + 1
-         km = k - 1
-         kp = k + 1
+         !km = k - 1
+         !kp = k + 1
 
          if( i .eq. 0  ) im = nx - 1
          if( i .eq. nx ) ip = 1
          if( j .eq. 0  ) jm = ny - 1
          if( j .eq. ny ) jp = 1
-         if( k .eq. 0  ) km = nz - 1
-         if( k .eq. nz ) kp = 1
+         !if( k .eq. 0  ) km = nz - 1
+         !if( k .eq. nz ) kp = 1
 
-         ex(i,j,k) = 0.5d0 * ( phi(im,j ) - phi(ip,j ) )
-         ey(i,j,k) = 0.5d0 * ( phi(i ,jm) - phi(i ,jp) )
+         ex(i,j,k) = 1.0/(nz+1)*0.5d0 * ( phi(im,j ) - phi(ip,j ) )
+         ey(i,j,k) = 1.0/(nz+1)*0.5d0 * ( phi(i ,jm) - phi(i ,jp) )
          ezg(i,j,k) = ez
+         !ex(i,j,k) = 0
+         !ey(i,j,k) = 0
 
       end do
       end do
@@ -413,7 +410,7 @@ ctomi)
          if( j .eq. 0  ) jm = ny - 1
          if( j .eq. ny ) jp = 1
          if( k .eq. 0  ) km = nz - 1
-         if( k .eq. ny ) kp = 1
+         if( k .eq. nz ) kp = 1
          
 
          bxg(i,j,k) = bx
@@ -478,7 +475,7 @@ ctomi)
 !***********************************************************************
       implicit none
       real(8), dimension(0:nx,0:ny,0:nz) :: ex, ey, ezg
-      real(8) ::  apot, cfacti 
+      real(8) :: apot, cfacti 
       integer(4) :: nx, ny, nz, ix, iy, iz 
 
       apot = 0.d0
@@ -486,7 +483,7 @@ ctomi)
       do ix = 0, nx-1
       do iz = 0, nz-1      
          apot = apot + ex(ix,iy,iz)*ex(ix,iy,iz) + ey(ix,iy,iz)*ey(ix,iy,iz)&
-+ezg(ix,iy,iz)*ezg(ix,iy,iz)
++ ezg(ix,iy,iz)*ezg(ix,iy,iz)
       end do
       end do
       end do
