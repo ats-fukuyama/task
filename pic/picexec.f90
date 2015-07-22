@@ -185,7 +185,7 @@ ctomi)
       real(8), dimension(np) :: x, y, z, vx, vy, vz
       real(8), dimension(0:nx,0:ny,0:nz) :: ex, ey, ezg, bxg, byg, bzg
       real(8) :: ctom, dx, dy, dz, dx1, dy1, dz1, dt, exx, eyy, ezz, ez, bxx,&
- byy, bzz, a, b, c
+ byy, bzz, vxn, vyn, vzn, vxzero, vyzero, vzzero, vxp, vyp, vzp
       integer :: np, nx, ny, nz, i, ip, jp, kp
 
       do i = 1, np
@@ -238,15 +238,31 @@ ctomi)
            + bzg(ip+1,jp+1,kp  )*dx*dy*dz1   + bzg(ip  ,jp+1,kp+1)*dx1*dy*dz &
            + bzg(ip+1,jp  ,kp+1)*dx*dy1*dz   + bzg(ip+1,jp+1,kp+1)*dx*dy*dz
 
-    ! push particles by dt
-    a = vx(i)
-    b = vy(i)
-    c = vz(i)
-     
+    ! push particles by Buneman-Boris method
 
-      vx(i) = vx(i) + ctom * (exx + b * bzz - c * byy) * dt
-      vy(i) = vy(i) + ctom * (eyy + c * bxx - a * bzz) * dt
-      vz(i) = vz(i) + ctom * (ezz + a * byy - b * bxx) * dt
+      vxn = vx(i) + 1.0/2 * ctom * exx * dt 
+      vyn = vy(i) + 1.0/2 * ctom * eyy * dt
+      vzn = vz(i) + 1.0/2 * ctom * ezz * dt
+
+      vxzero = vxn + 1.0/2 * ctom * (vyn * bzz - vzn * byy) * dt
+      vyzero = vyn + 1.0/2 * ctom * (vzn * bxx - vxn * bzz) * dt 
+      vzzero = vzn + 1.0/2 * ctom * (vxn * byy - vyn * bxx) * dt
+
+      vxp = vxn + 2.0/(1.0 + 0.25 * (ctom * dt) ** 2.0 * (bxx ** 2.0 + byy ** 2.0 + bzz ** 2.0)) * &
+            1.0/2 * ctom * (vyzero * bzz - vzzero * byy) * dt
+      vyp = vyn + 2.0/(1.0 + 0.25 * (ctom * dt) ** 2.0 * (bxx ** 2.0 + byy ** 2.0 + bzz ** 2.0)) * &
+            1.0/2 * ctom * (vzzero * bxx - vxzero * bzz) * dt 
+      vzp = vzn + 2.0/(1.0 + 0.25 * (ctom * dt) ** 2.0 * (bxx ** 2.0 + byy ** 2.0 + bzz ** 2.0)) * &
+            1.0/2 * ctom * (vxzero * byy - vyzero * bxx) * dt
+
+      vx(i) = vxp + 1.0/2 * ctom * exx * dt
+      vy(i) = vyp + 1.0/2 * ctom * eyy * dt
+      vz(i) = vzp + 1.0/2 * ctom * ezz * dt 
+
+
+      !vx(i) = vx(i) + ctom * (exx + b * bzz - c * byy) * dt
+      !vy(i) = vy(i) + ctom * (eyy + c * bxx - a * bzz) * dt
+      !vz(i) = vz(i) + ctom * (ezz + a * byy - b * bxx) * dt
       x(i)  = x(i)  + vx(i) * dt
       y(i)  = y(i)  + vy(i) * dt
       z(i)  = z(i)  + vz(i) * dt
@@ -376,8 +392,8 @@ ctomi)
          !if( k .eq. 0  ) km = nz - 1
          !if( k .eq. nz ) kp = 1
 
-         ex(i,j,k) = 1.0/(nz+1)*0.5d0 * ( phi(im,j ) - phi(ip,j ) )
-         ey(i,j,k) = 1.0/(nz+1)*0.5d0 * ( phi(i ,jm) - phi(i ,jp) )
+         ex(i,j,k) = 0.5d0 * ( phi(im,j ) - phi(ip,j ) )
+         ey(i,j,k) = 0.5d0 * ( phi(i ,jm) - phi(i ,jp) )
          ezg(i,j,k) = ez
          !ex(i,j,k) = 0
          !ey(i,j,k) = 0
