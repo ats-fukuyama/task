@@ -46,7 +46,8 @@ CONTAINS
   SUBROUTINE wi_nlin(NID,IST,IERR)
 
     USE wicomm, ONLY: modelg,xmin,xmax,dx0,xwint,pn0,alfa,any,beta,cfyn, &
-                      ntaumax,taumin,taumax,modelp,pnu,dxmin,xwmin, &
+                      ntaumax,taumin,taumax,nalfamax,alfamin,alfamax, &
+                      modelp,pnu,dxmin,xwmin, &
                       modewi,kfscan,idebug,rkind
 
     IMPLICIT NONE
@@ -55,7 +56,8 @@ CONTAINS
     REAL(rkind),SAVE:: pn0_save
 
     NAMELIST /WI/ modelg,xmin,xmax,dx0,xwint,pn0,alfa,any,beta,cfyn, &
-                  ntaumax,taumin,taumax,modelp,pnu,dxmin,xwmin, &
+                  ntaumax,taumin,taumax,nalfamax,alfamin,alfamax, &
+                  modelp,pnu,dxmin,xwmin, &
                   modewi,kfscan,idebug
 
     IF(modewi.EQ.1) THEN
@@ -95,7 +97,8 @@ CONTAINS
 
     IMPLICIT NONE
     WRITE(6,'(A)') '# &WI : modelg,xmin,xmax,dx0,xwint,pn0,alfa,any,beta,cfyn,'
-    WRITE(6,'(A)') '        ntaumax,taumin,taumax,modelp,pnu,dxmin,xwmin,'
+    WRITE(6,'(A)') '        ntaumax,taumin,taumax,nalfamax,alfamin,alfamax,'
+    WRITE(6,'(A)') '        modelp,pnu,dxmin,xwmin,'
     WRITE(6,'(A)') '        modewi,kfscan,idebug'
     RETURN
 
@@ -139,8 +142,8 @@ CONTAINS
     implicit none
 
     WRITE(6,602) 'modelg  ',modelg, 'modelp  ',modelp, &
-                 'ntaumax ',ntaumax,'modewi  ',modewi
-    WRITE(6,602) 'idebug  ',idebug
+                 'ntaumax ',ntaumax,'nalfamax',nalfamax
+    WRITE(6,602) 'modewi  ',modewi, 'idebug  ',idebug
     IF(modewi.eq.0) THEN
        WRITE(6,601) 'xmin  ',xmin  ,'xmax  ',xmax  , &
                     'dx0   ',dx0   ,'alfa  ',alfa
