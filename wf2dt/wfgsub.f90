@@ -335,59 +335,59 @@ SUBROUTINE WFGPPC(NW,NWMAX,KWD)
      !  ****** DRAW CYCROTRON REASONANCE SURFACE (yellow, dot-dashed) ******
      
      CALL SETRGB(1.0,0.5,0.0)
-     CALL CONTP2(GTCR,GAX,GAY,NGXMAX,NGXMAX,NGYMAX,0.0,0.1,1,2,4,KA)
+     CALL CONTP2(GTCR,GAX,GAY,NGXMAX,NGXMAX,NGYMAX,0.0,0.1,1,0,4,KA)
      
      !   ****** DRAW PLASMA CUT OFF SURFACE (black, two-dot-dashed) ******
      
      CALL SETRGB(0.0,0.0,0.0)
-     CALL CONTP2(GTCO,GAX,GAY,NGXMAX,NGXMAX,NGYMAX,0.0,1.0,1,2,6,KA)
+     CALL CONTP2(GTCO,GAX,GAY,NGXMAX,NGXMAX,NGYMAX,0.0,1.0,1,0,6,KA)
      
      !     ****** DRAW RIGHT CUT OFF SURFACE (blue, two-dot-dashed) ******
 
      CALL SETRGB(0.0,0.0,1.0)
-     CALL CONTP2(GTRC,GAX,GAY,NGXMAX,NGXMAX,NGYMAX,0.0,0.1,1,2,6,KA)
+     CALL CONTP2(GTRC,GAX,GAY,NGXMAX,NGXMAX,NGYMAX,0.0,0.1,1,0,6,KA)
      
      !     ****** DRAW LEFT CUT OFF SURFACE (green, two-dots-dashed) ******
      
      CALL SETRGB(0.0,1.0,0.0)
-     CALL CONTP2(GTLC,GAX,GAY,NGXMAX,NGXMAX,NGYMAX,0.0,0.1,1,2,6,KA)
+     CALL CONTP2(GTLC,GAX,GAY,NGXMAX,NGXMAX,NGYMAX,0.0,0.1,1,0,6,KA)
      
      !     ****** DRAW HYBRID RESONANCE SURFACE (purple, long-dashed) ******
      
      CALL SETRGB(1.0,0.0,1.0)
-     CALL CONTP2(GTHR,GAX,GAY,NGXMAX,NGXMAX,NGYMAX,0.0,0.1,1,2,3,KA)
+     CALL CONTP2(GTHR,GAX,GAY,NGXMAX,NGXMAX,NGYMAX,0.0,0.1,1,0,3,KA)
      
   end if
 
   ! --- smoozing Z ---
-!  do NGY=1,NGYMAX
-!     do NGX=1,NGXMAX
-!        GZ_temp(NGX,NGY)=GZ(NGX,NGY)
-!     end do
-!  end do
-!
-!  do NGY=1,NGYMAX
-!     do NGX=1,NGXMAX
-!        GZ(NGX,NGY)=0.0
-!        if(NGX.ne.1.and.NGY.ne.1) &
-!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX-1,NGY-1)*0.0625
-!        if(NGY.ne.1) &
-!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX  ,NGY-1)*0.125
-!        if(NGX.ne.NGXMAX.and.NGY.ne.1) &
-!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX+1,NGY-1)*0.0625
-!        if(NGX.ne.1) &
-!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX-1,NGY  )*0.125
-!        GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX  ,NGY  )*0.25
-!        if(NGX.ne.NGXMAX) &
-!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX+1,NGY  )*0.125
-!        if(NGX.ne.1.and.NGY.ne.NGYMAX) &
-!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX-1,NGY+1)*0.0625
-!        if(NGY.ne.NGYMAX) &
-!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX  ,NGY+1)*0.125
-!        if(NGX.ne.NGXMAX.and.NGY.ne.NGYMAX) &
-!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX+1,NGY+1)*0.0625
-!     end do
-!  end do
+  do NGY=1,NGYMAX
+     do NGX=1,NGXMAX
+        GZ_temp(NGX,NGY)=GZ(NGX,NGY)
+     end do
+  end do
+
+  do NGY=1,NGYMAX
+     do NGX=1,NGXMAX
+        GZ(NGX,NGY)=0.0
+        if(NGX.ne.1.and.NGY.ne.1) &
+             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX-1,NGY-1)*0.0625
+        if(NGY.ne.1) &
+             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX  ,NGY-1)*0.125
+        if(NGX.ne.NGXMAX.and.NGY.ne.1) &
+             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX+1,NGY-1)*0.0625
+        if(NGX.ne.1) &
+             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX-1,NGY  )*0.125
+        GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX  ,NGY  )*0.25
+        if(NGX.ne.NGXMAX) &
+             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX+1,NGY  )*0.125
+        if(NGX.ne.1.and.NGY.ne.NGYMAX) &
+             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX-1,NGY+1)*0.0625
+        if(NGY.ne.NGYMAX) &
+             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX  ,NGY+1)*0.125
+        if(NGX.ne.NGXMAX.and.NGY.ne.NGYMAX) &
+             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX+1,NGY+1)*0.0625
+     end do
+  end do
 
   ! --- scaling Z & PLOT---
 
