@@ -1,5 +1,3 @@
-!     $Id$
-
 MODULE wicomm
 
   USE bpsd_kinds

@@ -98,7 +98,6 @@ CONTAINS
     alfa_save=alfa
     dalfa=(log(alfamax)-log(alfamin))/(nalfamax-1)
     
-    
     IF(TRIM(kfscan)//'X'.NE.'X') CALL FWOPEN(nfl,kfscan,1,1,'SCAN',ierr)
 
     DO nalfa=1,nalfamax
