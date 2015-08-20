@@ -1596,10 +1596,14 @@
         ELSE
            IF(dest.ge.nsize) THEN
               dest_=MPI_PROC_NULL
+           ELSEIF(dest.lt.0) THEN
+              dest_=MPI_PROC_NULL
            ELSE
               dest_=dest
            END IF
            IF(source.lt.0) THEN
+              source_=MPI_PROC_NULL
+           ELSEIF(source.ge.nsize) THEN
               source_=MPI_PROC_NULL
            ELSE
               source_=source
@@ -1632,10 +1636,15 @@
         ELSE
            IF(dest.ge.nsize) THEN
               dest_=MPI_PROC_NULL
+           ELSEIF(dest.lt.0) THEN
+              dest_=MPI_PROC_NULL
            ELSE
               dest_=dest
            END IF
+
            IF(source.lt.0) THEN
+              source_=MPI_PROC_NULL
+           ELSEIF(source.ge.nsize) THEN
               source_=MPI_PROC_NULL
            ELSE
               source_=source

@@ -1,4 +1,4 @@
-!     $Id$
+!     $Id: fpprep.f90,v 1.41 2013/02/08 07:36:24 nuga Exp $
 
 ! *****************************
 !     PREPARATION OF FPLOOP
@@ -47,15 +47,18 @@
             ENDIF
          ENDIF
          CALL fp_eq_broadcast
-         write(LINE,'(A,I5)') 'nrmax=',51
-         call eq_parm(2,line,ierr)
-         write(LINE,'(A,I5)') 'nthmax=',64
-         call eq_parm(2,line,ierr)
-         write(LINE,'(A,I5)') 'nsumax=',64
-         call eq_parm(2,line,ierr)
+!         write(LINE,'(A,I5)') 'nrmax=',51
+!         call eq_parm(2,line,ierr)
+!         write(LINE,'(A,I5)') 'nthmax=',64
+!         call eq_parm(2,line,ierr)
+!         write(LINE,'(A,I5)') 'nsumax=',64
+!         call eq_parm(2,line,ierr)
          CALL eqcalq(IERR)
          CALL eqgetb(BB,RR,RIP,RA,RKAP,RDLT,RB)
       ENDIF
+!      WRITE(6,*) 'RKAP=',RKAP,' set to 1.0'
+      RKAP=1.D0
+
 !     ----- set radial mesh -----
 
       IF(NRMAX.EQ.1) THEN
@@ -81,7 +84,7 @@
       ID=0
       DO NSA=1,NSAMAX
          NS=NS_NSA(NSA)
-         IF(MODELWR(NS).NE.0) ID=1
+         IF(MODELW(NS).EQ.1.OR.MODELW(NS).EQ.2) ID=1
       ENDDO
       IF(ID.EQ.1) THEN
          CALL fp_wr_read(IERR)
@@ -93,12 +96,13 @@
       ID=0
       DO NSA=1,NSAMAX
          NS=NS_NSA(NSA)
-         IF(MODELWM(NS).EQ.2) ID=1
+         IF(MODELW(NS).EQ.4) ID=1
       ENDDO
       IF(ID.EQ.1) THEN
          CALL fp_wm_read(IERR)
          IF(IERR.NE.0) RETURN
       ENDIF
+
 
 !     ----- set approximate poloidal magneticl field -----
 
@@ -186,7 +190,7 @@
       ENDDO
 
       IF(NRANK.eq.0) THEN
-         WRITE(6,'(A,1P3E12.4)') "DEVICE: RR, RA, BB", RR, RA, BB
+         WRITE(6,'(A,3E14.6)') "DEVICE, RR, RA, BB", RR, RA, BB
       END IF
 !     ----- set bounce-average parameters -----
 
@@ -216,6 +220,8 @@
             EPSRM2(NR) = EPSRM(NR)
             EPSRM(NR)=EPSL
          ENDDO
+
+         IF(NRANK.eq.1) WRITE(6,*) " "
 
          DO NR=1,NRMAX+1
             A1=ACOS(SQRT(2.D0*EPSRG(NR)/(1.D0+EPSRG(NR))))
@@ -265,7 +271,7 @@
          END DO
          CALL SET_BOUNCE_PARAM(NRMAX+1)
          DO NR=1,NRMAX+1
-          CALL SET_RFSAD(NR)
+            CALL SET_RFSAD(NR)
          END DO
       END IF ! MODELA
 
@@ -527,7 +533,6 @@
       CALL mtx_gather1_integer(nsastart,insa1)
       CALL mtx_gather1_integer(nsaend,  insa2)
 
-
 !      IF(nrank.EQ.0) THEN
 !         write(6,'(A,2I10)') '  imtxsize,imtxwidth=',imtxsize,imtxwidth
 !         write(6,'(A,A,A)') '     nrank   imtxstart   imtxend   npstart    npend', &
@@ -547,8 +552,8 @@
 !      WRITE(6,'(7I6)') NRANK, NSASTART, NSAEND, NRSTART, NREND, NPSTART, NPEND
 
       CALL mtx_cleanup
+      CALL mtx_reset_communicator
 
-!      WRITE(6,'(A,7I6)') "config MPI ", NRANK, NMSTART, NMEND, NPSTART, NPEND, NRSTART, NREND
 
       END SUBROUTINE fp_comm_setup
 !-------------------------------------------------------------
@@ -963,10 +968,9 @@
       IF(NRANK.eq.0.and.NSBMAX.ge.2)THEN
          SUM=0.D0
          DO NSB=2,NSBMAX
-            SUM = SUM + &
-                 LNLAM(1,NSB,1)*RNFD(1,NSB)*AEFD(NSB)**2
+            SUM = SUM + RNFD0(NSB)*AEFD(NSB)**2
          END DO
-         ZEFF = SUM/( LNLAM(1,1,1)*RNFD(1,1)*AEFD(1)**2 )
+         ZEFF = SUM/(RNFD0(1)*AEFD(1)**2)
          WRITE(6,'(A,1PE12.4)') " ZEFF = ", ZEFF
       END IF
 
@@ -1301,7 +1305,6 @@
       CALL fp_comm_setup
 
 !     ----- Allocate variables -----
-
       CALL fp_allocate
       call fp_allocate_ntg1
       call fp_allocate_ntg2
@@ -1326,9 +1329,12 @@
       CALL fp_set_nsa_nsb
 
 !     ----- create meches -----
+!      WRITE(6,*) "START MESH"
       CALL fp_mesh(ierr)
+!      WRITE(6,*) "END MESH"
 !     ----- Initialize velocity distribution function of all species -----
       CALL FNSP_INIT
+!      WRITE(6,*) "END INIT"
 !     ----- Initialize diffusion coef. -----
       call FPCINI
 !     ----- normalize bounce average parameter ---------
@@ -1390,7 +1396,7 @@
          CALL FPWEIGHT(NSA,IERR)
       END DO
       IF(NRANK.eq.0.and.MODEL_disrupt.ne.0)THEN
-!         CALL display_disrupt_initials
+         CALL display_disrupt_initials
       END IF
 
 !      DO NP=1,NPMAX+1
