@@ -373,34 +373,34 @@ SUBROUTINE WFGPPC(NW,NWMAX,KWD)
   end if
 
   ! --- smoozing Z ---
-!  do NGY=1,NGYMAX
-!     do NGX=1,NGXMAX
-!        GZ_temp(NGX,NGY)=GZ(NGX,NGY)
-!     end do
-!  end do
-!
-!  do NGY=1,NGYMAX
-!     do NGX=1,NGXMAX
-!        GZ(NGX,NGY)=0.0
-!        if(NGX.ne.1.and.NGY.ne.1) &
-!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX-1,NGY-1)*0.0625
-!        if(NGY.ne.1) &
-!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX  ,NGY-1)*0.125
-!        if(NGX.ne.NGXMAX.and.NGY.ne.1) &
-!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX+1,NGY-1)*0.0625
-!        if(NGX.ne.1) &
-!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX-1,NGY  )*0.125
-!        GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX  ,NGY  )*0.25
-!        if(NGX.ne.NGXMAX) &
-!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX+1,NGY  )*0.125
-!        if(NGX.ne.1.and.NGY.ne.NGYMAX) &
-!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX-1,NGY+1)*0.0625
-!        if(NGY.ne.NGYMAX) &
-!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX  ,NGY+1)*0.125
-!        if(NGX.ne.NGXMAX.and.NGY.ne.NGYMAX) &
-!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX+1,NGY+1)*0.0625
-!     end do
-!  end do
+  do NGY=1,NGYMAX
+     do NGX=1,NGXMAX
+        GZ_temp(NGX,NGY)=GZ(NGX,NGY)
+     end do
+  end do
+
+  do NGY=1,NGYMAX
+     do NGX=1,NGXMAX
+        GZ(NGX,NGY)=0.0
+        if(NGX.ne.1.and.NGY.ne.1) &
+             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX-1,NGY-1)*0.0625
+        if(NGY.ne.1) &
+             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX  ,NGY-1)*0.125
+        if(NGX.ne.NGXMAX.and.NGY.ne.1) &
+             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX+1,NGY-1)*0.0625
+        if(NGX.ne.1) &
+             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX-1,NGY  )*0.125
+        GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX  ,NGY  )*0.25
+        if(NGX.ne.NGXMAX) &
+             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX+1,NGY  )*0.125
+        if(NGX.ne.1.and.NGY.ne.NGYMAX) &
+             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX-1,NGY+1)*0.0625
+        if(NGY.ne.NGYMAX) &
+             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX  ,NGY+1)*0.125
+        if(NGX.ne.NGXMAX.and.NGY.ne.NGYMAX) &
+             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX+1,NGY+1)*0.0625
+     end do
+  end do
 
   ! --- scaling Z & PLOT---
 
