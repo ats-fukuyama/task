@@ -283,7 +283,7 @@ ctomi)
          if( x(i) .lt. x1 ) then
             do while(x(i) .lt. x1)
                x(i) = x(i) + alx
-            end do
+           end do
          elseif( x(i) .gt. x2 ) then
             do while(x(i) .gt. x2)
                x(i) = x(i) - alx
@@ -320,7 +320,7 @@ ctomi)
       implicit none
       real(8), dimension(np)        :: x, y
       real(8), dimension(0:nx,0:ny) :: rho
-      real(8) :: chrg, dx, dy, dx1, dy1, cfact
+      real(8) :: chrg, dx, dy, dx1, dy1, cfact, sx1, sy1, sx2, sy2, sx2p, sy2p, sx2m, sy2m
       integer :: np, nx, ny, i, ip, jp, kp, ix, iy
 
 !*poption parallel, psum(rho)
@@ -338,10 +338,34 @@ ctomi)
          dy1 = 1.0d0 - dy
          !dz1 = 1.0d0 - dz
 
-         rho(ip  ,jp  ) = rho(ip  ,jp  ) + dx1 * dy1 * chrg
-         rho(ip+1,jp  ) = rho(ip+1,jp  ) + dx  * dy1 * chrg
-         rho(ip  ,jp+1) = rho(ip  ,jp+1) + dx1 * dy  * chrg
-         rho(ip+1,jp+1) = rho(ip+1,jp+1) + dx  * dy  * chrg
+         sx2 = 3/4 - dx ** 2
+         sy2 = 3/4 - dy ** 2
+         sx2p = 1/2 * (1/2 + dx) ** 2
+         sy2p = 1/2 * (1/2 + dy) ** 2
+         sx2m = 1/2 * (1/2 - dx) ** 2
+         sy2m = 1/2 * (1/2 - dy) ** 2
+        if( ip .ne. 0  .and. jp .ne. 0) then
+         rho(ip-1,jp-1) = rho(ip-1,jp-1) + sx2m * sy2m * chrg
+         rho(ip-1,jp  ) = rho(ip-1,jp  ) + sx2m * sy2 * chrg
+         rho(ip  ,jp-1) = rho(ip  ,jp-1) + sx2 * sy2m * chrg
+        else if ( ip .eq. 0 .and. jp .ne. 0) then
+         rho(nx  ,jp-1) = rho(nx  ,jp-1) + sx2m * sy2m * chrg
+         rho(nx  ,jp  ) = rho(nx  ,jp  ) + sx2m * sy2 * chrg
+         rho(0   ,jp-1) = rho(0   ,jp-1) + sx2 * sy2m * chrg
+        else if ( ip .ne. 0 .and. jp .eq. 0) then
+         rho(ip-1,ny  ) = rho(ip-1,ny  ) + sx2m * sy2m * chrg
+         rho(ip-1,0   ) = rho(ip-1,0   ) + sx2m * sy2 * chrg
+         rho(ip  ,ny  ) = rho(ip  ,ny  ) + sx2 * sy2m * chrg
+        else
+         rho(nx  ,ny  ) = rho(nx  ,ny  ) + sx2m * sy2m * chrg
+         rho(nx  ,0   ) = rho(nx  ,0   ) + sx2m * sy2 * chrg
+         rho(0   ,ny  ) = rho(0   ,ny  ) + sx2 * sy2m * chrg
+        endif
+         
+         rho(ip  ,jp  ) = rho(ip  ,jp  ) + sx2 * sy2 * chrg
+         rho(ip+1,jp  ) = rho(ip+1,jp  ) + sx2p * sy2 * chrg
+         rho(ip  ,jp+1) = rho(ip  ,jp+1) + sx2 * sy2p * chrg
+         rho(ip+1,jp+1) = rho(ip+1,jp+1) + sx2p * sy2p  * chrg
          !rho(ip+1,jp+1,kp+1) = rho(ip+1,jp+1,kp+1) + dx  * dy  * dz  * chrg
 
       end do
@@ -372,7 +396,6 @@ ctomi)
       real(8), dimension(0:nx,0:ny,0:nz) :: ex, ey, ezg
       integer :: nx, ny, nz, i, j, im, ip, jm, jp, k, km, kp
       real(rkind)::ez
-      ez = 0
 
       do j = 0, ny
       do i = 0, nx
@@ -407,26 +430,26 @@ ctomi)
 !***********************************************************************
       implicit none
       real(rkind), dimension(0:nx,0:ny,0:nz) :: bxg, byg, bzg
-      integer :: nx, ny, nz, i, j, k, im, ip, jm, jp, km, kp
+      integer :: nx, ny, nz, i, j, k!, im, ip, jm, jp, km, kp
       real(rkind)::bx, by, bz
 
       do j = 0, ny
       do i = 0, nx
       do k = 0, nz
 
-         im = i - 1
-         ip = i + 1
-         jm = j - 1
-         jp = j + 1
-         km = k - 1
-         kp = k + 1
+         !im = i - 1
+         !ip = i + 1
+         !jm = j - 1
+         !jp = j + 1
+         !km = k - 1
+         !kp = k + 1
 
-         if( i .eq. 0  ) im = nx - 1
-         if( i .eq. nx ) ip = 1
-         if( j .eq. 0  ) jm = ny - 1
-         if( j .eq. ny ) jp = 1
-         if( k .eq. 0  ) km = nz - 1
-         if( k .eq. nz ) kp = 1
+         !if( i .eq. 0  ) im = nx - 1
+         !if( i .eq. nx ) ip = 1
+         !if( j .eq. 0  ) jm = ny - 1
+         !if( j .eq. ny ) jp = 1
+         !if( k .eq. 0  ) km = nz - 1
+         !if( k .eq. nz ) kp = 1
          
 
          bxg(i,j,k) = bx
@@ -599,4 +622,13 @@ ctomi)
 !.....................................................
  
     end subroutine sumdim1
+
+!original***********************************************************************
+!    subroutine shape(nx,ny,phi,rho)
+!original***********************************************************************
+!    implicit none
+!
+!
+!
+!    end subroutine shape
 END Module picexec
