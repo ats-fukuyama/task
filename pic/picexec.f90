@@ -240,20 +240,20 @@ ctomi)
 
     ! push particles by Buneman-Boris method
 
-      vxn = vx(i) + 1.0/2 * ctom * exx * dt 
-      vyn = vy(i) + 1.0/2 * ctom * eyy * dt
-      vzn = vz(i) + 1.0/2 * ctom * ezz * dt
+      vxn = vx(i) + 1.0d0/2 * ctom * exx * dt 
+      vyn = vy(i) + 1.0d0/2 * ctom * eyy * dt
+      vzn = vz(i) + 1.0d0/2 * ctom * ezz * dt
 
-      vxzero = vxn + 1.0/2 * ctom * (vyn * bzz - vzn * byy) * dt
-      vyzero = vyn + 1.0/2 * ctom * (vzn * bxx - vxn * bzz) * dt 
-      vzzero = vzn + 1.0/2 * ctom * (vxn * byy - vyn * bxx) * dt
+      vxzero = vxn + 1.0d0/2 * ctom * (vyn * bzz - vzn * byy) * dt
+      vyzero = vyn + 1.0d0/2 * ctom * (vzn * bxx - vxn * bzz) * dt 
+      vzzero = vzn + 1.0d0/2 * ctom * (vxn * byy - vyn * bxx) * dt
 
-      vxp = vxn + 2.0/(1.0 + 0.25 * (ctom * dt) ** 2.0 * (bxx ** 2.0 + byy ** 2.0 + bzz ** 2.0)) * &
-            1.0/2 * ctom * (vyzero * bzz - vzzero * byy) * dt
-      vyp = vyn + 2.0/(1.0 + 0.25 * (ctom * dt) ** 2.0 * (bxx ** 2.0 + byy ** 2.0 + bzz ** 2.0)) * &
-            1.0/2 * ctom * (vzzero * bxx - vxzero * bzz) * dt 
-      vzp = vzn + 2.0/(1.0 + 0.25 * (ctom * dt) ** 2.0 * (bxx ** 2.0 + byy ** 2.0 + bzz ** 2.0)) * &
-            1.0/2 * ctom * (vxzero * byy - vyzero * bxx) * dt
+      vxp = vxn + 2.0d0/(1.0d0 + 0.25d0 * (ctom * dt) ** 2.0d0 * (bxx ** 2.0d0 + byy ** 2.0d0 + bzz ** 2.0d0)) * &
+            1.0d0/2 * ctom * (vyzero * bzz - vzzero * byy) * dt
+      vyp = vyn + 2.0d0/(1.0d0 + 0.25d0 * (ctom * dt) ** 2.0d0 * (bxx ** 2.0d0 + byy ** 2.0d0 + bzz ** 2.0d0)) * &
+            1.0d0/2 * ctom * (vzzero * bxx - vxzero * bzz) * dt 
+      vzp = vzn + 2.0d0/(1.0d0 + 0.25d0 * (ctom * dt) ** 2.0d0 * (bxx ** 2.0d0 + byy ** 2.0d0 + bzz ** 2.0d0)) * &
+            1.0d0/2 * ctom * (vxzero * byy - vyzero * bxx) * dt
 
       vx(i) = vxp + 1.0/2 * ctom * exx * dt
       vy(i) = vyp + 1.0/2 * ctom * eyy * dt
@@ -338,28 +338,37 @@ ctomi)
          dy1 = 1.0d0 - dy
          !dz1 = 1.0d0 - dz
 
-         sx2 = 3/4 - dx ** 2
-         sy2 = 3/4 - dy ** 2
-         sx2p = 1/2 * (1/2 + dx) ** 2
-         sy2p = 1/2 * (1/2 + dy) ** 2
-         sx2m = 1/2 * (1/2 - dx) ** 2
-         sy2m = 1/2 * (1/2 - dy) ** 2
+         sx2 = 3.0d0/4 - dx ** 2.0d0
+         sy2 = 3.0d0/4 - dy ** 2.0d0
+         sx2p = 1.0d0/2 * (1.0d0/2 + dx) ** 2.0d0
+         sy2p = 1.0d0/2 * (1.0d0/2 + dy) ** 2.0d0
+         sx2m = 1.0d0/2 * (1.0d0/2 - dx) ** 2.0d0
+         sy2m = 1.0d0/2 * (1.0d0/2 - dy) ** 2.0d0
+
         if( ip .ne. 0  .and. jp .ne. 0) then
          rho(ip-1,jp-1) = rho(ip-1,jp-1) + sx2m * sy2m * chrg
          rho(ip-1,jp  ) = rho(ip-1,jp  ) + sx2m * sy2 * chrg
+         rho(ip-1,jp+1) = rho(ip-1,jp+1) + sx2m * sy2p * chrg
          rho(ip  ,jp-1) = rho(ip  ,jp-1) + sx2 * sy2m * chrg
+         rho(ip+1,jp-1) = rho(ip+1,jp-1) + sx2p * sy2m * chrg
         else if ( ip .eq. 0 .and. jp .ne. 0) then
          rho(nx  ,jp-1) = rho(nx  ,jp-1) + sx2m * sy2m * chrg
          rho(nx  ,jp  ) = rho(nx  ,jp  ) + sx2m * sy2 * chrg
+         rho(nx  ,jp+1) = rho(nx  ,jp+1) + sx2m * sy2p * chrg
          rho(0   ,jp-1) = rho(0   ,jp-1) + sx2 * sy2m * chrg
+         rho(1   ,jp-1) = rho(1   ,jp-1) + sx2p * sy2m * chrg
         else if ( ip .ne. 0 .and. jp .eq. 0) then
          rho(ip-1,ny  ) = rho(ip-1,ny  ) + sx2m * sy2m * chrg
          rho(ip-1,0   ) = rho(ip-1,0   ) + sx2m * sy2 * chrg
+         rho(ip-1,1   ) = rho(ip-1,1   ) + sx2m * sy2p * chrg
          rho(ip  ,ny  ) = rho(ip  ,ny  ) + sx2 * sy2m * chrg
+         rho(ip+1,ny  ) = rho(ip+1,ny  ) + sx2p * sy2m * chrg
         else
          rho(nx  ,ny  ) = rho(nx  ,ny  ) + sx2m * sy2m * chrg
          rho(nx  ,0   ) = rho(nx  ,0   ) + sx2m * sy2 * chrg
+         rho(nx  ,1   ) = rho(nx  ,1   ) + sx2m * sy2p * chrg
          rho(0   ,ny  ) = rho(0   ,ny  ) + sx2 * sy2m * chrg
+         rho(1   ,ny  ) = rho(1   ,ny  ) + sx2p * sy2m * chrg
         endif
          
          rho(ip  ,jp  ) = rho(ip  ,jp  ) + sx2 * sy2 * chrg
@@ -389,13 +398,192 @@ ctomi)
     end subroutine source
 
 !***********************************************************************
+   subroutine phia(nx,ny,mu,epsi,dt,phi,phib,jx,jy,jz,Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
+!***********************************************************************
+   !original subroutine
+      implicit none
+      real(8), dimension(0:nx,0:ny) :: phi, phib, jx, jy, jz, Ax, Ay, Az,&
+      Axb, Ayb, Azb, Axbb, Aybb, Azbb
+      integer :: nx, ny, i, j, k
+      real(rkind) :: mu, epsi, dt
+
+      do i = 1, nx-1
+      do j = 1, ny-1
+
+      ! Solution of maxwell equation in the A-phi formulation by difference method
+      
+      Ax(i,j) = dt ** 2.0d0 / (mu * epsi) * (Axb(i+1,j) - 2.0d0 * Axb(i,j) + & 
+      Axb(i-1,j) + Axb(i,j+1) - 2.0d0 * Axb(i,j) + Axb(i,j-1)) + dt ** 2.0d0 / &
+      epsi * jx(i,j) - dt * (phi(i+1,j) - phib(i+1,j) - phi(i,j) + phib(i,j)) &
+      + 2.0d0 * Axb(i,j) - Axbb(i,j) 
+
+      Ay(i,j) = dt ** 2.0d0 / (mu * epsi) * (Ayb(i+1,j) - 2.0d0 * Ayb(i,j) + &                          
+      Ayb(i-1,j) + Ayb(i,j+1) - 2.0d0 * Ayb(i,j) + Ayb(i,j-1)) + dt ** 2.0d0 / &                          
+      epsi * jx(i,j) - dt * (phi(i,j+1) - phib(i,j+1) - phi(i,j) + phib(i,j)) &
+      + 2.0d0 * Ayb(i,j) - Aybb(i,j) 
+
+      Az(i,j) = dt ** 2.0d0 / (mu * epsi) * (Azb(i+1,j) - 2.0d0 * Azb(i,j) + &
+      Azb(i-1,j) + Azb(i,j+1) - 2.0d0 * Azb(i,j) * Azb(i,j-1)) + dt ** 2.0d0 / &
+      epsi * jz(i,j) + 2.0d0 * Azb(i,j) - Azbb(i,j)
+      
+      end do
+      end do
+
+      do j = 1, ny-1
+      
+      Ax(0,j) = dt ** 2.0d0 / (mu * epsi) * (Axb(1,j) - 2.0d0 * Axb(0,j) + &
+      Axb(nx,j) + Axb(0,j+1) - 2.0d0 * Axb(0,j) + Axb(0,j-1)) + dt ** 2.0d0 / &
+      epsi * jx(0,j) - dt * (phi(1,j) - phib(1,j) - phi(0,j) + phib(0,j)) &
+      + 2.0d0 * Axb(0,j) - Axbb(0,j)
+
+      Ax(nx,j) = Ax(0,j)
+      !dt ** 2.0d0 / (mu * epsi) * (Axb(0,j) - 2.0d0 * Axb(nx,j) + &
+      !Axb(nx,j) + Axb(0,j+1) - 2.0d0 * Axb(nx,j) + Axb(nx,j-1)) + dt ** 2.0d0 / &
+      !epsi * jx(nx,j) - dt * (phi(nx,j) - phib(0,j) - phi(nx,j) + phib(nx,j)) &
+      !+ 2.0d0 * Axb(nx,j) - Axbb(nx,j)
+
+      Ay(0,j) = dt ** 2.0d0 / (mu * epsi) * (Ayb(1,j) - 2.0d0 * Ayb(0,j) + &
+      Ayb(i-1,j) + Ayb(0,j+1) - 2.0d0 * Ayb(0,j) + Ayb(0,j-1)) + dt ** 2.0d0 / &
+      epsi * jx(0,j) - dt * (phi(0,j+1) - phib(0,j+1) - phi(0,j) + phib(0,j)) &
+      + 2.0d0 * Ayb(0,j) - Aybb(0,j)
+
+      Ay(nx,j) = Ay(0,j) 
+      !dt ** 2.0d0 / (mu * epsi) * (Ayb(1,j) - 2.0d0 * Ayb(nx,j) + &
+      !Ayb(nx-1,j) + Ayb(i,j+1) - 2.0d0 * Ayb(nx,j) + Ayb(i,j-1)) + dt ** 2.0d0 / &
+      !epsi * jx(nx,j) - dt * (phi(nx,j+1) - phib(nx,j+1) - phi(nx,j) + phib(nx,j)) &
+      !+ 2.0d0 * Ayb(nx,j) - Aybb(nx,j)
+      
+      Az(0,j) = dt ** 2.0d0 / (mu * epsi) * (Azb(1,j) - 2.0d0 * Azb(0,j) + &
+      Azb(nx,j) + Azb(0,j+1) - 2.0d0 * Azb(0,j) * Azb(0,j-1)) + dt ** 2.0d0 / &
+      epsi * jz(0,j) + 2.0d0 * Azb(0,j) - Azbb(0,j)
+
+      Az(nx,j) = Az(0,j)
+      !dt ** 2.0d0 / (mu * epsi) * (Azb(0,j) - 2.0d0 * Azb(nx,j) + &
+      !Azb(nx-1,j) + Azb(nx,j+1) - 2.0d0 * Azb(nx,j) * Azb(nx,j-1)) + dt ** 2.0d0 / &
+      !epsi * jz(nx,j) + 2.0d0 * Azb(nx,j) - Azbb(nx,j)
+
+      end do
+
+      do i = 1, nx-1
+
+      Ax(i,0) = dt ** 2.0d0 / (mu * epsi) * (Axb(i+1,0) - 2.0d0 * Axb(i,0) + &
+      Axb(i-1,0) + Axb(i,1) - 2.0d0 * Axb(i,0) + Axb(i,ny)) + dt ** 2.0d0 / &
+      epsi * jx(i,0) - dt * (phi(i+1,0) - phib(i+1,0) - phi(i,0) + phib(i,0)) &
+      + 2.0d0 * Axb(i,0) - Axbb(i,0) 
+     
+      Ax(i,ny) = Ax(i,0) 
+      !dt ** 2.0d0 / (mu * epsi) * (Axb(i+1,ny) - 2.0d0 * Axb(i,ny) + &
+      !Axb(i-1,ny) + Axb(i,0) - 2.0d0 * Axb(i,ny) + Axb(i,ny-1)) + dt ** 2.0d0 / &
+      !epsi * jx(i,ny) - dt * (phi(i+1,ny) - phib(i+1,ny) - phi(i,ny) + phib(i,ny)) &
+      !+ 2.0d0 * Axb(i,ny) - Axbb(i,ny)  
+
+      Ay(i,0) = dt ** 2.0d0 / (mu * epsi) * (Ayb(i+1,0) - 2.0d0 * Ayb(i,0) + &
+      Ayb(i-1,0) + Ayb(i,1) - 2.0d0 * Ayb(i,0) + Ayb(i,ny)) + dt ** 2.0d0 / &
+      epsi * jx(i,0) - dt * (phi(i,1) - phib(i,1) - phi(i,0) + phib(i,0)) &
+      + 2.0d0 * Ayb(i,0) - Aybb(i,0)
+
+      Ay(i,ny) = Ay(i,0) 
+      !dt ** 2.0d0 / (mu * epsi) * (Ayb(i+1,ny) - 2.0d0 * Ayb(i,ny) + &
+      !Ayb(i-1,ny) + Ayb(i,0) - 2.0d0 * Ayb(i,ny) + Ayb(i,j-1)) + dt ** 2.0d0 / &
+      !epsi * jx(i,ny) - dt * (phi(i,0) - phib(i,0) - phi(i,ny) + phib(i,ny)) &
+      !+ 2.0d0 * Ayb(i,ny) - Aybb(i,ny)
+
+      Az(i,0) = dt ** 2.0d0 / (mu * epsi) * (Azb(i+1,0) - 2.0d0 * Azb(i,0) + &
+      Azb(i-1,0) + Azb(i,1) - 2.0d0 * Azb(i,0) * Azb(i,ny)) + dt ** 2.0d0 / &
+      epsi * jz(i,0) + 2.0d0 * Azb(i,0) - Azbb(i,0)
+ 
+      Az(i,ny) = Az(i,0)
+      !dt ** 2.0d0 / (mu * epsi) * (Azb(i+1,ny) - 2.0d0 * Azb(i,ny) + &
+      !Azb(i-1,ny) + Azb(i,0) - 2.0d0 * Azb(i,ny) * Azb(i,ny-1)) + dt ** 2.0d0 / &
+      !epsi * jz(i,ny) + 2.0d0 * Azb(i,ny) - Azbb(i,ny)
+
+      end do
+
+      Ax(0,0) = dt ** 2.0d0 / (mu * epsi) * (Axb(1,0) - 2.0d0 * Axb(0,0) + &
+      Axb(nx,0) + Axb(0,1) - 2.0d0 * Axb(0,0) + Axb(0,ny)) + dt ** 2.0d0 / &
+      epsi * jx(0,0) - dt * (phi(1,0) - phib(1,0) - phi(0,0) + phib(0,0)) &
+      + 2.0d0 * Axb(0,0) - Axbb(0,0)
+       
+      Ax(nx,ny) = Ax(0,0) 
+      !dt ** 2.0d0 / (mu * epsi) * (Axb(0,ny) - 2.0d0 * Axb(nx,ny) + &
+      !Axb(nx-1,ny) + Axb(nx,0) - 2.0d0 * Axb(nx,ny) + Axb(nx,ny-1)) + dt ** 2.0d0 / &
+      !epsi * jx(nx,ny) - dt * (phi(0,ny) - phib(0,ny) - phi(nx,ny) + phib(nx,ny)) &
+      !+ 2.0d0 * Axb(nx,ny) - Axbb(nx,ny)
+
+      Ax(0,ny) = Ax(0,0) 
+      !dt ** 2.0d0 / (mu * epsi) * (Axb(1,ny) - 2.0d0 * Axb(0,ny) + &
+      !Axb(nx,ny) + Axb(nx,0) - 2.0d0 * Axb(0,ny) + Axb(nx,ny-1)) + dt ** 2.0d0 / &
+      !epsi * jx(0,ny) - dt * (phi(1,ny) - phib(1,ny) - phi(0,ny) + phib(0,ny)) &
+      !+ 2.0d0 * Axb(0,ny) - Axbb(0,ny)
+
+      Ax(nx,0) = Ax(0,0)
+      !dt ** 2.0d0 / (mu * epsi) * (Axb(0,0) - 2.0d0 * Axb(nx,0) + &
+      !Axb(nx-1,0) + Axb(nx,1) - 2.0d0 * Axb(nx,0) + Axb(nx,ny)) + dt ** 2.0d0 / &
+      !epsi * jx(nx,0) - dt * (phi(0,0) - phib(0,0) - phi(nx,0) + phib(nx,0)) &
+      !+ 2.0d0 * Axb(nx,0) - Axbb(nx,0)
+      
+      Ay(0,0) = dt ** 2.0d0 / (mu * epsi) * (Ayb(1,0) - 2.0d0 * Ayb(0,0) + &
+      Ayb(nx,0) + Ayb(0,1) - 2.0d0 * Ayb(0,0) + Ayb(0,ny)) + dt ** 2.0d0 / &
+      epsi * jx(0,0) - dt * (phi(0,1) - phib(0,1) - phi(0,0) + phib(0,0)) &
+      + 2.0d0 * Ayb(0,0) - Aybb(0,0)
+
+      Ay(nx,ny) = Ay(0,0)
+      !dt ** 2.0d0 / (mu * epsi) * (Ayb(0,ny) - 2.0d0 * Ayb(nx,ny) + &
+      !Ayb(nx-1,ny) + Ayb(nx,0) - 2.0d0 * Ayb(nx,ny) + Ayb(nx,ny-1)) + dt ** 2.0d0 / &
+      !epsi * jx(nx,ny) - dt * (phi(nx,0) - phib(nx,0) - phi(nx,ny) + phib(nx,ny)) &
+      !+ 2.0d0 * Ayb(nx,ny) - Aybb(nx,ny)
+
+      Ay(0,ny) = Ay(0,0)
+      !dt ** 2.0d0 / (mu * epsi) * (Ayb(1,ny) - 2.0d0 * Ayb(0,ny) + &
+      !Ayb(nx,ny) + Ayb(i,j+1) - 2.0d0 * Ayb(i,j) + Ayb(i,j-1)) + dt ** 2.0d0 / &
+      !epsi * jx(0,ny) - dt * (phi(0,0) - phib(0,0) - phi(0,ny) + phib(0,ny)) &
+      !+ 2.0d0 * Ayb(0,ny) - Aybb(0,ny)
+
+      Ay(nx,0) = Ay(0,0)
+      !dt ** 2.0d0 / (mu * epsi) * (Ayb(0,0) - 2.0d0 * Ayb(nx,0) + &
+      !Ayb(nx-1,0) + Ayb(nx,1) - 2.0d0 * Ayb(i,j) + Ayb(i,j-1)) + dt ** 2.0d0 / &
+      !epsi * jx(nx,0) - dt * (phi(nx,1) - phib(nx,1) - phi(nx,0) + phib(nx,0)) &
+      !+ 2.0d0 * Ayb(nx,0) - Aybb(nx,0)
+
+      Az(0,0) = dt ** 2.0d0 / (mu * epsi) * (Azb(1,0) - 2.0d0 * Azb(0,0) + &
+      Azb(nx,0) + Azb(0,1) - 2.0d0 * Azb(0,0) * Azb(0,ny)) + dt ** 2.0d0 / &
+      epsi * jz(0,0) + 2.0d0 * Azb(0,0) - Azbb(0,0)
+
+      Az(nx,ny) = Az(0,0) 
+      !dt ** 2.0d0 / (mu * epsi) * (Azb(0,ny) - 2.0d0 * Azb(nx,ny) + &
+      !Azb(0,ny) + Azb(nx,0) - 2.0d0 * Azb(nx,ny) * Azb(nx,ny-1)) + dt ** 2.0d0 / &
+      !epsi * jz(nx,ny) + 2.0d0 * Azb(nx,ny) - Azbb(nx,ny)
+     
+      Az(0,ny) = Az(0,0) 
+      !dt ** 2.0d0 / (mu * epsi) * (Azb(1,ny) - 2.0d0 * Azb(0,ny) + &
+      !Azb(nx,ny) + Azb(0,0) - 2.0d0 * Azb(0,ny) * Azb(0,ny-1)) + dt ** 2.0d0 / &
+      !epsi * jz(0,ny) + 2.0d0 * Azb(0,ny) - Azbb(0,ny)
+
+      Az(nx,0) = Az(0,0) 
+      !dt ** 2.0d0 / (mu * epsi) * (Azb(0,0) - 2.0d0 * Azb(nx,0) + &
+      !Azb(nx-1,0) + Azb(nx,1) - 2.0d0 * Azb(nx,0) * Azb(nx,ny)) + dt ** 2.0d0 / &
+      !epsi * jz(nx,0) + 2.0d0 * Azb(nx,0) - Azbb(nx,0)
+
+      do i = 0, nx
+      do j = 0, ny
+     
+      Axbb(i,j) = Axb(i,j)
+      Aybb(i,j) = Ayb(i,j)
+      Axb(i,j) = Ax(i,j)
+      Ayb(i,j) = Ay(i,j)
+
+      end do
+      end do
+      end subroutine phia                            
+
+!***********************************************************************
    subroutine efield(nx,ny,nz,phi,ex,ey,ez,ezg)
 !***********************************************************************
       implicit none
       real(8), dimension(0:nx,0:ny) :: phi
       real(8), dimension(0:nx,0:ny,0:nz) :: ex, ey, ezg
       integer :: nx, ny, nz, i, j, im, ip, jm, jp, k, km, kp
-      real(rkind)::ez
+      real(rkind) :: ez
 
       do j = 0, ny
       do i = 0, nx
