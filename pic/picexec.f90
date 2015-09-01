@@ -774,7 +774,6 @@ ctomi)
       integer stat1(mpi_status_size)
       integer stat2(mpi_status_size)
       dimension a(1), b(1)
-!***********************************************************************
       a(1)=a1
       b(1)=b1
       kmod = 1 
@@ -814,31 +813,32 @@ ctomi)
     end subroutine sumdim1
 
 !***********************************************************************
-    subroutine current(np,nx,ny,x,y,xb,yb,jx,jy,dt,chrg)
+    subroutine current(np,nx,ny,nz,x,y,z,xb,yb,zb,jx,jy,dt,chrg)
 !***********************************************************************
     implicit none
 
-    real(8), dimension(np) :: x, y, xb, yb
-    real(8), dimension(0:nx,0:ny) :: jx, jy
-    real(8) :: chrg, dt, dx, dy, dx1, dy1, deltax, deltay, cfact, &
+    real(8), dimension(np) :: x, y, z, xb, yb, zb 
+    real(8), dimension(0:nx,0:ny) :: jx, jy, jz
+    real(8) :: chrg, dt, dx, dy, dz, dx1, dy1, dz1, deltax, deltay, deltaz, cfact, &
     sx1, sy1, sx1p, sy1p, sx1m, sy1m, sx2, sy2, sx2p, sy2p, sx2m, sy2m
-    integer :: np, nx, ny, i, ip, jp, kp, ix, iy
+    integer :: np, nx, ny, nz, i, ip, jp, kp, ix, iy
 
      jx(:,:) = 0.d0 
      jy(:,:) = 0.d0
+     jz(:,:) = 0.d0
      
      do i = 1, np 
                                                                                                       
          ip = x(i)
          jp = y(i)
-         !kp = z(i)
+         kp = z(i)
        
          dx  = x(i) - dble(ip)                                                                        
          dy  = y(i) - dble(jp)
-         !dz  = z(i) - dble(kp)                                                                       
+         dz  = z(i) - dble(kp)                                                                       
          dx1 = 1.0d0 - dx
          dy1 = 1.0d0 - dy                                                                             
-         !dz1 = 1.0d0 - dz
+         dz1 = 1.0d0 - dz
 
          deltax = x(i) - xb(i)
          deltay = y(i) - yb(i)
@@ -855,32 +855,32 @@ ctomi)
          sy2m = 1.0d0/2 * (1.0d0/2 - dy) ** 2.0d0
      if(ip .ne. 0 .and. jp .ne. 0) then
      jx(ip,jp)     = jx(ip,jp) + chrg / dt * deltax * (sy2 + sx1p)
+     jx(ip,jp+1)   = jx(ip+1,jp) + chrg / dt * deltax * (sy2p + sx1p)
+     jx(ip,jp-1)   = jx(ip,jp-1) + chrg / dt * deltax * (sy2 + sx1m)
      jx(ip-1,jp)   = jx(ip-1,jp) + chrg / dt * deltax * (sy2m + sx1p)
-     jx(ip+1,jp)   = jx(ip+1,jp) + chrg / dt * deltax * (sy2p + sx1p)
-     jx(ip,jp-1)   = jx(ip,jp-1) + chrg / dt * deltax * (sy2 + sx1m)
+     jx(ip-1,jp+1) = jx(ip+1,jp-1) + chrg / dt * deltax * (sy2p + sx1m)         
      jx(ip-1,jp-1) = jx(ip-1,jp-1) + chrg / dt * deltax * (sy2m + sx1m)
-     jx(ip+1,jp-1) = jx(ip+1,jp-1) + chrg / dt * deltax * (sy2p + sx1m)         
      else if(ip .eq. 0 .and. jp .ne. 0) then
-     jx(ip,jp)     = jx(ip,jp) + chrg / dt * deltax * (sy2 + sx1p)
-     jx(nx,jp)     = jx(nx,jp) + chrg / dt * deltax * (sy2m + sx1p)
-     jx(ip+1,jp)   = jx(ip+1,jp) + chrg / dt * deltax * (sy2p + sx1p)
-     jx(ip,jp-1)   = jx(ip,jp-1) + chrg / dt * deltax * (sy2 + sx1m)
-     jx(nx,jp-1)   = jx(nx,jp-1) + chrg / dt * deltax * (sy2m + sx1m)
-     jx(ip+1,jp-1) = jx(ip+1,jp-1) + chrg / dt * deltax * (sy2p + sx1m)
+     jx(ip,jp)   = jx(ip,jp) + chrg / dt * deltax * (sy2 + sx1p)
+     jx(ip,jp+1) = jx(ip,jp+1) + chrg / dt * deltax * (sy2p + sx1p)
+     jx(ip,jp-1) = jx(ip,jp-1) + chrg / dt * deltax * (sy2 + sx1p)
+     jx(nx,jp)   = jx(nx,jp) + chrg / dt * deltax * (sy2m + sx1m)
+     jx(nx,jp+1) = jx(nx,jp+1) + chrg / dt * deltax * (sy2p + sx1m)
+     jx(nx,jp-1) = jx(ip+1,jp-1) + chrg / dt * deltax * (sy2m + sx1m)
      else if(ip .ne. 0 .and. jp .eq. 0) then 
-     jx(ip,jp)   = jx(ip,jp) + chrg / dt * deltax * (sy2 + sx1p)
-     jx(ip-1,jp) = jx(ip-1,jp) + chrg / dt * deltax * (sy2m + sx1p)
-     jx(ip+1,jp) = jx(ip+1,jp) + chrg / dt * deltax * (sy2p + sx1p)
-     jx(ip,ny)   = jx(ip,ny) + chrg / dt * deltax * (sy2 + sx1m)
-     jx(ip-1,ny) = jx(ip-1,ny) + chrg / dt * deltax * (sy2m + sx1m)
-     jx(ip+1,ny) = jx(ip+1,ny) + chrg / dt * deltax * (sy2p + sx1m)
+     jx(ip,jp)     = jx(ip,jp) + chrg / dt * deltax * (sy2 + sx1p)
+     jx(ip,jp+1)   = jx(ip,jp+1) + chrg / dt * deltax * (sy2p + sx1p)
+     jx(ip,ny)     = jx(ip,ny) + chrg / dt * deltax * (sy2p + sx1p)
+     jx(ip-1,jp)   = jx(ip-1,jp) + chrg / dt * deltax * (sy2m + sx1m)
+     jx(ip-1,jp+1) = jx(ip-1,jp+1) + chrg / dt * deltax * (sy2p + sx1m)
+     jx(ip-1,ny)   = jx(ip+1,ny) + chrg / dt * deltax * (sy2m + sx1m)
      else 
-     jx(ip,jp)   = jx(ip,jp) + chrg / dt * deltax * (sy2 + sx1p)
-     jx(nx,jp)   = jx(nx,jp) + chrg / dt * deltax * (sy2m + sx1p)
-     jx(ip+1,jp) = jx(ip+1,jp) + chrg / dt * deltax * (sy2p + sx1p)
-     jx(ip,ny)   = jx(ip,ny) + chrg / dt * deltax * (sy2 + sx1m)
-     jx(nx,ny)   = jx(nx,ny) + chrg / dt * deltax * (sy2m + sx1m)
-     jx(ip+1,ny) = jx(ip+1,ny) + chrg / dt * deltax * (sy2p + sx1m)
+     jx(ip,jp)     = jx(ip,jp) + chrg / dt * deltax * (sy2 + sx1p)
+     jx(ip,jp+1)   = jx(ip,jp+1) + chrg / dt * deltax * (sy2m + sx1p)
+     jx(ip,ny)     = jx(ip,ny) + chrg / dt * deltax * (sy2p + sx1p)
+     jx(nx,jp)     = jx(nx,jp) + chrg / dt * deltax * (sy2m + sx1m)
+     jx(nx,jp+1)   = jx(nx,jp+1) + chrg / dt * deltax * (sy2p + sx1m)
+     jx(nx,ny)     = jx(nx,ny) + chrg / dt * deltax * (sy2p + sx1m)
      end if 
       
      if(ip .ne. 0 .and. jp .ne. 0) then
@@ -911,7 +911,38 @@ ctomi)
      jy(ip,ny)   = jy(ip,ny) + chrg / dt * deltay * (sx2 + sy1m)
      jy(nx,ny)   = jy(nx,ny) + chrg / dt * deltay * (sx2m + sy1m)
      jy(ip+1,ny) = jy(ip+1,ny) + chrg / dt * deltay * (sx2p + sy1m)
-     end if 
+     end if
+   
+     jz(ip,jp)     = jz(ip,jp) + chrg / dt * deltaz * (sx2 * sy2)
+     jz(ip+1,jp)   = jz(ip+1,jp) + chrg / dt * deltaz * (sx2p + sy2)
+     jz(ip,jp+1)   = jz(ip,jp+1) + chrg / dt * deltaz * (sx2 * sy2p)
+     jz(ip+1,jp+1)   = jz(ip+1,jp+1) + chrg / dt * deltaz * (sx2p * sy2p)
+     if(ip .ne. 0 .and. jp .ne. 0) then
+     jz(ip-1,jp)   = jz(ip-1,jp) + chrg / dt * deltaz * (sx2m * sy2)
+     jz(ip-1,jp-1) = jz(ip-1,jp-1) + chrg / dt * deltaz * (sx2m * sy2m)
+     jz(ip-1,jp+1) = jz(ip-1,jp+1) + chrg / dt * deltaz * (sx2m * sy2p)
+     jz(ip,jp-1)   = jz(ip,jp-1) + chrg / dt * deltaz * (sx2 * sy2m)
+     jz(ip+1,jp-1) = jz(ip+1,jp-1) + chrg / dt * deltaz * (sx2p * sy2m)
+     else if (ip .eq. 0 .and. jp .ne. 0) then
+     jz(nx,jp)     = jz(ip,jp) + chrg / dt * deltay * (sx2m + sy2)
+     jz(nx,jp-1)     = jz(nx,jp-1) + chrg / dt * deltay * (sx2m + sy2m)
+     jz(nx,jp+1)   = jz(ip+1,jp+1) + chrg / dt * deltay * (sx2m + sy2p)
+     jz(ip,jp-1)   = jz(ip,jp-1) + chrg / dt * deltay * (sx2 + sy2m)
+     jz(ip+1,jp-1) = jz(ip+1,jp-1) + chrg / dt * deltay * (sx2p + sy2m)
+     else if (ip .ne. 0 .and. jp .eq. 0) then
+     jz(ip-1,jp)   = jz(ip-1,jp) + chrg / dt * deltay * (sx2m + sy2)
+     jz(ip-1,ny) = jzy(ip-1,ny) + chrg / dt * deltay * (sx2m + sy2m)
+     jz(ip-1,jp+1) = jz(ip-1,jp) + chrg / dt * deltay * (sx2m + sy2p)
+     jz(ip,ny) = jz(ip,ny) + chrg / dt * deltay * (sx2 + sy2m)
+     jz(ip+1,ny) = jz(ip+1,ny) + chrg / dt * deltay * (sx2p + sy2m)
+     else
+     jz(nx,jp)   = jz(nx,jp) + chrg / dt * deltay * (sx2m + sy2)
+     jz(nx,ny)   = jz(nx,ny) + chrg / dt * deltay * (sx2m + sy2m)
+     jz(nx,jp+1)   = jz(nx,jp+1) + chrg / dt * deltay * (sx2m + sy2p)
+     jz(ip,ny)   = jz(ip,ny) + chrg / dt * deltay * (sx2 + sy2m)
+     jz(ip+1,ny) = jz(ip+1,ny) + chrg / dt * deltay * (sx2p + sy2m)
+
+     end if
    end do
 
     end subroutine current
