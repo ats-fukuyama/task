@@ -2,7 +2,7 @@
 
 Module wigout
   PRIVATE
-  PUBLIC wi_gout,wi_mesh
+  PUBLIC wi_gout,wi_mesh,wi_gra1
  
   interface
      real(4) function GUCLIP(X)
@@ -40,7 +40,7 @@ CONTAINS
 
     SELECT CASE(kch)
     CASE('R') 
-       CALL wigra1
+       CALL wi_gra1
     CASE('X') 
        GO TO 9000
     END SELECT
@@ -53,7 +53,7 @@ CONTAINS
 
 !     *****  GRAPHIC   *****
 
-  SUBROUTINE wigra1
+  SUBROUTINE wi_gra1
 
     USE wicomm
     IMPLICIT NONE
@@ -194,7 +194,7 @@ CONTAINS
     CALL TEXT('< POWER >',9)
     CALL PAGEE
     RETURN
-  END SUBROUTINE wigra1
+  END SUBROUTINE wi_gra1
 
   SUBROUTINE wi_mesh
     USE libgrf,ONLY: GRD1D

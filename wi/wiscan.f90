@@ -84,45 +84,70 @@ CONTAINS
   SUBROUTINE wi_scan_alfa(ierr)
 
     USE wicomm,ONLY: rkind,ikind,nalfamax,alfamin,alfamax,alfa,beta,any, &
-         xmax,pn0,nxmax,nwmax,kfscan
+         xmax,xmin,dx0,pn0,nxmax,nwmax,kfscan,pi
     USE wiexec,ONLY: wi_exec
+    USE wiprep,ONLY: wi_prep
+    USE wigout,ONLY: wi_gra1
     USE libgrf,ONLY: grd1d
     
     IMPLICIT NONE
     INTEGER(ikind),INTENT(OUT):: ierr
     INTEGER(ikind):: nalfa
     INTEGER(ikind),PARAMETER:: nfl=21
-    REAL(rkind):: dalfa,rk0l,ratea,alfa_save
+    REAL(rkind):: dalfa,rk0l,ratea,alfa_save,xmax_save,xmin_save,dx0_save
     REAL(rkind),DIMENSION(nalfamax):: rk0la,rateaa
 
     alfa_save=alfa
     dalfa=(log(alfamax)-log(alfamin))/(nalfamax-1)
+    xmax_save=xmax
+    xmin_save=xmin
+    dx0_save=dx0
     
     IF(TRIM(kfscan)//'X'.NE.'X') CALL FWOPEN(nfl,kfscan,1,1,'SCAN',ierr)
 
+    WRITE(6,'(A)') 'nalfa,alfa,rk0l,ratea,xmin,xmax,dx0='
     DO nalfa=1,nalfamax
        alfa=exp(log(alfamin)+dalfa*(nalfa-1))
        rk0l=1.D0/alfa
+       IF(ALFA.LT.1.D0) THEN
+          dx0=dx0_save
+          xmax=10.D0/(alfa*beta)
+          xmin=-5.0D0/BETA
+       ELSEIF(ALFA*BETA.LT.1.D0) THEN
+          dx0=dx0_save
+          xmax=10.D0/(beta)
+          xmin=-5.0D0/(beta)
+       ELSE
+          dx0=dx0_save/(alfa*beta)
+          xmax=10.D0/(alfa*beta)
+          xmin=-5.D0/(alfa*beta)
+       END IF
        alfa=alfa*beta
+       WRITE(6,'(I5,1P6E12.4)') nalfa,alfa,rk0l,0.D0,xmin,xmax,dx0
+       CALL wi_prep
+       WRITE(6,'(I5,1P6E12.4)') nalfa,alfa,rk0l,0.D0,xmin,xmax,dx0
        IF(any < 1.0) THEN
           CALL wi_exec(0,ratea,ierr)
        ELSE
           ratea=0.D0
        END IF
-       WRITE(6,'(A,I5,1P3E12.4)') 'nalfa,alfa,rk0l,ratea=', &
-                                   nalfa,alfa,rk0l,ratea
+       WRITE(6,'(I5,1P6E12.4)') nalfa,alfa,rk0l,ratea,xmin,xmax,dx0
        IF(TRIM(kfscan)//'X'.NE.'X') &
             WRITE(nfl,'(I5,1P3E12.4)') nalfa,alfa,rk0l,rateaa
        rk0la(nalfa)=LOG10(rk0l)
        rateaa(nalfa)=ratea
+       CALL wi_gra1
     END DO
     alfa=alfa_save
+    xmax=xmax_save
+    xmin=xmin_save
+    dx0=dx0_save
 
     IF(TRIM(kfscan)//'X'.NE.'X') CLOSE(nfl)
 
     CALL PAGES
     CALL GRD1D(0,rk0la,rateaa,nalfamax,nalfamax,1,TITLE='@abs vs k0L@',&
-               MODE_LS=1)
+               MODE_LS=1,YMIN=0.D0)
     CALL PAGEE
 
     RETURN
