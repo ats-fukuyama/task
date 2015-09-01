@@ -931,7 +931,7 @@ ctomi)
      jz(ip+1,jp-1) = jz(ip+1,jp-1) + chrg / dt * deltay * (sx2p + sy2m)
      else if (ip .ne. 0 .and. jp .eq. 0) then
      jz(ip-1,jp)   = jz(ip-1,jp) + chrg / dt * deltay * (sx2m + sy2)
-     jz(ip-1,ny) = jzy(ip-1,ny) + chrg / dt * deltay * (sx2m + sy2m)
+     jz(ip-1,ny) = jz(ip-1,ny) + chrg / dt * deltay * (sx2m + sy2m)
      jz(ip-1,jp+1) = jz(ip-1,jp) + chrg / dt * deltay * (sx2m + sy2p)
      jz(ip,ny) = jz(ip,ny) + chrg / dt * deltay * (sx2 + sy2m)
      jz(ip+1,ny) = jz(ip+1,ny) + chrg / dt * deltay * (sx2p + sy2m)
