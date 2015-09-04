@@ -26,9 +26,9 @@ MODULE wicomm
   INTEGER(ikind):: ntaumax= 51     ! number of TAU scan points
   REAL(rkind)::    taumin = 0.D0   ! minimum of TAU scan
   REAL(rkind)::    taumax = 1.65D0 ! maximum of TAU scan
-  INTEGER(ikind):: nalfamax= 41    ! number of ALFA scan points
-  REAL(rkind)::    alfamin= 0.01D0 ! minimum of ALFA scan (in log step)
-  REAL(rkind)::    alfamax= 100.D0 ! maximum of ALFA scan (in log step)
+  INTEGER(ikind):: nalfamax= 21    ! number of ALFA scan points
+  REAL(rkind)::    alfamin= 1.00D0 ! minimum of ALFA scan (in log step)
+  REAL(rkind)::    alfamax= 30.0D0 ! maximum of ALFA scan (in log step)
   REAL(rkind)::    xwint  = 100.D0 ! range of kernel integral in vte
   REAL(rkind)::    dx0    = 0.5D0  ! default grid size
   REAL(rkind)::    dxmin  = 0.D0   ! minimum grid size at omegape = omega

@@ -112,20 +112,19 @@ CONTAINS
        IF(ALFA.LT.1.D0) THEN
           dx0=dx0_save
           xmax=10.D0/(alfa*beta)
-          xmin=-5.0D0/BETA
+          xmin=-10.0D0/BETA
        ELSEIF(ALFA*BETA.LT.1.D0) THEN
           dx0=dx0_save
           xmax=10.D0/(beta)
           xmin=-5.0D0/(beta)
        ELSE
           dx0=dx0_save/(alfa*beta)
-          xmax=10.D0/(alfa*beta)
-          xmin=-5.D0/(alfa*beta)
+          xmax=10.D0*alfa
+          xmin=-5.D0*alfa
        END IF
        alfa=alfa*beta
        WRITE(6,'(I5,1P6E12.4)') nalfa,alfa,rk0l,0.D0,xmin,xmax,dx0
        CALL wi_prep
-       WRITE(6,'(I5,1P6E12.4)') nalfa,alfa,rk0l,0.D0,xmin,xmax,dx0
        IF(any < 1.0) THEN
           CALL wi_exec(0,ratea,ierr)
        ELSE
