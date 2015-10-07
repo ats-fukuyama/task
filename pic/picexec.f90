@@ -94,12 +94,11 @@ CONTAINS
          call fftpic(nx,ny,nxh1,nx1,ny1,phi,phif,awk,afwk,ifset)
 
          !.......... calculate ex and ey and ez
-         call efield(nx,ny,nz,phi,ex,ey,ez,ezg)
+         !call efield(nx,ny,nz,phi,ex,ey,ez,ezg)
 
          !.......... calculate bxg and byg and bzg
-         call bfield(nx,ny,nz,bx,by,bz,bxg,byg,bzg)
-         
-
+         ! call bfield(nx,ny,nz,bx,by,bz,bxg,byg,bzg)
+        
          !..... diagnostics to check energy conservation 
          !.....            before pushing 
          if( mod(iloop,nhmod) .eq. 0 ) then
@@ -111,11 +110,19 @@ CONTAINS
             call sumdim1(nodes,myid,akini1,wkword)
          endif
 
-         !----- push particles
+         !.......... calculate current of electrons
+         call current(np,nx,ny,nz,xe,ye,ze,xeb,yeb,zeb,jx,jy,jz,dt,chrge)
+         
+         !----- push electrons
          call push(np,nx,ny,nz,xe,ye,ze,vxe,vye,vze,ex,ey,ezg,bxg,byg,bzg,dt,&
-ctome)
+              ctome,xeb,yeb,zeb)
+         
+         !.......... calculate current of ions
+         call current(np,nx,ny,nz,xi,yi,zi,xib,yib,zib,jx,jy,jz,dt,chrgi)
+
+         !..... push ions
          call push(np,nx,ny,nz,xi,yi,zi,vxi,vyi,vzi,ex,ey,ezg,bxg,byg,bzg,dt,&
-ctomi)
+ctomi,xib,yib,zib)
 
          !----- treat particles being out of the boundary
          call bound(np,xe,ye,ze,x1,x2,y1,y2,z1,z2,alx,aly,alz)
@@ -179,19 +186,23 @@ ctomi)
        END SUBROUTINE pic_exec
 
 !***********************************************************************
-      subroutine push(np,nx,ny,nz,x,y,z,vx,vy,vz,ex,ey,ezg,bxg,byg,bzg,dt,ctom)
+       subroutine push(np,nx,ny,nz,x,y,z,vx,vy,vz,ex,ey,ezg,bxg,byg,bzg,dt,&
+            ctom,xb,yb,zb)
 !***********************************************************************
       implicit none
       real(8), dimension(np) :: x, y, z, xb, yb, zb, vx, vy, vz
+      real(8), dimension(0:nx,0:ny) :: Axb, Ayb, Azb, Axbb, Aybb, Azbb
       real(8), dimension(0:nx,0:ny,0:nz) :: ex, ey, ezg, bxg, byg, bzg
       real(8) :: ctom, dx, dy, dz, dx1, dy1, dz1, dt, exx, eyy, ezz, ez, bxx,&
-                 byy, bzz, vxn, vyn, vzn, vxzero, vyzero, vzzero, vxp, vyp, vzp
+                 byy, bzz, vxn, vyn, vzn, vxzero, vyzero, vzzero, vxp, vyp,&
+                 vzp, sx1p, sy1p, sx1m, sy1m, sx2, sy2, sx2p, sx2m, sy2m, sy2p
       integer :: np, nx, ny, nz, i, ip, jp, kp
 
       do i = 1, np
 
 ! calculate the electric field at the particle position
 
+         
       ip = x(i)
       jp = y(i)
       kp = z(i)
@@ -208,17 +219,50 @@ ctomi)
       sy1m = 0.5 + dy
       sx2  = 3.0d0/4 - dx ** 2.0d0
       sy2  = 3.0d0/4 - dy ** 2.0d0
-      sx2p = 1.0d0/2 * (1.0d0/2 + dx) ** 2.0d0
-      sy2p = 1.0d0/2 * (1.0d0/2 + dy) ** 2.0d0
-      sx2m = 1.0d0/2 * (1.0d0/2 - dx) ** 2.0d0
-      sy2m = 1.0d0/2 * (1.0d0/2 - dy) ** 2.0d0
+      sx2p = 1.0d0/2 * (1.0d0/2 + dx) ** 2  
+      sy2p = 1.0d0/2 * (1.0d0/2 + dy) ** 2
+      sx2m = 1.0d0/2 * (1.0d0/2 - dx) ** 2
+      sy2m = 1.0d0/2 * (1.0d0/2 - dy) ** 2
 
 
-! electric field
-       exx = phi(ip  ,jp  ) * sy2 * (sx1m - sx1p) - (Axb(i,j) - Axbb(i,j)) &
-           * sy2 * sx1p &
-           + phi(ip-1,jp  ) * sy2 * (sx1m - sx1p)
+ ! electric field
+      if(jp .ge. 1.d0) then
+         exx = phi(ip  ,jp  ) * sy2  * (sx1m - sx1p) - (Axb(ip  ,jp  ) &
+             - Axbb(ip  ,jp  )) / dt * sy2  * sx1p &
+             + phi(ip  ,jp+1) * sy2p * (sx1m - sx1p) - (Axb(ip  ,jp  ) &
+             - Axbb(ip  ,jp+1)) / dt * sy2p * sx1p &
+             + phi(ip  ,jp-1) * sy2  * (sx1m - sx1p) - (Axb(ip  ,jp-1) &
+             - Axbb(ip  ,jp-1)) / dt * sy2m * sx1p
+      else 
+         exx = phi(ip  ,jp  ) * sy2  * (sx1m - sx1p) - (Axb(ip  ,jp  ) &
+             - Axbb(ip  ,jp  )) / dt * sy2  * sx1p &
+             + phi(ip  ,jp+1) * sy2p * (sx1m - sx1p) - (Axb(ip  ,jp+1) &
+             - Axbb(ip  ,jp  )) / dt * sy2p * sx1p &
+             + phi(ip  ,ny  ) * sy2m * (sx1m - sx1p) - (Axb(ip  ,ny  ) &
+             - Axbb(ip  ,ny  )) / dt * sy2  * sx1p 
+      endif
+      
+      if(ip .ge. 1.d0) then
+         exx = phi(ip  ,jp  ) * sx2  * (sy1m - sy1p) - (Ayb(ip  ,jp  ) &
+             - Aybb(ip  ,jp  )) / dt * sx2  * sy1p &
+             + phi(ip+1,jp  ) * sy2p * (sx1m - sx1p) - (Axb(ip+1,jp  ) &
+             - Axbb(ip+1,jp  )) / dt * sy2p * sx1p &
+             + phi(ip-1,jp-1) * sy2  * (sx1m - sx1p) - (Axb(ip-1,jp  ) &
+             - Axbb(ip-1,jp  )) / dt * sy2m * sx1p
+        
+      else
+         eyy = phi(ip  ,jp  ) * sx2  * (sy1m - sy1p) - (Ayb(ip  ,jp  ) &
+             - Aybb(ip  ,jp  )) / dt * sx2  * sy1p &
+             + phi(ip+1,jp  ) * sx2p * (sx1m - sx1p) - (Ayb(ip  ,jp  ) &
+             - Aybb(ip  ,jp  )) / dt * sx2p * sy1p &
+             + phi(nx  ,jp  ) * sy2m * (sx1m - sx1p) - (Ayb(ip  ,jp  ) &
+             - Aybb(ip  ,jp  )) / dt * sx2m * sy1p
+      endif
+      
+      ezz = (Azbb(ip  ,jp  ) - Azb(ip  ,jp  )) / dt
 
+
+      
      ! exx = ex(ip  ,jp  ,kp  )*dx1*dy1*dz1 + ex(ip+1,jp  ,kp  )*dx*dy1*dz1 &
      !     + ex(ip  ,jp+1,kp  )*dx1*dy*dz1  + ex(ip  ,jp  ,kp+1)*dx1*dy1*dz &
      !     + ex(ip+1,jp+1,kp  )*dx*dy*dz1   + ex(ip  ,jp+1,kp+1)*dx1*dy*dz &
@@ -236,7 +280,30 @@ ctomi)
 
 
 ! magnetic field
-      
+     if(ip .ge. 1) then
+         bxx = Axb(ip  ,jp  ) * sx2  * (sy1m - sy1p) &
+             + Axb(ip+1,jp  ) * sx2p * (sy1m - sy1p) &
+             + Axb(ip-1,jp  ) * sx2m * (sy1m - sy1p)
+     else
+         bxx = Axb(ip  ,jp  ) * sx2  * (sy1m - sy1p) &
+             + Axb(ip+1,jp  ) * sx2p * (sy1m - sy1p) &
+             + Axb(nx  ,jp  ) * sx2m * (sy1m - sy1p) 
+     endif
+
+     if(jp .ge. 1) then
+         bxx = Ayb(ip  ,jp  ) * sy2  * (sy1m - sy1p) &
+             + Ayb(ip  ,jp+1) * sy2p * (sy1m - sy1p) &
+             + Ayb(ip  ,jp-1) * sy2m * (sy1m - sy1p)
+     else
+         byy = Ayb(ip  ,jp  ) * sy2  * (sy1m - sy1p) &
+             + Ayb(ip  ,jp+1) * sy2p * (sy1m - sy1p) &
+             + Ayb(nx  ,jp-1) * sy2m * (sy1m - sy1p) 
+     endif
+
+     bzz = Ayb(ip  ,jp  ) * sy1p * (sy1m - sy1p) &
+         - Axb(ip  ,jp  ) * sx1p * (sx1m - sx1p) 
+
+     
     ! bxx = bxg(ip  ,jp  ,kp  )*dx1*dy1*dz1 + bxg(ip+1,jp  ,kp  )*dx*dy1*dz1 &
     !     + bxg(ip  ,jp+1,kp  )*dx1*dy*dz1  + bxg(ip  ,jp  ,kp+1)*dx1*dy1*dz &
     !     + bxg(ip+1,jp+1,kp  )*dx*dy*dz1   + bxg(ip  ,jp+1,kp+1)*dx1*dy*dz &
@@ -276,13 +343,9 @@ ctomi)
       vy(i) = vyp + 1.0/2 * ctom * eyy * dt
       vz(i) = vzp + 1.0/2 * ctom * ezz * dt 
 
-
-      !vx(i) = vx(i) + ctom * (exx + b * bzz - c * byy) * dt
-      !vy(i) = vy(i) + ctom * (eyy + c * bxx - a * bzz) * dt
-      !vz(i) = vz(i) + ctom * (ezz + a * byy - b * bxx) * dt
-      !xb(i) = x(i)
-      !yb(i) = y(i)
-      !zb(i) = z(i)
+      xb(i) = x(i)
+      yb(i) = y(i)
+      zb(i) = z(i)
       x(i)  = x(i)  + vx(i) * dt
       y(i)  = y(i)  + vy(i) * dt
       z(i)  = z(i)  + vz(i) * dt
@@ -390,10 +453,10 @@ ctomi)
                 rho(0   ,ny  ) = rho(0   ,ny  ) + sx2 * sy2m * chrg
                 rho(1   ,ny  ) = rho(1   ,ny  ) + sx2p * sy2m * chrg
          endif
-                rho(ip  ,jp  ) = rho(ip  ,jp  ) + sx2 * sy2 * chrg
-                rho(ip+1,jp  ) = rho(ip+1,jp  ) + sx2p * sy2 * chrg
-                rho(ip  ,jp+1) = rho(ip  ,jp+1) + sx2 * sy2p * chrg
-                rho(ip+1,jp+1) = rho(ip+1,jp+1) + sx2p * sy2p  * chrg
+         rho(ip  ,jp  ) = rho(ip  ,jp  ) + sx2 * sy2 * chrg
+         rho(ip+1,jp  ) = rho(ip+1,jp  ) + sx2p * sy2 * chrg
+         rho(ip  ,jp+1) = rho(ip  ,jp+1) + sx2 * sy2p * chrg
+         rho(ip+1,jp+1) = rho(ip+1,jp+1) + sx2p * sy2p  * chrg
          !rho(ip+1,jp+1,kp+1) = rho(ip+1,jp+1,kp+1) + dx  * dy  * dz  * chrg
 
       end do
@@ -417,7 +480,8 @@ ctomi)
     end subroutine source
 
 !***********************************************************************
-   subroutine phia(nx,ny,mu,epsi,dt,phi,phib,jx,jy,jz,Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
+    subroutine phia(nx,ny,mu,epsi,dt,phi,phib,jx,jy,jz,Ax,Ay,Az,Axb,Ayb,Azb,&
+                    Axbb,Aybb,Azbb)
 !***********************************************************************
    !original subroutine
       implicit none
@@ -431,18 +495,18 @@ ctomi)
 
       ! Solution of maxwell equation in the A-phi formulation by difference method
       
-        Ax(i,j) = dt ** 2 / (mu * epsi) * (Axb(i+1,j) - 2.0d0 * Axb(i,j) & 
-                + Axb(i-1,j) + Axb(i,j+1) - 2.0d0 * Axb(i,j) + Axb(i,j-1)) &
+        Ax(i,j) = dt ** 2 / (mu * epsi) * (Axb(i+1,j) + Axb(i-1,j) &
+                + Axb(i,j+1) + Axb(i,j-1) - 4.0d0 * Axb(i,j)) &
                 + dt ** 2 / epsi * jx(i,j) - dt * (phi(i+1,j) - phib(i+1,j)& 
                 - phi(i,j) + phib(i,j)) + 2.0d0 * Axb(i,j) - Axbb(i,j) 
 
-        Ay(i,j) = dt ** 2 / (mu * epsi) * (Ayb(i+1,j) - 2.0d0 * Ayb(i,j) &                          
-                + Ayb(i-1,j) + Ayb(i,j+1) - 2.0d0 * Ayb(i,j) + Ayb(i,j-1)) &
+        Ay(i,j) = dt ** 2 / (mu * epsi) * (Ayb(i+1,j) + Ayb(i-1,j) &
+                + Ayb(i,j+1) + Ayb(i,j-1) - 4.0d0 * Ayb(i,j)) &
                 + dt ** 2 / epsi * jx(i,j) - dt * (phi(i,j+1) - phib(i,j+1)&
                 - phi(i,j) + phib(i,j)) + 2.0d0 * Ayb(i,j) - Aybb(i,j) 
 
-        Az(i,j) = dt ** 2 / (mu * epsi) * (Azb(i+1,j) - 2.0d0 * Azb(i,j) &
-                + Azb(i-1,j) + Azb(i,j+1) - 2.0d0 * Azb(i,j) * Azb(i,j-1)) &
+        Az(i,j) = dt ** 2 / (mu * epsi) * (Azb(i+1,j) + Azb(i-1,j) &
+                + Azb(i,j+1) + Azb(i,j-1)) - 4.0d0 * Azb(i,j) &
                 + dt ** 2 / epsi * jz(i,j) + 2.0d0 * Azb(i,j) - Azbb(i,j)
       
       end do
@@ -450,146 +514,84 @@ ctomi)
 
       do j = 1, ny-1
       
-        Ax(0,j) = dt ** 2 / (mu * epsi) * (Axb(1,j) - 2.0d0 * Axb(0,j) &
-                + Axb(nx,j) + Axb(0,j+1) - 2.0d0 * Axb(0,j) + Axb(0,j-1)) &
+        Ax(0,j) = dt ** 2 / (mu * epsi) * (Axb(1,j)+ Axb(nx,j) &
+                + Axb(0,j+1) + Axb(0,j-1) - 4.0d0 * Axb(0,j)) &
                 + dt ** 2 / epsi * jx(0,j) - dt * (phi(1,j) - phib(1,j) & 
                 - phi(0,j) + phib(0,j)) + 2.0d0 * Axb(0,j) - Axbb(0,j)
 
         Ax(nx,j) = Ax(0,j)
-      !            dt ** 2 / (mu * epsi) * (Axb(0,j) - 2.0d0 * Axb(nx,j) &
-      !          + Axb(nx,j) + Axb(0,j+1) - 2.0d0 * Axb(nx,j) + Axb(nx,j-1)) &
-      !          + dt ** 2.0d0 / epsi * jx(nx,j) - dt * (phi(nx,j) - phib(0,j) &
-      !          - phi(nx,j) + phib(nx,j)) + 2.0d0 * Axb(nx,j) - Axbb(nx,j)
-
-        Ay(0,j)  = dt ** 2 / (mu * epsi) * (Ayb(1,j) - 2.0d0 * Ayb(0,j) &
-                 + Ayb(i-1,j) + Ayb(0,j+1) - 2.0d0 * Ayb(0,j) + Ayb(0,j-1)) &
+    
+        Ay(0,j)  = dt ** 2 / (mu * epsi) * (Ayb(1,j) + Ayb(i-1,j) &
+                 + Ayb(0,j+1) + Ayb(0,j-1) - 4.0d0 * Ayb(0,j)) &
                  + dt ** 2 / epsi * jx(0,j) - dt * (phi(0,j+1) - phib(0,j+1) & 
                  - phi(0,j) + phib(0,j)) + 2.0d0 * Ayb(0,j) - Aybb(0,j)
 
         Ay(nx,j) = Ay(0,j) 
-      !            dt ** 2 / (mu * epsi) * (Ayb(1,j) - 2.0d0 * Ayb(nx,j) &
-      !          + Ayb(nx-1,j) + Ayb(i,j+1) - 2.0d0 * Ayb(nx,j) + Ayb(i,j-1)) &
-      !          + dt ** 2 / epsi * jx(nx,j) - dt * (phi(nx,j+1) - phib(nx,j+1)&
-      !          - phi(nx,j) + phib(nx,j) + 2.0d0 * Ayb(nx,j) - Aybb(nx,j)
       
-        Az(0,j) = dt ** 2 / (mu * epsi) * (Azb(1,j) - 2.0d0 * Azb(0,j) &
-                + Azb(nx,j) + Azb(0,j+1) - 2.0d0 * Azb(0,j) * Azb(0,j-1)) &
+        Az(0,j) = dt ** 2 / (mu * epsi) * (Azb(1,j) + Azb(nx,j) &
+                + Azb(0,j+1) + Azb(0,j-1)) - 4.0d0 * Azb(0,j) &
                 + dt ** 2 / epsi * jz(0,j) + 2.0d0 * Azb(0,j) - Azbb(0,j)
 
         Az(nx,j) = Az(0,j)
-      !            dt ** 2 / (mu * epsi) * (Azb(0,j) - 2.0d0 * Azb(nx,j) &
-      !          + Azb(nx-1,j) + Azb(nx,j+1) - 2.0d0 * Azb(nx,j) * Azb(nx,j-1))&
-      !          + dt ** 2 / epsi * jz(nx,j) + 2.0d0 * Azb(nx,j) - Azbb(nx,j)
-
+  
       end do
 
       do i = 1, nx-1
 
-        Ax(i,0) = dt ** 2 / (mu * epsi) * (Axb(i+1,0) - 2.0d0 * Axb(i,0) &
-                + Axb(i-1,0) + Axb(i,1) - 2.0d0 * Axb(i,0) + Axb(i,ny)) & 
+        Ax(i,0) = dt ** 2 / (mu * epsi) * (Axb(i+1,0) + Axb(i-1,0) &
+                + Axb(i,1) + Axb(i,ny) - 4.0d0 * Axb(i,0)) & 
                 + dt ** 2 / epsi * jx(i,0) - dt * (phi(i+1,0) - phib(i+1,0)&
                 - phi(i,0) + phib(i,0)) + 2.0d0 * Axb(i,0) - Axbb(i,0) 
      
         Ax(i,ny) = Ax(i,0) 
-        !dt ** 2.0d0 / (mu * epsi) * (Axb(i+1,ny) - 2.0d0 * Axb(i,ny) + &
-        !Axb(i-1,ny) + Axb(i,0) - 2.0d0 * Axb(i,ny) + Axb(i,ny-1)) + dt ** 2.0d0 / &
-        !epsi * jx(i,ny) - dt * (phi(i+1,ny) - phib(i+1,ny) - phi(i,ny) + phib(i,ny)) &
-        !+ 2.0d0 * Axb(i,ny) - Axbb(i,ny)  
 
-        Ay(i,0) = dt ** 2.0d0 / (mu * epsi) * (Ayb(i+1,0) - 2.0d0 * Ayb(i,0) &
-                + Ayb(i-1,0) + Ayb(i,1) - 2.0d0 * Ayb(i,0) + Ayb(i,ny)) &
-                + dt ** 2.0d0 / epsi * jx(i,0) - dt * (phi(i,1) - phib(i,1) &
+        Ay(i,0) = dt ** 2 / (mu * epsi) * (Ayb(i+1,0) + Ayb(i-1,0) &
+                + Ayb(i,1) + Ayb(i,ny) - 4.0d0 * Ayb(i,0)) &
+                + dt ** 2 / epsi * jx(i,0) - dt * (phi(i,1) - phib(i,1) &
                 - phi(i,0) + phib(i,0)) + 2.0d0 * Ayb(i,0) - Aybb(i,0)
 
-        Ay(i,ny) = Ay(i,0) 
-        !dt ** 2.0d0 / (mu * epsi) * (Ayb(i+1,ny) - 2.0d0 * Ayb(i,ny) + &
-        !Ayb(i-1,ny) + Ayb(i,0) - 2.0d0 * Ayb(i,ny) + Ayb(i,j-1)) + dt ** 2.0d0 / &
-        !epsi * jx(i,ny) - dt * (phi(i,0) - phib(i,0) - phi(i,ny) + phib(i,ny)) &
-        !+ 2.0d0 * Ayb(i,ny) - Aybb(i,ny)
-
-        Az(i,0) = dt ** 2.0d0 / (mu * epsi) * (Azb(i+1,0) - 2.0d0 * Azb(i,0) & 
-                + Azb(i-1,0) + Azb(i,1) - 2.0d0 * Azb(i,0) * Azb(i,ny)) &
-                + dt ** 2.0d0 / epsi * jz(i,0) + 2.0d0 * Azb(i,0) - Azbb(i,0)
+        Ay(i,ny) = Ay(i,0)
+        
+        Az(i,0) = dt ** 2 / (mu * epsi) * (Azb(i+1,0) + Azb(i-1,0) &
+                + Azb(i,1) + Azb(i,ny) - 4.0d0 * Azb(i,0)) &
+                + dt ** 2 / epsi * jz(i,0) + 2.0d0 * Azb(i,0) - Azbb(i,0)
  
         Az(i,ny) = Az(i,0)
-        !dt ** 2.0d0 / (mu * epsi) * (Azb(i+1,ny) - 2.0d0 * Azb(i,ny) + &
-        !Azb(i-1,ny) + Azb(i,0) - 2.0d0 * Azb(i,ny) * Azb(i,ny-1)) + dt ** 2.0d0 / &
-        !epsi * jz(i,ny) + 2.0d0 * Azb(i,ny) - Azbb(i,ny)
-
       end do
 
-      Ax(0,0) = dt ** 2.0d0 / (mu * epsi) * (Axb(1,0) - 2.0d0 * Axb(0,0) &
-              + Axb(nx,0) + Axb(0,1) - 2.0d0 * Axb(0,0) + Axb(0,ny)) &
+      Ax(0,0) = dt ** 2.0d0 / (mu * epsi) * (Axb(1,0) + Axb(nx,0) &
+              + Axb(0,1)  + Axb(0,ny) - 4.0d0 * Axb(0,0)) &
               + dt ** 2.0d0 / epsi * jx(0,0) - dt * (phi(1,0) - phib(1,0) & 
               - phi(0,0) + phib(0,0)) + 2.0d0 * Axb(0,0) - Axbb(0,0)
        
       Ax(nx,ny) = Ax(0,0) 
-      !dt ** 2.0d0 / (mu * epsi) * (Axb(0,ny) - 2.0d0 * Axb(nx,ny) + &
-      !Axb(nx-1,ny) + Axb(nx,0) - 2.0d0 * Axb(nx,ny) + Axb(nx,ny-1)) + dt ** 2.0d0 / &
-      !epsi * jx(nx,ny) - dt * (phi(0,ny) - phib(0,ny) - phi(nx,ny) + phib(nx,ny)) &
-      !+ 2.0d0 * Axb(nx,ny) - Axbb(nx,ny)
-
       Ax(0,ny) = Ax(0,0) 
-      !dt ** 2.0d0 / (mu * epsi) * (Axb(1,ny) - 2.0d0 * Axb(0,ny) + &
-      !Axb(nx,ny) + Axb(nx,0) - 2.0d0 * Axb(0,ny) + Axb(nx,ny-1)) + dt ** 2.0d0 / &
-      !epsi * jx(0,ny) - dt * (phi(1,ny) - phib(1,ny) - phi(0,ny) + phib(0,ny)) &
-      !+ 2.0d0 * Axb(0,ny) - Axbb(0,ny)
-
       Ax(nx,0) = Ax(0,0)
-      !dt ** 2.0d0 / (mu * epsi) * (Axb(0,0) - 2.0d0 * Axb(nx,0) + &
-      !Axb(nx-1,0) + Axb(nx,1) - 2.0d0 * Axb(nx,0) + Axb(nx,ny)) + dt ** 2.0d0 / &
-      !epsi * jx(nx,0) - dt * (phi(0,0) - phib(0,0) - phi(nx,0) + phib(nx,0)) &
-      !+ 2.0d0 * Axb(nx,0) - Axbb(nx,0)
       
-      Ay(0,0) = dt ** 2.0d0 / (mu * epsi) * (Ayb(1,0) - 2.0d0 * Ayb(0,0) &
-              + Ayb(nx,0) + Ayb(0,1) - 2.0d0 * Ayb(0,0) + Ayb(0,ny)) &
+      Ay(0,0) = dt ** 2.0d0 / (mu * epsi) * (Ayb(1,0) + Ayb(nx,0) &
+              + Ayb(0,1) + Ayb(0,ny) - 4.0d0 * Ayb(0,0)) &
               + dt ** 2.0d0 / epsi * jx(0,0) - dt * (phi(0,1) - phib(0,1) &
               - phi(0,0) + phib(0,0)) + 2.0d0 * Ayb(0,0) - Aybb(0,0)
 
       Ay(nx,ny) = Ay(0,0)
-      !dt ** 2.0d0 / (mu * epsi) * (Ayb(0,ny) - 2.0d0 * Ayb(nx,ny) + &
-      !Ayb(nx-1,ny) + Ayb(nx,0) - 2.0d0 * Ayb(nx,ny) + Ayb(nx,ny-1)) + dt ** 2.0d0 / &
-      !epsi * jx(nx,ny) - dt * (phi(nx,0) - phib(nx,0) - phi(nx,ny) + phib(nx,ny)) &
-      !+ 2.0d0 * Ayb(nx,ny) - Aybb(nx,ny)
-
       Ay(0,ny) = Ay(0,0)
-      !dt ** 2.0d0 / (mu * epsi) * (Ayb(1,ny) - 2.0d0 * Ayb(0,ny) + &
-      !Ayb(nx,ny) + Ayb(i,j+1) - 2.0d0 * Ayb(i,j) + Ayb(i,j-1)) + dt ** 2.0d0 / &
-      !epsi * jx(0,ny) - dt * (phi(0,0) - phib(0,0) - phi(0,ny) + phib(0,ny)) &
-      !+ 2.0d0 * Ayb(0,ny) - Aybb(0,ny)
-
       Ay(nx,0) = Ay(0,0)
-      !dt ** 2.0d0 / (mu * epsi) * (Ayb(0,0) - 2.0d0 * Ayb(nx,0) + &
-      !Ayb(nx-1,0) + Ayb(nx,1) - 2.0d0 * Ayb(i,j) + Ayb(i,j-1)) + dt ** 2.0d0 / &
-      !epsi * jx(nx,0) - dt * (phi(nx,1) - phib(nx,1) - phi(nx,0) + phib(nx,0)) &
-      !+ 2.0d0 * Ayb(nx,0) - Aybb(nx,0)
 
-      Az(0,0) = dt ** 2.0d0 / (mu * epsi) * (Azb(1,0) - 2.0d0 * Azb(0,0) &
-              + Azb(nx,0) + Azb(0,1) - 2.0d0 * Azb(0,0) * Azb(0,ny)) &
+      Az(0,0) = dt ** 2.0d0 / (mu * epsi) * (Azb(1,0) + Azb(nx,0) &
+              + Azb(0,1) + Azb(0,ny) - 4.0d0 * Azb(0,0)) &
               + dt ** 2.0d0 / epsi * jz(0,0) + 2.0d0 * Azb(0,0) - Azbb(0,0)
 
       Az(nx,ny) = Az(0,0) 
-      !dt ** 2.0d0 / (mu * epsi) * (Azb(0,ny) - 2.0d0 * Azb(nx,ny) + &
-      !Azb(0,ny) + Azb(nx,0) - 2.0d0 * Azb(nx,ny) * Azb(nx,ny-1)) + dt ** 2.0d0 / &
-      !epsi * jz(nx,ny) + 2.0d0 * Azb(nx,ny) - Azbb(nx,ny)
-     
       Az(0,ny) = Az(0,0) 
-      !dt ** 2.0d0 / (mu * epsi) * (Azb(1,ny) - 2.0d0 * Azb(0,ny) + &
-      !Azb(nx,ny) + Azb(0,0) - 2.0d0 * Azb(0,ny) * Azb(0,ny-1)) + dt ** 2.0d0 / &
-      !epsi * jz(0,ny) + 2.0d0 * Azb(0,ny) - Azbb(0,ny)
-
-      Az(nx,0) = Az(0,0) 
-      !dt ** 2.0d0 / (mu * epsi) * (Azb(0,0) - 2.0d0 * Azb(nx,0) + &
-      !Azb(nx-1,0) + Azb(nx,1) - 2.0d0 * Azb(nx,0) * Azb(nx,ny)) + dt ** 2.0d0 / &
-      !epsi * jz(nx,0) + 2.0d0 * Azb(nx,0) - Azbb(nx,0)
-
+      Az(nx,0) = Az(0,0)
+      
       do i = 0, nx
       do j = 0, ny
      
         Axbb(i,j) = Axb(i,j)
         Aybb(i,j) = Ayb(i,j)
-        Axb(i,j) = Ax(i,j)
-        Ayb(i,j) = Ay(i,j)
+        Axb(i,j)  = Ax(i,j)
+        Ayb(i,j)  = Ay(i,j)
 
       end do
       end do
@@ -598,7 +600,7 @@ ctomi)
 !***********************************************************************
    subroutine efield(nx,ny,nz,phi,ex,ey,ez,ezg)
 !***********************************************************************
-      implicit none
+implicit none
       real(8), dimension(0:nx,0:ny) :: phi
       real(8), dimension(0:nx,0:ny,0:nz) :: ex, ey, ezg
       integer :: nx, ny, nz, i, j, im, ip, jm, jp, k, km, kp
@@ -728,7 +730,7 @@ ctomi)
       do ix = 0, nx-1
       do iz = 0, nz-1      
          apot = apot + ex(ix,iy,iz)*ex(ix,iy,iz) + ey(ix,iy,iz)*ey(ix,iy,iz)&
-+ ezg(ix,iy,iz)*ezg(ix,iy,iz)
+              + ezg(ix,iy,iz)*ezg(ix,iy,iz)
       end do
       end do
       end do
@@ -835,8 +837,8 @@ ctomi)
 
     real(8), dimension(np) :: x, y, z, xb, yb, zb 
     real(8), dimension(0:nx,0:ny) :: jx, jy, jz
-    real(8) :: chrg, dt, dx, dy, dz, dx1, dy1, dz1, deltax, deltay, deltaz, cfact, &
-    sx1, sy1, sx1p, sy1p, sx1m, sy1m, sx2, sy2, sx2p, sy2p, sx2m, sy2m
+    real(8) :: chrg, dt, dx, dy, dz, dx1, dy1, dz1, deltax, deltay, deltaz,&
+               cfact, sx1p, sy1p, sx1m, sy1m, sx2, sy2, sx2p, sy2p, sx2m, sy2m
     integer :: np, nx, ny, nz, i, ip, jp, kp, ix, iy
 
      jx(:,:) = 0.d0 
@@ -849,11 +851,11 @@ ctomi)
         jp = y(i)
         kp = z(i)
        
-        dx  = x(i) - dble(ip)                                                                        
-        dy  = y(i) - dble(jp)
-        dz  = z(i) - dble(kp)                                                                       
+        dx = x(i) - dble(ip)
+        dy = y(i) - dble(jp)
+        dz = z(i) - dble(kp)                                                                     
         dx1 = 1.0d0 - dx
-        dy1 = 1.0d0 - dy                                                                             
+        dy1 = 1.0d0 - dy                                                        
         dz1 = 1.0d0 - dz
         deltax = x(i) - xb(i)
         deltay = y(i) - yb(i)
@@ -863,7 +865,7 @@ ctomi)
         sy1m = 0.5 + dy   
         sx2 = 3.0d0/4 - dx ** 2.0d0
         sy2 = 3.0d0/4 - dy ** 2.0d0
-        sx2p = 1.0d0/2 * (1.0d0/2 + dx) ** 2.0d0                                                     
+        sx2p = 1.0d0/2 * (1.0d0/2 + dx) ** 2.0d0
         sy2p = 1.0d0/2 * (1.0d0/2 + dy) ** 2.0d0
         sx2m = 1.0d0/2 * (1.0d0/2 - dx) ** 2.0d0
         sy2m = 1.0d0/2 * (1.0d0/2 - dy) ** 2.0d0
@@ -873,7 +875,7 @@ ctomi)
                 jx(ip  ,jp+1) = jx(ip  ,jp+1) + chrg / dt * deltax * sy2p * sx1p
                 jx(ip  ,jp-1) = jx(ip  ,jp-1) + chrg / dt * deltax * sy2  * sx1p
                 jx(ip-1,jp  ) = jx(ip-1,jp  ) + chrg / dt * deltax * sy2m * sx1m
-                jx(ip-1,jp+1) = jx(ip-1,jp+1) + chrg / dt * deltax * sy2p * sx1m         
+                jx(ip-1,jp+1) = jx(ip-1,jp+1) + chrg / dt * deltax * sy2p * sx1m
                 jx(ip-1,jp-1) = jx(ip-1,jp-1) + chrg / dt * deltax * sy2m * sx1m
         else if(ip .eq. 0 .and. jp .ne. 0) then
                 jx(ip  ,jp  ) = jx(ip  ,jp  ) + chrg / dt * deltax * sy2  * sx1p
@@ -928,9 +930,9 @@ ctomi)
                 jy(ip+1,ny  ) = jy(ip+1,ny  ) + chrg / dt * deltay * sx2p * sy1m
         end if
    
-        jz(ip  ,jp  ) = jz(ip  ,jp  ) + chrg / dt * deltaz * sx2 * sy2
+        jz(ip  ,jp  ) = jz(ip  ,jp  ) + chrg / dt * deltaz * sx2  * sy2
         jz(ip+1,jp  ) = jz(ip+1,jp  ) + chrg / dt * deltaz * sx2p + sy2
-        jz(ip  ,jp+1) = jz(ip  ,jp+1) + chrg / dt * deltaz * sx2 * sy2p
+        jz(ip  ,jp+1) = jz(ip  ,jp+1) + chrg / dt * deltaz * sx2  * sy2p
         jz(ip+1,jp+1) = jz(ip+1,jp+1) + chrg / dt * deltaz * sx2p * sy2p
 
         if(ip .ne. 0 .and. jp .ne. 0) then

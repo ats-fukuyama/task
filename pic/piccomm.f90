@@ -19,9 +19,10 @@ MODULE piccomm
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:,:):: ex,ey
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:,:):: ezg
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:,:):: bxg,byg,bzg
-  REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: rho,phi,awk
+  REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: rho,phi,awk,jx,jy,jz
   REAL(rkind),ALLOCATABLE,DIMENSION(:):: xe,ye,ze,vxe,vye,vze, &
-                                         xi,yi,zi,vxi,vyi,vzi
+                                         xi,yi,zi,vxi,vyi,vzi, &
+                                         xeb,yeb,zeb,xib,yib,zib
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: cform
   COMPLEX(rkind),ALLOCATABLE,DIMENSION(:,:):: rhof,phif,afwk
 
@@ -57,9 +58,11 @@ CONTAINS
     ALLOCATE(ezg(0:nx,0:ny,0:nz))
     ALLOCATE(bxg(0:nx,0:ny,0:nz),byg(0:nx,0:ny,0:nz),bzg(0:nx,0:ny,0:nz))
     ALLOCATE(rho(0:nx,0:ny),phi(0:nx,0:ny))
+    ALLOCATE(jx(0:nx,0:ny),jy(0:nx,0:ny),jz(0:nx,0:ny))
     ALLOCATE(awk(nx,ny))
     ALLOCATE(xe(np),ye(np),ze(np),vxe(np),vye(np),vze(np))
     ALLOCATE(xi(np),yi(np),zi(np),vxi(np),vyi(np),vzi(np))
+    ALLOCATE(xeb(np),yeb(np),zeb(np),xib(np),yib(np),zib(np))
     ALLOCATE(cform(nxh1,ny))
     ALLOCATE(rhof(nxh1,ny),phif(nxh1,ny),afwk(nxh1,ny))
 
