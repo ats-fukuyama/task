@@ -7,7 +7,7 @@ MODULE piccomm_parm
   USE bpsd_constants
 
   INTEGER:: npx,npy,npz,nx,ny,nz,iend,nhmod
-  REAL(rkind):: dt,me,mi,chrge,chrgi,te,ti,eps,ez,bx,by,bz
+  REAL(rkind):: dt,me,mi,chrge,chrgi,te,ti,eps,bx,by,bz
 
 END MODULE piccomm_parm
 
@@ -16,10 +16,10 @@ MODULE piccomm
   USE piccomm_parm
 
   INTEGER:: np,nxh1,nx1,ny1,nz1,nxy
-  REAL(rkind),ALLOCATABLE,DIMENSION(:,:,:):: ex,ey
-  REAL(rkind),ALLOCATABLE,DIMENSION(:,:,:):: ezg
+  REAL(rkind),ALLOCATABLE,DIMENSION(:,:,:):: ex,ey,ez
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:,:):: bxg,byg,bzg
-  REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: rho,phi,awk,jx,jy,jz
+  REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: rho,phi,phib,awk,jx,jy,jz,&
+                                           Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb
   REAL(rkind),ALLOCATABLE,DIMENSION(:):: xe,ye,ze,vxe,vye,vze, &
                                          xi,yi,zi,vxi,vyi,vzi, &
                                          xeb,yeb,zeb,xib,yib,zib
@@ -34,7 +34,7 @@ MODULE piccomm
              akine0, akini0, aktot0, apot0, atot0,         &
              akine1, akine2, akini1, akini2, time,         &
              x1, x2, y1, y2, z1, z2 ,alx, aly, alz,                &
-             wkword, wtime, wtime1, wtime2
+             wkword, wtime, wtime1, wtime2, mu, epsi
   integer :: iloop, ifset, ipssn, iran, iene, ienemax
   integer :: ierr, myid, nodes
 
@@ -54,10 +54,9 @@ CONTAINS
        
     IF(ALLOCATED(ex)) CALL pic_deallocate
 
-    ALLOCATE(ex(0:nx,0:ny,0:nz),ey(0:nx,0:ny,0:nz))
-    ALLOCATE(ezg(0:nx,0:ny,0:nz))
+    ALLOCATE(ex(0:nx,0:ny,0:nz),ey(0:nx,0:ny,0:nz),ez(0:nx,0:ny,0:nz))
     ALLOCATE(bxg(0:nx,0:ny,0:nz),byg(0:nx,0:ny,0:nz),bzg(0:nx,0:ny,0:nz))
-    ALLOCATE(rho(0:nx,0:ny),phi(0:nx,0:ny))
+    ALLOCATE(rho(0:nx,0:ny),phi(0:nx,0:ny),phib(0:nx,0:ny))
     ALLOCATE(jx(0:nx,0:ny),jy(0:nx,0:ny),jz(0:nx,0:ny))
     ALLOCATE(awk(nx,ny))
     ALLOCATE(xe(np),ye(np),ze(np),vxe(np),vye(np),vze(np))
@@ -65,6 +64,9 @@ CONTAINS
     ALLOCATE(xeb(np),yeb(np),zeb(np),xib(np),yib(np),zib(np))
     ALLOCATE(cform(nxh1,ny))
     ALLOCATE(rhof(nxh1,ny),phif(nxh1,ny),afwk(nxh1,ny))
+    ALLOCATE(Ax(0:nx,0:ny),Ay(0:nx,0:ny),Az(0:nx,0:ny))
+    ALLOCATE(Axb(0:nx,0:ny),Ayb(0:nx,0:ny),Azb(0:nx,0:ny))
+    ALLOCATE(Axbb(0:nx,0:ny),Aybb(0:nx,0:ny),Azbb(0:nx,0:ny))
 
     nx_save=nx
     ny_save=ny
@@ -79,10 +81,10 @@ CONTAINS
   SUBROUTINE pic_deallocate
 
     IF(ALLOCATED(ex)) THEN
-       DEALLOCATE(ex,ey,rho,phi,awk)
-       DEALLOCATE(ezg)
+       DEALLOCATE(ex,ey,ez,rho,phi,awk)
        DEALLOCATE(bxg,byg,bzg)
-       DEALLOCATE(xe,ye,ze,vxe,vye,vze,xi,yi,zi,vxi,vyi,vzi)
+       DEALLOCATE(xe,ye,ze,vxe,vye,vze,xi,yi,zi,vxi,vyi,vzi,&
+            jx,jy,jz,xeb,yeb,zeb,xib,yib,zib,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
        DEALLOCATE(cform,rhof,phif,afwk)
     END IF
 

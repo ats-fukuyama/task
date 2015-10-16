@@ -51,8 +51,10 @@ CONTAINS
       CALL pic_allocate
 
       !..... set initial positions and velocities of electrons 
-      call iniset(np,npx,npy,npz,nx,ny,nz,xe,ye,ze,vxe,vye,vze,vte,iran)
-      call iniset(np,npx,npy,npz,nx,ny,nz,xi,yi,zi,vxi,vyi,vzi,vti,iran)
+      call iniset(np,npx,npy,npz,nx,ny,nz,xe,ye,ze,xeb,yeb,zeb,&
+           vxe,vye,vze,vte,iran)
+      call iniset(np,npx,npy,npz,nx,ny,nz,xi,yi,zi,xib,yib,zib,&
+           vxi,vyi,vzi,vti,iran)
 
       !..... initialize poisson solver
       ipssn = 0
@@ -70,10 +72,10 @@ CONTAINS
   END SUBROUTINE pic_prep
 
 !***********************************************************************
-      subroutine iniset(np,npx,npy,npz,nx,ny,nz,x,y,z,vx,vy,vz,vt,iran)
+      subroutine iniset(np,npx,npy,npz,nx,ny,nz,x,y,z,xb,yb,zb,vx,vy,vz,vt,iran)
 !***********************************************************************
       implicit none
-      real(8), dimension(np) :: x, y, z, vx, vy, vz
+      real(8), dimension(np) :: x, y, z, xb, yb, zb, vx, vy, vz
       real(8) :: vt, alx, aly, alz, factx, facty, factz, rvx, rvy, rvz
       integer :: np, npx, npy, npz, nx, ny, nz, ix, iy, iz, i, iran
 
@@ -93,6 +95,10 @@ CONTAINS
          x(i) = ( dble(ix) - 0.5d0 ) * factx
          y(i) = ( dble(iy) - 0.5d0 ) * facty
          z(i) = ( dble(iz) - 0.5d0 ) * factz
+
+         xb(i) = x(i)
+         yb(i) = y(i)
+         zb(i) = z(i)
          call gauss(rvx,rvy,rvz,iran)
          vx(i) = rvx * vt 
          vy(i) = rvy * vt

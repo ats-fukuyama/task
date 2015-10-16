@@ -105,25 +105,38 @@ CONTAINS
             iene = iene + 1
             call kine(np,vxe,vye,vze,akine1,me)
             call kine(np,vxi,vyi,vzi,akini1,mi)
-            call pote(nx,ny,nz,ex,ey,ezg,apot,cfacti)
+            !call pote(nx,ny,nz,ex,ey,ezg,apot,cfacti)
             call sumdim1(nodes,myid,akine1,wkword)
             call sumdim1(nodes,myid,akini1,wkword)
          endif
-
-         !.......... calculate current of electrons
+         
+         jx(:,:)=0.d0
+         jy(:,:)=0.d0
+         jy(:,:)=0.d0
+         !.......... calculate current by electrons
          call current(np,nx,ny,nz,xe,ye,ze,xeb,yeb,zeb,jx,jy,jz,dt,chrge)
-         
-         !----- push electrons
-         call push(np,nx,ny,nz,xe,ye,ze,vxe,vye,vze,ex,ey,ezg,bxg,byg,bzg,dt,&
-              ctome,xeb,yeb,zeb)
-         
-         !.......... calculate current of ions
+
+          !.......... calculate current by ions
          call current(np,nx,ny,nz,xi,yi,zi,xib,yib,zib,jx,jy,jz,dt,chrgi)
+         
+         Axb(:,:)=0.d0
+         Ayb(:,:)=0.d0
+         Azb(:,:)=0.d0
+         Axbb(:,:)=0.d0
+         Aybb(:,:)=0.d0
+         Azbb(:,:)=0.d0
+         !.......... calculate vector potential
+         call phia(nx,ny,mu,epsi,dt,phi,phib,jx,jy,jz,Ax,Ay,Az,Axb,Ayb,Azb,&
+              Axbb,Aybb,Azbb)         
 
+         !----- push electrons
+         call push(np,nx,ny,nz,xe,ye,ze,vxe,vye,vze,ex,ey,ez,bxg,byg,bzg,dt,&
+              ctome,xeb,yeb,zeb,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
+         
          !..... push ions
-         call push(np,nx,ny,nz,xi,yi,zi,vxi,vyi,vzi,ex,ey,ezg,bxg,byg,bzg,dt,&
-ctomi,xib,yib,zib)
-
+         call push(np,nx,ny,nz,xi,yi,zi,vxi,vyi,vzi,ex,ey,ez,bxg,byg,bzg,dt,&
+              ctomi,xib,yib,zib,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
+         !WRITE(*,'(f,/)') Axb,Ayb
          !----- treat particles being out of the boundary
          call bound(np,xe,ye,ze,x1,x2,y1,y2,z1,z2,alx,aly,alz)
          call bound(np,xi,yi,zi,x1,x2,y1,y2,z1,z2,alx,aly,alz)
@@ -186,14 +199,14 @@ ctomi,xib,yib,zib)
        END SUBROUTINE pic_exec
 
 !***********************************************************************
-       subroutine push(np,nx,ny,nz,x,y,z,vx,vy,vz,ex,ey,ezg,bxg,byg,bzg,dt,&
-            ctom,xb,yb,zb)
+       subroutine push(np,nx,ny,nz,x,y,z,vx,vy,vz,ex,ey,ez,bxg,byg,bzg,dt,&
+            ctom,xb,yb,zb,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
 !***********************************************************************
       implicit none
       real(8), dimension(np) :: x, y, z, xb, yb, zb, vx, vy, vz
       real(8), dimension(0:nx,0:ny) :: Axb, Ayb, Azb, Axbb, Aybb, Azbb
-      real(8), dimension(0:nx,0:ny,0:nz) :: ex, ey, ezg, bxg, byg, bzg
-      real(8) :: ctom, dx, dy, dz, dx1, dy1, dz1, dt, exx, eyy, ezz, ez, bxx,&
+      real(8), dimension(0:nx,0:ny,0:nz) :: ex, ey, ez, bxg, byg, bzg
+      real(8) :: ctom, dx, dy, dz, dx1, dy1, dz1, dt, exx, eyy, ezz, bxx,&
                  byy, bzz, vxn, vyn, vzn, vxzero, vyzero, vzzero, vxp, vyp,&
                  vzp, sx1p, sy1p, sx1m, sy1m, sx2, sy2, sx2p, sx2m, sy2m, sy2p
       integer :: np, nx, ny, nz, i, ip, jp, kp
@@ -217,8 +230,8 @@ ctomi,xib,yib,zib)
       sx1m = 0.5 + dx
       sy1p = 0.5 - dy
       sy1m = 0.5 + dy
-      sx2  = 3.0d0/4 - dx ** 2.0d0
-      sy2  = 3.0d0/4 - dy ** 2.0d0
+      sx2  = 3.0d0/4 - dx ** 2
+      sy2  = 3.0d0/4 - dy ** 2
       sx2p = 1.0d0/2 * (1.0d0/2 + dx) ** 2  
       sy2p = 1.0d0/2 * (1.0d0/2 + dy) ** 2
       sx2m = 1.0d0/2 * (1.0d0/2 - dx) ** 2
@@ -229,7 +242,7 @@ ctomi,xib,yib,zib)
       if(jp .ge. 1.d0) then
          exx = phi(ip  ,jp  ) * sy2  * (sx1m - sx1p) - (Axb(ip  ,jp  ) &
              - Axbb(ip  ,jp  )) / dt * sy2  * sx1p &
-             + phi(ip  ,jp+1) * sy2p * (sx1m - sx1p) - (Axb(ip  ,jp  ) &
+             + phi(ip  ,jp+1) * sy2p * (sx1m - sx1p) - (Axb(ip  ,jp+1) &
              - Axbb(ip  ,jp+1)) / dt * sy2p * sx1p &
              + phi(ip  ,jp-1) * sy2  * (sx1m - sx1p) - (Axb(ip  ,jp-1) &
              - Axbb(ip  ,jp-1)) / dt * sy2m * sx1p
@@ -237,30 +250,33 @@ ctomi,xib,yib,zib)
          exx = phi(ip  ,jp  ) * sy2  * (sx1m - sx1p) - (Axb(ip  ,jp  ) &
              - Axbb(ip  ,jp  )) / dt * sy2  * sx1p &
              + phi(ip  ,jp+1) * sy2p * (sx1m - sx1p) - (Axb(ip  ,jp+1) &
-             - Axbb(ip  ,jp  )) / dt * sy2p * sx1p &
+             - Axbb(ip  ,jp+1)) / dt * sy2p * sx1p &
              + phi(ip  ,ny  ) * sy2m * (sx1m - sx1p) - (Axb(ip  ,ny  ) &
-             - Axbb(ip  ,ny  )) / dt * sy2  * sx1p 
+             - Axbb(ip  ,ny  )) / dt * sy2m * sx1p 
       endif
       
       if(ip .ge. 1.d0) then
-         exx = phi(ip  ,jp  ) * sx2  * (sy1m - sy1p) - (Ayb(ip  ,jp  ) &
+         eyy = phi(ip  ,jp  ) * sx2  * (sy1m - sy1p) - (Ayb(ip  ,jp  ) &
              - Aybb(ip  ,jp  )) / dt * sx2  * sy1p &
              + phi(ip+1,jp  ) * sy2p * (sx1m - sx1p) - (Axb(ip+1,jp  ) &
-             - Axbb(ip+1,jp  )) / dt * sy2p * sx1p &
-             + phi(ip-1,jp-1) * sy2  * (sx1m - sx1p) - (Axb(ip-1,jp  ) &
-             - Axbb(ip-1,jp  )) / dt * sy2m * sx1p
+             - Aybb(ip+1,jp  )) / dt * sx2p * sy1p &
+             + phi(ip-1,jp  ) * sy2m * (sx1m - sx1p) - (Axb(ip-1,jp  ) &
+             - Aybb(ip-1,jp  )) / dt * sx2m * sy1p
         
       else
          eyy = phi(ip  ,jp  ) * sx2  * (sy1m - sy1p) - (Ayb(ip  ,jp  ) &
              - Aybb(ip  ,jp  )) / dt * sx2  * sy1p &
-             + phi(ip+1,jp  ) * sx2p * (sx1m - sx1p) - (Ayb(ip  ,jp  ) &
-             - Aybb(ip  ,jp  )) / dt * sx2p * sy1p &
-             + phi(nx  ,jp  ) * sy2m * (sx1m - sx1p) - (Ayb(ip  ,jp  ) &
-             - Aybb(ip  ,jp  )) / dt * sx2m * sy1p
+             + phi(ip+1,jp  ) * sx2p * (sx1m - sx1p) - (Ayb(ip+1,jp  ) &
+             - Aybb(ip+1,jp  )) / dt * sx2p * sy1p &
+             + phi(nx  ,jp  ) * sy2m * (sx1m - sx1p) - (Ayb(nx  ,jp  ) &
+             - Aybb(nx  ,jp  )) / dt * sx2m * sy1p
       endif
       
       ezz = (Azbb(ip  ,jp  ) - Azb(ip  ,jp  )) / dt
 
+      ex(ip,jp,kp) = exx
+      ey(ip,jp,kp) = eyy
+      ez(ip,jp,kp) = ezz
 
       
      ! exx = ex(ip  ,jp  ,kp  )*dx1*dy1*dz1 + ex(ip+1,jp  ,kp  )*dx*dy1*dz1 &
@@ -281,27 +297,28 @@ ctomi,xib,yib,zib)
 
 ! magnetic field
      if(ip .ge. 1) then
-         bxx = Axb(ip  ,jp  ) * sx2  * (sy1m - sy1p) &
-             + Axb(ip+1,jp  ) * sx2p * (sy1m - sy1p) &
-             + Axb(ip-1,jp  ) * sx2m * (sy1m - sy1p)
+         bxx = (Axb(ip  ,jp  ) + Axbb(ip  ,jp  )) / 2.0d0 * sx2  * (sy1m-sy1p)&
+             + (Axb(ip+1,jp  ) + Axbb(ip+1,jp  )) / 2.0d0 * sx2p * (sy1m-sy1p)&
+             + (Axb(ip-1,jp  ) + Axbb(ip-1,jp  )) / 2.0d0 * sx2m * (sy1m-sy1p)
      else
-         bxx = Axb(ip  ,jp  ) * sx2  * (sy1m - sy1p) &
-             + Axb(ip+1,jp  ) * sx2p * (sy1m - sy1p) &
-             + Axb(nx  ,jp  ) * sx2m * (sy1m - sy1p) 
+         bxx = (Axb(ip  ,jp  ) + Axbb(ip  ,jp  )) / 2.0d0 * sx2  * (sy1m-sy1p)&
+             + (Axb(ip+1,jp  ) + Axbb(ip+1,jp  )) / 2.0d0 * sx2p * (sy1m-sy1p)&
+             + (Axb(nx  ,jp  ) + Axbb(nx  ,jp  )) / 2.0d0 * sx2m * (sy1m-sy1p) 
      endif
 
      if(jp .ge. 1) then
-         bxx = Ayb(ip  ,jp  ) * sy2  * (sy1m - sy1p) &
-             + Ayb(ip  ,jp+1) * sy2p * (sy1m - sy1p) &
-             + Ayb(ip  ,jp-1) * sy2m * (sy1m - sy1p)
+         byy = (Ayb(ip  ,jp  ) + Aybb(ip  ,jp  )) / 2.0d0 * sy2  * (sy1m-sy1p)&
+             + (Ayb(ip  ,jp+1) + Aybb(ip  ,jp+1)) / 2.0d0 * sy2p * (sy1m-sy1p)&
+             + (Ayb(ip  ,jp-1) + Aybb(ip  ,jp-1)) / 2.0d0 * sy2m * (sy1m-sy1p)
      else
-         byy = Ayb(ip  ,jp  ) * sy2  * (sy1m - sy1p) &
-             + Ayb(ip  ,jp+1) * sy2p * (sy1m - sy1p) &
-             + Ayb(nx  ,jp-1) * sy2m * (sy1m - sy1p) 
+         byy = (Ayb(ip  ,jp  ) + Aybb(ip  ,jp  )) / 2.0d0 * sy2  * (sy1m-sy1p)&
+             + (Ayb(ip  ,jp+1) + Aybb(ip  ,jp+1)) / 2.0d0 * sy2p * (sy1m-sy1p)&
+             + (Ayb(ip  ,ny  ) + Aybb(ip  ,ny  )) / 2.0d0 * sy2m * (sy1m-sy1p)
+             
      endif
 
-     bzz = Ayb(ip  ,jp  ) * sy1p * (sy1m - sy1p) &
-         - Axb(ip  ,jp  ) * sx1p * (sx1m - sx1p) 
+     bzz = (Ayb(ip  ,jp  ) + Aybb(ip  ,jp  )) / 2.0d0 * sy1p * (sy1m - sy1p) &
+         - (Axb(ip  ,jp  ) + Aybb(ip  ,jp  )) / 2.0d0 * sx1p * (sx1m - sx1p) 
 
      
     ! bxx = bxg(ip  ,jp  ,kp  )*dx1*dy1*dz1 + bxg(ip+1,jp  ,kp  )*dx*dy1*dz1 &
@@ -346,9 +363,9 @@ ctomi,xib,yib,zib)
       xb(i) = x(i)
       yb(i) = y(i)
       zb(i) = z(i)
-      x(i)  = x(i)  + vx(i) * dt
-      y(i)  = y(i)  + vy(i) * dt
-      z(i)  = z(i)  + vz(i) * dt
+      x(i) = x(i) + vx(i) * dt
+      y(i) = y(i) + vy(i) * dt
+      z(i) = z(i) + vz(i) * dt
 
       end do
 
@@ -402,8 +419,8 @@ ctomi,xib,yib,zib)
       implicit none
       real(8), dimension(np)        :: x, y
       real(8), dimension(0:nx,0:ny) :: rho
-      real(8) :: chrg, dx, dy, dx1, dy1, cfact, sx1, sy1, sx2, sy2, sx2p,&
-                 sy2p, sx2m, sy2m
+      real(8) :: chrg, dx, dy, dx1, dy1, cfact, sx1, sy1, sx2, sy2,&
+           sx2p, sy2p, sx2m, sy2m
       integer :: np, nx, ny, i, ip, jp, kp, ix, iy
 
 !*poption parallel, psum(rho)
@@ -429,34 +446,34 @@ ctomi,xib,yib,zib)
          sy2m = 1.0d0/2 * (1.0d0/2 - dy) ** 2.0d0
 
          if( ip .ne. 0  .and. jp .ne. 0) then
-                rho(ip-1,jp-1) = rho(ip-1,jp-1) + sx2m * sy2m * chrg
-                rho(ip-1,jp  ) = rho(ip-1,jp  ) + sx2m * sy2 * chrg
-                rho(ip-1,jp+1) = rho(ip-1,jp+1) + sx2m * sy2p * chrg
-                rho(ip  ,jp-1) = rho(ip  ,jp-1) + sx2 * sy2m * chrg
-                rho(ip+1,jp-1) = rho(ip+1,jp-1) + sx2p * sy2m * chrg
+            rho(ip-1,jp-1) = rho(ip-1,jp-1) + sx2m * sy2m * chrg
+            rho(ip-1,jp  ) = rho(ip-1,jp  ) + sx2m * sy2  * chrg
+            rho(ip-1,jp+1) = rho(ip-1,jp+1) + sx2m * sy2p * chrg
+            rho(ip  ,jp-1) = rho(ip  ,jp-1) + sx2  * sy2m * chrg
+            rho(ip+1,jp-1) = rho(ip+1,jp-1) + sx2p * sy2m * chrg
          else if ( ip .eq. 0 .and. jp .ne. 0) then
-                rho(nx  ,jp-1) = rho(nx  ,jp-1) + sx2m * sy2m * chrg
-                rho(nx  ,jp  ) = rho(nx  ,jp  ) + sx2m * sy2 * chrg
-                rho(nx  ,jp+1) = rho(nx  ,jp+1) + sx2m * sy2p * chrg
-                rho(0   ,jp-1) = rho(0   ,jp-1) + sx2 * sy2m * chrg
-                rho(1   ,jp-1) = rho(1   ,jp-1) + sx2p * sy2m * chrg
+            rho(nx  ,jp-1) = rho(nx  ,jp-1) + sx2m * sy2m * chrg
+            rho(nx  ,jp  ) = rho(nx  ,jp  ) + sx2m * sy2  * chrg
+            rho(nx  ,jp+1) = rho(nx  ,jp+1) + sx2m * sy2p * chrg
+            rho(0   ,jp-1) = rho(0   ,jp-1) + sx2  * sy2m * chrg
+            rho(1   ,jp-1) = rho(1   ,jp-1) + sx2p * sy2m * chrg
          else if ( ip .ne. 0 .and. jp .eq. 0) then
-                rho(ip-1,ny  ) = rho(ip-1,ny  ) + sx2m * sy2m * chrg
-                rho(ip-1,0   ) = rho(ip-1,0   ) + sx2m * sy2 * chrg
-                rho(ip-1,1   ) = rho(ip-1,1   ) + sx2m * sy2p * chrg
-                rho(ip  ,ny  ) = rho(ip  ,ny  ) + sx2 * sy2m * chrg
-                rho(ip+1,ny  ) = rho(ip+1,ny  ) + sx2p * sy2m * chrg
+            rho(ip-1,ny  ) = rho(ip-1,ny  ) + sx2m * sy2m * chrg
+            rho(ip-1,0   ) = rho(ip-1,0   ) + sx2m * sy2  * chrg
+            rho(ip-1,1   ) = rho(ip-1,1   ) + sx2m * sy2p * chrg
+            rho(ip  ,ny  ) = rho(ip  ,ny  ) + sx2  * sy2m * chrg
+            rho(ip+1,ny  ) = rho(ip+1,ny  ) + sx2p * sy2m * chrg
          else
-                rho(nx  ,ny  ) = rho(nx  ,ny  ) + sx2m * sy2m * chrg
-                rho(nx  ,0   ) = rho(nx  ,0   ) + sx2m * sy2 * chrg
-                rho(nx  ,1   ) = rho(nx  ,1   ) + sx2m * sy2p * chrg
-                rho(0   ,ny  ) = rho(0   ,ny  ) + sx2 * sy2m * chrg
-                rho(1   ,ny  ) = rho(1   ,ny  ) + sx2p * sy2m * chrg
+            rho(nx  ,ny  ) = rho(nx  ,ny  ) + sx2m * sy2m * chrg
+            rho(nx  ,0   ) = rho(nx  ,0   ) + sx2m * sy2  * chrg
+            rho(nx  ,1   ) = rho(nx  ,1   ) + sx2m * sy2p * chrg
+            rho(0   ,ny  ) = rho(0   ,ny  ) + sx2  * sy2m * chrg
+            rho(1   ,ny  ) = rho(1   ,ny  ) + sx2p * sy2m * chrg
          endif
-         rho(ip  ,jp  ) = rho(ip  ,jp  ) + sx2 * sy2 * chrg
-         rho(ip+1,jp  ) = rho(ip+1,jp  ) + sx2p * sy2 * chrg
-         rho(ip  ,jp+1) = rho(ip  ,jp+1) + sx2 * sy2p * chrg
-         rho(ip+1,jp+1) = rho(ip+1,jp+1) + sx2p * sy2p  * chrg
+         rho(ip  ,jp  ) = rho(ip  ,jp  ) + sx2  * sy2  * chrg
+         rho(ip+1,jp  ) = rho(ip+1,jp  ) + sx2p * sy2  * chrg
+         rho(ip  ,jp+1) = rho(ip  ,jp+1) + sx2  * sy2p * chrg
+         rho(ip+1,jp+1) = rho(ip+1,jp+1) + sx2p * sy2p * chrg
          !rho(ip+1,jp+1,kp+1) = rho(ip+1,jp+1,kp+1) + dx  * dy  * dz  * chrg
 
       end do
@@ -489,11 +506,13 @@ ctomi,xib,yib,zib)
       Axb, Ayb, Azb, Axbb, Aybb, Azbb
       integer :: nx, ny, i, j, k
       real(rkind) :: mu, epsi, dt
-
+      mu = 1.0d0
+      epsi = 1.0d0
+         
       do i = 1, nx-1
       do j = 1, ny-1
 
-      ! Solution of maxwell equation in the A-phi formulation by difference method
+ ! Solution of maxwell equation in the A-phi formulation by difference method
       
         Ax(i,j) = dt ** 2 / (mu * epsi) * (Axb(i+1,j) + Axb(i-1,j) &
                 + Axb(i,j+1) + Axb(i,j-1) - 4.0d0 * Axb(i,j)) &
@@ -502,11 +521,11 @@ ctomi,xib,yib,zib)
 
         Ay(i,j) = dt ** 2 / (mu * epsi) * (Ayb(i+1,j) + Ayb(i-1,j) &
                 + Ayb(i,j+1) + Ayb(i,j-1) - 4.0d0 * Ayb(i,j)) &
-                + dt ** 2 / epsi * jx(i,j) - dt * (phi(i,j+1) - phib(i,j+1)&
+                + dt ** 2 / epsi * jy(i,j) - dt * (phi(i,j+1) - phib(i,j+1)&
                 - phi(i,j) + phib(i,j)) + 2.0d0 * Ayb(i,j) - Aybb(i,j) 
 
         Az(i,j) = dt ** 2 / (mu * epsi) * (Azb(i+1,j) + Azb(i-1,j) &
-                + Azb(i,j+1) + Azb(i,j-1)) - 4.0d0 * Azb(i,j) &
+                + Azb(i,j+1) + Azb(i,j-1) - 4.0d0 * Azb(i,j)) &
                 + dt ** 2 / epsi * jz(i,j) + 2.0d0 * Azb(i,j) - Azbb(i,j)
       
       end do
@@ -521,10 +540,10 @@ ctomi,xib,yib,zib)
 
         Ax(nx,j) = Ax(0,j)
     
-        Ay(0,j)  = dt ** 2 / (mu * epsi) * (Ayb(1,j) + Ayb(i-1,j) &
-                 + Ayb(0,j+1) + Ayb(0,j-1) - 4.0d0 * Ayb(0,j)) &
-                 + dt ** 2 / epsi * jx(0,j) - dt * (phi(0,j+1) - phib(0,j+1) & 
-                 - phi(0,j) + phib(0,j)) + 2.0d0 * Ayb(0,j) - Aybb(0,j)
+        Ay(0,j) = dt ** 2 / (mu * epsi) * (Ayb(1,j) + Ayb(nx,j) &
+                + Ayb(0,j+1) + Ayb(0,j-1) - 4.0d0 * Ayb(0,j)) &
+                + dt ** 2 / epsi * jy(0,j) - dt * (phi(0,j+1) - phib(0,j+1) & 
+                - phi(0,j) + phib(0,j)) + 2.0d0 * Ayb(0,j) - Aybb(0,j)
 
         Ay(nx,j) = Ay(0,j) 
       
@@ -547,7 +566,7 @@ ctomi,xib,yib,zib)
 
         Ay(i,0) = dt ** 2 / (mu * epsi) * (Ayb(i+1,0) + Ayb(i-1,0) &
                 + Ayb(i,1) + Ayb(i,ny) - 4.0d0 * Ayb(i,0)) &
-                + dt ** 2 / epsi * jx(i,0) - dt * (phi(i,1) - phib(i,1) &
+                + dt ** 2 / epsi * jy(i,0) - dt * (phi(i,1) - phib(i,1) &
                 - phi(i,0) + phib(i,0)) + 2.0d0 * Ayb(i,0) - Aybb(i,0)
 
         Ay(i,ny) = Ay(i,0)
@@ -570,7 +589,7 @@ ctomi,xib,yib,zib)
       
       Ay(0,0) = dt ** 2.0d0 / (mu * epsi) * (Ayb(1,0) + Ayb(nx,0) &
               + Ayb(0,1) + Ayb(0,ny) - 4.0d0 * Ayb(0,0)) &
-              + dt ** 2.0d0 / epsi * jx(0,0) - dt * (phi(0,1) - phib(0,1) &
+              + dt ** 2.0d0 / epsi * jy(0,0) - dt * (phi(0,1) - phib(0,1) &
               - phi(0,0) + phib(0,0)) + 2.0d0 * Ayb(0,0) - Aybb(0,0)
 
       Ay(nx,ny) = Ay(0,0)
@@ -600,7 +619,7 @@ ctomi,xib,yib,zib)
 !***********************************************************************
    subroutine efield(nx,ny,nz,phi,ex,ey,ez,ezg)
 !***********************************************************************
-implicit none
+     implicit none
       real(8), dimension(0:nx,0:ny) :: phi
       real(8), dimension(0:nx,0:ny,0:nz) :: ex, ey, ezg
       integer :: nx, ny, nz, i, j, im, ip, jm, jp, k, km, kp
@@ -645,7 +664,7 @@ implicit none
       do j = 0, ny
       do i = 0, nx
       do k = 0, nz
-         !im = i - 1a
+         !im = i - 1
          !ip = i + 1
          !jm = j - 1
          !jp = j + 1
@@ -718,10 +737,10 @@ implicit none
     end subroutine kine
 
 !***********************************************************************
-    subroutine pote(nx,ny,nz,ex,ey,ezg,apot,cfacti)
+    subroutine pote(nx,ny,nz,ex,ey,ez,apot,cfacti)
 !***********************************************************************
       implicit none
-      real(8), dimension(0:nx,0:ny,0:nz) :: ex, ey, ezg
+      real(8), dimension(0:nx,0:ny,0:nz) :: ex, ey, ez
       real(8) :: apot, cfacti 
       integer(4) :: nx, ny, nz, ix, iy, iz 
 
@@ -730,7 +749,7 @@ implicit none
       do ix = 0, nx-1
       do iz = 0, nz-1      
          apot = apot + ex(ix,iy,iz)*ex(ix,iy,iz) + ey(ix,iy,iz)*ey(ix,iy,iz)&
-              + ezg(ix,iy,iz)*ezg(ix,iy,iz)
+              + ez(ix,iy,iz)*ez(ix,iy,iz)
       end do
       end do
       end do
@@ -846,7 +865,7 @@ implicit none
      jz(:,:) = 0.d0
      
      do i = 1, np 
-                                                                                                      
+                                                                                                 
         ip = x(i)
         jp = y(i)
         kp = z(i)
@@ -859,6 +878,7 @@ implicit none
         dz1 = 1.0d0 - dz
         deltax = x(i) - xb(i)
         deltay = y(i) - yb(i)
+        deltaz = z(i) - zb(i)
         sx1p = 0.5 - dx
         sx1m = 0.5 + dx
         sy1p = 0.5 - dy
@@ -871,63 +891,63 @@ implicit none
         sy2m = 1.0d0/2 * (1.0d0/2 - dy) ** 2.0d0
 
         if(ip .ne. 0 .and. jp .ne. 0) then
-                jx(ip  ,jp  ) = jx(ip  ,jp  ) + chrg / dt * deltax * sy2  * sx1p
-                jx(ip  ,jp+1) = jx(ip  ,jp+1) + chrg / dt * deltax * sy2p * sx1p
-                jx(ip  ,jp-1) = jx(ip  ,jp-1) + chrg / dt * deltax * sy2  * sx1p
-                jx(ip-1,jp  ) = jx(ip-1,jp  ) + chrg / dt * deltax * sy2m * sx1m
-                jx(ip-1,jp+1) = jx(ip-1,jp+1) + chrg / dt * deltax * sy2p * sx1m
-                jx(ip-1,jp-1) = jx(ip-1,jp-1) + chrg / dt * deltax * sy2m * sx1m
+           jx(ip  ,jp  ) = jx(ip  ,jp  ) + chrg / dt * deltax * sy2  * sx1p
+           jx(ip  ,jp+1) = jx(ip  ,jp+1) + chrg / dt * deltax * sy2p * sx1p
+           jx(ip  ,jp-1) = jx(ip  ,jp-1) + chrg / dt * deltax * sy2  * sx1p
+           jx(ip-1,jp  ) = jx(ip-1,jp  ) + chrg / dt * deltax * sy2m * sx1m
+           jx(ip-1,jp+1) = jx(ip-1,jp+1) + chrg / dt * deltax * sy2p * sx1m
+           jx(ip-1,jp-1) = jx(ip-1,jp-1) + chrg / dt * deltax * sy2m * sx1m
         else if(ip .eq. 0 .and. jp .ne. 0) then
-                jx(ip  ,jp  ) = jx(ip  ,jp  ) + chrg / dt * deltax * sy2  * sx1p
-                jx(ip  ,jp+1) = jx(ip  ,jp+1) + chrg / dt * deltax * sy2p * sx1p
-                jx(ip  ,jp-1) = jx(ip  ,jp-1) + chrg / dt * deltax * sy2  * sx1p
-                jx(nx  ,jp  ) = jx(nx  ,jp  ) + chrg / dt * deltax * sy2m * sx1m
-                jx(nx  ,jp+1) = jx(nx  ,jp+1) + chrg / dt * deltax * sy2p * sx1m
-                jx(nx  ,jp-1) = jx(nx  ,jp-1) + chrg / dt * deltax * sy2m * sx1m
+           jx(ip  ,jp  ) = jx(ip  ,jp  ) + chrg / dt * deltax * sy2  * sx1p
+           jx(ip  ,jp+1) = jx(ip  ,jp+1) + chrg / dt * deltax * sy2p * sx1p
+           jx(ip  ,jp-1) = jx(ip  ,jp-1) + chrg / dt * deltax * sy2  * sx1p
+           jx(nx  ,jp  ) = jx(nx  ,jp  ) + chrg / dt * deltax * sy2m * sx1m
+           jx(nx  ,jp+1) = jx(nx  ,jp+1) + chrg / dt * deltax * sy2p * sx1m
+           jx(nx  ,jp-1) = jx(nx  ,jp-1) + chrg / dt * deltax * sy2m * sx1m
         else if(ip .ne. 0 .and. jp .eq. 0) then 
-                jx(ip  ,jp  ) = jx(ip  ,jp  ) + chrg / dt * deltax * sy2  * sx1p
-                jx(ip  ,jp+1) = jx(ip  ,jp+1) + chrg / dt * deltax * sy2p * sx1p
-                jx(ip  ,ny  ) = jx(ip  ,ny  ) + chrg / dt * deltax * sy2p * sx1p
-                jx(ip-1,jp  ) = jx(ip-1,jp  ) + chrg / dt * deltax * sy2m * sx1m
-                jx(ip-1,jp+1) = jx(ip-1,jp+1) + chrg / dt * deltax * sy2p * sx1m
-                jx(ip-1,ny  ) = jx(ip-1,ny  ) + chrg / dt * deltax * sy2m * sx1m
+           jx(ip  ,jp  ) = jx(ip  ,jp  ) + chrg / dt * deltax * sy2  * sx1p
+           jx(ip  ,jp+1) = jx(ip  ,jp+1) + chrg / dt * deltax * sy2p * sx1p
+           jx(ip  ,ny  ) = jx(ip  ,ny  ) + chrg / dt * deltax * sy2p * sx1p
+           jx(ip-1,jp  ) = jx(ip-1,jp  ) + chrg / dt * deltax * sy2m * sx1m
+           jx(ip-1,jp+1) = jx(ip-1,jp+1) + chrg / dt * deltax * sy2p * sx1m
+           jx(ip-1,ny  ) = jx(ip-1,ny  ) + chrg / dt * deltax * sy2m * sx1m
         else 
-                jx(ip  ,jp  ) = jx(ip  ,jp  ) + chrg / dt * deltax * sy2  * sx1p
-                jx(ip  ,jp+1) = jx(ip  ,jp+1) + chrg / dt * deltax * sy2m * sx1p
-                jx(ip  ,ny  ) = jx(ip  ,ny  ) + chrg / dt * deltax * sy2p * sx1p
-                jx(nx  ,jp  ) = jx(nx  ,jp  ) + chrg / dt * deltax * sy2m * sx1m
-                jx(nx  ,jp+1) = jx(nx  ,jp+1) + chrg / dt * deltax * sy2p * sx1m
-                jx(nx  ,ny  ) = jx(nx  ,ny  ) + chrg / dt * deltax * sy2p * sx1m
+           jx(ip  ,jp  ) = jx(ip  ,jp  ) + chrg / dt * deltax * sy2  * sx1p
+           jx(ip  ,jp+1) = jx(ip  ,jp+1) + chrg / dt * deltax * sy2m * sx1p
+           jx(ip  ,ny  ) = jx(ip  ,ny  ) + chrg / dt * deltax * sy2p * sx1p
+           jx(nx  ,jp  ) = jx(nx  ,jp  ) + chrg / dt * deltax * sy2m * sx1m
+           jx(nx  ,jp+1) = jx(nx  ,jp+1) + chrg / dt * deltax * sy2p * sx1m
+           jx(nx  ,ny  ) = jx(nx  ,ny  ) + chrg / dt * deltax * sy2p * sx1m
         end if 
       
         if(ip .ne. 0 .and. jp .ne. 0) then
-                jy(ip  ,jp  ) = jy(ip  ,jp  ) + chrg / dt * deltay * sx2  * sy1p
-                jy(ip-1,jp  ) = jy(ip-1,jp  ) + chrg / dt * deltay * sx2m * sy1p
-                jy(ip+1,jp  ) = jy(ip+1,jp  ) + chrg / dt * deltay * sx2p * sy1p
-                jy(ip  ,jp-1) = jy(ip,  jp-1) + chrg / dt * deltay * sx2  * sy1m
-                jy(ip-1,jp-1) = jy(ip-1,jp-1) + chrg / dt * deltay * sx2m * sy1m
-                jy(ip+1,jp-1) = jy(ip+1,jp-1) + chrg / dt * deltay * sx2p * sy1m
+           jy(ip  ,jp  ) = jy(ip  ,jp  ) + chrg / dt * deltay * sx2  * sy1p
+           jy(ip-1,jp  ) = jy(ip-1,jp  ) + chrg / dt * deltay * sx2m * sy1p
+           jy(ip+1,jp  ) = jy(ip+1,jp  ) + chrg / dt * deltay * sx2p * sy1p
+           jy(ip  ,jp-1) = jy(ip,  jp-1) + chrg / dt * deltay * sx2  * sy1m
+           jy(ip-1,jp-1) = jy(ip-1,jp-1) + chrg / dt * deltay * sx2m * sy1m
+           jy(ip+1,jp-1) = jy(ip+1,jp-1) + chrg / dt * deltay * sx2p * sy1m
         else if (ip .eq. 0 .and. jp .ne. 0) then
-                jy(ip  ,jp  ) = jy(ip  ,jp  ) + chrg / dt * deltay * sx2  * sy1p
-                jy(nx  ,jp  ) = jy(nx  ,jp  ) + chrg / dt * deltay * sx2m * sy1p
-                jy(ip+1,jp  ) = jy(ip+1,jp  ) + chrg / dt * deltay * sx2p * sy1p
-                jy(ip  ,jp-1) = jy(ip  ,jp-1) + chrg / dt * deltay * sx2  * sy1m
-                jy(nx  ,jp-1) = jy(nx  ,jp-1) + chrg / dt * deltay * sx2m * sy1m
-                jy(ip+1,jp-1) = jy(ip+1,jp-1) + chrg / dt * deltay * sx2p * sy1m
+           jy(ip  ,jp  ) = jy(ip  ,jp  ) + chrg / dt * deltay * sx2  * sy1p
+           jy(nx  ,jp  ) = jy(nx  ,jp  ) + chrg / dt * deltay * sx2m * sy1p
+           jy(ip+1,jp  ) = jy(ip+1,jp  ) + chrg / dt * deltay * sx2p * sy1p
+           jy(ip  ,jp-1) = jy(ip  ,jp-1) + chrg / dt * deltay * sx2  * sy1m
+           jy(nx  ,jp-1) = jy(nx  ,jp-1) + chrg / dt * deltay * sx2m * sy1m
+           jy(ip+1,jp-1) = jy(ip+1,jp-1) + chrg / dt * deltay * sx2p * sy1m
         else if (ip .ne. 0 .and. jp .eq. 0) then
-                jy(ip  ,jp  ) = jy(ip  ,jp  ) + chrg / dt * deltay * sx2  * sy1p
-                jy(ip-1,jp  ) = jy(ip-1,jp  ) + chrg / dt * deltay * sx2m * sy1p
-                jy(ip+1,jp  ) = jy(ip+1,jp  ) + chrg / dt * deltay * sx2p * sy1p
-                jy(ip  ,ny  ) = jy(ip  ,ny  ) + chrg / dt * deltay * sx2  * sy1m
-                jy(ip-1,ny  ) = jy(ip-1,ny  ) + chrg / dt * deltay * sx2m * sy1m
-                jy(ip+1,ny  ) = jy(ip+1,ny  ) + chrg / dt * deltay * sx2p * sy1m
+           jy(ip  ,jp  ) = jy(ip  ,jp  ) + chrg / dt * deltay * sx2  * sy1p
+           jy(ip-1,jp  ) = jy(ip-1,jp  ) + chrg / dt * deltay * sx2m * sy1p
+           jy(ip+1,jp  ) = jy(ip+1,jp  ) + chrg / dt * deltay * sx2p * sy1p
+           jy(ip  ,ny  ) = jy(ip  ,ny  ) + chrg / dt * deltay * sx2  * sy1m
+           jy(ip-1,ny  ) = jy(ip-1,ny  ) + chrg / dt * deltay * sx2m * sy1m
+           jy(ip+1,ny  ) = jy(ip+1,ny  ) + chrg / dt * deltay * sx2p * sy1m
         else 
-                jy(ip  ,jp  ) = jy(ip  ,jp  ) + chrg / dt * deltay * sx2  * sy1p
-                jy(nx  ,jp  ) = jy(nx  ,jp  ) + chrg / dt * deltay * sx2m * sy1p
-                jy(ip+1,jp  ) = jy(ip+1,jp  ) + chrg / dt * deltay * sx2p * sy1p
-                jy(ip  ,ny  ) = jy(ip  ,ny  ) + chrg / dt * deltay * sx2  * sy1m
-                jy(nx  ,ny  ) = jy(nx  ,ny  ) + chrg / dt * deltay * sx2m * sy1m
-                jy(ip+1,ny  ) = jy(ip+1,ny  ) + chrg / dt * deltay * sx2p * sy1m
+           jy(ip  ,jp  ) = jy(ip  ,jp  ) + chrg / dt * deltay * sx2  * sy1p
+           jy(nx  ,jp  ) = jy(nx  ,jp  ) + chrg / dt * deltay * sx2m * sy1p
+           jy(ip+1,jp  ) = jy(ip+1,jp  ) + chrg / dt * deltay * sx2p * sy1p
+           jy(ip  ,ny  ) = jy(ip  ,ny  ) + chrg / dt * deltay * sx2  * sy1m
+           jy(nx  ,ny  ) = jy(nx  ,ny  ) + chrg / dt * deltay * sx2m * sy1m
+           jy(ip+1,ny  ) = jy(ip+1,ny  ) + chrg / dt * deltay * sx2p * sy1m
         end if
    
         jz(ip  ,jp  ) = jz(ip  ,jp  ) + chrg / dt * deltaz * sx2  * sy2
@@ -936,29 +956,29 @@ implicit none
         jz(ip+1,jp+1) = jz(ip+1,jp+1) + chrg / dt * deltaz * sx2p * sy2p
 
         if(ip .ne. 0 .and. jp .ne. 0) then
-                jz(ip-1,jp  ) = jz(ip-1,jp  ) + chrg / dt * deltaz * sx2m * sy2
-                jz(ip-1,jp-1) = jz(ip-1,jp-1) + chrg / dt * deltaz * sx2m * sy2m
-                jz(ip-1,jp+1) = jz(ip-1,jp+1) + chrg / dt * deltaz * sx2m * sy2p
-                jz(ip  ,jp-1) = jz(ip  ,jp-1) + chrg / dt * deltaz * sx2  * sy2m
-                jz(ip+1,jp-1) = jz(ip+1,jp-1) + chrg / dt * deltaz * sx2p * sy2m
+           jz(ip-1,jp  ) = jz(ip-1,jp  ) + chrg / dt * deltaz * sx2m * sy2
+           jz(ip-1,jp-1) = jz(ip-1,jp-1) + chrg / dt * deltaz * sx2m * sy2m
+           jz(ip-1,jp+1) = jz(ip-1,jp+1) + chrg / dt * deltaz * sx2m * sy2p
+           jz(ip  ,jp-1) = jz(ip  ,jp-1) + chrg / dt * deltaz * sx2  * sy2m
+           jz(ip+1,jp-1) = jz(ip+1,jp-1) + chrg / dt * deltaz * sx2p * sy2m
         else if (ip .eq. 0 .and. jp .ne. 0) then
-                jz(nx  ,jp  ) = jz(ip  ,jp  ) + chrg / dt * deltay * sx2m + sy2
-                jz(nx  ,jp-1) = jz(nx  ,jp-1) + chrg / dt * deltay * sx2m + sy2m
-                jz(nx  ,jp+1) = jz(ip+1,jp+1) + chrg / dt * deltay * sx2m + sy2p
-                jz(ip  ,jp-1) = jz(ip  ,jp-1) + chrg / dt * deltay * sx2  + sy2m
-                jz(ip+1,jp-1) = jz(ip+1,jp-1) + chrg / dt * deltay * sx2p + sy2m
+           jz(nx  ,jp  ) = jz(ip  ,jp  ) + chrg / dt * deltay * sx2m + sy2
+           jz(nx  ,jp-1) = jz(nx  ,jp-1) + chrg / dt * deltay * sx2m + sy2m
+           jz(nx  ,jp+1) = jz(ip+1,jp+1) + chrg / dt * deltay * sx2m + sy2p
+           jz(ip  ,jp-1) = jz(ip  ,jp-1) + chrg / dt * deltay * sx2  + sy2m
+           jz(ip+1,jp-1) = jz(ip+1,jp-1) + chrg / dt * deltay * sx2p + sy2m
         else if (ip .ne. 0 .and. jp .eq. 0) then
-                jz(ip-1,jp  ) = jz(ip-1,jp  ) + chrg / dt * deltay * sx2m + sy2
-                jz(ip-1,ny  ) = jz(ip-1,ny  ) + chrg / dt * deltay * sx2m + sy2m
-                jz(ip-1,jp+1) = jz(ip-1,jp  ) + chrg / dt * deltay * sx2m + sy2p
-                jz(ip  ,ny  ) = jz(ip  ,ny  ) + chrg / dt * deltay * sx2  + sy2m
-                jz(ip+1,ny  ) = jz(ip+1,ny  ) + chrg / dt * deltay * sx2p + sy2m
+           jz(ip-1,jp  ) = jz(ip-1,jp  ) + chrg / dt * deltay * sx2m + sy2
+           jz(ip-1,ny  ) = jz(ip-1,ny  ) + chrg / dt * deltay * sx2m + sy2m
+           jz(ip-1,jp+1) = jz(ip-1,jp  ) + chrg / dt * deltay * sx2m + sy2p
+           jz(ip  ,ny  ) = jz(ip  ,ny  ) + chrg / dt * deltay * sx2  + sy2m
+           jz(ip+1,ny  ) = jz(ip+1,ny  ) + chrg / dt * deltay * sx2p + sy2m
         else
-                jz(nx  ,jp  ) = jz(nx  ,jp  ) + chrg / dt * deltay * sx2m + sy2
-                jz(nx  ,ny  ) = jz(nx  ,ny  ) + chrg / dt * deltay * sx2m + sy2m
-                jz(nx  ,jp+1) = jz(nx  ,jp+1) + chrg / dt * deltay * sx2m + sy2p
-                jz(ip  ,ny  ) = jz(ip  ,ny  ) + chrg / dt * deltay * sx2  + sy2m
-                jz(ip+1,ny  ) = jz(ip+1,ny  ) + chrg / dt * deltay * sx2p + sy2m
+           jz(nx  ,jp  ) = jz(nx  ,jp  ) + chrg / dt * deltay * sx2m + sy2
+           jz(nx  ,ny  ) = jz(nx  ,ny  ) + chrg / dt * deltay * sx2m + sy2m
+           jz(nx  ,jp+1) = jz(nx  ,jp+1) + chrg / dt * deltay * sx2m + sy2p
+           jz(ip  ,ny  ) = jz(ip  ,ny  ) + chrg / dt * deltay * sx2  + sy2m
+           jz(ip+1,ny  ) = jz(ip+1,ny  ) + chrg / dt * deltay * sx2p + sy2m
 
         end if
    end do
