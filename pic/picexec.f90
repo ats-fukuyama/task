@@ -887,10 +887,10 @@ CONTAINS
         !sy1m = 0.5 + dy   
         sx2 = 3.0d0/4 - dx ** 2.0d0
         sy2 = 3.0d0/4 - dy ** 2.0d0
-        sx2p = 1.0d0/2 * (1.0d0/2 + dx) ** 2.0d0
-        sy2p = 1.0d0/2 * (1.0d0/2 + dy) ** 2.0d0
-        sx2m = 1.0d0/2 * (1.0d0/2 - dx) ** 2.0d0
-        sy2m = 1.0d0/2 * (1.0d0/2 - dy) ** 2.0d0
+        sx2p = 1.0d0/2 * (1.0d0/2 + dx) ** 2
+        sy2p = 1.0d0/2 * (1.0d0/2 + dy) ** 2
+        sx2m = 1.0d0/2 * (1.0d0/2 - dx) ** 2
+        sy2m = 1.0d0/2 * (1.0d0/2 - dy) ** 2
 
         if(ip .ne. 0 .and. jp .ne. 0) then
            jx(ip  ,jp  ) = jx(ip  ,jp  ) + chrg / dt * deltax * sy2  * dx1
