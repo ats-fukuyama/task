@@ -81,10 +81,10 @@ CONTAINS
   SUBROUTINE pic_deallocate
 
     IF(ALLOCATED(ex)) THEN
-       DEALLOCATE(ex,ey,ez,rho,phi,awk)
+       DEALLOCATE(ex,ey,ez,rho,phi,phib,awk)
        DEALLOCATE(bxg,byg,bzg)
-       DEALLOCATE(xe,ye,ze,vxe,vye,vze,xi,yi,zi,vxi,vyi,vzi,&
-            jx,jy,jz,xeb,yeb,zeb,xib,yib,zib,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
+       DEALLOCATE(xe,ye,ze,vxe,vye,vze,xi,yi,zi,vxi,vyi,vzi,jx,jy,jz,&
+       xeb,yeb,zeb,xib,yib,zib,Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
        DEALLOCATE(cform,rhof,phif,afwk)
     END IF
 

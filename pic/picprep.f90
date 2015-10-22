@@ -82,7 +82,7 @@ CONTAINS
       alx = dble(nx)
       aly = dble(ny)
       alz = dble(nz)
-
+      
       factx = alx / dble(npx)
       facty = aly / dble(npy)
       factz = alz / dble(npz)
