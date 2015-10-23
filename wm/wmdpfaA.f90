@@ -60,13 +60,13 @@ SUBROUTINE WMDPFAA(CW,RHOWM,RKPR,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
 
 !--
      DO NTH=1,NTHMAX
-       IF(ABS(TCSM(NTH)).LT.1.D-21) THEN
-        p0=7.D0*PTA
-        Cp0=7.D0*PTA+1.D21*AIMAG(1.D0/CX)  !!??
-       ELSE
+!       IF(ABS(TCSM(NTH)).LT.1.D-21) THEN
+!        p0=1.D2*PTA
+!        Cp0=1.D2*PTA+1.D21*AIMAG(1.D0/CX)  !!??
+!       ELSE
         p0=1.D0/(REAL(CX)*TCSM(NTH))
         Cp0=1.D0/(CX*TCSM(NTH))
-       ENDIF
+!       ENDIF
         v0=p0/AM
         v0N=v0/VTA
         p0N=p0/PTA
@@ -164,7 +164,7 @@ SUBROUTINE WMDPFAA(CW,RHOWM,RKPR,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
 END SUBROUTINE WMDPFAA
 
 
-SUBROUTINE PVINT(j,l,Cp0,RHOWM,CINT)
+SUBROUTINE PVINT(j,l,Cp0a,RHOWM,CINT)
  USE plcomm
  USE pllocal
  USE bpsd_constants,ONLY : CI,PI,AMP
@@ -175,7 +175,7 @@ SUBROUTINE PVINT(j,l,Cp0,RHOWM,CINT)
  INTEGER,INTENT(IN) :: j  ! j-> (df/dp or df/dr) and power 
  INTEGER,INTENT(IN) :: l  ! l=1-> boundary (0,p0N), l=2-> (p0N,pmaxN), l=3-> (0,pmaxN)
  REAL(8),INTENT(IN) :: RHOWM
- COMPLEX(8),INTENT(IN) :: Cp0
+ COMPLEX(8),INTENT(IN) :: Cp0a
  COMPLEX(8),INTENT(OUT) :: CINT ! Integral
 ! COMPLEX(8), :: CFUNC1,CFUNC2,CFUNC3,CFUNC4,CFUNC5,CFUNC6
  REAL(8) :: x,xm,xp 
