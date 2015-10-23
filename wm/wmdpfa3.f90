@@ -1,0 +1,231 @@
+
+! ******************************************************
+!                       WMDPFA3              
+!      dielectric tensor used by arbitral distribution function 
+!      without relativistic effects
+
+! ******************************************************
+
+SUBROUTINE WMDPFA3(CW,NRWM,DELRWM,NPWMMAX,NTHPMAX,RKPR,VTA,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
+
+  USE plcomm
+  USE pllocal
+  USE bpsd_constants,ONLY : CI,PI,AMP
+! USE dpfpin,ONLY: dpfmfl 
+  INCLUDE '../dp/dpcomm.inc'
+
+!  IMPLICIT NONE
+  INTEGER,INTENT(IN) :: NRWM,NPWMMAX,NTHPMAX
+  COMPLEX(8),INTENT(IN) :: CW
+  REAL(8),INTENT(IN) :: RKPR,VTA,DELRWM
+!  COMPLEX(8),INTENT(OUT) :: CXM(1:6)
+  COMPLEX(8),INTENT(OUT) :: CPM1,CPM2,CQM1,CQM2,CRM1,CRM2
+  REAL(8) :: p,v
+  REAL(8) :: p0,v0,PTA
+  REAL(8) :: AM,Norml
+  COMPLEX(8) :: CX
+  REAL(8) :: AP,AQ,AR
+!  REAL(8) :: DIFFRHO,DIFFRHOMIN,DELR
+  INTEGER :: NRFA2,NS,NR,ID
+  REAL(8) :: DELP1,DELP2,PMF
+  COMPLEX(8) :: funcD
+
+  REAL(8),ALLOCATABLE :: DFR(:,:)
+  REAL(8),ALLOCATABLE :: FA(:,:,:)
+
+     NS=3
+     NPMAX=NPWMMAX
+     NTHMAX=NTHPMAX
+     NR=NRWM
+    ALLOCATE(DFR(1:NPMAX,1:NTHMAX))
+    ALLOCATE(FA(NR:NR+1,1:NPMAX,1:NTHMAX))
+     DELP(NS)=PMAX(NS)/NPMAX
+     DELTH=PI/NTHMAX
+     AM=AMP*PA(NS)
+     PTA=VTA*AM
+     CX=ABS(RKPR)/(CW*AM)
+     CPM1=(0.D0,0.D0)
+     CPM2=(0.D0,0.D0)
+     CQM1=(0.D0,0.D0)
+     CQM2=(0.D0,0.D0)
+     CRM1=(0.D0,0.D0)
+     CRM2=(0.D0,0.D0)
+!   WRITE(6,'(1P6E12.4)') DELP(NS),REAL(NTHMAX)
+    CALL DISTR_FA(NR,DELRWM,NPWMMAX,NTHPMAX,FA)
+!
+!    DO NP=1,NPMAX
+!    DO NTH=1,NTHMAX
+!       PMF=(REAL(NP)-0.5D0)*DELP(NS)*PTA
+!       FA(NR,NP,NTH)=FA(NR,NP,NTH)*EXP(-(PMF/PTA)**2)
+!       FA(NR+1,NP,NTH)=FA(NR+1,NP,NTH)*EXP(-(PMF/PTA)**2)
+!        WRITE(6,'(1P6E12.4)') FA(NR,NP,NTH)
+!    END DO
+!    END DO
+!
+
+!-- df/dp,df/dr with FA
+        Norml=1.D0/(SQRT(PI)*VTA*VTA*VTA)
+      DO NTH=1,NTHMAX
+      DO NP=1,NPMAX-1
+         DFP(NP,NTH)=Norml*(FA(NR,NP+1,NTH)-FA(NR,NP,NTH))/(DELP(NS)*PTA)
+!          WRITE(6,'(1P6E12.4)') PG(NP,NS),FA(NR,NP,NTH)
+      END DO
+      END DO
+
+      DO NP=1,NPMAX
+      DO NTH=1,NTHMAX
+         DFR(NP,NTH)=Norml*(FA(NR+1,NP,NTH)-FA(NR,NP,NTH))/DELRWM
+      END DO
+      END DO
+!!--
+
+!-- df/dp,df/dtheta with Test function Maxwellian
+!      ID=0
+!      Norml=1.D0/(VTA*VTA*VTA)
+!     CALL DPFMFL(NS,ID)
+!      DO NTH=1,NTHMAX
+!      DO NP=1,NPMAX-1
+!          DFP(NP,NTH)=Norml*(FM(NP+1,NTH)-FM(NP,NTH))/(DELP(NS)*PTA)
+!         WRITE(6,'(1P6E12.4)') DFP(NP,NTH),DFR(NP,NTH)
+!      END DO
+!      END DO
+
+!      DO NTH=1,NTHMAX
+!      DO NP=1,NPMAX
+!          DFR(NP,NTH)=Norml*FM(NP,NTH)
+!        WRITE(6,'(1P6E12.4)') REAL(NP)
+!      END DO
+!      END DO
+!         WRITE(6,'(1P6E12.4)') TPP,FACTOR
+
+!--
+     DO NTH=1,NTHMAX
+        IF(ABS(TCSM(NTH)).LT.1.D-21) THEN
+         p0=7.D0*PTA
+        ELSE
+         p0=1.D0/(REAL(CX)*TCSM(NTH))
+        ENDIF
+         v0=p0/AM
+         AP=TSNM(NTH)*((1.D0+TCSM(NTH)*TCSM(NTH))**2)
+         AQ=TSNM(NTH)*TCSM(NTH)*(1.D0+TCSM(NTH)*TCSM(NTH))
+         AR=TSNM(NTH)*TCSM(NTH)*TCSM(NTH)
+     DO NP=1,NPMAX-1
+         p=PM(NP,NS)*PTA !==> 0?
+!         p=(REAL(NP)-0.5D0)*DELP(NS)*PTA 
+         v=p/AM
+!    WRITE(6,'(1P6E12.4)') p0,v0,p,v,PG(NP,NS)
+         funcD=1.D0-CX*p*TCSM(NTH)
+!----INCLUDE SINGULAR POINT
+      IF(((PG(NP,NS)*PTA).LT.p0).AND.((PG(NP+1,NS)*PTA).GT.p0)) THEN
+        DELP1=p0-PG(NP,NS)*PTA
+        DELP2=PG(NP+1,NS)*PTA-p0
+!    WRITE(6,'(1P6E12.4)') p0,v0,REAL(NP),REAL(NTH)
+!-----PRICIPAL VALUE
+        CPM1=CPM1   &
+        +(DFP(NP,NTH)*(v**5)*AP/(1.D0-CX*TCSM(NTH)*(PG(NP,NS)*PTA+0.5D0*DELP1)))*DELP1*DELTH &
+        +(DFP(NP,NTH)*(v**5)*AP/(1.D0-CX*TCSM(NTH)*(PG(NP+1,NS)*PTA-0.5D0*DELP2)))*DELP2*DELTH
+        CPM2=CPM2   &
+        +(DFR(NP,NTH)*(v**6)*AP/(1.D0-CX*TCSM(NTH)*(PG(NP,NS)*PTA+0.5D0*DELP1)))*DELP1*DELTH &
+        +(DFR(NP,NTH)*(v**6)*AP/(1.D0-CX*TCSM(NTH)*(PG(NP+1,NS)*PTA-0.5D0*DELP2)))*DELP2*DELTH
+
+        CQM1=CQM1   &
+        +(DFP(NP,NTH)*(v**4)*AQ/(1.D0-CX*TCSM(NTH)*(PG(NP,NS)*PTA+0.5D0*DELP1)))*DELP1*DELTH &
+        +(DFP(NP,NTH)*(v**4)*AQ/(1.D0-CX*TCSM(NTH)*(PG(NP+1,NS)*PTA-0.5D0*DELP2)))*DELP2*DELTH
+        CQM2=CQM2   &
+        +(DFR(NP,NTH)*(v**5)*AQ/(1.D0-CX*TCSM(NTH)*(PG(NP,NS)*PTA+0.5D0*DELP1)))*DELP1*DELTH &
+        +(DFR(NP,NTH)*(v**5)*AQ/(1.D0-CX*TCSM(NTH)*(PG(NP+1,NS)*PTA-0.5D0*DELP2)))*DELP2*DELTH
+
+        CRM1=CRM1   &
+        +(DFP(NP,NTH)*(v**3)*AR/(1.D0-CX*TCSM(NTH)*(PG(NP,NS)*PTA+0.5D0*DELP1)))*DELP1*DELTH &
+        +(DFP(NP,NTH)*(v**3)*AR/(1.D0-CX*TCSM(NTH)*(PG(NP+1,NS)*PTA-0.5D0*DELP2)))*DELP2*DELTH
+        CRM2=CRM2   &
+        +(DFR(NP,NTH)*(v**4)*AR/(1.D0-CX*TCSM(NTH)*(PG(NP,NS)*PTA+0.5D0*DELP1)))*DELP1*DELTH &
+        +(DFR(NP,NTH)*(v**4)*AR/(1.D0-CX*TCSM(NTH)*(PG(NP+1,NS)*PTA-0.5D0*DELP2)))*DELP2*DELTH
+!------END PRINCIPAL VALUE
+
+!-----SINGULAR POINT
+        IF(AIMAG(CW).GT.0.D0) THEN
+         CPM1=CPM1
+         CPM2=CPM2
+         CQM1=CQM1
+         CQM2=CQM2
+         CRM1=CRM1
+         CRM2=CRM2
+        ELSEIF(AIMAG(CW).EQ.0.D0) THEN
+         CPM1=CPM1-CI*PI*(DFP(NP,NTH)*(v0**5)*AP)*p0*DELTH
+         CPM2=CPM2-CI*PI*(DFR(NP,NTH)*(v0**6)*AP)*p0*DELTH
+         CQM1=CQM1-CI*PI*(DFP(NP,NTH)*(v0**4)*AQ)*p0*DELTH
+         CQM2=CQM2-CI*PI*(DFR(NP,NTH)*(v0**5)*AQ)*p0*DELTH
+         CRM1=CRM1-CI*PI*(DFP(NP,NTH)*(v0**3)*AR)*p0*DELTH
+         CRM2=CRM2-CI*PI*(DFR(NP,NTH)*(v0**4)*AR)*p0*DELTH
+        ELSE  !(AIMAG(CW).LT.0.D0)
+         CPM1=CPM1-2.D0*CI*PI*(DFP(NP,NTH)*(v0**5)*AP)*p0*DELTH
+         CPM2=CPM2-2.D0*CI*PI*(DFR(NP,NTH)*(v0**6)*AP)*p0*DELTH
+         CQM1=CQM1-2.D0*CI*PI*(DFP(NP,NTH)*(v0**4)*AQ)*p0*DELTH
+         CQM2=CQM2-2.D0*CI*PI*(DFR(NP,NTH)*(v0**5)*AQ)*p0*DELTH
+         CRM1=CRM1-2.D0*CI*PI*(DFP(NP,NTH)*(v0**3)*AR)*p0*DELTH
+         CRM2=CRM2-2.D0*CI*PI*(DFR(NP,NTH)*(v0**4)*AR)*p0*DELTH
+        ENDIF
+!-----END SINGULAR POINT
+
+!-----END INCLUDE SINGULAR POINT
+      ELSE
+!-----WITHOUT SINGULAR POINT
+
+        CPM1=CPM1+(DFP(NP,NTH)*(v**5)*AP/funcD)*DELP(NS)*PTA*DELTH
+        CPM2=CPM2+(DFR(NP,NTH)*(v**6)*AP/funcD)*DELP(NS)*PTA*DELTH
+
+        CQM1=CQM1+(DFP(NP,NTH)*(v**4)*AQ/funcD)*DELP(NS)*PTA*DELTH
+        CQM2=CQM2+(DFR(NP,NTH)*(v**5)*AQ/funcD)*DELP(NS)*PTA*DELTH
+
+        CRM1=CRM1+(DFP(NP,NTH)*(v**3)*AR/funcD)*DELP(NS)*PTA*DELTH
+        CRM2=CRM2+(DFR(NP,NTH)*(v**4)*AR/funcD)*DELP(NS)*PTA*DELTH
+!         WRITE(6,'(1P6E12.4)') CPM1,CPM2
+      ENDIF
+!-----END WITHOUT SINGULAR POINT
+     END DO
+     END DO
+!  WRITE(6,'(1P6E12.4)') CPM1,CPM2
+  DEALLOCATE(DFR)
+  DEALLOCATE(FA)     
+!     CPM1=(0.D0,0.D0)
+!     CPM2=(0.D0,0.D0)
+!     CQM1=(0.D0,0.D0)
+!     CQM2=(0.D0,0.D0)
+!     CRM1=(0.D0,0.D0)
+!     CRM2=(0.D0,0.D0)  
+!    RETURN
+END SUBROUTINE WMDPFA3
+
+
+! CONTAINS 
+ SUBROUTINE DISTR_FA(NR,DELRWM,NPWMMAX,NTHPMAX,FA)
+  USE plcomm
+  USE pllocal
+  INCLUDE '../dp/dpcomm.inc'   
+!  IMPLICIT NONE
+  INTEGER,INTENT(IN) :: NR,NPWMMAX,NTHPMAX
+  REAL(8),INTENT(IN) :: DELRWM
+  REAL(8),DIMENSION(NR:NR+1,NPWMMAX,NTHPMAX),INTENT(OUT) :: FA
+  REAL(8) :: FAR(NR:NR+1)
+  REAL(8) :: PNAL,XRHO
+  INTEGER :: NS,ID
+!  ALLOCATE(FA(NR:NR+1,1:NPWMMAX,1:NTHPMAX))
+  NPMAX=NPWMMAX
+  NTHMAX=NTHPMAX
+  NS=3
+  ID=0
+  CALL DPFMFL(NS,ID)
+  XRHO=(NR-0.5D0)*DELRWM
+  PNAL=0.5D0
+  FAR(NR)=EXP(-(XRHO/PNAL)**2)
+  FAR(NR+1)=EXP(-((XRHO+DELRWM)/PNAL)**2)
+   DO NP=1,NPMAX
+   DO NTH=1,NTHMAX
+      FA(NR,NP,NTH)=FAR(NR)*FM(NP,NTH)
+      FA(NR+1,NP,NTH)=FAR(NR+1)*FM(NP,NTH)
+!     WRITE(6,'(1P6E12.4)') FA(NR,NP,NTH)
+   END DO
+   END DO 
+ END SUBROUTINE DISTR_FA
+!END SUBROUTINE WMDPFA3
