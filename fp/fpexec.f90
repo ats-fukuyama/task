@@ -199,7 +199,7 @@
 
 !     ----- Get solution vector -----
 
-      CALL mtx_get_vector(BM_L)
+      CALL mtx_gather_vector(BM_L)
       DO NR=NRSTART, NREND
          DO NP=NPSTART, NPEND
             DO NTH=1,NTHMAX

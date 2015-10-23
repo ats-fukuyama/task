@@ -15,6 +15,10 @@ C
       PNA  = 0.02D0
       PNAL = 0.5D0
       PTA  = 3.5D3
+!        NPWMMAX : Number of momentum mesh points
+!        NTHPMAX : Number of pitch angle mesh points
+      NPWMMAX = 128
+      NTHPMAX = 16
 C
 C     **** ZEFF PARAMETERS ****
 C
@@ -270,6 +274,7 @@ C
      &              RF,RFI,RD,BETAJ,AJ,AEWGT,AEWGZ,
      &              APH,THJ1,THJ2,PHJ1,PHJ2,ANTANG,NAMAX,MWGMAX,
      &              NRMAX,NTHMAX,NHHMAX,NTH0,NPH0,NHC,
+     &              NPWMMAX,NTHPMAX,
      &              NPRINT,NGRAPH,MODELG,MODELJ,MODELP,MODELN,MODELA,
      &              MODELQ,MODELM,MODELW,MODELV,MODEFA,
      &              MODEFR,MODEFW,
@@ -281,6 +286,7 @@ C
      &              KNAMEQ,KNAMTR,KNAMWM,KNAMFP,KNAMFO,KNAMPF,
      &              WAEMIN,WAEMAX,PRFIN,MODELPR,MODELVR,
      &              NSUMAX,NSWMAX,NPHMAX,NPH0L,PFRACL
+
 C
       RF=DREAL(CRF)
       RFI=DIMAG(CRF)
@@ -319,6 +325,7 @@ C
      &       9X,'AJ,APH,THJ1,THJ2,PHJ1,PHJ2,ANTANG,NAMAX,'/
      &       9X,'AEWGT,AEWGZ,MWGMAX,'/
      &       9X,'NRMAX,NTHMAX,NHHMAX,NTH0,NPH0,NHC,'/
+     &       9x,'NPWMMAX,NTHPMAX,'/
      &       9X,'MODELG,MODELJ,MODELP,MODELA,MODELN,'/
      &       9X,'MODELQ,MODELM,MODELW,MODEFA,'/
      &       9X,'KNAMEQ,KNAMTR,KNAMPF,MODEFR,MODEFW,'/
@@ -390,6 +397,8 @@ C
          WRITE(6,*) '                  MODELJ =',MODELJ
          IERR=1
       ENDIF
+    
+      CALL DPCHEK(NTHMAX,NRMAX,RMIN,RMAX,RR,IERR)
 C
       RETURN
       END
@@ -483,6 +492,8 @@ C
      &             'NHHMAX',NHHMAX
       WRITE(6,602) 'NTH0  ',NTH0  ,'NPH0  ',NPH0  ,
      &             'NHC   ',NHC
+      WRITE(6,602) 'NPWMMAX',NPWMMAX,
+     &             'NTHPMAX',NTHPMAX
       WRITE(6,602) 'MODELG',MODELG,'MODELJ',MODELJ,
      &             'MODELN',MODELN,'MODELA',MODELA
       WRITE(6,602) 'MODELM',MODELM,'MODELQ',MODELQ,

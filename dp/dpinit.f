@@ -45,6 +45,7 @@ C              4 : KINETIC: READ FPDATA DISTRIBUTION (RELATIVISTIC)
 C              5 : DRIFTKINETIC: ANALYTIC MAXWELLIAN DISTRIBUTION
 C              6 : DRIFTKINETIC: READ FPDATA DISTRIBUTION
 C              9 : LOCAL MODEL (MODELV locally specified by MODELVR)
+!     MODEFA : Type of fast particle contribution
 C
 C     NDISP1: MINIMUM HARMONIC NUMBER
 C     NDISP2: MAXMUM  HARMONIC NUMBER
@@ -72,6 +73,7 @@ C
          NDISP1(1)=-2
          NDISP2(1)= 2
          modelv(1)= 0
+         MODEFA=4 !!fa
 C
       IF(NSM.GE.2) THEN
          MODELP(2)= 0
@@ -87,7 +89,7 @@ C
          modelv(NS)= 0
       ENDDO
 C
-      DO NS=1,NSM
+      DO NS=1,NSAM
          PMAX(NS)= 7.D0
       ENDDO
 C
@@ -169,7 +171,7 @@ C
      &              NSMAX,PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PU,PUS,
      &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
      &              RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,
-     &              MODELG,MODELN,MODELQ,
+     &              MODELG,MODELN,MODELQ,MODEFA,
      &              KNAMEQ,KNAMWR,KNAMFP,MODEFR,MODEFW,IDEBUG,
      &              MODELP,NDISP1,NDISP2,
      &              RF0,RFI0,RKX0,RKY0,RKZ0,RX0,RY0,RZ0,
@@ -199,7 +201,7 @@ C
      &       9X,'NSMAX,PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PU,PUS,'/
      &       9X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,'/
      &       9X,'RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,'/
-     &       9X,'MODELG,MODELN,MODELQ,'/
+     &       9X,'MODELG,MODELN,MODELQ,MODEFA,'/
      &       9X,'KNAMEQ,KNAMWR,KNAMFP,IDEBUG,MODEFR,MODEFW,'/
      &       9X,'MODELP,NDISP1,NDISP2,'/
      &       9X,'RF0,RFI0,RKX0,RKY0,RKZ0,RX0,RY0,RZ0,'/
@@ -256,7 +258,8 @@ C
 C
       WRITE(6,100)
       DO NS=1,NSMAX
-        WRITE(6,110) NS,MODELP(NS),MODELV(NS),NDISP1(NS),NDISP2(NS),PMAX(NS)
+        WRITE(6,110) NS,MODELP(NS),MODELV(NS),
+     &               NDISP1(NS),NDISP2(NS),PMAX(NS)
       ENDDO
       WRITE(6,601) 'RMIN  ',RMIN  ,'RMAX  ',RMAX
       WRITE(6,602) 'NPMAX ',NPMAX ,'NTHMAX',NTHMAX,

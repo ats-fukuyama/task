@@ -54,8 +54,9 @@ C
             DO NTH=1,NTHMAX
                PPP=PML*TSNM(NTH)
                PPR=PML*TCSM(NTH)
-               EX=-(PPR**2/TNPR+PPP**2/TNPP)
-               FM(NP,NTH) = EXP(-EX)
+               EX=-(PPR**2/TNPR+PPP**2/TNPP)*0.5D0 !+ *0.5D0 2015/07/28
+!               FM(NP,NTH) = EXP(-EX) !original
+               FM(NP,NTH)=EXP(EX)    !2015/07/28
                SUM=SUM+FM(NP,NTH)*PM(NP,NS)*PM(NP,NS)*TSNM(NTH)
             ENDDO
          ENDDO
@@ -230,12 +231,12 @@ C
 C
       WRITE(6,*) '# DATA WAS SUCCESSFULLY LOADED FROM THE FILE.'
       WRITE(6,*) 'NRMAX,NPMAX,NTHMAX,NSAMAX =',NRMAX,NPMAX,NTHMAX,NSAMAX
-      WRITE(6,'(A,1P5E12.4)') 'DELR/P/TH,RMIN/RMAX =',
-     &                         DELR,DELP,DELTH,RMIN,RMAX
+      WRITE(6,'(A,1P4E12.4)') 'DELR/TH,RMIN/RMAX =',
+     &                         DELR,DELTH,RMIN,RMAX
       DO NSA=1,NSAMAX
          WRITE(6,*) 'NSA,NS =',NSA,NS_NSA(NSA)
-         WRITE(6,'(A,1P4E12.4)') 'AEFP,AMFP,RNFP0,RTFP0=',
-     &        AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
+         WRITE(6,'(A,1P5E12.4)') 'AE,AM,RN0,RT0,DELP=',
+     &        AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA),DELP(NSA)
       ENDDO
 C
       RHON_MIN=RMIN
@@ -261,6 +262,33 @@ C
       NFPDAT(2)=NPMAX
       NFPDAT(3)=NTHMAX
 C
+!!!--fa
+      IF(MODEFA.EQ.4) THEN
+       NSA=3
+       DO NP=1,NPMAX
+         PMa0(NP)=DELP(NSA)*(NP-0.5D0)
+       ENDDO
+
+       DO NR=1,NRMAX
+         RHOa0(NR)=RMIN+DELR*(NR-0.5D0)
+       ENDDO
+       
+       DO NTH=1,NTHMAX
+       DO NR=1,NRMAX
+       DO NP=1,NPMAX
+          fa0(NPM,NRM,NTHM)=FNS(NTH,NP,NR,NSA)
+       ENDDO
+       ENDDO
+       ENDDO
+
+       DO NTH=1,NTHMAX
+        CALL SPL2D(PMa0,RHOa0,fa0(1:NPMAX,1:NRMAX,NTH),dfpa0,dfra0,
+     &  dfpra0,US(4,4,1:NPMAX,1:NRMAX,NTH),NPMAX,NPMAX,NRMAX,0,0,IERR)
+       ENDDO   
+      ELSE
+       RETURN
+      ENDIF
+!!!--fa
   900 RETURN
       END
 C

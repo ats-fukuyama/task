@@ -546,8 +546,10 @@ C
       INCLUDE 'wmcomm.inc'
 !      IMPLICIT NONE
       COMPLEX*16 :: CPM1,CPM2,CQM1,CQM2,CRM1,CRM2 
+!      COMPLEX*16 :: CXM(1:6)
       DOUBLE PRECISION :: RHOL
-      INTEGER :: NS
+      INTEGER :: NS,NRWM
+      DOUBLE PRECISION :: DELRWM,RL
 C
       NS=3
       CW=2.D0*PI*CRF*1.D6
@@ -603,10 +605,10 @@ C
                CRM=CFN*COEF          *CEX*CX*CX*CX*2.D0
             ELSEIF((MODEFA.EQ.1).OR.(MODEFA.EQ.2)) THEN 
                CALL WMDPFA(CX,CFN,COEF,RHOR,CPM,CQM,CRM,MODEFA)
-            ELSE 
+            ELSEIF(MODEFA.EQ.3) THEN 
                RHOL=XRHO(NR)
-!             CALL WMDPFA2(NS,CW,RHOL,RKPR,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
-         CALL WMDPFA2(CW,AM,RHOL,RKPR,VTA,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
+         CALL WMDPFA2(NS,CW,RHOL,RKPR,VTA,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)  !normarized p,theta
+!         CALL WMDPFA2(CW,AM,RHOL,RKPR,VTA,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2) !not normarized p,theta
 !             WRITE(6,'(i5,1P2E12.4)') NS,RHOL,RKPR
 !             WRITE(6,'(1P6E12.4)') CPM1,CPM2,CQM1
 !             WRITE(6,'(1P6E12.4)') CQM2,CRM1,CRM2
@@ -616,9 +618,34 @@ C
      &           (-CQM1-2.D0*CQM2*MM/(AM*CW*WC*PNAL*PNAL))/2.D0
              CRM=2.D0 *PI*WP2/(CW*CW)*
      &           (-CRM1-2.D0*CRM2*MM/(AM*CW*WC*PNAL*PNAL))
-            ENDIF
+            ELSEIF(MODEFA.EQ.4) THEN 
+              RHOL=XRHO(NR)
+              CALL WMDPFAA(CW,RHOL,RKPR,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
+              CPM=CPM1+CPM2
+              CQM=CQM1+CQM2
+              CRM=CRM1+CRM2     
+            ELSE
+               NRWM=NR
+               DELRWM=RB*(XRHO(NR+1)-XRHO(NR))
+               RL=RB*0.5D0*(XRHO(NR+1)+XRHO(NR))
+               RNA=PNA*EXP(-(XL/PNAL)**2)*1.D20
+               WP2=AE*AE*PNA*1.D20/(AM*EPS0)
+              IF(RL.LT.RA) THEN
+       CALL WMDPFA3(CW,NRWM,DELRWM,NPWMMAX,NTHPMAX,RKPR,VTA,
+     &CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
+            CPM=5.D-1*PI*WP2/(CW*CW*WC*WC*RR*RR)*                         !FAR(NR)
+     &          (-CPM1+CPM2*MM/(AM*CW*WC*RL))/4.D0
+            CQM=1.D0 *PI*WP2/(CW*CW*WC*RR)*
+     &          (-CQM1+CQM2*MM/(AM*CW*WC*RL))/2.D0
+            CRM=2.D0 *PI*WP2/(CW*CW)*                                     !(RNA/(PNA*1.D20))*
+     &          (-CRM1+CRM2*MM/(AM*CW*WC*RL))
+               ELSE
+                RETURN
+              ENDIF
+             ENDIF
 !             WRITE(6,'(i5,1P2E12.4)') NS,RHOL,RKPR
 !             WRITE(6,'(1P6E12.4)') CPM,CQM,CRM
+
 C
 C            CTNSR(1,1,MD,ND,NTH,NHH)=CPM*COS(ANGTH)**2
 C            CTNSR(1,2,MD,ND,NTH,NHH)=CPM*COS(ANGTH)*SIN(ANGTH)
@@ -631,21 +658,21 @@ C            CTNSR(3,2,MD,ND,NTH,NHH)=CQM*SIN(ANGTH)
 C            CTNSR(3,3,MD,ND,NTH,NHH)=CRM
 C
             CTNSR(1,1,MD,ND,NTH,NHH)
-     &     =CTNSR(1,1,MD,ND,NTH,NHH)+CPM*COS(ANGTH)**2
+     &     =CTNSR(1,1,MD,ND,NTH,NHH)+CPM*SIN(ANGTH)**2!COS(ANGTH)**2
             CTNSR(1,2,MD,ND,NTH,NHH)
      &     =CTNSR(1,2,MD,ND,NTH,NHH)+CPM*COS(ANGTH)*SIN(ANGTH)
             CTNSR(1,3,MD,ND,NTH,NHH)
-     &     =CTNSR(1,3,MD,ND,NTH,NHH)+CQM*COS(ANGTH)
+     &     =CTNSR(1,3,MD,ND,NTH,NHH)+CQM*SIN(ANGTH)!COS(ANGTH)
             CTNSR(2,1,MD,ND,NTH,NHH)
      &     =CTNSR(2,1,MD,ND,NTH,NHH)+CPM*COS(ANGTH)*SIN(ANGTH)
             CTNSR(2,2,MD,ND,NTH,NHH)
-     &     =CTNSR(2,2,MD,ND,NTH,NHH)+CPM*SIN(ANGTH)**2
+     &     =CTNSR(2,2,MD,ND,NTH,NHH)+CPM*COS(ANGTH)**2!SIN(ANGTH)**2
             CTNSR(2,3,MD,ND,NTH,NHH)
-     &     =CTNSR(2,3,MD,ND,NTH,NHH)+CQM*SIN(ANGTH)
+     &     =CTNSR(2,3,MD,ND,NTH,NHH)+CQM*COS(ANGTH)!SIN(ANGTH)
             CTNSR(3,1,MD,ND,NTH,NHH)
-     &     =CTNSR(3,1,MD,ND,NTH,NHH)+CQM*COS(ANGTH)
+     &     =CTNSR(3,1,MD,ND,NTH,NHH)+CQM*SIN(ANGTH)!COS(ANGTH)
             CTNSR(3,2,MD,ND,NTH,NHH)
-     &     =CTNSR(3,2,MD,ND,NTH,NHH)+CQM*SIN(ANGTH)
+     &     =CTNSR(3,2,MD,ND,NTH,NHH)+CQM*COS(ANGTH)!SIN(ANGTH)
             CTNSR(3,3,MD,ND,NTH,NHH)
      &     =CTNSR(3,3,MD,ND,NTH,NHH)+CRM
          ENDDO
