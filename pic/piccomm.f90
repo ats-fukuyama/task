@@ -34,7 +34,7 @@ MODULE piccomm
              akine0, akini0, aktot0, apot0, atot0,         &
              akine1, akine2, akini1, akini2, time,         &
              x1, x2, y1, y2, z1, z2 ,alx, aly, alz,                &
-             wkword, wtime, wtime1, wtime2, mu, epsi
+             wkword, wtime, wtime1, wtime2, c, omega
   integer :: iloop, ifset, ipssn, iran, iene, ienemax
   integer :: ierr, myid, nodes
 
