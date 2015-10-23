@@ -276,14 +276,14 @@ C
        DO NTH=1,NTHMAX
        DO NR=1,NRMAX
        DO NP=1,NPMAX
-          fa0(NPM,NRM,NTHM)=FNS(NTH,NP,NR,NSA)
+          fa0(NP,NR,NTH)=FNS(NTH,NP,NR,NSA)
        ENDDO
        ENDDO
        ENDDO
 
        DO NTH=1,NTHMAX
-        CALL SPL2D(PMa0,RHOa0,fa0(1:NPMAX,1:NRMAX,NTH),dfpa0,dfra0,
-     &  dfpra0,US(4,4,1:NPMAX,1:NRMAX,NTH),NPMAX,NPMAX,NRMAX,0,0,IERR)
+        CALL SPL2D(PMa0,RHOa0,fa0(1:NPM,1:NRM,NTH),dfpa0,dfra0,
+     &  dfpra0,US(1:4,1:4,1:NPM,1:NRM,NTH),NPM,NPMAX,NRMAX,0,0,IERR)
        ENDDO   
       ELSE
        RETURN
