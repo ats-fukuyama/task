@@ -551,6 +551,7 @@ C
       INTEGER :: NS,NRWM
       DOUBLE PRECISION :: DELRWM,RL
 C
+      WRITE(6,'(A,I5)') 'NR=',NR
       NS=3
       CW=2.D0*PI*CRF*1.D6
 C
@@ -619,6 +620,9 @@ C
              CRM=2.D0 *PI*WP2/(CW*CW)*
      &           (-CRM1-2.D0*CRM2*MM/(AM*CW*WC*PNAL*PNAL))
             ELSEIF(MODEFA.EQ.4) THEN 
+!              WRITE(6,'(A,5I5)',ADVANCE='NO') 
+!              WRITE(6,'(A,5I5)')
+!     &              'MD,ND,NTH,NHH,NR=',MD,ND,NTH,NHH,NR
               RHOL=XRHO(NR)
               CALL WMDPFAA(CW,RHOL,RKPR,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
               CPM=CPM1+CPM2

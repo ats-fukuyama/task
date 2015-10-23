@@ -239,6 +239,28 @@ C
      &        AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA),DELP(NSA)
       ENDDO
 C
+      DELTH=PI/NTHMAX
+C
+      DO NS=1,NSMAX
+      DO NP=1,NPMAX
+         PM(NP,NS)=DELP(NS)*(NP-0.5D0)
+         PG(NP,NS)=DELP(NS)* NP
+      ENDDO
+      ENDDO
+C
+      DO NTH=1,NTHMAX
+         THM(NTH)=DELTH*(NTH-0.5D0)
+         THG(NTH)=DELTH* NTH
+         TSNM(NTH) = SIN(THM(NTH))
+         TSNG(NTH) = SIN(THG(NTH))
+         TCSM(NTH) = COS(THM(NTH))
+         TCSG(NTH) = COS(THG(NTH))
+         TTNM(NTH) = TAN(THM(NTH))
+         TTNG(NTH) = TAN(THG(NTH))
+         write(6,'(A,I5,1P3E12.4)') 
+     &        'NTH=',NTH,THM(NTH),TSNM(NTH),TCSM(NTH)
+      ENDDO
+C
       RHON_MIN=RMIN
       RHON_MAX=RMAX
 
