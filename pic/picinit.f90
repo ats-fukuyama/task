@@ -44,8 +44,9 @@ CONTAINS
       bx     =    0.0d0     !: x magnetic flux density
       by     =    0.0d0     !: y magnetic flux density
       bz     =    0.0d0     !: z magnetic flux density
- 
-      eps = 0.00000001d0    !: constants to define boundary condition
+      c      =    1.0d0
+      omega  =    1.0d0
+      eps = 0.0000000000000001d0    !: constants to define boundary condition
 !---------------------------------------------------------
 
     RETURN

@@ -50,7 +50,7 @@ CONTAINS
     INTEGER,INTENT(OUT) :: IST,IERR
 
     NAMELIST /PIC/ npx,npy,npz,nx,ny,nz,iend,nhmod, &
-                   me,mi,chrge,chrgi,te,ti,dt,eps,bx,by,bz
+                   me,mi,chrge,chrgi,te,ti,dt,eps,bx,by,bz,c,omega
 
     READ(NID,PIC,IOSTAT=IST,ERR=9800,END=9900)
 
@@ -69,7 +69,7 @@ CONTAINS
 
     IMPLICIT NONE
     WRITE(6,'(A/)') '# &PIC : npx,npy,npz,nx,ny,nz,iend,nhmod,', &
-                    '         me,mi,chrge,chrgi,te,ti,dt,eps,bx,by,bz'
+                    '         me,mi,chrge,chrgi,te,ti,dt,eps,bx,by,bz,c,omega'
     RETURN
 
   END SUBROUTINE pic_plst
@@ -100,7 +100,7 @@ CONTAINS
     USE libmpi
     IMPLICIT NONE
     integer:: idata(8)
-    REAL(8):: ddata(12)
+    REAL(8):: ddata(13)
 
     IF(myid == 0) THEN
        idata(1)=npx
@@ -111,7 +111,6 @@ CONTAINS
        idata(6)=nz
        idata(7)=iend
        idata(8)=nhmod
-     
     END IF
     CALL mtx_broadcast_integer(idata,11)
        npx=idata(1)
@@ -122,7 +121,6 @@ CONTAINS
        nz=idata(6)
        iend=idata(7)
        nhmod=idata(8)
-       
 
     IF(myid == 0) THEN
        ddata(1)=me
@@ -136,6 +134,8 @@ CONTAINS
        ddata(9)=bx
        ddata(10)=by
        ddata(11)=bz
+       ddata(12)=c
+       ddata(13)=omega
     END IF
     CALL mtx_broadcast_real8(ddata,8)
        me=ddata(1)
@@ -149,6 +149,8 @@ CONTAINS
        bx=ddata(9)
        by=ddata(10)
        bz=ddata(11)
+       c=ddata(12)
+       omega=ddata(13)
     RETURN
 
   END SUBROUTINE pic_broadcast
@@ -169,7 +171,8 @@ CONTAINS
                  'chrge ',chrge ,'chrgi ',chrgi
     WRITE(6,602) 'te    ',te    ,'ti    ',ti   , &
          'dt    ',dt    ,'eps   ',eps
-    WRITE(6,602) 'bx    ',bx    ,'by    ',by   ,  'bz    ',bz   
+    WRITE(6,602) 'bx    ',bx    ,'by    ',by   ,  'bz    ',bz   ,&
+         'c     ',c     ,'omega ',omega
     RETURN
 
 601 FORMAT(' ',A6,'=',I7,4X  :2X,A6,'=',I7,4X  : &
