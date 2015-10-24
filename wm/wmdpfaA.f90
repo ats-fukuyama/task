@@ -1,12 +1,11 @@
 MODULE wmfa
  IMPLICIT NONE
  REAL(8) ::paN
-! REAL(8) :: x,xm,xp
  REAL(8) :: DFPax,DFRax,fax
- REAL(8) ::RHO0,p0N
+ REAL(8) ::RHO0,p0N,v0N ! **N -> normalized by Thermal (pN=p/PTA(=Pthermal)) 
  REAL(8) :: A0
  INTEGER :: la,NTHv
- COMPLEX(8) :: Cp0N
+ COMPLEX(8) :: Cp0N,Cv0N
  REAL(8),PARAMETER :: PmaxN=7.D0
 
 END MODULE wmfa
@@ -20,7 +19,7 @@ END MODULE wmfa
 SUBROUTINE WMDPFAA(CW,RHOWM,RKPR,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
   USE plcomm
   USE pllocal
-  USE bpsd_constants,ONLY : CI,PI,AMP
+  USE bpsd_constants,ONLY : CI,PI,AMP,AEE
   USE wmfa
   INCLUDE '../dp/dpcomm.inc'
 
@@ -32,9 +31,8 @@ SUBROUTINE WMDPFAA(CW,RHOWM,RKPR,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
   REAL(8) :: p,v
   REAL(8) :: p0,v0,PTA
   REAL(8) :: RTA,VTA
-  REAL(8) :: v0N ! **N -> normalized by Thermal (pN=p/PTA(=Pthermal))
   REAL(8) :: AM,Norml
-  COMPLEX(8) :: CX,Cp0,Cv0N
+  COMPLEX(8) :: CX,Cp0
   REAL(8) :: AP,AQ,AR
   REAL(8) :: fa1,DFPa1,DFRa1
   INTEGER :: NS,ID
@@ -44,8 +42,9 @@ SUBROUTINE WMDPFAA(CW,RHOWM,RKPR,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
 
      NS=3
      RHO0=RHOWM
-     AM=AMP*PA(NS)
-     RTA=RTFP0(NS)
+     AM=AMFP(NS)
+     AE=AEFP(NS)
+     RTA=RTFP0(NS)*AEE*1.D3
      VTA=SQRT(2.D0*RTA/AM)
      PTA=VTA*AM
      CX=ABS(RKPR)/(CW*AM)
@@ -62,16 +61,14 @@ SUBROUTINE WMDPFAA(CW,RHOWM,RKPR,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
 !        p0=7.D0*PTA
 !        Cp0=7.D0*PTA+1.D21*AIMAG(1.D0/CX)  !!??
 !       ELSE
-        p0=1.D0/(REAL(CX)*TCSM(NTH))
-        Cp0=1.D0/(CX*TCSM(NTH))
+        p0N=1.D0/(PTA*REAL(CX)*TCSM(NTH))
+        Cp0N=1.D0/(PTA*CX*TCSM(NTH))
 !       ENDIF
-        v0=p0/AM
-        v0N=v0/VTA
-        p0N=p0/PTA
-        Cp0N=Cp0/PTA
+        v0N=p0N/AM
         Cv0N=Cp0N/AM
         NTHv=NTH
 
+!        WRITE(6,'(1I5,1P4E12.4)') NTHv,Cp0N,p0N,RTA
 !        WRITE(6,'(A,I5,1P5E12.4)') 'NTH,Cp0N=',NTH,Cp0N,CX,TCSM(NTH)
 
         AP=TSNM(NTH)*((1.D0+TCSM(NTH)*TCSM(NTH))**2)
@@ -79,84 +76,86 @@ SUBROUTINE WMDPFAA(CW,RHOWM,RKPR,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
         AR=TSNM(NTH)*TCSM(NTH)*TCSM(NTH)
   
 !-----PRICIPAL VALUE
-       IF(p0N.LT.1.D-3) THEN
-         CALL PVINT(1,2,Cp0N,RHOWM,CIPR1)
+       IF((p0N.GE.0.D0).AND.(p0N.LT.1.D-3)) THEN
+         CALL PVINT(1,2,CIPR1)
           CPM1=CPM1 + AP*CIPR1
-         CALL PVINT(2,2,Cp0N,RHOWM,CIPR2)
+         CALL PVINT(2,2,CIPR2)
           CPM2=CPM2 + AP*CIPR2
 
-         CALL PVINT(3,2,Cp0N,RHOWM,CIQR1)
+         CALL PVINT(3,2,CIQR1)
           CQM1=CQM1 + AQ*CIQR1
-         CALL PVINT(4,2,Cp0N,RHOWM,CIQR2)
+         CALL PVINT(4,2,CIQR2)
           CQM2=CQM2 + AQ*CIQR2
 
-         CALL PVINT(5,2,Cp0N,RHOWM,CIRR1)
+         CALL PVINT(5,2,CIRR1)
           CRM1=CRM1 + AR*CIRR1
-         CALL PVINT(6,2,Cp0N,RHOWM,CIRR2)
+         CALL PVINT(6,2,CIRR2)
           CRM2=CRM2 + AR*CIRR2
-       ElSEIF(p0N.GT.PmaxN) THEN
-         CALL PVINT(1,3,Cp0N,RHOWM,CIP1)
+       ElSEIF((p0N.LT.0.D0).OR.(p0N.GE.PmaxN)) THEN
+         CALL PVINT(1,3,CIP1)
           CPM1=CPM1 + AP*CIP1
-         CALL PVINT(2,3,Cp0N,RHOWM,CIP2)
+         CALL PVINT(2,3,CIP2)
           CPM1=CPM2 + AP*CIP2
 
-         CALL PVINT(3,3,Cp0N,RHOWM,CIQ1)
+         CALL PVINT(3,3,CIQ1)
           CQM1=CQM1 + AQ*CIQ1
-         CALL PVINT(4,3,Cp0N,RHOWM,CIQ2)
+         CALL PVINT(4,3,CIQ2)
           CQM2=CQM2 + AQ*CIQ2
 
-         CALL PVINT(5,3,Cp0N,RHOWM,CIR1)
+         CALL PVINT(5,3,CIR1)
           CRM1=CRM1 + AR*CIR1
-         CALL PVINT(6,3,Cp0N,RHOWM,CIR2)
+         CALL PVINT(6,3,CIR2)
           CRM2=CRM2 + AR*CIR2
        ELSE
-         CALL PVINT(1,1,Cp0N,RHOWM,CIPL1)
-         CALL PVINT(1,2,Cp0N,RHOWM,CIPR1)
+         CALL PVINT(1,1,CIPL1)
+         CALL PVINT(1,2,CIPR1)
           CPM1=CPM1 + AP*(CIPL1+CIPR1)
-         CALL PVINT(2,1,Cp0N,RHOWM,CIPL2)
-         CALL PVINT(2,2,Cp0N,RHOWM,CIPR2)
+         CALL PVINT(2,1,CIPL2)
+         CALL PVINT(2,2,CIPR2)
           CPM2=CPM2 + AP*(CIPL2+CIPR2)
 
-         CALL PVINT(3,1,Cp0N,RHOWM,CIQL1)
-         CALL PVINT(3,2,Cp0N,RHOWM,CIQR1)
+         CALL PVINT(3,1,CIQL1)
+         CALL PVINT(3,2,CIQR1)
           CQM1=CQM1 + AQ*(CIQL1+CIQR1)
-         CALL PVINT(4,1,Cp0N,RHOWM,CIQL2)
-         CALL PVINT(4,2,Cp0N,RHOWM,CIQR2)
+         CALL PVINT(4,1,CIQL2)
+         CALL PVINT(4,2,CIQR2)
           CQM2=CQM2 + AQ*(CIQL2+CIQR2)
 
-         CALL PVINT(5,1,Cp0N,RHOWM,CIRL1)
-         CALL PVINT(5,2,Cp0N,RHOWM,CIRR1)
+         CALL PVINT(5,1,CIRL1)
+         CALL PVINT(5,2,CIRR1)
           CRM1=CRM1 + AR*(CIRL1+CIRR1)
-         CALL PVINT(6,1,Cp0N,RHOWM,CIRL2)
-         CALL PVINT(6,2,Cp0N,RHOWM,CIRR2)
+         CALL PVINT(6,1,CIRL2)
+         CALL PVINT(6,2,CIRR2)
           CRM2=CRM2 + AR*(CIRL2+CIRR2)
        ENDIF
 !------END PRINCIPAL VALUE
 
 !-----SINGULAR POINT
-        CALL SPL2DD(p0N,RHOWM,fa1,DFPa1,DFRa1,PMa0,RHOa0,&
+        IF((p0N.GT.0.D0).AND.(p0N.LT.0.D0)) THEN
+         CALL SPL2DD(p0N,RHOWM,fa1,DFPa1,DFRa1,PMa0,RHOa0,&
                     US(1:4,1:4,1:NPM,1:NRM,NTHv),NPM,NPMAX,NRMAX,IERR)
-        IF(AIMAG(CW).GT.0.D0) THEN
-         CPM1=CPM1
-         CPM2=CPM2
-         CQM1=CQM1
-         CQM2=CQM2
-         CRM1=CRM1
-         CRM2=CRM2
-        ELSEIF(AIMAG(CW).EQ.0.D0) THEN
-         CPM1=CPM1-CI*PI*(DFPa1*(v0N**5)*AP)*p0N !!????
-         CPM2=CPM2-CI*PI*(DFRa1*(v0N**6)*AP)*p0N
-         CQM1=CQM1-CI*PI*(DFPa1*(v0N**4)*AQ)*p0N
-         CQM2=CQM2-CI*PI*(DFRa1*(v0N**5)*AQ)*p0N
-         CRM1=CRM1-CI*PI*(DFPa1*(v0N**3)*AR)*p0N
-         CRM2=CRM2-CI*PI*(DFRa1*(v0N**4)*AR)*p0N
-        ELSE  !(AIMAG(CW).LT.0.D0)
-         CPM1=CPM1-2.D0*CI*PI*(DFPa1*(Cv0N**5)*AP)*Cp0N
-         CPM2=CPM2-2.D0*CI*PI*(DFRa1*(Cv0N**6)*AP)*Cp0N
-         CQM1=CQM1-2.D0*CI*PI*(DFPa1*(Cv0N**4)*AQ)*Cp0N
-         CQM2=CQM2-2.D0*CI*PI*(DFRa1*(Cv0N**5)*AQ)*Cp0N
-         CRM1=CRM1-2.D0*CI*PI*(DFPa1*(Cv0N**3)*AR)*Cp0N
-         CRM2=CRM2-2.D0*CI*PI*(DFRa1*(Cv0N**4)*AR)*Cp0N
+         IF(AIMAG(CW).GT.0.D0) THEN
+          CPM1=CPM1
+          CPM2=CPM2
+          CQM1=CQM1
+          CQM2=CQM2
+          CRM1=CRM1
+          CRM2=CRM2
+         ELSEIF(AIMAG(CW).EQ.0.D0) THEN
+          CPM1=CPM1-CI*PI*(DFPa1*(v0N**5)*AP)*p0N !!????
+          CPM2=CPM2-CI*PI*(DFRa1*(v0N**6)*AP)*p0N
+          CQM1=CQM1-CI*PI*(DFPa1*(v0N**4)*AQ)*p0N
+          CQM2=CQM2-CI*PI*(DFRa1*(v0N**5)*AQ)*p0N
+          CRM1=CRM1-CI*PI*(DFPa1*(v0N**3)*AR)*p0N
+          CRM2=CRM2-CI*PI*(DFRa1*(v0N**4)*AR)*p0N
+         ELSE  !(AIMAG(CW).LT.0.D0)
+          CPM1=CPM1-2.D0*CI*PI*(DFPa1*(Cv0N**5)*AP)*Cp0N
+          CPM2=CPM2-2.D0*CI*PI*(DFRa1*(Cv0N**6)*AP)*Cp0N
+          CQM1=CQM1-2.D0*CI*PI*(DFPa1*(Cv0N**4)*AQ)*Cp0N
+          CQM2=CQM2-2.D0*CI*PI*(DFRa1*(Cv0N**5)*AQ)*Cp0N
+          CRM1=CRM1-2.D0*CI*PI*(DFPa1*(Cv0N**3)*AR)*Cp0N
+          CRM2=CRM2-2.D0*CI*PI*(DFRa1*(Cv0N**4)*AR)*Cp0N
+         ENDIF
         ENDIF
 !-----END SINGULAR POINT
      END DO
@@ -179,7 +178,7 @@ SUBROUTINE WMDPFAA(CW,RHOWM,RKPR,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
 END SUBROUTINE WMDPFAA
 
 
-SUBROUTINE PVINT(j,l,Cp0a,RHOWM,CINT)
+SUBROUTINE PVINT(j,l,CINT)
  USE plcomm
  USE pllocal
  USE bpsd_constants,ONLY : CI,PI,AMP
@@ -189,8 +188,6 @@ SUBROUTINE PVINT(j,l,Cp0a,RHOWM,CINT)
 ! IMPLICIT NONE
  INTEGER,INTENT(IN) :: j  ! j-> (df/dp or df/dr) and power 
  INTEGER,INTENT(IN) :: l  ! l=1-> boundary (0,p0N), l=2-> (p0N,pmaxN), l=3-> (0,pmaxN)
- REAL(8),INTENT(IN) :: RHOWM
- COMPLEX(8),INTENT(IN) :: Cp0a
  COMPLEX(8),INTENT(OUT) :: CINT ! Integral
 ! COMPLEX(8), :: CFUNC1,CFUNC2,CFUNC3,CFUNC4,CFUNC5,CFUNC6
  REAL(8) :: x,xm,xp 
@@ -199,11 +196,13 @@ SUBROUTINE PVINT(j,l,Cp0a,RHOWM,CINT)
  INTEGER :: ILST
   la=l
   H0=0.5
-  EPS=1.D-8
+  EPS=1.D-5 !!!??
   ILST=0 
 
-  WRITE(LINE,'(2I5,1P2E12.4)') j,l,cp0
- 
+!  WRITE(6,'(3I5,1P3E12.4)') j,l,NTHv,Cp0N,p0N
+  WRITE(LINE,'(3I5,1P1E12.4)') j,l,NTHv,p0N
+!  IF(RHO0.EQ.7.2D-1) ILST=1
+  
   IF(j.EQ.1) THEN
    CALL DEFTC(CINT,ES,H0,EPS,ILST,CFUNC1,KID='CFUNC1'//TRIM(LINE))
   ELSEIF(j.EQ.2) THEN
@@ -222,12 +221,15 @@ SUBROUTINE PVINT(j,l,Cp0a,RHOWM,CINT)
 
  CONTAINS
 
+
+
+!!-----
   SUBROUTINE PXOUT(lo,xo,paNo,Ao)
    USE wmfa
    IMPLICIT NONE
    INTEGER,INTENT(IN) :: lo ! l=1-> boundary (0,p0N), l=2-> (p0N,pmaxN), l=3-> (0,pmaxN)
    REAL(8),INTENT(IN) :: xo
-   REAL(8),INTENT(OUT) :: paNo !paN=p(x)
+   REAL(8),INTENT(OUT) :: paNo !paN=pN(x)
    REAL(8),INTENT(OUT) :: Ao ! A -> factor dp=Adx
     
    IF(lo.EQ.1) THEN
@@ -321,5 +323,5 @@ SUBROUTINE PVINT(j,l,Cp0a,RHOWM,CINT)
          US(1:4,1:4,1:NPM,1:NRM,NTHv),NPM,NPMAX,NRMAX,IERR)
     CFUNC6=A0*DFRax*(paN**4)/(1.D0-paN/Cp0N)
   END FUNCTION CFUNC6
-  
+!!----  
 END SUBROUTINE PVINT
