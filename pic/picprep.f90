@@ -150,7 +150,6 @@ CONTAINS
       !----- generate two gaussian random number
       r1  = eps + aln * r1
       rv  = sqrt( -2.d0 * log(r1) )
-
       rvx = rv * cos( twopi * r2 ) * sin( twopi * r3 )
       rvy = rv * sin( twopi * r2 ) * sin( twopi * r3 )
       rvz = rv * cos( twopi * r3 )
