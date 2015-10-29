@@ -138,11 +138,13 @@ CONTAINS
 
          !----- push electrons
          call push(np,nx,ny,nz,xe,ye,ze,vxe,vye,vze,ex,ey,ez,bxg,byg,bzg,dt,&
-              ctome,xeb,yeb,zeb,phi,phib,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
+              ctome,xeb,yeb,zeb,phi,phib,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
+              vparae,vperpe)
          
          !..... push ions
          call push(np,nx,ny,nz,xi,yi,zi,vxi,vyi,vzi,ex,ey,ez,bxg,byg,bzg,dt,&
-              ctomi,xib,yib,zib,phi,phib,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
+              ctomi,xib,yib,zib,phi,phib,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
+              vparai,vperpi)
          !WRITE(*,'(f,/)') Axb,Ayb
          !----- treat particles being out of the boundary
          call bound(np,xe,ye,ze,x1,x2,y1,y2,z1,z2,alx,aly,alz)
@@ -207,15 +209,16 @@ CONTAINS
 
 !***********************************************************************
        subroutine push(np,nx,ny,nz,x,y,z,vx,vy,vz,ex,ey,ez,bxg,byg,bzg,dt,&
-            ctom,xb,yb,zb,phi,phib,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
+            ctom,xb,yb,zb,phi,phib,Axb,Ayb,Azb,Axbb,Aybb,Azbb,vpara,vperp)
 !***********************************************************************
       implicit none
-      real(8), dimension(np) :: x, y, z, xb, yb, zb, vx, vy, vz
+      real(8), dimension(np) :: x, y, z, xb, yb, zb, vx, vy, vz, vpara, vperp
       real(8), dimension(0:nx,0:ny) :: phi,phib,Axb, Ayb, Azb, Axbb, Aybb, Azbb
       real(8), dimension(0:nx,0:ny,0:nz) :: ex, ey, ez, bxg, byg, bzg
       real(8) :: ctom, dx, dy, dz, dx1, dy1, dz1, dt, exx, eyy, ezz, bxx,&
                  byy, bzz, vxn, vyn, vzn, vxzero, vyzero, vzzero, vxp, vyp,&
                  vzp, sx1p, sx1m, sy1p, sy1m, sx2, sy2, sx2p, sx2m, sy2m, sy2p
+      real(8) :: btot, vtot
       integer :: np, nx, ny, nz, i, j, ip, jp, kp
       ex(:,:,:) = 0.d0
       ey(:,:,:) = 0.d0
@@ -486,6 +489,16 @@ CONTAINS
          x(i) = x(i) + vx(i) * dt
          y(i) = y(i) + vy(i) * dt
          z(i) = z(i) + vz(i) * dt
+
+         btot=SQRT(bxx**2+byy**2+bzz**2)
+         IF(btot.EQ.0.D0) THEN
+            vpara(i)=vx(i)
+            vperp(i)=SQRT(vy(i)**2+VZ(i)**2)
+         ELSE
+            vtot=SQRT(vx(i)**2+vy(i)**2+vz(i)**2)
+            vpara(i)=bxx*vx(i)+byy*vy(i)+bzz*vz(i)
+            vperp(i)=SQRT(vtot**2-vpara(i)**2)
+         END IF
 
       end do
 

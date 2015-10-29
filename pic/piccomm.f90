@@ -23,6 +23,8 @@ MODULE piccomm
   REAL(rkind),ALLOCATABLE,DIMENSION(:):: xe,ye,ze,vxe,vye,vze, &
                                          xi,yi,zi,vxi,vyi,vzi, &
                                          xeb,yeb,zeb,xib,yib,zib
+  REAL(rkind),ALLOCATABLE,DIMENSION(:):: vparae,vperpe,vparai,vperpi
+  REAL(rkind),ALLOCATABLE,DIMENSION(:):: expi,eypi,ezpi,bxpi,bypi,bzpi
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: cform
   COMPLEX(rkind),ALLOCATABLE,DIMENSION(:,:):: rhof,phif,afwk
 
@@ -62,6 +64,7 @@ CONTAINS
     ALLOCATE(xe(np),ye(np),ze(np),vxe(np),vye(np),vze(np))
     ALLOCATE(xi(np),yi(np),zi(np),vxi(np),vyi(np),vzi(np))
     ALLOCATE(xeb(np),yeb(np),zeb(np),xib(np),yib(np),zib(np))
+    ALLOCATE(vparae(np),vperpe(np),vparai(np),vperpi(np))
     ALLOCATE(cform(nxh1,ny))
     ALLOCATE(rhof(nxh1,ny),phif(nxh1,ny),afwk(nxh1,ny))
     ALLOCATE(Ax(0:nx,0:ny),Ay(0:nx,0:ny),Az(0:nx,0:ny))
@@ -83,8 +86,13 @@ CONTAINS
     IF(ALLOCATED(ex)) THEN
        DEALLOCATE(ex,ey,ez,rho,phi,phib,awk)
        DEALLOCATE(bxg,byg,bzg)
-       DEALLOCATE(xe,ye,ze,vxe,vye,vze,xi,yi,zi,vxi,vyi,vzi,jx,jy,jz,&
-       xeb,yeb,zeb,xib,yib,zib,Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
+       DEALLOCATE(xe,ye,ze,vxe,vye,vze)
+       DEALLOCATE(xi,yi,zi,vxi,vyi,vzi)
+       DEALLOCATE(jx,jy,jz)
+       DEALLOCATE(xeb,yeb,zeb,xib,yib,zib)
+       DEALLOCATE(Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
+       DEALLOCATE(vparae,vperpe,vparai,vperpi)
+!       DEALLOCATE(expi,eypi,ezpi,bxpi,bypi,bzpi)
        DEALLOCATE(cform,rhof,phif,afwk)
     END IF
 
