@@ -67,9 +67,9 @@ CONTAINS
        CALL PAGEE
     CASE('E2')
        CALL PAGES
-       CALL GRD2D(1,x,y,Ax,nx+1,nx+1,ny+1,'@Ax@')
-       CALL GRD2D(2,x,y,Ay,nx+1,nx+1,ny+1,'@Ay@')
-       CALL GRD2D(3,x,y,Az,nx+1,nx+1,ny+1,'@Az@')
+       CALL GRD2D(1,x,y,Axb,nx+1,nx+1,ny+1,'@Ax@')
+       CALL GRD2D(2,x,y,Ayb,nx+1,nx+1,ny+1,'@Ay@')
+       CALL GRD2D(3,x,y,Azb,nx+1,nx+1,ny+1,'@Az@')
        CALL GRD2D(4,x,y,phi,nx+1,nx+1,ny+1,'@phi@')
        CALL PAGEE
     CASE('F1')

@@ -1,4 +1,4 @@
-!  ***** TASK/PIC EXEC *****
+!./pic  ***** TASK/PIC EXEC *****
 
 Module picexec
 
@@ -80,7 +80,7 @@ CONTAINS
 !1000    format(6e20.4)
 
          if( myid .eq. 0 ) write(6,'(2I8,1PE12.4)') iloop, iene+1, time
-
+         
          !----- charge assignment
          rho(:,:)=0.0d0
          call source(np,nx,ny,xe,ye,rho,chrge,cfact)
@@ -126,17 +126,15 @@ CONTAINS
          call current(np,nx,ny,nz,xe,ye,ze,xeb,yeb,zeb,jx,jy,jz,dt,chrge) 
           !.......... calculate current by ions
          call current(np,nx,ny,nz,xi,yi,zi,xib,yib,zib,jx,jy,jz,dt,chrgi)
-         
+         !jx(:,:)=0.d0
+         !jy(:,:)=0.d0
+         !jz(:,:)=0.d0
          !.......... calculate vector potential
          call phia(nx,ny,c,omega,dt,phi,phib,jx,jy,jz,Ax,Ay,Az,Axb,Ayb,Azb,&
               Axbb,Aybb,Azbb)
-         abc = 0.d0
-         do ii=1,nx
-            do jj=1,ny
-               abc = abc + Axb(ii,jj) + Ayb(ii,jj) + Azb(ii,jj) 
-            end do
-         end do
-         write(*,*) abc
+         ex(:,:,:)=0.d0
+         ey(:,:,:)=0.d0
+         ez(:,:,:)=0.d0
          !----- push electrons
          call push(np,nx,ny,nz,xe,ye,ze,vxe,vye,vze,ex,ey,ez,bxg,byg,bzg,dt,&
               ctome,xeb,yeb,zeb,phi,phib,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
@@ -157,6 +155,7 @@ CONTAINS
             call kine(np,vxi,vyi,vzi,akini2,mi)
             call sumdim1(nodes,myid,akine2,wkword)
             call sumdim1(nodes,myid,akini2,wkword)
+            apot=0.d0
             akine = 0.5d0 * ( akine1 + akine2 )
             akini = 0.5d0 * ( akini1 + akini2 )
             aktot = akine + akini
@@ -220,9 +219,7 @@ CONTAINS
                  vzp, sx1p, sx1m, sy1p, sy1m, sx2, sy2, sx2p, sx2m, sy2m, sy2p
       real(8) :: btot, vtot
       integer :: np, nx, ny, nz, i, j, ip, jp, kp
-      ex(:,:,:) = 0.d0
-      ey(:,:,:) = 0.d0
-      ez(:,:,:) = 0.d0
+     
       do i = 1, np
 
 ! calculate the electric field at the particle position
@@ -447,7 +444,6 @@ CONTAINS
                 - (Azb(nx-1,jp  ) - Azbb(nx-1,jp  )) * sx2m * sy2  / dt &
                 - (Azb(nx-1,ny-1) - Azbb(nx-1,ny-1)) * sx2m * sy2m / dt
          endif
-            
          ex(ip,jp,kp) = ex(ip,jp,kp) + exx
          ey(ip,jp,kp) = ey(ip,jp,kp) + eyy
          ez(ip,jp,kp) = ez(ip,jp,kp) + ezz
@@ -627,7 +623,7 @@ CONTAINS
     !     + bzg(ip+1,jp  ,kp+1)*dx*dy1*dz   + bzg(ip+1,jp+1,kp+1)*dx*dy*dz
 
          ! push particles by using Buneman-Boris method
-
+     
          vxn = vx(i) + 1.0d0/2 * ctom * exx * dt 
          vyn = vy(i) + 1.0d0/2 * ctom * eyy * dt
          vzn = vz(i) + 1.0d0/2 * ctom * ezz * dt
@@ -645,14 +641,11 @@ CONTAINS
          vzp = vzn + 2.0d0/(1.0d0 + 0.25d0 * (ctom * dt) ** 2 & 
              * (bxx ** 2 + byy ** 2 + bzz ** 2)) * 1.0d0/2 & 
              * ctom * (vxzero * byy - vyzero * bxx) * dt
-         
+ 
          vx(i) = vxp + 1.0d0/2 * ctom * exx * dt
          vy(i) = vyp + 1.0d0/2 * ctom * eyy * dt
          vz(i) = vzp + 1.0d0/2 * ctom * ezz * dt 
 
-         !if(i==1) then
-         !   write(*,*), vx(1)
-         !endif
          
          xb(i) = x(i)
          yb(i) = y(i)
@@ -664,11 +657,11 @@ CONTAINS
          btot=SQRT(bxx**2+byy**2+bzz**2)
          IF(btot.EQ.0.D0) THEN
             vpara(i)=vx(i)
-            vperp(i)=SQRT(vy(i)**2+VZ(i)**2)
+            vperp(i)=SQRT(vy(i)**2+vz(i)**2)
          ELSE
             vtot=SQRT(vx(i)**2+vy(i)**2+vz(i)**2)
-            vpara(i)=bxx*vx(i)+byy*vy(i)+bzz*vz(i)
-            vperp(i)=SQRT(vtot**2-vpara(i)**2)
+            vpara(i)=(bxx*vx(i)+byy*vy(i)+bzz*vz(i))/btot
+            vperp(i)=(SQRT(vtot**2-vpara(i)**2))
          END IF
 
       end do
@@ -682,7 +675,6 @@ CONTAINS
       real(8), dimension(np) :: x, y, z
       real(8) :: alx, aly, alz, x1, x2, y1, y2, z1, z2
       integer :: np, i
-      !write(*,*),alx
       do i = 1, np
          if( x(i) .lt. x1 ) then
             do while(x(i) .lt. x1)
@@ -817,7 +809,7 @@ CONTAINS
       real(8), dimension(0:nx,0:ny) :: phi, phib, jx, jy, jz, Ax, Ay, Az,&
       Axb, Ayb, Azb, Axbb, Aybb, Azbb
       integer :: nx, ny, i, j, k
-      real(rkind) :: c, omega, dt  
+      real(rkind) :: c, omega, dt
       
  ! Solution of maxwell equation in the A-phi formulation by difference method
       do i = 1, nx-1
@@ -1066,7 +1058,6 @@ CONTAINS
       end do
       end do
       end do
-
       apot = 0.5 * cfacti * apot
 
     end subroutine pote
@@ -1219,7 +1210,6 @@ CONTAINS
             sy2p = 1.0d0/2 * (-1.0d0/2 + dy) ** 2
             sy2m = 1.0d0/2 * (3.0d0/2 - dy) ** 2
          endif
-         
         if(ip .ne. 0 .and. jp .ne. 0) then
            jx(ip  ,jp  ) = jx(ip  ,jp  ) + chrg / dt * deltax * sy2  * sx1p
            jx(ip  ,jp+1) = jx(ip  ,jp+1) + chrg / dt * deltax * sy2p * sx1p
@@ -1312,6 +1302,7 @@ CONTAINS
 
         end if
      end do
+     
 
    end subroutine current
 END Module picexec
