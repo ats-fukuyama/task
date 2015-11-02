@@ -113,7 +113,7 @@ CONTAINS
             iene = iene + 1
             call kine(np,vxe,vye,vze,akine1,me)
             call kine(np,vxi,vyi,vzi,akini1,mi)
-            call pote(nx,ny,nz,ex,ey,ez,apot,cfacti)
+            call pote(nx,ny,nz,phi,Ax,Ay,Az,apot,cfacti)
             call sumdim1(nodes,myid,akine1,wkword)
             call sumdim1(nodes,myid,akini1,wkword)
          endif
@@ -155,7 +155,7 @@ CONTAINS
             call kine(np,vxi,vyi,vzi,akini2,mi)
             call sumdim1(nodes,myid,akine2,wkword)
             call sumdim1(nodes,myid,akini2,wkword)
-            apot=0.d0
+            !apot=0.d0
             akine = 0.5d0 * ( akine1 + akine2 )
             akini = 0.5d0 * ( akini1 + akini2 )
             aktot = akine + akini
@@ -444,9 +444,9 @@ CONTAINS
                 - (Azb(nx-1,jp  ) - Azbb(nx-1,jp  )) * sx2m * sy2  / dt &
                 - (Azb(nx-1,ny-1) - Azbb(nx-1,ny-1)) * sx2m * sy2m / dt
          endif
-         ex(ip,jp,kp) = ex(ip,jp,kp) + exx
-         ey(ip,jp,kp) = ey(ip,jp,kp) + eyy
-         ez(ip,jp,kp) = ez(ip,jp,kp) + ezz
+         !ex(ip,jp,kp) = ex(ip,jp,kp) + exx
+         !ey(ip,jp,kp) = ey(ip,jp,kp) + eyy
+         !ez(ip,jp,kp) = ez(ip,jp,kp) + ezz
       
      ! exx = ex(ip  ,jp  ,kp  )*dx1*dy1*dz1 + ex(ip+1,jp  ,kp  )*dx*dy1*dz1 &
      !     + ex(ip  ,jp+1,kp  )*dx1*dy*dz1  + ex(ip  ,jp  ,kp+1)*dx1*dy1*dz &
@@ -1042,20 +1042,33 @@ CONTAINS
     end subroutine kine
 
 !***********************************************************************
-    subroutine pote(nx,ny,nz,ex,ey,ez,apot,cfacti)
+    subroutine pote(nx,ny,nz,phi,Ax,Ay,Az,apot,cfacti)
 !***********************************************************************
       implicit none
       real(8), dimension(0:nx,0:ny,0:nz) :: ex, ey, ez
-      real(8) :: apot, cfacti 
-      integer(4) :: nx, ny, nz, ix, iy, iz 
+      real(8), dimension(0:nx,0:ny) :: phi, Ax, Ay, Az
+      real(8) :: apot, cfacti
+      integer(4) :: nx, ny, nz, i, j, im, ip, jm, jp
 
       apot = 0.d0
-      do iy = 0, ny-1
-      do ix = 0, nx-1
-      do iz = 0, nz-1      
-         apot = apot + ex(ix,iy,iz)*ex(ix,iy,iz) + ey(ix,iy,iz)*ey(ix,iy,iz)&
-              + ez(ix,iy,iz)*ez(ix,iy,iz)
-      end do
+
+      do j = 0, ny
+      do i = 0, nx
+
+         im = i - 1
+         ip = i + 1
+         jm = j - 1
+         jp = j + 1
+
+         if( i .eq. 0  ) im = nx - 1
+         if( i .eq. nx ) ip = 1
+         if( j .eq. 0  ) jm = ny - 1
+         if( j .eq. ny ) jp = 1     
+         apot = apot + 0.5d0 * 0.025d0 * (phi(im,j) - phi(ip,j)) ** 2 &
+              + 0.025d0 * ( phi(i,jm) - phi(i,jp) ** 2 ) &
+              + 0.5d0 * 0.025d0 * ( ( Ay(im,j) - Ay(ip,j) - Ax(i,jm) &
+              + Ax(i,jp) )** 2 + ( Az(im,j) - Az(ip,j) ) ** 2 &
+              + ( Az(i,jm) - Az(i,jp) ) ** 2  )
       end do
       end do
       apot = 0.5 * cfacti * apot
