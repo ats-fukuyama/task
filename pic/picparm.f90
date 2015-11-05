@@ -49,8 +49,8 @@ CONTAINS
     INTEGER,INTENT(IN) :: NID
     INTEGER,INTENT(OUT) :: IST,IERR
 
-    NAMELIST /PIC/ npx,npy,npz,nx,ny,nz,iend,nhmod, &
-                   me,mi,chrge,chrgi,te,ti,dt,eps,bx,by,bz,c,omega
+    NAMELIST /PIC/ npx,npy,nx,ny,iend,nhmod, &
+                   me,mi,chrge,chrgi,te,ti,dt,eps,bxbg,bybg,bzbg,c,omega
 
     READ(NID,PIC,IOSTAT=IST,ERR=9800,END=9900)
 
@@ -68,8 +68,9 @@ CONTAINS
   SUBROUTINE pic_plst
 
     IMPLICIT NONE
-    WRITE(6,'(A/)') '# &PIC : npx,npy,npz,nx,ny,nz,iend,nhmod,', &
-                    '         me,mi,chrge,chrgi,te,ti,dt,eps,bx,by,bz,c,omega'
+    WRITE(6,'(A/)') '# &PIC : npx,npy,nx,ny,iend,nhmod,', &
+                    '         me,mi,chrge,chrgi,te,ti,dt,eps,', &
+                    '         bxbg,bybg,bzbg,c,omega'
     RETURN
 
   END SUBROUTINE pic_plst
@@ -99,28 +100,24 @@ CONTAINS
     USE piccomm_parm
     USE libmpi
     IMPLICIT NONE
-    integer:: idata(8)
+    integer:: idata(6)
     REAL(8):: ddata(13)
 
     IF(myid == 0) THEN
        idata(1)=npx
        idata(2)=npy
-       idata(3)=npz
-       idata(4)=nx
-       idata(5)=ny
-       idata(6)=nz
-       idata(7)=iend
-       idata(8)=nhmod
+       idata(3)=nx
+       idata(4)=ny
+       idata(5)=iend
+       idata(6)=nhmod
     END IF
     CALL mtx_broadcast_integer(idata,11)
        npx=idata(1)
        npy=idata(2)
-       npz=idata(3)
-       nx=idata(4)
-       ny=idata(5)
-       nz=idata(6)
-       iend=idata(7)
-       nhmod=idata(8)
+       nx=idata(3)
+       ny=idata(4)
+       iend=idata(5)
+       nhmod=idata(6)
 
     IF(myid == 0) THEN
        ddata(1)=me
@@ -131,9 +128,9 @@ CONTAINS
        ddata(6)=ti
        ddata(7)=dt
        ddata(8)=eps
-       ddata(9)=bx
-       ddata(10)=by
-       ddata(11)=bz
+       ddata(9)=bxbg
+       ddata(10)=bybg
+       ddata(11)=bzbg
        ddata(12)=c
        ddata(13)=omega
     END IF
@@ -146,9 +143,9 @@ CONTAINS
        ti=ddata(6)
        dt=ddata(7)
        eps=ddata(8)
-       bx=ddata(9)
-       by=ddata(10)
-       bz=ddata(11)
+       bxbg=ddata(9)
+       bybg=ddata(10)
+       bzbg=ddata(11)
        c=ddata(12)
        omega=ddata(13)
     RETURN
@@ -162,16 +159,14 @@ CONTAINS
     use piccomm_parm
     implicit none
 
-    WRITE(6,601) 'npx   ',npx   ,'npy   ',npy  , &
-                 'npz   ',npz
-    WRITE(6,601) 'nx    ',nx    ,'ny    ',ny   , &
-                 'nz    ',nz
+    WRITE(6,601) 'npx   ',npx   ,'npy   ',npy
+    WRITE(6,601) 'nx    ',nx    ,'ny    ',ny
     WRITE(6,601) 'iend  ',iend  ,'nhmod ',nhmod
     WRITE(6,602) 'me    ',me    ,'mi    ',mi   , &
                  'chrge ',chrge ,'chrgi ',chrgi
     WRITE(6,602) 'te    ',te    ,'ti    ',ti   , &
          'dt    ',dt    ,'eps   ',eps
-    WRITE(6,602) 'bx    ',bx    ,'by    ',by   ,  'bz    ',bz   ,&
+    WRITE(6,602) 'bxbg  ',bxbg  ,'bybg  ',bybg ,  'bzbg  ',bzbg ,&
          'c     ',c     ,'omega ',omega
     RETURN
 

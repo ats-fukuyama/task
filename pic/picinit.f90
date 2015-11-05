@@ -25,10 +25,8 @@ CONTAINS
 
       npx = 100
       npy = 100
-      npz = 100
       nx = 128
       ny = 128
-      nz = 10
       iend = 1000
       nhmod = 1
 
@@ -40,10 +38,9 @@ CONTAINS
       chrgi  =    1.0d0     !: ion charge
       te     =    1.0d0     !: electron temperature
       ti     =    1.0d0     !: ion temperature
-!      ez     =    0.0d0     !: z electric field
-      bx     =    0.0d0     !: x magnetic flux density
-      by     =    0.0d0     !: y magnetic flux density
-      bz     =    0.0d0     !: z magnetic flux density
+      bxbg   =    0.0d0     !: x component of background magnetic flux density
+      bybg   =    0.0d0     !: y component of background magnetic flux density
+      bzbg   =    0.0d0     !: z component of background magnetic flux density
       c      =    1.0d0
       omega  =    1.0d0
       eps = 0.0000000000000001d0    !: constants to define boundary condition

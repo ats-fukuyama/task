@@ -36,7 +36,7 @@ CONTAINS
 1   CONTINUE
     err=0
     WRITE(6,'(A)') &
-         '#### PIC GOUT: T1 E1 E2 F1 X/exit'
+         '#### PIC GOUT: T1 E1-4 F1 X/exit'
     CALL TASK_KLIN(line,kid,mode,pic_parm)
     IF(mode == 2 .OR. mode == 3) GOTO 1
 
@@ -67,10 +67,36 @@ CONTAINS
        CALL PAGEE
     CASE('E2')
        CALL PAGES
-       CALL GRD2D(1,x,y,Axb,nx+1,nx+1,ny+1,'@Ax@')
-       CALL GRD2D(2,x,y,Ayb,nx+1,nx+1,ny+1,'@Ay@')
-       CALL GRD2D(3,x,y,Azb,nx+1,nx+1,ny+1,'@Az@')
-       CALL GRD2D(4,x,y,phi,nx+1,nx+1,ny+1,'@phi@')
+       CALL GRD2D(1,x,y,bx,nx+1,nx+1,ny+1,'@Bx@')
+       CALL GRD2D(2,x,y,by,nx+1,nx+1,ny+1,'@By@')
+       CALL GRD2D(3,x,y,bz,nx+1,nx+1,ny+1,'@Bz@')
+       CALL GRD2D(4,x,y,bb,nx+1,nx+1,ny+1,'@BB@')
+       CALL PAGEE
+    CASE('E3')
+       CALL PAGES
+       CALL GRD2D(1,x,y,Ax,nx+1,nx+1,ny+1,'@Ax@')
+       CALL GRD2D(2,x,y,Ay,nx+1,nx+1,ny+1,'@Ay@')
+       CALL GRD2D(3,x,y,Az,nx+1,nx+1,ny+1,'@Az@')
+       CALL GRD2D(4,x,y,AA,nx+1,nx+1,ny+1,'@AA@')
+       CALL PAGEE
+    CASE('E4')
+       CALL PAGES
+       CALL GRD2D(1,x,y,jx,nx+1,nx+1,ny+1,'@jx@')
+       CALL GRD2D(2,x,y,jy,nx+1,nx+1,ny+1,'@jy@')
+       CALL GRD2D(3,x,y,jz,nx+1,nx+1,ny+1,'@jz@')
+       CALL GRD2D(4,x,y,rho,nx+1,nx+1,ny+1,'@rho@')
+       CALL PAGEE
+    CASE('E5')
+       CALL PAGES
+       CALL GRD2D( 5,x,y,ex,nx+1,nx+1,ny+1,'@Ex@')
+       CALL GRD2D( 6,x,y,ey,nx+1,nx+1,ny+1,'@Ey@')
+       CALL GRD2D( 7,x,y,ez,nx+1,nx+1,ny+1,'@Ez@')
+       CALL GRD2D( 8,x,y,esx,nx+1,nx+1,ny+1,'@ESx@')
+       CALL GRD2D( 9,x,y,esy,nx+1,nx+1,ny+1,'@ESy@')
+       CALL GRD2D(10,x,y,esz,nx+1,nx+1,ny+1,'@ESz@')
+       CALL GRD2D(11,x,y,emx,nx+1,nx+1,ny+1,'@EMx@')
+       CALL GRD2D(12,x,y,emy,nx+1,nx+1,ny+1,'@EMy@')
+       CALL GRD2D(13,x,y,emz,nx+1,nx+1,ny+1,'@EMz@')
        CALL PAGEE
     CASE('F1')
        CALL PAGES

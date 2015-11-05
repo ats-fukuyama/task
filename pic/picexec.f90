@@ -106,36 +106,36 @@ CONTAINS
          jz(:,:)=0.d0
                 
          !.......... calculate current by electrons
-         call current(np,nx,ny,nz,xe,ye,ze,vxe,vye,vze,jx,jy,jz,dt,chrge,cfact)
+         call current(np,nx,ny,xe,ye,ze,vxe,vye,vze,jx,jy,jz,dt,chrge)
                   !.......... calculate current by ions
-         call current(np,nx,ny,nz,xi,yi,zi,vxi,vyi,vzi,jx,jy,jz,dt,chrgi,cfact)
+         call current(np,nx,ny,xi,yi,zi,vxi,vyi,vzi,jx,jy,jz,dt,chrgi)
          
          !.......... calculate vector potential
          call phia(nx,ny,c,omega,dt,phi,phib,jx,jy,jz,Ax,Ay,Az,Axb,Ayb,Azb,&
               Axbb,Aybb,Azbb,cfact)
 
            !.......... calculate ex and ey and ez
-         call efield(nx,ny,nz,phi,ex,ey,ez,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
+         call efield(nx,ny,phi,ex,ey,ez,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
 
            !.......... calculate bxg and byg and bzg
-         call bfield(nx,ny,nz,bx,by,bz,bxg,byg,bzg,Axb,Ayb,Azb)
+         call bfield(nx,ny,bxbg,bybg,bzbg,bx,by,bz,Ax,Ay,Az)
 
           if( mod(iloop,nhmod) .eq. 0 ) then
             iene = iene + 1
             call kine(np,vxe,vye,vze,akine1,me)
             call kine(np,vxi,vyi,vzi,akini1,mi)
-            call pote(nx,ny,nz,phi,ex,ey,ez,Ax,Ay,Az,apot,cfacti)
+            call pote(nx,ny,phi,ex,ey,ez,Ax,Ay,Az,apot,cfacti)
             call sumdim1(nodes,myid,akine1,wkword)
             call sumdim1(nodes,myid,akini1,wkword)
          endif
 
          !..... push electrons
-         call push(np,nx,ny,nz,xe,ye,ze,vxe,vye,vze,ex,ey,ez,bxg,byg,bzg,dt,&
+         call push(np,nx,ny,xe,ye,ze,vxe,vye,vze,ex,ey,ez,bx,by,bz,dt,&
               ctome,xeb,yeb,zeb,phi,phib,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
               vparae,vperpe)
          
          !..... push ions
-         call push(np,nx,ny,nz,xi,yi,zi,vxi,vyi,vzi,ex,ey,ez,bxg,byg,bzg,dt,&
+         call push(np,nx,ny,xi,yi,zi,vxi,vyi,vzi,ex,ey,ez,bx,by,bz,dt,&
               ctomi,xib,yib,zib,phi,phib,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
               vparai,vperpi)
 
@@ -202,13 +202,13 @@ CONTAINS
        END SUBROUTINE pic_exec
 
 !***********************************************************************
-       subroutine push(np,nx,ny,nz,x,y,z,vx,vy,vz,ex,ey,ezg,bxg,byg,bzg,dt,&
+       subroutine push(np,nx,ny,x,y,z,vx,vy,vz,ex,ey,ez,bx,by,bz,dt,&
             ctom,xb,yb,zb,phi,phib,Axb,Ayb,Azb,Axbb,Aybb,Azbb,vpara,vperp)
 !***********************************************************************
       implicit none
       real(8), dimension(np) :: x, y, z, xb, yb, zb, vx, vy, vz, vpara, vperp
       real(8), dimension(0:nx,0:ny) :: phi,phib,Axb, Ayb, Azb, Axbb, Aybb, Azbb
-      real(8), dimension(0:nx,0:ny,0:nz) :: ex, ey, ezg, bxg, byg, bzg
+      real(8), dimension(0:nx,0:ny) :: ex, ey, ez, bx, by, bz
       real(8) :: ctom, dx, dy, dz, dx1, dy1, dz1, dt, exx, eyy, ezz, bxx,&
                  byy, bzz, vxn, vyn, vzn, vxzero, vyzero, vzzero, vxp, vyp,&
                  vzp, sx1p, sx1m, sy1p, sy1m, sx2, sy2, sx2p, sx2m, sy2m, sy2p
@@ -274,8 +274,8 @@ CONTAINS
          if( jp .eq. ny ) jpp = 1       
          
          ! electric field
-         exx = ex(ip ,jp  ,0)*dx1*dy1 + ex(ip+1,jp  ,0)*dx*dy1 &
-             + ex(ip ,jp+1,0)*dx1*dy  + ex(ip+1,jp+1,0)*dx*dy  
+         exx = ex(ip ,jp  )*dx1*dy1 + ex(ip+1,jp  )*dx*dy1 &
+             + ex(ip ,jp+1)*dx1*dy  + ex(ip+1,jp+1)*dx*dy  
               
              !  ex(ipp,jpp,0) * sx2p * sy2p &
              !+ ex(ipp,jp ,0) * sx2p * sy2  &
@@ -302,9 +302,10 @@ CONTAINS
                 !- (Axb(ipm,jpp) - Axbb(ipm,jpp)) / dt * sx1m * sy2p &
                 !- (Axb(ipm,jp ) - Axbb(ipm,jp )) / dt * sx1m * sy2  &
                 !- (Axb(ipm,jpm) - Axbb(ipm,jpm)) / dt * sx1m * sy2m 
+
          
-         eyy = ey(ip ,jp  ,0)*dx1*dy1 + ey(ip+1,jp  ,0)*dx*dy1 &
-             + ey(ip ,jp+1,0)*dx1*dy  + ey(ip+1,jp+1,0)*dx*dy  
+         eyy = ey(ip ,jp  )*dx1*dy1 + ey(ip+1,jp  )*dx*dy1 &
+             + ey(ip ,jp+1)*dx1*dy  + ey(ip+1,jp+1)*dx*dy  
 
              !  ey(ipp,jpp,0) * sx2p * sy2p &
              !+ ey(ip ,jpp,0) * sx2  * sy2p &
@@ -332,8 +333,8 @@ CONTAINS
                 !- (Ayb(ip ,jpm) - Aybb(ip ,jpm)) / dt * sx2  * sy1m &
                 !- (Ayb(ipm,jpm) - Aybb(ipm,jpm)) / dt * sx2m * sy1m      
          
-             ezz = ezg(ip ,jp  ,0)*dx1*dy1 + ezg(ip+1,jp  ,0)*dx*dy1 &
-                 + ezg(ip ,jp+1,0)*dx1*dy  + ezg(ip+1,jp+1,0)*dx*dy  
+             ezz = ez(ip ,jp  )*dx1*dy1 + ez(ip+1,jp  )*dx*dy1 &
+                 + ez(ip ,jp+1)*dx1*dy  + ez(ip+1,jp+1)*dx*dy  
          !- (Azb(ipp,jpp) - Azbb(ipp,jpp)) * sx2p * sy2p / dt &
                 !- (Azb(ipp,jp ) - Azbb(ipp,jp )) * sx2p * sy2  / dt &
                 !- (Azb(ipp,jpm) - Azbb(ipp,jpm)) * sx2p * sy2m / dt &
@@ -349,8 +350,8 @@ CONTAINS
             !ezz=0.d0
 
            ! magnetic field
-             bxx = bxg(ip  ,jp,  0)*dx1*dy1 + bxg(ip+1,jp  ,0)*dx*dy1 &
-                 + bxg(ip  ,jp+1,0)*dx1*dy  + bxg(ip+1,jp+1,0)*dx*dy
+             bxx = bx(ip  ,jp  )*dx1*dy1 + bx(ip+1,jp  )*dx*dy1 &
+                 + bx(ip  ,jp+1)*dx1*dy  + bx(ip+1,jp+1)*dx*dy
              
                 !(Azb(ipp,jpp) + Azbb(ipp,jpp))/2 * sx2p * sy1p &
                 !+ (Azb(ip ,jpp) + Azbb(ip ,jpp))/2 * sx2  * sy1p &
@@ -362,8 +363,8 @@ CONTAINS
                 !- (Azb(ip ,jpm) + Azbb(ip ,jpm))/2 * sx2  * sy1m &
                 !- (Azb(ipm,jpm) + Azbb(ipm,jpm))/2 * sx2m * sy1m 
 
-             byy = byg(ip  ,jp,  0)*dx1*dy1 + byg(ip+1,jp  ,0)*dx*dy1 &
-                 + byg(ip  ,jp+1,0)*dx1*dy  + byg(ip+1,jp+1,0)*dx*dy
+             byy = by(ip  ,jp  )*dx1*dy1 + by(ip+1,jp  )*dx*dy1 &
+                 + by(ip  ,jp+1)*dx1*dy  + by(ip+1,jp+1)*dx*dy
                 !- (Azb(ipp,jpp) + Azbb(ipp,jpp))/2 * sy2p * sx1p &
                 !- (Azb(ipp,jp ) + Azbb(ipp,jp ))/2 * sy2  * sx1p &
                 !- (Azb(ipp,jpm) + Azbb(ipp,jpm))/2 * sy2m * sx1p &
@@ -374,8 +375,8 @@ CONTAINS
                 !+ (Azb(ipm,jp ) + Azbb(ipm,jp ))/2 * sy2  * sx1m &
                 !+ (Azb(ipm,jpm) + Azbb(ipm,jpm))/2 * sy2m * sx1m
         
-             bzz = bzg(ip  ,jp,  0)*dx1*dy1 + bzg(ip+1,jp  ,0)*dx*dy1 &
-                 + bzg(ip  ,jp+1,0)*dx1*dy  + bzg(ip+1,jp+1,0)*dx*dy
+             bzz = bz(ip  ,jp  )*dx1*dy1 + bz(ip+1,jp  )*dx*dy1 &
+                 + bz(ip  ,jp+1)*dx1*dy  + bz(ip+1,jp+1)*dx*dy
                 !(Ayb(ipp,jp ) + Aybb(ipp,jp )) / 2 * sy1p * sx1p &
                 !- (Ayb(ip ,jp ) + Aybb(ip ,jp )) / 2 * sy1p * (sx1p-sx1m) &
                 !- (Ayb(ipm,jp ) + Aybb(ipm,jp )) / 2 * sy1p * sx1m &
@@ -625,14 +626,14 @@ CONTAINS
       end subroutine phia                            
 
 !***********************************************************************
-   subroutine efield(nx,ny,nz,phi,ex,ey,ezg,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
+   subroutine efield(nx,ny,phi,ex,ey,ez,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
 !***********************************************************************
      implicit none
-      real(8), dimension(0:nx,0:ny) :: phi,Axb,Ayb,Azb,Axbb,Aybb,Azbb
-      real(8), dimension(0:nx,0:ny,0:nz) :: ex, ey, ezg
-      integer :: nx, ny, nz, i, j, im, ip, jm, jp, k, km, kp
-      real(rkind) :: ez
-      ez=0.d0
+      real(8), dimension(0:nx,0:ny) :: phi
+      real(8), dimension(0:nx,0:ny) :: ex, ey, ez, Axb, Ayb,&
+           Azb, Axbb, Aybb, Azbb
+      integer :: nx, ny, i, j, im, ip, jm, jp, k, km, kp
+
       do j = 0, ny
       do i = 0, nx
 
@@ -640,58 +641,65 @@ CONTAINS
          ip = i + 1
          jm = j - 1
          jp = j + 1
-         !km = k - 1
-         !kp = k + 1
 
          if( i .eq. 0  ) im = nx - 1
          if( i .eq. nx ) ip = 1
          if( j .eq. 0  ) jm = ny - 1
          if( j .eq. ny ) jp = 1
-         !if( k .eq. 0  ) km = nz - 1
-         !if( k .eq. nz ) kp = 1
 
-         ex(i,j,0) = 0.5d0 * ( phi(im,j ) - phi(ip,j ) ) &
-                   - (Ax(i,j) - Axb(i,j)) / dt
-         ey(i,j,0) = 0.5d0 * ( phi(i ,jm) - phi(i ,jp) ) &
-                   - (Ay(i,j) - Ayb(i,j)) / dt 
-         ezg(i,j,0)= - (Az(i,j) - Azb(i,j)) / dt 
-         !ex(i,j,k) = 0
-         !ey(i,j,k) = 0
+         esx(i,j) = 0.5d0 * ( phi(im,j ) - phi(ip,j ) )
+         emx(i,J) = - ( Axb(i,j) - Axbb(i,j) ) / dt
+         esy(i,j) = 0.5d0 * ( phi(i ,jm) - phi(i ,jp) )
+         emy(i,j) = - ( Ayb(i,j) - Aybb(i,j) ) / dt
+         esz(i,j) = 0.D0
+         emz(i,j) = - ( Azb(i,j) - Azbb(i,j) ) / dt
+
+         ex(i,j) = esx(i,j) + emx(i,j)
+         ey(i,j) = esy(i,j) + emy(i,j)
+         ez(i,j) = esz(i,j) + emz(i,j)
 
       end do
       end do
     end subroutine efield
 !***********************************************************************
-    subroutine bfield(nx,ny,nz,bx,by,bz,bxg,byg,bzg,Axb,Ayb,Azb)
+    subroutine bfield(nx,ny,bxbg,bybg,bzbg,bx,by,bz,Ax,Ay,Az)
 !***********************************************************************
       implicit none
-      real(rkind), dimension(0:nx,0:ny,0:nz) :: bxg, byg, bzg
-      real(rkind), dimension(0:nx,0:ny) :: Axb, Ayb, Azb
-      integer :: nx, ny, nz, i, j, k, im, ip, jm, jp, km, kp
-      real(rkind)::bx, by, bz
+      real(rkind), dimension(0:nx,0:ny) :: bx, by, bz, Ax, Ay, Az
+      integer :: nx, ny, i, j
+      real(rkind)::bxbg, bybg, bzbg
 
+      do j = 0, ny-1
+      do i = 0, nx-1
+         bx(i,j) = bxbg - (Az(i,j+1)-Az(i,j))
+         by(i,j) = bybg + Az(i+1,j)-Az(i,j)
+         bz(i,j) = bzbg + (Ay(i+1,j)-Ay(i,j)) - (Ax(i,j+1)-Ax(i,j))
+      end do
+      end do
+
+      j=ny
+      do i = 0, nx-1
+         bx(i,j) = bxbg - (Az(i,1)-Az(i,j))
+         by(i,j) = bybg + Az(i+1,j)-Az(i,j)
+         bz(i,j) = bzbg + (Ay(i+1,j)-Ay(i,j)) - (Ax(i,1)-Ax(i,j))
+      end do
+     
+      i=nx
+      do j = 0, ny-1
+         bx(i,j) = bxbg - (Az(i,j+1)-Az(i,j))
+         by(i,j) = bybg + (Az(1,j)-Az(i,j))
+         bz(i,j) = bzbg + (Ay(1,j)-Ay(i,j)) - (Ax(i,j+1)-Ax(i,j))
+      end do
+
+      i=nx
+      j=ny
+         bx(i,j) = bxbg - (Az(i,1)-Az(i,j))
+         by(i,j) = bybg + (Az(1,j)-Az(i,j))
+         bz(i,j) = bzbg + (Ay(1,j)-Ay(i,j)) - (Ax(i,1)-Ax(i,j))
       do j = 0, ny
       do i = 0, nx
-      !do k = 0, nz
-         im = i - 1
-         ip = i + 1
-         jm = j - 1
-         jp = j + 1
-         !km = k - 1
-         !kp = k + 1
-
-         if( i .eq. 0  ) im = nx - 1
-         if( i .eq. nx ) ip = 1
-         if( j .eq. 0  ) jm = ny - 1
-         if( j .eq. ny ) jp = 1
-         !if( k .eq. 0  ) km = nz - 1
-         !if( k .eq. nz ) kp = 1
-         
-
-         bxg(i,j,0) = 0.5d0 * (Azb(ip,j) - Azb(im,j))
-         byg(i,j,0) = - 0.5d0 * (Azb(i,jp) - Azb(i,jm))
-         bzg(i,j,0) = 0.5d0 * (Ayb(ip,j) - Ayb(im,j) - (Axb(i,jp) - Axb(i,jm)))
-
+         bb(i,j) = SQRT(bx(i,j)**2+by(i,j)**2+bz(i,j)**2)
+         AA(i,j) = SQRT(Ax(i,j)**2+Ay(i,j)**2+Az(i,j)**2)
       end do
       end do
 
@@ -745,13 +753,13 @@ CONTAINS
     end subroutine kine
 
 !***********************************************************************
-    subroutine pote(nx,ny,nz,phi,ex,ey,ez,Ax,Ay,Az,apot,cfacti)
+    subroutine pote(nx,ny,phi,ex,ey,ez,Ax,Ay,Az,apot,cfacti)
 !***********************************************************************
       implicit none
-      real(8), dimension(0:nx,0:ny,0:nz) :: ex, ey, ez
+      real(8), dimension(0:nx,0:ny) :: ex, ey, ez
       real(8), dimension(0:nx,0:ny) :: phi, Ax, Ay, Az
       real(8) :: apot, cfacti
-      integer(4) :: nx, ny, nz, i, j, im, ip, jm, jp
+      integer(4) :: nx, ny, i, j, im, ip, jm, jp
 
       apot = 0.d0
 
@@ -767,7 +775,7 @@ CONTAINS
          if( i .eq. nx ) ip = 1
          if( j .eq. 0  ) jm = ny - 1
          if( j .eq. ny ) jp = 1     
-         apot = apot + ex(i,j,0)**2 + ey(i,j,0)**2 + ez(i,j,0)**2
+         apot = apot + ex(i,j)**2 + ey(i,j)**2 + ez(i,j)**2
               !+ 0.25d0 * (phi(ip,j) - phi(im,j)) ** 2 &
               !+ 0.25d0 * (phi(i,jp) - phi(i,jm)) ** 2 &
               !+ 0.25d0 / c**2 * ((Ayb(ip,j) - Ayb(im,j) - Axb(i,jp) &
@@ -864,14 +872,13 @@ CONTAINS
 
       if (kmod .lt. nodes) goto 1
  
-!.....................................................
       endif
 !.....................................................
  
     end subroutine sumdim1
 
 !***********************************************************************
-    subroutine current(np,nx,ny,nz,x,y,z,vx,vy,vz,jx,jy,jz,dt,chrg,cfact)
+    subroutine current(np,nx,ny,x,y,z,vx,vy,vz,jx,jy,jz,dt,chrg)
 !***********************************************************************
     implicit none
 
@@ -879,7 +886,7 @@ CONTAINS
     real(8), dimension(0:nx,0:ny) :: jx, jy, jz
     real(8) :: chrg, dt, dx, dy, dz, dx1, dy1, dz1, deltax,deltay,deltaz,&
                cfact, sx1p, sy1p, sx1m, sy1m, sx2, sy2, sx2p, sy2p, sx2m, sy2m
-    integer :: np, nx, ny, nz, i, ip, jp, kp, ix, iy, ipp, ipm, jpp, jpm 
+    integer :: np, nx, ny, i, ip, jp, kp, ix, iy
 
      do i = 1, np
         
@@ -928,15 +935,15 @@ CONTAINS
             sy2m = 1.0d0/2 * (3.0d0/2 - dy) ** 2
          endif
 
-         ipm = ip - 1
-         ipp = ip + 1
-         jpm = jp - 1
-         jpp = jp + 1
+         !ipm = ip - 1
+         !ipp = ip + 1
+         !jpm = jp - 1
+         !jpp = jp + 1
 
-         if( ip .eq. 0  ) ipm = nx - 1
-         if( ip .eq. nx ) ipp = 1
-         if( jp .eq. 0  ) jpm = ny - 1
-         if( jp .eq. ny ) jpp = 1
+         !if( ip .eq. 0  ) ipm = nx - 1
+         !if( ip .eq. nx ) ipp = 1
+         !if( jp .eq. 0  ) jpm = ny - 1
+         !if( jp .eq. ny ) jpp = 1
 
          jx(ip  ,jp  ) = jx(ip  ,jp  ) + dx1 * dy1 * chrg
          jx(ip+1,jp  ) = jx(ip+1,jp  ) + dx  * dy1 * chrg
