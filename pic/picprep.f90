@@ -76,7 +76,7 @@ CONTAINS
 !***********************************************************************
       implicit none
       real(8), dimension(np) :: x, y, z, xb, yb, zb, vx, vy, vz
-      real(8) :: vt, alx, aly, alz, factx, facty, factz, rvx, rvy, rvz
+      real(8) :: vt, alx, aly, alz, factx, facty, factz, rvx, rvy, rvz, abc
       integer :: np, npx, npy, npz, nx, ny, nz, ix, iy, iz, i, iran
 
       alx = dble(nx)
@@ -106,7 +106,7 @@ CONTAINS
       end do
       end do
       end do
-
+      
     end subroutine iniset
 
 !***********************************************************************
@@ -114,7 +114,7 @@ CONTAINS
 !***********************************************************************
       implicit none
       real(8) :: rvx, rvy, rvz, r1, r2, r3, rv
-      real(8) :: pi, twopi, eps, aln 
+      real(8) :: pi, twopi, eps, aln ,ab
       real(8) :: rmod = 2147483648.d0, ramda = 65539.d0, wran
       integer :: iran
 
@@ -122,6 +122,7 @@ CONTAINS
       twopi = 2.d0 * pi
       eps   = 0.00247875d0
       aln   = 1.d0 - eps
+      call random_number(ab)
 
       !----- generate first random number
       if( iran .lt. 0 ) iran = -iran
