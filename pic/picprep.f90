@@ -14,11 +14,10 @@ CONTAINS
     INCLUDE 'mpif.h'
     INTEGER,INTENT(OUT):: iout
 
-      np = npx * npy * npz 
+      np = npx * npy
       nxh1 = nx / 2 + 1
       nx1 = nx + 1
       ny1 = ny + 1
-      nz1 = nz + 1
       nxy = nx1 * ny1
 
       ctome  = chrge / me       !: charge to mass ratio of electrons
@@ -31,18 +30,18 @@ CONTAINS
       iran   = 14142 * myid     !: initial parameter for random number
 
       !..... factors for chrage density and field energy 
-      cfact  = dble(nx) * dble(ny) * dble(nz) / dble(np) / dble(nodes) 
+      cfact  = dble(nx) * dble(ny) / dble(np) / dble(nodes) 
       cfacti = 1.d0 / cfact
 
       !..... constants to define boundary condition
       alx = dble(nx)
       aly = dble(ny)
-      alz = dble(nz)
+      alz = 1.D0
       x1  = eps 
       x2  = alx - eps
       y1  = eps 
       y2  = aly - eps
-      z1  = eps
+      z1  = eps 
       z2  = alz - eps
       alx = alx - 2.d0 * eps
       aly = aly - 2.d0 * eps
@@ -51,9 +50,9 @@ CONTAINS
       CALL pic_allocate
 
       !..... set initial positions and velocities of electrons 
-      call iniset(np,npx,npy,npz,nx,ny,nz,xe,ye,ze,xeb,yeb,zeb,&
+      call iniset(np,npx,npy,nx,ny,xe,ye,ze,xeb,yeb,zeb,&
            vxe,vye,vze,vte,iran)
-      call iniset(np,npx,npy,npz,nx,ny,nz,xi,yi,zi,xib,yib,zib,&
+      call iniset(np,npx,npy,nx,ny,xi,yi,zi,xib,yib,zib,&
            vxi,vyi,vzi,vti,iran)
 
       !..... initialize poisson solver
@@ -72,29 +71,26 @@ CONTAINS
   END SUBROUTINE pic_prep
 
 !***********************************************************************
-      subroutine iniset(np,npx,npy,npz,nx,ny,nz,x,y,z,xb,yb,zb,vx,vy,vz,vt,iran)
+      subroutine iniset(np,npx,npy,nx,ny,x,y,z,xb,yb,zb,vx,vy,vz,vt,iran)
 !***********************************************************************
       implicit none
       real(8), dimension(np) :: x, y, z, xb, yb, zb, vx, vy, vz
-      real(8) :: vt, alx, aly, alz, factx, facty, factz, rvx, rvy, rvz
-      integer :: np, npx, npy, npz, nx, ny, nz, ix, iy, iz, i, iran
+      real(8) :: vt, alx, aly, factx, facty, rvx, rvy, rvz
+      integer :: np, npx, npy, nx, ny, ix, iy, iz, i, iran
 
       alx = dble(nx)
       aly = dble(ny)
-      alz = dble(nz)
       
       factx = alx / dble(npx)
       facty = aly / dble(npy)
-      factz = alz / dble(npz)
 
       i = 0
-      do iz = 1, npz
       do iy = 1, npy
       do ix = 1, npx      
          i  = i + 1
          x(i) = ( dble(ix) - 0.5d0 ) * factx
          y(i) = ( dble(iy) - 0.5d0 ) * facty
-         z(i) = ( dble(iz) - 0.5d0 ) * factz
+         z(i) = 0.D0
 
          xb(i) = x(i)
          yb(i) = y(i)
@@ -103,7 +99,6 @@ CONTAINS
          vx(i) = rvx * vt 
          vy(i) = rvy * vt
          vz(i) = rvz * vt
-      end do
       end do
       end do
 

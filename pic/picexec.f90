@@ -102,10 +102,10 @@ CONTAINS
          call fftpic(nx,ny,nxh1,nx1,ny1,phi,phif,awk,afwk,ifset)
 
          !.......... calculate ex and ey and ez
-         !call efield(nx,ny,nz,phi,ex,ey,ez,ezg)
+         call efield(nx,ny,phi,ex,ey,ez)
 
-         !.......... calculate bxg and byg and bzg
-         ! call bfield(nx,ny,nz,bx,by,bz,bxg,byg,bzg)
+         !.......... calculate bx and by and bz
+          call bfield(nx,ny,bxbg,bybg,bzbg,bx,by,bz)
         
          !..... diagnostics to check energy conservation 
          !.....            before pushing 
@@ -113,7 +113,7 @@ CONTAINS
             iene = iene + 1
             call kine(np,vxe,vye,vze,akine1,me)
             call kine(np,vxi,vyi,vzi,akini1,mi)
-            call pote(nx,ny,nz,phi,Ax,Ay,Az,apot,cfacti)
+            call pote(nx,ny,phi,Ax,Ay,Az,apot,cfacti)
             call sumdim1(nodes,myid,akine1,wkword)
             call sumdim1(nodes,myid,akini1,wkword)
          endif
@@ -123,25 +123,25 @@ CONTAINS
          jz(:,:)=0.d0
          
          !.......... calculate current by electrons
-         call current(np,nx,ny,nz,xe,ye,ze,xeb,yeb,zeb,jx,jy,jz,dt,chrge) 
+         call current(np,nx,ny,xe,ye,ze,xeb,yeb,zeb,jx,jy,jz,dt,chrge) 
           !.......... calculate current by ions
-         call current(np,nx,ny,nz,xi,yi,zi,xib,yib,zib,jx,jy,jz,dt,chrgi)
+         call current(np,nx,ny,xi,yi,zi,xib,yib,zib,jx,jy,jz,dt,chrgi)
          !jx(:,:)=0.d0
          !jy(:,:)=0.d0
          !jz(:,:)=0.d0
          !.......... calculate vector potential
          call phia(nx,ny,c,omega,dt,phi,phib,jx,jy,jz,Ax,Ay,Az,Axb,Ayb,Azb,&
               Axbb,Aybb,Azbb)
-         ex(:,:,:)=0.d0
-         ey(:,:,:)=0.d0
-         ez(:,:,:)=0.d0
+         !ex(:,:)=0.d0
+         !ey(:,:)=0.d0
+         !ez(:,:)=0.d0
          !----- push electrons
-         call push(np,nx,ny,nz,xe,ye,ze,vxe,vye,vze,ex,ey,ez,bxg,byg,bzg,dt,&
+         call push(np,nx,ny,xe,ye,ze,vxe,vye,vze,ex,ey,ez,bx,by,bz,dt,&
               ctome,xeb,yeb,zeb,phi,phib,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
               vparae,vperpe)
          
          !..... push ions
-         call push(np,nx,ny,nz,xi,yi,zi,vxi,vyi,vzi,ex,ey,ez,bxg,byg,bzg,dt,&
+         call push(np,nx,ny,xi,yi,zi,vxi,vyi,vzi,ex,ey,ez,bx,by,bz,dt,&
               ctomi,xib,yib,zib,phi,phib,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
               vparai,vperpi)
          !----- treat particles being out of the boundary
@@ -207,18 +207,18 @@ CONTAINS
        END SUBROUTINE pic_exec
 
 !***********************************************************************
-       subroutine push(np,nx,ny,nz,x,y,z,vx,vy,vz,ex,ey,ez,bxg,byg,bzg,dt,&
+       subroutine push(np,nx,ny,x,y,z,vx,vy,vz,ex,ey,ez,bxg,byg,bzg,dt,&
             ctom,xb,yb,zb,phi,phib,Axb,Ayb,Azb,Axbb,Aybb,Azbb,vpara,vperp)
 !***********************************************************************
       implicit none
       real(8), dimension(np) :: x, y, z, xb, yb, zb, vx, vy, vz, vpara, vperp
       real(8), dimension(0:nx,0:ny) :: phi,phib,Axb, Ayb, Azb, Axbb, Aybb, Azbb
-      real(8), dimension(0:nx,0:ny,0:nz) :: ex, ey, ez, bxg, byg, bzg
+      real(8), dimension(0:nx,0:ny) :: ex, ey, ez, bxg, byg, bzg
       real(8) :: ctom, dx, dy, dz, dx1, dy1, dz1, dt, exx, eyy, ezz, bxx,&
                  byy, bzz, vxn, vyn, vzn, vxzero, vyzero, vzzero, vxp, vyp,&
                  vzp, sx1p, sx1m, sy1p, sy1m, sx2, sy2, sx2p, sx2m, sy2m, sy2p
       real(8) :: btot, vtot
-      integer :: np, nx, ny, nz, i, j, ip, jp, kp
+      integer :: np, nx, ny, i, j, ip, jp, kp
      
       do i = 1, np
 
@@ -458,10 +458,10 @@ CONTAINS
      !     + ey(ip+1,jp+1,kp  )*dx*dy*dz1   + ey(ip  ,jp+1,kp+1)*dx1*dy*dz &
      !     + ey(ip+1,jp  ,kp+1)*dx*dy1*dz   + ey(ip+1,jp+1,kp+1)*dx*dy*dz
 
-     ! ezz = ezg(ip  ,jp  ,kp  )*dx1*dy1*dz1 + ezg(ip+1,jp  ,kp  )*dx*dy1*dz1 &
-     !     + ezg(ip  ,jp+1,kp  )*dx1*dy*dz1  + ezg(ip  ,jp  ,kp+1)*dx1*dy1*dz &
-     !     + ezg(ip+1,jp+1,kp  )*dx*dy*dz1   + ezg(ip  ,jp+1,kp+1)*dx1*dy*dz &
-     !     + ezg(ip+1,jp  ,kp+1)*dx*dy1*dz   + ezg(ip+1,jp+1,kp+1)*dx*dy*dz
+     ! ezz = ez(ip  ,jp  ,kp  )*dx1*dy1*dz1 + ez(ip+1,jp  ,kp  )*dx*dy1*dz1 &
+     !     + ez(ip  ,jp+1,kp  )*dx1*dy*dz1  + ez(ip  ,jp  ,kp+1)*dx1*dy1*dz &
+     !     + ez(ip+1,jp+1,kp  )*dx*dy*dz1   + ez(ip  ,jp+1,kp+1)*dx1*dy*dz &
+     !     + ez(ip+1,jp  ,kp+1)*dx*dy1*dz   + ez(ip+1,jp+1,kp+1)*dx*dy*dz
 
 ! magnetic field
          if(ip .ge. 1 .and. jp .ge. 1) then
@@ -922,73 +922,80 @@ CONTAINS
       end subroutine phia                            
 
 !***********************************************************************
-   subroutine efield(nx,ny,nz,phi,ex,ey,ez,ezg)
+   subroutine efield(nx,ny,phi,ex,ey,ez)
 !***********************************************************************
      implicit none
       real(8), dimension(0:nx,0:ny) :: phi
-      real(8), dimension(0:nx,0:ny,0:nz) :: ex, ey, ezg
-      integer :: nx, ny, nz, i, j, im, ip, jm, jp, k, km, kp
-      real(rkind) :: ez
+      real(8), dimension(0:nx,0:ny) :: ex, ey, ez
+      integer :: nx, ny, i, j, im, ip, jm, jp, k, km, kp
 
       do j = 0, ny
       do i = 0, nx
-      do k = 0, nz
 
          im = i - 1
          ip = i + 1
          jm = j - 1
          jp = j + 1
-         !km = k - 1
-         !kp = k + 1
 
          if( i .eq. 0  ) im = nx - 1
          if( i .eq. nx ) ip = 1
          if( j .eq. 0  ) jm = ny - 1
          if( j .eq. ny ) jp = 1
-         !if( k .eq. 0  ) km = nz - 1
-         !if( k .eq. nz ) kp = 1
 
-         ex(i,j,k) = 0.5d0 * ( phi(im,j ) - phi(ip,j ) )
-         ey(i,j,k) = 0.5d0 * ( phi(i ,jm) - phi(i ,jp) )
-         ezg(i,j,k) = ez
-         !ex(i,j,k) = 0
-         !ey(i,j,k) = 0
+         esx(i,j) = ( phi(im,j ) - phi(ip,j ) )
+         emx(i,J) = - ( Axb(i,j) - Axbb(i,j) ) / dt
+         esy(i,j) = ( phi(i ,jm) - phi(i ,jp) )
+         emy(i,j) = - ( Ayb(i,j) - Aybb(i,j) ) / dt
+         esz(i,j) = 0.D0
+         emz(i,j) = - ( Azb(i,j) - Azbb(i,j) ) / dt
 
-      end do
+         ex(i,j) = esx(i,j) + emx(i,j)
+         ey(i,j) = esy(i,j) + emy(i,j)
+         ez(i,j) = esz(i,j) + emz(i,j)
+
       end do
       end do
     end subroutine efield
 !***********************************************************************
-    subroutine bfield(nx,ny,nz,bx,by,bz,bxg,byg,bzg)
+    subroutine bfield(nx,ny,bxbg,bybg,bzbg,bx,by,bz)
 !***********************************************************************
       implicit none
-      real(rkind), dimension(0:nx,0:ny,0:nz) :: bxg, byg, bzg
-      integer :: nx, ny, nz, i, j, k!, im, ip, jm, jp, km, kp
-      real(rkind)::bx, by, bz
+      real(rkind), dimension(0:nx,0:ny) :: bx, by, bz
+      integer :: nx, ny, i, j
+      real(rkind)::bxbg, bybg, bzbg
+
+      do j = 0, ny-1
+      do i = 0, nx-1
+         bx(i,j) = bxbg - (Az(i,j+1)-Az(i,j))
+         by(i,j) = bybg + (Az(i+1,j)-Az(i,j))
+         bz(i,j) = bzbg + (Ay(i+1,j)-Ay(i,j)) - (Ax(i,j+1)-Ax(i,j))
+      end do
+      end do
+
+      j=ny
+      do i = 0, nx-1
+         bx(i,j) = bxbg - (Az(i,0)-Az(i,j))
+         by(i,j) = bybg + (Az(i+1,j)-Az(i,j))
+         bz(i,j) = bzbg + (Ay(i+1,j)-Ay(i,j)) - (Ax(i,0)-Ax(i,j))
+      end do
+     
+      i=nx
+      do j = 0, ny-1
+         bx(i,j) = bxbg - (Az(i,j+1)-Az(i,j))
+         by(i,j) = bybg + (Az(0,j)-Az(i,j))
+         bz(i,j) = bzbg + (Ay(0,j)-Ay(i,j)) - (Ax(i,j+1)-Ax(i,j))
+      end do
+
+      i=nx
+      j=ny
+         bx(i,j) = bxbg - (Az(i,0)-Az(i,j))
+         by(i,j) = bybg + (Az(0,j)-Az(i,j))
+         bz(i,j) = bzbg + (Ay(0,j)-Ay(i,j)) - (Ax(i,0)-Ax(i,j))
 
       do j = 0, ny
       do i = 0, nx
-      do k = 0, nz
-         !im = i - 1
-         !ip = i + 1
-         !jm = j - 1
-         !jp = j + 1
-         !km = k - 1
-         !kp = k + 1
-
-         !if( i .eq. 0  ) im = nx - 1
-         !if( i .eq. nx ) ip = 1
-         !if( j .eq. 0  ) jm = ny - 1
-         !if( j .eq. ny ) jp = 1
-         !if( k .eq. 0  ) km = nz - 1
-         !if( k .eq. nz ) kp = 1
-         
-
-         bxg(i,j,k) = bx
-         byg(i,j,k) = by
-         bzg(i,j,k) = bz
-
-      end do
+         bb(i,j) = SQRT(bx(i,j)**2+by(i,j)**2+bz(i,j)**2)
+         AA(i,j) = SQRT(Ax(i,j)**2+Ay(i,j)**2+Az(i,j)**2)
       end do
       end do
 
@@ -1042,13 +1049,13 @@ CONTAINS
     end subroutine kine
 
 !***********************************************************************
-    subroutine pote(nx,ny,nz,phi,Ax,Ay,Az,apot,cfacti)
+    subroutine pote(nx,ny,phi,Ax,Ay,Az,apot,cfacti)
 !***********************************************************************
       implicit none
-      real(8), dimension(0:nx,0:ny,0:nz) :: ex, ey, ez
+      real(8), dimension(0:nx,0:ny) :: ex, ey, ez
       real(8), dimension(0:nx,0:ny) :: phi, Ax, Ay, Az
       real(8) :: apot, cfacti
-      integer(4) :: nx, ny, nz, i, j, im, ip, jm, jp
+      integer(4) :: nx, ny, i, j, im, ip, jm, jp
 
       apot = 0.d0
 
@@ -1167,7 +1174,7 @@ CONTAINS
     end subroutine sumdim1
 
 !***********************************************************************
-    subroutine current(np,nx,ny,nz,x,y,z,xb,yb,zb,jx,jy,jz,dt,chrg)
+    subroutine current(np,nx,ny,x,y,z,xb,yb,zb,jx,jy,jz,dt,chrg)
 !***********************************************************************
     implicit none
 
@@ -1175,7 +1182,7 @@ CONTAINS
     real(8), dimension(0:nx,0:ny) :: jx, jy, jz
     real(8) :: chrg, dt, dx, dy, dz, dx1, dy1, dz1, deltax, deltay, deltaz,&
                cfact, sx1p, sy1p, sx1m, sy1m, sx2, sy2, sx2p, sy2p, sx2m, sy2m
-    integer :: np, nx, ny, nz, i, ip, jp, kp, ix, iy
+    integer :: np, nx, ny, i, ip, jp, kp, ix, iy
 
      do i = 1, np
         
