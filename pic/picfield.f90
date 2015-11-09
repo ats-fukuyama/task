@@ -48,7 +48,7 @@ CONTAINS
          !----- solve poisson equation
          do j = 1, ny
          do i = 1, nxh1
-            phif(i,j) =  cform(i,j) * rhof(i,j)
+            phif(i,j) = cform(i,j) * rhof(i,j)
          end do
          end do 
 
