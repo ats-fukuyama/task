@@ -30,7 +30,7 @@ CONTAINS
       iran   = 14142 * myid     !: initial parameter for random number
 
       !..... factors for chrage density and field energy 
-      cfact  = dble(nx) * dble(ny) / dble(np) / dble(nodes) 
+      cfact  = dble(nx) * dble(ny) / dble(np) !/ dble(nodes) 
       cfacti = 1.d0 / cfact
 
       !..... constants to define boundary condition

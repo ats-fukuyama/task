@@ -562,7 +562,7 @@ CONTAINS
          end do
 
          do ix = 0, nx
-           rho(ix,0) = rho(ix,0) + rho(ix,ny)
+            rho(ix,0) = rho(ix,0) + rho(ix,ny)
          end do
          do iy = 0, ny
          do ix = 0, nx
@@ -653,7 +653,7 @@ CONTAINS
          
          esx(i,j) = 0.5 * ( phi(im,j ) - phi(ip,j ) )
          emx(i,j) = - ( Axb(i,j) - Axbb(i,j) ) / dt
-         esy(i,j) = 0.5 * ( phi(i ,jm) - phi(i ,jp) )
+         esy(i,j) = 0.5 * ( phi(i,jm) - phi(i,jp) )
          emy(i,j) = - ( Ayb(i,j) - Aybb(i,j) ) / dt
          esz(i,j) = 0.D0
          emz(i,j) = - ( Azb(i,j) - Azbb(i,j) ) / dt
