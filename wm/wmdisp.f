@@ -547,11 +547,11 @@ C
 !      IMPLICIT NONE
       COMPLEX*16 :: CPM1,CPM2,CQM1,CQM2,CRM1,CRM2 
 !      COMPLEX*16 :: CXM(1:6)
-      DOUBLE PRECISION :: RHOL
+      DOUBLE PRECISION :: RHOL,WP02
       INTEGER :: NS,NRWM
       DOUBLE PRECISION :: DELRWM,RL
 C
-      WRITE(6,'(A,I5)') 'NR=',NR
+!      WRITE(6,'(A,I5)') 'NR=',NR
       NS=3
       CW=2.D0*PI*CRF*1.D6
 C
@@ -607,9 +607,9 @@ C
             ELSEIF((MODEFA.EQ.1).OR.(MODEFA.EQ.2)) THEN 
                CALL WMDPFA(CX,CFN,COEF,RHOR,CPM,CQM,CRM,MODEFA)
             ELSEIF(MODEFA.EQ.3) THEN 
-               RHOL=XRHO(NR)
-         CALL WMDPFA2(NS,CW,RHOL,RKPR,VTA,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)  !normarized p,theta
-!         CALL WMDPFA2(CW,AM,RHOL,RKPR,VTA,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2) !not normarized p,theta
+               RHOL=1.2D0*(NR-0.5D0)/NRMAX  
+!         CALL WMDPFA2(NS,CW,RHOL,RKPR,VTA,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)  !normarized p,theta
+         CALL WMDPFA2(CW,AM,RHOL,RKPR,VTA,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2) !not normarized p,theta
 !             WRITE(6,'(i5,1P2E12.4)') NS,RHOL,RKPR
 !             WRITE(6,'(1P6E12.4)') CPM1,CPM2,CQM1
 !             WRITE(6,'(1P6E12.4)') CQM2,CRM1,CRM2
@@ -623,11 +623,21 @@ C
 !              WRITE(6,'(A,5I5)',ADVANCE='NO') 
 !              WRITE(6,'(A,5I5)')
 !     &              'MD,ND,NTH,NHH,NR=',MD,ND,NTH,NHH,NR
-              RHOL=XRHO(NR)
-              CALL WMDPFAA(CW,RHOL,RKPR,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
-              CPM=CPM1+CPM2
-              CQM=CQM1+CQM2
-              CRM=CRM1+CRM2     
+              RHOL=RB/RA*(NR-0.5D0)/NRMAX
+             IF(RHOL.LE.1.D0) THEN
+          CALL WMDPFAA(CW,RHOL,RKPR,AE2N0,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
+          WP02=AE2N0*1.D20/(AM*EPS0)
+             CPM=(PI/8.D0)*WP02/(CW*CW*WC*WC*RR*RR)*
+     &           (-CPM1+CPM2*MM/(RHOL*AM*CW*WC))
+             CQM=(PI/2.D0)*WP02/(CW*CW*WC*RR)*
+     &           (-CQM1+CQM2*MM/(RHOL*AM*CW*WC))
+             CRM=2.D0 *PI*WP02/(CW*CW)*
+     &           (-CRM1+CRM2*MM/(RHOL*AM*CW*WC))
+             ELSE
+               CPM=(0.D0,0.D0)
+               CQM=(0.D0,0.D0)
+               CRM=(0.D0,0.D0)
+             ENDIF
             ELSE
                NRWM=NR
                DELRWM=RB*(XRHO(NR+1)-XRHO(NR))
@@ -647,7 +657,7 @@ C
                 RETURN
               ENDIF
              ENDIF
-!             WRITE(6,'(i5,1P2E12.4)') NS,RHOL,RKPR
+!             WRITE(6,'(1P5E12.4)') RHOL,RKPR,AE2N0,WP02
 !             WRITE(6,'(1P6E12.4)') CPM,CQM,CRM
 
 C
