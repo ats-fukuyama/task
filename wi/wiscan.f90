@@ -118,18 +118,20 @@ CONTAINS
           xmax=10.D0/(beta)
           xmin=-5.0D0/(beta)
        ELSE
-          dx0=dx0_save/(alfa*beta)
-          xmax=10.D0*alfa
-          xmin=-5.D0*alfa
+!          dx0=0.5D0*dx0_save/log(alfa)
+          dx0=0.1D0*dx0_save/log(alfa)
+          xmax=500.D0*dx0
+          xmin=-500.D0*dx0
        END IF
        alfa=alfa*beta
-       WRITE(6,'(I5,1P6E12.4)') nalfa,alfa,rk0l,0.D0,xmin,xmax,dx0
+!       WRITE(6,'(I5,1P6E12.4)') nalfa,alfa,rk0l,0.D0,xmin,xmax,dx0
        CALL wi_prep
        IF(any < 1.0) THEN
           CALL wi_exec(0,ratea,ierr)
        ELSE
           ratea=0.D0
        END IF
+
        WRITE(6,'(I5,1P6E12.4)') nalfa,alfa,rk0l,ratea,xmin,xmax,dx0
        IF(TRIM(kfscan)//'X'.NE.'X') &
             WRITE(nfl,'(I5,1P3E12.4)') nalfa,alfa,rk0l,rateaa
@@ -146,7 +148,7 @@ CONTAINS
 
     CALL PAGES
     CALL GRD1D(0,rk0la,rateaa,nalfamax,nalfamax,1,TITLE='@abs vs k0L@',&
-               MODE_LS=1,YMIN=0.D0)
+               MODE_LS=1,FMIN=0.D0)
     CALL PAGEE
 
     RETURN
