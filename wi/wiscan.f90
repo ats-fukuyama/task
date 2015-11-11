@@ -135,7 +135,7 @@ CONTAINS
             WRITE(nfl,'(I5,1P3E12.4)') nalfa,alfa,rk0l,rateaa
        rk0la(nalfa)=LOG10(rk0l)
        rateaa(nalfa)=ratea
-       CALL wi_gra1
+!       CALL wi_gra1
     END DO
     alfa=alfa_save
     xmax=xmax_save

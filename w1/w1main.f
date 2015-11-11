@@ -193,6 +193,10 @@ C      ON REAL*4 UNDERFLOW CALL UNDFL4
 C      IUNFL8=0
 C      IUNFL4=0
 C     CALL FPARAM(1,136)
+
+      CALL GSOPEN
+      igraph=1
+
       WRITE(6,600)
       WRITE(6,601) 'TASK/W1 --- V2.12 : 94/01/12',
      &             NXPM,NXVM,NZPM,ISM,IAM,MATLM,NHARMM,NDM
@@ -254,10 +258,10 @@ C
       IF(NDISP.EQ.1) THEN
          XMIN=-RA
          XMAX= RA
-         IF(NGRAPH.GT.0) THEN
-            IF(IGRAPH.EQ.0) CALL GSOPEN
-            IGRAPH=1
-         ENDIF
+C         IF(NGRAPH.GT.0) THEN
+C            IF(IGRAPH.EQ.0) CALL GSOPEN
+C            IGRAPH=1
+C         ENDIF
   100    WRITE(6,*) '## INPUT : XMIN,XMAX,KXMIN,KXMAX,NXP ?'
          READ(5,*,ERR=100,END=2) XMIN,XMAX,PKXMIN,PKXMAX,NXP
          IF(ABS(XMAX-XMIN).LE.1.D-32) GOTO 2
