@@ -113,12 +113,12 @@ CONTAINS
          !.......... calculate vector potential
          call phia(nx,ny,c,omega,dt,phi,phib,jx,jy,jz,Ax,Ay,Az,Axb,Ayb,Azb,&
               Axbb,Aybb,Azbb,cfact)
-         !Axb(:,:)=0.d0
-         !Ayb(:,:)=0.d0
-         !Azb(:,:)=0.d0
-         !Axbb(:,:)=0.d0
-         !Aybb(:,:)=0.d0
-         !Azbb(:,:)=0.d0
+         Axb(:,:)=0.d0
+         Ayb(:,:)=0.d0
+         Azb(:,:)=0.d0
+         Axbb(:,:)=0.d0
+         Aybb(:,:)=0.d0
+         Azbb(:,:)=0.d0
            !.......... calculate ex and ey and ez
          call efield(nx,ny,phi,ex,ey,ez,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
            !.......... calculate bxg and byg and bzg
@@ -408,13 +408,13 @@ CONTAINS
          vyzero = vyn + 1.0d0/2 * ctom * (vzn * bxx - vxn * bzz) * dt 
          vzzero = vzn + 1.0d0/2 * ctom * (vxn * byy - vyn * bxx) * dt
 
-         vxp = vxn + 1.0d0/(1.0d0 + 0.25d0 * (ctom * dt) ** 2 & 
+         vxp = vxzero + 1.0d0/(1.0d0 + 0.25d0 * (ctom * dt) ** 2 & 
              * (bxx ** 2 + byy ** 2 + bzz ** 2)) & 
              * ctom * (vyzero * bzz - vzzero * byy) * dt
-         vyp = vyn + 1.0d0/(1.0d0 + 0.25d0 * (ctom * dt) ** 2 &
+         vyp = vyzero + 1.0d0/(1.0d0 + 0.25d0 * (ctom * dt) ** 2 &
              * (bxx ** 2 + byy ** 2 + bzz ** 2)) &
              * ctom * (vzzero * bxx - vxzero * bzz) * dt 
-         vzp = vzn + 1.0d0/(1.0d0 + 0.25d0 * (ctom * dt) ** 2 & 
+         vzp = vzzero + 1.0d0/(1.0d0 + 0.25d0 * (ctom * dt) ** 2 & 
              * (bxx ** 2 + byy ** 2 + bzz ** 2)) & 
              * ctom * (vxzero * byy - vyzero * bxx) * dt
  
