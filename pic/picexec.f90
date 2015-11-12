@@ -83,8 +83,10 @@ CONTAINS
          
          !----- charge assignment
          rho(:,:)=0.0d0
+         !abc=0.d0
          call source(np,nx,ny,xe,ye,rho,chrge,cfact)
          call source(np,nx,ny,xi,yi,rho,chrgi,cfact)
+          
          !..... sum charge densities over cores
          call sumdim(nodes,myid,rho,phi,nxy)
 
@@ -100,37 +102,26 @@ CONTAINS
          !.......... inverse fourier transform phi
          ifset = 1
          call fftpic(nx,ny,nxh1,nx1,ny1,phi,phif,awk,afwk,ifset)
-
          jx(:,:)=0.d0
          jy(:,:)=0.d0
          jz(:,:)=0.d0
-                
          !.......... calculate current by electrons
          call current(np,nx,ny,xe,ye,ze,vxe,vye,vze,jx,jy,jz,dt,chrge,cfact)
          !.......... calculate current by ions
          call current(np,nx,ny,xi,yi,zi,vxi,vyi,vzi,jx,jy,jz,dt,chrgi,cfact)
 
-         Ax(:,:)=0.d0
-         Ay(:,:)=0.d0
-         Az(:,:)=0.d0
          !.......... calculate vector potential
          call phia(nx,ny,c,omega,dt,phi,phib,jx,jy,jz,Ax,Ay,Az,Axb,Ayb,Azb,&
               Axbb,Aybb,Azbb,cfact)
-        ! abc=0.d0
-        ! do i=1,nx
-        !    do j=1,nx
-        !       abc = abc+Az(i,j)
-        !    enddo
-        ! enddo
-        ! write(*,*),abc
-         ex(:,:)=0.d0
-         ey(:,:)=0.d0
-         ez(:,:)=0.d0
+         !Axb(:,:)=0.d0
+         !Ayb(:,:)=0.d0
+         !Azb(:,:)=0.d0
+         !Axbb(:,:)=0.d0
+         !Aybb(:,:)=0.d0
+         !Azbb(:,:)=0.d0
+         write(*,*)Az(1,1)
            !.......... calculate ex and ey and ez
          call efield(nx,ny,phi,ex,ey,ez,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
-         bx(:,:)=0.d0
-         by(:,:)=0.d0
-         bz(:,:)=0.d0
            !.......... calculate bxg and byg and bzg
          call bfield(nx,ny,bxbg,bybg,bzbg,bx,by,bz,Ax,Ay,Az)
 
@@ -241,20 +232,20 @@ CONTAINS
          dy1 = 1.0d0 - dy
          !dz1 = 1.0d0 - dz
 
-         if (dx .le. 0.5d0) then 
-            sx1p = 0.5d0 + dx
-            sx1m = 0.5d0 - dx
-         else
-            sx1p = dx - 0.5d0
-            sx1m = 1.5d0 - dx
-         end if
-         if (dy .le. 0.5d0) then 
-            sy1p = 0.5d0 + dy
-            sy1m = 0.5d0 - dy
-         else
-            sy1p = dy - 0.5d0
-            sy1m = 1.5d0 - dy
-         end if
+        ! if (dx .le. 0.5d0) then 
+        !    sx1p = 0.5d0 + dx
+        !    sx1m = 0.5d0 - dx
+        ! else
+        !    sx1p = dx - 0.5d0
+        !    sx1m = 1.5d0 - dx
+        ! end if
+        ! if (dy .le. 0.5d0) then 
+        !    sy1p = 0.5d0 + dy
+        !    sy1m = 0.5d0 - dy
+        ! else
+        !    sy1p = dy - 0.5d0
+        !    sy1m = 1.5d0 - dy
+        ! end if
 
           if(dx .le. 0.5d0) then
             sx2  = 3.0d0/4 - dx ** 2
@@ -274,20 +265,18 @@ CONTAINS
             sy2p = 1.0d0/2 * (-1.0d0/2 + dy) ** 2
             sy2m = 1.0d0/2 * (3.0d0/2 - dy) ** 2
          endif
-
          ipm = ip - 1
          ipp = ip + 1
          jpm = jp - 1
          jpp = jp + 1
-
          if( ip .eq. 0  ) ipm = nx - 1
          if( ip .eq. nx ) ipp = 1
          if( jp .eq. 0  ) jpm = ny - 1
-         if( jp .eq. ny ) jpp = 1       
-         
+         if( jp .eq. ny ) jpp = 1
          ! electric field
-         exx = ex(ip ,jp  )*dx1*dy1 + ex(ip+1,jp  )*dx*dy1 &
-             + ex(ip ,jp+1)*dx1*dy  + ex(ip+1,jp+1)*dx*dy  
+         exx = ex(ipp,jpp)*dx*sy2p + ex(ip ,jpp)*dx1*sy2p &
+             + ex(ipp,jp )*dx*sy2  + ex(ip ,jp )*dx1*sy2  &
+             + ex(ipp,jpm)*dx*sy2m + ex(ip ,jpm)*dx1*sy2m 
               
              !  ex(ipp,jpp,0) * sx2p * sy2p &
              !+ ex(ipp,jp ,0) * sx2p * sy2  &
@@ -316,9 +305,9 @@ CONTAINS
                 !- (Axb(ipm,jpm) - Axbb(ipm,jpm)) / dt * sx1m * sy2m 
 
          
-         eyy = ey(ip ,jp  )*dx1*dy1 + ey(ip+1,jp  )*dx*dy1 &
-             + ey(ip ,jp+1)*dx1*dy  + ey(ip+1,jp+1)*dx*dy  
-
+         eyy = ey(ipp,jpp)*sx2p*dy + ey(ipp,jp )*sx2p*dy1 &
+             + ey(ip ,jpp)*sx2 *dy + ey(ip ,jp )*sx2 *dy1 &
+             + ey(ipm,jpp)*sx2m*dy + ey(ipm,jp )*sx2m*dy1
              !  ey(ipp,jpp,0) * sx2p * sy2p &
              !+ ey(ip ,jpp,0) * sx2  * sy2p &
              !+ ey(ipm,jpp,0) * sx2m * sy2p &
@@ -345,8 +334,11 @@ CONTAINS
                 !- (Ayb(ip ,jpm) - Aybb(ip ,jpm)) / dt * sx2  * sy1m &
                 !- (Ayb(ipm,jpm) - Aybb(ipm,jpm)) / dt * sx2m * sy1m      
          
-             ezz = ez(ip ,jp  )*dx1*dy1 + ez(ip+1,jp  )*dx*dy1 &
-                  + ez(ip ,jp+1)*dx1*dy  + ez(ip+1,jp+1)*dx*dy
+         ezz = ez(ipp,jpp)*sx2p*sy2p + ez(ip ,jpp)*sx2 *sy2p &
+             + ez(ipm,jpp)*sx2m*sy2p + ez(ipp,jp )*sx2p*sy2  &
+             + ez(ip ,jp )*sx2 *sy2  + ez(ipm,jp )*sx2m*sy2  &
+             + ez(ipp,jpm)*sx2p*sy2m + ez(ip ,jpm)*sx2 *sy2m &
+             + ez(ipm,jpm)*sx2m*sy2m
          !- (Azb(ipp,jpp) - Azbb(ipp,jpp)) * sx2p * sy2p / dt &
                 !- (Azb(ipp,jp ) - Azbb(ipp,jp )) * sx2p * sy2  / dt &
                 !- (Azb(ipp,jpm) - Azbb(ipp,jpm)) * sx2p * sy2m / dt &
@@ -362,8 +354,9 @@ CONTAINS
             !ezz=0.d0
 
            ! magnetic field
-             bxx = bx(ip  ,jp  )*dx1*dy1 + bx(ip+1,jp  )*dx*dy1 &
-                 + bx(ip  ,jp+1)*dx1*dy  + bx(ip+1,jp+1)*dx*dy
+             bxx = bx(ipp,jpp)*dx*sy2p + bx(ip ,jpp)*dx1*sy2p &
+                 + bx(ipp,jp )*dx*sy2  + bx(ip ,jp )*dx1*sy2  &
+                 + bx(ipp,jpm)*dx*sy2m + bx(ip ,jpm)*dx1*sy2m
              
                 !(Azb(ipp,jpp) + Azbb(ipp,jpp))/2 * sx2p * sy1p &
                 !+ (Azb(ip ,jpp) + Azbb(ip ,jpp))/2 * sx2  * sy1p &
@@ -375,8 +368,9 @@ CONTAINS
                 !- (Azb(ip ,jpm) + Azbb(ip ,jpm))/2 * sx2  * sy1m &
                 !- (Azb(ipm,jpm) + Azbb(ipm,jpm))/2 * sx2m * sy1m 
 
-             byy = by(ip  ,jp  )*dx1*dy1 + by(ip+1,jp  )*dx*dy1 &
-                 + by(ip  ,jp+1)*dx1*dy  + by(ip+1,jp+1)*dx*dy
+             byy = by(ipp,jpp)*sx2p*dy + by(ipp,jp )*sx2p*dy1 &
+                 + by(ip ,jpp)*sx2 *dy + by(ip ,jp )*sx2 *dy1 &
+                 + by(ipm,jpp)*sx2m*dy + by(ipm,jp )*sx2m*dy1
                 !- (Azb(ipp,jpp) + Azbb(ipp,jpp))/2 * sy2p * sx1p &
                 !- (Azb(ipp,jp ) + Azbb(ipp,jp ))/2 * sy2  * sx1p &
                 !- (Azb(ipp,jpm) + Azbb(ipp,jpm))/2 * sy2m * sx1p &
@@ -387,8 +381,11 @@ CONTAINS
                 !+ (Azb(ipm,jp ) + Azbb(ipm,jp ))/2 * sy2  * sx1m &
                 !+ (Azb(ipm,jpm) + Azbb(ipm,jpm))/2 * sy2m * sx1m
         
-             bzz = bz(ip  ,jp  )*dx1*dy1 + bz(ip+1,jp  )*dx*dy1 &
-                 + bz(ip  ,jp+1)*dx1*dy  + bz(ip+1,jp+1)*dx*dy
+             bzz = bz(ipp,jpp)*sx2p*sy2p + bz(ip ,jpp)*sx2 *sy2p &
+                 + bz(ipm,jpp)*sx2m*sy2p + bz(ipp,jp )*sx2p*sy2  &
+                 + bz(ip ,jp )*sx2 *sy2  + bz(ipm,jp )*sx2m*sy2  &
+                 + bz(ipp,jpm)*sx2p*sy2m + bz(ip ,jpm)*sx2 *sy2m &
+                 + bz(ipm,jpm)*sx2m*sy2m
                 !(Ayb(ipp,jp ) + Aybb(ipp,jp )) / 2 * sy1p * sx1p &
                 !- (Ayb(ip ,jp ) + Aybb(ip ,jp )) / 2 * sy1p * (sx1p-sx1m) &
                 !- (Ayb(ipm,jp ) + Aybb(ipm,jp )) / 2 * sy1p * sx1m &
@@ -518,8 +515,8 @@ CONTAINS
             sx2m = 1.0d0/2 * (1.0d0/2 - dx) ** 2
          else
             sx2  = 3.0d0/4 - (dx - 1.0d0) ** 2
-            sx2p = 1.0d0/2 * (3.0d0/2 - dx) ** 2
-            sx2m = 1.0d0/2 * (-1.0d0/2 + dx) ** 2
+            sx2p = 1.0d0/2 * (-1.0d0/2 + dx) ** 2
+            sx2m = 1.0d0/2 * (3.0d0/2 - dx) ** 2
          endif
          if(dy .le. 0.5d0) then
             sy2  = 3.0d0/4 - dy ** 2
@@ -527,8 +524,8 @@ CONTAINS
             sy2m = 1.0d0/2 * (1.0d0/2 - dy) ** 2
          else
             sy2  = 3.0d0/4 - (dy - 1.0d0) ** 2
-            sy2p = 1.0d0/2 * (3.0d0/2 - dy) ** 2
-            sy2m = 1.0d0/2 * (-1.0d0/2 + dy) ** 2
+            sy2p = 1.0d0/2 * (-1.0d0/2 + dy) ** 2
+            sy2m = 1.0d0/2 * (3.0d0/2 - dy) ** 2
          endif
          ipm = ip - 1
          ipp = ip + 1
@@ -545,15 +542,15 @@ CONTAINS
          rho(ip  ,jp+1) = rho(ip  ,jp+1) + dx1 * dy  * chrg
          rho(ip+1,jp+1) = rho(ip+1,jp+1) + dx  * dy  * chrg
 
-           ! rho(ipm,jpm) = rho(ipm,jpm) + sx2m * sy2m * chrg
-           ! rho(ipm,jp ) = rho(ipm,jp ) + sx2m * sy2  * chrg
-           ! rho(ipm,jpp) = rho(ipm,jpp) + sx2m * sy2p * chrg
-           ! rho(ip ,jpm) = rho(ip ,jpm) + sx2  * sy2m * chrg
-           ! rho(ip ,jp ) = rho(ip ,jp ) + sx2  * sy2  * chrg
-           ! rho(ip ,jpp) = rho(ip ,jpp) + sx2  * sy2p * chrg
-           ! rho(ipp,jpm) = rho(ipp,jpm) + sx2p * sy2m * chrg
-           ! rho(ipp,jp ) = rho(ipp,jp ) + sx2p * sy2  * chrg
-           ! rho(ipp,jpp) = rho(ipp,jpp) + sx2p * sy2p * chrg
+         !   rho(ipm,jpm) = rho(ipm,jpm) + sx2m * sy2m * chrg
+         !   rho(ipm,jp ) = rho(ipm,jp ) + sx2m * sy2  * chrg
+         !   rho(ipm,jpp) = rho(ipm,jpp) + sx2m * sy2p * chrg
+         !   rho(ip ,jpm) = rho(ip ,jpm) + sx2  * sy2m * chrg
+         !   rho(ip ,jp ) = rho(ip ,jp ) + sx2  * sy2  * chrg
+         !   rho(ip ,jpp) = rho(ip ,jpp) + sx2  * sy2p * chrg
+         !   rho(ipp,jpm) = rho(ipp,jpm) + sx2p * sy2m * chrg
+         !   rho(ipp,jp ) = rho(ipp,jp ) + sx2p * sy2  * chrg
+         !   rho(ipp,jpp) = rho(ipp,jpp) + sx2p * sy2p * chrg
       end do
       !!..... set charge densities at the boundary
      if( chrg .gt. 0.d0 ) then
@@ -568,7 +565,7 @@ CONTAINS
          do ix = 0, nx
             rho(ix,iy) = cfact * rho(ix,iy)
          end do
-         end do
+      end do
       endif
     end subroutine source
 
@@ -580,7 +577,7 @@ CONTAINS
       implicit none
       real(8), dimension(0:nx,0:ny) :: phi, phib, jx, jy, jz, Ax, Ay, Az,&
       Axb, Ayb, Azb, Axbb, Aybb, Azbb
-      integer :: nx, ny, i, j, k, im, ip, jm, jp
+      integer :: nx, ny, i, j, k, im, ip, jp, jm, jpm,ix,iy
       real(rkind) :: c, omega, dt, cfact
 
  ! Solution of maxwell equation in the A-phi formulation by difference method
@@ -612,8 +609,26 @@ CONTAINS
                 + dt ** 2 * jz(i,j) + 2.0d0 * Azb(i,j) - Azbb(i,j)
       
       end do
-   end do
+      end do
 
+    !  do iy = 0, ny
+    !     Ax(0,iy) = Ax(0,iy) + Ax(nx,iy)
+    !     Ay(0,iy) = Ay(0,iy) + Ay(nx,iy)
+    !     Az(0,iy) = Az(0,iy) + Az(nx,iy)
+    !     end do
+
+    !     do ix = 0, nx
+    !        Ax(ix,0) = Ax(ix,0) + Ax(ix,ny)
+    !        Ay(ix,0) = Ay(ix,0) + Ay(ix,ny)
+    !        Az(ix,0) = Az(ix,0) + Az(ix,ny)
+    !     end do
+    !     do iy = 0, ny
+    !     do ix = 0, nx
+    !        Ax(ix,iy) = cfact * Ax(ix,iy)
+    !        Ay(ix,iy) = cfact * Ay(ix,iy)
+    !        Az(ix,iy) = cfact * Az(ix,iy)
+    !     end do
+    !  end do
       do i = 0, nx
       do j = 0, ny
      
@@ -626,15 +641,15 @@ CONTAINS
         phib(i,j) = phi(i,j)
 
       end do
-      end do
+   end do
+   
       end subroutine phia                            
 
 !***********************************************************************
    subroutine efield(nx,ny,phi,ex,ey,ez,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
 !***********************************************************************
      implicit none
-      real(8), dimension(0:nx,0:ny) :: phi
-      real(8), dimension(0:nx,0:ny) :: ex, ey, ez, Axb, Ayb,&
+      real(8), dimension(0:nx,0:ny) :: phi, ex, ey, ez, Axb, Ayb,&
            Azb, Axbb, Aybb, Azbb
       integer :: nx, ny, i, j, im, ip, jm, jp, k, km, kp
       
@@ -651,18 +666,18 @@ CONTAINS
          if( j .eq. 0  ) jm = ny - 1
          if( j .eq. ny ) jp = 1
          
-         esx(i,j) = 0.5 * ( phi(im,j ) - phi(ip,j ) )
+         esx(i,j) = 0.5d0 * ( phi(im,j) - phi(ip,j) )
          emx(i,j) = - ( Axb(i,j) - Axbb(i,j) ) / dt
-         esy(i,j) = 0.5 * ( phi(i,jm) - phi(i,jp) )
+         esy(i,j) = 0.5d0 * ( phi(i,jm) - phi(i,jp) )
          emy(i,j) = - ( Ayb(i,j) - Aybb(i,j) ) / dt
-         esz(i,j) = 0.D0
+         esz(i,j) = 0.d0
          emz(i,j) = - ( Azb(i,j) - Azbb(i,j) ) / dt
          ex(i,j) = esx(i,j) + emx(i,j)
          ey(i,j) = esy(i,j) + emy(i,j)
          ez(i,j) = esz(i,j) + emz(i,j)
 
       end do
-      end do
+   end do
     end subroutine efield
 !***********************************************************************
     subroutine bfield(nx,ny,bxbg,bybg,bzbg,bx,by,bz,Ax,Ay,Az)
@@ -753,7 +768,7 @@ CONTAINS
       integer(4) :: np, i
       akin = 0.d0
       do i = 1, np
-         akin = akin + vx(i)*vx(i) + vy(i)*vy(i) + vz(i)*vz(i)
+         akin = akin + vx(i)**2 + vy(i)**2 + vz(i)**2
       end do
 
       akin = 0.5 * akin * mass
@@ -766,7 +781,6 @@ CONTAINS
       real(8), dimension(0:nx,0:ny) :: ex, ey, ez
       real(8) :: apot, cfacti
       integer(4) :: nx, ny, i, j
-
       apot = 0.d0
 
       do j = 0, ny-1
@@ -895,20 +909,20 @@ CONTAINS
         !deltax = x(i) - xb(i)
         !deltay = y(i) - yb(i)
         !deltaz = z(i) - zb(i)
-         if (dx .le. 0.5d0) then 
-            sx1p = 0.5d0 + dx
-            sx1m = 0.5d0 - dx
-         else
-            sx1p = dx - 0.5d0
-            sx1m = 1.5d0 - dx
-         end if
-         if (dy .le. 0.5d0) then 
-            sy1p = 0.5d0 + dy
-            sy1m = 0.5d0 - dy
-         else
-            sy1p = dy - 0.5d0
-            sy1m = 1.5d0 - dy
-         end if
+      !   if (dx .le. 0.5d0) then 
+      !      sx1p = 0.5d0 + dx
+      !      sx1m = 0.5d0 - dx
+      !   else
+      !      sx1p = dx - 0.5d0
+      !      sx1m = 1.5d0 - dx
+      !   end if
+      !   if (dy .le. 0.5d0) then 
+      !      sy1p = 0.5d0 + dy
+      !      sy1m = 0.5d0 - dy
+      !   else
+      !      sy1p = dy - 0.5d0
+      !      sy1m = 1.5d0 - dy
+      !   end if
         if(dx .le. 0.5d0) then
             sx2  = 3.0d0/4 - dx ** 2
             sx2p = 1.0d0/2 * (1.0d0/2 + dx) ** 2
@@ -927,55 +941,53 @@ CONTAINS
             sy2p = 1.0d0/2 * (-1.0d0/2 + dy) ** 2
             sy2m = 1.0d0/2 * (3.0d0/2 - dy) ** 2
          endif
-
          ipm = ip - 1
          ipp = ip + 1
          jpm = jp - 1
          jpp = jp + 1
-
          if( ip .eq. 0  ) ipm = nx - 1
          if( ip .eq. nx ) ipp = 1
          if( jp .eq. 0  ) jpm = ny - 1
          if( jp .eq. ny ) jpp = 1
 
-         jx(ip  ,jp  ) = jx(ip  ,jp  ) + dx1 * dy1 * chrg * vx(i)
-         jx(ip+1,jp  ) = jx(ip+1,jp  ) + dx  * dy1 * chrg * vx(i)
-         jx(ip  ,jp+1) = jx(ip  ,jp+1) + dx1 * dy  * chrg * vx(i)
-         jx(ip+1,jp+1) = jx(ip+1,jp+1) + dx  * dy  * chrg * vx(i)
+         !jx(ip  ,jp  ) = jx(ip  ,jp  ) + dx1 * dy1 * chrg * vx(i)
+         !jx(ip+1,jp  ) = jx(ip+1,jp  ) + dx  * dy1 * chrg * vx(i)
+         !jx(ip  ,jp+1) = jx(ip  ,jp+1) + dx1 * dy  * chrg * vx(i)
+         !jx(ip+1,jp+1) = jx(ip+1,jp+1) + dx  * dy  * chrg * vx(i)
 
-         jy(ip  ,jp  ) = jy(ip  ,jp  ) + dx1 * dy1 * chrg * vy(i)
-         jy(ip+1,jp  ) = jy(ip+1,jp  ) + dx  * dy1 * chrg * vy(i)
-         jy(ip  ,jp+1) = jy(ip  ,jp+1) + dx1 * dy  * chrg * vy(i)
-         jy(ip+1,jp+1) = jy(ip+1,jp+1) + dx  * dy  * chrg * vy(i)
+         !jy(ip  ,jp  ) = jy(ip  ,jp  ) + dx1 * dy1 * chrg * vy(i)
+         !jy(ip+1,jp  ) = jy(ip+1,jp  ) + dx  * dy1 * chrg * vy(i)
+         !jy(ip  ,jp+1) = jy(ip  ,jp+1) + dx1 * dy  * chrg * vy(i)
+         !jy(ip+1,jp+1) = jy(ip+1,jp+1) + dx  * dy  * chrg * vy(i)
 
-         jz(ip  ,jp  ) = jz(ip  ,jp  ) + dx1 * dy1 * chrg * vz(i)
-         jz(ip+1,jp  ) = jz(ip+1,jp  ) + dx  * dy1 * chrg * vz(i)
-         jz(ip  ,jp+1) = jz(ip  ,jp+1) + dx1 * dy  * chrg * vz(i)
-         jz(ip+1,jp+1) = jz(ip+1,jp+1) + dx  * dy  * chrg * vz(i)
+         !jz(ip  ,jp  ) = jz(ip  ,jp  ) + dx1 * dy1 * chrg * vz(i)
+         !jz(ip+1,jp  ) = jz(ip+1,jp  ) + dx  * dy1 * chrg * vz(i)
+         !jz(ip  ,jp+1) = jz(ip  ,jp+1) + dx1 * dy  * chrg * vz(i)
+         !jz(ip+1,jp+1) = jz(ip+1,jp+1) + dx  * dy  * chrg * vz(i)
          
-           !jx(ip ,jp ) = jx(ip ,jp ) + chrg * vx(i) * sy2  * sx1p
-           !jx(ip ,jpp) = jx(ip ,jpp) + chrg * vx(i) * sy2p * sx1p
-           !jx(ip ,jpm) = jx(ip ,jpm) + chrg * vx(i) * sy2m * sx1p
-           !jx(ipm,jp ) = jx(ipm,jp ) + chrg * vx(i) * sy2  * sx1m
-           !jx(ipm,jpp) = jx(ipm,jpp) + chrg * vx(i) * sy2p * sx1m
-           !jx(ipm,jpm) = jx(ipm,jpm) + chrg * vx(i) * sy2m * sx1m
+           jx(ipp,jp ) = jx(ipp,jp ) + chrg * vx(i) * sy2  * dx
+           jx(ipp,jpp) = jx(ipp,jpp) + chrg * vx(i) * sy2p * dx
+           jx(ipp,jpm) = jx(ipp,jpm) + chrg * vx(i) * sy2m * dx
+           jx(ip ,jp ) = jx(ip ,jp ) + chrg * vx(i) * sy2  * dx1
+           jx(ip ,jpp) = jx(ip ,jpp) + chrg * vx(i) * sy2p * dx1
+           jx(ip ,jpm) = jx(ip ,jpm) + chrg * vx(i) * sy2m * dx1
            
-           !jy(ip ,jp ) = jy(ip ,jp ) + chrg * vy(i) * sx2  * sy1p
-           !jy(ipp,jp ) = jy(ipm,jp ) + chrg * vy(i) * sx2p * sy1p
-           !jy(ipm,jp ) = jy(ipp,jp ) + chrg * vy(i) * sx2m * sy1p
-           !jy(ip ,jpm) = jy(ip ,jpm) + chrg * vy(i) * sx2  * sy1m
-           !jy(ipp,jpm) = jy(ipm,jpm) + chrg * vy(i) * sx2p * sy1m
-           !jy(ipm,jpm) = jy(ipp,jpm) + chrg * vy(i) * sx2m * sy1m
+           jy(ip ,jpp) = jy(ip ,jpp) + chrg * vy(i) * sx2  * dy
+           jy(ipp,jpp) = jy(ipp,jpp) + chrg * vy(i) * sx2p * dy
+           jy(ipm,jpp) = jy(ipm,jpp) + chrg * vy(i) * sx2m * dy
+           jy(ip ,jp ) = jy(ip ,jp ) + chrg * vy(i) * sx2  * dy1
+           jy(ipp,jp ) = jy(ipp,jp ) + chrg * vy(i) * sx2p * dy1
+           jy(ipm,jp ) = jy(ipm,jp ) + chrg * vy(i) * sx2m * dy1
       
-           !jz(ipm,jpp) = jz(ipm,jpp) + chrg * vz(i) * sx2m * sy2p
-           !jz(ipm,jp ) = jz(ipm,jp ) + chrg * vz(i) * sx2m * sy2
-           !jz(ipm,jpm) = jz(ipm,jpm) + chrg * vz(i) * sx2m * sy2m
-           !jz(ip ,jpp) = jz(ip ,jpp) + chrg * vz(i) * sx2  * sy2p
-           !jz(ip ,jp ) = jz(ip ,jp ) + chrg * vz(i) * sx2  * sy2
-           !jz(ip ,jpm) = jz(ip ,jpm) + chrg * vz(i) * sx2  * sy2m
-           !jz(ipp,jpp) = jz(ipp,jpp) + chrg * vz(i) * sx2p * sy2p
-           !jz(ipp,jp ) = jz(ipp,jp ) + chrg * vz(i) * sx2p * sy2
-           !jz(ipp,jpm) = jz(ipp,jpm) + chrg * vz(i) * sx2p * sy2m
+           jz(ipm,jpp) = jz(ipm,jpp) + chrg * vz(i) * sx2m * sy2p
+           jz(ipm,jp ) = jz(ipm,jp ) + chrg * vz(i) * sx2m * sy2
+           jz(ipm,jpm) = jz(ipm,jpm) + chrg * vz(i) * sx2m * sy2m
+           jz(ip ,jpp) = jz(ip ,jpp) + chrg * vz(i) * sx2  * sy2p
+           jz(ip ,jp ) = jz(ip ,jp ) + chrg * vz(i) * sx2  * sy2
+           jz(ip ,jpm) = jz(ip ,jpm) + chrg * vz(i) * sx2  * sy2m
+           jz(ipp,jpp) = jz(ipp,jpp) + chrg * vz(i) * sx2p * sy2p
+           jz(ipp,jp ) = jz(ipp,jp ) + chrg * vz(i) * sx2p * sy2
+           jz(ipp,jpm) = jz(ipp,jpm) + chrg * vz(i) * sx2p * sy2m
        
       end do
       if( chrg .gt. 0.d0 ) then
@@ -984,12 +996,23 @@ CONTAINS
             jy(0,iy) = jy(0,iy) + jy(nx,iy)
             jz(0,iy) = jz(0,iy) + jz(nx,iy)
          end do
+      !   do iy = 0, ny
+      !      jx(nx,iy) = jx(0,iy)
+      !      jy(nx,iy) = jy(0,iy)
+      !      jz(nx,iy) = jz(0,iy)
+      !   end do
 
          do ix = 0, nx
             jx(ix,0) = jx(ix,0) + jx(ix,ny)
             jy(ix,0) = jy(ix,0) + jy(ix,ny)
             jz(ix,0) = jz(ix,0) + jz(ix,ny)
          end do
+
+        ! do ix = 0, nx
+        !    jx(ix,ny) = jx(ix,0)
+        !    jy(ix,ny) = jy(ix,0)
+        !    jz(ix,ny) = jz(ix,0)
+        ! enddo
          do iy = 0, ny
          do ix = 0, nx
             jx(ix,iy) = cfact * jx(ix,iy)
