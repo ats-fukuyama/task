@@ -408,13 +408,13 @@ CONTAINS
          vyzero = vyn + 1.0d0/2 * ctom * (vzn * bxx - vxn * bzz) * dt 
          vzzero = vzn + 1.0d0/2 * ctom * (vxn * byy - vyn * bxx) * dt
 
-         vxp = vxzero + 1.0d0/(1.0d0 + 0.25d0 * (ctom * dt) ** 2 & 
+         vxp = vxn + 1.0d0/(1.0d0 + 0.25d0 * (ctom * dt) ** 2 & 
              * (bxx ** 2 + byy ** 2 + bzz ** 2)) & 
              * ctom * (vyzero * bzz - vzzero * byy) * dt
-         vyp = vyzero + 1.0d0/(1.0d0 + 0.25d0 * (ctom * dt) ** 2 &
+         vyp = vyn + 1.0d0/(1.0d0 + 0.25d0 * (ctom * dt) ** 2 &
              * (bxx ** 2 + byy ** 2 + bzz ** 2)) &
              * ctom * (vzzero * bxx - vxzero * bzz) * dt 
-         vzp = vzzero + 1.0d0/(1.0d0 + 0.25d0 * (ctom * dt) ** 2 & 
+         vzp = vzn + 1.0d0/(1.0d0 + 0.25d0 * (ctom * dt) ** 2 & 
              * (bxx ** 2 + byy ** 2 + bzz ** 2)) & 
              * ctom * (vxzero * byy - vyzero * bxx) * dt
  
