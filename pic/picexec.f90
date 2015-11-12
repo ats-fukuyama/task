@@ -113,12 +113,12 @@ CONTAINS
          !.......... calculate vector potential
          call phia(nx,ny,c,omega,dt,phi,phib,jx,jy,jz,Ax,Ay,Az,Axb,Ayb,Azb,&
               Axbb,Aybb,Azbb,cfact)
-         Axb(:,:)=0.d0
-         Ayb(:,:)=0.d0
-         Azb(:,:)=0.d0
-         Axbb(:,:)=0.d0
-         Aybb(:,:)=0.d0
-         Azbb(:,:)=0.d0
+         !Axb(:,:)=0.d0
+         !Ayb(:,:)=0.d0
+         !Azb(:,:)=0.d0
+         !Axbb(:,:)=0.d0
+         !Aybb(:,:)=0.d0
+         !Azbb(:,:)=0.d0
            !.......... calculate ex and ey and ez
          call efield(nx,ny,phi,ex,ey,ez,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
            !.......... calculate bxg and byg and bzg
