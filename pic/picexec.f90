@@ -119,7 +119,6 @@ CONTAINS
          !Axbb(:,:)=0.d0
          !Aybb(:,:)=0.d0
          !Azbb(:,:)=0.d0
-         write(*,*)Az(1,1)
            !.......... calculate ex and ey and ez
          call efield(nx,ny,phi,ex,ey,ez,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
            !.......... calculate bxg and byg and bzg
