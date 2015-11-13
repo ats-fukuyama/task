@@ -84,7 +84,7 @@ CONTAINS
   SUBROUTINE wi_scan_alfa(ierr)
 
     USE wicomm,ONLY: rkind,ikind,nalfamax,alfamin,alfamax,alfa,beta,any, &
-         xmax,xmin,dx0,pn0,nxmax,nwmax,kfscan,pi
+         xmax,xmin,dx0,pn0,nxmax,nwmax,kfscan,pi,xwint
     USE wiexec,ONLY: wi_exec
     USE wiprep,ONLY: wi_prep
     USE wigout,ONLY: wi_gra1
@@ -94,13 +94,15 @@ CONTAINS
     INTEGER(ikind),INTENT(OUT):: ierr
     INTEGER(ikind):: nalfa
     INTEGER(ikind),PARAMETER:: nfl=21
-    REAL(rkind):: dalfa,rk0l,ratea,alfa_save,xmax_save,xmin_save,dx0_save
+    REAL(rkind):: dalfa,rk0l,ratea
+    REAL(rkind):: alfa_save,xmax_save,xmin_save,dx0_save,xwint_save
     REAL(rkind),DIMENSION(nalfamax):: rk0la,rateaa
 
     alfa_save=alfa
     dalfa=(log(alfamax)-log(alfamin))/(nalfamax-1)
     xmax_save=xmax
     xmin_save=xmin
+    xwint_save=xwint
     dx0_save=dx0
     
     IF(TRIM(kfscan)//'X'.NE.'X') CALL FWOPEN(nfl,kfscan,1,1,'SCAN',ierr)
@@ -120,8 +122,12 @@ CONTAINS
        ELSE
 !          dx0=0.5D0*dx0_save/log(alfa)
           dx0=0.1D0*dx0_save/log(alfa)
+!          IF(dx0.GT.0.3D0*dx0_save/alfa) dx0=0.3D0*dx0_save/alfa 
           xmax=500.D0*dx0
           xmin=-500.D0*dx0
+!          xmax=10.D0
+!          xmin=-10.D0
+!          xwint=100*dx0
        END IF
        alfa=alfa*beta
 !       WRITE(6,'(I5,1P6E12.4)') nalfa,alfa,rk0l,0.D0,xmin,xmax,dx0
@@ -134,14 +140,15 @@ CONTAINS
 
        WRITE(6,'(I5,1P6E12.4)') nalfa,alfa,rk0l,ratea,xmin,xmax,dx0
        IF(TRIM(kfscan)//'X'.NE.'X') &
-            WRITE(nfl,'(I5,1P3E12.4)') nalfa,alfa,rk0l,rateaa
+            WRITE(nfl,'(I5,1P3E12.4)') nalfa,alfa,rk0l,ratea
        rk0la(nalfa)=LOG10(rk0l)
        rateaa(nalfa)=ratea
-!       CALL wi_gra1
+       CALL wi_gra1
     END DO
     alfa=alfa_save
     xmax=xmax_save
     xmin=xmin_save
+    xwint=xwint_save
     dx0=dx0_save
 
     IF(TRIM(kfscan)//'X'.NE.'X') CLOSE(nfl)
