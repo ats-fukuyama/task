@@ -50,7 +50,8 @@ CONTAINS
     INTEGER,INTENT(OUT) :: IST,IERR
 
     NAMELIST /PIC/ npx,npy,nx,ny,iend,nhmod, &
-                   me,mi,chrge,chrgi,te,ti,dt,eps,bxbg,bybg,bzbg,c,omega
+         me,mi,chrge,chrgi,te,ti,dt,eps,bxmin,bxmax,bymin,bymax,bzmin,bzmax,&
+         c,omega,jxbg,jybg,jzbg,f,thetax,thetay,thetaz
 
     READ(NID,PIC,IOSTAT=IST,ERR=9800,END=9900)
 
@@ -68,9 +69,9 @@ CONTAINS
   SUBROUTINE pic_plst
 
     IMPLICIT NONE
-    WRITE(6,'(A/)') '# &PIC : npx,npy,nx,ny,iend,nhmod,', &
-                    '         me,mi,chrge,chrgi,te,ti,dt,eps,', &
-                    '         bxbg,bybg,bzbg,c,omega'
+    WRITE(6,'(A/)') '# &PIC : npx,npy,nx,ny,iend,nhmod,', '        &
+         & me,mi,chrge,chrgi,te,ti,dt,eps,', '         bxbg,bybg,bzbg&
+         &,c,omega,jxbg,jybg,jzbg,f', '         thetax,thetay,thetaz'
     RETURN
 
   END SUBROUTINE pic_plst
@@ -101,7 +102,7 @@ CONTAINS
     USE libmpi
     IMPLICIT NONE
     integer:: idata(6)
-    REAL(8):: ddata(13)
+    REAL(8):: ddata(23)
 
     IF(myid == 0) THEN
        idata(1)=npx
@@ -128,11 +129,21 @@ CONTAINS
        ddata(6)=ti
        ddata(7)=dt
        ddata(8)=eps
-       ddata(9)=bxbg
-       ddata(10)=bybg
-       ddata(11)=bzbg
-       ddata(12)=c
-       ddata(13)=omega
+       ddata(9)=bxmin
+       ddata(10)=bxmax
+       ddata(11)=bymin
+       ddata(12)=bymax
+       ddata(13)=bzmin
+       ddata(14)=bzmax
+       ddata(15)=c
+       ddata(16)=omega
+       ddata(17)=jxbg
+       ddata(18)=jybg
+       ddata(19)=jzbg
+       ddata(20)=f
+       ddata(21)=thetax
+       ddata(22)=thetay
+       ddata(23)=thetaz
     END IF
     CALL mtx_broadcast_real8(ddata,8)
        me=ddata(1)
@@ -143,11 +154,21 @@ CONTAINS
        ti=ddata(6)
        dt=ddata(7)
        eps=ddata(8)
-       bxbg=ddata(9)
-       bybg=ddata(10)
-       bzbg=ddata(11)
-       c=ddata(12)
-       omega=ddata(13)
+       bxmin=ddata(9)
+       bxmax=ddata(10)
+       bymin=ddata(11)
+       bymax=ddata(12)
+       bzmin=ddata(13)
+       bzmax=ddata(14)
+       c=ddata(15)
+       omega=ddata(16)
+       jxbg=ddata(17)
+       jybg=ddata(18)
+       jzbg=ddata(19)
+       f=ddata(20)
+       thetax=ddata(21)
+       thetay=ddata(22)
+       thetaz=ddata(23)
     RETURN
 
   END SUBROUTINE pic_broadcast
@@ -162,12 +183,15 @@ CONTAINS
     WRITE(6,601) 'npx   ',npx   ,'npy   ',npy
     WRITE(6,601) 'nx    ',nx    ,'ny    ',ny
     WRITE(6,601) 'iend  ',iend  ,'nhmod ',nhmod
-    WRITE(6,602) 'me    ',me    ,'mi    ',mi   , &
-                 'chrge ',chrge ,'chrgi ',chrgi
-    WRITE(6,602) 'te    ',te    ,'ti    ',ti   , &
-         'dt    ',dt    ,'eps   ',eps
-    WRITE(6,602) 'bxbg  ',bxbg  ,'bybg  ',bybg ,  'bzbg  ',bzbg ,&
-         'c     ',c     ,'omega ',omega
+    WRITE(6,602) 'me    ',me    ,'mi    ',mi   , 'chrge ',chrge &
+         ,'chrgi ',chrgi
+    WRITE(6,602) 'te    ',te    ,'ti    ',ti    ,'dt    ',dt    ,'eps&
+            ',eps
+    WRITE(6,602) 'bxmin ',bxmin ,'bxmax ',bxmax ,'bymin ',bymin &
+        ,'bymax ',bymax ,'bzmin ',bzmax &
+        ,'c    ',c     ,'omega ',omega , 'jxbg  ',jxbg  ,'jybg  ',jybg  &
+        ,'jzbg  ',jzbg  , 'f    ',f    , 'thetax',thetax,'thetay'&
+        ,thetay,'thetaz',thetaz
     RETURN
 
 601 FORMAT(' ',A6,'=',I7,4X  :2X,A6,'=',I7,4X  : &

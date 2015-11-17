@@ -38,12 +38,22 @@ CONTAINS
       chrgi  =    1.0d0     !: ion charge
       te     =    1.0d0     !: electron temperature
       ti     =    1.0d0     !: ion temperature
-      bxbg   =    0.0d0     !: x component of background magnetic flux density
-      bybg   =    0.0d0     !: y component of background magnetic flux density
-      bzbg   =    0.0d0     !: z component of background magnetic flux density
+      bxmin  =    0.0d0     !: max value of background x magnetic flux density
+      bxmax  =    0.0d0     !: min value of background x magnetic flux density
+      bymin  =    0.0d0     !: min value of background x magnetic flux density
+      bymax  =    0.0d0     !: min value of background x magnetic flux density
+      bzmin  =    0.0d0     !: min value of background x magnetic flux density
+      bzmax  =    0.0d0     !: z component of background magnetic flux density
       c      =    1.0d0
       omega  =    1.0d0
       eps = 0.0000000000000001d0    !: constants to define boundary condition
+      jxbg   =    0.0d0    ! x component of background current density 
+      jybg   =    0.0d0    ! y component of background current density
+      jzbg   =    0.0d0    ! z component of background current density
+      f      =    0.0d0    ! frequency of background current density
+      thetax =    0.0d0    ! first phase of jxbg
+      thetay =    0.0d0    ! first phase of jybg
+      thetaz =    0.0d0    ! first phase of jzbg
 !---------------------------------------------------------
 
     RETURN

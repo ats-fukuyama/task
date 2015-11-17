@@ -67,6 +67,14 @@ CONTAINS
       call mpi_barrier(mpi_comm_world,ierr)
       wtime1 = mpi_wtime()
 
+    Axb(:,:) = 0.0d0
+    Ayb(:,:) = 0.0d0
+    Azb(:,:) = 0.0d0
+    Axbb(:,:) = 0.0d0
+    Aybb(:,:) = 0.0d0
+    Azbb(:,:) = 0.0d0
+    phib(:,:) = 0.0d0
+
       iout=ierr
   END SUBROUTINE pic_prep
 
