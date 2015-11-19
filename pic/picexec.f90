@@ -1039,9 +1039,9 @@ CONTAINS
          jybgg = jybg * cos (omega * time + thetay)
          jzbgg = jzbg * cos (omega * time + thetaz)
          ! inserting background current density
-         do ix=1,nx
-            jx(ix,0) = jx(ix,0) + 0.5d0 * jxbgg 
-            jx(ix,1) = jx(ix,1) + 0.5d0 * jxbgg
+         do iy=1,ny
+            jy(0,iy) = jx(ix,0) + 0.5d0 * jybgg 
+            jy(1,iy) = jx(ix,1) + 0.5d0 * jybgg
          end do
          !--------------
          do iy = 0, ny
