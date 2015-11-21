@@ -46,7 +46,7 @@ testplot2 : $(LIBS) libgrf/testplot2.o
            $(MODDIR) $(MODINCLUDE)
 
 clean:
-	-rm -f core a.out *.o *.mod ./*~ ./#* *.a $(MOD)/*.mod
+	-rm -f core a.out *.o *.mod ./*~ ./#* *.a $(MOD)/*.mod libgrf/*.o
 
 veryclean: clean
 	-rm -f pic

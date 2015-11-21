@@ -14,11 +14,11 @@ CONTAINS
     INCLUDE 'mpif.h'
     INTEGER,INTENT(OUT):: iout
 
-      np = npx * npy
-      nxh1 = nx / 2 + 1
-      nx1 = nx + 1
-      ny1 = ny + 1
-      nxy = nx1 * ny1
+      npmax = npxmax * npymax
+      nxmaxh1 = nxmax / 2 + 1
+      nxmax1 = nxmax + 1
+      nymax1 = nymax + 1
+      nxymax = nxmax1 * nymax1
 
       ctome  = chrge / me       !: charge to mass ratio of electrons
       ctomi  = chrgi / mi       !: charge to mass ratio of ions
@@ -29,13 +29,9 @@ CONTAINS
       time   = 0.D0             !: time
       iran   = 14142 * myid     !: initial parameter for random number
 
-      !..... factors for chrage density and field energy 
-      cfact  = dble(nx) * dble(ny) / dble(np) !/ dble(nodes) 
-      cfacti = 1.d0 / cfact
-
       !..... constants to define boundary condition
-      alx = dble(nx)
-      aly = dble(ny)
+      alx = dble(nxmax)
+      aly = dble(nymax)
       alz = 1.D0
       x1  = eps 
       x2  = alx - eps
@@ -50,18 +46,18 @@ CONTAINS
       CALL pic_allocate
 
       !..... set initial positions and velocities of electrons 
-      call iniset(np,npx,npy,nx,ny,xe,ye,ze,xeb,yeb,zeb,&
+      call iniset(npmax,npxmax,npymax,nxmax,nymax,xe,ye,ze,xeb,yeb,zeb,&
            vxe,vye,vze,vte,iran)
-      call iniset(np,npx,npy,nx,ny,xi,yi,zi,xib,yib,zib,&
+      call iniset(npmax,npxmax,npymax,nxmax,nymax,xi,yi,zi,xib,yib,zib,&
            vxi,vyi,vzi,vti,iran)
 
       !..... initialize poisson solver
       ipssn = 0
-      call poissn(nx,ny,nxh1,rhof,phif,cform,ipssn)
+      call poissn(nxmax,nymax,nxmaxh1,rhof,phif,cform,ipssn)
 
       !..... initialize FFT 
       ifset = 0
-      call fftpic(nx,ny,nxh1,nx1,ny1,rho,rhof,awk,afwk,ifset)
+      call fftpic(nxmax,nymax,nxmaxh1,nxmax1,nymax1,rho,rhof,awk,afwk,ifset)
 
       !..... initialize wall clock time
       call mpi_barrier(mpi_comm_world,ierr)
@@ -79,22 +75,22 @@ CONTAINS
   END SUBROUTINE pic_prep
 
 !***********************************************************************
-      subroutine iniset(np,npx,npy,nx,ny,x,y,z,xb,yb,zb,vx,vy,vz,vt,iran)
+      subroutine iniset(npmax,npxmax,npymax,nxmax,nymax,x,y,z,xb,yb,zb,vx,vy,vz,vt,iran)
 !***********************************************************************
       implicit none
-      real(8), dimension(np) :: x, y, z, xb, yb, zb, vx, vy, vz
+      real(8), dimension(npmax) :: x, y, z, xb, yb, zb, vx, vy, vz
       real(8) :: vt, alx, aly, factx, facty, rvx, rvy, rvz
-      integer :: np, npx, npy, nx, ny, ix, iy, iz, i, iran
+      integer :: npmax, npxmax, npymax, nxmax, nymax, ix, iy, iz, i, iran
 
-      alx = dble(nx)
-      aly = dble(ny)
+      alx = dble(nxmax)
+      aly = dble(nymax)
       
-      factx = alx / dble(npx)
-      facty = aly / dble(npy)
+      factx = alx / dble(npxmax)
+      facty = aly / dble(npymax)
 
       i = 0
-      do iy = 1, npy
-      do ix = 1, npx      
+      do iy = 1, npymax
+      do ix = 1, npxmax      
          i  = i + 1
          x(i) = ( dble(ix) - 0.5d0 ) * factx
          y(i) = ( dble(iy) - 0.5d0 ) * facty

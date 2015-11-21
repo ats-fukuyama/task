@@ -49,9 +49,9 @@ CONTAINS
     INTEGER,INTENT(IN) :: NID
     INTEGER,INTENT(OUT) :: IST,IERR
 
-    NAMELIST /PIC/ npx,npy,nx,ny,iend,nhmod, &
+    NAMELIST /PIC/ npxmax,npymax,nxmax,nymax,ntmax,ntstep, &
          me,mi,chrge,chrgi,te,ti,dt,eps,bxmin,bxmax,bymin,bymax,bzmin,bzmax,&
-         c,omega,jxbg,jybg,jzbg,f,thetax,thetay,thetaz
+         vcfact,omega,jxant,jyant,jzant,phxant,phyant,phzant
 
     READ(NID,PIC,IOSTAT=IST,ERR=9800,END=9900)
 
@@ -69,9 +69,10 @@ CONTAINS
   SUBROUTINE pic_plst
 
     IMPLICIT NONE
-    WRITE(6,'(A/)') '# &PIC : npx,npy,nx,ny,iend,nhmod,', '        &
-         & me,mi,chrge,chrgi,te,ti,dt,eps,', '         bxbg,bybg,bzbg&
-         &,c,omega,jxbg,jybg,jzbg,f', '         thetax,thetay,thetaz'
+    WRITE(6,'(A/)') &
+         '# &PIC : npxmax,npymax,nxmax,nymax,ntmax,ntstep,', &
+         '         me,mi,chrge,chrgi,te,ti,dt,eps,vcfact,', &
+         '         bxbg,bybg,bzbg,omega,jxant,jyant,jzant,phxant,phyant,phzant'
     RETURN
 
   END SUBROUTINE pic_plst
@@ -102,23 +103,23 @@ CONTAINS
     USE libmpi
     IMPLICIT NONE
     integer:: idata(6)
-    REAL(8):: ddata(23)
+    REAL(8):: ddata(22)
 
     IF(myid == 0) THEN
-       idata(1)=npx
-       idata(2)=npy
-       idata(3)=nx
-       idata(4)=ny
-       idata(5)=iend
-       idata(6)=nhmod
+       idata(1)=npxmax
+       idata(2)=npymax
+       idata(3)=nxmax
+       idata(4)=nymax
+       idata(5)=ntmax
+       idata(6)=ntstep
     END IF
-    CALL mtx_broadcast_integer(idata,11)
-       npx=idata(1)
-       npy=idata(2)
-       nx=idata(3)
-       ny=idata(4)
-       iend=idata(5)
-       nhmod=idata(6)
+    CALL mtx_broadcast_integer(idata,6)
+       npxmax=idata(1)
+       npymax=idata(2)
+       nxmax=idata(3)
+       nymax=idata(4)
+       ntmax=idata(5)
+       ntstep=idata(6)
 
     IF(myid == 0) THEN
        ddata(1)=me
@@ -135,17 +136,16 @@ CONTAINS
        ddata(12)=bymax
        ddata(13)=bzmin
        ddata(14)=bzmax
-       ddata(15)=c
+       ddata(15)=vcfact
        ddata(16)=omega
-       ddata(17)=jxbg
-       ddata(18)=jybg
-       ddata(19)=jzbg
-       ddata(20)=f
-       ddata(21)=thetax
-       ddata(22)=thetay
-       ddata(23)=thetaz
+       ddata(17)=jxant
+       ddata(18)=jyant
+       ddata(19)=jzant
+       ddata(20)=phxant
+       ddata(21)=phyant
+       ddata(22)=phzant
     END IF
-    CALL mtx_broadcast_real8(ddata,8)
+    CALL mtx_broadcast_real8(ddata,22)
        me=ddata(1)
        mi=ddata(2)
        chrge=ddata(3)
@@ -160,15 +160,14 @@ CONTAINS
        bymax=ddata(12)
        bzmin=ddata(13)
        bzmax=ddata(14)
-       c=ddata(15)
+       vcfact=ddata(15)
        omega=ddata(16)
-       jxbg=ddata(17)
-       jybg=ddata(18)
-       jzbg=ddata(19)
-       f=ddata(20)
-       thetax=ddata(21)
-       thetay=ddata(22)
-       thetaz=ddata(23)
+       jxant=ddata(17)
+       jyant=ddata(18)
+       jzant=ddata(19)
+       phxant=ddata(20)
+       phyant=ddata(21)
+       phzant=ddata(22)
     RETURN
 
   END SUBROUTINE pic_broadcast
@@ -180,18 +179,20 @@ CONTAINS
     use piccomm_parm
     implicit none
 
-    WRITE(6,601) 'npx   ',npx   ,'npy   ',npy
-    WRITE(6,601) 'nx    ',nx    ,'ny    ',ny
-    WRITE(6,601) 'iend  ',iend  ,'nhmod ',nhmod
-    WRITE(6,602) 'me    ',me    ,'mi    ',mi   , 'chrge ',chrge &
-         ,'chrgi ',chrgi
-    WRITE(6,602) 'te    ',te    ,'ti    ',ti    ,'dt    ',dt    ,'eps&
-            ',eps
-    WRITE(6,602) 'bxmin ',bxmin ,'bxmax ',bxmax ,'bymin ',bymin &
-        ,'bymax ',bymax ,'bzmin ',bzmax &
-        ,'c    ',c     ,'omega ',omega , 'jxbg  ',jxbg  ,'jybg  ',jybg  &
-        ,'jzbg  ',jzbg  , 'f    ',f    , 'thetax',thetax,'thetay'&
-        ,thetay,'thetaz',thetaz
+    WRITE(6,601) 'npxmax',npxmax,'npymax',npymax
+    WRITE(6,601) 'nxmax ',nxmax ,'nymax ',nymax
+    WRITE(6,601) 'ntmax ',ntmax ,'ntstep',ntstep
+    WRITE(6,602) 'me    ',me    ,'mi    ',mi    , &
+                 'chrge ',chrge ,'chrgi ',chrgi
+    WRITE(6,602) 'te    ',te    ,'ti    ',ti    , &
+                 'dt    ',dt    ,'eps   ',eps
+    WRITE(6,602) 'bxmin ',bxmin ,'bxmax ',bxmax , &
+                 'bymin ',bymin ,'bymax ',bymax , &
+                 'bzmin ',bzmax ,'vcfact',vcfact, &
+                 'omega ',omega ,'jxant ',jxant , &
+                 'jyant ',jyant ,'jzant ',jzant , &
+                 'phxant',phxant,'phyant',phyant, &
+                 'phzant',phzant
     RETURN
 
 601 FORMAT(' ',A6,'=',I7,4X  :2X,A6,'=',I7,4X  : &

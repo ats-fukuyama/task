@@ -6,10 +6,10 @@ MODULE piccomm_parm
   USE bpsd_kinds
   USE bpsd_constants
 
-  INTEGER:: npx,npy,nx,ny,iend,nhmod
+  INTEGER:: npxmax,npymax,nxmax,nymax,ntmax,ntstep
   REAL(rkind):: dt,me,mi,chrge,chrgi,te,ti,&
-       bxmin,bxmax,bymin,bymax,bzmin,bzmax,c,omega,eps,&
-       jxbg,jybg,jzbg,f,thetax,thetay,thetaz
+       bxmin,bxmax,bymin,bymax,bzmin,bzmax,vcfact,omega,eps,&
+       jxant,jyant,jzant,phxant,phyant,phzant
 
 END MODULE piccomm_parm
 
@@ -17,7 +17,7 @@ MODULE piccomm
 		
   USE piccomm_parm
 
-  INTEGER:: np,nxh1,nx1,ny1,nxy
+  INTEGER:: npmax,nxmaxh1,nxmax1,nymax1,nxymax
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: ex,ey,ez,esx,esy,esz,emx,emy,emz
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: bx,by,bz
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: rho,phi,phib,awk,jx,jy,jz,&
@@ -34,51 +34,51 @@ MODULE piccomm
   REAL(rkind),ALLOCATABLE,DIMENSION(:):: timet,akinet,akinit,aktott,apott,atott
 
   REAL(8) :: ctome, ctomi,       &
-             vte, vti, cfact, cfacti,              &
+             vte, vti,           &
              akine , akini , aktot , apot , atot ,         &
              akine0, akini0, aktot0, apot0, atot0,         &
              akine1, akine2, akini1, akini2, time,         &
              x1, x2, y1, y2, z1, z2 ,alx, aly, alz,                &
              wkword, wtime, wtime1, wtime2
-  integer :: iloop, ifset, ipssn, iran, iene, ienemax
+  integer :: nt, ifset, ipssn, iran, iene, ienemax
   integer :: ierr, myid, nodes
 
 CONTAINS
 
   SUBROUTINE pic_allocate
 
-    INTEGER,SAVE:: nx_save=0, ny_save=0
-    INTEGER,SAVE:: npx_save=0, npy_save=0
+    INTEGER,SAVE:: nxmax_save=0, nymax_save=0
+    INTEGER,SAVE:: npxmax_save=0, npymax_save=0
 
-    IF(nx  == nx_save  .AND. &
-       ny  == ny_save  .AND. &
-       npx == npx_save .AND. &
-       npy == npy_save )  RETURN
+    IF(nxmax  == nxmax_save  .AND. &
+       nymax  == nymax_save  .AND. &
+       npxmax == npxmax_save .AND. &
+       npymax == npymax_save )  RETURN
        
     IF(ALLOCATED(ex)) CALL pic_deallocate
 
-    ALLOCATE(ex(0:nx,0:ny),ey(0:nx,0:ny),ez(0:nx,0:ny))
-    ALLOCATE(esx(0:nx,0:ny),esy(0:nx,0:ny),esz(0:nx,0:ny))
-    ALLOCATE(emx(0:nx,0:ny),emy(0:nx,0:ny),emz(0:nx,0:ny))
-    ALLOCATE(bx(0:nx,0:ny),by(0:nx,0:ny),bz(0:nx,0:ny))
-    ALLOCATE(rho(0:nx,0:ny),phi(0:nx,0:ny),phib(0:nx,0:ny))
-    ALLOCATE(jx(0:nx,0:ny),jy(0:nx,0:ny),jz(0:nx,0:ny))
-    ALLOCATE(awk(nx,ny))
-    ALLOCATE(xe(np),ye(np),ze(np),vxe(np),vye(np),vze(np))
-    ALLOCATE(xi(np),yi(np),zi(np),vxi(np),vyi(np),vzi(np))
-    ALLOCATE(xeb(np),yeb(np),zeb(np),xib(np),yib(np),zib(np))
-    ALLOCATE(vparae(np),vperpe(np),vparai(np),vperpi(np))
-    ALLOCATE(cform(nxh1,ny))
-    ALLOCATE(rhof(nxh1,ny),phif(nxh1,ny),afwk(nxh1,ny))
-    ALLOCATE(Ax(0:nx,0:ny),Ay(0:nx,0:ny),Az(0:nx,0:ny))
-    ALLOCATE(Axb(0:nx,0:ny),Ayb(0:nx,0:ny),Azb(0:nx,0:ny))
-    ALLOCATE(Axbb(0:nx,0:ny),Aybb(0:nx,0:ny),Azbb(0:nx,0:ny))
-    ALLOCATE(bb(0:nx,0:ny),AA(0:nx,0:ny))
+    ALLOCATE(ex(0:nxmax,0:nymax),ey(0:nxmax,0:nymax),ez(0:nxmax,0:nymax))
+    ALLOCATE(esx(0:nxmax,0:nymax),esy(0:nxmax,0:nymax),esz(0:nxmax,0:nymax))
+    ALLOCATE(emx(0:nxmax,0:nymax),emy(0:nxmax,0:nymax),emz(0:nxmax,0:nymax))
+    ALLOCATE(bx(0:nxmax,0:nymax),by(0:nxmax,0:nymax),bz(0:nxmax,0:nymax))
+    ALLOCATE(rho(0:nxmax,0:nymax),phi(0:nxmax,0:nymax),phib(0:nxmax,0:nymax))
+    ALLOCATE(jx(0:nxmax,0:nymax),jy(0:nxmax,0:nymax),jz(0:nxmax,0:nymax))
+    ALLOCATE(awk(nxmax,nymax))
+    ALLOCATE(xe(npmax),ye(npmax),ze(npmax),vxe(npmax),vye(npmax),vze(npmax))
+    ALLOCATE(xi(npmax),yi(npmax),zi(npmax),vxi(npmax),vyi(npmax),vzi(npmax))
+    ALLOCATE(xeb(npmax),yeb(npmax),zeb(npmax),xib(npmax),yib(npmax),zib(npmax))
+    ALLOCATE(vparae(npmax),vperpe(npmax),vparai(npmax),vperpi(npmax))
+    ALLOCATE(cform(nxmaxh1,nymax))
+    ALLOCATE(rhof(nxmaxh1,nymax),phif(nxmaxh1,nymax),afwk(nxmaxh1,nymax))
+    ALLOCATE(Ax(0:nxmax,0:nymax),Ay(0:nxmax,0:nymax),Az(0:nxmax,0:nymax))
+    ALLOCATE(Axb(0:nxmax,0:nymax),Ayb(0:nxmax,0:nymax),Azb(0:nxmax,0:nymax))
+    ALLOCATE(Axbb(0:nxmax,0:nymax),Aybb(0:nxmax,0:nymax),Azbb(0:nxmax,0:nymax))
+    ALLOCATE(bb(0:nxmax,0:nymax),AA(0:nxmax,0:nymax))
 
-    nx_save=nx
-    ny_save=ny
-    npx_save=npx
-    npy_save=npy
+    nxmax_save=nxmax
+    nymax_save=nymax
+    npxmax_save=npxmax
+    npymax_save=npymax
 
     RETURN
   END SUBROUTINE pic_allocate

@@ -14,21 +14,21 @@ CONTAINS
     IMPLICIT NONE
 
 !.......................................................................
-!............. npx   : number of particles in x                  .......
-!............. npy   : number of particles in y                  .......
+!............. npxmax: number of particles in x                  .......
+!............. npymax: number of particles in y                  .......
 !............. np = npx * npy : total number of each particles   .......
-!............. nx    : number of grids in x                      .......
-!............. ny    : number of grids in y                      .......
-!............. iend  : total time steps                          .......
-!............. nhmod : output energies in each nhmod steps       .......
+!............. nxmax : number of grids in x                      .......
+!............. nymax : number of grids in y                      .......
+!............. ntmax : total time steps                          .......
+!............. ntstep: short summary step intercal               .......
 !.......................................................................
 
-      npx = 100
-      npy = 100
-      nx = 128
-      ny = 128
-      iend = 1000
-      nhmod = 1
+      npxmax = 100
+      npymax = 100
+      nxmax = 128
+      nymax = 128
+      ntmax = 1000
+      ntstep= 1
 
 !----- set some parameters -------------------------------
       dt     =    0.2d0     !: time step size
@@ -40,20 +40,19 @@ CONTAINS
       ti     =    1.0d0     !: ion temperature
       bxmin  =    0.0d0     !: max value of background x magnetic flux density
       bxmax  =    0.0d0     !: min value of background x magnetic flux density
-      bymin  =    0.0d0     !: min value of background x magnetic flux density
-      bymax  =    0.0d0     !: min value of background x magnetic flux density
-      bzmin  =    0.0d0     !: min value of background x magnetic flux density
-      bzmax  =    0.0d0     !: z component of background magnetic flux density
-      c      =    1.0d0
-      omega  =    1.0d0
-      eps = 0.0000000000000001d0    !: constants to define boundary condition
-      jxbg   =    0.0d0    ! x component of background current density 
-      jybg   =    0.0d0    ! y component of background current density
-      jzbg   =    0.0d0    ! z component of background current density
-      f      =    0.0d0    ! frequency of background current density
-      thetax =    0.0d0    ! first phase of jxbg
-      thetay =    0.0d0    ! first phase of jybg
-      thetaz =    0.0d0    ! first phase of jzbg
+      bymin  =    0.0d0     !: min value of background y magnetic flux density
+      bymax  =    0.0d0     !: max value of background y magnetic flux density
+      bzmin  =    0.0d0     !: min value of background z magnetic flux density
+      bzmax  =    0.0d0     !: max value of background z magnetic flux density
+      vcfact =   10.0d0     !: c^2/omegape^2 debye^2
+      eps    =   1.D-16     !: constants to define boundary condition
+      omega  =    3.0d0     !: antena frequency
+      jxant  =    0.0d0     ! x component of antenna current density 
+      jyant  =    0.0d0     ! y component of antenna current density
+      jzant  =    0.0d0     ! z component of antenn current density
+      phxant =    0.0d0     ! initial phase of jxant
+      phyant =    0.0d0     ! initial phase of jyant
+      phzant =    0.0d0     ! initial phase of jzant
 !---------------------------------------------------------
 
     RETURN
