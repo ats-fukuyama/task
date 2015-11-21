@@ -3,7 +3,7 @@
 Module picparm
 
   PRIVATE
-  PUBLIC pic_parm, pic_view,pic_broadcast
+  PUBLIC pic_parm,pic_view,pic_broadcast
 
 CONTAINS
 
@@ -49,7 +49,7 @@ CONTAINS
     INTEGER,INTENT(IN) :: NID
     INTEGER,INTENT(OUT) :: IST,IERR
 
-    NAMELIST /PIC/ npxmax,npymax,nxmax,nymax,ntmax,ntstep, &
+    NAMELIST /PIC/ npxmax,npymax,nxmax,nymax,ntmax,ntstep,ntgstep,ntpstep, &
          me,mi,chrge,chrgi,te,ti,dt,eps,bxmin,bxmax,bymin,bymax,bzmin,bzmax,&
          vcfact,omega,jxant,jyant,jzant,phxant,phyant,phzant
 
@@ -70,7 +70,7 @@ CONTAINS
 
     IMPLICIT NONE
     WRITE(6,'(A/)') &
-         '# &PIC : npxmax,npymax,nxmax,nymax,ntmax,ntstep,', &
+         '# &PIC : npxmax,npymax,nxmax,nymax,ntmax,ntstep,ntgstep,ntpstep,', &
          '         me,mi,chrge,chrgi,te,ti,dt,eps,vcfact,', &
          '         bxbg,bybg,bzbg,omega,jxant,jyant,jzant,phxant,phyant,phzant'
     RETURN
@@ -102,8 +102,10 @@ CONTAINS
     USE piccomm_parm
     USE libmpi
     IMPLICIT NONE
-    integer:: idata(6)
-    REAL(8):: ddata(22)
+    integer,parameter:: nint=8
+    integer,parameter:: ndbl=22
+    integer:: idata(nint)
+    REAL(8):: ddata(ndbl)
 
     IF(myid == 0) THEN
        idata(1)=npxmax
@@ -112,14 +114,18 @@ CONTAINS
        idata(4)=nymax
        idata(5)=ntmax
        idata(6)=ntstep
+       idata(7)=ntgstep
+       idata(8)=ntpstep
     END IF
-    CALL mtx_broadcast_integer(idata,6)
+    CALL mtx_broadcast_integer(idata,nint)
        npxmax=idata(1)
        npymax=idata(2)
        nxmax=idata(3)
        nymax=idata(4)
        ntmax=idata(5)
        ntstep=idata(6)
+       ntgstep=idata(7)
+       ntpstep=idata(8)
 
     IF(myid == 0) THEN
        ddata(1)=me
@@ -145,7 +151,7 @@ CONTAINS
        ddata(21)=phyant
        ddata(22)=phzant
     END IF
-    CALL mtx_broadcast_real8(ddata,22)
+    CALL mtx_broadcast_real8(ddata,ndbl)
        me=ddata(1)
        mi=ddata(2)
        chrge=ddata(3)
@@ -182,15 +188,17 @@ CONTAINS
     WRITE(6,601) 'npxmax',npxmax,'npymax',npymax
     WRITE(6,601) 'nxmax ',nxmax ,'nymax ',nymax
     WRITE(6,601) 'ntmax ',ntmax ,'ntstep',ntstep
+    WRITE(6,611) 'ntgstep   ',ntgstep,'ntpstep   ',ntpstep
     WRITE(6,602) 'me    ',me    ,'mi    ',mi    , &
                  'chrge ',chrge ,'chrgi ',chrgi
     WRITE(6,602) 'te    ',te    ,'ti    ',ti    , &
                  'dt    ',dt    ,'eps   ',eps
     WRITE(6,602) 'bxmin ',bxmin ,'bxmax ',bxmax , &
                  'bymin ',bymin ,'bymax ',bymax , &
-                 'bzmin ',bzmax ,'vcfact',vcfact, &
-                 'omega ',omega ,'jxant ',jxant , &
-                 'jyant ',jyant ,'jzant ',jzant , &
+                 'bzmin ',bzmax
+    WRITE(6,602) 'vcfact',vcfact,'omega ',omega 
+    WRITE(6,602) 'jxant ',jxant ,'jyant ',jyant , &
+                 'jzant ',jzant , &
                  'phxant',phxant,'phyant',phyant, &
                  'phzant',phzant
     RETURN
@@ -199,6 +207,8 @@ CONTAINS
             2X,A6,'=',I7,4X  :2X,A6,'=',I7)
 602 FORMAT(' ',A6,'=',1PE11.3:2X,A6,'=',1PE11.3: &
             2X,A6,'=',1PE11.3:2X,A6,'=',1PE11.3)
+611 FORMAT(' ',A12,'=',I7,4X  :2X,A12,'=',I7,4X  : &
+            2X,A12,'=',I7)
   END SUBROUTINE pic_view
 
 END MODULE picparm

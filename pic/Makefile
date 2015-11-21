@@ -16,7 +16,7 @@ FINCLUDE=-I /usr/local/mpich313-ifort-gcc/include
 
 SRCSFREE = libgrf/plot2.f90 libgrf/grf2dpexec.f90 libgrf/grfpconvert.f90 \
            libgrf/grdpconvert.f90 libgrf/grf2dp.f90 libgrf/grd2dp.f90 \
-           picmpi.f90 piccomm.f90 picinit.f90 picparm.f90 \
+           picmpi.f90 piclib.f90 piccomm.f90 picinit.f90 picparm.f90 \
            picfield.f90 picprep.f90 picexec.f90 \
            picgout.f90 picmenu.f90
 
