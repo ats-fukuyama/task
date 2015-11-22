@@ -7,7 +7,41 @@ MODULE picsub
 CONTAINS
 
 !***********************************************************************
-    subroutine poissn(nxmax,nymax,nxmaxh1,rhof,phif,cform,ipssn)
+    subroutine poissn(nxmax,nymax,nxmaxh1,nxmax1,nymax1, &
+                      rho,phi,rhof,phif,awk,afwk,cform,ipssn)
+!***********************************************************************
+      implicit none
+      real(8), dimension(nxmax1,nymax1) :: rho,phi
+      real(8), dimension(nxmax,nymax) :: awk
+      complex(8), dimension(nxmaxh1,nymax) :: afwk
+      complex(8), dimension(nxmaxh1,nymax) :: rhof, phif
+      real(8), dimension(nxmaxh1,nymax) :: cform
+      integer(4) :: nxmax, nymax,nxmaxh1,nxmax1,nymax1,ipssn
+      integer(4) :: ifset
+
+      IF(ipssn.EQ.0) THEN
+         call poissn_sub(nxmax,nymax,nxmaxh1,rhof,phif,cform,ipssn)
+         ifset = 0
+         call fftpic(nxmax,nymax,nxmaxh1,nxmax1,nymax1,rho,rhof,awk,afwk,ifset)
+      ELSE
+
+       !.......... fourier transform rho
+       ifset = -1
+       call fftpic(nxmax,nymax,nxmaxh1,nxmax1,nymax1,rho,rhof,awk,afwk,ifset)
+
+       !.......... calculate phi from rho in fourier space
+       ipssn = 1
+       call poissn_sub(nxmax,nymax,nxmaxh1,rhof,phif,cform,ipssn)
+
+       !.......... inverse fourier transform phi
+       ifset = 1
+       call fftpic(nxmax,nymax,nxmaxh1,nxmax1,nymax1,phi,phif,awk,afwk,ifset)
+
+    END IF
+  end subroutine poissn
+
+!***********************************************************************
+    subroutine poissn_sub(nxmax,nymax,nxmaxh1,rhof,phif,cform,ipssn)
 !***********************************************************************
       implicit none
       complex(8), dimension(nxmaxh1,nymax) :: rhof, phif
@@ -55,7 +89,7 @@ CONTAINS
 
       endif
       
-    end subroutine poissn
+    end subroutine poissn_sub
 
 !***********************************************************************
     subroutine fftpic(nxmax,nymax,nxmaxh1,nxmax1,nymax1,a,af,awk,afwk,ifset)
@@ -224,10 +258,9 @@ CONTAINS
 
       do ny = 0, nymax-1
       do nx = 0, nxmax-1
-
          apot = apot + ex(nx,ny)**2 + ey(nx,ny)**2 + ez(nx,ny)**2 &
-                     + bx(nx,ny)**2 + by(nx,ny)**2 + bz(nx,ny)**2
-            
+                     + vcfact**2 &
+                     *(bx(nx,ny)**2 + by(nx,ny)**2 + bz(nx,ny)**2)
       end do
       end do
       apot = 0.5 * apot / (dble(nxmax)*dble(nymax))

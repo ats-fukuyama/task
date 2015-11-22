@@ -56,17 +56,9 @@ CONTAINS
        call sumdim(nodes,myid,rho,phi,nxymax)
 
        !----- calculate electric field
-       !.......... fourier transform rho
-       ifset = -1
-       call fftpic(nxmax,nymax,nxmaxh1,nxmax1,nymax1,rho,rhof,awk,afwk,ifset)
-
-       !.......... calculate phi from rho in fourier space
        ipssn = 1
-       call poissn(nxmax,nymax,nxmaxh1,rhof,phif,cform,ipssn)
-
-       !.......... inverse fourier transform phi
-       ifset = 1
-       call fftpic(nxmax,nymax,nxmaxh1,nxmax1,nymax1,phi,phif,awk,afwk,ifset)
+       call poissn(nxmax,nymax,nxmaxh1,nxmax1,nymax1, &
+                   rho,phi,rhof,phif,awk,afwk,cform,ipssn)
 
        !----- current assignment
        jx(:,:)=0.d0

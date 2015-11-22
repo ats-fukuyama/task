@@ -60,11 +60,8 @@ CONTAINS
 
       !..... initialize scalar potential by poisson solver
       ipssn = 0
-      call poissn(nxmax,nymax,nxmaxh1,rhof,phif,cform,ipssn)
-
-      !..... initialize FFT 
-      ifset = 0
-      call fftpic(nxmax,nymax,nxmaxh1,nxmax1,nymax1,rho,rhof,awk,afwk,ifset)
+      call poissn(nxmax,nymax,nxmaxh1,nxmax1,nymax1, &
+                  rho,phi,rhof,phif,awk,afwk,cform,ipssn)
 
       !..... initialize wall clock time
       call mpi_barrier(mpi_comm_world,ierr)
