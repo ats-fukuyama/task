@@ -35,7 +35,7 @@ CONTAINS
       ntpstep= 100
 
 !----- set some parameters -------------------------------
-      dt     =    0.2d0     !: time step size
+      dt     =    0.02d0    !: time step size
       me     =    1.0d0     !: electron mass
       mi     = 1836.0d0     !: ion mass
       chrge  =   -1.0d0     !: electron charge
