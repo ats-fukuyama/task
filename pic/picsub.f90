@@ -1,0 +1,237 @@
+!  ***** TASK/PIC PREPARATION *****
+
+MODULE picsub
+  PRIVATE
+  PUBLIC poissn,fftpic,efield,bfield,kine,pote
+ 
+CONTAINS
+
+!***********************************************************************
+    subroutine poissn(nxmax,nymax,nxmaxh1,rhof,phif,cform,ipssn)
+!***********************************************************************
+      implicit none
+      complex(8), dimension(nxmaxh1,nymax) :: rhof, phif
+      real(8), dimension(nxmaxh1,nymax) :: cform
+      integer(4) :: nxmax, nymax, nxmaxh1
+      integer(4) :: nx, ny, nymaxh,ipssn
+      real(8) :: alxi, alyi, pi, twopi, am, an, amn2, afsp, afsp2
+
+         afsp  = 1.5 !+++ size of finite-size-particle
+         afsp2 = afsp * afsp 
+
+      if( ipssn .eq. 0 ) then
+         pi    = 3.14159265358979d0
+         twopi = 2.d0 * pi 
+         alxi   = 1.d0 / dble(nxmax)
+         alyi   = 1.d0 / dble(nymax)
+         nymaxh    = nymax / 2
+
+         do ny = 1, nymaxh+1
+         do nx = 1, nxmaxh1
+            am = twopi * dble(nx-1) * alxi
+            an = twopi * dble(ny-1) * alyi
+            amn2 = am*am + an*an
+           
+            if( nx .eq. 1 .and. ny .eq. 1 ) then
+               cform(nx,ny) = 0.0
+            else 
+               cform(nx,ny) = 1.d0 / amn2 * exp( - amn2 * afsp2 ) 
+            endif
+
+            if( ny .ge. 2 .and. ny .le. nymaxh ) then
+               cform(nx,nymax-ny+2) = cform(nx,ny)
+            endif
+         end do
+         end do
+
+      else
+
+         !----- solve poisson equation
+         do ny = 1, nymax
+         do nx = 1, nxmaxh1
+            phif(nx,ny) = cform(nx,ny) * rhof(nx,ny)
+         end do
+         end do 
+
+      endif
+      
+    end subroutine poissn
+
+!***********************************************************************
+    subroutine fftpic(nxmax,nymax,nxmaxh1,nxmax1,nymax1,a,af,awk,afwk,ifset)
+!***********************************************************************
+      implicit none
+      include 'fftw3.f'
+      real(8), dimension(nxmax1,nymax1) :: a
+      real(8), dimension(nxmax,nymax) :: awk
+      real(8) :: alx, aly 
+      complex(8), dimension(nxmaxh1,nymax) :: af, afwk
+      integer(4) :: nxmax, nymax, nxmaxh1, nxmax1, nymax1
+      integer(4) :: ifset, nx, ny
+      !....integer(8), save :: FFTW_ESTIMATE
+      integer(8), save :: plan1, plan2
+
+      alx = dble(nxmax)
+      aly = dble(nymax)
+
+      if( ifset .eq. 0 ) then
+         !----- initialization of fourier transform
+         call dfftw_plan_dft_r2c_2d(plan1,nxmax,nymax,awk,afwk,FFTW_ESTIMATE)
+         call dfftw_plan_dft_c2r_2d(plan2,nxmax,nymax,afwk,awk,FFTW_ESTIMATE)
+
+      elseif( ifset .eq. -1 ) then
+
+         !----- fourier transform
+         do ny = 1, nymax
+         do nx = 1, nxmax
+            awk(nx,ny) = a(nx,ny)
+         end do
+         end do
+
+         call dfftw_execute(plan1)
+
+         do ny = 1, nymax
+         do nx = 1, nxmaxh1
+         af(nx,ny) = afwk(nx,ny) / ( alx * aly )
+         end do
+         end do
+
+      else
+
+         !----- inverse fourier transform
+
+         do ny = 1, nymax
+         do nx = 1, nxmaxh1
+         afwk(nx,ny) = af(nx,ny)
+         end do
+         end do
+
+         call dfftw_execute(plan2)
+
+         do ny = 1, nymax
+         do nx = 1, nxmax
+            a(nx,ny) = awk(nx,ny)
+         end do
+         end do
+
+         do ny = 1, nymax
+            a(nxmax1,ny) = a(1,ny)
+         end do
+
+         do nx = 1, nxmax1
+            a(nx,nymax1) = a(nx,1)
+         end do
+
+      endif
+
+    end subroutine fftpic
+
+!***********************************************************************
+    subroutine efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
+                      ex,ey,ez,esx,esy,esz,emx,emy,emz)
+!***********************************************************************
+      implicit none
+      real(8), dimension(0:nxmax,0:nymax) ::  &
+           phi,Ax,Ay,Az,Axb,Ayb,Azb,ex,ey,ez,esx,esy,esz,emx,emy,emz
+      real(8):: dt
+      integer :: nxmax, nymax, nx, ny, nxm, nxp, nym, nyp
+
+      do nx = 0, nymax
+      do ny = 0, nxmax
+
+         nxm = nx - 1
+         nxp = nx + 1
+         nym = ny - 1
+         nyp = ny + 1
+
+         if( nx .eq. 0  )    nxm = nxmax - 1
+         if( nx .eq. nxmax ) nxp = 1
+         if( ny .eq. 0  )    nym = nymax - 1
+         if( ny .eq. nymax ) nyp = 1
+         
+         esx(nx,ny) = 0.5d0 * ( phi(nxm,ny) - phi(nxp,ny))
+         esy(nx,ny) = 0.5d0 * ( phi(nx,nym) - phi(nx,nyp))
+         esz(nx,ny) = 0.d0
+         emx(nx,ny) = - ( Ax(nx,ny) - Axb(nx,ny) ) / dt
+         emy(nx,ny) = - ( Ay(nx,ny) - Ayb(nx,ny) ) / dt
+         emz(nx,ny) = - ( Az(nx,ny) - Azb(nx,ny) ) / dt
+         ex(nx,ny) = esx(nx,ny) + emx(nx,ny)
+         ey(nx,ny) = esy(nx,ny) + emy(nx,ny)
+         ez(nx,ny) = esz(nx,ny) + emz(nx,ny)
+
+       end do
+       end do
+     end subroutine efield
+
+!***********************************************************************
+    subroutine bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
+                                  bx,by,bz,bxbg,bybg,bzbg)
+!***********************************************************************
+      implicit none
+      real(8), dimension(0:nymax) :: bxnab,bznab
+      real(8), dimension(0:nxmax) :: bynab
+      real(8), dimension(0:nxmax,0:nymax) :: bx,by,bz,bxbg,bybg,bzbg
+      real(8), dimension(0:nxmax,0:nymax) :: Ax,Ay,Az,Axb,Ayb,Azb
+      integer :: nxmax, nymax, nx, ny, nxp, nyp, nxm, nym
+
+      do ny = 0, nymax
+      do nx = 0, nxmax
+         nxm = nx - 1
+         nxp = nx + 1
+         nym = ny - 1
+         nyp = ny + 1
+
+         if( nx .eq. 0  )    nxm = nxmax - 1
+         if( nx .eq. nxmax ) nxp = 1
+         if( ny .eq. 0  )    nym = nymax - 1
+         if( ny .eq. nymax ) nyp = 1
+         
+         bx(nx,ny) = 0.25d0 * (Az(nx,nyp) + Azb(nx,nyp) &
+                             - Az(nx,nym) - Azb(nx,nym)) + bxbg(nx,ny)
+         by(nx,ny) = 0.25d0 * (Az(nxp,ny) + Azb(nxp,ny) &
+                             - Az(nxm,ny) - Azb(nxm,ny)) + bybg(nx,ny)
+         bz(nx,ny) = 0.25d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
+                             - Ay(nxm,ny) - Ayb(nxm,ny) &
+                            - (Ax(nx,nyp) + Axb(nx,nyp) &
+                              -Ax(nx,nym) - Axb(nx,nym)))+ bzbg(nx,ny)
+      end do
+      end do
+    end subroutine bfield
+
+!***********************************************************************
+    subroutine kine(npmax,vx,vy,vz,akin,mass)
+!***********************************************************************
+      implicit none
+      real(8), dimension(npmax) :: vx, vy, vz
+      real(8) :: akin, mass
+      integer(4) :: npmax, np
+      akin = 0.d0
+      do np = 1, npmax
+         akin = akin + vx(np)**2 + vy(np)**2 + vz(np)**2
+      end do
+
+      akin = 0.5 * akin * mass /dble(npmax)
+    end subroutine kine
+
+!***********************************************************************
+    subroutine pote(nxmax,nymax,ex,ey,ez,bx,by,bz,vcfact,apot)
+!***********************************************************************
+      implicit none
+      real(8), dimension(0:nxmax,0:nymax) :: ex, ey, ez, bx, by, bz
+      real(8) :: apot, vcfact
+      integer(4) :: nxmax, nymax, nx, ny
+      apot = 0.d0
+
+      do ny = 0, nymax-1
+      do nx = 0, nxmax-1
+
+         apot = apot + ex(nx,ny)**2 + ey(nx,ny)**2 + ez(nx,ny)**2 &
+                     + bx(nx,ny)**2 + by(nx,ny)**2 + bz(nx,ny)**2
+            
+      end do
+      end do
+      apot = 0.5 * apot / (dble(nxmax)*dble(nymax))
+
+    end subroutine pote
+
+end MODULE picsub

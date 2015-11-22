@@ -9,12 +9,12 @@ CONTAINS
   SUBROUTINE pic_prep(iout)
 
     USE piccomm
-    USE picfield,ONLY: poissn,fftpic
+    USE picsub,ONLY: poissn,fftpic,efield,bfield,kine,pote
     USE piclib
     IMPLICIT NONE
     INCLUDE 'mpif.h'
     INTEGER,INTENT(OUT):: iout
-    INTEGER:: nx,ny
+    INTEGER:: nx,ny,np
     REAL(8):: factor
 
       npmax = npxmax * npymax
@@ -29,6 +29,7 @@ CONTAINS
       vti    = sqrt( ti / mi )  !: ion thermal velocity
 
       time   = 0.D0             !: time
+      ntcount = 0               !: time counter
       ntgcount= 0               !: counter for global outputs
       ntpcount= 0               !: counter for profile outputs
       iran   = 14142 * myid     !: initial parameter for random number
@@ -69,6 +70,15 @@ CONTAINS
       call mpi_barrier(mpi_comm_world,ierr)
       wtime1 = mpi_wtime()
 
+      DO nx=0,nxmax
+         DO ny=0,nymax
+            factor=DBLE(nx)/DBLE(nxmax)
+            bxbg(nx,ny)=bxmin+(bxmax-bxmin)*factor
+            bybg(nx,ny)=bymin+(bymax-bymin)*factor
+            bybg(nx,ny)=bzmin+(bzmax-bzmin)*factor
+         END DO
+      END DO
+
       Ax(:,:) = 0.0d0
       Ay(:,:) = 0.0d0
       Az(:,:) = 0.0d0
@@ -77,31 +87,27 @@ CONTAINS
       Azb(:,:) = 0.0d0
       phi(:,:) = 0.0d0
 
-      DO nx=0,nxmax
-         DO ny=0,nymax
-            factor=DBLE(nx)/DBLE(nxmax)
-            bxbg(nx,ny)=bxmin+(bxmax-bxmin)*factor
-            bybg(nx,ny)=bxmin+(bxmax-bxmin)*factor
-            bybg(nx,ny)=bxmin+(bxmax-bxmin)*factor
-         END DO
-      END DO
+       !.......... calculate ex and ey and ez
+       call efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
+                               ex,ey,ez,esx,esy,esz,emx,emy,emz)
+
+       !.......... calculate bxg and byg and bzg
+       call bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
+                               bx,by,bz,bxbg,bybg,bzbg)
+      do np=1,npmax
+         vparae(np)=vxe(np)
+         vperpe(np)=SQRT(vye(np)**2+vze(np)**2)
+         vparai(np)=vxi(np)
+         vperpi(np)=SQRT(vyi(np)**2+vzi(np)**2)
+      end do
 
       call kine(npmax,vxe,vye,vze,akine0,me)
       call kine(npmax,vxi,vyi,vzi,akini0,mi)
-      do ny=0,nymax
-      do nx=0,nxmax  
-         ex(nx,ny)=0.D0
-         ey(nx,ny)=0.D0
-         ez(nx,ny)=0.D0
-         bx(nx,ny)=bxbg(nx,ny)
-         by(nx,ny)=bybg(nx,ny)
-         bz(nx,ny)=bzbg(nx,ny)
-      end do
-      end do
       call pote(nxmax,nymax,ex,ey,ez,bx,by,bz,vcfact,apot0)
       call sumdim1(nodes,myid,akine0,wkword)
       call sumdim1(nodes,myid,akini0,wkword)
       call sumdim1(nodes,myid,apot0,wkword)
+
       aktot0 = akine0 + akini0
       atot0  = aktot0 + apot0
 
@@ -109,7 +115,7 @@ CONTAINS
          WRITE(6,'(A)') &
               '      nt        time     ntg    ktot        ptot        Etot'
          WRITE(6,'(I8,1PE12.4,I8,1P3E12.4)') &
-              nt,time,ntgcount,aktot0,apot0,atot0
+              ntcount,time,ntgcount,aktot0,apot0,atot0
       END IF
 
       iout=ierr

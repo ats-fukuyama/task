@@ -1,45 +1,9 @@
 MODULE piclib
 
   PRIVATE
-  PUBLIC kine,pote,sumdim,sumdim1
+  PUBLIC sumdim,sumdim1
 
   CONTAINS
-
-!***********************************************************************
-    subroutine kine(npmax,vx,vy,vz,akin,mass)
-!***********************************************************************
-      implicit none
-      real(8), dimension(npmax) :: vx, vy, vz
-      real(8) :: akin, mass
-      integer(4) :: npmax, np
-      akin = 0.d0
-      do np = 1, npmax
-         akin = akin + vx(np)**2 + vy(np)**2 + vz(np)**2
-      end do
-
-      akin = 0.5 * akin * mass /dble(npmax)
-    end subroutine kine
-
-!***********************************************************************
-    subroutine pote(nxmax,nymax,ex,ey,ez,bx,by,bz,vcfact,apot)
-!***********************************************************************
-      implicit none
-      real(8), dimension(0:nxmax,0:nymax) :: ex, ey, ez, bx, by, bz
-      real(8) :: apot, vcfact
-      integer(4) :: nxmax, nymax, nx, ny
-      apot = 0.d0
-
-      do ny = 0, nymax-1
-      do nx = 0, nxmax-1
-
-         apot = apot + ex(nx,ny)**2 + ey(nx,ny)**2 + ez(nx,ny)**2 &
-                     + bx(nx,ny)**2 + by(nx,ny)**2 + bz(nx,ny)**2
-            
-      end do
-      end do
-      apot = 0.5 * apot / (dble(nxmax)*dble(nymax))
-
-    end subroutine pote
 
 !***********************************************************************
     subroutine sumdim(nodes,myid,a,b,ndim)

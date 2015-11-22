@@ -10,14 +10,14 @@ CONTAINS
   SUBROUTINE pic_exec(iout)
 
     USE piccomm
-    USE picfield,ONLY: poissn,fftpic
+    USE picsub,ONLY: poissn,fftpic,efield,bfield,kine,pote
     USE piclib
     USE libmpi
     IMPLICIT NONE
     INCLUDE 'mpif.h'
     INTEGER,INTENT(OUT):: iout
     REAL(8)::abc
-    INTEGER:: nx,ny
+    INTEGER:: nx,ny,nt
 
 !-----------------------------------------------------------------------
 !----- allocate time hisotry data -------------------------------------------
@@ -32,6 +32,7 @@ CONTAINS
     do nt = 1, ntmax
 
        time = time + dt
+       ntcount = ntcount + 1
 
        do nx = 0, nxmax
        do ny = 0, nymax
@@ -78,6 +79,11 @@ CONTAINS
        call antenna(nxmax,nymax,jxant,jyant,jzant,phxant,phyant,phzant, &
                     omega,time,jx,jy,jz)
        call boundary_j(nxmax,nymax,jx,jy,jz)
+
+       !..... sum chrrent densities over cores
+       call sumdim(nodes,myid,jx,Ax,nxymax)
+       call sumdim(nodes,myid,jy,Ay,nxymax)
+       call sumdim(nodes,myid,jx,Ax,nxymax)
 
        !.......... calculate vector potential
        call phia(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz,Ax,Ay,Az, &
@@ -153,9 +159,9 @@ CONTAINS
        endif
  
        IF( myid .eq. 0 ) THEN
-          IF(MOD(nt,ntstep).EQ.0) THEN
+          IF(MOD(ntcount,ntstep).EQ.0) THEN
              WRITE(6,'(I8,1PE12.4,I8,1P3E12.4)') &
-                  nt,time,ntgcount,aktot,apot,atot
+                  ntcount,time,ntgcount,aktot,apot,atot
           END IF
        END IF
     end do
@@ -269,16 +275,22 @@ CONTAINS
           sy2m = 1.0d0/2 * (3.0d0/2 - dy) ** 2
        endif
 
-       nxpm = nxp - 1
-       nxpp = nxp + 1
-       nypm = nyp - 1
-       nypp = nyp + 1
+       nxpm  = nxp - 1
+       nxpp  = nxp + 1
        nxppp = nxp + 2
+       nypm  = nyp - 1
+       nypp  = nyp + 1
        nyppp = nyp + 2
+
        if( nxp .eq. 0  ) nxpm = nxmax - 1
        if( nyp .eq. 0  ) nypm = nymax - 1
+       if( nxp .eq. nxmax-2) nxppp=0
+       if( nyp .eq. nymax-2) nyppp=0
+       if( nxp .eq. nxmax-1) nxpp =0
+       if( nyp .eq. nymax-1) nypp =0
        if( nxp .eq. nxmax-1) nxppp = 1
        if( nyp .eq. nymax-1) nyppp = 1
+
        ! electric field and magnetic field
        if(dx .le. 0.5d0 .and. dy .le. 0.5d0) then
           exx = ex(nxpp,nypp)*dx*sy2p + ex(nxp ,nypp)*dx1*sy2p &
@@ -528,17 +540,23 @@ CONTAINS
             sy2p = 1.0d0/2 * (-1.0d0/2 + dy) ** 2
             sy2m = 1.0d0/2 * (3.0d0/2 - dy) ** 2
          endif
+
          nxpm = nxp - 1
          nxpp = nxp + 1
+         nxppp= nxp + 2
          nypm = nyp - 1
          nypp = nyp + 1
-         nxppp= nxp + 2
          nyppp= nyp + 2
 
          if( nxp .eq. 0  ) nxpm = nxmax - 1
          if( nyp .eq. 0  ) nypm = nymax - 1
+         if( nxp .eq. nxmax-2) nxppp=0
+         if( nyp .eq. nymax-2) nyppp=0
+         if( nxp .eq. nxmax-1) nxpp =0
+         if( nyp .eq. nymax-1) nypp =0
          if( nxp .eq. nxmax-1) nxppp=1
          if( nyp .eq. nymax-1) nyppp=1
+
          if(dx .le. 0.5d0 .and. dy .le. 0.5d0) then
             rho(nxpm,nypm) = rho(nxpm,nypm) + sx2m * sy2m * factor
             rho(nxpm,nyp ) = rho(nxpm,nyp ) + sx2m * sy2  * factor
@@ -820,15 +838,15 @@ CONTAINS
    end subroutine boundary_j
 
 !***********************************************************************
-    subroutine phia(nxmax,nymax,c,dt,phi,phib,jx,jy,jz,Ax,Ay,Az,Axb,Ayb,Azb,&
-                    Axbb,Aybb,Azbb)
+    subroutine phia(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz,Ax,Ay,Az, &
+                    Axb,Ayb,Azb,Axbb,Aybb,Azbb)
 !***********************************************************************
    !original subroutine
       implicit none
       real(8), dimension(0:nxmax,0:nymax) :: phi,phib,jx,jy,jz,Ax,Ay,Az, &
                                              Axb,Ayb,Azb,Axbb,Aybb,Azbb
       integer :: nxmax, nymax, nx, ny, nxm, nxp, nyp, nym, nypm
-      real(8) :: c, dt
+      real(8) :: vcfact, dt
 
  ! Solution of maxwell equation in the A-phi formulation by difference method
  ! c is the ratio of the light speed to lattice parameter times plasma frequency
@@ -845,25 +863,25 @@ CONTAINS
          if( ny .eq. 0  )    nym = nymax - 1
          if( ny .eq. nymax ) nyp = 1
       
-        Ax(nx,ny) = dt ** 2 * c ** 2 * (Axb(nxp,ny) + Axb(nxm,ny) &
-                                      + Axb(nx,nyp) + Axb(nx,nym) &
-                                      - 4.0d0 * Axb(nx,ny)) &
+        Ax(nx,ny) = dt ** 2 * vcfact ** 2 * (Axb(nxp,ny) + Axb(nxm,ny) &
+                                           + Axb(nx,nyp) + Axb(nx,nym) &
+                                           - 4.0d0 * Axb(nx,ny)) &
                   + dt ** 2 * jx(nx,ny) &
                   - 0.5d0 * dt * (phi(nxp,ny) - phib(nxp,ny) &
                                 - phi(nxm,ny) + phib(nxm,ny)) &
                   + 2.0d0 * Axb(nx,ny) - Axbb(nx,ny) 
 
-        Ay(nx,ny) = dt ** 2 * c ** 2 * (Ayb(nxp,ny) + Ayb(nxm,ny) &
-                                      + Ayb(nx,nyp) + Ayb(nx,nym) &
-                                      - 4.0d0 * Ayb(nx,ny)) &
+        Ay(nx,ny) = dt ** 2 * vcfact ** 2 * (Ayb(nxp,ny) + Ayb(nxm,ny) &
+                                           + Ayb(nx,nyp) + Ayb(nx,nym) &
+                                           - 4.0d0 * Ayb(nx,ny)) &
                   + dt ** 2 * jy(nx,ny) &
                   - 0.5d0 * dt * (phi(nx,nyp) - phib(nx,nyp) &
                                 - phi(nx,nym) + phib(nx,nym)) &
                   + 2.0d0 * Ayb(nx,ny) - Aybb(nx,ny) 
 
-        Az(nx,ny) = dt ** 2 * c ** 2 * (Azb(nxp,ny) + Azb(nxm,ny) &
-                                      + Azb(nx,nyp) + Azb(nx,nym) &
-                                      - 4.0d0 * Azb(nx,ny)) &
+        Az(nx,ny) = dt ** 2 * vcfact ** 2 * (Azb(nxp,ny) + Azb(nxm,ny) &
+                                           + Azb(nx,nyp) + Azb(nx,nym) &
+                                           - 4.0d0 * Azb(nx,ny)) &
                   + dt ** 2 * jz(nx,ny) &
                   + 2.0d0 * Azb(nx,ny) - Azbb(nx,ny)
       
@@ -871,76 +889,5 @@ CONTAINS
       end do
 
     end subroutine phia
-
-!***********************************************************************
-    subroutine efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
-                      ex,ey,ez,esx,esy,esz,emx,emy,emz)
-!***********************************************************************
-      implicit none
-      real(8), dimension(0:nxmax,0:nymax) ::  &
-           phi,Ax,Ay,Az,Axb,Ayb,Azb,ex,ey,ez,esx,esy,esz,emx,emy,emz
-      real(8):: dt
-      integer :: nxmax, nymax, nx, ny, nxm, nxp, nym, nyp
-      do nx = 0, nymax
-      do ny = 0, nxmax
-
-         nxm = nx - 1
-         nxp = nx + 1
-         nym = ny - 1
-         nyp = ny + 1
-
-         if( nx .eq. 0  )    nxm = nxmax - 1
-         if( nx .eq. nxmax ) nxp = 1
-         if( ny .eq. 0  )    nym = nymax - 1
-         if( ny .eq. nymax ) nyp = 1
-         
-         esx(nx,ny) = 0.5d0 * ( phi(nxm,ny) - phi(nxp,ny))
-         emx(nx,ny) = - ( Ax(nx,ny) - Axb(nx,ny) ) / dt
-         esy(nx,ny) = 0.5d0 * ( phi(nx,nym) - phi(nx,nyp))
-         emy(nx,ny) = - ( Ay(nx,ny) - Ayb(nx,ny) ) / dt
-         esz(nx,ny) = 0.d0
-         emz(nx,ny) = - ( Az(nx,ny) - Azb(nx,ny) ) / dt
-         ex(nx,ny) = esx(nx,ny) + emx(nx,ny)
-         ey(nx,ny) = esy(nx,ny) + emy(nx,ny)
-         ez(nx,ny) = esz(nx,ny) + emz(nx,ny)
-
-       end do
-       end do
-     end subroutine efield
-
-!***********************************************************************
-    subroutine bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
-                                  bx,by,bz,bxbg,bybg,bzbg)
-!***********************************************************************
-      implicit none
-      real(8), dimension(0:nymax) :: bxnab,bznab
-      real(8), dimension(0:nxmax) :: bynab
-      real(8), dimension(0:nxmax,0:nymax) :: bx,by,bz,bxbg,bybg,bzbg
-      real(8), dimension(0:nxmax,0:nymax) :: Ax,Ay,Az,Axb,Ayb,Azb
-      integer :: nxmax, nymax, nx, ny, nxp, nyp, nxm, nym
-
-      do ny = 0, nymax
-      do nx = 0, nxmax
-         nxm = nx - 1
-         nxp = nx + 1
-         nym = ny - 1
-         nyp = ny + 1
-
-         if( nx .eq. 0  )    nxm = nxmax - 1
-         if( nx .eq. nxmax ) nxp = 1
-         if( ny .eq. 0  )    nym = nymax - 1
-         if( ny .eq. nymax ) nyp = 1
-         
-         bx(nx,ny) = 0.25d0 * (Az(nx,nyp) + Azb(nx,nyp) &
-                             - Az(nx,nym) - Azb(nx,nym)) + bxbg(nx,ny)
-         by(nx,ny) = 0.25d0 * (Az(nxp,ny) + Azb(nxp,ny) &
-                             - Az(nxm,ny) - Azb(nxm,ny)) + bybg(nx,ny)
-         bz(nx,ny) = 0.25d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
-                             - Ay(nxm,ny) - Ayb(nxm,ny) &
-                            - (Ax(nx,nyp) + Axb(nx,nyp) &
-                              -Ax(nx,nym) - Axb(nx,nym)))+ bzbg(nx,ny)
-      end do
-      end do
-    end subroutine bfield
 
 END Module picexec

@@ -40,7 +40,7 @@ MODULE piccomm
              akine1, akine2, akini1, akini2, time,         &
              x1, x2, y1, y2, z1, z2 ,alx, aly, alz,                &
              wkword, wtime, wtime1, wtime2
-  integer :: nt, ntcount, ntgcount, ntpcount, ntgmax, ntpmax
+  integer :: ntcount, ntgcount, ntpcount, ntgmax, ntpmax
   integer :: ifset, ipssn, iran
   integer :: ierr, myid, nodes
 
