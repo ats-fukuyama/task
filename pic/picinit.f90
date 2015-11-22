@@ -59,6 +59,29 @@ CONTAINS
       phzant =    0.0d0     ! initial phase of jzant
 !---------------------------------------------------------
 
+      model_boundary = 1    ! boundary condition 
+                            !   0: periodic boundary
+                            !   1: conducting wall and particle reflection
+                            !   2: absorbing boundary and particle reflection
+      model_antenna = 0     ! antenna location
+                            !   0: near xmin uniform
+                            !   1: near xmax uniform
+                            !   2: near ymin uniform
+                            !   3: near ymax uniform
+      model_wg = 0          ! waveguide location
+                            !   0: near xmin uniform
+                            !   1: near xmax uniform
+                            !   2: near ymin uniform
+                            !   3: near ymax uniform
+      xmin_wg = 0.D0
+      xmax_wg = 4.D0
+      ymin_wg = 0.D0
+      ymax_wg = 4.D0
+      amp_wg  = 0.D0        ! amplitude of wave vector potential
+      ph_wg   = 1.D0        ! phase difference between x/ymin and  x/ymax 2*pi
+      rot_wg  = 0.D0        ! angle of wave electric fields: 0 for z-direction
+      eli_wg  = 0.D0        ! angle of elipticity of wave electric field
+
     RETURN
   END SUBROUTINE pic_init
 END MODULE picinit
