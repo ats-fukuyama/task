@@ -45,7 +45,6 @@ CONTAINS
           phib(nx,ny) = phi(nx,ny)
        end do
        end do
-   
        !----- charge assignment
        rho(:,:)=0.0d0
        call source(npmax,nxmax,nymax,xe,ye,rho,chrge)
@@ -59,31 +58,38 @@ CONTAINS
        ipssn = 1
        call poissn(nxmax,nymax,nxmaxh1,nxmax1,nymax1, &
                    rho,phi,rhof,phif,awk,afwk,cform,ipssn)
-
        !----- current assignment
        jx(:,:)=0.d0
        jy(:,:)=0.d0
        jz(:,:)=0.d0
 
-       call current(npmax,nxmax,nymax,xe,ye,vxe,vye,vze,chrge,jx,jy,jz)
-       call current(npmax,nxmax,nymax,xi,yi,vxi,vyi,vzi,chrgi,jx,jy,jz)
+       call current(npmax,nxmax,nymax,xe,ye,vxe,vye,vze,chrge,jx,jy,jz,model_boundary)
+       call current(npmax,nxmax,nymax,xi,yi,vxi,vyi,vzi,chrgi,jx,jy,jz,model_boundary)
 
        call antenna(nxmax,nymax,jxant,jyant,jzant,phxant,phyant,phzant, &
-                    omega,time,jx,jy,jz)
-       call boundary_j(nxmax,nymax,jx,jy,jz)
-
+            omega,time,jx,jy,jz)
+       
+       if(model_boundary .eq. 1) then
+          call boundary_j(nxmax,nymax,jx,jy,jz)
+       end if
+       
        !..... sum chrrent densities over cores
        call sumdim(nodes,myid,jx,Ax,nxymax)
        call sumdim(nodes,myid,jy,Ay,nxymax)
        call sumdim(nodes,myid,jx,Ax,nxymax)
 
        !.......... calculate vector potential
-       call phia(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz,Ax,Ay,Az, &
-                 Axb,Ayb,Azb,Axbb,Aybb,Azbb)
-
+       if(model_boundary .eq. 1) then
+          call phia_perio(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz,Ax,Ay,Az, &
+               Axb,Ayb,Azb,Axbb,Aybb,Azbb)
+       else if(model_boundary .ne. 1) then
+          call phia_refl(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz,Ax,Ay,Az, &
+               Axb,Ayb,Azb,Axbb,Aybb,Azbb)
+       endif
+    
        !.......... calculate ex and ey and ez
        call efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
-                               ex,ey,ez,esx,esy,esz,emx,emy,emz)
+            ex,ey,ez,esx,esy,esz,emx,emy,emz)
 
        !.......... calculate bxg and byg and bzg
        call bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
@@ -109,14 +115,15 @@ CONTAINS
                  ex,ey,ez,bx,by,bz,dt,ctomi,xib,yib,zib, &
                  phi,phib,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
                  vparai,vperpi)
-
        !----- treat particles being out of the boundary
-       !call bound_perio(npmax,xe,ye,x1,x2,y1,y2,alx,aly)
-       !call bound_perio(npmax,xi,yi,x1,x2,y1,y2,alx,aly)
-
-       call bound_refl(npmax,xe,ye,vxe,vye,x1,x2,y1,y2,alx,aly)
-       call bound_refl(npmax,xi,yi,vxi,vyi,x1,x2,y1,y2,alx,aly)
-
+       if(model_boundary .eq. 1) then
+          call bound_perio(npmax,xe,ye,x1,x2,y1,y2,alx,aly)
+          call bound_perio(npmax,xi,yi,x1,x2,y1,y2,alx,aly)
+       else if(model_boundary .ne. 1) then
+          call bound_refl(npmax,xe,ye,vxe,vye,x1,x2,y1,y2,alx,aly)
+          call bound_refl(npmax,xi,yi,vxi,vyi,x1,x2,y1,y2,alx,aly)
+       endif
+       
        !..... diagnostics to check energy conservation
        !.....            after pushing 
        if( mod(nt,ntgstep) .eq. 0 ) then
@@ -656,7 +663,7 @@ CONTAINS
     end subroutine boundary_rho
 
 !***********************************************************************
-    subroutine current(npmax,nxmax,nymax,x,y,vx,vy,vz,chrg,jx,jy,jz)
+    subroutine current(npmax,nxmax,nymax,x,y,vx,vy,vz,chrg,jx,jy,jz,model_boundary)
 !***********************************************************************
     implicit none
 
@@ -664,7 +671,7 @@ CONTAINS
     real(8), dimension(0:nxmax,0:nymax) :: jx, jy, jz
     real(8) :: chrg, dt, dx, dy, dx1, dy1, &
          sx1p, sy1p, sx1m, sy1m, sx2, sy2, sx2p, sy2p, sx2m, sy2m, factor
-    integer :: npmax, nxmax, nymax
+    integer :: npmax, nxmax, nymax,model_boundary
     integer :: np, nxp, nyp, nxpm, nypm, nxpp, nypp, nxppp, nyppp, nx, ny
 
     factor=chrg*dble(nxmax)*dble(nymax)/dble(npmax)
@@ -811,6 +818,26 @@ CONTAINS
         endif
        
      end do
+     if(model_boundary .ne. 1) then
+     do ny=0,nymax
+        jx(0,ny) = 2 * jx(0,ny)
+        jy(0,ny) = 2 * jy(0,ny)
+        jz(0,ny) = 2 * jz(0,ny)
+        jx(nxmax,ny) = 2 * jx(nxmax,ny)
+        jy(nxmax,ny) = 2 * jy(nxmax,ny)
+        jz(nxmax,ny) = 2 * jz(nxmax,ny)
+     end do
+     do nx=1,nxmax-1
+        jx(nx,0) = 2 * jx(nx,0)
+        jy(nx,0) = 2 * jy(nx,0)
+        jz(nx,0) = 2 * jz(nx,0)
+        jx(nx,nymax) = 2 * jx(nx,nymax)
+        jy(nx,nymax) = 2 * jy(nx,nymax)
+        jz(nx,nymax) = 2 * jz(nx,nymax)
+     end do
+     
+     endif
+     
 
    end subroutine current
 
@@ -833,10 +860,10 @@ CONTAINS
          ! add antenna current density
 
          do ny=1,nymax
-            jy(0,ny) = jy(0,ny) + 0.5d0 * jyt
-            jy(1,ny) = jy(1,ny) + 0.5d0 * jyt
-            jz(0,ny) = jz(0,ny) + 0.5d0 * jzt
-            jz(1,ny) = jz(1,ny) + 0.5d0 * jzt
+            jy(3,ny) = jy(3,ny) + 0.5d0 * jyt
+            jy(4,ny) = jy(4,ny) + 0.5d0 * jyt
+            jz(3,ny) = jz(3,ny) + 0.5d0 * jzt
+            jz(4,ny) = jz(4,ny) + 0.5d0 * jzt
          end do
 
    end subroutine antenna
@@ -922,5 +949,73 @@ CONTAINS
       end do
 
     end subroutine phia_perio
+
+!***********************************************************************
+    subroutine phia_refl(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz,Ax,Ay,Az, &
+                    Axb,Ayb,Azb,Axbb,Aybb,Azbb)
+!***********************************************************************
+   !original subroutine
+      implicit none
+      real(8), dimension(0:nxmax,0:nymax) :: phi,phib,jx,jy,jz,Ax,Ay,Az, &
+                                             Axb,Ayb,Azb,Axbb,Aybb,Azbb
+      integer :: nxmax, nymax, nx, ny, nxm, nxp, nyp, nym, nypm
+      real(8) :: vcfact, dt
+
+
+ ! Solution of maxwell equation in the A-phi formulation by difference method
+ ! c is the ratio of the light speed to lattice parameter times plasma frequency
+      do nx = 0, nxmax
+      do ny = 0, nymax
+
+         nxm = nx - 1
+         nxp = nx + 1
+         nym = ny - 1
+         nyp = ny + 1
+
+         if( nx .eq. 0  )    nxm = nxmax - 1
+         if( nx .eq. nxmax ) nxp = 1
+         if( ny .eq. 0  )    nym = nymax - 1
+         if( ny .eq. nymax ) nyp = 1
+      
+        Ax(nx,ny) = dt ** 2 * vcfact ** 2 * (Axb(nxp,ny) + Axb(nxm,ny) &
+                                           + Axb(nx,nyp) + Axb(nx,nym) &
+                                           - 4.0d0 * Axb(nx,ny)) &
+                  + dt ** 2 * jx(nx,ny) &
+                  - 0.5d0 * dt * (phi(nxp,ny) - phib(nxp,ny) &
+                                - phi(nxm,ny) + phib(nxm,ny)) &
+                  + 2.0d0 * Axb(nx,ny) - Axbb(nx,ny) 
+
+        Ay(nx,ny) = dt ** 2 * vcfact ** 2 * (Ayb(nxp,ny) + Ayb(nxm,ny) &
+                                           + Ayb(nx,nyp) + Ayb(nx,nym) &
+                                           - 4.0d0 * Ayb(nx,ny)) &
+                  + dt ** 2 * jy(nx,ny) &
+                  - 0.5d0 * dt * (phi(nx,nyp) - phib(nx,nyp) &
+                                - phi(nx,nym) + phib(nx,nym)) &
+                  + 2.0d0 * Ayb(nx,ny) - Aybb(nx,ny) 
+
+        Az(nx,ny) = dt ** 2 * vcfact ** 2 * (Azb(nxp,ny) + Azb(nxm,ny) &
+                                           + Azb(nx,nyp) + Azb(nx,nym) &
+                                           - 4.0d0 * Azb(nx,ny)) &
+                  + dt ** 2 * jz(nx,ny) &
+                  + 2.0d0 * Azb(nx,ny) - Azbb(nx,ny)
+      
+      end do
+      end do
+
+      !boundary condition for reflection
+      Ax(0,:)=0.d0
+      Ay(0,:)=0.d0
+      Az(0,:)=0.d0
+      Ax(nxmax-1,:)=0.d0
+      Ay(nxmax-1,:)=0.d0
+      Az(nxmax-1,:)=0.d0
+      Ax(:,0)=0.d0
+      Ay(:,0)=0.d0
+      Az(:,0)=0.d0
+      Ax(:,nymax-1)=0.d0
+      Ay(:,nymax-1)=0.d0
+      Az(:,nymax-1)=0.d0
+      
+    end subroutine phia_refl
 
 END Module picexec

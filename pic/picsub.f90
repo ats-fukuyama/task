@@ -259,8 +259,8 @@ CONTAINS
       do ny = 0, nymax-1
       do nx = 0, nxmax-1
          apot = apot + ex(nx,ny)**2 + ey(nx,ny)**2 + ez(nx,ny)**2 &
-                     + vcfact**2 &
-                     *(bx(nx,ny)**2 + by(nx,ny)**2 + bz(nx,ny)**2)
+                     + vcfact**2 !&
+                     !*(bx(nx,ny)**2 + by(nx,ny)**2 + bz(nx,ny)**2)
       end do
       end do
       apot = 0.5 * apot / (dble(nxmax)*dble(nymax))

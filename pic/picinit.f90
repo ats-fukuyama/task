@@ -59,7 +59,7 @@ CONTAINS
       phzant =    0.0d0     ! initial phase of jzant
 !---------------------------------------------------------
 
-      model_boundary = 1    ! boundary condition 
+      model_boundary = 0    ! boundary condition 
                             !   0: periodic boundary
                             !   1: conducting wall and particle reflection
                             !   2: absorbing boundary and particle reflection
