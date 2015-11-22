@@ -53,6 +53,7 @@ CONTAINS
          me,mi,chrge,chrgi,te,ti,dt,eps,bxmin,bxmax,bymin,bymax,bzmin,bzmax,&
          vcfact,omega,jxant,jyant,jzant,phxant,phyant,phzant, &
          model_boundary,model_antenna,model_wg, &
+         model_matrix0,model_matrix1,model_matrix2,tolerance_matrix, &
          xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg, ph_wg,rot_wg,eli_wg
 
     READ(NID,PIC,IOSTAT=IST,ERR=9800,END=9900)
@@ -72,10 +73,12 @@ CONTAINS
 
     IMPLICIT NONE
     WRITE(6,'(A/)') &
-         '# &PIC : npxmax,npymax,nxmax,nymax,ntmax,ntstep,ntgstep,ntpstep,', &
-         '         me,mi,chrge,chrgi,te,ti,dt,eps,vcfact,bxbg,bybg,bzbg,', &
-         '         omega,jxant,jyant,jzant,phxant,phyant,phzant', &
-         '         xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg, ph_wg,rot_wg,eli_wg'
+       '# &PIC : npxmax,npymax,nxmax,nymax,ntmax,ntstep,ntgstep,ntpstep,', &
+       '         me,mi,chrge,chrgi,te,ti,dt,eps,vcfact,bxbg,bybg,bzbg,', &
+       '         omega,jxant,jyant,jzant,phxant,phyant,phzant', &
+       '         model_boundary,model_antenna,model_wg', &
+       '         model_matrix0,model_matrix1,model_matrix2,tolerance_matrix', &
+       '         xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg, ph_wg,rot_wg,eli_wg'
     RETURN
 
   END SUBROUTINE pic_plst
@@ -101,16 +104,16 @@ CONTAINS
 
   SUBROUTINE pic_broadcast
 
-    USE piccomm,ONLY: myid
+    USE piccomm,ONLY: nrank
     USE piccomm_parm
     USE libmpi
     IMPLICIT NONE
-    integer,parameter:: nint=11
-    integer,parameter:: ndbl=30
+    integer,parameter:: nint=14
+    integer,parameter:: ndbl=31
     integer:: idata(nint)
     REAL(8):: ddata(ndbl)
 
-    IF(myid == 0) THEN
+    IF(nrank == 0) THEN
        idata(1)=npxmax
        idata(2)=npymax
        idata(3)=nxmax
@@ -122,6 +125,9 @@ CONTAINS
        idata(9)=model_boundary
        idata(10)=model_antenna
        idata(11)=model_wg
+       idata(12)=model_matrix0
+       idata(13)=model_matrix1
+       idata(14)=model_matrix2
     END IF
     CALL mtx_broadcast_integer(idata,nint)
        npxmax=idata(1)
@@ -135,8 +141,11 @@ CONTAINS
        model_boundary=idata(9)
        model_antenna=idata(10)
        model_wg=idata(11)
+       model_matrix0=idata(12)
+       model_matrix1=idata(13)
+       model_matrix2=idata(14)
 
-    IF(myid == 0) THEN
+    IF(nrank == 0) THEN
        ddata(1)=me
        ddata(2)=mi
        ddata(3)=chrge
@@ -167,6 +176,7 @@ CONTAINS
        ddata(28)=ph_wg
        ddata(29)=rot_wg
        ddata(30)=eli_wg
+       ddata(31)=tolerance_matrix
     END IF
     CALL mtx_broadcast_real8(ddata,ndbl)
        me=ddata(1)
@@ -199,6 +209,7 @@ CONTAINS
        ph_wg=ddata(28)
        rot_wg=ddata(29)
        eli_wg=ddata(30)
+       tolerance_matrix=ddata(31)
     RETURN
 
   END SUBROUTINE pic_broadcast
@@ -226,6 +237,13 @@ CONTAINS
                  'jzant ',jzant , &
                  'phxant',phxant,'phyant',phyant, &
                  'phzant',phzant
+       WRITE(6,621) 'model_boundary       =',model_boundary
+       WRITE(6,621) 'model_antenna        =',model_antenna
+       WRITE(6,621) 'model_wg             =',model_wg
+       WRITE(6,621) 'model_matrix0        =',model_matrix0
+       WRITE(6,621) 'model_matrix1        =',model_matrix1
+       WRITE(6,621) 'model_matrix2        =',model_matrix2
+       WRITE(6,622) 'tolerance_matrix     =',tolerance_matrix
     RETURN
 
 601 FORMAT(' ',A6,'=',I7,4X  :2X,A6,'=',I7,4X  : &
@@ -234,6 +252,8 @@ CONTAINS
             2X,A6,'=',1PE11.3:2X,A6,'=',1PE11.3)
 611 FORMAT(' ',A12,'=',I7,4X  :2X,A12,'=',I7,4X  : &
             2X,A12,'=',I7)
+621 FORMAT(' ',A,I7)
+622 FORMAT(' ',A,1PE12.4)
   END SUBROUTINE pic_view
 
 END MODULE picparm

@@ -9,7 +9,7 @@ CONTAINS
   SUBROUTINE pic_prep(iout)
 
     USE piccomm
-    USE picsub,ONLY: poissn,fftpic,efield,bfield,kine,pote
+    USE picsub,ONLY: poisson_f,poisson_m,efield,bfield,kine,pote
     USE piclib
     IMPLICIT NONE
     INCLUDE 'mpif.h'
@@ -60,8 +60,14 @@ CONTAINS
 
       !..... initialize scalar potential by poisson solver
       ipssn = 0
-      call poissn(nxmax,nymax,nxmaxh1,nxmax1,nymax1, &
-                  rho,phi,rhof,phif,awk,afwk,cform,ipssn)
+       IF(model_boundary.EQ.0) THEN
+          call poisson_f(nxmax,nymax,nxmaxh1,nxmax1,nymax1, &
+                         rho,phi,rhof,phif,awk,afwk,cform,ipssn)
+       ELSE
+          call poisson_m(nxmax1,nymax1,rho,phi,ipssn, &
+                         model_matrix0,model_matrix1,model_matrix2, &
+                         tolerance_matrix)
+       END IF
 
       !..... initialize wall clock time
       call mpi_barrier(mpi_comm_world,ierr)

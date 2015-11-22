@@ -9,7 +9,7 @@ CONTAINS
 
   SUBROUTINE pic_menu
 
-    USE piccomm,ONLY: ikind,rkind,myid,pic_allocate,pic_deallocate
+    USE piccomm,ONLY: ikind,nrank,nsize,pic_allocate,pic_deallocate
     USE picparm,ONLY: pic_parm,pic_view,pic_broadcast
     USE picprep,ONLY: pic_prep
     USE picexec,ONLY: pic_exec
@@ -22,7 +22,7 @@ CONTAINS
     CHARACTER(LEN=80) :: line
 
 1   CONTINUE
-    IF(myid == 0) THEN
+    IF(nrank == 0) THEN
        ierr=0
        WRITE(6,'(A)') '## PIC MENU: P,V/Parm  R/Run  C/Continue G/Graf  Q/QUIT'
        CALL TASK_KLIN(line,kid,mode,pic_parm)
@@ -35,10 +35,10 @@ CONTAINS
     CALL pic_broadcast
 
     IF(kid.EQ.'P') THEN
-       IF(myid == 0) CALL pic_parm(0,'PIC',ierr)
+       IF(nrank == 0) CALL pic_parm(0,'PIC',ierr)
        CALL pic_broadcast
     ELSEIF(kid.EQ.'V') THEN
-       IF(myid == 0) CALL pic_view
+       IF(nrank == 0) CALL pic_view
     ELSEIF(kid.EQ.'R') THEN
        CALL pic_prep(ierr)
        if(ierr /= 0) GO TO 1
@@ -47,7 +47,7 @@ CONTAINS
     ELSEIF(kid.EQ.'C') THEN
        IF(init /= 0) CALL pic_exec(ierr)
     ELSEIF(kid.EQ.'G') THEN
-       IF(myid == 0 .AND. init /= 0) CALL pic_gout
+       IF(nrank == 0 .AND. init /= 0) CALL pic_gout
     ELSEIF(kid.EQ.'Q') THEN
        GOTO 9000
     ELSE

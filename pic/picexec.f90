@@ -10,7 +10,7 @@ CONTAINS
   SUBROUTINE pic_exec(iout)
 
     USE piccomm
-    USE picsub,ONLY: poissn,fftpic,efield,bfield,kine,pote
+    USE picsub,ONLY: poisson_f,poisson_m,efield,bfield,kine,pote
     USE piclib
     USE libmpi
     IMPLICIT NONE
@@ -57,8 +57,14 @@ CONTAINS
 
        !----- calculate electric field
        ipssn = 1
-       call poissn(nxmax,nymax,nxmaxh1,nxmax1,nymax1, &
-                   rho,phi,rhof,phif,awk,afwk,cform,ipssn)
+       IF(model_boundary.EQ.0) THEN
+          call poisson_f(nxmax,nymax,nxmaxh1,nxmax1,nymax1, &
+                         rho,phi,rhof,phif,awk,afwk,cform,ipssn)
+       ELSE
+          call poisson_m(nxmax1,nymax1,rho,phi,ipssn, &
+                         model_matrix0,model_matrix1,model_matrix2, &
+                         tolerance_matrix)
+       END IF
 
        !----- current assignment
        jx(:,:)=0.d0
