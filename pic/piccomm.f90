@@ -7,9 +7,11 @@ MODULE piccomm_parm
   USE bpsd_constants
 
   INTEGER:: npxmax,npymax,nxmax,nymax,ntmax,ntstep,ntgstep,ntpstep
+  INTEGER:: model_boundary,model_antenna,model_wg
   REAL(rkind):: dt,me,mi,chrge,chrgi,te,ti,&
-       bxmin,bxmax,bymin,bymax,bzmin,bzmax,vcfact,omega,eps,&
-       jxant,jyant,jzant,phxant,phyant,phzant
+       bxmin,bxmax,bymin,bymax,bzmin,bzmax,vcfact,omega,eps
+  REAL(rkind):: jxant,jyant,jzant,phxant,phyant,phzant
+  REAL(rkind):: xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg,ph_wg,rot_wg,eli_wg
 
 END MODULE piccomm_parm
 

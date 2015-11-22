@@ -51,7 +51,9 @@ CONTAINS
 
     NAMELIST /PIC/ npxmax,npymax,nxmax,nymax,ntmax,ntstep,ntgstep,ntpstep, &
          me,mi,chrge,chrgi,te,ti,dt,eps,bxmin,bxmax,bymin,bymax,bzmin,bzmax,&
-         vcfact,omega,jxant,jyant,jzant,phxant,phyant,phzant
+         vcfact,omega,jxant,jyant,jzant,phxant,phyant,phzant, &
+         model_boundary,model_antenna,model_wg, &
+         xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg, ph_wg,rot_wg,eli_wg
 
     READ(NID,PIC,IOSTAT=IST,ERR=9800,END=9900)
 
@@ -71,8 +73,9 @@ CONTAINS
     IMPLICIT NONE
     WRITE(6,'(A/)') &
          '# &PIC : npxmax,npymax,nxmax,nymax,ntmax,ntstep,ntgstep,ntpstep,', &
-         '         me,mi,chrge,chrgi,te,ti,dt,eps,vcfact,', &
-         '         bxbg,bybg,bzbg,omega,jxant,jyant,jzant,phxant,phyant,phzant'
+         '         me,mi,chrge,chrgi,te,ti,dt,eps,vcfact,bxbg,bybg,bzbg,', &
+         '         omega,jxant,jyant,jzant,phxant,phyant,phzant', &
+         '         xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg, ph_wg,rot_wg,eli_wg'
     RETURN
 
   END SUBROUTINE pic_plst
@@ -102,8 +105,8 @@ CONTAINS
     USE piccomm_parm
     USE libmpi
     IMPLICIT NONE
-    integer,parameter:: nint=8
-    integer,parameter:: ndbl=22
+    integer,parameter:: nint=11
+    integer,parameter:: ndbl=30
     integer:: idata(nint)
     REAL(8):: ddata(ndbl)
 
@@ -116,6 +119,9 @@ CONTAINS
        idata(6)=ntstep
        idata(7)=ntgstep
        idata(8)=ntpstep
+       idata(9)=model_boundary
+       idata(10)=model_antenna
+       idata(11)=model_wg
     END IF
     CALL mtx_broadcast_integer(idata,nint)
        npxmax=idata(1)
@@ -126,6 +132,9 @@ CONTAINS
        ntstep=idata(6)
        ntgstep=idata(7)
        ntpstep=idata(8)
+       model_boundary=idata(9)
+       model_antenna=idata(10)
+       model_wg=idata(11)
 
     IF(myid == 0) THEN
        ddata(1)=me
@@ -150,6 +159,14 @@ CONTAINS
        ddata(20)=phxant
        ddata(21)=phyant
        ddata(22)=phzant
+       ddata(23)=xmin_wg
+       ddata(24)=xmax_wg
+       ddata(25)=ymin_wg
+       ddata(26)=ymax_wg
+       ddata(27)=amp_wg
+       ddata(28)=ph_wg
+       ddata(29)=rot_wg
+       ddata(30)=eli_wg
     END IF
     CALL mtx_broadcast_real8(ddata,ndbl)
        me=ddata(1)
@@ -174,6 +191,14 @@ CONTAINS
        phxant=ddata(20)
        phyant=ddata(21)
        phzant=ddata(22)
+       xmin_wg=ddata(23)
+       xmax_wg=ddata(24)
+       ymin_wg=ddata(25)
+       ymax_wg=ddata(26)
+       amp_wg=ddata(27)
+       ph_wg=ddata(28)
+       rot_wg=ddata(29)
+       eli_wg=ddata(30)
     RETURN
 
   END SUBROUTINE pic_broadcast
