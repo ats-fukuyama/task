@@ -43,7 +43,7 @@ CONTAINS
 1   CONTINUE
     err=0
     WRITE(6,'(A)') &
-         '#### PIC GOUT: T1 E1-5 F1 X/exit'
+         '#### PIC GOUT: T1 E1-8 F1 X/exit'
     CALL TASK_KLIN(line,kid,mode,pic_parm)
     IF(mode == 2 .OR. mode == 3) GOTO 1
 
@@ -104,6 +104,42 @@ CONTAINS
        CALL GRD2D(11,x,y,emx,nxmax1,nxmax1,nymax1,'@EMx@',ASPECT=aspect)
        CALL GRD2D(12,x,y,emy,nxmax1,nxmax1,nymax1,'@EMy@',ASPECT=aspect)
        CALL GRD2D(13,x,y,emz,nxmax1,nxmax1,nymax1,'@EMz@',ASPECT=aspect)
+       CALL PAGEE
+    CASE('E6')
+       CALL PAGES
+       CALL GRD1D( 5,x,ex,nxmax1,nxmax1,nymax1,'@Ex(x)@')
+       CALL GRD1D( 6,x,ey,nxmax1,nxmax1,nymax1,'@Ey(x)@')
+       CALL GRD1D( 7,x,ez,nxmax1,nxmax1,nymax1,'@Ez(x)@')
+       CALL GRD1D( 8,x,esx,nxmax1,nxmax1,nymax1,'@ESx(x)@')
+       CALL GRD1D( 9,x,esy,nxmax1,nxmax1,nymax1,'@ESy(x)@')
+       CALL GRD1D(10,x,esz,nxmax1,nxmax1,nymax1,'@ESz(x)@')
+       CALL GRD1D(11,x,emx,nxmax1,nxmax1,nymax1,'@EMx(x)@')
+       CALL GRD1D(12,x,emy,nxmax1,nxmax1,nymax1,'@EMy(x)@')
+       CALL GRD1D(13,x,emz,nxmax1,nxmax1,nymax1,'@EMz(x)@')
+       CALL PAGEE
+    CASE('E7')
+       CALL PAGES
+       CALL GRD2D( 5,x,y,rho,nxmax1,nxmax1,nymax1,'@rho@',ASPECT=aspect)
+       CALL GRD2D( 6,x,y,phi,nxmax1,nxmax1,nymax1,'@phi@',ASPECT=aspect)
+       CALL GRD2D( 7,x,y,bb,nxmax1,nxmax1,nymax1,'@BB@',ASPECT=aspect)
+       CALL GRD2D( 8,x,y,jx,nxmax1,nxmax1,nymax1,'@jx@',ASPECT=aspect)
+       CALL GRD2D( 9,x,y,jy,nxmax1,nxmax1,nymax1,'@jy@',ASPECT=aspect)
+       CALL GRD2D(10,x,y,jz,nxmax1,nxmax1,nymax1,'@jz@',ASPECT=aspect)
+       CALL GRD2D(11,x,y,Ax,nxmax1,nxmax1,nymax1,'@Ax@',ASPECT=aspect)
+       CALL GRD2D(12,x,y,Ay,nxmax1,nxmax1,nymax1,'@Ay@',ASPECT=aspect)
+       CALL GRD2D(13,x,y,Az,nxmax1,nxmax1,nymax1,'@Az@',ASPECT=aspect)
+       CALL PAGEE
+    CASE('E8')
+       CALL PAGES
+       CALL GRD1D( 5,x,rho,nxmax1,nxmax1,nymax1,'@rho(x)@')
+       CALL GRD1D( 6,x,phi,nxmax1,nxmax1,nymax1,'@phi(x)@')
+       CALL GRD1D( 7,x,bb,nxmax1,nxmax1,nymax1,'@BB(x)@')
+       CALL GRD1D( 8,x,jx,nxmax1,nxmax1,nymax1,'@jx(x)@')
+       CALL GRD1D( 9,x,jy,nxmax1,nxmax1,nymax1,'@jy(x)@')
+       CALL GRD1D(10,x,jz,nxmax1,nxmax1,nymax1,'@jz(x)@')
+       CALL GRD1D(11,x,Ax,nxmax1,nxmax1,nymax1,'@Ax(x)@')
+       CALL GRD1D(12,x,Ay,nxmax1,nxmax1,nymax1,'@Ay(x)@')
+       CALL GRD1D(13,x,Az,nxmax1,nxmax1,nymax1,'@Az(x)@')
        CALL PAGEE
     CASE('F1')
        CALL PAGES

@@ -88,8 +88,8 @@ CONTAINS
 
       call kine(npmax,vxe,vye,vze,akine0,me)
       call kine(npmax,vxi,vyi,vzi,akini0,mi)
-      do ny=1,nymax
-      do nx=1,nxmax  
+      do ny=0,nymax
+      do nx=0,nxmax  
          ex(nx,ny)=0.D0
          ey(nx,ny)=0.D0
          ez(nx,ny)=0.D0
@@ -106,6 +106,8 @@ CONTAINS
       atot0  = aktot0 + apot0
 
       IF( myid .eq. 0 ) THEN
+         WRITE(6,'(A)') &
+              '      nt        time     ntg    ktot        ptot        Etot'
          WRITE(6,'(I8,1PE12.4,I8,1P3E12.4)') &
               nt,time,ntgcount,aktot0,apot0,atot0
       END IF
