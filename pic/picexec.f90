@@ -111,8 +111,11 @@ CONTAINS
                  vparai,vperpi)
 
        !----- treat particles being out of the boundary
-       call bound(npmax,xe,ye,ze,x1,x2,y1,y2,z1,z2,alx,aly,alz)
-       call bound(npmax,xi,yi,zi,x1,x2,y1,y2,z1,z2,alx,aly,alz)
+       !call bound_perio(npmax,xe,ye,x1,x2,y1,y2,alx,aly)
+       !call bound_perio(npmax,xi,yi,x1,x2,y1,y2,alx,aly)
+
+       call bound_refl(npmax,xe,ye,vxe,vye,x1,x2,y1,y2,alx,aly)
+       call bound_refl(npmax,xi,yi,vxi,vyi,x1,x2,y1,y2,alx,aly)
 
        !..... diagnostics to check energy conservation
        !.....            after pushing 
@@ -448,11 +451,11 @@ CONTAINS
   end subroutine push
 
 !***********************************************************************
-    subroutine bound(npmax,x,y,z,x1,x2,y1,y2,z1,z2,alx,aly,alz)
+    subroutine bound_perio(npmax,x,y,x1,x2,y1,y2,alx,aly)
 !***********************************************************************
       implicit none
-      real(8), dimension(npmax) :: x, y, z
-      real(8) :: alx, aly, alz, x1, x2, y1, y2, z1, z2
+      real(8), dimension(npmax) :: x, y
+      real(8) :: alx, aly, x1, x2, y1, y2
       integer :: npmax, np
 
       do np = 1, npmax
@@ -476,18 +479,56 @@ CONTAINS
             end do
          endif
 
-         if( z(np) .lt. z1 ) then
-            do while(z(np) .lt. z1)
-               z(np) = z(np) + alz
-            end do
-         elseif( z(np) .gt. z2 ) then
-            do while(z(np) .gt. z2)
-               z(np) = z(np) - alz
-            end do
-         endif
+         !if( z(np) .lt. z1 ) then
+         !   do while(z(np) .lt. z1)
+         !      z(np) = z(np) + alz
+         !   end do
+         !elseif( z(np) .gt. z2 ) then
+         !   do while(z(np) .gt. z2)
+         !      z(np) = z(np) - alz
+         !   end do
+         !endif
       end do
 
-    end subroutine bound
+    end subroutine bound_perio
+
+!***********************************************************************
+    subroutine bound_refl(npmax,x,y,vx,vy,x1,x2,y1,y2,alx,aly)
+!***********************************************************************
+      implicit none
+      real(8), dimension(npmax) :: x, y, vx, vy
+      real(8) :: x1, x2, y1, y2, alx, aly
+      integer :: npmax, np
+
+      do np = 1, npmax
+         if( x(np) .lt. x1 ) then
+            x(np) = -x(np)
+            vx(np) = -vx(np)
+         elseif( x(np) .gt. x2 ) then
+            x(np) = alx - (x(np) - alx)
+            vx(np) = -vx(np)
+         endif
+ 
+         if( y(np) .lt. y1 ) then
+            y(np) = -y(np)
+            vy(np) = -vy(np)
+         elseif( y(np) .gt. y2 ) then
+            y(np) = aly - (y(np) - aly)
+            vy(np) = -vy(np)
+         endif
+
+         !if( z(np) .lt. z1 ) then
+         !   do while(z(np) .lt. z1)
+         !      z(np) = z(np) + alz
+         !   end do
+         !elseif( z(np) .gt. z2 ) then
+         !   do while(z(np) .gt. z2)
+         !      z(np) = z(np) - alz
+         !   end do
+         !endif
+      end do
+
+    end subroutine bound_refl
 
 !***********************************************************************
     subroutine source(npmax,nxmax,nymax,x,y,rho,chrg)
@@ -830,7 +871,7 @@ CONTAINS
    end subroutine boundary_j
 
 !***********************************************************************
-    subroutine phia(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz,Ax,Ay,Az, &
+    subroutine phia_perio(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz,Ax,Ay,Az, &
                     Axb,Ayb,Azb,Axbb,Aybb,Azbb)
 !***********************************************************************
    !original subroutine
@@ -880,6 +921,6 @@ CONTAINS
       end do
       end do
 
-    end subroutine phia
+    end subroutine phia_perio
 
 END Module picexec
