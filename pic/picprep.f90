@@ -75,7 +75,7 @@ CONTAINS
             factor=DBLE(nx)/DBLE(nxmax)
             bxbg(nx,ny)=bxmin+(bxmax-bxmin)*factor
             bybg(nx,ny)=bymin+(bymax-bymin)*factor
-            bybg(nx,ny)=bzmin+(bzmax-bzmin)*factor
+            bzbg(nx,ny)=bzmin+(bzmax-bzmin)*factor
          END DO
       END DO
 
@@ -93,7 +93,7 @@ CONTAINS
 
        !.......... calculate bxg and byg and bzg
        call bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
-                               bx,by,bz,bxbg,bybg,bzbg)
+                               bx,by,bz,bxbg,bybg,bzbg,bb)
       do np=1,npmax
          vparae(np)=vxe(np)
          vperpe(np)=SQRT(vye(np)**2+vze(np)**2)

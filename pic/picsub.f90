@@ -282,12 +282,12 @@ CONTAINS
 
 !***********************************************************************
     subroutine bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
-                                  bx,by,bz,bxbg,bybg,bzbg)
+                                  bx,by,bz,bxbg,bybg,bzbg,bb)
 !***********************************************************************
       implicit none
       real(8), dimension(0:nymax) :: bxnab,bznab
       real(8), dimension(0:nxmax) :: bynab
-      real(8), dimension(0:nxmax,0:nymax) :: bx,by,bz,bxbg,bybg,bzbg
+      real(8), dimension(0:nxmax,0:nymax) :: bx,by,bz,bxbg,bybg,bzbg,bb
       real(8), dimension(0:nxmax,0:nymax) :: Ax,Ay,Az,Axb,Ayb,Azb
       integer :: nxmax, nymax, nx, ny, nxp, nyp, nxm, nym
 
@@ -311,6 +311,7 @@ CONTAINS
                              - Ay(nxm,ny) - Ayb(nxm,ny) &
                             - (Ax(nx,nyp) + Axb(nx,nyp) &
                               -Ax(nx,nym) - Axb(nx,nym)))+ bzbg(nx,ny)
+         bb(nx,ny) = SQRT(bx(nx,ny)**2+by(nx,ny)**2+bz(nx,ny)**2)
       end do
       end do
     end subroutine bfield
@@ -342,8 +343,8 @@ CONTAINS
       do ny = 0, nymax-1
       do nx = 0, nxmax-1
          apot = apot + ex(nx,ny)**2 + ey(nx,ny)**2 + ez(nx,ny)**2 &
-                     + vcfact**2 !&
-                     !*(bx(nx,ny)**2 + by(nx,ny)**2 + bz(nx,ny)**2)
+                     + vcfact**2 &
+                     *(bx(nx,ny)**2 + by(nx,ny)**2 + bz(nx,ny)**2)
       end do
       end do
       apot = 0.5 * apot / (dble(nxmax)*dble(nymax))
