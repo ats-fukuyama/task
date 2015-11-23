@@ -113,13 +113,8 @@ CONTAINS
        END DO
 
        !.......... calculate vector potential
-       if(model_boundary .eq. 1) then
-          call phia_perio(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz,Ax,Ay,Az, &
-               Axb,Ayb,Azb,Axbb,Aybb,Azbb)
-       else if(model_boundary .ne. 1) then
-          call phia_refl(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz,Ax,Ay,Az, &
-               Axb,Ayb,Azb,Axbb,Aybb,Azbb)
-       endif
+       call phia(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz,Ax,Ay,Az, &
+               Axb,Ayb,Azb,Axbb,Aybb,Azbb,model_boundary)
     
        !.......... calculate ex and ey and ez
        call efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
@@ -939,67 +934,14 @@ CONTAINS
    end subroutine boundary_j
 
 !***********************************************************************
-    subroutine phia_perio(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz,Ax,Ay,Az, &
-                    Axb,Ayb,Azb,Axbb,Aybb,Azbb)
+    subroutine phia(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz,Ax,Ay,Az, &
+                    Axb,Ayb,Azb,Axbb,Aybb,Azbb,model_boundary)
 !***********************************************************************
    !original subroutine
       implicit none
       real(8), dimension(0:nxmax,0:nymax) :: phi,phib,jx,jy,jz,Ax,Ay,Az, &
                                              Axb,Ayb,Azb,Axbb,Aybb,Azbb
-      integer :: nxmax, nymax, nx, ny, nxm, nxp, nyp, nym, nypm
-      real(8) :: vcfact, dt
-
- ! Solution of maxwell equation in the A-phi formulation by difference method
- ! c is the ratio of the light speed to lattice parameter times plasma frequency
-      do nx = 0, nxmax
-      do ny = 0, nymax
-
-         nxm = nx - 1
-         nxp = nx + 1
-         nym = ny - 1
-         nyp = ny + 1
-
-         if( nx .eq. 0  )    nxm = nxmax - 1
-         if( nx .eq. nxmax ) nxp = 1
-         if( ny .eq. 0  )    nym = nymax - 1
-         if( ny .eq. nymax ) nyp = 1
-      
-        Ax(nx,ny) = dt ** 2 * vcfact ** 2 * (Axb(nxp,ny) + Axb(nxm,ny) &
-                                           + Axb(nx,nyp) + Axb(nx,nym) &
-                                           - 4.0d0 * Axb(nx,ny)) &
-                  + dt ** 2 * jx(nx,ny) &
-                  - 0.5d0 * dt * (phi(nxp,ny) - phib(nxp,ny) &
-                                - phi(nxm,ny) + phib(nxm,ny)) &
-                  + 2.0d0 * Axb(nx,ny) - Axbb(nx,ny) 
-
-        Ay(nx,ny) = dt ** 2 * vcfact ** 2 * (Ayb(nxp,ny) + Ayb(nxm,ny) &
-                                           + Ayb(nx,nyp) + Ayb(nx,nym) &
-                                           - 4.0d0 * Ayb(nx,ny)) &
-                  + dt ** 2 * jy(nx,ny) &
-                  - 0.5d0 * dt * (phi(nx,nyp) - phib(nx,nyp) &
-                                - phi(nx,nym) + phib(nx,nym)) &
-                  + 2.0d0 * Ayb(nx,ny) - Aybb(nx,ny) 
-
-        Az(nx,ny) = dt ** 2 * vcfact ** 2 * (Azb(nxp,ny) + Azb(nxm,ny) &
-                                           + Azb(nx,nyp) + Azb(nx,nym) &
-                                           - 4.0d0 * Azb(nx,ny)) &
-                  + dt ** 2 * jz(nx,ny) &
-                  + 2.0d0 * Azb(nx,ny) - Azbb(nx,ny)
-      
-      end do
-      end do
-
-    end subroutine phia_perio
-
-!***********************************************************************
-    subroutine phia_refl(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz,Ax,Ay,Az, &
-                    Axb,Ayb,Azb,Axbb,Aybb,Azbb)
-!***********************************************************************
-   !original subroutine
-      implicit none
-      real(8), dimension(0:nxmax,0:nymax) :: phi,phib,jx,jy,jz,Ax,Ay,Az, &
-                                             Axb,Ayb,Azb,Axbb,Aybb,Azbb
-      integer :: nxmax, nymax, nx, ny, nxm, nxp, nyp, nym, nypm
+      integer :: nxmax, nymax, nx, ny, nxm, nxp, nyp, nym, nypm, model_boundary
       real(8) :: vcfact, dt
 
 
@@ -1042,21 +984,22 @@ CONTAINS
       
       end do
       end do
-
+      if(model_boundary .eq. 0) then
       !boundary condition for reflection
-      Ax(0,:)=0.d0
-      Ay(0,:)=0.d0
-      Az(0,:)=0.d0
-      Ax(nxmax-1,:)=0.d0
-      Ay(nxmax-1,:)=0.d0
-      Az(nxmax-1,:)=0.d0
-      Ax(:,0)=0.d0
-      Ay(:,0)=0.d0
-      Az(:,0)=0.d0
-      Ax(:,nymax-1)=0.d0
-      Ay(:,nymax-1)=0.d0
-      Az(:,nymax-1)=0.d0
+         Ax(0,:)=0.d0
+         Ay(0,:)=0.d0
+         Az(0,:)=0.d0
+         Ax(nxmax-1,:)=0.d0
+         Ay(nxmax-1,:)=0.d0
+         Az(nxmax-1,:)=0.d0
+         Ax(:,0)=0.d0
+         Ay(:,0)=0.d0
+         Az(:,0)=0.d0
+         Ax(:,nymax-1)=0.d0
+         Ay(:,nymax-1)=0.d0
+         Az(:,nymax-1)=0.d0
+      endif
       
-    end subroutine phia_refl
+    end subroutine phia
 
 END Module picexec
