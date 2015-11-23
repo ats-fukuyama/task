@@ -172,24 +172,24 @@ CONTAINS
       real(8), dimension(nxmax1,nymax1) :: rho,phi
       real(8), dimension(:),allocatable :: x
       real(8):: tolerance_matrix
-      integer :: nxmax1,nymax1,ipssn
+      integer :: nxmax1,nymax1,nxymax,ipssn
       integer :: model_matrix0,model_matrix1,model_matrix2
-      integer :: nxmax,nymax,mode,imax,isize,jwidth
+      integer :: nxmax,nymax,mode,imax,isize,jwidth,ileng
       integer,save:: status=0,istart,iend,irange
       integer :: i,nx,ny,l,m,its
 
-      write(6,*) 'ipssn=',ipssn
-
-      nxmax=nxmax1-1
-      nymax=nymax1-1
+      nxmax=nxmax1-2
+      nymax=nymax1-2
       imax=nxmax*nymax
       IF(nxmax.LE.nymax) THEN
          mode=0
          isize=nxmax
+         ileng=nymax
          jwidth=4*nxmax-1
       ELSE
          mode=1
          isize=nymax
+         ileng=nxmax
          jwidth=4*nymax-1
       END IF
 
@@ -213,35 +213,36 @@ CONTAINS
                if(l.gt.1) CALL mtx_set_matrix(i,i-1,1.d0)
                CALL mtx_set_matrix(i,i,-4.d0)
                if(l.lt.isize) CALL mtx_set_matrix(i,i+1,1.d0)
-               if(m.lt.isize) CALL mtx_set_matrix(i,i+isize,1.d0)
+               if(m.lt.ileng) CALL mtx_set_matrix(i,i+isize,1.d0)
             ENDDO
             IF(mode.EQ.0) THEN
                DO i=istart,iend
-                  ny=mod(i-1,isize)+1
-                  nx=(i-1)/isize+1
-                  CALL mtx_set_source(i,rho(nx,ny))
+                  nx=mod(i-1,isize)+1
+                  ny=(i-1)/isize+1
+                  CALL mtx_set_source(i,-rho(nx+1,ny+1))
                ENDDO
             ELSE
                DO i=istart,iend
-                  nx=mod(i-1,isize)+1
-                  ny=(i-1)/isize+1
-                  CALL mtx_set_source(i,rho(nx,ny))
+                  ny=mod(i-1,isize)+1
+                  nx=(i-1)/isize+1
+                  CALL mtx_set_source(i,-rho(nx+1,ny+1))
                ENDDO
             END IF
             CALL mtx_solve(model_matrix0,tolerance_matrix,its, &
                            methodKSP=model_matrix1,methodPC=model_matrix2)
+            IF((its.ne.0).and.(nrank.eq.0)) write(6,*) 'mtx_solve: its=',its
             CALL mtx_get_vector(x)
             IF(mode.EQ.0) THEN
                DO i=istart,iend
-                  ny=mod(i-1,isize)+1
-                  nx=(i-1)/isize+1
-                  phi(nx,ny)=x(i)
+                  nx=mod(i-1,isize)+1
+                  ny=(i-1)/isize+1
+                  phi(nx+1,ny+1)=x(i)
                ENDDO
             ELSE
                DO i=istart,iend
-                  nx=mod(i-1,isize)+1
-                  ny=(i-1)/isize+1
-                  phi(nx,ny)=x(i)
+                  ny=mod(i-1,isize)+1
+                  nx=(i-1)/isize+1
+                  phi(nx+1,ny+1)=x(i)
                ENDDO
             END IF
             DEALLOCATE(x)
@@ -349,8 +350,8 @@ CONTAINS
       do ny = 0, nymax-1
       do nx = 0, nxmax-1
          apot = apot + ex(nx,ny)**2 + ey(nx,ny)**2 + ez(nx,ny)**2 &
-                     + vcfact**2 &
-                     *(bx(nx,ny)**2 + by(nx,ny)**2 + bz(nx,ny)**2)
+                     + vcfact**2 !&
+                     !*(bx(nx,ny)**2 + by(nx,ny)**2 + bz(nx,ny)**2)
       end do
       end do
       apot = 0.5 * apot / (dble(nxmax)*dble(nymax))

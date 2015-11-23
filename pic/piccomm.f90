@@ -93,11 +93,12 @@ CONTAINS
   SUBROUTINE pic_deallocate
 
     IF(ALLOCATED(ex)) THEN
-       DEALLOCATE(ex,ey,ez,rho,phi,phib,awk)
+       DEALLOCATE(ex,ey,ez,esx,esy,esz,emx,emy,emz)
        DEALLOCATE(bx,by,bz,bxbg,bybg,bzbg)
+       DEALLOCATE(rho,phi,phib,awk)
+       DEALLOCATE(jx,jy,jz)
        DEALLOCATE(xe,ye,ze,vxe,vye,vze)
        DEALLOCATE(xi,yi,zi,vxi,vyi,vzi)
-       DEALLOCATE(jx,jy,jz)
        DEALLOCATE(xeb,yeb,zeb,xib,yib,zib)
        DEALLOCATE(Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
        DEALLOCATE(bb,AA)

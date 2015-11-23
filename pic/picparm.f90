@@ -237,13 +237,16 @@ CONTAINS
                  'jzant ',jzant , &
                  'phxant',phxant,'phyant',phyant, &
                  'phzant',phzant
-       WRITE(6,621) 'model_boundary       =',model_boundary
-       WRITE(6,621) 'model_antenna        =',model_antenna
-       WRITE(6,621) 'model_wg             =',model_wg
-       WRITE(6,621) 'model_matrix0        =',model_matrix0
-       WRITE(6,621) 'model_matrix1        =',model_matrix1
-       WRITE(6,621) 'model_matrix2        =',model_matrix2
-       WRITE(6,622) 'tolerance_matrix     =',tolerance_matrix
+    WRITE(6,602) 'xmin_wg ',xmin_wg,'xmax_wg ',xmax_wg,&
+                 'ymin_wg ',ymin_wg,'ymax_wg ',ymax_wg,'amp_wg ',amp_wg,&
+                 'ph_wg ',ph_wg,'rot_wg ',rot_wg,'eli_wg ',eli_wg
+    WRITE(6,621) 'model_boundary       =',model_boundary
+    WRITE(6,621) 'model_antenna        =',model_antenna
+    WRITE(6,621) 'model_wg             =',model_wg
+    WRITE(6,621) 'model_matrix0        =',model_matrix0
+    WRITE(6,621) 'model_matrix1        =',model_matrix1
+    WRITE(6,621) 'model_matrix2        =',model_matrix2
+    WRITE(6,622) 'tolerance_matrix     =',tolerance_matrix
     RETURN
 
 601 FORMAT(' ',A6,'=',I7,4X  :2X,A6,'=',I7,4X  : &

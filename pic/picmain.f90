@@ -7,11 +7,12 @@
 !-----------------------------------------------------------------------
 
 PROGRAM pic_main
-  USE piccomm,ONLY: nrank,nsize
+  USE piccomm,ONLY: nrank,nsize,ncomm,pic_deallocate
   USE picinit,ONLY: pic_init
   USE picparm,ONLY: pic_parm
   USE picmenu,ONLY: pic_menu
   USE libmtx
+  USE libmpi
 
   IMPLICIT none
   INCLUDE 'mpif.h'
@@ -19,7 +20,7 @@ PROGRAM pic_main
 
   CALL mtx_initialize
   write(6,*) 'nsize,nrank,ncomm=',nsize,nrank,ncomm
-  IF(nrank.EQ.9) THEN
+  IF(nrank.EQ.0) THEN
      WRITE(6,*) '## TASK/PIC 2015/11/22'
      CALL GSOPEN
      OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
