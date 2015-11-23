@@ -88,7 +88,7 @@ CONTAINS
        call antenna(nxmax,nymax,jxant,jyant,jzant,phxant,phyant,phzant, &
             omega,time,jx,jy,jz)
        
-       if(model_boundary .eq. 1) then
+       if(model_boundary .eq. 0) then
           call boundary_j(nxmax,nymax,jx,jy,jz)
        end if
        
@@ -148,10 +148,10 @@ CONTAINS
                  phi,phib,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
                  vparai,vperpi)
        !----- treat particles being out of the boundary
-       if(model_boundary .eq. 1) then
+       if(model_boundary .eq. 0) then
           call bound_perio(npmax,xe,ye,x1,x2,y1,y2,alx,aly)
           call bound_perio(npmax,xi,yi,x1,x2,y1,y2,alx,aly)
-       else if(model_boundary .ne. 1) then
+       else if(model_boundary .eq. 1) then
           call bound_refl(npmax,xe,ye,vxe,vye,x1,x2,y1,y2,alx,aly)
           call bound_refl(npmax,xi,yi,vxi,vyi,x1,x2,y1,y2,alx,aly)
        endif
@@ -854,23 +854,35 @@ CONTAINS
         endif
        
      end do
-     if(model_boundary .ne. 1) then
-     do ny=0,nymax
-        jx(0,ny) = 2 * jx(0,ny)
-        jy(0,ny) = 2 * jy(0,ny)
-        jz(0,ny) = 2 * jz(0,ny)
-        jx(nxmax,ny) = 2 * jx(nxmax,ny)
-        jy(nxmax,ny) = 2 * jy(nxmax,ny)
-        jz(nxmax,ny) = 2 * jz(nxmax,ny)
+     if(model_boundary .eq. 1) then
+     do ny=1,nymax-1
+        jx(0,ny) = 2.0d0 * jx(0,ny)
+        jy(0,ny) = 2.0d0 * jy(0,ny)
+        jz(0,ny) = 2.0d0 * jz(0,ny)
+        jx(nxmax,ny) = 2.0d0 * jx(nxmax,ny)
+        jy(nxmax,ny) = 2.0d0 * jy(nxmax,ny)
+        jz(nxmax,ny) = 2.0d0 * jz(nxmax,ny)
      end do
      do nx=1,nxmax-1
-        jx(nx,0) = 2 * jx(nx,0)
-        jy(nx,0) = 2 * jy(nx,0)
-        jz(nx,0) = 2 * jz(nx,0)
-        jx(nx,nymax) = 2 * jx(nx,nymax)
-        jy(nx,nymax) = 2 * jy(nx,nymax)
-        jz(nx,nymax) = 2 * jz(nx,nymax)
+        jx(nx,0) = 2.0d0 * jx(nx,0)
+        jy(nx,0) = 2.0d0 * jy(nx,0)
+        jz(nx,0) = 2.0d0 * jz(nx,0)
+        jx(nx,nymax) = 2.0d0 * jx(nx,nymax)
+        jy(nx,nymax) = 2.0d0 * jy(nx,nymax)
+        jz(nx,nymax) = 2.0d0 * jz(nx,nymax)
      end do
+     jx(0,0) = 2.0d0 * jx(0,0)
+     jy(0,0) = 2.0d0 * jy(0,0)
+     jz(0,0) = 2.0d0 * jz(0,0)
+     jx(nxmax,0) = 2.0d0 * jx(nxmax,0)
+     jy(nxmax,0) = 2.0d0 * jy(nxmax,0)
+     jz(nxmax,0) = 2.0d0 * jz(nxmax,0)
+     jx(0,nymax) = 2.0d0 * jx(0,nymax)
+     jy(0,nymax) = 2.0d0 * jy(0,nymax)
+     jz(0,nymax) = 2.0d0 * jz(0,nymax)
+     jx(nxmax,nymax) = 2.0d0 * jx(nxmax,nymax)
+     jy(nxmax,nymax) = 2.0d0 * jy(nxmax,nymax)
+     jz(nxmax,nymax) = 2.0d0 * jz(nxmax,nymax)
      
      endif
      
@@ -984,7 +996,7 @@ CONTAINS
       
       end do
       end do
-      if(model_boundary .eq. 0) then
+      if(model_boundary .eq. 1) then
       !boundary condition for reflection
          Ax(0,:)=0.d0
          Ay(0,:)=0.d0
