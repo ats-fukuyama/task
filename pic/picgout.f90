@@ -26,10 +26,10 @@ CONTAINS
     ALLOCATE(x(nxmax1),y(nymax1))
     ALLOCATE(vtote(npmax),vtoti(npmax))
     DO nx=1,nxmax1
-       x(nx)=DBLE(nx-1)/DBLE(nxmax)
+       x(nx)=DBLE(nx-1)
     END DO
     DO ny=1,nymax1
-       y(ny)=DBLE(ny-1)/DBLE(nymax)
+       y(ny)=DBLE(ny-1)
     END DO
     vtotemax=0.D0
     vtotimax=0.D0

@@ -64,10 +64,6 @@ CONTAINS
        IF(model_boundary.EQ.0) THEN
           call poisson_f(nxmax,nymax,nxmaxh1,nxmax1,nymax1, &
                          rho,phi,rhof,phif,awk,afwk,cform,ipssn)
-       ELSE
-          call poisson_m(nxmax1,nymax1,rho,phi,ipssn, &
-                         model_matrix0,model_matrix1,model_matrix2, &
-                         tolerance_matrix)
        END IF
 
       !..... initialize wall clock time
