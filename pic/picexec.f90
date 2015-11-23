@@ -859,7 +859,7 @@ CONTAINS
 
          ! add antenna current density
 
-         do ny=1,nymax
+         do ny=5,10
             jy(3,ny) = jy(3,ny) + 0.5d0 * jyt
             jy(4,ny) = jy(4,ny) + 0.5d0 * jyt
             jz(3,ny) = jz(3,ny) + 0.5d0 * jzt
