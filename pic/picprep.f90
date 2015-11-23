@@ -9,13 +9,14 @@ CONTAINS
   SUBROUTINE pic_prep(iout)
 
     USE piccomm
-    USE picsub,ONLY: poissn,fftpic,efield,bfield,kine,pote
+    USE picsub,ONLY: poisson_f,poisson_m,efield,bfield,kine,pote
     USE piclib
+    USE libmpi
     IMPLICIT NONE
     INCLUDE 'mpif.h'
     INTEGER,INTENT(OUT):: iout
-    INTEGER:: nx,ny,np
-    REAL(8):: factor
+    INTEGER:: nx,ny,np,locv
+    REAL(8):: factor,sum
 
       npmax = npxmax * npymax
       nxmaxh1 = nxmax / 2 + 1
@@ -32,7 +33,7 @@ CONTAINS
       ntcount = 0               !: time counter
       ntgcount= 0               !: counter for global outputs
       ntpcount= 0               !: counter for profile outputs
-      iran   = 14142 * myid     !: initial parameter for random number
+      iran   = 14142 * nrank    !: initial parameter for random number
 
       !..... constants to define boundary condition
       alx = dble(nxmax)
@@ -60,8 +61,14 @@ CONTAINS
 
       !..... initialize scalar potential by poisson solver
       ipssn = 0
-      call poissn(nxmax,nymax,nxmaxh1,nxmax1,nymax1, &
-                  rho,phi,rhof,phif,awk,afwk,cform,ipssn)
+       IF(model_boundary.EQ.0) THEN
+          call poisson_f(nxmax,nymax,nxmaxh1,nxmax1,nymax1, &
+                         rho,phi,rhof,phif,awk,afwk,cform,ipssn)
+       ELSE
+          call poisson_m(nxmax1,nymax1,rho,phi,ipssn, &
+                         model_matrix0,model_matrix1,model_matrix2, &
+                         tolerance_matrix)
+       END IF
 
       !..... initialize wall clock time
       call mpi_barrier(mpi_comm_world,ierr)
@@ -101,14 +108,17 @@ CONTAINS
       call kine(npmax,vxe,vye,vze,akine0,me)
       call kine(npmax,vxi,vyi,vzi,akini0,mi)
       call pote(nxmax,nymax,ex,ey,ez,bx,by,bz,vcfact,apot0)
-      call sumdim1(nodes,myid,akine0,wkword)
-      call sumdim1(nodes,myid,akini0,wkword)
-      call sumdim1(nodes,myid,apot0,wkword)
+      call mtx_allreduce1_real8(akine0,3,sum,locv) ! sum
+      akine0=sum
+      call mtx_allreduce1_real8(akini0,3,sum,locv) ! sum
+      akini0=sum
+      call mtx_allreduce1_real8(apot0,3,sum,locv)  ! sum
+      apot0=sum
 
       aktot0 = akine0 + akini0
       atot0  = aktot0 + apot0
 
-      IF( myid .eq. 0 ) THEN
+      IF( nrank .eq. 0 ) THEN
          WRITE(6,'(A)') &
               '      nt        time     ntg    ktot        ptot        Etot'
          WRITE(6,'(I8,1PE12.4,I8,1P3E12.4)') &

@@ -10,14 +10,19 @@ CONTAINS
   SUBROUTINE pic_exec(iout)
 
     USE piccomm
-    USE picsub,ONLY: poissn,fftpic,efield,bfield,kine,pote
+    USE picsub,ONLY: poisson_f,poisson_m,efield,bfield,kine,pote
     USE piclib
     USE libmpi
     IMPLICIT NONE
     INCLUDE 'mpif.h'
     INTEGER,INTENT(OUT):: iout
-    REAL(8)::abc
-    INTEGER:: nx,ny,nt
+    REAL(8)::abc,sum
+    INTEGER:: nx,ny,nt,locv
+    INTEGER,DIMENSION(:),ALLOCATABLE:: locva
+    REAL(8),DIMENSION(:,:),ALLOCATABLE:: suma
+
+    ALLOCATE(locva(nxymax))
+    ALLOCATE(suma(0:nxmax,0:nymax))
 
 !-----------------------------------------------------------------------
 !----- allocate time hisotry data -------------------------------------------
@@ -52,19 +57,33 @@ CONTAINS
        call boundary_rho(nxmax,nymax,rho)
           
        !..... sum charge densities over cores
-       call sumdim(nodes,myid,rho,phi,nxymax)
+       call mtx_allreduce_real8(rho,nxymax,3,suma,locva)
+       DO ny=0,nymax
+       DO nx=0,nxmax
+          rho(nx,ny)=suma(nx,ny)
+       END DO
+       END DO
 
        !----- calculate electric field
        ipssn = 1
-       call poissn(nxmax,nymax,nxmaxh1,nxmax1,nymax1, &
-                   rho,phi,rhof,phif,awk,afwk,cform,ipssn)
+       IF(model_boundary.EQ.0) THEN
+          call poisson_f(nxmax,nymax,nxmaxh1,nxmax1,nymax1, &
+                         rho,phi,rhof,phif,awk,afwk,cform,ipssn)
+       ELSE
+          call poisson_m(nxmax1,nymax1,rho,phi,ipssn, &
+                         model_matrix0,model_matrix1,model_matrix2, &
+                         tolerance_matrix)
+       END IF
+
        !----- current assignment
        jx(:,:)=0.d0
        jy(:,:)=0.d0
        jz(:,:)=0.d0
 
-       call current(npmax,nxmax,nymax,xe,ye,vxe,vye,vze,chrge,jx,jy,jz,model_boundary)
-       call current(npmax,nxmax,nymax,xi,yi,vxi,vyi,vzi,chrgi,jx,jy,jz,model_boundary)
+       call current(npmax,nxmax,nymax,xe,ye,vxe,vye,vze,chrge,jx,jy,jz, &
+                    model_boundary)
+       call current(npmax,nxmax,nymax,xi,yi,vxi,vyi,vzi,chrgi,jx,jy,jz, &
+                    model_boundary)
 
        call antenna(nxmax,nymax,jxant,jyant,jzant,phxant,phyant,phzant, &
             omega,time,jx,jy,jz)
@@ -74,9 +93,24 @@ CONTAINS
        end if
        
        !..... sum chrrent densities over cores
-       call sumdim(nodes,myid,jx,Ax,nxymax)
-       call sumdim(nodes,myid,jy,Ay,nxymax)
-       call sumdim(nodes,myid,jx,Ax,nxymax)
+       call mtx_allreduce_real8(jx,nxymax,3,suma,locva)
+       DO ny=0,nymax
+       DO nx=0,nxmax
+          jx(nx,ny)=suma(nx,ny)
+       END DO
+       END DO
+       call mtx_allreduce_real8(jy,nxymax,3,suma,locva)
+       DO ny=0,nymax
+       DO nx=0,nxmax
+          jy(nx,ny)=suma(nx,ny)
+       END DO
+       END DO
+       call mtx_allreduce_real8(jz,nxymax,3,suma,locva)
+       DO ny=0,nymax
+       DO nx=0,nxmax
+          jz(nx,ny)=suma(nx,ny)
+       END DO
+       END DO
 
        !.......... calculate vector potential
        if(model_boundary .eq. 1) then
@@ -99,9 +133,12 @@ CONTAINS
           call kine(npmax,vxe,vye,vze,akine1,me)
           call kine(npmax,vxi,vyi,vzi,akini1,mi)
           call pote(nxmax,nymax,ex,ey,ez,bx,by,bz,vcfact,apot)
-          call sumdim1(nodes,myid,akine1,wkword)
-          call sumdim1(nodes,myid,akini1,wkword)
-          call sumdim1(nodes,myid,apot,wkword)
+          call mtx_allreduce1_real8(akine1,3,sum,locv)
+          akine1=sum
+          call mtx_allreduce1_real8(akini1,3,sum,locv)
+          akini1=sum
+          call mtx_allreduce1_real8(apot,3,sum,locv)
+          apot=sum
        endif
 
        !..... push electrons
@@ -129,8 +166,10 @@ CONTAINS
        if( mod(nt,ntgstep) .eq. 0 ) then
           call kine(npmax,vxe,vye,vze,akine2,me)
           call kine(npmax,vxi,vyi,vzi,akini2,mi)
-          call sumdim1(nodes,myid,akine2,wkword)
-          call sumdim1(nodes,myid,akini2,wkword)
+          call mtx_allreduce1_real8(akine2,3,sum,locv) ! sum
+          akine2=sum
+          call mtx_allreduce1_real8(akini2,3,sum,locv) ! sum
+          akini2=sum
           akine = 0.5d0 * ( akine1 + akine2 )
           akini = 0.5d0 * ( akini1 + akini2 )
           aktot = akine + akini
@@ -160,7 +199,7 @@ CONTAINS
             
        endif
  
-       IF( myid .eq. 0 ) THEN
+       IF( nrank .eq. 0 ) THEN
           IF(MOD(ntcount,ntstep).EQ.0) THEN
              WRITE(6,'(I8,1PE12.4,I8,1P3E12.4)') &
                   ntcount,time,ntgcount,aktot,apot,atot
@@ -176,7 +215,9 @@ CONTAINS
     wtime2 = mpi_wtime()
     wtime  = wtime2 - wtime1
 
-    if( myid .eq. 0 ) write(*,*) '*** wall clock time = ***', wtime
+    if( nrank .eq. 0 ) write(*,*) '*** wall clock time = ***', wtime
+
+    DEALLOCATE(locva,suma)
 
     ntgmax=ntgcount
     iout=1

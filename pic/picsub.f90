@@ -2,13 +2,13 @@
 
 MODULE picsub
   PRIVATE
-  PUBLIC poissn,fftpic,efield,bfield,kine,pote
+  PUBLIC poisson_f,poisson_m,efield,bfield,kine,pote
  
 CONTAINS
 
 !***********************************************************************
-    subroutine poissn(nxmax,nymax,nxmaxh1,nxmax1,nymax1, &
-                      rho,phi,rhof,phif,awk,afwk,cform,ipssn)
+    subroutine poisson_f(nxmax,nymax,nxmaxh1,nxmax1,nymax1, &
+                         rho,phi,rhof,phif,awk,afwk,cform,ipssn)
 !***********************************************************************
       implicit none
       real(8), dimension(nxmax1,nymax1) :: rho,phi
@@ -20,7 +20,7 @@ CONTAINS
       integer(4) :: ifset
 
       IF(ipssn.EQ.0) THEN
-         call poissn_sub(nxmax,nymax,nxmaxh1,rhof,phif,cform,ipssn)
+         call poisson_sub(nxmax,nymax,nxmaxh1,rhof,phif,cform,ipssn)
          ifset = 0
          call fftpic(nxmax,nymax,nxmaxh1,nxmax1,nymax1,rho,rhof,awk,afwk,ifset)
       ELSE
@@ -31,17 +31,17 @@ CONTAINS
 
        !.......... calculate phi from rho in fourier space
        ipssn = 1
-       call poissn_sub(nxmax,nymax,nxmaxh1,rhof,phif,cform,ipssn)
+       call poisson_sub(nxmax,nymax,nxmaxh1,rhof,phif,cform,ipssn)
 
        !.......... inverse fourier transform phi
        ifset = 1
        call fftpic(nxmax,nymax,nxmaxh1,nxmax1,nymax1,phi,phif,awk,afwk,ifset)
 
     END IF
-  end subroutine poissn
+  end subroutine poisson_f
 
 !***********************************************************************
-    subroutine poissn_sub(nxmax,nymax,nxmaxh1,rhof,phif,cform,ipssn)
+    subroutine poisson_sub(nxmax,nymax,nxmaxh1,rhof,phif,cform,ipssn)
 !***********************************************************************
       implicit none
       complex(8), dimension(nxmaxh1,nymax) :: rhof, phif
@@ -89,7 +89,7 @@ CONTAINS
 
       endif
       
-    end subroutine poissn_sub
+    end subroutine poisson_sub
 
 !***********************************************************************
     subroutine fftpic(nxmax,nymax,nxmaxh1,nxmax1,nymax1,a,af,awk,afwk,ifset)
@@ -159,6 +159,97 @@ CONTAINS
       endif
 
     end subroutine fftpic
+
+!***********************************************************************
+    subroutine poisson_m(nxmax1,nymax1,rho,phi,ipssn, &
+                         model_matrix0,model_matrix1,model_matrix2, &
+                         tolerance_matrix)
+!***********************************************************************
+      USE libmpi
+      USE commpi
+      USE libmtx
+      implicit none
+      real(8), dimension(nxmax1,nymax1) :: rho,phi
+      real(8), dimension(:),allocatable :: x
+      real(8):: tolerance_matrix
+      integer :: nxmax1,nymax1,nxymax,ipssn
+      integer :: model_matrix0,model_matrix1,model_matrix2
+      integer :: nxmax,nymax,mode,imax,isize,jwidth,ileng
+      integer,save:: status=0,istart,iend,irange
+      integer :: i,nx,ny,l,m,its
+
+      nxmax=nxmax1-2
+      nymax=nymax1-2
+      imax=nxmax*nymax
+      IF(nxmax.LE.nymax) THEN
+         mode=0
+         isize=nxmax
+         ileng=nymax
+         jwidth=4*nxmax-1
+      ELSE
+         mode=1
+         isize=nymax
+         ileng=nxmax
+         jwidth=4*nymax-1
+      END IF
+
+      IF(ipssn.EQ.0) THEN
+         IF(status.EQ.2) THEN
+            CALL mtx_cleanup
+         END IF
+         CALL mtx_setup(imax,istart,iend)
+         irange=iend-istart+1
+         status=1
+      ELSE
+         ALLOCATE(x(irange))
+         IF(status.EQ.0) THEN
+            WRITE(6,*) 'XX poisson_m: mtx not initialized'
+            STOP
+         ELSE
+            DO i=istart,iend
+               l=mod(i-1,isize)+1
+               m=(i-1)/isize+1
+               if(m.gt.1) CALL mtx_set_matrix(i,i-isize,1.d0)
+               if(l.gt.1) CALL mtx_set_matrix(i,i-1,1.d0)
+               CALL mtx_set_matrix(i,i,-4.d0)
+               if(l.lt.isize) CALL mtx_set_matrix(i,i+1,1.d0)
+               if(m.lt.ileng) CALL mtx_set_matrix(i,i+isize,1.d0)
+            ENDDO
+            IF(mode.EQ.0) THEN
+               DO i=istart,iend
+                  nx=mod(i-1,isize)+1
+                  ny=(i-1)/isize+1
+                  CALL mtx_set_source(i,-rho(nx+1,ny+1))
+               ENDDO
+            ELSE
+               DO i=istart,iend
+                  ny=mod(i-1,isize)+1
+                  nx=(i-1)/isize+1
+                  CALL mtx_set_source(i,-rho(nx+1,ny+1))
+               ENDDO
+            END IF
+            CALL mtx_solve(model_matrix0,tolerance_matrix,its, &
+                           methodKSP=model_matrix1,methodPC=model_matrix2)
+            IF((its.ne.0).and.(nrank.eq.0)) write(6,*) 'mtx_solve: its=',its
+            CALL mtx_get_vector(x)
+            IF(mode.EQ.0) THEN
+               DO i=istart,iend
+                  nx=mod(i-1,isize)+1
+                  ny=(i-1)/isize+1
+                  phi(nx+1,ny+1)=x(i)
+               ENDDO
+            ELSE
+               DO i=istart,iend
+                  ny=mod(i-1,isize)+1
+                  nx=(i-1)/isize+1
+                  phi(nx+1,ny+1)=x(i)
+               ENDDO
+            END IF
+            DEALLOCATE(x)
+            status=2
+         END IF
+      END IF
+    END subroutine poisson_m
 
 !***********************************************************************
     subroutine efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &

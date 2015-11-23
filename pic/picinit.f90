@@ -82,6 +82,10 @@ CONTAINS
       rot_wg  = 0.D0        ! angle of wave electric fields: 0 for z-direction
       eli_wg  = 0.D0        ! angle of elipticity of wave electric field
 
+      model_matrix0 = 0     ! ksp default
+      model_matrix1 = 4     ! ksp default
+      model_matrix2 = 5     ! ksp default
+      tolerance_matrix=1.D-7! tolerance for ksp
     RETURN
   END SUBROUTINE pic_init
 END MODULE picinit

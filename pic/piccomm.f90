@@ -8,16 +8,19 @@ MODULE piccomm_parm
 
   INTEGER:: npxmax,npymax,nxmax,nymax,ntmax,ntstep,ntgstep,ntpstep
   INTEGER:: model_boundary,model_antenna,model_wg
+  INTEGER:: model_matrix0,model_matrix1,model_matrix2
   REAL(rkind):: dt,me,mi,chrge,chrgi,te,ti,&
        bxmin,bxmax,bymin,bymax,bzmin,bzmax,vcfact,omega,eps
   REAL(rkind):: jxant,jyant,jzant,phxant,phyant,phzant
   REAL(rkind):: xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg,ph_wg,rot_wg,eli_wg
+  REAL(rkind):: tolerance_matrix
 
 END MODULE piccomm_parm
 
 MODULE piccomm 
 		
   USE piccomm_parm
+  USE commpi
 
   INTEGER:: npmax,nxmaxh1,nxmax1,nymax1,nxymax
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: ex,ey,ez,esx,esy,esz,emx,emy,emz
@@ -44,7 +47,7 @@ MODULE piccomm
              wkword, wtime, wtime1, wtime2
   integer :: ntcount, ntgcount, ntpcount, ntgmax, ntpmax
   integer :: ifset, ipssn, iran
-  integer :: ierr, myid, nodes
+  integer :: ierr
 
 CONTAINS
 
@@ -90,11 +93,12 @@ CONTAINS
   SUBROUTINE pic_deallocate
 
     IF(ALLOCATED(ex)) THEN
-       DEALLOCATE(ex,ey,ez,rho,phi,phib,awk)
+       DEALLOCATE(ex,ey,ez,esx,esy,esz,emx,emy,emz)
        DEALLOCATE(bx,by,bz,bxbg,bybg,bzbg)
+       DEALLOCATE(rho,phi,phib,awk)
+       DEALLOCATE(jx,jy,jz)
        DEALLOCATE(xe,ye,ze,vxe,vye,vze)
        DEALLOCATE(xi,yi,zi,vxi,vyi,vzi)
-       DEALLOCATE(jx,jy,jz)
        DEALLOCATE(xeb,yeb,zeb,xib,yib,zib)
        DEALLOCATE(Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
        DEALLOCATE(bb,AA)
