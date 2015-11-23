@@ -1,4 +1,4 @@
-include ../../task/make.header
+include ../make.header
 include ../mtxp/make.mtxp
 
 FFLAGS=$(OFLAGS)
