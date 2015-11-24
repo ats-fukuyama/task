@@ -332,22 +332,55 @@ CONTAINS
     end subroutine kine
 
 !***********************************************************************
-    subroutine pote(nxmax,nymax,ex,ey,ez,bx,by,bz,vcfact,apot)
+    subroutine pote(nxmax,nymax,ex,ey,ez,bx,by,bz,bxbg,bybg,bzbg,vcfact, &
+                    apote,apotm)
 !***********************************************************************
       implicit none
-      real(8), dimension(0:nxmax,0:nymax) :: ex, ey, ez, bx, by, bz
-      real(8) :: apot, vcfact
+      real(8), dimension(0:nxmax,0:nymax) :: ex,ey,ez,bx,by,bz,bxbg,bybg,bzbg
+      real(8) :: apote,apotm,vcfact
       integer(4) :: nxmax, nymax, nx, ny
-      apot = 0.d0
 
-      do ny = 0, nymax-1
-      do nx = 0, nxmax-1
-         apot = apot + ex(nx,ny)**2 + ey(nx,ny)**2 + ez(nx,ny)**2 &
-                     + vcfact**2 &
-                     *(bx(nx,ny)**2 + by(nx,ny)**2 + bz(nx,ny)**2)
+      apote = 0.d0
+      apotm = 0.d0
+
+      do ny = 1, nymax-1
+      do nx = 1, nxmax-1
+         apote = apote + ex(nx,ny)**2 + ey(nx,ny)**2 + ez(nx,ny)**2
+         apotm = apotm + (bx(nx,ny)-bxbg(nx,nx))**2 &
+                       + (by(nx,ny)-bybg(nx,nx))**2 &
+                       + (bz(nx,ny)-bzbg(nx,nx))**2
       end do
       end do
-      apot = 0.5 * apot / (dble(nxmax)*dble(nymax))
+
+      do nx = 0, nxmax, nxmax
+      do ny = 1, nymax-1
+         apote = apote + 0.5D0*(ex(nx,ny)**2+ey(nx,ny)**2+ez(nx,ny)**2)
+         apotm = apotm + 0.5D0*((bx(nx,ny)-bxbg(nx,nx))**2 &
+                              + (by(nx,ny)-bybg(nx,nx))**2 &
+                              + (bz(nx,ny)-bzbg(nx,nx))**2)
+      end do
+      end do
+
+      do ny = 0, nymax, nymax
+      do nx = 1, nxmax-1
+         apote = apote + 0.5D0*(ex(nx,ny)**2+ey(nx,ny)**2+ez(nx,ny)**2)
+         apotm = apotm + 0.5D0*((bx(nx,ny)-bxbg(nx,nx))**2 &
+                              + (by(nx,ny)-bybg(nx,nx))**2 &
+                              + (bz(nx,ny)-bzbg(nx,nx))**2)
+      end do
+      end do
+
+      do ny = 0, nymax, nymax
+      do nx = 0, nxmax, nxmax
+         apote = apote + 0.25D0*(ex(nx,ny)**2+ey(nx,ny)**2+ez(nx,ny)**2)
+         apotm = apotm + 0.25D0*((bx(nx,ny)-bxbg(nx,nx))**2 &
+                               + (by(nx,ny)-bybg(nx,nx))**2 &
+                               + (bz(nx,ny)-bzbg(nx,nx))**2)
+      end do
+      end do
+
+      apote = 0.5D0 * apote / (dble(nxmax)*dble(nymax))
+      apotm = 0.5D0 * vcfact**2 * apotm / (dble(nxmax)*dble(nymax))
 
     end subroutine pote
 

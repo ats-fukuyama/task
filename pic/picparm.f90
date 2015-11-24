@@ -224,22 +224,23 @@ CONTAINS
     WRITE(6,601) 'npxmax',npxmax,'npymax',npymax
     WRITE(6,601) 'nxmax ',nxmax ,'nymax ',nymax
     WRITE(6,601) 'ntmax ',ntmax ,'ntstep',ntstep
-    WRITE(6,611) 'ntgstep   ',ntgstep,'ntpstep   ',ntpstep
+    WRITE(6,611) 'ntgstep     ',ntgstep,'ntpstep     ',ntpstep
     WRITE(6,602) 'me    ',me    ,'mi    ',mi    , &
                  'chrge ',chrge ,'chrgi ',chrgi
     WRITE(6,602) 'te    ',te    ,'ti    ',ti    , &
                  'dt    ',dt    ,'eps   ',eps
     WRITE(6,602) 'bxmin ',bxmin ,'bxmax ',bxmax , &
                  'bymin ',bymin ,'bymax ',bymax , &
-                 'bzmin ',bzmax
+                 'bzmin ',bzmax ,'bzmax ',bzmax
     WRITE(6,602) 'vcfact',vcfact,'omega ',omega 
     WRITE(6,602) 'jxant ',jxant ,'jyant ',jyant , &
-                 'jzant ',jzant , &
-                 'phxant',phxant,'phyant',phyant, &
+                 'jzant ',jzant
+    WRITE(6,602) 'phxant',phxant,'phyant',phyant, &
                  'phzant',phzant
-    WRITE(6,602) 'xmin_wg ',xmin_wg,'xmax_wg ',xmax_wg,&
-                 'ymin_wg ',ymin_wg,'ymax_wg ',ymax_wg,'amp_wg ',amp_wg,&
-                 'ph_wg ',ph_wg,'rot_wg ',rot_wg,'eli_wg ',eli_wg
+    WRITE(6,612) 'xmin_wg     ',xmin_wg,'xmax_wg     ',xmax_wg, &
+                 'ymin_wg     ',ymin_wg,'ymax_wg     ',ymax_wg, &
+                 'amp_wg      ',amp_wg, 'ph_wg       ',ph_wg,&
+                 'rot_wg      ',rot_wg,'eli_wg       ',eli_wg
     WRITE(6,621) 'model_boundary       =',model_boundary
     WRITE(6,621) 'model_antenna        =',model_antenna
     WRITE(6,621) 'model_wg             =',model_wg
@@ -255,6 +256,8 @@ CONTAINS
             2X,A6,'=',1PE11.3:2X,A6,'=',1PE11.3)
 611 FORMAT(' ',A12,'=',I7,4X  :2X,A12,'=',I7,4X  : &
             2X,A12,'=',I7)
+612 FORMAT(' ',A12,'=',1PE11.3:2X,A12,'=',1PE11.3: &
+            2X,A12,'=',1PE11.3)
 621 FORMAT(' ',A,I7)
 622 FORMAT(' ',A,1PE12.4)
   END SUBROUTINE pic_view

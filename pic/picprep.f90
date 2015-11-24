@@ -103,22 +103,26 @@ CONTAINS
 
       call kine(npmax,vxe,vye,vze,akine0,me)
       call kine(npmax,vxi,vyi,vzi,akini0,mi)
-      call pote(nxmax,nymax,ex,ey,ez,bx,by,bz,vcfact,apot0)
+      call pote(nxmax,nymax,ex,ey,ez,bx,by,bz,bxbg,bybg,bzbg,vcfact, &
+                apote0,apotm0)
       call mtx_allreduce1_real8(akine0,3,sum,locv) ! sum
       akine0=sum
       call mtx_allreduce1_real8(akini0,3,sum,locv) ! sum
       akini0=sum
-      call mtx_allreduce1_real8(apot0,3,sum,locv)  ! sum
-      apot0=sum
+      call mtx_allreduce1_real8(apote0,3,sum,locv)  ! sum
+      apote0=sum
+      call mtx_allreduce1_real8(apotm0,3,sum,locv)  ! sum
+      apotm0=sum
 
       aktot0 = akine0 + akini0
-      atot0  = aktot0 + apot0
+      aptot0 = apote0 + apotm0
+      atot0  = aktot0 + aptot0
 
       IF( nrank .eq. 0 ) THEN
          WRITE(6,'(A)') &
               '      nt        time     ntg    ktot        ptot        Etot'
          WRITE(6,'(I8,1PE12.4,I8,1P3E12.4)') &
-              ntcount,time,ntgcount,aktot0,apot0,atot0
+              ntcount,time,ntgcount,aktot0,aptot0,atot0
       END IF
 
       iout=ierr

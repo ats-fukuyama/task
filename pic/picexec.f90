@@ -52,8 +52,8 @@ CONTAINS
        end do
        !----- charge assignment
        rho(:,:)=0.0d0
-       call source(npmax,nxmax,nymax,xe,ye,rho,chrge)
-       call source(npmax,nxmax,nymax,xi,yi,rho,chrgi)
+       call source(npmax,nxmax,nymax,xe,ye,rho,chrge,model_boundary)
+       call source(npmax,nxmax,nymax,xi,yi,rho,chrgi,model_boundary)
        call boundary_rho(nxmax,nymax,rho,model_boundary)
           
        !..... sum charge densities over cores
@@ -80,8 +80,10 @@ CONTAINS
        jy(:,:)=0.d0
        jz(:,:)=0.d0
 
-       call current(npmax,nxmax,nymax,xe,ye,vxe,vye,vze,chrge,jx,jy,jz)
-       call current(npmax,nxmax,nymax,xi,yi,vxi,vyi,vzi,chrgi,jx,jy,jz)
+       call current(npmax,nxmax,nymax,xe,ye,vxe,vye,vze,chrge,jx,jy,jz, &
+                    model_boundary)
+       call current(npmax,nxmax,nymax,xi,yi,vxi,vyi,vzi,chrgi,jx,jy,jz, &
+                    model_boundary)
 
        call antenna(nxmax,nymax,jxant,jyant,jzant,phxant,phyant,phzant, &
             omega,time,jx,jy,jz)
@@ -130,26 +132,29 @@ CONTAINS
        if( mod(nt,ntgstep) .eq. 0 ) then
           call kine(npmax,vxe,vye,vze,akine1,me)
           call kine(npmax,vxi,vyi,vzi,akini1,mi)
-          call pote(nxmax,nymax,ex,ey,ez,bx,by,bz,vcfact,apot)
+          call pote(nxmax,nymax,ex,ey,ez,bx,by,bz,bxbg,bybg,bzbg,vcfact, &
+                    apote,apotm)
           call mtx_allreduce1_real8(akine1,3,sum,locv)
           akine1=sum
           call mtx_allreduce1_real8(akini1,3,sum,locv)
           akini1=sum
-          call mtx_allreduce1_real8(apot,3,sum,locv)
-          apot=sum
+          call mtx_allreduce1_real8(apote,3,sum,locv)
+          apote=sum
+          call mtx_allreduce1_real8(apotm,3,sum,locv)
+          apotm=sum
        endif
 
        !..... push electrons
        call push(npmax,nxmax,nymax,xe,ye,ze,vxe,vye,vze, &
                  ex,ey,ez,bx,by,bz,dt,ctome,xeb,yeb,zeb, &
                  phi,phib,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
-                 vparae,vperpe)
+                 vparae,vperpe,model_boundary)
          
        !..... push ions
        call push(npmax,nxmax,nymax,xi,yi,zi,vxi,vyi,vzi, &
                  ex,ey,ez,bx,by,bz,dt,ctomi,xib,yib,zib, &
                  phi,phib,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
-                 vparai,vperpi)
+                 vparai,vperpi,model_boundary)
        !----- treat particles being out of the boundary
 
        if(model_boundary .eq. 0) then
@@ -172,20 +177,15 @@ CONTAINS
           akine = 0.5d0 * ( akine1 + akine2 )
           akini = 0.5d0 * ( akini1 + akini2 )
           aktot = akine + akini
-          atot  = aktot + apot
+          aptot = apote + apotm
+          atot  = aktot + aptot
 
-!          if( nt .eq. 1 ) then
-!             akine0 = akine
-!             akini0 = akini
-!             aktot0 = aktot
-!             apot0  = apot
-!             atot0  = atot
-!          endif
-            
           akine = akine - akine0
           akini = akini - akini0
           aktot = aktot - aktot0
-          apot  = apot  - apot0
+          apote = apote - apote0
+          apotm = apotm - apotm0
+          aptot = aptot - aptot0
           atot  = atot  - atot0
 
           ntgcount=ntgcount+1
@@ -193,7 +193,9 @@ CONTAINS
           akinet(ntgcount)=akine
           akinit(ntgcount)=akini
           aktott(ntgcount)=aktot
-          apott(ntgcount)=apot
+          apotet(ntgcount)=apote
+          apotmt(ntgcount)=apotm
+          aptott(ntgcount)=aptot
           atott(ntgcount)=atot
             
        endif
@@ -201,7 +203,7 @@ CONTAINS
        IF( nrank .eq. 0 ) THEN
           IF(MOD(ntcount,ntstep).EQ.0) THEN
              WRITE(6,'(I8,1PE12.4,I8,1P3E12.4)') &
-                  ntcount,time,ntgcount,aktot,apot,atot
+                  ntcount,time,ntgcount,aktot,aptot,atot
           END IF
        END IF
     end do
@@ -228,44 +230,52 @@ CONTAINS
   SUBROUTINE pic_expand_storage
 !***********************************************************************
     USE piccomm,ONLY: ntmax,ntgstep,ntgcount,ntgmax, &
-                      timet,akinet,akinit,aktott,apott,atott
+                      timet,akinet,akinit,aktott,apotet,apotmt,aptott,atott
     IMPLICIT NONE
     REAL(8),DIMENSION(:,:),ALLOCATABLE:: work
     INTEGER:: ntgmax_old
 
     IF(ntgcount.eq.0) THEN
        IF(ALLOCATED(timet)) &
-            DEALLOCATE(timet,akinet,akinit,aktott,apott,atott)
+            DEALLOCATE(timet,akinet,akinit,aktott,apotet,apotmt,aptott,atott)
        ntgmax=ntmax/ntgstep
        ALLOCATE(timet(ntgmax))
        ALLOCATE(akinet(ntgmax))
        ALLOCATE(akinit(ntgmax))
        ALLOCATE(aktott(ntgmax))
-       ALLOCATE(apott(ntgmax))
+       ALLOCATE(apotet(ntgmax))
+       ALLOCATE(apotmt(ntgmax))
+       ALLOCATE(aptott(ntgmax))
        ALLOCATE(atott(ntgmax))
     ELSE
-       ALLOCATE(work(ntgmax,6))
+       ALLOCATE(work(ntgmax,8))
        work(1:ntgmax,1)=timet (1:ntgmax)
        work(1:ntgmax,2)=akinet(1:ntgmax)
        work(1:ntgmax,3)=akinit(1:ntgmax)
        work(1:ntgmax,4)=aktott(1:ntgmax)
-       work(1:ntgmax,5)=apott (1:ntgmax)
-       work(1:ntgmax,6)=atott (1:ntgmax)
-       DEALLOCATE(timet,akinet,akinit,aktott,apott,atott)
+       work(1:ntgmax,5)=apotet (1:ntgmax)
+       work(1:ntgmax,6)=apotmt (1:ntgmax)
+       work(1:ntgmax,7)=aptott (1:ntgmax)
+       work(1:ntgmax,8)=atott (1:ntgmax)
+       DEALLOCATE(timet,akinet,akinit,aktott,apotet,apotmt,aptott,atott)
        ntgmax_old=ntgmax
        ntgmax=ntgmax+ntmax/ntgstep
        ALLOCATE(timet(ntgmax))
        ALLOCATE(akinet(ntgmax))
        ALLOCATE(akinit(ntgmax))
        ALLOCATE(aktott(ntgmax))
-       ALLOCATE(apott(ntgmax))
+       ALLOCATE(apotet(ntgmax))
+       ALLOCATE(apotmt(ntgmax))
+       ALLOCATE(aptott(ntgmax))
        ALLOCATE(atott(ntgmax))
        timet (1:ntgmax_old)=work(1:ntgmax_old,1)
        akinet(1:ntgmax_old)=work(1:ntgmax_old,2)
        akinit(1:ntgmax_old)=work(1:ntgmax_old,3)
        aktott(1:ntgmax_old)=work(1:ntgmax_old,4)
-       apott (1:ntgmax_old)=work(1:ntgmax_old,5)
-       atott (1:ntgmax_old)=work(1:ntgmax_old,6)
+       apotet(1:ntgmax_old)=work(1:ntgmax_old,5)
+       apotmt(1:ntgmax_old)=work(1:ntgmax_old,6)
+       aptott(1:ntgmax_old)=work(1:ntgmax_old,7)
+       atott (1:ntgmax_old)=work(1:ntgmax_old,8)
        DEALLOCATE(work)
     END IF
   END SUBROUTINE pic_expand_storage
@@ -273,7 +283,7 @@ CONTAINS
 !***********************************************************************
   subroutine push(npmax,nxmax,nymax,x,y,z,vx,vy,vz,ex,ey,ez,bx,by,bz,dt,&
                   ctom,xb,yb,zb,phi,phib,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
-                  vpara,vperp)
+                  vpara,vperp,model_boundary)
 !***********************************************************************
     implicit none
     real(8), dimension(npmax) :: x, y, z, xb, yb, zb
@@ -283,8 +293,8 @@ CONTAINS
     real(8) :: ctom, dx, dy, dx1, dy1, dt, exx, eyy, ezz, bxx,&
                byy, bzz, vxn, vyn, vzn, vxzero, vyzero, vzzero, vxp, vyp,&
                vzp, sx1p, sx1m, sy1p, sy1m, sx2, sy2, sx2p, sx2m, sy2m, sy2p
-    real(8) :: btot, vtot
-    integer :: npmax, nxmax, nymax
+    real(8) :: btot, vtot, bb2
+    integer :: npmax, nxmax, nymax, model_boundary
     integer :: np, nx, ny, nxp, nyp, nxpp, nxpm, nypp, nypm, nxppp, nyppp
      
     do np = 1, npmax
@@ -324,14 +334,25 @@ CONTAINS
        nypp  = nyp + 1
        nyppp = nyp + 2
 
-       if( nxp .eq. 0  ) nxpm = nxmax - 1
-       if( nyp .eq. 0  ) nypm = nymax - 1
-       if( nxp .eq. nxmax-2) nxppp=0
-       if( nyp .eq. nymax-2) nyppp=0
-       if( nxp .eq. nxmax-1) nxpp =0
-       if( nyp .eq. nymax-1) nypp =0
-       if( nxp .eq. nxmax-1) nxppp = 1
-       if( nyp .eq. nymax-1) nyppp = 1
+       IF(model_boundary.EQ.0) THEN ! periodic
+          if( nxp .eq. 0  ) nxpm = nxmax - 1
+          if( nyp .eq. 0  ) nypm = nymax - 1
+          if( nxp .eq. nxmax-2) nxppp=0
+          if( nyp .eq. nymax-2) nyppp=0
+          if( nxp .eq. nxmax-1) nxpp =0
+          if( nyp .eq. nymax-1) nypp =0
+          if( nxp .eq. nxmax-1) nxppp = 1
+          if( nyp .eq. nymax-1) nyppp = 1
+       ELSE   ! reflective: 
+          if( nxp .eq. 0  ) nxpm = 0
+          if( nyp .eq. 0  ) nypm = 0
+          if( nxp .eq. nxmax-2) nxppp=nxmax
+          if( nyp .eq. nymax-2) nyppp=nymax
+          if( nxp .eq. nxmax-1) nxpp =nxmax
+          if( nyp .eq. nymax-1) nypp =nymax
+          if( nxp .eq. nxmax-1) nxppp = nxmax
+          if( nyp .eq. nymax-1) nyppp = nymax
+       END IF
 
        ! electric field and magnetic field
        if(dx .le. 0.5d0 .and. dy .le. 0.5d0) then
@@ -454,27 +475,25 @@ CONTAINS
         
        ! push particles by using Buneman-Boris method
 
-       vxn = vx(np) + 1.0d0/2 * ctom * exx * dt 
-       vyn = vy(np) + 1.0d0/2 * ctom * eyy * dt
-       vzn = vz(np) + 1.0d0/2 * ctom * ezz * dt
+       bb2 = bxx ** 2 + byy ** 2 + bzz ** 2
+       vxn = vx(np) + 0.5D0 * ctom * exx * dt 
+       vyn = vy(np) + 0.5D0 * ctom * eyy * dt
+       vzn = vz(np) + 0.5D0 * ctom * ezz * dt
 
-       vxzero = vxn + 1.0d0/2 * ctom * (vyn * bzz - vzn * byy) * dt
-       vyzero = vyn + 1.0d0/2 * ctom * (vzn * bxx - vxn * bzz) * dt 
-       vzzero = vzn + 1.0d0/2 * ctom * (vxn * byy - vyn * bxx) * dt
+       vxzero = vxn + 0.5D0 * ctom * (vyn * bzz - vzn * byy) * dt
+       vyzero = vyn + 0.5D0 * ctom * (vzn * bxx - vxn * bzz) * dt 
+       vzzero = vzn + 0.5D0 * ctom * (vxn * byy - vyn * bxx) * dt
 
-       vxp = vxn + 1.0d0/(1.0d0 + 0.25d0 * (ctom * dt) ** 2 & 
-                          * (bxx ** 2 + byy ** 2 + bzz ** 2)) & 
+       vxp = vxn + 1.0d0/(1.0d0 + 0.25d0 * (ctom * dt) ** 2 * bb2) & 
                    * ctom * (vyzero * bzz - vzzero * byy) * dt
-       vyp = vyn + 1.0d0/(1.0d0 + 0.25d0 * (ctom * dt) ** 2 &
-                          * (bxx ** 2 + byy ** 2 + bzz ** 2)) &
+       vyp = vyn + 1.0d0/(1.0d0 + 0.25d0 * (ctom * dt) ** 2 * bb2) &
                    * ctom * (vzzero * bxx - vxzero * bzz) * dt 
-       vzp = vzn + 1.0d0/(1.0d0 + 0.25d0 * (ctom * dt) ** 2 & 
-                          * (bxx ** 2 + byy ** 2 + bzz ** 2)) & 
+       vzp = vzn + 1.0d0/(1.0d0 + 0.25d0 * (ctom * dt) ** 2 * bb2) & 
                    * ctom * (vxzero * byy - vyzero * bxx) * dt
  
-       vx(np) = vxp + 1.0d0/2 * ctom * exx * dt
-       vy(np) = vyp + 1.0d0/2 * ctom * eyy * dt
-       vz(np) = vzp + 1.0d0/2 * ctom * ezz * dt
+       vx(np) = vxp + 0.5D0 * ctom * exx * dt
+       vy(np) = vyp + 0.5D0 * ctom * eyy * dt
+       vz(np) = vzp + 0.5D0 * ctom * ezz * dt
          
        xb(np) = x(np)
        yb(np) = y(np)
@@ -483,14 +502,14 @@ CONTAINS
        y(np) = y(np) + vy(np) * dt
        z(np) = z(np) + vz(np) * dt
 
-       btot=SQRT(bxx**2+byy**2+bzz**2)
+       btot=SQRT(bb2)
        IF(btot.EQ.0.D0) THEN
           vpara(np)=vx(np)
           vperp(np)=SQRT(vy(np)**2+vz(np)**2)
        ELSE
           vtot=SQRT(vx(np)**2+vy(np)**2+vz(np)**2)
           vpara(np)=(bxx*vx(np)+byy*vy(np)+bzz*vz(np))/btot
-          vperp(np)=(SQRT(vtot**2-vpara(np)**2))
+          vperp(np)=SQRT(vtot**2-vpara(np)**2)
        END IF
 
     end do
@@ -578,7 +597,7 @@ CONTAINS
     end subroutine bound_reflective
 
 !***********************************************************************
-    subroutine source(npmax,nxmax,nymax,x,y,rho,chrg)
+    subroutine source(npmax,nxmax,nymax,x,y,rho,chrg,model_boundary)
 !***********************************************************************
 
       implicit none
@@ -586,7 +605,7 @@ CONTAINS
       real(8), dimension(0:nxmax,0:nymax) :: rho
       real(8) :: chrg, factor, dx, dy, dz, sx2, sy2, sx2p, sy2p, sx2m, sy2m,&
            dx1,dy1
-      integer :: npmax, nxmax, nymax
+      integer :: npmax, nxmax, nymax, model_boundary
       integer:: np, nxp, nyp, nx, ny, nxpp, nxpm, nypp, nypm, nxppp, nyppp
 
       factor=chrg*dble(nxmax)*dble(nymax)/dble(npmax)
@@ -628,14 +647,25 @@ CONTAINS
          nypp = nyp + 1
          nyppp= nyp + 2
 
-         if( nxp .eq. 0  ) nxpm = nxmax - 1
-         if( nyp .eq. 0  ) nypm = nymax - 1
-         if( nxp .eq. nxmax-2) nxppp=0
-         if( nyp .eq. nymax-2) nyppp=0
-         if( nxp .eq. nxmax-1) nxpp =0
-         if( nyp .eq. nymax-1) nypp =0
-         if( nxp .eq. nxmax-1) nxppp=1
-         if( nyp .eq. nymax-1) nyppp=1
+         IF(model_boundary.EQ.0) THEN ! periodic
+            if( nxp .eq. 0  ) nxpm = nxmax - 1
+            if( nyp .eq. 0  ) nypm = nymax - 1
+            if( nxp .eq. nxmax-2) nxppp=0
+            if( nyp .eq. nymax-2) nyppp=0
+            if( nxp .eq. nxmax-1) nxpp =0
+            if( nyp .eq. nymax-1) nypp =0
+            if( nxp .eq. nxmax-1) nxppp=1
+            if( nyp .eq. nymax-1) nyppp=1
+         ELSE   ! reflective: 
+            if( nxp .eq. 0  ) nxpm = 0
+            if( nyp .eq. 0  ) nypm = 0
+            if( nxp .eq. nxmax-2) nxppp=nxmax
+            if( nyp .eq. nymax-2) nyppp=nymax
+            if( nxp .eq. nxmax-1) nxpp =nxmax
+            if( nyp .eq. nymax-1) nypp =nymax
+            if( nxp .eq. nxmax-1) nxppp = nxmax
+            if( nyp .eq. nymax-1) nyppp = nymax
+         END IF
 
          if(dx .le. 0.5d0 .and. dy .le. 0.5d0) then
             rho(nxpm,nypm) = rho(nxpm,nypm) + sx2m * sy2m * factor
@@ -714,7 +744,8 @@ CONTAINS
     end subroutine boundary_rho
 
 !***********************************************************************
-    subroutine current(npmax,nxmax,nymax,x,y,vx,vy,vz,chrg,jx,jy,jz)
+    subroutine current(npmax,nxmax,nymax,x,y,vx,vy,vz,chrg,jx,jy,jz, &
+                       model_boundary)
 !***********************************************************************
     implicit none
 
@@ -722,7 +753,7 @@ CONTAINS
     real(8), dimension(0:nxmax,0:nymax) :: jx, jy, jz
     real(8) :: chrg, dt, dx, dy, dx1, dy1, &
          sx1p, sy1p, sx1m, sy1m, sx2, sy2, sx2p, sy2p, sx2m, sy2m, factor
-    integer :: npmax, nxmax, nymax
+    integer :: npmax, nxmax, nymax, model_boundary
     integer :: np, nxp, nyp, nxpm, nypm, nxpp, nypp, nxppp, nyppp, nx, ny
 
     factor=chrg*dble(nxmax)*dble(nymax)/dble(npmax)
@@ -759,13 +790,27 @@ CONTAINS
          nypp = nyp + 1
          nxppp = nxp + 2
          nyppp = nyp + 2
-         if( nxp .eq. 0  )       nxpm = nxmax-1
-         if( nyp .eq. 0  )       nypm = nymax-1
-         if( nxp .eq. nxmax-2  ) nxppp = 0
-         if( nyp .eq. nymax-2  ) nyppp = 0
-         if( nxp .eq. nxmax-1  ) nxppp = 1
-         if( nyp .eq. nymax-1  ) nyppp = 1
-        
+
+         IF(model_boundary.EQ.0) THEN ! periodic
+            if( nxp .eq. 0  ) nxpm = nxmax - 1
+            if( nyp .eq. 0  ) nypm = nymax - 1
+            if( nxp .eq. nxmax-2) nxppp=0
+            if( nyp .eq. nymax-2) nyppp=0
+            if( nxp .eq. nxmax-1) nxpp =0
+            if( nyp .eq. nymax-1) nypp =0
+            if( nxp .eq. nxmax-1) nxppp=1
+            if( nyp .eq. nymax-1) nyppp=1
+         ELSE   ! reflective: 
+            if( nxp .eq. 0  ) nxpm = 0
+            if( nyp .eq. 0  ) nypm = 0
+            if( nxp .eq. nxmax-2) nxppp=nxmax
+            if( nyp .eq. nymax-2) nyppp=nymax
+            if( nxp .eq. nxmax-1) nxpp =nxmax
+            if( nyp .eq. nymax-1) nypp =nymax
+            if( nxp .eq. nxmax-1) nxppp = nxmax
+            if( nyp .eq. nymax-1) nyppp = nymax
+         END IF
+
          if (dx .le. 0.5d0 .and. dy .le. 0.5d0) then
            jx(nxpp,nyp ) = jx(nxpp,nyp ) + factor * vx(np) * sy2  * dx
            jx(nxpp,nypp) = jx(nxpp,nypp) + factor * vx(np) * sy2p * dx
