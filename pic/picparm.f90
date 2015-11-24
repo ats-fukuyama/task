@@ -72,7 +72,7 @@ CONTAINS
   SUBROUTINE pic_plst
 
     IMPLICIT NONE
-    WRITE(6,'(A/)') &
+    WRITE(6,'(A)') &
        '# &PIC : npxmax,npymax,nxmax,nymax,ntmax,ntstep,ntgstep,ntpstep,', &
        '         me,mi,chrge,chrgi,te,ti,dt,eps,vcfact,bxbg,bybg,bzbg,', &
        '         omega,jxant,jyant,jzant,phxant,phyant,phzant', &

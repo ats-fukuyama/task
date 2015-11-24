@@ -193,62 +193,54 @@ CONTAINS
          jwidth=4*nymax-1
       END IF
 
-      IF(ipssn.EQ.0) THEN
-         IF(status.EQ.2) THEN
-            CALL mtx_cleanup
-         END IF
-         CALL mtx_setup(imax,istart,iend)
-         irange=iend-istart+1
-         status=1
+      CALL mtx_setup(imax,istart,iend)
+      irange=iend-istart+1
+      status=1
+      ALLOCATE(x(irange))
+
+      DO i=istart,iend
+         l=mod(i-1,isize)+1
+         m=(i-1)/isize+1
+         if(m.gt.1) CALL mtx_set_matrix(i,i-isize,1.d0)
+         if(l.gt.1) CALL mtx_set_matrix(i,i-1,1.d0)
+         CALL mtx_set_matrix(i,i,-4.d0)
+         if(l.lt.isize) CALL mtx_set_matrix(i,i+1,1.d0)
+         if(m.lt.ileng) CALL mtx_set_matrix(i,i+isize,1.d0)
+      ENDDO
+
+      IF(mode.EQ.0) THEN
+         DO i=istart,iend
+            nx=mod(i-1,isize)+1
+            ny=(i-1)/isize+1
+            CALL mtx_set_source(i,-rho(nx+1,ny+1))
+         ENDDO
       ELSE
-         ALLOCATE(x(irange))
-         IF(status.EQ.0) THEN
-            WRITE(6,*) 'XX poisson_m: mtx not initialized'
-            STOP
-         ELSE
-            DO i=istart,iend
-               l=mod(i-1,isize)+1
-               m=(i-1)/isize+1
-               if(m.gt.1) CALL mtx_set_matrix(i,i-isize,1.d0)
-               if(l.gt.1) CALL mtx_set_matrix(i,i-1,1.d0)
-               CALL mtx_set_matrix(i,i,-4.d0)
-               if(l.lt.isize) CALL mtx_set_matrix(i,i+1,1.d0)
-               if(m.lt.ileng) CALL mtx_set_matrix(i,i+isize,1.d0)
-            ENDDO
-            IF(mode.EQ.0) THEN
-               DO i=istart,iend
-                  nx=mod(i-1,isize)+1
-                  ny=(i-1)/isize+1
-                  CALL mtx_set_source(i,-rho(nx+1,ny+1))
-               ENDDO
-            ELSE
-               DO i=istart,iend
-                  ny=mod(i-1,isize)+1
-                  nx=(i-1)/isize+1
-                  CALL mtx_set_source(i,-rho(nx+1,ny+1))
-               ENDDO
-            END IF
-            CALL mtx_solve(model_matrix0,tolerance_matrix,its, &
-                           methodKSP=model_matrix1,methodPC=model_matrix2)
-            IF((its.ne.0).and.(nrank.eq.0)) write(6,*) 'mtx_solve: its=',its
-            CALL mtx_get_vector(x)
-            IF(mode.EQ.0) THEN
-               DO i=istart,iend
-                  nx=mod(i-1,isize)+1
-                  ny=(i-1)/isize+1
-                  phi(nx+1,ny+1)=x(i)
-               ENDDO
-            ELSE
-               DO i=istart,iend
-                  ny=mod(i-1,isize)+1
-                  nx=(i-1)/isize+1
-                  phi(nx+1,ny+1)=x(i)
-               ENDDO
-            END IF
-            DEALLOCATE(x)
-            status=2
-         END IF
+         DO i=istart,iend
+            ny=mod(i-1,isize)+1
+            nx=(i-1)/isize+1
+            CALL mtx_set_source(i,-rho(nx+1,ny+1))
+         ENDDO
       END IF
+      CALL mtx_solve(model_matrix0,tolerance_matrix,its, &
+                     methodKSP=model_matrix1,methodPC=model_matrix2)
+      IF((its.ne.0).and.(nrank.eq.0)) write(6,*) 'mtx_solve: its=',its
+      CALL mtx_get_vector(x)
+      IF(mode.EQ.0) THEN
+         DO i=istart,iend
+            nx=mod(i-1,isize)+1
+            ny=(i-1)/isize+1
+            phi(nx+1,ny+1)=x(i)
+         ENDDO
+      ELSE
+         DO i=istart,iend
+            ny=mod(i-1,isize)+1
+            nx=(i-1)/isize+1
+            phi(nx+1,ny+1)=x(i)
+         ENDDO
+      END IF
+      DEALLOCATE(x)
+      status=2
+      CALL mtx_cleanup
     END subroutine poisson_m
 
 !***********************************************************************
@@ -290,12 +282,12 @@ CONTAINS
 
 !***********************************************************************
     subroutine bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
-                                  bx,by,bz,bxbg,bybg,bzbg)
+                                  bx,by,bz,bxbg,bybg,bzbg,bb)
 !***********************************************************************
       implicit none
       real(8), dimension(0:nymax) :: bxnab,bznab
       real(8), dimension(0:nxmax) :: bynab
-      real(8), dimension(0:nxmax,0:nymax) :: bx,by,bz,bxbg,bybg,bzbg
+      real(8), dimension(0:nxmax,0:nymax) :: bx,by,bz,bxbg,bybg,bzbg,bb
       real(8), dimension(0:nxmax,0:nymax) :: Ax,Ay,Az,Axb,Ayb,Azb
       integer :: nxmax, nymax, nx, ny, nxp, nyp, nxm, nym
 
@@ -319,6 +311,7 @@ CONTAINS
                              - Ay(nxm,ny) - Ayb(nxm,ny) &
                             - (Ax(nx,nyp) + Axb(nx,nyp) &
                               -Ax(nx,nym) - Axb(nx,nym)))+ bzbg(nx,ny)
+         bb(nx,ny) = SQRT(bx(nx,ny)**2+by(nx,ny)**2+bz(nx,ny)**2)
       end do
       end do
     end subroutine bfield

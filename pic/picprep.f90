@@ -64,10 +64,6 @@ CONTAINS
        IF(model_boundary.EQ.0) THEN
           call poisson_f(nxmax,nymax,nxmaxh1,nxmax1,nymax1, &
                          rho,phi,rhof,phif,awk,afwk,cform,ipssn)
-       ELSE
-          call poisson_m(nxmax1,nymax1,rho,phi,ipssn, &
-                         model_matrix0,model_matrix1,model_matrix2, &
-                         tolerance_matrix)
        END IF
 
       !..... initialize wall clock time
@@ -79,7 +75,7 @@ CONTAINS
             factor=DBLE(nx)/DBLE(nxmax)
             bxbg(nx,ny)=bxmin+(bxmax-bxmin)*factor
             bybg(nx,ny)=bymin+(bymax-bymin)*factor
-            bybg(nx,ny)=bzmin+(bzmax-bzmin)*factor
+            bzbg(nx,ny)=bzmin+(bzmax-bzmin)*factor
          END DO
       END DO
 
@@ -97,7 +93,7 @@ CONTAINS
 
        !.......... calculate bxg and byg and bzg
        call bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
-                               bx,by,bz,bxbg,bybg,bzbg)
+                               bx,by,bz,bxbg,bybg,bzbg,bb)
       do np=1,npmax
          vparae(np)=vxe(np)
          vperpe(np)=SQRT(vye(np)**2+vze(np)**2)

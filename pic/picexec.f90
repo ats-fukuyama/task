@@ -54,7 +54,7 @@ CONTAINS
        rho(:,:)=0.0d0
        call source(npmax,nxmax,nymax,xe,ye,rho,chrge)
        call source(npmax,nxmax,nymax,xi,yi,rho,chrgi)
-       call boundary_rho(nxmax,nymax,rho)
+       call boundary_rho(nxmax,nymax,rho,model_boundary)
           
        !..... sum charge densities over cores
        call mtx_allreduce_real8(rho,nxymax,3,suma,locva)
@@ -80,17 +80,14 @@ CONTAINS
        jy(:,:)=0.d0
        jz(:,:)=0.d0
 
-       call current(npmax,nxmax,nymax,xe,ye,vxe,vye,vze,chrge,jx,jy,jz, &
-                    model_boundary)
-       call current(npmax,nxmax,nymax,xi,yi,vxi,vyi,vzi,chrgi,jx,jy,jz, &
-                    model_boundary)
-
+       call current(npmax,nxmax,nymax,xe,ye,vxe,vye,vze,chrge,jx,jy,jz)
+       call current(npmax,nxmax,nymax,xi,yi,vxi,vyi,vzi,chrgi,jx,jy,jz)
+       if(model_antenna .eq. 1) then
        call antenna(nxmax,nymax,jxant,jyant,jzant,phxant,phyant,phzant, &
             omega,time,jx,jy,jz)
-       
-       if(model_boundary .eq. 0) then
-          call boundary_j(nxmax,nymax,jx,jy,jz)
        end if
+       
+       call boundary_j(nxmax,nymax,jx,jy,jz,model_boundary)
        
        !..... sum chrrent densities over cores
        call mtx_allreduce_real8(jx,nxymax,3,suma,locva)
@@ -113,8 +110,15 @@ CONTAINS
        END DO
 
        !.......... calculate vector potential
-       call phia(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz,Ax,Ay,Az, &
-               Axb,Ayb,Azb,Axbb,Aybb,Azbb,model_boundary)
+       if(model_boundary .eq. 0) then
+          call phia_periodic(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
+                             Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
+       else
+          call phia_reflective(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
+                               Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
+                               model_wg,xmin_wg,xmax_wg,ymin_wg,ymax_wg, &
+                               amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi)
+       endif
     
        !.......... calculate ex and ey and ez
        call efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
@@ -122,7 +126,7 @@ CONTAINS
 
        !.......... calculate bxg and byg and bzg
        call bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
-                               bx,by,bz,bxbg,bybg,bzbg)
+                               bx,by,bz,bxbg,bybg,bzbg,bb)
          
        if( mod(nt,ntgstep) .eq. 0 ) then
           call kine(npmax,vxe,vye,vze,akine1,me)
@@ -148,12 +152,13 @@ CONTAINS
                  phi,phib,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
                  vparai,vperpi)
        !----- treat particles being out of the boundary
+
        if(model_boundary .eq. 0) then
-          call bound_perio(npmax,xe,ye,x1,x2,y1,y2,alx,aly)
-          call bound_perio(npmax,xi,yi,x1,x2,y1,y2,alx,aly)
-       else if(model_boundary .eq. 1) then
-          call bound_refl(npmax,xe,ye,vxe,vye,x1,x2,y1,y2,alx,aly)
-          call bound_refl(npmax,xi,yi,vxi,vyi,x1,x2,y1,y2,alx,aly)
+          call bound_periodic(npmax,xe,ye,x1,x2,y1,y2,alx,aly)
+          call bound_periodic(npmax,xi,yi,x1,x2,y1,y2,alx,aly)
+       else
+          call bound_reflective(npmax,xe,ye,vxe,vye,x1,x2,y1,y2,alx,aly)
+          call bound_reflective(npmax,xi,yi,vxi,vyi,x1,x2,y1,y2,alx,aly)
        endif
        
        !..... diagnostics to check energy conservation
@@ -494,7 +499,7 @@ CONTAINS
   end subroutine push
 
 !***********************************************************************
-    subroutine bound_perio(npmax,x,y,x1,x2,y1,y2,alx,aly)
+    subroutine bound_periodic(npmax,x,y,x1,x2,y1,y2,alx,aly)
 !***********************************************************************
       implicit none
       real(8), dimension(npmax) :: x, y
@@ -533,10 +538,10 @@ CONTAINS
          !endif
       end do
 
-    end subroutine bound_perio
+    end subroutine bound_periodic
 
 !***********************************************************************
-    subroutine bound_refl(npmax,x,y,vx,vy,x1,x2,y1,y2,alx,aly)
+    subroutine bound_reflective(npmax,x,y,vx,vy,x1,x2,y1,y2,alx,aly)
 !***********************************************************************
       implicit none
       real(8), dimension(npmax) :: x, y, vx, vy
@@ -571,7 +576,7 @@ CONTAINS
          !endif
       end do
 
-    end subroutine bound_refl
+    end subroutine bound_reflective
 
 !***********************************************************************
     subroutine source(npmax,nxmax,nymax,x,y,rho,chrg)
@@ -678,28 +683,39 @@ CONTAINS
      end subroutine source
 
 !***********************************************************************
-    subroutine boundary_rho(nxmax,nymax,rho)
+    subroutine boundary_rho(nxmax,nymax,rho,model_boundary)
 !***********************************************************************
       implicit none
       real(8), dimension(0:nxmax,0:nymax) :: rho
-      integer:: nxmax,nymax
+      integer:: nxmax,nymax,model_boundary
       integer:: nx,ny
 
       !!..... set charge densities at the boundary
 
-      do ny = 0, nymax
-         rho(0,ny) = rho(0,ny) + rho(nxmax,ny)
-         rho(nxmax,ny) = rho(0,ny)
-      end do
+      IF(model_boundary.EQ.0) THEN  ! periodic
+         do ny = 0, nymax
+            rho(0,ny) = rho(0,ny) + rho(nxmax,ny)
+            rho(nxmax,ny) = rho(0,ny)
+         end do
+         do nx = 0, nxmax
+            rho(nx,0) = rho(nx,0) + rho(nx,nymax)
+            rho(nx,nymax) = rho(nx,0)
+         end do
+      ELSE                         ! reflecting
+         do ny = 0, nymax
+            rho(0,ny)     = 2.D0 * rho(0,ny)
+            rho(nxmax,ny) = 2.D0 * rho(nxmax,ny)
+         end do
+         do nx = 0, nxmax
+            rho(nx,0)     = 2.D0 * rho(nx,0)
+            rho(nx,nymax) = 2.D0 * rho(nx,nymax)
+         end do
+      END IF
 
-      do nx = 0, nxmax
-         rho(nx,0) = rho(nx,0) + rho(nx,nymax)
-         rho(nx,nymax) = rho(nx,0)
-      end do
     end subroutine boundary_rho
 
 !***********************************************************************
-    subroutine current(npmax,nxmax,nymax,x,y,vx,vy,vz,chrg,jx,jy,jz,model_boundary)
+    subroutine current(npmax,nxmax,nymax,x,y,vx,vy,vz,chrg,jx,jy,jz)
 !***********************************************************************
     implicit none
 
@@ -707,7 +723,7 @@ CONTAINS
     real(8), dimension(0:nxmax,0:nymax) :: jx, jy, jz
     real(8) :: chrg, dt, dx, dy, dx1, dy1, &
          sx1p, sy1p, sx1m, sy1m, sx2, sy2, sx2p, sy2p, sx2m, sy2m, factor
-    integer :: npmax, nxmax, nymax,model_boundary
+    integer :: npmax, nxmax, nymax
     integer :: np, nxp, nyp, nxpm, nypm, nxpp, nypp, nxppp, nyppp, nx, ny
 
     factor=chrg*dble(nxmax)*dble(nymax)/dble(npmax)
@@ -852,40 +868,8 @@ CONTAINS
            jz(nxppp,nyp  ) = jz(nxppp,nyp  ) + factor * vz(np) * sx2p * sy2m
 
         endif
-       
+
      end do
-     if(model_boundary .eq. 1) then
-     do ny=1,nymax-1
-        jx(0,ny) = 2.0d0 * jx(0,ny)
-        jy(0,ny) = 2.0d0 * jy(0,ny)
-        jz(0,ny) = 2.0d0 * jz(0,ny)
-        jx(nxmax,ny) = 2.0d0 * jx(nxmax,ny)
-        jy(nxmax,ny) = 2.0d0 * jy(nxmax,ny)
-        jz(nxmax,ny) = 2.0d0 * jz(nxmax,ny)
-     end do
-     do nx=1,nxmax-1
-        jx(nx,0) = 2.0d0 * jx(nx,0)
-        jy(nx,0) = 2.0d0 * jy(nx,0)
-        jz(nx,0) = 2.0d0 * jz(nx,0)
-        jx(nx,nymax) = 2.0d0 * jx(nx,nymax)
-        jy(nx,nymax) = 2.0d0 * jy(nx,nymax)
-        jz(nx,nymax) = 2.0d0 * jz(nx,nymax)
-     end do
-     jx(0,0) = 2.0d0 * jx(0,0)
-     jy(0,0) = 2.0d0 * jy(0,0)
-     jz(0,0) = 2.0d0 * jz(0,0)
-     jx(nxmax,0) = 2.0d0 * jx(nxmax,0)
-     jy(nxmax,0) = 2.0d0 * jy(nxmax,0)
-     jz(nxmax,0) = 2.0d0 * jz(nxmax,0)
-     jx(0,nymax) = 2.0d0 * jx(0,nymax)
-     jy(0,nymax) = 2.0d0 * jy(0,nymax)
-     jz(0,nymax) = 2.0d0 * jz(0,nymax)
-     jx(nxmax,nymax) = 2.0d0 * jx(nxmax,nymax)
-     jy(nxmax,nymax) = 2.0d0 * jy(nxmax,nymax)
-     jz(nxmax,nymax) = 2.0d0 * jz(nxmax,nymax)
-     
-     endif
-     
 
    end subroutine current
 
@@ -917,15 +901,15 @@ CONTAINS
    end subroutine antenna
 
 !***********************************************************************
-    subroutine boundary_j(nxmax,nymax,jx,jy,jz)
+    subroutine boundary_j(nxmax,nymax,jx,jy,jz,model_boundary)
 !***********************************************************************
     implicit none
 
-    integer :: nxmax,nymax
+    integer :: nxmax,nymax,model_boundary
     real(8), dimension(0:nxmax,0:nymax) :: jx, jy, jz
     integer :: nx,ny
-     
-         !--------------
+
+    IF(model_boundary.EQ.0) THEN     ! periodic
          do ny = 0, nymax
             jx(0,ny) = jx(0,ny) + jx(nxmax,ny)
             jy(0,ny) = jy(0,ny) + jy(nxmax,ny)
@@ -942,23 +926,42 @@ CONTAINS
             jy(nx,nymax) = jy(nx,0)
             jz(nx,nymax) = jz(nx,0)
          enddo
+      ELSE                           ! reflective
+        do ny=0,nymax
+           jx(0,ny) = 2.0d0 * jx(0,ny)
+           jy(0,ny) = 2.0d0 * jy(0,ny)
+           jz(0,ny) = 2.0d0 * jz(0,ny)
+           jx(nxmax,ny) = 2.0d0 * jx(nxmax,ny)
+           jy(nxmax,ny) = 2.0d0 * jy(nxmax,ny)
+           jz(nxmax,ny) = 2.0d0 * jz(nxmax,ny)
+        end do
+        do nx=1,nxmax-1
+           jx(nx,0) = 2.0d0 * jx(nx,0)
+           jy(nx,0) = 2.0d0 * jy(nx,0)
+           jz(nx,0) = 2.0d0 * jz(nx,0)
+           jx(nx,nymax) = 2.0d0 * jx(nx,nymax)
+           jy(nx,nymax) = 2.0d0 * jy(nx,nymax)
+           jz(nx,nymax) = 2.0d0 * jz(nx,nymax)
+        end do
+     END IF
 
    end subroutine boundary_j
 
 !***********************************************************************
-    subroutine phia(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz,Ax,Ay,Az, &
-                    Axb,Ayb,Azb,Axbb,Aybb,Azbb,model_boundary)
+    subroutine phia_periodic(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
+                             Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
 !***********************************************************************
    !original subroutine
       implicit none
       real(8), dimension(0:nxmax,0:nymax) :: phi,phib,jx,jy,jz,Ax,Ay,Az, &
                                              Axb,Ayb,Azb,Axbb,Aybb,Azbb
-      integer :: nxmax, nymax, nx, ny, nxm, nxp, nyp, nym, nypm, model_boundary
+      integer :: nxmax, nymax, nx, ny, nxm, nxp, nyp, nym, nypm
       real(8) :: vcfact, dt
 
-
  ! Solution of maxwell equation in the A-phi formulation by difference method
- ! c is the ratio of the light speed to lattice parameter times plasma frequency
+ ! vcfact is the ratio of the light speed to lattice parameter times 
+ ! plasma frequency
+
       do nx = 0, nxmax
       do ny = 0, nymax
 
@@ -996,22 +999,86 @@ CONTAINS
       
       end do
       end do
-      if(model_boundary .eq. 1) then
-      !boundary condition for reflection
-         Ax(0,:)=0.d0
-         Ay(0,:)=0.d0
-         Az(0,:)=0.d0
-         Ax(nxmax-1,:)=0.d0
-         Ay(nxmax-1,:)=0.d0
-         Az(nxmax-1,:)=0.d0
-         Ax(:,0)=0.d0
-         Ay(:,0)=0.d0
-         Az(:,0)=0.d0
-         Ax(:,nymax-1)=0.d0
-         Ay(:,nymax-1)=0.d0
-         Az(:,nymax-1)=0.d0
-      endif
+
+    end subroutine phia_periodic
+
+!***********************************************************************
+    subroutine phia_reflective(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
+                               Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
+                               model_wg,xmin_wg,xmax_wg,ymin_wg,ymax_wg, &
+                               amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi)
+!***********************************************************************
+   !original subroutine
+      implicit none
+      real(8), dimension(0:nxmax,0:nymax) :: phi,phib,jx,jy,jz,Ax,Ay,Az, &
+                                             Axb,Ayb,Azb,Axbb,Aybb,Azbb
+      integer :: nxmax, nymax, nx, ny, nxm, nxp, nyp, nym, nypm
+      integer :: model_wg
+      real(8) :: xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg,ph_wg,rot_wg,eli_wg
+      real(8) :: omega,time,pi
+      real(8) :: vcfact,dt,dph,x,y
+
+ ! Solution of maxwell equation in the A-phi formulation by difference method
+ ! vcfact is the ratio of the light speed to lattice parameter times plasma 
+ ! frequency
+
+      do nx = 1, nxmax-1
+      do ny = 1, nymax-1
+
+         nxm = nx - 1
+         nxp = nx + 1
+         nym = ny - 1
+         nyp = ny + 1
+
+        Ax(nx,ny) = dt ** 2 * vcfact ** 2 * (Axb(nxp,ny) + Axb(nxm,ny) &
+                                           + Axb(nx,nyp) + Axb(nx,nym) &
+                                           - 4.0d0 * Axb(nx,ny)) &
+                  + dt ** 2 * jx(nx,ny) &
+                  - 0.5d0 * dt * (phi(nxp,ny) - phib(nxp,ny) &
+                                - phi(nxm,ny) + phib(nxm,ny)) &
+                  + 2.0d0 * Axb(nx,ny) - Axbb(nx,ny) 
+
+        Ay(nx,ny) = dt ** 2 * vcfact ** 2 * (Ayb(nxp,ny) + Ayb(nxm,ny) &
+                                           + Ayb(nx,nyp) + Ayb(nx,nym) &
+                                           - 4.0d0 * Ayb(nx,ny)) &
+                  + dt ** 2 * jy(nx,ny) &
+                  - 0.5d0 * dt * (phi(nx,nyp) - phib(nx,nyp) &
+                                - phi(nx,nym) + phib(nx,nym)) &
+                  + 2.0d0 * Ayb(nx,ny) - Aybb(nx,ny) 
+
+        Az(nx,ny) = dt ** 2 * vcfact ** 2 * (Azb(nxp,ny) + Azb(nxm,ny) &
+                                           + Azb(nx,nyp) + Azb(nx,nym) &
+                                           - 4.0d0 * Azb(nx,ny)) &
+                  + dt ** 2 * jz(nx,ny) &
+                  + 2.0d0 * Azb(nx,ny) - Azbb(nx,ny)
       
-    end subroutine phia
+      end do
+      end do
+      !boundary condition for reflection
+
+      Ax(0,:)=0.d0
+      Ay(0,:)=0.d0
+      Az(0,:)=0.d0
+      Ax(nxmax,:)=0.d0
+      Ay(nxmax,:)=0.d0
+      Az(nxmax,:)=0.d0
+      Ax(:,0)=0.d0
+      Ay(:,0)=0.d0
+      Az(:,0)=0.d0
+      Ax(:,nymax)=0.d0
+      Ay(:,nymax)=0.d0
+      Az(:,nymax)=0.d0
+
+      SELECT CASE(model_wg)
+      CASE(0)
+         dph=ph_wg/(ymax_wg-ymin_wg)
+         DO ny=1,nymax
+            y=dble(ny)
+            IF(y.GE.ymin_wg.AND.y.LE.ymax_wg) &
+               Ay(0,ny)=amp_wg*sin(omega*time-2.D0*pi*dph*(y-ymin_wg))
+         END DO
+      END SELECT
+
+    end subroutine phia_reflective
 
 END Module picexec
