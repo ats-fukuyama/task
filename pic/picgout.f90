@@ -55,22 +55,37 @@ CONTAINS
 
     SELECT CASE(kch)
     CASE('T1')
-       ALLOCATE(work(ntgmax,5))
-       work(1:ntgmax,1)=akinet(1:ntgmax)
-       work(1:ntgmax,2)=akinit(1:ntgmax)
-       work(1:ntgmax,3)=aktott(1:ntgmax)
-       work(1:ntgmax,4)=apott(1:ntgmax)
-       work(1:ntgmax,5)=atott(1:ntgmax)
+       ALLOCATE(work(ntgmax,7))
        CALL PAGES
-       CALL GRD1D(0,timet,work,ntgmax,ntgmax,5,'@Ke,Ki,Ktot,Ptot,Wtot vs t@')
+      ! work(1:ntgmax,1)=akinet(1:ntgmax)
+      ! work(1:ntgmax,2)=akinit(1:ntgmax)
+      ! work(1:ntgmax,3)=aktott(1:ntgmax)
+      ! CALL GRD1D(1,timet,work,ntgmax,ntgmax,3,'@Ke,Ki,Ktot vs t@')
+      ! work(1:ntgmax,1)=apotet(1:ntgmax)
+      ! work(1:ntgmax,2)=apotmt(1:ntgmax)
+      ! work(1:ntgmax,3)=aptott(1:ntgmax)
+      ! CALL GRD1D(2,timet,work,ntgmax,ntgmax,3,'@Pe,Pm,Ptot vs t@')
+       work(1:ntgmax,1)=aktott(1:ntgmax)
+       work(1:ntgmax,2)=aptott(1:ntgmax)
+       work(1:ntgmax,3)=atott(1:ntgmax)
+       CALL GRD1D(0,timet,work,ntgmax,ntgmax,3,'@Ktot,Ptot,Wtot vs t@')
+      ! work(1:ntgmax,1)=akinet(1:ntgmax)
+      ! work(1:ntgmax,2)=akinit(1:ntgmax)
+      ! work(1:ntgmax,3)=aktott(1:ntgmax)
+      ! work(1:ntgmax,4)=apotet(1:ntgmax)
+      ! work(1:ntgmax,5)=apotmt(1:ntgmax)
+      ! work(1:ntgmax,6)=aptott(1:ntgmax)
+      ! work(1:ntgmax,7)=atott(1:ntgmax)
+      ! CALL GRD1D(4,timet,work,ntgmax,ntgmax,7, &
+      !            '@Ke,Ki,Ktot,Pe,Pm.Ptot,Wtot vs t@')
        CALL PAGEE
        DEALLOCATE(work)
     CASE('E1')
        CALL PAGES
-       CALL GRD2D(1,x,y,ex,nxmax1,nxmax1,nymax1,'@Ex@',ASPECT=aspect)
-       CALL GRD2D(2,x,y,ey,nxmax1,nxmax1,nymax1,'@Ey@',ASPECT=aspect)
-       CALL GRD2D(3,x,y,rho,nxmax1,nxmax1,nymax1,'@rho@',ASPECT=aspect)
-       CALL GRD2D(4,x,y,phi,nxmax1,nxmax1,nymax1,'@phi@',ASPECT=aspect)
+       !CALL GRD2D(1,x,y,ex,nxmax1,nxmax1,nymax1,'@Ex@',ASPECT=aspect)
+       CALL GRD2D(0,x,y,ey,nxmax1,nxmax1,nymax1,'@Ey@',ASPECT=aspect)
+       !CALL GRD2D(3,x,y,rho,nxmax1,nxmax1,nymax1,'@rho@',ASPECT=aspect)
+       !CALL GRD2D(4,x,y,phi,nxmax1,nxmax1,nymax1,'@phi@',ASPECT=aspect)
        CALL PAGEE
     CASE('E2')
        CALL PAGES
@@ -146,19 +161,19 @@ CONTAINS
        WORK_RGB(1,1)=0.D0
        WORK_RGB(2,1)=0.D0
        WORK_RGB(3,1)=1.D0
-       CALL GRD2DP(1,vparae,vperpe,vtote,npmax,'@vpara-vperp:e@',NMMAX=1, &
+       CALL GRD2DP(0,vparae,vperpe,vtote,npmax,'@vpara-vperp:e@',NMMAX=1, &
                    MARK_RGB=WORK_RGB,XMIN=-vtotemax,XMAX=vtotemax, &
                    YMIN=0.D0,YMAX=vtotemax,ASPECT=0.5D0)
-       CALL GRD2DP(3,xe,ye,ze,npmax,'@x-y-z:e@',NMMAX=1, &
-                   MARK_RGB=WORK_RGB,ASPECT=aspect)
-       WORK_RGB(1,1)=1.D0
-       WORK_RGB(2,1)=0.D0
-       WORK_RGB(3,1)=0.D0
-       CALL GRD2DP(2,vparai,vperpi,vtoti,npmax,'@vpara-vperp:i@',NMMAX=1, &
-                   MARK_RGB=WORK_RGB,XMIN=-vtotimax,XMAX=vtotimax, &
-                   YMIN=0.D0,YMAX=vtotimax,ASPECT=0.5D0)
-       CALL GRD2DP(4,xi,yi,zi,npmax,'@x-y-z:i@',NMMAX=1, &
-                   MARK_RGB=WORK_RGB,ASPECT=aspect)
+       !CALL GRD2DP(0,xe,ye,ze,npmax,'@x-y-z:e@',NMMAX=1, &
+       !            MARK_RGB=WORK_RGB,ASPECT=aspect)
+       !WORK_RGB(1,1)=1.D0
+       !WORK_RGB(2,1)=0.D0
+       !WORK_RGB(3,1)=0.D0
+       !CALL GRD2DP(2,vparai,vperpi,vtoti,npmax,'@vpara-vperp:i@',NMMAX=1, &
+       !            MARK_RGB=WORK_RGB,XMIN=-vtotimax,XMAX=vtotimax, &
+       !            YMIN=0.D0,YMAX=vtotimax,ASPECT=0.5D0)
+       !CALL GRD2DP(4,xi,yi,zi,npmax,'@x-y-z:i@',NMMAX=1, &
+       !            MARK_RGB=WORK_RGB,ASPECT=aspect)
        CALL PAGEE
     CASE('X') 
        GO TO 9000

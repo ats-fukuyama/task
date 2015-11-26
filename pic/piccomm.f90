@@ -36,14 +36,15 @@ MODULE piccomm
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: cform
   COMPLEX(rkind),ALLOCATABLE,DIMENSION(:,:):: rhof,phif,afwk
 
-  REAL(rkind),ALLOCATABLE,DIMENSION(:):: timet,akinet,akinit,aktott,apott,atott
+  REAL(rkind),ALLOCATABLE,DIMENSION(:):: timet,akinet,akinit,aktott
+  REAL(rkind),ALLOCATABLE,DIMENSION(:):: atott,apotet,apotmt,aptott
 
-  REAL(8) :: ctome, ctomi,       &
-             vte, vti,           &
-             akine , akini , aktot , apot , atot ,         &
-             akine0, akini0, aktot0, apot0, atot0,         &
-             akine1, akine2, akini1, akini2, time,         &
-             x1, x2, y1, y2, z1, z2 ,alx, aly, alz,                &
+  REAL(8) :: ctome, ctomi, &
+             vte, vti,     &
+             akine , akini , aktot , apote,  apotm , aptot , atot , &
+             akine0, akini0, aktot0, apote0, apotm0, aptot0, atot0, &
+             akine1, akine2, akini1, akini2, time,  &
+             x1, x2, y1, y2, z1, z2 ,alx, aly, alz, &
              wkword, wtime, wtime1, wtime2
   integer :: ntcount, ntgcount, ntpcount, ntgmax, ntpmax
   integer :: ifset, ipssn, iran
@@ -107,7 +108,8 @@ CONTAINS
     END IF
 
     IF(ALLOCATED(timet)) THEN
-       DEALLOCATE(timet,akinet,akinit,aktott,apott,atott)
+       DEALLOCATE(timet,akinet,akinit,aktott)
+       DEALLOCATE(atott,apotet,apotmt,aptott)
     END IF
 
 
