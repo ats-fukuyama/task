@@ -50,7 +50,7 @@ CONTAINS
       bzmax  =    0.0d0     !: max value of background z magnetic flux density
       vcfact =   10.0d0     !: c^2/omegape^2 debye^2
       eps    =   1.D-16     !: constants to define boundary condition
-      omega  =    3.0d0     !: antena frequency
+      omega  =    0.0d0     !: antena frequency
       jxant  =    0.0d0     ! x component of antenna current density 
       jyant  =    0.0d0     ! y component of antenna current density
       jzant  =    0.0d0     ! z component of antenn current density
@@ -74,11 +74,11 @@ CONTAINS
                             !   2: near ymin uniform
                             !   3: near ymax uniform
       xmin_wg = 0.D0
-      xmax_wg = 4.D0
+      xmax_wg = 0.D0
       ymin_wg = 0.D0
-      ymax_wg = 4.D0
+      ymax_wg = 0.D0
       amp_wg  = 0.D0        ! amplitude of wave vector potential
-      ph_wg   = 1.D0        ! phase difference between x/ymin and  x/ymax 2*pi
+      ph_wg   = 0.D0        ! phase difference between x/ymin and  x/ymax 2*pi
       rot_wg  = 0.D0        ! angle of wave electric fields: 0 for z-direction
       eli_wg  = 0.D0        ! angle of elipticity of wave electric field
 

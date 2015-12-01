@@ -55,7 +55,6 @@ CONTAINS
        call source(npmax,nxmax,nymax,xe,ye,rho,chrge,model_boundary)
        call source(npmax,nxmax,nymax,xi,yi,rho,chrgi,model_boundary)
        call boundary_rho(nxmax,nymax,rho,model_boundary)
-          
        !..... sum charge densities over cores
        call mtx_allreduce_real8(rho,nxymax,3,suma,locva)
        DO ny=0,nymax
@@ -80,13 +79,15 @@ CONTAINS
        jy(:,:)=0.d0
        jz(:,:)=0.d0
 
+
        call current(npmax,nxmax,nymax,xe,ye,vxe,vye,vze,chrge,jx,jy,jz, &
                     model_boundary)
        call current(npmax,nxmax,nymax,xi,yi,vxi,vyi,vzi,chrgi,jx,jy,jz, &
                     model_boundary)
-
+       if (model_antenna .eq. 1) then
        call antenna(nxmax,nymax,jxant,jyant,jzant,phxant,phyant,phzant, &
             omega,time,jx,jy,jz)
+       end if
        
        call boundary_j(nxmax,nymax,jx,jy,jz,model_boundary)
        
@@ -120,15 +121,13 @@ CONTAINS
                                model_wg,xmin_wg,xmax_wg,ymin_wg,ymax_wg, &
                                amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi)
        endif
-    
        !.......... calculate ex and ey and ez
        call efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
-            ex,ey,ez,esx,esy,esz,emx,emy,emz)
+            ex,ey,ez,esx,esy,esz,emx,emy,emz,model_boundary)
 
        !.......... calculate bxg and byg and bzg
        call bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
                                bx,by,bz,bxbg,bybg,bzbg,bb)
-         
        if( mod(nt,ntgstep) .eq. 0 ) then
           call kine(npmax,vxe,vye,vze,akine1,me)
           call kine(npmax,vxi,vyi,vzi,akini1,mi)
@@ -164,7 +163,6 @@ CONTAINS
           call bound_reflective(npmax,xe,ye,vxe,vye,x1,x2,y1,y2,alx,aly)
           call bound_reflective(npmax,xi,yi,vxi,vyi,x1,x2,y1,y2,alx,aly)
        endif
-       
        !..... diagnostics to check energy conservation
        !.....            after pushing 
        if( mod(nt,ntgstep) .eq. 0 ) then
@@ -337,19 +335,19 @@ CONTAINS
        IF(model_boundary.EQ.0) THEN ! periodic
           if( nxp .eq. 0  ) nxpm = nxmax - 1
           if( nyp .eq. 0  ) nypm = nymax - 1
-          if( nxp .eq. nxmax-2) nxppp=0
-          if( nyp .eq. nymax-2) nyppp=0
-          if( nxp .eq. nxmax-1) nxpp =0
-          if( nyp .eq. nymax-1) nypp =0
+          !if( nxp .eq. nxmax-2) nxppp=0
+          !if( nyp .eq. nymax-2) nyppp=0
+          !if( nxp .eq. nxmax-1) nxpp =0
+          !if( nyp .eq. nymax-1) nypp =0
           if( nxp .eq. nxmax-1) nxppp = 1
           if( nyp .eq. nymax-1) nyppp = 1
        ELSE   ! reflective: 
           if( nxp .eq. 0  ) nxpm = 0
           if( nyp .eq. 0  ) nypm = 0
-          if( nxp .eq. nxmax-2) nxppp=nxmax
-          if( nyp .eq. nymax-2) nyppp=nymax
-          if( nxp .eq. nxmax-1) nxpp =nxmax
-          if( nyp .eq. nymax-1) nypp =nymax
+          !if( nxp .eq. nxmax-2) nxppp=nxmax
+          !if( nyp .eq. nymax-2) nyppp=nymax
+          !if( nxp .eq. nxmax-1) nxpp =nxmax
+          !if( nyp .eq. nymax-1) nypp =nymax
           if( nxp .eq. nxmax-1) nxppp = nxmax
           if( nyp .eq. nymax-1) nyppp = nymax
        END IF
@@ -650,19 +648,19 @@ CONTAINS
          IF(model_boundary.EQ.0) THEN ! periodic
             if( nxp .eq. 0  ) nxpm = nxmax - 1
             if( nyp .eq. 0  ) nypm = nymax - 1
-            if( nxp .eq. nxmax-2) nxppp=0
-            if( nyp .eq. nymax-2) nyppp=0
-            if( nxp .eq. nxmax-1) nxpp =0
-            if( nyp .eq. nymax-1) nypp =0
+            !if( nxp .eq. nxmax-2) nxppp=0
+            !if( nyp .eq. nymax-2) nyppp=0
+            !if( nxp .eq. nxmax-1) nxpp =0
+            !if( nyp .eq. nymax-1) nypp =0
             if( nxp .eq. nxmax-1) nxppp=1
             if( nyp .eq. nymax-1) nyppp=1
          ELSE   ! reflective: 
             if( nxp .eq. 0  ) nxpm = 0
             if( nyp .eq. 0  ) nypm = 0
-            if( nxp .eq. nxmax-2) nxppp=nxmax
-            if( nyp .eq. nymax-2) nyppp=nymax
-            if( nxp .eq. nxmax-1) nxpp =nxmax
-            if( nyp .eq. nymax-1) nypp =nymax
+            !if( nxp .eq. nxmax-2) nxppp=nxmax
+            !if( nyp .eq. nymax-2) nyppp=nymax
+            !if( nxp .eq. nxmax-1) nxpp =nxmax
+            !if( nyp .eq. nymax-1) nypp =nymax
             if( nxp .eq. nxmax-1) nxppp = nxmax
             if( nyp .eq. nymax-1) nyppp = nymax
          END IF
@@ -735,7 +733,7 @@ CONTAINS
             rho(0,ny)     = 2.D0 * rho(0,ny)
             rho(nxmax,ny) = 2.D0 * rho(nxmax,ny)
          end do
-         do nx = 0, nxmax
+         do nx = 1, nxmax-1
             rho(nx,0)     = 2.D0 * rho(nx,0)
             rho(nx,nymax) = 2.D0 * rho(nx,nymax)
          end do
@@ -794,19 +792,19 @@ CONTAINS
          IF(model_boundary.EQ.0) THEN ! periodic
             if( nxp .eq. 0  ) nxpm = nxmax - 1
             if( nyp .eq. 0  ) nypm = nymax - 1
-            if( nxp .eq. nxmax-2) nxppp=0
-            if( nyp .eq. nymax-2) nyppp=0
-            if( nxp .eq. nxmax-1) nxpp =0
-            if( nyp .eq. nymax-1) nypp =0
+            !if( nxp .eq. nxmax-2) nxppp=0
+            !if( nyp .eq. nymax-2) nyppp=0
+            !if( nxp .eq. nxmax-1) nxpp =0
+            !if( nyp .eq. nymax-1) nypp =0
             if( nxp .eq. nxmax-1) nxppp=1
             if( nyp .eq. nymax-1) nyppp=1
          ELSE   ! reflective: 
             if( nxp .eq. 0  ) nxpm = 0
             if( nyp .eq. 0  ) nypm = 0
-            if( nxp .eq. nxmax-2) nxppp=nxmax
-            if( nyp .eq. nymax-2) nyppp=nymax
-            if( nxp .eq. nxmax-1) nxpp =nxmax
-            if( nyp .eq. nymax-1) nypp =nymax
+            !if( nxp .eq. nxmax-2) nxppp=nxmax
+            !if( nyp .eq. nymax-2) nyppp=nymax
+            !if( nxp .eq. nxmax-1) nxpp =nxmax
+            !if( nyp .eq. nymax-1) nypp =nymax
             if( nxp .eq. nxmax-1) nxppp = nxmax
             if( nyp .eq. nymax-1) nyppp = nymax
          END IF
@@ -912,6 +910,7 @@ CONTAINS
            jz(nxppp,nyp  ) = jz(nxppp,nyp  ) + factor * vz(np) * sx2p * sy2m
 
         endif
+
      end do
 
    end subroutine current
@@ -934,7 +933,7 @@ CONTAINS
 
          ! add antenna current density
 
-         do ny=1,nymax
+         do ny=5,10
             jy(3,ny) = jy(3,ny) + 0.5d0 * jyt
             jy(4,ny) = jy(4,ny) + 0.5d0 * jyt
             jz(3,ny) = jz(3,ny) + 0.5d0 * jzt
@@ -971,20 +970,20 @@ CONTAINS
          enddo
       ELSE                           ! reflective
         do ny=0,nymax
-           jx(0,ny) = 2 * jx(0,ny)
-           jy(0,ny) = 2 * jy(0,ny)
-           jz(0,ny) = 2 * jz(0,ny)
-           jx(nxmax,ny) = 2 * jx(nxmax,ny)
-           jy(nxmax,ny) = 2 * jy(nxmax,ny)
-           jz(nxmax,ny) = 2 * jz(nxmax,ny)
+           jx(0,ny) = 2.0d0 * jx(0,ny)
+           jy(0,ny) = 2.0d0 * jy(0,ny)
+           jz(0,ny) = 2.0d0 * jz(0,ny)
+           jx(nxmax,ny) = 2.0d0 * jx(nxmax,ny)
+           jy(nxmax,ny) = 2.0d0 * jy(nxmax,ny)
+           jz(nxmax,ny) = 2.0d0 * jz(nxmax,ny)
         end do
         do nx=1,nxmax-1
-           jx(nx,0) = 2 * jx(nx,0)
-           jy(nx,0) = 2 * jy(nx,0)
-           jz(nx,0) = 2 * jz(nx,0)
-           jx(nx,nymax) = 2 * jx(nx,nymax)
-           jy(nx,nymax) = 2 * jy(nx,nymax)
-           jz(nx,nymax) = 2 * jz(nx,nymax)
+           jx(nx,0) = 2.0d0 * jx(nx,0)
+           jy(nx,0) = 2.0d0 * jy(nx,0)
+           jz(nx,0) = 2.0d0 * jz(nx,0)
+           jx(nx,nymax) = 2.0d0 * jx(nx,nymax)
+           jy(nx,nymax) = 2.0d0 * jy(nx,nymax)
+           jz(nx,nymax) = 2.0d0 * jz(nx,nymax)
         end do
      END IF
 
@@ -1097,8 +1096,8 @@ CONTAINS
       
       end do
       end do
-
       !boundary condition for reflection
+
       Ax(0,:)=0.d0
       Ay(0,:)=0.d0
       Az(0,:)=0.d0

@@ -245,39 +245,75 @@ CONTAINS
 
 !***********************************************************************
     subroutine efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
-                      ex,ey,ez,esx,esy,esz,emx,emy,emz)
+                      ex,ey,ez,esx,esy,esz,emx,emy,emz,model_boundary)
 !***********************************************************************
       implicit none
       real(8), dimension(0:nxmax,0:nymax) ::  &
            phi,Ax,Ay,Az,Axb,Ayb,Azb,ex,ey,ez,esx,esy,esz,emx,emy,emz
       real(8):: dt
-      integer :: nxmax, nymax, nx, ny, nxm, nxp, nym, nyp
+      integer :: nxmax, nymax, nx, ny, nxm, nxp, nym, nyp,model_boundary
+      if(model_boundary .eq. 0) then
+         do nx = 0, nymax
+         do ny = 0, nxmax
 
-      do nx = 0, nymax
-      do ny = 0, nxmax
+            nxm = nx - 1
+            nxp = nx + 1
+            nym = ny - 1
+            nyp = ny + 1
 
-         nxm = nx - 1
-         nxp = nx + 1
-         nym = ny - 1
-         nyp = ny + 1
-
-         if( nx .eq. 0  )    nxm = nxmax - 1
-         if( nx .eq. nxmax ) nxp = 1
-         if( ny .eq. 0  )    nym = nymax - 1
-         if( ny .eq. nymax ) nyp = 1
-         
-         esx(nx,ny) = 0.5d0 * ( phi(nxm,ny) - phi(nxp,ny))
-         esy(nx,ny) = 0.5d0 * ( phi(nx,nym) - phi(nx,nyp))
-         esz(nx,ny) = 0.d0
-         emx(nx,ny) = - ( Ax(nx,ny) - Axb(nx,ny) ) / dt
-         emy(nx,ny) = - ( Ay(nx,ny) - Ayb(nx,ny) ) / dt
-         emz(nx,ny) = - ( Az(nx,ny) - Azb(nx,ny) ) / dt
-         ex(nx,ny) = esx(nx,ny) + emx(nx,ny)
-         ey(nx,ny) = esy(nx,ny) + emy(nx,ny)
-         ez(nx,ny) = esz(nx,ny) + emz(nx,ny)
+            if( nx .eq. 0  )    nxm = nxmax - 1
+            if( nx .eq. nxmax ) nxp = 1
+            if( ny .eq. 0  )    nym = nymax - 1
+            if( ny .eq. nymax ) nyp = 1
+            esx(nx,ny) = 0.5d0 * ( phi(nxm,ny) - phi(nxp,ny))
+            esy(nx,ny) = 0.5d0 * ( phi(nx,nym) - phi(nx,nyp))
+            esz(nx,ny) = 0.d0
+            emx(nx,ny) = - ( Ax(nx,ny) - Axb(nx,ny) ) / dt
+            emy(nx,ny) = - ( Ay(nx,ny) - Ayb(nx,ny) ) / dt
+            emz(nx,ny) = - ( Az(nx,ny) - Azb(nx,ny) ) / dt
+            ex(nx,ny) = esx(nx,ny) + emx(nx,ny)
+            ey(nx,ny) = esy(nx,ny) + emy(nx,ny)
+            ez(nx,ny) = esz(nx,ny) + emz(nx,ny)
 
        end do
        end do
+     else if (model_boundary .ne. 0) then
+         do nx = 0, nymax
+         do ny = 0, nxmax
+
+            nxm = nx - 1
+            nxp = nx + 1
+            nym = ny - 1
+            nyp = ny + 1
+
+            if( nx .eq. 0  )    nxm = 0 
+            if( nx .eq. nxmax ) nxp = nxmax
+            if( ny .eq. 0  )    nym = 0
+            if( ny .eq. nymax ) nyp = nymax
+
+            if(nx .eq. 0 .or. nx .eq. nxmax) then
+               esx(nx,ny) = phi(nxm,ny) - phi(nxp,ny)
+            else
+               esx(nx,ny) = 0.5d0 * ( phi(nxm,ny) - phi(nxp,ny))
+            endif
+            
+            if(ny .eq. 0 .or. ny .eq. nymax) then
+               esy(nx,ny) = phi(nx,nym) - phi(nx,nyp)
+            else
+               esy(nx,ny) = 0.5d0 * ( phi(nx,nym) - phi(nx,nyp))
+            end if
+
+            esz(nx,ny) = 0.d0
+            emx(nx,ny) = - ( Ax(nx,ny) - Axb(nx,ny) ) / dt
+            emy(nx,ny) = - ( Ay(nx,ny) - Ayb(nx,ny) ) / dt
+            emz(nx,ny) = - ( Az(nx,ny) - Azb(nx,ny) ) / dt
+            ex(nx,ny) = esx(nx,ny) + emx(nx,ny)
+            ey(nx,ny) = esy(nx,ny) + emy(nx,ny)
+            ez(nx,ny) = esz(nx,ny) + emz(nx,ny)
+
+       end do
+       end do
+    end if
      end subroutine efield
 
 !***********************************************************************
@@ -289,31 +325,63 @@ CONTAINS
       real(8), dimension(0:nxmax) :: bynab
       real(8), dimension(0:nxmax,0:nymax) :: bx,by,bz,bxbg,bybg,bzbg,bb
       real(8), dimension(0:nxmax,0:nymax) :: Ax,Ay,Az,Axb,Ayb,Azb
-      integer :: nxmax, nymax, nx, ny, nxp, nyp, nxm, nym
+      integer :: nxmax, nymax, nx, ny, nxp, nyp, nxm, nym, model_boundary
+      if(model_boundary .eq. 0) then
+         do ny = 0, nymax
+         do nx = 0, nxmax
+            nxm = nx - 1
+            nxp = nx + 1
+            nym = ny - 1
+            nyp = ny + 1
 
-      do ny = 0, nymax
-      do nx = 0, nxmax
-         nxm = nx - 1
-         nxp = nx + 1
-         nym = ny - 1
-         nyp = ny + 1
-
-         if( nx .eq. 0  )    nxm = nxmax - 1
-         if( nx .eq. nxmax ) nxp = 1
-         if( ny .eq. 0  )    nym = nymax - 1
-         if( ny .eq. nymax ) nyp = 1
+            if( nx .eq. 0  )    nxm = nxmax - 1
+            if( nx .eq. nxmax ) nxp = 1
+            if( ny .eq. 0  )    nym = nymax - 1
+            if( ny .eq. nymax ) nyp = 1
          
-         bx(nx,ny) = 0.25d0 * (Az(nx,nyp) + Azb(nx,nyp) &
-                             - Az(nx,nym) - Azb(nx,nym)) + bxbg(nx,ny)
-         by(nx,ny) = 0.25d0 * (Az(nxp,ny) + Azb(nxp,ny) &
-                             - Az(nxm,ny) - Azb(nxm,ny)) + bybg(nx,ny)
-         bz(nx,ny) = 0.25d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
-                             - Ay(nxm,ny) - Ayb(nxm,ny) &
-                            - (Ax(nx,nyp) + Axb(nx,nyp) &
-                              -Ax(nx,nym) - Axb(nx,nym)))+ bzbg(nx,ny)
-         bb(nx,ny) = SQRT(bx(nx,ny)**2+by(nx,ny)**2+bz(nx,ny)**2)
-      end do
-      end do
+            bx(nx,ny) = 0.25d0 * (Az(nx,nyp) + Azb(nx,nyp) &
+                      - Az(nx,nym) - Azb(nx,nym)) + bxbg(nx,ny)
+            by(nx,ny) = 0.25d0 * (Az(nxp,ny) + Azb(nxp,ny) &
+                      - Az(nxm,ny) - Azb(nxm,ny)) + bybg(nx,ny)
+            bz(nx,ny) = 0.25d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
+                      - Ay(nxm,ny) - Ayb(nxm,ny) &
+                      - (Ax(nx,nyp) + Axb(nx,nyp) &
+                      -Ax(nx,nym) - Axb(nx,nym)))+ bzbg(nx,ny)
+            bb(nx,ny) = SQRT(bx(nx,ny)**2+by(nx,ny)**2+bz(nx,ny)**2)
+         end do
+         end do
+         elseif(model_boundary .ne. 0) then
+       do ny = 0, nymax
+       do nx = 0, nxmax
+            nxm = nx - 1
+            nxp = nx + 1
+            nym = ny - 1
+            nyp = ny + 1
+
+            if( nx .eq. 0  )    nxm = 0
+            if( nx .eq. nxmax ) nxp = nxmax
+            if( ny .eq. 0  )    nym = 0
+            if( ny .eq. nymax ) nyp = nymax
+         
+            bx(nx,ny) = 0.25d0 * (Az(nx,nyp) + Azb(nx,nyp) &
+                      - Az(nx,nym) - Azb(nx,nym)) + bxbg(nx,ny)
+            by(nx,ny) = 0.25d0 * (Az(nxp,ny) + Azb(nxp,ny) &
+                      - Az(nxm,ny) - Azb(nxm,ny)) + bybg(nx,ny)
+            if(nx .eq. 0 .or. nx .eq. nxmax .or. ny .eq. 0 .or. ny .eq. nymax) then
+            bz(nx,ny) = 0.5d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
+                      - Ay(nxm,ny) - Ayb(nxm,ny) &
+                      - (Ax(nx,nyp) + Axb(nx,nyp) &
+                      -Ax(nx,nym) - Axb(nx,nym)))+ bzbg(nx,ny)
+            else
+            bz(nx,ny) = 0.25d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
+                      - Ay(nxm,ny) - Ayb(nxm,ny) &
+                      - (Ax(nx,nyp) + Axb(nx,nyp) &
+                      -Ax(nx,nym) - Axb(nx,nym)))+ bzbg(nx,ny)
+            end if
+            bb(nx,ny) = SQRT(bx(nx,ny)**2+by(nx,ny)**2+bz(nx,ny)**2)
+        end do
+        end do
+     endif 
     end subroutine bfield
 
 !***********************************************************************
@@ -343,42 +411,41 @@ CONTAINS
       apote = 0.d0
       apotm = 0.d0
 
-      do ny = 1, nymax-1
-      do nx = 1, nxmax-1
-         apote = apote + ex(nx,ny)**2 + ey(nx,ny)**2 + ez(nx,ny)**2
-         apotm = apotm + (bx(nx,ny)-bxbg(nx,nx))**2 &
-                       + (by(nx,ny)-bybg(nx,nx))**2 &
-                       + (bz(nx,ny)-bzbg(nx,nx))**2
-      end do
-      end do
+         do ny = 1, nymax-1
+         do nx = 1, nxmax-1
+            apote = apote + 0.5d0*(ex(nx,ny)**2 + ey(nx,ny)**2 + ez(nx,ny)**2)
+            apotm = apotm + 0.5d0*((bx(nx,ny)-bxbg(nx,nx))**2 &
+                  + (by(nx,ny)-bybg(nx,nx))**2 &
+                  + (bz(nx,ny)-bzbg(nx,nx))**2)
+         end do
+         end do
 
-      do nx = 0, nxmax, nxmax
-      do ny = 1, nymax-1
-         apote = apote + 0.5D0*(ex(nx,ny)**2+ey(nx,ny)**2+ez(nx,ny)**2)
-         apotm = apotm + 0.5D0*((bx(nx,ny)-bxbg(nx,nx))**2 &
-                              + (by(nx,ny)-bybg(nx,nx))**2 &
-                              + (bz(nx,ny)-bzbg(nx,nx))**2)
-      end do
-      end do
+         do nx = 0, nxmax,nxmax
+         do ny = 1, nymax-1
+            apote = apote + 0.5D0*(ex(nx,ny)**2+ey(nx,ny)**2+ez(nx,ny)**2)
+            apotm = apotm + 0.5D0*((bx(nx,ny)-bxbg(nx,nx))**2 &
+                  + (by(nx,ny)-bybg(nx,nx))**2 &
+                  + (bz(nx,ny)-bzbg(nx,nx))**2)
+         end do
+         end do
 
-      do ny = 0, nymax, nymax
-      do nx = 1, nxmax-1
-         apote = apote + 0.5D0*(ex(nx,ny)**2+ey(nx,ny)**2+ez(nx,ny)**2)
-         apotm = apotm + 0.5D0*((bx(nx,ny)-bxbg(nx,nx))**2 &
-                              + (by(nx,ny)-bybg(nx,nx))**2 &
-                              + (bz(nx,ny)-bzbg(nx,nx))**2)
-      end do
-      end do
+         do ny = 0, nymax,nymax
+         do nx = 1, nxmax-1
+            apote = apote + 0.5D0*(ex(nx,ny)**2+ey(nx,ny)**2+ez(nx,ny)**2)
+            apotm = apotm + 0.5D0*((bx(nx,ny)-bxbg(nx,nx))**2 &
+                  + (by(nx,ny)-bybg(nx,nx))**2 &
+                  + (bz(nx,ny)-bzbg(nx,nx))**2)
+         end do
+         end do
 
-      do ny = 0, nymax, nymax
-      do nx = 0, nxmax, nxmax
-         apote = apote + 0.25D0*(ex(nx,ny)**2+ey(nx,ny)**2+ez(nx,ny)**2)
-         apotm = apotm + 0.25D0*((bx(nx,ny)-bxbg(nx,nx))**2 &
-                               + (by(nx,ny)-bybg(nx,nx))**2 &
-                               + (bz(nx,ny)-bzbg(nx,nx))**2)
-      end do
-      end do
-
+         do ny = 0, nymax,nymax
+         do nx = 0, nxmax,nxmax
+            apote = apote + 0.25D0*(ex(nx,ny)**2+ey(nx,ny)**2+ez(nx,ny)**2)
+            apotm = apotm + 0.25D0*((bx(nx,ny)-bxbg(nx,nx))**2 &
+                  + (by(nx,ny)-bybg(nx,nx))**2 &
+                  + (bz(nx,ny)-bzbg(nx,nx))**2)
+         end do
+         end do
       apote = 0.5D0 * apote / (dble(nxmax)*dble(nymax))
       apotm = 0.5D0 * vcfact**2 * apotm / (dble(nxmax)*dble(nymax))
 
