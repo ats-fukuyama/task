@@ -90,7 +90,7 @@ CONTAINS
        
        call boundary_j(nxmax,nymax,jx,jy,jz,model_boundary)
        
-       !..... sum chrrent densities over cores
+       !..... sum current densities over cores
        call mtx_allreduce_real8(jx,nxymax,3,suma,locva)
        DO ny=0,nymax
        DO nx=0,nxmax
