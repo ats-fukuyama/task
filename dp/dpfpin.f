@@ -305,18 +305,18 @@ C
        DO NP=1,NPMAX
           fa0(NP+1,NR+1,NTH)=FNS(NTH,NP,NR,NSA)
           fa0(1,NR+1,NTH) =FNS(NTH,1,NR,NSA)
-          fa0(NPMAX+2,NR+1,NTH)=FNS(NTH,NPMAX,NR,NSA)
-     & +(PMa0(NPMAX+2)-PMa0(NPMAX+1))*
-     & (FNS(NTH,NPMAX,NR,NSA)-FNS(NTH,NPMAX-1,NR,NSA))/DELP(NSA)
+          fa0(NPMAX+2,NR+1,NTH)=FNS(NTH,NPMAX,NR,NSA)*2.5D-1  ! f(NP+2)=f(NP+1)*1/4
+!     & +(PMa0(NPMAX+2)-PMa0(NPMAX+1))*                     !  linear add
+!     & (FNS(NTH,NPMAX,NR,NSA)-FNS(NTH,NPMAX-1,NR,NSA))/DELP(NSA)
           fa0(NP+1,1,NTH) =FNS(NTH,NP,1,NSA)
           fa0(NP+1,NRMAXFP+2,NTH)=0.D0
        ENDDO
        ENDDO
           fa0(1,1,NTH)=FNS(NTH,1,1,NSA)
           fa0(1,NRMAXFP+2,NTH)=0.D0
-          fa0(NPMAX+2,1,NTH)=FNS(NTH,NPMAX,1,NSA)
-     & +(PMa0(NPMAX+2)-PMa0(NPMAX+1))*
-     & (FNS(NTH,NPMAX,1,NSA)-FNS(NTH,NPMAX-1,1,NSA))/DELP(NSA)
+          fa0(NPMAX+2,1,NTH)=FNS(NTH,NPMAX,1,NSA)*2.5D-1          
+!     & +(PMa0(NPMAX+2)-PMa0(NPMAX+1))*
+!     & (FNS(NTH,NPMAX,1,NSA)-FNS(NTH,NPMAX-1,1,NSA))/DELP(NSA)
           fa0(NPMAX+2,NRMAXFP+2,NTH)=0.D0
        ENDDO
 

@@ -547,11 +547,11 @@ C
 !      IMPLICIT NONE
       COMPLEX*16 :: CPM1,CPM2,CQM1,CQM2,CRM1,CRM2 
 !      COMPLEX*16 :: CXM(1:6)
-      DOUBLE PRECISION :: RHOL,WP02
+      DOUBLE PRECISION :: RHOL,WP02,AE2N0
       INTEGER :: NS,NRWM
       DOUBLE PRECISION :: DELRWM,RL
 C
-!      WRITE(6,'(A,I5)') 'NR=',NR
+      WRITE(6,'(A,I5)') 'NR=',NR
       NS=3
       CW=2.D0*PI*CRF*1.D6
 C
@@ -614,11 +614,11 @@ C
 !             WRITE(6,'(1P6E12.4)') CPM1,CPM2,CQM1
 !             WRITE(6,'(1P6E12.4)') CQM2,CRM1,CRM2
              CPM=5.D-1*PI*WP2/(CW*CW*WC*WC*RR*RR)*
-     &           (-CPM1-2.D0*CPM2*MM/(AM*CW*WC*PNAL*PNAL))/4.D0
+     &           (-CPM1+2.D0*CPM2*MM/(AM*CW*WC*PNAL*PNAL))/4.D0
              CQM=1.D0 *PI*WP2/(CW*CW*WC*RR)*
-     &           (-CQM1-2.D0*CQM2*MM/(AM*CW*WC*PNAL*PNAL))/2.D0
+     &           (-CQM1+2.D0*CQM2*MM/(AM*CW*WC*PNAL*PNAL))/2.D0
              CRM=2.D0 *PI*WP2/(CW*CW)*
-     &           (-CRM1-2.D0*CRM2*MM/(AM*CW*WC*PNAL*PNAL))
+     &           (-CRM1+2.D0*CRM2*MM/(AM*CW*WC*PNAL*PNAL))
             ELSEIF(MODEFA.EQ.4) THEN 
 !              WRITE(6,'(A,5I5)',ADVANCE='NO') 
 !              WRITE(6,'(A,5I5)')
@@ -627,12 +627,12 @@ C
              IF(RHOL.LE.1.D0) THEN
           CALL WMDPFAA(CW,RHOL,RKPR,AE2N0,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
           WP02=AE2N0*1.D20/(AM*EPS0)
-             CPM=(PI/8.D0)*WP02/(CW*CW*WC*WC*RR*RR)*
-     &           (-CPM1+CPM2*MM/(RHOL*AM*CW*WC))
-             CQM=(PI/2.D0)*WP02/(CW*CW*WC*RR)*
-     &           (-CQM1+CQM2*MM/(RHOL*AM*CW*WC))
+             CPM=(PI/2.D0)*WP02/(CW*CW*WC*WC*RR*RR)*
+     &           (0.5D0*CPM1+CPM2*MM/(RHOL*AM*CW*WC))
+             CQM=PI*WP02/(CW*CW*WC*RR)*
+     &           (0.5D0*CQM1+CQM2*MM/(RHOL*AM*CW*WC))
              CRM=2.D0 *PI*WP02/(CW*CW)*
-     &           (-CRM1+CRM2*MM/(RHOL*AM*CW*WC))
+     &           (0.5D0*CRM1+CRM2*MM/(RHOL*AM*CW*WC))
              ELSE
                CPM=(0.D0,0.D0)
                CQM=(0.D0,0.D0)
