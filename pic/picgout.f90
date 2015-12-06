@@ -342,10 +342,10 @@ CONTAINS
     DO i=1,9
        DO ntp=1,ntpmax
           DO nx=0,nxmax
-             fx(nx,ntp,i)=0.5D0*(fxy(nx,0,i,ntpmax) &
-                                +fxy(nx,nymax,i,ntpmax))
+             fx(nx,ntp,i)=0.5D0*(fxy(nx,0,i,ntp) &
+                                +fxy(nx,nymax,i,ntp))
              DO ny=1,nymax-1
-                fx(nx,ntp,i)=fx(nx,ntp,i)+fxy(nx,ny,i,ntpmax)
+                fx(nx,ntp,i)=fx(nx,ntp,i)+fxy(nx,ny,i,ntp)
              END DO
              fx(nx,ntp,i)=fx(nx,ntp,i)/DBLE(nymax)
           END DO

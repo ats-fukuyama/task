@@ -835,7 +835,7 @@ CONTAINS
             rho(nx,nymax) = rho(nx,0)
          end do
       ELSE                         ! reflecting
-         do ny = 0, nymax
+         do ny = 1, nymax-1
             rho(0,ny)     = 2.D0 * rho(0,ny)
             rho(nxmax,ny) = 2.D0 * rho(nxmax,ny)
          end do
@@ -843,6 +843,10 @@ CONTAINS
             rho(nx,0)     = 2.D0 * rho(nx,0)
             rho(nx,nymax) = 2.D0 * rho(nx,nymax)
          end do
+         rho(0,0)         = 4.D0 * rho(0,0)
+         rho(0,nymax)     = 4.D0 * rho(0,nymax)
+         rho(nxmax,0)     = 4.D0 * rho(nxmax,0)
+         rho(nxmax,nymax) = 4.D0 * rho(nxmax,nymax)
       END IF
 
     end subroutine boundary_rho
@@ -1075,7 +1079,7 @@ CONTAINS
             jz(nx,nymax) = jz(nx,0)
          enddo
       ELSE                           ! reflective
-        do ny=0,nymax
+        do ny=1,nymax-1
            jx(0,ny) = 2.0d0 * jx(0,ny)
            jy(0,ny) = 2.0d0 * jy(0,ny)
            jz(0,ny) = 2.0d0 * jz(0,ny)
@@ -1091,6 +1095,18 @@ CONTAINS
            jy(nx,nymax) = 2.0d0 * jy(nx,nymax)
            jz(nx,nymax) = 2.0d0 * jz(nx,nymax)
         end do
+        jx(0,0) = 4.0d0 * jx(0,0)
+        jy(0,0) = 4.0d0 * jy(0,0)
+        jz(0,0) = 4.0d0 * jz(0,0)
+        jx(0,nymax) = 4.0d0 * jx(0,nymax)
+        jy(0,nymax) = 4.0d0 * jy(0,nymax)
+        jz(0,nymax) = 4.0d0 * jz(0,nymax)
+        jx(nxmax,0) = 4.0d0 * jx(nxmax,0)
+        jy(nxmax,0) = 4.0d0 * jy(nxmax,0)
+        jz(nxmax,0) = 4.0d0 * jz(nxmax,0)
+        jx(nxmax,nymax) = 4.0d0 * jx(nxmax,nymax)
+        jy(nxmax,nymax) = 4.0d0 * jy(nxmax,nymax)
+        jz(nxmax,nymax) = 4.0d0 * jz(nxmax,nymax)
      END IF
 
    end subroutine boundary_j
@@ -1411,16 +1427,22 @@ CONTAINS
          END DO
       ELSE                         ! reflecting
          DO i=1,imax
-            DO ny = 0, nymax
+            DO ny = 1, nymax-1
                fxy(0,ny,i)     = 2.D0 * fxy(0,ny,i)
                fxy(nxmax,ny,i) = 2.D0 * fxy(nxmax,ny,i)
             END DO
          END DO
-         DO nx = 1, nxmax-1
-            DO i=1,imax
+         DO i=1,imax
+            DO nx = 1, nxmax-1
                fxy(nx,0,i)     = 2.D0 * fxy(nx,0,i)
                fxy(nx,nymax,i) = 2.D0 * fxy(nx,nymax,i)
             END DO
+         END DO
+         DO i=1,imax
+            fxy(0,0,i)         = 4.D0 * fxy(0,0,i)
+            fxy(0,nymax,i)     = 4.D0 * fxy(0,nymax,i)
+            fxy(nxmax,0,i)     = 4.D0 * fxy(nxmax,0,i)
+            fxy(nxmax,nymax,i) = 4.D0 * fxy(nxmax,nymax,i)
          END DO
       END IF
 

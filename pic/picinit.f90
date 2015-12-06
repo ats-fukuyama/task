@@ -28,14 +28,14 @@ CONTAINS
 !............. ntpstep: orbit data save interval                 .......
 !.......................................................................
 
-      npxmax = 100
-      npymax = 100
-      nxmax = 50
-      nymax = 50
-      ntmax = 3000
-      ntstep= 100
-      ntgstep= 100
-      ntpstep= 100
+      npxmax = 20
+      npymax = 20
+      nxmax = 10
+      nymax = 10
+      ntmax = 10
+      ntstep= 1
+      ntgstep= 1
+      ntpstep= 10
       npomax = 0
       npostep= 1
       ntostep= 1
