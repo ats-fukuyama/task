@@ -213,8 +213,19 @@ n       END IF
           apotmt(ntgcount)=apotm
           aptott(ntgcount)=aptot
           atott(ntgcount)=atot
-            
        endif
+
+       !..... evaluate profiles
+
+       IF( MOD(nt,ntpstep) .EQ. 0 ) THEN
+          ntpcount=ntpcount+1
+          CALL profile(npmax,nxmax,nymax, &
+                       xe,ye,vxe,vye,vze,vparae,vperpe,me, &
+                       profilee(0:nxmax,0:nymax,1:9,ntpcount),model_boundary)
+          CALL profile(npmax,nxmax,nymax, &
+                       xi,yi,vxi,vyi,vzi,vparai,vperpi,mi, &
+                       profilei(0:nxmax,0:nymax,1:9,ntpcount),model_boundary)
+       END IF
  
        IF( nrank .eq. 0 ) THEN
           IF(MOD(ntcount,ntstep).EQ.0) THEN
@@ -247,14 +258,18 @@ n       END IF
 !
   SUBROUTINE pic_expand_storage
 !***********************************************************************
-    USE piccomm,ONLY: ntmax,ntgstep,ntgcount,ntgmax, &
+    USE piccomm,ONLY: ntmax,ntgstep,ntgcount,ntgmax,ntpstep,ntpcount,ntpmax, &
                       npomax,ntomax,ntostep,ntocount,  &
                       timet,akinet,akinit,aktott,apotet,apotmt,aptott,atott, &
-                      xpo,ypo,zpo,vxpo,vypo,vzpo
+                      xpo,ypo,zpo,vxpo,vypo,vzpo, &
+                      nxmax,nymax,timep,profilee,profilei
     IMPLICIT NONE
     REAL(8),DIMENSION(:,:),ALLOCATABLE:: work
+    REAL(8),DIMENSION(:),ALLOCATABLE:: workt
     REAL(8),DIMENSION(:,:,:),ALLOCATABLE:: workp
-    INTEGER:: ntgmax_old,ntomax_old,npomax_save
+    REAL(8),DIMENSION(:,:,:,:,:),ALLOCATABLE:: work_prof
+    INTEGER:: ntgmax_old,ntomax_old,ntpmax_old,npomax_save
+    REAL(8):: factor
 
     IF(ntgcount.eq.0) THEN
        IF(ALLOCATED(timet)) &
@@ -298,6 +313,35 @@ n       END IF
        aptott(1:ntgmax_old)=work(1:ntgmax_old,7)
        atott (1:ntgmax_old)=work(1:ntgmax_old,8)
        DEALLOCATE(work)
+    END IF
+
+    IF(ntpcount.eq.0) THEN
+       IF(ALLOCATED(timep)) &
+            DEALLOCATE(timep,profilee,profilei)
+       ntpmax=MAX(ntmax/ntpstep,1)
+       ALLOCATE(timep(ntpmax))
+       ALLOCATE(profilee(0:nxmax,0:nymax,9,ntpmax))
+       ALLOCATE(profilei(0:nxmax,0:nymax,9,ntpmax))
+    ELSE
+       ALLOCATE(workt(ntpmax))
+       ALLOCATE(work_prof(0:nxmax,0:nymax,9,ntpmax,2))
+       workt(1:ntpmax)=timep(1:ntpmax)
+       work_prof(0:nxmax,0:nymax,1:9,1:ntpmax,1) &
+            =profilee(0:nxmax,0:nymax,1:9,1:ntpmax)
+       work_prof(0:nxmax,0:nymax,1:9,1:ntpmax,2) &
+            =profilei(0:nxmax,0:nymax,1:9,1:ntpmax)
+       DEALLOCATE(timep,profilee,profilei)
+       ntpmax_old=ntpmax
+       ntpmax=ntpmax+ntmax/ntpstep
+       ALLOCATE(timep(ntpmax))
+       ALLOCATE(profilee(0:nxmax,0:nymax,9,ntpmax))
+       ALLOCATE(profilei(0:nxmax,0:nymax,9,ntpmax))
+       timep(1:ntpmax_old) = workt(1:ntpmax_old)
+       profilee(0:nxmax,0:nymax,1:9,1:ntpmax_old) &
+            =work_prof(0:nxmax,0:nymax,1:9,1:ntpmax_old,1)
+       profilei(0:nxmax,0:nymax,1:9,1:ntpmax_old) &
+            =work_prof(0:nxmax,0:nymax,1:9,1:ntpmax_old,2)
+       DEALLOCATE(workt,work_prof)
     END IF
 
     IF(npomax.GT.0) THEN
@@ -1185,4 +1229,201 @@ n       END IF
 
     end subroutine phia_reflective
 
+!***********************************************************************
+    subroutine profile(npmax,nxmax,nymax,x,y,vx,vy,vz,vpara,vperp,mass, &
+                       profiles,model_boundary)
+!***********************************************************************
+      IMPLICIT NONE
+      INTEGER:: npmax,nxmax,nymax,model_boundary
+      REAL(8):: mass
+      REAL(8):: x(npmax),y(npmax),vx(npmax),vy(npmax),vz(npmax)
+      REAL(8):: vpara(npmax),vperp(npmax)
+      REAL(8):: profiles(0:nxmax,0:nymax,9)
+      INTEGER:: np,nx,ny
+      REAL(8):: xp,yp,fp(9),factor
+
+      profiles(0:nxmax,0:nymax,1:9)=0.D0
+      factor=DBLE(nxmax)*DBLE(nymax)/DBLE(npmax)
+
+      DO np=1,npmax
+         xp=x(np)
+         yp=y(np)
+         fp(1)=1.D0
+         fp(2)=vx(np)
+         fp(3)=vy(np)
+         fp(4)=vz(np)
+         fp(5)=vpara(np)
+         fp(6)=vperp(np)
+         fp(7)=0.5D0*mass*vpara(np)**2
+         fp(8)=0.5D0*mass*vperp(np)**2
+         fp(9)=0.5D0*mass*(vx(np)**2+vy(np)**2+vz(np)**2)
+         CALL profile_sub(nxmax,nymax,xp,yp,fp,profiles,9,model_boundary)
+      END DO
+
+      CALL profile_boundary(nxmax,nymax,profiles,9,model_boundary)
+
+      profiles(0:nxmax,0:nymax,1:9)=factor*profiles(0:nxmax,0:nymax,1:9)
+
+      DO ny=0,nymax
+         DO nx=0,nxmax
+            profiles(nx,ny,2)=profiles(nx,ny,2)/profiles(nx,ny,1)
+            profiles(nx,ny,3)=profiles(nx,ny,3)/profiles(nx,ny,1)
+            profiles(nx,ny,4)=profiles(nx,ny,4)/profiles(nx,ny,1)
+            profiles(nx,ny,5)=profiles(nx,ny,5)/profiles(nx,ny,1)
+            profiles(nx,ny,6)=profiles(nx,ny,6)/profiles(nx,ny,1)
+            profiles(nx,ny,7)=profiles(nx,ny,7)/profiles(nx,ny,1)
+            profiles(nx,ny,8)=profiles(nx,ny,8)/profiles(nx,ny,1)
+            profiles(nx,ny,9)=profiles(nx,ny,9)/profiles(nx,ny,1)
+         END DO
+      END DO
+    END subroutine profile
+
+!***********************************************************************
+    subroutine profile_sub(nxmax,nymax,xp,yp,fp,fxy,imax,model_boundary)
+!***********************************************************************
+
+      implicit none
+      real(8) :: xp, yp, fp(imax)
+      real(8), dimension(0:nxmax,0:nymax,imax) :: fxy
+      real(8) :: dx, dy, dz, sx2, sy2, sx2p, sy2p, sx2m, sy2m, dx1,dy1
+      integer :: nxmax, nymax, imax, model_boundary
+      integer:: nx, ny, nxp, nyp, nxpp, nxpm, nypp, nypm, nxppp, nyppp, i
+
+      nxp = xp
+      nyp = yp
+
+      dx  = xp - dble(nxp)
+      dy  = yp - dble(nyp)
+
+      dx1 = 1.0d0 - dx
+      dy1 = 1.0d0 - dy
+
+      if(dx .le. 0.5d0) then
+         sx2  = 3.0d0/4 - dx ** 2
+         sx2p = 1.0d0/2 * (1.0d0/2 + dx) ** 2
+         sx2m = 1.0d0/2 * (1.0d0/2 - dx) ** 2
+      else
+         sx2  = 3.0d0/4 - (1.0d0 - dx) ** 2
+         sx2p = 1.0d0/2 * (-1.0d0/2 + dx) ** 2
+         sx2m = 1.0d0/2 * (3.0d0/2 - dx) ** 2
+      endif
+      if(dy .le. 0.5d0) then
+         sy2  = 3.0d0/4 - dy ** 2
+         sy2p = 1.0d0/2 * (1.0d0/2 + dy) ** 2
+         sy2m = 1.0d0/2 * (1.0d0/2 - dy) ** 2
+      else
+         sy2  = 3.0d0/4 - (1.0d0 - dy) ** 2
+         sy2p = 1.0d0/2 * (-1.0d0/2 + dy) ** 2
+         sy2m = 1.0d0/2 * (3.0d0/2 - dy) ** 2
+      endif
+
+      nxpm = nxp - 1
+      nxpp = nxp + 1
+      nxppp= nxp + 2
+      nypm = nyp - 1
+      nypp = nyp + 1
+      nyppp= nyp + 2
+
+      IF(model_boundary.EQ.0) THEN ! periodic
+         if( nxp .eq. 0  ) nxpm = nxmax - 1
+         if( nyp .eq. 0  ) nypm = nymax - 1
+         if( nxp .eq. nxmax-1) nxppp=1
+         if( nyp .eq. nymax-1) nyppp=1
+      ELSE   ! reflective: 
+         if( nxp .eq. 0  ) nxpm = 0
+         if( nyp .eq. 0  ) nypm = 0
+         if( nxp .eq. nxmax-1) nxppp = nxmax
+         if( nyp .eq. nymax-1) nyppp = nymax
+      END IF
+
+      if(dx .le. 0.5d0 .and. dy .le. 0.5d0) then
+         DO i=1,imax
+            fxy(nxpm,nypm,i) = fxy(nxpm,nypm,i) + sx2m * sy2m * fp(i)
+            fxy(nxpm,nyp ,i) = fxy(nxpm,nyp ,i) + sx2m * sy2  * fp(i)
+            fxy(nxpm,nypp,i) = fxy(nxpm,nypp,i) + sx2m * sy2p * fp(i)
+            fxy(nxp ,nypm,i) = fxy(nxp ,nypm,i) + sx2  * sy2m * fp(i)
+            fxy(nxp ,nyp ,i) = fxy(nxp ,nyp ,i) + sx2  * sy2  * fp(i)
+            fxy(nxp ,nypp,i) = fxy(nxp ,nypp,i) + sx2  * sy2p * fp(i)
+            fxy(nxpp,nypm,i) = fxy(nxpp,nypm,i) + sx2p * sy2m * fp(i)
+            fxy(nxpp,nyp ,i) = fxy(nxpp,nyp ,i) + sx2p * sy2  * fp(i)
+            fxy(nxpp,nypp,i) = fxy(nxpp,nypp,i) + sx2p * sy2p * fp(i)
+         END DO
+      else if(dx .le. 0.5d0 .and. dy .ge. 0.5d0) then
+         DO i=1,imax
+            fxy(nxpm ,nyp  ,i) = fxy(nxpm ,nyp  ,i) + sx2m * sy2m * fp(i)
+            fxy(nxpm ,nypp ,i) = fxy(nxpm ,nypp ,i) + sx2m * sy2  * fp(i)
+            fxy(nxpm ,nyppp,i) = fxy(nxpm ,nyppp,i) + sx2m * sy2p * fp(i)
+            fxy(nxp  ,nyp  ,i) = fxy(nxp  ,nyp  ,i) + sx2  * sy2m * fp(i)
+            fxy(nxp  ,nypp ,i) = fxy(nxp  ,nypp ,i) + sx2  * sy2  * fp(i)
+            fxy(nxp  ,nyppp,i) = fxy(nxp  ,nyppp,i) + sx2  * sy2p * fp(i)
+            fxy(nxpp ,nyp  ,i) = fxy(nxpp ,nyp  ,i) + sx2p * sy2m * fp(i)
+            fxy(nxpp ,nypp ,i) = fxy(nxpp ,nypp ,i) + sx2p * sy2  * fp(i)
+            fxy(nxpp ,nyppp,i) = fxy(nxpp ,nyppp,i) + sx2p * sy2p * fp(i)
+         END DO
+      else if(dx .ge. 0.5d0 .and. dy .le. 0.5d0) then
+         DO i=1,imax
+            fxy(nxp  ,nypm,i) = fxy(nxp  ,nypm ,i) + sx2m * sy2m * fp(i)
+            fxy(nxp  ,nyp ,i) = fxy(nxp  ,nyp  ,i) + sx2m * sy2  * fp(i)
+            fxy(nxp  ,nypp,i) = fxy(nxp  ,nypp ,i) + sx2m * sy2p * fp(i)
+            fxy(nxpp ,nypm,i) = fxy(nxpp ,nypm ,i) + sx2  * sy2m * fp(i)
+            fxy(nxpp ,nyp ,i) = fxy(nxpp ,nyp  ,i) + sx2  * sy2  * fp(i)
+            fxy(nxpp ,nypp,i) = fxy(nxpp ,nypp ,i) + sx2  * sy2p * fp(i)
+            fxy(nxppp,nypm,i) = fxy(nxppp,nypm ,i) + sx2p * sy2m * fp(i)
+            fxy(nxppp,nyp ,i) = fxy(nxppp,nyp  ,i) + sx2p * sy2  * fp(i)
+            fxy(nxppp,nypp,i) = fxy(nxppp,nypp ,i) + sx2p * sy2p * fp(i)
+         END DO
+      else 
+         DO i=1,imax
+            fxy(nxp  ,nyp  ,i) = fxy(nxp  ,nyp  ,i) + sx2m * sy2m * fp(i)
+            fxy(nxp  ,nypp ,i) = fxy(nxp  ,nypp ,i) + sx2m * sy2  * fp(i)
+            fxy(nxp  ,nyppp,i) = fxy(nxp  ,nyppp,i) + sx2m * sy2p * fp(i)
+            fxy(nxpp ,nyp  ,i) = fxy(nxpp ,nyp  ,i) + sx2  * sy2m * fp(i)
+            fxy(nxpp ,nypp ,i) = fxy(nxpp ,nypp ,i) + sx2  * sy2  * fp(i)
+            fxy(nxpp ,nyppp,i) = fxy(nxpp ,nyppp,i) + sx2  * sy2p * fp(i)
+            fxy(nxppp,nyp  ,i) = fxy(nxppp,nyp  ,i) + sx2p * sy2m * fp(i)
+            fxy(nxppp,nypp ,i) = fxy(nxppp,nypp ,i) + sx2p * sy2  * fp(i)
+            fxy(nxppp,nyppp,i) = fxy(nxppp,nyppp,i) + sx2p * sy2p * fp(i)
+         END DO
+      endif
+    END subroutine profile_sub
+
+!***********************************************************************
+    subroutine profile_boundary(nxmax,nymax,fxy,imax,model_boundary)
+!***********************************************************************
+
+      implicit none
+      INTEGER:: nxmax,nymax,imax,model_boundary
+      real(8), dimension(0:nxmax,0:nymax,imax) :: fxy
+      integer:: nx, ny, i
+
+      IF(model_boundary.EQ.0) THEN  ! periodic
+         DO i=1,imax
+            DO ny = 0, nymax
+               fxy(0,ny,i) = fxy(0,ny,i) + fxy(nxmax,ny,i)
+               fxy(nxmax,ny,i) = fxy(0,ny,i)
+            END DO
+         END DO
+         DO i=1,imax
+            DO nx = 0, nxmax
+               fxy(nx,0,i) = fxy(nx,0,i) + fxy(nx,nymax,i)
+               fxy(nx,nymax,i) = fxy(nx,0,i)
+            END DO
+         END DO
+      ELSE                         ! reflecting
+         DO i=1,imax
+            DO ny = 0, nymax
+               fxy(0,ny,i)     = 2.D0 * fxy(0,ny,i)
+               fxy(nxmax,ny,i) = 2.D0 * fxy(nxmax,ny,i)
+            END DO
+         END DO
+         DO nx = 1, nxmax-1
+            DO i=1,imax
+               fxy(nx,0,i)     = 2.D0 * fxy(nx,0,i)
+               fxy(nx,nymax,i) = 2.D0 * fxy(nx,nymax,i)
+            END DO
+         END DO
+      END IF
+
+    END subroutine profile_boundary
+    
 END Module picexec
