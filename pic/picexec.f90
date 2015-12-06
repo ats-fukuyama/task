@@ -72,7 +72,7 @@ CONTAINS
           call poisson_m(nxmax1,nymax1,rho,phi,ipssn, &
                          model_matrix0,model_matrix1,model_matrix2, &
                          tolerance_matrix)
-       END IF
+n       END IF
 
        !----- current assignment
        jx(:,:)=0.d0
@@ -1090,7 +1090,7 @@ CONTAINS
         Ay(nx,ny) = dt ** 2 * vcfact ** 2 * (Ayb(nxp,ny) + Ayb(nxm,ny) &
                                            + Ayb(nx,nyp) + Ayb(nx,nym) &
                                            - 4.0d0 * Ayb(nx,ny)) &
-                  + dt ** 2 * jy(nx,ny) &
+                 + dt ** 2 * jy(nx,ny) &
                   - 0.5d0 * dt * (phi(nx,nyp) - phib(nx,nyp) &
                                 - phi(nx,nym) + phib(nx,nym)) &
                   + 2.0d0 * Ayb(nx,ny) - Aybb(nx,ny) 
