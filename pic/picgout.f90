@@ -17,6 +17,7 @@ CONTAINS
     CHARACTER(LEN=2):: kch
     CHARACTER(LEN=80):: line
     REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: work
+    REAL(rkind),ALLOCATABLE,DIMENSION(:,:,:):: workp
     REAL(rkind),ALLOCATABLE,DIMENSION(:):: x,y,vtote,vtoti
     REAL(rkind):: WORK_RGB(3,1)
     REAL(rkind):: aspect,vtotemax,vtotimax
@@ -43,7 +44,7 @@ CONTAINS
 1   CONTINUE
     err=0
     WRITE(6,'(A)') &
-         '#### PIC GOUT: T1 E1-8 F1 O1 X/exit'
+         '#### PIC GOUT: T1 E1-8 F1 O1-2 P1-4 X/exit'
     CALL TASK_KLIN(line,kid,mode,pic_parm)
     IF(mode == 2 .OR. mode == 3) GOTO 1
 
@@ -229,6 +230,96 @@ CONTAINS
           CALL PAGEE
        END DO
        DEALLOCATE(work)
+    CASE('P1')
+       ALLOCATE(workp(0:nxmax,ntpmax,9))
+       CALL PAGES
+       CALL sum_over_y(nxmax,nymax,ntpmax,profilee,workp)
+       CALL GRD1D( 5,x,workp(0:nxmax,1:ntpmax,1),nxmax1,nxmax1,ntpmax, &
+                       '@ne(x)@')
+       CALL GRD1D( 8,x,workp(0:nxmax,1:ntpmax,2),nxmax1,nxmax1,ntpmax, &
+                       '@vxe(x)@')
+       CALL GRD1D( 9,x,workp(0:nxmax,1:ntpmax,3),nxmax1,nxmax1,ntpmax, &
+                       '@vye(x)@')
+       CALL GRD1D(10,x,workp(0:nxmax,1:ntpmax,4),nxmax1,nxmax1,ntpmax, &
+                       '@vze(x)@')
+       CALL GRD1D( 6,x,workp(0:nxmax,1:ntpmax,5),nxmax1,nxmax1,ntpmax, &
+                       '@vparae(x)@')
+       CALL GRD1D( 7,x,workp(0:nxmax,1:ntpmax,6),nxmax1,nxmax1,ntpmax, &
+                       '@vperpe(x)@')
+       CALL GRD1D(11,x,workp(0:nxmax,1:ntpmax,7),nxmax1,nxmax1,ntpmax, &
+                       '@Tparae(x)@')
+       CALL GRD1D(12,x,workp(0:nxmax,1:ntpmax,8),nxmax1,nxmax1,ntpmax, &
+                       '@Tperpe(x)@')
+       CALL GRD1D(13,x,workp(0:nxmax,1:ntpmax,9),nxmax1,nxmax1,ntpmax, &
+                       '@Te(x)@')
+       CALL PAGEE
+       DEALLOCATE(workp)
+    CASE('P2')
+       CALL PAGES
+       CALL GRD2D( 5,x,y,profilee(0:nxmax,0:nymax,1,ntpmax), &
+                     nxmax1,nxmax1,nymax1,'@ne(x,y)@',ASPECT=aspect)
+       CALL GRD2D( 8,x,y,profilee(0:nxmax,0:nymax,2,ntpmax), &
+                     nxmax1,nxmax1,nymax1,'@vxe(x,y)@',ASPECT=aspect)
+       CALL GRD2D( 9,x,y,profilee(0:nxmax,0:nymax,3,ntpmax), &
+                     nxmax1,nxmax1,nymax1,'@vye(x,y)@',ASPECT=aspect)
+       CALL GRD2D(10,x,y,profilee(0:nxmax,0:nymax,4,ntpmax), &
+                     nxmax1,nxmax1,nymax1,'@vze(x,y)@',ASPECT=aspect)
+       CALL GRD2D( 6,x,y,profilee(0:nxmax,0:nymax,5,ntpmax), &
+                     nxmax1,nxmax1,nymax1,'@vparae(x,y)@',ASPECT=aspect)
+       CALL GRD2D( 7,x,y,profilee(0:nxmax,0:nymax,6,ntpmax), &
+                     nxmax1,nxmax1,nymax1,'@vperpe(x,y)@',ASPECT=aspect)
+       CALL GRD2D(11,x,y,profilee(0:nxmax,0:nymax,7,ntpmax), &
+                     nxmax1,nxmax1,nymax1,'@Tparae(x,y)@',ASPECT=aspect)
+       CALL GRD2D(12,x,y,profilee(0:nxmax,0:nymax,8,ntpmax), &
+                     nxmax1,nxmax1,nymax1,'@Tperpe(x,y)@',ASPECT=aspect)
+       CALL GRD2D(13,x,y,profilee(0:nxmax,0:nymax,9,ntpmax), &
+                     nxmax1,nxmax1,nymax1,'@Te(x,y)@',ASPECT=aspect)
+       CALL PAGEE
+    CASE('P3')
+       ALLOCATE(workp(0:nxmax,ntpmax,9))
+       CALL PAGES
+       CALL sum_over_y(nxmax,nymax,ntpmax,profilei,workp)
+       CALL GRD1D( 5,x,workp(0:nxmax,1:ntpmax,1),nxmax1,nxmax1,ntpmax, &
+                       '@ne(x)@')
+       CALL GRD1D( 8,x,workp(0:nxmax,1:ntpmax,2),nxmax1,nxmax1,ntpmax, &
+                       '@vxe(x)@')
+       CALL GRD1D( 9,x,workp(0:nxmax,1:ntpmax,3),nxmax1,nxmax1,ntpmax, &
+                       '@vye(x)@')
+       CALL GRD1D(10,x,workp(0:nxmax,1:ntpmax,4),nxmax1,nxmax1,ntpmax, &
+                       '@vze(x)@')
+       CALL GRD1D( 6,x,workp(0:nxmax,1:ntpmax,5),nxmax1,nxmax1,ntpmax, &
+                       '@vparae(x)@')
+       CALL GRD1D( 7,x,workp(0:nxmax,1:ntpmax,6),nxmax1,nxmax1,ntpmax, &
+                       '@vperpe(x)@')
+       CALL GRD1D(11,x,workp(0:nxmax,1:ntpmax,7),nxmax1,nxmax1,ntpmax, &
+                       '@Tparae(x)@')
+       CALL GRD1D(12,x,workp(0:nxmax,1:ntpmax,8),nxmax1,nxmax1,ntpmax, &
+                       '@Tperpe(x)@')
+       CALL GRD1D(13,x,workp(0:nxmax,1:ntpmax,9),nxmax1,nxmax1,ntpmax, &
+                       '@Te(x)@')
+       CALL PAGEE
+       DEALLOCATE(workp)
+    CASE('P4')
+       CALL PAGES
+       CALL GRD2D( 5,x,y,profilei(0:nxmax,0:nymax,1,ntpmax), &
+                     nxmax1,nxmax1,nymax1,'@ne(x,y)@',ASPECT=aspect)
+       CALL GRD2D( 8,x,y,profilei(0:nxmax,0:nymax,2,ntpmax), &
+                     nxmax1,nxmax1,nymax1,'@vxe(x,y)@',ASPECT=aspect)
+       CALL GRD2D( 9,x,y,profilei(0:nxmax,0:nymax,3,ntpmax), &
+                     nxmax1,nxmax1,nymax1,'@vye(x,y)@',ASPECT=aspect)
+       CALL GRD2D(10,x,y,profilei(0:nxmax,0:nymax,4,ntpmax), &
+                     nxmax1,nxmax1,nymax1,'@vze(x,y)@',ASPECT=aspect)
+       CALL GRD2D( 6,x,y,profilei(0:nxmax,0:nymax,5,ntpmax), &
+                     nxmax1,nxmax1,nymax1,'@vparae(x,y)@',ASPECT=aspect)
+       CALL GRD2D( 7,x,y,profilei(0:nxmax,0:nymax,6,ntpmax), &
+                     nxmax1,nxmax1,nymax1,'@vperpe(x,y)@',ASPECT=aspect)
+       CALL GRD2D(11,x,y,profilei(0:nxmax,0:nymax,7,ntpmax), &
+                     nxmax1,nxmax1,nymax1,'@Tparae(x,y)@',ASPECT=aspect)
+       CALL GRD2D(12,x,y,profilei(0:nxmax,0:nymax,8,ntpmax), &
+                     nxmax1,nxmax1,nymax1,'@Tperpe(x,y)@',ASPECT=aspect)
+       CALL GRD2D(13,x,y,profilei(0:nxmax,0:nymax,9,ntpmax), &
+                     nxmax1,nxmax1,nymax1,'@Te(x,y)@',ASPECT=aspect)
+       CALL PAGEE
     CASE('X') 
        GO TO 9000
     END SELECT
@@ -238,4 +329,28 @@ CONTAINS
     DEALLOCATE(x,y)
     RETURN
   END SUBROUTINE pic_gout
+
+!----- 
+
+  SUBROUTINE sum_over_y(nxmax,nymax,ntpmax,fxy,fx)
+
+    IMPLICIT NONE
+    INTEGER:: nxmax,nymax,ntpmax
+    REAL(8):: fxy(0:nxmax,0:nymax,9,ntpmax),fx(0:nxmax,ntpmax,9)
+    INTEGER:: nx,ny,ntp,i
+
+    DO i=1,9
+       DO ntp=1,ntpmax
+          DO nx=0,nxmax
+             fx(nx,ntp,i)=0.5D0*(fxy(nxmax,0,i,ntpmax) &
+                                +fxy(nxmax,nymax,i,ntpmax))
+             DO ny=1,nymax-1
+                fx(nx,ntp,i)=fx(nx,ntp,i)+fxy(nxmax,ny,i,ntpmax)
+             END DO
+             fx(nx,ntp,i)=fx(nx,ntp,i)/DBLE(nymax)
+          END DO
+       END DO
+    END DO
+  END SUBROUTINE sum_over_y
+
 END Module picgout

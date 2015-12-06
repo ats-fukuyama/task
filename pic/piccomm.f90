@@ -40,6 +40,9 @@ MODULE piccomm
   REAL(rkind),ALLOCATABLE,DIMENSION(:):: timet,akinet,akinit,aktott
   REAL(rkind),ALLOCATABLE,DIMENSION(:):: atott,apotet,apotmt,aptott
 
+  REAL(rkind),ALLOCATABLE,DIMENSION(:):: timep
+  REAL(rkind),ALLOCATABLE,DIMENSION(:,:,:,:):: profilee,profilei
+
   REAL(8) :: ctome, ctomi, &
              vte, vti,     &
              akine , akini , aktot , apote,  apotm , aptot , atot , &
