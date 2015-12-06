@@ -30,11 +30,11 @@ CONTAINS
 
       npxmax = 100
       npymax = 100
-      nxmax = 128
-      nymax = 128
-      ntmax = 1000
-      ntstep= 1
-      ntgstep= 1
+      nxmax = 50
+      nymax = 50
+      ntmax = 3000
+      ntstep= 100
+      ntgstep= 100
       ntpstep= 100
       npomax = 0
       npostep= 1
@@ -48,6 +48,7 @@ CONTAINS
       chrgi  =    1.0d0     !: ion charge
       te     =    1.0d0     !: electron temperature
       ti     =    1.0d0     !: ion temperature
+      densx  =    0.0d0     !: x density gradient
       bxmin  =    0.0d0     !: max value of background x magnetic flux density
       bxmax  =    0.0d0     !: min value of background x magnetic flux density
       bymin  =    0.0d0     !: min value of background y magnetic flux density
