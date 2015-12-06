@@ -24,6 +24,7 @@ CONTAINS
 !............. ntgstep: global date save interval                .......
 !............. ntpstep: profile date save interval               .......
 !............. npomax : number of particles to follow orbits     .......
+!............. npostep: particle data save internal (1,1+npostep,...)...
 !............. ntpstep: orbit data save interval                 .......
 !.......................................................................
 
@@ -36,6 +37,7 @@ CONTAINS
       ntgstep= 1
       ntpstep= 100
       npomax = 0
+      npostep= 1
       ntostep= 1
 
 !----- set some parameters -------------------------------
@@ -63,6 +65,13 @@ CONTAINS
       phzant =    0.0d0     ! initial phase of jzant
 !---------------------------------------------------------
 
+      model_push = 15       ! force to push particles
+                            !   0: no force
+                            !   1: electrostatic E field
+                            !   2: electromagnetic E field
+                            !   4: static magnetic B field
+                            !   8: electromagnetic B field
+                            !  15: all field
       model_boundary = 0    ! boundary condition 
                             !   0: periodic boundary
                             !   1: conducting wall and particle reflection

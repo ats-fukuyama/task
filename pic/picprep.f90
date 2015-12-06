@@ -23,6 +23,7 @@ CONTAINS
       nxmax1 = nxmax + 1
       nymax1 = nymax + 1
       nxymax = nxmax1 * nymax1
+      nzmax  = MIN(nxmax,nymax)
 
       ctome  = chrge / me       !: charge to mass ratio of electrons
       ctomi  = chrgi / mi       !: charge to mass ratio of ions
@@ -39,7 +40,7 @@ CONTAINS
       !..... constants to define boundary condition
       alx = dble(nxmax)
       aly = dble(nymax)
-      alz = 1.D0
+      alz = dble(nzmax)
       x1  = eps 
       x2  = alx - eps
       y1  = eps 
@@ -53,11 +54,11 @@ CONTAINS
       CALL pic_allocate
 
       !..... set initial positions and velocities of electrons 
-      call iniset(npmax,npxmax,npymax,nxmax,nymax, &
+      call iniset(npmax,npxmax,npymax,nxmax,nymax,nzmax, &
                   xe,ye,ze,xeb,yeb,zeb,vxe,vye,vze,vte,dt,iran)
 
       !..... set initial positions and velocities of ions 
-      call iniset(npmax,npxmax,npymax,nxmax,nymax, &
+      call iniset(npmax,npxmax,npymax,nxmax,nymax,nzmax, &
                   xi,yi,zi,xib,yib,zib,vxi,vyi,vzi,vti,dt,iran)
 
       !..... initialize scalar potential by poisson solver
@@ -80,21 +81,23 @@ CONTAINS
          END DO
       END DO
 
-      !Ax(:,:) = 0.0d0
-      !Ay(:,:) = 0.0d0
-      !Az(:,:) = 0.0d0
-      !Axb(:,:) = 0.0d0
-      !Ayb(:,:) = 0.0d0
-      !Azb(:,:) = 0.0d0
-      !phi(:,:) = 0.0d0
+      Ax(:,:) = 0.0d0
+      Ay(:,:) = 0.0d0
+      Az(:,:) = 0.0d0
+      Axb(:,:) = 0.0d0
+      Ayb(:,:) = 0.0d0
+      Azb(:,:) = 0.0d0
+      phi(:,:) = 0.0d0
 
        !.......... calculate ex and ey and ez
        call efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
-                               ex,ey,ez,esx,esy,esz,emx,emy,emz,model_boundary)
+                               ex,ey,ez,esx,esy,esz,emx,emy,emz, &
+                               model_push,model_boundary)
 
        !.......... calculate bx and by and bz
        call bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
-                               bx,by,bz,bxbg,bybg,bzbg,bb,model_boundary)
+                               bx,by,bz,bxbg,bybg,bzbg,bb, &
+                               model_push,model_boundary)
       do np=1,npmax
          vparae(np)=vxe(np)
          vperpe(np)=SQRT(vye(np)**2+vze(np)**2)
@@ -130,17 +133,18 @@ CONTAINS
   END SUBROUTINE pic_prep
 
 !***********************************************************************
-      subroutine iniset(npmax,npxmax,npymax,nxmax,nymax, &
+      subroutine iniset(npmax,npxmax,npymax,nxmax,nymax,nzmax, &
                         x,y,z,xb,yb,zb,vx,vy,vz,vt,dt,iran)
 !***********************************************************************
       implicit none
       real(8), dimension(npmax) :: x, y, z, xb, yb, zb, vx, vy, vz
-      integer :: npmax, npxmax, npymax, nxmax, nymax, iran
-      real(8) :: vt, dt, factx, facty, rvx, rvy, rvz
+      integer :: npmax, npxmax, npymax, nxmax, nymax, nzmax, iran
+      real(8) :: vt, dt, factx, facty, factz, rvx, rvy, rvz
       integer :: npx, npy, np
 
       factx = dble(nxmax) / dble(npxmax)
       facty = dble(nymax) / dble(npymax)
+      factz = 0.5D0 * dble(nzmax)
 
       np = 0
       do npy = 1, npymax
@@ -148,7 +152,7 @@ CONTAINS
          np  = np + 1
          x(np) = ( dble(npx) - 0.5d0 ) * factx
          y(np) = ( dble(npy) - 0.5d0 ) * facty
-         z(np) = 0.D0
+         z(np) = factz
 
          call gauss(rvx,rvy,rvz,iran)
          vx(np) = rvx * vt 

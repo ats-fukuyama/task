@@ -17,7 +17,7 @@ CONTAINS
     INCLUDE 'mpif.h'
     INTEGER,INTENT(OUT):: iout
     REAL(8)::abc,sum
-    INTEGER:: nx,ny,nt,locv
+    INTEGER:: nx,ny,nt,locv,npo,np
     INTEGER,DIMENSION(:),ALLOCATABLE:: locva
     REAL(8),DIMENSION(:,:),ALLOCATABLE:: suma
 
@@ -123,11 +123,12 @@ CONTAINS
        endif
        !.......... calculate ex and ey and ez
        call efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
-            ex,ey,ez,esx,esy,esz,emx,emy,emz,model_boundary)
+            ex,ey,ez,esx,esy,esz,emx,emy,emz,model_push,model_boundary)
 
        !.......... calculate bxg and byg and bzg
        call bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
-                               bx,by,bz,bxbg,bybg,bzbg,bb,model_boundary)
+                               bx,by,bz,bxbg,bybg,bzbg,bb, &
+                               model_push,model_boundary)
        if( mod(nt,ntgstep) .eq. 0 ) then
           call kine(npmax,vxe,vye,vze,akine1,me)
           call kine(npmax,vxi,vyi,vzi,akini1,mi)
@@ -146,33 +147,36 @@ CONTAINS
        !..... push electrons
        call push(npmax,nxmax,nymax,xe,ye,ze,vxe,vye,vze, &
                  ex,ey,ez,bx,by,bz,dt,ctome,xeb,yeb,zeb, &
-                 phi,phib,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
                  vparae,vperpe,model_boundary)
          
        !..... push ions
        call push(npmax,nxmax,nymax,xi,yi,zi,vxi,vyi,vzi, &
                  ex,ey,ez,bx,by,bz,dt,ctomi,xib,yib,zib, &
-                 phi,phib,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
                  vparai,vperpi,model_boundary)
 
        !----- treat particles being out of the boundary
 
        if(model_boundary .eq. 0) then
-          call bound_periodic(npmax,xe,ye,x1,x2,y1,y2,alx,aly)
-          call bound_periodic(npmax,xi,yi,x1,x2,y1,y2,alx,aly)
+          call bound_periodic(npmax,xe,ye,ze,x1,x2,y1,y2,z1,z2,alx,aly,alz)
+          call bound_periodic(npmax,xi,yi,zi,x1,x2,y1,y2,z1,z2,alx,aly,alz)
        else
-          call bound_reflective(npmax,xe,ye,vxe,vye,x1,x2,y1,y2,alx,aly)
-          call bound_reflective(npmax,xi,yi,vxi,vyi,x1,x2,y1,y2,alx,aly)
+          call bound_reflective(npmax,xe,ye,ze,vxe,vye, &
+                                x1,x2,y1,y2,z1,z2,alx,aly,alz)
+          call bound_reflective(npmax,xi,yi,zi,vxi,vyi, &
+                                x1,x2,y1,y2,z1,z2,alx,aly,alz)
        endif
 
        IF(npomax.GT.0) THEN
           ntocount=ntocount+1
-          xpo(1:npomax,ntocount)=xe(1:npomax)
-          ypo(1:npomax,ntocount)=ye(1:npomax)
-          zpo(1:npomax,ntocount)=ze(1:npomax)
-          vxpo(1:npomax,ntocount)=vxe(1:npomax)
-          vypo(1:npomax,ntocount)=vye(1:npomax)
-          vzpo(1:npomax,ntocount)=vze(1:npomax)
+          DO npo=1,npomax
+             np=1+npostep*(npo-1)
+             xpo(npo,ntocount)=xe(np)
+             ypo(npo,ntocount)=ye(np)
+             zpo(npo,ntocount)=ze(np)
+             vxpo(npo,ntocount)=vxe(np)
+             vypo(npo,ntocount)=vye(np)
+             vzpo(npo,ntocount)=vze(np)
+          END DO
        END IF
 
 
@@ -339,13 +343,11 @@ CONTAINS
       
 !***********************************************************************
   subroutine push(npmax,nxmax,nymax,x,y,z,vx,vy,vz,ex,ey,ez,bx,by,bz,dt,&
-                  ctom,xb,yb,zb,phi,phib,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
-                  vpara,vperp,model_boundary)
+                  ctom,xb,yb,zb,vpara,vperp,model_boundary)
 !***********************************************************************
     implicit none
     real(8), dimension(npmax) :: x, y, z, xb, yb, zb
     real(8), dimension(npmax) :: vx, vy, vz, vpara, vperp
-    real(8), dimension(0:nxmax,0:nymax) :: phi,phib,Axb,Ayb,Azb,Axbb,Aybb,Azbb
     real(8), dimension(0:nxmax,0:nymax) :: ex, ey, ez, bx, by, bz
     real(8) :: ctom, dx, dy, dx1, dy1, dt, exx, eyy, ezz, bxx,&
                byy, bzz, vxn, vyn, vzn, vxzero, vyzero, vzzero, vxp, vyp,&
@@ -574,11 +576,11 @@ CONTAINS
   end subroutine push
 
 !***********************************************************************
-    subroutine bound_periodic(npmax,x,y,x1,x2,y1,y2,alx,aly)
+    subroutine bound_periodic(npmax,x,y,z,x1,x2,y1,y2,z1,z2,alx,aly,alz)
 !***********************************************************************
       implicit none
-      real(8), dimension(npmax) :: x, y
-      real(8) :: alx, aly, x1, x2, y1, y2
+      real(8), dimension(npmax) :: x, y, z
+      real(8) :: alx, aly, alz, x1, x2, y1, y2, z1, z2
       integer :: npmax, np
 
       do np = 1, npmax
@@ -602,25 +604,26 @@ CONTAINS
             end do
          endif
 
-         !if( z(np) .lt. z1 ) then
-         !   do while(z(np) .lt. z1)
-         !      z(np) = z(np) + alz
-         !   end do
-         !elseif( z(np) .gt. z2 ) then
-         !   do while(z(np) .gt. z2)
-         !      z(np) = z(np) - alz
-         !   end do
-         !endif
+         if( z(np) .lt. z1 ) then
+            do while(z(np) .lt. z1)
+               z(np) = z(np) + alz
+            end do
+         elseif( z(np) .gt. z2 ) then
+            do while(z(np) .gt. z2)
+               z(np) = z(np) - alz
+            end do
+         endif
       end do
 
     end subroutine bound_periodic
 
 !***********************************************************************
-    subroutine bound_reflective(npmax,x,y,vx,vy,x1,x2,y1,y2,alx,aly)
+    subroutine bound_reflective(npmax,x,y,z,vx,vy, &
+                                x1,x2,y1,y2,z1,z2,alx,aly,alz)
 !***********************************************************************
       implicit none
-      real(8), dimension(npmax) :: x, y, vx, vy
-      real(8) :: x1, x2, y1, y2, alx, aly
+      real(8), dimension(npmax) :: x, y, z, vx, vy
+      real(8) :: x1, x2, y1, y2, z1, z2, alx, aly, alz
       integer :: npmax, np
 
       do np = 1, npmax
@@ -640,15 +643,15 @@ CONTAINS
             vy(np) = -vy(np)
          endif
 
-         !if( z(np) .lt. z1 ) then
-         !   do while(z(np) .lt. z1)
-         !      z(np) = z(np) + alz
-         !   end do
-         !elseif( z(np) .gt. z2 ) then
-         !   do while(z(np) .gt. z2)
-         !      z(np) = z(np) - alz
-         !   end do
-         !endif
+         if( z(np) .lt. z1 ) then
+            do while(z(np) .lt. z1)
+               z(np) = z(np) + alz
+            end do
+         elseif( z(np) .gt. z2 ) then
+            do while(z(np) .gt. z2)
+               z(np) = z(np) - alz
+            end do
+         endif
       end do
 
     end subroutine bound_reflective

@@ -245,13 +245,16 @@ CONTAINS
 
 !***********************************************************************
     subroutine efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
-                      ex,ey,ez,esx,esy,esz,emx,emy,emz,model_boundary)
+                      ex,ey,ez,esx,esy,esz,emx,emy,emz, &
+                      model_push,model_boundary)
 !***********************************************************************
       implicit none
       real(8), dimension(0:nxmax,0:nymax) ::  &
            phi,Ax,Ay,Az,Axb,Ayb,Azb,ex,ey,ez,esx,esy,esz,emx,emy,emz
       real(8):: dt
-      integer :: nxmax, nymax, nx, ny, nxm, nxp, nym, nyp,model_boundary
+      integer :: nxmax, nymax, nx, ny, nxm, nxp, nym, nyp
+      INTEGER:: model_push, model_boundary
+
       if(model_boundary .eq. 0) then
          do nx = 0, nymax
          do ny = 0, nxmax
@@ -271,12 +274,9 @@ CONTAINS
             emx(nx,ny) = - ( Ax(nx,ny) - Axb(nx,ny) ) / dt
             emy(nx,ny) = - ( Ay(nx,ny) - Ayb(nx,ny) ) / dt
             emz(nx,ny) = - ( Az(nx,ny) - Azb(nx,ny) ) / dt
-            ex(nx,ny) = esx(nx,ny) + emx(nx,ny)
-            ey(nx,ny) = esy(nx,ny) + emy(nx,ny)
-            ez(nx,ny) = esz(nx,ny) + emz(nx,ny)
 
-       end do
-       end do
+         end do
+         end do
      else if (model_boundary .ne. 0) then
          do nx = 0, nymax
          do ny = 0, nxmax
@@ -307,26 +307,47 @@ CONTAINS
             emx(nx,ny) = - ( Ax(nx,ny) - Axb(nx,ny) ) / dt
             emy(nx,ny) = - ( Ay(nx,ny) - Ayb(nx,ny) ) / dt
             emz(nx,ny) = - ( Az(nx,ny) - Azb(nx,ny) ) / dt
-            ex(nx,ny) = esx(nx,ny) + emx(nx,ny)
-            ey(nx,ny) = esy(nx,ny) + emy(nx,ny)
-            ez(nx,ny) = esz(nx,ny) + emz(nx,ny)
 
        end do
        end do
     end if
+
+    IF(MOD(model_push/2,2).EQ.0) THEN
+       IF(MOD(model_push,2).EQ.0) THEN
+          ex(0:nxmax,0:nymax) = 0.D0
+          ey(0:nxmax,0:nymax) = 0.D0
+          ez(0:nxmax,0:nymax) = 0.D0
+       ELSE
+          ex(0:nxmax,0:nymax) = esx(0:nxmax,0:nymax)
+          ey(0:nxmax,0:nymax) = esy(0:nxmax,0:nymax)
+          ez(0:nxmax,0:nymax) = esz(0:nxmax,0:nymax)
+       END IF
+    ELSE
+       IF(MOD(model_push,2).EQ.0) THEN
+          ex(0:nxmax,0:nymax) = emx(0:nxmax,0:nymax)
+          ey(0:nxmax,0:nymax) = emy(0:nxmax,0:nymax)
+          ez(0:nxmax,0:nymax) = emz(0:nxmax,0:nymax)
+       ELSE
+          ex(0:nxmax,0:nymax) = esx(0:nxmax,0:nymax) + emx(0:nxmax,0:nymax)
+          ey(0:nxmax,0:nymax) = esy(0:nxmax,0:nymax) + emy(0:nxmax,0:nymax)
+          ez(0:nxmax,0:nymax) = esz(0:nxmax,0:nymax) + emz(0:nxmax,0:nymax)
+       END IF
+    END IF
      end subroutine efield
 
 !***********************************************************************
     subroutine bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
                                   bx,by,bz,bxbg,bybg,bzbg,bb, &
-                                  model_boundary)
+                                  model_push,model_boundary)
 !***********************************************************************
       implicit none
       real(8), dimension(0:nymax) :: bxnab,bznab
       real(8), dimension(0:nxmax) :: bynab
       real(8), dimension(0:nxmax,0:nymax) :: bx,by,bz,bxbg,bybg,bzbg,bb
       real(8), dimension(0:nxmax,0:nymax) :: Ax,Ay,Az,Axb,Ayb,Azb
-      integer :: nxmax, nymax, nx, ny, nxp, nyp, nxm, nym, model_boundary
+      integer :: nxmax, nymax, nx, ny, nxp, nyp, nxm, nym
+      INTEGER:: model_push, model_boundary
+
       if(model_boundary .eq. 0) then
          do ny = 0, nymax
          do nx = 0, nxmax
@@ -341,19 +362,18 @@ CONTAINS
             if( ny .eq. nymax ) nyp = 1
          
             bx(nx,ny) = 0.25d0 * (Az(nx,nyp) + Azb(nx,nyp) &
-                      - Az(nx,nym) - Azb(nx,nym)) + bxbg(nx,ny)
+                      - Az(nx,nym) - Azb(nx,nym))
             by(nx,ny) = 0.25d0 * (Az(nxp,ny) + Azb(nxp,ny) &
-                      - Az(nxm,ny) - Azb(nxm,ny)) + bybg(nx,ny)
+                      - Az(nxm,ny) - Azb(nxm,ny))
             bz(nx,ny) = 0.25d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
                       - Ay(nxm,ny) - Ayb(nxm,ny) &
                       - (Ax(nx,nyp) + Axb(nx,nyp) &
-                      -Ax(nx,nym) - Axb(nx,nym)))+ bzbg(nx,ny)
-            bb(nx,ny) = SQRT(bx(nx,ny)**2+by(nx,ny)**2+bz(nx,ny)**2)
+                      -Ax(nx,nym) - Axb(nx,nym)))
          end do
          end do
-         elseif(model_boundary .ne. 0) then
-       do ny = 0, nymax
-       do nx = 0, nxmax
+      elseif(model_boundary .ne. 0) then
+         do ny = 0, nymax
+         do nx = 0, nxmax
             nxm = nx - 1
             nxp = nx + 1
             nym = ny - 1
@@ -365,25 +385,50 @@ CONTAINS
             if( ny .eq. nymax ) nyp = nymax
          
             bx(nx,ny) = 0.25d0 * (Az(nx,nyp) + Azb(nx,nyp) &
-                      - Az(nx,nym) - Azb(nx,nym)) + bxbg(nx,ny)
+                      - Az(nx,nym) - Azb(nx,nym))
             by(nx,ny) = 0.25d0 * (Az(nxp,ny) + Azb(nxp,ny) &
-                      - Az(nxm,ny) - Azb(nxm,ny)) + bybg(nx,ny)
-            if(nx .eq. 0 .or. nx .eq. nxmax .or. ny .eq. 0 .or. ny .eq. nymax) then
+                      - Az(nxm,ny) - Azb(nxm,ny))
+            if(nx .eq. 0 .or. nx .eq. nxmax .or. &
+               ny .eq. 0 .or. ny .eq. nymax) then
             bz(nx,ny) = 0.5d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
                       - Ay(nxm,ny) - Ayb(nxm,ny) &
                       - (Ax(nx,nyp) + Axb(nx,nyp) &
-                      -Ax(nx,nym) - Axb(nx,nym)))+ bzbg(nx,ny)
+                      -Ax(nx,nym) - Axb(nx,nym)))
             else
             bz(nx,ny) = 0.25d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
                       - Ay(nxm,ny) - Ayb(nxm,ny) &
                       - (Ax(nx,nyp) + Axb(nx,nyp) &
-                      -Ax(nx,nym) - Axb(nx,nym)))+ bzbg(nx,ny)
+                      -Ax(nx,nym) - Axb(nx,nym)))
             end if
-            bb(nx,ny) = SQRT(bx(nx,ny)**2+by(nx,ny)**2+bz(nx,ny)**2)
         end do
         end do
      endif 
-    end subroutine bfield
+
+     IF(MOD(model_push/8,2).EQ.0) THEN
+       IF(MOD(model_push/4,2).EQ.0) THEN
+          bx(0:nxmax,0:nymax) = 0.D0
+          by(0:nxmax,0:nymax) = 0.D0
+          bz(0:nxmax,0:nymax) = 0.D0
+       ELSE
+          bx(0:nxmax,0:nymax) = bxbg(0:nxmax,0:nymax)
+          by(0:nxmax,0:nymax) = bybg(0:nxmax,0:nymax)
+          bz(0:nxmax,0:nymax) = bzbg(0:nxmax,0:nymax)
+       END IF
+    ELSE
+       IF(MOD(model_push/4,2).EQ.0) THEN
+          CONTINUE
+       ELSE
+          bx(0:nxmax,0:nymax) = bx(0:nxmax,0:nymax) + bxbg(0:nxmax,0:nymax)
+          by(0:nxmax,0:nymax) = by(0:nxmax,0:nymax) + bybg(0:nxmax,0:nymax)
+          bz(0:nxmax,0:nymax) = bz(0:nxmax,0:nymax) + bzbg(0:nxmax,0:nymax)
+       END IF
+    END IF
+
+    bb(0:nxmax,0:nymax) = SQRT(bx(0:nxmax,0:nymax)**2 &
+                              +by(0:nxmax,0:nymax)**2 &
+                              +bz(0:nxmax,0:nymax)**2)
+
+  end subroutine bfield
 
 !***********************************************************************
     subroutine kine(npmax,vx,vy,vz,akin,mass)

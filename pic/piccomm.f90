@@ -7,8 +7,8 @@ MODULE piccomm_parm
   USE bpsd_constants
 
   INTEGER:: npxmax,npymax,nxmax,nymax,ntmax,ntstep,ntgstep,ntpstep
-  INTEGER:: npomax,ntostep
-  INTEGER:: model_boundary,model_antenna,model_wg
+  INTEGER:: npomax,npostep,ntostep
+  INTEGER:: model_push,model_boundary,model_antenna,model_wg
   INTEGER:: model_matrix0,model_matrix1,model_matrix2
   REAL(rkind):: dt,me,mi,chrge,chrgi,te,ti,&
        bxmin,bxmax,bymin,bymax,bzmin,bzmax,vcfact,omega,eps
@@ -23,7 +23,6 @@ MODULE piccomm
   USE piccomm_parm
   USE commpi
 
-  INTEGER:: npmax,nxmaxh1,nxmax1,nymax1,nxymax
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: ex,ey,ez,esx,esy,esz,emx,emy,emz
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: bx,by,bz,bxbg,bybg,bzbg
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: rho,phi,phib,awk,jx,jy,jz,&
@@ -48,9 +47,10 @@ MODULE piccomm
              akine1, akine2, akini1, akini2, time,  &
              x1, x2, y1, y2, z1, z2 ,alx, aly, alz, &
              wkword, wtime, wtime1, wtime2
-  integer :: ntcount, ntgcount, ntpcount, ntocount, ntgmax, ntpmax, ntomax
-  integer :: ifset, ipssn, iran
-  integer :: ierr
+  INTEGER :: npmax,nxmaxh1,nxmax1,nymax1,nxymax,nzmax
+  INTEGER :: ntcount, ntgcount, ntpcount, ntocount, ntgmax, ntpmax, ntomax
+  INTEGER :: ifset, ipssn, iran
+  INTEGER :: ierr
 
 CONTAINS
 

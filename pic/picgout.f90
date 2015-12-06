@@ -191,6 +191,34 @@ CONTAINS
           WORK_RGB(3,1)=0.D0
           CALL GRD2DP(1,work(1:ntomax,1),work(1:ntomax,2),work(1:ntomax,3), &
                       ntomax,'@xp-yp@',NMMAX=1, &
+                      MARK_RGB=WORK_RGB,ASPECT=DBLE(nymax)/DBLE(nxmax), &
+                      XMIN=0.D0,XMAX=DBLE(nxmax), &
+                      YMIN=0.D0,YMAX=DBLE(nymax))
+          CALL GRD2DP(2,work(1:ntomax,2),work(1:ntomax,3),work(1:ntomax,1), &
+                      ntomax,'@yp-zp@',NMMAX=1, &
+                      MARK_RGB=WORK_RGB,ASPECT=DBLE(nzmax)/DBLE(nymax), &
+                      XMIN=0.D0,XMAX=DBLE(nymax), &
+                      YMIN=0.D0,YMAX=DBLE(nzmax))
+          CALL GRD2DP(3,work(1:ntomax,3),work(1:ntomax,1),work(1:ntomax,2), &
+                      ntomax,'@zp-xp@',NMMAX=1, &
+                      MARK_RGB=WORK_RGB,ASPECT=DBLE(nxmax)/DBLE(nzmax), &
+                      XMIN=0.D0,XMAX=DBLE(nzmax), &
+                      YMIN=0.D0,YMAX=DBLE(nxmax))
+          CALL PAGEE
+       END DO
+       DEALLOCATE(work)
+    CASE('O2')
+       ALLOCATE(work(ntomax,3))
+       DO npo=1,npomax
+          work(1:ntomax,1)=xpo(npo,1:ntomax)
+          work(1:ntomax,2)=ypo(npo,1:ntomax)
+          work(1:ntomax,3)=zpo(npo,1:ntomax)
+          CALL PAGES
+          WORK_RGB(1,1)=1.D0
+          WORK_RGB(2,1)=0.D0
+          WORK_RGB(3,1)=0.D0
+          CALL GRD2DP(1,work(1:ntomax,1),work(1:ntomax,2),work(1:ntomax,3), &
+                      ntomax,'@xp-yp@',NMMAX=1, &
                       MARK_RGB=WORK_RGB,ASPECT=0.D0)
           CALL GRD2DP(2,work(1:ntomax,2),work(1:ntomax,3),work(1:ntomax,1), &
                       ntomax,'@yp-zp@',NMMAX=1, &

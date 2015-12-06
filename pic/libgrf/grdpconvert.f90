@@ -191,7 +191,7 @@ CONTAINS
     IF(PRESENT(ASPECT)) THEN
        A%ASPECT=GUCLIP(ASPECT)
        IF(A%ASPECT /= 0.0) THEN
-          IF(A%ASPECT >= 1.0) THEN
+          IF(A%ASPECT >= 0.75) THEN
              A%GPXMAX=A%GPXMIN+(A%GPYMAX-A%GPYMIN)/A%ASPECT
           ELSE
              A%GPYMAX=A%GPYMIN+(A%GPXMAX-A%GPXMIN)*A%ASPECT
@@ -387,7 +387,7 @@ CONTAINS
           IF(A%XMAX-A%XMIN /= 0.0) THEN
              A%ASPECT=(A%YMAX-A%YMIN)/(A%XMAX-A%XMIN)
              IF(A%ASPECT /= 0.0) THEN
-                IF(A%ASPECT >= 1.0) THEN
+                IF(A%ASPECT >= 0.75) THEN
                    A%GPXMAX=A%GPXMIN+(A%GPYMAX-A%GPYMIN)/A%ASPECT
                 ELSE
                    A%GPYMAX=A%GPYMIN+(A%GPXMAX-A%GPXMIN)*A%ASPECT
@@ -612,7 +612,7 @@ CONTAINS
                 A%LINE_MARK_SIZE(NP)=MARK_SIZE(MOD(NP-1,NPL)+1)*GFACTOR
              END DO
           ELSE
-             A%LINE_MARK_SIZE(1:A%NPMAX)=0.3*GFACTOR
+             A%LINE_MARK_SIZE(1:A%NPMAX)=0.1*GFACTOR
           ENDIF
 
        ELSE
