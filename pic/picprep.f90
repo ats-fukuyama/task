@@ -52,11 +52,11 @@ CONTAINS
       CALL pic_allocate
 
       !..... set initial positions and velocities of electrons 
-      call iniset(npmax,npxmax,npymax,nxmax,nymax, &
+      call iniset(npmax,npxmax,npymax,nxmax,nymax,densx, &
                   xe,ye,ze,xeb,yeb,zeb,vxe,vye,vze,vte,dt,iran)
 
       !..... set initial positions and velocities of ions 
-      call iniset(npmax,npxmax,npymax,nxmax,nymax, &
+      call iniset(npmax,npxmax,npymax,nxmax,nymax,densx, &
                   xi,yi,zi,xib,yib,zib,vxi,vyi,vzi,vti,dt,iran)
 
       !..... initialize scalar potential by poisson solver
@@ -79,13 +79,13 @@ CONTAINS
          END DO
       END DO
 
-      !Ax(:,:) = 0.0d0
-      !Ay(:,:) = 0.0d0
-      !Az(:,:) = 0.0d0
-      !Axb(:,:) = 0.0d0
-      !Ayb(:,:) = 0.0d0
-      !Azb(:,:) = 0.0d0
-      !phi(:,:) = 0.0d0
+      Ax(:,:) = 0.0d0
+      Ay(:,:) = 0.0d0
+      Az(:,:) = 0.0d0
+      Axb(:,:) = 0.0d0
+      Ayb(:,:) = 0.0d0
+      Azb(:,:) = 0.0d0
+      phi(:,:) = 0.0d0
 
        !.......... calculate ex and ey and ez
        call efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
@@ -93,7 +93,7 @@ CONTAINS
 
        !.......... calculate bx and by and bz
        call bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
-                               bx,by,bz,bxbg,bybg,bzbg,bb)
+                               bx,by,bz,bxbg,bybg,bzbg,bb,model_boundary)
       do np=1,npmax
          vparae(np)=vxe(np)
          vperpe(np)=SQRT(vye(np)**2+vze(np)**2)
@@ -129,25 +129,24 @@ CONTAINS
   END SUBROUTINE pic_prep
 
 !***********************************************************************
-      subroutine iniset(npmax,npxmax,npymax,nxmax,nymax, &
+      subroutine iniset(npmax,npxmax,npymax,nxmax,nymax,densx,&
                         x,y,z,xb,yb,zb,vx,vy,vz,vt,dt,iran)
 !***********************************************************************
       implicit none
       real(8), dimension(npmax) :: x, y, z, xb, yb, zb, vx, vy, vz
       integer :: npmax, npxmax, npymax, nxmax, nymax, iran
-      real(8) :: vt, dt, factx, facty, rvx, rvy, rvz
-      integer :: npx, npy, np
+      real(8) :: vt, dt, factx, facty, rvx, rvy, rvz, densx, inter
+      integer :: npx, npy, np, all
 
       factx = dble(nxmax) / dble(npxmax)
       facty = dble(nymax) / dble(npymax)
-
       np = 0
+      if(densx .eq. 0.d0) then
       do npy = 1, npymax
-      do npx = 1, npxmax      
-         np  = np + 1
-         x(np) = ( dble(npx) - 0.5d0 ) * factx
-         y(np) = ( dble(npy) - 0.5d0 ) * facty
-         z(np) = 0.D0
+      do npx = 1, npxmax
+         np = np + 1
+         x(np) = (dble(npx) - 0.5d0 ) * factx
+         y(np) = (dble(npy) - 0.5d0 ) * facty
 
          call gauss(rvx,rvy,rvz,iran)
          vx(np) = rvx * vt 
@@ -160,7 +159,28 @@ CONTAINS
 
       end do
       end do
+   else
+      inter = dble(nxmax) / dble(npxmax+1) / (1.0d0 - 0.5d0 * densx)
+      do npy = 1, npymax
+         all = 0
+      do npx = 1, npxmax
+         np = np + 1
+         all = all + npx - 1
+         x(np) = dble(npx) * inter - inter * dble(all) * densx / dble(npxmax)
+         y(np) = (dble(npy) - 0.5d0 ) * facty
 
+         call gauss(rvx,rvy,rvz,iran)
+         vx(np) = rvx * vt 
+         vy(np) = rvy * vt
+         vz(np) = rvz * vt
+
+         xb(np) = x(np) - vx(np) * dt
+         yb(np) = y(np) - vy(np) * dt
+         zb(np) = z(np) - vz(np) * dt
+
+      end do
+      end do
+      end if
     end subroutine iniset
 
 !***********************************************************************

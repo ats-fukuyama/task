@@ -127,7 +127,7 @@ CONTAINS
 
        !.......... calculate bxg and byg and bzg
        call bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
-                               bx,by,bz,bxbg,bybg,bzbg,bb)
+                               bx,by,bz,bxbg,bybg,bzbg,bb,model_boundary)
        if( mod(nt,ntgstep) .eq. 0 ) then
           call kine(npmax,vxe,vye,vze,akine1,me)
           call kine(npmax,vxi,vyi,vzi,akini1,mi)

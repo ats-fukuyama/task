@@ -318,7 +318,7 @@ CONTAINS
 
 !***********************************************************************
     subroutine bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
-                                  bx,by,bz,bxbg,bybg,bzbg,bb)
+                                  bx,by,bz,bxbg,bybg,bzbg,bb,model_boundary)
 !***********************************************************************
       implicit none
       real(8), dimension(0:nymax) :: bxnab,bznab

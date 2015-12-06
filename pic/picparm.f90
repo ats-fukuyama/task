@@ -49,9 +49,9 @@ CONTAINS
     INTEGER,INTENT(IN) :: NID
     INTEGER,INTENT(OUT) :: IST,IERR
 
-    NAMELIST /PIC/ npxmax,npymax,nxmax,nymax,ntmax,ntstep,ntgstep,ntpstep, &
-         me,mi,chrge,chrgi,te,ti,dt,eps,bxmin,bxmax,bymin,bymax,bzmin,bzmax,&
-         vcfact,omega,jxant,jyant,jzant,phxant,phyant,phzant, &
+    NAMELIST /PIC/ npxmax,npymax,nxmax,nymax,ntmax,ntstep,ntgstep,ntpstep,&
+         me,mi,chrge,chrgi,te,ti,densx,dt,eps,bxmin,bxmax,bymin,bymax, &
+         bzmin,bzmax,vcfact,omega,jxant,jyant,jzant,phxant,phyant,phzant, &
          model_boundary,model_antenna,model_wg, &
          model_matrix0,model_matrix1,model_matrix2,tolerance_matrix, &
          xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg, ph_wg,rot_wg,eli_wg
@@ -74,7 +74,7 @@ CONTAINS
     IMPLICIT NONE
     WRITE(6,'(A)') &
        '# &PIC : npxmax,npymax,nxmax,nymax,ntmax,ntstep,ntgstep,ntpstep,', &
-       '         me,mi,chrge,chrgi,te,ti,dt,eps,vcfact,bxbg,bybg,bzbg,', &
+       '         me,mi,chrge,chrgi,te,ti,densx,dt,eps,vcfact,bxbg,bybg,bzbg,', &
        '         omega,jxant,jyant,jzant,phxant,phyant,phzant', &
        '         model_boundary,model_antenna,model_wg', &
        '         model_matrix0,model_matrix1,model_matrix2,tolerance_matrix', &
@@ -109,7 +109,7 @@ CONTAINS
     USE libmpi
     IMPLICIT NONE
     integer,parameter:: nint=14
-    integer,parameter:: ndbl=31
+    integer,parameter:: ndbl=32
     integer:: idata(nint)
     REAL(8):: ddata(ndbl)
 
@@ -152,31 +152,32 @@ CONTAINS
        ddata(4)=chrgi
        ddata(5)=te
        ddata(6)=ti
-       ddata(7)=dt
-       ddata(8)=eps
-       ddata(9)=bxmin
-       ddata(10)=bxmax
-       ddata(11)=bymin
-       ddata(12)=bymax
-       ddata(13)=bzmin
-       ddata(14)=bzmax
-       ddata(15)=vcfact
-       ddata(16)=omega
-       ddata(17)=jxant
-       ddata(18)=jyant
-       ddata(19)=jzant
-       ddata(20)=phxant
-       ddata(21)=phyant
-       ddata(22)=phzant
-       ddata(23)=xmin_wg
-       ddata(24)=xmax_wg
-       ddata(25)=ymin_wg
-       ddata(26)=ymax_wg
-       ddata(27)=amp_wg
-       ddata(28)=ph_wg
-       ddata(29)=rot_wg
-       ddata(30)=eli_wg
-       ddata(31)=tolerance_matrix
+       ddata(7)=densx
+       ddata(8)=dt
+       ddata(9)=eps
+       ddata(10)=bxmin
+       ddata(11)=bxmax
+       ddata(12)=bymin
+       ddata(13)=bymax
+       ddata(14)=bzmin
+       ddata(15)=bzmax
+       ddata(16)=vcfact
+       ddata(17)=omega
+       ddata(18)=jxant
+       ddata(19)=jyant
+       ddata(20)=jzant
+       ddata(21)=phxant
+       ddata(22)=phyant
+       ddata(23)=phzant
+       ddata(24)=xmin_wg
+       ddata(25)=xmax_wg
+       ddata(26)=ymin_wg
+       ddata(27)=ymax_wg
+       ddata(28)=amp_wg
+       ddata(29)=ph_wg
+       ddata(30)=rot_wg
+       ddata(31)=eli_wg
+       ddata(32)=tolerance_matrix
     END IF
     CALL mtx_broadcast_real8(ddata,ndbl)
        me=ddata(1)
@@ -185,31 +186,32 @@ CONTAINS
        chrgi=ddata(4)
        te=ddata(5)
        ti=ddata(6)
-       dt=ddata(7)
-       eps=ddata(8)
-       bxmin=ddata(9)
-       bxmax=ddata(10)
-       bymin=ddata(11)
-       bymax=ddata(12)
-       bzmin=ddata(13)
-       bzmax=ddata(14)
-       vcfact=ddata(15)
-       omega=ddata(16)
-       jxant=ddata(17)
-       jyant=ddata(18)
-       jzant=ddata(19)
-       phxant=ddata(20)
-       phyant=ddata(21)
-       phzant=ddata(22)
-       xmin_wg=ddata(23)
-       xmax_wg=ddata(24)
-       ymin_wg=ddata(25)
-       ymax_wg=ddata(26)
-       amp_wg=ddata(27)
-       ph_wg=ddata(28)
-       rot_wg=ddata(29)
-       eli_wg=ddata(30)
-       tolerance_matrix=ddata(31)
+       densx=ddata(7)
+       dt=ddata(8)
+       eps=ddata(9)
+       bxmin=ddata(10)
+       bxmax=ddata(11)
+       bymin=ddata(12)
+       bymax=ddata(13)
+       bzmin=ddata(14)
+       bzmax=ddata(15)
+       vcfact=ddata(16)
+       omega=ddata(17)
+       jxant=ddata(18)
+       jyant=ddata(19)
+       jzant=ddata(20)
+       phxant=ddata(21)
+       phyant=ddata(22)
+       phzant=ddata(23)
+       xmin_wg=ddata(24)
+       xmax_wg=ddata(25)
+       ymin_wg=ddata(26)
+       ymax_wg=ddata(27)
+       amp_wg=ddata(28)
+       ph_wg=ddata(29)
+       rot_wg=ddata(30)
+       eli_wg=ddata(31)
+       tolerance_matrix=ddata(32)
     RETURN
 
   END SUBROUTINE pic_broadcast
@@ -227,7 +229,7 @@ CONTAINS
     WRITE(6,611) 'ntgstep     ',ntgstep,'ntpstep     ',ntpstep
     WRITE(6,602) 'me    ',me    ,'mi    ',mi    , &
                  'chrge ',chrge ,'chrgi ',chrgi
-    WRITE(6,602) 'te    ',te    ,'ti    ',ti    , &
+    WRITE(6,602) 'te    ',te    ,'ti    ',ti    , 'densx ',densx ,&
                  'dt    ',dt    ,'eps   ',eps
     WRITE(6,602) 'bxmin ',bxmin ,'bxmax ',bxmax , &
                  'bymin ',bymin ,'bymax ',bymax , &
