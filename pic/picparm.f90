@@ -49,10 +49,11 @@ CONTAINS
     INTEGER,INTENT(IN) :: NID
     INTEGER,INTENT(OUT) :: IST,IERR
 
-    NAMELIST /PIC/ npxmax,npymax,nxmax,nymax,ntmax,ntstep,ntgstep,ntpstep,&
-         me,mi,chrge,chrgi,te,ti,densx,dt,eps,bxmin,bxmax,bymin,bymax, &
+    NAMELIST /PIC/ npxmax,npymax,nxmax,nymax,ntmax,ntstep,ntgstep,ntpstep, &
+         npomax,npostep,ntostep, &
+         me,mi,chrge,chrgi,te,ti,densx,dt,eps,bxmin,bxmax,bymin,bymax,&
          bzmin,bzmax,vcfact,omega,jxant,jyant,jzant,phxant,phyant,phzant, &
-         model_boundary,model_antenna,model_wg, &
+         model_push,model_boundary,model_antenna,model_wg, &
          model_matrix0,model_matrix1,model_matrix2,tolerance_matrix, &
          xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg, ph_wg,rot_wg,eli_wg
 
@@ -76,7 +77,7 @@ CONTAINS
        '# &PIC : npxmax,npymax,nxmax,nymax,ntmax,ntstep,ntgstep,ntpstep,', &
        '         me,mi,chrge,chrgi,te,ti,densx,dt,eps,vcfact,bxbg,bybg,bzbg,', &
        '         omega,jxant,jyant,jzant,phxant,phyant,phzant', &
-       '         model_boundary,model_antenna,model_wg', &
+       '         model_push,model_boundary,model_antenna,model_wg', &
        '         model_matrix0,model_matrix1,model_matrix2,tolerance_matrix', &
        '         xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg, ph_wg,rot_wg,eli_wg'
     RETURN
@@ -108,7 +109,7 @@ CONTAINS
     USE piccomm_parm
     USE libmpi
     IMPLICIT NONE
-    integer,parameter:: nint=14
+    integer,parameter:: nint=18
     integer,parameter:: ndbl=32
     integer:: idata(nint)
     REAL(8):: ddata(ndbl)
@@ -122,12 +123,16 @@ CONTAINS
        idata(6)=ntstep
        idata(7)=ntgstep
        idata(8)=ntpstep
-       idata(9)=model_boundary
-       idata(10)=model_antenna
-       idata(11)=model_wg
-       idata(12)=model_matrix0
-       idata(13)=model_matrix1
-       idata(14)=model_matrix2
+       idata(9)=npomax
+       idata(10)=npostep
+       idata(11)=ntostep
+       idata(12)=model_push
+       idata(13)=model_boundary
+       idata(14)=model_antenna
+       idata(15)=model_wg
+       idata(16)=model_matrix0
+       idata(17)=model_matrix1
+       idata(18)=model_matrix2
     END IF
     CALL mtx_broadcast_integer(idata,nint)
        npxmax=idata(1)
@@ -138,12 +143,16 @@ CONTAINS
        ntstep=idata(6)
        ntgstep=idata(7)
        ntpstep=idata(8)
-       model_boundary=idata(9)
-       model_antenna=idata(10)
-       model_wg=idata(11)
-       model_matrix0=idata(12)
-       model_matrix1=idata(13)
-       model_matrix2=idata(14)
+       npomax=idata(9)
+       npostep=idata(10)
+       ntostep=idata(11)
+       model_push=idata(12)
+       model_boundary=idata(13)
+       model_antenna=idata(14)
+       model_wg=idata(15)
+       model_matrix0=idata(16)
+       model_matrix1=idata(17)
+       model_matrix2=idata(18)
 
     IF(nrank == 0) THEN
        ddata(1)=me
@@ -227,6 +236,8 @@ CONTAINS
     WRITE(6,601) 'nxmax ',nxmax ,'nymax ',nymax
     WRITE(6,601) 'ntmax ',ntmax ,'ntstep',ntstep
     WRITE(6,611) 'ntgstep     ',ntgstep,'ntpstep     ',ntpstep
+    WRITE(6,611) 'npomax      ',npomax ,'npostep     ',npostep, &
+                 'ntostep     ',ntostep
     WRITE(6,602) 'me    ',me    ,'mi    ',mi    , &
                  'chrge ',chrge ,'chrgi ',chrgi
     WRITE(6,602) 'te    ',te    ,'ti    ',ti    , 'densx ',densx ,&
@@ -243,6 +254,7 @@ CONTAINS
                  'ymin_wg     ',ymin_wg,'ymax_wg     ',ymax_wg, &
                  'amp_wg      ',amp_wg, 'ph_wg       ',ph_wg,&
                  'rot_wg      ',rot_wg,'eli_wg       ',eli_wg
+    WRITE(6,621) 'model_push           =',model_push
     WRITE(6,621) 'model_boundary       =',model_boundary
     WRITE(6,621) 'model_antenna        =',model_antenna
     WRITE(6,621) 'model_wg             =',model_wg

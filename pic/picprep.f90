@@ -23,6 +23,7 @@ CONTAINS
       nxmax1 = nxmax + 1
       nymax1 = nymax + 1
       nxymax = nxmax1 * nymax1
+      nzmax  = MIN(nxmax,nymax)
 
       ctome  = chrge / me       !: charge to mass ratio of electrons
       ctomi  = chrgi / mi       !: charge to mass ratio of ions
@@ -33,12 +34,13 @@ CONTAINS
       ntcount = 0               !: time counter
       ntgcount= 0               !: counter for global outputs
       ntpcount= 0               !: counter for profile outputs
+      ntocount= 0               !: counter for orbit outputs
       iran   = 14142 * nrank    !: initial parameter for random number
 
       !..... constants to define boundary condition
       alx = dble(nxmax)
       aly = dble(nymax)
-      alz = 1.D0
+      alz = dble(nzmax)
       x1  = eps 
       x2  = alx - eps
       y1  = eps 
@@ -89,11 +91,13 @@ CONTAINS
 
        !.......... calculate ex and ey and ez
        call efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
-                               ex,ey,ez,esx,esy,esz,emx,emy,emz,model_boundary)
+                               ex,ey,ez,esx,esy,esz,emx,emy,emz, &
+                               model_push,model_boundary)
 
        !.......... calculate bx and by and bz
        call bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
-                               bx,by,bz,bxbg,bybg,bzbg,bb,model_boundary)
+                               bx,by,bz,bxbg,bybg,bzbg,bb, &
+                               model_push,model_boundary)
       do np=1,npmax
          vparae(np)=vxe(np)
          vperpe(np)=SQRT(vye(np)**2+vze(np)**2)

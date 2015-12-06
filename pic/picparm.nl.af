@@ -1,0 +1,17 @@
+ &pic
+  model_boundary=1
+  npxmax=20
+  npymax=20
+  npomax=10
+  npostep=21
+  nxmax=10
+  nymax=10
+  ntmax=1000
+  ntstep=100
+  bymin=1.0
+  bymax=1.0
+  ymin_wg=20.d0
+  ymax_wg=30.d0
+  ph_wg=0.d0
+  amp_wg=0.D0
+ &end

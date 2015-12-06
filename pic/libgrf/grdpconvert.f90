@@ -191,7 +191,7 @@ CONTAINS
     IF(PRESENT(ASPECT)) THEN
        A%ASPECT=GUCLIP(ASPECT)
        IF(A%ASPECT /= 0.0) THEN
-          IF(A%ASPECT >= 1.0) THEN
+          IF(A%ASPECT >= 0.75) THEN
              A%GPXMAX=A%GPXMIN+(A%GPYMAX-A%GPYMIN)/A%ASPECT
           ELSE
              A%GPYMAX=A%GPYMIN+(A%GPXMAX-A%GPXMIN)*A%ASPECT
@@ -387,7 +387,7 @@ CONTAINS
           IF(A%XMAX-A%XMIN /= 0.0) THEN
              A%ASPECT=(A%YMAX-A%YMIN)/(A%XMAX-A%XMIN)
              IF(A%ASPECT /= 0.0) THEN
-                IF(A%ASPECT >= 1.0) THEN
+                IF(A%ASPECT >= 0.75) THEN
                    A%GPXMAX=A%GPXMIN+(A%GPYMAX-A%GPYMIN)/A%ASPECT
                 ELSE
                    A%GPYMAX=A%GPYMIN+(A%GPXMAX-A%GPXMIN)*A%ASPECT
@@ -431,6 +431,7 @@ CONTAINS
           ALLOCATE(A%LINE_PAT(1))
           ALLOCATE(A%LINE_THICKNESS(1))
        END IF
+
        IF(A%NPMAX.GE.1) THEN
           ALLOCATE(A%PAINT_VALUE(A%NPMAX))
           ALLOCATE(A%PAINT_RGB(3,A%NPMAX))
@@ -446,92 +447,92 @@ CONTAINS
        END IF
 
        IF(A%NLMAX > 0) THEN
-       IF(PRESENT(LINE_VALUE)) THEN
-          NLL=SIZE(LINE_VALUE,DIM=1)
-          DO NL=1,A%NLMAX
-             A%LINE_VALUE(NL)=GUCLIP(LINE_VALUE(MOD(NL-1,NLL)+1))
-          END DO
-       ELSE
-          IF(A%NLMAX <= 1) THEN
-             FACTOR=0.0
-          ELSE
-             FACTOR=(A%FMAX-A%FMIN)/(A%NLMAX-1)
-          END IF
-          DO NL=1,A%NLMAX
-             A%LINE_VALUE(NL)=A%FMIN+FACTOR*(NL-1)
-          END DO
-       ENDIF
-
-       IF(PRESENT(LINE_RGB)) THEN
-          NLL=SIZE(LINE_RGB,DIM=2)
-          DO NL=1,A%NLMAX
-             DO I=1,3
-                A%LINE_RGB(I,NL)=GUCLIP(LINE_RGB(I,MOD(NL-1,NLL)+1))
+          IF(PRESENT(LINE_VALUE)) THEN
+             NLL=SIZE(LINE_VALUE,DIM=1)
+             DO NL=1,A%NLMAX
+                A%LINE_VALUE(NL)=GUCLIP(LINE_VALUE(MOD(NL-1,NLL)+1))
              END DO
-          END DO
-       ELSE IF(PRESENT(LINE_RGB_SUB)) THEN
-          DO NL=1,A%NLMAX
+          ELSE
              IF(A%NLMAX <= 1) THEN
-                FACTOR = 0.0
+                FACTOR=0.0
              ELSE
-                FACTOR=FLOAT(NL-1)/FLOAT(A%NLMAX-1)
+                FACTOR=(A%FMAX-A%FMIN)/(A%NLMAX-1)
              END IF
-             CALL LINE_RGB_SUB(FACTOR,A%LINE_RGB(1:3,NL))
-          END DO
-       ELSE
-          IF(A%FMIN < 0.0 .AND. A%FMAX > 0.0) THEN
              DO NL=1,A%NLMAX
-                IF(A%LINE_VALUE(NL) > 0.0) THEN
-                   A%LINE_RGB(1:3,NL)=(/1.0,0.0,0.0/)
-                ELSE IF(A%LINE_VALUE(NL) < 0.0) THEN
-                   A%LINE_RGB(1:3,NL)=(/0.0,0.0,1.0/)
-                ELSE
-                   A%LINE_RGB(1:3,NL)=(/0.5,0.5,0.5/)
-                END IF
-             END DO
-          ELSE IF(A%FMIN >= 0.0) THEN
-             DO NL=1,A%NLMAX
-                A%LINE_RGB(1:3,NL)=(/1.0,0.0,0.0/)
-             END DO
-          ELSE
-             DO NL=1,A%NLMAX
-                A%LINE_RGB(1:3,NL)=(/0.0,0.0,1.0/)
+                A%LINE_VALUE(NL)=A%FMIN+FACTOR*(NL-1)
              END DO
           ENDIF
-       END IF
-          
-       IF(PRESENT(LINE_THICKNESS)) THEN
-          NLL=SIZE(LINE_THICKNESS,DIM=1)
-          DO NL=1,A%NLMAX
-             A%LINE_THICKNESS(NL)=GUCLIP(LINE_THICKNESS(MOD(NL-1,NLL)+1)) &
-                                 *GFACTOR
-          END DO
-       ELSE
-          A%LINE_THICKNESS(1:A%NLMAX)=0.07*GFACTOR
-       ENDIF
 
-       IF(PRESENT(LINE_PAT)) THEN
-          NLL=SIZE(LINE_PAT,DIM=1)
-          DO NL=1,A%NLMAX
-             A%LINE_PAT(1:NL)=LINE_PAT(MOD(NL-1,NLL)+1)
-          END DO
-       ELSE
-          IF(A%FMIN < 0.0 .AND. A%FMAX > 0.0) THEN
+          IF(PRESENT(LINE_RGB)) THEN
+             NLL=SIZE(LINE_RGB,DIM=2)
              DO NL=1,A%NLMAX
-                IF(A%LINE_VALUE(NL) > 0.0) THEN
-                   A%LINE_PAT(NL)=0
-                ELSE IF(A%LINE_VALUE(NL) < 0.0) THEN
-                   A%LINE_PAT(NL)=3
+                DO I=1,3
+                   A%LINE_RGB(I,NL)=GUCLIP(LINE_RGB(I,MOD(NL-1,NLL)+1))
+                END DO
+             END DO
+          ELSE IF(PRESENT(LINE_RGB_SUB)) THEN
+             DO NL=1,A%NLMAX
+                IF(A%NLMAX <= 1) THEN
+                   FACTOR = 0.0
                 ELSE
-                   A%LINE_PAT(NL)=5
+                   FACTOR=FLOAT(NL-1)/FLOAT(A%NLMAX-1)
                 END IF
+                CALL LINE_RGB_SUB(FACTOR,A%LINE_RGB(1:3,NL))
              END DO
           ELSE
-             DO NL=1,A%NLMAX
-                A%LINE_PAT(NL)=0
-             END DO
+             IF(A%FMIN < 0.0 .AND. A%FMAX > 0.0) THEN
+                DO NL=1,A%NLMAX
+                   IF(A%LINE_VALUE(NL) > 0.0) THEN
+                      A%LINE_RGB(1:3,NL)=(/1.0,0.0,0.0/)
+                   ELSE IF(A%LINE_VALUE(NL) < 0.0) THEN
+                      A%LINE_RGB(1:3,NL)=(/0.0,0.0,1.0/)
+                   ELSE
+                      A%LINE_RGB(1:3,NL)=(/0.5,0.5,0.5/)
+                   END IF
+                END DO
+             ELSE IF(A%FMIN >= 0.0) THEN
+                DO NL=1,A%NLMAX
+                   A%LINE_RGB(1:3,NL)=(/1.0,0.0,0.0/)
+                END DO
+             ELSE
+                DO NL=1,A%NLMAX
+                   A%LINE_RGB(1:3,NL)=(/0.0,0.0,1.0/)
+                END DO
+             ENDIF
           END IF
-       ENDIF
+          
+          IF(PRESENT(LINE_THICKNESS)) THEN
+             NLL=SIZE(LINE_THICKNESS,DIM=1)
+             DO NL=1,A%NLMAX
+                A%LINE_THICKNESS(NL)=GUCLIP(LINE_THICKNESS(MOD(NL-1,NLL)+1)) &
+                                    *GFACTOR
+             END DO
+          ELSE
+             A%LINE_THICKNESS(1:A%NLMAX)=0.07*GFACTOR
+          ENDIF
+
+          IF(PRESENT(LINE_PAT)) THEN
+             NLL=SIZE(LINE_PAT,DIM=1)
+             DO NL=1,A%NLMAX
+                A%LINE_PAT(1:NL)=LINE_PAT(MOD(NL-1,NLL)+1)
+             END DO
+          ELSE
+             IF(A%FMIN < 0.0 .AND. A%FMAX > 0.0) THEN
+                DO NL=1,A%NLMAX
+                   IF(A%LINE_VALUE(NL) > 0.0) THEN
+                      A%LINE_PAT(NL)=0
+                   ELSE IF(A%LINE_VALUE(NL) < 0.0) THEN
+                      A%LINE_PAT(NL)=3
+                   ELSE
+                      A%LINE_PAT(NL)=5
+                   END IF
+                END DO
+             ELSE
+                DO NL=1,A%NLMAX
+                   A%LINE_PAT(NL)=0
+                END DO
+             END IF
+          ENDIF
        ELSE
           A%LINE_VALUE(1)=0.0
           A%LINE_RGB(1:3,1)=0.D0
@@ -539,78 +540,81 @@ CONTAINS
           A%LINE_PAT(1)=0
        END IF
 
-       IF(A%NPMAX > 1) THEN
-       IF(PRESENT(MARK_VALUE)) THEN
-          NPL=SIZE(MARK_VALUE,DIM=1)
-          DO NP=1,A%NPMAX
-             A%PAINT_VALUE(NP)=GUCLIP(MARK_VALUE(MOD(NP-1,NPL)+1))
-          END DO
-       ELSE
-          FACTOR=(A%FMAX-A%FMIN)/(A%NPMAX-1)
-          DO NP=1,A%NPMAX
-             A%PAINT_VALUE(NP)=A%FMIN+FACTOR*(NP-0.5)
-          END DO
-       ENDIF
-
-       IF(PRESENT(MARK_RGB)) THEN
-          NPL=SIZE(MARK_RGB,DIM=2)
-          DO NP=1,A%NPMAX
-             DO I=1,3
-                A%PAINT_RGB(I,NP)=GUCLIP(MARK_RGB(I,MOD(NP-1,NPL)+1))
-             END DO
-          END DO
-       ELSE IF(PRESENT(MARK_RGB_SUB)) THEN
-          DO NP=1,A%NPMAX
-             FACTOR=FLOAT(NP-1)/FLOAT(A%NPMAX-1)
-             CALL MARK_RGB_SUB(FACTOR,A%PAINT_RGB(1:3,NP))
-          END DO
-       ELSE
-          IF(A%FMIN < 0.D0 .AND. A%FMAX > 0.0) THEN
+       IF(A%NPMAX.GT.1) THEN
+          IF(PRESENT(MARK_VALUE)) THEN
+             NPL=SIZE(MARK_VALUE,DIM=1)
              DO NP=1,A%NPMAX
-                FACTOR=FLOAT(NP-1)/FLOAT(A%NPMAX-1)
-                CALL R2W2B(FACTOR,A%PAINT_RGB(1:3,NP))
+                A%PAINT_VALUE(NP)=GUCLIP(MARK_VALUE(MOD(NP-1,NPL)+1))
              END DO
           ELSE
-             IF(A%FMAX > 0.0) THEN
-                DO NP=1,A%NPMAX
-                   FACTOR=FLOAT(NP-1)/FLOAT(A%NPMAX-1)
-                   CALL R2Y2W(FACTOR,A%PAINT_RGB(1:3,NP))
-                END DO
-             ELSE
-                DO NP=1,A%NPMAX
-                   FACTOR=FLOAT(NP-1)/FLOAT(A%NPMAX-1)
-                   CALL W2G2B(FACTOR,A%PAINT_RGB(1:3,NP))
-                END DO
-             END IF
-          END IF
+             FACTOR=(A%FMAX-A%FMIN)/(A%NPMAX-1)
+             DO NP=1,A%NPMAX
+                A%PAINT_VALUE(NP)=A%FMIN+FACTOR*(NP-0.5)
+             END DO
+          ENDIF
        END IF
 
-       IF(PRESENT(MARK)) THEN
-          NPL=SIZE(MARK,DIM=1)
-          DO NP=1,A%NPMAX
-             A%LINE_MARK(NP)=MARK(MOD(NP-1,NPL)+1)
-          END DO
-       ELSE
-          A%LINE_MARK(1:A%NPMAX)=0
-       ENDIF
+       IF(A%NPMAX.GE.1) THEN
+          IF(PRESENT(MARK_RGB)) THEN
+             NPL=SIZE(MARK_RGB,DIM=2)
+             DO NP=1,A%NPMAX
+                DO I=1,3
+                   A%PAINT_RGB(I,NP)=GUCLIP(MARK_RGB(I,MOD(NP-1,NPL)+1))
+                END DO
+             END DO
+          ELSE IF(PRESENT(MARK_RGB_SUB)) THEN
+             DO NP=1,A%NPMAX
+                FACTOR=FLOAT(NP-1)/FLOAT(A%NPMAX-1)
+                CALL MARK_RGB_SUB(FACTOR,A%PAINT_RGB(1:3,NP))
+             END DO
+          ELSE
+             IF(A%FMIN < 0.D0 .AND. A%FMAX > 0.0) THEN
+                DO NP=1,A%NPMAX
+                   FACTOR=FLOAT(NP-1)/FLOAT(A%NPMAX-1)
+                   CALL R2W2B(FACTOR,A%PAINT_RGB(1:3,NP))
+                END DO
+             ELSE
+                IF(A%FMAX > 0.0) THEN
+                   DO NP=1,A%NPMAX
+                      FACTOR=FLOAT(NP-1)/FLOAT(A%NPMAX-1)
+                      CALL R2Y2W(FACTOR,A%PAINT_RGB(1:3,NP))
+                   END DO
+                ELSE
+                   DO NP=1,A%NPMAX
+                      FACTOR=FLOAT(NP-1)/FLOAT(A%NPMAX-1)
+                      CALL W2G2B(FACTOR,A%PAINT_RGB(1:3,NP))
+                   END DO
+                END IF
+             END IF
+          END IF
 
-       IF(PRESENT(MARK_STEP)) THEN
-          NPL=SIZE(MARK_STEP,DIM=1)
-          DO NP=1,A%NPMAX
-             A%LINE_MARK_STEP(NP)=MARK_STEP(MOD(NP-1,NPL)+1)
-          END DO
-       ELSE
-          A%LINE_MARK_STEP(1:A%NPMAX)=0
-       ENDIF
+          IF(PRESENT(MARK)) THEN
+             NPL=SIZE(MARK,DIM=1)
+             DO NP=1,A%NPMAX
+                A%LINE_MARK(NP)=MARK(MOD(NP-1,NPL)+1)
+             END DO
+          ELSE
+             A%LINE_MARK(1:A%NPMAX)=0
+          ENDIF
 
-       IF(PRESENT(MARK_SIZE)) THEN
-          NPL=SIZE(MARK_SIZE,DIM=1)
-          DO NP=1,A%NPMAX
-             A%LINE_MARK_SIZE(NP)=MARK_SIZE(MOD(NP-1,NPL)+1)*GFACTOR
-          END DO
-       ELSE
-          A%LINE_MARK_SIZE(1:A%NPMAX)=0.3*GFACTOR
-       ENDIF
+          IF(PRESENT(MARK_STEP)) THEN
+             NPL=SIZE(MARK_STEP,DIM=1)
+             DO NP=1,A%NPMAX
+                A%LINE_MARK_STEP(NP)=MARK_STEP(MOD(NP-1,NPL)+1)
+             END DO
+          ELSE
+             A%LINE_MARK_STEP(1:A%NPMAX)=0
+          ENDIF
+
+          IF(PRESENT(MARK_SIZE)) THEN
+             NPL=SIZE(MARK_SIZE,DIM=1)
+             DO NP=1,A%NPMAX
+                A%LINE_MARK_SIZE(NP)=MARK_SIZE(MOD(NP-1,NPL)+1)*GFACTOR
+             END DO
+          ELSE
+             A%LINE_MARK_SIZE(1:A%NPMAX)=0.1*GFACTOR
+          ENDIF
+
        ELSE
           A%PAINT_VALUE(1)=0.0
           IF(PRESENT(MARK_RGB)) THEN
