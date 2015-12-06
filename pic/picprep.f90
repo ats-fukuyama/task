@@ -33,6 +33,7 @@ CONTAINS
       ntcount = 0               !: time counter
       ntgcount= 0               !: counter for global outputs
       ntpcount= 0               !: counter for profile outputs
+      ntocount= 0               !: counter for orbit outputs
       iran   = 14142 * nrank    !: initial parameter for random number
 
       !..... constants to define boundary condition
@@ -93,7 +94,7 @@ CONTAINS
 
        !.......... calculate bx and by and bz
        call bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
-                               bx,by,bz,bxbg,bybg,bzbg,bb)
+                               bx,by,bz,bxbg,bybg,bzbg,bb,model_boundary)
       do np=1,npmax
          vparae(np)=vxe(np)
          vperpe(np)=SQRT(vye(np)**2+vze(np)**2)

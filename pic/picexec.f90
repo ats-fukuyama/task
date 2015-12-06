@@ -127,7 +127,7 @@ CONTAINS
 
        !.......... calculate bxg and byg and bzg
        call bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
-                               bx,by,bz,bxbg,bybg,bzbg,bb)
+                               bx,by,bz,bxbg,bybg,bzbg,bb,model_boundary)
        if( mod(nt,ntgstep) .eq. 0 ) then
           call kine(npmax,vxe,vye,vze,akine1,me)
           call kine(npmax,vxi,vyi,vzi,akini1,mi)
@@ -154,6 +154,7 @@ CONTAINS
                  ex,ey,ez,bx,by,bz,dt,ctomi,xib,yib,zib, &
                  phi,phib,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
                  vparai,vperpi,model_boundary)
+
        !----- treat particles being out of the boundary
 
        if(model_boundary .eq. 0) then
@@ -163,6 +164,19 @@ CONTAINS
           call bound_reflective(npmax,xe,ye,vxe,vye,x1,x2,y1,y2,alx,aly)
           call bound_reflective(npmax,xi,yi,vxi,vyi,x1,x2,y1,y2,alx,aly)
        endif
+
+       IF(npomax.GT.0) THEN
+          ntocount=ntocount+1
+          xpo(1:npomax,ntocount)=xe(1:npomax)
+          ypo(1:npomax,ntocount)=ye(1:npomax)
+          zpo(1:npomax,ntocount)=ze(1:npomax)
+          vxpo(1:npomax,ntocount)=vxe(1:npomax)
+          vypo(1:npomax,ntocount)=vye(1:npomax)
+          vzpo(1:npomax,ntocount)=vze(1:npomax)
+       END IF
+
+
+
        !..... diagnostics to check energy conservation
        !.....            after pushing 
        if( mod(nt,ntgstep) .eq. 0 ) then
@@ -219,6 +233,8 @@ CONTAINS
     DEALLOCATE(locva,suma)
 
     ntgmax=ntgcount
+    ntomax=ntocount
+    write(6,*) 'ntgmax,ntomax=',ntgmax,ntomax
     iout=1
   END SUBROUTINE pic_exec
 
@@ -228,15 +244,18 @@ CONTAINS
   SUBROUTINE pic_expand_storage
 !***********************************************************************
     USE piccomm,ONLY: ntmax,ntgstep,ntgcount,ntgmax, &
-                      timet,akinet,akinit,aktott,apotet,apotmt,aptott,atott
+                      npomax,ntomax,ntostep,ntocount,  &
+                      timet,akinet,akinit,aktott,apotet,apotmt,aptott,atott, &
+                      xpo,ypo,zpo,vxpo,vypo,vzpo
     IMPLICIT NONE
     REAL(8),DIMENSION(:,:),ALLOCATABLE:: work
-    INTEGER:: ntgmax_old
+    REAL(8),DIMENSION(:,:,:),ALLOCATABLE:: workp
+    INTEGER:: ntgmax_old,ntomax_old,npomax_save
 
     IF(ntgcount.eq.0) THEN
        IF(ALLOCATED(timet)) &
             DEALLOCATE(timet,akinet,akinit,aktott,apotet,apotmt,aptott,atott)
-       ntgmax=ntmax/ntgstep
+       ntgmax=MAX(ntmax/ntgstep,1)
        ALLOCATE(timet(ntgmax))
        ALLOCATE(akinet(ntgmax))
        ALLOCATE(akinit(ntgmax))
@@ -275,6 +294,46 @@ CONTAINS
        aptott(1:ntgmax_old)=work(1:ntgmax_old,7)
        atott (1:ntgmax_old)=work(1:ntgmax_old,8)
        DEALLOCATE(work)
+    END IF
+
+    IF(npomax.GT.0) THEN
+       IF(ntocount.eq.0) THEN
+          IF(ALLOCATED(xpo)) &
+               DEALLOCATE(xpo,ypo,zpo,vxpo,vypo,vzpo)
+          ntomax=MAX(ntmax/ntostep,1)
+          ALLOCATE(xpo(npomax,ntomax))
+          ALLOCATE(ypo(npomax,ntomax))
+          ALLOCATE(zpo(npomax,ntomax))
+          ALLOCATE(vxpo(npomax,ntomax))
+          ALLOCATE(vypo(npomax,ntomax))
+          ALLOCATE(vzpo(npomax,ntomax))
+          npomax_save=npomax
+       ELSE
+          npomax=npomax_save
+          ALLOCATE(workp(npomax,ntomax,6))
+          workp(1:npomax,1:ntomax,1)=xpo(1:npomax,1:ntomax)
+          workp(1:npomax,1:ntomax,2)=ypo(1:npomax,1:ntomax)
+          workp(1:npomax,1:ntomax,3)=zpo(1:npomax,1:ntomax)
+          workp(1:npomax,1:ntomax,4)=vxpo(1:npomax,1:ntomax)
+          workp(1:npomax,1:ntomax,5)=vypo(1:npomax,1:ntomax)
+          workp(1:npomax,1:ntomax,6)=vzpo(1:npomax,1:ntomax)
+          DEALLOCATE(xpo,ypo,zpo,vxpo,vypo,vzpo)
+          ntomax_old=ntomax
+          ntomax=ntomax+ntmax/ntostep
+          ALLOCATE(xpo(npomax,ntomax))
+          ALLOCATE(ypo(npomax,ntomax))
+          ALLOCATE(zpo(npomax,ntomax))
+          ALLOCATE(vxpo(npomax,ntomax))
+          ALLOCATE(vypo(npomax,ntomax))
+          ALLOCATE(vzpo(npomax,ntomax))
+          xpo(1:npomax,1:ntgmax_old)=workp(1:npomax,1:ntgmax_old,1)
+          ypo(1:npomax,1:ntgmax_old)=workp(1:npomax,1:ntgmax_old,2)
+          zpo(1:npomax,1:ntgmax_old)=workp(1:npomax,1:ntgmax_old,3)
+          vxpo(1:npomax,1:ntgmax_old)=workp(1:npomax,1:ntgmax_old,4)
+          vypo(1:npomax,1:ntgmax_old)=workp(1:npomax,1:ntgmax_old,5)
+          vzpo(1:npomax,1:ntgmax_old)=workp(1:npomax,1:ntgmax_old,6)
+          DEALLOCATE(workp)
+       END IF
     END IF
   END SUBROUTINE pic_expand_storage
       

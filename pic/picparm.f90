@@ -50,6 +50,7 @@ CONTAINS
     INTEGER,INTENT(OUT) :: IST,IERR
 
     NAMELIST /PIC/ npxmax,npymax,nxmax,nymax,ntmax,ntstep,ntgstep,ntpstep, &
+         npomax,ntostep, &
          me,mi,chrge,chrgi,te,ti,dt,eps,bxmin,bxmax,bymin,bymax,bzmin,bzmax,&
          vcfact,omega,jxant,jyant,jzant,phxant,phyant,phzant, &
          model_boundary,model_antenna,model_wg, &
@@ -74,6 +75,7 @@ CONTAINS
     IMPLICIT NONE
     WRITE(6,'(A)') &
        '# &PIC : npxmax,npymax,nxmax,nymax,ntmax,ntstep,ntgstep,ntpstep,', &
+       '         npomax,ntostep,', &
        '         me,mi,chrge,chrgi,te,ti,dt,eps,vcfact,bxbg,bybg,bzbg,', &
        '         omega,jxant,jyant,jzant,phxant,phyant,phzant', &
        '         model_boundary,model_antenna,model_wg', &
@@ -108,7 +110,7 @@ CONTAINS
     USE piccomm_parm
     USE libmpi
     IMPLICIT NONE
-    integer,parameter:: nint=14
+    integer,parameter:: nint=16
     integer,parameter:: ndbl=31
     integer:: idata(nint)
     REAL(8):: ddata(ndbl)
@@ -122,12 +124,14 @@ CONTAINS
        idata(6)=ntstep
        idata(7)=ntgstep
        idata(8)=ntpstep
-       idata(9)=model_boundary
-       idata(10)=model_antenna
-       idata(11)=model_wg
-       idata(12)=model_matrix0
-       idata(13)=model_matrix1
-       idata(14)=model_matrix2
+       idata(9)=npomax
+       idata(10)=ntostep
+       idata(11)=model_boundary
+       idata(12)=model_antenna
+       idata(13)=model_wg
+       idata(14)=model_matrix0
+       idata(15)=model_matrix1
+       idata(16)=model_matrix2
     END IF
     CALL mtx_broadcast_integer(idata,nint)
        npxmax=idata(1)
@@ -138,12 +142,14 @@ CONTAINS
        ntstep=idata(6)
        ntgstep=idata(7)
        ntpstep=idata(8)
-       model_boundary=idata(9)
-       model_antenna=idata(10)
-       model_wg=idata(11)
-       model_matrix0=idata(12)
-       model_matrix1=idata(13)
-       model_matrix2=idata(14)
+       npomax=idata(9)
+       ntostep=idata(10)
+       model_boundary=idata(11)
+       model_antenna=idata(12)
+       model_wg=idata(13)
+       model_matrix0=idata(14)
+       model_matrix1=idata(15)
+       model_matrix2=idata(16)
 
     IF(nrank == 0) THEN
        ddata(1)=me
@@ -225,6 +231,7 @@ CONTAINS
     WRITE(6,601) 'nxmax ',nxmax ,'nymax ',nymax
     WRITE(6,601) 'ntmax ',ntmax ,'ntstep',ntstep
     WRITE(6,611) 'ntgstep     ',ntgstep,'ntpstep     ',ntpstep
+    WRITE(6,611) 'npomax      ',npomax ,'ntostep     ',ntostep
     WRITE(6,602) 'me    ',me    ,'mi    ',mi    , &
                  'chrge ',chrge ,'chrgi ',chrgi
     WRITE(6,602) 'te    ',te    ,'ti    ',ti    , &

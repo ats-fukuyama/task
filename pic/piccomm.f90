@@ -7,6 +7,7 @@ MODULE piccomm_parm
   USE bpsd_constants
 
   INTEGER:: npxmax,npymax,nxmax,nymax,ntmax,ntstep,ntgstep,ntpstep
+  INTEGER:: npomax,ntostep
   INTEGER:: model_boundary,model_antenna,model_wg
   INTEGER:: model_matrix0,model_matrix1,model_matrix2
   REAL(rkind):: dt,me,mi,chrge,chrgi,te,ti,&
@@ -31,6 +32,7 @@ MODULE piccomm
   REAL(rkind),ALLOCATABLE,DIMENSION(:):: xe,ye,ze,vxe,vye,vze, &
                                          xi,yi,zi,vxi,vyi,vzi, &
                                          xeb,yeb,zeb,xib,yib,zib
+  REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: xpo,ypo,zpo,vxpo,vypo,vzpo
   REAL(rkind),ALLOCATABLE,DIMENSION(:):: vparae,vperpe,vparai,vperpi
   REAL(rkind),ALLOCATABLE,DIMENSION(:):: expi,eypi,ezpi,bxpi,bypi,bzpi
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: cform
@@ -46,7 +48,7 @@ MODULE piccomm
              akine1, akine2, akini1, akini2, time,  &
              x1, x2, y1, y2, z1, z2 ,alx, aly, alz, &
              wkword, wtime, wtime1, wtime2
-  integer :: ntcount, ntgcount, ntpcount, ntgmax, ntpmax
+  integer :: ntcount, ntgcount, ntpcount, ntocount, ntgmax, ntpmax, ntomax
   integer :: ifset, ipssn, iran
   integer :: ierr
 
@@ -111,7 +113,9 @@ CONTAINS
        DEALLOCATE(timet,akinet,akinit,aktott)
        DEALLOCATE(atott,apotet,apotmt,aptott)
     END IF
-
+    IF(ALLOCATED(xpo)) THEN
+       DEALLOCATE(xpo,ypo,zpo,vxpo,vypo,vzpo)
+    END IF
 
     RETURN
   END SUBROUTINE pic_deallocate
