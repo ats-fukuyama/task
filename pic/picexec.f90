@@ -1239,7 +1239,7 @@ CONTAINS
       REAL(8):: x(npmax),y(npmax),vx(npmax),vy(npmax),vz(npmax)
       REAL(8):: vpara(npmax),vperp(npmax)
       REAL(8):: profiles(0:nxmax,0:nymax,9)
-      INTEGER:: np
+      INTEGER:: np,nx,ny
       REAL(8):: xp,yp,fp(9),factor
 
       profiles(0:nxmax,0:nymax,1:9)=0.D0
@@ -1262,6 +1262,20 @@ CONTAINS
 
       CALL profile_boundary(nxmax,nymax,profiles,9,model_boundary)
 
+      profiles(0:nxmax,0:nymax,1:9)=factor*profiles(0:nxmax,0:nymax,1:9)
+
+      DO ny=0,nymax
+         DO nx=0,nxmax
+            profiles(nx,ny,2)=profiles(nx,ny,2)/profiles(nx,ny,1)
+            profiles(nx,ny,3)=profiles(nx,ny,3)/profiles(nx,ny,1)
+            profiles(nx,ny,4)=profiles(nx,ny,4)/profiles(nx,ny,1)
+            profiles(nx,ny,5)=profiles(nx,ny,5)/profiles(nx,ny,1)
+            profiles(nx,ny,6)=profiles(nx,ny,6)/profiles(nx,ny,1)
+            profiles(nx,ny,7)=profiles(nx,ny,7)/profiles(nx,ny,1)
+            profiles(nx,ny,8)=profiles(nx,ny,8)/profiles(nx,ny,1)
+            profiles(nx,ny,9)=profiles(nx,ny,9)/profiles(nx,ny,1)
+         END DO
+      END DO
     END subroutine profile
 
 !***********************************************************************

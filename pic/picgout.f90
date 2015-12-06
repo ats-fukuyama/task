@@ -235,7 +235,7 @@ CONTAINS
        CALL PAGES
        CALL sum_over_y(nxmax,nymax,ntpmax,profilee,workp)
        CALL GRD1D( 5,x,workp(0:nxmax,1:ntpmax,1),nxmax1,nxmax1,ntpmax, &
-                       '@ne(x)@')
+                       '@ne(x)@',FMIN=0.D0)
        CALL GRD1D( 8,x,workp(0:nxmax,1:ntpmax,2),nxmax1,nxmax1,ntpmax, &
                        '@vxe(x)@')
        CALL GRD1D( 9,x,workp(0:nxmax,1:ntpmax,3),nxmax1,nxmax1,ntpmax, &
@@ -247,11 +247,11 @@ CONTAINS
        CALL GRD1D( 7,x,workp(0:nxmax,1:ntpmax,6),nxmax1,nxmax1,ntpmax, &
                        '@vperpe(x)@')
        CALL GRD1D(11,x,workp(0:nxmax,1:ntpmax,7),nxmax1,nxmax1,ntpmax, &
-                       '@Tparae(x)@')
+                       '@Tparae(x)@',FMIN=0.D0)
        CALL GRD1D(12,x,workp(0:nxmax,1:ntpmax,8),nxmax1,nxmax1,ntpmax, &
-                       '@Tperpe(x)@')
+                       '@Tperpe(x)@',FMIN=0.D0)
        CALL GRD1D(13,x,workp(0:nxmax,1:ntpmax,9),nxmax1,nxmax1,ntpmax, &
-                       '@Te(x)@')
+                       '@Te(x)@',FMIN=0.D0)
        CALL PAGEE
        DEALLOCATE(workp)
     CASE('P2')
@@ -280,7 +280,7 @@ CONTAINS
        CALL PAGES
        CALL sum_over_y(nxmax,nymax,ntpmax,profilei,workp)
        CALL GRD1D( 5,x,workp(0:nxmax,1:ntpmax,1),nxmax1,nxmax1,ntpmax, &
-                       '@ne(x)@')
+                       '@ne(x)@',FMIN=0.D0)
        CALL GRD1D( 8,x,workp(0:nxmax,1:ntpmax,2),nxmax1,nxmax1,ntpmax, &
                        '@vxe(x)@')
        CALL GRD1D( 9,x,workp(0:nxmax,1:ntpmax,3),nxmax1,nxmax1,ntpmax, &
@@ -292,11 +292,11 @@ CONTAINS
        CALL GRD1D( 7,x,workp(0:nxmax,1:ntpmax,6),nxmax1,nxmax1,ntpmax, &
                        '@vperpe(x)@')
        CALL GRD1D(11,x,workp(0:nxmax,1:ntpmax,7),nxmax1,nxmax1,ntpmax, &
-                       '@Tparae(x)@')
+                       '@Tparae(x)@',FMIN=0.D0)
        CALL GRD1D(12,x,workp(0:nxmax,1:ntpmax,8),nxmax1,nxmax1,ntpmax, &
-                       '@Tperpe(x)@')
+                       '@Tperpe(x)@',FMIN=0.D0)
        CALL GRD1D(13,x,workp(0:nxmax,1:ntpmax,9),nxmax1,nxmax1,ntpmax, &
-                       '@Te(x)@')
+                       '@Te(x)@',FMIN=0.D0)
        CALL PAGEE
        DEALLOCATE(workp)
     CASE('P4')
@@ -342,10 +342,10 @@ CONTAINS
     DO i=1,9
        DO ntp=1,ntpmax
           DO nx=0,nxmax
-             fx(nx,ntp,i)=0.5D0*(fxy(nxmax,0,i,ntpmax) &
-                                +fxy(nxmax,nymax,i,ntpmax))
+             fx(nx,ntp,i)=0.5D0*(fxy(nx,0,i,ntpmax) &
+                                +fxy(nx,nymax,i,ntpmax))
              DO ny=1,nymax-1
-                fx(nx,ntp,i)=fx(nx,ntp,i)+fxy(nxmax,ny,i,ntpmax)
+                fx(nx,ntp,i)=fx(nx,ntp,i)+fxy(nx,ny,i,ntpmax)
              END DO
              fx(nx,ntp,i)=fx(nx,ntp,i)/DBLE(nymax)
           END DO
