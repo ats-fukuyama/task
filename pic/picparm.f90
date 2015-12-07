@@ -49,13 +49,16 @@ CONTAINS
     INTEGER,INTENT(IN) :: NID
     INTEGER,INTENT(OUT) :: IST,IERR
 
-    NAMELIST /PIC/ npxmax,npymax,nxmax,nymax,ntmax,ntstep,ntgstep,ntpstep, &
-         npomax,npostep,ntostep, &
-         me,mi,chrge,chrgi,te,ti,densx,dt,eps,bxmin,bxmax,bymin,bymax,&
-         bzmin,bzmax,vcfact,omega,jxant,jyant,jzant,phxant,phyant,phzant, &
-         model_push,model_boundary,model_antenna,model_wg, &
-         model_matrix0,model_matrix1,model_matrix2,tolerance_matrix, &
-         xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg, ph_wg,rot_wg,eli_wg
+    NAMELIST /PIC/ &
+              npxmax,npymax,nxmax,nymax,ntmax,ntstep,ntgstep,ntpstep, &
+              npomax,npostep,ntostep, &
+              me,mi,chrge,chrgi,te,ti,densx, &
+              bxmin,bxmax,bymin,bymax,bzmin,bzmax, &
+              dt,eps,vcfact, &
+              omega,jxant,jyant,jzant,phxant,phyant,phzant, &
+              xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg, ph_wg,rot_wg,eli_wg, &
+              model_push,model_boundary,model_antenna,model_wg, &
+              model_matrix0,model_matrix1,model_matrix2,tolerance_matrix
 
     READ(NID,PIC,IOSTAT=IST,ERR=9800,END=9900)
 
@@ -74,12 +77,15 @@ CONTAINS
 
     IMPLICIT NONE
     WRITE(6,'(A)') &
-       '# &PIC : npxmax,npymax,nxmax,nymax,ntmax,ntstep,ntgstep,ntpstep,', &
-       '         me,mi,chrge,chrgi,te,ti,densx,dt,eps,vcfact,bxbg,bybg,bzbg,', &
-       '         omega,jxant,jyant,jzant,phxant,phyant,phzant', &
-       '         model_push,model_boundary,model_antenna,model_wg', &
-       '         model_matrix0,model_matrix1,model_matrix2,tolerance_matrix', &
-       '         xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg, ph_wg,rot_wg,eli_wg'
+    '# &PIC : npxmax,npymax,nxmax,nymax,ntmax,ntstep,ntgstep,ntpstep,', &
+    '         npomax,npostep,ntostep,', &
+    '         me,mi,chrge,chrgi,te,ti,densx,', &
+    '         bxmin,bxmax,bymin,bymax,bzmin,bzmax,', &
+    '         dt,eps,vcfact,', &
+    '         omega,jxant,jyant,jzant,phxant,phyant,phzant', &
+    '         xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg, ph_wg,rot_wg,eli_wg', &
+    '         model_push,model_boundary,model_antenna,model_wg', &
+    '         model_matrix0,model_matrix1,model_matrix2,tolerance_matrix'
     RETURN
 
   END SUBROUTINE pic_plst
@@ -232,28 +238,32 @@ CONTAINS
     use piccomm_parm
     implicit none
 
-    WRITE(6,601) 'npxmax',npxmax,'npymax',npymax
-    WRITE(6,601) 'nxmax ',nxmax ,'nymax ',nymax
-    WRITE(6,601) 'ntmax ',ntmax ,'ntstep',ntstep
+    WRITE(6,611) 'npxmax      ',npxmax ,'npymax      ',npymax
+    WRITE(6,611) 'nxmax       ',nxmax  ,'nymax       ',nymax
+    WRITE(6,611) 'ntmax       ',ntmax  ,'ntstep      ',ntstep
     WRITE(6,611) 'ntgstep     ',ntgstep,'ntpstep     ',ntpstep
     WRITE(6,611) 'npomax      ',npomax ,'npostep     ',npostep, &
                  'ntostep     ',ntostep
-    WRITE(6,602) 'me    ',me    ,'mi    ',mi    , &
-                 'chrge ',chrge ,'chrgi ',chrgi
-    WRITE(6,602) 'te    ',te    ,'ti    ',ti    , 'densx ',densx ,&
-                 'dt    ',dt    ,'eps   ',eps
-    WRITE(6,602) 'bxmin ',bxmin ,'bxmax ',bxmax , &
-                 'bymin ',bymin ,'bymax ',bymax , &
-                 'bzmin ',bzmax ,'bzmax ',bzmax
-    WRITE(6,602) 'vcfact',vcfact,'omega ',omega 
-    WRITE(6,602) 'jxant ',jxant ,'jyant ',jyant , &
-                 'jzant ',jzant
-    WRITE(6,602) 'phxant',phxant,'phyant',phyant, &
-                 'phzant',phzant
-    WRITE(6,612) 'xmin_wg     ',xmin_wg,'xmax_wg     ',xmax_wg, &
-                 'ymin_wg     ',ymin_wg,'ymax_wg     ',ymax_wg, &
-                 'amp_wg      ',amp_wg, 'ph_wg       ',ph_wg,&
-                 'rot_wg      ',rot_wg,'eli_wg       ',eli_wg
+    WRITE(6,612) 'me          ',me     ,'chrge       ',chrge, &
+                 'te          ',te    
+    WRITE(6,612) 'mi          ',mi     ,'chrgi       ',chrgi, &
+                 'ti          ',ti    
+    WRITE(6,612) 'densx       ',densx
+    WRITE(6,612) 'bxmin       ',bxmin  ,'bymin       ',bymin, &
+                 'bzmin       ',bzmin
+    WRITE(6,612) 'bxmax       ',bxmax  ,'bymax       ',bymax, &
+                 'bzmax       ',bzmax
+    WRITE(6,612) 'dt          ',dt     ,'eps         ',eps   , &
+                 'vcfact      ',vcfact
+    WRITE(6,612) 'omega       ',omega
+    WRITE(6,612) 'jxant       ',jxant  ,'jyant       ',jyant , &
+                 'jzant       ',jzant
+    WRITE(6,612) 'phxant      ',phxant,'phyant       ',phyant, &
+                 'phzant      ',phzant
+    WRITE(6,612) 'xmin_wg     ',xmin_wg,'xmax_wg     ',xmax_wg
+    WRITE(6,612) 'ymin_wg     ',ymin_wg,'ymax_wg     ',ymax_wg
+    WRITE(6,612) 'amp_wg      ',amp_wg, 'ph_wg       ',ph_wg
+    WRITE(6,612) 'rot_wg      ',rot_wg,'eli_wg       ',eli_wg
     WRITE(6,621) 'model_push           =',model_push
     WRITE(6,621) 'model_boundary       =',model_boundary
     WRITE(6,621) 'model_antenna        =',model_antenna

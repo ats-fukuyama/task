@@ -1282,14 +1282,16 @@ CONTAINS
 
       DO ny=0,nymax
          DO nx=0,nxmax
-            profiles(nx,ny,2)=profiles(nx,ny,2)/profiles(nx,ny,1)
-            profiles(nx,ny,3)=profiles(nx,ny,3)/profiles(nx,ny,1)
-            profiles(nx,ny,4)=profiles(nx,ny,4)/profiles(nx,ny,1)
-            profiles(nx,ny,5)=profiles(nx,ny,5)/profiles(nx,ny,1)
-            profiles(nx,ny,6)=profiles(nx,ny,6)/profiles(nx,ny,1)
-            profiles(nx,ny,7)=profiles(nx,ny,7)/profiles(nx,ny,1)
-            profiles(nx,ny,8)=profiles(nx,ny,8)/profiles(nx,ny,1)
-            profiles(nx,ny,9)=profiles(nx,ny,9)/profiles(nx,ny,1)
+            IF(profiles(nx,ny,1).NE.0.D0) THEN
+               profiles(nx,ny,2)=profiles(nx,ny,2)/profiles(nx,ny,1)
+               profiles(nx,ny,3)=profiles(nx,ny,3)/profiles(nx,ny,1)
+               profiles(nx,ny,4)=profiles(nx,ny,4)/profiles(nx,ny,1)
+               profiles(nx,ny,5)=profiles(nx,ny,5)/profiles(nx,ny,1)
+               profiles(nx,ny,6)=profiles(nx,ny,6)/profiles(nx,ny,1)
+               profiles(nx,ny,7)=profiles(nx,ny,7)/profiles(nx,ny,1)
+               profiles(nx,ny,8)=profiles(nx,ny,8)/profiles(nx,ny,1)
+               profiles(nx,ny,9)=profiles(nx,ny,9)/profiles(nx,ny,1)
+            END IF
          END DO
       END DO
     END subroutine profile

@@ -19,9 +19,9 @@ PROGRAM pic_main
   INTEGER :: ierr
 
   CALL mtx_initialize
-  write(6,*) 'nsize,nrank,ncomm=',nsize,nrank,ncomm
+  write(6,*) 'rank,nsize,ncomm=',nrank,nsize,ncomm
   IF(nrank.EQ.0) THEN
-     WRITE(6,*) '## TASK/PIC 2015/11/22'
+     WRITE(6,*) '## TASK/PIC 2015/12/08'
      CALL GSOPEN
      OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
   END IF
@@ -39,9 +39,10 @@ PROGRAM pic_main
 
   CALL pic_menu
 
-  CLOSE(7)
-  IF(nrank.EQ.0) CALL GSCLOS
+  IF(nrank.EQ.0) THEN
+     CALL GSCLOS
+     CLOSE(7)
+  END IF
   CALL mtx_finalize
-  CALL pic_deallocate
   STOP
 END PROGRAM pic_main
