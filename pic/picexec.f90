@@ -72,7 +72,7 @@ CONTAINS
           call poisson_m(nxmax1,nymax1,rho,phi,ipssn, &
                          model_matrix0,model_matrix1,model_matrix2, &
                          tolerance_matrix)
-n       END IF
+       END IF
 
        !----- current assignment
        jx(:,:)=0.d0
