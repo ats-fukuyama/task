@@ -1,4 +1,4 @@
-!  ***** TASK/XX MENU *****
+!  ***** TASK/PIC MENU *****
 
 MODULE picmenu
 
@@ -9,7 +9,7 @@ CONTAINS
 
   SUBROUTINE pic_menu
 
-    USE piccomm,ONLY: ikind,nrank,nsize,pic_allocate,pic_deallocate
+    USE piccomm,ONLY: ikind,nrank,nsize,pic_deallocate
     USE picparm,ONLY: pic_parm,pic_view,pic_broadcast
     USE picprep,ONLY: pic_prep
     USE picexec,ONLY: pic_exec
@@ -24,12 +24,13 @@ CONTAINS
 1   CONTINUE
     IF(nrank == 0) THEN
        ierr=0
-       WRITE(6,'(A)') '## PIC MENU: P,V/Parm  R/Run  C/Continue G/Graf  Q/QUIT'
+       WRITE(6,'(A)') &
+            '## PIC MENU: P,V/Parm  R/Run  C/Continue  G/Graf  Q/QUIT'
        CALL TASK_KLIN(line,kid,mode,pic_parm)
     END IF
     CALL mtx_barrier
-    CALL mtx_broadcast1_character(KID)
-    CALL mtx_broadcast1_integer(MODE)
+    CALL mtx_broadcast1_character(kid)
+    CALL mtx_broadcast1_integer(mode)
     IF(mode /= 1) GOTO 1
 
     CALL pic_broadcast

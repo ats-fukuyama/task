@@ -25,22 +25,23 @@ CONTAINS
 !............. ntpstep: profile date save interval               .......
 !............. npomax : number of particles to follow orbits     .......
 !............. npostep: particle data save internal (1,1+npostep,...)...
-!............. ntpstep: orbit data save interval                 .......
+!............. ntostep: orbit data save interval                 .......
 !.......................................................................
 
       npxmax = 100
       npymax = 100
-      nxmax = 50
-      nymax = 50
-      ntmax = 3000
-      ntstep= 100
-      ntgstep= 100
+      nxmax = 64
+      nymax = 64
+      ntmax = 1000
+      ntstep= 10
+      ntgstep= 1
       ntpstep= 100
       npomax = 0
       npostep= 1
       ntostep= 1
 
 !----- set some parameters -------------------------------
+
       dt     =    0.02d0    !: time step size
       me     =    1.0d0     !: electron mass
       mi     = 1836.0d0     !: ion mass
@@ -64,6 +65,7 @@ CONTAINS
       phxant =    0.0d0     ! initial phase of jxant
       phyant =    0.0d0     ! initial phase of jyant
       phzant =    0.0d0     ! initial phase of jzant
+
 !---------------------------------------------------------
 
       model_push = 15       ! force to push particles
@@ -100,6 +102,7 @@ CONTAINS
       model_matrix1 = 4     ! ksp default
       model_matrix2 = 5     ! ksp default
       tolerance_matrix=1.D-7! tolerance for ksp
+
     RETURN
   END SUBROUTINE pic_init
 END MODULE picinit
