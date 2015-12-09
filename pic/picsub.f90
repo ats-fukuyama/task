@@ -442,7 +442,11 @@ CONTAINS
          akin = akin + vx(np)**2 + vy(np)**2 + vz(np)**2
       end do
 
-      akin = 0.5 * akin * mass /dble(npmax)
+      IF(npmax.EQ.0) THEN
+         akin=0.D0
+      ELSE
+         akin = 0.5 * akin * mass /dble(npmax)
+      END IF
     end subroutine kine
 
 !***********************************************************************

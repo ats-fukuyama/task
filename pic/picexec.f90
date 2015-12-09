@@ -440,19 +440,11 @@ CONTAINS
        IF(model_boundary.EQ.0) THEN ! periodic
           if( nxp .eq. 0  ) nxpm = nxmax - 1
           if( nyp .eq. 0  ) nypm = nymax - 1
-          !if( nxp .eq. nxmax-2) nxppp=0
-          !if( nyp .eq. nymax-2) nyppp=0
-          !if( nxp .eq. nxmax-1) nxpp =0
-          !if( nyp .eq. nymax-1) nypp =0
           if( nxp .eq. nxmax-1) nxppp = 1
           if( nyp .eq. nymax-1) nyppp = 1
        ELSE   ! reflective: 
           if( nxp .eq. 0  ) nxpm = 0
           if( nyp .eq. 0  ) nypm = 0
-          !if( nxp .eq. nxmax-2) nxppp=nxmax
-          !if( nyp .eq. nymax-2) nyppp=nymax
-          !if( nxp .eq. nxmax-1) nxpp =nxmax
-          !if( nyp .eq. nymax-1) nypp =nymax
           if( nxp .eq. nxmax-1) nxppp = nxmax
           if( nyp .eq. nymax-1) nyppp = nymax
        END IF
@@ -672,19 +664,19 @@ CONTAINS
 
       do np = 1, npmax
          if( x(np) .lt. x1 ) then
-            x(np) = -x(np)
-            vx(np) = -vx(np)
+             x(np) = -x(np)
+             vx(np) = -vx(np)
          elseif( x(np) .gt. x2 ) then
-            x(np) = alx - (x(np) - alx)
-            vx(np) = -vx(np)
+             x(np) = alx - (x(np) - alx)
+             vx(np) = -vx(np)
          endif
  
          if( y(np) .lt. y1 ) then
-            y(np) = -y(np)
-            vy(np) = -vy(np)
+             y(np) = -y(np)
+             vy(np) = -vy(np)
          elseif( y(np) .gt. y2 ) then
-            y(np) = aly - (y(np) - aly)
-            vy(np) = -vy(np)
+             y(np) = aly - (y(np) - aly)
+             vy(np) = -vy(np)
          endif
 
          if( z(np) .lt. z1 ) then
@@ -712,7 +704,11 @@ CONTAINS
       integer :: npmax, nxmax, nymax, model_boundary
       integer:: np, nxp, nyp, nx, ny, nxpp, nxpm, nypp, nypm, nxppp, nyppp
 
-      factor=chrg*dble(nxmax)*dble(nymax)/dble(npmax)
+      IF(npmax.EQ.0) then
+         factor=chrg*dble(nxmax)*dble(nymax)
+      ELSE
+         factor=chrg*dble(nxmax)*dble(nymax)/dble(npmax)
+      END IF
 
 !*poption parallel, psum(rho)
 
@@ -754,19 +750,11 @@ CONTAINS
          IF(model_boundary.EQ.0) THEN ! periodic
             if( nxp .eq. 0  ) nxpm = nxmax - 1
             if( nyp .eq. 0  ) nypm = nymax - 1
-            !if( nxp .eq. nxmax-2) nxppp=0
-            !if( nyp .eq. nymax-2) nyppp=0
-            !if( nxp .eq. nxmax-1) nxpp =0
-            !if( nyp .eq. nymax-1) nypp =0
             if( nxp .eq. nxmax-1) nxppp=1
             if( nyp .eq. nymax-1) nyppp=1
          ELSE   ! reflective: 
             if( nxp .eq. 0  ) nxpm = 0
             if( nyp .eq. 0  ) nypm = 0
-            !if( nxp .eq. nxmax-2) nxppp=nxmax
-            !if( nyp .eq. nymax-2) nyppp=nymax
-            !if( nxp .eq. nxmax-1) nxpp =nxmax
-            !if( nyp .eq. nymax-1) nypp =nymax
             if( nxp .eq. nxmax-1) nxppp = nxmax
             if( nyp .eq. nymax-1) nyppp = nymax
          END IF
@@ -864,7 +852,11 @@ CONTAINS
     integer :: npmax, nxmax, nymax, model_boundary
     integer :: np, nxp, nyp, nxpm, nypm, nxpp, nypp, nxppp, nyppp, nx, ny
 
-    factor=chrg*dble(nxmax)*dble(nymax)/dble(npmax)
+    IF(npmax.EQ.0) then
+       factor=chrg*dble(nxmax)*dble(nymax)
+    ELSE
+       factor=chrg*dble(nxmax)*dble(nymax)/dble(npmax)
+    END IF
 
     do np = 1, npmax
 
@@ -1173,6 +1165,7 @@ CONTAINS
                                amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi)
 !***********************************************************************
    !original subroutine
+      USE piccomm,ONLY: pi
       implicit none
       real(8), dimension(0:nxmax,0:nymax) :: phi,phib,jx,jy,jz,Ax,Ay,Az, &
                                              Axb,Ayb,Azb,Axbb,Aybb,Azbb
@@ -1180,7 +1173,7 @@ CONTAINS
       integer :: model_wg
       real(8) :: xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg,ph_wg,rot_wg,eli_wg
       real(8) :: omega,time,pi
-      real(8) :: vcfact,dt,dph,x,y
+      real(8) :: vcfact,dt,dph,x,y, yc,ylen,factor
 
  ! Solution of maxwell equation in the A-phi formulation by difference method
  ! vcfact is the ratio of the light speed to lattice parameter times plasma 
@@ -1235,11 +1228,18 @@ CONTAINS
 
       SELECT CASE(model_wg)
       CASE(0)
-         dph=ph_wg/(ymax_wg-ymin_wg)
+         yc=0.5d0*(ymin_wg+ymax_wg)
+         ylen=(ymax_wg-ymin_wg)
+         dph=ph_wg/ylen
          DO ny=1,nymax
             y=dble(ny)
-            IF(y.GE.ymin_wg.AND.y.LE.ymax_wg) &
-               Ay(0,ny)=amp_wg*sin(omega*time-2.D0*pi*dph*(y-ymin_wg))
+            IF(y.GE.ymin_wg.AND.y.LE.ymax_wg) THEN
+               factor=exp(-12.D0*(y-yc)**2/(ylen)**2)
+               Ay(0,ny)=amp_wg*factor*COS(rot_wg*pi/180.D0) &
+                       *sin(omega*time-2.D0*pi*dph*(y-ymin_wg))
+               Az(0,ny)=amp_wg*factor*SIN(rot_wg*pi/180.D0) &
+                       *sin(omega*time-2.D0*pi*dph*(y-ymin_wg))
+            END IF
          END DO
       END SELECT
 
@@ -1259,7 +1259,11 @@ CONTAINS
       REAL(8):: xp,yp,fp(9),factor
 
       profiles(0:nxmax,0:nymax,1:9)=0.D0
-      factor=DBLE(nxmax)*DBLE(nymax)/DBLE(npmax)
+      IF(npmax.EQ.0) then
+         factor=dble(nxmax)*dble(nymax)
+      ELSE
+         factor=dble(nxmax)*dble(nymax)/dble(npmax)
+      END IF
 
       DO np=1,npmax
          xp=x(np)
