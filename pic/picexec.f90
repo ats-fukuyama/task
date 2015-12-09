@@ -73,7 +73,6 @@ CONTAINS
                          model_matrix0,model_matrix1,model_matrix2, &
                          tolerance_matrix)
        END IF
-
        !----- current assignment
        jx(:,:)=0.d0
        jy(:,:)=0.d0
@@ -114,7 +113,9 @@ CONTAINS
        !.......... calculate vector potential
        if(model_boundary .eq. 0) then
           call phia_periodic(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
-                             Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
+                             Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb,&
+                               model_wg,xmin_wg,xmax_wg,ymin_wg,ymax_wg, &
+                               amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi)
        else
           call phia_reflective(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
                                Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
@@ -143,6 +144,7 @@ CONTAINS
           call mtx_allreduce1_real8(apotm,3,sum,locv)
           apotm=sum
        endif
+       !write(*,*) by(1,1)
 
        !..... push electrons
        call push(npmax,nxmax,nymax,xe,ye,ze,vxe,vye,vze, &
@@ -1079,7 +1081,7 @@ CONTAINS
             jz(nx,nymax) = jz(nx,0)
          enddo
       ELSE                           ! reflective
-        do ny=1,nymax-1
+        do ny=1,nymax
            jx(0,ny) = 2.0d0 * jx(0,ny)
            jy(0,ny) = 2.0d0 * jy(0,ny)
            jz(0,ny) = 2.0d0 * jz(0,ny)
@@ -1113,14 +1115,19 @@ CONTAINS
 
 !***********************************************************************
     subroutine phia_periodic(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
-                             Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
+                             Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb,&
+                               model_wg,xmin_wg,xmax_wg,ymin_wg,ymax_wg, &
+                               amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi)
 !***********************************************************************
    !original subroutine
       implicit none
       real(8), dimension(0:nxmax,0:nymax) :: phi,phib,jx,jy,jz,Ax,Ay,Az, &
                                              Axb,Ayb,Azb,Axbb,Aybb,Azbb
       integer :: nxmax, nymax, nx, ny, nxm, nxp, nyp, nym, nypm
-      real(8) :: vcfact, dt
+      integer :: model_wg
+      real(8) :: vcfact, dt, dph, x, y
+      real(8) :: xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg,ph_wg,rot_wg,eli_wg
+      real(8) :: omega,time,pi
 
  ! Solution of maxwell equation in the A-phi formulation by difference method
  ! vcfact is the ratio of the light speed to lattice parameter times 
@@ -1164,6 +1171,16 @@ CONTAINS
       end do
       end do
 
+      SELECT CASE(model_wg)
+      CASE(0)
+         dph=ph_wg/(ymax_wg-ymin_wg)
+         DO ny=1,nymax
+            y=dble(ny)
+            IF(y.GE.ymin_wg.AND.y.LE.ymax_wg) &
+               Ay(0,ny)=amp_wg*sin(omega*time-2.D0*pi*dph*(y-ymin_wg))
+         END DO
+      END SELECT
+
     end subroutine phia_periodic
 
 !***********************************************************************
@@ -1193,7 +1210,7 @@ CONTAINS
          nxp = nx + 1
          nym = ny - 1
          nyp = ny + 1
-
+         
         Ax(nx,ny) = dt ** 2 * vcfact ** 2 * (Axb(nxp,ny) + Axb(nxm,ny) &
                                            + Axb(nx,nyp) + Axb(nx,nym) &
                                            - 4.0d0 * Axb(nx,ny)) &

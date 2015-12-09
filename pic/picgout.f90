@@ -61,15 +61,15 @@ CONTAINS
        work(1:ntgmax,1)=aktott(1:ntgmax)
        work(1:ntgmax,2)=akinit(1:ntgmax)
        work(1:ntgmax,3)=akinet(1:ntgmax)
-       CALL GRD1D(1,timet,work,ntgmax,ntgmax,3,'@Ktot,Ki,Ke vs t@')
+       !CALL GRD1D(1,timet,work,ntgmax,ntgmax,3,'@Ktot,Ki,Ke vs t@')
        work(1:ntgmax,1)=aptott(1:ntgmax)
        work(1:ntgmax,2)=apotet(1:ntgmax)
        work(1:ntgmax,3)=apotmt(1:ntgmax)
-       CALL GRD1D(2,timet,work,ntgmax,ntgmax,3,'@Ptot,Pe,Pm vs t@')
+       !CALL GRD1D(2,timet,work,ntgmax,ntgmax,3,'@Ptot,Pe,Pm vs t@')
        work(1:ntgmax,1)=atott(1:ntgmax)
        work(1:ntgmax,2)=aktott(1:ntgmax)
        work(1:ntgmax,3)=aptott(1:ntgmax)
-       CALL GRD1D(3,timet,work,ntgmax,ntgmax,3,'@Wtot,Ktot,Ptot vs t@')
+       CALL GRD1D(0,timet,work,ntgmax,ntgmax,3,'@Wtot,Ktot,Ptot vs t@')
        work(1:ntgmax,1)=atott(1:ntgmax)
        work(1:ntgmax,2)=aktott(1:ntgmax)
        work(1:ntgmax,3)=akinet(1:ntgmax)
@@ -77,20 +77,20 @@ CONTAINS
        work(1:ntgmax,5)=aptott(1:ntgmax)
        work(1:ntgmax,6)=apotet(1:ntgmax)
        work(1:ntgmax,7)=apotmt(1:ntgmax)
-       CALL GRD1D(4,timet,work,ntgmax,ntgmax,7, &
-                  '@Wtot,Ktot,Ke,Ki,Ptot,Pe,Pm vs t@')
+       !CALL GRD1D(4,timet,work,ntgmax,ntgmax,7, &
+       !           '@Wtot,Ktot,Ke,Ki,Ptot,Pe,Pm vs t@')
        CALL PAGEE
        DEALLOCATE(work)
     CASE('E1')
        CALL PAGES
-       CALL GRD2D(1,x,y,ex,nxmax1,nxmax1,nymax1,'@Ex@',ASPECT=aspect, &
+       !CALL GRD2D(1,x,y,ex,nxmax1,nxmax1,nymax1,'@Ex@',ASPECT=aspect, &
+       !             XMIN=0.D0,XMAX=DBLE(nxmax),YMIN=0.D0,YMAX=DBLE(nymax))
+       CALL GRD2D(0,x,y,ey,nxmax1,nxmax1,nymax1,'@Ey@',ASPECT=aspect, &
                     XMIN=0.D0,XMAX=DBLE(nxmax),YMIN=0.D0,YMAX=DBLE(nymax))
-       CALL GRD2D(2,x,y,ey,nxmax1,nxmax1,nymax1,'@Ey@',ASPECT=aspect, &
-                    XMIN=0.D0,XMAX=DBLE(nxmax),YMIN=0.D0,YMAX=DBLE(nymax))
-       CALL GRD2D(3,x,y,rho,nxmax1,nxmax1,nymax1,'@rho@',ASPECT=aspect, &
-                    XMIN=0.D0,XMAX=DBLE(nxmax),YMIN=0.D0,YMAX=DBLE(nymax))
-       CALL GRD2D(4,x,y,phi,nxmax1,nxmax1,nymax1,'@phi@',ASPECT=aspect, &
-                    XMIN=0.D0,XMAX=DBLE(nxmax),YMIN=0.D0,YMAX=DBLE(nymax))
+       !CALL GRD2D(3,x,y,rho,nxmax1,nxmax1,nymax1,'@rho@',ASPECT=aspect, &
+       !             XMIN=0.D0,XMAX=DBLE(nxmax),YMIN=0.D0,YMAX=DBLE(nymax))
+       !CALL GRD2D(4,x,y,phi,nxmax1,nxmax1,nymax1,'@phi@',ASPECT=aspect, &
+       !             XMIN=0.D0,XMAX=DBLE(nxmax),YMIN=0.D0,YMAX=DBLE(nymax))
        CALL PAGEE
     CASE('E2')
        CALL PAGES

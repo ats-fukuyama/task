@@ -398,7 +398,7 @@ CONTAINS
             bz(nx,ny) = 0.25d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
                       - Ay(nxm,ny) - Ayb(nxm,ny) &
                       - (Ax(nx,nyp) + Axb(nx,nyp) &
-                      -Ax(nx,nym) - Axb(nx,nym)))
+                      - Ax(nx,nym) - Axb(nx,nym)))
             end if
         end do
         end do
