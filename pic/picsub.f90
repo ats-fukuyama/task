@@ -363,12 +363,12 @@ CONTAINS
          
             bx(nx,ny) = 0.25d0 * (Az(nx,nyp) + Azb(nx,nyp) &
                       - Az(nx,nym) - Azb(nx,nym))
-            by(nx,ny) = 0.25d0 * (Az(nxp,ny) + Azb(nxp,ny) &
+            by(nx,ny) = - 0.25d0 * (Az(nxp,ny) + Azb(nxp,ny) &
                       - Az(nxm,ny) - Azb(nxm,ny))
             bz(nx,ny) = 0.25d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
                       - Ay(nxm,ny) - Ayb(nxm,ny) &
                       - (Ax(nx,nyp) + Axb(nx,nyp) &
-                      -Ax(nx,nym) - Axb(nx,nym)))
+                      - Ax(nx,nym) - Axb(nx,nym)))
          end do
          end do
       elseif(model_boundary .ne. 0) then
@@ -386,7 +386,7 @@ CONTAINS
          
             bx(nx,ny) = 0.25d0 * (Az(nx,nyp) + Azb(nx,nyp) &
                       - Az(nx,nym) - Azb(nx,nym))
-            by(nx,ny) = 0.25d0 * (Az(nxp,ny) + Azb(nxp,ny) &
+            by(nx,ny) = - 0.25d0 * (Az(nxp,ny) + Azb(nxp,ny) &
                       - Az(nxm,ny) - Azb(nxm,ny))
             if(nx .eq. 0 .or. nx .eq. nxmax .or. &
                ny .eq. 0 .or. ny .eq. nymax) then
@@ -442,7 +442,11 @@ CONTAINS
          akin = akin + vx(np)**2 + vy(np)**2 + vz(np)**2
       end do
 
-      akin = 0.5 * akin * mass /dble(npmax)
+      IF(npmax.EQ.0) THEN
+         akin=0.D0
+      ELSE
+         akin = 0.5 * akin * mass /dble(npmax)
+      END IF
     end subroutine kine
 
 !***********************************************************************

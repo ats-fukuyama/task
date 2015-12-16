@@ -95,7 +95,8 @@ CONTAINS
       ymax_wg = 0.D0
       amp_wg  = 0.D0        ! amplitude of wave vector potential
       ph_wg   = 0.D0        ! phase difference between x/ymin and  x/ymax 2*pi
-      rot_wg  = 0.D0        ! angle of wave electric fields: 0 for z-direction
+      rot_wg  = 0.D0        ! angle of wave electric fields: 0 for y-direction
+                            !                               90 for z-direction
       eli_wg  = 0.D0        ! angle of elipticity of wave electric field
 
       model_matrix0 = 0     ! ksp default
