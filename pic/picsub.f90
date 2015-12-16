@@ -393,7 +393,7 @@ CONTAINS
             bz(nx,ny) = 0.5d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
                       - Ay(nxm,ny) - Ayb(nxm,ny) &
                       - (Ax(nx,nyp) + Axb(nx,nyp) &
-                      -Ax(nx,nym) - Axb(nx,nym)))
+                      - Ax(nx,nym) - Axb(nx,nym)))
             else
             bz(nx,ny) = 0.25d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
                       - Ay(nxm,ny) - Ayb(nxm,ny) &
@@ -463,8 +463,8 @@ CONTAINS
 
          do ny = 1, nymax-1
          do nx = 1, nxmax-1
-            apote = apote + 0.5d0*(ex(nx,ny)**2 + ey(nx,ny)**2 + ez(nx,ny)**2)
-            apotm = apotm + 0.5d0*((bx(nx,ny)-bxbg(nx,nx))**2 &
+            apote = apote + (ex(nx,ny)**2 + ey(nx,ny)**2 + ez(nx,ny)**2)
+            apotm = apotm + ((bx(nx,ny)-bxbg(nx,nx))**2 &
                   + (by(nx,ny)-bybg(nx,nx))**2 &
                   + (bz(nx,ny)-bzbg(nx,nx))**2)
          end do
