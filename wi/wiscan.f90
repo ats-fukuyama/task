@@ -99,7 +99,11 @@ CONTAINS
     REAL(rkind),DIMENSION(nalfamax):: rk0la,rateaa
 
     alfa_save=alfa
-    dalfa=(log(alfamax)-log(alfamin))/(nalfamax-1)
+    IF(nalfamax.EQ.1) THEN
+       dalfa=0.D0
+    ELSE
+       dalfa=(log(alfamax)-log(alfamin))/(nalfamax-1)
+    END IF
     xmax_save=xmax
     xmin_save=xmin
     xwint_save=xwint

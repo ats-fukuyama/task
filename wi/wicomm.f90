@@ -34,7 +34,7 @@ MODULE wicomm
   REAL(rkind)::    dxmin  = 0.D0   ! minimum grid size at omegape = omega
   REAL(rkind)::    xwmin  = 1.D0   ! range of reduction near omegape = omega
   COMPLEX(rkind):: cfyn = (1.D0,0.D0) ! E field of incident wave at nx=nxmax
-  INTEGER(ikind):: modewi = 0      ! modewi=0: original vte normalization
+  INTEGER(ikind):: modewi = 1      ! modewi=0: original vte normalization
                                    !        1: c normalization and x=0 at res
   INTEGER(ikind):: idebug = 0      ! debug option index
   CHARACTER(len=80):: kfscan=''    ! filename to save scan data
