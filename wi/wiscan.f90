@@ -126,15 +126,18 @@ CONTAINS
        ELSE
 !          dx0=0.5D0*dx0_save/log(alfa)
           dx0=0.1D0*dx0_save/log(alfa)
+!          dx0=0.03D0*dx0_save/log(alfa)
 !          IF(dx0.GT.0.3D0*dx0_save/alfa) dx0=0.3D0*dx0_save/alfa 
           xmax=500.D0*dx0
           xmin=-500.D0*dx0
+!          IF(xmin.gt.-10.d0) xmin=-10.d0
+!          IF(xmax.lt. 10.d0) xmax= 10.d0
 !          xmax=10.D0
 !          xmin=-10.D0
 !          xwint=100*dx0
        END IF
        alfa=alfa*beta
-!       WRITE(6,'(I5,1P6E12.4)') nalfa,alfa,rk0l,0.D0,xmin,xmax,dx0
+       WRITE(6,'(I5,1P6E12.4)') nalfa,alfa,rk0l,0.D0,xmin,xmax,dx0
        CALL wi_prep
        IF(any < 1.0) THEN
           CALL wi_exec(0,ratea,ierr)
@@ -147,7 +150,7 @@ CONTAINS
             WRITE(nfl,'(I5,1P3E12.4)') nalfa,alfa,rk0l,ratea
        rk0la(nalfa)=LOG10(rk0l)
        rateaa(nalfa)=ratea
-       CALL wi_gra1
+       if(NALFAMAX.eq.1) CALL wi_gra1
     END DO
     alfa=alfa_save
     xmax=xmax_save
@@ -157,10 +160,12 @@ CONTAINS
 
     IF(TRIM(kfscan)//'X'.NE.'X') CLOSE(nfl)
 
-    CALL PAGES
-    CALL GRD1D(0,rk0la,rateaa,nalfamax,nalfamax,1,TITLE='@abs vs k0L@',&
-               MODE_LS=1,FMIN=0.D0)
-    CALL PAGEE
+    IF(NALFAMAX.NE.1) THEN
+       CALL PAGES
+       CALL GRD1D(0,rk0la,rateaa,nalfamax,nalfamax,1,TITLE='@abs vs k0L@',&
+                  MODE_LS=1,FMIN=0.D0)
+       CALL PAGEE
+    END IF
 
     RETURN
   END SUBROUTINE wi_scan_alfa
