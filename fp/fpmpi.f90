@@ -40,7 +40,7 @@
       RETURN
       END SUBROUTINE fp_gatherv_real8_sav
 !-----
-      SUBROUTINE update_fnsb 
+      SUBROUTINE update_fnsb
 
       IMPLICIT NONE
       integer:: nsend, nth, np, nr, nsa
@@ -114,7 +114,7 @@
          sendbuf(:,:,:,:)=0.D0
          sendbuf(:,:,:,:)=array(:,:,:,:)
 
-         CALL mtx_allreduce_real8(sendbuf, ncount, 1, recvbuf,lloc)
+         CALL mtx_allreduce_real8(sendbuf, ncount, 3, recvbuf,lloc)
 
          array(:,:,:,:) = recvbuf(:,:,:,:)
 

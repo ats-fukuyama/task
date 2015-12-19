@@ -35,6 +35,7 @@
       DO nsb=1,nsm
          ns_nsb(nsb)=nsb          ! default field particle species lise
          pmax(nsb)=7.d0           ! default pmax=7
+         pmax_bb(nsb)=5.d0        ! default pmax=5 R_beam_beam
       ENDDO
 
       zeff  = 1.D0
@@ -130,7 +131,7 @@
 !     TLOSS(ns): loss time [s] (0.D0 for no loss)
 
 !     NSSPB(nbeam) : NBI particle species
-!     SPBTOT(nbeam): Particle source [1/m^3 s]
+!     SPBTOT(nbeam): Particle source [1/m^3 s] ! [1/s]? 
 !     SPBR0(nbeam) : Source radius [r/a]
 !     SPBRW(nbeam) : Source width [r/a]
 !     SPBENG(nbeam): Particle energy [eV]
@@ -282,6 +283,7 @@
       MODELD_n_RE=0 ! radial transport of RE density 0=off, 1=on
       time_quench_start=0.D0
       RJPROF2=2.D0
+      v_RE=1.D0 ! RE velocity / VC
 !-----------------------------------------------------------------------
 !     LLMAX : dimension of legendre polynomials's calculation
 
@@ -399,7 +401,7 @@
            N_partition_s, N_partition_r, N_partition_p, MODEL_DISRUPT, &
            MODEL_synch, MODEL_LOSS, MODEL_SINK, T0_quench, tau_quench, deltaB_B, &
            MODEL_NBI, MODEL_WAVE, MODEL_IMPURITY, MODEL_Conner_FP, MODEL_BS, MODEL_jfp, &
-           MODEL_LNL, time_quench_start, MODEL_RE_pmax, RJPROF2, MODELD_n_RE
+           MODEL_LNL, time_quench_start, MODEL_RE_pmax, RJPROF2, MODELD_n_RE, pmax_bb, v_RE
 
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: nid
@@ -430,7 +432,7 @@
            N_partition_s, N_partition_r, N_partition_p, MODEL_DISRUPT, &
            MODEL_synch, MODEL_LOSS, MODEL_SINK, T0_quench, tau_quench, deltaB_B, &
            MODEL_NBI, MODEL_WAVE, MODEL_IMPURITY, MODEL_Conner_FP, MODEL_BS, MODEL_jfp, &
-           MODEL_LNL, time_quench_start, MODEL_RE_pmax, RJPROF2, MODELD_n_RE
+           MODEL_LNL, time_quench_start, MODEL_RE_pmax, RJPROF2, MODELD_n_RE, pmax_bb, v_RE
 
       READ(nid,FP,IOSTAT=ist,ERR=9800,END=9900)
 
@@ -471,7 +473,7 @@
       WRITE(6,*) '      N_partition_s, N_partition_r, N_partition_p, MODEL_DISRUPT'
       WRITE(6,*) '      MODEL_synch, MODEL_loss, MODEL_SINK, T0_quench, tau_quench, deltaB_B,'
       WRITE(6,*) '      MODEL_NBI, MODEL_WAVE, MODEL_IMPURITY, MODEL_Conner_FP, MODEL_BS, MODEL_jfp'
-      WRITE(6,*) '      MODEL_LNL, time_quench_start, MODEL_RE_pmax, RJPROF2, MODELD_n_RE'
+      WRITE(6,*) '      MODEL_LNL, time_quench_start, MODEL_RE_pmax, RJPROF2, MODELD_n_RE, pmax_bb, v_RE'
 
       RETURN
     END SUBROUTINE fp_plst
@@ -754,7 +756,8 @@
       rdata(46)=tau_quench
       rdata(47)=time_quench_start
       rdata(48)=deltaB_B
-      CALL mtx_broadcast_real8(rdata,48)
+      rdata(49)=v_RE
+      CALL mtx_broadcast_real8(rdata,49)
       DELT  =rdata( 1)
       RMIN  =rdata( 2)
       RMAX  =rdata( 3)
@@ -803,8 +806,10 @@
       tau_quench=rdata(46)
       time_quench_start=rdata(47)
       deltaB_B = rdata(48)
+      v_RE= rdata(49)
 
       CALL mtx_broadcast_real8(pmax,NSAMAX)
+      CALL mtx_broadcast_real8(pmax_bb,NSAMAX)
       CALL mtx_broadcast_real8(TLOSS,NSMAX)
 
       CALL mtx_broadcast_real8(SPBTOT,NBEAMMAX)
@@ -855,7 +860,7 @@
            nbeammax,DRRS,MODEL_KSP,MODEL_PC,N_partition_s,N_partition_r,N_partition_p, &
            nsize, MODEL_DISRUPT, MODEL_synch, MODEL_LOSS, MODEL_SINK, T0_quench, tau_quench, deltaB_B, &
            MODEL_NBI, MODEL_WAVE, MODEL_IMPURITY, MODEL_Conner_FP, MODEL_BS, MODEL_jfp, MODEL_LNL, &
-           time_quench_start, MODEL_RE_pmax, RJPROF2, MODELD_n_RE
+           time_quench_start, MODEL_RE_pmax, RJPROF2, MODELD_n_RE, pmax_bb, v_RE
 
       IMPLICIT NONE
       integer:: nsa,nsb,ns,NBEAM

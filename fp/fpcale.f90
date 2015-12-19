@@ -87,14 +87,14 @@
                        - (RJ_bs(NR)-RJ_bsm(NR))*1.d6
                END IF
             ELSE
-!               IF(MODEL_Conner_FP.eq.0)THEN ! default
-               IF(MODEL_Conner_FP.eq.1)THEN ! for given E prof. 
+               IF(MODEL_Conner_FP.eq.0)THEN ! default
+!               IF(MODEL_Conner_FP.eq.1)THEN ! for given E prof. 
                   RHS=SIGMA_SPM(NR)*EM(NR) &
-                       - AEE*VC*((Rconner(NR)+RFP_ava(NR))*RN_disrupt(NR)*1.D20)*DELT &
+                       - AEE*v_RE*VC*((Rconner(NR)+RFP_ava(NR))*RN_disrupt(NR)*1.D20)*DELT &
                        - (RJ_bs(NR)-RJ_bsm(NR))*1.d6
                ELSE
                   RHS=SIGMA_SPM(NR)*EM(NR) &
-                       - AEE*VC*((RFP(NR)+RFP_ava(NR))*RN_disrupt(NR)*1.D20)*DELT &
+                       - AEE*v_RE*VC*((RFP(NR)+RFP_ava(NR))*RN_disrupt(NR)*1.D20)*DELT &
                        - (RJ_bs(NR)-RJ_bsm(NR))*1.d6
                END IF
             END IF
@@ -135,14 +135,14 @@
                        - (RJ_bs(NR)-RJ_bsm(NR))*1.d6
                END IF
             ELSE
-!               IF(MODEL_Conner_FP.eq.0)THEN ! default
-               IF(MODEL_Conner_FP.eq.0)THEN ! for given E prof.
+               IF(MODEL_Conner_FP.eq.0)THEN ! default
+!               IF(MODEL_Conner_FP.eq.1)THEN ! for given E prof.
                   RHS=SIGMA_SPM(NR)*EM(NR) -Aij_p1*E_e &
-                       - AEE*VC*((Rconner(NR)+RFP_ava(NR))*RN_disrupt(NR)*1.D20)*DELT &
+                       - AEE*v_RE*VC*((Rconner(NR)+RFP_ava(NR))*RN_disrupt(NR)*1.D20)*DELT &
                        - (RJ_bs(NR)-RJ_bsm(NR))*1.d6
                ELSE
                   RHS=SIGMA_SPM(NR)*EM(NR) -Aij_p1*E_e &
-                       - AEE*VC*((RFP(NR)+RFP_ava(NR))*RN_disrupt(NR)*1.D20)*DELT &
+                       - AEE*v_RE*VC*((RFP(NR)+RFP_ava(NR))*RN_disrupt(NR)*1.D20)*DELT &
                        - (RJ_bs(NR)-RJ_bsm(NR))*1.d6
                END IF
             END IF
@@ -197,7 +197,7 @@
 
       END SUBROUTINE E_IND_EXPLICIT
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
-      SUBROUTINE E_IND_IMPLICIT_FP(E_SIGMA)
+      SUBROUTINE E_IND_IMPLICIT_FP(E_SIGMA) ! MODEL_jfp=1
 
       IMPLICIT NONE
       integer:: NR
@@ -535,16 +535,16 @@
 
       time_read=0.D0
       IF(NRANK.eq.0)THEN
-!         open(18,file='efield_ref.dat',status='old')
+         open(18,file='efield_ref.dat',status='old')
 
-!         DO while(timefp.ge.time_read)
+         DO while(timefp.ge.time_read)
             read(18,'(33E14.6)') time_read, (read_E(j),j=1,NRMAX)
 !            WRITE(*,'(A,3E14.6)') "TEST",timefp, time_read, read_E(1)
-!         END DO
+         END DO
          DO i=1,NRMAX
             E1(i)=read_E(i)
          END DO
-!         close(18)
+         close(18)
       END IF
 
       CALL mtx_broadcast_real8(E1,NRMAX)

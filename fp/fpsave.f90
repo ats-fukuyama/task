@@ -84,7 +84,7 @@
                DO NP=NPSTART,NPEND
                   DO NTH=1,NTHMAX
                      RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
-                          *RLAMDA(NTH,NR)
+                          *RLAMDA(NTH,NR)/(RR*2*PI*RA**2*RM(NR))
                   END DO
                ENDDO
             END IF
@@ -813,6 +813,7 @@
 !
 !      WRITE(fmt0,'(a15)') '(2I3,1P20E13.4)'
       WRITE(fmt0,'(a44)') '(2I3,1P8E12.4,1P5E12.3e3,1PE12.4,1P5E12.3e3)'
+!      WRITE(fmt0,'(a44)') '(2I3,1P8E16.8,1P5E12.3e3,1PE12.4,1P5E12.3e3)'
 
       WRITE(6,*)"-----Radial profile data"
       WRITE(6,'(A,F12.3)') " TIME=", TIMEFP*1000

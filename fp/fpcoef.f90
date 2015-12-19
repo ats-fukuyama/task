@@ -808,43 +808,6 @@
                ENDIF
             ENDDO
          END IF
-
-!     ----- electron -----
-
-!         IF(NS_NSA(NSA).EQ.1) THEN
-!            NSABEAM=0
-!            DO NSAX=1,NSAMAX
-!               IF(NS_NSA(NSAX).EQ.NSSPF) NSABEAM=NSAX
-!            ENDDO
-!            IF(NSABEAM.NE.0) THEN
-!            PSP=SQRT(2.D0*AMFP(NSA)**2*SPFENG*AEE &
-!                    /(AMFP(NSABEAM)))*PTFP0(NSA)
-!            SUML=0.D0
-!            DO NP=NPSTART,NPEND
-!               IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
-!                  DO NR=1,NRMAX
-!                     SPL=EXP(-(RM(NR)-SPFR0)**2/SPFRW**2)
-!                     DO NTH=1,NTHMAX
-!                        SUML=SUML &
-!                            +SPL*VOLP(NTH,NP,NSBA)*VOLR(NR)!*RLAMDAG(NTH,NR)
-!                     ENDDO
-!                  ENDDO
-!               ENDIF
-!            ENDDO
-!            SUML=SUML*RNFP0(NSA)
-!            DO NP=NPSTART,NPEND
-!               IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
-!                  DO NR=NRSTART,NREND
-!                     SPL=EXP(-(RM(NR)-SPFR0)**2/SPFRW**2)
-!                     DO NTH=1,NTHMAX
-!                        SPPB(NTH,NP,NR,NSA)=SPPB(NTH,NP,NR,NSA) &
-!                             +SPFTOT*SPL/SUML!*RLAMDA(NTH,NR)
-!                     ENDDO
-!                  ENDDO
-!               ENDIF
-!            ENDDO
-!           ENDIF
-!          END IF
       END IF ! MODELS=1
 
 !     ----- non-Maxwell fusion source term -----
@@ -858,7 +821,7 @@
 !
 !     ----- Particle loss and source terms -----
 !
-      ISW_LOSS=1
+      ISW_LOSS=0
       IF(TLOSS(NS).EQ.0.D0) THEN
          DO NR=NRSTART,NREND
             DO NP=NPSTART,NPEND
@@ -871,11 +834,13 @@
          IF(ISW_LOSS.eq.0)THEN
             DO NR=NRSTART,NREND
                DO NP=NPSTART,NPEND
-                  FL=FPMXWL(PM(NP,NSBA),NR,NS) 
-                  DO NTH=1,NTHMAX
-                     PPL(NTH,NP,NR,NSA)=-1.D0/TLOSS(NS)!*RLAMDA(NTH,NR)
-                     SPPS(NTH,NP,NR,NSA)= FL /TLOSS(NS)!*RLAMDA(NTH,NR)
-                  ENDDO
+                  IF(PM(NP,NSBA).le.3.D0)THEN ! for beam benchmark
+                     FL=FPMXWL(PM(NP,NSBA),NR,NS) 
+                     DO NTH=1,NTHMAX
+                        PPL(NTH,NP,NR,NSA)=-1.D0/TLOSS(NS)!*RLAMDA(NTH,NR)
+!                        SPPS(NTH,NP,NR,NSA)= FL /TLOSS(NS)!*RLAMDA(NTH,NR)
+                     ENDDO
+                  END IF
                ENDDO
             ENDDO
          ELSE
@@ -1217,7 +1182,6 @@
             DO NR=1, NRMAX
                PSI = (1.D0+EPSRM2(NR))/(1.D0+EPSRM2(NR)*COS(PANGSP) )
                TH0B = ASIN( SQRT(SIN(ANGSP)**2/PSI) )
-!               DO NP=1, NPMAX-1
                DO NP=NPSTART, NPEND
                   IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
                      DO NTH=1, NTHMAX
@@ -1332,7 +1296,6 @@
             PSP=SQRT(2.D0*AMFP(NSA)*SPBENG(NBEAM)*AEE)/PTFP0(NSA)
             ANGSP=PI*SPBANG(NBEAM)/180.D0
             SUML=0.D0
-!            DO NP=1,NPMAX-1
             DO NP=NPSTART,NPEND
                IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
                   DO NTH=1,NTHMAX
@@ -1348,7 +1311,6 @@
             ENDDO
             SUML=SUML*RNFP0(NSA)
             CALL p_theta_integration(SUML)
-!            DO NP=1,NPMAX-1
             DO NP=NPSTART,NPEND
                IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
                   DO NTH=1,NTHMAX
@@ -1365,7 +1327,6 @@
          ENDIF
       ENDDO
 !  ----  FOR ELECTRON (NS=1)
-!      IF(NS_NSA(NSA).EQ.1) THEN
       IF(NS_NSA(NSA).EQ.1.and.NSSPB(1).ne.1) THEN
          DO NBEAM=1,NBEAMMAX
             NSABEAM=0
@@ -1392,6 +1353,7 @@
                      ENDDO
                   ENDIF
                ENDDO
+               SUML=SUML*RNFP0(NSA)
                CALL p_theta_integration(SUML)
 !               DO NP=1,NPMAX-1
                DO NP=NPSTART,NPEND
@@ -1449,9 +1411,9 @@
             IF(PSP.ge.PG(NPMAX,NSBA))THEN
                NP=NPMAX
                IF(N_IMPL.eq.0.or.N_IMPL.gt.LMAXFP)THEN
-                  write(6,'(A,I5,1P3E12.4)') '  |-NP,PSP,PG=',&
+                  write(6,'(A,I5,1P3E12.4)') '   |-NP,PSP,PG=',&
                        NP,PSP,PMAX(NSBA)
-                  WRITE(6,*) ' |-  OUT OF RANGE PMAX'
+                  WRITE(6,*) '  |-  OUT OF RANGE PMAX'
                END IF
                IF(NPEND.eq.NPMAX)THEN
                   DO NR=NRSTART,NREND

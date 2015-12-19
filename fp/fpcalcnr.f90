@@ -11,8 +11,8 @@
       USE fpcomm
       USE libspf, ONLY: dpleg
 !      USE fpcoef, ONLY: FPMXWL
-      real(8):: PNFP, TMC2FD0, TMC2FD
-
+      real(8):: THETAL, THETA0L, PNFP
+      real(8):: RTFD0L, RTFDL, AMFDL, RNFDL
 
       contains
 
@@ -67,8 +67,12 @@
 !
 !----- DEFINITION OF LOCAL QUANTITIES -------------
 ! 
-      TMC2FD0=THETA0(NSB)
-      TMC2FD =(PTFD(NR,NSB)/(AMFD(NSB)*VC))**2 
+      THETA0L=THETA0(NSB)
+      IF(MODEL_DISRUPT.eq.0)THEN
+         THETAL=THETA0L*RTFD(NR,NSB)/RTFD0(NSB)
+      ELSE
+         THETAL=THETA0L*RT_quench(NR)/RTFD0(NSB)
+      END IF
       FACT=AEFP(NSA)**2*AEFD(NSB)**2*LNLAM(NR,NSB,NSA)/(4.D0*PI*EPS0**2)
 !      RGAMH=RNUD(NR,NSB,NSA)*SQRT(2.D0)*VTFD(NR,NSB)*AMFP(NSA) &
 !           /(RNFP0(NSA)*PTFP0(NSA)*1.D20)
@@ -467,7 +471,6 @@
             FCPP2(NTH,1,NR,NSB,NSA) = 0.D0
             
             PNFP=0.D0
-!         THETA0(NSB)=(PTFD0(NSB)/(AMFD(NSB)*VC))**2
             PCRIT=0.D0
             CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R2)
             PNFP=PCRIT
@@ -1035,7 +1038,7 @@
 
       A=1.D0
       PN=A*(X+PNFP)
-      B=PN*SQRT(1.D0+PN**2*TMC2FD0)
+      B=PN*SQRT(1.D0+PN**2*THETA0L)
       FPFN2R2=A*B*FPRMXW2(PN)
 
       RETURN
@@ -1050,7 +1053,7 @@
       real(8),INTENT(IN):: PN
       real(8):: EX
 
-      EX=(1.D0-SQRT(1.D0+PN**2*TMC2FD0))/TMC2FD
+      EX=(1.D0-SQRT(1.D0+PN**2*THETA0L))/THETAL
       IF (EX.LT.-100.D0)THEN
          FPRMXW2=0.D0
       ELSE
@@ -1089,7 +1092,7 @@
       real(8):: vtatb, pabbar, ptatb, PMAX2, testF, testP
       integer:: N_fine_range
 
-      TMC2FD0=(PTFD0(NSB)/(AMFD(NSB)*VC))**2
+      THETA0L=THETA0(NSB)
       NSBA=NSB_NSA(NSA)
       N_fine_range=1
 
@@ -1292,8 +1295,8 @@
       USE libbes,ONLY: besekn 
       implicit none
       integer :: NR, NS
-      real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
-      real(kind8) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
+      real(kind8) :: PML,aefdl,rnfd0l,ptfd0l,rl,rhon
+      real(kind8) :: fact,ex,theta0l,z,dkbsl
       TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
       real(kind8):: FPMXWL_calcnr
 

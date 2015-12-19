@@ -24,12 +24,18 @@
       IF(NR.ne.NRMAX+1)THEN
          CALL SET_ETAMG(NR)
 
-!         CALL SET_RLAMDA_DE(NR)
-!         CALL SET_RLAMDA_ELL(NR)
-         CALL SET_RLAMDA(NR) ! NAVMAX
+         CALL SET_RLAMDA(NR) ! NAVMAX (except theta_B)
+!         CALL SET_RLAMDA_DE(NR) (except theta_B and trapped)
+         CALL SET_RLAMDA_ELL(NR) !(except theta_B and passing)
+
 !         CALL SET_RLAMDA_TPB(NR) ! Kileen
-!         CALL SET_RLAMDA_TPB2(NR) ! Kileen with correction
-         CALL SET_RLAMDA_TPB3(NR) ! NAVMAX
+!         CALL SET_RLAMDA_TPB2(NR) ! Kileen with correction ELL + DE
+         CALL SET_RLAMDA_TPB3(NR) ! Kileen with correction NAVMAX
+
+!multiple A_chi0
+         DO NTH=1, NTHMAX
+            RLAMDA(NTH,NR)=RLAMDA(NTH,NR)*(2*PI*RA**2*RM(NR))*(1+EPSRM2(NR))/QLM(NR)
+         END DO
       END IF
 
 !     ON RG(NR)
@@ -62,7 +68,7 @@
       END SUBROUTINE SET_BOUNCE_PARAM
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!     SET BOUNCE POINT phi_b/2=ETAM ON RM(NR)
+!     SET BOUNCE POINT chi_b/2=ETAM ON RM(NR)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       SUBROUTINE SET_ETAMG(NR)
 
@@ -98,7 +104,7 @@
 
       END SUBROUTINE SET_ETAMG
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!     SET BOUNCE POINT phi_b/2=ETAM ON RG(NR)
+!     SET BOUNCE POINT chi_b/2=ETAM ON RG(NR)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       SUBROUTINE SET_ETAMG_G(NR)
 
@@ -136,7 +142,7 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     BOUNDARY LAYER THM = THETA_B
-!     P.129 Killeen 
+!     P.129 and 100 Killeen 
       SUBROUTINE SET_RLAMDA_TPB(NR)
 
       IMPLICIT NONE
@@ -1243,7 +1249,7 @@
       DOUBLE PRECISION:: k1, k2, sum_bl, sum_ex, K_1_x, L_bl, L_ex, L_b, THEX, DELTHEX
       DOUBLE PRECISION,dimension(0:m):: alpha, beta, j2m
       DOUBLE PRECISION,DIMENSION(0:4):: ell_a, ell_b
-      DOUBLE PRECISION:: phib, DELH, suml, ETAL, PSIB, X, PCOS, FACT
+      DOUBLE PRECISION:: chib, DELH, suml, ETAL, PSIB, X, PCOS, FACT
 
       DATA ell_a/ 1.38629436112D0, 0.09666344259D0, 0.03590092383D0, &
            0.03742563713D0, 0.01451196212D0/
@@ -1253,7 +1259,7 @@
       mub = SQRT(2.D0*EPSRM2(NR) / (1.D0 + EPSRM2(NR) ) )
       sinb= SQRT( (1.D0-EPSRM2(NR))/(1.D0+EPSRM2(NR)) )
 
-      IF(COSM(ITL(NR)).le.mub)THEN ! ITL = TRAPPED
+      IF(COSM(ITL(NR)).lt.mub)THEN ! ITL = TRAPPED
 !!     define DEL2T
          DEL2T = COSG(ITL(NR))/mub -1.D0
          DELTHB =( ACOS(mub) - THG(ITL(NR)) )*2.D0
@@ -1262,8 +1268,8 @@
          THEX = THG(ITL(NR)+1) - DELTHEX*0.5D0
 !
          FACT = (1.D0+EPSRM2(NR)) / EPSRM2(NR)
-         phib = ACOS(1.D0- FACT*COS(THEX)**2 )
-         DELH=phib/NAVMAX
+         chib = ACOS(1.D0- FACT*COS(THEX)**2 )
+         DELH=chib/NAVMAX
          suml=0.D0
          DO NG=1,NAVMAX
             ETAL=DELH*(NG-0.5D0)
@@ -1274,7 +1280,7 @@
          END DO
          RINT0 = suml*DELH
          L_ex = RINT0*ABS(COS(THEX)) * ( QLM(NR)*RR ) * SIN(THEX)*DELTHEX
-      ELSE ! ITL = PASSING
+      ELSEIF(COSM(ITL(NR)).gt.mub)THEN ! ITL = PASSING
          DEL2T = -COSG(ITL(NR)+1)/mub +1.D0
          DELTHB = ( THG(ITL(NR)+1) - ACOS(mub) )*2.D0
 !     obtain L_ex
@@ -1296,6 +1302,12 @@
          END DO
          RINT0 = suml*DELH
          L_ex = RINT0*ABS(COS(THEX)) * ( QLM(NR)*RR ) * SIN(THEX)*DELTHEX
+      ELSE ! (COSM(ITL(NR)).eq.mub)THEN
+         DEL2T1 = COSG(ITL(NR))/mub -1.D0
+         DEL2T2 =-COSG(ITL(NR)+1)/mub +1.D0
+         DEL2T = 0.5D0 *( DEL2T1 + DEL2T2 )
+
+         L_ex=0.D0
       END IF
 
 !     obtain k1, k2, the coefficients of K(1-x)
@@ -1334,7 +1346,7 @@
       DOUBLE PRECISION:: k1, k2, sum_bl, sum_ex, K_1_x, L_bl, L_ex, L_b, THEX, DELTHEX
       DOUBLE PRECISION,dimension(0:m):: alpha, beta, j2m
       DOUBLE PRECISION,DIMENSION(0:4):: ell_a, ell_b
-      DOUBLE PRECISION:: phib, DELH, suml, ETAL, PSIB, X, PCOS, FACT
+      DOUBLE PRECISION:: chib, DELH, suml, ETAL, PSIB, X, PCOS, FACT
 
       DATA ell_a/ 1.38629436112D0, 0.09666344259D0, 0.03590092383D0, &
            0.03742563713D0, 0.01451196212D0/
@@ -1344,7 +1356,7 @@
       mub = SQRT(2.D0*EPSRG2(NR) / (1.D0 + EPSRG2(NR) ) )
       sinb= SQRT( (1.D0-EPSRG2(NR))/(1.D0+EPSRG2(NR)) )
 
-      IF(COSM(ITLG(NR)).le.mub)THEN ! ITL = TRAPPED
+      IF(COSM(ITLG(NR)).lt.mub)THEN ! ITL = TRAPPED
 !!     define DEL2T
          DEL2T = COSG(ITLG(NR))/mub -1.D0
          DELTHB =( ACOS(mub) - THG(ITLG(NR)) )*2.D0
@@ -1353,8 +1365,8 @@
          THEX = THG(ITLG(NR)+1) - DELTHEX*0.5D0
 !
          FACT = (1.D0+EPSRG2(NR)) / EPSRG2(NR)
-         phib = ACOS(1.D0- FACT*COS(THEX)**2 )
-         DELH=phib/NAVMAX
+         chib = ACOS(1.D0- FACT*COS(THEX)**2 )
+         DELH=chib/NAVMAX
          suml=0.D0
          DO NG=1,NAVMAX
             ETAL=DELH*(NG-0.5D0)
@@ -1365,7 +1377,7 @@
          END DO
          RINT0 = suml*DELH
          L_ex = RINT0*ABS(COS(THEX)) * ( QLG(NR)*RR ) * SIN(THEX)*DELTHEX
-      ELSE ! ITL = PASSING
+      ELSEIF(COSM(ITL(NR)).gt.mub)THEN ! ITL = PASSING
          DEL2T = -COSG(ITLG(NR)+1)/mub +1.D0
          DELTHB = ( THG(ITLG(NR)+1) - ACOS(mub) )*2.D0
 !     obtain L_ex
@@ -1387,6 +1399,12 @@
          END DO
          RINT0 = suml*DELH
          L_ex = RINT0*ABS(COS(THEX)) * ( QLG(NR)*RR ) * SIN(THEX)*DELTHEX
+      ELSE ! (COSM(ITL(NR)).eq.mub)THEN
+         DEL2T1 = COSG(ITL(NR))/mub -1.D0
+         DEL2T2 =-COSG(ITL(NR)+1)/mub +1.D0
+         DEL2T = 0.5D0 *( DEL2T1 + DEL2T2 )
+
+         L_ex=0.D0
       END IF
 
 !      IF(NR.eq.NRMAX+1) WRITE(*,'(A,3E14.6,I4)') "BOUNCE", DEL2T, COSG(ITLG(NR)), mub, ITLG(NR)

@@ -55,6 +55,9 @@
 
       real(rkind):: T0_quench, tau_quench
       real(rkind):: deltaB_B
+      real(rkind):: v_RE
+
+      real(rkind),dimension(NSM):: pmax_bb
 
 !      --- internal variables ---
 
@@ -342,7 +345,7 @@
           allocate(RNFP(NRSTART:NREND+1,NSAMAX),RTFP(NRSTART:NREND+1,NSAMAX))
           allocate(RT_T(NRMAX,NSBMAX))
           allocate(PTFP(NRSTART:NREND+1,NSAMAX),VTFP(NRSTART:NREND+1,NSAMAX))
-          allocate(THETA(NRSTART:NREND,NSAMAX),DKBSR(NRSTART:NREND,NSAMAX))
+          allocate(THETA(NRSTART:NREND,NSBMAX),DKBSR(NRSTART:NREND,NSAMAX))
           allocate(WEIGHP(NTHMAX  ,NPSTART:NPENDWG,NRSTART:NREND+1,NSAMAX))
           allocate(WEIGHT(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NREND+1,NSAMAX))
           allocate(WEIGHR(NTHMAX,NPSTART:NPEND,NRSTART:NREND+1,NSAMAX))
@@ -512,10 +515,13 @@
 !          allocate(BMTOT(NMMAX))
 
           IF(MODELS.eq.2)THEN
-             allocate(SIGMAV_NF(NTHMAX,NPMAX,NTHMAX,NPMAX,6))
-             allocate(RATE_NF(NRSTART:NREND,6))
-             allocate(RATE_NF_D1(NTHMAX,NPMAX,NRSTART:NREND,6))
+!             allocate(SIGMAV_NF(NTHMAX,NPMAX,NTHMAX,NPMAX,6))
+!             allocate(RATE_NF_D1(NTHMAX,NPMAX,NRSTART:NREND,6))
              allocate(RATE_NF_D2(NTHMAX,NPMAX,NRSTART:NREND,6))
+             allocate(RATE_NF(NRSTART:NREND,6))
+             allocate(SIGMAV_NF(NTHMAX,NPSTART:NPEND,NTHMAX,NPMAX,6))
+             allocate(RATE_NF_D1(NTHMAX,NPSTART:NPEND,NRSTART:NREND,6))
+!             allocate(RATE_NF_D2(NTHMAX,NPSTART:NPEND,NRSTART:NREND,6))
           ENDIF
 
           allocate(DEPS_SS(NSAMAX))
@@ -1050,7 +1056,6 @@
                    DO NSA=1,NSAMAX
                       DO NR=NRSTART,NREND
                          RNT(NR,NSA,NTG)=RNT(NR,NSA,2*NTG-1)
-!                         RATE_RUNAWAY2(NR,NSA,NTG)=RATE_RUNAWAY2(NR,NSA,2*NTG-1)
                          RJT(NR,NSA,NTG)=RJT(NR,NSA,2*NTG-1)
                          RJRT(NR,NSA,NTG)=RJRT(NR,NSA,2*NTG-1)
                          RWT(NR,NSA,NTG)=RWT(NR,NSA,2*NTG-1)

@@ -2,14 +2,14 @@
 
      USE fpcomm
 
-      real(8),parameter:: Z_ef=3.D0
+!      real(8),parameter:: Z_ef=3.D0
 !      real(8),parameter:: Z_ef=5.D0
-!      real(8),parameter:: Z_ef=1.D0
+      real(8),parameter:: Z_ef=1.D0
 !      real(8),parameter:: Z_ef=2.D0
 
 !      real(8),parameter:: IP_init=1.8D6 ! [A] ! JET
 !      real(8),parameter:: IP_init=1.9D6 ! [A] ! JET 2008
-     real(8),parameter:: IP_init=1.052D6 ! [A] !60 ITB
+!     real(8),parameter:: IP_init=1.052D6 ! [A] !60 ITB
 !     real(8),parameter:: IP_init=1.5D6 ! [A] !60
 !     real(8),parameter:: IP_init=0.8D6 ! [A] !60 ITB
 !     real(8),parameter:: IP_init=0.5D6 ! [A] !60 ITB
@@ -17,6 +17,7 @@
 !      real(8),parameter:: IP_init=2.D6 ! [A] ! 60 typical
 !      real(8),parameter:: IP_init=15.D6 ! [A] ! ITER
 !     real(8),parameter:: IP_init=1.0D3 ! [A] !test
+!     real(8):: IP_init=RIP*1.D6 ! [A] !60 ITB
 
       integer,parameter:: ISW_Z=0 !0=Z_ef, 1=ZEFF
 
@@ -119,7 +120,7 @@
          END IF
 !         RT2_temp(NR)=T0_quench ! flat profile
          RT2_temp(NR)=T0_quench*(1.D0-0.9D0*RM(NR)**2) ! smith
-!         RT2_temp(NR)=T0_quench*(1.D0-0.5D0*RM(NR)**2) ! relatively flat !SWITCH
+!         RT2_temp(NR)=T0_quench*(1.D0-0.1D0*RM(NR)**2) ! nearly flat
       END DO
 
       CALL mtx_set_communicator(comm_nr)
@@ -128,7 +129,7 @@
 
       CALL mtx_allreduce1_real8(SUMIP,3,IP_norm,vloc)
       DO NR=NRSTART,NREND
-         RJ1_temp(NR)=RJ1_temp(NR)*IP_init/IP_norm*1.D-6
+         RJ1_temp(NR)=RJ1_temp(NR)*RIP*1.D6/IP_norm*1.D-6
       END DO
       call mtx_allgather_real8(RJ1_temp,NREND-NRSTART+1,Rj_ohm)
       call mtx_allgather_real8(RJ2_temp,NREND-NRSTART+1,RJ_runaway)
@@ -166,8 +167,8 @@
                SUMIP_BS=RJ_bs(NR)*VOLR(NR)/(2.D0*PI*RR) + SUMIP_BS
             END DO
             DO NR=1,NRMAX
-!               RJ_ohm(NR) = (IP_init/SUMIP_BS*1.D-6 -1.D0)* RJ_bs(NR) ! change j_ohm prof. to j_bs
-               RJ_ohm(NR) = (IP_init*1.D-6 -SUMIP_BS)/(SUMIP_ohm)*RJ_ohm(NR) ! keep j_ohm prof. ! SWITCH
+!               RJ_ohm(NR) = (RIP*1.D6/SUMIP_BS*1.D-6 -1.D0)* RJ_bs(NR) ! change j_ohm prof. to j_bs
+               RJ_ohm(NR) = (RIP -SUMIP_BS)/(SUMIP_ohm)*RJ_ohm(NR) ! keep j_ohm prof. ! SWITCH
                SUMIP= (RJ_ohm(NR)+RJ_bs(NR))*VOLR(NR)/(2.D0*PI*RR) + SUMIP
                QLM(NR)=2*PI*RM(NR)**2*RA**2*BB/(RMU0*SUMIP*1.D6*RR)
             END DO
@@ -247,7 +248,7 @@
       real(8),dimension(NRSTART:NREND,NSAMAX):: tau_ta
       real(8),dimension(NRSTART:NREND):: LNL_l
 
-      IF(MODEL_LNL.eq.0)THEN
+      IF(MODEL_LNL.eq.0)THEN ! update Coulomb Log with changing T
       DO NR=NRSTART, NREND
 !-----   post disrupt Coulomb log
          ISW_CLOG=0 ! =0 Wesson, =1 NRL
@@ -283,7 +284,7 @@
             END DO ! NSB
          END DO ! NSA
       END DO ! NR
-      ELSEIF(MODEL_LNL.eq.1)THEN
+      ELSEIF(MODEL_LNL.eq.1)THEN ! fix initial Clog
          DO NSB=1, NSBMAX
             DO NSA=1, NSAMAX
                DO NR=NRSTART,NREND
@@ -291,7 +292,7 @@
                END DO
             END DO
          END DO
-      ELSEIF(MODEL_LNL.eq.2)THEN
+      ELSEIF(MODEL_LNL.eq.2)THEN ! fix post-quech Clog
          DO NSB=1, NSBMAX
             DO NSA=1, NSAMAX
                DO NR=NRSTART,NREND
@@ -858,7 +859,7 @@
       SUMIP_integ=0.D0
       SUMIP4(:)=0.D0
       DO NR=1,NRMAX
-         RJ_runaway(NR)=AEE*VC*RN_runaway(NR)*1.D20*1.D-6
+         RJ_runaway(NR)=AEE*v_RE*VC*RN_runaway(NR)*1.D20*1.D-6
          SUMIP = (RJ_ohm(NR)+RJ_runaway(NR)+RJ_bs(NR)) &
               *VOLR(NR)/(2.D0*PI*RR) + SUMIP
          SUMIP_ohm = (RJ_ohm(NR)) &
@@ -867,7 +868,7 @@
               *VOLR(NR)/(2.D0*PI*RR) + SUMIP_run
          SUMIP_BS =  (RJ_bs(NR)) &
               *VOLR(NR)/(2.D0*PI*RR) + SUMIP_BS
-         SUMIP_prim = AEE*VC*RN_drei(NR)*1.D20*1.D-6 &
+         SUMIP_prim = AEE*v_RE*VC*RN_drei(NR)*1.D20*1.D-6 &
               *VOLR(NR)/(2.D0*PI*RR) + SUMIP_prim
          SUMIP_integ=(RJ_ohm(NR) +RJ_runaway(NR) +RJ_bs(NR))*VOLR(NR)/(2.D0*PI*RR) + SUMIP_integ
          SUMIP4(NR)=SUMIP_integ
@@ -935,7 +936,7 @@
          END IF
       END DO
 
-      rate_ava_l(NRSTART)=0.D0 ! for given E
+!      rate_ava_l(NRSTART)=0.D0 ! for given E
       CALL mtx_set_communicator(comm_nr)
       call mtx_allgather_real8(rate_ava_l,NREND-NRSTART+1,RFP_ava)
 !
@@ -1386,6 +1387,231 @@
       END IF
 
       END SUBROUTINE FLUXS_PTH
+!**********************************************
+      SUBROUTINE TOP_OF_TIME_LOOP_DISRUPT(NT)
 
+      USE libmpi
+      USE libmtx
+      USE fpcoef
+      use fpcaleind
+      IMPLICIT NONE
+      INTEGER:: NTH, NP, NR, NSA
+      INTEGER,intent(in):: NT
+      double precision:: sigma
+
+      DO NR=NRSTART,NREND
+         EM(NR)=E1(NR)
+         EP(NR)=E1(NR)
+         SIGMA_SPM(NR)=conduct_sp(NR)
+      END DO
+      DO NR=NRSTART-1, NREND+1 ! for crank-nicolson
+         IF(NR.eq.0)THEN
+            EM_W(NR)=0.D0
+         ELSEIF(NR.ne.NRMAX+1)THEN
+            EM_W(NR)=E1(NR)
+         END IF
+      END DO
+      IF(TIMEFP.ge.time_quench_start) CALL Tquench_trans
+      CALL set_post_disrupt_Clog
+      DO NR=NRSTART,NREND
+         CALL SPITZER_SIGMA(NR,sigma)
+         SIGMA_SPP(NR)=sigma
+         RJ_bsm(NR)=RJ_bs(NR)
+      END DO
+      CALL mtx_set_communicator(comm_nr)
+      call mtx_allgather_real8(SIGMA_SPP,NREND-NRSTART+1,conduct_sp)
+      CALL mtx_reset_communicator
+!            IF(MODEL_BS.ge.1)THEN
+!               DO NR=1,NRMAX
+!                  call bootstrap_current(NR,jbs)
+!                  RJ_bs(NR)=jbs
+!               END DO
+!            END IF
+      DO NSA=NSASTART, NSAEND
+         DO NR=1,NRMAX
+            RJS_M(NR,NSA)=RJS(NR,NSA)
+         END DO
+      END DO
+!            IF(MODEL_jfp.eq.1)THEN
+         DO NSA=NSASTART,NSAEND
+            IF (MOD(NT,NTCLSTEP).EQ.0) CALL FP_COEF(NSA)
+         END DO
+!            END IF
+         DO NR=1,NRMAX
+            RN_runaway_M(NR)=RN_runaway(NR)
+         END DO
+!         IF(TIMEFP.ge.time_quench_start) CALL READ_E_FIELD  !given
+
+      END SUBROUTINE TOP_OF_TIME_LOOP_DISRUPT
+!**********************************************
+      SUBROUTINE E_FIELD_EVOLUTION_DISRUPT(NT,IP_all_FP,DEPS_E2)
+
+      USE libmpi
+      USE libmtx
+      USE fpcoef
+      use fpcaleind
+      IMPLICIT NONE
+      INTEGER,intent(in):: NT
+      INTEGER:: NR, NSA
+      INTEGER:: NDIMPL, ILOC1
+      double precision:: DEPS_E, DEPS_MAX
+      double precision,intent(out):: IP_all_FP, DEPS_E2
+      double precision,dimension(NRSTART:NREND):: E_SIGMA 
+
+      NDIMPL=0
+      DEPS_E=0.D0
+      IF(MODEL_jfp.eq.0)THEN
+         call update_rns_rjs(IP_all_FP)
+         DO while(NDIMPL.le.2)
+            NDIMPL=NDIMPL+1
+            call calculation_runaway_rate
+            CALL AVALANCHE
+            IF(TIMEFP.ge.time_quench_start) CALL E_IND_IMPLICIT !non-given
+            DEPS_E=(E1(NRSTART)-EP(NRSTART))**2/EM(NRSTART)**2
+            
+            DO NR=NRSTART,NREND
+               EP(NR)=E1(NR)
+            END DO
+            DO NSA=NSASTART, NSAEND
+               CALL FP_CALE(NSA)
+            END DO
+            CALL update_fpp
+         END DO
+         IF (MOD(NT,NTG1STEP).EQ.0.and.NRANK.eq.0) &
+              WRITE(6,'(A,E14.6)') "CALE_CONVERSION ON AXIS= ", DEPS_E
+      END IF
+      DEPS_E=0.D0
+      DEPS_E2=0.D0
+
+!
+      IF(MODEL_jfp.eq.1)THEN
+         call update_rns_rjs(IP_all_FP)
+         DO NR=NRSTART, NREND
+            E_SIGMA(NR)=EP(NR)
+         END DO
+         DO while(NDIMPL.le.LMAXFP)
+            NDIMPL=NDIMPL+1
+            call calculation_runaway_rate
+            CALL AVALANCHE
+            IF(TIMEFP.ge.time_quench_start) CALL E_IND_IMPLICIT_FP(E_SIGMA)
+            DEPS_E=(E1(NRSTART)-EP(NRSTART))**2/EM(NRSTART)**2
+            
+            CALL mtx_set_communicator(comm_nr) 
+            CALL mtx_reduce1_real8(DEPS_E,1,DEPS_MAX,ILOC1) ! MAX DEPS among NR
+            CALL mtx_reset_communicator
+            DEPS_E = DEPS_MAX
+            IF(NRANK.eq.0.and.DEPS_E.le.EPSFP.and.NDIMPL.ge.2)THEN
+               NDIMPL=NDIMPL+LMAXFP ! exit dowhile
+            ENDIF
+            CALL mtx_broadcast1_integer(NDIMPL)
+            DO NR=NRSTART,NREND
+               EP(NR)=E1(NR)
+            END DO
+            DO NSA=NSASTART, NSAEND
+               CALL FP_CALE(NSA)
+            END DO
+            CALL update_fpp
+         END DO
+         
+         DEPS_E2=(EP(NRSTART)-E_SIGMA(NRSTART))**2/E_SIGMA(NRSTART)**2
+         CALL mtx_set_communicator(comm_nr) 
+         CALL mtx_reduce1_real8(DEPS_E2,1,DEPS_MAX,ILOC1) ! MAX DEPS among NR
+         CALL mtx_reset_communicator
+         DEPS_E2 = DEPS_MAX
+         
+         IF (MOD(NT,NTG1STEP).EQ.0.and.NRANK.eq.0) &
+              WRITE(6,'(A,2E14.6,I3,A,2E14.6,A,2E14.6)') "CALE_CONVERSION = ", &
+              DEPS_E, DEPS_E2, NDIMPL," RJS ", RJS(1,1),RJS(NRMAX,1), &
+              " E1 ",E1(1), E1(NRMAX)
+      END IF
+
+
+      END SUBROUTINE E_FIELD_EVOLUTION_DISRUPT
+!**********************************************
+      SUBROUTINE FILE_OUTPUT_DISRUPT(NT)
+
+      IMPLICIT NONE
+      INTEGER,intent(in):: NT
+      INTEGER:: NR, NSA, NP, NTH
+
+      double precision:: ip_all, ip_ohm, ip_run, jbs, IP_bs
+      double precision:: IP_all_FP, l_ind, IP_prim, Z_i
+
+      CALL update_disruption_quantities(IP_all, IP_ohm, IP_run, IP_prim, IP_bs, l_ind)
+
+      IF(NRANK.eq.0)THEN
+
+      IF(ISW_Z.eq.0)THEN
+         Z_i=Z_ef
+      ELSEIF(ISW_Z.eq.1)THEN
+         Z_i=ZEFF 
+      END IF
+
+      IF(MOD(NT,NTG1STEP).EQ.0) THEN
+         WRITE(6,'(7A14)') "IP_all","IP_ohm", "IP_run", "IP_primary", "IP_bs", "RE gen.rate"
+         WRITE(6,'(1P7E14.6)') IP_all, IP_ohm, IP_run, IP_prim, IP_bs, RFP(1)*tau_ta0(1)
+         WRITE(6,'(A,1PE14.6)') "Zeff= ", ZEFF, "Z_i= ", Z_i
+
+! radial.dat
+         WRITE(13,'(A, 1PE15.6e3, i7)') "# TIME ", TIMEFP, N_f1
+         WRITE(13,'(A)') "# RM, RN, RT, RN_r, RN_p, RN_s J_ohm, J_run, J_bs, E1, E_drei, dndt_p, dndt_s, RJS " 
+         IF(MODEL_conner_fp.eq.1)THEN
+            DO NR=1,NRMAX
+               WRITE(13,'(1P14E17.8e3)'), RM(NR), RN_disrupt(NR), RT_quench(NR), & 
+                    RN_runaway(NR), RN_drei(NR), RN_runaway(NR)-RN_drei(NR), &
+                    RJ_ohm(NR), RJ_runaway(NR), RJ_bs(NR), &
+                    E1(NR), ER_drei(NR), &
+                    RFP(NR)*RN_disrupt(NR)*1.D20, RFP_AVA(NR)*RN_disrupt(NR)*1.D20, &
+                    RJS(NR,1)
+            END DO
+         ELSE
+            DO NR=1,NRMAX
+               WRITE(13,'(1P14E17.8e3)'), RM(NR), RN_disrupt(NR), RT_quench(NR), & 
+                    RN_runaway(NR), RN_drei(NR), RN_runaway(NR)-RN_drei(NR), &
+                    RJ_ohm(NR), RJ_runaway(NR), RJ_bs(NR), &
+                    E1(NR), ER_drei(NR), &
+                    Rconner(NR)*RN_disrupt(NR)*1.D20, RFP_AVA(NR)*RN_disrupt(NR)*1.D20, &
+                    RJS(NR,1)
+            END DO
+         END IF
+         WRITE(13,'(A)') " "
+         WRITE(13,'(A)') " "
+! nth-re
+         WRITE(14,'(A, 1PE15.6e3, i7)') "# TIME ", TIMEFP, N_f1 ! RE_pitch.dat
+         DO NTH=1,NTHMAX
+            WRITE(14,'(I4, 1P13E17.8e3)'), NTH, RE_PITCH(NTH), SINM(NTH)
+         END DO
+         WRITE(14,'(A)') " "
+         WRITE(14,'(A)') " "
+         N_f1=N_f1+1
+      END IF
+
+! time_evol.dat
+      WRITE(10,'(I6,1P30E16.7e3)') NT, TIMEFP, RT_T(1,1), &
+           RT_quench(1), RJ_ohm(1), &
+           RJ_runaway(1), RN_disrupt(1), RN_runaway(1), &
+           RN_drei(1), &
+           IP_all, ip_ohm, ip_run, ip_prim, &
+           l_ind, ZEFF, IP_all_FP, RFP(1)*tau_ta0(1)
+
+! efield_e1
+      WRITE(11,'(1P128E14.6)') TIMEFP, (E1(NR), NR=1,NRMAX), (ER_drei(NR), NR=1,NRMAX)
+
+! dndt
+      IF(MODEL_conner_fp.eq.1)THEN
+         WRITE(12,'(1P128E15.6e3)') TIMEFP, (RFP(NR)*RN_disrupt(NR)*1.d20, NR=1,NRMAX), &
+              (RFP_ava(NR)*RN_disrupt(NR)*1.d20, NR=1,NRMAX)
+      ELSE
+         WRITE(12,'(1P128E15.6e3)') TIMEFP, (Rconner(NR)*RN_disrupt(NR)*1.d20, NR=1,NRMAX), &
+              (RFP_ava(NR)*RN_disrupt(NR)*1.d20, NR=1,NRMAX)
+      END IF
+      
+! re_pitch
+      WRITE(15,'(1P128E15.6e3)') TIMEFP, (RE_PITCH(NTH), NTH=1,NTHMAX)
+
+      END IF
+      
+      END SUBROUTINE FILE_OUTPUT_DISRUPT
+!**********************************************
 
       END MODULE fpdisrupt

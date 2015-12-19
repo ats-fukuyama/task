@@ -168,8 +168,8 @@
       SING(NTHMAX+1)=0.D0
       COSG(NTHMAX+1)=-1.D0
 
+!     set momentum volume element: VOLP
       DO NSB=1,NSBMAX
-!      DO NP=1,NPMAX
       DO NP=NPSTART,NPEND
       DO NTH=1,NTHMAX
          VOLP(NTH,NP,NSB)=2.D0*PI*SINM(NTH)*PM(NP,NSB)**2*DELP(NSB)*DELTH
@@ -177,13 +177,26 @@
       ENDDO
       ENDDO
 
-      DO NR=1,NRMAX
-         RHOL=RM(NR)
-         RHOL1=RG(NR)
-         RHOL2=RG(NR+1)
-         VOLR(NR)=2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1)) &
-                *2.D0*PI*RR
-      ENDDO
+!     set volume element: VOLR= int dchi*dzeta (Jacob*dr)
+      SELECT CASE(MODELG)
+      CASE(0:2) ! cylinder
+         DO NR=1,NRMAX
+            RHOL=RM(NR)
+            RHOL1=RG(NR)
+            RHOL2=RG(NR+1)
+            VOLR(NR)=2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1)) &
+                 *2.D0*PI*RR
+         ENDDO
+      CASE(3:4) ! toroidal
+         DO NR=1,NRMAX
+            RHOL=RM(NR)
+            RHOL1=RG(NR)
+            RHOL2=RG(NR+1)
+            VOLR(NR)=2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1)) &
+                 *2.D0*PI*RR
+         ENDDO
+      END SELECT
+
       TVOLR=0.D0
       DO NR=1,NRMAX
          TVOLR=TVOLR+VOLR(NR)
@@ -724,8 +737,11 @@
 !            CALL p_theta_integration(RSUM3)
 !            CALL p_theta_integration(RSUM4)
 
-            RCOEFN(NR)=RSUM2/RSUM1
-            RCOEFN_G(NR)=RSUM4/RSUM3
+!            RCOEFN(NR)=RSUM2/RSUM1
+!            RCOEFN_G(NR)=RSUM4/RSUM3
+
+            RCOEFN(NR)=1.D0
+            RCOEFN_G(NR)=1.D0
          END DO
       ELSE
          DO NR=NRSTART,NREND
@@ -771,11 +787,13 @@
 !            RSUM6 = RSUM6+SINM(NTH)*DELTH
          END DO
 
-         RCOEFN_GG(1) = RSUM2/RSUM1
-         RCOEFN_GG(NRMAX+1) = RSUM2/RSUM3
-         RCOEFNG(NRMAX+1) = RSUM2/RSUM5
-!         RCOEFN_GG(NRMAX+1) = RSUM4/RSUM3
-!         RCOEFNG(NRMAX+1) = RSUM6/RSUM5
+!         RCOEFN_GG(1) = RSUM2/RSUM1
+!         RCOEFN_GG(NRMAX+1) = RSUM2/RSUM3
+!         RCOEFNG(NRMAX+1) = RSUM2/RSUM5
+
+         RCOEFN_GG(1) = 1.D0
+         RCOEFN_GG(NRMAX+1) = 1.D0
+         RCOEFNG(NRMAX+1) = 1.D0
       ELSE
          RCOEFN_GG(1) = 1.D0
          RCOEFN_GG(NRMAX+1) = 1.D0
@@ -965,6 +983,7 @@
          ENDDO
       ENDDO
 
+      IF(NRANK.eq.0) WRITE(6,'(A,1P5E14.6)') "tau_ta0 = ",(tau_ta0(NSA),NSA=1,NSAMAX)
       IF(NRANK.eq.0.and.NSBMAX.ge.2)THEN
          SUM=0.D0
          DO NSB=2,NSBMAX
@@ -978,17 +997,17 @@
 !     ----- set relativistic parameters -----
 
       IF (MODELR.EQ.0) THEN
-         DO NSA=1,NSAMAX
-            THETA0(NSA)=0.D0
+         DO NSB=1,NSBMAX
+            THETA0(NSB)=0.D0
             DO NR=NRSTART,NREND
-               THETA(NR,NSA)=0.D0
+               THETA(NR,NSB)=0.D0
             ENDDO
          ENDDO
       ELSE
-         DO NSA=1,NSAMAX
-            THETA0(NSA)=RTFP0(NSA)*1.D3*AEE/(AMFP(NSA)*VC*VC)
+         DO NSB=1,NSBMAX
+            THETA0(NSB)=RTFD0(NSB)*1.D3*AEE/(AMFD(NSB)*VC*VC)
             DO NR=NRSTART,NREND
-               THETA(NR,NSA)=THETA0(NSA)*RTFP(NR,NSA)/RTFP0(NSA)
+               THETA(NR,NSB)=THETA0(NSB)*RTFD(NR,NSB)/RTFD0(NSB)
             ENDDO
          ENDDO
       ENDIF
@@ -1265,9 +1284,12 @@
          END DO
          CALL FPWEIGHT(NSA,IERR)
       END DO
-!      CALL mtx_set_communicator(comm_nr)
-!      CALL source_allreduce(SPPF)
-!      CALL mtx_reset_communicator
+      IF(MODELS.ne.0)THEN
+!         CALL mtx_set_communicator(comm_nr)
+         CALL mtx_set_communicator(comm_nsa)
+         CALL source_allreduce(SPPF)
+         CALL mtx_reset_communicator
+      END IF
       ISAVE=0
 !      IF(NTG1.eq.0) CALL FPWAVE_CONST ! all nrank must have RPWT  
       IERR=0
@@ -1406,9 +1428,12 @@
 !              , DCPP(1,NP,1,1)-DCPP(1,NP,1,2), FCPP(1,NP,1,1)-FCPP(1,NP,1,2)  &
 !              , DCPP2(1,NP,1,1,1), DCPP2(1,NP,1,2,1)
 !      END DO
-      CALL mtx_set_communicator(comm_nr)
-!      CALL source_allreduce(SPPF)
-      CALL mtx_reset_communicator
+      IF(MODELS.ne.0)THEN
+!         CALL mtx_set_communicator(comm_nr)
+         CALL mtx_set_communicator(comm_nsa)
+         CALL source_allreduce(SPPF)
+         CALL mtx_reset_communicator
+      END IF
       ISAVE=0
       IF(NTG1.eq.0.and.MODEL_WAVE.ne.0) CALL FPWAVE_CONST ! all nrank must have RPWT  
 
