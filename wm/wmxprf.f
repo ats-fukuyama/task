@@ -101,6 +101,10 @@ C
          PTPR(NS) = PT60(1,NS) * 1.D-3
          PTPP(NS) = PT60(1,NS) * 1.D-3
       ENDDO
+      DO NS=1,NSMAX
+         PNS(NS)  = PN60(NRMAX1,NS) * 1.D-20
+         PTS(NS)  = PT60(NRMAX1,NS) * 1.D-3
+      ENDDO
 C
 C----  Debug write
 C
