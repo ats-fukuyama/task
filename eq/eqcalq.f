@@ -523,8 +523,16 @@ C
 C
 C     +++++ SETUP VACUUM DATA +++++
 C
-      write(6,'(A,1P6E12.4)') 'RR,RB,RA,REDGE-RAXIS:',
-     &     RR,RB,RA,REDGE-RAXIS,REDGE,RAXIS
+C      write(6,'(A,1P6E12.4)') 'RR,RB,RA,REDGE-RAXIS:',
+C     &     RR,RB,RA,REDGE-RAXIS,REDGE,RAXIS
+C      NR=NRPMAX-1
+C            write(6,'(A,I5,1P3E12.4)') 
+C     &           'NR,PSIP,PSIT,QPS=',NR,PSIP(NR),PSIT(NR),QPS(NR)
+C      NR=NRPMAX
+C            write(6,'(A,I5,1P3E12.4)') 
+C     &           'NR,PSIP,PSIT,QPS=',NR,PSIP(NR),PSIT(NR),QPS(NR)
+
+
       DR_OUT=(RR+RB-REDGE)/(NRMAX-NRPMAX)
       DR_IN =FRBIN*(RR+RB-REDGE)/(NRMAX-NRPMAX)
       DTH=2.d0*PI/NTHMAX
@@ -533,9 +541,10 @@ C
             RL_OUT=REDGE+DR_OUT*(NR-NRPMAX)
             RL_IN =REDGE+DR_IN *(NR-NRPMAX)
             ZL=ZAXIS
-            Sratio=RL_OUT**2/REDGE**2
-            write(6,'(A,I5,1P2E12.4)') 
-     &           'NR,RL_OUT,Sratio=',NR,RL_OUT,Sratio
+            Sratio=(RL_OUT-RR)**2/(REDGE-RR)**2
+C            write(6,'(A,I5,1P3E12.4)') 
+C     &           'NR,RL_OUT,ratio,Sratio=',
+C     &            NR,RL_OUT,RL_OUT/REDGE,Sratio
             PSIP(NR)=PSIG(RL_OUT,ZL)-PSI0
 !            write(6,'(A,I5,1P3E12.4)') 
 !     &           'NR,PSIP,PSIG,PSI0=',NR,PSIP(NR),PSIG(RL_OUT,ZL),PSI0
@@ -546,7 +555,7 @@ C
 !            call polintx(nr,npmax,nrm,dvdpsip)
 !            call polintx(nr,npmax,nrm,dvdpsit)
             DVDPSIP(NR)=DVDPSIP(NRPMAX)*Sratio
-            DVDPSIT(NR)=DVDPSIT(NRPMAX)*Sratio
+            DVDPSIT(NR)=DVDPSIT(NRPMAX)
 C            call polintx(nr,npmax,nrm,dsdpsit)
 !            call polintx(nr,npmax,nrm,rlen)
             RLEN(NR)=RLEN(NRPMAX)*SQRT(Sratio)
@@ -573,18 +582,21 @@ C            call polintx(nr,npmax,nrm,dsdpsit)
 !            call polintx(nr,npmax,nrm,psit)
 !            call polintx(nr,npmax,nrm,vps)
 !            call polintx(nr,npmax,nrm,sps)
-            SPS(NR)=SPS(NRPMAX)*Sratio
+            SPS(NR)=SPS(NRPMAX)*SQRT(Sratio)
 !            call polintx(nr,npmax,nrm,aveir)
             AVEIR(NR)=AVEIR(NRPMAX)
 
 !            PSIT(NR)=PSIT(NR-1)
 !     &              +2.0D0*QPS(NR)*QPS(NR-1)/(QPS(NR)+QPS(NR-1))
 !     &                 *(PSIP(NR)-PSIP(NR-1))
+            VPS(NR)=VPS(NRPMAX)*Sratio
             PSIT(NR)=PSIT(NRPMAX)*Sratio
-            QPS(NR)=(PSIT(NR)-PSIT(NR-1))/(PSIP(NR)-PSIP(NR-1))
+!            QPS(NR)=(PSIT(NR)-PSIT(NR-1))/(PSIP(NR)-PSIP(NR-1))
+            QPS(NR)=QPS(NRPMAX)*Sratio
 
-!            write(6,'(A,I5,1P3E12.4)') 
-!     &           'NR,PSIP,PSIT,QPS=',NR,PSIP(NR),PSIT(NR),QPS(NR)
+C            write(6,'(A,I5,1P3E12.4)') 
+C     &           'NR,PSIP,PSIT,QPS=',NR,PSIP(NR),PSIT(NR),QPS(NR)
+
             IF(MDLEQV.GT.0) THEN
                F_OUT=(RL_OUT-RR)/(REDGE-RR)
                F_IN =(RL_IN -RR)/(REDGE-RR)
