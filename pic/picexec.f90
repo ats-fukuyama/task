@@ -114,8 +114,8 @@ CONTAINS
        if(model_boundary .eq. 0) then
           call phia_periodic(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
                              Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb,&
-                               model_wg,xmin_wg,xmax_wg,ymin_wg,ymax_wg, &
-                               amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi)
+                             model_wg,xmin_wg,xmax_wg,ymin_wg,ymax_wg, &
+                             amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi)
        else
           call phia_reflective(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
                                Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
@@ -144,8 +144,6 @@ CONTAINS
           call mtx_allreduce1_real8(apotm,3,sum,locv)
           apotm=sum
        endif
-       !write(*,*) by(1,1)
-
        !..... push electrons
        call push(npmax,nxmax,nymax,xe,ye,ze,vxe,vye,vze, &
                  ex,ey,ez,bx,by,bz,dt,ctome,xeb,yeb,zeb, &
@@ -642,15 +640,15 @@ CONTAINS
             end do
          endif
 
-         if( z(np) .lt. z1 ) then
-            do while(z(np) .lt. z1)
-               z(np) = z(np) + alz
-            end do
-         elseif( z(np) .gt. z2 ) then
-            do while(z(np) .gt. z2)
-               z(np) = z(np) - alz
-            end do
-         endif
+         !if( z(np) .lt. z1 ) then
+         !   do while(z(np) .lt. z1)
+         !      z(np) = z(np) + alz
+         !   end do
+         !elseif( z(np) .gt. z2 ) then
+         !   do while(z(np) .gt. z2)
+         !      z(np) = z(np) - alz
+         !   end do
+         !endif
       end do
 
     end subroutine bound_periodic
@@ -681,15 +679,15 @@ CONTAINS
              vy(np) = -vy(np)
          endif
 
-         if( z(np) .lt. z1 ) then
-            do while(z(np) .lt. z1)
-               z(np) = z(np) + alz
-            end do
-         elseif( z(np) .gt. z2 ) then
-            do while(z(np) .gt. z2)
-               z(np) = z(np) - alz
-            end do
-         endif
+       !  if( z(np) .lt. z1 ) then
+       !     do while(z(np) .lt. z1)
+       !        z(np) = z(np) + alz
+       !     end do
+       !  elseif( z(np) .gt. z2 ) then
+       !     do while(z(np) .gt. z2)
+       !        z(np) = z(np) - alz
+       !     end do
+       !  endif
       end do
 
     end subroutine bound_reflective
@@ -902,18 +900,20 @@ CONTAINS
             !if( nyp .eq. nymax-1) nypp =0
             if( nxp .eq. nxmax-1) nxppp=1
             if( nyp .eq. nymax-1) nyppp=1
-         ELSE   ! reflective: 
-            if( nxp .eq. 0  ) nxpm = 0
-            if( nyp .eq. 0  ) nypm = 0
+         !ELSE   ! reflective: 
+           if( nxp .eq. 0  ) nxpm=0
+           if( nyp .eq. 0  ) nypm=0
             !if( nxp .eq. nxmax-2) nxppp=nxmax
             !if( nyp .eq. nymax-2) nyppp=nymax
             !if( nxp .eq. nxmax-1) nxpp =nxmax
             !if( nyp .eq. nymax-1) nypp =nymax
-            if( nxp .eq. nxmax-1) nxppp = nxmax
-            if( nyp .eq. nymax-1) nyppp = nymax
+           if( nxp .eq. nxmax-1) nxppp=nxmax
+           if( nyp .eq. nymax-1) nyppp=nymax
          END IF
 
          if (dx .le. 0.5d0 .and. dy .le. 0.5d0) then
+            !if(nxp .eq. 0)  sx2m=0.d0
+            !if(nyp .eq. 0)  sy2m=0.d0
            jx(nxpp,nyp ) = jx(nxpp,nyp ) + factor * vx(np) * sy2  * dx
            jx(nxpp,nypp) = jx(nxpp,nypp) + factor * vx(np) * sy2p * dx
            jx(nxpp,nypm) = jx(nxpp,nypm) + factor * vx(np) * sy2m * dx
@@ -939,6 +939,8 @@ CONTAINS
            jz(nxpp,nypm) = jz(nxpp,nypm) + factor * vz(np) * sx2p * sy2m
 
         else if(dx .le. 0.5d0 .and. dy .ge. 0.5d0) then
+           !if(nxp .eq. 0) sx2m=0.d0
+           !if(nyp .eq. nymax-1) sy2p=0.d0 
            jx(nxpp,nypp ) = jx(nxpp,nypp ) + factor * vx(np) * sy2  * dx
            jx(nxpp,nyppp) = jx(nxpp,nyppp) + factor * vx(np) * sy2p * dx
            jx(nxpp,nyp  ) = jx(nxpp,nyp  ) + factor * vx(np) * sy2m * dx
@@ -964,6 +966,8 @@ CONTAINS
            jz(nxpp,nyp  ) = jz(nxpp,nyp  ) + factor * vz(np) * sx2p * sy2m
 
         else if(dx .ge. 0.5d0 .and. dy .le. 0.5d0) then
+           !if(nxp .eq. nxmax-1) sx2p = 0.d0
+           !if(nyp .eq. 0) sy2m=0.d0
            jx(nxpp,nyp ) = jx(nxpp,nyp ) + factor * vx(np) * sy2  * dx
            jx(nxpp,nypp) = jx(nxpp,nypp) + factor * vx(np) * sy2p * dx
            jx(nxpp,nypm) = jx(nxpp,nypm) + factor * vx(np) * sy2m * dx
@@ -989,6 +993,8 @@ CONTAINS
            jz(nxppp,nypm) = jz(nxppp,nypm) + factor * vz(np) * sx2p * sy2m
 
         else
+           !if(nxp .eq. nxmax-1) sx2p=0.d0
+           !if(nyp .eq. nymax-1) sy2p=0.d0
            jx(nxpp,nypp ) = jx(nxpp,nypp ) + factor * vx(np) * sy2  * dx
            jx(nxpp,nyppp) = jx(nxpp,nyppp) + factor * vx(np) * sy2p * dx
            jx(nxpp,nyp  ) = jx(nxpp,nyp  ) + factor * vx(np) * sy2m * dx
@@ -1073,7 +1079,7 @@ CONTAINS
             jz(nx,nymax) = jz(nx,0)
          enddo
       ELSE                           ! reflective
-        do ny=1,nymax
+        do ny=1,nymax-1
            jx(0,ny) = 2.0d0 * jx(0,ny)
            jy(0,ny) = 2.0d0 * jy(0,ny)
            jz(0,ny) = 2.0d0 * jz(0,ny)
@@ -1326,7 +1332,7 @@ CONTAINS
       real(8), dimension(0:nxmax,0:nymax,imax) :: fxy
       real(8) :: dx, dy, dz, sx2, sy2, sx2p, sy2p, sx2m, sy2m, dx1,dy1
       integer :: nxmax, nymax, imax, model_boundary
-      integer:: nx, ny, nxp, nyp, nxpp, nxpm, nypp, nypm, nxppp, nyppp, i
+      integer :: nx, ny, nxp, nyp, nxpp, nxpm, nypp, nypm, nxppp, nyppp, i
 
       nxp = xp
       nyp = yp

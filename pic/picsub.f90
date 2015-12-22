@@ -383,18 +383,24 @@ CONTAINS
             if( nx .eq. nxmax ) nxp = nxmax
             if( ny .eq. 0  )    nym = 0
             if( ny .eq. nymax ) nyp = nymax
-         
-            bx(nx,ny) = 0.25d0 * (Az(nx,nyp) + Azb(nx,nyp) &
-                      - Az(nx,nym) - Azb(nx,nym))
-            by(nx,ny) = - 0.25d0 * (Az(nxp,ny) + Azb(nxp,ny) &
-                      - Az(nxm,ny) - Azb(nxm,ny))
+
             if(nx .eq. 0 .or. nx .eq. nxmax .or. &
-               ny .eq. 0 .or. ny .eq. nymax) then
+                 ny .eq. 0 .or. ny .eq. nymax) then
+
+            bx(nx,ny) = 0.5d0 * (Az(nx,nyp) + Azb(nx,nyp) &
+                      - Az(nx,nym) - Azb(nx,nym))
+            by(nx,ny) = - 0.5d0 * (Az(nxp,ny) + Azb(nxp,ny) &
+                      - Az(nxm,ny) - Azb(nxm,ny))
             bz(nx,ny) = 0.5d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
                       - Ay(nxm,ny) - Ayb(nxm,ny) &
                       - (Ax(nx,nyp) + Axb(nx,nyp) &
                       - Ax(nx,nym) - Axb(nx,nym)))
             else
+            
+            bx(nx,ny) = 0.25d0 * (Az(nx,nyp) + Azb(nx,nyp) &
+                      - Az(nx,nym) - Azb(nx,nym))
+            by(nx,ny) = - 0.25d0 * (Az(nxp,ny) + Azb(nxp,ny) &
+                      - Az(nxm,ny) - Azb(nxm,ny))
             bz(nx,ny) = 0.25d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
                       - Ay(nxm,ny) - Ayb(nxm,ny) &
                       - (Ax(nx,nyp) + Axb(nx,nyp) &
