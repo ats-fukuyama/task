@@ -491,6 +491,8 @@ C
                XRHO(NR)=ARG
             ENDIF
             XR(NR)=RA*XRHO(NR)
+!            write(6,'(A,I5,1P3E12.4)')
+!     &           'nr,rhot,xrho,xr=',NR,RHOT(NR),XRHO(NR),XR(NR)
          ENDDO
 C
          DO NR=1,NRMAX+1

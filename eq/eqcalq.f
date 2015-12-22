@@ -134,6 +134,7 @@ C
 C
 C     ----- SET DR, DTH -----
 C
+!      write(6,'(A,1p4E12.4)') 'RB,RA,REDGE,RAXIS=',RB,RA,REDGE,RAXIS
       IF(NSUMAX.EQ.0) THEN
          NRPMAX=NRMAX
       ELSE
@@ -522,8 +523,8 @@ C
 C
 C     +++++ SETUP VACUUM DATA +++++
 C
-C      write(6,'(A,1P5E12.4)') 'RB,RA,REDGE-RAXIS:',
-C     &     RB,RA,REDGE-RAXIS,REDGE,RAXIS
+      write(6,'(A,1P6E12.4)') 'RR,RB,RA,REDGE-RAXIS:',
+     &     RR,RB,RA,REDGE-RAXIS,REDGE,RAXIS
       DR_OUT=(RR+RB-REDGE)/(NRMAX-NRPMAX)
       DR_IN =FRBIN*(RR+RB-REDGE)/(NRMAX-NRPMAX)
       DTH=2.d0*PI/NTHMAX
@@ -532,30 +533,58 @@ C     &     RB,RA,REDGE-RAXIS,REDGE,RAXIS
             RL_OUT=REDGE+DR_OUT*(NR-NRPMAX)
             RL_IN =REDGE+DR_IN *(NR-NRPMAX)
             ZL=ZAXIS
+            Sratio=RL_OUT**2/REDGE**2
+            write(6,'(A,I5,1P2E12.4)') 
+     &           'NR,RL_OUT,Sratio=',NR,RL_OUT,Sratio
             PSIP(NR)=PSIG(RL_OUT,ZL)-PSI0
+!            write(6,'(A,I5,1P3E12.4)') 
+!     &           'NR,PSIP,PSIG,PSI0=',NR,PSIP(NR),PSIG(RL_OUT,ZL),PSI0
             PPS(NR)=0.D0
             TTS(NR)=2.D0*PI*BB*RR
 C
-            call polintx(nr,npmax,nrm,qps)
-            call polintx(nr,npmax,nrm,dvdpsip)
-            call polintx(nr,npmax,nrm,dvdpsit)
+!            call polintx(nr,npmax,nrm,qps)
+!            call polintx(nr,npmax,nrm,dvdpsip)
+!            call polintx(nr,npmax,nrm,dvdpsit)
+            DVDPSIP(NR)=DVDPSIP(NRPMAX)*Sratio
+            DVDPSIT(NR)=DVDPSIT(NRPMAX)*Sratio
 C            call polintx(nr,npmax,nrm,dsdpsit)
-            call polintx(nr,npmax,nrm,rlen)
-            call polintx(nr,npmax,nrm,averr)
-            call polintx(nr,npmax,nrm,averr2)
-            call polintx(nr,npmax,nrm,aveir2)
-            call polintx(nr,npmax,nrm,avebb)
-            call polintx(nr,npmax,nrm,avebb2)
-            call polintx(nr,npmax,nrm,aveib2)
-            call polintx(nr,npmax,nrm,avegv)
-            call polintx(nr,npmax,nrm,avegv2)
-            call polintx(nr,npmax,nrm,avegvr2)
-            call polintx(nr,npmax,nrm,avegp2)
-            call polintx(nr,npmax,nrm,psit)
-            call polintx(nr,npmax,nrm,vps)
-            call polintx(nr,npmax,nrm,sps)
-            call polintx(nr,npmax,nrm,aveir)
+!            call polintx(nr,npmax,nrm,rlen)
+            RLEN(NR)=RLEN(NRPMAX)*SQRT(Sratio)
+!            call polintx(nr,npmax,nrm,averr)
+            AVERR(NR)=AVERR(NRPMAX)
+!            call polintx(nr,npmax,nrm,averr2)
+            AVERR2(NR)=AVERR2(NRPMAX)
+!            call polintx(nr,npmax,nrm,aveir2)
+            AVEIR2(NR)=AVEIR2(NRPMAX)
+!            call polintx(nr,npmax,nrm,avebb)
+            AVEBB(NR)=AVEBB(NRPMAX)
+!            call polintx(nr,npmax,nrm,avebb2)
+            AVEBB2(NR)=AVEBB2(NRPMAX)
+!            call polintx(nr,npmax,nrm,aveib2)
+            AVEIB2(NR)=AVEIB2(NRPMAX)
+!            call polintx(nr,npmax,nrm,avegv)
+            AVEGV(NR)=AVEGV(NRPMAX)
+!            call polintx(nr,npmax,nrm,avegv2)
+            AVEGV2(NR)=AVEGV2(NRPMAX)
+!            call polintx(nr,npmax,nrm,avegvr2)
+            AVEGVR2(NR)=AVEGVR2(NRPMAX)
+!            call polintx(nr,npmax,nrm,avegp2)
+            AVEGP2(NR)=AVEGP2(NRPMAX)
+!            call polintx(nr,npmax,nrm,psit)
+!            call polintx(nr,npmax,nrm,vps)
+!            call polintx(nr,npmax,nrm,sps)
+            SPS(NR)=SPS(NRPMAX)*Sratio
+!            call polintx(nr,npmax,nrm,aveir)
+            AVEIR(NR)=AVEIR(NRPMAX)
 
+!            PSIT(NR)=PSIT(NR-1)
+!     &              +2.0D0*QPS(NR)*QPS(NR-1)/(QPS(NR)+QPS(NR-1))
+!     &                 *(PSIP(NR)-PSIP(NR-1))
+            PSIT(NR)=PSIT(NRPMAX)*Sratio
+            QPS(NR)=(PSIT(NR)-PSIT(NR-1))/(PSIP(NR)-PSIP(NR-1))
+
+!            write(6,'(A,I5,1P3E12.4)') 
+!     &           'NR,PSIP,PSIT,QPS=',NR,PSIP(NR),PSIT(NR),QPS(NR)
             IF(MDLEQV.GT.0) THEN
                F_OUT=(RL_OUT-RR)/(REDGE-RR)
                F_IN =(RL_IN -RR)/(REDGE-RR)

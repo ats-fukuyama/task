@@ -1020,9 +1020,9 @@ C
                IF(RHO.LT.0.D0) THEN
                   RHO=DABS(RHO)
                ENDIF
-               IF(RHO.GT.XR(NRMAX+1)) THEN
+C               IF(RHO.GT.XR(NRMAX+1)) THEN
 C                RHO=0.1D0*XR(NRMAX+1)
-               ENDIF
+C               ENDIF
                IF(THETA.GE.2.D0*PI) THEN
                   THETA=DMOD(THETA,2.D0*PI)
                ELSE IF(THETA.LT.0.D0) THEN
