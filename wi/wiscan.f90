@@ -84,7 +84,7 @@ CONTAINS
   SUBROUTINE wi_scan_alfa(ierr)
 
     USE wicomm,ONLY: rkind,ikind,nalfamax,alfamin,alfamax,alfa,beta,any, &
-         xmax,xmin,dx0,pn0,nxmax,nwmax,kfscan,pi,xwint
+         xmax,xmin,dx0,pn0,nxmax,nwmax,kfscan,pi,xwint,xgrid
     USE wiexec,ONLY: wi_exec
     USE wiprep,ONLY: wi_prep
     USE wigout,ONLY: wi_gra1
@@ -94,7 +94,7 @@ CONTAINS
     INTEGER(ikind),INTENT(OUT):: ierr
     INTEGER(ikind):: nalfa
     INTEGER(ikind),PARAMETER:: nfl=21
-    REAL(rkind):: dalfa,rk0l,ratea
+    REAL(rkind):: dalfa,rk0l,ratea,anb
     REAL(rkind):: alfa_save,xmax_save,xmin_save,dx0_save,xwint_save
     REAL(rkind),DIMENSION(nalfamax):: rk0la,rateaa
 
@@ -115,7 +115,11 @@ CONTAINS
     DO nalfa=1,nalfamax
        alfa=exp(log(alfamin)+dalfa*(nalfa-1))
        rk0l=1.D0/alfa
-       IF(ALFA.LT.1.D0) THEN
+       IF(ALFA.LT.0.01D0) THEN
+          dx0=0.3D0
+          xmax=200.D0/beta
+          xmin=-50.0D0/BETA
+       ELSEIF(ALFA.LT.1.D0) THEN
           dx0=dx0_save
           xmax=10.D0/(alfa*beta)
           xmin=-10.0D0/BETA
@@ -139,7 +143,8 @@ CONTAINS
        alfa=alfa*beta
        WRITE(6,'(I5,1P6E12.4)') nalfa,alfa,rk0l,0.D0,xmin,xmax,dx0
        CALL wi_prep
-       IF(any < 1.0) THEN
+       ANB=DEXP(-ALFA*xgrid(nxmax))
+       IF(any**2 < 1.0-ANB) THEN
           CALL wi_exec(0,ratea,ierr)
        ELSE
           ratea=0.D0

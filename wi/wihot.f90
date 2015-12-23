@@ -82,6 +82,7 @@ CONTAINS
       IMPLICIT NONE
       COMPLEX(rkind):: ciky,cbb
       REAL(rkind):: rky,rky2,dx,dx2,beta2,dky
+      REAL(rkind):: ANB
       INTEGER(ikind):: NDUB,NBAND,NWDUB,NWDDUB,I,J,MM,ID,JD,NS,NE,NN
       INTEGER(ikind):: KK,KD,KS,IOB,IO,I2
 
@@ -90,7 +91,9 @@ CONTAINS
       BETA2=BETA*BETA
       DKY=ANY*ANY
       CIKY=CI*ANY/BETA
-      CBB=CI/(DSQRT(1.D0-ANY*ANY)*BETA)
+!      CBB=CI/(DSQRT(1.D0-ANY*ANY)*BETA)
+      ANB=DEXP(-ALFA*xgrid(nxmax))
+      CBB=CI/(DSQRT(1.D0-ANB-ANY*ANY)*BETA)
 
       NDUB=2*NXMAX
       IF(NWMAX.EQ.NXMAX) THEN
@@ -216,8 +219,11 @@ CONTAINS
       IMPLICIT NONE
       COMPLEX(rkind):: CBB
       INTEGER(ikind):: ML
+      REAL(rkind):: ANB
 
-      CBB=CI/(DSQRT(1.D0-ANY*ANY)*BETA)
+!      CBB=CI/(DSQRT(1.D0-ANY*ANY)*BETA)
+      ANB=PN0*DEXP(-ALFA*xgrid(nxmax))
+      CBB=CI/(DSQRT(1.D0-ANB-ANY*ANY)*BETA)
       DO ML=1,NXMAX*2+1
          CSO(ML)=(0.D0,0.D0)
       END DO
