@@ -605,11 +605,15 @@ C
                CQM=CFN*COEF*RHOR     *CEX*CX*CX*(1.D0+2.D0*CX*CX)
                CRM=CFN*COEF          *CEX*CX*CX*CX*2.D0
             ELSEIF((MODEFA.EQ.1).OR.(MODEFA.EQ.2)) THEN 
-               CALL WMDPFA(CX,CFN,COEF,RHOR,CPM,CQM,CRM,MODEFA)
+
+      CALL WMDPFA(CX,CFN,COEF,RHOR,CPM,CQM,CRM,MODEFA)
+
             ELSEIF(MODEFA.EQ.3) THEN 
+
                RHOL=1.2D0*(NR-0.5D0)/NRMAX  
-!         CALL WMDPFA2(NS,CW,RHOL,RKPR,VTA,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)  !normarized p,theta
-         CALL WMDPFA2(CW,AM,RHOL,RKPR,VTA,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2) !not normarized p,theta
+!      CALL WMDPFA2(NS,CW,RHOL,RKPR,VTA,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)  !normarized p,theta
+      CALL WMDPFA2(CW,AM,RHOL,RKPR,VTA,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2) !not normarized p,theta
+
 !             WRITE(6,'(i5,1P2E12.4)') NS,RHOL,RKPR
 !             WRITE(6,'(1P6E12.4)') CPM1,CPM2,CQM1
 !             WRITE(6,'(1P6E12.4)') CQM2,CRM1,CRM2
@@ -619,13 +623,15 @@ C
      &           (-CQM1+2.D0*CQM2*MM/(AM*CW*WC*PNAL*PNAL))/2.D0
              CRM=2.D0 *PI*WP2/(CW*CW)*
      &           (-CRM1+2.D0*CRM2*MM/(AM*CW*WC*PNAL*PNAL))
+
             ELSEIF(MODEFA.EQ.4) THEN 
+
 !              WRITE(6,'(A,5I5)',ADVANCE='NO') 
 !              WRITE(6,'(A,5I5)')
 !     &              'MD,ND,NTH,NHH,NR=',MD,ND,NTH,NHH,NR
               RHOL=RB/RA*(NR-0.5D0)/NRMAX
              IF(RHOL.LE.1.D0) THEN
-          CALL WMDPFAA(CW,RHOL,RKPR,AE2N0,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
+       CALL WMDPFAA(CW,RHOL,RKPR,AE2N0,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
           WP02=AE2N0*1.D20/(AM*EPS0)
              CPM=(PI/2.D0)*WP02/(CW*CW*WC*WC*RR*RR)*
      &           (0.5D0*CPM1+CPM2*MM/(RHOL*AM*CW*WC))
@@ -638,7 +644,9 @@ C
                CQM=(0.D0,0.D0)
                CRM=(0.D0,0.D0)
              ENDIF
+
             ELSE
+
                NRWM=NR
                DELRWM=RB*(XRHO(NR+1)-XRHO(NR))
                RL=RB*0.5D0*(XRHO(NR+1)+XRHO(NR))
