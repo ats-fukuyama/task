@@ -196,6 +196,8 @@
             END IF
 !                  CALL djdt
 
+            DEPS_E2=0.D0 ! changed by nagai
+
             IF(NRANK.eq.0.and.DEPS.le.EPSFP.and.DEPS_E2.le.EPSFP)THEN
                N_IMPL=1+LMAXFP ! exit dowhile
             ENDIF
