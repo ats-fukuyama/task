@@ -55,6 +55,7 @@ C
 C         WRITE(6,'(I5,1P3E12.4)') NR,BABS_AV,RIOTA_AV,QPS(NR)
 C
          RIOTAL=QPS(NR)
+!         WRITE(6,'(I5,1P3E12.4)') NR,RIOTAL  !!!!
 C
          DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
@@ -90,7 +91,7 @@ C
                NW1=MAX(1,MDSIZ-1)*(NDX1-1)+(MDX1-1)+1
                NW1=NW1-NW0+1
                IF(NW1.GE.1.AND.NW1.LE.MHMAX+1) THEN
-                  FM(NW1,NW)=DBLE(CWALFK(MDX1,NDX1))/(RKPR1*RKPR2)
+                 FM(NW1,NW)=DBLE(CWALFK(MDX1,NDX1))/(RKPR1*RKPR2)
      &                      *RIOTAL**2
                ENDIF
             ENDDO
