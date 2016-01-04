@@ -894,26 +894,16 @@ CONTAINS
          IF(model_boundary.EQ.0) THEN ! periodic
             if( nxp .eq. 0  ) nxpm = nxmax - 1
             if( nyp .eq. 0  ) nypm = nymax - 1
-            !if( nxp .eq. nxmax-2) nxppp=0
-            !if( nyp .eq. nymax-2) nyppp=0
-            !if( nxp .eq. nxmax-1) nxpp =0
-            !if( nyp .eq. nymax-1) nypp =0
             if( nxp .eq. nxmax-1) nxppp=1
             if( nyp .eq. nymax-1) nyppp=1
-         !ELSE   ! reflective: 
-           if( nxp .eq. 0  ) nxpm=0
-           if( nyp .eq. 0  ) nypm=0
-            !if( nxp .eq. nxmax-2) nxppp=nxmax
-            !if( nyp .eq. nymax-2) nyppp=nymax
-            !if( nxp .eq. nxmax-1) nxpp =nxmax
-            !if( nyp .eq. nymax-1) nypp =nymax
-           if( nxp .eq. nxmax-1) nxppp=nxmax
-           if( nyp .eq. nymax-1) nyppp=nymax
+         ELSE   ! reflective: 
+            if( nxp .eq. 0  ) nxpm=0
+            if( nyp .eq. 0  ) nypm=0
+            if( nxp .eq. nxmax-1) nxppp=nxmax
+            if( nyp .eq. nymax-1) nyppp=nymax
          END IF
 
          if (dx .le. 0.5d0 .and. dy .le. 0.5d0) then
-            !if(nxp .eq. 0)  sx2m=0.d0
-            !if(nyp .eq. 0)  sy2m=0.d0
            jx(nxpp,nyp ) = jx(nxpp,nyp ) + factor * vx(np) * sy2  * dx
            jx(nxpp,nypp) = jx(nxpp,nypp) + factor * vx(np) * sy2p * dx
            jx(nxpp,nypm) = jx(nxpp,nypm) + factor * vx(np) * sy2m * dx
@@ -939,8 +929,6 @@ CONTAINS
            jz(nxpp,nypm) = jz(nxpp,nypm) + factor * vz(np) * sx2p * sy2m
 
         else if(dx .le. 0.5d0 .and. dy .ge. 0.5d0) then
-           !if(nxp .eq. 0) sx2m=0.d0
-           !if(nyp .eq. nymax-1) sy2p=0.d0 
            jx(nxpp,nypp ) = jx(nxpp,nypp ) + factor * vx(np) * sy2  * dx
            jx(nxpp,nyppp) = jx(nxpp,nyppp) + factor * vx(np) * sy2p * dx
            jx(nxpp,nyp  ) = jx(nxpp,nyp  ) + factor * vx(np) * sy2m * dx
@@ -993,8 +981,6 @@ CONTAINS
            jz(nxppp,nypm) = jz(nxppp,nypm) + factor * vz(np) * sx2p * sy2m
 
         else
-           !if(nxp .eq. nxmax-1) sx2p=0.d0
-           !if(nyp .eq. nymax-1) sy2p=0.d0
            jx(nxpp,nypp ) = jx(nxpp,nypp ) + factor * vx(np) * sy2  * dx
            jx(nxpp,nyppp) = jx(nxpp,nyppp) + factor * vx(np) * sy2p * dx
            jx(nxpp,nyp  ) = jx(nxpp,nyp  ) + factor * vx(np) * sy2m * dx
