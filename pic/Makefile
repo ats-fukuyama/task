@@ -1,8 +1,8 @@
 include ../make.header
 include ../mtxp/make.mtxp
-#LIBX_MTX=$(LIBX_MTX_BND)
+LIBX_MTX=$(LIBX_MTX_BND)
 #LIBX_MTX=$(LIBX_MTX_PCG)
-LIBX_MTX=$(LIBX_MTX_MUMPS)
+#LIBX_MTX=$(LIBX_MTX_MUMPS)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
 .SUFFIXES:
@@ -12,8 +12,8 @@ FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
 MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD) -I../mtxp/$(MOD) -I../lib/$(MOD) 
-#FINCLUDE=-I /usr/local/mpich313-ifort-gcc/include
-FINCLUDE=-I /usr/local/mpich3-intel140/include
+FINCLUDE=-I /usr/local/mpich313-ifort-gcc/include
+#FINCLUDE=-I /usr/local/mpich3-intel140/include
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE) $(FINCLUDE)
