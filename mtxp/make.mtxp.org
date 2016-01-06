@@ -18,7 +18,7 @@
 
 
 #### With MPI, With PETSc
-#EXEC=testbnd testbndc testpcg testdmumps testzmumps
+#EXEC=testbnd testbndc testpcg testdmumps testzmumps testksp
 ##### define FLINKER and PETSC_KSP_LIB
 #include ${PETSC_DIR}/conf/variables
 ##### select either of below items

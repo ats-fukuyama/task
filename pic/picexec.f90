@@ -1174,7 +1174,6 @@ CONTAINS
                                amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi)
 !***********************************************************************
    !original subroutine
-      USE piccomm,ONLY: pi
       implicit none
       real(8), dimension(0:nxmax,0:nymax) :: phi,phib,jx,jy,jz,Ax,Ay,Az, &
                                              Axb,Ayb,Azb,Axbb,Aybb,Azbb
