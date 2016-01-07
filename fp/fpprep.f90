@@ -430,7 +430,7 @@
       IF(N_partition_s*N_partition_r*N_partition_p.ne.nsize)THEN
          IF(NRANK.eq.0) THEN
             WRITE(6,*) 'XX fp_prep: N_partition_s*N_partition_r != nsize.'
-            WRITE(6,'(A,3I4)') 'XX N_partition_s, N_partiton_r, nsize=', &
+            WRITE(6,'(A,3I4)') 'XX N_partition_s, N_partition_r, nsize=', &
                                    N_partition_s, N_partition_r, nsize
          END IF
          ierr=1
@@ -1252,6 +1252,7 @@
 
       USE fpnfrr
       USE libmtx
+      USE fpnflg
       IMPLICIT NONE
       integer :: ierr,NSA,NSB,NS,NR,NP,NTH,NSBA,N,NSW,j
       INTEGER:: NSEND, NSWI
@@ -1269,6 +1270,7 @@
 
       N_IMPL=0
       NCALCNR=0
+      IF(MODELS.eq.3) CALL NF_LG_FUNCTION
       IF(MODELS.ne.0) CALL NF_REACTION_COEF
       IF(MODELS.ne.0) CALL fusion_source_init
 
@@ -1305,6 +1307,7 @@
       USE plprof
       USE fpnfrr
       USE libmtx
+      USE fpnflg
 
       Implicit none
 
@@ -1402,6 +1405,7 @@
 !      END IF
 
       N_IMPL=0
+      IF(MODELS.eq.3) CALL NF_LG_FUNCTION
       IF(MODELS.ne.0) CALL NF_REACTION_COEF
       NCALCNR=0
       CALL fusion_source_init

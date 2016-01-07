@@ -248,6 +248,7 @@
 !     MODELS : 0 No fusion reaction
 !              1 DT reaction source (NSSPF,SPFTOT,SPFR0,SPFRW,SPFENG)
 !              2 DT reaction source (self-consistent reactioin rate)
+!              3 Using Legendre expansion in fusion reaction rate calculation
 !     MODELW(ns): 0 for given diffusion coefficient model
 !                 1 for wave E field calculated by WR(without beam radius)
 !                 2 for wave E field calculated by WR(with beam radius)
@@ -286,8 +287,10 @@
       v_RE=1.D0 ! RE velocity / VC
 !-----------------------------------------------------------------------
 !     LLMAX : dimension of legendre polynomials's calculation
+!     LLMAX_NF : dimension of legendre polynomials's calculation for nuclear fusion rate
 
       LLMAX = 2
+      LLMAX_NF = 2
       EPSFP = 1.D-9
       LMAXFP = 10
 
@@ -384,7 +387,7 @@
            MODEFR,MODEFW,IDEBUG, &
            NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX,IMTX, &
            NTMAX,NTCLSTEP,LMAXE,NGLINE,NGRAPH,LMAXNWR, &
-           MODELE,MODELA,MODELC,MODELR,MODELD,LLMAX,IDBGFP, &
+           MODELE,MODELA,MODELC,MODELR,MODELD,LLMAX,LLMAX_NF,IDBGFP, &
            NTG1STEP,NTG1MIN,NTG1MAX, &
            NTG2STEP,NTG2MIN,NTG2MAX, &
            DRR0,E0,R1,DELR1,RMIN,RMAX, &
@@ -417,7 +420,7 @@
            MODEFR,MODEFW,IDEBUG, &
            NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX,IMTX, &
            NTMAX,NTCLSTEP,LMAXE,NGLINE,NGRAPH,LMAXNWR, &
-           MODELE,MODELA,MODELC,MODELW,MODELR,MODELD,LLMAX,IDBGFP, &
+           MODELE,MODELA,MODELC,MODELW,MODELR,MODELD,LLMAX,LLMAX_NF,IDBGFP, &
            NTG1STEP,NTG1MIN,NTG1MAX, &
            NTG2STEP,NTG2MIN,NTG2MAX, &
            DRR0,E0,R1,DELR1,RMIN,RMAX, &
@@ -459,7 +462,7 @@
       WRITE(6,*) '      NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX,IMTX,'
       WRITE(6,*) '      NTMAX,NTCLSTEP,LMAXE,NGLINE,NGRAPH,LMAXNWR,'
       WRITE(6,*) '      MODELE,MODELA,MODELC,MODELW,MODELR,MODELD,'
-      WRITE(6,*) '      NTG1STEP,NTG1MIN,NTG1MAX,LLMAX,IDBGFP,'
+      WRITE(6,*) '      NTG1STEP,NTG1MIN,NTG1MAX,LLMAX,LLMAX_NF,IDBGFP,'
       WRITE(6,*) '      NTG2STEP,NTG2MIN,NTG2MAX,'
       WRITE(6,*) '      DRR0,E0,R1,DELR1,RMIN,RMAX,'
       WRITE(6,*) '      DEC,PEC1,PEC2,PEC3,PEC4,RFEC,DELYEC,DLH,PLH1,PLH2,RLH,'
@@ -647,7 +650,8 @@
       idata(48)=MODEL_WAVE
       idata(49)=MODEL_SINK
       idata(50)=MODELD_n_RE
-      CALL mtx_broadcast_integer(idata,50)
+      idata(51)=LLMAX_NF
+      CALL mtx_broadcast_integer(idata,51)
       NPMAX   =idata( 1)
       NTHMAX  =idata( 2)
       NRMAX   =idata( 3)
@@ -700,6 +704,7 @@
       MODEL_WAVE = idata(48)
       MODEL_SINK = idata(49)
       MODELD_n_RE= idata(50)
+      LLMAX_NF   = idata(51)
 
       CALL mtx_broadcast_integer(NS_NSA,NSAMAX)
       CALL mtx_broadcast_integer(NS_NSB,NSBMAX)
@@ -846,7 +851,7 @@
            MODEFR,MODEFW,IDEBUG, &
            NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX,IMTX, &
            NTMAX,NTCLSTEP,LMAXE,NGLINE,NGRAPH,LMAXNWR, &
-           MODELE,MODELA,MODELC,MODELW,MODELR,MODELD,LLMAX,IDBGFP, &
+           MODELE,MODELA,MODELC,MODELW,MODELR,MODELD,LLMAX,LLMAX_NF,IDBGFP, &
            NTG1STEP,NTG1MIN,NTG1MAX, &
            NTG2STEP,NTG2MIN,NTG2MAX, &
            DRR0,E0,R1,DELR1,RMIN,RMAX, &
@@ -977,7 +982,7 @@
       WRITE(6,600) 'RIMPL   ',RIMPL   ,'EPSM    ',EPSM
       WRITE(6,600) 'EPSDE   ',EPSDE   ,'H0DE    ',H0DE    ,'EPSE    ',EPSE
       WRITE(6,603) 'LMAXE   ',LMAXE   ,'LLMAX   ',LLMAX   ,'NGLINE  ',NGLINE
-      WRITE(6,603) 'IDBGFP  ',IDBGFP  ,'NGRAPH  ',NGRAPH
+      WRITE(6,603) 'IDBGFP  ',IDBGFP  ,'NGRAPH  ',NGRAPH  ,'LLMAX_NF',LLMAX_NF
 
       WRITE(6,603) 'NPMAX   ',NPMAX   ,'NTHMAX  ',NTHMAX  ,'NRMAX   ',NRMAX
       WRITE(6,603) 'NAVMAX  ',NAVMAX  ,'NP2MAX  ',NP2MAX  ,'NTMAX   ',NTMAX   

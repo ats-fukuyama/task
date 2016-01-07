@@ -18,7 +18,7 @@
       integer:: MODEL_DISRUPT, MODEL_synch, MODEL_loss, MODEL_NBI, MODEL_IMPURITY, MODEL_SINK
       integer:: MODEL_Conner_fp, MODEL_BS, MODEL_jfp, MODEL_LNL, MODEL_RE_pmax, MODEL_WAVE
       integer:: MODELD_n_RE
-      integer:: LLMAX,IDBGFP
+      integer:: LLMAX,IDBGFP,LLMAX_NF
       integer:: NTG1STEP,NTG1MIN,NTG1MAX
       integer:: NTG2STEP,NTG2MIN,NTG2MAX
       integer,dimension(NSM):: MODELW
@@ -231,6 +231,10 @@
 
       real(rkind),dimension(:,:,:,:,:),POINTER :: & 
            SIGMAV_NF ! (NTHMAX+1,NPMAX+1,NTHMAX+1,NPMAX+1,6)
+      real(rkind),dimension(:,:,:,:,:),POINTER :: &
+           SIGMAV_LG ! (0:LLMAX_NF,0:LLMAX_NF,NPSTART:NPEND,NPSTART:NPEND,6)
+      real(rkind),dimension(:,:),POINTER :: &
+           PL_NF ! (0:LLMAX_NF,NTHMAX)
       real(rkind),dimension(:,:),POINTER :: & 
            RATE_NF ! (NRSTART:NREND,6)
       real(rkind),dimension(:,:,:,:),POINTER :: & 
@@ -514,12 +518,15 @@
 !          allocate(FM(1+NTHMAX*(NPSTARTW-1)+NTHMAX*NPMAX*(NRSTARTW-1):NPMAX*NTHMAX*NRENDWM) )
 !          allocate(BMTOT(NMMAX))
 
-          IF(MODELS.eq.2)THEN
-!             allocate(SIGMAV_NF(NTHMAX,NPMAX,NTHMAX,NPMAX,6))
+          IF(MODELS.eq.2.OR.MODELS.eq.3)THEN
+!             IF(MODELS.eq.2) allocate(SIGMAV_NF(NTHMAX,NPMAX,NTHMAX,NPMAX,6))
+             IF(MODELS.eq.2) allocate(SIGMAV_NF(NTHMAX,NPSTART:NPEND,NTHMAX,NPMAX,6))
+             IF(MODELS.eq.3) allocate( &
+                  SIGMAV_LG(0:LLMAX_NF,0:LLMAX_NF,NPSTART:NPEND,NPSTART:NPEND,6), &
+                  PL_NF(0:LLMAX_NF,NTHMAX))
+             allocate(RATE_NF(NRSTART:NREND,6))
 !             allocate(RATE_NF_D1(NTHMAX,NPMAX,NRSTART:NREND,6))
              allocate(RATE_NF_D2(NTHMAX,NPMAX,NRSTART:NREND,6))
-             allocate(RATE_NF(NRSTART:NREND,6))
-             allocate(SIGMAV_NF(NTHMAX,NPSTART:NPEND,NTHMAX,NPMAX,6))
              allocate(RATE_NF_D1(NTHMAX,NPSTART:NPEND,NRSTART:NREND,6))
 !             allocate(RATE_NF_D2(NTHMAX,NPSTART:NPEND,NRSTART:NREND,6))
           ENDIF
@@ -691,9 +698,10 @@
           deallocate(FM_shadow_m, FM_shadow_p)
 !          deallocate(BMTOT)
 
-          IF(MODELS.eq.2)THEN
-             deallocate(SIGMAV_NF,RATE_NF)
-             deallocate(RATE_NF_D1,RATE_NF_D2)
+          IF(MODELS.eq.2.OR.MODELS.eq.3)THEN
+             IF(MODELS.eq.2) deallocate(SIGMAV_NF)
+             IF(MODELS.eq.3) deallocate(SIGMAV_LG,PL_NF)
+             deallocate(RATE_NF,RATE_NF_D1,RATE_NF_D2)
           END IF
           deallocate(DEPS_SS)
           return
