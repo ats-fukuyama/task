@@ -128,8 +128,8 @@
       REAL(8),DIMENSION(NEMAX):: E0A,E1A
       REAL(8),DIMENSION(NEMAX,NEMAX):: SIGMAVA,FX,FY,FXY
       REAL(8),DIMENSION(4,4,NEMAX,NEMAX):: USV
-      INTEGER:: NSA,NSB,NS,NSB1,NSB2,ID,NE0,NE1,NTH1,NTH2,NP1,NP2,IERR
-      REAL(8):: RED_MASS,V1MAX,V2MAX,E0MAX,E1MAX,DELE0,DELE1,SUM,E0L,E1L
+      INTEGER:: NSA,NSB,NS,NSB1,NSB2,ID,NE0,NE1,NTH1,NTH2,NP1,NP2,IERR,L,K
+      REAL(8):: RED_MASS,V1MAX,V2MAX,E0MAX,E1MAX,DELE0,DELE1,SUM,E0L,E1L,F0
       REAL(8):: E3
 
 !---- identify possible fusion reactions ----
@@ -261,6 +261,8 @@
 
 !     ---- calculate reaction rate on 4D momentum mesh ----
 
+            IF(MODELS.EQ.2) THEN
+
             DO NP2=1,NPMAX
                DO NTH2=1,NTHMAX
                   DO NP1=NPSTART,NPEND
@@ -275,7 +277,46 @@
                   ENDDO
                ENDDO
             ENDDO
-            
+
+            ENDIF ! MODELS=2
+
+            IF(MODELS.EQ.3) THEN
+
+            DO NP1=1,NPMAX
+               DO NP2=1,NPMAX
+                  DO L=0,LLMAX_NF
+                     DO K=0,LLMAX_NF
+                        SIGMAV_LG(L,K,NP1,NP2,ID)=0.D0
+                     END DO
+                  END DO
+               END DO
+            END DO
+
+            DO NP1=1,NPMAX
+               DO NP2=1,NPMAX
+                  DO NTH1=1,NTHMAX
+                     DO NTH2=1,NTHMAX
+                        CALL RELATIVE_ENERGY(NTH1,NP1,NTH2,NP2,NSB1,NSB2,E0L,E1L)
+                        CALL SPL2DF(E0L,ABS(E1L),F0, &
+                             E0A,E1A,USV,NEMAX,NEMAX,NEMAX,IERR)
+                        IF(IERR.NE.0) WRITE(6,*) &
+                             'XX NF_REACTION_COEF_LG: SPL2DF: IERR=',IERR
+                        DO L=0,LLMAX_NF
+                           DO K=0,LLMAX_NF
+                              SIGMAV_LG(L,K,NP1,NP2,ID)= &
+                                   SIGMAV_LG(L,K,NP1,NP2,ID) &
+                                   +F0*PL_NF(L,NTH1)*PL_NF(K,NTH2) &
+                                   *SINM(NTH1)*SINM(NTH2)*DELTH**2 &
+                                   *0.5D0**2*(2.D0*L+1.D0)*(2.D0*K+1.D0)
+                           ENDDO
+                        ENDDO
+                     ENDDO
+                  ENDDO
+               ENDDO
+            ENDDO
+
+            ENDIF ! MODELS=2
+
          ENDIF
       ENDDO ! ID
 

@@ -811,13 +811,13 @@
       END IF ! MODELS=1
 
 !     ----- non-Maxwell fusion source term -----
-      IF(MODELS.EQ.2) THEN
+      IF(MODELS.EQ.2.OR.MODELS.EQ.3) THEN
          IF(MODELA.eq.0)THEN
             CALL FUSION_SOURCE_S2A0(NSA)
          ELSE
             CALL FUSION_SOURCE_S2A1(NSA)            
          END IF
-      ENDIF ! MODELS=2
+      ENDIF ! MODELS=2 or MODELS=3
 !
 !     ----- Particle loss and source terms -----
 !
@@ -1380,6 +1380,7 @@
       SUBROUTINE FUSION_SOURCE_S2A0(NSA)
 
       USE fpnfrr
+      USE fpnflg
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NSA
       integer:: NSB, NSBA, NR, NTH, NP, NS, ID
@@ -1393,7 +1394,8 @@
          IF(NSA.EQ.NSA1_NF(ID)) THEN
             PSP=SQRT(2.D0*AMFP(NSA)*ENG1_NF(ID)*AEE)/PTFP0(NSA)
             DO NR=NRSTART,NREND
-               CALL NF_REACTION_RATE(NR,ID)
+               IF(MODELS.NE.3) CALL NF_REACTION_RATE(NR,ID)
+               IF(MODELS.EQ.3) CALL NF_REACTION_RATE_LG(NR,ID)
 !               DO NP=1,NPMAX-1
                DO NP=NPSTART,NPEND
                   IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
@@ -1432,7 +1434,8 @@
          IF(NSA.EQ.NSA2_NF(ID)) THEN
             PSP=SQRT(2.D0*AMFP(NSA)*ENG2_NF(ID)*AEE)/PTFP0(NSA)
             DO NR=NRSTART,NREND
-               CALL NF_REACTION_RATE(NR,ID)
+               IF(MODELS.NE.3) CALL NF_REACTION_RATE(NR,ID)
+               IF(MODELS.EQ.3) CALL NF_REACTION_RATE_LG(NR,ID)
 !               DO NP=1,NPMAX-1
                DO NP=NPSTART,NPEND
                   IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
@@ -1472,6 +1475,7 @@
       SUBROUTINE FUSION_SOURCE_S2A1(NSA)
 
       USE fpnfrr
+      USE fpnflg
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NSA
       integer:: NSB, NSBA, NR, NTH, NP, NS, ID
@@ -1485,7 +1489,8 @@
          IF(NSA.EQ.NSA1_NF(ID)) THEN
             PSP=SQRT(2.D0*AMFP(NSA)*ENG1_NF(ID)*AEE)/PTFP0(NSA)
             DO NR=NRSTART,NREND
-               CALL NF_REACTION_RATE(NR,ID)
+               IF(MODELS.NE.3) CALL NF_REACTION_RATE(NR,ID)
+               IF(MODELS.EQ.3) CALL NF_REACTION_RATE_LG(NR,ID)
 !               DO NP=1,NPMAX-1
                DO NP=NPSTART,NPEND
                   IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
@@ -1524,7 +1529,8 @@
          IF(NSA.EQ.NSA2_NF(ID)) THEN
             PSP=SQRT(2.D0*AMFP(NSA)*ENG2_NF(ID)*AEE)/PTFP0(NSA)
             DO NR=NRSTART,NREND
-               CALL NF_REACTION_RATE(NR,ID)
+               IF(MODELS.NE.3) CALL NF_REACTION_RATE(NR,ID)
+               IF(MODELS.EQ.3) CALL NF_REACTION_RATE_LG(NR,ID)
 !               DO NP=1,NPMAX-1
                DO NP=NPSTART,NPEND
                   IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
