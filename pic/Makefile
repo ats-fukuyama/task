@@ -12,9 +12,9 @@ FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
 MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD) -I../mtxp/$(MOD) -I../lib/$(MOD) 
-FINCLUDE=-I /usr/local/mpich313-ifort-gcc/include
+#FINCLUDE=-I /usr/local/mpich313-ifort-gcc/include
 #FINCLUDE=-I /usr/local/mpich3-intel140/include
-
+FINCLUDE=-I /home/hoge/lib/openmpi/include
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE) $(FINCLUDE)
 .f90.o :
@@ -29,6 +29,7 @@ SRCSFREE = libgrf/plot2.f90 libgrf/grf2dpexec.f90 libgrf/grfpconvert.f90 \
 OBJS = $(SRCSFREE:.f90=.o) 
 
 LIBS = ../../bpsd/bpsdlib.a ../lib/tasklib.a piclib.a
+FFTWLIB =  -L /usr/local/lib -lfftw3
 
 all : pic
 
@@ -45,7 +46,7 @@ libs:
 	(cd ../../mtxp; make)
 
 pic : $(LIBS) picmain.o
-	$(FLINKER) picmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
+	$(FLINKER) picmain.o $(LIBS) -o $@ $(FFLAGS) $(FFTWLIB) $(FLIBS) $(LIBX_MTX)
 
 testplot2 : $(LIBS) libgrf/testplot2.o
 	$(MF90) libgrf/testplot2.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) \

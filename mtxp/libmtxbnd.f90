@@ -221,9 +221,9 @@
             A(ic(i)-ir(i)+joffset,ir(i))=drc(i)
 !            write(6,'(3I5,1PE12.4)') i,ir(i),ic(i),drc(i)
          END DO
-         WRITE(6,'(A,4I8)') &
-              '-- libmtxbnd: mtx_solve: irmax,icmin,icmax,irc=', &
-                                        irmax,icmin,icmax,irc
+!         WRITE(6,'(A,4I8)') &
+!              '-- libmtxbnd: mtx_solve: irmax,icmin,icmax,irc=', &
+!                                        irmax,icmin,icmax,irc
       END IF
          
       CALL BANDRD(A,x,imax,jmax,jmax,ierr)
@@ -432,9 +432,9 @@
             Ac(ic(i)-ir(i)+joffset,ir(i))=drcc(i)
 !            write(6,'(3I5,1PE12.4)') i,ir(i),ic(i),drcc(i)
          END DO
-         WRITE(6,'(A,4I8)') &
-              '-- libmtxbnd: mtxc_solve: irmax,icmin,icmax,irc=', &
-                                         irmax,icmin,icmax,irc
+!         WRITE(6,'(A,4I8)') &
+!              '-- libmtxbnd: mtxc_solve: irmax,icmin,icmax,irc=', &
+!                                         irmax,icmin,icmax,irc
       END IF
          
       CALL BANDCD(Ac,xc,imax,jmax,jmax,ierr)

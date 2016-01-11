@@ -145,7 +145,7 @@ CONTAINS
       factx = dble(nxmax) / dble(npxmax)
       facty = dble(nymax) / dble(npymax)
       np = 0
-      if(densx .eq. 0.d0) then
+      if(densx .lt. 0.d0) then
       do npy = 1, npymax
       do npx = 1, npxmax
          np = np + 1
