@@ -1,7 +1,7 @@
 include ../make.header
 include ../mtxp/make.mtxp
-LIBX_MTX=$(LIBX_MTX_BND)
-#LIBX_MTX=$(LIBX_MTX_PCG)
+#LIBX_MTX=$(LIBX_MTX_BND)
+LIBX_MTX=$(LIBX_MTX_PCG)
 #LIBX_MTX=$(LIBX_MTX_MUMPS)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
@@ -43,7 +43,7 @@ piclib.a: $(OBJS)
 libs:
 	(cd ../lib; make tasklib.a)
 	(cd ../../bpsd; make bpsdlib.a)
-	(cd ../../mtxp; make)
+	(cd ../mtxp; make)
 
 pic : $(LIBS) picmain.o
 	$(FLINKER) picmain.o $(LIBS) -o $@ $(FFLAGS) $(FFTWLIB) $(FLIBS) $(LIBX_MTX)

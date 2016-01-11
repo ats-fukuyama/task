@@ -223,19 +223,19 @@ CONTAINS
       END IF
       CALL mtx_solve(model_matrix0,tolerance_matrix,its, &
                      methodKSP=model_matrix1,methodPC=model_matrix2)
-      IF((its.ne.0).and.(nrank.eq.0)) write(6,*) 'mtx_solve: its=',its
+!      IF((its.ne.0).and.(nrank.eq.0)) write(6,*) 'mtx_solve: its=',its
       CALL mtx_get_vector(x)
       IF(mode.EQ.0) THEN
          DO i=istart,iend
             nx=mod(i-1,isize)+1
             ny=(i-1)/isize+1
-            phi(nx+1,ny+1)=x(i)
+            phi(nx+1,ny+1)=x(i-istart+1)
          ENDDO
       ELSE
          DO i=istart,iend
             ny=mod(i-1,isize)+1
             nx=(i-1)/isize+1
-            phi(nx+1,ny+1)=x(i)
+            phi(nx+1,ny+1)=x(i-istart+1)
          ENDDO
       END IF
       DEALLOCATE(x)
