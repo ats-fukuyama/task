@@ -1245,9 +1245,9 @@ CONTAINS
             IF(y.GE.ymin_wg.AND.y.LE.ymax_wg) THEN
                factor=exp(-12.D0*(y-yc)**2/(ylen)**2)
                Ay(0,ny)=amp_wg*factor*COS(rot_wg*pi/180.D0) &
-                       *sin(omega*time-2.D0*pi*dph*(y-ymin_wg))
+                       *sin(omega*time-2.D0*pi*dph*(y-ymin_wg)/180.d0)
                Az(0,ny)=amp_wg*factor*SIN(rot_wg*pi/180.D0) &
-                       *sin(omega*time-2.D0*pi*dph*(y-ymin_wg))
+                       *sin(omega*time-2.D0*pi*dph*(y-ymin_wg)/180.d0)
             END IF
          END DO
       END SELECT
