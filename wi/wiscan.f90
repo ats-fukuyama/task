@@ -51,7 +51,7 @@ CONTAINS
     REAL(rkind),DIMENSION(ntaumax):: taua,rateaa
 
     any_save=any
-    rk0l=beta/alfa
+    rk0l=1.D0/alfa
     dtau=(taumax-taumin)/(ntaumax-1)
     
     IF(TRIM(kfscan)//'X'.NE.'X') CALL FWOPEN(nfl,kfscan,1,1,'SCAN',ierr)
@@ -128,20 +128,10 @@ CONTAINS
           xmax=10.D0/(beta)
           xmin=-5.0D0/(beta)
        ELSE
-!          dx0=0.5D0*dx0_save/log(alfa)
           dx0=0.1D0*dx0_save/log(alfa)
-!          dx0=0.03D0*dx0_save/log(alfa)
-!          IF(dx0.GT.0.3D0*dx0_save/alfa) dx0=0.3D0*dx0_save/alfa 
           xmax=500.D0*dx0
           xmin=-500.D0*dx0
-!          IF(xmin.gt.-10.d0) xmin=-10.d0
-!          IF(xmax.lt. 10.d0) xmax= 10.d0
-!          xmax=10.D0
-!          xmin=-10.D0
-!          xwint=100*dx0
        END IF
-       alfa=alfa*beta
-       WRITE(6,'(I5,1P6E12.4)') nalfa,alfa,rk0l,0.D0,xmin,xmax,dx0
        CALL wi_prep
        ANB=DEXP(-ALFA*xgrid(nxmax))
        IF(any**2 < 1.0-ANB) THEN

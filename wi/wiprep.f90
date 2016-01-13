@@ -70,7 +70,7 @@ CONTAINS
       IF(dxmin .LE. 0.D0) THEN
          nxmax=(xmax-xmin)/dx0
       ELSE
-         xres=LOG(pn0)/alfa    ! resonance position (omegape=omega)
+         xres=LOG(pn0)    ! resonance position (omegape=omega)
          x=xmin
          nx=0
          DO WHILE (x.LT.xmax)

@@ -48,7 +48,7 @@ CONTAINS
     USE wicomm, ONLY: modelg,xmin,xmax,dx0,xwint,pn0,alfa,any,beta,cfyn, &
                       ntaumax,taumin,taumax,nalfamax,alfamin,alfamax, &
                       modelp,pnu,dxmin,xwmin, &
-                      modewi,kfscan,idebug,rkind
+                      modela,kfscan,idebug,rkind
 
     IMPLICIT NONE
     INTEGER,INTENT(IN) :: NID
@@ -58,29 +58,9 @@ CONTAINS
     NAMELIST /WI/ modelg,xmin,xmax,dx0,xwint,pn0,alfa,any,beta,cfyn, &
                   ntaumax,taumin,taumax,nalfamax,alfamin,alfamax, &
                   modelp,pnu,dxmin,xwmin, &
-                  modewi,kfscan,idebug
-
-    IF(modewi.EQ.1) THEN
-       pn0=pn0_save
-       alfa=alfa/beta
-       xmin=xmin*beta
-       xmax=xmax*beta
-       dx0=dx0*beta
-       dxmin=dxmin*beta
-       xwmin=xwmin*beta
-    ENDIF
+                  modela,kfscan,idebug
 
     READ(NID,WI,IOSTAT=IST,ERR=9800,END=9900)
-
-    IF(modewi.EQ.1) THEN
-       pn0=1.D0
-       alfa=alfa*beta
-       xmin=xmin/beta
-       xmax=xmax/beta
-       dx0=dx0/beta
-       dxmin=dxmin/beta
-       xwmin=xwmin/beta
-    ENDIF
 
     IERR=0
     RETURN
@@ -99,7 +79,7 @@ CONTAINS
     WRITE(6,'(A)') '# &WI : modelg,xmin,xmax,dx0,xwint,pn0,alfa,any,beta,cfyn,'
     WRITE(6,'(A)') '        ntaumax,taumin,taumax,nalfamax,alfamin,alfamax,'
     WRITE(6,'(A)') '        modelp,pnu,dxmin,xwmin,'
-    WRITE(6,'(A)') '        modewi,kfscan,idebug'
+    WRITE(6,'(A)') '        modela,kfscan,idebug'
     RETURN
 
   END SUBROUTINE wi_plst
@@ -143,16 +123,10 @@ CONTAINS
 
     WRITE(6,602) 'modelg  ',modelg, 'modelp  ',modelp, &
                  'ntaumax ',ntaumax,'nalfamax',nalfamax
-    WRITE(6,602) 'modewi  ',modewi, 'idebug  ',idebug
-    IF(modewi.eq.0) THEN
-       WRITE(6,601) 'xmin  ',xmin  ,'xmax  ',xmax  , &
-                    'dx0   ',dx0   ,'alfa  ',alfa
-       WRITE(6,601) 'dxmin ',dxmin ,'xwmin ',xwmin
-    ELSE
-       WRITE(6,601) 'xmin  ',xmin*beta  ,'xmax  ',xmax*beta  , &
-                    'dx0   ',dx0*beta   ,'alfa  ',alfa/beta
-       WRITE(6,601) 'dxmin ',dxmin*beta ,'xwmin ',xwmin*beta
-    END IF
+    WRITE(6,602) 'modela  ',modela, 'idebug  ',idebug
+    WRITE(6,601) 'xmin  ',xmin  ,'xmax  ',xmax  , &
+                 'dx0   ',dx0   ,'alfa  ',alfa
+    WRITE(6,601) 'dxmin ',dxmin ,'xwmin ',xwmin
        
     WRITE(6,601) 'pn0   ',pn0   ,'any   ',any, &
                  'xwint ',xwint 
