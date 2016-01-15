@@ -1,0 +1,36 @@
+
+    レポート: プロシージャー間の最適化 [ipo]
+
+インライン展開オプション値:
+  -inline-factor: 100
+  -inline-min-size: 30
+  -inline-max-size: 230
+  -inline-max-total-size: 2000
+  -inline-max-per-routine: 無効
+  -inline-max-per-compile: 無効
+
+
+最適化レポート開始: U_ERF
+
+    レポート: プロシージャー間の最適化 [ipo]
+
+インライン展開レポート: (U_ERF) [1] nclass/u_erf.f(1,16)
+  -> EXTERN: (30,21) expf
+  -> EXTERN: (30,33) logf
+  -> EXTERN: (51,23) expf
+  -> EXTERN: (51,35) logf
+
+
+    レポート: ループの入れ子、ベクトル、自動並列化の最適化 [loop, vec, par]
+
+
+LOOP BEGIN at nclass/u_erf.f(25,9)
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15520: ループ はベクトル化されませんでした: 途中で終了するループは、検索ループ表現の条件を満たす場合を除いて、ベクトル化できません。
+LOOP END
+
+LOOP BEGIN at nclass/u_erf.f(40,9)
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15520: ループ はベクトル化されませんでした: 途中で終了するループは、検索ループ表現の条件を満たす場合を除いて、ベクトル化できません。
+LOOP END
+===========================================================================

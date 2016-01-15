@@ -419,10 +419,10 @@
         CASE(0,1)
            IF(RHOL.GT.1.D0) THEN
               DO NS=1,NSMAX
-                 IF(MODELN.EQ.0) THEN
-                    PLF(NS)%RN  =0.D0
-                 ELSE
+                 IF(MODELN.EQ.1) THEN
                     PLF(NS)%RN  =PNS(NS)
+                 ELSE
+                    PLF(NS)%RN  =0.D0
                  END IF
                  PLF(NS)%RTPR=PTS(NS)
                  PLF(NS)%RTPP=PTS(NS)
@@ -884,7 +884,7 @@
 
     SUBROUTINE wmspl_prof(Rhol,NS,PNL,PTL)
 
-      USE plcomm,ONLY: PTS
+      USE plcomm,ONLY: PTS,modeln
       USE plxprf
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: rhol   ! Normalized radius
@@ -895,7 +895,11 @@
       INTEGER(ikind):: IERR
 
       IF (Rhol.GT.1.0D0) THEN
-         PNL = 0.D0
+         IF(modeln.EQ.1) THEN
+            PNL = PNS(NS)
+         ELSE
+            PNL = 0.D0
+         END IF
          PTL = PTS(NS)
       ELSE
          CALL SPL1DF(Rhol,PPL,PRFRHO,UPRFN(1,1,NS),NPRF,IERR)
