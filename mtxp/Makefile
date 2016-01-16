@@ -1,4 +1,4 @@
-include ../../task/make.header
+include ../make.header
 include ../mtxp/make.mtxp
 
 FFLAGS=$(OFLAGS)
@@ -61,3 +61,5 @@ testmtxc.o: testmtxc.f90
 
 clean :
 	-rm -f core a.out *.o *.a ./#* ./*~ ./*.mod ./mod/*.mod
+veryclean : clean
+	-rm -f testbnd testbndc testpcg testdmumps testzmumps testksp

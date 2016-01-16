@@ -148,7 +148,6 @@
 !-----
       SUBROUTINE shadow_comm_np(NR,NSBA)
 
-
       IMPLICIT NONE
       double precision,dimension(nthmax)::sendbuf
       double precision,dimension(nthmax)::recvbuf
@@ -164,16 +163,15 @@
       recvcount=sendcount
       dest=nrank+1
       source=nrank-1
-
       CALL mtx_sendrecv_real8(sendbuf,sendcount,dest, &
-                              recvbuf,recvcount,source)
+                              recvbuf,recvcount,source) 
 
       IF(NPSTART.ne.NPSTARTW)THEN
          DO NTH=1,NTHMAX
             FNS0(NTH,NPSTARTW,NR,NSBA)=recvbuf(nth)
          END DO
       END IF
-!===
+!============
       DO NTH=1,NTHMAX
          sendbuf(nth)=FNS0(NTH,NPSTART,NR,NSBA)
          recvbuf(nth)=0.D0
@@ -215,7 +213,7 @@
       source=nrank-1
 
       CALL mtx_sendrecv_real8(sendbuf,sendcount,dest, &
-                              recvbuf,recvcount,source)
+                              recvbuf,recvcount,source) 
 
       IF(NRSTART.ne.NRSTARTW)THEN
          DO NP=NPSTARTW, NPENDWM
@@ -240,7 +238,7 @@
       source=nrank+1
 
       CALL mtx_sendrecv_real8(sendbuf,sendcount,dest, &
-                              recvbuf,recvcount,source)
+                              recvbuf,recvcount,source) 
 
       IF(NREND.ne.NRENDWM)THEN
          DO NP=NPSTARTW, NPENDWM

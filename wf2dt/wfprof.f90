@@ -199,17 +199,32 @@ SUBROUTINE WFSDEN0(R,Z,RN,RTPR,RTPP,RZCL)
 
   ! --- set DENSITY
 
-  DO ns=1,nsmax
-     rn(ns)=pn_corner(1,ns) &
-           +(pn_corner(2,ns)-pn_corner(1,ns))*rfactor &
-           +(pn_corner(3,ns)-pn_corner(1,ns))*zfactor
-     rtpr(ns)=ptpr_corner(1,ns) &
-             +(ptpr_corner(2,ns)-ptpr_corner(1,ns))*rfactor &
-             +(ptpr_corner(3,ns)-ptpr_corner(1,ns))*zfactor
-     rtpp(ns)=ptpp_corner(1,ns) &
-             +(ptpp_corner(2,ns)-ptpp_corner(1,ns))*rfactor &
-             +(ptpp_corner(3,ns)-ptpp_corner(1,ns))*zfactor
-  END DO
+  SELECT CASE(MODELN)
+  CASE(0)
+     DO ns=1,nsmax
+        rn(ns)=pn_corner(1,ns) &
+              +(pn_corner(2,ns)-pn_corner(1,ns))*rfactor &
+              +(pn_corner(3,ns)-pn_corner(1,ns))*zfactor
+        rtpr(ns)=ptpr_corner(1,ns) &
+                +(ptpr_corner(2,ns)-ptpr_corner(1,ns))*rfactor &
+                +(ptpr_corner(3,ns)-ptpr_corner(1,ns))*zfactor
+        rtpp(ns)=ptpp_corner(1,ns) &
+                +(ptpp_corner(2,ns)-ptpp_corner(1,ns))*rfactor &
+                +(ptpp_corner(3,ns)-ptpp_corner(1,ns))*zfactor
+     END DO
+  CASE(1)
+     DO ns=1,nsmax
+        rn(ns)=pn_corner(1,ns) &
+              +(pn_corner(2,ns)-pn_corner(1,ns))*rfactor**2 &
+              +(pn_corner(3,ns)-pn_corner(1,ns))*zfactor**2
+        rtpr(ns)=ptpr_corner(1,ns) &
+                +(ptpr_corner(2,ns)-ptpr_corner(1,ns))*rfactor**2 &
+                +(ptpr_corner(3,ns)-ptpr_corner(1,ns))*zfactor**2
+        rtpp(ns)=ptpp_corner(1,ns) &
+                +(ptpp_corner(2,ns)-ptpp_corner(1,ns))*rfactor**2 &
+                +(ptpp_corner(3,ns)-ptpp_corner(1,ns))*zfactor**2
+     END DO
+  END SELECT
   CALL WFCOLL(rn,rtpr,rtpp,rzcl)
 
   RETURN
