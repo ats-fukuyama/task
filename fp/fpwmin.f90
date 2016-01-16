@@ -1,4 +1,4 @@
-!     $Id$
+!     $Id: fpwmin.f90,v 1.4 2013/01/14 16:48:26 fukuyama Exp $
 !
 !     ***** READ AND INTERPOLATE wmdata *****
 !

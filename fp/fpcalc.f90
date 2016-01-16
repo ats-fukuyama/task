@@ -1,4 +1,4 @@
-!     $Id$
+!     $Id: fpcalc.f90,v 1.25 2013/02/08 07:36:24 nuga Exp $
 !
 ! ******************************************************************
 !
@@ -238,48 +238,6 @@
             END DO
          END DO
       ENDDO
-
-!      IF(NSA.eq.1)THEN
-!         open(8,file='T_c4.dat')
-!         DO NP=2,NPMAX
-!            WRITE(8,'(I3,2E18.10)') NP, PG(NP,1), PG(NP,1)*DCPP2(1,NP,1,1,1)/FCPP2(1,NP,1,1,1)
-!         END DO
-!         close(8)
-!      ENDIF
-
-!      IF(NRANK.eq.0)THEN
-!      open(8,file='DCe-i.dat')
-!      DO NP=1,NPMAX+1
-!            WRITE(8,'(4E16.8)') &
-!                 PG(NP,NSA), DCTT2(1,NP,1,2,1), DCPP2(1,NP,1,2,1), FCPP2(1,NP,1,2,1)
-!      END DO
-!      close(8)
-!      END IF
-
-!      open(9,file='flux_th.dat')
-!      DO NP=1,NPMAX
-!!         DO NTH=1,NTHMAX+1
-!            WRITE(9,'(4E16.8)') &
-!!PM(NP,NSA)*COSG(NTH),PM(NP,NSA)*SING(NTH),
-!                 PM(NP,NSA), DCTP2(NTH,NP,NR,1,1),DCTT2(NTH,NP,NR,1,1),FCTH2(NTH,NP,NR,1,1)
-!!         END DO
-!!         WRITE(9,*) " "
-!!         WRITE(9,*) " "
-!      END DO
-!      close(9)
-!      END IF
-
-!      IF(MODELR.eq.1)THEN
-!         DO NP=2,NPMAX+1
-!            RGAMA =SQRT(1.D0+PG(NP,1)**2*THETA0(1))
-!            WRITE(*,'(I3,3E18.10)') NP, PG(NP,1),FCPP2(NTH,NP,NR,1,1)/DCPP2(NTH,NP,NR,1,1)*RGAMA/PG(NP,1), -THETA0(1)/THETA(NR,NSA)
-!         END DO
-!      ELSE
-!         DO NP=2,NPMAX+1
-!            WRITE(*,'(I3,3E18.10)') NP, PG(NP,1),FCPP2(NTH,NP,NR,1,1)/DCPP2(NTH,NP,NR,1,1)/PG(NP,1), -RTFP0(1)/RTFD(NR,1)
-!         END DO
-!      END IF
-!      END IF
 
       IF(nrank.eq.0) THEN
       IF(MOD(IDBGFP/8,2).EQ.1) THEN
@@ -750,8 +708,9 @@
                   PNFP=PNFPL
                   vtatb=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))
                   ptatb=PG(NP,NSBA)/RGAMA
-                  PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2)) &
-                       *ptatb
+!                  PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2)) &
+!                       *ptatb
+                  PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PG(NP,NSBA)
                   IF(PCRIT.le.PMAX(NSB))THEN
                      CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R,"N0R_DCPP")
                      PNFP=PCRIT
@@ -819,8 +778,9 @@
                PNFP=PNFPL
                vtatb=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))
                ptatb=PM(NP,NSA)/RGAMA
-               PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2)) &
-                    *ptatb
+!               PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2)) &
+!                    *ptatb
+               PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PM(NP,NSBA)
                IF(PCRIT.le.PMAX(NSBA))THEN
                   CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R,"N0R_DCTT")
                   PNFP=PCRIT
@@ -902,8 +862,9 @@
                VFPL=PG(NP,NSBA)*PTFP0(NSA)/(AMFP(NSA)*RGAMA)
                vtatb=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))
                ptatb=PG(NP,NSBA)/RGAMA
-               PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2)) &
-                    *ptatb
+!               PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2)) &
+!                    *ptatb
+               PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PG(NP,NSBA)
 
                EX=(1.D0-SQRT(1.D0+PG(NP,NSA)**2*TMC2FD0))/TMC2FD
 
@@ -997,8 +958,9 @@
             VFPL=PM(NP,NSBA)*PTFP0(NSA)/(AMFP(NSA)*RGAMA)
             vtatb=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))
             ptatb=PM(NP,NSA)/RGAMA
-            PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2)) &
-                 *ptatb
+!            PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2)) &
+!                 *ptatb
+            PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PM(NP,NSBA)
 
             EX=(1.D0-SQRT(1.D0+PM(NP,NSA)**2*TMC2FD0))/TMC2FD
             IF(VFPL.le.v_thermal*10)THEN
