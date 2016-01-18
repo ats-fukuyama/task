@@ -112,6 +112,7 @@
       istart_=1
       iend_=imax
       DO i=1,imax
+         b(i)=0.D0
          x(i)=0.D0
       END DO
       RETURN
@@ -146,6 +147,7 @@
       REAL(8),INTENT(IN):: v ! value to be inserted
 
       b(j)=v
+!      write(18,'(I5,1P2E12.4)') j,v,b(j)
       RETURN
       END SUBROUTINE mtx_set_source
       
@@ -227,11 +229,20 @@
          END IF
       END DO
 
+!      DO i=1,imax
+!         write(16,'(I5,5(I5,1PE12.4))') &
+!              i,NL(i),D(i),(LL(i,j),AL(i,j),j=1,NL(i))
+!      END DO
+!      DO i=1,imax
+!         write(17,'(I5,1P2E12.4)') i,b(i),x(i)
+!      END DO
+
       CALL PCGPME(AL,NLMAX,imax,LL,D,imax,64,b,xin,tolerance,itrin, &
                   x,EPSOUT,its,IER)
       IF(IER /= 0) &
            WRITE(6,'(A,I5)') 'XX pcgpme: IER =',IER
-      write(6,'(A,I5,A,1PE12.4)') &
+      IF(idebug_save.GE.1) &
+           write(6,'(A,I5,A,1PE12.4)') &
            '-- pcgpme: iteration =',its,'  convergence =',EPSOUT
       
       DEALLOCATE(AL,LL,D,NL,xin)
