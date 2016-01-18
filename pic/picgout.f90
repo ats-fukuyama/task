@@ -3,7 +3,7 @@
 Module picgout
   PRIVATE
   PUBLIC pic_gout
- 
+
 CONTAINS
 
   SUBROUTINE pic_gout
@@ -172,24 +172,24 @@ CONTAINS
        CALL PAGEE
     CASE('E6')
        CALL PAGES
-       CALL GRD1D( 5,x,ex,nxmax1,nxmax1,nymax1,'@Ex(x)@', &
+       !CALL GRD1D( 5,x,ex,nxmax1,nxmax1,nymax1,'@Ex(x)@', &
+        !             XMIN=0.D0,XMAX=DBLE(nxmax))
+       !CALL GRD1D( 6,x,ey,nxmax1,nxmax1,nymax1,'@Ey(x)@', &
+        !             XMIN=0.D0,XMAX=DBLE(nxmax))
+       CALL GRD1D( 0,x,ez,nxmax1,nxmax1,nymax1,'@Ez(x)@', &
                     XMIN=0.D0,XMAX=DBLE(nxmax))
-       CALL GRD1D( 6,x,ey,nxmax1,nxmax1,nymax1,'@Ey(x)@', &
-                    XMIN=0.D0,XMAX=DBLE(nxmax))
-       CALL GRD1D( 7,x,ez,nxmax1,nxmax1,nymax1,'@Ez(x)@', &
-                    XMIN=0.D0,XMAX=DBLE(nxmax))
-       CALL GRD1D( 8,x,esx,nxmax1,nxmax1,nymax1,'@ESx(x)@', &
-                    XMIN=0.D0,XMAX=DBLE(nxmax))
-       CALL GRD1D( 9,x,esy,nxmax1,nxmax1,nymax1,'@ESy(x)@', &
-                    XMIN=0.D0,XMAX=DBLE(nxmax))
-       CALL GRD1D(10,x,esz,nxmax1,nxmax1,nymax1,'@ESz(x)@', &
-                    XMIN=0.D0,XMAX=DBLE(nxmax))
-       CALL GRD1D(11,x,emx,nxmax1,nxmax1,nymax1,'@EMx(x)@', &
-                    XMIN=0.D0,XMAX=DBLE(nxmax))
-       CALL GRD1D(12,x,emy,nxmax1,nxmax1,nymax1,'@EMy(x)@', &
-                    XMIN=0.D0,XMAX=DBLE(nxmax))
-       CALL GRD1D(13,x,emz,nxmax1,nxmax1,nymax1,'@EMz(x)@', &
-                    XMIN=0.D0,XMAX=DBLE(nxmax))
+       !CALL GRD1D( 8,x,esx,nxmax1,nxmax1,nymax1,'@ESx(x)@', &
+        !             XMIN=0.D0,XMAX=DBLE(nxmax))
+       !CALL GRD1D( 9,x,esy,nxmax1,nxmax1,nymax1,'@ESy(x)@', &
+        !            XMIN=0.D0,XMAX=DBLE(nxmax))
+       !CALL GRD1D(10,x,esz,nxmax1,nxmax1,nymax1,'@ESz(x)@', &
+        !            XMIN=0.D0,XMAX=DBLE(nxmax))
+       !CALL GRD1D(11,x,emx,nxmax1,nxmax1,nymax1,'@EMx(x)@', &
+        !            XMIN=0.D0,XMAX=DBLE(nxmax))
+       !CALL GRD1D(12,x,emy,nxmax1,nxmax1,nymax1,'@EMy(x)@', &
+        !            XMIN=0.D0,XMAX=DBLE(nxmax))
+       !CALL GRD1D(13,x,emz,nxmax1,nxmax1,nymax1,'@EMz(x)@', &
+        !            XMIN=0.D0,XMAX=DBLE(nxmax))
        CALL PAGEE
     CASE('E7')
        CALL PAGES
@@ -459,7 +459,7 @@ CONTAINS
                        XMIN=0.D0,XMAX=DBLE(nxmax), &
                        YMIN=0.D0,YMAX=DBLE(nymax))
        CALL PAGEE
-    CASE('X') 
+    CASE('X')
        GO TO 9000
     END SELECT
     GO TO 1
@@ -469,7 +469,7 @@ CONTAINS
     RETURN
   END SUBROUTINE pic_gout
 
-!----- 
+!-----
 
   SUBROUTINE sum_over_y(nxmax,nymax,ntpmax,fxy,fx)
 

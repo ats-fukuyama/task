@@ -3,7 +3,7 @@
 Module picprep
   PRIVATE
   PUBLIC pic_prep
- 
+
 CONTAINS
 
   SUBROUTINE pic_prep(iout)
@@ -41,11 +41,11 @@ CONTAINS
       alx = dble(nxmax)
       aly = dble(nymax)
       alz = dble(nzmax)
-      x1  = eps 
+      x1  = eps
       x2  = alx - eps
-      y1  = eps 
+      y1  = eps
       y2  = aly - eps
-      z1  = eps 
+      z1  = eps
       z2  = alz - eps
       alx = alx - 2.d0 * eps
       aly = aly - 2.d0 * eps
@@ -53,11 +53,11 @@ CONTAINS
 
       CALL pic_allocate
 
-      !..... set initial positions and velocities of electrons 
+      !..... set initial positions and velocities of electrons
       call iniset(npmax,npxmax,npymax,nxmax,nymax,densx, &
                   xe,ye,ze,xeb,yeb,zeb,vxe,vye,vze,vte,dt,iran)
 
-      !..... set initial positions and velocities of ions 
+      !..... set initial positions and velocities of ions
       call iniset(npmax,npxmax,npymax,nxmax,nymax,densx, &
                   xi,yi,zi,xib,yib,zib,vxi,vyi,vzi,vti,dt,iran)
 
@@ -153,7 +153,7 @@ CONTAINS
          y(np) = (dble(npy) - 0.5d0 ) * facty
 
          call gauss(rvx,rvy,rvz,iran)
-         vx(np) = rvx * vt 
+         vx(np) = rvx * vt
          vy(np) = rvy * vt
          vz(np) = rvz * vt
 
@@ -164,17 +164,18 @@ CONTAINS
       end do
       end do
    else
-      inter = dble(nxmax) / dble(npxmax+1) / (1.0d0 - 0.5d0 * densx)
+      inter = dble(nxmax) / dble(npxmax+1) / (1.0d0 - 0.5d0 * (1.0d0 - densx))
       do npy = 1, npymax
          all = 0
       do npx = 1, npxmax
          np = np + 1
          all = all + npx - 1
-         x(np) = dble(npx) * inter - inter * dble(all) * densx / dble(npxmax)
+         x(np) = dble(npx) * inter &
+               - inter * dble(all) * (1.0d0- densx) / dble(npxmax)
          y(np) = (dble(npy) - 0.5d0 ) * facty
 
          call gauss(rvx,rvy,rvz,iran)
-         vx(np) = rvx * vt 
+         vx(np) = rvx * vt
          vy(np) = rvy * vt
          vz(np) = rvz * vt
 
@@ -234,5 +235,5 @@ CONTAINS
       rvz = rv * cos( twopi * r3 )
 
     end subroutine gauss
-    
+
 END Module picprep
