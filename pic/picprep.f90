@@ -139,13 +139,13 @@ CONTAINS
       implicit none
       real(8), dimension(npmax) :: x, y, z, xb, yb, zb, vx, vy, vz
       integer :: npmax, npxmax, npymax, nxmax, nymax, iran
-      real(8) :: vt, dt, factx, facty, rvx, rvy, rvz, densx, inter
-      integer :: npx, npy, np, all
+      real(8) :: vt, dt, factx, facty, rvx, rvy, rvz, densx, inter, position
+      integer :: npx, npy, np
 
       factx = dble(nxmax) / dble(npxmax)
       facty = dble(nymax) / dble(npymax)
       np = 0
-      if(densx .lt. 0.d0) then
+      if(densx .lt. 0.d0) then ! subroutine for uniform density
       do npy = 1, npymax
       do npx = 1, npxmax
          np = np + 1
@@ -163,15 +163,16 @@ CONTAINS
 
       end do
       end do
-   else
-      inter = dble(nxmax) / dble(npxmax+1) / (1.0d0 - 0.5d0 * (1.0d0 - densx))
+   else ! subroutine for density gradient
+      inter = dble(nxmax) / (dble(npxmax) + 1.0d0 &
+                          - densx * (dble(npxmax)+1.0d0)/2.0d0)
       do npy = 1, npymax
-         all = 0
+        position = 0.d0
       do npx = 1, npxmax
          np = np + 1
-         all = all + npx - 1
-         x(np) = dble(npx) * inter &
-               - inter * dble(all) * (1.0d0- densx) / dble(npxmax)
+         position = position &
+                  + inter * (1.0d0 - densx * (dble(npx) - 1.0d0)/dble(npxmax))
+         x(np) = position
          y(np) = (dble(npy) - 0.5d0 ) * facty
 
          call gauss(rvx,rvy,rvz,iran)
@@ -186,7 +187,7 @@ CONTAINS
       end do
       end do
       end if
-    end subroutine iniset
+      end subroutine iniset
 
 !***********************************************************************
       subroutine gauss(rvx,rvy,rvz,iran)

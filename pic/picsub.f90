@@ -3,7 +3,7 @@
 MODULE picsub
   PRIVATE
   PUBLIC poisson_f,poisson_m,efield,bfield,kine,pote
- 
+
 CONTAINS
 
 !***********************************************************************
@@ -51,11 +51,11 @@ CONTAINS
       real(8) :: alxi, alyi, pi, twopi, am, an, amn2, afsp, afsp2
 
          afsp  = 1.5 !+++ size of finite-size-particle
-         afsp2 = afsp * afsp 
+         afsp2 = afsp * afsp
 
       if( ipssn .eq. 0 ) then
          pi    = 3.14159265358979d0
-         twopi = 2.d0 * pi 
+         twopi = 2.d0 * pi
          alxi   = 1.d0 / dble(nxmax)
          alyi   = 1.d0 / dble(nymax)
          nymaxh    = nymax / 2
@@ -65,11 +65,11 @@ CONTAINS
             am = twopi * dble(nx-1) * alxi
             an = twopi * dble(ny-1) * alyi
             amn2 = am*am + an*an
-           
+
             if( nx .eq. 1 .and. ny .eq. 1 ) then
                cform(nx,ny) = 0.0
-            else 
-               cform(nx,ny) = 1.d0 / amn2 * exp( - amn2 * afsp2 ) 
+            else
+               cform(nx,ny) = 1.d0 / amn2 * exp( - amn2 * afsp2 )
             endif
 
             if( ny .ge. 2 .and. ny .le. nymaxh ) then
@@ -85,10 +85,10 @@ CONTAINS
          do nx = 1, nxmaxh1
             phif(nx,ny) = cform(nx,ny) * rhof(nx,ny)
          end do
-         end do 
+         end do
 
       endif
-      
+
     end subroutine poisson_sub
 
 !***********************************************************************
@@ -98,7 +98,7 @@ CONTAINS
       include 'fftw3.f'
       real(8), dimension(nxmax1,nymax1) :: a
       real(8), dimension(nxmax,nymax) :: awk
-      real(8) :: alx, aly 
+      real(8) :: alx, aly
       complex(8), dimension(nxmaxh1,nymax) :: af, afwk
       integer(4) :: nxmax, nymax, nxmaxh1, nxmax1, nymax1
       integer(4) :: ifset, nx, ny
@@ -286,7 +286,7 @@ CONTAINS
             nym = ny - 1
             nyp = ny + 1
 
-            if( nx .eq. 0  )    nxm = 0 
+            if( nx .eq. 0  )    nxm = 0
             if( nx .eq. nxmax ) nxp = nxmax
             if( ny .eq. 0  )    nym = 0
             if( ny .eq. nymax ) nyp = nymax
@@ -296,7 +296,7 @@ CONTAINS
             else
                esx(nx,ny) = 0.5d0 * ( phi(nxm,ny) - phi(nxp,ny))
             endif
-            
+
             if(ny .eq. 0 .or. ny .eq. nymax) then
                esy(nx,ny) = phi(nx,nym) - phi(nx,nyp)
             else
@@ -360,7 +360,7 @@ CONTAINS
             if( nx .eq. nxmax ) nxp = 1
             if( ny .eq. 0  )    nym = nymax - 1
             if( ny .eq. nymax ) nyp = 1
-         
+
             bx(nx,ny) = 0.25d0 * (Az(nx,nyp) + Azb(nx,nyp) &
                       - Az(nx,nym) - Azb(nx,nym))
             by(nx,ny) = - 0.25d0 * (Az(nxp,ny) + Azb(nxp,ny) &
@@ -396,7 +396,7 @@ CONTAINS
                                     -(Ax(nx,nyp) + Axb(nx,nyp) &
                                     - Ax(nx,nym) - Axb(nx,nym)))
             else
-            
+
                bx(nx,ny) =   0.25d0 * (Az(nx,nyp) + Azb(nx,nyp) &
                                      - Az(nx,nym) - Azb(nx,nym))
                by(nx,ny) = - 0.25d0 * (Az(nxp,ny) + Azb(nxp,ny) &
@@ -408,7 +408,7 @@ CONTAINS
             end if
         end do
         end do
-     endif 
+     endif
 
      IF(MOD(model_push/8,2).EQ.0) THEN
        IF(MOD(model_push/4,2).EQ.0) THEN

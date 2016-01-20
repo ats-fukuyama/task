@@ -78,7 +78,6 @@ CONTAINS
        jy(:,:)=0.d0
        jz(:,:)=0.d0
 
-
        call current(npmax,nxmax,nymax,xe,ye,vxe,vye,vze,chrge,jx,jy,jz, &
                     model_boundary)
        call current(npmax,nxmax,nymax,xi,yi,vxi,vyi,vzi,chrgi,jx,jy,jz, &
@@ -668,7 +667,6 @@ CONTAINS
              x(np) = alx - (x(np) - alx)
              vx(np) = -vx(np)
          endif
-
          if( y(np) .lt. y1 ) then
              y(np) = -y(np)
              vy(np) = -vy(np)
@@ -822,12 +820,12 @@ CONTAINS
          end do
       ELSE                         ! reflecting
          do ny = 1, nymax-1
-            rho(0,ny)     = 2.D0 * rho(0,ny)
-            rho(nxmax,ny) = 2.D0 * rho(nxmax,ny)
+             rho(0,ny)     = 2.D0 * rho(0,ny)
+             rho(nxmax,ny) = 2.D0 * rho(nxmax,ny)
          end do
          do nx = 1, nxmax-1
-            rho(nx,0)     = 2.D0 * rho(nx,0)
-            rho(nx,nymax) = 2.D0 * rho(nx,nymax)
+             rho(nx,0)     = 2.D0 * rho(nx,0)
+             rho(nx,nymax) = 2.D0 * rho(nx,nymax)
          end do
          rho(0,0)         = 4.D0 * rho(0,0)
          rho(0,nymax)     = 4.D0 * rho(0,nymax)
@@ -1054,7 +1052,7 @@ CONTAINS
             jy(nxmax,ny) = jy(0,ny)
             jz(nxmax,ny) = jz(0,ny)
          end do
-         do nx = 0, nxmax
+       do nx = 0, nxmax
             jx(nx,0) = jx(nx,0) + jx(nx,nymax)
             jy(nx,0) = jy(nx,0) + jy(nx,nymax)
             jz(nx,0) = jz(nx,0) + jz(nx,nymax)
