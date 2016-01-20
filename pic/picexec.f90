@@ -1159,11 +1159,11 @@ CONTAINS
       implicit none
       real(8), dimension(0:nxmax,0:nymax) :: phi,phib,jx,jy,jz,Ax,Ay,Az, &
                                              Axb,Ayb,Azb,Axbb,Aybb,Azbb
-      integer :: nxmax, nymax, nx, ny, nxm, nxp, nyp, nym, nypm
+      integer :: nxmax, nymax, nx, ny, nxm, nxp, nyp, nym
       integer :: model_wg
       real(8) :: xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg,ph_wg,rot_wg,eli_wg
       real(8) :: omega,time,pi
-      real(8) :: vcfact,dt,dph,x,y, yc,ylen,factor
+      real(8) :: vcfact,dt,dph,x,y,yc,ylen,factor
 
  ! Solution of maxwell equation in the A-phi formulation by difference method
  ! vcfact is the ratio of the light speed to lattice parameter times plasma
@@ -1226,9 +1226,9 @@ CONTAINS
             IF(y.GE.ymin_wg.AND.y.LE.ymax_wg) THEN
                factor=exp(-12.D0*(y-yc)**2/(ylen)**2)
                Ay(0,ny)=amp_wg*factor*COS(rot_wg*pi/180.D0) &
-                       *sin(omega*time-2.D0*pi*dph*(y-ymin_wg)/180.d0)
+                       *sin(omega*time-pi*dph*(y-ymin_wg)/180.D0)
                Az(0,ny)=amp_wg*factor*SIN(rot_wg*pi/180.D0) &
-                       *sin(omega*time-2.D0*pi*dph*(y-ymin_wg)/180.d0)
+                       *sin(omega*time-pi*dph*(y-ymin_wg)/180.D0)
             END IF
          END DO
       END SELECT
@@ -1297,7 +1297,7 @@ CONTAINS
       implicit none
       real(8) :: xp, yp, fp(imax)
       real(8), dimension(0:nxmax,0:nymax,imax) :: fxy
-      real(8) :: dx, dy, dz, sx2, sy2, sx2p, sy2p, sx2m, sy2m, dx1,dy1
+      real(8) :: dx, dy, dz, sx2, sy2, sx2p, sy2p, sx2m, sy2m, dx1, dy1
       integer :: nxmax, nymax, imax, model_boundary
       integer :: nx, ny, nxp, nyp, nxpp, nxpm, nypp, nypm, nxppp, nyppp, i
 
