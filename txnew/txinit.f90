@@ -622,19 +622,38 @@ SUBROUTINE TXINIT
   !   1    : more    ; LQb1, LQb2, LQb3, LQb4, LQb7
   MDBEAM = 1
 
-  !   Mode of orbit squeezing effect in NCLASS
+  !   Mode of orbit squeezing effect
   !   0    : No orbit squeezing effect
   !   1    : Orbit squeezing effect
   !   2    : Orbit squeezing effect, fixed during iteration
   !   +10  : Smoothing d/dpsi(dPhi/dpsi) profile using moving_average
   MDOSQZ = 11
 
-  !   Mode of neoclassical resistivity model
-  !   0    : original
-  !   1    : NCLASS
-  !   2    : Sauter
+  !   Model of neoclassical resistivity model (mainly for graphics)
+  !   1    : depending upon MDLNEO
+  !   2    : Sauter model
   !   3    : Hirshman, Hawryluk and Birge
-  MDLETA = 0
+  MDLETA = 1
+
+  !   Model of neoclassical transport model, espcially for calculating
+  !     friction coefficients and viscosities
+  !   1    : Matrix Inversion
+  !   2    : NCLASS
+  !   +10  : Both (Users cannot specify)
+  MDLNEO  = 1
+
+  !   Choice of taking whether the bootstrap (BS) current or the resistivity
+  !     from the neoclassical transport solver determined by MDLNEO
+  !   This parameter is used for estimating the fraction of the BS current
+  !     and the ohmic current, because TASK/TX cannot decompose the components
+  !     of the current.
+  !   0    : BS current is calculated by the external module.
+  !          Ohmic current is subserviently determined. (strongly recommended)
+  !   else : Ohmic current is calculated using the resistivity calculated by
+  !          the external module. BS current is subserviently determined.
+  !          NOTE: This option may cause the estimate of the negative BS current
+  !                when NBs are injected.
+  MDBSETA  = 0
 
   !   Mode of initial density profiles
   !   -2   : read from file and smooth
@@ -744,7 +763,6 @@ SUBROUTINE TXINIT
 !  gDIV(187) = 1.E-9
   gDIV(188) = 1.E-6
   gDIV(196:197) = 1.E3
-  gDIV(200) = 1.E20
 
   !   *** Density perturbation technique ***
 
@@ -759,10 +777,6 @@ SUBROUTINE TXINIT
   !   Index for graphic save interval (module tx_graphic)
 
   NGR=-1
-
-  !   Save numerical cost
-
-  pisq = pi * pi
 
   RETURN
 END SUBROUTINE TXINIT
@@ -782,10 +796,6 @@ SUBROUTINE TXCALM
   INTEGER(4) :: NR, NRL, nr_rhoc_near
   real(8)    :: MAXAMP, C1L, C2L, W1L, W2L, CLNEW
   real(8)    :: rhoc, rhol, rhocl
-
-  !   Square root permittivity for LQm1
-  !     for the sake of acceleration of convergence
-  sqeps0 = sqrt(EPS0)
 
   !  Mesh
 
@@ -926,6 +936,7 @@ SUBROUTINE TXPROF
        &                   inexpolate
   use sauter_mod
   use tx_ntv, only : perturb_mag, Wnm_spline
+  use lapack95, only : GESV ! for intel mkl LAPACK95, Note: This module file includes "ptsv" subroutine, whose name conflicts with PTsV defined in TASK/TX.  
 
   implicit none
   INTEGER(4) :: NR, IER, ifile, NHFM, NR_smt, NR_smt_start = 10
@@ -1283,7 +1294,6 @@ SUBROUTINE TXPROF
         CMTX(NR,NR+1) = - DR1**2 / (DR1 * DR2 * (DR2 - DR1))
      END IF
   END DO
-  CALL INVMRD(CMTX,NRMAX,NRMAX,IER)
 
   ! Numerical solution for LQm1: integrate Phi' = - p_i'/(Z_i e n_i) over V
 
@@ -1295,11 +1305,17 @@ SUBROUTINE TXPROF
   end if
 
   RHSV(1:NRMAX) = - tmpa(0:NRMAX-1) / (X(0:NRMAX-1,LQi1) * achg(2))
-  tmpa(0) = 0.d0
-  tmpa(1:NRMAX) = matmul(CMTX,RHSV)
-  do NR = 0, NRMAX-1
-     X(NR,LQm1) = tmpa(NR) - tmpa(NRMAX)
+  if( MDLPCK /= 0 ) then
+     call gesv(CMTX,RHSV)
+  else
+     CALL INVMRD(CMTX,NRMAX,NRMAX,IER)
+     RHSV(1:NRMAX) = matmul(CMTX,RHSV)
+  end if
+
+  do NR = NRMAX, 1, -1
+     X(NR,LQm1) = RHSV(NR) - RHSV(NRMAX)
   end do
+  X(0,LQm1) = - RHSV(NRMAX)
   deallocate(tmpa,CMTX,RHSV)
 
   sum_int = 0.d0
@@ -1433,7 +1449,7 @@ module tx_parameter_control
        & rG1,FSHL,Q0,QA, &
        & rIPs,rIPe, &
        & MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,iSUPG2,iSUPG3,iSUPG6,SUPGstab, &
-       & MDFIXT,MDBEAM,MDOSQZ,MDLETA,MDITSN,MDITST,MDINTN,MDINTT,MDINTC,MDLETB, &
+       & MDFIXT,MDBEAM,MDOSQZ,MDLETA,MDLNEO,MDBSETA,MDITSN,MDITST,MDINTN,MDINTT,MDINTC,MDLETB, &
        & IDIAG,IGBDF,ISMTHD,MDLNBD, & ! 09/06/17~ miki_m
        & EpsHM, HPN  ! 10/08/06 miki_m
   private :: TXPLST
@@ -1598,7 +1614,8 @@ contains
        IF(oldmix < 0.D0 .OR. oldmix > 1.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(CMESH0 < 0.D0 .OR. CMESH < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(WMESH0 < 0.D0 .OR. WMESH < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
-
+       ! /// idx = 51 - 51 ///
+       IF(MDLNEO /= 1 .AND. MDLNEO /= 2) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        RETURN
     END DO
 
@@ -1635,7 +1652,7 @@ contains
          &       ' ',8X,'rG1,FSHL,Q0,QA,'/ &
          &       ' ',8X,'rIPs,rIPe,'/ &
          &       ' ',8X,'MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,iSUPG2,iSUPG3,iSUPG6,SUPGstab,'/ &
-         &       ' ',8X,'MDFIXT,MDBEAM,MDOSQZ,MDLETA,MDITSN,MDITST,MDINTN,MDINTT,MDLETB,' / & 
+         &       ' ',8X,'MDFIXT,MDBEAM,MDOSQZ,MDLETA,MDLNEO,MDBSETA,MDITSN,MDITST,MDINTN,MDINTT,MDLETB,' / & 
          &       ' ',8X,'IDIAG,IGBDF,ISMTHD,MDLNBD')
   END SUBROUTINE TXPLST
 
@@ -1742,7 +1759,8 @@ contains
          &   'iSUPG2 ', iSUPG2,  'iSUPG3 ', iSUPG3,  &
          &   'iSUPG6 ', iSUPG6,  'MDFIXT ', MDFIXT,  &
          &   'MDBEAM ', MDBEAM,  'MDOSQZ ', MDOSQZ,  &
-         &   'MDLETA ', MDLETA,  'MDANOM ', MDANOM,  &
+         &   'MDLETA ', MDLETA,  'MDLNEO ', MDLNEO,  &
+         &   'MDBSETA', MDBSETA, 'MDANOM ', MDANOM,  &
          &   'MDITSN ', MDITSN,  'MDITST ', MDITST,  &
          &   'MDINTN ', MDINTN,  'MDINTT ', MDINTT,  &
          &   'MDINTC ', MDINTC,  &

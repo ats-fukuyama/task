@@ -1178,11 +1178,7 @@ contains
        GYL(NX,NG,197) = real(X(NX,LQb7))
        GYL(NX,NG,198) = real(X(NX,LQb2))
        GYL(NX,NG,199) = real(aee*(sum(achg(:)*Var(NX,:)%n*Var(NX,:)%UrV)+achgb*PNbV(NX)*UbrVV(NX))*1.d20) ! e_s<Gamma_s.grad V>
-       if(NX == 0) then
-          GYL(NX,NG,200) = 0.0
-       else
-          GYL(NX,NG,200) = real(PNbV(NX)*UbrVV(NX)/vro(NX))*1.e20
-       end if
+       GYL(NX,NG,200) = real(aee*achgb*PNbV(NX)*UbrVV(NX)*1.d20) ! e_b<Gamma_b.grad V>
 
     end do
 
@@ -1945,17 +1941,16 @@ contains
 
     CASE(21)
        STR = '@$#S$#e$-s$=$#G$#$-s$=.grad V@'
-       CALL TXGRFRX(0,GX,GY(0,0,160),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRX(0, GX, GY(0,0,160), NRMAX, NGR, STR, MODE, IND)
 
        STR = '@Additional Torque@'
-       CALL TXGRFRX(1,GX,GY(0,0,131),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRX(1, GX, GY(0,0,131), NRMAX, NGR, STR, MODE, IND)
 
        STR = '@$#S$#e$-s$=$#G$#$-s$=.grad V w/ beam@'
-       CALL TXGRFRX(2,GX,GY(0,0,199),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRX(2, GX, GY(0,0,199), NRMAX, NGR, STR, MODE, IND)
 
-       STR = '@$#G$#$-b$=.grad $#r$#@'
-       CALL APPROPGY(MODEG, GY(0,0,200), GYL, STR, NRMAX, NGR, gDIV(200))
-       CALL TXGRFRX(3,GX,GYL,NRMAX,NGR,STR,MODE,IND)
+       STR = '@e$-b$=$#G$#$-b$=.grad V@'
+       CALL TXGRFRX(3, GX, GY(0,0,200), NRMAX, NGR, STR, MODE, IND)
 
 !       STR = '@F$-CDIM$=@'
 !       CALL TXGRFRX(3,GX,GY(0,0,140),NRMAX,NGR,STR,MODE,IND)
@@ -3372,10 +3367,11 @@ contains
 
   SUBROUTINE TXGRCP(MODE)
 
-    use tx_commons, only : NRMAX, DT, NRA, UsthNCL, BJPARA, BEpara, BJBSvar, ETAvar, Var
+    use tx_commons, only : NRMAX, DT, NRA, UsthNCL, BJPARA, BEpara, BJBSvar, ETAvar, Var, MDLNEO
+    use tx_variables, only : TXCALC
     integer(4), intent(in) :: MODE
     character(len=50) :: STR
-    integer(4) :: IND, IFNT, NR, inum, ipage
+    integer(4) :: IND, IFNT, NR, inum, ipage, MDLNEOstore
     real(4), dimension(:,:), allocatable :: GYL, GYL2
 
     IF (NGR <= -1) THEN
@@ -3416,29 +3412,33 @@ contains
 !    call gtextx(5.5,9.4,'@Please compare ETA and BJBS in the limit of Zeff = 1.@',0)
 !!    CALL SETFNT(-1)
 
+    MDLNEOstore = MDLNEO
+    MDLNEO = 10 + MDLNEO
+    call TXCALC(1)
+    MDLNEO = MDLNEOstore
+
     ! Resistivity
 
     inum = 4
     DO NR = 0, NRMAX
-       GYL(NR,1) = GLOG(ETAvar(NR,2),1.D-10,1.D0) ! NCLASS
-       GYL(NR,2) = GLOG(ETAvar(NR,3),1.D-10,1.D0) ! Sauter
-       GYL(NR,3) = GLOG(ETAvar(NR,5),1.D-10,1.D0) ! MI
-       GYL(NR,4) = GLOG(ETAvar(NR,1),1.D-10,1.D0) ! TX, tentative
+       GYL(NR,1) = GLOG(ETAvar(NR,1),1.D-10,1.D0) ! MI
+       GYL(NR,2) = GLOG(ETAvar(NR,2),1.D-10,1.D0) ! NCLASS
+       GYL(NR,3) = GLOG(ETAvar(NR,3),1.D-10,1.D0) ! Sauter
+       GYL(NR,4) = GLOG(ETAvar(NR,0),1.D-10,1.D0) ! TX
 !       GYL(NR,3) = GLOG(ETAS(NR),1.D-10,1.D0)
     END DO
 
-    STR = '@LOG: ETA NCLASS, SAUTER, MI, TX@'
+    STR = '@LOG: ETA MI, NCLASS, SAUTER, TX@'
     CALL TXGRFRS(0, GX(1:NRA), GYL(1:NRA,:), NRA-1, inum, STR, MODE, IND, 1, 0, 'STATIC')
 
     ! Bootstrap current
 
     inum = 3
-    GYL(0:NRMAX,1) = REAL(BJBSvar(0:NRMAX,2)) ! NCLASS
-    GYL(0,1) = 0.0
-    GYL(0:NRMAX,2) = REAL(BJBSvar(0:NRMAX,3)) ! Sauter
-    GYL(0:NRMAX,3) = REAL(BJBSvar(0:NRMAX,5)) ! MI
+    GYL(0:NRMAX,1) = REAL(BJBSvar(0:NRMAX,1)) ! MI
+    GYL(0:NRMAX,2) = REAL(BJBSvar(0:NRMAX,2)) ! NCLASS
+    GYL(0:NRMAX,3) = REAL(BJBSvar(0:NRMAX,3)) ! Sauter
 
-    STR = '@BJ$-BS$= NCLASS, SAUTER, MI@'
+    STR = '@BJ$-BS$= MI, NCLASS, SAUTER@'
     CALL APPROPGY(MODEG, GYL, GYL2, STR, NRMAX, inum-1, gDIV(22))
     CALL TXGRFRS(1, GX(1:NRA), GYL2(1:NRA,:), NRA-1, inum, STR, MODE, IND, 0, 0, 'STATIC')
 
@@ -3488,12 +3488,12 @@ contains
     ! Total current
 
     inum = 4
-    GYL(0:NRMAX,1) = real(BJPARA(0:NRMAX))                              ! TX
-    GYL(0:NRMAX,2) = real(BEpara(0:NRMAX)/ETAvar(0:NRMAX,2)+BJBSvar(0:NRMAX,2)) ! NCLASS
-    GYL(0:NRMAX,3) = real(BEpara(0:NRMAX)/ETAvar(0:NRMAX,3)+BJBSvar(0:NRMAX,3)) ! Sauter
-    GYL(0:NRMAX,4) = real(BEpara(0:NRMAX)/ETAvar(0:NRMAX,5)+BJBSvar(0:NRMAX,5)) ! MI
+    GYL(0:NRMAX,1) = real(BJPARA(0:NRMAX))                                      ! TX
+    GYL(0:NRMAX,2) = real(BEpara(0:NRMAX)/ETAvar(0:NRMAX,1)+BJBSvar(0:NRMAX,1)) ! MI
+    GYL(0:NRMAX,3) = real(BEpara(0:NRMAX)/ETAvar(0:NRMAX,2)+BJBSvar(0:NRMAX,2)) ! NCLASS
+    GYL(0:NRMAX,4) = real(BEpara(0:NRMAX)/ETAvar(0:NRMAX,3)+BJBSvar(0:NRMAX,3)) ! Sauter
 
-    STR = '@BJ// TX, NCLASS, SAUTER, MI@'
+    STR = '@BJ// TX, MI, NCLASS, SAUTER@'
     CALL APPROPGY(MODEG, GYL, GYL2, STR, NRMAX, inum-1, gDIV(22))
     CALL TXGRFRS(0, GX, GYL2, NRMAX, inum, STR, MODE, IND, 0, 0, 'STATIC')
 

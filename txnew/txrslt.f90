@@ -13,12 +13,11 @@ SUBROUTINE TXGLOB
 
   INTEGER(4) :: I, NR!, NS, NF
   real(8), parameter :: toMega = 1.d-6
-  REAL(8) :: RKAP, FKAP, RNINT, RPINT, RPEINT, RPIINT, ANFINT, RWINT, &
-       &     PAI, BPave, denomINT, volume
+  REAL(8) :: RNINT, RPINT, RPEINT, RPIINT, ANFINT, RWINT, &
+       &     PAI, BPave, denomINT, volume!, FKAP = 1.d0
   REAL(8) :: SUMdenom, SUMPNiV!, SUMM, SUMP
-  REAL(8) :: EpsL, FTL, DDX, RL31, RL32, DDD, dPTeV, dPTiV, dPPe, dPPi
   REAL(8), DIMENSION(1:NRMAX) :: BETA, BETAP, BETAL, BETAPL, BETAQ
-  real(8), dimension(0:NRMAX) :: PP, BthV2, PNdiff, AJBSL
+  real(8), dimension(0:NRMAX) :: BthV2, PNdiff
   real(8), dimension(:), allocatable :: denom, dPNV, RSmb
   real(8) :: suml, sum1, sum2
   real(8) :: DERIV4, FCTR
@@ -26,9 +25,6 @@ SUBROUTINE TXGLOB
   !     Volume-Averaged Density and Temperature
   !     Core Density and Temperature
   !     Electoron and ion Work Quantities
-
-  RKAP = 1.D0
-  FKAP = 1.D0
 
   !  Plasma volume
   volume = vlt(nrmax)
@@ -67,7 +63,7 @@ SUBROUTINE TXGLOB
   ANFINT = intg_vol(PNbV) + intg_vol(PNbrpV)
   IF(ANFINT > 0.D0) THEN
      RWINT  = intg_vol(SNB/rNuB)
-!     WFT(1) = 0.5D0*AMb*amp*RWINT**2*1.5D0*2.D0*PI*RR*2.D0*PI*RKAP*1.D-6!rKeV*1.D14
+!     WFT(1) = 0.5D0*AMb*amp*RWINT**2*1.5D0*2.D0*PI*RR*2.D0*PI*elip(NRA)*1.D-6!rKeV*1.D14
      WFT(1) = 0.5d0*RWINT*Eb*rKeV*1.d20*toMega ! [MJ]
      ANFAV(1) = ANFINT / volume 
      ANF0(1)  = PNbV(0) + PNbrpV(0)
@@ -112,36 +108,7 @@ SUBROUTINE TXGLOB
   AJT   = intg_area(AJ  )*toMega
   AJOHT = intg_area(AJOH)*toMega
   AJNBT = intg_area(AJNB)*toMega
-!  write(6,*) T_TX,AJOHT,AJT
-
-  !     Bootstrap currents
-
-  PP(0:NRMAX) = Var(0:NRMAX,1)%p + Var(0:NRMAX,2)%p
-  DO NR = 0, NRMAX
-     EpsL  = R(NR) / RR
-     ! +++ Hirshman model +++
-     dPTeV = DERIV4(NR,R,Var(:,1)%T,NRMAX,0) * RA
-     dPTiV = DERIV4(NR,R,Var(:,2)%T,NRMAX,0) * RA
-     dPPe  = DERIV4(NR,R,Var(:,1)%p,NRMAX,0) * RA
-     dPPi  = DERIV4(NR,R,Var(:,2)%p,NRMAX,0) * RA
-     FTL   =(1.46D0 * SQRT(EpsL) + 2.4D0 * EpsL) / (1.D0 - EpsL)**1.5D0
-     DDX   = 1.414D0 * achg(2) + achg(2)**2 + FTL * (0.754D0 + 2.657D0 * achg(2) &
-          &        + 2.D0 * achg(2)**2) + FTL**2 * (0.348D0 + 1.243D0 * achg(2) + achg(2)**2)
-     RL31  = FTL * ( 0.754D0 + 2.21D0 * achg(2) + achg(2)**2 + FTL * (0.348D0 + 1.243D0 &
-          &            * achg(2) + achg(2)**2)) / DDX
-     RL32  =-FTL * (0.884D0 + 2.074D0 * achg(2)) / DDX
-     DDD   =-1.172D0 / (1.D0 + 0.462D0 * FTL)
-     IF(NR == 0) THEN
-        AJBSL(NR) = 0.D0
-     ELSE
-        AJBSL(NR) =- (Var(NR,1)%p * 1.D20 * rKeV) &
-             &    * (RL31 * ((dPPe / Var(NR,1)%p) + (Var(NR,2)%T / (achg(2) * Var(NR,1)%T)) &
-             &    * ((dPPi / Var(NR,2)%p) + DDD * (dPTiV / Var(NR,2)%T))) &
-             &    + RL32 * (dPTeV / Var(NR,1)%T)) / (RA * BthV(NR))
-     END IF
-  END DO
-
-  AJBST = intg_area(AJBSL)*toMega
+  AJBST = intg_area(AJBS)*toMega
 
   !      DRH=0.5D0*DR
   !      DO NS=1,NSM
@@ -263,7 +230,7 @@ SUBROUTINE TXGLOB
      TAUEP=4.8D-2*(rIP**0.85D0) &
           &      *(RR**1.2D0) &
           &      *(RA**0.3D0) &
-          &      *(RKAP**0.5D0) &
+          &      *(elip(NRA)**0.5D0) &
           &      *(ANSAV(1)**0.1D0) &
           &      *(BB**0.2D0) &
           &      *(PAI**0.5D0) &
@@ -275,7 +242,7 @@ SUBROUTINE TXGLOB
           &        *(PAI**0.19D0) &
           &        *(RR**1.97D0) &
           &        *((RA/RR)**0.58D0) &
-          &        *(RKAP**0.78D0)
+          &        *(elip(NRA)**0.78D0)
      QF=5.D0*PNFT/PINT
   END IF
 

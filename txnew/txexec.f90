@@ -86,16 +86,17 @@ contains
          &                 NGR, NGRM, NGRSTP, NGTSTP, NGVSTP, GY, GT
     use tx_ntv, only : Wnm_spline
 !    use f95_lapack ! for self-compiled LAPACK95
-    use lapack95, only : GBSV, GBTRF, GBTRS ! for intel mkl LAPACK95, Note: This module file includes "ptsv" subroutine, whose name conflicts with PTsV defined in TASK/TX.  
+    use lapack95, only : GBSV!, GBTRF, GBTRS ! for intel mkl LAPACK95, Note: This module file includes "ptsv" subroutine, whose name conflicts with PTsV defined in TASK/TX.  
 
     real(8), dimension(:,:), allocatable :: BA, BL
     real(8), dimension(:),   allocatable :: BX
     integer(4) :: NR, NQ, IC = 0, IDIV, NTDO, ICSUM, IDIAGL, istat
     ! *** LAPACK ************************************
-    integer(4) :: m, kl, ierr_la!, n, ku, nrhs, ldBL, ldBX
-    integer(4), dimension(1:NQMAX*(NRMAX+1)) :: ipiv
+    integer(4) :: ierr_la
+!    integer(4) :: m, kl, !, n, ku, nrhs, ldBL, ldBX
+!    integer(4), dimension(1:NQMAX*(NRMAX+1)) :: ipiv
     ! ***********************************************
-    real(8) :: TIME0, DIP, EPSabs!, sinit, dsecnd
+    real(8) :: TIME0, DIP, EPSabs
     real(8), dimension(1:NQMAX) :: tiny_array
     character(len=80) :: MSG_NQ
 
@@ -153,7 +154,7 @@ contains
           CALL TXCALA
           ! Get BA or BL, and BX
           CALL TXCALB(BA,BL,BX)
-          CALL TXGLOB
+!          CALL TXGLOB
 
           IF(MDLPCK == 0) THEN
              CALL BANDRD(BA, BX, NQMAX*(NRMAX+1), 4*NQMAX-1, 4*NQMAX-1, IERR)
@@ -165,24 +166,30 @@ contains
                 GOTO 180
              END IF
           ELSE
-             m    = NQMAX*(NRMAX+1)
-             kl   = 2*NQMAX-1
+             ! +++ NOTE ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+             !  These LAPACK subroutines are threaded via BLAS in Intel MKL.
+             !  However, with regard to the usage of TASK/TX, say, GBTRF internally calls
+             !    the LAPACK routine, DGBTF2, which calls the BLAS routine, DGER, which is
+             !    NOT multi-threaded.
+             !  Thus, these routines are executed as a single threaded regardless of the
+             !    MKL link option.
+             ! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!             m    = NQMAX*(NRMAX+1)
+!             kl   = 2*NQMAX-1
 !!           +++ F77 +++
 !             n    = m
 !             ku   = kl
 !             nrhs = 1
 !             ldBL = 6*NQMAX-2
 !             ldBX = NQMAX*(NRMAX+1)
-!!             CALL LAPACK_DGBSV(n,kl,ku,nrhs,BL,ldBL,ipiv,BX,ldBX,ierr_la) 
+!             CALL LAPACK_DGBSV(n,kl,ku,nrhs,BL,ldBL,ipiv,BX,ldBX,ierr_la) 
 !             CALL DGBTRF(m,n,kl,ku,BL,ldBL,ipiv,ierr_la)
 !             CALL DGBTRS('N',n,kl,ku,nrhs,BL,ldBL,ipiv,BX,ldBX,ierr_la)
-!!           +++ F95 +++
+!           +++ F95 +++
 !             CALL LA_GBSV(BL,BX,INFO=ierr_la) ! for self-compiled LAPACK95
-!             CALL GBSV(BL,BX,INFO=ierr_la) ! for intel mkl LAPACK95
-!             sinit = dsecnd()
-             CALL GBTRF(BL,kl,m,ipiv,ierr_la)      ! threaded
-             CALL GBTRS(BL,BX,ipiv,kl,'N',ierr_la) ! threaded
-!             write(6,*) dsecnd()-sinit
+             CALL GBSV(BL,BX,INFO=ierr_la) ! for intel mkl LAPACK95
+!             CALL GBTRF(BL,kl,m,ipiv,ierr_la)
+!             CALL GBTRS(BL,BX,ipiv,kl,'N',ierr_la)
              IF(ierr_la /= 0) THEN
                 WRITE(6,'(3(A,I6))') '### ERROR(TXLOOP) : GBSV, NT = ',  &
                      &              NT, ' -', IC, ' step. IERR=',ierr_la
@@ -470,8 +477,8 @@ contains
        ! *** Introducing NCHvs makes it possible to eliminate NC branch (NC=0 or else).
        ! *** Introducing NC1Hvs and NC1Hvs2 makes it possible to eliminate IF(NC1 /= 0) statement in do loops
 
-!!!$omp parallel
-!!!$omp do private(NCHvs,NC1,NC1Hvs,NC1Hvs2,IA,IB,IC,J)
+!$omp parallel
+!$omp do private(NC,NCHvs,coef,NC1,NC1Hvs,NC1Hvs2,IA,IB,IC,NR,J)
        DO NQ = 1, NQMAX
           DO NC = 0, NLCMAX(NQ)
              NCHvs = real( NCM - 1 + NC ) / NCM ! NCHvs = 0 when NC = 0 ; otherwise NCHvs = 1
@@ -518,8 +525,8 @@ contains
                 BA(IA,J) = BA(IA,J) + ALC(NR,NC,NQ) * coef * NC1Hvs
           END DO
        END DO
-!!!$omp end do
-!!!$omp end parallel
+!$omp end do
+!$omp end parallel
 
     ! For LAPACK solver
     ELSE
@@ -572,8 +579,8 @@ contains
        ! *** Introducing NCHvs makes it possible to eliminate NC branch (NC=0 or else).
        ! *** Introducing NC1Hvs and NC1Hvs2 makes it possible to eliminate IF(NC1 /= 0) statement in do loops
 
-!!!$omp parallel
-!!!$omp do private(NCHvs,NC1,NC1Hvs,NC1Hvs2,IA,IB,IC,JA,JB,JC,coef)
+!$omp parallel
+!$omp do private(NC,NCHvs,coef,NC1,NC1Hvs,NC1Hvs2,IA,IB,IC,JA,JB,JC,NR)
        DO NQ = 1, NQMAX
           DO NC = 0, NLCMAX(NQ)
              NCHvs = real( NCM - 1 + NC ) / NCM ! NCHvs = 0 when NC = 0 ; otherwise NCHvs = 1
@@ -622,8 +629,8 @@ contains
                 BL(IC,JC) = BL(IC,JC) + CLC(NR,NC,NQ) * coef * NC1Hvs
           END DO
        END DO
-!!!$omp end do
-!!!$omp end parallel
+!$omp end do
+!$omp end parallel
 
 !!$       ! Ratio between stochastic loss and other losses
 !!$       suml1 = 0.d0
@@ -693,9 +700,9 @@ contains
 !!$          END IF
 !!$       END DO
 
-!!!$omp parallel
+!$omp parallel
     NC = 0
-!!!$omp do private(NC1,NC1Hvs,NC2)
+!$omp do private(NC1,NC1Hvs,NC2,NR)
     DO NQ = 1, NQMAX
        ! --- NR = 0
        NC1 = NLCR(NC,NQ,0)
@@ -733,11 +740,11 @@ contains
                &                       - CLC(NR,NC,NQ) * XOLD(NR-1,NC2) * COEF2 &
                &                       - BLC(NR,NC,NQ) * XOLD(NR  ,NC2) * COEF2) * NC1Hvs
     END DO
-!!!$omp end do
+!$omp end do
 
     ! *** In the case of general term effect in any equations, denoted by "c" ***
 
-!!!$omp do
+!$omp do private(NC,NR)
     DO NQ = 1, NQMAX
        DO NC = 1, NLCMAX(NQ)
           DO NR = 0, NRMAX
@@ -745,8 +752,8 @@ contains
           END DO
        END DO
     END DO
-!!!$omp end do
-!!!$omp end parallel
+!$omp end do
+!$omp end parallel
 
     ! *** Only the case of not BDF ***
     !  Because "ADV" has no longer original meaning when BDF is used.
@@ -786,7 +793,7 @@ contains
 !!$          END DO
 !!$    END DO
 
-!!!$omp parallel do private(NC1,NC1Hvs,NC2)
+!$omp parallel do private(NR,NC,NC1,NC1Hvs,NC2)
     DO NQ = 1, NQMAX
        NR = 0
           DO NC = 1, NLCMAX(NQ)
@@ -820,7 +827,7 @@ contains
                   &                + BLC(NR,NC,NQ) * X(NR  ,NC2)) * (1.D0 - ADV) * NC1Hvs
           END DO
     END DO
-!!!$omp end parallel do
+!$omp end parallel do
     END IF
 
     RETURN

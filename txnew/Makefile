@@ -5,8 +5,7 @@ include ../make.header
 FOMP = 
 FFLAGS_MAIN = $(OFLAGS)
 #FFLAGS_MAIN = $(DFLAGS)
-#FFLAGS_LINK = $(FFLAGS_MAIN)
-FFLAGS_LINK = $(FFLAGS_MAIN) $(FOMP)
+FFLAGS_LINK = $(FFLAGS_MAIN)
 FFLAGS = $(FFLAGS_MAIN)
 #FFLAGS = $(FFLAGS_MAIN) $(FOMP) #-fpe0
 FFLAGS_NCLASS = $(OFLAGS)
@@ -44,8 +43,8 @@ MODLIB= -I../lib/mod
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODLA95) $(MODLIB)
 
-all: $(PROG2)
-#all: $(PROG3)
+#all: $(PROG2)
+all: $(PROG3)
 
 tx2lib.a: $(OBJS) $(OBJ2D) $(OBJNC) $(INCNC) $(OBJMM)
 	$(LD) $(LDFLAGS) tx2lib.a $(OBJS) $(OBJ2D) $(OBJNC) $(OBJMM)
@@ -60,16 +59,16 @@ libs:
 	(cd ../lib; make)
 
 $(PROG2): $(LIBS2)
-	$(FCFREE) $(FOMP) $(LIBS2) $(LIBLA) -o $@ $(FFLAGS_LINK) $(FLIBS)
+	$(FCFREE) $(FOMP) $(LIBS2) -o $@ $(FFLAGS_LINK) $(FLIBS)
 
 $(PROG3): $(LIBS3)
-	$(FCFREE) $(FOMP) $(LIBS3) $(LIBLA) -o $@ $(FFLAGS_LINK) $(GLIBS)
+	$(FCFREE) $(FOMP) $(LIBS3) -o $@ $(FFLAGS_LINK) $(GLIBS)
 
 check: $(SRCS) $(SRC2D) $(SRC3D)
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRC2D) $(SRC3D) | $(PAGER)
 
 clean:
-	rm -f *.o ./*~ ./#* nclass/*.o mmm/*.o mi/*.o *.a $(MOD)/*.mod
+	rm -f *.o ./*~ ./#* nclass/*.o mmm/*.o mi/*.o *.a $(MOD)/*.mod *.optrpt
 
 veryclean: clean
 	rm -f $(PROG2) $(PROG3)
@@ -90,12 +89,14 @@ new :
 
 txauxs.o: txauxs.f90 txcomm.f90
 txcala.o: txcala.f90 txcomm.f90
+	$(FCFREE) $(FFLAGS) $(FOMP) -c $< -o $@ $(MODDIR) $(MODLA95) $(MODLIB)
 txcalv.o: txcalv.f90 txcomm.f90
+	$(FCFREE) $(FFLAGS) $(FOMP) -c $< -o $@ $(MODDIR) $(MODLA95) $(MODLIB)
 txequ.o : txequ.f90 txcomm.f90
 txexec.o: txexec.f90 txcomm.f90 txgraf.f90
 	$(FCFREE) $(FFLAGS) $(FOMP) -c $< -o $@ $(MODDIR) $(MODLA95) $(MODLIB)
 txfile.o: txfile.f90 txcomm.f90 txgraf.f90
-txgraf.o: txgraf.f90 txcomm.f90
+txgraf.o: txgraf.f90 txcomm.f90 txcalv.f90
 txinit.o: txinit.f90 txcomm.f90 txgraf.f90
 txintf.o: txintf.f90 spln.f90
 txlib.o : txlib.f90  spln.f90 txcomm.f90

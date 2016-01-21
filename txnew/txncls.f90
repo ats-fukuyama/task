@@ -297,7 +297,7 @@ contains
     REAL(8), INTENT(OUT) :: ETAout, BJBSout
     integer(4) :: i, k_out, k_v, ier_check, j, k, l
     real    :: a0, bt0, e0, p_eps, p_q, q0l, r0, ds
-    REAL(8) :: EpsL, PAL, PZL, RKAP, &
+    REAL(8) :: EpsL, PAL, PZL, &
          &     ChiNCpel, ChiNCtel, ChiNCpil, ChiNCtil
     real(8) :: RAL, sgn_xi_s
     real(8), dimension(NSM) :: PTsVL, PNsVL, PsVL
@@ -305,10 +305,6 @@ contains
 !    real(8) :: PZMAX
     real    :: smallvalue = 1.e-5
     real    :: tau_ss(mx_ms,mx_ms) ! Added argument from NCLASS
-
-    !     *** Ellipticity on axis ***
-
-    RKAP = 1.D0
 
     !     *** Internal minor radius ***
 
@@ -347,7 +343,7 @@ contains
 
     c_den    = 1.E10
     !  *** Potate orbit factors ****************
-    c_potb   = REAL(RKAP*fipol(0)/(2.D0*Q(0)**2*rr))
+    c_potb   = REAL(elip(NRA)*fipol(0)/(2.D0*Q(0)**2*rr))
     c_potl   = REAL(Q(0)*RR)
     !  *****************************************
 
@@ -594,7 +590,7 @@ contains
 !!$    lab(NR,2,1,2,1) = lab(NR,1,2,1,2)*(amas(1)*Var(NR,1)%n)/(amas(2)*Var(NR,2)%n)
 !!$    lab(NR,2,1,2,2) = lab(NR,1,2,2,2)*(amas(1)*Var(NR,1)%n)/(amas(2)*Var(NR,2)%n)
 
-    !   Beam neoclassical viscosity, tentative
+    !   Beam neoclassical viscosity
 
     do j = 1, k_order
        xmuf(NR,j) = FSNCB * 0.d0

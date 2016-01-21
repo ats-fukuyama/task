@@ -1484,7 +1484,7 @@ function dfdx(x,f,nmax,mode,daxs,dbnd)
   integer(4), intent(in) :: nmax, mode
   real(8), dimension(0:nmax), intent(in) :: x, f
   real(8), dimension(0:nmax) :: dfdx
-  real(8), optional :: daxs, dbnd
+  real(8), intent(in), optional :: daxs, dbnd
 
   integer(4) :: n, ierr
   real(8), dimension(0:nmax) :: deriv

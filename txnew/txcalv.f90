@@ -47,6 +47,10 @@ contains
        IF(ID /= 0) return
     END IF
 
+    allocate(dPhidpsiL(0:NRMAX))
+
+!$omp parallel
+!$omp workshare
     PhiV (0:NRMAX) =   XL(0:NRMAX,LQm1)
 
     PsitdotV(0:NRMAX)= XL(0:NRMAX,LQm2)
@@ -57,12 +61,12 @@ contains
     Etor (0:NRMAX) =   PsidotV(0:NRMAX) * d_rrr(0:NRMAX)
 
     PsiV (0:NRMAX) =   XL(0:NRMAX,LQm4) * rMUb2
+!$omp end workshare
     ! sdt: dpsi/dV
     !    sdt(NRMAX) =2.D0*Pi*rMU0*rIp*1.D6/ckt(NRMAX) is a boundary condition.
     sdtvac = 2.d0 * Pi * rMU0 * rIp * 1.D6 / ckt(NRMAX)
     sdt  (0:NRMAX) =   dfdx(vv,PsiV,NRMAX,0,dbnd=sdtvac)
 
-    allocate(dPhidpsiL(0:NRMAX))
     ErV  (0)       =   0.d0
     if(ISMTHD == 0) then
        dPhiV(0:NRMAX) =   dfdx(vv,PhiV,NRMAX,0) ! dPhiV/dV
@@ -80,6 +84,7 @@ contains
             &                 ,vv(1),vv(2),vv(3))
     end if
 
+!$omp workshare
 !    BthV (0:NRMAX) =   fourPisq * rho(0:NRMAX) * rhov(NRMAX) * sdt(0:NRMAX) ! NOT FSA quantity
     BthV (0:NRMAX) =   sqrt(ckt(0:NRMAX)) * sdt(0:NRMAX)
     PsitV(0:NRMAX) =   XL(0:NRMAX,LQm5) * rMU0
@@ -92,6 +97,7 @@ contains
     Var(1:NRMAX,1)%Ur = Var(1:NRMAX,1)%UrV / suft(1:NRMAX) ! <u.nabla V>/<|nabla V|>
 
     Var(0:NRMAX,1)%RUph  = XL(0:NRMAX,LQe4) / Var(0:NRMAX,1)%n
+!$omp end workshare
     IF(MDFIXT == 0) THEN
        Var(0:NRMAX,1)%p = XL(0:NRMAX,LQe5)
        Var(0:NRMAX,1)%T = XL(0:NRMAX,LQe5) / Var(0:NRMAX,1)%n
@@ -99,12 +105,14 @@ contains
        Var(0:NRMAX,1)%p = XL(0:NRMAX,LQe5) * Var(0:NRMAX,1)%n
        Var(0:NRMAX,1)%T = XL(0:NRMAX,LQe5)
     END IF
+!$omp workshare
     Var(0:NRMAX,2)%n = XL(0:NRMAX,LQi1)
     Var(0:NRMAX,2)%UrV = XL(0:NRMAX,LQi2) / Var(0:NRMAX,2)%n
     Var(0,2)%Ur        = 0.D0
     Var(1:NRMAX,2)%Ur  = Var(1:NRMAX,2)%UrV / suft(1:NRMAX) ! <u.nabla V>/<|nabla V|>
 
     Var(0:NRMAX,2)%RUph  = XL(0:NRMAX,LQi4) / Var(0:NRMAX,2)%n
+!$omp end workshare
     IF(MDFIXT == 0) THEN
        Var(0:NRMAX,2)%p = XL(0:NRMAX,LQi5)
        Var(0:NRMAX,2)%T = XL(0:NRMAX,LQi5) / Var(0:NRMAX,2)%n
@@ -112,6 +120,7 @@ contains
        Var(0:NRMAX,2)%p = XL(0:NRMAX,LQi5) * Var(0:NRMAX,2)%n
        Var(0:NRMAX,2)%T = XL(0:NRMAX,LQi5)
     END IF
+!$omp workshare
     ! Parallel flows
     Var(0:NRMAX,1)%BUpar = XL(0:NRMAX,LQe3)
     Var(0:NRMAX,2)%BUpar = XL(0:NRMAX,LQi3)
@@ -126,6 +135,9 @@ contains
     ! Poloidal current function: RB_t
     !    fipol(NRMAX) = rr * bb is a boundary condition.
     dPsitVdVvac = rr * bb / fourPisq * aat(NRMAX)
+!$omp end workshare
+!$omp end parallel
+
     fipol(0:NRMAX) = fourPisq / aat(0:NRMAX) * dfdx(vv,PsitV,NRMAX,0,dbnd=dPsitVdVvac)
     BphV (0:NRMAX) = fipol(0:NRMAX) / rr ! NOT FSA quantity
     ! hdt: dpsit/dV
@@ -289,13 +301,13 @@ contains
     use cdbm_mod
 !    use tx_ntv, only : NTVcalc, rNuNTV, UastNC
 
-    integer(4) :: IC
+    integer(4), intent(in) :: IC
     integer(4), save :: NRB = 1
-    INTEGER(4) :: NR, NR1, IER, i, MDANOMabs, MDOSQZL, model_cdbm, izvpch
+    INTEGER(4) :: NR, NR1, IER, i, MDANOMabs, MDOSQZL, model_cdbm, izvpch, MDLNEOL
     INTEGER(4) :: NHFM ! miki_m 10-08-06
     REAL(8) :: Sigma0, Vte, Vti, Vtb, Wte, Wti, EpsL, &
          &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, PN0tot, &
-         &     PROFML, PROFCL, Dturb, DeL, EPARA, &
+         &     PROFML, PROFCL, Dturb, DeL, &
          &     Cs, RhoIT, ExpArg, AiP, DISTAN, UbparaL, &
          &     SiLCL, SiLCthL, SiLCphL, RL, DBW, PTiVA, &
          &     Chicl, factor_bohm, rNuAsIL, &
@@ -319,6 +331,7 @@ contains
     real(8), dimension(:,:), allocatable :: dTsdV, dPsdV, dNsdrho, dTsdrho
 
     MDANOMabs = abs(MDANOM)
+    MDLNEOL   = mod(MDLNEO,10)
     izvpch = 0
 
     !     *** Constants ***
@@ -493,7 +506,7 @@ contains
              end do
              ddPhidpsi(0:NRMAX) = tmp(0:NRMAX)
           end if
-
+          ! For NCLASS
           gr2phi(0:NRMAX) = sdt(0:NRMAX)**2 * ddPhidpsi(0:NRMAX)
        END IF
     end if
@@ -629,35 +642,27 @@ contains
           rNuAsi(NR) = 1.D0 / rNuAsI_inv
        END IF
 
-       !     *** Neoclassical coefficients by NCLASS ***
-       !     (W. A. Houlberg, et al., Phys. Plasmas 4 (1997) 3230)
+       if( MDLNEO == 2 .or. MDLNEO > 10 ) then
+          !     *** Neoclassical coefficients by NCLASS ***
+          !     (W. A. Houlberg, et al., Phys. Plasmas 4 (1997) 3230)
 
-       CALL TX_NCLASS(NR,ETAvar(NR,2),BJBSvar(NR,2), &
-            &         ChiNCpe(NR),ChiNCte(NR),ChiNCpi(NR),ChiNCti(NR), &
-            &         dTsdV(NR,:),dPsdV(NR,:),gr2phi(NR),IER)
-       IF(IER /= 0) IERR = IER
-!       write(6,*) NR,chincpe(nr),chincte(nr)
-!       write(6,*) NR,chincpi(nr),chincti(nr)
+          CALL TX_NCLASS(NR,ETAvar(NR,2),BJBSvar(NR,2), &
+               &         ChiNCpe(NR),ChiNCte(NR),ChiNCpi(NR),ChiNCti(NR), &
+               &         dTsdV(NR,:),dPsdV(NR,:),gr2phi(NR),IER)
+          IF(IER /= 0) IERR = IER
+!          write(6,*) NR,chincpe(nr),chincte(nr)
+!          write(6,*) NR,chincpi(nr),chincti(nr)
+       end if
+       if( MDLNEO == 1 .or. MDLNEO > 10 ) then
+          !     *** Neoclassical coefficients by Matrix Inversion ***
+          !     (M. Kikuchi and M. Azumi, Plasma Phys. Control. Fusion 37 (1995) 1215)
 
-       !     *** Neoclassical coefficients by Matrix Inversion ***
-       !     (M. Kikuchi and M. Azumi, Plasma Phys. Control. Fusion 37 (1995) 1215)
-
-       call tx_matrix_inversion(NR,ETAvar(NR,5),BJBSvar(NR,5), &
-            &         ChiNCpe(NR),ChiNCte(NR),ChiNCpi(NR),ChiNCti(NR), &
-            &         ddPhidpsi(NR))
-!       write(6,*) NR,chincpe(nr),chincte(nr)
-!       write(6,*) NR,chincpi(nr),chincti(nr)
-
-       !     *** Bootstrap current and resistivity by Sauter model ***
-       !     (O. Sauter, et al.,  Phys. Plasmas 6 (1999) 2834, ibid. 9 (2002) 5140)
-
-       CALL SAUTER(Var(NR,1)%n,Var(NR,1)%T,dTsdV(NR,1),dPsdV(NR,1), &
-            &      Var(NR,2)%n,Var(NR,2)%T,dTsdV(NR,2),dPsdV(NR,2), &
-            &      Q(NR),sdt(NR),fipol(NR),epst(NR),RR,achg(2),Zeff,ft(nr), &
-            &      rlnLei_IN=coulog(1.d0,Var(NR,1)%n,Var(NR,1)%T,Var(NR,2)%T,amas(1),achg(1),amas(2),achg(2)), &
-            &      rlnLii_IN=coulog(1.d0,Var(NR,1)%n,Var(NR,1)%T,Var(NR,2)%T,amas(2),achg(2),amas(2),achg(2)), &
-            &      BJBS=BJBSvar(NR,3),ETA=ETAvar(NR,3))
-       IF(NR == 0) BJBSvar(NR,3) = 0.D0
+          call tx_matrix_inversion(NR,ETAvar(NR,1),BJBSvar(NR,1), &
+               &         ChiNCpe(NR),ChiNCte(NR),ChiNCpi(NR),ChiNCti(NR), &
+               &         ddPhidpsi(NR))
+!          write(6,*) NR,chincpe(nr),chincte(nr)
+!          write(6,*) NR,chincpi(nr),chincti(nr)
+       end if
 
        !     *** Helical neoclassical viscosity ***
 
@@ -1074,25 +1079,16 @@ contains
 
        !     *** Current density profile ***
 
+       ! Parallel beam current density
+       BJNB(NR)  = achgb * aee * PNbV(NR) * BUbparV(NR) * 1.d20
        ! Parallel current density <Bj//>
-       BJPARA(NR)= aee *(sum(achg(:)*Var(NR,:)%n*Var(NR,:)%BUpar) &
-            &              + achgb  *PNbV(NR)  *BUbparV(NR)   ) *1.d20
-       ! Total current density = toroidal current density : j_phi = <j_zeta/R>/<1/R>
-       AJ(NR)    = aee *(sum(achg(:)*Var(NR,:)%n*Var(NR,:)%UphR) &
-            &              + achgb  *PNbV(NR)  *UbphVR(NR)     ) * 1.d20 / d_rrr(NR)
-       ! Beam current density (parallel)
-       AJNB(NR)  = achgb * aee * PNbV(NR) * 1.d20 * BUbparV(NR) / BBL
-
-       ! Rough estimate of the bootstrap current ! tentative
-       !    This way of estimation strongly depends upon how eta is, which means that
-       !    this estimate is no use.
-
-       BJBS(NR) = BJPARA(NR) - BEpara(NR) / ETAvar(NR,3)
-
-       ! Rough estimate of the resistivity ! tentative
-       !    ETA is less sensitive than the bootstrap current.
-
-       ETAvar(NR,1) = BEpara(NR) / (BJPARA(NR) - BJBSvar(NR,2))
+       BJPARA(NR)= aee * sum(achg(:)*Var(NR,:)%n*Var(NR,:)%BUpar) * 1.d20 &
+            &    + BJNB(NR)
+       ! Toroidal beam current density : j_{b,phi} = <j_{b,zeta}/R>/<1/R>
+       AJNB(NR)  = achgb * aee * PNbV(NR) * UbphVR(NR) * 1.d20 / d_rrr(NR)
+       ! Total toroidal current density : j_phi = <j_zeta/R>/<1/R>
+       AJ(NR)    = aee * sum(achg(:)*Var(NR,:)%n*Var(NR,:)%UphR) * 1.d20 / d_rrr(NR) &
+            &    + AJNB(NR)
 
        !     *** Equipartition power for graphics ***
 
@@ -1145,8 +1141,8 @@ contains
 !!$    where(ChiNCte > cap_val) ChiNCte = cap_val
 !!$    where(ChiNCpi > cap_val) ChiNCpi = cap_val
 !!$    where(ChiNCti > cap_val) ChiNCti = cap_val
-    ETAvar(0,2)  = 2.D0 * ETAvar(0,2)  - ETAvar(1,2)
-    BJBSvar(0,2) = 2.D0 * BJBSvar(0,2) - BJBSvar(1,2)
+!    ETAvar(0,2)  = 2.D0 * ETAvar(0,2)  - ETAvar(1,2)
+!    BJBSvar(0,2) = 2.D0 * BJBSvar(0,2) - BJBSvar(1,2)
 !!$    ! For Neumann condition, finite viscosity is required at the magnetic axis.
 !!$    De(0)    = De(1)
 !!$    Di(0)    = Di(1)
@@ -1240,9 +1236,9 @@ contains
        END DO
     END IF
 
-    !     *** Resistivity ***
+    !     *** Resistivity and current density ***
 
-    DO NR = 0, NRMAX
+    do NR = 0, NRMAX
         ! +++ Hirshman, Hawryluk and Birge model +++
        Vte = SQRT(2.D0 * ABS(Var(NR,1)%T) * rKilo / amas(1) * amqp)
        Wte = Vte / (Q(NR) * RR) ! Omega_te; transit frequency for electrons
@@ -1251,32 +1247,79 @@ contains
        CR   = 0.56D0 * (3.D0 - Zeff) / ((3.D0 + Zeff) * Zeff)
        ! Spitzer resistivity for hydrogen plasma (parallel direction)
        ETAS(NR) = CORR(1.D0) * amas(1) * amqp * rNuei(NR) / (Var(NR,1)%n * 1.D20 * AEE)
-       IF(NR == 0) ETAvar(NR,3) = ETAS(NR) * (CORR(Zeff) / CORR(1.D0))
        ETAvar(NR,4) = ETAS(NR) * Zeff * (1.D0 + 0.27D0 * (Zeff - 1.D0)) &
             &   /((1.D0 - EFT) * (1.D0 - CR * EFT) * (1.D0 + 0.47D0 * (Zeff - 1.D0)))
-       IF(FSNC /= 0) THEN
-          select case(MDLETA)
-          case(1)
-             ETA(NR) = ETAvar(NR,2)
-          case(2)
-             ETA(NR) = ETAvar(NR,3)
-          case(3)
-             ETA(NR) = ETAvar(NR,4)
-          case(4)
-             ETA(NR) = ETAvar(NR,5)
-          case default
-             ETA(NR) = ETAvar(NR,2)
-          end select
-       ELSE
-          ! Spitzer resistivity when no neoclassical effects
-          ETA(NR) = ETAS(NR)
-       END IF
+    end do
 
-       ! Ohmic current density (parallel)
-       EPARA = BEpara(NR) / BBL
+    if( MDLNEO > 10 ) then
+       !     *** Bootstrap current and resistivity by Sauter model ***
+       !     (O. Sauter, et al.,  Phys. Plasmas 6 (1999) 2834, ibid. 9 (2002) 5140)
+       NR = 0
+       ETAvar(NR,3) = ETAS(NR) * (CORR(Zeff) / CORR(1.D0))
+       BJBSvar(NR,3) = 0.D0
 
-       AJOH(NR) = EPARA / ETA(NR)! - AJNB(NR) ! ????????????
-    END DO
+       do NR = 1, NRMAX
+          CALL SAUTER(Var(NR,1)%n,Var(NR,1)%T,dTsdV(NR,1),dPsdV(NR,1), &
+               &      Var(NR,2)%n,Var(NR,2)%T,dTsdV(NR,2),dPsdV(NR,2), &
+               &      Q(NR),sdt(NR),fipol(NR),epst(NR),RR,achg(2),Zeff,ft(nr), &
+               &      rlnLei_IN=coulog(1.d0,Var(NR,1)%n,Var(NR,1)%T,Var(NR,2)%T, &
+               &                       amas(1),achg(1),amas(2),achg(2)), &
+               &      rlnLii_IN=coulog(1.d0,Var(NR,1)%n,Var(NR,1)%T,Var(NR,2)%T, &
+               &                       amas(2),achg(2),amas(2),achg(2)), &
+               &      BJBS=BJBSvar(NR,3),ETA=ETAvar(NR,3))
+       end do
+    end if
+
+    IF(FSNC /= 0) THEN
+       select case(MDLETA)
+       case default
+          ETA(0:NRMAX) = ETAvar(0:NRMAX,MDLNEOL) ! depending upon MDLNEO
+       case(2)
+          if(MDLNEO > 10) then
+             ETA(0:NRMAX) = ETAvar(0:NRMAX,3) ! Sauter
+          else
+             ETA(0:NRMAX) = ETAvar(0:NRMAX,MDLNEOL) ! depending upon MDLNEO
+          end if
+       case(3)
+          ETA(0:NRMAX) = ETAvar(0:NRMAX,4) ! HHB
+       end select
+    ELSE
+       ! Spitzer resistivity when no neoclassical effects
+       ETA(0:NRMAX) = ETAS(0:NRMAX)
+    END IF
+
+    if( MDBSETA == 0 ) then
+       do NR = 0, NRMAX
+          ! Bootstrap current density estimated by the neoclassical transport model
+          BJBS(NR) = BJBSvar(NR,MDLNEOL)
+
+          ! Parallel Ohmic current density
+          BJOH(NR) = BJPARA(NR) - BJBS(NR) - BJNB(NR)
+       end do
+    else
+       do NR = 0, NRMAX
+          ! Parallel Ohmic current density using the resistivity estimation 
+          BJOH(NR) = BEpara(NR) / ETA(NR)
+
+          ! Rough estimate of the bootstrap current
+          !    This way of estimation strongly depends upon how ETA(NR) in BJOH(NR) is
+          !    , which means that this estimate may be no use.
+          BJBS(NR) = BJPARA(NR) - BJOH(NR) - BJNB(NR)
+       end do
+    end if
+    do NR = 0, NRMAX
+       ! Toroidal bootstrap current density : 
+       !   j_{BS,phi} = <j_{BS,zeta}/R>/<1/R> = (<BJ_BS><1/R^2>I/<B^2>)/<1/R>
+       AJBS(NR) = BJBS(NR) * aat(NR) * fipol(NR) / (bbt(NR) * d_rrr(NR))
+
+       ! Toroidal Ohmic current density :
+       !   j_{OH,phi} = <j_{OH,zeta}/R>/<1/R> = (<BJ_OH><1/R^2>I/<B^2>)/<1/R>
+       AJOH(NR) = BJOH(NR) * aat(NR) * fipol(NR) / (bbt(NR) * d_rrr(NR))
+
+       ! Rough estimate of the resistivity using the bootstrap estimation
+       !    ETA is less sensitive than the bootstrap current.
+       ETAvar(NR,0) = BEpara(NR) / (BJPARA(NR) - BJBSvar(NR,MDLNEOL) - BJNB(NR))
+    end do
 
     !     ***** Ion Orbit Loss *****
 

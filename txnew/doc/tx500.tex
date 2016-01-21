@@ -159,7 +159,7 @@ $$\halign to \displaywidth\bgroup\@eqnsel\hskip\@centering
 \begin{document}
 
 \begin{center}
-TASK/TX V5.00 [16/01/15]
+TASK/TX V5.00 [16/01/20]
 \end{center}
 
 \section{Equations in $\rho$ coordinates}
@@ -930,13 +930,6 @@ TASK/TX V5.00 [16/01/15]
   + I \left(  \ave{\frac{1}{R^2}}
 			       - \frac{1}{\aves{R^2}} \right) \hat{u}_{s\theta}
 \nonumber\\[5mm]
-%=======================%
-% <ubzt/R> and <B ubzt> % approx
-%=======================%
-  \ave{\frac{\ubzt}{R}} &=& 
-%
-  \ave{\frac{1}{R^2}} \frac{I}{\aves{B^2}}\aves{B\ubpara}
-\\[5mm]
 %=======%
 % B V_1 %
 %=======%
@@ -1829,34 +1822,34 @@ TASK/TX V5.00 [16/01/15]
 %
 \begin{tabular}{|c|c|c|c|c|c|}\hline
  num. & name & variable             & \shortstack{highest order\\ derivative} & center & edge \\\hline
- 1    & LQm1 & $\Phi$               & 2    &  N        & 0\\
- 2    & LQm2 & $\psitd$             & 2    &  0        & $\aves{|\nabla V|^2/R^2}|_{V_b}I_\r{vac}/(4\pi^2)$\\
- 3    & LQm3 & $\psid$              & 2    &  N        & $2\pi\mu_0I_\r{p}$\\
- 4    & LQm4 & $\psi$               & 0    &  $\times$ & $\times$\\
- 5    & LQm5 & $\psit/\mu_0$        & 0    &  $\times$ & $\times$\\
- 6    & LQe1 & $\nee$               & 2    &  N        & N\\
- 7    & LQe2 & $\nee\ueV$           & 1    &  0        & $\times$\\
- 8    & LQe3 & $\aves{B\uepara}$    & 0    &  $\times$ & $\times$\\
- 9    & LQe4 & $\nee\aves{R\uezt}$  & 2    &  N        & N\\
- 10   & LQe5 & $\nee \Te$           & 2    &  N        & N\\
- 11   & LQe6 & $\aves{B\qhatepara}$ & 0    &  $\times$ & $\times$\\
- 12   & LQe7 & $\nee\aves{\uezt/R}$ & 0    &  $\times$ & $\times$\\
- 13   & LQi1 & $\ni$                & 2    &  N        & N\\
- 14   & LQi2 & $\ni\uiV$            & 1    &  0        & $\times$\\
- 15   & LQi3 & $\aves{B\uipara}$    & 0    &  $\times$ & $\times$\\
- 16   & LQi4 & $\ni\aves{R\uizt}$   & 2    &  N        & N\\
- 17   & LQi5 & $\ni \Ti$            & 2    &  N        & N\\
- 18   & LQi6 & $\aves{B\qhatipara}$ & 0    &  $\times$ & $\times$\\
- 19   & LQi7 & $\ni\aves{\uizt/R}$  & 0    &  $\times$ & $\times$\\
+ 1    & LQm1 & $\Phi$               & 2    &  N           & 0\\
+ 2    & LQm2 & $\psitd$             & 2    &  0           & $\aves{|\nabla V|^2/R^2}|_{V_b}I_\r{vac}/(4\pi^2)$\\
+ 3    & LQm3 & $\psid$              & 2    &  N           & $2\pi\mu_0I_\r{p}$\\
+ 4    & LQm4 & $\psi$               & 0    &  $\times$    & $\times$\\
+ 5    & LQm5 & $\psit/\mu_0$        & 0    &  $\times$    & $\times$\\
+ 6    & LQe1 & $\nee$               & 2    &  N           & N\\
+ 7    & LQe2 & $\nee\ueV$           & 1    &  0           & $\times$\\
+ 8    & LQe3 & $\aves{B\uepara}$    & 2(0) &  N($\times$) & N($\times$)\\
+ 9    & LQe4 & $\nee\aves{R\uezt}$  & 2    &  N           & N\\
+ 10   & LQe5 & $\nee \Te$           & 2    &  N           & N\\
+ 11   & LQe6 & $\aves{B\qhatepara}$ & 0    &  $\times$    & $\times$\\
+ 12   & LQe7 & $\nee\aves{\uezt/R}$ & 0    &  $\times$    & $\times$\\
+ 13   & LQi1 & $\ni$                & 2    &  N           & N\\
+ 14   & LQi2 & $\ni\uiV$            & 1    &  0           & $\times$\\
+ 15   & LQi3 & $\aves{B\uipara}$    & 2(0) &  N($\times$) & N($\times$)\\
+ 16   & LQi4 & $\ni\aves{R\uizt}$   & 2    &  N           & N\\
+ 17   & LQi5 & $\ni \Ti$            & 2    &  N           & N\\
+ 18   & LQi6 & $\aves{B\qhatipara}$ & 0    &  $\times$    & $\times$\\
+ 19   & LQi7 & $\ni\aves{\uizt/R}$  & 0    &  $\times$    & $\times$\\
  20   & LQb1 & $\nb$                & 0(2) &  $\times$(N) & $\times$(N)\\
- 21   & LQb2 & $\nb\ubV$            & 1    &  0        & $\times$\\
- 21   & LQb3 & $\nb\aves{B\ubpara}$ & 0    &  $\times$ & $\times$\\
- 22   & LQb4 & $\nb\aves{R\ubzt}$   & 0    &  $\times$ & $\times$\\
- 23   & LQb7 & $\nb\aves{\ubzt/R}$  & 0    &  $\times$ & $\times$\\
- 24   & LQn1 & $\nna$               & 2    &  N        & $\aves{|\nabla V|}S_\r{gas}|_b$\\
- 25   & LQn2 & $\nnb$               & 2    &  N        & 0\\
- 26   & LQn3 & $\nnc$               & 2    &  N        & 0\\
- 27   & LQr1 & $\nbrp$              & 0(2) &  $\times$(N) & $\times$(N)\\\hline
+ 21   & LQb2 & $\nb\ubV$            & 1    &  0           & $\times$\\
+ 22   & LQb3 & $\nb\aves{B\ubpara}$ & 0    &  $\times$    & $\times$\\
+ 23   & LQb4 & $\nb\aves{R\ubzt}$   & 0    &  $\times$    & $\times$\\
+ 24   & LQb7 & $\nb\aves{\ubzt/R}$  & 0    &  $\times$    & $\times$\\
+ 25   & LQn1 & $\nna$               & 2    &  N           & $\aves{|\nabla V|}S_\r{gas}|_b$\\
+ 26   & LQn2 & $\nnb$               & 2    &  N           & 0\\
+ 27   & LQn3 & $\nnc$               & 2    &  N           & 0\\
+ 28   & LQr1 & $\nbrp$              & 0(2) &  $\times$(N) & $\times$(N)\\\hline
  \multicolumn{5}{l}{0: Dirichlet condition $(u=0)$}\\
  \multicolumn{5}{l}{N: Neumann condition $(u'=0)$}\\
  \multicolumn{5}{l}{value: Neumann condition $(u'=\mbox{value})$}\\
@@ -1874,8 +1867,9 @@ NOTE: In the table the column labeled by the highest order derivative means
 the order of the highest order derivative of a dependent variable, not
 an equation, in the corresponding row.
 Please note that the term not integrated by parts is never counted.
-For example, the first row shows 2 for $\Phi$ because the LQm1 equation
-has the diffusion term including the second derivative of $\Phi$ with
+For example, the first row shows the highest order of derivatives is
+equal to 2 for $\Phi$ because the LQm1 equation
+has the diffusion term having the second derivative of $\Phi$ with
 respect to $V$. In addition, the LQe2 and LQi2 equations also have the
 first derivative of $\Phi$, which is not a dependent variable of these
 equations. As a whole, the highest order derivative of $\Phi$ in this

@@ -51,16 +51,6 @@ contains
 
     allocate(ELM(1:NEMAX,1:4,0:NCM,1:NQMAX),DTf(1:NQMAX))
 
-    ELM(1:NEMAX,1:4,0:NCM,1:NQMAX) = 0.D0
-
-    ALC(0:NRMAX,0:NCM,1:NQMAX) = 0.D0
-    BLC(0:NRMAX,0:NCM,1:NQMAX) = 0.D0
-    CLC(0:NRMAX,0:NCM,1:NQMAX) = 0.D0
-    NLCR(0:NCM,1:NQMAX,0:1) = 0
-    NLC(0:NCM,1:NQMAX) = 0
-    PLC(0:NRMAX,1:NCM,1:NQMAX) = 0.D0
-    NLCMAX(1:NQMAX) = 0
-
     !     Preconditioning
 
     invDT = 1.d0 / DT
@@ -111,8 +101,23 @@ contains
     allocate(RatPN(0:N,NSM), RatPNb(0:N,NSM), fipolsdtPNsV(0:N,NSM), &
          &   BUsparVbbt(0:N,NSM), dlnPNsV(0:N,NSM))
 
+!$omp parallel
+!$omp workshare
+    ELM(1:NEMAX,1:4,0:NCM,1:NQMAX) = 0.D0
+
+    ALC(0:NRMAX,0:NCM,1:NQMAX) = 0.D0
+    BLC(0:NRMAX,0:NCM,1:NQMAX) = 0.D0
+    CLC(0:NRMAX,0:NCM,1:NQMAX) = 0.D0
+    NLCR(0:NCM,1:NQMAX,0:1) = 0
+    NLC(0:NCM,1:NQMAX) = 0
+    PLC(0:NRMAX,1:NCM,1:NQMAX) = 0.D0
+    NLCMAX(1:NQMAX) = 0
+!$omp end workshare
+
     CALL LQCOEF
 
+!$omp sections
+!$omp section
     !     Maxwell
 
     CALL LQm1CC
@@ -125,6 +130,7 @@ contains
 
     CALL LQe1CC
     CALL LQe2CC
+!$omp section
     CALL LQe3CC
     CALL LQe4CC
     CALL LQe5CC
@@ -135,6 +141,7 @@ contains
 
     CALL LQi1CC
     CALL LQi2CC
+!$omp section
     CALL LQi3CC
     CALL LQi4CC
     CALL LQi5CC
@@ -145,6 +152,7 @@ contains
 
     CALL LQb1CC
     CALL LQb2CC
+!$omp section
     CALL LQb3CC
     CALL LQb4CC
     CALL LQb7CC
@@ -158,9 +166,11 @@ contains
     !     Ripple trapped beam
 
     CALL LQr1CC
+!$omp end sections
 
     !     Elemental equations -> Nodal equations
 
+!$omp do private(NC,NE,NR,iHvsLC)
     do NQ = 1, NQMAX
        NC = 0
           do NE = 1, NEMAX
@@ -186,7 +196,9 @@ contains
           end do
        end do
     end do
+!$omp end do
 
+!$omp do private(NQ,NC)
     do N = 0, 1
        do NQ = 1, NQMAX
           do NC = 0, NCM
@@ -194,6 +206,8 @@ contains
           end do
        end do
     end do
+!$omp end do
+!$omp end parallel
 
     !     Dirichlet condition
 
@@ -274,10 +288,20 @@ contains
 
   SUBROUTINE LQCOEF
 
-    use tx_interface, only : dfdx, intg_vol
+    use tx_interface, only : dfdx
     INTEGER(4) :: NR, i
 
-!!rp_conv    rNubLL(0:NRMAX) = rNubL(0:NRMAX) * rip_rat(0:NRMAX)
+    do NR = 0, NRMAX
+       if(PNbV(NR) == 0.d0) then
+          PNbVinv(NR) = 0.d0
+       else
+          PNbVinv(NR) = 1.d0 / PNbV(NR)
+      end if
+    end do
+
+    fipolsdt(0:NRMAX)     = fipol(0:NRMAX) / sdt(0:NRMAX)
+!$omp workshare
+    fipolsdtPNbV(0:NRMAX) = fipolsdt(0:NRMAX) * PNbVinv(0:NRMAX) * 1.d-20
 
     Dbrpft(0:NRMAX) = Dbrp(0:NRMAX) * ft(0:NRMAX)
 
@@ -286,8 +310,13 @@ contains
     Chii1(0:NRMAX) = Chii(0:NRMAX) + ChiNCTi(0:NRMAX) + ChiNCpi(0:NRMAX)
     Chii2(0:NRMAX) = Chii(0:NRMAX) + ChiNCTi(0:NRMAX)
 
-!    rGASPFA(0:NRMAX-1) = 0.D0
-!    rGASPFA(NRMAX) = rGASPF
+    RatPN(0:NRMAX,1) = Var(0:NRMAX,1)%n / Var(0:NRMAX,2)%n ! Ne/Ni
+    RatPN(0:NRMAX,2) = Var(0:NRMAX,2)%n / Var(0:NRMAX,1)%n ! Ni/Ne
+
+    bthcoinv(0:NRMAX)    = 1.d0 / bthco(0:NRMAX)
+    Bpsqbbt(0:NRMAX)     = Bpsq(0:NRMAX) / bbt(0:NRMAX)
+    PsitdotVBth(0:NRMAX) = 4.d0 * Pisq * sdt(0:NRMAX) * PsitdotV(0:NRMAX)
+    aatq(0:NRMAX)        = aat(0:NRMAX) / Q(0:NRMAX)
 
     UsrgV(0:NRMAX,1)  = FSADV * Var(0:NRMAX,1)%UrV - UgV(0:NRMAX)
     UsrgV(0:NRMAX,2)  = FSADV * Var(0:NRMAX,2)%UrV - UgV(0:NRMAX)
@@ -295,36 +324,21 @@ contains
     aatinv(0:NRMAX)     = 1.d0 / aat(0:NRMAX) ! 1/<R^-2>
     FqhatsqI(0:NRMAX)   = Fqhatsq(0:NRMAX) / fipol(0:NRMAX)
     ParatoZeta(0:NRMAX) = fipol(0:NRMAX) / bbt(0:NRMAX) ! I/<B^2> : parallel to toroidal
-    ZetatoPara(0:NRMAX) = 1.d0 / ParatoZeta(0:NRMAX)    ! <B^2>/I : toroidal to parallel
+    ZetatoPara(0:NRMAX) = bbt(0:NRMAX) / fipol(0:NRMAX) ! <B^2>/I : toroidal to parallel
+!$omp end workshare
     dlogZetatoPara(0:NRMAX) = dfdx(vv,log(ZetatoPara),NRMAX,0)   ! dln(<B^2>/I)/dV
 
-    RatPN(0:NRMAX,1) = Var(0:NRMAX,1)%n / Var(0:NRMAX,2)%n ! Ne/Ni
-    RatPN(0:NRMAX,2) = Var(0:NRMAX,2)%n / Var(0:NRMAX,1)%n ! Ni/Ne
-
-    fipolsdt(0:NRMAX) = fipol(0:NRMAX) / sdt(0:NRMAX)
     do i = 1, NSM
        fipolsdtPNsV(0:NRMAX,i) = fipolsdt(0:NRMAX) / (Var(0:NRMAX,i)%n * 1.d20)
        BUsparVbbt(0:NRMAX,i)   = Var(0:NRMAX,i)%BUpar / bbt(0:NRMAX)
        dlnPNsV(0:NRMAX,i)      = dfdx(vv,Var(:,i)%n,NRMAX,0) / Var(0:NRMAX,i)%n
+       RatPNb(0:NRMAX,i)       = Var(0:NRMAX,i)%n * PNbVinv(0:NRMAX)
     end do
 
-    bthcoinv(0:NRMAX)    = 1.d0 / bthco(0:NRMAX)
-    Bpsqbbt(0:NRMAX)     = Bpsq(0:NRMAX) / bbt(0:NRMAX)
-    PsitdotVBth(0:NRMAX) = 4.d0 * Pisq * sdt(0:NRMAX) * PsitdotV(0:NRMAX)
-    aatq(0:NRMAX)        = aat(0:NRMAX) / Q(0:NRMAX)
-    do NR = 0, NRMAX
-       if(PNbV(NR) == 0.d0) then
-          PNbVinv(NR) = 0.d0
-       else
-          PNbVinv(NR) = 1.d0 / PNbV(NR)
-      end if
-      do i = 1, NSM
-         RatPNb(NR,i) = Var(NR,i)%n * PNbVinv(NR)
-      end do
-    end do
-    fipolsdtPNbV(0:NRMAX) = fipolsdt(0:NRMAX) * PNbVinv(0:NRMAX) * 1.d-20
+!    rGASPFA(0:NRMAX-1) = 0.D0
+!    rGASPFA(NRMAX) = rGASPF
 
-!    write(6,*) intg_vol(BSmb*ParatoZeta)*1.d20
+!!rp_conv    rNubLL(0:NRMAX) = rNubL(0:NRMAX) * rip_rat(0:NRMAX)
 
 !    rNueHLphthVR(1:NRMAX)   = rNueHLphth(1:NRMAX) / R(1:NRMAX)
 !    rNueHLphthVR(0)         = 0.D0 ! Any value is OK. (Never affect the result.)
@@ -404,9 +418,6 @@ contains
 
    ! Beam ion current
 
-!    ELM(1:NEMAX,1:4,6,NEQ) =   achgb   * AEE * 1.D20 * fem_int(20,bthcoinv,Bpsqbbt) * BeamSW
-!    NLC(6,NEQ) = LQb3
-
     ELM(1:NEMAX,1:4,6,NEQ) =   achgb   * AEE * 1.D20 * fem_int(2,bthcoinv) * BeamSW
     NLC(6,NEQ) = LQb3
 
@@ -449,10 +460,7 @@ contains
     ELM(1:NEMAX,1:4,3,NEQ) = - rMUb1 * achg(2) * AEE * 1.D20 * fem_int(1)
     NLC(3,NEQ) = LQi7
 
-    ! Beam ion current (tentative)
-
-!    ELM(1:NEMAX,1:4,4,NEQ) = - rMUb1 * achgb   * AEE * 1.D20 * fem_int(20,ParatoZeta,aat) * BeamSW
-!    NLC(4,NEQ) = LQb3
+    ! Beam ion current
 
     ELM(1:NEMAX,1:4,4,NEQ) = - rMUb1 * achgb   * AEE * 1.D20 * fem_int(1) * BeamSW
     NLC(4,NEQ) = LQb7
@@ -2301,7 +2309,7 @@ contains
     ELM(1:NEMAX,1:4,11,NEQ) = - fem_int(2,rNubCX)
     NLC(11,NEQ) = LQb4
 
-    ! NBI momentum source : (I / <B^2> ) m_b dot{n}_b <B v_//0>
+    ! NBI momentum source : (I / <B^2>) m_b dot{n}_b <B v_//0>
 
     ELM(1:NEMAX,1:4,12,NEQ) =   1.d0 / (amb * amp) * fem_int(-2,ParatoZeta,BSmb)
     NLC(12,NEQ) = 0

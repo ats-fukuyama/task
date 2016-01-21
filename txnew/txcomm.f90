@@ -60,6 +60,13 @@ module tx_commons
   !   Conversion factor from keV to eV
   real(8), parameter :: rKilo = 1.D3
   
+  !   Square of pi
+  real(8), parameter :: Pisq = pi * pi
+
+  !   Square root permittivity for LQm1
+  !     for the sake of acceleration of convergence
+  real(8), parameter :: sqeps0 = sqrt(EPS0)
+
   !**********************!
   !   INPUT PARAMETERS   !
   !**********************!
@@ -148,7 +155,7 @@ module tx_commons
   integer(4) :: MDFIXT, MDBEAM
 
   ! Transport model
-  integer(4) :: MDOSQZ, MDLETA, MDLETB
+  integer(4) :: MDOSQZ, MDLETA, MDLETB, MDLNEO, MDBSETA
 
   ! Initial condition
   integer(4) :: MDITSN, MDITST, MDINTN, MDINTT, MDINTC
@@ -164,7 +171,6 @@ module tx_commons
   ! Configuration parameters
   integer(4) :: NQMAX, IERR, ICONT, IRPIN
   real(4) :: AVE_IC
-  real(8) :: Vb, sqeps0, Pisq
   real(8) :: rIP
   real(8) :: UHth, UHph
   real(8) :: Rax, Zax, perimlcfs
@@ -262,11 +268,11 @@ module tx_commons
        &                                SiLC, SiLCth, SiLCph, PALFe, PALFi, &
        &                                BSmb, Tqt, Tqp
   real(8), dimension(:), allocatable :: PIE, PCX, SIE, SCX, PBr
-  real(8) :: Eb, RatCX
+  real(8) :: Eb, Vb, RatCX
 
   ! Safety factor, currents, resistivity
-  real(8), dimension(:), allocatable :: Q, AJ, AJOH, AJV, AJRF, AJNB, BJPARA, &
-       &                                BJBS, ETA, ETAS 
+  real(8), dimension(:), allocatable :: Q, AJ, BJPARA, AJOH, BJOH, AJV, AJRF, AJNB, BJNB, &
+       &                                BJBS, AJBS, ETA, ETAS 
   real(8), dimension(:,:), allocatable :: BJBSvar, ETAvar
 
   ! Derivatives
@@ -435,10 +441,10 @@ contains
        ier = sum(ierl) ; iflag = 8
        if (ier /= 0) exit
 
-       allocate(Q(0:N), AJ(0:N), AJOH(0:N), AJV(0:N), AJRF(0:N),  AJNB(0:N),  stat = ierl(1))
-       allocate(BJBS(0:N), ETA(0:N), ETAS(0:N),                               stat = ierl(2))
-       allocate(BJBSvar(0:N,5), ETAvar(0:N,5),                                stat = ierl(3))
-       allocate(BJPARA(0:N),                                                  stat = ierl(4))
+       allocate(Q(0:N), AJ(0:N), BJPARA(0:N), AJOH(0:N), BJOH(0:N), AJV(0:N), stat = ierl(1))
+       allocate(AJRF(0:N), AJNB(0:N), BJNB(0:N), BJBS(0:N), AJBS(0:N),        stat = ierl(2))
+       allocate(ETA(0:N), ETAS(0:N),                                          stat = ierl(3))
+       allocate(BJBSvar(0:N,0:3), ETAvar(0:N,0:4),                            stat = ierl(4))
        ier = sum(ierl) ; iflag = 9
        if (ier /= 0) exit
 
@@ -538,8 +544,9 @@ contains
     deallocate(PIE,    PCX,   SIE,   SCX,    PBr)
     deallocate(BSmb,   Tqt,   Tqp)
 
-    deallocate(Q, AJ, AJOH, AJV, AJRF, AJNB, BJPARA)
-    deallocate(BJBS, ETA, ETAS)
+    deallocate(Q, AJ, BJPARA, AJOH, BJOH, AJV)
+    deallocate(AJRF, AJNB, BJNB, BJBS, AJBS)
+    deallocate(ETA, ETAS)
     deallocate(BJBSvar, ETAvar)
 
     deallocate(dPsdpsi, dTsdpsi)
