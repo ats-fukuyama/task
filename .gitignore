@@ -25,6 +25,7 @@ eq/eqparm
 exec
 fp/fp
 fp/fpparm
+mtxp/make.mtxp
 mtxp/testbnd
 mtxp/testbndc
 mtxp/testbnd
