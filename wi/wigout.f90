@@ -157,7 +157,7 @@ CONTAINS
     CALL NUMBD(PNU,'(F7.3)',7)
     CALL MOVE(15.5,12.75)
     CALL TEXT('  R     = ',10)
-    R=ABS(CFY(NXMAX*2+3))**2 
+    R=ABS(CFY(NXMAX*2+3))**2
     CALL NUMBD(R,'(F9.5)',9)
     CALL MOVE(15.5,12.25)
     CALL TEXT('  A     = ',10)

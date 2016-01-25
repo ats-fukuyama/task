@@ -42,6 +42,11 @@ CONTAINS
        CALL SUBFYW                               ! calculate field vector
     ENDIF
     CALL SUBPOW    ! calculate sbsorbed power
+!!!       RATEA=1.D0-ABS(CFY(NXMAX*2+3))**2
+!       WRITE(6,'(A,1PE12.4)') 'ABS(CFY(NXMAX*2+2))**2=',ABS(CFY(NXMAX*2+2))**2
+!       WRITE(6,'(A,1PE12.4)') 'ABS(CFY(NXMAX*2+3))**2=',ABS(CFY(NXMAX*2+3))**2
+!       WRITE(6,'(A,1P2E12.4)') 'CFY(NXMAX*2+2)=',CFY(NXMAX*2+2)
+!       WRITE(6,'(A,1P2E12.4)') 'CFY(NXMAX*2+3)=',CFY(NXMAX*2+3)
        RATEA=1.D0-ABS(CFY(NXMAX*2+3))**2
        IF(iprint > 0) WRITE(6,'(A,F8.5)') '## Absorption rate: ',RATEA
 9900  CONTINUE

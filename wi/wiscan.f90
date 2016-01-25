@@ -115,22 +115,14 @@ CONTAINS
     DO nalfa=1,nalfamax
        alfa=exp(log(alfamin)+dalfa*(nalfa-1))
        rk0l=1.D0/alfa
-       IF(ALFA.LT.0.01D0) THEN
-          dx0=0.3D0
-          xmax=200.D0/beta
-          xmin=-50.0D0/BETA
-       ELSEIF(ALFA.LT.1.D0) THEN
-          dx0=dx0_save
-          xmax=10.D0/(alfa*beta)
-          xmin=-10.0D0/BETA
-       ELSEIF(ALFA*BETA.LT.1.D0) THEN
-          dx0=dx0_save
-          xmax=10.D0/(beta)
-          xmin=-5.0D0/(beta)
+       IF(ALFA.LT.1.0D0) THEN
+          dx0=0.02D0
+          xmax=2.D0/ALFA
+          xmin=-10.0D0
        ELSE
-          dx0=0.1D0*dx0_save/log(alfa)
-          xmax=500.D0*dx0
-          xmin=-500.D0*dx0
+          dx0=0.01D0
+          xmax= 50.D0
+          xmin=-10.D0
        END IF
        CALL wi_prep
        ANB=DEXP(-ALFA*xgrid(nxmax))
