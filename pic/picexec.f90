@@ -437,13 +437,13 @@ CONTAINS
        IF(model_boundary.EQ.0) THEN ! periodic
           if( nxp .eq. 0  ) nxpm = nxmax
           if( nyp .eq. 0  ) nypm = nymax
-          if( nxp .eq. nxmax-1) nxppp = 1
-          if( nyp .eq. nymax-1) nyppp = 1
+          if( nxp .eq. nxmax) nxppp = 1
+          if( nyp .eq. nymax) nyppp = 1
        ELSE   ! reflective:
           if( nxp .eq. 0  ) nxpm = 0
           if( nyp .eq. 0  ) nypm = 0
-          if( nxp .eq. nxmax-1) nxppp = nxmax
-          if( nyp .eq. nymax-1) nyppp = nymax
+          if( nxp .eq. nxmax) nxppp = nxmax
+          if( nyp .eq. nymax) nyppp = nymax
        END IF
 
        ! electric field and magnetic field
