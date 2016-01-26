@@ -258,7 +258,7 @@ CONTAINS
       do nx = 0, nxmax-10
       do ny = 0, 10
         phi(nx,ny) = phi(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
-                              + 2.0d0 * 0.1d0 * dble(ny))
+                                + 2.0d0 * 0.1d0 * dble(ny))
       enddo
       enddo
 

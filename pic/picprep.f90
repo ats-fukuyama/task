@@ -81,14 +81,6 @@ CONTAINS
          END DO
       END DO
 
-      Ax(:,:) = 0.0d0
-      Ay(:,:) = 0.0d0
-      Az(:,:) = 0.0d0
-      Axb(:,:) = 0.0d0
-      Ayb(:,:) = 0.0d0
-      Azb(:,:) = 0.0d0
-      phi(:,:) = 0.0d0
-
        !.......... calculate ex and ey and ez
        call efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
                                ex,ey,ez,esx,esy,esz,emx,emy,emz, &

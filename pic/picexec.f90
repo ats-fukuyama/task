@@ -437,13 +437,13 @@ CONTAINS
        IF(model_boundary.EQ.0) THEN ! periodic
           if( nxp .eq. 0  ) nxpm = nxmax
           if( nyp .eq. 0  ) nypm = nymax
-          if( nxp .eq. nxmax) nxppp = 1
-          if( nyp .eq. nymax) nyppp = 1
+          if( nxp .eq. nxmax-1) nxppp = 1
+          if( nyp .eq. nymax-1) nyppp = 1
        ELSE   ! reflective:
           if( nxp .eq. 0  ) nxpm = 0
           if( nyp .eq. 0  ) nypm = 0
-          if( nxp .eq. nxmax) nxppp = nxmax
-          if( nyp .eq. nymax) nyppp = nymax
+          if( nxp .eq. nxmax-1) nxppp = nxmax
+          if( nyp .eq. nymax-1) nyppp = nymax
        END IF
 
        ! electric field and magnetic field
@@ -1294,7 +1294,6 @@ CONTAINS
 
       end do
       end do
-
       do ny = 0,nymax
       do nx = nxmax-10,nxmax
         Ax(nx,ny) = Ax(nx,ny) * (-0.01d0 * dble(nx) ** 2 &
@@ -1345,7 +1344,6 @@ CONTAINS
       ! Ax(:,nymax)=0.d0
       ! Ay(:,nymax)=0.d0
       ! Az(:,nymax)=0.d0
-
       SELECT CASE(model_wg)
       CASE(0)
          yc=0.5d0*(ymin_wg+ymax_wg)
