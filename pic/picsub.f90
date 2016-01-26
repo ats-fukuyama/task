@@ -241,6 +241,27 @@ CONTAINS
       DEALLOCATE(x)
       status=2
       CALL mtx_cleanup
+      do ny = 0,nymax
+      do nx = nxmax-10,nxmax
+        phi(nx,ny) = phi(nx,ny) * (-0.01d0 * dble(nx) ** 2 &
+                              + 2.0d0 * 0.01d0 * (dble(nxmax - 10)) * dble(nx) &
+                              + 1.0d0 - 0.01d0 * (dble(nxmax - 10))**2)
+      enddo
+      enddo
+      do nx = 0,nxmax-10
+      do ny = nymax-10,nymax
+        phi(nx,ny) = phi(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
+                              + 2.0d0 * 0.01d0 * (dble(nymax - 10)) * dble(ny) &
+                              + 1.0d0 - 0.01d0 * (dble(nymax - 10))**2)
+      enddo
+      enddo
+      do nx = 0, nxmax-10
+      do ny = 0, 10
+        phi(nx,ny) = phi(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
+                              + 2.0d0 * 0.1d0 * dble(ny))
+      enddo
+      enddo
+
     END subroutine poisson_m
 
 !***********************************************************************
@@ -333,6 +354,44 @@ CONTAINS
           ez(0:nxmax,0:nymax) = esz(0:nxmax,0:nymax) + emz(0:nxmax,0:nymax)
        END IF
     END IF
+  !  if(model_boundary .ne. 0 .and. nxmax .ge. 10 .and. nymax .ge. 10) then
+  !   do ny = 10,nymax-10
+  !   do nx = nxmax-10,nxmax
+  !     Ex(nx,ny) = Ex(nx,ny) * (-0.01d0 * dble(nx) ** 2 &
+  !                           + 2.0d0 * 0.01d0 * (dble(nxmax - 10)) * dble(nx) &
+  !                           + 1.0d0 - 0.01d0 * (dble(nxmax - 10))**2)
+  !     Ey(nx,ny) = Ey(nx,ny) * (-0.01d0 * dble(nx) ** 2 &
+  !                           + 2.0d0 * 0.01d0 * (dble(nxmax - 10)) * dble(nx) &
+  !                           + 1.0d0 - 0.01d0 * (dble(nxmax - 10))**2)
+  !     Ez(nx,ny) = Ez(nx,ny) * (-0.01d0 * dble(nx) ** 2 &
+  !                           + 2.0d0 * 0.01d0 * (dble(nxmax - 10)) * dble(nx) &
+  !                           + 1.0d0 - 0.01d0 * (dble(nxmax - 10))**2)
+  !   enddo
+  !   enddo
+  !   do nx = 0,nxmax-10
+  !   do ny = nymax-10,nymax
+  !     Ex(nx,ny) = Ex(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
+  !                           + 2.0d0 * 0.01d0 * (dble(nymax - 10)) * dble(ny) &
+  !                           + 1.0d0 - 0.01d0 * (dble(nymax - 10))**2)
+  !     Ey(nx,ny) = Ey(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
+  !                           + 2.0d0 * 0.01d0 * (dble(nymax - 10)) * dble(ny) &
+  !                           + 1.0d0 - 0.01d0 * (dble(nymax - 10))**2)
+  !     Ez(nx,ny) = Ez(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
+  !                           + 2.0d0 * 0.01d0 * (dble(nymax - 10)) * dble(ny) &
+  !                           + 1.0d0 - 0.01d0 * (dble(nymax - 10))**2)
+  !   enddo
+  !   enddo
+  !   do nx = 0, nxmax-10
+  !   do ny = 0, 10
+  !     Ex(nx,ny) = Ex(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
+  !                           + 2.0d0 * 0.1d0 * dble(ny))
+  !     Ey(nx,ny) = Ey(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
+  !                           + 2.0d0 * 0.1d0 * dble(ny))
+  !     Ez(nx,ny) = Ez(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
+  !                           + 2.0d0 * 0.1d0 * dble(ny))
+  !   enddo
+  !   enddo
+  ! endif
      end subroutine efield
 
 !***********************************************************************

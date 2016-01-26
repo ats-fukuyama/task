@@ -435,15 +435,15 @@ CONTAINS
        nyppp = nyp + 2
 
        IF(model_boundary.EQ.0) THEN ! periodic
-          if( nxp .eq. 0  ) nxpm = nxmax - 1
-          if( nyp .eq. 0  ) nypm = nymax - 1
-          if( nxp .eq. nxmax-1) nxppp = 1
-          if( nyp .eq. nymax-1) nyppp = 1
+          if( nxp .eq. 0  ) nxpm = nxmax
+          if( nyp .eq. 0  ) nypm = nymax
+          if( nxp .eq. nxmax) nxppp = 1
+          if( nyp .eq. nymax) nyppp = 1
        ELSE   ! reflective:
           if( nxp .eq. 0  ) nxpm = 0
           if( nyp .eq. 0  ) nypm = 0
-          if( nxp .eq. nxmax-1) nxppp = nxmax
-          if( nyp .eq. nymax-1) nyppp = nymax
+          if( nxp .eq. nxmax) nxppp = nxmax
+          if( nyp .eq. nymax) nyppp = nymax
        END IF
 
        ! electric field and magnetic field
@@ -748,14 +748,27 @@ CONTAINS
             if( nyp .eq. 0  ) nypm = nymax - 1
             if( nxp .eq. nxmax-1) nxppp=1
             if( nyp .eq. nymax-1) nyppp=1
-         ELSE   ! reflective:
-            if( nxp .eq. 0  ) nxpm = 0
-            if( nyp .eq. 0  ) nypm = 0
-            if( nxp .eq. nxmax-1) nxppp = nxmax
-            if( nyp .eq. nymax-1) nyppp = nymax
-         END IF
+        ! ELSE   ! reflective:
+        !    if( nxp .eq. 0  ) nxpm = 0
+        !    if( nyp .eq. 0  ) nypm = 0
+        !    if( nxp .eq. nxmax-1) nxppp = nxmax
+        !    if( nyp .eq. nymax-1) nyppp = nymax
+        END IF
 
          if(dx .le. 0.5d0 .and. dy .le. 0.5d0) then
+           if(model_boundary .ne. 0) then
+             if(nxp .eq. 0) then
+                sx2m = 0
+                sx2 = dx1
+                sx2p = dx
+             endif
+             if(nyp .eq. 0) then
+               sy2m = 0
+               sy2 = dy1
+               sy2p = dy
+             endif
+          endif
+
             rho(nxpm,nypm) = rho(nxpm,nypm) + sx2m * sy2m * factor
             rho(nxpm,nyp ) = rho(nxpm,nyp ) + sx2m * sy2  * factor
             rho(nxpm,nypp) = rho(nxpm,nypp) + sx2m * sy2p * factor
@@ -766,6 +779,18 @@ CONTAINS
             rho(nxpp,nyp ) = rho(nxpp,nyp ) + sx2p * sy2  * factor
             rho(nxpp,nypp) = rho(nxpp,nypp) + sx2p * sy2p * factor
          else if(dx .le. 0.5d0 .and. dy .ge. 0.5d0) then
+           if(model_boundary .ne. 0) then
+             if(nxp .eq. 0) then
+                sx2m = 0
+                sx2 = dx1
+                sx2p = dx
+             endif
+             if(nyp .eq. nymax-1) then
+                sy2m = dy1
+                sy2 = dy
+                sy2p = 0
+             endif
+           endif
             rho(nxpm ,nyp  ) = rho(nxpm ,nyp  ) + sx2m * sy2m * factor
             rho(nxpm ,nypp ) = rho(nxpm ,nypp ) + sx2m * sy2  * factor
             rho(nxpm ,nyppp) = rho(nxpm ,nyppp) + sx2m * sy2p * factor
@@ -776,6 +801,18 @@ CONTAINS
             rho(nxpp ,nypp ) = rho(nxpp ,nypp ) + sx2p * sy2  * factor
             rho(nxpp ,nyppp) = rho(nxpp ,nyppp) + sx2p * sy2p * factor
          else if(dx .ge. 0.5d0 .and. dy .le. 0.5d0) then
+           if(model_boundary .ne. 0) then
+             if(nxp .eq. nxmax-1) then
+                sx2m = dx1
+                sx2 = dx
+                sx2p = 0
+             endif
+             if(nyp .eq. 0) then
+                sy2m = 0
+                sy2 = dy1
+                sy2p = dy
+             endif
+           endif
             rho(nxp  ,nypm) = rho(nxp  ,nypm ) + sx2m * sy2m * factor
             rho(nxp  ,nyp ) = rho(nxp  ,nyp  ) + sx2m * sy2  * factor
             rho(nxp  ,nypp) = rho(nxp  ,nypp ) + sx2m * sy2p * factor
@@ -786,6 +823,18 @@ CONTAINS
             rho(nxppp,nyp ) = rho(nxppp,nyp  ) + sx2p * sy2  * factor
             rho(nxppp,nypp) = rho(nxppp,nypp ) + sx2p * sy2p * factor
          else
+           if(model_boundary .ne. 0) then
+             if(nxp .eq. nxmax-1) then
+               sx2m = dx1
+               sx2 = dx
+               sx2p = 0
+             endif
+             if(nyp .eq. nymax-1) then
+               sy2m = dy1
+               sy2 = dy
+               sy2p = 0
+             endif
+           endif
             rho(nxp  ,nyp  ) = rho(nxp  ,nyp  ) + sx2m * sy2m * factor
             rho(nxp  ,nypp ) = rho(nxp  ,nypp ) + sx2m * sy2  * factor
             rho(nxp  ,nyppp) = rho(nxp  ,nyppp) + sx2m * sy2p * factor
@@ -849,9 +898,9 @@ CONTAINS
     integer :: np, nxp, nyp, nxpm, nypm, nxpp, nypp, nxppp, nyppp, nx, ny
 
     IF(npmax.EQ.0) then
-       factor=chrg*dble(nxmax)*dble(nymax)
+       factor=chrg*dble(nxmax)*dble(nymax-1)
     ELSE
-       factor=chrg*dble(nxmax)*dble(nymax)/dble(npmax)
+       factor=chrg*dble(nxmax)*dble(nymax-1)/dble(npmax)
     END IF
 
     do np = 1, npmax
@@ -892,14 +941,26 @@ CONTAINS
             if( nyp .eq. 0  ) nypm = nymax - 1
             if( nxp .eq. nxmax-1) nxppp=1
             if( nyp .eq. nymax-1) nyppp=1
-         ELSE   ! reflective:
-            if( nxp .eq. 0  ) nxpm=0
-            if( nyp .eq. 0  ) nypm=0
-            if( nxp .eq. nxmax-1) nxppp=nxmax
-            if( nyp .eq. nymax-1) nyppp=nymax
+         !ELSE   ! reflective:
+          !  if( nxp .eq. 0  ) nxpm=0
+          !  if( nyp .eq. 0  ) nypm=0
+          !  if( nxp .eq. nxmax-1) nxppp=nxmax
+          !  if( nyp .eq. nymax-1) nyppp=nymax
          END IF
 
          if (dx .le. 0.5d0 .and. dy .le. 0.5d0) then
+           if(model_boundary .ne. 0) then
+             if(nxp .eq. 0) then
+                sx2m = 0
+                sx2 = dx1
+                sx2p = dx
+             endif
+             if(nyp .eq. 0) then
+               sy2m = 0
+               sy2 = dy1
+               sy2p = dy
+             endif
+           endif
            jx(nxpp,nyp ) = jx(nxpp,nyp ) + factor * vx(np) * sy2  * dx
            jx(nxpp,nypp) = jx(nxpp,nypp) + factor * vx(np) * sy2p * dx
            jx(nxpp,nypm) = jx(nxpp,nypm) + factor * vx(np) * sy2m * dx
@@ -925,6 +986,18 @@ CONTAINS
            jz(nxpp,nypm) = jz(nxpp,nypm) + factor * vz(np) * sx2p * sy2m
 
         else if(dx .le. 0.5d0 .and. dy .ge. 0.5d0) then
+          if(model_boundary .ne. 0) then
+            if(nxp .eq. 0) then
+               sx2m = 0
+               sx2 = dx1
+               sx2p = dx
+            endif
+            if(nyp .eq. nymax-1) then
+              sy2m = dy1
+              sy2 = dy
+              sy2p = 0
+            endif
+          endif
            jx(nxpp,nypp ) = jx(nxpp,nypp ) + factor * vx(np) * sy2  * dx
            jx(nxpp,nyppp) = jx(nxpp,nyppp) + factor * vx(np) * sy2p * dx
            jx(nxpp,nyp  ) = jx(nxpp,nyp  ) + factor * vx(np) * sy2m * dx
@@ -950,8 +1023,18 @@ CONTAINS
            jz(nxpp,nyp  ) = jz(nxpp,nyp  ) + factor * vz(np) * sx2p * sy2m
 
         else if(dx .ge. 0.5d0 .and. dy .le. 0.5d0) then
-           !if(nxp .eq. nxmax-1) sx2p = 0.d0
-           !if(nyp .eq. 0) sy2m=0.d0
+          if(model_boundary .ne. 0) then
+            if(nxp .eq. nymax-1) then
+               sx2m = dx1
+               sx2 = dx
+               sx2p = 0
+            endif
+            if(nyp .eq. 0) then
+              sy2m = 0
+              sy2 = dy1
+              sy2p = dy
+            endif
+          endif
            jx(nxpp,nyp ) = jx(nxpp,nyp ) + factor * vx(np) * sy2  * dx
            jx(nxpp,nypp) = jx(nxpp,nypp) + factor * vx(np) * sy2p * dx
            jx(nxpp,nypm) = jx(nxpp,nypm) + factor * vx(np) * sy2m * dx
@@ -977,6 +1060,18 @@ CONTAINS
            jz(nxppp,nypm) = jz(nxppp,nypm) + factor * vz(np) * sx2p * sy2m
 
         else
+          if(model_boundary .ne. 0) then
+            if(nxp .eq. nxmax-1) then
+               sx2m = dx1
+               sx2 = dx
+               sx2p = 0
+            endif
+            if(nyp .eq. nymax-1) then
+              sy2m = dy1
+              sy2 = dy
+              sy2p = 0
+            endif
+          endif
            jx(nxpp,nypp ) = jx(nxpp,nypp ) + factor * vx(np) * sy2  * dx
            jx(nxpp,nyppp) = jx(nxpp,nyppp) + factor * vx(np) * sy2p * dx
            jx(nxpp,nyp  ) = jx(nxpp,nyp  ) + factor * vx(np) * sy2m * dx
@@ -1145,6 +1240,7 @@ CONTAINS
       end do
       end do
 
+
     end subroutine phia_periodic
 
 !***********************************************************************
@@ -1166,9 +1262,8 @@ CONTAINS
  ! Solution of maxwell equation in the A-phi formulation by difference method
  ! vcfact is the ratio of the light speed to lattice parameter times plasma
  ! frequency
-
-      do nx = 1, nxmax-1
-      do ny = 1, nymax-1
+      do nx = 0, nxmax
+      do ny = 0, nymax
 
          nxm = nx - 1
          nxp = nx + 1
@@ -1199,20 +1294,57 @@ CONTAINS
 
       end do
       end do
-      !boundary condition for reflection
 
-      Ax(0,:)=0.d0
-      Ay(0,:)=0.d0
-      Az(0,:)=0.d0
-      Ax(nxmax,:)=0.d0
-      Ay(nxmax,:)=0.d0
-      Az(nxmax,:)=0.d0
-      Ax(:,0)=0.d0
-      Ay(:,0)=0.d0
-      Az(:,0)=0.d0
-      Ax(:,nymax)=0.d0
-      Ay(:,nymax)=0.d0
-      Az(:,nymax)=0.d0
+      do ny = 0,nymax
+      do nx = nxmax-10,nxmax
+        Ax(nx,ny) = Ax(nx,ny) * (-0.01d0 * dble(nx) ** 2 &
+                              + 2.0d0 * 0.01d0 * (dble(nxmax - 10)) * dble(nx) &
+                              + 1.0d0 - 0.01d0 * (dble(nxmax - 10))**2)
+        Ay(nx,ny) = Ay(nx,ny) * (-0.01d0 * dble(nx) ** 2 &
+                              + 2.0d0 * 0.01d0 * (dble(nxmax - 10)) * dble(nx) &
+                              + 1.0d0 - 0.01d0 * (dble(nxmax - 10))**2)
+        Az(nx,ny) = Az(nx,ny) * (-0.01d0 * dble(nx) ** 2 &
+                              + 2.0d0 * 0.01d0 * (dble(nxmax - 10)) * dble(nx) &
+                              + 1.0d0 - 0.01d0 * (dble(nxmax - 10))**2)
+      enddo
+      enddo
+      do nx = 0,nxmax-10
+      do ny = nymax-10,nymax
+        Ax(nx,ny) = Ax(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
+                              + 2.0d0 * 0.01d0 * (dble(nymax - 10)) * dble(ny) &
+                              + 1.0d0 - 0.01d0 * (dble(nymax - 10))**2)
+        Ay(nx,ny) = Ay(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
+                              + 2.0d0 * 0.01d0 * (dble(nymax - 10)) * dble(ny) &
+                              + 1.0d0 - 0.01d0 * (dble(nymax - 10))**2)
+        Az(nx,ny) = Az(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
+                              + 2.0d0 * 0.01d0 * (dble(nymax - 10)) * dble(ny) &
+                              + 1.0d0 - 0.01d0 * (dble(nymax - 10))**2)
+      enddo
+      enddo
+      do nx = 0, nxmax-10
+      do ny = 0, 10
+        Ax(nx,ny) = Ax(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
+                              + 2.0d0 * 0.1d0 * dble(ny))
+        Ay(nx,ny) = Ay(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
+                              + 2.0d0 * 0.1d0 * dble(ny))
+        Az(nx,ny) = Az(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
+                              + 2.0d0 * 0.1d0 * dble(ny))
+      enddo
+      enddo
+
+      !boundary condition for reflection
+      ! Ax(0,:)=0.d0
+      ! Ay(0,:)=0.d0
+      ! Az(0,:)=0.d0
+      ! Ax(nxmax,:)=0.d0
+      ! Ay(nxmax,:)=0.d0
+      ! Az(nxmax,:)=0.d0
+      ! Ax(:,0)=0.d0
+      ! Ay(:,0)=0.d0
+      ! Az(:,0)=0.d0
+      ! Ax(:,nymax)=0.d0
+      ! Ay(:,nymax)=0.d0
+      ! Az(:,nymax)=0.d0
 
       SELECT CASE(model_wg)
       CASE(0)
@@ -1248,9 +1380,9 @@ CONTAINS
 
       profiles(0:nxmax,0:nymax,1:9)=0.D0
       IF(npmax.EQ.0) then
-         factor=dble(nxmax)*dble(nymax)
+         factor=dble(nxmax-1)*dble(nymax-1)
       ELSE
-         factor=dble(nxmax)*dble(nymax)/dble(npmax)
+         factor=dble(nxmax-1)*dble(nymax-1)/dble(npmax)
       END IF
 
       DO np=1,npmax
