@@ -163,7 +163,7 @@ CONTAINS
 !***********************************************************************
     subroutine poisson_m(nxmax1,nymax1,rho,phi,ipssn, &
                          model_matrix0,model_matrix1,model_matrix2, &
-                         tolerance_matrix)
+                         tolerance_matrix,model_boundary)
 !***********************************************************************
       USE libmpi
       USE commpi
@@ -177,6 +177,7 @@ CONTAINS
       integer :: nxmax,nymax,mode,imax,isize,jwidth,ileng
       integer,save:: status=0,istart,iend,irange
       integer :: i,nx,ny,l,m,its
+      integer :: model_boundary
 
       nxmax=nxmax1-2
       nymax=nymax1-2
@@ -241,6 +242,7 @@ CONTAINS
       DEALLOCATE(x)
       status=2
       CALL mtx_cleanup
+      if(model_boundary .eq. 2) then
       do ny = 1,nymax
       do nx = nxmax-10,nxmax
         phi(nx,ny) = phi(nx,ny) * (-0.01d0 * dble(nx) ** 2 &
@@ -261,6 +263,7 @@ CONTAINS
                                 + 2.0d0 * 0.1d0 * dble(ny))
       enddo
       enddo
+    endif
 
     END subroutine poisson_m
 
