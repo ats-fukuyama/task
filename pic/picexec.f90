@@ -71,7 +71,7 @@ CONTAINS
        ELSE
           call poisson_m(nxmax1,nymax1,rho,phi,ipssn, &
                          model_matrix0,model_matrix1,model_matrix2, &
-                         tolerance_matrix)
+                         tolerance_matrix,model_boundary)
        END IF
        !----- current assignment
        jx(:,:)=0.d0
@@ -117,7 +117,8 @@ CONTAINS
           call phia_reflective(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
                                Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
                                model_wg,xmin_wg,xmax_wg,ymin_wg,ymax_wg, &
-                               amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi)
+                               amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi,&
+                               model_boundary)
        endif
        !.......... calculate ex and ey and ez
        call efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
@@ -534,8 +535,7 @@ CONTAINS
               + bz(nxpp ,nyp )*sx2 *sy2  + bz(nxp  ,nyp )*sx2m*sy2  &
               + bz(nxppp,nypm)*sx2p*sy2m + bz(nxpp ,nypm)*sx2 *sy2m &
               + bz(nxp  ,nypm)*sx2m*sy2m
-
-       else if(dx .ge. 0.5d0 .and. dy .ge. 0.5d0) then
+            else
           exx = ex(nxpp,nyppp)*dx*sy2p + ex(nxp ,nyppp)*dx1*sy2p &
               + ex(nxpp,nypp )*dx*sy2  + ex(nxp ,nypp )*dx1*sy2  &
               + ex(nxpp,nyp  )*dx*sy2m + ex(nxp ,nyp  )*dx1*sy2m
@@ -822,7 +822,7 @@ CONTAINS
             rho(nxppp,nypm) = rho(nxppp,nypm ) + sx2p * sy2m * factor
             rho(nxppp,nyp ) = rho(nxppp,nyp  ) + sx2p * sy2  * factor
             rho(nxppp,nypp) = rho(nxppp,nypp ) + sx2p * sy2p * factor
-         else if(dx .ge. 0.5d0 .and. dy .ge. 0.5d0) then
+          else
            if(model_boundary .ne. 0) then
              if(nxp .eq. nxmax-1) then
                sx2m = dx1
@@ -1059,7 +1059,7 @@ CONTAINS
            jz(nxppp,nyp ) = jz(nxppp,nyp ) + factor * vz(np) * sx2p * sy2
            jz(nxppp,nypm) = jz(nxppp,nypm) + factor * vz(np) * sx2p * sy2m
 
-         else if(dx .ge. 0.5d0 .and. dy .ge. 0.5d0) then
+         else
           if(model_boundary .ne. 0) then
             if(nxp .eq. nxmax-1) then
                sx2m = dx1
@@ -1247,14 +1247,15 @@ CONTAINS
     subroutine phia_reflective(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
                                Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
                                model_wg,xmin_wg,xmax_wg,ymin_wg,ymax_wg, &
-                               amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi)
+                               amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi,&
+                               model_boundary)
 !***********************************************************************
    !original subroutine
       implicit none
       real(8), dimension(0:nxmax,0:nymax) :: phi,phib,jx,jy,jz,Ax,Ay,Az, &
                                              Axb,Ayb,Azb,Axbb,Aybb,Azbb
       integer :: nxmax, nymax, nx, ny, nxm, nxp, nyp, nym
-      integer :: model_wg
+      integer :: model_wg,model_boundary
       real(8) :: xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg,ph_wg,rot_wg,eli_wg
       real(8) :: omega,time,pi
       real(8) :: vcfact,dt,dph,x,y,yc,ylen,factor
@@ -1294,6 +1295,7 @@ CONTAINS
 
       end do
       end do
+      if(model_boundary .eq. 2) then
       do ny = 0,nymax
       do nx = nxmax-10,nxmax
         Ax(nx,ny) = Ax(nx,ny) * (-0.01d0 * dble(nx) ** 2 &
@@ -1330,6 +1332,7 @@ CONTAINS
                               + 2.0d0 * 0.1d0 * dble(ny))
       enddo
       enddo
+    endif
 
       !boundary condition for reflection
       ! Ax(0,:)=0.d0
