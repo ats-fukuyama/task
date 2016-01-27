@@ -442,8 +442,8 @@ CONTAINS
        ELSE   ! reflective:
           if( nxp .eq. 0  ) nxpm = 0
           if( nyp .eq. 0  ) nypm = 0
-          if( nxp .eq. nxmax) nxppp = nxmax
-          if( nyp .eq. nymax) nyppp = nymax
+          if( nxp .eq. nxmax-1) nxppp = nxmax
+          if( nyp .eq. nymax-1) nyppp = nymax
        END IF
 
        ! electric field and magnetic field
@@ -535,7 +535,7 @@ CONTAINS
               + bz(nxppp,nypm)*sx2p*sy2m + bz(nxpp ,nypm)*sx2 *sy2m &
               + bz(nxp  ,nypm)*sx2m*sy2m
 
-       else
+       else if(dx .ge. 0.5d0 .and. dy .ge. 0.5d0) then
           exx = ex(nxpp,nyppp)*dx*sy2p + ex(nxp ,nyppp)*dx1*sy2p &
               + ex(nxpp,nypp )*dx*sy2  + ex(nxp ,nypp )*dx1*sy2  &
               + ex(nxpp,nyp  )*dx*sy2m + ex(nxp ,nyp  )*dx1*sy2m
@@ -748,11 +748,11 @@ CONTAINS
             if( nyp .eq. 0  ) nypm = nymax - 1
             if( nxp .eq. nxmax-1) nxppp=1
             if( nyp .eq. nymax-1) nyppp=1
-        ! ELSE   ! reflective:
-        !    if( nxp .eq. 0  ) nxpm = 0
-        !    if( nyp .eq. 0  ) nypm = 0
-        !    if( nxp .eq. nxmax-1) nxppp = nxmax
-        !    if( nyp .eq. nymax-1) nyppp = nymax
+         ELSE   ! reflective:
+            if( nxp .eq. 0  ) nxpm = 0
+            if( nyp .eq. 0  ) nypm = 0
+            if( nxp .eq. nxmax-1) nxppp = nxmax
+            if( nyp .eq. nymax-1) nyppp = nymax
         END IF
 
          if(dx .le. 0.5d0 .and. dy .le. 0.5d0) then
@@ -822,7 +822,7 @@ CONTAINS
             rho(nxppp,nypm) = rho(nxppp,nypm ) + sx2p * sy2m * factor
             rho(nxppp,nyp ) = rho(nxppp,nyp  ) + sx2p * sy2  * factor
             rho(nxppp,nypp) = rho(nxppp,nypp ) + sx2p * sy2p * factor
-         else
+         else if(dx .ge. 0.5d0 .and. dy .ge. 0.5d0) then
            if(model_boundary .ne. 0) then
              if(nxp .eq. nxmax-1) then
                sx2m = dx1
@@ -941,11 +941,11 @@ CONTAINS
             if( nyp .eq. 0  ) nypm = nymax - 1
             if( nxp .eq. nxmax-1) nxppp=1
             if( nyp .eq. nymax-1) nyppp=1
-         !ELSE   ! reflective:
-          !  if( nxp .eq. 0  ) nxpm=0
-          !  if( nyp .eq. 0  ) nypm=0
-          !  if( nxp .eq. nxmax-1) nxppp=nxmax
-          !  if( nyp .eq. nymax-1) nyppp=nymax
+         ELSE   ! reflective:
+            if( nxp .eq. 0  ) nxpm=0
+            if( nyp .eq. 0  ) nypm=0
+            if( nxp .eq. nxmax-1) nxppp=nxmax
+            if( nyp .eq. nymax-1) nyppp=nymax
          END IF
 
          if (dx .le. 0.5d0 .and. dy .le. 0.5d0) then
@@ -1059,7 +1059,7 @@ CONTAINS
            jz(nxppp,nyp ) = jz(nxppp,nyp ) + factor * vz(np) * sx2p * sy2
            jz(nxppp,nypm) = jz(nxppp,nypm) + factor * vz(np) * sx2p * sy2m
 
-        else
+         else if(dx .ge. 0.5d0 .and. dy .ge. 0.5d0) then
           if(model_boundary .ne. 0) then
             if(nxp .eq. nxmax-1) then
                sx2m = dx1
@@ -1262,8 +1262,8 @@ CONTAINS
  ! Solution of maxwell equation in the A-phi formulation by difference method
  ! vcfact is the ratio of the light speed to lattice parameter times plasma
  ! frequency
-      do nx = 0, nxmax
-      do ny = 0, nymax
+      do nx = 1, nxmax-1
+      do ny = 1, nymax-1
 
          nxm = nx - 1
          nxp = nx + 1

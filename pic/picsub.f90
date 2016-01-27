@@ -241,22 +241,22 @@ CONTAINS
       DEALLOCATE(x)
       status=2
       CALL mtx_cleanup
-      do ny = 0,nymax
+      do ny = 1,nymax
       do nx = nxmax-10,nxmax
         phi(nx,ny) = phi(nx,ny) * (-0.01d0 * dble(nx) ** 2 &
-                              + 2.0d0 * 0.01d0 * (dble(nxmax - 10)) * dble(nx) &
-                              + 1.0d0 - 0.01d0 * (dble(nxmax - 10))**2)
+                             + 2.0d0 * 0.01d0 * (dble(nxmax - 10)) * dble(nx)&
+                             + 1.0d0 - 0.01d0 * (dble(nxmax - 10))**2)
       enddo
       enddo
-      do nx = 0,nxmax-10
+      do nx = 1,nxmax-10
       do ny = nymax-10,nymax
         phi(nx,ny) = phi(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
                               + 2.0d0 * 0.01d0 * (dble(nymax - 10)) * dble(ny) &
                               + 1.0d0 - 0.01d0 * (dble(nymax - 10))**2)
       enddo
       enddo
-      do nx = 0, nxmax-10
-      do ny = 0, 10
+      do nx = 1, nxmax-10
+      do ny = 1, 10
         phi(nx,ny) = phi(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
                                 + 2.0d0 * 0.1d0 * dble(ny))
       enddo

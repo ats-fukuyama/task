@@ -1,8 +1,8 @@
 include ../make.header
 include ../mtxp/make.mtxp
 #LIBX_MTX=$(LIBX_MTX_BND)
-#LIBX_MTX=$(LIBX_MTX_PCG)
-LIBX_MTX=$(LIBX_MTX_MUMPS)
+LIBX_MTX=$(LIBX_MTX_PCG)
+#LIBX_MTX=$(LIBX_MTX_MUMPS)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
 .SUFFIXES:
@@ -11,10 +11,10 @@ LIBX_MTX=$(LIBX_MTX_MUMPS)
 FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
-MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD) -I../mtxp/$(MOD) -I../lib/$(MOD)
+MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD) -I../mtxp/$(MOD) -I../lib/$(MOD) 
 #FINCLUDE=-I /usr/local/mpich313-ifort-gcc/include
-FINCLUDE=-I /usr/local/mpich3-intel140/include
-
+#FINCLUDE=-I /usr/local/mpich3-intel140/include
+FINCLUDE=-I /home/hoge/lib/openmpi/include
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE) $(FINCLUDE)
 .f90.o :
@@ -26,9 +26,10 @@ SRCSFREE = libgrf/plot2.f90 libgrf/grf2dpexec.f90 libgrf/grfpconvert.f90 \
            picsub.f90 picprep.f90 picexec.f90 \
            picgout.f90 picmenu.f90
 
-OBJS = $(SRCSFREE:.f90=.o)
+OBJS = $(SRCSFREE:.f90=.o) 
 
 LIBS = ../../bpsd/bpsdlib.a ../lib/tasklib.a piclib.a
+FFTWLIB =  -L /usr/local/lib -lfftw3
 
 all : pic
 
@@ -42,10 +43,10 @@ piclib.a: $(OBJS)
 libs:
 	(cd ../lib; make tasklib.a)
 	(cd ../../bpsd; make bpsdlib.a)
-	(cd ../../mtxp; make)
+	(cd ../mtxp; make)
 
 pic : $(LIBS) picmain.o
-	$(FLINKER) picmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
+	$(FLINKER) picmain.o $(LIBS) -o $@ $(FFLAGS) $(FFTWLIB) $(FLIBS) $(LIBX_MTX)
 
 testplot2 : $(LIBS) libgrf/testplot2.o
 	$(MF90) libgrf/testplot2.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) \
