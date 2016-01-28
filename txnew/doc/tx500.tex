@@ -159,7 +159,7 @@ $$\halign to \displaywidth\bgroup\@eqnsel\hskip\@centering
 \begin{document}
 
 \begin{center}
-TASK/TX V5.00 [16/01/20]
+TASK/TX V5.00 [16/01/27]
 \end{center}
 
 \section{Equations in $\rho$ coordinates}
@@ -555,7 +555,7 @@ TASK/TX V5.00 [16/01/20]
 %
 %  turbulent particle flux model
 %
-  + \Zi \frac{e^2 \aves{|\nabla\rho|^2} \De}{\Te} \dd{\psi}{\rho} \nee
+  + \Zi \frac{e^2 \aves{|\nabla\rho|^2} \De}{\Te} \dd{\psi}{\rho} \ni
     \left[  \dd{\psi}{\rho} \frac{\aves{B^2}}{\bri} \aves{R \uezt}
           - \dd{\psi}{\rho} \frac{I}{\bri} \aves{B \uepara} \right.
 \nonumber\\[2.5mm]&&{}
@@ -690,7 +690,7 @@ TASK/TX V5.00 [16/01/20]
   + \Zb e \nb \aves{B E_\para^A}
 \nonumber\\[2.5mm]&&{}
 %
-  + \aves{B S_{\r{m}\para\r{b}}}
+  - \nubL \mb \nb \aves{B\ubpara}
 %
   - \nub  \mb \nb \aves{B\ubpara}
 %
@@ -698,9 +698,9 @@ TASK/TX V5.00 [16/01/20]
 %
   - \nuCX \mb \nb \aves{B\ubpara}
 %
-%  + \vbph \frac{\Pbpara}{\Eb}
+  + \aves{B S_{\r{m}\para\r{b}}}
 %
-  - \nubL \mb \nb \aves{B\ubpara}
+%  + \vbph \frac{\Pbpara}{\Eb}
 %
 \nonumber\\[2.5mm]&&{}
   - \nueff g \sqrt{\delta} \mb \nb \aves{B\ubpara}
@@ -748,7 +748,7 @@ TASK/TX V5.00 [16/01/20]
 %	  + \frac{\Te}{e} \dd{\psi}{V} C_\r{p} \red{\nee} \right]
 %\nonumber\\[2.5mm]&&{}
 %
-  - \nuL  \mb \nb \aves{R \ubzt}
+  - \nubL \mb \nb \aves{R \ubzt}
 %
   - \nub  \mb \nb \aves{B \ubzt}
 \nonumber\\[2.5mm]&&{}
@@ -1495,13 +1495,15 @@ TASK/TX V5.00 [16/01/20]
 %
   + \Zi \frac{e^2 \aves{|\nabla V|^2} \De}{\mi\Te} \dd{\psi}{V} 
 %
-    \left[  \dd{\psi}{V} \frac{\aves{B^2}}{\bri} \red{\nee \aves{R \uezt}}
-          - \dd{\psi}{V} \frac{I}{\bri} \nee \red{\aves{B \uepara}} \right.
+    \left[  \dd{\psi}{V} \frac{\aves{B^2}}{\bri} \frac{\ni}{\nee}
+            \red{\nee \aves{R \uezt}}
+          - \dd{\psi}{V} \frac{I}{\bri} \ni \red{\aves{B \uepara}} \right.
 \nonumber\\[2.5mm]&&{}
 %
-    \left.+ \frac{C_\r{T}-1}{e} \left(\ddV \red{\nee \Te} - \Te \ddV \red{\nee} \right)
-	  + \nee \ddV \red{\Phi}
-	  + \frac{\Te}{e} \dd{\psi}{V} C_\r{p} \red{\nee} \right]
+    \left.+ \frac{C_\r{T}-1}{e} \frac{\ni}{\nee}
+     \left(\ddV \red{\nee \Te} - \Te \ddV \red{\nee} \right)
+	  + \ni \ddV \red{\Phi}
+	  + \frac{\Te}{e} \dd{\psi}{V} C_\r{p} \red{\ni} \right]
 \nonumber\\[2.5mm]&&{}
 %
   - \nuL  \red{\ni \aves{R \uizt}}
@@ -1664,7 +1666,7 @@ TASK/TX V5.00 [16/01/20]
 %
   + \Zb \frac{e}{\mb} \nb I \aves{R^{-2}} \left( - \frac{\red{\psitd}}{q} + \red{\psid} \right)
 %
-  + \frac{1}{\mb} \aves{B S_{\r{m}\para\r{b}}}
+  - \nubL \red{\nb \aves{B\ubpara}}
 %
   - \nub  \red{\nb \aves{B \ubpara}}
 %
@@ -1675,7 +1677,7 @@ TASK/TX V5.00 [16/01/20]
 %
 %  + \vbph \frac{\Pbpara}{\Eb}
 %
-  - \nubL \red{\nb \aves{B\ubpara}}
+  + \frac{1}{\mb} \aves{B S_{\r{m}\para\r{b}}}
 %
 %\nonumber\\[2.5mm]&&{}
   - \nueff g \sqrt{\delta} \red{\nb \aves{B\ubpara}}
@@ -1726,7 +1728,7 @@ TASK/TX V5.00 [16/01/20]
 %	  + \frac{\Te}{e} \dd{\psi}{V} C_\r{p} \red{\nee} \right]
 %\nonumber\\[2.5mm]&&{}
 %
-  - \nuL  \red{\nb \aves{R \ubzt}}
+  - \nubL  \red{\nb \aves{R \ubzt}}
 %
   - \nub  \red{\nb \aves{B \ubzt}}
 %
