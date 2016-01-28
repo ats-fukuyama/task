@@ -294,8 +294,8 @@ contains
           IF (NGYR >= 1 .AND. NGYR <= NGYRM) THEN
              ALLOCATE(FX(0:NRMAX),FY(0:NRMAX,1))
              DO NR=0,NRMAX
-                FX(NR)=DBLE(GX(NR))
-                FY(NR,1)=DBLE(GYT(NR,NGT,NGYR))
+                FX(NR)=real(GX(NR),8)
+                FY(NR,1)=real(GYT(NR,NGT,NGYR),8)
              ENDDO
              STRL='@profile'//STR(2:5)//'@'
              CALL PAGES
@@ -314,11 +314,11 @@ contains
           IF (NGYR >= 1 .AND. NGYR <= NGYRM) THEN
              ALLOCATE(FX(0:NRMAX),FY(0:NRMAX,0:NGT))
              DO NR=0,NRMAX
-                FX(NR)=DBLE(GX(NR))
+                FX(NR)=real(GX(NR),8)
              ENDDO
              DO NGTDO=0,NGT
              DO NR=0,NRMAX
-                FY(NR,NGTDO)=DBLE(GYT(NR,NGTDO,NGYR))
+                FY(NR,NGTDO)=real(GYT(NR,NGTDO,NGYR),8)
              ENDDO
              ENDDO
              STRL='@profile'//STR(2:5)//'@'
@@ -1044,11 +1044,7 @@ contains
        GYL(NX,NG,112) = REAL(DltRP(NX))
        GYL(NX,NG,113) = REAL(Ubrp(NX))
        GYL(NX,NG,114) = REAL(Dbrp(NX))
-       IF(PNbV(NX) == 0.D0) THEN
-          GYL(NX,NG,115) = 0.D0
-       ELSE
-          GYL(NX,NG,115) = REAL(PNbrpV(NX)/PNbV(NX))
-       END IF
+       GYL(NX,NG,115) = REAL(PNbrpV(NX)*PNbVinv(NX))
 !       GYL(NX,NG,115) = REAL(PNbrpLV(NX)*1.D20)
 
        GYL(NX,NG,116) = REAL(rNuLB(NX))
@@ -1200,7 +1196,8 @@ contains
          &              rG1h2, FCDBM, S, Alpha, rKappa, NRA, rNuION, &
          &              Chie,  Chii, PIE, PCX, SIE, PBr, Deff, rKeV, FCDIM, &
          &              AJ, d_rrr, aat, fipol, bbt, BUbparV, qhatsq, Var
-    use tx_interface, only : rLINEAVE, sub_intg_vol
+    use tx_interface, only : rLINEAVE
+    use tx_core_module, only : sub_intg_vol
 
     REAL(4), INTENT(IN) :: GTIME
     integer(4) :: NRL
@@ -1780,7 +1777,7 @@ contains
 !       CALL TXGRFRX(3,GX,GYL,NRMAX,NGR,STR,MODE,IND)
        DO NG = 0, NGR
           DO NR = 0, NRMAX
-             GYL(NR,NG) = GLOG(DBLE(GY(NR,NG,16)),1.D0,1.D23)
+             GYL(NR,NG) = GLOG(real(GY(NR,NG,16),8),1.D0,1.D23)
           END DO
        END DO
        CALL TXGRFRX(3,GX,GYL,NRMAX,NGR,STR,MODE,IND,ILOGIN=1)
@@ -1791,7 +1788,7 @@ contains
        STR = '@SCX@'
        DO NG = 0, NGR
           DO NR = 0, NRMAX
-             GYL(NR,NG) = GLOG(DBLE(GY(NR,NG,133)),1.D10,1.D23)
+             GYL(NR,NG) = GLOG(real(GY(NR,NG,133),8),1.D10,1.D23)
           END DO
        END DO
        CALL TXGRFRX(0,GX,GYL,NRMAX,NGR,STR,MODE,IND,GYMIN=18.0,ILOGIN=1)
@@ -1799,7 +1796,7 @@ contains
        STR = '@SIE@'
        DO NG = 0, NGR
           DO NR = 0, NRMAX
-             GYL(NR,NG) = GLOG(DBLE(GY(NR,NG,90)),1.D10,1.D23)
+             GYL(NR,NG) = GLOG(real(GY(NR,NG,90),8),1.D10,1.D23)
           END DO
        END DO
        CALL TXGRFRX(1,GX,GYL,NRMAX,NGR,STR,MODE,IND,GYMIN=18.0,ILOGIN=1)
@@ -2094,7 +2091,7 @@ contains
 !       CALL TXGRFRXS(4,GX,GYL,NRMAX,NGR,STR,MODE,IND)
        DO NG = 0, NGR
           DO NR = 0, NRMAX
-             GYL(NR,NG) = GLOG(DBLE(GY(NR,NG,16)),1.D0,1.D23)
+             GYL(NR,NG) = GLOG(real(GY(NR,NG,16),8),1.D0,1.D23)
           END DO
        END DO
        CALL TXGRFRXS(4,GX,GYL,NRMAX,NGR,STR,MODE,IND,ILOGIN=1)
@@ -4951,7 +4948,7 @@ contains
     case('D') ! R-derivative of a radial profile
        if (n >= 0 .and. n <= NGYRM) then
           allocate(dVdr(0:nrmax))
-          dVdr(0:nrmax) = dfdx(R,dble(gy(0:nrmax,ngr,n)),nrmax,0)
+          dVdr(0:nrmax) = dfdx(R,real(gy(0:nrmax,ngr,n),8),nrmax,0)
           write(6,'(A1,6X,A3,11X,A5)') "#","rho","dValue/dR"
           do i = 0, nrmax
              write(6,*) gx(i),real(dVdr(i))

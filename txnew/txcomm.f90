@@ -227,7 +227,7 @@ module tx_commons
        & DMAG, DMAGe, DMAGi, &
        & Ubrp, RUbrp, Dbrp, DltRP, DltRP_mid, rNubL, rip_rat, rNuOL, Vbpara, &
        & SiVizA, SiVcxA, wexb, &
-       & UgV
+       & UgV, PNbVinv
   real(8), dimension(:,:), allocatable :: gamITG
   real(8), dimension(:,:), allocatable :: Vhps, Vmps, PiRess
 
@@ -406,7 +406,7 @@ contains
        allocate(gamITG(0:N,1:3),                                              stat = ierl(15))
        allocate(DMAG(0:N),   DMAGe(0:N),  DMAGi(0:N),                         stat = ierl(16))
        allocate(SiVizA(0:N), SiVcxA(0:N), wexb(0:N),                          stat = ierl(17))
-       allocate(UgV(0:N),                                                     stat = ierl(18))
+       allocate(UgV(0:N),    PNbVinv(0:N),                                    stat = ierl(18))
        allocate(Vhps(0:N,NS),Vmps(0:N,NS), PiRess(0:N,NS),                    stat = ierl(19))
        ier = sum(ierl) ; iflag = 4
        if (ier /= 0) exit
@@ -521,7 +521,7 @@ contains
     deallocate(gamITG)
     deallocate(DMAG,   DMAGe,  DMAGi)  !***AF (2008-06-08)
     deallocate(SiVizA, SiVcxA, wexb)
-    deallocate(UgV)
+    deallocate(UgV,    PNbVinv)
     deallocate(Vhps,   Vmps,   PiRess)
 
     deallocate(xmu, xmuf, lab, laf, lfb, lff, BnablaPi)

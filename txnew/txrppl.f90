@@ -308,7 +308,7 @@ contains
 !!$          ! equivalent to that of ripple-plateau diffusion)
 !!$          if (DltRP(NR) > Dltcr) then
 !!$             ! facST : Fraction of stochastic region in a flux surface
-!!$             facST = dble(ist) / dble(imax - 1)
+!!$             facST = real(ist,8) / (imax - 1)
 !!$             Dbrp(NR) = DRP * facST + Dbrp(NR) * (1.d0 - facST)
 !!$          end if
           if (DltRP(NR) > Dltcr) Dbrp(NR) = DRP

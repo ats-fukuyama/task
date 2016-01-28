@@ -1203,6 +1203,110 @@ contains
 !!$
 !!$  end subroutine inv_int
 
+!***************************************************************
+!
+!   Integral Method
+!
+!***************************************************************
+
+! === ATTENTION !!! ======================================================!
+!   These functions may be used only if size(X) is equivalent to NEMAX,   !
+!   denoting the maximum index of the integral domain of fem_int funtion. !
+
+  real(8) function intg_vol(X)
+
+    ! Calculate \int X dV
+
+    real(8), dimension(:), intent(in) :: X
+
+    intg_vol = sum(fem_int(-1,X))
+
+  end function intg_vol
+
+  real(8) function intg_area(X)
+
+    ! Calculate \int X dS = \int X <1/R>/(2 Pi) dV
+    !   Note: d_rrr = <1/R> = 2 Pi dS/dV
+
+    use tx_commons, only : Pi, d_rrr
+    real(8), dimension(:), intent(in) :: X
+
+    intg_area = sum(fem_int(-2,d_rrr,X)) / ( 2.d0 * Pi )
+
+  end function intg_area
+!                                                                         !
+! ========================================================================!
+
+  real(8) function intg_vol_p(X,NR)
+
+    ! Integrate X at a certain ONE point (NOT the domain)
+
+    ! Calculate \int X dV
+
+    integer(4), intent(in) :: NR
+    real(8), dimension(:), intent(in) :: X
+    integer(4) :: NE
+
+    if(NR == 0) THEN
+       intg_vol_p = 0.d0
+    else
+       NE = NR
+       intg_vol_p = sum(fem_int_point(-1,NE,X))
+    end if
+
+  end function intg_vol_p
+
+
+  real(8) function intg_area_p(X,NR)
+
+    ! Integrate X at a certain ONE point (NOT the domain)
+
+    ! Calculate \int X dV
+
+    use tx_commons, only : Pi, d_rrr
+    integer(4), intent(in) :: NR
+    real(8), dimension(:), intent(in) :: X
+    integer(4) :: NE
+
+    if(NR == 0) THEN
+       intg_area_p = 0.d0
+    else
+       NE = NR
+       intg_area_p = sum(fem_int_point(-2,NE,d_rrr,X)) / ( 2.d0 * Pi )
+    end if
+
+  end function intg_area_p
+
+  subroutine sub_intg_vol(X,NRLMAX,VAL,NR_START)
+
+    ! Integrate X in the arbitrary size domain from NR_START to NRLMAX
+
+    ! Calculate \int_{V(NR_START)}^V(NRLMAX) X dV
+
+    integer(4), intent(in) :: NRLMAX
+    integer(4), intent(in), optional :: NR_START
+    real(8), dimension(:), intent(in) :: X
+    real(8), intent(out) :: VAL
+    integer(4) :: NE, NEMAX, NE_START
+    real(8) :: SUML
+
+    NEMAX = NRLMAX
+
+    if(present(NR_START)) then
+       NE_START = NR_START
+    else
+       ! default
+       NE_START = 1
+    end if
+
+    SUML = 0.D0
+    do NE = NE_START, NEMAX
+       SUML = SUML + sum(fem_int_point(-1,NE,X))
+    end do
+    VAL = SUML
+
+  end subroutine sub_intg_vol
+
 end module tx_core_module
 
 !*****************************************************************
@@ -1372,7 +1476,7 @@ SUBROUTINE APRTOS(STR, NSTR, GR, FORM)
 
   REAL(8) :: D
 
-  D = DBLE(GR)
+  D = real(GR,8)
   CALL APDTOS(STR, NSTR, D, FORM)
 
   RETURN
@@ -1516,121 +1620,6 @@ function dfdx(x,f,nmax,mode,daxs,dbnd)
 
 end function dfdx
 
-!***************************************************************
-!
-!   Integral Method
-!
-!***************************************************************
-
-! === ATTENTION !!! ======================================================!
-!   These functions may be used only if size(X) is equivalent to NEMAX,   !
-!   denoting the maximum index of the integral domain of fem_int funtion. !
-
-real(8) function intg_vol(X)
-
-  ! Calculate \int X dV
-
-  use tx_core_module, only : fem_int
-  implicit none
-  real(8), dimension(:), intent(in) :: X
-
-  intg_vol = sum(fem_int(-1,X))
-
-end function intg_vol
-
-
-real(8) function intg_area(X)
-
-  ! Calculate \int X dS = \int X <1/R>/(2 Pi) dV
-  !   Note: d_rrr = <1/R> = 2 Pi dS/dV
-
-  use tx_commons, only : Pi, d_rrr
-  use tx_core_module, only : fem_int
-  implicit none
-  real(8), dimension(:), intent(in) :: X
-
-  intg_area = sum(fem_int(-2,d_rrr,X)) / ( 2.d0 * Pi )
-
-end function intg_area
-!                                                                         !
-! ========================================================================!
-
-real(8) function intg_vol_p(X,NR)
-
-  ! Integrate X at a certain ONE point (NOT the domain)
-
-  ! Calculate \int X dV
-
-  use tx_core_module, only : fem_int_point
-  implicit none
-  integer(4), intent(in) :: NR
-  real(8), dimension(:), intent(in) :: X
-  integer(4) :: NE
-
-  if(NR == 0) THEN
-     intg_vol_p = 0.d0
-  else
-     NE = NR
-     intg_vol_p = sum(fem_int_point(-1,NE,X))
-  end if
-
-end function intg_vol_p
-
-
-real(8) function intg_area_p(X,NR)
-
-  ! Integrate X at a certain ONE point (NOT the domain)
-
-  ! Calculate \int X dV
-
-  use tx_commons, only : Pi, d_rrr
-  use tx_core_module, only : fem_int_point
-  implicit none
-  integer(4), intent(in) :: NR
-  real(8), dimension(:), intent(in) :: X
-  integer(4) :: NE
-
-  if(NR == 0) THEN
-     intg_area_p = 0.d0
-  else
-     NE = NR
-     intg_area_p = sum(fem_int_point(-2,NE,d_rrr,X)) / ( 2.d0 * Pi )
-  end if
-
-end function intg_area_p
-
-subroutine sub_intg_vol(X,NRLMAX,VAL,NR_START)
-
-  ! Integrate X in the arbitrary size domain from NR_START to NRLMAX
-
-  ! Calculate \int_{V(NR_START)}^V(NRLMAX) X dV
-
-  use tx_core_module, only : fem_int_point
-  implicit none
-  integer(4), intent(in) :: NRLMAX
-  integer(4), intent(in), optional :: NR_START
-  real(8), dimension(:), intent(in) :: X
-  real(8), intent(out) :: VAL
-  integer(4) :: NE, NEMAX, NE_START
-  real(8) :: SUML
-
-  NEMAX = NRLMAX
-
-  if(present(NR_START)) then
-     NE_START = NR_START
-  else
-     ! default
-     NE_START = 1
-  end if
-
-  SUML = 0.D0
-  do NE = NE_START, NEMAX
-     SUML = SUML + sum(fem_int_point(-1,NE,X))
-  end do
-  VAL = SUML
-
-end subroutine sub_intg_vol
-
 ! *** Integral Method By Inverting Derivative Method ***
 
 !     This formula can be used only if intX(0    ) is known of FVAL (ID = 0)
@@ -1692,7 +1681,7 @@ END SUBROUTINE INTDERIV3
 !   W  : width of flat region around R=RC
 !   RC : center radial point of fine mesh region
 
-REAL(8) FUNCTION LORENTZ(R,C1,C2,W1,W2,RC1,RC2,AMP)
+pure REAL(8) FUNCTION LORENTZ(R,C1,C2,W1,W2,RC1,RC2,AMP)
 
   implicit none
   real(8), intent(in) :: r, c1, c2, w1, w2, rc1, rc2

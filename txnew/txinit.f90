@@ -526,7 +526,7 @@ SUBROUTINE TXINIT
   !     iSUPG2 for LQe2CC and LQi2CC
   !     iSUPG3 for LQe3CC and LQi3CC; LQb3CC only when iSUPG3 = -1
   !     iSUPG6 for LQe6CC and LQi6CC
-  iSUPG2 = 0
+  iSUPG2 = 0 ! Should be on when the turbulent particle flux is off (De0=0.0).
   iSUPG3 = 0
   iSUPG6 = 0
 
@@ -815,7 +815,7 @@ SUBROUTINE TXCALM
   nr_rhoc_near = 0
   R(0) = 0.D0
   DO NR = 1, NRMAX - 1
-     rhol = DBLE(NR) / DBLE(NRMAX) * rhob
+     rhol = NR * rhob / NRMAX
      CALL BISECTION(LORENTZ,C1L,C2L,W1L,W2L,0.D0,rhoc,MAXAMP,rhol,rhob,rho(NR))
      IF(ABS(rho(NR)-rhoc) <= ABS(rho(NR)-rho(nr_rhoc_near))) nr_rhoc_near = NR
   END DO
@@ -824,7 +824,7 @@ SUBROUTINE TXCALM
   !  Construct new CL value that separatrix is just on mesh.
   !  New CL is chosen in order not to be settle so far from given CL.
   !  The mesh finally obtained is well-defined.
-  rhocl = DBLE(nr_rhoc_near) / DBLE(NRMAX) * rhob
+  rhocl = nr_rhoc_near * rhob / NRMAX
   CLNEW = ( (rhoc - rhocl) * rhob - rhocl * C1L * LORENTZ_PART(rhob,W1L,W2L,0.D0,rhoc,0) &
        &   + rhob * C1L * LORENTZ_PART(rhoc,W1L,W2L,0.D0,rhoc,0)) &
        &  / (  rhocl * LORENTZ_PART(rhob,W1L,W2L,0.D0,rhoc,1) &
@@ -832,7 +832,7 @@ SUBROUTINE TXCALM
   MAXAMP = LORENTZ(rhob,C1L,CLNEW,W1L,W2L,0.D0,rhoc) / rhob
   rho(0) = 0.D0
   DO NR = 1, NRMAX - 1
-     rhol = DBLE(NR) / DBLE(NRMAX) * rhob
+     rhol = NR * rhob / NRMAX
      CALL BISECTION(LORENTZ,C1L,CLNEW,W1L,W2L,0.D0,rhoc,MAXAMP,rhol,rhob,rho(NR))
   END DO
   rho(NRMAX) = rhob
@@ -907,11 +907,11 @@ SUBROUTINE TXCALM
 
   !  Mesh coordinate
 
-  r(0:NRMAX)  = rho(0:NRMAX) * ra
-  rhosq(0:NRMAX) = rho(0:NRMAX)**2
+  r(:)     = rho(:) * ra
+  rhosq(:) = rho(:)**2
 
-  vv(0:NRMAX) = vlt(0:NRMAX)
-  vvn(0:NRMAX) = vv(0:NRMAX) / vv(NRA) ! Volume normalized by the plasma volume
+  vv(:)  = vlt(:)
+  vvn(:) = vv(:) / vv(NRA) ! Volume normalized by the plasma volume
 
   !  Mesh interval
 
@@ -931,16 +931,16 @@ SUBROUTINE TXPROF
   use tx_commons
   use tx_graphic, only : NGR, NGT, NGVV
   use tx_variables
-  use tx_interface, only : intg_area, intg_area_p, INTDERIV3, detect_datatype, dfdx, &
-       &                   initprof_input, moving_average, CORR, coulog, intg_vol_p, &
-       &                   inexpolate
+  use tx_interface, only : INTDERIV3, detect_datatype, dfdx, &
+       &                   initprof_input, moving_average, CORR, coulog, inexpolate
+  use tx_core_module, only : intg_area, intg_area_p, intg_vol_p 
   use sauter_mod
   use tx_ntv, only : perturb_mag, Wnm_spline
   use lapack95, only : GESV ! for intel mkl LAPACK95, Note: This module file includes "ptsv" subroutine, whose name conflicts with PTsV defined in TASK/TX.  
 
   implicit none
   INTEGER(4) :: NR, IER, ifile, NHFM, NR_smt, NR_smt_start = 10
-  REAL(8) :: rhol, RL, PROFN, PROFT, PTePROF, PTiPROF!, QL, dRIP
+  REAL(8) :: rhol, PROFN, PROFT, PTePROF, PTiPROF!, RL, QL, dRIP
   REAL(8) :: AJFCT, SUM_INT, DR1, DR2
   REAL(8) :: EpsL, FTL, PBA, dPN, CfN1, CfN2, pea, pia, pediv, pidiv, dpea, dpia, &
        &     Cfpe1, Cfpe2, Cfpi1, Cfpi2, sigma, fexp, PN0L, PNaL, PNeDIVL, &
@@ -966,9 +966,9 @@ SUBROUTINE TXPROF
   !  Contribution of perturbed magnetic field
 !  IF(DltRPn /= 0.D0) CALL perturb_mag
 
-  !  Initialize variable vector
+  !  Initialize variable array
 
-  X(0:NRMAX,1:NQMAX) = 0.D0
+  X = 0.D0
 
   !  Variables
 
@@ -1017,7 +1017,6 @@ SUBROUTINE TXPROF
   Cfpi2 =   (2.D0 * PBA * dpia + 3.D0 * (pia - pidiv)) / PBA**4
 
   DO NR = 0, NRMAX
-     RL = R(NR)
      rhol = rho(NR)
      ! === Density, temperature, pressure ===
      ! +++ Core +++
@@ -1116,8 +1115,8 @@ SUBROUTINE TXPROF
   ! === Smoothing profiles ===
   IF(MDINTT == -2) THEN ! Smoothing temperatures
      allocate(Prof1(0:NRMAX),Prof2(0:NRMAX))
-     Prof1(0:NRMAX) = X(0:NRMAX,LQe5) / X(0:NRMAX,LQe1)
-     Prof2(0:NRMAX) = X(0:NRMAX,LQi5) / X(0:NRMAX,LQi1)
+     Prof1(:) = X(:,LQe5) / X(:,LQe1)
+     Prof2(:) = X(:,LQi5) / X(:,LQi1)
      NR_smt = NRA - NR_smt_start ! smoothing data only in the edge region
      DO NR = NR_smt, NRMAX
         X(NR,LQe5) = moving_average(NR,Prof1,NRMAX) * X(NR,LQe1)
@@ -1127,23 +1126,23 @@ SUBROUTINE TXPROF
   END IF
   IF(MDINTN == -2) THEN ! Smoothing densities
      allocate(Prof1(0:NRMAX))
-     X(0:NRMAX,LQe5) = X(0:NRMAX,LQe5) / X(0:NRMAX,LQe1)
-     X(0:NRMAX,LQi5) = X(0:NRMAX,LQi5) / X(0:NRMAX,LQi1)
-     Prof1(0:NRMAX) = X(0:NRMAX,LQe1)
+     X(:,LQe5) = X(:,LQe5) / X(:,LQe1)
+     X(:,LQi5) = X(:,LQi5) / X(:,LQi1)
+     Prof1(:) = X(:,LQe1)
      NR_smt = NRA - NR_smt_start ! smoothing data only in the edge region
      DO NR = NR_smt, NRMAX
         X(NR,LQe1) = moving_average(NR,Prof1,NRMAX)
         X(NR,LQi1) = X(NR,LQe1) / achg(2)       ! Ni
      END DO
-     X(0:NRMAX,LQe5) = X(0:NRMAX,LQe5) * X(0:NRMAX,LQe1)
-     X(0:NRMAX,LQi5) = X(0:NRMAX,LQi5) * X(0:NRMAX,LQi1)
+     X(:,LQe5) = X(:,LQe5) * X(:,LQe1)
+     X(:,LQi5) = X(:,LQi5) * X(:,LQi1)
      deallocate(Prof1)
   END IF
 
   ! === Poloidal current function, fipol = R B_t ===
 
   sum_int = 0.d0
-  fipol(0:NRMAX) = rr * bb ! flat fipol assumed at initial
+  fipol(:) = rr * bb ! flat fipol assumed at initial
   do NR = 0, NRMAX
      sum_int = sum_int + intg_vol_p(aat,nr) * fipol(NRMAX) / (4.d0 * Pisq)
      X(NR,LQm5) = sum_int / rMU0 ! PsitV / rMU0
@@ -1203,7 +1202,7 @@ SUBROUTINE TXPROF
         
         IF(MDINTC == -2) THEN ! Smoothing current density
            allocate(Prof1(0:NRMAX))
-           Prof1(0:NRMAX) = AJPHL(0:NRMAX)
+           Prof1(:) = AJPHL(:)
            NR_smt = NRA - NR_smt_start ! smoothing data only in the edge region
            DO NR = NR_smt, NRMAX
               AJPHL(NR) = moving_average(NR,Prof1,NRMAX)
@@ -1274,34 +1273,32 @@ SUBROUTINE TXPROF
 
   allocate(CMTX(1:NRMAX,1:NRMAX),RHSV(1:NRMAX))
   CMTX(:,:) = 0.D0
-  DO NR = 1, NRMAX
-     IF(NR == 1) THEN
-        DR1 = vv(NR-1) - vv(NR)
-        DR2 = vv(NR+1) - vv(NR)
-        CMTX(NR,NR  ) = - (DR1 + DR2) / (DR1 * DR2)
-        CMTX(NR,NR+1) = - DR1**2 / (DR1 * DR2 * (DR2 - DR1))
-     ELSEIF(NR == NRMAX) THEN
-        DR1 = vv(NR-1) - vv(NR)
-        DR2 = vv(NR-2) - vv(NR)
-        CMTX(NR,NR-2) = - DR1**2 / (DR1 * DR2 * (DR2 - DR1))
-        CMTX(NR,NR-1) =   DR2**2 / (DR1 * DR2 * (DR2 - DR1))
-        CMTX(NR,NR  ) = - (DR1 + DR2) / (DR1 * DR2)
-     ELSE
-        DR1 = vv(NR-1) - vv(NR)
-        DR2 = vv(NR+1) - vv(NR)
-        CMTX(NR,NR-1) =   DR2**2 / (DR1 * DR2 * (DR2 - DR1))
-        CMTX(NR,NR  ) = - (DR1 + DR2) / (DR1 * DR2)
-        CMTX(NR,NR+1) = - DR1**2 / (DR1 * DR2 * (DR2 - DR1))
-     END IF
+  NR = 1
+     DR1 = vv(NR-1) - vv(NR)
+     DR2 = vv(NR+1) - vv(NR)
+     CMTX(NR,NR  ) = - (DR1 + DR2) / (DR1 * DR2)
+     CMTX(NR,NR+1) = - DR1**2 / (DR1 * DR2 * (DR2 - DR1))
+  DO NR = 2, NRMAX-1
+     DR1 = vv(NR-1) - vv(NR)
+     DR2 = vv(NR+1) - vv(NR)
+     CMTX(NR,NR-1) =   DR2**2 / (DR1 * DR2 * (DR2 - DR1))
+     CMTX(NR,NR  ) = - (DR1 + DR2) / (DR1 * DR2)
+     CMTX(NR,NR+1) = - DR1**2 / (DR1 * DR2 * (DR2 - DR1))
   END DO
+  NR = NRMAX
+     DR1 = vv(NR-1) - vv(NR)
+     DR2 = vv(NR-2) - vv(NR)
+     CMTX(NR,NR-2) = - DR1**2 / (DR1 * DR2 * (DR2 - DR1))
+     CMTX(NR,NR-1) =   DR2**2 / (DR1 * DR2 * (DR2 - DR1))
+     CMTX(NR,NR  ) = - (DR1 + DR2) / (DR1 * DR2)
 
   ! Numerical solution for LQm1: integrate Phi' = - p_i'/(Z_i e n_i) over V
 
   allocate(tmpa(0:NRMAX))
   if(MDFIXT == 0) then
-     tmpa(0:NRMAX) = dfdx(vv,X(0:NRMAX,LQi5),NRMAX,0) * rKilo ! p'
+     tmpa(:) = dfdx(vv,X(:,LQi5),NRMAX,0) * rKilo ! p'
   else
-     tmpa(0:NRMAX) = dfdx(vv,X(0:NRMAX,LQi1)*X(0:NRMAX,LQi5),NRMAX,0) * rKilo ! p'
+     tmpa(:) = dfdx(vv,X(:,LQi1)*X(:,LQi5),NRMAX,0) * rKilo ! p'
   end if
 
   RHSV(1:NRMAX) = - tmpa(0:NRMAX-1) / (X(0:NRMAX-1,LQi1) * achg(2))
@@ -1346,7 +1343,7 @@ SUBROUTINE TXPROF
 
 !  IF(FSHL == 0.D0) THEN
 !     ! Integrate 1 / (r * rMU0) * d/dr (r * BthV) to obtain AJV
-!     AJV(0:NRMAX) = BB / (RR * rMU0) * 2.d0 * Q0 / Q(0:NRMAX)**2
+!     AJV(:) = BB / (RR * rMU0) * 2.d0 * Q0 / Q(:)**2
 !  END IF
 
   ! === Toroidal electric field for initial NCLASS calculation ===
@@ -1382,7 +1379,7 @@ SUBROUTINE TXPROF
      X(NR,LQm3) = eta(NR) * AJphVRL(NR) / aat(NR)
      IF(X(NR,LQm3) == 0.D0) X(NR,LQm3) = 1.D-4
   END DO
-!  IF(FSHL == 0.D0) X(0:NRMAX,LQm3) = 0.D0
+!  IF(FSHL == 0.D0) X(:,LQm3) = 0.D0
   deallocate(AJPHL)
 
   !   NBI total input power (MW)
@@ -1407,7 +1404,7 @@ SUBROUTINE TXPROF
 
   CALL TXCALV(X,0) ! Set variables as well as pres0 and ErV0
   !  --- Fixed Er to keep it constant during iterations ---
-  ErV_FIX(0:NRMAX) = ErV(0:NRMAX)
+  ErV_FIX(:) = ErV(:)
 
   !  Calculate various physical quantities
 
@@ -1614,8 +1611,9 @@ contains
        IF(oldmix < 0.D0 .OR. oldmix > 1.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(CMESH0 < 0.D0 .OR. CMESH < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(WMESH0 < 0.D0 .OR. WMESH < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
-       ! /// idx = 51 - 51 ///
+       ! /// idx = 51 - 52 ///
        IF(MDLNEO /= 1 .AND. MDLNEO /= 2) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(MDBEAM /= 0 .AND. MDBEAM /= 1) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        RETURN
     END DO
 

@@ -42,6 +42,8 @@ MODLIB= -I../lib/mod
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODLA95) $(MODLIB)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODLA95) $(MODLIB)
+%.mod: %.f90 %.o
+	@:
 
 #all: $(PROG2)
 all: $(PROG3)
@@ -68,7 +70,8 @@ check: $(SRCS) $(SRC2D) $(SRC3D)
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRC2D) $(SRC3D) | $(PAGER)
 
 clean:
-	rm -f *.o ./*~ ./#* nclass/*.o mmm/*.o mi/*.o *.a $(MOD)/*.mod *.optrpt
+	rm -f *.o ./*~ ./#* nclass/*.o mmm/*.o mi/*.o *.a $(MOD)/*.mod *.optrpt \
+	nclass/*.optrpt mmm/*.optrpt mi/*.optrpt
 
 veryclean: clean
 	rm -f $(PROG2) $(PROG3)
@@ -87,28 +90,39 @@ new :
 	-mkdir ../txnew/in
 	-cp -f in/* ../txnew/in
 
-txauxs.o: txauxs.f90 txcomm.f90
-txcala.o: txcala.f90 txcomm.f90
+#
+# Module dependencies
+#
+txauxs.o: txauxs.f90 $(MOD)/tx_commons.mod $(MOD)/tx_interface.mod $(MOD)/tx_core_module.mod
+txcala.o: txcala.f90 $(MOD)/tx_commons.mod $(MOD)/tx_interface.mod $(MOD)/tx_core_module.mod
 	$(FCFREE) $(FFLAGS) $(FOMP) -c $< -o $@ $(MODDIR) $(MODLA95) $(MODLIB)
-txcalv.o: txcalv.f90 txcomm.f90
+txcalv.o: txcalv.f90 $(MOD)/tx_commons.mod $(MOD)/tx_interface.mod $(MOD)/cdbm_mod.mod \
+	  $(MOD)/matrix_inversion.mod $(MOD)/aux_system.mod $(MOD)/sauter_mod.mod \
+	  $(MOD)/tx_nclass_mod.mod $(MOD)/tx_ripple.mod $(MOD)/tx_core_module.mod
 	$(FCFREE) $(FFLAGS) $(FOMP) -c $< -o $@ $(MODDIR) $(MODLA95) $(MODLIB)
-txequ.o : txequ.f90 txcomm.f90
-txexec.o: txexec.f90 txcomm.f90 txgraf.f90
+txequ.o : txequ.f90  $(MOD)/tx_commons.mod
+txexec.o: txexec.f90 $(MOD)/tx_commons.mod $(MOD)/tx_interface.mod $(MOD)/tx_coefficients.mod \
+	  $(MOD)/tx_variables.mod $(MOD)/tx_graphic.mod $(MOD)/tx_ntv.mod
 	$(FCFREE) $(FFLAGS) $(FOMP) -c $< -o $@ $(MODDIR) $(MODLA95) $(MODLIB)
-txfile.o: txfile.f90 txcomm.f90 txgraf.f90
-txgraf.o: txgraf.f90 txcomm.f90 txcalv.f90
-txinit.o: txinit.f90 txcomm.f90 txgraf.f90
-txintf.o: txintf.f90 spln.f90
-txlib.o : txlib.f90  spln.f90 txcomm.f90
+txfile.o: txfile.f90 $(MOD)/tx_commons.mod $(MOD)/tx_interface.mod $(MOD)/tx_coefficients.mod \
+	  $(MOD)/tx_variables.mod $(MOD)/tx_parameter_control.mod $(MOD)/tx_graphic.mod \
+	  $(MOD)/tx_core_module.mod
+txgraf.o: txgraf.f90 $(MOD)/tx_commons.mod $(MOD)/tx_interface.mod $(MOD)/tx_variables.mod \
+	  $(MOD)/tx_ripple.mod $(MOD)/tx_core_module.mod
+txinit.o: txinit.f90 $(MOD)/tx_commons.mod $(MOD)/tx_interface.mod $(MOD)/tx_variables.mod \
+	  $(MOD)/tx_graphic.mod $(MOD)/sauter_mod.mod $(MOD)/tx_ntv.mod $(MOD)/tx_core_module.mod
+txlib.o : txlib.f90  $(MOD)/tx_commons.mod $(MOD)/mod_spln.mod
 	$(FCFREE) $(FFLAGS) $(PREPRO) -c $< -o $@ $(MODDIR) $(MODLA95) $(MODLIB)
-txmain.o: txmain.f90 txcomm.f90
-txmenu.o: txmenu.f90 txcomm.f90 txgraf.f90
-txmmm.o : txmmm.f90 txcomm.f90
-trncls.o: txncls.f90 trncls.inc trcomm.inc trcom0.inc nclass/pamx_mi.inc \
-          nclass/pamx_ms.inc nclass/pamx_mz.inc
-txrslt.o: txrslt.f90 txcomm.f90
-txrppl.o: txrppl.f90 txcomm.f90
-mat_inv.o: mat_inv.f90 txcomm.f90
-nclass/nclass_mod.o : nclass/nclass_mod.f nclass/pamx_mi.inc \
-                      nclass/pamx_ms.inc nclass/pamx_mz.inc
+txmain.o: txmain.f90 $(MOD)/tx_commons.mod $(MOD)/tx_parameter_control.mod
+txmenu.o: txmenu.f90 $(MOD)/tx_commons.mod $(MOD)/tx_interface.mod $(MOD)/tx_main.mod \
+	  $(MOD)/tx_graphic.mod $(MOD)/tx_variables.mod $(MOD)/tx_parameter_control.mod \
+	  $(MOD)/tx_ripple.mod $(MOD)/tx_ntv.mod
+txmisc.o: txmisc.f90 $(MOD)/tx_commons.mod $(MOD)/tx_interface.mod
+txmmm.o : txmmm.f90  $(MOD)/tx_commons.mod $(MOD)/tx_interface.mod
+txncls.o: txncls.f90 $(MOD)/tx_commons.mod
+txntv.o : txntv.f90  $(MOD)/tx_commons.mod $(MOD)/tx_ripple.mod
+txrppl.o: txrppl.f90 $(MOD)/tx_commons.mod $(MOD)/tx_interface.mod
+txrslt.o: txrslt.f90 $(MOD)/tx_commons.mod $(MOD)/tx_interface.mod $(MOD)/tx_core_module.mod
+mat_inv.o: mi/mat_inv.f90 $(MOD)/tx_commons.mod
+nclass/nclass_mod.o : nclass/nclass_mod.f
 	$(FCFIXED) $(FFLAGS_NCLASS) -c nclass/nclass_mod.f -o nclass/nclass_mod.o -Inclass

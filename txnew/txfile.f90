@@ -7,14 +7,15 @@
 
 SUBROUTINE TXWDAT
   use tx_commons, only : PI, RB, PN01V, NRMAX, WPT, Var
-  use tx_interface, only : intg_area, rLINEAVE
+  use tx_interface, only : rLINEAVE
+  use tx_core_module, only : intg_area
 
   implicit none
   REAL(8) :: rNbar
 
   !     ***** Volume-averaged density *****
 
-  rNbar = intg_area(Var(0:NRMAX,1)%n) * 1.D20
+  rNbar = intg_area(Var(:,1)%n) * 1.D20
   rNbar = rNbar / (PI * RB**2)
 
   WRITE(6,'((1X,A," =",1PD9.2,3(2X,A,"=",1PD9.2)))') &
@@ -436,18 +437,18 @@ SUBROUTINE TXLOAD(IST)
   CALL TXCALM
 
 !!  IF(rMUb1 == rMU0 .and. (PNBHT1 /= 0.D0 .OR. PNBHT2 /= 0.D0 .OR. PNBHP /= 0.D0)) THEN
-  IF(rMUb1 == rMU0 .and. (maxval(X(LQb1,0:NRMAX)) > epsilon(1.d0))) THEN
+  IF(rMUb1 == rMU0 .and. (maxval(X(LQb1,:)) > epsilon(1.d0))) THEN
      rMUb1 = 1.D0
      rMUb2 = rMU0
   END IF
 
   CALL TXCALV(X,0)
 
-  PNsV_FIX(0:NRMAX,1) = Var(0:NRMAX,1)%n
-  PTsV_FIX(0:NRMAX,1) = Var(0:NRMAX,1)%T
-  PNsV_FIX(0:NRMAX,2) = Var(0:NRMAX,2)%n
-  PTsV_FIX(0:NRMAX,2) = Var(0:NRMAX,2)%T
-  ErV_FIX (0:NRMAX) = ErV (0:NRMAX)
+  PNsV_FIX(:,1) = Var(:,1)%n
+  PTsV_FIX(:,1) = Var(:,1)%T
+  PNsV_FIX(:,2) = Var(:,2)%n
+  PTsV_FIX(:,2) = Var(:,2)%T
+  ErV_FIX (:) = ErV (:)
 
   CALL TXCALC(0)
   CALL TXCALA
@@ -457,7 +458,7 @@ SUBROUTINE TXLOAD(IST)
 
   ! TAUE2 uses data one step before the data was stored.
   ! Then TAUE2 is reconstituted by using the graphic data of TAUE2.
-  TAUE2 = DBLE(GTY(NGT,34))
+  TAUE2 = real(GTY(NGT,34),8)
 
   ! Reset start point of graphics
   NGT=-1
@@ -1323,21 +1324,21 @@ subroutine for_ofmc
      psirho(NR) = psiV(NR) - psiV(0) !- RR * (AphV(NR) - AphV(0))
   end do
   psirho_a = psirho(NRA)
-  psirho(0:NRMAX) = psirho(0:NRMAX) / psirho_a
+  psirho(:) = psirho(:) / psirho_a
 
   ! Equally-spaced psi on a half mesh
-  dpsi = 1.d0 / dble(nmax)
+  dpsi = 1.d0 / real(nmax,8)
   do i = 1, nmax
      psi_out(i) = i * dpsi - 0.5d0 * dpsi
   end do
 
   do i = 1, 3
      if     (i == 1) then ! Ne
-        data(0:NRMAX) = Var(0:NRMAX,1)%n * 1.D20 ! in m^{-3}
+        data(:) = Var(:,1)%n * 1.D20 ! in m^{-3}
      else if(i == 2) then ! Te
-        data(0:NRMAX) = Var(0:NRMAX,1)%T * 1.D3  ! in eV
+        data(:) = Var(:,1)%T * 1.D3  ! in eV
      else if(i == 3) then ! Ti
-        data(0:NRMAX) = Var(0:NRMAX,2)%T * 1.D3  ! in eV
+        data(:) = Var(:,2)%T * 1.D3  ! in eV
      end if
 
      ! Output data on the magnetic axis

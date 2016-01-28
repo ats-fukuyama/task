@@ -62,10 +62,10 @@ END FUNCTION CORR
 !
 !***************************************************************
 
-pure real(8) function ftfunc(x)
-  ! x is the inverse aspect ratio
+elemental real(8) function ftfunc(x)
+  ! x is the inverse aspect ratio ; x is either scaler or array.
   real(8), intent(in) :: x
 
-  ftfunc = 1.46d0 * sqrt(x) - 0.46d0 * x * sqrt(x)
+  ftfunc = (1.46d0 - 0.46d0 * x) * sqrt(x)
 
 end function ftfunc

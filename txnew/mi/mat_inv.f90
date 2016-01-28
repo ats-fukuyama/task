@@ -106,12 +106,9 @@ contains
     ETAout = amas(i) * amp / (coencc * aee**2 * Var(NR,i)%n * 1.d20 * ztau(i,i))
 
     !-- Bootstrap current
-    bjsum = 0.d0
-    do i = 1, NSM
-       bjsum = bjsum + Var(NR,i)%T * rKeV / abs(achg(i)) &
-            & * (  coebsc(i,1) * dPsdpsi(NR,i) / Var(NR,i)%p &
-            &    + coebsc(i,2) * dTsdpsi(NR,i) / Var(NR,i)%T)
-    end do
+    bjsum = sum(Var(NR,1:NSM)%T * rKeV / abs(achg(1:NSM)) &
+            & * (  coebsc(1:NSM,1) * dPsdpsi(NR,1:NSM) / Var(NR,1:NSM)%p &
+            &    + coebsc(1:NSM,2) * dTsdpsi(NR,1:NSM) / Var(NR,1:NSM)%T))
     BJBSout = - fipol(NR) * Var(NR,1)%n * 1.d20 * bjsum
 
 !    !     alternative way of computing bootstrap current
@@ -376,23 +373,16 @@ contains
     lab(:,:,:,:) = 0.0_8
     do i1=1,ispc
        do i2=1,ispc
-!          fac=(zz(i2)/zz(i1))**2*den(i2)/den(i1)
           fac=ztau(i1,i1)/ztau(i1,i2)
           do j1=1,2
              do j2=1,2
-                xl=fac*nab(i1,i2,j1,j2)
-                if(i1.eq.i2)then
-                   do k=1,ispc
-!                      xl=xl+(zz(k)/zz(i1))**2*den(k)/den(i1)*mab(i1,k,j1,j2)
-                      xl=xl+ztau(i1,i1)/ztau(i1,k)*mab(i1,k,j1,j2)
-                   enddo
-                endif
-                lab(i1,i2,j1,j2)=xl
-!                if(i1==1.and.i2==1.and.j1==1.and.j2==1) print *,'xl = ',xl
+                lab(i1,i2,j1,j2)=fac*nab(i1,i2,j1,j2)
              enddo
           enddo
        enddo
     enddo
+    forall (i1=1:ispc,i2=1:ispc,j1=1:2,j2=1:2,i1==i2) &
+         & lab(i1,i2,j1,j2)=lab(i1,i2,j1,j2)+sum(ztau(i1,i1)/ztau(i1,:)*mab(i1,:,j1,j2))
 !=======================================================================
 !   viscosity coeff for bulk particles
 !=======================================================================
@@ -611,11 +601,7 @@ contains
        enddo
     enddo
 !-----
-    do i1=1,isp2
-       do i2=1,isp2
-          bmat(i1,i2)=amat(i1,i2)
-       enddo
-    enddo
+    bmat=amat
     do i1=1,isp
        bmat(i1    ,i1    )=bmat(i1    ,i1    )-xmu(i1,1,1)
        bmat(i1    ,i1+isp)=bmat(i1    ,i1+isp)-xmu(i1,1,2)
@@ -627,11 +613,7 @@ contains
     call matslv(isp2,isp2,bmat,cmat,err,ill)
 !=======================================================================
 !<bmat> : viscosity matrix, M
-    do i1=1,isp2
-       do i2=1,isp2
-          bmat(i1,i2)=0.d0
-       enddo
-    enddo
+    bmat=0.d0
     do i1=1,isp
        bmat(i1    ,i1    )=xmu(i1,1,1)
        bmat(i1    ,i1+isp)=xmu(i1,1,2)
@@ -640,15 +622,9 @@ contains
     enddo
 !=======================================================================
 !<alf> : (L - M)^{-1}M
-    do i1=1,isp2
-       do i2=1,isp2
-          x=0.d0
-          do k=1,isp2
-             x=x+cmat(i1,k)*bmat(k,i2)
-          enddo
-          alf(i1,i2)=x
-       enddo
-    enddo
+    forall (i1=1:isp2,i2=1:isp2) alf(i1,i2)=sum(cmat(i1,:)*bmat(:,i2))
+!    alf=matmul(cmat,bmat) ! This is equivalent to the former line, 
+!                          ! but a little bit slow.
 !=======================================================================
 !<L_31,L_32>
     do i=1,isp
@@ -669,25 +645,17 @@ contains
 !     neoclassical conductivity
 !=======================================================================
 !--matrix method
-    zeff=0.d0
-    do i=2,isp
-       zeff=zeff+zz(i)**2*den(i)
-    enddo
-    zeff=zeff/den(1)
+    zeff=sum(zz(2:isp)**2*den(2:isp))/den(1)
+
     xc0=0.d0
     do i1=1,isp
        j1=i1
        ! beam ion is normalized by m_e n_e/tau_ee
        if(ibeam.eq.1.and.i1.eq.isp)j1=1
-       xx=0.d0
        ! cmat(a,b) : (L - M)^{-1}_ab
-       do i2=1,isp
-          xx=xx+zz(i2)*den(i2)/den(1)*(-cmat(i2,i1))
-       enddo
        ! renormalized by multiplying (m_e n_e/tau_ee) / (m_i n_i/tau_ii)
-!       xc0=xc0+xx*sqrt(mas(1)/mas(j1))*(tem(j1)/tem(1))**1.5d0 &
-!            &    *(den(1)/(zz(j1)**2*den(j1)))**2 &
-       xc0=xc0+xx*(mas(1)*den(1)*ztau(j1,j1)/(mas(j1)*den(j1)*ztau(1,1))) &
+       xc0=xc0+sum(zz(1:isp)*den(1:isp)/den(1)*(-cmat(1:isp,i1))) &
+            &    *(mas(1)*den(1)*ztau(j1,j1)/(mas(j1)*den(j1)*ztau(1,1))) &
             &    *zz(i1)*den(i1)/den(1)
     enddo
     coencc=xc0

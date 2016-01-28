@@ -112,17 +112,17 @@ subroutine txmmm95(dNedrho,dNidrho,dTedrho,dTidrho,dQdrho,gamma)
 
   if(FSANOM(3) /= 0.d0 .and. igamma == 0) then
      !  Ion thermal diffusivity
-     Chii(0:N) = FSANOM(3) * (  dble(zthiig(0:N)) &  ! ITG mode
-          &                   + dble(zthirb(0:N)) &  ! Resistive Ballooning mode
-          &                   + dble(zthikb(0:N)))   ! Kinetic Ballooning mode
+     Chii(0:N) = FSANOM(3) * (  real(zthiig(0:N),8) &  ! ITG mode
+          &                   + real(zthirb(0:N),8) &  ! Resistive Ballooning mode
+          &                   + real(zthikb(0:N),8))   ! Kinetic Ballooning mode
 !!$     do nr=0,n
 !!$        write(6,*) rho(nr),zthiig(nr),zthirb(nr),zthikb(nr)
 !!$     end do
 
      !  Electron thermal diffusivity
-     Chie(0:N) = FSANOM(3) * (  dble(ztheig(0:N)) &
-          &                   + dble(ztherb(0:N)) &
-          &                   + dble(zthekb(0:N)))
+     Chie(0:N) = FSANOM(3) * (  real(ztheig(0:N),8) &
+          &                   + real(ztherb(0:N),8) &
+          &                   + real(zthekb(0:N),8))
   end if
 
   !  Momentum viscosity regarded as the same as thermal diffusivity
@@ -133,15 +133,15 @@ subroutine txmmm95(dNedrho,dNidrho,dTedrho,dTidrho,dQdrho,gamma)
 
   !  Particle diffusivity
   if(FSANOM(1) /= 0.d0 .and. igamma == 0) then
-     De  (0:N) = FSANOM(1) * (  dble(zthdig(0:N)) &
-          &                   + dble(zthdrb(0:N)) &
-          &                   + dble(zthdkb(0:N)))
+     De  (0:N) = FSANOM(1) * (  real(zthdig(0:N),8) &
+          &                   + real(zthdrb(0:N),8) &
+          &                   + real(zthdkb(0:N),8))
   end if
 
   if(igamma == 1) then
      ! Most unstable mode at each radial location
      do NR = 0, NRMAX
-        gamma(NR) = dble(maxval(zgamma(1:mxmode,NR)))
+        gamma(NR) = real(maxval(zgamma(1:mxmode,NR)),8)
      end do
   end if
 

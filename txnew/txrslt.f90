@@ -8,7 +8,8 @@
 SUBROUTINE TXGLOB
 
   use tx_commons
-  use tx_interface, only : intg_vol, intg_area, intg_vol_p, dfdx, sub_intg_vol
+  use tx_interface, only : dfdx
+  use tx_core_module, only : intg_vol, intg_area, intg_vol_p, sub_intg_vol
   implicit none
 
   INTEGER(4) :: I, NR!, NS, NF
@@ -29,13 +30,13 @@ SUBROUTINE TXGLOB
   !  Plasma volume
   volume = vlt(nrmax)
 
-  PNdiff(0:NRMAX) =  achg(2) * Var(0:NRMAX,2)%n + achgb * PNbV(0:NRMAX) &
-       &           + achgb * rip_rat(0:NRMAX) * PNbrpV(0:NRMAX) - Var(0:NRMAX,1)%n
+  PNdiff(:) =  achg(2) * Var(:,2)%n + achgb * PNbV(:) &
+       &           + achgb * rip_rat(:) * PNbrpV(:) - Var(:,1)%n
   VOLAVN =  intg_vol(PNdiff) / volume
 
   ! Electron
-  RNINT  = intg_vol(Var(0:NRMAX,1)%n)
-  RPEINT = intg_vol(Var(0:NRMAX,1)%p)
+  RNINT  = intg_vol(Var(:,1)%n)
+  RPEINT = intg_vol(Var(:,1)%p)
   ANSAV(1) = RNINT / volume
   ANS0(1)  = Var(0,1)%n
   IF(RNINT > 0.D0) THEN
@@ -47,8 +48,8 @@ SUBROUTINE TXGLOB
   WST(1) = 1.5D0*RPEINT*rKeV*1.D20*toMega ! [MJ]
 
   ! Ion
-  RNINT  = intg_vol(Var(0:NRMAX,2)%n)
-  RPIINT = intg_vol(Var(0:NRMAX,2)%p)
+  RNINT  = intg_vol(Var(:,2)%n)
+  RPIINT = intg_vol(Var(:,2)%p)
   ANSAV(2) = RNINT / volume
   ANS0(2)  = Var(0,2)%n
   IF(RNINT > 0.D0) THEN
@@ -89,15 +90,15 @@ SUBROUTINE TXGLOB
 
   !      PFINT = intg_vol(PFIN)*toMega
   !      DO NS=1,NSM
-  !        PFCLT(NS) = intg_vol(PFCL(0:NRMAX,NS))*toMega
+  !        PFCLT(NS) = intg_vol(PFCL(:,NS))*toMega
   !      END DO
 
   !     Output powers
 
-  SIE(0:NRMAX) = Var(0:NRMAX,1)%n*rNuION(0:NRMAX)*1.D20
-  PIE(0:NRMAX) = SIE(0:NRMAX)*EION*AEE
-  SCX(0:NRMAX) = FSCX * SiVcxA(0:NRMAX) * Var(0:NRMAX,2)%n * PN01V(0:NRMAX) * 1.D40
-  PCX(0:NRMAX) = 1.5D0*Var(0:NRMAX,2)%n*rNuiCXT(0:NRMAX)*1.D20*Var(0:NRMAX,2)%T*rKeV
+  SIE(:) = Var(:,1)%n*rNuION(:)*1.D20
+  PIE(:) = SIE(:)*EION*AEE
+  SCX(:) = FSCX * SiVcxA(:) * Var(:,2)%n * PN01V(:) * 1.D40
+  PCX(:) = 1.5D0*Var(:,2)%n*rNuiCXT(:)*1.D20*Var(:,2)%T*rKeV
 
   !    PRLT = intg_vol(PRL)*toMega
   PCXT = intg_vol(PCX)*toMega
@@ -144,7 +145,7 @@ SUBROUTINE TXGLOB
   !     Torque deposition
 
   allocate(RSmb(0:NRMAX))
-  RSmb(0:NRMAX) = fipol(0:NRMAX) / bbt(0:NRMAX) * BSmb(0:NRMAX) * 1.d20
+  RSmb(:) = fipol(:) / bbt(:) * BSmb(:) * 1.d20
   TNBcol = intg_vol(RSmb)
   deallocate(RSmb)
   TTqt = intg_vol(Tqt)
@@ -158,7 +159,7 @@ SUBROUTINE TXGLOB
   SINT = SIET+SNBT
   !    SOUT = SLST
 
-  IF(ABS(T_TX - TPRE) <= 1.D-70) THEN
+  IF(ABS(T_TX - TPRE) <= epsilon(1.d0)) THEN
      WPDOT = 0.D0
   ELSE
      WPDOT = (WPT - WPPRE)/(T_TX - TPRE)
@@ -192,11 +193,11 @@ SUBROUTINE TXGLOB
         sum1  = sum1 + RPINT
         sum2  = sum2 + RPINT*RPINT
      end do
-     BETA  (NR) = 2.D0*rMU0*sum1      /(     vlt(nr) *bb**2)
-     BETAL (NR) = 2.D0*rMU0*suml      /(              bb**2)
-     BETAP (NR) = 2.D0*rMU0*sum1      /(     vlt(nr) *BthV(NRMAX)**2)
-     BETAPL(NR) = 2.D0*rMU0*suml      /(              BthV(NRMAX)**2)
-     BETAQ (NR) = 2.D0*rMU0*sqrt(sum2)/(sqrt(vlt(nr))*BthV(NR)**2)
+     BETA  (NR) = 2.D0*rMU0*sum1      /(     vlt(nr) *bb*bb)
+     BETAL (NR) = 2.D0*rMU0*suml      /(              bb*bb)
+     BETAP (NR) = 2.D0*rMU0*sum1      /(     vlt(nr) *BthV(NRMAX)*BthV(NRMAX))
+     BETAPL(NR) = 2.D0*rMU0*suml      /(              BthV(NRMAX)*BthV(NRMAX))
+     BETAQ (NR) = 2.D0*rMU0*sqrt(sum2)/(sqrt(vlt(nr))*BthV(NR)*BthV(NR))
   END DO
 
   BETA0  = FCTR(R(1),R(2),BETA  (1),BETA  (2))
@@ -214,7 +215,7 @@ SUBROUTINE TXGLOB
 
   ! Internal inductance li(3)
   ! (In our case, li(1)=li(2)=li(3) due to the circular cross-section.)
-  BthV2(0:NRMAX) = BthV(0:NRMAX)**2
+  BthV2(:) = BthV(:)*BthV(:)
   BPave = intg_vol(BthV2) / volume
   ALI   = BPave / ((rMU0 * rIp * 1.D6)**2 * RR / (2.D0 * volume))
   VLOOP = 2.d0*Pi*PsidotV(NRMAX)
@@ -275,9 +276,9 @@ SUBROUTINE TXGLOB
 !!$  do nr = 1, nrmax
 !!$     ! Including Ware pinch
 !!$!     Deff(nr) = (Var(NR,2)%n*Var(NR,2)%Ur-ft(NR)*Var(NR,2)%n*Etor(NR)/BthV(NR)) &
-!!$!          & /(-DERIV4(NR,R,Var(0:NRMAX,2)%n,NRMAX,0))
+!!$!          & /(-DERIV4(NR,R,Var(:,2)%n,NRMAX,0))
 !!$     ! Excluding Ware pinch
-!!$     Deff(nr) = -Var(NR,2)%n*Var(NR,2)%Ur/DERIV4(NR,R,Var(0:NRMAX,2)%n,NRMAX,0)
+!!$     Deff(nr) = -Var(NR,2)%n*Var(NR,2)%Ur/DERIV4(NR,R,Var(:,2)%n,NRMAX,0)
 !!$     if(Deff(nr) < 0.d0) Deff(nr) = 0.d0
 !!$!     write(6,*) 'nr=',nr,'Deff=',deff(nr)
 !!$  end do
@@ -287,7 +288,7 @@ SUBROUTINE TXGLOB
 
   allocate(dPNV(0:NRMAX))
   Deff(0) = 0.d0
-  dPNV(0:NRMAX) = dfdx(vv,Var(0:NRMAX,1)%n,NRMAX,0)
+  dPNV(:) = dfdx(vv,Var(:,1)%n,NRMAX,0)
   do NR = 1, NRMAX
      Deff(NR) = - Var(NR,1)%n * Var(NR,1)%Ur / (sst(NR) * dPNV(NR))
   end do
@@ -295,7 +296,7 @@ SUBROUTINE TXGLOB
   ! *** Particle confinement time; TAUP ***
 
   allocate(denom(0:NRMAX))
-  denom(0:NRMAX) = Var(0:NRMAX,2)%n * rNuION(0:NRMAX)
+  denom(:) = Var(:,2)%n * rNuION(:)
   denomINT = intg_vol(denom)
   if(denomINT < epsilon(1.d0)) then
      TAUP = 0.d0
@@ -333,7 +334,7 @@ END SUBROUTINE TXGLOB
 subroutine cal_flux
 
   use tx_commons, only : NRA, PI, rNuION, achg, DT, Gamma_a, perimlcfs, Var
-  use tx_interface, only : sub_intg_vol
+  use tx_core_module, only : sub_intg_vol
   implicit none
 
   real(8) :: total_ion, SizINT, SumPNiV

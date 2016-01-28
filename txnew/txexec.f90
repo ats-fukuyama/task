@@ -119,8 +119,7 @@ contains
     ICSUM = 0
 
     ! Save X -> XP -> XOLD for BDF only at the beginning of the calculation
-    IF(IGBDF /= 0 .and. (T_TX == 0.D0 .OR. ICONT /= 0)) &
-         & XOLD(0:NRMAX,1:NQMAX) = X(0:NRMAX,1:NQMAX)
+    IF(IGBDF /= 0 .and. (T_TX == 0.D0 .OR. ICONT /= 0)) XOLD= X
 
     L_NTDO:DO NTDO = 1, NTMAX
        NT = NTDO
@@ -128,26 +127,26 @@ contains
        T_TX = TIME0 + DT*NT
        rIP  = rIPs  + DIP*NT
 
-       ! Create new X = XN
-       XN(0:NRMAX,1:NQMAX) = X(0:NRMAX,1:NQMAX)
+       ! Create new X := XN
+       XN = X
 
        ! Negligible order of magnitude for each variable
        DO NQ = 1, NQMAX
-          tiny_array(NQ) = maxval(XN(0:NRMAX,NQ)) * tiny_cap
+          tiny_array(NQ) = maxval(XN(:,NQ)) * tiny_cap
        END DO
 
        ! In the following loop, XN is being updated during iteration.
        L_IC : DO IC = 1, ICMAX
-          ! Save past X = XP
-          XP(0:NRMAX,1:NQMAX) = XN(0:NRMAX,1:NQMAX)
+          ! Save past X := XP
+          XP = XN
 
           CALL TXCALV(XP)
           IF(IC <= 2) THEN
-             PNsV_FIX(0:NRMAX,1) = Var(0:NRMAX,1)%n
-             PTsV_FIX(0:NRMAX,1) = Var(0:NRMAX,1)%T
-             PNsV_FIX(0:NRMAX,2) = Var(0:NRMAX,2)%n
-             PTsV_FIX(0:NRMAX,2) = Var(0:NRMAX,2)%T
-             ErV_FIX (0:NRMAX) = ErV (0:NRMAX)
+             PNsV_FIX(:,1) = Var(:,1)%n
+             PTsV_FIX(:,1) = Var(:,1)%T
+             PNsV_FIX(:,2) = Var(:,2)%n
+             PTsV_FIX(:,2) = Var(:,2)%T
+             ErV_FIX (:) = ErV (:)
           END IF
 
           CALL TXCALC(IC)
@@ -162,7 +161,7 @@ contains
                 WRITE(6,'(3(A,I6))') '### ERROR(TXLOOP) : Matrix BA is singular at ',  &
                      &              NT, ' -', IC, ' step. IERR=',IERR
                 IERR = 1
-                XN(0:NRMAX,1:NQMAX) = XP(0:NRMAX,1:NQMAX)
+                XN = XP
                 GOTO 180
              END IF
           ELSE
@@ -194,17 +193,13 @@ contains
                 WRITE(6,'(3(A,I6))') '### ERROR(TXLOOP) : GBSV, NT = ',  &
                      &              NT, ' -', IC, ' step. IERR=',ierr_la
                 IERR = 1
-                XN(0:NRMAX,1:NQMAX) = XP(0:NRMAX,1:NQMAX)
+                XN = XP
                 GOTO 180
              ENDIF
           END IF
 
           ! Copy calculated variables' vector to variable matrix
-          DO NR = 0, NRMAX
-             DO NQ = 1, NQMAX
-                XN(NR,NQ) = BX(NQMAX * NR + NQ)
-             END DO
-          END DO
+          forall (NR = 0:NRMAX, NQ = 1:NQMAX) XN(NR,NQ) = BX(NQMAX * NR + NQ)
 
           ! Avoid negative values
 !          CALL MINUS_CHECK(XN,LQb1,0)
@@ -219,22 +214,22 @@ contains
              END DO
           END DO
 !!$          ! In the case of NBI off after NBI on
-!!$          IF(PNBH == 0.D0) CALL THRESHOLD(XN(0:NRMAX,LQb1),ID)
+!!$          IF(PNBH == 0.D0) CALL THRESHOLD(XN(:,LQb1),ID)
 !!$          IF(ID == 1) THEN
-!!$             X (0:NRMAX,LQb1) = 0.D0
-!!$             XP(0:NRMAX,LQb1) = 0.D0
-!!$             X (0:NRMAX,LQb3) = 0.D0
-!!$             XP(0:NRMAX,LQb3) = 0.D0
-!!$             XN(0:NRMAX,LQb3) = 0.D0
-!!$             X (0:NRMAX,LQb4) = 0.D0
-!!$             XP(0:NRMAX,LQb4) = 0.D0
-!!$             XN(0:NRMAX,LQb4) = 0.D0
+!!$             X (:,LQb1) = 0.D0
+!!$             XP(:,LQb1) = 0.D0
+!!$             X (:,LQb3) = 0.D0
+!!$             XP(:,LQb3) = 0.D0
+!!$             XN(:,LQb3) = 0.D0
+!!$             X (:,LQb4) = 0.D0
+!!$             XP(:,LQb4) = 0.D0
+!!$             XN(:,LQb4) = 0.D0
 !!$          END IF
 
           ! Check negative density or temperature in variable matrix
           CALL TXCHCK(NT,IC,XN,IERR)
           IF (IERR /= 0) THEN
-             X(0:NRMAX,1:NQMAX) = XN(0:NRMAX,1:NQMAX)
+             X = XN
              CALL TXCALV(X)
 !             CALL TXCALC(IC)
              CALL TXGLOB
@@ -249,8 +244,7 @@ contains
           if(istat == 0) then ! going to next time step
              exit L_IC
           else if(istat == 1) then
-              XN(0:NRMAX,1:NQMAX) = (1.d0 - oldmix) *  XN(0:NRMAX,1:NQMAX) &
-                  &                       + oldmix  *  XP(0:NRMAX,1:NQMAX)
+              XN = (1.d0 - oldmix) * XN + oldmix * XP
              cycle L_IC
           end if
 
@@ -266,7 +260,7 @@ contains
                 WRITE(6,'(3I4,1P4E17.8,A2)') IC,IASG(2),IASG(1)-1,XP(IASG(1)-1,IASG(2)), &
                      &                XN(IASG(1)-1,IASG(2)),ASG(IASG(1)-1,IASG(2)),EPSabs," *"
              ELSE ! converged
-                IASG(1:2) = MAXLOC(ASG(0:NRMAX,1:NQMAX))
+                IASG(1:2) = MAXLOC(ASG(:,:))
                 WRITE(6,'(3I4,1P4E17.8)') IC,IASG(2),IASG(1)-1,XP(IASG(1)-1,IASG(2)), &
                      &                  XN(IASG(1)-1,IASG(2)),ASG(IASG(1)-1,IASG(2)),EPSabs
              END IF
@@ -283,7 +277,7 @@ contains
              WRITE(6,'(A,2(X,A,X),5X,A,11X,A)') &
                   & "*****","NQ","VR","V_ERRMAX","EPS"
              DO NQ = 1, NQMAX
-                IASG(1:2)  = MAXLOC( ASG(0:NRMAX,NQ:NQ))
+                IASG(1:2)  = MAXLOC(ASG(:,NQ:NQ))
                 WRITE(MSG_NQ,'(4X,2I4,1P2E17.8)') NQ,IASG(1)-1,ASG(IASG(1)-1,NQ),EPSabs
                 IF( ASG(IASG(1)-1,NQ) > EPSabs) THEN
                    MSG_NQ = trim(MSG_NQ)//' *'
@@ -323,18 +317,18 @@ contains
        end if
 
        ! Save past X for BDF
-       IF(IGBDF /= 0) XOLD(0:NRMAX,1:NQMAX) = X(0:NRMAX,1:NQMAX)
+       IF(IGBDF /= 0) XOLD = X
 
        ! Calculation fully converged
-       X(0:NRMAX,1:NQMAX) = XN(0:NRMAX,1:NQMAX)
+       X = XN
 
        ! Calculate mesh and coefficients at the next step
        CALL TXCALV(X,1) ! Set new values to pres0 and ErV0
-!!$       PNsV_FIX(0:NRMAX,1) = Var(0:NRMAX,1)%n
-!!$       PTsV_FIX(0:NRMAX,1) = Var(0:NRMAX,1)%T
-!!$       PNsV_FIX(0:NRMAX,2) = Var(0:NRMAX,2)%n
-!!$       PTsV_FIX(0:NRMAX,2) = Var(0:NRMAX,2)%T
-!!$       ErV_FIX (0:NRMAX) = ErV (0:NRMAX)
+!!$       PNsV_FIX(:,1) = Var(:,1)%n
+!!$       PTsV_FIX(:,1) = Var(:,1)%T
+!!$       PNsV_FIX(:,2) = Var(:,2)%n
+!!$       PTsV_FIX(:,2) = Var(:,2)%T
+!!$       ErV_FIX (:) = ErV (:)
        CALL TXCALC(IC)
 
        IF(IDIAGL == 0 .OR. IDIAGL == 2) THEN
@@ -431,7 +425,7 @@ contains
 
     ! For BANDRD solver
     IF(MDLPCK == 0) THEN
-       BA(1:NQMAX*4-1,1:NQMAX*(NRMAX+1)) = 0.D0
+       BA = 0.d0 ! initialize BA array
 
 !!$       DO NQ = 1, NQMAX
 !!$          DO NC = 0, NLCMAX(NQ)
@@ -481,11 +475,11 @@ contains
 !$omp do private(NC,NCHvs,coef,NC1,NC1Hvs,NC1Hvs2,IA,IB,IC,NR,J)
        DO NQ = 1, NQMAX
           DO NC = 0, NLCMAX(NQ)
-             NCHvs = real( NCM - 1 + NC ) / NCM ! NCHvs = 0 when NC = 0 ; otherwise NCHvs = 1
+             NCHvs = ( NCM - 1 + NC ) / NCM ! NCHvs = 0 when NC = 0 ; otherwise NCHvs = 1
              coef  = 1.d0 - ( 1.d0 + adv ) * NCHvs
              ! --- NR = 0
              NC1 = NLCR(NC,NQ,0)
-             NC1Hvs = real( NCM - 1 + NC1 ) / NCM ! NC1Hvs = 0 when NC1 = 0 ; otherwise NC1Hvs = 1
+             NC1Hvs = ( NCM - 1 + NC1 ) / NCM ! NC1Hvs = 0 when NC1 = 0 ; otherwise NC1Hvs = 1
              NC1Hvs2 = 1 - NC1Hvs
              ! NC1Hvs2 in IC: avoid IC=0 in BL when NR = NQMAX and NC1 = 0
              IC = NQMAX + (NC1 - 1) - (NQ - 1) + NC1Hvs2
@@ -498,7 +492,7 @@ contains
                 BA(IA,J) = BA(IA,J) + ALC(NR,NC,NQ) * coef * NC1Hvs
              ! --- NR = 1 ~ NRMAX
              NC1 = NLC(NC,NQ)
-             NC1Hvs = real( NCM - 1 + NC1 ) / NCM ! NC1Hvs = 0 when NC1 = 0 ; otherwise NC1Hvs = 1
+             NC1Hvs = ( NCM - 1 + NC1 ) / NCM ! NC1Hvs = 0 when NC1 = 0 ; otherwise NC1Hvs = 1
              NC1Hvs2 = 1 - NC1Hvs
              ! NC1Hvs2 in IC: avoid IC=0 in BL when NR = NQMAX and NC1 = 0
              IC = NQMAX + (NC1 - 1) - (NQ - 1) + NC1Hvs2
@@ -512,7 +506,7 @@ contains
              END DO
              ! --- NR = NRMAX
              NC1 = NLCR(NC,NQ,1)
-             NC1Hvs = real( NCM - 1 + NC1 ) / NCM ! NC1Hvs = 0 when NC1 = 0 ; otherwise NC1Hvs = 1
+             NC1Hvs = ( NCM - 1 + NC1 ) / NCM ! NC1Hvs = 0 when NC1 = 0 ; otherwise NC1Hvs = 1
              NC1Hvs2 = 1 - NC1Hvs
              ! NC1Hvs2 in IC: avoid IC=0 in BL when NR = NQMAX and NC1 = 0
              IC = NQMAX + (NC1 - 1) - (NQ - 1) + NC1Hvs2
@@ -530,16 +524,16 @@ contains
 
     ! For LAPACK solver
     ELSE
-       BL(1:6*NQMAX-2,1:NQMAX*(NRMAX+1)) = 0.D0
+       BL = 0.d0 ! initialize BL array
        KL = 2 * NQMAX - 1
 
 !!$       DO NQ = 1, NQMAX
 !!$          DO NC = 0, NLCMAX(NQ)
-!!$             NCHvs = real( NCM - 1 + NC ) / NCM ! NCHvs = 0 when NC = 0 ; otherwise NCHvs = 1
+!!$             NCHvs = ( NCM - 1 + NC ) / NCM ! NCHvs = 0 when NC = 0 ; otherwise NCHvs = 1
 !!$             coef  = 1.d0 - ( 1.d0 + adv ) * NCHvs
 !!$             NR = 0
 !!$                NC1 = NLCR(NC,NQ,0)
-!!$                NC1Hvs = real( NCM - 1 + NC1 ) / NCM
+!!$                NC1Hvs = ( NCM - 1 + NC1 ) / NCM
 !!$                IF(NC1 /= 0) THEN
 !!$                   IA = NQMAX - (NC1 - 1) + (NQ - 1) + KL
 !!$                   IB = IA + NQMAX
@@ -583,11 +577,11 @@ contains
 !$omp do private(NC,NCHvs,coef,NC1,NC1Hvs,NC1Hvs2,IA,IB,IC,JA,JB,JC,NR)
        DO NQ = 1, NQMAX
           DO NC = 0, NLCMAX(NQ)
-             NCHvs = real( NCM - 1 + NC ) / NCM ! NCHvs = 0 when NC = 0 ; otherwise NCHvs = 1
+             NCHvs = ( NCM - 1 + NC ) / NCM ! NCHvs = 0 when NC = 0 ; otherwise NCHvs = 1
              coef  = 1.d0 - ( 1.d0 + adv ) * NCHvs
              ! --- NR = 0
              NC1 = NLCR(NC,NQ,0)
-             NC1Hvs = real( NCM - 1 + NC1 ) / NCM ! NC1Hvs = 0 when NC1 = 0 ; otherwise NC1Hvs = 1
+             NC1Hvs = ( NCM - 1 + NC1 ) / NCM ! NC1Hvs = 0 when NC1 = 0 ; otherwise NC1Hvs = 1
              NC1Hvs2 = 1 - NC1Hvs
              IA = NQMAX - (NC1 - 1) + (NQ - 1) + KL
              IB = IA + NQMAX
@@ -599,7 +593,7 @@ contains
                 BL(IB,JB) = BL(IB,JB) + BLC(NR,NC,NQ) * coef * NC1Hvs
              ! --- NR = 1 ~ NRMAX
              NC1 = NLC(NC,NQ)
-             NC1Hvs = real( NCM - 1 + NC1 ) / NCM
+             NC1Hvs = ( NCM - 1 + NC1 ) / NCM
              NC1Hvs2 = 1 - NC1Hvs
              ! NC1Hvs2 in IA: avoid overflow of IA in BL when NQ=NQMAX and NC1 = 0
              IA = NQMAX - (NC1 - 1) + (NQ - 1) + KL - NC1Hvs2
@@ -616,7 +610,7 @@ contains
              END DO
              ! --- NR = NRMAX
              NC1 = NLCR(NC,NQ,1)
-             NC1Hvs = real( NCM - 1 + NC1 ) / NCM
+             NC1Hvs = ( NCM - 1 + NC1 ) / NCM
              NC1Hvs2 = 1 - NC1Hvs
              IA = NQMAX - (NC1 - 1) + (NQ - 1) + KL
              IB = IA + NQMAX
@@ -632,22 +626,11 @@ contains
 !$omp end do
 !$omp end parallel
 
-!!$       ! Ratio between stochastic loss and other losses
-!!$       suml1 = 0.d0
-!!$       do nr=0,26
-!!$          suml1 = suml1 + BLC(nr,7,lqb1) * PNbV(nr)
-!!$       end do
-!!$       suml2 = 0.d0
-!!$       do nr=27,nrmax
-!!$          suml2 = suml2 + BLC(nr,7,lqb1) * PNbV(nr)
-!!$       end do
-!!$       write(6,*) suml1,suml2
-
     END IF
 
     ! *** Right-hand-side vector, denoted by "bu" ***
 
-    BX(1:NQMAX*(NRMAX+1)) = 0.D0
+    BX = 0.d0 ! initialize BX array
 
     IF(IGBDF == 0) THEN
        COEF1 = 1.D0
@@ -706,7 +689,7 @@ contains
     DO NQ = 1, NQMAX
        ! --- NR = 0
        NC1 = NLCR(NC,NQ,0)
-       NC1Hvs = real( NCM - 1 + NC1 ) / NCM ! NC1Hvs = 0 when NC1 = 0 ; otherwise NC1Hvs = 1
+       NC1Hvs = ( NCM - 1 + NC1 ) / NCM ! NC1Hvs = 0 when NC1 = 0 ; otherwise NC1Hvs = 1
        NC2 = NC1 + 1 - NC1Hvs
        NR = 0
           BX(NQMAX * NR + NQ) &
@@ -717,7 +700,7 @@ contains
 
        ! --- NR = 1 ~ NRMAX
        NC1 = NLC(NC,NQ)
-       NC1Hvs = real( NCM - 1 + NC1 ) / NCM ! NC1Hvs = 0 when NC1 = 0 ; otherwise NC1Hvs = 1
+       NC1Hvs = ( NCM - 1 + NC1 ) / NCM ! NC1Hvs = 0 when NC1 = 0 ; otherwise NC1Hvs = 1
        NC2 = NC1 + 1 - NC1Hvs
        DO NR = 1, NRMAX - 1
           BX(NQMAX * NR + NQ) &
@@ -731,7 +714,7 @@ contains
 
        ! --- NR = NRMAX
        NC1 = NLCR(NC,NQ,1)
-       NC1Hvs = real( NCM - 1 + NC1 ) / NCM ! NC1Hvs = 0 when NC1 = 0 ; otherwise NC1Hvs = 1
+       NC1Hvs = ( NCM - 1 + NC1 ) / NCM ! NC1Hvs = 0 when NC1 = 0 ; otherwise NC1Hvs = 1
        NC2 = NC1 + 1 - NC1Hvs
        NR = NRMAX
           BX(NQMAX * NR + NQ) &
@@ -741,19 +724,12 @@ contains
                &                       - BLC(NR,NC,NQ) * XOLD(NR  ,NC2) * COEF2) * NC1Hvs
     END DO
 !$omp end do
+!$omp end parallel
 
     ! *** In the case of general term effect in any equations, denoted by "c" ***
 
-!$omp do private(NC,NR)
-    DO NQ = 1, NQMAX
-       DO NC = 1, NLCMAX(NQ)
-          DO NR = 0, NRMAX
-             BX(NQMAX * NR + NQ) = BX(NQMAX * NR + NQ) + PLC(NR,NC,NQ) * COEF3
-          END DO
-       END DO
-    END DO
-!$omp end do
-!$omp end parallel
+    forall (NQ = 1:NQMAX, NR = 0:NRMAX) &
+         & BX(NQMAX * NR + NQ) = BX(NQMAX * NR + NQ) + sum(PLC(NR,1:NLCMAX(NQ),NQ)) * COEF3
 
     ! *** Only the case of not BDF ***
     !  Because "ADV" has no longer original meaning when BDF is used.
@@ -798,7 +774,7 @@ contains
        NR = 0
           DO NC = 1, NLCMAX(NQ)
              NC1 = NLCR(NC,NQ,0)
-             NC1Hvs = real( NCM - 1 + NC1 ) / NCM ! NC1Hvs = 0 when NC1 = 0 ; otherwise NC1Hvs = 1
+             NC1Hvs = ( NCM - 1 + NC1 ) / NCM ! NC1Hvs = 0 when NC1 = 0 ; otherwise NC1Hvs = 1
              NC2 = NC1 + 1 - NC1Hvs
              BX(NQMAX * NR + NQ) = BX(NQMAX * NR + NQ) &
                   &              +(  BLC(NR,NC,NQ) * X(NR  ,NC2) &
@@ -807,7 +783,7 @@ contains
 
        DO NC = 1, NLCMAX(NQ)
           NC1 = NLC(NC,NQ)
-          NC1Hvs = real( NCM - 1 + NC1 ) / NCM ! NC1Hvs = 0 when NC1 = 0 ; otherwise NC1Hvs = 1
+          NC1Hvs = ( NCM - 1 + NC1 ) / NCM ! NC1Hvs = 0 when NC1 = 0 ; otherwise NC1Hvs = 1
           NC2 = NC1 + 1 - NC1Hvs
           DO NR = 1, NRMAX-1
              BX(NQMAX * NR + NQ) = BX(NQMAX * NR + NQ) &
@@ -820,7 +796,7 @@ contains
        NR = NRMAX
           DO NC = 1, NLCMAX(NQ)
              NC1 = NLCR(NC,NQ,1)
-             NC1Hvs = real( NCM - 1 + NC1 ) / NCM ! NC1Hvs = 0 when NC1 = 0 ; otherwise NC1Hvs = 1
+             NC1Hvs = ( NCM - 1 + NC1 ) / NCM ! NC1Hvs = 0 when NC1 = 0 ; otherwise NC1Hvs = 1
              NC2 = NC1 + 1 - NC1Hvs
              BX(NQMAX * NR + NQ) = BX(NQMAX * NR + NQ) &
                   &              +(  CLC(NR,NC,NQ) * X(NR-1,NC2) &
@@ -892,7 +868,7 @@ contains
 
     ind = 0
     IF(ID == 0) THEN ! Negative values are set to zero inside rho=1.
-       IF(MINVAL(XL(0:NRMAX,LQ)) < 0.D0) THEN
+       IF(MINVAL(XL(:,LQ)) < 0.D0) THEN
           ind = 1
           DO NR = 0, NRMAX
              IF(XL(NR,LQ) <= 0.D0) THEN
@@ -908,7 +884,7 @@ contains
           XL(NZERO:NRMAX,LQ) = 0.D0
        END IF
     ELSE IF(ID == 1) THEN ! Searching from outboard
-       IF(MINVAL(XL(0:NRMAX,LQ)) < 0.D0) THEN
+       IF(MINVAL(XL(:,LQ)) < 0.D0) THEN
           ind = 1
           DO NR = NRMAX, 0, -1
              IF(XL(NR,LQ) <= 0.D0) THEN
@@ -920,16 +896,12 @@ contains
           XL(0:NZERO,LQ) = 0.D0
        END IF
     ELSE IF(ID == 2) THEN ! Negative values are set to zero.
-       IF(MINVAL(XL(0:NRMAX,LQ)) < 0.D0) THEN
+       IF(MINVAL(XL(:,LQ)) < 0.D0) THEN
           ind = 1
-          DO NR = 0, NRMAX
-             IF(XL(NR,LQ) < 0.D0) XL(NR,LQ) = 0.D0
-          END DO
+          where(XL(:,LQ) < 0.d0) XL(:,LQ) = 0.d0
        END IF
     ELSE ! Taking absolute
-       DO NR = 0, NRMAX
-          XL(NR,LQ) = abs(XL(NR,LQ))
-       END DO
+       XL(:,LQ) = abs(XL(:,LQ))
     END IF
 !    if(ind /= 0 .and. (ID == 1 .or. ID == 2)) write(6,'(3(X,A,I3,X))') "MINUS_CHECK : LQ=",LQ,"ID=",ID,"NR=",NZERO
 
@@ -944,7 +916,7 @@ contains
 !!$    ID = 0
 !!$    NRL = 0.5 * NRA
 !!$    IF(MINVAL(XL(0:NRL)) < 1.D-8 .AND. MAXVAL(XL(0:NRL)) > 0.D0) THEN
-!!$       XL(0:NRMAX) = 0.D0
+!!$       XL(:) = 0.D0
 !!$       ID = 1
 !!$    END IF
 !!$
@@ -969,23 +941,23 @@ contains
 
     IF(MODECV == 0) THEN
 
-       ASG(0:NRMAX,1:NQMAX) = 0.D0
+       ASG = 0.D0
        L_NQ:DO NQ = 1, NQMAX
           ! Calculate maximum local root-mean-square of X and corresponding grid point
-          NRAVM = SUM(MAXLOC(abs(XN(0:NRMAX,NQ))))-1
+          NRAVM = SUM(MAXLOC(abs(XN(:,NQ))))-1
           AVM   = abs(XN(NRAVM,NQ))
 
           ! Calculate root-mean-square X over the profile (Euclidean norm)
-          AV    = SQRT(SUM(XN(0:NRMAX,NQ)**2) / NRMAX)
+          AV    = SQRT(SUM(XN(:,NQ)**2) / NRMAX)
           IF (AV < epsilon(1.d0)) THEN
              ! It means that the variable for NQ is zero over the profile.
-             ASG(0:NRMAX,NQ) = 0.d0
+             ASG(:,NQ) = 0.d0
              CYCLE L_NQ
           END IF
 
           ERR1  = 0.D0
           IDISP = IDIV
-          ASG(0:NRMAX,NQ) = ABS(XN(0:NRMAX,NQ) - XP(0:NRMAX,NQ)) / AV
+          ASG(:,NQ) = ABS(XN(:,NQ) - XP(:,NQ)) / AV
 
           L_NR:DO NR = 0, NRMAX
              ! Show results
@@ -1025,7 +997,7 @@ contains
 
        END DO L_NQ
        ! Converged or IC == ICMAX
-       IASG(1:2) = MAXLOC(ASG(0:NRMAX,1:NQMAX))
+       IASG(1:2) = MAXLOC(ASG)
 
        if(eps > 0.d0) then ! calculation continues even if not converged
           istat = 0
@@ -1040,10 +1012,10 @@ contains
 
     ELSE
        L_NQ2:DO NQ = 1, NQMAX
-          AV = abs(sum(XN(0:NRMAX,NQ)))
+          AV = abs(sum(XN(:,NQ)))
           IF(AV /= 0.d0) THEN
-             ASG(0:NRMAX,NQ) = (XN(0:NRMAX,NQ) - XP(0:NRMAX,NQ))**2
-             L2(NQ) = SQRT(sum(ASG(0:NRMAX,NQ))) / AV
+             ASG(:,NQ) = (XN(:,NQ) - XP(:,NQ))**2
+             L2(NQ) = SQRT(sum(ASG(:,NQ))) / AV
           ELSE
              L2(NQ) = 0.D0
           END IF

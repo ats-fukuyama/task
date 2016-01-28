@@ -176,6 +176,7 @@ contains
 
 end module sauter_mod
 
+!------------------------------------------------------------------------
 
 module tx_nclass_mod
   implicit none
@@ -285,7 +286,6 @@ contains
 !        = 6 error: trapped fraction must be 0.0.le.p_ft.le.1.0
 !***********************************************************************
     use tx_commons
-    use sauter_mod
     INCLUDE 'nclass/pamx_mi.inc'
     INCLUDE 'nclass/pamx_ms.inc'
     INCLUDE 'nclass/pamx_mz.inc'
@@ -394,8 +394,8 @@ contains
        p_fhat  = real(fipol(NR)/sdt(NR))
        ! poloidal moments of geometric factor for PS viscosity
        DO i=1,3
-          p_fm(i)=REAL(DBLE(i)*( (1.D0-SQRT(1.D0-EpsL**2))/EpsL)**(2*i) &
-               &                *(1.D0+DBLE(i)*SQRT(1.D0-EpsL**2))/((1.D0-EpsL**2)**1.5D0 &
+          p_fm(i)=REAL(real(i,8)*( (1.D0-SQRT(1.D0-EpsL**2))/EpsL)**(2*i) &
+               &                *(1.D0+real(i,8)*SQRT(1.D0-EpsL**2))/((1.D0-EpsL**2)**1.5D0 &
                &                *(Q(NR)*RR)**2))
        ENDDO
     else
