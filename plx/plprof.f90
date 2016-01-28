@@ -884,7 +884,7 @@
 
     SUBROUTINE wmspl_prof(Rhol,NS,PNL,PTL)
 
-      USE plcomm,ONLY: PTS,modeln
+      USE plcomm,ONLY: PNS,PTS,modeln
       USE plxprf
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: rhol   ! Normalized radius
