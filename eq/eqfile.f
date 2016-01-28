@@ -270,7 +270,11 @@ C
 C *** The following variable defined in Tokamaks 3rd, Sec. 14.14 ***
       RR   = 0.5d0 * (RSUMAX - RSUMIN) + RSUMIN
       RA   = RR - RSUMIN
-      RB   = RBRA * RA
+      IF(RBRA.LE.1.D0) THEN
+         RB = 1.1D0*RA
+      ELSE
+         RB = RBRA * RA
+      END IF
       RKAP = (ZSUMAX - ZSUMIN) / (RSUMAX - RSUMIN)
       RDLT = 0.5d0 * ((RR-R_ZSUMIN) + (RR-R_ZSUMAX)) / RA
       BB   = Rctr * Bctr / RR
@@ -319,6 +323,7 @@ C      WRITE(6,'(1P4E12.4)') ZG(1),ZG(2),ZG(NZGMAX-1),ZG(NZGMAX)
 C      WRITE(6,'(1P4E12.4)') PSIPS(1),PSIPS(2),
 C     &                      PSIPS(NPSMAX-1),PSIPS(NPSMAX)
 C
+
       return
 c     
  2000 format (6a8,3i4)

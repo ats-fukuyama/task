@@ -39,7 +39,9 @@ C
       CALL EQCALQP(IERR)
       IF(IERR.NE.0) RETURN
 C
-      IF(NSUMAX.GT.0) THEN
+      IF(.NOT.(NSUMAX.EQ.0.OR.
+     &         RA-RB.EQ.0.D0.OR. 
+     &         RR+RB-REDGE.EQ.0.D0)) THEN
          CALL EQCALQV(IERR)
          IF(IERR.NE.0) RETURN
       ENDIF
@@ -135,12 +137,13 @@ C
 C     ----- SET DR, DTH -----
 C
 !      write(6,'(A,1p4E12.4)') 'RB,RA,REDGE,RAXIS=',RB,RA,REDGE,RAXIS
-      IF(NSUMAX.EQ.0) THEN
+      IF(NSUMAX.EQ.0.OR.RA-RB.EQ.0.D0.OR.RR+RB-REDGE.EQ.0.D0) THEN
          NRPMAX=NRMAX
       ELSE
          DR=(RB-RA+REDGE-RAXIS)/(NRMAX-1)
          NRPMAX=NINT((REDGE-RAXIS)/DR)+1
       ENDIF
+!      write(6,*) 'nrmax,nrpmax,nsumax=',nrmax,nrpmax,nsumax
       DR=(REDGE-RAXIS)/(NRPMAX-1)
       DTH=2.d0*PI/NTHMAX
 C
@@ -170,9 +173,8 @@ C
          PPS(NR)=PPFUNC(PSIP(NR))
          TTS(NR)=TTFUNC(PSIP(NR))
 C
-C         WRITE(6,'(A,I5,1P5E12.4)') 'NR:',NR,
-C     &        PSIP(NR),PPS(NR),TTS(NR),RINIT,ZINIT
-C         pause
+!         WRITE(6,'(A,I5,1P5E12.4)') 'NR:',NR,
+!     &        PSIP(NR),PPS(NR),TTS(NR),RINIT,ZINIT
 C
          CALL EQMAGS(RINIT,ZINIT,NTVMAX,XA,YA,NA,IERR)
          DO N=1,NA
@@ -536,15 +538,18 @@ C     &           'NR,PSIP,PSIT,QPS=',NR,PSIP(NR),PSIT(NR),QPS(NR)
       DR_OUT=(RR+RB-REDGE)/(NRMAX-NRPMAX)
       DR_IN =FRBIN*(RR+RB-REDGE)/(NRMAX-NRPMAX)
       DTH=2.d0*PI/NTHMAX
+            write(6,'(A,1P5E12.4)') 
+     &           'DR_IN,DR_OUT,RR,RB,REDGE=',
+     &            DR_IN,DR_OUT,RR,RB,REDGE
       IF(MDLEQF.LT.10) THEN
          DO NR=NRPMAX+1,NRMAX
             RL_OUT=REDGE+DR_OUT*(NR-NRPMAX)
             RL_IN =REDGE+DR_IN *(NR-NRPMAX)
             ZL=ZAXIS
             Sratio=(RL_OUT-RR)**2/(REDGE-RR)**2
-C            write(6,'(A,I5,1P3E12.4)') 
-C     &           'NR,RL_OUT,ratio,Sratio=',
-C     &            NR,RL_OUT,RL_OUT/REDGE,Sratio
+!            write(6,'(A,I5,1P3E12.4)') 
+!     &           'NR,RL_OUT,ratio,Sratio=',
+!     &            NR,RL_OUT,RL_OUT/REDGE,Sratio
             PSIP(NR)=PSIG(RL_OUT,ZL)-PSI0
 !            write(6,'(A,I5,1P3E12.4)') 
 !     &           'NR,PSIP,PSIG,PSI0=',NR,PSIP(NR),PSIG(RL_OUT,ZL),PSI0
@@ -922,6 +927,10 @@ C
 C
 C     *** For functions defined in eqsplf.f ***
 C
+!      WRITE(6,'(A)') 'PSIP='
+!      WRITE(6,'(1P5E12.4)') (PSIP(NR),NR=1,NRMAX)
+!      write(6,'(A)') 'psit='
+!      write(6,'(1P5E12.4)') (PSIT(NR),NR=1,NRMAX)
       CALL SPL1D(PSIP,PSIT,DERIV,UPSIT,NRMAX,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for PSIT: IERR=',IERR
       CALL SPL1D(PSIT,PSIP,DERIV,UPSIP,NRMAX,0,IERR)

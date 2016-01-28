@@ -77,6 +77,7 @@
      &            GRM,GVR(1,1,6),NRMP,NRMAX,NGR, &
      &            '@TD [keV]  vs r@',0+INQ)
 
+	  CALL TRGRTM
       CALL PAGEE
       RETURN
       END SUBROUTINE TRGRG1
@@ -111,7 +112,8 @@
       CALL TRGR1D(15.5,24.5, 2.0, 8.0, &
      &            GRM,GVR(1,1,8),NRMP,NRMAX,NGR, &
      &            '@TA [keV]  vs r@',0+INQ)
-
+   
+      CALL TRGRTM
       CALL PAGEE
       RETURN
       END SUBROUTINE TRGRG2
@@ -147,6 +149,7 @@
      &            GRM,GVR(1,1,12),NRMP,NRMAX,NGR, &
      &           '@AJOH [MA/m^2]  vs r@',0+INQ)
 
+	  CALL TRGRTM
       CALL PAGEE
       RETURN
       END SUBROUTINE TRGRG3
@@ -370,6 +373,7 @@
       CALL TRGR2D(13.5,24.5, 1.0, 8.0,GVR(1,1,4),NRMP,NRMAX,NGR, &
      &            '@NA [10^20/m^3]@',INQ)
 
+	  CALL TRGRTM
       CALL PAGEE
 
       RETURN
@@ -402,6 +406,7 @@
       CALL TRGR2D(13.5,24.5, 1.0, 8.0,GVR(1,1,8),NRMP,NRMAX,NGR, &
      &            '@TA [keV]@',INQ)
 
+	  CALL TRGRTM
       CALL PAGEE
 
       RETURN
@@ -433,6 +438,7 @@
       CALL TRGR2D(13.5,24.5, 1.0, 8.0,GVR(1,1,12),NRMP,NRMAX,NGR, &
      &            '@AJOH [MA/m^2]@',INQ)
 
+	  CALL TRGRTM
       CALL PAGEE
 
       RETURN

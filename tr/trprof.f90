@@ -707,7 +707,6 @@
       integer, intent(out):: ierr
       character(len=80):: line
 
-      call tr_bpsd_init
       call tr_bpsd_set(ierr)
 
       if(modelg.eq.3.or.modelg.eq.5.or.modelg.eq.8) then

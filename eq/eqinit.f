@@ -34,6 +34,7 @@ C
       PROFJ = 2.D0
 C
       FRBIN = 1.D0
+      RBRA  = RB/RA
 C
 C     ======( PLASMA PARAMETERS )======
 C
