@@ -245,9 +245,9 @@ CONTAINS
     WRITE(6,611) 'npomax      ',npomax ,'npostep     ',npostep, &
                  'ntostep     ',ntostep
     WRITE(6,612) 'me          ',me     ,'chrge       ',chrge, &
-                 'te          ',te    
+                 'te          ',te
     WRITE(6,612) 'mi          ',mi     ,'chrgi       ',chrgi, &
-                 'ti          ',ti    
+                 'ti          ',ti
     WRITE(6,612) 'densx       ',densx
     WRITE(6,612) 'bxmin       ',bxmin  ,'bymin       ',bymin, &
                  'bzmin       ',bzmin
@@ -287,4 +287,3 @@ CONTAINS
   END SUBROUTINE pic_view
 
 END MODULE picparm
-

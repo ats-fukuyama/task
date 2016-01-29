@@ -65,6 +65,7 @@ CONTAINS
       phxant =    0.0d0     ! initial phase of jxant
       phyant =    0.0d0     ! initial phase of jyant
       phzant =    0.0d0     ! initial phase of jzant
+      !dlen   =    10.d0     ! length of damping area
 
 !---------------------------------------------------------
 

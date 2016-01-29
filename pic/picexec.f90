@@ -438,8 +438,8 @@ CONTAINS
        IF(model_boundary.EQ.0) THEN ! periodic
           if( nxp .eq. 0  ) nxpm = nxmax
           if( nyp .eq. 0  ) nypm = nymax
-          if( nxp .eq. nxmax) nxppp = 1
-          if( nyp .eq. nymax) nyppp = 1
+          if( nxp .eq. nxmax-1) nxppp = 1
+          if( nyp .eq. nymax-1) nyppp = 1
        ELSE   ! reflective:
           if( nxp .eq. 0  ) nxpm = 0
           if( nyp .eq. 0  ) nypm = 0
@@ -449,6 +449,18 @@ CONTAINS
 
        ! electric field and magnetic field
        if(dx .le. 0.5d0 .and. dy .le. 0.5d0) then
+         if(model_boundary .ne. 0) then
+           if(nxp .eq. 0) then
+              sx2m = 0
+              sx2 = dx1
+              sx2p = dx
+           endif
+           if(nyp .eq. 0) then
+             sy2m = 0
+             sy2 = dy1
+             sy2p = dy
+           endif
+        endif
           exx = ex(nxpp,nypp)*dx*sy2p + ex(nxp ,nypp)*dx1*sy2p &
               + ex(nxpp,nyp )*dx*sy2  + ex(nxp ,nyp )*dx1*sy2  &
               + ex(nxpp,nypm)*dx*sy2m + ex(nxp ,nypm)*dx1*sy2m
@@ -479,6 +491,18 @@ CONTAINS
               + bz(nxpm,nypm)*sx2m*sy2m
 
        else if(dx .le. 0.5d0 .and. dy .ge. 0.5d0) then
+         if(model_boundary .ne. 0) then
+           if(nxp .eq. 0) then
+              sx2m = 0
+              sx2 = dx1
+              sx2p = dx
+           endif
+           if(nyp .eq. nymax-1) then
+              sy2m = dy1
+              sy2 = dy
+              sy2p = 0
+           endif
+         endif
           exx = ex(nxpp,nyppp)*dx*sy2p + ex(nxp ,nyppp)*dx1*sy2p &
               + ex(nxpp,nypp )*dx*sy2  + ex(nxp ,nypp )*dx1*sy2  &
               + ex(nxpp,nyp  )*dx*sy2m + ex(nxp ,nyp  )*dx1*sy2m
@@ -508,6 +532,18 @@ CONTAINS
               + bz(nxpm,nyp  )*sx2m*sy2m
 
        else if(dx .ge. 0.5d0 .and. dy .le. 0.5d0) then
+         if(model_boundary .ne. 0) then
+           if(nxp .eq. nxmax-1) then
+              sx2m = dx1
+              sx2 = dx
+              sx2p = 0
+           endif
+           if(nyp .eq. 0) then
+              sy2m = 0
+              sy2 = dy1
+              sy2p = dy
+           endif
+         endif
           exx = ex(nxpp,nypp)*dx*sy2p + ex(nxp ,nypp)*dx1*sy2p &
               + ex(nxpp,nyp )*dx*sy2  + ex(nxp ,nyp )*dx1*sy2  &
               + ex(nxpp,nypm)*dx*sy2m + ex(nxp ,nypm)*dx1*sy2m
@@ -536,6 +572,18 @@ CONTAINS
               + bz(nxppp,nypm)*sx2p*sy2m + bz(nxpp ,nypm)*sx2 *sy2m &
               + bz(nxp  ,nypm)*sx2m*sy2m
             else
+              if(model_boundary .ne. 0) then
+              if(nxp .eq. nxmax-1) then
+                sx2m = dx1
+                sx2 = dx
+                sx2p = 0
+              endif
+              if(nyp .eq. nymax-1) then
+                sy2m = dy1
+                sy2 = dy
+                sy2p = 0
+              endif
+            endif
           exx = ex(nxpp,nyppp)*dx*sy2p + ex(nxp ,nyppp)*dx1*sy2p &
               + ex(nxpp,nypp )*dx*sy2  + ex(nxp ,nypp )*dx1*sy2  &
               + ex(nxpp,nyp  )*dx*sy2m + ex(nxp ,nyp  )*dx1*sy2m
@@ -1258,7 +1306,7 @@ CONTAINS
       integer :: model_wg,model_boundary
       real(8) :: xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg,ph_wg,rot_wg,eli_wg
       real(8) :: omega,time,pi
-      real(8) :: vcfact,dt,dph,x,y,yc,ylen,factor
+      real(8) :: vcfact,dt,dph,x,y,yc,ylen,factor,amp_start
 
  ! Solution of maxwell equation in the A-phi formulation by difference method
  ! vcfact is the ratio of the light speed to lattice parameter times plasma
@@ -1352,13 +1400,17 @@ CONTAINS
          yc=0.5d0*(ymin_wg+ymax_wg)
          ylen=(ymax_wg-ymin_wg)
          dph=ph_wg/ylen
+         amp_start = time / vcfact
+         if(amp_start .ge. 1.d0) amp_start=1.0d0
          DO ny=1,nymax
             y=dble(ny)
             IF(y.GE.ymin_wg.AND.y.LE.ymax_wg) THEN
                factor=exp(-12.D0*(y-yc)**2/(ylen)**2)
-               Ay(0,ny)=amp_wg*factor*COS(rot_wg*pi/180.D0) &
+               Ay(0,ny)=amp_wg*amp_start &
+                       *factor*COS(rot_wg*pi/180.D0) &
                        *sin(omega*time-pi*dph*(y-ymin_wg)/180.D0)
-               Az(0,ny)=amp_wg*factor*SIN(rot_wg*pi/180.D0) &
+               Az(0,ny)=amp_wg*amp_start &
+                       *factor*SIN(rot_wg*pi/180.D0) &
                        *sin(omega*time-pi*dph*(y-ymin_wg)/180.D0)
             END IF
          END DO

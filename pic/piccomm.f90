@@ -18,8 +18,8 @@ MODULE piccomm_parm
 
 END MODULE piccomm_parm
 
-MODULE piccomm 
-		
+MODULE piccomm
+
   USE piccomm_parm
   USE commpi
 
@@ -66,7 +66,7 @@ CONTAINS
        nymax  == nymax_save  .AND. &
        npxmax == npxmax_save .AND. &
        npymax == npymax_save )  RETURN
-       
+
     IF(ALLOCATED(ex)) CALL pic_deallocate
 
     ALLOCATE(ex(0:nxmax,0:nymax),ey(0:nxmax,0:nymax),ez(0:nxmax,0:nymax))
