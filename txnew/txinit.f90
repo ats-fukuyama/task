@@ -17,7 +17,7 @@ SUBROUTINE TXINIT
   !   ***** Configuration parameters *****
 
   !   Plasma minor radius (m)
-  ra = 0.35D0
+  ra = 0.8D0
 
   !   Virtual wall radius in rho coordinate (-)
   !     The position of the virtual wall follows the change in that of the separatrix
@@ -25,25 +25,22 @@ SUBROUTINE TXINIT
   !     That is, the virtual wall always locates at rhob distance from the separatrix.
   rhob = 1.1d0
 
-  !   Virtual wall radius (m)
-!  RB = ra * rhob
-
   !   Mesh accumulation radius (-)
   !     rhoaccum coincides with rho=1.d0 when rhoaccum is minus. (-1: default)
   !     rhoaccum is valid when rhoaccum is plus.
   rhoaccum = - 1.d0
 
   !   Plasma major radius (m)
-  RR = 1.3D0
+  RR = 3.2D0
 
   !   Toroidal magnetic field (T)
-  BB = 1.3D0
+  BB = 2.68D0
 
   !   Plasma current start (MA)
-  rIPs= 0.15D0
+  rIPs= 1.D0
 
   !   Plasma current end (MA)
-  rIPe= 0.15D0
+  rIPe= 1.D0
 
   !   ***** Plasma components *****
 
@@ -63,40 +60,40 @@ SUBROUTINE TXINIT
   !   ***** Initial plasma parameters *****
 
   !   Initial electron density at rho = 0 (10^20 m^-3)
-  PN0 = 0.4D0
+  PN0 = 0.2D0
 
   !   Initial electron density at rho = a (10^20 m^-3)
   PNa = 0.05D0
 
   !   Electron density in diverter region (Minimum density in SOL)
-  PNeDIV = 10.D-3
-
-  !   Initial electron temperature at rho = 0 (keV)
-  PTe0 = 700.D-3
-
-  !   Initial electron temperature at rho = a (keV)
-  PTea =  50.D-3
-
-  !   Electron temperature in diverter region (Minimum Te in SOL)
-  PTeDIV = 10.D-3
+  PNeDIV = 0.01D0
 
   !   Ion density in diverter region (Minimum density in SOL)
   PNiDIV = PNeDIV
 
+  !   Initial electron temperature at rho = 0 (keV)
+  PTe0 = 2.D0
+
+  !   Initial electron temperature at rho = a (keV)
+  PTea = 0.2D0
+
+  !   Electron temperature in diverter region (Minimum Te in SOL)
+  PTeDIV = 0.05D0
+
   !   Initial ion temperature  at rho = 0 (keV)
-  PTi0 = 700.D-3
+  PTi0 = 2.D0
 
   !   Initial ion temperature  at rho = a (keV)
-  PTia =  50.D-3
+  PTia = 0.2D0
 
   !   Ion temperature in diverter region (Minimum Ti in SOL)
-  PTiDIV = 10.D-3
+  PTiDIV = 0.05D0
 
   !   Initial current profile parameter
   PROFJ = 2.D0
 
   !   Initial density profile parameters
-  PROFN1 = 3.D0
+  PROFN1 = 2.D0
   PROFN2 = 1.D0
 
   !   Initial temperature profile parameters
@@ -110,7 +107,7 @@ SUBROUTINE TXINIT
   !     ieqread = 0 : Large aspect ratio limit
   !             = 1 : Large aspect ratio approximation
   !             = 2 : Read equilibrium parameters (not yet)
-  ieqread = 0
+  ieqread = 1
 
   !   ***** Particle diffusivity and viscosity parameters *****
 
@@ -118,16 +115,16 @@ SUBROUTINE TXINIT
   VWpch0 = 0.D0
 
   !   Electron-driven diffusion parameter
-  De0 = 0.05D0
+  De0 = 0.1D0
 
   !   Ion-driven diffusion parameter (usually inactive)
   Di0 = 0.D0
 
   !   Electron viscosity parameter
-  rMue0 = 0.3D0
+  rMue0 = 0.5D0
 
   !   Ion viscosity parameter
-  rMui0 = 0.3D0
+  rMui0 = 0.5D0
 
   !   Drift frequency parameter (omega/omega*e)
   WPM0 = 0.D0
@@ -136,11 +133,11 @@ SUBROUTINE TXINIT
 
   !   Electron thermal diffusivity parameter (Chie/D)
   !     0 for fixed temperature profile
-  Chie0 = 0.3D0
+  Chie0 = 0.5D0
 
   !   Ion thermal diffusivity parameter (Chie/D)
   !     0 for fixed temperature profile
-  Chii0 = 0.3D0
+  Chii0 = 0.5D0
 
   !   ***** Turbulent transport control parameters *****
 
@@ -193,7 +190,7 @@ SUBROUTINE TXINIT
   FSCBEL = 1.D0
 
   !   Factor of E x B rotation shear
-  rG1 = 24.D0
+  rG1 = 10.D0
 
   !   ==== Neoclassical transport coefficient parameters ====================
 
@@ -204,7 +201,7 @@ SUBROUTINE TXINIT
   FSPARV(1:NSM) = 1.d0
 
   !   Neoclassical thermal diffusivity parameter
-  ChiNC = 0.D0
+  ChiNC = 1.D0
 
   !   Neoclassical viscosity parameter
   FSNC = 1.D0
@@ -218,10 +215,10 @@ SUBROUTINE TXINIT
   !   =======================================================================
 
   !   Bohm transport coefficient parameter in SOL
-  FSBOHM = 0.D0
+  FSBOHM = 1.D0
 
   !   Pseud-classical particle transport coefficient parameter in SOL
-  FSPCLD = 0.D0
+  FSPCLD = 1.D0
 
   !   Pseud-classical mom. transport coefficient parameter in SOL
   FSPCLM = 0.D0
@@ -230,13 +227,13 @@ SUBROUTINE TXINIT
   FSPCLC = 0.D0
 
   !   Controller for thermodiffusive pinch term of turbulent particle flux
-  FSVAHL = 0.D0
+  FSVAHL =-0.5D0
 
   !   Particle diffusion coefficient profile parameter (D(r=a)/D(r=0))
-  PROFD =  3.D0
+  PROFD =  5.D0
 
   !   Exponent of particle diffusion coefficient profile
-  PROFD1 = 3.D0
+  PROFD1 = 2.D0
 
   !   Gaussian modification of particle diffusion coefficient profile
   PROFD2 = 0.D0
@@ -318,15 +315,17 @@ SUBROUTINE TXINIT
   !   ***** initial parameters *****
 
   !   Initial Density scale length in SOL normalized by minor radius (-), valid if MDITSN /= 0
-  rLn = 0.03D0 / ra
+!  rLn = 0.03D0 / ra
+  rLn = 0.0857D0
 
   !   Initail Temperature scale length in SOL normalized by minor radius (-), valid if MDITST /= 0
-  rLT = 0.03D0 / ra
+!  rLT = 0.03D0 / ra
+  rLT = 0.0857D0
 
   !   ***** Heating parameters *****
 
   !   Maximum NBI beam energy (keV)
-  Ebmax = 32.D0
+  Ebmax = 80.D0
 
   !   Fraction of particles with Ebmax, Ebmax/2 and Ebmax/3 energies
   !      Positive-ion-source NBI : 0.75, 0.15, 0.10 (typically)
@@ -348,7 +347,7 @@ SUBROUTINE TXINIT
   RNBT2  = 0.5d0
 
   !   Heating center of first tangential NBI heating (-)
-  RNBT10 = 0.d0
+  RNBT10 = 0.2d0
 
   !   Heating center of second tangential NBI heating (-)
   RNBT20 = 0.d0
@@ -410,7 +409,7 @@ SUBROUTINE TXINIT
 
   !   Neutral thermal velocity (m/s)
   !     V0 = SQRT(2.D0*X[eV]*AEE/(amas(2)*AMP))
-  V0 = 1.5D3
+  V0 = 1.6954D4
 
   !   Recycling rate in SOL
   rGamm0 = 0.8D0
@@ -419,7 +418,7 @@ SUBROUTINE TXINIT
   !      If you input Gamma_0 [particles/sec], you translate it into
   !      rGASPF [1/(m^2 s)]:
   !        rGASPF = Gamma_0 / (2.D0*PI*RR*2.D0*PI*RB)
-  rGASPF = 0.1D0
+  rGASPF = 0.2D0
 
   !   ***** Ripple loss parameters *****
 
@@ -497,7 +496,7 @@ SUBROUTINE TXINIT
   !              1  : dPhiV/drho with dPhiV/drho = 0 at rho = 0 and dPs/drho with dPs/drho at rho = 0
   !              11 : dPhiV/drho(1) and dPs/drho(1) are interpolated by "replace_interpolate_value".
   !                   Smooth profiles regarding diamag. flow would be obtained.
-  ISMTHD = 1
+  ISMTHD = 11
 
   !   Lower bound of dependent variables
   tiny_cap = 1.d-14
@@ -558,12 +557,12 @@ SUBROUTINE TXINIT
   !   ***** Time parameter *****
 
   !   Number of time step
-  NTMAX = 10
+  NTMAX = 100
 
   !   ***** Diagnostics parameters *****
 
   !   Time step interval between print output
-  NTSTEP = 10
+  NTSTEP = 50
 
   !   Mode of AV (Diagnostic message in terms of convergence)
   !   0 : OFF (recommended)
@@ -583,19 +582,19 @@ SUBROUTINE TXINIT
   !   ***** Graphic parameters (module tx_graphic) *****
 
   !   Time step interval between lines in f(r) graph
-  NGRSTP = 1
+  NGRSTP = 20
 
   !   Time step interval between points in f(t) graph
-  NGTSTP = 1
+  NGTSTP = 5
 
   !   Time step interval between points in f(t) graph
-  NGVSTP = 1
+  NGVSTP = 5
 
   !   Mode of Graph
   !   0 : for Display (with grid, w/o power)
   !   1 : for Display (with grid and power)
   !   2 : for Print Out (w/o grid, with power)
-  MODEG = 1
+  MODEG = 2
 
   !   MODE of Graph Line
   !   0 : Change Line Color (Last Color Fixed)
@@ -610,7 +609,7 @@ SUBROUTINE TXINIT
   !   Mode of LAPACK
   !   0    : Use BANDRD
   !   else : Use LAPACK_DGBSV or LA_GBSV
-  MDLPCK = 0
+  MDLPCK = 1
 
   !   Mode of fixed temperature profile
   !   0    : not fixed
@@ -627,7 +626,7 @@ SUBROUTINE TXINIT
   !   1    : Orbit squeezing effect
   !   2    : Orbit squeezing effect, fixed during iteration
   !   +10  : Smoothing d/dpsi(dPhi/dpsi) profile using moving_average
-  MDOSQZ = 11
+  MDOSQZ = 0
 
   !   Model of neoclassical resistivity model (mainly for graphics)
   !   1    : depending upon MDLNEO
@@ -667,7 +666,7 @@ SUBROUTINE TXINIT
   !   0    : original
   !   1    : pedestal model
   !   2    : empirical steady state temperature profile
-  MDINTT = 0
+  MDINTT = 2
 
   !   Mode of initial current density profiles
   !   -2   : read from file and smooth
@@ -685,7 +684,7 @@ SUBROUTINE TXINIT
   !   1    : exponential decay model
   !   2    : exponential decay model 2
   !          This should be chosen if MDINTT=2.
-  MDITST = 1
+  MDITST = 2
 
   !   Mode of Edge Transport barrier
   !   0    : Nothing to do
@@ -1662,116 +1661,116 @@ contains
 
   SUBROUTINE TXVIEW
 
-    WRITE(6,'((1X,A7," =",1PD9.2,3(2X,A7," =",1PD9.2)))') &
-         &   'RA     ', RA    ,  'RHOB   ', RHOB  ,  &
-         &   'RR     ', RR    ,  'BB     ', BB    ,  &
-         &   'amas2  ', amas(2), 'achg2  ', achg(2), &
-         &   'PN0    ', PN0   ,  'PNa    ', PNa   ,  &
-         &   'PTe0   ', PTe0  ,  'PTea   ', PTea  ,  &
-         &   'PTi0   ', PTi0  ,  'PTia   ', PTia  ,  &
-         &   'rIP    ', rIP   ,  'Zeff   ', Zeff  ,  &
-         &   'PROFJ  ', PROFJ ,  'PROFN1 ', PROFN1,  &
-         &   'PROFN2 ', PROFN2,  'PROFT1 ', PROFT1,  &
-         &   'PROFT2 ', PROFT2,  'Uiph0  ', Uiph0 ,  &
-         &   'CMESH0 ', CMESH0,  &
-         &   'WMESH0 ', WMESH0,  'CMESH  ', CMESH ,  &
-         &   'WMESH  ', WMESH ,  'ADV    ', ADV   ,  &
-         &   'De0    ', De0   ,  'Di0    ', Di0   ,  &
-         &   'rMue0  ', rMue0 ,  'rMui0  ', rMui0 ,  &
-         &   'FSMPCH1',FSMPCH(1), 'FSMPCH2',FSMPCH(2), &
-         &   'FSPARV1',FSPARV(1), 'FSPARV2',FSPARV(2), &
-         &   'VWpch0 ', VWpch0,  'WPM0   ', WPM0  ,  &
-         &   'PROFD  ', PROFD ,  'PROFD1 ', PROFD1,  &
-         &   'PROFD2 ', PROFD2,  'PROFDB ', PROFDB,  &
-         &   'PROFM  ', PROFM ,  'PROFM1 ', PROFM1,  &
-         &   'PROFMB ', PROFMB,  'PROFC  ', PROFC ,  &
-         &   'PROFC1 ', PROFC1,  'PROFCB ', PROFCB,  &
-         &   'ChiNC  ', ChiNC ,  &
-         &   'Chie0  ', Chie0 ,  'Chii0  ', Chii0 ,  &
-         &   'FSDFX1 ', FSDFIX(1),  'FSDFX2 ', FSDFIX(2),  &
-         &   'FSDFX3 ', FSDFIX(3),  'FANOM1 ', FSANOM(1),  &
-         &   'FANOM2 ', FSANOM(2),  'FANOM3 ', FSANOM(3),  &
-         &   'RoETB1 ', RhoETB(1),  'RoETB2 ', RhoETB(2),  &
-         &   'RoETB3 ', RhoETB(3),  &
-         &   'FSCBAL ', FSCBAL,  'FSCBKP ', FSCBKP,  &
-         &   'FSCBEL ', FSCBEL,  'FSCBSH ', FSCBSH,  &
-         &   'FSBOHM ', FSBOHM,  'FSPCLD ', FSPCLD,  &
-         &   'FSPCLM ', FSPCLM,  'FSPCLC ', FSPCLC,  &
-         &   'FSVAHL ', FSVAHL,  'FSCX   ', FSCX  ,  &
-         &   'FSLC   ', FSLC  ,  'FSRP   ', FSRP  ,  &
-         &   'FSNF   ', FSNF  ,  'FSNC   ', FSNC  ,  &
-         &   'FSADV  ', FSADV ,  'FSADVB ', FSADVB,  &
-         &   'FSUG   ', FSUG  ,  &
-         &   'FSLP   ', FSLP  ,  'FSLTE  ', FSLTE ,  &
-         &   'FSLTI  ', FSLTI ,  'FSION  ', FSION ,  &
-         &   'FSD01  ', FSD01 ,  'FSD02  ', FSD02 ,  &
-         &   'FSD03  ', FSD03 ,  &
-         &   'rLn    ', rLn   ,  'rLT    ', rLT   ,  &
-         &   'Ebmax  ', Ebmax ,  'esps(1)', esps(1), &
-         &   'esps(2)', esps(2), 'esps(3)', esps(3), &
-         &   'FSNCB  ', FSNCB ,  &
-         &   'RNBP   ', RNBP  ,  'RNBP0  ', RNBP0 ,  &
-         &   'RNBT1  ', RNBT1 ,  'RNBT10 ', RNBT10,  &
-         &   'RNBT2  ', RNBT2 ,  'RNBT20 ', RNBT20,  &
-         &   'PNBHP  ', PNBHP ,  'PNBHT1 ', PNBHT1,  &
-         &   'PNBHT2 ', PNBHT2,  'PNBHex ', PNBHex,  &
-         &   'PNBMPD ', PNBMPD,  'PNBPTC ', PNBPTC,  &
-         &   'rNRFe  ', rNRFe ,  'RRFew  ', RRFew ,  &
-         &   'RRFe0  ', RRFe0 ,  'PRFHe  ', PRFHe ,  &
-         &   'rNRFi  ', rNRFe ,  'RRFiw  ', RRFiw ,  &
-         &   'RRFi0  ', RRFi0 ,  'PRFHi  ', PRFHi ,  &
-         &   'Tqt0   ', Tqt0  ,  'Tqp0   ', Tqp0  ,  &
-         &   'rGamm0 ', rGamm0,  'V0     ', V0    ,  &
-         &   'rGASPF ', rGASPF,  &
-         &   'PNeDIV ', PNeDIV,  'PNiDIV ', PNiDIV,  &
-         &   'PTeDIV ', PTeDIV,  'PTiDIV ', PTiDIV,  &
-         &   'DltRPn ', DltRPn,  'kappa  ', kappa ,  &
-         &   'PN0s   ', PN0s  ,  'EPS    ', EPS   ,  &
-         &   'tiny   ', tiny_cap,'DT     ', DT    ,  &
-         &   'rG1    ', rG1   ,  'Zeff   ', Zeff  ,  &
-         &   'rIPs   ', rIPs  ,  'rIPe   ', rIPe  ,  &
-         &   'DMAG0  ', DMAG0 ,  'RMAGMN ', RMAGMN,  &
-         &   'RMAGMX ', RMAGMX,  &
-         &   'FSHL   ', FSHL  ,    &  ! Too many elements of EpsHM to show miki_m 10-08-11
-         &   'Q0     ', Q0    ,  'QA     ', QA    ,  &
-!!$         &   'EpsHM(1,:) ', EpsHM(1,0:3) ,         &
-!!$         &   'EpsHM(2,:) ', EpsHM(2,0:3) ,         &
-!!$         &   'EpsHM(3,:) ', EpsHM(3,0:3)
-         &   'SUPGstb', SUPGstab,   'oldmix ', oldmix, &
-         &   'EpsH10 ', EpsHM(1,0), 'EpsH11 ', EpsHM(1,1), &
-         &   'EpsH12 ', EpsHM(1,2), 'EpsH13 ', EpsHM(1,3), &
-         &   'EpsH20 ', EpsHM(2,0), 'EpsH21 ', EpsHM(2,1), &
-         &   'EpsH22 ', EpsHM(2,2), 'EpsH23 ', EpsHM(2,3), &
-         &   'EpsH30 ', EpsHM(3,0), 'EpsH31 ', EpsHM(3,1), &
-         &   'EpsH32 ', EpsHM(3,2), 'EpsH33 ', EpsHM(3,3), &
-         &   'EpsH40 ', EpsHM(4,0), 'EpsH41 ', EpsHM(4,1), &
-         &   'EpsH42 ', EpsHM(4,2), 'EpsH43 ', EpsHM(4,3)
-    WRITE(6,'((" ",A7," =",I5,3(6X,A7," =",I5)))') &
-         &   'NRMAX  ', NRMAX ,  &
-         &   'NTMAX  ', NTMAX ,  'NTSTEP ', NTSTEP,  &
-         &   'NGRSTP ', NGRSTP,  'NGTSTP ', NGTSTP,  &
-         &   'NGVSTP ', NGVSTP,  'ieqrea ', ieqread, &
-         &   'ICMAX  ', ICMAX ,  'MODEG  ', MODEG ,  &
-         &   'MODEAV ', MODEAV,  'MODEGL ', MODEGL,  &
-         &   'MDLPCK ', MDLPCK,  'MODECV ', MODECV,  &
-         &   'iSUPG2 ', iSUPG2,  'iSUPG3 ', iSUPG3,  &
-         &   'iSUPG6 ', iSUPG6,  'MDFIXT ', MDFIXT,  &
-         &   'MDBEAM ', MDBEAM,  'MDOSQZ ', MDOSQZ,  &
-         &   'MDLETA ', MDLETA,  'MDLNEO ', MDLNEO,  &
-         &   'MDBSETA', MDBSETA, 'MDANOM ', MDANOM,  &
-         &   'MDITSN ', MDITSN,  'MDITST ', MDITST,  &
-         &   'MDINTN ', MDINTN,  'MDINTT ', MDINTT,  &
-         &   'MDINTC ', MDINTC,  &
-         &   'MDLETB ', MDLETB,  'IDIAG  ', IDIAG ,  &
-         &   'IGBDF  ', IGBDF,   'ISMTHD ', ISMTHD,  &
-         &   'NTCOIL ', NTCOIL,  'MDLC   ', MDLC,    &
-         &   'm_pol  ', m_pol ,  'n_tor  ', n_tor,   &
-         &   'MDLNBD ', MDLNBD,  &
-!         &   'NCph   ', NCph  ,  'NCth  ', NCth,    &
-         &   'HPNth1   ', HPN(1,1), 'HPNph1   ', HPN(1,2), &
-         &   'HPNth2   ', HPN(2,1), 'HPNph2   ', HPN(2,2), &
-         &   'HPNth3   ', HPN(3,1), 'HPNph3   ', HPN(3,2), &
-         &   'HPNth4   ', HPN(4,1), 'HPNph4   ', HPN(4,2)
+    WRITE(6,'((1X,A10," =",1PD9.2,3(2X,A10," =",1PD9.2)))') &
+         &   'RA        ', RA       , 'RHOB      ', RHOB     ,  &
+         &   'RR        ', RR       , 'BB        ', BB       ,  &
+         &   'amas(2)   ', amas(2)  , 'achg(2)   ', achg(2)  ,  &
+         &   'PN0       ', PN0      , 'PNa       ', PNa      ,  &
+         &   'PTe0      ', PTe0     , 'PTea      ', PTea     ,  &
+         &   'PTi0      ', PTi0     , 'PTia      ', PTia     ,  &
+         &   'Zeff      ', Zeff     , 'rIP       ', rIP      ,  &
+         &   'rIPs      ', rIPs     , 'rIPe      ', rIPe     ,  &
+         &   'PROFJ     ', PROFJ    , 'PROFN1    ', PROFN1   ,  &
+         &   'PROFN2    ', PROFN2   , 'PROFT1    ', PROFT1   ,  &
+         &   'PROFT2    ', PROFT2   , 'Uiph0     ', Uiph0    ,  &
+         &   'CMESH0    ', CMESH0   , &
+         &   'WMESH0    ', WMESH0   , 'CMESH     ', CMESH    ,  &
+         &   'WMESH     ', WMESH    , 'ADV       ', ADV      ,  &
+         &   'De0       ', De0      , 'Di0       ', Di0      ,  &
+         &   'rMue0     ', rMue0    , 'rMui0     ', rMui0    ,  &
+         &   'FSMPCH(1) ', FSMPCH(1), 'FSMPCH(2) ', FSMPCH(2),  &
+         &   'FSPARV(1) ', FSPARV(1), 'FSPARV(2) ', FSPARV(2),  &
+         &   'VWpch0    ', VWpch0   , 'WPM0      ', WPM0     ,  &
+         &   'PROFD     ', PROFD    , 'PROFD1    ', PROFD1   ,  &
+         &   'PROFD2    ', PROFD2   , 'PROFDB    ', PROFDB   ,  &
+         &   'PROFM     ', PROFM    , 'PROFM1    ', PROFM1   ,  &
+         &   'PROFMB    ', PROFMB   , 'PROFC     ', PROFC    ,  &
+         &   'PROFC1    ', PROFC1   , 'PROFCB    ', PROFCB   ,  &
+         &   'ChiNC     ', ChiNC    , &
+         &   'Chie0     ', Chie0    , 'Chii0     ', Chii0    ,  &
+         &   'FSDFIX(1) ', FSDFIX(1), 'FSDFIX(2) ', FSDFIX(2),  &
+         &   'FSDFIX(3) ', FSDFIX(3), 'FSANOM(1) ', FSANOM(1),  &
+         &   'FSANOM(2) ', FSANOM(2), 'FSANOM(3) ', FSANOM(3),  &
+         &   'RhoETB(1) ', RhoETB(1), 'RhoETB(2) ', RhoETB(2),  &
+         &   'RhoETB(3) ', RhoETB(3),  &
+         &   'FSCBAL    ', FSCBAL   , 'FSCBKP    ', FSCBKP   ,  &
+         &   'FSCBEL    ', FSCBEL   , 'FSCBSH    ', FSCBSH   ,  &
+         &   'FSBOHM    ', FSBOHM   , 'FSPCLD    ', FSPCLD   ,  &
+         &   'FSPCLM    ', FSPCLM   , 'FSPCLC    ', FSPCLC   ,  &
+         &   'FSVAHL    ', FSVAHL   , 'FSCX      ', FSCX     ,  &
+         &   'FSLC      ', FSLC     , 'FSRP      ', FSRP     ,  &
+         &   'FSNF      ', FSNF     , 'FSNC      ', FSNC     ,  &
+         &   'FSADV     ', FSADV    , 'FSADVB    ', FSADVB   ,  &
+         &   'FSUG      ', FSUG     ,  &
+         &   'FSLP      ', FSLP     , 'FSLTE     ', FSLTE    ,  &
+         &   'FSLTI     ', FSLTI    , 'FSION     ', FSION    ,  &
+         &   'FSD01     ', FSD01    , 'FSD02     ', FSD02    ,  &
+         &   'FSD03     ', FSD03    ,  &
+         &   'rLn       ', rLn      , 'rLT       ', rLT      ,  &
+         &   'Ebmax     ', Ebmax    , 'esps(1)   ', esps(1)  ,  &
+         &   'esps(2)   ', esps(2)  , 'esps(3)   ', esps(3)  ,  &
+         &   'FSNCB     ', FSNCB    ,  &
+         &   'RNBP      ', RNBP     , 'RNBP0     ', RNBP0    ,  &
+         &   'RNBT1     ', RNBT1    , 'RNBT10    ', RNBT10   ,  &
+         &   'RNBT2     ', RNBT2    , 'RNBT20    ', RNBT20   ,  &
+         &   'PNBHP     ', PNBHP    , 'PNBHT1    ', PNBHT1   ,  &
+         &   'PNBHT2    ', PNBHT2   , 'PNBHex    ', PNBHex   ,  &
+         &   'PNBMPD    ', PNBMPD   , 'PNBPTC    ', PNBPTC   ,  &
+         &   'rNRFe     ', rNRFe    , 'RRFew     ', RRFew    ,  &
+         &   'RRFe0     ', RRFe0    , 'PRFHe     ', PRFHe    ,  &
+         &   'rNRFi     ', rNRFe    , 'RRFiw     ', RRFiw    ,  &
+         &   'RRFi0     ', RRFi0    , 'PRFHi     ', PRFHi    ,  &
+         &   'Tqt0      ', Tqt0     , 'Tqp0      ', Tqp0     ,  &
+         &   'rGamm0    ', rGamm0   , 'V0        ', V0       ,  &
+         &   'rGASPF    ', rGASPF   ,  &
+         &   'PNeDIV    ', PNeDIV   , 'PNiDIV    ', PNiDIV   ,  &
+         &   'PTeDIV    ', PTeDIV   , 'PTiDIV    ', PTiDIV   ,  &
+         &   'DltRPn    ', DltRPn   , 'kappa     ', kappa    ,  &
+         &   'PN0s      ', PN0s     , 'EPS       ', EPS      ,  &
+         &   'tiny_cap  ', tiny_cap , 'DT        ', DT       ,  &
+         &   'rG1       ', rG1      ,  &
+         &   'DMAG0     ', DMAG0    , 'RMAGMN    ', RMAGMN   ,  &
+         &   'RMAGMX    ', RMAGMX   ,  &
+         &   'FSHL      ', FSHL     ,  &  ! Too many elements of EpsHM to show miki_m 10-08-11
+         &   'Q0        ', Q0       , 'QA        ', QA       ,  &
+!!$         &   'EpsHM(1,:)', EpsHM(1,0:3) , &
+!!$         &   'EpsHM(2,:)', EpsHM(2,0:3) , &
+!!$         &   'EpsHM(3,:)', EpsHM(3,0:3) , &
+         &   'SUPGstb   ', SUPGstab,  'oldmix    ', oldmix   , &
+         &   'EpsHM(1,0)', EpsHM(1,0),'EpsHM(1,1)', EpsHM(1,1), &
+         &   'EpsHM(1,2)', EpsHM(1,2),'EpsHM(1,3)', EpsHM(1,3), &
+         &   'EpsHM(2,0)', EpsHM(2,0),'EpsHM(2,1)', EpsHM(2,1), &
+         &   'EpsHM(2,2)', EpsHM(2,2),'EpsHM(2,3)', EpsHM(2,3), &
+         &   'EpsHM(3,0)', EpsHM(3,0),'EpsHM(3,1)', EpsHM(3,1), &
+         &   'EpsHM(3,2)', EpsHM(3,2),'EpsHM(3,3)', EpsHM(3,3), &
+         &   'EpsHM(4,0)', EpsHM(4,0),'EpsHM(4,1)', EpsHM(4,1), &
+         &   'EpsHM(4,2)', EpsHM(4,2),'EpsHM(4,3)', EpsHM(4,3)
+    WRITE(6,'((" ",A10," =",I5,3(6X,A10," =",I5)))') &
+         &   'NRMAX     ', NRMAX    , &
+         &   'NTMAX     ', NTMAX    , 'NTSTEP    ', NTSTEP   ,  &
+         &   'NGRSTP    ', NGRSTP   , 'NGTSTP    ', NGTSTP   ,  &
+         &   'NGVSTP    ', NGVSTP   , 'ieqread   ', ieqread  ,  &
+         &   'ICMAX     ', ICMAX    , 'MODEG     ', MODEG    ,  &
+         &   'MODEAV    ', MODEAV   , 'MODEGL    ', MODEGL   ,  &
+         &   'MDLPCK    ', MDLPCK   , 'MODECV    ', MODECV   ,  &
+         &   'iSUPG2    ', iSUPG2   , 'iSUPG3    ', iSUPG3   ,  &
+         &   'iSUPG6    ', iSUPG6   , 'MDFIXT    ', MDFIXT   ,  &
+         &   'MDBEAM    ', MDBEAM   , 'MDOSQZ    ', MDOSQZ   ,  &
+         &   'MDLETA    ', MDLETA   , 'MDLNEO    ', MDLNEO   ,  &
+         &   'MDBSETA   ', MDBSETA  , 'MDANOM    ', MDANOM   ,  &
+         &   'MDITSN    ', MDITSN   , 'MDITST    ', MDITST   ,  &
+         &   'MDINTN    ', MDINTN   , 'MDINTT    ', MDINTT   ,  &
+         &   'MDINTC    ', MDINTC   , &
+         &   'MDLETB    ', MDLETB   , 'IDIAG     ', IDIAG    ,  &
+         &   'IGBDF     ', IGBDF    , 'ISMTHD    ', ISMTHD   ,  &
+         &   'NTCOIL    ', NTCOIL   , 'MDLC      ', MDLC     ,  &
+         &   'm_pol     ', m_pol    , 'n_tor     ', n_tor    ,  &
+         &   'MDLNBD    ', MDLNBD   ,  &
+!         &   'NCph      ', NCph     , 'NCth      ', NCth     ,  &
+         &   'HPN(1,1)  ', HPN(1,1) , 'HPN(1,2)  ', HPN(1,2) , &
+         &   'HPN(2,1)  ', HPN(2,1) , 'HPN(2,2)  ', HPN(2,2) , &
+         &   'HPN(3,1)  ', HPN(3,1) , 'HPN(3,2)  ', HPN(3,2) , &
+         &   'HPN(4,1)  ', HPN(4,1) , 'HPN(4,2)  ', HPN(4,2)
     RETURN
   END SUBROUTINE TXVIEW
 end module tx_parameter_control
