@@ -6,335 +6,354 @@ MODULE picsub
 
 CONTAINS
 
-!***********************************************************************
-    subroutine poisson_f(nxmax,nymax,nxmaxh1,nxmax1,nymax1, &
-                         rho,phi,rhof,phif,awk,afwk,cform,ipssn)
-!***********************************************************************
-      implicit none
-      real(8), dimension(nxmax1,nymax1) :: rho,phi
-      real(8), dimension(nxmax,nymax) :: awk
-      complex(8), dimension(nxmaxh1,nymax) :: afwk
-      complex(8), dimension(nxmaxh1,nymax) :: rhof, phif
-      real(8), dimension(nxmaxh1,nymax) :: cform
-      integer(4) :: nxmax, nymax,nxmaxh1,nxmax1,nymax1,ipssn
-      integer(4) :: ifset
+  !***********************************************************************
+  SUBROUTINE poisson_f(nxmax,nymax,nxmaxh1,nxmax1,nymax1, &
+       rho,phi,rhof,phif,awk,afwk,cform,ipssn)
+    !***********************************************************************
+    IMPLICIT NONE
+    REAL(8), DIMENSION(nxmax1,nymax1) :: rho,phi
+    REAL(8), DIMENSION(nxmax,nymax) :: awk
+    COMPLEX(8), DIMENSION(nxmaxh1,nymax) :: afwk
+    COMPLEX(8), DIMENSION(nxmaxh1,nymax) :: rhof, phif
+    REAL(8), DIMENSION(nxmaxh1,nymax) :: cform
+    INTEGER(4) :: nxmax, nymax,nxmaxh1,nxmax1,nymax1,ipssn
+    INTEGER(4) :: ifset
 
-      IF(ipssn.EQ.0) THEN
-         call poisson_sub(nxmax,nymax,nxmaxh1,rhof,phif,cform,ipssn)
-         ifset = 0
-         call fftpic(nxmax,nymax,nxmaxh1,nxmax1,nymax1,rho,rhof,awk,afwk,ifset)
-      ELSE
+    IF(ipssn.EQ.0) THEN
+       CALL poisson_sub(nxmax,nymax,nxmaxh1,rhof,phif,cform,ipssn)
+       ifset = 0
+       CALL fftpic(nxmax,nymax,nxmaxh1,nxmax1,nymax1,rho,rhof,awk,afwk,ifset)
+    ELSE
 
        !.......... fourier transform rho
        ifset = -1
-       call fftpic(nxmax,nymax,nxmaxh1,nxmax1,nymax1,rho,rhof,awk,afwk,ifset)
+       CALL fftpic(nxmax,nymax,nxmaxh1,nxmax1,nymax1,rho,rhof,awk,afwk,ifset)
 
        !.......... calculate phi from rho in fourier space
        ipssn = 1
-       call poisson_sub(nxmax,nymax,nxmaxh1,rhof,phif,cform,ipssn)
+       CALL poisson_sub(nxmax,nymax,nxmaxh1,rhof,phif,cform,ipssn)
 
        !.......... inverse fourier transform phi
        ifset = 1
-       call fftpic(nxmax,nymax,nxmaxh1,nxmax1,nymax1,phi,phif,awk,afwk,ifset)
+       CALL fftpic(nxmax,nymax,nxmaxh1,nxmax1,nymax1,phi,phif,awk,afwk,ifset)
 
     END IF
-  end subroutine poisson_f
+  END SUBROUTINE poisson_f
 
-!***********************************************************************
-    subroutine poisson_sub(nxmax,nymax,nxmaxh1,rhof,phif,cform,ipssn)
-!***********************************************************************
-      implicit none
-      complex(8), dimension(nxmaxh1,nymax) :: rhof, phif
-      real(8), dimension(nxmaxh1,nymax) :: cform
-      integer(4) :: nxmax, nymax, nxmaxh1
-      integer(4) :: nx, ny, nymaxh,ipssn
-      real(8) :: alxi, alyi, pi, twopi, am, an, amn2, afsp, afsp2
+  !***********************************************************************
+  SUBROUTINE poisson_sub(nxmax,nymax,nxmaxh1,rhof,phif,cform,ipssn)
+    !***********************************************************************
+    IMPLICIT NONE
+    COMPLEX(8), DIMENSION(nxmaxh1,nymax) :: rhof, phif
+    REAL(8), DIMENSION(nxmaxh1,nymax) :: cform
+    INTEGER(4) :: nxmax, nymax, nxmaxh1
+    INTEGER(4) :: nx, ny, nymaxh,ipssn
+    REAL(8) :: alxi, alyi, pi, twopi, am, an, amn2, afsp, afsp2
 
-         afsp  = 1.5 !+++ size of finite-size-particle
-         afsp2 = afsp * afsp
+    afsp  = 1.5 !+++ size of finite-size-particle
+    afsp2 = afsp * afsp
 
-      if( ipssn .eq. 0 ) then
-         pi    = 3.14159265358979d0
-         twopi = 2.d0 * pi
-         alxi   = 1.d0 / dble(nxmax)
-         alyi   = 1.d0 / dble(nymax)
-         nymaxh    = nymax / 2
+    IF( ipssn .EQ. 0 ) THEN
+       pi    = 3.14159265358979d0
+       twopi = 2.d0 * pi
+       alxi   = 1.d0 / DBLE(nxmax)
+       alyi   = 1.d0 / DBLE(nymax)
+       nymaxh    = nymax / 2
 
-         do ny = 1, nymaxh+1
-         do nx = 1, nxmaxh1
-            am = twopi * dble(nx-1) * alxi
-            an = twopi * dble(ny-1) * alyi
-            amn2 = am*am + an*an
+       DO ny = 1, nymaxh+1
+          DO nx = 1, nxmaxh1
+             am = twopi * DBLE(nx-1) * alxi
+             an = twopi * DBLE(ny-1) * alyi
+             amn2 = am*am + an*an
 
-            if( nx .eq. 1 .and. ny .eq. 1 ) then
-               cform(nx,ny) = 0.0
-            else
-               cform(nx,ny) = 1.d0 / amn2 * exp( - amn2 * afsp2 )
-            endif
+             IF( nx .EQ. 1 .AND. ny .EQ. 1 ) THEN
+                cform(nx,ny) = 0.0
+             ELSE
+                cform(nx,ny) = 1.d0 / amn2 * EXP( - amn2 * afsp2 )
+             ENDIF
 
-            if( ny .ge. 2 .and. ny .le. nymaxh ) then
-               cform(nx,nymax-ny+2) = cform(nx,ny)
-            endif
-         end do
-         end do
+             IF( ny .GE. 2 .AND. ny .LE. nymaxh ) THEN
+                cform(nx,nymax-ny+2) = cform(nx,ny)
+             ENDIF
+          END DO
+       END DO
 
-      else
+    ELSE
 
-         !----- solve poisson equation
-         do ny = 1, nymax
-         do nx = 1, nxmaxh1
-            phif(nx,ny) = cform(nx,ny) * rhof(nx,ny)
-         end do
-         end do
+       !----- solve poisson equation
+       DO ny = 1, nymax
+          DO nx = 1, nxmaxh1
+             phif(nx,ny) = cform(nx,ny) * rhof(nx,ny)
+          END DO
+       END DO
 
-      endif
+    ENDIF
 
-    end subroutine poisson_sub
+  END SUBROUTINE poisson_sub
 
-!***********************************************************************
-    subroutine fftpic(nxmax,nymax,nxmaxh1,nxmax1,nymax1,a,af,awk,afwk,ifset)
-!***********************************************************************
-      implicit none
-      include 'fftw3.f'
-      real(8), dimension(nxmax1,nymax1) :: a
-      real(8), dimension(nxmax,nymax) :: awk
-      real(8) :: alx, aly
-      complex(8), dimension(nxmaxh1,nymax) :: af, afwk
-      integer(4) :: nxmax, nymax, nxmaxh1, nxmax1, nymax1
-      integer(4) :: ifset, nx, ny
-      !....integer(8), save :: FFTW_ESTIMATE
-      integer(8), save :: plan1, plan2
+  !***********************************************************************
+  SUBROUTINE fftpic(nxmax,nymax,nxmaxh1,nxmax1,nymax1,a,af,awk,afwk,ifset)
+    !***********************************************************************
+    IMPLICIT NONE
+    INCLUDE 'fftw3.f'
+    REAL(8), DIMENSION(nxmax1,nymax1) :: a
+    REAL(8), DIMENSION(nxmax,nymax) :: awk
+    REAL(8) :: alx, aly
+    COMPLEX(8), DIMENSION(nxmaxh1,nymax) :: af, afwk
+    INTEGER(4) :: nxmax, nymax, nxmaxh1, nxmax1, nymax1
+    INTEGER(4) :: ifset, nx, ny
+    !....integer(8), save :: FFTW_ESTIMATE
+    INTEGER(8), SAVE :: plan1, plan2
 
-      alx = dble(nxmax)
-      aly = dble(nymax)
+    alx = DBLE(nxmax)
+    aly = DBLE(nymax)
 
-      if( ifset .eq. 0 ) then
-         !----- initialization of fourier transform
-         call dfftw_plan_dft_r2c_2d(plan1,nxmax,nymax,awk,afwk,FFTW_ESTIMATE)
-         call dfftw_plan_dft_c2r_2d(plan2,nxmax,nymax,afwk,awk,FFTW_ESTIMATE)
+    IF( ifset .EQ. 0 ) THEN
+       !----- initialization of fourier transform
+       CALL dfftw_plan_dft_r2c_2d(plan1,nxmax,nymax,awk,afwk,FFTW_ESTIMATE)
+       CALL dfftw_plan_dft_c2r_2d(plan2,nxmax,nymax,afwk,awk,FFTW_ESTIMATE)
 
-      elseif( ifset .eq. -1 ) then
+    ELSEIF( ifset .EQ. -1 ) THEN
 
-         !----- fourier transform
-         do ny = 1, nymax
-         do nx = 1, nxmax
-            awk(nx,ny) = a(nx,ny)
-         end do
-         end do
+       !----- fourier transform
+       DO ny = 1, nymax
+          DO nx = 1, nxmax
+             awk(nx,ny) = a(nx,ny)
+          END DO
+       END DO
 
-         call dfftw_execute(plan1)
+       CALL dfftw_execute(plan1)
 
-         do ny = 1, nymax
-         do nx = 1, nxmaxh1
-         af(nx,ny) = afwk(nx,ny) / ( alx * aly )
-         end do
-         end do
+       DO ny = 1, nymax
+          DO nx = 1, nxmaxh1
+             af(nx,ny) = afwk(nx,ny) / ( alx * aly )
+          END DO
+       END DO
 
-      else
+    ELSE
 
-         !----- inverse fourier transform
+       !----- inverse fourier transform
 
-         do ny = 1, nymax
-         do nx = 1, nxmaxh1
-         afwk(nx,ny) = af(nx,ny)
-         end do
-         end do
+       DO ny = 1, nymax
+          DO nx = 1, nxmaxh1
+             afwk(nx,ny) = af(nx,ny)
+          END DO
+       END DO
 
-         call dfftw_execute(plan2)
+       CALL dfftw_execute(plan2)
 
-         do ny = 1, nymax
-         do nx = 1, nxmax
-            a(nx,ny) = awk(nx,ny)
-         end do
-         end do
+       DO ny = 1, nymax
+          DO nx = 1, nxmax
+             a(nx,ny) = awk(nx,ny)
+          END DO
+       END DO
 
-         do ny = 1, nymax
-            a(nxmax1,ny) = a(1,ny)
-         end do
+       DO ny = 1, nymax
+          a(nxmax1,ny) = a(1,ny)
+       END DO
 
-         do nx = 1, nxmax1
-            a(nx,nymax1) = a(nx,1)
-         end do
+       DO nx = 1, nxmax1
+          a(nx,nymax1) = a(nx,1)
+       END DO
 
-      endif
+    ENDIF
 
-    end subroutine fftpic
+  END SUBROUTINE fftpic
 
-!***********************************************************************
-    subroutine poisson_m(nxmax1,nymax1,rho,phi,ipssn, &
-                         model_matrix0,model_matrix1,model_matrix2, &
-                         tolerance_matrix,model_boundary)
-!***********************************************************************
-      USE libmpi
-      USE commpi
-      USE libmtx
-      implicit none
-      real(8), dimension(nxmax1,nymax1) :: rho,phi
-      real(8), dimension(:),allocatable :: x
-      real(8):: tolerance_matrix
-      integer :: nxmax1,nymax1,nxymax,ipssn
-      integer :: model_matrix0,model_matrix1,model_matrix2
-      integer :: nxmax,nymax,mode,imax,isize,jwidth,ileng
-      integer,save:: status=0,istart,iend,irange
-      integer :: i,nx,ny,l,m,its
-      integer :: model_boundary
+  !***********************************************************************
+  SUBROUTINE poisson_m(nxmax1,nymax1,rho,phi,ipssn, &
+       model_matrix0,model_matrix1,model_matrix2, &
+       tolerance_matrix,model_boundary,dlen)
+    !***********************************************************************
+    USE libmpi
+    USE commpi
+    USE libmtx
+    IMPLICIT NONE
+    REAL(8), DIMENSION(nxmax1,nymax1) :: rho,phi
+    REAL(8), DIMENSION(:),ALLOCATABLE :: x
+    REAL(8):: tolerance_matrix,dlen,inv,xd,yd,xdmax,ydmax
+    INTEGER :: nxmax1,nymax1,nxymax,ipssn
+    INTEGER :: model_matrix0,model_matrix1,model_matrix2
+    INTEGER :: nxmax,nymax,mode,imax,isize,jwidth,ileng
+    INTEGER,SAVE:: status=0,istart,iend,irange
+    INTEGER :: i,nx,ny,l,m,its,ilen
+    INTEGER :: model_boundary
 
-      nxmax=nxmax1-2
-      nymax=nymax1-2
-      imax=nxmax*nymax
-      IF(nxmax.LE.nymax) THEN
-         mode=0
-         isize=nxmax
-         ileng=nymax
-         jwidth=4*nxmax-1
-      ELSE
-         mode=1
-         isize=nymax
-         ileng=nxmax
-         jwidth=4*nymax-1
-      END IF
+    nxmax=nxmax1-2
+    nymax=nymax1-2
+    imax=nxmax*nymax
+    IF(nxmax.LE.nymax) THEN
+       mode=0
+       isize=nxmax
+       ileng=nymax
+       jwidth=4*nxmax-1
+    ELSE
+       mode=1
+       isize=nymax
+       ileng=nxmax
+       jwidth=4*nymax-1
+    END IF
 
-      CALL mtx_setup(imax,istart,iend)
-      irange=iend-istart+1
-      status=1
-      ALLOCATE(x(irange))
+    CALL mtx_setup(imax,istart,iend)
+    irange=iend-istart+1
+    status=1
+    ALLOCATE(x(irange))
 
-      DO i=istart,iend
-         l=mod(i-1,isize)+1
-         m=(i-1)/isize+1
-         if(m.gt.1) CALL mtx_set_matrix(i,i-isize,1.d0)
-         if(l.gt.1) CALL mtx_set_matrix(i,i-1,1.d0)
-         CALL mtx_set_matrix(i,i,-4.d0)
-         if(l.lt.isize) CALL mtx_set_matrix(i,i+1,1.d0)
-         if(m.lt.ileng) CALL mtx_set_matrix(i,i+isize,1.d0)
-      ENDDO
+    DO i=istart,iend
+       l=MOD(i-1,isize)+1
+       m=(i-1)/isize+1
+       IF(m.GT.1) CALL mtx_set_matrix(i,i-isize,1.d0)
+       IF(l.GT.1) CALL mtx_set_matrix(i,i-1,1.d0)
+       CALL mtx_set_matrix(i,i,-4.d0)
+       IF(l.LT.isize) CALL mtx_set_matrix(i,i+1,1.d0)
+       IF(m.LT.ileng) CALL mtx_set_matrix(i,i+isize,1.d0)
+    ENDDO
 
-      IF(mode.EQ.0) THEN
-         DO i=istart,iend
-            nx=mod(i-1,isize)+1
-            ny=(i-1)/isize+1
-            CALL mtx_set_source(i,-rho(nx+1,ny+1))
-         ENDDO
-      ELSE
-         DO i=istart,iend
-            ny=mod(i-1,isize)+1
-            nx=(i-1)/isize+1
-            CALL mtx_set_source(i,-rho(nx+1,ny+1))
-         ENDDO
-      END IF
-      CALL mtx_solve(model_matrix0,tolerance_matrix,its, &
-                     methodKSP=model_matrix1,methodPC=model_matrix2)
-!      IF((its.ne.0).and.(nrank.eq.0)) write(6,*) 'mtx_solve: its=',its
-      CALL mtx_get_vector(x)
-      IF(mode.EQ.0) THEN
-         DO i=istart,iend
-            nx=mod(i-1,isize)+1
-            ny=(i-1)/isize+1
-            phi(nx+1,ny+1)=x(i-istart+1)
-         ENDDO
-      ELSE
-         DO i=istart,iend
-            ny=mod(i-1,isize)+1
-            nx=(i-1)/isize+1
-            phi(nx+1,ny+1)=x(i-istart+1)
-         ENDDO
-      END IF
-      DEALLOCATE(x)
-      status=2
-      CALL mtx_cleanup
-      if(model_boundary .eq. 2) then
-      do ny = 1,nymax
-      do nx = nxmax-10,nxmax
-        phi(nx,ny) = phi(nx,ny) * (-0.01d0 * dble(nx) ** 2 &
-                             + 2.0d0 * 0.01d0 * (dble(nxmax - 10)) * dble(nx)&
-                             + 1.0d0 - 0.01d0 * (dble(nxmax - 10))**2)
-      enddo
-      enddo
-      do nx = 1,nxmax-10
-      do ny = nymax-10,nymax
-        phi(nx,ny) = phi(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
-                              + 2.0d0 * 0.01d0 * (dble(nymax - 10)) * dble(ny) &
-                              + 1.0d0 - 0.01d0 * (dble(nymax - 10))**2)
-      enddo
-      enddo
-      do nx = 1, nxmax-10
-      do ny = 1, 10
-        phi(nx,ny) = phi(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
-                                + 2.0d0 * 0.1d0 * dble(ny))
-      enddo
-      enddo
-    endif
+    IF(mode.EQ.0) THEN
+       DO i=istart,iend
+          nx=MOD(i-1,isize)+1
+          ny=(i-1)/isize+1
+          CALL mtx_set_source(i,-rho(nx+1,ny+1))
+       ENDDO
+    ELSE
+       DO i=istart,iend
+          ny=MOD(i-1,isize)+1
+          nx=(i-1)/isize+1
+          CALL mtx_set_source(i,-rho(nx+1,ny+1))
+       ENDDO
+    END IF
+    CALL mtx_solve(model_matrix0,tolerance_matrix,its, &
+         methodKSP=model_matrix1,methodPC=model_matrix2)
+    !      IF((its.ne.0).and.(nrank.eq.0)) write(6,*) 'mtx_solve: its=',its
+    CALL mtx_get_vector(x)
+    IF(mode.EQ.0) THEN
+       DO i=istart,iend
+          nx=MOD(i-1,isize)+1
+          ny=(i-1)/isize+1
+          phi(nx+1,ny+1)=x(i-istart+1)
+       ENDDO
+    ELSE
+       DO i=istart,iend
+          ny=MOD(i-1,isize)+1
+          nx=(i-1)/isize+1
+          phi(nx+1,ny+1)=x(i-istart+1)
+       ENDDO
+    END IF
+    DEALLOCATE(x)
+    status=2
+    CALL mtx_cleanup
+    IF(model_boundary .EQ. 2) THEN !damping phi in absorbing boundary
+       inv = 1.0d0 / dlen
+       ilen = int(dlen)
+       DO ny = 1,nymax
+          DO nx = nxmax-ilen,nxmax
+             xd=DBLE(nx)
+             xdmax=DBLE(nxmax)
+             phi(nx,ny) =phi(nx,ny)*(-1.0d0*inv**2*xd**2 &
+                                     +2.0d0*inv**2*(xdmax-dlen)*xd&
+                                     +1.0d0-1.0d0*inv**2*(xdmax-dlen)**2)
+          ENDDO
+       ENDDO
+       DO nx = 1,nxmax-ilen
+          DO ny = nymax-ilen,nymax
+             yd=DBLE(ny)
+             ydmax=DBLE(nymax)
+             phi(nx,ny) =phi(nx,ny)*(-1.0d0*inv**2*yd**2 &
+                                     +2.0d0*inv**2*(ydmax-dlen)*yd&
+                                     +1.0d0-1.0d0*inv**2*(ydmax-dlen)**2)
+          ENDDO
+       ENDDO
+       DO nx = 1, nxmax-ilen
+          DO ny = 1, ilen
+             yd=DBLE(ny)
+             phi(nx,ny) = phi(nx,ny)*(-1.0d0*inv**2*yd**2+2.0d0*inv*yd)
+          ENDDO
+       ENDDO
+    ENDIF
 
-    END subroutine poisson_m
+  END SUBROUTINE poisson_m
 
-!***********************************************************************
-    subroutine efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
-                      ex,ey,ez,esx,esy,esz,emx,emy,emz, &
-                      model_push,model_boundary)
-!***********************************************************************
-      implicit none
-      real(8), dimension(0:nxmax,0:nymax) ::  &
-           phi,Ax,Ay,Az,Axb,Ayb,Azb,ex,ey,ez,esx,esy,esz,emx,emy,emz
-      real(8):: dt
-      integer :: nxmax, nymax, nx, ny, nxm, nxp, nym, nyp
-      INTEGER:: model_push, model_boundary
+  !***********************************************************************
+  SUBROUTINE efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
+       ex,ey,ez,esx,esy,esz,emx,emy,emz, &
+       model_push,model_boundary)
+    !***********************************************************************
+    IMPLICIT NONE
+    REAL(8), DIMENSION(0:nxmax,0:nymax) ::  &
+         phi,Ax,Ay,Az,Axb,Ayb,Azb,ex,ey,ez,esx,esy,esz,emx,emy,emz
+    REAL(8):: dt
+    INTEGER :: nxmax, nymax, nx, ny, nxm, nxp, nym, nyp
+    INTEGER:: model_push, model_boundary
 
-      if(model_boundary .eq. 0) then
-         do nx = 0, nymax
-         do ny = 0, nxmax
+    IF(model_boundary .EQ. 0) THEN
+       DO nx = 0, nymax
+          DO ny = 0, nxmax
 
-            nxm = nx - 1
-            nxp = nx + 1
-            nym = ny - 1
-            nyp = ny + 1
+             nxm = nx - 1
+             nxp = nx + 1
+             nym = ny - 1
+             nyp = ny + 1
 
-            if( nx .eq. 0  )    nxm = nxmax - 1
-            if( nx .eq. nxmax ) nxp = 1
-            if( ny .eq. 0  )    nym = nymax - 1
-            if( ny .eq. nymax ) nyp = 1
-            esx(nx,ny) = 0.5d0 * ( phi(nxm,ny) - phi(nxp,ny))
-            esy(nx,ny) = 0.5d0 * ( phi(nx,nym) - phi(nx,nyp))
-            esz(nx,ny) = 0.d0
-            emx(nx,ny) = - ( Ax(nx,ny) - Axb(nx,ny) ) / dt
-            emy(nx,ny) = - ( Ay(nx,ny) - Ayb(nx,ny) ) / dt
-            emz(nx,ny) = - ( Az(nx,ny) - Azb(nx,ny) ) / dt
+             IF( nx .EQ. 0  )    nxm = nxmax - 1
+             IF( nx .EQ. nxmax ) nxp = 1
+             IF( ny .EQ. 0  )    nym = nymax - 1
+             IF( ny .EQ. nymax ) nyp = 1
+             esx(nx,ny) = 0.5d0 * ( phi(nxm,ny) - phi(nxp,ny))
+             esy(nx,ny) = 0.5d0 * ( phi(nx,nym) - phi(nx,nyp))
+             esz(nx,ny) = 0.d0
+             emx(nx,ny) = - ( Ax(nx,ny) - Axb(nx,ny) ) / dt
+             emy(nx,ny) = - ( Ay(nx,ny) - Ayb(nx,ny) ) / dt
+             emz(nx,ny) = - ( Az(nx,ny) - Azb(nx,ny) ) / dt
 
-         end do
-         end do
-     else if (model_boundary .ne. 0) then
-         do nx = 0, nymax
-         do ny = 0, nxmax
+          END DO
+       END DO
+    ELSE IF (model_boundary .NE. 0) THEN
+       DO nx = 0, nymax
+          DO ny = 0, nxmax
 
-            nxm = nx - 1
-            nxp = nx + 1
-            nym = ny - 1
-            nyp = ny + 1
+             nxm = nx - 1
+             nxp = nx + 1
+             nym = ny - 1
+             nyp = ny + 1
 
-            if( nx .eq. 0  )    nxm = 0
-            if( nx .eq. nxmax ) nxp = nxmax
-            if( ny .eq. 0  )    nym = 0
-            if( ny .eq. nymax ) nyp = nymax
+             IF( nx .EQ. 0  )    nxm = 0
+             IF( nx .EQ. nxmax ) nxp = nxmax
+             IF( ny .EQ. 0  )    nym = 0
+             IF( ny .EQ. nymax ) nyp = nymax
 
-            if(nx .eq. 0 .or. nx .eq. nxmax) then
-               esx(nx,ny) = phi(nxm,ny) - phi(nxp,ny)
-            else
-               esx(nx,ny) = 0.5d0 * ( phi(nxm,ny) - phi(nxp,ny))
-            endif
+             IF(nx .EQ. 0 .OR. nx .EQ. nxmax) THEN
+                esx(nx,ny) = phi(nxm,ny) - phi(nxp,ny)
+             ELSE
+                esx(nx,ny) = 0.5d0 * ( phi(nxm,ny) - phi(nxp,ny))
+             ENDIF
 
-            if(ny .eq. 0 .or. ny .eq. nymax) then
-               esy(nx,ny) = phi(nx,nym) - phi(nx,nyp)
-            else
-               esy(nx,ny) = 0.5d0 * ( phi(nx,nym) - phi(nx,nyp))
-            end if
+             IF(ny .EQ. 0 .OR. ny .EQ. nymax) THEN
+                esy(nx,ny) = phi(nx,nym) - phi(nx,nyp)
+             ELSE
+                esy(nx,ny) = 0.5d0 * ( phi(nx,nym) - phi(nx,nyp))
+             END IF
 
-            esz(nx,ny) = 0.d0
-            emx(nx,ny) = - ( Ax(nx,ny) - Axb(nx,ny) ) / dt
-            emy(nx,ny) = - ( Ay(nx,ny) - Ayb(nx,ny) ) / dt
-            emz(nx,ny) = - ( Az(nx,ny) - Azb(nx,ny) ) / dt
+             esz(nx,ny) = 0.d0
+             emx(nx,ny) = - ( Ax(nx,ny) - Axb(nx,ny) ) / dt
+             emy(nx,ny) = - ( Ay(nx,ny) - Ayb(nx,ny) ) / dt
+             emz(nx,ny) = - ( Az(nx,ny) - Azb(nx,ny) ) / dt
 
-       end do
-       end do
-    end if
+          END DO
+       END DO
+       esx(:,0) = 0.d0
+       esx(:,nymax) = 0.d0
+       esy(0,:) = 0.d0
+       esy(nxmax,:) = 0.d0
+       emx(:,0) = 0.d0
+       emx(:,nymax) = 0.d0
+       emy(0,:) = 0.d0
+       emy(nxmax,:) = 0.d0
+       emz(:,0) = 0.d0
+       emz(:,nymax) = 0.d0
+       emz(0,:) = 0.d0
+       emz(nxmax,:) = 0.d0
+
+    END IF
 
     IF(MOD(model_push/2,2).EQ.0) THEN
        IF(MOD(model_push,2).EQ.0) THEN
@@ -357,122 +376,126 @@ CONTAINS
           ez(0:nxmax,0:nymax) = esz(0:nxmax,0:nymax) + emz(0:nxmax,0:nymax)
        END IF
     END IF
-  !  if(model_boundary .ne. 0 .and. nxmax .ge. 10 .and. nymax .ge. 10) then
-  !   do ny = 10,nymax-10
-  !   do nx = nxmax-10,nxmax
-  !     Ex(nx,ny) = Ex(nx,ny) * (-0.01d0 * dble(nx) ** 2 &
-  !                           + 2.0d0 * 0.01d0 * (dble(nxmax - 10)) * dble(nx) &
-  !                           + 1.0d0 - 0.01d0 * (dble(nxmax - 10))**2)
-  !     Ey(nx,ny) = Ey(nx,ny) * (-0.01d0 * dble(nx) ** 2 &
-  !                           + 2.0d0 * 0.01d0 * (dble(nxmax - 10)) * dble(nx) &
-  !                           + 1.0d0 - 0.01d0 * (dble(nxmax - 10))**2)
-  !     Ez(nx,ny) = Ez(nx,ny) * (-0.01d0 * dble(nx) ** 2 &
-  !                           + 2.0d0 * 0.01d0 * (dble(nxmax - 10)) * dble(nx) &
-  !                           + 1.0d0 - 0.01d0 * (dble(nxmax - 10))**2)
-  !   enddo
-  !   enddo
-  !   do nx = 0,nxmax-10
-  !   do ny = nymax-10,nymax
-  !     Ex(nx,ny) = Ex(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
-  !                           + 2.0d0 * 0.01d0 * (dble(nymax - 10)) * dble(ny) &
-  !                           + 1.0d0 - 0.01d0 * (dble(nymax - 10))**2)
-  !     Ey(nx,ny) = Ey(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
-  !                           + 2.0d0 * 0.01d0 * (dble(nymax - 10)) * dble(ny) &
-  !                           + 1.0d0 - 0.01d0 * (dble(nymax - 10))**2)
-  !     Ez(nx,ny) = Ez(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
-  !                           + 2.0d0 * 0.01d0 * (dble(nymax - 10)) * dble(ny) &
-  !                           + 1.0d0 - 0.01d0 * (dble(nymax - 10))**2)
-  !   enddo
-  !   enddo
-  !   do nx = 0, nxmax-10
-  !   do ny = 0, 10
-  !     Ex(nx,ny) = Ex(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
-  !                           + 2.0d0 * 0.1d0 * dble(ny))
-  !     Ey(nx,ny) = Ey(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
-  !                           + 2.0d0 * 0.1d0 * dble(ny))
-  !     Ez(nx,ny) = Ez(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
-  !                           + 2.0d0 * 0.1d0 * dble(ny))
-  !   enddo
-  !   enddo
-  ! endif
-     end subroutine efield
+    !  if(model_boundary .ne. 0 .and. nxmax .ge. 10 .and. nymax .ge. 10) then
+    !   do ny = 10,nymax-10
+    !   do nx = nxmax-10,nxmax
+    !     Ex(nx,ny) = Ex(nx,ny) * (-0.01d0 * dble(nx) ** 2 &
+    !                           + 2.0d0 * 0.01d0 * (dble(nxmax - 10)) * dble(nx) &
+    !                           + 1.0d0 - 0.01d0 * (dble(nxmax - 10))**2)
+    !     Ey(nx,ny) = Ey(nx,ny) * (-0.01d0 * dble(nx) ** 2 &
+    !                           + 2.0d0 * 0.01d0 * (dble(nxmax - 10)) * dble(nx) &
+    !                           + 1.0d0 - 0.01d0 * (dble(nxmax - 10))**2)
+    !     Ez(nx,ny) = Ez(nx,ny) * (-0.01d0 * dble(nx) ** 2 &
+    !                           + 2.0d0 * 0.01d0 * (dble(nxmax - 10)) * dble(nx) &
+    !                           + 1.0d0 - 0.01d0 * (dble(nxmax - 10))**2)
+    !   enddo
+    !   enddo
+    !   do nx = 0,nxmax-10
+    !   do ny = nymax-10,nymax
+    !     Ex(nx,ny) = Ex(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
+    !                           + 2.0d0 * 0.01d0 * (dble(nymax - 10)) * dble(ny) &
+    !                           + 1.0d0 - 0.01d0 * (dble(nymax - 10))**2)
+    !     Ey(nx,ny) = Ey(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
+    !                           + 2.0d0 * 0.01d0 * (dble(nymax - 10)) * dble(ny) &
+    !                           + 1.0d0 - 0.01d0 * (dble(nymax - 10))**2)
+    !     Ez(nx,ny) = Ez(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
+    !                           + 2.0d0 * 0.01d0 * (dble(nymax - 10)) * dble(ny) &
+    !                           + 1.0d0 - 0.01d0 * (dble(nymax - 10))**2)
+    !   enddo
+    !   enddo
+    !   do nx = 0, nxmax-10
+    !   do ny = 0, 10
+    !     Ex(nx,ny) = Ex(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
+    !                           + 2.0d0 * 0.1d0 * dble(ny))
+    !     Ey(nx,ny) = Ey(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
+    !                           + 2.0d0 * 0.1d0 * dble(ny))
+    !     Ez(nx,ny) = Ez(nx,ny) * (-0.01d0 * dble(ny) ** 2 &
+    !                           + 2.0d0 * 0.1d0 * dble(ny))
+    !   enddo
+    !   enddo
+    ! endif
+  END SUBROUTINE efield
 
-!***********************************************************************
-    subroutine bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
-                                  bx,by,bz,bxbg,bybg,bzbg,bb, &
-                                  model_push,model_boundary)
-!***********************************************************************
-      implicit none
-      real(8), dimension(0:nymax) :: bxnab,bznab
-      real(8), dimension(0:nxmax) :: bynab
-      real(8), dimension(0:nxmax,0:nymax) :: bx,by,bz,bxbg,bybg,bzbg,bb
-      real(8), dimension(0:nxmax,0:nymax) :: Ax,Ay,Az,Axb,Ayb,Azb
-      integer :: nxmax, nymax, nx, ny, nxp, nyp, nxm, nym
-      INTEGER:: model_push, model_boundary
+  !***********************************************************************
+  SUBROUTINE bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
+       bx,by,bz,bxbg,bybg,bzbg,bb, &
+       model_push,model_boundary)
+    !***********************************************************************
+    IMPLICIT NONE
+    REAL(8), DIMENSION(0:nymax) :: bxnab,bznab
+    REAL(8), DIMENSION(0:nxmax) :: bynab
+    REAL(8), DIMENSION(0:nxmax,0:nymax) :: bx,by,bz,bxbg,bybg,bzbg,bb
+    REAL(8), DIMENSION(0:nxmax,0:nymax) :: Ax,Ay,Az,Axb,Ayb,Azb
+    INTEGER :: nxmax, nymax, nx, ny, nxp, nyp, nxm, nym
+    INTEGER:: model_push, model_boundary
 
-      if(model_boundary .eq. 0) then
-         do ny = 0, nymax
-         do nx = 0, nxmax
-            nxm = nx - 1
-            nxp = nx + 1
-            nym = ny - 1
-            nyp = ny + 1
+    IF(model_boundary .EQ. 0) THEN
+       DO ny = 0, nymax
+          DO nx = 0, nxmax
+             nxm = nx - 1
+             nxp = nx + 1
+             nym = ny - 1
+             nyp = ny + 1
 
-            if( nx .eq. 0  )    nxm = nxmax - 1
-            if( nx .eq. nxmax ) nxp = 1
-            if( ny .eq. 0  )    nym = nymax - 1
-            if( ny .eq. nymax ) nyp = 1
+             IF( nx .EQ. 0  )    nxm = nxmax - 1
+             IF( nx .EQ. nxmax ) nxp = 1
+             IF( ny .EQ. 0  )    nym = nymax - 1
+             IF( ny .EQ. nymax ) nyp = 1
 
-            bx(nx,ny) = 0.25d0 * (Az(nx,nyp) + Azb(nx,nyp) &
-                      - Az(nx,nym) - Azb(nx,nym))
-            by(nx,ny) = - 0.25d0 * (Az(nxp,ny) + Azb(nxp,ny) &
-                      - Az(nxm,ny) - Azb(nxm,ny))
-            bz(nx,ny) = 0.25d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
-                      - Ay(nxm,ny) - Ayb(nxm,ny) &
-                      - (Ax(nx,nyp) + Axb(nx,nyp) &
-                      - Ax(nx,nym) - Axb(nx,nym)))
-         end do
-         end do
-      elseif(model_boundary .ne. 0) then
-         do ny = 0, nymax
-         do nx = 0, nxmax
-            nxm = nx - 1
-            nxp = nx + 1
-            nym = ny - 1
-            nyp = ny + 1
+             bx(nx,ny) = 0.25d0 * (Az(nx,nyp) + Azb(nx,nyp) &
+                  - Az(nx,nym) - Azb(nx,nym))
+             by(nx,ny) = - 0.25d0 * (Az(nxp,ny) + Azb(nxp,ny) &
+                  - Az(nxm,ny) - Azb(nxm,ny))
+             bz(nx,ny) = 0.25d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
+                  - Ay(nxm,ny) - Ayb(nxm,ny) &
+                  - (Ax(nx,nyp) + Axb(nx,nyp) &
+                  - Ax(nx,nym) - Axb(nx,nym)))
+          END DO
+       END DO
+    ELSEIF(model_boundary .NE. 0) THEN
+       DO ny = 0, nymax
+          DO nx = 0, nxmax
+             nxm = nx - 1
+             nxp = nx + 1
+             nym = ny - 1
+             nyp = ny + 1
 
-            if( nx .eq. 0  )    nxm = 0
-            if( nx .eq. nxmax ) nxp = nxmax
-            if( ny .eq. 0  )    nym = 0
-            if( ny .eq. nymax ) nyp = nymax
+             IF( nx .EQ. 0  )    nxm = 0
+             IF( nx .EQ. nxmax ) nxp = nxmax
+             IF( ny .EQ. 0  )    nym = 0
+             IF( ny .EQ. nymax ) nyp = nymax
 
-            if(nx .eq. 0 .or. nx .eq. nxmax .or. &
-               ny .eq. 0 .or. ny .eq. nymax) then
+             IF(nx .EQ. 0 .OR. nx .EQ. nxmax .OR. &
+                  ny .EQ. 0 .OR. ny .EQ. nymax) THEN
 
-               bx(nx,ny) =   0.5d0 * (Az(nx,nyp) + Azb(nx,nyp) &
-                                    - Az(nx,nym) - Azb(nx,nym))
-               by(nx,ny) = - 0.5d0 * (Az(nxp,ny) + Azb(nxp,ny) &
-                                    - Az(nxm,ny) - Azb(nxm,ny))
-               bz(nx,ny) =   0.5d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
-                                    - Ay(nxm,ny) - Ayb(nxm,ny) &
-                                    -(Ax(nx,nyp) + Axb(nx,nyp) &
-                                    - Ax(nx,nym) - Axb(nx,nym)))
-            else
+                bx(nx,ny) =   0.5d0 * (Az(nx,nyp) + Azb(nx,nyp) &
+                     - Az(nx,nym) - Azb(nx,nym))
+                by(nx,ny) = - 0.5d0 * (Az(nxp,ny) + Azb(nxp,ny) &
+                     - Az(nxm,ny) - Azb(nxm,ny))
+                bz(nx,ny) =   0.5d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
+                     - Ay(nxm,ny) - Ayb(nxm,ny) &
+                     -(Ax(nx,nyp) + Axb(nx,nyp) &
+                     - Ax(nx,nym) - Axb(nx,nym)))
+             ELSE
 
-               bx(nx,ny) =   0.25d0 * (Az(nx,nyp) + Azb(nx,nyp) &
-                                     - Az(nx,nym) - Azb(nx,nym))
-               by(nx,ny) = - 0.25d0 * (Az(nxp,ny) + Azb(nxp,ny) &
-                                     - Az(nxm,ny) - Azb(nxm,ny))
-               bz(nx,ny) =   0.25d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
-                                     - Ay(nxm,ny) - Ayb(nxm,ny) &
-                                    - (Ax(nx,nyp) + Axb(nx,nyp) &
-                                     - Ax(nx,nym) - Axb(nx,nym)))
-            end if
-        end do
-        end do
-     endif
+                bx(nx,ny) =   0.25d0 * (Az(nx,nyp) + Azb(nx,nyp) &
+                     - Az(nx,nym) - Azb(nx,nym))
+                by(nx,ny) = - 0.25d0 * (Az(nxp,ny) + Azb(nxp,ny) &
+                     - Az(nxm,ny) - Azb(nxm,ny))
+                bz(nx,ny) =   0.25d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
+                     - Ay(nxm,ny) - Ayb(nxm,ny) &
+                     - (Ax(nx,nyp) + Axb(nx,nyp) &
+                     - Ax(nx,nym) - Axb(nx,nym)))
+             END IF
+          END DO
+       END DO
+       bx(0,:) = 0.d0
+       bx(nxmax,:) = 0.d0
+       by(:,0) = 0.d0
+       by(:,nymax) = 0.d0
+    ENDIF
 
-     IF(MOD(model_push/8,2).EQ.0) THEN
+    IF(MOD(model_push/8,2).EQ.0) THEN
        IF(MOD(model_push/4,2).EQ.0) THEN
           bx(0:nxmax,0:nymax) = 0.D0
           by(0:nxmax,0:nymax) = 0.D0
@@ -493,80 +516,80 @@ CONTAINS
     END IF
 
     bb(0:nxmax,0:nymax) = SQRT(bx(0:nxmax,0:nymax)**2 &
-                              +by(0:nxmax,0:nymax)**2 &
-                              +bz(0:nxmax,0:nymax)**2)
+         +by(0:nxmax,0:nymax)**2 &
+         +bz(0:nxmax,0:nymax)**2)
 
-  end subroutine bfield
+  END SUBROUTINE bfield
 
-!***********************************************************************
-    subroutine kine(npmax,vx,vy,vz,akin,mass)
-!***********************************************************************
-      implicit none
-      real(8), dimension(npmax) :: vx, vy, vz
-      real(8) :: akin, mass
-      integer(4) :: npmax, np
-      akin = 0.d0
-      do np = 1, npmax
-         akin = akin + vx(np)**2 + vy(np)**2 + vz(np)**2
-      end do
+  !***********************************************************************
+  SUBROUTINE kine(npmax,vx,vy,vz,akin,mass)
+    !***********************************************************************
+    IMPLICIT NONE
+    REAL(8), DIMENSION(npmax) :: vx, vy, vz
+    REAL(8) :: akin, mass
+    INTEGER(4) :: npmax, np
+    akin = 0.d0
+    DO np = 1, npmax
+       akin = akin + vx(np)**2 + vy(np)**2 + vz(np)**2
+    END DO
 
-      IF(npmax.EQ.0) THEN
-         akin=0.D0
-      ELSE
-         akin = 0.5 * akin * mass /dble(npmax)
-      END IF
-    end subroutine kine
+    IF(npmax.EQ.0) THEN
+       akin=0.D0
+    ELSE
+       akin = 0.5 * akin * mass /DBLE(npmax)
+    END IF
+  END SUBROUTINE kine
 
-!***********************************************************************
-    subroutine pote(nxmax,nymax,ex,ey,ez,bx,by,bz,bxbg,bybg,bzbg,vcfact, &
-                    apote,apotm)
-!***********************************************************************
-      implicit none
-      real(8), dimension(0:nxmax,0:nymax) :: ex,ey,ez,bx,by,bz,bxbg,bybg,bzbg
-      real(8) :: apote,apotm,vcfact
-      integer(4) :: nxmax, nymax, nx, ny
+  !***********************************************************************
+  SUBROUTINE pote(nxmax,nymax,ex,ey,ez,bx,by,bz,bxbg,bybg,bzbg,vcfact, &
+       apote,apotm)
+    !***********************************************************************
+    IMPLICIT NONE
+    REAL(8), DIMENSION(0:nxmax,0:nymax) :: ex,ey,ez,bx,by,bz,bxbg,bybg,bzbg
+    REAL(8) :: apote,apotm,vcfact
+    INTEGER(4) :: nxmax, nymax, nx, ny
 
-      apote = 0.d0
-      apotm = 0.d0
+    apote = 0.d0
+    apotm = 0.d0
 
-         do ny = 1, nymax-1
-         do nx = 1, nxmax-1
-            apote = apote + (ex(nx,ny)**2 + ey(nx,ny)**2 + ez(nx,ny)**2)
-            apotm = apotm + ((bx(nx,ny)-bxbg(nx,nx))**2 &
-                  + (by(nx,ny)-bybg(nx,nx))**2 &
-                  + (bz(nx,ny)-bzbg(nx,nx))**2)
-         end do
-         end do
+    DO ny = 1, nymax-1
+       DO nx = 1, nxmax-1
+          apote = apote + (ex(nx,ny)**2 + ey(nx,ny)**2 + ez(nx,ny)**2)
+          apotm = apotm + ((bx(nx,ny)-bxbg(nx,nx))**2 &
+               + (by(nx,ny)-bybg(nx,nx))**2 &
+               + (bz(nx,ny)-bzbg(nx,nx))**2)
+       END DO
+    END DO
 
-         do nx = 0, nxmax,nxmax
-         do ny = 1, nymax-1
-            apote = apote + 0.5D0*(ex(nx,ny)**2+ey(nx,ny)**2+ez(nx,ny)**2)
-            apotm = apotm + 0.5D0*((bx(nx,ny)-bxbg(nx,nx))**2 &
-                  + (by(nx,ny)-bybg(nx,nx))**2 &
-                  + (bz(nx,ny)-bzbg(nx,nx))**2)
-         end do
-         end do
+    DO nx = 0, nxmax,nxmax
+       DO ny = 1, nymax-1
+          apote = apote + 0.5D0*(ex(nx,ny)**2+ey(nx,ny)**2+ez(nx,ny)**2)
+          apotm = apotm + 0.5D0*((bx(nx,ny)-bxbg(nx,nx))**2 &
+               + (by(nx,ny)-bybg(nx,nx))**2 &
+               + (bz(nx,ny)-bzbg(nx,nx))**2)
+       END DO
+    END DO
 
-         do ny = 0, nymax,nymax
-         do nx = 1, nxmax-1
-            apote = apote + 0.5D0*(ex(nx,ny)**2+ey(nx,ny)**2+ez(nx,ny)**2)
-            apotm = apotm + 0.5D0*((bx(nx,ny)-bxbg(nx,nx))**2 &
-                  + (by(nx,ny)-bybg(nx,nx))**2 &
-                  + (bz(nx,ny)-bzbg(nx,nx))**2)
-         end do
-         end do
+    DO ny = 0, nymax,nymax
+       DO nx = 1, nxmax-1
+          apote = apote + 0.5D0*(ex(nx,ny)**2+ey(nx,ny)**2+ez(nx,ny)**2)
+          apotm = apotm + 0.5D0*((bx(nx,ny)-bxbg(nx,nx))**2 &
+               + (by(nx,ny)-bybg(nx,nx))**2 &
+               + (bz(nx,ny)-bzbg(nx,nx))**2)
+       END DO
+    END DO
 
-         do ny = 0, nymax,nymax
-         do nx = 0, nxmax,nxmax
-            apote = apote + 0.25D0*(ex(nx,ny)**2+ey(nx,ny)**2+ez(nx,ny)**2)
-            apotm = apotm + 0.25D0*((bx(nx,ny)-bxbg(nx,nx))**2 &
-                  + (by(nx,ny)-bybg(nx,nx))**2 &
-                  + (bz(nx,ny)-bzbg(nx,nx))**2)
-         end do
-         end do
-      apote = 0.5D0 * apote / (dble(nxmax)*dble(nymax))
-      apotm = 0.5D0 * vcfact**2 * apotm / (dble(nxmax)*dble(nymax))
+    DO ny = 0, nymax,nymax
+       DO nx = 0, nxmax,nxmax
+          apote = apote + 0.25D0*(ex(nx,ny)**2+ey(nx,ny)**2+ez(nx,ny)**2)
+          apotm = apotm + 0.25D0*((bx(nx,ny)-bxbg(nx,nx))**2 &
+               + (by(nx,ny)-bybg(nx,nx))**2 &
+               + (bz(nx,ny)-bzbg(nx,nx))**2)
+       END DO
+    END DO
+    apote = 0.5D0 * apote / (DBLE(nxmax)*DBLE(nymax))
+    apotm = 0.5D0 * vcfact**2 * apotm / (DBLE(nxmax)*DBLE(nymax))
 
-    end subroutine pote
+  END SUBROUTINE pote
 
-end MODULE picsub
+END MODULE picsub

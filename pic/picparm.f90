@@ -54,8 +54,8 @@ CONTAINS
               npomax,npostep,ntostep, &
               me,mi,chrge,chrgi,te,ti,densx, &
               bxmin,bxmax,bymin,bymax,bzmin,bzmax, &
-              dt,eps,vcfact, &
-              omega,jxant,jyant,jzant,phxant,phyant,phzant, &
+              dt,eps,vcfact,dlen, &
+              omega,jxant,jyant,jzant,phxant,phyant,phzant,dlen,&
               xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg, ph_wg,rot_wg,eli_wg, &
               model_push,model_boundary,model_antenna,model_wg, &
               model_matrix0,model_matrix1,model_matrix2,tolerance_matrix
@@ -81,7 +81,7 @@ CONTAINS
     '         npomax,npostep,ntostep,', &
     '         me,mi,chrge,chrgi,te,ti,densx,', &
     '         bxmin,bxmax,bymin,bymax,bzmin,bzmax,', &
-    '         dt,eps,vcfact,', &
+    '         dt,eps,vcfact,dlen,', &
     '         omega,jxant,jyant,jzant,phxant,phyant,phzant', &
     '         xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg, ph_wg,rot_wg,eli_wg', &
     '         model_push,model_boundary,model_antenna,model_wg', &
@@ -116,7 +116,7 @@ CONTAINS
     USE libmpi
     IMPLICIT NONE
     integer,parameter:: nint=18
-    integer,parameter:: ndbl=32
+    integer,parameter:: ndbl=33
     integer:: idata(nint)
     REAL(8):: ddata(ndbl)
 
@@ -193,6 +193,7 @@ CONTAINS
        ddata(30)=rot_wg
        ddata(31)=eli_wg
        ddata(32)=tolerance_matrix
+       ddata(33)=dlen
     END IF
     CALL mtx_broadcast_real8(ddata,ndbl)
        me=ddata(1)
@@ -227,6 +228,7 @@ CONTAINS
        rot_wg=ddata(30)
        eli_wg=ddata(31)
        tolerance_matrix=ddata(32)
+       dlen=ddata(33)
     RETURN
 
   END SUBROUTINE pic_broadcast
@@ -254,7 +256,7 @@ CONTAINS
     WRITE(6,612) 'bxmax       ',bxmax  ,'bymax       ',bymax, &
                  'bzmax       ',bzmax
     WRITE(6,612) 'dt          ',dt     ,'eps         ',eps   , &
-                 'vcfact      ',vcfact
+                 'vcfact      ',vcfact ,'dlen        ',dlen
     WRITE(6,612) 'omega       ',omega
     WRITE(6,612) 'jxant       ',jxant  ,'jyant       ',jyant , &
                  'jzant       ',jzant

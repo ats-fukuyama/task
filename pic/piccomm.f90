@@ -11,7 +11,7 @@ MODULE piccomm_parm
   INTEGER:: model_push,model_boundary,model_antenna,model_wg
   INTEGER:: model_matrix0,model_matrix1,model_matrix2
   REAL(rkind):: dt,me,mi,chrge,chrgi,te,ti,densx,&
-       bxmin,bxmax,bymin,bymax,bzmin,bzmax,vcfact,omega,eps
+       bxmin,bxmax,bymin,bymax,bzmin,bzmax,vcfact,omega,eps,dlen
   REAL(rkind):: jxant,jyant,jzant,phxant,phyant,phzant
   REAL(rkind):: xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg,ph_wg,rot_wg,eli_wg
   REAL(rkind):: tolerance_matrix
