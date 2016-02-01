@@ -852,13 +852,13 @@ CONTAINS
        IF(dx .LE. 0.5d0 .AND. dy .LE. 0.5d0) THEN
          ! use Mirror image method
          IF(model_boundary .NE. 0 .AND. nxp .EQ. 0)  THEN
-           sx2p = sx2p - sx2m
-           sx2 = 0.d0
+           !sx2p = sx2p - sx2m
+           sx2 = -1.0d0 + sx2
            sx2m = 0.d0
          ENDIF
          IF(model_boundary .NE. 0 .AND. nyp .EQ. 0) THEN
-           sy2p = sy2p - sy2m
-           sy2 = 0.d0
+           !sy2p = sy2p - sy2m
+           sy2 = -1.0d0 + sy2
            sy2m = 0.d0
          ENDIF
 
@@ -873,13 +873,13 @@ CONTAINS
           rho(nxpp,nypp) = rho(nxpp,nypp) + sx2p * sy2p * factor
        ELSE IF(dx .LE. 0.5d0 .AND. dy .GE. 0.5d0) THEN
          IF(model_boundary .NE. 0 .AND. nxp .EQ. 0)  THEN
-           sx2p = sx2p - sx2m
-           sx2 = 0.d0
+           !sx2p = sx2p - sx2m
+           sx2 = -1.0d0 + sx2
            sx2m = 0.d0
          ENDIF
          IF(model_boundary .NE. 0 .AND. nyp .EQ. nymax-1) THEN
-           sy2m = sy2m - sy2p
-           sy2 = 0.d0
+           !sy2m = sy2m - sy2p
+           sy2 = -1.0d0 + sy2
            sy2p = 0.d0
          ENDIF
           rho(nxpm ,nyp  ) = rho(nxpm ,nyp  ) + sx2m * sy2m * factor
@@ -893,13 +893,13 @@ CONTAINS
           rho(nxpp ,nyppp) = rho(nxpp ,nyppp) + sx2p * sy2p * factor
        ELSE IF(dx .GE. 0.5d0 .AND. dy .LE. 0.5d0) THEN
          IF(model_boundary .NE. 0 .AND. nxp .EQ. nxmax-1)  THEN
-           sx2m = sx2m - sx2p
-           sx2 = 0.d0
+           !sx2m = sx2m - sx2p
+           sx2 = -1.0d0 + sx2
            sx2p = 0.d0
          ENDIF
          IF(model_boundary .NE. 0 .AND. nyp .EQ. 0) THEN
-           sy2p = sy2p - sy2m
-           sy2 = 0.d0
+           !sy2p = sy2p - sy2m
+           sy2 = -1.0d0 + sy2
            sy2p = 0.d0
          ENDIF
           rho(nxp  ,nypm) = rho(nxp  ,nypm ) + sx2m * sy2m * factor
@@ -913,13 +913,13 @@ CONTAINS
           rho(nxppp,nypp) = rho(nxppp,nypp ) + sx2p * sy2p * factor
        ELSE
          IF(model_boundary .NE. 0 .AND. nxp .EQ. nxmax-1)  THEN
-           sx2m = sx2m - sx2p
-           sx2 = 0.d0
+           !sx2m = sx2m - sx2p
+           sx2 = -1.0d0 + sx2
            sx2p = 0.d0
          ENDIF
          IF(model_boundary .NE. 0 .AND. nyp .EQ. nymax-1) THEN
-           sy2m = sy2m - sy2p
-           sy2 = 0.d0
+           !sy2m = sy2m - sy2p
+           sy2 = -1.0d0 + sy2
            sy2p = 0.d0
          ENDIF
           rho(nxp  ,nyp  ) = rho(nxp  ,nyp  ) + sx2m * sy2m * factor
@@ -933,12 +933,6 @@ CONTAINS
           rho(nxppp,nyppp) = rho(nxppp,nyppp) + sx2p * sy2p * factor
        ENDIF
     END DO
-    IF(model_boundary .EQ. 0) THEN
-      rho(0,:) = 0.d0
-      rho(nxmax,:) = 0.d0
-      rho(:,0) = 0.d0
-      rho(:,nymax) = 0.d0
-    ENDIF
     END SUBROUTINE source
 
   !***********************************************************************
