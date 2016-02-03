@@ -115,15 +115,24 @@ CONTAINS
     DO nalfa=1,nalfamax
        alfa=exp(log(alfamin)+dalfa*(nalfa-1))
        rk0l=1.D0/alfa
-       IF(ALFA.LT.1.0D0) THEN
-          dx0=0.02D0
-          xmax=2.D0/ALFA
+       IF(ALFA.LT.0.01D0) THEN
+          dx0=0.3D0
+          xmax=200.D0
+          xmin=-50.0D0
+       ELSEIF(ALFA.LT.1.D0) THEN
+          dx0=dx0_save
+          xmax=10.D0/alfa
           xmin=-10.0D0
+       ELSEIF(ALFA.LT.10.D0) THEN
+          dx0=dx0_save
+          xmax=10.D0
+          xmin=-5.0D0
        ELSE
-          dx0=0.01D0
-          xmax= 50.D0
-          xmin=-10.D0
+          dx0=dx0_save/2.D0
+          xmax=10.D0
+          xmin=-5.0D0
        END IF
+!       WRITE(6,'(I5,1P6E12.4)') nalfa,alfa,rk0l,0.D0,xmin,xmax,dx0
        CALL wi_prep
        ANB=DEXP(-ALFA*xgrid(nxmax))
        IF(any**2 < 1.0-ANB) THEN
