@@ -288,6 +288,7 @@ C
       IF(MODEFA.EQ.4) THEN
        NSA=3
        NRMAXFP=NRMAX
+       NTHMAXFP=NTHMAX
         PMa0(1)=0.D0
        DO NP=1,NPMAX
         PMa0(NP+1)=DELP(NSA)*(NP-0.5D0)
@@ -300,30 +301,34 @@ C
        ENDDO
         RHOa0(NRMAXFP+2)=RMAX/RMAX        
 
-       DO NTH=1,NTHMAX
+       DO NTH=1,NTHMAXFP
        DO NR=1,NRMAXFP
        DO NP=1,NPMAX
           fa0(NP+1,NR+1,NTH)=FNS(NTH,NP,NR,NSA)
-          fa0(1,NR+1,NTH) =FNS(NTH,1,NR,NSA)
-          fa0(NPMAX+2,NR+1,NTH)=FNS(NTH,NPMAX,NR,NSA)
-     & +(PMa0(NPMAX+2)-PMa0(NPMAX+1))*
-     & (FNS(NTH,NPMAX,NR,NSA)-FNS(NTH,NPMAX-1,NR,NSA))/DELP(NSA)
           fa0(NP+1,1,NTH) =FNS(NTH,NP,1,NSA)
           fa0(NP+1,NRMAXFP+2,NTH)=0.D0
        ENDDO
+          fa0(1,NR+1,NTH) =FNS(NTH,1,NR,NSA)
+          fa0(NPMAX+2,NR+1,NTH)=FNS(NTH,NPMAX,NR,NSA)*2.5D-1  ! f(NP+2)=f(NP+1)*1/4
        ENDDO
           fa0(1,1,NTH)=FNS(NTH,1,1,NSA)
           fa0(1,NRMAXFP+2,NTH)=0.D0
-          fa0(NPMAX+2,1,NTH)=FNS(NTH,NPMAX,1,NSA)
-     & +(PMa0(NPMAX+2)-PMa0(NPMAX+1))*
-     & (FNS(NTH,NPMAX,1,NSA)-FNS(NTH,NPMAX-1,1,NSA))/DELP(NSA)
+          fa0(NPMAX+2,1,NTH)=FNS(NTH,NPMAX,1,NSA)*2.5D-1          
           fa0(NPMAX+2,NRMAXFP+2,NTH)=0.D0
        ENDDO
 
-       DO NTH=1,NTHMAX
+       DO NR=1,NRMAXFP+2
+       DO NP=1,NPMAX+2
+          dfpa0(NP,NR)=0.D0
+          dfra0(NP,NR)=0.D0
+       ENDDO
+       ENDDO
+
+
+       DO NTH=1,NTHMAXFP
         CALL SPL2D(PMa0,RHOa0,fa0(1:NPM,1:NRM,NTH),dfpa0,dfra0,
      &  dfpra0,US(1:4,1:4,1:NPM,1:NRM,NTH),
-     &  NPM,NPMAX+2,NRMAX+2,0,0,IERR)
+     &  NPM,NPMAX+2,NRMAX+2,1,1,IERR)
        ENDDO   
       ELSE
        RETURN
