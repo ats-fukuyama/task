@@ -282,8 +282,8 @@
 
             IF(MODELS.EQ.3) THEN
 
-            DO NP1=1,NPMAX
-               DO NP2=1,NPMAX
+            DO NP2=1,NPMAX
+               DO NP1=NPSTART,NPEND
                   DO L=0,LLMAX_NF
                      DO K=0,LLMAX_NF
                         SIGMAV_LG(L,K,NP1,NP2,ID)=0.D0
@@ -292,10 +292,10 @@
                END DO
             END DO
 
-            DO NP1=1,NPMAX
-               DO NP2=1,NPMAX
-                  DO NTH1=1,NTHMAX
-                     DO NTH2=1,NTHMAX
+            DO NP2=1,NPMAX
+               DO NTH2=1,NTHMAX
+                  DO NP1=NPSTART,NPEND
+                     DO NTH1=1,NTHMAX
                         CALL RELATIVE_ENERGY(NTH1,NP1,NTH2,NP2,NSB1,NSB2,E0L,E1L)
                         CALL SPL2DF(E0L,ABS(E1L),F0, &
                              E0A,E1A,USV,NEMAX,NEMAX,NEMAX,IERR)
@@ -315,7 +315,7 @@
                ENDDO
             ENDDO
 
-            ENDIF ! MODELS=2
+            ENDIF ! MODELS=3
 
          ENDIF
       ENDDO ! ID
