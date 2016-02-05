@@ -49,6 +49,7 @@ CONTAINS
              phib(nx,ny) = phi(nx,ny)
           END DO
        END DO
+       IF(nt .eq. 100)write(*,*),akine
        !----- charge assignment
        rho(:,:)=0.0d0
        CALL source(npmax,nxmax,nymax,xe,ye,rho,chrge,model_boundary)
@@ -131,9 +132,9 @@ CONTAINS
           CALL pote(nxmax,nymax,ex,ey,ez,bx,by,bz,bxbg,bybg,bzbg,vcfact, &
                apote,apotm)
           CALL mtx_allreduce1_real8(akine1,3,sum,locv)
-          akine1=sum
+          akine1=sum/dble(nsize)
           CALL mtx_allreduce1_real8(akini1,3,sum,locv)
-          akini1=sum
+          akini1=sum/dble(nsize)
           CALL mtx_allreduce1_real8(apote,3,sum,locv)
           apote=sum
           CALL mtx_allreduce1_real8(apotm,3,sum,locv)
@@ -182,9 +183,9 @@ CONTAINS
           CALL kine(npmax,vxe,vye,vze,akine2,me)
           CALL kine(npmax,vxi,vyi,vzi,akini2,mi)
           CALL mtx_allreduce1_real8(akine2,3,sum,locv) ! sum
-          akine2=sum
+          akine2=sum/dble(nsize)
           CALL mtx_allreduce1_real8(akini2,3,sum,locv) ! sum
-          akini2=sum
+          akini2=sum/dble(nsize)
           akine = 0.5d0 * ( akine1 + akine2 )
           akini = 0.5d0 * ( akini1 + akini2 )
           aktot = akine + akini
@@ -437,11 +438,11 @@ CONTAINS
           IF( nyp .EQ. 0  ) nypm = nymax
           IF( nxp .EQ. nxmax-1) nxppp = 1
           IF( nyp .EQ. nymax-1) nyppp = 1
-       !ELSE   ! reflective:
-          !IF( nxp .EQ. 0  ) nxpm = 0
-          !IF( nyp .EQ. 0  ) nypm = 0
-          !IF( nxp .EQ. nxmax-1) nxppp = nxmax
-          !IF( nyp .EQ. nymax-1) nyppp = nymax
+       ELSE   ! reflective:
+          IF( nxp .EQ. 0  ) nxpm = 0
+          IF( nyp .EQ. 0  ) nypm = 0
+          IF( nxp .EQ. nxmax-1) nxppp = nxmax
+          IF( nyp .EQ. nymax-1) nyppp = nymax
        END IF
 
        ! electric field and magnetic field
