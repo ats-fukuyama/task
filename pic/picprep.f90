@@ -105,9 +105,9 @@ CONTAINS
       akine0=sum
       call mtx_allreduce1_real8(akini0,3,sum,locv) ! sum
       akini0=sum
-      call mtx_allreduce1_real8(apote0,3,sum,locv)  ! sum
+      call mtx_allreduce1_real8(apote0,3,sum,locv) ! sum
       apote0=sum
-      call mtx_allreduce1_real8(apotm0,3,sum,locv)  ! sum
+      call mtx_allreduce1_real8(apotm0,3,sum,locv) ! sum
       apotm0=sum
 
       aktot0 = akine0 + akini0
@@ -186,7 +186,7 @@ CONTAINS
 !***********************************************************************
       implicit none
       real(8) :: rvx, rvy, rvz, r1, r2, r3, rv
-      real(8) :: pi, twopi, eps, aln ,ab
+      real(8) :: pi, twopi, eps, aln
       real(8) :: rmod = 2147483648.d0, ramda = 65539.d0, wran
       integer :: iran
 
@@ -194,8 +194,6 @@ CONTAINS
       twopi = 2.d0 * pi
       eps   = 0.00247875d0
       aln   = 1.d0 - eps
-      call random_number(ab)
-
       !----- generate first random number
       if( iran .lt. 0 ) iran = -iran
       if( iran .eq. 0 ) iran = 3907
