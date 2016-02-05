@@ -50,7 +50,6 @@ CONTAINS
              phib(nx,ny) = phi(nx,ny)
           END DO
        END DO
-       IF(nt .eq. 100)write(*,*),akine
        !----- charge assignment
        rho(:,:)=0.0d0
        CALL source(npmax,nxmax,nymax,xe,ye,rho,chrge,model_boundary)
@@ -137,9 +136,9 @@ CONTAINS
           CALL mtx_allreduce1_real8(akini1,3,sum,locv)
           akini1=sum/dble(nsize)
           CALL mtx_allreduce1_real8(apote,3,sum,locv)
-          apote=sum
+          apote=sum/dble(nsize)
           CALL mtx_allreduce1_real8(apotm,3,sum,locv)
-          apotm=sum
+          apotm=sum/dble(nsize)
        ENDIF
        !..... push electrons
        CALL push(npmax,nxmax,nymax,xe,ye,ze,vxe,vye,vze, &
