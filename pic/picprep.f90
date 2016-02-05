@@ -102,13 +102,13 @@ CONTAINS
       call pote(nxmax,nymax,ex,ey,ez,bx,by,bz,bxbg,bybg,bzbg,vcfact, &
                 apote0,apotm0)
       call mtx_allreduce1_real8(akine0,3,sum,locv) ! sum
-      akine0=sum
+      akine0=sum/dble(nsize)
       call mtx_allreduce1_real8(akini0,3,sum,locv) ! sum
-      akini0=sum
+      akini0=sum/dble(nsize)
       call mtx_allreduce1_real8(apote0,3,sum,locv) ! sum
-      apote0=sum
+      apote0=sum/dble(nsize)
       call mtx_allreduce1_real8(apotm0,3,sum,locv) ! sum
-      apotm0=sum
+      apotm0=sum/dble(nsize)
 
       aktot0 = akine0 + akini0
       aptot0 = apote0 + apotm0
