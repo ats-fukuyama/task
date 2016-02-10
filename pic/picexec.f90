@@ -36,7 +36,6 @@ CONTAINS
     !----- start of main do-loop -------------------------------------------
     !-----------------------------------------------------------------------
     DO nt = 1, ntmax
-
        time = time + dt
        ntcount = ntcount + 1
        DO nx = 0, nxmax
