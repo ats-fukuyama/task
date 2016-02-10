@@ -141,9 +141,8 @@ CONTAINS
       do npy = 1, npymax
       do npx = 1, npxmax
          np = np + 1
-         x(np) = (dble(npx) - 0.5d0 ) * factx
+         x(np) = (dble(npx) - 0.5d0 ) * factx * (5.d0 - dble(nrank+1)) / 4.d0
          y(np) = (dble(npy) - 0.5d0 ) * facty
-
          call gauss(rvx,rvy,rvz,iran)
          vx(np) = rvx * vt
          vy(np) = rvy * vt
@@ -201,7 +200,6 @@ CONTAINS
       wran     = mod( ramda * wran, rmod )
       iran  = wran
       r1    = wran / rmod
-
       !----- generate second random number
       if( iran .lt. 0 ) iran = -iran
       if( iran .eq. 0 ) iran = 3907
