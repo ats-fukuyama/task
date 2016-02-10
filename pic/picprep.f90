@@ -55,11 +55,11 @@ CONTAINS
 
       !..... set initial positions and velocities of electrons
       call iniset(npmax,npxmax,npymax,nxmax,nymax,densx, &
-                  xe,ye,ze,xeb,yeb,zeb,vxe,vye,vze,vte,dt,iran)
+                  xe,ye,ze,xeb,yeb,zeb,vxe,vye,vze,vte,dt,iran,nrank)
 
       !..... set initial positions and velocities of ions
       call iniset(npmax,npxmax,npymax,nxmax,nymax,densx, &
-                  xi,yi,zi,xib,yib,zib,vxi,vyi,vzi,vti,dt,iran)
+                  xi,yi,zi,xib,yib,zib,vxi,vyi,vzi,vti,dt,iran,nrank)
 
       !..... initialize scalar potential by poisson solver
       ipssn = 0
@@ -126,13 +126,13 @@ CONTAINS
 
 !***********************************************************************
       subroutine iniset(npmax,npxmax,npymax,nxmax,nymax,densx,&
-                        x,y,z,xb,yb,zb,vx,vy,vz,vt,dt,iran)
+                        x,y,z,xb,yb,zb,vx,vy,vz,vt,dt,iran,nrank)
 !***********************************************************************
       implicit none
       real(8), dimension(npmax) :: x, y, z, xb, yb, zb, vx, vy, vz
       integer :: npmax, npxmax, npymax, nxmax, nymax, iran
       real(8) :: vt, dt, factx, facty, rvx, rvy, rvz, densx, inter, position
-      integer :: npx, npy, np
+      integer :: npx, npy, np, nrank
 
       factx = dble(nxmax) / dble(npxmax)
       facty = dble(nymax) / dble(npymax)

@@ -434,8 +434,8 @@ CONTAINS
        nyppp = nyp + 2
 
        IF(model_boundary.EQ.0) THEN ! periodic
-          IF( nxp .EQ. 0  ) nxpm = nxmax
-          IF( nyp .EQ. 0  ) nypm = nymax
+          IF( nxp .EQ. 0  ) nxpm = nxmax-1
+          IF( nyp .EQ. 0  ) nypm = nymax-1
           IF( nxp .EQ. nxmax-1) nxppp = 1
           IF( nyp .EQ. nymax-1) nyppp = 1
        ELSE   ! reflective:
