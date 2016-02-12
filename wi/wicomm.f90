@@ -7,8 +7,8 @@ MODULE wicomm
 
   INTEGER(ikind):: modelg = 0      ! calculation mode: 0:unmag
   INTEGER(ikind):: modelp = 2      ! plasma mode: 0:cold, 1:warm, 2:hot
-  REAL(rkind)::    xmin   = -10.D0   ! minimum value of x
-  REAL(rkind)::    xmax   =  100.D0 ! maximum value of x
+  REAL(rkind)::    xmin   = -20.D0   ! minimum value of x
+  REAL(rkind)::    xmax   = 100.D0 ! maximum value of x
   REAL(rkind)::    pn0    = 1.D0   ! normalized plasma density at x=0.D0
   REAL(rkind)::    alfa   = 0.01D0 ! normalized density gradient 
                                    !    [ alfa = vte / L omega ]
@@ -18,7 +18,7 @@ MODULE wicomm
                                    !    [ any = k_y c / omega ]
   REAL(rkind)::    beta   = 0.1D0  ! ratio of thermal velocity to light veloc.
                                    !    [ beta = vte / c ]
-  REAL(rkind)::    pnu    = 0.001D0! normalized collision frequency
+  REAL(rkind)::    pnu    = 0.003D0! normalized collision frequency
                                    !    [ pnu = nu / omega ]
 
   INTEGER(ikind):: ntaumax= 51     ! number of TAU scan points
@@ -27,8 +27,8 @@ MODULE wicomm
   INTEGER(ikind):: nalfamax= 31    ! number of ALFA scan points
   REAL(rkind)::    alfamin=  0.1D0 ! minimum of ALFA scan (in log step)
   REAL(rkind)::    alfamax= 100.D0 ! maximum of ALFA scan (in log step)
-  REAL(rkind)::    xwint  = 10.D0 ! range of kernel integral in vte
-  REAL(rkind)::    dx0    = 0.5D0  ! default grid size
+  REAL(rkind)::    xwint  = 10.D0  ! range of kernel integral in vte
+  REAL(rkind)::    dx0    = 0.05D0 ! default grid size
   REAL(rkind)::    dxmin  = 0.D0   ! minimum grid size at omegape = omega
   REAL(rkind)::    xwmin  = 1.D0   ! range of reduction near omegape = omega
   COMPLEX(rkind):: cfyn = (1.D0,0.D0) ! E field of incident wave at nx=nxmax
