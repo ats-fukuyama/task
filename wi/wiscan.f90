@@ -94,7 +94,7 @@ CONTAINS
     INTEGER(ikind),INTENT(OUT):: ierr
     INTEGER(ikind):: nalfa
     INTEGER(ikind),PARAMETER:: nfl=21
-    REAL(rkind):: dalfa,rk0l,ratea,anb
+    REAL(rkind):: dalfa,rk0l,ratea,anb,fact
     REAL(rkind):: alfa_save,xmax_save,xmin_save,dx0_save,xwint_save
     REAL(rkind),DIMENSION(nalfamax):: rk0la,rateaa
 
@@ -115,7 +115,10 @@ CONTAINS
     DO nalfa=1,nalfamax
        alfa=exp(log(alfamin)+dalfa*(nalfa-1))
        rk0l=1.D0/alfa
-       IF(ALFA.LT.0.1D0) THEN
+       IF(ALFA.LT.1.D0) THEN
+!          dx0=0.3D0*BETA
+!          xmax=200.D0
+!          xmin=-50.0D0
           dx0=dx0_save
           xmax=10.D0/alfa
           xmin=-10.0D0
@@ -124,11 +127,16 @@ CONTAINS
           xmax=10.D0
           xmin=-5.0D0
        ELSE
-          dx0=dx0_save/(ALFA/10.D0)**(1.5D0)
-          xmax=10.D0/(ALFA/10.D0)
-          xmin=-5.0D0/(ALFA/10.D0)
+!          dx0=dx0_save/(ALFA/10.D0)**(1.5D0)
+!          xmax=10.D0/(ALFA/10.D0)
+!          xmin=-5.0D0/(ALFA/10.D0)
+          FACT=(ALFA/10.D0)**3
+          dx0=dx0_save/FACT
+          xmax=10.D0/FACT
+          xmin=-10.0D0/FACT
        END IF
-!       WRITE(6,'(I5,1P6E12.4)') nalfa,alfa,rk0l,0.D0,xmin,xmax,dx0
+!       WRITE(6,'(I5,1P6E12.4)') &
+!            nalfa,alfa,rk0l,(xmax-xmin)/dx0,xmin,xmax,dx0
        CALL wi_prep
        ANB=DEXP(-ALFA*xgrid(nxmax))
        IF(any**2 < 1.0-ANB) THEN
