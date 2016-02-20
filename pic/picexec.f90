@@ -58,7 +58,7 @@ CONTAINS
        CALL mtx_allreduce_real8(rho,nxymax,3,suma,locva)
        DO ny=0,nymax
           DO nx=0,nxmax
-             rho(nx,ny)=suma(nx,ny)
+             rho(nx,ny)=suma(nx,ny) / dble(nsize)
           END DO
        END DO
        !----- calculate electric field
@@ -90,19 +90,19 @@ CONTAINS
        CALL mtx_allreduce_real8(jx,nxymax,3,suma,locva)
        DO ny=0,nymax
           DO nx=0,nxmax
-             jx(nx,ny)=suma(nx,ny)
+             jx(nx,ny)=suma(nx,ny)/dble(nsize)
           END DO
        END DO
        CALL mtx_allreduce_real8(jy,nxymax,3,suma,locva)
        DO ny=0,nymax
           DO nx=0,nxmax
-             jy(nx,ny)=suma(nx,ny)
+             jy(nx,ny)=suma(nx,ny)/dble(nsize)
           END DO
        END DO
        CALL mtx_allreduce_real8(jz,nxymax,3,suma,locva)
        DO ny=0,nymax
           DO nx=0,nxmax
-             jz(nx,ny)=suma(nx,ny)
+             jz(nx,ny)=suma(nx,ny)/dble(nsize)
           END DO
        END DO
 
@@ -731,15 +731,15 @@ CONTAINS
           END DO
        ENDIF
 
-       !if( z(np) .LT. z1 ) THEN
-       !   do while(z(np) .LT. z1)
-       !      z(np) = z(np) + alz
-       !   end do
-       !elseif( z(np) .GT. z2 ) THEN
-       !   do while(z(np) .GT. z2)
-       !      z(np) = z(np) - alz
-       !   end do
-       !ENDIF
+       if( z(np) .LT. z1 ) THEN
+          do while(z(np) .LT. z1)
+             z(np) = z(np) + alz
+          end do
+       elseif( z(np) .GT. z2 ) THEN
+          do while(z(np) .GT. z2)
+             z(np) = z(np) - alz
+          end do
+       ENDIF
     END DO
 
   END SUBROUTINE bound_periodic
@@ -769,15 +769,15 @@ CONTAINS
           vy(np) = -vy(np)
        ENDIF
 
-       !  if( z(np) .LT. z1 ) THEN
-       !     do while(z(np) .LT. z1)
-       !        z(np) = z(np) + alz
-       !     end do
-       !  elseif( z(np) .GT. z2 ) THEN
-       !     do while(z(np) .GT. z2)
-       !        z(np) = z(np) - alz
-       !     end do
-       !  ENDIF
+         if( z(np) .LT. z1 ) THEN
+            do while(z(np) .LT. z1)
+               z(np) = z(np) + alz
+            end do
+         elseif( z(np) .GT. z2 ) THEN
+            do while(z(np) .GT. z2)
+               z(np) = z(np) - alz
+            end do
+         ENDIF
     END DO
 
   END SUBROUTINE bound_reflective
@@ -1328,7 +1328,6 @@ CONTAINS
                                             - 4.0d0 * Azb(nx,ny)) &
                     + dt ** 2 * jz(nx,ny) &
                     + 2.0d0 * Azb(nx,ny) - Azbb(nx,ny)
-
        END DO
     END DO
 
