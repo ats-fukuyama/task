@@ -54,11 +54,11 @@ CONTAINS
 
       !..... set initial positions and velocities of electrons
       call iniset(npmax,npxmax,npymax,nxmax,nymax,densx, &
-                  xe,ye,ze,xeb,yeb,zeb,vxe,vye,vze,vte,dt,iran,nrank,nsize)
+                  xe,ye,ze,xeb,yeb,zeb,vxe,vye,vze,vte,dt,iran)
 
       !..... set initial positions and velocities of ions
       call iniset(npmax,npxmax,npymax,nxmax,nymax,densx, &
-                  xi,yi,zi,xib,yib,zib,vxi,vyi,vzi,vti,dt,iran,nrank,nsize)
+                  xi,yi,zi,xib,yib,zib,vxi,vyi,vzi,vti,dt,iran)
 
       !..... initialize scalar potential by poisson solver
       ipssn = 0
@@ -89,10 +89,10 @@ CONTAINS
                                bx,by,bz,bxbg,bybg,bzbg,bb, &
                                model_push,model_boundary)
       do np=1,npmax
-         vparae(np)=vxe(np)
-         vperpe(np)=SQRT(vye(np)**2+vze(np)**2)
-         vparai(np)=vxi(np)
-         vperpi(np)=SQRT(vyi(np)**2+vzi(np)**2)
+         vparae(np)=vye(np)
+         vperpe(np)=SQRT(vxe(np)**2+vze(np)**2)
+         vparai(np)=vyi(np)
+         vperpi(np)=SQRT(vxi(np)**2+vzi(np)**2)
       end do
 
       call kine(npmax,vxe,vye,vze,akine0,me)
@@ -124,13 +124,13 @@ CONTAINS
 
 !***********************************************************************
       subroutine iniset(npmax,npxmax,npymax,nxmax,nymax,densx,&
-                        x,y,z,xb,yb,zb,vx,vy,vz,vt,dt,iran,nrank,nsize)
+                        x,y,z,xb,yb,zb,vx,vy,vz,vt,dt,iran)
 !***********************************************************************
       implicit none
       real(8), dimension(npmax) :: x, y, z, xb, yb, zb, vx, vy, vz
       integer :: npmax, npxmax, npymax, nxmax, nymax, iran
       real(8) :: vt, dt, factx, facty, rvx, rvy, rvz, densx, inter, position
-      integer :: npx, npy, np, nrank, nsize
+      integer :: npx, npy, np
 
       factx = dble(nxmax) / dble(npxmax)
       facty = dble(nymax) / dble(npymax)
@@ -145,7 +145,6 @@ CONTAINS
          vx(np) = rvx * vt
          vy(np) = rvy * vt
          vz(np) = rvz * vt
-
          xb(np) = x(np) - vx(np) * dt
          yb(np) = y(np) - vy(np) * dt
          zb(np) = z(np) - vz(np) * dt
@@ -167,7 +166,6 @@ CONTAINS
          vx(np) = rvx * vt
          vy(np) = rvy * vt
          vz(np) = rvz * vt
-
          xb(np) = x(np) - vx(np) * dt
          yb(np) = y(np) - vy(np) * dt
          zb(np) = z(np) - vz(np) * dt
@@ -219,7 +217,6 @@ CONTAINS
       rvx = rv * cos( twopi * r2 ) * sin( twopi * r3 )
       rvy = rv * sin( twopi * r2 ) * sin( twopi * r3 )
       rvz = rv * cos( twopi * r3 )
-
     end subroutine gauss
 
 END Module picprep
