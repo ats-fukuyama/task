@@ -1072,7 +1072,7 @@ CONTAINS
 
     DO np = 1, npmax
 
-       nxp = x(np)
+       nxp = (x(np) + xb(np)
        nyp = y(np)
        dx = x(np) - DBLE(nxp)
        dy = y(np) - DBLE(nyp)
@@ -1409,7 +1409,6 @@ CONTAINS
     ! Solution of maxwell equation in the A-phi formulation by difference method
     ! vcfact is the ratio of the light speed to lattice parameter times
     ! plasma frequency
-
     DO nx = 0, nxmax
        DO ny = 0, nymax
 
