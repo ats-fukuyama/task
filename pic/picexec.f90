@@ -75,10 +75,10 @@ CONTAINS
        jx(:,:)=0.d0
        jy(:,:)=0.d0
        jz(:,:)=0.d0
-       CALL current(npmax,nxmax,nymax,xe,ye,vxe,vye,vze,chrge,jx,jy,jz, &
-            model_boundary)
-       CALL current(npmax,nxmax,nymax,xi,yi,vxi,vyi,vzi,chrgi,jx,jy,jz, &
-            model_boundary)
+       CALL current(npmax,nxmax,nymax,xe,ye,xeb,yeb,vxe,vye,vze,chrge&
+       ,jx,jy,jz, model_boundary)
+       CALL current(npmax,nxmax,nymax,xi,yi,xib,yib,vxi,vyi,vzi,chrgi&
+       ,jx,jy,jz, model_boundary)
        IF (model_antenna .EQ. 1) THEN
           CALL antenna(nxmax,nymax,jxant,jyant,jzant,phxant,phyant,phzant, &
                omega,time,jx,jy,jz)
@@ -153,9 +153,9 @@ CONTAINS
           CALL bound_periodic(npmax,xe,ye,ze,x1,x2,y1,y2,z1,z2,alx,aly,alz)
           CALL bound_periodic(npmax,xi,yi,zi,x1,x2,y1,y2,z1,z2,alx,aly,alz)
        ELSE
-          CALL bound_reflective(npmax,xe,ye,ze,vxe,vye, &
+          CALL bound_reflective(npmax,xe,ye,ze,vxe,vye,vze, &
                x1,x2,y1,y2,z1,z2,alx,aly,alz)
-          CALL bound_reflective(npmax,xi,yi,zi,vxi,vyi, &
+          CALL bound_reflective(npmax,xi,yi,zi,vxi,vyi,vzi, &
                x1,x2,y1,y2,z1,z2,alx,aly,alz)
        ENDIF
 
@@ -788,11 +788,11 @@ CONTAINS
   END SUBROUTINE bound_periodic
 
   !***********************************************************************
-  SUBROUTINE bound_reflective(npmax,x,y,z,vx,vy, &
+  SUBROUTINE bound_reflective(npmax,x,y,z,vx,vy,vz,&
        x1,x2,y1,y2,z1,z2,alx,aly,alz)
     !***********************************************************************
     IMPLICIT NONE
-    REAL(8), DIMENSION(npmax) :: x, y, z, vx, vy
+    REAL(8), DIMENSION(npmax) :: x, y, z, vx, vy, vz
     REAL(8) :: x1, x2, y1, y2, z1, z2, alx, aly, alz
     INTEGER :: npmax, np
 
@@ -812,15 +812,23 @@ CONTAINS
           vy(np) = -vy(np)
        ENDIF
 
-         IF( z(np) .LT. z1 ) THEN
-            DO WHILE(z(np) .LT. z1)
-               z(np) = z(np) + alz
+       IF( z(np) .LT. z1 ) THEN
+          DO WHILE(z(np) .LT. z1)
+            z(np) = z(np) + alz
           END DO
-        ELSEIF( z(np) .GT. z2 ) THEN
-            DO WHILE(z(np) .GT. z2)
-               z(np) = z(np) - alz
-            END DO
-         ENDIF
+       ELSEIF( z(np) .GT. z2 ) THEN
+          DO WHILE(z(np) .GT. z2)
+             z(np) = z(np) - alz
+          END DO
+       ENDIF
+
+       !IF( z(np) .LT. z1 ) THEN
+      !    z(np) = -z(np)
+      !    vz(np) = -vz(np)
+       !ELSEIF( z(np) .GT. z2 ) THEN
+      !    z(np) = alz - (z(np) - alz)
+      !    vz(np) = -vz(np)
+       !ENDIF
     END DO
 
   END SUBROUTINE bound_reflective
@@ -1052,12 +1060,12 @@ CONTAINS
   END SUBROUTINE boundary_rho
 
   !***********************************************************************
-  SUBROUTINE current(npmax,nxmax,nymax,x,y,vx,vy,vz,chrg,jx,jy,jz, &
+  SUBROUTINE current(npmax,nxmax,nymax,x,y,xb,yb,vx,vy,vz,chrg,jx,jy,jz, &
        model_boundary)
     !***********************************************************************
     IMPLICIT NONE
 
-    REAL(8), DIMENSION(npmax) :: x, y, vx, vy, vz
+    REAL(8), DIMENSION(npmax) :: x, y, xb, yb, vx, vy, vz
     REAL(8), DIMENSION(0:nxmax,0:nymax) :: jx, jy, jz
     REAL(8) :: chrg, dt, dx, dy, dx1, dy1, &
          sx1p, sy1p, sx1m, sy1m, sx2, sy2, sx2p, sy2p, sx2m, sy2m, factor
@@ -1072,10 +1080,10 @@ CONTAINS
 
     DO np = 1, npmax
 
-       nxp = x(np)
-       nyp = y(np)
-       dx = x(np) - DBLE(nxp)
-       dy = y(np) - DBLE(nyp)
+       nxp = (x(np)+xb(np))/2.d0
+       nyp = (y(np)+yb(np))/2.d0
+       dx = (x(np)+xb(np))/2.d0 - DBLE(nxp)
+       dy = (y(np)+yb(np))/2.d0 - DBLE(nyp)
        dx1 = 1.0d0 - dx
        dy1 = 1.0d0 - dy
        IF(dx .LE. 0.5d0) THEN
@@ -1412,7 +1420,6 @@ CONTAINS
 
     DO nx = 0, nxmax
        DO ny = 0, nymax
-
           nxm = nx - 1
           nxp = nx + 1
           nym = ny - 1
