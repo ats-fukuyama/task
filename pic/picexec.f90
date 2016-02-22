@@ -1126,9 +1126,9 @@ CONTAINS
        IF (dx .LE. 0.5d0 .AND. dy .LE. 0.5d0) THEN
          ! use Mirror image method
          IF(model_boundary .NE. 0 .AND. nxp .EQ. 0)  THEN
-           sx2p = sx2p - sx2m
+           sx2p = 0.d0
            sx2m = 0.d0
-           sx2 = 0.d0
+           sx2 = sy2 - sy2m
            dx1 = 2.0d0 * dx1
         ELSE IF(model_boundary .NE. 0 .AND. nxp .EQ. nxmax-1)  THEN
              sx2p = sx2p
@@ -1137,9 +1137,9 @@ CONTAINS
              dx = 2.0d0 * dx
            ENDIF
          IF(model_boundary .NE. 0 .AND. nyp .EQ. 0) THEN
-           sy2p = sy2p - sy2m
+           sy2p = 0.d0
            sy2m = 0.d0
-           sy2 = 0.d0
+           sy2 = sy2 - sy2m
            dy1 = 2.0d0 * dy1
        ELSE IF(model_boundary .NE. 0 .AND. nyp .EQ. nymax-1) THEN
          sy2p = sy2p
@@ -1173,8 +1173,8 @@ CONTAINS
 
        ELSE IF(dx .LE. 0.5d0 .AND. dy .GE. 0.5d0) THEN
          IF(model_boundary .NE. 0 .AND. nxp .EQ. 0)  THEN
-           sx2p = sx2p - sx2m
-           sx2 = 0.d0
+           sx2p = 0.d0
+           sx2 = sx2 - sx2m
            sx2m = 0.d0
            dx1 = 2.0d0 * dx1
          ELSE IF(model_boundary .NE. 0 .AND. nxp .EQ. nxmax-1)  THEN
@@ -1231,8 +1231,8 @@ CONTAINS
            dx1 = 2.0d0 * dx1
          ENDIF
          IF(model_boundary .NE. 0 .AND. nyp .EQ. 0) THEN
-           sy2p = sy2p - sy2m
-           sy2 = 0.d0
+           sy2p = 0.d0
+           sy2 = sy2 - sy2m
            sy2m = 0.d0
            dy1 = 2.0d0 * dy1
          ELSE IF(model_boundary .NE. 0 .AND. nyp .EQ. nymax-1) THEN
@@ -1313,9 +1313,7 @@ CONTAINS
           jz(nxppp,nyp  ) = jz(nxppp,nyp  ) + factor * vz(np) * sx2p * sy2m
 
        ENDIF
-
     END DO
-
   END SUBROUTINE current
 
   !***********************************************************************
@@ -1557,18 +1555,18 @@ CONTAINS
     ENDIF
 
     !boundary condition for reflection
-     !Ax(0,:)=0.d0
-     !Ay(0,:)=0.d0
-     !Az(0,:)=0.d0
-     !Ax(nxmax,:)=0.d0
-     !Ay(nxmax,:)=0.d0
-     !Az(nxmax,:)=0.d0
-     !Ax(:,0)=0.d0
-     !Ay(:,0)=0.d0
-     !Az(:,0)=0.d0
-     !Ax(:,nymax)=0.d0
-     !Ay(:,nymax)=0.d0
-     !Az(:,nymax)=0.d0
+     Ax(0,:)=0.d0
+     Ay(0,:)=0.d0
+     Az(0,:)=0.d0
+     Ax(nxmax,:)=0.d0
+     Ay(nxmax,:)=0.d0
+     Az(nxmax,:)=0.d0
+     Ax(:,0)=0.d0
+     Ay(:,0)=0.d0
+     Az(:,0)=0.d0
+     Ax(:,nymax)=0.d0
+     Ay(:,nymax)=0.d0
+     Az(:,nymax)=0.d0
     SELECT CASE(model_wg)
     CASE(0)
        yc=0.5d0*(ymin_wg+ymax_wg)
