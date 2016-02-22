@@ -84,7 +84,6 @@ CONTAINS
        call efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
                                ex,ey,ez,esx,esy,esz,emx,emy,emz, &
                                model_push,model_boundary)
-
        !.......... calculate bx and by and bz
        call bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
                                bx,by,bz,bxbg,bybg,bzbg,bb, &
@@ -138,11 +137,11 @@ CONTAINS
       np = 0
       if(densx .lt. 0.d0) then ! subroutine for uniform density
       do npy = 1, npymax
-         do npx = 1, npxmax
-            np = np + 1 
-            x(np) = (dble(npx) - 0.5d0 ) * factx
-            y(np) = (dble(npy) - 0.5d0 ) * facty
-            call gauss(rvx,rvy,rvz,iran)
+      do npx = 1, npxmax
+        np = np + 1
+         x(np) = (dble(npx) - 0.5d0 ) * factx
+         y(np) = (dble(npy) - 0.5d0 ) * facty
+         call gauss(rvx,rvy,rvz,iran)
          vx(np) = rvx * vt
          vy(np) = rvy * vt
          vz(np) = rvz * vt
@@ -150,7 +149,6 @@ CONTAINS
          xb(np) = x(np) - vx(np) * dt
          yb(np) = y(np) - vy(np) * dt
          zb(np) = z(np) - vz(np) * dt
-
       end do
       end do
    else ! subroutine for density gradient
@@ -207,7 +205,7 @@ CONTAINS
       iran  = wran
       r2    = wran / rmod
 
-       !----- generate third random number
+      !----- generate third random number
       if( iran .lt. 0 ) iran = -iran
       if( iran .eq. 0 ) iran = 3907
       wran     = iran

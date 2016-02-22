@@ -589,7 +589,6 @@ CONTAINS
     END DO
     apote = 0.5D0 * apote / (DBLE(nxmax)*DBLE(nymax))
     apotm = 0.5D0 * vcfact**2 * apotm / (DBLE(nxmax)*DBLE(nymax))
-
   END SUBROUTINE pote
 
 END MODULE picsub

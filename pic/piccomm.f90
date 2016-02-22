@@ -52,7 +52,7 @@ MODULE piccomm
              wkword, wtime, wtime1, wtime2
   INTEGER :: npmax,nxmaxh1,nxmax1,nymax1,nxymax,nzmax
   INTEGER :: ntcount, ntgcount, ntpcount, ntocount, ntgmax, ntpmax, ntomax
-  INTEGER :: ifset, ipssn, iran
+  INTEGER :: ifset, ipssn, iran, iran1, iran2, iran3
   INTEGER :: ierr
 
 CONTAINS

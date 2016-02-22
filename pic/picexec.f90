@@ -85,7 +85,6 @@ CONTAINS
        END IF
 
        CALL boundary_j(nxmax,nymax,jx,jy,jz,model_boundary)
-
        !..... sum current densities over cores
        CALL mtx_allreduce_real8(jx,nxymax,3,suma,locva)
        DO ny=0,nymax
@@ -123,8 +122,7 @@ CONTAINS
 
        !.......... calculate bxg and byg and bzg
        CALL bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
-            bx,by,bz,bxbg,bybg,bzbg,bb, &
-            model_push,model_boundary)
+            bx,by,bz,bxbg,bybg,bzbg,bb, model_push,model_boundary)
        IF( MOD(nt,ntgstep) .EQ. 0 ) THEN
           CALL kine(npmax,vxe,vye,vze,akine1,me)
           CALL kine(npmax,vxi,vyi,vzi,akini1,mi)
@@ -142,12 +140,12 @@ CONTAINS
        !..... push electrons
        CALL push(npmax,nxmax,nymax,xe,ye,ze,vxe,vye,vze, &
             ex,ey,ez,bx,by,bz,dt,ctome,xeb,yeb,zeb, &
-            vparae,vperpe,model_boundary)
+            vparae,vperpe,model_boundary,vcfact)
 
        !..... push ions
        CALL push(npmax,nxmax,nymax,xi,yi,zi,vxi,vyi,vzi, &
             ex,ey,ez,bx,by,bz,dt,ctomi,xib,yib,zib, &
-            vparai,vperpi,model_boundary)
+            vparai,vperpi,model_boundary,vcfact)
 
        !----- treat particles being out of the boundary
 
@@ -382,16 +380,16 @@ CONTAINS
 
   !***********************************************************************
   SUBROUTINE push(npmax,nxmax,nymax,x,y,z,vx,vy,vz,ex,ey,ez,bx,by,bz,dt,&
-       ctom,xb,yb,zb,vpara,vperp,model_boundary)
+       ctom,xb,yb,zb,vpara,vperp,model_boundary,vcfact)
     !***********************************************************************
     IMPLICIT NONE
     REAL(8), DIMENSION(npmax) :: x, y, z, xb, yb, zb
     REAL(8), DIMENSION(npmax) :: vx, vy, vz, vpara, vperp
     REAL(8), DIMENSION(0:nxmax,0:nymax) :: ex, ey, ez, bx, by, bz
     REAL(8) :: ctom, dx, dy, dx1, dy1, dt, exx, eyy, ezz, bxx,&
-         byy, bzz, vxn, vyn, vzn, vxzero, vyzero, vzzero, vxp, vyp,&
+         byy, bzz, vxm, vym, vzm, vxzero, vyzero, vzzero, vxp, vyp,&
          vzp, sx1p, sx1m, sy1p, sy1m, sx2, sy2, sx2p, sx2m, sy2m, sy2p
-    REAL(8) :: btot, vtot, bb2
+    REAL(8) :: btot, vtot, bb2 ,vcfact, gamma
     INTEGER :: npmax, nxmax, nymax, model_boundary
     INTEGER :: np, nx, ny, nxp, nyp, nxpp, nxpm, nypp, nypm, nxppp, nyppp
 
@@ -470,6 +468,7 @@ CONTAINS
            bz(nxp ,nypm) = bz(nxp ,nypp)
            bz(nxpm,nypm) = bz(nxpm,nypp)
          ENDIF
+         IF(model_boundary .EQ. 0 .OR. (nxp .NE. 0 .OR. nyp .NE. 0)) then
           exx = ex(nxpp,nypp)*dx*sy2p + ex(nxp ,nypp)*dx1*sy2p &
                + ex(nxpp,nyp )*dx*sy2  + ex(nxp ,nyp )*dx1*sy2  &
                + ex(nxpp,nypm)*dx*sy2m + ex(nxp ,nypm)*dx1*sy2m
@@ -499,6 +498,37 @@ CONTAINS
                + bz(nxpp,nypm)*sx2p*sy2m + bz(nxp ,nypm)*sx2 *sy2m &
                + bz(nxpm,nypm)*sx2m*sy2m
 
+         ELSEIF(model_boundary .NE. 0 .AND. (nxp .EQ. 0 .AND. nyp .NE. 0)) then
+           exx = ex(nxpp,nypp)*dx*sy2p + ex(nxp ,nypp)*dx1*sy2p &
+                + ex(nxpp,nyp )*dx*sy2  + ex(nxp ,nyp )*dx1*sy2  &
+                + ex(nxpp,nypm)*dx*sy2m + ex(nxp ,nypm)*dx1*sy2m
+
+           eyy = ey(nxpp,nypp)*sx2p*dy + ey(nxpp,nyp )*sx2p*dy1 &
+                + ey(nxp ,nypp)*sx2 *dy + ey(nxp ,nyp )*sx2 *dy1 &
+                + ey(nxpm,nypp)*sx2m*dy + ey(nxpm,nyp )*sx2m*dy1
+
+           ezz = ez(nxpp,nypp)*sx2p*sy2p + ez(nxpp,nyp )*sx2p*sy2 &
+                + ez(nxpp,nypm)*sx2p*sy2m + ez(nxp ,nypp)*sx2 *sy2p &
+                + ez(nxp ,nyp )*sx2 *sy2  + ez(nxp ,nypm)*sx2 *sy2m &
+                + ez(nxpm,nypp)*sx2m*sy2p + ez(nxpm,nyp )*sx2m*sy2 &
+                + ez(nxpm,nypm)*sx2m*sy2m
+
+           bxx = bx(nxpp,nypp)*dx*sy2p + bx(nxp ,nypp)*dx1*sy2p &
+                + bx(nxpp,nyp )*dx*sy2  + bx(nxp ,nyp )*dx1*sy2 &
+                + bx(nxpp,nypm)*dx*sy2m + bx(nxp ,nypm)*dx1*sy2m
+
+           byy = by(nxpp,nypp)*sx2p*dy + by(nxpp,nyp )*sx2p*dy1 &
+                + by(nxp ,nypp)*sx2 *dy + by(nxp ,nyp )*sx2 *dy1 &
+                + by(nxpm,nypp)*sx2m*dy + by(nxpm,nyp )*sx2m*dy1
+
+           bzz = bz(nxpp,nypp)*sx2p*sy2p + bz(nxp ,nypp)*sx2 *sy2p &
+                + bz(nxpm,nypp)*sx2m*sy2p &
+                + bz(nxpp,nyp )*sx2p*sy2  + bz(nxp ,nyp )*sx2 *sy2 &
+                + bz(nxpm,nyp )*sx2m*sy2  &
+                + bz(nxpp,nypm)*sx2p*sy2m + bz(nxp ,nypm)*sx2 *sy2m &
+                + bz(nxpm,nypm)*sx2m*sy2m
+             ENDIF
+
        ELSE IF(dx .LE. 0.5d0 .AND. dy .GE. 0.5d0) THEN
          IF(model_boundary .NE. 0 .AND. nxp .EQ. 0)  THEN
            ey(nxpm,nypp ) = - ey(nxpp,nypp )
@@ -516,7 +546,7 @@ CONTAINS
            ex(nxpp,nyppp) = - ex(nxpp,nyp)
            ex(nxp ,nyppp) = - ex(nxp ,nyp)
            ez(nxpp,nyppp) = - ez(nxpp,nyp)
-           ez(nxp ,nyppp) = - ez(nxpp,nyp)
+           ez(nxp ,nyppp) = - ez(nxp ,nyp)
            ez(nxpm,nyppp) = - ez(nxpm,nyp)
            bx(nxpp,nyppp) = bx(nxpp,nyp)
            bx(nxp ,nyppp) = bx(nxp ,nyp)
@@ -660,27 +690,32 @@ CONTAINS
        ENDIF
 
        ! push particles by using Buneman-Boris method
-
+       ! gamma is lorentz factor   
        bb2 = bxx ** 2 + byy ** 2 + bzz ** 2
-       vxn = vx(np) + 0.5D0 * ctom * exx * dt
-       vyn = vy(np) + 0.5D0 * ctom * eyy * dt
-       vzn = vz(np) + 0.5D0 * ctom * ezz * dt
+       gamma = 1.d0/sqrt(1.d0 - (vx(np)**2+vy(np)**2+vz(np)**2)/vcfact**2)
+       vxm = vx(np) * gamma + 0.5D0 * ctom * exx * dt
+       vym = vy(np) * gamma + 0.5D0 * ctom * eyy * dt
+       vzm = vz(np) * gamma + 0.5D0 * ctom * ezz * dt
 
-       vxzero = vxn + 0.5D0 * ctom * (vyn * bzz - vzn * byy) * dt
-       vyzero = vyn + 0.5D0 * ctom * (vzn * bxx - vxn * bzz) * dt
-       vzzero = vzn + 0.5D0 * ctom * (vxn * byy - vyn * bxx) * dt
+       gamma = 1.d0/sqrt(1.d0 + (vxm**2+vym**2+vzm**2)/vcfact**2)
 
-       vxp = vxn + 1.0d0/(1.0d0 + 0.25d0 * (ctom * dt) ** 2 * bb2) &
-            * ctom * (vyzero * bzz - vzzero * byy) * dt
-       vyp = vyn + 1.0d0/(1.0d0 + 0.25d0 * (ctom * dt) ** 2 * bb2) &
-            * ctom * (vzzero * bxx - vxzero * bzz) * dt
-       vzp = vzn + 1.0d0/(1.0d0 + 0.25d0 * (ctom * dt) ** 2 * bb2) &
-            * ctom * (vxzero * byy - vyzero * bxx) * dt
+       vxzero = vxm + 0.5D0 * ctom * (vym * bzz - vzm * byy) * dt * gamma
+       vyzero = vym + 0.5D0 * ctom * (vzm * bxx - vxm * bzz) * dt * gamma
+       vzzero = vzm + 0.5D0 * ctom * (vxm * byy - vym * bxx) * dt * gamma
 
-       vx(np) = vxp + 0.5D0 * ctom * exx * dt
-       vy(np) = vyp + 0.5D0 * ctom * eyy * dt
-       vz(np) = vzp + 0.5D0 * ctom * ezz * dt
+       vxp = vxm + 1.0d0/(1.0d0 + 0.25d0 * (ctom * dt * gamma) ** 2 * bb2) &
+            * ctom * (vyzero * bzz - vzzero * byy) * dt * gamma
+       vyp = vym + 1.0d0/(1.0d0 + 0.25d0 * (ctom * dt * gamma) ** 2 * bb2) &
+            * ctom * (vzzero * bxx - vxzero * bzz) * dt * gamma
+       vzp = vzm + 1.0d0/(1.0d0 + 0.25d0 * (ctom * dt * gamma) ** 2 * bb2) &
+            * ctom * (vxzero * byy - vyzero * bxx) * dt * gamma
 
+       gamma = 1.d0/sqrt(1.d0 + (vxp**2+vyp**2+vzp**2)/vcfact**2)
+       vx(np) = vxp * gamma + 0.5D0 * ctom * exx * dt
+       vy(np) = vyp * gamma + 0.5D0 * ctom * eyy * dt
+       vz(np) = vzp * gamma + 0.5D0 * ctom * ezz * dt
+
+       !push particles
        xb(np) = x(np)
        yb(np) = y(np)
        zb(np) = z(np)
@@ -731,14 +766,14 @@ CONTAINS
           END DO
        ENDIF
 
-       if( z(np) .LT. z1 ) THEN
-          do while(z(np) .LT. z1)
-             z(np) = z(np) + alz
-          end do
-       elseif( z(np) .GT. z2 ) THEN
-          do while(z(np) .GT. z2)
+       IF( z(np) .LT. z1 ) THEN
+          DO WHILE(z(np) .LT. z1)
+            z(np) = z(np) + alz
+          END DO
+       ELSEIF( z(np) .GT. z2 ) THEN
+          DO WHILE(z(np) .GT. z2)
              z(np) = z(np) - alz
-          end do
+          END DO
        ENDIF
     END DO
 
@@ -769,14 +804,14 @@ CONTAINS
           vy(np) = -vy(np)
        ENDIF
 
-         if( z(np) .LT. z1 ) THEN
-            do while(z(np) .LT. z1)
+         IF( z(np) .LT. z1 ) THEN
+            DO WHILE(z(np) .LT. z1)
                z(np) = z(np) + alz
-            end do
-         elseif( z(np) .GT. z2 ) THEN
-            do while(z(np) .GT. z2)
+          END DO
+        ELSEIF( z(np) .GT. z2 ) THEN
+            DO WHILE(z(np) .GT. z2)
                z(np) = z(np) - alz
-            end do
+            END DO
          ENDIF
     END DO
 
@@ -840,8 +875,8 @@ CONTAINS
        IF(model_boundary.EQ.0) THEN ! periodic
           IF( nxp .EQ. 0  ) nxpm = nxmax - 1
           IF( nyp .EQ. 0  ) nypm = nymax - 1
-          IF( nxp .EQ. nxmax-1) nxppp=1
-          IF( nyp .EQ. nymax-1) nyppp=1
+          IF( nxp .EQ. nxmax - 1) nxppp = 1
+          IF( nyp .EQ. nymax - 1) nyppp = 1
        !ELSE   ! reflective:
           !IF( nxp .EQ. 0  ) nxpm = 0
           !IF( nyp .EQ. 0  ) nypm = 0
@@ -851,7 +886,7 @@ CONTAINS
 
        IF(dx .LT. 0.5d0 .AND. dy .LT. 0.5d0) THEN
          ! use Mirror image method
-         IF(model_boundary .NE. 0 .AND. nxp .EQ. 0)  THEN
+         IF(model_boundary .NE. 0 .AND. nxp .EQ. 0) THEN
            sx2p = sx2p - sx2m
            sx2 =  0.d0
            sx2m = 0.d0!sx2m - sx2p
@@ -1231,7 +1266,7 @@ CONTAINS
     INTEGER :: nx,ny
 
     IF(model_boundary.EQ.0) THEN     ! periodic
-       DO ny = 0, nymax
+        DO ny = 0, nymax
           jx(0,ny) = jx(0,ny) + jx(nxmax,ny)
           jy(0,ny) = jy(0,ny) + jy(nxmax,ny)
           jz(0,ny) = jz(0,ny) + jz(nxmax,ny)
@@ -1330,7 +1365,6 @@ CONTAINS
                     + 2.0d0 * Azb(nx,ny) - Azbb(nx,ny)
        END DO
     END DO
-
 
   END SUBROUTINE phia_periodic
 
@@ -1447,7 +1481,7 @@ CONTAINS
        yc=0.5d0*(ymin_wg+ymax_wg)
        ylen=(ymax_wg-ymin_wg)
        IF(ylen .NE. 0) dph=ph_wg/ylen
-       amp_start = time / vcfact
+       amp_start = time * vcfact/100.d0
        IF(amp_start .GE. 1.d0) amp_start=1.0d0
        DO ny=1,nymax
           y=DBLE(ny)
