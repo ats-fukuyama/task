@@ -469,6 +469,8 @@ CONTAINS
         !    bz(nxpm,nypm) = bz(nxpm,nypp)
         !  ENDIF
          !IF(model_boundary .EQ. 0 .OR. (nxp .NE. 0 .OR. nyp .NE. 0)) then
+         IF( nxp .EQ. 0  ) sx2m =0.d0
+         IF( nyp .EQ. 0  ) sy2m =0.d0
           exx = ex(nxpp,nypp)*dx*sy2p + ex(nxp ,nypp)*dx1*sy2p &
                + ex(nxpp,nyp )*dx*sy2  + ex(nxp ,nyp )*dx1*sy2  &
                + ex(nxpp,nypm)*dx*sy2m + ex(nxp ,nypm)*dx1*sy2m
@@ -554,6 +556,8 @@ CONTAINS
         !    bz(nxp ,nyppp) = bz(nxp ,nyp)
         !    bz(nxpm,nyppp) = bz(nxpm,nyp)
         !  ENDIF
+        IF( nxp .EQ. 0  ) sx2m =0.d0
+        IF( nyp .EQ. nymax-1  ) sy2p =0.d0
           exx = ex(nxpp,nyppp)*dx*sy2p + ex(nxp ,nyppp)*dx1*sy2p &
                + ex(nxpp,nypp )*dx*sy2  + ex(nxp ,nypp )*dx1*sy2  &
                + ex(nxpp,nyp  )*dx*sy2m + ex(nxp ,nyp  )*dx1*sy2m
@@ -607,6 +611,8 @@ CONTAINS
         !    bz(nxpp ,nypm) = bz(nxpp ,nypp)
         !    bz(nxp  ,nypm) = bz(nxp  ,nypp)
         !  ENDIF
+        IF( nxp .EQ. nxmax-1  ) sx2p =0.d0
+        IF( nyp .EQ. 0  ) sy2m =0.d0
           exx = ex(nxpp,nypp)*dx*sy2p + ex(nxp ,nypp)*dx1*sy2p &
                + ex(nxpp,nyp )*dx*sy2  + ex(nxp ,nyp )*dx1*sy2  &
                + ex(nxpp,nypm)*dx*sy2m + ex(nxp ,nypm)*dx1*sy2m
@@ -659,7 +665,8 @@ CONTAINS
           !    bz(nxpp ,nyppp) = bz(nxpp ,nyp)
           !    bz(nxp  ,nyppp) = bz(nxp  ,nyp)
           !  ENDIF
-
+          IF( nxp .EQ. nxmax-1  ) sx2p =0.d0
+          IF( nyp .EQ. nymax-1  ) sy2p =0.d0
           exx = ex(nxpp,nyppp)*dx*sy2p + ex(nxp ,nyppp)*dx1*sy2p &
                + ex(nxpp,nypp )*dx*sy2  + ex(nxp ,nypp )*dx1*sy2  &
                + ex(nxpp,nyp  )*dx*sy2m + ex(nxp ,nyp  )*dx1*sy2m
@@ -1166,7 +1173,7 @@ CONTAINS
               sx2p = sx2p
               sx2m = 0.d0
               sx2 = sx2
-              dx1 = 2.0d0 * dx1
+              dx = 2.0d0 * dx
          ENDIF
          IF(model_boundary .NE. 0 .AND. nyp .EQ. nymax-1) THEN
            sy2m = sy2m - sy2p
@@ -1464,13 +1471,17 @@ CONTAINS
     ! vcfact is the ratio of the light speed to lattice parameter times plasma
     ! frequency
 
-    DO nx = 1, nxmax-1
-       DO ny = 1, nymax-1
+    DO nx = 0, nxmax
+       DO ny = 0, nymax
 
           nxm = nx - 1
           nxp = nx + 1
           nym = ny - 1
           nyp = ny + 1
+          IF( nx .EQ. 0  )    nxm = nxmax
+          IF( nx .EQ. nxmax ) nxp = 0
+          IF( ny .EQ. 0  )    nym = nymax
+          IF( ny .EQ. nymax ) nyp = 0
 
           Ax(nx,ny) = dt ** 2 * vcfact ** 2 * (Axb(nxp,ny) + Axb(nxm,ny) &
                                             + Axb(nx,nyp) + Axb(nx,nym) &
@@ -1539,18 +1550,18 @@ CONTAINS
     ENDIF
 
     !boundary condition for reflection
-     Ax(0,:)=0.d0
-     Ay(0,:)=0.d0
-     Az(0,:)=0.d0
-     Ax(nxmax,:)=0.d0
-     Ay(nxmax,:)=0.d0
-     Az(nxmax,:)=0.d0
-     Ax(:,0)=0.d0
-     Ay(:,0)=0.d0
-     Az(:,0)=0.d0
-     Ax(:,nymax)=0.d0
-     Ay(:,nymax)=0.d0
-     Az(:,nymax)=0.d0
+     !Ax(0,:)=0.d0
+     !Ay(0,:)=0.d0
+     !Az(0,:)=0.d0
+     !Ax(nxmax,:)=0.d0
+     !Ay(nxmax,:)=0.d0
+     !Az(nxmax,:)=0.d0
+     !Ax(:,0)=0.d0
+     !Ay(:,0)=0.d0
+     !Az(:,0)=0.d0
+     !Ax(:,nymax)=0.d0
+     !Ay(:,nymax)=0.d0
+     !Az(:,nymax)=0.d0
     SELECT CASE(model_wg)
     CASE(0)
        yc=0.5d0*(ymin_wg+ymax_wg)
