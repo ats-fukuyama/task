@@ -232,7 +232,7 @@
       real(rkind),dimension(:,:,:,:,:),POINTER :: & 
            SIGMAV_NF ! (NTHMAX+1,NPMAX+1,NTHMAX+1,NPMAX+1,6)
       real(rkind),dimension(:,:,:,:,:),POINTER :: &
-           SIGMAV_LG ! (0:LLMAX_NF,0:LLMAX_NF,NPSTART:NPEND,NPSTART:NPEND,6)
+           SIGMAV_LG ! (0:LLMAX_NF,NPSTART:NPEND,0:LLMAX_NF,NPSTART:NPEND,6)
       real(rkind),dimension(:,:),POINTER :: &
            PL_NF ! (0:LLMAX_NF,NTHMAX)
       real(rkind),dimension(:,:),POINTER :: & 
@@ -522,7 +522,7 @@
 !             IF(MODELS.eq.2) allocate(SIGMAV_NF(NTHMAX,NPMAX,NTHMAX,NPMAX,6))
              IF(MODELS.eq.2) allocate(SIGMAV_NF(NTHMAX,NPSTART:NPEND,NTHMAX,NPMAX,6))
              IF(MODELS.eq.3) allocate( &
-                  SIGMAV_LG(0:LLMAX_NF,0:LLMAX_NF,NPSTART:NPEND,NPSTART:NPEND,6), &
+                  SIGMAV_LG(0:LLMAX_NF,NPSTART:NPEND,0:LLMAX_NF,NPMAX,6), &
                   PL_NF(0:LLMAX_NF,NTHMAX))
              allocate(RATE_NF(NRSTART:NREND,6))
 !             allocate(RATE_NF_D1(NTHMAX,NPMAX,NRSTART:NREND,6))

@@ -283,10 +283,10 @@
             IF(MODELS.EQ.3) THEN
 
             DO NP2=1,NPMAX
-               DO NP1=NPSTART,NPEND
-                  DO L=0,LLMAX_NF
-                     DO K=0,LLMAX_NF
-                        SIGMAV_LG(L,K,NP1,NP2,ID)=0.D0
+               DO K=0,LLMAX_NF
+                  DO NP1=NPSTART,NPEND
+                     DO L=0,LLMAX_NF
+                        SIGMAV_LG(L,NP1,K,NP2,ID)=0.D0
                      END DO
                   END DO
                END DO
@@ -303,8 +303,8 @@
                              'XX NF_REACTION_COEF_LG: SPL2DF: IERR=',IERR
                         DO L=0,LLMAX_NF
                            DO K=0,LLMAX_NF
-                              SIGMAV_LG(L,K,NP1,NP2,ID)= &
-                                   SIGMAV_LG(L,K,NP1,NP2,ID) &
+                              SIGMAV_LG(L,NP1,K,NP2,ID)= &
+                                   SIGMAV_LG(L,NP1,K,NP2,ID) &
                                    +F0*PL_NF(L,NTH1)*PL_NF(K,NTH2) &
                                    *SINM(NTH1)*SINM(NTH2)*DELTH**2 &
                                    *0.5D0**2*(2.D0*L+1.D0)*(2.D0*K+1.D0)
@@ -387,6 +387,7 @@
          END DO
       END DO
       END DO
+
       CALL mtx_allreduce1_real8(RSUM3,3,RSUM_sum,vloc) ! integrate np1, nth1
       RSUM3=RSUM_sum
 !
