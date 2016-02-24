@@ -557,12 +557,17 @@ C
 C
       CALL WMCPOS(NR,XL)
       IF(XL.LT.RA) THEN
-         RNA=PNA*EXP(-(XL/PNAL)**2)*1.D20
-         DRN=-2.D0*XL/(PNAL**2)
+!         RNA=PNA*EXP(-(XL/PNAL)**2)*1.D20    !gaussian
+!         DRN=-2.D0*XL/(PNAL**2)              !gaussian
+          RNA=(PNA-1.D-5)*1.D20*(1.D0-XL**2)+1.D-5*1.D20
+          DRN=-2.D0*XL*(1.D0-1.D-5*1.D20/RNA)/(1.D0-XL**2)
+!          RNA=(PNA-1.D-5)*1.D20*((1.00001D0-XL**2)**0.5D0)+ 1.D-5*1.D20    !parabola ()^1 or ()^1/2
+!          DRN=-XL*(1.D0-1.D-5*1.D20/RNA)/(1.00001D0-XL**2) !-XL/((1.00001D0-XL**2)**0.5D0) !parabola
       ELSE
          RETURN
       ENDIF
-      RTA=PTA*AEE*1.D3
+      RTA=PTA*AEE*1.D3   ! original
+!      RTA=(PTA-5.D0)*(1.D0-XL**2)*AEE*1.D3 +5.D0*AEE*1.D3  ! parabola
       AM=PA(3)*AMP
       AE=PZ(3)*AEE
       VTA=SQRT(2.D0*RTA/AM)
@@ -630,15 +635,15 @@ C
 !              WRITE(6,'(A,5I5)')
 !     &              'MD,ND,NTH,NHH,NR=',MD,ND,NTH,NHH,NR
               RHOL=RB/RA*(NR-0.5D0)/NRMAX
-             IF(RHOL.LE.1.D0) THEN
+             IF(RHOL.LT.1.D0) THEN
        CALL WMDPFAA(CW,RHOL,RKPR,AE2N0,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
           WP02=AE2N0*1.D20/(AM*EPS0)
              CPM=(PI/2.D0)*WP02/(CW*CW*WC*WC*RR*RR)*
-     &           (0.5D0*CPM1+CPM2*MM/(RHOL*AM*CW*WC))
+     &           (CPM1+CPM2*MM/(RHOL*AM*CW*WC))  !0.5D0*CPM1 ???
              CQM=PI*WP02/(CW*CW*WC*RR)*
-     &           (0.5D0*CQM1+CQM2*MM/(RHOL*AM*CW*WC))
+     &           (CQM1+CQM2*MM/(RHOL*AM*CW*WC))  !0.5D0*CQM1
              CRM=2.D0 *PI*WP02/(CW*CW)*
-     &           (0.5D0*CRM1+CRM2*MM/(RHOL*AM*CW*WC))
+     &           (CRM1+CRM2*MM/(RHOL*AM*CW*WC))  !0.5D0*CQR1
              ELSE
                CPM=(0.D0,0.D0)
                CQM=(0.D0,0.D0)
@@ -646,24 +651,18 @@ C
              ENDIF
 
             ELSE
-
-               NRWM=NR
-               DELRWM=RB*(XRHO(NR+1)-XRHO(NR))
-               RL=RB*0.5D0*(XRHO(NR+1)+XRHO(NR))
-               RNA=PNA*EXP(-(XL/PNAL)**2)*1.D20
-               WP2=AE*AE*PNA*1.D20/(AM*EPS0)
-              IF(RL.LT.RA) THEN
-       CALL WMDPFA3(CW,NRWM,DELRWM,NPWMMAX,NTHPMAX,RKPR,VTA,
-     &CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
-            CPM=5.D-1*PI*WP2/(CW*CW*WC*WC*RR*RR)*                         !FAR(NR)
-     &          (-CPM1+CPM2*MM/(AM*CW*WC*RL))/4.D0
-            CQM=1.D0 *PI*WP2/(CW*CW*WC*RR)*
-     &          (-CQM1+CQM2*MM/(AM*CW*WC*RL))/2.D0
-            CRM=2.D0 *PI*WP2/(CW*CW)*                                     !(RNA/(PNA*1.D20))*
-     &          (-CRM1+CRM2*MM/(AM*CW*WC*RL))
-               ELSE
-                RETURN
-              ENDIF
+            RETURN
+!              IF(RL.LT.RA) THEN
+!       CALL WMDPFA3(CW,RHOL,RKPR,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
+!            CPM=5.D-1*PI*WP2/(CW*CW*WC*WC*RR*RR)*                         !FAR(NR)
+!     &          (-CPM1+CPM2*MM/(AM*CW*WC*RL))/4.D0
+!            CQM=1.D0 *PI*WP2/(CW*CW*WC*RR)*
+!     &          (-CQM1+CQM2*MM/(AM*CW*WC*RL))/2.D0
+!            CRM=2.D0 *PI*WP2/(CW*CW)*                                     !(RNA/(PNA*1.D20))*
+!     &          (-CRM1+CRM2*MM/(AM*CW*WC*RL))
+!               ELSE
+!                RETURN
+!              ENDIF
              ENDIF
 !             WRITE(6,'(1P5E12.4)') RHOL,RKPR,AE2N0,WP02
 !             WRITE(6,'(1P6E12.4)') CPM,CQM,CRM
