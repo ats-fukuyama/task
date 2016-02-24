@@ -276,7 +276,7 @@ CONTAINS
 
   !***********************************************************************
   SUBROUTINE efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
-       ex,ey,ez,esx,esy,esz,emx,emy,emz,model_push,model_boundary,dlen)
+       ex,ey,ez,esx,esy,esz,emx,emy,emz,model_push,model_boundary)
     !***********************************************************************
     IMPLICIT NONE
     REAL(8), DIMENSION(0:nxmax,0:nymax) ::  &
@@ -376,7 +376,7 @@ CONTAINS
           ez(0:nxmax,0:nymax) = esz(0:nxmax,0:nymax) + emz(0:nxmax,0:nymax)
        END IF
     END IF
-    !  if(model_boundary .ne. 0 .and. nxmax .ge. 10 .and. nymax .ge. 10) then
+    !  IF(model_boundary .ne. 0 .and. nxmax .ge. 10 .and. nymax .ge. 10) then
     !   do ny = 10,nymax-10
     !   do nx = nxmax-10,nxmax
     !     Ex(nx,ny) = Ex(nx,ny) * (-0.01d0 * dble(nx) ** 2 &
@@ -462,7 +462,7 @@ CONTAINS
   !***********************************************************************
   SUBROUTINE bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
        bx,by,bz,bxbg,bybg,bzbg,bb, &
-       model_push,model_boundary,dlen)
+       model_push,model_boundary)
     !***********************************************************************
     IMPLICIT NONE
     REAL(8), DIMENSION(0:nymax) :: bxnab,bznab

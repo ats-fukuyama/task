@@ -116,11 +116,11 @@ CONTAINS
        ENDIF
        !.......... calculate ex and ey and ez
        CALL efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
-            ex,ey,ez,esx,esy,esz,emx,emy,emz,model_push,model_boundary,dlen)
+            ex,ey,ez,esx,esy,esz,emx,emy,emz,model_push,model_boundary)
 
        !.......... calculate bxg and byg and bzg
        CALL bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
-            bx,by,bz,bxbg,bybg,bzbg,bb, model_push,model_boundary,dlen)
+            bx,by,bz,bxbg,bybg,bzbg,bb, model_push,model_boundary)
 
             !boundary condition of electromagnetic field
        !IF(model_boundary .eq. 2) THEN
@@ -1137,7 +1137,7 @@ CONTAINS
            dx1 = 2.0d0 * dx1
         ELSE IF(model_boundary .NE. 0 .AND. nxp .EQ. nxmax-1)  THEN
              sx2p = 0.d0
-             sx2m = sy2m
+             sx2m = sx2m
              sx2 = sx2
              dx = 2.0d0 * dx
            ENDIF

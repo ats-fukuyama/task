@@ -83,11 +83,11 @@ CONTAINS
        !.......... calculate ex and ey and ez
        call efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
                                ex,ey,ez,esx,esy,esz,emx,emy,emz, &
-                               model_push,model_boundary,dlen)
+                               model_push,model_boundary)
        !.......... calculate bx and by and bz
        call bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
                                bx,by,bz,bxbg,bybg,bzbg,bb, &
-                               model_push,model_boundary,dlen)
+                               model_push,model_boundary)
       do np=1,npmax
          vparae(np)=vye(np)
          vperpe(np)=SQRT(vxe(np)**2+vze(np)**2)
