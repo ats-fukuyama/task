@@ -249,7 +249,7 @@ CONTAINS
           DO nx = nxmax-ilen,nxmax
              xd=DBLE(nx)
              xdmax=DBLE(nxmax)
-             phi(nx,ny) =phi(nx,ny)*(-1.0d0*inv**2*xd**2 &
+             phi(nx,ny) = phi(nx,ny)*(-1.0d0*inv**2*xd**2 &
                                      +2.0d0*inv**2*(xdmax-dlen)*xd&
                                      +1.0d0-1.0d0*inv**2*(xdmax-dlen)**2)
           ENDDO
@@ -321,17 +321,17 @@ CONTAINS
              IF( ny .EQ. 0  )    nym = 0
              IF( ny .EQ. nymax ) nyp = nymax
 
-              !IF(nx .EQ. 0 .OR. nx .EQ. nxmax) THEN
-              !   esx(nx,ny) = phi(nxm,ny) - phi(nxp,ny)
-              !ELSE
+              IF(nx .EQ. 0 .OR. nx .EQ. nxmax) THEN
+                 !esx(nx,ny) = phi(nxm,ny) - phi(nxp,ny)
+              ELSE
                  esx(nx,ny) = 0.5d0 * ( phi(nxm,ny) - phi(nxp,ny))
-              !ENDIF
+              ENDIF
 
-             !IF(ny .EQ. 0 .OR. ny .EQ. nymax) THEN
-             !    esy(nx,ny) = phi(nx,nym) - phi(nx,nyp)
-             !ELSE
+             IF(ny .EQ. 0 .OR. ny .EQ. nymax) THEN
+              !   esy(nx,ny) = phi(nx,nym) - phi(nx,nyp)
+             ELSE
                  esy(nx,ny) = 0.5d0 * ( phi(nx,nym) - phi(nx,nyp))
-             !END IF
+             END IF
 
              esz(nx,ny) = 0.d0
              emx(nx,ny) = - ( Ax(nx,ny) - Axb(nx,ny) ) / dt
@@ -340,18 +340,18 @@ CONTAINS
 
           END DO
        END DO
-       esx(:,0) = 0.d0
-       esx(:,nymax) = 0.d0
-       esy(0,:) = 0.d0
-       esy(nxmax,:) = 0.d0
-       emx(:,0) = 0.d0
-       emx(:,nymax) = 0.d0
-       emy(0,:) = 0.d0
-       emy(nxmax,:) = 0.d0
-       emz(:,0) = 0.d0
-       emz(:,nymax) = 0.d0
-       emz(0,:) = 0.d0
-       emz(nxmax,:) = 0.d0
+       !esx(:,0) = 0.d0
+       !esx(:,nymax) = 0.d0
+       !esy(0,:) = 0.d0
+       !esy(nxmax,:) = 0.d0
+       !emx(:,0) = 0.d0
+       !emx(:,nymax) = 0.d0
+       !emy(0,:) = 0.d0
+       !emy(nxmax,:) = 0.d0
+       !emz(:,0) = 0.d0
+       !emz(:,nymax) = 0.d0
+       !emz(0,:) = 0.d0
+       !emz(nxmax,:) = 0.d0
 
     END IF
 
@@ -468,14 +468,14 @@ CONTAINS
              IF(nx .EQ. 0 .OR. nx .EQ. nxmax .OR. &
                   ny .EQ. 0 .OR. ny .EQ. nymax) THEN
 
-                bx(nx,ny) =   0.5d0 * (Az(nx,nyp) + Azb(nx,nyp) &
-                     - Az(nx,nym) - Azb(nx,nym))
-                by(nx,ny) = - 0.5d0 * (Az(nxp,ny) + Azb(nxp,ny) &
-                     - Az(nxm,ny) - Azb(nxm,ny))
-                bz(nx,ny) =   0.5d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
-                     - Ay(nxm,ny) - Ayb(nxm,ny) &
-                     -(Ax(nx,nyp) + Axb(nx,nyp) &
-                     - Ax(nx,nym) - Axb(nx,nym)))
+                !bx(nx,ny) =   0.5d0 * (Az(nx,nyp) + Azb(nx,nyp) &
+                !     - Az(nx,nym) - Azb(nx,nym))
+                !by(nx,ny) = - 0.5d0 * (Az(nxp,ny) + Azb(nxp,ny) &
+                !     - Az(nxm,ny) - Azb(nxm,ny))
+                !bz(nx,ny) =   0.5d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
+                !     - Ay(nxm,ny) - Ayb(nxm,ny) &
+                !     -(Ax(nx,nyp) + Axb(nx,nyp) &
+                !     - Ax(nx,nym) - Axb(nx,nym)))
              ELSE
 
                 bx(nx,ny) =   0.25d0 * (Az(nx,nyp) + Azb(nx,nyp) &
