@@ -14,12 +14,12 @@
   CALL mpi_comm_rank(mpi_comm_world,myid,ierr)
   CALL mpi_comm_size(mpi_comm_world,nodes,ierr)
   IF(myid.NE.0) THEN
-     CALL MPI_Send(x, 2, MPI_REAL8, 0, myid, MPI_COMM_WORLD, ierr)
+     CALL MPI_Send(x, 1, MPI_REAL8, 0, myid, MPI_COMM_WORLD, ierr)
   ELSE
-     total=x(1) + x(2)
+     total=x(1)
      DO i=1,nodes-1
-        CALL MPI_Recv(x, 2, MPI_REAL8, i, i, MPI_COMM_WORLD, ista, ierr)
-        total=total+x(1)+x(2)
+        CALL MPI_Recv(x, 1, MPI_REAL8, i, i, MPI_COMM_WORLD, ista, ierr)
+        total=total+x(1)
      ENDDO
      WRITE(*,*) total
      CALL mpi_get_count(ista,MPI_REAL8,n,ierr)
