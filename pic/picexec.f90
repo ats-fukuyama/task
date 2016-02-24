@@ -1125,24 +1125,24 @@ CONTAINS
        IF (dx .LE. 0.5d0 .AND. dy .LE. 0.5d0) THEN
          ! use Mirror image method
          IF(model_boundary .NE. 0 .AND. nxp .EQ. 0)  THEN
-           sx2p = 0.d0
+           sx2p = sx2p - sx2m
+           sx2  = 0.d0
            sx2m = 0.d0
-           sx2 = sy2 - sy2m
            dx1 = 2.0d0 * dx1
         ELSE IF(model_boundary .NE. 0 .AND. nxp .EQ. nxmax-1)  THEN
-             sx2p = sx2p
-             sx2m = 0.d0
+             sx2p = 0.d0
+             sx2m = sx2m
              sx2 = sx2
              dx = 2.0d0 * dx
            ENDIF
          IF(model_boundary .NE. 0 .AND. nyp .EQ. 0) THEN
-           sy2p = 0.d0
+           sy2p = sy2p - sy2m
+           sy2 = 0.d0
            sy2m = 0.d0
-           sy2 = sy2 - sy2m
            dy1 = 2.0d0 * dy1
        ELSE IF(model_boundary .NE. 0 .AND. nyp .EQ. nymax-1) THEN
-         sy2p = sy2p
-         sy2m = 0.d0
+         sy2p = 0.d0
+         sy2m = sy2m
          sy2 = sy2
          dy = 2.0d0 * dy
        ENDIF
@@ -1172,13 +1172,13 @@ CONTAINS
 
        ELSE IF(dx .LE. 0.5d0 .AND. dy .GE. 0.5d0) THEN
          IF(model_boundary .NE. 0 .AND. nxp .EQ. 0)  THEN
-           sx2p = 0.d0
-           sx2 = sx2 - sx2m
+           sx2p = sx2p - sx2m
+           sx2  = 0.d0
            sx2m = 0.d0
            dx1 = 2.0d0 * dx1
          ELSE IF(model_boundary .NE. 0 .AND. nxp .EQ. nxmax-1)  THEN
-              sx2p = sx2p
-              sx2m = 0.d0
+              sx2p = 0.d0
+              sx2m = sx2m
               sx2 = sx2
               dx = 2.0d0 * dx
          ENDIF
@@ -1230,13 +1230,13 @@ CONTAINS
            dx1 = 2.0d0 * dx1
          ENDIF
          IF(model_boundary .NE. 0 .AND. nyp .EQ. 0) THEN
-           sy2p = 0.d0
-           sy2 = sy2 - sy2m
+           sy2p = sy2p - sy2m
+           sy2 = 0.d0
            sy2m = 0.d0
            dy1 = 2.0d0 * dy1
          ELSE IF(model_boundary .NE. 0 .AND. nyp .EQ. nymax-1) THEN
-           sy2p = sy2p
-           sy2m = 0.d0
+           sy2p = 0.d0
+           sy2m = sy2m
            sy2 = sy2
            dy = 2.0d0 * dy
          ENDIF
@@ -1369,34 +1369,34 @@ CONTAINS
           jz(nx,nymax) = jz(nx,0)
        ENDDO
     ELSE                           ! reflective
-       DO ny=1,nymax-1
-          jx(0,ny) = 2.0d0 * jx(0,ny)
-          jy(0,ny) = 2.0d0 * jy(0,ny)
-          jz(0,ny) = 2.0d0 * jz(0,ny)
-          jx(nxmax,ny) = 2.0d0 * jx(nxmax,ny)
-          jy(nxmax,ny) = 2.0d0 * jy(nxmax,ny)
-          jz(nxmax,ny) = 2.0d0 * jz(nxmax,ny)
-       END DO
-       DO nx=1,nxmax-1
-          jx(nx,0) = 2.0d0 * jx(nx,0)
-          jy(nx,0) = 2.0d0 * jy(nx,0)
-          jz(nx,0) = 2.0d0 * jz(nx,0)
-          jx(nx,nymax) = 2.0d0 * jx(nx,nymax)
-          jy(nx,nymax) = 2.0d0 * jy(nx,nymax)
-          jz(nx,nymax) = 2.0d0 * jz(nx,nymax)
-       END DO
-       jx(0,0) = 4.0d0 * jx(0,0)
-       jy(0,0) = 4.0d0 * jy(0,0)
-       jz(0,0) = 4.0d0 * jz(0,0)
-       jx(0,nymax) = 4.0d0 * jx(0,nymax)
-       jy(0,nymax) = 4.0d0 * jy(0,nymax)
-       jz(0,nymax) = 4.0d0 * jz(0,nymax)
-       jx(nxmax,0) = 4.0d0 * jx(nxmax,0)
-       jy(nxmax,0) = 4.0d0 * jy(nxmax,0)
-       jz(nxmax,0) = 4.0d0 * jz(nxmax,0)
-       jx(nxmax,nymax) = 4.0d0 * jx(nxmax,nymax)
-       jy(nxmax,nymax) = 4.0d0 * jy(nxmax,nymax)
-       jz(nxmax,nymax) = 4.0d0 * jz(nxmax,nymax)
+       !DO ny=1,nymax-1
+       !   jx(0,ny) = 2.0d0 * jx(0,ny)
+       !   jy(0,ny) = 2.0d0 * jy(0,ny)
+       !   jz(0,ny) = 2.0d0 * jz(0,ny)
+       !   jx(nxmax,ny) = 2.0d0 * jx(nxmax,ny)
+       !   jy(nxmax,ny) = 2.0d0 * jy(nxmax,ny)
+       !   jz(nxmax,ny) = 2.0d0 * jz(nxmax,ny)
+       !END DO
+       !DO nx=1,nxmax-1
+       !   jx(nx,0) = 2.0d0 * jx(nx,0)
+       !   jy(nx,0) = 2.0d0 * jy(nx,0)
+       !   jz(nx,0) = 2.0d0 * jz(nx,0)
+       !   jx(nx,nymax) = 2.0d0 * jx(nx,nymax)
+       !   jy(nx,nymax) = 2.0d0 * jy(nx,nymax)
+       !   jz(nx,nymax) = 2.0d0 * jz(nx,nymax)
+       !END DO
+       !jx(0,0) = 4.0d0 * jx(0,0)
+       !jy(0,0) = 4.0d0 * jy(0,0)
+       !jz(0,0) = 4.0d0 * jz(0,0)
+       !jx(0,nymax) = 4.0d0 * jx(0,nymax)
+       !jy(0,nymax) = 4.0d0 * jy(0,nymax)
+       !jz(0,nymax) = 4.0d0 * jz(0,nymax)
+       !jx(nxmax,0) = 4.0d0 * jx(nxmax,0)
+       !jy(nxmax,0) = 4.0d0 * jy(nxmax,0)
+       !jz(nxmax,0) = 4.0d0 * jz(nxmax,0)
+       !jx(nxmax,nymax) = 4.0d0 * jx(nxmax,nymax)
+       !jy(nxmax,nymax) = 4.0d0 * jy(nxmax,nymax)
+       !jz(nxmax,nymax) = 4.0d0 * jz(nxmax,nymax)
     END IF
 
   END SUBROUTINE boundary_j
@@ -1552,17 +1552,17 @@ CONTAINS
     ENDIF
 
     !boundary condition for reflection
-     Ax(0,:)=0.d0
+     !Ax(0,:)=0.d0
      Ay(0,:)=0.d0
      Az(0,:)=0.d0
-     Ax(nxmax,:)=0.d0
+     !Ax(nxmax,:)=0.d0
      Ay(nxmax,:)=0.d0
      Az(nxmax,:)=0.d0
      Ax(:,0)=0.d0
-     Ay(:,0)=0.d0
+     !Ay(:,0)=0.d0
      Az(:,0)=0.d0
      Ax(:,nymax)=0.d0
-     Ay(:,nymax)=0.d0
+     !Ay(:,nymax)=0.d0
      Az(:,nymax)=0.d0
     SELECT CASE(model_wg)
     CASE(0)
