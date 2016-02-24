@@ -1536,7 +1536,7 @@ CONTAINS
           ENDDO
        ENDDO
        DO nx = 1,nxmax-ilen
-          DO ny = nymax-ilen,nymax
+          DO ny = nymax-ilen/2,nymax
              y=DBLE(ny)
              ymax=DBLE(nymax)
              Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*y**2 &
@@ -1551,7 +1551,7 @@ CONTAINS
           ENDDO
        ENDDO
        DO nx = 1, nxmax-ilen
-          DO ny = 1, ilen
+          DO ny = 1, ilen/2
              y=DBLE(ny)
              Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
              Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)

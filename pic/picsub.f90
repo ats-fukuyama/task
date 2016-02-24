@@ -255,16 +255,17 @@ CONTAINS
           ENDDO
        ENDDO
        DO nx = 1,nxmax-ilen
-          DO ny = nymax-ilen,nymax
+          DO ny = nymax-ilen/2,nymax
              yd=DBLE(ny)
              ydmax=DBLE(nymax)
              phi(nx,ny) =phi(nx,ny)*(-1.0d0*inv**2*yd**2 &
                                      +2.0d0*inv**2*(ydmax-dlen)*yd&
                                      +1.0d0-1.0d0*inv**2*(ydmax-dlen)**2)
           ENDDO
+
        ENDDO
        DO nx = 1, nxmax-ilen
-          DO ny = 1, ilen
+          DO ny = 1, ilen/2
              yd=DBLE(ny)
              phi(nx,ny) = phi(nx,ny)*(-1.0d0*inv**2*yd**2+2.0d0*inv*yd)
           ENDDO
