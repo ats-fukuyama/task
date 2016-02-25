@@ -198,7 +198,6 @@ CONTAINS
     irange=iend-istart+1
     status=1
     ALLOCATE(x(irange))
-
     DO i=istart,iend
        l=MOD(i-1,isize)+1
        m=(i-1)/isize+1
@@ -622,7 +621,7 @@ CONTAINS
     IF(npmax.EQ.0) THEN
        akin=0.D0
     ELSE
-       akin = 0.5 * akin * mass  / DBLE(npmax)
+       akin = akin * mass  / DBLE(npmax)
     END IF
   END SUBROUTINE kine
 
