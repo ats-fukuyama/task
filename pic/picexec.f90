@@ -117,6 +117,7 @@ CONTAINS
        !.......... calculate ex and ey and ez
        CALL efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
             ex,ey,ez,esx,esy,esz,emx,emy,emz,model_push,model_boundary)
+            !write(*,*) ex(2,2)
 
        !.......... calculate bxg and byg and bzg
        CALL bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
@@ -463,20 +464,31 @@ CONTAINS
                + ez(nxpm,nypp)*sx2m*sy2p + ez(nxpm,nyp )*sx2m*sy2 &
                + ez(nxpm,nypm)*sx2m*sy2m
 
-          bxx = bx(nxpp,nypp)*dx*sy2p + bx(nxp ,nypp)*dx1*sy2p &
-               + bx(nxpp,nyp )*dx*sy2  + bx(nxp ,nyp )*dx1*sy2 &
-               + bx(nxpp,nypm)*dx*sy2m + bx(nxp ,nypm)*dx1*sy2m
+          !bxx = bx(nxpp,nypp)*dx*sy2p + bx(nxp ,nypp)*dx1*sy2p &
+          !     + bx(nxpp,nyp )*dx*sy2  + bx(nxp ,nyp )*dx1*sy2 &
+          !     + bx(nxpp,nypm)*dx*sy2m + bx(nxp ,nypm)*dx1*sy2m
 
-          byy = by(nxpp,nypp)*sx2p*dy + by(nxpp,nyp )*sx2p*dy1 &
-               + by(nxp ,nypp)*sx2 *dy + by(nxp ,nyp )*sx2 *dy1 &
-               + by(nxpm,nypp)*sx2m*dy + by(nxpm,nyp )*sx2m*dy1
+          !byy = by(nxpp,nypp)*sx2p*dy + by(nxpp,nyp )*sx2p*dy1 &
+          !     + by(nxp ,nypp)*sx2 *dy + by(nxp ,nyp )*sx2 *dy1 &
+          !     + by(nxpm,nypp)*sx2m*dy + by(nxpm,nyp )*sx2m*dy1
 
-          bzz = bz(nxpp,nypp)*sx2p*sy2p + bz(nxp ,nypp)*sx2 *sy2p &
-               + bz(nxpm,nypp)*sx2m*sy2p &
-               + bz(nxpp,nyp )*sx2p*sy2  + bz(nxp ,nyp )*sx2 *sy2 &
-               + bz(nxpm,nyp )*sx2m*sy2  &
-               + bz(nxpp,nypm)*sx2p*sy2m + bz(nxp ,nypm)*sx2 *sy2m &
-               + bz(nxpm,nypm)*sx2m*sy2m
+          !bzz = bz(nxpp,nypp)*sx2p*sy2p + bz(nxp ,nypp)*sx2 *sy2p &
+          !     + bz(nxpm,nypp)*sx2m*sy2p &
+          !     + bz(nxpp,nyp )*sx2p*sy2  + bz(nxp ,nyp )*sx2 *sy2 &
+          !     + bz(nxpm,nyp )*sx2m*sy2  &
+          !     + bz(nxpp,nypm)*sx2p*sy2m + bz(nxp ,nypm)*sx2 *sy2m &
+          !     + bz(nxpm,nypm)*sx2m*sy2m
+
+          bxx = bx(nxpp,nypp)*dy*sx2p + bx(nxpp,nyp)*dy1*sx2p &
+               + bx(nxp ,nypp)*dy*sx2  + bx(nxp ,nyp )*dy1*sx2 &
+               + bx(nxpm,nypp)*dy*sx2m + bx(nxpm,nyp )*dy1*sx2m
+
+          byy = by(nxpp,nypp)*sy2p*dx + by(nxp,nypp)*sy2p*dx1 &
+               + by(nxpp,nyp)*sy2 *dx + by(nxp ,nyp )*sy2 *dx1 &
+               + by(nxpp,nypm)*sy2m*dx + by(nxp,nypm)*sy2m*dx1
+
+          bzz = bz(nxpp,nypp)*dx*dy + bz(nxp,nypp)*dx1*dy &
+              + bz(nxpp,nyp)*dx*dy1 + bz(nxpp,nypp)*dx1*dy1
 
        ELSE IF(dx .LE. 0.5d0 .AND. dy .GE. 0.5d0) THEN
           exx = ex(nxpp,nyppp)*dx*sy2p + ex(nxp ,nyppp)*dx1*sy2p &
@@ -493,19 +505,31 @@ CONTAINS
                + ez(nxpm,nyppp)*sx2m*sy2p + ez(nxpm,nypp )*sx2m*sy2 &
                + ez(nxpm,nyp  )*sx2m*sy2m
 
-          bxx = bx(nxpp,nyppp)*dx*sy2p + bx(nxp ,nyppp)*dx1*sy2p &
-               + bx(nxpp,nypp )*dx*sy2  + bx(nxp ,nypp )*dx1*sy2  &
-               + bx(nxpp,nyp  )*dx*sy2m + bx(nxp ,nyp  )*dx1*sy2m
+          ! bxx = bx(nxpp,nyppp)*dx*sy2p + bx(nxp ,nyppp)*dx1*sy2p &
+          !      + bx(nxpp,nypp )*dx*sy2  + bx(nxp ,nypp )*dx1*sy2  &
+          !      + bx(nxpp,nyp  )*dx*sy2m + bx(nxp ,nyp  )*dx1*sy2m
+          !
+          ! byy = by(nxpp,nypp)*sx2p*dy + by(nxpp,nyp )*sx2p*dy1 &
+          !      + by(nxp ,nypp)*sx2 *dy + by(nxp ,nyp )*sx2 *dy1 &
+          !      + by(nxpm,nypp)*sx2m*dy + by(nxpm,nyp )*sx2m*dy1
+          !
+          ! bzz = bz(nxpp,nyppp)*sx2p*sy2p + bz(nxp ,nyppp)*sx2 *sy2p &
+          !      + bz(nxpm,nyppp)*sx2m*sy2p + bz(nxpp,nypp )*sx2p*sy2  &
+          !      + bz(nxp ,nypp )*sx2 *sy2  + bz(nxpm,nypp )*sx2m*sy2  &
+          !      + bz(nxpp,nyp  )*sx2p*sy2m + bz(nxp ,nyp  )*sx2 *sy2m &
+          !      + bz(nxpm,nyp  )*sx2m*sy2m
 
-          byy = by(nxpp,nypp)*sx2p*dy + by(nxpp,nyp )*sx2p*dy1 &
-               + by(nxp ,nypp)*sx2 *dy + by(nxp ,nyp )*sx2 *dy1 &
-               + by(nxpm,nypp)*sx2m*dy + by(nxpm,nyp )*sx2m*dy1
+          bxx = bx(nxpp,nypp)*dy*sx2p + bx(nxpp,nyp)*dy1*sx2p &
+               + bx(nxp,nypp )*dy*sx2  + bx(nxp ,nyp )*dy1*sx2  &
+               + bx(nxpm,nypp)*dy*sx2m + bx(nxpm,nyp )*dy1*sx2m
 
-          bzz = bz(nxpp,nyppp)*sx2p*sy2p + bz(nxp ,nyppp)*sx2 *sy2p &
-               + bz(nxpm,nyppp)*sx2m*sy2p + bz(nxpp,nypp )*sx2p*sy2  &
-               + bz(nxp ,nypp )*sx2 *sy2  + bz(nxpm,nypp )*sx2m*sy2  &
-               + bz(nxpp,nyp  )*sx2p*sy2m + bz(nxp ,nyp  )*sx2 *sy2m &
-               + bz(nxpm,nyp  )*sx2m*sy2m
+          byy = by(nxpp,nyppp)*sy2p*dx + by(nxp,nyppp)*sy2p*dx1 &
+               + by(nxpp,nypp)*sy2 *dx + by(nxp ,nypp)*sy2 *dx1 &
+               + by(nxpp,nyp )*sy2m*dx + by(nxp ,nyp )*sy2m*dx1
+
+          bzz = bz(nxpp,nypp)*dx*dy + bz(nxp,nypp)*dx1*dy &
+              + bz(nxpp,nyp)*dx*dy1 + bz(nxpp,nypp)*dx1*dy1
+
 
        ELSE IF(dx .GE. 0.5d0 .AND. dy .LE. 0.5d0) THEN
           exx = ex(nxpp,nypp)*dx*sy2p + ex(nxp ,nypp)*dx1*sy2p &
@@ -522,19 +546,30 @@ CONTAINS
                + ez(nxp  ,nypp)*sx2m*sy2p + ez(nxp  ,nyp )*sx2m*sy2 &
                + ez(nxp  ,nypm)*sx2m*sy2m
 
-          bxx = bx(nxpp,nypp)*dx*sy2p + bx(nxp ,nypp)*dx1*sy2p &
-               + bx(nxpp,nyp )*dx*sy2  + bx(nxp ,nyp )*dx1*sy2  &
-               + bx(nxpp,nypm)*dx*sy2m + bx(nxp ,nypm)*dx1*sy2m
+          ! bxx = bx(nxpp,nypp)*dx*sy2p + bx(nxp ,nypp)*dx1*sy2p &
+          !      + bx(nxpp,nyp )*dx*sy2  + bx(nxp ,nyp )*dx1*sy2  &
+          !      + bx(nxpp,nypm)*dx*sy2m + bx(nxp ,nypm)*dx1*sy2m
+          !
+          ! byy = by(nxppp,nypp)*sx2p*dy + by(nxppp,nyp )*sx2p*dy1 &
+          !      + by(nxpp ,nypp)*sx2 *dy + by(nxpp ,nyp )*sx2 *dy1 &
+          !      + by(nxp  ,nypp)*sx2m*dy + by(nxp  ,nyp )*sx2m*dy1
+          !
+          ! bzz = bz(nxppp,nypp)*sx2p*sy2p + bz(nxpp ,nypp)*sx2 *sy2p &
+          !      + bz(nxp  ,nypp)*sx2m*sy2p + bz(nxppp,nyp )*sx2p*sy2  &
+          !      + bz(nxpp ,nyp )*sx2 *sy2  + bz(nxp  ,nyp )*sx2m*sy2  &
+          !      + bz(nxppp,nypm)*sx2p*sy2m + bz(nxpp ,nypm)*sx2 *sy2m &
+          !      + bz(nxp  ,nypm)*sx2m*sy2m
 
-          byy = by(nxppp,nypp)*sx2p*dy + by(nxppp,nyp )*sx2p*dy1 &
-               + by(nxpp ,nypp)*sx2 *dy + by(nxpp ,nyp )*sx2 *dy1 &
-               + by(nxp  ,nypp)*sx2m*dy + by(nxp  ,nyp )*sx2m*dy1
+          bxx = bx(nxppp,nypp)*dy*sx2p + bx(nxppp ,nyp)*dy1*sx2p &
+               + bx(nxpp,nypp )*dy*sx2  + bx(nxpp,nyp )*dy1*sx2  &
+               + bx(nxp ,nypp )*dy*sx2m  + bx(nxp ,nyp)*dy1*sx2m
 
-          bzz = bz(nxppp,nypp)*sx2p*sy2p + bz(nxpp ,nypp)*sx2 *sy2p &
-               + bz(nxp  ,nypp)*sx2m*sy2p + bz(nxppp,nyp )*sx2p*sy2  &
-               + bz(nxpp ,nyp )*sx2 *sy2  + bz(nxp  ,nyp )*sx2m*sy2  &
-               + bz(nxppp,nypm)*sx2p*sy2m + bz(nxpp ,nypm)*sx2 *sy2m &
-               + bz(nxp  ,nypm)*sx2m*sy2m
+          byy = by(nxpp,nypp)*sy2p*dx + by(nxp,nypp)*sy2p*dx1 &
+               + by(nxpp ,nyp)*sy2 *dx + by(nxp ,nyp)*sy2 *dx1 &
+               + by(nxpp ,nypm)*sy2m*dx + by(nxp  ,nypm)*sy2m*dx1
+
+          bzz = bz(nxpp,nypp)*dx*dy + bz(nxp,nypp)*dx1*dy &
+              + bz(nxpp,nyp)*dx*dy1 + bz(nxpp,nypp)*dx1*dy1
 
        ELSE
           exx = ex(nxpp,nyppp)*dx*sy2p + ex(nxp ,nyppp)*dx1*sy2p &
@@ -551,19 +586,31 @@ CONTAINS
                + ez(nxp  ,nyppp)*sx2m*sy2p + ez(nxp  ,nypp )*sx2m*sy2 &
                + ez(nxp  ,nyp  )*sx2m*sy2m
 
-          bxx = bx(nxpp,nyppp)*dx*sy2p + bx(nxp ,nyppp)*dx1*sy2p &
-               + bx(nxpp,nypp )*dx*sy2  + bx(nxp ,nypp )*dx1*sy2  &
-               + bx(nxpp,nyp  )*dx*sy2m + bx(nxp ,nyp  )*dx1*sy2m
+          ! bxx = bx(nxpp,nyppp)*dx*sy2p + bx(nxp ,nyppp)*dx1*sy2p &
+          !      + bx(nxpp,nypp )*dx*sy2  + bx(nxp ,nypp )*dx1*sy2  &
+          !      + bx(nxpp,nyp  )*dx*sy2m + bx(nxp ,nyp  )*dx1*sy2m
+          !
+          ! byy = by(nxppp,nypp)*sx2p*dy + by(nxppp,nyp )*sx2p*dy1 &
+          !      + by(nxpp ,nypp)*sx2 *dy + by(nxpp ,nyp )*sx2 *dy1 &
+          !      + by(nxp  ,nypp)*sx2m*dy + by(nxp  ,nyp )*sx2m*dy1
+          !
+          ! bzz = bz(nxppp,nyppp)*sx2p*sy2p + bz(nxpp ,nyppp)*sx2 *sy2p &
+          !      + bz(nxp  ,nyppp)*sx2m*sy2p + bz(nxppp,nypp )*sx2p*sy2  &
+          !      + bz(nxpp ,nypp )*sx2 *sy2  + bz(nxp  ,nypp )*sx2m*sy2  &
+          !      + bz(nxppp,nyp  )*sx2p*sy2m + bz(nxpp ,nyp  )*sx2 *sy2m &
+          !      + bz(nxp  ,nyp  )*sx2m*sy2m
 
-          byy = by(nxppp,nypp)*sx2p*dy + by(nxppp,nyp )*sx2p*dy1 &
-               + by(nxpp ,nypp)*sx2 *dy + by(nxpp ,nyp )*sx2 *dy1 &
-               + by(nxp  ,nypp)*sx2m*dy + by(nxp  ,nyp )*sx2m*dy1
+           bxx = bx(nxppp,nypp)*dy*sx2p + bx(nxppp ,nyp)*dy1*sx2p &
+                + bx(nxpp,nypp )*dy*sx2  + bx(nxpp,nyp )*dy1*sx2  &
+                + bx(nxp,nypp)*dy*sx2m + bx(nxp ,nyp  )*dy1*sx2m
 
-          bzz = bz(nxppp,nyppp)*sx2p*sy2p + bz(nxpp ,nyppp)*sx2 *sy2p &
-               + bz(nxp  ,nyppp)*sx2m*sy2p + bz(nxppp,nypp )*sx2p*sy2  &
-               + bz(nxpp ,nypp )*sx2 *sy2  + bz(nxp  ,nypp )*sx2m*sy2  &
-               + bz(nxppp,nyp  )*sx2p*sy2m + bz(nxpp ,nyp  )*sx2 *sy2m &
-               + bz(nxp  ,nyp  )*sx2m*sy2m
+           byy = by(nxpp,nyppp)*sy2p*dx + by(nxp,nyppp)*sy2p*dx1 &
+                + by(nxpp ,nypp)*sy2 *dx + by(nxp ,nypp )*sy2 *dx1 &
+                + by(nxpp  ,nyp)*sy2m*dx + by(nxp ,nyp )*sy2m*dx1
+
+           bzz =  bz(nxpp,nypp)*dx*dy + bz(nxp,nypp)*dx1*dy &
+               + bz(nxpp,nyp)*dx*dy1 + bz(nxpp,nypp)*dx1*dy1
+
        ENDIF
 
        ! push particles by using Buneman-Boris method
