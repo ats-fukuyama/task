@@ -95,8 +95,8 @@ CONTAINS
          vperpi(np)=SQRT(vxi(np)**2+vzi(np)**2)
       end do
 
-      call kine(npmax,vxe,vye,vze,akine0,me)
-      call kine(npmax,vxi,vyi,vzi,akini0,mi)
+      call kine(npmax,vxe,vye,vze,akine0,me,vcfact)
+      call kine(npmax,vxi,vyi,vzi,akini0,mi,vcfact)
       call pote(nxmax,nymax,ex,ey,ez,bx,by,bz,bxbg,bybg,bzbg,vcfact, &
                 apote0,apotm0)
       call mtx_allreduce1_real8(akine0,3,sum,locv) ! sum

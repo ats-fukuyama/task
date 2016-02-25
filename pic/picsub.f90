@@ -321,18 +321,8 @@ CONTAINS
              IF( ny .EQ. 0  )    nym = 0
              IF( ny .EQ. nymax ) nyp = nymax
 
-              !IF(nx .EQ. 0 .OR. nx .EQ. nxmax) THEN
-              !   esx(nx,ny) = phi(nxm,ny) - phi(nxp,ny)
-              !ELSE
-                 esx(nx,ny) = 0.5d0 * ( phi(nxm,ny) - phi(nxp,ny))
-              !ENDIF
-
-             !IF(ny .EQ. 0 .OR. ny .EQ. nymax) THEN
-             !    esy(nx,ny) = phi(nx,nym) - phi(nx,nyp)
-             !ELSE
-                 esy(nx,ny) = 0.5d0 * ( phi(nx,nym) - phi(nx,nyp))
-             !END IF
-
+             esx(nx,ny) = 0.5d0 * ( phi(nxm,ny) - phi(nxp,ny))
+             esy(nx,ny) = 0.5d0 * ( phi(nx,nym) - phi(nx,nyp))
              esz(nx,ny) = 0.d0
              emx(nx,ny) = - ( Ax(nx,ny) - Axb(nx,ny) ) / dt
              emy(nx,ny) = - ( Ay(nx,ny) - Ayb(nx,ny) ) / dt
@@ -340,6 +330,15 @@ CONTAINS
 
           END DO
        END DO
+       !boundary condition for electro static field
+       DO ny = 1, nymax-1
+         esx(0,ny) = 0.5d0 * esx(1,ny)
+         esx(nxmax,ny) = 0.5d0 * esx(nxmax-1,ny)
+       ENDDO
+       DO nx = 1, nxmax-1
+         esy(nx,0) = 0.5d0 * esy(nx,1)
+         esy(nx,nymax) = 0.5d0 * esy(nx,nymax-1)
+       ENDDO
        esx(:,0) = 0.d0
        esx(:,nymax) = 0.d0
        esy(0,:) = 0.d0
@@ -465,19 +464,6 @@ CONTAINS
              IF( ny .EQ. 0  )    nym = 0
              IF( ny .EQ. nymax ) nyp = nymax
 
-             IF(nx .EQ. 0 .OR. nx .EQ. nxmax .OR. &
-                  ny .EQ. 0 .OR. ny .EQ. nymax) THEN
-
-                bx(nx,ny) =   0.5d0 * (Az(nx,nyp) + Azb(nx,nyp) &
-                     - Az(nx,nym) - Azb(nx,nym))
-                by(nx,ny) = - 0.5d0 * (Az(nxp,ny) + Azb(nxp,ny) &
-                     - Az(nxm,ny) - Azb(nxm,ny))
-                bz(nx,ny) =   0.5d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
-                     - Ay(nxm,ny) - Ayb(nxm,ny) &
-                     -(Ax(nx,nyp) + Axb(nx,nyp) &
-                     - Ax(nx,nym) - Axb(nx,nym)))
-             ELSE
-
                 bx(nx,ny) =   0.25d0 * (Az(nx,nyp) + Azb(nx,nyp) &
                      - Az(nx,nym) - Azb(nx,nym))
                 by(nx,ny) = - 0.25d0 * (Az(nxp,ny) + Azb(nxp,ny) &
@@ -486,9 +472,20 @@ CONTAINS
                      - Ay(nxm,ny) - Ayb(nxm,ny) &
                      - (Ax(nx,nyp) + Axb(nx,nyp) &
                      - Ax(nx,nym) - Axb(nx,nym)))
-             END IF
           END DO
        END DO
+       DO ny = 1, nymax-1
+         by(0,ny) = 0.5d0 * by(1,ny)
+         by(nxmax,ny) = 0.5d0 * by(nxmax-1,ny)
+         bz(0,ny) = 0.5d0 * bz(1,ny)
+         bz(nxmax,ny) = 0.5d0 * bz(nxmax-1,ny)
+       ENDDO
+       DO nx = 1, nxmax-1
+         bx(nx,0) = 0.5d0 * bx(nx,1)
+         bx(nx,nymax) = 0.5d0 * bx(nx,nymax-1)
+         bz(nx,0) = 0.5d0 * bz(nx,1)
+         bz(nx,nymax) = 0.5d0 * bz(nx,nymax-1)
+       ENDDO
        bx(0,:) = 0.d0
        bx(nxmax,:) = 0.d0
        by(:,0) = 0.d0
@@ -522,21 +519,22 @@ CONTAINS
   END SUBROUTINE bfield
 
   !***********************************************************************
-  SUBROUTINE kine(npmax,vx,vy,vz,akin,mass)
+  SUBROUTINE kine(npmax,vx,vy,vz,akin,mass,vcfact)
     !***********************************************************************
     IMPLICIT NONE
     REAL(8), DIMENSION(npmax) :: vx, vy, vz
-    REAL(8) :: akin, mass
+    REAL(8) :: akin, mass, vcfact, gamma
     INTEGER(4) :: npmax, np
     akin = 0.d0
     DO np = 1, npmax
-       akin = akin + vx(np)**2 + vy(np)**2 + vz(np)**2
+      gamma = 1.d0/sqrt(1.d0 - (vx(np)**2+vy(np)**2+vz(np)**2)/vcfact**2)
+       akin = akin + vcfact ** 2 * (gamma - 1)
     END DO
 
     IF(npmax.EQ.0) THEN
        akin=0.D0
     ELSE
-       akin = 0.5 * akin * mass /DBLE(npmax)
+       akin = akin * mass  / DBLE(npmax)
     END IF
   END SUBROUTINE kine
 
