@@ -198,7 +198,6 @@ CONTAINS
     irange=iend-istart+1
     status=1
     ALLOCATE(x(irange))
-
     DO i=istart,iend
        l=MOD(i-1,isize)+1
        m=(i-1)/isize+1
