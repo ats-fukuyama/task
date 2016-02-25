@@ -1522,48 +1522,48 @@ CONTAINS
 
        END DO
     END DO
-    ! IF(model_boundary .EQ. 2) THEN !damping A in absorbing boundary
-    !    ilen = int(dlen)
-    !    inv = 1.0d0 / dlen
-    !    DO ny = 1,nymax
-    !       DO nx = nxmax-ilen,nxmax
-    !          x=DBLE(nx)
-    !          xmax=DBLE(nxmax)
-    !          Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*x**2 &
-    !                                 +2.0d0*inv**2*(xmax-dlen)*x&
-    !                                 +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
-    !          Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*x**2 &
-    !                                 +2.0d0*inv**2*(xmax-dlen)*x&
-    !                                 +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
-    !          Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*x**2 &
-    !                                 +2.0d0*inv**2*(xmax-dlen)*x&
-    !                                 +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
-    !       ENDDO
-    !    ENDDO
-    !    DO nx = 1,nxmax-ilen
-    !       DO ny = nymax-ilen/2,nymax
-    !          y=DBLE(ny)
-    !          ymax=DBLE(nymax)
-    !          Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*y**2 &
-    !                                 +2.0d0*inv**2*(ymax-dlen)*y &
-    !                                 +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
-    !          Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*y**2 &
-    !                                 +2.0d0*inv**2*(ymax-dlen)*y &
-    !                                 +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
-    !          Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*y**2 &
-    !                                 +2.0d0*inv**2*(ymax-dlen)*y &
-    !                                 +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
-    !       ENDDO
-    !    ENDDO
-    !    DO nx = 1, nxmax-ilen
-    !       DO ny = 1, ilen/2
-    !          y=DBLE(ny)
-    !          Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
-    !          Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
-    !          Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
-    !       ENDDO
-    !    ENDDO
-    ! ENDIF
+     IF(model_boundary .EQ. 2) THEN !damping A in absorbing boundary
+        ilen = int(dlen)
+        inv = 1.0d0 / dlen
+        DO ny = 1,nymax
+           DO nx = nxmax-ilen,nxmax
+              x=DBLE(nx)
+              xmax=DBLE(nxmax)
+              Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*x**2 &
+                                     +2.0d0*inv**2*(xmax-dlen)*x&
+                                     +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
+              Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*x**2 &
+                                     +2.0d0*inv**2*(xmax-dlen)*x&
+                                     +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
+              Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*x**2 &
+                                     +2.0d0*inv**2*(xmax-dlen)*x&
+                                    +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
+           ENDDO
+        ENDDO
+        DO nx = 1,nxmax-ilen
+           DO ny = nymax-ilen/2,nymax
+              y=DBLE(ny)
+              ymax=DBLE(nymax)
+              Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*y**2 &
+                                     +2.0d0*inv**2*(ymax-dlen)*y &
+                                     +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
+              Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*y**2 &
+                                     +2.0d0*inv**2*(ymax-dlen)*y &
+                                     +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
+              Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*y**2 &
+                                     +2.0d0*inv**2*(ymax-dlen)*y &
+                                    +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
+           ENDDO
+        ENDDO
+        DO nx = 1, nxmax-ilen
+           DO ny = 1, ilen/2
+              y=DBLE(ny)
+              Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
+              Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
+              Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
+           ENDDO
+        ENDDO
+     ENDIF
 
     !boundary condition for reflection
      Ay(0,:)=0.d0
