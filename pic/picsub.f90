@@ -323,13 +323,13 @@ CONTAINS
 
               !IF(nx .EQ. 0 .OR. nx .EQ. nxmax) THEN
                  !esx(nx,ny) = phi(nxm,ny) - phi(nxp,ny)
-              ELSE
+             ! ELSE
                  esx(nx,ny) = 0.5d0 * ( phi(nxm,ny) - phi(nxp,ny))
               !ENDIF
 
              !IF(ny .EQ. 0 .OR. ny .EQ. nymax) THEN
               !   esy(nx,ny) = phi(nx,nym) - phi(nx,nyp)
-             ELSE
+             !ELSE
                  esy(nx,ny) = 0.5d0 * ( phi(nx,nym) - phi(nx,nyp))
              !END IF
 
