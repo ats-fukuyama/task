@@ -241,34 +241,34 @@ CONTAINS
     DEALLOCATE(x)
     status=2
     CALL mtx_cleanup
-    IF(model_boundary .EQ. 2) THEN !damping phi in absorbing boundary
-       inv = 1.0d0 / dlen
-       ilen = int(dlen)
-       DO ny = 1,nymax
-          DO nx = nxmax-ilen,nxmax
-             xd=DBLE(nx)
-             xdmax=DBLE(nxmax)
-             phi(nx,ny) =phi(nx,ny)*(-1.0d0*inv**2*xd**2 &
-                                     +2.0d0*inv**2*(xdmax-dlen)*xd&
-                                     +1.0d0-1.0d0*inv**2*(xdmax-dlen)**2)
-          ENDDO
-       ENDDO
-       DO nx = 1,nxmax-ilen
-          DO ny = nymax-ilen,nymax
-             yd=DBLE(ny)
-             ydmax=DBLE(nymax)
-             phi(nx,ny) =phi(nx,ny)*(-1.0d0*inv**2*yd**2 &
-                                     +2.0d0*inv**2*(ydmax-dlen)*yd&
-                                     +1.0d0-1.0d0*inv**2*(ydmax-dlen)**2)
-          ENDDO
-       ENDDO
-       DO nx = 1, nxmax-ilen
-          DO ny = 1, ilen
-             yd=DBLE(ny)
-             phi(nx,ny) = phi(nx,ny)*(-1.0d0*inv**2*yd**2+2.0d0*inv*yd)
-          ENDDO
-       ENDDO
-    ENDIF
+    !IF(model_boundary .EQ. 2) THEN !damping phi in absorbing boundary
+    !   inv = 1.0d0 / dlen
+    !   ilen = int(dlen)
+    !   DO ny = 1,nymax
+    !      DO nx = nxmax-ilen,nxmax
+    !         xd=DBLE(nx)
+    !         xdmax=DBLE(nxmax)
+    !         phi(nx,ny) =phi(nx,ny)*(-1.0d0*inv**2*xd**2 &
+    !                                 +2.0d0*inv**2*(xdmax-dlen)*xd&
+    !                                 +1.0d0-1.0d0*inv**2*(xdmax-dlen)**2)
+    !      ENDDO
+    !   ENDDO
+    !   DO nx = 1,nxmax-ilen
+    !      DO ny = nymax-ilen,nymax
+    !         yd=DBLE(ny)
+    !         ydmax=DBLE(nymax)
+    !         phi(nx,ny) =phi(nx,ny)*(-1.0d0*inv**2*yd**2 &
+    !                                 +2.0d0*inv**2*(ydmax-dlen)*yd&
+    !                                 +1.0d0-1.0d0*inv**2*(ydmax-dlen)**2)
+    !      ENDDO
+    !   ENDDO
+    !   DO nx = 1, nxmax-ilen
+    !      DO ny = 1, ilen
+    !         yd=DBLE(ny)
+    !         phi(nx,ny) = phi(nx,ny)*(-1.0d0*inv**2*yd**2+2.0d0*inv*yd)
+    !      ENDDO
+    !   ENDDO
+    !ENDIF
 
   END SUBROUTINE poisson_m
 

@@ -52,6 +52,27 @@ CONTAINS
 
       CALL pic_allocate
 
+      ex(:,:) = 0.d0
+      ey(:,:) = 0.d0
+      ez(:,:) = 0.d0
+      bx(:,:) = 0.d0
+      by(:,:) = 0.d0
+      bz(:,:) = 0.d0
+      Axbb(:,:) = 0.d0
+      Axb(:,:) = 0.d0
+      Aybb(:,:) = 0.d0
+      Ayb(:,:) = 0.d0
+      Azbb(:,:) = 0.d0
+      Azb(:,:) = 0.d0
+      Axb(:,:) = 0.d0
+      Ax(:,:) = 0.d0
+      Ayb(:,:) = 0.d0
+      Ay(:,:) = 0.d0
+      Azb(:,:) = 0.d0
+      Az(:,:) = 0.d0
+      phib(:,:) = 0.d0
+      phi(:,:) = 0.d0 
+
       !..... set initial positions and velocities of electrons
       call iniset(npmax,npxmax,npymax,nxmax,nymax,densx, &
                   xe,ye,ze,xeb,yeb,zeb,vxe,vye,vze,vte,dt,iran)
