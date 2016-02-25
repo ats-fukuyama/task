@@ -71,7 +71,7 @@ CONTAINS
       Azb(:,:) = 0.d0
       Az(:,:) = 0.d0
       phib(:,:) = 0.d0
-      phi(:,:) = 0.d0 
+      phi(:,:) = 0.d0
 
       !..... set initial positions and velocities of electrons
       call iniset(npmax,npxmax,npymax,nxmax,nymax,densx, &
