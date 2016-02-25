@@ -488,7 +488,7 @@ CONTAINS
                + by(nxpp,nypm)*sy2m*dx + by(nxp,nypm)*sy2m*dx1
 
           bzz = bz(nxpp,nypp)*dx*dy + bz(nxp,nypp)*dx1*dy &
-              + bz(nxpp,nyp)*dx*dy1 + bz(nxpp,nypp)*dx1*dy1
+              + bz(nxpp,nyp)*dx*dy1 + bz(nxp,nyp)*dx1*dy1
 
        ELSE IF(dx .LE. 0.5d0 .AND. dy .GE. 0.5d0) THEN
           exx = ex(nxpp,nyppp)*dx*sy2p + ex(nxp ,nyppp)*dx1*sy2p &
@@ -528,7 +528,7 @@ CONTAINS
                + by(nxpp,nyp )*sy2m*dx + by(nxp ,nyp )*sy2m*dx1
 
           bzz = bz(nxpp,nypp)*dx*dy + bz(nxp,nypp)*dx1*dy &
-              + bz(nxpp,nyp)*dx*dy1 + bz(nxpp,nypp)*dx1*dy1
+              + bz(nxpp,nyp)*dx*dy1 + bz(nxp,nyp)*dx1*dy1
 
 
        ELSE IF(dx .GE. 0.5d0 .AND. dy .LE. 0.5d0) THEN
@@ -569,7 +569,7 @@ CONTAINS
                + by(nxpp ,nypm)*sy2m*dx + by(nxp  ,nypm)*sy2m*dx1
 
           bzz = bz(nxpp,nypp)*dx*dy + bz(nxp,nypp)*dx1*dy &
-              + bz(nxpp,nyp)*dx*dy1 + bz(nxpp,nypp)*dx1*dy1
+              + bz(nxpp,nyp)*dx*dy1 + bz(nxp,nyp)*dx1*dy1
 
        ELSE
           exx = ex(nxpp,nyppp)*dx*sy2p + ex(nxp ,nyppp)*dx1*sy2p &
@@ -609,7 +609,7 @@ CONTAINS
                 + by(nxpp  ,nyp)*sy2m*dx + by(nxp ,nyp )*sy2m*dx1
 
            bzz =  bz(nxpp,nypp)*dx*dy + bz(nxp,nypp)*dx1*dy &
-               + bz(nxpp,nyp)*dx*dy1 + bz(nxpp,nypp)*dx1*dy1
+               + bz(nxpp,nyp)*dx*dy1 + bz(nxp,nyp)*dx1*dy1
 
        ENDIF
 
