@@ -83,6 +83,7 @@ CONTAINS
           CALL antenna(nxmax,nymax,jxant,jyant,jzant,phxant,phyant,phzant, &
                omega,time,jx,jy,jz)
        END IF
+
        CALL boundary_j(nxmax,nymax,jx,jy,jz,model_boundary)
        !..... sum current densities over cores
        CALL mtx_allreduce_real8(jx,nxymax,3,suma,locva)
@@ -121,13 +122,6 @@ CONTAINS
        !.......... calculate bxg and byg and bzg
        CALL bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
             bx,by,bz,bxbg,bybg,bzbg,bb, model_push,model_boundary)
-
-            !boundary condition of electromagnetic field
-       !IF(model_boundary .eq. 2) THEN
-          !CALL mur_2nd_yz_plane_for_e    ! y-z plane (2,5) 平面に対して
-          !CALL mur_2nd_xz_plane_for_e    ! x-z plane (3,6) 平面に対して
-       !ENDIF
-
        IF( MOD(nt,ntgstep) .EQ. 0 ) THEN
           CALL kine(npmax,vxe,vye,vze,akine1,me)
           CALL kine(npmax,vxi,vyi,vzi,akini1,mi)
@@ -474,8 +468,6 @@ CONTAINS
         !    bz(nxpm,nypm) = bz(nxpm,nypp)
         !  ENDIF
          !IF(model_boundary .EQ. 0 .OR. (nxp .NE. 0 .OR. nyp .NE. 0)) then
-         !IF( nxp .EQ. 0  ) sx2m =0.d0
-         !IF( nyp .EQ. 0  ) sy2m =0.d0
           exx = ex(nxpp,nypp)*dx*sy2p + ex(nxp ,nypp)*dx1*sy2p &
                + ex(nxpp,nyp )*dx*sy2  + ex(nxp ,nyp )*dx1*sy2  &
                + ex(nxpp,nypm)*dx*sy2m + ex(nxp ,nypm)*dx1*sy2m
@@ -561,8 +553,6 @@ CONTAINS
         !    bz(nxp ,nyppp) = bz(nxp ,nyp)
         !    bz(nxpm,nyppp) = bz(nxpm,nyp)
         !  ENDIF
-        !IF( nxp .EQ. 0  ) sx2m =0.d0
-        !IF( nyp .EQ. nymax-1  ) sy2p =0.d0
           exx = ex(nxpp,nyppp)*dx*sy2p + ex(nxp ,nyppp)*dx1*sy2p &
                + ex(nxpp,nypp )*dx*sy2  + ex(nxp ,nypp )*dx1*sy2  &
                + ex(nxpp,nyp  )*dx*sy2m + ex(nxp ,nyp  )*dx1*sy2m
@@ -616,8 +606,6 @@ CONTAINS
         !    bz(nxpp ,nypm) = bz(nxpp ,nypp)
         !    bz(nxp  ,nypm) = bz(nxp  ,nypp)
         !  ENDIF
-        !IF( nxp .EQ. nxmax-1  ) sx2p =0.d0
-        !IF( nyp .EQ. 0  ) sy2m =0.d0
           exx = ex(nxpp,nypp)*dx*sy2p + ex(nxp ,nypp)*dx1*sy2p &
                + ex(nxpp,nyp )*dx*sy2  + ex(nxp ,nyp )*dx1*sy2  &
                + ex(nxpp,nypm)*dx*sy2m + ex(nxp ,nypm)*dx1*sy2m
@@ -670,8 +658,6 @@ CONTAINS
           !    bz(nxpp ,nyppp) = bz(nxpp ,nyp)
           !    bz(nxp  ,nyppp) = bz(nxp  ,nyp)
           !  ENDIF
-          !IF( nxp .EQ. nxmax-1  ) sx2p =0.d0
-          !IF( nyp .EQ. nymax-1  ) sy2p =0.d0
           exx = ex(nxpp,nyppp)*dx*sy2p + ex(nxp ,nyppp)*dx1*sy2p &
                + ex(nxpp,nypp )*dx*sy2  + ex(nxp ,nypp )*dx1*sy2  &
                + ex(nxpp,nyp  )*dx*sy2m + ex(nxp ,nyp  )*dx1*sy2m
@@ -704,7 +690,7 @@ CONTAINS
        ! push particles by using Buneman-Boris method
        ! gamma is lorentz factor
        bb2 = bxx ** 2 + byy ** 2 + bzz ** 2
-       gamma = 1.d0/sqrt(1.d0 - (vx(np)**2+vy(np)**2+vz(np)**2)/vcfact**2)
+       gamma = 1.d0 / sqrt(1.d0 - (vx(np)**2+vy(np)**2+vz(np)**2)/vcfact**2)
 
        vxm = vx(np) * gamma + 0.5D0 * ctom * exx * dt
        vym = vy(np) * gamma + 0.5D0 * ctom * eyy * dt
@@ -1008,7 +994,7 @@ CONTAINS
            sy2p = 0.d0!sy2p - sy2m
          ELSEIF(model_boundary .NE. 0 .AND. nyp .EQ. 0) THEN
            sy2p = sy2p
-           sy2  =  sy2
+           sy2 =  sy2
            sy2m = 0.d0!sy2m - sy2p
          ENDIF
           rho(nxp  ,nyp  ) = rho(nxp  ,nyp  ) + sx2m * sy2m * factor
@@ -1043,7 +1029,7 @@ CONTAINS
           rho(nx,0) = rho(nx,0) + rho(nx,nymax)
           rho(nx,nymax) = rho(nx,0)
        END DO
-    !ELSE                         ! reflecting
+    ELSE                         ! reflecting
       rho(0,:) = 0.d0
       rho(nxmax,:) = 0.d0
       rho(:,0) = 0.d0
@@ -1374,30 +1360,22 @@ CONTAINS
           jy(nx,nymax) = jy(nx,0)
           jz(nx,nymax) = jz(nx,0)
        ENDDO
-    ELSE                 ! reflective
-      jx(:,0)=0.d0
-      jx(:,nymax)=0.d0
-      jy(0,:)=0.d0
-      jy(nxmax,:)=0.d0
-      jz(:,0)=0.d0
-      jz(:,nymax)=0.d0
-      jz(0,:)=0.d0
-      jz(nxmax,:)=0.d0
+    ELSE                           ! reflective
        !DO ny=1,nymax-1
-          !jx(0,ny) = 2.0d0 * jx(0,ny)
-          !jy(0,ny) = 2.0d0 * jy(0,ny)
-          !jz(0,ny) = 2.0d0 * jz(0,ny)
-          !jx(nxmax,ny) = 2.0d0 * jx(nxmax,ny)
-          !jy(nxmax,ny) = 2.0d0 * jy(nxmax,ny)
-          !jz(nxmax,ny) = 2.0d0 * jz(nxmax,ny)
+       !   jx(0,ny) = 2.0d0 * jx(0,ny)
+       !   jy(0,ny) = 2.0d0 * jy(0,ny)
+       !   jz(0,ny) = 2.0d0 * jz(0,ny)
+       !   jx(nxmax,ny) = 2.0d0 * jx(nxmax,ny)
+       !   jy(nxmax,ny) = 2.0d0 * jy(nxmax,ny)
+       !   jz(nxmax,ny) = 2.0d0 * jz(nxmax,ny)
        !END DO
        !DO nx=1,nxmax-1
-          !jx(nx,0) = 2.0d0 * jx(nx,0)
-          !jy(nx,0) = 2.0d0 * jy(nx,0)
-          !jz(nx,0) = 2.0d0 * jz(nx,0)
-          !jx(nx,nymax) = 2.0d0 * jx(nx,nymax)
-          !jy(nx,nymax) = 2.0d0 * jy(nx,nymax)
-          !jz(nx,nymax) = 2.0d0 * jz(nx,nymax)
+       !   jx(nx,0) = 2.0d0 * jx(nx,0)
+       !   jy(nx,0) = 2.0d0 * jy(nx,0)
+       !   jz(nx,0) = 2.0d0 * jz(nx,0)
+       !   jx(nx,nymax) = 2.0d0 * jx(nx,nymax)
+       !   jy(nx,nymax) = 2.0d0 * jy(nx,nymax)
+       !   jz(nx,nymax) = 2.0d0 * jz(nx,nymax)
        !END DO
        !jx(0,0) = 4.0d0 * jx(0,0)
        !jy(0,0) = 4.0d0 * jy(0,0)
@@ -1410,7 +1388,14 @@ CONTAINS
        !jz(nxmax,0) = 4.0d0 * jz(nxmax,0)
        !jx(nxmax,nymax) = 4.0d0 * jx(nxmax,nymax)
        !jy(nxmax,nymax) = 4.0d0 * jy(nxmax,nymax)
-       !jz(nxmax,nymax) = 4.0d0 * jz(nxmax,nymax)
+       jx(:,0)=0.d0
+       jx(:,nymax)=0.d0
+       jy(0,:)=0.d0
+       jy(nxmax,:)=0.d0
+       jz(:,0)=0.d0
+       jz(:,nymax)=0.d0
+       jz(0,:)=0.d0
+       jz(nxmax,:)=0.d0 !jz(nxmax,nymax) = 4.0d0 * jz(nxmax,nymax)
     END IF
 
   END SUBROUTINE boundary_j
@@ -1522,57 +1507,61 @@ CONTAINS
 
        END DO
     END DO
-     IF(model_boundary .EQ. 2) THEN !damping A in absorbing boundary
-        ilen = int(dlen)
-        inv = 1.0d0 / dlen
-        DO ny = 1,nymax
-           DO nx = nxmax-ilen,nxmax
-              x=DBLE(nx)
-              xmax=DBLE(nxmax)
-              Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*x**2 &
-                                     +2.0d0*inv**2*(xmax-dlen)*x&
-                                     +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
-              Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*x**2 &
-                                     +2.0d0*inv**2*(xmax-dlen)*x&
-                                     +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
-              Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*x**2 &
-                                     +2.0d0*inv**2*(xmax-dlen)*x&
+    IF(model_boundary .EQ. 2) THEN !damping A in absorbing boundary
+       ilen = int(dlen)
+       inv = 1.0d0 / dlen
+       DO ny = 1,nymax
+          DO nx = nxmax-ilen,nxmax
+             x=DBLE(nx)
+             xmax=DBLE(nxmax)
+             Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*x**2 &
+                                    +2.0d0*inv**2*(xmax-dlen)*x&
                                     +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
-           ENDDO
-        ENDDO
-        DO nx = 1,nxmax-ilen
-           DO ny = nymax-ilen/2,nymax
-              y=DBLE(ny)
-              ymax=DBLE(nymax)
-              Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*y**2 &
-                                     +2.0d0*inv**2*(ymax-dlen)*y &
-                                     +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
-              Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*y**2 &
-                                     +2.0d0*inv**2*(ymax-dlen)*y &
-                                     +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
-              Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*y**2 &
-                                     +2.0d0*inv**2*(ymax-dlen)*y &
+             Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*x**2 &
+                                    +2.0d0*inv**2*(xmax-dlen)*x&
+                                    +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
+             Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*x**2 &
+                                    +2.0d0*inv**2*(xmax-dlen)*x&
+                                    +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
+          ENDDO
+       ENDDO
+       DO nx = 1,nxmax-ilen
+          DO ny = nymax-ilen,nymax
+             y=DBLE(ny)
+             ymax=DBLE(nymax)
+             Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*y**2 &
+                                    +2.0d0*inv**2*(ymax-dlen)*y &
                                     +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
-           ENDDO
-        ENDDO
-        DO nx = 1, nxmax-ilen
-           DO ny = 1, ilen/2
-              y=DBLE(ny)
-              Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
-              Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
-              Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
-           ENDDO
-        ENDDO
-     ENDIF
+             Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*y**2 &
+                                    +2.0d0*inv**2*(ymax-dlen)*y &
+                                    +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
+             Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*y**2 &
+                                    +2.0d0*inv**2*(ymax-dlen)*y &
+                                    +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
+          ENDDO
+       ENDDO
+       DO nx = 1, nxmax-ilen
+          DO ny = 1, ilen
+             y=DBLE(ny)
+             Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
+             Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
+             Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
+          ENDDO
+       ENDDO
+    ENDIF
 
     !boundary condition for reflection
+     !Ax(0,:)=0.d0
      Ay(0,:)=0.d0
      Az(0,:)=0.d0
+     !Ax(nxmax,:)=0.d0
      Ay(nxmax,:)=0.d0
      Az(nxmax,:)=0.d0
      Ax(:,0)=0.d0
+     !Ay(:,0)=0.d0
      Az(:,0)=0.d0
      Ax(:,nymax)=0.d0
+     !Ay(:,nymax)=0.d0
      Az(:,nymax)=0.d0
     SELECT CASE(model_wg)
     CASE(0)

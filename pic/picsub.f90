@@ -242,48 +242,48 @@ CONTAINS
     DEALLOCATE(x)
     status=2
     CALL mtx_cleanup
-    ! IF(model_boundary .EQ. 2) THEN !damping phi in absorbing boundary
-    !    inv = 1.0d0 / dlen
-    !    ilen = int(dlen)
-    !    DO ny = 1,nymax
-    !       DO nx = nxmax-ilen,nxmax
-    !          xd=DBLE(nx)
-    !          xdmax=DBLE(nxmax)
-    !          phi(nx,ny) = phi(nx,ny)*(-1.0d0*inv**2*xd**2 &
-    !                                  +2.0d0*inv**2*(xdmax-dlen)*xd&
-    !                                  +1.0d0-1.0d0*inv**2*(xdmax-dlen)**2)
-    !       ENDDO
-    !    ENDDO
-    !    DO nx = 1,nxmax-ilen
-    !       DO ny = nymax-ilen/2,nymax
-    !          yd=DBLE(ny)
-    !          ydmax=DBLE(nymax)
-    !          phi(nx,ny) =phi(nx,ny)*(-1.0d0*inv**2*yd**2 &
-    !                                  +2.0d0*inv**2*(ydmax-dlen)*yd&
-    !                                  +1.0d0-1.0d0*inv**2*(ydmax-dlen)**2)
-    !       ENDDO
-    !
-    !    ENDDO
-    !    DO nx = 1, nxmax-ilen
-    !       DO ny = 1, ilen/2
-    !          yd=DBLE(ny)
-    !          phi(nx,ny) = phi(nx,ny)*(-1.0d0*inv**2*yd**2+2.0d0*inv*yd)
-    !       ENDDO
-    !    ENDDO
-    ! ENDIF
+    IF(model_boundary .EQ. 2) THEN !damping phi in absorbing boundary
+       inv = 1.0d0 / dlen
+       ilen = int(dlen)
+       DO ny = 1,nymax
+          DO nx = nxmax-ilen,nxmax
+             xd=DBLE(nx)
+             xdmax=DBLE(nxmax)
+             phi(nx,ny) =phi(nx,ny)*(-1.0d0*inv**2*xd**2 &
+                                     +2.0d0*inv**2*(xdmax-dlen)*xd&
+                                     +1.0d0-1.0d0*inv**2*(xdmax-dlen)**2)
+          ENDDO
+       ENDDO
+       DO nx = 1,nxmax-ilen
+          DO ny = nymax-ilen,nymax
+             yd=DBLE(ny)
+             ydmax=DBLE(nymax)
+             phi(nx,ny) =phi(nx,ny)*(-1.0d0*inv**2*yd**2 &
+                                     +2.0d0*inv**2*(ydmax-dlen)*yd&
+                                     +1.0d0-1.0d0*inv**2*(ydmax-dlen)**2)
+          ENDDO
+       ENDDO
+       DO nx = 1, nxmax-ilen
+          DO ny = 1, ilen
+             yd=DBLE(ny)
+             phi(nx,ny) = phi(nx,ny)*(-1.0d0*inv**2*yd**2+2.0d0*inv*yd)
+          ENDDO
+       ENDDO
+    ENDIF
 
   END SUBROUTINE poisson_m
 
   !***********************************************************************
   SUBROUTINE efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
-       ex,ey,ez,esx,esy,esz,emx,emy,emz,model_push,model_boundary)
+       ex,ey,ez,esx,esy,esz,emx,emy,emz, &
+       model_push,model_boundary)
     !***********************************************************************
     IMPLICIT NONE
     REAL(8), DIMENSION(0:nxmax,0:nymax) ::  &
          phi,Ax,Ay,Az,Axb,Ayb,Azb,ex,ey,ez,esx,esy,esz,emx,emy,emz
-    REAL(8):: dt,x,xmax,y,ymax,dlen,inv
+    REAL(8):: dt
     INTEGER :: nxmax, nymax, nx, ny, nxm, nxp, nym, nyp
-    INTEGER:: model_push, model_boundary,ilen
+    INTEGER:: model_push, model_boundary
 
     IF(model_boundary .EQ. 0) THEN
        DO nx = 0, nymax
@@ -322,13 +322,13 @@ CONTAINS
              IF( ny .EQ. nymax ) nyp = nymax
 
               !IF(nx .EQ. 0 .OR. nx .EQ. nxmax) THEN
-                 !esx(nx,ny) = phi(nxm,ny) - phi(nxp,ny)
-             ! ELSE
+              !   esx(nx,ny) = phi(nxm,ny) - phi(nxp,ny)
+              !ELSE
                  esx(nx,ny) = 0.5d0 * ( phi(nxm,ny) - phi(nxp,ny))
               !ENDIF
 
              !IF(ny .EQ. 0 .OR. ny .EQ. nymax) THEN
-              !   esy(nx,ny) = phi(nx,nym) - phi(nx,nyp)
+             !    esy(nx,ny) = phi(nx,nym) - phi(nx,nyp)
              !ELSE
                  esy(nx,ny) = 0.5d0 * ( phi(nx,nym) - phi(nx,nyp))
              !END IF
@@ -340,18 +340,18 @@ CONTAINS
 
           END DO
        END DO
-       !esx(:,0) = 0.d0
-       !esx(:,nymax) = 0.d0
-       !esy(0,:) = 0.d0
-       !esy(nxmax,:) = 0.d0
-       !emx(:,0) = 0.d0
-       !emx(:,nymax) = 0.d0
-       !emy(0,:) = 0.d0
-       !emy(nxmax,:) = 0.d0
-       !emz(:,0) = 0.d0
-       !emz(:,nymax) = 0.d0
-       !emz(0,:) = 0.d0
-       !emz(nxmax,:) = 0.d0
+       esx(:,0) = 0.d0
+       esx(:,nymax) = 0.d0
+       esy(0,:) = 0.d0
+       esy(nxmax,:) = 0.d0
+       emx(:,0) = 0.d0
+       emx(:,nymax) = 0.d0
+       emy(0,:) = 0.d0
+       emy(nxmax,:) = 0.d0
+       emz(:,0) = 0.d0
+       emz(:,nymax) = 0.d0
+       emz(0,:) = 0.d0
+       emz(nxmax,:) = 0.d0
 
     END IF
 
@@ -376,7 +376,7 @@ CONTAINS
           ez(0:nxmax,0:nymax) = esz(0:nxmax,0:nymax) + emz(0:nxmax,0:nymax)
        END IF
     END IF
-    !  IF(model_boundary .ne. 0 .and. nxmax .ge. 10 .and. nymax .ge. 10) then
+    !  if(model_boundary .ne. 0 .and. nxmax .ge. 10 .and. nymax .ge. 10) then
     !   do ny = 10,nymax-10
     !   do nx = nxmax-10,nxmax
     !     Ex(nx,ny) = Ex(nx,ny) * (-0.01d0 * dble(nx) ** 2 &
@@ -414,49 +414,6 @@ CONTAINS
     !   enddo
     !   enddo
     ! endif
-    ! IF(model_boundary .EQ. 2) THEN !damping A in absorbing boundary
-    !     ilen = int(dlen)
-    !     inv = 1.0d0 / dlen
-    !     DO ny = 1,nymax
-    !        DO nx = nxmax-ilen,nxmax
-    !           x=DBLE(nx)
-    !           xmax=DBLE(nxmax)
-    !           Ex(nx,ny) = Ex(nx,ny)*(-1.0d0*inv**2*x**2 &
-    !                                  +2.0d0*inv**2*(xmax-dlen)*x&
-    !                                  +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
-    !           Ey(nx,ny) = Ey(nx,ny)*(-1.0d0*inv**2*x**2 &
-    !                                  +2.0d0*inv**2*(xmax-dlen)*x&
-    !                                  +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
-    !           Ez(nx,ny) = Ez(nx,ny)*(-1.0d0*inv**2*x**2 &
-    !                                  +2.0d0*inv**2*(xmax-dlen)*x&
-    !                                  +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
-    !        ENDDO
-    !      ENDDO
-    !      DO nx = 1,nxmax-ilen
-    !         DO ny = nymax-ilen/2,nymax
-    !            y=DBLE(ny)
-    !            ymax=DBLE(nymax)
-    !            ex(nx,ny) = ex(nx,ny)*(-1.0d0*inv**2*y**2 &
-    !                                   +2.0d0*inv**2*(ymax-dlen)*y &
-    !                                   +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
-    !            ey(nx,ny) = ey(nx,ny)*(-1.0d0*inv**2*y**2 &
-    !                                   +2.0d0*inv**2*(ymax-dlen)*y &
-    !                                   +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
-    !            ez(nx,ny) = ez(nx,ny)*(-1.0d0*inv**2*y**2 &
-    !                                   +2.0d0*inv**2*(ymax-dlen)*y &
-    !                                   +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
-    !         ENDDO
-    !      ENDDO
-    !      DO nx = 1, nxmax-ilen
-    !         DO ny = 1, ilen/2
-    !            y=DBLE(ny)
-    !            ex(nx,ny) = ex(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
-    !            ey(nx,ny) = ey(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
-    !            ez(nx,ny) = ez(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
-    !         ENDDO
-    !      ENDDO
-    !      ENDIF
-
   END SUBROUTINE efield
 
   !***********************************************************************
@@ -469,9 +426,8 @@ CONTAINS
     REAL(8), DIMENSION(0:nxmax) :: bynab
     REAL(8), DIMENSION(0:nxmax,0:nymax) :: bx,by,bz,bxbg,bybg,bzbg,bb
     REAL(8), DIMENSION(0:nxmax,0:nymax) :: Ax,Ay,Az,Axb,Ayb,Azb
-    REAL(8):: dlen,inv,x,y,xmax,ymax
     INTEGER :: nxmax, nymax, nx, ny, nxp, nyp, nxm, nym
-    INTEGER:: model_push, model_boundary, ilen
+    INTEGER:: model_push, model_boundary
 
     IF(model_boundary .EQ. 0) THEN
        DO ny = 0, nymax
@@ -512,14 +468,14 @@ CONTAINS
              IF(nx .EQ. 0 .OR. nx .EQ. nxmax .OR. &
                   ny .EQ. 0 .OR. ny .EQ. nymax) THEN
 
-                !bx(nx,ny) =   0.5d0 * (Az(nx,nyp) + Azb(nx,nyp) &
-                !     - Az(nx,nym) - Azb(nx,nym))
-                !by(nx,ny) = - 0.5d0 * (Az(nxp,ny) + Azb(nxp,ny) &
-                !     - Az(nxm,ny) - Azb(nxm,ny))
-                !bz(nx,ny) =   0.5d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
-                !     - Ay(nxm,ny) - Ayb(nxm,ny) &
-                !     -(Ax(nx,nyp) + Axb(nx,nyp) &
-                !     - Ax(nx,nym) - Axb(nx,nym)))
+                bx(nx,ny) =   0.5d0 * (Az(nx,nyp) + Azb(nx,nyp) &
+                     - Az(nx,nym) - Azb(nx,nym))
+                by(nx,ny) = - 0.5d0 * (Az(nxp,ny) + Azb(nxp,ny) &
+                     - Az(nxm,ny) - Azb(nxm,ny))
+                bz(nx,ny) =   0.5d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
+                     - Ay(nxm,ny) - Ayb(nxm,ny) &
+                     -(Ax(nx,nyp) + Axb(nx,nyp) &
+                     - Ax(nx,nym) - Axb(nx,nym)))
              ELSE
 
                 bx(nx,ny) =   0.25d0 * (Az(nx,nyp) + Azb(nx,nyp) &
@@ -538,7 +494,6 @@ CONTAINS
        by(:,0) = 0.d0
        by(:,nymax) = 0.d0
     ENDIF
-
 
     IF(MOD(model_push/8,2).EQ.0) THEN
        IF(MOD(model_push/4,2).EQ.0) THEN
@@ -563,49 +518,6 @@ CONTAINS
     bb(0:nxmax,0:nymax) = SQRT(bx(0:nxmax,0:nymax)**2 &
          +by(0:nxmax,0:nymax)**2 &
          +bz(0:nxmax,0:nymax)**2)
-
-         IF(model_boundary .EQ. 2) THEN !damping A in absorbing boundary
-            ilen = int(dlen)
-            inv = 1.0d0 / dlen
-            DO ny = 1,nymax
-               DO nx = nxmax-ilen,nxmax
-                  x=DBLE(nx)
-                  xmax=DBLE(nxmax)
-                  bx(nx,ny) = bx(nx,ny)*(-1.0d0*inv**2*x**2 &
-                                         +2.0d0*inv**2*(xmax-dlen)*x&
-                                         +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
-                  by(nx,ny) = by(nx,ny)*(-1.0d0*inv**2*x**2 &
-                                         +2.0d0*inv**2*(xmax-dlen)*x&
-                                         +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
-                  bz(nx,ny) = bz(nx,ny)*(-1.0d0*inv**2*x**2 &
-                                         +2.0d0*inv**2*(xmax-dlen)*x&
-                                         +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
-               ENDDO
-            ENDDO
-            DO nx = 1,nxmax-ilen
-               DO ny = nymax-ilen/2,nymax
-                  y=DBLE(ny)
-                  ymax=DBLE(nymax)
-                  bx(nx,ny) = bx(nx,ny)*(-1.0d0*inv**2*y**2 &
-                                         +2.0d0*inv**2*(ymax-dlen)*y &
-                                         +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
-                  by(nx,ny) = by(nx,ny)*(-1.0d0*inv**2*y**2 &
-                                         +2.0d0*inv**2*(ymax-dlen)*y &
-                                         +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
-                  bz(nx,ny) = bz(nx,ny)*(-1.0d0*inv**2*y**2 &
-                                         +2.0d0*inv**2*(ymax-dlen)*y &
-                                         +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
-               ENDDO
-            ENDDO
-            DO nx = 1, nxmax-ilen
-               DO ny = 1, ilen/2
-                  y=DBLE(ny)
-                  bx(nx,ny) = bx(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
-                  by(nx,ny) = by(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
-                  bz(nx,ny) = bz(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
-            ENDDO
-            ENDDO
-         ENDIF
 
   END SUBROUTINE bfield
 
