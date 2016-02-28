@@ -460,7 +460,7 @@ CONTAINS
   !***********************************************************************
   SUBROUTINE bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
        bx,by,bz,bxbg,bybg,bzbg,bb, &
-       model_push,model_boundary)
+       model_push,model_boundary,dlen)
     !***********************************************************************
     IMPLICIT NONE
     REAL(8), DIMENSION(0:nymax) :: bxnab,bznab
@@ -560,48 +560,48 @@ CONTAINS
          +by(0:nxmax,0:nymax)**2 &
          +bz(0:nxmax,0:nymax)**2)
 
-         IF(model_boundary .EQ. 2) THEN !damping A in absorbing boundary
-            ilen = int(dlen)
-            inv = 1.0d0 / dlen
-            DO ny = 1,nymax
-               DO nx = nxmax-ilen,nxmax
-                  x=DBLE(nx)
-                  xmax=DBLE(nxmax)
-                  bx(nx,ny) = bx(nx,ny)*(-1.0d0*inv**2*x**2 &
-                                         +2.0d0*inv**2*(xmax-dlen)*x&
-                                         +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
-                  by(nx,ny) = by(nx,ny)*(-1.0d0*inv**2*x**2 &
-                                         +2.0d0*inv**2*(xmax-dlen)*x&
-                                         +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
-                  bz(nx,ny) = bz(nx,ny)*(-1.0d0*inv**2*x**2 &
-                                         +2.0d0*inv**2*(xmax-dlen)*x&
-                                         +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
-               ENDDO
-            ENDDO
-            DO nx = 1,nxmax-ilen
-               DO ny = nymax-ilen/2,nymax
-                  y=DBLE(ny)
-                  ymax=DBLE(nymax)
-                  bx(nx,ny) = bx(nx,ny)*(-1.0d0*inv**2*y**2 &
-                                         +2.0d0*inv**2*(ymax-dlen)*y &
-                                         +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
-                  by(nx,ny) = by(nx,ny)*(-1.0d0*inv**2*y**2 &
-                                         +2.0d0*inv**2*(ymax-dlen)*y &
-                                         +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
-                  bz(nx,ny) = bz(nx,ny)*(-1.0d0*inv**2*y**2 &
-                                         +2.0d0*inv**2*(ymax-dlen)*y &
-                                         +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
-               ENDDO
-            ENDDO
-            DO nx = 1, nxmax-ilen
-               DO ny = 1, ilen/2
-                  y=DBLE(ny)
-                  bx(nx,ny) = bx(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
-                  by(nx,ny) = by(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
-                  bz(nx,ny) = bz(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
-            ENDDO
-            ENDDO
-         ENDIF
+        !  IF(model_boundary .EQ. 2) THEN !damping A in absorbing boundary
+        !     ilen = int(dlen)
+        !     inv = 1.0d0 / dlen
+        !     DO ny = 1,nymax
+        !        DO nx = nxmax-ilen,nxmax
+        !           x=DBLE(nx)
+        !           xmax=DBLE(nxmax)
+        !           bx(nx,ny) = bx(nx,ny)*(-1.0d0*inv**2*x**2 &
+        !                                  +2.0d0*inv**2*(xmax-dlen)*x&
+        !                                  +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
+        !           by(nx,ny) = by(nx,ny)*(-1.0d0*inv**2*x**2 &
+        !                                  +2.0d0*inv**2*(xmax-dlen)*x&
+        !                                  +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
+        !           bz(nx,ny) = bz(nx,ny)*(-1.0d0*inv**2*x**2 &
+        !                                  +2.0d0*inv**2*(xmax-dlen)*x&
+        !                                  +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
+        !        ENDDO
+        !     ENDDO
+        !     DO nx = 1,nxmax-ilen
+        !        DO ny = nymax-ilen/2,nymax
+        !           y=DBLE(ny)
+        !           ymax=DBLE(nymax)
+        !           bx(nx,ny) = bx(nx,ny)*(-1.0d0*inv**2*y**2 &
+        !                                  +2.0d0*inv**2*(ymax-dlen)*y &
+        !                                  +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
+        !           by(nx,ny) = by(nx,ny)*(-1.0d0*inv**2*y**2 &
+        !                                  +2.0d0*inv**2*(ymax-dlen)*y &
+        !                                  +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
+        !           bz(nx,ny) = bz(nx,ny)*(-1.0d0*inv**2*y**2 &
+        !                                  +2.0d0*inv**2*(ymax-dlen)*y &
+        !                                  +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
+        !        ENDDO
+        !     ENDDO
+        !     DO nx = 1, nxmax-ilen
+        !        DO ny = 1, ilen/2
+        !           y=DBLE(ny)
+        !           bx(nx,ny) = bx(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
+        !           by(nx,ny) = by(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
+        !           bz(nx,ny) = bz(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
+        !     ENDDO
+        !     ENDDO
+        !  ENDIF
 
   END SUBROUTINE bfield
 
