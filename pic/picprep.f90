@@ -17,7 +17,6 @@ CONTAINS
     INTEGER,INTENT(OUT):: iout
     INTEGER:: nx,ny,np,locv
     REAL(8):: factor,sum
-
       npmax = npxmax * npymax
       nxmaxh1 = nxmax / 2 + 1
       nxmax1 = nxmax + 1

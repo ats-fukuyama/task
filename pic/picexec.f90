@@ -117,7 +117,6 @@ CONTAINS
        !.......... calculate ex and ey and ez
        CALL efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
             ex,ey,ez,esx,esy,esz,emx,emy,emz,model_push,model_boundary)
-            !write(*,*) ex(2,2)
 
        !.......... calculate bxg and byg and bzg
        CALL bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &

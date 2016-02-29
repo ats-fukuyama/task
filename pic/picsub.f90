@@ -338,6 +338,7 @@ CONTAINS
          esy(nx,0) = 0.5d0 * esy(nx,1)
          esy(nx,nymax) = 0.5d0 * esy(nx,nymax-1)
        ENDDO
+
        esx(:,0) = 0.d0
        esx(:,nymax) = 0.d0
        esy(0,:) = 0.d0
