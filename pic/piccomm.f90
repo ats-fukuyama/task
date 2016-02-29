@@ -11,15 +11,15 @@ MODULE piccomm_parm
   INTEGER:: model_push,model_boundary,model_antenna,model_wg
   INTEGER:: model_matrix0,model_matrix1,model_matrix2
   REAL(rkind):: dt,me,mi,chrge,chrgi,te,ti,densx,&
-       bxmin,bxmax,bymin,bymax,bzmin,bzmax,vcfact,omega,eps
+       bxmin,bxmax,bymin,bymax,bzmin,bzmax,vcfact,omega,eps,dlen
   REAL(rkind):: jxant,jyant,jzant,phxant,phyant,phzant
   REAL(rkind):: xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg,ph_wg,rot_wg,eli_wg
   REAL(rkind):: tolerance_matrix
 
 END MODULE piccomm_parm
 
-MODULE piccomm 
-		
+MODULE piccomm
+
   USE piccomm_parm
   USE commpi
 
@@ -52,7 +52,7 @@ MODULE piccomm
              wkword, wtime, wtime1, wtime2
   INTEGER :: npmax,nxmaxh1,nxmax1,nymax1,nxymax,nzmax
   INTEGER :: ntcount, ntgcount, ntpcount, ntocount, ntgmax, ntpmax, ntomax
-  INTEGER :: ifset, ipssn, iran
+  INTEGER :: ifset, ipssn, iran, iran1, iran2, iran3
   INTEGER :: ierr
 
 CONTAINS
@@ -66,7 +66,7 @@ CONTAINS
        nymax  == nymax_save  .AND. &
        npxmax == npxmax_save .AND. &
        npymax == npymax_save )  RETURN
-       
+
     IF(ALLOCATED(ex)) CALL pic_deallocate
 
     ALLOCATE(ex(0:nxmax,0:nymax),ey(0:nxmax,0:nymax),ez(0:nxmax,0:nymax))

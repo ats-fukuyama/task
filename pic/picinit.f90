@@ -49,7 +49,7 @@ CONTAINS
       chrgi  =    1.0d0     !: ion charge
       te     =    1.0d0     !: electron temperature
       ti     =    1.0d0     !: ion temperature
-      densx  =    -1.0d0     !: x density gradient
+      densx  =    -1.0d0    !: density gradient in the direction of x
       bxmin  =    0.0d0     !: max value of background x magnetic flux density
       bxmax  =    0.0d0     !: min value of background x magnetic flux density
       bymin  =    0.0d0     !: min value of background y magnetic flux density
@@ -59,12 +59,13 @@ CONTAINS
       vcfact =   10.0d0     !: c^2/omegape^2 debye^2
       eps    =   1.D-16     !: constants to define boundary condition
       omega  =    0.0d0     !: antena frequency
-      jxant  =    0.0d0     ! x component of antenna current density 
+      jxant  =    0.0d0     ! x component of antenna current density
       jyant  =    0.0d0     ! y component of antenna current density
       jzant  =    0.0d0     ! z component of antenn current density
       phxant =    0.0d0     ! initial phase of jxant
       phyant =    0.0d0     ! initial phase of jyant
       phzant =    0.0d0     ! initial phase of jzant
+      dlen   =    10.d0     ! length of damping area
 
 !---------------------------------------------------------
 
@@ -75,7 +76,7 @@ CONTAINS
                             !   4: static magnetic B field
                             !   8: electromagnetic B field
                             !  15: all field
-      model_boundary = 0    ! boundary condition 
+      model_boundary = 0    ! boundary condition
                             !   0: periodic boundary
                             !   1: conducting wall and particle reflection
                             !   2: absorbing boundary and particle reflection

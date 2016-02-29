@@ -3,7 +3,7 @@
 Module picgout
   PRIVATE
   PUBLIC pic_gout
- 
+
 CONTAINS
 
   SUBROUTINE pic_gout
@@ -60,18 +60,18 @@ CONTAINS
     CASE('T1')
        ALLOCATE(work(ntgmax,7))
        CALL PAGES
-       work(1:ntgmax,1)=aktott(1:ntgmax)
-       work(1:ntgmax,2)=akinit(1:ntgmax)
-       work(1:ntgmax,3)=akinet(1:ntgmax)
-       CALL GRD1D(1,timet,work,ntgmax,ntgmax,3,'@Ktot,Ki,Ke vs t@')
-       work(1:ntgmax,1)=aptott(1:ntgmax)
-       work(1:ntgmax,2)=apotet(1:ntgmax)
-       work(1:ntgmax,3)=apotmt(1:ntgmax)
-       CALL GRD1D(2,timet,work,ntgmax,ntgmax,3,'@Ptot,Pe,Pm vs t@')
-       work(1:ntgmax,1)=atott(1:ntgmax)
-       work(1:ntgmax,2)=aktott(1:ntgmax)
-       work(1:ntgmax,3)=aptott(1:ntgmax)
-       CALL GRD1D(3,timet,work,ntgmax,ntgmax,3,'@Wtot,Ktot,Ptot vs t@')
+       !work(1:ntgmax,1)=aktott(1:ntgmax)
+       !work(1:ntgmax,2)=akinit(1:ntgmax)
+       !work(1:ntgmax,3)=akinet(1:ntgmax)
+       !CALL GRD1D(1,timet,work,ntgmax,ntgmax,3,'@Ktot,Ki,Ke vs t@')
+       !work(1:ntgmax,1)=aptott(1:ntgmax)
+       !work(1:ntgmax,2)=apotet(1:ntgmax)
+       !work(1:ntgmax,3)=apotmt(1:ntgmax)
+       !CALL GRD1D(2,timet,work,ntgmax,ntgmax,3,'@Ptot,Pe,Pm vs t@')
+       !work(1:ntgmax,1)=atott(1:ntgmax)
+       !work(1:ntgmax,2)=aktott(1:ntgmax)
+       !work(1:ntgmax,3)=aptott(1:ntgmax)
+       !CALL GRD1D(3,timet,work,ntgmax,ntgmax,3,'@Wtot,Ktot,Ptot vs t@')
        work(1:ntgmax,1)=atott(1:ntgmax)
        work(1:ntgmax,2)=aktott(1:ntgmax)
        work(1:ntgmax,3)=akinet(1:ntgmax)
@@ -79,7 +79,7 @@ CONTAINS
        work(1:ntgmax,5)=aptott(1:ntgmax)
        work(1:ntgmax,6)=apotet(1:ntgmax)
        work(1:ntgmax,7)=apotmt(1:ntgmax)
-       CALL GRD1D(4,timet,work,ntgmax,ntgmax,7, &
+       CALL GRD1D(0,timet,work,ntgmax,ntgmax,7, &
                   '@Wtot,Ktot,Ke,Ki,Ptot,Pe,Pm vs t@')
        CALL PAGEE
        DEALLOCATE(work)
@@ -173,23 +173,23 @@ CONTAINS
     CASE('E6')
        CALL PAGES
        CALL GRD1D( 5,x,ex,nxmax1,nxmax1,nymax1,'@Ex(x)@', &
+                      XMIN=0.D0,XMAX=DBLE(nxmax))
+        CALL GRD1D( 6,x,ey,nxmax1,nxmax1,nymax1,'@Ey(x)@', &
+                      XMIN=0.D0,XMAX=DBLE(nxmax))
+        CALL GRD1D( 7,x,ez,nxmax1,nxmax1,nymax1,'@Ez(x)@', &
                     XMIN=0.D0,XMAX=DBLE(nxmax))
-       CALL GRD1D( 6,x,ey,nxmax1,nxmax1,nymax1,'@Ey(x)@', &
-                    XMIN=0.D0,XMAX=DBLE(nxmax))
-       CALL GRD1D( 7,x,ez,nxmax1,nxmax1,nymax1,'@Ez(x)@', &
-                    XMIN=0.D0,XMAX=DBLE(nxmax))
-       CALL GRD1D( 8,x,esx,nxmax1,nxmax1,nymax1,'@ESx(x)@', &
-                    XMIN=0.D0,XMAX=DBLE(nxmax))
-       CALL GRD1D( 9,x,esy,nxmax1,nxmax1,nymax1,'@ESy(x)@', &
-                    XMIN=0.D0,XMAX=DBLE(nxmax))
-       CALL GRD1D(10,x,esz,nxmax1,nxmax1,nymax1,'@ESz(x)@', &
-                    XMIN=0.D0,XMAX=DBLE(nxmax))
-       CALL GRD1D(11,x,emx,nxmax1,nxmax1,nymax1,'@EMx(x)@', &
-                    XMIN=0.D0,XMAX=DBLE(nxmax))
-       CALL GRD1D(12,x,emy,nxmax1,nxmax1,nymax1,'@EMy(x)@', &
-                    XMIN=0.D0,XMAX=DBLE(nxmax))
-       CALL GRD1D(13,x,emz,nxmax1,nxmax1,nymax1,'@EMz(x)@', &
-                    XMIN=0.D0,XMAX=DBLE(nxmax))
+        CALL GRD1D( 8,x,esx,nxmax1,nxmax1,nymax1,'@ESx(x)@', &
+                      XMIN=0.D0,XMAX=DBLE(nxmax))
+        CALL GRD1D( 9,x,esy,nxmax1,nxmax1,nymax1,'@ESy(x)@', &
+                     XMIN=0.D0,XMAX=DBLE(nxmax))
+        CALL GRD1D(10,x,esz,nxmax1,nxmax1,nymax1,'@ESz(x)@', &
+                     XMIN=0.D0,XMAX=DBLE(nxmax))
+        CALL GRD1D(11,x,emx,nxmax1,nxmax1,nymax1,'@EMx(x)@', &
+                     XMIN=0.D0,XMAX=DBLE(nxmax))
+        CALL GRD1D(12,x,emy,nxmax1,nxmax1,nymax1,'@EMy(x)@', &
+                     XMIN=0.D0,XMAX=DBLE(nxmax))
+        CALL GRD1D(13,x,emz,nxmax1,nxmax1,nymax1,'@EMz(x)@', &
+                     XMIN=0.D0,XMAX=DBLE(nxmax))
        CALL PAGEE
     CASE('E7')
        CALL PAGES
@@ -459,7 +459,7 @@ CONTAINS
                        XMIN=0.D0,XMAX=DBLE(nxmax), &
                        YMIN=0.D0,YMAX=DBLE(nymax))
        CALL PAGEE
-    CASE('X') 
+    CASE('X')
        GO TO 9000
     END SELECT
     GO TO 1
@@ -469,7 +469,7 @@ CONTAINS
     RETURN
   END SUBROUTINE pic_gout
 
-!----- 
+!-----
 
   SUBROUTINE sum_over_y(nxmax,nymax,ntpmax,fxy,fx)
 

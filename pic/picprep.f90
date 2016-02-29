@@ -3,7 +3,7 @@
 Module picprep
   PRIVATE
   PUBLIC pic_prep
- 
+
 CONTAINS
 
   SUBROUTINE pic_prep(iout)
@@ -17,7 +17,6 @@ CONTAINS
     INTEGER,INTENT(OUT):: iout
     INTEGER:: nx,ny,np,locv
     REAL(8):: factor,sum
-
       npmax = npxmax * npymax
       nxmaxh1 = nxmax / 2 + 1
       nxmax1 = nxmax + 1
@@ -36,16 +35,15 @@ CONTAINS
       ntpcount= 0               !: counter for profile outputs
       ntocount= 0               !: counter for orbit outputs
       iran   = 14142 * nrank    !: initial parameter for random number
-
       !..... constants to define boundary condition
       alx = dble(nxmax)
       aly = dble(nymax)
       alz = dble(nzmax)
-      x1  = eps 
+      x1  = eps
       x2  = alx - eps
-      y1  = eps 
+      y1  = eps
       y2  = aly - eps
-      z1  = eps 
+      z1  = eps
       z2  = alz - eps
       alx = alx - 2.d0 * eps
       aly = aly - 2.d0 * eps
@@ -53,11 +51,32 @@ CONTAINS
 
       CALL pic_allocate
 
-      !..... set initial positions and velocities of electrons 
+      ex(:,:) = 0.d0
+      ey(:,:) = 0.d0
+      ez(:,:) = 0.d0
+      bx(:,:) = 0.d0
+      by(:,:) = 0.d0
+      bz(:,:) = 0.d0
+      Axbb(:,:) = 0.d0
+      Axb(:,:) = 0.d0
+      Aybb(:,:) = 0.d0
+      Ayb(:,:) = 0.d0
+      Azbb(:,:) = 0.d0
+      Azb(:,:) = 0.d0
+      Axb(:,:) = 0.d0
+      Ax(:,:) = 0.d0
+      Ayb(:,:) = 0.d0
+      Ay(:,:) = 0.d0
+      Azb(:,:) = 0.d0
+      Az(:,:) = 0.d0
+      phib(:,:) = 0.d0
+      phi(:,:) = 0.d0
+
+      !..... set initial positions and velocities of electrons
       call iniset(npmax,npxmax,npymax,nxmax,nymax,densx, &
                   xe,ye,ze,xeb,yeb,zeb,vxe,vye,vze,vte,dt,iran)
 
-      !..... set initial positions and velocities of ions 
+      !..... set initial positions and velocities of ions
       call iniset(npmax,npxmax,npymax,nxmax,nymax,densx, &
                   xi,yi,zi,xib,yib,zib,vxi,vyi,vzi,vti,dt,iran)
 
@@ -81,42 +100,33 @@ CONTAINS
          END DO
       END DO
 
-      Ax(:,:) = 0.0d0
-      Ay(:,:) = 0.0d0
-      Az(:,:) = 0.0d0
-      Axb(:,:) = 0.0d0
-      Ayb(:,:) = 0.0d0
-      Azb(:,:) = 0.0d0
-      phi(:,:) = 0.0d0
-
        !.......... calculate ex and ey and ez
        call efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
                                ex,ey,ez,esx,esy,esz,emx,emy,emz, &
                                model_push,model_boundary)
-
        !.......... calculate bx and by and bz
        call bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
                                bx,by,bz,bxbg,bybg,bzbg,bb, &
-                               model_push,model_boundary)
+                               model_push,model_boundary,dlen)
       do np=1,npmax
-         vparae(np)=vxe(np)
-         vperpe(np)=SQRT(vye(np)**2+vze(np)**2)
-         vparai(np)=vxi(np)
-         vperpi(np)=SQRT(vyi(np)**2+vzi(np)**2)
+         vparae(np)=vye(np)
+         vperpe(np)=SQRT(vxe(np)**2+vze(np)**2)
+         vparai(np)=vyi(np)
+         vperpi(np)=SQRT(vxi(np)**2+vzi(np)**2)
       end do
 
-      call kine(npmax,vxe,vye,vze,akine0,me)
-      call kine(npmax,vxi,vyi,vzi,akini0,mi)
+      call kine(npmax,vxe,vye,vze,akine0,me,vcfact)
+      call kine(npmax,vxi,vyi,vzi,akini0,mi,vcfact)
       call pote(nxmax,nymax,ex,ey,ez,bx,by,bz,bxbg,bybg,bzbg,vcfact, &
                 apote0,apotm0)
       call mtx_allreduce1_real8(akine0,3,sum,locv) ! sum
-      akine0=sum
+      akine0=sum/dble(nsize)
       call mtx_allreduce1_real8(akini0,3,sum,locv) ! sum
-      akini0=sum
-      call mtx_allreduce1_real8(apote0,3,sum,locv)  ! sum
-      apote0=sum
-      call mtx_allreduce1_real8(apotm0,3,sum,locv)  ! sum
-      apotm0=sum
+      akini0=sum/dble(nsize)
+      call mtx_allreduce1_real8(apote0,3,sum,locv) ! sum
+      apote0=sum/dble(nsize)
+      call mtx_allreduce1_real8(apotm0,3,sum,locv) ! sum
+      apotm0=sum/dble(nsize)
 
       aktot0 = akine0 + akini0
       aptot0 = apote0 + apotm0
@@ -139,45 +149,42 @@ CONTAINS
       implicit none
       real(8), dimension(npmax) :: x, y, z, xb, yb, zb, vx, vy, vz
       integer :: npmax, npxmax, npymax, nxmax, nymax, iran
-      real(8) :: vt, dt, factx, facty, rvx, rvy, rvz, densx, inter
-      integer :: npx, npy, np, all
+      real(8) :: vt, dt, factx, facty, rvx, rvy, rvz, densx, inter, position
+      integer :: npx, npy, np
 
       factx = dble(nxmax) / dble(npxmax)
       facty = dble(nymax) / dble(npymax)
       np = 0
-      if(densx .lt. 0.d0) then
+      if(densx .lt. 0.d0) then ! subroutine for uniform density
       do npy = 1, npymax
       do npx = 1, npxmax
-         np = np + 1
+        np = np + 1
          x(np) = (dble(npx) - 0.5d0 ) * factx
          y(np) = (dble(npy) - 0.5d0 ) * facty
-
          call gauss(rvx,rvy,rvz,iran)
-         vx(np) = rvx * vt 
+         vx(np) = rvx * vt
          vy(np) = rvy * vt
          vz(np) = rvz * vt
-
          xb(np) = x(np) - vx(np) * dt
          yb(np) = y(np) - vy(np) * dt
          zb(np) = z(np) - vz(np) * dt
-
       end do
       end do
-   else
-      inter = dble(nxmax) / dble(npxmax+1) / (1.0d0 - 0.5d0 * densx)
+   else ! subroutine for density gradient
+      inter = dble(nxmax)/((dble(npxmax)+1.0d0)*(1.0d0-0.5d0*densx))
       do npy = 1, npymax
-         all = 0
+        position = 0.d0
       do npx = 1, npxmax
          np = np + 1
-         all = all + npx - 1
-         x(np) = dble(npx) * inter - inter * dble(all) * densx / dble(npxmax)
+         position = position &
+                  + inter * (1.0d0 - densx * (dble(npx) - 1.0d0)/dble(npxmax))
+         x(np) = position
          y(np) = (dble(npy) - 0.5d0 ) * facty
 
          call gauss(rvx,rvy,rvz,iran)
-         vx(np) = rvx * vt 
+         vx(np) = rvx * vt
          vy(np) = rvy * vt
          vz(np) = rvz * vt
-
          xb(np) = x(np) - vx(np) * dt
          yb(np) = y(np) - vy(np) * dt
          zb(np) = z(np) - vz(np) * dt
@@ -185,14 +192,14 @@ CONTAINS
       end do
       end do
       end if
-    end subroutine iniset
+      end subroutine iniset
 
 !***********************************************************************
       subroutine gauss(rvx,rvy,rvz,iran)
 !***********************************************************************
       implicit none
       real(8) :: rvx, rvy, rvz, r1, r2, r3, rv
-      real(8) :: pi, twopi, eps, aln ,ab
+      real(8) :: pi, twopi, eps, aln
       real(8) :: rmod = 2147483648.d0, ramda = 65539.d0, wran
       integer :: iran
 
@@ -200,8 +207,6 @@ CONTAINS
       twopi = 2.d0 * pi
       eps   = 0.00247875d0
       aln   = 1.d0 - eps
-      call random_number(ab)
-
       !----- generate first random number
       if( iran .lt. 0 ) iran = -iran
       if( iran .eq. 0 ) iran = 3907
@@ -209,7 +214,6 @@ CONTAINS
       wran     = mod( ramda * wran, rmod )
       iran  = wran
       r1    = wran / rmod
-
       !----- generate second random number
       if( iran .lt. 0 ) iran = -iran
       if( iran .eq. 0 ) iran = 3907
@@ -218,7 +222,7 @@ CONTAINS
       iran  = wran
       r2    = wran / rmod
 
-       !----- generate third random number
+      !----- generate third random number
       if( iran .lt. 0 ) iran = -iran
       if( iran .eq. 0 ) iran = 3907
       wran     = iran
@@ -232,7 +236,6 @@ CONTAINS
       rvx = rv * cos( twopi * r2 ) * sin( twopi * r3 )
       rvy = rv * sin( twopi * r2 ) * sin( twopi * r3 )
       rvz = rv * cos( twopi * r3 )
-
     end subroutine gauss
-    
+
 END Module picprep
