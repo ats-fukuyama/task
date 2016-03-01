@@ -108,7 +108,7 @@ CONTAINS
        !.......... calculate bx and by and bz
        call bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
                                bx,by,bz,bxbg,bybg,bzbg,bb, &
-                               model_push,model_boundary)
+                               model_push,model_boundary,dlen)
       do np=1,npmax
          vparae(np)=vye(np)
          vperpe(np)=SQRT(vxe(np)**2+vze(np)**2)
@@ -172,8 +172,7 @@ CONTAINS
       end do
       end do
    else ! subroutine for density gradient
-      inter = dble(nxmax) / (dble(npxmax) + 1.0d0 &
-                          - densx * (dble(npxmax)+1.0d0)/2.0d0)
+      inter = dble(nxmax)/((dble(npxmax)+1.0d0)*(1.0d0-0.5d0*densx))
       do npy = 1, npymax
         position = 0.d0
       do npx = 1, npxmax

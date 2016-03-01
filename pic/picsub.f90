@@ -285,8 +285,8 @@ CONTAINS
     INTEGER:: model_push, model_boundary
 
     IF(model_boundary .EQ. 0) THEN
-       DO nx = 0, nymax
-          DO ny = 0, nxmax
+       DO nx = 0, nxmax
+          DO ny = 0, nymax
 
              nxm = nx - 1
              nxp = nx + 1
@@ -307,8 +307,8 @@ CONTAINS
           END DO
        END DO
     ELSE IF (model_boundary .NE. 0) THEN
-       DO nx = 0, nymax
-          DO ny = 0, nxmax
+       DO nx = 0, nxmax
+          DO ny = 0, nymax
 
              nxm = nx - 1
              nxp = nx + 1
@@ -417,7 +417,7 @@ CONTAINS
   !***********************************************************************
   SUBROUTINE bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
        bx,by,bz,bxbg,bybg,bzbg,bb, &
-       model_push,model_boundary)
+       model_push,model_boundary,dlen)
     !***********************************************************************
     IMPLICIT NONE
     REAL(8), DIMENSION(0:nymax) :: bxnab,bznab
@@ -426,7 +426,7 @@ CONTAINS
     REAL(8), DIMENSION(0:nxmax,0:nymax) :: Ax,Ay,Az,Axb,Ayb,Azb
     INTEGER :: nxmax, nymax, nx, ny, nxp, nyp, nxm, nym
     INTEGER:: model_push, model_boundary
-
+    REAL(8):: dlen,inv,x,y,xmax,ymax
     IF(model_boundary .EQ. 0) THEN
        DO ny = 0, nymax
           DO nx = 0, nxmax
@@ -515,6 +515,49 @@ CONTAINS
          +by(0:nxmax,0:nymax)**2 &
          +bz(0:nxmax,0:nymax)**2)
 
+        !  IF(model_boundary .EQ. 2) THEN !damping A in absorbing boundary
+        !     ilen = int(dlen)
+        !     inv = 1.0d0 / dlen
+        !     DO ny = 1,nymax
+        !        DO nx = nxmax-ilen,nxmax
+        !           x=DBLE(nx)
+        !           xmax=DBLE(nxmax)
+        !           bx(nx,ny) = bx(nx,ny)*(-1.0d0*inv**2*x**2 &
+        !                                  +2.0d0*inv**2*(xmax-dlen)*x&
+        !                                  +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
+        !           by(nx,ny) = by(nx,ny)*(-1.0d0*inv**2*x**2 &
+        !                                  +2.0d0*inv**2*(xmax-dlen)*x&
+        !                                  +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
+        !           bz(nx,ny) = bz(nx,ny)*(-1.0d0*inv**2*x**2 &
+        !                                  +2.0d0*inv**2*(xmax-dlen)*x&
+        !                                  +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
+        !        ENDDO
+        !     ENDDO
+        !     DO nx = 1,nxmax-ilen
+        !        DO ny = nymax-ilen/2,nymax
+        !           y=DBLE(ny)
+        !           ymax=DBLE(nymax)
+        !           bx(nx,ny) = bx(nx,ny)*(-1.0d0*inv**2*y**2 &
+        !                                  +2.0d0*inv**2*(ymax-dlen)*y &
+        !                                  +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
+        !           by(nx,ny) = by(nx,ny)*(-1.0d0*inv**2*y**2 &
+        !                                  +2.0d0*inv**2*(ymax-dlen)*y &
+        !                                  +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
+        !           bz(nx,ny) = bz(nx,ny)*(-1.0d0*inv**2*y**2 &
+        !                                  +2.0d0*inv**2*(ymax-dlen)*y &
+        !                                  +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
+        !        ENDDO
+        !     ENDDO
+        !     DO nx = 1, nxmax-ilen
+        !        DO ny = 1, ilen/2
+        !           y=DBLE(ny)
+        !           bx(nx,ny) = bx(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
+        !           by(nx,ny) = by(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
+        !           bz(nx,ny) = bz(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
+        !     ENDDO
+        !     ENDDO
+        !  ENDIF
+
   END SUBROUTINE bfield
 
   !***********************************************************************
@@ -545,43 +588,40 @@ CONTAINS
     REAL(8), DIMENSION(0:nxmax,0:nymax) :: ex,ey,ez,bx,by,bz,bxbg,bybg,bzbg
     REAL(8) :: apote,apotm,vcfact
     INTEGER(4) :: nxmax, nymax, nx, ny
-
+        
     apote = 0.d0
     apotm = 0.d0
-
     DO ny = 1, nymax-1
        DO nx = 1, nxmax-1
-          apote = apote + (ex(nx,ny)**2 + ey(nx,ny)**2 + ez(nx,ny)**2)
-          apotm = apotm + ((bx(nx,ny)-bxbg(nx,nx))**2 &
-               + (by(nx,ny)-bybg(nx,nx))**2 &
-               + (bz(nx,ny)-bzbg(nx,nx))**2)
-       END DO
+          apote = apote + ex(nx,ny)**2 + ey(nx,ny)**2 + ez(nx,ny)**2
+          apotm = apotm + (bx(nx,ny)-bxbg(nx,ny))**2 &
+               + (by(nx,ny)-bybg(nx,ny))**2 &
+               + (bz(nx,ny)-bzbg(nx,ny))**2
     END DO
-
+    END DO
     DO nx = 0, nxmax,nxmax
        DO ny = 1, nymax-1
           apote = apote + 0.5D0*(ex(nx,ny)**2+ey(nx,ny)**2+ez(nx,ny)**2)
-          apotm = apotm + 0.5D0*((bx(nx,ny)-bxbg(nx,nx))**2 &
-               + (by(nx,ny)-bybg(nx,nx))**2 &
-               + (bz(nx,ny)-bzbg(nx,nx))**2)
+          apotm = apotm + 0.5D0*((bx(nx,ny)-bxbg(nx,ny))**2 &
+               + (by(nx,ny)-bybg(nx,ny))**2 &
+               + (bz(nx,ny)-bzbg(nx,ny))**2)
        END DO
     END DO
 
     DO ny = 0, nymax,nymax
        DO nx = 1, nxmax-1
           apote = apote + 0.5D0*(ex(nx,ny)**2+ey(nx,ny)**2+ez(nx,ny)**2)
-          apotm = apotm + 0.5D0*((bx(nx,ny)-bxbg(nx,nx))**2 &
-               + (by(nx,ny)-bybg(nx,nx))**2 &
-               + (bz(nx,ny)-bzbg(nx,nx))**2)
+          apotm = apotm + 0.5D0*((bx(nx,ny)-bxbg(nx,ny))**2 &
+               + (by(nx,ny)-bybg(nx,ny))**2 &
+               + (bz(nx,ny)-bzbg(nx,ny))**2)
        END DO
     END DO
-
     DO ny = 0, nymax,nymax
        DO nx = 0, nxmax,nxmax
           apote = apote + 0.25D0*(ex(nx,ny)**2+ey(nx,ny)**2+ez(nx,ny)**2)
-          apotm = apotm + 0.25D0*((bx(nx,ny)-bxbg(nx,nx))**2 &
-               + (by(nx,ny)-bybg(nx,nx))**2 &
-               + (bz(nx,ny)-bzbg(nx,nx))**2)
+          apotm = apotm + 0.25D0*((bx(nx,ny)-bxbg(nx,ny))**2 &
+               + (by(nx,ny)-bybg(nx,ny))**2 &
+               + (bz(nx,ny)-bzbg(nx,ny))**2)
        END DO
     END DO
     apote = 0.5D0 * apote / (DBLE(nxmax)*DBLE(nymax))
