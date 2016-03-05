@@ -285,8 +285,8 @@ CONTAINS
     INTEGER:: model_push, model_boundary,ilen
 
     IF(model_boundary .EQ. 0) THEN
-       DO nx = 0, nymax
-          DO ny = 0, nxmax
+       DO nx = 0, nxmax
+          DO ny = 0, nymax
 
              nxm = nx - 1
              nxp = nx + 1
@@ -307,8 +307,8 @@ CONTAINS
           END DO
        END DO
     ELSE IF (model_boundary .NE. 0) THEN
-       DO nx = 0, nymax
-          DO ny = 0, nxmax
+       DO nx = 0, nxmax
+          DO ny = 0, nymax
 
              nxm = nx - 1
              nxp = nx + 1
@@ -641,36 +641,36 @@ CONTAINS
     DO ny = 1, nymax-1
        DO nx = 1, nxmax-1
           apote = apote + (ex(nx,ny)**2 + ey(nx,ny)**2 + ez(nx,ny)**2)
-          apotm = apotm + ((bx(nx,ny)-bxbg(nx,nx))**2 &
-               + (by(nx,ny)-bybg(nx,nx))**2 &
-               + (bz(nx,ny)-bzbg(nx,nx))**2)
+          apotm = apotm + ((bx(nx,ny)-bxbg(nx,ny))**2 &
+               + (by(nx,ny)-bybg(nx,ny))**2 &
+               + (bz(nx,ny)-bzbg(nx,ny))**2)
        END DO
     END DO
 
     DO nx = 0, nxmax,nxmax
        DO ny = 1, nymax-1
           apote = apote + 0.5D0*(ex(nx,ny)**2+ey(nx,ny)**2+ez(nx,ny)**2)
-          apotm = apotm + 0.5D0*((bx(nx,ny)-bxbg(nx,nx))**2 &
-               + (by(nx,ny)-bybg(nx,nx))**2 &
-               + (bz(nx,ny)-bzbg(nx,nx))**2)
+          apotm = apotm + 0.5D0*((bx(nx,ny)-bxbg(nx,ny))**2 &
+               + (by(nx,ny)-bybg(nx,ny))**2 &
+               + (bz(nx,ny)-bzbg(nx,ny))**2)
        END DO
     END DO
 
     DO ny = 0, nymax,nymax
        DO nx = 1, nxmax-1
           apote = apote + 0.5D0*(ex(nx,ny)**2+ey(nx,ny)**2+ez(nx,ny)**2)
-          apotm = apotm + 0.5D0*((bx(nx,ny)-bxbg(nx,nx))**2 &
-               + (by(nx,ny)-bybg(nx,nx))**2 &
-               + (bz(nx,ny)-bzbg(nx,nx))**2)
+          apotm = apotm + 0.5D0*((bx(nx,ny)-bxbg(nx,ny))**2 &
+               + (by(nx,ny)-bybg(nx,ny))**2 &
+               + (bz(nx,ny)-bzbg(nx,ny))**2)
        END DO
     END DO
 
     DO ny = 0, nymax,nymax
        DO nx = 0, nxmax,nxmax
           apote = apote + 0.25D0*(ex(nx,ny)**2+ey(nx,ny)**2+ez(nx,ny)**2)
-          apotm = apotm + 0.25D0*((bx(nx,ny)-bxbg(nx,nx))**2 &
-               + (by(nx,ny)-bybg(nx,nx))**2 &
-               + (bz(nx,ny)-bzbg(nx,nx))**2)
+          apotm = apotm + 0.25D0*((bx(nx,ny)-bxbg(nx,ny))**2 &
+               + (by(nx,ny)-bybg(nx,ny))**2 &
+               + (bz(nx,ny)-bzbg(nx,ny))**2)
        END DO
     END DO
     apote = 0.5D0 * apote / (DBLE(nxmax)*DBLE(nymax))

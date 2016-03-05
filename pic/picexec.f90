@@ -76,9 +76,9 @@ CONTAINS
        jy(:,:)=0.d0
        jz(:,:)=0.d0
        CALL current(npmax,nxmax,nymax,xe,ye,xeb,yeb,vxe,vye,vze,chrge&
-       ,jx,jy,jz, model_boundary)
+                    ,jx,jy,jz, model_boundary)
        CALL current(npmax,nxmax,nymax,xi,yi,xib,yib,vxi,vyi,vzi,chrgi&
-       ,jx,jy,jz, model_boundary)
+                    ,jx,jy,jz, model_boundary)
        IF (model_antenna .EQ. 1) THEN
           CALL antenna(nxmax,nymax,jxant,jyant,jzant,phxant,phyant,phzant, &
                omega,time,jx,jy,jz)
@@ -1470,7 +1470,7 @@ CONTAINS
         ENDDO
      ENDIF
 
-    IF(model_boundary .eq. 1) THEN ! boundary condition for reflection
+    IF(model_boundary .ne. 0) THEN ! boundary condition for reflection
     DO ny = 1, nymax-1
       Ax(0,ny) = 0.5d0 * Ax(1,ny)
       Ax(nxmax,ny) = 0.5d0 * Ax(nxmax-1,ny)
@@ -1511,7 +1511,7 @@ CONTAINS
                                                 -2.d0*Azb(nx,1)+Azb(nx-1,1))
 
        Ax(nx,nymax)=-Axbb(nx,nymax-1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-               *(Ax(nx,nymax-1)+Axbb(nx,nymax)) &
+                *(Ax(nx,nymax-1)+Axbb(nx,nymax)) &
                +2.d0/(vcfact*dt+1.d0)*(Axb(nx,nymax)+Axb(nx,nymax-1))&
                +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
                *(Axb(nx+1,nymax)-2.d0*Axb(nx,nymax) &
@@ -1574,13 +1574,13 @@ CONTAINS
     !            *(Ayb(0,ny+1)-2.d0*Ayb(0,ny)&
     !            +Ayb(n0,ny-1)+Ayb(nxmax-1,ny+1)&
     !            -2.d0*Ayb(nxmax,ny)+Ayb(nxmax-1,ny-1))
-    !    Az(0,ny)=-Azbb(nxmax-1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-    !            *(Az(nxmax-1,ny)+Azbb(nxmax,ny)) &
-    !            +2.d0/(vcfact*dt+1.d0)*(Azb(nxmax,ny)+Azb(nxmax-1,ny))&
+    !    Az(0,ny)=-Azbb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+    !            *(Az(1,ny)+Azbb(nxmax,ny)) &
+    !            +2.d0/(vcfact*dt+1.d0)*(Azb(0,ny)+Azb(1,ny))&
     !            +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-    !            *(Azb(nxmax,ny+1)-2.d0*Azb(nxmax,ny)&
-    !            +Azb(nxmax,ny-1)+Azb(nxmax-1,ny+1)&
-    !            -2.d0*Azb(nxmax,ny)+Azb(nxmax-1,ny-1))
+    !            *(Azb(0,ny+1)-2.d0*Azb(0,ny)&
+    !            +Azb(0,ny-1)+Azb(1,ny+1)&
+    !            -2.d0*Azb(1,ny)+Azb(1,ny-1))
     !  ENDDO
 
     SELECT CASE(model_wg)
