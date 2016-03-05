@@ -70,7 +70,6 @@ CONTAINS
           CALL poisson_m(nxmax1,nymax1,rho,phi,ipssn, &
                 model_matrix0,model_matrix1,model_matrix2, &
                 tolerance_matrix,model_boundary,dlen)
-          !CALL mtx_broadcast2D_real8(phi,nxmax,nxymax,nymax)
        ENDIF
        !----- current assignment
        jx(:,:)=0.d0
@@ -84,7 +83,7 @@ CONTAINS
           CALL antenna(nxmax,nymax,jxant,jyant,jzant,phxant,phyant,phzant, &
                omega,time,jx,jy,jz)
        END IF
-
+        
        CALL boundary_j(nxmax,nymax,jx,jy,jz,model_boundary)
        !..... sum current densities over cores
        CALL mtx_allreduce_real8(jx,nxymax,3,suma,locva)
@@ -988,8 +987,8 @@ CONTAINS
 
     DO np = 1, npmax
 
-       nxp = (x(np)+xb(np))/2.d0
-       nyp = (y(np)+yb(np))/2.d0
+       nxp = int((x(np)+xb(np))/2.d0)
+       nyp = int((y(np)+yb(np))/2.d0)
        dx = (x(np)+xb(np))/2.d0 - DBLE(nxp)
        dy = (y(np)+yb(np))/2.d0 - DBLE(nyp)
        dx1 = 1.0d0 - dx
@@ -1470,7 +1469,7 @@ CONTAINS
        ENDDO
     ENDIF
 
-    IF(model_boundary .eq. 1) THEN ! boundary condition for reflection
+    IF(model_boundary .ne. 0) THEN ! boundary condition for reflection
     DO ny = 1, nymax-1
       Ax(0,ny) = 0.5d0 * Ax(1,ny)
       Ax(nxmax,ny) = 0.5d0 * Ax(nxmax-1,ny)
@@ -1493,51 +1492,51 @@ CONTAINS
    ENDIF
 
      IF(model_boundary .eq. 3) THEN ! Mur's absorbing boundary condition
-     DO nx = 1, nxmax-1
-       Ax(nx,0)=-Axbb(nx,1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-               *(Ax(nx,1)+Axbb(nx,0)) &
-               +2.d0/(vcfact*dt+1.d0)*(Axb(nx,0)+Axb(nx,1))&
-               +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))*(Axb(nx+1,0)-2.d0*Axb(nx,0)&
-                                                +Axb(nx-1,0)+Axb(nx+1,1)&
-                                                -2.d0*Axb(nx,1)+Axb(nx-1,1))
-       Ay(nx,0)=-Aybb(nx,1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-               *(Ay(nx,1)+Aybb(nx,0))&
-               +2.d0/(vcfact*dt+1.d0)*(Ayb(nx,0)+Ayb(nx,1))&
-               +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))*(Ayb(nx+1,0)-2.d0*Ayb(nx,0)&
-                                                +Ayb(nx-1,0)+Ayb(nx+1,1)&
-                                                -2.d0*Ayb(nx,1)+Ayb(nx-1,1))
-       Az(nx,0)=-Azbb(nx,1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-               *(Az(nx,1)+Azbb(nx,0))&
-               +2.d0/(vcfact*dt+1.d0)*(Azb(nx,0)+Azb(nx,1))&
-               +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))*(Azb(nx+1,0)-2.d0*Azb(nx,0)&
-                                                +Azb(nx-1,0)+Azb(nx+1,1)&
-                                                -2.d0*Azb(nx,1)+Azb(nx-1,1))
-
-       Ax(nx,nymax)=-Axbb(nx,nymax-1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-               *(Ax(nx,nymax-1)+Axbb(nx,nymax)) &
-               +2.d0/(vcfact*dt+1.d0)*(Axb(nx,nymax)+Axb(nx,nymax-1))&
-               +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-               *(Axb(nx+1,nymax)-2.d0*Axb(nx,nymax) &
-               +Axb(nx-1,nymax)+Axb(nx+1,nymax-1)&
-               -2.d0*Axb(nx,nymax-1)+Axb(nx-1,nymax-1))
-
-       Ay(nx,nymax)=-Aybb(nx,nymax-1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-               *(Ay(nx,nymax-1)+Aybb(nx,nymax))&
-               +2.d0/(vcfact*dt+1.d0)*(Ayb(nx,nymax)+Ayb(nx,nymax-1))&
-               +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0)) &
-               *(Ayb(nx+1,nymax)-2.d0*Ayb(nx,nymax)&
-               +Ayb(nx-1,nymax)+Ayb(nx+1,nymax-1)&
-               -2.d0*Ayb(nx,nymax-1)+Ayb(nx-1,nymax-1))
-
-       Az(nx,nymax)=-Azbb(nx,nymax-1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-               *(Az(nx,nymax-1)+Azbb(nx,nymax))&
-               +2.d0/(vcfact*dt+1.d0)*(Azb(nx,nymax)+Azb(nx,nymax-1))&
-               +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-               *(Azb(nx+1,nymax)-2.d0*Azb(nx,nymax)&
-               +Azb(nx-1,nymax)+Azb(nx+1,nymax-1)&
-               -2.d0*Azb(nx,nymax-1)+Azb(nx-1,nymax-1))
-
-     ENDDO
+!     DO nx = 1, nxmax-1
+!       Ax(nx,0)=-Axbb(nx,1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+!               *(Ax(nx,1)+Axbb(nx,0)) &
+!               +2.d0/(vcfact*dt+1.d0)*(Axb(nx,0)+Axb(nx,1))&
+!               +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))*(Axb(nx+1,0)-2.d0*Axb(nx,0)&
+!                                                +Axb(nx-1,0)+Axb(nx+1,1)&
+!                                                -2.d0*Axb(nx,1)+Axb(nx-1,1))
+!       Ay(nx,0)=-Aybb(nx,1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+!               *(Ay(nx,1)+Aybb(nx,0))&
+!               +2.d0/(vcfact*dt+1.d0)*(Ayb(nx,0)+Ayb(nx,1))&
+!               +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))*(Ayb(nx+1,0)-2.d0*Ayb(nx,0)&
+!                                                +Ayb(nx-1,0)+Ayb(nx+1,1)&
+!                                                -2.d0*Ayb(nx,1)+Ayb(nx-1,1))
+!       Az(nx,0)=-Azbb(nx,1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+!               *(Az(nx,1)+Azbb(nx,0))&
+!               +2.d0/(vcfact*dt+1.d0)*(Azb(nx,0)+Azb(nx,1))&
+!               +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))*(Azb(nx+1,0)-2.d0*Azb(nx,0)&
+!                                                +Azb(nx-1,0)+Azb(nx+1,1)&
+!                                                -2.d0*Azb(nx,1)+Azb(nx-1,1))
+!
+!       Ax(nx,nymax)=-Axbb(nx,nymax-1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+!               *(Ax(nx,nymax-1)+Axbb(nx,nymax)) &
+!               +2.d0/(vcfact*dt+1.d0)*(Axb(nx,nymax)+Axb(nx,nymax-1))&
+!               +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+!               *(Axb(nx+1,nymax)-2.d0*Axb(nx,nymax) &
+!               +Axb(nx-1,nymax)+Axb(nx+1,nymax-1)&
+!               -2.d0*Axb(nx,nymax-1)+Axb(nx-1,nymax-1))
+!
+!       Ay(nx,nymax)=-Aybb(nx,nymax-1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+!               *(Ay(nx,nymax-1)+Aybb(nx,nymax))&
+!               +2.d0/(vcfact*dt+1.d0)*(Ayb(nx,nymax)+Ayb(nx,nymax-1))&
+!               +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0)) &
+!               *(Ayb(nx+1,nymax)-2.d0*Ayb(nx,nymax)&
+!               +Ayb(nx-1,nymax)+Ayb(nx+1,nymax-1)&
+!               -2.d0*Ayb(nx,nymax-1)+Ayb(nx-1,nymax-1))
+!
+!       Az(nx,nymax)=-Azbb(nx,nymax-1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+!               *(Az(nx,nymax-1)+Azbb(nx,nymax))&
+!               +2.d0/(vcfact*dt+1.d0)*(Azb(nx,nymax)+Azb(nx,nymax-1))&
+!               +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+!               *(Azb(nx+1,nymax)-2.d0*Azb(nx,nymax)&
+!               +Azb(nx-1,nymax)+Azb(nx+1,nymax-1)&
+!               -2.d0*Azb(nx,nymax-1)+Azb(nx-1,nymax-1))
+!
+!     ENDDO
      DO ny = 1, nymax-1
        Ax(nxmax,ny)=-Axbb(nxmax-1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
                *(Ax(nxmax-1,ny)+Axbb(nxmax,ny)) &
@@ -1569,21 +1568,21 @@ CONTAINS
     !            +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
     !            *(Axb(0,ny+1)-2.d0*Axb(0,ny)&
     !            +Axb(0,ny-1)+Axb(1,ny+1)&
-    !            -2.d0*Axb(0,ny)+Axb(1,ny-1))
+    !            -2.d0*Axb(1,ny)+Axb(1,ny-1))
     !    Ay(0,ny)=-Aybb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
     !            *(Ay(1,ny)+Aybb(0,ny)) &
     !            +2.d0/(vcfact*dt+1.d0)*(Ayb(0,ny)+Ayb(1,ny))&
     !            +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
     !            *(Ayb(0,ny+1)-2.d0*Ayb(0,ny)&
     !            +Ayb(n0,ny-1)+Ayb(nxmax-1,ny+1)&
-    !            -2.d0*Ayb(nxmax,ny)+Ayb(nxmax-1,ny-1))
-    !    Az(0,ny)=-Azbb(nxmax-1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-    !            *(Az(nxmax-1,ny)+Azbb(nxmax,ny)) &
+    !            -2.d0*Ayb(nxmax-1,ny)+Ayb(nxmax-1,ny-1))
+    !    Az(0,ny)=-Azbb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+    !            *(Az(1,ny)+Azbb(nxmax,ny)) &
     !            +2.d0/(vcfact*dt+1.d0)*(Azb(nxmax,ny)+Azb(nxmax-1,ny))&
     !            +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-    !            *(Azb(nxmax,ny+1)-2.d0*Azb(nxmax,ny)&
-    !            +Azb(nxmax,ny-1)+Azb(nxmax-1,ny+1)&
-    !            -2.d0*Azb(nxmax,ny)+Azb(nxmax-1,ny-1))
+    !            *(Azb(0,ny+1)-2.d0*Azb(0,ny)&
+    !            +Azb(0,ny-1)+Azb(1,ny+1)&
+    !            -2.d0*Azb(1,ny)+Azb(1,ny-1))
     !  ENDDO
 
     SELECT CASE(model_wg)

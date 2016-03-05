@@ -49,7 +49,7 @@ CONTAINS
       chrgi  =    1.0d0     !: ion charge
       te     =    1.0d0     !: electron temperature
       ti     =    1.0d0     !: ion temperature
-      densx  =    -1.0d0    !: x density gradient
+      densx  =    -1.0d0    !: density gradient in the direction of x
       bxmin  =    0.0d0     !: max value of background x magnetic flux density
       bxmax  =    0.0d0     !: min value of background x magnetic flux density
       bymin  =    0.0d0     !: min value of background y magnetic flux density
