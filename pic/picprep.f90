@@ -54,6 +54,12 @@ CONTAINS
       ex(:,:) = 0.d0
       ey(:,:) = 0.d0
       ez(:,:) = 0.d0
+      esx(:,:) = 0.d0
+      esy(:,:) = 0.d0
+      esz(:,:) = 0.d0
+      emx(:,:) = 0.d0
+      emy(:,:) = 0.d0
+      emz(:,:) = 0.d0
       bx(:,:) = 0.d0
       by(:,:) = 0.d0
       bz(:,:) = 0.d0
@@ -197,12 +203,12 @@ CONTAINS
          ! particle reflect condition on boundary
          IF( xb(np) .LT. x1 ) THEN
             xb(np) = -xb(np)
-         ELSEIF( x(np) .GT. x2 ) THEN
+         ELSEIF( xb(np) .GT. x2 ) THEN
             xb(np) = alx - (xb(np) - alx)
          ENDIF
          IF( yb(np) .LT. y1 ) THEN
             yb(np) = -yb(np)
-         ELSEIF( y(np) .GT. y2 ) THEN
+         ELSEIF( yb(np) .GT. y2 ) THEN
             yb(np) = aly - (yb(np) - aly)
          ENDIF
 

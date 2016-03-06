@@ -197,7 +197,7 @@ CONTAINS
     CALL mtx_setup(imax,istart,iend)
     irange=iend-istart+1
     status=1
-    ALLOCATE(x(irange))
+    ALLOCATE(x(imax))
     DO i=istart,iend
        l=MOD(i-1,isize)+1
        m=(i-1)/isize+1
@@ -224,18 +224,18 @@ CONTAINS
     CALL mtx_solve(model_matrix0,tolerance_matrix,its, &
          methodKSP=model_matrix1,methodPC=model_matrix2)
     !      IF((its.ne.0).and.(nrank.eq.0)) write(6,*) 'mtx_solve: its=',its
-    CALL mtx_get_vector(x)
+    CALL mtx_gather_vector(x)
     IF(mode.EQ.0) THEN
-       DO i=istart,iend
+       DO i=1,imax
           nx=MOD(i-1,isize)+1
           ny=(i-1)/isize+1
-          phi(nx+1,ny+1)=x(i-istart+1)
+          phi(nx+1,ny+1)=x(i)
        ENDDO
     ELSE
-       DO i=istart,iend
+       DO i=1,imax
           ny=MOD(i-1,isize)+1
           nx=(i-1)/isize+1
-          phi(nx+1,ny+1)=x(i-istart+1)
+          phi(nx+1,ny+1)=x(i)
        ENDDO
     END IF
     DEALLOCATE(x)
@@ -307,18 +307,18 @@ CONTAINS
           END DO
        END DO
     ELSE IF (model_boundary .NE. 0) THEN
-       DO nx = 0, nxmax
-          DO ny = 0, nymax
+       DO nx = 1, nxmax-1
+          DO ny = 1, nymax-1
 
              nxm = nx - 1
              nxp = nx + 1
              nym = ny - 1
              nyp = ny + 1
 
-             IF( nx .EQ. 0  )    nxm = 0
-             IF( nx .EQ. nxmax ) nxp = nxmax
-             IF( ny .EQ. 0  )    nym = 0
-             IF( ny .EQ. nymax ) nyp = nymax
+             !IF( nx .EQ. 0  )    nxm = 0
+             !IF( nx .EQ. nxmax ) nxp = nxmax
+             !IF( ny .EQ. 0  )    nym = 0
+             !IF( ny .EQ. nymax ) nyp = nymax
 
              esx(nx,ny) = 0.5d0 * ( phi(nxm,ny) - phi(nxp,ny))
              esy(nx,ny) = 0.5d0 * ( phi(nx,nym) - phi(nx,nyp))
@@ -331,12 +331,12 @@ CONTAINS
        END DO
        !boundary condition for electro static field
        DO ny = 1, nymax-1
-         esx(0,ny) = 0.5d0 * esx(1,ny)
-         esx(nxmax,ny) = 0.5d0 * esx(nxmax-1,ny)
+         esx(0,ny) = -0.5d0 * phi(1,ny)
+         esx(nxmax,ny) = 0.5d0 * phi(nxmax-1,ny)
        ENDDO
        DO nx = 1, nxmax-1
-         esy(nx,0) = 0.5d0 * esy(nx,1)
-         esy(nx,nymax) = 0.5d0 * esy(nx,nymax-1)
+         esy(nx,0) = -0.5d0 * phi(nx,1)
+         esy(nx,nymax) = 0.5d0 * phi(nx,nymax-1)
        ENDDO
 
        esx(:,0) = 0.d0

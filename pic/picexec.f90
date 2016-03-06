@@ -443,6 +443,7 @@ CONTAINS
 
        ! electric field and magnetic field
        IF(dx .LE. 0.5d0 .AND. dy .LE. 0.5d0) THEN
+
           exx = ex(nxpp,nypp)*dx*sy2p + ex(nxp ,nypp)*dx1*sy2p &
                + ex(nxpp,nyp )*dx*sy2  + ex(nxp ,nyp )*dx1*sy2  &
                + ex(nxpp,nypm)*dx*sy2m + ex(nxp ,nypm)*dx1*sy2m
@@ -484,6 +485,7 @@ CONTAINS
               + bz(nxpp,nyp)*dx*dy1 + bz(nxp,nyp)*dx1*dy1
 
        ELSE IF(dx .LE. 0.5d0 .AND. dy .GE. 0.5d0) THEN
+
           exx = ex(nxpp,nyppp)*dx*sy2p + ex(nxp ,nyppp)*dx1*sy2p &
                + ex(nxpp,nypp )*dx*sy2  + ex(nxp ,nypp )*dx1*sy2  &
                + ex(nxpp,nyp  )*dx*sy2m + ex(nxp ,nyp  )*dx1*sy2m
@@ -523,8 +525,8 @@ CONTAINS
           bzz = bz(nxpp,nypp)*dx*dy + bz(nxp,nypp)*dx1*dy &
               + bz(nxpp,nyp)*dx*dy1 + bz(nxp,nyp)*dx1*dy1
 
-
        ELSE IF(dx .GE. 0.5d0 .AND. dy .LE. 0.5d0) THEN
+
           exx = ex(nxpp,nypp)*dx*sy2p + ex(nxp ,nypp)*dx1*sy2p &
                + ex(nxpp,nyp )*dx*sy2  + ex(nxp ,nyp )*dx1*sy2  &
                + ex(nxpp,nypm)*dx*sy2m + ex(nxp ,nypm)*dx1*sy2m
@@ -565,6 +567,7 @@ CONTAINS
               + bz(nxpp,nyp)*dx*dy1 + bz(nxp,nyp)*dx1*dy1
 
        ELSE
+
           exx = ex(nxpp,nyppp)*dx*sy2p + ex(nxp ,nyppp)*dx1*sy2p &
                + ex(nxpp,nypp )*dx*sy2  + ex(nxp ,nypp )*dx1*sy2  &
                + ex(nxpp,nyp  )*dx*sy2m + ex(nxp ,nyp  )*dx1*sy2m
@@ -1793,24 +1796,24 @@ CONTAINS
           END DO
        END DO
     ELSE                         ! reflecting
-       DO i=1,imax
-          DO ny = 1, nymax-1
-             fxy(0,ny,i)     = 2.D0 * fxy(0,ny,i)
-             fxy(nxmax,ny,i) = 2.D0 * fxy(nxmax,ny,i)
-          END DO
-       END DO
-       DO i=1,imax
-          DO nx = 1, nxmax-1
-             fxy(nx,0,i)     = 2.D0 * fxy(nx,0,i)
-             fxy(nx,nymax,i) = 2.D0 * fxy(nx,nymax,i)
-          END DO
-       END DO
-       DO i=1,imax
-          fxy(0,0,i)         = 4.D0 * fxy(0,0,i)
-          fxy(0,nymax,i)     = 4.D0 * fxy(0,nymax,i)
-          fxy(nxmax,0,i)     = 4.D0 * fxy(nxmax,0,i)
-          fxy(nxmax,nymax,i) = 4.D0 * fxy(nxmax,nymax,i)
-       END DO
+        DO i=1,imax
+           DO ny = 1, nymax-1
+              fxy(0,ny,i)     = 2.D0 * fxy(0,ny,i)
+              fxy(nxmax,ny,i) = 2.D0 * fxy(nxmax,ny,i)
+           END DO
+        END DO
+        DO i=1,imax
+           DO nx = 1, nxmax-1
+              fxy(nx,0,i)     = 2.D0 * fxy(nx,0,i)
+              fxy(nx,nymax,i) = 2.D0 * fxy(nx,nymax,i)
+           END DO
+        END DO
+        DO i=1,imax
+           fxy(0,0,i)         = 4.D0 * fxy(0,0,i)
+           fxy(0,nymax,i)     = 4.D0 * fxy(0,nymax,i)
+           fxy(nxmax,0,i)     = 4.D0 * fxy(nxmax,0,i)
+           fxy(nxmax,nymax,i) = 4.D0 * fxy(nxmax,nymax,i)
+        END DO
     END IF
 
   END SUBROUTINE profile_boundary
