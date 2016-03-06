@@ -25,7 +25,7 @@ MODULE piccomm
 
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: ex,ey,ez,esx,esy,esz,emx,emy,emz
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: bx,by,bz,bxbg,bybg,bzbg
-  REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: rho,phi,phib,awk,jx,jy,jz,&
+  REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: rho,phi,phib,phibb,awk,jx,jy,jz,&
                                            Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: bb,AA
   REAL(rkind),ALLOCATABLE,DIMENSION(:):: xe,ye,ze,vxe,vye,vze, &
@@ -74,7 +74,8 @@ CONTAINS
     ALLOCATE(emx(0:nxmax,0:nymax),emy(0:nxmax,0:nymax),emz(0:nxmax,0:nymax))
     ALLOCATE(bx(0:nxmax,0:nymax),by(0:nxmax,0:nymax),bz(0:nxmax,0:nymax))
     ALLOCATE(bxbg(0:nxmax,0:nymax),bybg(0:nxmax,0:nymax),bzbg(0:nxmax,0:nymax))
-    ALLOCATE(rho(0:nxmax,0:nymax),phi(0:nxmax,0:nymax),phib(0:nxmax,0:nymax))
+    ALLOCATE(rho(0:nxmax,0:nymax))
+    ALLOCATE(phi(0:nxmax,0:nymax),phib(0:nxmax,0:nymax),phibb(0:nxmax,0:nymax))
     ALLOCATE(jx(0:nxmax,0:nymax),jy(0:nxmax,0:nymax),jz(0:nxmax,0:nymax))
     ALLOCATE(awk(nxmax,nymax))
     ALLOCATE(xe(npmax),ye(npmax),ze(npmax),vxe(npmax),vye(npmax),vze(npmax))
@@ -101,7 +102,7 @@ CONTAINS
     IF(ALLOCATED(ex)) THEN
        DEALLOCATE(ex,ey,ez,esx,esy,esz,emx,emy,emz)
        DEALLOCATE(bx,by,bz,bxbg,bybg,bzbg)
-       DEALLOCATE(rho,phi,phib,awk)
+       DEALLOCATE(rho,phi,phib,phibb,awk)
        DEALLOCATE(jx,jy,jz)
        DEALLOCATE(xe,ye,ze,vxe,vye,vze)
        DEALLOCATE(xi,yi,zi,vxi,vyi,vzi)

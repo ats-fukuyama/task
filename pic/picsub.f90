@@ -2,7 +2,7 @@
 
 MODULE picsub
   PRIVATE
-  PUBLIC poisson_f,poisson_m,efield,bfield,kine,pote
+  PUBLIC poisson_f,poisson_m,efield,bfield,kine,pote,absorb_phi
 
 CONTAINS
 
@@ -241,7 +241,7 @@ CONTAINS
     DEALLOCATE(x)
     status=2
     CALL mtx_cleanup
-    ! IF(model_boundary .EQ. 2) THEN !damping phi in absorbing boundary
+
     !    inv = 1.0d0 / dlen
     !    ilen = int(dlen)
     !    DO ny = 1,nymax
@@ -272,6 +272,41 @@ CONTAINS
     ! ENDIF
 
   END SUBROUTINE poisson_m
+
+  !***********************************************************************
+  SUBROUTINE absorb_phi(nxmax,nymax,phi,phib,phibb,dt,vcfact)
+  !***********************************************************************
+  IMPLICIT NONE
+  REAL(8),DIMENSION(0:nxmax,0:nymax) :: phi,phib,phibb
+  REAL(8) :: dt,vcfact
+  INTEGER :: nxmax,nymax,nx,ny
+  !aborobing boundary condition for phi
+
+  DO nx = 1, nxmax-1
+    phi(nx,0)=-phibb(nx,1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+            *(phi(nx,1)+phibb(nx,0)) &
+            +2.d0/(vcfact*dt+1.d0)*(phib(nx,0)+phib(nx,1))&
+            +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+            *(phib(nx+1,0)-2.d0*phib(nx,0)+phib(nx-1,0)+phib(nx+1,1)&
+             -2.d0*phib(nx,1)+phib(nx-1,1))
+    phi(nx,nymax)=-phibb(nx,nymax-1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+            *(phi(nx,nymax-1)+phibb(nx,nymax)) &
+            +2.d0/(vcfact*dt+1.d0)*(phib(nx,nymax)+phib(nx,nymax-1))&
+            +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+            *(phib(nx+1,nymax)-2.d0*phib(nx,nymax)+phib(nx-1,nymax)&
+            +phib(nx+1,nymax-1)-2.d0*phib(nx,nymax-1)+phib(nx-1,nymax-1))
+  END DO
+  DO ny = 1, nymax-1
+    phi(nxmax,ny)=-phibb(nxmax-1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+            *(phi(nxmax-1,ny)+phibb(nxmax,ny)) &
+            +2.d0/(vcfact*dt+1.d0)*(phib(nxmax,ny)+phib(nxmax-1,ny))&
+            +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+            *(phib(nxmax,ny+1)-2.d0*phib(nxmax,ny)&
+            +phib(nxmax,ny-1)+phib(nxmax-1,ny+1)&
+            -2.d0*phib(nxmax-1,ny)+phib(nxmax-1,ny-1))
+  ENDDO
+
+  END SUBROUTINE absorb_phi
 
   !***********************************************************************
   SUBROUTINE efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &

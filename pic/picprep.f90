@@ -75,6 +75,7 @@ CONTAINS
       Ay(:,:) = 0.d0
       Azb(:,:) = 0.d0
       Az(:,:) = 0.d0
+      phibb(:,:) = 0.d0
       phib(:,:) = 0.d0
       phi(:,:) = 0.d0
 
