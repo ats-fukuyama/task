@@ -593,11 +593,11 @@ CONTAINS
     apotm = 0.d0
     DO ny = 1, nymax-1
        DO nx = 1, nxmax-1
-          apote = apote + ex(nx,ny)**2 + ey(nx,ny)**2 + ez(nx,ny)**2
-          apotm = apotm + (bx(nx,ny)-bxbg(nx,ny))**2 &
+          apote = apote + (ex(nx,ny)**2 + ey(nx,ny)**2 + ez(nx,ny)**2)
+          apotm = apotm + ((bx(nx,ny)-bxbg(nx,ny))**2 &
                + (by(nx,ny)-bybg(nx,ny))**2 &
-               + (bz(nx,ny)-bzbg(nx,ny))**2
-    END DO
+               + (bz(nx,ny)-bzbg(nx,ny))**2)
+       END DO
     END DO
     DO nx = 0, nxmax,nxmax
        DO ny = 1, nymax-1
