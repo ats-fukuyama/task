@@ -72,7 +72,7 @@ CONTAINS
                model_matrix0,model_matrix1,model_matrix2, &
                tolerance_matrix,model_boundary,dlen)
        END IF
-       IF(model_boundary.EQ.3) THEN
+       IF(model_boundary.EQ.2) THEN
          CALL absorb_phi(nxmax,nymax,phi,phib,phibb,dt,vcfact)
        ENDIF
        !----- current assignment
@@ -1434,48 +1434,48 @@ CONTAINS
 
        END DO
     END DO
-     IF(model_boundary .EQ. 2) THEN !damping A in evanescent boundary
-        ilen = int(dlen)
-        inv = 1.0d0 / dlen
-        DO ny = 1,nymax
-           DO nx = nxmax-ilen,nxmax
-              x=DBLE(nx)
-              xmax=DBLE(nxmax)
-              Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*x**2 &
-                                     +2.0d0*inv**2*(xmax-dlen)*x&
-                                     +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
-              Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*x**2 &
-                                     +2.0d0*inv**2*(xmax-dlen)*x&
-                                     +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
-              Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*x**2 &
-                                     +2.0d0*inv**2*(xmax-dlen)*x&
-                                    +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
-           ENDDO
-        ENDDO
-        DO nx = 1,nxmax-ilen
-           DO ny = nymax-ilen/2,nymax
-              y=DBLE(ny)
-              ymax=DBLE(nymax)
-              Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*y**2 &
-                                     +2.0d0*inv**2*(ymax-dlen)*y &
-                                     +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
-              Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*y**2 &
-                                     +2.0d0*inv**2*(ymax-dlen)*y &
-                                     +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
-              Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*y**2 &
-                                     +2.0d0*inv**2*(ymax-dlen)*y &
-                                    +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
-           ENDDO
-        ENDDO
-        DO nx = 1, nxmax-ilen
-           DO ny = 1, ilen/2
-              y=DBLE(ny)
-              Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
-              Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
-              Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
-           ENDDO
-        ENDDO
-     ENDIF
+    !  IF(model_boundary .EQ. 2) THEN !damping A in evanescent boundary
+    !     ilen = int(dlen)
+    !     inv = 1.0d0 / dlen
+    !     DO ny = 1,nymax
+    !        DO nx = nxmax-ilen,nxmax
+    !           x=DBLE(nx)
+    !           xmax=DBLE(nxmax)
+    !           Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*x**2 &
+    !                                  +2.0d0*inv**2*(xmax-dlen)*x&
+    !                                  +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
+    !           Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*x**2 &
+    !                                  +2.0d0*inv**2*(xmax-dlen)*x&
+    !                                  +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
+    !           Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*x**2 &
+    !                                  +2.0d0*inv**2*(xmax-dlen)*x&
+    !                                 +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
+    !        ENDDO
+    !     ENDDO
+    !     DO nx = 1,nxmax-ilen
+    !        DO ny = nymax-ilen/2,nymax
+    !           y=DBLE(ny)
+    !           ymax=DBLE(nymax)
+    !           Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*y**2 &
+    !                                  +2.0d0*inv**2*(ymax-dlen)*y &
+    !                                  +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
+    !           Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*y**2 &
+    !                                  +2.0d0*inv**2*(ymax-dlen)*y &
+    !                                  +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
+    !           Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*y**2 &
+    !                                  +2.0d0*inv**2*(ymax-dlen)*y &
+    !                                 +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
+    !        ENDDO
+    !     ENDDO
+    !     DO nx = 1, nxmax-ilen
+    !        DO ny = 1, ilen/2
+    !           y=DBLE(ny)
+    !           Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
+    !           Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
+    !           Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
+    !        ENDDO
+    !     ENDDO
+    !  ENDIF
 
     IF(model_boundary .ne. 0) THEN ! boundary condition for reflection
      Ay(0,:)=0.d0
@@ -1488,7 +1488,7 @@ CONTAINS
      Az(:,nymax)=0.d0
    ENDIF
 
-     IF(model_boundary .eq. 3) THEN ! Mur's absorbing boundary condition
+     IF(model_boundary .eq. 2) THEN ! Mur's absorbing boundary condition
      DO nx = 1, nxmax-1
        Ax(nx,0)=-Axbb(nx,1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
                *(Ax(nx,1)+Axbb(nx,0)) &
