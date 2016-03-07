@@ -2,7 +2,7 @@
 
 MODULE picsub
   PRIVATE
-  PUBLIC poisson_f,poisson_m,efield,bfield,kine,pote
+  PUBLIC poisson_f,poisson_m,efield,bfield,kine,pote,absorb_phi
 
 CONTAINS
 
@@ -224,7 +224,6 @@ CONTAINS
          methodKSP=model_matrix1,methodPC=model_matrix2)
     !      IF((its.ne.0).and.(nrank.eq.0)) write(6,*) 'mtx_solve: its=',its
     CALL mtx_gather_vector(x)
-    !write(nrank+20,*) (x(i),i=1,imax)
     IF(mode.EQ.0) THEN
        DO i=1,imax
           nx=MOD(i-1,isize)+1
@@ -271,6 +270,41 @@ CONTAINS
     !ENDIF
 
   END SUBROUTINE poisson_m
+
+  !***********************************************************************
+  SUBROUTINE absorb_phi(nxmax,nymax,phi,phib,phibb,dt,vcfact)
+  !***********************************************************************
+  IMPLICIT NONE
+  REAL(8),DIMENSION(0:nxmax,0:nymax) :: phi,phib,phibb
+  REAL(8) :: dt,vcfact
+  INTEGER :: nxmax,nymax,nx,ny
+  !aborobing boundary condition for phi
+
+  DO nx = 1, nxmax-1
+    phi(nx,0)=-phibb(nx,1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+            *(phi(nx,1)+phibb(nx,0)) &
+            +2.d0/(vcfact*dt+1.d0)*(phib(nx,0)+phib(nx,1))&
+            +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+            *(phib(nx+1,0)-2.d0*phib(nx,0)+phib(nx-1,0)+phib(nx+1,1)&
+             -2.d0*phib(nx,1)+phib(nx-1,1))
+    phi(nx,nymax)=-phibb(nx,nymax-1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+            *(phi(nx,nymax-1)+phibb(nx,nymax)) &
+            +2.d0/(vcfact*dt+1.d0)*(phib(nx,nymax)+phib(nx,nymax-1))&
+            +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+            *(phib(nx+1,nymax)-2.d0*phib(nx,nymax)+phib(nx-1,nymax)&
+            +phib(nx+1,nymax-1)-2.d0*phib(nx,nymax-1)+phib(nx-1,nymax-1))
+  END DO
+  DO ny = 1, nymax-1
+    phi(nxmax,ny)=-phibb(nxmax-1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+            *(phi(nxmax-1,ny)+phibb(nxmax,ny)) &
+            +2.d0/(vcfact*dt+1.d0)*(phib(nxmax,ny)+phib(nxmax-1,ny))&
+            +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+            *(phib(nxmax,ny+1)-2.d0*phib(nxmax,ny)&
+            +phib(nxmax,ny-1)+phib(nxmax-1,ny+1)&
+            -2.d0*phib(nxmax-1,ny)+phib(nxmax-1,ny-1))
+  ENDDO
+
+  END SUBROUTINE absorb_phi
 
   !***********************************************************************
   SUBROUTINE efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
@@ -331,12 +365,12 @@ CONTAINS
        END DO
        !boundary condition for electro static field
        DO ny = 1, nymax-1
-         esx(0,ny) = - 0.5d0*phi(1,ny)
-         esx(nxmax,ny) = 0.5d0*phi(nxmax-1,ny)
+         esx(0,ny) = -0.5d0 * phi(1,ny)
+         esx(nxmax,ny) = 0.5d0 * phi(nxmax-1,ny)
        ENDDO
        DO nx = 1, nxmax-1
-         esy(nx,0) = - 0.5d0*phi(nx,1)
-         esy(nx,nymax) = 0.5d0*phi(nx,nymax-1)
+         esy(nx,0) = -0.5d0 * phi(nx,1)
+         esy(nx,nymax) = 0.5d0 * phi(nx,nymax-1)
        ENDDO
        esx(:,0) = 0.d0
        esx(:,nymax) = 0.d0
