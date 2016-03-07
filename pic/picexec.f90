@@ -10,7 +10,7 @@ CONTAINS
   SUBROUTINE pic_exec(iout)
 
     USE piccomm
-    USE picsub,ONLY: poisson_f,poisson_m,efield,bfield,kine,pote
+    USE picsub,ONLY: poisson_f,poisson_m,efield,bfield,kine,pote,absorb_phi
     USE piclib
     USE libmpi
     IMPLICIT NONE
@@ -46,6 +46,7 @@ CONTAINS
              Axb(nx,ny)  = Ax(nx,ny)
              Ayb(nx,ny)  = Ay(nx,ny)
              Azb(nx,ny)  = Az(nx,ny)
+             phibb(nx,ny) = phib(nx,ny)
              phib(nx,ny) = phi(nx,ny)
           END DO
        END DO
@@ -71,14 +72,17 @@ CONTAINS
                model_matrix0,model_matrix1,model_matrix2, &
                tolerance_matrix,model_boundary,dlen)
        END IF
+       IF(model_boundary.EQ.2) THEN
+         CALL absorb_phi(nxmax,nymax,phi,phib,phibb,dt,vcfact)
+       ENDIF
        !----- current assignment
        jx(:,:)=0.d0
        jy(:,:)=0.d0
        jz(:,:)=0.d0
        CALL current(npmax,nxmax,nymax,xe,ye,xeb,yeb,vxe,vye,vze,chrge&
-       ,jx,jy,jz, model_boundary)
+                    ,jx,jy,jz, model_boundary)
        CALL current(npmax,nxmax,nymax,xi,yi,xib,yib,vxi,vyi,vzi,chrgi&
-       ,jx,jy,jz, model_boundary)
+                    ,jx,jy,jz, model_boundary)
        IF (model_antenna .EQ. 1) THEN
           CALL antenna(nxmax,nymax,jxant,jyant,jzant,phxant,phyant,phzant, &
                omega,time,jx,jy,jz)
@@ -105,10 +109,10 @@ CONTAINS
        END DO
        !.......... calculate vector potential
        IF(model_boundary .EQ. 0) THEN
-          CALL phia_periodic(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
+          CALL vector_p_periodic(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
                Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
        ELSE
-          CALL phia_reflective(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
+          CALL vector_p_reflective(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
                Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
                model_wg,xmin_wg,xmax_wg,ymin_wg,ymax_wg, &
                amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi,&
@@ -443,6 +447,7 @@ CONTAINS
 
        ! electric field and magnetic field
        IF(dx .LE. 0.5d0 .AND. dy .LE. 0.5d0) THEN
+
           exx = ex(nxpp,nypp)*dx*sy2p + ex(nxp ,nypp)*dx1*sy2p &
                + ex(nxpp,nyp )*dx*sy2  + ex(nxp ,nyp )*dx1*sy2  &
                + ex(nxpp,nypm)*dx*sy2m + ex(nxp ,nypm)*dx1*sy2m
@@ -484,6 +489,7 @@ CONTAINS
               + bz(nxpp,nyp)*dx*dy1 + bz(nxp,nyp)*dx1*dy1
 
        ELSE IF(dx .LE. 0.5d0 .AND. dy .GE. 0.5d0) THEN
+
           exx = ex(nxpp,nyppp)*dx*sy2p + ex(nxp ,nyppp)*dx1*sy2p &
                + ex(nxpp,nypp )*dx*sy2  + ex(nxp ,nypp )*dx1*sy2  &
                + ex(nxpp,nyp  )*dx*sy2m + ex(nxp ,nyp  )*dx1*sy2m
@@ -523,8 +529,8 @@ CONTAINS
           bzz = bz(nxpp,nypp)*dx*dy + bz(nxp,nypp)*dx1*dy &
               + bz(nxpp,nyp)*dx*dy1 + bz(nxp,nyp)*dx1*dy1
 
-
        ELSE IF(dx .GE. 0.5d0 .AND. dy .LE. 0.5d0) THEN
+
           exx = ex(nxpp,nypp)*dx*sy2p + ex(nxp ,nypp)*dx1*sy2p &
                + ex(nxpp,nyp )*dx*sy2  + ex(nxp ,nyp )*dx1*sy2  &
                + ex(nxpp,nypm)*dx*sy2m + ex(nxp ,nypm)*dx1*sy2m
@@ -565,6 +571,7 @@ CONTAINS
               + bz(nxpp,nyp)*dx*dy1 + bz(nxp,nyp)*dx1*dy1
 
        ELSE
+
           exx = ex(nxpp,nyppp)*dx*sy2p + ex(nxp ,nyppp)*dx1*sy2p &
                + ex(nxpp,nypp )*dx*sy2  + ex(nxp ,nypp )*dx1*sy2  &
                + ex(nxpp,nyp  )*dx*sy2m + ex(nxp ,nyp  )*dx1*sy2m
@@ -1319,7 +1326,7 @@ CONTAINS
   END SUBROUTINE boundary_j
 
   !***********************************************************************
-  SUBROUTINE phia_periodic(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
+  SUBROUTINE vector_p_periodic(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
        Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
     !***********************************************************************
     !original subroutine
@@ -1369,10 +1376,10 @@ CONTAINS
        END DO
     END DO
 
-  END SUBROUTINE phia_periodic
+  END SUBROUTINE vector_p_periodic
 
   !***********************************************************************
-  SUBROUTINE phia_reflective(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
+  SUBROUTINE vector_p_reflective(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
        Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
        model_wg,xmin_wg,xmax_wg,ymin_wg,ymax_wg, &
        amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi,&
@@ -1392,8 +1399,8 @@ CONTAINS
     ! vcfact is the ratio of the light speed to lattice parameter times plasma
     ! frequency
 
-    DO nx = 1, nxmax-1
-       DO ny = 1, nymax-1
+    DO nx = 0, nxmax
+       DO ny = 0, nymax
 
           nxm = nx - 1
           nxp = nx + 1
@@ -1427,58 +1434,50 @@ CONTAINS
 
        END DO
     END DO
-     IF(model_boundary .EQ. 2) THEN !damping A in evanescent boundary
-        ilen = int(dlen)
-        inv = 1.0d0 / dlen
-        DO ny = 1,nymax
-           DO nx = nxmax-ilen,nxmax
-              x=DBLE(nx)
-              xmax=DBLE(nxmax)
-              Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*x**2 &
-                                     +2.0d0*inv**2*(xmax-dlen)*x&
-                                     +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
-              Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*x**2 &
-                                     +2.0d0*inv**2*(xmax-dlen)*x&
-                                     +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
-              Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*x**2 &
-                                     +2.0d0*inv**2*(xmax-dlen)*x&
-                                    +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
-           ENDDO
-        ENDDO
-        DO nx = 1,nxmax-ilen
-           DO ny = nymax-ilen/2,nymax
-              y=DBLE(ny)
-              ymax=DBLE(nymax)
-              Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*y**2 &
-                                     +2.0d0*inv**2*(ymax-dlen)*y &
-                                     +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
-              Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*y**2 &
-                                     +2.0d0*inv**2*(ymax-dlen)*y &
-                                     +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
-              Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*y**2 &
-                                     +2.0d0*inv**2*(ymax-dlen)*y &
-                                    +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
-           ENDDO
-        ENDDO
-        DO nx = 1, nxmax-ilen
-           DO ny = 1, ilen/2
-              y=DBLE(ny)
-              Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
-              Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
-              Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
-           ENDDO
-        ENDDO
-     ENDIF
+    !  IF(model_boundary .EQ. 2) THEN !damping A in evanescent boundary
+    !     ilen = int(dlen)
+    !     inv = 1.0d0 / dlen
+    !     DO ny = 1,nymax
+    !        DO nx = nxmax-ilen,nxmax
+    !           x=DBLE(nx)
+    !           xmax=DBLE(nxmax)
+    !           Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*x**2 &
+    !                                  +2.0d0*inv**2*(xmax-dlen)*x&
+    !                                  +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
+    !           Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*x**2 &
+    !                                  +2.0d0*inv**2*(xmax-dlen)*x&
+    !                                  +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
+    !           Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*x**2 &
+    !                                  +2.0d0*inv**2*(xmax-dlen)*x&
+    !                                 +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
+    !        ENDDO
+    !     ENDDO
+    !     DO nx = 1,nxmax-ilen
+    !        DO ny = nymax-ilen/2,nymax
+    !           y=DBLE(ny)
+    !           ymax=DBLE(nymax)
+    !           Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*y**2 &
+    !                                  +2.0d0*inv**2*(ymax-dlen)*y &
+    !                                  +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
+    !           Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*y**2 &
+    !                                  +2.0d0*inv**2*(ymax-dlen)*y &
+    !                                  +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
+    !           Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*y**2 &
+    !                                  +2.0d0*inv**2*(ymax-dlen)*y &
+    !                                 +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
+    !        ENDDO
+    !     ENDDO
+    !     DO nx = 1, nxmax-ilen
+    !        DO ny = 1, ilen/2
+    !           y=DBLE(ny)
+    !           Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
+    !           Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
+    !           Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
+    !        ENDDO
+    !     ENDDO
+    !  ENDIF
 
-    IF(model_boundary .eq. 1) THEN ! boundary condition for reflection
-    DO ny = 1, nymax-1
-      Ax(0,ny) = 0.5d0 * Ax(1,ny)
-      Ax(nxmax,ny) = 0.5d0 * Ax(nxmax-1,ny)
-    ENDDO
-    DO nx = 1, nxmax-1
-      Ay(nx,0) = 0.5d0 * Ay(nx,1)
-      Ay(nx,nymax) = 0.5d0 * Ay(nx,nymax-1)
-    ENDDO
+    IF(model_boundary .ne. 0) THEN ! boundary condition for reflection
      Ay(0,:)=0.d0
      Az(0,:)=0.d0
      Ay(nxmax,:)=0.d0
@@ -1489,29 +1488,31 @@ CONTAINS
      Az(:,nymax)=0.d0
    ENDIF
 
-     IF(model_boundary .eq. 3) THEN ! Mur's absorbing boundary condition
+     IF(model_boundary .eq. 2) THEN ! Mur's absorbing boundary condition
      DO nx = 1, nxmax-1
        Ax(nx,0)=-Axbb(nx,1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
                *(Ax(nx,1)+Axbb(nx,0)) &
                +2.d0/(vcfact*dt+1.d0)*(Axb(nx,0)+Axb(nx,1))&
-               +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))*(Axb(nx+1,0)-2.d0*Axb(nx,0)&
-                                                +Axb(nx-1,0)+Axb(nx+1,1)&
-                                                -2.d0*Axb(nx,1)+Axb(nx-1,1))
+               +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+               *(Axb(nx+1,0)-2.d0*Axb(nx,0)+Axb(nx-1,0)+Axb(nx+1,1)&
+                -2.d0*Axb(nx,1)+Axb(nx-1,1))
+
        Ay(nx,0)=-Aybb(nx,1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
                *(Ay(nx,1)+Aybb(nx,0))&
                +2.d0/(vcfact*dt+1.d0)*(Ayb(nx,0)+Ayb(nx,1))&
-               +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))*(Ayb(nx+1,0)-2.d0*Ayb(nx,0)&
-                                                +Ayb(nx-1,0)+Ayb(nx+1,1)&
-                                                -2.d0*Ayb(nx,1)+Ayb(nx-1,1))
+               +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+               *(Ayb(nx+1,0)-2.d0*Ayb(nx,0)+Ayb(nx-1,0)+Ayb(nx+1,1)&
+                -2.d0*Ayb(nx,1)+Ayb(nx-1,1))
+
        Az(nx,0)=-Azbb(nx,1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
                *(Az(nx,1)+Azbb(nx,0))&
                +2.d0/(vcfact*dt+1.d0)*(Azb(nx,0)+Azb(nx,1))&
-               +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))*(Azb(nx+1,0)-2.d0*Azb(nx,0)&
-                                                +Azb(nx-1,0)+Azb(nx+1,1)&
-                                                -2.d0*Azb(nx,1)+Azb(nx-1,1))
+               +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+               *(Azb(nx+1,0)-2.d0*Azb(nx,0)+Azb(nx-1,0)+Azb(nx+1,1)&
+                -2.d0*Azb(nx,1)+Azb(nx-1,1))
 
        Ax(nx,nymax)=-Axbb(nx,nymax-1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-               *(Ax(nx,nymax-1)+Axbb(nx,nymax)) &
+                *(Ax(nx,nymax-1)+Axbb(nx,nymax)) &
                +2.d0/(vcfact*dt+1.d0)*(Axb(nx,nymax)+Axb(nx,nymax-1))&
                +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
                *(Axb(nx+1,nymax)-2.d0*Axb(nx,nymax) &
@@ -1574,13 +1575,13 @@ CONTAINS
     !            *(Ayb(0,ny+1)-2.d0*Ayb(0,ny)&
     !            +Ayb(n0,ny-1)+Ayb(nxmax-1,ny+1)&
     !            -2.d0*Ayb(nxmax,ny)+Ayb(nxmax-1,ny-1))
-    !    Az(0,ny)=-Azbb(nxmax-1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-    !            *(Az(nxmax-1,ny)+Azbb(nxmax,ny)) &
-    !            +2.d0/(vcfact*dt+1.d0)*(Azb(nxmax,ny)+Azb(nxmax-1,ny))&
+    !    Az(0,ny)=-Azbb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+    !            *(Az(1,ny)+Azbb(nxmax,ny)) &
+    !            +2.d0/(vcfact*dt+1.d0)*(Azb(0,ny)+Azb(1,ny))&
     !            +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-    !            *(Azb(nxmax,ny+1)-2.d0*Azb(nxmax,ny)&
-    !            +Azb(nxmax,ny-1)+Azb(nxmax-1,ny+1)&
-    !            -2.d0*Azb(nxmax,ny)+Azb(nxmax-1,ny-1))
+    !            *(Azb(0,ny+1)-2.d0*Azb(0,ny)&
+    !            +Azb(0,ny-1)+Azb(1,ny+1)&
+    !            -2.d0*Azb(1,ny)+Azb(1,ny-1))
     !  ENDDO
 
     SELECT CASE(model_wg)
@@ -1604,7 +1605,7 @@ CONTAINS
        END DO
     END SELECT
 
-  END SUBROUTINE phia_reflective
+  END SUBROUTINE vector_p_reflective
 
   !***********************************************************************
   SUBROUTINE profile(npmax,nxmax,nymax,x,y,vx,vy,vz,vpara,vperp,mass, &
@@ -1793,24 +1794,24 @@ CONTAINS
           END DO
        END DO
     ELSE                         ! reflecting
-       DO i=1,imax
-          DO ny = 1, nymax-1
-             fxy(0,ny,i)     = 2.D0 * fxy(0,ny,i)
-             fxy(nxmax,ny,i) = 2.D0 * fxy(nxmax,ny,i)
-          END DO
-       END DO
-       DO i=1,imax
-          DO nx = 1, nxmax-1
-             fxy(nx,0,i)     = 2.D0 * fxy(nx,0,i)
-             fxy(nx,nymax,i) = 2.D0 * fxy(nx,nymax,i)
-          END DO
-       END DO
-       DO i=1,imax
-          fxy(0,0,i)         = 4.D0 * fxy(0,0,i)
-          fxy(0,nymax,i)     = 4.D0 * fxy(0,nymax,i)
-          fxy(nxmax,0,i)     = 4.D0 * fxy(nxmax,0,i)
-          fxy(nxmax,nymax,i) = 4.D0 * fxy(nxmax,nymax,i)
-       END DO
+        DO i=1,imax
+           DO ny = 1, nymax-1
+              fxy(0,ny,i)     = 2.D0 * fxy(0,ny,i)
+              fxy(nxmax,ny,i) = 2.D0 * fxy(nxmax,ny,i)
+           END DO
+        END DO
+        DO i=1,imax
+           DO nx = 1, nxmax-1
+              fxy(nx,0,i)     = 2.D0 * fxy(nx,0,i)
+              fxy(nx,nymax,i) = 2.D0 * fxy(nx,nymax,i)
+           END DO
+        END DO
+        DO i=1,imax
+           fxy(0,0,i)         = 4.D0 * fxy(0,0,i)
+           fxy(0,nymax,i)     = 4.D0 * fxy(0,nymax,i)
+           fxy(nxmax,0,i)     = 4.D0 * fxy(nxmax,0,i)
+           fxy(nxmax,nymax,i) = 4.D0 * fxy(nxmax,nymax,i)
+        END DO
     END IF
 
   END SUBROUTINE profile_boundary

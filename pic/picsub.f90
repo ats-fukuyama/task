@@ -2,7 +2,7 @@
 
 MODULE picsub
   PRIVATE
-  PUBLIC poisson_f,poisson_m,efield,bfield,kine,pote
+  PUBLIC poisson_f,poisson_m,efield,bfield,kine,pote,absorb_phi
 
 CONTAINS
 
@@ -197,7 +197,7 @@ CONTAINS
     CALL mtx_setup(imax,istart,iend)
     irange=iend-istart+1
     status=1
-    ALLOCATE(x(irange))
+    ALLOCATE(x(imax))
     DO i=istart,iend
        l=MOD(i-1,isize)+1
        m=(i-1)/isize+1
@@ -224,24 +224,24 @@ CONTAINS
     CALL mtx_solve(model_matrix0,tolerance_matrix,its, &
          methodKSP=model_matrix1,methodPC=model_matrix2)
     !      IF((its.ne.0).and.(nrank.eq.0)) write(6,*) 'mtx_solve: its=',its
-    CALL mtx_get_vector(x)
+    CALL mtx_gather_vector(x)
     IF(mode.EQ.0) THEN
-       DO i=istart,iend
+       DO i=1,imax
           nx=MOD(i-1,isize)+1
           ny=(i-1)/isize+1
-          phi(nx+1,ny+1)=x(i-istart+1)
+          phi(nx+1,ny+1)=x(i)
        ENDDO
     ELSE
-       DO i=istart,iend
+       DO i=1,imax
           ny=MOD(i-1,isize)+1
           nx=(i-1)/isize+1
-          phi(nx+1,ny+1)=x(i-istart+1)
+          phi(nx+1,ny+1)=x(i)
        ENDDO
     END IF
     DEALLOCATE(x)
     status=2
     CALL mtx_cleanup
-    ! IF(model_boundary .EQ. 2) THEN !damping phi in absorbing boundary
+
     !    inv = 1.0d0 / dlen
     !    ilen = int(dlen)
     !    DO ny = 1,nymax
@@ -274,6 +274,41 @@ CONTAINS
   END SUBROUTINE poisson_m
 
   !***********************************************************************
+  SUBROUTINE absorb_phi(nxmax,nymax,phi,phib,phibb,dt,vcfact)
+  !***********************************************************************
+  IMPLICIT NONE
+  REAL(8),DIMENSION(0:nxmax,0:nymax) :: phi,phib,phibb
+  REAL(8) :: dt,vcfact
+  INTEGER :: nxmax,nymax,nx,ny
+  !aborobing boundary condition for phi
+
+  DO nx = 1, nxmax-1
+    phi(nx,0)=-phibb(nx,1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+            *(phi(nx,1)+phibb(nx,0)) &
+            +2.d0/(vcfact*dt+1.d0)*(phib(nx,0)+phib(nx,1))&
+            +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+            *(phib(nx+1,0)-2.d0*phib(nx,0)+phib(nx-1,0)+phib(nx+1,1)&
+             -2.d0*phib(nx,1)+phib(nx-1,1))
+    phi(nx,nymax)=-phibb(nx,nymax-1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+            *(phi(nx,nymax-1)+phibb(nx,nymax)) &
+            +2.d0/(vcfact*dt+1.d0)*(phib(nx,nymax)+phib(nx,nymax-1))&
+            +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+            *(phib(nx+1,nymax)-2.d0*phib(nx,nymax)+phib(nx-1,nymax)&
+            +phib(nx+1,nymax-1)-2.d0*phib(nx,nymax-1)+phib(nx-1,nymax-1))
+  END DO
+  DO ny = 1, nymax-1
+    phi(nxmax,ny)=-phibb(nxmax-1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+            *(phi(nxmax-1,ny)+phibb(nxmax,ny)) &
+            +2.d0/(vcfact*dt+1.d0)*(phib(nxmax,ny)+phib(nxmax-1,ny))&
+            +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+            *(phib(nxmax,ny+1)-2.d0*phib(nxmax,ny)&
+            +phib(nxmax,ny-1)+phib(nxmax-1,ny+1)&
+            -2.d0*phib(nxmax-1,ny)+phib(nxmax-1,ny-1))
+  ENDDO
+
+  END SUBROUTINE absorb_phi
+
+  !***********************************************************************
   SUBROUTINE efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
        ex,ey,ez,esx,esy,esz,emx,emy,emz,model_push,model_boundary)
     !***********************************************************************
@@ -285,8 +320,8 @@ CONTAINS
     INTEGER:: model_push, model_boundary,ilen
 
     IF(model_boundary .EQ. 0) THEN
-       DO nx = 0, nymax
-          DO ny = 0, nxmax
+       DO nx = 0, nxmax
+          DO ny = 0, nymax
 
              nxm = nx - 1
              nxp = nx + 1
@@ -307,18 +342,18 @@ CONTAINS
           END DO
        END DO
     ELSE IF (model_boundary .NE. 0) THEN
-       DO nx = 0, nymax
-          DO ny = 0, nxmax
+       DO nx = 1, nxmax-1
+          DO ny = 1, nymax-1
 
              nxm = nx - 1
              nxp = nx + 1
              nym = ny - 1
              nyp = ny + 1
 
-             IF( nx .EQ. 0  )    nxm = 0
-             IF( nx .EQ. nxmax ) nxp = nxmax
-             IF( ny .EQ. 0  )    nym = 0
-             IF( ny .EQ. nymax ) nyp = nymax
+             !IF( nx .EQ. 0  )    nxm = 0
+             !IF( nx .EQ. nxmax ) nxp = nxmax
+             !IF( ny .EQ. 0  )    nym = 0
+             !IF( ny .EQ. nymax ) nyp = nymax
 
              esx(nx,ny) = 0.5d0 * ( phi(nxm,ny) - phi(nxp,ny))
              esy(nx,ny) = 0.5d0 * ( phi(nx,nym) - phi(nx,nyp))
@@ -331,12 +366,12 @@ CONTAINS
        END DO
        !boundary condition for electro static field
        DO ny = 1, nymax-1
-         esx(0,ny) = 0.5d0 * esx(1,ny)
-         esx(nxmax,ny) = 0.5d0 * esx(nxmax-1,ny)
+         esx(0,ny) = -0.5d0 * phi(1,ny)
+         esx(nxmax,ny) = 0.5d0 * phi(nxmax-1,ny)
        ENDDO
        DO nx = 1, nxmax-1
-         esy(nx,0) = 0.5d0 * esy(nx,1)
-         esy(nx,nymax) = 0.5d0 * esy(nx,nymax-1)
+         esy(nx,0) = -0.5d0 * phi(nx,1)
+         esy(nx,nymax) = 0.5d0 * phi(nx,nymax-1)
        ENDDO
 
        esx(:,0) = 0.d0
@@ -641,36 +676,36 @@ CONTAINS
     DO ny = 1, nymax-1
        DO nx = 1, nxmax-1
           apote = apote + (ex(nx,ny)**2 + ey(nx,ny)**2 + ez(nx,ny)**2)
-          apotm = apotm + ((bx(nx,ny)-bxbg(nx,nx))**2 &
-               + (by(nx,ny)-bybg(nx,nx))**2 &
-               + (bz(nx,ny)-bzbg(nx,nx))**2)
+          apotm = apotm + ((bx(nx,ny)-bxbg(nx,ny))**2 &
+               + (by(nx,ny)-bybg(nx,ny))**2 &
+               + (bz(nx,ny)-bzbg(nx,ny))**2)
        END DO
     END DO
 
     DO nx = 0, nxmax,nxmax
        DO ny = 1, nymax-1
           apote = apote + 0.5D0*(ex(nx,ny)**2+ey(nx,ny)**2+ez(nx,ny)**2)
-          apotm = apotm + 0.5D0*((bx(nx,ny)-bxbg(nx,nx))**2 &
-               + (by(nx,ny)-bybg(nx,nx))**2 &
-               + (bz(nx,ny)-bzbg(nx,nx))**2)
+          apotm = apotm + 0.5D0*((bx(nx,ny)-bxbg(nx,ny))**2 &
+               + (by(nx,ny)-bybg(nx,ny))**2 &
+               + (bz(nx,ny)-bzbg(nx,ny))**2)
        END DO
     END DO
 
     DO ny = 0, nymax,nymax
        DO nx = 1, nxmax-1
           apote = apote + 0.5D0*(ex(nx,ny)**2+ey(nx,ny)**2+ez(nx,ny)**2)
-          apotm = apotm + 0.5D0*((bx(nx,ny)-bxbg(nx,nx))**2 &
-               + (by(nx,ny)-bybg(nx,nx))**2 &
-               + (bz(nx,ny)-bzbg(nx,nx))**2)
+          apotm = apotm + 0.5D0*((bx(nx,ny)-bxbg(nx,ny))**2 &
+               + (by(nx,ny)-bybg(nx,ny))**2 &
+               + (bz(nx,ny)-bzbg(nx,ny))**2)
        END DO
     END DO
 
     DO ny = 0, nymax,nymax
        DO nx = 0, nxmax,nxmax
           apote = apote + 0.25D0*(ex(nx,ny)**2+ey(nx,ny)**2+ez(nx,ny)**2)
-          apotm = apotm + 0.25D0*((bx(nx,ny)-bxbg(nx,nx))**2 &
-               + (by(nx,ny)-bybg(nx,nx))**2 &
-               + (bz(nx,ny)-bzbg(nx,nx))**2)
+          apotm = apotm + 0.25D0*((bx(nx,ny)-bxbg(nx,ny))**2 &
+               + (by(nx,ny)-bybg(nx,ny))**2 &
+               + (bz(nx,ny)-bzbg(nx,ny))**2)
        END DO
     END DO
     apote = 0.5D0 * apote / (DBLE(nxmax)*DBLE(nymax))
