@@ -142,7 +142,7 @@ CONTAINS
        CALL PAGEE
     CASE('E5')
        CALL PAGES
-       !CALL GRD2D( 5,x,y,ex,nxmax1,nxmax1,nymax1,'@Ex@',ASPECT=aspect, &
+       CALL GRD2D( 5,x,y,ex,nxmax1,nxmax1,nymax1,'@Ex@',ASPECT=aspect, &
                     XMIN=0.D0,XMAX=DBLE(nxmax),YMIN=0.D0,YMAX=DBLE(nymax),&
                     NLMAX=nlmax,LINE_PAT=WORK_PAT)
        CALL GRD2D( 6,x,y,ey,nxmax1,nxmax1,nymax1,'@Ey@',ASPECT=aspect, &
