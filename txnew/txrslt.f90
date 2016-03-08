@@ -290,7 +290,7 @@ SUBROUTINE TXGLOB
   Deff(0) = 0.d0
   dPNV(:) = dfdx(vv,Var(:,1)%n,NRMAX,0)
   do NR = 1, NRMAX
-     Deff(NR) = - Var(NR,1)%n * Var(NR,1)%Ur / (sst(NR) * dPNV(NR))
+     Deff(NR) = - Var(NR,1)%n * Var(NR,1)%UrV / (sst(NR) * dPNV(NR))
   end do
 
   ! *** Particle confinement time; TAUP ***

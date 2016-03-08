@@ -100,8 +100,12 @@ contains
     real(8), dimension(1:NQMAX) :: tiny_array
     character(len=80) :: MSG_NQ
 
-    allocate(BA(1:4*NQMAX-1,1:NQMAX*(NRMAX+1)),BL(1:6*NQMAX-2,1:NQMAX*(NRMAX+1)),BX(1:NQMAX*(NRMAX+1)))
-    allocate(XN(0:NRMAX,1:NQMAX),XP(0:NRMAX,1:NQMAX),ASG(0:NRMAX,1:NQMAX),L2(1:NQMAX))
+    allocate( BA(1:4*NQMAX-1,1:NQMAX*(NRMAX+1)) &
+         &  , BL(1:6*NQMAX-2,1:NQMAX*(NRMAX+1)) &
+         &  , BX(1:NQMAX*(NRMAX+1)))
+    allocate( XN (0:NRMAX,1:NQMAX) &
+         &  , XP (0:NRMAX,1:NQMAX) &
+         &  , ASG(0:NRMAX,1:NQMAX), L2(1:NQMAX))
 
     IDIAGL = MOD(IDIAG,10)
     EPSabs = abs(EPS)
@@ -209,9 +213,7 @@ contains
           IF(FSRP /= 0.D0) CALL MINUS_CHECK(XN,LQr1,2)
           ! Ignore tiny values
           DO NQ = 1, NQMAX
-             DO NR = 0, NRMAX
-                if(abs(XN(NR,NQ)) < tiny_array(NQ)) XN(NR,NQ) = 0.d0
-             END DO
+             where( abs(XN(:,NQ)) < tiny_array(NQ) ) XN(:,NQ) = 0.d0
           END DO
 !!$          ! In the case of NBI off after NBI on
 !!$          IF(PNBH == 0.D0) CALL THRESHOLD(XN(:,LQb1),ID)

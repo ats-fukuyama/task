@@ -437,7 +437,7 @@ SUBROUTINE TXLOAD(IST)
   CALL TXCALM
 
 !!  IF(rMUb1 == rMU0 .and. (PNBHT1 /= 0.D0 .OR. PNBHT2 /= 0.D0 .OR. PNBHP /= 0.D0)) THEN
-  IF(rMUb1 == rMU0 .and. (maxval(X(LQb1,:)) > epsilon(1.d0))) THEN
+  IF(rMUb1 == rMU0 .and. (maxval(X(:,LQb1)) > epsilon(1.d0))) THEN
      rMUb1 = 1.D0
      rMUb2 = rMU0
   END IF

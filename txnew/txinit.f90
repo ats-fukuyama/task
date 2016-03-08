@@ -65,10 +65,10 @@ SUBROUTINE TXINIT
   !   Initial electron density at rho = a (10^20 m^-3)
   PNa = 0.05D0
 
-  !   Electron density in diverter region (Minimum density in SOL)
+  !   Electron density in divertor region (Minimum density in SOL)
   PNeDIV = 0.01D0
 
-  !   Ion density in diverter region (Minimum density in SOL)
+  !   Ion density in divertor region (Minimum density in SOL)
   PNiDIV = PNeDIV
 
   !   Initial electron temperature at rho = 0 (keV)
@@ -77,7 +77,7 @@ SUBROUTINE TXINIT
   !   Initial electron temperature at rho = a (keV)
   PTea = 0.2D0
 
-  !   Electron temperature in diverter region (Minimum Te in SOL)
+  !   Electron temperature in divertor region (Minimum Te in SOL)
   PTeDIV = 0.05D0
 
   !   Initial ion temperature  at rho = 0 (keV)
@@ -86,7 +86,7 @@ SUBROUTINE TXINIT
   !   Initial ion temperature  at rho = a (keV)
   PTia = 0.2D0
 
-  !   Ion temperature in diverter region (Minimum Ti in SOL)
+  !   Ion temperature in divertor region (Minimum Ti in SOL)
   PTiDIV = 0.05D0
 
   !   Initial current profile parameter
@@ -478,6 +478,7 @@ SUBROUTINE TXINIT
   !     ADV = 0     : Explicit scheme       (Not usable)
   !           0.5   : Crank-Nicolson scheme (Not usable)
   !           2/3   : Galerkin scheme       (Not usable)
+  !           0.729 : Minimum value at which a simulation can be run.
   !           0.878 : Liniger scheme
   !           1     : Implicit scheme       (Recommended)
   ADV = 1.D0
@@ -1325,7 +1326,7 @@ SUBROUTINE TXPROF
 
   ! === Parallel flow ===
 
-     bbt(NR) = bb**2
+     bbt(NR) = bb * bb
      tmp = bbt(NR) / fipol(NR)
      X(NR,LQe3) = X(NR,LQe4) / X(NR,LQe1) * tmp
      X(NR,LQi3) = X(NR,LQi4) / X(NR,LQi1) * tmp

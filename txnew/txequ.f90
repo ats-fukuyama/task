@@ -1,5 +1,6 @@
 subroutine txequ
-  use tx_commons, only : ieqread, epst, aat, rrt, ckt, suft, sst, vro, vlt, rhov, art, nrmax, rr, Pisq, ra, rho, bb, d_rrr, bit, bbrt, Rax, Zax, perimlcfs, Pi, elip, trig
+  use tx_commons, only : ieqread, epst, aat, rrt, ckt, suft, sst, vro, vlt, rhov, art, nrmax, &
+       & rr, Pisq, ra, rho, bb, d_rrr, bit, bbrt, Rax, Zax, perimlcfs, Pi, elip, trig
 
   implicit none
   integer(4) :: nr

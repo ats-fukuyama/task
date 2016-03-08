@@ -19,7 +19,6 @@
      RG1=10.0,modeav=0,idiag=0
      FSLC=0.0, FSRP=0.0, FSNC=1, MDINTT=2, MDITST=2
      Ebmax=80.0,RNBT1=0.5,RNBT10=0.2,PNBPTC=0.8
-     Ebmax=80.0,RNBT1=0.5,RNBT10=0.0,PNBPTC=0.8
      FSMPCH=1,1
      FSPARV=1,1
  &end
