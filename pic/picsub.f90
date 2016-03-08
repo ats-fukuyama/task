@@ -507,18 +507,18 @@ CONTAINS
                      - Ax(nx,nym) - Axb(nx,nym)))
           END DO
        END DO
-       DO ny = 1, nymax-1
-         by(0,ny) = 0.5d0 * by(1,ny)
-         by(nxmax,ny) = 0.5d0 * by(nxmax-1,ny)
-         bz(0,ny) = 0.5d0 * bz(1,ny)
-         bz(nxmax,ny) = 0.5d0 * bz(nxmax-1,ny)
-       ENDDO
-       DO nx = 1, nxmax-1
-         bx(nx,0) = 0.5d0 * bx(nx,1)
-         bx(nx,nymax) = 0.5d0 * bx(nx,nymax-1)
-         bz(nx,0) = 0.5d0 * bz(nx,1)
-         bz(nx,nymax) = 0.5d0 * bz(nx,nymax-1)
-       ENDDO
+!       DO ny = 1, nymax-1
+!         by(0,ny) = 0.5d0 * by(1,ny)
+!         by(nxmax,ny) = 0.5d0 * by(nxmax-1,ny)
+!         bz(0,ny) = 0.5d0 * bz(1,ny)
+!         bz(nxmax,ny) = 0.5d0 * bz(nxmax-1,ny)
+!       ENDDO
+!       DO nx = 1, nxmax-1
+!         bx(nx,0) = 0.5d0 * bx(nx,1)
+!         bx(nx,nymax) = 0.5d0 * bx(nx,nymax-1)
+!         bz(nx,0) = 0.5d0 * bz(nx,1)
+!         bz(nx,nymax) = 0.5d0 * bz(nx,nymax-1)
+!       ENDDO
        bx(0,:) = 0.d0
        bx(nxmax,:) = 0.d0
        by(:,0) = 0.d0

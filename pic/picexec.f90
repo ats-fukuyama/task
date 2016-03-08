@@ -73,9 +73,9 @@ CONTAINS
                 tolerance_matrix,model_boundary,dlen)
           CALL MPI_Bcast(phi,nxymax,MPI_REAL8,0,ncomm,ierr)
        END IF
-       IF(model_boundary.EQ.3) THEN
-         CALL absorb_phi(nxmax,nymax,phi,phib,phibb,dt,vcfact)
-       ENDIF
+       !IF(model_boundary.EQ.2) THEN
+       !  CALL absorb_phi(nxmax,nymax,phi,phib,phibb,dt,vcfact)
+       !ENDIF
        !----- current assignment
        jx(:,:)=0.d0
        jy(:,:)=0.d0
@@ -1403,10 +1403,10 @@ CONTAINS
           nxp = nx + 1
           nym = ny - 1
           nyp = ny + 1
-          IF( nx .EQ. 0  )    nxm = nxmax
-          IF( nx .EQ. nxmax ) nxp = 0
-          IF( ny .EQ. 0  )    nym = nymax
-          IF( ny .EQ. nymax ) nyp = 0
+          IF( nx .EQ. 0  )    nxm = 0
+          IF( nx .EQ. nxmax ) nxp = nxmax
+          IF( ny .EQ. 0  )    nym = 0
+          IF( ny .EQ. nymax ) nyp = nymax
 
           Ax(nx,ny) = dt ** 2 * vcfact ** 2 * (Axb(nxp,ny) + Axb(nxm,ny) &
                                             + Axb(nx,nyp) + Axb(nx,nym) &
@@ -1431,51 +1431,48 @@ CONTAINS
 
        END DO
     END DO
-     IF(model_boundary .EQ. 2) THEN !damping A in evanescent boundary
-        ilen = int(dlen)
-        inv = 1.0d0 / dlen
-        DO ny = 1,nymax
-           DO nx = nxmax-ilen,nxmax
-              x=DBLE(nx)
-              xmax=DBLE(nxmax)
-              Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*x**2 &
-                                     +2.0d0*inv**2*(xmax-dlen)*x&
-                                     +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
-              Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*x**2 &
-                                     +2.0d0*inv**2*(xmax-dlen)*x&
-                                     +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
-              Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*x**2 &
-                                     +2.0d0*inv**2*(xmax-dlen)*x&
-                                    +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
-             Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*x**2 &
-                                    +2.0d0*inv**2*(xmax-dlen)*x&
-                                    +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
-          ENDDO
-       ENDDO
-       DO nx = 1,nxmax-ilen
-          DO ny = nymax-ilen,nymax
-             y=DBLE(ny)
-             ymax=DBLE(nymax)
-             Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*y**2 &
-                                    +2.0d0*inv**2*(ymax-dlen)*y &
-                                    +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
-             Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*y**2 &
-                                    +2.0d0*inv**2*(ymax-dlen)*y &
-                                    +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
-             Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*y**2 &
-                                    +2.0d0*inv**2*(ymax-dlen)*y &
-                                    +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
-          ENDDO
-       ENDDO
-       DO nx = 1, nxmax-ilen
-          DO ny = 1, ilen
-             y=DBLE(ny)
-             Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
-             Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
-             Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
-          ENDDO
-       ENDDO
-    ENDIF
+    !  IF(model_boundary .EQ. 2) THEN !damping A in evanescent boundary
+    !     ilen = int(dlen)
+    !     inv = 1.0d0 / dlen
+    !     DO ny = 1,nymax
+    !        DO nx = nxmax-ilen,nxmax
+    !           x=DBLE(nx)
+    !           xmax=DBLE(nxmax)
+    !           Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*x**2 &
+    !                                  +2.0d0*inv**2*(xmax-dlen)*x&
+    !                                  +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
+    !           Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*x**2 &
+    !                                  +2.0d0*inv**2*(xmax-dlen)*x&
+    !                                  +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
+    !           Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*x**2 &
+    !                                  +2.0d0*inv**2*(xmax-dlen)*x&
+    !                                 +1.0d0-1.0d0*inv**2*(xmax-dlen)**2)
+    !        ENDDO
+    !     ENDDO
+    !     DO nx = 1,nxmax-ilen
+    !        DO ny = nymax-ilen/2,nymax
+    !           y=DBLE(ny)
+    !           ymax=DBLE(nymax)
+    !           Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*y**2 &
+    !                                  +2.0d0*inv**2*(ymax-dlen)*y &
+    !                                  +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
+    !           Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*y**2 &
+    !                                  +2.0d0*inv**2*(ymax-dlen)*y &
+    !                                  +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
+    !           Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*y**2 &
+    !                                  +2.0d0*inv**2*(ymax-dlen)*y &
+    !                                 +1.0d0-1.0d0*inv**2*(ymax-dlen)**2)
+    !        ENDDO
+    !     ENDDO
+    !     DO nx = 1, nxmax-ilen
+    !        DO ny = 1, ilen/2
+    !           y=DBLE(ny)
+    !           Ax(nx,ny) = Ax(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
+    !           Ay(nx,ny) = Ay(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
+    !           Az(nx,ny) = Az(nx,ny)*(-1.0d0*inv**2*y**2+2.0d0*inv*y)
+    !        ENDDO
+    !     ENDDO
+    !  ENDIF
 
     IF(model_boundary .ne. 0) THEN ! boundary condition for reflection
      Ay(0,:)=0.d0
@@ -1491,7 +1488,7 @@ CONTAINS
      Az(:,nymax)=0.d0
    ENDIF
 
-     IF(model_boundary .eq. 3) THEN ! Mur's absorbing boundary condition
+     IF(model_boundary .eq. 2) THEN ! Mur's absorbing boundary condition
      DO nx = 1, nxmax-1
        Ax(nx,0)=-Axbb(nx,1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
                *(Ax(nx,1)+Axbb(nx,0)) &
@@ -1563,29 +1560,29 @@ CONTAINS
                -2.d0*Azb(nxmax-1,ny)+Azb(nxmax-1,ny-1))
      ENDDO
      ENDIF
-    !  DO ny = 1, nymax-1
-    !    Ax(0,ny)=-Axbb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-    !            *(Ax(1,ny)+Axbb(0,ny)) &
-    !            +2.d0/(vcfact*dt+1.d0)*(Axb(0,ny)+Axb(1,ny))&
-    !            +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-    !            *(Axb(0,ny+1)-2.d0*Axb(0,ny)&
-    !            +Axb(0,ny-1)+Axb(1,ny+1)&
-    !            -2.d0*Axb(1,ny)+Axb(1,ny-1))
-    !    Ay(0,ny)=-Aybb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-    !            *(Ay(1,ny)+Aybb(0,ny)) &
-    !            +2.d0/(vcfact*dt+1.d0)*(Ayb(0,ny)+Ayb(1,ny))&
-    !            +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-    !            *(Ayb(0,ny+1)-2.d0*Ayb(0,ny)&
-    !            +Ayb(n0,ny-1)+Ayb(nxmax-1,ny+1)&
-    !            -2.d0*Ayb(nxmax,ny)+Ayb(nxmax-1,ny-1))
-    !    Az(0,ny)=-Azbb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-    !            *(Az(1,ny)+Azbb(nxmax,ny)) &
-    !            +2.d0/(vcfact*dt+1.d0)*(Azb(0,ny)+Azb(1,ny))&
-    !            +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-    !            *(Azb(0,ny+1)-2.d0*Azb(0,ny)&
-    !            +Azb(0,ny-1)+Azb(1,ny+1)&
-    !            -2.d0*Azb(1,ny)+Azb(1,ny-1))
-    !  ENDDO
+      DO ny = 1, nymax-1
+        Ax(0,ny)=-Axbb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+                *(Ax(1,ny)+Axbb(0,ny)) &
+                +2.d0/(vcfact*dt+1.d0)*(Axb(0,ny)+Axb(1,ny))&
+                +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+                *(Axb(0,ny+1)-2.d0*Axb(0,ny)&
+                +Axb(0,ny-1)+Axb(1,ny+1)&
+                -2.d0*Axb(1,ny)+Axb(1,ny-1))
+        Ay(0,ny)=-Aybb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+                *(Ay(1,ny)+Aybb(0,ny)) &
+                +2.d0/(vcfact*dt+1.d0)*(Ayb(0,ny)+Ayb(1,ny))&
+                +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+                *(Ayb(0,ny+1)-2.d0*Ayb(0,ny)&
+                +Ayb(0,ny-1)+Ayb(1,ny+1)&
+                -2.d0*Ayb(1,ny)+Ayb(1,ny-1))
+        Az(0,ny)=-Azbb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+                *(Az(1,ny)+Azbb(0,ny)) &
+                +2.d0/(vcfact*dt+1.d0)*(Azb(0,ny)+Azb(1,ny))&
+                +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+                *(Azb(0,ny+1)-2.d0*Azb(0,ny)&
+                +Azb(0,ny-1)+Azb(1,ny+1)&
+                -2.d0*Azb(1,ny)+Azb(1,ny-1))
+      ENDDO
 
     SELECT CASE(model_wg)
     CASE(0)
