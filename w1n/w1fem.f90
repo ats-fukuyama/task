@@ -5,14 +5,24 @@ C     ******* BAND MATRIX COEFFICIENT *******
 C
       SUBROUTINE W1BNDA(IERR)
 C
-      USE w1comm
-      IMPLICIT NONE
-      INTEGER,INTENT(OUT):: IERR
-      INTEGER:: I,J,K,NSF,N,KML,L,NX,N1,N2,M,IND
-      REAL(rkind):: RKV,DX
-      REAL(rkind):: DS01,DS02,DS11,DS12,DS11A,DS12A,DS21,DS22
-      REAL(rkind):: DT11,DT12,DT11A,DT12A
-      REAL(rkind),DIMENSION(2,2,2)::  DS0,DS1,DS2,DT0,DT1,DT2,DU0
+      IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-H,O-Z)
+C
+      INCLUDE 'w1comm.f'
+      PARAMETER (NZPM=2**NZLM)
+      PARAMETER (NXTM=NXPM+2*NXVM,NXM=NXPM*6+10,NXQ=NXPM+1)
+      PARAMETER (NHM=2*NHARMM+1,NHM1=NHARMM+1)
+      COMMON /W1PRM1/ NXP,NXV,NXT,ISMAX,IAMAX
+      COMMON /W1PRM2/ RF,RKZ,BB,RR,RA,RD,RB,WALLR
+      COMMON /W1CNST/ AEE,AME,AMM,VC,EPS0,AMYU0,PI
+      COMMON /W1MAT1/ CD0(4,NXPM),CD1(2,NXPM),CD2(4,NXPM)
+      COMMON /W1BND1/ CGIN(3,5),CGOT(3,5),CFJY1,CFJY2,CFJZ1,CFJZ2
+      COMMON /W1BND2/ CA(NXM)
+      COMMON /W1XDAT/ XA(NXQ),XAM(NXTM)
+      COMMON /W1MTRX/ CF(6*MATLM+5,NXM)
+C
+      DIMENSION DS0(2,2,2),DS1(2,2,2),DS2(2,2,2)
+      DIMENSION DT0(2,2,2),DT1(2,2,2),DU0(2,2,2)
+      DATA CI/(0.D0,1.D0)/
 C
       RKV=2.D6*PI*RF/VC
 C
@@ -174,25 +184,33 @@ C     ******* ELECTROMAGNETIC FIELD IN PLASMA *******
 C
       SUBROUTINE W1EPWA(NZ)
 C
-      USE w1comm
-      IMPLICIT NONE
-      INTEGER,INTENT(IN):: NZ
-      INTEGER:: NS,NX,I,J,K,N1,N2,M,L
-      REAL(rkind):: RKV,RCE,DX,PABSL,PFLXL
-      REAL(rkind):: DS01,DS02,DS11,DS12,DS11A,DS12A,DS21,DS22
-      REAL(rkind):: DT11,DT12,DT11A,DT12A
-      REAL(rkind),DIMENSION(2,2,2)::  DS0,DS1,DS2,DT0,DT1,DT2,DU0
-      COMPLEX(rkind):: CM11,CM12,CM13,CM21,CM22,CM23,CM31,CM32,CM33
-      COMPLEX(rkind):: CD11,CD12,CD13,CD21,CD22,CD23,CD31,CD32,CD33
-      COMPLEX(rkind):: CABSL,CFLXL
+      IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-H,O-Z)
+C
+      INCLUDE 'w1comm.f'
+      PARAMETER (NZPM=2**NZLM)
+      PARAMETER (NXTM=NXPM+2*NXVM,NXM=NXPM*6+10,NXQ=NXPM+1)
+      PARAMETER (NHM=2*NHARMM+1,NHM1=NHARMM+1)
+      COMMON /W1PRM1/ NXP,NXV,NXT,ISMAX,IAMAX
+      COMMON /W1PRM2/ RF,RKZ,BB,RR,RA,RD,RB,WALLR
+      COMMON /W1CNST/ AEE,AME,AMM,VC,EPS0,AMYU0,PI
+      COMMON /W1MAT1/ CD0(4,NXPM),CD1(2,NXPM),CD2(4,NXPM)
+      COMMON /W1MAT2/ CM0(4,NXPM,ISM),CM1(2,NXPM,ISM),CM2(4,NXPM,ISM)
+      COMMON /W1BND2/ CA(NXM)
+      COMMON /W1EF2D/ CE2DA(NZPM,NXTM,3)
+      COMMON /W1PWR0/ PABS(NXPM,ISM),FLUX(NXTM)
+      COMMON /W1XDAT/ XA(NXQ),XAM(NXTM)
+C
+      DIMENSION DS0(2,2,2),DS1(2,2,2),DS2(2,2,2)
+      DIMENSION DT0(2,2,2),DT1(2,2,2),DU0(2,2,2)
+      DATA CI/(0.D0,1.D0)/
 C
       RKV=2.D6*PI*RF/VC
 C
       RCE=VC*EPS0
 C
-      DO 100 NS=1,NSMAX
+      DO 100 IS=1,ISMAX
       DO 100 NX=1,NXP
-         PABS(NX,NS)=0.D0
+         PABS(NX,IS)=0.D0
   100 CONTINUE
       DO 110 NX=1,NXP
          FLUX(NX)=0.D0
@@ -265,47 +283,47 @@ C
          DT11A=DT1(J,I,1)+0.5D0*DT1(J,1,I)
          DT12A=DT1(J,I,2)+0.5D0*DT1(J,2,I)
 C
-         DO 5000 NS=1,NSMAX
+         DO 5000 IS=1,ISMAX
          DO 5000 NX=1,NXP-1
             N1=NX
             N2=NX+1
             DX=RKV*(XA(N2)-XA(N1))
             M=3*(NX+I-1)-1
             L=3*(NX+J-1)-1
-            CM11       =+CM0(1,N1,NS)*DU0(I,J,1)*DX
-     &                  +CM0(1,N2,NS)*DU0(I,J,2)*DX
-            CM12       =+CM0(2,N1,NS)*DT0(I,J,1)*DX
-     &                  +CM0(2,N2,NS)*DT0(I,J,2)*DX
-            CM21       =-CM0(2,N1,NS)*DT0(J,I,1)*DX
-     &                  -CM0(2,N2,NS)*DT0(J,I,2)*DX
-            CM22       =+CM0(3,N1,NS)*DS01*DX
-     &                  +CM0(3,N2,NS)*DS02*DX
-     &                  +CM2(3,N1,NS)*DS21/DX
-     &                  +CM2(3,N2,NS)*DS22/DX
-            CM33       =+CM0(4,N1,NS)*DS01*DX
-     &                  +CM0(4,N2,NS)*DS02*DX
-     &                  +CM2(4,N1,NS)*DS21/DX
-     &                  +CM2(4,N2,NS)*DS22/DX
-            CM13       =-CI*CM1(1,N1,NS)*DT11
-     &                  -CI*CM1(1,N2,NS)*DT12
-            CM23       =+CI*CM1(2,N1,NS)*DS11
-     &                  +CI*CM1(2,N2,NS)*DS12
-            CM31       =+CI*CM1(1,N1,NS)*DT11A
-     &                  +CI*CM1(1,N2,NS)*DT12A
-            CM32       =+CI*CM1(2,N1,NS)*DS11A
-     &                  +CI*CM1(2,N2,NS)*DS12A
+            CM11       =+CM0(1,N1,IS)*DU0(I,J,1)*DX
+     &                  +CM0(1,N2,IS)*DU0(I,J,2)*DX
+            CM12       =+CM0(2,N1,IS)*DT0(I,J,1)*DX
+     &                  +CM0(2,N2,IS)*DT0(I,J,2)*DX
+            CM21       =-CM0(2,N1,IS)*DT0(J,I,1)*DX
+     &                  -CM0(2,N2,IS)*DT0(J,I,2)*DX
+            CM22       =+CM0(3,N1,IS)*DS01*DX
+     &                  +CM0(3,N2,IS)*DS02*DX
+     &                  +CM2(3,N1,IS)*DS21/DX
+     &                  +CM2(3,N2,IS)*DS22/DX
+            CM33       =+CM0(4,N1,IS)*DS01*DX
+     &                  +CM0(4,N2,IS)*DS02*DX
+     &                  +CM2(4,N1,IS)*DS21/DX
+     &                  +CM2(4,N2,IS)*DS22/DX
+            CM13       =-CI*CM1(1,N1,IS)*DT11
+     &                  -CI*CM1(1,N2,IS)*DT12
+            CM23       =+CI*CM1(2,N1,IS)*DS11
+     &                  +CI*CM1(2,N2,IS)*DS12
+            CM31       =+CI*CM1(1,N1,IS)*DT11A
+     &                  +CI*CM1(1,N2,IS)*DT12A
+            CM32       =+CI*CM1(2,N1,IS)*DS11A
+     &                  +CI*CM1(2,N2,IS)*DS12A
 C
          CABSL=DCONJG(CA(M+1))*(CM11*CA(L+1)+CM12*CA(L+2)+CM13*CA(L+3))
      &        +DCONJG(CA(M+2))*(CM21*CA(L+1)+CM22*CA(L+2)+CM23*CA(L+3))
      &        +DCONJG(CA(M+3))*(CM31*CA(L+1)+CM32*CA(L+2)+CM33*CA(L+3))
          PABSL=-CI*RCE*CABSL
          IF(I.EQ.1.AND.J.EQ.1) THEN
-            PABS(NX  ,NS)=PABS(NX  ,NS)+PABSL
+            PABS(NX  ,IS)=PABS(NX  ,IS)+PABSL
          ELSEIF(I.EQ.2.AND.J.EQ.2) THEN
-            PABS(NX+1,NS)=PABS(NX+1,NS)+PABSL
+            PABS(NX+1,IS)=PABS(NX+1,IS)+PABSL
          ELSE
-            PABS(NX  ,NS)=PABS(NX  ,NS)+0.5D0*PABSL
-            PABS(NX+1,NS)=PABS(NX+1,NS)+0.5D0*PABSL
+            PABS(NX  ,IS)=PABS(NX  ,IS)+0.5D0*PABSL
+            PABS(NX+1,IS)=PABS(NX+1,IS)+0.5D0*PABSL
          ENDIF
  5000 CONTINUE
 C
@@ -354,14 +372,23 @@ C     ******* BAND MATRIX COEFFICIENT *******
 C
       SUBROUTINE W1BNDC(IERR)
 C
-      USE w1comm
-      IMPLICIT NONE
-      INTEGER,INTENT(OUT):: IERR
-      INTEGER:: I,J,K,NSF,N,KML,L,NX,N1,N2,M,IND
-      REAL(rkind):: RKV,DX
-      REAL(rkind):: DS01,DS02,DS11,DS12,DS21,DS22
-      REAL(rkind):: DT11,DT12
-      REAL(rkind),DIMENSION(2,2,2)::  DS0,DS1,DS2
+      IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-H,O-Z)
+C
+      INCLUDE 'w1comm.f'
+      PARAMETER (NZPM=2**NZLM)
+      PARAMETER (NXTM=NXPM+2*NXVM,NXM=NXPM*6+10,NXQ=NXPM+1)
+      PARAMETER (NHM=2*NHARMM+1,NHM1=NHARMM+1)
+      COMMON /W1PRM1/ NXP,NXV,NXT,ISMAX,IAMAX
+      COMMON /W1PRM2/ RF,RKZ,BB,RR,RA,RD,RB,WALLR
+      COMMON /W1CNST/ AEE,AME,AMM,VC,EPS0,AMYU0,PI
+      COMMON /W1MAT1/ CD0(4,NXPM),CD1(2,NXPM),CD2(4,NXPM)
+      COMMON /W1BND1/ CGIN(3,5),CGOT(3,5),CFJY1,CFJY2,CFJZ1,CFJZ2
+      COMMON /W1BND2/ CA(NXM)
+      COMMON /W1XDAT/ XA(NXQ),XAM(NXTM)
+      COMMON /W1MTRX/ CF(6*MATLM+5,NXM)
+C
+      DIMENSION DS0(2,2,2),DS1(2,2,2),DS2(2,2,2)
+      DATA CI/(0.D0,1.D0)/
 C
       RKV=2.D6*PI*RF/VC
 C
@@ -501,25 +528,32 @@ C     ******* ELECTROMAGNETIC FIELD IN PLASMA *******
 C
       SUBROUTINE W1EPWC(NZ)
 C
-      USE w1comm
-      IMPLICIT NONE
-      INTEGER,INTENT(IN):: NZ
-      INTEGER:: NS,NX,I,J,K,N1,N2,M,L
-      REAL(rkind):: RKV,RCE,DX,PABSL,PFLXL
-      REAL(rkind):: DS01,DS02,DS11,DS12,DS21,DS22
-      REAL(rkind):: DT11,DT12
-      REAL(rkind),DIMENSION(2,2,2)::  DS0,DS1,DS2
-      COMPLEX(rkind):: CM11,CM12,CM13,CM21,CM22,CM23,CM31,CM32,CM33
-      COMPLEX(rkind):: CD11,CD12,CD13,CD21,CD22,CD23,CD31,CD32,CD33
-      COMPLEX(rkind):: CABSL,CFLXL
+      IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-H,O-Z)
+C
+      INCLUDE 'w1comm.f'
+      PARAMETER (NZPM=2**NZLM)
+      PARAMETER (NXTM=NXPM+2*NXVM,NXM=NXPM*6+10,NXQ=NXPM+1)
+      PARAMETER (NHM=2*NHARMM+1,NHM1=NHARMM+1)
+      COMMON /W1PRM1/ NXP,NXV,NXT,ISMAX,IAMAX
+      COMMON /W1PRM2/ RF,RKZ,BB,RR,RA,RD,RB,WALLR
+      COMMON /W1CNST/ AEE,AME,AMM,VC,EPS0,AMYU0,PI
+      COMMON /W1MAT1/ CD0(4,NXPM),CD1(2,NXPM),CD2(4,NXPM)
+      COMMON /W1MAT2/ CM0(4,NXPM,ISM),CM1(2,NXPM,ISM),CM2(4,NXPM,ISM)
+      COMMON /W1BND2/ CA(NXM)
+      COMMON /W1EF2D/ CE2DA(NZPM,NXTM,3)
+      COMMON /W1PWR0/ PABS(NXPM,ISM),FLUX(NXTM)
+      COMMON /W1XDAT/ XA(NXQ),XAM(NXTM)
+C
+      DIMENSION DS0(2,2,2),DS1(2,2,2),DS2(2,2,2)
+      DATA CI/(0.D0,1.D0)/
 C
       RKV=2.D6*PI*RF/VC
 C
       RCE=VC*EPS0
 C
-      DO 100 NS=1,NSMAX
+      DO 100 IS=1,ISMAX
       DO 100 NX=1,NXP
-         PABS(NX,NS)=0.D0
+         PABS(NX,IS)=0.D0
   100 CONTINUE
       DO 110 NX=1,NXP
          FLUX(NX)=0.D0
@@ -565,53 +599,53 @@ C
          DT11=(DS1(I,J,1)+0.5D0*DS1(1,I,J))
          DT12=(DS1(I,J,2)+0.5D0*DS1(2,I,J))
 C
-         DO 5000 NS=1,NSMAX
+         DO 5000 IS=1,ISMAX
          DO 5000 NX=1,NXP-1
             N1=NX
             N2=NX+1
             DX=RKV*(XA(N2)-XA(N1))
             M=3*(NX+I-1)-1
             L=3*(NX+J-1)-1
-            CM11=+CM0(1,N1,NS)*DS01*DX
-     &           +CM0(1,N2,NS)*DS02*DX
-     &           +CM2(1,N1,NS)*DS21/DX
-     &           +CM2(1,N2,NS)*DS22/DX
-            CM12=+CM0(2,N1,NS)*DS01*DX
-     &           +CM0(2,N2,NS)*DS02*DX
-     &           +CM2(2,N1,NS)*DS21/DX
-     &           +CM2(2,N2,NS)*DS22/DX
-            CM21=-CM0(2,N1,NS)*DS01*DX
-     &           -CM0(2,N2,NS)*DS02*DX
-     &           -CM2(2,N1,NS)*DS21/DX
-     &           -CM2(2,N2,NS)*DS22/DX
-            CM22=+CM0(3,N1,NS)*DS01*DX
-     &           +CM0(3,N2,NS)*DS02*DX
-     &           +CM2(3,N1,NS)*DS21/DX
-     &           +CM2(3,N2,NS)*DS22/DX
-            CM33=+CM0(4,N1,NS)*DS01*DX
-     &           +CM0(4,N2,NS)*DS02*DX
-     &           +CM2(4,N1,NS)*DS21/DX
-     &           +CM2(4,N2,NS)*DS22/DX
-            CM13=-CI*CM1(1,N1,NS)*DS11
-     &           -CI*CM1(1,N2,NS)*DS12
-            CM23=+CI*CM1(2,N1,NS)*DT11
-     &           +CI*CM1(2,N2,NS)*DT12
-            CM31=+CI*CM1(1,N1,NS)*DT11
-     &           +CI*CM1(1,N2,NS)*DT12
-            CM32=+CI*CM1(2,N1,NS)*DS11
-     &           +CI*CM1(2,N2,NS)*DS12
+            CM11=+CM0(1,N1,IS)*DS01*DX
+     &           +CM0(1,N2,IS)*DS02*DX
+     &           +CM2(1,N1,IS)*DS21/DX
+     &           +CM2(1,N2,IS)*DS22/DX
+            CM12=+CM0(2,N1,IS)*DS01*DX
+     &           +CM0(2,N2,IS)*DS02*DX
+     &           +CM2(2,N1,IS)*DS21/DX
+     &           +CM2(2,N2,IS)*DS22/DX
+            CM21=-CM0(2,N1,IS)*DS01*DX
+     &           -CM0(2,N2,IS)*DS02*DX
+     &           -CM2(2,N1,IS)*DS21/DX
+     &           -CM2(2,N2,IS)*DS22/DX
+            CM22=+CM0(3,N1,IS)*DS01*DX
+     &           +CM0(3,N2,IS)*DS02*DX
+     &           +CM2(3,N1,IS)*DS21/DX
+     &           +CM2(3,N2,IS)*DS22/DX
+            CM33=+CM0(4,N1,IS)*DS01*DX
+     &           +CM0(4,N2,IS)*DS02*DX
+     &           +CM2(4,N1,IS)*DS21/DX
+     &           +CM2(4,N2,IS)*DS22/DX
+            CM13=-CI*CM1(1,N1,IS)*DS11
+     &           -CI*CM1(1,N2,IS)*DS12
+            CM23=+CI*CM1(2,N1,IS)*DT11
+     &           +CI*CM1(2,N2,IS)*DT12
+            CM31=+CI*CM1(1,N1,IS)*DT11
+     &           +CI*CM1(1,N2,IS)*DT12
+            CM32=+CI*CM1(2,N1,IS)*DS11
+     &           +CI*CM1(2,N2,IS)*DS12
 C
          CABSL=DCONJG(CA(M+1))*(CM11*CA(L+1)+CM12*CA(L+2)+CM13*CA(L+3))
      &        +DCONJG(CA(M+2))*(CM21*CA(L+1)+CM22*CA(L+2)+CM23*CA(L+3))
      &        +DCONJG(CA(M+3))*(CM31*CA(L+1)+CM32*CA(L+2)+CM33*CA(L+3))
          PABSL=-CI*RCE*CABSL
          IF(I.EQ.1.AND.J.EQ.1) THEN
-            PABS(NX  ,NS)=PABS(NX  ,NS)+PABSL
+            PABS(NX  ,IS)=PABS(NX  ,IS)+PABSL
          ELSEIF(I.EQ.2.AND.J.EQ.2) THEN
-            PABS(NX+1,NS)=PABS(NX+1,NS)+PABSL
+            PABS(NX+1,IS)=PABS(NX+1,IS)+PABSL
          ELSE
-            PABS(NX  ,NS)=PABS(NX  ,NS)+0.5D0*PABSL
-            PABS(NX+1,NS)=PABS(NX+1,NS)+0.5D0*PABSL
+            PABS(NX  ,IS)=PABS(NX  ,IS)+0.5D0*PABSL
+            PABS(NX+1,IS)=PABS(NX+1,IS)+0.5D0*PABSL
          ENDIF
  5000 CONTINUE
 C

@@ -20,7 +20,7 @@ C
       IMPLICIT NONE
       REAL(8):: U,ERFC1
 C
-      ERFC1=DERFC(U)
+      ERFC1=ERFC(U)
 C
       RETURN
       END
