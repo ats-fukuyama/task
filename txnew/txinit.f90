@@ -1548,8 +1548,8 @@ contains
        IF(rhoaccum > rhob) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(RR <= rhob) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(rIPs < 0.D0 .OR. rIPe < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
-       IF(amas(1) < 0.D0 .OR. amas(2) < 0.D0 .OR. achg(1) > 0.D0 .OR. achg(2) < 0.D0 .OR. Zeff < 1.D0) THEN ; EXIT ; ELSE
-          idx = idx + 1 ; ENDIF
+       IF(amas(1) < 0.D0 .OR. amas(2) < 0.D0 .OR. achg(1) > 0.D0 .OR. achg(2) < 0.D0 .OR. Zeff < 1.D0) THEN
+          EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(PN0 < 0.D0 .OR. PNa < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(PTe0 < 0.D0 .OR. PTea < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        ! /// idx = 11 - 20 ///
@@ -1573,7 +1573,8 @@ contains
        ! /// idx = 21 - 30 ///
        IF(FSLC < 0.D0 .OR. FSRP < 0.D0 .OR. FSNC < 0.D0 .OR. FSNCB < 0.D0) THEN ; EXIT ; ELSE
           idx = idx + 1 ; ENDIF
-       IF(FSHL < 0.D0 .OR. FSNF < 0.D0 .OR. FSADV < 0.d0 .OR. FSADVB < 0.d0 .OR. FSUG < 0.d0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(FSHL < 0.D0 .OR. FSNF < 0.D0 .OR. FSADV < 0.d0 .OR. FSADVB < 0.d0 .OR. FSUG < 0.d0) THEN
+          EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(FSLP < 0.D0 .OR. FSLTE < 0.D0 .OR. FSLTI < 0.D0) THEN ; EXIT ; ELSE
           idx = idx + 1 ; ENDIF
        IF(FSION < 0.D0)  THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
