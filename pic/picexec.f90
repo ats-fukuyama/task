@@ -73,7 +73,7 @@ CONTAINS
                tolerance_matrix,model_boundary,dlen)
        END IF
        !IF(model_boundary.EQ.2) THEN
-      !   CALL absorb_phi(nxmax,nymax,phi,phib,phibb,dt,vcfact)
+        !  CALL absorb_phi(nxmax,nymax,phi,phib,phibb,dt,vcfact)
        !ENDIF
        !----- current assignment
        jx(:,:)=0.d0
@@ -825,8 +825,8 @@ CONTAINS
            sx2m = 0.d0!sx2m - sx2p
          ELSEIF(model_boundary .NE. 0 .AND. nxp .EQ. nxmax-1) THEN
            sx2p = 0.d0
-           sx2 =  sx2
-           sx2m = sx2m!sx2m - sx2p
+           !sx2 =  sx2
+           !sx2m = sx2m!sx2m - sx2p
          ENDIF
          IF(model_boundary .NE. 0 .AND. nyp .EQ. 0) THEN
            sy2p = sy2p - sy2m
@@ -834,8 +834,8 @@ CONTAINS
            sy2m = 0.d0!sy2m - sy2p
          ELSEIF(model_boundary .NE. 0 .AND. nyp .EQ. nymax-1) THEN
            sy2p = 0.d0
-           sy2 =  sy2
-           sy2m = sy2m!sx2m - sx2p
+           !sy2 =  sy2
+           !sy2m = sy2m!sx2m - sx2p
          ENDIF
           rho(nxpm,nypm) = rho(nxpm,nypm) + sx2m * sy2m * factor
           rho(nxpm,nyp ) = rho(nxpm,nyp ) + sx2m * sy2  * factor
@@ -853,16 +853,16 @@ CONTAINS
            sx2m = 0.d0!sx2m - sx2p
          ELSEIF(model_boundary .NE. 0 .AND. nxp .EQ. nxmax-1) THEN
            sx2p = 0.d0
-           sx2  = sx2
-           sx2m = sx2m!sx2m - sx2p
+           !sx2  = sx2
+           !sx2m = sx2m!sx2m - sx2p
          ENDIF
          IF(model_boundary .NE. 0 .AND. nyp .EQ. nymax-1) THEN
            sy2m = sy2m - sy2p
            sy2  = 0.d0
            sy2p = 0.d0!sy2p - sy2m
          ELSEIF(model_boundary .NE. 0 .AND. nyp .EQ. 0) THEN
-           sy2p = sy2p
-           sy2  = sy2
+           !sy2p = sy2p
+           !sy2  = sy2
            sy2m = 0.d0!sx2m - sx2p
          ENDIF
           rho(nxpm ,nyp  ) = rho(nxpm ,nyp  ) + sx2m * sy2m * factor
@@ -880,8 +880,8 @@ CONTAINS
            sx2  = 0.d0
            sx2p = 0.d0!sx2p - sx2m
          ELSEIF(model_boundary .NE. 0 .AND. nyp .EQ. 0) THEN
-           sx2p = sx2p
-           sx2  = sx2
+           !sx2p = sx2p
+           !sx2  = sx2
            sx2m = 0.d0!sx2m - sx2p
          ENDIF
          IF(model_boundary .NE. 0 .AND. nyp .EQ. 0) THEN
@@ -890,8 +890,8 @@ CONTAINS
            sy2m = 0.d0!sy2m - sy2p
          ELSEIF(model_boundary .NE. 0 .AND. nyp .EQ. nymax-1) THEN
            sy2p = 0.d0
-           sy2 =  sy2
-           sy2m = sy2m!sx2m - sx2p
+           !sy2 =  sy2
+           !sy2m = sy2m!sx2m - sx2p
          ENDIF
           rho(nxp  ,nypm) = rho(nxp  ,nypm ) + sx2m * sy2m * factor
           rho(nxp  ,nyp ) = rho(nxp  ,nyp  ) + sx2m * sy2  * factor
@@ -908,8 +908,8 @@ CONTAINS
            sx2  = 0.d0
            sx2p = 0.d0!sx2p - sx2m
          ELSEIF(model_boundary .NE. 0 .AND. nxp .EQ. 0) THEN
-           sx2p = sx2p
-           sx2  = sx2
+           !sx2p = sx2p
+           !sx2  = sx2
            sx2m = 0.d0!sx2m - sx2p
          ENDIF
          IF(model_boundary .NE. 0 .AND. nyp .EQ. nymax-1) THEN
@@ -917,8 +917,8 @@ CONTAINS
            sy2  = 0.d0
            sy2p = 0.d0!sy2p - sy2m
          ELSEIF(model_boundary .NE. 0 .AND. nyp .EQ. 0) THEN
-           sy2p = sy2p
-           sy2  = sy2
+           !sy2p = sy2p
+           !sy2  = sy2
            sy2m = 0.d0!sy2m - sy2p
          ENDIF
           rho(nxp  ,nyp  ) = rho(nxp  ,nyp  ) + sx2m * sy2m * factor
@@ -1399,8 +1399,8 @@ CONTAINS
     ! vcfact is the ratio of the light speed to lattice parameter times plasma
     ! frequency
 
-    DO nx = 0, nxmax
-       DO ny = 0, nymax
+    DO nx = 1, nxmax-1
+       DO ny = 1, nymax-1
 
           nxm = nx - 1
           nxp = nx + 1
@@ -1476,8 +1476,38 @@ CONTAINS
     !        ENDDO
     !     ENDDO
     !  ENDIF
+     DO nx=1,nxmax-1
+          nxm = nx - 1
+          nxp = nx + 1
+          Ay(nx,0) = dt ** 2 * vcfact ** 2 * (Ayb(nxp,0) + Ayb(nxm,0) &
+                                            + Ayb(nx,1) - 4.0d0 * Ayb(nx,0)) &
+                    + dt ** 2 * jy(nx,0) &
+                    - 0.5d0 * dt * (phi(nx,1) - phib(nx,1)) &
+                    + 2.0d0 * Ayb(nx,0) - Aybb(nx,0)
 
-    IF(model_boundary .ne. 0) THEN ! boundary condition for reflection
+          Ay(nx,nymax) = dt ** 2 * vcfact ** 2 * (Ayb(nxp,nymax) &
+                  + Ayb(nxm,nymax) + Ayb(nx,nymax-1) - 4.0d0 * Ayb(nx,nymax)) &
+                    + dt ** 2 * jy(nx,nymax) &
+                    - 0.5d0 * dt * (- phi(nx,nymax-1) + phib(nx,nymax-1)) &
+                    + 2.0d0 * Ayb(nx,nymax) - Aybb(nx,nymax)
+    END DO
+    DO ny=1,nymax-1
+          nym = ny - 1
+          nyp = ny + 1
+          Ax(0,ny) = dt ** 2 * vcfact ** 2 * (Axb(1,ny) + Axb(0,nyp) + Axb(0,nym) - 4.0d0 * Axb(0,ny)) &
+                    + dt ** 2 * jx(0,ny) &
+                    - 0.5d0 * dt * (phi(1,ny) - phib(1,ny)) &
+                    + 2.0d0 * Axb(0,ny) - Axbb(0,ny)
+
+          Ax(nxmax,ny) = dt ** 2 * vcfact ** 2 * (Axb(nxmax-1,ny) &
+                                            + Axb(nxmax,nyp) + Axb(nxmax,nym) &
+                                            - 4.0d0 * Axb(nxmax,ny)) &
+                    + dt ** 2 * jx(nxmax,ny) &
+                    - 0.5d0 * dt * (- phi(nxmax-1,ny) + phib(nxmax-1,ny)) &
+                    + 2.0d0 * Axb(nxmax,ny) - Axbb(nxmax,ny)
+
+    END DO
+
      Ay(0,:)=0.d0
      Az(0,:)=0.d0
      Ay(nxmax,:)=0.d0
@@ -1486,7 +1516,6 @@ CONTAINS
      Az(:,0)=0.d0
      Ax(:,nymax)=0.d0
      Az(:,nymax)=0.d0
-   ENDIF
 
      IF(model_boundary .eq. 2) THEN ! Mur's absorbing boundary condition
      DO nx = 1, nxmax-1
@@ -1592,8 +1621,8 @@ CONTAINS
        yc=0.5d0*(ymin_wg+ymax_wg)
        ylen=(ymax_wg-ymin_wg)
        IF(ylen .NE. 0) dph=ph_wg/ylen
-       amp_start = time * vcfact/100.d0
-       IF(amp_start .GE. 1.d0) amp_start=1.0d0
+       amp_start = 1.d0!time * vcfact/100.d0
+       !IF(amp_start .GE. 1.d0) amp_start=1.0d0
        DO ny=1,nymax
           y=DBLE(ny)
           IF(y.GE.ymin_wg.AND.y.LE.ymax_wg) THEN
