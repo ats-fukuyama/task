@@ -74,7 +74,7 @@ CONTAINS
           CALL MPI_Bcast(phi,nxymax,MPI_REAL8,0,ncomm,ierr)
        END IF
        !IF(model_boundary.EQ.2) THEN
-       !  CALL absorb_phi(nxmax,nymax,phi,phib,phibb,dt,vcfact)
+      !   CALL absorb_phi(nxmax,nymax,phi,phib,phibb,dt,vcfact)
        !ENDIF
        !----- current assignment
        jx(:,:)=0.d0
@@ -1093,10 +1093,10 @@ CONTAINS
            sx2m = 0.d0
            dx1 = 2.0d0 * dx1
          ELSE IF(model_boundary .NE. 0 .AND. nxp .EQ. nxmax-1)  THEN
-              sx2p = 0.d0
-              sx2m = sx2m
-              sx2 = sx2
-              dx = 2.0d0 * dx
+           sx2p = 0.d0
+           sx2m = sx2m
+           sx2 = sx2
+           dx = 2.0d0 * dx
          ENDIF
          IF(model_boundary .NE. 0 .AND. nyp .EQ. nymax-1) THEN
            sy2m = sy2m - sy2p
@@ -1396,8 +1396,8 @@ CONTAINS
     ! vcfact is the ratio of the light speed to lattice parameter times plasma
     ! frequency
 
-    DO nx = 0, nxmax
-       DO ny = 0, nymax
+    DO nx = 1, nxmax-1
+       DO ny = 1, nymax-1
 
           nxm = nx - 1
           nxp = nx + 1
@@ -1474,7 +1474,7 @@ CONTAINS
     !     ENDDO
     !  ENDIF
 
-    IF(model_boundary .ne. 0) THEN ! boundary condition for reflection
+    ! boundary condition for reflection
      Ay(0,:)=0.d0
      Az(0,:)=0.d0
      !Ax(nxmax,:)=0.d0
@@ -1486,7 +1486,39 @@ CONTAINS
      Ax(:,nymax)=0.d0
      !Ay(:,nymax)=0.d0
      Az(:,nymax)=0.d0
-   ENDIF
+     DO nx=1,nxmax-1
+          nxm = nx - 1
+          nxp = nx + 1
+          Ay(nx,0) = dt ** 2 * vcfact ** 2 * (Ayb(nxp,0) + Ayb(nxm,0) &
+                                            + Ayb(nx,1) &
+                                            - 4.0d0 * Ayb(nx,0)) &
+                    + dt ** 2 * jy(nx,0) &
+                    - 0.5d0 * dt * (phi(nx,1) - phib(nx,1)) &
+                    + 2.0d0 * Ayb(nx,0) - Aybb(nx,0)
+
+          Ay(nx,nymax) = dt ** 2 * vcfact ** 2 * (Ayb(nxp,nymax) + Ayb(nxm,nymax) &
+                                               + Ayb(nx,nymax-1) - 4.0d0 * Ayb(nx,nymax)) &
+                    + dt ** 2 * jy(nx,nymax) &
+                    - 0.5d0 * dt * (- phi(nx,nymax-1) + phib(nx,nymax-1)) &
+                    + 2.0d0 * Ayb(nx,nymax) - Aybb(nx,nymax)
+    END DO
+    DO ny=1,nymax-1
+          nym = ny - 1
+          nyp = ny + 1
+          Ax(0,ny) = dt ** 2 * vcfact ** 2 * (Axb(1,ny) + Axb(0,nyp) + Axb(0,nym) &
+                                            - 4.0d0 * Axb(0,ny)) &
+                    + dt ** 2 * jx(0,ny) &
+                    - 0.5d0 * dt * (phi(1,ny) - phib(1,ny)) &
+                    + 2.0d0 * Axb(0,ny) - Axbb(0,ny)
+
+          Ax(nxmax,ny) = dt ** 2 * vcfact ** 2 * (Axb(nxmax-1,ny) &
+                                            + Axb(nxmax,nyp) + Axb(nxmax,nym) &
+                                            - 4.0d0 * Axb(nxmax,ny)) &
+                    + dt ** 2 * jx(nxmax,ny) &
+                    - 0.5d0 * dt * (- phi(nxmax-1,ny) + phib(nxmax-1,ny)) &
+                    + 2.0d0 * Axb(nxmax,ny) - Axbb(nxmax,ny)
+
+    END DO
 
      IF(model_boundary .eq. 2) THEN ! Mur's absorbing boundary condition
      DO nx = 1, nxmax-1
@@ -1544,6 +1576,7 @@ CONTAINS
                *(Axb(nxmax,ny+1)-2.d0*Axb(nxmax,ny)&
                +Axb(nxmax,ny-1)+Axb(nxmax-1,ny+1)&
                -2.d0*Axb(nxmax-1,ny)+Axb(nxmax-1,ny-1))
+
        Ay(nxmax,ny)=-Aybb(nxmax-1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
                *(Ay(nxmax-1,ny)+Aybb(nxmax,ny)) &
                +2.d0/(vcfact*dt+1.d0)*(Ayb(nxmax,ny)+Ayb(nxmax-1,ny))&
@@ -1551,6 +1584,7 @@ CONTAINS
                *(Ayb(nxmax,ny+1)-2.d0*Ayb(nxmax,ny)&
                +Ayb(nxmax,ny-1)+Ayb(nxmax-1,ny+1)&
                -2.d0*Ayb(nxmax-1,ny)+Ayb(nxmax-1,ny-1))
+
        Az(nxmax,ny)=-Azbb(nxmax-1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
                *(Az(nxmax-1,ny)+Azbb(nxmax,ny)) &
                +2.d0/(vcfact*dt+1.d0)*(Azb(nxmax,ny)+Azb(nxmax-1,ny))&
@@ -1558,8 +1592,31 @@ CONTAINS
                *(Azb(nxmax,ny+1)-2.d0*Azb(nxmax,ny)&
                +Azb(nxmax,ny-1)+Azb(nxmax-1,ny+1)&
                -2.d0*Azb(nxmax-1,ny)+Azb(nxmax-1,ny-1))
+
+        Ax(0,ny)=-Axbb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+              *(Ax(1,ny)+Axbb(0,ny)) &
+              +2.d0/(vcfact*dt+1.d0)*(Axb(0,ny)+Axb(1,ny))&
+              +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+              *(Axb(0,ny+1)-2.d0*Axb(0,ny)&
+              +Axb(0,ny-1)+Axb(1,ny+1)&
+              -2.d0*Axb(1,ny)+Axb(1,ny-1))
+
+        Ay(0,ny)=-Aybb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+              *(Ay(1,ny)+Aybb(0,ny)) &
+              +2.d0/(vcfact*dt+1.d0)*(Ayb(0,ny)+Ayb(1,ny))&
+              +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+              *(Ayb(0,ny+1)-2.d0*Ayb(0,ny)&
+              +Ayb(0,ny-1)+Ayb(1,ny+1)&
+              -2.d0*Ayb(1,ny)+Ayb(1,ny-1))
+
+        Az(0,ny)=-Azbb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+              *(Az(1,ny)+Azbb(0,ny)) &
+              +2.d0/(vcfact*dt+1.d0)*(Azb(0,ny)+Azb(1,ny))&
+              +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+              *(Azb(0,ny+1)-2.d0*Azb(0,ny)&
+              +Azb(0,ny-1)+Azb(1,ny+1)&
+              -2.d0*Azb(1,ny)+Azb(1,ny-1))
      ENDDO
-     ENDIF
       DO ny = 1, nymax-1
         Ax(0,ny)=-Axbb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
                 *(Ax(1,ny)+Axbb(0,ny)) &
@@ -1583,7 +1640,7 @@ CONTAINS
                 +Azb(0,ny-1)+Azb(1,ny+1)&
                 -2.d0*Azb(1,ny)+Azb(1,ny-1))
       ENDDO
-
+    ENDIF
     SELECT CASE(model_wg)
     CASE(0)
        yc=0.5d0*(ymin_wg+ymax_wg)
