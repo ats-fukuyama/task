@@ -96,29 +96,29 @@ CONTAINS
 
   SUBROUTINE DIVZ(NZMAX)
     
-    USE wimcomm, ONLY: rkind,ZA,PN0,PB0,PB1,ANX,BETA,ZMAX,DZMAX,DZWID
+    USE wimcomm, ONLY: rkind,ZA,PN0,DBDZ,ANX,BETA,ZMIN,ZMAX,DZMAX,DZWID
     IMPLICIT NONE
     INTEGER:: NZ,NZMAX
-    REAL(rkind):: ZRES,WT,Z,FACT,Z1
+    REAL(rkind):: WT,Z,FACT,Z1,DZ
 
-    ZRES=(1.D0/PB0-1.D0)/PB1
-    IF(ZRES.LT.0.D0.OR.ZRES.GT.ZMAX) THEN
+    DZ=(ZMAX-ZMIN)/NZMAX
+    IF(DZMAX.EQ.0.D0) THEN
        DO NZ=0,NZMAX
-          ZA(NZ)=NZ*ZMAX/NZMAX
+          ZA(NZ)=ZMIN+DZ*NZ/NZMAX
        END DO
     ELSE
-       WT=ZMAX+DZMAX*DZWID &
-               *(ATAN((ZMAX-ZRES)/DZWID)-ATAN((-ZRES)/DZWID))
-       Z=0.D0
+       WT=(ZMAX-ZMIN)+DZMAX*DZWID &
+               *(ATAN(ZMAX/DZWID)-ATAN(ZMIN/DZWID))
+       Z=ZMIN
        DO NZ=0,NZMAX-1
           ZA(NZ)=Z
-          FACT=1.D0+DZMAX/(1.D0+((Z-ZRES)/DZWID)**2)
+          FACT=1.D0+DZMAX/(1.D0+(Z/DZWID)**2)
           Z1=Z+0.5D0*WT/(FACT*NZMAX)
-          FACT=1.D0+DZMAX/(1.D0+((Z1-ZRES)/DZWID)**2)
+          FACT=1.D0+DZMAX/(1.D0+(Z1/DZWID)**2)
           Z=Z+WT/(FACT*NZMAX)
        END DO
-       WRITE(6,601) ZRES,(ZMAX-Z)*NZMAX/ZMAX 
-601    FORMAT(1H ,'## ZRES = ',F10.4,':   ERR = ',1PE12.4) 
+       WRITE(6,601) (ZMAX-Z)*NZMAX/(ZMAX-ZMIN)
+601    FORMAT(1H ,'## ZDIV:   ERR = ',1PE12.4) 
        ZA(NZMAX)=ZMAX
     ENDIF
     RETURN
@@ -173,73 +173,72 @@ CONTAINS
     RETURN
   END SUBROUTINE SUBFW
 
-!     *****  CF1( V )  *****
+!     *****  CFN1( V )  *****
 
-  FUNCTION CF1(V)
+  FUNCTION CFN1(V)
 
-    USE wimcomm,ONLY: rkind,PI,TT,TMAX,NTMAX,CFK1,CFKS1
+    USE wimcomm,ONLY: rkind,PI,CI,TT,TMAX,NTMAX,CFK1,CFKS1
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: V
     REAL(rkind):: VA(1)
-    COMPLEX(rkind):: CF1,CF1A(1)
+    COMPLEX(rkind):: CFN1,CFN1A(1)
     INTEGER:: IER
-    COMPLEX(rkind),PARAMETER:: CAI=(0.D0,1.D0)
     REAL(rkind),PARAMETER:: R13=3.33333333333333D-1
     REAL(rkind),PARAMETER:: R23=6.66666666666667D-1
     REAL(rkind),PARAMETER:: SR3=1.73205080756887D0
 
     IF(V.LE.TMAX) THEN 
        VA(1)=V
-       CALL DSPLF(TT,NTMAX,CFK1,CFKS1,NTMAX,VA,1,CF1A,IER)
-       CF1=CF1A(1)
+       CALL DSPLF(TT,NTMAX,CFK1,CFKS1,NTMAX,VA,1,CFN1A,IER)
+       CFN1=CFN1A(1)
     ELSE 
-       CF1=V**R13*EXP(-0.75D0*V**R23  &
-                      +CAI*(0.75D0*SR3*V**R23+R13*PI))/SR3 
+       CFN1=V**R13*EXP(-0.75D0*V**R23  &
+                      +CI*(0.75D0*SR3*V**R23+R13*PI))/SR3 
     ENDIF
     RETURN
-  END FUNCTION CF1
+  END FUNCTION CFN1
 
-!     *****  CF2( V )  *****
+!     *****  CFN2( V )  *****
 
-  FUNCTION CF2(V)
-    USE wimcomm,ONLY: rkind,TT,TMAX,NTMAX,CFK2,CFKS2,PI
+  FUNCTION CFN2(V)
+    USE wimcomm,ONLY: rkind,CI,TT,TMAX,NTMAX,CFK2,CFKS2,PI
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: V
     REAL(rkind):: VA(1)
-    COMPLEX(rkind):: CF2,CF2A(1)
+    COMPLEX(rkind):: CFN2,CFN2A(1)
     INTEGER:: IER
-    COMPLEX(rkind),PARAMETER:: CAI=(0.D0,1.D0)
     REAL(rkind),PARAMETER:: R23=6.66666666666667D-1
     REAL(rkind),PARAMETER:: SR3=1.73205080756887D0
 
     IF(V.LE.TMAX) THEN 
        VA(1)=V
-       CALL DSPLF(TT,NTMAX,CFK2,CFKS2,NTMAX,VA,1,CF2A,IER)
-       CF2=CF2A(1)
+       CALL DSPLF(TT,NTMAX,CFK2,CFKS2,NTMAX,VA,1,CFN2A,IER)
+       CFN2=CFN2A(1)
     ELSE 
-       CF2=V*EXP(-0.75D0*V**R23 &
-                 +CAI*(0.75D0*SR3*V**R23+0.5D0*PI))/SR3 
+       CFN2=V*EXP(-0.75D0*V**R23 &
+                 +CI*(0.75D0*SR3*V**R23+0.5D0*PI))/SR3 
     ENDIF
     RETURN
-  END FUNCTION CF2
+  END FUNCTION CFN2
 
 !     *****  INITIALISE BOUNDARY CONDITION  *****
 
   SUBROUTINE INITBC
 
-    USE wimcomm,ONLY: rkind,CAR,CBR,CDR,CER,CFR,CGR,CAL,CBL,CDL,CEL,CFL,CGL, &
-                      PN0,PB0,PB1,ANX,BETA,ZMAX,DZMAX,DZWID
+    USE wimcomm,ONLY: rkind,CI, &
+                      CA1,CB1,CD1,CE1,CF1,CG1, &
+                      CA2,CB2,CD2,CE2,CF2,CG2, &
+                      PN0,DBDZ,ANX,BETA,ZMIN,ZMAX,DZMAX,DZWID
     IMPLICIT NONE
-    COMPLEX(rkind),PARAMETER:: CAI=(0.D0,1.D0)
-    REAL(rkind):: BETA2,PN,PB,S,D,P,AK3,AK5,AK4,AK1,AK2
+    REAL(rkind):: BETA2,PN,BB,S,D,P,AK3,AK5,AK4,AK1,AK2,TEMP
     COMPLEX(rkind):: CKK1,CKK2
 
     BETA2=BETA*BETA 
-    PN=PN0*(1.D0+PB1*ZMAX)
-    PB=PB0*(1.D0+PB1*ZMAX) 
-    IF(ABS(PB*PB-1.D0).LT.1.D-14) PB=1.D0+1.D-14
-    S=1.D0-PN/(1.D0-PB**2)
-    D=PN*PB/(1.D0-PB**2)
+    PN=PN0*(1.D0+DBDZ*ZMIN)
+    BB=1.D0+DBDZ*ZMIN
+    IF(ABS(BB*BB-1.D0).LT.1.D-14) BB=1.D0+1.D-14
+    S=1.D0-PN/(1.D0-BB**2)
+    D=PN*BB/(1.D0-BB**2)
     P=1.D0-PN
     IF(ABS(P).LT.1.D-14) P=1.D-14
     AK3=-((S+P)*ANX*ANX-2*S*P)/(2*P) 
@@ -248,21 +247,26 @@ CONTAINS
     AK4=SQRT(AK5)/(2*P)
     AK1=BETA2*(AK3+AK4) 
     AK2=BETA2*(AK3-AK4) 
+    IF(ABS(AK2).GT.ABS(AK1)) THEN
+       TEMP=AK1
+       AK1=AK2
+       AK2=TEMP
+    END IF
     CKK1=SQRT(CMPLX(AK1,0.D0))
     CKK2=SQRT(CMPLX(AK2,0.D0))
 
-    CAR=CAI*P*CKK1/(BETA2*(P-ANX*ANX)) 
-    CBR=CAI*P*CKK2/(BETA2*(P-ANX*ANX)) 
-    CDR=-CKK1*D/(BETA2*(ANX*ANX+AK1/BETA2-S)) 
-    CER=-CKK2*D/(BETA2*(ANX*ANX+AK2/BETA2-S)) 
-    CFR=CAI*D/(ANX*ANX+AK1/BETA2-S)
-    CGR=CAI*D/(ANX*ANX+AK2/BETA2-S)
+    CA1=CI*P*CKK1/(BETA2*(P-ANX*ANX)) 
+    CB1=CI*P*CKK2/(BETA2*(P-ANX*ANX)) 
+    CD1=-CKK1*D/(BETA2*(ANX*ANX+AK1/BETA2-S)) 
+    CE1=-CKK2*D/(BETA2*(ANX*ANX+AK2/BETA2-S)) 
+    CF1=CI*D/(ANX*ANX+AK1/BETA2-S)
+    CG1=CI*D/(ANX*ANX+AK2/BETA2-S)
 
-    PN=PN0
-    PB=PB0
-    IF(ABS(PB*PB-1.D0).LT.1.D-14) PB=1.D0+1.D-14
-    S=1.D0-PN/(1.D0-PB**2)
-    D=PN*PB/(1.D0-PB**2)
+    PN=PN0*(1.D0+DBDZ*ZMAX)
+    BB=1.D0+DBDZ*ZMAX
+    IF(ABS(BB*BB-1.D0).LT.1.D-14) BB=1.D0+1.D-14
+    S=1.D0-PN/(1.D0-BB**2)
+    D=PN*BB/(1.D0-BB**2)
     P=1.D0-PN
     IF(ABS(P).LT.1.D-14) P=1.D-14
     AK3=-((S+P)*ANX*ANX-2*S*P)/(2*P) 
@@ -271,15 +275,20 @@ CONTAINS
     AK4=SQRT(AK5)/(2*P)
     AK1=BETA2*(AK3+AK4) 
     AK2=BETA2*(AK3-AK4) 
+    IF(ABS(AK2).GT.ABS(AK1)) THEN
+       TEMP=AK1
+       AK1=AK2
+       AK2=TEMP
+    END IF
     CKK1=SQRT(CMPLX(AK1,0.D0))
     CKK2=SQRT(CMPLX(AK2,0.D0))
 
-    CAL=CAI*P*CKK1/(BETA2*(P-ANX*ANX)) 
-    CBL=CAI*P*CKK2/(BETA2*(P-ANX*ANX)) 
-    CDL=-CKK1*D/(BETA2*(ANX*ANX+AK1/BETA2-S)) 
-    CEL=-CKK2*D/(BETA2*(ANX*ANX+AK2/BETA2-S)) 
-    CFL=CAI*D/(ANX*ANX+AK1/BETA2-S)
-    CGL=CAI*D/(ANX*ANX+AK2/BETA2-S)
+    CA2=CI*P*CKK1/(BETA2*(P-ANX*ANX)) 
+    CB2=CI*P*CKK2/(BETA2*(P-ANX*ANX)) 
+    CD2=-CKK1*D/(BETA2*(ANX*ANX+AK1/BETA2-S)) 
+    CE2=-CKK2*D/(BETA2*(ANX*ANX+AK2/BETA2-S)) 
+    CF2=CI*D/(ANX*ANX+AK1/BETA2-S)
+    CG2=CI*D/(ANX*ANX+AK2/BETA2-S)
     RETURN
   END SUBROUTINE INITBC
 
@@ -287,11 +296,10 @@ CONTAINS
 
   SUBROUTINE SUBCK2(NZMAX,NWMAX,MODELW) 
 
-    USE wimcomm,ONLY: rkind,PN0,PB0,PB1,ANX,BETA,ZMAX,DZMAX,DZWID,ZA, &
-                      CK,CV,CAR,CBR,CDR,CER,CFR,CGR,CAL,CBL,CDL,CEL,CFL,CGL, &
+    USE wimcomm,ONLY: rkind,CI,PN0,DBDZ,ANX,BETA,ZMIN,ZMAX,DZMAX,DZWID,ZA, &
+                      CK,CV,CA1,CB1,CD1,CE1,CF1,CG1,CA2,CB2,CD2,CE2,CF2,CG2, &
                       D0,D1,D2,D3
     IMPLICIT NONE
-    COMPLEX(rkind),PARAMETER:: CAI=(0.D0,1.D0)
     INTEGER,INTENT(IN):: NZMAX,NWMAX,MODELW
     INTEGER:: NZMAX3,NBAND,NWMAX3R,NWMAX6,NWMAX3L, &
               I,J,MM,ID,JD,NS,NE,NN,KI,KJ,I1,I2
@@ -305,7 +313,7 @@ CONTAINS
     NZMAX3=3*NZMAX
     BETA2=BETA*BETA
     ANX2=ANX*ANX
-    CIKX=CAI*ANX/BETA
+    CIKX=CI*ANX/BETA
  
     IF(NWMAX.EQ.NZMAX) THEN
        NBAND=0
@@ -351,23 +359,23 @@ CONTAINS
     CK(NWMAX3L+1+2*NBAND,1)=-1.D0
     CK(NWMAX3L+2+2*NBAND,1)=-1.D0
     CK(NWMAX3L+3+2*NBAND,1)= 1.D0
-    CK(NWMAX3L+1+  NBAND,2)=-CFL
-    CK(NWMAX3L+2+  NBAND,2)=-CGL
+    CK(NWMAX3L+1+  NBAND,2)=-CF1
+    CK(NWMAX3L+2+  NBAND,2)=-CG1
     CK(NWMAX3L+4+  NBAND,2)= 1.D0
-    CK(NWMAX3L+1        ,3)=-CAL
-    CK(NWMAX3L+2        ,3)=-CBL
-    CK(NWMAX3L+1-  NBAND,4)=-CDL
-    CK(NWMAX3L+2-  NBAND,4)=-CEL
-    CK(NWMAX3R+6+2*NBAND,NZMAX3+3)=-CAR
-    CK(NWMAX3R+7+2*NBAND,NZMAX3+3)=-CBR
-    CK(NWMAX3R+6+  NBAND,NZMAX3+4)=-CDR
-    CK(NWMAX3R+7+  NBAND,NZMAX3+4)=-CER
+    CK(NWMAX3L+1        ,3)=-CA1
+    CK(NWMAX3L+2        ,3)=-CB1
+    CK(NWMAX3L+1-  NBAND,4)=-CD1
+    CK(NWMAX3L+2-  NBAND,4)=-CE1
+    CK(NWMAX3R+6+2*NBAND,NZMAX3+3)=-CA2
+    CK(NWMAX3R+7+2*NBAND,NZMAX3+3)=-CB2
+    CK(NWMAX3R+6+  NBAND,NZMAX3+4)=-CD2
+    CK(NWMAX3R+7+  NBAND,NZMAX3+4)=-CE2
     CK(NWMAX3R+3-  NBAND,NZMAX3+6)= 1.D0
     CK(NWMAX3R+6-  NBAND,NZMAX3+6)=-1.D0
     CK(NWMAX3R+7-  NBAND,NZMAX3+6)=-1.D0
     CK(NWMAX3R+4-2*NBAND,NZMAX3+7)= 1.D0
-    CK(NWMAX3R+6-2*NBAND,NZMAX3+7)=-CFR
-    CK(NWMAX3R+7-2*NBAND,NZMAX3+7)=-CGR
+    CK(NWMAX3R+6-2*NBAND,NZMAX3+7)=-CF2
+    CK(NWMAX3R+7-2*NBAND,NZMAX3+7)=-CG2
 
     DO MM=0,NZMAX-1
        DZI=ZA(MM+1)-ZA(MM)
@@ -379,38 +387,38 @@ CONTAINS
           DZJ=ZA(NN+1)-ZA(NN)
           DO KI=MM,MM+1
              DO KJ=NN,NN+1
-                YY =1.D0+0.5D0*PB1*(ZA(KJ)+ZA(KI)) 
-                YYI=1.D0+PB1*ZA(KI) 
-                YYJ=1.D0+PB1*ZA(KJ) 
-                VP =1.D0+PB0*YY
-                VM =1.D0-PB0*YY
-                VPI=1.D0+PB0*YYI
-                VPJ=1.D0+PB0*YYJ
-                VMI=1.D0-PB0*YYI
-                VMJ=1.D0-PB0*YYJ
+                YY =1.D0+0.5D0*DBDZ*(ZA(KJ)+ZA(KI)) 
+                YYI=1.D0+DBDZ*ZA(KI) 
+                YYJ=1.D0+DBDZ*ZA(KJ) 
+                VP =1.D0+YY
+                VM =1.D0-YY
+                VPI=1.D0+YYI
+                VPJ=1.D0+YYJ
+                VMI=1.D0-YYI
+                VMJ=1.D0-YYJ
                 VVP=ABS(VP*(ZA(KI)-ZA(KJ)))
                 VVM=ABS(VM*(ZA(KI)-ZA(KJ)))
                 VVZ=ABS(   (ZA(KI)-ZA(KJ))) 
                 X1=(YYI*YYJ)**1.5/(YY*YY)
                 X4=(YYI*YYJ)/YY
-                X5=PB1*PB1/(2*YY*YY)
-                DPI=1.5D0*PB1/YYI-PB1/YY-PB0*PB1/VPI
-                DMI=1.5D0*PB1/YYI-PB1/YY+PB0*PB1/VMI
-                DPJ=1.5D0*PB1/YYJ-PB1/YY-PB0*PB1/VPJ
-                DMJ=1.5D0*PB1/YYJ-PB1/YY+PB0*PB1/VMJ
-                DPM=0.5D0*PB1*PB1/(YY*YY)
+                X5=DBDZ*DBDZ/(2*YY*YY)
+                DPI=1.5D0*DBDZ/YYI-DBDZ/YY-DBDZ/VPI
+                DMI=1.5D0*DBDZ/YYI-DBDZ/YY+DBDZ/VMI
+                DPJ=1.5D0*DBDZ/YYJ-DBDZ/YY-DBDZ/VPJ
+                DMJ=1.5D0*DBDZ/YYJ-DBDZ/YY+DBDZ/VMJ
+                DPM=0.5D0*DBDZ*DBDZ/(YY*YY)
                 IF(VP.GT.0.D0) THEN
-                   CF1P=-CAI*CF1(VVP)/(VPI*VPJ) 
+                   CF1P=-CI*CFN1(VVP)/(VPI*VPJ) 
                 ELSE
-                   CF1P= CAI*CONJG(CF1(VVP))/(VPI*VPJ) 
+                   CF1P= CI*CONJG(CFN1(VVP))/(VPI*VPJ) 
                 ENDIF
                 IF(VM.GT.0.D0) THEN
-                   CF1M=-CAI*CF1(VVM)/(VMI*VMJ) 
+                   CF1M=-CI*CFN1(VVM)/(VMI*VMJ) 
                 ELSE
-                   CF1M= CAI*CONJG(CF1(VVM))/(VMI*VMJ) 
+                   CF1M= CI*CONJG(CFN1(VVM))/(VMI*VMJ) 
                 ENDIF
-                CF2Z= CF2(VVZ)
-                CF1Z=-CAI*CF1(VVZ)
+                CF2Z= CFN2(VVZ)
+                CF1Z=-CI*CFN1(VVZ)
                 DO I=MM,MM+1
                    ID=3*I+2
                    DO J=NN,NN+1
@@ -435,9 +443,9 @@ CONTAINS
                         +D1(I-MM,KI-MM)*D0(J-NN,KJ-NN)*DZJ*DMJ &
                         +D0(I-MM,KI-MM)*D0(J-NN,KJ-NN)*DZI*DZJ*(DMI*DMJ+DPM)
                       DE=D0(I-MM,KI-MM)*D0(J-NN,KJ-NN)*DZI*DZJ
-                      CP1=-0.5D0*PN0*CAI*X1*(CF1P*DP+CF1M*DM)
+                      CP1=-0.5D0*PN0*CI*X1*(CF1P*DP+CF1M*DM)
                       CP2=-0.5D0*PN0    *X1*(CF1P*DP-CF1M*DM)
-                      CP3=-      PN0*CAI*X4*(CF1Z*DE-X5*CF2Z*DE) 
+                      CP3=-      PN0*CI*X4*(CF1Z*DE-X5*CF2Z*DE) 
                       CK(JD+1,ID+1)        =CK(JD+1,ID+1)        +CP1 
                       CK(JD+2,ID+1)        =CK(JD+2,ID+1)        +CP2 
                       CK(JD+1-NBAND,ID+2)  =CK(JD+1-NBAND,ID+2)  -CP2 
@@ -458,15 +466,15 @@ CONTAINS
              JD=3*J+2
              IF(NWMAX.NE.NZMAX) JD=3*NWMAX+2+3*J-3*I
              DO KI=MM,MM+1
-                YY=1.D0+PB1*ZA(KI) 
-                VY=PB0*YY 
+                YY=1.D0+DBDZ*ZA(KI) 
+                VY=YY 
                 DS=DZ*D3(I-MM,J-MM,KI-MM)
                 CK(JD+1,ID+1)=CK(JD+1,ID+1) &
                              +DS*PN0*YY/(1.D0-VY*VY) 
                 CK(JD+2,ID+1)=CK(JD+2,ID+1) &
-                             +DS*CAI*PN0*YY*VY/(1.D0-VY*VY) 
+                             +DS*CI*PN0*YY*VY/(1.D0-VY*VY) 
                 CK(JD+1-NBAND,ID+2)=CK(JD+1-NBAND,ID+2) &
-                                   -DS*CAI*PN0*YY*VY/(1.D0-VY*VY)
+                                   -DS*CI*PN0*YY*VY/(1.D0-VY*VY)
                 CK(JD+2-NBAND,ID+2)=CK(JD+2-NBAND,ID+2) &
                                    +DS*PN0*YY/(1.D0-VY*VY) 
              END DO
@@ -505,7 +513,7 @@ CONTAINS
 
   SUBROUTINE SUBINI(NZMAX,CER1,CEL1,CER2,CEL2)
 
-    USE wimcomm,ONLY: rkind,CV,CAR,CBR,CDR,CER,CFR,CGR,CAL,CBL,CDL,CEL,CFL,CGL
+    USE wimcomm,ONLY: rkind,CV,CA1,CB1,CD1,CE1,CF1,CG1,CA2,CB2,CD2,CE2,CF2,CG2
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NZMAX
     COMPLEX(rkind),INTENT(IN):: CER1,CEL1,CER2,CEL2
@@ -518,15 +526,15 @@ CONTAINS
     END DO
     FACTOR=1.D0/SQRT(2.D0)
     CV(1)=FACTOR*(     CER1+    CEL1)
-    CV(2)=FACTOR*( CFL*CER1+CGL*CEL1)
-    CV(3)=FACTOR*(-CAL*CER1-CBL*CEL1)
-    CV(4)=FACTOR*(-CDL*CER1-CEL*CEL1)
+    CV(2)=FACTOR*( CF1*CER1+CG1*CEL1)
+    CV(3)=FACTOR*(-CA1*CER1-CB1*CEL1)
+    CV(4)=FACTOR*(-CD1*CER1-CE1*CEL1)
     CV(5)=0.D0
-    CV(NZMAX3+3)=FACTOR*(-CAR*CER2-CBR*CEL2)
-    CV(NZMAX3+4)=FACTOR*(-CDR*CER2-CER*CEL2)
+    CV(NZMAX3+3)=FACTOR*(-CA2*CER2-CB2*CEL2)
+    CV(NZMAX3+4)=FACTOR*(-CD2*CER2-CE2*CEL2)
     CV(NZMAX3+5)=0.D0
     CV(NZMAX3+6)=FACTOR*(     CER2+    CEL2)
-    CV(NZMAX3+7)=FACTOR*( CFR*CER2+CGR*CEL2)
+    CV(NZMAX3+7)=FACTOR*( CF2*CER2+CG2*CEL2)
 
 !    DO I=1,5
 !       WRITE(6,'(1P4E12.4)') CV(I),CV(NZMAX3+I+2)
@@ -574,10 +582,9 @@ CONTAINS
 
   SUBROUTINE SUBPOW(NZMAX,NWMAX,CPTOT)
 
-    USE wimcomm,ONLY: rkind,ZA,CE,PN0,PB0,PB1,ANX,BETA,ZMAX,DZMAX,DZWID, &
+    USE wimcomm,ONLY: rkind,CI,ZA,CE,PN0,DBDZ,ANX,BETA,ZMIN,ZMAX,DZMAX,DZWID, &
                       CPWR,D0,D1,D2,D3
     IMPLICIT NONE
-    COMPLEX(rkind),PARAMETER:: CAI=(0.D0,1.D0)
     INTEGER,INTENT(IN):: NZMAX,NWMAX
     COMPLEX(rkind),INTENT(OUT):: CPTOT
     INTEGER:: NZ,MM,NN,NS,NE,I,J,ID,JD,KI,KJ
@@ -604,38 +611,38 @@ CONTAINS
           DZJ=ZA(NN+1)-ZA(NN)
           DO KI=MM,MM+1
              DO KJ=NN,NN+1
-                YY =1.D0+0.5D0*PB1*(ZA(KJ)+ZA(KI)) 
-                YYI=1.D0+PB1*ZA(KI) 
-                YYJ=1.D0+PB1*ZA(KJ) 
-                VP =1.D0+PB0*YY
-                VM =1.D0-PB0*YY
-                VPI=1.D0+PB0*YYI
-                VPJ=1.D0+PB0*YYJ
-                VMI=1.D0-PB0*YYI
-                VMJ=1.D0-PB0*YYJ
+                YY =1.D0+0.5D0*DBDZ*(ZA(KJ)+ZA(KI)) 
+                YYI=1.D0+DBDZ*ZA(KI) 
+                YYJ=1.D0+DBDZ*ZA(KJ) 
+                VP =1.D0+YY
+                VM =1.D0-YY
+                VPI=1.D0+YYI
+                VPJ=1.D0+YYJ
+                VMI=1.D0-YYI
+                VMJ=1.D0-YYJ
                 VVP=ABS(VP*(ZA(KI)-ZA(KJ)))
                 VVM=ABS(VM*(ZA(KI)-ZA(KJ)))
                 VVZ=ABS(   (ZA(KI)-ZA(KJ))) 
                 X1=(YYI*YYJ)**1.5/(YY*YY)
                 X4=(YYI*YYJ)/YY
-                X5=PB1*PB1/(2*YY*YY)
-                DPI=1.5D0*PB1/YYI-PB1/YY-PB0*PB1/VPI
-                DMI=1.5D0*PB1/YYI-PB1/YY+PB0*PB1/VMI
-                DPJ=1.5D0*PB1/YYJ-PB1/YY-PB0*PB1/VPJ
-                DMJ=1.5D0*PB1/YYJ-PB1/YY+PB0*PB1/VMJ
-                DPM=0.5D0*PB1*PB1/(YY*YY)
+                X5=DBDZ*DBDZ/(2*YY*YY)
+                DPI=1.5D0*DBDZ/YYI-DBDZ/YY-DBDZ/VPI
+                DMI=1.5D0*DBDZ/YYI-DBDZ/YY+DBDZ/VMI
+                DPJ=1.5D0*DBDZ/YYJ-DBDZ/YY-DBDZ/VPJ
+                DMJ=1.5D0*DBDZ/YYJ-DBDZ/YY+DBDZ/VMJ
+                DPM=0.5D0*DBDZ*DBDZ/(YY*YY)
                 IF(VP.GT.0.D0) THEN
-                   CF1P=-CAI*CF1(VVP)/(VPI*VPJ) 
+                   CF1P=-CI*CFN1(VVP)/(VPI*VPJ) 
                 ELSE
-                   CF1P= CAI*CONJG(CF1(VVP))/(VPI*VPJ) 
+                   CF1P= CI*CONJG(CFN1(VVP))/(VPI*VPJ) 
                 ENDIF
                 IF(VM.GT.0.D0) THEN
-                   CF1M=-CAI*CF1(VVM)/(VMI*VMJ) 
+                   CF1M=-CI*CFN1(VVM)/(VMI*VMJ) 
                 ELSE
-                   CF1M= CAI*CONJG(CF1(VVM))/(VMI*VMJ) 
+                   CF1M= CI*CONJG(CFN1(VVM))/(VMI*VMJ) 
                 ENDIF
-                CF2Z= CF2(VVZ)
-                CF1Z=-CAI*CF1(VVZ)
+                CF2Z= CFN2(VVZ)
+                CF1Z=-CI*CFN1(VVZ)
                 DO I=MM,MM+1
                    ID=3*I+2
                    DO J=NN,NN+1
@@ -650,15 +657,15 @@ CONTAINS
                         +D1(I-MM,KI-MM)*D0(J-NN,KJ-NN)*DZJ*DMJ &
                         +D0(I-MM,KI-MM)*D0(J-NN,KJ-NN)*DZI*DZJ*(DMI*DMJ+DPM) 
                       DE=D0(I-MM,KI-MM)*D0(J-NN,KJ-NN)*DZI*DZJ
-                      CP1=-0.5D0*PN0*CAI*X1*(CF1P*DP+CF1M*DM)
+                      CP1=-0.5D0*PN0*CI*X1*(CF1P*DP+CF1M*DM)
                       CP2=-0.5D0*PN0    *X1*(CF1P*DP-CF1M*DM)
-                      CP3=-      PN0*CAI*X4*(CF1Z*DE-X5*CF2Z*DE) 
+                      CP3=-      PN0*CI*X4*(CF1Z*DE-X5*CF2Z*DE) 
                       CPA=CONJG(CE(ID+1))*( CP1*CE(JD+1)+CP2*CE(JD+2)) &
                          +CONJG(CE(ID+2))*(-CP2*CE(JD+1)+CP1*CE(JD+2)) &
                          +CONJG(CE(ID+3))*  CP3*CE(JD+3)
-                      CPWR(MM)  =CPWR(MM)  +CAI*AD*CPA
-                      CPWR(MM+1)=CPWR(MM+1)+CAI*BD*CPA
-                      CPTOT     =CPTOT     +CAI   *CPA 
+                      CPWR(MM)  =CPWR(MM)  +CI*AD*CPA
+                      CPWR(MM+1)=CPWR(MM+1)+CI*BD*CPA
+                      CPTOT     =CPTOT     +CI   *CPA 
                    END DO
                 END DO
              END DO
@@ -673,18 +680,18 @@ CONTAINS
   SUBROUTINE SUBKEI(NZMAX)
 
     USE wimcomm,ONLY: rkind,ZA,AKD1,AKD2, &
-                      PN0,PB0,PB1,ANX,BETA,ZMAX,DZMAX,DZWID 
+                      PN0,DBDZ,ANX,BETA,ZMIN,ZMAX,DZMAX,DZWID 
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NZMAX
     INTEGER:: I
-    REAL(rkind):: BETA2,Z,PN,WQQ,S,D,P,AKD3,AKD4,AKD5
+    REAL(rkind):: BETA2,Z,PN,WQQ,S,D,P,AKD3,AKD4,AKD5,AK1,AK2,TEMP
 
     BETA2=BETA*BETA 
 
     DO I=0,NZMAX 
        Z=ZA(I)
-       PN=PN0*(1.D0+PB1*Z) 
-       WQQ=PB0*(1.D0+PB1*Z) 
+       PN=PN0*(1.D0+DBDZ*Z) 
+       WQQ=1.D0+DBDZ*Z
        IF(ABS(WQQ*WQQ-1.D0).LT.1.D-8) WQQ=1.D0+1.D-8
        S=1.D0-PN/(1.D0-WQQ**2)
        D=PN*WQQ/(1.D0-WQQ**2)
@@ -693,8 +700,15 @@ CONTAINS
        AKD3=-((S+P)*ANX*ANX-2*S*P)/(2*P) 
        AKD5= ((S-P)*(S-P)*ANX**4-4*D*D*P*ANX**2+4*D*D*P*P) 
        AKD4=SQRT(AKD5)/(2*P)
-       AKD1(I)=BETA2*(AKD3+AKD4) 
-       AKD2(I)=BETA2*(AKD3-AKD4) 
+       AK1=BETA2*(AKD3+AKD4) 
+       AK2=BETA2*(AKD3-AKD4) 
+       IF(ABS(AK2).GT.ABS(AK1)) THEN
+          TEMP=AK1
+          AK1=AK2
+          AK2=TEMP
+       END IF
+       AKD1(I)=AK1
+       AKD2(I)=AK2
        IF(AKD1(I).LT.0.D0) THEN
           AKD1(I)=-SQRT(-AKD1(I))
        ELSE

@@ -12,11 +12,11 @@ CONTAINS
     NZMAX=100           ! Number of mesh in parallel direction
     NWMAX=100           ! Number of mesh for integration
     NTMAX=100           ! Number of mesh for kernel function tabulation
-    ZMAX=500.D0         ! Maximum z position
+    ZMIN=-300.D0        ! Minimum z position  (omega=omega_ce at z=0)
+    ZMAX= 300.D0        ! Maximum z position
     TMAX=20.D0          ! Maximum argument of kernel functiion tabulation
     PN0=0.5D0           ! Plasma density (omega_pe^2/omega_ce^2)
-    PB0=0.9D0           ! Magnetic field at z=0 (omega_ce/omega)
-    PB1=0.0005D0        ! Gradient of Magnetic field
+    DBDZ=0.0005D0       ! Gradient of Magnetic field DB/B(0) DZ
     CER1=(0.D0,0.D0)    ! RHS wave electric field at z=0
     CEL1=(0.D0,0.D0)    ! LHS wave electric field at z=0
     CER2=(1.D0,0.D0)    ! RHS wave electric field at z=zmax

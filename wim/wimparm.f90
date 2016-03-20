@@ -50,7 +50,7 @@ CONTAINS
     INTEGER,INTENT(OUT) :: IST,IERR
     INTEGER,PARAMETER:: NSM=100
 
-    NAMELIST /WIM/ NZMAX,NWMAX,ZMAX,PN0,PB0,PB1,ANX,BETA,NTMAX,TMAX, &
+    NAMELIST /WIM/ NZMAX,NWMAX,ZMIN,ZMAX,PN0,DBDZ,ANX,BETA,NTMAX,TMAX, &
                    CER1,CEL1,CER2,CEL2,DZMAX,DZWID,MODELW
 
     READ(NID,WIM,IOSTAT=IST,ERR=9800,END=9900)
@@ -69,7 +69,7 @@ CONTAINS
   SUBROUTINE wim_plst
 
     IMPLICIT NONE
-    WRITE(6,'(A/)') '# &WIM : NZ,NW,ZMAX,PN0,PB0,PB1,ANX,BETA,NT,TMAX, ', &
+    WRITE(6,'(A/)') '# &WIM : NZ,NW,ZMIN,ZMAX,PN0,DBDZ,ANX,BETA,NT,TMAX, ', &
                     '         CER1,CEL1,CER2,CEL2,DZMAX,DZWID,MODELW'
     RETURN
 
@@ -101,8 +101,8 @@ CONTAINS
 
     WRITE(6,601) 'NZMAX   ',NZMAX   ,'NWMAX   ',NWMAX   , &
                  'NTMAX   ',NTMAX   ,'MODELW  ',MODELW
-    WRITE(6,602) 'ZMAX    ',ZMAX    ,'PN0     ',PN0     , &
-                 'PB0     ',PB0     ,'PB1     ',PB1     , &
+    WRITE(6,602) 'ZMIN    ',ZMIN    ,'ZMAX    ',ZMAX    , &
+                 'PN0     ',PN0     ,'DBDZ    ',DBDZ    , &
                  'ANX     ',ANX     ,'BETA    ',BETA    , &
                  'TMAX    ',TMAX    ,'DZMAX   ',DZMAX   , &
                  'DZWID   ',DZWID
