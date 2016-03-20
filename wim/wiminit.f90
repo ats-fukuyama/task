@@ -9,11 +9,11 @@ CONTAINS
     USE wimcomm
     IMPLICIT NONE
 
-    NZMAX=100           ! Number of mesh in parallel direction
-    NWMAX=100           ! Number of mesh for integration
+    NZMAX=200           ! Number of mesh in parallel direction
+    NWMAX=200           ! Number of mesh for integration
     NTMAX=100           ! Number of mesh for kernel function tabulation
     ZMIN=-300.D0        ! Minimum z position  (omega=omega_ce at z=0)
-    ZMAX= 300.D0        ! Maximum z position
+    ZMAX= 500.D0        ! Maximum z position
     TMAX=20.D0          ! Maximum argument of kernel functiion tabulation
     PN0=0.5D0           ! Plasma density (omega_pe^2/omega_ce^2)
     DBDZ=0.0005D0       ! Gradient of Magnetic field DB/B(0) DZ
