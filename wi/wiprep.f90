@@ -159,7 +159,11 @@ CONTAINS
       INTEGER(ikind):: nx
 
       DO NX=0,NXMAX
-         CWE(NX)=DEXP(-0.5D0*ALFA*xgrid(nx))
+         IF(-0.5D0*ALFA*xgrid(nx).GT.100.D0) THEN
+            CWE(NX)=DEXP(100.D0)
+         ELSE
+            CWE(NX)=DEXP(-0.5D0*ALFA*xgrid(nx))
+         END IF
          CWP(NX)=PN0
       END DO
       RETURN

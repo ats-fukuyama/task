@@ -111,11 +111,11 @@ CONTAINS
     
     IF(TRIM(kfscan)//'X'.NE.'X') CALL FWOPEN(nfl,kfscan,1,1,'SCAN',ierr)
 
-    WRITE(6,'(A)') 'nalfa,alfa,rk0l,ratea,xmin,xmax,dx0='
+    WRITE(6,'(A)') 'nalfa,alfa,rk0l,xmin,xmax,dx0,nxmax/ratea='
     DO nalfa=1,nalfamax
        alfa=exp(log(alfamin)+dalfa*(nalfa-1))
        rk0l=1.D0/alfa
-       IF(ALFA.LE.0.01D0) THEN
+       IF(ALFA.LT.ANY**3/4.D0) THEN
           dx0=0.5*dx0_save
           xmax=0.5/alfa
           xmin=-10.0D0
