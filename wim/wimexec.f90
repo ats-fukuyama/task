@@ -339,7 +339,7 @@ CONTAINS
           ID=3*I+2
           DO J=MM,MM+1
              JD=3*J+2
-             IF(NWMAX.NE.NZMAX) JD=3*NWMAX+2+3*J-3*I
+             IF(NWMAX.NE.NZMAX) JD=3*NWMAX+4+3*J-3*I
              CK(JD+1,ID+1)=CK(JD+1,ID+1) &
                           +D2(I-MM,J-MM)/(BETA2*DZ)  &
                           -DZ*D0(I-MM,J-MM)
@@ -423,7 +423,7 @@ CONTAINS
                    ID=3*I+2
                    DO J=NN,NN+1
                       JD=3*J+2
-                      IF(NWMAX.NE.NZMAX) JD=3*NWMAX+2+3*J-3*I
+                      IF(NWMAX.NE.NZMAX) JD=3*NWMAX+4+3*J-3*I
                       IF(JD.LE.0) THEN
                          WRITE(6,*) 'JD=',JD
                          WRITE(6,*) 'NN,NS,NE=',NN,NS,NE
@@ -647,7 +647,7 @@ CONTAINS
                    ID=3*I+2
                    DO J=NN,NN+1
                       JD=3*J+2
-                      IF(NWMAX.NE.NZMAX) JD=3*NWMAX+2+3*J-3*I
+                      IF(NWMAX.NE.NZMAX) JD=3*NWMAX+4+3*J-3*I
                       DP=D1(I-MM,KI-MM)*D1(J-NN,KJ-NN) &
                         +D0(I-MM,KI-MM)*D1(J-NN,KJ-NN)*DZI*DPI &
                         +D1(I-MM,KI-MM)*D0(J-NN,KJ-NN)*DZJ*DPJ &

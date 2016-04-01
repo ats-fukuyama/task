@@ -1,3 +1,9 @@
+MODULE w1fft
+  USE w1comm,ONLY: rkind
+  REAL(rkind),ALLOCATABLE,DIMENSION(:):: RFFT
+  INTEGER,ALLOCATABLE,DIMENSION(:):: LFFT
+END MODULE w1fft
+
 MODULE w1prep
 
 CONTAINS
@@ -95,16 +101,17 @@ CONTAINS
 
 !     ******* DIVISION IN Z DIRECTION *******
 
-  SUBROUTINE W1SETZ(IERR)
+  SUBROUTINE W1SETZ
 
     USE w1comm
     IMPLICIT NONE
+    INTEGER,INTENT(OUT):: IERR
     INTEGER:: NZH,NZ
-    REAL(rkind):: DZ,AKZ0
+    REAL(rkind):: AKZ0
 
     NZH=NZPMAX/2
-
     DZ=RZ/DBLE(NZPMAX)
+
     IF(NZPMAX.EQ.1) THEN
        ZA(1)=0.D0
        AKZ(1)=RKZ
@@ -122,14 +129,8 @@ CONTAINS
        END DO
     END IF
 
-    IERR=0
     RETURN
 
- 9100 WRITE(6,691) NZP,NZPM
-    IERR=10000
-    RETURN
-  691 FORMAT(1H ,'!! ERROR IN W1SETZ   : DIMENSION OVER'/ &
-             1H ,'NZP=',I5,5X,'NZPM=',I5/)
   END SUBROUTINE W1SETZ
 
 !     ******* SETING ANTENNA CURRENT DENSITY *******
@@ -139,16 +140,17 @@ CONTAINS
     USE w1comm
     IMPLICIT NONE
     INTEGER:: NZ, NA
-    REAL(rkind):: PHASE
+    REAL(rkind):: PHASE,ANTPOS
+    COMPLEX(rkind):: CPHASE
 
-    DO NZ = 1 , NZP
+    DO NZ = 1 , NZPMAX
        CJ1( NZ ) = ( 0.D0 , 0.D0 )
        CJ2( NZ ) = ( 0.D0 , 0.D0 )
        CJ3( NZ ) = ( 0.D0 , 0.D0 )
        CJ4( NZ ) = ( 0.D0 , 0.D0 )
     END DO
 
-    IF(NZP.EQ.1) THEN
+    IF(NZPMAX.EQ.1) THEN
        NZANT1(1)=1
        CJ1(1)   =AJYH(1)/DZ
        NZANT2(1)=1
@@ -185,26 +187,35 @@ CONTAINS
   SUBROUTINE W1FFTL(CA,N,KEY)
 
     USE w1comm
+    USE w1fft
     IMPLICIT NONE
 
-    COMPLEX(rkind):: CA(N)
-    INTEGER:: N,KEY
+    COMPLEX(rkind),INTENT(INOUT):: CA(N)
+    INTEGER,INTENT(IN):: N,KEY
+    INTEGER:: IND,I
     INTEGER,SAVE:: NS=0
+    COMPLEX(rkind),DIMENSION(:),ALLOCATABLE:: CT
 
-    IF(N.GT.1) THEN
-       LP=LOG(DBLE(N))/LOG(2.D0)+0.5D0
-       IF(N.EQ.NS) THEN
-          IND=0
-       ELSE
-          IND=1
-          NS=N
-       ENDIF
-       DO I=1,N
-          CT(I)=CA(I)
-       END DO
-       CALL FFT2L(CT,CA,CFFT,LFFT,N/2,IND,KEY+1,LP)
-       IF(KEY.EQ.0) CA(N/2+1)=0.D0
+    IF(N.LT.0) THEN
+       WRITE(6,*) 'XX W1FFTL: N is negative: N=',N
+       STOP
     END IF
+    IF(N.EQ.1) RETURN
+
+    IF(N.EQ.NS) THEN
+       IND=0
+    ELSE
+       IND=1
+       IF(NS.NE.0) DEALLOCATE(RFFT,LFFT)
+       ALLOCATE(RFFT(N),LFFT(N))
+       NS=N
+    ENDIF
+    ALLOCATE(CT(N))
+    DO I=1,N
+       CT(I)=CA(I)
+    END DO
+    CALL FFT2L(CT,CA,RFFT,LFFT,N,IND,KEY)
+    DEALLOCATE(CT)
     RETURN
   END SUBROUTINE W1FFTL
 
@@ -226,7 +237,7 @@ CONTAINS
           CE2DA(NZ,NX,3) = -CE2DA(NZ0,NX,3)
        END DO
     ELSE IF(NSYM.EQ.-1) THEN
-       DO NX = 1, NXT
+       DO NX = 1, NXTMAX
           CE2DA(NZ,NX,1) = -CE2DA(NZ0,NX,1)
           CE2DA(NZ,NX,2) = -CE2DA(NZ0,NX,2)
           CE2DA(NZ,NX,3) =  CE2DA(NZ0,NX,3)

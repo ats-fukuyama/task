@@ -188,22 +188,30 @@ C
          PHASE  = APYH(IA)*PI/180.D0
          CPHASE = DCMPLX( DCOS( PHASE ) , DSIN( PHASE ) )
          CJYH   = AJYH( IA ) * CPHASE
+         CJZH   = AJZH( IA ) * CPHASE
          PHASE  = APYL(IA)*PI/180.D0
          CPHASE = DCMPLX( DCOS( PHASE ) , DSIN( PHASE ) )
          CJYL   = AJYL( IA ) * CPHASE
+         CJZL   = AJZL( IA ) * CPHASE
+         RANT1(IA)=0.D0
+         XANT1(IA)=0.D0
          IF( ABS( CJYH ) .GT. 1.E-6 ) THEN
-            RANT1(IA) = -DBLE( CE2DA(NZANT1(IA),NXANT1,2)/ CJYH)
-            XANT1(IA) =  IMAG( CE2DA(NZANT1(IA),NXANT1,2)/ CJYH)
-         ELSE
-            RANT1(IA) = 0.
-            XANT1(IA) = 0.
-         ENDIF
+            RANT1(IA) = RANT1(IA)-DBLE( CE2DA(NZANT1(IA),NXANT1,2)/ CJYH)
+            XANT1(IA) = XANT1(IA)+IMAG( CE2DA(NZANT1(IA),NXANT1,2)/ CJYH)
+         END IF
+         IF( ABS( CJZH ) .GT. 1.E-6 ) THEN
+            RANT1(IA) = RANT1(IA)-DBLE( CE2DA(NZANT1(IA),NXANT1,3)/ CJZH)
+            XANT1(IA) = XANT1(IA)+IMAG( CE2DA(NZANT1(IA),NXANT1,3)/ CJZH)
+         END IF
+         RANT2(IA)=0.D0
+         XANT2(IA)=0.D0
          IF( ABS( CJYL ) .GT. 1.E-6 ) THEN
-            RANT2(IA) = -REAL( CE2DA(NZANT2(IA),NXANT2,2)/ CJYL)
-            XANT2(IA) =  IMAG( CE2DA(NZANT2(IA),NXANT2,2)/ CJYL)
-         ELSE
-            RANT2(IA) = 0.
-            XANT2(IA) = 0.
+            RANT2(IA) = RANT2(IA)-REAL( CE2DA(NZANT2(IA),NXANT2,2)/ CJYL)
+            XANT2(IA) = XANT2(IA)+IMAG( CE2DA(NZANT2(IA),NXANT2,2)/ CJYL)
+         END IF
+         IF( ABS( CJZL ) .GT. 1.E-6 ) THEN
+            RANT2(IA) = RANT2(IA)-REAL( CE2DA(NZANT2(IA),NXANT2,3)/ CJZL)
+            XANT2(IA) = XANT2(IA)+IMAG( CE2DA(NZANT2(IA),NXANT2,3)/ CJZL)
          ENDIF
  1600 CONTINUE
       RETURN

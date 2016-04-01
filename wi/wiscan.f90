@@ -115,10 +115,11 @@ CONTAINS
     DO nalfa=1,nalfamax
        alfa=exp(log(alfamin)+dalfa*(nalfa-1))
        rk0l=1.D0/alfa
-       IF(ALFA.LT.1.D0) THEN
-!          dx0=0.3D0*BETA
-!          xmax=200.D0
-!          xmin=-50.0D0
+       IF(ALFA.LE.0.01D0) THEN
+          dx0=0.5*dx0_save
+          xmax=0.5/alfa
+          xmin=-10.0D0
+       ELSEIF(ALFA.LT.1.D0) THEN
           dx0=dx0_save
           xmax=10.D0/alfa
           xmin=-10.0D0
@@ -126,17 +127,22 @@ CONTAINS
           dx0=dx0_save
           xmax=10.D0
           xmin=-5.0D0
+       ELSEIF(ALFA.LT.100.D0) THEN
+          FACT=(100.D0/ALFA)
+          dx0=0.001*FACT
+          xmax=0.1D0*FACT
+          xmin=-1.0D0*FACT
+       ELSEIF(ALFA.LT.1000.D0) THEN
+          dx0=0.001
+          xmax=0.1D0
+          xmin=-1.0D0
        ELSE
-!          dx0=dx0_save/(ALFA/10.D0)**(1.5D0)
-!          xmax=10.D0/(ALFA/10.D0)
-!          xmin=-5.0D0/(ALFA/10.D0)
-          FACT=(ALFA/10.D0)**3
-          dx0=dx0_save/FACT
-          xmax=10.D0/FACT
-          xmin=-10.0D0/FACT
+          dx0=0.001
+          xmax=0.1D0
+          xmin=-0.5D0
        END IF
-!       WRITE(6,'(I5,1P6E12.4)') &
-!            nalfa,alfa,rk0l,(xmax-xmin)/dx0,xmin,xmax,dx0
+       WRITE(6,'(I5,1P6E12.4)') &
+            nalfa,alfa,rk0l,xmin,xmax,dx0,(xmax-xmin)/dx0
        CALL wi_prep
        ANB=DEXP(-ALFA*xgrid(nxmax))
        IF(any**2 < 1.0-ANB) THEN
@@ -145,7 +151,7 @@ CONTAINS
           ratea=0.D0
        END IF
 
-       WRITE(6,'(I5,1P6E12.4)') nalfa,alfa,rk0l,ratea,xmin,xmax,dx0
+       WRITE(6,'(I5,1P6E12.4)') nalfa,alfa,rk0l,xmin,xmax,dx0,ratea
        IF(TRIM(kfscan)//'X'.NE.'X') &
             WRITE(nfl,'(I5,1P3E12.4)') nalfa,alfa,rk0l,ratea
        rk0la(nalfa)=LOG10(rk0l)
