@@ -1617,29 +1617,6 @@ CONTAINS
               +Azb(0,ny-1)+Azb(1,ny+1)&
               -2.d0*Azb(1,ny)+Azb(1,ny-1))
      ENDDO
-      DO ny = 1, nymax-1
-        Ax(0,ny)=-Axbb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-                *(Ax(1,ny)+Axbb(0,ny)) &
-                +2.d0/(vcfact*dt+1.d0)*(Axb(0,ny)+Axb(1,ny))&
-                +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-                *(Axb(0,ny+1)-2.d0*Axb(0,ny)&
-                +Axb(0,ny-1)+Axb(1,ny+1)&
-                -2.d0*Axb(1,ny)+Axb(1,ny-1))
-        Ay(0,ny)=-Aybb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-                *(Ay(1,ny)+Aybb(0,ny)) &
-                +2.d0/(vcfact*dt+1.d0)*(Ayb(0,ny)+Ayb(1,ny))&
-                +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-                *(Ayb(0,ny+1)-2.d0*Ayb(0,ny)&
-                +Ayb(0,ny-1)+Ayb(1,ny+1)&
-                -2.d0*Ayb(1,ny)+Ayb(1,ny-1))
-        Az(0,ny)=-Azbb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-                *(Az(1,ny)+Azbb(0,ny)) &
-                +2.d0/(vcfact*dt+1.d0)*(Azb(0,ny)+Azb(1,ny))&
-                +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-                *(Azb(0,ny+1)-2.d0*Azb(0,ny)&
-                +Azb(0,ny-1)+Azb(1,ny+1)&
-                -2.d0*Azb(1,ny)+Azb(1,ny-1))
-      ENDDO
     ENDIF
     SELECT CASE(model_wg)
     CASE(0)
