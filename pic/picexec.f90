@@ -1399,8 +1399,8 @@ CONTAINS
     ! vcfact is the ratio of the light speed to lattice parameter times plasma
     ! frequency
 
-    DO nx = 1, nxmax-1
-       DO ny = 1, nymax-1
+    DO nx = 0, nxmax
+       DO ny = 0, nymax
 
           nxm = nx - 1
           nxp = nx + 1
@@ -1476,37 +1476,37 @@ CONTAINS
     !        ENDDO
     !     ENDDO
     !  ENDIF
-     DO nx=1,nxmax-1
-          nxm = nx - 1
-          nxp = nx + 1
-          Ay(nx,0) = dt ** 2 * vcfact ** 2 * (Ayb(nxp,0) + Ayb(nxm,0) &
-                                            + Ayb(nx,1) - 4.0d0 * Ayb(nx,0)) &
-                    + dt ** 2 * jy(nx,0) &
-                    - 0.5d0 * dt * (phi(nx,1) - phib(nx,1)) &
-                    + 2.0d0 * Ayb(nx,0) - Aybb(nx,0)
-
-          Ay(nx,nymax) = dt ** 2 * vcfact ** 2 * (Ayb(nxp,nymax) &
-                  + Ayb(nxm,nymax) + Ayb(nx,nymax-1) - 4.0d0 * Ayb(nx,nymax)) &
-                    + dt ** 2 * jy(nx,nymax) &
-                    - 0.5d0 * dt * (- phi(nx,nymax-1) + phib(nx,nymax-1)) &
-                    + 2.0d0 * Ayb(nx,nymax) - Aybb(nx,nymax)
-    END DO
-    DO ny=1,nymax-1
-          nym = ny - 1
-          nyp = ny + 1
-          Ax(0,ny) = dt ** 2 * vcfact ** 2 * (Axb(1,ny) + Axb(0,nyp) + Axb(0,nym) - 4.0d0 * Axb(0,ny)) &
-                    + dt ** 2 * jx(0,ny) &
-                    - 0.5d0 * dt * (phi(1,ny) - phib(1,ny)) &
-                    + 2.0d0 * Axb(0,ny) - Axbb(0,ny)
-
-          Ax(nxmax,ny) = dt ** 2 * vcfact ** 2 * (Axb(nxmax-1,ny) &
-                                            + Axb(nxmax,nyp) + Axb(nxmax,nym) &
-                                            - 4.0d0 * Axb(nxmax,ny)) &
-                    + dt ** 2 * jx(nxmax,ny) &
-                    - 0.5d0 * dt * (- phi(nxmax-1,ny) + phib(nxmax-1,ny)) &
-                    + 2.0d0 * Axb(nxmax,ny) - Axbb(nxmax,ny)
-
-    END DO
+    !  DO nx=1,nxmax-1
+    !       nxm = nx - 1
+    !       nxp = nx + 1
+    !       Ay(nx,0) = dt ** 2 * vcfact ** 2 * (Ayb(nxp,0) + Ayb(nxm,0) &
+    !                                         + Ayb(nx,1) - 4.0d0 * Ayb(nx,0)) &
+    !                 + dt ** 2 * jy(nx,0) &
+    !                 - 0.5d0 * dt * (phi(nx,1) - phib(nx,1)) &
+    !                 + 2.0d0 * Ayb(nx,0) - Aybb(nx,0)
+    !
+    !       Ay(nx,nymax) = dt ** 2 * vcfact ** 2 * (Ayb(nxp,nymax) &
+    !               + Ayb(nxm,nymax) + Ayb(nx,nymax-1) - 4.0d0 * Ayb(nx,nymax)) &
+    !                 + dt ** 2 * jy(nx,nymax) &
+    !                 - 0.5d0 * dt * (- phi(nx,nymax-1) + phib(nx,nymax-1)) &
+    !                 + 2.0d0 * Ayb(nx,nymax) - Aybb(nx,nymax)
+    ! END DO
+    ! DO ny=1,nymax-1
+    !       nym = ny - 1
+    !       nyp = ny + 1
+    !       Ax(0,ny) = dt ** 2 * vcfact ** 2 * (Axb(1,ny) + Axb(0,nyp) + Axb(0,nym) - 4.0d0 * Axb(0,ny)) &
+    !                 + dt ** 2 * jx(0,ny) &
+    !                 - 0.5d0 * dt * (phi(1,ny) - phib(1,ny)) &
+    !                 + 2.0d0 * Axb(0,ny) - Axbb(0,ny)
+    !
+    !       Ax(nxmax,ny) = dt ** 2 * vcfact ** 2 * (Axb(nxmax-1,ny) &
+    !                                         + Axb(nxmax,nyp) + Axb(nxmax,nym) &
+    !                                         - 4.0d0 * Axb(nxmax,ny)) &
+    !                 + dt ** 2 * jx(nxmax,ny) &
+    !                 - 0.5d0 * dt * (- phi(nxmax-1,ny) + phib(nxmax-1,ny)) &
+    !                 + 2.0d0 * Axb(nxmax,ny) - Axbb(nxmax,ny)
+    !
+    ! END DO
 
      Ay(0,:)=0.d0
      Az(0,:)=0.d0
@@ -1621,8 +1621,8 @@ CONTAINS
        yc=0.5d0*(ymin_wg+ymax_wg)
        ylen=(ymax_wg-ymin_wg)
        IF(ylen .NE. 0) dph=ph_wg/ylen
-       amp_start = 1.d0!time * vcfact/100.d0
-       !IF(amp_start .GE. 1.d0) amp_start=1.0d0
+       amp_start = time * vcfact/100.d0
+       IF(amp_start .GE. 1.d0) amp_start=1.0d0
        DO ny=1,nymax
           y=DBLE(ny)
           IF(y.GE.ymin_wg.AND.y.LE.ymax_wg) THEN
