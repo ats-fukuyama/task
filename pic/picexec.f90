@@ -447,14 +447,17 @@ CONTAINS
 
        ! electric field and magnetic field
        IF(dx .LE. 0.5d0 .AND. dy .LE. 0.5d0) THEN
+          dx = dx + 0.5d0
+          dx1 = dx1 - 0.5d0
+          dy = dy + 0.5d0
+          dy1 = dy1 - 0.5d0
+          exx = ex(nxp,nypp)*dx*sy2p + ex(nxpm,nypp)*dx1*sy2p &
+               + ex(nxp,nyp )*dx*sy2  + ex(nxpm,nyp )*dx1*sy2  &
+               + ex(nxp,nypm)*dx*sy2m + ex(nxpm,nypm)*dx1*sy2m
 
-          exx = ex(nxpp,nypp)*dx*sy2p + ex(nxp ,nypp)*dx1*sy2p &
-               + ex(nxpp,nyp )*dx*sy2  + ex(nxp ,nyp )*dx1*sy2  &
-               + ex(nxpp,nypm)*dx*sy2m + ex(nxp ,nypm)*dx1*sy2m
-
-          eyy = ey(nxpp,nypp)*sx2p*dy + ey(nxpp,nyp )*sx2p*dy1 &
-               + ey(nxp ,nypp)*sx2 *dy + ey(nxp ,nyp )*sx2 *dy1 &
-               + ey(nxpm,nypp)*sx2m*dy + ey(nxpm,nyp )*sx2m*dy1
+          eyy = ey(nxpp,nyp)*sx2p*dy + ey(nxpp,nypm)*sx2p*dy1 &
+               + ey(nxp ,nyp)*sx2 *dy + ey(nxp ,nypm)*sx2 *dy1 &
+               + ey(nxpm,nyp)*sx2m*dy + ey(nxpm,nypm)*sx2m*dy1
 
           ezz = ez(nxpp,nypp)*sx2p*sy2p + ez(nxpp,nyp )*sx2p*sy2 &
                + ez(nxpp,nypm)*sx2p*sy2m + ez(nxp ,nypp)*sx2 *sy2p &
@@ -477,26 +480,29 @@ CONTAINS
           !     + bz(nxpp,nypm)*sx2p*sy2m + bz(nxp ,nypm)*sx2 *sy2m &
           !     + bz(nxpm,nypm)*sx2m*sy2m
 
-          bxx = bx(nxpp,nypp)*dy*sx2p + bx(nxpp,nyp)*dy1*sx2p &
-               + bx(nxp ,nypp)*dy*sx2  + bx(nxp ,nyp )*dy1*sx2 &
-               + bx(nxpm,nypp)*dy*sx2m + bx(nxpm,nyp )*dy1*sx2m
+          bxx = bx(nxpp,nyp)*dy*sx2p + bx(nxpp,nypm)*dy1*sx2p &
+               + bx(nxp ,nyp)*dy*sx2  + bx(nxp ,nypm)*dy1*sx2 &
+               + bx(nxpm,nyp)*dy*sx2m + bx(nxpm,nypm)*dy1*sx2m
 
-          byy = by(nxpp,nypp)*sy2p*dx + by(nxp,nypp)*sy2p*dx1 &
-               + by(nxpp,nyp)*sy2 *dx + by(nxp ,nyp )*sy2 *dx1 &
-               + by(nxpp,nypm)*sy2m*dx + by(nxp,nypm)*sy2m*dx1
+          byy = by(nxp,nypp)*sy2p*dx + by(nxpm,nypp)*sy2p*dx1 &
+               + by(nxp,nyp)*sy2 *dx + by(nxpm,nyp )*sy2 *dx1 &
+               + by(nxp,nypm)*sy2m*dx + by(nxpm,nypm)*sy2m*dx1
 
-          bzz = bz(nxpp,nypp)*dx*dy + bz(nxp,nypp)*dx1*dy &
-              + bz(nxpp,nyp)*dx*dy1 + bz(nxp,nyp)*dx1*dy1
+          bzz = bz(nxp,nyp)*dx*dy + bz(nxpm,nyp)*dx1*dy &
+              + bz(nxp,nypm)*dx*dy1 + bz(nxpm,nypm)*dx1*dy1
 
-       ELSE IF(dx .LE. 0.5d0 .AND. dy .GE. 0.5d0) THEN
+       ELSE IF(dx .LE. 0.5d0 .AND. dy .GE. 0.5d0) THEN      
+          dx = dx + 0.5d0
+          dx1 = dx1 - 0.5d0
+          dy = dy - 0.5d0
+          dy1 = dy1 + 0.5d0
+          exx = ex(nxp,nyppp)*dx*sy2p + ex(nxpm,nyppp)*dx1*sy2p &
+               + ex(nxp,nypp )*dx*sy2  + ex(nxpm,nypp )*dx1*sy2  &
+               + ex(nxp,nyp  )*dx*sy2m + ex(nxpm,nyp  )*dx1*sy2m
 
-          exx = ex(nxpp,nyppp)*dx*sy2p + ex(nxp ,nyppp)*dx1*sy2p &
-               + ex(nxpp,nypp )*dx*sy2  + ex(nxp ,nypp )*dx1*sy2  &
-               + ex(nxpp,nyp  )*dx*sy2m + ex(nxp ,nyp  )*dx1*sy2m
-
-          eyy = ey(nxpp,nypp)*sx2p*dy + ey(nxpp,nyp )*sx2p*dy1 &
-               + ey(nxp ,nypp)*sx2 *dy + ey(nxp ,nyp )*sx2 *dy1 &
-               + ey(nxpm,nypp)*sx2m*dy + ey(nxpm,nyp )*sx2m*dy1
+          eyy = ey(nxpp,nypp)*sx2p*dy + ey(nxpp,nyp)*sx2p*dy1 &
+               + ey(nxp ,nypp)*sx2 *dy + ey(nxp ,nyp)*sx2 *dy1 &
+               + ey(nxpm,nypp)*sx2m*dy + ey(nxpm,nyp)*sx2m*dy1
 
           ezz = ez(nxpp,nyppp)*sx2p*sy2p + ez(nxpp,nypp )*sx2p*sy2 &
                + ez(nxpp,nyp  )*sx2p*sy2m + ez(nxp ,nyppp)*sx2 *sy2p&
@@ -522,22 +528,25 @@ CONTAINS
                + bx(nxp,nypp )*dy*sx2  + bx(nxp ,nyp )*dy1*sx2  &
                + bx(nxpm,nypp)*dy*sx2m + bx(nxpm,nyp )*dy1*sx2m
 
-          byy = by(nxpp,nyppp)*sy2p*dx + by(nxp,nyppp)*sy2p*dx1 &
-               + by(nxpp,nypp)*sy2 *dx + by(nxp ,nypp)*sy2 *dx1 &
-               + by(nxpp,nyp )*sy2m*dx + by(nxp ,nyp )*sy2m*dx1
+          byy = by(nxp,nyppp)*sy2p*dx + by(nxpm,nyppp)*sy2p*dx1 &
+               + by(nxp,nypp)*sy2 *dx + by(nxpm,nypp)*sy2 *dx1 &
+               + by(nxp,nyp )*sy2m*dx + by(nxpm,nyp )*sy2m*dx1
 
-          bzz = bz(nxpp,nypp)*dx*dy + bz(nxp,nypp)*dx1*dy &
-              + bz(nxpp,nyp)*dx*dy1 + bz(nxp,nyp)*dx1*dy1
+          bzz = bz(nxp,nypp)*dx*dy + bz(nxpm,nypp)*dx1*dy &
+              + bz(nxp,nyp)*dx*dy1 + bz(nxpm,nyp)*dx1*dy1
 
        ELSE IF(dx .GE. 0.5d0 .AND. dy .LE. 0.5d0) THEN
+          dx = dx - 0.5d0
+          dx1 = dx1 + 0.5d0
+          dy = dy + 0.5d0
+          dy1 = dy1 - 0.5d0
+          exx = ex(nxpp,nypp)*dx*sy2p + ex(nxp,nypp)*dx1*sy2p &
+               + ex(nxpp,nyp )*dx*sy2  + ex(nxp,nyp )*dx1*sy2  &
+               + ex(nxpp,nypm)*dx*sy2m + ex(nxp,nypm)*dx1*sy2m
 
-          exx = ex(nxpp,nypp)*dx*sy2p + ex(nxp ,nypp)*dx1*sy2p &
-               + ex(nxpp,nyp )*dx*sy2  + ex(nxp ,nyp )*dx1*sy2  &
-               + ex(nxpp,nypm)*dx*sy2m + ex(nxp ,nypm)*dx1*sy2m
-
-          eyy = ey(nxppp,nypp)*sx2p*dy + ey(nxppp,nyp )*sx2p*dy1 &
-               + ey(nxpp ,nypp)*sx2 *dy + ey(nxpp ,nyp )*sx2 *dy1 &
-               + ey(nxp  ,nypp)*sx2m*dy + ey(nxp  ,nyp )*sx2m*dy1
+          eyy = ey(nxppp,nyp)*sx2p*dy + ey(nxppp,nypm)*sx2p*dy1 &
+               + ey(nxpp ,nyp)*sx2 *dy + ey(nxpp ,nypm)*sx2 *dy1 &
+               + ey(nxp  ,nyp)*sx2m*dy + ey(nxp  ,nypm)*sx2m*dy1
 
           ezz = ez(nxppp,nypp)*sx2p*sy2p + ez(nxppp,nyp )*sx2p*sy2 &
                + ez(nxppp,nypm)*sx2p*sy2m + ez(nxpp ,nypp)*sx2 *sy2p&
@@ -559,26 +568,29 @@ CONTAINS
           !      + bz(nxppp,nypm)*sx2p*sy2m + bz(nxpp ,nypm)*sx2 *sy2m &
           !      + bz(nxp  ,nypm)*sx2m*sy2m
 
-          bxx = bx(nxppp,nypp)*dy*sx2p + bx(nxppp ,nyp)*dy1*sx2p &
-               + bx(nxpp,nypp )*dy*sx2  + bx(nxpp,nyp )*dy1*sx2  &
-               + bx(nxp ,nypp )*dy*sx2m  + bx(nxp ,nyp)*dy1*sx2m
+          bxx = bx(nxppp,nyp)*dy*sx2p + bx(nxppp ,nypm)*dy1*sx2p &
+               + bx(nxpp,nyp )*dy*sx2  + bx(nxpp,nypm)*dy1*sx2  &
+               + bx(nxp ,nyp )*dy*sx2m  + bx(nxp ,nypm)*dy1*sx2m
 
           byy = by(nxpp,nypp)*sy2p*dx + by(nxp,nypp)*sy2p*dx1 &
                + by(nxpp ,nyp)*sy2 *dx + by(nxp ,nyp)*sy2 *dx1 &
                + by(nxpp ,nypm)*sy2m*dx + by(nxp  ,nypm)*sy2m*dx1
 
-          bzz = bz(nxpp,nypp)*dx*dy + bz(nxp,nypp)*dx1*dy &
-              + bz(nxpp,nyp)*dx*dy1 + bz(nxp,nyp)*dx1*dy1
+          bzz = bz(nxpp,nyp)*dx*dy + bz(nxp,nyp)*dx1*dy &
+              + bz(nxpp,nypm)*dx*dy1 + bz(nxp,nypm)*dx1*dy1
 
        ELSE
+          dx = dx - 0.5d0
+          dx1 = dx1 + 0.5d0
+          dy = dy - 0.5d0
+          dy1 = dy1 + 0.5d0
+          exx = ex(nxpp,nyppp)*dx*sy2p + ex(nxp,nyppp)*dx1*sy2p &
+               + ex(nxpp,nypp )*dx*sy2  + ex(nxp,nypp )*dx1*sy2  &
+               + ex(nxpp,nyp  )*dx*sy2m + ex(nxp,nyp  )*dx1*sy2m
 
-          exx = ex(nxpp,nyppp)*dx*sy2p + ex(nxp ,nyppp)*dx1*sy2p &
-               + ex(nxpp,nypp )*dx*sy2  + ex(nxp ,nypp )*dx1*sy2  &
-               + ex(nxpp,nyp  )*dx*sy2m + ex(nxp ,nyp  )*dx1*sy2m
-
-          eyy = ey(nxppp,nypp)*sx2p*dy + ey(nxppp,nyp )*sx2p*dy1 &
-               + ey(nxpp ,nypp)*sx2 *dy + ey(nxpp ,nyp )*sx2 *dy1 &
-               + ey(nxp  ,nypp)*sx2m*dy + ey(nxp  ,nyp )*sx2m*dy1
+          eyy = ey(nxppp,nypp)*sx2p*dy + ey(nxppp,nyp)*sx2p*dy1 &
+               + ey(nxpp ,nypp)*sx2 *dy + ey(nxpp ,nyp)*sx2 *dy1 &
+               + ey(nxp  ,nypp)*sx2m*dy + ey(nxp  ,nyp)*sx2m*dy1
 
           ezz = ez(nxppp,nyppp)*sx2p*sy2p + ez(nxppp,nypp )*sx2p*sy2 &
                + ez(nxppp,nyp  )*sx2p*sy2m + ez(nxpp ,nyppp)*sx2 *sy2p&
@@ -1038,7 +1050,11 @@ CONTAINS
           IF( nyp .EQ. nymax-1) nyppp=nymax
        END IF
 
-       IF (dx .LE. 0.5d0 .AND. dy .LE. 0.5d0) THEN
+       IF (dx .LE. 0.5d0 .AND. dy .LE. 0.5d0) THEN     
+          dx = dx + 0.5d0
+          dx1 = dx1 - 0.5d0
+          dy = dy + 0.5d0
+          dy1 = dy1 - 0.5d0
          ! use Mirror image method
          IF(model_boundary .NE. 0 .AND. nxp .EQ. 0)  THEN
            sx2p = sx2p - sx2m
@@ -1062,19 +1078,19 @@ CONTAINS
          sy2 = sy2
          dy = 2.0d0 * dy
        ENDIF
-           jx(nxpp,nyp ) = jx(nxpp,nyp ) + factor * vx(np) * sy2  * dx
-           jx(nxpp,nypp) = jx(nxpp,nypp) + factor * vx(np) * sy2p * dx
-           jx(nxpp,nypm) = jx(nxpp,nypm) + factor * vx(np) * sy2m * dx
-           jx(nxp ,nyp ) = jx(nxp ,nyp ) + factor * vx(np) * sy2  * dx1
-           jx(nxp ,nypp) = jx(nxp ,nypp) + factor * vx(np) * sy2p * dx1
-           jx(nxp ,nypm) = jx(nxp ,nypm) + factor * vx(np) * sy2m * dx1
+           jx(nxp,nyp ) = jx(nxp,nyp ) + factor * vx(np) * sy2  * dx
+           jx(nxp,nypp) = jx(nxp,nypp) + factor * vx(np) * sy2p * dx
+           jx(nxp,nypm) = jx(nxp,nypm) + factor * vx(np) * sy2m * dx
+           jx(nxpm,nyp ) = jx(nxpm,nyp ) + factor * vx(np) * sy2  * dx1
+           jx(nxpm,nypp) = jx(nxpm,nypp) + factor * vx(np) * sy2p * dx1
+           jx(nxpm,nypm) = jx(nxpm,nypm) + factor * vx(np) * sy2m * dx1
 
-           jy(nxp ,nypp) = jy(nxp ,nypp) + factor * vy(np) * sx2  * dy
-           jy(nxpp,nypp) = jy(nxpp,nypp) + factor * vy(np) * sx2p * dy
-           jy(nxpm,nypp) = jy(nxpm,nypp) + factor * vy(np) * sx2m * dy
-           jy(nxp ,nyp ) = jy(nxp ,nyp ) + factor * vy(np) * sx2  * dy1
-           jy(nxpp,nyp ) = jy(nxpp,nyp ) + factor * vy(np) * sx2p * dy1
-           jy(nxpm,nyp ) = jy(nxpm,nyp ) + factor * vy(np) * sx2m * dy1
+           jy(nxp ,nyp) = jy(nxp ,nyp) + factor * vy(np) * sx2  * dy
+           jy(nxpp,nyp) = jy(nxpp,nyp) + factor * vy(np) * sx2p * dy
+           jy(nxpm,nyp) = jy(nxpm,nyp) + factor * vy(np) * sx2m * dy
+           jy(nxp ,nypm) = jy(nxp ,nypm) + factor * vy(np) * sx2  * dy1
+           jy(nxpp,nypm) = jy(nxpp,nypm) + factor * vy(np) * sx2p * dy1
+           jy(nxpm,nypm) = jy(nxpm,nypm) + factor * vy(np) * sx2m * dy1
 
            jz(nxpm,nypp) = jz(nxpm,nypp) + factor * vz(np) * sx2m * sy2p
            jz(nxpm,nyp ) = jz(nxpm,nyp ) + factor * vz(np) * sx2m * sy2
@@ -1087,6 +1103,10 @@ CONTAINS
            jz(nxpp,nypm) = jz(nxpp,nypm) + factor * vz(np) * sx2p * sy2m
 
        ELSE IF(dx .LE. 0.5d0 .AND. dy .GE. 0.5d0) THEN
+          dx = dx + 0.5d0
+          dx1 = dx1 - 0.5d0
+          dy = dy - 0.5d0
+          dy1 = dy1 + 0.5d0
          IF(model_boundary .NE. 0 .AND. nxp .EQ. 0)  THEN
            sx2p = sx2p - sx2m
            sx2  = 0.d0
@@ -1109,12 +1129,12 @@ CONTAINS
            sy2 = sy2
            dy1 = 2.0d0 * dy1
          ENDIF
-          jx(nxpp,nypp ) = jx(nxpp,nypp ) + factor * vx(np) * sy2  * dx
-          jx(nxpp,nyppp) = jx(nxpp,nyppp) + factor * vx(np) * sy2p * dx
-          jx(nxpp,nyp  ) = jx(nxpp,nyp  ) + factor * vx(np) * sy2m * dx
-          jx(nxp ,nypp ) = jx(nxp ,nypp ) + factor * vx(np) * sy2  * dx1
-          jx(nxp ,nyppp) = jx(nxp ,nyppp) + factor * vx(np) * sy2p * dx1
-          jx(nxp ,nyp  ) = jx(nxp ,nyp  ) + factor * vx(np) * sy2m * dx1
+          jx(nxp,nypp ) = jx(nxp,nypp ) + factor * vx(np) * sy2  * dx
+          jx(nxp,nyppp) = jx(nxp,nyppp) + factor * vx(np) * sy2p * dx
+          jx(nxp,nyp  ) = jx(nxp,nyp  ) + factor * vx(np) * sy2m * dx
+          jx(nxpm,nypp ) = jx(nxpm,nypp ) + factor * vx(np) * sy2  * dx1
+          jx(nxpm,nyppp) = jx(nxpm,nyppp) + factor * vx(np) * sy2p * dx1
+          jx(nxpm,nyp  ) = jx(nxpm,nyp  ) + factor * vx(np) * sy2m * dx1
 
           jy(nxp ,nypp) = jy(nxp ,nypp) + factor * vy(np) * sx2  * dy
           jy(nxpp,nypp) = jy(nxpp,nypp) + factor * vy(np) * sx2p * dy
@@ -1134,6 +1154,10 @@ CONTAINS
           jz(nxpp,nyp  ) = jz(nxpp,nyp  ) + factor * vz(np) * sx2p * sy2m
 
        ELSE IF(dx .GE. 0.5d0 .AND. dy .LE. 0.5d0) THEN
+          dx = dx - 0.5d0
+          dx1 = dx1 + 0.5d0
+          dy = dy + 0.5d0
+          dy1 = dy1 - 0.5d0
          IF(model_boundary .NE. 0 .AND. nxp .EQ. nxmax-1)  THEN
            sx2m = sx2m - sx2p
            sx2 = 0.d0
@@ -1159,16 +1183,16 @@ CONTAINS
           jx(nxpp,nyp ) = jx(nxpp,nyp ) + factor * vx(np) * sy2  * dx
           jx(nxpp,nypp) = jx(nxpp,nypp) + factor * vx(np) * sy2p * dx
           jx(nxpp,nypm) = jx(nxpp,nypm) + factor * vx(np) * sy2m * dx
-          jx(nxp ,nyp ) = jx(nxp ,nyp ) + factor * vx(np) * sy2  * dx1
-          jx(nxp ,nypp) = jx(nxp ,nypp) + factor * vx(np) * sy2p * dx1
-          jx(nxp ,nypm) = jx(nxp ,nypm) + factor * vx(np) * sy2m * dx1
+          jx(nxp,nyp ) = jx(nxp,nyp ) + factor * vx(np) * sy2  * dx1
+          jx(nxp,nypp) = jx(nxp,nypp) + factor * vx(np) * sy2p * dx1
+          jx(nxp,nypm) = jx(nxp,nypm) + factor * vx(np) * sy2m * dx1
 
-          jy(nxpp ,nypp) = jy(nxpp ,nypp) + factor * vy(np) * sx2  * dy
-          jy(nxppp,nypp) = jy(nxppp,nypp) + factor * vy(np) * sx2p * dy
-          jy(nxp  ,nypp) = jy(nxp  ,nypp) + factor * vy(np) * sx2m * dy
-          jy(nxpp ,nyp ) = jy(nxpp ,nyp ) + factor * vy(np) * sx2  * dy1
-          jy(nxppp,nyp ) = jy(nxppp,nyp ) + factor * vy(np) * sx2p * dy1
-          jy(nxp  ,nyp ) = jy(nxp  ,nyp ) + factor * vy(np) * sx2m * dy1
+          jy(nxpp ,nyp) = jy(nxpp ,nyp) + factor * vy(np) * sx2  * dy
+          jy(nxppp,nyp) = jy(nxppp,nyp) + factor * vy(np) * sx2p * dy
+          jy(nxp  ,nyp) = jy(nxp  ,nyp) + factor * vy(np) * sx2m * dy
+          jy(nxpp ,nypm) = jy(nxpp ,nypm) + factor * vy(np) * sx2  * dy1
+          jy(nxppp,nypm) = jy(nxppp,nypm) + factor * vy(np) * sx2p * dy1
+          jy(nxp  ,nypm) = jy(nxp  ,nypm) + factor * vy(np) * sx2m * dy1
 
           jz(nxp  ,nypp) = jz(nxp  ,nypp) + factor * vz(np) * sx2m * sy2p
           jz(nxp  ,nyp ) = jz(nxp  ,nyp ) + factor * vz(np) * sx2m * sy2
@@ -1181,6 +1205,10 @@ CONTAINS
           jz(nxppp,nypm) = jz(nxppp,nypm) + factor * vz(np) * sx2p * sy2m
 
        ELSE
+          dx = dx - 0.5d0
+          dx1 = dx1 + 0.5d0
+          dy = dy - 0.5d0
+          dy1 = dy1 + 0.5d0
          IF(model_boundary .NE. 0 .AND. nxp .EQ. nxmax-1) THEN
            sx2m = sx2m - sx2p
            sx2 = 0.d0
@@ -1353,16 +1381,16 @@ CONTAINS
                                             + Axb(nx,nyp) + Axb(nx,nym) &
                                             - 4.0d0 * Axb(nx,ny)) &
                     + dt ** 2 * jx(nx,ny) &
-                    - 0.5d0 * dt * (phi(nxp,ny) - phib(nxp,ny) &
-                                 - phi(nxm,ny) + phib(nxm,ny)) &
+                    - dt * (phi(nxp,ny) - phib(nxp,ny) &
+                          - phi(nx,ny) + phib(nx,ny)) &
                     + 2.0d0 * Axb(nx,ny) - Axbb(nx,ny)
 
           Ay(nx,ny) = dt ** 2 * vcfact ** 2 * (Ayb(nxp,ny) + Ayb(nxm,ny) &
                                             + Ayb(nx,nyp) + Ayb(nx,nym) &
                                             - 4.0d0 * Ayb(nx,ny)) &
                     + dt ** 2 * jy(nx,ny) &
-                    - 0.5d0 * dt * (phi(nx,nyp) - phib(nx,nyp) &
-                                 - phi(nx,nym) + phib(nx,nym)) &
+                    - dt * (phi(nx,nyp) - phib(nx,nyp) &
+                          - phi(nx,ny) + phib(nx,ny)) &
                     + 2.0d0 * Ayb(nx,ny) - Aybb(nx,ny)
 
           Az(nx,ny) = dt ** 2 * vcfact ** 2 * (Azb(nxp,ny) + Azb(nxm,ny) &
@@ -1412,16 +1440,16 @@ CONTAINS
                                             + Axb(nx,nyp) + Axb(nx,nym) &
                                             - 4.0d0 * Axb(nx,ny)) &
                     + dt ** 2 * jx(nx,ny) &
-                    - 0.5d0 * dt * (phi(nxp,ny) - phib(nxp,ny) &
-                                 - phi(nxm,ny) + phib(nxm,ny)) &
+                    - dt * (phi(nxp,ny) - phib(nxp,ny) &
+                                 - phi(nx,ny) + phib(nx,ny)) &
                     + 2.0d0 * Axb(nx,ny) - Axbb(nx,ny)
 
           Ay(nx,ny) = dt ** 2 * vcfact ** 2 * (Ayb(nxp,ny) + Ayb(nxm,ny) &
                                             + Ayb(nx,nyp) + Ayb(nx,nym) &
                                             - 4.0d0 * Ayb(nx,ny)) &
                     + dt ** 2 * jy(nx,ny) &
-                    - 0.5d0 * dt * (phi(nx,nyp) - phib(nx,nyp) &
-                                 - phi(nx,nym) + phib(nx,nym)) &
+                    - dt * (phi(nx,nyp) - phib(nx,nyp) &
+                                 - phi(nx,ny) + phib(nx,ny)) &
                     + 2.0d0 * Ayb(nx,ny) - Aybb(nx,ny)
 
           Az(nx,ny) = dt ** 2 * vcfact ** 2 * (Azb(nxp,ny) + Azb(nxm,ny) &
@@ -1473,40 +1501,6 @@ CONTAINS
     !        ENDDO
     !     ENDDO
     !  ENDIF
-<<<<<<< HEAD
-    !  DO nx=1,nxmax-1
-    !       nxm = nx - 1
-    !       nxp = nx + 1
-    !       Ay(nx,0) = dt ** 2 * vcfact ** 2 * (Ayb(nxp,0) + Ayb(nxm,0) &
-    !                                         + Ayb(nx,1) - 4.0d0 * Ayb(nx,0)) &
-    !                 + dt ** 2 * jy(nx,0) &
-    !                 - 0.5d0 * dt * (phi(nx,1) - phib(nx,1)) &
-    !                 + 2.0d0 * Ayb(nx,0) - Aybb(nx,0)
-    !
-    !       Ay(nx,nymax) = dt ** 2 * vcfact ** 2 * (Ayb(nxp,nymax) &
-    !               + Ayb(nxm,nymax) + Ayb(nx,nymax-1) - 4.0d0 * Ayb(nx,nymax)) &
-    !                 + dt ** 2 * jy(nx,nymax) &
-    !                 - 0.5d0 * dt * (- phi(nx,nymax-1) + phib(nx,nymax-1)) &
-    !                 + 2.0d0 * Ayb(nx,nymax) - Aybb(nx,nymax)
-    ! END DO
-    ! DO ny=1,nymax-1
-    !       nym = ny - 1
-    !       nyp = ny + 1
-    !       Ax(0,ny) = dt ** 2 * vcfact ** 2 * (Axb(1,ny) + Axb(0,nyp) + Axb(0,nym) - 4.0d0 * Axb(0,ny)) &
-    !                 + dt ** 2 * jx(0,ny) &
-    !                 - 0.5d0 * dt * (phi(1,ny) - phib(1,ny)) &
-    !                 + 2.0d0 * Axb(0,ny) - Axbb(0,ny)
-    !
-    !       Ax(nxmax,ny) = dt ** 2 * vcfact ** 2 * (Axb(nxmax-1,ny) &
-    !                                         + Axb(nxmax,nyp) + Axb(nxmax,nym) &
-    !                                         - 4.0d0 * Axb(nxmax,ny)) &
-    !                 + dt ** 2 * jx(nxmax,ny) &
-    !                 - 0.5d0 * dt * (- phi(nxmax-1,ny) + phib(nxmax-1,ny)) &
-    !                 + 2.0d0 * Axb(nxmax,ny) - Axbb(nxmax,ny)
-    !
-    ! END DO
-
-=======
     ! DO nx=1,nxmax-1
     !      nxm = nx - 1
     !      nxp = nx + 1
@@ -1540,7 +1534,6 @@ CONTAINS
     !END DO
 
     ! boundary condition for reflection
->>>>>>> 3e8f73653afbcd3345c560a8dfd6e8d6ea9f29e1
      Ay(0,:)=0.d0
      Az(0,:)=0.d0
      !Ax(nxmax,:)=0.d0

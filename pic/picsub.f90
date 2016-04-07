@@ -331,8 +331,8 @@ CONTAINS
              IF( nx .EQ. nxmax ) nxp = 1
              IF( ny .EQ. 0  )    nym = nymax - 1
              IF( ny .EQ. nymax ) nyp = 1
-             esx(nx,ny) = 0.5d0 * ( phi(nxm,ny) - phi(nxp,ny))
-             esy(nx,ny) = 0.5d0 * ( phi(nx,nym) - phi(nx,nyp))
+             esx(nx,ny) = phi(nx,ny) - phi(nxp,ny)
+             esy(nx,ny) = phi(nx,ny) - phi(nx,nyp)
              esz(nx,ny) = 0.d0
              emx(nx,ny) = - ( Ax(nx,ny) - Axb(nx,ny) ) / dt
              emy(nx,ny) = - ( Ay(nx,ny) - Ayb(nx,ny) ) / dt
@@ -341,21 +341,21 @@ CONTAINS
           END DO
        END DO
     ELSE IF (model_boundary .NE. 0) THEN
-       DO nx = 1, nxmax-1
-          DO ny = 1, nymax-1
+       DO nx = 0, nxmax
+          DO ny = 0, nymax
 
              nxm = nx - 1
              nxp = nx + 1
              nym = ny - 1
              nyp = ny + 1
 
-       !      IF( nx .EQ. 0  )    nxm = 0
-       !      IF( nx .EQ. nxmax ) nxp = nxmax
-       !      IF( ny .EQ. 0  )    nym = 0
-       !      IF( ny .EQ. nymax ) nyp = nymax
+             IF( nx .EQ. 0  )    nxm = 0
+             IF( nx .EQ. nxmax ) nxp = nxmax
+             IF( ny .EQ. 0  )    nym = 0
+             IF( ny .EQ. nymax ) nyp = nymax
 
-             esx(nx,ny) = 0.5d0 * ( phi(nxm,ny) - phi(nxp,ny))
-             esy(nx,ny) = 0.5d0 * ( phi(nx,nym) - phi(nx,nyp))
+             esx(nx,ny) = phi(nx,ny) - phi(nxp,ny)
+             esy(nx,ny) = phi(nx,ny) - phi(nx,nyp)
              esz(nx,ny) = 0.d0
              emx(nx,ny) = - ( Ax(nx,ny) - Axb(nx,ny) ) / dt
              emy(nx,ny) = - ( Ay(nx,ny) - Ayb(nx,ny) ) / dt
@@ -364,14 +364,14 @@ CONTAINS
           END DO
        END DO
        !boundary condition for electro static field
-       DO ny = 1, nymax-1
-         esx(0,ny) = -0.5d0 * phi(1,ny)
-         esx(nxmax,ny) = 0.5d0 * phi(nxmax-1,ny)
-       ENDDO
-       DO nx = 1, nxmax-1
-         esy(nx,0) = -0.5d0 * phi(nx,1)
-         esy(nx,nymax) = 0.5d0 * phi(nx,nymax-1)
-       ENDDO
+       !DO ny = 1, nymax-1
+       !  esx(0,ny) = -0.5d0 * phi(1,ny)
+       !  esx(nxmax,ny) = 0.5d0 * phi(nxmax-1,ny)
+       !ENDDO
+       !DO nx = 1, nxmax-1
+       !  esy(nx,0) = -0.5d0 * phi(nx,1)
+       !  esy(nx,nymax) = 0.5d0 * phi(nx,nymax-1)
+       !ENDDO
        esx(:,0) = 0.d0
        esx(:,nymax) = 0.d0
        esy(0,:) = 0.d0
@@ -474,14 +474,14 @@ CONTAINS
              IF( ny .EQ. 0  )    nym = nymax - 1
              IF( ny .EQ. nymax ) nyp = 1
 
-             bx(nx,ny) = 0.25d0 * (Az(nx,nyp) + Azb(nx,nyp) &
-                  - Az(nx,nym) - Azb(nx,nym))
-             by(nx,ny) = - 0.25d0 * (Az(nxp,ny) + Azb(nxp,ny) &
-                  - Az(nxm,ny) - Azb(nxm,ny))
-             bz(nx,ny) = 0.25d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
-                  - Ay(nxm,ny) - Ayb(nxm,ny) &
+             bx(nx,ny) = 0.5d0 * (Az(nx,nyp) + Azb(nx,nyp) &
+                  - Az(nx,ny) - Azb(nx,ny))
+             by(nx,ny) = - 0.5d0 * (Az(nxp,ny) + Azb(nxp,ny) &
+                  - Az(nx,ny) - Azb(nx,ny))
+             bz(nx,ny) = 0.5d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
+                  - Ay(nx,ny) - Ayb(nx,ny) &
                   - (Ax(nx,nyp) + Axb(nx,nyp) &
-                  - Ax(nx,nym) - Axb(nx,nym)))
+                  - Ax(nx,ny) - Axb(nx,ny)))
           END DO
        END DO
     ELSEIF(model_boundary .NE. 0) THEN
@@ -497,14 +497,14 @@ CONTAINS
              IF( ny .EQ. 0  )    nym = 0
              IF( ny .EQ. nymax ) nyp = nymax
 
-                bx(nx,ny) =   0.25d0 * (Az(nx,nyp) + Azb(nx,nyp) &
-                     - Az(nx,nym) - Azb(nx,nym))
-                by(nx,ny) = - 0.25d0 * (Az(nxp,ny) + Azb(nxp,ny) &
-                     - Az(nxm,ny) - Azb(nxm,ny))
-                bz(nx,ny) =   0.25d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
-                     - Ay(nxm,ny) - Ayb(nxm,ny) &
-                     - (Ax(nx,nyp) + Axb(nx,nyp) &
-                     - Ax(nx,nym) - Axb(nx,nym)))
+                bx(nx,ny) =   0.5d0 * (Az(nx,nyp) + Azb(nx,nyp) &
+                     - Az(nx,ny) - Azb(nx,ny))
+                by(nx,ny) = - 0.5d0 * (Az(nxp,ny) + Azb(nxp,ny) &
+                     - Az(nx,ny) - Azb(nx,ny))
+                bz(nx,ny) =   0.5d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
+                     - Ay(nx,ny) - Ayb(nx,ny) &
+                     - (Ax(nx,ny) + Axb(nx,ny) &
+                     - Ax(nx,ny) - Axb(nx,ny)))
           END DO
        END DO
       !  DO ny = 1, nymax-1
