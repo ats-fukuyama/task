@@ -69,8 +69,9 @@ CONTAINS
                rho,phi,rhof,phif,awk,afwk,cform,ipssn)
        ELSE
           CALL poisson_m(nxmax1,nymax1,rho,phi,ipssn, &
-               model_matrix0,model_matrix1,model_matrix2, &
-               tolerance_matrix,model_boundary,dlen)
+                model_matrix0,model_matrix1,model_matrix2, &
+                tolerance_matrix,model_boundary,dlen)
+          CALL MPI_Bcast(phi,nxymax,MPI_REAL8,0,ncomm,ierr)
        END IF
        !IF(model_boundary.EQ.2) THEN
         !  CALL absorb_phi(nxmax,nymax,phi,phib,phibb,dt,vcfact)
@@ -87,6 +88,7 @@ CONTAINS
           CALL antenna(nxmax,nymax,jxant,jyant,jzant,phxant,phyant,phzant, &
                omega,time,jx,jy,jz)
        END IF
+        
        CALL boundary_j(nxmax,nymax,jx,jy,jz,model_boundary)
        !..... sum current densities over cores
        CALL mtx_allreduce_real8(jx,nxymax,3,suma,locva)
@@ -121,11 +123,9 @@ CONTAINS
        !.......... calculate ex and ey and ez
        CALL efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
             ex,ey,ez,esx,esy,esz,emx,emy,emz,model_push,model_boundary)
-
        !.......... calculate bxg and byg and bzg
        CALL bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
             bx,by,bz,bxbg,bybg,bzbg,bb, model_push,model_boundary,dlen)
-
        IF( MOD(nt,ntgstep) .EQ. 0 ) THEN
           CALL kine(npmax,vxe,vye,vze,akine1,me,vcfact)
           CALL kine(npmax,vxi,vyi,vzi,akini1,mi,vcfact)
@@ -616,7 +616,7 @@ CONTAINS
        ! push particles by using Buneman-Boris method
        ! gamma is lorentz factor
        bb2 = bxx ** 2 + byy ** 2 + bzz ** 2
-       gamma = 1.d0/sqrt(1.d0 - (vx(np)**2+vy(np)**2+vz(np)**2)/vcfact**2)
+       gamma = 1.d0 / sqrt(1.d0 - (vx(np)**2+vy(np)**2+vz(np)**2)/vcfact**2)
 
        vxm = vx(np) * gamma + 0.5D0 * ctom * exx * dt
        vym = vy(np) * gamma + 0.5D0 * ctom * eyy * dt
@@ -635,7 +635,7 @@ CONTAINS
        vzp = vzm + 1.0d0/(1.0d0 + 0.25d0 * (ctom * dt * gamma) ** 2 * bb2) &
             * ctom * (vxzero * byy - vyzero * bxx) * dt * gamma
 
-       gamma = 1.d0 / sqrt(1.d0 + (vxp**2+vyp**2+vzp**2)/vcfact**2)
+       gamma = 1.d0/sqrt(1.d0 + (vxp**2+vyp**2+vzp**2)/vcfact**2)
        vx(np) = vxp * gamma + 0.5D0 * ctom * exx * dt
        vy(np) = vyp * gamma + 0.5D0 * ctom * eyy * dt
        vz(np) = vzp * gamma + 0.5D0 * ctom * ezz * dt
@@ -995,8 +995,8 @@ CONTAINS
 
     DO np = 1, npmax
 
-       nxp = (x(np)+xb(np))/2.d0
-       nyp = (y(np)+yb(np))/2.d0
+       nxp = int((x(np)+xb(np))/2.d0)
+       nyp = int((y(np)+yb(np))/2.d0)
        dx = (x(np)+xb(np))/2.d0 - DBLE(nxp)
        dy = (y(np)+yb(np))/2.d0 - DBLE(nyp)
        dx1 = 1.0d0 - dx
@@ -1284,30 +1284,22 @@ CONTAINS
           jy(nx,nymax) = jy(nx,0)
           jz(nx,nymax) = jz(nx,0)
        ENDDO
-    ELSE                 ! reflective
-      jx(:,0)=0.d0
-      jx(:,nymax)=0.d0
-      jy(0,:)=0.d0
-      jy(nxmax,:)=0.d0
-      jz(:,0)=0.d0
-      jz(:,nymax)=0.d0
-      jz(0,:)=0.d0
-      jz(nxmax,:)=0.d0
+    ELSE                           ! reflective
        !DO ny=1,nymax-1
-          !jx(0,ny) = 2.0d0 * jx(0,ny)
-          !jy(0,ny) = 2.0d0 * jy(0,ny)
-          !jz(0,ny) = 2.0d0 * jz(0,ny)
-          !jx(nxmax,ny) = 2.0d0 * jx(nxmax,ny)
-          !jy(nxmax,ny) = 2.0d0 * jy(nxmax,ny)
-          !jz(nxmax,ny) = 2.0d0 * jz(nxmax,ny)
+       !   jx(0,ny) = 2.0d0 * jx(0,ny)
+       !   jy(0,ny) = 2.0d0 * jy(0,ny)
+       !   jz(0,ny) = 2.0d0 * jz(0,ny)
+       !   jx(nxmax,ny) = 2.0d0 * jx(nxmax,ny)
+       !   jy(nxmax,ny) = 2.0d0 * jy(nxmax,ny)
+       !   jz(nxmax,ny) = 2.0d0 * jz(nxmax,ny)
        !END DO
        !DO nx=1,nxmax-1
-          !jx(nx,0) = 2.0d0 * jx(nx,0)
-          !jy(nx,0) = 2.0d0 * jy(nx,0)
-          !jz(nx,0) = 2.0d0 * jz(nx,0)
-          !jx(nx,nymax) = 2.0d0 * jx(nx,nymax)
-          !jy(nx,nymax) = 2.0d0 * jy(nx,nymax)
-          !jz(nx,nymax) = 2.0d0 * jz(nx,nymax)
+       !   jx(nx,0) = 2.0d0 * jx(nx,0)
+       !   jy(nx,0) = 2.0d0 * jy(nx,0)
+       !   jz(nx,0) = 2.0d0 * jz(nx,0)
+       !   jx(nx,nymax) = 2.0d0 * jx(nx,nymax)
+       !   jy(nx,nymax) = 2.0d0 * jy(nx,nymax)
+       !   jz(nx,nymax) = 2.0d0 * jz(nx,nymax)
        !END DO
        !jx(0,0) = 4.0d0 * jx(0,0)
        !jy(0,0) = 4.0d0 * jy(0,0)
@@ -1320,7 +1312,14 @@ CONTAINS
        !jz(nxmax,0) = 4.0d0 * jz(nxmax,0)
        !jx(nxmax,nymax) = 4.0d0 * jx(nxmax,nymax)
        !jy(nxmax,nymax) = 4.0d0 * jy(nxmax,nymax)
-       !jz(nxmax,nymax) = 4.0d0 * jz(nxmax,nymax)
+       jx(:,0)=0.d0
+       jx(:,nymax)=0.d0
+       jy(0,:)=0.d0
+       jy(nxmax,:)=0.d0
+       jz(:,0)=0.d0
+       jz(:,nymax)=0.d0
+       jz(0,:)=0.d0
+       jz(nxmax,:)=0.d0 !jz(nxmax,nymax) = 4.0d0 * jz(nxmax,nymax)
     END IF
 
   END SUBROUTINE boundary_j
@@ -1338,7 +1337,6 @@ CONTAINS
     ! Solution of maxwell equation in the A-phi formulation by difference method
     ! vcfact is the ratio of the light speed to lattice parameter times
     ! plasma frequency
-
     DO nx = 0, nxmax
        DO ny = 0, nymax
           nxm = nx - 1
@@ -1372,7 +1370,6 @@ CONTAINS
                                             - 4.0d0 * Azb(nx,ny)) &
                     + dt ** 2 * jz(nx,ny) &
                     + 2.0d0 * Azb(nx,ny) - Azbb(nx,ny)
-
        END DO
     END DO
 
@@ -1476,6 +1473,7 @@ CONTAINS
     !        ENDDO
     !     ENDDO
     !  ENDIF
+<<<<<<< HEAD
     !  DO nx=1,nxmax-1
     !       nxm = nx - 1
     !       nxp = nx + 1
@@ -1508,14 +1506,85 @@ CONTAINS
     !
     ! END DO
 
+=======
+    ! DO nx=1,nxmax-1
+    !      nxm = nx - 1
+    !      nxp = nx + 1
+    !      Ay(nx,0) = dt ** 2 * vcfact ** 2 * (Ayb(nxp,0) + Ayb(nxm,0) &
+    !                                        + Ayb(nx,1) - 4.0d0 * Ayb(nx,0)) &
+    !                + dt ** 2 * jy(nx,0) &
+    !                - 0.5d0 * dt * (phi(nx,1) - phib(nx,1)) &
+    !                + 2.0d0 * Ayb(nx,0) - Aybb(nx,0)
+
+     !     Ay(nx,nymax) = dt ** 2 * vcfact ** 2 * (Ayb(nxp,nymax) &
+     !             + Ayb(nxm,nymax) + Ayb(nx,nymax-1) - 4.0d0 * Ayb(nx,nymax)) &
+     !               + dt ** 2 * jy(nx,nymax) &
+     !               - 0.5d0 * dt * (- phi(nx,nymax-1) + phib(nx,nymax-1)) &
+     !               + 2.0d0 * Ayb(nx,nymax) - Aybb(nx,nymax)
+    !END DO
+    !DO ny=1,nymax-1
+    !      nym = ny - 1
+    !      nyp = ny + 1
+  !        Ax(0,ny) = dt ** 2 * vcfact ** 2 * (Axb(1,ny) + Axb(0,nyp) + Axb(0,nym) - 4.0d0 * Axb(0,ny)) &
+   !                 + dt ** 2 * jx(0,ny) &
+   !                 - 0.5d0 * dt * (phi(1,ny) - phib(1,ny)) &
+   !                 + 2.0d0 * Axb(0,ny) - Axbb(0,ny)
+
+    !      Ax(nxmax,ny) = dt ** 2 * vcfact ** 2 * (Axb(nxmax-1,ny) &
+    !                                        + Axb(nxmax,nyp) + Axb(nxmax,nym) &
+    !                                        - 4.0d0 * Axb(nxmax,ny)) &
+    !                + dt ** 2 * jx(nxmax,ny) &
+    !                - 0.5d0 * dt * (- phi(nxmax-1,ny) + phib(nxmax-1,ny)) &
+    !                + 2.0d0 * Axb(nxmax,ny) - Axbb(nxmax,ny)
+
+    !END DO
+
+    ! boundary condition for reflection
+>>>>>>> 3e8f73653afbcd3345c560a8dfd6e8d6ea9f29e1
      Ay(0,:)=0.d0
      Az(0,:)=0.d0
+     !Ax(nxmax,:)=0.d0
      Ay(nxmax,:)=0.d0
      Az(nxmax,:)=0.d0
      Ax(:,0)=0.d0
+     !Ay(:,0)=0.d0
      Az(:,0)=0.d0
      Ax(:,nymax)=0.d0
+     !Ay(:,nymax)=0.d0
      Az(:,nymax)=0.d0
+    ! DO nx=1,nxmax-1
+    !      nxm = nx - 1
+    !      nxp = nx + 1
+    !      Ay(nx,0) = dt ** 2 * vcfact ** 2 * (Ayb(nxp,0) + Ayb(nxm,0) &
+    !                                        + Ayb(nx,1) &
+    !                                        - 4.0d0 * Ayb(nx,0)) &
+    !                + dt ** 2 * jy(nx,0) &
+    !                - 0.5d0 * dt * (phi(nx,1) - phib(nx,1)) &
+    !                + 2.0d0 * Ayb(nx,0) - Aybb(nx,0)
+
+     !     Ay(nx,nymax) = dt ** 2 * vcfact ** 2 * (Ayb(nxp,nymax) + Ayb(nxm,nymax) &
+     !                                          + Ayb(nx,nymax-1) - 4.0d0 * Ayb(nx,nymax)) &
+     !               + dt ** 2 * jy(nx,nymax) &
+     !               - 0.5d0 * dt * (- phi(nx,nymax-1) + phib(nx,nymax-1)) &
+     !               + 2.0d0 * Ayb(nx,nymax) - Aybb(nx,nymax)
+    !END DO
+    !DO ny=1,nymax-1
+    !      nym = ny - 1
+    !      nyp = ny + 1
+    !      Ax(0,ny) = dt ** 2 * vcfact ** 2 * (Axb(1,ny) + Axb(0,nyp) + Axb(0,nym) &
+    !                                        - 4.0d0 * Axb(0,ny)) &
+    !                + dt ** 2 * jx(0,ny) &
+    !                - 0.5d0 * dt * (phi(1,ny) - phib(1,ny)) &
+    !                + 2.0d0 * Axb(0,ny) - Axbb(0,ny)
+
+!          Ax(nxmax,ny) = dt ** 2 * vcfact ** 2 * (Axb(nxmax-1,ny) &
+ !                                           + Axb(nxmax,nyp) + Axb(nxmax,nym) &
+  !                                          - 4.0d0 * Axb(nxmax,ny)) &
+   !                 + dt ** 2 * jx(nxmax,ny) &
+    !                - 0.5d0 * dt * (- phi(nxmax-1,ny) + phib(nxmax-1,ny)) &
+     !               + 2.0d0 * Axb(nxmax,ny) - Axbb(nxmax,ny)
+
+    !END DO
 
      IF(model_boundary .eq. 2) THEN ! Mur's absorbing boundary condition
      DO nx = 1, nxmax-1
@@ -1614,8 +1683,30 @@ CONTAINS
               +Azb(0,ny-1)+Azb(1,ny+1)&
               -2.d0*Azb(1,ny)+Azb(1,ny-1))
      ENDDO
-     ENDIF
-
+      DO ny = 1, nymax-1
+        Ax(0,ny)=-Axbb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+                *(Ax(1,ny)+Axbb(0,ny)) &
+                +2.d0/(vcfact*dt+1.d0)*(Axb(0,ny)+Axb(1,ny))&
+                +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+                *(Axb(0,ny+1)-2.d0*Axb(0,ny)&
+                +Axb(0,ny-1)+Axb(1,ny+1)&
+                -2.d0*Axb(1,ny)+Axb(1,ny-1))
+        Ay(0,ny)=-Aybb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+                *(Ay(1,ny)+Aybb(0,ny)) &
+                +2.d0/(vcfact*dt+1.d0)*(Ayb(0,ny)+Ayb(1,ny))&
+                +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+                *(Ayb(0,ny+1)-2.d0*Ayb(0,ny)&
+                +Ayb(0,ny-1)+Ayb(1,ny+1)&
+                -2.d0*Ayb(1,ny)+Ayb(1,ny-1))
+        Az(0,ny)=-Azbb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+                *(Az(1,ny)+Azbb(0,ny)) &
+                +2.d0/(vcfact*dt+1.d0)*(Azb(0,ny)+Azb(1,ny))&
+                +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+                *(Azb(0,ny+1)-2.d0*Azb(0,ny)&
+                +Azb(0,ny-1)+Azb(1,ny+1)&
+                -2.d0*Azb(1,ny)+Azb(1,ny-1))
+      ENDDO
+    ENDIF
     SELECT CASE(model_wg)
     CASE(0)
        yc=0.5d0*(ymin_wg+ymax_wg)

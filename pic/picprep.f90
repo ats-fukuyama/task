@@ -50,7 +50,6 @@ CONTAINS
       alz = alz - 2.d0 * eps
 
       CALL pic_allocate
-
       ex(:,:) = 0.d0
       ey(:,:) = 0.d0
       ez(:,:) = 0.d0
@@ -192,7 +191,7 @@ CONTAINS
                   + inter * (1.0d0 - densx * (dble(npx) - 1.0d0)/dble(npxmax))
          x(np) = position
          y(np) = (dble(npy) - 0.5d0 ) * facty
-
+         
          call gauss(rvx,rvy,rvz,iran)
          vx(np) = rvx * vt
          vy(np) = rvy * vt
@@ -200,7 +199,6 @@ CONTAINS
          xb(np) = x(np) - vx(np) * dt
          yb(np) = y(np) - vy(np) * dt
          zb(np) = z(np) - vz(np) * dt
-
          ! particle reflect condition on boundary
          IF( xb(np) .LT. x1 ) THEN
             xb(np) = -xb(np)
@@ -212,7 +210,6 @@ CONTAINS
          ELSEIF( yb(np) .GT. y2 ) THEN
             yb(np) = aly - (yb(np) - aly)
          ENDIF
-
       END DO
       END DO
       END IF
