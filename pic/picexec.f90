@@ -88,7 +88,7 @@ CONTAINS
           CALL antenna(nxmax,nymax,jxant,jyant,jzant,phxant,phyant,phzant, &
                omega,time,jx,jy,jz)
        END IF
-        
+
        CALL boundary_j(nxmax,nymax,jx,jy,jz,model_boundary)
        !..... sum current densities over cores
        CALL mtx_allreduce_real8(jx,nxymax,3,suma,locva)
@@ -1473,74 +1473,6 @@ CONTAINS
     !        ENDDO
     !     ENDDO
     !  ENDIF
-<<<<<<< HEAD
-    !  DO nx=1,nxmax-1
-    !       nxm = nx - 1
-    !       nxp = nx + 1
-    !       Ay(nx,0) = dt ** 2 * vcfact ** 2 * (Ayb(nxp,0) + Ayb(nxm,0) &
-    !                                         + Ayb(nx,1) - 4.0d0 * Ayb(nx,0)) &
-    !                 + dt ** 2 * jy(nx,0) &
-    !                 - 0.5d0 * dt * (phi(nx,1) - phib(nx,1)) &
-    !                 + 2.0d0 * Ayb(nx,0) - Aybb(nx,0)
-    !
-    !       Ay(nx,nymax) = dt ** 2 * vcfact ** 2 * (Ayb(nxp,nymax) &
-    !               + Ayb(nxm,nymax) + Ayb(nx,nymax-1) - 4.0d0 * Ayb(nx,nymax)) &
-    !                 + dt ** 2 * jy(nx,nymax) &
-    !                 - 0.5d0 * dt * (- phi(nx,nymax-1) + phib(nx,nymax-1)) &
-    !                 + 2.0d0 * Ayb(nx,nymax) - Aybb(nx,nymax)
-    ! END DO
-    ! DO ny=1,nymax-1
-    !       nym = ny - 1
-    !       nyp = ny + 1
-    !       Ax(0,ny) = dt ** 2 * vcfact ** 2 * (Axb(1,ny) + Axb(0,nyp) + Axb(0,nym) - 4.0d0 * Axb(0,ny)) &
-    !                 + dt ** 2 * jx(0,ny) &
-    !                 - 0.5d0 * dt * (phi(1,ny) - phib(1,ny)) &
-    !                 + 2.0d0 * Axb(0,ny) - Axbb(0,ny)
-    !
-    !       Ax(nxmax,ny) = dt ** 2 * vcfact ** 2 * (Axb(nxmax-1,ny) &
-    !                                         + Axb(nxmax,nyp) + Axb(nxmax,nym) &
-    !                                         - 4.0d0 * Axb(nxmax,ny)) &
-    !                 + dt ** 2 * jx(nxmax,ny) &
-    !                 - 0.5d0 * dt * (- phi(nxmax-1,ny) + phib(nxmax-1,ny)) &
-    !                 + 2.0d0 * Axb(nxmax,ny) - Axbb(nxmax,ny)
-    !
-    ! END DO
-
-=======
-    ! DO nx=1,nxmax-1
-    !      nxm = nx - 1
-    !      nxp = nx + 1
-    !      Ay(nx,0) = dt ** 2 * vcfact ** 2 * (Ayb(nxp,0) + Ayb(nxm,0) &
-    !                                        + Ayb(nx,1) - 4.0d0 * Ayb(nx,0)) &
-    !                + dt ** 2 * jy(nx,0) &
-    !                - 0.5d0 * dt * (phi(nx,1) - phib(nx,1)) &
-    !                + 2.0d0 * Ayb(nx,0) - Aybb(nx,0)
-
-     !     Ay(nx,nymax) = dt ** 2 * vcfact ** 2 * (Ayb(nxp,nymax) &
-     !             + Ayb(nxm,nymax) + Ayb(nx,nymax-1) - 4.0d0 * Ayb(nx,nymax)) &
-     !               + dt ** 2 * jy(nx,nymax) &
-     !               - 0.5d0 * dt * (- phi(nx,nymax-1) + phib(nx,nymax-1)) &
-     !               + 2.0d0 * Ayb(nx,nymax) - Aybb(nx,nymax)
-    !END DO
-    !DO ny=1,nymax-1
-    !      nym = ny - 1
-    !      nyp = ny + 1
-  !        Ax(0,ny) = dt ** 2 * vcfact ** 2 * (Axb(1,ny) + Axb(0,nyp) + Axb(0,nym) - 4.0d0 * Axb(0,ny)) &
-   !                 + dt ** 2 * jx(0,ny) &
-   !                 - 0.5d0 * dt * (phi(1,ny) - phib(1,ny)) &
-   !                 + 2.0d0 * Axb(0,ny) - Axbb(0,ny)
-
-    !      Ax(nxmax,ny) = dt ** 2 * vcfact ** 2 * (Axb(nxmax-1,ny) &
-    !                                        + Axb(nxmax,nyp) + Axb(nxmax,nym) &
-    !                                        - 4.0d0 * Axb(nxmax,ny)) &
-    !                + dt ** 2 * jx(nxmax,ny) &
-    !                - 0.5d0 * dt * (- phi(nxmax-1,ny) + phib(nxmax-1,ny)) &
-    !                + 2.0d0 * Axb(nxmax,ny) - Axbb(nxmax,ny)
-
-    !END DO
-
-    ! boundary condition for reflection
->>>>>>> 3e8f73653afbcd3345c560a8dfd6e8d6ea9f29e1
      Ay(0,:)=0.d0
      Az(0,:)=0.d0
      !Ax(nxmax,:)=0.d0
