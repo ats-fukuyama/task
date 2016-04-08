@@ -43,7 +43,7 @@
          open(14,file='nth-re.dat')
         open(15,file='re_pitch.dat')
         open(18,file='efield_ref.dat')
-!        open(19,file='collision_term.dat')
+!!        open(19,file='collision_term.dat')
       CALL pl_init
       CALL eq_init
       CALL fp_init
