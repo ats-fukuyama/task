@@ -37,12 +37,11 @@
       real(rkind):: RKWR,RKWTH,RKWPH,REWY,DREWY,FACTWM
       real(rkind):: ZEFF,DELT,RIMPL,EPSM,EPSE,EPSDE,H0DE
       real(rkind):: PWAVE,EPSNWR
-      real(rkind):: time_quench_start, RJPROF2
+      real(rkind):: time_quench_start, RJPROF1, RJPROF2
 
       integer:: nsamax,nsbmax
       integer,dimension(NSM):: ns_nsa,ns_nsb
       real(rkind),dimension(NSM):: pmax,tloss
-!      real(rkind),dimension(NSM) :: SPTOT,SPR0,SPRW,SPENG,SPANG
       integer:: NSSPF
       integer,dimension(NBEAMM) :: NSSPB
       real(rkind),dimension(NBEAMM) :: SPBTOT,SPBR0,SPBRW,SPBENG,SPBANG,SPBPANG
@@ -56,6 +55,8 @@
       real(rkind):: T0_quench, tau_quench
       real(rkind):: deltaB_B
       real(rkind):: v_RE
+      real(rkind):: target_zeff, SPITOT
+      integer:: n_impu
 
       real(rkind),dimension(NSM):: pmax_bb
 
@@ -79,7 +80,8 @@
       real(rkind),dimension(:),POINTER :: DELP
       real(rkind),dimension(:),POINTER :: &
            RNFP0,RNFPS,RTFP0,RTFPS,AMFP,AEFP,PTFP0,VTFP0, &
-           AEFD,AMFD,PTFD0,VTFD0,THETA0,RNFD0,RTFD0,RTFDS
+           AEFD,AMFD,PTFD0,VTFD0,THETA0,RNFD0,RTFD0,RTFDS, &
+           RN0_MGI
       integer:: NTG1,NTG2,NTG1M,NTG2M
       real(rkind):: TVOLR
       real(rkind):: PX
@@ -147,7 +149,7 @@
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
            RNFP,RTFP,PTFP,VTFP,THETA,DKBSR, RT_T, POST_tau_ta
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSBM)
-           RNFD,RTFD,PTFD,VTFD
+           RNFD,RTFD,PTFD,VTFD, RN_MGI
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSBM,NSAM)
            RNUF,RNUD,LNLAM,POST_LNLAM_f,POST_LNLAM
       real(rkind),dimension(:,:,:),POINTER :: & ! (NTHM,NPM,NSAM)
@@ -248,6 +250,7 @@
       real(rkind),dimension(:,:),POINTER:: EPTR
       real(rkind):: E_EDGEM, SIGP_E, RN_E, RT_E, RLNRL_E
       real(rkind):: pc_runaway
+      real(rkind):: Zeff_imp
       integer:: NPC_runaway
       integer:: nt_init, N_f1
       contains
@@ -355,6 +358,8 @@
           allocate(WEIGHR(NTHMAX,NPSTART:NPEND,NRSTART:NREND+1,NSAMAX))
 
           allocate(RNFD(NRSTART:NREND+1,NSBMAX),RTFD(NRSTART:NREND+1,NSBMAX))
+          allocate(RN0_MGI(NSBMAX))
+          allocate(RN_MGI(NRSTART:NREND,NSBMAX))
           allocate(PTFD(NRSTART:NREND+1,NSBMAX),VTFD(NRSTART:NREND+1,NSBMAX))
           allocate(RNUF(NRMAX,NSBMAX,NSBMAX))
           allocate(RNUD(NRMAX,NSBMAX,NSBMAX))
@@ -612,6 +617,8 @@
           deallocate(WEIGHR)
 
           deallocate(RNFD,RTFD,PTFD,VTFD)
+          deallocate(RN_MGI)
+          deallocate(RN0_MGI)
           deallocate(RNUF,RNUD,LNLAM)
           deallocate(DPP,DPT)
           deallocate(DTP,DTT)

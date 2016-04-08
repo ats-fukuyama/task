@@ -1,11 +1,11 @@
-     MODULE fpdisrupt
+   MODULE fpdisrupt
 
      USE fpcomm
 
-!      real(8),parameter:: Z_ef=3.D0
+      real(8),parameter:: Z_ef=3.D0
 !      real(8),parameter:: Z_ef=5.D0
-      real(8),parameter:: Z_ef=1.D0
-!      real(8),parameter:: Z_ef=2.D0
+!      real(8),parameter:: Z_ef=1.D0
+!      real(8),parameter:: Z_ef=3.D0
 
 !      real(8),parameter:: IP_init=1.8D6 ! [A] ! JET
 !      real(8),parameter:: IP_init=1.9D6 ! [A] ! JET 2008
@@ -19,13 +19,13 @@
 !     real(8),parameter:: IP_init=1.0D3 ! [A] !test
 !     real(8):: IP_init=RIP*1.D6 ! [A] !60 ITB
 
-      integer,parameter:: ISW_Z=0 !0=Z_ef, 1=ZEFF
+      integer,parameter:: ISW_Z=1 !0=Z_ef, 1=ZEFF
 
       real(8),dimension(:),pointer:: rt_init
 !      real(8),parameter:: lnL_ED=10.D0
       real(8),parameter:: lnL_ED=18.D0
       integer,parameter:: ISW_NOTAIL=0
-      integer,parameter:: ISW_Q=2 ! 2=exponential, 5=2step quench
+      integer,parameter:: ISW_Q=2 ! 2=exponential, 3=2step quench, 0=linear
       contains
 
 ! ------------------------------------------
@@ -100,8 +100,8 @@
          IF(MODEL_jfp.eq.0)THEN
 !            RJ1_temp(NR)=(1.D0-RM(NR)**0.95)**3 ! SMITH2006 ! SWITCH
 !            RJ1_temp(NR)=(1.D0-RM(NR)**2) ! parabora
-            RJ1_temp(NR)=(1.D0-RM(NR)**1.74D0)**3.23D0 ! matsuyama 60U
-!            RJ1_temp(NR)=(1.D0-RM(NR)**2)**RJPROF2 ! RJPROF2
+!            RJ1_temp(NR)=(1.D0-RM(NR)**1.74D0)**3.23D0 ! matsuyama 60U
+            RJ1_temp(NR)=(1.D0-RM(NR)**RJPROF1)**RJPROF2 ! RJPROF2
          ELSE
             RJ1_temp(NR)=(1.D0-RM(NR)**1.5)**3 ! matsuyama 60U
          END IF
@@ -198,12 +198,26 @@
          ISW_CLOG=0 ! =0 Wesson, =1 NRL
          DO NSA=1,NSAMAX
             NSFP=NS_NSB(NSA)
-            RNA=RNFP(NR,NSA)
+            IF(MODEL_IMPURITY.eq.0)THEN
+               RNA=RNFP(NR,NSA)
+            ELSE
+!               RNA=RNFP(NR,NSA)+PZ(N_impu)*SPITOT*RNFP(NR,NSA)/RNFP0(NSA)
+               RNA=SPITOT*RNFP(NR,NSA)/RNFP0(NSA)
+            END IF
             RTA=RT_quench_f(NR)
             PTFP0_f(NSA)=SQRT(T0_quench*1.D3*AEE*AMFP(NSA))
             DO NSB=1,NSBMAX
                NSFD=NS_NSB(NSB)
-               RNB=RNFD(NR,NSB)
+               IF(MODEL_IMPURITY.eq.0)THEN
+                  RNB=RNFD(NR,NSB)
+               ELSE
+                  IF(NSB.ne.N_impu)THEN
+                     RNB=RNFD(NR,NSB)
+                  ELSE
+!                     RNB=RNFD(NR,NSB)+SPITOT*RNFD(NR,NSB)/RNFD0(NSB)
+                     RNB=((SPITOT-RNFP0(1))*RNFP(NR,1)/RNFP0(1))/zeff_imp
+                  END IF
+               END IF
                RTB=RT_quench_f(NR)
                IF(ISW_CLOG.eq.0)THEN
                   IF(PZ(NSFP).eq.-1.and.PZ(NSFD).eq.-1) THEN !e-e
@@ -228,8 +242,13 @@
                POST_LNLAM_f(NR,NSB,NSA)=RLNRL
             END DO ! NSB
             IF(NRANK.eq.0)THEN
-               POST_tau_ta0_f(NSA)=(4.D0*PI*EPS0**2)*PTFP0_f(NSA)**3 &
-                    /( AMFP(NSA)*AEFP(NSA)**4*POST_LNLAM_f(1,NSA,NSA)*RNFP0(NSA)*1.D20 )
+               IF(MODEL_IMPURITY.eq.0)THEN
+                  POST_tau_ta0_f(NSA)=(4.D0*PI*EPS0**2)*PTFP0_f(NSA)**3 &
+                       /( AMFP(NSA)*AEFP(NSA)**4*POST_LNLAM_f(1,NSA,NSA)*RNFP0(NSA)*1.D20 )
+               ELSE
+                  POST_tau_ta0_f(NSA)=(4.D0*PI*EPS0**2)*PTFP0_f(NSA)**3 &
+                       /( AMFP(NSA)*AEFP(NSA)**4*POST_LNLAM_f(1,NSA,NSA)*(SPITOT)*1.D20 )
+               END IF
             END IF
          END DO ! NSA
 
@@ -254,11 +273,19 @@
          ISW_CLOG=0 ! =0 Wesson, =1 NRL
          DO NSA=1,NSAMAX
             NSFP=NS_NSB(NSA)
-            RNA=RNFP(NR,NSA)
+            IF(MODEL_IMPURITY.eq.0)THEN
+               RNA=RNFP(NR,NSA)
+            ELSE
+               RNA=RN_MGI(NR,NSA)
+            END IF
             RTA=RT_quench(NR)
             DO NSB=1,NSBMAX
                NSFD=NS_NSB(NSB)
-               RNB=RNFD(NR,NSB)
+               IF(MODEL_IMPURITY.eq.0)THEN
+                  RNB=RNFD(NR,NSB)
+               ELSE
+                  RNB=RN_MGI(NR,NSB)
+               END IF
                RTB=RT_quench(NR)
                IF(ISW_CLOG.eq.0)THEN
                   IF(PZ(NSFP).eq.-1.and.PZ(NSFD).eq.-1) THEN !e-e
@@ -304,7 +331,11 @@
 
       DO NSA=1,NSAMAX
          DO NR=NRSTART, NREND
-            RNA=RNFP(NR,NSA)
+            IF(MODEL_IMPURITY.eq.0)THEN
+               RNA=RNFP(NR,NSA)
+            ELSE
+               RNA=RN_MGI(NR,NSA)
+            END IF
             RTA=RT_quench(NR)
             P_thermal=SQRT(RTA*1.D3*AEE*AMFP(NSA))
             tau_ta(NR,NSA)=(4.D0*PI*EPS0**2)*P_thermal**3 &
@@ -396,8 +427,13 @@
               G_conner_nr, " G_conner_lm = ", G_conner_lm
       END IF
 
-      tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
-           ( AEFP(1)**4*POST_LNLAM(1,1,1)*RNFP0(1)*1.D20 )
+      IF(MODEL_IMPURITY.eq.0)THEN
+         tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
+              ( AEFP(1)**4*POST_LNLAM(1,1,1)*RNFP0(1)*1.D20 )
+      ELSE
+         tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
+              ( AEFP(1)**4*POST_LNLAM(1,1,1)*RN0_MGI(1)*1.D20 )
+      END IF
 
       WRITE(6,*) "-----------------------"
       WRITE(6,'(A,1PE14.6)') "decay time [msec] = ", tau_quench*1000
@@ -408,6 +444,16 @@
              "Post disrupt tau_rela[sec]=", tau_rela
       WRITE(6,'(A,1P4E14.6)') &
              "Post disrupt tau_ta0[sec]=", (POST_tau_ta0_f(j), j=1,NSAMAX)
+      WRITE(6,'(A,1P4E14.6)') &
+             "Post disrupt tau_ta[sec]=", POST_tau_ta(1,1), ER_drei(1), ER_crit(1)
+
+      IF(MODEL_IMPURITY.eq.1)THEN
+         WRITE(6,'(A)') "  MGI PARAM "
+         WRITE(6,'(A,I3)') "     MGI ion species = ", N_impu
+         WRITE(6,'(A,1PE14.6)') "     target Zeff = ", target_zeff
+         WRITE(6,'(A,1PE14.6)') "     target electron dens. = ", SPITOT
+      END IF
+
       WRITE(6,*)" ---- END OF DISRUPTION PARAM ------"
       
 
@@ -425,31 +471,43 @@
 
       NSA=1
       NSB=2
-      FACT=AEFP(NSA)**2*AEFD(NSB)**2*POST_LNLAM(NR,NSB,NSA)/(EPS0**2)
+
+      IF(ISW_Z.eq.0)THEN
+         z_i = Z_ef 
+      ELSEIF(ISW_Z.eq.1)THEN
+         z_i = ZEFF
+      END IF
+
       IF(NT_init.eq.0)THEN
-!         RTE=RTFP(NR,NSA)
          RTE=RT_INIT(NR)
          RNE=RNFP(NR,NSA)
-!         RNI=RNFD(NR,NSB)
       ELSE
          RTE=RT_quench(NR)
-!         RNE=RNFP(NR,NSA)
-         RNE=RNS(NR,1)
+         IF(MODEL_IMPURITY.eq.0)THEN
+            RNE=RNS(NR,1)
+         ELSE
+            RNE=RN_MGI(NR,1)
+         END IF
       END IF
+
+!      FACT=AEFP(NSA)**2*AEFD(NSB)**2*POST_LNLAM(NR,NSB,NSA)*RNE*1.D20
+      FACT=Z_i*AEFP(NSA)**4*POST_LNLAM(NR,NSA,NSA)*RNE*1.D20
       taue_col=3.D0*SQRT((2.D0*PI)**3)/FACT &
-           *SQRT(AMFP(1)*(AEE*RTE*1.D3)**3)/(RNE*1.D20)
-      sigma=1.96D0*RNE*1.D20*AEFP(NSA)**2*taue_col/AMFP(NSA) ! Wesson P. 174
+           *SQRT(AMFP(1)*(AEE*RTE*1.D3)**3)*(EPS0**2)
+      sigma=1.96D0*RNE*1.D20*AEFP(NSA)**2*taue_col/AMFP(NSA) ! Wesson P. 174, 737
 !      sigma= ! P. 71
 
 !      neoc=(1.D0-SQRT(invasp))**2 ! P. 174     
       theta_l=THETA0(1)*RT_quench(NR)/RTFP0(1)
-      IF(ISW_Z.eq.0)THEN
-         Z_i=Z_ef
-      ELSEIF(ISW_Z.eq.1)THEN
-         Z_i=ZEFF 
+      IF(MODEL_IMPURITY.eq.0)THEN
+         tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
+              ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP0(NSA)*1.D20 )
+!         tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
+!              ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP(NR,NSA)*1.D20 )
+      ELSE
+         tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
+              ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RN0_MGI(NSA)*1.D20 )
       END IF
-      tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
-           ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP0(NSA)*1.D20 )
       C_ = 0.56D0/Z_i*(3.0D0-Z_i)/(3.D0+Z_i)
       f_t=1.D0 -(1.D0-EPSRM(NR))**2/ ( SQRT(1.D0-EPSRM(NR)**2)*(1.D0+1.46D0*SQRT(EPSRM(NR))) )
       phi = f_t/(1.D0 + (0.58D0+0.2D0*Z_i)*(2.D0*RR*QLM(NR)*EPSRM(NR)**(-1.5D0) )/ &
@@ -458,6 +516,8 @@
            (Z_i*(1.D0+0.27D0*(Z_i-1.D0)) )
 
       sigma=sigma*neoc
+!      sigma=sigma*1.D0
+!      WRITE(*,'(2I,6E14.6)') NRANK, NR, SIGMA, neoc, Z_i, phi, tau_rela, POST_LNLAM(NR,1,1)
 
       END SUBROUTINE SPITZER_SIGMA
 ! *******************************************************
@@ -472,10 +532,11 @@
       real(8),save:: T_switch, time_switch
 
       IF(ISW_Q.eq.0)THEN ! linear 
-         IF(TIMEFP+DELT.le.tau_quench)THEN
+         IF(TIMEFP+DELT.le.5.D0*tau_quench)THEN
             DO NR=NRSTART,NREND
-               k=( RT_quench_f(NR)-RTFP(NR,1) )/tau_quench
-               RT1_temp(NR)=RTFP(NR,1) + k*(TIMEFP+DELT)
+!               k=( RT_quench_f(NR)-RTFP(NR,1) )/(5.D0*tau_quench)
+               k=( RT_quench_f(NR)-RT_init(NR) )/(5.D0*tau_quench)
+               RT1_temp(NR)=RT_init(NR) + k*(TIMEFP+DELT)
             END DO
          ELSE
             DO NR=NRSTART,NREND
@@ -500,10 +561,12 @@
                  (RT_init(NR)-RT_quench_f(NR))*EXP(-(TIMEFP+DELT-time_quench_start)/tau_quench)
          END DO
       ELSEIF(ISW_Q.eq.3)THEN ! ITB break
-         IF(TIMEFP.le.tau_quench*5.D0)THEN
+         IF(TIMEFP.le.tau_quench*6.D0)THEN
             DO NR=NRSTART,NREND
-               T0=1.D-1*RTFP0(1)
-               Ts=1.D-1*RTFPS(1)
+!               T0=1.D-1*RTFP0(1)
+!               Ts=1.D-1*RTFPS(1)
+               T0=1.D-1
+               Ts=1.D-2
                Tf=(T0-Ts)*(1.D0-RM(NR)**2)+Ts
                RT1_temp(NR)=Tf + &
                     (RTFP(NR,1)-Tf)*EXP(-(TIMEFP+DELT-time_quench_start)/(tau_quench))
@@ -513,7 +576,7 @@
          ELSE
             DO NR=NRSTART,NREND
                RT1_temp(NR)=RT_quench_f(NR)+ &
-                    (T_switch-RT_quench_f(NR))*EXP(-(TIMEFP+DELT-time_quench_start-time_switch)/(tau_quench*6.D0) )
+                    (T_switch-RT_quench_f(NR))*EXP(-(TIMEFP+DELT-time_quench_start-time_switch)/tau_quench )
             END DO
          END IF
       ELSEIF(ISW_Q.eq.4)THEN ! ITB break and loss from edge
@@ -556,7 +619,8 @@
       integer:: nps, npe, nite
       real(8):: FLUXS_PMAX, FFP, RSUM1, FACT, SUMZ, RSUM2, PV
       real(8),intent(out):: IP_all_FP
-      real(8):: RSUMP1, RSUMP2
+      real(8):: RSUMP1, RSUMP2, zeff_imp2
+      real(8),dimension(NRSTART:NREND):: temp_r
       
       CALL mtx_set_communicator(comm_np)
       DO NR=NRSTART, NRENDX
@@ -665,19 +729,45 @@
       END DO
       IP_ALL_FP = IP_ALL_FP/(2.D0*PI*RR)
 
-      DO NR=1,NRMAX
-         RN_disrupt(NR)=RNS(NR,1)
-      END DO
+      IF(MODEL_IMPURITY.eq.1.and.MODEL_conner_fp.eq.0)THEN
+         DO NR=NRSTART, NREND
+            temp_r(NR)=RN_MGI(NR,1)
+         END DO
+
+         CALL mtx_set_communicator(comm_nr)
+         CALL mtx_allgather_real8(temp_r,NREND-NRSTART+1,RN_disrupt)
+         CALL mtx_reset_communicator
+
+      ELSE
+         DO NR=1,NRMAX
+            RN_disrupt(NR)=RNS(NR,1)
+         END DO
+      END IF
 
       SUMZ=0.D0
-      DO NSB=2,NSBMAX
-         IF(NSB.le.NSAMAX)THEN
-            SUMZ=SUMZ+RNS(1,NSB)*PZ(NSB)**2
-         ELSE
-            SUMZ=SUMZ+RNFD0(NSB)*PZ(NSB)**2
+      IF(MODEL_IMPURITY.eq.0)THEN
+         DO NSB=2,NSBMAX
+            IF(NSB.le.NSAMAX)THEN
+               SUMZ=SUMZ+RNS(1,NSB)*PZ(NSB)**2
+            ELSE
+               SUMZ=SUMZ+RNFD0(NSB)*PZ(NSB)**2
+            END IF
+         END DO
+         ZEFF = SUMZ/RNS(1,1)
+      ELSE
+         IF(NRANK.eq.0)THEN
+!         WRITE(*,*) "TEST ZEFF", zeff_imp2, target_zeff, spitot
+            DO NSB=2,NSBMAX
+               IF(NSB.ne.N_impu)THEN
+                  SUMZ=SUMZ+RN_MGI(1,NSB)*PZ(NSB)**2
+               ELSE
+                  SUMZ=SUMZ+RN_MGI(1,NSB)*zeff_imp**2
+               END IF
+            END DO
+            ZEFF = SUMZ / RN_MGI(1,1)
          END IF
-      END DO
-      ZEFF = SUMZ/RNS(1,1)
+         CALL mtx_broadcast1_real8(ZEFF)
+      END IF
 
       END SUBROUTINE update_rns_rjs
 ! *******************************************************
@@ -700,7 +790,7 @@
             FLUXS_PMAX=0.D0
             RE_PITCH_L(:)=0.D0
             IF(MODEL_RE_pmax.eq.0)THEN
-! FLUX S_p across pmax for runaway rate
+! FLUX S_p crossing pmax for runaway rate
                IF(NPEND.eq.NPMAX)THEN
                   DO NTH=1,NTHMAX
                      FFP=    PG(NPMAX+1,NSBA)*FNSP(NTH,NPMAX,NR,NSBA)
@@ -780,8 +870,13 @@
                Rconner_l(NR)= E00**(-h_alpha_z) &
                     *EXP(-0.25D0*lambda_alpha/E00-SQRT(2.D0/E00)*gamma_alpha_z )
                
-               tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
-                    ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP0(1)*1.D20 )
+               IF(MODEL_IMPURITY.eq.0)THEN
+                  tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
+                       ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP0(1)*1.D20 )
+               ELSE
+                  tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
+                       ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RN0_MGI(1)*1.D20 )
+               END IF
                Rconner_l(NR)=Rconner_l(NR)/(tau_rela*SQRT(2*theta_l)**3)
 !               Rconner_l(NR)=Rconner_l(NR)/(tau_rela*SQRT(theta_l)**3)
             END IF
@@ -908,8 +1003,13 @@
          Z_i=ZEFF
       END IF
       DO NR=NRSTART, NREND
-         tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
-              ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP0(1)*1.D20 )
+         IF(MODEL_IMPURITY.eq.0)THEN
+            tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
+                 ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP0(1)*1.D20 )
+         ELSE
+            tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
+                 ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RN0_MGI(1)*1.D20 )
+         END IF
 !         theta_l=THETA0(1)*RT_quench(NR)/RTFP0(1)
          E_hat=EP(NR)/ER_crit(NR)
          phi=1.D0-1.46D0*SQRT(EPSRM(NR))+1.72D0*EPSRM(NR)
@@ -1550,8 +1650,10 @@
       IF(MOD(NT,NTG1STEP).EQ.0) THEN
          WRITE(6,'(7A14)') "IP_all","IP_ohm", "IP_run", "IP_primary", "IP_bs", "RE gen.rate"
          WRITE(6,'(1P7E14.6)') IP_all, IP_ohm, IP_run, IP_prim, IP_bs, RFP(1)*tau_ta0(1)
-         WRITE(6,'(A,1PE14.6)') "Zeff= ", ZEFF, "Z_i= ", Z_i
-
+         WRITE(6,'(A,1PE14.6,A,1PE14.6)') "Zeff= ", ZEFF, "  Z_i= ", Z_i
+         IF(MODEL_IMPURITY.eq.1)THEN
+            WRITE(6,'(A,1P3E14.6)') "RN_MGI = ", RN_MGI(1,1), RN_MGI(1,2), RN_MGI(1,3)
+         END IF
 ! radial.dat
          WRITE(13,'(A, 1PE15.6e3, i7)') "# TIME ", TIMEFP, N_f1
          WRITE(13,'(A)') "# RM, RN, RT, RN_r, RN_p, RN_s J_ohm, J_run, J_bs, E1, E_drei, dndt_p, dndt_s, RJS " 
@@ -1583,6 +1685,16 @@
          END DO
          WRITE(14,'(A)') " "
          WRITE(14,'(A)') " "
+
+!         WRITE(19,'(A, 1PE15.6e3, i7)') "# TIME ", TIMEFP, N_f1
+!         DO NP=NPSTART, NPEND
+!            WRITE(19,'(I5,1P7E14.6)') NP, PM(NP,1), DCPP2(1,NP,1,1,1), DCPP2(1,NP,1,2,1) &
+!                 , DCTT2(1,NP,1,1,1), DCTT2(1,NP,1,2,1) &
+!                 , FCPP2(1,NP,1,1,1), FCPP2(1,NP,1,2,1)
+!         END DO
+!         WRITE(19,*) " "
+!         WRITE(19,*) " "
+
          N_f1=N_f1+1
       END IF
 
@@ -1592,7 +1704,7 @@
            RJ_runaway(1), RN_disrupt(1), RN_runaway(1), &
            RN_drei(1), &
            IP_all, ip_ohm, ip_run, ip_prim, &
-           l_ind, ZEFF, IP_all_FP, RFP(1)*tau_ta0(1)
+           l_ind, ZEFF, IP_all_FP, RFP(1)*tau_ta0(1),RN_MGI(1,1)
 
 ! efield_e1
       WRITE(11,'(1P128E14.6)') TIMEFP, (E1(NR), NR=1,NRMAX), (ER_drei(NR), NR=1,NRMAX)
@@ -1609,9 +1721,50 @@
 ! re_pitch
       WRITE(15,'(1P128E15.6e3)') TIMEFP, (RE_PITCH(NTH), NTH=1,NTHMAX)
 
+
       END IF
       
       END SUBROUTINE FILE_OUTPUT_DISRUPT
+!**********************************************
+      SUBROUTINE MGI_DENSITY
+
+      IMPLICIT NONE
+      INTEGER:: NR, NSB
+      DOUBLE PRECISION:: FACTZ, tau_imp, imp_charge
+      
+      tau_imp=5.D0*tau_quench
+      imp_charge=PZ(n_impu)
+
+      DO NR=NRSTART,NREND
+!      DO NR=1,NRMAX
+         DO NSB=1,NSBMAX
+            IF(NSB.eq.1)THEN
+               FACTZ=zeff_imp
+               RN_MGI(NR,NSB) = RN_MGI(NR,NSB) + (SPITOT-RNFP0(1))/tau_imp*DELT*RNFD(NR,NSB)/RNFD0(NSB)
+            ELSEIF(NSB.eq.N_impu)THEN
+               FACTZ=1.D0/zeff_imp
+               RN_MGI(NR,NSB) = RN_MGI(NR,NSB) + FACTZ*(SPITOT-RNFP0(1))/tau_imp*DELT*RNFD(NR,NSB)/RNFD0(NSB)
+            ELSE
+               FACTZ=0.D0
+            END IF
+         END DO
+      END DO
+      
+      DO NSB=1,NSBMAX
+         IF(NSB.eq.1)THEN
+            FACTZ=1
+         ELSEIF(NSB.eq.N_impu)THEN
+            FACTZ=1.D0/zeff_imp
+         ELSE
+            FACTZ=0.D0
+         END IF
+         RN0_MGI(NSB) = RN0_MGI(NSB) + FACTZ*(SPITOT-RNFP0(1))/tau_imp*DELT
+      END DO
+      
+
+!      WRITE(*,'(I3,6E14.6)') NRANK, RN0_MGI(1), RN0_MGI(2), RN0_MGI(3), RN_MGI(NRSTART,1), RN_MGI(NRSTART,2), RN_MGI(NRSTART,3)
+    
+      END SUBROUTINE MGI_DENSITY
 !**********************************************
 
       END MODULE fpdisrupt

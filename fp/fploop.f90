@@ -83,9 +83,12 @@
 
          IF(MODEL_DISRUPT.ne.0)THEN
             CALL TOP_OF_TIME_LOOP_DISRUPT(NT)
+            IF(MODEL_IMPURITY.eq.1.and.TIMEFP.le.5.D0*tau_quench)THEN
+               CALL MGI_DENSITY
+            END IF
          END IF
          CALL GUTIME(gut_coef2)
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          nsw = NSAEND-NSASTART+1
          DO WHILE(N_IMPL.le.LMAXFP) ! start do while
             N_IMPL=N_IMPL+1
@@ -110,7 +113,7 @@
 !                     CALL fp_drexec(NSA,IERR,its)
                   END IF
                ELSEIF(ISW_D.eq.1)THEN !
-                  IF(MODEL_conner_fp.eq.1.or.MODEL_DISRUPT.eq.0)THEN ! Conner model don't requires f evolution
+                  IF(MODEL_conner_fp.eq.1.or.MODEL_DISRUPT.eq.0)THEN ! Conner model doesn't require f evolution
                      CALL fp_exec(NSA,IERR,its) ! F1 and FNS0 changed
                   END IF
                   IERR=0
@@ -191,12 +194,11 @@
             gut_conv = gut_conv + (gut_conv3-gut_exe2)
 
 
+            DEPS_E2=0.D0 ! changed
             IF(MODEL_DISRUPT.eq.1)THEN ! E field evolution for DISRUPT
                CALL E_FIELD_EVOLUTION_DISRUPT(NT,IP_all_FP,DEPS_E2)
             END IF
 !                  CALL djdt
-
-            DEPS_E2=0.D0 ! changed
 
             IF(NRANK.eq.0.and.DEPS.le.EPSFP.and.DEPS_E2.le.EPSFP)THEN
                N_IMPL=1+LMAXFP ! exit dowhile

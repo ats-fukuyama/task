@@ -933,6 +933,15 @@
             VTFD(NR,NSB)=SQRT(RTFD(NR,NSB)*1.D3*AEE/AMFD(NSB))
          ENDDO
 
+         IF(MODEL_IMPURITY.eq.1)THEN
+            zeff_imp= (target_zeff*SPITOT - RNFP0(1)) &
+                 /(SPITOT-RNFP0(1))
+            PZ(N_impu)=zeff_imp
+            NS=NS_NSA(N_impu)
+            AEFP(N_impu)=PZ(NS)*AEE 
+            AEFD(N_impu)=PZ(NS)*AEE 
+         END IF
+
          RNE=PLF(1)%RN
          RTE=(PLF(1)%RTPR+2.D0*PLF(1)%RTPP)/3.D0
          E_EDGEM=0.D0
@@ -991,8 +1000,10 @@
          END DO
          ZEFF = SUM/(RNFD0(1)*AEFD(1)**2)
          WRITE(6,'(A,1PE12.4)') " ZEFF = ", ZEFF
+         WRITE(6,'(A,1P2E12.4)') "LN_LAMBDA = ", LNLAM(1,1,1), LNLAM(1,2,1)
       END IF
 
+      CALL mtx_broadcast1_real8(ZEFF)
       call mtx_broadcast_real8(tau_ta0,nsamax)
 !     ----- set relativistic parameters -----
 
@@ -1014,6 +1025,16 @@
 
 ! ----set runaway
       IF(MODEL_DISRUPT.ne.0)THEN 
+         IF(MODEL_IMPURITY.eq.1)THEN
+            DO NSB=1,NSBMAX
+               DO NR=NRSTART,NREND
+                  RN_MGI(NR,NSB)=RNFD(NR,NSB)
+               END DO
+               RN0_MGI(NSB)=RNFD0(NSB)
+            END DO
+!!            WRITE(*,*) "zeff_imp,pz= ",zeff_imp, PZ(n_impu)
+         END IF
+
          CALL set_initial_disrupt_param
          CALL set_post_disrupt_Clog_f
          CALL set_post_disrupt_Clog
@@ -1422,16 +1443,17 @@
          CALL FPWEIGHT(NSA,IERR)
       END DO
       IF(NRANK.eq.0.and.MODEL_disrupt.ne.0)THEN
+         DO NSB=1,NSBMAX
+            DO NR=NRSTART,NREND
+               RN_MGI(NR,NSB)=RNFD(NR,NSB)
+            END DO
+            RN0_MGI(NSB)=RNFD0(NSB)
+         END DO
+!         RN_MGI(:,:)=RNFD(:,:)
+!         RN0_MGI(:)=RNFD0(:) 
          CALL display_disrupt_initials
       END IF
 
-!      DO NP=1,NPMAX+1
-!         WRITE(*,'(I4,11E16.8)') NP, PG(NP,NSBA) &
-!              , DCPP2(1,NP,1,1,1)-DCPP2(1,NP,1,2,1), DCPP2(1,NP,1,1,2)-DCPP2(1,NP,1,2,2) &
-!              , FCPP2(1,NP,1,1,1)-FCPP2(1,NP,1,2,1), FCPP2(1,NP,1,1,2)-FCPP2(1,NP,1,2,2) &
-!              , DCPP(1,NP,1,1)-DCPP(1,NP,1,2), FCPP(1,NP,1,1)-FCPP(1,NP,1,2)  &
-!              , DCPP2(1,NP,1,1,1), DCPP2(1,NP,1,2,1)
-!      END DO
       IF(MODELS.ne.0)THEN
 !         CALL mtx_set_communicator(comm_nr)
          CALL mtx_set_communicator(comm_nsa)

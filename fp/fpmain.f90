@@ -43,6 +43,7 @@
          open(14,file='nth-re.dat')
         open(15,file='re_pitch.dat')
         open(18,file='efield_ref.dat')
+!        open(19,file='collision_term.dat')
       CALL pl_init
       CALL eq_init
       CALL fp_init
@@ -61,6 +62,7 @@
          close(14)
          close(15)
          close(18)
+!         close(19)
       IF(nrank.EQ.0) CALL GSCLOS
       CALL mtx_finalize
       CALL fp_wr_deallocate

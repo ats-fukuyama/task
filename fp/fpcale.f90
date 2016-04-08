@@ -86,7 +86,7 @@
                        *AEE*VC*DELT &
                        - (RJ_bs(NR)-RJ_bsm(NR))*1.d6
                END IF
-            ELSE
+            ELSE ! no RE transport
                IF(MODEL_Conner_FP.eq.0)THEN ! default
 !               IF(MODEL_Conner_FP.eq.1)THEN ! for given E prof. 
                   RHS=SIGMA_SPM(NR)*EM(NR) &
@@ -134,7 +134,7 @@
                        *AEE*VC*DELT &
                        - (RJ_bs(NR)-RJ_bsm(NR))*1.d6
                END IF
-            ELSE
+            ELSE ! no RE transport
                IF(MODEL_Conner_FP.eq.0)THEN ! default
 !               IF(MODEL_Conner_FP.eq.1)THEN ! for given E prof.
                   RHS=SIGMA_SPM(NR)*EM(NR) -Aij_p1*E_e &

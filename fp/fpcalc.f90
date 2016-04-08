@@ -944,14 +944,19 @@
       ELSE
          PMAXC=PMAX(NSBA)
          RTFD0L=RTFD0(NSB)
-         AMFDL=PA(NSBA)*AMP
-         RNFDL=RNFD(NR,NSB)
          RNFDL0=RNFD0(NSB)
+         AMFDL=PA(NSBA)*AMP
          IF(MODEL_DISRUPT.eq.0)THEN
+            RNFDL=RNFD(NR,NSB)
             RTFDL=RTFD(NR,NSB)
             THETA0L=THETA0(NSB)
             THETAL=THETA0L*RTFDL/RTFD0L
          ELSEIF(MODEL_DISRUPT.ge.1)THEN
+            IF(MODEL_IMPURITY.eq.0)THEN
+               RNFDL=RNFD(NR,NSB)
+            ELSE
+               RNFDL=RN_MGI(NR,NSB)
+            END IF
             RGAMH=AEFP(NSA)**2*AEFD(NSB)**2*POST_LNLAM(NR,NSB,NSA)/(4.D0*PI*EPS0**2) &
                  *AMFP(NSA)/PTFP0(NSA)**3 
             RTFDL=RT_quench(NR) ! [keV] ! thermal quench
@@ -974,7 +979,8 @@
                DCPPL=RGAMH/(3.D0*RINT0)*( &
                     (AMFD(NSB)*PTFP0(NSA))                     &
                     /(AMFP(NSA)*PTFD0(NSB))*RINT2 )             &
-                    *RNFD(NR,NSB)*1.D20
+!                    *RNFD(NR,NSB)*1.D20
+                    *RNFDL*1.D20
                FCPPL=0.D0
 
 !               WRITE(6,'(A,2I5,1P10E14.6)') "NP=1      ", NP, NSB, THETAL, RINT0, RINT2, RNFDL, RINT0/RNFDL, (1.D0-SQRT(1.D0+PNFP**2*THETA0L)) /THETAL
@@ -998,7 +1004,8 @@
                           /(AMFD(NSB)**2*PTFP0(NSA)**2*PNFP**3)*RINT1 &
                           +(AMFD(NSB)*PTFP0(NSA))                     &
                           /(AMFP(NSA)*PTFD0(NSB))*RINT2 )             &
-                          *RNFD(NR,NSB)*1.D20
+!                          *RNFD(NR,NSB)*1.D20
+                          *RNFDL*1.D20
                      PNFP=PCRIT
                      CALL DEFT  (RINT4,ES4,H0DE,EPSDE,0,FPFN4R,"DEFT4_le")
                      CALL DEFT  (RINT5,ES5,H0DE,EPSDE,0,FPFN5R,"DEFT5_le")
@@ -1009,7 +1016,8 @@
                           *(3.D0*RINT4-THETA0L*RINT5)           &
                           +2.D0*(PTFP0(NSA)*PNFP)                  &
                           /(PTFD0(NSB)*RGAMA)*THETA0(NSA)*RINT6 )   &
-                          *RNFD(NR,NSB)*1.D20
+!                          *RNFD(NR,NSB)*1.D20
+                          *RNFDL*1.D20
 !                     WRITE(6,'(A,2I5,1P10E14.6)') "low v e-e ", NP, NSB, THETAL, RINT0, RINT1, RNFDL, RINT0/RNFDL,(1.D0-SQRT(1.D0+PNFP**2*THETA0L)) /THETAL
                   ELSEIF(PCRIT.gt.PMAX(NSBA))THEN
 !                     CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R,"DEHIFT_0R_3")
@@ -1024,7 +1032,8 @@
                           *(RINT1+RINT7)                        &
                           +(AMFD(NSB)*PTFP0(NSA))                &
                           /(AMFP(NSA)*PTFD0(NSB))*RINT2 )       &
-                          *RNFD(NR,NSB)*1.D20
+!                          *RNFD(NR,NSB)*1.D20
+                          *RNFDL*1.D20
                      PNFP=PMAX(NSBA)
                      CALL DEFT  (RINT4,ES4,H0DE,EPSDE,0,FPFN4R,"DEFT4_gt")
                      CALL DEFT  (RINT5,ES5,H0DE,EPSDE,0,FPFN5R,"DEFT5_gt")
@@ -1037,15 +1046,20 @@
                           *(3.D0*(RINT4+RINT8)-THETA0L*(RINT5+RINT9)) &
                           +2.D0*(PTFP0(NSA)*PNFP)/(PTFD0(NSB)*RGAMA) &
                           *THETA0(NSA)*RINT6 ) &
-                          *RNFD(NR,NSB)*1.D20
+!                          *RNFD(NR,NSB)*1.D20
+                          *RNFDL*1.D20
 !                     WRITE(6,'(A,2I5,1P10E14.6)') "low v e-i ", NP, NSB, THETAL, RINT0, RINT1, RNFDL, RINT0/RNFDL,(1.D0-SQRT(1.D0+PNFP**2*THETA0L)) /THETAL
                   ENDIF
                ELSE! high velocity limit 
                   DCPPL = RGAMH*(AMFP(NSA)/PTFP0(NSA))**2*(RGAMA/PG(NP,NSBA))**3 &
-                       *v_thermal**2 * RNFD(NR,NSB)*1.D20
+                       *v_thermal**2 &
+!                       * RNFD(NR,NSB)*1.D20
+                       * RNFDL*1.D20
                   FCPPL =-RGAMH*(RGAMA/PG(NP,NSBA))**2 &
                        *(1.D0-2.5D0*THETAL+55.D0/8.D0*THETAL**2) &
-                       * RNFD(NR,NSB)*1.D20*AMFP(NSA)/AMFD(NSB)
+                       *AMFP(NSA)/AMFD(NSB)&
+                       * RNFDL*1.D20
+!                       * RNFD(NR,NSB)*1.D20
 
 !                  WRITE(6,'(A,2I5,1P4E14.6)') "high v ", NP, NSB, THETAL, v_thermal, DCPPL, FCPPL
                END IF
@@ -1082,7 +1096,8 @@
                        -0.5D0*(AMFP(NSA)**2*PTFD0(NSB)**2*RGAMA**3) &
                        /(AMFD(NSB)**2*PTFP0(NSA)**2*PNFP**3)*RINT1 &
                        +(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*RINT2 ) &
-                       *RNFD(NR,NSB)*1.D20
+!                       *RNFD(NR,NSB)*1.D20
+                       *RNFDL*1.D20
                ELSEIF(PCRIT.gt.PMAX(NSBA))THEN
                   CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R,"DEHIFT_0R_5")
                   PNFP=PMAX(NSBA)
@@ -1098,12 +1113,14 @@
                        -0.5D0*(AMFP(NSA)**2*PTFD0(NSB)**2*RGAMA**3) &
                        /(AMFD(NSB)**2*PTFP0(NSA)**2*PNFP**3)*(RINT1+RINT4) &
                        +(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*RINT2 ) &
-                       *RNFD(NR,NSB)*1.D20
+!                       *RNFD(NR,NSB)*1.D20
+                       *RNFDL*1.D20
                ENDIF
             ELSE
                DCTTL=0.5D0*RGAMH*RGAMA/PM(NP,NSBA)* &
                     (1.D0-(v_thermal*AMFP(NSA)/PTFP0(NSA))**2*(RGAMA/PM(NP,NSBA))**2) &
-                    * RNFD(NR,NSB)*1.D20
+!                    * RNFD(NR,NSB)*1.D20
+                    * RNFDL*1.D20
             END IF
             DO NTH=1,NTHMAX+1
                DCTT2(NTH,NP,NR,NSB,NSA)=DCTT2(NTH,NP,NR,NSB,NSA)+DCTTL

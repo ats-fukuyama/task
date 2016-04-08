@@ -272,7 +272,7 @@
       MODEL_synch=0
       MODEL_NBI=0
       MODEL_WAVE=0 ! 0=no wave calc., 1=wave calc.
-      MODEL_IMPURITY=0
+      MODEL_IMPURITY=0 ! =1 MGI
       MODEL_SINK=0 ! 1= deltaB/B like sink term
 
       MODEL_DISRUPT=0 ! 0=no disruption, 1=disruption calc.
@@ -283,6 +283,7 @@
       MODEL_RE_pmax=0 ! RE non-RE boundary 0=NPMAX, 1=NPC_runaway
       MODELD_n_RE=0 ! radial transport of RE density 0=off, 1=on
       time_quench_start=0.D0
+      RJPROF1=2.D0
       RJPROF2=2.D0
       v_RE=1.D0 ! RE velocity / VC
 !-----------------------------------------------------------------------
@@ -323,6 +324,11 @@
 
       T0_quench=2.D-2
       tau_quench=1.D-3
+      
+! IF MODEL_IMPURITY=1 
+      target_zeff=3.D0
+      N_IMPU=3
+      SPITOT=0.D0 ! m^-3 s^-1 on axis
 
 !-----------------------------------------------------------------------
 !     MPI Partition number : 
@@ -404,7 +410,8 @@
            N_partition_s, N_partition_r, N_partition_p, MODEL_DISRUPT, &
            MODEL_synch, MODEL_LOSS, MODEL_SINK, T0_quench, tau_quench, deltaB_B, &
            MODEL_NBI, MODEL_WAVE, MODEL_IMPURITY, MODEL_Conner_FP, MODEL_BS, MODEL_jfp, &
-           MODEL_LNL, time_quench_start, MODEL_RE_pmax, RJPROF2, MODELD_n_RE, pmax_bb, v_RE
+           MODEL_LNL, time_quench_start, MODEL_RE_pmax, RJPROF1, RJPROF2, MODELD_n_RE, &
+           pmax_bb, v_RE, target_zeff, n_impu, SPITOT
 
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: nid
@@ -435,7 +442,9 @@
            N_partition_s, N_partition_r, N_partition_p, MODEL_DISRUPT, &
            MODEL_synch, MODEL_LOSS, MODEL_SINK, T0_quench, tau_quench, deltaB_B, &
            MODEL_NBI, MODEL_WAVE, MODEL_IMPURITY, MODEL_Conner_FP, MODEL_BS, MODEL_jfp, &
-           MODEL_LNL, time_quench_start, MODEL_RE_pmax, RJPROF2, MODELD_n_RE, pmax_bb, v_RE
+           MODEL_LNL, time_quench_start, MODEL_RE_pmax, RJPROF1, RJPROF2, MODELD_n_RE, &
+           pmax_bb, v_RE, target_zeff, n_impu, SPITOT
+
 
       READ(nid,FP,IOSTAT=ist,ERR=9800,END=9900)
 
@@ -476,7 +485,9 @@
       WRITE(6,*) '      N_partition_s, N_partition_r, N_partition_p, MODEL_DISRUPT'
       WRITE(6,*) '      MODEL_synch, MODEL_loss, MODEL_SINK, T0_quench, tau_quench, deltaB_B,'
       WRITE(6,*) '      MODEL_NBI, MODEL_WAVE, MODEL_IMPURITY, MODEL_Conner_FP, MODEL_BS, MODEL_jfp'
-      WRITE(6,*) '      MODEL_LNL, time_quench_start, MODEL_RE_pmax, RJPROF2, MODELD_n_RE, pmax_bb, v_RE'
+      WRITE(6,*) '      MODEL_LNL, time_quench_start, MODEL_RE_pmax, RJPROF1, RJPROF2, MODELD_n_RE'
+      WRITE(6,*) '      pmax_bb, v_RE, target_zeff, n_impu, SPITOT'
+
 
       RETURN
     END SUBROUTINE fp_plst
@@ -547,8 +558,9 @@
       rdata(20)=RHOITB
       rdata(21)=RHOGMN
       rdata(22)=RHOGMX
-      rdata(23)=RJPROF2
-      CALL mtx_broadcast_real8(rdata,23)
+      rdata(23)=RJPROF1
+      rdata(24)=RJPROF2
+      CALL mtx_broadcast_real8(rdata,24)
       RR    =rdata( 1)
       RA    =rdata( 2)
       RB    =rdata( 3)
@@ -571,7 +583,8 @@
       RHOITB=rdata(20)
       RHOGMN=rdata(21)
       RHOGMX=rdata(22)
-      RJPROF2=rdata(23)
+      RJPROF1=rdata(23)
+      RJPROF2=rdata(24)
 
       CALL mtx_broadcast_real8(PA,NSMAX)
       CALL mtx_broadcast_real8(PZ,NSMAX)
@@ -651,7 +664,8 @@
       idata(49)=MODEL_SINK
       idata(50)=MODELD_n_RE
       idata(51)=LLMAX_NF
-      CALL mtx_broadcast_integer(idata,51)
+      idata(52)=n_impu
+      CALL mtx_broadcast_integer(idata,52)
       NPMAX   =idata( 1)
       NTHMAX  =idata( 2)
       NRMAX   =idata( 3)
@@ -705,6 +719,7 @@
       MODEL_SINK = idata(49)
       MODELD_n_RE= idata(50)
       LLMAX_NF   = idata(51)
+      n_impu = idata(52)
 
       CALL mtx_broadcast_integer(NS_NSA,NSAMAX)
       CALL mtx_broadcast_integer(NS_NSB,NSBMAX)
@@ -762,7 +777,10 @@
       rdata(47)=time_quench_start
       rdata(48)=deltaB_B
       rdata(49)=v_RE
-      CALL mtx_broadcast_real8(rdata,49)
+      rdata(50)=target_zeff
+      rdata(51)=SPITOT
+
+      CALL mtx_broadcast_real8(rdata,51)
       DELT  =rdata( 1)
       RMIN  =rdata( 2)
       RMAX  =rdata( 3)
@@ -812,6 +830,8 @@
       time_quench_start=rdata(47)
       deltaB_B = rdata(48)
       v_RE= rdata(49)
+      target_zeff= rdata(50)
+      SPITOT= rdata(51)
 
       CALL mtx_broadcast_real8(pmax,NSAMAX)
       CALL mtx_broadcast_real8(pmax_bb,NSAMAX)
@@ -865,7 +885,8 @@
            nbeammax,DRRS,MODEL_KSP,MODEL_PC,N_partition_s,N_partition_r,N_partition_p, &
            nsize, MODEL_DISRUPT, MODEL_synch, MODEL_LOSS, MODEL_SINK, T0_quench, tau_quench, deltaB_B, &
            MODEL_NBI, MODEL_WAVE, MODEL_IMPURITY, MODEL_Conner_FP, MODEL_BS, MODEL_jfp, MODEL_LNL, &
-           time_quench_start, MODEL_RE_pmax, RJPROF2, MODELD_n_RE, pmax_bb, v_RE
+           time_quench_start, MODEL_RE_pmax, RJPROF1, RJPROF2, MODELD_n_RE, pmax_bb, v_RE, &
+           target_zeff, n_impu, SPITOT
 
       IMPLICIT NONE
       integer:: nsa,nsb,ns,NBEAM

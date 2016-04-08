@@ -858,7 +858,7 @@
          END IF
       ENDIF
 
-      IF(MODEL_IMPURITY.ne.0.and.TIMEFP.le.tau_quench)THEN
+      IF(MODEL_IMPURITY.ne.0.and.TIMEFP.le.5.D0*tau_quench)THEN
          CALL IMPURITY_SOURCE(NSA)
       END IF
 
@@ -1644,23 +1644,31 @@
       END SUBROUTINE loss_for_CNL
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       SUBROUTINE IMPURITY_SOURCE(NSA)
+! assume NSAMAX=1, NSBMAX>=2
 
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NSA
-      INTEGER:: NS,NTH,NP,NR
-      real(kind8):: tau_imp
+      INTEGER:: NS,NTH,NP,NR,NSB
+      real(kind8):: tau_imp, FACTZ, imp_charge, SUM_MGI
 
-      tau_imp=tau_quench
+      tau_imp=5.D0*tau_quench
+!      N_impu=3
+!      target_zeff_mgi=3.D0
+!      SPITOT=0.5D0 ! m^-3 on axis ! desired value of e dens.
 
       NS=NS_NSA(NSA)
-      DO NR=NRSTART,NREND
-         DO NP=NPSTART, NPEND
-            DO NTH=1,NTHMAX
-               SPPI(NTH,NP,NR,NSA)=&
-                    FPMXWL_IMP(PM(NP,NS),NR,NS,2)/tau_imp
+
+!     electron source
+      IF(NS_NSA(NSA).eq.1) THEN
+         DO NR=NRSTART, NREND
+            DO NP=NPSTART, NPEND
+               DO NTH=1, NTHMAX
+                  SPPI(NTH,NP,NR,NSA)= &!SPPI(NTH,NP,NR,NSA) &
+                       FPMXWL_IMP(PM(NP,NS),NR,NS,n_impu)/tau_imp
+               END DO
             END DO
          END DO
-      END DO
+      END IF
 
       END SUBROUTINE IMPURITY_SOURCE
 !-------------------------------------------------------------
@@ -1669,26 +1677,21 @@
       implicit none
       integer,intent(in):: NR,NSA,N_ion
       real(kind8),intent(in):: PML
-      real(kind8):: amfpl,aefpl,rnfp0l,rtfp0l,ptfp0l
-      real(kind8):: rnfpl,rtfpl,fact,ex,theta0l,thetal,z,dkbsl
+      real(kind8):: rnfp0l,rtfp0l,ptfp0l
+      real(kind8):: amfpl,rnfpl,rtfpl,fact,ex,theta0l,thetal,z,dkbsl
       real(kind8):: FPMXWL_IMP, target_Z, target_ne, target_ni
 
-      AMFPL=PA(NSA)*AMP
-      AEFPL=PZ(NSA)*AEE
+!      AMFPL=PA(NSA)*AMP
       RNFP0L=PN(NSA)
       RTFP0L=(PTPR(NSA)+2.D0*PTPP(NSA))/3.D0
       PTFP0L=SQRT(RTFD0L*1.D3*AEE*AMFPL)
 
-      target_z=2.D0
-      target_ni=(target_Z-1.D0)/(PZ(n_ion)**2-target_z*PZ(n_ion))*RNFP(NR,1)
-      target_ne=PZ(n_ion)*target_ni
+      target_z=PZ(NSA)
+      target_ni=(SPITOT-RNFP0(1))*RNFP(NR,NSA)/RNFP0(NSA)/target_z
 
-      IF(NSA.eq.1)THEN
-         RNFPL=target_ne/RNFP0(NSA)
-      ELSE
-         RNFPL=target_ni/RNFP0(NSA)
-      END IF
-      RTFPL=RT_quench_f(NR)*1.D1
+      RNFPL=target_ni
+      RTFPL=RT_quench(NR)
+!      RTFPL=( 0.1D0*RT_quench(NR) + 0.9D0*RT_quench_f(NR) )
 
       IF(MODELR.EQ.0) THEN
          FACT=RNFPL/SQRT(2.D0*PI*RTFPL/RTFP0L)**3
@@ -1699,7 +1702,6 @@
             FPMXWL_IMP=FACT*EXP(-EX)
          ENDIF
       ELSE
-!         THETA0L=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)
          THETA0L=THETA0(NSA)
          THETAL=THETA0L*RTFPL/RTFP0L
          Z=1.D0/THETAL
