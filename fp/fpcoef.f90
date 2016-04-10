@@ -1686,7 +1686,7 @@
       RTFP0L=(PTPR(NSA)+2.D0*PTPP(NSA))/3.D0
       PTFP0L=SQRT(RTFD0L*1.D3*AEE*AMFPL)
 
-      target_z=PZ(NSA)
+      target_z=ABS(PZ(NSA))
       target_ni=(SPITOT-RNFP0(1))*RNFP(NR,NSA)/RNFP0(NSA)/target_z
 
       RNFPL=target_ni
