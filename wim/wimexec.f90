@@ -399,7 +399,7 @@ CONTAINS
                 VVP=ABS(VP*(ZA(KI)-ZA(KJ)))
                 VVM=ABS(VM*(ZA(KI)-ZA(KJ)))
                 VVZ=ABS(   (ZA(KI)-ZA(KJ))) 
-                X1=(YYI*YYJ)**1.5/(YY*YY)
+                X1=(ABS(YYI*YYJ))**1.5/(YY*YY)
                 X4=(YYI*YYJ)/YY
                 X5=DBDZ*DBDZ/(2*YY*YY)
                 DPI=1.5D0*DBDZ/YYI-DBDZ/YY-DBDZ/VPI
@@ -444,7 +444,7 @@ CONTAINS
                         +D0(I-MM,KI-MM)*D0(J-NN,KJ-NN)*DZI*DZJ*(DMI*DMJ+DPM)
                       DE=D0(I-MM,KI-MM)*D0(J-NN,KJ-NN)*DZI*DZJ
                       CP1=-0.5D0*PN0*CI*X1*(CF1P*DP+CF1M*DM)
-                      CP2=-0.5D0*PN0    *X1*(CF1P*DP-CF1M*DM)
+                      CP2=-0.5D0*PN0   *X1*(CF1P*DP-CF1M*DM)
                       CP3=-      PN0*CI*X4*(CF1Z*DE-X5*CF2Z*DE) 
                       CK(JD+1,ID+1)        =CK(JD+1,ID+1)        +CP1 
                       CK(JD+2,ID+1)        =CK(JD+2,ID+1)        +CP2 
