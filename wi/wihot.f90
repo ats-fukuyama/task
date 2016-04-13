@@ -144,8 +144,12 @@ CONTAINS
          NE=MM+NWMAX-1
          IF(NS.LE.0) NS=0
          IF(NE.GE.NXMAX-1) NE=NXMAX-1
-         IF(XMAX-XGRID(MM).LT.100.D0) THEN
-            BETA=BETA0*(XMAX-XGRID(MM))/100.D0
+         IF(XMAX.GE.500.D0.AND.ALFA*XMAX.LT.10.D0) THEN
+            IF(XMAX-XGRID(MM).LT.100.D0) THEN
+               BETA=BETA0*(XMAX-XGRID(MM))/100.D0
+            ELSE
+               BETA=BETA0
+            END IF
          ELSE
             BETA=BETA0
          END IF
@@ -292,8 +296,12 @@ CONTAINS
       PTOT=0.D0
 
       DO NX=0,NXMAX-1
-         IF(XMAX-XGRID(NX).LT.100.D0) THEN
-            BETA=BETA0*(XMAX-XGRID(NX))/100.D0
+         IF(XMAX.GE.500.D0.AND.ALFA*XMAX.LT.10.D0) THEN
+            IF(XMAX-XGRID(NX).LT.100.D0) THEN
+               BETA=BETA0*(XMAX-XGRID(NX))/100.D0
+            ELSE
+               BETA=BETA0
+            END IF
          ELSE
             BETA=BETA0
          END IF
@@ -359,8 +367,12 @@ CONTAINS
       REAL(rkind):: H0,EPS,SR1,SI1,SR,SI,ESR,ESI,SR2,SI2,PARITY,SKR,SKI,BETA0
 
       BETA0=BETA
-      IF(XMAX-X.LT.100.D0) THEN
-         BETA=BETA0*(XMAX-X)/100.D0
+      IF(XMAX.GE.500.D0.AND.ALFA*XMAX.LT.10.D0) THEN
+         IF(XMAX-X.LT.100.D0) THEN
+            BETA=BETA0*(XMAX-X)/100.D0
+         ELSE
+            BETA=BETA0
+         END IF
       ELSE
          BETA=BETA0
       END IF

@@ -116,7 +116,11 @@ CONTAINS
        alfa=exp(log(alfamin)+dalfa*(nalfa-1))
        rk0l=1.D0/alfa
        IF(ALFA.LT.ANY**3/3.D0) THEN
-          dx0=0.5*dx0_save
+          IF(ALFA.LT.0.005) THEN
+             dx0=0.2*dx0_save
+          ELSE
+             dx0=0.5*dx0_save
+          END IF
           xmax=1.D0/ALFA
           xmin=-10.0D0/BETA
        ELSEIF(ALFA.LT.1.D0) THEN
