@@ -115,10 +115,10 @@ CONTAINS
     DO nalfa=1,nalfamax
        alfa=exp(log(alfamin)+dalfa*(nalfa-1))
        rk0l=1.D0/alfa
-       IF(ALFA.LT.ANY**3/4.D0) THEN
+       IF(ALFA.LT.ANY**3/3.D0) THEN
           dx0=0.5*dx0_save
-          xmax=0.5/alfa
-          xmin=-10.0D0
+          xmax=1.D0/ALFA
+          xmin=-10.0D0/BETA
        ELSEIF(ALFA.LT.1.D0) THEN
           dx0=dx0_save
           xmax=10.D0/(ALFA*BETA)
@@ -136,10 +136,14 @@ CONTAINS
 !          dx0=0.001
 !          xmax=0.1D0
 !          xmin=-1.0D0
-       ELSE
+       ELSEIF(ALFA.LT.100.D0) THEN
           dx0=0.1D0*dx0_save/log(alfa)
           xmax=500.D0*dx0
           xmin=-500.D0*dx0
+       ELSE
+          dx0=0.003D0
+          xmax=0.1D0
+          xmin=-1.0D0
 !          dx0=0.001
 !          xmax=0.1D0
 !          xmin=-0.5D0
