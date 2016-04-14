@@ -31,6 +31,7 @@ MODULE wicomm
   REAL(rkind)::    dx0    = 0.05D0 ! default grid size
   REAL(rkind)::    dxmin  = 0.D0   ! minimum grid size at omegape = omega
   REAL(rkind)::    xwmin  = 1.D0   ! range of reduction near omegape = omega
+  REAL(rkind)::    Bwidth = 30.D0  ! wirange of reduction near omegape = omega
   COMPLEX(rkind):: cfyn = (1.D0,0.D0) ! E field of incident wave at nx=nxmax
   INTEGER(ikind):: modela = 0      ! modea =0: acceleration included
                                    !        1: acceleration neglected

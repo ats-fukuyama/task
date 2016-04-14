@@ -47,7 +47,7 @@ CONTAINS
 
     USE wicomm, ONLY: modelg,xmin,xmax,dx0,xwint,pn0,alfa,any,beta,cfyn, &
                       ntaumax,taumin,taumax,nalfamax,alfamin,alfamax, &
-                      modelp,pnu,dxmin,xwmin, &
+                      modelp,pnu,dxmin,xwmin,Bwidth, &
                       modela,kfscan,idebug,rkind
 
     IMPLICIT NONE
@@ -57,7 +57,7 @@ CONTAINS
 
     NAMELIST /WI/ modelg,xmin,xmax,dx0,xwint,pn0,alfa,any,beta,cfyn, &
                   ntaumax,taumin,taumax,nalfamax,alfamin,alfamax, &
-                  modelp,pnu,dxmin,xwmin, &
+                  modelp,pnu,dxmin,xwmin,Bwidth, &
                   modela,kfscan,idebug
 
     READ(NID,WI,IOSTAT=IST,ERR=9800,END=9900)
@@ -78,7 +78,7 @@ CONTAINS
     IMPLICIT NONE
     WRITE(6,'(A)') '# &WI : modelg,xmin,xmax,dx0,xwint,pn0,alfa,any,beta,cfyn,'
     WRITE(6,'(A)') '        ntaumax,taumin,taumax,nalfamax,alfamin,alfamax,'
-    WRITE(6,'(A)') '        modelp,pnu,dxmin,xwmin,'
+    WRITE(6,'(A)') '        modelp,pnu,dxmin,xwmin,Bwidth,'
     WRITE(6,'(A)') '        modela,kfscan,idebug'
     RETURN
 
@@ -129,7 +129,7 @@ CONTAINS
     WRITE(6,601) 'dxmin ',dxmin ,'xwmin ',xwmin
        
     WRITE(6,601) 'pn0   ',pn0   ,'any   ',any, &
-                 'xwint ',xwint 
+                 'xwint ',xwint ,'Bwidth',Bwidth
     WRITE(6,601) 'beta  ',beta  ,'pnu   ',pnu, &
                  'taumin',taumin,'taumax',taumax
     WRITE(6,603) 'cfyn  ',cfyn
