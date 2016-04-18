@@ -123,7 +123,10 @@ CONTAINS
        ELSEIF(ALFA.LT.ANY**3/4.D0) THEN
           dx0=0.5*dx0_save
           xmax=2.5D0/(ALFA*BETA)
-!          xmax=0.5D0/alfa 
+          xmin=-10.0D0
+       ELSEIF(ALFA.LT.ANY**3/2.D0) THEN
+          dx0=0.5*dx0_save
+          xmax=5.D0/(ALFA*BETA)
           xmin=-10.0D0
        ELSEIF(ALFA.LT.1.D0) THEN
           dx0=dx0_save
