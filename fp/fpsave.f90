@@ -445,7 +445,7 @@
                   RPDRS(NSA) = RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)*1.D-6 &
                        *RSUM_DRS/(DELR*RM(NR))
                END IF
-            END IF
+            END IF ! MODELD
 
 ! --------- end of radial transport
             CALL p_theta_integration(RSUM1)

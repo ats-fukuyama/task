@@ -423,7 +423,7 @@
 
       USE libmtx
       IMPLICIT NONE
-      INTEGER:: ierr, colors, keys, N, NREND1, NPEND1
+      INTEGER:: ierr, colors, keys, N, NREND1, NPEND1, I
       INTEGER,DIMENSION(nsize):: ima1,ima2,npa1,npa2,nra1,nra2,nma1,nma2,insa1,insa2
 
 !     ----- Check nsize -----
@@ -565,8 +565,8 @@
 !      WRITE(6,'(7I6)') NRANK, NSASTART, NSAEND, NRSTART, NREND, NPSTART, NPEND
 
       CALL mtx_cleanup
-      CALL mtx_reset_communicator
 
+      CALL mtx_reset_communicator
 
       END SUBROUTINE fp_comm_setup
 !-------------------------------------------------------------
@@ -664,6 +664,18 @@
                ENDDO
             END IF
          END DO
+      END DO
+
+      END SUBROUTINE FNSP_INIT
+!-------------------------------------------------------------
+      SUBROUTINE FNSP_INIT_EDGE
+
+      IMPLICIT NONE
+      INTEGER:: NTH,NP,NR,NSA,NSB,NS,NSBA
+      REAL(8):: FL
+
+      DO NSA=NSASTART,NSAEND
+         NS=NS_NSB(NSA)
          NR=NRMAX+1
          DO NP=NPSTARTW,NPENDWM
             FL=FPMXWL(PM(NP,NSA),NR,NS)
@@ -692,13 +704,10 @@
             DO NTH=1,NTHMAX
                FS2(NTH,NP,NS)=FL ! at R=1.0+DELR/2
             ENDDO
-!            IF(NREND.eq.NRMAX)THEN
-!               WRITE(*,'(2I4,2E16.8)') NSA, NP, PM(NP,NSBA), FS2(1,NP,NS)
-!            END IF
          ENDDO
       ENDDO
 
-      END SUBROUTINE FNSP_INIT
+      END SUBROUTINE FNSP_INIT_EDGE
 !-------------------------------------------------------------
       SUBROUTINE fp_set_bounceaverage_param
 
@@ -925,8 +934,8 @@
 
          DO NSB=1,NSBMAX
             NS=NS_NSB(NSB)
-            AEFD(NSB)=PZ(NS)*AEE
-            AMFD(NSB)=PA(NS)*AMP
+!            AEFD(NSB)=PZ(NS)*AEE
+!            AMFD(NSB)=PA(NS)*AMP
             RNFD(NR,NSB)=PLF(NS)%RN
             RTFD(NR,NSB)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
             PTFD(NR,NSB)=SQRT(RTFD(NR,NSB)*1.D3*AEE*AMFD(NSB))
@@ -1024,7 +1033,7 @@
       ENDIF
 
 ! ----set runaway
-      IF(MODEL_DISRUPT.ne.0)THEN 
+      IF(MODEL_DISRUPT.ne.0.and.nt_init.eq.0)THEN 
          IF(MODEL_IMPURITY.eq.1)THEN
             DO NSB=1,NSBMAX
                DO NR=NRSTART,NREND
@@ -1032,7 +1041,7 @@
                END DO
                RN0_MGI(NSB)=RNFD0(NSB)
             END DO
-!!            WRITE(*,*) "zeff_imp,pz= ",zeff_imp, PZ(n_impu)
+            IF(NRANK.eq.0) WRITE(*,'(A,1P2E14.6)') "zeff_imp, pz = ",zeff_imp, PZ(n_impu)
          END IF
 
          CALL set_initial_disrupt_param
@@ -1279,21 +1288,14 @@
       INTEGER:: NSEND, NSWI
       real:: gut1, gut2, gut_prep
 
-      CALL GUTIME(gut1)
       IF(NRANK.eq.0) &
-      WRITE(6,*) "----- RESET COEFFICIENTS FOR NEW PARAMETERS -----"
-
-!     ----- set parallel electric field -----
-      DO NR=1,NRMAX
-!         E1(NR)=E0*E_drei0(1)
-!         E1(NR)=E0/(1.D0+EPSRM(NR))
-      ENDDO
+      WRITE(6,*) "----- SET COEFFICIENTS AND DISTRIBUTION FUNCTIONS -----"
 
       N_IMPL=0
       NCALCNR=0
       IF(MODELS.eq.3) CALL NF_LG_FUNCTION
       IF(MODELS.ne.0) CALL NF_REACTION_COEF
-      IF(MODELS.ne.0) CALL fusion_source_init
+      CALL fusion_source_init
 
       DO NSA=NSASTART,NSAEND
          CALL FP_COEF(NSA)
@@ -1308,20 +1310,47 @@
          CALL FPWEIGHT(NSA,IERR)
       END DO
       IF(MODELS.ne.0)THEN
-!         CALL mtx_set_communicator(comm_nr)
          CALL mtx_set_communicator(comm_nsa)
          CALL source_allreduce(SPPF)
          CALL mtx_reset_communicator
       END IF
+      IF(NTG1.eq.0.and.MODEL_WAVE.ne.0) CALL FPWAVE_CONST ! all nrank must have RPWT  
+
       ISAVE=0
-!      IF(NTG1.eq.0) CALL FPWAVE_CONST ! all nrank must have RPWT  
+
       IERR=0
-      CALL GUTIME(gut2)
-      gut_prep=gut2-gut1
-      IF(NRANK.eq.0) WRITE(6,'(A,E14.6)') "-------- CONTINUE_TIME=", gut_prep
  
       RETURN
       END SUBROUTINE fp_continue
+!-------------------------------------------------------------
+      SUBROUTINE fp_set_initial_value_from_f
+
+      USE libmtx
+      IMPLICIT NONE
+      INTEGER:: NR, NSB
+
+      IF(NRANK.eq.0.and.MODEL_disrupt.ne.0)THEN
+         DO NSB=1,NSBMAX
+            DO NR=NRSTART,NREND
+               RN_MGI(NR,NSB)=RNFD(NR,NSB)
+            END DO
+            RN0_MGI(NSB)=RNFD0(NSB)
+         END DO
+         CALL display_disrupt_initials
+      END IF
+      CALL FPSSUB
+      IF(nrank.EQ.0) THEN
+         CALL FPSGLB
+         CALL FPSPRF
+         CALL FPWRTGLB
+         CALL FPWRTPRF
+      ENDIF
+      CALL mtx_broadcast_real8(RT_T,NRMAX*NSAMAX)
+      CALL mtx_broadcast_real8(RNS,NRMAX*NSAMAX)
+      CALL mtx_broadcast1_integer(NTG1)
+      CALL mtx_broadcast1_integer(NTG2)
+
+      END SUBROUTINE fp_set_initial_value_from_f
 !-------------------------------------------------------------
       SUBROUTINE fp_prep(ierr)
 
@@ -1332,12 +1361,14 @@
 
       Implicit none
 
-      integer :: ierr,NSA,NSB,NS,NR,NP,NTH,NSBA,N,NSW,j
+      integer :: ierr,NSA,NSB,NS,NR,NP,NTH,NSBA,N,NSW,j,i
       INTEGER:: NSEND, NSWI
       real:: gut1, gut2, gut_prep
       real(8):: alp, z_i, h_alpha_z, lambda_alpha, gamma_alpha_z, G_conner
       real(8):: G_conner_nr, G_conner_lm, SIGMA
       real(8),dimension(:),allocatable:: conduct_temp, E1_temp
+      integer,dimension(6):: idata
+      integer,dimension(6*nsize):: idata2
 
       CALL GUTIME(gut1)
 !     ----- Initialize time counter -----
@@ -1355,9 +1386,35 @@
       call fp_allocate_ntg1
       call fp_allocate_ntg2
 
+      CALL mtx_set_communicator(comm_nr)
+      allocate(MTXLEN(nsize),MTXPOS(nsize))
+
+      CALL mtx_set_communicator(comm_nsanr)
+      allocate(SAVLEN(nsize)) 
+      allocate(SAVPOS(nsize,NSAEND-NSASTART+1)) 
+      CALL mtx_reset_communicator
+      allocate(Rank_Partition_Data(6,0:nsize-1))
+
+      idata(1)=NPSTARTW
+      idata(2)=NPENDWM
+      idata(3)=NRSTARTW
+      idata(4)=NRENDWM
+      idata(5)=NSASTART
+      idata(6)=NSAEND
+
+      CALL mtx_gather_integer(idata,6,idata2)
+
+      IF(NRANK.eq.0)THEN
+         DO N=0, nsize-1
+            DO I=1,6
+               Rank_Partition_Data(I,N)=idata2(I+N*6)
+            END DO
+         END DO
+      END IF
+
 !     ----- Get mtxlen and mtxpos -----
 !     MTXLEN(NRANK+1): the number of NR grid points for each RANK
-!     MTXPOS(NRANK):
+!     MTXPOS(NRANK): 
 !
       CALL mtx_set_communicator(comm_nr)
       CALL mtx_allgather1_integer(nrend-nrstart+1,mtxlen)
@@ -1378,28 +1435,31 @@
 !      WRITE(6,*) "START MESH"
       CALL fp_mesh(ierr)
 !      WRITE(6,*) "END MESH"
-!     ----- Initialize velocity distribution function of all species -----
-      CALL FNSP_INIT
-!      WRITE(6,*) "END INIT"
 !     ----- Initialize diffusion coef. -----
       call FPCINI
-!     ----- normalize bounce average parameter ---------
-      CALL fp_set_bounceaverage_param
 !     ----- set parameters for target species -----
       CALL fp_set_normalize_param
+!     ----- Initialize velocity distribution function of all species -----
+      CALL FNSP_INIT
+      CALL FNSP_INIT_EDGE
+!      WRITE(6,*) "END INIT"
+!     ----- normalize bounce average parameter ---------
+      CALL fp_set_bounceaverage_param
 !     ----- set background f
       CALL mtx_set_communicator(comm_nsa)
       CALL update_fnsb
       CALL mtx_reset_communicator
 !     ----- set parallel electric field -----
-!      DO NR=1,NRMAX
-!      DO NR=NRSTART,NRENDWM
-      DO NR=NRSTART,NREND
-         IF(MODEL_DISRUPT.eq.0)THEN
+      IF(MODEL_DISRUPT.eq.0)THEN
+         DO NR=1,NRMAX
             E1(NR)=E0!*E_drei0(1)
+         END DO
+         DO NR=NRSTART,NREND
             EP(NR)=E1(NR) ! plus
             EM(NR)=0.D0 ! minus
-         ELSE
+         END DO
+      ELSE
+         DO NR=NRSTART,NREND
             allocate(conduct_temp(NRSTART:NREND))
             allocate(E1_temp(NRSTART:NREND))
             CALL SPITZER_SIGMA(NR,SIGMA)
@@ -1411,70 +1471,17 @@
             ELSEIF(MODELE.eq.2)THEN
                E1_temp(NR)=E0*(1.D0-RM(NR)**1.5)**1 ! arbitrary profile
             END IF
-         END IF
-      ENDDO
-      IF(MODEL_DISRUPT.ne.0)THEN
+         END DO
          CALL mtx_set_communicator(comm_nr)
          call mtx_allgather_real8(conduct_temp,NREND-NRSTART+1,conduct_sp)
          call mtx_allgather_real8(E1_temp,NREND-NRSTART+1,E1)
          CALL mtx_reset_communicator
       END IF
-!      IF(NRANK.eq.0)THEN
-!         DO NR=1,NRMAX
-!            WRITE(*,*) NR, RM(NR), E1(NR)
-!         END DO
-!      END IF
 
-      N_IMPL=0
-      IF(MODELS.eq.3) CALL NF_LG_FUNCTION
-      IF(MODELS.ne.0) CALL NF_REACTION_COEF
-      NCALCNR=0
-      CALL fusion_source_init
-      DO NSA=NSASTART,NSAEND
-         CALL FP_COEF(NSA)
-         NSBA=NSB_NSA(NSA)
-         DO NR=NRSTART,NREND
-            DO NP=NPSTARTW,NPENDWM
-               DO NTH=1,NTHMAX
-                  F(NTH,NP,NR)=FNSP(NTH,NP,NR,NSBA)
-               END DO
-            END DO
-         END DO
-         CALL FPWEIGHT(NSA,IERR)
-      END DO
-      IF(NRANK.eq.0.and.MODEL_disrupt.ne.0)THEN
-         DO NSB=1,NSBMAX
-            DO NR=NRSTART,NREND
-               RN_MGI(NR,NSB)=RNFD(NR,NSB)
-            END DO
-            RN0_MGI(NSB)=RNFD0(NSB)
-         END DO
-!         RN_MGI(:,:)=RNFD(:,:)
-!         RN0_MGI(:)=RNFD0(:) 
-         CALL display_disrupt_initials
-      END IF
+!continue start
+      CALL fp_continue(ierr)
+      CALL fp_set_initial_value_from_f
 
-      IF(MODELS.ne.0)THEN
-!         CALL mtx_set_communicator(comm_nr)
-         CALL mtx_set_communicator(comm_nsa)
-         CALL source_allreduce(SPPF)
-         CALL mtx_reset_communicator
-      END IF
-      ISAVE=0
-      IF(NTG1.eq.0.and.MODEL_WAVE.ne.0) CALL FPWAVE_CONST ! all nrank must have RPWT  
-
-      CALL FPSSUB
-      IF(nrank.EQ.0) THEN
-         CALL FPSGLB
-         CALL FPSPRF
-         CALL FPWRTGLB
-         CALL FPWRTPRF
-      ENDIF
-      CALL mtx_broadcast_real8(RT_T,NRMAX*NSAMAX)
-      CALL mtx_broadcast_real8(RNS,NRMAX*NSAMAX)
-      CALL mtx_broadcast1_integer(NTG1)
-      CALL mtx_broadcast1_integer(NTG2)
-      IERR=0
       CALL GUTIME(gut2)
       gut_prep=gut2-gut1
       IF(NRANK.eq.0) WRITE(6,'(A,E14.6)') "---------------PREP_TIME=", gut_prep

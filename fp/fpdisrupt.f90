@@ -1650,7 +1650,7 @@
       IF(MOD(NT,NTG1STEP).EQ.0) THEN
          WRITE(6,'(7A14)') "IP_all","IP_ohm", "IP_run", "IP_primary", "IP_bs", "RE gen.rate"
          WRITE(6,'(1P7E14.6)') IP_all, IP_ohm, IP_run, IP_prim, IP_bs, RFP(1)*tau_ta0(1)
-         WRITE(6,'(A,1PE14.6,A,1PE14.6)') "Zeff= ", ZEFF, "  Z_i= ", Z_i
+         WRITE(6,'(A,1PE14.6,A,1PE14.6)') "Zeff= ", ZEFF, " l_ind= ", l_ind
          IF(MODEL_IMPURITY.eq.1)THEN
             WRITE(6,'(A,1P3E14.6)') "RN_MGI = ", RN_MGI(1,1), RN_MGI(1,2), RN_MGI(1,3)
          END IF

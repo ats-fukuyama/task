@@ -98,11 +98,13 @@
          CALL fpsprf
          CALL fpwrtprf
       ELSEIF (KID.EQ.'S') THEN
-         if(nrank.eq.0) CALL fp_save
+         if(nrank.eq.0) CALL fp_save2
          CALL mtx_barrier
       ELSEIF (KID.EQ.'L') THEN
-         if(nrank.eq.0) CALL fp_load
+         CALL FP_PRE_LOAD
+         if(nrank.eq.0) CALL fp_load2
          CALL mtx_barrier
+         CALL FP_POST_LOAD
       ELSEIF (KID.EQ.'Q') THEN
          GO TO 9000
 

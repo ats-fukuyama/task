@@ -1677,11 +1677,12 @@
       implicit none
       integer,intent(in):: NR,NSA,N_ion
       real(kind8),intent(in):: PML
-      real(kind8):: rnfp0l,rtfp0l,ptfp0l
+      real(kind8):: rnfp0l,rtfp0l,ptfp0l,RTFD0L
       real(kind8):: amfpl,rnfpl,rtfpl,fact,ex,theta0l,thetal,z,dkbsl
       real(kind8):: FPMXWL_IMP, target_Z, target_ne, target_ni
 
 !      AMFPL=PA(NSA)*AMP
+      RTFD0L=(PTPR(NSA)+2.D0*PTPP(NSA))/3.D0
       RNFP0L=PN(NSA)
       RTFP0L=(PTPR(NSA)+2.D0*PTPP(NSA))/3.D0
       PTFP0L=SQRT(RTFD0L*1.D3*AEE*AMFPL)
@@ -1690,8 +1691,9 @@
       target_ni=(SPITOT-RNFP0(1))*RNFP(NR,NSA)/RNFP0(NSA)/target_z
 
       RNFPL=target_ni
-      RTFPL=RT_quench(NR)
+!      RTFPL=RT_quench(NR)
 !      RTFPL=( 0.1D0*RT_quench(NR) + 0.9D0*RT_quench_f(NR) )
+      RTFPL=( 0.01D0*RT_quench(NR) + 0.99D0*RT_quench_f(NR) )
 
       IF(MODELR.EQ.0) THEN
          FACT=RNFPL/SQRT(2.D0*PI*RTFPL/RTFP0L)**3

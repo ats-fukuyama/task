@@ -292,6 +292,19 @@
          CALL mtx_broadcast_real8(RNS,NRMAX*NSAMAX)
          CALL mtx_broadcast1_integer(NTG1)
          CALL mtx_broadcast1_integer(NTG2)
+
+
+         DO NSA=1,NSAMAX
+            DO NR=1,NRMAX
+               IF(RNS(NR,NSA).lt.0)THEN
+                  ierr_g = ierr_g + 1
+                  IF(NRANK.eq.0)THEN
+                     WRITE(*,'(A,2I5)') "NEGATIVE DENS. at NR= ", NR, NSA 
+                  END IF
+               END IF
+            END DO
+         END DO
+
 !         IF(NRANK.EQ.0.AND.NTG1.GT.0) call FPWRTSNAP
          CALL GUTIME(gut2)
          IF (MOD(NT,NTG1STEP).EQ.0) THEN
@@ -308,6 +321,10 @@
          gut_out=gut_out2-gut_out1
          IF (MOD(NT,NTG1STEP).EQ.0) THEN
             IF(NRANK.eq.0) WRITE(*,'(A,E14.6)') "--------FILE_OUTPUT_TIME in NT LOOP=",gut_out
+         END IF
+
+         IF(ierr_g.ne.0)THEN
+            call mtx_abort(ierr_g)
          END IF
 
       ENDDO ! END OF NT LOOP

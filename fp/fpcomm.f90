@@ -72,6 +72,7 @@
       integer,dimension(:),POINTER:: mtxlen,mtxpos
       integer,dimension(:),POINTER:: savlen
       integer,dimension(:,:),POINTER:: savpos
+      integer,dimension(:,:),POINTER:: Rank_Partition_Data
 
       integer::ISAVE
       integer,dimension(NSM):: nsb_nsa,nsa_nsb
@@ -253,6 +254,7 @@
       real(rkind):: Zeff_imp
       integer:: NPC_runaway
       integer:: nt_init, N_f1
+      integer:: ierr_g
       contains
 
         subroutine fp_allocate
@@ -276,9 +278,13 @@
              call fp_deallocate
           endif
 
-          allocate(MTXLEN(nsize),MTXPOS(nsize))
-          allocate(SAVLEN(nsize))
-          allocate(SAVPOS(nsize,NSAEND-NSASTART+1))
+!          CALL mtx_set_communicator(comm_nr)
+!          allocate(MTXLEN(nsize),MTXPOS(nsize))
+!          CALL mtx_set_communicator(comm_nsanr)
+!          allocate(SAVLEN(nsize))
+!          allocate(SAVPOS(nsize,NSAEND-NSASTART+1))
+!          CALL mtx_reset_communicator
+!          allocate(Rank_Partition_Data(1:6,0:nsize-1))
 
           allocate( F(NTHMAX,NPSTARTW:NPENDWM,NRSTART:NREND))
           allocate(F1(NTHMAX,NPSTARTW:NPENDWM,NRSTART:NREND))
@@ -328,7 +334,8 @@
           allocate(SING(NTHMAX+1),COSG(NTHMAX+1))
           allocate(SINM(NTHMAX),COSM(NTHMAX))
 
-          allocate(FNS(NTHMAX,NPMAX,NRMAX,NSBMAX))
+!          allocate(FNS(NTHMAX,NPMAX,NRMAX,NSBMAX))
+          allocate(FNS(NTHMAX,NPMAX,NRMAX,NSAMAX))
 
           allocate(FNS0(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND))
           allocate(FNSP(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND)) 
