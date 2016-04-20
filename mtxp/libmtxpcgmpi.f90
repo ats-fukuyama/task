@@ -8,6 +8,7 @@
 
       MODULE libmtx
 
+      use mpi
       use libmpi
       use commpi
       PRIVATE
@@ -53,8 +54,11 @@
       IMPLICIT NONE
       INTEGER:: ncomm_in,ierr
 
-      ncomm_in=0
-      CALL mtx_set_communicator_global(ncomm_in)
+      CALL MPI_Init(ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_initialize: MPI_Init: ierr=',ierr
+      ncomm=MPI_COMM_WORLD
+      CALL mtx_set_communicator_global(ncomm)
       mtx_global%comm=ncomm
       mtx_global%rank=nrank
       mtx_global%size=nsize
@@ -71,6 +75,9 @@
       IMPLICIT NONE
       INTEGER:: ierr
 
+      CALL MPI_Finalize(ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_finalize: MPI_Finalize: ierr=',ierr
       RETURN
       END SUBROUTINE mtx_finalize
 
