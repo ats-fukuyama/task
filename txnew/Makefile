@@ -45,8 +45,8 @@ MODLIB= -I../lib/mod
 %.mod: %.f90 %.o
 	@:
 
-#all: $(PROG2)
-all: $(PROG3)
+all: $(PROG2)
+#all: $(PROG3)
 
 tx2lib.a: $(OBJS) $(OBJ2D) $(OBJNC) $(INCNC) $(OBJMM)
 	$(LD) $(LDFLAGS) tx2lib.a $(OBJS) $(OBJ2D) $(OBJNC) $(OBJMM)

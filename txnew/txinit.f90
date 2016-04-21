@@ -1661,7 +1661,7 @@ contains
 
   SUBROUTINE TXVIEW
 
-    WRITE(6,'((1X,A10," =",1PD9.2,3(2X,A10," =",1PD9.2)))') &
+    WRITE(6,'((1X,A10," =",1PD11.4,2(2X,A10," =",1PD11.4)))') &
          &   'RA        ', RA       , 'RHOB      ', RHOB     ,  &
          &   'RR        ', RR       , 'BB        ', BB       ,  &
          &   'amas(2)   ', amas(2)  , 'achg(2)   ', achg(2)  ,  &
@@ -1745,7 +1745,7 @@ contains
          &   'EpsHM(3,2)', EpsHM(3,2),'EpsHM(3,3)', EpsHM(3,3), &
          &   'EpsHM(4,0)', EpsHM(4,0),'EpsHM(4,1)', EpsHM(4,1), &
          &   'EpsHM(4,2)', EpsHM(4,2),'EpsHM(4,3)', EpsHM(4,3)
-    WRITE(6,'((" ",A10," =",I5,3(6X,A10," =",I5)))') &
+    WRITE(6,'((" ",A10," =",I5,2(8X,A10," =",I5)))') &
          &   'NRMAX     ', NRMAX    , &
          &   'NTMAX     ', NTMAX    , 'NTSTEP    ', NTSTEP   ,  &
          &   'NGRSTP    ', NGRSTP   , 'NGTSTP    ', NGTSTP   ,  &
