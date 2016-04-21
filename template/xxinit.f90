@@ -1,6 +1,6 @@
-!     $Id: plinit.f90,v 1.10 2013/09/07 11:24:23 fukuyama Exp $
-
 MODULE xxinit
+
+PUBLIC xx_init
 
 CONTAINS
 

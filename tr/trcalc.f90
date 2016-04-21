@@ -13,7 +13,8 @@
            NROMAX, NSM, NSMAX, PBCL, PBIN, PCX, PELTIM, PEX, PFCL, PFIN, &
            PI, PIE, PIN, PN, PNB, PNF, POH, PRB, PRC, PRF, PRFV, PRL, PRSUM, &
            Q0, QP, RDP, RG, RHOA, RR, SCX, SEX, SIE, SNB, SNF, SPE, SSIN, &
-           T, TAUF, TTRHOG, RDPVRHOG
+           T, TAUF, TTRHOG, RDPVRHOG, SPT, SPT0, SPT1
+!cpub SPT: source of particle transport given by ITPA-IOS
       USE tr_cytran_mod
       IMPLICIT NONE
       INTEGER(4),INTENT(OUT)    :: IERR
@@ -24,6 +25,7 @@
       IERR=0
 
       SIE(1:NRMAX)=0.D0
+      SPT(1:NRMAX)=0.D0
       SNF(1:NRMAX)=0.D0
       SNB(1:NRMAX)=0.D0
       POH(1:NRMAX)=0.D0
@@ -65,8 +67,16 @@
 !     *** RADIAL ELECTRIC FIELD ***
 
       CALL TRERAD
+!cpub begin
 
-      IF(T.LT.PELTIM+0.5D0*DT.AND. T.GE.PELTIM-0.5D0*DT) CALL TRPELT
+
+
+      IF((T.LT.(PELTIM+0.4D0*DT)).AND. (T.GE.(PELTIM-0.4D0*DT))) THEN 
+	      write(6,2529) T, PELTIM
+ 2529 	  format('> T:',F7.3,' SEC','  PELTIM:',F7.3,' SEC')
+	      CALL TRPELT
+      ENDIF
+!cpub end
       CALL TRZEFF
       IF(MDLPR.GT.0) CALL TR_CYTRAN
 
@@ -109,16 +119,21 @@
       END SELECT
       
       CALL TRAJOH
-
       DO NR=1,NRMAX
          IF(MDLEQ0.EQ.0) THEN
+!cpub begin
             SSIN(NR,1)=SIE(NR)                            +SNB(NR)+SEX(NR,1)
-            SSIN(NR,2)=PN(2)*SIE(NR)/(PN(2)+PN(3))-SNF(NR)+SNB(NR)+SEX(NR,2)
-            SSIN(NR,3)=PN(3)*SIE(NR)/(PN(2)+PN(3))-SNF(NR)        +SEX(NR,3)
+!	    write(6,2527) NR,SSIN(NR,1),SIE(NR),SPT(NR),SNB(NR),SEX(NR,1)
+! 2527       format(' > SSIN(',1I4,', 1)=',1PE11.3,' SIE=',1PE11.3,' SPT=',1PE11.3,' SNB=',1PE11.3,' SEX=',1PE11.3)
+            SSIN(NR,2)=PN(2)*SIE(NR)/(PN(2)+PN(3))-SNF(NR)+SNB(NR)+SEX(NR,2)+0.5*SPT(NR)
+            SSIN(NR,3)=PN(3)*SIE(NR)/(PN(2)+PN(3))-SNF(NR)        +SEX(NR,3)+0.5*SPT(NR)
             SSIN(NR,4)=                            SNF(NR)        +SEX(NR,4)
             SSIN(NR,7)=-SIE(NR)                                   -SCX(NR)
             SSIN(NR,8)=                                    SNB(NR)+SCX(NR)
-         ELSEIF(MDLEQ0.EQ.1) THEN
+!	    write(6,2526) NR,SSIN(NR,1),SSIN(NR,2),SSIN(NR,3),SSIN(NR,4),SSIN(NR,5),SSIN(NR,6),SSIN(NR,7),SSIN(NR,8)
+! 2526	    format(' > NR=',1I4,' ',1PE11.3,' ',1PE11.3,' ',1PE11.3,' ',1PE11.3,' ',1PE11.3,' ',1PE11.3,' ',1PE11.3,' ',1PE11.3)
+!cpub end        
+	 ELSEIF(MDLEQ0.EQ.1) THEN
             SSIN(NR,1)=                                    SNB(NR)+SEX(NR,1)
             SSIN(NR,2)=                           -SNF(NR)+SNB(NR)+SEX(NR,2)
             SSIN(NR,3)=                           -SNF(NR)        +SEX(NR,3)
@@ -140,6 +155,214 @@
       RETURN
       END SUBROUTINE TRCALC
 
+!     ***********************************************************
+
+!           CALCULATE TRANSPORT COEFFICIENTS AND SOURCE
+!     This new subroutine is similar to TRCALC but impurities are internally considered
+!     within this subroutine. First the densities ions will be diluted due to the presence 
+!     of impurities. Then all coefficients will be evaluated. Finally the impurities 
+!     will be removed and the densities of the ions will increase back to the previous 
+!     level.
+!     Pub modified this part on July 28, 2015.
+!     TRCALC is no longer active and is replaced by TRCALCIMP.
+
+!     ***********************************************************
+
+      SUBROUTINE TRCALCIMP(IERR)
+
+      USE TRCOMM, ONLY : AJBS, AJRF, AJRFV, AR1RHOG, ARRHOG, &
+           BP, DT, DVRHOG, MDLEQ0, &
+           MDLEQB, MDLJBS, MDLNF, MDLUF, MDLPR, MDNCLS, NRAMAX, NRMAX, &
+           NROMAX, NSM, NSMAX, PBCL, PBIN, PCX, PELTIM, PEX, PFCL, PFIN, &
+           PI, PIE, PIN, PN, PNB, PNF, POH, PRB, PRC, PRF, PRFV, PRL, PRSUM, &
+           Q0, QP, RDP, RG, RHOA, RR, SCX, SEX, SIE, SNB, SNF, SPE, SSIN, &
+           T, TAUF, TTRHOG, RDPVRHOG, SPT, SPT0, SPT1, ANC, ANFE, PZFE, PZC, PNS, &
+           RN, PNFE, PNC, PZ, NSTM, NHE0
+!cpub SPT: source of particle transport given by ITPA-IOS
+      USE tr_cytran_mod
+      IMPLICIT NONE
+      INTEGER(4),INTENT(OUT)    :: IERR
+      INTEGER(4)                :: NR
+      REAL(8)                   :: FCTR, ANI, ANZ, DILUTE
+      REAL,DIMENSION(NRMAX,NSTM):: RN0
+      REAL,DIMENSION(NSTM)      :: PNS00
+
+!cpub begin assume new Helium profile as nHe = NHE0*(1-PHI**2)**2 
+	  IF(NHE0>0) THEN     
+		  DO NR=1,NRMAX
+		  	  RN(NR,4)=NHE0*(1-RG(NR)**4)**2
+	  	  ENDDO  	  	  
+	  ENDIF	  
+!cpub end assume new Helium profile as nHe = NHE0*(1-PHI**2)**2      
+      
+!cpub begin
+	  DO NR=1,NRMAX
+	  	  RN0(NR,1:NSM) = RN(NR,1:NSM)
+	  ENDDO
+!cpub end      
+      
+!cpub begin Dilute the densities of ions     
+      DO NR=1,NRMAX
+          ANC(NR)=PNC*RN(NR,1)
+          ANFE(NR)=PNFE*RN(NR,1)
+          ANI = SUM(PZ(2:NSM)*RN(NR,2:NSM))
+          ANZ = PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
+          DILUTE = 1.D0-ANZ/ANI
+          RN(NR,2:NSM) = RN(NR,2:NSM)*DILUTE
+!          print *,' 0 ',NR,ANC(NR),RN(NR,1),RN0(NR,2),DILUTE
+!          print *,' 1 ',NR,ANC(NR),RN(NR,1),RN(NR,2),DILUTE
+      ENDDO         
+      PNS00(1:NSM)=PNS(1:NSM)
+      PNS(2:NSM)=PNS(2:NSM)*DILUTE       
+!cpub end
+
+      IF(RHOA.NE.1.D0) NRMAX=NROMAX
+      IERR=0
+
+      SIE(1:NRMAX)=0.D0
+      SPT(1:NRMAX)=0.D0
+      SNF(1:NRMAX)=0.D0
+      SNB(1:NRMAX)=0.D0
+      POH(1:NRMAX)=0.D0
+      PIE(1:NRMAX)=0.D0
+      PCX(1:NRMAX)=0.D0
+      PRB(1:NRMAX)=0.D0
+      PRC(1:NRMAX)=0.D0
+      PRL(1:NRMAX)=0.D0
+      PRSUM(1:NRMAX)=0.D0
+      PNB(1:NRMAX)=0.D0
+      PNF(1:NRMAX)=0.D0
+      PBIN(1:NRMAX)=0.D0
+      PFIN(1:NRMAX)=0.D0
+!      AJNB(1:NRMAX)=0.D0
+      AJRFV(1:NRMAX,1)=0.D0
+      AJRFV(1:NRMAX,2)=0.D0
+      AJRFV(1:NRMAX,3)=0.D0
+      AJRF(1:NRMAX)=0.D0
+      AJBS(1:NRMAX)=0.D0
+      SPE(1:NRMAX,1:NSMAX)=0.D0
+      PBCL(1:NRMAX,1:NSMAX)=0.D0
+      PFCL(1:NRMAX,1:NSMAX)=0.D0
+      IF(MDLUF.NE.0) THEN
+         PRFV(1:NRMAX,3:NSM,1)=0.D0
+         PRFV(1:NRMAX,3:NSM,2)=0.D0
+         PRFV(1:NRMAX,3:NSM,3)=0.D0
+         PRF(1:NRMAX,3:NSM)=0.D0
+      ELSE
+         PRFV(1:NRMAX,1:NSM,1)=0.D0
+         PRFV(1:NRMAX,1:NSM,2)=0.D0
+         PRFV(1:NRMAX,1:NSM,3)=0.D0
+         PRF(1:NRMAX,1:NSM)=0.D0
+      ENDIF
+
+      BP(1:NRMAX)=AR1RHOG(1:NRMAX)*RDP(1:NRMAX)/RR
+      QP(1:NRMAX)=TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)/(4.D0*PI**2*RDPVRHOG(1:NRMAX))
+      Q0=FCTR(RG(1),RG(2),QP(1),QP(2))
+
+!     *** RADIAL ELECTRIC FIELD ***
+
+      CALL TRERAD
+!cpub begin
+
+
+
+      IF((T.LT.(PELTIM+0.4D0*DT)).AND. (T.GE.(PELTIM-0.4D0*DT))) THEN 
+!	      write(6,2529) T, PELTIM
+! 2529 	  format('> T:',F7.3,' SEC','  PELTIM:',F7.3,' SEC')
+	      CALL TRPELT
+      ENDIF
+!cpub end
+      CALL TRZEFF
+      IF(MDLPR.GT.0) CALL TR_CYTRAN
+
+      IF(MDNCLS.NE.0) THEN
+         CALL TR_NCLASS(IERR)
+         IF(IERR.NE.0) RETURN
+      ENDIF
+
+      CALL TRCOEF
+      CALL TRLOSS
+      IF(MDLUF.NE.1.AND.MDLUF.NE.3) CALL TRPWRF
+      CALL TRPWNB
+
+      IF(MDNCLS.NE.0) THEN
+         CALL TRAJBS_NCLASS
+      ELSE
+         select case(MDLJBS)
+         case(1)
+            CALL TRAJBS
+         case(2)
+            CALL TRAJBS
+         case(3)
+            CALL TRAJBS
+         case(4)
+            CALL TRAJBSNEW
+         case(5)
+            CALL TRAJBSSAUTER
+         case default
+            CALL TRAJBS
+         end select
+      ENDIF
+
+      SELECT CASE(MDLNF)
+      CASE(0)
+         TAUF(1:NRMAX)=1.D0
+      CASE(1:4)
+         CALL TRNFDT
+      CASE(5:6)
+         CALL TRNFDHE3
+      END SELECT
+      
+      CALL TRAJOH
+      DO NR=1,NRMAX
+         IF(MDLEQ0.EQ.0) THEN
+!cpub begin
+            SSIN(NR,1)=SIE(NR)                            +SNB(NR)+SEX(NR,1)
+!	    write(6,2527) NR,SSIN(NR,1),SIE(NR),SPT(NR),SNB(NR),SEX(NR,1)
+! 2527       format(' > SSIN(',1I4,', 1)=',1PE11.3,' SIE=',1PE11.3,' SPT=',1PE11.3,' SNB=',1PE11.3,' SEX=',1PE11.3)
+            SSIN(NR,2)=PN(2)*SIE(NR)/(PN(2)+PN(3))-SNF(NR)+SNB(NR)+SEX(NR,2)+0.5*SPT(NR)
+            SSIN(NR,3)=PN(3)*SIE(NR)/(PN(2)+PN(3))-SNF(NR)        +SEX(NR,3)+0.5*SPT(NR)
+            SSIN(NR,4)=                            SNF(NR)        +SEX(NR,4)
+            SSIN(NR,7)=-SIE(NR)                                   -SCX(NR)
+            SSIN(NR,8)=                                    SNB(NR)+SCX(NR)
+!	    write(6,2526) NR,SSIN(NR,1),SSIN(NR,2),SSIN(NR,3),SSIN(NR,4),SSIN(NR,5),SSIN(NR,6),SSIN(NR,7),SSIN(NR,8)
+! 2526	    format(' > NR=',1I4,' ',1PE11.3,' ',1PE11.3,' ',1PE11.3,' ',1PE11.3,' ',1PE11.3,' ',1PE11.3,' ',1PE11.3,' ',1PE11.3)
+!cpub end        
+	 ELSEIF(MDLEQ0.EQ.1) THEN
+            SSIN(NR,1)=                                    SNB(NR)+SEX(NR,1)
+            SSIN(NR,2)=                           -SNF(NR)+SNB(NR)+SEX(NR,2)
+            SSIN(NR,3)=                           -SNF(NR)        +SEX(NR,3)
+            SSIN(NR,4)=                            SNF(NR)        +SEX(NR,4)
+            SSIN(NR,7)=0.D0
+            SSIN(NR,8)=                                    SNB(NR)
+         ENDIF
+         PIN(NR,1)=PBCL(NR,1)+PFCL(NR,1)+PRF(NR,1) &
+              &   +POH(NR)-PRSUM(NR)-PIE(NR)+PEX(NR,1)
+         PIN(NR,2)=PBCL(NR,2)+PFCL(NR,2)+PRF(NR,2) &
+              &   -PN(2)*PCX(NR)/(PN(2)+PN(3))+PEX(NR,2)
+         PIN(NR,3)=PBCL(NR,3)+PFCL(NR,3)+PRF(NR,3) &
+              &   -PN(3)*PCX(NR)/(PN(2)+PN(3))+PEX(NR,3)
+         PIN(NR,4)=PBCL(NR,4)+PFCL(NR,4)+PRF(NR,4)+PEX(NR,4)
+      ENDDO
+
+      IF(RHOA.NE.1.D0) NRMAX=NRAMAX
+
+      
+!cpub begin Bring back the densities of ions before dilution
+      DO NR=1,NRMAX
+!          ANC(NR)=PNC*RN(NR,1)
+!          ANFE(NR)=PNFE*RN(NR,1)
+!          ANI = SUM(PZ(2:NSM)*RN(NR,2:NSM))
+!          ANZ = PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
+!          DILUTE = 1.D0-ANZ/ANI
+          RN(NR,2:NSM) = RN0(NR,2:NSM)
+!          print *,' 2 ',NR,ANC(NR),RN(NR,1),RN(NR,2)
+      ENDDO         
+      PNS(2:NSM)=PNS00(2:NSM)       
+!cpub end
+
+      RETURN
+      END SUBROUTINE TRCALCIMP
 !     ***********************************************************
 
 !           RADIAL ELECTRIC FIELD
@@ -223,22 +446,24 @@
       REAL(8):: BC40=-3.412166D+01,BC41=1.250454D+02,BC42=-1.550822D+02,BC43=9.568297D+01, BC44=-2.937297D+01,BC45=3.589667D+00
 
 
-      TEL = LOG10(TE)
-      IF(TE.LE.3.D-3) THEN
-         TRZEC=0.D0
-      ELSEIF(TE.LE.2.D-2) THEN
-         TRZEC= BC00+(BC01*TEL)+(BC02*TEL**2)+(BC03*TEL**3)+(BC04*TEL**4)+(BC05*TEL**5)
-      ELSEIF(TE.LE.0.2D0) THEN
-         TRZEC= BC10+(BC11*TEL)+(BC12*TEL**2)+(BC13*TEL**3)+(BC14*TEL**4)+(BC15*TEL**5)
-      ELSEIF(TE.LE.2.D0) THEN
-         TRZEC= BC20+(BC21*TEL)+(BC22*TEL**2)+(BC23*TEL**3)+(BC24*TEL**4)+(BC25*TEL**5)
-      ELSEIF(TE.LE.20.D0) THEN
-         TRZEC= BC30+(BC31*TEL)+(BC32*TEL**2)+(BC33*TEL**3)+(BC34*TEL**4)+(BC35*TEL**5)
-      ELSEIF(TE.LE.100.D0) THEN
-         TRZEC= BC40+(BC41*TEL)+(BC42*TEL**2)+(BC43*TEL**3)+(BC44*TEL**4)+(BC45*TEL**5)
-      ELSE
-         TRZEC= 6.D0
-      ENDIF
+!      TEL = LOG10(TE)
+!      IF(TE.LE.3.D-3) THEN
+!         TRZEC=0.D0
+!      ELSEIF(TE.LE.2.D-2) THEN
+!         TRZEC= BC00+(BC01*TEL)+(BC02*TEL**2)+(BC03*TEL**3)+(BC04*TEL**4)+(BC05*TEL**5)
+!      ELSEIF(TE.LE.0.2D0) THEN
+!         TRZEC= BC10+(BC11*TEL)+(BC12*TEL**2)+(BC13*TEL**3)+(BC14*TEL**4)+(BC15*TEL**5)
+!      ELSEIF(TE.LE.2.D0) THEN
+!         TRZEC= BC20+(BC21*TEL)+(BC22*TEL**2)+(BC23*TEL**3)+(BC24*TEL**4)+(BC25*TEL**5)
+!      ELSEIF(TE.LE.20.D0) THEN
+!         TRZEC= BC30+(BC31*TEL)+(BC32*TEL**2)+(BC33*TEL**3)+(BC34*TEL**4)+(BC35*TEL**5)
+!      ELSEIF(TE.LE.100.D0) THEN
+!         TRZEC= BC40+(BC41*TEL)+(BC42*TEL**2)+(BC43*TEL**3)+(BC44*TEL**4)+(BC45*TEL**5)
+!      ELSE
+!         TRZEC= 6.D0
+!      ENDIF
+      
+      TRZEC=4.D0
 
       RETURN
       END FUNCTION TRZEC
@@ -259,22 +484,24 @@
       REAL(8):: BF40=2.122081D+01, BF41=6.891607D+00, BF42=-4.076853D+00,BF43=1.577171D+00, BF44=-5.139468D-01, BF45=8.934176D-02
 
 
-      TEL = LOG10(TE)
+!      TEL = LOG10(TE)
 
-      IF(TE.LE.3.D-3) THEN
-         TRZEFE=0.D0
-      ELSEIF(TE.LE.0.2D0) THEN
-         TRZEFE = BF10+(BF11*TEL)+(BF12*TEL**2)+(BF13*TEL**3)+(BF14*TEL**4)+(BF15*TEL**5)
-      ELSEIF(TE.LE.2.D0) THEN
-         TRZEFE = BF20+(BF21*TEL)+(BF22*TEL**2)+(BF23*TEL**3)+(BF24*TEL**4)+(BF25*TEL**5)
-      ELSEIF(TE.LE.20.D0) THEN
-         TRZEFE = BF30+(BF31*TEL)+(BF32*TEL**2)+(BF33*TEL**3)+(BF34*TEL**4)+(BF35*TEL**5)
-      ELSEIF(TE.LE.100.D0) THEN
-         TRZEFE = BF40+(BF41*TEL)+(BF42*TEL**2)+(BF43*TEL**3)+(BF44*TEL**4)+(BF45*TEL**5)
-      ELSE
-         TRZEFE = 26.D0
-      ENDIF
+!      IF(TE.LE.3.D-3) THEN
+!         TRZEFE=0.D0
+!      ELSEIF(TE.LE.0.2D0) THEN
+!         TRZEFE = BF10+(BF11*TEL)+(BF12*TEL**2)+(BF13*TEL**3)+(BF14*TEL**4)+(BF15*TEL**5)
+!      ELSEIF(TE.LE.2.D0) THEN
+!         TRZEFE = BF20+(BF21*TEL)+(BF22*TEL**2)+(BF23*TEL**3)+(BF24*TEL**4)+(BF25*TEL**5)
+!      ELSEIF(TE.LE.20.D0) THEN
+!         TRZEFE = BF30+(BF31*TEL)+(BF32*TEL**2)+(BF33*TEL**3)+(BF34*TEL**4)+(BF35*TEL**5)
+!      ELSEIF(TE.LE.100.D0) THEN
+!         TRZEFE = BF40+(BF41*TEL)+(BF42*TEL**2)+(BF43*TEL**3)+(BF44*TEL**4)+(BF45*TEL**5)
+!      ELSE
+!         TRZEFE = 26.D0
+!      ENDIF
 
+      TRZEFE=18
+      
       RETURN
       END FUNCTION TRZEFE
 
@@ -394,7 +621,7 @@
 
       USE TRCOMM, ONLY : AEE, ANC, ANFE, ANNU, DT, KUFDEV, MDLUF, MDLPR, &
            NRMAX, NT, NTUM, PCX, PIE, PRB, PRC, PRSUM, PRL, PRLU, RKEV, RN, &
-           RT, SCX, SIE, TSCX, TSIE
+           RT, SCX, SIE, TSCX, TSIE, SPT, SPT0, SPT1
       USE TRCOM1, ONLY : NTAMAX, NTXMAX, PNBI, TMU
       USE tr_cytran_mod, ONLY: tr_cytran
       IMPLICIT NONE
@@ -460,6 +687,8 @@
                PRSUM(NR)=PRL(NR)+PRB(NR)
             CASE(1,2)
                PRSUM(NR)=PRL(NR)+PRB(NR)+PRC(NR)
+        	CASE(3)
+        	   PRSUM(NR)=0
             END SELECT
          ENDDO
       ENDIF
@@ -476,6 +705,11 @@
          PIE(NR) = ANE*ANNU(NR)*SION*1.D40*EION*AEE
          SIE(NR) = ANE*ANNU(NR)*SION*1.D20
          TSIE(NR)= ANE         *SION*1.D20
+!cpub begin SPT: source of particle transport (ITPA)
+         SPT(NR) = SPT0*EXP(SPT1*((NR*1.D0/NRMAX)**2.0 - 1.D0)/1.D0)
+!	 write(6,2530) NR,SIE(NR),ANE,ANNU(NR),SION
+! 2530    format(' > SIE(',1I4,')=',1PE11.4,' ANE=',1PE11.4,' ANNU=',1PE11.4,' SION=',1PE11.4)
+!cpub end
       ENDDO
 
 !     ****** CHARGE EXCHANGE LOSS ******
@@ -1337,7 +1571,7 @@
       ENDIF
 
       WRITE(6,601) MDLST,T
-  601 FORMAT(' ','# SAWTOOTH OSCILLATION -TYPE ',I1, ' AT ',F7.3,' SEC')
+  601 FORMAT(' ','# SAWTOOTH OSCILLATION -TYPE ',I4, ' AT ',F7.3,' SEC')
 
       SUML=0.D0
       DO NR=1,NRMAX
@@ -1614,7 +1848,13 @@
       REAL(8):: COEF, COULOG
 
       COEF = 12.D0*PI*SQRT(PI)*EPS0**2*SQRT(PAL*AMM)/(AEE**4*1.D20)
-      FTAUI = COEF*(TIL*RKEV)**1.5D0/(ANIL*ZL**4*COULOG(2,2,ANEL,TIL))
+      IF(ANIL.EQ.0.D0) THEN
+         FTAUI = COEF*(TIL*RKEV)**1.5D0 &
+               /(1.D-8*ZL**4*COULOG(2,2,ANEL,TIL))
+      ELSE
+         FTAUI = COEF*(TIL*RKEV)**1.5D0 &
+               /(ANIL*ZL**4*COULOG(2,2,ANEL,TIL))
+      END IF
 
       RETURN
       END FUNCTION FTAUI

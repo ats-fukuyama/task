@@ -15,11 +15,11 @@ MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD)
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
 SRCSFIXED = 
-SRCSFREE = xxcomm.f90 xxexec.f90 xxgout.f90 \
-           xxinit.f90 xxparm.f90 xxmenu.f90
+SRCSFREE = xxcomm.f90 xxinit.f90 xxparm.f90 \
+           xxprep.f90 xxexec.f90 xxgout.f90 \
+           xxmenu.f90
 
-#OBJS = $(SRCSFIXED:.f=.o) $(SRCSFREE:.f90=.o) 
-OBJS = $(SRCSFREE:.f90=.o) 
+OBJS = $(SRCSFIXED:.f=.o) $(SRCSFREE:.f90=.o) 
 
 LIBS = xxlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a
 
@@ -50,5 +50,6 @@ xxmain.o: xxmain.f90 xxcomm.f90
 xxmenu.o: xxmenu.f90 xxcomm.f90
 xxinit.o: xxinit.f90 xxcomm.f90
 xxparm.o: xxparm.f90 xxcomm.f90
+xxprep.o: xxprep.f90 xxcomm.f90
 xxexec.o: xxexec.f90 xxcomm.f90
 xxgout.o: xxgout.f90 xxcomm.f90

@@ -1,0 +1,105 @@
+
+    レポート: プロシージャー間の最適化 [ipo]
+
+インライン展開オプション値:
+  -inline-factor: 100
+  -inline-min-size: 30
+  -inline-max-size: 230
+  -inline-max-total-size: 2000
+  -inline-max-per-routine: 無効
+  -inline-max-per-compile: 無効
+
+
+最適化レポート開始: WRITE_C
+
+    レポート: プロシージャー間の最適化 [ipo]
+
+インライン展開レポート: (WRITE_C) [1] nclass/write_mod.f(1,18)
+  -> EXTERN: (20,7) for_write_int_fmt
+  -> EXTERN: (21,7) for_write_int_fmt
+  -> EXTERN: (22,7) for_concat
+  -> EXTERN: (23,7) for_write_seq_fmt_xmit
+  -> EXTERN: (23,7) for_write_seq_fmt_xmit
+  -> EXTERN: (23,7) for_write_seq_fmt
+
+
+    レポート: ループの入れ子、ベクトル、自動並列化の最適化 [loop, vec, par]
+
+
+LOOP BEGIN at nclass/write_mod.f(23,7)
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15344: ループ はベクトル化されませんでした: ベクトル依存関係がベクトル化 . 最初の依存関係を以下に示します。詳細については、レベル 5 のレポートを使用してください。 を妨げています。
+   remark #15346: ベクトル依存関係: OUTPUT の依存関係が ARGBLOCK_REC_3 行 23 と ARGBLOCK_REC_3 行 23 の間に仮定されました。
+LOOP END
+===========================================================================
+
+最適化レポート開始: WRITE_IR
+
+    レポート: プロシージャー間の最適化 [ipo]
+
+インライン展開レポート: (WRITE_IR) [2] nclass/write_mod.f(26,18)
+  -> EXTERN: (52,7) for_write_int_fmt
+  -> EXTERN: (53,7) for_write_int_fmt
+  -> EXTERN: (57,11) for_concat
+  -> EXTERN: (59,11) for_concat
+  -> EXTERN: (61,11) for_concat
+  -> EXTERN: (63,9) for_write_seq_fmt
+  -> EXTERN: (66,9) for_concat
+  -> EXTERN: (67,9) for_write_seq_fmt
+  -> EXTERN: (71,11) for_concat
+  -> EXTERN: (73,11) for_concat
+  -> EXTERN: (75,11) for_concat
+  -> EXTERN: (77,9) for_write_seq_fmt_xmit
+  -> EXTERN: (77,9) for_write_seq_fmt
+
+===========================================================================
+
+最適化レポート開始: WRITE_LINE
+
+    レポート: プロシージャー間の最適化 [ipo]
+
+インライン展開レポート: (WRITE_LINE) [3] nclass/write_mod.f(81,18)
+  -> EXTERN: (101,11) for_write_seq_fmt
+  -> EXTERN: (104,7) for_write_seq_fmt
+  -> EXTERN: (107,11) for_write_seq_fmt
+
+
+    レポート: ループの入れ子、ベクトル、自動並列化の最適化 [loop, vec, par]
+
+
+LOOP BEGIN at nclass/write_mod.f(100,9)
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15344: ループ はベクトル化されませんでした: ベクトル依存関係がベクトル化 . 最初の依存関係を以下に示します。詳細については、レベル 5 のレポートを使用してください。 を妨げています。
+   remark #15346: ベクトル依存関係: OUTPUT の依存関係が 160 行 101 と 160 行 101 の間に仮定されました。
+LOOP END
+
+LOOP BEGIN at nclass/write_mod.f(106,9)
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15344: ループ はベクトル化されませんでした: ベクトル依存関係がベクトル化 . 最初の依存関係を以下に示します。詳細については、レベル 5 のレポートを使用してください。 を妨げています。
+   remark #15346: ベクトル依存関係: OUTPUT の依存関係が 160 行 107 と 160 行 107 の間に仮定されました。
+LOOP END
+===========================================================================
+
+最適化レポート開始: WRITE_LINE_IR
+
+    レポート: プロシージャー間の最適化 [ipo]
+
+インライン展開レポート: (WRITE_LINE_IR) [4] nclass/write_mod.f(112,18)
+  -> EXTERN: (140,7) for_write_int_fmt
+  -> EXTERN: (141,7) for_write_int_fmt
+  -> EXTERN: (145,11) for_concat
+  -> EXTERN: (147,11) for_concat
+  -> EXTERN: (149,11) for_concat
+  -> EXTERN: (151,9) for_write_seq_fmt
+  -> EXTERN: (151,9) for_write_seq_fmt_xmit
+  -> EXTERN: (154,9) for_concat
+  -> EXTERN: (155,9) for_write_seq_fmt
+  -> EXTERN: (155,9) for_write_seq_fmt_xmit
+  -> EXTERN: (159,11) for_concat
+  -> EXTERN: (161,11) for_concat
+  -> EXTERN: (163,11) for_concat
+  -> EXTERN: (165,9) for_write_seq_fmt_xmit
+  -> EXTERN: (165,9) for_write_seq_fmt_xmit
+  -> EXTERN: (165,9) for_write_seq_fmt
+
+===========================================================================

@@ -1,5 +1,3 @@
-!    $Id$
-
 Module xxgout
   PRIVATE
   PUBLIC xx_gout
@@ -8,9 +6,14 @@ CONTAINS
 
   SUBROUTINE xx_gout
 
-    USE xxcomm,ONLY: rkind,nxmax,x,y
+    USE xxparm,ONLY: xx_parm
     USE libgrf
     IMPLICIT NONE
+    INTEGER:: kid,mode,ierr,ich
+    CHARACTER(LEN=1):: kch
+    CHARACTER(LEN=80):: line
+    INTEGER,PARAMETER:: nxmax=100
+    REAL(8):: x(nxmax),y(nxmax)
 
 1   CONTINUE
     ierr=0
@@ -28,7 +31,8 @@ CONTAINS
        CALL PAGES
        CALL GRD1D(0,x,y,nxmax,nxmax,1,'xx')
        CALL PAGEE
-    CASE('X') GO TO 9000
+    CASE('X') 
+       GO TO 9000
     END SELECT
     GO TO 1
 

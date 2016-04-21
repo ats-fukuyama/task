@@ -21,6 +21,7 @@
       
       PUBLIC mtx_set_vector
       PUBLIC mtx_solve
+      PUBLIC mtx_get_vector_j
       PUBLIC mtx_get_vector
       PUBLIC mtx_gather_vector
       PUBLIC mtx_cleanup
@@ -30,6 +31,7 @@
       PUBLIC mtxc_set_source
       PUBLIC mtxc_set_vector
       PUBLIC mtxc_solve
+      PUBLIC mtxc_get_vector_j
       PUBLIC mtxc_get_vector
       PUBLIC mtxc_gather_vector
       PUBLIC mtxc_cleanup
@@ -156,7 +158,7 @@
             ir(irc)=i
             ic(irc)=j
             drc(irc)=v
-            IF(idebug_save.EQ.1) &
+            IF(idebug_save.EQ.2) &
                  write(6,'(3I5,1PE12.4)') irc,ir(irc),ic(irc),drc(irc)
          END IF
       END IF
@@ -174,7 +176,7 @@
       REAL(8),INTENT(IN):: v ! value to be inserted
 
       b(j)=v
-      IF(idebug_save.EQ.1) &
+      IF(idebug_save.EQ.2) &
            write(6,'(3I5,1PE12.4)') j,j,0,v
       RETURN
       END SUBROUTINE mtx_set_source
@@ -221,9 +223,9 @@
             A(ic(i)-ir(i)+joffset,ir(i))=drc(i)
 !            write(6,'(3I5,1PE12.4)') i,ir(i),ic(i),drc(i)
          END DO
-         WRITE(6,'(A,4I8)') &
-              '-- libmtxbnd: mtx_solve: irmax,icmin,icmax,irc=', &
-                                        irmax,icmin,icmax,irc
+!         WRITE(6,'(A,4I8)') &
+!              '-- libmtxbnd: mtx_solve: irmax,icmin,icmax,irc=', &
+!                                        irmax,icmin,icmax,irc
       END IF
          
       CALL BANDRD(A,x,imax,jmax,jmax,ierr)
@@ -251,11 +253,24 @@
 
 !-----
 
-      SUBROUTINE mtx_get_vector(j,v)
+      SUBROUTINE mtx_get_vector_j(j,v)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: j
       REAL(8),INTENT(OUT):: v
       v=x(j)
+      RETURN
+      END SUBROUTINE mtx_get_vector_j
+
+!-----
+
+      SUBROUTINE mtx_get_vector(v)
+      IMPLICIT NONE
+      REAL(8),DIMENSION(imax),INTENT(OUT):: v
+      INTEGER:: i
+
+      DO i=1,imax
+         v(i)=x(i)
+      ENDDO
       RETURN
       END SUBROUTINE mtx_get_vector
 
@@ -365,7 +380,7 @@
             ir(irc)=i
             ic(irc)=j
             drcc(irc)=v
-            IF(idebug_save.EQ.1) &
+            IF(idebug_save.EQ.2) &
                  write(6,'(3I5,1P2E12.4)') irc,ir(irc),ic(irc),drcc(irc)
          END IF
       END IF
@@ -383,7 +398,7 @@
       COMPLEX(8),INTENT(IN):: v ! value to be inserted
 
       bc(j)=v
-      IF(idebug_save.EQ.1) &
+      IF(idebug_save.EQ.2) &
            write(6,'(3I5,1P2E12.4)') j,j,0,v
       RETURN
       END SUBROUTINE mtxc_set_source
@@ -432,9 +447,9 @@
             Ac(ic(i)-ir(i)+joffset,ir(i))=drcc(i)
 !            write(6,'(3I5,1PE12.4)') i,ir(i),ic(i),drcc(i)
          END DO
-         WRITE(6,'(A,4I8)') &
-              '-- libmtxbnd: mtxc_solve: irmax,icmin,icmax,irc=', &
-                                         irmax,icmin,icmax,irc
+!         WRITE(6,'(A,4I8)') &
+!              '-- libmtxbnd: mtxc_solve: irmax,icmin,icmax,irc=', &
+!                                         irmax,icmin,icmax,irc
       END IF
          
       CALL BANDCD(Ac,xc,imax,jmax,jmax,ierr)
@@ -460,11 +475,22 @@
       RETURN
       END SUBROUTINE mtxc_solve
 
-      SUBROUTINE mtxc_get_vector(j,v)
+      SUBROUTINE mtxc_get_vector_j(j,v)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: j
       COMPLEX(8),INTENT(OUT):: v
       v=xc(j)
+      RETURN
+      END SUBROUTINE mtxc_get_vector_j
+
+      SUBROUTINE mtxc_get_vector(v)
+      IMPLICIT NONE
+      COMPLEX(8),DIMENSION(imax),INTENT(OUT):: v
+      INTEGER:: i
+
+      DO i=1,imax
+         v(i)=xc(i)
+      ENDDO
       RETURN
       END SUBROUTINE mtxc_get_vector
 

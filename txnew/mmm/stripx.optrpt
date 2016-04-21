@@ -1,0 +1,60 @@
+
+    レポート: プロシージャー間の最適化 [ipo]
+
+インライン展開オプション値:
+  -inline-factor: 100
+  -inline-min-size: 30
+  -inline-max-size: 230
+  -inline-max-total-size: 2000
+  -inline-max-per-routine: 無効
+  -inline-max-per-compile: 無効
+
+
+最適化レポート開始: STRIPX
+
+    レポート: プロシージャー間の最適化 [ipo]
+
+インライン展開レポート: (STRIPX) [1] mmm/stripx.f(4,18)
+  -> EXTERN: (30,12) getenv_
+  -> EXTERN: (37,7) for_read_seq_fmt
+  -> EXTERN: (50,40) for_cpystr
+  -> EXTERN: (60,9) for_write_seq_fmt
+  -> EXTERN: (62,9) for_write_seq_lis
+  -> EXTERN: (76,27) for_write_seq_fmt
+  -> EXTERN: (84,7) for_rewind
+
+
+    レポート: ループの入れ子、ベクトル、自動並列化の最適化 [loop, vec, par]
+
+
+LOOP BEGIN at mmm/stripx.f(29,7)
+   remark #25408: memset が生成されました。
+   remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+   remark #15335: ループ はベクトル化されませんでした: ベクトル化は可能ですが非効率です。オーバーライドするには vector always 宣言子または -vec-threshold0 を使用してください。
+   remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 2 
+   remark #15477: ベクトルループのコスト: 0.750 
+   remark #15478: スピードアップの期待値: 1.630 
+   remark #15479: 軽いベクトル操作: 2 
+   remark #15480: 中オーバーヘッドのベクトル操作: 1 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25436: 完全なアンロール - 9  
+LOOP END
+
+LOOP BEGIN at mmm/stripx.f(32,10)
+   remark #17102: ループは並列化されませんでした: 並列化候補ではありません。
+   remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+
+   LOOP BEGIN at mmm/stripx.f(44,25)
+      remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+      remark #15344: ループ はベクトル化されませんでした: ベクトル依存関係がベクトル化 . 最初の依存関係を以下に示します。詳細については、レベル 5 のレポートを使用してください。 を妨げています。
+      remark #15346: ベクトル依存関係: OUTPUT の依存関係が line 行 49 と line 行 50 の間に仮定されました。
+   LOOP END
+
+   LOOP BEGIN at mmm/stripx.f(69,24)
+      remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+      remark #15520: ループ はベクトル化されませんでした: 途中で終了するループは、検索ループ表現の条件を満たす場合を除いて、ベクトル化できません。
+   LOOP END
+LOOP END
+===========================================================================

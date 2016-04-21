@@ -1,9 +1,6 @@
-!     $Id$
-
 Module xxparm
 
   PRIVATE
-
   PUBLIC xx_parm, xx_view
 
 CONTAINS
@@ -45,8 +42,7 @@ CONTAINS
 
   SUBROUTINE xx_nlin(NID,IST,IERR)
 
-    USE xxcomm, ONLY: nxmax,x0,dx,am
-
+    USE xxcomm_parm
     IMPLICIT NONE
     INTEGER,INTENT(IN) :: NID
     INTEGER,INTENT(OUT) :: IST,IERR
@@ -79,7 +75,7 @@ CONTAINS
 
   SUBROUTINE xx_check(IERR)
 
-    USE xxcomm,ONLY: dx
+    USE xxcomm_parm
     IMPLICIT NONE
     INTEGER:: IERR
 
@@ -96,7 +92,7 @@ CONTAINS
 
   SUBROUTINE xx_view
 
-    use xxcomm
+    use xxcomm_parm
     implicit none
 
     WRITE(6,601) 'x0    ',x0    ,'dx    ',dx    , &
@@ -112,4 +108,3 @@ CONTAINS
   END SUBROUTINE xx_view
 
 END MODULE xxparm
-  

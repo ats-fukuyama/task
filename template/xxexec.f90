@@ -1,5 +1,3 @@
-!    $Id$
-
 Module xxexec
   PRIVATE
   PUBLIC xx_exec

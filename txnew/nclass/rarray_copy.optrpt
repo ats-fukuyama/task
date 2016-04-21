@@ -1,0 +1,36 @@
+
+    レポート: プロシージャー間の最適化 [ipo]
+
+インライン展開オプション値:
+  -inline-factor: 100
+  -inline-min-size: 30
+  -inline-max-size: 230
+  -inline-max-total-size: 2000
+  -inline-max-per-routine: 無効
+  -inline-max-per-compile: 無効
+
+
+最適化レポート開始: RARRAY_COPY
+
+    レポート: プロシージャー間の最適化 [ipo]
+
+インライン展開レポート: (RARRAY_COPY) [1] nclass/rarray_copy.f(1,18)
+
+
+    レポート: ループの入れ子、ベクトル、自動並列化の最適化 [loop, vec, par]
+
+
+LOOP BEGIN at nclass/rarray_copy.f(25,7)
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15335: ループ はベクトル化されませんでした: ベクトル化は可能ですが非効率です。オーバーライドするには vector always 宣言子または -vec-threshold0 を使用してください。
+   remark #15460: マスク付きストライドロード: 1 
+   remark #15462: マスクなしインデックス (集約) ロード: 1 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 4 
+   remark #15477: ベクトルループのコスト: 4.750 
+   remark #15478: スピードアップの期待値: 0.830 
+   remark #15479: 軽いベクトル操作: 1 
+   remark #15481: 高オーバーヘッドのベクトル操作: 2 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+LOOP END
+===========================================================================

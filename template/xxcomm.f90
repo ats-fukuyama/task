@@ -1,12 +1,17 @@
-!     $Id$
-
-MODULE xxcomm
+MODULE xxcomm_parm
 
   USE bpsd_kinds
   USE bpsd_constants
 
   INTEGER:: nxmax
   REAL(rkind):: x0,dx,am
+
+END MODULE xxcomm_parm
+
+MODULE xxcomm
+
+  USE xxcomm_parm
+
   REAL(rkind),ALLOCATABLE,DIMENSION(:):: x,y
 
 CONTAINS
