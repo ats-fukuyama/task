@@ -88,7 +88,6 @@ C
   300       CONTINUE
          DO 400 I=1,NXP-1
             DELTAX=ABS(XA(I)-XA(I+1))
-            MWIDTH=INT(XDMAX/(YX(I)*DELTAX))+1
             IF(MWIDTH.GT.MATLM) MWIDTH=MATLM
             IF(MWIDTH.LT.2)     MWIDTH=2
             MATL=MAX(MATL,MWIDTH)

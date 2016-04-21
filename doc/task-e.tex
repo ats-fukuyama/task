@@ -1,0 +1,604 @@
+\documentclass[11pt]{article}
+\usepackage{af}
+\usepackage{sym}
+\usepackage{doc}
+
+\begin{document}
+\begin{flushright}
+2016/04/21
+\end{flushright}
+
+\begin{center}
+\textbf{\Large User Manual of the TASK Code}
+\end{center}
+
+\tableofcontents
+
+\section{What is the TASK code?}
+
+The TASK (\textbf{T}ransport \textbf{A}nalyzing \textbf{S}ystem for
+takama\textbf{K}) code is a suite of modeling tools for analyzing equilibrium,
+transport, wave propagation, and velocity distribution function in
+tokamak plasmas.
+
+\subsection{Features of the TASK code}
+\begin{itemize}
+\item
+\textbf{Simulation on time evolution of tokamak plasmas}
+\begin{itemize}
+\item
+Integrated simulation code suite with modular structure
+\item
+Analysis of various heating and current drive mechanism
+\item
+High portability
+\item
+Extension to three-dimensional helical plasmas
+\item
+Parallel processing using MPI libraries
+\item
+Interface to experimental database
+\end{itemize}
+\item
+\textbf{Core code suite in Burning Plasma Simulation Initiative}
+\begin{itemize}
+\item
+Minimum integrated code: all components are exchangeable
+\item
+Test implementation of BPSD: standard data interface
+\item
+Unified user interface: 
+\end{itemize}
+\end{itemize}
+
+\subsection{Module structure of the TASK code}
+\begin{center}
+\begin{tabular}{r|ll}
+\hline
+\texttt{TASK/EQ} & {2D equilibrium} & Fixed boundary \\
+\texttt{EQU} & {2D equilibrium} & Free boundary \\[2mm]
+\texttt{TR} & {1D transport} & Diffusive transport \\
+\texttt{TX} & {1D transport} & Dynamic transport \\[2mm]
+\texttt{WR} & {3D Geometrical Optics} & Ray/beam tracing \\
+\texttt{WM} & {3D Full wave} & 2D FFT, 1D FDM \\
+\texttt{WF2D} & {3D Full wave} & 1D FFT, 2D FEM \\
+\texttt{WF3D} & {3D Full wave} & 3D FEM \\
+\texttt{W1} & {1D Full wave} & MLM, FEM, differential, FLR integral \\
+\texttt{WI} & {1D Full wave} & FEM, Landau/Cyclotron damping integral \\
+\texttt{DP} & {Dispersion} & Dielectric tensor \\[2mm]
+\texttt{FIT3D} & {NBI} & Birth, orbit, deposition \\[2mm]
+\texttt{FP} & {Velocity distributuion fn} & 3D Fokker-Planck equation \\[2mm]
+\texttt{PLX} & {Profile data} & Initial profile, file interface \\
+\texttt{LIB} & {Common library} & Matrix solver, FFT, spline,  \\
+\texttt{MTXP} & {Matrix solver} & MPI, Direct, Iterative, parallelize \\
+\texttt{TOT} & {Total code} & Integrated operation \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{Specifications}
+
+\begin{itemize}
+\item
+\textbf{Language}: FORTRAN95 
+\begin{itemize}
+\item
+Allocatable array is used as a component of a derived type
+\item
+Graphic library requires C compiler and X11 library.
+\end{itemize}
+\item
+\textbf{Compiler}: 
+\begin{itemize}
+\item
+Intel fortran, gfortran, PGI fortran
+\end{itemize}
+\item
+\textbf{Graphic library}: 
+\begin{itemize}
+\item
+GSAF (available from the same git depository)
+\item
+X11 library is required for interactive graphic output.
+\end{itemize}
+\item
+\textbf{Data interface library}: BPSD (available from the same git depository)
+\item
+\textbf{Parallelization}: MPI (if available)
+\end{itemize}
+
+\section{Install of the TASK code}
+
+\subsection{To get the TASK code}
+
+\begin{itemize}
+\item
+\textbf{Install of git}
+\begin{itemize}
+\item
+The version control system ``git'' is required.
+\item
+If git is not installed in your computer system yet, you have to install
+it.
+\item
+Git is an open source software and can be downloaded from
+http://git-scm.com or installed through many distributions for Linux
+and Mac OSX. A slightly older version for Mac OSX is included in
+Xcode.
+\item
+Introduction to git is available from http://git-scm.com/book/en/v2 in
+various languages and in various forms, HTML, PDF, and ePub.
+\end{itemize}
+\item
+\textbf{Initial setup of git}
+\begin{itemize}
+\item
+In order to record the modification of the code, git requires user's
+name and email address.
+\item
+If you have not set up the git environment yet, you have to run the
+following commands:
+\item[\qquad]
+\tline{git config --global user.name ``[your-full-name]''}
+\item[\qquad]
+\tline{git config --global user.email ``[your-mail-address]''}
+\end{itemize}
+
+\item
+\textbf{Download of the source files}
+\begin{itemize}
+\item
+Make a git directory  and download three repositories in it.
+
+\item[\qquad]
+\tline{mkdir git}
+\item[\qquad]
+\tline{cd git}
+\item[\qquad]
+\tline{git clone https://git@bpsi.nucleng.kyoto-u.ac.jp/pub/git/gsaf.git}
+\item[\qquad]
+\tline{git clone https://git@bpsi.nucleng.kyoto-u.ac.jp/pub/git/bpsd.git}
+\item[\qquad]
+\tline{git clone https://git@bpsi.nucleng.kyoto-u.ac.jp/pub/git/task.git}
+
+\item
+The password needed for ``git clone ...'' is ``git''.
+\item
+You can download the codes with this procedure, but upload requires a
+user account on bpsi.nucleng.kyoto-u.ac.jp. If you have an interest in
+uploading your contributions, please contact to fukuyama@nucleng.kyoto-u.ac.jp.
+\item
+HTTPS connection may require to run the following command,
+
+\item[\qquad]
+\tline{git config --global http.sslverify false}
+
+to accept non-official SSL certificates.
+\end{itemize}
+\end{itemize}
+
+\subsection{Compile of the TASK code}
+
+\begin{itemize}
+\item
+Now you have three directories, GSAF, BPSD, and TASK.
+\item
+Then you compile them one by one.
+\end{itemize}
+
+\subsubsection{Compile of the GSAF library}
+
+\begin{enumerate}
+\item
+Move to the source directory 
+\item[\qquad]
+\tline{cd gsaf/src}
+\item
+Copy an appropriate configuration file to the directory
+\item[\qquad]
+\tline{cp ../arch/XXXX-XXXX/Makefile.arch .}
+\begin{itemize}
+\item
+linux-gfortran64: compile with gfortran and gcc on intel86-64 Linux
+\item
+linux-ifc64: compile with intel fortran ifort and icc on intel86-64 Linux
+\item
+linux-pgf64: compile with PGI fortran pgf64 and cc on intel86-64 Linux
+\item
+macosxi-gfortran64: compile with gfortran and gcc on Mac-OSX intel
+\item
+macosxi-ifc64: compile with intel fortran and gcc on Mac-OSX intel
+\item
+macosxi-pgf64: compile with PGI fortran pgf64 and cc on Mac-OSX intel
+\end{itemize}
+\item
+Set appropriate directories for BINPATH and LIBPATH in Makefile.arch
+\begin{itemize}
+\item
+If /usr/local is writable, use \ttype{/usr/local/bin} and 
+\ttype{/usr/local/lib}. 
+\item
+If /usr/local is not writable, use \ttype{\$HOME/bin} and \ttype{\$HOME/lib}
+\end{itemize}
+\item
+Compile the library
+\item[\qquad]
+\tline{make}
+\item
+Install the library and the commands
+\item[\qquad]
+\tline{make install}
+\item
+Include \$LIBPATH in the library searching path
+\item[\qquad]
+\ttype{export LD\underline{ }LIBRARY\underline{ }PATH=/usr/local/lib}
+\item
+Test the library installation
+\item[\qquad]
+\tline{cd test}
+\item[\qquad]
+\tline{make}
+\item
+Run the basic routine test
+\item[\qquad]
+\tline{./bsctest}
+\item
+Go back to the git directory
+\item[\qquad]
+\tline{cd ../..}
+\end{enumerate}
+
+\subsubsection{Set up the configuration files and common library}
+
+\begin{itemize}
+\item
+Copy make.header from make.header.org in the TASK directory 
+\item[\qquad]
+\tline{cd task}
+\item[\qquad]
+\tline{cp make.header.org make.header}
+\item
+Adjust the content of make.header
+\begin{itemize}
+\item
+Remove the comment mark \# in appropriate lines.
+\end{itemize}
+\item
+Compile the common library
+\item[\qquad]
+\tline{cd lib}
+\item[\qquad]
+\tline{make}
+\item[\qquad]
+\tline{cd ..}
+
+\item
+If you would like to compile FP, WM, WF2D or WF3D directory, copy
+mtxp/make.mtxp from mtxp/make.mtxp.org.
+\item[\qquad]
+\tline{cd mtxp}
+\item[\qquad]
+\tline{cp make.mtxp.org make.mtxp}
+\item
+Adjust the content of make.mtxp
+\begin{itemize}
+\item
+Remove the comment mark \# in appropriate lines: without MPI, with
+MUMPS, or with PETSC.
+\item
+compile the mtxp libraries
+\item[\qquad]
+\tline{make}
+\item
+Go back to the git directory
+\item[\qquad]
+\tline{cd ../..}
+\end{itemize}
+\end{itemize}
+
+\subsubsection{Compile the BPSD library}
+
+\begin{itemize}
+\item
+Compile in the bpsd directory
+\item[\qquad]
+\tline{cd BPSD}
+\item[\qquad]
+\tline{make}
+\item[\qquad]
+\tline{cd ..}
+\end{itemize}
+
+\subsubsection{Compile a required TASK component}
+
+\begin{itemize}
+\item
+Move to the required TASK component, e.g. eq, and compile it.
+\item[\qquad]
+\tline{cd eq}
+\item[\qquad]
+\tline{make libs}
+\item[\qquad]
+\tline{make}
+\item
+If you would like to compile an integrated code, use tot.
+\item[\qquad]
+\tline{cd tot}
+\item[\qquad]
+\tline{make libs}
+\item[\qquad]
+\tline{make}
+\item
+If you modify program files in the directory, use
+\item[\qquad]
+\tline{make}
+\\
+to recompile the code.
+\item
+If you modify or update program files in other directories, such as
+\ttype{lib} or \ttype{mtxp}, you may need 
+\item[\qquad]
+\tline{make libs}
+\end{itemize}
+
+\section{Run the TASK code}
+
+\subsection{Run a TASK component}
+
+TASK components start when the component name is entered as a
+command, for example, 
+\begin{itemize}
+\item[\qquad]\tline{cd eq}
+\item[\qquad]\tline{./eq}
+\end{itemize}
+
+\subsubsection{Graphic setting}
+
+Most of TASK components employ the graphic library GSAF.  Therefore at
+the beginning of execution (rigorously speaking, when the subroutine
+GSOPEN is called), graphic settings are inquired. 
+
+The first inquiry is the resolution of the graphic output. Enter a one
+character and hit return.
+\begin{itemize}
+\item[]
+0: no graphic output; graphic data can be saved in a file
+\item[]
+1: 512x380
+\item[]
+2: 640x475
+\item[]
+3: 768x570
+\item[]
+4: 896x665
+\item[]
+5: 1024x760
+\item[]
+6-9: obsolete; to be deleted
+\end{itemize}
+
+The second inquiry is to define output of graphic data.
+\begin{itemize}
+\item[]
+C: continue without graphic output
+\item[]
+F: save graphic data to a file; the file name to be used will be asked
+\item[]
+O: option setting; paper size, screen title, file output are
+inquired
+\item[]
+H: help for one character command input at each end of page
+\item[]
+Q: quit; terminate the code
+\end{itemize}
+
+Graphic setting can be skipped by defining a environmental variable
+GSGDP.
+\begin{itemize}
+\item[]
+export GSGDP=''3c''
+\end{itemize}
+
+\subsubsection{Menu input}
+
+After graphic setting, the TASK component XX show a menu and accept
+a command input, one character command or parameter change.
+
+\begin{itemize}
+\item
+Typical one character command (the first character of a line, both
+upper- and lower-case work)
+\begin{itemize}
+\item[]
+P: change parameter as a namelist input with group name XX
+\item[]
+V: show input parameters
+\item[]
+R: start a run after initialization
+\item[]
+C: continue the run
+\item[]
+G: graphic output mode
+\item[]
+S: save present status data
+\item[]
+L: load previously save status data
+\item[]
+Q: quit the component
+\end{itemize}
+\item
+Parameter change
+\begin{itemize}
+\item
+You can change the input parameters listed in XXinit.f90 with a form
+similar to a component of the namelist input; for example
+\begin{itemize}
+\item[]
+\ttype{RR=3.D0}
+\item[]
+\ttype{PN(1)=0.5D0, PN(2)=0.4D0, PN(3)=0.1D0}
+\item[]
+\ttype{PN=0.5D0,0.4D0,0.1D0}
+\item[]
+\ttype{MODELG=3}
+\item[]
+\ttype{KNAMEQ='eqdata.ITER'}
+\end{itemize}
+
+\item
+A input line including a character ``='' is considered as a parameter change.
+\end{itemize}
+\end{itemize}
+
+\subsection{Run the tot component}
+
+The ``tot'' component is a primitive control component which activates
+main TASK components (EQ, TR, DP, WR, WM, FP) sequentially.  
+
+The menu of the tot component accepts two-character commands of the
+components and a quit commend ``Q''.  For example ``EQ'' command run
+the task/eq component and after quitting the task/eq component, the tot
+menu reappears.  
+
+The data transfer between components will be made through the BPSD
+library.  At present , however, some of the data transfer is made
+through file I/O.  
+
+\subsection{Parameter input}
+
+The input parameters and their default values are usually defined in
+XXinit.f90.  The sequence of parameter setting is as follows.
+
+\begin{enumerate}
+\item
+The default parameters are defined in XXinit.f90.
+\item
+At the beginning of executing XX component, if there exists a namelist file
+XXparm or XXparm.nl, the component reads the namelist file. The
+namelist file has a form
+\begin{itemize}
+\item[] \ \&XX
+\item[] \ \ RR=3.D0
+\item[] \ \&end
+\end{itemize}
+\item
+During the operation of the XX component, input parameters can be
+changed through the menu interface.  The command line input like
+\ttype{RR=3.D0} or the namelist input through``P'' command changes the
+input parameters.
+\end{enumerate}
+
+We should note that some of input parameters are defined in a common
+components, such as PLX or DP. 
+
+\subsection{Save graphic data}
+
+Entering ``G'' command for the menu input, the graphic command input
+is prompted.  The graphic command is a sequence of characters defined
+for each XX components.  ``X'' command is to exit the graphic menu and
+go back to the main menu. 
+
+The graphic output is page base.  After drawing a page, a key input is
+waited on the graphic window, unless ``0'' graphic mode is chosen at
+the beginning of component operation. 
+
+Following key inputs are acceptable:
+\begin{itemize}
+\item[] C or Return key : continue operation
+\item[] F: open graphic file and start to save following pages
+\item[] S: save this page, open graphic file if not yet opened
+\item[] Y: save this page
+\item[] N: do not save this page
+\item[] X: switch on/off of saving pages
+\item[] B: switch on/off the bell sound at the end of drawing page
+\item[] D: dump a bitmap of this page to a file and draw it in a new window
+\item[] K: keep this page without erase and overdraw the next page
+\item[] O: change options (page size, page title, file save)
+\item[] H: help, show this information
+\item[] Q: quit the component after confirmation
+\end{itemize}
+
+The graphic date is composed of ASCII-text data, and
+machine-independent.  It can be viewed, converted to EPS file, and
+printed on a postscript printer.  The recommended extension of the
+graphic date file is ``.gs''.
+
+\subsection{View and convert the graphic data}
+
+The graphic data file of GSAF graphic library can be viewed on the X11
+screen, converted to EPS file, PS file and SVG file, printed in a
+postscript printer.
+
+\begin{itemize}
+\item[] gsview: view on a X-window screen
+\item[] gstoeps: convert selected pages to separate EPS files
+\item[] gstops: convert selected pages to a combined postscript file
+\item[] gstosvg: convert selected pages to separate SVG files
+\item[] gsprint: print on a postscript printer
+\end{itemize}
+
+The available options of these commands are
+\begin{itemize}
+\item[]
+usage: gsxxxx [-atbrcmgz] [-s ps] [-e pe] [-p np] [filename]
+\item[\quad]-a    : show all page
+\item[\quad]-s ps : show from page ps [1]
+\item[\quad]-e pe : show until page pe [999]
+\item[\quad]-p np : combine np pages on a sheet [1]
+\item[\quad]-t    : keep original page title
+\item[\quad]-b    : no page title
+\item[\quad]-r    : rotate figure, valid for gstops/eps 
+\item[\quad]-c    : color figure, valid for gstops/eps (default)
+\item[\quad]-z    : gray figure, valid for gstops/eps 
+\item[\quad]-m    : monochrome figure, valid for gstops/eps 
+\item[\quad]-g    : gouraud shading, valid for gstops/eps 
+\item[\quad]filename : if not specified, prompted
+\end{itemize}
+
+The EPS file using gouraud shading cannot be edited by Adobe Illustrator.
+
+\section{Structure of a typical TASK component}
+
+\subsection{Support directories}
+
+The following directories in a component directory includes:
+\begin{itemize}
+\item[] in/ test input files XX.in (./XX <XX.in >XX.out)
+\item[] parm/ test parameter files,, XXparm or XXparm.nl
+\item[] mod/ module files (generated during compiling fortran files)
+\end{itemize}
+
+\begin{itemize}
+\item[] Example 1:
+\item[\quad] copy parm/eqparm.ITER eqparm
+\item[\quad] ./eq
+\item[\quad]
+\item[] Example 2:
+\item[\quad] copy in/eq.inITER .
+\item[\quad] ./eq <eq.inITER >eq.outITER
+\end{itemize}
+
+\subsection{Typical file name}
+
+The followings are typical file names of the components:
+
+\begin{itemize}
+\item[] XXcomm.f90: Definition of variable module, allocation of
+  arrays
+\item[] XXmain.f90: Initialization, read paramater file, call menu, termination.
+\item[] XXmenu.f90: Process menu input
+\item[] XXinit.f90: Default values of input parameters
+\item[] XXparm.f90: Read and view input parameters (may be included in XXinit.f90)
+\item[] XXprep.f90: Preparation of run (grid, initial profile)
+\item[] XXexec.f90: Execution of run
+\item[] XXsave.f90: Save run data (may be included in XXfile.f90)
+\item[] XXsave.f90: Load run data (may be included in XXfile.f90)
+\item[] XXgout.f90: Graphic output
+\item[] XXfout.f90: File output of results
+\end{itemize}
+
+\end{document}
+
+
+
+

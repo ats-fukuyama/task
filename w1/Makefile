@@ -27,7 +27,7 @@ all: w1
 	(cd ../lib; make tasklib.a)
 ../../bpsd/bpsdlib.a:
 	(cd ../../bpsd; make bpsdlib.a)
-w1ib.a: $(OBJS)
+w1lib.a: $(OBJS)
 	$(LD) $(LDFLAGS) w1lib.a $(OBJS)
 
 libs:
