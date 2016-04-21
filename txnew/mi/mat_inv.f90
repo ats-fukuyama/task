@@ -18,12 +18,13 @@ contains
     real(8), intent(in) :: ddPhidpsi_in
     real(8), intent(out) :: ETAout, BJBSout, ChiNCpel, ChiNCtel, ChiNCpil, ChiNCtil
     integer(4) :: imodel(5), ibeam, NSMB, i, j, i1, i2
-    real(8) :: fbeam, sqzfaccoef, coencc, bjsum, ftl, fac, facee, epsL, fac2
-    real(8) :: vdiamg1, vohm1, vdiamg2, vohm2, renorm, rbanana
+    real(8) :: fbeam, sqzfaccoef, coencc, bjsum, ftl, fac, facee, epsL, &
+         &     fac2, gflxbp, gflxps, gflxware
+    real(8) :: vdiamg1, vohm1, vdiamg2, vohm2, renorm, rbanana, waretmp
     real(8) :: smallvalue = 1.d-5
     real(8), dimension(:), allocatable :: PNsVL, PTsVL, amasL, achgL, sqzfac, xsta, coebdc
     real(8), dimension(:,:), allocatable :: ztau, coebsc, amat, bmat, cmat, alf, &
-         & chipBP, chiTBP, chipPS, chiTPS
+         & chipBP, chiTBP, chipPS, chiTPS, DpBP, DTBP, DpPS, DTPS
 
     imodel(1) = 0 ! Fast ion viscosity
     imodel(2) = 1 ! Required for NBCD
@@ -45,6 +46,7 @@ contains
     allocate(ztau(NSM,NSM))
     allocate(coebsc(NSMB,2),coebdc(NSM+3),amat(2*NSMB,2*NSMB),bmat(2*NSMB,2*NSMB),cmat(2*NSMB,2*NSMB),alf(2*NSMB,2*NSMB))
     allocate(chipBP(NSM,NSM),chiTBP(NSM,NSM),chipPS(NSM,NSM),chiTPS(NSM,NSM))
+    allocate(DpBP(NSM,NSM),DTBP(NSM,NSM),DpPS(NSM,NSM),DTPS(NSM,NSM))
 
     amasL(1:NSM) = amas(1:NSM)
     achgL(1:NSM) = achg(1:NSM)
@@ -202,12 +204,14 @@ contains
 !          write(6,'(I3,2I2,1P3E15.7)') nr,i1,i2,amat(i1     ,i2     )-bmat(i1     ,i2     ),amat(i1     ,i2+NSMB)-bmat(i1     ,i2+NSMB),cmat(i1     ,i2     )
 !          write(6,'(I3,2I2,1P3E15.7)') nr,i1,i2,amat(i1     ,i2     )-bmat(i1     ,i2     ),amat(i1     ,i2     ),-bmat(i1     ,i2     )
        end do
+!!$       end do
        vohm1 = vohm1 * aee * BEpara(NR)
        vohm2 = vohm2 * aee * BEpara(NR)
 
        ! Parallel particle and heat flows
        UsparNCL(NR,i1,1) = vdiamg1 + vohm1 ! particle
        UsparNCL(NR,i1,2) = vdiamg2 + vohm2 ! heat
+!       write(200,*) rho(NR),i1,UsparNCL(NR,i1,1),UsparNCL(NR,i1,2)
 !       if(NR<3) write(6,'(I3,I2,1P2E15.7)') nr,i1,vdiamg1,vohm1
        ! Poloidal particle flows
        UsthNCL(NR,i1,1) = ( vdiamg1 - BVsdiag(NR,i1,1) ) / bbt(NR) ! diamag component
@@ -253,8 +257,49 @@ contains
 !    write(6,*) NR,ChiNCpil,ChiNCtil
 !    write(6,*) NR,chiTBP(2,2),chiTPS(2,2)
 
+    !-- Neoclassical particle diffusivities
+    do i1 = 1, NSM
+       do i2 = 1, NSM
+          fac2 = fac * (    amas(i1) * amqp * Var(NR,i2)%T * rKilo &
+               &        / ( achg(i1) * achg(i2) * ztau(i1,i1) ) )
+          ! Classical + Pfirsch-Shluter
+          DpPS(i1,i2) =-(bri(NR) / fipol(NR)**2) * amat(i1     ,i2     ) * fac2
+          DTPS(i1,i2) = (bri(NR) / fipol(NR)**2) * amat(i1     ,i2+NSMB) * fac2
+          ! Banana-Plateau
+          if( i1 /= i2 ) then
+             DpBP(i1,i2) = (  bmat(i1     ,i1     ) *         alf(i1     ,i2     ) &
+                  &         + bmat(i1     ,i1+NSMB) *         alf(i1+NSMB,i2     ) ) * fac2
+             DTBP(i1,i2) =-(  bmat(i1     ,i1     ) *         alf(i1     ,i2+NSMB) &
+                  &         + bmat(i1     ,i1+NSMB) *         alf(i1+NSMB,i2+NSMB) ) * fac2
+          else
+             DpBP(i1,i2) = (  bmat(i1     ,i1     ) * (1.d0 + alf(i1     ,i2     )) &
+                  &         + bmat(i1     ,i1+NSMB) *         alf(i1+NSMB,i2     ) ) * fac2
+             DTBP(i1,i2) =-(  bmat(i1     ,i1     ) *         alf(i1     ,i2+NSMB) &
+                  &         + bmat(i1     ,i1+NSMB) * (1.d0 + alf(i1+NSMB,i2+NSMB))) * fac2
+          end if
+       end do
+    end do
+    !-- Neoclassical particle flux: gflux = <Gamma . nabla psi>
+    fac2 = fac / fipol(NR) * BEpara(NR)
+    do i1 = 1, NSM
+       gflxbp   = 0.d0
+       gflxps   = 0.d0
+       gflxware = 0.d0
+       do i2 = 1, NSM
+          gflxbp   = gflxbp   +DpBP(i1,i2) * dPsdpsi(NR,i2) / Var(NR,i2)%p &
+               &              +DTBP(i1,i2) * dTsdpsi(NR,i2) / Var(NR,i2)%T
+          gflxps   = gflxps   +DpPS(i1,i2) * dPsdpsi(NR,i2) / Var(NR,i2)%p &
+               &              +DTPS(i1,i2) * dTsdpsi(NR,i2) / Var(NR,i2)%T
+          gflxware = gflxware + fac2 * (achg(i2) * Var(NR,i2)%n) / (achg(i1) * Var(NR,i1)%n) &
+               &                     * (  bmat(i1     ,i1     ) * (-cmat(i2     ,i1     )) &
+               &                        + bmat(i1     ,i1+NSMB) * (-cmat(i2+NSMB,i1     )))
+       end do
+       gflux(NR,i1) = - Var(NR,i1)%n * (sst(NR) * sdt(NR)**2) &
+            &       * ( gflxbp + gflxps + gflxware )
+    end do
+
     deallocate(PNsVL,PTsVL,amasL,achgL,sqzfac,xsta,ztau,coebsc,coebdc,amat,bmat,cmat,alf)
-    deallocate(chipBP,chiTBP,chipPS,chiTPS)
+    deallocate(chipBP,chiTBP,chipPS,chiTPS,DpBP,DTBP,DpPS,DTPS)
 
   end subroutine tx_matrix_inversion
 
@@ -308,6 +353,7 @@ contains
 !
 !=======================================================================
   use tx_commons, only : cnpi => Pi
+!LAPACK  use lapack95, only : getrf, getri
   integer(4), intent(in) :: ispc, ibeam, imodel(:)
   real(8), intent(in)  :: den(:), tem(:), mas(:), zz(:) &
        &                , tpfneo, xsta(:), ztau(:,:), fbeam &
@@ -318,13 +364,14 @@ contains
        &                , cmat(:,:), alf(:,:)
 !:: local
   real(8), allocatable :: lab(:,:,:,:), mab(:,:,:,:), nab(:,:,:,:), vt(:), xmu(:,:,:)
+!LAPACK  integer(4), allocatable :: ipiv(:)
   real(8) :: dx, eb, ec, err, fac, fdp, fp, gfun &
        &   , sint, sq3, tbdc, teff, teff0 &
        &   , vb, vb2, vb3, vbc3, vc, vc3, vxmax &
        &   , wc3, x, x0, x32, xa, xa2, xa3, xab2, xab4, xb, xc0 &
        &   , xfac, xtab, xgt, xke11, xke12, xke22, xl &
        &   , xp321, xx, yk0, yk1, yk2, z1, z2, z3 &
-       &   , z30, zeff, zk, zmud, zmut, zp43, y, zkdenom
+       &   , z30, zeff, zk, zmud, zmut, zp43, y, zkdenom, dsecnd, s_init
   real(8) :: xsign = -1.d0, void = 0.d0
   integer :: i, i1, i2, ib, ill, isp, isp2, ivmax &
        &   , j, j1, j2, k
@@ -601,16 +648,32 @@ contains
        enddo
     enddo
 !-----
-    bmat=amat
+!!$    bmat=amat
+!!$    do i1=1,isp
+!!$       bmat(i1    ,i1    )=bmat(i1    ,i1    )-xmu(i1,1,1)
+!!$       bmat(i1    ,i1+isp)=bmat(i1    ,i1+isp)-xmu(i1,1,2)
+!!$       bmat(i1+isp,i1    )=bmat(i1+isp,i1    )-xmu(i1,2,1)
+!!$       bmat(i1+isp,i1+isp)=bmat(i1+isp,i1+isp)-xmu(i1,2,2)
+!!$    enddo
+!!$!=======================================================================
+!!$!<cmat> : (L - M)^{-1}
+!!$    call matslv(isp2,isp2,bmat,cmat,err,ill)
+!-----
+    cmat = amat
     do i1=1,isp
-       bmat(i1    ,i1    )=bmat(i1    ,i1    )-xmu(i1,1,1)
-       bmat(i1    ,i1+isp)=bmat(i1    ,i1+isp)-xmu(i1,1,2)
-       bmat(i1+isp,i1    )=bmat(i1+isp,i1    )-xmu(i1,2,1)
-       bmat(i1+isp,i1+isp)=bmat(i1+isp,i1+isp)-xmu(i1,2,2)
+       cmat(i1    ,i1    )=amat(i1    ,i1    )-xmu(i1,1,1)
+       cmat(i1    ,i1+isp)=amat(i1    ,i1+isp)-xmu(i1,1,2)
+       cmat(i1+isp,i1    )=amat(i1+isp,i1    )-xmu(i1,2,1)
+       cmat(i1+isp,i1+isp)=amat(i1+isp,i1+isp)-xmu(i1,2,2)
     enddo
 !=======================================================================
 !<cmat> : (L - M)^{-1}
-    call matslv(isp2,isp2,bmat,cmat,err,ill)
+    call invmrd(cmat,isp2,isp2,ill)
+!    --- Replace invmrd by the following lines when using LAPACK ---
+!    allocate(ipiv(isp2))
+!    call getrf( cmat, ipiv, ill )
+!    call getri( cmat, ipiv, ill )
+!    deallocate(ipiv)
 !=======================================================================
 !<bmat> : viscosity matrix, M
     bmat=0.d0

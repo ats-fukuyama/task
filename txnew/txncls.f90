@@ -480,7 +480,8 @@ contains
 !    if(NR/=0.and.NT==500) write(6,*) rho(NR),sum(gfl_s(1:5,1))/vro(NR) ! total
 !    if(NR/=0.and.NT==500) write(6,*) rho(NR),gfl_s(4,1)/vro(NR) ! Ware
 !    if(NR/=0.and.NT==500) write(6,'(F10.7,1P5E15.7)') rho(NR),(gfl_s(i,1)/vro(NR),i=1,5) ! breakdown
-    
+!    write(6,*) rho(NR),gfl_s(4,1)*sdt(NR)*1.d-20,gfl_s(4,2)*sdt(NR)*1.d-20 ! Ware flux
+!    write(6,*) rho(NR),sum(gfl_s(1:5,1))*sdt(NR)*1.d-20,sum(gfl_s(1:5,2))*sdt(NR)*1.d-20 ! Particle flux
 
     !     *** Parameters to pass ***
 

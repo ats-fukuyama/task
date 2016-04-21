@@ -3,7 +3,7 @@ module tx_graphic
   implicit none
   private
   integer(4), parameter :: NGRM=20, NGTM=5000, NGVM=5000, &
-       &                   NGYRM=200, NGYTM=53, NGYVM=58, &
+       &                   NGYRM=203, NGYTM=53, NGYVM=58, &
        &                   NGPRM=24, NGPTM=8, NGPVM=15
   real(4) :: GXM, GYM, GYS
   integer(4) :: MODEG, MODEGL, NGR, NGT, NGVV, NGRSTP, NGTSTP, NGVSTP, NP
@@ -1068,7 +1068,7 @@ contains
        GYL(NX,NG,127) = REAL(DMAGi(NX))
 
        ! *** Rho vs Psi *************************************************
-       GYL(NX,NG,128) = real(Psiv(NX)-Psiv(0))/(Psiv(NRA)-Psiv(0))
+       GYL(NX,NG,128) = real((Psiv(NX)-Psiv(0))/(Psiv(NRA)-Psiv(0)))
 
        ! *** Effective neoclassical thermal diffusivity *****************
        GYL(NX,NG,129) = REAL(ChiNCpe(NX)+ChiNCte(NX))
@@ -1175,6 +1175,9 @@ contains
        GYL(NX,NG,198) = real(X(NX,LQb2))
        GYL(NX,NG,199) = real(aee*(sum(achg(:)*Var(NX,:)%n*Var(NX,:)%UrV)+achgb*PNbV(NX)*UbrVV(NX))*1.d20) ! e_s<Gamma_s.grad V>
        GYL(NX,NG,200) = real(aee*achgb*PNbV(NX)*UbrVV(NX)*1.d20) ! e_b<Gamma_b.grad V>
+       GYL(NX,NG,201) = real(vlt(NX))
+       GYL(NX,NG,202) = real(gflux(NX,1))
+       GYL(NX,NG,203) = real(gflux(NX,2))
 
     end do
 
@@ -3547,7 +3550,7 @@ contains
     GYL(0:NRMAX,2) = GY(0:NRMAX,NGR,165) ! Neo. solver
 
     STR = '@Bqhat$-i//$= TX, Neo. solver@'
-    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRMAX, inum-1, gDIV(164))
+    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRMAX, inum-1, gDIV(159))
     CALL TXGRFRS(3, GX, GYL2, NRMAX, inum, STR, MODE, IND, 0, 0, 'STATIC')
 
     CALL PAGEE

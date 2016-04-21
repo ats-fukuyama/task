@@ -200,7 +200,7 @@ contains
           dPsdpsi(0,i) = AITKEN2P(vv(0),dPsdpsi(1,i),dPsdpsi(2,i),dPsdpsi(3,i) &
                &                 ,vv(1),vv(2),vv(3))
        end do
-    end if
+   end if
 
     ! Safety factor: q = dpsit/dpsi = I<R^-2>/(4 Pi^2)*dV/dpsi
     !   Note: The latter definition is preferable because the components I(=fipol) and

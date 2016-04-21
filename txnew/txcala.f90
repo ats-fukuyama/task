@@ -1015,7 +1015,7 @@ contains
 !       ELM(:,:,14,NEQ) =   achg(2) * 1.d-3 * fem_int(-20,PsidotV,Var(:,2)%n,Var(:,2)%UphR)
 !       NLC(14,NEQ) = 0
 
-       ! Loss to diverter
+       ! Loss to divertor
 
        ELM(:,:,15,NEQ) = -                  fem_int( 2,rNuL)
        NLC(15,NEQ) = LQe5
@@ -1789,7 +1789,7 @@ contains
        ELM(:,:, 9,NEQ) =   1.5d0 * fem_int( 2,rNuTei)
        NLC( 9,NEQ) = LQe5
 
-       ! Loss to diverter
+       ! Loss to divertor
 
        ELM(:,:,10,NEQ) = -          fem_int( 2,rNuL)
        NLC(10,NEQ) = LQi5

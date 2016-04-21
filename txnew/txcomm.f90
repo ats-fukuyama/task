@@ -232,7 +232,7 @@ module tx_commons
   real(8), dimension(:,:), allocatable :: Vhps, Vmps, PiRess
 
   ! Coefficients related to neoclassical transport
-  real(8), dimension(:,:), allocatable :: xmuf, BnablaPi
+  real(8), dimension(:,:), allocatable :: xmuf, BnablaPi, gflux
   real(8), dimension(:,:,:), allocatable :: lff
   real(8), dimension(:,:,:,:), allocatable :: xmu, laf, lfb
   real(8), dimension(:,:,:,:,:), allocatable :: lab
@@ -413,11 +413,12 @@ contains
 
        allocate(xmu(0:N,NS,3,3), lab(0:N,NS,NS,3,3),                          stat = ierl(1))
        allocate(laf(0:N,NS,2,2), lfb(0:N,NS,2,2), lff(0:N,2,2), xmuf(0:N,3),  stat = ierl(2))
-       allocate(BnablaPi(0:N,NS),                                             stat = ierl(3))
+       allocate(BnablaPi(0:N,NS),gflux(0:N,NS),                               stat = ierl(3))
        ier = sum(ierl) ; iflag = 5
        if (ier /= 0) exit
 
-       allocate(aat(0:N), rrt(0:N), ckt(0:N), suft(0:N), sst(0:N), vro(0:N), vlt(0:N), rhov(0:N), art(0:N), epst(0:N), d_rrr(0:N), elip(0:N), trig(0:N), stat = ierl(1))
+       allocate(aat(0:N), rrt(0:N), ckt(0:N), suft(0:N), sst(0:N), vro(0:N), vlt(0:N), rhov(0:N), &
+            &   art(0:N), epst(0:N), d_rrr(0:N), elip(0:N), trig(0:N), stat = ierl(1))
        allocate(fipol(0:N), Bpsq(0:N), qhatsq(0:N), Fqhatsq(0:N), BEpara(0:N), bri(0:N),stat = ierl(2))
        allocate(sdt(0:N), hdt(0:N),                                           stat = ierl(3))
        allocate(bit(0:N), bbrt(0:N),                                          stat = ierl(4))
@@ -524,7 +525,7 @@ contains
     deallocate(UgV,    PNbVinv)
     deallocate(Vhps,   Vmps,   PiRess)
 
-    deallocate(xmu, xmuf, lab, laf, lfb, lff, BnablaPi)
+    deallocate(xmu, xmuf, lab, laf, lfb, lff, BnablaPi, gflux)
 
     deallocate(aat, rrt, ckt, suft, sst, vro, vlt, rhov, art, epst, d_rrr, elip, trig)
     deallocate(fipol, Bpsq, qhatsq, Fqhatsq, BEpara, bri)
