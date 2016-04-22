@@ -20,7 +20,7 @@
       real(8):: RNFD0L_C, RNFDL_C
 
       integer,parameter:: ISW_NOTAIL=0
-      integer,parameter:: MODEL_DE=0
+      integer,parameter:: MODEL_DE=1
 
       contains
 
@@ -409,8 +409,9 @@
          FACT=SQRT(RTFDL_C/RTFD0L_C)
       END IF
 
-      PN=X
-      FPFN0R=PN**2*FPRMXW(PN)*FACT**3
+!      PN=X
+      PN=X*FACT
+      FPFN0R=PN**2*FPRMXW(PN)*FACT
 !
       RETURN
       END FUNCTION FPFN0R
@@ -422,19 +423,15 @@
       real(8),INTENT(IN)::X, XM, XP
       real(8)::PN, A, B, FACT
 
-      IF(MODEL_DE.eq.0)THEN
-         FACT=1.D0
-      ELSE
-         FACT=SQRT(RTFDL_C/RTFD0L_C)
-      END IF
+!      IF(MODEL_DE.eq.0)THEN
+!         FACT=1.D0
+!      ELSE
+!         FACT=SQRT(RTFDL_C/RTFD0L_C)
+!      END IF
 
-      A=0.5D0*PNFP_C*FACT**-1
+      A=0.5D0*PNFP_C
       PN=A*XP
-      IF(MODEL_DE.eq.0)THEN
-         B=PN**4/(1.D0+PN**2*THETA0L_C)
-      ELSE
-         B=PN**4/(1.D0+PN**2*THETAL_C)*FACT**5
-      END IF
+      B=PN**4/(1.D0+PN**2*THETA0L_C)
       FPFN1R=A*B*FPRMXW(PN)
 
       RETURN
@@ -455,13 +452,13 @@
       END IF
 
       A=1.D0
-      PN=A*(X+PNFP_C*FACT**-1)
+      PN=A*(X*FACT+PNFP_C)
       IF(MODEL_DE.eq.0)THEN
          B=PN*SQRT(1.D0+PN**2*THETA0L_C)
       ELSE
-         B=PN*SQRT(1.D0+PN**2*THETAL_C)*FACT**2
+         B=PN*SQRT(1.D0+PN**2*THETA0L_C)
       END IF
-      FPFN2R=A*B*FPRMXW(PN)
+      FPFN2R=A*B*FPRMXW(PN)*FACT
 
       RETURN
       END FUNCTION FPFN2R
@@ -474,19 +471,9 @@
       real(8),INTENT(IN):: X, XM, XP
       real(8):: A, PN, FACT
 
-      IF(MODEL_DE.eq.0)THEN
-         FACT=1.D0
-      ELSE
-         FACT=SQRT(RTFDL_C/RTFD0L_C)
-      END IF
-
-      A=0.5D0*PNFP_C*FACT**-1
+      A=0.5D0*PNFP_C
       PN=A*XP
-      IF(MODEL_DE.eq.0)THEN
-         FPFN3R=A*PN**2*FPRMXW(PN)
-      ELSE
-         FPFN3R=A*PN**2*FPRMXW(PN)*FACT**3
-      END IF
+      FPFN3R=A*PN**2*FPRMXW(PN)
 
       RETURN
       END FUNCTION FPFN3R
@@ -499,19 +486,9 @@
       real(8),INTENT(IN):: X, XM, XP
       real(8):: A, PN, B, FACT
 
-      IF(MODEL_DE.eq.0)THEN
-         FACT=1.D0
-      ELSE
-         FACT=SQRT(RTFDL_C/RTFD0L_C)
-      END IF
-
-      A=0.5D0*PNFP_C*FACT**-1
+      A=0.5D0*PNFP_C
       PN=A*XP
-      IF(MODEL_DE.eq.0)THEN
-         B=PN**2/SQRT(1.D0+PN**2*THETA0L_C)
-      ELSE
-         B=PN**2/SQRT(1.D0+PN**2*THETAL_C)*FACT**3
-      END IF
+      B=PN**2/SQRT(1.D0+PN**2*THETA0L_C)
       FPFN4R=A*B*FPRMXW(PN)
 
       RETURN
@@ -525,19 +502,9 @@
       real(8),INTENT(IN):: X, XM, XP
       real(8):: A, PN, B, FACT
 
-      IF(MODEL_DE.eq.0)THEN
-         FACT=1.D0
-      ELSE
-         FACT=SQRT(RTFDL_C/RTFD0L_C)
-      END IF
-
-      A=0.5D0*PNFP_C*FACT**-1
+      A=0.5D0*PNFP_C
       PN=A*XP
-      IF(MODEL_DE.eq.0)THEN
-         B=PN**4/(SQRT(1.D0+PN**2*THETA0L_C))**3
-      ELSE
-         B=PN**4/(SQRT(1.D0+PN**2*THETAL_C))**3*FACT**5
-      END IF
+      B=PN**4/(SQRT(1.D0+PN**2*THETA0L_C))**3
       FPFN5R=A*B*FPRMXW(PN)
 
       RETURN
@@ -558,37 +525,24 @@
       END IF
 
       A=1.D0
-      PN=A*(X+PNFP_C*FACT**-1)
-      IF(MODEL_DE.eq.0)THEN
-         FPFN6R=A*PN*FPRMXW(PN)
-      ELSE
-         FPFN6R=A*PN*FPRMXW(PN)*FACT
-      END IF
+      PN=A*(X*FACT+PNFP_C)
+      FPFN6R=A*PN*FPRMXW(PN)*FACT
 
       RETURN
       END FUNCTION FPFN6R
 !
 ! =============================================================== 
-      FUNCTION FPFN7R(X,XM,XP)
+      FUNCTION FPFN7R(X,XM,XP)!
 !                            
       real(8):: FPFN7R
       real(8),INTENT(IN):: X, XM, XP
       real(8):: A, PN, B, PMAX2, FACT
 
-      IF(MODEL_DE.eq.0)THEN
-         FACT=1.D0
-      ELSE
-         FACT=SQRT(RTFDL_C/RTFD0L_C)
-      END IF
 
       PMAX2=PMAXC
-      A=0.5D0*(PNFP_C-PMAX2)*FACT**-1
-      PN=A*XP+0.5D0*(PNFP_C+PMAX2)
-      IF(MODEL_DE.eq.0)THEN
-         B=PN**4/(1.D0+PN**2*THETA0L_C)
-      ELSE
-         B=PN**4/(1.D0+PN**2*THETAL_C)*FACT**5
-      END IF
+      A=0.5D0*(PNFP_C-PMAX2)
+      PN=( A*XP+0.5D0*(PNFP_C+PMAX2) )
+      B=PN**4/(1.D0+PN**2*THETA0L_C)
       FPFN7R=A*B*FPRMXW(PN)
 
       RETURN
@@ -596,52 +550,34 @@
 !
 ! =============================================================== 
 !
-      FUNCTION FPFN8R(X,XM,XP)
+      FUNCTION FPFN8R(X,XM,XP)!
 
       real(8):: FPFN8R
       real(8),INTENT(IN):: X, XM, XP
       real(8):: A, PN, B, PMAX2, FACT
 
-      IF(MODEL_DE.eq.0)THEN
-         FACT=1.D0
-      ELSE
-         FACT=SQRT(RTFDL_C/RTFD0L_C)
-      END IF
 
       PMAX2=PMAXC
-      A=0.5D0*(PNFP_C-PMAX2)*FACT**-1
-      PN=A*XP+0.5D0*(PNFP_C+PMAX2)
-      IF(MODEL_DE.eq.0)THEN
-         FPFN8R=A*PN**2*FPRMXW(PN)
-      ELSE
-         FPFN8R=A*PN**2*FPRMXW(PN)*FACT**3
-      END IF
+      A=0.5D0*(PNFP_C-PMAX2)
+      PN=( A*XP+0.5D0*(PNFP_C+PMAX2) )
+      FPFN8R=A*PN**2*FPRMXW(PN)
 
       RETURN
       END FUNCTION FPFN8R
 !
 ! =============================================================== 
 !
-      FUNCTION FPFN9R(X,XM,XP)
+      FUNCTION FPFN9R(X,XM,XP)!
 
       real(8):: FPFN9R
       real(8),INTENT(IN):: X, XM, XP
       real(8):: A, PN, B, PMAX2, FACT
 
-      IF(MODEL_DE.eq.0)THEN
-         FACT=1.D0
-      ELSE
-         FACT=SQRT(RTFDL_C/RTFD0L_C)
-      END IF
 
       PMAX2=PMAXC
-      A=0.5D0*(PNFP_C-PMAX2)*FACT**-1
-      PN=A*XP+0.5D0*(PNFP_C+PMAX2)*FACT**-1
-      IF(MODEL_DE.eq.0)THEN
-         B=PN**2/SQRT(1.D0+PN**2*THETA0L_C)
-      ELSE
-         B=PN**2/SQRT(1.D0+PN**2*THETAL_C)*FACT**3
-      END IF
+      A=0.5D0*(PNFP_C-PMAX2)
+      PN=( A*XP+0.5D0*(PNFP_C+PMAX2) )
+      B=PN**2/SQRT(1.D0+PN**2*THETA0L_C)
       FPFN9R=A*B*FPRMXW(PN)
 
       RETURN
@@ -649,26 +585,16 @@
 !
 ! =============================================================== 
 !
-      FUNCTION FPFN10R(X,XM,XP)
+      FUNCTION FPFN10R(X,XM,XP)!
 
       real(8):: FPFN10R
       real(8),INTENT(IN):: X, XM, XP
       real(8):: A, PN, B, PMAX2, FACT
 
-      IF(MODEL_DE.eq.0)THEN
-         FACT=1.D0
-      ELSE
-         FACT=SQRT(RTFDL_C/RTFD0L_C)
-      END IF
-
       PMAX2=PMAXC
-      A=0.5D0*(PNFP_C-PMAX2)*FACT**-1
-      PN=A*XP+0.5D0*(PNFP_C+PMAX2)*FACT**-1
-      IF(MODEL_DE.eq.0)THEN
-         B=PN**4/(SQRT(1.D0+PN**2*THETA0L_C))**3
-      ELSE
-         B=PN**4/(SQRT(1.D0+PN**2*THETAL_C))**3*FACT**5
-      END IF
+      A=0.5D0*(PNFP_C-PMAX2)
+      PN=( A*XP+0.5D0*(PNFP_C+PMAX2) )
+      B=PN**4/(SQRT(1.D0+PN**2*THETA0L_C))**3
       FPFN10R=A*B*FPRMXW(PN)
 
       RETURN
@@ -686,22 +612,17 @@
       real(8):: FACT, DKBSL, Z
 
       IF(MODELR.eq.1)THEN
-         Z=1.D0/THETAL_C 
+         Z=1.D0/THETAL_C
          DKBSL=BESEKN(2,Z)
          FACT=RNFDL_C*SQRT(THETA0L_C)/(4.D0*PI*RTFDL_C*DKBSL) &
               *RTFD0L_C
 
-         IF(MODEL_DE.eq.0)THEN
-            EX=(1.D0-SQRT(1.D0+PN**2*THETA0L_C)) /THETAL_C
-         ELSE
-            EX=(1.D0-SQRT(1.D0+PN**2*THETAL_C)) /THETAL_C ! p_bar=sqrt(T_l/T_0)*p'
-         END IF
+         EX=(1.D0-SQRT(1.D0+PN**2*THETA0L_C)) /THETAL_C
 
 !         IF (EX.LT.-100.D0)THEN
 !            FPRMXW=0.D0
 !         ELSE
             FPRMXW=EXP(EX)*FACT
-!*RNFD0L_C*2.D0*PI*2.D0*FACT
 !         ENDIF
       ELSEIF(MODELR.eq.0)THEN
          EX=-PN**2/(2.D0*RTFDL_C/RTFD0L_C)
@@ -972,7 +893,6 @@
                PNFP_C=PNFPL
                RGAMA=SQRT(1.D0+PNFP_C**2*THETA0(NSA))
                PCRIT=0.D0
-!               CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R,"DEHIFT_0R")
                PNFP_C=PCRIT
                CALL DEHIFT(RINT2,ES2,H0DE,EPSDE,0,FPFN2R,"DEHIFT_2R")
                DCPPL=RGAMH/(3.D0*RINT0)*( &
@@ -995,7 +915,9 @@
 !                     CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R,"DEHIFT_0R_2")
                      PNFP_C=PCRIT
                      CALL DEFT  (RINT1,ES1,H0DE,EPSDE,0,FPFN1R,"DEFT1_le")
+!                     IF(TIMEFP.ge.0.D-3) WRITE(*,'(3I5,A,E14.6)') NSA, NSB, NP, " RINT1=", RINT1
                      CALL DEHIFT(RINT2,ES2,H0DE,EPSDE,0,FPFN2R,"DEHIFT_2R_2")
+!                     IF(TIMEFP.eq.5.D-3) WRITE(*,'(3I5,A,E14.6)') NSA, NSB, NP, " RINT2=", RINT2
                      PNFP_C=PNFPL
                      DCPPL=RGAMH/(3.D0*RINT0)*(                       &
                           (AMFP(NSA)**2*PTFD0(NSB)**2*RGAMA**3)       &
@@ -1006,8 +928,11 @@
                           *RNFDL_C*1.D20
                      PNFP_C=PCRIT
                      CALL DEFT  (RINT4,ES4,H0DE,EPSDE,0,FPFN4R,"DEFT4_le")
+!                     IF(TIMEFP.eq.5.D-3) WRITE(*,'(3I5,A,E14.6)') NSA, NSB, NP, "RINT4=", RINT4
                      CALL DEFT  (RINT5,ES5,H0DE,EPSDE,0,FPFN5R,"DEFT5_le")
+!                     IF(TIMEFP.eq.5.D-3) WRITE(*,'(3I5,A,E14.6)') NSA, NSB, NP, "RINT5=", RINT5
                      CALL DEHIFT(RINT6,ES6,H0DE,EPSDE,0,FPFN6R,"DEHIFT_6R")
+!                     IF(TIMEFP.eq.5.D-3) WRITE(*,'(3I5,A,E14.6)') NSA, NSB, NP, "RINT6=", RINT6
                      PNFP_C=PNFPL
                      FCPPL=-RGAMH/(3.D0*RINT0)*(                &
                           (AMFP(NSA)*RGAMA**2)/(AMFD(NSB)*PNFP_C**2) &
@@ -1035,7 +960,9 @@
                           *RNFDL_C*1.D20
                      PNFP_C=PMAX(NSBA)
                      CALL DEFT  (RINT4,ES4,H0DE,EPSDE,0,FPFN4R,"DEFT4_gt")
+!                     IF(TIMEFP.eq.5.D-3) WRITE(*,'(3I5,A,E14.6)') NSA, NSB, NP, "RINT4_gt=", RINT4
                      CALL DEFT  (RINT5,ES5,H0DE,EPSDE,0,FPFN5R,"DEFT5_gt")
+!                     IF(TIMEFP.eq.5.D-3) WRITE(*,'(3I5,A,E14.6)') NSA, NSB, NP, "RINT5_gt=", RINT5
                      PNFP_C=PCRIT
                      RINT8=0.D0
                      RINT9=0.D0
@@ -1123,6 +1050,12 @@
             ENDDO
          ENDDO
       ENDIF
+
+!      IF(TIMEFP.eq.5.D-3.and.NPSTART.eq.1)THEN
+!         DO NP=NPSTART,NPEND
+!            WRITE(*,'(A,3I4,4E14.6)') "TEST ", NSA, NSB, NP, PM(NP,NSA), DCPP2(1,NP,1,NSB,NSA), DCTT2(1,NP,1,NSB,NSA), FCPP2(1,NP,1,NSB,NSA)
+!         END DO
+!      END IF
 
       RETURN
       END SUBROUTINE FPCALC_L

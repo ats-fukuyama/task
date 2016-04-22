@@ -315,7 +315,7 @@
 
          CALL GUTIME(gut_out1)
          IF(MODEL_DISRUPT.eq.1)THEN
-            CALL FILE_OUTPUT_DISRUPT(NT)
+            CALL FILE_OUTPUT_DISRUPT(NT,IP_all_FP)
          END IF
          CALL GUTIME(gut_out2)
          gut_out=gut_out2-gut_out1
@@ -367,7 +367,7 @@
 !      IF(MODEL_DISRUPT.eq.1) CALL FLUXS_PTH
       IF(NRANK.eq.0) WRITE(6,'(A,E14.6)') "---------TIME UPDATE FNS =",gut2-gut1
 
-      IF(NRANK.eq.0)THEN
+      IF(NRANK.eq.0.and.MODEL_DISRUPT.ne.0)THEN
          DO NP=1,NPMAX
 !pitch angle average
             pitch_angle_av = 0.D0

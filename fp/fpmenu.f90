@@ -45,6 +45,16 @@
          IF(nrank.EQ.0) CALL CPU_TIME(cputime1)
          IF(KID.EQ.'R') THEN
             CALL fp_prep(ierr)
+            IF(MODEL_DISRUPT.ne.0.and.NRANK.eq.0)THEN
+               OPEN(9,file="f1_1.dat") 
+               open(10,file='time_evol.dat') 
+               open(11,file='efield_e1.dat') 
+               open(12,file='dndt.dat') 
+               open(13,file='radial.dat') 
+               open(14,file='nth-re.dat')
+               open(15,file='re_pitch.dat')
+               open(18,file='efield_ref.dat')
+            END IF
             IF(ierr.ne.0) GO TO 1
          ELSEIF(KID.eq.'C')THEN
             CALL fp_continue(ierr)
@@ -106,6 +116,16 @@
          CALL mtx_barrier
          CALL FP_POST_LOAD
       ELSEIF (KID.EQ.'Q') THEN
+         IF(MODEL_DISRUPT.ne.0.and.NRANK.eq.0)THEN
+            close(9)
+            close(10)
+            close(11)
+            close(12)
+            close(13)
+            close(14)
+            close(15)
+            close(18)
+         END IF
          GO TO 9000
 
       ELSE IF(KID.EQ.'X'.OR.KID.EQ.'#') THEN
