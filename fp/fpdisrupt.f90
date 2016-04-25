@@ -484,6 +484,7 @@
          END IF
       END IF
 
+
 !      FACT=AEFP(NSA)**2*AEFD(NSB)**2*POST_LNLAM(NR,NSB,NSA)*RNE*1.D20
       FACT=Z_i*AEFP(NSA)**4*POST_LNLAM(NR,NSA,NSA)*RNE*1.D20
       taue_col=3.D0*SQRT((2.D0*PI)**3)/FACT &
@@ -494,13 +495,15 @@
 !      neoc=(1.D0-SQRT(invasp))**2 ! P. 174     
       theta_l=THETA0(1)*RT_quench(NR)/RTFP0(1)
       IF(MODEL_IMPURITY.eq.0)THEN
-         tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
-              ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP0(NSA)*1.D20 )
 !         tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
-!              ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP(NR,NSA)*1.D20 )
+!              ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP0(NSA)*1.D20 )
+        tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
+              ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP(NR,NSA)*1.D20 )
       ELSE
+!         tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
+!              ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RN0_MGI(NSA)*1.D20 )
          tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
-              ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RN0_MGI(NSA)*1.D20 )
+              ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RN_MGI(NR,NSA)*1.D20 )
       END IF
       C_ = 0.56D0/Z_i*(3.0D0-Z_i)/(3.D0+Z_i)
       f_t=1.D0 -(1.D0-EPSRM(NR))**2/ ( SQRT(1.D0-EPSRM(NR)**2)*(1.D0+1.46D0*SQRT(EPSRM(NR))) )
@@ -736,14 +739,17 @@
 
       SUMZ=0.D0
       IF(MODEL_IMPURITY.eq.0)THEN
-         DO NSB=2,NSBMAX
-            IF(NSB.le.NSAMAX)THEN
-               SUMZ=SUMZ+RNS(1,NSB)*PZ(NSB)**2
-            ELSE
-               SUMZ=SUMZ+RNFD(1,NSB)*PZ(NSB)**2
-            END IF
-         END DO
-         ZEFF = SUMZ/RNS(1,1)
+         IF(NRANK.eq.0)THEN
+            DO NSB=2,NSBMAX
+               IF(NSB.le.NSAMAX)THEN
+                  SUMZ=SUMZ+RNS(1,NSB)*PZ(NSB)**2
+               ELSE
+                  SUMZ=SUMZ+RNFD(1,NSB)*PZ(NSB)**2
+               END IF
+            END DO
+            ZEFF = SUMZ/RNS(1,1)
+         END IF
+         CALL mtx_broadcast1_real8(ZEFF)
       ELSE
          IF(NRANK.eq.0)THEN
 !         WRITE(*,*) "TEST ZEFF", zeff_imp2, target_zeff, spitot
@@ -861,11 +867,15 @@
                     *EXP(-0.25D0*lambda_alpha/E00-SQRT(2.D0/E00)*gamma_alpha_z )
                
                IF(MODEL_IMPURITY.eq.0)THEN
+!                  tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
+!                       ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP0(1)*1.D20 )
                   tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
-                       ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP0(1)*1.D20 )
+                       ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP(NR,1)*1.D20 )
                ELSE
+!                  tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
+!                       ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RN0_MGI(1)*1.D20 )
                   tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
-                       ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RN0_MGI(1)*1.D20 )
+                       ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RN_MGI(NR,1)*1.D20 )
                END IF
                Rconner_l(NR)=Rconner_l(NR)/(tau_rela*SQRT(2*theta_l)**3)
 !               Rconner_l(NR)=Rconner_l(NR)/(tau_rela*SQRT(theta_l)**3)
@@ -994,11 +1004,15 @@
       END IF
       DO NR=NRSTART, NREND
          IF(MODEL_IMPURITY.eq.0)THEN
+!            tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
+!                 ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP0(1)*1.D20 )
             tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
-                 ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP0(1)*1.D20 )
+                 ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP(NR,1)*1.D20 )
          ELSE
+!            tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
+!                 ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RN0_MGI(1)*1.D20 )
             tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
-                 ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RN0_MGI(1)*1.D20 )
+                 ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RN_MGI(NR,1)*1.D20 )
          END IF
 !         theta_l=THETA0(1)*RT_quench(NR)/RTFP0(1)
          E_hat=EP(NR)/ER_crit(NR)
