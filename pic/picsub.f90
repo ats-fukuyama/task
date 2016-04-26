@@ -503,7 +503,7 @@ CONTAINS
                      - Az(nx,ny) - Azb(nx,ny))
                 bz(nx,ny) =   0.5d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
                      - Ay(nx,ny) - Ayb(nx,ny) &
-                     - (Ax(nx,ny) + Axb(nx,ny) &
+                     - (Ax(nx,nyp) + Axb(nx,nyp) &
                      - Ax(nx,ny) - Axb(nx,ny)))
           END DO
        END DO
@@ -523,10 +523,6 @@ CONTAINS
        bx(nxmax,:) = 0.d0
        by(:,0) = 0.d0
        by(:,nymax) = 0.d0
-       bz(0,:) = 0.d0
-       bz(nxmax,:) = 0.d0
-       bz(:,0) = 0.d0
-       bz(:,nxmax) = 0.d0
     ENDIF
 
     IF(MOD(model_push/8,2).EQ.0) THEN

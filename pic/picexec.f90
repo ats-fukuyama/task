@@ -865,16 +865,16 @@ CONTAINS
            sx2m = 0.d0!sx2m - sx2p
          ELSEIF(model_boundary .NE. 0 .AND. nxp .EQ. nxmax-1) THEN
            sx2p = 0.d0
-           !sx2  = sx2
-           !sx2m = sx2m!sx2m - sx2p
+           sx2  = sx2
+           sx2m = sx2m!sx2m - sx2p
          ENDIF
          IF(model_boundary .NE. 0 .AND. nyp .EQ. nymax-1) THEN
            sy2m = sy2m - sy2p
            sy2  = 0.d0
            sy2p = 0.d0!sy2p - sy2m
          ELSEIF(model_boundary .NE. 0 .AND. nyp .EQ. 0) THEN
-           !sy2p = sy2p
-           !sy2  = sy2
+           sy2p = sy2p
+           sy2  = sy2
            sy2m = 0.d0!sx2m - sx2p
          ENDIF
           rho(nxpm ,nyp  ) = rho(nxpm ,nyp  ) + sx2m * sy2m * factor
@@ -1014,22 +1014,22 @@ CONTAINS
        dx1 = 1.0d0 - dx
        dy1 = 1.0d0 - dy
        IF(dx .LE. 0.5d0) THEN
-          sx2  = 3.0d0/4 - dx ** 2
-          sx2p = 1.0d0/2 * (1.0d0/2 + dx) ** 2
-          sx2m = 1.0d0/2 * (1.0d0/2 - dx) ** 2
+          sx2  = 3.0d0/4.d0 - dx ** 2
+          sx2p = 1.0d0/2.d0 * (1.0d0/2.d0 + dx) ** 2
+          sx2m = 1.0d0/2.d0 * (1.0d0/2.d0 - dx) ** 2
        ELSE
-          sx2  = 3.0d0/4 - (dx - 1.0d0) ** 2
-          sx2p = 1.0d0/2 * (-1.0d0/2 + dx) ** 2
-          sx2m = 1.0d0/2 * (3.0d0/2 - dx) ** 2
+          sx2  = 3.0d0/4.d0 - (dx - 1.0d0) ** 2
+          sx2p = 1.0d0/2.d0 * (-1.0d0/2.d0 + dx) ** 2
+          sx2m = 1.0d0/2.d0 * (3.0d0/2.d0 - dx) ** 2
        ENDIF
        IF(dy .LE. 0.5d0) THEN
-          sy2  = 3.0d0/4 - dy ** 2
-          sy2p = 1.0d0/2 * (1.0d0/2 + dy) ** 2
-          sy2m = 1.0d0/2 * (1.0d0/2 - dy) ** 2
+          sy2  = 3.0d0/4.d0 - dy ** 2
+          sy2p = 1.0d0/2.d0 * (1.0d0/2.d0 + dy) ** 2
+          sy2m = 1.0d0/2.d0 * (1.0d0/2.d0 - dy) ** 2
        ELSE
-          sy2  = 3.0d0/4 - (dy - 1.0d0) ** 2
-          sy2p = 1.0d0/2 * (-1.0d0/2 + dy) ** 2
-          sy2m = 1.0d0/2 * (3.0d0/2 - dy) ** 2
+          sy2  = 3.0d0/4.d0 - (dy - 1.0d0) ** 2
+          sy2p = 1.0d0/2.d0 * (-1.0d0/2.d0 + dy) ** 2
+          sy2m = 1.0d0/2.d0 * (3.0d0/2.d0 - dy) ** 2
        ENDIF
        nxpm = nxp - 1
        nxpp = nxp + 1
