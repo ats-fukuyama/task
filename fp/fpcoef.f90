@@ -641,7 +641,7 @@
       DO NR=NRSTART,NRENDWG
          RHON=RG(NR)
          IF(NR.ne.NRMAX+1)THEN
-            RTFPL=RTFP(NR,NSA)/RTFP0(NSA)
+            RTFPL= RTFP_G(NR,NSA)/RTFP0(NSA)
          ELSE
             RTFPL=RTFPS(NSA)/RTFP0(NSA)
          END IF

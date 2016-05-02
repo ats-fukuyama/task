@@ -918,7 +918,14 @@
       ENDDO
 
 !     ----- set profile data -----
-
+      DO NR=NRSTART, NRENDWG
+         RHON=RG(NR)
+         CALL PL_PROF(RHON,PLF)
+         DO NSA=1, NSAMAX
+            RNFP_G(NR,NSA)=PLF(NS)%RN
+            RTFP_G(NR,NSA)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+         END DO
+      END DO
       DO NR=NRSTART,NRENDWM
 
          RHON=RM(NR)
@@ -1331,12 +1338,6 @@
       INTEGER:: NR, NSB
 
       IF(NRANK.eq.0.and.MODEL_disrupt.ne.0)THEN
-         DO NSB=1,NSBMAX
-            DO NR=NRSTART,NREND
-               RN_MGI(NR,NSB)=RNFD(NR,NSB)
-            END DO
-            RN0_MGI(NSB)=RNFD0(NSB)
-         END DO
          CALL display_disrupt_initials
       END IF
       CALL FPSSUB

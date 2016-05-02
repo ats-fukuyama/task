@@ -149,7 +149,7 @@
            FNSB
 
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
-           RNFP,RTFP,PTFP,VTFP,THETA,DKBSR, RT_T, POST_tau_ta
+           RNFP,RTFP,PTFP,VTFP,THETA,DKBSR, RT_T, POST_tau_ta,RNFP_G,RTFP_G
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSBM)
            RNFD,RTFD,PTFD,VTFD, RN_MGI, RN_MGI_G
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSBM,NSAM)
@@ -358,6 +358,7 @@
           allocate(THETA0(NSBMAX))
 
           allocate(RNFP(NRSTART:NREND+1,NSAMAX),RTFP(NRSTART:NREND+1,NSAMAX))
+          allocate(RNFP_G(NRSTART:NRENDWG,NSAMAX),RTFP_G(NRSTART:NRENDWG,NSAMAX))
           allocate(RT_T(NRMAX,NSBMAX))
           allocate(PTFP(NRSTART:NREND+1,NSAMAX),VTFP(NRSTART:NREND+1,NSAMAX))
           allocate(THETA(NRSTART:NREND,NSBMAX),DKBSR(NRSTART:NREND,NSAMAX))
@@ -621,6 +622,7 @@
           deallocate(THETA0)
 
           deallocate(RNFP,RTFP)
+          deallocate(RNFP_G,RTFP_G)
           deallocate(PTFP,VTFP)
           deallocate(THETA,DKBSR)
           deallocate(WEIGHP,WEIGHT)

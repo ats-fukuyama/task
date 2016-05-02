@@ -304,8 +304,9 @@
       CALL fp_set_initial_value_from_f
 
       IF(MODEL_DISRUPT.eq.1)THEN
-         WRITE(*,'(A,I3,50E14.6)') "RN_MGI=", NR, (RN_MGI(NR,NSB),NSB=1,NSBMAX)
-         WRITE(*,'(A,50E14.6)') "RN0_MGI=",  (RN0_MGI(NSB),NSB=1,NSBMAX)
+         DO NR=1,NRMAX
+            WRITE(*,'(A,I3,50E14.6)') "RN_MGI=", NR, (RN_MGI(NR,NSB),NSB=1,NSBMAX), RN_runaway(NR)
+         END DO
       END IF
 
       END SUBROUTINE FP_POST_LOAD
@@ -445,6 +446,13 @@
                   RN_MGI_G(NR,NSB)=temp(NR)
                END DO
             END DO
+
+            CALL mtx_reset_communicator
+            IF(NRANK.eq.0)THEN
+               DO NR=1, NRMAX
+                  WRITE(*,'(A,4E14.6)') "RN_MGI_G= ", (RN_MGI_G(NR,NSB), NSB=1,NSBMAX), RN_runaway(NR)
+               END DO
+            END IF
          END IF
 ! NR
          CALL mtx_set_communicator(comm_nr)
