@@ -617,7 +617,7 @@
       real(8),dimension(NRSTART:NREND):: temp_r
       
       CALL mtx_set_communicator(comm_np)
-      DO NR=NRSTART, NRENDX
+      DO NR=NRSTART, NREND
          DO NSA=NSASTART,NSAEND
             NSBA=NSB_NSA(NSA)
             NS=NS_NSA(NSA)
@@ -779,7 +779,7 @@
       real(8),dimension(NTHMAX):: RE_PITCH_L
       
       CALL mtx_set_communicator(comm_np)
-      DO NR=NRSTART, NRENDX
+      DO NR=NRSTART, NREND
          DO NSA=NSASTART,NSAEND
             NSBA=NSB_NSA(NSA)
             NS=NS_NSA(NSA)

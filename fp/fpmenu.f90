@@ -108,6 +108,7 @@
          CALL fpsprf
          CALL fpwrtprf
       ELSEIF (KID.EQ.'S') THEN
+         CALL FP_PRE_SAVE
          if(nrank.eq.0) CALL fp_save2
          CALL mtx_barrier
       ELSEIF (KID.EQ.'L') THEN

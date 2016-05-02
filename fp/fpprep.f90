@@ -288,14 +288,14 @@
          END DO
       END IF ! MODELA
 
-      allocate(work(nrstart:nrendx),workg(NRMAX))
+      allocate(work(nrstart:nrend),workg(NRMAX))
 
       CALL mtx_set_communicator(comm_nr)
       DO NTH=1,NTHMAX
-         DO NR=NRSTART,NRENDX
+         DO NR=NRSTART,NREND
             work(NR)=RLAMDA(NTH,NR)
          ENDDO
-         CALL mtx_allgatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+         CALL mtx_allgatherv_real8(work(NRSTART:NREND),MTXLEN(NRANK+1), &
                                    workg,NRMAX,MTXLEN,MTXPOS)
          DO NR=1,NRMAX
             RLAMDAG(NTH,NR)=workg(NR)
@@ -304,10 +304,10 @@
       ENDDO
 
       DO NTH=1,NTHMAX
-         DO NR=NRSTART,NRENDX
+         DO NR=NRSTART,NREND
             work(NR)=ETAM(NTH,NR)
          ENDDO
-         CALL mtx_allgatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+         CALL mtx_allgatherv_real8(work(NRSTART:NREND),MTXLEN(NRANK+1), &
                                    workg,NRMAX,MTXLEN,MTXPOS)
          DO NR=1,NRMAX
             ETAMG(NTH,NR)=workg(NR)
@@ -315,10 +315,10 @@
       ENDDO
 
       DO NTH=1,NTHMAX
-         DO NR=NRSTART,NRENDX
+         DO NR=NRSTART,NREND
             work(NR)=RLAMDA_G(NTH,NR)
          ENDDO
-         CALL mtx_allgatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+         CALL mtx_allgatherv_real8(work(NRSTART:NREND),MTXLEN(NRANK+1), &
                                    workg,NRMAX,MTXLEN,MTXPOS)
          DO NR=1,NRMAX
             RLAMDA_GG(NTH,NR)=workg(NR)
@@ -326,10 +326,10 @@
       ENDDO
 
       DO NTH=1,NTHMAX
-         DO NR=NRSTART,NRENDX
+         DO NR=NRSTART,NREND
             work(NR)=ETAM_G(NTH,NR)
          ENDDO
-         CALL mtx_allgatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+         CALL mtx_allgatherv_real8(work(NRSTART:NREND),MTXLEN(NRANK+1), &
                                    workg,NRMAX,MTXLEN,MTXPOS)
          DO NR=1,NRMAX
             ETAM_GG(NTH,NR)=workg(NR)
@@ -496,7 +496,7 @@
 !      IF(nrend1.EQ.nrend) THEN
 !         NRENDX=NREND-1
 !      ELSE
-         NRENDX=NREND
+!         NRENDX=NREND
 !      ENDIF
 
       NPSTART=( imtxstart-1- (nrstart-1)*nthmax*npmax )/nthmax +1
@@ -827,32 +827,32 @@
       END IF
 !!!!!!!!!!!!!!!!!!!!!
 
-      allocate(work(nrstart:nrendx),workg(NRMAX))
+      allocate(work(nrstart:nrend),workg(NRMAX))
 
       CALL mtx_set_communicator(comm_nr)
 
-      DO NR=NRSTART,NRENDX
+      DO NR=NRSTART,NREND
          work(NR)=RCOEFN(NR)
       ENDDO
-      CALL mtx_allgatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+      CALL mtx_allgatherv_real8(work(NRSTART:NREND),MTXLEN(NRANK+1), &
                                 workg,NRMAX,MTXLEN,MTXPOS)
       DO NR=1,NRMAX
          RCOEFNG(NR)=workg(NR)
       ENDDO
 
-      DO NR=NRSTART,NRENDX
+      DO NR=NRSTART,NREND
          work(NR)=RCOEFN_G(NR)
       ENDDO
-      CALL mtx_allgatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+      CALL mtx_allgatherv_real8(work(NRSTART:NREND),MTXLEN(NRANK+1), &
                                 workg,NRMAX,MTXLEN,MTXPOS)
       DO NR=2,NRMAX
          RCOEFN_GG(NR)=workg(NR)
       ENDDO
 
-      DO NR=NRSTART,NRENDX
+      DO NR=NRSTART,NREND
          work(NR)=RCOEFJ(NR)
       ENDDO
-      CALL mtx_allgatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+      CALL mtx_allgatherv_real8(work(NRSTART:NREND),MTXLEN(NRANK+1), &
                                 workg,NRMAX,MTXLEN,MTXPOS)
       DO NR=1,NRMAX
          RCOEFJG(NR)=workg(NR)
@@ -1147,7 +1147,7 @@
       real:: gut1,gut2
 
       CALL mtx_set_communicator(comm_np) 
-      DO NR=NRSTART,NRENDX
+      DO NR=NRSTART,NREND
          DO NSA=NSASTART,NSAEND
             NS=NS_NSA(NSA)
             NSBA=NSB_NSA(NSA)
@@ -1239,7 +1239,8 @@
       real(8):: rtemp
 
       DO NSA=1,NSAMAX
-         DO NR=NRSTART,NRENDWM
+!         DO NR=NRSTART,NRENDWM
+         DO NR=1,NRMAX
             RN_IMPL(NR,NSA) = RNS(NR,NSA)
             IF(RNS(NR,NSA).NE.0.D0) THEN
                IF(MODELR.eq.0)THEN
