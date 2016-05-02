@@ -1,11 +1,18 @@
+!***************************************************************
+!
+!   Metrics associated with equilibrium
+!
+!***************************************************************
+
 subroutine txequ
-  use tx_commons, only : ieqread, epst, aat, rrt, ckt, suft, sst, vro, vlt, rhov, art, nrmax, &
-       & rr, Pisq, ra, rho, bb, d_rrr, bit, bbrt, Rax, Zax, perimlcfs, Pi, elip, trig
+  use tx_commons, only : ieqread, epst, aat, rrt, ckt, suft, sst, vro, vlt, art, NRMAX, &
+       & rr, Pisq, ra, rho, bb, d_rrr, bit, bbrt, Rax, Zax, surflcfs, Pi, elip, trig
+  use eqread_mod, only : intequ, txmesh
 
   implicit none
   integer(4) :: nr
 
-  ! perimlcfs ; perimeter of Last Closed Flux Surface
+  ! surflcfs ; surface area of a torus enclosed by Last Closed Flux Surface
   ! epst = inverse aspect ratio
   ! aat  = <R^-2>
   ! rrt  = <R^2>
@@ -23,13 +30,11 @@ subroutine txequ
   ! elip = elongation
   ! trig = triangularity
 
-  ! rhov = volume rho [m]
-
   select case(ieqread)
-  case default ! Large aspect ratio limit, circular cross section
+  case(0) ! Large aspect ratio limit, circular cross section
      Rax = rr
      Zax = 0.d0
-     perimlcfs = 4.d0 * Pisq * RR * RA
+     surflcfs = 4.d0 * Pisq * RR * RA
      do NR = 0, NRMAX
         epst(NR)  = (rho(NR) * ra) / rr
         aat(NR)   = 1.d0 / rr**2
@@ -46,10 +51,12 @@ subroutine txequ
         elip(NR)  = 1.d0
         trig(NR)  = 0.d0
      end do
+
+     call txmesh
   case(1) ! Large aspect ratio approximation, circular cross section
      Rax = rr
      Zax = 0.d0
-     perimlcfs = 4.d0 * Pisq * RR * RA
+     surflcfs = 4.d0 * Pisq * RR * RA
      do NR = 0, NRMAX
         epst(NR)  = (rho(NR) * ra) / rr
         aat(NR)   = 1.d0 / ( rr**2 * sqrt(1.d0 - epst(NR)**2))
@@ -66,12 +73,12 @@ subroutine txequ
         elip(NR)  = 1.d0
         trig(NR)  = 0.d0
      end do
-  case(2) ! read eqdata
+
+     call txmesh
+  case(2) ! read eqdata once
+     call intequ
+  case default
      stop 'Under construction!'
   end select
-
-  do NR = 0, NRMAX
-     rhov(NR)  = sqrt( vlt(NR) / ( 2.d0 * Pisq * rr) )
-  end do
 
 end subroutine txequ

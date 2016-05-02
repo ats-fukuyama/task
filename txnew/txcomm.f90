@@ -72,7 +72,7 @@ module tx_commons
   !**********************!
 
   ! Configuration parameters
-  real(8) :: RA, RB, RR, BB, rIPs, rIPe
+  real(8) :: RA, RB, RR, BB, rbvt, rIPs, rIPe
   real(8) :: rhob, rhoaccum
 
   ! Species
@@ -173,8 +173,8 @@ module tx_commons
   real(4) :: AVE_IC
   real(8) :: rIP
   real(8) :: UHth, UHph
-  real(8) :: Rax, Zax, perimlcfs
-  real(8), dimension(:), allocatable :: R, vv, vvn, rho, rhosq
+  real(8) :: Rax, Zax, surflcfs
+  real(8), dimension(:), allocatable :: R, vv, rho, rhosq
   real(8), dimension(:), allocatable :: hv
 
   ! Convergence accelerator
@@ -355,7 +355,7 @@ contains
     end if
 
     do
-       allocate(R(0:N),      vv(0:N),    vvn(0:N),   rho(0:N),   rhosq(0:N),  stat = ierl(1))
+       allocate(R(0:N),      vv(0:N),    rho(0:N),   rhosq(0:N),              stat = ierl(1))
        allocate(hv(0:NEMAX),                                                  stat = ierl(2))
        ier = sum(ierl) ; iflag = 1
        if (ier /= 0) exit
@@ -482,7 +482,7 @@ contains
 
   subroutine deallocate_txcomm
 
-    deallocate(R,      vv,      vvn,    rho,   rhosq)
+    deallocate(R,      vv,      rho,   rhosq)
     deallocate(hv)
 
     deallocate(ErV,    BEpol,   Etor,   BthV,  BphV)

@@ -89,9 +89,9 @@ contains
 !    BthV (:) =   fourPisq * rho(:) * rhov(NRMAX) * sdt(:) ! NOT FSA quantity
     BthV (:) =   sqrt(ckt(:)) * sdt(:)
     PsitV(:) =   XL(:,LQm5) * rMU0
-    ! bbt = <B^2>
-    bbt  (:) =   fourPisq*fourPisq / aat(:) * hdt(:)*hdt(:) &
-         &     + ckt(:) * sdt(:)*sdt(:)
+!    ! bbt = <B^2>
+!    bbt  (:) =   fourPisq*fourPisq / aat(:) * hdt(:)*hdt(:) &
+!         &     + ckt(:) * sdt(:)*sdt(:)
 
     Var(:,1)%n = XL(:,LQe1)
     Var(:,1)%UrV = XL(:,LQe2) / Var(:,1)%n
@@ -133,12 +133,12 @@ contains
     Var(:,2)%UphR = XL(:,LQi7) / Var(:,2)%n
     Var(:,1)%Uph = Var(:,1)%UphR / d_rrr(:)
     Var(:,2)%Uph = Var(:,2)%UphR / d_rrr(:)
-
-    ! Poloidal current function: RB_t
-    !    fipol(NRMAX) = rr * bb is a boundary condition.
-    dPsitVdVvac = rr * bb / fourPisq * aat(NRMAX)
 !$omp end workshare
 !$omp end parallel
+
+    ! Poloidal current function: RB_t
+    !    fipol(NRMAX) = rbvt is a boundary condition.
+    dPsitVdVvac = rbvt / fourPisq * aat(NRMAX)
 
     fipol(:) = fourPisq / aat(:) * dfdx(vv,PsitV,NRMAX,0,dbnd=dPsitVdVvac)
     BphV (:) = fipol(:) / rr ! NOT FSA quantity

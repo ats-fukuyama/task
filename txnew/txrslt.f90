@@ -333,7 +333,7 @@ END SUBROUTINE TXGLOB
 
 subroutine cal_flux
 
-  use tx_commons, only : NRA, PI, rNuION, achg, DT, Gamma_a, perimlcfs, Var
+  use tx_commons, only : NRA, PI, rNuION, achg, DT, Gamma_a, surflcfs, Var
   use tx_core_module, only : sub_intg_vol
   implicit none
 
@@ -353,7 +353,7 @@ subroutine cal_flux
   deallocate(Siz)
 
   !  Outflux of ions through the separatix [m^-2s^-1]
-  Gamma_a = (SizINT - (total_ion - total_ion_save) / DT) / perimlcfs
+  Gamma_a = (SizINT - (total_ion - total_ion_save) / DT) / surflcfs
 
   total_ion_save = total_ion
 
