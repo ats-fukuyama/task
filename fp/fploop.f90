@@ -274,6 +274,16 @@
          CALL GUTIME(gut1)
          TIMEFP=TIMEFP+DELT
 
+         CALL GUTIME(gut_out1)
+         IF(MODEL_DISRUPT.eq.1)THEN
+            CALL FILE_OUTPUT_DISRUPT(NT,IP_all_FP)
+         END IF
+         CALL GUTIME(gut_out2)
+         gut_out=gut_out2-gut_out1
+         IF (MOD(NT,NTG1STEP).EQ.0) THEN
+            IF(NRANK.eq.0) WRITE(*,'(A,E14.6)') "--------FILE_OUTPUT_TIME in NT LOOP=",gut_out
+         END IF
+
          ISAVE=0
          CALL FPSSUB
          IF (MOD(NT,NTG1STEP).EQ.0) THEN
@@ -312,16 +322,6 @@
          END IF
 
          IF(IERR.NE.0) RETURN
-
-         CALL GUTIME(gut_out1)
-         IF(MODEL_DISRUPT.eq.1)THEN
-            CALL FILE_OUTPUT_DISRUPT(NT,IP_all_FP)
-         END IF
-         CALL GUTIME(gut_out2)
-         gut_out=gut_out2-gut_out1
-         IF (MOD(NT,NTG1STEP).EQ.0) THEN
-            IF(NRANK.eq.0) WRITE(*,'(A,E14.6)') "--------FILE_OUTPUT_TIME in NT LOOP=",gut_out
-         END IF
 
          IF(ierr_g.ne.0)THEN
             call mtx_abort(ierr_g)
