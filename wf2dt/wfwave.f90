@@ -139,7 +139,7 @@ subroutine DTENSR(NE,DTENS)
      FZ=AL(3)
      
      CALL WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
-     
+
      do NS=1,NSMAX
         
         CWP = WP(NS)*RN(NS)/(1.D0+CII*RZCL(NS))
@@ -149,7 +149,7 @@ subroutine DTENSR(NE,DTENS)
         CDP0= CWP
         
         CDT=CDT0       
-        CDP=CDP0-CDT
+        CDP=CDP0-CDT0
         CDX=CDX0
 
         CRR= CDT   +CDP*FR*FR
@@ -172,7 +172,8 @@ subroutine DTENSR(NE,DTENS)
         DTENS(NS,IN,3,2)=DTENS(NS,IN,3,2)-CZP
         DTENS(NS,IN,3,3)=DTENS(NS,IN,3,3)-CZZ
 
-     end do
+     END do
+
 
      IF(WDAMP.GT.0.D0) THEN
         CDAMP=CII*PZCL(NSMAX)
@@ -210,12 +211,12 @@ subroutine DTENSR(NE,DTENS)
 !              DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+F*(WDAMP-DZ)/(DZ-CDAMP)
            END IF
         END IF
-        IF(BDZMAX-R.LT.WDAMP) THEN
+        IF(BDZMAX-Z.LT.WDAMP) THEN
            ID=1
            IF(MDAMP.EQ.4.AND. &
               R.GT.RDAMP_MIN.AND.R.LT.RDAMP_MAX) ID=0
            IF(ID.EQ.1) THEN
-              DZ=BDZMAX-R
+              DZ=BDZMAX-Z
               DTENS(NSMAX,IN,1,1)=DTENS(NSMAX,IN,1,1)+F*(WDAMP-DZ)/(DZ-CDAMP)
               DTENS(NSMAX,IN,2,2)=DTENS(NSMAX,IN,2,2)+F*(WDAMP-DZ)/(DZ-CDAMP)
 !              DTENS(NSMAX,IN,3,3)=DTENS(NSMAX,IN,3,3)+F*(WDAMP-DZ)/(DZ-CDAMP)

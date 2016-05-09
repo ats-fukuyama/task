@@ -1,4 +1,4 @@
-include ../../task/make.header
+include ../make.header
 include ../mtxp/make.mtxp
 LIBX_MTX=$(LIBX_MTX_BND)
 #LIBX_MTX=$(LIBX_MTX_PCG)
@@ -16,9 +16,9 @@ FFLAGS=$(OFLAGS)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-MODINCLUDE= -I./$(MOD) -I../../task/lib/$(MOD) \
-            -I../../task/plx/$(MOD) -I../../task/eq/$(MOD) \
-            -I../../bpsd/$(MOD) -I../../task/mtxp/$(MOD)
+MODINCLUDE= -I./$(MOD) -I../lib/$(MOD) \
+            -I../plx/$(MOD) -I../eq/$(MOD) \
+            -I../../bpsd/$(MOD) -I../mtxp/$(MOD)
 
 SRCS = fpcomm.f90 fpmpi.f90 fpbroadcast.f90 fpsub.f90 \
        fpinit.f90 fpexec.f90 fpsave.f90 \
@@ -29,8 +29,8 @@ SRCS = fpcomm.f90 fpmpi.f90 fpbroadcast.f90 fpsub.f90 \
 
 OBJS = $(SRCS:.f90=.o)
 
-LIBS = fplib.a ../../task/plx/pllib.a ../../task/eq/eqlib.a   \
-        ../../task/lib/tasklib.a ../../bpsd/bpsdlib.a
+LIBS = fplib.a ../plx/pllib.a ../eq/eqlib.a   \
+        ../lib/tasklib.a ../../bpsd/bpsdlib.a
 
 all: libs fp
 
@@ -39,19 +39,19 @@ fplib.a: $(OBJS)
 
 ../../bpsd/bpsdlib.a:
 	(cd ../../bpsd; make bpsdlib.a)
-../../task/plx/pllib.a:
+../plx/pllib.a:
 	(cd ../plx; make pllib.a)
-../../task/eq/eqlib.a:
-	(cd ../../task/eq; make eqlib.a)
-../../task/lib/tasklib.a:
-	(cd ../../task/lib; make tasklib.a)
+../eq/eqlib.a:
+	(cd ../eq; make eqlib.a)
+../lib/tasklib.a:
+	(cd ../lib; make tasklib.a)
 
 libs:
 	(cd ../../bpsd; make bpsdlib.a)
-	(cd ../../task/eq; make eqlib.a)
-	(cd ../../task/mtxp; make)
-	(cd ../../task/plx; make pllib.a)
-	(cd ../../task/lib; make tasklib.a)
+	(cd ../eq; make eqlib.a)
+	(cd ../mtxp; make)
+	(cd ../plx; make pllib.a)
+	(cd ../lib; make tasklib.a)
 
 fp : $(LIBS) fpmain.o 
 	$(FLINKER) fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)

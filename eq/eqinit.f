@@ -34,6 +34,7 @@ C
       PROFJ = 2.D0
 C
       FRBIN = 1.D0
+      RBRA  = RB/RA
 C
 C     ======( PLASMA PARAMETERS )======
 C
@@ -494,6 +495,7 @@ C
      &              PSIB,NPFCMAX,RIPFC,RPFC,ZPFC,WPFC,FRBIN
 C
       READ(NID,EQ,IOSTAT=IST,ERR=9800,END=9900)
+      RBRA=RB/RA
       IERR=0
       RETURN
 C

@@ -1,4 +1,4 @@
-!     $Id$
+!     $Id: fpexec.f90,v 1.29 2013/02/08 07:36:24 nuga Exp $
 
 !     **************************
 !        EXECUTE TIME ADVANCE
@@ -1046,6 +1046,7 @@
               =( SPPB(NTH,NP,NR,NSA) &
                 +SPPF(NTH,NP,NR,NSA) &
                 +SPPS(NTH,NP,NR,NSA) &
+                +SPPL(NTH,NP,NR,NSA) &
                 +SPPI(NTH,NP,NR,NSA) )
 
       IF(MODELD.GT.0.AND.NR.EQ.NRMAX) THEN

@@ -1,5 +1,5 @@
 ### $Id$ ###
-include ../../task/make.header
+include ../make.header
 
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a

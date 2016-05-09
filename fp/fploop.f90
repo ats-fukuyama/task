@@ -1,4 +1,4 @@
-!     $Id$
+!     $Id: fploop.f90,v 1.40 2013/02/08 07:36:24 nuga Exp $
 
 ! *****************
 !     MAIN LOOP
@@ -29,7 +29,7 @@
       real(kind8),dimension(NRSTART:NREND,NSAMAX):: RJNS
       real(kind8),dimension(NRSTART:NREND):: RJN,RJ3,E3,DELE
       real(kind8),dimension(NSAMAX)::RSUMF,RSUMF0,RSUM_SS
-      real(kind8):: RSUMF_, RSUMF0_
+      real(kind8):: RSUMF_, RSUMF0_, RGAMA, FACTP, FACTR, diff_c, tau_dB
 
       integer:: NT, NR, NP, NTH, NSA, NTI, NSBA, NTE
       integer:: L, IERR, I
@@ -50,7 +50,7 @@
       integer:: ILOC1, nsend,j, ISW_D, NDIMPL, IMPL_criterion
       real(8):: sigma, ip_all, ip_ohm, ip_run, DEPS_E, jbs, IP_bs, l_ind, IP_prim, DEPS_E2
       real(8),dimension(NRSTART:NREND):: E_SIGMA
-      real(8):: IP_all_FP, FPL
+      real(8):: IP_all_FP, FPL, pitch_angle_av
       real(8),dimension(NPSTART:NPEND):: DCPP_L1, DCPP_L2, FCPP_L1, FCPP_L2, DCTT_L1, DCTT_L2, DPP_L, FPP_L, DTT_L
       real(8),dimension(NPMAX):: DCPP_1, DCPP_2, FCPP_1, FCPP_2, DCTT_1, DCTT_2, DPP_A, FPP_A, DTT_A
 
@@ -128,6 +128,7 @@
             DO NR=1,NRMAX
                RN_runaway_M(NR)=RN_runaway(NR)
             END DO
+            IF(TIMEFP.ge.time_quench_start) CALL READ_E_FIELD  !given
          END IF
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          nsw = NSAEND-NSASTART+1
@@ -151,9 +152,9 @@
                   CALL fp_exec(NSA,IERR,its) ! F1 and FNS0 changed
                   modeld=modeld_temp
                   IF(MODELD.ge.1)THEN
- !                    CALL fp_drexec(NSA,IERR,its)
+!                     CALL fp_drexec(NSA,IERR,its)
                   END IF
-               ELSEIF(ISW_D.eq.1)THEN ! 
+               ELSEIF(ISW_D.eq.1)THEN !
                   CALL fp_exec(NSA,IERR,its) ! F1 and FNS0 changed
                   IERR=0
                END IF
@@ -255,7 +256,7 @@
                   NDIMPL=NDIMPL+1
                   call calculation_runaway_rate
                   CALL AVALANCHE
-!                  IF(TIMEFP.ge.time_quench_start) CALL E_IND_IMPLICIT
+!                  IF(TIMEFP.ge.time_quench_start) CALL E_IND_IMPLICIT !non-given
                   DEPS_E=(E1(NRSTART)-EP(NRSTART))**2/EM(NRSTART)**2
 
                   DO NR=NRSTART,NREND
@@ -264,7 +265,7 @@
                   DO NSA=NSASTART, NSAEND
                      CALL FP_CALE(NSA)
                   END DO
-!                  CALL update_fpp
+                  CALL update_fpp
                END DO
                IF (MOD(NT,NTG1STEP).EQ.0.and.NRANK.eq.0) &
                     WRITE(6,'(A,E14.6)') "CALE_CONVERSION = ", DEPS_E
@@ -282,8 +283,6 @@
                   call calculation_runaway_rate
                   CALL AVALANCHE
                   IF(TIMEFP.ge.time_quench_start) CALL E_IND_IMPLICIT_FP(E_SIGMA)
-!                  IF(TIMEFP.ge.time_quench_start) CALL E_IND_CRANK_NICOLSON_FP
-!                  IF(TIMEFP.ge.time_quench_start) CALL E_IND_PSI_IMPLICIT_FP
                   DEPS_E=(E1(NRSTART)-EP(NRSTART))**2/EM(NRSTART)**2
 
                   CALL mtx_set_communicator(comm_nr) 
@@ -326,17 +325,21 @@
             gut_cale = gut_cale + gut7-gut3
 !            
             IF(MODEL_LNL.eq.0) CALL Coulomb_log
-!            IF(MODEL_jfp.ne.1)THEN
-!            DO NSA=NSASTART,NSAEND
-!               IF (MOD(NT,NTCLSTEP).EQ.0) CALL FP_COEF(NSA)
-!            END DO
-!            END IF
+
+            IF(MODEL_DISRUPT.eq.0)THEN
+            DO NSA=NSASTART,NSAEND
+               IF (MOD(NT,NTCLSTEP).EQ.0) CALL FP_COEF(NSA)
+            END DO
+            END IF
 
 !           sum up SPPF
+            IF(MODELS.ne.0)THEN
 !            CALL mtx_set_communicator(comm_nr) !2D
 !            CALL mtx_set_communicator(comm_nrnp) !3D
-!            CALL source_allreduce(SPPF)
-!            CALL mtx_reset_communicator
+               CALL mtx_set_communicator(comm_nsa) 
+               CALL source_allreduce(SPPF)
+               CALL mtx_reset_communicator
+            END IF
 !           end of sum up SPPF
 
             CALL GUTIME(gut4)
@@ -405,15 +408,11 @@
          END IF
 
          IF(MODEL_DISRUPT.ne.0)THEN
-            CALL update_disruption_quantities(IP_all, IP_ohm, IP_run, &
-                                              IP_prim, IP_bs, l_ind)
+            CALL update_disruption_quantities(IP_all, IP_ohm, IP_run, IP_prim, IP_bs, l_ind)
             IF (MOD(NT,NTG1STEP).EQ.0) THEN
             IF(NRANK.eq.0)THEN
-               WRITE(6,'(7A14)') "IP_all","IP_ohm", "IP_run", "IP_primary", &
-                    "IP_bs", "DEL_RJS", "sigma*E"
-               WRITE(6,'(1P7E14.6)') IP_all, IP_ohm, IP_run, IP_prim, IP_bs, &
-                    (RJS(1,1)-RJS_M(1,1))*1.D6, &
-                    SIGMA_SPP(1)*EP(1)-SIGMA_SPM(1)*EM(1)
+               WRITE(6,'(7A14)') "IP_all","IP_ohm", "IP_run", "IP_primary", "IP_bs", "RE gen.rate"
+               WRITE(6,'(1P7E14.6)') IP_all, IP_ohm, IP_run, IP_prim, IP_bs, RFP(1)*tau_ta0(1)
                WRITE(6,'(A,1PE14.6)') "Zeff= ", ZEFF
             END IF
             END IF
@@ -426,13 +425,12 @@
                     RT_quench(1), RJ_ohm(1), &
                     RJ_runaway(1), RN_disrupt(1), RN_runaway(1), &
                     RN_drei(1), &
-                    IP_all, ip_ohm, ip_run, ip_bs, &
-                    l_ind, ZEFF, IP_all_FP
+                    IP_all, ip_ohm, ip_run, ip_prim, &
+                    l_ind, ZEFF, IP_all_FP, RFP(1)*tau_ta0(1)
          END IF
 
          IF(NRANK.eq.0.and.model_disrupt.ne.0)THEN
             WRITE(11,'(1P128E14.6)') TIMEFP, (E1(NR), NR=1,NRMAX), (ER_drei(NR), NR=1,NRMAX)
-!            WRITE(12,'(1P128E15.6e3)') TIMEFP, (Rconner(NR)*RN_disrupt(NR)*1.d20, NR=1,NRMAX), &
             IF(MODEL_conner_fp.eq.1)THEN
                WRITE(12,'(1P128E15.6e3)') TIMEFP, (RFP(NR)*RN_disrupt(NR)*1.d20, NR=1,NRMAX), &
                     (RFP_ava(NR)*RN_disrupt(NR)*1.d20, NR=1,NRMAX)
@@ -470,7 +468,7 @@
 
                WRITE(14,'(A, 1PE15.6e3, i7)') "# TIME ", TIMEFP, N_f1 ! RE_pitch.dat
                DO NTH=1,NTHMAX
-                  WRITE(14,'(I4, 1P13E17.8e3)'), NTH, RE_PITCH(NTH)
+                  WRITE(14,'(I4, 1P13E17.8e3)'), NTH, RE_PITCH(NTH), SINM(NTH)
                END DO
                WRITE(14,'(A)') " "
                WRITE(14,'(A)') " "
@@ -483,28 +481,6 @@
 
 !     +++++ end of time loop +++++
 
-!         DO NP=NPSTART,NPEND
-!            DCPP_L1(NP)=DCPP2(1,NP,1,1,1)
-!            DCPP_L2(NP)=DCPP2(1,NP,1,2,1)
-!            FCPP_L1(NP)=FCPP2(1,NP,1,1,1)
-!            FCPP_L2(NP)=FCPP2(1,NP,1,2,1)
-!            DCTT_L1(NP)=DCTT2(1,NP,1,1,1)
-!            DCTT_L2(NP)=DCTT2(1,NP,1,2,1)            
-!            DPP_L(NP)=DPP(1,NP,1,1)
-!            DTT_L(NP)=DTT(1,NP,1,1)
-!            FPP_L(NP)=FPP(1,NP,1,1)
-!         END DO
-!         CALL mtx_set_communicator(comm_np)
-!         call mtx_allgather_real8(DCPP_L1,NPEND-NPSTART+1,DCPP_1)
-!         call mtx_allgather_real8(DCPP_L2,NPEND-NPSTART+1,DCPP_2)
-!         call mtx_allgather_real8(FCPP_L1,NPEND-NPSTART+1,FCPP_1)
-!         call mtx_allgather_real8(FCPP_L2,NPEND-NPSTART+1,FCPP_2)
-!         call mtx_allgather_real8(DCTT_L1,NPEND-NPSTART+1,DCTT_1)
-!         call mtx_allgather_real8(DCTT_L2,NPEND-NPSTART+1,DCTT_2)
-!         call mtx_allgather_real8(DTT_L,NPEND-NPSTART+1,DTT_A)
-!         call mtx_allgather_real8(DPP_L,NPEND-NPSTART+1,DPP_A)
-!         call mtx_allgather_real8(FPP_L,NPEND-NPSTART+1,FPP_A)
-         CALL mtx_reset_communicator
 
 !
       IF(NRANK.eq.0)THEN
@@ -535,34 +511,29 @@
       END IF
 
 
-
       CALL GUTIME(gut1)
       CALL update_fns
       CALL GUTIME(gut2)
+      IF(MODEL_DISRUPT.eq.1) CALL FLUXS_PTH
       IF(NRANK.eq.0) WRITE(6,'(A,E14.6)') "---------TIME UPDATE FNS =",gut2-gut1
 
       IF(NRANK.eq.0)THEN
          DO NP=1,NPMAX
-!            WRITE(9,'(1PE12.4,I6,1P20E17.8e3)') PTG(NTG1)*1000, NP, PM(NP,1), &
-!                 PM(NP,1)*PTFP0(1)/AMFP(1)/VC/SQRT(1.D0+PM(NP,1)**2*THETA0(1)), &
-!                 PM(NP,1)**2, &
-!                 PTFP0(1)**2*PM(NP,1)**2/(AEE*AMFP(1)*1.D3), FNS(1,NP,1,1), FNS(NTHMAX,NP,1,1), &
-!                 FNS(NTHMAX/2,NP,1,1) !&
-!                 , DCPP_1(NP), DCPP_2(NP), FCPP_1(NP), FCPP_2(NP), DCTT_1(NP), DCTT_2(NP), &
-!                 DPP_A(NP), DTT_A(NP), FPP_A(NP), (1.D0-SQRT(1.D0+PM(NP,1)**2*THETA0(1)))/THETA0(1)
+!pitch angle average
+            pitch_angle_av = 0.D0
+            DO NTH=1,NTHMAX
+               pitch_angle_av = pitch_angle_av + FNS(NTH,NP,1,1)
+            END DO
+            pitch_angle_av = pitch_angle_av/NTHMAX
+            WRITE(9,'(1PE12.4,I6,1P30E17.8e3)') PTG(NTG1)*1000, NP, PM(NP,1), &
+                 PM(NP,1)*PTFP0(1)/AMFP(1)/VC/SQRT(1.D0+PM(NP,1)**2*THETA0(1)), &
+                 PM(NP,1)**2, &
+                 PTFP0(1)**2*PM(NP,1)**2/(AEE*AMFP(1)*1.D3), FNS(1,NP,1,1), FNS(NTHMAX,NP,1,1), &
+                 FNS(NTHMAX/2,NP,1,1), pitch_angle_av!, &
          END DO
-!         WRITE(9,*) " "
-!         WRITE(9,*) " "
-!         WRITE(16,'(A, 1PE15.6e3)') "# TIME ", TIMEFP
-!         DO NP=1, NPMAX
-!            DO NTH=1,NTHMAX
-!               FPL=LOG10(ABS(FNS(NTH,NP,1,1)))
-!               IF(FPL.le.-70.D0) FPL=-70.D0
-!               WRITE(16,'(4E15.6e3,2E16.7e3)') PM(NP,1), THM(NTH), PM(NP,1)*COSM(NTH), PM(NP,1)*SINM(NTH), FNS(NTH, NP, 1, 1), FPL
-!            END DO
-!         END DO
-!         WRITE(16,*) " "
-!         WRITE(16,*) " "
+         WRITE(9,*) " "
+         WRITE(9,*) " "
+
       END IF
 
 !      IF(NRANK.eq.0)THEN

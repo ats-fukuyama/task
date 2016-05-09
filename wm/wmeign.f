@@ -445,7 +445,7 @@ C
          FRINI=XX
          FIINI=YY
          CALL WMBFLD
-
+         CALL WMPABS
       GOTO 1
 C
  9000 CONTINUE

@@ -1,0 +1,1535 @@
+
+    レポート: プロシージャー間の最適化 [ipo]
+
+インライン展開オプション値:
+  -inline-factor: 100
+  -inline-min-size: 30
+  -inline-max-size: 230
+  -inline-max-total-size: 2000
+  -inline-max-per-routine: 無効
+  -inline-max-per-compile: 無効
+
+
+最適化レポート開始: CQZVAL
+
+    レポート: プロシージャー間の最適化 [ipo]
+
+インライン展開レポート: (CQZVAL) [1] mmm/tomsqz.f(354,18)
+  -> EXTERN: (598,12) csqrtf
+
+
+    レポート: ループの入れ子、ベクトル、自動並列化の最適化 [loop, vec, par]
+
+
+LOOP BEGIN at mmm/tomsqz.f(460,10)
+   remark #25096:  ループ交換は完了しませんでした: ループの入れ子が完全ではありません (ソースのいずれかまたは他のコンパイラー変換による)
+   remark #25451: アドバイス: ループ交換は (可能であれば) ループの入れ子に適用できます。推奨する順列: ( 1 2 ) --> ( 2 1 ) 
+   remark #17109: ループが自動並列化されました。
+   remark #17101: 並列ループ shared={ .2.13_2upper_.1 } private={ } firstprivate={ 238 ani bni 369 ar 375 ai 383 bi 379 br 367 i } lastprivate={ } firstlastprivate={ } reduction={ bnorm anorm }
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+   LOOP BEGIN at mmm/tomsqz.f(465,13)
+      remark #15300: ループがベクトル化されました。
+      remark #15460: マスク付きストライドロード: 4 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 31 
+      remark #15477: ベクトルループのコスト: 23.000 
+      remark #15478: スピードアップの期待値: 2.600 
+      remark #15479: 軽いベクトル操作: 17 
+      remark #15480: 中オーバーヘッドのベクトル操作: 1 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(465,13)
+   <Remainder>
+   LOOP END
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(479,7)
+   remark #17102: ループは並列化されませんでした: 並列化候補ではありません。
+   remark #15521: ループ はベクトル化されませんでした: ループを実行する前に反復数を計算できる式に置き換えるか、または標準的なループ形式を使用してください。
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(497,10)
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15520: ループ はベクトル化されませんでした: 途中で終了するループは、検索ループ表現の条件を満たす場合を除いて、ベクトル化できません。
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(511,10)
+   remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+   remark #25427: ループ文の順序変更
+   remark #15300: ループがベクトル化されました。
+   remark #15460: マスク付きストライドロード: 8 
+   remark #15462: マスクなしインデックス (集約) ロード: 4 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 45 
+   remark #15477: ベクトルループのコスト: 35.250 
+   remark #15478: スピードアップの期待値: 1.260 
+   remark #15479: 軽いベクトル操作: 41 
+   remark #15480: 中オーバーヘッドのベクトル操作: 1 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(511,10)
+<Remainder>
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(543,10)
+   remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+   remark #25427: ループ文の順序変更
+   remark #15300: ループがベクトル化されました。
+   remark #15460: マスク付きストライドロード: 8 
+   remark #15462: マスクなしインデックス (集約) ロード: 8 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 126 
+   remark #15477: ベクトルループのコスト: 52.000 
+   remark #15478: スピードアップの期待値: 2.360 
+   remark #15479: 軽いベクトル操作: 127 
+   remark #15481: 高オーバーヘッドのベクトル操作: 1 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(543,10)
+<Remainder>
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(619,10)
+   remark #25084: 前処理ループの入れ子: ストアを外に移動しています。   [ mmm/tomsqz.f(622,10) ]
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+   LOOP BEGIN at mmm/tomsqz.f(637,13)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #25427: ループ文の順序変更
+      remark #15300: ループがベクトル化されました。
+      remark #15460: マスク付きストライドロード: 8 
+      remark #15462: マスクなしインデックス (集約) ロード: 8 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 126 
+      remark #15477: ベクトルループのコスト: 52.000 
+      remark #15478: スピードアップの期待値: 2.360 
+      remark #15479: 軽いベクトル操作: 127 
+      remark #15481: 高オーバーヘッドのベクトル操作: 1 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(637,13)
+   <Remainder>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(675,13)
+   <Peeled>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(675,13)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #25427: ループ文の順序変更
+      remark #15300: ループがベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 8 
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 8 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 126 
+      remark #15477: ベクトルループのコスト: 18.620 
+      remark #15478: スピードアップの期待値: 5.410 
+      remark #15479: 軽いベクトル操作: 128 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(675,13)
+   <Remainder>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(699,13)
+   <Peeled>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(699,13)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15300: ループがベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 4 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 63 
+      remark #15477: ベクトルループのコスト: 9.120 
+      remark #15478: スピードアップの期待値: 5.500 
+      remark #15479: 軽いベクトル操作: 64 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(699,13)
+   <Remainder>
+   LOOP END
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(719,10)
+   remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+   remark #25427: ループ文の順序変更
+   remark #15300: ループがベクトル化されました。
+   remark #15460: マスク付きストライドロード: 8 
+   remark #15462: マスクなしインデックス (集約) ロード: 4 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 45 
+   remark #15477: ベクトルループのコスト: 35.250 
+   remark #15478: スピードアップの期待値: 1.260 
+   remark #15479: 軽いベクトル操作: 41 
+   remark #15480: 中オーバーヘッドのベクトル操作: 1 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(719,10)
+<Remainder>
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(460,10)
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+   LOOP BEGIN at mmm/tomsqz.f(465,13)
+      remark #17107: ループは並列化されませんでした: 内部ループです。
+      remark #15300: ループがベクトル化されました。
+      remark #15460: マスク付きストライドロード: 4 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 31 
+      remark #15477: ベクトルループのコスト: 23.000 
+      remark #15478: スピードアップの期待値: 2.600 
+      remark #15479: 軽いベクトル操作: 17 
+      remark #15480: 中オーバーヘッドのベクトル操作: 1 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(465,13)
+   <Remainder>
+   LOOP END
+LOOP END
+
+
+Non-optimizable loops:
+
+
+LOOP BEGIN at mmm/tomsqz.f(526,7)
+   remark #15536: ループ はベクトル化されませんでした: 内部ループの制限がこの外部ループのベクトル化を妨げています。詳細は内部ループのメッセージを参照してください。
+   remark #17102: ループは並列化されませんでした: 並列化候補ではありません。
+
+   LOOP BEGIN at mmm/tomsqz.f(712,21)
+      remark #15536: ループ はベクトル化されませんでした: 内部ループの制限がこの外部ループのベクトル化を妨げています。詳細は内部ループのメッセージを参照してください。
+      remark #17102: ループは並列化されませんでした: 並列化候補ではありません。
+
+      LOOP BEGIN at mmm/tomsqz.f(504,7)
+         remark #15341: ループ はベクトル化されませんでした: 非標準のループはベクトル化候補ではありません。
+         remark #17102: ループは並列化されませんでした: 並列化候補ではありません。
+      LOOP END
+   LOOP END
+LOOP END
+===========================================================================
+
+最適化レポート開始: TOMSQZ
+
+    レポート: プロシージャー間の最適化 [ipo]
+
+インライン展開レポート: (TOMSQZ) [2] mmm/tomsqz.f(1,18)
+  -> INLINE: (61,12) CQZHES
+  -> (62,12) CQZVAL
+  -> INLINE: (64,12) CQZVEC
+
+
+    レポート: ループの入れ子、ベクトル、自動並列化の最適化 [loop, vec, par]
+
+
+LOOP BEGIN at mmm/tomsqz.f(131,13) inlined into mmm/tomsqz.f(61,12)
+<Distributed chunk1>
+   remark #25426: ループ分散 (2 ウェイ) 
+   remark #25444: ループの入れ子の交換: ( 1 2 ) --> ( 2 1 )
+   remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。   [ mmm/tomsqz.f(131,13) ]
+
+   LOOP BEGIN at mmm/tomsqz.f(129,10) inlined into mmm/tomsqz.f(61,12)
+   <Peeled>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(129,10) inlined into mmm/tomsqz.f(61,12)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15301: PERMUTED LOOP がベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 2 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 6 
+      remark #15477: ベクトルループのコスト: 2.000 
+      remark #15478: スピードアップの期待値: 4.820 
+      remark #15479: 軽いベクトル操作: 6 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(129,10) inlined into mmm/tomsqz.f(61,12)
+   <Remainder>
+      remark #15301: REMAINDER LOOP がベクトル化されました。
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(129,10) inlined into mmm/tomsqz.f(61,12)
+   <Remainder>
+   LOOP END
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(129,10) inlined into mmm/tomsqz.f(61,12)
+<Distributed chunk2>
+   remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+   remark #15335: ループ はベクトル化されませんでした: ベクトル化は可能ですが非効率です。オーバーライドするには vector always 宣言子または -vec-threshold0 を使用してください。
+   remark #15459: マスク付きインデックス (分散) ストア: 1 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 3 
+   remark #15477: ベクトルループのコスト: 38.000 
+   remark #15478: スピードアップの期待値: 0.150 
+   remark #15479: 軽いベクトル操作: 14 
+   remark #15480: 中オーバーヘッドのベクトル操作: 1 
+   remark #15481: 高オーバーヘッドのベクトル操作: 1 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25439: 剰余ありアンロール - 2  
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(129,10) inlined into mmm/tomsqz.f(61,12)
+<Remainder, Distributed chunk2>
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(143,10) inlined into mmm/tomsqz.f(61,12)
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+   LOOP BEGIN at mmm/tomsqz.f(147,13) inlined into mmm/tomsqz.f(61,12)
+   <Peeled>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(147,13) inlined into mmm/tomsqz.f(61,12)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15300: ループがベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 15 
+      remark #15477: ベクトルループのコスト: 1.250 
+      remark #15478: スピードアップの期待値: 7.700 
+      remark #15479: 軽いベクトル操作: 9 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(147,13) inlined into mmm/tomsqz.f(61,12)
+   <Remainder>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(154,13) inlined into mmm/tomsqz.f(61,12)
+   <Peeled>
+      remark #25456: ループで置換された配列参照スカラーの数: 4
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(154,13) inlined into mmm/tomsqz.f(61,12)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #25427: ループ文の順序変更
+      remark #15300: ループがベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 1 
+      remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 1 
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 1 
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 72 
+      remark #15477: ベクトルループのコスト: 21.000 
+      remark #15478: スピードアップの期待値: 5.480 
+      remark #15479: 軽いベクトル操作: 21 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(154,13) inlined into mmm/tomsqz.f(61,12)
+   <Remainder>
+      remark #15301: REMAINDER LOOP がベクトル化されました。
+      remark #25456: ループで置換された配列参照スカラーの数: 4
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(154,13) inlined into mmm/tomsqz.f(61,12)
+   <Remainder>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(175,13) inlined into mmm/tomsqz.f(61,12)
+      remark #17109: ループが自動並列化されました。
+      remark #17101: 並列ループ shared={ .2.14_2upper_.51 } private={ i i } firstprivate={ 88 t ti t ti xi l 187 bi 183 br rho u1i u1 j } lastprivate={ } firstlastprivate={ } reduction={ }
+      remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+      LOOP BEGIN at mmm/tomsqz.f(179,16) inlined into mmm/tomsqz.f(61,12)
+      <Peeled>
+         remark #25456: ループで置換された配列参照スカラーの数: 4
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(179,16) inlined into mmm/tomsqz.f(61,12)
+         remark #15300: ループがベクトル化されました。
+         remark #15442: すべてのループは剰余ループとして実行されます。
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 25 
+         remark #15477: ベクトルループのコスト: 3.120 
+         remark #15478: スピードアップの期待値: 5.910 
+         remark #15479: 軽いベクトル操作: 22 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(179,16) inlined into mmm/tomsqz.f(61,12)
+      <Remainder>
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(187,16) inlined into mmm/tomsqz.f(61,12)
+      <Peeled>
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(187,16) inlined into mmm/tomsqz.f(61,12)
+         remark #15300: ループがベクトル化されました。
+         remark #15442: すべてのループは剰余ループとして実行されます。
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+         remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 2 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 26 
+         remark #15477: ベクトルループのコスト: 3.370 
+         remark #15478: スピードアップの期待値: 5.900 
+         remark #15479: 軽いベクトル操作: 22 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(187,16) inlined into mmm/tomsqz.f(61,12)
+      <Remainder>
+      LOOP END
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(197,13) inlined into mmm/tomsqz.f(61,12)
+      remark #17109: ループが自動並列化されました。
+      remark #17101: 並列ループ shared={ .2.14_2upper_.53 } private={ i i } firstprivate={ 88 t ti t ti xi l 207 ai 187 bi 203 ar 183 br rho u1i u1 j } lastprivate={ } firstlastprivate={ } reduction={ }
+      remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+      LOOP BEGIN at mmm/tomsqz.f(201,16) inlined into mmm/tomsqz.f(61,12)
+      <Peeled>
+         remark #25456: ループで置換された配列参照スカラーの数: 4
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(201,16) inlined into mmm/tomsqz.f(61,12)
+         remark #15300: ループがベクトル化されました。
+         remark #15442: すべてのループは剰余ループとして実行されます。
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 25 
+         remark #15477: ベクトルループのコスト: 3.120 
+         remark #15478: スピードアップの期待値: 5.910 
+         remark #15479: 軽いベクトル操作: 22 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(201,16) inlined into mmm/tomsqz.f(61,12)
+      <Remainder>
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(209,16) inlined into mmm/tomsqz.f(61,12)
+      <Peeled>
+         remark #25456: ループで置換された配列参照スカラーの数: 2
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(209,16) inlined into mmm/tomsqz.f(61,12)
+         remark #15300: ループがベクトル化されました。
+         remark #15442: すべてのループは剰余ループとして実行されます。
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+         remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 2 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 26 
+         remark #15477: ベクトルループのコスト: 3.370 
+         remark #15478: スピードアップの期待値: 5.900 
+         remark #15479: 軽いベクトル操作: 22 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(209,16) inlined into mmm/tomsqz.f(61,12)
+      <Remainder>
+      LOOP END
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(222,13) inlined into mmm/tomsqz.f(61,12)
+   <Peeled>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(222,13) inlined into mmm/tomsqz.f(61,12)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15300: ループがベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 2 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 6 
+      remark #15477: ベクトルループのコスト: 2.000 
+      remark #15478: スピードアップの期待値: 4.820 
+      remark #15479: 軽いベクトル操作: 6 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(222,13) inlined into mmm/tomsqz.f(61,12)
+   <Remainder>
+      remark #15301: REMAINDER LOOP がベクトル化されました。
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(222,13) inlined into mmm/tomsqz.f(61,12)
+   <Remainder>
+   LOOP END
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(230,10) inlined into mmm/tomsqz.f(61,12)
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+   LOOP BEGIN at mmm/tomsqz.f(240,13) inlined into mmm/tomsqz.f(61,12)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15300: ループがベクトル化されました。
+      remark #15460: マスク付きストライドロード: 4 
+      remark #15462: マスクなしインデックス (集約) ロード: 2 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 23 
+      remark #15477: ベクトルループのコスト: 32.250 
+      remark #15478: スピードアップの期待値: 1.390 
+      remark #15479: 軽いベクトル操作: 20 
+      remark #15480: 中オーバーヘッドのベクトル操作: 1 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(240,13) inlined into mmm/tomsqz.f(61,12)
+   <Remainder>
+      remark #15301: REMAINDER LOOP がベクトル化されました。
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(240,13) inlined into mmm/tomsqz.f(61,12)
+   <Remainder>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(252,13) inlined into mmm/tomsqz.f(61,12)
+      remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+      remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+      LOOP BEGIN at mmm/tomsqz.f(269,16) inlined into mmm/tomsqz.f(61,12)
+         remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+         remark #15300: ループがベクトル化されました。
+         remark #15460: マスク付きストライドロード: 4 
+         remark #15462: マスクなしインデックス (集約) ロード: 4 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 63 
+         remark #15477: ベクトルループのコスト: 26.000 
+         remark #15478: スピードアップの期待値: 2.360 
+         remark #15479: 軽いベクトル操作: 63 
+         remark #15481: 高オーバーヘッドのベクトル操作: 1 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(269,16) inlined into mmm/tomsqz.f(61,12)
+      <Remainder>
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(285,16) inlined into mmm/tomsqz.f(61,12)
+         remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+         remark #15300: ループがベクトル化されました。
+         remark #15460: マスク付きストライドロード: 4 
+         remark #15462: マスクなしインデックス (集約) ロード: 4 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 63 
+         remark #15477: ベクトルループのコスト: 26.000 
+         remark #15478: スピードアップの期待値: 2.360 
+         remark #15479: 軽いベクトル操作: 63 
+         remark #15481: 高オーバーヘッドのベクトル操作: 1 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(285,16) inlined into mmm/tomsqz.f(61,12)
+      <Remainder>
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(309,16) inlined into mmm/tomsqz.f(61,12)
+      <Peeled>
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(309,16) inlined into mmm/tomsqz.f(61,12)
+         remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+         remark #15300: ループがベクトル化されました。
+         remark #15442: すべてのループは剰余ループとして実行されます。
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+         remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 4 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 63 
+         remark #15477: ベクトルループのコスト: 9.120 
+         remark #15478: スピードアップの期待値: 5.500 
+         remark #15479: 軽いベクトル操作: 64 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(309,16) inlined into mmm/tomsqz.f(61,12)
+      <Remainder>
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(320,16) inlined into mmm/tomsqz.f(61,12)
+      <Peeled>
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(320,16) inlined into mmm/tomsqz.f(61,12)
+         remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+         remark #15300: ループがベクトル化されました。
+         remark #15442: すべてのループは剰余ループとして実行されます。
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+         remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 4 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 63 
+         remark #15477: ベクトルループのコスト: 9.120 
+         remark #15478: スピードアップの期待値: 5.500 
+         remark #15479: 軽いベクトル操作: 64 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(320,16) inlined into mmm/tomsqz.f(61,12)
+      <Remainder>
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(333,16) inlined into mmm/tomsqz.f(61,12)
+      <Peeled>
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(333,16) inlined into mmm/tomsqz.f(61,12)
+         remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+         remark #15300: ループがベクトル化されました。
+         remark #15442: すべてのループは剰余ループとして実行されます。
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+         remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 4 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 63 
+         remark #15477: ベクトルループのコスト: 9.120 
+         remark #15478: スピードアップの期待値: 5.500 
+         remark #15479: 軽いベクトル操作: 64 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(333,16) inlined into mmm/tomsqz.f(61,12)
+      <Remainder>
+      LOOP END
+   LOOP END
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(808,10) inlined into mmm/tomsqz.f(64,12)
+   remark #25096:  ループ交換は完了しませんでした: ループの入れ子が完全ではありません (ソースのいずれかまたは他のコンパイラー変換による)
+   remark #25451: アドバイス: ループ交換は (可能であれば) ループの入れ子に適用できます。推奨する順列: ( 1 2 3 ) --> ( 3 1 2 ) 
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+   LOOP BEGIN at mmm/tomsqz.f(815,13) inlined into mmm/tomsqz.f(64,12)
+      remark #25096:  ループ交換は完了しませんでした: ループの入れ子が完全ではありません (ソースのいずれかまたは他のコンパイラー変換による)
+      remark #25451: アドバイス: ループ交換は (可能であれば) ループの入れ子に適用できます。推奨する順列: ( 1 2 ) --> ( 2 1 ) 
+      remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+      remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+      LOOP BEGIN at mmm/tomsqz.f(821,16) inlined into mmm/tomsqz.f(64,12)
+      <Peeled>
+         remark #25456: ループで置換された配列参照スカラーの数: 2
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(821,16) inlined into mmm/tomsqz.f(64,12)
+         remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+         remark #15300: ループがベクトル化されました。
+         remark #15442: すべてのループは剰余ループとして実行されます。
+         remark #15456: マスク付き非アライン・ユニット・ストライド・ロード: 4 
+         remark #15460: マスク付きストライドロード: 6 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 56 
+         remark #15477: ベクトルループのコスト: 23.870 
+         remark #15478: スピードアップの期待値: 2.200 
+         remark #15479: 軽いベクトル操作: 69 
+         remark #15480: 中オーバーヘッドのベクトル操作: 1 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(821,16) inlined into mmm/tomsqz.f(64,12)
+      <Remainder>
+      LOOP END
+   LOOP END
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(844,10) inlined into mmm/tomsqz.f(64,12)
+   remark #25096:  ループ交換は完了しませんでした: ループの入れ子が完全ではありません (ソースのいずれかまたは他のコンパイラー変換による)
+   remark #25451: アドバイス: ループ交換は (可能であれば) ループの入れ子に適用できます。推奨する順列: ( 1 2 3 ) --> ( 1 3 2 ) 
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+
+   LOOP BEGIN at mmm/tomsqz.f(848,13) inlined into mmm/tomsqz.f(64,12)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+
+      LOOP BEGIN at mmm/tomsqz.f(850,16) inlined into mmm/tomsqz.f(64,12)
+         remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+         remark #15344: ループ はベクトル化されませんでした: ベクトル依存関係がベクトル化 . 最初の依存関係を以下に示します。詳細については、レベル 5 のレポートを使用してください。 を妨げています。
+         remark #15346: ベクトル依存関係: FLOW の依存関係が zvr 行 851 と zvr 行 851 の間に仮定されました。
+         remark #25456: ループで置換された配列参照スカラーの数: 2
+      LOOP END
+   LOOP END
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(858,10) inlined into mmm/tomsqz.f(64,12)
+   remark #17109: ループが自動並列化されました。
+   remark #17101: 並列ループ shared={ .2.14_2upper_.75 } private={ } firstprivate={ 418 t 540 zvi 536 zvr j } lastprivate={ } firstlastprivate={ } reduction={ }
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+   LOOP BEGIN at mmm/tomsqz.f(861,13) inlined into mmm/tomsqz.f(64,12)
+   <Peeled>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(861,13) inlined into mmm/tomsqz.f(64,12)
+      remark #15300: ループがベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 14 
+      remark #15477: ベクトルループのコスト: 2.500 
+      remark #15478: スピードアップの期待値: 7.420 
+      remark #15479: 軽いベクトル操作: 8 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(861,13) inlined into mmm/tomsqz.f(64,12)
+   <Remainder>
+      remark #15301: REMAINDER LOOP がベクトル化されました。
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(861,13) inlined into mmm/tomsqz.f(64,12)
+   <Remainder>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(866,13) inlined into mmm/tomsqz.f(64,12)
+   <Peeled>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(866,13) inlined into mmm/tomsqz.f(64,12)
+      remark #15300: ループがベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 1 
+      remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 1 
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 1 
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 59 
+      remark #15477: ベクトルループのコスト: 18.250 
+      remark #15478: スピードアップの期待値: 5.270 
+      remark #15479: 軽いベクトル操作: 10 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(866,13) inlined into mmm/tomsqz.f(64,12)
+   <Remainder>
+      remark #15301: REMAINDER LOOP がベクトル化されました。
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(866,13) inlined into mmm/tomsqz.f(64,12)
+   <Remainder>
+   LOOP END
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(175,13) inlined into mmm/tomsqz.f(61,12)
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+   LOOP BEGIN at mmm/tomsqz.f(179,16) inlined into mmm/tomsqz.f(61,12)
+   <Peeled>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(179,16) inlined into mmm/tomsqz.f(61,12)
+      remark #17107: ループは並列化されませんでした: 内部ループです。
+      remark #15300: ループがベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 25 
+      remark #15477: ベクトルループのコスト: 3.120 
+      remark #15478: スピードアップの期待値: 5.910 
+      remark #15479: 軽いベクトル操作: 22 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(179,16) inlined into mmm/tomsqz.f(61,12)
+   <Remainder>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(187,16) inlined into mmm/tomsqz.f(61,12)
+   <Peeled>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(187,16) inlined into mmm/tomsqz.f(61,12)
+      remark #17107: ループは並列化されませんでした: 内部ループです。
+      remark #15300: ループがベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 2 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 26 
+      remark #15477: ベクトルループのコスト: 3.370 
+      remark #15478: スピードアップの期待値: 5.900 
+      remark #15479: 軽いベクトル操作: 22 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(187,16) inlined into mmm/tomsqz.f(61,12)
+   <Remainder>
+   LOOP END
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(197,13) inlined into mmm/tomsqz.f(61,12)
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+   LOOP BEGIN at mmm/tomsqz.f(201,16) inlined into mmm/tomsqz.f(61,12)
+   <Peeled>
+      remark #25456: ループで置換された配列参照スカラーの数: 4
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(201,16) inlined into mmm/tomsqz.f(61,12)
+      remark #17107: ループは並列化されませんでした: 内部ループです。
+      remark #15300: ループがベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 25 
+      remark #15477: ベクトルループのコスト: 3.120 
+      remark #15478: スピードアップの期待値: 5.910 
+      remark #15479: 軽いベクトル操作: 22 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(201,16) inlined into mmm/tomsqz.f(61,12)
+   <Remainder>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(209,16) inlined into mmm/tomsqz.f(61,12)
+   <Peeled>
+      remark #25456: ループで置換された配列参照スカラーの数: 2
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(209,16) inlined into mmm/tomsqz.f(61,12)
+      remark #17107: ループは並列化されませんでした: 内部ループです。
+      remark #15300: ループがベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 2 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 26 
+      remark #15477: ベクトルループのコスト: 3.370 
+      remark #15478: スピードアップの期待値: 5.900 
+      remark #15479: 軽いベクトル操作: 22 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(209,16) inlined into mmm/tomsqz.f(61,12)
+   <Remainder>
+   LOOP END
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(858,10) inlined into mmm/tomsqz.f(64,12)
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+   LOOP BEGIN at mmm/tomsqz.f(861,13) inlined into mmm/tomsqz.f(64,12)
+   <Peeled>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(861,13) inlined into mmm/tomsqz.f(64,12)
+      remark #17107: ループは並列化されませんでした: 内部ループです。
+      remark #15300: ループがベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 14 
+      remark #15477: ベクトルループのコスト: 2.500 
+      remark #15478: スピードアップの期待値: 7.420 
+      remark #15479: 軽いベクトル操作: 8 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(861,13) inlined into mmm/tomsqz.f(64,12)
+   <Remainder>
+      remark #15301: REMAINDER LOOP がベクトル化されました。
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(861,13) inlined into mmm/tomsqz.f(64,12)
+   <Remainder>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(866,13) inlined into mmm/tomsqz.f(64,12)
+   <Peeled>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(866,13) inlined into mmm/tomsqz.f(64,12)
+      remark #17107: ループは並列化されませんでした: 内部ループです。
+      remark #15300: ループがベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 1 
+      remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 1 
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 1 
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 59 
+      remark #15477: ベクトルループのコスト: 18.250 
+      remark #15478: スピードアップの期待値: 5.270 
+      remark #15479: 軽いベクトル操作: 10 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(866,13) inlined into mmm/tomsqz.f(64,12)
+   <Remainder>
+      remark #15301: REMAINDER LOOP がベクトル化されました。
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(866,13) inlined into mmm/tomsqz.f(64,12)
+   <Remainder>
+   LOOP END
+LOOP END
+===========================================================================
+
+最適化レポート開始: CQZVEC
+
+    レポート: プロシージャー間の最適化 [ipo]
+
+インライン展開レポート: (CQZVEC) [3] mmm/tomsqz.f(740,18)
+
+
+    レポート: ループの入れ子、ベクトル、自動並列化の最適化 [loop, vec, par]
+
+
+LOOP BEGIN at mmm/tomsqz.f(808,10)
+   remark #25096:  ループ交換は完了しませんでした: ループの入れ子が完全ではありません (ソースのいずれかまたは他のコンパイラー変換による)
+   remark #25451: アドバイス: ループ交換は (可能であれば) ループの入れ子に適用できます。推奨する順列: ( 1 2 3 ) --> ( 3 1 2 ) 
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+   LOOP BEGIN at mmm/tomsqz.f(815,13)
+      remark #25096:  ループ交換は完了しませんでした: ループの入れ子が完全ではありません (ソースのいずれかまたは他のコンパイラー変換による)
+      remark #25451: アドバイス: ループ交換は (可能であれば) ループの入れ子に適用できます。推奨する順列: ( 1 2 ) --> ( 2 1 ) 
+      remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+      remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+      LOOP BEGIN at mmm/tomsqz.f(821,16)
+      <Peeled>
+         remark #25456: ループで置換された配列参照スカラーの数: 2
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(821,16)
+         remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+         remark #15300: ループがベクトル化されました。
+         remark #15442: すべてのループは剰余ループとして実行されます。
+         remark #15456: マスク付き非アライン・ユニット・ストライド・ロード: 4 
+         remark #15460: マスク付きストライドロード: 6 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 56 
+         remark #15477: ベクトルループのコスト: 23.870 
+         remark #15478: スピードアップの期待値: 2.200 
+         remark #15479: 軽いベクトル操作: 69 
+         remark #15480: 中オーバーヘッドのベクトル操作: 1 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(821,16)
+      <Remainder>
+      LOOP END
+   LOOP END
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(844,10)
+   remark #25096:  ループ交換は完了しませんでした: ループの入れ子が完全ではありません (ソースのいずれかまたは他のコンパイラー変換による)
+   remark #25451: アドバイス: ループ交換は (可能であれば) ループの入れ子に適用できます。推奨する順列: ( 1 2 3 ) --> ( 1 3 2 ) 
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+
+   LOOP BEGIN at mmm/tomsqz.f(848,13)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+
+      LOOP BEGIN at mmm/tomsqz.f(850,16)
+         remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+         remark #15344: ループ はベクトル化されませんでした: ベクトル依存関係がベクトル化 . 最初の依存関係を以下に示します。詳細については、レベル 5 のレポートを使用してください。 を妨げています。
+         remark #15346: ベクトル依存関係: FLOW の依存関係が zr 行 851 と zr 行 851 の間に仮定されました。
+         remark #25456: ループで置換された配列参照スカラーの数: 2
+      LOOP END
+   LOOP END
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(858,10)
+   remark #17109: ループが自動並列化されました。
+   remark #17101: 並列ループ shared={ .2.15_2upper_.7 } private={ } firstprivate={ 418 t 540 zi 536 zr j } lastprivate={ } firstlastprivate={ } reduction={ }
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+   LOOP BEGIN at mmm/tomsqz.f(861,13)
+   <Peeled>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(861,13)
+      remark #15300: ループがベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 14 
+      remark #15477: ベクトルループのコスト: 2.500 
+      remark #15478: スピードアップの期待値: 7.420 
+      remark #15479: 軽いベクトル操作: 8 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(861,13)
+   <Remainder>
+      remark #15301: REMAINDER LOOP がベクトル化されました。
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(861,13)
+   <Remainder>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(866,13)
+   <Peeled>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(866,13)
+      remark #15300: ループがベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 1 
+      remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 1 
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 1 
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 59 
+      remark #15477: ベクトルループのコスト: 18.250 
+      remark #15478: スピードアップの期待値: 5.270 
+      remark #15479: 軽いベクトル操作: 10 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(866,13)
+   <Remainder>
+      remark #15301: REMAINDER LOOP がベクトル化されました。
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(866,13)
+   <Remainder>
+   LOOP END
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(858,10)
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+   LOOP BEGIN at mmm/tomsqz.f(861,13)
+   <Peeled>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(861,13)
+      remark #17107: ループは並列化されませんでした: 内部ループです。
+      remark #15300: ループがベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 14 
+      remark #15477: ベクトルループのコスト: 2.500 
+      remark #15478: スピードアップの期待値: 7.420 
+      remark #15479: 軽いベクトル操作: 8 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(861,13)
+   <Remainder>
+      remark #15301: REMAINDER LOOP がベクトル化されました。
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(861,13)
+   <Remainder>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(866,13)
+   <Peeled>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(866,13)
+      remark #17107: ループは並列化されませんでした: 内部ループです。
+      remark #15300: ループがベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 1 
+      remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 1 
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 1 
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 59 
+      remark #15477: ベクトルループのコスト: 18.250 
+      remark #15478: スピードアップの期待値: 5.270 
+      remark #15479: 軽いベクトル操作: 10 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(866,13)
+   <Remainder>
+      remark #15301: REMAINDER LOOP がベクトル化されました。
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(866,13)
+   <Remainder>
+   LOOP END
+LOOP END
+===========================================================================
+
+最適化レポート開始: CQZHES
+
+    レポート: プロシージャー間の最適化 [ipo]
+
+インライン展開レポート: (CQZHES) [4] mmm/tomsqz.f(70,18)
+
+
+    レポート: ループの入れ子、ベクトル、自動並列化の最適化 [loop, vec, par]
+
+
+LOOP BEGIN at mmm/tomsqz.f(131,13)
+<Distributed chunk1>
+   remark #25426: ループ分散 (2 ウェイ) 
+   remark #25444: ループの入れ子の交換: ( 1 2 ) --> ( 2 1 )
+   remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。   [ mmm/tomsqz.f(131,13) ]
+
+   LOOP BEGIN at mmm/tomsqz.f(129,10)
+   <Peeled>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(129,10)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15301: PERMUTED LOOP がベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 2 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 6 
+      remark #15477: ベクトルループのコスト: 2.000 
+      remark #15478: スピードアップの期待値: 4.820 
+      remark #15479: 軽いベクトル操作: 6 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(129,10)
+   <Remainder>
+      remark #15301: REMAINDER LOOP がベクトル化されました。
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(129,10)
+   <Remainder>
+   LOOP END
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(129,10)
+<Distributed chunk2>
+   remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+   remark #15335: ループ はベクトル化されませんでした: ベクトル化は可能ですが非効率です。オーバーライドするには vector always 宣言子または -vec-threshold0 を使用してください。
+   remark #15459: マスク付きインデックス (分散) ストア: 1 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 3 
+   remark #15477: ベクトルループのコスト: 38.000 
+   remark #15478: スピードアップの期待値: 0.150 
+   remark #15479: 軽いベクトル操作: 14 
+   remark #15480: 中オーバーヘッドのベクトル操作: 1 
+   remark #15481: 高オーバーヘッドのベクトル操作: 1 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25439: 剰余ありアンロール - 2  
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(129,10)
+<Remainder, Distributed chunk2>
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(143,10)
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+   LOOP BEGIN at mmm/tomsqz.f(147,13)
+   <Peeled>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(147,13)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15300: ループがベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 15 
+      remark #15477: ベクトルループのコスト: 1.250 
+      remark #15478: スピードアップの期待値: 7.700 
+      remark #15479: 軽いベクトル操作: 9 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(147,13)
+   <Remainder>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(154,13)
+   <Peeled>
+      remark #25456: ループで置換された配列参照スカラーの数: 2
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(154,13)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #25427: ループ文の順序変更
+      remark #15300: ループがベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 2 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 75 
+      remark #15477: ベクトルループのコスト: 11.250 
+      remark #15478: スピードアップの期待値: 5.360 
+      remark #15479: 軽いベクトル操作: 27 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+      remark #25456: ループで置換された配列参照スカラーの数: 2
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(154,13)
+   <Remainder>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(175,13)
+      remark #17109: ループが自動並列化されました。
+      remark #17101: 並列ループ shared={ .2.16_2upper_.11 } private={ i i } firstprivate={ 88 t ti t ti xi l 187 bi 183 br rho u1i u1 j } lastprivate={ } firstlastprivate={ } reduction={ }
+      remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+      LOOP BEGIN at mmm/tomsqz.f(179,16)
+      <Peeled>
+         remark #25456: ループで置換された配列参照スカラーの数: 4
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(179,16)
+         remark #15300: ループがベクトル化されました。
+         remark #15442: すべてのループは剰余ループとして実行されます。
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 25 
+         remark #15477: ベクトルループのコスト: 3.120 
+         remark #15478: スピードアップの期待値: 5.910 
+         remark #15479: 軽いベクトル操作: 22 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(179,16)
+      <Remainder>
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(187,16)
+      <Peeled>
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(187,16)
+         remark #15300: ループがベクトル化されました。
+         remark #15442: すべてのループは剰余ループとして実行されます。
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+         remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 2 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 26 
+         remark #15477: ベクトルループのコスト: 3.370 
+         remark #15478: スピードアップの期待値: 5.900 
+         remark #15479: 軽いベクトル操作: 22 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(187,16)
+      <Remainder>
+      LOOP END
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(197,13)
+      remark #17109: ループが自動並列化されました。
+      remark #17101: 並列ループ shared={ .2.16_2upper_.13 } private={ i i } firstprivate={ 88 t ti t ti xi l 207 ai 187 bi 203 ar 183 br rho u1i u1 j } lastprivate={ } firstlastprivate={ } reduction={ }
+      remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+      LOOP BEGIN at mmm/tomsqz.f(201,16)
+      <Peeled>
+         remark #25456: ループで置換された配列参照スカラーの数: 4
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(201,16)
+         remark #15300: ループがベクトル化されました。
+         remark #15442: すべてのループは剰余ループとして実行されます。
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 25 
+         remark #15477: ベクトルループのコスト: 3.120 
+         remark #15478: スピードアップの期待値: 5.910 
+         remark #15479: 軽いベクトル操作: 22 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(201,16)
+      <Remainder>
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(209,16)
+      <Peeled>
+         remark #25456: ループで置換された配列参照スカラーの数: 2
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(209,16)
+         remark #15300: ループがベクトル化されました。
+         remark #15442: すべてのループは剰余ループとして実行されます。
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+         remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 2 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 26 
+         remark #15477: ベクトルループのコスト: 3.370 
+         remark #15478: スピードアップの期待値: 5.900 
+         remark #15479: 軽いベクトル操作: 22 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(209,16)
+      <Remainder>
+      LOOP END
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(222,13)
+   <Peeled>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(222,13)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15300: ループがベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 2 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 6 
+      remark #15477: ベクトルループのコスト: 2.000 
+      remark #15478: スピードアップの期待値: 4.820 
+      remark #15479: 軽いベクトル操作: 6 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(222,13)
+   <Remainder>
+      remark #15301: REMAINDER LOOP がベクトル化されました。
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(222,13)
+   <Remainder>
+   LOOP END
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(230,10)
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+   LOOP BEGIN at mmm/tomsqz.f(240,13)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15300: ループがベクトル化されました。
+      remark #15460: マスク付きストライドロード: 4 
+      remark #15462: マスクなしインデックス (集約) ロード: 2 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 23 
+      remark #15477: ベクトルループのコスト: 32.250 
+      remark #15478: スピードアップの期待値: 1.390 
+      remark #15479: 軽いベクトル操作: 20 
+      remark #15480: 中オーバーヘッドのベクトル操作: 1 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(240,13)
+   <Remainder>
+      remark #15301: REMAINDER LOOP がベクトル化されました。
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(240,13)
+   <Remainder>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(252,13)
+      remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+      remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+      LOOP BEGIN at mmm/tomsqz.f(269,16)
+         remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+         remark #15300: ループがベクトル化されました。
+         remark #15460: マスク付きストライドロード: 4 
+         remark #15462: マスクなしインデックス (集約) ロード: 4 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 63 
+         remark #15477: ベクトルループのコスト: 26.000 
+         remark #15478: スピードアップの期待値: 2.360 
+         remark #15479: 軽いベクトル操作: 63 
+         remark #15481: 高オーバーヘッドのベクトル操作: 1 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(269,16)
+      <Remainder>
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(285,16)
+         remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+         remark #15300: ループがベクトル化されました。
+         remark #15460: マスク付きストライドロード: 4 
+         remark #15462: マスクなしインデックス (集約) ロード: 4 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 63 
+         remark #15477: ベクトルループのコスト: 26.000 
+         remark #15478: スピードアップの期待値: 2.360 
+         remark #15479: 軽いベクトル操作: 63 
+         remark #15481: 高オーバーヘッドのベクトル操作: 1 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(285,16)
+      <Remainder>
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(309,16)
+      <Peeled>
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(309,16)
+         remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+         remark #15300: ループがベクトル化されました。
+         remark #15442: すべてのループは剰余ループとして実行されます。
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+         remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 4 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 63 
+         remark #15477: ベクトルループのコスト: 9.120 
+         remark #15478: スピードアップの期待値: 5.500 
+         remark #15479: 軽いベクトル操作: 64 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(309,16)
+      <Remainder>
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(320,16)
+      <Peeled>
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(320,16)
+         remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+         remark #15300: ループがベクトル化されました。
+         remark #15442: すべてのループは剰余ループとして実行されます。
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+         remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 4 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 63 
+         remark #15477: ベクトルループのコスト: 9.120 
+         remark #15478: スピードアップの期待値: 5.500 
+         remark #15479: 軽いベクトル操作: 64 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(320,16)
+      <Remainder>
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(333,16)
+      <Peeled>
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(333,16)
+         remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+         remark #15300: ループがベクトル化されました。
+         remark #15442: すべてのループは剰余ループとして実行されます。
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+         remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 4 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 63 
+         remark #15477: ベクトルループのコスト: 9.120 
+         remark #15478: スピードアップの期待値: 5.500 
+         remark #15479: 軽いベクトル操作: 64 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+      LOOP END
+
+      LOOP BEGIN at mmm/tomsqz.f(333,16)
+      <Remainder>
+      LOOP END
+   LOOP END
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(175,13)
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+   LOOP BEGIN at mmm/tomsqz.f(179,16)
+   <Peeled>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(179,16)
+      remark #17107: ループは並列化されませんでした: 内部ループです。
+      remark #15300: ループがベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 25 
+      remark #15477: ベクトルループのコスト: 3.120 
+      remark #15478: スピードアップの期待値: 5.910 
+      remark #15479: 軽いベクトル操作: 22 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(179,16)
+   <Remainder>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(187,16)
+   <Peeled>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(187,16)
+      remark #17107: ループは並列化されませんでした: 内部ループです。
+      remark #15300: ループがベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 2 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 26 
+      remark #15477: ベクトルループのコスト: 3.370 
+      remark #15478: スピードアップの期待値: 5.900 
+      remark #15479: 軽いベクトル操作: 22 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(187,16)
+   <Remainder>
+   LOOP END
+LOOP END
+
+LOOP BEGIN at mmm/tomsqz.f(197,13)
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+   LOOP BEGIN at mmm/tomsqz.f(201,16)
+   <Peeled>
+      remark #25456: ループで置換された配列参照スカラーの数: 4
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(201,16)
+      remark #17107: ループは並列化されませんでした: 内部ループです。
+      remark #15300: ループがベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 25 
+      remark #15477: ベクトルループのコスト: 3.120 
+      remark #15478: スピードアップの期待値: 5.910 
+      remark #15479: 軽いベクトル操作: 22 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(201,16)
+   <Remainder>
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(209,16)
+   <Peeled>
+      remark #25456: ループで置換された配列参照スカラーの数: 2
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(209,16)
+      remark #17107: ループは並列化されませんでした: 内部ループです。
+      remark #15300: ループがベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 2 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 26 
+      remark #15477: ベクトルループのコスト: 3.370 
+      remark #15478: スピードアップの期待値: 5.900 
+      remark #15479: 軽いベクトル操作: 22 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at mmm/tomsqz.f(209,16)
+   <Remainder>
+   LOOP END
+LOOP END
+===========================================================================

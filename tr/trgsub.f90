@@ -109,6 +109,7 @@
          CALL GVALUE(0.0,0.0,GYORG,2*GSTEPY,NGULEN(2*GSTEPY))
       ENDIF
 
+!cpub NGMAX = total number of plotted lines
       DO NG=1,NGMAX
          CALL SETLIN(-1,-1,7-MOD(NG-1,6))
          IF(MOD(MODE/2,2).EQ.0) THEN

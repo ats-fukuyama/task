@@ -128,7 +128,6 @@ SUBROUTINE WFGOUT
         GOTO 1000
      ENDIF
      KID=KWD(3:3)
-     WRITE(6,*) 'KID,NGRAPH=',KID,NGRAPH
      IF(    KID.EQ.'R'.OR.&
        &    KID.EQ.'I'.OR.&
        &    KID.EQ.'A'.OR.&

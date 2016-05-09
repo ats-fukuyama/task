@@ -1,4 +1,4 @@
-!     $Id$
+!     $Id: fpmenu.f90,v 1.3 2013/01/14 16:48:26 fukuyama Exp $
 
 !     ***** TASK/FP MENU *****
 
