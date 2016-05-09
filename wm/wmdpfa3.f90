@@ -1,48 +1,66 @@
+MODULE wmfa3
+ IMPLICIT NONE
+ REAL(8) ::paN,paNL,paNR  ! **L => left of pole, **R => right of pole
+! REAL(8) :: DFPax,DFRax,fax
+! REAL(8) :: DFPaxR,DFRaxR,faxR,DFPaxL,DFRaxL,faxL
+ REAL(8) ::RHO0,p0N,v0N ! **N -> normalized by Thermal (pN=p/PTA(=Pthermal)) 
+ REAL(8) :: A0
+ REAL(8) :: pintN,LBi1,RBi1,LBi2,RBi2,LBi3,RBi3
+ REAL(8) :: LBint,RBint
+ INTEGER :: la,n,s,NTHv
+ COMPLEX(8) :: Cv0N,ImCv0N
+ REAL(8) :: VmaxN
+! REAL(8),PARAMETER :: PmaxN=7.D0
 
+END MODULE wmfa3
+ 
 ! ******************************************************
-!                       WMDPFA3              
-!      dielectric tensor used by arbitral distribution function 
+!                       WMDPFA3_v_para,vperp
+!      dielectric tensor caluculated numerically by Maxwellian distribution function 
 !      without relativistic effects
-
 ! ******************************************************
 
-SUBROUTINE WMDPFA3(CW,NRWM,DELRWM,NPWMMAX,NTHPMAX,RKPR,VTA,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
-
+SUBROUTINE WMDPFA3(CW,RHOWM,RKPR,AE2N0,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
   USE plcomm
   USE pllocal
-  USE bpsd_constants,ONLY : CI,PI,AMP
-! USE dpfpin,ONLY: dpfmfl 
+  USE bpsd_constants,ONLY : CI,PI,AMP,AEE
+  USE wmfa
+  USE libgrf, ONLY : grd1d,grd2d
   INCLUDE '../dp/dpcomm.inc'
 
 !  IMPLICIT NONE
-  INTEGER,INTENT(IN) :: NRWM,NPWMMAX,NTHPMAX
+!  INTEGER,INTENT(IN) :: NRWM
   COMPLEX(8),INTENT(IN) :: CW
-  REAL(8),INTENT(IN) :: RKPR,VTA,DELRWM
-!  COMPLEX(8),INTENT(OUT) :: CXM(1:6)
+  REAL(8),INTENT(IN) :: RHOWM,RKPR
+  REAL(8),INTENT(OUT) ::AE2N0
   COMPLEX(8),INTENT(OUT) :: CPM1,CPM2,CQM1,CQM2,CRM1,CRM2
-  REAL(8) :: p,v
-  REAL(8) :: p0,v0,PTA
-  REAL(8) :: AM,Norml
-  COMPLEX(8) :: CX
+  REAL(8) :: v
+  REAL(8) :: v0
+  REAL(8) :: RTA,VTA
+  REAL(8) :: AM,Norml,fvr1,fvrnp
+  REAL(8) :: RHOM_MIN,RHOM_MAX
+  COMPLEX(8) :: CX,Cp0
   REAL(8) :: AP,AQ,AR
-!  REAL(8) :: DIFFRHO,DIFFRHOMIN,DELR
-  INTEGER :: NRFA2,NS,NR,ID
-  REAL(8) :: DELP1,DELP2,PMF
-  COMPLEX(8) :: funcD
-
-  REAL(8),ALLOCATABLE :: DFR(:,:)
-  REAL(8),ALLOCATABLE :: FA(:,:,:)
-
+  REAL(8) :: fv1,DFKv1,DFRv1
+  INTEGER :: NS,ID,NRWM
+  COMPLEX(8) :: CIPL1,CIPR1,CIPL2,CIPR2,CIP1,CIP2
+  COMPLEX(8) :: CIQL1,CIQR1,CIQL2,CIQR2,CIQ1,CIQ2
+  COMPLEX(8) :: CIRL1,CIRR1,CIRL2,CIRR2,CIR1,CIR2
+!
+  REAL(8) :: xg(1:120),yg(1:120),zg(1:120,1:120)
+  REAL(8) :: SUMfa(1:NRMAXFP+2) !!!!
+!
      NS=3
-     NPMAX=NPWMMAX
-     NTHMAX=NTHPMAX
-     NR=NRWM
-    ALLOCATE(DFR(1:NPMAX,1:NTHMAX))
-    ALLOCATE(FA(NR:NR+1,1:NPMAX,1:NTHMAX))
-     DELP(NS)=PMAX(NS)/NPMAX
-     DELTH=PI/NTHMAX
-     AM=AMP*PA(NS)
-     PTA=VTA*AM
+     PmaxN=5.D0
+     RHO0=RHOWM
+     RHOM_MIN=RHOa0(1)
+     RHOM_MAX=RHOa0(NRMAXFP+2)
+     AM=AMFP(NS)
+     AE=AEFP(NS)
+     AE2N0=AE*AE*RNFP0(NS)
+     RTA=RTFP0(3)*AEE*1.D3 !  T_themal difinition ????
+     VTA=SQRT(2.D0*RTA/AM)  
+     PTA=VTA*AM             
      CX=ABS(RKPR)/(CW*AM)
      CPM1=(0.D0,0.D0)
      CPM2=(0.D0,0.D0)
@@ -50,144 +68,143 @@ SUBROUTINE WMDPFA3(CW,NRWM,DELRWM,NPWMMAX,NTHPMAX,RKPR,VTA,CPM1,CPM2,CQM1,CQM2,C
      CQM2=(0.D0,0.D0)
      CRM1=(0.D0,0.D0)
      CRM2=(0.D0,0.D0)
-!   WRITE(6,'(1P6E12.4)') DELP(NS),REAL(NTHMAX)
-    CALL DISTR_FA(NR,DELRWM,NPWMMAX,NTHPMAX,FA)
-!
-!    DO NP=1,NPMAX
-!    DO NTH=1,NTHMAX
-!       PMF=(REAL(NP)-0.5D0)*DELP(NS)*PTA
-!       FA(NR,NP,NTH)=FA(NR,NP,NTH)*EXP(-(PMF/PTA)**2)
-!       FA(NR+1,NP,NTH)=FA(NR+1,NP,NTH)*EXP(-(PMF/PTA)**2)
-!        WRITE(6,'(1P6E12.4)') FA(NR,NP,NTH)
-!    END DO
-!    END DO
-!
 
-!-- df/dp,df/dr with FA
-        Norml=1.D0/(SQRT(PI)*VTA*VTA*VTA)
-      DO NTH=1,NTHMAX
-      DO NP=1,NPMAX-1
-         DFP(NP,NTH)=Norml*(FA(NR,NP+1,NTH)-FA(NR,NP,NTH))/(DELP(NS)*PTA)
-          WRITE(6,'(1P6E12.4)') DFP(NP,NTH)
-      END DO
-      END DO
-
-      DO NP=1,NPMAX
-      DO NTH=1,NTHMAX
-         DFR(NP,NTH)=Norml*(FA(NR+1,NP,NTH)-FA(NR,NP,NTH))/DELRWM
-      END DO
-      END DO
-!!--
-
-!-- df/dp,df/dtheta with Test function Maxwellian
-!      ID=0
-!      Norml=1.D0/(VTA*VTA*VTA)
-!     CALL DPFMFL(NS,ID)
-!      DO NTH=1,NTHMAX
-!      DO NP=1,NPMAX-1
-!          DFP(NP,NTH)=Norml*(FM(NP+1,NTH)-FM(NP,NTH))/(DELP(NS)*PTA)
-!         WRITE(6,'(1P6E12.4)') DFP(NP,NTH),DFR(NP,NTH)
-!      END DO
-!      END DO
-
-!      DO NTH=1,NTHMAX
-!      DO NP=1,NPMAX
-!          DFR(NP,NTH)=Norml*FM(NP,NTH)
-!        WRITE(6,'(1P6E12.4)') REAL(NP)
-!      END DO
-!      END DO
-!         WRITE(6,'(1P6E12.4)') TPP,FACTOR
+!  WRITE(6,'(1P5E12.4)') RTA,VTA,PTA
+! ---------------------------
 
 !--
-     DO NTH=1,NTHMAX
-        IF(ABS(TCSM(NTH)).LT.1.D-21) THEN
-         p0=20.D0*PTA
-        ELSE
-         p0=1.D0/(REAL(CX)*TCSM(NTH))
-        ENDIF
-         v0=p0/AM
-         AP=TSNM(NTH)*((1.D0+TCSM(NTH)*TCSM(NTH))**2)
-         AQ=TSNM(NTH)*TCSM(NTH)*(1.D0+TCSM(NTH)*TCSM(NTH))
-         AR=TSNM(NTH)*TCSM(NTH)*TCSM(NTH)
-     DO NP=1,NPMAX-1
-         p=PM(NP,NS)*PTA !==> 0?
-!         p=(REAL(NP)-0.5D0)*DELP(NS)*PTA 
-         v=p/AM
-!    WRITE(6,'(1P6E12.4)') p0,v0,p,v,PG(NP,NS)
-         funcD=1.D0-CX*p*TCSM(NTH)
-!----INCLUDE SINGULAR POINT
-      IF(((PG(NP,NS)*PTA).LT.p0).AND.((PG(NP+1,NS)*PTA).GT.p0)) THEN
-        DELP1=p0-PG(NP,NS)*PTA
-        DELP2=PG(NP+1,NS)*PTA-p0
-!    WRITE(6,'(1P6E12.4)') p0,v0,REAL(NP),REAL(NTH)
+     DO NTH=1,NTHMAXFP
+        p0N=1.D0/(PTA*REAL(CX)*TCSM(NTH))
+        Cp0N=1.D0/(PTA*CX*TCSM(NTH))
+
+        v0N=p0N*PTA/(AM*VTA)
+        Cv0N=Cp0N*PTA/(AM*VTA)
+        NTHv=NTH
+!        WRITE(6,'(A,1I5,1P5E12.4)') 'NTH,Cp0N=',NTH,Cp0N,CX,TCSM(NTH)
+
+        AP=TSNM(NTH)*((1.D0+TCSM(NTH)*TCSM(NTH))**2)
+        AQ=TSNM(NTH)*TCSM(NTH)*(1.D0+TCSM(NTH)*TCSM(NTH))
+        AR=TSNM(NTH)*TCSM(NTH)*TCSM(NTH)
 !-----PRICIPAL VALUE
-        CPM1=CPM1   &
-        +(DFP(NP,NTH)*(v**5)*AP/(1.D0-CX*TCSM(NTH)*(PG(NP,NS)*PTA+0.5D0*DELP1)))*DELP1*DELTH &
-        +(DFP(NP,NTH)*(v**5)*AP/(1.D0-CX*TCSM(NTH)*(PG(NP+1,NS)*PTA-0.5D0*DELP2)))*DELP2*DELTH
-        CPM2=CPM2   &
-        +(DFR(NP,NTH)*(v**6)*AP/(1.D0-CX*TCSM(NTH)*(PG(NP,NS)*PTA+0.5D0*DELP1)))*DELP1*DELTH &
-        +(DFR(NP,NTH)*(v**6)*AP/(1.D0-CX*TCSM(NTH)*(PG(NP+1,NS)*PTA-0.5D0*DELP2)))*DELP2*DELTH
 
-        CQM1=CQM1   &
-        +(DFP(NP,NTH)*(v**4)*AQ/(1.D0-CX*TCSM(NTH)*(PG(NP,NS)*PTA+0.5D0*DELP1)))*DELP1*DELTH &
-        +(DFP(NP,NTH)*(v**4)*AQ/(1.D0-CX*TCSM(NTH)*(PG(NP+1,NS)*PTA-0.5D0*DELP2)))*DELP2*DELTH
-        CQM2=CQM2   &
-        +(DFR(NP,NTH)*(v**5)*AQ/(1.D0-CX*TCSM(NTH)*(PG(NP,NS)*PTA+0.5D0*DELP1)))*DELP1*DELTH &
-        +(DFR(NP,NTH)*(v**5)*AQ/(1.D0-CX*TCSM(NTH)*(PG(NP+1,NS)*PTA-0.5D0*DELP2)))*DELP2*DELTH
+        IF((p0N.LT.1.D-1).OR.(p0N.GE.PmaxN-1.D-1)) THEN
+           LBi3=1.4D-1
+           RBi3=PmaxN-1.4D-1
+         CALL PVINT3(1,3,CIP1)   ! 3 => INTEGRAL 0.14 < pN < 4.86
+          CPM1=CPM1 + AP*CIP1
+         CALL PVINT3(2,3,CIP2)
+          CPM2=CPM2 + AP*CIP2
 
-        CRM1=CRM1   &
-        +(DFP(NP,NTH)*(v**3)*AR/(1.D0-CX*TCSM(NTH)*(PG(NP,NS)*PTA+0.5D0*DELP1)))*DELP1*DELTH &
-        +(DFP(NP,NTH)*(v**3)*AR/(1.D0-CX*TCSM(NTH)*(PG(NP+1,NS)*PTA-0.5D0*DELP2)))*DELP2*DELTH
-        CRM2=CRM2   &
-        +(DFR(NP,NTH)*(v**4)*AR/(1.D0-CX*TCSM(NTH)*(PG(NP,NS)*PTA+0.5D0*DELP1)))*DELP1*DELTH &
-        +(DFR(NP,NTH)*(v**4)*AR/(1.D0-CX*TCSM(NTH)*(PG(NP+1,NS)*PTA-0.5D0*DELP2)))*DELP2*DELTH
+         CALL PVINT3(3,3,CIQ1)
+          CQM1=CQM1 + AQ*CIQ1
+         CALL PVINT3(4,3,CIQ2)
+          CQM2=CQM2 + AQ*CIQ2
+
+         CALL PVINT3(5,3,CIR1)
+          CRM1=CRM1 + AR*CIR1
+         CALL PVINT3(6,3,CIR2)
+          CRM2=CRM2 + AR*CIR2
+         
+!         WRITE(6,'(1P8E12.4)') CIP1,CIP2
+       ELSE  
+        IF(p0N.LE.0.5D0*PmaxN) THEN 
+           ! Integral 1:(0,p0N)+(p0N,2p0N) 2:(2p0N,PmaxN) 
+           LBi1=p0N
+           RBi1=2*p0N
+           LBi2=2*p0N
+           RBi2=PmaxN-5.D-2
+         CALL PVINT3(1,1,CIPL1)
+         CALL PVINT3(1,2,CIPR1)
+           CPM1=CPM1 + AP*(CIPL1+CIPR1)
+         CALL PVINT3(2,1,CIPL2)
+         CALL PVINT3(2,2,CIPR2)
+           CPM2=CPM2 + AP*(CIPL2+CIPR2)
+
+         CALL PVINT3(3,1,CIQL1)
+         CALL PVINT3(3,2,CIQR1)
+          CQM1=CQM1 + AQ*(CIQL1+CIQR1)
+         CALL PVINT3(4,1,CIQL2)
+         CALL PVINT3(4,2,CIQR2)
+          CQM2=CQM2 + AQ*(CIQL2+CIQR2)
+
+         CALL PVINT3(5,1,CIRL1)
+         CALL PVINT3(5,2,CIRR1)
+          CRM1=CRM1 + AR*(CIRL1+CIRR1)
+         CALL PVINT3(6,1,CIRL2)
+         CALL PVINT3(6,2,CIRR2)
+          CRM2=CRM2 + AR*(CIRL2+CIRR2)
+
+        ELSE
+           ! Integral 1:(PmaxN-2*(PmaxN-p0N),p0N)+(p0N,PmaxN) 2:(0,Pmax-2*(PmaxN-p0N)) 
+           LBi1=p0N
+           RBi1=PmaxN
+           LBi2=0.D0
+           RBi2=PmaxN-2*(PmaxN-p0N)
+         CALL PVINT3(1,1,CIPL1)
+         CALL PVINT3(1,2,CIPR1)
+          CPM1=CPM1 + AP*(CIPL1+CIPR1)
+         CALL PVINT3(2,1,CIPL2)
+         CALL PVINT3(2,2,CIPR2)
+          CPM2=CPM2 + AP*(CIPL2+CIPR2)
+
+         CALL PVINT3(3,1,CIQL1)
+         CALL PVINT3(3,2,CIQR1)
+          CQM1=CQM1 + AQ*(CIQL1+CIQR1)
+         CALL PVINT3(4,1,CIQL2)
+         CALL PVINT3(4,2,CIQR2)
+          CQM2=CQM2 + AQ*(CIQL2+CIQR2)
+
+         CALL PVINT3(5,1,CIRL1)
+         CALL PVINT3(5,2,CIRR1)
+          CRM1=CRM1 + AR*(CIRL1+CIRR1)
+         CALL PVINT3(6,1,CIRL2)
+         CALL PVINT3(6,2,CIRR2)
+          CRM2=CRM2 + AR*(CIRL2+CIRR2)
+        ENDIF
+!         WRITE(6,'(1P8E12.4)') CIRL1,CIRR1,CIRL2,CIRR2
+       ENDIF
 !------END PRINCIPAL VALUE
 
 !-----SINGULAR POINT
-        IF(AIMAG(CW).GT.0.D0) THEN
-         CPM1=CPM1
-         CPM2=CPM2
-         CQM1=CQM1
-         CQM2=CQM2
-         CRM1=CRM1
-         CRM2=CRM2
-        ELSEIF(AIMAG(CW).EQ.0.D0) THEN
-         CPM1=CPM1-CI*PI*(DFP(NP,NTH)*(v0**5)*AP)*p0*DELTH
-         CPM2=CPM2-CI*PI*(DFR(NP,NTH)*(v0**6)*AP)*p0*DELTH
-         CQM1=CQM1-CI*PI*(DFP(NP,NTH)*(v0**4)*AQ)*p0*DELTH
-         CQM2=CQM2-CI*PI*(DFR(NP,NTH)*(v0**5)*AQ)*p0*DELTH
-         CRM1=CRM1-CI*PI*(DFP(NP,NTH)*(v0**3)*AR)*p0*DELTH
-         CRM2=CRM2-CI*PI*(DFR(NP,NTH)*(v0**4)*AR)*p0*DELTH
-        ELSE  !(AIMAG(CW).LT.0.D0)
-         CPM1=CPM1-2.D0*CI*PI*(DFP(NP,NTH)*(v0**5)*AP)*p0*DELTH
-         CPM2=CPM2-2.D0*CI*PI*(DFR(NP,NTH)*(v0**6)*AP)*p0*DELTH
-         CQM1=CQM1-2.D0*CI*PI*(DFP(NP,NTH)*(v0**4)*AQ)*p0*DELTH
-         CQM2=CQM2-2.D0*CI*PI*(DFR(NP,NTH)*(v0**5)*AQ)*p0*DELTH
-         CRM1=CRM1-2.D0*CI*PI*(DFP(NP,NTH)*(v0**3)*AR)*p0*DELTH
-         CRM2=CRM2-2.D0*CI*PI*(DFR(NP,NTH)*(v0**4)*AR)*p0*DELTH
+        IF((p0N.GT.0.D0).AND.(p0N.LT.PmaxN)) THEN
+         CALL SPL2DD(p0N,RHOWM,fa1,DFPa1,DFRa1,PMa0,RHOa0,&
+                    US(1:4,1:4,1:NPM,1:NRM,NTHv),NPM,NPMAX+2,NRMAXFP+2,IERR)
+!        WRITE(6,'(1I5,1P6E12.4)') NTHv,p0N,RHO0,fa1,DFPa1,DFRa1
+         IF(AIMAG(Cp0N).GT.0.D0) THEN
+          CPM1=CPM1
+          CPM2=CPM2
+          CQM1=CQM1
+          CQM2=CQM2
+          CRM1=CRM1
+          CRM2=CRM2
+         ELSEIF(AIMAG(Cp0N).EQ.0.D0) THEN
+          CPM1=CPM1-CI*PI*(DFPa1*((v0N)**5)*AP)*p0N !!????
+          CPM2=CPM2-CI*PI*(DFRa1*((v0N)**6)*AP)*p0N
+          CQM1=CQM1-CI*PI*(DFPa1*((v0N)**4)*AQ)*p0N
+          CQM2=CQM2-CI*PI*(DFRa1*((v0N)**5)*AQ)*p0N
+          CRM1=CRM1-CI*PI*(DFPa1*((v0N)**3)*AR)*p0N
+          CRM2=CRM2-CI*PI*(DFRa1*((v0N)**4)*AR)*p0N
+         ELSE 
+          CPM1=CPM1-2.D0*CI*PI*(DFPa1*((Cv0N)**5)*AP)*Cp0N
+          CPM2=CPM2-2.D0*CI*PI*(DFRa1*((Cv0N)**6)*AP)*Cp0N
+          CQM1=CQM1-2.D0*CI*PI*(DFPa1*((Cv0N)**4)*AQ)*Cp0N
+          CQM2=CQM2-2.D0*CI*PI*(DFRa1*((Cv0N)**5)*AQ)*Cp0N
+          CRM1=CRM1-2.D0*CI*PI*(DFPa1*((Cv0N)**3)*AR)*Cp0N
+          CRM2=CRM2-2.D0*CI*PI*(DFRa1*((Cv0N)**4)*AR)*Cp0N
+         ENDIF
+!         WRITE(6,'(1P8E12.4)') v0N,p0N 
         ENDIF
 !-----END SINGULAR POINT
-
-!-----END INCLUDE SINGULAR POINT
-      ELSE
-!-----WITHOUT SINGULAR POINT
-
-        CPM1=CPM1+(DFP(NP,NTH)*(v**5)*AP/funcD)*DELP(NS)*PTA*DELTH
-        CPM2=CPM2+(DFR(NP,NTH)*(v**6)*AP/funcD)*DELP(NS)*PTA*DELTH
-
-        CQM1=CQM1+(DFP(NP,NTH)*(v**4)*AQ/funcD)*DELP(NS)*PTA*DELTH
-        CQM2=CQM2+(DFR(NP,NTH)*(v**5)*AQ/funcD)*DELP(NS)*PTA*DELTH
-
-        CRM1=CRM1+(DFP(NP,NTH)*(v**3)*AR/funcD)*DELP(NS)*PTA*DELTH
-        CRM2=CRM2+(DFR(NP,NTH)*(v**4)*AR/funcD)*DELP(NS)*PTA*DELTH
-!         WRITE(6,'(1P6E12.4)') CPM1,CPM2
-      ENDIF
-!-----END WITHOUT SINGULAR POINT
      END DO
-     END DO
+
+     CPM1=CPM1*DELTH*(VTA**5)/(VTA**3)   ! dp=p_0*dp_n -> df/dp=(df/dp_n)*dp_n/dp=dfp_n/p_0
+     CPM2=CPM2*DELTH*(VTA**6)*PTA/(VTA**3)
+     CQM1=CQM1*DELTH*(VTA**4)/(VTA**3)
+     CQM2=CQM2*DELTH*(VTA**5)*PTA/(VTA**3)
+     CRM1=CRM1*DELTH*(VTA**3)/(VTA**3)
+     CRM2=CRM2*DELTH*(VTA**4)*PTA/(VTA**3)
+
 !  WRITE(6,'(1P6E12.4)') CPM1,CPM2
-  DEALLOCATE(DFR)
-  DEALLOCATE(FA)     
 !     CPM1=(0.D0,0.D0)
 !     CPM2=(0.D0,0.D0)
 !     CQM1=(0.D0,0.D0)
@@ -198,34 +215,194 @@ SUBROUTINE WMDPFA3(CW,NRWM,DELRWM,NPWMMAX,NTHPMAX,RKPR,VTA,CPM1,CPM2,CQM1,CQM2,C
 END SUBROUTINE WMDPFA3
 
 
-! CONTAINS 
- SUBROUTINE DISTR_FA(NR,DELRWM,NPWMMAX,NTHPMAX,FA)
+SUBROUTINE PVINT3(j,l,CINT)
+ USE plcomm
+ USE pllocal
+ USE bpsd_constants,ONLY : CI,PI
+ USE wmfa
+ USE libde,ONLY : DEFTC
+ USE libgrf
+ INCLUDE '../dp/dpcomm.inc'
+! IMPLICIT NONE
+ INTEGER,INTENT(IN) :: j  ! j-> (df/dp or df/dr) and power 
+ INTEGER,INTENT(IN) :: l  ! l -> Integral boundary 
+ COMPLEX(8),INTENT(OUT) :: CINT ! Integral
+ REAL(8) :: x,xm,xp 
+ REAL(8) :: H0,EPS,ES ! --> task/lib/libde.f90  
+ CHARACTER(80):: LINE
+ INTEGER :: ILST
+ INTEGER:: m
+ REAL(8):: xg(0:1000),yg(0:1000)
+  H0=0.5
+  EPS=1.D-4 !!!??
+  ILST=0
+
+   WRITE(LINE,'(3I5,1P5E12.4)') j,l,NTHv,p0N,RHO0
+!  IF(RHO0.GT.2.25D-1) ILST=1
+!ILST=1
+   la=l
+   IF(mod(j,2).EQ.1) THEN
+    s=1
+    n=5-(j-1)/2
+   ELSE
+    s=2
+    n=6-(j-2)/2
+   ENDIF
+        
+   IF(l.EQ.1) THEN
+     LBint=LBi1
+     RBint=RBi1
+     ImCp0N=Cp0N-p0N
+     
+!      IF(RHO0.GT.1.4D-1) THEN
+!      do m=0,100
+!        xg(m)=-9.999D-1+dble(m)/50
+!        yg(m)=CFUNCpldp(xg(m),1.D0-xg(m),1.D0+xg(m))
+!      end do
+!      CALL pages
+!      CALL GRD1D(0,xg,yg,101,101,1,'CFUNCpldp')
+!      CALL pagee
+!      ENDIF
+     IF(s.EQ.1) THEN    
+      CALL DEFTC(CINT,ES,H0,EPS,ILST,CFUNCpldp3,KID='CFUNCpldp'//TRIM(LINE))
+     ELSE
+      CALL DEFTC(CINT,ES,H0,EPS,ILST,CFUNCpldr3,KID='CFUNCpldr'//TRIM(LINE))
+     ENDIF
+
+   ELSEIF(l.EQ.2) THEN
+     LBint=LBi2
+     RBint=RBi2
+      
+!     IF(RHO0.GT.9.4D-1) THEN
+!      do m=0,100
+!        xg(m)=-9.999D-1+dble(m)/50
+!        yg(m)=CFUNCdp(xg(m),1.D0-xg(m),1.D0+xg(m))
+!      end do
+!      CALL pages
+!      CALL GRD1D(0,xg,yg,101,101,1,'CFUNCdp')
+!      CALL pagee
+!     ENDIF
+     IF(s.EQ.1) THEN
+      CALL DEFTC(CINT,ES,H0,EPS,ILST,CFUNCdp3,KID='CFUNCdp'//TRIM(LINE))
+     ELSE
+      CALL DEFTC(CINT,ES,H0,EPS,ILST,CFUNCdr3,KID='CFUNCdr'//TRIM(LINE))
+     ENDIF
+
+   ELSEIF(l.EQ.3) THEN
+!      ILST=1
+     LBint=LBi3
+     RBint=RBi3
+
+!     IF(RHO0.GT.9.6D-1) THEN
+!      WRITE(6,'(1I5,1P6E12.4)') NTHv, Cp0N
+!      do m=0,1000
+!        xg(m)=-9.999D-1+dble(m)/500
+!        yg(m)=CFUNCdp(xg(m),1.D0-xg(m),1.D0+xg(m))
+!      end do
+!      CALL pages
+!      CALL GRD1D(0,xg,yg,1001,1001,1,'CFUNCdp')
+!      CALL pagee
+!     ENDIF
+     IF(s.EQ.1) THEN
+      CALL DEFTC(CINT,ES,H0,EPS,ILST,CFUNCdp3,KID='CFUNCdp'//TRIM(LINE))
+     ELSE
+      CALL DEFTC(CINT,ES,H0,EPS,ILST,CFUNCdr3,KID='CFUNCdr'//TRIM(LINE))
+     ENDIF
+
+   ELSE
+    RETURN
+   ENDIF
+
+ CONTAINS
+
+ FUNCTION CFUNCdp3(x,xm,xp)
   USE plcomm
   USE pllocal
-  INCLUDE '../dp/dpcomm.inc'   
-!  IMPLICIT NONE
-  INTEGER,INTENT(IN) :: NR,NPWMMAX,NTHPMAX
-  REAL(8),INTENT(IN) :: DELRWM
-  REAL(8),DIMENSION(NR:NR+1,NPWMMAX,NTHPMAX),INTENT(OUT) :: FA
-  REAL(8) :: FAR(NR:NR+1)
-  REAL(8) :: PNAL,XRHO
-  INTEGER :: NS,ID
-!  ALLOCATE(FA(NR:NR+1,1:NPWMMAX,1:NTHPMAX))
-  NPMAX=NPWMMAX
-  NTHMAX=NTHPMAX
-  NS=3
-  ID=0
-  CALL DPFMFL(NS,ID)
-  XRHO=(NR-0.5D0)*DELRWM
-  PNAL=0.5D0
-  FAR(NR)=EXP(-(XRHO/PNAL)**2)
-  FAR(NR+1)=EXP(-((XRHO+DELRWM)/PNAL)**2)
-   DO NP=1,NPMAX
-   DO NTH=1,NTHMAX
-      FA(NR,NP,NTH)=FAR(NR)*FM(NP,NTH)
-      FA(NR+1,NP,NTH)=FAR(NR+1)*FM(NP,NTH)
-!     WRITE(6,'(1P6E12.4)') FA(NR,NP,NTH)
-   END DO
-   END DO 
- END SUBROUTINE DISTR_FA
-!END SUBROUTINE WMDPFA3
+  USE wmfa
+  INCLUDE '../dp/dpcomm.inc'
+  REAL(8),INTENT(IN) :: x,xm,xp
+  COMPLEX(8) :: CFUNCdp
+
+    paN=0.5D0*(RBint+LBint)+0.5D0*(RBint-LBint)*x 
+    A0 =0.5D0*(RBint-LBint)
+
+    CALL SPL2DD(paN,RHO0,fax,DFPax,DFRax,PMa0,RHOa0,&
+         US(1:4,1:4,1:NPM,1:NRM,NTHv),NPM,NPMAX+2,NRMAXFP+2,IERR)
+
+      CFUNCdp=A0*DFPax*(paN**n)/(1-paN/Cp0N)
+ END FUNCTION CFUNCdp3
+
+ FUNCTION CFUNCdr3(x,xm,xp)
+  USE plcomm
+  USE pllocal
+  USE wmfa
+  INCLUDE '../dp/dpcomm.inc'
+  REAL(8),INTENT(IN) :: x,xm,xp
+  COMPLEX(8) :: CFUNCdr
+
+    paN=0.5D0*(RBint+LBint)+0.5D0*(RBint-LBint)*x
+    A0 =0.5D0*(RBint-LBint)
+
+    CALL SPL2DD(paN,RHO0,fax,DFPax,DFRax,PMa0,RHOa0,&
+         US(1:4,1:4,1:NPM,1:NRM,NTHv),NPM,NPMAX+2,NRMAXFP+2,IERR)
+!   WRITE(6,'(1I5,1P6E12.4)') la,p0N,paN,RHO0,fax,DFPax,DFRax
+
+      CFUNCdr=A0*DFRax*(paN**n)/(1-paN/Cp0N)
+! WRITE(6,'(2I5,1P6E12.4)') NTHv,la,p0N,x,xm,xp,CFUNCdr
+! WRITE(6,'(1P5E12.4)') A0,DFRax,paN,Cp0N
+ END FUNCTION CFUNCdr3
+
+ FUNCTION CFUNCpldp3(x,xm,xp)
+  USE plcomm
+  USE pllocal
+  USE wmfa
+  INCLUDE '../dp/dpcomm.inc'
+  REAL(8),INTENT(IN) :: x,xm,xp
+  REAL(8) :: FL,FR
+  COMPLEX(8) :: CFUNCpldp
+
+    paNL=LBint-0.5D0*(RBint-LBint)*xp
+    paNR=LBint+0.5D0*(RBint-LBint)*xp 
+    A0  =0.5D0*(RBint-LBint)
+
+    CALL SPL2DD(paNL,RHO0,faxL,DFPaxL,DFRaxL,PMa0,RHOa0,&
+         US(1:4,1:4,1:NPM,1:NRM,NTHv),NPM,NPMAX+2,NRMAXFP+2,IERR)
+    CALL SPL2DD(paNR,RHO0,faxR,DFPaxR,DFRaxR,PMa0,RHOa0,&
+         US(1:4,1:4,1:NPM,1:NRM,NTHv),NPM,NPMAX+2,NRMAXFP+2,IERR)  
+
+    FL=(paNL**n)*DFPaxL
+    FR=(paNR**n)*DFPaxR
+
+      CFUNCpldp=A0*Cp0N*(FL/(ImCp0N+A0*xp)+FR/(ImCp0N-A0*xp))
+!      CFUNCpldp=A0*Cp0N*(ImCp0N*(FR+FL)+A0*xp*(FR-FL))/(ImCp0N**2-(A0*xp)**2)
+! WRITE(6,'(2I5,1P10E12.4)') NTHv,la,x,xm,xp,paNL,paNR,p0N
+! WRITE(6,'(1P10E12.4)') A0,FL,FR,Cp0N,ImCp0N,CFUNCpldp 
+ END FUNCTION CFUNCpldp3
+
+ FUNCTION CFUNCpldr3(x,xm,xp)
+  USE plcomm
+  USE pllocal
+  USE wmfa
+  INCLUDE '../dp/dpcomm.inc'
+  REAL(8),INTENT(IN) :: x,xm,xp
+  REAL(8) :: FL,FR
+  COMPLEX(8) :: CFUNCpldr
+
+    paNL=LBint-0.5D0*(RBint-LBint)*xp
+    paNR=LBint+0.5D0*(RBint-LBint)*xp 
+    A0  =0.5D0*(RBint-LBint)
+
+    CALL SPL2DD(paNL,RHO0,faxL,DFPaxL,DFRaxL,PMa0,RHOa0,&
+         US(1:4,1:4,1:NPM,1:NRM,NTHv),NPM,NPMAX+2,NRMAXFP+2,IERR)
+    CALL SPL2DD(paNR,RHO0,faxR,DFPaxR,DFRaxR,PMa0,RHOa0,&
+         US(1:4,1:4,1:NPM,1:NRM,NTHv),NPM,NPMAX+2,NRMAXFP+2,IERR)  
+
+    FL=(paNL**n)*DFRaxL
+    FR=(paNR**n)*DFRaxR
+
+      CFUNCpldr=A0*Cp0N*(ImCp0N*(FR+FL)+A0*xp*(FR-FL))/(ImCp0N**2-(A0*xp)**2)
+
+ END FUNCTION CFUNCpldr3
+
+END SUBROUTINE PVINT3
+
