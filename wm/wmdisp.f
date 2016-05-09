@@ -551,7 +551,7 @@ C
       INTEGER :: NS,NRWM
       DOUBLE PRECISION :: DELRWM,RL
 C
-      WRITE(6,'(A,I5)') 'NR=',NR
+!      WRITE(6,'(A,I5)') 'NR=',NR
       NS=3
       CW=2.D0*PI*CRF*1.D6
 C
@@ -559,15 +559,15 @@ C
       IF(XL.LT.RA) THEN
 !         RNA=PNA*EXP(-(XL/PNAL)**2)*1.D20    !gaussian
 !         DRN=-2.D0*XL/(PNAL**2)              !gaussian
-          RNA=(PNA-1.D-5)*1.D20*(1.D0-XL**2)+1.D-5*1.D20
-          DRN=-2.D0*XL*(1.D0-1.D-5*1.D20/RNA)/(1.D0-XL**2)
+          RNA=(PNA-1.D-5)*1.D20*(1.D0-XL**2)+1.D-5*1.D20 ! PNA*1.D20
+          DRN=-2.D0*XL*(1.D0-1.D-5*1.D20/RNA)/(1.D0-XL**2) !0.D0
 !          RNA=(PNA-1.D-5)*1.D20*((1.00001D0-XL**2)**0.5D0)+ 1.D-5*1.D20    !parabola ()^1 or ()^1/2
 !          DRN=-XL*(1.D0-1.D-5*1.D20/RNA)/(1.00001D0-XL**2) !-XL/((1.00001D0-XL**2)**0.5D0) !parabola
       ELSE
          RETURN
       ENDIF
-      RTA=PTA*AEE*1.D3   ! original
-!      RTA=(PTA-5.D0)*(1.D0-XL**2)*AEE*1.D3 +5.D0*AEE*1.D3  ! parabola
+!      RTA=PTA*AEE*1.D3   ! original
+      RTA=(PTA-5.D-1)*(1.D0-XL**2)*AEE*1.D3 +5.D-1*AEE*1.D3  ! parabola
       AM=PA(3)*AMP
       AE=PZ(3)*AEE
       VTA=SQRT(2.D0*RTA/AM)
