@@ -69,7 +69,7 @@ subroutine TXSTAT
   use tx_commons, only : VOLAVN, ALI, VLOOP, TAUE1, TAUE2, TAUEP, TAUEH, BETAA, &
        &                 BETAPA, BETAN, Q, ANSAV, rIp, PI, RA, NRA, NRMAX, &
        &                 rMui, Chii, TSAV, Gamma_a, TAUPA, achg, &
-       &                 rKeV, amas, amp, RR, rNuei, rho, Var
+       &                 rKeV, amas, amp, RR, rNuei, rho, Var, vlt
   implicit none
   integer(4) :: NR, NRL1, NRL2
   real(8) :: rhol1, rhol2, rmuil, chiil, uiphl, PTeVL, WDe, rNueiL
@@ -120,7 +120,7 @@ subroutine TXSTAT
   write(6,'(1X,2(A27,1PD10.3,3X))') "Ion Prandtl num. at 0.3  = ", rmuil/chiil, &
        &                            "Ion tor. velocity at 0.3 = ", uiphl
   write(6,'(1X,2(A27,1PD10.3,3X))') "Eff .col. freq. at 0.5   = ", rNueiL/WDe, &
-       &                            "Plasma volume inside sep.= ", 2.D0*PI*RR*PI*RA**2
+       &                            "Plasma volume inside sep.= ", vlt(NRA)
 
 end subroutine TXSTAT
 
@@ -208,7 +208,8 @@ END FUNCTION rLINEAVE
 
 SUBROUTINE TXSAVE
   use tx_commons, only : &
-       & SLID,RA,rhob,rhoaccum,RR,BB,amas,achg,Zeff,rIPs,rIPe,PN0,PNa,PTe0,PTea,PTi0,PTia, &
+       & SLID,RA,rhob,rhoaccum,RR,BB,rbvt,ravl,rbvl,amas,achg,Zeff,rIPs,rIPe, &
+       & PN0,PNa,PTe0,PTea,PTi0,PTia, &
        & PROFJ,PROFN1,PROFN2,PROFT1,PROFT2,Uiph0,PROFD,PROFD1,PROFD2,PROFDB,PROFM,PROFM1,PROFMB,PROFC,PROFC1,PROFCB, &
        & De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC,FSDFIX,FSANOM,FSCBKP,FSCBSH,rG1, &
        & FSBOHM,FSPCLD,FSPCLM,FSPCLC,FSVAHL,FSMPCH,FSPARV,FSCX,FSLC,FSNC,FSNCB,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03, &
@@ -281,7 +282,7 @@ SUBROUTINE TXSAVE
   WRITE(21) SLID
   WRITE(21) RCSId
 
-  WRITE(21) RA,rhob,rhoaccum,RR,BB
+  WRITE(21) RA,rhob,rhoaccum,RR,BB,rbvt,ravl,rbvl
   WRITE(21) amas,achg,Zeff,rIPs,rIPe
   WRITE(21) PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,PROFN1,PROFN2,PROFT1,PROFT2,Uiph0
   WRITE(21) PROFD,PROFD1,PROFD2,PROFDB,PROFM,PROFM1,PROFMB,PROFC,PROFC1,PROFCB
@@ -325,7 +326,8 @@ END SUBROUTINE TXSAVE
 SUBROUTINE TXLOAD(IST)
   use tx_commons, only : &
        & allocate_txcomm, deallocate_txcomm, &
-       & RA,RB,rhob,rhoaccum,RR,BB,amas,achg,Zeff,rIPs,rIPe,PN0,PNa,PTe0,PTea,PTi0,PTia, &
+       & RA,RB,rhob,rhoaccum,RR,BB,rbvt,ravl,rbvl,amas,achg,Zeff,rIPs,rIPe, &
+       & PN0,PNa,PTe0,PTea,PTi0,PTia, &
        & PROFJ,PROFN1,PROFN2,PROFT1,PROFT2,Uiph0,PROFD,PROFD1,PROFD2,PROFDB,PROFM,PROFM1,PROFMB,PROFC,PROFC1,PROFCB, &
        & De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC,FSDFIX,FSANOM,FSCBKP,FSCBSH,rG1, &
        & FSBOHM,FSPCLD,FSPCLM,FSPCLC,FSVAHL,FSMPCH,FSPARV,FSCX,FSLC,FSNC,FSNCB,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03, &
@@ -386,7 +388,7 @@ SUBROUTINE TXLOAD(IST)
   !  IF(LOADSLID(1:5) == 'tx459') THEN
   READ(21) RCSId
 
-  READ(21) RA,rhob,rhoaccum,RR,BB
+  READ(21) RA,rhob,rhoaccum,RR,BB,rbvt,ravl,rbvl
   READ(21) amas,achg,Zeff,rIPs,rIPe
   READ(21) PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,PROFN1,PROFN2,PROFT1,PROFT2,Uiph0
   READ(21) PROFD,PROFD1,PROFD2,PROFDB,PROFM,PROFM1,PROFMB,PROFC,PROFC1,PROFCB
@@ -479,7 +481,7 @@ END SUBROUTINE TXLOAD
 SUBROUTINE TXGSAV
 
   use tx_commons, only : &
-       & SLID,RA,rhob,RR,BB,amas,achg,Zeff,PTe0,PTea,PTi0,PTia, &
+       & SLID,RA,rhob,RR,BB,rbvt,ravl,rbvl,amas,achg,Zeff,PTe0,PTea,PTi0,PTia, &
        & De0,Di0,rMue0,rMui0,WPM0,Chie0,Chii0,FSDFIX,FSANOM,FSCBKP,FSCBSH, &
        & FSBOHM,FSPCLD,FSPCLM,FSPCLC,FSVAHL,FSMPCH,FSPARV,PROFD,PROFC, &
        & FSCX,FSLC,FSRP,FSNC,FSNCB,FSLP,FSLTE,FSLTI,FSION, &
@@ -538,7 +540,7 @@ SUBROUTINE TXGSAV
     WRITE(21) SLID
 !!$    WRITE(21) RCSId
 
-  WRITE(21) RA,rhob,RR,BB
+  WRITE(21) RA,rhob,RR,BB,rbvt,ravl,rbvl
   WRITE(21) amas,achg,Zeff
   WRITE(21) PTe0,PTea,PTi0,PTia
   WRITE(21) De0,Di0,rMue0,rMui0,WPM0,Chie0,Chii0
@@ -583,7 +585,7 @@ SUBROUTINE TXGLOD(IST)
 
   use tx_commons, only : &
        & allocate_txcomm, deallocate_txcomm, &
-       & RA,RB,rhob,RR,BB,amas,achg,Zeff,PTe0,PTea,PTi0,PTia, &
+       & RA,RB,rhob,RR,BB,rbvt,ravl,rbvl,amas,achg,Zeff,PTe0,PTea,PTi0,PTia, &
        & De0,Di0,rMue0,rMui0,WPM0,Chie0,Chii0,FSDFIX,FSANOM,FSCBKP,FSCBSH, &
        & FSBOHM,FSPCLD,FSPCLM,FSPCLC,FSVAHL,FSMPCH,FSPARV,PROFD,PROFC, &
        & FSCX,FSLC,FSRP,FSNC,FSNCB,FSLP,FSLTE,FSLTI,FSION, &
@@ -637,7 +639,7 @@ SUBROUTINE TXGLOD(IST)
 !!$    !  IF(LOADSLID(1:5) == 'tx459') THEN
 !!$    READ(21) RCSId
 
-  READ(21) RA,rhob,RR,BB
+  READ(21) RA,rhob,RR,BB,rbvt,ravl,rbvl
   READ(21) amas,achg,Zeff
   READ(21) PTe0,PTea,PTi0,PTia
   READ(21) De0,Di0,rMue0,rMui0,WPM0,Chie0,Chii0

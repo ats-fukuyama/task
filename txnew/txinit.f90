@@ -16,10 +16,13 @@ SUBROUTINE TXINIT
 
   !   ***** Configuration parameters *****
 
-  !   Plasma minor radius (m)
+  !   Plasma minor radius (m), geometrically defined by (Rmax-Rmin)/2
   ra = 0.8D0
 
-  !   Virtual wall radius in rho coordinate (-)
+  !   Plasma minor radius (m), defined by sqrt(V/(2 Pi Pi R))
+  ravl = 0.8D0
+
+  !   Virtual wall radius in rho coordinate (-) for defining rb
   !     The position of the virtual wall follows the change in that of the separatrix
   !     when an equilibrium evolves.
   !     That is, the virtual wall always locates at rhob distance from the separatrix.
@@ -30,11 +33,14 @@ SUBROUTINE TXINIT
   !     rhoaccum is valid when rhoaccum is plus.
   rhoaccum = - 1.d0
 
-  !   Plasma major radius (m)
+  !   Plasma major radius (m), geometrically defined by (Rmax+Rmin)/2
   RR = 3.2D0
 
-  !   Toroidal magnetic field (T)
+  !   Toroidal magnetic field (T) at R=RR
   BB = 2.68D0
+
+  !   Poloidal current function at the virtual wall (Tm)
+  rbvt = rr * bb
 
   !   Plasma current start (MA)
   rIPs= 1.D0
@@ -315,11 +321,9 @@ SUBROUTINE TXINIT
   !   ***** initial parameters *****
 
   !   Initial Density scale length in SOL normalized by minor radius (-), valid if MDITSN /= 0
-!  rLn = 0.03D0 / ra
   rLn = 0.0857D0
 
   !   Initail Temperature scale length in SOL normalized by minor radius (-), valid if MDITST /= 0
-!  rLT = 0.03D0 / ra
   rLT = 0.0857D0
 
   !   ***** Heating parameters *****
@@ -417,7 +421,9 @@ SUBROUTINE TXINIT
   !   Gas-puff particle flux (10^20 m^-2 1/s)
   !      If you input Gamma_0 [particles/sec], you translate it into
   !      rGASPF [1/(m^2 s)]:
-  !        rGASPF = Gamma_0 / (2.D0*PI*RR*2.D0*PI*RB)
+  !        rGASPF = Gamma_0 / <|nabla V|>
+  !               = Gamma_0 / surt(NRMAX)
+  !               ~ Gamma_0 / (2.D0*PI*RR*2.D0*PI*RB)
   rGASPF = 0.2D0
 
   !   ***** Ripple loss parameters *****
@@ -902,20 +908,8 @@ SUBROUTINE TXCALM
      END IF
   END DO
 
-  !  Equlibrium
+  !  Equilibrium
   call txequ
-
-  !  Mesh coordinate
-
-  r(:)     = rho(:) * ra
-  rhosq(:) = rho(:)**2
-
-  vv(:)  = vlt(:)
-  vvn(:) = vv(:) / vv(NRA) ! Volume normalized by the plasma volume
-
-  !  Mesh interval
-
-  hv(1:NEMAX) = vlt(1:NRMAX) - vlt(0:NRMAX-1)
 
   RETURN
 END SUBROUTINE TXCALM
@@ -936,7 +930,16 @@ SUBROUTINE TXPROF
   use tx_core_module, only : intg_area, intg_area_p, intg_vol_p 
   use sauter_mod
   use tx_ntv, only : perturb_mag, Wnm_spline
-  use lapack95, only : GESV ! for intel mkl LAPACK95, Note: This module file includes "ptsv" subroutine, whose name conflicts with PTsV defined in TASK/TX.  
+  use eqread_mod, only : AJphVRL
+#ifdef laself
+  ! for self-compiled lapack
+  use f95_lapack, only : GESV => LA_GESV
+#else
+  ! for intel mkl LAPACK95, 
+  !  Note: This module file includes "ptsv" subroutine, 
+  !        whose name conflicts with PTsV defined in TASK/TX.  
+  use lapack95, only : GESV
+#endif
 
   implicit none
   INTEGER(4) :: NR, IER, ifile, NHFM, NR_smt, NR_smt_start = 10
@@ -948,11 +951,8 @@ SUBROUTINE TXPROF
   real(8) :: BCLQm3, etanc, etaspz, dum=0.d0, tmp
   REAL(8) :: aitken2p!, DERIV4
   real(8), dimension(:), allocatable :: AJPHL, tmpa, RHSV, Prof1, Prof2, &
-       & Profsdt, dProfsdt, AJphVRL
+       & Profsdt, dProfsdt
   real(8), dimension(:,:), allocatable :: CMTX!, dPsV
-
-  !   Virtual wall radius (m)
-  rb = rhob * ra
 
   !  Read spline table for neoclassical toroidal viscosity
   IF(FSRP /= 0.D0) CALL Wnm_spline
@@ -972,7 +972,10 @@ SUBROUTINE TXPROF
 
   !  Variables
 
-  ! === B.C. and shape of density, temperature, pressure ===
+  ! ********************************************************************
+  !      B.C. and profiles of density, temperature, pressure
+  ! ********************************************************************
+
   if(MDINTN < 0 .or. MDINTT < 0 .or. ABS(MDINTC) /= 0) call initprof_input
   if(MDINTN < 0) then ! density at the boundaries
      call initprof_input(  0,1,PN0L)
@@ -999,7 +1002,7 @@ SUBROUTINE TXPROF
      PTiDIVL = PTiDIV
   end if
   PBA   = rhob - 1.d0
-  dPN   = - 3.D0 * (PN0L - PNaL) / RA
+  dPN   = - 3.D0 * (PN0L - PNaL) / ravl
   CfN1  = - (3.D0 * PBA * dPN + 4.D0 * (PNaL - PNeDIVL)) / PBA**3
   CfN2  =   (2.D0 * PBA * dPN + 3.D0 * (PNaL - PNeDIVL)) / PBA**4
   IF(MDFIXT == 0) THEN
@@ -1139,37 +1142,50 @@ SUBROUTINE TXPROF
      deallocate(Prof1)
   END IF
 
-  ! === Poloidal current function, fipol = R B_t ===
+  ! ********************************************************************
+  !      Poloidal current function, fipol = R B_t
+  !      Poloidal magnetic field, BthV
+  !      dpsi/dV, sdt
+  ! ********************************************************************
 
-  sum_int = 0.d0
-  fipol(:) = rr * bb ! flat fipol assumed at initial
-  do NR = 0, NRMAX
-     sum_int = sum_int + intg_vol_p(aat,nr) * fipol(NRMAX) / (4.d0 * Pisq)
-     X(NR,LQm5) = sum_int / rMU0 ! PsitV / rMU0
-  end do
+  if( ieqread >= 2 ) then
+     ! PsitV, fipol and sdt have already been determined in intequ.
 
-  ! === Poloidal magnetic field ===
+     X(:,LQm5) = PsitV(:) / rMU0 ! PsitV / rMU0
 
-  allocate(Profsdt(0:NRMAX),dProfsdt(0:NRMAX))
-  BCLQm3 = 2.d0 * Pi * rMUb1 * rIps * 1.d6
-  !  dPsi/dV
-  do NR = 1, NRMAX
-     if(rho(nr) < 1.d0) then ! Core
-        ! Profsdt is used for AJPHL. dProfsdt = d Profsdt/d vvn
-        Profsdt(NR) = 1.d0 - (1.d0 - vvn(NR))**(PROFJ+1)
-        dProfsdt(NR) = (PROFJ+1) * (1.d0 - vvn(NR))**PROFJ
-        sdt(NR)  = BCLQm3 / ckt(NR) * Profsdt(NR)
-     else ! SOL, no current assumption
-        Profsdt(NR) = 1.d0
-        dProfsdt(NR) = 0.d0
-        sdt(NR)  = BCLQm3 / ckt(NR)
-     end if
-     BthV(NR) = sqrt(ckt(NR)) * sdt(NR)
-  end do
-  BthV(0) = 0.d0
-  sdt(0)  = aitken2p(0.d0,sdt(1),sdt(2),sdt(3),vv(1),vv(2),vv(3))
-  Profsdt(0) = 1.d0
-  dProfsdt(0) = PROFJ+1
+     BthV(0)       = 0.d0
+     BthV(1:NRMAX) = sqrt(ckt(1:NRMAX)) * sdt(1:NRMAX)
+  else
+     sum_int = 0.d0
+     fipol(:) = rbvt ! flat fipol assumed at initial
+     do NR = 0, NRMAX
+        sum_int = sum_int + intg_vol_p(aat,nr) * fipol(NRMAX) / (4.d0 * Pisq)
+        X(NR,LQm5) = sum_int / rMU0 ! PsitV / rMU0
+     end do
+
+     ! === Poloidal magnetic field ===
+
+     allocate(Profsdt(0:NRMAX),dProfsdt(0:NRMAX))
+     BCLQm3 = 2.d0 * Pi * rMUb1 * rIps * 1.d6
+     !  dPsi/dV
+     do NR = 1, NRMAX
+        if(rho(nr) < 1.d0) then ! Core
+           ! Profsdt is used for AJPHL. dProfsdt = d Profsdt/d (vv/vv(NRA))
+           Profsdt(NR) = 1.d0 - (1.d0 - vv(NR)/vv(NRA))**(PROFJ+1)
+           dProfsdt(NR) = (PROFJ+1) * (1.d0 - vv(NR)/vv(NRA))**PROFJ
+           sdt(NR)  = BCLQm3 / ckt(NR) * Profsdt(NR)
+        else ! SOL, no current assumption
+           Profsdt(NR) = 1.d0
+           dProfsdt(NR) = 0.d0
+           sdt(NR)  = BCLQm3 / ckt(NR)
+        end if
+        BthV(NR) = sqrt(ckt(NR)) * sdt(NR)
+     end do
+     BthV(0) = 0.d0
+     sdt(0)  = aitken2p(0.d0,sdt(1),sdt(2),sdt(3),vv(1),vv(2),vv(3))
+     Profsdt(0) = 1.d0
+     dProfsdt(0) = PROFJ+1
+  end if
 
 !  IF(FSHL /= 0.D0) THEN
 !     BthV(0) = 0.D0
@@ -1181,40 +1197,95 @@ SUBROUTINE TXPROF
 !     END DO
 !  END IF
 
-  ! === Toroidal electron current ===
-
+  ! ********************************************************************
+  !      Toroidal electron current 
+  !
   !   electron current: AJPHL   = - e ne <ueph/R> / <1/R>
   !                   : AJphVRL = - e ne <ueph/R>
+  !
+  !      dpsi/dV, sdt (in some case)
+  ! ********************************************************************
 
-  allocate(AJPHL(0:NRMAX),AJphVRL(0:NRMAX))
-  ifile = detect_datatype('LQe4')
-  if(ifile == 0) then ! No toroidal current (LQe4) data in a structured type
-     IF(MDINTC <= -1) THEN ! Current density read from file
-        DO NR = 0, NRA
-           call initprof_input(NR,4,AJPHL(NR)) ! electron current read from an external file
-        END DO
-        AJPHL(NRA+1:NRMAX) = 0.D0
-        AJFCT = rIPs * 1.D6 / intg_area(AJPHL)
-        ! Artificially extrapolate a current density in the SOL for numerical stability
-        DO NR = NRA+1, NRMAX
-           AJPHL(NR) = AJPHL(NRA) * EXP(- (rho(NR) - 1.d0) / (0.5d0 * rLn))
-        END DO
-        
-        IF(MDINTC == -2) THEN ! Smoothing current density
-           allocate(Prof1(0:NRMAX))
-           Prof1(:) = AJPHL(:)
-           NR_smt = NRA - NR_smt_start ! smoothing data only in the edge region
-           DO NR = NR_smt, NRMAX
-              AJPHL(NR) = moving_average(NR,Prof1,NRMAX)
+  if( ieqread >= 2 ) then
+     ! AJphVRL have already been allocated and determined in intequ.
+
+     DO NR = 0, NRMAX
+        X(NR,LQe7) =-AJphVRL(NR) / (AEE * 1.D20)
+        X(NR,LQe4) = X(NR,LQe7) / aat(NR) ! approx
+        AJOH(NR)   = X(NR,LQe7) / ait(NR)
+        X(NR,LQm4) = PsiV(NR)
+     END DO
+
+  else
+     
+     ! === File input ===
+
+     allocate(AJPHL(0:NRMAX),AJphVRL(0:NRMAX))
+     ifile = detect_datatype('LQe4')
+     if(ifile == 0) then ! No toroidal current (LQe4) data in a structured type
+        IF(MDINTC <= -1) THEN ! Current density read from file
+           DO NR = 0, NRA
+              call initprof_input(NR,4,AJPHL(NR)) ! electron current read from an external file
            END DO
-           deallocate(Prof1)
+           AJPHL(NRA+1:NRMAX) = 0.D0
+           AJFCT = rIPs * 1.D6 / intg_area(AJPHL)
+           ! Artificially extrapolate a current density in the SOL for numerical stability
+           DO NR = NRA+1, NRMAX
+              AJPHL(NR) = AJPHL(NRA) * EXP(- (rho(NR) - 1.d0) / (0.5d0 * rLn))
+           END DO
+
+           IF(MDINTC == -2) THEN ! Smoothing current density
+              allocate(Prof1(0:NRMAX))
+              Prof1(:) = AJPHL(:)
+              NR_smt = NRA - NR_smt_start ! smoothing data only in the edge region
+              DO NR = NR_smt, NRMAX
+                 AJPHL(NR) = moving_average(NR,Prof1,NRMAX)
+              END DO
+              deallocate(Prof1)
+           END IF
+
+           DO NR = 0, NRMAX
+              AJPHL(NR)   = AJFCT * AJPHL(NR)
+              AJphVRL(NR) = AJPHL(NR) * ait(NR)
+              X(NR,LQe4)  =-AJphVRL(NR) / (AEE * 1.D20) * rrt(NR) ! approx
+              X(NR,LQe7)  =-AJphVRL(NR) / (AEE * 1.D20)
+              AJOH(NR)    = AJPHL(NR)
+           END DO
+
+           BthV(0) = 0.d0
+           sum_int = 0.d0
+           DO NR = 1, NRMAX
+              sum_int  = sum_int + intg_vol_p(AJphVRL,NR)
+              BthV(NR) = rMUb1 * sum_int / sqrt(ckt(NR))
+              sdt(NR)  = rMUb1 * sum_int / ckt(NR)
+           END DO
+           sdt(0)  = aitken2p(0.d0,sdt(1),sdt(2),sdt(3),vv(1),vv(2),vv(3))
+        ELSE ! (MDINTC == 0); Current density constructed
+           DO NR = 0, NRMAX
+              AJphVRL(NR) = BCLQm3 / (rMUb1 * vlt(nra)) * dProfsdt(NR) ! <j_zeta/R>
+              AJPHL(NR)   = AJphVRL(NR) / ait(NR) ! <j_zeta/R>/<1/R>
+              X(NR,LQi7)  = (Uiph0 * ait(NR)) * X(NR,LQi1) * (dProfsdt(NR) / dProfsdt(0))
+              X(NR,LQi4)  = X(NR,LQi7) * rrt(NR) ! n <R u_zeta> = n <u_zeta/R>/<R^2>
+              X(NR,LQe7)  =-AJphVRL(NR) / (AEE * 1.D20) + achg(2) * X(NR,LQi7)
+              X(NR,LQe4)  = X(NR,LQe7) * rrt(NR) ! n <R u_zeta> = n <u_zeta/R>/<R^2>
+              AJOH(NR)    = AJPHL(NR)
+!              IF(FSHL == 0.D0) THEN
+!                 AJphVRL(NR) = 0.D0
+!                 X(NR,LQe4)  = 0.D0
+!                 X(NR,LQe7)  = 0.D0
+!                 AJOH(NR)    = 0.D0
+!              END IF
+           END DO
         END IF
 
+     else ! Detect toroidal current data in a structured type
+        call inexpolate(infiles(ifile)%nol,infiles(ifile)%r,infiles(ifile)%data,NRMAX,RHO,5,AJPHL)
+        AJFCT = rIPs * 1.D6 / intg_area(AJPHL)
         DO NR = 0, NRMAX
            AJPHL(NR)   = AJFCT * AJPHL(NR)
-           AJphVRL(NR) = AJPHL(NR) * d_rrr(NR)
-           X(NR,LQe4)  =-AJphVRL(NR) / (AEE * 1.D20) * rrt(NR) ! approx
-           X(NR,LQe7)  =-AJphVRL(NR) / (AEE * 1.D20)
+           AJphVRL(NR) = AJPHL(NR) * ait(NR)
+           X(NR,LQe4)  =-AJPHL(NR) / (AEE * 1.D20) * rrt(NR) ! approx
+           X(NR,LQe7)  =-AJPHL(NR) / (AEE * 1.D20)
            AJOH(NR)    = AJPHL(NR)
         END DO
 
@@ -1226,48 +1297,24 @@ SUBROUTINE TXPROF
            sdt(NR)  = rMUb1 * sum_int / ckt(NR)
         END DO
         sdt(0)  = aitken2p(0.d0,sdt(1),sdt(2),sdt(3),vv(1),vv(2),vv(3))
-     ELSE ! (MDINTC == 0); Current density constructed
-        DO NR = 0, NRMAX
-           AJphVRL(NR) = BCLQm3 / (rMUb1 * vlt(nra)) * dProfsdt(NR) ! <j_zeta/R>
-           AJPHL(NR)   = AJphVRL(NR) / d_rrr(NR) ! <j_zeta/R>/<1/R>
-!!$           X(NR,LQe4)  =-AJphVRL(NR) / (AEE * 1.D20) * rrt(NR) ! approx
-!!$           X(NR,LQe7)  =-AJphVRL(NR) / (AEE * 1.D20)
-           X(NR,LQi7)  = (Uiph0 * d_rrr(NR)) * X(NR,LQi1) * (dProfsdt(NR) / dProfsdt(0))
-           X(NR,LQi4)  = X(NR,LQi7) * rrt(NR) ! n <R u_zeta> = n <u_zeta/R>/<R^2>
-           X(NR,LQe7)  =-AJphVRL(NR) / (AEE * 1.D20) + achg(2) * X(NR,LQi7)
-           X(NR,LQe4)  = X(NR,LQe7) * rrt(NR) ! n <R u_zeta> = n <u_zeta/R>/<R^2>
-           AJOH(NR)    = AJPHL(NR)
-!           IF(FSHL == 0.D0) THEN
-!              AJphVRL(NR) = 0.D0
-!              X(NR,LQe4)  = 0.D0
-!              X(NR,LQe7)  = 0.D0
-!              AJOH(NR)    = 0.D0
-!           END IF
-        END DO
-     END IF
-  else ! Detect toroidal current data in a structured type
-     call inexpolate(infiles(ifile)%nol,infiles(ifile)%r,infiles(ifile)%data,NRMAX,RHO,5,AJPHL)
-     AJFCT = rIPs * 1.D6 / intg_area(AJPHL)
-     DO NR = 0, NRMAX
-        AJPHL(NR)   = AJFCT * AJPHL(NR)
-        AJphVRL(NR) = AJPHL(NR) * d_rrr(NR)
-        X(NR,LQe4)  =-AJPHL(NR) / (AEE * 1.D20) * rrt(NR) ! approx
-        X(NR,LQe7)  =-AJPHL(NR) / (AEE * 1.D20)
-        AJOH(NR)    = AJPHL(NR)
-     END DO
+     end if
 
-     BthV(0) = 0.d0
+     deallocate(Profsdt,dProfsdt,AJPHL)
+
      sum_int = 0.d0
-     DO NR = 1, NRMAX
-        sum_int  = sum_int + intg_vol_p(AJphVRL,NR)
-        BthV(NR) = rMUb1 * sum_int / sqrt(ckt(NR))
-        sdt(NR)  = rMUb1 * sum_int / ckt(NR)
-     END DO
-     sdt(0)  = aitken2p(0.d0,sdt(1),sdt(2),sdt(3),vv(1),vv(2),vv(3))
+     X(0,LQm4) = 0.d0
+     do NR = 1, NRMAX
+        sum_int = sum_int + intg_vol_p(sdt,nr)
+        X(NR,LQm4) = sum_int
+     end do
   end if
-  deallocate(Profsdt,dProfsdt)
 
+  ! deallocate arrays in initprof_input
   if(MDINTN < 0 .or. MDINTT < 0 .or. ABS(MDINTC) /= 0) call initprof_input(idx = 0)
+
+  ! ********************************************************************
+  !      Electrostatic potential, Phi
+  ! ********************************************************************
 
   ! Inverse matrix of derivative formula for integration
 
@@ -1315,38 +1362,40 @@ SUBROUTINE TXPROF
   X(0,LQm1) = - RHSV(NRMAX)
   deallocate(tmpa,CMTX,RHSV)
 
-  sum_int = 0.d0
-  X(0,LQm4) = 0.d0
-  do NR = 1, NRMAX
-     sum_int = sum_int + intg_vol_p(sdt,nr)
-     X(NR,LQm4) = sum_int
-  end do
-
-  do NR = 0, NRMAX
+  ! ********************************************************************
+  !      Parallel flows
+  !      Safety factor, Q
+  ! ********************************************************************
 
   ! === Parallel flow ===
-
-     bbt(NR) = bb * bb
-     tmp = bbt(NR) / fipol(NR)
-     X(NR,LQe3) = X(NR,LQe4) / X(NR,LQe1) * tmp
-     X(NR,LQi3) = X(NR,LQi4) / X(NR,LQi1) * tmp
+  if( ieqread >= 2 ) then
+     X(:,LQe3) = X(:,LQe4) / X(:,LQe1) * (bbt(:) / fipol(:))
+     X(:,LQi3) = X(:,LQi4) / X(:,LQi1) * (bbt(:) / fipol(:))
+  else
+     do NR = 0, NRMAX
+        bbt(NR) = bb * bb
+        tmp = bbt(NR) / fipol(NR)
+        X(NR,LQe3) = X(NR,LQe4) / X(NR,LQe1) * tmp
+        X(NR,LQi3) = X(NR,LQi4) / X(NR,LQi1) * tmp
+     end do
+  end if
 
   ! === Safety factor ===
 
-     Q(NR) = fipol(NR) * aat(NR) / (4.d0 * Pisq * sdt(NR))
+  Q(:) = fipol(:) * aat(:) / (4.d0 * Pisq * sdt(:))
 
   ! === Poloidal current density (Virtual current for helical system) ===
 
-     AJV(NR)=0.D0
-
-  end do
+  AJV(:)=0.D0
 
 !  IF(FSHL == 0.D0) THEN
 !     ! Integrate 1 / (r * rMU0) * d/dr (r * BthV) to obtain AJV
 !     AJV(:) = BB / (RR * rMU0) * 2.d0 * Q0 / Q(:)**2
 !  END IF
 
-  ! === Toroidal electric field for initial NCLASS calculation ===
+  ! ********************************************************************
+  !      Toroidal electric field for initial NCLASS calculation
+  ! ********************************************************************
 
   DO NR = 0, NRMAX
      Var(NR,1)%n = X(NR,LQe1)
@@ -1359,7 +1408,7 @@ SUBROUTINE TXPROF
         Var(NR,2)%T = X(NR,LQi5)
      END IF
      ! Inverse aspect ratio
-     EpsL = rho(NR) * ra / RR
+     EpsL = epst(NR)
      ! Trapped particle fraction
      FTL  = 1.46D0 * SQRT(EpsL) - 0.46D0 * EpsL**1.5D0
      ! Estimating parallel resistivity
@@ -1380,7 +1429,11 @@ SUBROUTINE TXPROF
      IF(X(NR,LQm3) == 0.D0) X(NR,LQm3) = 1.D-4
   END DO
 !  IF(FSHL == 0.D0) X(:,LQm3) = 0.D0
-  deallocate(AJPHL)
+  if( allocated(AJphVRL) ) deallocate(AJphVRL)
+
+  ! ********************************************************************
+  !      Miscellaneous
+  ! ********************************************************************
 
   !   NBI total input power (MW)
   PNBH = PNBHP + PNBHT1 + PNBHT2
@@ -1425,7 +1478,7 @@ module tx_parameter_control
   implicit none
   public
   NAMELIST /TX/ &
-       & RA,rhob,rhoaccum,RR,BB, &
+       & RA,rhob,rhoaccum,RR,BB,rbvt, &
        & amas,achg,Zeff, &
        & PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,PROFN1,PROFN2,PROFT1,PROFT2,Uiph0, &
        & De0,Di0,VWpch0,rMue0,rMui0,WPM0, &
@@ -1630,7 +1683,7 @@ contains
     WRITE(6,601)
     RETURN
 
-601 FORMAT(' ','# &TX : RA,rhob,rhoaccum,RR,BB,amas,achg,Zeff,'/ &
+601 FORMAT(' ','# &TX : RA,rhob,rhoaccum,RR,BB,rbvt,amas,achg,Zeff,'/ &
          &       ' ',8X,'PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,,PROFN1,PROFN2,PROFT1,PROFT2,Uiph0,'/ &
          &       ' ',8X,'De0,Di0,VWpch0,rMue0,rMui0,WPM0,'/ &
          &       ' ',8X,'Chie0,Chii0,ChiNC,'/ &
@@ -1666,6 +1719,8 @@ contains
     WRITE(6,'((1X,A10," =",1PD11.4,2(2X,A10," =",1PD11.4)))') &
          &   'RA        ', RA       , 'RHOB      ', RHOB     ,  &
          &   'RR        ', RR       , 'BB        ', BB       ,  &
+         &   'RAVL      ', RAVL     , 'RBVL      ', RBVL     ,  &
+         &   'rbvt      ', rbvt     , &
          &   'amas(2)   ', amas(2)  , 'achg(2)   ', achg(2)  ,  &
          &   'PN0       ', PN0      , 'PNa       ', PNa      ,  &
          &   'PTe0      ', PTe0     , 'PTea      ', PTea     ,  &
