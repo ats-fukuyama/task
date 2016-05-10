@@ -257,7 +257,7 @@ contains
        ELSE
        do nr = 1, nrmax
           EpsL = epst(NR)
-          dQdrL = dQdrho(NR) / RA
+          dQdrL = dQdrho(NR) / ravl
 
           ! rhobl : Larmor radius of beam ions
           rhobl = amb * amqp * Vb / (achgb * SQRT(BphV(NR)**2 + BthV(NR)**2))
@@ -318,7 +318,7 @@ contains
 !!$          DCB = NTCOIL**2.25D0*Q(NR)**3.25D0*RR*rhobl*DltRP(NR)**1.5d0*rNuD(NR)/EpsL**2.5D0
 !!$          Dbrp(NR) = DCB * DRP / (DCB + DRP)
 !!$          if(DltRP(NR) > Dltcr) Dbrp(NR) = DRP
-!!$          write(6,*) r(nr)/ra,ft(NR)*rip_rat(NR)*Dbrp(NR)
+!!$          write(6,*) r(nr)/ravl,ft(NR)*rip_rat(NR)*Dbrp(NR)
        end do
        Dbrp(0) = AITKEN2P(R(0),Dbrp(1),Dbrp(2),Dbrp(3),R(1),R(2),R(3))
 
@@ -357,12 +357,12 @@ contains
 
   real(8) function ripple(rhol,theta,FSRP) result(f)
     use libbes, only : BESIN
-    use tx_commons, only : RR, NTCOIL, DltRPn, RA
+    use tx_commons, only : RR, NTCOIL, DltRPn, ravl
     real(8), intent(in) :: rhol, theta, FSRP
     real(8) :: a, L0, rl, Rmag0 = 2.4D0 ! specific value for JT-60U
 
     if(FSRP /= 0.D0) then
-       rl = rhol * RA
+       rl = rhol * ravl
        L0 = RR - Rmag0
        a = sqrt((RL**2+L0**2+2.D0*RL*L0*cos(theta))*(RR-L0)/(RR+RL*cos(theta)))
        f = DltRPn * BESIN(0,NTCOIL/(RR-L0)*a)

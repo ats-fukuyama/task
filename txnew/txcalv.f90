@@ -39,11 +39,11 @@ contains
        ErV0 (0)       =   0.d0
        if(ISMTHD == 0) then
           dPhiV(:) =   dfdx(vv,XL(:,LQm1),NRMAX,0) ! dPhiV/dV
-          ErV0 (1:NRMAX) = - sst(1:NRMAX) / vro(1:NRMAX) * rhov(NRMAX) * dPhiV(1:NRMAX)
+          ErV0 (1:NRMAX) = - sst(1:NRMAX) / vro(1:NRMAX) * rbvl * dPhiV(1:NRMAX)
        else
           dPhiV(:) =   dfdx(rho,XL(:,LQm1),NRMAX,0,daxs=0.d0) ! dPhiV/drho
           if(JSMTHD == 1) call replace_interpolate_value(dPhiV(1),1,rho,dPhiV)
-          ErV0 (1:NRMAX) = - sst(1:NRMAX) / vro(1:NRMAX)**2 * rhov(NRMAX) * dPhiV(1:NRMAX)
+          ErV0 (1:NRMAX) = - sst(1:NRMAX) / vro(1:NRMAX)**2 * rbvl * dPhiV(1:NRMAX)
        end if
        IF(ID /= 0) return
     END IF
@@ -59,7 +59,7 @@ contains
     PsidotV(:) = XL(:,LQm3)
 
     ! Etor: <E_t> = <1/R>dpsi/dt
-    Etor (:) =   PsidotV(:) * d_rrr(:)
+    Etor (:) =   PsidotV(:) * ait(:)
 
     PsiV (:) =   XL(:,LQm4) * rMUb2
 !$omp end workshare
@@ -71,13 +71,13 @@ contains
     ErV  (0)       =   0.d0
     if(ISMTHD == 0) then
        dPhiV(:) =   dfdx(vv,PhiV,NRMAX,0) ! dPhiV/dV
-       ErV  (1:NRMAX) = - sst(1:NRMAX) / vro(1:NRMAX) * rhov(NRMAX) * dPhiV(1:NRMAX)
+       ErV  (1:NRMAX) = - sst(1:NRMAX) / vro(1:NRMAX) * rbvl * dPhiV(1:NRMAX)
        dPhidpsiL(:) = dPhiV(:) / sdt(:) ! dPhi/dpsi
     else
        dPhiV(:) =   dfdx(rho,PhiV,NRMAX,0,daxs=0.d0) ! dPhiV/drho
        ! Replace dPhiV(1) by the interpolated value
        if(JSMTHD == 1) call replace_interpolate_value(dPhiV(1),1,rho,dPhiV)
-       ErV  (1:NRMAX) = - sst(1:NRMAX) / vro(1:NRMAX)**2 * rhov(NRMAX) * dPhiV(1:NRMAX)
+       ErV  (1:NRMAX) = - sst(1:NRMAX) / vro(1:NRMAX)**2 * rbvl * dPhiV(1:NRMAX)
        dPhidpsiL(1:NRMAX) = dPhiV(1:NRMAX) / (sdt(1:NRMAX) * vro(1:NRMAX))! dPhi/dpsi
 !       dPhidpsiL(0) = AITKEN2P(rho(0),dPhidpsiL(1),dPhidpsiL(2),dPhidpsiL(3) &
 !            &                 ,rho(1),rho(2),rho(3))
@@ -86,7 +86,7 @@ contains
     end if
 
 !$omp workshare
-!    BthV (:) =   fourPisq * rho(:) * rhov(NRMAX) * sdt(:) ! NOT FSA quantity
+!    BthV (:) =   fourPisq * rho(:) * rbvl * sdt(:) ! NOT FSA quantity
     BthV (:) =   sqrt(ckt(:)) * sdt(:)
     PsitV(:) =   XL(:,LQm5) * rMU0
 !    ! bbt = <B^2>
@@ -131,8 +131,8 @@ contains
 
     Var(:,1)%UphR = XL(:,LQe7) / Var(:,1)%n
     Var(:,2)%UphR = XL(:,LQi7) / Var(:,2)%n
-    Var(:,1)%Uph = Var(:,1)%UphR / d_rrr(:)
-    Var(:,2)%Uph = Var(:,2)%UphR / d_rrr(:)
+    Var(:,1)%Uph = Var(:,1)%UphR / ait(:)
+    Var(:,2)%Uph = Var(:,2)%UphR / ait(:)
 !$omp end workshare
 !$omp end parallel
 
@@ -158,7 +158,7 @@ contains
        RUbphV(NR)  = XL(NR,LQb4) * PNbVinv(NR)
        UbphVR(NR)  = XL(NR,LQb7) * PNbVinv(NR)
 !       UbphV(NR) = BUbparV(NR) * fipol(NR) / bbt(NR) / rr
-       UbphV(NR)   = UbphVR(NR) / d_rrr(NR)
+       UbphV(NR)   = UbphVR(NR) / ait(NR)
     end do
 
     if(MDBEAM == 0 .and. abs(FSRP) == 0.d0) then ! No beam ions in the SOL
@@ -210,14 +210,6 @@ contains
     ! Square of the poloidal magnetic field: <B_p^2> = ckt * (dpsi/dV)^2
     Bpsq(:)  = ckt(:) * sdt(:)*sdt(:)
 
-    NR=0
-    bri(NR) = 0.d0
-    UgV(NR) = 0.d0
-    if(ieqread == 0) then ! Perfect cylinder (Pfirsch-Schluter contribution nil)
-       qhatsq(NR) = 0.d0
-    else
-       qhatsq(NR) = Q(NR)*Q(NR)
-    end if
     do NR = 1, NRMAX
        ! Grid velocity
        UgV(NR) = - FSUG * 0.5d0 * PsitdotV(NR) * vro(NR) / ( rho(NR) * PsitV(NRA) )
@@ -228,6 +220,16 @@ contains
        bri(NR) = rrt(NR) * Bpsq(NR) * (1.d0 + 2.d0 * qhatsq(NR))
 !       if(abs(bri(NR)) < 1.d-10) bri(NR) = 0.d0
     end do
+    NR=0
+    bri(NR) = 0.d0
+    UgV(NR) = 0.d0
+    if(ieqread == 0) then ! Perfect cylinder (Pfirsch-Schluter contribution nil)
+       qhatsq(NR) = 0.d0
+    else if(ieqread == 1) then ! Large-aspect-ratio tokamak
+       qhatsq(NR) = Q(NR)*Q(NR)
+    else ! General tokamak equilibria
+       qhatsq(NR) = AITKEN2P(vv(0),qhatsq(1),qhatsq(2),qhatsq(3),vv(1),vv(2),vv(3))
+    end if
 
     do NR = 0, NRMAX
        ! Coefficients regarding Pfirsch-Schluter contribution: 2q^^2/(1+2q^^2)
@@ -271,7 +273,7 @@ contains
 
     use tx_commons
     use tx_interface, only : dfdx, txmmm95, &
-         &                   moving_average, coulog, CORR, ftfunc, coll_freq
+         &                   moving_average, coulog, CORR, coll_freq
     use tx_core_module, only : sub_intg_vol
     use tx_nclass_mod
     use sauter_mod
@@ -288,7 +290,7 @@ contains
     REAL(8) :: Sigma0, Vte, Vti, Vtb, Wte, Wti, EpsL, &
          &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, PN0tot, &
          &     PROFML, PROFCL, Dturb, DeL, &
-         &     Cs, RhoIT, ExpArg, AiP, DISTAN, UbparaL, &
+         &     Cs, Lc, RhoIT, ExpArg, AiP, DISTAN, UbparaL, &
          &     SiLCL, SiLCthL, SiLCphL, RL, DBW, PTiVA, &
          &     Chicl, factor_bohm, rNuAsIL, &
          &     RLOSS, SQZ, rNuDL, Ln, LT, etai_chk, kthrhos, &
@@ -321,11 +323,8 @@ contains
 
     Sigma0 = 8.8D-21
 
-    !     *** Trapped particle fraction ***
-    !     (Y. B. Kim, et al., Phys. Fluids B 3 (1990) 2050)
-    ft = ftfunc(epst)
-
     ! ************* Auxiliary heating part *************
+
     call txauxs
 
     ! ************** For turbulent transport **************
@@ -378,8 +377,8 @@ contains
 
     allocate(dErdr(0:NRMAX),dErdrS(0:NRMAX))
     allocate(dpdr(0:NRMAX))
-    dErdr (:) =                     dfdx(R  ,ErVlc,NRMAX,0)
-    dpdr  (:) = vro(:) / ra * dfdx(vv ,pres ,NRMAX,0)
+    dErdr (:) =                 dfdx(R  ,ErVlc,NRMAX,0)
+    dpdr  (:) = vro(:) / ravl * dfdx(vv ,pres ,NRMAX,0)
 
     allocate(dQdrho(0:NRMAX), dlnNedrhov(0:NRMAX))
     allocate(dTsdV(0:NRMAX,NSM), dPsdV(0:NRMAX,NSM))
@@ -453,7 +452,7 @@ contains
     ! *********************************
 
     ! Calculate CDIM coefficient
-    RAQPR(:) = vro(:) / ra * dfdx (vv, rho**4 / Q, NRMAX , 0) ! cf. txcalv.f90 L501
+    RAQPR(:) = vro(:) / ravl * dfdx (vv, rho**4 / Q, NRMAX , 0) ! cf. txcalv.f90 L501
 
     ! Orbit squeezing effect for neoclassical solvers
     !   gr2phi = psi'(Phi'/psi')' = (dpsi/dV dV/drho)^2 d/dpsi(dPhi/dpsi), 
@@ -611,7 +610,7 @@ contains
        Wte = Vte / (Q(NR) * RR) ! Omega_te; transit frequency for electrons
        Wti = Vti / (Q(NR) * RR) ! Omega_ti; transit frequency for ions
        
-       EpsL = R(NR) / RR        ! Inverse aspect ratio
+       EpsL = epst(NR)          ! Inverse aspect ratio
        rNuAsE_inv = EpsL*sqrt(EpsL) * Wte / (SQRT(2.D0) * rNuei(NR))
        rNuAsI_inv = EpsL*sqrt(EpsL) * Wti / (SQRT(2.D0) * rNuii(NR))
        IF(NR /= 0) THEN
@@ -648,14 +647,14 @@ contains
 !          IF(int(FSHL) .EQ. 1 ) THEN !! for FSHL = 1 (single Fourier mode)
 !!$            Wte = Vte * NCph / RR
 !!$            Wti = Vti * NCph / RR
-!!$            EpsL = EpsH * (R(NR) / RA)**2
+!!$            EpsL = EpsH * rho(NR)**2
 !!$            rNuAsE_inv = EpsL**1.5D0 * Wte / (SQRT(2.D0) * rNuei(NR))
 !!$            rNuAsI_inv = EpsL**1.5D0 * Wti / (SQRT(2.D0) * rNuii(NR))
 !!$            IF(NR.EQ.0) THEN
 !!$               BLinv=0.d0
 !!$               omegaer=0.d0
 !!$            ELSE
-!!$!             QL=(Q0-QA)*(1.D0-(R(NR)/RA)**2)+QA
+!!$!             QL=(Q0-QA)*(1.D0-rho(NR)**2)+QA
 !!$!             Bthl = BB*R(NR)/(QL*RR)
 !!$!             BLinv=BB/Bthl
 !!$               BBL=SQRT(BphV(NR)**2 + BthV(NR)**2)
@@ -745,19 +744,6 @@ contains
              rNuiHLphthM(NHFM,NR)=UHth*UHph*rNuiHLM(NHFM,NR)
              rNuiHLphphM(NHFM,NR)=UHph*UHph*rNuiHLM(NHFM,NR)
              
-!!$             if (ic == 0 .or. ic == 1) then
-!!$                write(*,*) 'IC=',IC, 'NR=', NR, 'R/RA=', R(NR)/RA
-!!$                write(*,*) ' NHFM=',NHFM, ',  EpsLM=', EpsLM(NHFM) 
-!!$!                write(*,*) '  rNuei=', rNuei(NR)
-!!$!                write(*,*) '  omegaere=', omegaere
-!!$                write(*,*) '  rNueHLM=', rNueHLM(NHFM, NR) 
-!!$             
-!!$!                write(*,*) '  rNuii=', rNuii(NR)
-!!$!                write(*,*) '  omegaeri=', omegaeri
-!!$                write(*,*) '  rNuiHLM=', rNuiHLM(NHFM, NR) 
-!!$                write(*,*) ' UHth=',UHth, ',  UHph=', UHph 
-!!$             endif
-
           ENDDO
           rNueHLthth(NR) = sum(rNueHLththM(1:NHFMmx,NR))
           rNueHLthph(NR) = sum(rNueHLthphM(1:NHFMmx,NR))
@@ -840,12 +826,12 @@ contains
 
              ! Arbitrary coefficient for CDIM model
              rGCIM = 10.D0
-             OMEGAPR = (RA / RR)**2 * (real(NCph,8) / NCth) * RAQPR(NR)
+             OMEGAPR = (RAVL / RR)**2 * (real(NCph,8) / NCth) * RAQPR(NR)
          
              IF(NR == 0) THEN  ! for s=0
                 FCDIM(NR) = 0
              ELSE
-                FCDIM(NR) = 3.D0 * (0.5D0 * OMEGAPR)**1.5D0 * (RR / RA)**1.5D0 / (Q(NR) * S(NR)**2)
+                FCDIM(NR) = 3.D0 * (0.5D0 * OMEGAPR)**1.5D0 * (RR / RAVL)**1.5D0 / (Q(NR) * S(NR)**2)
              END IF
 
              ! ExB rotational shear
@@ -855,8 +841,8 @@ contains
              ELSE
 !                rGIM = rG1
                 rGIM = 1.04D0 * R(NR)*R(NR) / ( dpdr(NR) * 2.D0 * rMU0 / bbt(NR) &
-                     &                         * OMEGAPR * RA*RA * RR*RR )
-                rHIM = RA * SQRT( rMU0 * (amas(2)*amp) * Var(NR,2)%n * 1.D20 ) / BthV(NR) * dErdrS(NR) / BBL
+                     &                         * OMEGAPR * RAVL*RAVL * RR*RR )
+                rHIM = RAVL * SQRT( rMU0 * (amas(2)*amp) * Var(NR,2)%n * 1.D20 ) / BthV(NR) * dErdrS(NR) / BBL
              END IF
 
              ! Turbulence suppression by ExB shear for CDIM mode
@@ -1000,7 +986,7 @@ contains
        Chii(NR) = Chii0 * DeL
 
 !!$       ! <omega/m>
-!!$       WPM(NR) = WPM0 * Var(NR,1)%T * rKeV / (RA**2 * AEE * BphV(NR))
+!!$       WPM(NR) = WPM0 * Var(NR,1)%T * rKeV / (RAVL**2 * AEE * BphV(NR))
        ! Ad hoc turbulent pinch velocity
        IF(NR == 0) THEN
           FVpch(NR) = 0.D0
@@ -1020,12 +1006,13 @@ contains
 
        !     *** Loss to divertor ***
 
-!       IF (R(NR) + DBW > RA) THEN
-       IF (R(NR) > RA) THEN
+!       IF (R(NR) + DBW > RAVL) THEN
+       IF (rho(NR) > 1.d0) THEN
 !          Cs = SQRT(2.D0 * Var(NR,1)%T * rKilo / amas(2) / amqp)
           Cs = SQRT((achg(2) * Var(NR,1)%T + 3.D0 * Var(NR,2)%T) * rKilo / (amas(2) * amqp))
-          RL = (R(NR) - RA) / DBW! / 2.D0
-          rNuL  (NR) = FSLP  * Cs / (2.D0 * PI * Q(NR) * RR) &
+          Lc = 2.D0 * PI * Q(NR) * RR ! Connection length to the divertor
+          RL = (R(NR) - RAVL) / DBW! / 2.D0
+          rNuL  (NR) = FSLP  * Cs / Lc &
                &             * RL*RL / (1.D0 + RL*RL)
           ! Classical heat conduction [s**4/(kg**2.5*m**6)]
           ! (C S Pitcher and P C Stangeby, PPCF 39 (1997) 779)
@@ -1035,9 +1022,9 @@ contains
           ! When calculating rNuLTe, we fix Var(:,1)%n and Var(:,1)%T constant during iteration
           !   to obain good convergence.
           rNuLTe(NR) = FSLTE * Chicl * (PTsV_FIX(NR,1)*rKeV)**2.5D0 &
-               &                  /((2.D0 * PI * Q(NR) * RR)**2 * PNsV_FIX(NR,1)*1.D20) &
+               &                  /(Lc**2 * PNsV_FIX(NR,1)*1.D20) &
                &             * RL*RL / (1.D0 + RL*RL)
-          rNuLTi(NR) = FSLTI * Cs / (2.D0 * PI * Q(NR) * RR) &
+          rNuLTi(NR) = FSLTI * Cs / Lc &
                &             * RL*RL / (1.D0 + RL*RL)
 !!$          IF(ABS(FSRP) > 0.D0) THEN
              UbparaL = BUbparV(NR) / BBL
@@ -1045,7 +1032,7 @@ contains
 !                  & Ubpara(NRMAX-1),Ubpara(NRMAX-2),Ubpara(NRMAX-3),&
 !                  & R(NRMAX-1),R(NRMAX-2),R(NRMAX-3))
              UbparaL = max(UbparaL, FSLP*Cs)
-             rNuLB(NR) = UbparaL / (2.D0 * PI * Q(NR) * RR) &
+             rNuLB(NR) = UbparaL / Lc &
                   &          * RL*RL / (1.D0 + RL*RL)
 !!$          END IF
        ELSE
@@ -1063,9 +1050,9 @@ contains
        BJPARA(NR)= aee * sum(achg(:)*Var(NR,:)%n*Var(NR,:)%BUpar) * 1.d20 &
             &    + BJNB(NR)
        ! Toroidal beam current density : j_{b,phi} = <j_{b,zeta}/R>/<1/R>
-       AJNB(NR)  = achgb * aee * PNbV(NR) * UbphVR(NR) * 1.d20 / d_rrr(NR)
+       AJNB(NR)  = achgb * aee * PNbV(NR) * UbphVR(NR) * 1.d20 / ait(NR)
        ! Total toroidal current density : j_phi = <j_zeta/R>/<1/R>
-       AJ(NR)    = aee * sum(achg(:)*Var(NR,:)%n*Var(NR,:)%UphR) * 1.d20 / d_rrr(NR) &
+       AJ(NR)    = aee * sum(achg(:)*Var(NR,:)%n*Var(NR,:)%UphR) * 1.d20 / ait(NR) &
             &    + AJNB(NR)
 
        !     *** Equipartition power for graphics ***
@@ -1133,7 +1120,7 @@ contains
        dNsdrho(:,i) = vro(:) * dfdx(vv  ,Var(:,i)%n,NRMAX,0)
        dTsdrho(:,i) = vro(:) * dTsdV(:,i)
     end do
-    gamITG(:,1) = 0.1d0 * sqrt(Var(:,1)%T*rKilo/(amas(2)*amqp))/RA * sqrt(RA/RR) &
+    gamITG(:,1) = 0.1d0 * sqrt(Var(:,1)%T*rKilo/(amas(2)*amqp))/RAVL * sqrt(RAVL/RR) &
          &            * sqrt(abs(dNsdrho(:,2))/Var(:,2)%n &
          &                 + abs(dTsdrho(:,2))/Var(:,2)%T) &
          &            * sqrt(Var(:,2)%T/Var(:,1)%T)
@@ -1170,8 +1157,8 @@ contains
           !     *** Linear growth rate for q>2 and s=0 ***
           !        (J.Candy, PoP 11 (2004) 1879)
           kthrhos = sqrt(0.1d0)
-          gamITG(NR,3) = kthrhos * sqrt(Var(NR,1)%T*rKilo/(amas(2)*amqp)) / RA &
-               &       * sqrt(2.d0 * RA / RR * (1.d0 / Ln + 1.d0 / LT))
+          gamITG(NR,3) = kthrhos * sqrt(Var(NR,1)%T*rKilo/(amas(2)*amqp)) / RAVL &
+               &       * sqrt(2.d0 * RAVL / RR * (1.d0 / Ln + 1.d0 / LT))
        end if
     end do
 
@@ -1283,11 +1270,11 @@ contains
     do NR = 0, NRMAX
        ! Toroidal bootstrap current density : 
        !   j_{BS,phi} = <j_{BS,zeta}/R>/<1/R> = (<BJ_BS><1/R^2>I/<B^2>)/<1/R>
-       AJBS(NR) = BJBS(NR) * aat(NR) * fipol(NR) / (bbt(NR) * d_rrr(NR))
+       AJBS(NR) = BJBS(NR) * aat(NR) * fipol(NR) / (bbt(NR) * ait(NR))
 
        ! Toroidal Ohmic current density :
        !   j_{OH,phi} = <j_{OH,zeta}/R>/<1/R> = (<BJ_OH><1/R^2>I/<B^2>)/<1/R>
-       AJOH(NR) = BJOH(NR) * aat(NR) * fipol(NR) / (bbt(NR) * d_rrr(NR))
+       AJOH(NR) = BJOH(NR) * aat(NR) * fipol(NR) / (bbt(NR) * ait(NR))
 
        ! Rough estimate of the resistivity using the bootstrap estimation
        !    ETA is less sensitive than the bootstrap current.
@@ -1308,7 +1295,7 @@ contains
              ! Orbit squeezing factor (K.C.Shaing, et al., Phys. Plasmas 1 (1994) 3365)
              SQZ = 1.D0 - amas(2) * amqp / achg(2) / BthV(NR)**2 * dErdrS(NR) / Vti
 
-             EpsL = R(NR) / RR
+             EpsL = epst(NR)
              BBL = sqrt(bbt(NR))
              ! rNuDL : deflection collisional frequency at V = Vti
              rNuDL = Var(NR,2)%n *1.D20 * achg(2)**2 * achg(2)**2 * AEE**2 & 
@@ -1338,14 +1325,14 @@ contains
              RLOSS = 0.1D0
              rNuOL(0) = 0.D0
              DO NR = 1, NRMAX
-                EpsL = R(NR) / RR
+                EpsL = epst(NR)
                 Vti = SQRT(Var(NR,2)%T * rKilo / (amas(2) * amqp))
                 RhoIT = Vti * amas(2) * amqp / (achg(2) * BthV(NR))
-                RL = (R(NR) - (RA - 1.5D0 * RhoIT)) / DBW ! Alleviation factor
-                IF(R(NR) > (RA - RhoIT)) THEN
-!                IF(ABS(RA - R(NR)) <= RhoIT .AND. RHO(NR) < 1.D0) THEN
+                RL = (R(NR) - (RAVL - 1.5D0 * RhoIT)) / DBW ! Alleviation factor
+                IF(R(NR) > (RAVL - RhoIT)) THEN
+!                IF(ABS(RAVL - R(NR)) <= RhoIT .AND. RHO(NR) < 1.D0) THEN
                    ExpArg = -2.D0 * EpsL * (ErVlc(NR) / BthV(NR))**2 / Vti**2
-                   ExpArg = ExpArg * (R(NR) / RA)**2
+                   ExpArg = ExpArg * (R(NR) / RAVL)**2
                    rNuOL(NR) = RLOSS * rNuii(NR) / SQRT(EpsL) * EXP(ExpArg) &
                         &    * RL**2 / (1.D0 + RL**2)
                 ELSE
@@ -1354,7 +1341,7 @@ contains
              END DO
           ELSE
              DO NR = 1, NRA
-                EpsL = R(NR) / RR
+                EpsL = epst(NR)
                 Vti = SQRT(Var(NR,2)%T * rKilo / (amas(2) * amqp))
                 RhoIT = Vti * amas(2) * amqp / (achg(2) * BthV(NR))
                 RhoIT = MIN(RhoIT,0.1D0)

@@ -19,6 +19,7 @@ SUBROUTINE TXMENU
   use tx_interface, only : TXKLIN, TOUPPER, TXLOAD
   use tx_ripple, only : ripple_input, ripple_spl, deallocate_ripple
   use tx_ntv, only : dealloc_ntv
+  use eqread_mod, only : alloc_equ
   implicit none
   INTEGER(4) :: MODE, I, IST, ier, NR, IER_RP
   character(len=80) :: LINE
@@ -185,10 +186,13 @@ SUBROUTINE TXMENU
      END SELECT
   END DO
 
+  ! *** deallocate dynamic arrays before termination ***
+
   call deallocate_ripple
   call dealloc_ntv
   if(allocated(rho)) call deallocate_txcomm
   if(allocated(GY) ) call deallocate_txgraf
+  call alloc_equ(-1)
 
   RETURN
 END SUBROUTINE TXMENU

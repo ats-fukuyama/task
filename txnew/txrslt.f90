@@ -78,6 +78,10 @@ SUBROUTINE TXGLOB
      TF0(1)   = 0.D0
   END IF
 
+  ! Num. of neutrals
+
+  PnumN0 = intg_vol(PN01V+PN02V+PN03V)*1.d20
+
   !     Input powers
 
   POHT = intg_vol(POH)*toMega ! [MW]

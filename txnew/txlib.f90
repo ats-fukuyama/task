@@ -1226,12 +1226,12 @@ contains
   real(8) function intg_area(X)
 
     ! Calculate \int X dS = \int X <1/R>/(2 Pi) dV
-    !   Note: d_rrr = <1/R> = 2 Pi dS/dV
+    !   Note: ait = <1/R> = 2 Pi dS/dV
 
-    use tx_commons, only : Pi, d_rrr
+    use tx_commons, only : Pi, ait
     real(8), dimension(:), intent(in) :: X
 
-    intg_area = sum(fem_int(-2,d_rrr,X)) / ( 2.d0 * Pi )
+    intg_area = sum(fem_int(-2,ait,X)) / ( 2.d0 * Pi )
 
   end function intg_area
 !                                                                         !
@@ -1263,7 +1263,7 @@ contains
 
     ! Calculate \int X dV
 
-    use tx_commons, only : Pi, d_rrr
+    use tx_commons, only : Pi, ait
     integer(4), intent(in) :: NR
     real(8), dimension(:), intent(in) :: X
     integer(4) :: NE
@@ -1272,7 +1272,7 @@ contains
        intg_area_p = 0.d0
     else
        NE = NR
-       intg_area_p = sum(fem_int_point(-2,NE,d_rrr,X)) / ( 2.d0 * Pi )
+       intg_area_p = sum(fem_int_point(-2,NE,ait,X)) / ( 2.d0 * Pi )
     end if
 
   end function intg_area_p

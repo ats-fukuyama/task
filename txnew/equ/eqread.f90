@@ -1,9 +1,51 @@
 module eqread_mod
+  use equ_params, only : eqfile
   implicit none
   real(8) :: sum_dl
   real(8), dimension(:), allocatable :: AJphVRL
 
+  namelist /txequ/ eqfile
+
 contains
+
+!=======================================================================
+!  Initialize equilibrium parameters
+!=======================================================================
+  subroutine eqinit
+
+    call txequparf
+
+  end subroutine eqinit
+
+
+  SUBROUTINE TXEQUPARF
+    use tx_commons, only : ierr
+    integer(4) :: IST, KL
+    logical :: LEX
+    character(len=6) :: KPNAME = 'txparm'
+
+    INQUIRE(FILE=KPNAME,EXIST=LEX)
+    IF(.NOT.LEX) RETURN
+
+    OPEN(25,FILE=KPNAME,IOSTAT=IST,STATUS='OLD')
+    IF(IST > 0) THEN
+       WRITE(6,*) 'XX PARM FILE OPEN ERROR : IOSTAT = ',IST
+       RETURN
+    END IF
+    READ(25,txequ,IOSTAT=IST)
+    IF(IST > 0) THEN
+       WRITE(6,*) 'XX PARM FILE READ ERROR'
+       RETURN
+    ELSE IF(IST < 0) THEN
+       WRITE(6,*) 'XX PARM FILE EOF ERROR'
+       RETURN
+    END IF
+    CALL KTRIM(KPNAME,KL)
+    WRITE(6,*) &
+         &     '## FILE (',KPNAME(1:KL),') IS ASSIGNED FOR TXEQU PARM INPUT'
+    IERR=0
+
+  END SUBROUTINE TXEQUPARF
 
 !=======================================================================
 !  Interface subroutine
@@ -12,29 +54,29 @@ contains
     use mod_spln
     use tx_interface, only : dfdx
     use tx_commons, only : ieqread, nrmax, nra, Pi, Pisq, rMU0, rr, ra, bb, rbvt, Rax, Zax, &
-         & surflcfs, rho, rhov, epst, aat, rrt, ckt, suft, sst, vro, vlt, art, d_rrr, bit, bbrt, &
-         & elip, trig, PsitV, PsiV, hdt, fipol, sdt, bbt, rIPs
+         & surflcfs, rho, rhov, epst, aat, rrt, ckt, suft, sst, vro, vlt, art, ait, bit, bbrt, &
+         & elip, trig, PsitV, PsiV, hdt, fipol, sdt, bbt, rIPs, ft
     use equ_params, only : hiv, aav, rrv, ckv, shv, ssv, vlv, arv, aiv, biv, brv, epsv, elipv, &
-         & trigv, qqv, siv, nv, rmaj, rpla, raxis, zaxis, pds, fds, sdw
+         & trigv, qqv, siv, nv, rmaj, rpla, raxis, zaxis, pds, fds, sdw, ftv
 !    use tx_core_module, only : intg_area
     implicit none
     integer(4) :: n, nr, ierr, nrmaxx, nrax, nrs
     real(8), parameter :: fourPisq = 4.d0 * Pi * Pi
-!!$    real(8) :: rhonrs
-    real(8), allocatable :: U(:,:), U0(:), deriv(:), rho_v(:), fipolv(:), hdv(:), &
-         &                  pdst(:), fdst(:), qqt(:), zfunc(:), zz(:)
+    real(8) :: rhonrs, asdt, bsdt, sdtvac
+    real(8), allocatable :: U(:,:), U0(:), deriv(:), rho_v(:), fipolv(:), hdv(:), zzv(:), &
+         &                  pdst(:), fdst(:), qqt(:), zz(:), zzfunc(:)
     real(8) :: aitken2p
 
     nrmaxx = nrmax + 1
     nrax   = nra   + 1
 
-!!$    rhonrs = 0.25d0
-!!$    do nr = 0, nrmax
-!!$       if( rho(nr) > rhonrs ) then
-!!$          nrs = nr - 1
-!!$          exit
-!!$       end if
-!!$    end do
+    rhonrs = 0.1d0
+    do nr = 0, nrmax
+       if( rho(nr) > rhonrs ) then
+          nrs = nr - 1
+          exit
+       end if
+    end do
 
     ! Read equilibrium data in MEUDAS/SELENE format.
 
@@ -75,20 +117,39 @@ contains
     !        in txcalv fipol is always calculated by differentiating PsitV.
     ! ******************************************************************
 
+    ! fipol and rho on the equilibrium grid
+
     fipolv(1:nv) = fourPisq * hdv(1:nv) / aav(1:nv) ! equ. grid
 
-    ! Linearly extrapolate PsitV and map it onto the transport grid 
-
-    allocate(rho_v(nv))
+    allocate(rho_v(nv),zzv(nv),zz(0:nrmax))
     rho_v(1:nv) = sqrt( hiv(1:nv) / hiv(nv) ) ! equ. grid
 
-    call spln( fipol, rho,  nrax,    fipolv,rho_v, nv,   1 )
+    ! fipol: poloidal current function, assumed to be constant outside the plasma initially
+    call spln( fipol, rho,   nrax,   fipolv,rho_v,    nv,   1 )
     fipol(nrax:nrmax) = fipol(nra)
-    call spln( aat,   rho,  nrmaxx,  aav,   rho_v, nv, 121 )
-    call spln( vlt,   rho,  nrmaxx,  vlv,   rho_v, nv, 152 )
+
+    ! epst: inverse aspect ratio, proportional to rho: epst = (Rmax-Rmin)/(Rmax+Rmin)
+    call spln( epst,  rho,   nrmaxx, epsv,  rho_v,    nv, 151 )
+    ! suft: (interim definition) <|nabla psi|>, 
+    !      proportional to rho near the axis
+    !      proportional to rho^{-1} outside the plasma surface
+    call spln( suft(0:nra), rho(0:nra), nrax, shv, rho_v, nv, 1 ) ! shv = <|nabla psi|>
+
+!    call spln( vlt,   rho,  nrmaxx,  vlv,   rho_v, nv, 122 )
+!    call spln( aat,   rho,  nrmaxx,  aav,   rho_v, nv, 121 )
+    ! vlt: volume, proportional to rho**2
+    zzv(:)    = rho_v(:)**2
+    zz(:)     = rho(:)**2
+    call spln( vlt,   zz,   nrmaxx,  vlv,   zzv,   nv, 151 )
+    ! aat: <R^-2>, proportional to (sqrt(1-epst**2))^{-1}
+    zzv(1:nv) = 1.d0 / sqrt( 1.d0 - epsv(1:nv)**2 )
+    zz(:)     = 1.d0 / sqrt( 1.d0 - epst(:)**2    )
+    call spln( aat,   zz,   nrmaxx,  aav,   zzv , nv, 151 )
+
+    ! hdt: dpsit/dV
     hdt(:) = fipol(:) * aat(:) / fourPisq
 
-    allocate(U(4,0:nrmax),U0(0:nrmax),deriv(0:nrmax),qqt(0:nrmax))
+    allocate(U(4,0:nrmax),U0(0:nrmax),deriv(0:nrmax),qqt(0:nrmax),zzfunc(0:nrmax))
 
     ! === Volume integration of I<R^{-2}> to obtain psit ===
 
@@ -98,49 +159,77 @@ contains
        call SPL1DI(vlt(nr),PsitV(nr),vlt,U,U0,nrmaxx,ierr)
     end do
 
+    !  === ckt(NRMAX) is related to sdt via plasma current ===
+
+    call spln( ckt,   vlt,   nrmaxx, ckv,   vlv, nv, 151 )
+
     ! === Volume integration of I<R^{-2}>/q to obtain psi ===
 
-!    call spln( qqt,   rho,  nrmaxx,  qqv,   rho_v, nv, 151 )
-    call spln( qqt,   PsitV, nrmaxx, qqv,   hiv, nv, 151 )
-    sdt(:) = hdt(:) / qqt(:)
+    ! qqt: safety factor from equilibrium data (not transferred to TX)
+    call spln( qqt(0:nra),PsitV(0:nra), nrax, qqv,   hiv, nv, 1 )
+    ! sdt: dpsi/dV = (dpsit/dV) / q
+    sdt(0:nra) = hdt(0:nra) / qqt(0:nra)
+
+    sdtvac = 2.d0 * Pi * rMU0 * rIPs * 1.D6 / ckt(nrmax)
+
+!!$    ! interpolate sdt between sdt(nra) at rho=rhoa and sdtvac at rho=rhob
+!!$    ! sdt should be proportional to epst^{-2} because outside the plasma surface
+!!$    !    sdt = dpsi/dV = <|nabla psi|>/<|nabla V|> = epst^{-1}/epst = epst^{-2}
+!!$    asdt = (epst(nra)*epst(nrmax))**2*(sdt(nra)-sdtvac)  / (epst(nrmax)**2-epst(nra)**2)
+!!$    bsdt = (sdtvac*epst(nrmax)**2-sdt(nra)*epst(nra)**2) / (epst(nrmax)**2-epst(nra)**2)
+!!$    do nr = nrax, nrmax
+!!$       sdt(nr) = asdt / epst(nr)**2 + bsdt
+!!$    end do
+
+    zzfunc(0:nra) = ckt(0:nra) * sdt(0:nra)**2
+    zzfunc(nrax)  = ckt(nrmax) * sdtvac**2
+    zz    (0:nra) = rho(0:nra)
+    zz    (nrax)  = rho(nrmax)
+    call spln( zzfunc, rho, nrmaxx, zzfunc(0:nrax), zz(0:nrax), nrax+1, 151 )
+    sdt(nrax:nrmax) = sqrt( zzfunc(nrax:nrmax) / ckt(nrax:nrmax) )
+
     call SPL1D  (vlt,sdt,deriv,U,nrmaxx,0,ierr)
     call SPL1DI0(vlt,U,U0,nrmaxx,ierr)
 
-    ! sdt: dpsi/dV = (dpsit/dV) / q
     do nr = 0, nrmax
        call SPL1DI(vlt(nr),PsiV(nr),vlt,U,U0,nrmaxx,ierr)
     end do
 
-    deallocate(U,U0,deriv,hdv,fipolv,qqt)
+    ! suft: <|nabla V|> = <|nabla psi|> / sdt
+    !       <|nabla V|> is proportional to epst
+
+    suft(0:nra) = suft(0:nra) / sdt(0:nra)
+    call spln( suft, epst, nrmaxx, suft(0:nra), epst(0:nra), nrax, 151 )
+
+!!$    do nr=0,nrmax
+!!$       write(201,'(F8.5,1P8E15.7)') rho(nr),PsitV(nr)/PsitV(nra),vlt(nr)/vlt(nra),epst(nr),suft(nr),sdt(nr),ckt(nr),ckt(nr)*sdt(nr)**2
+!!$    end do
+
+    deallocate(U,U0,deriv,hdv,fipolv,qqt,zzfunc)
 
     ! ******************************************************************
     !    Mapping & extrapolate
     ! ******************************************************************
 
-    allocate(pdst(0:nrmax),fdst(0:nrmax),zfunc(0:nrax),zz(0:nrax))
+    allocate(pdst(0:nrmax),fdst(0:nrmax),zzfunc(1:nv))
 
-    !  === ckt(NRMAX) is constrained by the plasma current given by rIPs ===
+    call spln( rrt,  PsitV, nrmaxx, rrv,   hiv, nv, 151 )
+    call spln( sst,  PsitV, nrmaxx, ssv,   hiv, nv, 151 ) ! ssv = <|nabla V|^2>
+    call spln( art,  PsitV, nrmaxx, arv,   hiv, nv, 152 )
+    call spln( ait,  PsitV, nrmaxx, aiv,   hiv, nv, 151 )
+    call spln( bit,  PsitV, nrmaxx, biv,   hiv, nv, 151 )
+    call spln( bbrt, PsitV, nrmaxx, brv,   hiv, nv, 151 )
+    call spln( elip, PsitV, nrmaxx, elipv, hiv, nv, 151 )
+    call spln( trig, PsitV, nrmaxx, trigv, hiv, nv, 151 )
+    call spln( pdst, PsitV, nrmaxx, pds,   hiv, nv,   0 ) ! Not extrapolated
+    call spln( fdst, PsitV, nrmaxx, fds,   hiv, nv,   0 ) ! Not extrapolated
 
-    call spln( zfunc(0:nra), PsitV(0:nra), nrax, ckv, hiv, nv, 1 )
-    zfunc(nrax) = 2.d0 * Pi * rMU0 * rIPs * 1.D6 / sdt(nrmax)
-    zz(0:nra) = PsitV(0:nra)
-    zz(nrax)  = PsitV(nrmax)
-    call spln( ckt,   PsitV, nrmaxx, zfunc, zz,  nrax+1,1 )
+    ! ft: Trapped particle fraction (ft^4 almost linearly scales with V or PsitV.)
 
-    !  =====================================================================
-
-    call spln( epst,  PsitV, nrmaxx, epsv,  hiv, nv, 151 )
-    call spln( rrt,   PsitV, nrmaxx, rrv,   hiv, nv, 151 )
-    call spln( suft,  PsitV, nrmaxx, shv,   hiv, nv, 151 ) ! shv = <|nabla psi|>
-    call spln( sst,   PsitV, nrmaxx, ssv,   hiv, nv, 151 ) ! ssv = <|nabla V|^2>
-    call spln( art,   PsitV, nrmaxx, arv,   hiv, nv, 152 )
-    call spln( d_rrr, PsitV, nrmaxx, aiv,   hiv, nv, 151 )
-    call spln( bit,   PsitV, nrmaxx, biv,   hiv, nv, 151 )
-    call spln( bbrt,  PsitV, nrmaxx, brv,   hiv, nv, 151 )
-    call spln( elip,  PsitV, nrmaxx, elipv, hiv, nv, 151 )
-    call spln( trig,  PsitV, nrmaxx, trigv, hiv, nv, 151 )
-    call spln( pdst,  PsitV, nrmaxx, pds,   hiv, nv,   0 ) ! Not extrapolated
-    call spln( fdst,  PsitV, nrmaxx, fds,   hiv, nv,   0 ) ! Not extrapolated
+    zzfunc(1:nv) = ftv(1:nv)**4
+    call spln( ft,   PsitV, nrmaxx, zzfunc,hiv, nv, 151 )
+    ft(:) = sqrt(sqrt(ft(:)))
+    where( ft > 1.d0 ) ft = 1.d0
 
 !!$    ! ******************************************************************
 !!$    !     Replace profiles near the axis by Least Square Method
@@ -155,13 +244,10 @@ contains
 !!$    ! ******************************************************************
 !!$
 !!$    !                mode,exp,coord_in,      val_in,   coord_out,     val_out
-!!$!    call lesq6_wrapper(2, 2, rho(0:nrs),   aat(0:nrs), rho(0:nrs),   aat(0:nrs))
 !!$    call lesq6_wrapper(2, 2, rho(0:nrs),   rrt(0:nrs), rho(0:nrs),   rrt(0:nrs))
-!!$!    call lesq6_wrapper(2, 2, rho(0:nrs),   ckt(0:nrs), rho(0:nrs),   ckt(0:nrs))
 !!$    call lesq6_wrapper(2, 2, rho(0:nrs),   sst(0:nrs), rho(0:nrs),   sst(0:nrs))
-!!$!    call lesq6_wrapper(2, 2, rho(0:nrs),   vlt(0:nrs), rho(0:nrs),   vlt(0:nrs))
 !!$    call lesq6_wrapper(2, 2, rho(0:nrs),   art(0:nrs), rho(0:nrs),   art(0:nrs))
-!!$    call lesq6_wrapper(2, 2, rho(0:nrs), d_rrr(0:nrs), rho(0:nrs), d_rrr(0:nrs))
+!!$    call lesq6_wrapper(2, 2, rho(0:nrs),   ait(0:nrs), rho(0:nrs),   ait(0:nrs))
 !!$    call lesq6_wrapper(2, 2, rho(0:nrs),   bit(0:nrs), rho(0:nrs),   bit(0:nrs))
 !!$    call lesq6_wrapper(2, 2, rho(0:nrs),  bbrt(0:nrs), rho(0:nrs),  bbrt(0:nrs))
 !!$!    call lesq6_wrapper(2, 2, rho(0:nrs),  PsiV(0:nrs), rho(0:nrs),  PsiV(0:nrs))
@@ -177,13 +263,19 @@ contains
     vro(0) = 0.d0
     vro(1:nrmax) = 2.d0 * PsitV(nrmax) * rho(1:nrmax) / hdt(1:nrmax)
 
-    ! suft: <|nabla V|> = <|nabla psi|> / sdt
-
-    suft(:) = suft(:) / sdt(:)
-
     ! <B^2>
     
     bbt(:) = fourPisq*fourPisq * hdt(:)*hdt(:) / aat(:) + ckt(:) * sdt(:)*sdt(:)
+
+    ! Replace geometric parameters given by namelist or default
+    !   with those from an equilibrium
+
+    rr   = rmaj
+    ra   = rpla
+    bb   = rbvt / rr
+    Rax  = raxis
+    Zax  = zaxis
+    surflcfs = sum_dl * 2.d0 * Pi * rr
 
     ! Mesh
 
@@ -191,20 +283,20 @@ contains
 
     ! ******************************************************************
 
-!!$    ! Accuracy of elongation and triangularity near the axis significantly
-!!$    !   depends upon the number (or the size) of the radial mesh.
-!!$    ! Avoiding their non-physical values requires the replacement of the values
-!!$    !   inside rho~0.075 (when ivdm=201) 
-!!$    !   inside rho~0.15  (when ivdm= 51)
-!!$
-!!$    do nr = nrmax, 0, -1
-!!$       if( rho(nr) < 0.1d0 ) then
-!!$          nrs = nr + 1
-!!$          elip(0:nrs-1) = elip(nrs)
-!!$          trig(0:nrs-1) = trig(nrs)
-!!$          exit
-!!$       end if
-!!$    end do
+    ! Accuracy of elongation and triangularity near the axis significantly
+    !   depends upon the number (or the size) of the radial mesh.
+    ! Avoiding their non-physical values requires the replacement of the values
+    !   inside rho~0.075 (when ivdm=201) 
+    !   inside rho~0.15  (when ivdm= 51)
+
+    do nr = nrmax, 0, -1
+       if( rho(nr) < 0.1d0 ) then
+          nrs = nr + 1
+          elip(0:nrs-1) = elip(nrs)
+!          trig(0:nrs-1) = trig(nrs)
+          exit
+       end if
+    end do
 
     ! <j_phi/R>: toroidal current density
     ! electron current: AJphVRL = - e ne <ueph/R>
@@ -213,20 +305,17 @@ contains
     AJphVRL(0:NRA) = - ( aat(0:NRA) * fdst(0:NRA) + pdst(0:NRA) ) / rMU0
     AJphVRL(NRA+1:NRMAX) = 0.d0
 
+!!$    do nr=0,nrmax
+!!$       write(200,'(F8.5,1P21E15.7)') rho(nr), &
+!!$            & vlt(nr)/vlt(nra),fipol(nr),epst(nr),suft(nr),aat(nr),hdt(nr),psitv(nr),ckt(nr),sdt(nr),psiv(nr), &
+!!$            & rrt(nr),sst(nr),art(nr),ait(nr),bit(nr),bbrt(nr),elip(nr),trig(nr),vro(nr),bbt(nr), &
+!!$            & AJphVRL(nr)
+!!$    end do
+
     ! Confirm total plasma current [A]
-    !write(6,*) intg_area(ajphvrl/d_rrr)
+    !write(6,*) intg_area(ajphvrl/ait)
 
-    ! Replace geometric parameters given by namelist or default
-    !   with those from an equilibrium
-
-    rr = rmaj
-    ra = rpla
-    bb = rbvt / rr
-    Rax = raxis
-    Zax = zaxis
-    surflcfs = sum_dl * 2.d0 * Pi * rr
-
-    deallocate(rho_v,pdst,fdst,zfunc,zz)
+    deallocate(rho_v,pdst,fdst,zzv,zz,zzfunc)
 
   end subroutine intequ
 
@@ -235,14 +324,14 @@ contains
 !=======================================================================
 
   subroutine txmesh
-    use tx_commons, only : r, ra, rr, vlt, Pisq, rho, rhov, rhosq, vv, hv, NEMAX, NRMAX
+    use tx_commons, only : r, ra, rb, rr, ravl, rbvl, vlt, Pisq, rho, rhov, rhosq, vv, hv, &
+         &                 NEMAX, NRMAX, NRA, rhob
     integer(4) nr
 
     ! rhov = volume rho [m]
 
     !--- Create various kinds of mesh that depends upon equilibrium ---
   
-    r(:)     = rho(:) * ra
     rhosq(:) = rho(:)**2
     rhov(:)  = sqrt( vlt(:) / ( 2.d0 * Pisq * rr ) )
 
@@ -254,7 +343,65 @@ contains
 
     !------------------------------------------------------------------
 
+    ! ravl: volume-averaged minor radius at the plasma surface
+
+    ravl = rhov(nra)
+
+    r(:)     = rho(:) * ravl
+
+    ! rbvl: volume-averaged minor radius at the virtual wall
+
+    rbvl = rhov(nrmax)
+
+    !   Virtual wall radius (m)
+
+    rb   = rhob * ra   ! geometric
+
   end subroutine txmesh
+
+!=======================================================================
+! Allocate and deallocate arrays associated with equilibria
+!=======================================================================
+
+  subroutine alloc_equ(mode)
+    use equ_params
+
+    integer(4), intent(in) :: mode
+
+    select case(mode)
+    case(1)
+       ! *** allocate arrays that are widely used ***
+       allocate(rg(irdm),zg(izdm2),psi(irzdm2),rbp(irzdm2))
+       allocate(pds(ivdm),fds(ivdm),vlv(ivdm),qqv(ivdm),prv(ivdm))
+       allocate(csu(isrzdm),rsu(isrzdm),zsu(isrzdm))
+       allocate(hiv(ivdm),siv(ivdm),siw(ivdm),sdw(ivdm),ckv(ivdm),ssv(ivdm),aav(ivdm),rrv(ivdm), &
+            &   rbv(ivdm),arv(ivdm),bbv(ivdm),biv(ivdm),r2b2v(ivdm),shv(ivdm),grbm2v(ivdm), &
+            &   rov(ivdm),aiv(ivdm),brv(ivdm),epsv(ivdm),elipv(ivdm),trigv(ivdm),ftv(ivdm))
+       
+    case(2)
+       ! *** allocate arrays that are used only when reading an equilibium data ***
+       allocate(ieqout(10),ieqerr(10),icp(10),cp(10))
+       allocate(ivac(0:nsfix),ncoil(0:nsfix),cvac(0:nsfix),rvac(0:nsfix),zvac(0:nsfix))
+       allocate(rcoil(100,icvdm),zcoil(100,icvdm),ccoil(100,icvdm),rlimt(200),zlimt(200))
+
+    case(-1)
+       ! *** deallocate arrays that are widely used ***
+       deallocate(rg,zg,psi,rbp)
+       deallocate(pds,fds,vlv,qqv,prv)
+       deallocate(csu,rsu,zsu)
+       deallocate(hiv,siv,siw,sdw,ckv,ssv,aav,rrv, &
+            &     rbv,arv,bbv,biv,r2b2v,shv,grbm2v,rov, &
+            &     aiv,brv,epsv,elipv,trigv,ftv)
+
+    case(-2)
+       ! *** deallocate arrays that are used only when reading an equilibium data ***
+       deallocate(ieqout,ieqerr,icp,cp)
+       deallocate(ivac,ncoil,cvac,rvac,zvac)
+       deallocate(rcoil,zcoil,ccoil,rlimt,zlimt)
+
+    end select
+
+  end subroutine alloc_equ
 
 !=======================================================================
 !             eqdsk               level=32       date=81.12.23
@@ -264,17 +411,20 @@ contains
     use tx_commons, only : cnpi => PI, rMU0
     use equ_params
     implicit none
-    character(len=19) :: fname='eqdata'
     logical :: lex
     integer(4) :: i, j, n, ir, iz, ist
     real(8) :: rsep, zsep, rrmax, rrmin, zzmax, zzmin, rzmax, rzmin, rpmax, rpmin, betp, zzlam
     real(8) :: dpsi, btv2, dsr, dsz, dxx, dl
 !=======================================================================
-    inquire(file=fname,exist=lex)
+    inquire(file=eqfile,exist=lex)
     if( lex .neqv. .true. ) stop 'No equilibrium file.'
-    open(ieqrd,file=fname,iostat=ist,form='unformatted')
+    open(ieqrd,file=eqfile,iostat=ist,form='unformatted',access='sequential',action='read')
     if(ist /= 0) stop 'file open error.'
 !-----------------------------------------------------------------------
+
+    call alloc_equ(1)
+    call alloc_equ(2)
+
     read(ieqrd,iostat=ist)nsr,nsz  &
          &        ,(rg(i),i=1,nsr),(zg(j),j=1,nsz)  &
          &        ,(psi(i),i=1,nsr*nsz)  &
@@ -298,10 +448,10 @@ contains
     else if( ist < 0 ) then ! end
        backspace ieqrd
        write(6,"(5x,'dataio/end:backspace')")
-       pause
+       read(*,*)
     end if
 !-----------------------------------------------------------------------
-    write(6,40)fname,ieqrd,jeqrd
+    write(6,40)eqfile,ieqrd,jeqrd
 40  format(//5x,'diskio:',a19,':','read(',i3,'/',i3,')')
 !-----------------------------------------------------------------------
 !=======================================================================
@@ -458,9 +608,10 @@ contains
             & ,2x,'rspmn =',f10.5,2x,'psep  =',f10.5/)
     endif
 !=======================================================================
+
+    call alloc_equ(-2)
+
   end subroutine eqdsk
-
-
 
 !=======================================================================
 !             eqrbp               revised on oct.,1986
@@ -486,8 +637,6 @@ contains
     end do
   end subroutine eqrbp
 
-
-
 !=======================================================================
 !             eqlin               revised        nov.,1986
 !=======================================================================
@@ -498,14 +647,24 @@ contains
     use tx_commons, only : zpi => PI
     use equ_params
     implicit none
-    integer(4) :: i,i1,i2,i3,i4,ir,iz,istep,irst,ist,jr,k,ll,lm,lp,n
+    ! intf: num. of division in the direction of lambda for trapped particle fraction
+    integer(4), parameter :: intf = 100
+    integer(4) :: i,i1,i2,i3,i4,ir,iz,istep,irst,ist,jr,k,ll,lm,lp,n,j
     real(8) :: dpsi,psi0,x,r0,z0,r1,z1,s1,s2,s3,s4,dl &
          &     ,bp0,bl0,ds0,ck0,ss0,vl0,aa0,rr0,bb0,bi0,sh0 &
          &     ,bp1,bl1,ds1,ck1,ss1,vl1,aa1,rr1,bb1,bi1,sh1 &
-         &     ,ai0,ai1,br0,br1,zzmax,zzmin,rzmax,rzmin &
+         &     ,ai0,ai1,br0,br1,bm0,bm1,zzmax,zzmin,rzmax,rzmin &
          &     ,rrmax,rrmin,rmajl,rplal,sdw2
+    real(8) :: fintx, hsq, h
+    integer(4), dimension(:), allocatable :: nsul
+    real(8), dimension(:), allocatable :: bmax,fint,flam,dll,zbl
 !=======================================================================
     ieqerr(1)=0
+    allocate(bmax(ivdm),fint(0:intf),flam(0:intf))
+    allocate(nsul(isrzdm),dll(isrzdm),zbl(isrzdm))
+    do j = 0, intf
+       flam(j)  = real( j, 8 ) / real( intf, 8 )
+    end do
 !-----------------------------------------------------------------------
     istep=0
 999 nsu=0
@@ -517,6 +676,11 @@ contains
     end do
 !-----------------------------------------------------------------------
     do n=nv,2,-1
+!-----------------------------------------------------------------------
+!..for double integral to compute trapped particle fraction
+       nsul(n)=0
+       fint(:) = 0.d0
+!-----------------------------------------------------------------------
        psi0=dpsi*dfloat(nv-n)
 5      siw(n)=psi0
 !-----------------------------------------------------------------------
@@ -545,6 +709,8 @@ contains
        grbm2v(n)=0.d0
        aiv(n)=0.d0
        brv(n)=0.d0
+       bmax(n)=0.d0
+
        x=(psi0-psi(i))/(psi(i+1)-psi(i))
        r1=rg(ir)+x*dr
        z1=zg(iz)
@@ -557,7 +723,8 @@ contains
        rr1=vl1/bp1
        bb1=rbv(n)*rbv(n)/(r1*r1)+bp1*bp1
        bi1=ds1/bb1
-       br1=sqrt(bb1)*ds1
+       bm1=sqrt(bb1)
+       br1=bm1*ds1
        bb1=bb1*ds1
        sh1=r1
        ai1=ds1/r1
@@ -571,6 +738,7 @@ contains
 
 !..trace contour
        k=1
+       nsul(n)=1
        if(n == nv) then
           nsu=1
           rsu(1)=r1
@@ -591,6 +759,7 @@ contains
        sh0=sh1
        ai0=ai1
        br0=br1
+       bm0=bm1
        i1=i
        i2=i1+1
        i3=i2-nr
@@ -650,7 +819,8 @@ contains
        rr1=vl1/bp1
        bb1=rbv(n)*rbv(n)/(r1*r1)+bp1*bp1
        bi1=ds1/bb1
-       br1=sqrt(bb1)*ds1
+       bm1=sqrt(bb1)
+       br1=bm1*ds1
        bb1=bb1*ds1
        sh1=r1
        ai1=ds1/r1
@@ -670,6 +840,11 @@ contains
        aiv(n)=aiv(n)+dl*(ai0+ai1)*0.5d0
        brv(n)=brv(n)+dl*(br0+br1)*0.5d0
 
+       dll(nsul(n)) = dl*(ds0+ds1)*0.5d0 ! dlp/Bp
+       zbl(nsul(n)) = 0.5d0*(bm0+bm1)    ! B
+
+       bmax(n) = max(bmax(n),zbl(nsul(n)))
+
 !..geometric factors
 
        if(r1 > rrmax) rrmax=r1 ! rrmax = R_max
@@ -683,6 +858,7 @@ contains
           rzmin=r1 ! rzmin = R at Z_min
        end if
 
+       nsul(n)=nsul(n)+1
        if(n == nv) then
           nsu=nsu+1
           rsu(nsu)=r1
@@ -741,6 +917,32 @@ contains
        epsv(n) =(rrmax-rrmin)/(rrmax+rrmin)
        elipv(n)=(zzmax-zzmin)/(rrmax-rrmin)
        trigv(n)=(rmajl-0.5d0*(rzmax+rzmin))/rplal
+
+       ! *** trapped particle fraction **********************************
+       !
+       !   ft = 1 - 0.75 <h^2> int_0^1 flam dflam / <sqrt(1 - flam * h)>
+       !
+       ! ****************************************************************
+
+       do i = 1, nsul(n)
+          h = zbl(i) / bmax(n) ! h
+          do j = 0, intf
+             if( 1.d0 - flam(j) * h < 0.d0 ) then
+                write(6,'(a,1pe26.18,a)') &
+                     &        '** WARNING  IN SQRT(DX),DX < 0.0(DX=',1.d0-flam(j)*h,').'
+             endif
+             fint(j) = fint(j) + sqrt( abs( 1.d0 - flam(j) * h ) ) * dll(i)
+          enddo
+       enddo
+
+       fintx = 0.d0
+       do j = 1, intf
+          fintx = fintx + ( flam(j)**2 - flam(j-1)**2 ) / ( fint(j) + fint(j-1) )
+       enddo
+       hsq     = bbv(n) / bmax(n)**2 ! <h^2>
+       fintx   = 0.75d0 * hsq * fintx / (2.d0 * zpi * sdw(n))
+       ftv(n) = 1.d0 - fintx
+
     end do
 !..evaluate on the axis
     siw(1)=saxis
@@ -767,266 +969,270 @@ contains
     epsv(1)=0.d0
     elipv(1)=1.d0
     trigv(1)=0.d0
+
+    ftv(1) =0.d0
+
+    deallocate(bmax,fint,flam,nsul,dll,zbl)
     return
 !*
 800 stop 'eqlin : no starting point                '
 810 stop 'eqlin : out of range                     '
   end subroutine eqlin
 
-!***************************************************************
-!
-!   Wrapper for lesq6
-!
-!***************************************************************
-
-  subroutine lesq6_wrapper(ilesq6, mdeg, x, y, xout, yout)
-! arguments
-    integer(4), intent(in) :: ilesq6, mdeg
-    real(8), dimension(:), intent(in)  :: x, y, xout
-    real(8), dimension(:), intent(out) :: yout
-! local variables
-    integer(4) :: nmax, icon, i, j, nout
-    real(8), dimension(:), allocatable :: ww, wc
-
-    nmax = size(x)
-    nout = size(yout)
-
-    allocate(ww(nmax), wc(nmax))
-    ww(:) = 1.d0
-    call lesq6( ilesq6, x, y, nmax, mdeg, ww, wc, icon )
-    if( icon /= 0 ) then
-       write(6,'(a)') '*** lesq6 error ***'
-       stop
-    endif
-    yout(1) = wc(1)
-    do i = 2, nout
-       yout(i) = 0.0_8
-       do j = 1, mdeg+1
-          yout(i) = yout(i) + wc(j) * xout(i)**(j-1)
-       enddo
-    enddo
-    deallocate(ww, wc)
-
-  end subroutine lesq6_wrapper
-
-!=======================================================================
-  subroutine lesq6( lsm, x, y, n, m, w, c, icon )
-!                   I    I  I  I  I  I  O  O
-!
-!     Function :
-!        Calculate the Coefficient of Least Square Polynomial Function
-!      Approximation
-!
-!     Arguement
-!        LSM  : Fitting Mode
-!             :   IAND(LSM,1).NE.0 : Derivative at Center = 0
-!             :   IAND(LSM,2).NE.0 : Fix Center Value ( Y(1) )
-!             :   IAND(LSM,4).NE.0 : Fix Edge Value   ( Y(N) )
-!        X    : X Data
-!        Y    : Y Data
-!        N    : Number of Data Points
-!        M    : Polynomial Function Degree
-!        W    : Weight of Each Data
-!        C    : Coefficient of Polynomial Function
-!        ICON : Return Code
-!=======================================================================
-! arguments
-    integer, intent(in)  :: lsm, n, m
-    real(8), intent(in)  :: x(n), y(n), w(n)
-    integer, intent(out) :: icon
-    real(8), intent(out) :: c(m+1)
-
-! local variables
-    integer    i, irc, j, k, m1
-    real(8)    a1, b1, xa(m+1,m+2), xc(n,m+1)
-!        XA   : Work Area Used for Coefficient Matrix of Normal Equation
-!        XC   : Work Area Used for Saving the X**(j)
-
-!-----------------------------------------------------------------------
-
-!----  Initialize and Check Data
-
-    icon = 1
-    if( n .lt. m+1 ) return
-    m1 = m + 1
-
-!----  Set Xi**(j),j=0,M
-
-    do i=1,n
-       xc(i,1) = 1.d0
-    enddo
-    do j=2,m1
-       do i=1,n
-          xc(i,j) = xc(i,j-1)*x(i)
-       enddo
-    enddo
-
-!----  Calculate the Coefficient Matrix of Normal Equation
-
-!----           n
-!----    XAij = Σ(Xk**(i) * Xk**(j) * Wk)
-!----           k=1
-
-    do i=1,m1
-       do j=i,m1
-          a1 = 0.0d0
-          do k=1,n
-             a1 = a1 + xc(k,i)*xc(k,j)*w(k)
-          enddo
-          xa(i,j) = a1
-          xa(j,i) = a1
-       enddo
-    enddo
-
-!----  Calculate the Constant Vector of Normal Equation
-
-!----         n
-!----    Bj = Σ(Xk**(j) * Yk * Wk)
-!----         k=1
-
-    do i=1,m1
-       b1 = 0.0d0
-       do k=1,n
-          b1 = b1 + xc(k,i)*y(k)*w(k)
-       enddo
-       xa(i,m+2) = b1
-    enddo
-!    write(ft06,*)'XA= '
-!    write(ft06,'(1X,1P5E11.3)')((XA(I,J),J=1,5),I=1,4)
-
-!----  Derivative at Center = 0
-
-    if( iand(lsm,1).ne.0 ) then
-       xa(2,1) = 0.0d0
-       xa(2,2) = 1.0d0
-       do i=3,m+1
-          xa(2,i) = 0.0d0
-       enddo
-       xa(2,m+2) = 0.0d0
-    endif
-
-!----  Fix Center Value
-
-    if( iand(lsm,2).ne.0 ) then
-       xa(1,1) = 1.0d0
-       do i=2,m+1
-          xa(1,i) = 0.0d0
-       enddo
-       xa(1,m+2) = y(1)
-    endif
-
-!----  Fix Edge Value
-
-    if( iand(lsm,4).ne.0 ) then
-       do i=1,m+1
-          xa(m+1,i) = 1.0d0
-       enddo
-       xa(m+1,m+2) = y(n)
-    endif
-
-!----  Solve the Equation by a Process of Gauss-Jordan Elimination
-
-    call gauss6( xa, m1, irc )
-    if( irc.ne.0 ) return
-
-!----  Set Coefficient
-
-    do i=1,m1
-       c(i) = xa(i,m1+1)
-    enddo
-    icon = 0
-!-----------------------------------------------------------------------
-  end subroutine lesq6
-
-
-!=======================================================================
-  subroutine gauss6( a, m, ic )
-!                    U  I  O
-!
-!     Function :
-!        Solve the Equation by a Process of Gauss-Jordan Elimination
-!
-!         |A11 A12 ... A1m|   | X1 |   |A1,m+1|
-!         |A21 A22 ... A2m| * | X2 | = |A2,m+1|
-!         | |   |   |   | |   | |  |   |  |   |
-!         |Am1 Am2 ... Amm|   | Xm |   |Am,m+1|
-!
-!     Arguement
-!        A    : Coefficient Matrix and Constant Vector
-!             : A(*,1:M) : Coefficient Matrix
-!             : A(*,M+1) : Inp : Constant Vector
-!             :          : Out : Solution to Simultaneous Equation
-!        M    : Number of Simultaneous Equation
-!        IC   : Return Code
-!=======================================================================
-! arguments
-    integer, intent(in)    :: m
-    integer, intent(out)   :: ic
-    real(8), intent(inout) :: a(m,m+1)
-
-! local variables
-    integer    i, ip, j, k, kk
-    real(8)    aa, epsl, pv, w
-
-!-----------------------------------------------------------------------
-
-!----  Initialize Arguement and Data
-
-    ic = 1
-! modified 1/1 lines by kamata 2003/10/16
-!   epsl = 1.0d-14
-    epsl = 1.0d-28
-
-!----  Loop of the Number of Row
-
-    do k=1,m
-
-!------  Select Pivot
-
-       pv = 0.0d0
-       do i=k,m
-          if( pv.lt.dabs(a(i,k)) ) then
-             pv = dabs(a(i,k))
-             ip = i
-          endif
-       enddo
-       if( pv.lt.epsl ) then
-          write(6,*) 'ERROR AT GAUSS : PIVOT'
-          write(6,'(1P6E12.5)') (a(i,k),i=k,m)
-          return
-       endif
-
-!------  Exchange the Rows
-
-       do j=k,m+1
-          w       = a(k,j)
-          a(k,j)  = a(ip,j)
-          a(ip,j) = w
-       enddo
-
-!------  Process for Row Selected as Pivot
-
-       aa = 1.0d0 / a(k,k)
-       kk = k + 1
-       do j=kk,m+1
-          a(k,j) = a(k,j) * aa
-       enddo
-
-!------  Process for Other Rows
-
-       do i=1,m
-          if(i.eq.k) cycle !  pivot
-          aa = a(i,k)
-          do j=kk,m+1
-             a(i,j) = a(i,j) - aa*a(k,j)
-          enddo
-       enddo
-
-    enddo
-
-    ic = 0
-!-----------------------------------------------------------------------
-  end subroutine gauss6
+!!$!***************************************************************
+!!$!
+!!$!   Wrapper for lesq6
+!!$!
+!!$!***************************************************************
+!!$
+!!$  subroutine lesq6_wrapper(ilesq6, mdeg, x, y, xout, yout)
+!!$! arguments
+!!$    integer(4), intent(in) :: ilesq6, mdeg
+!!$    real(8), dimension(:), intent(in)  :: x, y, xout
+!!$    real(8), dimension(:), intent(out) :: yout
+!!$! local variables
+!!$    integer(4) :: nmax, icon, i, j, nout
+!!$    real(8), dimension(:), allocatable :: ww, wc
+!!$
+!!$    nmax = size(x)
+!!$    nout = size(yout)
+!!$
+!!$    allocate(ww(nmax), wc(nmax))
+!!$    ww(:) = 1.d0
+!!$    call lesq6( ilesq6, x, y, nmax, mdeg, ww, wc, icon )
+!!$    if( icon /= 0 ) then
+!!$       write(6,'(a)') '*** lesq6 error ***'
+!!$       stop
+!!$    endif
+!!$    yout(1) = wc(1)
+!!$    do i = 2, nout
+!!$       yout(i) = 0.0_8
+!!$       do j = 1, mdeg+1
+!!$          yout(i) = yout(i) + wc(j) * xout(i)**(j-1)
+!!$       enddo
+!!$    enddo
+!!$    deallocate(ww, wc)
+!!$
+!!$  end subroutine lesq6_wrapper
+!!$
+!!$!=======================================================================
+!!$  subroutine lesq6( lsm, x, y, n, m, w, c, icon )
+!!$!                   I    I  I  I  I  I  O  O
+!!$!
+!!$!     Function :
+!!$!        Calculate the Coefficient of Least Square Polynomial Function
+!!$!      Approximation
+!!$!
+!!$!     Arguement
+!!$!        LSM  : Fitting Mode
+!!$!             :   IAND(LSM,1).NE.0 : Derivative at Center = 0
+!!$!             :   IAND(LSM,2).NE.0 : Fix Center Value ( Y(1) )
+!!$!             :   IAND(LSM,4).NE.0 : Fix Edge Value   ( Y(N) )
+!!$!        X    : X Data
+!!$!        Y    : Y Data
+!!$!        N    : Number of Data Points
+!!$!        M    : Polynomial Function Degree
+!!$!        W    : Weight of Each Data
+!!$!        C    : Coefficient of Polynomial Function
+!!$!        ICON : Return Code
+!!$!=======================================================================
+!!$! arguments
+!!$    integer, intent(in)  :: lsm, n, m
+!!$    real(8), intent(in)  :: x(n), y(n), w(n)
+!!$    integer, intent(out) :: icon
+!!$    real(8), intent(out) :: c(m+1)
+!!$
+!!$! local variables
+!!$    integer    i, irc, j, k, m1
+!!$    real(8)    a1, b1, xa(m+1,m+2), xc(n,m+1)
+!!$!        XA   : Work Area Used for Coefficient Matrix of Normal Equation
+!!$!        XC   : Work Area Used for Saving the X**(j)
+!!$
+!!$!-----------------------------------------------------------------------
+!!$
+!!$!----  Initialize and Check Data
+!!$
+!!$    icon = 1
+!!$    if( n .lt. m+1 ) return
+!!$    m1 = m + 1
+!!$
+!!$!----  Set Xi**(j),j=0,M
+!!$
+!!$    do i=1,n
+!!$       xc(i,1) = 1.d0
+!!$    enddo
+!!$    do j=2,m1
+!!$       do i=1,n
+!!$          xc(i,j) = xc(i,j-1)*x(i)
+!!$       enddo
+!!$    enddo
+!!$
+!!$!----  Calculate the Coefficient Matrix of Normal Equation
+!!$
+!!$!----           n
+!!$!----    XAij = Σ(Xk**(i) * Xk**(j) * Wk)
+!!$!----           k=1
+!!$
+!!$    do i=1,m1
+!!$       do j=i,m1
+!!$          a1 = 0.0d0
+!!$          do k=1,n
+!!$             a1 = a1 + xc(k,i)*xc(k,j)*w(k)
+!!$          enddo
+!!$          xa(i,j) = a1
+!!$          xa(j,i) = a1
+!!$       enddo
+!!$    enddo
+!!$
+!!$!----  Calculate the Constant Vector of Normal Equation
+!!$
+!!$!----         n
+!!$!----    Bj = Σ(Xk**(j) * Yk * Wk)
+!!$!----         k=1
+!!$
+!!$    do i=1,m1
+!!$       b1 = 0.0d0
+!!$       do k=1,n
+!!$          b1 = b1 + xc(k,i)*y(k)*w(k)
+!!$       enddo
+!!$       xa(i,m+2) = b1
+!!$    enddo
+!!$!    write(ft06,*)'XA= '
+!!$!    write(ft06,'(1X,1P5E11.3)')((XA(I,J),J=1,5),I=1,4)
+!!$
+!!$!----  Derivative at Center = 0
+!!$
+!!$    if( iand(lsm,1).ne.0 ) then
+!!$       xa(2,1) = 0.0d0
+!!$       xa(2,2) = 1.0d0
+!!$       do i=3,m+1
+!!$          xa(2,i) = 0.0d0
+!!$       enddo
+!!$       xa(2,m+2) = 0.0d0
+!!$    endif
+!!$
+!!$!----  Fix Center Value
+!!$
+!!$    if( iand(lsm,2).ne.0 ) then
+!!$       xa(1,1) = 1.0d0
+!!$       do i=2,m+1
+!!$          xa(1,i) = 0.0d0
+!!$       enddo
+!!$       xa(1,m+2) = y(1)
+!!$    endif
+!!$
+!!$!----  Fix Edge Value
+!!$
+!!$    if( iand(lsm,4).ne.0 ) then
+!!$       do i=1,m+1
+!!$          xa(m+1,i) = 1.0d0
+!!$       enddo
+!!$       xa(m+1,m+2) = y(n)
+!!$    endif
+!!$
+!!$!----  Solve the Equation by a Process of Gauss-Jordan Elimination
+!!$
+!!$    call gauss6( xa, m1, irc )
+!!$    if( irc.ne.0 ) return
+!!$
+!!$!----  Set Coefficient
+!!$
+!!$    do i=1,m1
+!!$       c(i) = xa(i,m1+1)
+!!$    enddo
+!!$    icon = 0
+!!$!-----------------------------------------------------------------------
+!!$  end subroutine lesq6
+!!$
+!!$
+!!$!=======================================================================
+!!$  subroutine gauss6( a, m, ic )
+!!$!                    U  I  O
+!!$!
+!!$!     Function :
+!!$!        Solve the Equation by a Process of Gauss-Jordan Elimination
+!!$!
+!!$!         |A11 A12 ... A1m|   | X1 |   |A1,m+1|
+!!$!         |A21 A22 ... A2m| * | X2 | = |A2,m+1|
+!!$!         | |   |   |   | |   | |  |   |  |   |
+!!$!         |Am1 Am2 ... Amm|   | Xm |   |Am,m+1|
+!!$!
+!!$!     Arguement
+!!$!        A    : Coefficient Matrix and Constant Vector
+!!$!             : A(*,1:M) : Coefficient Matrix
+!!$!             : A(*,M+1) : Inp : Constant Vector
+!!$!             :          : Out : Solution to Simultaneous Equation
+!!$!        M    : Number of Simultaneous Equation
+!!$!        IC   : Return Code
+!!$!=======================================================================
+!!$! arguments
+!!$    integer, intent(in)    :: m
+!!$    integer, intent(out)   :: ic
+!!$    real(8), intent(inout) :: a(m,m+1)
+!!$
+!!$! local variables
+!!$    integer    i, ip, j, k, kk
+!!$    real(8)    aa, epsl, pv, w
+!!$
+!!$!-----------------------------------------------------------------------
+!!$
+!!$!----  Initialize Arguement and Data
+!!$
+!!$    ic = 1
+!!$! modified 1/1 lines by kamata 2003/10/16
+!!$!   epsl = 1.0d-14
+!!$    epsl = 1.0d-28
+!!$
+!!$!----  Loop of the Number of Row
+!!$
+!!$    do k=1,m
+!!$
+!!$!------  Select Pivot
+!!$
+!!$       pv = 0.0d0
+!!$       do i=k,m
+!!$          if( pv.lt.dabs(a(i,k)) ) then
+!!$             pv = dabs(a(i,k))
+!!$             ip = i
+!!$          endif
+!!$       enddo
+!!$       if( pv.lt.epsl ) then
+!!$          write(6,*) 'ERROR AT GAUSS : PIVOT'
+!!$          write(6,'(1P6E12.5)') (a(i,k),i=k,m)
+!!$          return
+!!$       endif
+!!$
+!!$!------  Exchange the Rows
+!!$
+!!$       do j=k,m+1
+!!$          w       = a(k,j)
+!!$          a(k,j)  = a(ip,j)
+!!$          a(ip,j) = w
+!!$       enddo
+!!$
+!!$!------  Process for Row Selected as Pivot
+!!$
+!!$       aa = 1.0d0 / a(k,k)
+!!$       kk = k + 1
+!!$       do j=kk,m+1
+!!$          a(k,j) = a(k,j) * aa
+!!$       enddo
+!!$
+!!$!------  Process for Other Rows
+!!$
+!!$       do i=1,m
+!!$          if(i.eq.k) cycle !  pivot
+!!$          aa = a(i,k)
+!!$          do j=kk,m+1
+!!$             a(i,j) = a(i,j) - aa*a(k,j)
+!!$          enddo
+!!$       enddo
+!!$
+!!$    enddo
+!!$
+!!$    ic = 0
+!!$!-----------------------------------------------------------------------
+!!$  end subroutine gauss6
 
 end module eqread_mod
 

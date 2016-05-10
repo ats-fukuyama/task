@@ -72,7 +72,7 @@ module tx_commons
   !**********************!
 
   ! Configuration parameters
-  real(8) :: RA, RB, RR, BB, rbvt, rIPs, rIPe
+  real(8) :: RA, RB, ravl, rbvl, RR, BB, rbvt, rIPs, rIPe
   real(8) :: rhob, rhoaccum
 
   ! Species
@@ -239,7 +239,7 @@ module tx_commons
 
   ! Equilibrium metrics 
   real(8), dimension(:), allocatable :: &
-       & aat, rrt, ckt, suft, sst, vro, vlt, rhov, art, epst, d_rrr, elip, trig
+       & aat, rrt, ckt, suft, sst, vro, vlt, rhov, art, epst, ait, elip, trig
   real(8), dimension(:), allocatable :: fipol, Bpsq, qhatsq, Fqhatsq, BEpara, bri
   real(8), dimension(:), allocatable :: sdt, hdt
   real(8), dimension(:), allocatable :: bit, bbrt
@@ -292,7 +292,7 @@ module tx_commons
   real(8) :: WPDOT, TAUE1, TAUE2, TAUEP, TAUEH, TAUP, TAUPA
   real(8) :: BETAP0, BETAPA, BETA0, BETAA, BETAQ0, BETAN
   real(8) :: TPRE, WPPRE
-  real(8) :: VOLAVN, Gamma_a
+  real(8) :: VOLAVN, Gamma_a, PnumN0
 
   ! Internal variables for transport matrix
   real(8),    dimension(:,:,:), allocatable :: ALC, BLC, CLC, PLC
@@ -418,7 +418,7 @@ contains
        if (ier /= 0) exit
 
        allocate(aat(0:N), rrt(0:N), ckt(0:N), suft(0:N), sst(0:N), vro(0:N), vlt(0:N), rhov(0:N), &
-            &   art(0:N), epst(0:N), d_rrr(0:N), elip(0:N), trig(0:N), stat = ierl(1))
+            &   art(0:N), epst(0:N), ait(0:N), elip(0:N), trig(0:N), stat = ierl(1))
        allocate(fipol(0:N), Bpsq(0:N), qhatsq(0:N), Fqhatsq(0:N), BEpara(0:N), bri(0:N),stat = ierl(2))
        allocate(sdt(0:N), hdt(0:N),                                           stat = ierl(3))
        allocate(bit(0:N), bbrt(0:N),                                          stat = ierl(4))
@@ -527,7 +527,7 @@ contains
 
     deallocate(xmu, xmuf, lab, laf, lfb, lff, BnablaPi, gflux)
 
-    deallocate(aat, rrt, ckt, suft, sst, vro, vlt, rhov, art, epst, d_rrr, elip, trig)
+    deallocate(aat, rrt, ckt, suft, sst, vro, vlt, rhov, art, epst, ait, elip, trig)
     deallocate(fipol, Bpsq, qhatsq, Fqhatsq, BEpara, bri)
     deallocate(sdt, hdt)
     deallocate(bit, bbrt)

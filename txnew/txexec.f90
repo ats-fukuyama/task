@@ -85,8 +85,15 @@ contains
     use tx_graphic, only : TX_GRAPH_SAVE, TXSTGT, TXSTGV, TXSTGR, TXSTGQ, &
          &                 NGR, NGRM, NGRSTP, NGTSTP, NGVSTP, GY, GT
     use tx_ntv, only : Wnm_spline
-!    use f95_lapack ! for self-compiled LAPACK95
-    use lapack95, only : GBSV!, GBTRF, GBTRS ! for intel mkl LAPACK95, Note: This module file includes "ptsv" subroutine, whose name conflicts with PTsV defined in TASK/TX.  
+#ifdef laself
+    ! for self-compiled lapack
+    use f95_lapack, only : GBSV => LA_GBSV
+#else
+    ! for intel mkl LAPACK95, 
+    !  Note: This module file includes "ptsv" subroutine, 
+    !        whose name conflicts with PTsV defined in TASK/TX.  
+    use lapack95, only : GBSV
+#endif
 
     real(8), dimension(:,:), allocatable :: BA, BL
     real(8), dimension(:),   allocatable :: BX

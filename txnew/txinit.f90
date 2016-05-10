@@ -16,10 +16,13 @@ SUBROUTINE TXINIT
 
   !   ***** Configuration parameters *****
 
-  !   Plasma minor radius (m)
+  !   Plasma minor radius (m), geometrically defined by (Rmax-Rmin)/2
   ra = 0.8D0
 
-  !   Virtual wall radius in rho coordinate (-)
+  !   Plasma minor radius (m), defined by sqrt(V/(2 Pi Pi R))
+  ravl = 0.8D0
+
+  !   Virtual wall radius in rho coordinate (-) for defining rb
   !     The position of the virtual wall follows the change in that of the separatrix
   !     when an equilibrium evolves.
   !     That is, the virtual wall always locates at rhob distance from the separatrix.
@@ -30,10 +33,10 @@ SUBROUTINE TXINIT
   !     rhoaccum is valid when rhoaccum is plus.
   rhoaccum = - 1.d0
 
-  !   Plasma major radius (m)
+  !   Plasma major radius (m), geometrically defined by (Rmax+Rmin)/2
   RR = 3.2D0
 
-  !   Toroidal magnetic field (T)
+  !   Toroidal magnetic field (T) at R=RR
   BB = 2.68D0
 
   !   Poloidal current function at the virtual wall (Tm)
@@ -318,11 +321,9 @@ SUBROUTINE TXINIT
   !   ***** initial parameters *****
 
   !   Initial Density scale length in SOL normalized by minor radius (-), valid if MDITSN /= 0
-!  rLn = 0.03D0 / ra
   rLn = 0.0857D0
 
   !   Initail Temperature scale length in SOL normalized by minor radius (-), valid if MDITST /= 0
-!  rLT = 0.03D0 / ra
   rLT = 0.0857D0
 
   !   ***** Heating parameters *****
@@ -420,7 +421,9 @@ SUBROUTINE TXINIT
   !   Gas-puff particle flux (10^20 m^-2 1/s)
   !      If you input Gamma_0 [particles/sec], you translate it into
   !      rGASPF [1/(m^2 s)]:
-  !        rGASPF = Gamma_0 / (2.D0*PI*RR*2.D0*PI*RB)
+  !        rGASPF = Gamma_0 / <|nabla V|>
+  !               = Gamma_0 / surt(NRMAX)
+  !               ~ Gamma_0 / (2.D0*PI*RR*2.D0*PI*RB)
   rGASPF = 0.2D0
 
   !   ***** Ripple loss parameters *****
@@ -927,8 +930,16 @@ SUBROUTINE TXPROF
   use tx_core_module, only : intg_area, intg_area_p, intg_vol_p 
   use sauter_mod
   use tx_ntv, only : perturb_mag, Wnm_spline
-  use eqread_mod, only : AJphVRL 
-  use lapack95, only : GESV ! for intel mkl LAPACK95, Note: This module file includes "ptsv" subroutine, whose name conflicts with PTsV defined in TASK/TX.  
+  use eqread_mod, only : AJphVRL
+#ifdef laself
+  ! for self-compiled lapack
+  use f95_lapack, only : GESV => LA_GESV
+#else
+  ! for intel mkl LAPACK95, 
+  !  Note: This module file includes "ptsv" subroutine, 
+  !        whose name conflicts with PTsV defined in TASK/TX.  
+  use lapack95, only : GESV
+#endif
 
   implicit none
   INTEGER(4) :: NR, IER, ifile, NHFM, NR_smt, NR_smt_start = 10
@@ -991,7 +1002,7 @@ SUBROUTINE TXPROF
      PTiDIVL = PTiDIV
   end if
   PBA   = rhob - 1.d0
-  dPN   = - 3.D0 * (PN0L - PNaL) / RA
+  dPN   = - 3.D0 * (PN0L - PNaL) / ravl
   CfN1  = - (3.D0 * PBA * dPN + 4.D0 * (PNaL - PNeDIVL)) / PBA**3
   CfN2  =   (2.D0 * PBA * dPN + 3.D0 * (PNaL - PNeDIVL)) / PBA**4
   IF(MDFIXT == 0) THEN
@@ -1201,7 +1212,7 @@ SUBROUTINE TXPROF
      DO NR = 0, NRMAX
         X(NR,LQe7) =-AJphVRL(NR) / (AEE * 1.D20)
         X(NR,LQe4) = X(NR,LQe7) / aat(NR) ! approx
-        AJOH(NR)   = X(NR,LQe7) / d_rrr(NR)
+        AJOH(NR)   = X(NR,LQe7) / ait(NR)
         X(NR,LQm4) = PsiV(NR)
      END DO
 
@@ -1235,7 +1246,7 @@ SUBROUTINE TXPROF
 
            DO NR = 0, NRMAX
               AJPHL(NR)   = AJFCT * AJPHL(NR)
-              AJphVRL(NR) = AJPHL(NR) * d_rrr(NR)
+              AJphVRL(NR) = AJPHL(NR) * ait(NR)
               X(NR,LQe4)  =-AJphVRL(NR) / (AEE * 1.D20) * rrt(NR) ! approx
               X(NR,LQe7)  =-AJphVRL(NR) / (AEE * 1.D20)
               AJOH(NR)    = AJPHL(NR)
@@ -1252,8 +1263,8 @@ SUBROUTINE TXPROF
         ELSE ! (MDINTC == 0); Current density constructed
            DO NR = 0, NRMAX
               AJphVRL(NR) = BCLQm3 / (rMUb1 * vlt(nra)) * dProfsdt(NR) ! <j_zeta/R>
-              AJPHL(NR)   = AJphVRL(NR) / d_rrr(NR) ! <j_zeta/R>/<1/R>
-              X(NR,LQi7)  = (Uiph0 * d_rrr(NR)) * X(NR,LQi1) * (dProfsdt(NR) / dProfsdt(0))
+              AJPHL(NR)   = AJphVRL(NR) / ait(NR) ! <j_zeta/R>/<1/R>
+              X(NR,LQi7)  = (Uiph0 * ait(NR)) * X(NR,LQi1) * (dProfsdt(NR) / dProfsdt(0))
               X(NR,LQi4)  = X(NR,LQi7) * rrt(NR) ! n <R u_zeta> = n <u_zeta/R>/<R^2>
               X(NR,LQe7)  =-AJphVRL(NR) / (AEE * 1.D20) + achg(2) * X(NR,LQi7)
               X(NR,LQe4)  = X(NR,LQe7) * rrt(NR) ! n <R u_zeta> = n <u_zeta/R>/<R^2>
@@ -1272,7 +1283,7 @@ SUBROUTINE TXPROF
         AJFCT = rIPs * 1.D6 / intg_area(AJPHL)
         DO NR = 0, NRMAX
            AJPHL(NR)   = AJFCT * AJPHL(NR)
-           AJphVRL(NR) = AJPHL(NR) * d_rrr(NR)
+           AJphVRL(NR) = AJPHL(NR) * ait(NR)
            X(NR,LQe4)  =-AJPHL(NR) / (AEE * 1.D20) * rrt(NR) ! approx
            X(NR,LQe7)  =-AJPHL(NR) / (AEE * 1.D20)
            AJOH(NR)    = AJPHL(NR)
@@ -1397,7 +1408,7 @@ SUBROUTINE TXPROF
         Var(NR,2)%T = X(NR,LQi5)
      END IF
      ! Inverse aspect ratio
-     EpsL = rho(NR) * ra / RR
+     EpsL = epst(NR)
      ! Trapped particle fraction
      FTL  = 1.46D0 * SQRT(EpsL) - 0.46D0 * EpsL**1.5D0
      ! Estimating parallel resistivity
@@ -1455,9 +1466,6 @@ SUBROUTINE TXPROF
   !  Calculate global quantities for storing and showing initial status
 
   CALL TXGLOB
-
-  !   Virtual wall radius (m)
-  rb = rhob * ra
 
   RETURN
 END SUBROUTINE TXPROF
@@ -1711,6 +1719,7 @@ contains
     WRITE(6,'((1X,A10," =",1PD9.2,3(2X,A10," =",1PD9.2)))') &
          &   'RA        ', RA       , 'RHOB      ', RHOB     ,  &
          &   'RR        ', RR       , 'BB        ', BB       ,  &
+         &   'RAVL      ', RAVL     , 'RBVL      ', RBVL     ,  &
          &   'rbvt      ', rbvt     , &
          &   'amas(2)   ', amas(2)  , 'achg(2)   ', achg(2)  ,  &
          &   'PN0       ', PN0      , 'PNa       ', PNa      ,  &
