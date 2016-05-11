@@ -1452,7 +1452,7 @@ contains
 
     ! Loss cone loss
 
-    ELM(:,:,18,NEQ) =   fem_int(-(2+L3),SiLCth,Var(:,2)%n)
+    ELM(:,:,18,NEQ) =   fem_int(-(2+L3),SiLCB,Var(:,2)%n)
     NLC(18,NEQ) = 0
 
     ! Ion orbit loss
@@ -1682,7 +1682,7 @@ contains
 
     ! Loss cone loss
 
-    ELM(:,:,24,NEQ) =   fem_int(-1,SiLCph) * rr
+    ELM(:,:,24,NEQ) =   fem_int(-1,SiLCph)
     NLC(24,NEQ) = 0
 
     ! Ion orbit loss
@@ -1959,7 +1959,7 @@ contains
 
     ! Loss cone loss
 
-    ELM(:,:,15,NEQ) =   fem_int(-(2+L6),SiLCth,Var(:,2)%n)
+    ELM(:,:,15,NEQ) =   fem_int(-(2+L6),SiLCB,Var(:,2)%n)
     NLC(15,NEQ) = 0
 
     ! Ion orbit loss
@@ -2347,16 +2347,6 @@ contains
 !
 !    ELM(:,:,18,NEQ) =   achgb * aee * amasinv * fem_int(20,FQLcoef,FVpch)
 !    NLC(18,NEQ) = LQb1
-
-!    ! Loss cone loss
-!
-!    ELM(:,:,13,NEQ) =   fem_int(-(1),SiLCph) * rr
-!    NLC(13,NEQ) = 0
-!
-!    ! Ion orbit loss
-!
-!    ELM(:,:,14,NEQ) = - fem_int(2,rNuOL)
-!    NLC(14,NEQ) = LQi4
 
     NLCMAX(NEQ) = 12
     RETURN

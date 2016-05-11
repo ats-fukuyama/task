@@ -68,7 +68,7 @@ contains
        fac = 1.d0
        if(NR /= 0) then
           rbanana = sqrt(epsL)*amas(i)*amqp/(abs(achg(i))*BthV(NR)) &
-               &   *sqrt(2.d0*Var(NR,i)%T*rKeV/(amas(i)*amp)) ! banana widt
+               &   *sqrt(2.d0*Var(NR,i)%T*rKeV/(amas(i)*amp)) ! banana width
           if(r(NR) < rbanana) fac = 0.d0
        end if
        sqzfac(i)  = 1.d0 + fac * sqzfaccoef*amas(i)/abs(achg(i))
