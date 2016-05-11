@@ -157,7 +157,7 @@
       real(rkind),dimension(:,:,:),POINTER :: & ! (NTHM,NPM,NSAM)
            FS1,FS2,FS3
       real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSAM)
-           WEIGHP,WEIGHT,WEIGHR
+           WEIGHP,WEIGHT,WEIGHR,WEIGHR_G
       real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSAM)
            DPP,DPT,DTP,DTT,FPP,FTH,DRR,FRR,SPP,PPL, &
            FEPP,FETH,DCPP,DCPT,DCTP,DCTT,FCPP,FCTH, &
@@ -247,7 +247,7 @@
            PG2,PM2
       real(rkind),dimension(:),POINTER :: & ! (NSAM)
            DEPS_SS, RPDRS, RNDRS,tau_ta0,E_drei0,E_crit0,POST_tau_ta0_f
-      integer:: N_IMPL, NCALCNR
+      integer:: N_IMPL
       real,dimension(10):: gut_comm
       real(rkind),dimension(:,:),POINTER:: EPTR
       real(rkind):: E_EDGEM, SIGP_E, RN_E, RT_E, RLNRL_E
@@ -365,7 +365,9 @@
           allocate(WEIGHP(NTHMAX  ,NPSTART:NPENDWG,NRSTART:NREND+1,NSAMAX))
           allocate(WEIGHT(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NREND+1,NSAMAX))
           allocate(WEIGHR(NTHMAX,NPSTART:NPEND,NRSTART:NREND+1,NSAMAX))
-
+          IF(MODELD.ne.0)THEN
+             allocate(WEIGHR_G(NTHMAX,NPMAX,NRMAX+1,NSAMAX))
+          END IF
           allocate(RNFD(NRSTART:NREND+1,NSBMAX),RTFD(NRSTART:NREND+1,NSBMAX))
           allocate(RN0_MGI(NSBMAX))
           allocate(RN_MGI(NRSTART:NREND,NSBMAX))
@@ -627,6 +629,9 @@
           deallocate(THETA,DKBSR)
           deallocate(WEIGHP,WEIGHT)
           deallocate(WEIGHR)
+          IF(MODELD.ne.0)THEN
+             deallocate(WEIGHR)
+          END IF
 
           deallocate(RNFD,RTFD,PTFD,VTFD)
           deallocate(RN_MGI, RN_MGI_G)

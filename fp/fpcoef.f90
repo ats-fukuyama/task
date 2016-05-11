@@ -683,7 +683,7 @@
             DINT_F=0.D0
             DO NP=NPSTART,NPEND
                DO NTH=1,NTHMAX
-                  IF(NTG1.eq.0.and.N_IMPL.eq.0)THEN
+                  IF(TIMEFP.eq.0.and.N_IMPL.eq.0)THEN
                      IF(NR.eq.1)THEN
                         WRL=0.25D0 ! not necessary
                      ELSE

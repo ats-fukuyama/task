@@ -1300,7 +1300,6 @@
       WRITE(6,*) "----- SET COEFFICIENTS AND DISTRIBUTION FUNCTIONS -----"
 
       N_IMPL=0
-      NCALCNR=0
       IF(MODELS.eq.3) CALL NF_LG_FUNCTION
       IF(MODELS.ne.0) CALL NF_REACTION_COEF
       CALL fusion_source_init
@@ -1446,7 +1445,7 @@
       CALL FNSP_INIT_EDGE
 !      WRITE(6,*) "END INIT"
 !     ----- normalize bounce average parameter ---------
-      CALL fp_set_bounceaverage_param
+      CALL fp_set_bounceaverage_param ! RCOEF
 !     ----- set background f
       CALL mtx_set_communicator(comm_nsa)
       CALL update_fnsb
