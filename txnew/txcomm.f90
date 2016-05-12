@@ -155,7 +155,7 @@ module tx_commons
   integer(4) :: MDFIXT, MDBEAM
 
   ! Transport model
-  integer(4) :: MDOSQZ, MDLETA, MDLETB, MDLNEO, MDBSETA
+  integer(4) :: MDOSQZ, MDOSQZN, MDLETA, MDLETB, MDLNEO, MDBSETA
 
   ! Initial condition
   integer(4) :: MDITSN, MDITST, MDINTN, MDINTT, MDINTC
@@ -265,7 +265,7 @@ module tx_commons
        &                                SNB, SNBe, SNBi, SNBb, SNBPDi, SNBTGi, &
        &                                PNBe, PNBi, MNB, PRFe, PRFi, &
        &                                POH, POHe, POHi, PEQe, PEQi, &
-       &                                SiLC, SiLCth, SiLCph, PALFe, PALFi, &
+       &                                SiLC, SiLCB, SiLCph, PALFe, PALFi, &
        &                                BSmb, Tqt, Tqp
   real(8), dimension(:), allocatable :: PIE, PCX, SIE, SCX, PBr
   real(8) :: Eb, Vb, RatCX
@@ -436,7 +436,7 @@ contains
        allocate(SNBPDi(0:N),SNBTGi(0:N),                                      stat = ierl(3))
        allocate(PNBe(0:N),  PNBi(0:N),   MNB(0:N),    PRFe(0:N),  PRFi(0:N),  stat = ierl(4))
        allocate(POH(0:N),   POHe(0:N),   POHi(0:N),   PEQe(0:N),  PEQi(0:N),  stat = ierl(5))
-       allocate(SiLC(0:N),  SiLCth(0:N), SiLCph(0:N), PALFe(0:N), PALFi(0:N), stat = ierl(6))
+       allocate(SiLC(0:N),  SiLCB(0:N),  SiLCph(0:N), PALFe(0:N), PALFi(0:N), stat = ierl(6))
        allocate(PIE(0:N),   PCX(0:N),    SIE(0:N),    SCX(0:N),   PBr(0:N),   stat = ierl(7))
        allocate(BSmb(0:N),  Tqt(0:N),    Tqp(0:N),                            stat = ierl(8))
        ier = sum(ierl) ; iflag = 8
@@ -541,7 +541,7 @@ contains
     deallocate(SNB,    SNBe,  SNBi,  SNBb,   SNBPDi, SNBTGi)
     deallocate(PNBe,   PNBi,  MNB,   PRFe,   PRFi)
     deallocate(POH,    POHe,  POHi,  PEQe,   PEQi)
-    deallocate(SiLC,   SiLCth,SiLCph,PALFe,  PALFi)
+    deallocate(SiLC,   SiLCB, SiLCph,PALFe,  PALFi)
     deallocate(PIE,    PCX,   SIE,   SCX,    PBr)
     deallocate(BSmb,   Tqt,   Tqp)
 

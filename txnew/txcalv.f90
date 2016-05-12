@@ -285,15 +285,15 @@ contains
 
     integer(4), intent(in) :: IC
     integer(4), save :: NRB = 1
-    INTEGER(4) :: NR, NR1, IER, i, MDANOMabs, MDOSQZL, model_cdbm, izvpch, MDLNEOL
+    INTEGER(4) :: NR, NR1, IER, i, MDANOMabs, model_cdbm, izvpch, MDLNEOL
     INTEGER(4) :: NHFM ! miki_m 10-08-06
     REAL(8) :: Sigma0, Vte, Vti, Vtb, Wte, Wti, EpsL, &
          &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, PN0tot, &
          &     PROFML, PROFCL, Dturb, DeL, &
          &     Cs, Lc, RhoIT, ExpArg, AiP, DISTAN, UbparaL, &
-         &     SiLCL, SiLCthL, SiLCphL, RL, DBW, PTiVA, &
-         &     Chicl, factor_bohm, rNuAsIL, &
-         &     RLOSS, SQZ, rNuDL, Ln, LT, etai_chk, kthrhos, &
+         &     rNuOLL, SiLCL, SiLCBL, SiLCphL, RL, DBW, PTiVA, &
+         &     Chicl, factor_bohm, rNustar, &
+         &     RLOSS, sqz, rNuDL, Ln, LT, etai_chk, kthrhos, &
          &     RhoSOL, V0ave, Viave, DturbA, rLmean, Sitot, &
          &     rGCIM, rGIM, rHIM, OMEGAPR !09/06/17~ miki_m
     real(8), dimension(0:NRMAX) :: gr2phi
@@ -305,6 +305,7 @@ contains
     real(8) :: omegaer, omegaere, omegaeri
     real(8) :: EFT, CR
     real(8) :: rhoni, dvexbdr ! CDBM
+    real(8) :: xb, fp, fdp, gfun
     real(8) :: AITKEN2P ! function
     real(8), dimension(0:NRMAX) :: pres, ddPhidpsi, tmp
     ! Mainly for derivatives
@@ -399,11 +400,6 @@ contains
     do NR = 0, NRMAX
        dErdrS(NR) = moving_average(NR,dErdr,NRMAX,NRA)
     end do
-!    !  Double smoothing
-!    do NR = 0, NRMAX
-!       dErdr(NR) = moving_average(NR,dErdrS,NRMAX,NRA)
-!    end do
-!    dErdrS(:) = dErdr(:)
 
     ! *** Temperatures for neutrals ***
 
@@ -451,6 +447,15 @@ contains
 
     ! *********************************
 
+    ! Set flag for CDBM model
+    model_cdbm = 0
+    if( FSCBSH > 0.d0 ) then
+       model_cdbm = model_cdbm + 2
+    else if( FSCBSH < 0.d0 ) then
+       model_cdbm = model_cdbm + 4
+    end if
+    if( FSCBEL /= 0.d0 ) model_cdbm = model_cdbm + 1
+
     ! Calculate CDIM coefficient
     RAQPR(:) = vro(:) / ravl * dfdx (vv, rho**4 / Q, NRMAX , 0) ! cf. txcalv.f90 L501
 
@@ -459,33 +464,27 @@ contains
     !      where rho is an arbitrary radial coordinate.
     !                      ^^^^^^^^^
     !   gr2phi = (dpsi/dV)^2 d/dpsi(dPhi/dpsi) if rho = V is assumed.
-    if(MDOSQZ == 0) then
-       ddPhidpsi(:) = 0.d0
-       gr2phi(:) = 0.d0
-    else
-       MDOSQZl = mod(MDOSQZ,10) 
-       IF(MDOSQZl == 1 .or. (MDOSQZl == 2 .and. IC == 1)) THEN
-          ddPhidpsi(0) = 0.d0 ! d/dpsi(dPhi/dpsi)
-          do NR = 1, NRMAX-1
-             ddPhidpsi(NR) = (  ( PhiV(NR+1) - PhiV(NR) ) / ( PsiV(NR+1) - PsiV(NR) ) &
-                        &     - ( PhiV(NR) - PhiV(NR-1) ) / ( PsiV(NR) - PsiV(NR-1) ) ) &
-                        &     / ( PsiV(NR+1) - PsiV(NR-1) ) * 2.d0
+    IF( mod(MDOSQZ,10) /= 1 .or. IC == 1 ) THEN
+       ddPhidpsi(0) = 0.d0 ! d/dpsi(dPhi/dpsi)
+       do NR = 1, NRMAX-1
+          ddPhidpsi(NR) = (  ( PhiV(NR+1) - PhiV(NR) ) / ( PsiV(NR+1) - PsiV(NR) ) &
+               &     - ( PhiV(NR) - PhiV(NR-1) ) / ( PsiV(NR) - PsiV(NR-1) ) ) &
+               &     / ( PsiV(NR+1) - PsiV(NR-1) ) * 2.d0
+       end do
+       ! Phi(NRMAX+1)=Phi(NRMAX) is assumed.
+       NR = NRMAX
+       ddPhidpsi(NR) = (- ( PhiV(NR) - PhiV(NR-1) ) / ( PsiV(NR) - PsiV(NR-1) ) ) &
+            &     / ( PsiV(NR) - PsiV(NR-1) )
+       
+       if(MDOSQZ > 10) then
+          do NR = 0, NRMAX
+             tmp(NR) = moving_average(NR,ddPhidpsi,NRMAX)
           end do
-          ! Phi(NRMAX+1)=Phi(NRMAX) is assumed.
-          NR = NRMAX
-             ddPhidpsi(NR) = (- ( PhiV(NR) - PhiV(NR-1) ) / ( PsiV(NR) - PsiV(NR-1) ) ) &
-                        &     / ( PsiV(NR) - PsiV(NR-1) )
-
-          if(MDOSQZ > 10) then
-             do NR = 0, NRMAX
-                tmp(NR) = moving_average(NR,ddPhidpsi,NRMAX)
-             end do
-             ddPhidpsi(:) = tmp(:)
-          end if
-          ! For NCLASS
-          gr2phi(:) = sdt(:)*sdt(:) * ddPhidpsi(:)
-       END IF
-    end if
+          ddPhidpsi(:) = tmp(:)
+       end if
+       ! For NCLASS
+       gr2phi(:) = sdt(:)*sdt(:) * ddPhidpsi(:) * MDOSQZN
+    END IF
 
     !  Coefficients
 
@@ -635,7 +634,7 @@ contains
 
           call tx_matrix_inversion(NR,ETAvar(NR,1),BJBSvar(NR,1), &
                &         ChiNCpe(NR),ChiNCte(NR),ChiNCpi(NR),ChiNCti(NR), &
-               &         ddPhidpsi(NR))
+               &         ddPhidpsi(NR)*MDOSQZN)
 !          write(6,*) NR,chincpe(nr),chincte(nr)
 !          write(6,*) NR,chincpi(nr),chincti(nr)
        end if
@@ -799,22 +798,17 @@ contains
 
        IF (maxval(FSANOM) > 0.D0) THEN
 
-          if( FSCBEL == 0.d0 ) then
-             model_cdbm = 1
-          else
-             model_cdbm = 3
-          end if
-
           !   *** CDBM model ***
           IF (MDANOMabs == 1) THEN
              rhoni = Var(NR,2)%n * 1.D20 * (amas(2)*amp)
              dvexbdr = dErdrS(NR) / bbrt(NR)
+!             dvexbdr = dErdr(NR) / bbrt(NR)
 
              ! Magnetic curvature
              rKappa(NR) = FSCBKP * (- epst(NR) * (1.D0 - 1.D0 / Q(NR)**2))
 
-             call cdbm(bbrt(NR),rr,r(NR),elip(NR),Q(NR),S(NR),Var(NR,1)%n*1.d20,rhoni,dpdr(NR), &
-                  &    dvexbdr,FSCBAL,FSCBKP,FSCBSH*rG1,model_cdbm,Dturb, &
+             call cdbm(BBL,rr,r(NR),elip(NR),Q(NR),S(NR),Var(NR,1)%n*1.d20,rhoni,dpdr(NR), &
+                  &    dvexbdr,FSCBAL,FSCBKP,abs(FSCBSH)*rG1,model_cdbm,Dturb, &
                   &    FCDBM(NR),rKappa(NR),rG1h2(NR))
 
           !   *** CDIM model ***
@@ -846,7 +840,7 @@ contains
              END IF
 
              ! Turbulence suppression by ExB shear for CDIM mode
-             rG1h2IM(NR) = 1.D0 / (1.D0 + FSCBSH * (rGIM * rHIM**2))
+             rG1h2IM(NR) = 1.D0 / (1.D0 + abs(FSCBSH) * (rGIM * rHIM**2))
              ! Turbulent transport coefficient calculated by CDIM model
              Dturb = rGCIM * FCDIM(NR) * rG1h2IM(NR) * ABS(Alpha(NR))**1.5D0 &
                   &              * VC*VC / Wpe2 * Va / (Q(NR) * RR)
@@ -1163,7 +1157,7 @@ contains
     end do
 
     if(MDANOMabs == 3) then
-       call txmmm95(dNsdrho(:,1),dNsdrho(:,2),dTsdrho(:,1),dTsdrho(:,1),dQdrho)
+       call txmmm95(dNsdrho(:,1),dNsdrho(:,2),dTsdrho(:,1),dTsdrho(:,1),dQdrho,FSCBSH)
     end if
 
     !     *** ETB model ***
@@ -1284,42 +1278,56 @@ contains
     !     ***** Ion Orbit Loss *****
 
     SiLC  (:) = 0.D0
-    SiLCth(:) = 0.D0
+    SiLCB (:) = 0.D0
     SiLCph(:) = 0.D0
     rNuOL (:) = 0.D0
     IF (ABS(FSLC) > 0.D0) THEN
        IF(MDLC == 1) THEN
-          ! K. C. Shaing, Phys. Fluids B 4 (1992) 3310
-          do nr=1,nrmax
+          ! Ref. [K. C. Shaing, Phys. Fluids B 4 (1992) 3310]
+          do NR = 1, NRMAX
              Vti = SQRT(2.D0 * Var(NR,2)%T * rKilo / (amas(2) * amqp))
-             ! Orbit squeezing factor (K.C.Shaing, et al., Phys. Plasmas 1 (1994) 3365)
-             SQZ = 1.D0 - amas(2) * amqp / achg(2) / BthV(NR)**2 * dErdrS(NR) / Vti
+             ! Orbit squeezing factor, given just below Eq. (3) of Ref.
+             sqz = 1.d0 + (fipol(NR) / bb)**2 * amqp * amas(2) / achg(2) * abs(ddPhidpsi(NR))
 
              EpsL = epst(NR)
              BBL = sqrt(bbt(NR))
-             ! rNuDL : deflection collisional frequency at V = Vti
-             rNuDL = Var(NR,2)%n *1.D20 * achg(2)**2 * achg(2)**2 * AEE**2 & 
-                  &   * coulog(1.d0,Var(NR,1)%n,Var(NR,1)%T,Var(NR,2)%T,amas(2),achg(2),amas(2),achg(2)) &
-                  &   / (2.D0 * PI * EPS0**2 * (amas(2) * amqp)**2 * Vti**3) &
-                  &   * 0.6289d0 ! <-- Numerical value of (Phi - G) at V = Vti
-             rNuAsIL = rNuDL * RR * Q(NR) / (Vti * (abs(SQZ) * EpsL)**1.5D0)
-             IF(FSLC == 1.D0) THEN
-                rNuOL(NR) = 2.25D0 * rNuDL / (sqrt(PI) * sqrt(2.D0 * abs(SQZ) * EpsL)) &
-                     &   * EXP(-(rNuAsIL**0.25D0 + (achg(2) * BBL / (amas(2) * amqp)) &
-                     &   * sqrt(abs(SQZ)) / (fipol(NR) * Vti) &
-                     &   * ABS(  PsiV(NR) - PsiV(NRA)) / sqrt(2.D0 * EpsL))**2)
+
+             ! rNuDL : deflection collisional frequency at V = Vti, see [Kikuchi PPCF 1995 p.1236]
+             rNuDL = 0.d0
+             do i = 1, NSM
+                xb    = Vti / SQRT(2.D0 * Var(NR,i)%T * rKilo / (amas(i) * amqp))
+                fp    = erf(xb)
+                fdp   = 2.d0/sqrt(pi)*exp(-xb**2) ! derivative of erf
+                gfun  = (fp-xb*fdp)/(2.d0*xb**2)  ! Chandrasekhar function
+                rNuDL = rNuDL + 0.75d0 * sqrt(pi) &
+                     & * (Var(NR,i)%n * achg(i)**2) / (Var(NR,2)%n * achg(2)**2) &
+                     & * (fp - gfun) ! Actually (fp-gfun)/xa**3, but xa at V=Vti is equal to unity.
+             end do
+             rNuDL = rNuDL * coll_freq(NR,2,2)
+
+             rNustar = rNuDL * RR * Q(NR) / (Vti * (abs(sqz) * EpsL)**1.5D0)
+
+             rNuOLL  = 2.25D0 * rNuDL / (sqrt(PI) * sqrt(2.D0 * abs(sqz) * EpsL)) &
+                  &  * EXP(-(rNustar**0.25D0 + (achg(2) * BBL / (amas(2) * amqp)) &
+                  &  * sqrt(abs(sqz)) / (fipol(NR) * Vti) &
+                  &  * ABS(PsiV(NR) - PsiV(NRA)) / sqrt(2.D0 * EpsL))**2)
+             IF(FSLC <= 1.D0) THEN
+                rNuOL(NR) = FSLC * rNuOLL
              ELSE
-                SiLC(NR) = - 2.25D0 * Var(NR,2)%n * rNuii(NR) / (sqrt(PI) * sqrt(2.D0 * EpsL)) &
-                     &   * EXP(-(rNuAsIL**0.25D0 + BBL / (fipol(NR) * Vti * amas(2) / amqp) &
-                     &         * ABS(  PsiV(NR) - PsiV(NRA)) / rr / sqrt(2.D0 * EpsL))**2)
-                SiLCth(NR) = SiLC(NR) * (amas(2)*amp) * Var(NR,2)%Uth * R(NR)
-                SiLCph(NR) = SiLC(NR) * (amas(2)*amp) * Var(NR,2)%Uph
+                SiLC  (NR) = - mod(FSLC,1.d1) * Var(NR,2)%n * rNuOLL
+                SiLCB (NR) = SiLC(NR) * Var(NR,2)%BUpar
+                SiLCph(NR) = SiLC(NR) * Var(NR,2)%RUph
              END IF
           end do
-!          stop
+
+          do NR = 0, NRMAX
+             tmp(NR) = moving_average(NR,rNuOL,NRMAX)
+          end do
+          rNuOL(:) = tmp(:)
+
        ELSEIF(MDLC == 2) THEN
           !     S. -I. Itoh and K. Itoh, Nucl. Fusion 29 (1989) 1031
-          IF(FSLC == 1.D0) THEN
+          IF(FSLC <= 1.D0) THEN
              ! RLOSS : Numerical coefficient proportional to the relative number of ions
              !         in the loss cone in velocity space
              RLOSS = 0.1D0
@@ -1333,7 +1341,7 @@ contains
 !                IF(ABS(RAVL - R(NR)) <= RhoIT .AND. RHO(NR) < 1.D0) THEN
                    ExpArg = -2.D0 * EpsL * (ErVlc(NR) / BthV(NR))**2 / Vti**2
                    ExpArg = ExpArg * (R(NR) / RAVL)**2
-                   rNuOL(NR) = RLOSS * rNuii(NR) / SQRT(EpsL) * EXP(ExpArg) &
+                   rNuOL(NR) = FSLC * RLOSS * rNuii(NR) / SQRT(EpsL) * EXP(ExpArg) &
                         &    * RL**2 / (1.D0 + RL**2)
                 ELSE
                    rNuOL(NR) = 0.D0
@@ -1355,9 +1363,11 @@ contains
                    SiLCL = AiP * EXP( - DISTAN**2) * Var(NR,2)%n
                    SiLC(NR) = SiLC(NR) - SiLCL
                    SiLC(NR1) = SiLC(NR1) + SiLCL * R(NR) / R(NR1)
-                   SiLCthL = SiLCL * (amas(2)*amp) * Var(NR,2)%Uth * R(NR)
-                   SiLCth(NR) = SiLCth(NR) - SiLCthL
-                   SiLCth(NR1) = SiLCth(NR1) + SiLCthL * R(NR) / R(NR1)
+
+                   SiLCBL = SiLCL * (amas(2)*amp) * Var(NR,2)%Uth * R(NR)
+                   SiLCB(NR) = SiLCB(NR) - SiLCBL
+                   SiLCB(NR1) = SiLCB(NR1) + SiLCBL * R(NR) / R(NR1)
+
                    SiLCphL = SiLCL * (amas(2)*amp) * Var(NR,2)%Uph
                    SiLCph(NR) = SiLCph(NR) - SiLCphL
                    SiLCph(NR1) = SiLCph(NR1) + SiLCphL * R(NR) / R(NR1)
@@ -1365,7 +1375,7 @@ contains
              END DO
 
              SiLC  (:) = FSLC * SiLC  (:)
-             SiLCth(:) = FSLC * SiLCth(:)
+             SiLCB (:) = FSLC * SiLCB (:)
              SiLCph(:) = FSLC * SiLCph(:)
           END IF
        END IF

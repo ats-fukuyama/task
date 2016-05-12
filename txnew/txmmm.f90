@@ -1,11 +1,12 @@
-subroutine txmmm95(dNedrho,dNidrho,dTedrho,dTidrho,dQdrho,gamma)
+subroutine txmmm95(dNedrho,dNidrho,dTedrho,dTidrho,dQdrho,cexb,gamma)
   use tx_commons, only : NRMAX, R, RR, achg, PNbV, Zeff, Var, Q, &
        &                 BphV, amas, Chie, Chii, De, rMue, rMui, FSANOM, &
-       &                 FSCBSH, FSPCLD, FSPCLC, rKeV, AEE, NRA, BthV, wexb
+       &                 FSPCLD, FSPCLC, rKeV, AEE, NRA, BthV, wexb
 !  use tx_interface, only : dfdx
   implicit none
 
   ! 0:NRMAX => 1:NRMAX+1 if dimension(*) used
+  real(8), intent(in) :: cexb
   real(8), dimension(:), intent(in) :: dNedrho, dNidrho, dTedrho, dTidrho, dQdrho
   real(8), dimension(0:NRMAX), intent(out), optional :: gamma
 
@@ -63,10 +64,10 @@ subroutine txmmm95(dNedrho,dNidrho,dTedrho,dTidrho,dQdrho,gamma)
   zaimass(0:N)  = ( zmasshyd(0:N) * zdensh(0:N) + zmassimp(0:N) * zdensimp(0:N) ) &
        &        / ( zdensh(0:N) + zdensimp(0:N) )
 
-  if(FSCBSH == 0.d0) then
+  if(cexb == 0.d0) then
      zwexbs(0:N)   = 0.0
   else
-     zwexbs(0:N)   = real(FSCBSH * wexb(0:N))
+     zwexbs(0:N)   = real(abs(cexb) * wexb(0:N))
   end if
 
   ! Electron density gradient
@@ -205,15 +206,15 @@ subroutine txmmm95(dNedrho,dNidrho,dTedrho,dTidrho,dQdrho,gamma)
 
 end subroutine txmmm95
 
+!=======================================================================
 
 subroutine ITG_growthrate
-  use tx_commons, only : NRMAX, Q, Var, Rho, vv, FSCBSH, &
-       &                 wexb, gamITG, RR, S, vro
+  use tx_commons, only : NRMAX, Q, Var, Rho, vv, wexb, gamITG, RR, S, vro
   use tx_interface, only : dfdx, txmmm95
   implicit none
 
   integer(4) :: N, NR
-  real(8)    :: FSCBSH_STR, epsN
+  real(8)    :: epsN
   real(8), dimension(:), allocatable :: dQdrho, dTedrho, dTidrho, dNedrho, dNidrho
   real(8), dimension(:), allocatable :: gamma, gamma_exb
 
@@ -222,20 +223,17 @@ subroutine ITG_growthrate
   allocate(dQdrho(0:N),dTedrho(0:N),dTidrho(0:N),dNedrho(0:N),dNidrho(0:N))
   allocate(gamma(0:N),gamma_exb(0:N))
 
-  dQdrho (0:N) = vro(0:N) * dfdx(vv,Q          ,N,0)
+  dQdrho (0:N) = vro(0:N) * dfdx(vv,Q           ,N,0)
   dTedrho(0:N) = vro(0:N) * dfdx(vv,Var(0:N,1)%T,N,0)
   dTidrho(0:N) = vro(0:N) * dfdx(vv,Var(0:N,2)%T,N,0)
   dNedrho(0:N) = vro(0:N) * dfdx(vv,Var(0:N,1)%n,N,0)
   dNidrho(0:N) = vro(0:N) * dfdx(vv,Var(0:N,2)%n,N,0)
 
-  FSCBSH_STR = FSCBSH
   ! With ExB shearing effect
-  FSCBSH = 1.d0
-  call txmmm95(dNedrho,dNidrho,dTedrho,dTidrho,dQdrho,gamma_exb)
+  call txmmm95(dNedrho,dNidrho,dTedrho,dTidrho,dQdrho,1.d0,gamma_exb)
 
   ! Without ExB shearing effect
-  FSCBSH = 0.d0
-  call txmmm95(dNedrho,dNidrho,dTedrho,dTidrho,dQdrho,gamma)
+  call txmmm95(dNedrho,dNidrho,dTedrho,dTidrho,dQdrho,0.d0,gamma)
 
   write(6,*) "MMM95: Growth rates by Weiland14 model"
   do NR = 0, NRMAX
@@ -249,8 +247,6 @@ subroutine ITG_growthrate
      epsN = Var(NR,2)%n / abs(dNidrho(NR)) / RR
      write(6,'(F9.6,1P5E14.6)') Rho(NR),epsN*S(NR)/Q(NR),gamITG(NR,1),gamITG(NR,2),gamITG(NR,3),wexb(NR)
   end do
-
-  FSCBSH = FSCBSH_STR
 
   deallocate(dQdrho,dTedrho,dTidrho,dNedrho,dNidrho,gamma,gamma_exb)
 

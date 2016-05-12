@@ -17,7 +17,8 @@ module tx_interface
   !****************!
 
   interface
-     subroutine txmmm95(dNedr,dNidr,dTedr,dTidr,dQdr,gamma)
+     subroutine txmmm95(dNedr,dNidr,dTedr,dTidr,dQdr,cexb,gamma)
+       real(8), intent(in) :: cexb
        real(8), dimension(:), intent(in) :: dNedr,dNidr,dTedr,dTidr,dQdr
        real(8), dimension(:), intent(out), optional :: gamma
      end subroutine txmmm95

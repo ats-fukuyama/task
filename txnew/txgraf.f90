@@ -2361,7 +2361,10 @@ contains
 !!$       CALL TXGRFRXS( 8,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
 
        STR = '@WPM@'
-       CALL TXGRFRXS( 9,GX,GY(0,0,66),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRXS( 8,GX,GY(0,0,66),NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@SiLC@'
+       CALL TXGRFRXS( 9,GX,GY(0,0,81),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@rNu0b@'
        CALL TXGRFRXS(10,GX,GY(0,0,87),NRMAX,NGR,STR,MODE,IND)
@@ -2378,9 +2381,6 @@ contains
 
        STR = '@rNuLB@'
        CALL TXGRFRXS(14,GX,GY(0,0,116),NRMAX,NGR,STR,MODE,IND)
-
-!!$       STR = '@SiLC@'
-!!$       CALL TXGRFRXS(11,GX,GY(0,0,81),NRMAX,NGR,STR,MODE,IND)
 
 !!$       STR = '@rNubrp1@'
 !!$       CALL TXGRFRXS( 4,GX,GY(0,0,111),NRMAX,NGR,STR,MODE,IND)

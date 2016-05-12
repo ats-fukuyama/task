@@ -167,6 +167,9 @@ SUBROUTINE TXINIT
   FSANOM(1:3) = 0.D0
 
   !   Effect of ExB shear stabilization
+  !     0 : No ExB shear stabilization
+  !     1 : Lorentz-type ExB shear stabilization
+  !    -1 : Exponent-type ExB shear stabilization [M. Honda (2007) dissertation, Chapter 4]
   FSCBSH = 0.D0
 
   !   Position of ETB shoulder (valid only when MDLETB /= 0)
@@ -282,7 +285,7 @@ SUBROUTINE TXINIT
   !   Orbit loss parameter
   !     FSLC = 0 : No orbit loss included.
   !            1 : Loss term is expressed as damping term.
-  !            2 : Loss term is expressed as source and sink term.
+  !          +10 : Loss term is expressed as source and sink term.
   FSLC = 0.D0
 
   !   Orbit loss model
@@ -628,10 +631,9 @@ SUBROUTINE TXINIT
   !   1    : more    ; LQb1, LQb2, LQb3, LQb4, LQb7
   MDBEAM = 1
 
-  !   Mode of orbit squeezing effect
-  !   0    : No orbit squeezing effect
-  !   1    : Orbit squeezing effect
-  !   2    : Orbit squeezing effect, fixed during iteration
+  !   Mode of how to calculate the derivative of Phi w.r.t. psi for orbit squeezing effect
+  !   0    : Calculate the derivative in an usual manner
+  !   1    : The derivative is fixed during iteration
   !   +10  : Smoothing d/dpsi(dPhi/dpsi) profile using moving_average
   MDOSQZ = 0
 
@@ -647,6 +649,11 @@ SUBROUTINE TXINIT
   !   2    : NCLASS
   !   +10  : Both (Users cannot specify)
   MDLNEO  = 1
+
+  !   Mode of orbit squeezing effect for neoclassical transport solver
+  !   0    : not considered
+  !   1    : considered
+  MDOSQZN = 0
 
   !   Choice of taking whether the bootstrap (BS) current or the resistivity
   !     from the neoclassical transport solver determined by MDLNEO
@@ -1499,7 +1506,7 @@ module tx_parameter_control
        & rG1,FSHL,Q0,QA, &
        & rIPs,rIPe, &
        & MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,iSUPG2,iSUPG3,iSUPG6,SUPGstab, &
-       & MDFIXT,MDBEAM,MDOSQZ,MDLETA,MDLNEO,MDBSETA,MDITSN,MDITST,MDINTN,MDINTT,MDINTC,MDLETB, &
+       & MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDBSETA,MDITSN,MDITST,MDINTN,MDINTT,MDINTC,MDLETB, &
        & IDIAG,IGBDF,ISMTHD,MDLNBD, & ! 09/06/17~ miki_m
        & EpsHM, HPN  ! 10/08/06 miki_m
   private :: TXPLST
@@ -1619,7 +1626,7 @@ contains
           idx = idx + 1 ; ENDIF
        IF(minval(FSPARV) < 0.d0 .or. maxval(FSPARV) > 1.d0) THEN ; EXIT ; ELSE
           idx = idx + 1 ; ENDIF
-       IF(FSCBAL < 0.D0 .OR. FSCBKP < 0.D0 .OR. FSCBEL < 0.D0 .OR. FSCBSH < 0.D0) THEN ; EXIT ; ELSE
+       IF(FSCBAL < 0.D0 .OR. FSCBKP < 0.D0 .OR. FSCBEL < 0.D0) THEN ; EXIT ; ELSE
           idx = idx + 1 ; ENDIF
        IF(FSBOHM < 0.D0 .OR. FSPCLD < 0.D0 .OR. FSPCLM < 0.D0 .OR. FSPCLC < 0.D0) THEN ; EXIT ; ELSE
           idx = idx + 1 ; ENDIF
@@ -1704,7 +1711,7 @@ contains
          &       ' ',8X,'rG1,FSHL,Q0,QA,'/ &
          &       ' ',8X,'rIPs,rIPe,'/ &
          &       ' ',8X,'MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,iSUPG2,iSUPG3,iSUPG6,SUPGstab,'/ &
-         &       ' ',8X,'MDFIXT,MDBEAM,MDOSQZ,MDLETA,MDLNEO,MDBSETA,MDITSN,MDITST,MDINTN,MDINTT,MDLETB,' / & 
+         &       ' ',8X,'MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDBSETA,MDITSN,MDITST,MDINTN,MDINTT,MDLETB,' / & 
          &       ' ',8X,'IDIAG,IGBDF,ISMTHD,MDLNBD')
   END SUBROUTINE TXPLST
 
@@ -1812,7 +1819,8 @@ contains
          &   'MDLPCK    ', MDLPCK   , 'MODECV    ', MODECV   ,  &
          &   'iSUPG2    ', iSUPG2   , 'iSUPG3    ', iSUPG3   ,  &
          &   'iSUPG6    ', iSUPG6   , 'MDFIXT    ', MDFIXT   ,  &
-         &   'MDBEAM    ', MDBEAM   , 'MDOSQZ    ', MDOSQZ   ,  &
+         &   'MDBEAM    ', MDBEAM   , &
+         &   'MDOSQZ    ', MDOSQZ   , 'MDOSQZN   ', MDOSQZN  ,  &
          &   'MDLETA    ', MDLETA   , 'MDLNEO    ', MDLNEO   ,  &
          &   'MDBSETA   ', MDBSETA  , 'MDANOM    ', MDANOM   ,  &
          &   'MDITSN    ', MDITSN   , 'MDITST    ', MDITST   ,  &

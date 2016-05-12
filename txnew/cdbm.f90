@@ -90,6 +90,7 @@ CONTAINS
     !     rotational shear
     shearl=sqrt(shear**2+0.1D0**2)   !
     wexb = -qp*rr/(shearl*va)*dvexbdr
+!    write(6,'(1P5E15.7)') qp,rr,1.d0/(shearl*va),dvexbdr,wexb
 
     SELECT CASE(MOD(model,2))
     CASE(0)
@@ -104,8 +105,7 @@ CONTAINS
     CASE(1)
        fe=1.D0/(1.D0+cexb*wexb**2)
     CASE(2)
-       shearl=sqrt(shear**2+0.1D0**2)   !
-       fe=cexb*fexb(wexb,shear,alpha)
+       fe=fexb(wexb,shear,alpha)
     END SELECT
 
     fs=trcofs(shear,calf*alpha,ckap*curv)
@@ -160,6 +160,7 @@ CONTAINS
   END FUNCTION trcofs
 
 ! *** ExB shearing effect for CDBM model ***
+!   [M. Honda (2007) dissertation, Chapter 4]  
 
   REAL(rkind) FUNCTION fexb(wexb,shear,alpha)
 
@@ -175,17 +176,17 @@ CONTAINS
        alpha1=ABS(alpha)
     ENDIF
     beta=0.5D0*alpha1**(-0.602D0) &
-         &   *(13.018D0-22.28915D0*shear+17.018D0*shear**2) &
-         &   /(1.D0-0.277584D0*shear+1.42913D0*shear**2)
+         &   *(12.7D0+(-16.0D0+14.7D0*shear)*shear) &
+         &   /( 1.0D0+( 0.27D0+1.60D0*shear)*shear)
 
     alpha2=-10.D0/3.D0*alpha+16.D0/3.D0
     IF(shear.LT.0.D0) THEN
-       gamma = 1.D0/(1.1D0*SQRT(1.D0-shear-2.D0*shear**2-3.D0*shear**3))+0.75D0
+       gamma = 1.D0/(1.1D0*SQRT(1.D0-(1.D0+(2.D0+3.D0*shear)*shear)*shear))+0.75D0
     ELSE
        gamma = (1.D0-0.5D0*shear) &
-            & /(1.1D0-2.D0*shear+alpha2*shear**2+4.D0*shear**3)+0.75D0
+            & /(1.1D0+(-2.D0+(alpha2+4.D0*shear)*shear)*shear)+0.75D0
     ENDIF
-    fexb=EXP(-beta*wexb**gamma)
+    fexb=EXP(-beta*abs(wexb)**gamma)
     RETURN
   END FUNCTION FEXB
 END MODULE cdbm_mod

@@ -386,12 +386,14 @@ contains
 
     case(-1)
        ! *** deallocate arrays that are widely used ***
-       deallocate(rg,zg,psi,rbp)
-       deallocate(pds,fds,vlv,qqv,prv)
-       deallocate(csu,rsu,zsu)
-       deallocate(hiv,siv,siw,sdw,ckv,ssv,aav,rrv, &
-            &     rbv,arv,bbv,biv,r2b2v,shv,grbm2v,rov, &
-            &     aiv,brv,epsv,elipv,trigv,ftv)
+       if(allocated(rg)) then
+          deallocate(rg,zg,psi,rbp)
+          deallocate(pds,fds,vlv,qqv,prv)
+          deallocate(csu,rsu,zsu)
+          deallocate(hiv,siv,siw,sdw,ckv,ssv,aav,rrv, &
+               &     rbv,arv,bbv,biv,r2b2v,shv,grbm2v,rov, &
+               &     aiv,brv,epsv,elipv,trigv,ftv)
+       end if
 
     case(-2)
        ! *** deallocate arrays that are used only when reading an equilibium data ***
