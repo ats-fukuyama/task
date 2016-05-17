@@ -35,43 +35,26 @@
 
       SUBROUTINE TRPELA
 
-      USE TRCOMM, ONLY : DR, DVRHO, NRMAX, NSM, PELPAT, PELR0, PELRW, PELTOT, RA, RM, SPE, RG
+      USE TRCOMM, ONLY : DR, DVRHO, NRMAX, NSM, PELPAT, PELR0, PELRW, PELTOT, RA, RM, SPE
       IMPLICIT NONE
-      REAL(8)    :: FSUM, S0, SPEL, C, d
+      REAL(8)    :: FSUM, S0, SPEL
       INTEGER(4) :: NR, NS
-!cpub begin
-	  C = 0.25e+04
-	  d = 0.225
-!cpub end      
 
-!cpub begin
-!      WRITE(6,*)'# TRPELA.'
-!      print *,'PELTOT=',PELTOT
-!      print *,'PELR0=',PELR0
-!      print *,'PELRW=',PELRW
-!cpub end
-!      FSUM = 0.D0
-!      DO NR=1,NRMAX
-!         FSUM=FSUM+DEXP(-((RA*RM(NR)-PELR0)/PELRW)**2)*DVRHO(NR)*DR
-!      ENDDO
-!cpub begin
-!      write(6,102) FSUM
-! 102  format('> FSUM:',1PE11.3)
-!cpub end
 
-!      S0  =PELTOT/FSUM
+      FSUM = 0.D0
       DO NR=1,NRMAX
-!         SPEL=S0*DEXP(-((RA*RM(NR)-PELR0)/PELRW)**2)
-         SPEL=C*(d**2)*((RG(NR)**2)**6.5)*((1-RG(NR)**2)**8.5)/(d**2+(RG(NR)**2-0.5)**2)
+         FSUM=FSUM+DEXP(-((RA*RM(NR)-PELR0)/PELRW)**2)*DVRHO(NR)*DR
+      ENDDO
+
+      S0  =PELTOT/FSUM
+
+      DO NR=1,NRMAX
+         SPEL=S0*DEXP(-((RA*RM(NR)-PELR0)/PELRW)**2)
       DO NS=1,NSM
-         SPE(NR,NS)=SPEL
-!cpub begin
-!	 write(6,101) NR,NS,SPE(NR,NS),NS,PELPAT(NS),SPEL
-! 101     format(' ','> SPE(',I2,',',I2,'):',1PE11.3,'  PELPAT(',I2,'):',1PE11.3,' SPEL:',1PE11.3)
-!cpub end
+         SPE(NR,NS)=PELPAT(NS)*SPEL
       ENDDO
       ENDDO
-	  
+
       RETURN
       END  SUBROUTINE TRPELA
 

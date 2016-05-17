@@ -25,8 +25,7 @@
            NSMAX, NSTM, PA, PADD, PBM, PI, PNSS, PTS, PZ, Q0, QP, RA, RDPS, &
            RG, RHOG, RHOM, RJCB, RKAP, RKEV, RKPRHO, RKPRHOG, RM, RMU0, RN, &
            RNF, RR, RT, RW, S, ALPHA, RKCV, SUMPBM, TAUK, VC, VEXB, VGR1, &
-           VGR2, VGR3, VGR4, WEXB, ZEFF, VEXBP, WEXBP, BP, &
-           KAI0, KAIPED0, KAIPED1, T
+           VGR2, VGR3, VGR4, WEXB, ZEFF, VEXBP, WEXBP, BP
       USE cdbm_mod
       USE trmodels,ONLY: mbgb_driver
       IMPLICIT NONE
@@ -385,8 +384,6 @@
 !   ***  MDLKAI.EQ. 3   : CONSTANT*(dTi/dr)**B*Ti**C      ***
 !   ***  MDLKAI.EQ. 4   : PROP. TO CUBIC FUNC. with Bohm  ***
 !   ***  MDLKAI.EQ. 5   : PROP. TO CUBIC FUNC.            ***
-!   ***  MDLKAI.EQ. 9   : A*EXP(B*((phi-phi_ped)/(phi_edge-phi_ped))**2) ***
-!cpub    MDLKAI.EQ. 9   : this term was given by ITPA-IOS
 !   *********************************************************
 
             select case(MDLKAI)
@@ -394,8 +391,6 @@
                AKDWL=1.D0+CKALFA*RG(NR)**2
             case(1)
                AKDWL=1.D0/(1.D0-CKALFA*RG(NR)**2)
-!               write(6,2520) T,NR,AKDWL
-! 2520          format(' ',1PE11.3,' ',1I4,' ',1PE11.3)                              
             case(2)
                AKDWL=1.D0/(1.D0-CKALFA*RG(NR)**2)*(ABS(DTI)*RA)**CKBETA
             case(3)
@@ -409,27 +404,14 @@
                FSDFIX=1.D0
                PROFDL=20.D0
                AKDWL=FSDFIX*(1.D0+(PROFDL-1.D0)*(RHOG(NR)/ RA)**2)
-	    case(9) ! themal diffusivity (ITPA - July 2015)
-	       IF(RG(NR)<0.9381) THEN
-	           AKDWL=KAI0
-               ELSE
-	           AKDWL=KAIPED0*EXP(KAIPED1*((RG(NR)**2-0.9381)/(1.0-0.9381))**2)	
-               END IF
             case default
                WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
                AKDWL=0.D0
             end select
-	    IF(MDLKAI.NE.9) THEN
-                 AKDW(NR,1)=CK0*AKDWL
-                 AKDW(NR,2)=CK1*AKDWL
-                 AKDW(NR,3)=CK1*AKDWL
-                 AKDW(NR,4)=CK1*AKDWL
-	    ELSE 
-                 AKDW(NR,1)=AKDWL
-                 AKDW(NR,2)=AKDWL
-                 AKDW(NR,3)=AKDWL
-                 AKDW(NR,4)=AKDWL
-	    END IF
+            AKDW(NR,1)=CK0*AKDWL
+            AKDW(NR,2)=CK1*AKDWL
+            AKDW(NR,3)=CK1*AKDWL
+            AKDW(NR,4)=CK1*AKDWL
 
             VGR1(NR,1)=TI
             VGR1(NR,2)=0.D0
@@ -939,7 +921,6 @@
             AKDW(NR,2)=AKDWIL
             AKDW(NR,3)=AKDWIL
             AKDW(NR,4)=AKDWIL
-            
 
             VGR1(NR,1)=ER(NR)
             VTIL=SQRT(2.D0*TI*RKEV/(PAL*AMM))
@@ -1315,7 +1296,7 @@
       USE TRCOMM, ONLY : AD, AD0, ADDW, ADDWD, ADDWP, ADLD, ADLP, ADNC, ADNCP, ADNCT, AEE, AKDW, ALP, AME, AMM, AV, AV0,    &
      &                   AVDW, AVK, AVKDW, AVKNC, AVNC, BB, BP, CDH, CDP, CHP, CNH, CNN, CNP, CSPRS, EPSRHO, EZOH, MDDIAG,  &
      &                   MDDW, MDEDGE, MDLAD, MDLAVK, MDNCLS, NREDGE, NRMAX, NSLMAX, NSM, PA, PN, PNSS, PROFN1, PROFN2, PTS,&
-     &                   PZ, QP, RA, RHOG, RKEV, RN, RR, RT, ZEFF, RG, AD1, AD2
+     &                   PZ, QP, RA, RHOG, RKEV, RN, RR, RT, ZEFF, RG
       IMPLICIT NONE
       INTEGER(4):: NR, NS, NS1, NA, NB
       REAL(8)   :: ANA, ANDX, ANE, ANED, ANI, ANT, BPL, CFNCI, CFNCNC, CFNCNH, CFNHI, CFNHNC, CFNHNH, DPROF, EDCM, EPS, EPSS,&
@@ -1446,11 +1427,7 @@
             AD  (NR,1:NSM) = CDP*ADDW(NR,1:NSM)+CNP*ADNC(NR,1:NSM)
             AVDW(NR,1:NSM) = 0.D0
 
-!            write(6,2501) NR,AD(NR,1),ADNC(NR,1),AV(NR,1),AVNC(NR,1),AVDW(NR,1)
-!				 2501       format(' ',1I4,' ',1PE11.4,' ',1PE11.4,' ',1PE11.4,' ',1PE11.4,' ',1PE11.4,' 0')
-
          ENDDO
-
       case(4)
 !     *** Hinton & Hazeltine model with anomalous part of ***
 !     *** transport effect of heat pinch ***
@@ -1488,7 +1465,7 @@
             IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
             AVNC(NR,1:NSM) =-(RK13E*SQRT(EPS)*EZOHL)/BPL/H
             ADNC(NR,1:NSM) = SQRT(EPS)*RHOE2/TAUE*RK11E
-            AVDW(NR,1:NSM) =-AV0*ADDW(NR,1:NSM)*RG(NR)
+            AVDW(NR,1:NSM) =-AV0*ADDW(NR,1:NSM)*RHOG(NR)/RA
          ENDDO
 !!$      case(5)
 !!$         ADNC(1:NRMAX,1:NSM)=0.D0
@@ -1499,26 +1476,6 @@
 !!$            END DO
 !!$         END DO
 !!$         AVDW(1:NRMAX,1:NSM)=0.D0
-      case(6)
-! Pub implemented this part on July 2015
-! The diffusion coefficient is given by AD(PHI)=AD0 + AD1*(PHI/PHI_EDGE)**2, PHI<PHI_PED
-! and AD(PHI)=AD2, PHI>=PHI_PED. Note that PHI_PED = 0.88 (ITPA-IOS July 2015)
-         DO NR=1,NRMAX
-            IF(RG(NR)<0.9381) THEN
-            AD(NR,1:NSM) = AD0 + AD1*(RG(NR)**2)**2
-            ADNC(NR,1:NSM) = AD0 + AD1*(RG(NR)**2)**2
-            ELSE
-            AD(NR,1:NSM) = AD2
-            ADNC(NR,1:NSM) = AD2            	
-            END IF
-!cpub Pinch velocity; 
-			AV(NR,1:NSM) = AD(NR,1:NSM)*AV0*RG(NR)
-            AVNC(NR,1:NSM) = AD(NR,1:NSM)*AV0*RG(NR)
-!            AVDW(NR,1:NSM) = 0           
-!				write(6,2500) NR,AD(NR,2),ADNC(NR,2),AV(NR,2),AVNC(NR,2),RG(NR)
-! 2500       format(' ',1I4,1PE11.4,' ',1PE11.4,' ',1PE11.4,' ',1PE11.4,' ',1PE11.4,' 1')
-         ENDDO
-!         stop 10
       case default
          IF(MDLAD.NE.0) WRITE(6,*) 'XX INVALID MDLAD : ',MDLAD
          AD  (1:NRMAX,1:NSM)=0.D0

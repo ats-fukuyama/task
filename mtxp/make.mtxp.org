@@ -19,13 +19,19 @@
 
 #### With MPI, With PETSc
 #EXEC=testbnd testbndc testpcg testdmumps testzmumps testksp
-##### define FLINKER and PETSC_KSP_LIB
-#include ${PETSC_DIR}/conf/variables
 ##### select either of below items
 ##### PETSc 3.4
 #INCLUDE_MTX_MUMPS=-I${PETSC_DIR}/externalpackages/MUMPS/include
+#include ${PETSC_DIR}/conf/variables
 ##### PETSc 3.5
 #INCLUDE_MTX_MUMPS=-I${PETSC_DIR}/${PETSC_ARCH}/externalpackages/MUMPS/include
+#include ${PETSC_DIR}/conf/variables
+##### PETSc 3.6
+#INCLUDE_MTX_MUMPS=-I${PETSC_DIR}/${PETSC_ARCH}/externalpackages/MUMPS/include
+#include ${PETSC_DIR}/lib/petsc/conf/variables
+##### PETSc 3.7
+#INCLUDE_MTX_MUMPS=-I${PETSC_DIR}/${PETSC_ARCH}/externalpackages/git.mumps/include
+#include ${PETSC_DIR}/lib/petsc/conf/variables
 #####
 #INCLUDE_MTX_PETSC=-I${PETSC_DIR}/include -I${PETSC_DIR}/${PETSC_ARCH}/include
 #LIBMTXMPI=../mtxp/libmtxmpi.o
