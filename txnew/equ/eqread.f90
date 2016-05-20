@@ -59,7 +59,6 @@ contains
     use equ_params, only : hiv, aav, rrv, ckv, shv, ssv, vlv, arv, aiv, biv, brv, epsv, elipv, &
          & trigv, qqv, siv, nv, rmaj, rpla, raxis, zaxis, pds, fds, sdw, ftv
 !    use tx_core_module, only : intg_area
-    implicit none
     integer(4) :: n, nr, ierr, nrmaxx, nrax, nrs
     real(8), parameter :: fourPisq = 4.d0 * Pi * Pi
     real(8) :: rhonrs, asdt, bsdt, sdtvac
@@ -370,7 +369,7 @@ contains
 
     select case(mode)
     case(1)
-       ! *** allocate arrays that are widely used ***
+       ! *** Allocate arrays that are widely used. ***
        allocate(rg(irdm),zg(izdm2),psi(irzdm2),rbp(irzdm2))
        allocate(pds(ivdm),fds(ivdm),vlv(ivdm),qqv(ivdm),prv(ivdm))
        allocate(csu(isrzdm),rsu(isrzdm),zsu(isrzdm))
@@ -379,13 +378,14 @@ contains
             &   rov(ivdm),aiv(ivdm),brv(ivdm),epsv(ivdm),elipv(ivdm),trigv(ivdm),ftv(ivdm))
        
     case(2)
-       ! *** allocate arrays that are used only when reading an equilibium data ***
+       ! *** Allocate arrays that are used only when reading an equilibium data. ***
+       ! *** They are specific to MEUDAS/SELENE.                                 ***
        allocate(ieqout(10),ieqerr(10),icp(10),cp(10))
        allocate(ivac(0:nsfix),ncoil(0:nsfix),cvac(0:nsfix),rvac(0:nsfix),zvac(0:nsfix))
        allocate(rcoil(100,icvdm),zcoil(100,icvdm),ccoil(100,icvdm),rlimt(200),zlimt(200))
 
     case(-1)
-       ! *** deallocate arrays that are widely used ***
+       ! *** Deallocate arrays that are widely used ***
        if(allocated(rg)) then
           deallocate(rg,zg,psi,rbp)
           deallocate(pds,fds,vlv,qqv,prv)
@@ -396,7 +396,7 @@ contains
        end if
 
     case(-2)
-       ! *** deallocate arrays that are used only when reading an equilibium data ***
+       ! *** Deallocate arrays that are used only when reading an equilibium data ***
        deallocate(ieqout,ieqerr,icp,cp)
        deallocate(ivac,ncoil,cvac,rvac,zvac)
        deallocate(rcoil,zcoil,ccoil,rlimt,zlimt)
@@ -412,45 +412,70 @@ contains
 !=======================================================================
     use tx_commons, only : cnpi => PI, rMU0
     use equ_params
-    implicit none
     logical :: lex
-    integer(4) :: i, j, n, ir, iz, ist
+    integer(4) :: i, j, n, ir, iz, ist, igeqdsk, ieqtmp = 22
     real(8) :: rsep, zsep, rrmax, rrmin, zzmax, zzmin, rzmax, rzmin, rpmax, rpmin, betp, zzlam
     real(8) :: dpsi, btv2, dsr, dsz, dxx, dl
+    character(len=100) :: command, tmpfile, content
 !=======================================================================
+    igeqdsk = 0
+
     inquire(file=eqfile,exist=lex)
     if( lex .neqv. .true. ) stop 'No equilibrium file.'
-    open(ieqrd,file=eqfile,iostat=ist,form='unformatted',access='sequential',action='read')
-    if(ist /= 0) stop 'file open error.'
 !-----------------------------------------------------------------------
 
     call alloc_equ(1)
     call alloc_equ(2)
 
-    read(ieqrd,iostat=ist)nsr,nsz  &
-         &        ,(rg(i),i=1,nsr),(zg(j),j=1,nsz)  &
-         &        ,(psi(i),i=1,nsr*nsz)  &
-         &        ,nv,(pds(i),i=1,nv),(fds(i),i=1,nv)  &
-         &        ,(vlv(i),i=1,nv),(qqv(i),i=1,nv),(prv(i),i=1,nv)  &
-         &        ,btv,ttcu,ttpr,bets,beta,betj  &
-         &        ,(icp(i),i=1,10),(cp(i),i=1,10)  &
-         &        ,saxis,raxis,zaxis,ell,trg  &
-         &        ,nsu,(rsu(i),i=1,nsu),(zsu(i),i=1,nsu),(csu(i),i=1,nsu)  &
-         &        ,isep,dsep,rsep,zsep  &
-         &        ,(ivac(i),i=0,nsfix)  &
-         &        ,(rvac(i),i=0,nsfix),(zvac(i),i=0,nsfix)  &
-         &        ,(cvac(i),i=0,nsfix),(ncoil(i),i=1,nsfix)  &
-         &        ,((rcoil(i,j),i=1,100),j=1,icvdm)  &
-         &        ,((zcoil(i,j),i=1,100),j=1,icvdm)  &
-         &        ,((ccoil(i,j),i=1,100),j=1,icvdm)  &
-         &        ,ilimt,(rlimt(i),i=1,100),(zlimt(i),i=1,100)
-    close(ieqrd)
-    if( ist > 0 ) then ! error
-       stop '===== dataio/read error ====='
-    else if( ist < 0 ) then ! end
-       backspace ieqrd
-       write(6,"(5x,'dataio/end:backspace')")
-       read(*,*)
+    ! check eqfile with the format of whether binary (MEUDAS) or ascii (G EQDSK)
+    tmpfile = trim(eqfile)//".tmp"
+    command = "file "//trim(eqfile)//" > "//trim(tmpfile)
+    call system(trim(command))
+    open(ieqtmp,file=tmpfile,iostat=ist,form='formatted')
+    if(ist /= 0) stop 'file open error.'
+    read(ieqtmp,'(A)') content
+    i = index(content,'ASCII')
+    close(ieqtmp,status='delete')
+
+    if( i == 0 ) then
+       ! *** Standard MEUDAS/SELENE format (unformatted) ***
+
+       open(ieqrd,file=eqfile,iostat=ist,form='unformatted',action='read')
+       if(ist /= 0) stop 'file open error.'
+
+       read(ieqrd,iostat=ist)nsr,nsz  &
+            &        ,(rg(i),i=1,nsr),(zg(j),j=1,nsz)  &
+            &        ,(psi(i),i=1,nsr*nsz)  &
+            &        ,nv,(pds(i),i=1,nv),(fds(i),i=1,nv)  &
+            &        ,(vlv(i),i=1,nv),(qqv(i),i=1,nv),(prv(i),i=1,nv)  &
+            &        ,btv,ttcu,ttpr,bets,beta,betj  &
+            &        ,(icp(i),i=1,10),(cp(i),i=1,10)  &
+            &        ,saxis,raxis,zaxis,ell,trg  &
+            &        ,nsu,(rsu(i),i=1,nsu),(zsu(i),i=1,nsu),(csu(i),i=1,nsu)  &
+            &        ,isep,dsep,rsep,zsep  &
+            &        ,(ivac(i),i=0,nsfix)  &
+            &        ,(rvac(i),i=0,nsfix),(zvac(i),i=0,nsfix)  &
+            &        ,(cvac(i),i=0,nsfix),(ncoil(i),i=1,nsfix)  &
+            &        ,((rcoil(i,j),i=1,100),j=1,icvdm)  &
+            &        ,((zcoil(i,j),i=1,100),j=1,icvdm)  &
+            &        ,((ccoil(i,j),i=1,100),j=1,icvdm)  &
+            &        ,ilimt,(rlimt(i),i=1,100),(zlimt(i),i=1,100)
+       close(ieqrd)
+       if( ist > 0 ) then ! error
+          stop '===== dataio/read error ====='
+       else if( ist < 0 ) then ! end
+          backspace ieqrd
+          write(6,"(5x,'dataio/end:backspace')")
+          read(*,*)
+       end if
+    else
+       ! *** Standard EFIT format, G EQDSK (formatted) ***
+       !   We assume that any ascii file is regarded as G EQDSK format files.
+
+       open(ieqrd,file=eqfile,iostat=ist,form='formatted',action='read')
+       if(ist /= 0) stop 'file open error.'
+       call read_geqdsk(igeqdsk)
+       close(ieqrd)
     end if
 !-----------------------------------------------------------------------
     write(6,40)eqfile,ieqrd,jeqrd
@@ -474,7 +499,6 @@ contains
 !-----
     iraxis=(raxis-rg(1))/dr+1.d0
     izaxis=(zaxis-zg(1))/dz+1.d0
-!    write(6,*) iraxis,izaxis
     iaxis=nr*(izaxis-1)+iraxis
 !-----
 !    call eqrbp
@@ -572,6 +596,8 @@ contains
        rov(n) = sqrt( vlv(n) / ( 2.0_8 * cnpi**2 * rmaj ) )
     enddo
 
+    if( igeqdsk /= 0 ) ccpl = ttcu
+
 !=======================================================================
     write(6,12) betj,beta,bets,ttpr,prfac  &
          &     ,ccpl,ttcu,btv,betp,qaxis,qsurf,q95,qqj  &
@@ -623,7 +649,6 @@ contains
 !     load rbp                                                     jaeri
 !=======================================================================
     use equ_params
-    implicit none
     integer(4) :: i, ir, iz
     real(8) :: x, y
 !-----------------------------------------------------------------------
@@ -648,7 +673,6 @@ contains
 !=======================================================================
     use tx_commons, only : zpi => PI
     use equ_params
-    implicit none
     ! intf: num. of division in the direction of lambda for trapped particle fraction
     integer(4), parameter :: intf = 100
     integer(4) :: i,i1,i2,i3,i4,ir,iz,istep,irst,ist,jr,k,ll,lm,lp,n,j
@@ -926,6 +950,7 @@ contains
        !
        ! ****************************************************************
 
+       nsul(n) = nsul(n) - 1
        do i = 1, nsul(n)
           h = zbl(i) / bmax(n) ! h
           do j = 0, intf
@@ -980,6 +1005,124 @@ contains
 800 stop 'eqlin : no starting point                '
 810 stop 'eqlin : out of range                     '
   end subroutine eqlin
+
+!=======================================================================
+! Read G EQDSK files
+!=======================================================================
+
+  subroutine read_geqdsk(igeqdsk)
+    use tx_commons, only : rMU0
+    use equ_params
+    integer(4), intent(inout) :: igeqdsk
+    integer(4) :: i, ist, idum, nw, nh, nbbbs, limitr, kvtor, nmass
+    real(8) :: rdim, zdim, rcentr, rleft, zmid, rmaxis, zmaxis, simag, sibry, bcentr, &
+         &     current, xdum, rvtor
+    real(8), dimension(:), allocatable :: fpol, pres, ffprim, pprime, psirz, qpsi
+    real(8), dimension(:), allocatable :: rbbbs, zbbbs, rlim, zlim
+    real(8), dimension(:), allocatable :: pressw, pwprim, dmion, rhovn
+    character(len=8) :: case(6)
+    real(8) :: drg, dzg
+
+    igeqdsk = 1
+
+    !---- read EFIT-format
+    read(ieqrd,2000,iostat=ist) (case(i),i=1,6), idum, nw, nh
+    read(ieqrd,2020,iostat=ist)  rdim, zdim, rcentr, rleft, zmid
+    read(ieqrd,2020,iostat=ist)  rmaxis, zmaxis, simag, sibry, bcentr
+    read(ieqrd,2020,iostat=ist)  current, simag, xdum, rmaxis, xdum
+    read(ieqrd,2020,iostat=ist)  zmaxis, xdum, sibry, xdum, xdum
+
+    allocate(fpol(nw), pres(nw), ffprim(nw), pprime(nw), qpsi(nw))
+    read(ieqrd,2020,iostat=ist) (fpol(i),i=1,nw) 
+    read(ieqrd,2020,iostat=ist) (pres(i),i=1,nw)
+    read(ieqrd,2020,iostat=ist) (ffprim(i),i=1,nw)
+    read(ieqrd,2020,iostat=ist) (pprime(i),i=1,nw)
+    allocate(psirz(nw*nh))
+    read(ieqrd,2020,iostat=ist) (psirz(i),i=1,nw*nh)
+    read(ieqrd,2020,iostat=ist) (qpsi(i),i=1,nw)
+
+    read(ieqrd,2022,iostat=ist)  nbbbs,limitr
+    allocate(rbbbs(nbbbs),zbbbs(nbbbs),rlim(limitr),zlim(limitr))
+    read(ieqrd,2020,iostat=ist) (rbbbs(i),zbbbs(i),i=1,nbbbs)
+    read(ieqrd,2020,iostat=ist) (rlim(i),zlim(i),i=1,limitr)
+
+    if( ist /= 0 ) stop 'G-EQDSK file read error! Processing end ...'
+
+    !---- additional data
+    allocate(pressw(nw),pwprim(nw),dmion(nw),rhovn(nw))
+    read(ieqrd,2024,iostat=ist)  kvtor,rvtor,nmass
+    if ( kvtor > 0 ) then
+       read(ieqrd,2020,iostat=ist) (pressw(i),i=1,nw)
+       read(ieqrd,2020,iostat=ist) (pwprim(i),i=1,nw)
+    endif
+    if ( nmass > 0 ) then
+       read(ieqrd,2020,iostat=ist) (dmion(i),i=1,nw)
+    endif
+    if( ist < 0 ) stop 'G-EQDSK file read error! Processing end ...'
+    read(ieqrd,2020,iostat=ist) (rhovn(i),i=1,nw)
+
+    nsr = nw
+    nsz = nh
+
+    !---- make rg
+    rg(1)  = rleft
+    rg(nw) = rdim + rleft
+    drg    = rdim / real(nw-1,8)
+    do i = 2,nw-1
+       rg(i) = rg(1) + drg*(i-1)
+    enddo
+
+    !---- make zg
+    zg(1)  = zmid - 0.5d0 * zdim
+    zg(nh) = zmid + 0.5d0 * zdim
+    dzg    = zdim / real(nh-1,8)
+    do i = 2,nh-1
+       zg(i) = zg(1) + dzg*(i-1)
+    enddo
+
+    psi(1:nsr*nsz) = psirz(1:nsr*nsz) - sibry
+
+    nv  = nw
+
+    pds(1:nv) = pprime(1:nv) * rMU0
+    fds(1:nv) = ffprim(1:nv)
+    ! vlv will be computed in eqlin.
+    qqv(1:nv) = qpsi(1:nv)
+    prv(1:nv) = pres(1:nv) * rMU0
+
+    btv   = rcentr * bcentr
+    ttcu  = current * 1.d-6
+    ! no values associated with ttpr, bets, beta, betj
+    ttpr  = 0.d0
+    bets  = 0.d0
+    beta  = 0.d0
+    betj  = 0.d0
+    saxis = simag - sibry
+    raxis = rmaxis
+    zaxis = zmaxis
+
+    nsu        = nbbbs
+    rsu(1:nsu) = rbbbs(1:nsu)
+    zsu(1:nsu) = zbbbs(1:nsu)
+    ! no arrays associated with csu
+    csu(:) = 0.d0
+
+    ilimt          = limitr
+    rlimt(1:ilimt) = rlim(1:ilimt)
+    zlimt(1:ilimt) = zlim(1:ilimt)
+
+
+    deallocate(fpol, pres, ffprim, pprime, psirz, qpsi)
+    deallocate(rbbbs, zbbbs, rlim, zlim)
+    deallocate(pressw,pwprim,dmion,rhovn)
+
+2000 format(6a8,3i4)
+2020 format(5e16.9)
+2022 format(2i5)
+2024 format(i5,e16.9,i5)
+
+  end subroutine read_geqdsk
+
 
 !!$!***************************************************************
 !!$!

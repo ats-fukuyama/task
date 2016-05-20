@@ -1,7 +1,7 @@
 !     ********************************************
 
 !           CDBM Transport model (2009/03/06)
-!              Modified by M. Honda (2009/09/14)
+!              Modified by M. Honda (2016/05/12)
 
 !     ********************************************
 
@@ -34,7 +34,7 @@ MODULE cdbm_mod
 CONTAINS
 
   SUBROUTINE cdbm(bb,rr,rs,rkap,qp,shear,pne,rhoni,dpdr,dvexbdr, &
-       &             calf,ckap,cexb,model,chi_cdbm,fsz,curvz,fez)
+       &             calf,ckap,cexb,model,chi_cdbm,fsz,curvz,fez,omgexb)
 
     real(rkind),intent(in):: bb      ! Magnetic field strength [T]
     real(rkind),intent(in):: rr      ! Major radius [m]
@@ -53,21 +53,25 @@ CONTAINS
     integer(ikind),intent(in):: model! Model ID
     !                                    0: CDBM original
     !                                    1: CDBM05 including elongation
-    !                                    2: CDBM original with weak ExB shear
-    !                                    3: CDBM05 with weak ExB shear
-    !                                    4: CDBM original with strong ExB shear
-    !                                    5: CDBM05 with strong ExB shear
+    !                                    2: CDBM original with ExB shear (Lorentzian)
+    !                                    3: CDBM05 with ExB shear (Lorentzian)
+    !                                    4: CDBM original with strong ExB shear (Exponent)
+    !                                    5: CDBM05 with strong ExB shear (Exponent)
+    !                                    6: CDBM original with strong ExB shear (Modified Lorentzian)
+    !                                    7: CDBM05 with strong ExB shear (Modified Lorentzian)
 
     real(rkind),intent(out):: chi_cdbm! Thermal diffusion coefficient
     !                                   for both electrons and ions
     real(rkind),intent(out),optional :: fsz   ! Fitting function for output
     real(rkind),intent(out),optional :: curvz ! Magnetic curvature effect for output
     real(rkind),intent(out),optional :: fez   ! ExB shear reduction for output
+    real(rkind),intent(in), optional :: omgexb ! ExB shearing rate for model = 6 or 7
 
+    integer(ikind),parameter :: nexp = 2    ! Fixed numerical factor 
     real(rkind),parameter :: ckcdbm = 12.d0 ! Fixed numerical factor 
-    real(rkind):: va,wpe2,delta2,alpha,curv,wexb,shearl,fs,fk,fe
+    real(rkind):: va,wpe2,delta2,alpha,curv,wexb,shearl,fs,fk,fe,gamcdbm,taua
 
-    if(model.lt.0.or.model.gt.5) then
+    if(model.lt.0.or.model.gt.7) then
        write(6,*) 'XX cdbm: model: out of range'
        stop
     endif
@@ -99,16 +103,25 @@ CONTAINS
        fk=(2.D0*SQRT(rkap)/(1.D0+rkap**2))**1.5D0
     END SELECT
 
-    SELECT CASE(MOD((model/2),3))
+    fs=trcofs(shear,calf*alpha,ckap*curv)
+
+    SELECT CASE(MOD((model/2),4))
     CASE(0)
        fe=1.D0
     CASE(1)
        fe=1.D0/(1.D0+cexb*wexb**2)
     CASE(2)
        fe=fexb(wexb,shear,alpha)
+    CASE(3)
+       taua=qp*rr/va
+       gamcdbm = fs*sqrt(abs(alpha))/taua
+       if(gamcdbm /= 0.d0) then
+          fe=1.d0/(1.d0+(cexb*omgexb/gamcdbm)**nexp)
+       else
+          fe=1.d0
+       end if
     END SELECT
 
-    fs=trcofs(shear,calf*alpha,ckap*curv)
     chi_cdbm=ckcdbm*fs*fk*fe*SQRT(ABS(alpha))**3*delta2*va/(qp*rr)
 
     IF(PRESENT(fsz))   fsz=fs
@@ -132,9 +145,9 @@ CONTAINS
        sa=shear-alpha
        IF(sa.GE.0.D0) THEN
           fs1=(1.D0+9.0D0*SQRT(2.D0)*sa**2.5D0) &
-               & /(SQRT(2.D0)*(1.D0-2.D0*SA+3.D0*sa*sa+2.0D0*sa*sa*sa))
+               & /(SQRT(2.D0)*(1.D0+((-2.D0+(3.D0+2.0D0*sa)*sa)*sa)))
        ELSE
-          fs1=1.D0/SQRT(2.D0*(1.D0-2.D0*sa)*(1.D0-2.D0*sa+3.D0*sa*sa))
+          fs1=1.D0/SQRT(2.D0*(1.D0-2.D0*sa)*(1.D0+(-2.D0+3.D0*sa)*sa))
        ENDIF
        IF(curv.GT.0.D0) THEN
           fs2=SQRT(curv)**3/(shear*shear)
@@ -145,9 +158,9 @@ CONTAINS
        sa=alpha-shear
        IF(sa.GE.0.D0) THEN
           fs1=(1.D0+9.0D0*SQRT(2.D0)*sa**2.5D0) &
-               & /(SQRT(2.D0)*(1.D0-2.D0*sa+3.D0*sa*sa+2.0D0*sa*sa*sa))
+               & /(SQRT(2.D0)*(1.D0+((-2.D0+(3.D0+2.0D0*sa)*sa)*sa)))
        ELSE
-          fs1=1.D0/SQRT(2.D0*(1.D0-2.D0*sa)*(1.D0-2.D0*sa+3.D0*sa*sa))
+          fs1=1.D0/SQRT(2.D0*(1.D0-2.D0*sa)*(1.D0+(-2.D0+3.D0*sa)*sa))
        ENDIF
        IF(curv.LT.0.D0) THEN
           fs2=SQRT(-curv)**3/(shear*shear)

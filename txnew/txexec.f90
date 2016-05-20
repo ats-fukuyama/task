@@ -153,10 +153,8 @@ contains
 
           CALL TXCALV(XP)
           IF(IC <= 2) THEN
-             PNsV_FIX(:,1) = Var(:,1)%n
-             PTsV_FIX(:,1) = Var(:,1)%T
-             PNsV_FIX(:,2) = Var(:,2)%n
-             PTsV_FIX(:,2) = Var(:,2)%T
+             PNsV_FIX(:,1:2) = Var(:,1:2)%n
+             PTsV_FIX(:,1:2) = Var(:,1:2)%T
              ErV_FIX (:) = ErV (:)
           END IF
 

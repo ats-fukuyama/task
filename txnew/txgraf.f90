@@ -4,7 +4,7 @@ module tx_graphic
   private
   integer(4), parameter :: NGRM=20, NGTM=5000, NGVM=5000, &
        &                   NGYRM=217, NGYTM=54, NGYVM=58, &
-       &                   NGPRM=24, NGPTM=8, NGPVM=15
+       &                   NGPRM=25, NGPTM=8, NGPVM=15
   real(4) :: GXM, GYM, GYS
   integer(4) :: MODEG, MODEGL, NGR, NGT, NGVV, NGRSTP, NGTSTP, NGVSTP, NP
   real(4), dimension(:),     allocatable :: GX
@@ -2013,6 +2013,20 @@ contains
        CALL TXGRFRX( 3,GX,GY(0,0,190),NRMAX,NGR,STR,MODE,IND)
 
     CASE(24)
+       STR = '@$#w$#$-ExB$=@'
+       CALL APPROPGY(MODEG, GY(0,0,141), GYL, STR, NRMAX, NGR, gDIV(141))
+       CALL TXGRFRX(0,GX,GYL,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@G$-1$=h$+2$=@'
+       CALL TXGRFRX(1,GX,GY(0,0, 30),NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@$#c$#$-e$=@'
+       CALL TXGRFRX(2,GX,GY(0,0,134),NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@$#c$#$-i$=@'
+       CALL TXGRFRX(3,GX,GY(0,0,135),NRMAX,NGR,STR,MODE,IND)
+
+    CASE(25)
        STR = '@PRFe@'
        CALL APPROPGY(MODEG, GY(0,0,85), GYL, STR, NRMAX, NGR, gDIV(85))
        CALL TXGRFRX(0,GX,GYL,NRMAX,NGR,STR,MODE,IND)
@@ -2020,13 +2034,6 @@ contains
        STR = '@PRFi@'
        CALL APPROPGY(MODEG, GY(0,0,86), GYL, STR, NRMAX, NGR, gDIV(86))
        CALL TXGRFRX(1,GX,GYL,NRMAX,NGR,STR,MODE,IND)
-
-       STR = '@$#w$#$-ExB$=@'
-       CALL APPROPGY(MODEG, GY(0,0,141), GYL, STR, NRMAX, NGR, gDIV(141))
-       CALL TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND)
-
-       STR = '@$#c$#$-i$=@'
-       CALL TXGRFRX(3,GX,GY(0,0,135),NRMAX,NGR,STR,MODE,IND)
 
     CASE(-1)
        STR = '@E$-r$=@'
