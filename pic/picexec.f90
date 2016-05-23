@@ -38,6 +38,7 @@ CONTAINS
     DO nt = 1, ntmax
        time = time + dt
        ntcount = ntcount + 1
+       !$omp parallel do
        DO nx = 0, nxmax
           DO ny = 0, nymax
              Axbb(nx,ny) = Axb(nx,ny)
@@ -50,6 +51,7 @@ CONTAINS
              phib(nx,ny) = phi(nx,ny)
           END DO
        END DO
+       !$omp end parallel do
        !----- charge assignment
        rho(:,:)=0.0d0
        CALL source(npmax,nxmax,nymax,xe,ye,rho,chrge,model_boundary)
@@ -57,11 +59,13 @@ CONTAINS
        CALL boundary_rho(nxmax,nymax,rho,model_boundary)
        !..... sum charge densities over cores
        CALL mtx_allreduce_real8(rho,nxymax,3,suma,locva)
+       !$omp parallel do
        DO ny=0,nymax
           DO nx=0,nxmax
              rho(nx,ny)=suma(nx,ny)/dble(nsize)
           END DO
        END DO
+       !$omp end parallel do
        !----- calculate electric field
        ipssn = 1
        IF(model_boundary.EQ.0) THEN
@@ -88,27 +92,33 @@ CONTAINS
           CALL antenna(nxmax,nymax,jxant,jyant,jzant,phxant,phyant,phzant, &
                omega,time,jx,jy,jz)
        END IF
-        
+
        CALL boundary_j(nxmax,nymax,jx,jy,jz,model_boundary)
        !..... sum current densities over cores
        CALL mtx_allreduce_real8(jx,nxymax,3,suma,locva)
+       !$omp parallel do
        DO ny=0,nymax
           DO nx=0,nxmax
              jx(nx,ny)=suma(nx,ny)/dble(nsize)
           END DO
        END DO
+       !$omp end parallel do
        CALL mtx_allreduce_real8(jy,nxymax,3,suma,locva)
+       !$omp parallel do
        DO ny=0,nymax
           DO nx=0,nxmax
              jy(nx,ny)=suma(nx,ny)/dble(nsize)
           END DO
        END DO
+       !$omp end parallel do
        CALL mtx_allreduce_real8(jz,nxymax,3,suma,locva)
+       !$omp parallel do
        DO ny=0,nymax
           DO nx=0,nxmax
              jz(nx,ny)=suma(nx,ny)/dble(nsize)
           END DO
        END DO
+       !$omp end parallel do
        !.......... calculate vector potential
        IF(model_boundary .EQ. 0) THEN
           CALL vector_p_periodic(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
@@ -164,6 +174,7 @@ CONTAINS
 
        IF(npomax.GT.0) THEN
           ntocount=ntocount+1
+          !omp parallel do
           DO npo=1,npomax
              np=1+npostep*(npo-1)
              xpo(npo,ntocount)=xe(np)
@@ -173,6 +184,7 @@ CONTAINS
              vypo(npo,ntocount)=vye(np)
              vzpo(npo,ntocount)=vze(np)
           END DO
+          !omp end parallel do
        END IF
 
 
@@ -395,6 +407,7 @@ CONTAINS
     REAL(8) :: btot, vtot, bb2 ,vcfact, gamma
     INTEGER :: npmax, nxmax, nymax, model_boundary
     INTEGER :: np, nx, ny, nxp, nyp, nxpp, nxpm, nypp, nypm, nxppp, nyppp
+    !$omp parallel do Private (nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2m,sx2,sx2p,sy2m,sy2,sy2p,exx,eyy,ezz,bxx,byy,bzz,vxm,vym,vzm,vxzero,vyzero,vzzero,gamma,vtot,bb2,btot)
 
     DO np = 1, npmax
 
@@ -491,7 +504,7 @@ CONTAINS
           bzz = bz(nxp,nyp)*dx*dy + bz(nxpm,nyp)*dx1*dy &
               + bz(nxp,nypm)*dx*dy1 + bz(nxpm,nypm)*dx1*dy1
 
-       ELSE IF(dx .LE. 0.5d0 .AND. dy .GE. 0.5d0) THEN      
+       ELSE IF(dx .LE. 0.5d0 .AND. dy .GE. 0.5d0) THEN
           dx = dx + 0.5d0
           dx1 = dx1 - 0.5d0
           dy = dy - 0.5d0
@@ -671,7 +684,7 @@ CONTAINS
        END IF
 
     END DO
-
+  !$omp end parallel do
   END SUBROUTINE push
 
   !***********************************************************************
@@ -719,7 +732,7 @@ CONTAINS
   !***********************************************************************
   SUBROUTINE bound_reflective(npmax,x,y,z,vx,vy,vz,&
        x1,x2,y1,y2,z1,z2,alx,aly,alz)
-    !***********************************************************************
+  !***********************************************************************
     IMPLICIT NONE
     REAL(8), DIMENSION(npmax) :: x, y, z, vx, vy, vz
     REAL(8) :: x1, x2, y1, y2, z1, z2, alx, aly, alz
@@ -772,63 +785,59 @@ CONTAINS
     REAL(8) :: chrg, factor, dx, dy, dz, sx2, sy2, sx2p, sy2p, sx2m, sy2m,&
          dx1,dy1
     INTEGER :: npmax, nxmax, nymax, model_boundary
-    INTEGER:: np, nxp, nyp, nx, ny, nxpp, nxpm, nypp, nypm, nxppp, nyppp
+    INTEGER :: np, nxp, nyp, nx, ny, nxpp, nxpm, nypp, nypm, nxppp, nyppp
 
     IF(npmax.EQ.0) THEN
        factor=chrg*DBLE(nxmax)*DBLE(nymax)
     ELSE
        factor=chrg*DBLE(nxmax)*DBLE(nymax)/DBLE(npmax)
     END IF
-
     !*poption parallel, psum(rho)
+    !$omp parallel do Private (np,nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2p,sx2,sx2m,sy2p,sy2,sy2m) &
+    !$omp reduction (+:rho)
 
     DO np = 1, npmax
-
        nxp = x(np)
        nyp = y(np)
-
        dx  = x(np) - DBLE(nxp)
        dy  = y(np) - DBLE(nyp)
        dx1 = 1.0d0 - dx
        dy1 = 1.0d0 - dy
        IF(dx .LE. 0.5d0) THEN
-          sx2  = 3.0d0/4 - dx ** 2
-          sx2p = 1.0d0/2 * (1.0d0/2 + dx) ** 2
-          sx2m = 1.0d0/2 * (1.0d0/2 - dx) ** 2
+          sx2  = 3.0d0/4.d0 - dx ** 2
+          sx2p = 1.0d0/2.d0 * (1.0d0/2.d0 + dx) ** 2
+          sx2m = 1.0d0/2.d0 * (1.0d0/2.d0 - dx) ** 2
        ELSE
-          sx2  = 3.0d0/4 - (1.0d0 - dx) ** 2
-          sx2p = 1.0d0/2 * (-1.0d0/2 + dx) ** 2
-          sx2m = 1.0d0/2 * (3.0d0/2 - dx) ** 2
+          sx2  = 3.0d0/4.d0 - (1.0d0 - dx) ** 2
+          sx2p = 1.0d0/2.d0 * (-1.0d0/2.d0 + dx) ** 2
+          sx2m = 1.0d0/2.d0 * (3.0d0/2.d0 - dx) ** 2
        ENDIF
        IF(dy .LE. 0.5d0) THEN
-          sy2  = 3.0d0/4 - dy ** 2
-          sy2p = 1.0d0/2 * (1.0d0/2 + dy) ** 2
-          sy2m = 1.0d0/2 * (1.0d0/2 - dy) ** 2
+          sy2  = 3.0d0/4.d0 - dy ** 2
+          sy2p = 1.0d0/2.d0 * (1.0d0/2.d0 + dy) ** 2
+          sy2m = 1.0d0/2.d0 * (1.0d0/2.d0 - dy) ** 2
        ELSE
-          sy2  = 3.0d0/4 - (1.0d0 - dy) ** 2
-          sy2p = 1.0d0/2 * (-1.0d0/2 + dy) ** 2
-          sy2m = 1.0d0/2 * (3.0d0/2 - dy) ** 2
+          sy2  = 3.0d0/4.d0 - (1.0d0 - dy) ** 2
+          sy2p = 1.0d0/2.d0 * (-1.0d0/2.d0 + dy) ** 2
+          sy2m = 1.0d0/2.d0 * (3.0d0/2.d0 - dy) ** 2
        ENDIF
-
        nxpm = nxp - 1
        nxpp = nxp + 1
        nxppp= nxp + 2
        nypm = nyp - 1
        nypp = nyp + 1
        nyppp= nyp + 2
-
        IF(model_boundary.EQ.0) THEN ! periodic
-          IF( nxp .EQ. 0  ) nxpm = nxmax - 1
-          IF( nyp .EQ. 0  ) nypm = nymax - 1
-          IF( nxp .EQ. nxmax - 1) nxppp = 1
-          IF( nyp .EQ. nymax - 1) nyppp = 1
+          IF( nxp .EQ. 0 ) nxpm = nxmax - 1
+          IF( nyp .EQ. 0 ) nypm = nymax - 1
+          IF( nxp .EQ. nxmax - 1 ) nxppp = 1
+          IF( nyp .EQ. nymax - 1 ) nyppp = 1
        ELSE   ! reflective:
-          IF( nxp .EQ. 0  ) nxpm = 0
-          IF( nyp .EQ. 0  ) nypm = 0
-          IF( nxp .EQ. nxmax-1) nxppp = nxmax
-          IF( nyp .EQ. nymax-1) nyppp = nymax
+          IF( nxp .EQ. 0 ) nxpm = 0
+          IF( nyp .EQ. 0 ) nypm = 0
+          IF( nxp .EQ. nxmax - 1 ) nxppp = nxmax
+          IF( nyp .EQ. nymax - 1 ) nyppp = nymax
        END IF
-
        IF(dx .LT. 0.5d0 .AND. dy .LT. 0.5d0) THEN
          ! use Mirror image method
          IF(model_boundary .NE. 0 .AND. nxp .EQ. 0) THEN
@@ -944,6 +953,7 @@ CONTAINS
           rho(nxppp,nyppp) = rho(nxppp,nyppp) + sx2p * sy2p * factor
        ENDIF
     END DO
+    !$omp end parallel do
     END SUBROUTINE source
 
   !***********************************************************************
@@ -1005,10 +1015,11 @@ CONTAINS
        factor=chrg*DBLE(nxmax)*DBLE(nymax)/DBLE(npmax)
     END IF
 
+    !$omp parallel do Private (np,nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2p,sx2,sx2m,sy2p,sy2,sy2m) &
+    !$omp Reduction(+:jx,jy,jz)
     DO np = 1, npmax
-
-       nxp = int((x(np)+xb(np))/2.d0)
-       nyp = int((y(np)+yb(np))/2.d0)
+       nxp =(x(np)+xb(np))/2.d0
+       nyp =(y(np)+yb(np))/2.d0
        dx = (x(np)+xb(np))/2.d0 - DBLE(nxp)
        dy = (y(np)+yb(np))/2.d0 - DBLE(nyp)
        dx1 = 1.0d0 - dx
@@ -1037,7 +1048,6 @@ CONTAINS
        nypp = nyp + 1
        nxppp = nxp + 2
        nyppp = nyp + 2
-
        IF(model_boundary.EQ.0) THEN ! periodic
           IF( nxp .EQ. 0  ) nxpm = nxmax - 1
           IF( nyp .EQ. 0  ) nypm = nymax - 1
@@ -1049,8 +1059,7 @@ CONTAINS
           IF( nxp .EQ. nxmax-1) nxppp=nxmax
           IF( nyp .EQ. nymax-1) nyppp=nymax
        END IF
-
-       IF (dx .LE. 0.5d0 .AND. dy .LE. 0.5d0) THEN     
+       IF (dx .LE. 0.5d0 .AND. dy .LE. 0.5d0) THEN
           dx = dx + 0.5d0
           dx1 = dx1 - 0.5d0
           dy = dy + 0.5d0
@@ -1257,6 +1266,7 @@ CONTAINS
 
        ENDIF
     END DO
+    !$omp end parallel do
   END SUBROUTINE current
 
   !***********************************************************************
@@ -1365,18 +1375,17 @@ CONTAINS
     ! Solution of maxwell equation in the A-phi formulation by difference method
     ! vcfact is the ratio of the light speed to lattice parameter times
     ! plasma frequency
+    !$omp parallel do private(nx,ny,nxm,nxp,nym,nyp)
     DO nx = 0, nxmax
        DO ny = 0, nymax
           nxm = nx - 1
           nxp = nx + 1
           nym = ny - 1
           nyp = ny + 1
-
           IF( nx .EQ. 0  )    nxm = nxmax - 1
           IF( nx .EQ. nxmax ) nxp = 1
           IF( ny .EQ. 0  )    nym = nymax - 1
           IF( ny .EQ. nymax ) nyp = 1
-
           Ax(nx,ny) = dt ** 2 * vcfact ** 2 * (Axb(nxp,ny) + Axb(nxm,ny) &
                                             + Axb(nx,nyp) + Axb(nx,nym) &
                                             - 4.0d0 * Axb(nx,ny)) &
@@ -1400,7 +1409,7 @@ CONTAINS
                     + 2.0d0 * Azb(nx,ny) - Azbb(nx,ny)
        END DO
     END DO
-
+    !$omp end parallel do
   END SUBROUTINE vector_p_periodic
 
   !***********************************************************************
@@ -1424,6 +1433,7 @@ CONTAINS
     ! vcfact is the ratio of the light speed to lattice parameter times plasma
     ! frequency
 
+    !$omp parallel do private(nx,ny,nxm,nxp,nym,nyp)
     DO nx = 0, nxmax
        DO ny = 0, nymax
 
@@ -1459,6 +1469,8 @@ CONTAINS
 
        END DO
     END DO
+    !$omp end parallel do
+
     !  IF(model_boundary .EQ. 2) THEN !damping A in evanescent boundary
     !     ilen = int(dlen)
     !     inv = 1.0d0 / dlen
@@ -1501,38 +1513,6 @@ CONTAINS
     !        ENDDO
     !     ENDDO
     !  ENDIF
-    ! DO nx=1,nxmax-1
-    !      nxm = nx - 1
-    !      nxp = nx + 1
-    !      Ay(nx,0) = dt ** 2 * vcfact ** 2 * (Ayb(nxp,0) + Ayb(nxm,0) &
-    !                                        + Ayb(nx,1) - 4.0d0 * Ayb(nx,0)) &
-    !                + dt ** 2 * jy(nx,0) &
-    !                - 0.5d0 * dt * (phi(nx,1) - phib(nx,1)) &
-    !                + 2.0d0 * Ayb(nx,0) - Aybb(nx,0)
-
-     !     Ay(nx,nymax) = dt ** 2 * vcfact ** 2 * (Ayb(nxp,nymax) &
-     !             + Ayb(nxm,nymax) + Ayb(nx,nymax-1) - 4.0d0 * Ayb(nx,nymax)) &
-     !               + dt ** 2 * jy(nx,nymax) &
-     !               - 0.5d0 * dt * (- phi(nx,nymax-1) + phib(nx,nymax-1)) &
-     !               + 2.0d0 * Ayb(nx,nymax) - Aybb(nx,nymax)
-    !END DO
-    !DO ny=1,nymax-1
-    !      nym = ny - 1
-    !      nyp = ny + 1
-  !        Ax(0,ny) = dt ** 2 * vcfact ** 2 * (Axb(1,ny) + Axb(0,nyp) + Axb(0,nym) - 4.0d0 * Axb(0,ny)) &
-   !                 + dt ** 2 * jx(0,ny) &
-   !                 - 0.5d0 * dt * (phi(1,ny) - phib(1,ny)) &
-   !                 + 2.0d0 * Axb(0,ny) - Axbb(0,ny)
-
-    !      Ax(nxmax,ny) = dt ** 2 * vcfact ** 2 * (Axb(nxmax-1,ny) &
-    !                                        + Axb(nxmax,nyp) + Axb(nxmax,nym) &
-    !                                        - 4.0d0 * Axb(nxmax,ny)) &
-    !                + dt ** 2 * jx(nxmax,ny) &
-    !                - 0.5d0 * dt * (- phi(nxmax-1,ny) + phib(nxmax-1,ny)) &
-    !                + 2.0d0 * Axb(nxmax,ny) - Axbb(nxmax,ny)
-
-    !END DO
-
     ! boundary condition for reflection
      Ay(0,:)=0.d0
      Az(0,:)=0.d0
@@ -1872,7 +1852,6 @@ CONTAINS
     INTEGER:: nxmax,nymax,imax,model_boundary
     REAL(8), DIMENSION(0:nxmax,0:nymax,imax) :: fxy
     INTEGER:: nx, ny, i
-
     IF(model_boundary.EQ.0) THEN  ! periodic
        DO i=1,imax
           DO ny = 0, nymax

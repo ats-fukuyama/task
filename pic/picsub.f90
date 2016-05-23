@@ -2,6 +2,7 @@
 
 MODULE picsub
   PRIVATE
+  !INCLUDE 'fftw3.f'
   PUBLIC poisson_f,poisson_m,efield,bfield,kine,pote,absorb_phi
 
 CONTAINS
@@ -11,6 +12,7 @@ CONTAINS
        rho,phi,rhof,phif,awk,afwk,cform,ipssn)
     !***********************************************************************
     IMPLICIT NONE
+    !INCLUDE 'fftw3.f'
     REAL(8), DIMENSION(nxmax1,nymax1) :: rho,phi
     REAL(8), DIMENSION(nxmax,nymax) :: awk
     COMPLEX(8), DIMENSION(nxmaxh1,nymax) :: afwk
@@ -59,7 +61,7 @@ CONTAINS
        alxi   = 1.d0 / DBLE(nxmax)
        alyi   = 1.d0 / DBLE(nymax)
        nymaxh    = nymax / 2
-
+       !$omp parallel do private(am,an,amn2)
        DO ny = 1, nymaxh+1
           DO nx = 1, nxmaxh1
              am = twopi * DBLE(nx-1) * alxi
@@ -77,16 +79,17 @@ CONTAINS
              ENDIF
           END DO
        END DO
-
+       !$omp end parallel do
     ELSE
 
        !----- solve poisson equation
+       !$omp parallel do
        DO ny = 1, nymax
           DO nx = 1, nxmaxh1
              phif(nx,ny) = cform(nx,ny) * rhof(nx,ny)
           END DO
        END DO
-
+       !$omp end parallel do
     ENDIF
 
   END SUBROUTINE poisson_sub
@@ -116,46 +119,49 @@ CONTAINS
     ELSEIF( ifset .EQ. -1 ) THEN
 
        !----- fourier transform
+       !$omp parallel do
        DO ny = 1, nymax
           DO nx = 1, nxmax
              awk(nx,ny) = a(nx,ny)
           END DO
        END DO
-
+       !$omp end parallel do
        CALL dfftw_execute(plan1)
-
+       !$omp parallel do
        DO ny = 1, nymax
           DO nx = 1, nxmaxh1
              af(nx,ny) = afwk(nx,ny) / ( alx * aly )
           END DO
        END DO
-
+       !$omp end parallel do
     ELSE
 
        !----- inverse fourier transform
-
+       !$omp parallel do
        DO ny = 1, nymax
           DO nx = 1, nxmaxh1
              afwk(nx,ny) = af(nx,ny)
           END DO
        END DO
-
+       !$omp end parallel do
        CALL dfftw_execute(plan2)
-
+       !$omp parallel do
        DO ny = 1, nymax
           DO nx = 1, nxmax
              a(nx,ny) = awk(nx,ny)
           END DO
        END DO
-
+       !$omp end parallel do
+       !$omp parallel do
        DO ny = 1, nymax
           a(nxmax1,ny) = a(1,ny)
        END DO
-
+       !$omp end parallel do
+       !$omp parallel do
        DO nx = 1, nxmax1
           a(nx,nymax1) = a(nx,1)
        END DO
-
+       !$omp end parallel do
     ENDIF
 
   END SUBROUTINE fftpic
@@ -206,36 +212,43 @@ CONTAINS
        IF(l.LT.isize) CALL mtx_set_matrix(i,i+1,1.d0)
        IF(m.LT.ileng) CALL mtx_set_matrix(i,i+isize,1.d0)
     ENDDO
-
     IF(mode.EQ.0) THEN
+      !$omp parallel do private(i,nx,ny)
        DO i=istart,iend
           nx=MOD(i-1,isize)+1
           ny=(i-1)/isize+1
           CALL mtx_set_source(i,-rho(nx+1,ny+1))
        ENDDO
+       !$omp end parallel do
     ELSE
+      !$omp parallel do private(i,nx,ny)
        DO i=istart,iend
           ny=MOD(i-1,isize)+1
           nx=(i-1)/isize+1
           CALL mtx_set_source(i,-rho(nx+1,ny+1))
        ENDDO
+       !$omp end parallel do
     END IF
     CALL mtx_solve(model_matrix0,tolerance_matrix,its, &
          methodKSP=model_matrix1,methodPC=model_matrix2)
     !      IF((its.ne.0).and.(nrank.eq.0)) write(6,*) 'mtx_solve: its=',its
     CALL mtx_gather_vector(x)
     IF(mode.EQ.0) THEN
+      !$omp parallel do private(i,nx,ny)
        DO i=1,imax
           nx=MOD(i-1,isize)+1
           ny=(i-1)/isize+1
           phi(nx+1,ny+1)=x(i)
        ENDDO
+       !$omp end parallel do
     ELSE
+      !$omp parallel do private(i,nx,ny)
        DO i=1,imax
           ny=MOD(i-1,isize)+1
           nx=(i-1)/isize+1
           phi(nx+1,ny+1)=x(i)
        ENDDO
+       !$omp end parallel do
     END IF
     DEALLOCATE(x)
     status=2
@@ -319,6 +332,7 @@ CONTAINS
     INTEGER:: model_push, model_boundary
 
     IF(model_boundary .EQ. 0) THEN
+      !$omp parallel do private(nx,ny,nxm,nym,nxp,nyp)
        DO nx = 0, nxmax
           DO ny = 0, nymax
 
@@ -340,7 +354,9 @@ CONTAINS
 
           END DO
        END DO
+      !$omp end parallel do
     ELSE IF (model_boundary .NE. 0) THEN
+      !$omp parallel do private(nx,ny,nxm,nym,nxp,nyp)
        DO nx = 0, nxmax
           DO ny = 0, nymax
 
@@ -363,6 +379,7 @@ CONTAINS
 
           END DO
        END DO
+      !$omp end parallel do
        !boundary condition for electro static field
        !DO ny = 1, nymax-1
        !  esx(0,ny) = -0.5d0 * phi(1,ny)
@@ -462,6 +479,7 @@ CONTAINS
     INTEGER:: model_push, model_boundary
     REAL(8):: dlen,inv,x,y,xmax,ymax
     IF(model_boundary .EQ. 0) THEN
+      !$omp parallel do private(nx,ny,nxm,nym,nxp,nyp)
        DO ny = 0, nymax
           DO nx = 0, nxmax
              nxm = nx - 1
@@ -484,7 +502,9 @@ CONTAINS
                   - Ax(nx,ny) - Axb(nx,ny)))
           END DO
        END DO
+       !$omp end parallel do
     ELSEIF(model_boundary .NE. 0) THEN
+      !$omp parallel do private(nx,ny,nxm,nym,nxp,nyp)
        DO ny = 0, nymax
           DO nx = 0, nxmax
              nxm = nx - 1
@@ -507,6 +527,7 @@ CONTAINS
                      - Ax(nx,ny) - Axb(nx,ny)))
           END DO
        END DO
+       !$omp end parallel do
       !  DO ny = 1, nymax-1
       !    by(0,ny) = 0.5d0 * by(1,ny)
       !    by(nxmax,ny) = 0.5d0 * by(nxmax-1,ny)
@@ -523,7 +544,7 @@ CONTAINS
        bx(nxmax,:) = 0.d0
        by(:,0) = 0.d0
        by(:,nymax) = 0.d0
-    ENDIF
+      ENDIF
 
     IF(MOD(model_push/8,2).EQ.0) THEN
        IF(MOD(model_push/4,2).EQ.0) THEN
@@ -622,9 +643,10 @@ CONTAINS
     REAL(8), DIMENSION(0:nxmax,0:nymax) :: ex,ey,ez,bx,by,bz,bxbg,bybg,bzbg
     REAL(8) :: apote,apotm,vcfact
     INTEGER(4) :: nxmax, nymax, nx, ny
-        
+
     apote = 0.d0
     apotm = 0.d0
+    !$omp parallel do reduction(+:apote,apotm)
     DO ny = 1, nymax-1
        DO nx = 1, nxmax-1
           apote = apote + (ex(nx,ny)**2 + ey(nx,ny)**2 + ez(nx,ny)**2)
@@ -633,6 +655,8 @@ CONTAINS
                + (bz(nx,ny)-bzbg(nx,ny))**2)
        END DO
     END DO
+    !$omp end parallel do
+    !$omp parallel do reduction(+:apote,apotm)
     DO nx = 0, nxmax,nxmax
        DO ny = 1, nymax-1
           apote = apote + 0.5D0*(ex(nx,ny)**2+ey(nx,ny)**2+ez(nx,ny)**2)
@@ -641,7 +665,8 @@ CONTAINS
                + (bz(nx,ny)-bzbg(nx,ny))**2)
        END DO
     END DO
-
+    !$omp end parallel do
+    !$omp parallel do reduction(+:apote,apotm)
     DO ny = 0, nymax,nymax
        DO nx = 1, nxmax-1
           apote = apote + 0.5D0*(ex(nx,ny)**2+ey(nx,ny)**2+ez(nx,ny)**2)
@@ -650,6 +675,8 @@ CONTAINS
                + (bz(nx,ny)-bzbg(nx,ny))**2)
        END DO
     END DO
+    !$omp end parallel do
+    !$omp parallel do reduction(+:apote,apotm)
     DO ny = 0, nymax,nymax
        DO nx = 0, nxmax,nxmax
           apote = apote + 0.25D0*(ex(nx,ny)**2+ey(nx,ny)**2+ez(nx,ny)**2)
@@ -658,6 +685,7 @@ CONTAINS
                + (bz(nx,ny)-bzbg(nx,ny))**2)
        END DO
     END DO
+    !$omp end parallel do
     apote = 0.5D0 * apote / (DBLE(nxmax)*DBLE(nymax))
     apotm = 0.5D0 * vcfact**2 * apotm / (DBLE(nxmax)*DBLE(nymax))
   END SUBROUTINE pote

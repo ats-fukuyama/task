@@ -179,6 +179,17 @@ CONTAINS
          xb(np) = x(np) - vx(np) * dt
          yb(np) = y(np) - vy(np) * dt
          zb(np) = z(np) - vz(np) * dt
+       IF( xb(np) .LT. x1 ) THEN
+             xb(np) = xb(np) + alx
+       ELSEIF( xb(np) .GT. x2 ) THEN
+             xb(np) = xb(np) - alx
+       ENDIF
+
+       IF( yb(np) .LT. y1 ) THEN
+             yb(np) = yb(np) + aly
+       ELSEIF( yb(np) .GT. y2 ) THEN
+             yb(np) = yb(np) - aly
+       ENDIF
       end do
       end do
    else ! subroutine for density gradient
