@@ -391,11 +391,13 @@ CONTAINS
     REAL(8), DIMENSION(0:nxmax,0:nymax) :: ex, ey, ez, bx, by, bz
     REAL(8) :: ctom, dx, dy, dx1, dy1, dt, exx, eyy, ezz, bxx,&
          byy, bzz, vxm, vym, vzm, vxzero, vyzero, vzzero, vxp, vyp,&
-         vzp, sx1p, sx1m, sy1p, sy1m, sx2, sy2, sx2p, sx2m, sy2m, sy2p
+         vzp, sx2, sy2, sx2p, sx2m, sy2m, sy2p
     REAL(8) :: btot, vtot, bb2 ,vcfact, gamma
     INTEGER :: npmax, nxmax, nymax, model_boundary
-    INTEGER :: np, nx, ny, nxp, nyp, nxpp, nxpm, nypp, nypm, nxppp, nyppp
+    INTEGER :: np, nxp, nyp, nxpp, nxpm, nypp, nypm, nxppp, nyppp
 
+    !!$omp parallel do Private (nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2m,sx2,sx2p,sy2m,sy2,sy2p,exx,eyy,ezz,bxx,byy,bzz,vxm,vym,vzm,vxzero,vyzero,vzzero,gamma) &
+    !!$omp Reduction (+:btot,vtot)
     DO np = 1, npmax
 
        ! calculate the electric field at the particle position
@@ -671,7 +673,7 @@ CONTAINS
        END IF
 
     END DO
-
+    !!$omp end parallel do
   END SUBROUTINE push
 
   !***********************************************************************
@@ -814,7 +816,6 @@ CONTAINS
        nypm = nyp - 1
        nypp = nyp + 1
        nyppp= nyp + 2
-       !omp critical
        IF(model_boundary.EQ.0) THEN ! periodic
           IF( nxp .EQ. 0 ) nxpm = nxmax - 1
           IF( nyp .EQ. 0 ) nypm = nymax - 1
@@ -826,7 +827,6 @@ CONTAINS
           IF( nxp .EQ. nxmax - 1 ) nxppp = nxmax
           IF( nyp .EQ. nymax - 1 ) nyppp = nymax
        END IF
-       !omp end critical
        IF(dx .LT. 0.5d0 .AND. dy .LT. 0.5d0) THEN
          ! use Mirror image method
          IF(model_boundary .NE. 0 .AND. nxp .EQ. 0) THEN
@@ -1003,7 +1003,8 @@ CONTAINS
     ELSE
        factor=chrg*DBLE(nxmax)*DBLE(nymax)/DBLE(npmax)
     END IF
-
+    !$omp parallel do Private (np,nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2p,sx2,sx2m,sy2p,sy2,sy2m) &
+    !$omp Reduction (+:jx,jy,jz)
     DO np = 1, npmax
        nxp = int((x(np)+xb(np))/2.d0)
        nyp = int((y(np)+yb(np))/2.d0)
@@ -1035,7 +1036,6 @@ CONTAINS
        nypp = nyp + 1
        nxppp = nxp + 2
        nyppp = nyp + 2
-       !$omp critical
        IF(model_boundary.EQ.0) THEN ! periodic
           IF( nxp .EQ. 0  ) nxpm = nxmax - 1
           IF( nyp .EQ. 0  ) nypm = nymax - 1
@@ -1047,7 +1047,6 @@ CONTAINS
           IF( nxp .EQ. nxmax-1) nxppp=nxmax
           IF( nyp .EQ. nymax-1) nyppp=nymax
        END IF
-       !$omp end critical
        IF (dx .LE. 0.5d0 .AND. dy .LE. 0.5d0) THEN
           dx = dx + 0.5d0
           dx1 = dx1 - 0.5d0
@@ -1255,6 +1254,7 @@ CONTAINS
 
        ENDIF
     END DO
+    !omp end prallel do
   END SUBROUTINE current
 
   !***********************************************************************
