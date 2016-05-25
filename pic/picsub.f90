@@ -61,7 +61,7 @@ CONTAINS
        alxi   = 1.d0 / DBLE(nxmax)
        alyi   = 1.d0 / DBLE(nymax)
        nymaxh    = nymax / 2
-
+       !$omp parallel do private(am,an,amn2)
        DO ny = 1, nymaxh+1
           DO nx = 1, nxmaxh1
              am = twopi * DBLE(nx-1) * alxi
@@ -79,16 +79,17 @@ CONTAINS
              ENDIF
           END DO
        END DO
-
+       !$omp end parallel do
     ELSE
 
        !----- solve poisson equation
+       !$omp parallel do
        DO ny = 1, nymax
           DO nx = 1, nxmaxh1
              phif(nx,ny) = cform(nx,ny) * rhof(nx,ny)
           END DO
        END DO
-
+       !$omp end parallel do
     ENDIF
 
   END SUBROUTINE poisson_sub
@@ -212,7 +213,7 @@ CONTAINS
        IF(m.LT.ileng) CALL mtx_set_matrix(i,i+isize,1.d0)
     ENDDO
     IF(mode.EQ.0) THEN
-      !$omp parallel do private(nx,ny)
+      !$omp parallel do private(i,nx,ny)
        DO i=istart,iend
           nx=MOD(i-1,isize)+1
           ny=(i-1)/isize+1
@@ -220,7 +221,7 @@ CONTAINS
        ENDDO
        !$omp end parallel do
     ELSE
-      !$omp parallel do private(nx,ny)
+      !$omp parallel do private(i,nx,ny)
        DO i=istart,iend
           ny=MOD(i-1,isize)+1
           nx=(i-1)/isize+1
@@ -233,7 +234,7 @@ CONTAINS
     !      IF((its.ne.0).and.(nrank.eq.0)) write(6,*) 'mtx_solve: its=',its
     CALL mtx_gather_vector(x)
     IF(mode.EQ.0) THEN
-      !$omp parallel do private(nx,ny)
+      !$omp parallel do private(i,nx,ny)
        DO i=1,imax
           nx=MOD(i-1,isize)+1
           ny=(i-1)/isize+1
@@ -241,7 +242,7 @@ CONTAINS
        ENDDO
        !$omp end parallel do
     ELSE
-      !$omp parallel do private(nx,ny)
+      !$omp parallel do private(i,nx,ny)
        DO i=1,imax
           ny=MOD(i-1,isize)+1
           nx=(i-1)/isize+1
@@ -320,18 +321,18 @@ CONTAINS
 
   !***********************************************************************
   SUBROUTINE efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
-       ex,ey,ez,esx,esy,esz,emx,emy,emz, &
+       ex,ey,ez,bxb,byb,bzb,esx,esy,esz,emx,emy,emz,jx,jy,jz,vcfact,&
        model_push,model_boundary)
     !***********************************************************************
     IMPLICIT NONE
-    REAL(8), DIMENSION(0:nxmax,0:nymax) ::  &
-         phi,Ax,Ay,Az,Axb,Ayb,Azb,ex,ey,ez,esx,esy,esz,emx,emy,emz
-    REAL(8):: dt
+    REAL(8), DIMENSION(0:nxmax,0:nymax) ::phi,Ax,Ay,Az,Axb,Ayb,Azb,ex,ey,ez,bxb,byb,bzb,esx,esy,esz,emx,emy,emz,&
+    jx,jy,jz
+    REAL(8):: dt,vcfact
     INTEGER :: nxmax, nymax, nx, ny, nxm, nxp, nym, nyp
     INTEGER:: model_push, model_boundary
 
     IF(model_boundary .EQ. 0) THEN
-      !$omp parallel do private(nxm,nym,nxp,nyp)
+      !$omp parallel do private(nx,ny,nxm,nym,nxp,nyp)
        DO nx = 0, nxmax
           DO ny = 0, nymax
 
@@ -344,18 +345,25 @@ CONTAINS
              IF( nx .EQ. nxmax ) nxp = 1
              IF( ny .EQ. 0  )    nym = nymax - 1
              IF( ny .EQ. nymax ) nyp = 1
-             esx(nx,ny) = phi(nx,ny) - phi(nxp,ny)
-             esy(nx,ny) = phi(nx,ny) - phi(nx,nyp)
-             esz(nx,ny) = 0.d0
-             emx(nx,ny) = - ( Ax(nx,ny) - Axb(nx,ny) ) / dt
-             emy(nx,ny) = - ( Ay(nx,ny) - Ayb(nx,ny) ) / dt
-             emz(nx,ny) = - ( Az(nx,ny) - Azb(nx,ny) ) / dt
+            !esx(nx,ny) = phi(nx,ny) - phi(nxp,ny)
+            !esy(nx,ny) = phi(nx,ny) - phi(nx,nyp)
+            !esz(nx,ny) = 0.d0
+            !emx(nx,ny) = - ( Ax(nx,ny) - Axb(nx,ny) ) / dt
+            !emy(nx,ny) = - ( Ay(nx,ny) - Ayb(nx,ny) ) / dt
+            !emz(nx,ny) = - ( Az(nx,ny) - Azb(nx,ny) ) / dt
+
+            esx(nx,ny)=esx(nx,ny) - dt * jx(nx,ny)
+            esy(nx,ny)=esy(nx,ny) - dt * jy(nx,ny)
+            esz(nx,ny)=esz(nx,ny) - dt * jz(nx,ny)
+            emx(nx,ny)=dt/vcfact**2*(bzb(nx,ny)-bzb(nx,nym))
+            emy(nx,ny)=dt/vcfact**2*(bzb(nxm,ny)-bzb(nx,ny))
+            emz(nx,ny)=dt/vcfact**2*(byb(nxp,ny)-byb(nx,ny)-bxb(nx,nyp)+bxb(nx,ny))
 
           END DO
        END DO
       !$omp end parallel do
     ELSE IF (model_boundary .NE. 0) THEN
-      !$omp parallel do private(nxm,nym,nxp,nyp)
+      !$omp parallel do private(nx,ny,nxm,nym,nxp,nyp)
        DO nx = 0, nxmax
           DO ny = 0, nymax
 
@@ -369,12 +377,18 @@ CONTAINS
              IF( ny .EQ. 0  )    nym = 0
              IF( ny .EQ. nymax ) nyp = nymax
 
-             esx(nx,ny) = phi(nx,ny) - phi(nxp,ny)
-             esy(nx,ny) = phi(nx,ny) - phi(nx,nyp)
-             esz(nx,ny) = 0.d0
-             emx(nx,ny) = - ( Ax(nx,ny) - Axb(nx,ny) ) / dt
-             emy(nx,ny) = - ( Ay(nx,ny) - Ayb(nx,ny) ) / dt
-             emz(nx,ny) = - ( Az(nx,ny) - Azb(nx,ny) ) / dt
+            !  esx(nx,ny) = phi(nx,ny) - phi(nxp,ny)
+            !  esy(nx,ny) = phi(nx,ny) - phi(nx,nyp)
+            !  esz(nx,ny) = 0.d0
+            !  emx(nx,ny) = - ( Ax(nx,ny) - Axb(nx,ny) ) / dt
+            !  emy(nx,ny) = - ( Ay(nx,ny) - Ayb(nx,ny) ) / dt
+            !  emz(nx,ny) = - ( Az(nx,ny) - Azb(nx,ny) ) / dt
+            esx(nx,ny)=esx(nx,ny) - dt * jx(nx,ny)
+            esy(nx,ny)=esy(nx,ny) - dt * jy(nx,ny)
+            esz(nx,ny)=esz(nx,ny) - dt * jz(nx,ny)
+            emx(nx,ny)=dt*vcfact**2*(bzb(nx,ny)-bzb(nx,nym))
+            emy(nx,ny)=dt*vcfact**2*(bzb(nxm,ny)-bzb(nx,ny))
+            emz(nx,ny)=dt*vcfact**2*(byb(nxp,ny)-byb(nx,ny)-bxb(nx,nyp)+bxb(nx,ny))
 
           END DO
        END DO
@@ -465,20 +479,20 @@ CONTAINS
   END SUBROUTINE efield
 
   !***********************************************************************
-  SUBROUTINE bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
-       bx,by,bz,bxbg,bybg,bzbg,bb, &
+  SUBROUTINE bfield(nxmax,nymax,dt,Ax,Ay,Az,Axb,Ayb,Azb, &
+       ex,ey,ez,bx,by,bz,bxb,byb,bzb,bxbg,bybg,bzbg,bb,vcfact, &
        model_push,model_boundary,dlen)
-    !***********************************************************************
+  !***********************************************************************
     IMPLICIT NONE
-    REAL(8), DIMENSION(0:nymax) :: bxnab,bznab
-    REAL(8), DIMENSION(0:nxmax) :: bynab
-    REAL(8), DIMENSION(0:nxmax,0:nymax) :: bx,by,bz,bxbg,bybg,bzbg,bb
+    REAL(8), DIMENSION(0:nymax) :: bxnab,bynab,bznab
+    REAL(8), DIMENSION(0:nxmax,0:nymax) :: ex,ey,ez,bx,by,bz,bxb,byb,bzb, &
+                                           bxbg,bybg,bzbg,bb
     REAL(8), DIMENSION(0:nxmax,0:nymax) :: Ax,Ay,Az,Axb,Ayb,Azb
     INTEGER :: nxmax, nymax, nx, ny, nxp, nyp, nxm, nym
     INTEGER:: model_push, model_boundary
-    REAL(8):: dlen,inv,x,y,xmax,ymax
+    REAL(8):: dlen,inv,x,y,xmax,ymax,bxx,byy,bzz,vcfact,dt
     IF(model_boundary .EQ. 0) THEN
-      !$omp parallel do private(nxm,nym,nxp,nyp)
+      !$omp parallel do private(nx,ny,nxm,nym,nxp,nyp)
        DO ny = 0, nymax
           DO nx = 0, nxmax
              nxm = nx - 1
@@ -491,19 +505,32 @@ CONTAINS
              IF( ny .EQ. 0  )    nym = nymax - 1
              IF( ny .EQ. nymax ) nyp = 1
 
-             bx(nx,ny) = 0.5d0 * (Az(nx,nyp) + Azb(nx,nyp) &
-                  - Az(nx,ny) - Azb(nx,ny))
-             by(nx,ny) = - 0.5d0 * (Az(nxp,ny) + Azb(nxp,ny) &
-                  - Az(nx,ny) - Azb(nx,ny))
-             bz(nx,ny) = 0.5d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
-                  - Ay(nx,ny) - Ayb(nx,ny) &
-                  - (Ax(nx,nyp) + Axb(nx,nyp) &
-                  - Ax(nx,ny) - Axb(nx,ny)))
+            !  bx(nx,ny) = 0.5d0 * (Az(nx,nyp) + Azb(nx,nyp) &
+            !       - Az(nx,ny) - Azb(nx,ny))
+            !  by(nx,ny) = - 0.5d0 * (Az(nxp,ny) + Azb(nxp,ny) &
+            !       - Az(nx,ny) - Azb(nx,ny))
+            !  bz(nx,ny) = 0.5d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
+            !       - Ay(nx,ny) - Ayb(nx,ny) &
+            !       - (Ax(nx,nyp) + Axb(nx,nyp) &
+            !       - Ax(nx,ny) - Axb(nx,ny)))
+
+            bx(nx,ny)=dt*(-ez(nx,ny)+ez(nx,nym))+bxb(nx,ny)
+            by(nx,ny)=dt*(ez(nx,ny)-ez(nxm,ny))+byb(nx,ny)
+            bz(nx,ny)=dt*(-ey(nxp,ny)+ey(nx,ny)+ex(nx,nyp)-ex(nx,ny))+bzb(nx,ny)
+            bxx=bx(nx,ny)
+            byy=by(nx,ny)
+            bzz=bz(nx,ny)
+            bx(nx,ny)=0.5d0*(bx(nx,ny)+bxb(nx,ny))
+            by(nx,ny)=0.5d0*(by(nx,ny)+byb(nx,ny))
+            bz(nx,ny)=0.5d0*(bz(nx,ny)+bzb(nx,ny))
+            bxb(nx,ny)=bxx
+            byb(nx,ny)=byy
+            bzb(nx,ny)=bzz
           END DO
        END DO
        !$omp end parallel do
     ELSEIF(model_boundary .NE. 0) THEN
-      !$omp parallel do private(nxm,nym,nxp,nyp)
+      !$omp parallel do private(nx,ny,nxm,nym,nxp,nyp)
        DO ny = 0, nymax
           DO nx = 0, nxmax
              nxm = nx - 1
@@ -516,14 +543,26 @@ CONTAINS
              IF( ny .EQ. 0  )    nym = 0
              IF( ny .EQ. nymax ) nyp = nymax
 
-                bx(nx,ny) =   0.5d0 * (Az(nx,nyp) + Azb(nx,nyp) &
-                     - Az(nx,ny) - Azb(nx,ny))
-                by(nx,ny) = - 0.5d0 * (Az(nxp,ny) + Azb(nxp,ny) &
-                     - Az(nx,ny) - Azb(nx,ny))
-                bz(nx,ny) =   0.5d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
-                     - Ay(nx,ny) - Ayb(nx,ny) &
-                     - (Ax(nx,nyp) + Axb(nx,nyp) &
-                     - Ax(nx,ny) - Axb(nx,ny)))
+                ! bx(nx,ny) =   0.5d0 * (Az(nx,nyp) + Azb(nx,nyp) &
+                !      - Az(nx,ny) - Azb(nx,ny))
+                ! by(nx,ny) = - 0.5d0 * (Az(nxp,ny) + Azb(nxp,ny) &
+                !      - Az(nx,ny) - Azb(nx,ny))
+                ! bz(nx,ny) =   0.5d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
+                !      - Ay(nx,ny) - Ayb(nx,ny) &
+                !      - (Ax(nx,nyp) + Axb(nx,nyp) &
+                !      - Ax(nx,ny) - Axb(nx,ny)))
+                bx(nx,ny)=dt*(-ez(nx,ny)+ez(nx,nym))+bxb(nx,ny)
+                by(nx,ny)=dt*(ez(nx,ny)-ez(nxm,ny))+byb(nx,ny)
+                bz(nx,ny)=dt*(-ey(nxp,ny)+ey(nx,ny)+ex(nx,nyp)-ex(nx,ny))+bzb(nx,ny)
+                bxx=bx(nx,ny)
+                byy=by(nx,ny)
+                bzz=bz(nx,ny)
+                bx(nx,ny)=0.5d0*(bx(nx,ny)+bxb(nx,ny))
+                by(nx,ny)=0.5d0*(by(nx,ny)+byb(nx,ny))
+                bz(nx,ny)=0.5d0*(bz(nx,ny)+bzb(nx,ny))
+                bxb(nx,ny)=bxx
+                byb(nx,ny)=byy
+                bzb(nx,ny)=bzz
           END DO
        END DO
        !$omp end parallel do

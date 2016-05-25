@@ -62,6 +62,9 @@ CONTAINS
       bx(:,:) = 0.d0
       by(:,:) = 0.d0
       bz(:,:) = 0.d0
+      bxb(:,:) = 0.d0
+      byb(:,:) = 0.d0
+      bzb(:,:) = 0.d0
       Axbb(:,:) = 0.d0
       Axb(:,:) = 0.d0
       Aybb(:,:) = 0.d0
@@ -111,12 +114,12 @@ CONTAINS
 
        !.......... calculate ex and ey and ez
        call efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
-                               ex,ey,ez,esx,esy,esz,emx,emy,emz, &
-                               model_push,model_boundary)
+                   ex,ey,ez,bxb,byb,bzb,esx,esy,esz,emx,emy,emz, &
+                   jx,jy,jz,vcfact,model_push,model_boundary)
        !.......... calculate bx and by and bz
-       call bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
-                               bx,by,bz,bxbg,bybg,bzbg,bb, &
-                               model_push,model_boundary,dlen)
+       call bfield(nxmax,nymax,dt,Ax,Ay,Az,Axb,Ayb,Azb,ex,ey,ez,&
+                   bx,by,bz,bxb,byb,bzb,bxbg,bybg,bzbg,bb, &
+                   vcfact,model_push,model_boundary,dlen)
       do np=1,npmax
          vparae(np)=vye(np)
          vperpe(np)=SQRT(vxe(np)**2+vze(np)**2)

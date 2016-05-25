@@ -38,6 +38,7 @@ CONTAINS
     DO nt = 1, ntmax
        time = time + dt
        ntcount = ntcount + 1
+       !$omp parallel do
        DO nx = 0, nxmax
           DO ny = 0, nymax
              Axbb(nx,ny) = Axb(nx,ny)
@@ -50,6 +51,7 @@ CONTAINS
              phib(nx,ny) = phi(nx,ny)
           END DO
        END DO
+       !$omp end parallel do
        !----- charge assignment
        rho(:,:)=0.0d0
        CALL source(npmax,nxmax,nymax,xe,ye,rho,chrge,model_boundary)
@@ -57,22 +59,24 @@ CONTAINS
        CALL boundary_rho(nxmax,nymax,rho,model_boundary)
        !..... sum charge densities over cores
        CALL mtx_allreduce_real8(rho,nxymax,3,suma,locva)
+       !$omp parallel do
        DO ny=0,nymax
           DO nx=0,nxmax
              rho(nx,ny)=suma(nx,ny)/dble(nsize)
           END DO
        END DO
+       !$omp end parallel do
        !----- calculate electric field
        ipssn = 1
-       IF(model_boundary.EQ.0) THEN
-          CALL poisson_f(nxmax,nymax,nxmaxh1,nxmax1,nymax1, &
-               rho,phi,rhof,phif,awk,afwk,cform,ipssn)
-       ELSE
-          CALL poisson_m(nxmax1,nymax1,rho,phi,ipssn, &
-                model_matrix0,model_matrix1,model_matrix2, &
-                tolerance_matrix,model_boundary,dlen)
-          !CALL MPI_Bcast(phi,nxymax,MPI_REAL8,0,ncomm,ierr)
-       END IF
+        ! IF(model_boundary.EQ.0) THEN
+        !    CALL poisson_f(nxmax,nymax,nxmaxh1,nxmax1,nymax1, &
+        !         rho,phi,rhof,phif,awk,afwk,cform,ipssn)
+        ! ELSE
+        !    CALL poisson_m(nxmax1,nymax1,rho,phi,ipssn, &
+        !          model_matrix0,model_matrix1,model_matrix2, &
+        !          tolerance_matrix,model_boundary,dlen)
+        !    CALL MPI_Bcast(phi,nxymax,MPI_REAL8,0,ncomm,ierr)
+        ! END IF
        !IF(model_boundary.EQ.2) THEN
         !  CALL absorb_phi(nxmax,nymax,phi,phib,phibb,dt,vcfact)
        !ENDIF
@@ -92,40 +96,46 @@ CONTAINS
        CALL boundary_j(nxmax,nymax,jx,jy,jz,model_boundary)
        !..... sum current densities over cores
        CALL mtx_allreduce_real8(jx,nxymax,3,suma,locva)
+       !$omp parallel do
        DO ny=0,nymax
           DO nx=0,nxmax
              jx(nx,ny)=suma(nx,ny)/dble(nsize)
           END DO
        END DO
+       !$omp end parallel do
        CALL mtx_allreduce_real8(jy,nxymax,3,suma,locva)
+       !$omp parallel do
        DO ny=0,nymax
           DO nx=0,nxmax
              jy(nx,ny)=suma(nx,ny)/dble(nsize)
           END DO
        END DO
+       !$omp end parallel do
        CALL mtx_allreduce_real8(jz,nxymax,3,suma,locva)
+       !$omp parallel do
        DO ny=0,nymax
           DO nx=0,nxmax
              jz(nx,ny)=suma(nx,ny)/dble(nsize)
           END DO
        END DO
+       !$omp end parallel do
        !.......... calculate vector potential
-       IF(model_boundary .EQ. 0) THEN
-          CALL vector_p_periodic(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
-               Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
-       ELSE
-          CALL vector_p_reflective(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
-               Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
-               model_wg,xmin_wg,xmax_wg,ymin_wg,ymax_wg, &
-               amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi,&
-               model_boundary,dlen)
-       ENDIF
+        ! IF(model_boundary .EQ. 0) THEN
+        !    CALL vector_p_periodic(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
+        !         Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
+        ! ELSE
+        !    CALL vector_p_reflective(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
+        !         Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
+        !         model_wg,xmin_wg,xmax_wg,ymin_wg,ymax_wg, &
+        !         amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi,&
+        !         model_boundary,dlen)
+        ! ENDIF
        !.......... calculate ex and ey and ez
        CALL efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
-            ex,ey,ez,esx,esy,esz,emx,emy,emz,model_push,model_boundary)
+            ex,ey,ez,bxb,byb,bzb,esx,esy,esz,emx,emy,emz,jx,jy,jz,vcfact,model_push,model_boundary)
        !.......... calculate bxg and byg and bzg
-       CALL bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
-            bx,by,bz,bxbg,bybg,bzbg,bb, model_push,model_boundary,dlen)
+       CALL bfield(nxmax,nymax,dt,Ax,Ay,Az,Axb,Ayb,Azb,ex,ey,ez, &
+            bx,by,bz,bxb,byb,bzb,bxbg,bybg,bzbg,bb,vcfact,model_push,model_boundary,dlen)
        IF( MOD(nt,ntgstep) .EQ. 0 ) THEN
           CALL kine(npmax,vxe,vye,vze,akine1,me,vcfact)
           CALL kine(npmax,vxi,vyi,vzi,akini1,mi,vcfact)
@@ -164,6 +174,7 @@ CONTAINS
 
        IF(npomax.GT.0) THEN
           ntocount=ntocount+1
+          !omp parallel do
           DO npo=1,npomax
              np=1+npostep*(npo-1)
              xpo(npo,ntocount)=xe(np)
@@ -173,6 +184,7 @@ CONTAINS
              vypo(npo,ntocount)=vye(np)
              vzpo(npo,ntocount)=vze(np)
           END DO
+          !omp end parallel do
        END IF
 
 
@@ -382,8 +394,8 @@ CONTAINS
   END SUBROUTINE pic_expand_storage
 
   !***********************************************************************
-  SUBROUTINE push(npmax,nxmax,nymax,x,y,z,vx,vy,vz,ex,ey,ez,bx,by,bz,dt,&
-       ctom,xb,yb,zb,vpara,vperp,model_boundary,vcfact)
+  SUBROUTINE push(npmax,nxmax,nymax,x,y,z,vx,vy,vz,ex,ey,ez,bx,by,bz,&
+                dt,ctom,xb,yb,zb,vpara,vperp,model_boundary,vcfact)
     !***********************************************************************
     IMPLICIT NONE
     REAL(8), DIMENSION(npmax) :: x, y, z, xb, yb, zb
@@ -395,9 +407,8 @@ CONTAINS
     REAL(8) :: btot, vtot, bb2 ,vcfact, gamma
     INTEGER :: npmax, nxmax, nymax, model_boundary
     INTEGER :: np, nxp, nyp, nxpp, nxpm, nypp, nypm, nxppp, nyppp
+    !!$omp parallel do Private(nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2m,sx2,sx2p,sy2m,sy2,sy2p,exx,eyy,ezz,bxx,byy,bzz,vxm,vym,vzm,vxzero,vyzero,vzzero,gamma,btot,vtot,bb2)
 
-    !!$omp parallel do Private (nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2m,sx2,sx2p,sy2m,sy2,sy2p,exx,eyy,ezz,bxx,byy,bzz,vxm,vym,vzm,vxzero,vyzero,vzzero,gamma) &
-    !!$omp Reduction (+:btot,vtot)
     DO np = 1, npmax
 
        ! calculate the electric field at the particle position
@@ -492,6 +503,7 @@ CONTAINS
 
           bzz = bz(nxp,nyp)*dx*dy + bz(nxpm,nyp)*dx1*dy &
               + bz(nxp,nypm)*dx*dy1 + bz(nxpm,nypm)*dx1*dy1
+
 
        ELSE IF(dx .LE. 0.5d0 .AND. dy .GE. 0.5d0) THEN
           dx = dx + 0.5d0
@@ -673,7 +685,7 @@ CONTAINS
        END IF
 
     END DO
-    !!$omp end parallel do
+  !!$omp end parallel do
   END SUBROUTINE push
 
   !***********************************************************************
@@ -782,7 +794,7 @@ CONTAINS
        factor=chrg*DBLE(nxmax)*DBLE(nymax)/DBLE(npmax)
     END IF
     !*poption parallel, psum(rho)
-    !$omp parallel do Private (nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2p,sx2,sx2m,sy2p,sy2,sy2m) &
+    !$omp parallel do Private (np,nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2p,sx2,sx2m,sy2p,sy2,sy2m) &
     !$omp reduction (+:rho)
 
     DO np = 1, npmax
@@ -863,16 +875,16 @@ CONTAINS
            sx2m = 0.d0!sx2m - sx2p
          ELSEIF(model_boundary .NE. 0 .AND. nxp .EQ. nxmax-1) THEN
            sx2p = 0.d0
-           !sx2  = sx2
-           !sx2m = sx2m!sx2m - sx2p
+           sx2  = sx2
+           sx2m = sx2m!sx2m - sx2p
          ENDIF
          IF(model_boundary .NE. 0 .AND. nyp .EQ. nymax-1) THEN
            sy2m = sy2m - sy2p
            sy2  = 0.d0
            sy2p = 0.d0!sy2p - sy2m
          ELSEIF(model_boundary .NE. 0 .AND. nyp .EQ. 0) THEN
-           !sy2p = sy2p
-           !sy2  = sy2
+           sy2p = sy2p
+           sy2  = sy2
            sy2m = 0.d0!sx2m - sx2p
          ENDIF
           rho(nxpm ,nyp  ) = rho(nxpm ,nyp  ) + sx2m * sy2m * factor
@@ -1003,32 +1015,33 @@ CONTAINS
     ELSE
        factor=chrg*DBLE(nxmax)*DBLE(nymax)/DBLE(npmax)
     END IF
+
     !$omp parallel do Private (np,nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2p,sx2,sx2m,sy2p,sy2,sy2m) &
-    !$omp Reduction (+:jx,jy,jz)
+    !$omp Reduction(+:jx,jy,jz)
     DO np = 1, npmax
-       nxp = int((x(np)+xb(np))/2.d0)
-       nyp = int((y(np)+yb(np))/2.d0)
+       nxp =(x(np)+xb(np))/2.d0
+       nyp =(y(np)+yb(np))/2.d0
        dx = (x(np)+xb(np))/2.d0 - DBLE(nxp)
        dy = (y(np)+yb(np))/2.d0 - DBLE(nyp)
        dx1 = 1.0d0 - dx
        dy1 = 1.0d0 - dy
        IF(dx .LE. 0.5d0) THEN
-          sx2  = 3.0d0/4 - dx ** 2
-          sx2p = 1.0d0/2 * (1.0d0/2 + dx) ** 2
-          sx2m = 1.0d0/2 * (1.0d0/2 - dx) ** 2
+          sx2  = 3.0d0/4.d0 - dx ** 2
+          sx2p = 1.0d0/2.d0 * (1.0d0/2.d0 + dx) ** 2
+          sx2m = 1.0d0/2.d0 * (1.0d0/2.d0 - dx) ** 2
        ELSE
-          sx2  = 3.0d0/4 - (dx - 1.0d0) ** 2
-          sx2p = 1.0d0/2 * (-1.0d0/2 + dx) ** 2
-          sx2m = 1.0d0/2 * (3.0d0/2 - dx) ** 2
+          sx2  = 3.0d0/4.d0 - (dx - 1.0d0) ** 2
+          sx2p = 1.0d0/2.d0 * (-1.0d0/2.d0 + dx) ** 2
+          sx2m = 1.0d0/2.d0 * (3.0d0/2.d0 - dx) ** 2
        ENDIF
        IF(dy .LE. 0.5d0) THEN
-          sy2  = 3.0d0/4 - dy ** 2
-          sy2p = 1.0d0/2 * (1.0d0/2 + dy) ** 2
-          sy2m = 1.0d0/2 * (1.0d0/2 - dy) ** 2
+          sy2  = 3.0d0/4.d0 - dy ** 2
+          sy2p = 1.0d0/2.d0 * (1.0d0/2.d0 + dy) ** 2
+          sy2m = 1.0d0/2.d0 * (1.0d0/2.d0 - dy) ** 2
        ELSE
-          sy2  = 3.0d0/4 - (dy - 1.0d0) ** 2
-          sy2p = 1.0d0/2 * (-1.0d0/2 + dy) ** 2
-          sy2m = 1.0d0/2 * (3.0d0/2 - dy) ** 2
+          sy2  = 3.0d0/4.d0 - (dy - 1.0d0) ** 2
+          sy2p = 1.0d0/2.d0 * (-1.0d0/2.d0 + dy) ** 2
+          sy2m = 1.0d0/2.d0 * (3.0d0/2.d0 - dy) ** 2
        ENDIF
        nxpm = nxp - 1
        nxpp = nxp + 1
@@ -1254,7 +1267,7 @@ CONTAINS
 
        ENDIF
     END DO
-    !omp end prallel do
+    !$omp end parallel do
   END SUBROUTINE current
 
   !***********************************************************************
@@ -1363,7 +1376,7 @@ CONTAINS
     ! Solution of maxwell equation in the A-phi formulation by difference method
     ! vcfact is the ratio of the light speed to lattice parameter times
     ! plasma frequency
-    !$omp parallel do private(nxm,nxp,nym,nyp)
+    !$omp parallel do private(nx,ny,nxm,nxp,nym,nyp)
     DO nx = 0, nxmax
        DO ny = 0, nymax
           nxm = nx - 1
@@ -1421,6 +1434,7 @@ CONTAINS
     ! vcfact is the ratio of the light speed to lattice parameter times plasma
     ! frequency
 
+    !$omp parallel do private(nx,ny,nxm,nxp,nym,nyp)
     DO nx = 0, nxmax
        DO ny = 0, nymax
 
@@ -1456,6 +1470,8 @@ CONTAINS
 
        END DO
     END DO
+    !$omp end parallel do
+
     !  IF(model_boundary .EQ. 2) THEN !damping A in evanescent boundary
     !     ilen = int(dlen)
     !     inv = 1.0d0 / dlen
@@ -1837,7 +1853,6 @@ CONTAINS
     INTEGER:: nxmax,nymax,imax,model_boundary
     REAL(8), DIMENSION(0:nxmax,0:nymax,imax) :: fxy
     INTEGER:: nx, ny, i
-
     IF(model_boundary.EQ.0) THEN  ! periodic
        DO i=1,imax
           DO ny = 0, nymax
