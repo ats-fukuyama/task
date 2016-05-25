@@ -62,6 +62,9 @@ CONTAINS
       bx(:,:) = 0.d0
       by(:,:) = 0.d0
       bz(:,:) = 0.d0
+      bxb(:,:) = 0.d0
+      byb(:,:) = 0.d0
+      bzb(:,:) = 0.d0
       Axbb(:,:) = 0.d0
       Axb(:,:) = 0.d0
       Aybb(:,:) = 0.d0
@@ -111,12 +114,12 @@ CONTAINS
 
        !.......... calculate ex and ey and ez
        call efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
-                               ex,ey,ez,esx,esy,esz,emx,emy,emz, &
-                               model_push,model_boundary)
+                   ex,ey,ez,bxb,byb,bzb,esx,esy,esz,emx,emy,emz, &
+                   jx,jy,jz,vcfact,model_push,model_boundary)
        !.......... calculate bx and by and bz
-       call bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
-                               bx,by,bz,bxbg,bybg,bzbg,bb, &
-                               model_push,model_boundary,dlen)
+       call bfield(nxmax,nymax,dt,Ax,Ay,Az,Axb,Ayb,Azb,ex,ey,ez,&
+                   bx,by,bz,bxb,byb,bzb,bxbg,bybg,bzbg,bb, &
+                   vcfact,model_push,model_boundary,dlen)
       do np=1,npmax
          vparae(np)=vye(np)
          vperpe(np)=SQRT(vxe(np)**2+vze(np)**2)
@@ -179,17 +182,25 @@ CONTAINS
          xb(np) = x(np) - vx(np) * dt
          yb(np) = y(np) - vy(np) * dt
          zb(np) = z(np) - vz(np) * dt
-       IF( xb(np) .LT. x1 ) THEN
-             xb(np) = xb(np) + alx
-       ELSEIF( xb(np) .GT. x2 ) THEN
-             xb(np) = xb(np) - alx
-       ENDIF
+         IF( xb(np) .LT. x1 ) THEN
+            DO WHILE(xb(np) .LT. x1)
+               xb(np) = xb(np) + alx
+            END DO
+         ELSEIF( xb(np) .GT. x2 ) THEN
+            DO WHILE(xb(np) .GT. x2)
+               xb(np) = xb(np) - alx
+            END DO
+         ENDIF
 
-       IF( yb(np) .LT. y1 ) THEN
-             yb(np) = yb(np) + aly
-       ELSEIF( yb(np) .GT. y2 ) THEN
-             yb(np) = yb(np) - aly
-       ENDIF
+         IF( yb(np) .LT. y1 ) THEN
+            DO WHILE(yb(np) .LT. y1)
+               yb(np) = yb(np) + aly
+            END DO
+         ELSEIF( yb(np) .GT. y2 ) THEN
+            DO WHILE(yb(np) .GT. y2)
+               yb(np) = yb(np) - aly
+            END DO
+         ENDIF
       end do
       end do
    else ! subroutine for density gradient
@@ -202,7 +213,7 @@ CONTAINS
                   + inter * (1.0d0 - densx * (dble(npx) - 1.0d0)/dble(npxmax))
          x(np) = position
          y(np) = (dble(npy) - 0.5d0 ) * facty
-         
+
          call gauss(rvx,rvy,rvz,iran)
          vx(np) = rvx * vt
          vy(np) = rvy * vt

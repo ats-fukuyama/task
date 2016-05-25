@@ -68,15 +68,15 @@ CONTAINS
        !$omp end parallel do
        !----- calculate electric field
        ipssn = 1
-       IF(model_boundary.EQ.0) THEN
-          CALL poisson_f(nxmax,nymax,nxmaxh1,nxmax1,nymax1, &
-               rho,phi,rhof,phif,awk,afwk,cform,ipssn)
-       ELSE
-          CALL poisson_m(nxmax1,nymax1,rho,phi,ipssn, &
-                model_matrix0,model_matrix1,model_matrix2, &
-                tolerance_matrix,model_boundary,dlen)
-          CALL MPI_Bcast(phi,nxymax,MPI_REAL8,0,ncomm,ierr)
-       END IF
+        ! IF(model_boundary.EQ.0) THEN
+        !    CALL poisson_f(nxmax,nymax,nxmaxh1,nxmax1,nymax1, &
+        !         rho,phi,rhof,phif,awk,afwk,cform,ipssn)
+        ! ELSE
+        !    CALL poisson_m(nxmax1,nymax1,rho,phi,ipssn, &
+        !          model_matrix0,model_matrix1,model_matrix2, &
+        !          tolerance_matrix,model_boundary,dlen)
+        !    CALL MPI_Bcast(phi,nxymax,MPI_REAL8,0,ncomm,ierr)
+        ! END IF
        !IF(model_boundary.EQ.2) THEN
         !  CALL absorb_phi(nxmax,nymax,phi,phib,phibb,dt,vcfact)
        !ENDIF
@@ -120,22 +120,22 @@ CONTAINS
        END DO
        !$omp end parallel do
        !.......... calculate vector potential
-       IF(model_boundary .EQ. 0) THEN
-          CALL vector_p_periodic(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
-               Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
-       ELSE
-          CALL vector_p_reflective(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
-               Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
-               model_wg,xmin_wg,xmax_wg,ymin_wg,ymax_wg, &
-               amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi,&
-               model_boundary,dlen)
-       ENDIF
+        ! IF(model_boundary .EQ. 0) THEN
+        !    CALL vector_p_periodic(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
+        !         Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
+        ! ELSE
+        !    CALL vector_p_reflective(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
+        !         Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
+        !         model_wg,xmin_wg,xmax_wg,ymin_wg,ymax_wg, &
+        !         amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi,&
+        !         model_boundary,dlen)
+        ! ENDIF
        !.......... calculate ex and ey and ez
        CALL efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
-            ex,ey,ez,esx,esy,esz,emx,emy,emz,model_push,model_boundary)
+            ex,ey,ez,bxb,byb,bzb,esx,esy,esz,emx,emy,emz,jx,jy,jz,vcfact,model_push,model_boundary)
        !.......... calculate bxg and byg and bzg
-       CALL bfield(nxmax,nymax,Ax,Ay,Az,Axb,Ayb,Azb, &
-            bx,by,bz,bxbg,bybg,bzbg,bb, model_push,model_boundary,dlen)
+       CALL bfield(nxmax,nymax,dt,Ax,Ay,Az,Axb,Ayb,Azb,ex,ey,ez, &
+            bx,by,bz,bxb,byb,bzb,bxbg,bybg,bzbg,bb,vcfact,model_push,model_boundary,dlen)
        IF( MOD(nt,ntgstep) .EQ. 0 ) THEN
           CALL kine(npmax,vxe,vye,vze,akine1,me,vcfact)
           CALL kine(npmax,vxi,vyi,vzi,akini1,mi,vcfact)
@@ -394,8 +394,8 @@ CONTAINS
   END SUBROUTINE pic_expand_storage
 
   !***********************************************************************
-  SUBROUTINE push(npmax,nxmax,nymax,x,y,z,vx,vy,vz,ex,ey,ez,bx,by,bz,dt,&
-       ctom,xb,yb,zb,vpara,vperp,model_boundary,vcfact)
+  SUBROUTINE push(npmax,nxmax,nymax,x,y,z,vx,vy,vz,ex,ey,ez,bx,by,bz,&
+                dt,ctom,xb,yb,zb,vpara,vperp,model_boundary,vcfact)
     !***********************************************************************
     IMPLICIT NONE
     REAL(8), DIMENSION(npmax) :: x, y, z, xb, yb, zb
@@ -403,11 +403,11 @@ CONTAINS
     REAL(8), DIMENSION(0:nxmax,0:nymax) :: ex, ey, ez, bx, by, bz
     REAL(8) :: ctom, dx, dy, dx1, dy1, dt, exx, eyy, ezz, bxx,&
          byy, bzz, vxm, vym, vzm, vxzero, vyzero, vzzero, vxp, vyp,&
-         vzp, sx1p, sx1m, sy1p, sy1m, sx2, sy2, sx2p, sx2m, sy2m, sy2p
+         vzp, sx2, sy2, sx2p, sx2m, sy2m, sy2p
     REAL(8) :: btot, vtot, bb2 ,vcfact, gamma
     INTEGER :: npmax, nxmax, nymax, model_boundary
-    INTEGER :: np, nx, ny, nxp, nyp, nxpp, nxpm, nypp, nypm, nxppp, nyppp
-    !$omp parallel do Private (nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2m,sx2,sx2p,sy2m,sy2,sy2p,exx,eyy,ezz,bxx,byy,bzz,vxm,vym,vzm,vxzero,vyzero,vzzero,gamma,vtot,bb2,btot)
+    INTEGER :: np, nxp, nyp, nxpp, nxpm, nypp, nypm, nxppp, nyppp
+    !!$omp parallel do Private(nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2m,sx2,sx2p,sy2m,sy2,sy2p,exx,eyy,ezz,bxx,byy,bzz,vxm,vym,vzm,vxzero,vyzero,vzzero,gamma,btot,vtot,bb2)
 
     DO np = 1, npmax
 
@@ -503,6 +503,7 @@ CONTAINS
 
           bzz = bz(nxp,nyp)*dx*dy + bz(nxpm,nyp)*dx1*dy &
               + bz(nxp,nypm)*dx*dy1 + bz(nxpm,nypm)*dx1*dy1
+
 
        ELSE IF(dx .LE. 0.5d0 .AND. dy .GE. 0.5d0) THEN
           dx = dx + 0.5d0
@@ -684,7 +685,7 @@ CONTAINS
        END IF
 
     END DO
-  !$omp end parallel do
+  !!$omp end parallel do
   END SUBROUTINE push
 
   !***********************************************************************
