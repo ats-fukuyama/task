@@ -38,20 +38,20 @@ CONTAINS
     DO nt = 1, ntmax
        time = time + dt
        ntcount = ntcount + 1
-       !$omp parallel do
-       DO nx = 0, nxmax
-          DO ny = 0, nymax
-             Axbb(nx,ny) = Axb(nx,ny)
-             Aybb(nx,ny) = Ayb(nx,ny)
-             Azbb(nx,ny) = Azb(nx,ny)
-             Axb(nx,ny)  = Ax(nx,ny)
-             Ayb(nx,ny)  = Ay(nx,ny)
-             Azb(nx,ny)  = Az(nx,ny)
-             phibb(nx,ny) = phib(nx,ny)
-             phib(nx,ny) = phi(nx,ny)
-          END DO
-       END DO
-       !$omp end parallel do
+      ! !$omp parallel do
+      ! DO nx = 0, nxmax
+      !    DO ny = 0, nymax
+      !       Axbb(nx,ny) = Axb(nx,ny)
+      !       Aybb(nx,ny) = Ayb(nx,ny)
+      !       Azbb(nx,ny) = Azb(nx,ny)
+      !       Axb(nx,ny)  = Ax(nx,ny)
+      !       Ayb(nx,ny)  = Ay(nx,ny)
+      !       Azb(nx,ny)  = Az(nx,ny)
+      !       phibb(nx,ny) = phib(nx,ny)
+      !       phib(nx,ny) = phi(nx,ny)
+      !    END DO
+      ! END DO
+      !!$omp end parallel do
        !----- charge assignment
        rho(:,:)=0.0d0
        CALL source(npmax,nxmax,nymax,xe,ye,rho,chrge,model_boundary)

@@ -352,12 +352,12 @@ CONTAINS
             !emy(nx,ny) = - ( Ay(nx,ny) - Ayb(nx,ny) ) / dt
             !emz(nx,ny) = - ( Az(nx,ny) - Azb(nx,ny) ) / dt
 
-            esx(nx,ny)=esx(nx,ny) - dt * jx(nx,ny)
-            esy(nx,ny)=esy(nx,ny) - dt * jy(nx,ny)
-            esz(nx,ny)=esz(nx,ny) - dt * jz(nx,ny)
-            emx(nx,ny)=dt/vcfact**2*(bzb(nx,ny)-bzb(nx,nym))
-            emy(nx,ny)=dt/vcfact**2*(bzb(nxm,ny)-bzb(nx,ny))
-            emz(nx,ny)=dt/vcfact**2*(byb(nxp,ny)-byb(nx,ny)-bxb(nx,nyp)+bxb(nx,ny))
+            esx(nx,ny)=ex(nx,ny) - dt * jx(nx,ny)
+            esy(nx,ny)=ey(nx,ny) - dt * jy(nx,ny)
+            esz(nx,ny)=ez(nx,ny) - dt * jz(nx,ny)
+            emx(nx,ny)=dt*vcfact**2*(bzb(nx,ny)-bzb(nx,nym))
+            emy(nx,ny)=dt*vcfact**2*(bzb(nxm,ny)-bzb(nx,ny))
+            emz(nx,ny)=dt*vcfact**2*(byb(nx,ny)-byb(nxm,ny)-bxb(nx,ny)+bxb(nx,nym))
 
           END DO
        END DO
@@ -383,12 +383,12 @@ CONTAINS
             !  emx(nx,ny) = - ( Ax(nx,ny) - Axb(nx,ny) ) / dt
             !  emy(nx,ny) = - ( Ay(nx,ny) - Ayb(nx,ny) ) / dt
             !  emz(nx,ny) = - ( Az(nx,ny) - Azb(nx,ny) ) / dt
-            esx(nx,ny)=esx(nx,ny) - dt * jx(nx,ny)
-            esy(nx,ny)=esy(nx,ny) - dt * jy(nx,ny)
-            esz(nx,ny)=esz(nx,ny) - dt * jz(nx,ny)
+            esx(nx,ny)=ex(nx,ny) - dt * jx(nx,ny)
+            esy(nx,ny)=ey(nx,ny) - dt * jy(nx,ny)
+            esz(nx,ny)=ez(nx,ny) - dt * jz(nx,ny)
             emx(nx,ny)=dt*vcfact**2*(bzb(nx,ny)-bzb(nx,nym))
             emy(nx,ny)=dt*vcfact**2*(bzb(nxm,ny)-bzb(nx,ny))
-            emz(nx,ny)=dt*vcfact**2*(byb(nxp,ny)-byb(nx,ny)-bxb(nx,nyp)+bxb(nx,ny))
+            emz(nx,ny)=dt*vcfact**2*(byb(nx,ny)-byb(nxm,ny)-bxb(nx,ny)+bxb(nx,nym))
 
           END DO
        END DO
@@ -514,8 +514,8 @@ CONTAINS
             !       - (Ax(nx,nyp) + Axb(nx,nyp) &
             !       - Ax(nx,ny) - Axb(nx,ny)))
 
-            bx(nx,ny)=dt*(-ez(nx,ny)+ez(nx,nym))+bxb(nx,ny)
-            by(nx,ny)=dt*(ez(nx,ny)-ez(nxm,ny))+byb(nx,ny)
+            bx(nx,ny)=dt*(-ez(nx,nyp)+ez(nx,ny))+bxb(nx,ny)
+            by(nx,ny)=dt*(ez(nxp,ny)-ez(nx,ny))+byb(nx,ny)
             bz(nx,ny)=dt*(-ey(nxp,ny)+ey(nx,ny)+ex(nx,nyp)-ex(nx,ny))+bzb(nx,ny)
             bxx=bx(nx,ny)
             byy=by(nx,ny)
@@ -551,8 +551,8 @@ CONTAINS
                 !      - Ay(nx,ny) - Ayb(nx,ny) &
                 !      - (Ax(nx,nyp) + Axb(nx,nyp) &
                 !      - Ax(nx,ny) - Axb(nx,ny)))
-                bx(nx,ny)=dt*(-ez(nx,ny)+ez(nx,nym))+bxb(nx,ny)
-                by(nx,ny)=dt*(ez(nx,ny)-ez(nxm,ny))+byb(nx,ny)
+                bx(nx,ny)=dt*(-ez(nx,nyp)+ez(nx,ny))+bxb(nx,ny)
+                by(nx,ny)=dt*(ez(nxp,ny)-ez(nx,ny))+byb(nx,ny)
                 bz(nx,ny)=dt*(-ey(nxp,ny)+ey(nx,ny)+ex(nx,nyp)-ex(nx,ny))+bzb(nx,ny)
                 bxx=bx(nx,ny)
                 byy=by(nx,ny)
