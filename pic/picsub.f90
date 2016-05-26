@@ -345,19 +345,19 @@ CONTAINS
              IF( nx .EQ. nxmax ) nxp = 1
              IF( ny .EQ. 0  )    nym = nymax - 1
              IF( ny .EQ. nymax ) nyp = 1
-            !esx(nx,ny) = phi(nx,ny) - phi(nxp,ny)
-            !esy(nx,ny) = phi(nx,ny) - phi(nx,nyp)
-            !esz(nx,ny) = 0.d0
-            !emx(nx,ny) = - ( Ax(nx,ny) - Axb(nx,ny) ) / dt
-            !emy(nx,ny) = - ( Ay(nx,ny) - Ayb(nx,ny) ) / dt
-            !emz(nx,ny) = - ( Az(nx,ny) - Azb(nx,ny) ) / dt
+            ! esx(nx,ny) = phi(nx,ny) - phi(nxp,ny)
+            ! esy(nx,ny) = phi(nx,ny) - phi(nx,nyp)
+            ! esz(nx,ny) = 0.d0
+            ! emx(nx,ny) = - ( Ax(nx,ny) - Axb(nx,ny) ) / dt
+            ! emy(nx,ny) = - ( Ay(nx,ny) - Ayb(nx,ny) ) / dt
+            ! emz(nx,ny) = - ( Az(nx,ny) - Azb(nx,ny) ) / dt
 
-            esx(nx,ny)=esx(nx,ny) - dt * jx(nx,ny)
-            esy(nx,ny)=esy(nx,ny) - dt * jy(nx,ny)
-            esz(nx,ny)=esz(nx,ny) - dt * jz(nx,ny)
-            emx(nx,ny)=dt/vcfact**2*(bzb(nx,ny)-bzb(nx,nym))
-            emy(nx,ny)=dt/vcfact**2*(bzb(nxm,ny)-bzb(nx,ny))
-            emz(nx,ny)=dt/vcfact**2*(byb(nxp,ny)-byb(nx,ny)-bxb(nx,nyp)+bxb(nx,ny))
+             esx(nx,ny)=ex(nx,ny) - dt * jx(nx,ny)
+             esy(nx,ny)=ey(nx,ny) - dt * jy(nx,ny)
+             esz(nx,ny)=ez(nx,ny) - dt * jz(nx,ny)
+             emx(nx,ny)=dt*vcfact**2*(bzb(nx,ny)-bzb(nx,nym))
+             emy(nx,ny)=dt*vcfact**2*(bzb(nxm,ny)-bzb(nx,ny))
+             emz(nx,ny)=dt*vcfact**2*(byb(nx,ny)-byb(nxm,ny)-bxb(nx,ny)+bxb(nx,nym))
 
           END DO
        END DO
@@ -376,19 +376,18 @@ CONTAINS
              IF( nx .EQ. nxmax ) nxp = nxmax
              IF( ny .EQ. 0  )    nym = 0
              IF( ny .EQ. nymax ) nyp = nymax
-
             !  esx(nx,ny) = phi(nx,ny) - phi(nxp,ny)
             !  esy(nx,ny) = phi(nx,ny) - phi(nx,nyp)
             !  esz(nx,ny) = 0.d0
             !  emx(nx,ny) = - ( Ax(nx,ny) - Axb(nx,ny) ) / dt
             !  emy(nx,ny) = - ( Ay(nx,ny) - Ayb(nx,ny) ) / dt
             !  emz(nx,ny) = - ( Az(nx,ny) - Azb(nx,ny) ) / dt
-            esx(nx,ny)=esx(nx,ny) - dt * jx(nx,ny)
-            esy(nx,ny)=esy(nx,ny) - dt * jy(nx,ny)
-            esz(nx,ny)=esz(nx,ny) - dt * jz(nx,ny)
+            esx(nx,ny)=ex(nx,ny) - dt * jx(nx,ny)
+            esy(nx,ny)=ey(nx,ny) - dt * jy(nx,ny)
+            esz(nx,ny)=ez(nx,ny) - dt * jz(nx,ny)
             emx(nx,ny)=dt*vcfact**2*(bzb(nx,ny)-bzb(nx,nym))
             emy(nx,ny)=dt*vcfact**2*(bzb(nxm,ny)-bzb(nx,ny))
-            emz(nx,ny)=dt*vcfact**2*(byb(nxp,ny)-byb(nx,ny)-bxb(nx,nyp)+bxb(nx,ny))
+            emz(nx,ny)=dt*vcfact**2*(byb(nx,ny)-byb(nxm,ny)-bxb(nx,ny)+bxb(nx,nym))
 
           END DO
        END DO
@@ -402,18 +401,22 @@ CONTAINS
        !  esy(nx,0) = -0.5d0 * phi(nx,1)
        !  esy(nx,nymax) = 0.5d0 * phi(nx,nymax-1)
        !ENDDO
-       esx(:,0) = 0.d0
-       esx(:,nymax) = 0.d0
-       esy(0,:) = 0.d0
-       esy(nxmax,:) = 0.d0
-       emx(:,0) = 0.d0
-       emx(:,nymax) = 0.d0
-       emy(0,:) = 0.d0
-       emy(nxmax,:) = 0.d0
-       emz(:,0) = 0.d0
-       emz(:,nymax) = 0.d0
-       emz(0,:) = 0.d0
-       emz(nxmax,:) = 0.d0
+      !  esx(:,0) = 0.d0
+      !  esx(:,nymax) = 0.d0
+      !  esy(0,:) = 0.d0
+      !  esy(nxmax,:) = 0.d0
+      !  esz(:,0) = 0.d0
+      !  esz(:,nymax) = 0.d0
+      !  esz(0,:) = 0.d0
+      !  esz(nxmax,:) = 0.d0
+      !  emx(:,0) = 0.d0
+      !  emx(:,nymax) = 0.d0
+      !  emy(0,:) = 0.d0
+      !  emy(nxmax,:) = 0.d0
+      !  emz(:,0) = 0.d0
+      !  emz(:,nymax) = 0.d0
+      !  emz(0,:) = 0.d0
+      !  emz(nxmax,:) = 0.d0
 
     END IF
 
@@ -505,17 +508,17 @@ CONTAINS
              IF( ny .EQ. 0  )    nym = nymax - 1
              IF( ny .EQ. nymax ) nyp = 1
 
-            !  bx(nx,ny) = 0.5d0 * (Az(nx,nyp) + Azb(nx,nyp) &
-            !       - Az(nx,ny) - Azb(nx,ny))
-            !  by(nx,ny) = - 0.5d0 * (Az(nxp,ny) + Azb(nxp,ny) &
-            !       - Az(nx,ny) - Azb(nx,ny))
-            !  bz(nx,ny) = 0.5d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
-            !       - Ay(nx,ny) - Ayb(nx,ny) &
-            !       - (Ax(nx,nyp) + Axb(nx,nyp) &
-            !       - Ax(nx,ny) - Axb(nx,ny)))
+              ! bx(nx,ny) = 0.5d0 * (Az(nx,nyp) + Azb(nx,nyp) &
+              !      - Az(nx,ny) - Azb(nx,ny))
+              ! by(nx,ny) = - 0.5d0 * (Az(nxp,ny) + Azb(nxp,ny) &
+              !      - Az(nx,ny) - Azb(nx,ny))
+              ! bz(nx,ny) = 0.5d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
+              !      - Ay(nx,ny) - Ayb(nx,ny) &
+              !      - (Ax(nx,nyp) + Axb(nx,nyp) &
+              !      - Ax(nx,ny) - Axb(nx,ny)))
 
-            bx(nx,ny)=dt*(-ez(nx,ny)+ez(nx,nym))+bxb(nx,ny)
-            by(nx,ny)=dt*(ez(nx,ny)-ez(nxm,ny))+byb(nx,ny)
+            bx(nx,ny)=dt*(-ez(nx,nyp)+ez(nx,ny))+bxb(nx,ny)
+            by(nx,ny)=dt*(ez(nxp,ny)-ez(nx,ny))+byb(nx,ny)
             bz(nx,ny)=dt*(-ey(nxp,ny)+ey(nx,ny)+ex(nx,nyp)-ex(nx,ny))+bzb(nx,ny)
             bxx=bx(nx,ny)
             byy=by(nx,ny)
@@ -551,8 +554,8 @@ CONTAINS
                 !      - Ay(nx,ny) - Ayb(nx,ny) &
                 !      - (Ax(nx,nyp) + Axb(nx,nyp) &
                 !      - Ax(nx,ny) - Axb(nx,ny)))
-                bx(nx,ny)=dt*(-ez(nx,ny)+ez(nx,nym))+bxb(nx,ny)
-                by(nx,ny)=dt*(ez(nx,ny)-ez(nxm,ny))+byb(nx,ny)
+                bx(nx,ny)=dt*(-ez(nx,nyp)+ez(nx,ny))+bxb(nx,ny)
+                by(nx,ny)=dt*(ez(nxp,ny)-ez(nx,ny))+byb(nx,ny)
                 bz(nx,ny)=dt*(-ey(nxp,ny)+ey(nx,ny)+ex(nx,nyp)-ex(nx,ny))+bzb(nx,ny)
                 bxx=bx(nx,ny)
                 byy=by(nx,ny)
