@@ -68,15 +68,15 @@ CONTAINS
        !$omp end parallel do
        !----- calculate electric field
        ipssn = 1
-        ! IF(model_boundary.EQ.0) THEN
-        !    CALL poisson_f(nxmax,nymax,nxmaxh1,nxmax1,nymax1, &
-        !         rho,phi,rhof,phif,awk,afwk,cform,ipssn)
-        ! ELSE
-        !    CALL poisson_m(nxmax1,nymax1,rho,phi,ipssn, &
-        !          model_matrix0,model_matrix1,model_matrix2, &
-        !          tolerance_matrix,model_boundary,dlen)
-        !    CALL MPI_Bcast(phi,nxymax,MPI_REAL8,0,ncomm,ierr)
-        ! END IF
+        !  IF(model_boundary.EQ.0) THEN
+        !     CALL poisson_f(nxmax,nymax,nxmaxh1,nxmax1,nymax1, &
+        !          rho,phi,rhof,phif,awk,afwk,cform,ipssn)
+        !  ELSE
+        !     CALL poisson_m(nxmax1,nymax1,rho,phi,ipssn, &
+        !           model_matrix0,model_matrix1,model_matrix2, &
+        !           tolerance_matrix,model_boundary,dlen)
+        !     CALL MPI_Bcast(phi,nxymax,MPI_REAL8,0,ncomm,ierr)
+        !  END IF
        !IF(model_boundary.EQ.2) THEN
         !  CALL absorb_phi(nxmax,nymax,phi,phib,phibb,dt,vcfact)
        !ENDIF
@@ -93,7 +93,7 @@ CONTAINS
                omega,time,jx,jy,jz)
        END IF
 
-       CALL boundary_j(nxmax,nymax,jx,jy,jz,model_boundary)
+       !CALL boundary_j(nxmax,nymax,jx,jy,jz,model_boundary)
        !..... sum current densities over cores
        CALL mtx_allreduce_real8(jx,nxymax,3,suma,locva)
        !$omp parallel do
@@ -120,16 +120,16 @@ CONTAINS
        END DO
        !$omp end parallel do
        !.......... calculate vector potential
-        ! IF(model_boundary .EQ. 0) THEN
-        !    CALL vector_p_periodic(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
-        !         Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
-        ! ELSE
-        !    CALL vector_p_reflective(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
-        !         Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
-        !         model_wg,xmin_wg,xmax_wg,ymin_wg,ymax_wg, &
-        !         amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi,&
-        !         model_boundary,dlen)
-        ! ENDIF
+        !  IF(model_boundary .EQ. 0) THEN
+        !     CALL vector_p_periodic(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
+        !          Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
+        !  ELSE
+        !     CALL vector_p_reflective(nxmax,nymax,vcfact,dt,phi,phib,jx,jy,jz, &
+        !          Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb, &
+        !          model_wg,xmin_wg,xmax_wg,ymin_wg,ymax_wg, &
+        !          amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi,&
+        !          model_boundary,dlen)
+        !  ENDIF
        !.......... calculate ex and ey and ez
        CALL efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
             ex,ey,ez,bxb,byb,bzb,esx,esy,esz,emx,emy,emz,jx,jy,jz,vcfact,model_push,model_boundary)
@@ -1066,28 +1066,28 @@ CONTAINS
           dy = dy + 0.5d0
           dy1 = dy1 - 0.5d0
          ! use Mirror image method
-         IF(model_boundary .NE. 0 .AND. nxp .EQ. 0)  THEN
-           sx2p = sx2p - sx2m
-           sx2  = 0.d0
-           sx2m = 0.d0
-           dx1 = 2.0d0 * dx1
-        ELSE IF(model_boundary .NE. 0 .AND. nxp .EQ. nxmax-1)  THEN
-             sx2p = 0.d0
-             sx2m = sx2m
-             sx2 = sx2
-             dx = 2.0d0 * dx
-           ENDIF
-         IF(model_boundary .NE. 0 .AND. nyp .EQ. 0) THEN
-           sy2p = sy2p - sy2m
-           sy2 = 0.d0
-           sy2m = 0.d0
-           dy1 = 2.0d0 * dy1
-       ELSE IF(model_boundary .NE. 0 .AND. nyp .EQ. nymax-1) THEN
-         sy2p = 0.d0
-         sy2m = sy2m
-         sy2 = sy2
-         dy = 2.0d0 * dy
-       ENDIF
+          IF(model_boundary .NE. 0 .AND. nxp .EQ. 0)  THEN
+      !      !sx2p = sx2p - sx2m
+      !      sx2  = 0.d0
+      !      sx2m = 0.d0
+      !      !dx1 = 2.0d0 * dx1
+      !   ELSE IF(model_boundary .NE. 0 .AND. nxp .EQ. nxmax-1)  THEN
+      !        sx2p = 0.d0
+      !        sx2m = sx2m
+      !        sx2 = sx2
+      !        !dx = 2.0d0 * dx
+      !      ENDIF
+      !    IF(model_boundary .NE. 0 .AND. nyp .EQ. 0) THEN
+      !      !sy2p = sy2p - sy2m
+      !      sy2 = 0.d0
+      !      sy2m = 0.d0
+      !      !dy1 = 2.0d0 * dy1
+      !  ELSE IF(model_boundary .NE. 0 .AND. nyp .EQ. nymax-1) THEN
+      !    sy2p = 0.d0
+      !    sy2m = sy2m
+      !    sy2 = sy2
+      !    !dy = 2.0d0 * dy
+        ENDIF
            jx(nxp,nyp ) = jx(nxp,nyp ) + factor * vx(np) * sy2  * dx
            jx(nxp,nypp) = jx(nxp,nypp) + factor * vx(np) * sy2p * dx
            jx(nxp,nypm) = jx(nxp,nypm) + factor * vx(np) * sy2m * dx
@@ -1117,28 +1117,28 @@ CONTAINS
           dx1 = dx1 - 0.5d0
           dy = dy - 0.5d0
           dy1 = dy1 + 0.5d0
-         IF(model_boundary .NE. 0 .AND. nxp .EQ. 0)  THEN
-           sx2p = sx2p - sx2m
-           sx2  = 0.d0
-           sx2m = 0.d0
-           dx1 = 2.0d0 * dx1
-         ELSE IF(model_boundary .NE. 0 .AND. nxp .EQ. nxmax-1)  THEN
-           sx2p = 0.d0
-           sx2m = sx2m
-           sx2 = sx2
-           dx = 2.0d0 * dx
-         ENDIF
-         IF(model_boundary .NE. 0 .AND. nyp .EQ. nymax-1) THEN
-           sy2m = sy2m - sy2p
-           sy2 = 0.d0
-           sy2p = 0.d0
-           dy = 2.0d0 * dy
-         ELSE IF(model_boundary .NE. 0 .AND. nyp .EQ. 0) THEN
-           sy2p = sy2p
-           sy2m = 0.d0
-           sy2 = sy2
-           dy1 = 2.0d0 * dy1
-         ENDIF
+          IF(model_boundary .NE. 0 .AND. nxp .EQ. 0)  THEN
+        !    !sx2p = sx2p - sx2m
+        !    sx2  = 0.d0
+        !    sx2m = 0.d0
+        !    !dx1 = 2.0d0 * dx1
+        !  ELSE IF(model_boundary .NE. 0 .AND. nxp .EQ. nxmax-1)  THEN
+        !    sx2p = 0.d0
+        !    sx2m = sx2m
+        !    sx2 = sx2
+        !    !dx = 2.0d0 * dx
+        !  ENDIF
+        !  IF(model_boundary .NE. 0 .AND. nyp .EQ. nymax-1) THEN
+        !    !sy2m = sy2m - sy2p
+        !    sy2 = 0.d0
+        !    sy2p = 0.d0
+        !    !dy = 2.0d0 * dy
+        !  ELSE IF(model_boundary .NE. 0 .AND. nyp .EQ. 0) THEN
+        !    sy2p = sy2p
+        !    sy2m = 0.d0
+        !    sy2 = sy2
+        !    !dy1 = 2.0d0 * dy1
+          ENDIF
           jx(nxp,nypp ) = jx(nxp,nypp ) + factor * vx(np) * sy2  * dx
           jx(nxp,nyppp) = jx(nxp,nyppp) + factor * vx(np) * sy2p * dx
           jx(nxp,nyp  ) = jx(nxp,nyp  ) + factor * vx(np) * sy2m * dx
@@ -1168,28 +1168,28 @@ CONTAINS
           dx1 = dx1 + 0.5d0
           dy = dy + 0.5d0
           dy1 = dy1 - 0.5d0
-         IF(model_boundary .NE. 0 .AND. nxp .EQ. nxmax-1)  THEN
-           sx2m = sx2m - sx2p
-           sx2 = 0.d0
-           sx2p = 0.d0
-           dx = 2.0d0 * dx
-         ELSE IF(model_boundary .NE. 0 .AND. nxp .EQ. 0) THEN
-           sx2p = sx2p
-           sx2m = 0.d0
-           sx2 = sx2
-           dx1 = 2.0d0 * dx1
-         ENDIF
-         IF(model_boundary .NE. 0 .AND. nyp .EQ. 0) THEN
-           sy2p = sy2p - sy2m
-           sy2 = 0.d0
-           sy2m = 0.d0
-           dy1 = 2.0d0 * dy1
-         ELSE IF(model_boundary .NE. 0 .AND. nyp .EQ. nymax-1) THEN
-           sy2p = 0.d0
-           sy2m = sy2m
-           sy2 = sy2
-           dy = 2.0d0 * dy
-         ENDIF
+          IF(model_boundary .NE. 0 .AND. nxp .EQ. nxmax-1)  THEN
+        !    !sx2m = sx2m - sx2p
+        !    sx2 = 0.d0
+        !    sx2p = 0.d0
+        !    !dx = 2.0d0 * dx
+        !  ELSE IF(model_boundary .NE. 0 .AND. nxp .EQ. 0) THEN
+        !    sx2p = sx2p
+        !    sx2m = 0.d0
+        !    sx2 = sx2
+        !    !dx1 = 2.0d0 * dx1
+        !  ENDIF
+        !  IF(model_boundary .NE. 0 .AND. nyp .EQ. 0) THEN
+        !    !sy2p = sy2p - sy2m
+        !    sy2 = 0.d0
+        !    sy2m = 0.d0
+        !    !dy1 = 2.0d0 * dy1
+        !  ELSE IF(model_boundary .NE. 0 .AND. nyp .EQ. nymax-1) THEN
+        !    sy2p = 0.d0
+        !    sy2m = sy2m
+        !    sy2 = sy2
+        !    !dy = 2.0d0 * dy
+          ENDIF
           jx(nxpp,nyp ) = jx(nxpp,nyp ) + factor * vx(np) * sy2  * dx
           jx(nxpp,nypp) = jx(nxpp,nypp) + factor * vx(np) * sy2p * dx
           jx(nxpp,nypm) = jx(nxpp,nypm) + factor * vx(np) * sy2m * dx
@@ -1219,28 +1219,28 @@ CONTAINS
           dx1 = dx1 + 0.5d0
           dy = dy - 0.5d0
           dy1 = dy1 + 0.5d0
-         IF(model_boundary .NE. 0 .AND. nxp .EQ. nxmax-1) THEN
-           sx2m = sx2m - sx2p
-           sx2 = 0.d0
-           sx2p = 0.d0
-           dx = 2.0d0 * dx
-         ELSE IF(model_boundary .NE. 0 .AND. nxp .EQ. 0) THEN
-           sx2p = sx2p
-           sx2m = 0.d0
-           sx2 = sx2
-           dx1 = 2.0d0 * dx1
-         ENDIF
-         IF(model_boundary .NE. 0 .AND. nyp .EQ. nymax-1) THEN
-           sy2m = sy2m - sy2p
-           sy2 = 0.d0
-           sy2p = 0.d0
-           dy = 2.0d0 * dy
-         ELSE IF(model_boundary .NE. 0 .AND. nyp .EQ. 0) THEN
-           sy2p = sy2p
-           sy2m = 0.d0
-           sy2 = sy2
-           dy1 = 2.0d0 * dy1
-         ENDIF
+          IF(model_boundary .NE. 0 .AND. nxp .EQ. nxmax-1) THEN
+        !    sx2m = sx2m - sx2p
+        !    sx2 = 0.d0
+        !    sx2p = 0.d0
+        !    dx = 2.0d0 * dx
+        !  ELSE IF(model_boundary .NE. 0 .AND. nxp .EQ. 0) THEN
+        !    sx2p = sx2p
+        !    sx2m = 0.d0
+        !    sx2 = sx2
+        !    dx1 = 2.0d0 * dx1
+        !  ENDIF
+        !  IF(model_boundary .NE. 0 .AND. nyp .EQ. nymax-1) THEN
+        !    !sy2m = sy2m - sy2p
+        !    sy2 = 0.d0
+        !    sy2p = 0.d0
+        !    dy = 2.0d0 * dy
+        !  ELSE IF(model_boundary .NE. 0 .AND. nyp .EQ. 0) THEN
+        !    sy2p = sy2p
+        !    sy2m = 0.d0
+        !    sy2 = sy2
+        !    dy1 = 2.0d0 * dy1
+          ENDIF
           jx(nxpp,nypp ) = jx(nxpp,nypp ) + factor * vx(np) * sy2  * dx
           jx(nxpp,nyppp) = jx(nxpp,nyppp) + factor * vx(np) * sy2p * dx
           jx(nxpp,nyp  ) = jx(nxpp,nyp  ) + factor * vx(np) * sy2m * dx

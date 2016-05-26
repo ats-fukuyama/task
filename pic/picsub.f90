@@ -345,38 +345,37 @@ CONTAINS
              IF( nx .EQ. nxmax ) nxp = 1
              IF( ny .EQ. 0  )    nym = nymax - 1
              IF( ny .EQ. nymax ) nyp = 1
-            !esx(nx,ny) = phi(nx,ny) - phi(nxp,ny)
-            !esy(nx,ny) = phi(nx,ny) - phi(nx,nyp)
-            !esz(nx,ny) = 0.d0
-            !emx(nx,ny) = - ( Ax(nx,ny) - Axb(nx,ny) ) / dt
-            !emy(nx,ny) = - ( Ay(nx,ny) - Ayb(nx,ny) ) / dt
-            !emz(nx,ny) = - ( Az(nx,ny) - Azb(nx,ny) ) / dt
+            ! esx(nx,ny) = phi(nx,ny) - phi(nxp,ny)
+            ! esy(nx,ny) = phi(nx,ny) - phi(nx,nyp)
+            ! esz(nx,ny) = 0.d0
+            ! emx(nx,ny) = - ( Ax(nx,ny) - Axb(nx,ny) ) / dt
+            ! emy(nx,ny) = - ( Ay(nx,ny) - Ayb(nx,ny) ) / dt
+            ! emz(nx,ny) = - ( Az(nx,ny) - Azb(nx,ny) ) / dt
 
-            esx(nx,ny)=ex(nx,ny) - dt * jx(nx,ny)
-            esy(nx,ny)=ey(nx,ny) - dt * jy(nx,ny)
-            esz(nx,ny)=ez(nx,ny) - dt * jz(nx,ny)
-            emx(nx,ny)=dt*vcfact**2*(bzb(nx,ny)-bzb(nx,nym))
-            emy(nx,ny)=dt*vcfact**2*(bzb(nxm,ny)-bzb(nx,ny))
-            emz(nx,ny)=dt*vcfact**2*(byb(nx,ny)-byb(nxm,ny)-bxb(nx,ny)+bxb(nx,nym))
+             esx(nx,ny)=ex(nx,ny) - dt * jx(nx,ny)
+             esy(nx,ny)=ey(nx,ny) - dt * jy(nx,ny)
+             esz(nx,ny)=ez(nx,ny) - dt * jz(nx,ny)
+             emx(nx,ny)=dt*vcfact**2*(bzb(nx,ny)-bzb(nx,nym))
+             emy(nx,ny)=dt*vcfact**2*(bzb(nxm,ny)-bzb(nx,ny))
+             emz(nx,ny)=dt*vcfact**2*(byb(nx,ny)-byb(nxm,ny)-bxb(nx,ny)+bxb(nx,nym))
 
           END DO
        END DO
       !$omp end parallel do
     ELSE IF (model_boundary .NE. 0) THEN
       !$omp parallel do private(nx,ny,nxm,nym,nxp,nyp)
-       DO nx = 0, nxmax
-          DO ny = 0, nymax
+       DO nx = 1, nxmax
+          DO ny = 1, nymax
 
              nxm = nx - 1
              nxp = nx + 1
              nym = ny - 1
              nyp = ny + 1
 
-             IF( nx .EQ. 0  )    nxm = 0
-             IF( nx .EQ. nxmax ) nxp = nxmax
-             IF( ny .EQ. 0  )    nym = 0
-             IF( ny .EQ. nymax ) nyp = nymax
-
+             !IF( nx .EQ. 0  )    nxm = 0
+             !IF( nx .EQ. nxmax ) nxp = nxmax
+             !IF( ny .EQ. 0  )    nym = 0
+             !IF( ny .EQ. nymax ) nyp = nymax
             !  esx(nx,ny) = phi(nx,ny) - phi(nxp,ny)
             !  esy(nx,ny) = phi(nx,ny) - phi(nx,nyp)
             !  esz(nx,ny) = 0.d0
@@ -394,26 +393,40 @@ CONTAINS
        END DO
       !$omp end parallel do
        !boundary condition for electro static field
-       !DO ny = 1, nymax-1
-       !  esx(0,ny) = -0.5d0 * phi(1,ny)
-       !  esx(nxmax,ny) = 0.5d0 * phi(nxmax-1,ny)
-       !ENDDO
-       !DO nx = 1, nxmax-1
-       !  esy(nx,0) = -0.5d0 * phi(nx,1)
-       !  esy(nx,nymax) = 0.5d0 * phi(nx,nymax-1)
-       !ENDDO
-       esx(:,0) = 0.d0
-       esx(:,nymax) = 0.d0
-       esy(0,:) = 0.d0
-       esy(nxmax,:) = 0.d0
-       emx(:,0) = 0.d0
-       emx(:,nymax) = 0.d0
-       emy(0,:) = 0.d0
-       emy(nxmax,:) = 0.d0
-       emz(:,0) = 0.d0
-       emz(:,nymax) = 0.d0
-       emz(0,:) = 0.d0
-       emz(nxmax,:) = 0.d0
+       DO ny = 1, nymax-1
+         nym = ny - 1
+         esx(0,ny) = ex(0,ny) - dt * jx(0,ny)
+         esy(0,ny) = ey(0,ny) - dt * jy(0,ny)
+         esz(0,ny) = ez(0,ny) - dt * jz(0,ny)
+         emx(0,ny) = dt*vcfact**2*(bzb(0,ny)-bzb(nx,nym))
+         emy(0,ny) = - dt*vcfact**2*bzb(0,ny)
+         emz(0,ny) = dt*vcfact**2*(byb(0,ny)-bxb(0,ny)+bxb(0,nym))
+       ENDDO
+       DO nx = 1, nxmax-1
+         nxm = nx - 1
+         esx(nx,0) = ex(nx,0) - dt * jx(nx,0)
+         esy(nx,0) = ey(nx,0) - dt * jy(nx,0)
+         esz(nx,0) = ez(nx,0) - dt * jz(nx,0)
+         emx(nx,0) = dt*vcfact**2*bzb(nx,0)
+         emy(nx,0) = dt*vcfact**2*(bzb(nxm,0)-bzb(nx,0))
+         emz(nx,0) = dt*vcfact**2*(byb(nx,0)-bxb(nx,0)-byb(nxm,0))
+       ENDDO
+        esx(:,0) = 0.d0
+        esx(:,nymax) = 0.d0
+        esy(0,:) = 0.d0
+        esy(nxmax,:) = 0.d0
+        esz(:,0) = 0.d0
+        esz(:,nymax) = 0.d0
+        esz(0,:) = 0.d0
+        esz(nxmax,:) = 0.d0
+        emx(:,0) = 0.d0
+        emx(:,nymax) = 0.d0
+        emy(0,:) = 0.d0
+        emy(nxmax,:) = 0.d0
+        emz(:,0) = 0.d0
+        emz(:,nymax) = 0.d0
+        emz(0,:) = 0.d0
+        emz(nxmax,:) = 0.d0
 
     END IF
 
@@ -505,14 +518,14 @@ CONTAINS
              IF( ny .EQ. 0  )    nym = nymax - 1
              IF( ny .EQ. nymax ) nyp = 1
 
-            !  bx(nx,ny) = 0.5d0 * (Az(nx,nyp) + Azb(nx,nyp) &
-            !       - Az(nx,ny) - Azb(nx,ny))
-            !  by(nx,ny) = - 0.5d0 * (Az(nxp,ny) + Azb(nxp,ny) &
-            !       - Az(nx,ny) - Azb(nx,ny))
-            !  bz(nx,ny) = 0.5d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
-            !       - Ay(nx,ny) - Ayb(nx,ny) &
-            !       - (Ax(nx,nyp) + Axb(nx,nyp) &
-            !       - Ax(nx,ny) - Axb(nx,ny)))
+              ! bx(nx,ny) = 0.5d0 * (Az(nx,nyp) + Azb(nx,nyp) &
+              !      - Az(nx,ny) - Azb(nx,ny))
+              ! by(nx,ny) = - 0.5d0 * (Az(nxp,ny) + Azb(nxp,ny) &
+              !      - Az(nx,ny) - Azb(nx,ny))
+              ! bz(nx,ny) = 0.5d0 * (Ay(nxp,ny) + Ayb(nxp,ny) &
+              !      - Ay(nx,ny) - Ayb(nx,ny) &
+              !      - (Ax(nx,nyp) + Axb(nx,nyp) &
+              !      - Ax(nx,ny) - Axb(nx,ny)))
 
             bx(nx,ny)=dt*(-ez(nx,nyp)+ez(nx,ny))+bxb(nx,ny)
             by(nx,ny)=dt*(ez(nxp,ny)-ez(nx,ny))+byb(nx,ny)
@@ -531,17 +544,17 @@ CONTAINS
        !$omp end parallel do
     ELSEIF(model_boundary .NE. 0) THEN
       !$omp parallel do private(nx,ny,nxm,nym,nxp,nyp)
-       DO ny = 0, nymax
-          DO nx = 0, nxmax
+       DO ny = 0, nymax-1
+          DO nx = 0, nxmax-1
              nxm = nx - 1
              nxp = nx + 1
              nym = ny - 1
              nyp = ny + 1
 
-             IF( nx .EQ. 0  )    nxm = 0
-             IF( nx .EQ. nxmax ) nxp = nxmax
-             IF( ny .EQ. 0  )    nym = 0
-             IF( ny .EQ. nymax ) nyp = nymax
+             !IF( nx .EQ. 0  )    nxm = 0
+             !IF( nx .EQ. nxmax ) nxp = nxmax
+             !IF( ny .EQ. 0  )    nym = 0
+             !IF( ny .EQ. nymax ) nyp = nymax
 
                 ! bx(nx,ny) =   0.5d0 * (Az(nx,nyp) + Azb(nx,nyp) &
                 !      - Az(nx,ny) - Azb(nx,ny))
@@ -566,18 +579,36 @@ CONTAINS
           END DO
        END DO
        !$omp end parallel do
-      !  DO ny = 1, nymax-1
-      !    by(0,ny) = 0.5d0 * by(1,ny)
-      !    by(nxmax,ny) = 0.5d0 * by(nxmax-1,ny)
-      !    bz(0,ny) = 0.5d0 * bz(1,ny)
-      !    bz(nxmax,ny) = 0.5d0 * bz(nxmax-1,ny)
-      !  ENDDO
-      !  DO nx = 1, nxmax-1
-      !    bx(nx,0) = 0.5d0 * bx(nx,1)
-      !    bx(nx,nymax) = 0.5d0 * bx(nx,nymax-1)
-      !    bz(nx,0) = 0.5d0 * bz(nx,1)
-      !    bz(nx,nymax) = 0.5d0 * bz(nx,nymax-1)
-      !  ENDDO
+        DO ny = 0, nymax-1
+          nyp = ny + 1
+          bx(nxmax,ny)=dt*(-ez(nxmax,nyp)+ez(nxmax,ny))+bxb(nxmax,ny)
+          by(nxmax,ny)=dt*(ez(nxmax,ny))+byb(nxmax,ny)
+          bz(nxmax,ny)=dt*(ey(nxmax,ny)+ex(nxmax,nyp)-ex(nxmax,ny))+bzb(nxmax,ny)
+          bxx=bx(nxmax,ny)
+          byy=by(nxmax,ny)
+          bzz=bz(nxmax,ny)
+          bx(nxmax,ny)=0.5d0*(bx(nxmax,ny)+bxb(nxmax,ny))
+          by(nxmax,ny)=0.5d0*(by(nxmax,ny)+byb(nxmax,ny))
+          bz(nxmax,ny)=0.5d0*(bz(nxmax,ny)+bzb(nxmax,ny))
+          bxb(nxmax,ny)=bxx
+          byb(nxmax,ny)=byy
+          bzb(nxmax,ny)=bzz
+        ENDDO
+        DO nx = 0, nxmax-1
+          nxp = nx + 1
+          bx(nx,nymax)=dt*(ez(nx,nymax))+bxb(nx,nymax)
+          by(nx,nymax)=dt*(ez(nxp,nymax)-ez(nx,nymax))+byb(nx,nymax)
+          bz(nx,nymax)=dt*(-ey(nxp,nymax)+ey(nx,nymax)-ex(nx,nymax))+bzb(nx,nymax)
+          bxx=bx(nx,nymax)
+          byy=by(nx,nymax)
+          bzz=bz(nx,nymax)
+          bx(nx,nymax)=0.5d0*(bx(nx,nymax)+bxb(nx,nymax))
+          by(nx,nymax)=0.5d0*(by(nx,nymax)+byb(nx,nymax))
+          bz(nx,nymax)=0.5d0*(bz(nx,nymax)+bzb(nx,nymax))
+          bxb(nx,nymax)=bxx
+          byb(nx,nymax)=byy
+          bzb(nx,nymax)=bzz
+        ENDDO
        bx(0,:) = 0.d0
        bx(nxmax,:) = 0.d0
        by(:,0) = 0.d0
