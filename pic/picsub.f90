@@ -372,10 +372,10 @@ CONTAINS
              nym = ny - 1
              nyp = ny + 1
 
-             IF( nx .EQ. 0  )    nxm = 0
-             IF( nx .EQ. nxmax ) nxp = nxmax
-             IF( ny .EQ. 0  )    nym = 0
-             IF( ny .EQ. nymax ) nyp = nymax
+             !IF( nx .EQ. 0  )    nxm = 0
+             !IF( nx .EQ. nxmax ) nxp = nxmax
+             !IF( ny .EQ. 0  )    nym = 0
+             !IF( ny .EQ. nymax ) nyp = nymax
             !  esx(nx,ny) = phi(nx,ny) - phi(nxp,ny)
             !  esy(nx,ny) = phi(nx,ny) - phi(nx,nyp)
             !  esz(nx,ny) = 0.d0
@@ -401,22 +401,22 @@ CONTAINS
        !  esy(nx,0) = -0.5d0 * phi(nx,1)
        !  esy(nx,nymax) = 0.5d0 * phi(nx,nymax-1)
        !ENDDO
-      !  esx(:,0) = 0.d0
-      !  esx(:,nymax) = 0.d0
-      !  esy(0,:) = 0.d0
-      !  esy(nxmax,:) = 0.d0
-      !  esz(:,0) = 0.d0
-      !  esz(:,nymax) = 0.d0
-      !  esz(0,:) = 0.d0
-      !  esz(nxmax,:) = 0.d0
-      !  emx(:,0) = 0.d0
-      !  emx(:,nymax) = 0.d0
-      !  emy(0,:) = 0.d0
-      !  emy(nxmax,:) = 0.d0
-      !  emz(:,0) = 0.d0
-      !  emz(:,nymax) = 0.d0
-      !  emz(0,:) = 0.d0
-      !  emz(nxmax,:) = 0.d0
+        esx(:,0) = 0.d0
+        esx(:,nymax) = 0.d0
+        esy(0,:) = 0.d0
+        esy(nxmax,:) = 0.d0
+        esz(:,0) = 0.d0
+        esz(:,nymax) = 0.d0
+        esz(0,:) = 0.d0
+        esz(nxmax,:) = 0.d0
+        emx(:,0) = 0.d0
+        emx(:,nymax) = 0.d0
+        emy(0,:) = 0.d0
+        emy(nxmax,:) = 0.d0
+        emz(:,0) = 0.d0
+        emz(:,nymax) = 0.d0
+        emz(0,:) = 0.d0
+        emz(nxmax,:) = 0.d0
 
     END IF
 
@@ -503,10 +503,10 @@ CONTAINS
              nym = ny - 1
              nyp = ny + 1
 
-             IF( nx .EQ. 0  )    nxm = nxmax - 1
-             IF( nx .EQ. nxmax ) nxp = 1
-             IF( ny .EQ. 0  )    nym = nymax - 1
-             IF( ny .EQ. nymax ) nyp = 1
+             !IF( nx .EQ. 0  )    nxm = nxmax - 1
+             !IF( nx .EQ. nxmax ) nxp = 1
+             !IF( ny .EQ. 0  )    nym = nymax - 1
+             !IF( ny .EQ. nymax ) nyp = 1
 
               ! bx(nx,ny) = 0.5d0 * (Az(nx,nyp) + Azb(nx,nyp) &
               !      - Az(nx,ny) - Azb(nx,ny))
