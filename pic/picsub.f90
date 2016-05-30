@@ -398,7 +398,7 @@ CONTAINS
          esx(0,ny) = ex(0,ny) - dt * jx(0,ny)
          esy(0,ny) = ey(0,ny) - dt * jy(0,ny)
          esz(0,ny) = ez(0,ny) - dt * jz(0,ny)
-         emx(0,ny) = dt*vcfact**2*(bzb(0,ny)-bzb(nx,nym))
+         emx(0,ny) = dt*vcfact**2*(bzb(0,ny)-bzb(0,nym))
          emy(0,ny) = - dt*vcfact**2*bzb(0,ny)
          emz(0,ny) = dt*vcfact**2*(byb(0,ny)-bxb(0,ny)+bxb(0,nym))
        ENDDO
@@ -583,7 +583,7 @@ CONTAINS
           nyp = ny + 1
           bx(nxmax,ny)=dt*(-ez(nxmax,nyp)+ez(nxmax,ny))+bxb(nxmax,ny)
           by(nxmax,ny)=dt*(ez(nxmax,ny))+byb(nxmax,ny)
-          bz(nxmax,ny)=dt*(ey(nxmax,ny)+ex(nxmax,nyp)-ex(nxmax,ny))+bzb(nxmax,ny)
+          bz(nxmax,ny)=dt*(-ey(nxmax,ny)+ex(nxmax,nyp)-ex(nxmax,ny))+bzb(nxmax,ny)
           bxx=bx(nxmax,ny)
           byy=by(nxmax,ny)
           bzz=bz(nxmax,ny)
