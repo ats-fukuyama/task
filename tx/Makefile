@@ -4,7 +4,7 @@ include ../make.header
 FFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
 
-MODINCLUDE= -I.$(MOD) -I../../task/lib/$(MOD)
+MODINCLUDE= -I.$(MOD) -I../lib/$(MOD)
 
 SRCS = txintf.f90 txcomm.f90 txlib.f90 txmisc.f90 txncls.f90 txrslt.f90 txrppl.f90 \
        txauxs.f90 txcalv.f90 txcala.f90 txgraf.f90 txinit.f90 txfile.f90 txexec.f90 \

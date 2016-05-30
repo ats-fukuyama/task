@@ -48,7 +48,6 @@
       integer,intent(out):: ierr
       call trprof(ierr)       ! initialize profile data
       if(ierr.ne.0) return
-      call tr_bpsd_init       ! initialize tr_bpsd
       call tr_bpsd_set(ierr)  ! set tr_bpsd with initial profile
       return
       end subroutine tr_prof
@@ -76,7 +75,6 @@
       implicit none
       integer,intent(out):: ierr
       call trload
-      call tr_bpsd_init
       call tr_bpsd_set(ierr)  ! set tr_bpsd with initial profile
       return
       end subroutine tr_load

@@ -13,7 +13,7 @@
       contains
 
 !=======================================================================
-      subroutine tr_bpsd_init
+      subroutine tr_bpsd_init(ierr)
 !=======================================================================
       use trcomm
 ! local variables
@@ -113,6 +113,8 @@
       integer(4) :: ns,nr
       real(8)    :: temp(nrmp,nsm,3)
 !=======================================================================
+
+      if(tr_bpsd_init_flag) CALL tr_bpsd_init(ierr)
 
       device%rr=RR
       device%zz=0.d0

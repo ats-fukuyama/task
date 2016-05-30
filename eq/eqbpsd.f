@@ -60,6 +60,8 @@
 ! local variables
 !=======================================================================
 
+      if(eq_bpsd_init_flag) CALL eq_bpsd_init(ierr)
+
       device%rr   = RR
       device%zz   = 0.d0
       device%ra   = RA

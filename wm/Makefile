@@ -2,12 +2,12 @@
 include ../make.header
 include ../mtxp/make.mtxp
 LIBX_MTX=$(LIBX_MTX_BND)
-#LIBX_MTX=$(LIBX_MTX_PCG)
+LIBX_MTX=$(LIBX_MTX_PCG)
 #LIBX_MTX=$(LIBX_MTX_MUMPS)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
-#FFLAGS = $(OFLAGS)
-FFLAGS = $(DFLAGS)
+FFLAGS = $(OFLAGS)
+#FFLAGS = $(DFLAGS)
 
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
@@ -22,7 +22,7 @@ SRC0 = wmmenu.f wminit.f wmeign.f wmsetg.f \
        wmexec.f wmloop.f wmtae.f \
        wmvmec.f wmbooz.f wmvout.f wmtpcs.f
 
-SRCX = wmcont.f90 wmtest.f90 wmdpfa.f90 wmdpfa2.f90 wmdpfa3.f90 wmdpfaA.f90
+SRCX = wmcont.f90 wmtest.f90 wmdpfa.f90 wmdpfa2.f90 wmdpfaA.f90 #wmdpfa3.f90
 
 # wmtrfile.f
 
@@ -68,8 +68,9 @@ libs:
 	(cd ../eq; make eqlib.a)
 	(cd ../dp; make dplib.a)
 
-wm : $(LIBS) wmmain.o
-	$(FCFIXED) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+wm : libs $(LIBS) wmmain.o
+	$(FLINKER) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+#	$(FCFIXED) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 mpiwm : wmmain.o $(LIBM)
 	$(MFC) wmmain.o $(LIBM) -o $@ $(FFLAGS) $(FLIBS)

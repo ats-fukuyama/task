@@ -47,8 +47,8 @@ SUBROUTINE WMDPFAA(CW,RHOWM,RKPR,AE2N0,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
   COMPLEX(8) :: CIQL1,CIQR1,CIQL2,CIQR2,CIQ1,CIQ2
   COMPLEX(8) :: CIRL1,CIRR1,CIRL2,CIRR2,CIR1,CIR2
 !
-  REAL(8) :: xg(1:100),yg(1:100),zg(1:100,1:100)
-  REAL(8) :: SUMfa(1:NRMAXFP+2) !!!!
+  REAL(8) :: xg(1:120),yg(1:120),zg(1:120,1:120)
+  REAL(8) :: SUMfa!(1:NRMAXFP+2) !!!!
 !
      NS=3
      PmaxN=5.D0
@@ -58,9 +58,9 @@ SUBROUTINE WMDPFAA(CW,RHOWM,RKPR,AE2N0,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
      AM=AMFP(NS)
      AE=AEFP(NS)
      AE2N0=AE*AE*RNFP0(NS)
-     RTA=RTFP0(3)*AEE*1.D3 !  T_themal difinition ????
-     VTA=SQRT(2.D0*RTA/AM)  
-     PTA=VTA*AM             
+     RTA=RTFP0(3)*AEE*1.D3 !  T_thermal difinition ????
+     VTA=SQRT(RTA/AM) ! VTA=SQRT(2.D0*RTA/AM) ???
+     PTA=VTA*AM
      CX=ABS(RKPR)/(CW*AM)
      CPM1=(0.D0,0.D0)
      CPM2=(0.D0,0.D0)
@@ -69,57 +69,62 @@ SUBROUTINE WMDPFAA(CW,RHOWM,RKPR,AE2N0,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
      CRM1=(0.D0,0.D0)
      CRM2=(0.D0,0.D0)
 
-!  WRITE(6,'(1P5E12.4)') RTA,VTA,PTA
+!  WRITE(6,'(1P5E12.4)') RTA,VTA,PTA,DELTH
+
 ! distribution function from FP --------------------------
- DO NNP=1,100
-  xg(NNP)=(REAL(NNP)-0.5D0)*5.D0/100.D0
- DO NNR=1,100
-  yg(NNR)=(REAL(NNR)-0.5D0)/100.D0
-     CALL SPL2DD(xg(NNP),yg(NNR),fa1,DFPa1,DFRa1,PMa0,RHOa0,&
-                 US(1:4,1:4,1:NPM,1:NRM,12),NPM,NPMAX+2,NRMAXFP+2,IERR) 
-  zg(NNP,NNR)=fa1
- ENDDO
- ENDDO
+! DO NNP=1,100
+!  xg(NNP)=(400.D0+REAL(NNP)-0.5D0)*5.D0/500.D0 !PMa0(NNP+1)
+! DO NNR=1,100
+!  yg(NNR)=(400.D0+REAL(NNR)-0.5D0)/500.D0 !RHOa0(NNR+1)
+!     CALL SPL2DD(xg(NNP),yg(NNR),fa1,DFPa1,DFRa1,PMa0,RHOa0,&
+!                 US(1:4,1:4,1:NPM,1:NRM,16),NPM,NPMAX+2,NRMAXFP+2,IERR) 
+!!  yg(NNP)=fa1
+!  zg(NNP,NNR)=fa1 !fa0(NNP+1,NNR+1,16) 
+!  WRITE(6,'(1P5E12.4)') xg(NNP),yg(NNR),zg(NNP,NNR)
+! ENDDO
+! ENDDO
  
- CALL PAGES
- CALL GRD2D(0,xg,yg,zg,100,100,100,'fa1',MODE_2d=12)
- CALL PAGEE 
+! CALL PAGES
+!!  CALL GRD1D(0,xg,yg,120,120,1,'fa1')
+! CALL GRD2D(0,xg(1:120),yg(1:120),zg(1:120,1:120),120,120,120,'fa1',MODE_2d=12)
+! CALL PAGEE 
  
-RETURN
+! RETURN
 ! ---------------------------
-
 !  IF(RHOWM.GT.9.D-1) THEN
-   DO NR=1,NRMAXFP+2
-      IF(RHOWM-RHOa0(NR).LE.0.D0) THEN
-        NRWM=NR-1
-        EXIT
-      ENDIF
-   ENDDO
-   DO NTH=1,NTHMAXFP
-      fpr1=fa0(1,NRWM,NTH)*TSNM(NTH)*DELTH
-   ENDDO
+!   DO NR=1,NRMAXFP+2
+!      IF(RHOWM-RHOa0(NR).LE.0.D0) THEN
+!        NRWM=NR-1
+!        EXIT
+!      ENDIF
+!   ENDDO
+!   DO NTH=1,NTHMAXFP
+!      fpr1=fpr1+fa0(1,NRWM,NTH)*TSNM(NTH)*DELTH
+!   ENDDO
 
-   DO NR=1,NRMAXFP+2
-      SUMfa(NR)=0.D0
-   DO NP=1,NPMAX+1
-   DO NTH=1,NTHMAXFP
-       fprnp=0.D0
-       fprnp=0.5D0*(fa0(NP,NRWM,NTH)+fa0(NP+1,NRWM,NTH))*TSNM(NTH)*DELTH
-      SUMfa(NR)=SUMfa(NR)&
-      +0.5D0*(PMa0(NP+1)**2+PMa0(NP)**2)*fprnp
+!   DO NR=1,NRMAXFP+2
+!      SUMfa=0.D0
+!   DO NP=1,NPMAX+1
+!   DO NTH=1,NTHMAXFP
+!       fprnp=0.D0
+!       fprnp=0.5D0*(fa0(NP,NRWM,NTH)+fa0(NP+1,NRWM,NTH))*TSNM(NTH)*DELTH
+!      SUMfa=SUMfa&
+!      +0.5D0*(PMa0(NP+1)**2+PMa0(NP)**2)*fprnp
 !      WRITE(6,'(3I5,1P5E12.4)') NR,NP,NTH,fa0(NP+1,NR,NTH)
-   ENDDO
-      IF(fprnp.LT.fpr1*1.D-12) THEN 
-        PmaxN=(NP-0.5D0)*DELP(3)
-        IF(PmaxN.LT.1.D0) RETURN
-        EXIT
-      ENDIF 
-     SUMfa(NR)=SUMfa(NR)*2*PI*DELP(3)*DELTH ! *VTA**3 ? not need?
-   ENDDO   
-   ENDDO
+!   ENDDO
+!      IF((fprnp.LT.fpr1*1.D-8).OR.(fprnp.LT.0.D0)) THEN 
+!        PmaxN=(NP-0.5D0)*DELP(3)
+!        IF(PmaxN.LT.1.D0) RETURN
+!        EXIT
+!      ENDIF
+!   ENDDO   
+!     SUMfa=RNFP0(3)*SUMfa*2*PI*DELP(3) ! *VTA**3 ? not need? 
+!     WRITE(6,'(1I5,1P5E12.4)') NR,SUMfa
+!   ENDDO
+
 !  ENDIF
 
-!RETURN                       !!----
+! RETURN                       !!----
 
 !--
      DO NTH=1,NTHMAXFP
@@ -136,9 +141,9 @@ RETURN
         AR=TSNM(NTH)*TCSM(NTH)*TCSM(NTH)
 !-----PRICIPAL VALUE
 
-        IF((p0N.LT.1.D-1).OR.(p0N.GE.PmaxN-1.D-1)) THEN
-           LBi3=1.4D-1
-           RBi3=PmaxN-1.4D-1
+        IF((p0N.LT.5.D-4).OR.(p0N.GE.PmaxN-5.D-4)) THEN
+           LBi3=1.4D-3
+           RBi3=PmaxN-1.4D-3
          CALL PVINT(1,3,CIP1)   ! 3 => INTEGRAL 0.14 < pN < 4.86
           CPM1=CPM1 + AP*CIP1
          CALL PVINT(2,3,CIP2)
@@ -161,7 +166,7 @@ RETURN
            LBi1=p0N
            RBi1=2*p0N
            LBi2=2*p0N
-           RBi2=PmaxN-5.D-2
+           RBi2=PmaxN !-5.D-2
          CALL PVINT(1,1,CIPL1)
          CALL PVINT(1,2,CIPR1)
            CPM1=CPM1 + AP*(CIPL1+CIPR1)
@@ -247,7 +252,7 @@ RETURN
      END DO
 
      CPM1=CPM1*DELTH*(VTA**5)/(VTA**3)   ! dp=p_0*dp_n -> df/dp=(df/dp_n)*dp_n/dp=dfp_n/p_0
-     CPM2=CPM2*DELTH*(VTA**6)*PTA/(VTA**3)
+     CPM2=CPM2*DELTH*(VTA**6)*PTA/(VTA**3) ! ---> here may be wrong
      CQM1=CQM1*DELTH*(VTA**4)/(VTA**3)
      CQM2=CQM2*DELTH*(VTA**5)*PTA/(VTA**3)
      CRM1=CRM1*DELTH*(VTA**3)/(VTA**3)
@@ -297,13 +302,13 @@ SUBROUTINE PVINT(j,l,CINT)
     s=2
     n=6-(j-2)/2
    ENDIF
-        
+
    IF(l.EQ.1) THEN
      LBint=LBi1
      RBint=RBi1
      ImCp0N=Cp0N-p0N
-     
-!      IF(RHO0.GT.9.4D-1) THEN
+
+!      IF(RHO0.GT.1.4D-1) THEN
 !      do m=0,100
 !        xg(m)=-9.999D-1+dble(m)/50
 !        yg(m)=CFUNCpldp(xg(m),1.D0-xg(m),1.D0+xg(m))
@@ -312,7 +317,8 @@ SUBROUTINE PVINT(j,l,CINT)
 !      CALL GRD1D(0,xg,yg,101,101,1,'CFUNCpldp')
 !      CALL pagee
 !      ENDIF
-     IF(s.EQ.1) THEN    
+
+     IF(s.EQ.1) THEN
       CALL DEFTC(CINT,ES,H0,EPS,ILST,CFUNCpldp,KID='CFUNCpldp'//TRIM(LINE))
      ELSE
       CALL DEFTC(CINT,ES,H0,EPS,ILST,CFUNCpldr,KID='CFUNCpldr'//TRIM(LINE))
@@ -321,16 +327,17 @@ SUBROUTINE PVINT(j,l,CINT)
    ELSEIF(l.EQ.2) THEN
      LBint=LBi2
      RBint=RBi2
-      
+
 !     IF(RHO0.GT.9.4D-1) THEN
 !      do m=0,100
 !        xg(m)=-9.999D-1+dble(m)/50
-!        yg(m)=CFUNCdr(xg(m),1.D0-xg(m),1.D0+xg(m))
+!        yg(m)=CFUNCdp(xg(m),1.D0-xg(m),1.D0+xg(m))
 !      end do
 !      CALL pages
-!      CALL GRD1D(0,xg,yg,101,101,1,'CFUNCpldp')
+!      CALL GRD1D(0,xg,yg,101,101,1,'CFUNCdp')
 !      CALL pagee
 !     ENDIF
+
      IF(s.EQ.1) THEN
       CALL DEFTC(CINT,ES,H0,EPS,ILST,CFUNCdp,KID='CFUNCdp'//TRIM(LINE))
      ELSE
@@ -352,6 +359,7 @@ SUBROUTINE PVINT(j,l,CINT)
 !      CALL GRD1D(0,xg,yg,1001,1001,1,'CFUNCdp')
 !      CALL pagee
 !     ENDIF
+
      IF(s.EQ.1) THEN
       CALL DEFTC(CINT,ES,H0,EPS,ILST,CFUNCdp,KID='CFUNCdp'//TRIM(LINE))
      ELSE
@@ -372,7 +380,7 @@ SUBROUTINE PVINT(j,l,CINT)
   REAL(8),INTENT(IN) :: x,xm,xp
   COMPLEX(8) :: CFUNCdp
 
-    paN=0.5D0*(RBint+LBint)+0.5D0*(RBint-LBint)*x 
+    paN=0.5D0*(RBint+LBint)+0.5D0*(RBint-LBint)*x
     A0 =0.5D0*(RBint-LBint)
 
     CALL SPL2DD(paN,RHO0,fax,DFPax,DFRax,PMa0,RHOa0,&

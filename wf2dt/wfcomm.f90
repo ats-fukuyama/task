@@ -73,7 +73,7 @@ module wfcomm
   integer(ikind):: iddiv
          
 !       /WFELM/
-  integer(ikind):: NNMAX,NEMAX
+  integer(ikind):: NNMAX,NEMAX,NBNOD,NBSID
   real(rkind)   ,dimension(:)  ,pointer :: RNODE,ZNODE !(NNMAX)
   integer(ikind),dimension(:)  ,pointer :: KANOD,KBNOD !(NNMAX)
   real(rkind)   ,dimension(:)  ,pointer :: SELM        !(NEMAX)

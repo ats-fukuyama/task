@@ -1,6 +1,8 @@
 !     ***********************************************************
 
-!           RF HEATING AND CURRENT DRIVE (GAUSSIAN PROFILE)
+!           RF HEATING AND CURRENT DRIVE (( 1-PHI^1.5)^3.5 PROFILE)
+!           THIS PART HAS BEEN MODIFIED TO FOLLOW A SHAPE PROPOSED BY ITPA
+!           Pub edited on July 23, 2015
 
 !     ***********************************************************
 
@@ -8,7 +10,7 @@
 
       USE TRCOMM, ONLY : AJRF, AJRFV, AME, DR, DVRHO, EPSRHO, NRMAX, PECCD, PECNPR, PECR0, PECRW, PECTOE, PECTOT, PICCD, &
      &                   PICNPR, PICR0, PICRW, PICTOE, PICTOT, PLHCD, PLHNPR, PLHR0, PLHRW, PLHTOE, PLHTOT, PRF, PRFV,   &
-     &                   RA, RKEV, RM, RN, RT, VC, ZEFF
+     &                   RA, RKEV, RM, RN, RT, VC, ZEFF, RG
       IMPLICIT NONE
       REAL(8)   :: EFCDEC, EFCDIC, EFCDLH, FACT, PEC0, PECL, PIC0, PICL, PLH0, PLHL, PLHR0L, RLNLMD, SUMEC, SUMIC, SUMLH, &
      &             VPHEC, VPHIC, VPHLH, VTE, VTEP
@@ -44,15 +46,25 @@
       SUMEC = 0.D0
       SUMLH = 0.D0
       SUMIC = 0.D0
+!cpub begin
       DO NR=1,NRMAX
-         SUMEC = SUMEC + DEXP(-((RA*RM(NR)-PECR0 )/PECRW)**2)*DVRHO(NR)*DR
-         SUMLH = SUMLH + DEXP(-((RA*RM(NR)-PLHR0L)/PLHRW)**2)*DVRHO(NR)*DR
-         SUMIC = SUMIC + DEXP(-((RA*RM(NR)-PICR0 )/PICRW)**2)*DVRHO(NR)*DR
+!         SUMEC = SUMEC + DEXP(-((RA*RM(NR)-PECR0 )/PECRW)**2)*DVRHO(NR)*DR
+!         SUMLH = SUMLH + DEXP(-((RA*RM(NR)-PLHR0L)/PLHRW)**2)*DVRHO(NR)*DR
+!         SUMIC = SUMIC + DEXP(-((RA*RM(NR)-PICR0 )/PICRW)**2)*DVRHO(NR)*DR
+
+!         print *,NR,DVRHO(NR),DR,SUMEC
+         SUMEC = SUMEC + ((1-RG(NR)**3.0)**3.5)*DVRHO(NR)*DR
+         SUMLH = SUMLH + ((1-RG(NR)**3.0)**3.5)*DVRHO(NR)*DR
+         SUMIC = SUMIC + ((1-RG(NR)**3.0)**3.5)*DVRHO(NR)*DR
       ENDDO
+!      note that  Integrate((1-PHI^1.5)^3.5, 0, 1) = 0.3393626321
+!cpub end
 
       PEC0 = PECTOT*1.D6/SUMEC
       PLH0 = PLHTOT*1.D6/SUMLH
       PIC0 = PICTOT*1.D6/SUMIC
+!      print *,' ALL',NR-1,DVRHO(NR-1),SUMEC,PEC0,PECTOT
+      
 
 !      IF(ABS(PLHNPR).LE.1.D0) THEN
 !         NLH=PLHR0/DR+1.D0
@@ -68,9 +80,18 @@
 !      ENDIF
 
       DO NR=1,NRMAX
-         PECL = PEC0*DEXP(-((RA*RM(NR)-PECR0)/PECRW)**2)
-         PLHL = PLH0*DEXP(-((RA*RM(NR)-PLHR0L)/PLHRW)**2)
-         PICL = PIC0*DEXP(-((RA*RM(NR)-PICR0)/PICRW)**2)
+ !        PECL = PEC0*DEXP(-((RA*RM(NR)-PECR0)/PECRW)**2)
+ !        PLHL = PLH0*DEXP(-((RA*RM(NR)-PLHR0L)/PLHRW)**2)
+ !        PICL = PIC0*DEXP(-((RA*RM(NR)-PICR0)/PICRW)**2)
+
+!cpub begin
+         PECL = PEC0*((1-RG(NR)**3.0)**3.5)
+         PLHL = PLH0*((1-RG(NR)**3.0)**3.5)
+         PICL = PIC0*((1-RG(NR)**3.0)**3.5)
+!cpub end
+
+!         print *,' 0',NR,RM(NR),RG(NR),RA,PECL
+         
          PRF (NR,1  )=PECTOE*PECL + PLHTOE*PLHL  +PICTOE*PICL
          PRFV(NR,1,1)=PECTOE*PECL
          PRFV(NR,1,2)=PLHTOE*PLHL
@@ -123,7 +144,9 @@
                     + PLHCD*PLHTOE*EFCDLH*PLHL          &
                     + PICCD*PICTOE*EFCDIC*PICL)
       ENDDO
-
+      
+!      stop 10
+      
       RETURN
       END SUBROUTINE TRPWRF
 

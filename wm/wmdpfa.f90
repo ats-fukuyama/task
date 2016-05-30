@@ -35,7 +35,7 @@ SUBROUTINE WMDPFA(CX,CFN,COEF,RHOR,CPM,CQM,CRM,MODEFA)
      CQM=-CFN*COEF*RHOR*     (CX*CX*(5.D-1+CX*CX)*SUMf &
                             +CX*(1.D0+CX*CX)*SQRT(PI))*4.D0*CI/PI
      CRM=-CFN*COEF*         ((CX*CX*CX)*SUMf &
-                            +(CX*CX)*SQRT(PI))*4.D0*CI/PI  
+                            +(CX*CX)*SQRT(PI))*4.D0*CI/PI
 !---           
   ELSE
 !--suuchisekibunn

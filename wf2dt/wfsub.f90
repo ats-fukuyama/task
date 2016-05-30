@@ -257,7 +257,7 @@ SUBROUTINE SETBDY(IERR)
   integer,intent(out) :: IERR
   integer :: ISD,NSD,NE
   integer :: NN1,NN2,NN3,NSD1,NSD2,NSD3
-  integer :: NEL,NSDL,NBSID
+  integer :: NEL,NSDL
 
 ! ----- SET NSDMAX & KNELM -----
 ! NBSID :: Number of Boundary Side
@@ -465,7 +465,7 @@ SUBROUTINE SETEWG
 
   use wfcomm
   implicit none
-  INTEGER:: NBSID,NSD,NN1,NN2,NBNOD,NN,NBSD,NBND
+  INTEGER:: NSD,NN1,NN2,NN,NBSD,NBND
   REAL(rkind):: ANGLE,R,Z,PHASE,PROD,FACTOR,SN
 
   ANGLE=ANGWG*PI/180.D0
@@ -516,7 +516,8 @@ SUBROUTINE SETEWG
         IF(NSHWG.EQ.1) CEBSD(NBSD)=CEBSD(NBSD)*EXP(-10.D0*FACTOR)
         IF(PROD.GT.0.D0) CEBSD(NBSD)=-CEBSD(NBSD)
         IF(nrank.EQ.0) &
-        WRITE(6,'(A,2I8,1P5E12.4)') 'SD:',NSD,NBSD,CEBSD(NBSD),AMPWG,PHASE,ANGLE
+        WRITE(6,'(A,2I8,1P5E12.4)') &
+           'SD:',NSD,NBSD,CEBSD(NBSD),AMPWG,PHASE,ANGLE
      ELSE
         CEBSD(NBSD)=(0.D0,0.D0)
      END IF

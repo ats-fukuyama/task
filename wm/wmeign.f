@@ -47,10 +47,19 @@ C
       SUBROUTINE WMAM1D(KID,LINE)
 C
       INCLUDE 'wmcomm.inc'
+      REAL(8) :: IAMPS(NGFMAX),IAMPR(NGFMAX)
+      INTEGER :: GSIZE
+      INTEGER :: IWORK,ISTA,IEND,i
+      INTEGER,DIMENSION(nsize) :: ilena,iposa
+      
       DIMENSION GX(NGZM),GZ(NGZM,1)
       CHARACTER LINE*80,KID*1
       EXTERNAL WMPARM
 C
+!      CALL mtx_set_communicator_global(MPI_COMM_WORLD)
+!      CALL MPI_COMM_SIZE(ncomm,nsize,IERR)
+!      CALL MPI_COMM_RANK(ncomm,nrank,IERR)
+      
       MODE=0
     1 CONTINUE
          IF(NRANK.EQ.0) THEN
@@ -79,31 +88,78 @@ C
 C
          DELTFR=(FRMAX-FRMIN)/(NGFMAX-1)
          AMPMIN=1.D30
-         DO NGF=1,NGFMAX
-            FR=FRMIN+(NGF-1)*DELTFR
-            FI=FI0
-            CALL DIAMIN(FR,FI,AMPL)
-            IF(NRANK.EQ.0) THEN
-               IF(LISTEG.GE.1) THEN
-                  WRITE(6,'(A,1P3E12.4)') 
-     &              '      FR,FI,AMPL = ',FR,FI,AMPL
-                  CALl GUFLSH
-               ENDIF
-            ENDIF
-            GX(NGF)=GUCLIP(FR)
-            GZ(NGF,1)=GUCLIP(LOG10(AMPL))
-            IF(AMPL.LE.AMPMIN) THEN
-               FRINI=FR
-               FIINI=FI
-               AMPMIN=AMPL
-            ENDIF
-         ENDDO
-         IF(NRANK.EQ.0) THEN
-            WRITE(6,'(A,1P3E12.4)') '      FR,FI,AMPMIN=',
+
+!         CALL MPI_COMM_SIZE(ncomm,nsize,IERR)
+!         CALL MPI_COMM_RANK(ncomm,nrank,IERR)
+
+         IF(nsize.EQ.1) THEN
+          DO NGF=1,NGFMAX
+             FR=FRMIN+(NGF-1)*DELTFR
+             FI=FI0
+             CALL DIAMIN(FR,FI,AMPL)
+             IF(NRANK.EQ.0) THEN
+                IF(LISTEG.GE.1) THEN
+                   WRITE(6,'(A,1P3E12.4)') 
+     &               '      FR,FI,AMPL = ',FR,FI,AMPL
+                   CALl GUFLSH
+                ENDIF
+             ENDIF
+             GX(NGF)=GUCLIP(FR)
+             GZ(NGF,1)=GUCLIP(LOG10(AMPL))
+             IF(AMPL.LE.AMPMIN) THEN
+                FRINI=FR
+                FIINI=FI
+                AMPMIN=AMPL
+             ENDIF
+          ENDDO
+          IF(NRANK.EQ.0) THEN
+             WRITE(6,'(A,1P3E12.4)') '      FR,FI,AMPMIN=',
      &                                     FRINI,FIINI,AMPMIN
-            CALL GUFLSH
+             CALL GUFLSH
+          ENDIF
+         ELSE
+            IWORK=INT(NGF/nsize)+1
+            ISTA=MIN(nrank*IWORK+1,NGFMAX+1)
+            IEND=MIN(ISTA+IWORK-1,NGFMAX)
+            GSIZE=IEND-ISTA+1
+            DO i=0,nsize-1
+               ilena(i)=GSIZE
+               iposa(i)=ISTA-1
+            ENDDO
+            
+            DO NGF=1,GSIZE
+               FR=FRMIN+(ISTA+NGF-1)*DELTFR
+               FI=FI0
+               CALL DIAMIN(FR,FI,IAMPS(NGF))
+            ENDDO
+
+            CALL mtx_gatherv_real8(IAMPS,GSIZE,IAMPR,NGFMAX,ilena,iposa)
+!           CALL MPI_GATHERV(IAMPS,GSIZE,        MPI_DOUBLE_PRECISION,
+!     &                       IAMPR,GSIZE,ISTA-1,MPI_DOUBLE_PRECISION,
+!     &                       0,ncomm,IERR)
+            IF(NRANK.EQ.0) THEN
+               DO NGF=1,NGFMAX
+                  IF(LISTEG.GE.1) THEN
+                     WRITE(6,'(A,1P3E12.4)')
+     &                    'FR,FI,AMPL=',FR,FI,IAMPR(NGF)
+                     CALL GUFLSH
+                  ENDIF
+                  GX(NGF)=GUCLIP(FR)
+                  GZ(NGF,1)=GUCLIP(LOG10(IAMPR(NGF)))
+                  IF(IAMPR(NGF).LE.AMPMIN) THEN
+                     FRINI=FR
+                     FIINI=FI
+                     AMPMIN=IAMPR(NGF)
+                  ENDIF
+               ENDDO
+
+               WRITE(6,'(A,1P3E12.4)')
+     &              'FR,FI,AMPL=',FR,FI,AMPMIN
+               CALL GUFLSH
+            ENDIF   
          ENDIF
-C
+
+C     
          CALL WMEG1D(GX,GZ,NGZM,NGFMAX,1,GUCLIP(FI0))
 C
       GOTO 1
@@ -445,7 +501,7 @@ C
          FRINI=XX
          FIINI=YY
          CALL WMBFLD
-
+         CALL WMPABS
       GOTO 1
 C
  9000 CONTINUE
