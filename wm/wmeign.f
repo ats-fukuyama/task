@@ -77,6 +77,7 @@ C
          CALL MPBCDA(FRMAX)
          CALL MPBCDA(FI0)
 C
+!         CALL MPI_COMM_SIZE(ncomm,nsize,IERR)!
          DELTFR=(FRMAX-FRMIN)/(NGFMAX-1)
          AMPMIN=1.D30
          DO NGF=1,NGFMAX
