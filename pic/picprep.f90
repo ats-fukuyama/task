@@ -123,7 +123,8 @@ CONTAINS
        !.......... calculate ex and ey and ez
        call efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
                    ex,ey,ez,exb,eyb,ezb,exbb,eybb,ezbb,bxb,byb,bzb,&
-                   esx,esy,esz,emx,emy,emz,jx,jy,jz,vcfact,model_push,model_boundary)
+                   esx,esy,esz,emx,emy,emz,jx,jy,jz,vcfact,model_wg,&
+                   xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi,model_push,model_boundary)
        !.......... calculate bx and by and bz
        call bfield(nxmax,nymax,dt,Ax,Ay,Az,Axb,Ayb,Azb,ex,ey,ez,&
                    bx,by,bz,bxb,byb,bzb,bxbb,bybb,bzbb,bxbg,bybg,bzbg,bb, &

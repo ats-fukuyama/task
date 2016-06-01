@@ -56,7 +56,7 @@ CONTAINS
             phib(nx,ny) = phi(nx,ny)
           END DO
        END DO
-      !$omp end parallel do
+       !$omp end parallel do
        !----- charge assignment
        rho(:,:)=0.0d0
        CALL source(npmax,nxmax,nymax,xe,ye,rho,chrge,model_boundary)
@@ -137,7 +137,8 @@ CONTAINS
         !  ENDIF
        !.......... calculate ex and ey and ez
        CALL efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
-            ex,ey,ez,exb,eyb,ezb,exbb,eybb,ezbb,bxb,byb,bzb,esx,esy,esz,emx,emy,emz,jx,jy,jz,vcfact,model_push,model_boundary)
+            ex,ey,ez,exb,eyb,ezb,exbb,eybb,ezbb,bxb,byb,bzb,esx,esy,esz,emx,emy,emz,jx,jy,jz,&
+            vcfact,model_wg,xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi,model_push,model_boundary)
        !.......... calculate bxg and byg and bzg
        CALL bfield(nxmax,nymax,dt,Ax,Ay,Az,Axb,Ayb,Azb,ex,ey,ez, &
             bx,by,bz,bxb,byb,bzb,bxbb,bybb,bzbb,bxbg,bybg,bzbg,bb,vcfact,model_push,model_boundary)
@@ -1302,7 +1303,7 @@ CONTAINS
        !jz(nxmax,nymax) = 4.0d0 * jz(nxmax,nymax)
        jx(:,0)=0.d0
        jx(:,nymax)=0.d0
-       jx(nxmax,0)=0.d0
+       jx(nxmax,:)=0.d0
        jy(0,:)=0.d0
        jy(nxmax,:)=0.d0
        jy(:,nymax)=0.d0
