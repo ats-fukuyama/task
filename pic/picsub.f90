@@ -506,6 +506,7 @@ CONTAINS
          ENDIF
 
        ENDDO
+        IF(model_boundary .eq. 1) THEN
           ex(:,0) = 0.d0
           ex(:,nymax) = 0.d0
           ey(0,:) = 0.d0
@@ -514,6 +515,7 @@ CONTAINS
           ez(:,nymax) = 0.d0
           ez(0,:) = 0.d0
           ez(nxmax,:) = 0.d0
+        ENDIF
         ! IF(model_boundary .eq. 2) THEN
         !   dl=(vcfact*dt-sqrt(2.d0))/(vcfact*dt+sqrt(2.d0))
         !   dm=2.d0*sqrt(2.d0)/(vcfact*dt+sqrt(2.d0))
