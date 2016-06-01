@@ -6,40 +6,13 @@ C
 C
       INCLUDE 'wmcomm.inc'
 C
-      COMPLEX * 16 D,X
-      COMPLEX * 16 P1,P2,Q1,Q2,R1,R2
-      COMPLEX * 16 P,Q,R,W,R0,E,H
-      COMPLEX * 16 AG,XG
-      COMPLEX * 16 TMPA,TMPG
-      COMPLEX * 16 TMPB
-      COMPLEX * 16 TEMP1,TEMP2
-      COMPLEX * 16 TINV1
-      COMPLEX * 16 F
-      REAL    *  8 EPS
       EXTERNAL WMSETM
 C
       PARAMETER (NBSIZM=3*MDM*NDM)
 C
-      DIMENSION P1(MSIZP),P2(MSIZP)
-      DIMENSION Q1(MSIZP),Q2(MSIZP)
-      DIMENSION R1(MSIZP),R2(MSIZP)
-      DIMENSION X(MSIZP),D(NBSIZM,MSIZP)
-      DIMENSION P(MSIZP),Q(MSIZP),R(MSIZP)
-      DIMENSION W(MSIZP)
-      DIMENSION R0(MSIZP),E(MSIZP),H(MSIZP)
-      DIMENSION TEMP1(NBSIZM,NBSIZM),TEMP2(NBSIZM)
-      DIMENSION TMPA (NBSIZM,NBSIZM),TMPG (NBSIZM,NBSIZM)
-      DIMENSION TMPB (NBSIZM)
-      DIMENSION TINV1(NBSIZM,NBSIZM)
-C      COMMON /WMSLV1/ AG(6*NBSIZM,2*NCPUMAX*NBSIZM)
-C      COMMON /WMSLV2/ XG(2*NCPUMAX*NBSIZM)
-C      COMMON /WMSLV3/ F(6*NBSIZM*2*NBSIZM)
-C      COMMON /WMSLV3/ F(4*NBSIZM*2*NBSIZM)
-      DIMENSION NM(NBSIZM)
-      COMPLEX*8,DIMENSION(:,:),pointer:: CEM
-      COMPLEX*8,DIMENSION(:),pointer:: CFV
-      DIMENSION iposa(nsize),ilena(nsize)
-C     
+      COMPLEX(8),DIMENSION(:,:),pointer:: CEM
+      COMPLEX(8),DIMENSION(:),pointer:: CFV
+
       NBSIZ=3*MDSIZ*NDSIZ
       IF(MODEWG.EQ.0) THEN
          MSIZ=NRMAX*NBSIZ
@@ -47,99 +20,136 @@ C
          MSIZ=NRMAX*NBSIZ+MWGMAX*NAMAX
       ENDIF
       MBND=2*NBSIZ
-C
+
       ALLOCATE(CEM(MBNDM,MSIZ))
       ALLOCATE(CFV(MSIZ))
-C
-      NFRAC=(NRMAX-1)/NSIZE+1
-      NBST=NRANK*NFRAC+1
-      NBED=NBST+NFRAC-1
-      IF(NRANK.EQ.NSIZE-1) NBED=NRMAX
-C
-      ISTA=NBSIZ*(NBST-1)+1
-      IEND=NBSIZ*NBED
-C
-      NFST=1-2*NBSIZ
-      NEND=IEND-ISTA+1+2*NBSIZ
-C
-      CALL MTXSET(NSIZE,NRANK,NBSIZ,NRMAX)
-C
-C      WRITE(6,*) 'MODELM,NSIZE=',MODELM,NSIZE
-C      WRITE(6,*) 'NCPUMIN,NCPUMAX=',NCPUMIN,NCPUMAX
-C      WRITE(6,*) 'NRANK,ISTA,IEND=',NRANK,ISTA,IEND
-C
-C
-C     ######## SELECTION OF SOLUTION METHOD ########
-C
-      IF(MODELM.EQ.0.AND.NRANK.EQ.0) THEN
-         CALL BANDCDNB(CEM,CFV,MSIZ,2*MBND-1,MBNDM,WMSETM,IERR)
-         IF(IERR.NE.0.AND.NRANK.EQ.0) THEN
-            WRITE(6,*) 'XXX BANDCD PIVOT ERROR: IERR=',IERR
-         ENDIF
+
+      CALL BANDCDNB(CEM,CFV,MSIZ,2*MBND-1,MBNDM,WMSETM,IERR)
+      IF(IERR.NE.0) THEN
+         WRITE(6,*) 'XXX BANDCD PIVOT ERROR: IERR=',IERR
       ENDIF
-C
-      IF(MODELM.EQ.1.AND.NRANK.EQ.0) THEN
-         CALL BANDCDB(CEM,CFV,X,MSIZ,2*MBND-1,MBNDM,
-     &        NBSIZM,NM,TMPA,TMPG,TMPB,TINV1,TEMP1,TEMP2,
-     &        NBSIZ,WMSETM,IERR)
-      ENDIF
-C
-      IF(MODELM.EQ.2.AND.NRANK.EQ.0) THEN
-         CALL BSTABCDB(CEM,MSIZ,MBND-1,MBNDM,NBSIZM,CFV,
-     &                 EPS,ITR,X,D,R1,R2,P1,P2,Q1,Q2,H,W,
-     &                 TEMP1,TEMP2,NM,NBSIZ,WMSETM,IERR)
-         IF(IERR.NE.0.AND.NRANK.EQ.0) 
-     &        WRITE(6,*) 'ITR=',ITR,'  EPS=',EPS
-      ENDIF
-C
-c$$$      IF(MODELM.EQ.8) THEN
-c$$$         CALL BANDCDM(CEM,CFV,MSIZ,2*MBND-1,MBNDM,
-c$$$     &                F,NFST,NEND,WMSETM,IERR)
-c$$$         IF(IERR.NE.0.AND.NRANK.EQ.0) THEN
-c$$$            WRITE(6,*) 'XXX BANDCD PIVOT ERROR: IERR=',IERR
-c$$$         ENDIF
-c$$$      ENDIF
-C
-c$$$      IF(MODELM.EQ.9) THEN
-c$$$         LG=18*MDSIZ*NDSIZ
-c$$$         NG=2*NSIZE*NBSIZ
-c$$$         CALL BANDCDBM(CEM,CFV,X,MSIZ,2*MBND-1,MBNDM,AG,LG,NG,XG,
-c$$$     &        NBSIZM,F,NM,TMPA,TMPG,TMPB,TINV1,TEMP1,TEMP2,
-c$$$     &        NBSIZ,NFST,NEND,WMSETM,IERR)
-c$$$         IF(IERR.NE.0.AND.NRANK.EQ.0) 
-c$$$     &        WRITE(6,*) 'ITR=',ITR,'  EPS=',EPS
-c$$$      ENDIF
-C
-      IF(MODELM.EQ.10) THEN
-         CALL BSTABCDBM(CEM,MSIZ,MBND-1,MBNDM,NBSIZM,CFV,
-     &        EPS,ITR,X,D,R1,R2,P1,P2,Q1,Q2,H,W,F,TEMP1,TEMP2,
-     &        NM,NBSIZ,NFST,NEND,WMSETM,IERR)
-         IF(IERR.NE.0.AND.NRANK.EQ.0) 
-     &        WRITE(6,*) 'ITR=',ITR,'  EPS=',EPS
-      ENDIF
-C
-      IF(MODELM.GE.8) THEN
-         ndata=IEND-ISTA+1
-         CALL mtx_allgather1_integer(ndata,ilena)
-         ntot=0
-         DO i=1,nsize
-            iposa(i)=ntot
-            ntot=ntot+ilena(i)
-         END DO
-         CALL mtx_gatherv_complex8(CFB,ndata,CFA,ntot,ilena,iposa)
-         NVTOT=ntot
-C         CALL MPGTCV(CFV,IEND-ISTA+1,CFVG,NVTOT,MSIZM)
-      ELSE
-         IF(NRANK.EQ.0) THEN
-            DO I=1,MSIZ
-               CFVG(I)=CFV(I)
-            ENDDO
-         ENDIF
-      ENDIF
-      CALL MPBCCN(CFVG,MSIZ)
-C
+
+      DO I=1,MSIZ
+         CFVG(I)=CFV(I)
+      ENDDO
+
       DEALLOCATE(CFV)
       DEALLOCATE(CEM)
 C
       RETURN
+      END
+C
+C     ****** SOLUTION OF BAND MATRIX (GAUSSIAN ELIMINATION) ******
+C
+      SUBROUTINE BANDCDNB( A , X , N , L , LA , WMSETM, IERR )
+C
+C     COMPLEX * 16    A( LA , N ) , X( N ) , ATMP( LMAX ) , TEMP
+      COMPLEX * 16    A( LA , N ) , X( N ) , TEMP
+      REAL    *  8    EPS , ABS1 , ABS2
+      EXTERNAL WMSETM
+      DATA EPS/ 1.D-70 /
+C
+      NRP=0
+      DO MS=1,N
+         X(MS)=(0.D0,0.D0)
+         DO MB=1,L
+            A(MB,MS)=(0.D0,0.D0)
+         ENDDO
+         CALL WMSETM(A(1,MS),X(MS),MS,LA,NRP)
+      ENDDO
+C
+      IF( MOD(L,2) .EQ. 0 ) GOTO 9000
+      LH  = (L+1)/2
+      LHM = LH-1
+      NM  = N -1
+C
+      DO K = 1 , LHM
+         LHMK = LH-K
+         NPMK = N+1-K
+         DO I = 1 , LHMK
+            LPMI = L+1-I
+            DO J = 2 , L
+               A( J-1 , K ) = A( J , K )
+            ENDDO
+            A( L    , K    ) = ( 0.D0 , 0.D0 )
+            A( LPMI , NPMK ) = ( 0.D0 , 0.D0 )
+         ENDDO
+      ENDDO
+C
+      DO I = 1 , NM
+         IPIVOT = I
+         IP     = I+1
+         ABS2   = CDABS( A(1,IPIVOT) )
+         DO K = IP , LH
+            ABS1 = CDABS( A(1,K) )
+            IF( ABS1 .GT. ABS2 ) THEN
+                IPIVOT = K
+                ABS2 = ABS1
+            ENDIF
+         ENDDO
+C
+         IF( CDABS(A(1,IPIVOT)) .LT. EPS ) THEN
+            write(6,'(A,1P3E12.4)') 'A(1,IPIVOT),EPS=',A(1,IPIVOT),EPS
+            GOTO 9001
+         END IF
+C
+         IF( IPIVOT .NE. I ) THEN
+            TEMP        = X( I      )
+            X( I      ) = X( IPIVOT )
+            X( IPIVOT ) = TEMP
+            DO J = 1 , L
+C              ATMP( J )          = A   ( J , I      )
+               TEMP               = A   ( J , I      )
+               A   ( J , I      ) = A   ( J , IPIVOT )
+C              A   ( J , IPIVOT ) = ATMP( J )
+               A   ( J , IPIVOT ) = TEMP
+            ENDDO
+         END IF
+C
+         TEMP   = 1.D0   / A( 1 , I )
+         X( I ) = X( I ) * TEMP
+C
+         DO J = 2 , L
+            A( J , I ) = A( J , I ) * TEMP
+         ENDDO
+C
+         DO K = IP , LH
+            TEMP   = A( 1 , K )
+            X( K ) = X( K ) - X( I ) * TEMP
+            DO J = 2 , L
+               A( J-1 , K ) = A( J , K ) - A( J , I ) * TEMP
+            ENDDO
+C
+            A( L , K ) = ( 0.D0 , 0.D0 )
+         ENDDO
+         IF( LH .LT. N ) LH = LH + 1
+      ENDDO
+C
+      IF( CDABS(A(1,N)) .LT. EPS ) THEN
+         write(6,'(A,1P3E12.4)') 'A(1,N),EPS=',A(1,N),EPS
+         GOTO 9002
+      END IF
+C
+      X( N ) = X( N ) / A( 1 , N )
+      JJ = 2
+      DO I = 1 , NM
+         K = N-I
+         TEMP = ( 0.D0 , 0.D0 )
+         DO J = 2 , JJ
+            TEMP = A( J , K ) * X( K-1+J ) + TEMP
+         ENDDO
+         X( K ) = X( K ) - TEMP
+         IF( JJ .LT. L ) JJ = JJ + 1
+      ENDDO
+C
+      IERR = 0
+      RETURN
+C
+ 9000 IERR = 10000
+      RETURN
+ 9001 IERR = 20000+I
+      RETURN
+ 9002 IERR = 30000+I
+      RETURN
+C
       END

@@ -6,8 +6,8 @@ LIBX_MTX=$(LIBX_MTX_PCG)
 #LIBX_MTX=$(LIBX_MTX_MUMPS)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
-FFLAGS = $(OFLAGS)
-#FFLAGS = $(DFLAGS)
+#FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
@@ -15,25 +15,23 @@ FFLAGS = $(OFLAGS)
 MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../plx/$(MOD) -I../eq/$(MOD) \
             -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
-SRC0 = wmmenu.f wminit.f wmeign.f wmsetg.f \
+SRCS = mpilib.f wmmenu.f wminit.f wmeign.f wmsetg.f \
        ../eq/wmeqin.f wmprof.f wmdisp.f \
        wmsetm.f wmsetf.f wmxprf.f wmdprf.f \
        wmpout.f wmgout.f wmgsub.f wmdout.f wmfout.f \
        wmexec.f wmloop.f wmtae.f \
-       wmvmec.f wmbooz.f wmvout.f wmtpcs.f
+       wmvmec.f wmbooz.f wmvout.f wmtpcs.f wmsolv.f
 
 SRCX = wmcont.f90 wmtest.f90 wmdpfa.f90 wmdpfa2.f90 wmdpfaA.f90 #wmdpfa3.f90
 
 # wmtrfile.f
-
-SRCS = $(SRC0) nowmsolv.f 
 
 OBJS = $(SRCX:.f90=.o) $(SRCS:.f=.o)
 
 LIB0 = ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a \
        ../eq/eqlib.a ../dp/dplib.a
 
-LIBS = $(LIBX_MTX) ../mpi/mpilib.o ../mtx/mtxlib.a $(LIB0) wmlib.a  
+LIBS = $(LIBX_MTX) $(LIB0) wmlib.a  
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -116,7 +114,6 @@ wmbooz.o : wmbooz.f $(WMCOMM) vmcomm.inc
 wmvout.o : wmvout.f $(WMCOMM) vmcomm.inc
 
 wmsolv.o : wmsolv.f $(WMCOMM)
-nowmsolv.o : nowmsolv.f $(WMCOMM)
 wmvout.o : wmvout.f $(WMCOMM) vmcomm.inc
 
 ../eq/wmeqin.o : ../eq/wmeqin.f

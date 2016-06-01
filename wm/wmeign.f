@@ -7,6 +7,7 @@ C
       INCLUDE 'wmcomm.inc'
       EXTERNAL WMPARM
       CHARACTER LINE*80,KID*1
+      INTEGER MODE
 C
       MODE=0
     1 CONTINUE
@@ -18,7 +19,7 @@ C
             IF(MODE.EQ.0)
      &      READ(LINE,*,ERR=2,END=2) FRINI,FIINI
          ENDIF
-         CALL MPBCIA(MODE)
+         CALL mtx_broadcast1_integer(MODE)
          IF(MODE.EQ.1) THEN
             CALL MPBCKA(KID)
             GOTO 9000
@@ -32,9 +33,12 @@ C
          CALL MPBCDA(FRINI)
          CALL MPBCDA(FIINI)
 C
-         CALL DIAMIN(FRINI,FIINI,AMPL)
+
+         IF(NRANK.EQ.0) THEN
+            CALL DIAMIN(FRINI,FIINI,AMPL)
          
-         CALL WMBFLD
+            CALL WMBFLD
+         END IF
 
       GOTO 1
 C
@@ -47,19 +51,18 @@ C
       SUBROUTINE WMAM1D(KID,LINE)
 C
       INCLUDE 'wmcomm.inc'
-      REAL(8) :: IAMPS(NGFMAX),IAMPR(NGFMAX)
-      INTEGER :: GSIZE
-      INTEGER :: IWORK,ISTA,IEND,i
+      REAL(8),DIMENSION(:),ALLOCATABLE :: FRA,FIA,AMPA,FRAG,FIAG,AMPAG
+      REAL(8):: DELTFR,AMPMIN
+      INTEGER:: NGFMIN
+      INTEGER :: IWORK,ISTA,IEND,ISIZE,i
       INTEGER,DIMENSION(nsize) :: ilena,iposa
       
-      DIMENSION GX(NGZM),GZ(NGZM,1)
+      REAL(4),DIMENSION(:),ALLOCATABLE:: GX
+      REAL(4),DIMENSION(:,:),ALLOCATABLE:: GZ
+      INTEGER:: MODE
       CHARACTER LINE*80,KID*1
       EXTERNAL WMPARM
 C
-!      CALL mtx_set_communicator_global(MPI_COMM_WORLD)
-!      CALL MPI_COMM_SIZE(ncomm,nsize,IERR)
-!      CALL MPI_COMM_RANK(ncomm,nrank,IERR)
-      
       MODE=0
     1 CONTINUE
          IF(NRANK.EQ.0) THEN
@@ -86,81 +89,54 @@ C
          CALL MPBCDA(FRMAX)
          CALL MPBCDA(FI0)
 C
+         ALLOCATE(FRAG(NGFMAX),FIAG(NGFMAX),AMPAG(NGFMAX))
+         ALLOCATE(GX(NGFMAX),GZ(NGFMAX,1))
+C
          DELTFR=(FRMAX-FRMIN)/(NGFMAX-1)
          AMPMIN=1.D30
 
-!         CALL MPI_COMM_SIZE(ncomm,nsize,IERR)
-!         CALL MPI_COMM_RANK(ncomm,nrank,IERR)
-
-         IF(nsize.EQ.1) THEN
-          DO NGF=1,NGFMAX
-             FR=FRMIN+(NGF-1)*DELTFR
-             FI=FI0
-             CALL DIAMIN(FR,FI,AMPL)
-             IF(NRANK.EQ.0) THEN
-                IF(LISTEG.GE.1) THEN
-                   WRITE(6,'(A,1P3E12.4)') 
-     &               '      FR,FI,AMPL = ',FR,FI,AMPL
-                   CALl GUFLSH
-                ENDIF
-             ENDIF
-             GX(NGF)=GUCLIP(FR)
-             GZ(NGF,1)=GUCLIP(LOG10(AMPL))
-             IF(AMPL.LE.AMPMIN) THEN
-                FRINI=FR
-                FIINI=FI
-                AMPMIN=AMPL
-             ENDIF
-          ENDDO
-          IF(NRANK.EQ.0) THEN
-             WRITE(6,'(A,1P3E12.4)') '      FR,FI,AMPMIN=',
-     &                                     FRINI,FIINI,AMPMIN
-             CALL GUFLSH
-          ENDIF
-         ELSE
-            IWORK=INT(NGF/nsize)+1
-            ISTA=MIN(nrank*IWORK+1,NGFMAX+1)
+         IWORK=INT((NGFMAX-1)/nsize)+1
+         DO i=0,nsize-1
+            ISTA=MIN(i*IWORK+1,NGFMAX)
             IEND=MIN(ISTA+IWORK-1,NGFMAX)
-            GSIZE=IEND-ISTA+1
-            DO i=0,nsize-1
-               ilena(i)=GSIZE
-               iposa(i)=ISTA-1
-            ENDDO
-            
-            DO NGF=1,GSIZE
-               FR=FRMIN+(ISTA+NGF-1)*DELTFR
-               FI=FI0
-               CALL DIAMIN(FR,FI,IAMPS(NGF))
-            ENDDO
+            ISIZE=IEND-ISTA+1
+            ilena(i+1)=ISIZE
+            iposa(i+1)=ISTA-1
+            IF(nrank.EQ.0.AND.nsize.gt.1)
+     &           write(6,'(A,3I10)') 'i,iposa,iend,ilena=',
+     &           i,iposa(i+1),iposa(i+1)+ilena(i+1)-1,ilena(i+1)
+         ENDDO
+         ISIZE=ilena(nrank+1)
+         ISTA=iposa(nrank+1)
 
-            CALL mtx_gatherv_real8(IAMPS,GSIZE,IAMPR,NGFMAX,ilena,iposa)
-!           CALL MPI_GATHERV(IAMPS,GSIZE,        MPI_DOUBLE_PRECISION,
-!     &                       IAMPR,GSIZE,ISTA-1,MPI_DOUBLE_PRECISION,
-!     &                       0,ncomm,IERR)
-            IF(NRANK.EQ.0) THEN
-               DO NGF=1,NGFMAX
-                  IF(LISTEG.GE.1) THEN
-                     WRITE(6,'(A,1P3E12.4)')
-     &                    'FR,FI,AMPL=',FR,FI,IAMPR(NGF)
-                     CALL GUFLSH
-                  ENDIF
-                  GX(NGF)=GUCLIP(FR)
-                  GZ(NGF,1)=GUCLIP(LOG10(IAMPR(NGF)))
-                  IF(IAMPR(NGF).LE.AMPMIN) THEN
-                     FRINI=FR
-                     FIINI=FI
-                     AMPMIN=IAMPR(NGF)
-                  ENDIF
-               ENDDO
+         ALLOCATE(FRA(ISIZE),FIA(ISIZE),AMPA(ISIZE))
 
+         DO NGF=1,ISIZE
+            FRA(NGF)=FRMIN+(ISTA+NGF-1)*DELTFR
+            FIA(NGF)=FI0
+            CALL DIAMIN(FRA(NGF),FIA(NGF),AMPA(NGF))
+         ENDDO
+
+         CALL mtx_gatherv_real8(FRA, ISIZE,FRAG, NGFMAX,ilena,iposa)
+         CALL mtx_gatherv_real8(FIA, ISIZE,FIAG, NGFMAX,ilena,iposa)
+         CALL mtx_gatherv_real8(AMPA,ISIZE,AMPAG,NGFMAX,ilena,iposa)
+
+         IF(NRANK.EQ.0) THEN
+            DO NGF=1,NGFMAX
                WRITE(6,'(A,1P3E12.4)')
-     &              'FR,FI,AMPL=',FR,FI,AMPMIN
-               CALL GUFLSH
-            ENDIF   
-         ENDIF
-
+     &              'FR,FI,AMPL=',FRAG(NGF),FIAG(NGF),AMPAG(NGF)
+               GX(NGF)=GUCLIP(FRAG(NGF))
+               GZ(NGF,1)=GUCLIP(LOG10(AMPAG(NGF)))
+               IF(AMPAG(NGF).LE.AMPMIN) THEN
+                  FRINI=FRAG(NGF)
+                  FIINI=FIAG(NGF)
+                  AMPMIN=AMPAG(NGF)
+               ENDIF
+            ENDDO
 C     
-         CALL WMEG1D(GX,GZ,NGZM,NGFMAX,1,GUCLIP(FI0))
+            CALL WMEG1D(GX,GZ,NGFMAX,NGFMAX,1,GUCLIP(FI0))
+            DEALLOCATE(FRAG,FIAG,AMPAG,GX,GZ)
+         ENDIF
 C
       GOTO 1
 C

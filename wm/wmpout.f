@@ -699,24 +699,12 @@ C
       DIMENSION CDV(3,3,3),CDW(3,3,3)
       DIMENSION CFA(NRM*NSM*MDM*MDM*NDM*NDM)
       DIMENSION CFB(NRM*NSM*MDM*MDM*NDM*NDM)
-      DIMENSION iposa(nsize),ilena(nsize)
 C
       NM=NRM*NSM*MDM*MDM*NDM*NDM
       CW=2.D0*PI*CRF*1.D6
       DTH=2.D0*PI/DBLE(NTHMAX)
       DPH=2.D0*PI/DBLE(NHHMAX)
 C
-      IF(NRANK.EQ.0) THEN
-         NRS=NBST
-      ELSE
-         NRS=NBST-1
-      ENDIF
-      IF(NRANK.EQ.NSIZE-1) THEN
-         NRE=NBED+1
-      ELSE
-         NRE=NBED
-      ENDIF
-C         
       DO NR=1,NRMAX+1
       DO NS=1,NSMAX
       DO NKX=1,NDSIZ
@@ -733,7 +721,7 @@ C
 C
       DO NS=1,NSMAX
 C
-         CALL WMSETF(NRS,NS)
+         CALL WMSETF(1,NS)
 C
          DO NDX=1,NDSIZ
          DO KDX=1,KDSIZ
@@ -749,7 +737,7 @@ C
          ENDDO
          ENDDO
 C
-         DO NR=NRS,NBED
+         DO NR=1,NRMAX
 C
             CALL WMSETF(NR+1,NS)
 C
@@ -976,60 +964,6 @@ C
          ENDDO
       ENDDO
 C
-      NRS=NBST
-      IF(NRANK.EQ.NSIZE-1) THEN
-         NRE=NBED+1
-      ELSE
-         NRE=NBED
-      ENDIF
-C
-      MN=0
-      DO NR=NRS,NRE
-      DO NS=1,NSMAX
-      DO NKX=1,NDSIZ
-      DO KDX=1,KDSIZ
-      DO MLX=1,MDSIZ
-      DO LDX=1,LDSIZ
-         MN=MN+1
-         CFB(MN)=CPABSK(LDX,MLX,KDX,NKX,NS,NR)
-C         if(nrank.eq.0) write(23,*) nr,ns,CPABSK(MLX,LDX,NKX,KDX,NS,NR)
-C         if(nrank.eq.1) write(24,*) nr,ns,CPABSK(MLX,LDX,NKX,KDX,NS,NR)
-      ENDDO
-      ENDDO
-      ENDDO
-      ENDDO
-      ENDDO
-      ENDDO
-C
-      CALL mtx_allgather1_integer(MN,ilena)
-      ntot=0
-      DO i=1,nsize
-         iposa(i)=ntot
-         ntot=ntot+ilena(i)
-      END DO
-      CALL mtx_gatherv_complex8(CFB,MN,CFA,ntot,ilena,iposa)
-      NM=ntot
-C      CALL MPGTCV(CFB,MN,CFA,NVTOT,NM)
-C
-      IF(NRANK.EQ.0) THEN
-         MN=0
-         DO NR=1,NRMAX
-         DO NS=1,NSMAX
-         DO NKX=1,NDSIZ
-         DO KDX=1,KDSIZ
-         DO MLX=1,MDSIZ
-         DO LDX=1,LDSIZ
-            MN=MN+1
-            CPABSK(LDX,MLX,KDX,NKX,NS,NR)=CFA(MN)
-C            if(nrank.eq.0) write(21,*) nr,ns,
-C     &           CPABSK(MLX,LDX,NKX,KDX,NS,NR)
-         ENDDO
-         ENDDO
-         ENDDO
-         ENDDO
-         ENDDO
-         ENDDO
-C
 C     +++++ CALCULATE PABS IN MODE NUMBER SPACE +++++
 C
          DO NR=1,NRMAX+1
@@ -1245,7 +1179,6 @@ C
          ENDDO
          ENDDO
       ENDDO
-      ENDIF
 C
       DO NR=1,NRMAX+1
          DO ND=NDMIN,NDMAX
@@ -1277,7 +1210,6 @@ C
          ENDDO
          ENDDO
       ENDDO
-      CALL MPSYNC
 C
       RETURN
       END

@@ -15,10 +15,6 @@ C
       PNA  = 0.02D0
       PNAL = 0.5D0
       PTA  = 3.5D3
-!        NPWMMAX : Number of momentum mesh points
-!        NTHPMAX : Number of pitch angle mesh points
-      NPWMMAX = 128
-      NTHPMAX = 16
 C
 C     **** ZEFF PARAMETERS ****
 C
@@ -140,11 +136,6 @@ C                   3: Precession of both alpha particles and electrons
 C                   4: Calculate alpha particle density using slowing down
 C        MODELM: Control matrix solver
 C                   0: BANDCD
-C                   1: BANDCDB
-C                   2: BSTABCDB
-C                   8: BANDCDM
-C                   9: BANDCDBM
-C                  10: BSTABCDBM
 C        MODELW: Control writing a data of absorped power
 C                   0: Not writting
 C                   1: Writting
@@ -274,7 +265,6 @@ C
      &              RF,RFI,RD,BETAJ,AJ,AEWGT,AEWGZ,
      &              APH,THJ1,THJ2,PHJ1,PHJ2,ANTANG,NAMAX,MWGMAX,
      &              NRMAX,NTHMAX,NHHMAX,NTH0,NPH0,NHC,
-     &              NPWMMAX,NTHPMAX,
      &              NPRINT,NGRAPH,MODELG,MODELJ,MODELP,MODELN,MODELA,
      &              MODELQ,MODELM,MODELW,MODELV,MODEFA,
      &              MODEFR,MODEFW,
@@ -325,7 +315,6 @@ C
      &       9X,'AJ,APH,THJ1,THJ2,PHJ1,PHJ2,ANTANG,NAMAX,'/
      &       9X,'AEWGT,AEWGZ,MWGMAX,'/
      &       9X,'NRMAX,NTHMAX,NHHMAX,NTH0,NPH0,NHC,'/
-     &       9x,'NPWMMAX,NTHPMAX,'/
      &       9X,'MODELG,MODELJ,MODELP,MODELA,MODELN,'/
      &       9X,'MODELQ,MODELM,MODELW,MODEFA,'/
      &       9X,'KNAMEQ,KNAMTR,KNAMPF,MODEFR,MODEFW,'/
@@ -492,8 +481,6 @@ C
      &             'NHHMAX',NHHMAX
       WRITE(6,602) 'NTH0  ',NTH0  ,'NPH0  ',NPH0  ,
      &             'NHC   ',NHC
-      WRITE(6,602) 'NPWMMAX',NPWMMAX,
-     &             'NTHPMAX',NTHPMAX
       WRITE(6,602) 'MODELG',MODELG,'MODELJ',MODELJ,
      &             'MODELN',MODELN,'MODELA',MODELA
       WRITE(6,602) 'MODELM',MODELM,'MODELQ',MODELQ,

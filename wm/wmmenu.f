@@ -55,7 +55,8 @@ C        *** AMPLITUDE SURVEY ***
 C
       ELSEIF(KID.EQ.'D') THEN
 C         CALL plfile_prof_read(modeln,modelq,ierr)
-         READ(LINE(2:),*,ERR=1,END=1) NID
+         IF(NRANK.EQ.0) READ(LINE(2:),*,ERR=1,END=1) NID
+         CALL MPBCIA(NID)
          IF(NID.EQ.0) THEN
             CALL WMAM0D(KID,LINE)
          ELSEIF(NID.EQ.1) THEN
