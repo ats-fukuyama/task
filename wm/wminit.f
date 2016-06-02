@@ -527,7 +527,7 @@ C
 C
       INCLUDE 'wmcomm.inc'
 C
-      DIMENSION IPARA(23),DPARA(28)
+      DIMENSION IPARA(24),DPARA(28)
 C
       IF(NRANK.EQ.0) THEN
          RF=DBLE(CRF)
@@ -555,7 +555,8 @@ C
          IPARA(21)=MODENW
          IPARA(22)=NCONT
          IPARA(23)=NPHMAX
-C
+         IPARA(24)=MODEFA
+C     
          DPARA(1) =BB
          DPARA(2) =RR
          DPARA(3) =RA
@@ -586,7 +587,7 @@ C
          DPARA(28)=PRFIN
       ENDIF
 C
-      CALL MPBCIN(IPARA,23)
+      CALL MPBCIN(IPARA,24)
       CALL MPBCDN(DPARA,28)
 C
       IF(NRANK.NE.0) THEN
@@ -613,7 +614,8 @@ C
          MODENW=IPARA(21)
          NCONT =IPARA(22)
          NPHMAX=IPARA(23)
-C       
+         MODEFA=IPARA(24)
+C     
          BB    =DPARA(1) 
          RR    =DPARA(2) 
          RA    =DPARA(3) 
