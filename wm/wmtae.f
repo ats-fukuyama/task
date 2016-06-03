@@ -87,6 +87,8 @@ C
                MM1=MM+MD1
 C
                RKPR2=MM1+NN1*RIOTAL
+               IF(ABS(RKPR1).LE.1.D-6) RKPR1=1.D-6
+               IF(ABS(RKPR2).LE.1.D-6) RKPR2=1.D-6
 C
                NW1=MAX(1,MDSIZ-1)*(NDX1-1)+(MDX1-1)+1
                NW1=NW1-NW0+1

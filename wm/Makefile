@@ -2,7 +2,7 @@
 include ../make.header
 include ../mtxp/make.mtxp
 LIBX_MTX=$(LIBX_MTX_BND)
-LIBX_MTX=$(LIBX_MTX_PCG)
+#LIBX_MTX=$(LIBX_MTX_PCG)
 #LIBX_MTX=$(LIBX_MTX_MUMPS)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
