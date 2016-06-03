@@ -193,6 +193,12 @@ C
       SUBROUTINE WMAM2D(KID,LINE)
 C
       INCLUDE 'wmcomm.inc'
+
+      REAL(8),DIMENSION(:),ALLOCATABLE :: FRA,FIA,AMPA,FRAG,FIAG,AMPAG
+      REAL(8) ::DELTFR,DELTFI,AMPMIN
+      INTEGER :: NGFXYMAX,IWORK,ISTA,IEND,ISIZE,i,NG2D,NGA
+      INTEGER,DIMENSION(nsize) :: ilena,iposa
+      
       DIMENSION GX(NGZM),GY(NGZM)
       DIMENSION GZ(NGZM,NGZM)
       PARAMETER (NINFM=5)
@@ -236,28 +242,81 @@ C
 C
          DELTFR=(FRMAX-FRMIN)/(NGXMAX-1)
          DELTFI=(FIMAX-FIMIN)/(NGYMAX-1)
-         DO NGX=1,NGXMAX
-            FR=FRMIN+(NGX-1)*DELTFR
-            GX(NGX)=GUCLIP(FR)
-            DO NGY=1,NGYMAX
-               FI=FIMIN+(NGY-1)*DELTFI
-               CALL DIAMIN(FR,FI,AMPL)
-               IF(NRANK.EQ.0) THEN
-               IF(LISTEG.GE.1) THEN
-               WRITE(6,'(A,1P3E12.4)') '      FR,FI,AMPL = ',FR,FI,AMPL
-               CALL GUFLSH
-               ENDIF
-               ENDIF
-               GY(NGY)=GUCLIP(FI)
-               GZ(NGX,NGY)=GUCLIP(AMPL)
-            ENDDO
+!----add
+         NGFXYMAX=NGXMAX*NGYMAX
+         ALLOCATE(FRAG(NGFXYMAX),FIAG(NGFXYMAX),AMPAG(NGFXYMAX))
+
+         IWORK=(INT((NGXMAX-1)/nsize)+1)*NGYMAX
+         DO i=0,nsize-1
+            ISTA=MIN(i*IWORK+1,NGFXYMAX)
+            IEND=MIN(ISTA+IWORK-1,NGFXYMAX)
+            ISIZE=IEND-ISTA+1
+            ilena(i+1)=ISIZE
+            iposa(i+1)=ISTA-1
          ENDDO
+         ISIZE=ilena(nrank+1)
+         ISTA=iposa(nrank+1)
+
+         ALLOCATE(FRA(ISIZE),FIA(ISIZE),AMPA(ISIZE))
+
+         DO NG2D=1,ISIZE
+            NGA=ISTA+NG2D
+            NGX=MOD(NGA-1,NGXMAX)+1
+            NGY=INT((NGA-1)/NGXMAX)+1
+
+            FRA(NG2D)=FRMIN+(NGX-1)*DELTFR
+            FIA(NG2D)=FIMIN+(NGY-1)*DELTFI
+            CALL DIAMIN(FRA(NG2D),FIA(NG2D),AMPA(NG2D))
+!            IF(LISTEG.GE.1) THEN
+!               WRITE(6,'(A,1I10,1P3E12.4)') '      FR,FI,AMPL = ',
+!     &         nrank,FRA(NG2D),FIA(NG2D),AMPA(NG2D)
+!               CALL GUFLSH
+!            ENDIF
+         ENDDO
+
+         CALL mtx_gatherv_real8(FRA ,ISIZE,FRAG ,NGFXYMAX,ilena,iposa)
+         CALL mtx_gatherv_real8(FIA ,ISIZE,FIAG ,NGFXYMAX,ilena,iposa)
+         CALL mtx_gatherv_real8(AMPA,ISIZE,AMPAG,NGFXYMAX,ilena,iposa)
+!-----add
+!-----old         
+!         DO NGX=1,NGXMAX
+!            FR=FRMIN+(NGX-1)*DELTFR
+!            GX(NGX)=GUCLIP(FR)
+!            DO NGY=1,NGYMAX
+!               FI=FIMIN+(NGY-1)*DELTFI
+!               CALL DIAMIN(FR,FI,AMPL)
+!               IF(NRANK.EQ.0) THEN
+!               IF(LISTEG.GE.1) THEN
+!               WRITE(6,'(A,1P3E12.4)') '      FR,FI,AMPL = ',FR,FI,AMPL
+!               CALL GUFLSH
+!               ENDIF
+!               ENDIF
+!               GY(NGY)=GUCLIP(FI)
+!               GZ(NGX,NGY)=GUCLIP(AMPL)
+!            ENDDO
+!         ENDDO
+!------old
 C
+         IF(nrank.EQ.0) THEN   !--add
          DO NINF=1,NINFM
             GFINF(1,NINF)=0.0
             GFINF(2,NINF)=0.0
             GFINF(3,NINF)=1.E30
          ENDDO
+         DO NGY=1,NGYMAX               ! X->Y
+            DO NGX=1,NGXMAX            ! Y->X
+               NG2D=NGX+NGXMAX*(NGY-1)   !--add
+               IF(LISTEG.GE.1) THEN      !
+                  WRITE(6,'(A,1P3E12.4)') '    FR,FI,AMPL = ', !
+     &             FRAG(NG2D),FIAG(NG2D),AMPAG(NG2D)  !
+               CALL GUFLSH                            !
+               ENDIF  !
+               GX(NGX)=GUCLIP(FRAG(NG2D))  !
+               GY(NGY)=GUCLIP(FIAG(NG2D))  !
+               GZ(NGX,NGY)=GUCLIP(AMPAG(NG2D))  !--add
+            ENDDO
+         ENDDO
+
          DO NGX=1,NGXMAX
             DO NGY=1,NGYMAX
                GAMPL=GZ(NGX,NGY)
@@ -291,15 +350,17 @@ C
             FIINI=DBLE(GFINF(2,1))
             AMPMIN=DBLE(GFINF(3,1))
          ENDIF
-         IF(NRANK.EQ.0) THEN
+!!         IF(NRANK.EQ.0) THEN
             WRITE(6,'(A,1P3E12.4)') '      FR,FI,AMPMIN=',
      &                              FRINI,FIINI,AMPMIN
-            CALL GUFLSH
-         ENDIF
+!            CALL GUFLSH
+!!         ENDIF
 C
          CALL WMEG2D(GX,GY,GZ,NGZM,NGXMAX,NGYMAX,
      &               KA,GFINF,NINFM)
-C
+         DEALLOCATE(FRAG,FIAG,AMPAG)
+         ENDIF                     !--add
+C     
       GOTO 1
 C
  9000 CONTINUE
