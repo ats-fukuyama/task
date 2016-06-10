@@ -527,8 +527,11 @@ SUBROUTINE SETEWG
         END IF
      CASE(12)
         IF((R.GE.R1WG).AND.(R.LE.R2WG)) THEN
+           PROD=(R2WG-R1WG)*(RNODE(NN2)-RNODE(NN1)) &
+               +(Z2WG-Z1WG)*(ZNODE(NN2)-ZNODE(NN1))
            CALL wf_read_wg(Z,CEX,CEY,CEZ,IERR)
-           CEBSD(NBSD)=AMPWG*CEY
+           CEBSD(NBSD)=-AMPWG*CEY
+           IF(PROD.GT.0.D0) CEBSD(NBSD)=-CEBSD(NBSD)
         ELSE
            CEBSD(NBSD)=(0.D0,0.D0)
         END IF
