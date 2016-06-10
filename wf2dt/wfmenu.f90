@@ -47,7 +47,7 @@ subroutine wfmenu
   elseif (KID.eq.'L') then
      IDEBUG_SAVE=IDEBUG
      IDEBUG=1
-!     CALL pl_load(ierr)
+     CALL pl_load(ierr)
      CALL wf_load_wg(ierr)
      IDEBUG=IDEBUG_SAVE
   elseif (KID.eq.'?') then
