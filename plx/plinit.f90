@@ -282,19 +282,21 @@
 !                   0: Slab geometry
 !                   1: Cylindrical geometry
 !                   2: Toroidal geometry
-!                   3: TASK/EQ output geometry
-!                   4: VMEC output geometry
-!                   5: EQDSK output geometry
-!                   6: Boozer output geometry
-!                   7: new VMEC output geometry
+!                   3: Read TASK/EQ output geometry
+!                   4: Read VMEC output geometry
+!                   5: Read EQDSK output geometry
+!                   6: Read Boozer output geometry
+!                   7: Read new VMEC output geometry
 !                   8: call TOPICS/EQU
 !                   9: call TASK/EQ
+!                  12: Read from 2D mag file 
 !        MODELN: Control plasma profile
 !                   0: Calculated from PN,PNS,PTPR,PTPP,PTS,PU,PUS; 0 in SOL
 !                   1: Calculated from PN,PNS,PTPR,PTPP,PTS,PU,PUS; PNS in SOL
-!                   7: Read from file by means of WMDPRF routine (DIII-D)
-!                   8: Read from file by means of WMXPRF routine (JT-60)
+!                   7: Read from file through WMDPRF (DIII-D)
+!                   8: Read from file through WMXPRF (JT-60)
 !                   9: Read from file KNAMTR (TASK/TR)
+!                  12: Read from 2D nT file
 !        MODELQ: Control safety factor profile (for MODELG=0,1,2)
 !                   0: Parabolic q profile (Q0,QA,RHOMIN,RHOITB)
 !                   1: Given current profile (RIP,PROFJ)
@@ -466,7 +468,7 @@
             WRITE(6,*) 'XX pl_check: INVALID MODELG: MODELG=',MODELG
             IERR=1
          ENDIF
-         IF((MODELN.NE.0).AND.(MODELN.NE.9)) THEN
+         IF((MODELN.NE.0).AND.(MODELN.NE.12)) THEN
             WRITE(6,*) 'XX pl_check: INVALID MODELN: MODELN=',MODELN
             IERR=1
          ENDIF

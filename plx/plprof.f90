@@ -141,24 +141,27 @@
       REAL(rkind),INTENT(in):: X,Y,Z
       REAL(rkind),INTENT(OUT):: RHON
       TYPE(pl_mag_type),INTENT(OUT):: MAG
+      INTEGER:: IERR
+      REAL(8):: BTOT
 
       REAL(8) :: RL, BR, BT, BX, BY, BZ, &
                  RSINT, RCOST
 
       SELECT CASE(MODELG)
       CASE(0,1)
-         RSINT= 0.D0
-         RCOST= 1.D0
+         CALL pl_mag_rz(X,Y,Z,BR,BZ,BT,RHON)
+         BX = BR
+         BY = BT
       CASE(2,3,5,8)
          RL=SQRT(X**2+Y**2)
          RCOST= X/RL
          RSINT= Y/RL
+         CALL pl_mag_rz(X,Y,Z,BR,BZ,BT,RHON)
+         BX = BR*RCOST-BT*RSINT
+         BY = BR*RSINT+BT*RCOST
+      CASE(12)
+         CALL pl_read_p2Dmag(X,Y,BX,BY,BZ,BTOT,IERR)
       END SELECT
-
-      CALL pl_mag_rz(X,Y,Z,BR,BZ,BT,RHON)
-
-      BX = BR*RCOST-BT*RSINT
-      BY = BR*RSINT+BT*RCOST
 
       MAG%BABS = SQRT(BX**2+BY**2+BZ**2)
 
@@ -236,6 +239,10 @@
          RL=SQRT(X**2+Y**2)
          PP=0.D0
          CALL GETRZ(RL,Z,PP,BR,BZ,BT,RHON)
+
+      CASE(12)
+         CALL pl_get2DB(X,Y,BR,BZ,BT,RHON)
+
       END SELECT
 
       RETURN
@@ -335,8 +342,9 @@
         IMPLICIT NONE
         REAL(rkind),INTENT(IN):: X,Y,Z
         TYPE(pl_plf_type),DIMENSION(NSMAX),INTENT(OUT):: PLF
+        REAL(rkind),DIMENSION(NSMAX) :: RNPL,RTPL,RUPL
         REAL(rkind):: RHON,FACTX,FACTY,FACTN,FACTT,FACTU
-        INTEGER:: NS
+        INTEGER:: NS,NSMAXL
 
         SELECT CASE(MODELG)
         CASE(0)
@@ -379,6 +387,14 @@
               PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACTT+PTS(NS)
               PLF(NS)%RU  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
            END DO
+        CASE(12)
+           CALL pl_get2Dprof(X,Y,RNPL,RTPL,RUPL,NSMAXL)
+           DO NS=1,NSMAXL
+              PLF(NS)%RN  =RNPL(NS)
+              PLF(NS)%RTPR=RTPL(NS)
+              PLF(NS)%RTPP=RTPL(NS)
+              PLF(NS)%RU  =RUPL(NS)
+           ENDDO
         CASE DEFAULT
            CALL pl_mag_old(X,Y,Z,RHON)
            CALL pl_prof(RHON,PLF)
@@ -574,6 +590,7 @@
             PLF(NS)%RTPP=RTPPPL(NS)
             PLF(NS)%RU  =RUPL(NS)
          ENDDO
+
       END SELECT
 
       RETURN
@@ -979,5 +996,7 @@
 
       RETURN
     END SUBROUTINE pl_getB
+
+    
 
   END MODULE plprof

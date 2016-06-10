@@ -27,7 +27,7 @@ SUBROUTINE WFGOUT
   ENDIF
   
 1 WRITE(6,*) '# INPUT : E/B/D,X/Y/Z/+/-/P/F,[R/I/A][Xx/Yy/Zz/B6]/'
-  WRITE(6,*) '          Xyz/Yxz/Zxy/A9 0-9 V,0-9'
+  WRITE(6,*) '          Xyz/Yxz/Zxy/A9 0-9 V,0-9, L'
   WRITE(6,*) '          P/F,1/2,CXx/CYy/CZz/Xyz/Yxz/Zxy  X=EXIT'
   CALL GUFLSH
   READ(5,'(A80)',ERR=1,END=9000) KLINE
