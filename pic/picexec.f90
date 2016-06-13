@@ -1344,6 +1344,8 @@ CONTAINS
        !jz(nxmax,nymax) = 4.0d0 * jz(nxmax,nymax)
        jx(:,0)=0.d0
        jx(:,nymax)=0.d0
+       jy(0,:)=0.d0
+       jy(nxmax,:)=0.d0
        jz(:,0)=0.d0
        jz(:,nymax)=0.d0
        jz(0,:)=0.d0
