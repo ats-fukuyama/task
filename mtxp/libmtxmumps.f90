@@ -39,11 +39,11 @@
 
       TYPE(mtx_mpi_type):: mtx_global
 
-      INCLUDE '/opt/local/include/dmumps_struc.h'
+      INCLUDE 'dmumps_struc.h'
       TYPE (DMUMPS_STRUC) id
       REAL(8),DIMENSION(:),POINTER:: b,b_loc
 
-      INCLUDE '/opt/local/include/zmumps_struc.h'
+      INCLUDE 'zmumps_struc.h'
       TYPE (ZMUMPS_STRUC) idc
       COMPLEX(8),DIMENSION(:),POINTER:: bc,bc_loc
 
@@ -54,7 +54,7 @@
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !                 Common section
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
       SUBROUTINE mtx_initialize
       IMPLICIT NONE
@@ -88,12 +88,12 @@
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !                 DMUMPS section
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
       SUBROUTINE mtx_setup(imax_,istart_,iend_,jwidth,nzmax,idebug)
 
       INTEGER,INTENT(IN):: imax_           ! total matrix size
-      INTEGER,INTENT(OUT):: istart_,iend_  ! allocated range of lines
+      INTEGER,INTENT(OUT):: istart_,iend_  ! allocated range of lines 
       INTEGER,OPTIONAL,INTENT(IN):: jwidth ! band matrix width
       INTEGER,OPTIONAL,INTENT(IN):: nzmax  ! number of nonzero components
       INTEGER,OPTIONAL,INTENT(IN):: idebug ! debug level
@@ -105,11 +105,11 @@
          idebug_save=0
       END IF
 
-!     ----- define a communicator -----
+!     ----- define a communicator -----      
       id%COMM=ncomm
-!     ----- unsymmetric matrix -----
+!     ----- unsymmetric matrix -----      
       id%SYM=0
-!     ----- host working -----
+!     ----- host working -----      
       id%PAR=1
 !     ----- initialize MUMPS -----
       id%JOB=-1
@@ -127,7 +127,7 @@
       iwork2 = mod(imax,nsize)
       istart =  nrank   *iwork1 + min(nrank,  iwork2) + 1
       iend   = (nrank+1)*iwork1 + min(nrank+1,iwork2)
-
+      
       istart_=istart
       iend_=iend
       irange=iend-istart+1
@@ -167,7 +167,7 @@
       ALLOCATE(b(imax),b_loc(iend-istart+1))
       RETURN
       END SUBROUTINE mtx_setup
-
+      
 !-----
 
       SUBROUTINE mtx_set_matrix(i,j,v)
@@ -192,7 +192,7 @@
       ENDIF
       return
       END SUBROUTINE mtx_set_matrix
-
+      
 !-----
 
       SUBROUTINE mtx_set_source(j,v)
@@ -208,7 +208,7 @@
       ENDIF
       RETURN
       END SUBROUTINE mtx_set_source
-
+      
 !-----
 
       SUBROUTINE mtx_set_vector(j,v)
@@ -217,7 +217,7 @@
 
       return
       END SUBROUTINE mtx_set_vector
-
+      
 !-----
 
       SUBROUTINE mtx_solve(itype,tolerance,its, &
@@ -381,12 +381,12 @@
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !                 ZMUMPS section
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
       SUBROUTINE mtxc_setup(imax_,istart_,iend_,jwidth,nzmax,idebug)
 
       INTEGER,INTENT(IN):: imax_           ! total matrix size
-      INTEGER,INTENT(OUT):: istart_,iend_  ! allocated range of lines
+      INTEGER,INTENT(OUT):: istart_,iend_  ! allocated range of lines 
       INTEGER,OPTIONAL,INTENT(IN):: jwidth ! band matrix width
       INTEGER,OPTIONAL,INTENT(IN):: nzmax  ! number of nonzero components
       INTEGER,OPTIONAL,INTENT(IN):: idebug ! debug level
@@ -398,11 +398,11 @@
          idebug_save=0
       END IF
 
-!     ----- define a communicator -----
+!     ----- define a communicator -----      
       idc%COMM=ncomm
-!     ----- unsymmetric matrix -----
+!     ----- unsymmetric matrix -----      
       idc%SYM=0
-!     ----- host working -----
+!     ----- host working -----      
       idc%PAR=1
 !     ----- initialize MUMPS -----
       idc%JOB=-1
@@ -420,7 +420,7 @@
       iwork2 = mod(imax,nsize)
       istart =  nrank   *iwork1 + min(nrank,  iwork2) + 1
       iend   = (nrank+1)*iwork1 + min(nrank+1,iwork2)
-
+      
       istart_=istart
       iend_=iend
       irange=iend-istart
@@ -461,7 +461,7 @@
       ALLOCATE(bc(imax),bc_loc(iend-istart+1))
       RETURN
       END SUBROUTINE mtxc_setup
-
+      
 !-----
 
       SUBROUTINE mtxc_set_matrix(i,j,v)
@@ -486,7 +486,7 @@
       ENDIF
       return
       END SUBROUTINE mtxc_set_matrix
-
+      
 !-----
 
       SUBROUTINE mtxc_set_source(j,v)
@@ -502,7 +502,7 @@
       ENDIF
       RETURN
       END SUBROUTINE mtxc_set_source
-
+      
 !-----
 
       SUBROUTINE mtxc_set_vector(j,v)
@@ -511,7 +511,7 @@
 
       return
       END SUBROUTINE mtxc_set_vector
-
+      
 !-----
 
       SUBROUTINE mtxc_solve(itype,tolerance,its, &
