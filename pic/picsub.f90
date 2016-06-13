@@ -587,9 +587,9 @@ ENDIF
              ey(0:nxmax,0:nymax) = emy(0:nxmax,0:nymax)
              ez(0:nxmax,0:nymax) = emz(0:nxmax,0:nymax)
           ELSE
-         ex(0:nxmax,0:nymax) = esx(0:nxmax,0:nymax) + emx(0:nxmax,0:nymax)
-           ey(0:nxmax,0:nymax) = esy(0:nxmax,0:nymax) + emy(0:nxmax,0:nymax)
-           ez(0:nxmax,0:nymax) = esz(0:nxmax,0:nymax) + emz(0:nxmax,0:nymax)
+            ex(0:nxmax,0:nymax) = esx(0:nxmax,0:nymax) + emx(0:nxmax,0:nymax)
+            ey(0:nxmax,0:nymax) = esy(0:nxmax,0:nymax) + emy(0:nxmax,0:nymax)
+            ez(0:nxmax,0:nymax) = esz(0:nxmax,0:nymax) + emz(0:nxmax,0:nymax)
           END IF
        END IF
      ENDIF
