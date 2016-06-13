@@ -24,7 +24,6 @@
       real(8),dimension(:),pointer:: rt_init
 !      real(8),parameter:: lnL_ED=10.D0
       real(8),parameter:: lnL_ED=18.D0
-      integer,parameter:: ISW_NOTAIL=0
       integer,parameter:: ISW_Q=2 ! 2=exponential, 3=2step quench, 0=linear
       contains
 
@@ -111,13 +110,8 @@
          RHON=RM(NR)
          CALL PL_PROF(RHON,PLF)
          T0_init=2.D0
-         IF(ISW_NOTAIL.eq.0)THEN
-            RT1_temp(NR)=RTFD(NR,1)
-            RT_INIT(NR)=RTFD(NR,1)
-         ELSE
-            RT1_temp(NR)=RTFD(NR,1)/RTFD0(1)*T0_init
-            RT_init(NR)=RTFD(NR,1)/RTFD0(1)*T0_init
-         END IF
+         RT1_temp(NR)=RTFD(NR,1)
+         RT_INIT(NR)=RTFD(NR,1)
 !         RT2_temp(NR)=T0_quench ! flat profile
          RT2_temp(NR)=T0_quench*(1.D0-0.9D0*RM(NR)**2) ! smith
 !         RT2_temp(NR)=T0_quench*(1.D0-0.1D0*RM(NR)**2) ! nearly flat
@@ -490,6 +484,7 @@
          END IF
       END IF
 
+
 !      FACT=AEFP(NSA)**2*AEFD(NSB)**2*POST_LNLAM(NR,NSB,NSA)*RNE*1.D20
       FACT=Z_i*AEFP(NSA)**4*POST_LNLAM(NR,NSA,NSA)*RNE*1.D20
       taue_col=3.D0*SQRT((2.D0*PI)**3)/FACT &
@@ -500,13 +495,15 @@
 !      neoc=(1.D0-SQRT(invasp))**2 ! P. 174     
       theta_l=THETA0(1)*RT_quench(NR)/RTFP0(1)
       IF(MODEL_IMPURITY.eq.0)THEN
-         tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
-              ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP0(NSA)*1.D20 )
 !         tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
-!              ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP(NR,NSA)*1.D20 )
+!              ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP0(NSA)*1.D20 )
+        tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
+              ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP(NR,NSA)*1.D20 )
       ELSE
+!         tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
+!              ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RN0_MGI(NSA)*1.D20 )
          tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
-              ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RN0_MGI(NSA)*1.D20 )
+              ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RN_MGI(NR,NSA)*1.D20 )
       END IF
       C_ = 0.56D0/Z_i*(3.0D0-Z_i)/(3.D0+Z_i)
       f_t=1.D0 -(1.D0-EPSRM(NR))**2/ ( SQRT(1.D0-EPSRM(NR)**2)*(1.D0+1.46D0*SQRT(EPSRM(NR))) )
@@ -557,14 +554,11 @@
       ELSEIF(ISW_Q.eq.2)THEN ! SMITH
          DO NR=NRSTART,NREND
             RT1_temp(NR)=RT_quench_f(NR)+ &
-!                 (RTFP(NR,1)-RT_quench_f(NR))*EXP(-(TIMEFP+DELT-time_quench_start)/tau_quench)
                  (RT_init(NR)-RT_quench_f(NR))*EXP(-(TIMEFP+DELT-time_quench_start)/tau_quench)
          END DO
       ELSEIF(ISW_Q.eq.3)THEN ! ITB break
          IF(TIMEFP.le.tau_quench*6.D0)THEN
             DO NR=NRSTART,NREND
-!               T0=1.D-1*RTFP0(1)
-!               Ts=1.D-1*RTFPS(1)
                T0=1.D-1
                Ts=1.D-2
                Tf=(T0-Ts)*(1.D0-RM(NR)**2)+Ts
@@ -623,7 +617,7 @@
       real(8),dimension(NRSTART:NREND):: temp_r
       
       CALL mtx_set_communicator(comm_np)
-      DO NR=NRSTART, NRENDX
+      DO NR=NRSTART, NREND
          DO NSA=NSASTART,NSAEND
             NSBA=NSB_NSA(NSA)
             NS=NS_NSA(NSA)
@@ -737,7 +731,6 @@
          CALL mtx_set_communicator(comm_nr)
          CALL mtx_allgather_real8(temp_r,NREND-NRSTART+1,RN_disrupt)
          CALL mtx_reset_communicator
-
       ELSE
          DO NR=1,NRMAX
             RN_disrupt(NR)=RNS(NR,1)
@@ -746,14 +739,17 @@
 
       SUMZ=0.D0
       IF(MODEL_IMPURITY.eq.0)THEN
-         DO NSB=2,NSBMAX
-            IF(NSB.le.NSAMAX)THEN
-               SUMZ=SUMZ+RNS(1,NSB)*PZ(NSB)**2
-            ELSE
-               SUMZ=SUMZ+RNFD0(NSB)*PZ(NSB)**2
-            END IF
-         END DO
-         ZEFF = SUMZ/RNS(1,1)
+         IF(NRANK.eq.0)THEN
+            DO NSB=2,NSBMAX
+               IF(NSB.le.NSAMAX)THEN
+                  SUMZ=SUMZ+RNS(1,NSB)*PZ(NSB)**2
+               ELSE
+                  SUMZ=SUMZ+RNFD(1,NSB)*PZ(NSB)**2
+               END IF
+            END DO
+            ZEFF = SUMZ/RNS(1,1)
+         END IF
+         CALL mtx_broadcast1_real8(ZEFF)
       ELSE
          IF(NRANK.eq.0)THEN
 !         WRITE(*,*) "TEST ZEFF", zeff_imp2, target_zeff, spitot
@@ -783,7 +779,7 @@
       real(8),dimension(NTHMAX):: RE_PITCH_L
       
       CALL mtx_set_communicator(comm_np)
-      DO NR=NRSTART, NRENDX
+      DO NR=NRSTART, NREND
          DO NSA=NSASTART,NSAEND
             NSBA=NSB_NSA(NSA)
             NS=NS_NSA(NSA)
@@ -871,11 +867,15 @@
                     *EXP(-0.25D0*lambda_alpha/E00-SQRT(2.D0/E00)*gamma_alpha_z )
                
                IF(MODEL_IMPURITY.eq.0)THEN
+!                  tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
+!                       ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP0(1)*1.D20 )
                   tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
-                       ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP0(1)*1.D20 )
+                       ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP(NR,1)*1.D20 )
                ELSE
+!                  tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
+!                       ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RN0_MGI(1)*1.D20 )
                   tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
-                       ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RN0_MGI(1)*1.D20 )
+                       ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RN_MGI(NR,1)*1.D20 )
                END IF
                Rconner_l(NR)=Rconner_l(NR)/(tau_rela*SQRT(2*theta_l)**3)
 !               Rconner_l(NR)=Rconner_l(NR)/(tau_rela*SQRT(theta_l)**3)
@@ -1004,11 +1004,15 @@
       END IF
       DO NR=NRSTART, NREND
          IF(MODEL_IMPURITY.eq.0)THEN
+!            tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
+!                 ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP0(1)*1.D20 )
             tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
-                 ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP0(1)*1.D20 )
+                 ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP(NR,1)*1.D20 )
          ELSE
+!            tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
+!                 ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RN0_MGI(1)*1.D20 )
             tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
-                 ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RN0_MGI(1)*1.D20 )
+                 ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RN_MGI(NR,1)*1.D20 )
          END IF
 !         theta_l=THETA0(1)*RT_quench(NR)/RTFP0(1)
          E_hat=EP(NR)/ER_crit(NR)
@@ -1628,7 +1632,7 @@
 
       END SUBROUTINE E_FIELD_EVOLUTION_DISRUPT
 !**********************************************
-      SUBROUTINE FILE_OUTPUT_DISRUPT(NT)
+      SUBROUTINE FILE_OUTPUT_DISRUPT(NT,IP_all_FP)
 
       IMPLICIT NONE
       INTEGER,intent(in):: NT

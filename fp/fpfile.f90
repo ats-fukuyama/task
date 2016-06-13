@@ -71,6 +71,9 @@
 !------------------------------------------      
       SUBROUTINE FP_SAVE2
 
+      IMPLICIT NONE
+      INTEGER:: NSA, NR, NP, NTH, NSB, IERR, NSBA
+
       CALL FWOPEN(21,KNAMFP,0,MODEFW,'FP',IERR)
       IF(IERR.NE.0) THEN
          WRITE(6,*) 'XX FPSAVE: FWOPEN: IERR=',IERR
@@ -89,14 +92,35 @@
             END DO
          END DO
       END DO
-      
+
+      WRITE(21) ( (RN_IMPL(NR,NSA), NR=1,NRMAX), NSA=1,NSAMAX)
+      WRITE(21) ( (RT_IMPL(NR,NSA), NR=1,NRMAX), NSA=1,NSAMAX)
       WRITE(21) (E1(NR),NR=1,NRMAX) ! -> EP
+
+      IF(MODELD.ne.0)THEN
+         WRITE(21) ((((WEIGHR_G(NTH,NP,NR,NSA), NTH=1,NTHMAX),NP=1,NPMAX),NR=1, NRMAX+1),NSA=1,NSAMAX)
+      END IF
 
       IF(MODEL_DISRUPT.ne.0)THEN
          WRITE(21) (conduct_sp(NR), NR=1, NRMAX)
+         WRITE(21) (RN_disrupt(NR), NR=1, NRMAX)
+         WRITE(21) (RN_runaway(NR), NR=1, NRMAX)
+         WRITE(21) (RN_drei(NR), NR=1, NRMAX)
+         WRITE(21) (RJ_ohm(NR), NR=1, NRMAX)
+         WRITE(21) (RJ_runaway(NR), NR=1, NRMAX)
+         WRITE(21) (RJ_bs(NR), NR=1, NRMAX)
+         WRITE(21) (RT_quench(NR),NR=1,NRMAX)
+         WRITE(21) (previous_rate_G(NR), NR=1, NRMAX)
+         WRITE(21) (previous_rate_p_G(NR), NR=1, NRMAX)
+
+
+         IF(MODEL_IMPURITY.ne.0)THEN
+            WRITE(21) ((RN_MGI_G(NR,NSB), NR=1, NRMAX),NSB=1,NSBMAX)
+            WRITE(21) (RN0_MGI(NSB), NSB=1, NSBMAX)
+         END IF
       END IF
 
-! required for other compponents
+! required for other components
       WRITE(21) NRMAX,NPMAX,NTHMAX,NSAMAX
       WRITE(21) DELR,DELTH,RMIN,RMAX
       DO NSA=1,NSAMAX
@@ -113,6 +137,9 @@
       END SUBROUTINE FP_SAVE2
 !------------------------------------------      
       SUBROUTINE FP_LOAD2
+
+      IMPLICIT NONE
+      INTEGER:: NSA, NR, NP, NTH, NSB, IERR, NSBA
 
       CALL FROPEN(21,KNAMFP,0,MODEFR,'FP',IERR)
       IF(IERR.NE.0) THEN
@@ -133,11 +160,32 @@
          END DO
       END DO
       
+      READ(21) ( (RN_IMPL(NR,NSA), NR=1,NRMAX), NSA=1,NSAMAX)
+      READ(21) ( (RT_IMPL(NR,NSA), NR=1,NRMAX), NSA=1,NSAMAX)
       READ(21) (E1(NR),NR=1,NRMAX) ! -> EP
+
+      IF(MODELD.ne.0)THEN
+         READ(21) ((((WEIGHR_G(NTH,NP,NR,NSA), NTH=1,NTHMAX),NP=1,NPMAX),NR=1, NRMAX+1),NSA=1,NSAMAX)
+      END IF
 
       IF(MODEL_DISRUPT.ne.0)THEN
          READ(21) (conduct_sp(NR), NR=1, NRMAX)
+         READ(21) (RN_disrupt(NR), NR=1, NRMAX)
+         READ(21) (RN_runaway(NR), NR=1, NRMAX)
+         READ(21) (RN_drei(NR), NR=1, NRMAX)
+         READ(21) (RJ_ohm(NR), NR=1, NRMAX)
+         READ(21) (RJ_runaway(NR), NR=1, NRMAX)
+         READ(21) (RJ_bs(NR), NR=1, NRMAX)
+         READ(21) (RT_quench(NR),NR=1,NRMAX)
+         READ(21) (previous_rate_G(NR), NR=1, NRMAX)
+         READ(21) (previous_rate_p_G(NR), NR=1, NRMAX)
+
+         IF(MODEL_IMPURITY.ne.0)THEN
+            READ(21) ((RN_MGI_G(NR,NSB), NR=1, NRMAX),NSB=1,NSBMAX)
+            READ(21) (RN0_MGI(NSB), NSB=1, NSBMAX)
+         END IF
       END IF
+
 
 ! required for other compponents
       READ(21) NRMAX,NPMAX,NTHMAX,NSAMAX
@@ -199,7 +247,6 @@
          END DO
       END IF
 
-
       CALL mtx_set_communicator(comm_nr)
 
       CALL mtx_allgather1_integer(nrend-nrstart+1,mtxlen)
@@ -223,6 +270,12 @@
       call FPCINI
 !     ----- set parameters for target species -----
       CALL fp_set_normalize_param
+      IF(MODEL_DISRUPT.ne.0)THEN
+         CALL set_initial_disrupt_param
+         CALL set_post_disrupt_Clog_f
+         call mtx_broadcast_real8(POST_tau_ta0_f,nsamax)
+      END IF
+
       CALL FNSP_INIT_EDGE
 
       END SUBROUTINE FP_PRE_LOAD
@@ -233,7 +286,7 @@
       USE libmpi
       USE fpmpi
       IMPLICIT NONE
-      integer:: NSW, N, NSA, ierr, i, NR
+      integer:: NSW, N, NSA, ierr, i, NR, NSB
 
       CALL mtx_reset_communicator
       CALL scatter_fns_to_fns0
@@ -244,12 +297,17 @@
       CALL mtx_reset_communicator
 
       CALL Bcast_loaded_data
+      IF(MODEL_DISRUPT.ne.0)THEN
+         CALL set_post_disrupt_Clog
+      END IF
+
       DO NR=NRSTART,NREND
          EP(NR)=E1(NR)
          EM(NR)=0.D0
       END DO
       CALL fp_continue(ierr)
       CALL fp_set_initial_value_from_f
+
 
       END SUBROUTINE FP_POST_LOAD
 !------------------------------------------      
@@ -259,7 +317,7 @@
       IMPLICIT NONE
       INTEGER,DIMENSION(99):: idata
       real(8),DIMENSION(99):: rdata
-      integer:: NR
+      integer:: NR, NSB, NSA, NTH, NP
 
       idata(1)=NT_init
       CALL mtx_broadcast_integer(idata,1)
@@ -275,6 +333,22 @@
       END DO
       TIMEFP=rdata(NRMAX+1)
 
+      CALL mtx_broadcast_real8(RN_IMPL,NRMAX*NSAMAX)
+      CALL mtx_broadcast_real8(RT_IMPL,NRMAX*NSAMAX)
+
+      IF(MODELD.ne.0)THEN
+         CALL mtx_broadcast_real8(WEIGHR_G,NTHMAX*NPMAX*(NRMAX+1)*NSAMAX)
+         DO NSA=NSASTART, NSAEND
+            DO NR=NRSTART, NREND+1
+               DO NP=NPSTART, NPEND
+                  DO NTH=1, NTHMAX
+                     WEIGHR(NTH,NP,NR,NSA)=WEIGHR_G(NTH,NP,NR,NSA)
+                  END DO
+               END DO
+            END DO
+         END DO
+      END IF
+
       IF(MODEL_DISRUPT.ne.0)THEN
          DO NR=1,NRMAX
             rdata(NR)=conduct_sp(NR)
@@ -283,9 +357,169 @@
          DO NR=1,NRMAX
             conduct_sp(NR)=rdata(NR)
          END DO      
+!
+         DO NR=1,NRMAX
+            rdata(NR)=RN_disrupt(NR)
+         END DO
+         CALL mtx_broadcast_real8(rdata,NRMAX)
+         DO NR=1,NRMAX
+            RN_disrupt(NR)=rdata(NR)
+         END DO      
+!
+         DO NR=1,NRMAX
+            rdata(NR)=RN_runaway(NR)
+         END DO
+         CALL mtx_broadcast_real8(rdata,NRMAX)
+         DO NR=1,NRMAX
+            RN_runaway(NR)=rdata(NR)
+         END DO      
+!
+         DO NR=1,NRMAX
+            rdata(NR)=RN_drei(NR)
+         END DO
+         CALL mtx_broadcast_real8(rdata,NRMAX)
+         DO NR=1,NRMAX
+            RN_drei(NR)=rdata(NR)
+         END DO      
+!
+         DO NR=1,NRMAX
+            rdata(NR)=RJ_ohm(NR)
+         END DO
+         CALL mtx_broadcast_real8(rdata,NRMAX)
+         DO NR=1,NRMAX
+            RJ_ohm(NR)=rdata(NR)
+         END DO      
+!
+         DO NR=1,NRMAX
+            rdata(NR)=RJ_runaway(NR)
+         END DO
+         CALL mtx_broadcast_real8(rdata,NRMAX)
+         DO NR=1,NRMAX
+            RJ_runaway(NR)=rdata(NR)
+         END DO      
+!
+         DO NR=1,NRMAX
+            rdata(NR)=RJ_bs(NR)
+         END DO
+         CALL mtx_broadcast_real8(rdata,NRMAX)
+         DO NR=1,NRMAX
+            RJ_bs(NR)=rdata(NR)
+         END DO
+!
+         DO NR=1,NRMAX
+            rdata(NR)=RT_quench(NR)
+         END DO
+         CALL mtx_broadcast_real8(rdata,NRMAX)
+         DO NR=1,NRMAX
+            RT_quench(NR)=rdata(NR)
+         END DO
+
+         CALL mtx_broadcast_real8(previous_rate_G,NRMAX)
+         CALL mtx_broadcast_real8(previous_rate_p_G,NRMAX)
+         DO NR=NRSTART, NREND
+            previous_rate(NR)=previous_rate_G(NR)
+            previous_rate_p(NR)=previous_rate_p_G(NR)
+         END DO
+         IF(MODEL_IMPURITY.ne.0)THEN
+            CALL mtx_broadcast_real8(RN0_MGI,NSBMAX)
+            CALL mtx_broadcast_real8(RN_MGI_G,NRMAX*NSBMAX)
+            DO NSB=1,NSBMAX
+               DO NR=NRSTART, NREND
+                  RN_MGI(NR,NSB)=RN_MGI_G(NR,NSB)
+               END DO
+            END DO
+         END IF
       END IF
 
       END SUBROUTINE Bcast_loaded_data
+!------------------------------------------      
+! GATHER DATA to RANK 0
+      SUBROUTINE FP_PRE_SAVE
+
+      USE libmpi
+      IMPLICIT NONE
+      double precision,dimension(NRMAX)::temp
+      double precision,dimension(NRSTART:NREND)::temp_l
+      double precision,dimension(nthmax,npstart:npend,nrstart:nrend):: dsend
+      double precision,dimension(nthmax,npmax,nrmax):: drecv
+
+      double precision,dimension(nthmax,npmax,nrmax+1,nsastart:nsaend):: temp_l2
+      double precision,dimension(nthmax,npstart:npend):: dsend2
+      double precision,dimension(nthmax,npmax):: drecv2
+      integer,dimension(NRMAX,NSBMAX)::vloc
+      integer:: nsend
+      INTEGER:: NR, NSB, NSA, NTH, NP, dest, source, tag, I
+!!!!!!!!!!!!
+
+      IF(MODELD.ne.0)THEN
+         DO NSA=NSASTART, NSAEND
+            DO NR=NRSTART, NREND
+               DO NP=NPSTART, NPEND
+                  DO NTH=1, NTHMAX
+                     dsend(nth,np,nr)=WEIGHR(NTH,NP,NR,NSA)
+                  END DO
+               END DO
+            END DO
+            nsend=NTHMAX*(NPEND-NPSTART+1)*(NREND-NRSTART+1)
+            CALL mtx_set_communicator(comm_nrnp)
+            CALL mtx_allgather_real8(dsend,nsend,drecv)
+            DO NR=1, NRMAX
+               DO NP=1, NPMAX
+                  DO NTH=1, NTHMAX
+                     temp_l2(nth,np,nr,nsa)=drecv(NTH,NP,NR)
+                  END DO
+               END DO
+            END DO
+!
+            DO NP=NPSTART, NPEND
+               DO NTH=1, NTHMAX
+                  dsend2(nth,np)=weighr(nth,np,nrmax+1,nsa)
+               END DO
+            END DO
+            nsend=NTHMAX*(NPEND-NPSTART+1)
+            CALL mtx_set_communicator(comm_np)
+            call mtx_allgather_real8(dsend2,nsend,drecv2) 
+            DO NP=1, NPMAX
+               DO NTH=1, NTHMAX
+                  temp_l2(nth,np,nrmax+1,nsa)=drecv2(NTH,NP)
+               END DO
+            END DO
+         END DO
+         CALL mtx_set_communicator(comm_nsa)
+         nsend=NTHMAX*NPMAX*(NRMAX+1)*(NSAEND-NSASTART+1) 
+         CALL mtx_gather_real8(temp_l2,nsend,WEIGHR_G)
+         CALL mtx_reset_communicator 
+      END IF
+
+!!!!!!!!!!!!!
+      IF(MODEL_DISRUPT.ne.0)THEN
+         previous_rate_g(:)=0.D0
+         previous_rate_p_g(:)=0.D0
+! NS, NR
+         IF(MODEL_IMPURITY.ne.0)THEN
+            RN_MGI_G(:,:)=0.D0
+            CALL mtx_set_communicator(comm_nr)
+            DO NSB=1,NSBMAX
+               DO NR=NRSTART, NREND
+                  temp_l(NR)=RN_MGI(NR,NSB)
+               END DO
+               CALL mtx_gather_real8(temp_l,NREND-NRSTART+1,temp)
+               DO NR=1, NRMAX
+                  RN_MGI_G(NR,NSB)=temp(NR)
+               END DO
+            END DO
+
+            CALL mtx_reset_communicator
+         END IF
+! NR
+         CALL mtx_set_communicator(comm_nr)
+         CALL mtx_gather_real8(previous_rate,NREND-NRSTART+1,previous_rate_g)
+         CALL mtx_gather_real8(previous_rate_p,NREND-NRSTART+1,previous_rate_p_g)
+      END IF
+
+      CALL mtx_reset_communicator
+
+      END SUBROUTINE FP_PRE_SAVE
 !------------------------------------------      
 
       END MODULE fpfile

@@ -66,7 +66,7 @@
       TYPE(mtx_mpi_type):: comm_nr,comm_nsa,comm_np,&
            comm_nrnp,comm_nsanp,comm_nsanr
       integer:: imtxsize,imtxwidth,imtxstart,imtxend
-      integer:: nrstart,nrend,nrendx,nmstart,nmend
+      integer:: nrstart,nrend,nmstart,nmend
       integer:: NSASTART,NSAEND,NPSTART,NPEND
       integer:: NPENDWM,NPENDWG,NPSTARTW,NRSTARTW,NRENDWM,NRENDWG
       integer,dimension(:),POINTER:: mtxlen,mtxpos
@@ -123,7 +123,8 @@
            RN_disrupt, RN_runaway, Rj_ohm, RJ_runaway, conduct_sp, &
            SIGMA_SPP, SIGMA_SPM, ER_drei, ER_crit, Rconner, LNL_G, RFP_ava, &
            RFPL, RFP, RP_crit, RT_quench,RT_quench_f,previous_rate, RJ_bs, &
-           previous_rate_p, rn_drei, RJ_bsm, RN_runaway_M, R_djdt
+           previous_rate_p, rn_drei, RJ_bsm, RN_runaway_M, R_djdt, &
+           previous_rate_G, previous_rate_p_G
       real(rkind),dimension(:),POINTER :: & ! (NRM)
            EPSRM,EPSRG,EPSRM2,EPSRG2
       real(rkind),dimension(:),POINTER :: & ! (NRM)
@@ -148,15 +149,15 @@
            FNSB
 
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
-           RNFP,RTFP,PTFP,VTFP,THETA,DKBSR, RT_T, POST_tau_ta
+           RNFP,RTFP,PTFP,VTFP,THETA,DKBSR, RT_T, POST_tau_ta,RNFP_G,RTFP_G
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSBM)
-           RNFD,RTFD,PTFD,VTFD, RN_MGI
+           RNFD,RTFD,PTFD,VTFD, RN_MGI, RN_MGI_G
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSBM,NSAM)
            RNUF,RNUD,LNLAM,POST_LNLAM_f,POST_LNLAM
       real(rkind),dimension(:,:,:),POINTER :: & ! (NTHM,NPM,NSAM)
            FS1,FS2,FS3
       real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSAM)
-           WEIGHP,WEIGHT,WEIGHR
+           WEIGHP,WEIGHT,WEIGHR,WEIGHR_G
       real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSAM)
            DPP,DPT,DTP,DTT,FPP,FTH,DRR,FRR,SPP,PPL, &
            FEPP,FETH,DCPP,DCPT,DCTP,DCTT,FCPP,FCTH, &
@@ -246,7 +247,7 @@
            PG2,PM2
       real(rkind),dimension(:),POINTER :: & ! (NSAM)
            DEPS_SS, RPDRS, RNDRS,tau_ta0,E_drei0,E_crit0,POST_tau_ta0_f
-      integer:: N_IMPL, NCALCNR
+      integer:: N_IMPL
       real,dimension(10):: gut_comm
       real(rkind),dimension(:,:),POINTER:: EPTR
       real(rkind):: E_EDGEM, SIGP_E, RN_E, RT_E, RLNRL_E
@@ -357,16 +358,20 @@
           allocate(THETA0(NSBMAX))
 
           allocate(RNFP(NRSTART:NREND+1,NSAMAX),RTFP(NRSTART:NREND+1,NSAMAX))
+          allocate(RNFP_G(NRSTART:NRENDWG,NSAMAX),RTFP_G(NRSTART:NRENDWG,NSAMAX))
           allocate(RT_T(NRMAX,NSBMAX))
           allocate(PTFP(NRSTART:NREND+1,NSAMAX),VTFP(NRSTART:NREND+1,NSAMAX))
           allocate(THETA(NRSTART:NREND,NSBMAX),DKBSR(NRSTART:NREND,NSAMAX))
           allocate(WEIGHP(NTHMAX  ,NPSTART:NPENDWG,NRSTART:NREND+1,NSAMAX))
           allocate(WEIGHT(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NREND+1,NSAMAX))
           allocate(WEIGHR(NTHMAX,NPSTART:NPEND,NRSTART:NREND+1,NSAMAX))
-
+          IF(MODELD.ne.0)THEN
+             allocate(WEIGHR_G(NTHMAX,NPMAX,NRMAX+1,NSAMAX))
+          END IF
           allocate(RNFD(NRSTART:NREND+1,NSBMAX),RTFD(NRSTART:NREND+1,NSBMAX))
           allocate(RN0_MGI(NSBMAX))
           allocate(RN_MGI(NRSTART:NREND,NSBMAX))
+          allocate(RN_MGI_G(NRMAX,NSBMAX))
           allocate(PTFD(NRSTART:NREND+1,NSBMAX),VTFD(NRSTART:NREND+1,NSBMAX))
           allocate(RNUF(NRMAX,NSBMAX,NSBMAX))
           allocate(RNUD(NRMAX,NSBMAX,NSBMAX))
@@ -447,6 +452,7 @@
              allocate(Rj_ohm(NRMAX),RJ_runaway(NRMAX),RJ_bs(NRMAX),R_djdt(NRMAX))
              allocate(RJ_bsm(NRSTART:NREND))
              allocate(previous_rate(nrstart:nrend),previous_rate_p(nrstart:nrend))
+             allocate(previous_rate_G(nrmax),previous_rate_p_G(nrmax))
              allocate(conduct_sp(NRMAX))
              allocate(SIGMA_SPP(NRSTART:NREND),SIGMA_SPM(NRSTART:NREND))
              allocate(RE_PITCH(NTHMAX))
@@ -469,20 +475,20 @@
 
           allocate(RN_IMPL(NRMAX,NSAMAX),RT_IMPL(NRMAX,NSAMAX) )
           
-          allocate(RNSL(NRSTART:NRENDX,NSAMAX),RJSL(NRSTART:NRENDX,NSAMAX))
-          allocate(RFPL(NRSTART:NRENDX),RJSRL(NRSTART:NRENDX,NSAMAX))
-          allocate(RWSL(NRSTART:NRENDX,NSAMAX),RWS123L(NRSTART:NRENDX,NSAMAX))
-          allocate(RSPBL(NRSTART:NRENDX,NSAMAX),RSPFL(NRSTART:NRENDX,NSAMAX))
-          allocate(RSPSL(NRSTART:NRENDX,NSAMAX),RSPLL(NRSTART:NRENDX,NSAMAX))
-          allocate(RPCSL(NRSTART:NRENDX,NSAMAX),RPESL(NRSTART:NRENDX,NSAMAX))
-          allocate(RPWSL(NRSTART:NRENDX,NSAMAX),RLHSL(NRSTART:NRENDX,NSAMAX))
-          allocate(RFWSL(NRSTART:NRENDX,NSAMAX),RECSL(NRSTART:NRENDX,NSAMAX))
-          allocate(RICSL(NRSTART:NRENDX,NSAMAX))
-          allocate(RPCS2L(NRSTART:NRENDX,NSBMAX,NSAMAX))
-          allocate(RDIDTL(NRSTART:NRENDX,NSAMAX))
+          allocate(RNSL(NRSTART:NREND,NSAMAX),RJSL(NRSTART:NREND,NSAMAX))
+          allocate(RFPL(NRSTART:NREND),RJSRL(NRSTART:NREND,NSAMAX))
+          allocate(RWSL(NRSTART:NREND,NSAMAX),RWS123L(NRSTART:NREND,NSAMAX))
+          allocate(RSPBL(NRSTART:NREND,NSAMAX),RSPFL(NRSTART:NREND,NSAMAX))
+          allocate(RSPSL(NRSTART:NREND,NSAMAX),RSPLL(NRSTART:NREND,NSAMAX))
+          allocate(RPCSL(NRSTART:NREND,NSAMAX),RPESL(NRSTART:NREND,NSAMAX))
+          allocate(RPWSL(NRSTART:NREND,NSAMAX),RLHSL(NRSTART:NREND,NSAMAX))
+          allocate(RFWSL(NRSTART:NREND,NSAMAX),RECSL(NRSTART:NREND,NSAMAX))
+          allocate(RICSL(NRSTART:NREND,NSAMAX))
+          allocate(RPCS2L(NRSTART:NREND,NSBMAX,NSAMAX))
+          allocate(RDIDTL(NRSTART:NREND,NSAMAX))
           allocate(RDIDT(NRMAX,NSAMAX))
-          allocate(RPSSL(NRSTART:NRENDX,NSAMAX))
-          allocate(RPLSL(NRSTART:NRENDX,NSAMAX))
+          allocate(RPSSL(NRSTART:NREND,NSAMAX))
+          allocate(RPLSL(NRSTART:NREND,NSAMAX))
 
           allocate(RNS(NRMAX,NSAMAX),RJS(NRMAX,NSAMAX),RJS_M(NRMAX,NSAMAX))
           allocate(RFP(NRMAX),RJSR(NRMAX,NSAMAX))
@@ -502,16 +508,16 @@
           allocate(RPDR(NRMAX,NSAMAX),RNDR(NRMAX,NSAMAX))
           allocate(RPDRS(NSAMAX),RNDRS(NSAMAX))
           allocate(tau_ta0(NSAMAX))
-          allocate(RPDRL(NRSTART:NRENDX,NSAMAX),RNDRL(NRSTART:NRENDX,NSAMAX))
+          allocate(RPDRL(NRSTART:NREND,NSAMAX),RNDRL(NRSTART:NREND,NSAMAX))
           allocate(RT_BULK(NRMAX,NSAMAX))
-          allocate(RTL_BULK(NRSTART:NRENDX,NSAMAX))
+          allocate(RTL_BULK(NRSTART:NREND,NSAMAX))
 
-          allocate(RPW_IMPL(NRSTART:NRENDX,NSAMAX,0:LMAXFP+1))
-          allocate(RPWEC_IMPL(NRSTART:NRENDX,NSAMAX,0:LMAXFP+1))
-          allocate(RPWIC_IMPL(NRSTART:NRENDX,NSAMAX,0:LMAXFP+1))
-          allocate(RPW_INIT(NRSTART:NRENDX,NSAMAX))
-          allocate(RPWEC_INIT(NRSTART:NRENDX,NSAMAX))
-          allocate(RPWIC_INIT(NRSTART:NRENDX,NSAMAX))
+          allocate(RPW_IMPL(NRSTART:NREND,NSAMAX,0:LMAXFP+1))
+          allocate(RPWEC_IMPL(NRSTART:NREND,NSAMAX,0:LMAXFP+1))
+          allocate(RPWIC_IMPL(NRSTART:NREND,NSAMAX,0:LMAXFP+1))
+          allocate(RPW_INIT(NRSTART:NREND,NSAMAX))
+          allocate(RPWEC_INIT(NRSTART:NREND,NSAMAX))
+          allocate(RPWIC_INIT(NRSTART:NREND,NSAMAX))
 
           allocate(RIPP(NRMAX,NSAMAX))
 !         NLMAXM= 8   ! this is for analysis without bounce average
@@ -618,13 +624,17 @@
           deallocate(THETA0)
 
           deallocate(RNFP,RTFP)
+          deallocate(RNFP_G,RTFP_G)
           deallocate(PTFP,VTFP)
           deallocate(THETA,DKBSR)
           deallocate(WEIGHP,WEIGHT)
           deallocate(WEIGHR)
+          IF(MODELD.ne.0)THEN
+             deallocate(WEIGHR)
+          END IF
 
           deallocate(RNFD,RTFD,PTFD,VTFD)
-          deallocate(RN_MGI)
+          deallocate(RN_MGI, RN_MGI_G)
           deallocate(RN0_MGI)
           deallocate(RNUF,RNUD,LNLAM)
           deallocate(DPP,DPT)
@@ -659,6 +669,7 @@
           IF(MODEL_DISRUPT.ne.0)THEN
              deallocate(ER_drei, ER_crit,RP_crit)
              deallocate(previous_rate, previous_rate_p)
+             deallocate(previous_rate_G, previous_rate_p_G)
              deallocate(RT_quench, RT_quench_f, conduct_sp)
              deallocate(RE_PITCH)
              deallocate(RN_disrupt, RN_runaway, Rj_ohm, RJ_runaway, RN_drei,RN_runaway_M)

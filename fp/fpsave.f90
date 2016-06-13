@@ -31,7 +31,7 @@
       real(8),dimension(NSBMAX):: RSUM10
       real(8),dimension(NPMAX):: RSUMNP_E
       real(8),dimension(NTHMAX,NPMAX):: T_BULK
-      integer,dimension(NRSTART:NRENDX,NSBMAX):: NP_BULK
+      integer,dimension(NRSTART:NREND,NSBMAX):: NP_BULK
       real(8):: ratio, RSUM_T, RSUM_V, P_BULK_R, FACT_BULK, RATIO_0_S
       real(8):: SRHOR1, SRHOR2, RSUM_DRS, RSUMN_DRS
       real(8):: DSDR, SRHOP, SRHOM, RSUM63
@@ -41,12 +41,13 @@
       IF(ISAVE.NE.0) RETURN
       CALL GUTIME(gut1)
 
-      DO NSA=NSASTART,NSAEND
+!      DO NSA=NSASTART,NSAEND
+      DO NSA=1,NSAMAX
          RNDRS(NSA) =0.D0
          RPDRS(NSA) =0.D0
       END DO
       CALL mtx_set_communicator(comm_np) 
-      DO NR=NRSTART,NRENDX
+      DO NR=NRSTART,NREND
          DO NSA=NSASTART,NSAEND
             NS=NS_NSA(NSA)
             NSBA=NSB_NSA(NSA)
@@ -92,8 +93,8 @@
 !           DEFINE BULK MOMENTUM RANGE
             FACT_BULK=3.D0
             RATIO_0_S=SQRT(RTFPS(NSA)/RTFP0(NSA)) ! p_th(r)/p_th(0)
+            P_BULK_R = FACT_BULK* ( (1.D0-RATIO_0_S)*(1.D0-RM(NR)**2)+RATIO_0_S )
             DO NP=NPMAX, 1, -1
-               P_BULK_R = FACT_BULK* ( (1.D0-RATIO_0_S)*(1.D0-RM(NR)**2)+RATIO_0_S )
                IF(PG(NP,NSA).gt.P_BULK_R) NP_BULK(NR,NSA)=NP
             END DO
 !            WRITE(*,*) NSA, NR, NP_BULK(NR,NSA)
@@ -741,10 +742,10 @@
       DO NSA=1,NSAMAX
          IF(MODELR.eq.0)THEN
             WRITE(6,112) NSA,NS_NSA(NSA), &
-              PNT(NSA,NTG1),PTT(NSA,NTG1),PWT(NSA,NTG1),PIT(NSA,NTG1),PNDR(NSA,NTG1),PTT_BULK(NSA,NTG1)
+              PNT(NSA,NTG1),PTT(NSA,NTG1),PWT(NSA,NTG1),PIT(NSA,NTG1),RNDRS(NSA),PTT_BULK(NSA,NTG1)
          ELSE
             WRITE(6,112) NSA,NS_NSA(NSA), &
-              PNT(NSA,NTG1),PTT2(NSA,NTG1),PWT(NSA,NTG1),PIT(NSA,NTG1),PNDR(NSA,NTG1),PTT_BULK(NSA,NTG1)
+              PNT(NSA,NTG1),PTT2(NSA,NTG1),PWT(NSA,NTG1),PIT(NSA,NTG1),RNDRS(NSA),PTT_BULK(NSA,NTG1)
          END IF
       ENDDO
 
@@ -760,7 +761,7 @@
            '(8X,2I2," PC,PW,PE,PDR,PPLT=",6X,1P5E12.4)'
       DO NSA=1,NSAMAX
          WRITE(6,fmt0) NSA,NS_NSA(NSA), &
-              PPCT(NSA,NTG1),PPWT(NSA,NTG1),PPET(NSA,NTG1),PDR(NSA,NTG1),PPLT(NSA,NTG1)
+              PPCT(NSA,NTG1),PPWT(NSA,NTG1),PPET(NSA,NTG1),RPDRS(NSA),PPLT(NSA,NTG1)
          rtotalPW=rtotalPW + PPWT(NSA,NTG1)
          rtotalPC=rtotalPC + PPCT(NSA,NTG1)
          rtotalSP=rtotalSP + PSPT(NSA,NTG1)
@@ -862,6 +863,7 @@
 !                    RPCT2(NR,NSA,NSA,NTG2), &
 !                    RECT(NR,NSA,NTG2),    &
 !RSPFT(NR,NSA,NTG2),RPDRT(NR,NSA,NTG2), &
+                    RPDR(NR,NSA), &
                     RTT_BULK(NR,NSA,NTG2)!, &
 !                    RATE_RUNAWAY(NR,NTG2), RPLS(NR,NSA)!, &
 !                    RATE_RUNAWAY2(NR,NSA,NTG2)
@@ -872,8 +874,8 @@
       RETURN
   106 FORMAT( &
            'NSA/NS',5X,'RM',10X,' n',8X,' T    ',6X, &
-           ' j     ',5X,'PC     ',5X,'PE     ',5X,   &
-           'PW ',5X,'PNBI',5X,'TBULK' )
+           ' j    ',5X,'PC     ',5X,'PE     ',5X,   &
+           'PW ',9X,'PNBI',8X,'PDRP',8X,'TBULK' )
   107 FORMAT( &
            'NSA/NS',5X,'RM',10X,' n',8X,' T    ',6X, &
            ' j     ',5X,'PC     ',5X,'PC12     ',5X,  &
@@ -1067,8 +1069,10 @@
       INTEGER:: NOFFSET, NR2, NLENGTH, NALL
       INTEGER,dimension(nsize)::COMPOS, COMLEN
       double precision,dimension(NSAMAX*2)::tempr_in, tempr_out
-      double precision,dimension(NRSTART:NRENDX,NSAMAX):: work
+      double precision,dimension(NRSTART:NREND,NSAMAX):: work
       double precision,dimension(NRMAX,NSAMAX):: workg
+      double precision,dimension(NSAMAX):: temp_nsanr
+      integer,dimension(NSAMAX):: vloc
       INTEGER:: isave_sw
 
       CALL mtx_set_communicator(comm_nsanr) 
@@ -1100,7 +1104,7 @@
       END DO
       DO NSB=1,NSBMAX
          DO NSA=NSASTART,NSAEND
-            DO NR=NRSTART,NRENDX
+            DO NR=NRSTART,NREND
                work(NR,NSA) = RPCS2L(NR,NSB,NSA)
             END DO
          END DO
@@ -1120,6 +1124,16 @@
       CALL mtx_broadcast_real8(RNS,NRMAX*NSAMAX)
       CALL mtx_broadcast_real8(RWS,NRMAX*NSAMAX)
 !      CALL mtx_broadcast_real8(RFP,NRMAX)
+
+      IF(MODELD.ne.0)THEN
+         temp_nsanr(:)=0.D0
+         CALL mtx_set_communicator(comm_nsanr) 
+         CALL mtx_reduce_real8(RPDRS,NSAMAX,3,temp_nsanr,vloc)
+         RPDRS(:)=temp_nsanr
+         CALL mtx_reduce_real8(RNDRS,NSAMAX,3,temp_nsanr,vloc)
+         RNDRS(:)=temp_nsanr
+         CALL mtx_reset_communicator 
+      END IF
 
       END SUBROUTINE FPSAVECOMM
 !^-------------------------------

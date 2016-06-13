@@ -272,20 +272,6 @@
       MODEL_synch=0
       MODEL_NBI=0
       MODEL_WAVE=0 ! 0=no wave calc., 1=wave calc.
-      MODEL_IMPURITY=0 ! =1 MGI
-      MODEL_SINK=0 ! 1= deltaB/B like sink term
-
-      MODEL_DISRUPT=0 ! 0=no disruption, 1=disruption calc.
-      MODEL_Conner_FP=0 ! runaway rate 0= Conner, 1=FP
-      MODEL_BS=0 ! bootstrap current 0= off, 1=simple model
-      MODEL_jfp=0 ! current evaluation 0= independent on f, 1=depend on f
-      MODEL_LNL=0 ! Coulomb logarithm 0= variable w T , 1=fixed initial value, 2=fixed disrupted value
-      MODEL_RE_pmax=0 ! RE non-RE boundary 0=NPMAX, 1=NPC_runaway
-      MODELD_n_RE=0 ! radial transport of RE density 0=off, 1=on
-      time_quench_start=0.D0
-      RJPROF1=2.D0
-      RJPROF2=2.D0
-      v_RE=1.D0 ! RE velocity / VC
 !-----------------------------------------------------------------------
 !     LLMAX : dimension of legendre polynomials's calculation
 !     LLMAX_NF : dimension of legendre polynomials's calculation for nuclear fusion rate
@@ -321,6 +307,21 @@
 !
 !     T0_quench : temperature after thermal quench [keV] at r=0
 !     tau_quench: thermal quench time [sec]
+
+      MODEL_DISRUPT=0 ! 0=no disruption, 1=disruption calc.
+      MODEL_Conner_FP=0 ! runaway rate 0= Conner, 1=FP
+      MODEL_BS=0 ! bootstrap current 0= off, 1=simple model
+      MODEL_jfp=0 ! current evaluation 0= independent on f, 1=depend on f
+      MODEL_LNL=0 ! Coulomb logarithm 0= variable w T , 1=fixed initial value, 2=fixed disrupted value
+      MODEL_RE_pmax=0 ! RE non-RE boundary 0=NPMAX, 1=NPC_runaway
+      MODELD_n_RE=0 ! radial transport of RE density 0=off, 1=on
+      MODEL_IMPURITY=0 ! =1 MGI: satisfy quasi-neutrarity
+      MODEL_SINK=0 ! 1= deltaB/B like sink term
+
+      time_quench_start=0.D0
+      RJPROF1=2.D0
+      RJPROF2=2.D0
+      v_RE=1.D0 ! RE velocity / VC
 
       T0_quench=2.D-2
       tau_quench=1.D-3

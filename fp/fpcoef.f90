@@ -17,6 +17,7 @@
 !      USE fpcaleind
       USE libmtx
 
+      INTEGER,parameter:: MODEL_T_IMP=2
 !      double precision,parameter::deltaB_B=1.D-4
 
       contains
@@ -639,7 +640,11 @@
       NSBA=NSB_NSA(NSA)
       DO NR=NRSTART,NRENDWG
          RHON=RG(NR)
-         RTFPL=RTFP(NR,NSA)/RTFP0(NSA)
+         IF(NR.ne.NRMAX+1)THEN
+            RTFPL= RTFP_G(NR,NSA)/RTFP0(NSA)
+         ELSE
+            RTFPL=RTFPS(NSA)/RTFP0(NSA)
+         END IF
          DO NP=NPSTART,NPEND
             DO NTH=1,NTHMAX
 !------------- SET P DEPENDENCE
@@ -651,13 +656,16 @@
                   FACTP=1.D0
                   FACTR= (DRR0-DRRS)*(1.D0-RHON**2)+DRRS 
                CASE(2) ! depend on 1/p
-                  FACTP=1.D0/SQRT(RTFPL+PM(NP,NSBA)**2*SINM(NTH)**2)
+                  FACTP=SQRT(RTFPL)/SQRT(RTFPL+PM(NP,NSBA)**2*SINM(NTH)**2)
+!                  FACTP=1.D0/SQRT(RTFPL+PM(NP,NSBA)**2*SINM(NTH)**2)
                   FACTR= (DRR0-DRRS)*(1.D0-RHON**2)+DRRS 
                CASE(3) ! depend on 1/sqrt{p}
-                  FACTP=1.D0/SQRT(RTFPL+PM(NP,NSBA)*SINM(NTH))
+                  FACTP=SQRT(RTFPL)/SQRT(RTFPL+PM(NP,NSBA)*SINM(NTH))
+!                  FACTP=1.D0/SQRT(RTFPL+PM(NP,NSBA)*SINM(NTH))
                   FACTR= (DRR0-DRRS)*(1.D0-RHON**2)+DRRS 
                CASE(4) ! depend on 1/p^2
-                  FACTP=1.D0/(RTFPL+PM(NP,NSBA)**2*SINM(NTH)**2)
+                  FACTP=SQRT(RTFPL)/(RTFPL+PM(NP,NSBA)**2*SINM(NTH)**2)
+!                  FACTP=1.D0/(RTFPL+PM(NP,NSBA)**2*SINM(NTH)**2)
                   FACTR= (DRR0-DRRS)*(1.D0-RHON**2)+DRRS 
                CASE(5) ! stochastic delta B /B
                   RGAMA=SQRT(1.D0+THETA0(NSBA)*PM(NP,NSBA)**2)
@@ -675,7 +683,7 @@
             DINT_F=0.D0
             DO NP=NPSTART,NPEND
                DO NTH=1,NTHMAX
-                  IF(NTG1.eq.0.and.N_IMPL.eq.0)THEN
+                  IF(TIMEFP.eq.0.and.N_IMPL.eq.0)THEN
                      IF(NR.eq.1)THEN
                         WRL=0.25D0 ! not necessary
                      ELSE
@@ -1691,9 +1699,14 @@
       target_ni=(SPITOT-RNFP0(1))*RNFP(NR,NSA)/RNFP0(NSA)/target_z
 
       RNFPL=target_ni
-!      RTFPL=RT_quench(NR)
-!      RTFPL=( 0.1D0*RT_quench(NR) + 0.9D0*RT_quench_f(NR) )
-      RTFPL=( 0.01D0*RT_quench(NR) + 0.99D0*RT_quench_f(NR) )
+      
+      IF(MODEL_T_IMP.eq.0)THEN
+         RTFPL=RT_quench(NR)
+      ELSEIF(MODEL_T_IMP.eq.1)THEN
+         RTFPL=( 0.1D0*RT_quench(NR) + 0.9D0*RT_quench_f(NR) )
+      ELSEIF(MODEL_T_IMP.eq.2)THEN
+         RTFPL=( 0.01D0*RT_quench(NR) + 0.99D0*RT_quench_f(NR) )
+      END IF
 
       IF(MODELR.EQ.0) THEN
          FACT=RNFPL/SQRT(2.D0*PI*RTFPL/RTFP0L)**3
