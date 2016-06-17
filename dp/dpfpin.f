@@ -206,16 +206,19 @@ C
       SUBROUTINE DPLDFP
 C
       USE plcomm
+      USE commpi
+      USE libmpi
       INCLUDE 'dpcomm.inc'
       CHARACTER(LEN=80),SAVE::  KNAMFP_SAVE=' '
 C
       IF(KNAMFP.EQ.KNAMFP_SAVE) RETURN
-C      
+C
+      IF(nrank.eq.0) THEN
       CALL FROPEN(21,KNAMFP,0,MODEFR,'FP',IERR)
-      IF(IERR.NE.0) THEN
+       IF(IERR.NE.0) THEN
          WRITE(6,*) 'XX DPLDFP: FROPEN: IERR=',IERR
          RETURN
-      ENDIF
+       ENDIF
       REWIND(21)
 
       READ(21) NRMAX,NPMAX,NTHMAX,NSAMAX
@@ -228,7 +231,25 @@ C
      &                NP=1,NPMAX),NR=1,NRMAX)
       ENDDO
       CLOSE(21)
-C
+      ENDIF
+
+      CALL mtx_broadcast1_integer(NRMAX)
+!      CALL mtx_broadcast1_integer(NPMAX)
+!      CALL mtx_broadcast1_integer(NTHMAX)
+!      CALL mtx_broadcast1_integer(NSAMAX)
+!      CALL mtx_broadcast1_real8(DELR)
+!      CALL mtx_broadcast1_real8(DELTH)
+!      CALL mtx_broadcast1_real8(RMIN)
+!      CALL mtx_broadcast1_real8(RMAX)
+!      CALL mtx_broadcast_real8(DELP,NSAMAX)
+!      CALL mtx_broadcast_real8(AEFP,NSAMAX)
+!      CALL mtx_broadcast_real8(AMFP,NSAMAX)
+!      CALL mtx_broadcast_real8(RNFP0,NSAMAX)
+!      CALL mtx_broadcast_real8(RTFP0,NSAMAX)
+!      CALL mtx_broadcast_real8(FNS(1:NTHMAX,1:NPMAX,1:NRMAX,1:NSAMAX),
+!     &                         NTHMAX*NPMAX*NRMAX*NSAMAX)
+C     
+      IF(nrank.eq.0) THEN
       WRITE(6,*) '# DATA WAS SUCCESSFULLY LOADED FROM THE FILE.'
       WRITE(6,*) 'NRMAX,NPMAX,NTHMAX,NSAMAX =',NRMAX,NPMAX,NTHMAX,NSAMAX
       WRITE(6,'(A,1P4E12.4)') 'DELR/TH,RMIN/RMAX =',
@@ -238,7 +259,8 @@ C
          WRITE(6,'(A,1P5E12.4)') 'AE,AM,RN0,RT0,DELP=',
      &        AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA),DELP(NSA)
       ENDDO
-C
+      ENDIF
+C     
       DELTH=PI/NTHMAX
 C
       DO NS=1,NSMAX

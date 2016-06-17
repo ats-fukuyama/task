@@ -566,8 +566,8 @@ C
       ELSE
          RETURN
       ENDIF
-!      RTA=PTA*AEE*1.D3   ! original
-      RTA=(PTA-5.D-1)*(1.D0-XL**2)*AEE*1.D3 +5.D-1*AEE*1.D3  ! parabola
+      RTA=PTA*AEE*1.D3   ! original
+!      RTA=(PTA-5.D-1)*(1.D0-XL**2)*AEE*1.D3 +5.D-1*AEE*1.D3  ! parabola
       AM=PA(3)*AMP
       AE=PZ(3)*AEE
       VTA=SQRT(2.D0*RTA/AM)

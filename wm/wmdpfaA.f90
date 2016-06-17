@@ -10,7 +10,7 @@ MODULE wmfa
  INTEGER :: la,n,s,NTHv
  COMPLEX(8) :: Cp0N,Cv0N,ImCp0N
  REAL(8) :: PmaxN
-! REAL(8),PARAMETER :: PmaxN=7.D0
+! REAL(8),PARAMETER :: PmaxN=5.D0
 
 END MODULE wmfa
  
@@ -141,9 +141,9 @@ SUBROUTINE WMDPFAA(CW,RHOWM,RKPR,AE2N0,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
         AR=TSNM(NTH)*TCSM(NTH)*TCSM(NTH)
 !-----PRICIPAL VALUE
 
-        IF((p0N.LT.5.D-4).OR.(p0N.GE.PmaxN-5.D-4)) THEN
-           LBi3=1.4D-3
-           RBi3=PmaxN-1.4D-3
+        IF((p0N.LT.0.5D0*DELP(3)).OR.(p0N.GE.PmaxN-0.5D0*DELP(3))) THEN
+           LBi3=DELP(3)
+           RBi3=PmaxN-DELP(3)
          CALL PVINT(1,3,CIP1)   ! 3 => INTEGRAL 0.14 < pN < 4.86
           CPM1=CPM1 + AP*CIP1
          CALL PVINT(2,3,CIP2)
@@ -288,7 +288,7 @@ SUBROUTINE PVINT(j,l,CINT)
  INTEGER:: m
  REAL(8):: xg(0:1000),yg(0:1000)
   H0=0.5
-  EPS=1.D-4 !!!??
+  EPS=1.D-5 !!!??
   ILST=0
 
    WRITE(LINE,'(3I5,1P5E12.4)') j,l,NTHv,p0N,RHO0
