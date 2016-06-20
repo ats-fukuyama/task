@@ -388,21 +388,21 @@ CONTAINS
           ey(nxmax,ny) = esy(nxmax,ny) + emy(nxmax,ny)
           ez(nxmax,ny) = esz(nxmax,ny) + emz(nxmax,ny)
         ELSE IF(model_boundary .eq. 2) THEN
-           Ex(nxmax,ny)=-Exbb(nxmax-1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-                   *(Ex(nxmax-1,ny)+Exbb(nxmax,ny)) &
-                   +2.d0/(vcfact*dt+1.d0)*(Exb(nxmax,ny)+Exb(nxmax-1,ny))&
-                   +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-                   *(Exb(nxmax,ny+1)-2.d0*Exb(nxmax,ny)&
-                   +Exb(nxmax,ny-1)+Exb(nxmax-1,ny+1)&
-                   -2.d0*Exb(nxmax-1,ny)+Exb(nxmax-1,ny-1))
-
-           Ey(nxmax,ny)=-Eybb(nxmax-1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-                   *(Ey(nxmax-1,ny)+Eybb(nxmax,ny)) &
-                   +2.d0/(vcfact*dt+1.d0)*(Eyb(nxmax,ny)+Eyb(nxmax-1,ny))&
-                   +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-                   *(Eyb(nxmax,ny+1)-2.d0*Eyb(nxmax,ny)&
-                   +Eyb(nxmax,ny-1)+Eyb(nxmax-1,ny+1)&
-                   -2.d0*Eyb(nxmax-1,ny)+Eyb(nxmax-1,ny-1))
+          !  Ex(nxmax,ny)=-Exbb(nxmax-1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+          !          *(Ex(nxmax-1,ny)+Exbb(nxmax,ny)) &
+          !          +2.d0/(vcfact*dt+1.d0)*(Exb(nxmax,ny)+Exb(nxmax-1,ny))&
+          !          +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+          !          *(Exb(nxmax,ny+1)-2.d0*Exb(nxmax,ny)&
+          !          +Exb(nxmax,ny-1)+Exb(nxmax-1,ny+1)&
+          !          -2.d0*Exb(nxmax-1,ny)+Exb(nxmax-1,ny-1))
+           !
+          !  Ey(nxmax,ny)=-Eybb(nxmax-1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+          !          *(Ey(nxmax-1,ny)+Eybb(nxmax,ny)) &
+          !          +2.d0/(vcfact*dt+1.d0)*(Eyb(nxmax,ny)+Eyb(nxmax-1,ny))&
+          !          +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+          !          *(Eyb(nxmax,ny+1)-2.d0*Eyb(nxmax,ny)&
+          !          +Eyb(nxmax,ny-1)+Eyb(nxmax-1,ny+1)&
+          !          -2.d0*Eyb(nxmax-1,ny)+Eyb(nxmax-1,ny-1))
 
           Ez(nxmax,ny)=-Ezbb(nxmax-1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
                   *(Ez(nxmax-1,ny)+Ezbb(nxmax,ny)) &
@@ -412,21 +412,21 @@ CONTAINS
                   +Ezb(nxmax,ny-1)+Ezb(nxmax-1,ny+1)&
                   -2.d0*Ezb(nxmax-1,ny)+Ezb(nxmax-1,ny-1))
 
-         Ex(0,ny)=-Exbb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-                  *(Ex(1,ny)+Exbb(0,ny)) &
-                  +2.d0/(vcfact*dt+1.d0)*(Exb(0,ny)+Exb(1,ny))&
-                  +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-                  *(Exb(0,ny+1)-2.d0*Exb(0,ny)&
-                  +Exb(0,ny-1)+Exb(1,ny+1)&
-                  -2.d0*Exb(1,ny)+Exb(1,ny-1))
-
-         Ey(0,ny)=-Eybb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-                  *(Ey(1,ny)+Eybb(0,ny)) &
-                  +2.d0/(vcfact*dt+1.d0)*(Eyb(0,ny)+Eyb(1,ny))&
-                  +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-                  *(Eyb(0,ny+1)-2.d0*Eyb(0,ny)&
-                  +Eyb(0,ny-1)+Eyb(1,ny+1)&
-                  -2.d0*Eyb(1,ny)+Eyb(1,ny-1))
+        !  Ex(0,ny)=-Exbb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+        !           *(Ex(1,ny)+Exbb(0,ny)) &
+        !           +2.d0/(vcfact*dt+1.d0)*(Exb(0,ny)+Exb(1,ny))&
+        !           +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+        !           *(Exb(0,ny+1)-2.d0*Exb(0,ny)&
+        !           +Exb(0,ny-1)+Exb(1,ny+1)&
+        !           -2.d0*Exb(1,ny)+Exb(1,ny-1))
+         !
+        !  Ey(0,ny)=-Eybb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+        !           *(Ey(1,ny)+Eybb(0,ny)) &
+        !           +2.d0/(vcfact*dt+1.d0)*(Eyb(0,ny)+Eyb(1,ny))&
+        !           +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+        !           *(Eyb(0,ny+1)-2.d0*Eyb(0,ny)&
+        !           +Eyb(0,ny-1)+Eyb(1,ny+1)&
+        !           -2.d0*Eyb(1,ny)+Eyb(1,ny-1))
 
         Ez(0,ny)=-Ezbb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
                  *(Ez(1,ny)+Ezbb(0,ny)) &
@@ -473,13 +473,13 @@ CONTAINS
         !             *(Eyb(nx+1,0)-2.d0*Eyb(nx,0)+Eyb(nx-1,0)+Eyb(nx+1,1)&
         !              -2.d0*Eyb(nx,1)+Eyb(nx-1,1))
          !
-        !    Ez(nx,0)=-Ezbb(nx,1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-        !            *(Ez(nx,1)+Ezbb(nx,0))&
-        !            +2.d0/(vcfact*dt+1.d0)*(Ezb(nx,0)+Ezb(nx,1))&
-        !            +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-        !            *(Ezb(nx+1,0)-2.d0*Ezb(nx,0)+Ezb(nx-1,0)+Ezb(nx+1,1)&
-        !             -2.d0*Ezb(nx,1)+Ezb(nx-1,1))
-         !
+           Ez(nx,0)=-Ezbb(nx,1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+                   *(Ez(nx,1)+Ezbb(nx,0))&
+                   +2.d0/(vcfact*dt+1.d0)*(Ezb(nx,0)+Ezb(nx,1))&
+                   +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+                   *(Ezb(nx+1,0)-2.d0*Ezb(nx,0)+Ezb(nx-1,0)+Ezb(nx+1,1)&
+                    -2.d0*Ezb(nx,1)+Ezb(nx-1,1))
+
         !     Ex(nx,nymax)=-Exbb(nx,nymax-1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
         !              *(Ex(nx,nymax-1)+Exbb(nx,nymax)) &
         !             +2.d0/(vcfact*dt+1.d0)*(Exb(nx,nymax)+Exb(nx,nymax-1))&
@@ -496,21 +496,23 @@ CONTAINS
         !             +Eyb(nx-1,nymax)+Eyb(nx+1,nymax-1)&
         !             -2.d0*Eyb(nx,nymax-1)+Eyb(nx-1,nymax-1))
          !
-        !    Ez(nx,nymax)=-Ezbb(nx,nymax-1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-        !            *(Ez(nx,nymax-1)+Ezbb(nx,nymax))&
-        !            +2.d0/(vcfact*dt+1.d0)*(Ezb(nx,nymax)+Ezb(nx,nymax-1))&
-        !            +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-        !            *(Ezb(nx+1,nymax)-2.d0*Ezb(nx,nymax)&
-        !            +Ezb(nx-1,nymax)+Ezb(nx+1,nymax-1)&
-        !            -2.d0*Ezb(nx,nymax-1)+Ezb(nx-1,nymax-1))
+           Ez(nx,nymax)=-Ezbb(nx,nymax-1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+                   *(Ez(nx,nymax-1)+Ezbb(nx,nymax))&
+                   +2.d0/(vcfact*dt+1.d0)*(Ezb(nx,nymax)+Ezb(nx,nymax-1))&
+                   +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+                   *(Ezb(nx+1,nymax)-2.d0*Ezb(nx,nymax)&
+                   +Ezb(nx-1,nymax)+Ezb(nx+1,nymax-1)&
+                   -2.d0*Ezb(nx,nymax-1)+Ezb(nx-1,nymax-1))
           ENDIF
 
        ENDDO
        IF(model_boundary .eq. 1) THEN
           ex(:,0) = 0.d0
           ex(:,nymax) = 0.d0
+          ex(nxmax,:)=0.d0
           ey(0,:) = 0.d0
           ey(nxmax,:) = 0.d0
+          ey(:,nymax) = 0.d0
           ez(:,0) = 0.d0
           ez(:,nymax) = 0.d0
           ez(0,:) = 0.d0
@@ -705,7 +707,7 @@ ENDIF
           IF(model_boundary .eq. 1) then  !reflective
               bx(nxmax,ny)=0.d0
               by(nxmax,ny)=by(nxmax-1,ny)
-              bz(nxmax,ny)=bz(nxmax-1,ny)!dt*(ex(nxmax,nyp)-ex(nxmax,ny))+bzb(nxmax,ny)
+              bz(nxmax,ny)=dt*(ex(nxmax,nyp)-ex(nxmax,ny))+bzb(nxmax,ny)
               bx(0,ny)=0.d0
               by(0,ny)=dt*ez(1,ny)+byb(0,ny)
               bz(0,ny)=dt*(-ey(1,ny)+ex(0,nyp)-ex(0,ny))+bzb(0,ny)
@@ -717,7 +719,7 @@ ENDIF
             !          *(bxb(nxmax,ny+1)-2.d0*bxb(nxmax,ny)&
             !          +bxb(nxmax,ny-1)+bxb(nxmax-1,ny+1)&
             !          -2.d0*bxb(nxmax-1,ny)+bxb(nxmax-1,ny-1))
-            !
+             !
             !  by(nxmax,ny)=-bybb(nxmax-1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
             !          *(by(nxmax-1,ny)+bybb(nxmax,ny)) &
             !          +2.d0/(vcfact*dt+1.d0)*(byb(nxmax,ny)+byb(nxmax-1,ny))&
@@ -725,7 +727,7 @@ ENDIF
             !          *(byb(nxmax,ny+1)-2.d0*byb(nxmax,ny)&
             !          +byb(nxmax,ny-1)+byb(nxmax-1,ny+1)&
             !          -2.d0*byb(nxmax-1,ny)+byb(nxmax-1,ny-1))
-            !
+
             ! bz(nxmax,ny)=-bzbb(nxmax-1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
             !         *(bz(nxmax-1,ny)+bzbb(nxmax,ny)) &
             !         +2.d0/(vcfact*dt+1.d0)*(bzb(nxmax,ny)+bzb(nxmax-1,ny))&
@@ -733,23 +735,23 @@ ENDIF
             !         *(bzb(nxmax,ny+1)-2.d0*bzb(nxmax,ny)&
             !         +bzb(nxmax,ny-1)+bzb(nxmax-1,ny+1)&
             !         -2.d0*bzb(nxmax-1,ny)+bzb(nxmax-1,ny-1))
-            !
-            !   bx(0,ny)=-bxbb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-            !         *(bx(1,ny)+bxbb(0,ny)) &
-            !         +2.d0/(vcfact*dt+1.d0)*(bxb(0,ny)+bxb(1,ny))&
-            !         +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-            !         *(bxb(0,ny+1)-2.d0*bxb(0,ny)&
-            !         +bxb(0,ny-1)+bxb(1,ny+1)&
-            !         -2.d0*bxb(1,ny)+bxb(1,ny-1))
-            !
-            !   by(0,ny)=-bybb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-            !         *(by(1,ny)+bybb(0,ny)) &
-            !         +2.d0/(vcfact*dt+1.d0)*(byb(0,ny)+byb(1,ny))&
-            !         +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-            !         *(byb(0,ny+1)-2.d0*byb(0,ny)&
-            !         +byb(0,ny-1)+byb(1,ny+1)&
-            !         -2.d0*byb(1,ny)+byb(1,ny-1))
-            !
+
+              ! bx(0,ny)=-bxbb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+              !       *(bx(1,ny)+bxbb(0,ny)) &
+              !       +2.d0/(vcfact*dt+1.d0)*(bxb(0,ny)+bxb(1,ny))&
+              !       +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+              !       *(bxb(0,ny+1)-2.d0*bxb(0,ny)&
+              !       +bxb(0,ny-1)+bxb(1,ny+1)&
+              !       -2.d0*bxb(1,ny)+bxb(1,ny-1))
+              !
+              ! by(0,ny)=-bybb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+              !       *(by(1,ny)+bybb(0,ny)) &
+              !       +2.d0/(vcfact*dt+1.d0)*(byb(0,ny)+byb(1,ny))&
+              !       +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+              !       *(byb(0,ny+1)-2.d0*byb(0,ny)&
+              !       +byb(0,ny-1)+byb(1,ny+1)&
+              !       -2.d0*byb(1,ny)+byb(1,ny-1))
+
             !  bz(0,ny)=-bzbb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
             !        *(bz(1,ny)+bzbb(0,ny)) &
             !        +2.d0/(vcfact*dt+1.d0)*(bzb(0,ny)+bzb(1,ny))&
@@ -764,55 +766,55 @@ ENDIF
            IF(model_boundary .eq. 1) then
                bx(nx,nymax)=bx(nx,nymax-1)
                by(nx,nymax)=0.d0
-               bz(nx,nymax)=bz(nx,nymax-1)!dt*(-ey(nxp,nymax)+ey(nx,nymax))+bzb(nx,nymax)
+               bz(nx,nymax)=dt*(-ey(nxp,nymax)+ey(nx,nymax))+bzb(nx,nymax)
                bx(nx,0)=-dt*ez(nx,1)+bxb(nx,0)
                by(nx,0)=0.d0
                bz(nx,0)=dt*(-ey(nxp,0)+ey(nx,0)+ex(nx,1))+bzb(nx,0)
            ELSEIF(model_boundary .eq. 2) then
-          !    bx(nx,0)=-bxbb(nx,1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-          !            *(bx(nx,1)+bxbb(nx,0)) &
-          !            +2.d0/(vcfact*dt+1.d0)*(bxb(nx,0)+bxb(nx,1))&
-          !            +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-          !            *(bxb(nx+1,0)-2.d0*bxb(nx,0)+bxb(nx-1,0)+bxb(nx+1,1)&
-          !             -2.d0*bxb(nx,1)+bxb(nx-1,1))
-          !
-          !    by(nx,0)=-bybb(nx,1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-          !            *(by(nx,1)+bybb(nx,0))&
-          !            +2.d0/(vcfact*dt+1.d0)*(byb(nx,0)+byb(nx,1))&
-          !            +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-          !            *(byb(nx+1,0)-2.d0*byb(nx,0)+byb(nx-1,0)+byb(nx+1,1)&
-          !             -2.d0*byb(nx,1)+byb(nx-1,1))
-          !
-          !   bz(nx,0)=-bzbb(nx,1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-          !           *(bz(nx,1)+bzbb(nx,0))&
-          !           +2.d0/(vcfact*dt+1.d0)*(bzb(nx,0)+bzb(nx,1))&
-          !           +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-          !           *(bzb(nx+1,0)-2.d0*bzb(nx,0)+bzb(nx-1,0)+bzb(nx+1,1)&
-          !            -2.d0*bzb(nx,1)+bzb(nx-1,1))
-          !
-          !    bx(nx,nymax)=-bxbb(nx,nymax-1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-          !             *(bx(nx,nymax-1)+bxbb(nx,nymax)) &
-          !            +2.d0/(vcfact*dt+1.d0)*(bxb(nx,nymax)+bxb(nx,nymax-1))&
-          !            +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-          !            *(bxb(nx+1,nymax)-2.d0*bxb(nx,nymax) &
-          !            +bxb(nx-1,nymax)+bxb(nx+1,nymax-1)&
-          !            -2.d0*bxb(nx,nymax-1)+bxb(nx-1,nymax-1))
-          !
-          !    by(nx,nymax)=-bybb(nx,nymax-1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-          !            *(by(nx,nymax-1)+bybb(nx,nymax))&
-          !            +2.d0/(vcfact*dt+1.d0)*(byb(nx,nymax)+byb(nx,nymax-1))&
-          !            +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0)) &
-          !            *(byb(nx+1,nymax)-2.d0*byb(nx,nymax)&
-          !            +byb(nx-1,nymax)+byb(nx+1,nymax-1)&
-          !            -2.d0*byb(nx,nymax-1)+byb(nx-1,nymax-1))
-          !
-          !   bz(nx,nymax)=-bzbb(nx,nymax-1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-          !           *(bz(nx,nymax-1)+bzbb(nx,nymax))&
-          !           +2.d0/(vcfact*dt+1.d0)*(bzb(nx,nymax)+bzb(nx,nymax-1))&
-          !           +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-          !           *(bzb(nx+1,nymax)-2.d0*bzb(nx,nymax)&
-          !           +bzb(nx-1,nymax)+bzb(nx+1,nymax-1)&
-          !           -2.d0*bzb(nx,nymax-1)+bzb(nx-1,nymax-1))
+            !  bx(nx,0)=-bxbb(nx,1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+            !          *(bx(nx,1)+bxbb(nx,0)) &
+            !          +2.d0/(vcfact*dt+1.d0)*(bxb(nx,0)+bxb(nx,1))&
+            !          +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+            !          *(bxb(nx+1,0)-2.d0*bxb(nx,0)+bxb(nx-1,0)+bxb(nx+1,1)&
+            !           -2.d0*bxb(nx,1)+bxb(nx-1,1))
+             !
+            !  by(nx,0)=-bybb(nx,1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+            !          *(by(nx,1)+bybb(nx,0))&
+            !          +2.d0/(vcfact*dt+1.d0)*(byb(nx,0)+byb(nx,1))&
+            !          +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+            !          *(byb(nx+1,0)-2.d0*byb(nx,0)+byb(nx-1,0)+byb(nx+1,1)&
+            !           -2.d0*byb(nx,1)+byb(nx-1,1))
+
+            ! bz(nx,0)=-bzbb(nx,1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+            !         *(bz(nx,1)+bzbb(nx,0))&
+            !         +2.d0/(vcfact*dt+1.d0)*(bzb(nx,0)+bzb(nx,1))&
+            !         +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+            !         *(bzb(nx+1,0)-2.d0*bzb(nx,0)+bzb(nx-1,0)+bzb(nx+1,1)&
+            !          -2.d0*bzb(nx,1)+bzb(nx-1,1))
+
+            !  bx(nx,nymax)=-bxbb(nx,nymax-1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+            !           *(bx(nx,nymax-1)+bxbb(nx,nymax)) &
+            !          +2.d0/(vcfact*dt+1.d0)*(bxb(nx,nymax)+bxb(nx,nymax-1))&
+            !          +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+            !          *(bxb(nx+1,nymax)-2.d0*bxb(nx,nymax) &
+            !          +bxb(nx-1,nymax)+bxb(nx+1,nymax-1)&
+            !          -2.d0*bxb(nx,nymax-1)+bxb(nx-1,nymax-1))
+             !
+            !  by(nx,nymax)=-bybb(nx,nymax-1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+            !          *(by(nx,nymax-1)+bybb(nx,nymax))&
+            !          +2.d0/(vcfact*dt+1.d0)*(byb(nx,nymax)+byb(nx,nymax-1))&
+            !          +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0)) &
+            !          *(byb(nx+1,nymax)-2.d0*byb(nx,nymax)&
+            !          +byb(nx-1,nymax)+byb(nx+1,nymax-1)&
+            !          -2.d0*byb(nx,nymax-1)+byb(nx-1,nymax-1))
+
+            ! bz(nx,nymax)=-bzbb(nx,nymax-1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+            !         *(bz(nx,nymax-1)+bzbb(nx,nymax))&
+            !         +2.d0/(vcfact*dt+1.d0)*(bzb(nx,nymax)+bzb(nx,nymax-1))&
+            !         +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+            !         *(bzb(nx+1,nymax)-2.d0*bzb(nx,nymax)&
+            !         +bzb(nx-1,nymax)+bzb(nx+1,nymax-1)&
+            !         -2.d0*bzb(nx,nymax-1)+bzb(nx-1,nymax-1))
             ENDIF
         ENDDO
         IF(model_boundary .eq. 2) THEN
@@ -855,8 +857,12 @@ ENDIF
         ENDIF
           bx(0,:) = 0.d0
           bx(nxmax,:) = 0.d0
+          bx(:,nymax) = 0.d0
           by(:,0) = 0.d0
           by(:,nymax) = 0.d0
+          by(nxmax,:) = 0.d0
+          bz(nxmax,:) = 0.d0
+          bz(:,nymax) = 0.d0
         ! bxb(0,:) = 0.d0
         ! bxb(nxmax,:) = 0.d0
         ! bxb(:,nymax) = 0.d0
