@@ -705,7 +705,7 @@ ENDIF
           IF(model_boundary .eq. 1) then  !reflective
               bx(nxmax,ny)=0.d0
               by(nxmax,ny)=by(nxmax-1,ny)
-              bz(nxmax,ny)=bz(nxmax-1,ny)!dt*(ex(nxmax,nyp)-ex(nxmax,ny))+bzb(nxmax,ny)
+              bz(nxmax,ny)=dt*(ex(nxmax,nyp)-ex(nxmax,ny))+bzb(nxmax,ny)
               bx(0,ny)=0.d0
               by(0,ny)=dt*ez(1,ny)+byb(0,ny)
               bz(0,ny)=dt*(-ey(1,ny)+ex(0,nyp)-ex(0,ny))+bzb(0,ny)
@@ -764,7 +764,7 @@ ENDIF
            IF(model_boundary .eq. 1) then
                bx(nx,nymax)=bx(nx,nymax-1)
                by(nx,nymax)=0.d0
-               bz(nx,nymax)=bz(nx,nymax-1)!dt*(-ey(nxp,nymax)+ey(nx,nymax))+bzb(nx,nymax)
+               bz(nx,nymax)=dt*(-ey(nxp,nymax)+ey(nx,nymax))+bzb(nx,nymax)
                bx(nx,0)=-dt*ez(nx,1)+bxb(nx,0)
                by(nx,0)=0.d0
                bz(nx,0)=dt*(-ey(nxp,0)+ey(nx,0)+ex(nx,1))+bzb(nx,0)
