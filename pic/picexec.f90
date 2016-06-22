@@ -470,7 +470,7 @@ CONTAINS
           dx1 = dx1 - 0.5d0
           dy = dy + 0.5d0
           dy1 = dy1 - 0.5d0
-          IF(model_boundary .NE. 0 ) THEN
+          IF(model_boundary .eq. 1 ) THEN
             IF(nxp .EQ. 0) THEN
               dx1 = 0.d0
               sx2m = 0.d0
@@ -512,7 +512,7 @@ CONTAINS
           dx1 = dx1 - 0.5d0
           dy = dy - 0.5d0
           dy1 = dy1 + 0.5d0
-          IF(model_boundary .NE. 0 ) THEN
+          IF(model_boundary .eq. 1 ) THEN
             IF(nxp .EQ. 0) THEN
               dx1 = 0.d0
               sx2m = 0.d0
@@ -551,7 +551,7 @@ CONTAINS
           dx1 = dx1 + 0.5d0
           dy = dy + 0.5d0
           dy1 = dy1 - 0.5d0
-          IF(model_boundary .NE. 0 ) THEN
+          IF(model_boundary .eq. 1 ) THEN
             IF(nxp .EQ. nxmax-1) THEN
               sx2p=0.d0
             ENDIF
@@ -590,7 +590,7 @@ CONTAINS
           dx1 = dx1 + 0.5d0
           dy = dy - 0.5d0
           dy1 = dy1 + 0.5d0
-          IF(model_boundary .NE. 0 ) THEN
+          IF(model_boundary .eq. 1 ) THEN
             IF(nxp .EQ. nxmax-1) THEN
               sx2p=0.d0
             ENDIF

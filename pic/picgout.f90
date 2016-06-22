@@ -235,11 +235,11 @@ CONTAINS
                     XMIN=0.D0,XMAX=DBLE(nxmax))
        CALL GRD1D(10,x,jz,nxmax1,nxmax1,nymax1,'@jz(x)@', &
                     XMIN=0.D0,XMAX=DBLE(nxmax))
-       CALL GRD1D(11,x,Ax,nxmax1,nxmax1,nymax1,'@Ax(x)@', &
+       CALL GRD1D(11,x,Bx,nxmax1,nxmax1,nymax1,'@Bx(x)@', &
                     XMIN=0.D0,XMAX=DBLE(nxmax))
-       CALL GRD1D(12,x,Ay,nxmax1,nxmax1,nymax1,'@Ay(x)@', &
+       CALL GRD1D(12,x,By,nxmax1,nxmax1,nymax1,'@By(x)@', &
                     XMIN=0.D0,XMAX=DBLE(nxmax))
-       CALL GRD1D(13,x,Az,nxmax1,nxmax1,nymax1,'@Az(x)@', &
+       CALL GRD1D(13,x,Bz,nxmax1,nxmax1,nymax1,'@Bz(x)@', &
                     XMIN=0.D0,XMAX=DBLE(nxmax))
        CALL PAGEE
     CASE('F1')
