@@ -245,6 +245,9 @@
 !                3 : 1/sqrt(p) dependence
 !                4 : 1/p^2 dependence
 !                5 : deltaB/B stchastic diffusion
+!     MODELD_boundary : 0 fix f at rho=1+DELR/2, namely FS2
+!                    : 1 fix f at rho = 1, namely FS1. FS2 is variable.
+!
 !     MODELS : 0 No fusion reaction
 !              1 DT reaction source (NSSPF,SPFTOT,SPFR0,SPFRW,SPFENG)
 !              2 DT reaction source (self-consistent reactioin rate)
@@ -260,6 +263,7 @@
       MODELC= 0
       MODELR= 0
       MODELD= 0
+      MODELD_boundary= 0
       MODELS= 0
       DO NS=1,NSM
          MODELW(NS)=0
@@ -412,7 +416,7 @@
            MODEL_synch, MODEL_LOSS, MODEL_SINK, T0_quench, tau_quench, deltaB_B, &
            MODEL_NBI, MODEL_WAVE, MODEL_IMPURITY, MODEL_Conner_FP, MODEL_BS, MODEL_jfp, &
            MODEL_LNL, time_quench_start, MODEL_RE_pmax, RJPROF1, RJPROF2, MODELD_n_RE, &
-           pmax_bb, v_RE, target_zeff, n_impu, SPITOT
+           pmax_bb, v_RE, target_zeff, n_impu, SPITOT, MODELD_boundary
 
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: nid
@@ -444,7 +448,7 @@
            MODEL_synch, MODEL_LOSS, MODEL_SINK, T0_quench, tau_quench, deltaB_B, &
            MODEL_NBI, MODEL_WAVE, MODEL_IMPURITY, MODEL_Conner_FP, MODEL_BS, MODEL_jfp, &
            MODEL_LNL, time_quench_start, MODEL_RE_pmax, RJPROF1, RJPROF2, MODELD_n_RE, &
-           pmax_bb, v_RE, target_zeff, n_impu, SPITOT
+           pmax_bb, v_RE, target_zeff, n_impu, SPITOT, MODELD_boundary
 
 
       READ(nid,FP,IOSTAT=ist,ERR=9800,END=9900)
@@ -487,7 +491,7 @@
       WRITE(6,*) '      MODEL_synch, MODEL_loss, MODEL_SINK, T0_quench, tau_quench, deltaB_B,'
       WRITE(6,*) '      MODEL_NBI, MODEL_WAVE, MODEL_IMPURITY, MODEL_Conner_FP, MODEL_BS, MODEL_jfp'
       WRITE(6,*) '      MODEL_LNL, time_quench_start, MODEL_RE_pmax, RJPROF1, RJPROF2, MODELD_n_RE'
-      WRITE(6,*) '      pmax_bb, v_RE, target_zeff, n_impu, SPITOT'
+      WRITE(6,*) '      pmax_bb, v_RE, target_zeff, n_impu, SPITOT, MODELD_boundary'
 
 
       RETURN
@@ -666,7 +670,9 @@
       idata(50)=MODELD_n_RE
       idata(51)=LLMAX_NF
       idata(52)=n_impu
-      CALL mtx_broadcast_integer(idata,52)
+      idata(53)=MODELD_boundary
+
+      CALL mtx_broadcast_integer(idata,53)
       NPMAX   =idata( 1)
       NTHMAX  =idata( 2)
       NRMAX   =idata( 3)
@@ -721,6 +727,7 @@
       MODELD_n_RE= idata(50)
       LLMAX_NF   = idata(51)
       n_impu = idata(52)
+      MODELD_boundary = idata(53)
 
       CALL mtx_broadcast_integer(NS_NSA,NSAMAX)
       CALL mtx_broadcast_integer(NS_NSB,NSBMAX)
@@ -887,7 +894,7 @@
            nsize, MODEL_DISRUPT, MODEL_synch, MODEL_LOSS, MODEL_SINK, T0_quench, tau_quench, deltaB_B, &
            MODEL_NBI, MODEL_WAVE, MODEL_IMPURITY, MODEL_Conner_FP, MODEL_BS, MODEL_jfp, MODEL_LNL, &
            time_quench_start, MODEL_RE_pmax, RJPROF1, RJPROF2, MODELD_n_RE, pmax_bb, v_RE, &
-           target_zeff, n_impu, SPITOT
+           target_zeff, n_impu, SPITOT, MODELD_boundary
 
       IMPLICIT NONE
       integer:: nsa,nsb,ns,NBEAM

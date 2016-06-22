@@ -114,9 +114,9 @@
          BP= RSRHON(RHON)*BT/(RR*QL)
          EPSRM(NR)=RSRHON(RHON)/RR
          BPM(NR)= RSRHON(RHON)*BT/(RR*QL)
-!         IF(NRANK.eq.0) &
-!         write(6,'(A,I5,1P5E12.4)') 'nr,rm,rsrhon,epsrm,bpm,ql=', &
-!              NR,RM(NR),RSRHON(RHON),EPSRM(NR),BPM(NR),QL
+         IF(NRANK.eq.0) &
+         write(6,'(A,I5,1P5E12.4)') 'nr,rm,rsrhon,epsrm,bpm,ql=', &
+              NR,RM(NR),RSRHON(RHON),EPSRM(NR),BPM(NR),QL
       ENDDO
 !      RHON=RG(NRMAX+1)
       RHON=RM(NRMAX)+DELR
@@ -228,10 +228,13 @@
 
             EPSL=COSM(ITL(NR))**2/(2.D0-COSM(ITL(NR))**2)
 
+
 !            WRITE(6,'(A,3I5,1P2E12.4)') 'NR,ITL,ITU,EPSRM=', &
 !                          NR,ITL(NR),ITU(NR),EPSRM(NR),EPSL
             EPSRM2(NR) = EPSRM(NR)
             EPSRM(NR)=EPSL
+            IF(nsize.gt.1.and.NRANK.eq.1) &
+                 WRITE(6,'(A,2I5,1P4E12.4)') 'NR,NTHC,EPSRM=',NR,NTH,EPSRM2(NR),EPSRM(NR),THM(NTH), A1
          ENDDO
 
          IF(NRANK.eq.1) WRITE(6,*) " "
@@ -246,10 +249,12 @@
             ITUG(NR)=NTHMAX-NTH+1
 
             EPSL=COSM(ITLG(NR))**2/(2.D0-COSM(ITLG(NR))**2)
-            IF(nsize.gt.1.and.NRANK.eq.1) &
-                 WRITE(6,'(A,2I5,1P2E12.4)') 'NR,NTHC,EPSRG=',NR,NTH,EPSRG(NR),EPSL
+
+
             EPSRG2(NR) = EPSRG(NR)
             EPSRG(NR)=EPSL
+            IF(nsize.gt.1.and.NRANK.eq.1) &
+                 WRITE(6,'(A,2I5,1P4E12.4)') 'NR,NTHC,EPSRG=',NR,NTH,EPSRG2(NR),EPSRG(NR),THM(NTH), A1
 !            EPSRG2(NR) = EPSRG(NR)
          ENDDO
 
@@ -279,13 +284,14 @@
             RFSAD_GG(NR)=1.D0
          END DO
       ELSE
+         DO NR=1,NRMAX+1
+            CALL SET_RFSAD(NR)
+         END DO
          DO NR=NRSTART,NREND
             CALL SET_BOUNCE_PARAM(NR)
          END DO
          CALL SET_BOUNCE_PARAM(NRMAX+1)
-         DO NR=1,NRMAX+1
-            CALL SET_RFSAD(NR)
-         END DO
+
       END IF ! MODELA
 
       allocate(work(nrstart:nrend),workg(NRMAX))
@@ -302,7 +308,7 @@
          ENDDO
          RLAMDAG(NTH,NRMAX+1)=RLAMDAG(NTH,NRMAX)
       ENDDO
-
+      
       DO NTH=1,NTHMAX
          DO NR=NRSTART,NREND
             work(NR)=ETAM(NTH,NR)
@@ -337,17 +343,19 @@
       ENDDO
       CALL mtx_reset_communicator
 
-!      IF(NRANK.eq.0)THEN
-!      open(8,file='RLAMDAG100_tpb_ex_killeen_fine.dat')
-!      DO NR =1, NRMAX
-!      DO NTH=1,NTHMAX
-!         WRITE(8,'(2I4, 4E14.6)') NR, NTH, NTH-0.5D0, COSM(NTH), RLAMDAG(NTH,NR), RLAMDA_GG(NTH,NR)
-!      END DO
-!      WRITE(8,*) " "
-!      WRITE(8,*) " "
-!      END DO
-!      close(8)
-!      END IF
+      IF(MODELA.eq.1)THEN
+      IF(NRANK.eq.0)THEN
+      open(8,file='RLAMDAG.dat')
+      DO NR =1, NRMAX
+      DO NTH=1,NTHMAX
+         WRITE(8,'(2I4, 4E14.6)') NR, NTH, COSM(NTH), RLAMDAG(NTH,NR), RFSADG(NR)
+      END DO
+      WRITE(8,*) " "
+      WRITE(8,*) " "
+      END DO
+      close(8)
+      END IF
+      END IF
 
 !      IF(NRANK.eq.0)THEN
 !      DO NR=1,NRMAX
@@ -672,6 +680,7 @@
 
       IMPLICIT NONE
       INTEGER:: NTH,NP,NR,NSA,NSB,NS,NSBA
+      integer:: isw
       REAL(8):: FL
 
       DO NSA=NSASTART,NSAEND
@@ -680,7 +689,7 @@
          DO NP=NPSTARTW,NPENDWM
             FL=FPMXWL(PM(NP,NSA),NR,NS)
             DO NTH=1,NTHMAX
-               FS3(NTH,NP,NSA)=FL ! rho=1.0
+               FS1(NTH,NP,NSA)=FL ! rho=1.0 fixed value
             END DO
          ENDDO
       END DO
@@ -692,20 +701,35 @@
          DO NP=NPSTARTW,NPENDWM
             FL=FPMXWL(PM(NP,NSBA),0,NS)
             DO NTH=1,NTHMAX
-               FS1(NTH,NP,NSA)=FL ! at r=0
+               FS0(NTH,NP,NSA)=FL ! at r=0 fixed value
             ENDDO
          ENDDO
       END DO
-!
-      DO NSA=NSASTART,NSAEND
-         NS=NS_NSA(NSA)
-         DO NP=NPSTARTW,NPENDWM
-            CALL FPMXWL_EDGE(NP,NSA,FL)
-            DO NTH=1,NTHMAX
-               FS2(NTH,NP,NS)=FL ! at R=1.0+DELR/2
+
+      IF(MODELD_boundary.eq.0)THEN
+         DO NSA=NSASTART,NSAEND
+            NS=NS_NSA(NSA)
+            DO NP=NPSTARTW,NPENDWM
+               CALL FPMXWL_EDGE(NP,NSA,FL)
+               DO NTH=1,NTHMAX
+                  FS2(NTH,NP,NS)=FL ! at R=1.0+DELR/2
+               ENDDO
             ENDDO
          ENDDO
-      ENDDO
+      ELSEIF(MODELD_boundary.eq.1)THEN
+         IF(NREND.eq.NRMAX)THEN
+            DO NSA=NSASTART,NSAEND
+               NS=NS_NSA(NSA)
+               DO NP=NPSTARTW,NPENDWM
+                  DO NTH=1,NTHMAX
+                     FS2(NTH,NP,NS) = 2.D0*FS1(NTH,NP,NS)-FNSP(NTH,NP,NRMAX,NSA) ! linear
+                  ENDDO
+               ENDDO
+            ENDDO
+         ELSE
+            FS2(:,:,:)=0.D0
+         END IF
+      END IF
 
       END SUBROUTINE FNSP_INIT_EDGE
 !-------------------------------------------------------------
@@ -725,14 +749,6 @@
             RSUM2=0.D0
             RSUM3=0.D0
             RSUM4=0.D0
-!            DO NP=NPSTART,NPEND
-!               DO NTH=1,NTHMAX
-!                  RSUM1 = RSUM1+VOLP(NTH,NP,NSB)*RLAMDAG(NTH,NR)/RFSADG(NR)*FNSP(NTH,NP,NR,NSB)
-!                  RSUM2 = RSUM2+VOLP(NTH,NP,NSB)*FNSP(NTH,NP,NR,NSB)
-!                  RSUM3 = rsum3+VOLP(NTH,NP,NSB)*RLAMDA_GG(NTH,NR)/RFSAD_GG(NR)
-!                  RSUM4 = rsum4+VOLP(NTH,NP,NSB)
-!               END DO
-!            END DO
             DO NTH=1,NTHMAX
                RSUM1 = RSUM1+RLAMDAG(NTH,NR)/RFSADG(NR)*SINM(NTH)*DELTH
                RSUM2 = RSUM2+SINM(NTH)*DELTH
@@ -741,13 +757,6 @@
             END DO
             IF(RSUM1.EQ.0.D0) &
                  WRITE(6,'(1P3E12.4)') VOLP(1,1,NSB),FNSP(1,1,1,NSB),RLAMDA(1,1)
-!            CALL p_theta_integration(RSUM1)
-!            CALL p_theta_integration(RSUM2)
-!            CALL p_theta_integration(RSUM3)
-!            CALL p_theta_integration(RSUM4)
-
-!            RCOEFN(NR)=RSUM2/RSUM1
-!            RCOEFN_G(NR)=RSUM4/RSUM3
 
             RCOEFN(NR)=1.D0
             RCOEFN_G(NR)=1.D0
@@ -768,25 +777,6 @@
          RSUM4=0.D0
          RSUM5=0.D0
          RSUM6=0.D0
-!         DO NP=NPSTART,NPEND
-!            DO NTH=1,NTHMAX
-!               RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*RLAMDA_GG(NTH,1) &
-!                    /RFSAD_GG(1)*FS1(NTH,NP,NSBA)
-!               RSUM2 = RSUM2+VOLP(NTH,NP,NSBA)*FS1(NTH,NP,NSBA)
-!               RSUM3 = RSUM3+VOLP(NTH,NP,NSBA)*RLAMDA_GG(NTH,NRMAX+1) &
-!                    /RFSAD_GG(NRMAX+1)*FS3(NTH,NP,NSBA)
-!               RSUM4 = RSUM4+VOLP(NTH,NP,NSBA)*FS3(NTH,NP,NSBA)
-!               RSUM5 = RSUM5+VOLP(NTH,NP,NSBA)*RLAMDAG(NTH,NRMAX+1) &
-!                    /RFSADG(NRMAX+1)*FS2(NTH,NP,NSBA)
-!               RSUM6 = RSUM6+VOLP(NTH,NP,NSBA)*FS2(NTH,NP,NSBA)
-!            END DO
-!         END DO
-!         CALL p_theta_integration(RSUM1)
-!         CALL p_theta_integration(RSUM2)
-!         CALL p_theta_integration(RSUM3)
-!         CALL p_theta_integration(RSUM4)
-!         CALL p_theta_integration(RSUM5)
-!         CALL p_theta_integration(RSUM6)
          DO NTH=1,NTHMAX
             RSUM1 = RSUM1+RLAMDA_GG(NTH,1)/RFSAD_GG(1)*SINM(NTH)*DELTH
             RSUM2 = RSUM2+SINM(NTH)*DELTH
@@ -1137,7 +1127,7 @@
                       /(2*AMFD(NSB)*VTFD(NR,NSB)**2*PTFP0(NSA))
             ENDDO
          ENDDO
-!      WRITE(*,'(I3,A,4E16.8)') NR, "Coulomb log=", LNLAM(NR,1,1), LNLAM(NR,1,2), LNLAM(NR,2,1), LNLAM(NR,2,2)
+!      WRITE(*,'(I3,A,10E16.8)') NR, " Coulomb log=", LNLAM(NR,1,1), LNLAM(NR,1,2), LNLAM(NR,2,1), LNLAM(NR,2,2), RN_IMPL(NR,2), RT_T(NR,2), RT_IMPL(NR,2) 
       ENDDO
 !      IF(NR.eq.NRMAX) WRITE(*,'(A,1P4E16.8)') "Coulomb log",CLOG(1,1), CLOG(1,2), CLOG(2,1), CLOG(2,2)
 
@@ -1249,17 +1239,11 @@
 !         DO NR=NRSTART,NRENDWM
          DO NR=1,NRMAX
             RN_IMPL(NR,NSA) = RNS(NR,NSA)
-            IF(RNS(NR,NSA).NE.0.D0) THEN
-               IF(MODELR.eq.0)THEN
-                  RT_IMPL(NR,NSA) = RWS(NR,NSA)*1.D6 &
-                       /(1.5D0*RNS(NR,NSA)*1.D20*AEE*1.D3)
-               ELSEIF(MODELR.eq.1)THEN
-                  CALL FPNEWTON(NR,NSA,rtemp)
-                  RT_IMPL(NR,NSA) = rtemp
-               END IF
-            ELSE
-               RT_IMPL(NR,NSA) = 0.D0
-            ENDIF
+!            IF(RNS(NR,NSA).NE.0.D0) THEN
+               RT_IMPL(NR,NSA)=RT_BULK(NR,NSA)
+!            ELSE
+!               RT_IMPL(NR,NSA) = 0.D0
+!            ENDIF
          ENDDO
       ENDDO
 
@@ -1283,6 +1267,7 @@
 
       CALL mtx_broadcast_real8(RNS,NRMAX*NSAMAX)
       CALL mtx_broadcast_real8(RWS,NRMAX*NSAMAX)
+      CALL mtx_broadcast_real8(RT_BULK,NRMAX*NSAMAX)
 
       END SUBROUTINE FPSAVECOMM2
 !==============================================================
@@ -1445,7 +1430,7 @@
       CALL FNSP_INIT_EDGE
 !      WRITE(6,*) "END INIT"
 !     ----- normalize bounce average parameter ---------
-      CALL fp_set_bounceaverage_param ! RCOEF
+!      CALL fp_set_bounceaverage_param ! RCOEF
 !     ----- set background f
       CALL mtx_set_communicator(comm_nsa)
       CALL update_fnsb

@@ -17,7 +17,7 @@
       integer:: MODELE,MODELA,MODELC,MODELR,MODELD,MODELS,MODELD_temp,MODELE2
       integer:: MODEL_DISRUPT, MODEL_synch, MODEL_loss, MODEL_NBI, MODEL_IMPURITY, MODEL_SINK
       integer:: MODEL_Conner_fp, MODEL_BS, MODEL_jfp, MODEL_LNL, MODEL_RE_pmax, MODEL_WAVE
-      integer:: MODELD_n_RE
+      integer:: MODELD_n_RE, MODELD_boundary
       integer:: LLMAX,IDBGFP,LLMAX_NF
       integer:: NTG1STEP,NTG1MIN,NTG1MAX
       integer:: NTG2STEP,NTG2MIN,NTG2MAX
@@ -155,7 +155,7 @@
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSBM,NSAM)
            RNUF,RNUD,LNLAM,POST_LNLAM_f,POST_LNLAM
       real(rkind),dimension(:,:,:),POINTER :: & ! (NTHM,NPM,NSAM)
-           FS1,FS2,FS3
+           FS0,FS2,FS1
       real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSAM)
            WEIGHP,WEIGHT,WEIGHR,WEIGHR_G
       real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSAM)
@@ -343,9 +343,9 @@
           allocate(FNSM(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND))
           allocate(FNSB(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX)) ! backgroud f
 
-          allocate(FS1(NTHMAX,NPSTARTW:NPENDWM,NSAMAX))
+          allocate(FS0(NTHMAX,NPSTARTW:NPENDWM,NSAMAX))
           allocate(FS2(NTHMAX,NPSTARTW:NPENDWM,NSAMAX))
-          allocate(FS3(NTHMAX,NPSTARTW:NPENDWM,NSAMAX))
+          allocate(FS1(NTHMAX,NPSTARTW:NPENDWM,NSAMAX))
 
           allocate(RNFP0(NSAMAX),RNFPS(NSAMAX))
           allocate(RTFP0(NSAMAX),RTFPS(NSAMAX))
@@ -612,7 +612,7 @@
           deallocate(FNSP)
           deallocate(FNSM)
           deallocate(FNSB)
-          deallocate(FS1,FS2,FS3)
+          deallocate(FS0,FS2,FS1)
 
           deallocate(RNFP0,RNFPS)
           deallocate(RTFP0,RTFPS,RTFD0,RTFDS)

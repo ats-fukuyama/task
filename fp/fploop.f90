@@ -82,7 +82,7 @@
          CALL GUTIME(gut_loop1)
 
          IF(MODEL_DISRUPT.ne.0)THEN
-            CALL TOP_OF_TIME_LOOP_DISRUPT(NT)
+            CALL TOP_OF_TIME_LOOP_DISRUPT(NT) ! include fpcoef
             IF(MODEL_IMPURITY.eq.1.and.TIMEFP.le.5.D0*tau_quench)THEN
                CALL MGI_DENSITY
             END IF
@@ -145,6 +145,9 @@
                      ENDDO
                   ENDDO
                ENDDO
+               IF(MODELD_boundary.eq.1.and.NREND.eq.NRMAX)THEN
+                  CALL update_radial_f_boundary(NSA)
+               END IF
             ENDDO ! END OF NSA
 !!---------- convergence criterion
             CALL mtx_set_communicator(comm_np) 
