@@ -700,9 +700,9 @@
             CALL p_theta_integration(RSUM1)
             CALL p_theta_integration(RSUM2)
             FACT=RNFP0(NSA)*1.D20/RFSADG(NR)
-            RNSL(NR,NSA) = RSUM1*FACT*1.D-20!*RCOEFNG(NR)
+            RNSL(NR,NSA) = RSUM1*FACT*1.D-20
             RJSL(NR,NSA) = RSUM2*FACT*AEFP(NSA)*PTFP0(NSA) &
-                           /AMFP(NSA)*1.D-6!*RCOEFJG(NR)
+                           /AMFP(NSA)*1.D-6
          END DO
       END DO
 
@@ -1245,7 +1245,7 @@
 
             FACT=RNFP0(NSA)*1.D20/RFSADG(NR)
             R_djdtl(NR) = (RSUMP-RSUMT)*FACT*AEFP(NSA)*PTFP0(NSA) &
-                 /AMFP(NSA)*1.D-6!*RCOEFJG(NR)
+                 /AMFP(NSA)*1.D-6
          END DO
       END DO
 

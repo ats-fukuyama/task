@@ -112,6 +112,8 @@
          WRITE(21) (RT_quench(NR),NR=1,NRMAX)
          WRITE(21) (previous_rate_G(NR), NR=1, NRMAX)
          WRITE(21) (previous_rate_p_G(NR), NR=1, NRMAX)
+         WRITE(21) (RFP(NR), NR=1, NRMAX)
+         WRITE(21) (RFP_ava(NR), NR=1, NRMAX)
 
 
          IF(MODEL_IMPURITY.ne.0)THEN
@@ -179,6 +181,8 @@
          READ(21) (RT_quench(NR),NR=1,NRMAX)
          READ(21) (previous_rate_G(NR), NR=1, NRMAX)
          READ(21) (previous_rate_p_G(NR), NR=1, NRMAX)
+         READ(21) (RFP(NR), NR=1, NRMAX)
+         READ(21) (RFP_ava(NR), NR=1, NRMAX)
 
          IF(MODEL_IMPURITY.ne.0)THEN
             READ(21) ((RN_MGI_G(NR,NSB), NR=1, NRMAX),NSB=1,NSBMAX)
@@ -276,8 +280,6 @@
          call mtx_broadcast_real8(POST_tau_ta0_f,nsamax)
       END IF
 
-      CALL FNSP_INIT_EDGE
-
       END SUBROUTINE FP_PRE_LOAD
 !------------------------------------------      
       SUBROUTINE FP_POST_LOAD
@@ -305,6 +307,8 @@
          EP(NR)=E1(NR)
          EM(NR)=0.D0
       END DO
+
+      CALL FNSP_INIT_EDGE
       CALL fp_continue(ierr)
       CALL fp_set_initial_value_from_f
 
@@ -440,18 +444,24 @@
       IMPLICIT NONE
       double precision,dimension(NRMAX)::temp
       double precision,dimension(NRSTART:NREND)::temp_l
-      double precision,dimension(nthmax,npstart:npend,nrstart:nrend):: dsend
+      double precision,dimension(NTHMAX,NPSTART:NPEND,NRSTART:NREND):: dsend
       double precision,dimension(nthmax,npmax,nrmax):: drecv
+      double precision,dimension(NTHMAX,NPMAX):: dsend_max, drecv_max
+      integer,dimension(NTHMAX,NPMAX)::vloc_max
 
       double precision,dimension(nthmax,npmax,nrmax+1,nsastart:nsaend):: temp_l2
       double precision,dimension(nthmax,npstart:npend):: dsend2
       double precision,dimension(nthmax,npmax):: drecv2
       integer,dimension(NRMAX,NSBMAX)::vloc
+      integer,dimension(NTHMAX*(NPEND-NPSTART+1))::vloc2
       integer:: nsend
-      INTEGER:: NR, NSB, NSA, NTH, NP, dest, source, tag, I
+      INTEGER:: NR, NSB, NSA, NTH, NP, dest, source, tag, nn, Isum, NRE
 !!!!!!!!!!!!
 
       IF(MODELD.ne.0)THEN
+         CALL mtx_set_communicator(comm_nrnp)
+         nsend=NTHMAX*(NPEND-NPSTART+1)*(NREND-NRSTART+1)
+
          DO NSA=NSASTART, NSAEND
             DO NR=NRSTART, NREND
                DO NP=NPSTART, NPEND
@@ -460,8 +470,6 @@
                   END DO
                END DO
             END DO
-            nsend=NTHMAX*(NPEND-NPSTART+1)*(NREND-NRSTART+1)
-            CALL mtx_set_communicator(comm_nrnp)
             CALL mtx_allgather_real8(dsend,nsend,drecv)
             DO NR=1, NRMAX
                DO NP=1, NPMAX
@@ -470,18 +478,23 @@
                   END DO
                END DO
             END DO
-!
-            DO NP=NPSTART, NPEND
-               DO NTH=1, NTHMAX
-                  dsend2(nth,np)=weighr(nth,np,nrmax+1,nsa)
+            IF(NREND.eq.NRMAX)THEN
+               DO NP=NPSTART, NPEND
+                  DO NTH=1, NTHMAX
+                     dsend_max(nth,np)=WEIGHR(NTH,NP,NRMAX+1,NSA)
+                  END DO
                END DO
-            END DO
-            nsend=NTHMAX*(NPEND-NPSTART+1)
-            CALL mtx_set_communicator(comm_np)
-            call mtx_allgather_real8(dsend2,nsend,drecv2) 
+            ELSE
+               DO NP=NPSTART, NPEND
+                  DO NTH=1, NTHMAX
+                     dsend_max(nth,np)=0.D0
+                  END DO
+               END DO
+            END IF
+            CALL mtx_allreduce_real8(dsend_max,NTHMAX*NPMAX,3,drecv_max,vloc_max)
             DO NP=1, NPMAX
                DO NTH=1, NTHMAX
-                  temp_l2(nth,np,nrmax+1,nsa)=drecv2(NTH,NP)
+                  temp_l2(nth,np,nrmax+1,nsa)=drecv_max(NTH,NP)
                END DO
             END DO
          END DO
@@ -489,7 +502,7 @@
          nsend=NTHMAX*NPMAX*(NRMAX+1)*(NSAEND-NSASTART+1) 
          CALL mtx_gather_real8(temp_l2,nsend,WEIGHR_G)
          CALL mtx_reset_communicator 
-      END IF
+      END IF ! END MODELD
 
 !!!!!!!!!!!!!
       IF(MODEL_DISRUPT.ne.0)THEN
@@ -520,6 +533,42 @@
       CALL mtx_reset_communicator
 
       END SUBROUTINE FP_PRE_SAVE
+!------------------------------------------      
+      SUBROUTINE OPEN_EVOLVE_DATA_OUTPUT
+
+      USE libmpi      
+      IMPLICIT NONE
+
+      IF(MODEL_DISRUPT.ne.0.and.NRANK.eq.0)THEN
+         OPEN(9,file="f1_1.dat") 
+         open(10,file='time_evol.dat') 
+         open(11,file='efield_e1.dat') 
+         open(12,file='dndt.dat') 
+         open(13,file='radial.dat') 
+         open(14,file='nth-re.dat')
+         open(15,file='re_pitch.dat')
+         open(18,file='efield_ref.dat')
+      END IF
+
+      END SUBROUTINE OPEN_EVOLVE_DATA_OUTPUT
+!------------------------------------------      
+      SUBROUTINE CLOSE_EVOLVE_DATA_OUTPUT
+
+      USE libmpi      
+      IMPLICIT NONE
+
+      IF(MODEL_DISRUPT.ne.0.and.NRANK.eq.0)THEN
+         close(9)
+         close(10)
+         close(11)
+         close(12)
+         close(13)
+         close(14)
+         close(15)
+         close(18)  
+      END IF
+
+      END SUBROUTINE CLOSE_EVOLVE_DATA_OUTPUT
 !------------------------------------------      
 
       END MODULE fpfile

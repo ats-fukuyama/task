@@ -160,17 +160,19 @@
          NR=NRDO
          DO NTH=1,NTHMAX
             IF(NTH.NE.ITL(NR).AND.NTH.NE.ITU(NR)) THEN
-               DO NP=1,NPMAX+1
+!               DO NP=1,NPMAX+1
+               DO NP=NPSTART,NPENDWG
                   CALL FPDWAV(ETAM(NTH,NR),SINM(NTH),COSM(NTH),PG(NP,NSBA), &
                               NR,NTH,DWPPS,DWPTS,DWTPS,DWTTS,NSA)
-!                  DWPP(NTH,NP,NR,NSA)=DWPPS
-!                  DWPT(NTH,NP,NR,NSA)=DWPTS
+                  DWPP(NTH,NP,NR,NSA)=DWPPS
+                  DWPT(NTH,NP,NR,NSA)=DWPTS
                ENDDO
             ENDIF
          ENDDO
 
          IF(MODELA.EQ.1) THEN
-            DO NP=1,NPMAX+1
+!            DO NP=1,NPMAX+1
+            DO NP=NPSTART,NPENDWG
                DO NTH=ITL(NR)+1,NTHMAX/2
                   DWPP(NTH,NP,NR,NSA)  =(DWPP(NTH,NP,NR,NSA) &
                                         +DWPP(NTHMAX-NTH+1,NP,NR,NSA))*FACT
@@ -316,14 +318,16 @@
          NR=NRDO
          DO NTH=1,NTHMAX+1
             IF(NTH.NE.NTHMAX/2+1) THEN
-               DO NP=1,NPMAX
+!               DO NP=1,NPMAX
+               DO NP=NPSTARTW,NPENDWM 
                   CALL FPDWAV(ETAG(NTH,NR),SING(NTH),COSG(NTH),PM(NP,NSBA), &
                               NR,NTH,DWPPS,DWPTS,DWTPS,DWTTS,NSA)
                   DWTP(NTH,NP,NR,NSA)=DWTPS
                   DWTT(NTH,NP,NR,NSA)=DWTTS
                ENDDO
             ELSE
-               DO NP=1,NPMAX
+!               DO NP=1,NPMAX
+               DO NP=NPSTARTW,NPENDWM 
                   DWTP(NTH,NP,NR,NSA)=0.D0
                   DWTT(NTH,NP,NR,NSA)=0.D0
                ENDDO
@@ -332,7 +336,8 @@
 
          IF(MODELA.EQ.1) THEN
             DO NTH=ITL(NR)+1,NTHMAX/2
-               DO NP=1,NPMAX
+               DO NP=NPSTARTW,NPENDWM 
+!               DO NP=1,NPMAX
                   DWTP(NTH,NP,NR,NSA)=(DWTP(NTH,NP,NR,NSA) &
                                       -DWTP(NTHMAX-NTH+2,NP,NR,NSA))*FACT
                   DWTT(NTH,NP,NR,NSA)=(DWTT(NTH,NP,NR,NSA) &

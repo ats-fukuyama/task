@@ -85,7 +85,7 @@
                DO NP=NPSTART,NPEND
                   DO NTH=1,NTHMAX
                      RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
-                          *RLAMDA(NTH,NR)/(RR*2*PI*RA**2*RM(NR))
+                          *RLAMDA(NTH,NR)*RFSADG(NR)
                   END DO
                ENDDO
             END IF
@@ -133,10 +133,10 @@
                      DO NTH=1,NTHMAX
                         RSUM2 = RSUM2                        &
                              +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)  &
-                             *PM(NP,NSBA)*COSM(NTH)*RLAMDA(NTH,NR)
+                             *PM(NP,NSBA)*COSM(NTH)*RLAMDA(NTH,NR)*RFSADG(NR)
                         RSUM3 = RSUM3                        &
                              +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)  &
-                             *0.5D0*PM(NP,NSBA)**2*RLAMDA(NTH,NR)
+                             *0.5D0*PM(NP,NSBA)**2*RLAMDA(NTH,NR)*RFSADG(NR)
                      END DO
                   RSUMNP_E(NP)=RSUM3
                   ENDDO
@@ -146,10 +146,10 @@
                      DO NTH=1,NTHMAX
                         RSUM2 = RSUM2                        &
                              +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)  &
-                             *PM(NP,NSBA)*COSM(NTH)/PV*RLAMDA(NTH,NR)
+                             *PM(NP,NSBA)*COSM(NTH)/PV*RLAMDA(NTH,NR)*RFSADG(NR)
                         RSUM3 = RSUM3                        &
                              +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)  &
-                             *(PV-1.D0)/THETA0(NSA)*RLAMDA(NTH,NR)
+                             *(PV-1.D0)/THETA0(NSA)*RLAMDA(NTH,NR)*RFSADG(NR)
                      END DO
                   RSUMNP_E(NP)=RSUM3
                   END DO
@@ -242,6 +242,10 @@
                         +DCPT(NTH,NP,NR,NSA)*DFT           &
                         -FCPP(NTH,NP,NR,NSA)*FFP           &
                           )
+!                  IF(NTH.eq.1.and.NP.eq.NPSTART)THEN
+!                     WRITE(*,'(A,3I4,10E14.6)') "TEST", NSA, NR, NP, DFP, DFT, FFP, WPL, WPM, WPP,DPP(NTH,NP,NR,NSA),FPP(NTH,NP,NR,NSA) &
+!                          ,DCPP(NTH,NP,NR,NSA)
+!                  END IF
                   RSUM5 = RSUM5+PG(NP,NSBA)**2*SINM(NTH)/PV   &
                           *(DWPP(NTH,NP,NR,NSA)*DFP           &
                            +DWPT(NTH,NP,NR,NSA)*DFT)
@@ -474,14 +478,14 @@
 !            CALL p_theta_integration(RSUM2R)
                
  888        FORMAT(2I4,12E14.6)
-            FACT=RNFP0(NSA)*1.D20/RFSADG(NR)
-            RNSL(NR,NSA) = RSUM1*FACT*1.D-20!*RCOEFNG(NR)
+            FACT=RNFP0(NSA)*1.D20
+            RNSL(NR,NSA) = RSUM1*FACT*1.D-20
             RJSL(NR,NSA) = RSUM2*FACT*AEFP(NSA)*PTFP0(NSA) &
-                           /AMFP(NSA)*1.D-6!*RCOEFJG(NR)
+                           /AMFP(NSA)*1.D-6
 !            RFPL(NR,NSA)=2.D0*PI*DELTH* FLUXS_PMAX / RSUM1
 
 
-            FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)/RFSADG(NR)!*RCOEFNG(NR)
+            FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)
             RWSL(NR,NSA) = RSUM3*FACT               *1.D-6
             RWS123L(NR,NSA) =-RSUM12*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             RPCSL(NR,NSA)=-RSUM4*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
@@ -498,7 +502,7 @@
                     *FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             END DO
 
-            FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)!/RFSADG(NR)*RCOEFNG(NR)
+            FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)
             RSPBL(NR,NSA)= RSUM11B*FACT*2.D0*PI*DELP(NSBA)*DELTH*1.D-6
             RSPFL(NR,NSA)= RSUM11F*FACT*2.D0*PI*DELP(NSBA)*DELTH*1.D-6
             RSPSL(NR,NSA)= RSUM11S*FACT*2.D0*PI*DELP(NSBA)*DELTH*1.D-6
@@ -864,7 +868,7 @@
 !                    RECT(NR,NSA,NTG2),    &
 !RSPFT(NR,NSA,NTG2),RPDRT(NR,NSA,NTG2), &
                     RPDR(NR,NSA), &
-                    RTT_BULK(NR,NSA,NTG2)!, &
+                    RT_BULK(NR,NSA)!, &
 !                    RATE_RUNAWAY(NR,NTG2), RPLS(NR,NSA)!, &
 !                    RATE_RUNAWAY2(NR,NSA,NTG2)
 !,RNDRT(NR,NSA,NTG2)

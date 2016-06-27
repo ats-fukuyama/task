@@ -885,7 +885,7 @@
          P_thermal=SQRT(RTFDL_C*1.D3*AEE*AMFD(NSB))
 !         pe_thermal=SQRT(RTFDL_C*1.D3*AEE*AMFD(NSA))
          v_thermal=SQRT( RTFDL_C*1.D3*AEE/AMFD(NSB)*(1.D0-2.5D0*THETAL_C+55.D0/8.D0*THETAL_C**2) )
-         
+
          CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R,"DEHIFT_0R")
          DO NP=NPSTART,NPENDWG
             IF(NP.EQ.1) THEN
@@ -960,9 +960,7 @@
                           *RNFDL_C*1.D20
                      PNFP_C=PMAX(NSBA)
                      CALL DEFT  (RINT4,ES4,H0DE,EPSDE,0,FPFN4R,"DEFT4_gt")
-!                     IF(TIMEFP.eq.5.D-3) WRITE(*,'(3I5,A,E14.6)') NSA, NSB, NP, "RINT4_gt=", RINT4
                      CALL DEFT  (RINT5,ES5,H0DE,EPSDE,0,FPFN5R,"DEFT5_gt")
-!                     IF(TIMEFP.eq.5.D-3) WRITE(*,'(3I5,A,E14.6)') NSA, NSB, NP, "RINT5_gt=", RINT5
                      PNFP_C=PCRIT
                      RINT8=0.D0
                      RINT9=0.D0
@@ -1178,9 +1176,9 @@
                      sum3=sum3 + FCPP2(NTH,NP,NR,NSB,NSA)*ABS(COSM(NTH))/PCOS
                   END DO ! END NAVMAX 
                   
-                  DCPP2(NTH,NP,NR,NSB,NSA)=SUM1*DELH * RCOEFNG(NR)
-                  DCPT2(NTH,NP,NR,NSB,NSA)=SUM2*DELH * RCOEFNG(NR)
-                  FCPP2(NTH,NP,NR,NSB,NSA)=SUM3*DELH * RCOEFNG(NR)
+                  DCPP2(NTH,NP,NR,NSB,NSA)=SUM1*DELH
+                  DCPT2(NTH,NP,NR,NSB,NSA)=SUM2*DELH
+                  FCPP2(NTH,NP,NR,NSB,NSA)=SUM3*DELH
                END IF
             END DO ! END NTH
 !            IF(ISW_LAV.eq.1)THEN
@@ -1290,9 +1288,9 @@
                      sum5=sum5 + DCTT2(NTH,NP,NR,NSB,NSA)*PCOS/(PSIB*COSG(NTH))
                      sum6=sum6 + FCTH2(NTH,NP,NR,NSB,NSA)/SQRT(PSIB)
                   END DO ! END NAVMAX
-                  DCTP2(NTH,NP,NR,NSB,NSA)=sum4*DELH * RCOEFNG(NR)
-                  DCTT2(NTH,NP,NR,NSB,NSA)=sum5*DELH * RCOEFNG(NR)
-                  FCTH2(NTH,NP,NR,NSB,NSA)=sum6*DELH * RCOEFNG(NR)
+                  DCTP2(NTH,NP,NR,NSB,NSA)=sum4*DELH
+                  DCTT2(NTH,NP,NR,NSB,NSA)=sum5*DELH
+                  FCTH2(NTH,NP,NR,NSB,NSA)=sum6*DELH
                ELSE
                   DCTP2(NTH,NP,NR,NSB,NSA)=0.D0
                   DCTT2(NTH,NP,NR,NSB,NSA)=0.D0!?
