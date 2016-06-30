@@ -126,7 +126,7 @@ CONTAINS
                    esx,esy,esz,emx,emy,emz,jx,jy,jz,vcfact,model_wg,&
                    xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi,model_push,model_boundary)
        !.......... calculate bx and by and bz
-       call bfield(nxmax,nymax,dt,Ax,Ay,Az,Axb,Ayb,Azb,ex,ey,ez,&
+       call bfield(nxmax,nymax,dt,Ax,Ay,Az,Axb,Ayb,Azb,jx,jy,ex,ey,ez,&
                    bx,by,bz,bxb,byb,bzb,bxbb,bybb,bzbb,bxbg,bybg,bzbg,bb, &
                    vcfact,model_push,model_boundary)
       do np=1,npmax

@@ -140,7 +140,7 @@ CONTAINS
             ex,ey,ez,exb,eyb,ezb,exbb,eybb,ezbb,bxb,byb,bzb,esx,esy,esz,emx,emy,emz,jx,jy,jz,&
             vcfact,model_wg,xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi,model_push,model_boundary)
        !.......... calculate bxg and byg and bzg
-       CALL bfield(nxmax,nymax,dt,Ax,Ay,Az,Axb,Ayb,Azb,ex,ey,ez, &
+       CALL bfield(nxmax,nymax,dt,Ax,Ay,Az,Axb,Ayb,Azb,jx,jy,ex,ey,ez, &
             bx,by,bz,bxb,byb,bzb,bxbb,bybb,bzbb,bxbg,bybg,bzbg,bb,vcfact,model_push,model_boundary)
        IF( MOD(nt,ntgstep) .EQ. 0 ) THEN
           CALL kine(npmax,vxe,vye,vze,akine1,me,vcfact)
@@ -470,7 +470,7 @@ CONTAINS
           dx1 = dx1 - 0.5d0
           dy = dy + 0.5d0
           dy1 = dy1 - 0.5d0
-          IF(model_boundary .eq. 1 ) THEN
+          IF(model_boundary .ne. 0 ) THEN
             IF(nxp .EQ. 0) THEN
               dx1 = 0.d0
               sx2m = 0.d0
@@ -512,7 +512,7 @@ CONTAINS
           dx1 = dx1 - 0.5d0
           dy = dy - 0.5d0
           dy1 = dy1 + 0.5d0
-          IF(model_boundary .eq. 1 ) THEN
+          IF(model_boundary .ne. 0 ) THEN
             IF(nxp .EQ. 0) THEN
               dx1 = 0.d0
               sx2m = 0.d0
@@ -551,7 +551,7 @@ CONTAINS
           dx1 = dx1 + 0.5d0
           dy = dy + 0.5d0
           dy1 = dy1 - 0.5d0
-          IF(model_boundary .eq. 1 ) THEN
+          IF(model_boundary .ne. 0 ) THEN
             IF(nxp .EQ. nxmax-1) THEN
               sx2p=0.d0
             ENDIF
@@ -590,7 +590,7 @@ CONTAINS
           dx1 = dx1 + 0.5d0
           dy = dy - 0.5d0
           dy1 = dy1 + 0.5d0
-          IF(model_boundary .eq. 1 ) THEN
+          IF(model_boundary .ne. 0 ) THEN
             IF(nxp .EQ. nxmax-1) THEN
               sx2p=0.d0
             ENDIF
@@ -1340,12 +1340,12 @@ CONTAINS
        !jz(nxmax,nymax) = 4.0d0 * jz(nxmax,nymax)
        jx(:,0)=0.d0
        jx(:,nymax)=0.d0
-       jx(nxmax,:)=0.d0
+       !jx(nxmax,:)=0.d0
        !jx(0,:)=0.d0
        !jx(nxmax,:)=0.d0
        jy(0,:)=0.d0
        jy(nxmax,:)=0.d0
-       jy(:,nymax)=0.d0
+       !jy(:,nymax)=0.d0
        !jy(:,0)=0.d0
        !jy(:,nymax)=0.d0
        jz(:,0)=0.d0
