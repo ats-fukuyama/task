@@ -373,9 +373,9 @@ CONTAINS
           esy(0,ny) = eyb(0,ny) - dt * jy(0,ny)
           esz(0,ny) = 0.d0
           emx(0,ny) = dt*vcfact**2*(bzb(0,ny)-bzb(0,nym))
-          emy(0,ny) = 0.d0
+          emy(0,ny) = dt*vcfact**2*(-bzb(0,ny))
           emz(0,ny) = 0.d0
-          esx(nxmax,ny)=esx(nxmax-1,ny)!ex(nxmax,ny) - dt * jx(nxmax,ny)
+          esx(nxmax,ny)=esx(nxmax-1,ny)!exb(nxmax,ny) - dt * jx(nxmax,ny)
           esy(nxmax,ny)=eyb(nxmax,ny) - dt * jy(nxmax,ny)
           esz(nxmax,ny)=0.d0
           emx(nxmax,ny)=emx(nxmax-1,ny)!dt*vcfact**2*(bzb(nxmax,ny)-bzb(nxmax,nym))
@@ -444,11 +444,11 @@ CONTAINS
          esx(nx,0) = exb(nx,0) - dt * jx(nx,0)
          esy(nx,0) = eyb(nx,0) - dt * jy(nx,0)
          esz(nx,0) = 0.d0
-         emx(nx,0) = 0.d0
+         emx(nx,0) = dt*vcfact**2*bzb(nx,0)
          emy(nx,0) = dt*vcfact**2*(bzb(nxm,0)-bzb(nx,0))
          emz(nx,0) = 0.d0
          esx(nx,nymax) = exb(nx,nymax) - dt * jx(nx,nymax)
-         esy(nx,nymax) = esy(nx,nymax-1)!ey(nx,nymax) - dt * jy(nx,nymax)
+         esy(nx,nymax) = esy(nx,nymax-1)!eyb(nx,nymax) - dt * jy(nx,nymax)
          esz(nx,nymax) = 0.d0
          emx(nx,nymax) = dt*vcfact**2*(bzb(nx,nymax)-bzb(nx,nymax-1))
          emy(nx,nymax) = emy(nx,nymax-1)!dt*vcfact**2*(bzb(nxm,nymax)-bzb(nx,nymax))
@@ -512,10 +512,8 @@ CONTAINS
        IF(model_boundary .eq. 1) THEN
           ex(:,0) = 0.d0
           ex(:,nymax) = 0.d0
-          ex(nxmax,:)=0.d0
           ey(0,:) = 0.d0
           ey(nxmax,:) = 0.d0
-          ey(:,nymax) = 0.d0
           ez(:,0) = 0.d0
           ez(:,nymax) = 0.d0
           ez(0,:) = 0.d0
@@ -541,9 +539,9 @@ CONTAINS
             !         +dn*(Exb(0,1)-Exb(1,1)-Exb(0,0)+Exb(1,0))
           !    Ey(0,0)=-Eybb(1,1)+dl*(Ey(1,1)+Eybb(0,0))+dm*(Eyb(1,1)+Eyb(0,0))&
           !           +dn*(Eyb(0,1)-Eyb(1,1)-Eyb(0,0)+Eyb(1,0))
-            !  Ez(0,0)=-Ezbb(1,1)+dl*(Ez(1,1)+Ezbb(0,0))+dm*(Ezb(1,1)+Ezb(0,0))&
-            !        +dn*(Ezb(0,1)-Ezb(1,1)-Ezb(0,0)+Ezb(1,0))
-          ! Ex(nxmax,0)=-Exbb(nxmax-1,1)+dl*(Ex(nxmax-1,1)+Exbb(nxmax,0))+dm*(Exb(nxmax-1,1)+Exb(nxmax,0))&
+          !    Ez(0,0)=-Ezbb(1,1)+dl*(Ez(1,1)+Ezbb(0,0))+dm*(Ezb(1,1)+Ezb(0,0))&
+          !          +dn*(Ezb(0,1)-Ezb(1,1)-Ezb(0,0)+Ezb(1,0))
+          ! ! Ex(nxmax,0)=-Exbb(nxmax-1,1)+dl*(Ex(nxmax-1,1)+Exbb(nxmax,0))+dm*(Exb(nxmax-1,1)+Exb(nxmax,0))&
           !                    +dn*(Exb(nxmax,1)-Exb(nxmax-1,1)-Exb(nxmax,0)+Exb(nxmax-1,0))
           !    Ey(nxmax,0)=-Eybb(nxmax-1,1)+dl*(Ey(nxmax-1,1)+Eybb(nxmax,0))+dm*(Eyb(nxmax-1,1)+Eyb(nxmax,0))&
           !                  +dn*(Eyb(nxmax,1)-Eyb(nxmax-1,1)-Eyb(nxmax,0)+Eyb(nxmax-1,0))
@@ -624,7 +622,7 @@ ENDIF
   END SUBROUTINE efield
 
   !***********************************************************************
-  SUBROUTINE bfield(nxmax,nymax,dt,Ax,Ay,Az,Axb,Ayb,Azb, &
+  SUBROUTINE bfield(nxmax,nymax,dt,Ax,Ay,Az,Axb,Ayb,Azb,jx,jy,&
        ex,ey,ez,bx,by,bz,bxb,byb,bzb,bxbb,bybb,bzbb,bxbg,bybg,bzbg,bb,vcfact, &
        model_push,model_boundary)
   !***********************************************************************
@@ -632,7 +630,7 @@ ENDIF
     REAL(8), DIMENSION(0:nymax) :: bxnab,bynab,bznab
     REAL(8), DIMENSION(0:nxmax,0:nymax) :: ex,ey,ez,bx,by,bz,bxb,byb,bzb, &
                                            bxbb,bybb,bzbb,bxbg,bybg,bzbg,bb
-    REAL(8), DIMENSION(0:nxmax,0:nymax) :: Ax,Ay,Az,Axb,Ayb,Azb
+    REAL(8), DIMENSION(0:nxmax,0:nymax) :: Ax,Ay,Az,Axb,Ayb,Azb,jx,jy
     INTEGER :: nxmax, nymax, nx, ny, nxp, nyp, nxm, nym
     INTEGER:: model_push, model_boundary
     REAL(8):: bxx,byy,bzz,vcfact,dt,dl,dm,dn
@@ -677,7 +675,7 @@ ENDIF
           END DO
        END DO
        !$omp end parallel do
-    ELSEIF(model_boundary .NE. 0) THEN
+    ELSE
       !$omp parallel do private(nx,ny,nxm,nym,nxp,nyp)
        DO ny = 1, nymax-1
           DO nx = 1, nxmax-1
@@ -686,10 +684,10 @@ ENDIF
              nym = ny - 1
              nyp = ny + 1
 
-             IF( nx .EQ. 0  )    nxm = 0
-             IF( nx .EQ. nxmax ) nxp = nxmax
-             IF( ny .EQ. 0  )    nym = 0
-             IF( ny .EQ. nymax ) nyp = nymax
+             !IF( nx .EQ. 0  )    nxm = 0
+             !IF( nx .EQ. nxmax ) nxp = nxmax
+             !IF( ny .EQ. 0  )    nym = 0
+             !IF( ny .EQ. nymax ) nyp = nymax
 
                 ! bx(nx,ny) =   0.5d0 * (Az(nx,nyp) + Azb(nx,nyp) &
                 !      - Az(nx,ny) - Azb(nx,ny))
@@ -709,9 +707,9 @@ ENDIF
           nyp = ny + 1
           IF(model_boundary .ne. 0) then  !reflective
               bx(nxmax,ny)=dt*(-ez(nxmax,nyp)+ez(nxmax,ny))+bxb(nxmax,ny)
-              by(nxmax,ny)=by(nxmax-1,ny)
-              bz(nxmax,ny)=dt*(ey(nxmax,ny)+ex(nxmax,nyp)-ex(nxmax,ny))+bzb(nxmax,ny)
-              bx(0,ny)=dt*(-ez(nxmax,nyp)+ez(nxmax,ny))+bxb(nxmax,ny)
+              by(nxmax,ny)=0.d0!=by(nxmax,ny-1)+bx(nxmax-1,ny)
+              bz(nxmax,ny)=0.d0!dt*(ey(nxmax,ny)+ex(nxmax,nyp)-ex(nxmax,ny))+bzb(nxmax,ny)
+              bx(0,ny)=dt*(-ez(0,nyp)+ez(0,ny))+bxb(0,ny)
               by(0,ny)=dt*(ez(1,ny)-ez(0,ny))+byb(0,ny)
               bz(0,ny)=dt*(-ey(1,ny)+ey(0,ny)+ex(0,nyp)-ex(0,ny))+bzb(0,ny)
           IF(model_boundary .eq. 2) then !Mur's abosorbing boundary condition
@@ -756,22 +754,22 @@ ENDIF
               !        +byb(0,ny-1)+byb(1,ny+1)&
               !        -2.d0*byb(1,ny)+byb(1,ny-1))
 
-              bz(0,ny)=-bzbb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-                    *(bz(1,ny)+bzbb(0,ny)) &
-                    +2.d0/(vcfact*dt+1.d0)*(bzb(0,ny)+bzb(1,ny))&
-                    +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-                    *(bzb(0,ny+1)-2.d0*bzb(0,ny)&
-                    +bzb(0,ny-1)+bzb(1,ny+1)&
-                    -2.d0*bzb(1,ny)+bzb(1,ny-1))
+              ! bz(0,ny)=-bzbb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+              !       *(bz(1,ny)+bzbb(0,ny)) &
+              !       +2.d0/(vcfact*dt+1.d0)*(bzb(0,ny)+bzb(1,ny))&
+              !       +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
+              !       *(bzb(0,ny+1)-2.d0*bzb(0,ny)&
+              !       +bzb(0,ny-1)+bzb(1,ny+1)&
+              !       -2.d0*bzb(1,ny)+bzb(1,ny-1))
            ENDIF
          ENDIF
          ENDDO
          DO nx = 1, nxmax-1
            nxp = nx + 1
            IF(model_boundary .ne. 0) then
-               bx(nx,nymax)=bx(nx,nymax-1)
-               by(nx,nymax)=dt*(ez(nxp,0)-ez(nx,0))+byb(nx,0)
-               bz(nx,nymax)=dt*(-ey(nxp,nymax)+ey(nx,nymax))+bzb(nx,nymax)
+               bx(nx,nymax)=0.d0!bx(nx-1,nymax)+by(nx,nymax-1)
+               by(nx,nymax)=dt*(ez(nxp,nymax)-ez(nx,nymax))+byb(nx,nymax)
+               bz(nx,nymax)=0.d0!dt*(-ex(nx,nymax)-ey(nxp,nymax)+ey(nx,nymax))+bzb(nx,nymax)
                bx(nx,0)=-dt*(ez(nx,1)-ez(nx,0))+bxb(nx,0)
                by(nx,0)=dt*(ez(nxp,0)-ez(nx,0))+byb(nx,0)
                bz(nx,0)=dt*(-ey(nxp,0)+ey(nx,0)+ex(nx,1)-ex(nx,0))+bzb(nx,0)
@@ -846,16 +844,16 @@ ENDIF
           !              +dn*(Byb(0,nymax-1)-Byb(1,nymax-1)-Byb(0,nymax)+Byb(1,nymax))
           ! Bz(0,nymax)=-Bzbb(1,nymax-1)+dl*(Bz(1,nymax-1)+Bzbb(0,nymax))+dm*(Bzb(1,nymax-1)+Bzb(0,nymax))&
           !             +dn*(Bzb(0,nymax-1)-Bzb(1,nymax-1)-Bzb(0,nymax)+Bzb(1,nymax))
-          ! Bx(nxmax,nymax)=-Bxbb(nxmax-1,nymax-1)&
-          !                +dl*(Bx(nxmax-1,nymax-1)+Bxbb(nxmax,nymax))&
-          !                +dm*(Bxb(nxmax-1,nymax-1)+Bxb(nxmax,nymax))&
-          !                +dn*(Bxb(nxmax,nymax-1)-Bxb(nxmax-1,nymax-1)&
-          !                -Bxb(nxmax,nymax)+Bxb(nxmax-1,nymax))
-          ! By(nxmax,nymax)=-Bybb(nxmax-1,nymax-1)+dl*(By(nxmax-1,nymax-1)&
-          !                +Bybb(nxmax,nymax))+dm*(Byb(nxmax-1,nymax-1)&
-          !                +Byb(nxmax,nymax))&
-          !                +dn*(Byb(nxmax,nymax-1)-Byb(nxmax-1,nymax-1)&
-          !                -Byb(nxmax,nymax)+Byb(nxmax-1,nymax))
+        !   Bx(nxmax,nymax)=-Bxbb(nxmax-1,nymax-1)&
+        !                  +dl*(Bx(nxmax-1,nymax-1)+Bxbb(nxmax,nymax))&
+        !                  +dm*(Bxb(nxmax-1,nymax-1)+Bxb(nxmax,nymax))&
+        !                  +dn*(Bxb(nxmax,nymax-1)-Bxb(nxmax-1,nymax-1)&
+        !                  -Bxb(nxmax,nymax)+Bxb(nxmax-1,nymax))
+        !   By(nxmax,nymax)=-Bybb(nxmax-1,nymax-1)+dl*(By(nxmax-1,nymax-1)&
+        !                  +Bybb(nxmax,nymax))+dm*(Byb(nxmax-1,nymax-1)&
+        !                  +Byb(nxmax,nymax))&
+        !                  +dn*(Byb(nxmax,nymax-1)-Byb(nxmax-1,nymax-1)&
+        !                  -Byb(nxmax,nymax)+Byb(nxmax-1,nymax))
         !  Bz(nxmax,nymax)=-Bzbb(nxmax-1,nymax-1)+dl*(Bz(nxmax-1,nymax-1)&
         !                 +Bzbb(nxmax,nymax))+dm*(Bzb(nxmax-1,nymax-1)&
         !                 +Bzb(nxmax,nymax))&
@@ -865,21 +863,25 @@ ENDIF
         IF(model_boundary .eq. 1) THEN
           bx(0,:) = 0.d0
           bx(nxmax,:) = 0.d0
-          bx(:,nymax) = 0.d0
+          !bx(:,nymax) = 0.d0
           by(:,0) = 0.d0
           by(:,nymax) = 0.d0
-          by(nxmax,:) = 0.d0
-          bz(nxmax,:) = 0.d0
-          bz(:,nymax) = 0.d0
+          !by(nxmax,:) = 0.d0
+          !bz(nxmax,:) = 0.d0
+          !bz(:,nymax) = 0.d0
         ENDIF
-        ! bxb(0,:) = 0.d0
-        ! bxb(nxmax,:) = 0.d0
-        ! bxb(:,nymax) = 0.d0
-        ! byb(:,0) = 0.d0
-        ! byb(:,nymax) = 0.d0
-        ! byb(nxmax,:) = 0.d0
-        ! bzb(nxmax,:) = 0.d0
-        ! bzb(:,nymax) = 0.d0
+         bx(0,0) = 0.d0
+         bx(nxmax,0) = 0.d0
+         bx(0,nymax) = 0.d0
+         bx(nxmax,nymax) = 0.d0
+         by(0,0) = 0.d0
+         by(nxmax,0) = 0.d0
+         by(0,nymax) = 0.d0
+         by(nxmax,nymax) = 0.d0
+         bz(0,0) = 0.d0
+         bz(nxmax,0) = 0.d0
+         bz(0,nymax) = 0.d0
+         bz(nxmax,nymax) = 0.d0
         !IF(model_boundary .eq. 2) THEN
         !  bx(:,0)=0.d0
         !  by(0,:)=0.d0
@@ -900,8 +902,8 @@ ENDIF
         bxb(nx,ny)=bxx
         byb(nx,ny)=byy
         bzb(nx,ny)=bzz
-      ENDDO
-    ENDDO
+          ENDDO
+        ENDDO
       ENDIF
     IF(MOD(model_push/8,2).EQ.0) THEN
        IF(MOD(model_push/4,2).EQ.0) THEN
@@ -917,9 +919,9 @@ ENDIF
        IF(MOD(model_push/4,2).EQ.0) THEN
           CONTINUE
        ELSE
-          bx(1:nxmax-1,1:nymax-1) = bx(1:nxmax-1,1:nymax-1) + bxbg(1:nxmax-1,1:nymax-1)
-          by(1:nxmax-1,1:nymax-1) = by(1:nxmax-1,1:nymax-1) + bybg(1:nxmax-1,1:nymax-1)
-          bz(1:nxmax-1,1:nymax-1) = bz(1:nxmax-1,1:nymax-1) + bzbg(1:nxmax-1,1:nymax-1)
+          bx(0:nxmax,0:nymax) = bx(0:nxmax,0:nymax) + bxbg(0:nxmax,0:nymax)
+          by(0:nxmax,0:nymax) = by(0:nxmax,0:nymax) + bybg(0:nxmax,0:nymax)
+          bz(0:nxmax,0:nymax) = bz(0:nxmax,0:nymax) + bzbg(0:nxmax,0:nymax)
        END IF
     END IF
 
