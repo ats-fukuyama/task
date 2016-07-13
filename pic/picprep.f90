@@ -9,7 +9,7 @@ CONTAINS
   SUBROUTINE pic_prep(iout)
 
     USE piccomm
-    USE picsub,ONLY: poisson_f,poisson_m,efield,bfield,kine,pote
+    USE picsub,ONLY: poisson_f,poisson_m,efield,bfield,ab_z_field,ab_xy_field,kine,pote
     USE piclib
     USE libmpi
     IMPLICIT NONE
@@ -18,10 +18,16 @@ CONTAINS
     INTEGER:: nx,ny,np,locv
     REAL(8):: factor,sum
       npmax = npxmax * npymax
-      nxmaxh1 = nxmax / 2 + 1
-      nxmax1 = nxmax + 1
-      nymax1 = nymax + 1
-      nxymax = nxmax1 * nymax1
+      nxmaxh1 = nxmax/ 2 + 1
+      IF(model_boundary .eq. 0) THEN
+        nxmax1 = nxmax + 1
+        nymax1 = nymax + 1
+        nxymax = nxmax1 * nymax1
+      ELSE
+        nxmax1 = nxmax + 2
+        nymax1 = nymax + 2
+        nxymax = (nxmax1-1) * (nymax1-1)
+      ENDIF
       nzmax  = MIN(nxmax,nymax)
 
       ctome  = chrge / me       !: charge to mass ratio of electrons
@@ -119,16 +125,21 @@ CONTAINS
             bzbg(nx,ny)=bzmin+(bzmax-bzmin)*factor
          END DO
       END DO
-
+      !IF(model_boundary .ne. 2) THEN
        !.......... calculate ex and ey and ez
-       call efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
-                   ex,ey,ez,exb,eyb,ezb,exbb,eybb,ezbb,bxb,byb,bzb,&
-                   esx,esy,esz,emx,emy,emz,jx,jy,jz,vcfact,model_wg,&
-                   xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi,model_push,model_boundary)
-       !.......... calculate bx and by and bz
-       call bfield(nxmax,nymax,dt,Ax,Ay,Az,Axb,Ayb,Azb,jx,jy,ex,ey,ez,&
-                   bx,by,bz,bxb,byb,bzb,bxbb,bybb,bzbb,bxbg,bybg,bzbg,bb, &
-                   vcfact,model_push,model_boundary)
+         CALL efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
+                     ex,ey,ez,exb,eyb,ezb,exbb,eybb,ezbb,bxb,byb,bzb,&
+                     esx,esy,esz,emx,emy,emz,jx,jy,jz,vcfact,model_push,model_boundary)
+         !.......... calculate bx and by and bz
+         CALL bfield(nxmax,nymax,dt,Ax,Ay,Az,Axb,Ayb,Azb,ex,ey,ez,&
+                     bx,by,bz,bxb,byb,bzb,bxbb,bybb,bzbb,bxbg,bybg,bzbg,bb, &
+                     vcfact,model_push,model_boundary)
+        !  ELSE
+        ! CALL ab_z_field(nxmax,nymax,dt,jz,Ex,Ey,Ez,Exb,Eyb,Ezb,Exbb,Eybb,Ezbb,&
+        !                           Bx,By,Bz,Bxb,Byb,Bzb,Bxbb,Bybb,Bzbb,bb,vcfact)
+        ! CALL ab_xy_field(nxmax,nymax,dt,jx,jy,Ex,Ey,Ez,Exb,Eyb,Ezb,Exbb,Eybb,Ezbb,&
+        !                           Bx,By,Bz,Bxb,Byb,Bzb,Bxbb,Bybb,Bzbb,bb,vcfact)
+      ! ENDIF
       do np=1,npmax
          vparae(np)=vye(np)
          vperpe(np)=SQRT(vxe(np)**2+vze(np)**2)
