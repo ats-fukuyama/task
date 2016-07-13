@@ -194,7 +194,7 @@
            RPCS2
 
       real(rkind),dimension(:),POINTER :: & ! (NTG1M)
-           PTG,PET,PQT
+           PTG,PET,PQT,Q_ENG
       real(rkind),dimension(:,:),POINTER :: & ! (NTG1M,NSAM)
            PNT,PWT,PTT,PIT,PPCT,PPWT,PPET,PLHT,PFWT,PECT,PTT3, &
            PITT,PWTT,PICT,PIRT, PPST, PPLT
@@ -753,6 +753,7 @@
           allocate(PTG(NTG1M))
           allocate(PET(NTG1M))
           allocate(PQT(NTG1M))
+          allocate(Q_ENG(NTG1M))
           allocate(PNT(NSAMAX,NTG1M))
           allocate(PWT(NSAMAX,NTG1M))
           allocate(PTT(NSAMAX,NTG1M))
@@ -795,6 +796,7 @@
           deallocate(PTG)
           deallocate(PET)
           deallocate(PQT)
+          deallocate(Q_ENG)
           deallocate(PNT)
           deallocate(PWT)
           deallocate(PTT)
@@ -840,6 +842,7 @@
                    PTG(NTG)=PTG(2*NTG-1)
                    PET(NTG)=PET(2*NTG-1)
                    PQT(NTG)=PQT(2*NTG-1)
+                   Q_ENG(NTG)=Q_ENG(2*NTG-1)
                    DO NSA=1,NSAMAX
                       PNT(NSA,NTG)=PNT(NSA,2*NTG-1)
                       PWT(NSA,NTG)=PWT(NSA,2*NTG-1)
@@ -884,6 +887,7 @@
                 call fp_adjust_ntg1_A(PTG,tempA,NTG1M_NEW)
                 call fp_adjust_ntg1_A(PET,tempA,NTG1M_NEW)
                 call fp_adjust_ntg1_A(PQT,tempA,NTG1M_NEW)
+                call fp_adjust_ntg1_A(Q_ENG,tempA,NTG1M_NEW)
                 deallocate(tempA)
                 allocate(tempB(NSAMAX,NTG1M))
                 call fp_adjust_ntg1_B(PNT,tempB,NTG1M_NEW)
