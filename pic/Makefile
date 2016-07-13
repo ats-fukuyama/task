@@ -8,8 +8,8 @@ LIBX_MTX=$(LIBX_MTX_MUMPS)
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS) -fopenmp
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD) -I../mtxp/$(MOD) -I../lib/$(MOD)
 #FINCLUDE=-I /usr/local/mpich313-ifort-gcc/include
