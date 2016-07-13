@@ -285,9 +285,12 @@
                IF((PSIPRE-PSICR)*(PSIL-PSICR).LT.0.D0.OR. &
                    PSIL-PSICR.EQ.0.D0) THEN
                   CALL FPCROS(PSICR,NIT,NRAY,SICR)
-                  WRITE(6,'(A,3I6,1P2E15.6)') '# NR,NRAY,NIT,PSICR,SICR=', &
+                  WRITE(6,'(A,3I6,1P2E12.4)') '# NR,NRAY,NIT,PSICR,SICR=', &
                                                  NR,NRAY,NIT,PSICR,SICR
                   CALL FPCREK(SICR,NRAY,CEX,CEY,CEZ,RKX,RKY,RKZ,RX,RY,RZ)
+                  WRITE(6,'(A,1P6E12.4)')     '# CE=',CEX,CEY,CEZ
+                  WRITE(6,'(A,1P6E12.4)')     '# KR=',RKX,RKY,RKZ,RX,RY,RZ
+                  
                   IF(NCR.LT.NCRMAXM) THEN
                      NCR=NCR+1
                      CECR(1,NCR,NR,NRAY)=CEX

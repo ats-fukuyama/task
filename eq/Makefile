@@ -6,9 +6,10 @@ FFLAGS=-g $(OFLAGS)
 
 MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../plx/$(MOD) -I../lib/$(MOD)
 
+SRCX = equcom.f90 equread.f90
 SRCS = eqbpsd.f eqinit.f eqmenu.f eqcalc.f eqcalq.f eqcalv.f \
        eqsub.f eqfunc.f eqintf.f eqsplf.f eqfile.f \
-       eqgout.f eqgsub.f \
+       eqgout.f eqgsub.f equintf.f \
        newton.f invematrix.f equnit.f eqrppl.f
 SRCT = trtest.f treqin.f
 SRCP = pltest.f
@@ -16,7 +17,7 @@ SRCA = aktest.f akeqin.f
 SRC2D= eqg2d.f
 SRC3D= eqg3d.f
 
-OBJS = $(SRCS:.f=.o)
+OBJS = $(SRCX:.f90=.o) $(SRCS:.f=.o)
 OBJT = $(SRCT:.f=.o)
 OBJP = $(SRCP:.f=.o)
 OBJA = $(SRCA:.f=.o)

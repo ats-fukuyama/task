@@ -1,4 +1,4 @@
-!     $Id$
+!   eqcom0
 
       PARAMETER (NRGM=137,NZGM=257)
 !      PARAMETER (NRGM=257,NZGM=257)

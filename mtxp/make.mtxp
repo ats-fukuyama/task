@@ -1,47 +1,52 @@
-#### Without PETSc
-#INCLUDE_MTX_MUMPS=.
-#INCLUDE_MTX_PETSC=.
-#MUMPS_LIB=
-#PETSC_KSP_LIB=
-
-#### With PETSc
-#define FLINKER and PETSC_KSP_LIB
-include ${PETSC_DIR}/conf/variables
-##### select either of below items
-#PETSc 3.4.2
-#INCLUDE_MTX_MUMPS=-I${PETSC_DIR}/externalpackages/MUMPS/include
-#PETSc 3.5.2
-#INCLUDE_MTX_MUMPS=-I${PETSC_DIR}/${PETSC_ARCH}/externalpackages/MUMPS/include
-#PETSc 3.5.3
-#INCLUDE_MTX_MUMPS=-I${PETSC_DIR}/${PETSC_ARCH}/externalpackages/MUMPS_4.10.0-p3/include
-INCLUDE_MTX_MUMPS=-I${PETSC_DIR}/${PETSC_ARCH}/externalpackages/MUMPS/include
-#####
-INCLUDE_MTX_PETSC=-I${PETSC_DIR}/include -I${PETSC_DIR}/${PETSC_ARCH}/include
-MUMPS_LIB=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common -lpord -lscalapack -lparmetis -lmetis -llapack -lblas ../lib/tasklib.a
-
-##### Non-paralle solver (no MPI, real8 and complex8) #####
+# Setup configuration for mtxp
+#
+#### Without MPI, Without PETSc
 #EXEC=testbnd testbndc testpcg
 #FLINKER=$(FCFREE)
+#INCLUDE_MTX_MPI=.
+#LIBMTXMPI=../mtxp/libmtxnompi.o
+#LIB_MTX_BND=$(LIBMTXMPI) ../mtxp/libmtxbnd.o
+#LIB_MTX_PCG=$(LIBMTXMPI) ../mtxp/libmtxpcg.o
 
-#### With MUMPS library (MPI, real8 and complex8)
-#EXEC=testbnd testbndc testpcg testdmumps testzmumps
+#### With MPI, Without PETSc
+#EXEC=testbnd testbndc testpcg
 #FLINKER=$(MF90)
+#INCLUDE_MTX_MPI=-I /usr/local/mpich313-ifort-gcc/include
+#LIBMTXMPI=../mtxp/libmtxmpi.o
+#LIB_MTX_BND=$(LIBMTXMPI) ../mtxp/libmtxbndmpi.o
+#LIB_MTX_PCG=$(LIBMTXMPI) ../mtxp/libmtxpcgmpi.o
 
-##### With PETSc library (real8) #####
-EXEC=testbnd testpcg testbndc testdmumps testzmumps testksp
+
+#### With MPI, With PETSc
+EXEC=testbnd testbndc testpcg testdmumps testzmumps testksp
+##### select either of below items
+##### PETSc 3.4
+#INCLUDE_MTX_MUMPS=-I${PETSC_DIR}/externalpackages/MUMPS/include
+#include ${PETSC_DIR}/conf/variables
+##### PETSc 3.5
+#INCLUDE_MTX_MUMPS=-I${PETSC_DIR}/${PETSC_ARCH}/externalpackages/MUMPS/include
+#include ${PETSC_DIR}/conf/variables
+##### PETSc 3.6
+#INCLUDE_MTX_MUMPS=-I${PETSC_DIR}/${PETSC_ARCH}/externalpackages/MUMPS/include
+#include ${PETSC_DIR}/lib/petsc/conf/variables
+##### PETSc 3.7
+INCLUDE_MTX_MUMPS=-I${PETSC_DIR}/${PETSC_ARCH}/externalpackages/git.mumps/include
+include ${PETSC_DIR}/lib/petsc/conf/variables
+#####
+INCLUDE_MTX_PETSC=-I${PETSC_DIR}/include -I${PETSC_DIR}/include/petsc -I${PETSC_DIR}/${PETSC_ARCH}/include
+LIBMTXMPI=../mtxp/libmtxmpi.o
+LIB_MTX_BND=$(LIBMTXMPI) ../mtxp/libmtxbndmpi.o
+LIB_MTX_PCG=$(LIBMTXMPI) ../mtxp/libmtxpcgmpi.o
+MUMPS_LIB=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common -lpord -lscalapack -lparmetis -lmetis -llapack -lblas ../lib/tasklib.a
 
 ##### End of configurable section #####
 
-LIBMPI=../mtxp/libmtxmpi.o
-LIBNOMPI=../mtxp/libmtxnompi.o
-
-LIB_MTX_BND=$(LIBNOMPI) ../mtxp/libmtxbnd.o
-LIB_MTX_PCG=$(LIBNOMPI) ../mtxp/libmtxpcg.o
-LIB_MTX_MUMPS=$(LIBMPI) ../mtxp/libmtxmumps.o
-LIB_MTX_KSP=$(LIBMPI) ../mtxp/libmtxksp.o
+LIB_MTX_MUMPS=$(LIBMTXMPI) ../mtxp/libmtxmumps.o
+LIB_MTX_KSP=$(LIBMTXMPI) ../mtxp/libmtxksp.o
 
 LIBX_MTX_BND=$(LIB_MTX_BND)
 LIBX_MTX_PCG=$(LIB_MTX_PCG)
 #LIBX_MTX_MUMPS=$(LIB_MTX_MUMPS) $(MUMPS_LIB)
 LIBX_MTX_MUMPS=$(LIB_MTX_MUMPS) $(PETSC_KSP_LIB)
 LIBX_MTX_KSP=$(LIB_MTX_KSP) $(PETSC_KSP_LIB)
+

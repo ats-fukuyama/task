@@ -186,6 +186,8 @@
             CALL FPGRARA('REC ',RECT,NSA)
          ELSE IF(KID2.EQ.'T  ') THEN
             CALL FPGRARA('RT  ',RTT,NSA)
+         ELSE IF(KID2.EQ.'TB ') THEN
+            CALL FPGRARA('RTB',RTT_BULK,NSA)
          ELSE IF(KID2.EQ.'Q  ') THEN
             CALL FPGRAR('RQ  ',RQT)
          ELSE IF(KID2.EQ.'E  ') THEN
@@ -218,6 +220,8 @@
             CALL FPGRATA('TEC ',PECT,NSA)
          ELSE IF(KID2.EQ.'T  ') THEN
             CALL FPGRATA('TT  ',PTT,NSA)
+         ELSE IF(KID2.EQ.'TB  ') THEN
+            CALL FPGRATA('TT_B',PTT_BULK,NSA)
          ELSE IF(KID2.EQ.'Q  ') THEN
             CALL FPGRAT('TQ  ',PQT)
          ELSE IF(KID2.EQ.'E  ') THEN
