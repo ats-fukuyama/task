@@ -27,6 +27,8 @@ CONTAINS
         nxmax1 = nxmax + 2
         nymax1 = nymax + 2
         nxymax = (nxmax1-1) * (nymax1-1)
+        nxmax2 = nxmax1 - 1
+        nymax2 = nymax1 - 1
       ENDIF
       nzmax  = MIN(nxmax,nymax)
 
