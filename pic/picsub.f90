@@ -940,10 +940,10 @@ ENDIF
         y=DBLE(ny)
         IF(y.GE.ymin_wg.AND.y.LE.ymax_wg) THEN
            factor=ExP(-12.D0*(y-yc)**2/(ylen)**2)
-           Ey(-1,ny)=amp_wg*amp_start &
+           Ey(0,ny)=amp_wg*amp_start &
                 *factor*COS(rot_wg*pi/180.D0) &
                 *SIN(omega*time-pi*dph*(y-ymin_wg)/180.D0)
-           Ez(-1,ny)=amp_wg*amp_start &
+           Ez(0,ny)=amp_wg*amp_start &
                 *factor*SIN(rot_wg*pi/180.D0) &
                 *SIN(omega*time-pi*dph*(y-ymin_wg)/180.D0)
         END IF
