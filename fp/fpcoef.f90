@@ -671,6 +671,13 @@
                   RGAMA=SQRT(1.D0+THETA0(NSBA)*PM(NP,NSBA)**2)
                   FACTP=PI*RR*PM(NP,NSBA)*ABS(COSM(NTH))/RGAMA *PTFP0(NSBA)/AMFP(NSBA)
                   FACTR=QLM(NR)*deltaB_B**2
+               CASE(6) ! depend on 1/p and H-mode like (constant(1.D0) when rho >= 0.9)
+                  FACTP=SQRT(RTFPL)/SQRT(RTFPL+PM(NP,NSBA)**2*SINM(NTH)**2)
+                  IF(RHON.GE.0.9D0) THEN
+                     FACTR=1.D0
+                  ELSE
+                     FACTR= (DRR0-DRRS)*(1.D0-RHON**2)+DRRS 
+                  END IF
                END SELECT
                   DRR(NTH,NP,NR,NSA)= FACTR*FACTP/(RA**2)
             ENDDO
