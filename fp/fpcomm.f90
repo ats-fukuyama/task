@@ -134,7 +134,7 @@
       real(rkind),dimension(:,:),POINTER :: & ! (NTHM,NRMP)
            ETAG,ETAM,RLAMDA,RLAMDC,ETAM_G,ETAG_G,RLAMDA_G,RlAMDC_G
       real(rkind),dimension(:),POINTER:: & !(NR)
-           RFSAD,RFSADG, RFSAD_G, RFSAD_GG
+           RFSAD,RFSADG, RFSAD_G, RFSAD_GG, RATIO_NAVMAX, A_chi0
 
       real(rkind),dimension(:),POINTER :: & ! (NTHM)
            SING,COSG,SINM,COSM
@@ -330,8 +330,10 @@
 
           allocate(RFSAD(NRSTART:NREND),RFSADG(NRMAX+1))
           allocate(RFSAD_G(NRSTART:NREND),RFSAD_GG(NRMAX+1))
+          allocate(RATIO_NAVMAX(NRSTART:NREND))
+          allocate(A_chi0(NRSTART:NREND))
 
-          allocate(RLAMDA_G(NTHMAX,NRSTART:NREND),RLAMDC_G(NTHMAX+1,NRSTART:NREND))
+          allocate(RLAMDA_G(NTHMAX,NRSTART:NRENDWG),RLAMDC_G(NTHMAX+1,NRSTART:NREND))
           allocate(SING(NTHMAX+1),COSG(NTHMAX+1))
           allocate(SINM(NTHMAX),COSM(NTHMAX))
 
@@ -341,7 +343,7 @@
           allocate(FNS0(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND))
           allocate(FNSP(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND)) 
           allocate(FNSM(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND))
-          allocate(FNSB(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX)) ! backgroud f
+          allocate(FNSB(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSBMAX)) ! backgroud f
 
           allocate(FS0(NTHMAX,NPSTARTW:NPENDWM,NSAMAX))
           allocate(FS2(NTHMAX,NPSTARTW:NPENDWM,NSAMAX))
@@ -473,7 +475,7 @@
           allocate(SPPD(NTHMAX,NPSTART:NPEND,NSAMAX))
           allocate(SPPL(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX))
 
-          allocate(RN_IMPL(NRMAX,NSAMAX),RT_IMPL(NRMAX,NSAMAX) )
+          allocate(RN_IMPL(NRMAX,NSMAX),RT_IMPL(NRMAX,NSMAX) )
           
           allocate(RNSL(NRSTART:NREND,NSAMAX),RJSL(NRSTART:NREND,NSAMAX))
           allocate(RFPL(NRSTART:NREND),RJSRL(NRSTART:NREND,NSAMAX))
@@ -604,6 +606,7 @@
           deallocate(RLAMDA,RLAMDC)
           deallocate(RFSAD,RFSADG)
           deallocate(RFSAD_G,RFSAD_GG)
+          deallocate(RATIO_NAVMAX, A_chi0)
           deallocate(RLAMDA_G,RLAMDC_G)
           deallocate(SING,COSG,SINM,COSM)
 

@@ -242,9 +242,9 @@
                         +DCPT(NTH,NP,NR,NSA)*DFT           &
                         -FCPP(NTH,NP,NR,NSA)*FFP           &
                           )
-!                  IF(NTH.eq.1.and.NP.eq.NPSTART)THEN
-!                     WRITE(*,'(A,3I4,10E14.6)') "TEST", NSA, NR, NP, DFP, DFT, FFP, WPL, WPM, WPP,DPP(NTH,NP,NR,NSA),FPP(NTH,NP,NR,NSA) &
-!                          ,DCPP(NTH,NP,NR,NSA)
+!                  IF(NTH.eq.2.and.NP.eq.NPSTART)THEN
+!                     WRITE(*,'(A,3I4,20E14.6)') "TEST", NSA, NR, NP, DFP, DFT, FFP, WPL, WPM, WPP,DPP(NTH,NP,NR,NSA),FPP(NTH,NP,NR,NSA) &
+!                          ,DCPP(NTH,NP,NR,NSA),FNSP(NTH,NP,NR,NSA),FNSB(NTH,NP,NR,NSA)
 !                  END IF
                   RSUM5 = RSUM5+PG(NP,NSBA)**2*SINM(NTH)/PV   &
                           *(DWPP(NTH,NP,NR,NSA)*DFP           &
@@ -1140,8 +1140,164 @@
       END IF
 
       END SUBROUTINE FPSAVECOMM
-!^-------------------------------
-    end MODULE fpsave
+!^------------------------------ 
+!==============================================================
+      SUBROUTINE FPSSUB2
+!
+      USE libmtx
+      USE fpmpi
+      IMPLICIT NONE
+      integer:: NR, NSA, NSB, NSBA, NP, NTH, NS, NPS
+      integer:: IERR
+      real(8):: RSUM1, RSUM3, fact
+      real(8):: PV, WPL, WPM, WPP
+      real:: gut1,gut2
+
+      CALL mtx_set_communicator(comm_np) 
+      DO NR=NRSTART,NREND
+         DO NSA=NSASTART,NSAEND
+            NS=NS_NSA(NSA)
+            NSBA=NSB_NSA(NSA)
+
+            RSUM1=0.D0
+            RSUM3=0.D0
+
+            IF(MODELA.eq.0)THEN
+               DO NP=NPSTART,NPEND
+                  DO NTH=1,NTHMAX
+                     RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)
+                  END DO
+               ENDDO
+            ELSE
+               DO NP=NPSTART,NPEND
+                  DO NTH=1,NTHMAX
+                     RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
+                          *RLAMDA(NTH,NR)*RFSADG(NR) 
+                  END DO
+               ENDDO
+            END IF
+!
+            IF(MODELA.eq.0) THEN
+               IF(MODELR.EQ.0) THEN
+                  DO NP=NPSTART,NPEND
+                     DO NTH=1,NTHMAX
+                        RSUM3 = RSUM3                       &
+                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
+                             *0.5D0*PM(NP,NSBA)**2
+                     END DO
+                  ENDDO
+               ELSE
+                  DO NP=NPSTART,NPEND
+                     PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
+                     DO NTH=1,NTHMAX
+                        RSUM3 = RSUM3                       &
+                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
+                             *(PV-1.D0)/THETA0(NSA)
+                     END DO
+                  END DO
+               ENDIF
+            ELSE
+               IF(MODELR.EQ.0) THEN
+                  DO NP=NPSTART,NPEND
+                     DO NTH=1,NTHMAX
+                        RSUM3 = RSUM3                        &
+                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)  &
+                             *0.5D0*PM(NP,NSBA)**2*RLAMDA(NTH,NR)*RFSADG(NR) 
+                     END DO
+                  ENDDO
+               ELSE
+                  DO NP=NPSTART,NPEND
+                     PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
+                     DO NTH=1,NTHMAX
+                        RSUM3 = RSUM3                        &
+                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)  &
+                             *(PV-1.D0)/THETA0(NSA)*RLAMDA(NTH,NR)*RFSADG(NR) 
+                     END DO
+                  END DO
+               ENDIF 
+            END IF
+!     REDUCE RSUM
+            CALL p_theta_integration(RSUM1)
+            CALL p_theta_integration(RSUM3)
+! --------- end of radial transport
+               
+            FACT=RNFP0(NSA)*1.D20
+            RNSL(NR,NSA) = RSUM1*FACT*1.D-20
+
+            FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)
+            RWSL(NR,NSA) = RSUM3*FACT               *1.D-6
+         ENDDO ! NSA
+      ENDDO ! NR
+      CALL mtx_reset_communicator 
+
+      CALL FPSAVECOMM2
+
+      RETURN
+      END SUBROUTINE FPSSUB2
+!
+! *************************
+!     SAVE PROFILE DATA
+! *************************
+!
+      SUBROUTINE FPSPRF2
+!
+      USE plprof
+      IMPLICIT NONE
+      integer:: NR, NSA, NSB, NS
+      real(8):: rtemp, rhon
+      TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
+
+      DO NS=1,NSMAX
+         IF(NS.le.NSAMAX)THEN
+            DO NR=1,NRMAX
+               RN_IMPL(NR,NS) = RNS(NR,NS)
+               RT_IMPL(NR,NS)=RT_BULK(NR,NS)
+            ENDDO
+         ELSE
+            DO NR=1,NRMAX
+               RHON=RM(NR) 
+               CALL PL_PROF(RHON,PLF) 
+               RN_IMPL(NR,NS)=PLF(NS)%RN
+               RT_IMPL(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+            ENDDO            
+         END IF
+      ENDDO
+
+      RETURN
+      END SUBROUTINE FPSPRF2
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      SUBROUTINE FPSAVECOMM2
+
+      USE libmtx
+      USE fpmpi
+      IMPLICIT NONE
+      integer:: NR, NSA, NSB, NSBA, NP, NTH, NS, NSW, N
+
+      CALL mtx_set_communicator(comm_nsanr) 
+      NSW=NSAEND-NSASTART+1
+      DO N=1,NSW
+         NSA=N+NSASTART-1
+         CALL fp_gatherv_real8_sav(RNSL,SAVLEN(NRANK+1),RNS,N,NSA)
+         CALL fp_gatherv_real8_sav(RWSL,SAVLEN(NRANK+1),RWS,N,NSA)
+      END DO
+      CALL mtx_reset_communicator 
+
+      CALL mtx_broadcast_real8(RNS,NRMAX*NSAMAX)
+      CALL mtx_broadcast_real8(RWS,NRMAX*NSAMAX)
+      CALL mtx_broadcast_real8(RT_BULK,NRMAX*NSAMAX)
+
+      END SUBROUTINE FPSAVECOMM2
+!==============================================================
+      SUBROUTINE update_RN_RT
+
+      IMPLICIT NONE
+
+      CALL FPSSUB2
+      CALL FPSPRF2
+
+      END SUBROUTINE update_RN_RT
+!==============================================================
+      end MODULE fpsave
 
 
 

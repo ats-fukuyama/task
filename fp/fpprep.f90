@@ -287,10 +287,7 @@
          DO NR=1,NRMAX+1
             CALL SET_RFSAD(NR)
          END DO
-         DO NR=NRSTART,NREND
-            CALL SET_BOUNCE_PARAM(NR)
-         END DO
-         CALL SET_BOUNCE_PARAM(NRMAX+1)
+         CALL SET_BOUNCE_PARAM
 
       END IF ! MODELA
 
@@ -1057,8 +1054,8 @@
       double precision,dimension(NSAMAX,NSBMAX):: CLOG
       double precision:: VTFDL, PTFDL
 
-      CALL FPSSUB2
-      CALL FPSPRF2
+!      CALL FPSSUB2
+!      CALL FPSPRF2
 
       DO NR=NRSTART,NRENDWM
          ISW_CLOG=0 ! =0 Wesson, =1 NRL
@@ -1132,144 +1129,6 @@
 !      IF(NR.eq.NRMAX) WRITE(*,'(A,1P4E16.8)') "Coulomb log",CLOG(1,1), CLOG(1,2), CLOG(2,1), CLOG(2,2)
 
       END SUBROUTINE Coulomb_log
-!==============================================================
-      SUBROUTINE FPSSUB2
-!
-      USE libmtx
-      IMPLICIT NONE
-      integer:: NR, NSA, NSB, NSBA, NP, NTH, NS, NPS
-      integer:: IERR
-      real(8):: RSUM1, RSUM3, fact
-      real(8):: PV, WPL, WPM, WPP
-      real:: gut1,gut2
-
-      CALL mtx_set_communicator(comm_np) 
-      DO NR=NRSTART,NREND
-         DO NSA=NSASTART,NSAEND
-            NS=NS_NSA(NSA)
-            NSBA=NSB_NSA(NSA)
-
-            RSUM1=0.D0
-            RSUM3=0.D0
-
-            IF(MODELA.eq.0)THEN
-               DO NP=NPSTART,NPEND
-                  DO NTH=1,NTHMAX
-                     RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)
-                  END DO
-               ENDDO
-            ELSE
-               DO NP=NPSTART,NPEND
-                  DO NTH=1,NTHMAX
-                     RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
-                          *RLAMDA(NTH,NR)
-                  END DO
-               ENDDO
-            END IF
-!
-            IF(MODELA.eq.0) THEN
-               IF(MODELR.EQ.0) THEN
-                  DO NP=NPSTART,NPEND
-                     DO NTH=1,NTHMAX
-                        RSUM3 = RSUM3                       &
-                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
-                             *0.5D0*PM(NP,NSBA)**2
-                     END DO
-                  ENDDO
-               ELSE
-                  DO NP=NPSTART,NPEND
-                     PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
-                     DO NTH=1,NTHMAX
-                        RSUM3 = RSUM3                       &
-                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
-                             *(PV-1.D0)/THETA0(NSA)
-                     END DO
-                  END DO
-               ENDIF
-            ELSE
-               IF(MODELR.EQ.0) THEN
-                  DO NP=NPSTART,NPEND
-                     DO NTH=1,NTHMAX
-                        RSUM3 = RSUM3                        &
-                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)  &
-                             *0.5D0*PM(NP,NSBA)**2*RLAMDA(NTH,NR)
-                     END DO
-                  ENDDO
-               ELSE
-                  DO NP=NPSTART,NPEND
-                     PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
-                     DO NTH=1,NTHMAX
-                        RSUM3 = RSUM3                        &
-                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)  &
-                             *(PV-1.D0)/THETA0(NSA)*RLAMDA(NTH,NR)
-                     END DO
-                  END DO
-               ENDIF               
-            END IF
-!     REDUCE RSUM
-            CALL p_theta_integration(RSUM1)
-            CALL p_theta_integration(RSUM3)
-! --------- end of radial transport
-               
-            FACT=RNFP0(NSA)*1.D20
-            RNSL(NR,NSA) = RSUM1*FACT*1.D-20
-
-            FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)
-            RWSL(NR,NSA) = RSUM3*FACT               *1.D-6
-         ENDDO ! NSA
-      ENDDO ! NR
-      CALL mtx_reset_communicator 
-
-      CALL FPSAVECOMM2
-
-      RETURN
-      END SUBROUTINE FPSSUB2
-!
-! *************************
-!     SAVE PROFILE DATA
-! *************************
-!
-      SUBROUTINE FPSPRF2
-!
-      IMPLICIT NONE
-      integer:: NR, NSA, NSB, NS
-      real(8):: rtemp
-
-      DO NSA=1,NSAMAX
-!         DO NR=NRSTART,NRENDWM
-         DO NR=1,NRMAX
-            RN_IMPL(NR,NSA) = RNS(NR,NSA)
-!            IF(RNS(NR,NSA).NE.0.D0) THEN
-               RT_IMPL(NR,NSA)=RT_BULK(NR,NSA)
-!            ELSE
-!               RT_IMPL(NR,NSA) = 0.D0
-!            ENDIF
-         ENDDO
-      ENDDO
-
-      RETURN
-      END SUBROUTINE FPSPRF2
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      SUBROUTINE FPSAVECOMM2
-
-      USE libmtx
-      IMPLICIT NONE
-      integer:: NR, NSA, NSB, NSBA, NP, NTH, NS, NSW, N
-
-      CALL mtx_set_communicator(comm_nsanr) 
-      NSW=NSAEND-NSASTART+1
-      DO N=1,NSW
-         NSA=N+NSASTART-1
-         CALL fp_gatherv_real8_sav(RNSL,SAVLEN(NRANK+1),RNS,N,NSA)
-         CALL fp_gatherv_real8_sav(RWSL,SAVLEN(NRANK+1),RWS,N,NSA)
-      END DO
-      CALL mtx_reset_communicator 
-
-      CALL mtx_broadcast_real8(RNS,NRMAX*NSAMAX)
-      CALL mtx_broadcast_real8(RWS,NRMAX*NSAMAX)
-      CALL mtx_broadcast_real8(RT_BULK,NRMAX*NSAMAX)
-
-      END SUBROUTINE FPSAVECOMM2
 !==============================================================
       SUBROUTINE fp_continue(ierr)
 

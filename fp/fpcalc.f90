@@ -193,21 +193,21 @@
 
 !     ----- bounce average -----
          IF(MODELA.EQ.1) THEN
-            IF(MODELC.EQ.0.or.MODELC.eq.1) THEN
+!            IF(MODELC.EQ.0.or.MODELC.eq.1) THEN
                CALL FPCALC_LAV(NR,NSA)
-            ELSEIF(MODELC.EQ.2.or.MODELC.eq.3) THEN
-               CALL FPCALC_NLAV(NR,NSA)
-            ELSEIF(MODELC.EQ.4) THEN
-               CALL FPCALC_NLAV(NR,NSA)
-            ELSEIF(MODELC.EQ.5) THEN
-               CALL FPCALC_LAV(NR,NSA)
-            ELSEIF(MODELC.EQ.6) THEN
-               CALL FPCALC_NLAV(NR,NSA)
-            ELSEIF(MODELC.EQ.-1) THEN
-               CALL FPCALC_LAV(NR,NSA)
-            ELSEIF(MODELC.EQ.-2) THEN
-               CALL FPCALC_NLAV(NR,NSA)
-            ENDIF
+!            ELSEIF(MODELC.EQ.2.or.MODELC.eq.3) THEN
+!               CALL FPCALC_NLAV(NR,NSA)
+!            ELSEIF(MODELC.EQ.4) THEN
+!               CALL FPCALC_NLAV(NR,NSA)
+!            ELSEIF(MODELC.EQ.5) THEN
+!               CALL FPCALC_LAV(NR,NSA)
+!            ELSEIF(MODELC.EQ.6) THEN
+!               CALL FPCALC_NLAV(NR,NSA)
+!            ELSEIF(MODELC.EQ.-1) THEN
+!               CALL FPCALC_LAV(NR,NSA)
+!            ELSEIF(MODELC.EQ.-2) THEN
+!               CALL FPCALC_NLAV(NR,NSA)
+!            ENDIF
          ENDIF
 !     sum up coefficients by species
          DO NSB=1,NSBMAX
@@ -1074,10 +1074,11 @@
       DOUBLE PRECISION:: DELH, sum, etal, psib, pcos, arg, x
       INTEGER:: NG
 
+! DCPP, FCPP
       DO NSB=1,NSBMAX
          DO NP=NPSTART,NPENDWG
             DO NTH=1,NTHMAX
-               FACT=RLAMDA(NTH,NR)
+               FACT=RLAMDA(NTH,NR)/A_chi0(NR)
                DCPP2(NTH,NP,NR,NSB,NSA) &
                     =FACT*DCPP2(NTH,NP,NR,NSB,NSA)
                FCPP2(NTH,NP,NR,NSB,NSA) &
@@ -1107,13 +1108,8 @@
             DCPP2(ITU(NR),NP,NR,NSB,NSA)=DCPP2(ITL(NR),NP,NR,NSB,NSA)
             FCPP2(ITU(NR),NP,NR,NSB,NSA)=FCPP2(ITL(NR),NP,NR,NSB,NSA)
          END DO
-!         FACT=RLAMDC(NTH,NR)
-!         DO NP=1,NPMAX
-!            DO NTH=1,NTHMAX+1
-!               DCTT2(NTH,NP,NR,NSB,NSA)=FACT*DCTT2(NTH,NP,NR,NSB,NSA)
-!            ENDDO
-!         END DO
-!         DO NP=1,NPMAX
+
+! DCTT
          DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX+1
                IF(NTH.NE.NTHMAX/2+1) THEN 

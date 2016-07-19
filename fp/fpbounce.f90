@@ -14,14 +14,15 @@
       contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      SUBROUTINE SET_BOUNCE_PARAM(NR)
+      SUBROUTINE SET_BOUNCE_PARAM
 
+      USE libmtx 
       IMPLICIT NONE
-      INTEGER,INTENT(IN):: NR
+      INTEGER:: NR
       INTEGER:: NTH
 
 !     ON RM(NR)
-      IF(NR.ne.NRMAX+1)THEN
+      DO NR=NRSTART, NREND
          CALL SET_ETAMG(NR) ! obtain the poloidal angle of bounce points
 
          CALL SET_RLAMDA(NR) ! NAVMAX 
@@ -34,32 +35,35 @@
 !         CALL SET_RLAMDA_TPB4(NR) ! Kileen with correction ELL
 
 !multiple A_chi0
+         A_chi0(NR) = RA**2*RM(NR)*( RR+RA*RM(NR) )*2.D0
          DO NTH=1, NTHMAX
-            RLAMDA(NTH,NR)=RLAMDA(NTH,NR)*RA**2*RM(NR)*( RR+RA*RM(NR) )*2.D0 ! *2.D0 from oint 
+            RLAMDA(NTH,NR)=RLAMDA(NTH,NR)*A_chi0(NR) ! *2.D0 from oint 
          END DO
-         CALL SET_RLAMDA_TPB_FROM_DENS(NR) ! RLAMDA(ITL,NR) is set to satisfy init dens
-      END IF
-
+!         IF(NSASTART.eq.1)THEN
+            CALL SET_RLAMDA_TPB_FROM_DENS(NR) ! RLAMDA(ITL,NR) is set to satisfy init dens
+!         END IF
+      END DO
 
 !     ON RG(NR)
-      IF(NR.eq.1)THEN
-         DO NTH=1,NTHMAX
-            RLAMDA_G(NTH,NR)=0.D0
-!           RLAMDA_G(NTH,NR)=1.D0
-         END DO
-      ELSEIF(NR.eq.NRMAX+1)THEN
-         CALL SET_ETAMG_GMAX(NR)
-         CALL SET_RLAMDA_GMAX(NR)
-      ELSE
-         CALL SET_ETAMG_G(NR)
-         CALL SET_RLAMDA_G(NR)
-      END IF
-      IF(NR.ne.1.and.NR.ne.NRMAX+1)THEN
-         DO NTH=1, NTHMAX
-            RLAMDA_G(NTH,NR)=RLAMDA_G(NTH,NR)*RA**2*RG(NR)*( RR+RA*RG(NR) )*2.D0
-         END DO
-      END IF
-      CALL SET_RLAMDA_G_TPB_FROM_DENS(NR) ! RLAMDA(ITL,NR) is set to satisfy init dens
+      DO NR=NRSTART, NRENDWG
+         IF(NR.eq.1)THEN
+            DO NTH=1,NTHMAX
+               RLAMDA_G(NTH,NR)=0.D0
+            END DO
+         ELSEIF(NR.eq.NRMAX+1)THEN
+            CALL SET_ETAMG_GMAX(NR)
+            CALL SET_RLAMDA_GMAX(NR)
+         ELSE
+            CALL SET_ETAMG_G(NR)
+            CALL SET_RLAMDA_G(NR)
+         END IF
+         IF(NR.ne.1.and.NR.ne.NRMAX+1)THEN
+            DO NTH=1, NTHMAX
+               RLAMDA_G(NTH,NR)=RLAMDA_G(NTH,NR)*RA**2*RG(NR)*( RR+RA*RG(NR) )*2.D0
+            END DO
+         END IF
+         CALL SET_RLAMDA_G_TPB_FROM_DENS(NR) ! RLAMDA(ITL,NR) is set to satisfy init dens
+      END DO
 
       END SUBROUTINE SET_BOUNCE_PARAM
 
@@ -896,13 +900,15 @@
       RSUM2=0.D0
       RSUM3=0.D0
       DO NTH=1, NTHMAX/2
-         RSUM1 = RSUM1 + VOLP(NTH,1,1)
+         RSUM1 = RSUM1 + VOLP(NTH,NPSTART,NSASTART)
          IF(NTH.ne.ITL(NR))THEN
-            RSUM2 = RSUM2 + VOLP(NTH,1,1)*RLAMDA(NTH,NR)*RFSADG(NR)
+            RSUM2 = RSUM2 + VOLP(NTH,NPSTART,NSASTART)*RLAMDA(NTH,NR)*RFSADG(NR)
          ELSE
-            RSUM3 = VOLP(NTH,1,1)*RFSADG(NR)
+            RSUM3 = VOLP(NTH,NPSTART,NSASTART)*RFSADG(NR)
          END IF
       END DO
+
+      RATIO_NAVMAX(NR) = ( (RSUM1 - RSUM2)/RSUM3 ) / RLAMDA(ITL(NR),NR)
       
       RLAMDA(ITL(NR),NR) = (RSUM1 - RSUM2)/RSUM3
       RLAMDA(NTHMAX-ITL(NR)+1,NR)=RLAMDA(ITL(NR),NR)
@@ -920,16 +926,16 @@
       RSUM2=0.D0
       RSUM3=0.D0
       DO NTH=1, NTHMAX/2
-         RSUM1 = RSUM1 + VOLP(NTH,1,1)
-         IF(NTH.ne.ITL(NR))THEN
-            RSUM2 = RSUM2 + VOLP(NTH,1,1)*RLAMDA_G(NTH,NR)*RFSAD_GG(NR)
+         RSUM1 = RSUM1 +  VOLP(NTH,NPSTART,NSASTART)
+         IF(NTH.ne.ITLG(NR))THEN
+            RSUM2 = RSUM2 + VOLP(NTH,NPSTART,NSASTART)*RLAMDA_G(NTH,NR)*RFSAD_GG(NR)
          ELSE
-            RSUM3 = VOLP(NTH,1,1)*RFSAD_GG(NR)
+            RSUM3 = VOLP(NTH,NPSTART,NSASTART)*RFSAD_GG(NR)
          END IF
       END DO
       
-      RLAMDA(ITL(NR),NR) = (RSUM1 - RSUM2)/RSUM3
-      RLAMDA(NTHMAX-ITL(NR)+1,NR)=RLAMDA(ITL(NR),NR)
+      RLAMDA_G(ITLG(NR),NR) = (RSUM1 - RSUM2)/RSUM3
+      RLAMDA_G(NTHMAX-ITLG(NR)+1,NR)=RLAMDA_G(ITLG(NR),NR)
 
       END SUBROUTINE SET_RLAMDA_G_TPB_FROM_DENS
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

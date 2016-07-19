@@ -210,9 +210,10 @@
             
             CALL GUTIME(gut_cale7)
             gut_cale = gut_cale + gut_cale7-gut_conv3
-
 !            
-            IF(MODEL_LNL.eq.0) CALL Coulomb_log
+            CALL update_RN_RT ! update RN_IMPL, RT_IMPL for Coulomb log and fpcalcnr
+            IF(MODEL_LNL.eq.0) CALL Coulomb_log ! update coulomb log
+
             CALL fusion_source_init
 !           update FNSB (fnsb is required by NL collsion and NF reaction)
             IF(MODELC.ge.2.or.MODELS.eq.2)THEN
@@ -221,6 +222,7 @@
                CALL mtx_reset_communicator
             END IF
 !           end of update FNSB
+
 ! IF MODEL_DISRUPT=1, FP_COEF is already called in TOP_OF_TIME_LOOP_DISRUPT
             IF(MODEL_DISRUPT.eq.0)THEN 
                DO NSA=NSASTART,NSAEND
