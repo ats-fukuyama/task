@@ -693,7 +693,7 @@ ENDIF
               !Bx(-1,ny)=-Bx(1,ny)!-dt*(Ez(0,nyp)-Ez(0,ny))+Bxb(0,ny)
               !By(-1,ny)=By(0,ny)!dt*(Ez(1,ny)-Ez(0,ny))+Byb(0,ny)
               !Bz(-1,ny)=Bz(0,ny)!dt*(-Ey(1,ny)+Ey(0,ny)+Ex(0,nyp)-Ex(0,ny))+Bzb(0,ny)
-          ELSE IF(model_boundary .eq. 3) then !Mur's abosorbing boundary condition
+          ELSE IF(model_boundary .eq. 2) then !Mur's abosorbing boundary condition
              !Bx(-1,ny) = 2.d0*Bx(0,ny)-Bx(1,ny)
              !By(-1,ny) = 2.d0*By(0,ny)-By(1,ny)
             !Bx(nxmax,ny) = 2.d0*Bx(nxmax-1,ny)-Bx(nxmax-2,ny)
@@ -757,7 +757,7 @@ ENDIF
                !By(nx,-1)=-By(nx,1)!dt*(Ez(nxp,0)-Ez(nx,0))+Byb(nx,0)
                !Bz(nx,-1)=Bz(nx,0)
                !dt*(-Ey(nxp,-1)+Ey(nx,-1)+Ex(nx,0)-Ex(nx,-1))+Bzb(nx,-1)
-           ELSE IF(model_boundary .eq. 3) then
+           ELSE IF(model_boundary .eq. 2) then
               !Bx(nx,-1) = 2.d0*Bx(nx,0)-Bx(nx,1)
               !By(nx,-1) = 2.d0*By(nx,0)-By(nx,1)
              !Bx(nx,nymax) = 2.d0*Bx(nx,nymax-1)-Bx(nx,nymax-2)
@@ -940,10 +940,10 @@ ENDIF
         y=DBLE(ny)
         IF(y.GE.ymin_wg.AND.y.LE.ymax_wg) THEN
            factor=ExP(-12.D0*(y-yc)**2/(ylen)**2)
-           Ey(0,ny)=amp_wg*amp_start &
+           Ey(2,ny)=amp_wg*amp_start &
                 *factor*COS(rot_wg*pi/180.D0) &
                 *SIN(omega*time-pi*dph*(y-ymin_wg)/180.D0)
-           Ez(0,ny)=amp_wg*amp_start &
+           Ez(2,ny)=amp_wg*amp_start &
                 *factor*SIN(rot_wg*pi/180.D0) &
                 *SIN(omega*time-pi*dph*(y-ymin_wg)/180.D0)
         END IF
