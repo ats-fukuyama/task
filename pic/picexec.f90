@@ -1065,16 +1065,16 @@ CONTAINS
             sx2p=0.d0
           ENDIF
           IF( nxp .EQ. 0 .and. dx .LE. 0.5d0) THEN
-            !nxpm=0
-            !sx2m=0.d0
+            nxpm=0
+            sx2m=0.d0
           ENDIF
           IF( nyp .EQ. nymax-1 .and. dy .GE. 0.5d0) THEN
             nyppp=nymax
             sy2p=0.d0
           ENDIF
           IF( nyp .EQ. 0 .and. dy .LE. 0.5d0) THEN
-            !nypm=0
-            !sy2m=0.d0
+            nypm=0
+            sy2m=0.d0
           ENDIF
        END IF
        IF (dx .LE. 0.5d0 .AND. dy .LE. 0.5d0) THEN
