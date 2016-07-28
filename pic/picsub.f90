@@ -335,8 +335,8 @@ CONTAINS
       !$omp end parallel do
     ELSE IF (model_boundary .NE. 0) THEN
       !$omp parallel do private(nx,ny,nxm,nym,nxp,nyp)
-       DO nx = 0, nxmax-1
-          DO ny = 0, nymax-1
+       DO nx = 0, nxmax
+          DO ny = 0, nymax
 
              nxm = nx - 1
              nxp = nx + 1
@@ -416,7 +416,7 @@ CONTAINS
           !          *(Exb(0,ny+1)-2.d0*Exb(0,ny)&
           !          +Exb(0,ny-1)+Exb(1,ny+1)&
           !          -2.d0*Exb(1,ny)+Exb(1,ny-1))
-
+          !
           ! Ey(0,ny)=-Eybb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
           !          *(Ey(1,ny)+Eybb(0,ny)) &
           !          +2.d0/(vcfact*dt+1.d0)*(Eyb(0,ny)+Eyb(1,ny))&
@@ -511,6 +511,7 @@ CONTAINS
                     *(Ezb(nx+1,nymax)-2.d0*Ezb(nx,nymax)&
                     +Ezb(nx-1,nymax)+Ezb(nx+1,nymax-1)&
                     -2.d0*Ezb(nx,nymax-1)+Ezb(nx-1,nymax-1))
+
           ENDIF
        ENDDO
        IF(model_boundary .eq. 1) THEN
@@ -940,10 +941,10 @@ ENDIF
         y=DBLE(ny)
         IF(y.GE.ymin_wg.AND.y.LE.ymax_wg) THEN
            factor=ExP(-12.D0*(y-yc)**2/(ylen)**2)
-           Ey(2,ny)=amp_wg*amp_start &
+           Ey(0,ny)=amp_wg*amp_start &
                 *factor*COS(rot_wg*pi/180.D0) &
                 *SIN(omega*time-pi*dph*(y-ymin_wg)/180.D0)
-           Ez(2,ny)=amp_wg*amp_start &
+           Ez(0,ny)=amp_wg*amp_start &
                 *factor*SIN(rot_wg*pi/180.D0) &
                 *SIN(omega*time-pi*dph*(y-ymin_wg)/180.D0)
         END IF
