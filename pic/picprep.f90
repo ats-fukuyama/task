@@ -9,7 +9,7 @@ CONTAINS
   SUBROUTINE pic_prep(iout)
 
     USE piccomm
-    USE picsub,ONLY: poisson_f,poisson_m,efield,bfield,ab_z_field,ab_xy_field,kine,pote
+    USE picsub,ONLY: poisson_f,poisson_m,efield,bfield,kine,pote
     USE piclib
     USE libmpi
     IMPLICIT NONE
@@ -127,7 +127,6 @@ CONTAINS
             bzbg(nx,ny)=bzmin+(bzmax-bzmin)*factor
          END DO
       END DO
-      !IF(model_boundary .ne. 2) THEN
        !.......... calculate ex and ey and ez
          CALL efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
                      ex,ey,ez,exb,eyb,ezb,exbb,eybb,ezbb,bxb,byb,bzb,&
@@ -136,12 +135,6 @@ CONTAINS
          CALL bfield(nxmax,nymax,dt,Ax,Ay,Az,Axb,Ayb,Azb,ex,ey,ez,&
                      bx,by,bz,bxb,byb,bzb,bxbb,bybb,bzbb,bxbg,bybg,bzbg,bb, &
                      vcfact,model_push,model_boundary)
-        !  ELSE
-        ! CALL ab_z_field(nxmax,nymax,dt,jz,Ex,Ey,Ez,Exb,Eyb,Ezb,Exbb,Eybb,Ezbb,&
-        !                           Bx,By,Bz,Bxb,Byb,Bzb,Bxbb,Bybb,Bzbb,bb,vcfact)
-        ! CALL ab_xy_field(nxmax,nymax,dt,jx,jy,Ex,Ey,Ez,Exb,Eyb,Ezb,Exbb,Eybb,Ezbb,&
-        !                           Bx,By,Bz,Bxb,Byb,Bzb,Bxbb,Bybb,Bzbb,bb,vcfact)
-      ! ENDIF
       do np=1,npmax
          vparae(np)=vye(np)
          vperpe(np)=SQRT(vxe(np)**2+vze(np)**2)
