@@ -10,7 +10,7 @@ CONTAINS
   SUBROUTINE pic_exec(iout)
 
     USE piccomm
-    USE picsub,ONLY: poisson_f,poisson_m,efield,bfield,wave,ab_z_field,ab_xy_field,kine,pote,absorb_phi
+    USE picsub,ONLY: poisson_f,poisson_m,efield,bfield,wave,kine,pote,absorb_phi
     USE piclib
     USE libmpi
     IMPLICIT NONE
@@ -136,7 +136,6 @@ CONTAINS
         !          model_boundary,dlen)
         !  ENDIF
        !.......... calculate ex and ey and ez
-       !IF(model_boundary .ne. 2) THEN
          CALL efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
               ex,ey,ez,exb,eyb,ezb,exbb,eybb,ezbb,bxb,byb,bzb,&
               esx,esy,esz,emx,emy,emz,jx,jy,jz,vcfact,model_push,model_boundary)
@@ -146,12 +145,6 @@ CONTAINS
          IF(model_wg .eq. 0) THEN
            CALL wave(nxmax,nymax,dt,Ex,Ey,Ez,vcfact,xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi)
          ENDIF
-      !  ELSE
-      !    CALL ab_z_field(nxmax,nymax,dt,jz,Ex,Ey,Ez,Exb,Eyb,Ezb,Exbb,Eybb,Ezbb,&
-      !                           Bx,By,Bz,Bxb,Byb,Bzb,Bxbb,Bybb,Bzbb,bb,vcfact)
-      !    CALL ab_xy_field(nxmax,nymax,dt,jx,jy,Ex,Ey,Ez,Exb,Eyb,Ezb,Exbb,Eybb,Ezbb,&
-      !                           Bx,By,Bz,Bxb,Byb,Bzb,Bxbb,Bybb,Bzbb,bb,vcfact)
-      !  ENDIF
        IF( MOD(nt,ntgstep) .EQ. 0 ) THEN
           CALL kine(npmax,vxe,vye,vze,akine1,me,vcfact)
           CALL kine(npmax,vxi,vyi,vzi,akini1,mi,vcfact)
@@ -1065,16 +1058,16 @@ CONTAINS
             sx2p=0.d0
           ENDIF
           IF( nxp .EQ. 0 .and. dx .LE. 0.5d0) THEN
-            !nxpm=0
-            !sx2m=0.d0
+            nxpm=0
+            sx2m=0.d0
           ENDIF
           IF( nyp .EQ. nymax-1 .and. dy .GE. 0.5d0) THEN
             nyppp=nymax
             sy2p=0.d0
           ENDIF
           IF( nyp .EQ. 0 .and. dy .LE. 0.5d0) THEN
-            !nypm=0
-            !sy2m=0.d0
+            nypm=0
+            sy2m=0.d0
           ENDIF
        END IF
        IF (dx .LE. 0.5d0 .AND. dy .LE. 0.5d0) THEN
