@@ -119,8 +119,8 @@ CONTAINS
       call mpi_barrier(mpi_comm_world,ierr)
       wtime1 = mpi_wtime()
 
-      DO nx=0,nxmax
-         DO ny=0,nymax
+      DO nx=-1,nxmax
+         DO ny=-1,nymax
             factor=DBLE(nx)/DBLE(nxmax)
             bxbg(nx,ny)=bxmin+(bxmax-bxmin)*factor
             bybg(nx,ny)=bymin+(bymax-bymin)*factor
