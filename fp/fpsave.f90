@@ -31,6 +31,8 @@
       real(8),dimension(NSBMAX):: RSUM10
       real(8),dimension(NPMAX):: RSUMNP_E
       real(8),dimension(NTHMAX,NPMAX):: T_BULK
+      real(8),dimension(NPSTART:NPEND):: RPL_BULK_send
+      real(8),dimension(NPMAX):: RPL_BULK_recv
       integer,dimension(NRSTART:NREND,NSBMAX):: NP_BULK
       real(8):: ratio, RSUM_T, RSUM_V, P_BULK_R, FACT_BULK, RATIO_0_S
       real(8):: SRHOR1, SRHOR2, RSUM_DRS, RSUMN_DRS
@@ -91,12 +93,19 @@
             END IF
 
 !           DEFINE BULK MOMENTUM RANGE
-            FACT_BULK=3.D0
+            IF(NT_init.eq.0)THEN
+               FACT_BULK = 3.D0
+            ELSE
+               FACT_BULK = SQRT( RT_BULK(NR,NSA)/RTFP(NR,NSA) )*3.D0
+            END IF
             RATIO_0_S=SQRT(RTFPS(NSA)/RTFP0(NSA)) ! p_th(r)/p_th(0)
             P_BULK_R = FACT_BULK* ( (1.D0-RATIO_0_S)*(1.D0-RM(NR)**2)+RATIO_0_S )
             DO NP=NPMAX, 1, -1
-               IF(PG(NP,NSA).gt.P_BULK_R) NP_BULK(NR,NSA)=NP
+               IF(P_BULK_R.lt.PG(NP,NSA)) NP_BULK(NR,NSA)=NP
             END DO
+            IF(PMAX(NSA).lt.P_BULK_R)THEN
+               NP_BULK(NR,NSA) = NPMAX
+            END IF
 !            WRITE(*,*) NSA, NR, NP_BULK(NR,NSA)
                
 !
@@ -332,28 +341,34 @@
             RSUM_T=0.D0
             RSUM_V=0.D0
             DO NP=NPSTART,NPEND
-            IF(NP.ge.2.and.NP.le.NP_BULK(NR,NSA))THEN
+               IF(NP.ge.2.and.NP.le.NP_BULK(NR,NSA))THEN
 !            DO NP=2,NP_BULK(NR,NSA)
-               PV=SQRT(1.D0+THETA0(NSA)*PG(NP,NSBA)**2)
-               DO NTH=1,NTHMAX
-                  IF(FNSP(NTH,NP,NR,NSA).gt.0.D0.and.FNSP(NTH,NP-1,NR,NSA).gt.0.D0)THEN
-                     DFDP=DELP(NSA)/ &
-                       ( log(FNSP(NTH,NP,NR,NSA))-log(FNSP(NTH,NP-1,NR,NSA)) )
-                  ELSE
-                     WPL=WEIGHP(NTH  ,NP,NR,NSA)
-                     FFP=   ( (1.D0-WPL)*FNSP(NTH  ,NP  ,NR,NSBA)  &
-                          +WPL *FNSP(NTH  ,NP-1,NR,NSBA) )
-                     DFDP=DELP(NSA)*FFP/(                         &
-                          FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA) )
-                  END IF
-                  T_BULK(NTH,NP)=-PG(NP,NSA)*PTFP0(NSA)*DFDP &
+                  PV=SQRT(1.D0+THETA0(NSA)*PG(NP,NSBA)**2)
+                  DO NTH=1,NTHMAX
+                     IF(FNSP(NTH,NP,NR,NSA).gt.0.D0.and.FNSP(NTH,NP-1,NR,NSA).gt.0.D0)THEN
+                        DFDP=DELP(NSA)/ &
+                             ( log(FNSP(NTH,NP,NR,NSA))-log(FNSP(NTH,NP-1,NR,NSA)) )
+                     ELSE
+                        WPL=WEIGHP(NTH  ,NP,NR,NSA)
+                        FFP=   ( (1.D0-WPL)*FNSP(NTH  ,NP  ,NR,NSBA)  &
+                             +WPL *FNSP(NTH  ,NP-1,NR,NSBA) )
+                        DFDP=DELP(NSA)*FFP/(                         &
+                             FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA) )
+                     END IF
+                     T_BULK(NTH,NP)=-PG(NP,NSA)*PTFP0(NSA)*DFDP &
                           /AEE/1.D3*VTFP0(NSA)/PV 
-                  RSUM_T = RSUM_T + T_BULK(NTH,NP)*VOLP(NTH,NP,NSBA)
-                  RSUM_V = RSUM_V + VOLP(NTH,NP,NSBA)
-               END DO
-            END IF
+                     RSUM_T = RSUM_T + T_BULK(NTH,NP)*VOLP(NTH,NP,NSBA)
+                     RSUM_V = RSUM_V + VOLP(NTH,NP,NSBA)
+                  END DO
+                  RPL_BULK_send(NP) = RSUM_T/RSUM_V
+               ELSE
+                  RPL_BULK_send(NP) = 0.D0
+               END IF
             END DO
-
+            CALL mtx_allgather_real8(RPL_BULK_send,NPEND-NPSTART+1,RPL_BULK_recv)
+            DO NP=1, NPMAX
+               RPL_BULK(NP,NR,NSA) = RPL_BULK_recv(NP)
+            END DO
             CALL p_theta_integration(RSUM_T)
             CALL p_theta_integration(RSUM_V)
 
@@ -1076,6 +1091,9 @@
       double precision,dimension(NRSTART:NREND,NSAMAX):: work
       double precision,dimension(NRMAX,NSAMAX):: workg
       double precision,dimension(NSAMAX):: temp_nsanr
+      double precision,dimension(NPMAX,NRSTART:NREND):: temp_npnr1
+      double precision,dimension(NPMAX,NRMAX):: temp_npnr2
+      double precision,dimension(NPMAX,NRMAX,NSASTART:NSAEND):: temp_npnr3
       integer,dimension(NSAMAX):: vloc
       INTEGER:: isave_sw
 
@@ -1138,6 +1156,41 @@
          RNDRS(:)=temp_nsanr
          CALL mtx_reset_communicator 
       END IF
+
+      CALL mtx_set_communicator(comm_nr) 
+      DO NSA=NSASTART, NSAEND
+         DO NR=NRSTART, NREND
+            DO NP=1,NPMAX
+               temp_npnr1(NP,NR) = RPL_BULK(NP,NR,NSA)
+            END DO
+         END DO
+         CALL mtx_allgather_real8(temp_npnr1,NPMAX*(NREND-NRSTART+1),temp_npnr2)
+         DO NR=1, NRMAX
+            DO NP=1, NPMAX
+               temp_npnr3(np,nr,nsa) = temp_npnr2(np,nr)
+            END DO
+         END DO
+      END DO
+      CALL mtx_set_communicator(comm_nsa) 
+      CALL mtx_allgather_real8(temp_npnr3,NPMAX*NRMAX*(NSAEND-NSASTART+1),RP_BULK)
+      CALL mtx_reset_communicator 
+
+!      DO NSA=NSASTART, NSAEND
+!         DO NR=NRSTART, NREND
+      IF(NRANK.eq.0)THEN
+         NSA=2
+         NR=1
+         WRITE(19,'(A,E14.6)') "# RT_BULK", TIMEFP
+         WRITE(19,*) " "
+         WRITE(19,*) " "
+         DO NP=NPSTART, NPEND
+            IF(RP_BULK(NP,NR,NSA).ne.0.D0)THEN
+               WRITE(19,'(I4,2E14.6)') NP, RP_BULK(NP,1,2), RP_BULK(NP,2,2)
+            END IF
+         END DO
+      END IF
+!         END DO
+!      END DO
 
       END SUBROUTINE FPSAVECOMM
 !^------------------------------ 

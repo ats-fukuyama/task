@@ -176,6 +176,8 @@
            RNSL,RJSL,RWSL,RPCSL,RPWSL,RPESL,RLHSL,RFWSL,RECSL,RWS123L, &
            RSPBL,RSPFL,RSPSL,RSPLL,RPDR,RNDR, RTL_BULK, RT_BULK, RICSL,&
            RDIDTL, RJSRL, RPSSL, RPLSL
+      real(rkind),dimension(:,:,:),POINTER :: & ! (NPM,NRM,NSAM)
+           RP_BULK,RPL_BULK
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSAM,NSBM)
            RPCS2L
 
@@ -256,6 +258,7 @@
       integer:: NPC_runaway
       integer:: nt_init, N_f1
       integer:: ierr_g
+
       contains
 
         subroutine fp_allocate
@@ -513,6 +516,8 @@
           allocate(RPDRL(NRSTART:NREND,NSAMAX),RNDRL(NRSTART:NREND,NSAMAX))
           allocate(RT_BULK(NRMAX,NSAMAX))
           allocate(RTL_BULK(NRSTART:NREND,NSAMAX))
+          allocate(RP_BULK(NPMAX,NRMAX,NSAMAX))
+          allocate(RPL_BULK(NPMAX,NRSTART:NREND,NSASTART:NSAEND))
 
           allocate(RPW_IMPL(NRSTART:NREND,NSAMAX,0:LMAXFP+1))
           allocate(RPWEC_IMPL(NRSTART:NREND,NSAMAX,0:LMAXFP+1))
@@ -713,6 +718,7 @@
 
           deallocate(RPDR,RNDR,RPDRS,RNDRS)
           deallocate(RPDRL,RNDRL,RT_BULK,RTL_BULK)
+          deallocate(RP_BULK)
           
           deallocate(RPW_IMPL,RPWEC_IMPL,RPWIC_IMPL)
           deallocate(RPW_INIT,RPWEC_INIT,RPWIC_INIT)
