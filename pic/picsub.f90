@@ -687,6 +687,10 @@ ENDIF
         !  Bz(:,0)=0.d0
         !ENDIF
       ENDIF
+    IF(model_boundary .ne. 0) THEN
+      Bx(:,nymax) = 0.d0
+      By(nxmax,:) = 0.d0
+    ENDIF
         DO nx = 0,nxmax
           DO ny = 0,nymax
         Bxbb(nx,ny)=Bxb(nx,ny)
@@ -728,10 +732,6 @@ ENDIF
          +By(0:nxmax,0:nymax)**2 &
          +Bz(0:nxmax,0:nymax)**2)
 
-    IF(model_boundary .ne. 0) THEN
-      Bx(:,nymax) = 0.d0
-      By(nxmax,:) = 0.d0
-    ENDIF
 
   END SUBROUTINE bfield
 
