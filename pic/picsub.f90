@@ -434,7 +434,6 @@ CONTAINS
          Ez(nx,nymax) = Esz(nx,nymax) + Emz(nx,nymax)
        ELSE IF(model_boundary .eq. 2) THEN
            Ex(nx,0) = 2.d0*Ex(nx,1)-Ex(nx,2)
-           !Ex(nx,nymax) = 2.d0*Ex(nx,nymax-1)-Ex(nx,nymax-2)
            Ey(nx,0) = Eyb(nx,0)-dt*jy(nx,0)&
                      +dt*vcfact**2*(Bzb(nxm,0)-Bzb(nx,0))
 
@@ -609,8 +608,6 @@ ENDIF
               !By(-1,ny)=By(0,ny)!dt*(Ez(1,ny)-Ez(0,ny))+Byb(0,ny)
               !Bz(-1,ny)=Bz(0,ny)!dt*(-Ey(1,ny)+Ey(0,ny)+Ex(0,nyp)-Ex(0,ny))+Bzb(0,ny)
           ELSE IF(model_boundary .eq. 2) then !Mur's abosorbing boundary condition
-             !Bx(-1,ny) = 2.d0*Bx(0,ny)-Bx(1,ny)
-            !By(-1,ny) = 2.d0*By(0,ny)-By(1,ny)
             Bx(nxmax,ny) = dt*(-Ez(nxmax,nyp)+Ez(nxmax,ny))+Bxb(nxmax,ny)
             By(nxmax,ny) = 2.d0*By(nxmax-1,ny)-By(nxmax-2,ny)
 
@@ -642,8 +639,6 @@ ENDIF
                !Bz(nx,-1)=Bz(nx,0)
                !dt*(-Ey(nxp,-1)+Ey(nx,-1)+Ex(nx,0)-Ex(nx,-1))+Bzb(nx,-1)
            ELSE IF(model_boundary .eq. 2) then
-              !Bx(nx,-1) = 2.d0*Bx(nx,0)-Bx(nx,1)
-              !By(nx,-1) = 2.d0*By(nx,0)-By(nx,1)
               Bx(nx,nymax) = 2.d0*Bx(nx,nymax-1)-Bx(nx,nymax-2)
               By(nx,nymax) = dt*(Ez(nxp,nymax)-Ez(nx,nymax))+Byb(nx,nymax)
               Bz(nx,0)=-Bzbb(nx,1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
@@ -748,7 +743,6 @@ ENDIF
      INTEGER :: nxmax,nymax,ny
      REAL(8) :: dt,xmin_wg,xmax_wg,ymin_wg,ymax_wg,yc,ylen,dph,y,factor,&
      amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi,vcfact,amp_start
-
      yc=0.5d0*(ymin_wg+ymax_wg)
      ylen=(ymax_wg-ymin_wg)
      IF(ylen .NE. 0) dph=ph_wg/ylen
@@ -799,8 +793,8 @@ ENDIF
     apote = 0.d0
     apotm = 0.d0
     !$omp parallel do reduction(+:apote,apotm)
-    DO ny = 0, nymax-1
-       DO nx = 0, nxmax-1
+    DO ny = 1, nymax-1
+       DO nx = 1, nxmax-1
           apote = apote + (Ex(nx,ny)**2 + Ey(nx,ny)**2 + Ez(nx,ny)**2)
           apotm = apotm + ((Bx(nx,ny)-Bxbg(nx,ny))**2 &
                + (By(nx,ny)-Bybg(nx,ny))**2 &
