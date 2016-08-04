@@ -69,15 +69,15 @@ CONTAINS
 
     IF(ALLOCATED(ex)) CALL pic_deallocate
 
-    ALLOCATE(ex(-1:nxmax,-1:nymax),ey(-1:nxmax,-1:nymax),ez(-1:nxmax,-1:nymax))
-    ALLOCATE(exb(-1:nxmax,-1:nymax),eyb(-1:nxmax,-1:nymax),ezb(-1:nxmax,-1:nymax))
-    ALLOCATE(exbb(-1:nxmax,-1:nymax),eybb(-1:nxmax,-1:nymax),ezbb(-1:nxmax,-1:nymax))
-    ALLOCATE(esx(-1:nxmax,-1:nymax),esy(-1:nxmax,-1:nymax),esz(-1:nxmax,-1:nymax))
-    ALLOCATE(emx(-1:nxmax,-1:nymax),emy(-1:nxmax,-1:nymax),emz(-1:nxmax,-1:nymax))
-    ALLOCATE(bx(-1:nxmax,-1:nymax),by(-1:nxmax,-1:nymax),bz(-1:nxmax,-1:nymax))
-    ALLOCATE(bxb(-1:nxmax,-1:nymax),byb(-1:nxmax,-1:nymax),bzb(-1:nxmax,-1:nymax))
-    ALLOCATE(bxbb(-1:nxmax,-1:nymax),bybb(-1:nxmax,-1:nymax),bzbb(-1:nxmax,-1:nymax))
-    ALLOCATE(bxbg(-1:nxmax,-1:nymax),bybg(-1:nxmax,-1:nymax),bzbg(-1:nxmax,-1:nymax))
+    ALLOCATE(ex(0:nxmax,0:nymax),ey(0:nxmax,0:nymax),ez(0:nxmax,0:nymax))
+    ALLOCATE(exb(0:nxmax,0:nymax),eyb(0:nxmax,0:nymax),ezb(0:nxmax,0:nymax))
+    ALLOCATE(exbb(0:nxmax,0:nymax),eybb(0:nxmax,0:nymax),ezbb(0:nxmax,0:nymax))
+    ALLOCATE(esx(0:nxmax,0:nymax),esy(0:nxmax,0:nymax),esz(0:nxmax,0:nymax))
+    ALLOCATE(emx(0:nxmax,0:nymax),emy(0:nxmax,0:nymax),emz(0:nxmax,0:nymax))
+    ALLOCATE(bx(0:nxmax,0:nymax),by(0:nxmax,0:nymax),bz(0:nxmax,0:nymax))
+    ALLOCATE(bxb(0:nxmax,0:nymax),byb(0:nxmax,0:nymax),bzb(0:nxmax,0:nymax))
+    ALLOCATE(bxbb(0:nxmax,0:nymax),bybb(0:nxmax,0:nymax),bzbb(0:nxmax,0:nymax))
+    ALLOCATE(bxbg(0:nxmax,0:nymax),bybg(0:nxmax,0:nymax),bzbg(0:nxmax,0:nymax))
     ALLOCATE(rho(0:nxmax,0:nymax))
     ALLOCATE(phi(0:nxmax,0:nymax),phib(0:nxmax,0:nymax),phibb(0:nxmax,0:nymax))
     ALLOCATE(jx(0:nxmax,0:nymax),jy(0:nxmax,0:nymax),jz(0:nxmax,0:nymax))
@@ -91,7 +91,7 @@ CONTAINS
     ALLOCATE(Ax(0:nxmax,0:nymax),Ay(0:nxmax,0:nymax),Az(0:nxmax,0:nymax))
     ALLOCATE(Axb(0:nxmax,0:nymax),Ayb(0:nxmax,0:nymax),Azb(0:nxmax,0:nymax))
     ALLOCATE(Axbb(0:nxmax,0:nymax),Aybb(0:nxmax,0:nymax),Azbb(0:nxmax,0:nymax))
-    ALLOCATE(bb(-1:nxmax,-1:nymax),AA(0:nxmax,0:nymax))
+    ALLOCATE(bb(0:nxmax,0:nymax),AA(0:nxmax,0:nymax))
 
     nxmax_save=nxmax
     nymax_save=nymax

@@ -39,8 +39,8 @@ CONTAINS
        time = time + dt
        ntcount = ntcount + 1
        !$omp parallel do
-       DO nx = -1, nxmax
-          DO ny = -1, nymax
+       DO nx = 0, nxmax
+          DO ny = 0, nymax
             Exbb(nx,ny) = Exb(nx,ny)
             Eybb(nx,ny) = Eyb(nx,ny)
             Ezbb(nx,ny) = Ezb(nx,ny)
@@ -409,7 +409,7 @@ CONTAINS
     IMPLICIT NONE
     REAL(8), DIMENSION(npmax) :: x, y, z, xb, yb, zb
     REAL(8), DIMENSION(npmax) :: vx, vy, vz, vpara, vperp
-    REAL(8), DIMENSION(-1:nxmax,-1:nymax) :: ex, ey, ez, bx, by, bz
+    REAL(8), DIMENSION(0:nxmax,0:nymax) :: ex, ey, ez, bx, by, bz
     REAL(8) :: ctom, dx, dy, dx1, dy1, dt, exx, eyy, ezz, bxx,&
          byy, bzz, vxm, vym, vzm, vxzero, vyzero, vzzero, vxp, vyp,&
          vzp, sx2, sy2, sx2p, sx2m, sy2m, sy2p
@@ -419,9 +419,7 @@ CONTAINS
     !!$omp parallel do Private(nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2m,sx2,sx2p,sy2m,sy2,sy2p,exx,eyy,ezz,bxx,byy,bzz,vxm,vym,vzm,vxzero,vyzero,vzzero,gamma,btot,vtot,bb2)
 
     DO np = 1, npmax
-
-       ! calculate the electric field at the particle position
-
+      ! calculate the electric field at the particle position
        nxp = x(np)
        nyp = y(np)
        dx = x(np) - DBLE(nxp)
@@ -734,31 +732,40 @@ CONTAINS
   !***********************************************************************
     IMPLICIT NONE
     REAL(8), DIMENSION(npmax) :: x, y, z, vx, vy, vz
-    REAL(8) :: x1, x2, y1, y2, z1, z2, alx, aly, alz
+    REAL(8) :: x1, x2, y1, y2, z1, z2, alx, aly, alz, x3, y3, z3, x4, y4, z4,&
+    alx1, aly1, alz1
     INTEGER :: npmax, np
-
+    ! colision wall in nx = 1,nxmax-1, ny = 1, nymax
+    x3 = x1 + 1.d0
+    y3 = y1 + 1.d0
+    z3 = z1 + 1.d0
+    x4 = x2 - 1.d0
+    y4 = y2 - 1.d0
+    z4 = z2 - 1.d0
+    alx1 = alx - 1.d0
+    aly1 = aly - 1.d0
     DO np = 1, npmax
-       IF( x(np) .LT. x1 ) THEN
-          x(np) = -x(np)
+       IF( x(np) .LT. x3  ) THEN
+          x(np) = -x(np) + 2.d0
           vx(np) = -vx(np)
-       ELSEIF( x(np) .GT. x2 ) THEN
-          x(np) = alx - (x(np) - alx)
+       ELSEIF( x(np) .GT. x4 ) THEN
+          x(np) = alx1 - (x(np) - alx1)
           vx(np) = -vx(np)
        ENDIF
-       IF( y(np) .LT. y1 ) THEN
-          y(np) = -y(np)
+       IF( y(np) .LT. y3 ) THEN
+          y(np) = -y(np) + 2.d0
           vy(np) = -vy(np)
-       ELSEIF( y(np) .GT. y2 ) THEN
-          y(np) = aly - (y(np) - aly)
+       ELSEIF( y(np) .GT. y4 ) THEN
+          y(np) = aly1 - (y(np) - aly1)
           vy(np) = -vy(np)
        ENDIF
 
-       IF( z(np) .LT. z1 ) THEN
-          DO WHILE(z(np) .LT. z1)
+       IF( z(np) .LT. z3 ) THEN
+          DO WHILE(z(np) .LT. z3)
             z(np) = z(np) + alz
           END DO
-       ELSEIF( z(np) .GT. z2 ) THEN
-          DO WHILE(z(np) .GT. z2)
+       ELSEIF( z(np) .GT. z4 ) THEN
+          DO WHILE(z(np) .GT. z4)
              z(np) = z(np) - alz
           END DO
        ENDIF
