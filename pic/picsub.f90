@@ -391,7 +391,7 @@ CONTAINS
             Ex(0,ny)=Exb(0,ny)-dt*jx(0,ny)&
                     +dt*vcfact**2*(Bzb(0,ny)-Bzb(0,nym))
             Ey(0,ny) = 2.d0*Ey(1,ny)-Ey(2,ny)
-            !Ey(nxmax,ny) = 2.d0*Ey(nxmax-1,ny)-Ey(nxmax-2,ny)
+            Ey(nxmax,ny) = 2.d0*Ey(nxmax-1,ny)-Ey(nxmax-2,ny)
 
 
           Ez(0,ny)=-Ezbb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
@@ -436,6 +436,7 @@ CONTAINS
            Ex(nx,0) = 2.d0*Ex(nx,1)-Ex(nx,2)
            Ey(nx,0) = Eyb(nx,0)-dt*jy(nx,0)&
                      +dt*vcfact**2*(Bzb(nxm,0)-Bzb(nx,0))
+           Ex(nx,nymax) = 2.d0*Ex(nx,nymax-1)-Ex(nx,nymax-2)
 
             Ez(nx,0)=-Ezbb(nx,1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
                     *(Ez(nx,1)+Ezbb(nx,0))&
@@ -466,7 +467,7 @@ CONTAINS
       ENDIF
       !Ex(nxmax,nymax) = Ex(nxmax-1,nymax-1)
       !Ey(nxmax,nymax) = Ey(nxmax-1,nymax-1)
-           IF(model_boundary .eq. 3) THEN
+           IF(model_boundary .eq. 2) THEN
             dl=(vcfact*dt-sqrt(2.d0))/(vcfact*dt+sqrt(2.d0))
             dm=2.d0*sqrt(2.d0)/(vcfact*dt+sqrt(2.d0))
             dn=4.d0*vcfact**2*dt**2/(vcfact*dt*sqrt(2.d0)+2.d0)
@@ -511,6 +512,10 @@ ENDIF
        END IF
      ENDIF
      IF(model_boundary .ne. 0) THEN
+      !  Ex(0,nymax) = Exb(0,nymax)-dt*jx(0,nymax)&
+      !              +dt*vcfact**2*(Bzb(0,nymax)-Bzb(0,nymax-1))
+      !  Ey(nxmax,0) = Eyb(nxmax,0)-dt*jy(nxmax,0)&
+      !              +dt*vcfact**2*(Bzb(nxmax-1,0)-Bzb(nxmax,0))
        Ex(nxmax,:) = 0.d0
        Ey(:,nymax) = 0.d0
      ENDIF
@@ -609,7 +614,7 @@ ENDIF
               !Bz(-1,ny)=Bz(0,ny)!dt*(-Ey(1,ny)+Ey(0,ny)+Ex(0,nyp)-Ex(0,ny))+Bzb(0,ny)
           ELSE IF(model_boundary .eq. 2) then !Mur's abosorbing boundary condition
             Bx(nxmax,ny) = dt*(-Ez(nxmax,nyp)+Ez(nxmax,ny))+Bxb(nxmax,ny)
-            By(nxmax,ny) = 2.d0*By(nxmax-1,ny)-By(nxmax-2,ny)
+            !By(nxmax,ny) = 2.d0*By(nxmax-1,ny)-By(nxmax-2,ny)
 
               Bz(0,ny)=-Bzbb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
                       *(Bz(1,ny)+Bzbb(0,ny)) &
@@ -618,13 +623,13 @@ ENDIF
                       *(Bzb(0,ny+1)-2.d0*Bzb(0,ny)+Bzb(0,ny-1)+Bzb(1,ny+1)&
                       -2.d0*Bzb(1,ny)+Bzb(1,ny-1))
 
-              Bz(nxmax,ny)=-Bzbb(nxmax-1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-                          *(Bz(nxmax-1,ny)+Bzbb(nxmax,ny)) &
-                          +2.d0/(vcfact*dt+1.d0)*(Bzb(nxmax,ny)+Bzb(nxmax-1,ny))&
+              Bz(nxmax-1,ny)=-Bzbb(nxmax-2,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+                          *(Bz(nxmax-2,ny)+Bzbb(nxmax-1,ny)) &
+                          +2.d0/(vcfact*dt+1.d0)*(Bzb(nxmax-1,ny)+Bzb(nxmax-2,ny))&
                           +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-                          *(Bzb(nxmax,ny+1)-2.d0*Bzb(nxmax,ny)&
-                          +Bzb(nxmax,ny-1)+Bzb(nxmax-1,ny+1)&
-                          -2.d0*Bzb(nxmax-1,ny)+Bzb(nxmax-1,ny-1))
+                          *(Bzb(nxmax-1,ny+1)-2.d0*Bzb(nxmax-1,ny)&
+                          +Bzb(nxmax-1,ny-1)+Bzb(nxmax-2,ny+1)&
+                          -2.d0*Bzb(nxmax-2,ny)+Bzb(nxmax-2,ny-1))
 
            ENDIF
          ENDDO
@@ -639,7 +644,7 @@ ENDIF
                !Bz(nx,-1)=Bz(nx,0)
                !dt*(-Ey(nxp,-1)+Ey(nx,-1)+Ex(nx,0)-Ex(nx,-1))+Bzb(nx,-1)
            ELSE IF(model_boundary .eq. 2) then
-              Bx(nx,nymax) = 2.d0*Bx(nx,nymax-1)-Bx(nx,nymax-2)
+              !Bx(nx,nymax) = 2.d0*Bx(nx,nymax-1)-Bx(nx,nymax-2)
               By(nx,nymax) = dt*(Ez(nxp,nymax)-Ez(nx,nymax))+Byb(nx,nymax)
               Bz(nx,0)=-Bzbb(nx,1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
                        *(Bz(nx,1)+Bzbb(nx,0))&
@@ -648,31 +653,31 @@ ENDIF
                        *(Bzb(nx+1,0)-2.d0*Bzb(nx,0)+Bzb(nx-1,0)+Bzb(nx+1,1)&
                        -2.d0*Bzb(nx,1)+Bzb(nx-1,1))
 
-              Bz(nx,nymax)=-Bzbb(nx,nymax-1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-                          *(Bz(nx,nymax-1)+Bzbb(nx,nymax))&
-                          +2.d0/(vcfact*dt+1.d0)*(Bzb(nx,nymax)+Bzb(nx,nymax-1))&
+              Bz(nx,nymax-1)=-Bzbb(nx,nymax-2)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
+                          *(Bz(nx,nymax-2)+Bzbb(nx,nymax-1))&
+                          +2.d0/(vcfact*dt+1.d0)*(Bzb(nx,nymax-1)+Bzb(nx,nymax-2))&
                           +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-                          *(Bzb(nx+1,nymax)-2.d0*Bzb(nx,nymax)&
-                          +Bzb(nx-1,nymax)+Bzb(nx+1,nymax-1)&
-                          -2.d0*Bzb(nx,nymax-1)+Bzb(nx-1,nymax-1))
+                          *(Bzb(nx+1,nymax-1)-2.d0*Bzb(nx,nymax-1)&
+                          +Bzb(nx-1,nymax-1)+Bzb(nx+1,nymax-2)&
+                          -2.d0*Bzb(nx,nymax-2)+Bzb(nx-1,nymax-2))
 
             ENDIF
         ENDDO
-        IF(model_boundary .eq. 3) THEN
+        IF(model_boundary .eq. 2) THEN
           dl=(vcfact*dt-sqrt(2.d0))/(vcfact*dt+sqrt(2.d0))
           dm=2.d0*sqrt(2.d0)/(vcfact*dt+sqrt(2.d0))
           dn=4.d0*vcfact**2*dt**2/(vcfact*dt*sqrt(2.d0)+2.d0)
           Bz(0,0)=-Bzbb(1,1)+dl*(Bz(1,1)+Bzbb(0,0))+dm*(Bzb(1,1)+Bzb(0,0))&
                 +dn*(Bzb(0,1)-Bzb(1,1)-Bzb(0,0)+Bzb(1,0))
-          Bz(nxmax,0)=-Bzbb(nxmax-1,1)+dl*(Bz(nxmax-1,1)+Bzbb(nxmax,0))+dm*(Bzb(nxmax-1,1)+Bzb(nxmax,0))&
-                       +dn*(Bzb(nxmax,1)-Bzb(nxmax-1,1)-Bzb(nxmax,0)+Bzb(nxmax-1,0))
-          Bz(0,nymax)=-Bzbb(1,nymax-1)+dl*(Bz(1,nymax-1)+Bzbb(0,nymax))+dm*(Bzb(1,nymax-1)+Bzb(0,nymax))&
-                      +dn*(Bzb(0,nymax-1)-Bzb(1,nymax-1)-Bzb(0,nymax)+Bzb(1,nymax))
-         Bz(nxmax,nymax)=-Bzbb(nxmax-1,nymax-1)+dl*(Bz(nxmax-1,nymax-1)&
-                        +Bzbb(nxmax,nymax))+dm*(Bzb(nxmax-1,nymax-1)&
-                        +Bzb(nxmax,nymax))&
-                        +dn*(Bzb(nxmax,nymax-1)-Bzb(nxmax-1,nymax-1)&
-                        -Bzb(nxmax,nymax)+Bzb(nxmax-1,nymax))
+          Bz(nxmax-1,0)=-Bzbb(nxmax-2,1)+dl*(Bz(nxmax-2,1)+Bzbb(nxmax-1,0))+dm*(Bzb(nxmax-2,1)+Bzb(nxmax-1,0))&
+                       +dn*(Bzb(nxmax-1,1)-Bzb(nxmax-2,1)-Bzb(nxmax-1,0)+Bzb(nxmax-2,0))
+          Bz(0,nymax-1)=-Bzbb(1,nymax-2)+dl*(Bz(1,nymax-2)+Bzbb(0,nymax-1))+dm*(Bzb(1,nymax-2)+Bzb(0,nymax-1))&
+                      +dn*(Bzb(0,nymax-2)-Bzb(1,nymax-2)-Bzb(0,nymax-1)+Bzb(1,nymax-1))
+         Bz(nxmax-1,nymax-1)=-Bzbb(nxmax-2,nymax-2)+dl*(Bz(nxmax-2,nymax-2)&
+                        +Bzbb(nxmax-1,nymax-1))+dm*(Bzb(nxmax-2,nymax-2)&
+                        +Bzb(nxmax-1,nymax-1))&
+                        +dn*(Bzb(nxmax-1,nymax-2)-Bzb(nxmax-2,nymax-2)&
+                        -Bzb(nxmax-1,nymax-1)+Bzb(nxmax-2,nymax-1))
         ENDIF
         IF(model_boundary .eq. 1) THEN
           Bx(0,:) = 0.d0
@@ -680,12 +685,14 @@ ENDIF
           !Bx(:,nymax) = 0.d0
           By(:,0) = 0.d0
           By(:,nymax) = 0.d0
-        !IF(model_boundary .eq. 2) THEN
-        !  Bx(:,0)=0.d0
-        !  By(0,:)=0.d0
-        !  Bz(0,:)=0.d0
-        !  Bz(:,0)=0.d0
-        !ENDIF
+      ENDIF
+      IF(model_boundary .ne. 0) THEN
+        Bx(nxmax,0) = dt*(-Ez(nxmax,1)+Ez(nxmax,0))+Bxb(nxmax,0)
+        Bx(:,nymax) = 0.d0
+        By(0,nymax) = dt*(Ez(1,nymax)-Ez(0,nymax))+Byb(0,nymax)
+        By(nxmax,:) = 0.d0
+        Bz(nxmax,:) = 0.d0
+        Bz(:,nymax) = 0.d0
       ENDIF
     IF(model_boundary .ne. 0) THEN
       Bx(:,nymax) = 0.d0
@@ -731,7 +738,6 @@ ENDIF
     bb(0:nxmax,0:nymax) = SQRT(Bx(0:nxmax,0:nymax)**2 &
          +By(0:nxmax,0:nymax)**2 &
          +Bz(0:nxmax,0:nymax)**2)
-
 
   END SUBROUTINE bfield
 
@@ -804,7 +810,7 @@ ENDIF
     !$omp end parallel do
     !$omp parallel do reduction(+:apote,apotm)
     DO nx = 0, nxmax,nxmax
-       DO ny = 0, nymax-1
+       DO ny = 1, nymax-1
           apote = apote + 0.5D0*(Ex(nx,ny)**2+Ey(nx,ny)**2+Ez(nx,ny)**2)
           apotm = apotm + 0.5D0*((Bx(nx,ny)-Bxbg(nx,ny))**2 &
                + (By(nx,ny)-Bybg(nx,ny))**2 &
@@ -814,7 +820,7 @@ ENDIF
     !$omp end parallel do
     !$omp parallel do reduction(+:apote,apotm)
     DO ny = 0, nymax,nymax
-       DO nx = 0, nxmax-1
+       DO nx = 1, nxmax-1
           apote = apote + 0.5D0*(Ex(nx,ny)**2+Ey(nx,ny)**2+Ez(nx,ny)**2)
           apotm = apotm + 0.5D0*((Bx(nx,ny)-Bxbg(nx,ny))**2 &
                + (By(nx,ny)-Bybg(nx,ny))**2 &
