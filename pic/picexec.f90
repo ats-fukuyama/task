@@ -411,8 +411,8 @@ CONTAINS
     REAL(8), DIMENSION(npmax) :: vx, vy, vz, vpara, vperp
     REAL(8), DIMENSION(0:nxmax,0:nymax) :: ex, ey, ez, bx, by, bz
     REAL(8) :: ctom, dx, dy, dx1, dy1, dt, exx, eyy, ezz, bxx,&
-         byy, bzz, vxm, vym, vzm, vxzero, vyzero, vzzero, vxp, vyp,&
-         vzp, sx2, sy2, sx2p, sx2m, sy2m, sy2p
+               byy, bzz, vxm, vym, vzm, vxzero, vyzero, vzzero, vxp, vyp,&
+               vzp, sx2, sy2, sx2p, sx2m, sy2m, sy2p
     REAL(8) :: btot, vtot, bb2 ,vcfact, gamma
     INTEGER :: npmax, nxmax, nymax, model_boundary
     INTEGER :: np, nxp, nyp, nxpp, nxpm, nypp, nypm, nxppp, nyppp
@@ -970,7 +970,7 @@ CONTAINS
     INTEGER:: nxmax,nymax,model_boundary
     INTEGER:: nx,ny
 
-    !!..... set charge densities at the boundary
+    !..... set charge densities at the boundary
 
     IF(model_boundary.EQ.0) THEN  ! periodic
        DO ny = 0, nymax
@@ -1708,7 +1708,7 @@ CONTAINS
   !***********************************************************************
   SUBROUTINE profile(npmax,nxmax,nymax,x,y,vx,vy,vz,vpara,vperp,mass, &
        profiles,model_boundary)
-    !***********************************************************************
+  !***********************************************************************
     IMPLICIT NONE
     INTEGER:: npmax,nxmax,nymax,model_boundary
     REAL(8):: mass

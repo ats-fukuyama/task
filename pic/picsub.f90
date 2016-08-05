@@ -467,7 +467,7 @@ CONTAINS
       ENDIF
       !Ex(nxmax,nymax) = Ex(nxmax-1,nymax-1)
       !Ey(nxmax,nymax) = Ey(nxmax-1,nymax-1)
-           IF(model_boundary .eq. 2) THEN
+           IF(model_boundary .eq. 3) THEN
             dl=(vcfact*dt-sqrt(2.d0))/(vcfact*dt+sqrt(2.d0))
             dm=2.d0*sqrt(2.d0)/(vcfact*dt+sqrt(2.d0))
             dn=4.d0*vcfact**2*dt**2/(vcfact*dt*sqrt(2.d0)+2.d0)
@@ -663,7 +663,7 @@ ENDIF
 
             ENDIF
         ENDDO
-        IF(model_boundary .eq. 2) THEN
+        IF(model_boundary .eq. 3) THEN
           dl=(vcfact*dt-sqrt(2.d0))/(vcfact*dt+sqrt(2.d0))
           dm=2.d0*sqrt(2.d0)/(vcfact*dt+sqrt(2.d0))
           dn=4.d0*vcfact**2*dt**2/(vcfact*dt*sqrt(2.d0)+2.d0)
@@ -673,7 +673,7 @@ ENDIF
                        +dn*(Bzb(nxmax-1,1)-Bzb(nxmax-2,1)-Bzb(nxmax-1,0)+Bzb(nxmax-2,0))
           Bz(0,nymax-1)=-Bzbb(1,nymax-2)+dl*(Bz(1,nymax-2)+Bzbb(0,nymax-1))+dm*(Bzb(1,nymax-2)+Bzb(0,nymax-1))&
                       +dn*(Bzb(0,nymax-2)-Bzb(1,nymax-2)-Bzb(0,nymax-1)+Bzb(1,nymax-1))
-         Bz(nxmax-1,nymax-1)=-Bzbb(nxmax-2,nymax-2)+dl*(Bz(nxmax-2,nymax-2)&
+          Bz(nxmax-1,nymax-1)=-Bzbb(nxmax-2,nymax-2)+dl*(Bz(nxmax-2,nymax-2)&
                         +Bzbb(nxmax-1,nymax-1))+dm*(Bzb(nxmax-2,nymax-2)&
                         +Bzb(nxmax-1,nymax-1))&
                         +dn*(Bzb(nxmax-1,nymax-2)-Bzb(nxmax-2,nymax-2)&
@@ -686,7 +686,7 @@ ENDIF
           By(:,0) = 0.d0
           By(:,nymax) = 0.d0
       ENDIF
-      IF(model_boundary .ne. 0) THEN
+      IF(model_boundary .EQ. 2) THEN
         Bx(nxmax,0) = dt*(-Ez(nxmax,1)+Ez(nxmax,0))+Bxb(nxmax,0)
         Bx(:,nymax) = 0.d0
         By(0,nymax) = dt*(Ez(1,nymax)-Ez(0,nymax))+Byb(0,nymax)
@@ -806,7 +806,7 @@ ENDIF
     !$omp end parallel do
     !$omp parallel do reduction(+:apote,apotm)
     DO nx = 0, nxmax,nxmax
-       DO ny = 0, nymax-1
+       DO ny = 1, nymax-1
           apote = apote + 0.5D0*(Ex(nx,ny)**2+Ey(nx,ny)**2+Ez(nx,ny)**2)
           apotm = apotm + 0.5D0*((Bx(nx,ny)-Bxbg(nx,ny))**2 &
                + (By(nx,ny)-Bybg(nx,ny))**2 &
@@ -816,7 +816,7 @@ ENDIF
     !$omp end parallel do
     !$omp parallel do reduction(+:apote,apotm)
     DO ny = 0, nymax,nymax
-       DO nx = 0, nxmax-1
+       DO nx = 1, nxmax-1
           apote = apote + 0.5D0*(Ex(nx,ny)**2+Ey(nx,ny)**2+Ez(nx,ny)**2)
           apotm = apotm + 0.5D0*((Bx(nx,ny)-Bxbg(nx,ny))**2 &
                + (By(nx,ny)-Bybg(nx,ny))**2 &
