@@ -90,6 +90,7 @@ CONTAINS
                             !   1: near xmax uniform
                             !   2: near ymin uniform
                             !   3: near ymax uniform
+      vzone = 0 ! vacuum area out of boundary
       xmin_wg = 0.D0
       xmax_wg = 0.D0
       ymin_wg = 0.D0

@@ -57,7 +57,7 @@ CONTAINS
               dt,eps,vcfact,dlen, &
               omega,jxant,jyant,jzant,phxant,phyant,phzant,dlen,&
               xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg, ph_wg,rot_wg,eli_wg, &
-              model_push,model_boundary,model_antenna,model_wg, &
+              model_push,model_boundary,model_antenna,model_wg,vzone,&
               model_matrix0,model_matrix1,model_matrix2,tolerance_matrix
 
     READ(NID,PIC,IOSTAT=IST,ERR=9800,END=9900)
@@ -84,7 +84,7 @@ CONTAINS
     '         dt,eps,vcfact,dlen,', &
     '         omega,jxant,jyant,jzant,phxant,phyant,phzant', &
     '         xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg, ph_wg,rot_wg,eli_wg', &
-    '         model_push,model_boundary,model_antenna,model_wg', &
+    '         model_push,model_boundary,model_antenna,model_wg','vzone', &
     '         model_matrix0,model_matrix1,model_matrix2,tolerance_matrix'
     RETURN
 
@@ -115,7 +115,7 @@ CONTAINS
     USE piccomm_parm
     USE libmpi
     IMPLICIT NONE
-    integer,parameter:: nint=18
+    integer,parameter:: nint=19
     integer,parameter:: ndbl=33
     integer:: idata(nint)
     REAL(8):: ddata(ndbl)
@@ -136,9 +136,10 @@ CONTAINS
        idata(13)=model_boundary
        idata(14)=model_antenna
        idata(15)=model_wg
-       idata(16)=model_matrix0
-       idata(17)=model_matrix1
-       idata(18)=model_matrix2
+       idata(16)=vzone
+       idata(17)=model_matrix0
+       idata(18)=model_matrix1
+       idata(19)=model_matrix2
     END IF
     CALL mtx_broadcast_integer(idata,nint)
        npxmax=idata(1)
@@ -156,9 +157,10 @@ CONTAINS
        model_boundary=idata(13)
        model_antenna=idata(14)
        model_wg=idata(15)
-       model_matrix0=idata(16)
-       model_matrix1=idata(17)
-       model_matrix2=idata(18)
+       vzone=idata(16)
+       model_matrix0=idata(17)
+       model_matrix1=idata(18)
+       model_matrix2=idata(19)
 
     IF(nrank == 0) THEN
        ddata(1)=me
@@ -270,6 +272,7 @@ CONTAINS
     WRITE(6,621) 'model_boundary       =',model_boundary
     WRITE(6,621) 'model_antenna        =',model_antenna
     WRITE(6,621) 'model_wg             =',model_wg
+    WRITE(6,621) 'vzone             =',vzone
     WRITE(6,621) 'model_matrix0        =',model_matrix0
     WRITE(6,621) 'model_matrix1        =',model_matrix1
     WRITE(6,621) 'model_matrix2        =',model_matrix2

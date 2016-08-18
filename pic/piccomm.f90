@@ -8,7 +8,7 @@ MODULE piccomm_parm
 
   INTEGER:: npxmax,npymax,nxmax,nymax,ntmax,ntstep,ntgstep,ntpstep
   INTEGER:: npomax,npostep,ntostep
-  INTEGER:: model_push,model_boundary,model_antenna,model_wg
+  INTEGER:: model_push,model_boundary,model_antenna,model_wg,vzone
   INTEGER:: model_matrix0,model_matrix1,model_matrix2
   REAL(rkind):: dt,me,mi,chrge,chrgi,te,ti,densx,&
        bxmin,bxmax,bymin,bymax,bzmin,bzmax,vcfact,omega,eps,dlen
