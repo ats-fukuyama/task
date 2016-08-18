@@ -59,9 +59,9 @@ CONTAINS
        !$omp end parallel do
        !----- charge assignment
        rho(:,:)=0.0d0
-       CALL source(npmax,nxmax,nymax,xe,ye,rho,chrge,model_boundary)
-       CALL source(npmax,nxmax,nymax,xi,yi,rho,chrgi,model_boundary)
-       CALL boundary_rho(nxmax,nymax,rho,model_boundary)
+       !CALL source(npmax,nxmax,nymax,xe,ye,rho,chrge,model_boundary)
+       !CALL source(npmax,nxmax,nymax,xi,yi,rho,chrgi,model_boundary)
+       !CALL boundary_rho(nxmax,nymax,rho,model_boundary)
        !..... sum charge densities over cores
        CALL mtx_allreduce_real8(rho,nxymax,3,suma,locva)
        !$omp parallel do
@@ -176,9 +176,9 @@ CONTAINS
           CALL bound_periodic(npmax,xi,yi,zi,x1,x2,y1,y2,z1,z2,alx,aly,alz)
        ELSE
           CALL bound_reflective(npmax,xe,ye,ze,vxe,vye,vze, &
-               x1,x2,y1,y2,z1,z2,alx,aly,alz)
+               x1,x2,y1,y2,z1,z2,alx,aly,alz,vzone)
           CALL bound_reflective(npmax,xi,yi,zi,vxi,vyi,vzi, &
-               x1,x2,y1,y2,z1,z2,alx,aly,alz)
+               x1,x2,y1,y2,z1,z2,alx,aly,alz,vzone)
        ENDIF
 
        IF(npomax.GT.0) THEN
@@ -728,32 +728,33 @@ CONTAINS
 
   !***********************************************************************
   SUBROUTINE bound_reflective(npmax,x,y,z,vx,vy,vz,&
-       x1,x2,y1,y2,z1,z2,alx,aly,alz)
+       x1,x2,y1,y2,z1,z2,alx,aly,alz,vzone)
   !***********************************************************************
     IMPLICIT NONE
     REAL(8), DIMENSION(npmax) :: x, y, z, vx, vy, vz
     REAL(8) :: x1, x2, y1, y2, z1, z2, alx, aly, alz, x3, y3, z3, x4, y4, z4,&
-    alx1, aly1, alz1
-    INTEGER :: npmax, np
+    alx1, aly1, alz1, vdzone
+    INTEGER :: npmax, np, vzone
     ! colision wall in nx = 1,nxmax-1, ny = 1, nymax
-    x3 = x1 + 1.d0
-    y3 = y1 + 1.d0
-    z3 = z1 + 1.d0
-    x4 = x2 - 1.d0
-    y4 = y2 - 1.d0
-    z4 = z2 - 1.d0
-    alx1 = alx - 1.d0
-    aly1 = aly - 1.d0
+    vdzone = dble(vzone)
+    x3 = x1 + vdzone
+    y3 = y1 + vdzone
+    z3 = z1 + vdzone
+    x4 = x2 - vdzone
+    y4 = y2 - vdzone
+    z4 = z2 - vdzone
+    alx1 = alx - vzone
+    aly1 = aly - vzone
     DO np = 1, npmax
        IF( x(np) .LT. x3  ) THEN
-          x(np) = -x(np) + 2.d0
+          x(np) = -x(np) + 2.d0*vdzone
           vx(np) = -vx(np)
        ELSEIF( x(np) .GT. x4 ) THEN
           x(np) = alx1 - (x(np) - alx1)
           vx(np) = -vx(np)
        ENDIF
        IF( y(np) .LT. y3 ) THEN
-          y(np) = -y(np) + 2.d0
+          y(np) = -y(np) + 2.d0*vdzone
           vy(np) = -vy(np)
        ELSEIF( y(np) .GT. y4 ) THEN
           y(np) = aly1 - (y(np) - aly1)
@@ -1020,7 +1021,6 @@ CONTAINS
     ELSE
        factor=chrg*DBLE(nxmax)*DBLE(nymax)/DBLE(npmax)
     END IF
-
     !$omp parallel do Private (np,nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2p,sx2,sx2m,sy2p,sy2,sy2m) &
     !$omp Reduction(+:jx,jy,jz)
     DO np = 1, npmax

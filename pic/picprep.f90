@@ -92,12 +92,12 @@ CONTAINS
       !..... set initial positions and velocities of electrons
       call iniset(npmax,npxmax,npymax,nxmax,nymax,densx, &
                   xe,ye,ze,xeb,yeb,zeb,vxe,vye,vze,vte,dt,iran,&
-                  x1,x2,y1,y2,alx,aly,model_boundary)
+                  x1,x2,y1,y2,alx,aly,model_boundary,vzone)
 
       !..... set initial positions and velocities of ions
       call iniset(npmax,npxmax,npymax,nxmax,nymax,densx, &
                   xi,yi,zi,xib,yib,zib,vxi,vyi,vzi,vti,dt,iran,&
-                  x1,x2,y1,y2,alx,aly,model_boundary)
+                  x1,x2,y1,y2,alx,aly,model_boundary,vzone)
 
 
       !..... initialize scalar potential by poisson solver
@@ -164,34 +164,35 @@ CONTAINS
 !***********************************************************************
       subroutine iniset(npmax,npxmax,npymax,nxmax,nymax,densx,&
                         x,y,z,xb,yb,zb,vx,vy,vz,vt,dt,iran,&
-                        x1,x2,y1,y2,alx,aly,model_boundary)
+                        x1,x2,y1,y2,alx,aly,model_boundary,vzone)
 !***********************************************************************
       implicit none
       real(8), dimension(npmax) :: x, y, z, xb, yb, zb, vx, vy, vz
-      integer :: npmax, npxmax, npymax, nxmax, nymax, iran
+      integer :: npmax, npxmax, npymax, nxmax, nymax, iran, vzone
       real(8) :: vt, dt, factx, facty, rvx, rvy, rvz, densx, inter, position,&
-                 x1,x2,y1,y2,x3,x4,y3,y4,alx,aly,alx1,aly1
+                 x1,x2,y1,y2,x3,x4,y3,y4,alx,aly,alx1,aly1,vdzone
       integer :: npx, npy, np, model_boundary
 
       factx = dble(nxmax) / dble(npxmax)
       facty = dble(nymax) / dble(npymax)
       IF(model_boundary .ne. 0) THEN
-        factx = dble(nxmax-2) / dble(npxmax)
-        facty = dble(nymax-2) / dble(npymax)
-        x3 = x1 + 1.d0
-        y3 = y1 + 1.d0
-        x4 = x2 - 1.d0
-        y4 = y2 - 1.d0
-        alx1 = alx - 1.d0
-        aly1 = aly - 1.d0
+        vdzone = dble(vzone)
+        factx = dble(nxmax-2*vzone) / dble(npxmax)
+        facty = dble(nymax-2*vzone) / dble(npymax)
+        x3 = x1 + vdzone
+        y3 = y1 + vdzone
+        x4 = x2 - vdzone
+        y4 = y2 - vdzone
+        alx1 = alx - vdzone
+        aly1 = aly - vdzone
       ENDIF
       np = 0
       IF(densx .lt. 0.d0) then ! subroutine for uniform density
       do npy = 1, npymax
       do npx = 1, npxmax
         np = np + 1
-         x(np) = (dble(npx) - 0.5d0 ) * factx + 1.d0
-         y(np) = (dble(npy) - 0.5d0 ) * facty + 1.d0
+         x(np) = (dble(npx) - 0.5d0 ) * factx + vdzone
+         y(np) = (dble(npy) - 0.5d0 ) * facty + vdzone
          call gauss(rvx,rvy,rvz,iran)
          vx(np) = rvx * vt
          vy(np) = rvy * vt
@@ -243,12 +244,12 @@ CONTAINS
            ENDIF
          ELSE
            IF( xb(np) .LT. x3  ) THEN
-               xb(np) = -xb(np) + 2.d0
+               xb(np) = -xb(np) + 3.d0
            ELSEIF( xb(np) .GT. x4 ) THEN
                xb(np) = alx1 - (xb(np) - alx1)
            ENDIF
            IF( yb(np) .LT. y3 ) THEN
-               yb(np) = -yb(np) + 2.d0
+               yb(np) = -yb(np) + 3.d0
            ELSEIF( yb(np) .GT. y4 ) THEN
                yb(np) = aly1 - (yb(np) - aly1)
            ENDIF

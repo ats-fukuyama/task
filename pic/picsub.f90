@@ -257,41 +257,6 @@ CONTAINS
   END SUBROUTINE poisson_m
 
   !***********************************************************************
-  SUBROUTINE absorb_phi(nxmax,nymax,phi,phib,phibb,dt,vcfact)
-  !***********************************************************************
-  IMPLICIT NONE
-  REAL(8),DIMENSION(0:nxmax,0:nymax) :: phi,phib,phibb
-  REAL(8) :: dt,vcfact
-  INTEGER :: nxmax,nymax,nx,ny
-  !aborobing boundary condition for phi
-
-  DO nx = 1, nxmax-1
-    phi(nx,0)=-phibb(nx,1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-            *(phi(nx,1)+phibb(nx,0)) &
-            +2.d0/(vcfact*dt+1.d0)*(phib(nx,0)+phib(nx,1))&
-            +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-            *(phib(nx+1,0)-2.d0*phib(nx,0)+phib(nx-1,0)+phib(nx+1,1)&
-             -2.d0*phib(nx,1)+phib(nx-1,1))
-    phi(nx,nymax)=-phibb(nx,nymax-1)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-            *(phi(nx,nymax-1)+phibb(nx,nymax)) &
-            +2.d0/(vcfact*dt+1.d0)*(phib(nx,nymax)+phib(nx,nymax-1))&
-            +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-            *(phib(nx+1,nymax)-2.d0*phib(nx,nymax)+phib(nx-1,nymax)&
-            +phib(nx+1,nymax-1)-2.d0*phib(nx,nymax-1)+phib(nx-1,nymax-1))
-  END DO
-  DO ny = 1, nymax-1
-    phi(nxmax,ny)=-phibb(nxmax-1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
-            *(phi(nxmax-1,ny)+phibb(nxmax,ny)) &
-            +2.d0/(vcfact*dt+1.d0)*(phib(nxmax,ny)+phib(nxmax-1,ny))&
-            +(vcfact*dt)**2/(2.d0*(vcfact*dt+1.d0))&
-            *(phib(nxmax,ny+1)-2.d0*phib(nxmax,ny)&
-            +phib(nxmax,ny-1)+phib(nxmax-1,ny+1)&
-            -2.d0*phib(nxmax-1,ny)+phib(nxmax-1,ny-1))
-  ENDDO
-
-  END SUBROUTINE absorb_phi
-
-  !***********************************************************************
   SUBROUTINE efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb,&
        Ex,Ey,Ez,Exb,Eyb,Ezb,Exbb,Eybb,Ezbb,Bxb,Byb,Bzb,Esx,Esy,Esz,Emx,Emy,Emz,&
        jx,jy,jz,vcfact,model_push,model_boundary)
@@ -387,12 +352,11 @@ CONTAINS
           Ex(nxmax,ny) = Esx(nxmax,ny) + Emx(nxmax,ny)
           Ey(nxmax,ny) = Esy(nxmax,ny) + Emy(nxmax,ny)
           Ez(nxmax,ny) = Esz(nxmax,ny) + Emz(nxmax,ny)
-        ELSE IF(model_boundary .eq. 2) THEN
+        ELSE IF(model_boundary .eq. 2) THEN !absorbing
             Ex(0,ny)=Exb(0,ny)-dt*jx(0,ny)&
                     +dt*vcfact**2*(Bzb(0,ny)-Bzb(0,nym))
             Ey(0,ny) = 2.d0*Ey(1,ny)-Ey(2,ny)
             Ey(nxmax,ny) = 2.d0*Ey(nxmax-1,ny)-Ey(nxmax-2,ny)
-
 
           Ez(0,ny)=-Ezbb(1,ny)+(vcfact*dt-1.d0)/(vcfact*dt+1.d0)&
                   *(Ez(1,ny)+Ezbb(0,ny)) &
@@ -465,9 +429,7 @@ CONTAINS
           Ez(0,:) = 0.d0
           Ez(nxmax,:) = 0.d0
       ENDIF
-      !Ex(nxmax,nymax) = Ex(nxmax-1,nymax-1)
-      !Ey(nxmax,nymax) = Ey(nxmax-1,nymax-1)
-           IF(model_boundary .eq. 3) THEN
+           IF(model_boundary .eq. 2) THEN
             dl=(vcfact*dt-sqrt(2.d0))/(vcfact*dt+sqrt(2.d0))
             dm=2.d0*sqrt(2.d0)/(vcfact*dt+sqrt(2.d0))
             dn=4.d0*vcfact**2*dt**2/(vcfact*dt*sqrt(2.d0)+2.d0)
@@ -511,13 +473,15 @@ ENDIF
           END IF
        END IF
      ENDIF
-     IF(model_boundary .ne. 0) THEN
+     IF(model_boundary .eq. 2) THEN
       !  Ex(0,nymax) = Exb(0,nymax)-dt*jx(0,nymax)&
       !              +dt*vcfact**2*(Bzb(0,nymax)-Bzb(0,nymax-1))
       !  Ey(nxmax,0) = Eyb(nxmax,0)-dt*jy(nxmax,0)&
       !              +dt*vcfact**2*(Bzb(nxmax-1,0)-Bzb(nxmax,0))
        Ex(nxmax,:) = 0.d0
        Ey(:,nymax) = 0.d0
+       Ex(0,0) = 2.d0*Ex(0,2) - Ex(0,1)
+       Ey(0,0) = 2.d0*Ey(2,0) - Ey(1,0)
      ENDIF
   END SUBROUTINE efield
 
@@ -630,6 +594,7 @@ ENDIF
                           *(Bzb(nxmax-1,ny+1)-2.d0*Bzb(nxmax-1,ny)&
                           +Bzb(nxmax-1,ny-1)+Bzb(nxmax-2,ny+1)&
                           -2.d0*Bzb(nxmax-2,ny)+Bzb(nxmax-2,ny-1))
+              !Bz(nxmax,ny)=2.d0*Bz(nxmax-1,ny)-Bz(nxmax-2,ny)
 
            ENDIF
          ENDDO
@@ -660,10 +625,11 @@ ENDIF
                           *(Bzb(nx+1,nymax-1)-2.d0*Bzb(nx,nymax-1)&
                           +Bzb(nx-1,nymax-1)+Bzb(nx+1,nymax-2)&
                           -2.d0*Bzb(nx,nymax-2)+Bzb(nx-1,nymax-2))
+              !Bz(nx,nymax)=2.d0*Bz(nx,nymax-1)-Bz(nx,nymax-2)
 
             ENDIF
         ENDDO
-        IF(model_boundary .eq. 3) THEN
+        IF(model_boundary .eq.2) THEN
           dl=(vcfact*dt-sqrt(2.d0))/(vcfact*dt+sqrt(2.d0))
           dm=2.d0*sqrt(2.d0)/(vcfact*dt+sqrt(2.d0))
           dn=4.d0*vcfact**2*dt**2/(vcfact*dt*sqrt(2.d0)+2.d0)
@@ -693,6 +659,10 @@ ENDIF
         By(nxmax,:) = 0.d0
         Bz(nxmax,:) = 0.d0
         Bz(:,nymax) = 0.d0
+        !Bz(0,0) = 0.d0
+        !Bz(0,nymax-1) = 0.d0
+        !Bz(nxmax-1,0) = 0.d0
+        !Bz(nxmax-1,nymax-1) = 0.d0
       ENDIF
         DO nx = 0,nxmax
           DO ny = 0,nymax
