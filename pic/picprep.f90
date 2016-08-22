@@ -203,16 +203,16 @@ CONTAINS
 
       end do
       end do
-   else ! subroutine for density gradient
-      inter = dble(nxmax)/((dble(npxmax)+1.0d0)*(1.0d0-0.5d0*densx))
+   ELSE ! subroutine for density gradient
+      inter = dble(nxmax-2*vdzone)/((dble(npxmax)+1.0d0)*(1.0d0-0.5d0*densx))
       do npy = 1, npymax
-        position = 0.d0
+        position = vdzone
       do npx = 1, npxmax
          np = np + 1
          position = position &
                   + inter * (1.0d0 - densx * (dble(npx) - 1.0d0)/dble(npxmax))
          x(np) = position
-         y(np) = (dble(npy) - 0.5d0 ) * facty
+         y(np) = (dble(npy) - 0.5d0 ) * facty + vdzone
 
          call gauss(rvx,rvy,rvz,iran)
          vx(np) = rvx * vt
@@ -222,7 +222,7 @@ CONTAINS
          yb(np) = y(np) - vy(np) * dt
          zb(np) = z(np) - vz(np) * dt
          ! particle reflect condition on boundary
-         IF(model_boundary .eq. 0) THEN
+         IF(model_boundary .ne. 0) THEN
            IF( xb(np) .LT. x1 ) THEN
               DO WHILE(xb(np) .LT. x1)
                 xb(np) = xb(np) + alx
