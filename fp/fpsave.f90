@@ -136,7 +136,7 @@
                   RSUMNP_E(NP)=RSUM3
                   END DO
                ENDIF
-            ELSE
+            ELSE ! MODELA=1
                IF(MODELR.EQ.0) THEN
                   DO NP=NPSTART,NPEND
                      DO NTH=1,NTHMAX
@@ -345,16 +345,26 @@
 !            DO NP=2,NP_BULK(NR,NSA)
                   PV=SQRT(1.D0+THETA0(NSA)*PG(NP,NSBA)**2)
                   DO NTH=1,NTHMAX
-                     IF(FNSP(NTH,NP,NR,NSA).gt.0.D0.and.FNSP(NTH,NP-1,NR,NSA).gt.0.D0)THEN
-                        DFDP=DELP(NSA)/ &
-                             ( log(FNSP(NTH,NP,NR,NSA))-log(FNSP(NTH,NP-1,NR,NSA)) )
-                     ELSE
-                        WPL=WEIGHP(NTH  ,NP,NR,NSA)
-                        FFP=   ( (1.D0-WPL)*FNSP(NTH  ,NP  ,NR,NSBA)  &
-                             +WPL *FNSP(NTH  ,NP-1,NR,NSBA) )
-                        DFDP=DELP(NSA)*FFP/(                         &
-                             FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA) )
-                     END IF
+!                     IF(FNSP(NTH,NP,NR,NSA).ne.FNSP(NTH,NP-1,NR,NSA))THEN
+                        IF(FNSP(NTH,NP,NR,NSA).gt.0.D0.and.FNSP(NTH,NP-1,NR,NSA).gt.0.D0)THEN
+                           DFDP=DELP(NSA)/ &
+                                ( log(FNSP(NTH,NP,NR,NSA))-log(FNSP(NTH,NP-1,NR,NSA)) )
+                        ELSE
+                           WPL=WEIGHP(NTH  ,NP,NR,NSA)
+                           FFP=   ( (1.D0-WPL)*FNSP(NTH  ,NP  ,NR,NSBA)  &
+                                +WPL *FNSP(NTH  ,NP-1,NR,NSBA) )
+                           DFDP=DELP(NSA)*FFP/(                         &
+                                FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA) )
+                        END IF
+                        IF(isNaN(DFDP) .eqv. .true.)THEN
+                           WRITE(*,'(A,3I4,3E14.6)') "DFDP is NaN in fpsave. ", NP, NTH, NSA, &
+                                FNSP(NTH,NP,NR,NSA), FNSP(NTH,NP-1,NR,NSA), FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA)
+                           DFDP=0.D0
+                        END IF
+!                     ELSE
+!                           DFDP=0.D0
+!                     END IF
+
                      T_BULK(NTH,NP)=-PG(NP,NSA)*PTFP0(NSA)*DFDP &
                           /AEE/1.D3*VTFP0(NSA)/PV 
                      RSUM_T = RSUM_T + T_BULK(NTH,NP)*VOLP(NTH,NP,NSBA)
@@ -832,15 +842,16 @@
       character:: fmt0*50
 !
 !      WRITE(fmt0,'(a15)') '(2I3,1P20E13.4)'
-      WRITE(fmt0,'(a44)') '(2I3,1P8E12.4,1P5E12.3e3,1PE12.4,1P5E12.3e3)'
 !      WRITE(fmt0,'(a44)') '(2I3,1P8E16.8,1P5E12.3e3,1PE12.4,1P5E12.3e3)'
 
       WRITE(6,*)"-----Radial profile data"
       WRITE(6,'(A,F12.3)') " TIME=", TIMEFP*1000
 
       IF(MODEL_DISRUPT.eq.0)THEN
+         WRITE(fmt0,'(a44)') '(2I3,1P8E12.4,1P5E12.3e3,1PE12.4,1P5E12.3e3)'
          WRITE(6,106) 
       ELSE
+         WRITE(fmt0,'(a44)') '(2I3,1P8E12.4,1P5E12.3e3,1PE12.4,1P5E12.3e3)'
          WRITE(6,108) 
       END IF
 
@@ -883,7 +894,8 @@
 !                    RECT(NR,NSA,NTG2),    &
 !RSPFT(NR,NSA,NTG2),RPDRT(NR,NSA,NTG2), &
                     RPDR(NR,NSA), &
-                    RT_BULK(NR,NSA)!, &
+                    RT_BULK(NR,NSA), &
+                    RJS(NR,NSA)/E1(NR), conduct_sp(NR)
 !                    RATE_RUNAWAY(NR,NTG2), RPLS(NR,NSA)!, &
 !                    RATE_RUNAWAY2(NR,NSA,NTG2)
 !,RNDRT(NR,NSA,NTG2)
@@ -1175,22 +1187,18 @@
       CALL mtx_allgather_real8(temp_npnr3,NPMAX*NRMAX*(NSAEND-NSASTART+1),RP_BULK)
       CALL mtx_reset_communicator 
 
-!      DO NSA=NSASTART, NSAEND
-!         DO NR=NRSTART, NREND
-      IF(NRANK.eq.0)THEN
-         NSA=2
-         NR=1
-         WRITE(19,'(A,E14.6)') "# RT_BULK", TIMEFP
-         WRITE(19,*) " "
-         WRITE(19,*) " "
-         DO NP=NPSTART, NPEND
-            IF(RP_BULK(NP,NR,NSA).ne.0.D0)THEN
-               WRITE(19,'(I4,2E14.6)') NP, RP_BULK(NP,1,2), RP_BULK(NP,2,2)
-            END IF
-         END DO
-      END IF
+!      IF(NRANK.eq.0)THEN
+!         NSA=2
+!         NR=1
+!         WRITE(19,'(A,E14.6)') "# RT_BULK", TIMEFP
+!         WRITE(19,*) " "
+!         WRITE(19,*) " "
+!         DO NP=NPSTART, NPEND
+!            IF(RP_BULK(NP,NR,NSA).ne.0.D0)THEN
+!               WRITE(19,'(I4,2E14.6)') NP, RP_BULK(NP,1,2), RP_BULK(NP,2,2)
+!            END IF
 !         END DO
-!      END DO
+!      END IF
 
       END SUBROUTINE FPSAVECOMM
 !^------------------------------ 

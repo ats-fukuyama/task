@@ -1331,9 +1331,9 @@
          IF(NS.le.NSAMAX)THEN
             RNFDL=PLF(NS)%RN/RNFD0L
             RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
-         RNFDL=RN_IMPL(NR,NS)/RNFD0L
-!         RTFDL=RT_IMPL(NR,NS)
-         RTFDL=RT_BULK(NR,NS)
+            RNFDL=RN_IMPL(NR,NS)/RNFD0L
+!            RTFDL=RT_IMPL(NR,NS)
+            RTFDL=RT_BULK(NR,NS)
          ELSE
             RNFDL=PLF(NS)%RN/RNFD0L
             RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0

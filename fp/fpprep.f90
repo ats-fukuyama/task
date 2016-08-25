@@ -1303,6 +1303,14 @@
             EP(NR)=E1(NR) ! plus
             EM(NR)=0.D0 ! minus
          END DO
+         DO NR=NRSTART,NREND
+            allocate(conduct_temp(NRSTART:NREND))
+            CALL SPITZER_SIGMA(NR,SIGMA)
+            conduct_temp(NR)=sigma
+         END DO
+         CALL mtx_set_communicator(comm_nr)
+         call mtx_allgather_real8(conduct_temp,NREND-NRSTART+1,conduct_sp)
+         CALL mtx_reset_communicator
       ELSE
          DO NR=NRSTART,NREND
             allocate(conduct_temp(NRSTART:NREND))

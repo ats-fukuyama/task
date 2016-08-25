@@ -134,7 +134,7 @@
       real(rkind),dimension(:,:),POINTER :: & ! (NTHM,NRMP)
            ETAG,ETAM,RLAMDA,RLAMDC,ETAM_G,ETAG_G,RLAMDA_G,RlAMDC_G
       real(rkind),dimension(:),POINTER:: & !(NR)
-           RFSAD,RFSADG, RFSAD_G, RFSAD_GG, RATIO_NAVMAX, A_chi0
+           RFSAD,RFSADG, RFSAD_G, RFSAD_GG, RATIO_NAVMAX, A_chi0, Line_Element
 
       real(rkind),dimension(:),POINTER :: & ! (NTHM)
            SING,COSG,SINM,COSM
@@ -335,6 +335,7 @@
           allocate(RFSAD_G(NRSTART:NREND),RFSAD_GG(NRMAX+1))
           allocate(RATIO_NAVMAX(NRSTART:NREND))
           allocate(A_chi0(NRSTART:NREND))
+          allocate(Line_Element(NRMAX+1))
 
           allocate(RLAMDA_G(NTHMAX,NRSTART:NRENDWG),RLAMDC_G(NTHMAX+1,NRSTART:NREND))
           allocate(SING(NTHMAX+1),COSG(NTHMAX+1))
@@ -458,7 +459,6 @@
              allocate(RJ_bsm(NRSTART:NREND))
              allocate(previous_rate(nrstart:nrend),previous_rate_p(nrstart:nrend))
              allocate(previous_rate_G(nrmax),previous_rate_p_G(nrmax))
-             allocate(conduct_sp(NRMAX))
              allocate(SIGMA_SPP(NRSTART:NREND),SIGMA_SPM(NRSTART:NREND))
              allocate(RE_PITCH(NTHMAX))
              allocate(RT_quench(NRMAX),RT_quench_f(NRMAX))          
@@ -468,6 +468,7 @@
              allocate(POST_tau_ta(NRMAX,NSAMAX))
              allocate(E_drei0(NSAMAX),E_crit0(NSAMAX))
           END IF
+          allocate(conduct_sp(NRMAX))
 
           allocate(SPP (NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX))
           allocate(PPL (NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX))
@@ -612,6 +613,7 @@
           deallocate(RFSAD,RFSADG)
           deallocate(RFSAD_G,RFSAD_GG)
           deallocate(RATIO_NAVMAX, A_chi0)
+          deallocate(Line_Element)
           deallocate(RLAMDA_G,RLAMDC_G)
           deallocate(SING,COSG,SINM,COSM)
 

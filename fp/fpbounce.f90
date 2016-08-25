@@ -18,8 +18,8 @@
 
       USE libmtx 
       IMPLICIT NONE
-      INTEGER:: NR
-      INTEGER:: NTH
+      INTEGER:: NR, NTH
+      double precision:: FACT
 
 !     ON RM(NR)
       DO NR=NRSTART, NREND
@@ -35,9 +35,11 @@
 !         CALL SET_RLAMDA_TPB4(NR) ! Kileen with correction ELL
 
 !multiple A_chi0
-         A_chi0(NR) = RA**2*RM(NR)*( RR+RA*RM(NR) )*2.D0
+         A_chi0(NR) = 2.D0*PI*RA**2*RM(NR)*(RR+RA*RM(NR))/(QLM(NR)*RR)
+         FACT = RA**2*RM(NR)*( RR+RA*RM(NR) )*2.D0 ! *2.D0 from oint 
          DO NTH=1, NTHMAX
-            RLAMDA(NTH,NR)=RLAMDA(NTH,NR)*A_chi0(NR) ! *2.D0 from oint 
+!            RLAMDA(NTH,NR)=RLAMDA(NTH,NR)*A_chi0(NR) ! *2.D0 from oint 
+            RLAMDA(NTH,NR)=RLAMDA(NTH,NR)*FACT
          END DO
 !         IF(NSASTART.eq.1)THEN
             CALL SET_RLAMDA_TPB_FROM_DENS(NR) ! RLAMDA(ITL,NR) is set to satisfy init dens
@@ -64,6 +66,11 @@
          END IF
          CALL SET_RLAMDA_G_TPB_FROM_DENS(NR) ! RLAMDA(ITL,NR) is set to satisfy init dens
       END DO
+
+!     RLAMDA means lambda*A_chi0
+!     lambda can be obtained by RLAMDA/A_chi0
+!     Flux surface averaged dens. can be obtained by RLAMDA*RFSAD
+!     RFSAD means 2*pi/V'
 
       END SUBROUTINE SET_BOUNCE_PARAM
 
@@ -405,7 +412,9 @@
       RFSAD_GG(NR)=1.D0
 
       IF(NR.ne.NRMAX+1)THEN
-         RFSADG(NR)=(1.D0+EPSRM2(NR))/(2.D0*PI*RA**2*RM(NR)*(RR+RA*RM(NR)) )
+!         RFSADG(NR)=(1.D0+EPSRM2(NR))/(2.D0*PI*RA**2*RM(NR)*(RR+RA*RM(NR)) )
+         RFSADG(NR)=2.D0*PI/( 2.D0*PI*RR *2.D0*PI*RA**2*RM(NR) )
+         Line_Element(NR) = RR*QLM(NR)/(2.D0*PI)
       END IF
 
       IF(NR.eq.1)THEN

@@ -453,7 +453,6 @@
 
       END SUBROUTINE display_disrupt_initials
 ! ****************************************************
-!     only for 2 species plasma
       SUBROUTINE SPITZER_SIGMA(NR,Sigma)
 
       IMPLICIT NONE
@@ -461,7 +460,7 @@
       REAL(8),INTENT(OUT):: Sigma
       INTEGER:: NSA, NSB
       real(8):: fact, taue_col, RTE, RNE, RTI, RNI, Z_i
-      real(8):: neoc,  phi, f_T, C_, tau_rela, theta_l
+      real(8):: neoc,  phi, f_T, C_, tau_rela, theta_l, C_log
 
       NSA=1
       NSB=2
@@ -472,42 +471,54 @@
          z_i = ZEFF
       END IF
 
-      IF(NT_init.eq.0)THEN
-         RTE=RT_INIT(NR)
+      IF(MODEL_DISRUPT.eq.0)THEN
+         RTE=RTFP(NR,NSA)
          RNE=RNFP(NR,NSA)
+         C_log = LNLAM(NR,NSA,NSA)
       ELSE
-         RTE=RT_quench(NR)
-         IF(MODEL_IMPURITY.eq.0)THEN
-            RNE=RNS(NR,1)
+         IF(NT_init.eq.0)THEN
+            RTE=RT_INIT(NR)
+            RNE=RNFP(NR,NSA)
          ELSE
-            RNE=RN_MGI(NR,1)
+            RTE=RT_quench(NR)
+            IF(MODEL_IMPURITY.eq.0)THEN
+               RNE=RNS(NR,1)
+            ELSE
+               RNE=RN_MGI(NR,1)
+            END IF
          END IF
+         C_log = POST_LNLAM(NR,NSA,NSA)
       END IF
 
 
 !      FACT=AEFP(NSA)**2*AEFD(NSB)**2*POST_LNLAM(NR,NSB,NSA)*RNE*1.D20
-      FACT=Z_i*AEFP(NSA)**4*POST_LNLAM(NR,NSA,NSA)*RNE*1.D20
+      FACT=Z_i*AEFP(NSA)**4*C_log*RNE*1.D20
       taue_col=3.D0*SQRT((2.D0*PI)**3)/FACT &
            *SQRT(AMFP(1)*(AEE*RTE*1.D3)**3)*(EPS0**2)
       sigma=1.96D0*RNE*1.D20*AEFP(NSA)**2*taue_col/AMFP(NSA) ! Wesson P. 174, 737
 !      sigma= ! P. 71
 
+
+!!     NEO-CLASSICAL CORRECTION
 !      neoc=(1.D0-SQRT(invasp))**2 ! P. 174     
-      theta_l=THETA0(1)*RT_quench(NR)/RTFP0(1)
-      IF(MODEL_IMPURITY.eq.0)THEN
-!         tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
-!              ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP0(NSA)*1.D20 )
-        tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
-              ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP(NR,NSA)*1.D20 )
-      ELSE
-!         tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
-!              ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RN0_MGI(NSA)*1.D20 )
+      IF(MODEL_DISRUPT.eq.0)THEN
+         theta_l=THETA0(1)*RTFP(NR,1)/RTFP0(1)
          tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
-              ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RN_MGI(NR,NSA)*1.D20 )
+              ( AEFP(1)**4*LNLAM(NR,1,1)*RNFP(NR,NSA)*1.D20 )
+      ELSE
+         theta_l=THETA0(1)*RT_quench(NR)/RTFP0(1)
+         IF(MODEL_IMPURITY.eq.0)THEN
+            tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
+                 ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP(NR,NSA)*1.D20 )
+         ELSE
+            tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
+                 ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RN_MGI(NR,NSA)*1.D20 )
+         END IF
       END IF
+
       C_ = 0.56D0/Z_i*(3.0D0-Z_i)/(3.D0+Z_i)
-      f_t=1.D0 -(1.D0-EPSRM(NR))**2/ ( SQRT(1.D0-EPSRM(NR)**2)*(1.D0+1.46D0*SQRT(EPSRM(NR))) )
-      phi = f_t/(1.D0 + (0.58D0+0.2D0*Z_i)*(2.D0*RR*QLM(NR)*EPSRM(NR)**(-1.5D0) )/ &
+      f_t=1.D0 -(1.D0-EPSRM2(NR))**2/ ( SQRT(1.D0-EPSRM2(NR)**2)*(1.D0+1.46D0*SQRT(EPSRM2(NR))) )
+      phi = f_t/(1.D0 + (0.58D0+0.2D0*Z_i)*(2.D0*RR*QLM(NR)*EPSRM2(NR)**(-1.5D0) )/ &
            (3.D0*SQRT(2.D0*PI)*VC*tau_rela)/theta_l**2 )
       neoc=(1.D0-phi)*(1.D0-C_*phi)*(1.D0+0.47D0*(Z_i-1.D0))/ &
            (Z_i*(1.D0+0.27D0*(Z_i-1.D0)) )
@@ -1016,7 +1027,7 @@
          END IF
 !         theta_l=THETA0(1)*RT_quench(NR)/RTFP0(1)
          E_hat=EP(NR)/ER_crit(NR)
-         phi=1.D0-1.46D0*SQRT(EPSRM(NR))+1.72D0*EPSRM(NR)
+         phi=1.D0-1.46D0*SQRT(EPSRM2(NR))+1.72D0*EPSRM2(NR)
          IF(E_hat.ge.1)THEN
             IF(MODEL_Conner_FP.eq.0)THEN
                rate_ava_l(NR)= &
@@ -1114,7 +1125,7 @@
       BP= RSRHON(RHON)*BB/(RR*QLM(NR))
 
 !     Wesson P. 173
-      jbs=-SQRT(EPSRM(NR))*RNE/BP* &
+      jbs=-SQRT(EPSRM2(NR))*RNE/BP* &
            (2.44D0*(RTE+RTI)*dndr/RNE + &
            0.69D0*dtedr - 0.42D0*dtidr) *1.D-6! *1.D-10
 
