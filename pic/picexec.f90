@@ -89,9 +89,9 @@ CONTAINS
        jx(:,:)=0.d0
        jy(:,:)=0.d0
        jz(:,:)=0.d0
-       CALL current(npmax,nxmax,nymax,xe,ye,xeb,yeb,vxe,vye,vze,chrge&
+       CALL current(npmax,nxmax,nymax,xe,ye,xeb,yeb,xemid,yemid,vxe,vye,vze,chrge&
                     ,jx,jy,jz, model_boundary)
-       CALL current(npmax,nxmax,nymax,xi,yi,xib,yib,vxi,vyi,vzi,chrgi&
+       CALL current(npmax,nxmax,nymax,xi,yi,xib,yib,ximid,yimid,vxi,vyi,vzi,chrgi&
                     ,jx,jy,jz, model_boundary)
        IF (model_antenna .EQ. 1) THEN
           CALL antenna(nxmax,nymax,jxant,jyant,jzant,phxant,phyant,phzant, &
@@ -175,9 +175,9 @@ CONTAINS
           CALL bound_periodic(npmax,xe,ye,ze,x1,x2,y1,y2,z1,z2,alx,aly,alz)
           CALL bound_periodic(npmax,xi,yi,zi,x1,x2,y1,y2,z1,z2,alx,aly,alz)
        ELSE
-          CALL bound_reflective(npmax,xe,ye,ze,vxe,vye,vze, &
+          CALL bound_reflective(npmax,xe,ye,ze,xeb,yeb,xemid,yemid,vxe,vye,vze, &
                x1,x2,y1,y2,z1,z2,alx,aly,alz,vzone)
-          CALL bound_reflective(npmax,xi,yi,zi,vxi,vyi,vzi, &
+          CALL bound_reflective(npmax,xi,yi,zi,xib,yib,ximid,yimid,vxi,vyi,vzi, &
                x1,x2,y1,y2,z1,z2,alx,aly,alz,vzone)
        ENDIF
 
@@ -416,7 +416,9 @@ CONTAINS
     REAL(8) :: btot, vtot, bb2 ,vcfact, gamma
     INTEGER :: npmax, nxmax, nymax, model_boundary
     INTEGER :: np, nxp, nyp, nxpp, nxpm, nypp, nypm, nxppp, nyppp
-    !!$omp parallel do Private(nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2m,sx2,sx2p,sy2m,sy2,sy2p,exx,eyy,ezz,bxx,byy,bzz,vxm,vym,vzm,vxzero,vyzero,vzzero,gamma,btot,vtot,bb2)
+    !$omp parallel do Private(nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,&
+    !$omp dx,dy,dx1,dy1,sx2m,sx2,sx2p,sy2m,sy2,sy2p,exx,eyy,ezz,bxx,byy,bzz,&
+    !$omp vxm,vym,vzm,vxzero,vyzero,vzzero,gamma,btot,vtot,bb2)
 
     DO np = 1, npmax
       ! calculate the electric field at the particle position
@@ -681,7 +683,7 @@ CONTAINS
        END IF
 
     END DO
-  !!$omp end parallel do
+  !$omp end parallel do
   END SUBROUTINE push
 
   !***********************************************************************
@@ -691,7 +693,6 @@ CONTAINS
     REAL(8), DIMENSION(npmax) :: x, y, z
     REAL(8) :: alx, aly, alz, x1, x2, y1, y2, z1, z2
     INTEGER :: npmax, np
-
     DO np = 1, npmax
        IF( x(np) .LT. x1 ) THEN
           DO WHILE(x(np) .LT. x1)
@@ -727,13 +728,13 @@ CONTAINS
   END SUBROUTINE bound_periodic
 
   !***********************************************************************
-  SUBROUTINE bound_reflective(npmax,x,y,z,vx,vy,vz,&
+  SUBROUTINE bound_reflective(npmax,x,y,z,xb,yb,xmid,ymid,vx,vy,vz,&
        x1,x2,y1,y2,z1,z2,alx,aly,alz,vzone)
   !***********************************************************************
     IMPLICIT NONE
-    REAL(8), DIMENSION(npmax) :: x, y, z, vx, vy, vz
+    REAL(8), DIMENSION(npmax) :: x, y, z, xb, yb ,vx, vy, vz, xmid, ymid
     REAL(8) :: x1, x2, y1, y2, z1, z2, alx, aly, alz, x3, y3, z3, x4, y4, z4,&
-    alx1, aly1, alz1, vdzone
+    alx1, aly1, alz1, vdzone, xl_before, yl_before, xl_after, yl_after
     INTEGER :: npmax, np, vzone
     ! colision wall in nx = 1,nxmax-1, ny = 1, nymax
     vdzone = dble(vzone)
@@ -743,21 +744,36 @@ CONTAINS
     x4 = x2 - vdzone
     y4 = y2 - vdzone
     z4 = z2 - vdzone
-    alx1 = alx - vzone
-    aly1 = aly - vzone
+    !alx1 = alx - vzone
+    !aly1 = aly - vzone
+    !$omp parallel do Private(x,y,z,vx,vy)
     DO np = 1, npmax
+      xmid(np)=0.5D0*(xb(np)+x(np))
        IF( x(np) .LT. x3  ) THEN
-          x(np) = -x(np) + 2.d0*vdzone
+          xl_before=xb(np) - x3
+          x(np) = x3 + (x3  - x(np))
+          xl_after=x(np) - x3
+          xmid(np)=x3+0.5D0*ABS(xl_after-xl_before)
           vx(np) = -vx(np)
        ELSEIF( x(np) .GT. x4 ) THEN
-          x(np) = alx1 - (x(np) - alx1)
+          xl_before=x4 - xb(np)
+          x(np) = x4 - (x(np) - x4)
+          xl_after=x4 - x(np)
+          xmid(np)=x4+0.5D0*ABS(xl_after-xl_before)
           vx(np) = -vx(np)
        ENDIF
+       ymid(np)=0.5D0*(yb(np)+y(np))
        IF( y(np) .LT. y3 ) THEN
-          y(np) = -y(np) + 2.d0*vdzone
+          yl_before=yb(np) - y3
+          y(np) = y3 + (y3  - y(np))
+          yl_after=y(np) - y3
+          ymid(np)=y3+0.5D0*ABS(yl_after-yl_before)
           vy(np) = -vy(np)
        ELSEIF( y(np) .GT. y4 ) THEN
-          y(np) = aly1 - (y(np) - aly1)
+          xl_before=x4 - xb(np)
+          x(np) = x4 - (x(np) - x4)
+          xl_after=x4 - x(np)
+          xmid(np)=x4+0.5D0*ABS(xl_after-xl_before)
           vy(np) = -vy(np)
        ENDIF
 
@@ -779,6 +795,7 @@ CONTAINS
       !    vz(np) = -vz(np)
        !ENDIF
     END DO
+    !$omp end parallel do
 
   END SUBROUTINE bound_reflective
 
@@ -1004,12 +1021,12 @@ CONTAINS
   END SUBROUTINE boundary_rho
 
   !***********************************************************************
-  SUBROUTINE current(npmax,nxmax,nymax,x,y,xb,yb,vx,vy,vz,chrg,jx,jy,jz, &
+  SUBROUTINE current(npmax,nxmax,nymax,x,y,xb,yb,xmid,ymid,vx,vy,vz,chrg,jx,jy,jz, &
        model_boundary)
     !***********************************************************************
     IMPLICIT NONE
 
-    REAL(8), DIMENSION(npmax) :: x, y, xb, yb, vx, vy, vz
+    REAL(8), DIMENSION(npmax) :: x, y, xb, yb, xmid, ymid, vx, vy, vz
     REAL(8), DIMENSION(0:nxmax,0:nymax) :: jx, jy, jz
     REAL(8) :: chrg, dt, dx, dy, dx1, dy1, &
          sx1p, sy1p, sx1m, sy1m, sx2, sy2, sx2p, sy2p, sx2m, sy2m, factor
@@ -1024,10 +1041,10 @@ CONTAINS
     !$omp parallel do Private (np,nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2p,sx2,sx2m,sy2p,sy2,sy2m) &
     !$omp Reduction(+:jx,jy,jz)
     DO np = 1, npmax
-       nxp =(x(np)+xb(np))/2.d0
-       nyp =(y(np)+yb(np))/2.d0
-       dx = (x(np)+xb(np))/2.d0 - DBLE(nxp)
-       dy = (y(np)+yb(np))/2.d0 - DBLE(nyp)
+       nxp = xmid(np)
+       nyp = ymid(np)
+       dx = xmid(np) - DBLE(nxp)
+       dy = ymid(np) - DBLE(nyp)
        dx1 = 1.0d0 - dx
        dy1 = 1.0d0 - dy
        IF(dx .LE. 0.5d0) THEN

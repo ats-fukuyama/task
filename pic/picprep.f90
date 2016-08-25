@@ -206,7 +206,7 @@ CONTAINS
    ELSE ! subroutine for density gradient
       inter = dble(nxmax-2*vdzone)/((dble(npxmax)+1.0d0)*(1.0d0-0.5d0*densx))
       do npy = 1, npymax
-        position = vdzone
+         position = vdzone
       do npx = 1, npxmax
          np = np + 1
          position = position &
