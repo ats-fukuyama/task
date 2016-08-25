@@ -837,12 +837,20 @@
 
 !----  Modification for charge neutrality
 
+!      DO NR=1,NPRF
+!         VAL=0.D0
+!         DO NS=2,NSMAX-1
+!            VAL=VAL+PZ(NS)*PRFN(NR,NS)
+!         ENDDO
+!         PRFN(NR,NSMAX)=(PRFN(NR,1)-VAL)/PZ(NSMAX)
+!      ENDDO
+
       DO NR=1,NPRF
          VAL=0.D0
-         DO NS=2,NSMAX-1
+         DO NS=2,NSMAX
             VAL=VAL+PZ(NS)*PRFN(NR,NS)
          ENDDO
-         PRFN(NR,NSMAX)=(PRFN(NR,1)-VAL)/PZ(NSMAX)
+         PRFN(NR,1)=VAL
       ENDDO
 
 !----  Set coefficient for spline

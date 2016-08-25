@@ -203,8 +203,8 @@ C
 C
 C     ******* PARAMETER INPUT *******
 C
-      OPEN(15,FILE='w1parm',STATUS='old',FORM='formatted',ERR=1)
-      READ(15,W1,ERR=1,END=1)
+      OPEN(7,FILE='w1parm',STATUS='old',FORM='formatted',ERR=1)
+      READ(7,W1,ERR=1,END=1)
       WRITE(6,*) '## &W1 UPDATED BY w1data'
 C
     1 WRITE( 6,602)

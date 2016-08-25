@@ -237,8 +237,10 @@ C for negative Ip and negative BB
       ENDIF
 
 C *** The following variable defined in Tokamaks 3rd, Sec. 14.14 ***
-      RR   = 0.5d0 * (RSUMAX - RSUMIN) + RSUMIN
-      RA   = RR - RSUMIN
+!      RR   = 0.5d0 * (RSUMAX - RSUMIN) + RSUMIN
+!      RA   = RR - RSUMIN
+      RR   = RAXIS
+      RA   = RSUMAX-RAXIS
       !==  RB: wall minor radius  ======================
       !    Multiplication factor 1.1 is tentatively set.
       RB   = 1.1d0 * RA

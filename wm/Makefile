@@ -68,7 +68,7 @@ libs:
 	(cd ../eq; make eqlib.a)
 	(cd ../dp; make dplib.a)
 
-wm : $(LIBS) wmmain.o
+wm : libs $(LIBS) wmmain.o
 	$(FCFIXED) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 mpiwm : wmmain.o $(LIBM)

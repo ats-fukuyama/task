@@ -13,6 +13,7 @@ FFLAGS=$(OFLAGS)
 
 MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD) -I../mtxp/$(MOD) -I../lib/$(MOD)
 #FINCLUDE=-I /usr/local/mpich313-ifort-gcc/include
+#FINCLUDE=-I /usr/local/mpich32-ifort-gcc5/include
 #FINCLUDE=-I /usr/local/mpich3-intel140/include
 FINCLUDE=-I /home/hoge/lib/openmpi/include
 

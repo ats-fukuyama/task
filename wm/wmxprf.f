@@ -101,6 +101,10 @@ C
          PTPR(NS) = PT60(1,NS) * 1.D-3
          PTPP(NS) = PT60(1,NS) * 1.D-3
       ENDDO
+      DO NS=1,NSMAX
+         PNS(NS)  = PN60(NRMAX1,NS) * 1.D-20
+         PTS(NS)  = PT60(NRMAX1,NS) * 1.D-3
+      ENDDO
 C
 C----  Debug write
 C
@@ -134,7 +138,8 @@ C
 C
       GO TO 9995
  9997 WRITE (6,*) '     *****  NO IMPURITY  *****      '
- 9996 WRITE (6,*) '======  WMXPRF ALREADY READ  ======'
+ 9996 CONTINUE
+C      WRITE (6,*) '======  WMXPRF ALREADY READ  ======'
       GO TO 9999
  9995 WRITE (6,*) '==========  WMXPRF COMPLETED  =========='
  9999 RETURN

@@ -31,8 +31,8 @@ C
          CALL WMTNAX(NR)
       ELSEIF((MOD(MODELA/2,2).EQ.1).AND.(NS.EQ.1)) THEN
          CALL WMTNEX(NR)
-      ELSEIF(NS.EQ.5.OR.NS.EQ.6) THEN
-         CALL WMTNDK(NR,NS)
+!      ELSEIF(NS.EQ.5.OR.NS.EQ.6) THEN
+!         CALL WMTNDK(NR,NS)
       ELSE
          IF(MODELP(NS).LT.0) THEN
             CALL WMTNSX(NR,NS)

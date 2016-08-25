@@ -9,11 +9,14 @@
 
 !      real(8),parameter:: IP_init=1.8D6 ! [A] ! JET
 !      real(8),parameter:: IP_init=1.9D6 ! [A] ! JET 2008
-!     real(8),parameter:: IP_init=1.052D6 ! [A] !60 ITB
+     real(8),parameter:: IP_init=1.052D6 ! [A] !60 ITB
+!     real(8),parameter:: IP_init=1.5D6 ! [A] !60
+!     real(8),parameter:: IP_init=0.8D6 ! [A] !60 ITB
+!     real(8),parameter:: IP_init=0.5D6 ! [A] !60 ITB
 !     real(8),parameter:: IP_init=1.04D6 ! [A] !60 49255
 !      real(8),parameter:: IP_init=2.D6 ! [A] ! 60 typical
-!      real(8),parameter:: IP_init=9.D6 ! [A] ! ITER
-     real(8),parameter:: IP_init=1.0D3 ! [A] !test
+!      real(8),parameter:: IP_init=15.D6 ! [A] ! ITER
+!     real(8),parameter:: IP_init=1.0D3 ! [A] !test
 
       integer,parameter:: ISW_Z=0 !0=Z_ef, 1=ZEFF
 
@@ -96,8 +99,8 @@
          IF(MODEL_jfp.eq.0)THEN
 !            RJ1_temp(NR)=(1.D0-RM(NR)**0.95)**3 ! SMITH2006 ! SWITCH
 !            RJ1_temp(NR)=(1.D0-RM(NR)**2) ! parabora
-!            RJ1_temp(NR)=(1.D0-RM(NR)**1.74D0)**3.23D0 ! matsuyama 60U
-            RJ1_temp(NR)=(1.D0-RM(NR)**2)**RJPROF2 ! RJPROF2
+            RJ1_temp(NR)=(1.D0-RM(NR)**1.74D0)**3.23D0 ! matsuyama 60U
+!            RJ1_temp(NR)=(1.D0-RM(NR)**2)**RJPROF2 ! RJPROF2
          ELSE
             RJ1_temp(NR)=(1.D0-RM(NR)**1.5)**3 ! matsuyama 60U
          END IF
@@ -339,7 +342,7 @@
 
       IMPLICIT NONE
       real(8):: alp, z_i, h_alpha_z, lambda_alpha, gamma_alpha_z, G_conner
-      real(8):: G_conner_nr, G_conner_lm
+      real(8):: G_conner_nr, G_conner_lm, tau_th, v_thermal, tau_rela
       integer:: j
 
       WRITE(6,*)" ---- DISRUPTION PARAM ------"
@@ -347,10 +350,22 @@
       WRITE(6,'(A,1P4E14.6)') &
              "Pre  disrupt tau_ta0[sec]=", (tau_ta0(j), j=1,NSAMAX)
 
+      IF(ISW_Z.eq.0)THEN
+         z_i = Z_ef 
+      ELSEIF(ISW_Z.eq.1)THEN
+         z_i = ZEFF
+      END IF
       IF(MODELR.eq.0)THEN
          WRITE(6,'(A,1P3E14.6,A,1PE14.6)') &
               "E0*E_drei0=E1[V/m] ->",E0, E_drei0(1), E1(1)&
               ," p_{c_runaway}=",1.D0/SQRT(E0)
+
+!         v_thermal=SQRT( RT_quench(1)*1.D3*AEE/AMFD(1)) 
+!         tau_th=(4.D0*PI*EPS0**2)*AMFP(1)**2*v_thermal**3/ &
+!              ( AEFP(1)**4*POST_LNLAM(1,1,1)*RNFP0(1)*1.D20 )
+         G_conner_nr=0.35D0*E0**(-3.D0*(Z_i+1.D0)/16.D0)&
+              *EXP(-0.25D0/E0 -SQRT( (1.D0+z_i)/E0 ) )
+         WRITE(6,'(A,E14.6)') "RE gen rate_KB=", G_conner_nr!/tau_th
       ELSE
          WRITE(6,'(A,1P4E14.6)') &
               "E0*E_drei0=E1[V/m], E_crit0 ->",E0, E_drei0(1), E1(1), E_crit0(1)
@@ -359,12 +374,6 @@
               ," p_{cr_runaway}=",1.D0/SQRT(E0-THETA0(1))
          
          alp = E0/THETA0(1)
-!         z_i = PZ(2)
-         IF(ISW_Z.eq.0)THEN
-            z_i = Z_ef 
-         ELSEIF(ISW_Z.eq.1)THEN
-            z_i = ZEFF
-         END IF
          h_alpha_z=( alp*(z_i+1.D0) - z_i + 7.D0 + &
               2.D0*SQRT(alp/(alp-1.D0))*(1.D0+z_i)*(alp-2.D0) ) &
               /( 16.D0*(alp-1.D0) )
@@ -380,16 +389,22 @@
          G_conner_lm=G_conner_nr &
               *EXP(-THETA0(1)*(0.125D0/E0**2 + 2.D0/3.D0/SQRT(E0**3)*SQRT(1.D0+z_i) ) )
          
-         WRITE(6,'(A,1PE14.6,A,1PE14.6)') " alpha = ", alp, " G_conner= ", G_conner
+         WRITE(6,'(A,1PE14.6,A,1PE14.6,A,1PE14.6)') " alpha = ", alp, " G_conner= ", G_conner, &
+              " THETA0", THETA0(1)
          WRITE(6,'(A,1PE14.6,A,1PE14.6)') " G_Conner_nr = ", &
               G_conner_nr, " G_conner_lm = ", G_conner_lm
       END IF
+
+      tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
+           ( AEFP(1)**4*POST_LNLAM(1,1,1)*RNFP0(1)*1.D20 )
 
       WRITE(6,*) "-----------------------"
       WRITE(6,'(A,1PE14.6)') "decay time [msec] = ", tau_quench*1000
       WRITE(6,*) "-----------------------"
 
       WRITE(6,'(A,1PE14.6)') "Post disruption Te0 [keV]=", T0_quench
+      WRITE(6,'(A,1P4E14.6)') &
+             "Post disrupt tau_rela[sec]=", tau_rela
       WRITE(6,'(A,1P4E14.6)') &
              "Post disrupt tau_ta0[sec]=", (POST_tau_ta0_f(j), j=1,NSAMAX)
       WRITE(6,*)" ---- END OF DISRUPTION PARAM ------"
@@ -713,14 +728,14 @@
                END IF
             END IF
             
-            CALL p_theta_integration(FLUXS_PMAX)
+            CALL p_theta_integration(FLUXS_PMAX) ! same as allgather
             DO NTH=1,NTHMAX
                PITCH=RE_PITCH_L(NTH)
                CALL p_theta_integration(PITCH)
                RE_PITCH_L(NTH)=PITCH
             END DO
             
-            IF(NSA.eq.1) THEN
+            IF(NSA.eq.1) THEN ! time integration
                FACT=RNFP0(NSA)*1.D20/RFSADG(NR)
                RSUM1=RNS(NR,1)/FACT*1.D20
                RFPL(NR)=2.D0*PI*DELTH* FLUXS_PMAX / RSUM1
@@ -761,13 +776,13 @@
                lambda_alpha=8.D0*alp*(alp-0.5D0-SQRT(alp*(alp-1.D0)) )
                gamma_alpha_z=SQRT( (1.0+z_i)*alp**2/(8.D0*(alp-1.D0)) )&
                     *(0.5D0*PI-ASIN(1.D0-2.D0/alp))
-!            Rconner_l(NR)=0.35D0* E00**(-h_alpha_z) &
                Rconner_l(NR)= E00**(-h_alpha_z) &
                     *EXP(-0.25D0*lambda_alpha/E00-SQRT(2.D0/E00)*gamma_alpha_z )
                
                tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
                     ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP0(1)*1.D20 )
-               Rconner_l(NR)=Rconner_l(NR)/(tau_rela*SQRT(2*theta_l)**3)*0
+               Rconner_l(NR)=Rconner_l(NR)/(tau_rela*SQRT(2*theta_l)**3)
+!               Rconner_l(NR)=Rconner_l(NR)/(tau_rela*SQRT(theta_l)**3)
             END IF
          ELSE
             Rconner_l(NR)=0.D0
@@ -789,87 +804,91 @@
       INTEGER:: NR, NSA
       real(8),intent(out):: IP_all, IP_ohm, IP_run, IP_BS, l_ind, IP_prim
       REAL(8),dimension(NRSTART:NREND):: &
-           RN1_temp, RN2_temp, RJ1_temp, RJ2_temp, QLM_L, SUMIP4_L, RN2P_temp, RJ2P_temp
-      REAL(8),dimension(NRSTART:NREND,NSAMAX):: RT1_temp, RT2_temp
+           RN1_temp, RN2_temp, RJ1_temp, QLM_L, RN2P_temp
       real(8),dimension(NRMAX):: SUMIP4
-      REAL(8):: SUMIP, SUMIP2, SUMIP3, SUMIP_BS, rhon, BP_a, SUMIP3P
+      REAL(8):: SUMIP, SUMIP_ohm, SUMIP_run, SUMIP_BS, rhon, BP_a, SUMIP_prim, sumip_integ
       real(8),save:: integ
-!      real(8),dimension(nrstart:nrend),save:: previous_rate
-      INTEGER:: VLOC
 
       IF(TIMEFP.eq.DELT) integ=0.D0
       IF(TIMEFP.eq.DELT) previous_rate(:)=0.D0
       IF(TIMEFP.eq.DELT) previous_rate_p(:)=0.D0
 
-      SUMIP=0.D0
-      SUMIP3=0.D0
-      SUMIP3P=0.D0
-      SUMIP2=0.D0
-      SUMIP4(:)=0.D0
-      SUMIP4_L(:)=0.D0
-      SUMIP_BS=0.D0
       DO NR=NRSTART,NREND
          IF(MODEL_Conner_FP.eq.0)THEN
-            RN2_temp(NR)=DELT*(Rconner(NR)+RFP_ava(NR))*RN_disrupt(NR)+RN_runaway(NR)
-            RN2P_temp(NR)=DELT*(Rconner(NR))*RN_disrupt(NR)+RN_drei(NR)
             RN1_temp(NR)=-DELT*(Rconner(NR)+RFP_ava(NR))*RN_disrupt(NR)+RN_disrupt(NR)
-!            integ = (Rconner(NR)+RFP_ava(NR))*DELT + integ
-!            integ = 0.5D0*( (Rconner(NR)+RFP_ava(NR))+previous_rate )*DELT + integ
-!            previous_rate = (Rconner(NR)+RFP_ava(NR))
-!            RN1_temp(NR) = RNFP(NR,1)*EXP(-integ)
-!            RN2_temp(NR) = RNFP(NR,1)*( 1.D0- EXP(-integ) )
          ELSEIF(MODEL_Conner_FP.eq.1)THEN
-!            RN2_temp(NR)=DELT*(RFP(NR)+RFP_ava(NR))*RN_disrupt(NR)+RN_runaway(NR)
-!            RN1_temp(NR)=-DELT*(RFP(NR)+RFP_ava(NR))*RN_disrupt(NR)+RN_disrupt(NR)
-
-            RN2_temp(NR)=0.5D0*DELT* &
-                 ( (RFP(NR)+RFP_ava(NR))*RN_disrupt(NR) + previous_rate(NR) ) &
-                 +RN_runaway(NR)
-            RN2P_temp(NR)=0.5D0*DELT* &
-                 ( (RFP(NR))*RN_disrupt(NR) + previous_rate_p(NR) ) &
-                 +RN_drei(NR)
             RN1_temp(NR)=-0.5D0*DELT* &
                  ( (RFP(NR)+RFP_ava(NR))*RN_disrupt(NR) + previous_rate(NR) ) &
                  +RN_disrupt(NR)
-
             previous_rate(NR)=(RFP(NR)+RFP_ava(NR))*RN_disrupt(NR)
             previous_rate_p(NR)=(RFP(NR))*RN_disrupt(NR)
          END IF
-
-         RJ2_temp(NR)=AEE*VC*RN2_temp(NR)*1.D20*1.D-6
-         RJ2P_temp(NR)=AEE*VC*RN2P_temp(NR)*1.D20*1.D-6
-         RJ1_temp(NR)=SIGMA_SPP(NR)*EP(NR)*1.D-6 !- RJ2_temp(NR) 
-         SUMIP=(RJ1_temp(NR) +RJ2_temp(NR) +RJ_bs(NR))*VOLR(NR)/(2.D0*PI*RR) + SUMIP
-         SUMIP4_L(NR)=SUMIP
-         SUMIP2=RJ1_temp(NR)*VOLR(NR)/(2.D0*PI*RR) + SUMIP2
-         SUMIP3=RJ2_temp(NR)*VOLR(NR)/(2.D0*PI*RR) + SUMIP3
-         SUMIP3P=RJ2P_temp(NR)*VOLR(NR)/(2.D0*PI*RR) + SUMIP3P
+         RJ1_temp(NR)=SIGMA_SPP(NR)*EP(NR)*1.D-6
       END DO
+      
+      IF(MODELD_n_RE.eq.1.and.RN_runaway(1).ge.1.D-40)THEN
+         CALL N_RE_transport ! RN_runaway, RN_drei updated
+      ELSE
+         DO NR=NRSTART,NREND
+            IF(MODEL_Conner_FP.eq.0)THEN
+               RN2_temp(NR)=DELT*(Rconner(NR)+RFP_ava(NR))*RN_disrupt(NR)+RN_runaway(NR)
+               RN2P_temp(NR)=DELT*(Rconner(NR))*RN_disrupt(NR)+RN_drei(NR)
+            ELSEIF(MODEL_Conner_FP.eq.1)THEN
+               RN2_temp(NR)=0.5D0*DELT* &
+                    ( (RFP(NR)+RFP_ava(NR))*RN_disrupt(NR) + previous_rate(NR) ) &
+                    +RN_runaway(NR)
+               RN2P_temp(NR)=0.5D0*DELT* &
+                    ( (RFP(NR))*RN_disrupt(NR) + previous_rate_p(NR) ) &
+                    +RN_drei(NR)
+            END IF
+         END DO
+         CALL mtx_set_communicator(comm_nr)
+         call mtx_allgather_real8(RN2_temp,NREND-NRSTART+1,RN_runaway)
+         call mtx_allgather_real8(RN2P_temp,NREND-NRSTART+1,RN_drei)
+      END IF
+
       CALL mtx_set_communicator(comm_nr)
       call mtx_allgather_real8(RN1_temp,NREND-NRSTART+1,RN_disrupt)
-      call mtx_allgather_real8(RN2_temp,NREND-NRSTART+1,RN_runaway)
-      call mtx_allgather_real8(RN2P_temp,NREND-NRSTART+1,RN_drei)
       call mtx_allgather_real8(RJ1_temp,NREND-NRSTART+1,Rj_ohm)
-      call mtx_allgather_real8(RJ2_temp,NREND-NRSTART+1,RJ_runaway)
-      call mtx_allgather_real8(SUMIP4_L,NREND-NRSTART+1,SUMIP4)
+      SUMIP=0.D0
+      SUMIP_ohm=0.D0
+      SUMIP_run=0.D0
+      SUMIP_prim=0.D0
+      SUMIP_BS=0.D0
+      SUMIP_integ=0.D0
+      SUMIP4(:)=0.D0
+      DO NR=1,NRMAX
+         RJ_runaway(NR)=AEE*VC*RN_runaway(NR)*1.D20*1.D-6
+         SUMIP = (RJ_ohm(NR)+RJ_runaway(NR)+RJ_bs(NR)) &
+              *VOLR(NR)/(2.D0*PI*RR) + SUMIP
+         SUMIP_ohm = (RJ_ohm(NR)) &
+              *VOLR(NR)/(2.D0*PI*RR) + SUMIP_ohm
+         SUMIP_run =  (RJ_runaway(NR)) &
+              *VOLR(NR)/(2.D0*PI*RR) + SUMIP_run
+         SUMIP_BS =  (RJ_bs(NR)) &
+              *VOLR(NR)/(2.D0*PI*RR) + SUMIP_BS
+         SUMIP_prim = AEE*VC*RN_drei(NR)*1.D20*1.D-6 &
+              *VOLR(NR)/(2.D0*PI*RR) + SUMIP_prim
+         SUMIP_integ=(RJ_ohm(NR) +RJ_runaway(NR) +RJ_bs(NR))*VOLR(NR)/(2.D0*PI*RR) + SUMIP_integ
+         SUMIP4(NR)=SUMIP_integ
+      END DO
+      IP_all=SUMIP
+      IP_ohm=SUMIP_ohm
+      IP_run=SUMIP_run
+      IP_prim=SUMIP_prim
+      IP_BS=SUMIP_BS
 !
-      CALL mtx_allreduce1_real8(SUMIP,3,IP_all,vloc)
-      CALL mtx_allreduce1_real8(SUMIP2,3,IP_ohm,vloc)
-      CALL mtx_allreduce1_real8(SUMIP3,3,IP_run,vloc)
-      CALL mtx_allreduce1_real8(SUMIP3P,3,IP_prim,vloc)
       SUMIP=0.D0
       l_ind=0.D0
       DO NR=1,NRMAX
          SUMIP=SUMIP+SUMIP4(NR)
          QLM(NR)=2*PI*RM(NR)**2*RA**2*BB/(RMU0*SUMIP*1.D6*RR)
-         SUMIP_BS=RJ_bs(NR)*VOLR(NR)/(2.D0*PI*RR) + SUMIP_BS
          rhon=RM(NR)
          BP_a = (RSRHON(RHON)*BB/(RR*QLM(NR)) )**2
          l_ind = l_ind + RM(NR)*DELR*BP_a
       END DO
       l_ind = 2*l_ind/BP_a
       CALL mtx_reset_communicator
-      IP_BS=SUMIP_BS
 
       END SUBROUTINE update_disruption_quantities
 ! *******************************************************
@@ -916,6 +935,7 @@
          END IF
       END DO
 
+      rate_ava_l(NRSTART)=0.D0 ! for given E
       CALL mtx_set_communicator(comm_nr)
       call mtx_allgather_real8(rate_ava_l,NREND-NRSTART+1,RFP_ava)
 !
@@ -1134,5 +1154,238 @@
 
       END SUBROUTINE djdt
 !**********************************************
+      SUBROUTINE N_RE_transport
+
+      USE libmpi
+      USE libmtx
+      IMPLICIT NONE
+      INTEGER:: NR
+      integer:: imtxstart1,imtxend1,its
+      real(8):: Dr_coef, factp, factr
+      real(8):: Aij, Aij_m1, Aij_p1, RHS, b_wall, E_e, a_e, coef_ln
+
+      CALL mtx_set_communicator(comm_nr) 
+      FACTP=PI*RR*VC/SQRT(2.D0)
+
+!=RN_runaway
+      CALL mtx_setup(NRMAX,imtxstart1,imtxend1)
+!---- DIAGONAL TERM
+      DO NR=NRSTART,NREND
+         FACTR=QLM(NR)*deltaB_B**2
+         DR_coef=FACTP*FACTR/(RA**2)
+         Aij = 1.D0 + 2.D0*DR_coef*DELT/DELR**2
+         CALL mtx_set_matrix(NR,NR,Aij)
+         CALL mtx_set_vector(NR,RN_runaway(NR))
+      END DO
+!---- OFF DIAGONAL
+      DO NR=NRSTART,NREND
+         FACTR=QLM(NR)*deltaB_B**2
+         DR_coef=FACTP*FACTR/(RA**2)
+         Aij_m1=-DR_coef*DELT/(DELR**2)*(1.D0-0.5D0*DELR/RM(NR))
+         Aij_p1=-DR_coef*DELT/(DELR**2)*(1.D0+0.5D0*DELR/RM(NR))
+         IF(NR.ne.1)THEN
+            CALL mtx_set_matrix(NR,NR-1,Aij_m1)
+         END IF
+         IF(NR.ne.NRMAX)THEN
+            CALL mtx_set_matrix(NR,NR+1,Aij_p1)
+         END IF
+      END DO
+!---- RIGHT HAND SIDE
+      DO NR=NRSTART,NREND
+         IF(MODEL_Conner_FP.eq.0)THEN
+            RHS = RN_runaway(NR) + (Rconner(NR)+RFP_ava(NR))*RN_disrupt(NR)*DELT
+         ELSE
+            RHS = RN_runaway(NR) + (RFP(NR)+RFP_ava(NR))*RN_disrupt(NR)*DELT
+         END IF
+         CALL mtx_set_source(NR,RHS)
+      END DO
+!---- SOLVE
+      CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC) 
+      CALL mtx_gather_vector(RN_runaway)
+      CALL mtx_cleanup
+      CALL mtx_reset_communicator
+
+      CALL mtx_set_communicator(comm_nr) 
+!=RN_drei
+      CALL mtx_setup(NRMAX,imtxstart1,imtxend1)
+!---- DIAGONAL TERM
+      DO NR=NRSTART,NREND
+         FACTR=QLM(NR)*deltaB_B**2
+         DR_coef=FACTP*FACTR/(RA**2)
+         Aij = 1.D0 + 2.D0*DR_coef*DELT/(DELR)**2
+         CALL mtx_set_matrix(NR,NR,Aij)
+         CALL mtx_set_vector(NR,RN_drei(NR))
+      END DO
+!---- OFF DIAGONAL
+      DO NR=NRSTART,NREND
+         FACTR=QLM(NR)*deltaB_B**2
+         DR_coef=FACTP*FACTR/(RA**2)
+         Aij_m1=-DR_coef*DELT/(DELR**2)*(1.D0-0.5D0*DELR/RM(NR))
+         Aij_p1=-DR_coef*DELT/(DELR**2)*(1.D0+0.5D0*DELR/RM(NR))
+         IF(NR.ne.1)THEN
+            CALL mtx_set_matrix(NR,NR-1,Aij_m1)
+         END IF
+         IF(NR.ne.NRMAX)THEN
+            CALL mtx_set_matrix(NR,NR+1,Aij_p1)
+         END IF
+      END DO
+!---- RIGHT HAND SIDE
+      DO NR=NRSTART,NREND
+         IF(MODEL_Conner_FP.eq.0)THEN
+            RHS = RN_drei(NR) + (Rconner(NR))*RN_disrupt(NR)*DELT
+         ELSE
+            RHS = RN_drei(NR) + (RFP(NR))*RN_disrupt(NR)*DELT
+         END IF
+         CALL mtx_set_source(NR,RHS)
+      END DO
+!---- SOLVE
+      CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC) 
+      CALL mtx_gather_vector(RN_drei)
+      CALL mtx_cleanup
+      CALL mtx_reset_communicator
+
+      END SUBROUTINE N_RE_transport
+!**********************************************
+!      SUBROUTINE N_RE_transport_EXPLICIT
+!       
+!      IMPLICIT NONE
+!      integer:: NR
+!      real(8):: factr, factp, dr_coef
+!
+!      DO NR=1,NRMAX
+!         FACTP=PI*RR*VC/SQRT(2.D0)
+!         FACTR=QLM(NR)*deltaB_B**2
+!         DR_coef=FACTP*FACTR/(RA**2)
+!
+!         RN_runaway(NR) + DR_coef*DELT/(RM(NR)*DELR**2)*( &
+!              RG(NR+1)*RN_runaway(NR+1) &
+!              -2.D0*RM(NR)*RN_runaway(NR) &
+!              +RG(NR)*RN_runaway(NR-1) ) &
+!              +(Rconner(NR)+RFP_ava(NR))*RN_disrupt(NR)
+!
+!      END DO
+!
+!      END SUBROUTINE N_RE_transport_EXPLICIT
+!**********************************************
+      SUBROUTINE FLUXS_PTH
+
+      USE libmpi
+      IMPLICIT NONE
+      INTEGER:: NTH, NP, NR, NSA, NPS, NPE, NSBA, NTHSTEP
+      DOUBLE PRECISION:: WPL, WPM, WPP, WTP, DFT, DFP, FFP, FFT
+      DOUBLE PRECISION, dimension(NTHMAX,NPSTART:NPEND+1):: FLUXS_PL_L
+      DOUBLE PRECISION, dimension(NTHMAX+1,NPSTART:NPEND):: FLUXS_TL_L
+      DOUBLE PRECISION, dimension(NTHMAX,NPSTART:NPEND):: FLUXS_PL, FLUXS_TL!, dfdt_l
+      DOUBLE PRECISION, dimension(NTHMAX,NPMAX):: FLUXS_P, FLUXS_T!, dfdt
+
+      IF(NPSTART.eq.1)THEN
+         NPS=2
+      ELSE
+         NPS=NPSTART
+      END IF
+      IF(NPEND.eq.NPMAX)THEN
+         NPE = NPEND
+      ELSE
+         NPE = NPEND+1
+      END IF
+
+      NSA=1
+      FLUXS_PL_L(:,:)=0.D0
+      NR=NRSTART
+      NSBA=NSB_NSA(NSA)
+!FLUXS_P
+      DO NP=NPS,NPE
+         DO NTH=1,NTHMAX
+            WPL=WEIGHP(NTH  ,NP,NR,NSA)
+            DFP=    1.D0 &
+                 /DELP(NSBA)*(FNSP(NTH,NP,NR,NSBA)-FNSP(NTH,NP-1,NR,NSBA))
+            FFP=    1.D0                           &
+                 *((1.D0-WPL)*FNSP(NTH  ,NP  ,NR,NSBA)  &
+                 +WPL *FNSP(NTH  ,NP-1,NR,NSBA))
+            FLUXS_PL_L(NTH,NP)= &
+                 -DPP(NTH,NP,NR,NSA)*DFP+FPP(NTH,NP,NR,NSA)*FFP
+         END DO
+      END DO
+      
+      DO NP=NPSTART,NPEND
+         DO NTH=1,NTHMAX
+            IF(FNSP(NTH,NP,NR,NSA).le.1.D-43)THEN
+               FLUXS_PL(NTH,NP)= 0.D0
+            ELSE
+               FLUXS_PL(NTH,NP)= &
+                    0.5D0*( FLUXS_PL_L(NTH,NP)+FLUXS_PL_L(NTH,NP+1) )
+            END IF
+         END DO
+      END DO
+!FLUXS_T
+      DO NP=NPSTART,NPEND
+         DO NTH=1,NTHMAX+1
+            WTP = WEIGHT(NTH,NP,NR,NSA)
+            IF(NTH.eq.1)THEN
+               FFT= FNSP(1,NP,NR,NSBA) 
+               DFT = 0.D0
+            ELSEIF(NTH.eq.NTHMAX+1)THEN
+               FFT= FNSP(NTHMAX,NP,NR,NSBA) 
+               DFT = 0.D0
+            ELSE
+               FFT= (1.D0-WTP)*FNSP(NTH,NP,NR,NSBA)+ &
+                    WTP * FNSP(NTH,NP,NR,NSBA) 
+               DFT = 1.D0/DELTH*&
+                    (FNSP(NTH,NP,NR,NSBA)-FNSP(NTH-1,NP,NR,NSBA))
+            END IF
+            FLUXS_TL_L(NTH,NP) = -DFT*DCTT(NTH,NP,NR,NSA)/PM(NP,NSA) &
+                 + FFT*FTH(NTH,NP,NR,NSA)
+         END DO
+      END DO
+      DO NP=NPSTART,NPEND
+         DO NTH=1,NTHMAX
+            IF(FNSP(NTH,NP,NR,NSA).le.1.D-43)THEN ! p~15
+               FLUXS_TL(NTH,NP)= 0.D0
+            ELSE
+               FLUXS_TL(NTH,NP)= &
+                 0.5D0*( FLUXS_TL_L(NTH+1,NP)+FLUXS_TL_L(NTH,NP) )
+            END IF
+         END DO
+      END DO
+! dfdt_l
+!      DO NP=NPSTART,NPEND
+!         DO NTH=1,NTHMAX
+!            dfdt_l(NTH,NP)=(FNSP(NTH,NP,1,1)-FNSM(NTH,NP,1,1) )/DELT
+!         END DO
+!      END DO
+
+      CALL mtx_set_communicator(comm_np)
+      call mtx_allgather_real8(FLUXS_PL,(NPEND-NPSTART+1)*NTHMAX,FLUXS_P)
+      call mtx_allgather_real8(FLUXS_TL,(NPEND-NPSTART+1)*NTHMAX,FLUXS_T)
+!      call mtx_allgather_real8(DFDT_L,(NPEND-NPSTART+1)*NTHMAX,DFDT)
+      CALL mtx_reset_communicator 
+
+
+      IF(NSASTART.eq.1.and.NRSTART.eq.1.and.NRANK.eq.0)THEN      
+
+      WRITE(17,'(A, E14.6)') "# X, Y, Z, vx, vy, vz, time=", TIMEFP
+      DO NP=2, NPMAX, N_partition_p
+         IF(PM(NP,NSA).le.2.D0)THEN
+            NTHSTEP=8*NTHMAX/64
+         ELSEIF(PM(NP,NSA).le.5.D0)THEN
+            NTHSTEP=4*NTHMAX/64
+         ELSE
+            NTHSTEP=2*NTHMAX/64
+         END IF
+         DO NTH=1,NTHMAX,NTHSTEP
+            WRITE(17,'(20E16.8)') &
+                 PM(NP,NSA)*COSM(NTH), PM(NP,NSA)*SINM(NTH), PM(NP,NSA)*0.D0, &
+                 FLUXS_P(NTH,NP)*COSM(NTH)-FLUXS_T(NTH,NP)*SINM(NTH), &
+                 FLUXS_P(NTH,NP)*SINM(NTH)+FLUXS_T(NTH,NP)*COSM(NTH), &
+                 FLUXS_P(NTH,NP)*0.D0, FLUXS_P(NTH,NP), FLUXS_T(NTH,NP), FNS(NTH,NP,1,1)!, &
+!                 DFDT(NTH,NP)*PM(NP,NSA)*COSM(NTH), DFDT(NTH,NP)*PM(NP,NSA)*SINM(NTH)
+         END DO
+      END DO
+      WRITE(17,*) " "
+      WRITE(17,*) " "
+      END IF
+
+      END SUBROUTINE FLUXS_PTH
+
 
       END MODULE fpdisrupt

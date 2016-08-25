@@ -748,7 +748,7 @@ CONTAINS
     !aly1 = aly - vzone
     !$omp parallel do Private(x,y,z,vx,vy)
     DO np = 1, npmax
-      xmid(np)=0.5D0*(xb(np)+x(np))
+       xmid(np)=0.5D0*(xb(np)+x(np))
        IF( x(np) .LT. x3  ) THEN
           xl_before=xb(np) - x3
           x(np) = x3 + (x3  - x(np))
