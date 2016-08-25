@@ -1,5 +1,5 @@
 ### $Id: Makefile,v 1.20 2012/03/05 06:29:02 maruyama Exp $
-include ../../task/make.header
+include ../make.header
 include ../mtxp/make.mtxp
 #LIBX_MTX=$(LIBX_MTX_BND)
 #LIBX_MTX=$(LIBX_MTX_PCG)
@@ -14,9 +14,9 @@ LFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
 #LFLAGS = $(DFLAGS)
 
-MODINCLUDE= -I./$(MOD) -I../../task/plx/$(MOD) -I../../task/eq/$(MOD) \
-            -I../../bpsd/$(MOD) -I../../task/mtxp/$(MOD) \
-            -I../../task/lib/$(MOD)
+MODINCLUDE= -I./$(MOD) -I../plx/$(MOD) -I../eq/$(MOD) \
+            -I../../bpsd/$(MOD) -I../mtxp/$(MOD) \
+            -I../lib/$(MOD)
 
 SRCS = 	wfcomm.f90 wfmenu.f90 wfinit.f90 wfdiv.f90 wflib.f90 wfsub.f90 \
         wfindx.f90 wfsort.f90 wfgsub.f90 wfgutl.f90 wfant.f90 wfwave.f90 \
@@ -24,8 +24,8 @@ SRCS = 	wfcomm.f90 wfmenu.f90 wfinit.f90 wfdiv.f90 wflib.f90 wfsub.f90 \
 
 OBJS = $(SRCS:.f90=.o)
 
-LIBS = wflib.a ../../task/plx/pllib.a ../../task/eq/eqlib.a   \
-        ../../task/lib/tasklib.a ../../bpsd/bpsdlib.a $(LIB_MTX)
+LIBS = wflib.a ../plx/pllib.a ../eq/eqlib.a   \
+        ../lib/tasklib.a ../../bpsd/bpsdlib.a $(LIB_MTX)
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -39,19 +39,19 @@ wflib.a: $(OBJS)
 
 ../../bpsd/bpsdlib.a:
 	(cd ../../bpsd; make bpsdlib.a)
-../../task/plx/pllib.a:
+../plx/pllib.a:
 	(cd ../plx; make pllib.a)
-../../task/eq/eqlib.a:
-	(cd ../../task/eq; make eqlib.a)
-../../task/lib/tasklib.a:
-	(cd ../../task/lib; make tasklib.a)
+../eq/eqlib.a:
+	(cd ../eq; make eqlib.a)
+../lib/tasklib.a:
+	(cd ../lib; make tasklib.a)
 
 libs:
 	(cd ../../bpsd; make bpsdlib.a)
-	(cd ../../task/lib; make tasklib.a)
-	(cd ../../task/mtxp; make)
-	(cd ../../task/plx; make pllib.a)
-	(cd ../../task/eq; make eqlib.a)
+	(cd ../lib; make tasklib.a)
+	(cd ../mtxp; make)
+	(cd ../plx; make pllib.a)
+	(cd ../eq; make eqlib.a)
 
 wf : libs $(LIBS) wfmain.o
 	$(FLINKER) wfmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)

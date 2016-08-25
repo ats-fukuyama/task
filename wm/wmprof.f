@@ -86,7 +86,6 @@ C
                ENDIF
                RU(NS)  = (PU(NS)  -PUS(NS))*FACTU+PUS(NS)
             ENDDO
-            write(6,'(5E15.7)') rhol,rtpr(1),rtpp(1),rtpr(3),rtpp(3)
          ENDIF
       ELSEIF(MODELN.EQ.9) THEN
          IF(RHOL.GE.1.D0) THEN

@@ -1,4 +1,4 @@
-!     $Id$
+!     $Id: fpbounce.f90,v 1.11 2013/01/11 07:06:52 nuga Exp $
 
 ! *****************************
 !     PREPARATION OF PARAMETERS FOR BOUNCE AVERAGE
@@ -55,8 +55,8 @@
          CALL SET_RLAMDA_G(NR)
 
 !         CALL SET_RLAMDA_TPB_G(NR) ! Killeen
-!         CALL SET_RLAMDA_TPB2_G(NR) ! Killeen with correction
-         CALL SET_RLAMDA_TPB3_G(NR)
+         CALL SET_RLAMDA_TPB2_G(NR) ! Killeen with correction
+!         CALL SET_RLAMDA_TPB3_G(NR)
       END IF
 
       END SUBROUTINE SET_BOUNCE_PARAM
@@ -136,6 +136,7 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     BOUNDARY LAYER THM = THETA_B
+!     P.129 Killeen 
       SUBROUTINE SET_RLAMDA_TPB(NR)
 
       IMPLICIT NONE
@@ -1388,6 +1389,7 @@
          L_ex = RINT0*ABS(COS(THEX)) * ( QLG(NR)*RR ) * SIN(THEX)*DELTHEX
       END IF
 
+!      IF(NR.eq.NRMAX+1) WRITE(*,'(A,3E14.6,I4)') "BOUNCE", DEL2T, COSG(ITLG(NR)), mub, ITLG(NR)
 !     obtain k1, k2, the coefficients of K(1-x)
       k1 = 0.D0
       k2 = 0.D0

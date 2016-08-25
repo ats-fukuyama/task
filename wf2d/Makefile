@@ -1,6 +1,6 @@
 ### $Id$
-include ../../task/make.header
-include ../../task/mtxp/make.mtxp
+include ../make.header
+include ../mtxp/make.mtxp
 #LIB_MTX=$(LIB_MTX_BND)
 #LIB_MTX=$(LIB_MTX_PCG)
 LIB_MTX=$(LIB_MTX_MUMPS)
@@ -16,8 +16,8 @@ LIBX_MTX=$(LIBX_MTX_MUMPS)
 #FFLAGS = $(OFLAGS)
 FFLAGS = $(DFLAGS)
 
-MODINCLUDE= -I../../task/plx/$(MOD) -I../../task/eq/$(MOD) \
-            -I../../bpsd/$(MOD) -I../../task/mtxp/$(MOD) -I.$(MOD)
+MODINCLUDE= -I../plx/$(MOD) -I../eq/$(MOD) \
+            -I../../bpsd/$(MOD) -I../mtxp/$(MOD) -I.$(MOD)
 
 SRCS = wfcomm.f90 wfmenu.f90 wfinit.f90 wfdiv.f90 wfant.f90 wfwave.f90 \
        wfsolv.f90 wfprof.f90 wfsub.f90 wfnas.f90 wfsort.f90 wffile.f90 \
@@ -26,8 +26,8 @@ SRCS = wfcomm.f90 wfmenu.f90 wfinit.f90 wfdiv.f90 wfant.f90 wfwave.f90 \
 
 OBJS = $(SRCS:.f90=.o)
 
-LIBS = wflib.a ../../task/plx/pllib.a ../../task/eq/eqlib.a   \
-        ../../task/lib/tasklib.a ../../bpsd/bpsdlib.a $(LIB_MTX)
+LIBS = wflib.a ../plx/pllib.a ../eq/eqlib.a   \
+        ../lib/tasklib.a ../../bpsd/bpsdlib.a $(LIB_MTX)
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -41,27 +41,27 @@ wflib.a: $(OBJS)
 
 ../../bpsd/bpsdlib.a:
 	(cd ../../bpsd; make bpsdlib.a)
-../../task/plx/pllib.a:
+../plx/pllib.a:
 	(cd ../plx; make pllib.a)
-../../task/eq/eqlib.a:
-	(cd ../../task/eq; make eqlib.a)
-../../task/mtxp/libmtxmumps.o:
-	(cd ../../task/mtxp; make libmtxmumps.o)
-../../task/mtxpc/libmtxbnd.o:
-	(cd ../../task/mtxp; make libmtxbnd.o)
-../../task/mtxp/libmtxmpi.o:
-	(cd ../../task/mtxp; make libmtxmpi.o)
-../../task/mtxp/libmtxnompi.o:
-	(cd ../../task/mtxp; make libmtxnompi.o)
-../../task/lib/tasklib.a:
-	(cd ../../task/lib; make tasklib.a)
+../eq/eqlib.a:
+	(cd ../eq; make eqlib.a)
+../mtxp/libmtxmumps.o:
+	(cd ../mtxp; make libmtxmumps.o)
+../mtxpc/libmtxbnd.o:
+	(cd ../mtxp; make libmtxbnd.o)
+../mtxp/libmtxmpi.o:
+	(cd ../mtxp; make libmtxmpi.o)
+../mtxp/libmtxnompi.o:
+	(cd ../mtxp; make libmtxnompi.o)
+../lib/tasklib.a:
+	(cd ../lib; make tasklib.a)
 
 libs:
 	(cd ../../bpsd; make bpsdlib.a)
-	(cd ../../task/eq; make eqlib.a)
-	(cd ../../task/mtxp; make)
-	(cd ../../task/plx; make pllib.a)
-	(cd ../../task/lib; make tasklib.a)
+	(cd ../eq; make eqlib.a)
+	(cd ../mtxp; make)
+	(cd ../plx; make pllib.a)
+	(cd ../lib; make tasklib.a)
 
 wf : libs wflib.a wfmain.o
 	$(FLINKER) wfmain.o -o $@ $(FFLAGS) $(LIBS) $(FLIBS) $(LIBX_MTX)
