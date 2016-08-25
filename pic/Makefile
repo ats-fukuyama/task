@@ -8,7 +8,7 @@ LIBX_MTX=$(LIBX_MTX_MUMPS)
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-FFLAGS=$(OFLAGS)
+FFLAGS=$(OFLAGS) #-fopenmp
 #FFLAGS=$(DFLAGS)
 
 MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD) -I../mtxp/$(MOD) -I../lib/$(MOD)
