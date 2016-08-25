@@ -18,10 +18,10 @@ CONTAINS
     INTEGER:: nx,ny,np,locv
     REAL(8):: factor,sum
       npmax = npxmax * npymax
-      nxmaxh1 = nxmax / 2 + 1
-      nxmax1 = nxmax + 1
-      nymax1 = nymax + 1
-      nxymax = nxmax1 * nymax1
+      nxmaxh1 = nxmax/ 2 + 1
+        nxmax1 = nxmax + 1
+        nymax1 = nymax + 1
+        nxymax = nxmax1 * nymax1
       nzmax  = MIN(nxmax,nymax)
 
       ctome  = chrge / me       !: charge to mass ratio of electrons
@@ -92,12 +92,12 @@ CONTAINS
       !..... set initial positions and velocities of electrons
       call iniset(npmax,npxmax,npymax,nxmax,nymax,densx, &
                   xe,ye,ze,xeb,yeb,zeb,vxe,vye,vze,vte,dt,iran,&
-                  x1,x2,y1,y2,alx,aly)
+                  x1,x2,y1,y2,alx,aly,model_boundary,vzone)
 
       !..... set initial positions and velocities of ions
       call iniset(npmax,npxmax,npymax,nxmax,nymax,densx, &
                   xi,yi,zi,xib,yib,zib,vxi,vyi,vzi,vti,dt,iran,&
-                  x1,x2,y1,y2,alx,aly)
+                  x1,x2,y1,y2,alx,aly,model_boundary,vzone)
 
 
       !..... initialize scalar potential by poisson solver
@@ -119,16 +119,14 @@ CONTAINS
             bzbg(nx,ny)=bzmin+(bzmax-bzmin)*factor
          END DO
       END DO
-
        !.......... calculate ex and ey and ez
-       call efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
-                   ex,ey,ez,exb,eyb,ezb,exbb,eybb,ezbb,bxb,byb,bzb,&
-                   esx,esy,esz,emx,emy,emz,jx,jy,jz,vcfact,model_wg,&
-                   xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi,model_push,model_boundary)
-       !.......... calculate bx and by and bz
-       call bfield(nxmax,nymax,dt,Ax,Ay,Az,Axb,Ayb,Azb,ex,ey,ez,&
-                   bx,by,bz,bxb,byb,bzb,bxbb,bybb,bzbb,bxbg,bybg,bzbg,bb, &
-                   vcfact,model_push,model_boundary)
+         CALL efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
+                     ex,ey,ez,exb,eyb,ezb,exbb,eybb,ezbb,bxb,byb,bzb,&
+                     esx,esy,esz,emx,emy,emz,jx,jy,jz,vcfact,model_push,model_boundary)
+         !.......... calculate bx and by and bz
+         CALL bfield(nxmax,nymax,dt,Ax,Ay,Az,Axb,Ayb,Azb,ex,ey,ez,&
+                     bx,by,bz,bxb,byb,bzb,bxbb,bybb,bzbb,bxbg,bybg,bzbg,bb, &
+                     vcfact,model_push,model_boundary)
       do np=1,npmax
          vparae(np)=vye(np)
          vperpe(np)=SQRT(vxe(np)**2+vze(np)**2)
@@ -166,24 +164,35 @@ CONTAINS
 !***********************************************************************
       subroutine iniset(npmax,npxmax,npymax,nxmax,nymax,densx,&
                         x,y,z,xb,yb,zb,vx,vy,vz,vt,dt,iran,&
-                        x1,x2,y1,y2,alx,aly)
+                        x1,x2,y1,y2,alx,aly,model_boundary,vzone)
 !***********************************************************************
       implicit none
       real(8), dimension(npmax) :: x, y, z, xb, yb, zb, vx, vy, vz
-      integer :: npmax, npxmax, npymax, nxmax, nymax, iran
+      integer :: npmax, npxmax, npymax, nxmax, nymax, iran, vzone
       real(8) :: vt, dt, factx, facty, rvx, rvy, rvz, densx, inter, position,&
-                 x1,x2,y1,y2,alx,aly
-      integer :: npx, npy, np
+                 x1,x2,y1,y2,x3,x4,y3,y4,alx,aly,alx1,aly1,vdzone
+      integer :: npx, npy, np, model_boundary
 
       factx = dble(nxmax) / dble(npxmax)
       facty = dble(nymax) / dble(npymax)
+      IF(model_boundary .ne. 0) THEN
+        vdzone = dble(vzone)
+        factx = dble(nxmax-2*vzone) / dble(npxmax)
+        facty = dble(nymax-2*vzone) / dble(npymax)
+        x3 = x1 + vdzone
+        y3 = y1 + vdzone
+        x4 = x2 - vdzone
+        y4 = y2 - vdzone
+        alx1 = alx - vdzone
+        aly1 = aly - vdzone
+      ENDIF
       np = 0
-      if(densx .lt. 0.d0) then ! subroutine for uniform density
+      IF(densx .lt. 0.d0) then ! subroutine for uniform density
       do npy = 1, npymax
       do npx = 1, npxmax
         np = np + 1
-         x(np) = (dble(npx) - 0.5d0 ) * factx
-         y(np) = (dble(npy) - 0.5d0 ) * facty
+         x(np) = (dble(npx) - 0.5d0 ) * factx + vdzone
+         y(np) = (dble(npy) - 0.5d0 ) * facty + vdzone
          call gauss(rvx,rvy,rvz,iran)
          vx(np) = rvx * vt
          vy(np) = rvy * vt
@@ -191,37 +200,19 @@ CONTAINS
          xb(np) = x(np) - vx(np) * dt
          yb(np) = y(np) - vy(np) * dt
          zb(np) = z(np) - vz(np) * dt
-         IF( xb(np) .LT. x1 ) THEN
-            DO WHILE(xb(np) .LT. x1)
-               xb(np) = xb(np) + alx
-            END DO
-         ELSEIF( xb(np) .GT. x2 ) THEN
-            DO WHILE(xb(np) .GT. x2)
-               xb(np) = xb(np) - alx
-            END DO
-         ENDIF
 
-         IF( yb(np) .LT. y1 ) THEN
-            DO WHILE(yb(np) .LT. y1)
-               yb(np) = yb(np) + aly
-            END DO
-         ELSEIF( yb(np) .GT. y2 ) THEN
-            DO WHILE(yb(np) .GT. y2)
-               yb(np) = yb(np) - aly
-            END DO
-         ENDIF
       end do
       end do
-   else ! subroutine for density gradient
-      inter = dble(nxmax)/((dble(npxmax)+1.0d0)*(1.0d0-0.5d0*densx))
+   ELSE ! subroutine for density gradient
+      inter = dble(nxmax-2*vdzone)/((dble(npxmax)+1.0d0)*(1.0d0-0.5d0*densx))
       do npy = 1, npymax
-        position = 0.d0
+        position = vdzone
       do npx = 1, npxmax
          np = np + 1
          position = position &
                   + inter * (1.0d0 - densx * (dble(npx) - 1.0d0)/dble(npxmax))
          x(np) = position
-         y(np) = (dble(npy) - 0.5d0 ) * facty
+         y(np) = (dble(npy) - 0.5d0 ) * facty + vdzone
 
          call gauss(rvx,rvy,rvz,iran)
          vx(np) = rvx * vt
@@ -231,15 +222,37 @@ CONTAINS
          yb(np) = y(np) - vy(np) * dt
          zb(np) = z(np) - vz(np) * dt
          ! particle reflect condition on boundary
-         IF( xb(np) .LT. x1 ) THEN
-            xb(np) = -xb(np)
-         ELSEIF( xb(np) .GT. x2 ) THEN
-            xb(np) = alx - (xb(np) - alx)
-         ENDIF
-         IF( yb(np) .LT. y1 ) THEN
-            yb(np) = -yb(np)
-         ELSEIF( yb(np) .GT. y2 ) THEN
-            yb(np) = aly - (yb(np) - aly)
+         IF(model_boundary .ne. 0) THEN
+           IF( xb(np) .LT. x1 ) THEN
+              DO WHILE(xb(np) .LT. x1)
+                xb(np) = xb(np) + alx
+              END DO
+           ELSEIF( xb(np) .GT. x2 ) THEN
+              DO WHILE(xb(np) .GT. x2)
+                xb(np) = xb(np) - alx
+              END DO
+           ENDIF
+
+           IF( yb(np) .LT. y1 ) THEN
+              DO WHILE(yb(np) .LT. y1)
+                yb(np) = yb(np) + aly
+              END DO
+           ELSEIF( yb(np) .GT. y2 ) THEN
+              DO WHILE(yb(np) .GT. y2)
+                yb(np) = yb(np) - aly
+              END DO
+           ENDIF
+         ELSE
+           IF( xb(np) .LT. x3  ) THEN
+               xb(np) = -xb(np) + 3.d0
+           ELSEIF( xb(np) .GT. x4 ) THEN
+               xb(np) = alx1 - (xb(np) - alx1)
+           ENDIF
+           IF( yb(np) .LT. y3 ) THEN
+               yb(np) = -yb(np) + 3.d0
+           ELSEIF( yb(np) .GT. y4 ) THEN
+               yb(np) = aly1 - (yb(np) - aly1)
+           ENDIF
          ENDIF
       END DO
       END DO

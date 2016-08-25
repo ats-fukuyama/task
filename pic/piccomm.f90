@@ -8,7 +8,7 @@ MODULE piccomm_parm
 
   INTEGER:: npxmax,npymax,nxmax,nymax,ntmax,ntstep,ntgstep,ntpstep
   INTEGER:: npomax,npostep,ntostep
-  INTEGER:: model_push,model_boundary,model_antenna,model_wg
+  INTEGER:: model_push,model_boundary,model_antenna,model_wg,vzone
   INTEGER:: model_matrix0,model_matrix1,model_matrix2
   REAL(rkind):: dt,me,mi,chrge,chrgi,te,ti,densx,&
        bxmin,bxmax,bymin,bymax,bzmin,bzmax,vcfact,omega,eps,dlen
@@ -50,7 +50,7 @@ MODULE piccomm
              akine1, akine2, akini1, akini2, time,  &
              x1, x2, y1, y2, z1, z2 ,alx, aly, alz, &
              wkword, wtime, wtime1, wtime2
-  INTEGER :: npmax,nxmaxh1,nxmax1,nymax1,nxymax,nzmax
+  INTEGER :: npmax,nxmaxh1,nxmax1,nymax1,nxmax2,nymax2,nxymax,nzmax
   INTEGER :: ntcount, ntgcount, ntpcount, ntocount, ntgmax, ntpmax, ntomax
   INTEGER :: ifset, ipssn, iran, iran1, iran2, iran3
   INTEGER :: ierr

@@ -23,7 +23,6 @@ CONTAINS
     INTEGER,PARAMETER:: nlmax=10
     INTEGER:: WORK_PAT(nlmax)
     REAL(rkind):: aspect,vtotemax,vtotimax
-
     aspect=DBLE(nymax)/DBLE(nxmax)
 
     ALLOCATE(x(nxmax1),y(nymax1))
@@ -211,13 +210,13 @@ CONTAINS
        CALL GRD2D(10,x,y,jz,nxmax1,nxmax1,nymax1,'@jz@',ASPECT=aspect, &
                     XMIN=0.D0,XMAX=DBLE(nxmax),YMIN=0.D0,YMAX=DBLE(nymax), &
                     NLMAX=nlmax,LINE_PAT=WORK_PAT)
-       CALL GRD2D(11,x,y,Ax,nxmax1,nxmax1,nymax1,'@Ax@',ASPECT=aspect, &
+       CALL GRD2D(11,x,y,Bx,nxmax1,nxmax1,nymax1,'@Bx@',ASPECT=aspect, &
                     XMIN=0.D0,XMAX=DBLE(nxmax),YMIN=0.D0,YMAX=DBLE(nymax), &
                     NLMAX=nlmax,LINE_PAT=WORK_PAT)
-       CALL GRD2D(12,x,y,Ay,nxmax1,nxmax1,nymax1,'@Ay@',ASPECT=aspect, &
+       CALL GRD2D(12,x,y,By,nxmax1,nxmax1,nymax1,'@By@',ASPECT=aspect, &
                     XMIN=0.D0,XMAX=DBLE(nxmax),YMIN=0.D0,YMAX=DBLE(nymax), &
                     NLMAX=nlmax,LINE_PAT=WORK_PAT)
-       CALL GRD2D(13,x,y,Az,nxmax1,nxmax1,nymax1,'@Az@',ASPECT=aspect, &
+       CALL GRD2D(13,x,y,Bz,nxmax1,nxmax1,nymax1,'@Bz@',ASPECT=aspect, &
                     XMIN=0.D0,XMAX=DBLE(nxmax),YMIN=0.D0,YMAX=DBLE(nymax), &
                     NLMAX=nlmax,LINE_PAT=WORK_PAT)
        CALL PAGEE
@@ -235,11 +234,11 @@ CONTAINS
                     XMIN=0.D0,XMAX=DBLE(nxmax))
        CALL GRD1D(10,x,jz,nxmax1,nxmax1,nymax1,'@jz(x)@', &
                     XMIN=0.D0,XMAX=DBLE(nxmax))
-       CALL GRD1D(11,x,Ax,nxmax1,nxmax1,nymax1,'@Ax(x)@', &
+       CALL GRD1D(11,x,Bx,nxmax1,nymax1,nymax1,'@Bx(x)@', &
                     XMIN=0.D0,XMAX=DBLE(nxmax))
-       CALL GRD1D(12,x,Ay,nxmax1,nxmax1,nymax1,'@Ay(x)@', &
+       CALL GRD1D(12,x,By,nxmax1,nxmax1,nymax1,'@By(x)@', &
                     XMIN=0.D0,XMAX=DBLE(nxmax))
-       CALL GRD1D(13,x,Az,nxmax1,nxmax1,nymax1,'@Az(x)@', &
+       CALL GRD1D(13,x,Bz,nxmax1,nxmax1,nymax1,'@Bz(x)@', &
                     XMIN=0.D0,XMAX=DBLE(nxmax))
        CALL PAGEE
     CASE('F1')
