@@ -746,11 +746,15 @@ CONTAINS
     alx1 = alx - vzone
     aly1 = aly - vzone
     DO np = 1, npmax
+       xmid(np)=0.5D0*(xb(np)+x(np))
        IF( x(np) .LT. x3  ) THEN
-          x(np) = -x(np) + 2.d0*vdzone
+          xl_before=xb(np) - x3
+          x(np) = x3 + (x3  - x(np))
+          xl_after=x(np) - x3
+          xmid(np)=x3+0.5D0*ABS(xlafer-xlbefore)
           vx(np) = -vx(np)
        ELSEIF( x(np) .GT. x4 ) THEN
-          x(np) = alx1 - (x(np) - alx1)
+          x(np) = x4 - (x(np) - x4)
           vx(np) = -vx(np)
        ENDIF
        IF( y(np) .LT. y3 ) THEN
