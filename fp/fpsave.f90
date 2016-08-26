@@ -356,8 +356,8 @@
                            DFDP=DELP(NSA)*FFP/(                         &
                                 FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA) )
                         END IF
-                        IF(DFDP.ne.DFDP)THEN
-!                        IF(isNaN(DFDP) .eqv. .true.)THEN
+                        IF(DFDP.ne.DFDP)THEN ! NaN never equals to any other variables.
+!                        IF(isNaN(DFDP) .eqv. .true.)THEN ! gfortran do not support isNaN function.
                            WRITE(21,'(A,E14.6,3I4,3E14.6)') "DFDP is NaN in fpsave. ", TIMEFP, NP, NTH, NSA, &
                                 FNSP(NTH,NP,NR,NSA), FNSP(NTH,NP-1,NR,NSA), FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA)
                            DFDP=0.D0
