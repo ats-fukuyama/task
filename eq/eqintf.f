@@ -128,7 +128,7 @@ C
       SUBROUTINE GET_RZ(rhon_,chip_,R_,Z_)
 C
       INCLUDE '../eq/eqcomq.inc'
-      REAL(8):: chip_, CHIP
+      REAL(8):: chip_
 C
       CALL SPL2DF(chip_,rhon_,R_,
      &                  CHIP,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
