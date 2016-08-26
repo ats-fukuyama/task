@@ -279,17 +279,21 @@
 !     ======( MODEL PARAMETERS )======
 
 !        MODELG: Control plasma geometry model
-!                   0: Slab geometry
-!                   1: Cylindrical geometry
-!                   2: Toroidal geometry
-!                   3: Read TASK/EQ output geometry
-!                   4: Read VMEC output geometry
-!                   5: Read EQDSK output geometry
-!                   6: Read Boozer output geometry
-!                   7: Read new VMEC output geometry
-!                   8: call TOPICS/EQU
-!                   9: call TASK/EQ
-!                  12: Read from 2D mag file 
+!                   0: XYZ Slab geometry
+!                   1: XYZ Cylindrical geometry
+!                   2: RZphi Toroidal geometry
+!                   3: RZphi Read TASK/EQ output geometry
+!                   4: RZphi Read VMEC output geometry
+!                   5: RZphi Read EQDSK output geometry
+!                   6: RZphi Read Boozer output geometry
+!                   7: RZphi Read new VMEC output geometry
+!                   8: RZphi call TASK/EQU
+!                   9: RZphi call TASK/EQ
+!                  10: reserved for GAMMA-10
+!                  11: XY 2D plane profile (MODELGX: 0:linear, 1,2:parabolic)
+!                  12: XY 2D plane Read 2D mag file 
+!                  13: RZ 2D toroidal profile (linear)
+!                  14: RZ 2D toroidal Read 2D mag file 
 !        MODELN: Control plasma profile
 !                   0: Calculated from PN,PNS,PTPR,PTPP,PTS,PU,PUS; 0 in SOL
 !                   1: Calculated from PN,PNS,PTPR,PTPP,PTS,PU,PUS; PNS in SOL
@@ -297,7 +301,8 @@
 !                   8: Read from file through WMXPRF (JT-60)
 !                   9: Read from file KNAMTR (TASK/TR)
 !                  12: Read from 2D nT file
-!        MODELQ: Control safety factor profile (for MODELG=0,1,2)
+!                  14: Read from 2D nT file
+!        MODELQ: Control safety factor profile (for MODELG=1,2)
 !                   0: Parabolic q profile (Q0,QA,RHOMIN,RHOITB)
 !                   1: Given current profile (RIP,PROFJ)
 
