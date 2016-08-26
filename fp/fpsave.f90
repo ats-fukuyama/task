@@ -356,8 +356,9 @@
                            DFDP=DELP(NSA)*FFP/(                         &
                                 FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA) )
                         END IF
-                        IF(isNaN(DFDP) .eqv. .true.)THEN
-                           WRITE(*,'(A,3I4,3E14.6)') "DFDP is NaN in fpsave. ", NP, NTH, NSA, &
+                        IF(DFDP.ne.DFDP)THEN
+!                        IF(isNaN(DFDP) .eqv. .true.)THEN
+                           WRITE(21,'(A,E14.6,3I4,3E14.6)') "DFDP is NaN in fpsave. ", TIMEFP, NP, NTH, NSA, &
                                 FNSP(NTH,NP,NR,NSA), FNSP(NTH,NP-1,NR,NSA), FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA)
                            DFDP=0.D0
                         END IF
