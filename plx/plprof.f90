@@ -1,20 +1,3 @@
-!     $Id$
-
-  MODULE plxprf
-
-    USE bpsd_kinds
-
-!     NXPRF : Maximum number of spatial points read from external file
-!     NXSPC : Maximum number of species read from external file
-    
-    INTEGER(ikind),PARAMETER:: NXPRF=101,NXSPC=6
-
-    INTEGER(ikind):: NPRF
-    REAL(rkind),DIMENSION(NXPRF):: PRFRHO,DERIV
-    REAL(rkind),DIMENSION(4,NXPRF,NXSPC):: UPRFN,UPRFT
-
-  END MODULE plxprf
-
   MODULE pllocal
     USE plcomm,ONLY: rkind,NSM
 
@@ -845,8 +828,8 @@
 
       IFNO=22
       OPEN ( IFNO, FILE=TRFILE, ERR=9995 )
-      READ ( IFNO, '(I3)', END=9996, ERR=9996 ) NPRF
-      DO N=1,NPRF
+      READ ( IFNO, '(I3)', END=9996, ERR=9996 ) NPRFMAX
+      DO N=1,NPRFMAX
          READ ( IFNO, '(13E14.7)', END=9996, ERR=9996 ) &
              PRFRHO(N), (PRFN(N,I), I=1,NXSPC), &
                         (PRFT(N,I), I=1,NXSPC)
@@ -854,7 +837,7 @@
 
 !----  Modification for charge neutrality
 
-!      DO NR=1,NPRF
+!      DO NR=1,NPRFMAX
 !         VAL=0.D0
 !         DO NS=2,NSMAX-1
 !            VAL=VAL+PZ(NS)*PRFN(NR,NS)
@@ -862,7 +845,7 @@
 !         PRFN(NR,NSMAX)=(PRFN(NR,1)-VAL)/PZ(NSMAX)
 !      ENDDO
 
-      DO NR=1,NPRF
+      DO NR=1,NPRFMAX
          VAL=0.D0
          DO NS=2,NSMAX
             VAL=VAL+PZ(NS)*PRFN(NR,NS)
@@ -873,9 +856,9 @@
 !----  Set coefficient for spline
 
       DO NS=1,NSMAX
-         CALL SPL1D(PRFRHO,PRFN(1,NS),DERIV,UPRFN(1,1,NS), NPRF,0,IRC)
+         CALL SPL1D(PRFRHO,PRFN(1,NS),DERIV,UPRFN(1,1,NS), NPRFMAX,0,IRC)
          IF (IRC.NE.0) GO TO 9997
-         CALL SPL1D(PRFRHO,PRFT(1,NS),DERIV,UPRFT(1,1,NS), NPRF,0,IRC)
+         CALL SPL1D(PRFRHO,PRFT(1,NS),DERIV,UPRFT(1,1,NS), NPRFMAX,0,IRC)
          IF (IRC.NE.0) GO TO 9997
       ENDDO
 
@@ -919,9 +902,9 @@
          END IF
          PTL = PTS(NS)
       ELSE
-         CALL SPL1DF(Rhol,PPL,PRFRHO,UPRFN(1,1,NS),NPRF,IERR)
+         CALL SPL1DF(Rhol,PPL,PRFRHO,UPRFN(1,1,NS),NPRFMAX,IERR)
          PNL=PPL
-         CALL SPL1DF(Rhol,PPL,PRFRHO,UPRFT(1,1,NS),NPRF,IERR)
+         CALL SPL1DF(Rhol,PPL,PRFRHO,UPRFT(1,1,NS),NPRFMAX,IERR)
          PTL=PPL
       ENDIF
 

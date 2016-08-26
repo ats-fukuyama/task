@@ -1,6 +1,4 @@
-!     $Id$
-
-      MODULE plcomm
+MODULE plcomm
 
       USE bpsd_kinds
       USE bpsd_constants
@@ -30,3 +28,19 @@
         end subroutine pl_allocate_ns
 
       end module plcomm
+
+MODULE plxprf
+
+  USE bpsd_kinds
+
+!     NXPRF : Maximum number of spatial points read from external file
+!     NXSPC : Maximum number of species read from external file
+    
+  INTEGER(ikind),PARAMETER:: NXPRF=101,NXSPC=6
+
+  INTEGER(ikind):: NPRFMAX
+  REAL(rkind),DIMENSION(NXPRF):: PRFRHO,DERIV
+  REAL(rkind),DIMENSION(4,NXPRF,NXSPC):: UPRFN,UPRFT
+
+END MODULE plxprf
+
