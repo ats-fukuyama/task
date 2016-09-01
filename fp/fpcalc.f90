@@ -193,21 +193,21 @@
 
 !     ----- bounce average -----
          IF(MODELA.EQ.1) THEN
-            IF(MODELC.EQ.0.or.MODELC.eq.1) THEN
+!            IF(MODELC.EQ.0.or.MODELC.eq.1) THEN
                CALL FPCALC_LAV(NR,NSA)
-            ELSEIF(MODELC.EQ.2.or.MODELC.eq.3) THEN
-               CALL FPCALC_NLAV(NR,NSA)
-            ELSEIF(MODELC.EQ.4) THEN
-               CALL FPCALC_NLAV(NR,NSA)
-            ELSEIF(MODELC.EQ.5) THEN
-               CALL FPCALC_LAV(NR,NSA)
-            ELSEIF(MODELC.EQ.6) THEN
-               CALL FPCALC_NLAV(NR,NSA)
-            ELSEIF(MODELC.EQ.-1) THEN
-               CALL FPCALC_LAV(NR,NSA)
-            ELSEIF(MODELC.EQ.-2) THEN
-               CALL FPCALC_NLAV(NR,NSA)
-            ENDIF
+!            ELSEIF(MODELC.EQ.2.or.MODELC.eq.3) THEN
+!               CALL FPCALC_NLAV(NR,NSA)
+!            ELSEIF(MODELC.EQ.4) THEN
+!               CALL FPCALC_NLAV(NR,NSA)
+!            ELSEIF(MODELC.EQ.5) THEN
+!               CALL FPCALC_LAV(NR,NSA)
+!            ELSEIF(MODELC.EQ.6) THEN
+!               CALL FPCALC_NLAV(NR,NSA)
+!            ELSEIF(MODELC.EQ.-1) THEN
+!               CALL FPCALC_LAV(NR,NSA)
+!            ELSEIF(MODELC.EQ.-2) THEN
+!               CALL FPCALC_NLAV(NR,NSA)
+!            ENDIF
          ENDIF
 !     sum up coefficients by species
          DO NSB=1,NSBMAX
@@ -1071,13 +1071,14 @@
       integer:: NSA, NSB,NR, NP, NTH
       real(8):: RGAMH, RGAMH2, RZI, RTE, PFPL, VFPL, U, DCTTL
       real(8):: FACT
-      DOUBLE PRECISION:: DELH, sum, etal, psib, pcos, arg, x
+      DOUBLE PRECISION:: DELH, sum, etal, psib, pcos, arg, x, PSIN
       INTEGER:: NG
 
+! DCPP, FCPP
       DO NSB=1,NSBMAX
          DO NP=NPSTART,NPENDWG
             DO NTH=1,NTHMAX
-               FACT=RLAMDA(NTH,NR)
+               FACT=RLAMDA(NTH,NR)!/A_chi0(NR)
                DCPP2(NTH,NP,NR,NSB,NSA) &
                     =FACT*DCPP2(NTH,NP,NR,NSB,NSA)
                FCPP2(NTH,NP,NR,NSB,NSA) &
@@ -1092,7 +1093,7 @@
                          +DCPP2(ITU(NR)-1,NP,NR,NSB,NSA) &
                                    /RLAMDA(ITU(NR)-1,NR) &
                          +DCPP2(ITU(NR)+1,NP,NR,NSB,NSA) &
-                                   /RLAMDA(ITU(NR)+1,NR))
+                                   /RLAMDA(ITU(NR)+1,NR) )
 
             FCPP2(ITL(NR),NP,NR,NSB,NSA) &
                     =RLAMDA(ITL(NR),NR)/4.D0  &
@@ -1103,17 +1104,12 @@
                         +FCPP2(ITU(NR)-1,NP,NR,NSB,NSA) &
                                     /RLAMDA(ITU(NR)-1,NR) &
                         +FCPP2(ITU(NR)+1,NP,NR,NSB,NSA) &
-                                    /RLAMDA(ITU(NR)+1,NR)) 
+                                    /RLAMDA(ITU(NR)+1,NR) ) 
             DCPP2(ITU(NR),NP,NR,NSB,NSA)=DCPP2(ITL(NR),NP,NR,NSB,NSA)
             FCPP2(ITU(NR),NP,NR,NSB,NSA)=FCPP2(ITL(NR),NP,NR,NSB,NSA)
          END DO
-!         FACT=RLAMDC(NTH,NR)
-!         DO NP=1,NPMAX
-!            DO NTH=1,NTHMAX+1
-!               DCTT2(NTH,NP,NR,NSB,NSA)=FACT*DCTT2(NTH,NP,NR,NSB,NSA)
-!            ENDDO
-!         END DO
-!         DO NP=1,NPMAX
+
+! DCTT
          DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX+1
                IF(NTH.NE.NTHMAX/2+1) THEN 
@@ -1121,13 +1117,14 @@
                   SUM=0.D0
                   DO NG=1,NAVMAX
                      ETAL = DELH*(NG-0.5D0)
-                     X=EPSRM2(NR)*COS(ETAL)*RR 
-                     PSIB=(1.D0+EPSRM2(NR))/(1.D0+X/RR)
+                     X=EPSRM2(NR)*COS(ETAL)
+                     PSIB=(1.D0+EPSRM2(NR))/(1.D0+X)
                      ARG=1.D0-PSIB*SING(NTH)**2
                      PCOS = SQRT(ARG)
-                     sum=sum + DCTT2(NTH,NP,NR,NSB,NSA)*PCOS/(PSIB*COSG(NTH)) 
+                     PSIN = SQRT(PSIB)*SING(NTH)
+                     sum=sum + DCTT2(NTH,NP,NR,NSB,NSA)*PCOS/(PSIB*ABS(COSG(NTH))) 
                   END DO
-                  DCTT2(NTH,NP,NR,NSB,NSA)=sum*DELH
+                  DCTT2(NTH,NP,NR,NSB,NSA)=sum*DELH*Line_Element(NR)*A_chi0(NR)
                ELSE
                   DCTT2(NTH,NP,NR,NSB,NSA)=0.D0
                END IF
@@ -1141,6 +1138,75 @@
             END DO
          END DO ! NP
       END DO ! NSB
+
+!     DPT, DTP, FTH
+      IF(MODELC.ge.3)THEN
+      DO NSB=1,NSBMAX
+         DO NP=NPSTART,NPENDWG
+            DO NTH=1,NTHMAX
+               DELH = 2.D0*ETAM(NTH,NR)/NAVMAX
+               SUM=0.D0
+               DO NG=1,NAVMAX
+                  ETAL = DELH*(NG-0.5D0)
+                  X=EPSRM2(NR)*COS(ETAL)
+                  PSIB=(1.D0+EPSRM2(NR))/(1.D0+X)
+!                  ARG=1.D0-PSIB*SINM(NTH)**2
+!                  PCOS = SQRT(ARG)
+!                  PSIN = SQRT(PSIB)*SINM(NTH)
+!                  sum=sum + DCPT2(NTH,NP,NR,NSB,NSA)*SINM(NTH)/PSIN
+                  sum=sum + DCPT2(NTH,NP,NR,NSB,NSA)/SQRT(PSIB)
+               END DO
+               DCPT2(NTH,NP,NR,NSB,NSA)=sum*DELH*Line_Element(NR)*A_chi0(NR)
+            ENDDO
+
+            DCPT2(ITL(NR),NP,NR,NSB,NSA) &
+                     =RLAMDA(ITL(NR),NR)/4.D0 &
+                       *( DCPT2(ITL(NR)-1,NP,NR,NSB,NSA) &
+                                   /RLAMDA(ITL(NR)-1,NR) &
+                         +DCPT2(ITL(NR)+1,NP,NR,NSB,NSA) &
+                                   /RLAMDA(ITL(NR)+1,NR) &
+                         +DCPT2(ITU(NR)-1,NP,NR,NSB,NSA) &
+                                   /RLAMDA(ITU(NR)-1,NR) &
+                         +DCPT2(ITU(NR)+1,NP,NR,NSB,NSA) &
+                                   /RLAMDA(ITU(NR)+1,NR) )
+
+            DCPP2(ITU(NR),NP,NR,NSB,NSA)=DCPP2(ITL(NR),NP,NR,NSB,NSA)
+         END DO
+
+! DTP, FTH
+         DO NP=NPSTARTW,NPENDWM
+            DO NTH=1,NTHMAX+1
+               DELH = 2.D0*ETAG(NTH,NR)/NAVMAX
+               SUM=0.D0
+               DO NG=1,NAVMAX
+                  ETAL = DELH*(NG-0.5D0)
+                  X=EPSRM2(NR)*COS(ETAL)
+                  PSIB=(1.D0+EPSRM2(NR))/(1.D0+X)
+!                     ARG=1.D0-PSIB*SING(NTH)**2
+!                     PCOS = SQRT(ARG)
+!                     PSIN = SQRT(PSIB)*SING(NTH)
+                  sum=sum + 1.D0/SQRT(PSIB)
+               END DO
+               DCTP2(NTH,NP,NR,NSB,NSA)=sum*DCTP2(NTH,NP,NR,NSB,NSA)*DELH*Line_Element(NR)*A_chi0(NR)
+               FCTH2(NTH,NP,NR,NSB,NSA)=sum*FCTH2(NTH,NP,NR,NSB,NSA)*DELH*Line_Element(NR)*A_chi0(NR)
+            ENDDO
+
+            DO NTH=ITL(NR)+1,NTHMAX/2
+               DCTP2(NTH,NP,NR,NSB,NSA)        &
+                    =(DCTP2(NTH,NP,NR,NSB,NSA) &
+                    +DCTP2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0
+               DCTP2(NTHMAX-NTH+2,NP,NR,NSB,NSA) &
+                    =DCTP2(NTH,NP,NR,NSB,NSA) 
+
+               FCTH2(NTH,NP,NR,NSB,NSA)        &
+                    =(FCTH2(NTH,NP,NR,NSB,NSA) &
+                    +FCTH2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0
+               FCTH2(NTHMAX-NTH+2,NP,NR,NSB,NSA) &
+                    =FCTH2(NTH,NP,NR,NSB,NSA) 
+            END DO
+         END DO ! NP
+      END DO ! NSB
+      END IF
 
       RETURN
       END SUBROUTINE FPCALC_LAV

@@ -134,7 +134,7 @@
       real(rkind),dimension(:,:),POINTER :: & ! (NTHM,NRMP)
            ETAG,ETAM,RLAMDA,RLAMDC,ETAM_G,ETAG_G,RLAMDA_G,RlAMDC_G
       real(rkind),dimension(:),POINTER:: & !(NR)
-           RFSAD,RFSADG, RFSAD_G, RFSAD_GG
+           RFSAD,RFSADG, RFSAD_G, RFSAD_GG, RATIO_NAVMAX, A_chi0, Line_Element
 
       real(rkind),dimension(:),POINTER :: & ! (NTHM)
            SING,COSG,SINM,COSM
@@ -176,6 +176,8 @@
            RNSL,RJSL,RWSL,RPCSL,RPWSL,RPESL,RLHSL,RFWSL,RECSL,RWS123L, &
            RSPBL,RSPFL,RSPSL,RSPLL,RPDR,RNDR, RTL_BULK, RT_BULK, RICSL,&
            RDIDTL, RJSRL, RPSSL, RPLSL
+      real(rkind),dimension(:,:,:),POINTER :: & ! (NPM,NRM,NSAM)
+           RP_BULK,RPL_BULK
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSAM,NSBM)
            RPCS2L
 
@@ -256,6 +258,7 @@
       integer:: NPC_runaway
       integer:: nt_init, N_f1
       integer:: ierr_g
+
       contains
 
         subroutine fp_allocate
@@ -330,8 +333,11 @@
 
           allocate(RFSAD(NRSTART:NREND),RFSADG(NRMAX+1))
           allocate(RFSAD_G(NRSTART:NREND),RFSAD_GG(NRMAX+1))
+          allocate(RATIO_NAVMAX(NRSTART:NREND))
+          allocate(A_chi0(NRSTART:NREND))
+          allocate(Line_Element(NRMAX+1))
 
-          allocate(RLAMDA_G(NTHMAX,NRSTART:NREND),RLAMDC_G(NTHMAX+1,NRSTART:NREND))
+          allocate(RLAMDA_G(NTHMAX,NRSTART:NRENDWG),RLAMDC_G(NTHMAX+1,NRSTART:NREND))
           allocate(SING(NTHMAX+1),COSG(NTHMAX+1))
           allocate(SINM(NTHMAX),COSM(NTHMAX))
 
@@ -341,7 +347,7 @@
           allocate(FNS0(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND))
           allocate(FNSP(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND)) 
           allocate(FNSM(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND))
-          allocate(FNSB(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX)) ! backgroud f
+          allocate(FNSB(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSBMAX)) ! backgroud f
 
           allocate(FS0(NTHMAX,NPSTARTW:NPENDWM,NSAMAX))
           allocate(FS2(NTHMAX,NPSTARTW:NPENDWM,NSAMAX))
@@ -453,7 +459,6 @@
              allocate(RJ_bsm(NRSTART:NREND))
              allocate(previous_rate(nrstart:nrend),previous_rate_p(nrstart:nrend))
              allocate(previous_rate_G(nrmax),previous_rate_p_G(nrmax))
-             allocate(conduct_sp(NRMAX))
              allocate(SIGMA_SPP(NRSTART:NREND),SIGMA_SPM(NRSTART:NREND))
              allocate(RE_PITCH(NTHMAX))
              allocate(RT_quench(NRMAX),RT_quench_f(NRMAX))          
@@ -463,6 +468,7 @@
              allocate(POST_tau_ta(NRMAX,NSAMAX))
              allocate(E_drei0(NSAMAX),E_crit0(NSAMAX))
           END IF
+          allocate(conduct_sp(NRMAX))
 
           allocate(SPP (NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX))
           allocate(PPL (NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX))
@@ -473,7 +479,7 @@
           allocate(SPPD(NTHMAX,NPSTART:NPEND,NSAMAX))
           allocate(SPPL(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX))
 
-          allocate(RN_IMPL(NRMAX,NSAMAX),RT_IMPL(NRMAX,NSAMAX) )
+          allocate(RN_IMPL(NRMAX,NSMAX),RT_IMPL(NRMAX,NSMAX) )
           
           allocate(RNSL(NRSTART:NREND,NSAMAX),RJSL(NRSTART:NREND,NSAMAX))
           allocate(RFPL(NRSTART:NREND),RJSRL(NRSTART:NREND,NSAMAX))
@@ -511,6 +517,8 @@
           allocate(RPDRL(NRSTART:NREND,NSAMAX),RNDRL(NRSTART:NREND,NSAMAX))
           allocate(RT_BULK(NRMAX,NSAMAX))
           allocate(RTL_BULK(NRSTART:NREND,NSAMAX))
+          allocate(RP_BULK(NPMAX,NRMAX,NSAMAX))
+          allocate(RPL_BULK(NPMAX,NRSTART:NREND,NSASTART:NSAEND))
 
           allocate(RPW_IMPL(NRSTART:NREND,NSAMAX,0:LMAXFP+1))
           allocate(RPWEC_IMPL(NRSTART:NREND,NSAMAX,0:LMAXFP+1))
@@ -604,6 +612,8 @@
           deallocate(RLAMDA,RLAMDC)
           deallocate(RFSAD,RFSADG)
           deallocate(RFSAD_G,RFSAD_GG)
+          deallocate(RATIO_NAVMAX, A_chi0)
+          deallocate(Line_Element)
           deallocate(RLAMDA_G,RLAMDC_G)
           deallocate(SING,COSG,SINM,COSM)
 
@@ -710,6 +720,7 @@
 
           deallocate(RPDR,RNDR,RPDRS,RNDRS)
           deallocate(RPDRL,RNDRL,RT_BULK,RTL_BULK)
+          deallocate(RP_BULK)
           
           deallocate(RPW_IMPL,RPWEC_IMPL,RPWIC_IMPL)
           deallocate(RPW_INIT,RPWEC_INIT,RPWIC_INIT)

@@ -134,7 +134,7 @@
                   RSUMF(NSA)=RSUMF(NSA) &
                          +ABS(FNSP(NTH,NP,NR,NSBA)-FNS0(NTH,NP,NR,NSBA) )**2
                   RSUMF0(NSA)=RSUMF0(NSA) &
-                         +ABS(FNSM(NTH,NP,NR,NSBA))**2
+                         +ABS(FNSP(NTH,NP,NR,NSBA))**2
                ENDDO
                ENDDO
                ENDDO
@@ -210,9 +210,10 @@
             
             CALL GUTIME(gut_cale7)
             gut_cale = gut_cale + gut_cale7-gut_conv3
-
 !            
-            IF(MODEL_LNL.eq.0) CALL Coulomb_log
+            CALL update_RN_RT ! update RN_IMPL, RT_IMPL for Coulomb log and fpcalcnr
+            IF(MODEL_LNL.eq.0) CALL Coulomb_log ! update coulomb log
+
             CALL fusion_source_init
 !           update FNSB (fnsb is required by NL collsion and NF reaction)
             IF(MODELC.ge.2.or.MODELS.eq.2)THEN
@@ -221,6 +222,7 @@
                CALL mtx_reset_communicator
             END IF
 !           end of update FNSB
+
 ! IF MODEL_DISRUPT=1, FP_COEF is already called in TOP_OF_TIME_LOOP_DISRUPT
             IF(MODEL_DISRUPT.eq.0)THEN 
                DO NSA=NSASTART,NSAEND
@@ -238,6 +240,21 @@
 
             CALL GUTIME(gut_coef1)
             GUT_COEF = GUT_COEF + (gut_coef1-gut_cale7) + (gut_coef2-gut_loop1)
+
+            IF(NRANK.eq.0)THEN
+               NR=1
+               NSA=1
+               NP=2
+               WRITE(20,*) "# ", TIMEFP, N_IMPL
+!               DO NTH=1, NTHMAX
+!                  DO NP=NPSTART, NPEND
+                     WRITE(20,'(2I,10E14.6)') NP, NTH, DCPP(NTH,NP,NR,NSA), DCTT(NTH,NP,NR,NSA), FCPP(NTH,NP,NR,NSA), FNSP(NTH,NP,NR,NSA), FEPP(NTH,NP,NR,NSA), FETH(NTH,NP,NR,NSA)
+!                  END DO
+!               END DO
+               WRITE(20,*) " "
+               WRITE(20,*) " "
+            END IF
+
          END DO ! END OF DOWHILE
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
