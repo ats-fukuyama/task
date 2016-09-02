@@ -1,0 +1,66 @@
+0
+f
+wf.2D.gs
+c
+p
+ &wf
+ modelg=12
+ knampf='smesh_4.3300s_tf0.750_2OLr_cold_O_task_rf3.900tf0.750zf-0.350.dat'
+ knamwg='efsprf_4.3300s_tf0.750_2OLr_cold_O_task_rf3.900tf0.750zf-0.350.dat'
+ RF=77000
+ RR=1.0D0
+ BB=2.4D0
+ nsmax=3
+ PA(3)=1.D0
+ PZ(3)=1.D0
+ PZCL(1)=1.0d-3
+ PZCL(2)=1.0d-3
+ PZCL(3)=1.0d-1
+ NDRAWE=0
+ NDRAWD=2
+ NGRAPH=1
+ NGXMAX=201
+ NGYMAX=201
+ NGVMAX=201
+ AJ(1)=0.D0
+ MODELWG=12
+ r1wg=0.40
+ r2wg=0.40
+ AMPWG=1.D0
+ wdamp=0.05
+ fdamp=10.0
+ mdamp=2
+ zdamp_min=0.1
+ zdamp_max=0.4
+ PZCL(3)=1.0d-1
+ gfactor=1.0
+ &end
+v
+l
+####
+d
+d
+x
+0.0D0 0.4D0 0.0D0 0.4D0
+0.001 0.001
+x
+####
+a
+a
+1
+p
+1
+0.00101 0.19901
+x
+####
+w
+g
+ME
+ERY0.399 EZY0.399 EPY0.399
+ERY0.398 EZY0.398 EPY0.398
+ERY0.397 EZY0.397 EPY0.397
+ERY0.396 EZY0.396 EPY0.396
+ERY0.395 EZY0.395 EPY0.395
+x
+q
+

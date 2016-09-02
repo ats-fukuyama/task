@@ -157,34 +157,23 @@ CONTAINS
       CALL FROPEN(NFL,KNAMPF,1,0,'PF',ierr) 
                                        !open to read formatted without pronpt
       IF(ierr.NE.0) GOTO 9990
-      READ(NFL,*,END=9991) ! skip 4 lines: rf,kx,ky,kz
+      READ(NFL,*,END=9991) ! skip 2 lines: rf,kx,ky,kz
       READ(NFL,*,END=9991)
+      READ(NFL,*,ERR=9992,END=9991) NXMAX
       READ(NFL,*,END=9991)
-      READ(NFL,*,END=9991)
-      READ(NFL,'(8X,I4)',ERR=9992,END=9991) NXMAX
-      READ(NFL,'(8X,I4)',ERR=9993,END=9991) NYMAX
+      READ(NFL,*,ERR=9993,END=9991) NYMAX
 
-      IF(ALLOCATED(XD)) DEALLOCATE(XD,YD,VA,UA)
+      IF(ALLOCATED(XD)) DEALLOCATE(XD,YD,VA,UA,FX,FY,FXY)
       ALLOCATE(XD(NXMAX),YD(NYMAX),VA(NXMAX,NYMAX,13))
-      ALLOCATE(UA(4,4,NXMAX,NYMAX,13))
+      ALLOCATE(UA(4,4,NXMAX,NYMAX,10))
       ALLOCATE(FX(NXMAX,NYMAX),FY(NXMAX,NYMAX),FXY(NXMAX,NYMAX))
 
       READ(NFL,*,END=9991) ! skip 1 line: variable name
       DO NX=1,NXMAX
          DO NY=1,NYMAX
-            READ(NFL,'(I3,I4,13E18.7)',ERR=9994,END=9991) &
-                 IX,IY,(VA(NX,NY,NV),NV=1,13)
-!            WRITE(6,'(I3,I4,13E18.7)') IX,IY,(VA(NX,NY,NV),NV=1,13)
-            IF(IX.NE.NX) THEN
-               WRITE(6,'(A,2I10)') 'IX,NX=',IX,NX
-               GO TO 9995
-            END IF
-            IF(IY.NE.NY) THEN
-               WRITE(6,'(A,2I10)') 'IY,NY=',IY,NY
-               GO TO 9996
-            END IF
+            READ(NFL,'(10E22.12)',ERR=9994,END=9991) &
+                 (VA(NX,NY,NV),NV=1,10)
          END DO
-         READ(NFL,*,END=9991) ! skip 1 line: next NX
       END DO
 
       DO NX=1,NXMAX
@@ -213,15 +202,12 @@ CONTAINS
          CALL GRD2D(21,XD,YD,VA(1:NXMAX,1:NYMAX,8),NXMAX,NXMAX,NYMAX,'@NE@')
          CALL GRD2D(22,XD,YD,VA(1:NXMAX,1:NYMAX,9),NXMAX,NXMAX,NYMAX,'@TI@')
          CALL GRD2D(23,XD,YD,VA(1:NXMAX,1:NYMAX,10),NXMAX,NXMAX,NYMAX,'@NI@')
-         CALL GRD2D(24,XD,YD,VA(1:NXMAX,1:NYMAX,11),NXMAX,NXMAX,NYMAX,'@X@')
-         CALL GRD2D(25,XD,YD,VA(1:NXMAX,1:NYMAX,12),NXMAX,NXMAX,NYMAX,'@Y@')
-         CALL GRD2D(26,XD,YD,VA(1:NXMAX,1:NYMAX,13),NXMAX,NXMAX,NYMAX,'@Z@')
          CALL PAGEE
       END IF
 
 !----  Set coefficient for spline
 
-      DO NV=3,11
+      DO NV=3,10
          CALL SPL2D(XD,YD,VA(1,1,NV),FX,FY,FXY,UA(1,1,1,1,NV), &
                     NXMAX,NXMAX,NYMAX,0,0,IERSPL)
          IF (IERSPL.NE.0) THEN
