@@ -323,6 +323,7 @@
         USE plcomm,ONLY: PZ,PN,PTPR,PTPP,PU,PNS,PTS,PUS, &
              NSMAX,MODELN,MODELG, &
              RR,RA
+        USE plload
         IMPLICIT NONE
         REAL(rkind),INTENT(IN):: X,Y,Z
         TYPE(pl_plf_type),DIMENSION(NSMAX),INTENT(OUT):: PLF
