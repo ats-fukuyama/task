@@ -143,7 +143,7 @@
          BX = BR*RCOST-BT*RSINT
          BY = BR*RSINT+BT*RCOST
       CASE(12)
-         CALL pl_read_p2Dmag(X,Y,BX,BY,BZ,BTOT,IERR)
+         CALL pl_read_p2Dmag(X,Y,BX,BY,BZ,IERR)
       END SELECT
 
       MAG%BABS = SQRT(BX**2+BY**2+BZ**2)
@@ -170,6 +170,7 @@
       REAL(rkind),INTENT(in):: X,Y,Z
       REAL(rkind),INTENT(OUT):: BR,BZ,BT,RHON
 
+      INTEGER:: IERR
       REAL(8) :: BP, PP, QL, RL, RS, &
                  RSINP, RCOSP
 
@@ -224,7 +225,7 @@
          CALL GETRZ(RL,Z,PP,BR,BZ,BT,RHON)
 
       CASE(12)
-         CALL pl_get2DB(X,Y,BR,BZ,BT,RHON)
+         CALL pl_read_p2Dmag(X,Y,BR,BZ,BT,IERR)
 
       END SELECT
 
@@ -327,7 +328,7 @@
         TYPE(pl_plf_type),DIMENSION(NSMAX),INTENT(OUT):: PLF
         REAL(rkind),DIMENSION(NSMAX) :: RNPL,RTPL,RUPL
         REAL(rkind):: RHON,FACTX,FACTY,FACTN,FACTT,FACTU
-        INTEGER:: NS,NSMAXL
+        INTEGER:: NS,NSMAXL,IERR
 
         SELECT CASE(MODELG)
         CASE(0)
@@ -371,7 +372,7 @@
               PLF(NS)%RU  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
            END DO
         CASE(12)
-           CALL pl_get2Dprof(X,Y,RNPL,RTPL,RUPL,NSMAXL)
+           CALL pl_read_p2D(X,Y,RNPL,RTPL,RUPL,NSMAXL,IERR)
            DO NS=1,NSMAXL
               PLF(NS)%RN  =RNPL(NS)
               PLF(NS)%RTPR=RTPL(NS)
