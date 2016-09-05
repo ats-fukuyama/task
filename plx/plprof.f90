@@ -119,7 +119,7 @@
     SUBROUTINE pl_mag(X,Y,Z,RHON,MAG)
 
       USE plcomm, ONLY: RA,RR,BB,MODELG
-
+      USE plload
       IMPLICIT NONE
       REAL(rkind),INTENT(in):: X,Y,Z
       REAL(rkind),INTENT(OUT):: RHON
@@ -165,7 +165,7 @@
     SUBROUTINE pl_mag_rz(X,Y,Z,BR,BZ,BT,RHON)
 
       USE plcomm, ONLY: RA,RR,BB,MODELG
-
+      USE plload
       IMPLICIT NONE
       REAL(rkind),INTENT(in):: X,Y,Z
       REAL(rkind),INTENT(OUT):: BR,BZ,BT,RHON

@@ -43,9 +43,7 @@ testksp: $(LIB_MTX_KSP) testmtx.o
 
 
 testmtx.o: $(LIBMTXMPI) testmtx.f90
-	$(FLINKER) $(FFLAGS) -c testmtx.f90 $(MODINCLUDE)
-testmtxc.o: testmtxc.f90
-	$(FLINKER) $(FFLAGS) -c testmtxc.f90 $(MODINCLUDE)
+testmtxc.o: $(LIBMTXMPI) testmtxc.f90
 ../mtxp/libmtxmpi.o: libmtxmpi.f90
 	$(FLINKER) $(FFLAGS) -c libmtxmpi.f90 $(MODDIR) $(MODINCLUDE)
 ../mtxp/libmtxnompi.o: libmtxnompi.f90
