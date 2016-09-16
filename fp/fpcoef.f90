@@ -364,61 +364,50 @@
 
       IMPLICIT NONE
       integer,intent(in):: NR, NSA
-      integer:: NTH, NP, NG
+      integer:: NTH, NP, NG, ITLB, ITUB
       double precision:: DELH, SUM, ETAL, X, PSIB, PSIN
 
 !     BOUNCE AVERAGE FEPP
       DO NP=NPSTART,NPENDWG
          DO NTH=1,ITL(NR)-1
-            FEPP(NTH,NP,NR,NSA) = RLAMDA(NTH,NR)*FEPP(NTH,NP,NR,NSA)!/A_chi0(NR)
-!            FEPP(NTH,NP,NR,NSA) = AEFP(NSA)*EP(NR)/PTFP0(NSA)*ABS(COSM(NTH))*Line_Element(NR)*A_chi0(NR)
+            FEPP(NTH,NP,NR,NSA) = AEFP(NSA)*EP(NR)/PTFP0(NSA)*COSM(NTH)*Line_Element(NR)*A_chi0(NR)*2.D0*PI
 
          END DO ! END NTH
-         DO NTH=ITL(NR)+1,ITU(NR)-1
+         DO NTH=ITL(NR),ITU(NR)
             FEPP(NTH,NP,NR,NSA)=0.D0
          END DO
          DO NTH=ITU(NR)+1,NTHMAX
-            FEPP(NTH,NP,NR,NSA) = RLAMDA(NTH,NR)*FEPP(NTH,NP,NR,NSA)!/A_chi0(NR)
-!            FEPP(NTH,NP,NR,NSA) = AEFP(NSA)*EP(NR)/PTFP0(NSA)*ABS(COSM(NTH))*Line_Element(NR)*A_chi0(NR)
+            FEPP(NTH,NP,NR,NSA) = AEFP(NSA)*EP(NR)/PTFP0(NSA)*COSM(NTH)*Line_Element(NR)*A_chi0(NR)*2.D0*PI
          END DO
-         FEPP(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)/4.D0 &
-              *( FEPP(ITL(NR)-1,NP,NR,NSA)/RLAMDA(ITL(NR)-1,NR) &
-              +FEPP(ITL(NR)+1,NP,NR,NSA)/RLAMDA(ITL(NR)+1,NR) &
-              +FEPP(ITU(NR)-1,NP,NR,NSA)/RLAMDA(ITU(NR)-1,NR) &
-              +FEPP(ITU(NR)+1,NP,NR,NSA)/RLAMDA(ITU(NR)+1,NR))
-         FEPP(ITU(NR),NP,NR,NSA)=FEPP(ITL(NR),NP,NR,NSA)
+         ITLB=ITL(NR)-1
+         ITUB=NTHMAX-ITLB+1
+
+!         FEPP(ITLB,NP,NR,NSA)=RLAMDA(ITLB,NR)/4.D0 &
+!              *( FEPP(ITLB-1,NP,NR,NSA)/RLAMDA(ITLB-1,NR) &
+!              +FEPP(ITLB+1,NP,NR,NSA)/RLAMDA(ITLB+1,NR) &
+!              +FEPP(ITUB-1,NP,NR,NSA)/RLAMDA(ITUB-1,NR) &
+!              +FEPP(ITUB+1,NP,NR,NSA)/RLAMDA(ITUB+1,NR))
+!         FEPP(ITUB,NP,NR,NSA)=FEPP(ITLB,NP,NR,NSA)
+         FEPP(ITLB,NP,NR,NSA)=RLAMDA(ITLB,NR)/4.D0 &
+              *( FEPP(ITLB-1,NP,NR,NSA)/RLAMDA(ITLB-1,NR) &
+              +FEPP(ITLB+1,NP,NR,NSA)/RLAMDA(ITLB+1,NR) &
+              -FEPP(ITUB-1,NP,NR,NSA)/RLAMDA(ITUB-1,NR) &
+              -FEPP(ITUB+1,NP,NR,NSA)/RLAMDA(ITUB+1,NR))
+         FEPP(ITUB,NP,NR,NSA)=-FEPP(ITLB,NP,NR,NSA)
       END DO ! END NP
 
 !     BOUNCE AVERAGE FETH
+      ITLB=ITL_judge(NR)
+      ITUB=NTHMAX+2-ITLB
       DO NP=NPSTARTW,NPENDWM
-         DO NTH=2,ITL(NR) ! FETH(NTH=1)=0
-            DELH=2.D0*ETAG(NTH,NR)/NAVMAX
-            SUM=0.D0
-            DO NG=1,NAVMAX
-               ETAL=DELH*(NG-0.5D0)
-               X=EPSRM2(NR)*COS(ETAL)
-               PSIB=(1.D0+EPSRM2(NR))/(1.D0+X)
-               PSIN = SQRT(PSIB)*SING(NTH)
-               SUM = SUM + FETH(NTH,NP,NR,NSA)*PSIN/(PSIB*SING(NTH))
-            END DO
-            FETH(NTH,NP,NR,NSA) = SUM*DELH*Line_Element(NR)*A_chi0(NR)
-!            FETH(NTH,NP,NR,NSA) = -AEFP(NSA)*EP(NR)/PTFP0(NSA)*SING(NTH)*Line_Element(NR)*A_chi0(NR)
+         DO NTH=1,ITLB ! FETH(NTH=1)=0
+            FETH(NTH,NP,NR,NSA) = -AEFP(NSA)*EP(NR)/PTFP0(NSA)*SING(NTH)*Line_Element(NR)*A_chi0(NR)*2.D0*PI
          END DO
-         DO NTH=ITL(NR)+1,ITU(NR)
+         DO NTH=ITLB+1,ITUB-1
             FETH(NTH,NP,NR,NSA)=0.D0
          END DO
-         DO NTH=ITU(NR)+1,NTHMAX ! FETH(NTHMAX+1)=0 
-            DELH=2.D0*ETAG(NTH,NR)/NAVMAX
-            SUM=0.D0
-            DO NG=1,NAVMAX
-               ETAL=DELH*(NG-0.5D0)
-               X=EPSRM2(NR)*COS(ETAL)
-               PSIB=(1.D0+EPSRM2(NR))/(1.D0+X)
-               PSIN = SQRT(PSIB)*SING(NTH)
-               SUM = SUM + FETH(NTH,NP,NR,NSA)*PSIN/(PSIB*SING(NTH))
-            END DO
-            FETH(NTH,NP,NR,NSA) = SUM*DELH*Line_Element(NR)*A_chi0(NR)
-!            FETH(NTH,NP,NR,NSA) = -AEFP(NSA)*EP(NR)/PTFP0(NSA)*SING(NTH)*Line_Element(NR)*A_chi0(NR)
+         DO NTH=ITUB,NTHMAX+1 ! FETH(NTHMAX+1)=0 
+            FETH(NTH,NP,NR,NSA) = -AEFP(NSA)*EP(NR)/PTFP0(NSA)*SING(NTH)*Line_Element(NR)*A_chi0(NR)*2.D0*PI
          END DO
       END DO ! END NP
 

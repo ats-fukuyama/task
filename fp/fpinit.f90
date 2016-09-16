@@ -311,6 +311,7 @@
 !
 !     T0_quench : temperature after thermal quench [keV] at r=0
 !     tau_quench: thermal quench time [sec]
+!     tau_mgi   : MGI duration [sec]
 
       MODEL_DISRUPT=0 ! 0=no disruption, 1=disruption calc.
       MODEL_Conner_FP=0 ! runaway rate 0= Conner, 1=FP
@@ -329,6 +330,7 @@
 
       T0_quench=2.D-2
       tau_quench=1.D-3
+      tau_mgi=5.D-3
       
 ! IF MODEL_IMPURITY=1 
       target_zeff=3.D0
@@ -416,7 +418,7 @@
            MODEL_synch, MODEL_LOSS, MODEL_SINK, T0_quench, tau_quench, deltaB_B, &
            MODEL_NBI, MODEL_WAVE, MODEL_IMPURITY, MODEL_Conner_FP, MODEL_BS, MODEL_jfp, &
            MODEL_LNL, time_quench_start, MODEL_RE_pmax, RJPROF1, RJPROF2, MODELD_n_RE, &
-           pmax_bb, v_RE, target_zeff, n_impu, SPITOT, MODELD_boundary
+           pmax_bb, v_RE, target_zeff, n_impu, SPITOT, MODELD_boundary, tau_mgi
 
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: nid
@@ -448,7 +450,7 @@
            MODEL_synch, MODEL_LOSS, MODEL_SINK, T0_quench, tau_quench, deltaB_B, &
            MODEL_NBI, MODEL_WAVE, MODEL_IMPURITY, MODEL_Conner_FP, MODEL_BS, MODEL_jfp, &
            MODEL_LNL, time_quench_start, MODEL_RE_pmax, RJPROF1, RJPROF2, MODELD_n_RE, &
-           pmax_bb, v_RE, target_zeff, n_impu, SPITOT, MODELD_boundary
+           pmax_bb, v_RE, target_zeff, n_impu, SPITOT, MODELD_boundary, tau_mgi
 
 
       READ(nid,FP,IOSTAT=ist,ERR=9800,END=9900)
@@ -491,7 +493,7 @@
       WRITE(6,*) '      MODEL_synch, MODEL_loss, MODEL_SINK, T0_quench, tau_quench, deltaB_B,'
       WRITE(6,*) '      MODEL_NBI, MODEL_WAVE, MODEL_IMPURITY, MODEL_Conner_FP, MODEL_BS, MODEL_jfp'
       WRITE(6,*) '      MODEL_LNL, time_quench_start, MODEL_RE_pmax, RJPROF1, RJPROF2, MODELD_n_RE'
-      WRITE(6,*) '      pmax_bb, v_RE, target_zeff, n_impu, SPITOT, MODELD_boundary'
+      WRITE(6,*) '      pmax_bb, v_RE, target_zeff, n_impu, SPITOT, MODELD_boundary, tau_mgi'
 
 
       RETURN
@@ -787,8 +789,9 @@
       rdata(49)=v_RE
       rdata(50)=target_zeff
       rdata(51)=SPITOT
+      rdata(52)=tau_mgi
 
-      CALL mtx_broadcast_real8(rdata,51)
+      CALL mtx_broadcast_real8(rdata,52)
       DELT  =rdata( 1)
       RMIN  =rdata( 2)
       RMAX  =rdata( 3)
@@ -840,6 +843,7 @@
       v_RE= rdata(49)
       target_zeff= rdata(50)
       SPITOT= rdata(51)
+      tau_mgi= rdata(52)
 
       CALL mtx_broadcast_real8(pmax,NSAMAX)
       CALL mtx_broadcast_real8(pmax_bb,NSAMAX)
@@ -894,7 +898,7 @@
            nsize, MODEL_DISRUPT, MODEL_synch, MODEL_LOSS, MODEL_SINK, T0_quench, tau_quench, deltaB_B, &
            MODEL_NBI, MODEL_WAVE, MODEL_IMPURITY, MODEL_Conner_FP, MODEL_BS, MODEL_jfp, MODEL_LNL, &
            time_quench_start, MODEL_RE_pmax, RJPROF1, RJPROF2, MODELD_n_RE, pmax_bb, v_RE, &
-           target_zeff, n_impu, SPITOT, MODELD_boundary
+           target_zeff, n_impu, SPITOT, MODELD_boundary, tau_mgi
 
       IMPLICIT NONE
       integer:: nsa,nsb,ns,NBEAM

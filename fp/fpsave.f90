@@ -47,7 +47,12 @@
       DO NSA=1,NSAMAX
          RNDRS(NSA) =0.D0
          RPDRS(NSA) =0.D0
+         DO NR=NRSTART, NREND
+            RPDRL(NR,NSA)=0.D0
+            RNDRL(NR,NSA)=0.D0
+         END DO
       END DO
+
       CALL mtx_set_communicator(comm_np) 
       DO NR=NRSTART,NREND
          DO NSA=NSASTART,NSAEND
@@ -120,7 +125,7 @@
                              +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
                              *0.5D0*PM(NP,NSBA)**2
                      END DO
-                  RSUMNP_E(NP)=RSUM3
+                     RSUMNP_E(NP)=RSUM3
                   ENDDO
                ELSE
                   DO NP=NPSTART,NPEND
@@ -133,7 +138,7 @@
                              +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
                              *(PV-1.D0)/THETA0(NSA)
                      END DO
-                  RSUMNP_E(NP)=RSUM3
+                     RSUMNP_E(NP)=RSUM3
                   END DO
                ENDIF
             ELSE ! MODELA=1
@@ -147,7 +152,7 @@
                              +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)  &
                              *0.5D0*PM(NP,NSBA)**2*RLAMDA(NTH,NR)*RFSADG(NR)
                      END DO
-                  RSUMNP_E(NP)=RSUM3
+                     RSUMNP_E(NP)=RSUM3
                   ENDDO
                ELSE
                   DO NP=NPSTART,NPEND
@@ -155,12 +160,21 @@
                      DO NTH=1,NTHMAX
                         RSUM2 = RSUM2                        &
                              +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)  &
-                             *PM(NP,NSBA)*COSM(NTH)/PV*RLAMDA(NTH,NR)*RFSADG(NR)
+                             *PM(NP,NSBA)*COSM(NTH)/PV &
+                             *RFSADG(NR)*RLAMDA(NTH,NR)!&
+!                             /(2.D0*PI*Line_Element(NR))&
+!                             *2.D0*PI*RR
+
+
+!                             *Line_Element(NR) &
+!                             *A_chi0(NR) &
+!                             *2.D0*PI*RFSADG(NR)
+!!                             *PM(NP,NSBA)*COSM(NTH)/PV*RLAMDA(NTH,NR)*RFSADG(NR)
                         RSUM3 = RSUM3                        &
                              +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)  &
                              *(PV-1.D0)/THETA0(NSA)*RLAMDA(NTH,NR)*RFSADG(NR)
                      END DO
-                  RSUMNP_E(NP)=RSUM3
+                     RSUMNP_E(NP)=RSUM3
                   END DO
                ENDIF               
             END IF
@@ -215,51 +229,51 @@
                        /DELP(NSBA)*(FNSP(NTH,NP,NR,NSBA)-FNSP(NTH,NP-1,NR,NSBA))
                   IF(NTH.EQ.1) THEN
                      DFT=1.D0/DELTH                             &
-                         *(                                     &
-                            ((1.D0-WPP)*FNSP(NTH+1,NP  ,NR,NSBA)   &
-                                  +WPP *FNSP(NTH+1,NP-1,NR,NSBA))&
-                           -                                    &
-                            ((1.D0-WPM)*FNSP(NTH,NP  ,NR,NSBA)     &
-                                  +WPM *FNSP(NTH,NP-1,NR,NSBA))&
+                          *(                                     &
+                          ((1.D0-WPP)*FNSP(NTH+1,NP  ,NR,NSBA)   &
+                          +WPP *FNSP(NTH+1,NP-1,NR,NSBA)) &
+                          -                                    &
+                          ((1.D0-WPM)*FNSP(NTH,NP  ,NR,NSBA)     &
+                          +WPM *FNSP(NTH,NP-1,NR,NSBA)) &
                           )
-
+                     
                   ELSE IF(NTH.EQ.NTHMAX) THEN
                      DFT=    1.D0/DELTH                         & 
-                         *(-                                    &
-                            ((1.D0-WPM)*FNSP(NTH-1,NP  ,NR,NSBA)   &
-                                  +WPM *FNSP(NTH-1,NP-1,NR,NSBA))&
+                          *(-                                    &
+                          ((1.D0-WPM)*FNSP(NTH-1,NP  ,NR,NSBA)   &
+                          +WPM *FNSP(NTH-1,NP-1,NR,NSBA)) &
                           +                                     &
-                            ((1.D0-WPP)*FNSP(NTH,NP  ,NR,NSBA)     &
-                                  +WPP *FNSP(NTH,NP-1,NR,NSBA))&
+                          ((1.D0-WPP)*FNSP(NTH,NP  ,NR,NSBA)     &
+                          +WPP *FNSP(NTH,NP-1,NR,NSBA)) &
                           )
                   ELSE
                      DFT=    1.D0/(2.D0*DELTH)                  &
-                         *(                                     &
-                            ((1.D0-WPP)*FNSP(NTH+1,NP  ,NR,NSBA)   &
-                                  +WPP *FNSP(NTH+1,NP-1,NR,NSBA))&
-                           -                                    &
-                            ((1.D0-WPM)*FNSP(NTH-1,NP  ,NR,NSBA)   &
-                                  +WPM *FNSP(NTH-1,NP-1,NR,NSBA))&
-                                  )
+                          *(                                     &
+                          ((1.D0-WPP)*FNSP(NTH+1,NP  ,NR,NSBA)   &
+                          +WPP *FNSP(NTH+1,NP-1,NR,NSBA)) &
+                          -                                    &
+                          ((1.D0-WPM)*FNSP(NTH-1,NP  ,NR,NSBA)   &
+                          +WPM *FNSP(NTH-1,NP-1,NR,NSBA)) &
+                          )
                   ENDIF
                   FFP=    PG(NP,NSBA)                           &
-                         *((1.D0-WPL)*FNSP(NTH  ,NP  ,NR,NSBA)  &
-                                +WPL *FNSP(NTH  ,NP-1,NR,NSBA))
+                       *((1.D0-WPL)*FNSP(NTH  ,NP  ,NR,NSBA)  &
+                       +WPL *FNSP(NTH  ,NP-1,NR,NSBA))
 !
                   RSUM4 = RSUM4+PG(NP,NSBA)**2*SINM(NTH)/PV   &
                        *(DCPP(NTH,NP,NR,NSA)*DFP           &
                         +DCPT(NTH,NP,NR,NSA)*DFT           &
                         -FCPP(NTH,NP,NR,NSA)*FFP           &
                           )
-!                  IF(NTH.eq.2.and.NP.eq.NPSTART)THEN
-!                     WRITE(*,'(A,3I4,20E14.6)') "TEST", NSA, NR, NP, DFP, DFT, FFP, WPL, WPM, WPP,DPP(NTH,NP,NR,NSA),FPP(NTH,NP,NR,NSA) &
-!                          ,DCPP(NTH,NP,NR,NSA),FNSP(NTH,NP,NR,NSA),FNSB(NTH,NP,NR,NSA)
-!                  END IF
                   RSUM5 = RSUM5+PG(NP,NSBA)**2*SINM(NTH)/PV   &
                           *(DWPP(NTH,NP,NR,NSA)*DFP           &
                            +DWPT(NTH,NP,NR,NSA)*DFT)
                   RSUM6 = RSUM6-PG(NP,NSBA)**2*SINM(NTH)/PV   &
                           *(FEPP(NTH,NP,NR,NSA)*FFP)
+!                  IF(NR.eq.1.and.NP.eq.2)THEN
+!                     WRITE(*,'(3I4,20E16.8)') NTH, NR, NP, DFP, DFT, FFP, WPL, WPM, WPP, DPP(NTH,NP,NR,NSA),FPP(NTH,NP,NR,NSA) &
+!                          ,DCPP(NTH,NP,NR,NSA), FEPP(NTH,NP,NR,NSA), RSUM6
+!                  END IF
                   RSUM7 = RSUM7+PG(NP,NSBA)**2*SINM(NTH)/PV   &
                           *(DWLHPP(NTH,NP,NR,NSA)*DFP         &
                            +DWLHPT(NTH,NP,NR,NSA)*DFT)
@@ -291,7 +305,7 @@
                               +DPT(NTH,NP,NR,NSA)*DFT           &
                               -FPP(NTH,NP,NR,NSA)*FFP           &
                               )
-               ENDDO
+               ENDDO ! NTH
             ENDDO
 
 !      SOURCE POWER
@@ -358,7 +372,12 @@
                         END IF
                         IF(DFDP.ne.DFDP)THEN ! NaN never equals to any other variables.
 !                        IF(isNaN(DFDP) .eqv. .true.)THEN ! gfortran do not support isNaN function.
-                           WRITE(21,'(A,E14.6,3I4,3E14.6)') "DFDP is NaN in fpsave. ", TIMEFP, NP, NTH, NSA, &
+                           WRITE(21,'(A,E14.6,3I4,3E14.6)') "DFDP is NaN in fpsave. TIMEFP= ", TIMEFP, NP, NTH, NSA, &
+                                FNSP(NTH,NP,NR,NSA), FNSP(NTH,NP-1,NR,NSA), FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA)
+                           DFDP=0.D0
+                        END IF
+                        IF(DFDP.gt.0.D0)THEN
+                           WRITE(21,'(A,E14.6,3I4,3E14.6)') "DFDP is positive in fpsave. TIMEFP= ", TIMEFP, NP, NTH, NSA, &
                                 FNSP(NTH,NP,NR,NSA), FNSP(NTH,NP-1,NR,NSA), FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA)
                            DFDP=0.D0
                         END IF

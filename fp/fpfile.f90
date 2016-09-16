@@ -551,7 +551,7 @@
       END IF
 
       open(19,file='p-T_bulk.dat')
-      open(20,file='DCPP.dat')
+!      open(20,file='DCPP.dat')
       open(21,file='err_message_for_RT_BULK.dat')
 
       END SUBROUTINE OPEN_EVOLVE_DATA_OUTPUT
@@ -572,7 +572,7 @@
          close(18)  
       END IF
       close(19)
-      close(20)  
+!      close(20)  
       close(21)  
 
       END SUBROUTINE CLOSE_EVOLVE_DATA_OUTPUT

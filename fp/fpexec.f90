@@ -288,14 +288,6 @@
          ENDDO
       END IF
 
-!      DO NR=NRSTARTW,NRENDWM
-!         DO NP=NPSTARTW,NPENDWM
-!            DO NTH=1,NTHMAX
-!               NM=NMA(NTH,NP,NR)
-!               FM(NM)=func_in(NTH,NP,NR,NSA)
-!            ENDDO
-!         ENDDO
-!      ENDDO
       
       END SUBROUTINE SET_FM_NMA
 
