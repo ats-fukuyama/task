@@ -99,14 +99,8 @@
 !            if(nr.eq.1) write(6,'(A,I8,1P2E12.4)') 
 !     &           ' NSB,RN,RNFD=',NSB,RN(NSB),RNFD(NR,NSB)
 !
-            IF(MODELC.EQ.0.or.MODELC.eq.1) THEN
+            IF(MODELC.EQ.0.or.MODELC.eq.1.or.MODELC.eq.2) THEN
                CALL FPCALC_L(NR,NSB,NSA)
-            ELSEIF(MODELC.EQ.2.or.MODELC.eq.3) THEN
-               IF(NS_NSB(NSB).EQ.NS_NSA(NSA)) THEN
-                  CALL FPCALC_NL(NR,NSB,NSA)
-               ELSE
-                  CALL FPCALC_L(NR,NSB,NSA)
-               ENDIF
             ELSEIF(MODELC.EQ.4) THEN
                IF(MODELR.eq.0)THEN
                   CALL FPCALC_NL(NR,NSB,NSA)
@@ -869,8 +863,13 @@
          RNFD0L_C=RNFD0(NSB)
          THETA0L_C=THETA0(NSB)
          IF(MODEL_DISRUPT.eq.0)THEN
-            RNFDL_C=RNFD(NR,NSB) 
-            RTFDL_C=RTFD(NR,NSB)
+            IF(MODELC.eq.1)THEN ! constant T
+               RNFDL_C=RNFD(NR,NSB) 
+               RTFDL_C=RTFD(NR,NSB)
+            ELSEIF(MODELC.eq.2)THEN ! variable n, T
+               RNFDL_C=RN_IMPL(NR,NSB)
+               RTFDL_C=RT_IMPL(NR,NSB)
+            END IF
          ELSEIF(MODEL_DISRUPT.ge.1)THEN
             IF(MODEL_IMPURITY.eq.0)THEN 
                RNFDL_C=RNFD(NR,NSB)

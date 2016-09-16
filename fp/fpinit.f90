@@ -228,8 +228,9 @@
 !             1 for predicting electric field
 !     MODELA: 0 without bounce average
 !             1 with bounce average
-!     MODELC: 0 or 1: linear collision operator and (const./variable) T
-!             2 or 3 : NL for same species and L for different species
+!     MODELC: 0 : non-relative background Maxwell
+!             1 : isotropic background f
+!             2 : isotropic background f, Temperature is updated
 !             4 : nonlinear collision operator
 !             5 : linear coll. operator for different species (for debug)
 !             6 : nonlinear coll. operator for different species (for debug)

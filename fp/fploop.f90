@@ -217,7 +217,7 @@
 
             CALL fusion_source_init
 !           update FNSB (fnsb is required by NL collsion and NF reaction)
-            IF(MODELC.ge.2.or.MODELS.eq.2)THEN
+            IF(MODELC.ge.4.or.MODELS.eq.2)THEN
                CALL mtx_set_communicator(comm_nsa)
                CALL update_fnsb
                CALL mtx_reset_communicator
