@@ -217,45 +217,63 @@
             EPSRG2(NR) = EPSRG(NR)
          ENDDO
       ELSE
+! THM(ITL(NR)) is always trapped region 
+! Exact boundary A1 lays on between THM(ITL-1) and THM(ITL)
+         IF(nsize.gt.1.and.NRANK.eq.1) & 
+              WRITE(6,'(A)') '# NR,ITL(NR),EPSRM2,EPSRM,THM(ITL-1)<THC<THM(ITL),THG(ITL) on RM(NR)'
          DO NR=1,NRMAX+1
             A1=ACOS(SQRT(2.D0*EPSRM(NR)/(1.D0+EPSRM(NR))))
             NTH=0
-            DO WHILE (THG(NTH+1).le.A1)
+!            DO WHILE (THG(NTH+1).le.A1)
+            DO WHILE (THM(NTH+1).le.A1)
                NTH = NTH+1
             END DO
-            ITL(NR)=NTH
-            ITU(NR)=NTHMAX-NTH+1
+            ITL(NR)=NTH+1
+!            ITL(NR)=NTH
+            ITU(NR)=NTHMAX-ITL(NR)+1
 
             EPSL=COSM(ITL(NR))**2/(2.D0-COSM(ITL(NR))**2)
 
-
-!            WRITE(6,'(A,3I5,1P2E12.4)') 'NR,ITL,ITU,EPSRM=', &
-!                          NR,ITL(NR),ITU(NR),EPSRM(NR),EPSL
             EPSRM2(NR) = EPSRM(NR)
             EPSRM(NR)=EPSL
             IF(nsize.gt.1.and.NRANK.eq.1) &
-                 WRITE(6,'(A,2I5,1P4E12.4)') 'NR,NTHC,EPSRM=',NR,NTH,EPSRM2(NR),EPSRM(NR),THM(NTH), A1
+                 WRITE(6,'(2I5,1P8E12.4)') NR,ITL(NR),EPSRM2(NR),EPSRM(NR),THM(ITL(NR)-1), A1, THM(ITL(NR)),THG(ITL(NR))
+
+            IF(A1.ge.THG(ITL(NR)))THEN ! The mesh point including A1. RLAMDA(NTH) on such a point can not calculate numerically.
+               ITL_judge(NR)=ITL(NR)
+!               ITL_judge(NR)=ITL(NR)-1
+            ELSE
+               ITL_judge(NR)=ITL(NR)-1
+            END IF
+
          ENDDO
 
          IF(NRANK.eq.1) WRITE(6,*) " "
+         IF(nsize.gt.1.and.NRANK.eq.1) &
+              WRITE(6,'(A)') '# NR,ITLG(NR),EPSRG2,EPSRG,THG(ITL),THC on RG(NR)'
 
          DO NR=1,NRMAX+1
             A1=ACOS(SQRT(2.D0*EPSRG(NR)/(1.D0+EPSRG(NR))))
             NTH=0
-            DO WHILE (THG(NTH+1).le.A1)
+!            DO WHILE (THG(NTH+1).le.A1)
+            DO WHILE (THM(NTH+1).le.A1)
                NTH = NTH+1
             END DO
-            ITLG(NR)=NTH
-            ITUG(NR)=NTHMAX-NTH+1
+            ITLG(NR)=NTH+1
+            ITUG(NR)=NTHMAX-ITLG(NR)+1
 
             EPSL=COSM(ITLG(NR))**2/(2.D0-COSM(ITLG(NR))**2)
-
 
             EPSRG2(NR) = EPSRG(NR)
             EPSRG(NR)=EPSL
             IF(nsize.gt.1.and.NRANK.eq.1) &
-                 WRITE(6,'(A,2I5,1P4E12.4)') 'NR,NTHC,EPSRG=',NR,NTH,EPSRG2(NR),EPSRG(NR),THM(NTH), A1
-!            EPSRG2(NR) = EPSRG(NR)
+                 WRITE(6,'(2I5,1P4E12.4)') NR,NTH,EPSRG2(NR),EPSRG(NR),THG(NTH), A1
+
+            IF(A1.ge.THG(ITLG(NR)))THEN ! The mesh point including A1. RLAMDA(NTH) on such a point can not calculate numerically.
+               ITLG_judge(NR)=ITLG(NR)
+            ELSE
+               ITLG_judge(NR)=ITLG(NR)-1
+            END IF
          ENDDO
 
       ENDIF
@@ -344,11 +362,11 @@
       IF(NRANK.eq.0)THEN
       open(8,file='RLAMDAG.dat')
       DO NR =1, NRMAX
-      DO NTH=1,NTHMAX
-         WRITE(8,'(2I4, 4E14.6)') NR, NTH, COSM(NTH), RLAMDAG(NTH,NR), RFSADG(NR)
-      END DO
-      WRITE(8,*) " "
-      WRITE(8,*) " "
+         DO NTH=1,NTHMAX
+            WRITE(8,'(2I4, 4E14.6)') NR, NTH, COSM(NTH), RLAMDAG(NTH,NR), RFSADG(NR)
+         END DO
+         WRITE(8,*) " "
+         WRITE(8,*) " "
       END DO
       close(8)
       END IF
@@ -913,8 +931,18 @@
             RTFP_G(NR,NSA)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
          END DO
       END DO
-      DO NR=NRSTART,NRENDWM
 
+      DO NR=1,NRMAX
+         RHON=RM(NR)
+         CALL PL_PROF(RHON,PLF)
+         DO NSB=1, NSBMAX
+            NS=NS_NSB(NSB)
+            RT_IMPL(NR,NSB)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+            RN_IMPL(NR,NSB)=PLF(NS)%RN
+         END DO
+      END DO
+
+      DO NR=NRSTART,NRENDWM
          RHON=RM(NR)
          CALL PL_PROF(RHON,PLF)
 

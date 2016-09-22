@@ -83,7 +83,8 @@
 
          IF(MODEL_DISRUPT.ne.0)THEN
             CALL TOP_OF_TIME_LOOP_DISRUPT(NT) ! include fpcoef
-            IF(MODEL_IMPURITY.eq.1.and.TIMEFP.le.5.D0*tau_quench)THEN
+!            IF(MODEL_IMPURITY.eq.1.and.TIMEFP.le.5.D0*tau_quench)THEN
+            IF(MODEL_IMPURITY.eq.1.and.TIMEFP.le.tau_mgi)THEN
                CALL MGI_DENSITY
             END IF
          END IF
@@ -216,7 +217,7 @@
 
             CALL fusion_source_init
 !           update FNSB (fnsb is required by NL collsion and NF reaction)
-            IF(MODELC.ge.2.or.MODELS.eq.2)THEN
+            IF(MODELC.ge.4.or.MODELS.eq.2)THEN
                CALL mtx_set_communicator(comm_nsa)
                CALL update_fnsb
                CALL mtx_reset_communicator
@@ -241,19 +242,49 @@
             CALL GUTIME(gut_coef1)
             GUT_COEF = GUT_COEF + (gut_coef1-gut_cale7) + (gut_coef2-gut_loop1)
 
-            IF(NRANK.eq.0)THEN
-               NR=1
-               NSA=1
-               NP=2
-               WRITE(20,*) "# ", TIMEFP, N_IMPL
+!            IF(NRANK.eq.0)THEN
+!            IF(NPSTART.eq.1.and.NSASTART.eq.1)THEN
+!               NR=1
+!               NSA=1
+!               NP=2
+!               NTH=2
+!               IF(NRSTART.eq.12)THEN
+!               WRITE(*,*) "# ", TIMEFP, N_IMPL
 !               DO NTH=1, NTHMAX
-!                  DO NP=NPSTART, NPEND
-                     WRITE(20,'(2I,10E14.6)') NP, NTH, DCPP(NTH,NP,NR,NSA), DCTT(NTH,NP,NR,NSA), FCPP(NTH,NP,NR,NSA), FNSP(NTH,NP,NR,NSA), FEPP(NTH,NP,NR,NSA), FETH(NTH,NP,NR,NSA)
+!                  NR=NRSTART
+!                  DO NR=NRSTART, NREND
+!                     NTH=ITL(NR)
+!                     WRITE(*,'(I5,10E14.6)') NR, DCPP(NTH,NP,NR,NSA), FCPP(NTH,NP,NR,NSA), DCTT(NTH,NP,NR,NSA), &
+!                          FEPP(NTH,NP,NR,NSA), FETH(NTH,NP,NR,NSA), FNSP(NTH,NP,NR,NSA), RLAMDA(NTH,NR) 
+!
+!                     WRITE(*,'(2I,10E16.8)') NR, NTH, FNSP(ITL(NR),NP,NR,NSA)-FNSP(ITU(NR),NP,NR,NSA), &
+!                          FNSP(ITL(NR)-1,NP,NR,NSA)-FNSP(ITU(NR)+1,NP,NR,NSA), &
+!                          FNSP(ITL(NR)-2,NP,NR,NSA)-FNSP(ITU(NR)+2,NP,NR,NSA), &
+!                          FNSP(ITL(NR)+1,NP,NR,NSA)-FNSP(ITU(NR)-1,NP,NR,NSA), &
+!                          FNSP(ITL(NR)+2,NP,NR,NSA)-FNSP(ITU(NR)-2,NP,NR,NSA), FNSP(ITL(NR),NP,NR,NSA)
 !                  END DO
 !               END DO
-               WRITE(20,*) " "
-               WRITE(20,*) " "
-            END IF
+!               ENDIF
+!!               WRITE(20,*) " "
+!!               WRITE(20,*) " "
+!               NSA=1
+!               NR=NRSTART
+!               NP=2
+!               DO NTH=1, NTHMAX
+!                  WRITE(*,'(I5,10E14.6)') NTH, DCPP(NTH,NP,NR,NSA), FCPP(NTH,NP,NR,NSA), DCTT(NTH,NP,NR,NSA), &
+!                       FEPP(NTH,NP,NR,NSA), FETH(NTH,NP,NR,NSA),FNSP(NTH,NP,NR,NSA)
+!               END DO
+!               NR=1
+!               NSA=1
+               
+!               DO NP=1,NPMAX
+!                  WRITE(*,'(I5,20E14.6)') NP, DCPP(1,NP,NR,NSA), FCPP(1,NP,NR,NSA), DCTT(2,NP,NR,NSA), &
+!                       FEPP(1,NP,NR,NSA), FETH(2,NP,NR,NSA), FNSP(1,NP,NR,NSA), &
+!                       DCPP(NTHMAX,NP,NR,NSA), FCPP(NTHMAX,NP,NR,NSA), DCTT(NTHMAX,NP,NR,NSA),&
+!                       FEPP(NTHMAX,NP,NR,NSA), FETH(NTHMAX,NP,NR,NSA), FNSP(NTHMAX,NP,NR,NSA),&
+!                       FNSP(1,NP,NR,NSA)-FNSP(NTHMAX,NP,NR,NSA)
+!               END DO
+!            END IF
 
          END DO ! END OF DOWHILE
 

@@ -52,7 +52,7 @@
       integer,dimension(NSM):: NCMIN, NCMAX
       integer:: N_partition_r,N_partition_s,N_partition_p
 
-      real(rkind):: T0_quench, tau_quench
+      real(rkind):: T0_quench, tau_quench, tau_mgi
       real(rkind):: deltaB_B
       real(rkind):: v_RE
       real(rkind):: target_zeff, SPITOT
@@ -93,7 +93,7 @@
       real(rkind),dimension(:,:,:),POINTER :: & ! (NTHM,NPM,NRM)
            F,F1
       integer,dimension(:),POINTER :: & ! (NRM)
-           ITL,ITU,ITL_G,ITU_G
+           ITL,ITU,ITL_G,ITU_G, ITL_judge, ITLG_judge
       integer,dimension(:),POINTER :: & ! (NRM)
            ITLG,ITUG,ITLG_G,ITUG_G
       real(rkind),dimension(:),POINTER :: & ! (NRM,NSBM)
@@ -311,6 +311,7 @@
           allocate(ITLG(NRMAX+1),ITUG(NRMAX+1))
           allocate(ITL_G(NRMAX+1),ITU_G(NRMAX+1))
           allocate(ITLG_G(NRMAX+1),ITUG_G(NRMAX+1))
+          allocate(ITL_judge(NRMAX+1),ITLG_judge(NRMAX+1))
 
           allocate(RCOEF(NRSTART:NREND), RCOEF_G(NRSTART:NREND))
           allocate(RCOEFN(NRSTART:NREND), RCOEFN_G(NRSTART:NREND))
@@ -365,7 +366,7 @@
 
           allocate(RNFP(NRSTART:NREND+1,NSAMAX),RTFP(NRSTART:NREND+1,NSAMAX))
           allocate(RNFP_G(NRSTART:NRENDWG,NSAMAX),RTFP_G(NRSTART:NRENDWG,NSAMAX))
-          allocate(RT_T(NRMAX,NSBMAX))
+          allocate(RT_T(NRMAX,NSBMAX)) ! 
           allocate(PTFP(NRSTART:NREND+1,NSAMAX),VTFP(NRSTART:NREND+1,NSAMAX))
           allocate(THETA(NRSTART:NREND,NSBMAX),DKBSR(NRSTART:NREND,NSAMAX))
           allocate(WEIGHP(NTHMAX  ,NPSTART:NPENDWG,NRSTART:NREND+1,NSAMAX))
@@ -593,6 +594,7 @@
           deallocate(ITLG,ITUG)
           deallocate(ITL_G,ITU_G)
           deallocate(ITLG_G,ITUG_G)
+          deallocate(ITL_judge,ITLG_judge)
 
           deallocate(RCOEF,RCOEF_G)
           deallocate(RCOEFN,RCOEFN_G)

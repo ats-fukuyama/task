@@ -1747,7 +1747,8 @@
       INTEGER:: NR, NSB
       DOUBLE PRECISION:: FACTZ, tau_imp, imp_charge
       
-      tau_imp=5.D0*tau_quench
+!      tau_imp=3.D0*tau_quench
+      tau_imp=tau_mgi
       imp_charge=PZ(n_impu)
 
       DO NR=NRSTART,NREND
