@@ -999,7 +999,8 @@
       ELSE
          RNFDL=PLF(NS)%RN/RNFD0L
 !         RNFDL=PNT(NR,NS,NTG2)
-         RTFDL=RT_IMPL(NR,NS)
+!         RTFDL=RT_IMPL(NR,NS)
+         RTFDL=RT_BULK(NR,NS)
       END IF
 
       FACT=RNFDL/SQRT(2.D0*PI*RTFDL/RTFD0L)**3

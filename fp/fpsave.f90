@@ -370,16 +370,17 @@
                            DFDP=DELP(NSA)*FFP/(                         &
                                 FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA) )
                         END IF
+                        IF(MODEL_DISRUPT.ne.1)THEN
                         IF(DFDP.ne.DFDP)THEN ! NaN never equals to any other variables.
-!                        IF(isNaN(DFDP) .eqv. .true.)THEN ! gfortran do not support isNaN function.
-                           WRITE(21,'(A,E14.6,3I4,3E14.6)') "DFDP is NaN in fpsave. TIMEFP= ", TIMEFP, NP, NTH, NSA, &
+                           WRITE(16,'(A,E14.6,3I4,3E14.6)') "DFDP is NaN in fpsave. TIMEFP= ", TIMEFP, NP, NTH, NSA, &
                                 FNSP(NTH,NP,NR,NSA), FNSP(NTH,NP-1,NR,NSA), FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA)
                            DFDP=0.D0
                         END IF
                         IF(DFDP.gt.0.D0)THEN
-                           WRITE(21,'(A,E14.6,3I4,3E14.6)') "DFDP is positive in fpsave. TIMEFP= ", TIMEFP, NP, NTH, NSA, &
+                           WRITE(16,'(A,E14.6,3I4,3E14.6)') "DFDP is positive in fpsave. TIMEFP= ", TIMEFP, NP, NTH, NSA, &
                                 FNSP(NTH,NP,NR,NSA), FNSP(NTH,NP-1,NR,NSA), FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA)
                            DFDP=0.D0
+                        END IF
                         END IF
 !                     ELSE
 !                           DFDP=0.D0
@@ -1332,7 +1333,8 @@
          IF(NS.le.NSAMAX)THEN
             DO NR=1,NRMAX
                RN_IMPL(NR,NS) = RNS(NR,NS)
-               RT_IMPL(NR,NS)=RT_BULK(NR,NS)
+!               RT_IMPL(NR,NS)=RT_BULK(NR,NS)
+               RT_IMPL(NR,NS)=RT_T(NR,NS)
             ENDDO
          ELSE
             DO NR=1,NRMAX
