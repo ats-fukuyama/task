@@ -30,7 +30,8 @@ MODULE piccomm
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: bb,AA
   REAL(rkind),ALLOCATABLE,DIMENSION(:):: xe,ye,ze,vxe,vye,vze, &
                                          xi,yi,zi,vxi,vyi,vzi, &
-                                         xeb,yeb,zeb,xib,yib,zib
+                                         xeb,yeb,zeb,xib,yib,zib,&
+                                         xemid,yemid,ximid,yimid
   REAL(rkind),ALLOCATABLE,DIMENSION(:,:):: xpo,ypo,zpo,vxpo,vypo,vzpo
   REAL(rkind),ALLOCATABLE,DIMENSION(:):: vparae,vperpe,vparai,vperpi
   REAL(rkind),ALLOCATABLE,DIMENSION(:):: expi,eypi,ezpi,bxpi,bypi,bzpi
@@ -84,6 +85,8 @@ CONTAINS
     ALLOCATE(awk(nxmax,nymax))
     ALLOCATE(xe(npmax),ye(npmax),ze(npmax),vxe(npmax),vye(npmax),vze(npmax))
     ALLOCATE(xi(npmax),yi(npmax),zi(npmax),vxi(npmax),vyi(npmax),vzi(npmax))
+    ALLOCATE(xemid(npmax),yemid(npmax))
+    ALLOCATE(ximid(npmax),yimid(npmax))
     ALLOCATE(xeb(npmax),yeb(npmax),zeb(npmax),xib(npmax),yib(npmax),zib(npmax))
     ALLOCATE(vparae(npmax),vperpe(npmax),vparai(npmax),vperpi(npmax))
     ALLOCATE(cform(nxmaxh1,nymax))
@@ -108,8 +111,8 @@ CONTAINS
        DEALLOCATE(bx,by,bz,bxb,byb,bzb,bxbb,bybb,bzbb,bxbg,bybg,bzbg)
        DEALLOCATE(rho,phi,phib,phibb,awk)
        DEALLOCATE(jx,jy,jz)
-       DEALLOCATE(xe,ye,ze,vxe,vye,vze)
-       DEALLOCATE(xi,yi,zi,vxi,vyi,vzi)
+       DEALLOCATE(xe,ye,ze,vxe,vye,vze,xemid,yemid)
+       DEALLOCATE(xi,yi,zi,vxi,vyi,vzi,ximid,yimid)
        DEALLOCATE(xeb,yeb,zeb,xib,yib,zib)
        DEALLOCATE(Ax,Ay,Az,Axb,Ayb,Azb,Axbb,Aybb,Azbb)
        DEALLOCATE(bb,AA)
