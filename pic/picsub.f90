@@ -299,7 +299,7 @@ CONTAINS
        END DO
       !$omp end parallel do
     ELSE IF (model_boundary .NE. 0) THEN
-      !$omp parallel do private(nx,ny,Esx,Esy,Esz,Emx,Emy,Emz,Ex,Ey,Ez,nxm,nym,nxp,nyp)
+      !$omp parallel do private(nx,ny,nxm,nym,nxp,nyp)
        DO nx = 1, nxmax
           DO ny = 1, nymax
 
@@ -741,6 +741,8 @@ ENDIF
     REAL(8) :: akin, mass, vcfact, gamma
     INTEGER(4) :: npmax, np
     akin = 0.d0
+    !$omp parallel do Private(gamma) &
+    !$omp reduction(+:akin)
     DO np = 1, npmax
       gamma = 1.d0/sqrt(1.d0 - (vx(np)**2+vy(np)**2+vz(np)**2)/vcfact**2)
        akin = akin + vcfact ** 2 * (gamma - 1)

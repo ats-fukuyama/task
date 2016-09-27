@@ -746,7 +746,7 @@ CONTAINS
     z4 = z2 - vdzone
     !alx1 = alx - vzone
     !aly1 = aly - vzone
-    !$omp parallel do Private(x,y,z,vx,vy)
+    !$omp parallel do Private(xl_before,xl_after,yl_before,yl_after)
     DO np = 1, npmax
        xmid(np)=0.5D0*(xb(np)+x(np))
        IF( x(np) .LT. x3  ) THEN
@@ -770,22 +770,21 @@ CONTAINS
           ymid(np)=y3+0.5D0*ABS(yl_after-yl_before)
           vy(np) = -vy(np)
        ELSEIF( y(np) .GT. y4 ) THEN
-          xl_before=x4 - xb(np)
-          x(np) = x4 - (x(np) - x4)
-          xl_after=x4 - x(np)
-          xmid(np)=x4+0.5D0*ABS(xl_after-xl_before)
+          yl_before=y4 - yb(np)
+          y(np) = y4 - (y(np) - y4)
+          yl_after=y4 - y(np)
+          ymid(np)=y4+0.5D0*ABS(yl_after-yl_before)
           vy(np) = -vy(np)
        ENDIF
-
-       IF( z(np) .LT. z3 ) THEN
-          DO WHILE(z(np) .LT. z3)
-            z(np) = z(np) + alz
-          END DO
-       ELSEIF( z(np) .GT. z4 ) THEN
-          DO WHILE(z(np) .GT. z4)
-             z(np) = z(np) - alz
-          END DO
-       ENDIF
+      !  IF( z(np) .LT. z3 ) THEN
+      !     !DO WHILE(z(np) .LT. z3)
+      !       z(np) = z(np) + alz
+      !     !END DO
+      !  ELSEIF( z(np) .GT. z4 ) THEN
+      !     !DO WHILE(z(np) .GT. z4)
+      !        z(np) = z(np) - alz
+      !     !END DO
+      !  ENDIF
 
        !IF( z(np) .LT. z1 ) THEN
       !    z(np) = -z(np)
@@ -818,7 +817,7 @@ CONTAINS
     END IF
     !*poption parallel, psum(rho)
     !$omp parallel do Private (np,nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2p,sx2,sx2m,sy2p,sy2,sy2m) &
-    !$omp reduction (+:rho)
+    !$omp reduction(+:rho)
 
     DO np = 1, npmax
        nxp = x(np)
@@ -1038,8 +1037,9 @@ CONTAINS
     ELSE
        factor=chrg*DBLE(nxmax)*DBLE(nymax)/DBLE(npmax)
     END IF
-    !$omp parallel do Private (np,nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2p,sx2,sx2m,sy2p,sy2,sy2m) &
-    !$omp Reduction(+:jx,jy,jz)
+    !$omp parallel do Private (nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2p,sx2,sx2m,sy2p,sy2,sy2m) &
+    !$omp reduction(+:jx,jy,jz)
+
     DO np = 1, npmax
        nxp = xmid(np)
        nyp = ymid(np)
