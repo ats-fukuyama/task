@@ -1674,12 +1674,12 @@
          WRITE(13,'(A)') "# RM, RN, RT, RN_r, RN_p, RN_s J_ohm, J_run, J_bs, E1, E_drei, dndt_p, dndt_s, RJS " 
          IF(MODEL_conner_fp.eq.1)THEN
             DO NR=1,NRMAX
-               WRITE(13,'(1P14E17.8e3)'), RM(NR), RN_disrupt(NR), RT_quench(NR), & 
+               WRITE(13,'(1P100E17.8e3)'), RM(NR), RN_disrupt(NR), RT_quench(NR), & 
                     RN_runaway(NR), RN_drei(NR), RN_runaway(NR)-RN_drei(NR), &
                     RJ_ohm(NR), RJ_runaway(NR), RJ_bs(NR), &
                     E1(NR), ER_drei(NR), &
                     RFP(NR)*RN_disrupt(NR)*1.D20, RFP_AVA(NR)*RN_disrupt(NR)*1.D20, &
-                    RJS(NR,1)
+                    RJS(NR,1),ER_crit(NR)
             END DO
          ELSE
             DO NR=1,NRMAX
@@ -1688,7 +1688,7 @@
                     RJ_ohm(NR), RJ_runaway(NR), RJ_bs(NR), &
                     E1(NR), ER_drei(NR), &
                     Rconner(NR)*RN_disrupt(NR)*1.D20, RFP_AVA(NR)*RN_disrupt(NR)*1.D20, &
-                    RJS(NR,1)
+                    RJS(NR,1),ER_crit(NR)
             END DO
          END IF
          WRITE(13,'(A)') " "
@@ -1722,7 +1722,7 @@
            l_ind, ZEFF, IP_all_FP, RFP(1)*tau_ta0(1),RN_MGI(1,1)
 
 ! efield_e1
-      WRITE(11,'(1P128E14.6)') TIMEFP, (E1(NR), NR=1,NRMAX), (ER_drei(NR), NR=1,NRMAX)
+      WRITE(11,'(1P256E14.6)') TIMEFP, (E1(NR), NR=1,NRMAX), (ER_drei(NR), NR=1,NRMAX), (ER_crit(NR), NR=1,NRMAX)
 
 ! dndt
       IF(MODEL_conner_fp.eq.1)THEN
