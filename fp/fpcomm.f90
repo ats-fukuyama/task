@@ -1,64 +1,65 @@
 !     $Id: fpcomm.f90,v 1.35 2013/02/08 07:36:24 nuga Exp $
 
-      module fpcomm
+module fpcomm_parm
 !
-      use bpsd
-      use plcomm
-      use libmpi,ONLY: mtx_mpi_type
+      use bpsd_kinds
+      use bpsd_constants
       use commpi
+      use plcomm
       implicit none
 
       public
 
 !     --- input parameters ---
 
-      integer:: NPMAX,NTHMAX,NRMAX,NAVMAX,IMTX
-      integer:: NTMAX,NTCLSTEP,LMAXE,NGLINE,LMAXNWR
-      integer:: MODELE,MODELA,MODELC,MODELR,MODELD,MODELS,MODELD_temp,MODELE2
-      integer:: MODEL_DISRUPT, MODEL_synch, MODEL_loss, MODEL_NBI, MODEL_IMPURITY, MODEL_SINK
-      integer:: MODEL_Conner_fp, MODEL_BS, MODEL_jfp, MODEL_LNL, MODEL_RE_pmax, MODEL_WAVE
-      integer:: MODELD_n_RE, MODELD_boundary
-      integer:: LLMAX,IDBGFP,LLMAX_NF
+      integer,parameter:: kind8=rkind
+      integer,parameter:: NBEAMM=20
+
+      integer:: NSAMAX,NSBMAX,NS_NSA(NSM),NS_NSB(NSM)
+      integer:: LMAXNR,NCMIN(NSM),NCMAX(NSM),NBEAMMAX,NSSPB(NBEAMM),NSSPF
+      integer:: NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX
+      integer:: NTMAX,NTSTEP_COEF,NTSTEP_COLL
       integer:: NTG1STEP,NTG1MIN,NTG1MAX
       integer:: NTG2STEP,NTG2MIN,NTG2MAX
-      integer,dimension(NSM):: MODELW
-      integer:: NTEST, NGRAPH
-      integer,parameter:: NBEAMM=20
-      integer:: NBEAMMAX,NP2MAX
-      integer:: MODEL_KSP, MODEL_PC
-      integer,parameter:: kind8=rkind
-      real(rkind):: PGMAX, RGMAX, RGMIN
-      real(rkind):: DRR0,E0,R1,DELR1,RMIN,RMAX,DRRS
+      integer:: MODELE,MODELA,MODELC,MODELR,MODELS,MODELW(NSM)
+      integer:: MODELD,MODELD_RDEP,MODELD_PDEP,MODELD_EDGE,MODELD_PINCH
+      integer:: MODELD_BOUNDARY
+      integer:: MODEL_LOSS,MODEL_SYNCH,MODEL_NBI,MODEL_WAVE
+      integer:: IMTX,MODEL_KSP,MODEL_PC,LMAXFP,LMAXE
+      integer:: NGLINE,NGRAPH,LMAXNWR,LLMAX,LLMAX_NF,IDBGFP
+      integer:: MODEL_DISRUPT,MODEL_Conner_fp,MODEL_BS,MODEL_jfp,MODEL_LNL
+      integer:: MODEL_RE_pmax,MODELD_n_RE,MODEL_IMPURITY,MODEL_SINK,N_IMPU
+      integer:: N_partition_r,N_partition_s,N_partition_p
+
+      real(rkind):: PMAX(NSM),PMAX_BB(NSM)
+      real(rkind):: R1,DELR1,RMIN,RMAX
+      real(rkind):: E0,ZEFF
+      real(rkind):: PWAVE,RFDW,DELNPR,EPSNWR,REWY,DREWY,FACTWM
       real(rkind):: DEC,PEC1,PEC2,PEC3,PEC4,RFEC,DELYEC
       real(rkind):: DLH,PLH1,PLH2,RLH
       real(rkind):: DFW,PFW1,PFW2,RFW
-      real(rkind):: RFDW,DELNPR
       complex(rkind):: CEWR,CEWTH,CEWPH
-      real(rkind):: RKWR,RKWTH,RKWPH,REWY,DREWY,FACTWM
-      real(rkind):: ZEFF,DELT,RIMPL,EPSM,EPSE,EPSDE,H0DE
-      real(rkind):: PWAVE,EPSNWR
-      real(rkind):: time_quench_start, RJPROF1, RJPROF2
+      real(rkind):: RKWR,RKWTH,RKWPH
+      real(rkind),dimension(NBEAMM):: SPBTOT,SPBR0,SPBRW,SPBENG,SPBANG,SPBPANG
+      real(rkind):: SPFTOT,SPFR0,SPFRW,SPFENG
+      real(rkind):: DRR0,DRRS,FACTOR_CDBM,DRR_EDGE,RHO_EDGE,FACTOR_DRR_EDGE
+      real(rkind):: FACTOR_PINCH,deltaB_B
+      real(rkind),dimension(NSM):: TLOSS
+      real(rkind):: DELT,RIMPL,EPSFP,EPSM,EPSE,EPSDE,H0DE
+      real(rkind):: PGMAX,RGMAX,RGMIN
+      real(rkind):: T0_quench,tau_quench,tau_mgi
+      real(rkind):: time_quench_start,RJPROF1,RJPROF2
+      real(rkind):: v_RE,target_zeff,SPITOT
 
-      integer:: nsamax,nsbmax
-      integer,dimension(NSM):: ns_nsa,ns_nsb
-      real(rkind),dimension(NSM):: pmax,tloss
-      integer:: NSSPF
-      integer,dimension(NBEAMM) :: NSSPB
-      real(rkind),dimension(NBEAMM) :: SPBTOT,SPBR0,SPBRW,SPBENG,SPBANG,SPBPANG
-      real(rkind) :: SPFTOT,SPFR0,SPFRW,SPFENG,SPFANG
+END module fpcomm_parm
 
-      integer::LMAXFP
-      real(rkind):: epsfp
-      integer,dimension(NSM):: NCMIN, NCMAX
-      integer:: N_partition_r,N_partition_s,N_partition_p
+module fpcomm
+!
+      use fpcomm_parm
+      use libmpi,ONLY: mtx_mpi_type
+      implicit none
 
-      real(rkind):: T0_quench, tau_quench, tau_mgi
-      real(rkind):: deltaB_B
-      real(rkind):: v_RE
-      real(rkind):: target_zeff, SPITOT
-      integer:: n_impu
-
-      real(rkind),dimension(NSM):: pmax_bb
+      public
 
 !      --- internal variables ---
 
@@ -66,9 +67,11 @@
       TYPE(mtx_mpi_type):: comm_nr,comm_nsa,comm_np,&
            comm_nrnp,comm_nsanp,comm_nsanr
       integer:: imtxsize,imtxwidth,imtxstart,imtxend
+      integer:: NTG1M,NTG2M
       integer:: nrstart,nrend,nmstart,nmend
       integer:: NSASTART,NSAEND,NPSTART,NPEND
       integer:: NPENDWM,NPENDWG,NPSTARTW,NRSTARTW,NRENDWM,NRENDWG
+      integer:: MODELD_temp
       integer,dimension(:),POINTER:: mtxlen,mtxpos
       integer,dimension(:),POINTER:: savlen
       integer,dimension(:,:),POINTER:: savpos
@@ -83,7 +86,7 @@
            RNFP0,RNFPS,RTFP0,RTFPS,AMFP,AEFP,PTFP0,VTFP0, &
            AEFD,AMFD,PTFD0,VTFD0,THETA0,RNFD0,RTFD0,RTFDS, &
            RN0_MGI
-      integer:: NTG1,NTG2,NTG1M,NTG2M
+      integer:: NTG1,NTG2
       real(rkind):: TVOLR
       real(rkind):: PX
       integer:: NRX,NTHX
@@ -281,14 +284,6 @@
 
              call fp_deallocate
           endif
-
-!          CALL mtx_set_communicator(comm_nr)
-!          allocate(MTXLEN(nsize),MTXPOS(nsize))
-!          CALL mtx_set_communicator(comm_nsanr)
-!          allocate(SAVLEN(nsize))
-!          allocate(SAVPOS(nsize,NSAEND-NSASTART+1))
-!          CALL mtx_reset_communicator
-!          allocate(Rank_Partition_Data(1:6,0:nsize-1))
 
           allocate( F(NTHMAX,NPSTARTW:NPENDWM,NRSTART:NREND))
           allocate(F1(NTHMAX,NPSTARTW:NPENDWM,NRSTART:NREND))

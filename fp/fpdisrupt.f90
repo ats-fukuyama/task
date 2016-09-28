@@ -1549,7 +1549,7 @@
       END DO
 !            IF(MODEL_jfp.eq.1)THEN
          DO NSA=NSASTART,NSAEND
-            IF (MOD(NT,NTCLSTEP).EQ.0) CALL FP_COEF(NSA)
+            IF (MOD(NT,NTSTEP_COEF).EQ.0) CALL FP_COEF(NSA)
          END DO
 !            END IF
          DO NR=1,NRMAX

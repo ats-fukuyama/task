@@ -227,7 +227,7 @@
 ! IF MODEL_DISRUPT=1, FP_COEF is already called in TOP_OF_TIME_LOOP_DISRUPT
             IF(MODEL_DISRUPT.eq.0)THEN 
                DO NSA=NSASTART,NSAEND
-                  IF (MOD(NT,NTCLSTEP).EQ.0) CALL FP_COEF(NSA)
+                  IF (MOD(NT,NTSTEP_COEF).EQ.0) CALL FP_COEF(NSA)
                END DO
             END IF
 
