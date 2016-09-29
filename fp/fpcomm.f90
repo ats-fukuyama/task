@@ -1,7 +1,6 @@
-!     $Id: fpcomm.f90,v 1.35 2013/02/08 07:36:24 nuga Exp $
 
-module fpcomm_parm
-!
+MODULE fpcomm_parm
+
       use bpsd_kinds
       use bpsd_constants
       use commpi
@@ -16,18 +15,18 @@ module fpcomm_parm
       integer,parameter:: NBEAMM=20
 
       integer:: NSAMAX,NSBMAX,NS_NSA(NSM),NS_NSB(NSM)
-      integer:: LMAXNR,NCMIN(NSM),NCMAX(NSM),NBEAMMAX,NSSPB(NBEAMM),NSSPF
+      integer:: LMAXNWR,NCMIN(NSM),NCMAX(NSM),NBEAMMAX,NSSPB(NBEAMM),NSSPF
       integer:: NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX
       integer:: NTMAX,NTSTEP_COEF,NTSTEP_COLL
       integer:: NTG1STEP,NTG1MIN,NTG1MAX
       integer:: NTG2STEP,NTG2MIN,NTG2MAX
-      integer:: MODELE,MODELA,MODELC,MODELR,MODELS,MODELW(NSM)
-      integer:: MODELD,MODELD_RDEP,MODELD_PDEP,MODELD_EDGE,MODELD_PINCH
+      integer:: MODELE,MODELA,MODELC,MODELR,MODELD,MODELS,MODELW(NSM)
+      integer:: MODEL_ne_D,MODELD_RDEP,MODELD_PDEP,MODELD_EDGE,MODELD_PINCH
       integer:: MODELD_BOUNDARY
       integer:: MODEL_LOSS,MODEL_SYNCH,MODEL_NBI,MODEL_WAVE
       integer:: IMTX,MODEL_KSP,MODEL_PC,LMAXFP,LMAXE
-      integer:: NGLINE,NGRAPH,LMAXNWR,LLMAX,LLMAX_NF,IDBGFP
-      integer:: MODEL_DISRUPT,MODEL_Conner_fp,MODEL_BS,MODEL_jfp,MODEL_LNL
+      integer:: NGLINE,NGRAPH,LLMAX,LLMAX_NF,IDBGFP
+      integer:: MODEL_DISRUPT,MODEL_Connor_fp,MODEL_BS,MODEL_jfp,MODEL_LNL
       integer:: MODEL_RE_pmax,MODELD_n_RE,MODEL_IMPURITY,MODEL_SINK,N_IMPU
       integer:: N_partition_r,N_partition_s,N_partition_p
 
@@ -124,7 +123,7 @@ module fpcomm
            BP,QR,RJ1,E1,RJ2,E2,BPG,BPM,QLM,QLG, &
            EP,EM,EM_W, &
            RN_disrupt, RN_runaway, Rj_ohm, RJ_runaway, conduct_sp, &
-           SIGMA_SPP, SIGMA_SPM, ER_drei, ER_crit, Rconner, LNL_G, RFP_ava, &
+           SIGMA_SPP, SIGMA_SPM, ER_drei, ER_crit, Rconnor, LNL_G, RFP_ava, &
            RFPL, RFP, RP_crit, RT_quench,RT_quench_f,previous_rate, RJ_bs, &
            previous_rate_p, rn_drei, RJ_bsm, RN_runaway_M, R_djdt, &
            previous_rate_G, previous_rate_p_G
@@ -449,7 +448,7 @@ module fpcomm
              allocate(DWICPT_P(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX))
           END IF
           IF(MODEL_DISRUPT.ne.0)THEN
-             allocate(ER_drei(NRMAX),ER_crit(NRMAX),Rconner(NRMAX),lnl_g(NRMAX),RP_crit(NRMAX))
+             allocate(ER_drei(NRMAX),ER_crit(NRMAX),Rconnor(NRMAX),lnl_g(NRMAX),RP_crit(NRMAX))
              allocate(RN_disrupt(NRMAX),RN_runaway(NRMAX), RN_drei(NRMAX),RN_runaway_M(NRMAX))
              allocate(Rj_ohm(NRMAX),RJ_runaway(NRMAX),RJ_bs(NRMAX),R_djdt(NRMAX))
              allocate(RJ_bsm(NRSTART:NREND))
@@ -705,7 +704,7 @@ module fpcomm
           deallocate(RDIDT, RDIDTL)
           deallocate(RPSSL, RPLSL)
 
-          deallocate(RNS,RJS,RJS_M,RFP,RJSR,Rconner,RFP_ava)
+          deallocate(RNS,RJS,RJS_M,RFP,RJSR,Rconnor,RFP_ava)
           deallocate(RNS_S2)
           deallocate(RWS,RWS123)
           deallocate(RSPB,RSPF)
@@ -1019,9 +1018,9 @@ module fpcomm
           allocate(RTG(NTG2M))
           allocate(RET(NRMAX,NTG2M))
           allocate(RQT(NRMAX,NTG2M))
-          allocate(RNT(NRMAX,NSAMAX,NTG2M))
+          allocate(EPTR(NRMAX,NTG2M))
           allocate(RATE_RUNAWAY(NRMAX,NTG2M))
-          allocate(RATE_RUNAWAY2(NRMAX,NSAMAX,NTG2M))
+          allocate(RNT(NRMAX,NSAMAX,NTG2M))
           allocate(RWT(NRMAX,NSAMAX,NTG2M))
           allocate(RTT(NRMAX,NSAMAX,NTG2M))
           allocate(RJT(NRMAX,NSAMAX,NTG2M))
@@ -1037,10 +1036,11 @@ module fpcomm
           allocate(RSPFT(NRMAX,NSAMAX,NTG2M))
           allocate(RSPLT(NRMAX,NSAMAX,NTG2M))
           allocate(RSPST(NRMAX,NSAMAX,NTG2M))
-          allocate(RPCT2(NRMAX,NSBMAX,NSAMAX,NTG2M))
-          allocate(RPDRT(NRMAX,NSAMAX,NTG2M),RNDRT(NRMAX,NSAMAX,NTG2M))
+          allocate(RPDRT(NRMAX,NSAMAX,NTG2M))
+          allocate(RNDRT(NRMAX,NSAMAX,NTG2M))
           allocate(RTT_BULK(NRMAX,NSAMAX,NTG2M))
-          allocate(EPTR(NRMAX,NTG2M))
+          allocate(RATE_RUNAWAY2(NRMAX,NSAMAX,NTG2M))
+          allocate(RPCT2(NRMAX,NSBMAX,NSAMAX,NTG2M))
 
           NRMAX_save=NRMAX
           NSAMAX_save=NSAMAX
@@ -1054,9 +1054,9 @@ module fpcomm
           deallocate(RTG)
           deallocate(RET)
           deallocate(RQT)
-          deallocate(RNT)
+          deallocate(EPTR)
           deallocate(RATE_RUNAWAY)
-          deallocate(RATE_RUNAWAY2)
+          deallocate(RNT)
           deallocate(RWT)
           deallocate(RTT)
           deallocate(RJT)
@@ -1069,10 +1069,10 @@ module fpcomm
           deallocate(RECT)
           deallocate(RICT)
           deallocate(RSPBT,RSPFT,RSPLT,RSPST)
-          deallocate(RPCT2)
           deallocate(RPDRT,RNDRT)
           deallocate(RTT_BULK)
-          deallocate(EPTR)
+          deallocate(RATE_RUNAWAY2)
+          deallocate(RPCT2)
 
           return
         end subroutine fp_deallocate_ntg2
@@ -1101,10 +1101,10 @@ module fpcomm
                    DO NSA=1,NSAMAX
                       DO NR=NRSTART,NREND
                          RNT(NR,NSA,NTG)=RNT(NR,NSA,2*NTG-1)
-                         RJT(NR,NSA,NTG)=RJT(NR,NSA,2*NTG-1)
-                         RJRT(NR,NSA,NTG)=RJRT(NR,NSA,2*NTG-1)
                          RWT(NR,NSA,NTG)=RWT(NR,NSA,2*NTG-1)
                          RTT(NR,NSA,NTG)=RTT(NR,NSA,2*NTG-1)
+                         RJT(NR,NSA,NTG)=RJT(NR,NSA,2*NTG-1)
+                         RJRT(NR,NSA,NTG)=RJRT(NR,NSA,2*NTG-1)
                          RPCT(NR,NSA,NTG)=RPCT(NR,NSA,2*NTG-1)
                          RPWT(NR,NSA,NTG)=RPWT(NR,NSA,2*NTG-1)
                          RPET(NR,NSA,NTG)=RPET(NR,NSA,2*NTG-1)
@@ -1112,12 +1112,12 @@ module fpcomm
                          RFWT(NR,NSA,NTG)=RFWT(NR,NSA,2*NTG-1)
                          RECT(NR,NSA,NTG)=RECT(NR,NSA,2*NTG-1)
                          RICT(NR,NSA,NTG)=RICT(NR,NSA,2*NTG-1)
-                         RSPBT(NR,NSA,NTG)=RSPBT(NR,NSA,2+NTG-1)
-                         RSPFT(NR,NSA,NTG)=RSPFT(NR,NSA,2+NTG-1)
-                         RSPLT(NR,NSA,NTG)=RSPLT(NR,NSA,2+NTG-1)
-                         RSPST(NR,NSA,NTG)=RSPST(NR,NSA,2+NTG-1)
-                         RPDRT(NR,NSA,NTG)=RPDRT(NR,NSA,2+NTG-1)
-                         RNDRT(NR,NSA,NTG)=RNDRT(NR,NSA,2+NTG-1)
+                         RSPBT(NR,NSA,NTG)=RSPBT(NR,NSA,2*NTG-1)
+                         RSPFT(NR,NSA,NTG)=RSPFT(NR,NSA,2*NTG-1)
+                         RSPLT(NR,NSA,NTG)=RSPLT(NR,NSA,2*NTG-1)
+                         RSPST(NR,NSA,NTG)=RSPST(NR,NSA,2*NTG-1)
+                         RPDRT(NR,NSA,NTG)=RPDRT(NR,NSA,2*NTG-1)
+                         RNDRT(NR,NSA,NTG)=RNDRT(NR,NSA,2*NTG-1)
                          RTT_BULK(NR,NSA,NTG)=RTT_BULK(NR,NSA,2*NTG-1)
                       END DO
                       DO NSB=1,NSBMAX
@@ -1142,7 +1142,6 @@ module fpcomm
                 deallocate(tempA)
                 allocate(tempB(NRMAX,NSAMAX,NTG2M))
                 call fp_adjust_ntg2_B(RNT,tempB,NTG2M_NEW)
-                call fp_adjust_ntg2_B(RATE_RUNAWAY2,tempB,NTG2M_NEW)
                 call fp_adjust_ntg2_B(RWT,tempB,NTG2M_NEW)
                 call fp_adjust_ntg2_B(RTT,tempB,NTG2M_NEW)
                 call fp_adjust_ntg2_B(RJT,tempB,NTG2M_NEW)
@@ -1161,6 +1160,7 @@ module fpcomm
                 call fp_adjust_ntg2_B(RPDRT,tempB,NTG2M_NEW)
                 call fp_adjust_ntg2_B(RNDRT,tempB,NTG2M_NEW)
                 call fp_adjust_ntg2_B(RTT_BULK,tempB,NTG2M_NEW)
+                call fp_adjust_ntg2_B(RATE_RUNAWAY2,tempB,NTG2M_NEW)
                 deallocate(tempB)
                 allocate(tempC(NRMAX,NSBMAX,NSAMAX,NTG2M))
                 call fp_adjust_ntg2_C(RPCT2,tempC,NTG2M_NEW)

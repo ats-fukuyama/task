@@ -1237,8 +1237,8 @@
       integer :: ierr,NSA,NSB,NS,NR,NP,NTH,NSBA,N,NSW,j,i
       INTEGER:: NSEND, NSWI
       real:: gut1, gut2, gut_prep
-      real(8):: alp, z_i, h_alpha_z, lambda_alpha, gamma_alpha_z, G_conner
-      real(8):: G_conner_nr, G_conner_lm, SIGMA
+      real(8):: alp, z_i, h_alpha_z, lambda_alpha, gamma_alpha_z
+      real(8):: SIGMA
       real(8),dimension(:),allocatable:: conduct_temp, E1_temp
       integer,dimension(6):: idata
       integer,dimension(6*nsize):: idata2

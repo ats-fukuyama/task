@@ -897,8 +897,8 @@
                     RN_runaway(NR), RN_runaway(NR)-RN_drei(NR), RJ_ohm(NR), RJ_runaway(NR), &
                     RJ_bs(NR), &
                     RT_quench(NR), &
-                    RFP(NR), Rconner(NR), RFP_ava(NR), &
-!                    RFP(NR)*tau_ta0(NSA), Rconner(NR)*tau_ta0(NSA), RFP_ava(NR)*tau_ta0(NSA), &
+                    RFP(NR), Rconnor(NR), RFP_ava(NR), &
+!                    RFP(NR)*tau_ta0(NSA), Rconnor(NR)*tau_ta0(NSA), RFP_ava(NR)*tau_ta0(NSA), &
 !                    E1(NR)/ER_drei(NR)!, RPSS(NR,NSA)
                     ER_crit(NR)
 !                    RP_crit(NR)
@@ -938,7 +938,7 @@
            ' NBI   ',5X,'j_fp   ',5X,'E1    ',5X,  &
            'sigma  ',5X,'n_bulk ',5X,'n_run  ',5X,'n_second',4X,  &
            'j_ohm  ',5X,'j_run  ',5X,'j_bs   ',5X,'T      ',5X, &
-           'r_rate ',5X,'Rconner',5X,'rate_a ',5X,'E_C')
+           'r_rate ',5X,'Rconnor',5X,'rate_a ',5X,'E_C')
 
       END SUBROUTINE FPWRTPRF
 ! ***********************************************************

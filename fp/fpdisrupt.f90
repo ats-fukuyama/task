@@ -139,7 +139,7 @@
       END DO
 
       DO NR=1,NRMAX
-         Rconner(NR)=0.D0
+         Rconnor(NR)=0.D0
          RFP_AVA(NR)=0.D0
          RFP(NR)=0.D0
       END DO
@@ -367,8 +367,8 @@
       SUBROUTINE display_disrupt_initials
 
       IMPLICIT NONE
-      real(8):: alp, z_i, h_alpha_z, lambda_alpha, gamma_alpha_z, G_conner
-      real(8):: G_conner_nr, G_conner_lm, tau_th, v_thermal, tau_rela
+      real(8):: alp, z_i, h_alpha_z, lambda_alpha, gamma_alpha_z, G_connor
+      real(8):: G_connor_nr, G_connor_lm, tau_th, v_thermal, tau_rela
       integer:: j
 
       WRITE(6,*)" ---- DISRUPTION PARAM ------"
@@ -389,9 +389,9 @@
 !         v_thermal=SQRT( RT_quench(1)*1.D3*AEE/AMFD(1)) 
 !         tau_th=(4.D0*PI*EPS0**2)*AMFP(1)**2*v_thermal**3/ &
 !              ( AEFP(1)**4*POST_LNLAM(1,1,1)*RNFP0(1)*1.D20 )
-         G_conner_nr=0.35D0*E0**(-3.D0*(Z_i+1.D0)/16.D0)&
+         G_connor_nr=0.35D0*E0**(-3.D0*(Z_i+1.D0)/16.D0)&
               *EXP(-0.25D0/E0 -SQRT( (1.D0+z_i)/E0 ) )
-         WRITE(6,'(A,E14.6)') "RE gen rate_KB=", G_conner_nr!/tau_th
+         WRITE(6,'(A,E14.6)') "RE gen rate_KB=", G_connor_nr!/tau_th
       ELSE
          WRITE(6,'(A,1P4E14.6)') &
               "E0*E_drei0=E1[V/m], E_crit0 ->",E0, E_drei0(1), E1(1), E_crit0(1)
@@ -407,18 +407,18 @@
          gamma_alpha_z=SQRT( (1.0+z_i)*alp**2/(8.D0*(alp-1.D0)) )&
               *(0.5D0*PI-ASIN(1.D0-2.D0/alp))
          
-         G_conner=0.35D0* E0**(-h_alpha_z)*EXP(-0.25D0*lambda_alpha/E0 &
+         G_connor=0.35D0* E0**(-h_alpha_z)*EXP(-0.25D0*lambda_alpha/E0 &
               -SQRT(2.D0/E0)*gamma_alpha_z )
          
-         G_conner_nr=0.35D0*E0**(-3.D0*(Z_i+1.D0)/16.D0)&
+         G_connor_nr=0.35D0*E0**(-3.D0*(Z_i+1.D0)/16.D0)&
               *EXP(-0.25D0/E0 -SQRT( (1.D0+z_i)/E0 ) )
-         G_conner_lm=G_conner_nr &
+         G_connor_lm=G_connor_nr &
               *EXP(-THETA0(1)*(0.125D0/E0**2 + 2.D0/3.D0/SQRT(E0**3)*SQRT(1.D0+z_i) ) )
          
-         WRITE(6,'(A,1PE14.6,A,1PE14.6,A,1PE14.6)') " alpha = ", alp, " G_conner= ", G_conner, &
+         WRITE(6,'(A,1PE14.6,A,1PE14.6,A,1PE14.6)') " alpha = ", alp, " G_connor= ", G_connor, &
               " THETA0", THETA0(1)
-         WRITE(6,'(A,1PE14.6,A,1PE14.6)') " G_Conner_nr = ", &
-              G_conner_nr, " G_conner_lm = ", G_conner_lm
+         WRITE(6,'(A,1PE14.6,A,1PE14.6)') " G_Connor_nr = ", &
+              G_connor_nr, " G_connor_lm = ", G_connor_lm
       END IF
 
       IF(MODEL_IMPURITY.eq.0)THEN
@@ -734,7 +734,7 @@
       END DO
       IP_ALL_FP = IP_ALL_FP/(2.D0*PI*RR)
 
-      IF(MODEL_IMPURITY.eq.1.and.MODEL_conner_fp.eq.0)THEN
+      IF(MODEL_IMPURITY.eq.1.and.MODEL_connor_fp.eq.0)THEN
          DO NR=NRSTART, NREND
             temp_r(NR)=RN_MGI(NR,1)
          END DO
@@ -785,7 +785,7 @@
       IMPLICIT NONE
       integer:: NTH, NP, NR, NSA, N, NSW, NS, NSBA, NSB
       real(8):: FLUXS_PMAX, FFP, RSUM1, FACT, SUMZ, RSUM2, PV, PITCH, v_thermal, tau_th
-      real(8),dimension(NRSTART:NREND):: Rconner_l
+      real(8),dimension(NRSTART:NREND):: Rconnor_l
       real(8):: alp, z_i, h_alpha_z, lambda_alpha, gamma_alpha_z, theta_l, E00, tau_rela
       real(8),dimension(NTHMAX):: RE_PITCH_L
       
@@ -863,7 +863,7 @@
                v_thermal=SQRT( RT_quench(NR)*1.D3*AEE/AMFD(1)) 
                tau_th=(4.D0*PI*EPS0**2)*AMFP(1)**2*v_thermal**3/ &
                     ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RNFP0(1)*1.D20 )
-               Rconner_l(NR)=0.35D0*E00**(-3.D0*(Z_i+1.D0)/16.D0)&
+               Rconnor_l(NR)=0.35D0*E00**(-3.D0*(Z_i+1.D0)/16.D0)&
                     *EXP(-0.25D0/E00 -SQRT( (1.D0+z_i)/E00 ) )!/tau_th
             ELSE
                theta_l=THETA0(1)*RT_quench(NR)/RTFP0(1)
@@ -874,7 +874,7 @@
                lambda_alpha=8.D0*alp*(alp-0.5D0-SQRT(alp*(alp-1.D0)) )
                gamma_alpha_z=SQRT( (1.0+z_i)*alp**2/(8.D0*(alp-1.D0)) )&
                     *(0.5D0*PI-ASIN(1.D0-2.D0/alp))
-               Rconner_l(NR)= E00**(-h_alpha_z) &
+               Rconnor_l(NR)= E00**(-h_alpha_z) &
                     *EXP(-0.25D0*lambda_alpha/E00-SQRT(2.D0/E00)*gamma_alpha_z )
                
                IF(MODEL_IMPURITY.eq.0)THEN
@@ -888,15 +888,15 @@
                   tau_rela=(4.D0*PI*EPS0**2)*AMFP(1)**2*VC**3/ &
                        ( AEFP(1)**4*POST_LNLAM(NR,1,1)*RN_MGI(NR,1)*1.D20 )
                END IF
-               Rconner_l(NR)=Rconner_l(NR)/(tau_rela*SQRT(2*theta_l)**3)
-!               Rconner_l(NR)=Rconner_l(NR)/(tau_rela*SQRT(theta_l)**3)
+               Rconnor_l(NR)=Rconnor_l(NR)/(tau_rela*SQRT(2*theta_l)**3)
+!               Rconnor_l(NR)=Rconnor_l(NR)/(tau_rela*SQRT(theta_l)**3)
             END IF
          ELSE
-            Rconner_l(NR)=0.D0
+            Rconnor_l(NR)=0.D0
          END IF
       END DO
       CALL mtx_set_communicator(comm_nr) 
-      call mtx_allgather_real8(Rconner_l,NREND-NRSTART+1,Rconner)
+      call mtx_allgather_real8(Rconnor_l,NREND-NRSTART+1,Rconnor)
       CALL mtx_reset_communicator
 
 
@@ -921,9 +921,9 @@
       IF(TIMEFP.eq.DELT) previous_rate_p(:)=0.D0
 
       DO NR=NRSTART,NREND
-         IF(MODEL_Conner_FP.eq.0)THEN
-            RN1_temp(NR)=-DELT*(Rconner(NR)+RFP_ava(NR))*RN_disrupt(NR)+RN_disrupt(NR)
-         ELSEIF(MODEL_Conner_FP.eq.1)THEN
+         IF(MODEL_Connor_FP.eq.0)THEN
+            RN1_temp(NR)=-DELT*(Rconnor(NR)+RFP_ava(NR))*RN_disrupt(NR)+RN_disrupt(NR)
+         ELSEIF(MODEL_Connor_FP.eq.1)THEN
             RN1_temp(NR)=-0.5D0*DELT* &
                  ( (RFP(NR)+RFP_ava(NR))*RN_disrupt(NR) + previous_rate(NR) ) &
                  +RN_disrupt(NR)
@@ -937,10 +937,10 @@
          CALL N_RE_transport ! RN_runaway, RN_drei updated
       ELSE
          DO NR=NRSTART,NREND
-            IF(MODEL_Conner_FP.eq.0)THEN
-               RN2_temp(NR)=DELT*(Rconner(NR)+RFP_ava(NR))*RN_disrupt(NR)+RN_runaway(NR)
-               RN2P_temp(NR)=DELT*(Rconner(NR))*RN_disrupt(NR)+RN_drei(NR)
-            ELSEIF(MODEL_Conner_FP.eq.1)THEN
+            IF(MODEL_Connor_FP.eq.0)THEN
+               RN2_temp(NR)=DELT*(Rconnor(NR)+RFP_ava(NR))*RN_disrupt(NR)+RN_runaway(NR)
+               RN2P_temp(NR)=DELT*(Rconnor(NR))*RN_disrupt(NR)+RN_drei(NR)
+            ELSEIF(MODEL_Connor_FP.eq.1)THEN
                RN2_temp(NR)=0.5D0*DELT* &
                     ( (RFP(NR)+RFP_ava(NR))*RN_disrupt(NR) + previous_rate(NR) ) &
                     +RN_runaway(NR)
@@ -1029,7 +1029,7 @@
          E_hat=EP(NR)/ER_crit(NR)
          phi=1.D0-1.46D0*SQRT(EPSRM2(NR))+1.72D0*EPSRM2(NR)
          IF(E_hat.ge.1)THEN
-            IF(MODEL_Conner_FP.eq.0)THEN
+            IF(MODEL_Connor_FP.eq.0)THEN
                rate_ava_l(NR)= &
                     RN_runaway(NR)/RN_disrupt(NR)* &
                     (E_hat-1.D0)/ &
@@ -1037,7 +1037,7 @@
                     SQRT(PI*phi/(3.D0*(Z_i+5.D0)))/ &
                     SQRT(1.D0-1.D0/E_hat+ (4.D0*PI*(Z_i+1.D0)**2)/ &
                     (3.D0*phi*(Z_i+5.D0)*(E_hat**2+4.D0/phi**2-1.D0)) )
-            ELSEIF(MODEL_Conner_FP.eq.1)THEN
+            ELSEIF(MODEL_Connor_FP.eq.1)THEN
                rate_ava_l(NR)= &
                     RN_runaway(NR)/RN_disrupt(NR)* &
                     (E_hat-1.D0)/ &
@@ -1308,8 +1308,8 @@
       END DO
 !---- RIGHT HAND SIDE
       DO NR=NRSTART,NREND
-         IF(MODEL_Conner_FP.eq.0)THEN
-            RHS = RN_runaway(NR) + (Rconner(NR)+RFP_ava(NR))*RN_disrupt(NR)*DELT
+         IF(MODEL_Connor_FP.eq.0)THEN
+            RHS = RN_runaway(NR) + (Rconnor(NR)+RFP_ava(NR))*RN_disrupt(NR)*DELT
          ELSE
             RHS = RN_runaway(NR) + (RFP(NR)+RFP_ava(NR))*RN_disrupt(NR)*DELT
          END IF
@@ -1347,8 +1347,8 @@
       END DO
 !---- RIGHT HAND SIDE
       DO NR=NRSTART,NREND
-         IF(MODEL_Conner_FP.eq.0)THEN
-            RHS = RN_drei(NR) + (Rconner(NR))*RN_disrupt(NR)*DELT
+         IF(MODEL_Connor_FP.eq.0)THEN
+            RHS = RN_drei(NR) + (Rconnor(NR))*RN_disrupt(NR)*DELT
          ELSE
             RHS = RN_drei(NR) + (RFP(NR))*RN_disrupt(NR)*DELT
          END IF
@@ -1377,7 +1377,7 @@
 !              RG(NR+1)*RN_runaway(NR+1) &
 !              -2.D0*RM(NR)*RN_runaway(NR) &
 !              +RG(NR)*RN_runaway(NR-1) ) &
-!              +(Rconner(NR)+RFP_ava(NR))*RN_disrupt(NR)
+!              +(Rconnor(NR)+RFP_ava(NR))*RN_disrupt(NR)
 !
 !      END DO
 !
@@ -1672,7 +1672,7 @@
 ! radial.dat
          WRITE(13,'(A, 1PE15.6e3, i7)') "# TIME ", TIMEFP, N_f1
          WRITE(13,'(A)') "# RM, RN, RT, RN_r, RN_p, RN_s J_ohm, J_run, J_bs, E1, E_drei, dndt_p, dndt_s, RJS " 
-         IF(MODEL_conner_fp.eq.1)THEN
+         IF(MODEL_connor_fp.eq.1)THEN
             DO NR=1,NRMAX
                WRITE(13,'(1P100E17.8e3)'), RM(NR), RN_disrupt(NR), RT_quench(NR), & 
                     RN_runaway(NR), RN_drei(NR), RN_runaway(NR)-RN_drei(NR), &
@@ -1687,7 +1687,7 @@
                     RN_runaway(NR), RN_drei(NR), RN_runaway(NR)-RN_drei(NR), &
                     RJ_ohm(NR), RJ_runaway(NR), RJ_bs(NR), &
                     E1(NR), ER_drei(NR), &
-                    Rconner(NR)*RN_disrupt(NR)*1.D20, RFP_AVA(NR)*RN_disrupt(NR)*1.D20, &
+                    Rconnor(NR)*RN_disrupt(NR)*1.D20, RFP_AVA(NR)*RN_disrupt(NR)*1.D20, &
                     RJS(NR,1),ER_crit(NR)
             END DO
          END IF
@@ -1725,11 +1725,11 @@
       WRITE(11,'(1P256E14.6)') TIMEFP, (E1(NR), NR=1,NRMAX), (ER_drei(NR), NR=1,NRMAX), (ER_crit(NR), NR=1,NRMAX)
 
 ! dndt
-      IF(MODEL_conner_fp.eq.1)THEN
+      IF(MODEL_connor_fp.eq.1)THEN
          WRITE(12,'(1P128E15.6e3)') TIMEFP, (RFP(NR)*RN_disrupt(NR)*1.d20, NR=1,NRMAX), &
               (RFP_ava(NR)*RN_disrupt(NR)*1.d20, NR=1,NRMAX)
       ELSE
-         WRITE(12,'(1P128E15.6e3)') TIMEFP, (Rconner(NR)*RN_disrupt(NR)*1.d20, NR=1,NRMAX), &
+         WRITE(12,'(1P128E15.6e3)') TIMEFP, (Rconnor(NR)*RN_disrupt(NR)*1.d20, NR=1,NRMAX), &
               (RFP_ava(NR)*RN_disrupt(NR)*1.d20, NR=1,NRMAX)
       END IF
       

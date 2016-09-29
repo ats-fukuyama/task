@@ -114,7 +114,7 @@
 !                     CALL fp_drexec(NSA,IERR,its)
                   END IF
                ELSEIF(ISW_D.eq.1)THEN !
-                  IF(MODEL_conner_fp.eq.1.or.MODEL_DISRUPT.eq.0)THEN ! Conner model doesn't require f evolution
+                  IF(MODEL_connor_fp.eq.1.or.MODEL_DISRUPT.eq.0)THEN ! Connor model doesn't require f evolution
                      CALL fp_exec(NSA,IERR,its) ! F1 and FNS0 changed
                   END IF
                   IERR=0

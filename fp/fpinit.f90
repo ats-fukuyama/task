@@ -353,7 +353,7 @@
 !     tau_quench       : thermal quench time [sec]
 !     tau_mgi          : MGI duration [sec]
 !     MODEL_DISRUPT    : 0=no disruption, 1=disruption calc.
-!     MODEL_Conner_FP  : runaway rate 0= Conner, 1=FP
+!     MODEL_Connor_FP  : runaway rate 0= Connor, 1=FP
 !     MODEL_BS         : bootstrap current 0= off, 1=simple model
 !     MODEL_jfp        : current evaluation 
 !                            0: independent of f
@@ -380,7 +380,7 @@
       tau_quench=1.D-3
       tau_mgi=5.D-3
       MODEL_DISRUPT=0
-      MODEL_Conner_FP=0
+      MODEL_Connor_FP=0
       MODEL_BS=0
       MODEL_jfp=0
       MODEL_LNL=0
@@ -464,7 +464,7 @@
            KNAMEQ,KNAMWR,KNAMFP,KNAMWM,KNAMPF, &
            KNAMFO,KNAMTR,KNAMEQ2,KID_NS,ID_NS, &
            NSAMAX,NSBMAX,NS_NSA,NS_NSB, &
-           LMAXNR,NCMIN,NCMAX,NBEAMMAX,NSSPB,NSSPF, &
+           LMAXNWR,NCMIN,NCMAX,NBEAMMAX,NSSPB,NSSPF, &
            NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX, &
            NTMAX,NTSTEP_COEF,NTSTEP_COLL, &
            NTG1STEP,NTG1MIN,NTG1MAX, &
@@ -474,8 +474,8 @@
            MODELD_PINCH,MODELD_BOUNDARY, &
            MODEL_LOSS,MODEL_SYNCH,MODEL_NBI,MODEL_WAVE, &
            IMTX,MODEL_KSP,MODEL_PC,LMAXFP,LMAXE, &
-           NGLINE,NGRAPH,LMAXNWR,LLMAX,LLMAX_NF,IDBGFP, &
-           MODEL_DISRUPT,MODEL_Conner_fp,MODEL_BS,MODEL_jfp, &
+           NGLINE,NGRAPH,LLMAX,LLMAX_NF,IDBGFP, &
+           MODEL_DISRUPT,MODEL_Connor_fp,MODEL_BS,MODEL_jfp, &
            MODEL_LNL,MODEL_RE_pmax,MODELD_n_RE,MODEL_IMPURITY, &
            MODEL_SINK,N_IMPU, &
            N_partition_r,N_partition_s,N_partition_p, &
@@ -519,7 +519,7 @@
       WRITE(6,*) '      KNAMEQ,KNAMWR,KNAMFP,KNAMWM,KNAMPF,'
       WRITE(6,*) '      KNAMFO,KNAMTR,KNAMEQ2,KID_NS,ID_NS,'
       WRITE(6,*) '      NSAMAX,NSBMAX,NS_NSA,NS_NSB,'
-      WRITE(6,*) '      LMAXNR,NCMIN,NCMAX,NBEAMMAX,NSSPB,NSSPF,'
+      WRITE(6,*) '      LMAXNWR,NCMIN,NCMAX,NBEAMMAX,NSSPB,NSSPF,'
       WRITE(6,*) '      NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX,'
       WRITE(6,*) '      NTMAX,NTSTEP_COEF,NTSTEP_COLL,'
       WRITE(6,*) '      NTG1STEP,NTG1MIN,NTG1MAX,'
@@ -529,8 +529,8 @@
       WRITE(6,*) '      MODELD_BOUNDARY,MODELD_PINCH,'
       WRITE(6,*) '      MODEL_LOSS,MODEL_SYNCH,MODEL_NBI,MODEL_WAVE,'
       WRITE(6,*) '      IMTX,MODEL_KSP,MODEL_PC,LMAXFP,LMAXE,'
-      WRITE(6,*) '      NGLINE,NGRAPH,LMAXNWR,LLMAX,LLMAX_NF,IDBGFP,'
-      WRITE(6,*) '      MODEL_DISRUPT,MODEL_Conner_fp,MODEL_BS,MODEL_jfp,'
+      WRITE(6,*) '      NGLINE,NGRAPH,LLMAX,LLMAX_NF,IDBGFP,'
+      WRITE(6,*) '      MODEL_DISRUPT,MODEL_Connor_fp,MODEL_BS,MODEL_jfp,'
       WRITE(6,*) '      MODEL_LNL,MODEL_RE_pmax,MODELD_n_RE,MODEL_IMPURITY,'
       WRITE(6,*) '      MODEL_SINK,N_IMPU,'
       WRITE(6,*) '      N_partition_r,N_partition_s,N_partition_p,'
@@ -677,7 +677,7 @@
 
       idata( 1)=NSAMAX
       idata( 2)=NSBMAX
-      idata( 3)=LMAXNR
+      idata( 3)=LMAXNWR
       idata( 4)=NBEAMMAX
       idata( 5)=NSSPF
       idata( 6)=NPMAX
@@ -716,25 +716,24 @@
       idata(39)=LMAXE
       idata(40)=NGLINE
       idata(41)=NGRAPH
-      idata(42)=LMAXNR
-      idata(43)=LLMAX
-      idata(44)=LLMAX_NF
-      idata(45)=IDBGFP
-      idata(46)=MODEL_DISRUPT
-      idata(47)=MODEL_Conner_FP
-      idata(48)=MODEL_BS
-      idata(49)=MODEL_jfp
-      idata(50)=MODEL_LNL
-      idata(51)=MODEL_RE_pmax
-      idata(52)=MODELD_n_RE
-      idata(53)=MODEL_IMPURITY
-      idata(54)=MODEL_SINK
-      idata(55)=n_impu
-      idata(56)=N_partition_r
-      idata(57)=N_partition_s
-      idata(58)=N_partition_p
+      idata(42)=LLMAX
+      idata(43)=LLMAX_NF
+      idata(44)=IDBGFP
+      idata(45)=MODEL_DISRUPT
+      idata(46)=MODEL_Connor_FP
+      idata(47)=MODEL_BS
+      idata(48)=MODEL_jfp
+      idata(49)=MODEL_LNL
+      idata(50)=MODEL_RE_pmax
+      idata(51)=MODELD_n_RE
+      idata(52)=MODEL_IMPURITY
+      idata(53)=MODEL_SINK
+      idata(54)=n_impu
+      idata(55)=N_partition_r
+      idata(56)=N_partition_s
+      idata(57)=N_partition_p
 
-      CALL mtx_broadcast_integer(idata,58)
+      CALL mtx_broadcast_integer(idata,57)
       NSAMAX         =idata( 1)
       NSBMAX         =idata( 2)
       LMAXNWR        =idata( 3)
@@ -776,24 +775,22 @@
       LMAXE          =idata(39)
       NGLINE         =idata(40)
       NGRAPH         =idata(41)
-      LMAXNR         =idata(42)
-      LLMAX          =idata(43)
-      LLMAX_NF       =idata(44)
-      IDBGFP         =idata(45)
-      MODEL_DISRUPT  =idata(46)
-      MODEL_Conner_FP=idata(47)
-      MODEL_BS       =idata(48)
-      MODEL_jfp      =idata(49)
-      MODEL_LNL      =idata(50)
-      MODEL_RE_pmax  =idata(51)
-      MODELD_n_RE    =idata(52)
-      MODEL_IMPURITY =idata(53)
-      MODEL_SINK     =idata(54)
-      n_impu         =idata(55)
-      N_partition_r  =idata(56)
-      N_partition_s  =idata(57)
-      N_partition_p  =idata(58)
-
+      LLMAX          =idata(42)
+      LLMAX_NF       =idata(43)
+      IDBGFP         =idata(44)
+      MODEL_DISRUPT  =idata(45)
+      MODEL_Connor_FP=idata(46)
+      MODEL_BS       =idata(47)
+      MODEL_jfp      =idata(48)
+      MODEL_LNL      =idata(49)
+      MODEL_RE_pmax  =idata(50)
+      MODELD_n_RE    =idata(51)
+      MODEL_IMPURITY =idata(52)
+      MODEL_SINK     =idata(53)
+      n_impu         =idata(54)
+      N_partition_r  =idata(55)
+      N_partition_s  =idata(56)
+      N_partition_p  =idata(57)
 
       CALL mtx_broadcast_integer(NS_NSA,NSAMAX)
       CALL mtx_broadcast_integer(NS_NSB,NSBMAX)
@@ -961,7 +958,7 @@
       IMPLICIT NONE
       integer:: nsa,nsb,ns,NBEAM
 
-      WRITE(6,600) 'E0      ',E0      ,'DRR0    ',DRR0    ,'ZEFF    ',ZEFF
+      WRITE(6,600) 'E0      ',E0      ,'ZEFF    ',ZEFF
       IF(NRMAX.EQ.1) THEN
          WRITE(6,600) &
               'R1      ',R1      ,'DELR1   ',DELR1   ,'DELT    ',DELT 
@@ -981,7 +978,8 @@
       END DO
       WRITE(*,*) "----- Maximum normalized momentum and loss time ----- "
       DO nsb=1,nsbmax
-         WRITE(6,600) 'pmax    ',pmax(nsb),'tloss   ',tloss(nsb)
+         WRITE(6,600) 'pmax    ',pmax(nsb), 'pmax_bb ',pmax_bb(nsb), &
+                      'tloss   ',tloss(nsb)
       END DO
 
       WRITE(*,*) "----- PARAMETERS OF HEATINGS -----"
@@ -991,8 +989,9 @@
          
          IF(MODELW(NS).EQ.0) THEN
             
-            WRITE(6,600) 'DEC     ',DEC     ,'RFEC    ',RFEC  
-            WRITE(6,600) 'PEC1    ',PEC1    ,'PEC2    ',PEC2    ,'DELYEC  ',DELYEC
+            WRITE(6,600) 'DEC     ',DEC     ,'RFEC    ',RFEC    , &
+                         'DELYEC  ',DELYEC
+            WRITE(6,600) 'PEC1    ',PEC1    ,'PEC2    ',PEC2
             WRITE(6,600) 'PEC3    ',PEC3    ,'PEC4    ',PEC4
             WRITE(6,600) 'DLH     ',DLH     ,'RLH     ',RLH
             WRITE(6,600) 'PLH1    ',PLH1    ,'PLH2    ',PLH2
@@ -1002,12 +1001,12 @@
          ELSEIF(MODELW(NS).EQ.1) THEN
             WRITE(6,600) 'RFDW    ',RFDW    ,'DELNPR  ',DELNPR
             WRITE(6,600) 'PWAVE   ',PWAVE   ,'DELYEC  ',DELYEC
-            WRITE(6,602) 'EPSNWR  ',EPSNWR  ,'LMAXNW  ',LMAXNWR
+            WRITE(6,602) 'EPSNWR  ',EPSNWR  ,'LMAXNWR ',LMAXNWR
             
          ELSEIF(MODELW(NS).EQ.2) THEN
             WRITE(6,600) 'RFDW    ',RFDW    ,'DELNPR  ',DELNPR
             WRITE(6,600) 'PWAVE   ',PWAVE   ,'DELYEC  ',DELYEC
-            WRITE(6,602) 'EPSNWR  ',EPSNWR  ,'LMAXNW  ',LMAXNWR
+            WRITE(6,602) 'EPSNWR  ',EPSNWR  ,'LMAXNWR ',LMAXNWR
             
          ELSEIF(MODELW(NS).EQ.3) THEN
             WRITE(6,600) 'RFDW    ',RFDW    ,'DELNPR  ',DELNPR
@@ -1015,7 +1014,8 @@
             WRITE(6,600) 'CEWTH/R ',DBLE(CEWTH),'CEWTH/I ',DIMAG(CEWTH)
             WRITE(6,600) 'CEWPH/R ',DBLE(CEWPH),'CEWPH/I ',DIMAG(CEWPH)
             WRITE(6,600) 'REWY    ',REWY    ,'DREWY   ',DREWY
-            WRITE(6,600) 'RKWR    ',RKWR    ,'RKWTH   ',RKWTH   ,'RKWPH   ',RKWPH
+            WRITE(6,600) 'RKWR    ',RKWR    ,'RKWTH   ',RKWTH   , &
+                         'RKWPH   ',RKWPH
             
          ELSEIF(MODELW(NS).EQ.4) THEN
             WRITE(6,600) 'RFDW    ',RFDW    ,'DELNPR  ',DELNPR
@@ -1047,9 +1047,9 @@
             WRITE(6,*) "NBI NUMBER NBEAM & NSSPB=",NBEAM,NSSPB(NBEAM)
             WRITE(6,600) 'SPBTOT   ',SPBTOT(NBEAM), &
                          'SPBENG   ',SPBENG(NBEAM), &
-                         'SPBANG   ',SPBANG(NBEAM), &
-                         'SPBPANG   ',SPBPANG(NBEAM)
-            WRITE(6,600) 'SPBR0    ',SPBR0(NBEAM), &
+                         'SPBANG   ',SPBANG(NBEAM)
+            WRITE(6,600) 'SPBPANG   ',SPBPANG(NBEAM), &
+                         'SPBR0    ',SPBR0(NBEAM), &
                          'SPBRW    ',SPBRW(NBEAM)
          ENDIF
       END DO
@@ -1069,9 +1069,20 @@
          WRITE(6,*) 'Self-consistent fusion reaction'
       END IF
 
-      WRITE(6,*) "----- THE OTHER PARAMETERS -----"
-      WRITE(6,600) 'RIMPL   ',RIMPL   ,'EPSM    ',EPSM
-      WRITE(6,600) 'EPSDE   ',EPSDE   ,'H0DE    ',H0DE    ,'EPSE    ',EPSE
+      WRITE(6,604)'DRR0            ',DRR0            , &
+                  'DRRS            ',DRRS
+      WRITE(6,604)'FACTOR_CDBM     ',FACTOR_CDBM     , &
+                  'DELTAB_B        ',DELTAB_B
+      WRITE(6,604)'DRR_EDGE        ',DRR_EDGE        , &
+                  'RHO_EDGE        ',RHO_EDGE
+      WRITE(6,604)'FACTOR_DRR_EDGE ',FACTOR_DRR_EDGE , &
+                  'FACTOR_PINCH    ',FACTOR_PINCH
+
+
+      WRITE(6,*) "----- OTHER PARAMETERS -----"
+      WRITE(6,600) 'RIMPL   ',RIMPL   ,'EPSM    ',EPSM    ,'EPSFP   ',EPSFP
+      WRITE(6,600) 'EPSE    ',EPSE    ,'EPSDE   ',EPSDE   ,'H0DE    ',H0DE    
+      WRITE(6,600) 'PGMAX   ',PGMAX   ,'RGMAX   ',RGMAX   ,'RGMIN   ',RGMIN
       WRITE(6,603) 'LMAXE   ',LMAXE   ,'LLMAX   ',LLMAX   ,'NGLINE  ',NGLINE
       WRITE(6,603) 'IDBGFP  ',IDBGFP  ,'NGRAPH  ',NGRAPH  ,'LLMAX_NF',LLMAX_NF
 
@@ -1079,9 +1090,50 @@
       WRITE(6,603) 'NAVMAX  ',NAVMAX  ,'NP2MAX  ',NP2MAX  ,'NTMAX   ',NTMAX   
       WRITE(6,603) 'NTG1STEP',NTG1STEP,'NTG1MIN ',NTG1MIN ,'NTG1MAX ',NTG1MAX
       WRITE(6,603) 'NTG2STEP',NTG2STEP,'NTG2MIN ',NTG2MIN ,'NTG2MAX ',NTG2MAX
+      WRITE(6,606) 'NTSTEP_COEF     ',NTSTEP_COEF, &
+                   'NTSTEP_COLL     ',NTSTEP_COLL
       WRITE(6,603) 'MODELE  ',MODELE  ,'MODELA  ',MODELA  ,'MODELC  ',MODELC
-      WRITE(6,603) 'MODEFR  ',MODEFR  ,'MODELD  ',MODELD  ,'MODEFW  ',MODEFW
-      WRITE(6,603) 'IMTX    ',IMTX    ,'MODEL_KSP',MODEL_KSP,'MODEL_PC ',MODEL_PC
+      WRITE(6,603) 'MODELR  ',MODELR  ,'MODELS  ',MODELS  ,'MODELD  ',MODELD
+      WRITE(6,606) 'MODELD_RDEP     ',MODELD_RDEP    , &
+                   'MODELD_PDEP     ',MODELD_PDEP
+      WRITE(6,606) 'MODELD_EDGE     ',MODELD_EDGE    , &
+                   'MODELD_PINCH    ',MODELD_PINCH
+      WRITE(6,606) 'MODELD_BOUNDARY ',MODELD_BOUNDARY
+      WRITE(6,606) 'MODEL_LOSS      ',MODEL_LOSS     , &
+                   'MODEL_SYNCH     ',MODEL_SYNCH
+      WRITE(6,606) 'MODEL_NBI       ',MODEL_NBI      , &
+                   'MODEL_WAVE      ',MODEL_WAVE
+      WRITE(6,603) 'IMTX    ',IMTX    , &
+                   'LMAXFP  ',LMAXFP  , &
+                   'LMAXE   ',LMAXE
+      WRITE(6,606) 'MODEL_KSP       ',MODEL_KSP      , &
+                   'MODEL_PC        ',MODEL_PC
+      WRITE(6,603) 'NGLINE  ',NGLINE  , &
+                   'NGRAPH  ',NGRAPH
+      WRITE(6,603) 'LLMAX   ',LLMAX   , &
+                   'LLMAX_NF',LLMAX_NF, &
+                   'IDBGFP  ',IDBGFP
+      WRITE(6,606) 'MODEL_DISRUPT   ',MODEL_DISRUPT   , &
+                   'MODEL_Connor_fp ',MODEL_Connor_fp
+      WRITE(6,606) 'MODEL_BS        ',MODEL_BS        , &
+                   'MODEL_jfp       ',MODEL_jfp
+      WRITE(6,606) 'MODEL_LNL       ',MODEL_LNL       , &
+                   'MODEL_RE_pmax   ',MODEL_RE_pmax
+      WRITE(6,606) 'MODELD_n_RE     ',MODELD_n_RE     , &
+                   'MODEL_IMPURITY  ',MODEL_IMPURITY
+      WRITE(6,606) 'MODEL_LNL       ',MODEL_LNL       , &
+                   'MODEL_RE_pmax   ',MODEL_RE_pmax
+      WRITE(6,606) 'MODEL_SINK      ',MODEL_SINK      , &
+                   'N_IMPU          ',N_IMPU
+      WRITE(6,604) 'T0_quench       ',T0_quench       , &
+                   'tau_quench      ',tau_quench
+      WRITE(6,604) 'tau_mgi         ',tau_mgi         , &
+                   'time_quench_star',time_quench_start
+      WRITE(6,600) 'RJPROF1 ',RJPROF1 , &
+                   'RJPROF2 ',RJPROF2 , &
+                   'v_RE    ',v_RE
+      WRITE(6,604) 'target_zeff     ',target_zeff     , &
+                   'SPITOT          ',SPITOT
 
       WRITE(6,*) "-------- PLASMA MODELS --------"
 
@@ -1159,10 +1211,13 @@
 
       RETURN
 
-  600 FORMAT(1H ,A8,'=',1PE12.4:3X,A8,'=',1PE12.4:3X,A8,'=',1PE12.4)
-  601 FORMAT(1H ,A8,'=',1PE12.4:3X,A8,'=',1PE12.4:3X,A8,'=',I8)
-  602 FORMAT(1H ,A8,'=',1PE12.4:3X,A8,'=',I8,4X  :3X,A8,'=',I8)
-  603 FORMAT(1H ,A8,'=',I8,4X  :3X,A8,'=',I8,4X  :3X,A8,'=',I8)
+  600 FORMAT(' ',A8,'=',1PE12.4:3X,A8,'=',1PE12.4:3X,A8,'=',1PE12.4)
+  601 FORMAT(' ',A8,'=',1PE12.4:3X,A8,'=',1PE12.4:3X,A8,'=',I8)
+  602 FORMAT(' ',A8,'=',1PE12.4:3X,A8,'=',I8,4X  :3X,A8,'=',I8)
+  603 FORMAT(' ',A8,'=',I8,4X  :3X,A8,'=',I8,4X  :3X,A8,'=',I8)
+  604 FORMAT(' ',A16,'=',1PE12.4:3X,A16,'=',1PE12.4)
+  605 FORMAT(' ',A16,'=',1PE12.4:3X,A16,'=',I8)
+  606 FORMAT(' ',A16,'=',I8,4X  :3X,A16,'=',I8)
     END SUBROUTINE fp_view
 
   END module fpinit
