@@ -17,7 +17,7 @@ CONTAINS
 
 1   CONTINUE
     ierr=0
-    WRITE(6,'(A)') '## W1 MENU: P,V/PARM  R/RUN  G/GRAF  Q/QUIT'
+    WRITE(6,'(A)') '## W1 MENU: P,V/PARM  R/RUN  G/GRAF  D/DISP  Q/QUIT'
 
     CALL TASK_KLIN(line,kid,mode,w1_parm)
     IF(mode /= 1) GOTO 1
@@ -39,6 +39,10 @@ CONTAINS
        ELSE
           CALL w1_gout
        END IF
+    ELSEIF(kid.EQ.'D') THEN
+       CALL w1_allocate
+       CALL w1_disp(ierr)
+       INIT=1
     ELSEIF(kid.EQ.'Q') THEN
        GOTO 9000
     ELSE

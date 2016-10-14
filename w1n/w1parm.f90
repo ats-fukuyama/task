@@ -43,7 +43,7 @@ CONTAINS
 
   SUBROUTINE w1_nlin(NID,IST,IERR)
 
-    USE w1comm
+    USE w1comm_parm
 
     IMPLICIT NONE
     INTEGER,INTENT(IN) :: NID
@@ -89,7 +89,7 @@ CONTAINS
 
   SUBROUTINE w1_check(IERR)
 
-    USE w1comm
+    USE w1comm_parm
     IMPLICIT NONE
     INTEGER:: IERR
 
@@ -106,7 +106,7 @@ CONTAINS
 
   SUBROUTINE w1_view
 
-    use w1comm
+    use w1comm_parm
     implicit none
     INTEGER:: NS,NA
 

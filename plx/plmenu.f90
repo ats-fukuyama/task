@@ -10,6 +10,7 @@
 
       USE plcomm
       USE plinit
+      USE plload, ONLY: pl_load
 
       IMPLICIT NONE
       INTEGER(ikind)    :: IERR, MODE
@@ -19,7 +20,7 @@
     1 CONTINUE
          IERR=0
          WRITE(6,601)
-  601    FORMAT('## PL MENU: P,V/PARM  Q/QUIT')
+  601    FORMAT('## PL MENU: P,V/PARM  L/LOAD  Q/QUIT')
 
          CALL TASK_KLIN(LINE,KID,MODE,pl_parm)
       IF(MODE.NE.1) GOTO 1
@@ -28,6 +29,9 @@
          CALL pl_parm(0,'PL',IERR)
       ELSEIF(KID.EQ.'V') THEN
          CALL pl_view
+      ELSEIF(KID.EQ.'L') THEN
+         CALL pl_load(ierr)
+         IF(ierr.ne.0) GO TO 1
       ELSEIF(KID.EQ.'Q') THEN
          GOTO 9000
       ELSE

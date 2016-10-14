@@ -49,6 +49,12 @@ C
             WRITE(6,'(1PE12.4,0P7F9.2)') 
      &                         RF,RPI,ZPI,PHII,MODEW,ANGZ,ANGPH,UUI
          ENDIF
+      ELSEIF(MDLWRI.EQ.11) THEN
+         WRITE(6,*) 
+     &   '# default values: RF,RP,ZP,RKR0,RNZ,RNPHI,UU'
+         WRITE(6,'(1PE12.4,0P7F9.2)') 
+     &                      RF,RPI,ZPI,RKR0,RNZI,RNPHII,UUI
+         PHII=0.D0
       ENDIF
 c
 c     --- eliminate disp factor for same z/a species ---
@@ -66,7 +72,7 @@ C     --- Each ray tracing ---
 C
       DO NRAY=1,NRAYMX
 C
-         IF(MDLWRI.LT.10) THEN
+         IF(MDLWRI.LT.100) THEN
 C
     1       WRITE(6,*) '# NRAY = ',NRAY
             IF(MDLWRI.EQ.0) THEN
@@ -120,6 +126,29 @@ C
                IF(ANGPH.LT.0.D0) RNPHII=-RNPHII
                WRITE(6,*) 'XX MDLWRI=2 IS NOT SUPPORTED YET.'
                GOTO 1
+            ELSEIF(MDLWRI.EQ.11) THEN
+               READ(5,*,ERR=1,END=9000) 
+     &                      RF,RPI,ZPI,RKR0,RNZI,RNPHII,UUI
+               WRITE(6,*) 
+     &         '# initial values: RF,RP,ZP,RKR0,RNZ,RNPHI,UU'
+               WRITE(6,'(1PE12.4,0P7F9.2)') 
+     &                      RF,RPI,ZPI,RKR0,RNZI,RNPHII,UUI
+               IF(ABS(RNZI).GT.1.D0) THEN
+                  ANGZ=0.D0
+                  ANGPH=0.D0
+               ELSE
+                  ANGZ=ASIN(RNZI)*180.D0/PI
+                  IF(ABS(RNZI).GT.SQRT(1.D0-RNPHII**2)) THEN
+                     ANGZ=0.D0
+                  ELSE
+                     ANGZ=ASIN(RNZI/SQRT(1.D0-RNPHII**2))*180.D0/PI
+                  ENDIF
+                  IF(ABS(RNPHII).GT.SQRT(1.D0-RNZI**2)) THEN
+                     ANGPH=0.D0
+                  ELSE
+                     ANGPH=ASIN(RNPHII/SQRT(1.D0-RNZI**2))*180.D0/PI
+                  ENDIF
+               ENDIF
             ENDIF
          ELSE
             RF=RFIN(NRAY)
@@ -132,7 +161,7 @@ C
             ANGZ=ANGZIN(NRAY)
             ANGPH=ANGPHIN(NRAY)
             UUI=UUIN(NRAY)
-            IF(MDLWRI.EQ.10)THEN
+            IF(MDLWRI.EQ.100)THEN
                WRITE(6,*) 
      &         '# initial values: RF,RP,ZP,PHI,RKR0,RNZ,RNPHI,UU'
                WRITE(6,'(1PE12.4,0P7F9.2)') 
@@ -181,7 +210,7 @@ C
          CALL WRNWTN(RKRI,RKZI,RKPHII,IERR)
          IF(IERR.NE.0) GOTO 1200
 C
-         IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
+         IF(MODELG.EQ.0.OR.MODELG.EQ.1.OR.MODELG.EQ.11) THEN
             Y(1)= RPI
             Y(2)= PHII
             Y(3)= ZPI
@@ -262,23 +291,29 @@ C
          ENDDO
          YN(8,IT)=Y7-YM(7)
 
-         CALL PL_MAG_OLD(YM(1),YM(2),YM(3),PSIN)
-         IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
-            RL  =YM(1)
-            PHIL=ASIN(YM(2)/(2.D0*PI*RR))
-            ZL  =YM(3)
-            RKRL=YM(4)
+         IF(MODELG.LE.10) THEN
+            CALL PL_MAG_OLD(YM(1),YM(2),YM(3),PSIN)
+            IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
+               RL  =YM(1)
+               PHIL=ASIN(YM(2)/(2.D0*PI*RR))
+               ZL  =YM(3)
+               RKRL=YM(4)
+            ELSE
+               RL  =SQRT(YM(1)**2+YM(2)**2)
+               PHIL=ATAN2(YM(2),YM(1))
+               ZL  =YM(3)
+               RKRL=(YM(4)*YM(1)+YM(5)*YM(2))/RL
+            ENDIF
+            RNPHI_IDEI= -YM(4)*VC/OMG*SIN(PHIL) + YM(5)*VC/OMG*COS(PHIL)
+            DELTA=DISPXR( YM(1), YM(2), YM(3), YM(4), YM(5), YM(6), OMG)
+            RKPARA=YM(4)*BNX+YM(5)*BNY+YM(6)*BNZ
+            RKPERP=SQRT((YM(4)*YM(4)+YM(5)*YM(5)+YM(6)*YM(6))-RKPARA**2)
          ELSE
-            RL  =SQRT(YM(1)**2+YM(2)**2)
-            PHIL=ATAN2(YM(2),YM(1))
-            ZL  =YM(3)
-            RKRL=(YM(4)*YM(1)+YM(5)*YM(2))/RL
-         ENDIF
-         RNPHI_IDEI= -YM(4)*VC/OMG*SIN(PHIL) + YM(5)*VC/OMG*COS(PHIL)
-         DELTA=DISPXR( YM(1), YM(2), YM(3), YM(4), YM(5), YM(6), OMG )
-         RKPARA=YM(4)*BNX+YM(5)*BNY+YM(6)*BNZ
-         RKPERP=SQRT((YM(4)*YM(4)+YM(5)*YM(5)+YM(6)*YM(6))-RKPARA**2)
-
+            RNPHI_IDEI= YM(5)*VC/OMG
+            DELTA=DISPXR( YM(1), YM(2), YM(3), YM(4), YM(5), YM(6), OMG)
+            RKPARA=YM(4)*BNX+YM(5)*BNY+YM(6)*BNZ
+            RKPERP=SQRT((YM(4)*YM(4)+YM(5)*YM(5)+YM(6)*YM(6))-RKPARA**2)
+         END IF
 C
          IF(MDLWRW.GE.1) THEN
             ID=0
@@ -307,10 +342,12 @@ C
             NIT = IT
             GOTO 11
          ENDIF
-         CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
-         IF(RHON.GT.RB/RA*RKAP) THEN
-            NIT = IT
-            GOTO 11
+         IF(MODELG.LE.10) THEN
+            CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
+            IF(RHON.GT.RB/RA*RKAP) THEN
+               NIT = IT
+               GOTO 11
+            ENDIF
          ENDIF
  10   CONTINUE
       NIT=ITMAX
