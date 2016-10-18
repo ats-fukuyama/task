@@ -99,7 +99,6 @@ CONTAINS
                   xi,yi,zi,xib,yib,zib,vxi,vyi,vzi,vti,dt,iran,&
                   x1,x2,y1,y2,alx,aly,model_boundary,vzone)
 
-
       !..... initialize scalar potential by poisson solver
       ipssn = 0
        IF(model_boundary.EQ.0) THEN
@@ -211,7 +210,7 @@ CONTAINS
          np = np + 1
          position = position &
                   + inter * (1.0d0 - densx * (dble(npx) - 1.0d0)/dble(npxmax))
-         x(np) = position
+         x(np) = position + vdzone
          y(np) = (dble(npy) - 0.5d0 ) * facty + vdzone
 
          call gauss(rvx,rvy,rvz,iran)
