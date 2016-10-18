@@ -461,8 +461,8 @@ CONTAINS
           IF( nxp .EQ. nxmax-1) nxppp = 1
           IF( nyp .EQ. nymax-1) nyppp = 1
        ELSE   ! reflective:
-          !IF( nxp .EQ. 0  ) nxpm = 0
-          !IF( nyp .EQ. 0  ) nypm = 0
+          IF( nxp .EQ. 0  ) nxpm = 0
+          IF( nyp .EQ. 0  ) nypm = 0
           !IF( nxp .EQ. nxmax-1) nxppp = nxmax
           !IF( nyp .EQ. nymax-1) nyppp = nymax
           IF( nxp .EQ. nxmax-1 .and. dx .GE. 0.5d0) THEN
@@ -746,7 +746,7 @@ CONTAINS
     z4 = z2 - vdzone
     !alx1 = alx - vzone
     !aly1 = aly - vzone
-    !!$omp parallel do private(x,y,z,xmid,ymid,xb,yb,xl_after,xl_before,yl_after,yl_before,vx,vy)
+    !$omp parallel do private(xl_after,xl_before,yl_after,yl_before)
     DO np = 1, npmax
        xmid(np)=0.5D0*(xb(np)+x(np))
        IF( x(np) .LT. x3  ) THEN
@@ -787,15 +787,15 @@ CONTAINS
           END DO
        ENDIF
 
-       IF( z(np) .LT. z1 ) THEN
-          z(np) = -z(np)
-          vz(np) = -vz(np)
-       ELSEIF( z(np) .GT. z2 ) THEN
-          z(np) = alz - (z(np) - alz)
-          vz(np) = -vz(np)
-       ENDIF
+      ! IF( z(np) .LT. z1 ) THEN
+      !    z(np) = -z(np)
+      !    vz(np) = -vz(np)
+      ! ELSEIF( z(np) .GT. z2 ) THEN
+      !    z(np) = alz - (z(np) - alz)
+      !    vz(np) = -vz(np)
+      ! ENDIF
     END DO
-    !!$omp end parallel do
+    !$omp end parallel do
 
   END SUBROUTINE bound_reflective
 
@@ -817,7 +817,7 @@ CONTAINS
        factor=chrg*DBLE(nxmax)*DBLE(nymax)/DBLE(npmax)
     END IF
     !*poption parallel, psum(rho)
-    !$omp parallel do Private (np,nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2p,sx2,sx2m,sy2p,sy2,sy2m) &
+    !$omp parallel do Private (nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2p,sx2,sx2m,sy2p,sy2,sy2m) &
     !$omp reduction (+:rho)
 
     DO np = 1, npmax
@@ -1038,7 +1038,7 @@ CONTAINS
     ELSE
        factor=chrg*DBLE(nxmax)*DBLE(nymax)/DBLE(npmax)
     END IF
-    !$omp parallel do Private (np,nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2p,sx2,sx2m,sy2p,sy2,sy2m) &
+    !$omp parallel do Private (nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2p,sx2,sx2m,sy2p,sy2,sy2m) &
     !$omp Reduction(+:jx,jy,jz)
     DO np = 1, npmax
        nxp = xmid(np)

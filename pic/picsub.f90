@@ -269,7 +269,7 @@ CONTAINS
     INTEGER:: nxmax, nymax, nx, ny, nxm, nxp, nym, nyp
     INTEGER:: model_push, model_boundary,model_wg
     IF(model_boundary .EQ. 0) THEN
-      !$omp parallel do private(nx,ny,nxm,nym,nxp,nyp)
+      !$omp parallel do private(nxm,nym,nxp,nyp)
        DO nx = 0, nxmax
           DO ny = 0, nymax
 
@@ -299,7 +299,7 @@ CONTAINS
        END DO
       !$omp end parallel do
     ELSE IF (model_boundary .NE. 0) THEN
-      !$omp parallel do private(nx,ny,Esx,Esy,Esz,Emx,Emy,Emz,Ex,Ey,Ez,nxm,nym,nxp,nyp)
+      !$omp parallel do private(nxm,nym,nxp,nyp)
        DO nx = 1, nxmax
           DO ny = 1, nymax
 
@@ -499,7 +499,7 @@ ENDIF
     INTEGER :: model_push, model_boundary
     REAL(8) :: Bxx,Byy,Bzz,vcfact,dt,dl,dm,dn
     IF(model_boundary .EQ. 0) THEN
-      !$omp parallel do private(nx,ny,nxm,nym,nxp,nyp)
+      !$omp parallel do private(nxm,nym,nxp,nyp)
        DO ny = 0, nymax
           DO nx = 0, nxmax
              nxm = nx - 1
@@ -540,7 +540,7 @@ ENDIF
        END DO
        !$omp end parallel do
     ELSE
-      !$omp parallel do private(nx,ny,nxm,nym,nxp,nyp)
+      !$omp parallel do private(nxm,nym,nxp,nyp)
        DO ny = 0, nymax-1
           DO nx = 0, nxmax-1
              nxm = nx - 1
@@ -664,10 +664,6 @@ ENDIF
         !Bz(nxmax-1,0) = 0.d0
         !Bz(nxmax-1,nymax-1) = 0.d0
       ENDIF
-    IF(model_boundary .ne. 0) THEN
-      Bx(:,nymax) = 0.d0
-      By(nxmax,:) = 0.d0
-    ENDIF
         DO nx = 0,nxmax
           DO ny = 0,nymax
         Bxbb(nx,ny)=Bxb(nx,ny)
@@ -745,11 +741,13 @@ ENDIF
     REAL(8) :: akin, mass, vcfact, gamma
     INTEGER(4) :: npmax, np
     akin = 0.d0
+    !$omp parallel do Private(gamma)&
+    !$omp reduction(+:akin)
     DO np = 1, npmax
       gamma = 1.d0/sqrt(1.d0 - (vx(np)**2+vy(np)**2+vz(np)**2)/vcfact**2)
        akin = akin + vcfact ** 2 * (gamma - 1)
     END DO
-
+    !$omp end parallel do
     IF(npmax.EQ.0) THEN
        akin=0.D0
     ELSE

@@ -98,7 +98,7 @@ CONTAINS
       call iniset(npmax,npxmax,npymax,nxmax,nymax,densx, &
                   xi,yi,zi,xib,yib,zib,vxi,vyi,vzi,vti,dt,iran,&
                   x1,x2,y1,y2,alx,aly,model_boundary,vzone)
-
+      
 
       !..... initialize scalar potential by poisson solver
       ipssn = 0
@@ -206,12 +206,12 @@ CONTAINS
    ELSE ! subroutine for density gradient
       inter = dble(nxmax-2*vdzone)/((dble(npxmax)+1.0d0)*(1.0d0-0.5d0*densx))
       do npy = 1, npymax
-         position = vdzone
+         position = 0.d0
       do npx = 1, npxmax
          np = np + 1
          position = position &
                   + inter * (1.0d0 - densx * (dble(npx) - 1.0d0)/dble(npxmax))
-         x(np) = position
+         x(np) = position + vdzone
          y(np) = (dble(npy) - 0.5d0 ) * facty + vdzone
 
          call gauss(rvx,rvy,rvz,iran)
