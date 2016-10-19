@@ -559,10 +559,10 @@ C
       IF(XL.LT.RA) THEN
 !         RNA=PNA*EXP(-(XL/PNAL)**2)*1.D20    !gaussian
 !         DRN=-2.D0*XL/(PNAL**2)              !gaussian
-          RNA=(PNA-1.D-5)*1.D20*(1.D0-XL**2)+1.D-5*1.D20 ! PNA*1.D20
-          DRN=-2.D0*XL*(1.D0-1.D-5*1.D20/RNA)/(1.D0-XL**2) !0.D0
-!          RNA=(PNA-1.D-5)*1.D20*((1.00001D0-XL**2)**0.5D0)+ 1.D-5*1.D20    !parabola ()^1 or ()^1/2
-!          DRN=-XL*(1.D0-1.D-5*1.D20/RNA)/(1.00001D0-XL**2) !-XL/((1.00001D0-XL**2)**0.5D0) !parabola
+!          RNA=(PNA-1.D-5)*1.D20*(1.D0-XL**2)+1.D-5*1.D20 ! PNA*1.D20
+!          DRN=-2.D0*XL*(1.D0-1.D-5*1.D20/RNA)/(1.D0-XL**2) !0.D0
+          RNA=(PNA-1.D-5)*1.D20*((1.00001D0-XL**2)**0.5D0)+ 1.D-5*1.D20    !parabola ()^1 or ()^1/2
+          DRN=-XL*(1.D0-1.D-5*1.D20/RNA)/(1.00001D0-XL**2) !-XL/((1.00001D0-XL**2)**0.5D0) !parabola
       ELSE
          RETURN
       ENDIF
@@ -634,7 +634,7 @@ C
 !              WRITE(6,'(A,5I5)',ADVANCE='NO') 
 !              WRITE(6,'(A,5I5)')
 !     &              'MD,ND,NTH,NHH,NR=',MD,ND,NTH,NHH,NR
-              RHOL=RB/RA*(NR-0.5D0)/NRMAX
+              RHOL=XL ! RB/RA*(NR-0.5D0)/NRMAX
              IF(RHOL.LT.1.D0) THEN
        CALL WMDPFAA(CW,RHOL,RKPR,AE2N0,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
           WP02=AE2N0*1.D20/(AM*EPS0)
@@ -650,7 +650,36 @@ C
                CRM=(0.D0,0.D0)
              ENDIF
 
-            ELSE
+          ELSEIF(MODEFA.EQ.5) THEN
+                IF((NR.EQ.2).OR.(NR.EQ.20).OR.(NR.EQ.40)) THEN
+                  CALL WMDPFA(CX,CFN,COEF,RHOR,CPM,CQM,CRM,1)
+                  WRITE(6,'(3I5)') NR,NN,MM
+                  WRITE(6,'(1P6E12.4)') CPM,CQM,CRM
+                  
+                  RHOL=XL       ! RB/RA*(NR-0.5D0)/NRMAX
+                  IF(RHOL.LT.1.D0) THEN
+          CALL WMDPFAA(CW,RHOL,RKPR,AE2N0,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
+                 WP02=AE2N0*1.D20/(AM*EPS0)
+                 CPM=(PI/2.D0)*WP02/(CW*CW*WC*WC*RR*RR)*
+     &            (CPM1+CPM2*MM/(RHOL*AM*CW*WC))  
+                 CQM=PI*WP02/(CW*CW*WC*RR)*
+     &            (CQM1+CQM2*MM/(RHOL*AM*CW*WC)) 
+                 CRM=2.D0 *PI*WP02/(CW*CW)*
+     &            (CRM1+CRM2*MM/(RHOL*AM*CW*WC))
+
+                 WRITE(6,'(1P6E12.4)') CPM,CQM,CRM
+                   ELSE
+                  CPM=(0.D0,0.D0)
+                  CQM=(0.D0,0.D0)
+                  CRM=(0.D0,0.D0)
+
+                   ENDIF
+                ELSE
+                  CPM=(0.D0,0.D0)
+                  CQM=(0.D0,0.D0)
+                  CRM=(0.D0,0.D0)
+                ENDIF 
+              ELSE
             RETURN
 !              IF(RL.LT.RA) THEN
 !       CALL WMDPFA3(CW,RHOL,RKPR,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)

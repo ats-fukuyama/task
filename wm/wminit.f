@@ -387,7 +387,6 @@ C
          IERR=1
       ENDIF
     
-      CALL DPCHEK(NTHMAX,NRMAX,RMIN,RMAX,RR,IERR)
 C
       RETURN
       END

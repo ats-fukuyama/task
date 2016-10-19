@@ -154,6 +154,7 @@ C
       IF(IERR.NE.0) RETURN
 C
       CALL EQCHEK(IERR)
+      CALL DPCHEK(IERR)
       IF(MODE.EQ.0.AND.IERR.NE.0) GOTO 1
       IF(IERR.NE.0) IERR=IERR+100
 C
@@ -213,7 +214,19 @@ C
 C
 C     ***** CHECK INPUT PARAMETERS *****
 C
-      SUBROUTINE DPCHEK(NCHMAX,NRMAX_1,RMIN_1,RMAX_1,RR_1,IERR)
+      SUBROUTINE DPCHEK(IERR)
+C
+      USE plcomm
+      INCLUDE 'dpcomm.inc'
+
+      IERR=0
+C
+      RETURN
+      END
+C
+C     ***** CALL DPLDFP *****
+C
+      SUBROUTINE DPPREP(NCHMAX,NRMAX_1,RMIN_1,RMAX_1,RR_1,IERR)
 C
       USE plcomm
       INCLUDE 'dpcomm.inc'
@@ -229,13 +242,13 @@ C
      &       MODELV(NS).EQ.4.OR.
      &       MODELV(NS).EQ.9)) THEN
             IF(INITFP.EQ.0) THEN
-               write(6,*) '----- DPLDFP ----- NS=',NS
+!               write(6,*) '----- DPLDFP ----- NS=',NS
                CALL DPLDFP
                INITFP=1
             ENDIF
          ELSEIF(MODELV(NS).EQ.5) THEN
             IF(INITFM.EQ.0) THEN
-               write(6,*) '----- DPLDFM ----- NS=',NS
+!               write(6,*) '----- DPLDFM ----- NS=',NS
                CALL DPLDFM(0,NCHMAX,NRMAX_1,RMIN_1,RMAX_1)
                INITFM=1
             ENDIF
@@ -248,7 +261,6 @@ C
 C
       RETURN
       END
-C
 C     ****** SHOW PARAMETERS ******
 C
       SUBROUTINE DPVIEW

@@ -210,7 +210,8 @@ C
       USE libmpi
       INCLUDE 'dpcomm.inc'
       CHARACTER(LEN=80),SAVE::  KNAMFP_SAVE=' '
-C
+      REAL(8),DIMENSION(:,:,:,:),ALLOCATABLE :: FNSDP
+C     
       IF(KNAMFP.EQ.KNAMFP_SAVE) RETURN
 C
       IF(nrank.eq.0) THEN
@@ -232,22 +233,50 @@ C
       ENDDO
       CLOSE(21)
       ENDIF
-
+      
       CALL mtx_broadcast1_integer(NRMAX)
-!      CALL mtx_broadcast1_integer(NPMAX)
-!      CALL mtx_broadcast1_integer(NTHMAX)
-!      CALL mtx_broadcast1_integer(NSAMAX)
-!      CALL mtx_broadcast1_real8(DELR)
-!      CALL mtx_broadcast1_real8(DELTH)
-!      CALL mtx_broadcast1_real8(RMIN)
-!      CALL mtx_broadcast1_real8(RMAX)
-!      CALL mtx_broadcast_real8(DELP,NSAMAX)
-!      CALL mtx_broadcast_real8(AEFP,NSAMAX)
-!      CALL mtx_broadcast_real8(AMFP,NSAMAX)
-!      CALL mtx_broadcast_real8(RNFP0,NSAMAX)
-!      CALL mtx_broadcast_real8(RTFP0,NSAMAX)
-!      CALL mtx_broadcast_real8(FNS(1:NTHMAX,1:NPMAX,1:NRMAX,1:NSAMAX),
-!     &                         NTHMAX*NPMAX*NRMAX*NSAMAX)
+      CALL mtx_broadcast1_integer(NPMAX)
+      CALL mtx_broadcast1_integer(NTHMAX)
+      CALL mtx_broadcast1_integer(NSAMAX)
+      CALL mtx_broadcast1_real8(DELR)
+      CALL mtx_broadcast1_real8(DELTH)
+      CALL mtx_broadcast1_real8(RMIN)
+      CALL mtx_broadcast1_real8(RMAX)
+      CALL mtx_broadcast_integer(NS_NSA,NSAMAX)
+      CALL mtx_broadcast_real8(DELP,NSAMAX)
+      CALL mtx_broadcast_real8(AEFP,NSAMAX)
+      CALL mtx_broadcast_real8(AMFP,NSAMAX)
+      CALL mtx_broadcast_real8(RNFP0,NSAMAX)
+      CALL mtx_broadcast_real8(RTFP0,NSAMAX)
+
+      ALLOCATE(FNSDP(NTHMAX,NPMAX,NRMAX,NSAMAX))
+      DO NSA=1,NSAMAX
+         DO NR=1,NRMAX
+            DO NP=1,NPMAX
+               DO NTH=1,NTHMAX
+                  FNSDP(NTH,NP,NR,NSA)=
+     &                 FNS(NTH,NP,NR,NSA)
+               ENDDO
+            ENDDO
+         ENDDO
+      ENDDO
+      
+      DO NSA=1,NSAMAX
+      CALL mtx_broadcast_real8(FNSDP(1:NTHMAX,1:NPMAX,1:NRMAX,NSA),
+     &                         NTHMAX*NPMAX*NRMAX)
+      ENDDO
+
+!      DO NSA=1,NSAMAX
+!         DO NR=1,NRMAX
+!            DO NP=1,NPMAX
+!               DO NTH=1,NTHMAX
+!                  FNS(NTH,NP,NR,NSA)=
+!     &                 FNSDP(NTH,NP,NR,NSA)
+!               ENDDO
+!            ENDDO
+!         ENDDO
+!      ENDDO
+
 C     
       IF(nrank.eq.0) THEN
       WRITE(6,*) '# DATA WAS SUCCESSFULLY LOADED FROM THE FILE.'
@@ -326,17 +355,17 @@ C
        DO NTH=1,NTHMAXFP
        DO NR=1,NRMAXFP
        DO NP=1,NPMAX
-          fa0(NP+1,NR+1,NTH)=FNS(NTH,NP,NR,NSA)
-          fa0(NP+1,1,NTH) =FNS(NTH,NP,1,NSA)
-          fa0(NP+1,NRMAXFP+2,NTH)=FNS(NTH,NP,NRMAXFP,NSA)*1.D-3!0.D0
+          fa0(NP+1,NR+1,NTH)=FNSDP(NTH,NP,NR,NSA)
+          fa0(NP+1,1,NTH) =FNSDP(NTH,NP,1,NSA)
+          fa0(NP+1,NRMAXFP+2,NTH)=FNSDP(NTH,NP,NRMAXFP,NSA)*1.D-3!0.D0
        ENDDO
-          fa0(1,NR+1,NTH) =FNS(NTH,1,NR,NSA)
-          fa0(NPMAX+2,NR+1,NTH)=FNS(NTH,NPMAX,NR,NSA)*1.D-1 !2.5D-1 ! f(NP+2)=f(NP+1)*1/4
+          fa0(1,NR+1,NTH) =FNSDP(NTH,1,NR,NSA)
+          fa0(NPMAX+2,NR+1,NTH)=FNSDP(NTH,NPMAX,NR,NSA)*1.D-1 !2.5D-1 ! f(NP+2)=f(NP+1)*1/4
        ENDDO
-          fa0(1,1,NTH)=FNS(NTH,1,1,NSA)
-          fa0(1,NRMAXFP+2,NTH)=FNS(NTH,1,NRMAX,NSA)*1.D-3 !0.D0
-          fa0(NPMAX+2,1,NTH)=FNS(NTH,NPMAX,1,NSA)*1.D-1 !2.5D-1          
-          fa0(NPMAX+2,NRMAXFP+2,NTH)=FNS(NTH,NPMAX,NRMAX,NSA)*1.D-4!0.D0
+          fa0(1,1,NTH)=FNSDP(NTH,1,1,NSA)
+          fa0(1,NRMAXFP+2,NTH)=FNSDP(NTH,1,NRMAX,NSA)*1.D-3 !0.D0
+          fa0(NPMAX+2,1,NTH)=FNSDP(NTH,NPMAX,1,NSA)*1.D-1 !2.5D-1          
+          fa0(NPMAX+2,NRMAXFP+2,NTH)=FNSDP(NTH,NPMAX,NRMAX,NSA)*1.D-4!0.D0
        ENDDO
 
        DO NTH=1,NTHMAXFP
@@ -356,7 +385,8 @@ C
       ELSE
        RETURN
       ENDIF
-!!!--fa
+      DEALLOCATE(FNSDP)
+!!!   --fa
   900 RETURN
       END
 C

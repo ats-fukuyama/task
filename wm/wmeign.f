@@ -103,7 +103,7 @@ C
             ilena(i+1)=ISIZE
             iposa(i+1)=ISTA-1
             IF(nrank.EQ.0.AND.nsize.gt.1)
-     &           write(6,'(A,3I10)') 'i,iposa,iend,ilena=',
+     &           write(6,'(A,4I10)') 'i,iposa,iend,ilena=',
      &           i,iposa(i+1),iposa(i+1)+ilena(i+1)-1,ilena(i+1)
          ENDDO
          ISIZE=ilena(nrank+1)
@@ -246,13 +246,16 @@ C
          NGFXYMAX=NGXMAX*NGYMAX
          ALLOCATE(FRAG(NGFXYMAX),FIAG(NGFXYMAX),AMPAG(NGFXYMAX))
 
-         IWORK=(INT((NGXMAX-1)/nsize)+1)*NGYMAX
+         IWORK=(INT((NGXMAX*NGYMAX-1)/nsize)+1)
          DO i=0,nsize-1
             ISTA=MIN(i*IWORK+1,NGFXYMAX)
             IEND=MIN(ISTA+IWORK-1,NGFXYMAX)
             ISIZE=IEND-ISTA+1
             ilena(i+1)=ISIZE
             iposa(i+1)=ISTA-1
+            IF(nrank.EQ.0.AND.nsize.gt.1)
+     &           write(6,'(A,4I10)') 'i,iposa,iend,ilena=',
+     &           i,iposa(i+1),iposa(i+1)+ilena(i+1)-1,ilena(i+1)
          ENDDO
          ISIZE=ilena(nrank+1)
          ISTA=iposa(nrank+1)
