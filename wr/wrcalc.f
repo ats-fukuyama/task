@@ -309,6 +309,10 @@ C
             RKPARA=YM(4)*BNX+YM(5)*BNY+YM(6)*BNZ
             RKPERP=SQRT((YM(4)*YM(4)+YM(5)*YM(5)+YM(6)*YM(6))-RKPARA**2)
          ELSE
+            RL  =YM(1)
+            PHIL=YM(2)
+            ZL  =YM(3)
+            RKRL=YM(4)
             RNPHI_IDEI= YM(5)*VC/OMG
             DELTA=DISPXR( YM(1), YM(2), YM(3), YM(4), YM(5), YM(6), OMG)
             RKPARA=YM(4)*BNX+YM(5)*BNY+YM(6)*BNZ
@@ -420,6 +424,11 @@ CENDIDEI
             ENDIF
             ZL  =YM(3)
             RKRL=YM(4)
+         ELSE IF(MODELG.EQ.11) THEN
+            RL  =YM(1)
+            PHIL=YM(2)
+            ZL  =YM(3)
+            RKRL=YM(4)
          ELSE
             RL  =SQRT(YM(1)**2+YM(2)**2)
             PHIL=ATAN2(YM(2),YM(1))
@@ -466,11 +475,13 @@ C
             NIT = IT
             GOTO 11
          ENDIF
-         CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
-         IF(RHON.GT.RB/RA*RKAP) THEN
-            NIT = IT
-            GOTO 11
-         ENDIF         
+         IF(MODELG.LE.10) THEN
+            CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
+            IF(RHON.GT.RB/RA*RKAP) THEN
+               NIT = IT
+               GOTO 11
+            ENDIF        
+         END IF
  10   CONTINUE
       NIT=ITMAX
 C     
@@ -1158,7 +1169,7 @@ C
 C      WRITE(6,*) S,T,S/T
       RKR=RKRI-S/T
       IF(MDLWRW.NE.0) 
-     &     WRITE(6,'(1P3E12.4)') RKR,RKRI,-S/T
+     &     WRITE(6,'(A,1P3E12.4)') RKR,RKRI,-S/T
 C
       IF(ABS((RKR-RKRI)/RKRI).LE.EPSNW) GOTO 9000
 C      WRITE(6,*) ABS((RKR-RKRI)/RKRI), RKR

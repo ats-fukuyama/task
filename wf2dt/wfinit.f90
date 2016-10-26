@@ -1,5 +1,5 @@
-!     $Id: wfinit.f90,v 1.23 2012/03/05 06:29:02 maruyama Exp $
-!
+! **** INITIALIZE AND UPDATE INPUT PARAMETERS ******
+
 !     ****** INITIALIZE PARAMETERS ******
 
 SUBROUTINE WFINIT
@@ -17,6 +17,7 @@ SUBROUTINE WFINIT
 !        MODELG = Model geometry
 !                0 : slab geometry
 !              * 2 : toroidal geometry
+!               12 : slab geometry with B, n, T data input
 !
 !        MODELB = Magnetic Field Configuration
 !              * 0 : rzp : tokamak
@@ -232,6 +233,8 @@ SUBROUTINE WFINIT
   THETJ2 =-40.D0
   NJMAX  = 41
 
+  MODELWG=1         ! Profile: 0: step function, 1: gaussian
+                    !         12: read file
   R1WG=0.5D0
   Z1WG=0.0D0
   R2WG=0.5D0
@@ -242,7 +245,6 @@ SUBROUTINE WFINIT
   ANGWG=0.D0        ! Polarization angle wrt z axis
   ELPWG=0.D0        ! Polarization ellipticity
   DPHWG=0.D0        ! Phase curvature for focusing
-  NSHWG=1           ! Profile: 0: step function, 1: gaussian
   
 !     PPN0   : Neutral pressure (Pa)  1 Torr = 1 mmHg = 133.322 Pa
 !     PTN0   : Initial neutral temperarure (eV)
@@ -265,6 +267,11 @@ SUBROUTINE WFINIT
 !     *** DEBUG CONTROL PARAMETER ***
 
   IDEBUG = 0
+
+!     *** LOAD FILE NAME ***
+
+  KNAMPF=' '
+  KNAMWG=' '
 
 !     *** INITIALIZATION PARAMETERS (DO NOT MODIFY) ***
   
@@ -291,11 +298,12 @@ SUBROUTINE WFPLST
      WRITE(6,*) '     MODELG,MODELB,MODELD,MODELP,MODELN,'
      WRITE(6,*) '     NPRINT,NDRAWD,NDRAWA,NDRAWE,NGRAPH,NDRAWV,'
      WRITE(6,*) '     KFNAME,KFNAMA,KFNAMF,KFNAMN,KFNAMB,'
+     WRITE(6,*) '     KNAMPF,KNAMWG,'
      WRITE(6,*) '     BXMIN,BXMAX,BYMIN,BYMAX,BZMIN,BZMAX,'
      WRITE(6,*) '     DELR,DELZ,'
      WRITE(6,*) '     PIN,RD,THETJ1,THETJ2,NJMAX,ZANT,ZWALL,'
      WRITE(6,*) '     R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG,'
-     WRITE(6,*) '     AMPWG,ANGWG,ELPWG,DPHWG,NSHWG,'
+     WRITE(6,*) '     AMPWG,ANGWG,ELPWG,DPHWG,MODELWG,'
      WRITE(6,*) '     NGXMAX,NGYMAX,NGVMAX,IDEBUG,'
      WRITE(6,*) '     br_corner,bz_corner,bt_corner,'
      WRITE(6,*) '     pn_corner,ptpr_corner,ptpp_corner,'
@@ -321,11 +329,12 @@ SUBROUTINE WFPARM(KID)
                 MODELG,MODELB,MODELD,MODELP,MODELN,&
                 NPRINT,NDRAWD,NDRAWA,NDRAWE,NGRAPH,NDRAWV,&
                 KFNAME,KFNAMA,KFNAMF,KFNAMN,KFNAMB,&
+                KNAMPF,KNAMWG, &
                 BDRMIN,BDRMAX,BDZMIN,BDZMAX,&
                 DELR,DELZ,&
                 PIN,RD,THETJ1,THETJ2,NJMAX,&
                 R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG, &
-                AMPWG,ANGWG,ELPWG,DPHWG,NSHWG, &
+                AMPWG,ANGWG,ELPWG,DPHWG,MODELWG, &
                 NGXMAX,NGYMAX,NGVMAX,IDEBUG, &
                 br_corner,bz_corner,bt_corner, &
                 pn_corner,ptpr_corner,ptpp_corner, &
@@ -431,7 +440,7 @@ SUBROUTINE WFVIEW
      WRITE(6,601) 'PH1WG ',PH1WG ,'PH2WG ',PH2WG , &
                   'AMPWG ',AMPWG ,'ANGWG ',ANGWG
      WRITE(6,601) 'ELPWG ',ELPWG ,'DPHWG ',DPHWG
-     WRITE(6,604) 'NSHWG ',NSHWG
+     WRITE(6,605) 'MODELWG',MODELWG
   END IF
   
   IF(NSMAX.GT.0) THEN
@@ -439,16 +448,17 @@ SUBROUTINE WFVIEW
      WRITE(6,698)
 698     FORMAT(' ','NS    PA',9X,'PZ',9X,'PN',9X,'PNS',&
              &                8X,'PZCL')
-     IF(MODELG.EQ.0) THEN
+     SELECT CASE(MODELG)
+     CASE(0,12)
         DO NS=1,NSMAX
            WRITE(6,610) NS,PA(NS),PZ(NS),pn_corner(1,NS),pn_corner(2,NS), &
                         PZCL(NS)
         ENDDO
-     ELSE
+     CASE(2)
         DO NS=1,NSMAX
            WRITE(6,610) NS,PA(NS),PZ(NS),PN(NS),PNS(NS),PZCL(NS)
         ENDDO
-     ENDIF
+     END SELECT
   ENDIF
 
   IF(MODELG.EQ.0) THEN
@@ -491,6 +501,8 @@ SUBROUTINE WFVIEW
 604 FORMAT(' ',A6,'=',I6     :2X,A6,'=',I6     :&
           & 2X,A6,'=',I6     :2X,A6,'=',I6     :&
           & 2X,A6,'=',I6)
+605 FORMAT(' ',A10,'=',I6    :2X,A10,'=',I6    :&
+          & 2X,A10,'=',I6    :2X,A10,'=',I6)
 610 FORMAT(' ',I2,7(1PE11.3))
 611 FORMAT(' ',A4,I2,3(1PE11.3))
 
@@ -527,7 +539,7 @@ subroutine wfparm_broadcast
      idata(17)=NGVMAX
      idata(18)=IDEBUG
      idata(19)=NPH
-     idata(20)=NSHWG
+     idata(20)=MODELWG
      idata(21)=MDAMP
   end if
   
@@ -552,7 +564,7 @@ subroutine wfparm_broadcast
   NGVMAX=idata(17)
   IDEBUG=idata(18)
   NPH   =idata(19)
-  NSHWG =idata(20)
+  MODELWG =idata(20)
   MDAMP =idata(21)
 
 ! ----- broadcast real(8) data ------
@@ -659,6 +671,9 @@ subroutine wfparm_broadcast
   call mtx_broadcast_character(KFNAMF,32)
   call mtx_broadcast_character(KFNAMN,32)
   call mtx_broadcast_character(KFNAMB,32)
+
+  call mtx_broadcast_character(KNAMPF,80)
+  call mtx_broadcast_character(KNAMWG,80)
 
   IF(MODELI.EQ.0) THEN
      CII=CI

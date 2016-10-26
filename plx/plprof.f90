@@ -155,6 +155,8 @@
          BX = BABS*AL(1)
          BY = BABS*AL(2)
          BZ = BABS*AL(3)
+      CASE(14)
+         CALL pl_read_p2Dmag(X,Y,BX,BY,BZ,IERR)
       END SELECT
 
       MAG%BABS = SQRT(BX**2+BY**2+BZ**2)
@@ -183,7 +185,7 @@
       REAL(rkind),INTENT(OUT):: BR,BZ,BT,RHON
 
       INTEGER:: IERR
-      REAL(8) :: BP, PP, QL, RL, RS, BABS, AL(3), &
+      REAL(rkind) :: BP, PP, QL, RL, RS, BABS, AL(3), &
                  RSINP, RCOSP
 
       SELECT CASE(MODELG)
@@ -250,6 +252,9 @@
          BR=BABS*AL(1)
          BZ=BABS*AL(2)
          BT=BABS*AL(3)
+
+      CASE(14)
+         CALL pl_read_p2Dmag(X,Y,BR,BZ,BT,IERR)
 
       END SELECT
 
@@ -356,6 +361,7 @@
         REAL(rkind):: RHON,FACTX,FACTY,FACTN,FACTT,FACTU
         INTEGER:: NS,NSMAXL,IERR
 
+
         SELECT CASE(MODELG)
         CASE(0)
            IF(RA.EQ.0.D0) THEN
@@ -399,7 +405,7 @@
            END DO
         CASE(11)
            CALL PLSDEN11(X,Y,RNPL,RTPRPL,RTPPPL,RZCLPL)
-           DO NS=1,NSMAXL
+           DO NS=1,NSMAX
               PLF(NS)%RN  =RNPL(NS)
               PLF(NS)%RTPR=RTPRPL(NS)
               PLF(NS)%RTPP=RTPPPL(NS)
@@ -415,7 +421,7 @@
            ENDDO
         CASE(13)
            CALL PLSDEN13(X,Y,RNPL,RTPRPL,RTPPPL,RZCLPL)
-           DO NS=1,NSMAXL
+           DO NS=1,NSMAX
               PLF(NS)%RN  =RNPL(NS)
               PLF(NS)%RTPR=RTPRPL(NS)
               PLF(NS)%RTPP=RTPPPL(NS)

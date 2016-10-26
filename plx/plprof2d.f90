@@ -1,10 +1,16 @@
-!     $Id: wfprof.f90,v 1.6 2011/12/15 19:06:55 maruyama Exp $
+MODULE plprof2d
+
+PRIVATE
+
+PUBLIC plsmag11,plsmag13,plsden11,plsden13 
+
+CONTAINS
 
 !     ****** set psi ******
 
-SUBROUTINE WFSPSI(RL,ZL,PSI)
+SUBROUTINE PLSPSI(RL,ZL,PSI)
 
-  use wfcomm,ONLY: RA
+  use plcomm,ONLY: RA
   implicit none
   real(8),intent(in) :: RL,ZL
   real(8),intent(out):: PSI
@@ -12,10 +18,10 @@ SUBROUTINE WFSPSI(RL,ZL,PSI)
   PSI=(RL*RL+ZL*ZL)/(RA*RA)
 
   RETURN
-END SUBROUTINE WFSPSI
+END SUBROUTINE PLSPSI
 
-SUBROUTINE WFCOLL(rn,rtpr,rtpp,rzcl)
-  USE wfcomm
+SUBROUTINE PLCOLL(rn,rtpr,rtpp,rzcl)
+  USE plcomm
   IMPLICIT NONE
   REAL(8),DIMENSION(NSM):: rn,rtpr,rtpp,rzcl
   REAL(8):: TE,TI,RNTI,RNZI,RLAMEE,RLAMEI,RLAMII,SN,PNN0
@@ -49,7 +55,7 @@ SUBROUTINE WFCOLL(rn,rtpr,rtpp,rzcl)
               RNUEI=RNZI*RLAMEI/(1.51D-4*SQRT(TE*1.D-3)**3)
               RNUEN=PNN0*SN*0.88D0*VTE
               RNUE=RNUEE+RNUEI+RNUEN
-              RZCL(NS)=RNUE/(2.D6*PI*RF)
+              RZCL(NS)=RNUE/(2.D6*PI*RFPL)
            ELSE
               TI=(RTPR(NS)+2.D0*RTPP(NS))*1.D3/3.D0
               VTI=SQRT(2.D0*TI*AEE/(PA(NS)*AMP))
@@ -59,7 +65,8 @@ SUBROUTINE WFCOLL(rn,rtpr,rtpp,rzcl)
                        /(5.31D-3*SQRT(TI*1.D-3)**3*SQRT(PA(NS)))
               RNUIN=PNN0*SN*0.88D0*VTI
               RNUI=RNUIE+RNUII+RNUIN
-              RZCL(NS)=RNUI/(2.D6*PI*RF)
+!              RZCL(NS)=RNUI/(2.D6*PI*RFPL)
+              RZCL(NS)=0.D0
            ENDIF
         ELSE
            RZCL(NS)=PZCL(NS)
@@ -71,39 +78,12 @@ SUBROUTINE WFCOLL(rn,rtpr,rtpp,rzcl)
      ENDDO
   ENDIF
   RETURN
-END SUBROUTINE WFCOLL
+END SUBROUTINE PLCOLL
 
 
-!     ****** set magnetic field ******
+SUBROUTINE PLSMAG11(R,Z,BABS,AL)
 
-SUBROUTINE WFSMAG(R,Z,BABS,AL)
-
-  USE wfcomm,ONLY: MODELG
-  USE plload
-  implicit none
-  real(8),intent(in) :: R,Z
-  real(8),intent(out):: BABS,AL(3)
-  REAL(8):: BR,BZ,BT
-  integer:: IERR
-
-  SELECT CASE(MODELG)
-  CASE(0)
-     CALL WFSMAG0(R,Z,BABS,AL)
-  CASE(2)
-     CALL WFSMAG2(R,Z,BABS,AL)
-  CASE(12)
-     CALL pl_read_p2Dmag(R,Z,BR,BZ,BT,IERR)
-     BABS=SQRT(BR**2+BZ**2+BT**2)
-     AL(1)=BR/BABS
-     AL(2)=BT/BABS
-     AL(3)=BZ/BABS
-  END SELECT
-  RETURN
-END SUBROUTINE WFSMAG
-
-SUBROUTINE WFSMAG0(R,Z,BABS,AL)
-
-  use wfcomm
+  use PLcomm
   USE plload
   implicit none
   integer :: I
@@ -125,10 +105,11 @@ SUBROUTINE WFSMAG0(R,Z,BABS,AL)
   al(2)=bt/babs
   al(3)=bz/babs
   RETURN
-END SUBROUTINE WFSMAG0
-SUBROUTINE WFSMAG2(R,Z,BABS,AL)
+END SUBROUTINE PLSMAG11
 
-  use wfcomm
+SUBROUTINE PLSMAG13(R,Z,BABS,AL)
+
+  use PLcomm
   implicit none
   integer :: I
   real(8),intent(in) :: R,Z
@@ -148,14 +129,9 @@ SUBROUTINE WFSMAG2(R,Z,BABS,AL)
   QA = 3.d0
   Q  = Q0+(QA-Q0)*(L/RA)**2
 
-! --- set B field at NODE NN ---
-  if (MODELB.eq.0) then
-     BLO(1) =-BB*LZ/(Q*RR)  ! r   direction
-     BLO(2) = BB*RR/(RR+LR) ! phi direction
-     BLO(3) = BB*LR/(Q*RR)  ! z   direction
-  else
-     BLO=0.d0
-  end if
+  BLO(1) =-BB*LZ/(Q*RR)  ! r   direction
+  BLO(2) = BB*RR/(RR+LR) ! phi direction
+  BLO(3) = BB*LR/(Q*RR)  ! z   direction
      
   BABS=0.d0
   DO I=1,3
@@ -172,38 +148,13 @@ SUBROUTINE WFSMAG2(R,Z,BABS,AL)
   ENDDO
   
   RETURN
-END SUBROUTINE WFSMAG2
+END SUBROUTINE PLSMAG13
 
 !     ****** set density & collision frequency ******
 
-SUBROUTINE WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
+SUBROUTINE PLSDEN11(R,Z,RN,RTPR,RTPP,RZCL)
 
-  use wfcomm,ONLY: modelg,nsm,NSMAX
-  use plload
-  implicit none
-  real(8),intent(in) :: R,Z
-  real(8),intent(out):: RN(NSM),RTPR(NSM),RTPP(NSM),RZCL(NSM)
-  REAL(8):: RU(NSM)
-  INTEGER:: NSMAXL,IERR,NS
-
-  SELECT CASE(MODELG)
-  CASE(0)
-     CALL WFSDEN0(R,Z,RN,RTPR,RTPP,RZCL)
-  CASE(2)
-     CALL WFSDEN2(R,Z,RN,RTPR,RTPP,RZCL)
-  CASE(12)
-     CALL pl_read_p2D(R,Z,RN,RTPR,RU,NSMAXL,IERR)
-     DO NS=1,NSMAX
-        RTPP(NS)=RTPR(NS)
-     END DO
-     CALL WFCOLL(rn,rtpr,rtpp,rzcl)
-  END SELECT
-  RETURN
-END SUBROUTINE WFSDEN
-
-SUBROUTINE WFSDEN0(R,Z,RN,RTPR,RTPP,RZCL)
-
-  use wfcomm
+  use plcomm
   implicit none
   real(8),intent(in) :: R,Z
   real(8),intent(out):: RN(NSM),RTPR(NSM),RTPP(NSM),RZCL(NSM)
@@ -243,14 +194,26 @@ SUBROUTINE WFSDEN0(R,Z,RN,RTPR,RTPP,RZCL)
                 +(ptpp_corner(3,ns)-ptpp_corner(1,ns))*zfactor**2
      END DO
   END SELECT
-  CALL WFCOLL(rn,rtpr,rtpp,rzcl)
+!     write(6,'(1P3E12.4)') rfactor,zfactor
+!  DO NS=1,NSMAX
+!     write(6,'(1P3E12.4)') pn_corner(1,NS),pn_corner(2,NS),pn_corner(3,NS)
+!     write(6,'(1P3E12.4)') ptpr_corner(1,NS),ptpr_corner(2,NS),&
+!                           ptpr_corner(3,NS)
+!     write(6,'(1P3E12.4)') ptpp_corner(1,NS),ptpp_corner(2,NS),&
+!                           ptpp_corner(3,NS)
+!     write(6,'(1P3E12.4)') R,Z,rn(ns)
+!     write(6,'(1P3E12.4)') rtpr(NS),rtpp(NS),rzcl(NS)
+!  END DO
+!     STOP
+
+  CALL PLCOLL(rn,rtpr,rtpp,rzcl)
 
   RETURN
-END SUBROUTINE WFSDEN0
+END SUBROUTINE PLSDEN11
 
-SUBROUTINE WFSDEN2(R,Z,RN,RTPR,RTPP,RZCL)
+SUBROUTINE PLSDEN13(R,Z,RN,RTPR,RTPP,RZCL)
 
-  use wfcomm
+  use plcomm
   implicit none
   integer :: NS,NSI
   real(8),intent(in) :: R,Z
@@ -261,24 +224,28 @@ SUBROUTINE WFSDEN2(R,Z,RN,RTPR,RTPP,RZCL)
 
   ! --- set FACT ---
 
-  if(MODELP.eq.0) then
+  SELECT CASE(MODEL_NPROF)
+  CASE(0)
      FACT=1.D0
-  else
+  CASE(1)
      LR=R-RR
      LZ=Z
-     call WFSPSI(LR,LZ,PSI)
+     call PLSPSI(LR,LZ,PSI)
      if(PSI.lt.1.D0) then
-        if(MODELP.eq.1) then
-           FACT=1.D0
-        elseif(MODELP.eq.2) then
-           FACT=1.D0-PSI
-        else
-           write(6,*) 'XX WDSDEN: UNKNOWN MODELP = ',MODELP
-        endif
+        FACT=1.D0
      else
         FACT=0.D0
      endif
-  end if
+  CASE(2)
+     LR=R-RR
+     LZ=Z
+     call PLSPSI(LR,LZ,PSI)
+     if(PSI.lt.1.D0) then
+        FACT=1.D0-PSI
+     else
+        FACT=0.D0
+     endif
+  END SELECT
 
   ! --- set density at NODE NN ---
 
@@ -290,7 +257,7 @@ SUBROUTINE WFSDEN2(R,Z,RN,RTPR,RTPP,RZCL)
 
   ! --- set collision frequency ---
   
-  CALL WFCOLL(rn,rtpr,rtpp,rzcl)
+  CALL PLCOLL(rn,rtpr,rtpp,rzcl)
 
 !  WRITE(6,*) 'ZND= ',ZND(IN)
 !  WRITE(6,*) 'RN = ',RN(1),RN(2)
@@ -301,5 +268,6 @@ SUBROUTINE WFSDEN2(R,Z,RN,RTPR,RTPP,RZCL)
 !  STOP
 
   RETURN
-END SUBROUTINE WFSDEN2
+END SUBROUTINE PLSDEN13
 
+END MODULE plprof2d

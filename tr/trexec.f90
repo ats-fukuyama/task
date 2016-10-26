@@ -16,7 +16,7 @@
      &   PA, PZ, PZC, PZFE, RDP, RG, RHOA, RIP, RIPE, RIPS, RIPU, &
      &   RMU0, RN, RR, RT, RU, RW, T, TPRST, TST, TTRHO, TTRHOG, &
      &   VLOOP, VSEC, X, XV, Y, YV, Z, ZV ,NEQMAXM, DIPDT, akdw, nt, &
-     &   ABVRHOG, RDPVRHOG, PNS, PNS0, PNS1, NT, PNC, PNFE
+     &   ABVRHOG, RDPVRHOG
       USE TRCOM1, ONLY : TMU, TMU1, NTAMAX, NTXMAX, NTXMAX1
       IMPLICIT NONE
       REAL(8),INTENT(IN) :: DT
@@ -24,7 +24,7 @@
       INTEGER(4):: I, ICHCK, INFO, J, L, LDB, M, MWRMAX, &
            N, NEQ, NEQ1, NEQRMAX, NR, NRHS, NSSN, NSSN1, &
            NSTN, NSTN1, NSVN, NSVN1, KL, KU
-      REAL(8)   :: AJL, FACTOR0, FACTORM, FACTORP, TSL, DILUTE, ANZ, ANI, F0
+      REAL(8)   :: AJL, FACTOR0, FACTORM, FACTORP, TSL
       INTEGER(4),DIMENSION(NEQMAXM*NRMAX) :: IPIV
       REAL(8),DIMENSION(NEQMAXM*NRMAX)    :: XX
       REAL(8),DIMENSION(2,NRMAX)  :: YY
@@ -34,49 +34,8 @@
       ICHCK=0
 
  1000 L=0
-!cpub begin
-!      DO NR=1,NRMAX
-!          ANC(NR)=PNC*RN(NR,1)
-!          ANFE(NR)=PNFE*RN(NR,1)
-!          ANI = SUM(PZ(2:NSM)*RN(NR,2:NSM))
-!          ANZ = PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
-!          DILUTE = 1.D0-ANZ/ANI
-!          RN(NR,2:NSM) = RN(NR,2:NSM)*DILUTE
-!          print *,NR,ANC(NR),RN(NR,1),RN(NR,2),DILUTE
-!      ENDDO         
-!      PNS(2:NSM)=PNS(2:NSM)*DILUTE  
-      
-      F0=1.0/2.0
-      IF(PNS0(1).GT.0) THEN
-          RN(NRMAX,2)=(PNS0(2)+((PNS1(2)-PNS0(2))/NTMAX)*NT)*F0
-          RN(NRMAX,3)=(PNS0(3)+((PNS1(3)-PNS0(3))/NTMAX)*NT)*F0
-          RN(NRMAX,4)=0
-      ELSE      
-          RN(NRMAX,2)=(PNS(2))*F0
-          RN(NRMAX,3)=(PNS(3))*F0
-          RN(NRMAX,4)=0
-      END IF
- 
-!       write(6,2501) T,NT,PNS0(2), XV(4,NRMAX), PNS1(2)
-! 2501 format(' 10',1PE13.4,1I6,1PE13.4,1PE13.4,1PE13.4)       
- !cpub end
-
 !     /* Making New Variables */
       CALL TRATOX
-
-!cpub begin
-      IF(PNS0(1).GT.0) THEN
-          XV(4,NRMAX)=(PNS0(2)+((PNS1(2)-PNS0(2))/NTMAX)*NT)*F0
-          XV(6,NRMAX)=(PNS0(3)+((PNS1(3)-PNS0(3))/NTMAX)*NT)*F0
-          XV(8,NRMAX)=0
-      ELSE      
-          XV(4,NRMAX)=(PNS(2))*F0
-          XV(6,NRMAX)=(PNS(3))*F0
-          XV(8,NRMAX)=0
-      END IF
-!      write(6,2502) T,NT,PNS0(2), XV(4,NRMAX), PNS1(2)
-! 2502 format(' 11',1PE13.4,1I6,1PE13.4,1PE13.4,1PE13.4)       
-!cpub end
 
 !     /* Stored Variables for Convergence Check */
       forall(J=1:NEQMAX,NR=1:NRMAX) XX(NEQMAX*(NR-1)+J) = XV(J,NR)
@@ -284,10 +243,7 @@
       END IF
 
 !      CALL TR_EDGE_SELECTOR(1)
-
-      CALL TRCALCIMP(IERR)
-!      CALL TRCALC(IERR)
-   
+      CALL TRCALC(IERR)
       IF(IERR.NE.0) RETURN
       GOTO 2000
 
@@ -347,10 +303,8 @@
       ENDIF
 
  8000 continue
- 
-      CALL TRCALCIMP(IERR)
-!      CALL TRCALC(IERR)
 
+      CALL TRCALC(IERR)
       IF(IERR.NE.0) RETURN
       IF(MDTC.NE.0) THEN
          CALL TRXTOA_AKDW
@@ -387,9 +341,8 @@
       INTEGER,INTENT(IN) :: NT
       INTEGER,INTENT(OUT) :: IERR
       integer:: IDGLOB
-      
+
       CALL TRCALC(IERR)
-!      CALL TRCALC(IERR)
       IF(IERR.ne.0) RETURN
 
       IDGLOB=0
@@ -1122,11 +1075,6 @@
 !            IND=8
          ENDIF
       ENDDO
-!cpub begin
-      if(IND.GT.0) then
-         stop 10
-      endif
-!cpub end
       ICHCK=1
 
  9000 RETURN
@@ -1423,14 +1371,7 @@
       ENDIF
 
 !     /* Coefficients of source term */
-!cpub begin
-!      do neq=1,neqmax
-!	nssn=nss(neq)
-! 	nsvn=nsv(neq)
-!	print *,' > neqmax=',neqmax,' neq=',neq,' nssn=',nssn,' nsvn=',nsvn
-!      enddo
-!      stop 0
-!cpub end
+
       DO NEQ=1,NEQMAX
          NSSN=NSS(NEQ)
          NSVN=NSV(NEQ)
@@ -1446,10 +1387,6 @@
             ELSE
                IF(NSVN.EQ.1) THEN
                   D(NEQ,NR) = (SSIN(NR,NSSN)+SPE(NR,NSSN)/DT)*DV11+(-VI(NEQ,NEQ,2,NSW)+C83*DI(NEQ,NEQ,2,NSW))*RNV(NR,NSSN)
-!cpub begin
-!		  write(6,2539) NR,NSSN,SSIN(NR,NSSN)
-! 2539		  format(' > SSIN(',1I4,',',1I4,')=',1PE11.4)
-!cpub end
                ELSEIF(NSVN.EQ.2) THEN
                   D(NEQ,NR) = (PIN(NR,NSSN)/(RKEV*1.D20)  )*DV53 &
      &                 +(-VI(NEQ,NEQ-1,2,NSW)+C83*DI(NEQ,NEQ-1,2,NSW))*RNV(NR,NSSN) &
@@ -1512,7 +1449,7 @@
 !     *
 !     *************
 
-         ELSE !for nr<nrmax
+         ELSE
             IF(NSSN.EQ.0) THEN
                D(NEQ,NR) = ETA(NR  )*BB/(TTRHO(NR  )*ARRHO(NR  )*DR)*(AJ(NR  )-AJOH(NR  )) &
      &                    -ETA(NR+1)*BB/(TTRHO(NR+1)*ARRHO(NR+1)*DR)*(AJ(NR+1)-AJOH(NR+1))

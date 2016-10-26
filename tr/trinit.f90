@@ -17,9 +17,8 @@
      &                  PNBR0, PNBRTG, PNBRW, PNBTOT, PNBVW, PNBVY, PNC, PNFE, PNNU, PNNUS, PNS, PROFJ1, PROFJ2, PROFN1,       &
      &                  PROFN2, PROFT1, PROFT2, PROFU1, PROFU2, PT, PTS, PZ, RA, RDLT, RHOA, RIPE, RIPS, RKAP, RKEV, RMU0, RR, &
      &                  SUMPBM, TIME_INT, TPRST, TSST, VC, VOID, KUFDIR, &
-	  &				      MDLPR,SYNCABS,SYNCSELF, PU, PUS, PROFNU1, PROFNU2, &
-     &						ELMWID, ELMDUR, ELMNRD, ELMTRD, ELMENH, NSMM, MDLELM, KNAMEQ2, SPT0, SPT1, KAI0, KAIPED0, KAIPED1, &
-	  &                  AD1, AD2, PNS0, PNS1, PELT0, PELT1, PELITV, PELRAT, NHE0
+     MDLPR,SYNCABS,SYNCSELF, PU, PUS, PROFNU1, PROFNU2, &
+     ELMWID, ELMDUR, ELMNRD, ELMTRD, ELMENH, NSMM, MDLELM, KNAMEQ2
       IMPLICIT NONE
       INTEGER(4) NS, IERR
 
@@ -53,14 +52,10 @@
 !        PZ(NS) : CHARGE NUMBER
 !        PN(NS) : INITIAL NUMBER DENSITY ON AXIS (1.E20 M**-3)
 !        PNS(NS): INITIAL NUMBER DENSITY ON SURFACE (1.E20 M**-3)
-!        PNS0(NS): INITIAL NUMBER DENSITY ON SURFACE (1.E20 M**-3), TURN ON IF PNS0(1)>0
-!        PNS1(NS): FINAL NUMBER DENSITY ON SURFACE (1.E20 M**-3), TURN ON IF PNS1(1)>0
-!        PNS0 & PNS1 : USE FOR RAMPING UP/DOWN DENSITY ONLY
 !        PT(NS) : INITIAL TEMPERATURE ON AXIS (KEV)
 !        PTS(NS): INITIAL TEMPERATURE ON SURFACE (KEV)
 !        PU(NS) : INITIAL TOROIDAL VELOCITY ON AXIS (KEV)
 !        PUS(US): INITIAL TOROIDAL VELOCITY ON SURFACE (KEV)
-!        NHE0   : Helium density profile nHe = NHE0*(1-PHI**2)**2
 
       NSMAX=2
       NSZMAX=0  ! the number of impurities
@@ -72,8 +67,6 @@
       PT(1)   = 1.5D0
       PTS(1)  = 0.05D0
       PNS(1)  = 0.05D0
-      PNS0(1) = -1.D0      
-      PNS1(1) = -1.D0
       PU(1)   = 0.D0
       PUS(1)  = 0.D0
 
@@ -83,8 +76,6 @@
       PT(2)   = 1.5D0
       PTS(2)  = 0.05D0
       PNS(2)  = 0.05D0-2.D-8
-      PNS0(2) = -1.D0            
-      PNS1(2) = -1.D0
       PU(2)   = 0.D0
       PUS(2)  = 0.D0
 
@@ -94,8 +85,6 @@
       PT(3)   = 1.5D0
       PTS(3)  = 0.05D0
       PNS(3)  = 1.D-8
-      PNS0(3) = -1.D0            
-      PNS1(3) = -1.D0      
       PU(3)   = 0.D0
       PUS(3)  = 0.D0
 
@@ -105,8 +94,6 @@
       PT(4)   = 1.5D0
       PTS(4)  = 0.05D0
       PNS(4)  = 1.D-8
-      PNS0(4) = -1.D0            
-      PNS1(4) = -1.D0      
       PU(4)   = 0.D0
       PUS(4)  = 0.D0
 
@@ -116,8 +103,6 @@
       PT(5)   = 0.D0
       PTS(5)  = 0.D0
       PNS(5)  = VOID
-      PNS0(5) = VOID           
-      PNS1(5) = VOID      
       PU(5)   = 0.D0
       PUS(5)  = 0.D0
 
@@ -127,12 +112,8 @@
       PT(6)   = 0.D0
       PTS(6)  = 0.D0
       PNS(6)  = VOID
-      PNS0(6) = VOID            
-      PNS1(6) = VOID     
       PU(6)   = 0.D0
       PUS(6)  = 0.D0
-      
-      NHE0    = -1
 
       DO NS=7,NSMM
          PA(NS)  = 2.D0
@@ -141,8 +122,6 @@
          PT(NS)  = 0.D0
          PTS(NS) = 0.D0
          PNS(NS) = 0.D0
-         PNS0(NS) = 0.D0          
-         PNS1(NS) = 0.D0         
          PU(NS)  = 0.D0
          PUS(NS) = 0.D0
       END DO
@@ -193,8 +172,6 @@
 
 !        AV0    : INWARD PARTICLE PINCH FACTOR
 !        AD0    : PARTICLE DIFFUSION FACTOR
-!        AD1    : PARTICLE DIFFUSION FACTOR
-!        AD2    : PARTICLE DIFFUSION FACTOR
 !        CNP    : COEFFICIENT FOR NEOCLASICAL PARTICLE DIFFUSION
 !        CNH    : COEFFICIENT FOR NEOCLASICAL HEAT DIFFUSION
 !        CDP    : COEFFICIENT FOR TURBULENT PARTICLE DIFFUSION
@@ -204,9 +181,6 @@
 
       AV0    = 0.5D0
       AD0    = 0.5D0
-      AD1    = 0.0D0
-      AD2    = 0.0D0
-
 
       CNP    = 1.D0
       CNH    = 1.D0
@@ -523,10 +497,6 @@
 !        PELVEL : PELLET INJECTION VELOCITY (M/S)
 !        PELTIM : TIME FOR PELLET TO BE INJECTED
 !        PELPAT : PARTICLE RATIO IN PELLET'
-!        PELT0  : INITIAL TIME OF LAUNCHING PELLETS, TURN ON IF PELITV>0
-!        PELT1  : FINAL TIME OF LAUNCHING PELLETS, TURN ON IF PELITV>0
-!        PELITV : INTERVAL TIME BETWEEN CONSECUTIVE SHOTS, TURN ON IF PELITV>0
-!        PELRAT : PELLET ATOMS RATE [10^20 /s], TURN ON IF PELRAT>0, OTHERWISE USE PELTOT
 
       MDLPEL = 1
       PELTOT = 0.D0
@@ -535,10 +505,6 @@
       PELRAD = 0.D0
       PELVEL = 0.D0
       PELTIM = -10.D0
-      PELT0  = 0.D0
-      PELT1  = 0.D0
-      PELITV = -1.D0
-      PELRAT =  0.D0
 
       PELPAT(1) = 1.0D0
       PELPAT(2) = 1.0D0
@@ -664,18 +630,6 @@
       MDLEOI=0  ! 0/1/2 for electron only or bulk ion only if NSMAX=1
 !               ! 0: both, 1: electron, 2: ion
 
-!     ==== PARAMETERS FOR PARTICLE TRANSPORT (ITPA - JULY 2015) ====
-!     SPT(NR)=SPT0*EXP(SPT1*(PHI-PHI_EDGE)/PHI_EDGE)
-      SPT0=0.0 ! [/10**20 m**3]
-      SPT1=0.0
-      
-!     ==== PARAMETERS FOR THERMAL DIFFUSIVITY (ITPA - JULY 2015) ==== 
-!     KAI(NR)=KAI0     if PHI<PHI_PED=0.8
-!     KAI_PED(NR)=KAIPED0*EXP(KAIPED1*((PHI-PHI_PED)/(PHI_EDGE-PHI_PED))**2) 
-      KAI0=0
-      KAIPED0=0
-      KAIPED1=0
-
 !     ==== RADIAL ELECTRIC FIELD SWITCH ====
 
 !        0: depend on only pressure gradient
@@ -797,8 +751,7 @@
      MDLPR, SYNCABS, SYNCSELF,  &
      &                   PELTIM, KNAMEQ, KNAMTR, KFNLOG, MDLEQB, MDLEQN, MDLEQT, MDLEQU, MDLEQZ, MDLEQ0, MDLEQE,        &
      &                   MDLEOI, NSMAX, NSZMAX, NSNMAX, KUFDIR, KUFDEV, KUFDCG, TIME_INT, MODEP, MDNI, MDLJQ,  &
-     &                   MDTC, MDLPCK, NTMAX_SAVE, knameq2, SPT0, SPT1, KAI0, KAIPED0, KAIPED1, AD1, AD2, PNS0, PNS1, &
-     &                   PELT0, PELT1, PELITV, PELRAT, NHE0
+     &                   MDTC, MDLPCK, NTMAX_SAVE, knameq2
       USE TRCOM3
       IMPLICIT NONE
       INTEGER(4),INTENT(IN) :: NID
@@ -825,9 +778,7 @@
      &              PELTIM,PELPAT,KNAMEQ,KNAMEQ2,KNAMTR,KFNLOG, &
      &              MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0,MDLEQE, &
      &              MDLEOI,NSMAX,NSZMAX,NSNMAX, &
-     &              KUFDIR,KUFDEV,KUFDCG,TIME_INT,MODEP,MDNI,MDLJQ,MDTC,MDLPCK, &
-     &              SPT0, SPT1, KAI0, KAIPED0, KAIPED1, AD1, AD2, PNS0, PNS1, &
-     &              PELT0, PELT1, PELITV, PELRAT, NHE0
+     &              KUFDIR,KUFDEV,KUFDCG,TIME_INT,MODEP,MDNI,MDLJQ,MDTC,MDLPCK
 
       IF(NID.LT.0) THEN
          IF(NSTMAX2 .GE. NSMAX+NSZMAX+NSNMAX) THEN
@@ -937,7 +888,7 @@
      &       ' ',8X,'MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0'/ &
      &       ' ',8X,'MDLEQE,MDLEOI,NSMAX,NSZMAX,NSNMAX,KUFDIR,KUFDEV,KUFDCG'/ &
      &       ' ',8X,'TIME_INT,MODEP,MDNI,MDLJQ,MDTC,MDLPCK'/ &
-     &       ' ',8X,'KNAMEQ,KNAMEQ2,KNAMTR,KFNLOG,SPT0,SPT1,KAI0,KAIPED0,KAIPED1')
+     &       ' ',8X,'KNAMEQ,KNAMEQ2,KNAMTR,KFNLOG')
       END SUBROUTINE TRPLST
 
 !     ***** CHECK INPUT PARAMETERS *****
@@ -991,7 +942,7 @@
            PNBRTG, PNBRW, PNBTOT, PNBVW, PNBVY, PNC, PNFE, PNNU, PNNUS, &
            PNS, PROFJ1, PROFJ2, PROFN1, PROFN2, PROFT1, PROFT2, PROFU1, &
            PROFU2, PT, PTS, PZ, RA, RDLT, RHOA, RIPE, RIPS, RKAP, RR, TPRST, &
-           TSST, SPT0, SPT1, KAI0, KAIPED0, KAIPED1, AD1, AD2 
+           TSST
       IMPLICIT NONE
       INTEGER(4),INTENT(IN) :: ID
       INTEGER(4) :: NS
@@ -1161,9 +1112,9 @@
          STOP
       ENDIF
 
-      NSS(1:NEQMAXM)=-1
-      NSV(1:NEQMAXM)=-1
-      NNS(1:NEQMAXM)=0
+      NSS(1:NEQMAXM)=-1  ! 0: EM, particle species
+      NSV(1:NEQMAXM)=-1  ! 1: density, 2: temperature 3: toroidal flow
+      NNS(1:NEQMAXM)=0   ! 
       NST(1:NEQMAXM)=0
       NEQ=0
       IF(MDLEQB.EQ.1) THEN

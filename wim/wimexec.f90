@@ -32,7 +32,15 @@ CONTAINS
        TMAXST=TMAX 
     ENDIF
     CALL INITBC
-    CALL SUBCK2(NZMAX,NWMAX,MODELW)
+    SELECT CASE(MODELP)
+    CASE(0)
+       CALL SUBCK0(NZMAX,NWMAX,MODELW)
+    CASE(2)
+       CALL SUBCK2(NZMAX,NWMAX,MODELW)
+    CASE DEFAULT
+       WRITE(6,*) 'XX wimexec: unknown MODELP'
+       RETURN
+    END SELECT
     CALL SUBINI(NZMAX,CER1,CEL1,CER2,CEL2)
     CALL GUTIME(RNT2)
     WRITE(6,601) 'SUBCK2',RNT2-RNT1
@@ -50,7 +58,12 @@ CONTAINS
     ENDIF
     CALL GUTIME(RNT2)
     WRITE(6,601) 'SOLVER',RNT2-RNT1
-    CALL SUBPOW(NZMAX,NWMAX,CPTOT)
+    SELECT CASE(MODELP)
+    CASE(0)
+       CALL SUBPOW0(NZMAX,NWMAX,CPTOT)
+    CASE(2)
+       CALL SUBPOW2(NZMAX,NWMAX,CPTOT)
+    END SELECT
     CALL SUBKEI(NZMAX)
     CALL GUTIME(RNT2)
     WRITE(6,601) 'SUBPOW',RNT2-RNT1
@@ -509,6 +522,143 @@ CONTAINS
     RETURN
   END SUBROUTINE SUBCK2
 
+!     *****  CALCULATE COEFFICIENT MATRIX  ***** 
+
+  SUBROUTINE SUBCK0(NZMAX,NWMAX,MODELW) 
+
+    USE wimcomm,ONLY: rkind,CI,PN0,DBDZ,ANX,BETA,ZMIN,ZMAX,DZMAX,DZWID,ZA, &
+                      CK,CV,CA1,CB1,CD1,CE1,CF1,CG1,CA2,CB2,CD2,CE2,CF2,CG2, &
+                      D0,D1,D2,D3,PZCL 
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: NZMAX,NWMAX,MODELW
+    INTEGER:: NZMAX3,NBAND,NWMAX3R,NWMAX6,NWMAX3L, &
+              I,J,MM,ID,JD,NN,KI,I1,I2
+    REAL(rkind):: RKX,RKX2,BETA2,ANX2,DZ,DP,DM,DE,DS
+    COMPLEX(rkind):: CIKX,CP1,CP2,CP3,CCOL,YY,VY
+ 
+    RKX=ANX*BETA
+    RKX2=RKX**2
+    NZMAX3=3*NZMAX
+    BETA2=BETA*BETA
+    ANX2=ANX*ANX
+    CIKX=CI*ANX/BETA
+ 
+    IF(NWMAX.EQ.NZMAX) THEN
+       NBAND=0
+       NWMAX3R=NZMAX3
+       NWMAX6=3*NZMAX
+       NWMAX3L=0
+    ELSE
+       NBAND=1
+       NWMAX3R=3*NWMAX
+       NWMAX6=6*NWMAX
+       NWMAX3L=3*NWMAX
+    ENDIF
+
+    DO I=1,NZMAX3+7
+       DO J=1,NWMAX6+7
+          CK(J,I)=(0.D0,0.D0)
+       END DO
+    END DO
+
+    DO MM=0,NZMAX-1
+       DZ=ZA(MM+1)-ZA(MM)
+       DO I=MM,MM+1
+          ID=3*I+2
+          DO J=MM,MM+1
+             JD=3*J+2
+             IF(NWMAX.NE.NZMAX) JD=3*NWMAX+4+3*J-3*I
+             CK(JD+1,ID+1)=CK(JD+1,ID+1) &
+                          +D2(I-MM,J-MM)/(BETA2*DZ)  &
+                          -DZ*D0(I-MM,J-MM)
+             CK(JD+3,ID+1)=CK(JD+3,ID+1) &
+                          -CIKX*D1(I-MM,J-MM)
+             CK(JD+2-NBAND,ID+2)=CK(JD+2-NBAND,ID+2) &
+                                +D2(I-MM,J-MM)/(BETA2*DZ) &
+                                +(ANX2-1.D0)*DZ*D0(I-MM,J-MM)
+             CK(JD+1-2*NBAND,ID+3)=CK(JD+1-2*NBAND,ID+3) &
+                                  +CIKX*D1(J-MM,I-MM)
+             CK(JD+3-2*NBAND,ID+3)=CK(JD+3-2*NBAND,ID+3) &
+                                  +(ANX2-1.D0)*DZ*D0(I-MM,J-MM)
+          END DO
+       END DO
+    END DO
+
+    CK(NWMAX3L+1+2*NBAND,1)=-1.D0
+    CK(NWMAX3L+2+2*NBAND,1)=-1.D0
+    CK(NWMAX3L+3+2*NBAND,1)= 1.D0
+    CK(NWMAX3L+1+  NBAND,2)=-CF1
+    CK(NWMAX3L+2+  NBAND,2)=-CG1
+    CK(NWMAX3L+4+  NBAND,2)= 1.D0
+    CK(NWMAX3L+1        ,3)=-CA1
+    CK(NWMAX3L+2        ,3)=-CB1
+    CK(NWMAX3L+1-  NBAND,4)=-CD1
+    CK(NWMAX3L+2-  NBAND,4)=-CE1
+    CK(NWMAX3R+6+2*NBAND,NZMAX3+3)=-CA2
+    CK(NWMAX3R+7+2*NBAND,NZMAX3+3)=-CB2
+    CK(NWMAX3R+6+  NBAND,NZMAX3+4)=-CD2
+    CK(NWMAX3R+7+  NBAND,NZMAX3+4)=-CE2
+    CK(NWMAX3R+3-  NBAND,NZMAX3+6)= 1.D0
+    CK(NWMAX3R+6-  NBAND,NZMAX3+6)=-1.D0
+    CK(NWMAX3R+7-  NBAND,NZMAX3+6)=-1.D0
+    CK(NWMAX3R+4-2*NBAND,NZMAX3+7)= 1.D0
+    CK(NWMAX3R+6-2*NBAND,NZMAX3+7)=-CF2
+    CK(NWMAX3R+7-2*NBAND,NZMAX3+7)=-CG2
+
+    CCOL=1.D0+CI*PZCL
+    DO MM=0,NZMAX-1
+       DZ=ZA(MM+1)-ZA(MM) 
+       DO I=MM,MM+1
+          ID=3*I+2
+          DO J=MM,MM+1
+             JD=3*J+2
+             IF(NWMAX.NE.NZMAX) JD=3*NWMAX+2+3*J-3*I
+             DO KI=MM,MM+1
+                YY=(1.D0+DBDZ*ZA(KI))/CCOL
+                VY=YY/CCOL
+                DS=DZ*D3(I-MM,J-MM,KI-MM)
+                CK(JD+1,ID+1)=CK(JD+1,ID+1) &
+                             +DS*PN0*YY/(1.D0-VY*VY) 
+                CK(JD+2,ID+1)=CK(JD+2,ID+1) &
+                             +DS*CI*PN0*YY*VY/(1.D0-VY*VY) 
+                CK(JD+1-NBAND,ID+2)=CK(JD+1-NBAND,ID+2) &
+                                   -DS*CI*PN0*YY*VY/(1.D0-VY*VY)
+                CK(JD+2-NBAND,ID+2)=CK(JD+2-NBAND,ID+2) &
+                                   +DS*PN0*YY/(1.D0-VY*VY) 
+                CK(JD+3-2*NBAND,ID+3)=CK(JD+2-2*NBAND,ID+3) &
+                                     +DS*PN0*YY
+             END DO
+          END DO
+       END DO
+    END DO
+
+    IF(MODELW.EQ.1) THEN
+       DO I=1,NWMAX6+7
+          IF(NWMAX.NE.NZMAX) THEN
+             I1=NWMAX*3+4-I
+             I2=NWMAX*3+5-I
+          ELSE
+             I1=3
+             I2=4
+          ENDIF
+          IF(I1.GE.1) CK(I1,I)=(0.D0,0.D0)
+          CK(I,3)=(0.D0,0.D0)
+          IF(I2.GE.1) CK(I2,I)=(0.D0,0.D0)
+          CK(I,4)=(0.D0,0.D0)
+       END DO
+       IF(NWMAX.NE.NZMAX) THEN
+          I1=NWMAX*3+3
+          I2=NWMAX*3+3
+       ELSE
+          I1=3
+          I2=4
+       ENDIF
+       CK(I1,3)=(1.D0,0.D0)
+       CK(I2,4)=(1.D0,0.D0)
+    ENDIF
+    RETURN
+  END SUBROUTINE SUBCK0
+
 !     *****  CALCULATE RHS VECTOR  *****
 
   SUBROUTINE SUBINI(NZMAX,CER1,CEL1,CER2,CEL2)
@@ -580,7 +730,7 @@ CONTAINS
 
 !     *****  CALCULATE ABSORBED POWER  ***** 
 
-  SUBROUTINE SUBPOW(NZMAX,NWMAX,CPTOT)
+  SUBROUTINE SUBPOW2(NZMAX,NWMAX,CPTOT)
 
     USE wimcomm,ONLY: rkind,CI,ZA,CE,PN0,DBDZ,ANX,BETA,ZMIN,ZMAX,DZMAX,DZWID, &
                       CPWR,D0,D1,D2,D3
@@ -673,7 +823,55 @@ CONTAINS
        END DO
     END DO
     RETURN
-  END SUBROUTINE SUBPOW
+  END SUBROUTINE SUBPOW2
+
+!     *****  CALCULATE ABSORBED POWER  ***** 
+
+  SUBROUTINE SUBPOW0(NZMAX,NWMAX,CPTOT)
+
+    USE wimcomm,ONLY: rkind,CI,ZA,CE,PN0,DBDZ,ANX,BETA,ZMIN,ZMAX,DZMAX,DZWID, &
+                      CPWR,D0,D1,D2,D3,PZCL
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: NZMAX,NWMAX
+    COMPLEX(rkind),INTENT(OUT):: CPTOT
+    INTEGER:: NZ,MM,I,J,ID,JD,KI
+    REAL(rkind):: DZ,DS,AD,BD
+    COMPLEX(rkind):: CP1,CP2,CP3,CPA,CCOL,YY,VY
+     
+    CPTOT=0.D0
+    DO NZ=0,NZMAX
+       CPWR(NZ)=(0.D0,0.D0)
+    END DO
+
+    CCOL=1.D0+CI*PZCL
+    DO MM=0,NZMAX-1
+       DZ=ZA(MM+1)-ZA(MM)
+       AD=0.5D0/DZ
+       BD=0.5D0/DZ
+       DO I=MM,MM+1
+          ID=3*I+2
+          DO J=MM,MM+1
+             JD=3*J+2
+             IF(NWMAX.NE.NZMAX) JD=3*NWMAX+2+3*J-3*I
+             DO KI=MM,MM+1
+                YY=(1.D0+DBDZ*ZA(KI))/CCOL
+                VY=YY/CCOL
+                DS=DZ*D3(I-MM,J-MM,KI-MM)
+                CP1=   DS*PN0*YY   /(1.D0-VY*VY)
+                CP2=CI*DS*PN0*YY*VY/(1.D0-VY*VY)
+                CP3=   DS*PN0*YY
+                CPA=CONJG(CE(ID+1))*( CP1*CE(JD+1)+CP2*CE(JD+2)) &
+                   +CONJG(CE(ID+2))*(-CP2*CE(JD+1)+CP1*CE(JD+2)) &
+                   +CONJG(CE(ID+3))*  CP3*CE(JD+3)
+                CPWR(MM)  =CPWR(MM)  +CI*AD*CPA
+                CPWR(MM+1)=CPWR(MM+1)+CI*BD*CPA
+                CPTOT     =CPTOT     +CI   *CPA 
+             END DO
+          END DO
+       END DO
+    END DO
+    RETURN
+  END SUBROUTINE SUBPOW0
 
 !     *****  CALCULATE LOCAL WAVE NUMBER  ***** 
 

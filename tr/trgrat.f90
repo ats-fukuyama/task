@@ -297,7 +297,7 @@
 
 !           GRAPHIC : TIME DEPENDENCE : TEMPERATURE,CURRENT,
 !                                       INPUT POWER,OUTPUT POWER
-!cpub This subroutine will be called if choosing (T6)
+
 !     ***********************************************************
 
       SUBROUTINE TRGRT6(INQ)
@@ -315,18 +315,14 @@
       GYT(1:NGT,4)=GVT(1:NGT,14)
       CALL TRGR1D( 3.0,12.0,14.0,17.0,GT,GYT,NTM,NGT,4,'@TE,TD,<TE>,<TD> [keV]  vs t@',2+INQ)
 
-
-
 !      GYT(1:NGT,1)=GVT(1:NGT,34)
-      GYT(1:NGT,1)=GVT(1:NGT,101)	! AJTTOR
-      GYT(1:NGT,2)=GVT(1:NGT,38)		! AJBST
-!      GYT(1:NGT,2)=GVT(1:NGT,35)	! AJOHT
-!      GYT(1:NGT,3)=GVT(1:NGT,36)	! AJNBT
-!      GYT(1:NGT,4)=GVT(1:NGT,37)	! AJRFT
-!      GYT(1:NGT,5)=GVT(1:NGT,38)	! AJBST
-!      GYT(1:NGT,6)=GVT(1:NGT,34)	! AJT
-      CALL TRGR1D( 3.0,12.0, 9.7,12.7,GT,GYT,NTM,NGT,2,'@IP,IBS [MA]  vs t@',2+INQ)
-!cpub      CALL TRGR1D( 3.0,12.0, 9.7,12.7,GT,GYT,NTM,NGT,1,'@IP,IOH,INB,IRF [MA]  vs t@',2+INQ)
+      GYT(1:NGT,1)=GVT(1:NGT,101)
+      GYT(1:NGT,2)=GVT(1:NGT,35)
+      GYT(1:NGT,3)=GVT(1:NGT,36)
+      GYT(1:NGT,4)=GVT(1:NGT,37)
+      GYT(1:NGT,5)=GVT(1:NGT,38)
+      GYT(1:NGT,6)=GVT(1:NGT,34)
+      CALL TRGR1D( 3.0,12.0, 9.7,12.7,GT,GYT,NTM,NGT,6,'@IP,IOH,INB,IRF,IBS,IPARA [MA]  vs t@',2+INQ)
 
       GYT(1:NGT,1)=GVT(1:NGT,39)
       GYT(1:NGT,2)=GVT(1:NGT,40)
@@ -344,13 +340,8 @@
 !     &           +GVT(1:NGT,89)+GVT(1:NGT,90)
       CALL TRGR1D( 3.0,12.0, 1.1, 4.1,GT,GYT,NTM,NGT,5,'@POUT,PCX,PIE,PRL,PCON [MW]  vs t@',2+INQ)
 
-! figure(1,2)
-      GYT(1:NGT,1)=GVT(1:NGT,77)
-      CALL TRGR1D(15.0,24.0,14.0,17.0,GT,GYT,NTM,NGT,1,'@q0  vs t@',2+INQ)
-
-! figure(1,2)
-!      GYT(1:NGT,1)=GVT(1:NGT,87)
-!      CALL TRGR1D(15.0,24.0,14.0,17.0,GT,GYT,NTM,NGT,1,'@QF  vs t@',2+INQ)
+      GYT(1:NGT,1)=GVT(1:NGT,87)
+      CALL TRGR1D(15.0,24.0,14.0,17.0,GT,GYT,NTM,NGT,1,'@QF  vs t@',2+INQ)
 
       GYT(1:NGT,1)=GVT(1:NGT,13)
       GYT(1:NGT,2)=GVT(1:NGT,14)
@@ -374,7 +365,7 @@
          GYT(1:NGT,2)=GVT(1:NGT,2)
          GYT(1:NGT,3)=GVT(1:NGT,3)
          GYT(1:NGT,4)=GVT(1:NGT,4)
-         CALL TRGR1D(15.0,24.0, 1.1, 4.1,GT,GYT,NTM,NGT,3,'@NE0,ND0,NT0,NA0 [10$+20$=/m$+3$=]  vs t@',2+INQ)
+         CALL TRGR1D(15.0,24.0, 1.1, 4.1,GT,GYT,NTM,NGT,4,'@NE0,ND0,NT0,NA0 [10$+20$=/m$+3$=]  vs t@',2+INQ)
       ENDIF
 
       CALL PAGEE
@@ -420,14 +411,14 @@
       GYT(1:NGT,1)=GVT(1:NGT,74)
       CALL TRGR1D(15.0,24.0,14.0,17.0,GT,GYT,NTM,NGT,1,'@VLOOP [V]  vs t@',2+INQ)
 
-      GYT(1:NGT,1)=GVT(1:NGT,86)
-      CALL TRGR1D(15.0,24.0, 9.7,12.7,GT,GYT,NTM,NGT,1,'@ZEFF0  vs t@',2+INQ)
-
-      GYT(1:NGT,1)=GVT(1:NGT,103)
-      CALL TRGR1D(15.0,24.0, 5.4, 8.4,GT,GYT,NTM,NGT,1,'@H98Y2  vs t@',2+INQ)
-
       GYT(1:NGT,1)=GVT(1:NGT,77)
-      CALL TRGR1D(15.0,24.0, 1.1, 4.1,GT,GYT,NTM,NGT,1,'@Q0  vs t@',2+INQ)
+      CALL TRGR1D(15.0,24.0, 9.7,12.7,GT,GYT,NTM,NGT,1,'@Q(0)  vs t@',2+INQ)
+
+      GYT(1:NGT,1)=GVT(1:NGT,75)
+      CALL TRGR1D(15.0,24.0, 5.4, 8.4,GT,GYT,NTM,NGT,1,'@ALI  vs t@',2+INQ)
+
+      GYT(1:NGT,1)=GVT(1:NGT,76)
+      CALL TRGR1D(15.0,24.0, 1.1, 4.1,GT,GYT,NTM,NGT,1,'@RQ1 [m]  vs t@',2+INQ)
 
       CALL PAGEE
 

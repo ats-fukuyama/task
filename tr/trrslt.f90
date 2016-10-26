@@ -370,8 +370,7 @@
            & RMNRHO, RN, RPSI, RQ1, RR, RT, RW, S, ALPHA, SIET, SINT, SLT, &
            & SNBT, SNFT, SOUT, T, TAUE1, TAUE2, TAUE89, TAUE98, TF0, TFAV, &
            & TS0, TSAV, VLOOP, VPOL, VTOR, WBULKT, WFT, WPDOT, WPT, WST, &
-           & WTAILT, ZEFF, ZEFF0, RKCV, PRBT, PRCT, PRSUMT, &
-           & SSIN, AV, PIN, AD, PRSUM, PBCL, PFCL
+           & WTAILT, ZEFF, ZEFF0, RKCV, PRBT, PRCT, PRSUMT
       IMPLICIT NONE
       INTEGER(4):: IERR, NR
       REAL(8)   :: RMN, F0D
@@ -529,7 +528,7 @@
          GVRT(NR,NGT, 6) = GUCLIP(RN(NR,2))
          GVRT(NR,NGT, 7) = GUCLIP(RN(NR,3))
          GVRT(NR,NGT, 8) = GUCLIP(RN(NR,4))
- 
+
          GVRT(NR,NGT, 9) = GUCLIP(AJ  (NR))
          GVRT(NR,NGT,10) = GUCLIP(AJOH(NR))
          GVRT(NR,NGT,11) = GUCLIP(AJNB(NR))
@@ -545,12 +544,9 @@
          GVRT(NR,NGT,18) = GUCLIP(PRF(NR,1))
          GVRT(NR,NGT,19) = GUCLIP(PRF(NR,2))
          GVRT(NR,NGT,20) = GUCLIP(PRF(NR,3))
-         GVRT(NR,NGT,21) = GUCLIP(PRSUM(NR))         
-!         GVRT(NR,NGT,21) = GUCLIP(PRF(NR,4))
-         GVRT(NR,NGT,22) = GUCLIP(PBCL(NR,1))
-!         GVRT(NR,NGT,22) = GUCLIP(PRL(NR))
-         GVRT(NR,NGT,23) = GUCLIP(PFCL(NR,1))
-!         GVRT(NR,NGT,23) = GUCLIP(PCX(NR))
+         GVRT(NR,NGT,21) = GUCLIP(PRF(NR,4))
+         GVRT(NR,NGT,22) = GUCLIP(PRL(NR))
+         GVRT(NR,NGT,23) = GUCLIP(PCX(NR))
          GVRT(NR,NGT,24) = GUCLIP(PIE(NR))
          GVRT(NR,NGT,25) = GUCLIP(PEX(NR,1))
          GVRT(NR,NGT,26) = GUCLIP(PEX(NR,2))
@@ -568,23 +564,15 @@
          GVRT(NR,NGT,33) = GUCLIP(ZEFF(NR))
          GVRT(NR,NGT,34) = GUCLIP(AK(NR,1))
          GVRT(NR,NGT,35) = GUCLIP(AK(NR,2))
-         
-         GVRT(NR,NGT,36) = GUCLIP(SSIN(NR,1))
-         GVRT(NR,NGT,37) = GUCLIP(SSIN(NR,2)+SSIN(NR,3)+SSIN(NR,4))
-         GVRT(NR,NGT,38) = GUCLIP(AV(NR,1))
-         GVRT(NR,NGT,39) = GUCLIP(PIN(NR,2)+PIN(NR,3)+PIN(NR,4))
-         GVRT(NR,NGT,40) = GUCLIP(PIN(NR,1))
-         GVRT(NR,NGT,41) = GUCLIP(AD(NR,2))
-         GVRT(NR,NGT,42) = GUCLIP(AD(NR,1))
 
-!         GVRT(NR,NGT,36) = GUCLIP(PRFV(NR,1,1))
-!         GVRT(NR,NGT,37) = GUCLIP(PRFV(NR,1,2))
-!         GVRT(NR,NGT,38) = GUCLIP(PRFV(NR,1,3))
-!         GVRT(NR,NGT,39) = GUCLIP(PRFV(NR,2,1))
-!         GVRT(NR,NGT,40) = GUCLIP(PRFV(NR,2,2))
-!         GVRT(NR,NGT,41) = GUCLIP(PRFV(NR,2,3))
+         GVRT(NR,NGT,36) = GUCLIP(PRFV(NR,1,1))
+         GVRT(NR,NGT,37) = GUCLIP(PRFV(NR,1,2))
+         GVRT(NR,NGT,38) = GUCLIP(PRFV(NR,1,3))
+         GVRT(NR,NGT,39) = GUCLIP(PRFV(NR,2,1))
+         GVRT(NR,NGT,40) = GUCLIP(PRFV(NR,2,2))
+         GVRT(NR,NGT,41) = GUCLIP(PRFV(NR,2,3))
 
-!         GVRT(NR,NGT,42) = GUCLIP(AJRFV(NR,1))
+         GVRT(NR,NGT,42) = GUCLIP(AJRFV(NR,1))
          GVRT(NR,NGT,43) = GUCLIP(AJRFV(NR,2))
          GVRT(NR,NGT,44) = GUCLIP(AJRFV(NR,3))
 
@@ -632,7 +620,7 @@
       SUBROUTINE TRATOG
 
       USE TRCOMM, ONLY : AJ, AJBS, AJNB, AJOH, AJRF, AK, BP, EZOH, GTR, GVR, NGM, NGR, NRAMAX, NRMAX , NROMAX, &
-     &                   PIN, POH, Q0, QP, RHOA, RN, RPSI, RT, T, VGR1, SSIN, PIN, AD, AV
+     &                   PIN, POH, Q0, QP, RHOA, RN, RPSI, RT, T, VGR1
       IMPLICIT NONE
       INTEGER(4):: NR
       REAL(4)   :: GUCLIP
@@ -652,27 +640,18 @@
          GVR(NR,NGR, 6)  = GUCLIP(RT(NR,2))
          GVR(NR,NGR, 7)  = GUCLIP(RT(NR,3))
          GVR(NR,NGR, 8)  = GUCLIP(RT(NR,4))
-         GVR(NR,NGR, 9)  = GUCLIP(SSIN(NR,1))         
-         GVR(NR,NGR, 10)  = GUCLIP(SSIN(NR,2)+SSIN(NR,3) &
-     &                       +SSIN(NR,4))         
-!         GVR(NR+1,NGR, 9)  = GUCLIP(QP(NR))
-!         GVR(NR,NGR,10)  = GUCLIP(AJ(NR)*1.D-6)
+         GVR(NR+1,NGR, 9)  = GUCLIP(QP(NR))
+         GVR(NR,NGR,10)  = GUCLIP(AJ(NR)*1.D-6)
          GVR(NR,NGR,11)  = GUCLIP(EZOH(NR))
          GVR(NR,NGR,12)  = GUCLIP(AJOH(NR)*1.D-6)
          GVR(NR,NGR,13)  = GUCLIP((AJNB(NR)+AJRF(NR))*1.D-6)
          GVR(NR,NGR,14)  = GUCLIP(AJBS(NR)*1.D-6)
-         GVR(NR,NGR,15)  = GUCLIP((PIN(NR,2) &
+         GVR(NR,NGR,15)  = GUCLIP((PIN(NR,1)+PIN(NR,2) &
      &                           +PIN(NR,3)+PIN(NR,4))*1.D-6)
-         GVR(NR,NGR,16)  = GUCLIP(PIN(NR,1))
-!         GVR(NR,NGR,15)  = GUCLIP((PIN(NR,1)+PIN(NR,2) &
-!     &                           +PIN(NR,3)+PIN(NR,4))*1.D-6)
-!         GVR(NR,NGR,16)  = GUCLIP(POH(NR)*1.D-6)
-         GVR(NR,NGR,17)  = GUCLIP(AD(NR,2))
-         GVR(NR,NGR,18)  = GUCLIP(AD(NR,1))
-         GVR(NR,NGR,19)  = GUCLIP(AV(NR,1))         
-!         GVR(NR,NGR,17)  = GUCLIP(VGR1(NR,2))
-!         GVR(NR,NGR,18)  = GUCLIP(VGR1(NR,1))
-!         GVR(NR,NGR,19)  = GUCLIP(VGR1(NR,3))
+         GVR(NR,NGR,16)  = GUCLIP(POH(NR)*1.D-6)
+         GVR(NR,NGR,17)  = GUCLIP(VGR1(NR,2))
+         GVR(NR,NGR,18)  = GUCLIP(VGR1(NR,1))
+         GVR(NR,NGR,19)  = GUCLIP(VGR1(NR,3))
 !         GVR(NR,NGR,19)  = GUCLIP(VGR3(NR,1))
          GVR(NR,NGR,20)  = GUCLIP(AK(NR,1))
          GVR(NR,NGR,21)  = GUCLIP(AK(NR,2))
@@ -1118,7 +1097,7 @@
 
       SUBROUTINE TRSNAP
 
-      USE TRCOMM, ONLY : Q0, RT, T, TAUE1, WPT, PNS, NRMAX, PNSS, RN, PZ, PA, ANC, ANFE, PZC, PZFE
+      USE TRCOMM, ONLY : Q0, RT, T, TAUE1, WPT
       IMPLICIT NONE
 
 
@@ -1127,14 +1106,6 @@
      &           '  TAUE:',F7.3,'(S)   Q0:',F7.3,/ &
      &       ' ','  TE:',F7.3,'(KEV)   TD:',F7.3,'(KEV) ', &
      &           '  TT:',F7.3,'(KEV)   TA:',F7.3,'(KEV)')
-      WRITE(6,2529) RN(1,1),RN(NRMAX,1)
- 2529 FORMAT(' ','  NE0:',1PE11.3,'   NEA:',1PE11.3)
-       WRITE(6,2532) PA(1),PA(2),PA(3),PA(4),0.0,0.0
- 2532 FORMAT(' ','  PA1:',1PE11.3,'   PA2:',1PE11.3,'   PA3:',1PE11.3,'   PA4:',1PE11.3,'   XXX:',1PE11.3,'   XXX:',1PE11.3)  
-       WRITE(6,2530) PZ(1),PZ(2),PZ(3),PZ(4),PZC(1),PZFE(1)
- 2530 FORMAT(' ','  PZ1:',1PE11.3,'   PZ2:',1PE11.3,'   PZ3:',1PE11.3,'   PZ4:',1PE11.3,'   PZC:',1PE11.3,'   PZF:',1PE11.3) 
-      WRITE(6,2531) RN(1,1),RN(1,2),RN(1,3),RN(1,4),ANC(1),ANFE(1)
- 2531 FORMAT(' ','  RN1:',1PE11.3,'   RN2:',1PE11.3,'   RN3:',1PE11.3,'   RN4:',1PE11.3,'   ANC:',1PE11.3,'  ANFE:',1PE11.3) 
       RETURN
       END SUBROUTINE TRSNAP
 

@@ -1737,8 +1737,7 @@ C     ----- RAY TRAJECTORY -----
 C
       DO NRAY=1,NRAYMX
          DO IT=0,NITMAX(NRAY)
-            RL=SQRT(RAYS(1,IT,NRAY)**2+RAYS(2,IT,NRAY)**2)
-            GX(IT+1)=GUCLIP(RL)
+            GX(IT+1)=GUCLIP(RAYS(1,IT,NRAY))
             GY(IT+1)=GUCLIP(RAYS(3,IT,NRAY))
          ENDDO
          CALL SETLIN(0,2,7-MOD(NRAY-1,5))
@@ -1766,8 +1765,10 @@ C
             NRS1=INT((XL1-RHO0)/DRHO)+1
             XL2=RAYS(1,IT+1,NRAY)
             NRS2=INT((XL2-RHO0)/DRHO)+1
+            write(6,'(I5,1PE12.4,I5,1PE12.4)') 
+     &            NRS1,XL1,NRS2,XL2
             NDR=ABS(NRS2-NRS1)
-            IF(NRS1.GE.1.AND.NRS2.LE.NRMAX) THEN
+            IF(MIN(NRS1,NRS2).GE.1.AND.MAX(NRS1,NRS2).LE.NRZMAX) THEN
             IF(NDR.EQ.0) THEN
                GPY(NRS1,NRAY)=GPY(NRS1,NRAY)+GUCLIP(RAYS(8,IT+1,NRAY))
             ELSE IF(NRS1.LT.NRS2) THEN

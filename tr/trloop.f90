@@ -8,8 +8,7 @@
 
       USE TRCOMM, ONLY : &
      &   DT, MDLUF, MODELG, NT, NTEQIT, NTMAX, Q0, QP, RG, RIP, RIPE, RIPS, &
-     &   TPRST, TST, DIPDT, T, RN, XV, NRMAX, PNS, PELT0, PELT1, PELITV, PELTIM, &
-     &   PELRAT, PELTOT
+     &   TPRST, TST, DIPDT
       USE TRCOM1, ONLY : NTAMAX
       use tr_bpsd,only: tr_bpsd_set, tr_bpsd_get
       use trunit
@@ -34,19 +33,6 @@
       ENDIF
 
  1000 CONTINUE
- 
-!cpub begin (PELLET INJECTION - LAUNCHING TIME CONTROL)
-!     print *,'CHECK POINT 1'
-!     print *,PELTIM,PELT0,PELT1,PELITV,PELRAT
-     IF(PELITV.GT.0.AND.T.LT.(PELT1-0.5*PELITV)) THEN
-         IF(T.LT.PELT0) THEN
-             PELTIM=PELT0
-         ELSE
-             PELT0=PELT0+PELITV
-             PELTOT=PELRAT*PELITV
-         END IF
-     END IF
-!cpub end
 
       CALL tr_exec(DT,IERR)
       IF(IERR.NE.0) GOTO 9000

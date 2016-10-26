@@ -127,32 +127,16 @@
            'ND  ','NT  ','NA  ','AJ  ','AJOH', &
            'AJNB','AJRF','AJBS','PIN ','POH ', &
            'PNB ','PNF ','PRFE','PRFD','PRFT', &
-           'PSUM','PBCL','PFCL','PIE ','PEXE', &
+           'PRFA','PRL ','PCX ','PIE ','PEXE', &
            'PEXI','QP  ','EZOH','BETA','BETP', &
            'VLOP','ETA ','ZEFF','AKE ','AKD ', &
-           'SELC','SION','AV  ','PIN ','PEN ', &
-           'AD2 ','AD1 ','AJLH','AJIC','NFST', &
+           'PREE','PRLE','PRIE','PREI','PRLI', &
+           'PRII','AJEC','AJLH','AJIC','NFST', &
            'NIMP','BP  ','PSI ','RMJ ','RMN ', &
            'VOL ','LKAP','DLT ','GRH1','GRH2', &
            'AKTE','AKTI','PE  ','PI  ','VTOR', &
            'VPOL','SALF','ER  ','S   ','ALFA', &
            'G   ','IOTA'/
-
-!      DATA KRTDATA / &
-!           'TE  ','TD  ','TT  ','TA  ','NE  ', &
-!           'ND  ','NT  ','NA  ','AJ  ','AJOH', &
-!           'AJNB','AJRF','AJBS','PIN ','POH ', &
-!           'PNB ','PNF ','PRFE','PRFD','PRFT', &
-!           'PRFA','PRL ','PCX ','PIE ','PEXE', &
-!           'PEXI','QP  ','EZOH','BETA','BETP', &
-!           'VLOP','ETA ','ZEFF','AKE ','AKD ', &
-!           'PREE','PRLE','PRIE','PREI','PRLI', &
-!           'PRII','AJEC','AJLH','AJIC','NFST', &
-!           'NIMP','BP  ','PSI ','RMJ ','RMN ', &
-!           'VOL ','LKAP','DLT ','GRH1','GRH2', &
-!           'AKTE','AKTI','PE  ','PI  ','VTOR', &
-!           'VPOL','SALF','ER  ','S   ','ALFA', &
-!           'G   ','IOTA'/           
 
       KRT=KRTDATA(NP)
       RETURN
