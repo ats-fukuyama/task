@@ -336,9 +336,19 @@ contains
     !      when differentiating the pressure with respect to vv.
     !   In addition, during iteration, pres is fixed.
     !   This holds true with the radial electric field, ErV, if one prefers.
-
-    pres(:)  = ( PNsV_FIX(:,1)*PTsV_FIX(:,1) &
-         &      +PNsV_FIX(:,2)*PTsV_FIX(:,2)) * 1.D20 * rKeV
+    pres(:) = (Var(:,1)%p+Var(:,2)%p)*1.d20*rkev
+    select case(iprestab)
+    case(1)
+       pres0(:)  = ( PNsV_FIX(:,1)*PTsV_FIX(:,1) &
+            &       +PNsV_FIX(:,2)*PTsV_FIX(:,2)) * 1.D20 * rKeV
+    case(2)
+       ! pres0 estimated in txcalv is used; hence doing nothing here.
+    case(3)
+       pres (:)  = ( PNsV_FIX(:,1)*PTsV_FIX(:,1) &
+            &       +PNsV_FIX(:,2)*PTsV_FIX(:,2)) * 1.D20 * rKeV
+    case default
+       pres0(:)  = pres(:)
+    end select
     IF(MDANOM > 0 .and. maxval(FSANOM) > 0.D0) pres(:)  = 0.5d0 * (pres(:) + pres0(:))
 
     allocate(ErVlc(0:NRMAX))
@@ -449,11 +459,14 @@ contains
 
     ! Set flag for CDBM model
     model_cdbm = 0
-    if( FSCBSH > 0.d0 ) then
+    select case(int(FSCBSH))
+    case(1)
        model_cdbm = model_cdbm + 2
-    else if( FSCBSH < 0.d0 ) then
+    case(2)
        model_cdbm = model_cdbm + 4
-    end if
+    case(3)
+       model_cdbm = model_cdbm + 6
+    end select
     if( FSCBEL /= 0.d0 ) model_cdbm = model_cdbm + 1
 
     ! Calculate CDIM coefficient
@@ -485,6 +498,10 @@ contains
        ! For NCLASS
        gr2phi(:) = sdt(:)*sdt(:) * ddPhidpsi(:) * MDOSQZN
     END IF
+
+    !     *** ExB shearing rate (Hahm & Burrel PoP 1995) ***
+    ! omega_ExB = |- <R^2B_p^2>/B d/dpsi(dPhi/dpsi)|
+    wexb(:)  = abs(- sst(:) * sdt(:) / BB * ddPhidpsi(:))
 
     !  Coefficients
 
@@ -625,8 +642,8 @@ contains
                &         ChiNCpe(NR),ChiNCte(NR),ChiNCpi(NR),ChiNCti(NR), &
                &         dTsdV(NR,:),dPsdV(NR,:),gr2phi(NR),IER)
           IF(IER /= 0) IERR = IER
-!          write(6,*) NR,chincpe(nr),chincte(nr)
-!          write(6,*) NR,chincpi(nr),chincti(nr)
+!          write(6,'(A,F8.5,1P2E15.7)') 'NCLASS',rho(NR),chincpe(nr),chincte(nr)
+!          write(6,'(A,F8.5,1P2E15.7)') 'NCLASS',rho(NR),chincpi(nr),chincti(nr)
        end if
        if( MDLNEO == 1 .or. MDLNEO > 10 ) then
           !     *** Neoclassical coefficients by Matrix Inversion ***
@@ -635,8 +652,8 @@ contains
           call tx_matrix_inversion(NR,ETAvar(NR,1),BJBSvar(NR,1), &
                &         ChiNCpe(NR),ChiNCte(NR),ChiNCpi(NR),ChiNCti(NR), &
                &         ddPhidpsi(NR)*MDOSQZN)
-!          write(6,*) NR,chincpe(nr),chincte(nr)
-!          write(6,*) NR,chincpi(nr),chincti(nr)
+!          write(6,'(A,F8.5,1P2E15.7)') 'MATINV',rho(NR),chincpe(nr),chincte(nr)
+!          write(6,'(A,F8.5,1P2E15.7)') 'MATINV',rho(NR),chincpi(nr),chincti(nr)
        end if
 
        !     *** Helical neoclassical viscosity ***
@@ -804,12 +821,9 @@ contains
              dvexbdr = dErdrS(NR) / bbrt(NR)
 !             dvexbdr = dErdr(NR) / bbrt(NR)
 
-             ! Magnetic curvature
-             rKappa(NR) = FSCBKP * (- epst(NR) * (1.D0 - 1.D0 / Q(NR)**2))
-
              call cdbm(BBL,rr,r(NR),elip(NR),Q(NR),S(NR),Var(NR,1)%n*1.d20,rhoni,dpdr(NR), &
-                  &    dvexbdr,FSCBAL,FSCBKP,abs(FSCBSH)*rG1,model_cdbm,Dturb, &
-                  &    FCDBM(NR),rKappa(NR),rG1h2(NR))
+                  &    dvexbdr,FSCBAL,FSCBKP,rG1,model_cdbm,Dturb, &
+                  &    FCDBM(NR),rKappa(NR),rG1h2(NR),wexb(NR))
 
           !   *** CDIM model ***
           ELSE IF (MDANOMabs == 2) THEN
@@ -840,7 +854,7 @@ contains
              END IF
 
              ! Turbulence suppression by ExB shear for CDIM mode
-             rG1h2IM(NR) = 1.D0 / (1.D0 + abs(FSCBSH) * (rGIM * rHIM**2))
+             rG1h2IM(NR) = 1.D0 / (1.D0 + rGIM * rHIM**2)
              ! Turbulent transport coefficient calculated by CDIM model
              Dturb = rGCIM * FCDIM(NR) * rG1h2IM(NR) * ABS(Alpha(NR))**1.5D0 &
                   &              * VC*VC / Wpe2 * Va / (Q(NR) * RR)
@@ -1103,10 +1117,6 @@ contains
 !!$    rMue(0)  = rMue(1)
 !!$    rMui(0)  = rMui(1)
 
-    !     *** ExB shearing rate (Hahm & Burrel PoP 1995) ***
-    ! omega_ExB = |- <R^2B_p^2>/B d/dpsi(dPhi/dpsi)|
-    wexb(:)  = abs(- sst(:) * sdt(:) / BB * ddPhidpsi(:))
-
     !     *** Linear growth rate for toroidal gamma_etai branch of the ITG mode ***
     !        (F.Crisanti et al, NF 41 (2001) 883)
     allocate(dNsdrho(0:NRMAX,NSM), dTsdrho(0:NRMAX,NSM))
@@ -1157,7 +1167,7 @@ contains
     end do
 
     if(MDANOMabs == 3) then
-       call txmmm95(dNsdrho(:,1),dNsdrho(:,2),dTsdrho(:,1),dTsdrho(:,1),dQdrho,FSCBSH)
+       call txmmm95(dNsdrho(:,1),dNsdrho(:,2),dTsdrho(:,1),dTsdrho(:,1),dQdrho,FSCBSH*rG1)
     end if
 
     !     *** ETB model ***

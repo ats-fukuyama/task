@@ -181,7 +181,7 @@ module tx_commons
   real(8) :: rMUb1, rMUb2
 
   ! Convergence parameter
-  integer(4) :: MODECV
+  integer(4) :: MODECV, iprestab
   real(8) :: oldmix
 
   ! SUPG parameter

@@ -166,10 +166,11 @@ SUBROUTINE TXINIT
   !     3 : thermal transport
   FSANOM(1:3) = 0.D0
 
-  !   Effect of ExB shear stabilization
+  !   Model of ExB shear stabilization
   !     0 : No ExB shear stabilization
-  !     1 : Lorentz-type ExB shear stabilization
-  !    -1 : Exponent-type ExB shear stabilization [M. Honda (2007) dissertation, Chapter 4]
+  !     1 : Lorentz-type ExB shear stabilization (very weak)
+  !     2 : Exponent-type ExB shear stabilization [M. Honda (2007) dissertation, Chapter 4]
+  !     3 : Lorentz-type ExB shear stabilization [M. Yagi (2012) CPP p.372]
   FSCBSH = 0.D0
 
   !   Position of ETB shoulder (valid only when MDLETB /= 0)
@@ -186,6 +187,7 @@ SUBROUTINE TXINIT
   !   ==== CDBM transport coefficient parameters ============================
   !      The finer time step size, typically less than or equal to DT=5.D-4,
   !         is anticipated when using CDBM.
+  !      See also iprestab
 
   !   Effect of magnetic curvatures-alpha
   FSCBAL = 1.D0
@@ -545,6 +547,19 @@ SUBROUTINE TXINIT
   !                    = 2.d0 : [Ganjoo and Tezduyar, NASA report CR-180124 (1986)]
   !                    = 4.d0 : Seemingly best, but no ground in the light of numerical analysis
   SUPGstab = 2.d0
+
+  !   Model for stabilizing oscillation due to the nonlinearity of the pressure gradient
+  !   when typically using CDBM model.
+  !     0 : Doing nothing (often not work)
+  !     1 : Mixing pressure in that instant and that at IC = 1 (good)
+  !     2 : Mixing pressure in that instant and that converged at previous time
+  !         (slightly unstable when ExB shearing is on with larger time step size.)
+  !     3 : Mixing pressure at IC = 1 and that converged at previous time (excessive assumption)
+  !
+  !   N.B. Dt=1.e-3 is ok, but dt=1.e-4 realizes more stable calculation.
+  !        Choosing iprestab=3 is that diffusivities are estimated by using the pressure gradient
+  !        at almost previous time, which is fixed during iteration.
+  iprestab = 1
 
   !   ***** Mesh number parameters *****
 
@@ -1505,7 +1520,7 @@ module tx_parameter_control
        & DMAG0,RMAGMN,RMAGMX, &
        & rG1,FSHL,Q0,QA, &
        & rIPs,rIPe, &
-       & MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,iSUPG2,iSUPG3,iSUPG6,SUPGstab, &
+       & MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,iSUPG2,iSUPG3,iSUPG6,SUPGstab,iprestab, &
        & MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDBSETA,MDITSN,MDITST,MDINTN,MDINTT,MDINTC,MDLETB, &
        & IDIAG,IGBDF,ISMTHD,MDLNBD, & ! 09/06/17~ miki_m
        & EpsHM, HPN  ! 10/08/06 miki_m
@@ -1626,7 +1641,7 @@ contains
           idx = idx + 1 ; ENDIF
        IF(minval(FSPARV) < 0.d0 .or. maxval(FSPARV) > 1.d0) THEN ; EXIT ; ELSE
           idx = idx + 1 ; ENDIF
-       IF(FSCBAL < 0.D0 .OR. FSCBKP < 0.D0 .OR. FSCBEL < 0.D0) THEN ; EXIT ; ELSE
+       IF(FSCBAL < 0.D0 .OR. FSCBKP < 0.D0 .OR. FSCBEL < 0.D0 .OR. FSCBSH < 0.D0) THEN ; EXIT ; ELSE
           idx = idx + 1 ; ENDIF
        IF(FSBOHM < 0.D0 .OR. FSPCLD < 0.D0 .OR. FSPCLM < 0.D0 .OR. FSPCLC < 0.D0) THEN ; EXIT ; ELSE
           idx = idx + 1 ; ENDIF
@@ -1710,7 +1725,7 @@ contains
          &       ' ',8X,'Dmag0,RMAGMN,RMAGMX,EpsHM,HPN,'/ &   ! 10/08/06 miki_m
          &       ' ',8X,'rG1,FSHL,Q0,QA,'/ &
          &       ' ',8X,'rIPs,rIPe,'/ &
-         &       ' ',8X,'MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,iSUPG2,iSUPG3,iSUPG6,SUPGstab,'/ &
+         &       ' ',8X,'MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,iSUPG2,iSUPG3,iSUPG6,SUPGstab,iprestab,'/ &
          &       ' ',8X,'MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDBSETA,MDITSN,MDITST,MDINTN,MDINTT,MDLETB,' / & 
          &       ' ',8X,'IDIAG,IGBDF,ISMTHD,MDLNBD')
   END SUBROUTINE TXPLST
@@ -1830,7 +1845,7 @@ contains
          &   'IGBDF     ', IGBDF    , 'ISMTHD    ', ISMTHD   ,  &
          &   'NTCOIL    ', NTCOIL   , 'MDLC      ', MDLC     ,  &
          &   'm_pol     ', m_pol    , 'n_tor     ', n_tor    ,  &
-         &   'MDLNBD    ', MDLNBD   ,  &
+         &   'MDLNBD    ', MDLNBD   , 'iprestab  ', iprestab ,  &
 !         &   'NCph      ', NCph     , 'NCth      ', NCth     ,  &
          &   'HPN(1,1)  ', HPN(1,1) , 'HPN(1,2)  ', HPN(1,2) , &
          &   'HPN(2,1)  ', HPN(2,1) , 'HPN(2,2)  ', HPN(2,2) , &
