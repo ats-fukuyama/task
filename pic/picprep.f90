@@ -99,7 +99,6 @@ CONTAINS
                   xi,yi,zi,xib,yib,zib,vxi,vyi,vzi,vti,dt,iran,&
                   x1,x2,y1,y2,alx,aly,model_boundary,vzone)
       
-
       !..... initialize scalar potential by poisson solver
       ipssn = 0
        IF(model_boundary.EQ.0) THEN
@@ -188,8 +187,8 @@ CONTAINS
       ENDIF
       np = 0
       IF(densx .lt. 0.d0) then ! subroutine for uniform density
-      do npy = 1, npymax
-      do npx = 1, npxmax
+      DO npy = 1, npymax
+      DO npx = 1, npxmax
         np = np + 1
          x(np) = (dble(npx) - 0.5d0 ) * factx + vdzone
          y(np) = (dble(npy) - 0.5d0 ) * facty + vdzone
@@ -201,13 +200,13 @@ CONTAINS
          yb(np) = y(np) - vy(np) * dt
          zb(np) = z(np) - vz(np) * dt
 
-      end do
-      end do
+      END DO
+      END DO
    ELSE ! subroutine for density gradient
       inter = dble(nxmax-2*vdzone)/((dble(npxmax)+1.0d0)*(1.0d0-0.5d0*densx))
-      do npy = 1, npymax
+      DO npy = 1, npymax
          position = 0.d0
-      do npx = 1, npxmax
+      DO npx = 1, npxmax
          np = np + 1
          position = position &
                   + inter * (1.0d0 - densx * (dble(npx) - 1.0d0)/dble(npxmax))

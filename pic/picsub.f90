@@ -298,7 +298,7 @@ CONTAINS
           END DO
        END DO
       !$omp end parallel do
-    ELSE IF (model_boundary .NE. 0) THEN
+    ELSE
       !$omp parallel do private(nxm,nym,nxp,nyp)
        DO nx = 1, nxmax
           DO ny = 1, nymax
