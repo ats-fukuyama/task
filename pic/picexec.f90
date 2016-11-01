@@ -419,9 +419,9 @@ CONTAINS
     REAL(8) :: btot, vtot, bb2 ,vcfact, gamma
     INTEGER :: npmax, nxmax, nymax, model_boundary
     INTEGER :: np, nxp, nyp, nxpp, nxpm, nypp, nypm, nxppp, nyppp
-    !$omp parallel do Private(nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,&
-    !$omp dx,dy,dx1,dy1,sx2m,sx2,sx2p,sy2m,sy2,sy2p,exx,eyy,ezz,bxx,byy,bzz,&
-    !$omp vxm,vym,vzm,vxzero,vyzero,vzzero,gamma,btot,vtot,bb2)
+    !!$omp parallel do Private(nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,&
+    !!$omp dx,dy,dx1,dy1,sx2m,sx2,sx2p,sy2m,sy2,sy2p,exx,eyy,ezz,bxx,byy,bzz,&
+    !!$omp vxm,vym,vzm,vxzero,vyzero,vzzero,gamma,btot,vtot,bb2)
 
     DO np = 1, npmax
       ! calculate the electric field at the particle position
@@ -686,7 +686,7 @@ CONTAINS
        END IF
 
     END DO
-  !$omp end parallel do
+  !!$omp end parallel do
   END SUBROUTINE push
   ! !***********************************************************************
   ! SUBROUTINE particle_collision(npmax,nxmax,nymax,xe,ye,ze,vxe,vye,vze,ctome, &
@@ -1050,8 +1050,8 @@ CONTAINS
     ELSE
        factor=chrg*DBLE(nxmax)*DBLE(nymax)/DBLE(npmax)
     END IF
-    !$omp parallel do Private (nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2p,sx2,sx2m,sy2p,sy2,sy2m) &
-    !$omp reduction(+:jx,jy,jz)
+    !!$omp parallel do Private (nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2p,sx2,sx2m,sy2p,sy2,sy2m)&
+    !!$omp Reduction(+:jx,jy,jz)
 
     DO np = 1, npmax
        nxp = xmid(np)
@@ -1314,7 +1314,7 @@ CONTAINS
 
        ENDIF
     END DO
-    !$omp end parallel do
+    !!$omp end parallel do
   END SUBROUTINE current
 
   !***********************************************************************
