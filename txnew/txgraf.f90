@@ -902,7 +902,9 @@ contains
     real(4), dimension(0:NGM), intent(out), optional :: GTL
     real(4), dimension(0:NXM,0:NGM,1:NGYRM), intent(out) :: GYL
 
-    INTEGER(4) :: NX
+    INTEGER(4) :: NX, MDLNEOL
+
+    MDLNEOL = mod(MDLNEO,10)
 
     if(present(GTL)) then
        IF (NG < NGM) NG = NG + 1
@@ -1180,8 +1182,8 @@ contains
        GYL(NX,NG,199) = real(aee*(sum(achg(:)*Var(NX,:)%n*Var(NX,:)%UrV)+achgb*PNbV(NX)*UbrVV(NX))*1.d20) ! e_s<Gamma_s.grad V>
        GYL(NX,NG,200) = real(aee*achgb*PNbV(NX)*UbrVV(NX)*1.d20) ! e_b<Gamma_b.grad V>
        GYL(NX,NG,201) = real(vlt(NX))
-       GYL(NX,NG,202) = real(gflux(NX,1))
-       GYL(NX,NG,203) = real(gflux(NX,2))
+       GYL(NX,NG,202) = real(gflux(NX,1,MDLNEOL))
+       GYL(NX,NG,203) = real(gflux(NX,2,MDLNEOL))
 
        ! *** Metrics and quantities related to an equilibrium ***
 
@@ -3466,11 +3468,12 @@ contains
 
   SUBROUTINE TXGRCP(MODE)
 
-    use tx_commons, only : NRMAX, DT, NRA, UsthNCL, BJPARA, BEpara, BJBSvar, ETAvar, Var, MDLNEO
+    use tx_commons, only : NRMAX, DT, NRA, UsthNCL, BJPARA, BEpara, BJBSvar, ETAvar, Var, &
+         &                 MDLNEO, sdt, gflux
     use tx_variables, only : TXCALC
     integer(4), intent(in) :: MODE
-    character(len=50) :: STR
-    integer(4) :: IND, IFNT, NR, inum, ipage, MDLNEOstore
+    character(len=60) :: STR
+    integer(4) :: IND, IFNT, NR, inum, ipage, MDLNEOstore, MDLNEOL
     real(4), dimension(:,:), allocatable :: GYL, GYL2
 
     IF (NGR <= -1) THEN
@@ -3543,13 +3546,14 @@ contains
 
     ! Poloidal rotations
 
+    inum = 4
     GYL(0:NRMAX,1) = REAL(Var(0:NRMAX,1)%Uthhat) ! TX
     GYL(0:NRMAX,3) = REAL(UsthNCL(0:NRMAX,1,1))  ! Neo. solver, from p' T'
     GYL(0:NRMAX,4) = REAL(UsthNCL(0:NRMAX,1,2))  ! Neo. solver, from <E.B>
     GYL(0:NRMAX,2) = GYL(0:NRMAX,3) + GYL(0:NRMAX,4) ! Neo. solver, total
 
     STR = '@Ueth@'
-    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRMAX, 4-1, gDIV(4))
+    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRMAX, inum-1, gDIV(4))
     CALL TXGRFRS(2, GX(1:NRA), GYL2(1:NRA,:), NRA-1, 4, STR, MODE, IND, 0, 0, 'STATIC')
 
     GYL(0:NRMAX,1) = REAL(Var(0:NRMAX,2)%Uthhat)
@@ -3558,7 +3562,7 @@ contains
     GYL(0:NRMAX,2) = GYL(0:NRMAX,3) + GYL(0:NRMAX,4)
 
     STR = '@Uith@'
-    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRMAX, 4-1, gDIV(7))
+    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRMAX, inum-1, gDIV(7))
     CALL TXGRFRS(3, GX(1:NRA), GYL2(1:NRA,:), NRA-1, 4, STR, MODE, IND, 0, 0, 'STATIC')
 
     CALL PAGEE
@@ -3584,6 +3588,28 @@ contains
     CALL TEXT('  NGRSTP = ', 11)
     CALL NUMBI(NGRSTP,'(I4)',4)
 
+    ! Particle flux  <Gamma_s . grad psi>
+
+    MDLNEOL = mod(MDLNEO,10)
+    if( MDLNEOL == 3 ) MDLNEOL = 2
+
+    inum = 3
+    GYL(0:NRMAX,1) = real(Var(0:NRMAX,1)%n*Var(0:NRMAX,1)%UrV*sdt(0:NRMAX))*1.e20 ! TX
+    GYL(0:NRMAX,2) = real(gflux(0:NRMAX,1,MDLNEOL))                               ! MI
+    GYL(0:NRMAX,3) = real(gflux(0:NRMAX,1,3))                                     ! NCLASS
+
+    STR = '@Gamma$-e$=$+psi$= [10$+20$=T/m$+2$=s$+1$=] TX, MI, NCLASS@'
+    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRMAX, inum-1, gDIV(136))
+    CALL TXGRFRS(0, GX, GYL2, NRMAX, inum, STR, MODE, IND, 0, 0, 'STATIC')
+
+    GYL(0:NRMAX,1) = real(Var(0:NRMAX,2)%n*Var(0:NRMAX,2)%UrV*sdt(0:NRMAX))*1.e20 ! TX
+    GYL(0:NRMAX,2) = real(gflux(0:NRMAX,2,MDLNEOL))                               ! MI
+    GYL(0:NRMAX,3) = real(gflux(0:NRMAX,2,3))                                     ! NCLASS
+
+    STR = '@Gamma$-i$=$+psi$= [10$+20$=T/m$+2$=s$+1$=] TX, MI, NCLASS@'
+    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRMAX, inum-1, gDIV(137))
+    CALL TXGRFRS(1, GX, GYL2, NRMAX, inum, STR, MODE, IND, 0, 0, 'STATIC')
+
     ! Total current
 
     inum = 4
@@ -3594,7 +3620,7 @@ contains
 
     STR = '@BJ// TX, MI, NCLASS, SAUTER@'
     CALL APPROPGY(MODEG, GYL, GYL2, STR, NRMAX, inum-1, gDIV(22))
-    CALL TXGRFRS(0, GX, GYL2, NRMAX, inum, STR, MODE, IND, 0, 0, 'STATIC')
+    CALL TXGRFRS(2, GX, GYL2, NRMAX, inum, STR, MODE, IND, 0, 0, 'STATIC')
 
     CALL PAGEE
 

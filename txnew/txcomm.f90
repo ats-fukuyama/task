@@ -232,8 +232,10 @@ module tx_commons
   real(8), dimension(:,:), allocatable :: Vhps, Vmps, PiRess
 
   ! Coefficients related to neoclassical transport
-  real(8), dimension(:,:), allocatable :: xmuf, BnablaPi, gflux
-  real(8), dimension(:,:,:), allocatable :: lff
+  integer(4), dimension(:),allocatable :: mxneo
+  real(8), dimension(:),   allocatable :: gamneo
+  real(8), dimension(:,:), allocatable :: fmneo, xmuf, BnablaPi
+  real(8), dimension(:,:,:), allocatable :: lff, gflux
   real(8), dimension(:,:,:,:), allocatable :: xmu, laf, lfb
   real(8), dimension(:,:,:,:,:), allocatable :: lab
 
@@ -413,7 +415,8 @@ contains
 
        allocate(xmu(0:N,NS,3,3), lab(0:N,NS,NS,3,3),                          stat = ierl(1))
        allocate(laf(0:N,NS,2,2), lfb(0:N,NS,2,2), lff(0:N,2,2), xmuf(0:N,3),  stat = ierl(2))
-       allocate(BnablaPi(0:N,NS),gflux(0:N,NS),                               stat = ierl(3))
+       allocate(BnablaPi(0:N,NS),gflux(0:N,NS,3),                             stat = ierl(3))
+       allocate(mxneo(0:N),  fmneo(1:10,0:N), gamneo(0:N),                    stat = ierl(4))
        ier = sum(ierl) ; iflag = 5
        if (ier /= 0) exit
 
@@ -525,7 +528,7 @@ contains
     deallocate(UgV,    PNbVinv)
     deallocate(Vhps,   Vmps,   PiRess)
 
-    deallocate(xmu, xmuf, lab, laf, lfb, lff, BnablaPi, gflux)
+    deallocate(xmu, xmuf, lab, laf, lfb, lff, BnablaPi, gflux, mxneo, fmneo, gamneo)
 
     deallocate(aat, rrt, ckt, suft, sst, vro, vlt, rhov, art, epst, ait, elip, trig)
     deallocate(fipol, Bpsq, qhatsq, Fqhatsq, BEpara, bri)

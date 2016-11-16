@@ -495,7 +495,7 @@ contains
        IF(iflag /= 0 .and. k_out > 0) WRITE(6,'(A,I4,2X,A,I4)') "XX iflag=",iflag,"NR=",NR
     ENDIF
 
-    !   Bootstrap current
+    !---   Bootstrap current
     BJBSout =-sum(  real(bsjbt_s(1:NSM),8) *(dTsdrho(1:NSM) / PTsVL(1:NSM)) &
          &        + real(bsjbp_s(1:NSM),8) *(dPsdrho(1:NSM) / PsVL (1:NSM)))
     IF(Zeff > 1.D0) THEN
@@ -508,10 +508,10 @@ contains
     END IF
     IF(k_potato == 0 .and. NR == 0) BJBSout = 0.D0
 
-    !   Neoclassical resistivity
+    !---   Neoclassical resistivity
     ETAout = real(p_etap,8)
 
-    !   Neoclassical thermal diffusivity (Diagonal effect only)
+    !---   Neoclassical thermal diffusivity (Diagonal effect only)
     !     chi*_ss = <|\nabla \rho|^2>*chi_NC, where chi_NC is in unit of [m^2/s].
     !     chi*_ss = <|\nabla V|^2>*chi_NC if rho = V is assumed in NCLASS.
     if( NR /= 0 ) then
@@ -530,7 +530,7 @@ contains
 !!$    if(ChiNCpil < 0.d0) ChiNCpil = 0.d0
 !!$    if(ChiNCtil < 0.d0) ChiNCtil = 0.d0
 
-    !   Poloidal flows by NCLASS for graphics: uthhat(moment, from what, species)
+    !---   Poloidal flows by NCLASS for graphics: uthhat(moment, from what, species)
     do i = 1, NSM
        UsthNCL(NR,i,1) = real(utheta_s(1,1,i),8) ! (particle flow, p' T')
        UsthNCL(NR,i,2) = real(utheta_s(1,2,i),8) ! (particle flow, <E.B>)
@@ -540,7 +540,7 @@ contains
 !    write(6,*) rho(nr),utheta_s(1,1,2)+utheta_s(1,2,2),Var(NR,2)%Uthhat
 !    write(6,*) rho(nr),upar_s(1,1,2)+upar_s(1,2,2),Var(NR,2)%BUpar
 
-    !   Neoclassical viscosities
+    !---   Neoclassical viscosities
 
 !    if(NR /= 0) then
        do i = 1, NSM ! species
@@ -554,7 +554,7 @@ contains
 !       xmu(NR,:,:,:) = 0.d0
 !    end if
 
-    !   Friction coefficients normalized by m_a n_a : lab(NR,i,j,k,l)/(m_a n_a)
+    !---   Friction coefficients normalized by m_a n_a : lab(NR,i,j,k,l)/(m_a n_a)
 
     do i = 1, NSM ! species
        do j = 1, NSM ! species
@@ -577,7 +577,7 @@ contains
           end do
        end do
     end do
-!!$    ! Sanity check
+!!$    !---   Sanity check
 !!$    write(6,*) lab(NR,1,1,1,1)*tau_ss(1,1)/(amas(1)*amp*Var(nr,1)%n*1.d20),-zeff ! l_11^ee
 !!$    write(6,*) lab(NR,1,2,1,1)*tau_ss(1,1)/(amas(1)*amp*Var(nr,1)%n*1.d20),Var(nr,2)%n/Var(nr,1)%n ! l_11^ei
 !!$    write(6,*) lab(NR,1,1,1,2),lab(NR,1,1,2,1),1.5d0*lab(NR,1,1,1,1) ! l_12^ee
@@ -586,18 +586,18 @@ contains
 !!$    write(6,*) lab(NR,1,1,2,2)*tau_ss(1,1)/(amas(1)*amp*Var(nr,1)%n*1.d20),-(sqrt(2.d0)+13.d0/4.d0*zeff) ! l_22^ee
 !!$    write(6,*) lab(NR,1,2,2,2),0.d0 ! l_22^ei
 !!$    stop
-!!$    !   Correction for exact symmetry of friction coefficients
+!!$    !---   Correction for exact symmetry of friction coefficients
 !!$    lab(NR,2,1,1,1) = lab(NR,1,2,1,1)*(amas(1)*Var(NR,1)%n)/(amas(2)*Var(NR,2)%n)
 !!$    lab(NR,2,1,2,1) = lab(NR,1,2,1,2)*(amas(1)*Var(NR,1)%n)/(amas(2)*Var(NR,2)%n)
 !!$    lab(NR,2,1,2,2) = lab(NR,1,2,2,2)*(amas(1)*Var(NR,1)%n)/(amas(2)*Var(NR,2)%n)
 
-    !   Beam neoclassical viscosity
+    !---   Beam neoclassical viscosity
 
     do j = 1, k_order
        xmuf(NR,j) = FSNCB * 0.d0
     end do
 
-    !   Beam friction coefficients
+    !---   Beam friction coefficients
     !     laf : thermal and fast,   normalized by m_a n_a
     !     lfb : fast and thermal,   normalized by m_e n_e
     !     lff : fast and fast,      normalized by m_e n_e
@@ -631,24 +631,24 @@ contains
     !   --- beam and beam ---
     lff(NR,1,1) = - lfb(NR,1,1,1) - lfb(NR,2,1,1)                               ! l_11^ff
 
-    !   Parallel heat flows: 2<B q_s,para>/(5p_s)
+    !---   Parallel heat flows: 2<B q_s,para>/(5p_s)
 
-!!$    do j = 1, 2
-!!$       do i = 1, NSM
-!!$          UsparNCL(NR,i,j) = real(sum(upar_s(j,1:2,i)),8)
-!!$       end do
-!!$    end do
-    do i = 1, NSM
-       UsparNCL(NR,i,1) = real(sum(upar_s(1,1:2,i)),8)
-       UsparNCL(NR,i,2) = real(sum(upar_s(2,1:2,i)),8)
+    do j = 1, 2
+       do i = 1, NSM
+          UsparNCL(NR,i,j) = real(sum(upar_s(j,1:2,i)),8)
+       end do
     end do
-!    UsparNCL(NR,1,2) = real(sum(upar_s(2,1:2,1)),8)
-!    UsparNCL(NR,2,2) = real(    upar_s(2,  1,2) ,8) ! Ion heat flux, only p' and T'
     
-    !   <B.nabla.Pi> for viscous heating
+    !---   <B.nabla.Pi> for viscous heating
 
     do i = 1, NSM
        BnablaPi(NR,i) = p_b2 * sum(ymu_s(1,1:2,i)*(utheta_s(1:2,1,i)+utheta_s(1:2,2,i)))
+    end do
+
+    !---   Particle flux : < Gamma . nabla psi >
+
+    do i = 1, NSM
+       gflux(NR,i,3) = sum(gfl_s(1:5,i)) * sdt(NR)
     end do
 
     RETURN
