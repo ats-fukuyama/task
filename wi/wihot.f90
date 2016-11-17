@@ -341,7 +341,7 @@ CONTAINS
                              +CFY(ID+2)*CONJG(CP2*CFY(JD+1)+CP4*CFY(JD+2)))
                         CPOWER(NX  )=CPOWER(NX  )-CI*AD*0.5D0*(CPA-CPB)
                         CPOWER(NX+1)=CPOWER(NX+1)-CI*BD*0.5D0*(CPA-CPB)
-                        PTOT=PTOT-REAL(CI*CPA)
+                        PTOT=PTOT-REAL(CI*0.5D0*(CPA-CPB))
                      END DO
                   END DO
                END DO
