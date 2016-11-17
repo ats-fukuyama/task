@@ -17,7 +17,7 @@ contains
     integer(4), intent(in) :: NR, MDLNEOL
     real(8), intent(in) :: ddPhidpsi_in
     real(8), intent(out) :: ETAout, BJBSout, ChiNCpel, ChiNCtel, ChiNCpil, ChiNCtil
-    integer(4) :: imodel(10), ibeam, NSMB, i, j, i1, i2, idebug = 0, MDLNEOLgflux
+    integer(4) :: imodel(10), ibeam, NSMB, i, j, i1, i2, idebug = 0, MDLNEOLgflux, icoebdc
     real(8) :: fbeam, sqzfaccoef, coencc, bjsum, ftl, fac, facee, epsL, &
          &     fac2, fac3, gflxbp, gflxps, gflxware, coefmneo
     real(8) :: vdiamg1, vdiamg2, renorm, rbanana
@@ -43,10 +43,12 @@ contains
        NSMB  = NSM + 1
     end if
 
+    icoebdc = NSM + 1 + 2 ! thermal species + beam species + 2 model
+
     allocate(PNsVL(NSMB),PTsVL(NSMB),amasL(NSMB),achgL(NSMB),sqzfac(NSMB),xsta(NSMB))
     allocate(ztau(NSM,NSM))
-    allocate(coebsc(NSMB,2),coebdc(NSM+3),amat(2*NSMB,2*NSMB),bmat(2*NSMB,2*NSMB),cmat(2*NSMB,2*NSMB), &
-         &   dmat(2*NSMB,2*NSMB),alf(2*NSMB,2*NSMB),vohm(NSM,2))
+    allocate(coebsc(NSMB,2),coebdc(icoebdc),amat(2*NSMB,2*NSMB),bmat(2*NSMB,2*NSMB), &
+         &   cmat(2*NSMB,2*NSMB),dmat(2*NSMB,2*NSMB),alf(2*NSMB,2*NSMB),vohm(NSM,2))
     allocate(chipBP(NSM,NSM),chiTBP(NSM,NSM),chipPS(NSM,NSM),chiTPS(NSM,NSM))
     allocate(DpBP(NSM,NSM),DTBP(NSM,NSM),DpPS(NSM,NSM),DTPS(NSM,NSM))
 
@@ -1402,9 +1404,7 @@ contains
 !=======================================================================
 !   coefficients for nbi current drive : coebdc
 !=======================================================================
-    do i=1,isp2
-       coebdc(i)=0.d0
-    enddo
+    coebdc(:)=0.d0
     if(ibeam.gt.0)then
        tbdc=0.d0
        do i=1,isp
