@@ -344,6 +344,8 @@ C
       DO 6000 J=MAX(MATLM-NX+2,1),MIN(2*MATLM+1,NXP+1-NX+MATLM)
          MX=NX+J-MATLM-1
          ICL=NCL(J,NX,IS)
+C         ICLM=NCL(2*MATLM+2-J,MX,IS)
+C         IF(ICL.NE.0.AND.ICLM.NE.0) THEN
          IF(ICL.NE.0) THEN
             DO 6020 IL=1,4
                CABSL=0.D0
@@ -356,7 +358,11 @@ C
             DO 6010 IA=1,3
             DO 6010 IB=1,3
                CABSL=CABSL
-     &              +CONJG(CA(NN+IA))*CL(IA,IB,IL,ICL)*CA(MM+IB)
+C     &              +CONJG(CA(NN+IA))*CL(IA,IB,IL,ICL)*CA(MM+IB)
+     &              -0.5D0*CONJG(CA(NN+IA))*CL(IA,IB,IL,ICL)*CA(MM+IB)
+     &              -0.5D0*CA(NN+IA)*CONJG(CL(IB,IA,IL,ICL)*CA(MM+IB))
+C     &              -0.5D0*CONJG(CA(NN+IA))*CL(IA,IB,IL,ICL)*CA(MM+IB)
+C     &              -0.5D0*CONJG(CA(MM+IA))*CL(IA,IB,IL,ICLM)*CA(NN+IB)
  6010       CONTINUE
             PABSL=-CI*RCE*CABSL*RKV
             IF(IL.EQ.1) THEN

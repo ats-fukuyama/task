@@ -44,20 +44,28 @@ CONTAINS
     CALL SUBINI(NZMAX,CER1,CEL1,CER2,CEL2)
     CALL GUTIME(RNT2)
     WRITE(6,601) 'SUBCK2',RNT2-RNT1
-    IF(NWMAX.EQ.NZMAX) THEN
-       CALL INVMCD(CK,NZMAX*3+7,NZMAX*3+7,IERR)
-       IF(IERR.NE.0) THEN
-          WRITE(6,*) 'XX INVMCD ERROR: IERR=',IERR
-          GOTO 9900
-       END IF
-       CALL SUBFY(NZMAX)
-    ELSE
-       CALL BANDCD(CK,CV,NZMAX*3+7,NWMAX*6+7,NWID,IERR)
+    SELECT CASE(MODELP)
+    CASE(0)
+       CALL BANDCD(CK,CV,NZMAX*3+7,11,NWID,IERR)
        IF(IERR.NE.0) GOTO 9900
        CALL SUBFYW(NZMAX)
-    ENDIF
+    CASE(2)   
+       IF(NWMAX.EQ.NZMAX) THEN
+          CALL INVMCD(CK,NZMAX*3+7,NZMAX*3+7,IERR)
+          IF(IERR.NE.0) THEN
+             WRITE(6,*) 'XX INVMCD ERROR: IERR=',IERR
+             GOTO 9900
+          END IF
+          CALL SUBFY(NZMAX)
+       ELSE
+          CALL BANDCD(CK,CV,NZMAX*3+7,NWMAX*6+7,NWID,IERR)
+          IF(IERR.NE.0) GOTO 9900
+          CALL SUBFYW(NZMAX)
+       ENDIF
+    END SELECT
     CALL GUTIME(RNT2)
-    WRITE(6,601) 'SOLVER',RNT2-RNT1
+       WRITE(6,601) 'SOLVER',RNT2-RNT1
+
     SELECT CASE(MODELP)
     CASE(0)
        CALL SUBPOW0(NZMAX,NWMAX,CPTOT)
@@ -543,17 +551,10 @@ CONTAINS
     ANX2=ANX*ANX
     CIKX=CI*ANX/BETA
  
-    IF(NWMAX.EQ.NZMAX) THEN
-       NBAND=0
-       NWMAX3R=NZMAX3
-       NWMAX6=3*NZMAX
-       NWMAX3L=0
-    ELSE
-       NBAND=1
-       NWMAX3R=3*NWMAX
-       NWMAX6=6*NWMAX
-       NWMAX3L=3*NWMAX
-    ENDIF
+    NBAND=1
+    NWMAX3R=3*NWMAX
+    NWMAX6=6*NWMAX
+    NWMAX3L=3*NWMAX
 
     DO I=1,NZMAX3+7
        DO J=1,NWMAX6+7
@@ -566,8 +567,7 @@ CONTAINS
        DO I=MM,MM+1
           ID=3*I+2
           DO J=MM,MM+1
-             JD=3*J+2
-             IF(NWMAX.NE.NZMAX) JD=3*NWMAX+4+3*J-3*I
+             JD=3*NWMAX+4+3*J-3*I
              CK(JD+1,ID+1)=CK(JD+1,ID+1) &
                           +D2(I-MM,J-MM)/(BETA2*DZ)  &
                           -DZ*D0(I-MM,J-MM)
@@ -740,7 +740,7 @@ CONTAINS
     INTEGER:: NZ,MM,NN,NS,NE,I,J,ID,JD,KI,KJ
     REAL(rkind):: DZI,DZJ,AD,BD,YY,YYI,YYJ,VP,VM,VPI,VPJ,VMI,VMJ, &
                   VVP,VVM,VVZ,X1,X4,X5,DPI,DMI,DPJ,DMJ,DPM,DP,DM,DE
-    COMPLEX(rkind):: CF1P,CF1M,CF2Z,CF1Z,CP1,CP2,CP3,CPA
+    COMPLEX(rkind):: CF1P,CF1M,CF2Z,CF1Z,CP1,CP2,CP3,CPA,CPB
      
     CPTOT=0.D0
     DO NZ=0,NZMAX
@@ -813,9 +813,12 @@ CONTAINS
                       CPA=CONJG(CE(ID+1))*( CP1*CE(JD+1)+CP2*CE(JD+2)) &
                          +CONJG(CE(ID+2))*(-CP2*CE(JD+1)+CP1*CE(JD+2)) &
                          +CONJG(CE(ID+3))*  CP3*CE(JD+3)
-                      CPWR(MM)  =CPWR(MM)  +CI*AD*CPA
-                      CPWR(MM+1)=CPWR(MM+1)+CI*BD*CPA
-                      CPTOT     =CPTOT     +CI   *CPA 
+                      CPB=CE(ID+1)*CONJG( CP1*CE(JD+1)-CP2*CE(JD+2)) &
+                         +CE(ID+2)*CONJG( CP2*CE(JD+1)+CP1*CE(JD+2)) &
+                         +CE(ID+3)*CONJG( CP3*CE(JD+3))
+                      CPWR(MM)  =CPWR(MM)  +CI*AD*0.5D0*(CPA+CPB)
+                      CPWR(MM+1)=CPWR(MM+1)+CI*BD*0.5D0*(CPA+CPB)
+                      CPTOT     =CPTOT     +CI   *0.5D0*(CPA+CPB)
                    END DO
                 END DO
              END DO

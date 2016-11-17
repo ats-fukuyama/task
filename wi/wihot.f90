@@ -282,7 +282,7 @@ CONTAINS
 
       USE wicomm
       IMPLICIT NONE
-      COMPLEX(ikind):: cp1,cp2,cp3,cp4,cpa
+      COMPLEX(ikind):: cp1,cp2,cp3,cp4,cpa,cpb
       INTEGER(ikind):: NX,ns,ne,nn,i,j,id,jd,kk,kd
       REAL(rkind):: rky,rky2,dx,dx2,AD,BD,BETA0
 
@@ -335,9 +335,13 @@ CONTAINS
                            +CU(1,KK-KD)*D1(I-NX,KK-NX)*D1(J-NN,KD-NN)
                         CPA=CWP(KD)*CWE(KK)*CWE(KD)*BETA &
                             *(CONJG(CFY(ID+1))*(CP1*CFY(JD+1)+CP2*CFY(JD+2))  &
-                           +CONJG(CFY(ID+2))*(CP3*CFY(JD+1)+CP4*CFY(JD+2)))
-                        CPOWER(NX  )=CPOWER(NX  )-CI*AD*CPA
-                        CPOWER(NX+1)=CPOWER(NX+1)-CI*BD*CPA
+                             +CONJG(CFY(ID+2))*(CP3*CFY(JD+1)+CP4*CFY(JD+2)))
+                        CPB=CWP(KD)*CWE(KK)*CWE(KD)*BETA &
+                            *(CFY(ID+1)*CONJG(CP1*CFY(JD+1)+CP3*CFY(JD+2))  &
+                             +CFY(ID+2)*CONJG(CP2*CFY(JD+1)+CP4*CFY(JD+2)))
+                        CPB=-CPA
+                        CPOWER(NX  )=CPOWER(NX  )-CI*AD*0.5D0*(CPA-CPB)
+                        CPOWER(NX+1)=CPOWER(NX+1)-CI*BD*0.5D0*(CPA-CPB)
                         PTOT=PTOT-REAL(CI*CPA)
                      END DO
                   END DO
