@@ -339,7 +339,6 @@ CONTAINS
                         CPB=CWP(KD)*CWE(KK)*CWE(KD)*BETA &
                             *(CFY(ID+1)*CONJG(CP1*CFY(JD+1)+CP3*CFY(JD+2))  &
                              +CFY(ID+2)*CONJG(CP2*CFY(JD+1)+CP4*CFY(JD+2)))
-                        CPB=-CPA
                         CPOWER(NX  )=CPOWER(NX  )-CI*AD*0.5D0*(CPA-CPB)
                         CPOWER(NX+1)=CPOWER(NX+1)-CI*BD*0.5D0*(CPA-CPB)
                         PTOT=PTOT-REAL(CI*CPA)
