@@ -973,7 +973,7 @@ SUBROUTINE TXPROF
        &     Cfpe1, Cfpe2, Cfpi1, Cfpi2, sigma, fexp, PN0L, PNaL, PNeDIVL, &
        &     PTe0L, PTi0L, PTeaL, PTiaL, PTeDIVL, PTiDIVL
   real(8) :: BCLQm3, etanc, etaspz, dum=0.d0, tmp
-  real(8) :: coefmneo, smallvalue = 1.d-5
+  real(8) :: coefmneo, smallvalue = 1.d-4
   REAL(8) :: aitken2p!, DERIV4
   real(8), dimension(:), allocatable :: AJPHL, tmpa, RHSV, Prof1, Prof2, &
        & Profsdt, dProfsdt
@@ -1464,10 +1464,6 @@ SUBROUTINE TXPROF
 !     if( MDLNEOL == 2 ) call eqneo
      call eqneo
   else
-     NR = 0
-        gamneo(NR) = 4.d0 * Pisq * sdt(NR) / bbrt(NR) ! = bthco(NR) / bbrt(NR)
-        mxneo(NR) = 3
-        fmneo(1:10,NR) = 0.d0
      do NR = 1, NRMAX
         gamneo(NR) = 4.d0 * Pisq * sdt(NR) / bbrt(NR) ! = bthco(NR) / bbrt(NR)
         mxneo(NR) = 3
@@ -1481,6 +1477,19 @@ SUBROUTINE TXPROF
         fmneo(mxneo(NR)+1:10,NR) = 0.d0
      end do
   end if
+  ! Even at axis, fmneo=0 should be avoided because it would cause K_PS = 0.
+  NR = 0
+     gamneo(NR) = 4.d0 * Pisq * sdt(NR) / bbrt(NR) ! = bthco(NR) / bbrt(NR)
+     mxneo(NR) = 3
+!     fmneo(1:10,NR) = 0.d0
+     epsl = smallvalue
+     coefmneo = 1.d0 - epsl**2
+     do i = 1, mxneo(NR)
+        fmneo(i,NR) = real(i,8)* ( (1.d0-sqrt(coefmneo))/epsl)**(2*i) &
+             &                 * (1.d0+real(i,8)*sqrt(coefmneo)) &
+             &                 / (coefmneo*sqrt(coefmneo)*(q(NR)*RR)**2)
+     end do
+     fmneo(mxneo(NR)+1:10,NR) = 0.d0
 
   ! ********************************************************************
   !      Miscellaneous

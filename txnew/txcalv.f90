@@ -654,6 +654,9 @@ contains
                &         ddPhidpsi(NR)*MDOSQZN,MDLNEOL)
 !          write(6,'(A,F8.5,1P2E15.7)') 'MATINV',rho(NR),chincpe(nr),chincte(nr)
 !          write(6,'(A,F8.5,1P2E15.7)') 'MATINV',rho(NR),chincpi(nr),chincti(nr)
+!!$          !     Resistivity should be the classical (Spitzer) one at axis.
+!!$          if( NR == 0 ) ETAvar(NR,1) = CORR(1.D0) * amas(1) * amqp * rNuei(NR) &
+!!$               &                     / (Var(NR,1)%n * 1.D20 * AEE)
        end if
 
        !     *** Helical neoclassical viscosity ***

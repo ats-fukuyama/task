@@ -6,8 +6,7 @@
 
 subroutine txequ
   use tx_commons, only : ieqread, epst, aat, rrt, ckt, suft, sst, vro, vlt, art, NRMAX, &
-       & rr, Pisq, ra, rho, bb, ait, bit, bbrt, Rax, Zax, surflcfs, Pi, elip, trig, ft, &
-       & gamneo, mxneo, fmneo
+       & rr, Pisq, ra, rho, bb, ait, bit, bbrt, Rax, Zax, surflcfs, Pi, elip, trig, ft
   use eqread_mod, only : eqinit, intequ, txmesh
   use tx_interface, only : ftfunc
 

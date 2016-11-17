@@ -31,7 +31,7 @@ contains
     imodel(3) = 2 ! Fast ion contribution to friction forces
     imodel(4) = 0 ! Unused
     imodel(5) = 0 ! PS contribution nil when 1
-    imodel(6) = 0 ! Higher-order flow contribution, valid only for nccoe
+    imodel(6) = 3 ! Higher-order flow contribution, valid only for nccoe
 
     fbeam = 0.d0 ! 0: fast ion viscosity computed, 1: nil
 
@@ -110,11 +110,6 @@ contains
             &     ,NSM,ibeam,imodel,fbeam,epsL)
        MDLNEOLgflux = 1
     else ! if( MDLNEOL == 2 ) then
-       if( NR /= 0 ) then
-          imodel(5) = 0
-       else
-          imodel(5) = 1
-       end if
        !-- Call Matrix Inversion (nccoe)
        call nccoe (coebsc,coencc,coebdc,amat,bmat,cmat,dmat,alf &
             &     ,PNsVL,PTsVL,amasL,achgL,mxneo(NR),fmneo(1,NR),gamneo(NR),ftl,sqzfac,ztau &
@@ -236,8 +231,6 @@ contains
        ! Parallel particle and heat flows
        UsparNCL(NR,i1,1) = vdiamg1 + vohm(i1,1) ! particle
        UsparNCL(NR,i1,2) = vdiamg2 + vohm(i1,2) ! heat
-!       write(200,*) rho(NR),i1,UsparNCL(NR,i1,1),UsparNCL(NR,i1,2)
-!       if(NR<3) write(6,'(I3,I2,1P2E15.7)') nr,i1,vdiamg1,vohm(i1,1)
        ! Poloidal particle flows
        UsthNCL(NR,i1,1) = ( vdiamg1 - BVsdiag(NR,i1,1) ) / bbt(NR) ! diamag component
        UsthNCL(NR,i1,2) = vohm(i1,1) / bbt(NR) ! <E.B>  component
@@ -437,8 +430,12 @@ contains
          &   , j, j1, j2, js, k, m
 
 !=======================================================================
-    vxmax = 4.d0 ! org. 3.d0
-    ivmax = 15   ! org. 100
+!!   Standard
+!    vxmax = 4.d0 ! org. 3.d0
+!    ivmax = 15   ! org. 100
+!   High definition
+    vxmax = 4.5d0 ! org. 3.d0
+    ivmax = 20    ! org. 100
 !<<total no. of particle species and matrix size>>
     isp=ispc+ibeam
     allocate(lab(isp,isp,2,2), mab(isp,isp,3,3), nab(isp,isp,3,3), vt(isp), vtn(isp), xmu(isp,2,2))
@@ -1135,10 +1132,14 @@ contains
 !         but in fact f_t remains finite even at axis.
 !
 !         For such a case, the following form of zk unfavorably goes to zero.
-!         To avoid this, the banana viscosity is solely adopted at axis by choosing
-!         imodel(5) = 1.
+!         To avoid this, finite fmneo is given even at axis.
 !
-          zk=zkb*zkps/(zkb+zkps)
+          if( zkb+zkps /= 0.d0 ) then
+             zk=zkb*zkps/(zkb+zkps)
+          else
+             zk=0.d0
+          end if
+!          if(i1==1) write(6,'(1P4E15.7)') xa,tpfneo,zkb,zkps
           if(imodel(5).eq. 1)zk=zkb
           if(imodel(5).eq.-1)zk=zkps
 !-----
@@ -1547,8 +1548,12 @@ contains
   integer :: i, i1, i2, ib, ill, isp, isp2, ivmax &
        &   , j, j1, j2, k
 !=======================================================================
-    vxmax = 4.d0 ! org. 3.d0
-    ivmax = 15   ! org. 100
+!!   Standard
+!    vxmax = 4.d0 ! org. 3.d0
+!    ivmax = 15   ! org. 100
+!   High definition
+    vxmax = 4.5d0 ! org. 3.d0
+    ivmax = 20    ! org. 100
 !<<total no. of particle species and matrix size>>
     isp=ispc+ibeam
     allocate(lab(isp,isp,2,2), mab(isp,isp,2,2), nab(isp,isp,2,2), vt(isp), xmu(isp,2,2))

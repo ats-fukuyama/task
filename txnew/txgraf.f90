@@ -3472,7 +3472,7 @@ contains
          &                 MDLNEO, sdt, gflux
     use tx_variables, only : TXCALC
     integer(4), intent(in) :: MODE
-    character(len=60) :: STR
+    character(len=69) :: STR
     integer(4) :: IND, IFNT, NR, inum, ipage, MDLNEOstore, MDLNEOL
     real(4), dimension(:,:), allocatable :: GYL, GYL2
 
