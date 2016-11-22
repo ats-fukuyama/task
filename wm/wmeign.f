@@ -135,8 +135,9 @@ C
             ENDDO
 C     
             CALL WMEG1D(GX,GZ,NGFMAX,NGFMAX,1,GUCLIP(FI0))
+         ENDIF   
             DEALLOCATE(FRAG,FIAG,AMPAG,GX,GZ)
-         ENDIF
+            DEALLOCATE(FRA,FIA,AMPA)
 C
       GOTO 1
 C
@@ -361,8 +362,9 @@ C
 C
          CALL WMEG2D(GX,GY,GZ,NGZM,NGXMAX,NGYMAX,
      &               KA,GFINF,NINFM)
-         DEALLOCATE(FRAG,FIAG,AMPAG)
          ENDIF                     !--add
+         DEALLOCATE(FRAG,FIAG,AMPAG)
+         DEALLOCATE(FRA,FIA,AMPA)
 C     
       GOTO 1
 C

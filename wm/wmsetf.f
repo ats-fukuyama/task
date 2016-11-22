@@ -39,8 +39,8 @@ C     ----- Calculate dielectric tensor -----
 C
       DO NHH=1,NHHMAX
       DO NTH=1,NTHMAX
-      DO ND=-NDSIZX,NDSIZX
-      DO MD=-MDSIZX,MDSIZX
+      DO ND=NDMIN,NDMAX
+      DO MD=MDMIN,MDMAX
          DO J=1,3
          DO I=1,3
             CEP0(I,J,MD,ND,NTH,NHH)=0.D0
@@ -68,8 +68,8 @@ C
 C
          DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
-            DO ND=-NDSIZX,NDSIZX
-            DO MD=-MDSIZX,MDSIZX
+            DO ND=NDMIN,NDMAX
+            DO MD=MDMIN,MDMAX
                DO J=1,3
                DO I=1,3
                   CEP0(I,J,MD,ND,NTH,NHH)
@@ -182,8 +182,8 @@ C
          ENDDO
          ENDDO
 C
-         DO ND=-NDSIZX,NDSIZX
-         DO MD=-MDSIZX,MDSIZX
+         DO ND=NDMIN,NDMAX
+         DO MD=MDMIN,MDMAX
             DO J=1,3
             DO I=1,3
                CRB(NTH,NHH,I,J,MD,ND)=CEP0(I,J,MD,ND,NTH,NHH)
@@ -209,8 +209,8 @@ C
       ENDDO
       ENDDO
 C
-      DO ND=-NDSIZX,NDSIZX
-      DO MD=-MDSIZX,MDSIZX
+      DO ND=NDMIN,NDMAX
+      DO MD=MDMIN,MDMAX
       DO J=1,3
       DO I=1,3
          CALL WMSUBF(CRB(1,1,I,J,MD,ND),CFB(1,1,I,J,MD,ND))

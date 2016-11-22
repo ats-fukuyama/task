@@ -11,8 +11,8 @@ C
 C
       DO NHH=1,NHHMAX
       DO NTH=1,NTHMAX
-         DO ND=-NDSIZX,NDSIZX
-         DO MD=-MDSIZX,MDSIZX
+         DO ND=NDMIN,NDMAX
+         DO MD=MDMIN,MDMAX
             CTNSR(1,1,MD,ND,NTH,NHH)=0.D0
             CTNSR(1,2,MD,ND,NTH,NHH)=0.D0
             CTNSR(1,3,MD,ND,NTH,NHH)=0.D0
@@ -104,9 +104,9 @@ C         IF(NR.EQ.1.AND.NTH.EQ.1.AND.NHH.EQ.1) THEN
 C            WRITE(6,*) 'BABS:',BABS,BSUPTH,BSUPPH
 C         ENDIF
 C
-         DO ND=-NDSIZX,NDSIZX
+         DO ND=NDMIN,NDMAX
             NN=NPH0+NHC*ND
-         DO MD=-MDSIZX,MDSIZX
+         DO MD=MDMIN,MDMAX
             MM=NTH0+MD
 C
             RKTH=MM*BSUPTH/BABS
@@ -375,9 +375,9 @@ C         IF(NR.EQ.10.AND.NTH.EQ.1.AND.NHH.EQ.1) THEN
 C            WRITE(6,'(A,1P3E12.4)') 'BABS:',BABS,BSUPTH,BSUPPH
 C         ENDIF
 C
-         DO ND=-NDSIZX,NDSIZX
+         DO ND=NDMIN,NDMAX
             NN=NPH0+NHC*ND
-         DO MD=-MDSIZX,MDSIZX
+         DO MD=MDMIN,MDMAX
             MM=NTH0+MD
 C
             RKTH=MM*BSUPTH/BABS
@@ -511,9 +511,9 @@ C
          
          CALL WMCMAG(NR,NTH,NHH,BABS,BSUPTH,BSUPPH)
 
-         DO ND=-NDSIZX,NDSIZX
+         DO ND=NDMIN,NDMAX
             NN=NPH0+NHC*ND
-         DO MD=-MDSIZX,MDSIZX
+         DO MD=MDMIN,MDMAX
             MM=NTH0+MD
 C
             RKTH=MM*BSUPTH/BABS
@@ -566,8 +566,13 @@ C
       ELSE
          RETURN
       ENDIF
-      RTA=PTA*AEE*1.D3   ! original
-!      RTA=(PTA-5.D-1)*(1.D0-XL**2)*AEE*1.D3 +5.D-1*AEE*1.D3  ! parabola
+      IF(XL.EQ.0.D0) THEN
+         RHOL=RB/RA*(NR-0.5D0)/NRMAX
+      ELSE
+         RHOL=XL                ! RB/RA*(NR-0.5D0)/NRMAX
+      ENDIF
+!      RTA=PTA*AEE*1.D3          ! original
+      RTA=(PTA-5.D-1)*(1.D0-XL**2)*AEE*1.D3 +5.D0*AEE*1.D3  ! parabola
       AM=PA(3)*AMP
       AE=PZ(3)*AEE
       VTA=SQRT(2.D0*RTA/AM)
@@ -588,9 +593,9 @@ C         ANGPH=(NHH-1)*2.D0*PI/NHHMAX
             CWAST=RTA*DRN/(BABS*CW*AE*XL)
          ENDIF
 C
-         DO ND=-NDSIZX,NDSIZX
+         DO ND=NDMIN,NDMAX
             NN=NPH0+NHC*ND
-         DO MD=-MDSIZX,MDSIZX
+         DO MD=MDMIN,MDMAX
             MM=NTH0+MD
             CFN=1.D0-CWAST*MM
             RKTH=MM*BSUPTH/BABS
@@ -634,12 +639,12 @@ C
 !              WRITE(6,'(A,5I5)',ADVANCE='NO') 
 !              WRITE(6,'(A,5I5)')
 !     &              'MD,ND,NTH,NHH,NR=',MD,ND,NTH,NHH,NR
-              RHOL=XL ! RB/RA*(NR-0.5D0)/NRMAX
-             IF(RHOL.LT.1.D0) THEN
-       CALL WMDPFAA(CW,RHOL,RKPR,AE2N0,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
+               
+               IF(RHOL.LT.1.D0) THEN
+          CALL WMDPFAA(CW,RHOL,RKPR,AE2N0,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
           WP02=AE2N0*1.D20/(AM*EPS0)
-             CPM=(PI/2.D0)*WP02/(CW*CW*WC*WC*RR*RR)*
-     &           (CPM1+CPM2*MM/(RHOL*AM*CW*WC))  !0.5D0*CPM1 ???
+             CPM=0.5D0*PI*WP02/(CW*CW*WC*WC*RR*RR) *
+     &           (CPM1+CPM2*MM/(RHOL*AM*CW*WC)) !0.5D0*CPM1
              CQM=PI*WP02/(CW*CW*WC*RR)*
      &           (CQM1+CQM2*MM/(RHOL*AM*CW*WC))  !0.5D0*CQM1
              CRM=2.D0 *PI*WP02/(CW*CW)*
@@ -656,7 +661,6 @@ C
                   WRITE(6,'(3I5)') NR,NN,MM
                   WRITE(6,'(1P6E12.4)') CPM,CQM,CRM
                   
-                  RHOL=XL       ! RB/RA*(NR-0.5D0)/NRMAX
                   IF(RHOL.LT.1.D0) THEN
           CALL WMDPFAA(CW,RHOL,RKPR,AE2N0,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
                  WP02=AE2N0*1.D20/(AM*EPS0)
@@ -788,9 +792,9 @@ C         ANGPH=(NHH-1)*2.D0*PI/NHHMAX
             CWAST=RTE*DRN/(BABS*CW*AE*XL)
          ENDIF
 C
-         DO ND=-NDSIZX,NDSIZX
+         DO ND=NDMIN,NDMAX
             NN=NPH0+NHC*ND
-         DO MD=-MDSIZX,MDSIZX
+         DO MD=MDMIN,MDMAX
             MM=NTH0+MD
             CFN=1.D0-CWAST*MM
             RKTH=MM*BSUPTH/BABS
@@ -882,9 +886,9 @@ C         ANGPH=(NHH-1)*2.D0*PI/NHHMAX
             CWAST=RTA*DRN/(BABS*CW*AE*XL)
          ENDIF
 C
-         DO ND=-NDSIZX,NDSIZX
+         DO ND=NDMIN,NDMAX
             NN=NPH0+NHC*ND
-         DO MD=-MDSIZX,MDSIZX
+         DO MD=MDMIN,MDMAX
             MM=NTH0+MD
             CFN=1.D0-CWAST*MM
             RKTH=MM*BSUPTH/BABS

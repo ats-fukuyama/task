@@ -8,7 +8,7 @@ MODULE wmfa
  REAL(8) :: pintN,LBi1,RBi1,LBi2,RBi2,LBi3,RBi3
  REAL(8) :: LBint,RBint
  INTEGER :: la,n,s,NTHv
- COMPLEX(8) :: Cp0N,Cv0N,ImCp0N
+ COMPLEX(8) :: Cp0N,Cv0N,ImCp0N,CWfa
  REAL(8) :: PmaxN
 ! REAL(8),PARAMETER :: PmaxN=5.D0
 
@@ -61,6 +61,7 @@ SUBROUTINE WMDPFAA(CW,RHOWM,RKPR,AE2N0,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
      RTA=RTFP0(3)*AEE*1.D3 !  T_thermal difinition ????
      VTA=SQRT(RTA/AM) ! VTA=SQRT(2.D0*RTA/AM) ???
      PTA=VTA*AM
+     CWfa=CW
      CX=ABS(RKPR)/(CW*AM)
      CPM1=(0.D0,0.D0)
      CPM2=(0.D0,0.D0)
@@ -288,10 +289,11 @@ SUBROUTINE PVINT(j,l,CINT)
  INTEGER:: m
  REAL(8):: xg(0:1000),yg(0:1000)
   H0=0.5
-  EPS=1.D-5 !!!??
+  EPS=1.D-4 !!!??
   ILST=0
 
-   WRITE(LINE,'(3I5,1P5E12.4)') j,l,NTHv,p0N,RHO0
+   WRITE(LINE,'(3I5,1P5E12.4)') j,l,NTHv,RHO0,CWfa
+   WRITE(LINE,'(1P4E12.4)') Cp0N,LBint,RBint   
 !  IF(RHO0.GT.2.25D-1) ILST=1
 !ILST=1
    la=l
