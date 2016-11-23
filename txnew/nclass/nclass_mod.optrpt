@@ -1,0 +1,2745 @@
+
+    レポート: プロシージャー間の最適化 [ipo]
+
+インライン展開オプション値:
+  -inline-factor: 100
+  -inline-min-size: 30
+  -inline-max-size: 230
+  -inline-max-total-size: 2000
+  -inline-max-per-routine: 無効
+  -inline-max-per-compile: 無効
+
+
+最適化レポート開始: NCLASS_FLOW
+
+    レポート: プロシージャー間の最適化 [ipo]
+
+インライン展開レポート: (NCLASS_FLOW) [1] nclass/nclass_mod.f(335,18)
+  -> EXTERN: (460,12) rarray_zero_
+  -> EXTERN: (461,12) rarray_zero_
+  -> EXTERN: (462,12) rarray_zero_
+  -> EXTERN: (463,12) rarray_zero_
+  -> EXTERN: (464,12) rarray_zero_
+  -> EXTERN: (465,12) rarray_zero_
+  -> EXTERN: (487,14) u_lu_decomp_
+  -> EXTERN: (499,16) u_lu_backsub_
+  -> EXTERN: (514,14) u_lu_backsub_
+  -> EXTERN: (525,14) u_lu_backsub_
+  -> EXTERN: (526,14) u_lu_backsub_
+  -> EXTERN: (535,14) u_lu_backsub_
+  -> EXTERN: (547,14) u_lu_backsub_
+  -> EXTERN: (582,12) u_lu_decomp_
+  -> EXTERN: (590,14) u_lu_backsub_
+  -> EXTERN: (593,14) u_lu_backsub_
+  -> EXTERN: (594,14) u_lu_backsub_
+  -> EXTERN: (609,18) rarray_zero_
+  -> EXTERN: (632,18) rarray_zero_
+  -> EXTERN: (644,18) rarray_zero_
+  -> EXTERN: (660,12) rarray_zero_
+  -> EXTERN: (661,12) rarray_zero_
+  -> EXTERN: (662,12) rarray_zero_
+  -> EXTERN: (663,12) rarray_zero_
+  -> EXTERN: (664,12) rarray_zero_
+  -> EXTERN: (665,12) rarray_zero_
+
+
+    レポート: ループの入れ子、ベクトル、自動並列化の最適化 [loop, vec, par]
+
+
+LOOP BEGIN at nclass/nclass_mod.f(476,7)
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+   remark #25015: ループの最大トリップカウントの予測=40
+
+   LOOP BEGIN at nclass/nclass_mod.f(482,11)
+      remark #25444: ループの入れ子の交換: ( 1 2 ) --> ( 2 1 )
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。   [ nclass/nclass_mod.f(482,11) ]
+      remark #25015: ループの最大トリップカウントの予測=3
+
+      LOOP BEGIN at nclass/nclass_mod.f(481,9)
+         remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+         remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+         remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15479: 軽いベクトル操作: 6 
+         remark #15480: 中オーバーヘッドのベクトル操作: 1 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+         remark #25439: 剰余ありアンロール - 8  
+         remark #25015: ループの最大トリップカウントの予測=3
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(481,9)
+      <Remainder>
+         remark #25436: 完全なアンロール - 7  
+      LOOP END
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(491,9)
+      remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+      remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+      remark #25015: ループの最大トリップカウントの予測=6
+
+      LOOP BEGIN at nclass/nclass_mod.f(492,11)
+      <Predicate Optimized v1>
+         remark #25423: 行 493 の条件がこのループの外に移動されました。
+         remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+         remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15479: 軽いベクトル操作: 2 
+         remark #15480: 中オーバーヘッドのベクトル操作: 1 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+         remark #25439: 剰余ありアンロール - 2  
+         remark #25015: ループの最大トリップカウントの予測=3
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(492,11)
+      <Remainder, Predicate Optimized v1>
+         remark #25015: ループの最大トリップカウントの予測=3
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(492,11)
+      <Predicate Optimized v2>
+         remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+         remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15479: 軽いベクトル操作: 2 
+         remark #15480: 中オーバーヘッドのベクトル操作: 1 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+         remark #25439: 剰余ありアンロール - 2  
+         remark #25015: ループの最大トリップカウントの予測=3
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(492,11)
+      <Remainder, Predicate Optimized v2>
+         remark #25015: ループの最大トリップカウントの予測=3
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(500,11)
+         remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+         remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+         remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15479: 軽いベクトル操作: 6 
+         remark #15480: 中オーバーヘッドのベクトル操作: 1 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+         remark #25439: 剰余ありアンロール - 8  
+         remark #25015: ループの最大トリップカウントの予測=3
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(500,11)
+      <Remainder>
+         remark #25436: 完全なアンロール - 7  
+      LOOP END
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(508,9)
+   <Distributed chunk1>
+      remark #25426: ループ分散 (2 ウェイ) 
+      remark #25408: memset が生成されました。
+      remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+      remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+      remark #25015: ループの最大トリップカウントの予測=3
+
+      LOOP BEGIN at nclass/nclass_mod.f(508,9)
+      <Distributed chunk1>
+         remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+         remark #15301: PARTIAL LOOP がベクトル化されました。
+         remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 3 
+         remark #15477: ベクトルループのコスト: 0.620 
+         remark #15478: スピードアップの期待値: 4.000 
+         remark #15479: 軽いベクトル操作: 3 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+         remark #25015: ループの最大トリップカウントの予測=3
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(508,9)
+      <Remainder, Distributed chunk1>
+         remark #25015: ループの最大トリップカウントの予測=24
+      LOOP END
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(510,11)
+   <Distributed chunk2>
+      remark #25444: ループの入れ子の交換: ( 1 2 ) --> ( 2 1 )
+      remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+      remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。   [ nclass/nclass_mod.f(510,11) ]
+      remark #25015: ループの最大トリップカウントの予測=3
+
+      LOOP BEGIN at nclass/nclass_mod.f(508,9)
+         remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+         remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+         remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15479: 軽いベクトル操作: 6 
+         remark #15480: 中オーバーヘッドのベクトル操作: 1 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+         remark #25439: 剰余ありアンロール - 8  
+         remark #25015: ループの最大トリップカウントの予測=3
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(508,9)
+      <Remainder>
+         remark #25436: 完全なアンロール - 7  
+      LOOP END
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(515,9)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15479: 軽いベクトル操作: 6 
+      remark #15480: 中オーバーヘッドのベクトル操作: 1 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+      remark #25439: 剰余ありアンロール - 8  
+      remark #25015: ループの最大トリップカウントの予測=3
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(521,9)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 2 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15479: 軽いベクトル操作: 9 
+      remark #15480: 中オーバーヘッドのベクトル操作: 1 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+      remark #25439: 剰余ありアンロール - 8  
+      remark #25015: ループの最大トリップカウントの予測=3
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(527,9)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 2 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15479: 軽いベクトル操作: 13 
+      remark #15480: 中オーバーヘッドのベクトル操作: 1 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+      remark #25439: 剰余ありアンロール - 8  
+      remark #25015: ループの最大トリップカウントの予測=3
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(536,9)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15479: 軽いベクトル操作: 6 
+      remark #15480: 中オーバーヘッドのベクトル操作: 1 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+      remark #25439: 剰余ありアンロール - 8  
+      remark #25015: ループの最大トリップカウントの予測=3
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(548,9)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15479: 軽いベクトル操作: 6 
+      remark #15480: 中オーバーヘッドのベクトル操作: 1 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+      remark #25439: 剰余ありアンロール - 8  
+      remark #25015: ループの最大トリップカウントの予測=3
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(515,9)
+   <Remainder>
+      remark #25436: 完全なアンロール - 7  
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(521,9)
+   <Remainder>
+      remark #25436: 完全なアンロール - 7  
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(527,9)
+   <Remainder>
+      remark #25436: 完全なアンロール - 7  
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(536,9)
+   <Remainder>
+      remark #25436: 完全なアンロール - 7  
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(548,9)
+   <Remainder>
+      remark #25436: 完全なアンロール - 7  
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(553,7)
+   remark #25445: ループ交換は完了しませんでした: データの依存関係があります。
+   remark #25446: 以下の文の間で依存関係が見つかりました:  [From_Line# -> (依存関係の種類) To_Line#]
+   remark #25447: 以下の文の間で依存関係が見つかりました:  [557 -> (Output) 575]
+   remark #25447: 以下の文の間で依存関係が見つかりました:  [557 -> (Flow) 575]
+   remark #25447: 以下の文の間で依存関係が見つかりました:  [575 -> (Output) 557]
+   remark #25447: 以下の文の間で依存関係が見つかりました:  [575 -> (Anti) 557]
+   remark #25451: アドバイス: ループ交換は (可能であれば) ループの入れ子に適用できます。推奨する順列: ( 1 2 ) --> ( 2 1 ) 
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+   remark #25015: ループの最大トリップカウントの予測=9
+
+   LOOP BEGIN at nclass/nclass_mod.f(554,9)
+      remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+      remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+      remark #25015: ループの最大トリップカウントの予測=3
+
+      LOOP BEGIN at nclass/nclass_mod.f(562,11)
+         remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+         remark #15335: ループ はベクトル化されませんでした: ベクトル化は可能ですが非効率です。オーバーライドするには vector always 宣言子または -vec-threshold0 を使用してください。
+         remark #15460: マスク付きストライドロード: 2 
+         remark #15462: マスクなしインデックス (集約) ロード: 2 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 7 
+         remark #15477: ベクトルループのコスト: 9.500 
+         remark #15478: スピードアップの期待値: 0.730 
+         remark #15479: 軽いベクトル操作: 3 
+         remark #15480: 中オーバーヘッドのベクトル操作: 1 
+         remark #15481: 高オーバーヘッドのベクトル操作: 2 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+         remark #25439: 剰余ありアンロール - 2  
+         remark #25015: ループの最大トリップカウントの予測=40
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(562,11)
+      <Remainder>
+         remark #25015: ループの最大トリップカウントの予測=40
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(571,11)
+         remark #25101:  ループ交換は完了しませんでした: 元の順序は適切です。
+         remark #25452: 元の順序はマージンが近いことを除けば適切です。
+         remark #17109: ループが自動並列化されました。
+         remark #17101: 並列ループ shared={ .2.22_2upper_.25 } private={ l1 } firstprivate={ 235 m im caln_ii m1 jm } lastprivate={ } firstlastprivate={ } reduction={ }
+         remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+
+         LOOP BEGIN at nclass/nclass_mod.f(572,13)
+            remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+            remark #25015: ループの最大トリップカウントの予測=27
+
+            LOOP BEGIN at nclass/nclass_mod.f(574,15)
+               remark #25085: 前処理ループの入れ子: ロードとストアを外に移動しています。   [ nclass/nclass_mod.f(575,17) ]
+               remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+               remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 1 
+               remark #15460: マスク付きストライドロード: 1 
+               remark #15475: --- ベクトルループのコストサマリー開始 ---
+               remark #15476: スカラーループのコスト: 7 
+               remark #15477: ベクトルループのコスト: 4.000 
+               remark #15478: スピードアップの期待値: 0.800 
+               remark #15479: 軽いベクトル操作: 6 
+               remark #15480: 中オーバーヘッドのベクトル操作: 1 
+               remark #15488: --- ベクトルループのコストサマリー終了 ---
+               remark #25015: ループの最大トリップカウントの予測=6
+            LOOP END
+         LOOP END
+      LOOP END
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(589,7)
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15344: ループ はベクトル化されませんでした: ベクトル依存関係がベクトル化 . 最初の依存関係を以下に示します。詳細については、レベル 5 のレポートを使用してください。 を妨げています。
+   remark #15346: ベクトル依存関係: FLOW の依存関係が 250 行 590 と 250 行 590 の間に仮定されました。
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(592,7)
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15344: ループ はベクトル化されませんでした: ベクトル依存関係がベクトル化 . 最初の依存関係を以下に示します。詳細については、レベル 5 のレポートを使用してください。 を妨げています。
+   remark #15346: ベクトル依存関係: FLOW の依存関係が 254 行 593 と 254 行 593 の間に仮定されました。
+   remark #25015: ループの最大トリップカウントの予測=40
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(596,7)
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+   remark #25015: ループの最大トリップカウントの予測=40
+
+   LOOP BEGIN at nclass/nclass_mod.f(599,9)
+      remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+      remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+      remark #25015: ループの最大トリップカウントの予測=3
+
+      LOOP BEGIN at nclass/nclass_mod.f(600,11)
+      <Predicate Optimized v1>
+         remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+         remark #25422: 行 601 の不変条件がこのループの外に移動されました。
+         remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 1 
+         remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15479: 軽いベクトル操作: 4 
+         remark #15481: 高オーバーヘッドのベクトル操作: 1 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+         remark #25439: 剰余ありアンロール - 8  
+         remark #25015: ループの最大トリップカウントの予測=3
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(600,11)
+      <Predicate Optimized v2>
+         remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 1 
+         remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15479: 軽いベクトル操作: 2 
+         remark #15481: 高オーバーヘッドのベクトル操作: 1 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+         remark #25439: 剰余ありアンロール - 2  
+         remark #25015: ループの最大トリップカウントの予測=3
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(600,11)
+      <Remainder, Predicate Optimized v2>
+         remark #25015: ループの最大トリップカウントの予測=3
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(608,11)
+         remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+         remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+         remark #25015: ループの最大トリップカウントの予測=27
+
+         LOOP BEGIN at nclass/nclass_mod.f(613,15)
+            remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+            remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+            remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 1 
+            remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 1 
+            remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 1 
+            remark #15475: --- ベクトルループのコストサマリー開始 ---
+            remark #15479: 軽いベクトル操作: 7 
+            remark #15488: --- ベクトルループのコストサマリー終了 ---
+            remark #25439: 剰余ありアンロール - 8  
+            remark #25015: ループの最大トリップカウントの予測=3
+         LOOP END
+
+         LOOP BEGIN at nclass/nclass_mod.f(617,13)
+            remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+            remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+            remark #25015: ループの最大トリップカウントの予測=3
+
+            LOOP BEGIN at nclass/nclass_mod.f(618,15)
+               remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+               remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+               remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+               remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+               remark #15475: --- ベクトルループのコストサマリー開始 ---
+               remark #15479: 軽いベクトル操作: 6 
+               remark #15481: 高オーバーヘッドのベクトル操作: 1 
+               remark #15488: --- ベクトルループのコストサマリー終了 ---
+               remark #25439: 剰余ありアンロール - 8  
+               remark #25015: ループの最大トリップカウントの予測=3
+            LOOP END
+
+            LOOP BEGIN at nclass/nclass_mod.f(618,15)
+            <Remainder>
+               remark #25436: 完全なアンロール - 7  
+            LOOP END
+         LOOP END
+
+         LOOP BEGIN at nclass/nclass_mod.f(613,15)
+         <Remainder>
+            remark #25436: 完全なアンロール - 7  
+         LOOP END
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(600,11)
+      <Remainder, Predicate Optimized v1>
+         remark #25436: 完全なアンロール - 7  
+      LOOP END
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(625,9)
+      remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+      remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+      remark #25015: ループの最大トリップカウントの予測=40
+
+      LOOP BEGIN at nclass/nclass_mod.f(626,11)
+         remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+         remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+         remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 2 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15479: 軽いベクトル操作: 5 
+         remark #15480: 中オーバーヘッドのベクトル操作: 1 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+         remark #25439: 剰余ありアンロール - 2  
+         remark #25015: ループの最大トリップカウントの予測=3
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(626,11)
+      <Remainder>
+         remark #25015: ループの最大トリップカウントの予測=3
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(631,11)
+         remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+         remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+
+         LOOP BEGIN at nclass/nclass_mod.f(633,13)
+            remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+            remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+            remark #25015: ループの最大トリップカウントの予測=27
+
+            LOOP BEGIN at nclass/nclass_mod.f(635,15)
+               remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+               remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+               remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 1 
+               remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 1 
+               remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 1 
+               remark #15475: --- ベクトルループのコストサマリー開始 ---
+               remark #15479: 軽いベクトル操作: 7 
+               remark #15488: --- ベクトルループのコストサマリー終了 ---
+               remark #25439: 剰余ありアンロール - 8  
+               remark #25015: ループの最大トリップカウントの予測=3
+            LOOP END
+
+            LOOP BEGIN at nclass/nclass_mod.f(635,15)
+            <Remainder>
+               remark #25436: 完全なアンロール - 7  
+            LOOP END
+         LOOP END
+
+         LOOP BEGIN at nclass/nclass_mod.f(639,13)
+            remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+            remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+            remark #25015: ループの最大トリップカウントの予測=3
+
+            LOOP BEGIN at nclass/nclass_mod.f(640,15)
+               remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+               remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+               remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+               remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+               remark #15475: --- ベクトルループのコストサマリー開始 ---
+               remark #15479: 軽いベクトル操作: 6 
+               remark #15480: 中オーバーヘッドのベクトル操作: 1 
+               remark #15488: --- ベクトルループのコストサマリー終了 ---
+               remark #25439: 剰余ありアンロール - 8  
+               remark #25015: ループの最大トリップカウントの予測=3
+            LOOP END
+
+            LOOP BEGIN at nclass/nclass_mod.f(640,15)
+            <Remainder>
+               remark #25436: 完全なアンロール - 7  
+            LOOP END
+         LOOP END
+
+         LOOP BEGIN at nclass/nclass_mod.f(645,13)
+            remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+            remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+            remark #25015: ループの最大トリップカウントの予測=27
+
+            LOOP BEGIN at nclass/nclass_mod.f(647,15)
+               remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+               remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+               remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 1 
+               remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 1 
+               remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 1 
+               remark #15475: --- ベクトルループのコストサマリー開始 ---
+               remark #15479: 軽いベクトル操作: 7 
+               remark #15488: --- ベクトルループのコストサマリー終了 ---
+               remark #25439: 剰余ありアンロール - 8  
+               remark #25015: ループの最大トリップカウントの予測=3
+            LOOP END
+
+            LOOP BEGIN at nclass/nclass_mod.f(647,15)
+            <Remainder>
+               remark #25436: 完全なアンロール - 7  
+            LOOP END
+         LOOP END
+
+         LOOP BEGIN at nclass/nclass_mod.f(651,13)
+            remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+            remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+            remark #25015: ループの最大トリップカウントの予測=3
+
+            LOOP BEGIN at nclass/nclass_mod.f(652,15)
+               remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+               remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+               remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+               remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+               remark #15475: --- ベクトルループのコストサマリー開始 ---
+               remark #15479: 軽いベクトル操作: 6 
+               remark #15480: 中オーバーヘッドのベクトル操作: 1 
+               remark #15488: --- ベクトルループのコストサマリー終了 ---
+               remark #25439: 剰余ありアンロール - 8  
+               remark #25015: ループの最大トリップカウントの予測=3
+            LOOP END
+
+            LOOP BEGIN at nclass/nclass_mod.f(652,15)
+            <Remainder>
+               remark #25436: 完全なアンロール - 7  
+            LOOP END
+         LOOP END
+      LOOP END
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(666,7)
+   remark #25084: 前処理ループの入れ子: ストアを外に移動しています。   [ nclass/nclass_mod.f(672,9) ]
+   remark #25084: 前処理ループの入れ子: ストアを外に移動しています。   [ nclass/nclass_mod.f(676,9) ]
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+   remark #25015: ループの最大トリップカウントの予測=40
+
+   LOOP BEGIN at nclass/nclass_mod.f(678,9)
+   <Peeled>
+      remark #25015: ループの最大トリップカウントの予測=40
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(678,9)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15300: ループがベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 1 
+      remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 1 
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 1 
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+      remark #15460: マスク付きストライドロード: 2 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 17 
+      remark #15477: ベクトルループのコスト: 13.250 
+      remark #15478: スピードアップの期待値: 1.850 
+      remark #15479: 軽いベクトル操作: 13 
+      remark #15480: 中オーバーヘッドのベクトル操作: 1 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+      remark #25015: ループの最大トリップカウントの予測=2
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(678,9)
+   <Remainder>
+      remark #15301: REMAINDER LOOP がベクトル化されました。
+      remark #25015: ループの最大トリップカウントの予測=10
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(678,9)
+   <Remainder>
+      remark #25015: ループの最大トリップカウントの予測=40
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(691,9)
+      remark #25096:  ループ交換は完了しませんでした: ループの入れ子が完全ではありません (ソースのいずれかまたは他のコンパイラー変換による)
+      remark #25451: アドバイス: ループ交換は (可能であれば) ループの入れ子に適用できます。推奨する順列: ( 1 2 ) --> ( 2 1 ) 
+      remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+      remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+      remark #25015: ループの最大トリップカウントの予測=3
+
+      LOOP BEGIN at nclass/nclass_mod.f(698,11)
+         remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+         remark #15300: ループがベクトル化されました。
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+         remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 4 
+         remark #15460: マスク付きストライドロード: 4 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 44 
+         remark #15477: ベクトルループのコスト: 14.000 
+         remark #15478: スピードアップの期待値: 2.990 
+         remark #15479: 軽いベクトル操作: 27 
+         remark #15480: 中オーバーヘッドのベクトル操作: 1 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+         remark #25015: ループの最大トリップカウントの予測=5
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(698,11)
+      <Remainder>
+         remark #25015: ループの最大トリップカウントの予測=40
+      LOOP END
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(717,9)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #25085: 前処理ループの入れ子: ロードとストアを外に移動しています。   [ nclass/nclass_mod.f(719,11) ]
+      remark #25085: 前処理ループの入れ子: ロードとストアを外に移動しています。   [ nclass/nclass_mod.f(720,11) ]
+      remark #25085: 前処理ループの入れ子: ロードとストアを外に移動しています。   [ nclass/nclass_mod.f(722,11) ]
+      remark #25085: 前処理ループの入れ子: ロードとストアを外に移動しています。   [ nclass/nclass_mod.f(723,11) ]
+      remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 1 
+      remark #15460: マスク付きストライドロード: 4 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15479: 軽いベクトル操作: 35 
+      remark #15480: 中オーバーヘッドのベクトル操作: 1 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+      remark #25456: ループで置換された配列参照スカラーの数: 5
+      remark #25015: ループの最大トリップカウントの予測=3
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(731,9)
+      remark #25096:  ループ交換は完了しませんでした: ループの入れ子が完全ではありません (ソースのいずれかまたは他のコンパイラー変換による)
+      remark #25451: アドバイス: ループ交換は (可能であれば) ループの入れ子に適用できます。推奨する順列: ( 1 2 ) --> ( 2 1 ) 
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+      remark #25015: ループの最大トリップカウントの予測=40
+
+      LOOP BEGIN at nclass/nclass_mod.f(737,11)
+         remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+         remark #25085: 前処理ループの入れ子: ロードとストアを外に移動しています。   [ nclass/nclass_mod.f(739,13) ]
+         remark #25085: 前処理ループの入れ子: ロードとストアを外に移動しています。   [ nclass/nclass_mod.f(740,13) ]
+         remark #25085: 前処理ループの入れ子: ロードとストアを外に移動しています。   [ nclass/nclass_mod.f(742,13) ]
+         remark #25085: 前処理ループの入れ子: ロードとストアを外に移動しています。   [ nclass/nclass_mod.f(743,13) ]
+         remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 1 
+         remark #15460: マスク付きストライドロード: 4 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15479: 軽いベクトル操作: 35 
+         remark #15480: 中オーバーヘッドのベクトル操作: 1 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+         remark #25456: ループで置換された配列参照スカラーの数: 5
+         remark #25015: ループの最大トリップカウントの予測=3
+      LOOP END
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(758,7)
+   remark #17109: ループが自動並列化されました。
+   remark #17101: 並列ループ shared={ .2.22_2upper_.53 } private={ } firstprivate={ im iza jm_s jz_s den_iz dp_ss dt_ss temp_i chip_ss chit_ss 300 i } lastprivate={ } firstlastprivate={ } reduction={ }
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+   LOOP BEGIN at nclass/nclass_mod.f(761,9)
+   <Peeled>
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(761,9)
+      remark #15300: ループがベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 4 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 226 
+      remark #15477: ベクトルループのコスト: 34.620 
+      remark #15478: スピードアップの期待値: 5.330 
+      remark #15479: 軽いベクトル操作: 28 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(761,9)
+   <Remainder>
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(571,11)
+   remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+
+   LOOP BEGIN at nclass/nclass_mod.f(572,13)
+      remark #17107: ループは並列化されませんでした: 内部ループです。
+      remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+      remark #25015: ループの最大トリップカウントの予測=27
+
+      LOOP BEGIN at nclass/nclass_mod.f(574,15)
+         remark #17107: ループは並列化されませんでした: 内部ループです。
+         remark #25085: 前処理ループの入れ子: ロードとストアを外に移動しています。   [ nclass/nclass_mod.f(575,17) ]
+         remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 1 
+         remark #15460: マスク付きストライドロード: 1 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 7 
+         remark #15477: ベクトルループのコスト: 4.000 
+         remark #15478: スピードアップの期待値: 0.800 
+         remark #15479: 軽いベクトル操作: 6 
+         remark #15480: 中オーバーヘッドのベクトル操作: 1 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+         remark #25015: ループの最大トリップカウントの予測=6
+      LOOP END
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(758,7)
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+   LOOP BEGIN at nclass/nclass_mod.f(761,9)
+   <Peeled>
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(761,9)
+      remark #17107: ループは並列化されませんでした: 内部ループです。
+      remark #15300: ループがベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 4 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 226 
+      remark #15477: ベクトルループのコスト: 34.620 
+      remark #15478: スピードアップの期待値: 5.330 
+      remark #15479: 軽いベクトル操作: 28 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(761,9)
+   <Remainder>
+   LOOP END
+LOOP END
+
+    レポート: コード生成の最適化 [cg]
+
+nclass/nclass_mod.f(509,11):remark #34014: memset の最適化アドバイス: デスティネーションのアライメントを 16 に増やし (__assume_aligned を使用して) ライブラリーの実装を高速化します。
+nclass/nclass_mod.f(509,11):remark #34026: memset の呼び出しは最適化されたライブラリー・バージョンの呼び出しとして実装されました。
+===========================================================================
+
+最適化レポート開始: NCLASS
+
+    レポート: プロシージャー間の最適化 [ipo]
+
+インライン展開レポート: (NCLASS) [2] nclass/nclass_mod.f(1,18)
+  -> INLINE: (231,12) NCLASS_MN
+  -> INLINE: (237,12) NCLASS_TAU
+    -> EXTERN: (1350,12) rarray_zero_
+    -> EXTERN: (1351,12) rarray_zero_
+    -> EXTERN: (1352,12) rarray_zero_
+    -> EXTERN: (1353,12) rarray_zero_
+    -> EXTERN: (1354,12) rarray_zero_
+    -> EXTERN: (1365,22) logf
+    -> EXTERN: (1384,27) logf
+    -> EXTERN: (1395,21) __powr4i4
+  -> EXTERN: (240,12) rarray_zero_
+  -> INLINE: (274,12) NCLASS_MU
+    -> EXTERN: (1092,18) expf
+    -> EXTERN: (1107,12) rarray_zero_
+    -> EXTERN: (1108,12) rarray_zero_
+    -> EXTERN: (1109,12) rarray_zero_
+    -> EXTERN: (1110,12) rarray_zero_
+    -> EXTERN: (1111,12) rarray_zero_
+    -> INLINE: (1124,16) NCLASS_K
+      -> EXTERN: (846,12) rarray_zero_
+      -> EXTERN: (847,12) rarray_zero_
+      -> EXTERN: (848,12) rarray_zero_
+      -> EXTERN: (849,12) rarray_zero_
+      -> INLINE: (851,12) NCLASS_NU
+        -> EXTERN: (1260,12) rarray_zero_
+        -> EXTERN: (1261,12) rarray_zero_
+        -> EXTERN: (1262,12) rarray_zero_
+        -> EXTERN: (1270,15) u_erf_
+        -> EXTERN: (1271,38) expf
+        -> EXTERN: (1272,61) __powr4i4
+        -> EXTERN: (1274,67) __powr4i4
+        -> EXTERN: (1286,31) atanf
+      -> EXTERN: (855,23) exp2f
+      -> EXTERN: (855,31) powf
+      -> EXTERN: (857,30) exp2f
+      -> EXTERN: (867,36) powf
+      -> EXTERN: (878,26) powf
+      -> EXTERN: (878,56) powf
+      -> EXTERN: (879,36) powf
+    -> EXTERN: (1193,44) __powr4i4
+    -> EXTERN: (1194,43) __powr4i4
+    -> EXTERN: (1195,45) __powr4i4
+    -> EXTERN: (1195,61) __powr4i4
+  -> (287,12) NCLASS_FLOW
+
+
+    レポート: ループの入れ子、ベクトル、自動並列化の最適化 [loop, vec, par]
+
+
+LOOP BEGIN at nclass/nclass_mod.f(212,7)
+   remark #25445: ループ交換は完了しませんでした: データの依存関係があります。
+   remark #25446: 以下の文の間で依存関係が見つかりました:  [From_Line# -> (依存関係の種類) To_Line#]
+   remark #25447: 以下の文の間で依存関係が見つかりました:  [215 -> (Output) 215]
+   remark #25447: 以下の文の間で依存関係が見つかりました:  [217 -> (Output) 217]
+   remark #25447: 以下の文の間で依存関係が見つかりました:  [217 -> ( ) 217]
+   remark #25447: 以下の文の間で依存関係が見つかりました:  [219 -> (Output) 221]
+   remark #25447: 以下の文の間で依存関係が見つかりました:  [219 -> ( ) 221]
+   remark #25447: 以下の文の間で依存関係が見つかりました:  [219 -> (Output) 219]
+   remark #25447: 以下の文の間で依存関係が見つかりました:  [219 -> ( ) 219]
+   remark #25447: 以下の文の間で依存関係が見つかりました:  [221 -> (Output) 221]
+   remark #25447: 以下の文の間で依存関係が見つかりました:  [221 -> ( ) 221]
+   remark #25447: 以下の文の間で依存関係が見つかりました:  [221 -> (Output) 219]
+   remark #25447: 以下の文の間で依存関係が見つかりました:  [221 -> ( ) 219]
+   remark #25451: アドバイス: ループ交換は (可能であれば) ループの入れ子に適用できます。推奨する順列: ( 1 2 ) --> ( 2 1 ) 
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+
+   LOOP BEGIN at nclass/nclass_mod.f(213,9)
+      remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+      remark #15344: ループ はベクトル化されませんでした: ベクトル依存関係がベクトル化 . 最初の依存関係を以下に示します。詳細については、レベル 5 のレポートを使用してください。 を妨げています。
+      remark #15346: ベクトル依存関係: OUTPUT の依存関係が jz_s 行 219 と jz_s 行 221 の間に仮定されました。
+      remark #25439: 剰余ありアンロール - 2  
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(213,9)
+   <Remainder>
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(926,9) inlined into nclass/nclass_mod.f(339,12)
+   remark #25444: ループの入れ子の交換: ( 1 2 ) --> ( 2 1 )
+   remark #17100: PERMUTED LOOP が自動並列化されました。
+   remark #17101: 並列ループ shared={ .2.23_2upper_.133 } private={ } firstprivate={ xmab xtab xab2 yab32 yab52 amu_i temp_i capm_ii capn_ii yab72 yab92 im } lastprivate={ } firstlastprivate={ } reduction={ }
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。   [ nclass/nclass_mod.f(926,9) ]
+
+   LOOP BEGIN at nclass/nclass_mod.f(924,7) inlined into nclass/nclass_mod.f(339,12)
+   <Peeled, Distributed chunk1>
+      remark #25426: ループ分散 (2 ウェイ) 
+      remark #25430: 行 924 でスカラー拡張されました。   [ nclass/nclass_mod.f(928,11) ]
+      remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+      LOOP BEGIN at nclass/nclass_mod.f(924,7) inlined into nclass/nclass_mod.f(339,12)
+      <Peeled, Distributed chunk1>
+         remark #25441: ストリップマイニング - 64   (pre-vector) 
+         remark #15301: PARTIAL LOOP がベクトル化されました。
+         remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 6 
+         remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 5 
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 204 
+         remark #15477: ベクトルループのコスト: 25.620 
+         remark #15478: スピードアップの期待値: 7.880 
+         remark #15479: 軽いベクトル操作: 53 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+         remark #25456: ループで置換された配列参照スカラーの数: 6
+         remark #25015: ループの最大トリップカウントの予測=8
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(924,7) inlined into nclass/nclass_mod.f(339,12)
+      <Peeled, Remainder, Distributed chunk1>
+         remark #25015: ループの最大トリップカウントの予測=64
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(924,7) inlined into nclass/nclass_mod.f(339,12)
+      <Peeled, Distributed chunk2, Predicate Optimized v1>
+         remark #25441: ストリップマイニング - 64   (pre-vector) 
+         remark #25422: 行 937 の不変条件がこのループの外に移動されました。
+         remark #15301: PARTIAL LOOP がベクトル化されました。
+         remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 12 
+         remark #15460: マスク付きストライドロード: 8 
+         remark #15462: マスクなしインデックス (集約) ロード: 18 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 470 
+         remark #15477: ベクトルループのコスト: 118.120 
+         remark #15478: スピードアップの期待値: 3.970 
+         remark #15479: 軽いベクトル操作: 168 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+         remark #25015: ループの最大トリップカウントの予測=4
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(924,7) inlined into nclass/nclass_mod.f(339,12)
+      <Peeled, Remainder, Distributed chunk2, Predicate Optimized v1>
+         remark #15301: REMAINDER LOOP がベクトル化されました。
+         remark #25015: ループの最大トリップカウントの予測=16
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(924,7) inlined into nclass/nclass_mod.f(339,12)
+      <Peeled, Remainder, Distributed chunk2, Predicate Optimized v1>
+         remark #25015: ループの最大トリップカウントの予測=64
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(924,7) inlined into nclass/nclass_mod.f(339,12)
+      <Peeled, Distributed chunk2, Predicate Optimized v2>
+         remark #15301: PARTIAL LOOP がベクトル化されました。
+         remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 10 
+         remark #15460: マスク付きストライドロード: 4 
+         remark #15462: マスクなしインデックス (集約) ロード: 8 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 203 
+         remark #15477: ベクトルループのコスト: 54.870 
+         remark #15478: スピードアップの期待値: 3.690 
+         remark #15479: 軽いベクトル操作: 57 
+         remark #15481: 高オーバーヘッドのベクトル操作: 1 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+         remark #25015: ループの最大トリップカウントの予測=4
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(924,7) inlined into nclass/nclass_mod.f(339,12)
+      <Peeled, Remainder, Distributed chunk2, Predicate Optimized v2>
+         remark #15301: REMAINDER LOOP がベクトル化されました。
+         remark #25015: ループの最大トリップカウントの予測=16
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(924,7) inlined into nclass/nclass_mod.f(339,12)
+      <Peeled, Remainder, Distributed chunk2, Predicate Optimized v2>
+         remark #25015: ループの最大トリップカウントの予測=64
+      LOOP END
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(233,7)
+   remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+   remark #15300: ループがベクトル化されました。
+   remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 1 
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 98 
+   remark #15477: ベクトルループのコスト: 12.750 
+   remark #15478: スピードアップの期待値: 4.280 
+   remark #15479: 軽いベクトル操作: 10 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25015: ループの最大トリップカウントの予測=1
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(233,7)
+<Remainder>
+   remark #25015: ループの最大トリップカウントの予測=9
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(1359,7) inlined into nclass/nclass_mod.f(345,12)
+<Peeled, Distributed chunk1>
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #25426: ループ分散 (2 ウェイ) 
+   remark #25430: 行 1359 でスカラー拡張されました。   [ nclass/nclass_mod.f(1360,9) ]
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+   LOOP BEGIN at nclass/nclass_mod.f(1359,7) inlined into nclass/nclass_mod.f(345,12)
+   <Peeled, Distributed chunk1>
+      remark #25441: ストリップマイニング - 64   (pre-vector) 
+      remark #15301: PARTIAL LOOP がベクトル化されました。
+      remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 4 
+      remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 4 
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+      remark #15458: マスク付きインデックス (集約) ロード: 2 
+      remark #15462: マスクなしインデックス (集約) ロード: 2 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 83 
+      remark #15477: ベクトルループのコスト: 55.250 
+      remark #15478: スピードアップの期待値: 1.480 
+      remark #15479: 軽いベクトル操作: 114 
+      remark #15482: ベクトル化された算術ライブラリーの呼び出し: 1 
+      remark #15487: 型変換: 2 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+      remark #25015: ループの最大トリップカウントの予測=8
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(1371,7) inlined into nclass/nclass_mod.f(345,12)
+      remark #25460: ループの最適化はレポートされていません。
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(1359,7) inlined into nclass/nclass_mod.f(345,12)
+   <Peeled, Remainder, Distributed chunk1>
+      remark #25015: ループの最大トリップカウントの予測=64
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(1359,7) inlined into nclass/nclass_mod.f(345,12)
+   <Peeled, Distributed chunk2>
+      remark #25441: ストリップマイニング - 64   (pre-vector) 
+      remark #15344: ループ はベクトル化されませんでした: ベクトル依存関係がベクトル化 . 最初の依存関係を以下に示します。詳細については、レベル 5 のレポートを使用してください。 を妨げています。
+      remark #15346: ベクトル依存関係: FLOW の依存関係が xn 行 1367 と xn 行 1367 の間に仮定されました。
+      remark #25456: ループで置換された配列参照スカラーの数: 6
+      remark #25015: ループの最大トリップカウントの予測=64
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(1371,7) inlined into nclass/nclass_mod.f(345,12)
+   remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+   remark #15300: ループがベクトル化されました。
+   remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 2 
+   remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 1 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 30 
+   remark #15477: ベクトルループのコスト: 4.370 
+   remark #15478: スピードアップの期待値: 4.150 
+   remark #15479: 軽いベクトル操作: 5 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25015: ループの最大トリップカウントの予測=1
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(1371,7) inlined into nclass/nclass_mod.f(345,12)
+<Remainder>
+   remark #25015: ループの最大トリップカウントの予測=9
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(1374,7) inlined into nclass/nclass_mod.f(345,12)
+   remark #25096:  ループ交換は完了しませんでした: ループの入れ子が完全ではありません (ソースのいずれかまたは他のコンパイラー変換による)
+   remark #25451: アドバイス: ループ交換は (可能であれば) ループの入れ子に適用できます。推奨する順列: ( 1 2 ) --> ( 2 1 ) 
+   remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+   remark #25015: ループの最大トリップカウントの予測=9
+
+   LOOP BEGIN at nclass/nclass_mod.f(1376,9) inlined into nclass/nclass_mod.f(345,12)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15300: ループがベクトル化されました。
+      remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 2 
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 1 
+      remark #15456: マスク付き非アライン・ユニット・ストライド・ロード: 4 
+      remark #15460: マスク付きストライドロード: 2 
+      remark #15462: マスクなしインデックス (集約) ロード: 2 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 224 
+      remark #15477: ベクトルループのコスト: 38.620 
+      remark #15478: スピードアップの期待値: 3.610 
+      remark #15479: 軽いベクトル操作: 58 
+      remark #15482: ベクトル化された算術ライブラリーの呼び出し: 1 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+      remark #25015: ループの最大トリップカウントの予測=1
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(1376,9) inlined into nclass/nclass_mod.f(345,12)
+   <Remainder>
+      remark #25015: ループの最大トリップカウントの予測=9
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(1391,7) inlined into nclass/nclass_mod.f(345,12)
+   remark #25096:  ループ交換は完了しませんでした: ループの入れ子が完全ではありません (ソースのいずれかまたは他のコンパイラー変換による)
+   remark #25451: アドバイス: ループ交換は (可能であれば) ループの入れ子に適用できます。推奨する順列: ( 1 2 ) --> ( 2 1 ) 
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+
+   LOOP BEGIN at nclass/nclass_mod.f(1396,9) inlined into nclass/nclass_mod.f(345,12)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15344: ループ はベクトル化されませんでした: ベクトル依存関係がベクトル化 . 最初の依存関係を以下に示します。詳細については、レベル 5 のレポートを使用してください。 を妨げています。
+      remark #15346: ベクトル依存関係: FLOW の依存関係が amnt_ii 行 1402 と amnt_ii 行 1402 の間に仮定されました。
+      remark #25456: ループで置換された配列参照スカラーの数: 1
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(242,9)
+   remark #25444: ループの入れ子の交換: ( 1 2 3 4 ) --> ( 2 4 1 3 )
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。   [ nclass/nclass_mod.f(242,9) ]
+
+   LOOP BEGIN at nclass/nclass_mod.f(244,13)
+      remark #17100: PERMUTED LOOP が自動並列化されました。
+      remark #17101: 並列ループ shared={ .2.23_2upper_.145 } private={ } firstprivate={ 87 im capm_ii amnt_ii calm_i capn_ii caln_ii jm } lastprivate={ } firstlastprivate={ } reduction={ }
+      remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+      LOOP BEGIN at nclass/nclass_mod.f(241,7)
+         remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+         LOOP BEGIN at nclass/nclass_mod.f(243,11)
+         <Peeled>
+         LOOP END
+
+         LOOP BEGIN at nclass/nclass_mod.f(243,11)
+            remark #15301: PERMUTED LOOP がベクトル化されました。
+            remark #15442: すべてのループは剰余ループとして実行されます。
+            remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 1 
+            remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 1 
+            remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+            remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+            remark #15475: --- ベクトルループのコストサマリー開始 ---
+            remark #15476: スカラーループのコスト: 15 
+            remark #15477: ベクトルループのコスト: 4.000 
+            remark #15478: スピードアップの期待値: 5.790 
+            remark #15479: 軽いベクトル操作: 12 
+            remark #15488: --- ベクトルループのコストサマリー終了 ---
+         LOOP END
+
+         LOOP BEGIN at nclass/nclass_mod.f(243,11)
+         <Remainder>
+            remark #15301: REMAINDER LOOP がベクトル化されました。
+         LOOP END
+
+         LOOP BEGIN at nclass/nclass_mod.f(243,11)
+         <Remainder>
+         LOOP END
+      LOOP END
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(256,7)
+<Distributed chunk1>
+   remark #25426: ループ分散 (2 ウェイ) 
+   remark #25408: memset が生成されました。
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+   remark #25015: ループの最大トリップカウントの予測=9
+
+   LOOP BEGIN at nclass/nclass_mod.f(256,7)
+   <Distributed chunk1>
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15301: PARTIAL LOOP がベクトル化されました。
+      remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 1 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 3 
+      remark #15477: ベクトルループのコスト: 0.370 
+      remark #15478: スピードアップの期待値: 8.000 
+      remark #15479: 軽いベクトル操作: 3 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+      remark #25015: ループの最大トリップカウントの予測=3
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(256,7)
+   <Remainder, Distributed chunk1>
+      remark #25015: ループの最大トリップカウントの予測=24
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(258,9)
+<Distributed chunk2>
+   remark #25444: ループの入れ子の交換: ( 1 2 ) --> ( 2 1 )
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。   [ nclass/nclass_mod.f(258,9) ]
+   remark #25015: ループの最大トリップカウントの予測=9
+
+   LOOP BEGIN at nclass/nclass_mod.f(256,7)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15301: PERMUTED LOOP がベクトル化されました。
+      remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 1 
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 1 
+      remark #15455: マスク付きアライン・ユニット・ストライド・ストア: 1 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 17 
+      remark #15477: ベクトルループのコスト: 1.750 
+      remark #15478: スピードアップの期待値: 4.250 
+      remark #15479: 軽いベクトル操作: 13 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+      remark #25015: ループの最大トリップカウントの予測=1
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(256,7)
+   <Remainder>
+      remark #25015: ループの最大トリップカウントの予測=9
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(265,7)
+<Peeled>
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(265,7)
+   remark #17109: ループが自動並列化されました。
+   remark #17101: 並列ループ shared={ .2.23_2upper_.151 } private={ } firstprivate={ 99 im iz jm_s jz_s den_iz xi_s amu_i sqz_s i } lastprivate={ } firstlastprivate={ } reduction={ }
+   remark #15300: ループがベクトル化されました。
+   remark #15442: すべてのループは剰余ループとして実行されます。
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+   remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 2 
+   remark #15458: マスク付きインデックス (集約) ロード: 3 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 116 
+   remark #15477: ベクトルループのコスト: 24.750 
+   remark #15478: スピードアップの期待値: 4.070 
+   remark #15479: 軽いベクトル操作: 49 
+   remark #15487: 型変換: 2 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(265,7)
+<Remainder>
+   remark #15301: REMAINDER LOOP がベクトル化されました。
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(265,7)
+<Remainder>
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(1089,9) inlined into nclass/nclass_mod.f(382,12)
+   remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+   remark #15300: ループがベクトル化されました。
+   remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 1 
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 1 
+   remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 5 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 155 
+   remark #15477: ベクトルループのコスト: 34.500 
+   remark #15478: スピードアップの期待値: 4.290 
+   remark #15479: 軽いベクトル操作: 55 
+   remark #15480: 中オーバーヘッドのベクトル操作: 2 
+   remark #15482: ベクトル化された算術ライブラリーの呼び出し: 1 
+   remark #15487: 型変換: 1 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25456: ループで置換された配列参照スカラーの数: 2
+   remark #25015: ループの最大トリップカウントの予測=3
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(1263,7) inlined into nclass/nclass_mod.f(382,12)
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+   remark #25015: ループの最大トリップカウントの予測=40
+
+   LOOP BEGIN at nclass/nclass_mod.f(1266,9) inlined into nclass/nclass_mod.f(382,12)
+      remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+      remark #15344: ループ はベクトル化されませんでした: ベクトル依存関係がベクトル化 . 最初の依存関係を以下に示します。詳細については、レベル 5 のレポートを使用してください。 を妨げています。
+      remark #15346: ベクトル依存関係: FLOW の依存関係が c2 行 1269 と c2 行 1271 の間に仮定されました。
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(1280,11) inlined into nclass/nclass_mod.f(382,12)
+      remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+      remark #15335: ループ はベクトル化されませんでした: ベクトル化は可能ですが非効率です。オーバーライドするには vector always 宣言子または -vec-threshold0 を使用してください。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 3 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 102 
+      remark #15477: ベクトルループのコスト: 143.000 
+      remark #15478: スピードアップの期待値: 0.680 
+      remark #15479: 軽いベクトル操作: 90 
+      remark #15480: 中オーバーヘッドのベクトル操作: 1 
+      remark #15482: ベクトル化された算術ライブラリーの呼び出し: 1 
+      remark #15487: 型変換: 1 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+      remark #25436: 完全なアンロール - 3  
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(382,12)
+<Predicate Optimized v5>
+   remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+   remark #25422: 行 862 の不変条件がこのループの外に移動されました。
+   remark #25422: 行 869 の不変条件がこのループの外に移動されました。
+   remark #25422: 行 875 の不変条件がこのループの外に移動されました。
+   remark #15300: ループがベクトル化されました。
+   remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 8 
+   remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 6 
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 3 
+   remark #15458: マスク付きインデックス (集約) ロード: 9 
+   remark #15460: マスク付きストライドロード: 3 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 619 
+   remark #15477: ベクトルループのコスト: 90.870 
+   remark #15478: スピードアップの期待値: 6.750 
+   remark #15479: 軽いベクトル操作: 118 
+   remark #15482: ベクトル化された算術ライブラリーの呼び出し: 3 
+   remark #15487: 型変換: 1 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25015: ループの最大トリップカウントの予測=5
+
+   LOOP BEGIN at nclass/nclass_mod.f(870,11) inlined into nclass/nclass_mod.f(382,12)
+      remark #25436: 完全なアンロール - 3   (pre-vector) 
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(382,12)
+<Remainder, Predicate Optimized v5>
+   remark #25015: ループの最大トリップカウントの予測=40
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(382,12)
+<Predicate Optimized v6>
+   remark #15300: ループがベクトル化されました。
+   remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 7 
+   remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 4 
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 3 
+   remark #15458: マスク付きインデックス (集約) ロード: 6 
+   remark #15460: マスク付きストライドロード: 3 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 221 
+   remark #15477: ベクトルループのコスト: 44.620 
+   remark #15478: スピードアップの期待値: 4.900 
+   remark #15479: 軽いベクトル操作: 72 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25015: ループの最大トリップカウントの予測=5
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(382,12)
+<Remainder, Predicate Optimized v6>
+   remark #25015: ループの最大トリップカウントの予測=40
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(382,12)
+<Predicate Optimized v7>
+   remark #25422: 行 875 の不変条件がこのループの外に移動されました。
+   remark #15300: ループがベクトル化されました。
+   remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 2 
+   remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 3 
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 3 
+   remark #15458: マスク付きインデックス (集約) ロード: 3 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 488 
+   remark #15477: ベクトルループのコスト: 53.000 
+   remark #15478: スピードアップの期待値: 9.090 
+   remark #15479: 軽いベクトル操作: 67 
+   remark #15482: ベクトル化された算術ライブラリーの呼び出し: 3 
+   remark #15487: 型変換: 1 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25015: ループの最大トリップカウントの予測=5
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(382,12)
+<Remainder, Predicate Optimized v7>
+   remark #25015: ループの最大トリップカウントの予測=40
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(382,12)
+<Predicate Optimized v8>
+   remark #15300: ループがベクトル化されました。
+   remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 1 
+   remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 1 
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 3 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 91 
+   remark #15477: ベクトルループのコスト: 28.500 
+   remark #15478: スピードアップの期待値: 6.240 
+   remark #15479: 軽いベクトル操作: 21 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25015: ループの最大トリップカウントの予測=5
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(382,12)
+<Remainder, Predicate Optimized v8>
+   remark #25015: ループの最大トリップカウントの予測=40
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(382,12)
+<Predicate Optimized v11>
+   remark #25422: 行 869 の不変条件がこのループの外に移動されました。
+   remark #25422: 行 875 の不変条件がこのループの外に移動されました。
+   remark #15300: ループがベクトル化されました。
+   remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 5 
+   remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 5 
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 3 
+   remark #15458: マスク付きインデックス (集約) ロード: 9 
+   remark #15460: マスク付きストライドロード: 3 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 531 
+   remark #15477: ベクトルループのコスト: 85.250 
+   remark #15478: スピードアップの期待値: 6.170 
+   remark #15479: 軽いベクトル操作: 103 
+   remark #15482: ベクトル化された算術ライブラリーの呼び出し: 3 
+   remark #15487: 型変換: 1 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25015: ループの最大トリップカウントの予測=5
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(382,12)
+<Remainder, Predicate Optimized v11>
+   remark #25015: ループの最大トリップカウントの予測=40
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(382,12)
+<Predicate Optimized v12>
+   remark #15300: ループがベクトル化されました。
+   remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 4 
+   remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 3 
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+   remark #15458: マスク付きインデックス (集約) ロード: 6 
+   remark #15460: マスク付きストライドロード: 3 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 134 
+   remark #15477: ベクトルループのコスト: 38.870 
+   remark #15478: スピードアップの期待値: 3.420 
+   remark #15479: 軽いベクトル操作: 57 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25015: ループの最大トリップカウントの予測=5
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(382,12)
+<Remainder, Predicate Optimized v12>
+   remark #25015: ループの最大トリップカウントの予測=40
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(382,12)
+<Predicate Optimized v13>
+   remark #25422: 行 875 の不変条件がこのループの外に移動されました。
+   remark #15300: ループがベクトル化されました。
+   remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 1 
+   remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 2 
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 3 
+   remark #15458: マスク付きインデックス (集約) ロード: 3 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 401 
+   remark #15477: ベクトルループのコスト: 47.370 
+   remark #15478: スピードアップの期待値: 8.360 
+   remark #15479: 軽いベクトル操作: 52 
+   remark #15482: ベクトル化された算術ライブラリーの呼び出し: 3 
+   remark #15487: 型変換: 1 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25015: ループの最大トリップカウントの予測=5
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(382,12)
+<Remainder, Predicate Optimized v13>
+   remark #25015: ループの最大トリップカウントの予測=40
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(382,12)
+<Predicate Optimized v14>
+   remark #15300: ループがベクトル化されました。
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 3 
+   remark #15477: ベクトルループのコスト: 1.000 
+   remark #15478: スピードアップの期待値: 2.600 
+   remark #15479: 軽いベクトル操作: 6 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25015: ループの最大トリップカウントの予測=5
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(382,12)
+<Remainder, Predicate Optimized v14>
+   remark #25015: ループの最大トリップカウントの予測=40
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(1128,11) inlined into nclass/nclass_mod.f(382,12)
+   remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+   remark #15344: ループ はベクトル化されませんでした: ベクトル依存関係がベクトル化 . 最初の依存関係を以下に示します。詳細については、レベル 5 のレポートを使用してください。 を妨げています。
+   remark #15346: ベクトル依存関係: ANTI の依存関係が dum 行 1142 と dum 行 1132 の間に仮定されました。
+   remark #25015: ループの最大トリップカウントの予測=40
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(1185,9) inlined into nclass/nclass_mod.f(382,12)
+   remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+   remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+   remark #25015: ループの最大トリップカウントの予測=40
+
+   LOOP BEGIN at nclass/nclass_mod.f(1186,11) inlined into nclass/nclass_mod.f(382,12)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+      remark #25015: ループの最大トリップカウントの予測=3
+
+      LOOP BEGIN at nclass/nclass_mod.f(1187,13) inlined into nclass/nclass_mod.f(382,12)
+         remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+         remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 6 
+         remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 2 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15479: 軽いベクトル操作: 45 
+         remark #15481: 高オーバーヘッドのベクトル操作: 1 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+         remark #25015: ループの最大トリップカウントの予測=3
+      LOOP END
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(1201,9) inlined into nclass/nclass_mod.f(382,12)
+   remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+   LOOP BEGIN at nclass/nclass_mod.f(1202,11) inlined into nclass/nclass_mod.f(382,12)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+      LOOP BEGIN at nclass/nclass_mod.f(1203,13) inlined into nclass/nclass_mod.f(382,12)
+      <Peeled>
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(1203,13) inlined into nclass/nclass_mod.f(382,12)
+         remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+         remark #15300: ループがベクトル化されました。
+         remark #15442: すべてのループは剰余ループとして実行されます。
+         remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+         remark #15460: マスク付きストライドロード: 1 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 4 
+         remark #15477: ベクトルループのコスト: 2.500 
+         remark #15478: スピードアップの期待値: 1.560 
+         remark #15479: 軽いベクトル操作: 1 
+         remark #15481: 高オーバーヘッドのベクトル操作: 2 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(1203,13) inlined into nclass/nclass_mod.f(382,12)
+      <Remainder>
+      LOOP END
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(278,7)
+<Peeled>
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(278,7)
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15300: ループがベクトル化されました。
+   remark #15442: すべてのループは剰余ループとして実行されます。
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+   remark #15458: マスク付きインデックス (集約) ロード: 2 
+   remark #15459: マスク付きインデックス (分散) ストア: 1 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 50 
+   remark #15477: ベクトルループのコスト: 36.620 
+   remark #15478: スピードアップの期待値: 1.340 
+   remark #15479: 軽いベクトル操作: 66 
+   remark #15480: 中オーバーヘッドのベクトル操作: 1 
+   remark #15487: 型変換: 1 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(278,7)
+<Remainder>
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(297,7)
+   remark #25096:  ループ交換は完了しませんでした: ループの入れ子が完全ではありません (ソースのいずれかまたは他のコンパイラー変換による)
+   remark #25451: アドバイス: ループ交換は (可能であれば) ループの入れ子に適用できます。推奨する順列: ( 1 2 3 ) --> ( 3 1 2 ) 
+   remark #17109: ループが自動並列化されました。
+   remark #17101: 並列ループ shared={ .2.23_2upper_.169 } private={ } firstprivate={ 103 im iz iza jm_s jz_s upar_s utheta_s den_iz grt_i i } lastprivate={ } firstlastprivate={ } reduction={ }
+   remark #25261: 不変条件が削除されました (True であると証明されました) (行 305)。
+   remark #25261: 不変条件が削除されました (True であると証明されました) (行 305)。
+   remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+
+   LOOP BEGIN at nclass/nclass_mod.f(301,9)
+      remark #25261: 不変条件が削除されました (True であると証明されました) (行 304)。
+      remark #25258: 不変条件が削除されました (レベル 2 のループがピーリングされました) (行 305)。
+      remark #25260: 不変条件が削除されました (False であると証明されました) (行 305)。
+      remark #25258: 不変条件が削除されました (レベル 2 のループがピーリングされました) (行 305)。
+      remark #25260: 不変条件が削除されました (False であると証明されました) (行 305)。
+      remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 1 
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15479: 軽いベクトル操作: 4 
+      remark #15481: 高オーバーヘッドのベクトル操作: 1 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+      remark #25439: 剰余ありアンロール - 2  
+      remark #25015: ループの最大トリップカウントの予測=3
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(301,9)
+   <Remainder>
+      remark #25015: ループの最大トリップカウントの予測=3
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(302,11)
+      remark #25444: ループの入れ子の交換: ( 1 2 ) --> ( 2 1 )
+      remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。   [ nclass/nclass_mod.f(302,11) ]
+      remark #25015: ループの最大トリップカウントの予測=3
+
+      LOOP BEGIN at nclass/nclass_mod.f(301,9)
+         remark #25258: 不変条件が削除されました (レベル 2 のループがピーリングされました) (行 304)。
+         remark #25260: 不変条件が削除されました (False であると証明されました) (行 304)。
+         remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 1 
+         remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15479: 軽いベクトル操作: 4 
+         remark #15481: 高オーバーヘッドのベクトル操作: 1 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+         remark #25439: 剰余ありアンロール - 4  
+         remark #25015: ループの最大トリップカウントの予測=3
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(301,9)
+      <Remainder>
+         remark #25015: ループの最大トリップカウントの予測=3
+      LOOP END
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(320,7)
+<Peeled>
+   remark #25456: ループで置換された配列参照スカラーの数: 1
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(320,7)
+   remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+   remark #25427: ループ文の順序変更
+   remark #15300: ループがベクトル化されました。
+   remark #15442: すべてのループは剰余ループとして実行されます。
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 3 
+   remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 4 
+   remark #15458: マスク付きインデックス (集約) ロード: 8 
+   remark #15460: マスク付きストライドロード: 6 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 201 
+   remark #15477: ベクトルループのコスト: 89.500 
+   remark #15478: スピードアップの期待値: 2.130 
+   remark #15479: 軽いベクトル操作: 120 
+   remark #15481: 高オーバーヘッドのベクトル操作: 1 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(320,7)
+<Remainder>
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(926,9) inlined into nclass/nclass_mod.f(339,12)
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+   LOOP BEGIN at nclass/nclass_mod.f(924,7) inlined into nclass/nclass_mod.f(339,12)
+   <Peeled>
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(924,7) inlined into nclass/nclass_mod.f(339,12)
+      remark #17107: ループは並列化されませんでした: 内部ループです。
+      remark #15301: PERMUTED LOOP がベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+      remark #15460: マスク付きストライドロード: 12 
+      remark #15462: マスクなしインデックス (集約) ロード: 26 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 454 
+      remark #15477: ベクトルループのコスト: 201.620 
+      remark #15478: スピードアップの期待値: 2.140 
+      remark #15479: 軽いベクトル操作: 282 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(926,9) inlined into nclass/nclass_mod.f(339,12)
+      remark #25460: ループの最適化はレポートされていません。
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(926,9) inlined into nclass/nclass_mod.f(339,12)
+      remark #25460: ループの最適化はレポートされていません。
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(924,7) inlined into nclass/nclass_mod.f(339,12)
+   <Remainder>
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(244,13)
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+   LOOP BEGIN at nclass/nclass_mod.f(241,7)
+      remark #17107: ループは並列化されませんでした: 内部ループです。
+      remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+      LOOP BEGIN at nclass/nclass_mod.f(243,11)
+      <Peeled>
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(243,11)
+         remark #17107: ループは並列化されませんでした: 内部ループです。
+         remark #15301: PERMUTED LOOP がベクトル化されました。
+         remark #15442: すべてのループは剰余ループとして実行されます。
+         remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 1 
+         remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 1 
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+         remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 15 
+         remark #15477: ベクトルループのコスト: 4.000 
+         remark #15478: スピードアップの期待値: 5.790 
+         remark #15479: 軽いベクトル操作: 12 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(243,11)
+      <Remainder>
+         remark #15301: REMAINDER LOOP がベクトル化されました。
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(243,11)
+      <Remainder>
+      LOOP END
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(265,7)
+<Peeled>
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(265,7)
+   remark #15300: ループがベクトル化されました。
+   remark #15442: すべてのループは剰余ループとして実行されます。
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+   remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 2 
+   remark #15458: マスク付きインデックス (集約) ロード: 3 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 116 
+   remark #15477: ベクトルループのコスト: 24.750 
+   remark #15478: スピードアップの期待値: 4.070 
+   remark #15479: 軽いベクトル操作: 49 
+   remark #15487: 型変換: 2 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(265,7)
+<Remainder>
+   remark #15301: REMAINDER LOOP がベクトル化されました。
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(265,7)
+<Remainder>
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(297,7)
+   remark #25261: 不変条件が削除されました (True であると証明されました) (行 305)。
+   remark #25261: 不変条件が削除されました (True であると証明されました) (行 305)。
+   remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+
+   LOOP BEGIN at nclass/nclass_mod.f(301,9)
+      remark #25261: 不変条件が削除されました (True であると証明されました) (行 304)。
+      remark #25258: 不変条件が削除されました (レベル 2 のループがピーリングされました) (行 305)。
+      remark #25260: 不変条件が削除されました (False であると証明されました) (行 305)。
+      remark #25258: 不変条件が削除されました (レベル 2 のループがピーリングされました) (行 305)。
+      remark #25260: 不変条件が削除されました (False であると証明されました) (行 305)。
+      remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 1 
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15479: 軽いベクトル操作: 4 
+      remark #15481: 高オーバーヘッドのベクトル操作: 1 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+      remark #25439: 剰余ありアンロール - 8  
+      remark #25015: ループの最大トリップカウントの予測=3
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(302,11)
+      remark #17107: ループは並列化されませんでした: 内部ループです。
+      remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+      remark #25015: ループの最大トリップカウントの予測=3
+
+      LOOP BEGIN at nclass/nclass_mod.f(301,9)
+         remark #17107: ループは並列化されませんでした: 内部ループです。
+         remark #25258: 不変条件が削除されました (レベル 2 のループがピーリングされました) (行 304)。
+         remark #25260: 不変条件が削除されました (False であると証明されました) (行 304)。
+         remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 1 
+         remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15479: 軽いベクトル操作: 4 
+         remark #15481: 高オーバーヘッドのベクトル操作: 1 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+         remark #25439: 剰余ありアンロール - 8  
+         remark #25015: ループの最大トリップカウントの予測=3
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(301,9)
+      <Remainder>
+         remark #25436: 完全なアンロール - 7  
+      LOOP END
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(301,9)
+   <Remainder>
+      remark #25436: 完全なアンロール - 7  
+   LOOP END
+LOOP END
+
+
+Non-optimizable loops:
+
+
+LOOP BEGIN at nclass/nclass_mod.f(1183,9) inlined into nclass/nclass_mod.f(382,12)
+   remark #15529: ループ はベクトル化されませんでした: volatile 代入はベクトル化されませんでした。非 volatile 代入を使用してください。   [ nclass/nclass_mod.f(1211,18) ]
+   remark #17102: ループは並列化されませんでした: 並列化候補ではありません。
+LOOP END
+
+nclass_ (行 937) で IF の融合が行われました。
+
+nclass_ (行 937) で IF の融合が行われました。
+
+    レポート: コード生成の最適化 [cg]
+
+nclass/nclass_mod.f(257,9):remark #34026: memset の呼び出しは最適化されたライブラリー・バージョンの呼び出しとして実装されました。
+===========================================================================
+
+最適化レポート開始: NCLASS_MU
+
+    レポート: プロシージャー間の最適化 [ipo]
+
+インライン展開レポート: (NCLASS_MU) [3] nclass/nclass_mod.f(988,18)
+  -> EXTERN: (1092,18) expf
+  -> EXTERN: (1107,12) rarray_zero_
+  -> EXTERN: (1108,12) rarray_zero_
+  -> EXTERN: (1109,12) rarray_zero_
+  -> EXTERN: (1110,12) rarray_zero_
+  -> EXTERN: (1111,12) rarray_zero_
+  -> INLINE: (1124,16) NCLASS_K
+    -> EXTERN: (846,12) rarray_zero_
+    -> EXTERN: (847,12) rarray_zero_
+    -> EXTERN: (848,12) rarray_zero_
+    -> EXTERN: (849,12) rarray_zero_
+    -> INLINE: (851,12) NCLASS_NU
+      -> EXTERN: (1260,12) rarray_zero_
+      -> EXTERN: (1261,12) rarray_zero_
+      -> EXTERN: (1262,12) rarray_zero_
+      -> EXTERN: (1270,15) u_erf_
+      -> EXTERN: (1271,38) expf
+      -> EXTERN: (1272,61) __powr4i4
+      -> EXTERN: (1274,67) __powr4i4
+      -> EXTERN: (1286,31) atanf
+    -> EXTERN: (855,23) exp2f
+    -> EXTERN: (855,31) powf
+    -> EXTERN: (857,30) exp2f
+    -> EXTERN: (867,36) powf
+    -> EXTERN: (878,26) powf
+    -> EXTERN: (878,56) powf
+    -> EXTERN: (879,36) powf
+  -> EXTERN: (1193,44) __powr4i4
+  -> EXTERN: (1194,43) __powr4i4
+  -> EXTERN: (1195,45) __powr4i4
+  -> EXTERN: (1195,61) __powr4i4
+
+
+    レポート: ループの入れ子、ベクトル、自動並列化の最適化 [loop, vec, par]
+
+
+LOOP BEGIN at nclass/nclass_mod.f(1089,9)
+   remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+   remark #15300: ループがベクトル化されました。
+   remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 1 
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 1 
+   remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 5 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 155 
+   remark #15477: ベクトルループのコスト: 34.500 
+   remark #15478: スピードアップの期待値: 4.290 
+   remark #15479: 軽いベクトル操作: 55 
+   remark #15480: 中オーバーヘッドのベクトル操作: 2 
+   remark #15482: ベクトル化された算術ライブラリーの呼び出し: 1 
+   remark #15487: 型変換: 1 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25456: ループで置換された配列参照スカラーの数: 2
+   remark #25015: ループの最大トリップカウントの予測=3
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(1263,7) inlined into nclass/nclass_mod.f(2159,16)
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+   remark #25015: ループの最大トリップカウントの予測=40
+
+   LOOP BEGIN at nclass/nclass_mod.f(1266,9) inlined into nclass/nclass_mod.f(2159,16)
+      remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+      remark #15344: ループ はベクトル化されませんでした: ベクトル依存関係がベクトル化 . 最初の依存関係を以下に示します。詳細については、レベル 5 のレポートを使用してください。 を妨げています。
+      remark #15346: ベクトル依存関係: FLOW の依存関係が c2 行 1269 と c2 行 1271 の間に仮定されました。
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(1280,11) inlined into nclass/nclass_mod.f(2159,16)
+      remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+      remark #15335: ループ はベクトル化されませんでした: ベクトル化は可能ですが非効率です。オーバーライドするには vector always 宣言子または -vec-threshold0 を使用してください。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 3 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 102 
+      remark #15477: ベクトルループのコスト: 155.500 
+      remark #15478: スピードアップの期待値: 0.610 
+      remark #15479: 軽いベクトル操作: 98 
+      remark #15480: 中オーバーヘッドのベクトル操作: 1 
+      remark #15482: ベクトル化された算術ライブラリーの呼び出し: 1 
+      remark #15487: 型変換: 1 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+      remark #25436: 完全なアンロール - 3  
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(2159,16)
+<Predicate Optimized v5>
+   remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+   remark #25422: 行 862 の不変条件がこのループの外に移動されました。
+   remark #25422: 行 869 の不変条件がこのループの外に移動されました。
+   remark #25422: 行 875 の不変条件がこのループの外に移動されました。
+   remark #15300: ループがベクトル化されました。
+   remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 8 
+   remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 6 
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 3 
+   remark #15458: マスク付きインデックス (集約) ロード: 9 
+   remark #15460: マスク付きストライドロード: 3 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 616 
+   remark #15477: ベクトルループのコスト: 90.870 
+   remark #15478: スピードアップの期待値: 6.710 
+   remark #15479: 軽いベクトル操作: 118 
+   remark #15482: ベクトル化された算術ライブラリーの呼び出し: 3 
+   remark #15487: 型変換: 1 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25015: ループの最大トリップカウントの予測=5
+
+   LOOP BEGIN at nclass/nclass_mod.f(870,11) inlined into nclass/nclass_mod.f(2159,16)
+      remark #25436: 完全なアンロール - 3   (pre-vector) 
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(2159,16)
+<Remainder, Predicate Optimized v5>
+   remark #25015: ループの最大トリップカウントの予測=40
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(2159,16)
+<Predicate Optimized v6>
+   remark #15300: ループがベクトル化されました。
+   remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 7 
+   remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 4 
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 3 
+   remark #15458: マスク付きインデックス (集約) ロード: 6 
+   remark #15460: マスク付きストライドロード: 3 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 219 
+   remark #15477: ベクトルループのコスト: 44.620 
+   remark #15478: スピードアップの期待値: 4.850 
+   remark #15479: 軽いベクトル操作: 72 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25015: ループの最大トリップカウントの予測=5
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(2159,16)
+<Remainder, Predicate Optimized v6>
+   remark #25015: ループの最大トリップカウントの予測=40
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(2159,16)
+<Predicate Optimized v7>
+   remark #25422: 行 875 の不変条件がこのループの外に移動されました。
+   remark #15300: ループがベクトル化されました。
+   remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 2 
+   remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 3 
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 3 
+   remark #15458: マスク付きインデックス (集約) ロード: 3 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 487 
+   remark #15477: ベクトルループのコスト: 53.000 
+   remark #15478: スピードアップの期待値: 9.070 
+   remark #15479: 軽いベクトル操作: 67 
+   remark #15482: ベクトル化された算術ライブラリーの呼び出し: 3 
+   remark #15487: 型変換: 1 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25015: ループの最大トリップカウントの予測=5
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(2159,16)
+<Remainder, Predicate Optimized v7>
+   remark #25015: ループの最大トリップカウントの予測=40
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(2159,16)
+<Predicate Optimized v8>
+   remark #15300: ループがベクトル化されました。
+   remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 1 
+   remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 1 
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 3 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 91 
+   remark #15477: ベクトルループのコスト: 28.500 
+   remark #15478: スピードアップの期待値: 6.240 
+   remark #15479: 軽いベクトル操作: 21 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25015: ループの最大トリップカウントの予測=5
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(2159,16)
+<Remainder, Predicate Optimized v8>
+   remark #25015: ループの最大トリップカウントの予測=40
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(2159,16)
+<Predicate Optimized v11>
+   remark #25422: 行 869 の不変条件がこのループの外に移動されました。
+   remark #25422: 行 875 の不変条件がこのループの外に移動されました。
+   remark #15300: ループがベクトル化されました。
+   remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 5 
+   remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 5 
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 3 
+   remark #15458: マスク付きインデックス (集約) ロード: 9 
+   remark #15460: マスク付きストライドロード: 3 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 529 
+   remark #15477: ベクトルループのコスト: 85.250 
+   remark #15478: スピードアップの期待値: 6.150 
+   remark #15479: 軽いベクトル操作: 103 
+   remark #15482: ベクトル化された算術ライブラリーの呼び出し: 3 
+   remark #15487: 型変換: 1 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25015: ループの最大トリップカウントの予測=5
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(2159,16)
+<Remainder, Predicate Optimized v11>
+   remark #25015: ループの最大トリップカウントの予測=40
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(2159,16)
+<Predicate Optimized v12>
+   remark #15300: ループがベクトル化されました。
+   remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 4 
+   remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 3 
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+   remark #15458: マスク付きインデックス (集約) ロード: 6 
+   remark #15460: マスク付きストライドロード: 3 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 132 
+   remark #15477: ベクトルループのコスト: 38.870 
+   remark #15478: スピードアップの期待値: 3.360 
+   remark #15479: 軽いベクトル操作: 57 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25015: ループの最大トリップカウントの予測=5
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(2159,16)
+<Remainder, Predicate Optimized v12>
+   remark #25015: ループの最大トリップカウントの予測=40
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(2159,16)
+<Predicate Optimized v13>
+   remark #25422: 行 875 の不変条件がこのループの外に移動されました。
+   remark #15300: ループがベクトル化されました。
+   remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 1 
+   remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 2 
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 3 
+   remark #15458: マスク付きインデックス (集約) ロード: 3 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 400 
+   remark #15477: ベクトルループのコスト: 47.370 
+   remark #15478: スピードアップの期待値: 8.340 
+   remark #15479: 軽いベクトル操作: 52 
+   remark #15482: ベクトル化された算術ライブラリーの呼び出し: 3 
+   remark #15487: 型変換: 1 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25015: ループの最大トリップカウントの予測=5
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(2159,16)
+<Remainder, Predicate Optimized v13>
+   remark #25015: ループの最大トリップカウントの予測=40
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(2159,16)
+<Predicate Optimized v14>
+   remark #15300: ループがベクトル化されました。
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 3 
+   remark #15477: ベクトルループのコスト: 1.000 
+   remark #15478: スピードアップの期待値: 2.600 
+   remark #15479: 軽いベクトル操作: 6 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25015: ループの最大トリップカウントの予測=5
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7) inlined into nclass/nclass_mod.f(2159,16)
+<Remainder, Predicate Optimized v14>
+   remark #25015: ループの最大トリップカウントの予測=40
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(1128,11)
+<Predicate Optimized v1>
+   remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+   remark #25422: 行 1135 の不変条件がこのループの外に移動されました。
+   remark #15344: ループ はベクトル化されませんでした: ベクトル依存関係がベクトル化 . 最初の依存関係を以下に示します。詳細については、レベル 5 のレポートを使用してください。 を妨げています。
+   remark #15346: ベクトル依存関係: ANTI の依存関係が dum 行 1142 と dum 行 1132 の間に仮定されました。
+   remark #25015: ループの最大トリップカウントの予測=40
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(1128,11)
+<Predicate Optimized v2>
+   remark #15344: ループ はベクトル化されませんでした: ベクトル依存関係がベクトル化 . 最初の依存関係を以下に示します。詳細については、レベル 5 のレポートを使用してください。 を妨げています。
+   remark #15346: ベクトル依存関係: ANTI の依存関係が dum 行 1142 と dum 行 1132 の間に仮定されました。
+   remark #25015: ループの最大トリップカウントの予測=40
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(1185,9)
+   remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+   remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+   remark #25015: ループの最大トリップカウントの予測=40
+
+   LOOP BEGIN at nclass/nclass_mod.f(1186,11)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+      remark #25015: ループの最大トリップカウントの予測=3
+
+      LOOP BEGIN at nclass/nclass_mod.f(1187,13)
+         remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+         remark #15315: ループ はベクトル化されませんでした: トリップカウントが低すぎます。
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 6 
+         remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 2 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15479: 軽いベクトル操作: 45 
+         remark #15481: 高オーバーヘッドのベクトル操作: 1 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+         remark #25015: ループの最大トリップカウントの予測=3
+      LOOP END
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(1201,9)
+   remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+   LOOP BEGIN at nclass/nclass_mod.f(1202,11)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+      LOOP BEGIN at nclass/nclass_mod.f(1203,13)
+      <Peeled>
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(1203,13)
+         remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+         remark #15300: ループがベクトル化されました。
+         remark #15442: すべてのループは剰余ループとして実行されます。
+         remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+         remark #15460: マスク付きストライドロード: 1 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 4 
+         remark #15477: ベクトルループのコスト: 2.500 
+         remark #15478: スピードアップの期待値: 1.560 
+         remark #15479: 軽いベクトル操作: 1 
+         remark #15481: 高オーバーヘッドのベクトル操作: 2 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(1203,13)
+      <Remainder>
+      LOOP END
+   LOOP END
+LOOP END
+
+
+Non-optimizable loops:
+
+
+LOOP BEGIN at nclass/nclass_mod.f(1183,9)
+   remark #15529: ループ はベクトル化されませんでした: volatile 代入はベクトル化されませんでした。非 volatile 代入を使用してください。   [ nclass/nclass_mod.f(1211,18) ]
+   remark #17102: ループは並列化されませんでした: 並列化候補ではありません。
+LOOP END
+===========================================================================
+
+最適化レポート開始: NCLASS_TAU
+
+    レポート: プロシージャー間の最適化 [ipo]
+
+インライン展開レポート: (NCLASS_TAU) [4] nclass/nclass_mod.f(1296,18)
+  -> EXTERN: (1350,12) rarray_zero_
+  -> EXTERN: (1351,12) rarray_zero_
+  -> EXTERN: (1352,12) rarray_zero_
+  -> EXTERN: (1353,12) rarray_zero_
+  -> EXTERN: (1354,12) rarray_zero_
+  -> EXTERN: (1365,22) logf
+  -> EXTERN: (1384,27) logf
+  -> EXTERN: (1395,21) __powr4i4
+
+
+    レポート: ループの入れ子、ベクトル、自動並列化の最適化 [loop, vec, par]
+
+
+LOOP BEGIN at nclass/nclass_mod.f(1359,7)
+<Peeled, Distributed chunk1>
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #25426: ループ分散 (2 ウェイ) 
+   remark #25430: 行 1359 でスカラー拡張されました。   [ nclass/nclass_mod.f(1360,9) ]
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+   LOOP BEGIN at nclass/nclass_mod.f(1359,7)
+   <Peeled, Distributed chunk1>
+      remark #25441: ストリップマイニング - 64   (pre-vector) 
+      remark #15301: PARTIAL LOOP がベクトル化されました。
+      remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 4 
+      remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 4 
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+      remark #15458: マスク付きインデックス (集約) ロード: 2 
+      remark #15462: マスクなしインデックス (集約) ロード: 2 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 83 
+      remark #15477: ベクトルループのコスト: 55.250 
+      remark #15478: スピードアップの期待値: 1.480 
+      remark #15479: 軽いベクトル操作: 114 
+      remark #15482: ベクトル化された算術ライブラリーの呼び出し: 1 
+      remark #15487: 型変換: 2 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+      remark #25015: ループの最大トリップカウントの予測=8
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(1371,7)
+      remark #25460: ループの最適化はレポートされていません。
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(1359,7)
+   <Peeled, Remainder, Distributed chunk1>
+      remark #25015: ループの最大トリップカウントの予測=64
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(1359,7)
+   <Peeled, Distributed chunk2>
+      remark #25441: ストリップマイニング - 64   (pre-vector) 
+      remark #15344: ループ はベクトル化されませんでした: ベクトル依存関係がベクトル化 . 最初の依存関係を以下に示します。詳細については、レベル 5 のレポートを使用してください。 を妨げています。
+      remark #15346: ベクトル依存関係: FLOW の依存関係が xn 行 1367 と xn 行 1367 の間に仮定されました。
+      remark #25456: ループで置換された配列参照スカラーの数: 6
+      remark #25015: ループの最大トリップカウントの予測=64
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(1371,7)
+   remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+   remark #15300: ループがベクトル化されました。
+   remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 2 
+   remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 1 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 30 
+   remark #15477: ベクトルループのコスト: 4.370 
+   remark #15478: スピードアップの期待値: 4.150 
+   remark #15479: 軽いベクトル操作: 5 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25015: ループの最大トリップカウントの予測=1
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(1371,7)
+<Remainder>
+   remark #25015: ループの最大トリップカウントの予測=9
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(1374,7)
+   remark #25096:  ループ交換は完了しませんでした: ループの入れ子が完全ではありません (ソースのいずれかまたは他のコンパイラー変換による)
+   remark #25451: アドバイス: ループ交換は (可能であれば) ループの入れ子に適用できます。推奨する順列: ( 1 2 ) --> ( 2 1 ) 
+   remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+   remark #25015: ループの最大トリップカウントの予測=9
+
+   LOOP BEGIN at nclass/nclass_mod.f(1376,9)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15300: ループがベクトル化されました。
+      remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 2 
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 1 
+      remark #15456: マスク付き非アライン・ユニット・ストライド・ロード: 4 
+      remark #15460: マスク付きストライドロード: 2 
+      remark #15462: マスクなしインデックス (集約) ロード: 2 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 224 
+      remark #15477: ベクトルループのコスト: 38.620 
+      remark #15478: スピードアップの期待値: 3.610 
+      remark #15479: 軽いベクトル操作: 58 
+      remark #15482: ベクトル化された算術ライブラリーの呼び出し: 1 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+      remark #25015: ループの最大トリップカウントの予測=1
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(1376,9)
+   <Remainder>
+      remark #25015: ループの最大トリップカウントの予測=9
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(1391,7)
+   remark #25096:  ループ交換は完了しませんでした: ループの入れ子が完全ではありません (ソースのいずれかまたは他のコンパイラー変換による)
+   remark #25451: アドバイス: ループ交換は (可能であれば) ループの入れ子に適用できます。推奨する順列: ( 1 2 ) --> ( 2 1 ) 
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+
+   LOOP BEGIN at nclass/nclass_mod.f(1396,9)
+      remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+      remark #15344: ループ はベクトル化されませんでした: ベクトル依存関係がベクトル化 . 最初の依存関係を以下に示します。詳細については、レベル 5 のレポートを使用してください。 を妨げています。
+      remark #15346: ベクトル依存関係: FLOW の依存関係が amnt_ii 行 1402 と amnt_ii 行 1402 の間に仮定されました。
+      remark #25456: ループで置換された配列参照スカラーの数: 1
+   LOOP END
+LOOP END
+===========================================================================
+
+最適化レポート開始: NCLASS_MN
+
+    レポート: プロシージャー間の最適化 [ipo]
+
+インライン展開レポート: (NCLASS_MN) [5] nclass/nclass_mod.f(884,18)
+
+
+    レポート: ループの入れ子、ベクトル、自動並列化の最適化 [loop, vec, par]
+
+
+LOOP BEGIN at nclass/nclass_mod.f(926,9)
+   remark #25444: ループの入れ子の交換: ( 1 2 ) --> ( 2 1 )
+   remark #17100: PERMUTED LOOP が自動並列化されました。
+   remark #17101: 並列ループ shared={ .2.26_2upper_.1 } private={ } firstprivate={ xmab xtab xab xab2 yab32 yab52 amu_i temp_i capm_ii capn_ii 378 yab72 yab92 im } lastprivate={ } firstlastprivate={ } reduction={ }
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。   [ nclass/nclass_mod.f(926,9) ]
+
+   LOOP BEGIN at nclass/nclass_mod.f(924,7)
+   <Peeled, Distributed chunk1>
+      remark #25426: ループ分散 (2 ウェイ) 
+      remark #25430: 行 924 でスカラー拡張されました。   [ nclass/nclass_mod.f(928,11) ]
+      remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+      LOOP BEGIN at nclass/nclass_mod.f(924,7)
+      <Peeled, Distributed chunk1>
+         remark #25441: ストリップマイニング - 64   (pre-vector) 
+         remark #15301: PARTIAL LOOP がベクトル化されました。
+         remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 6 
+         remark #15449: マスクなしアライン・ユニット・ストライド・ストア: 5 
+         remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 204 
+         remark #15477: ベクトルループのコスト: 25.620 
+         remark #15478: スピードアップの期待値: 7.880 
+         remark #15479: 軽いベクトル操作: 53 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+         remark #25456: ループで置換された配列参照スカラーの数: 6
+         remark #25015: ループの最大トリップカウントの予測=8
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(924,7)
+      <Peeled, Remainder, Distributed chunk1>
+         remark #25015: ループの最大トリップカウントの予測=64
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(924,7)
+      <Peeled, Distributed chunk2, Predicate Optimized v1>
+         remark #25441: ストリップマイニング - 64   (pre-vector) 
+         remark #25422: 行 937 の不変条件がこのループの外に移動されました。
+         remark #15301: PARTIAL LOOP がベクトル化されました。
+         remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 12 
+         remark #15460: マスク付きストライドロード: 8 
+         remark #15462: マスクなしインデックス (集約) ロード: 18 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 470 
+         remark #15477: ベクトルループのコスト: 118.120 
+         remark #15478: スピードアップの期待値: 3.970 
+         remark #15479: 軽いベクトル操作: 168 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+         remark #25015: ループの最大トリップカウントの予測=4
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(924,7)
+      <Peeled, Remainder, Distributed chunk2, Predicate Optimized v1>
+         remark #15301: REMAINDER LOOP がベクトル化されました。
+         remark #25015: ループの最大トリップカウントの予測=16
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(924,7)
+      <Peeled, Remainder, Distributed chunk2, Predicate Optimized v1>
+         remark #25015: ループの最大トリップカウントの予測=64
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(924,7)
+      <Peeled, Distributed chunk2, Predicate Optimized v2>
+         remark #15301: PARTIAL LOOP がベクトル化されました。
+         remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 10 
+         remark #15460: マスク付きストライドロード: 4 
+         remark #15462: マスクなしインデックス (集約) ロード: 8 
+         remark #15475: --- ベクトルループのコストサマリー開始 ---
+         remark #15476: スカラーループのコスト: 203 
+         remark #15477: ベクトルループのコスト: 54.870 
+         remark #15478: スピードアップの期待値: 3.690 
+         remark #15479: 軽いベクトル操作: 57 
+         remark #15481: 高オーバーヘッドのベクトル操作: 1 
+         remark #15488: --- ベクトルループのコストサマリー終了 ---
+         remark #25015: ループの最大トリップカウントの予測=4
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(924,7)
+      <Peeled, Remainder, Distributed chunk2, Predicate Optimized v2>
+         remark #15301: REMAINDER LOOP がベクトル化されました。
+         remark #25015: ループの最大トリップカウントの予測=16
+      LOOP END
+
+      LOOP BEGIN at nclass/nclass_mod.f(924,7)
+      <Peeled, Remainder, Distributed chunk2, Predicate Optimized v2>
+         remark #25015: ループの最大トリップカウントの予測=64
+      LOOP END
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(926,9)
+   remark #15542: ループ はベクトル化されませんでした: 内部ループがすでにベクトル化されています。
+
+   LOOP BEGIN at nclass/nclass_mod.f(924,7)
+   <Peeled, Predicate Optimized v1>
+      remark #25456: ループで置換された配列参照スカラーの数: 8
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(924,7)
+   <Predicate Optimized v1>
+      remark #17107: ループは並列化されませんでした: 内部ループです。
+      remark #25422: 行 937 の不変条件がこのループの外に移動されました。
+      remark #15301: PERMUTED LOOP がベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+      remark #15460: マスク付きストライドロード: 8 
+      remark #15462: マスクなしインデックス (集約) ロード: 18 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 637 
+      remark #15477: ベクトルループのコスト: 142.870 
+      remark #15478: スピードアップの期待値: 3.910 
+      remark #15479: 軽いベクトル操作: 206 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(924,7)
+   <Remainder, Predicate Optimized v1>
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(924,7)
+   <Peeled, Predicate Optimized v2>
+      remark #25456: ループで置換された配列参照スカラーの数: 4
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(924,7)
+   <Predicate Optimized v2>
+      remark #15301: PERMUTED LOOP がベクトル化されました。
+      remark #15442: すべてのループは剰余ループとして実行されます。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+      remark #15460: マスク付きストライドロード: 4 
+      remark #15462: マスクなしインデックス (集約) ロード: 8 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 381 
+      remark #15477: ベクトルループのコスト: 76.000 
+      remark #15478: スピードアップの期待値: 4.310 
+      remark #15479: 軽いベクトル操作: 96 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(924,7)
+   <Remainder, Predicate Optimized v2>
+   LOOP END
+LOOP END
+
+nclass_mn_ (行 937) で IF の融合が行われました。
+
+nclass_mn_ (行 937) で IF の融合が行われました。
+===========================================================================
+
+最適化レポート開始: NCLASS_K
+
+    レポート: プロシージャー間の最適化 [ipo]
+
+インライン展開レポート: (NCLASS_K) [6] nclass/nclass_mod.f(770,18)
+  -> EXTERN: (846,12) rarray_zero_
+  -> EXTERN: (847,12) rarray_zero_
+  -> EXTERN: (848,12) rarray_zero_
+  -> EXTERN: (849,12) rarray_zero_
+  -> INLINE: (851,12) NCLASS_NU
+    -> EXTERN: (1260,12) rarray_zero_
+    -> EXTERN: (1261,12) rarray_zero_
+    -> EXTERN: (1262,12) rarray_zero_
+    -> EXTERN: (1270,15) u_erf_
+    -> EXTERN: (1271,38) expf
+    -> EXTERN: (1272,61) __powr4i4
+    -> EXTERN: (1274,67) __powr4i4
+    -> EXTERN: (1286,31) atanf
+  -> EXTERN: (855,23) exp2f
+  -> EXTERN: (855,31) powf
+  -> EXTERN: (857,30) exp2f
+  -> EXTERN: (867,36) powf
+  -> EXTERN: (878,26) powf
+  -> EXTERN: (878,56) powf
+  -> EXTERN: (879,36) powf
+
+
+    レポート: ループの入れ子、ベクトル、自動並列化の最適化 [loop, vec, par]
+
+
+LOOP BEGIN at nclass/nclass_mod.f(1263,7) inlined into nclass/nclass_mod.f(1668,12)
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+   remark #25015: ループの最大トリップカウントの予測=40
+
+   LOOP BEGIN at nclass/nclass_mod.f(1266,9) inlined into nclass/nclass_mod.f(1668,12)
+      remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+      remark #15344: ループ はベクトル化されませんでした: ベクトル依存関係がベクトル化 . 最初の依存関係を以下に示します。詳細については、レベル 5 のレポートを使用してください。 を妨げています。
+      remark #15346: ベクトル依存関係: OUTPUT の依存関係が c2 行 1269 と c2 行 1270 の間に仮定されました。
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(1280,11) inlined into nclass/nclass_mod.f(1668,12)
+      remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+      remark #15335: ループ はベクトル化されませんでした: ベクトル化は可能ですが非効率です。オーバーライドするには vector always 宣言子または -vec-threshold0 を使用してください。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 3 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 102 
+      remark #15477: ベクトルループのコスト: 155.500 
+      remark #15478: スピードアップの期待値: 0.610 
+      remark #15479: 軽いベクトル操作: 98 
+      remark #15480: 中オーバーヘッドのベクトル操作: 1 
+      remark #15482: ベクトル化された算術ライブラリーの呼び出し: 1 
+      remark #15487: 型変換: 1 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+      remark #25436: 完全なアンロール - 3  
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7)
+<Predicate Optimized v5>
+   remark #17108: ループは並列化されませんでした: 計算量が不足しています。
+   remark #25422: 行 862 の不変条件がこのループの外に移動されました。
+   remark #25422: 行 869 の不変条件がこのループの外に移動されました。
+   remark #25422: 行 875 の不変条件がこのループの外に移動されました。
+   remark #15300: ループがベクトル化されました。
+   remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 4 
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+   remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 6 
+   remark #15458: マスク付きインデックス (集約) ロード: 9 
+   remark #15460: マスク付きストライドロード: 3 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 616 
+   remark #15477: ベクトルループのコスト: 92.500 
+   remark #15478: スピードアップの期待値: 6.560 
+   remark #15479: 軽いベクトル操作: 118 
+   remark #15482: ベクトル化された算術ライブラリーの呼び出し: 3 
+   remark #15487: 型変換: 1 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25015: ループの最大トリップカウントの予測=5
+
+   LOOP BEGIN at nclass/nclass_mod.f(870,11)
+      remark #25436: 完全なアンロール - 3   (pre-vector) 
+   LOOP END
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7)
+<Remainder, Predicate Optimized v5>
+   remark #25015: ループの最大トリップカウントの予測=40
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7)
+<Predicate Optimized v6>
+   remark #15300: ループがベクトル化されました。
+   remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 4 
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+   remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 4 
+   remark #15458: マスク付きインデックス (集約) ロード: 6 
+   remark #15460: マスク付きストライドロード: 3 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 219 
+   remark #15477: ベクトルループのコスト: 45.750 
+   remark #15478: スピードアップの期待値: 4.690 
+   remark #15479: 軽いベクトル操作: 72 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25015: ループの最大トリップカウントの予測=5
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7)
+<Remainder, Predicate Optimized v6>
+   remark #25015: ループの最大トリップカウントの予測=40
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7)
+<Predicate Optimized v7>
+   remark #25422: 行 875 の不変条件がこのループの外に移動されました。
+   remark #15300: ループがベクトル化されました。
+   remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 1 
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 3 
+   remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 3 
+   remark #15458: マスク付きインデックス (集約) ロード: 3 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 487 
+   remark #15477: ベクトルループのコスト: 53.750 
+   remark #15478: スピードアップの期待値: 8.910 
+   remark #15479: 軽いベクトル操作: 67 
+   remark #15482: ベクトル化された算術ライブラリーの呼び出し: 3 
+   remark #15487: 型変換: 1 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25015: ループの最大トリップカウントの予測=5
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7)
+<Remainder, Predicate Optimized v7>
+   remark #25015: ループの最大トリップカウントの予測=40
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7)
+<Predicate Optimized v8>
+   remark #15300: ループがベクトル化されました。
+   remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 1 
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 3 
+   remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 1 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 91 
+   remark #15477: ベクトルループのコスト: 30.000 
+   remark #15478: スピードアップの期待値: 5.900 
+   remark #15479: 軽いベクトル操作: 21 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25015: ループの最大トリップカウントの予測=5
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7)
+<Remainder, Predicate Optimized v8>
+   remark #25015: ループの最大トリップカウントの予測=40
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7)
+<Predicate Optimized v11>
+   remark #25422: 行 869 の不変条件がこのループの外に移動されました。
+   remark #25422: 行 875 の不変条件がこのループの外に移動されました。
+   remark #15300: ループがベクトル化されました。
+   remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 2 
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 4 
+   remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 5 
+   remark #15458: マスク付きインデックス (集約) ロード: 9 
+   remark #15460: マスク付きストライドロード: 3 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 529 
+   remark #15477: ベクトルループのコスト: 86.620 
+   remark #15478: スピードアップの期待値: 6.020 
+   remark #15479: 軽いベクトル操作: 103 
+   remark #15482: ベクトル化された算術ライブラリーの呼び出し: 3 
+   remark #15487: 型変換: 1 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25015: ループの最大トリップカウントの予測=5
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7)
+<Remainder, Predicate Optimized v11>
+   remark #25015: ループの最大トリップカウントの予測=40
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7)
+<Predicate Optimized v12>
+   remark #15300: ループがベクトル化されました。
+   remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 1 
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 3 
+   remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 3 
+   remark #15458: マスク付きインデックス (集約) ロード: 6 
+   remark #15460: マスク付きストライドロード: 3 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 132 
+   remark #15477: ベクトルループのコスト: 39.750 
+   remark #15478: スピードアップの期待値: 3.270 
+   remark #15479: 軽いベクトル操作: 57 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25015: ループの最大トリップカウントの予測=5
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7)
+<Remainder, Predicate Optimized v12>
+   remark #25015: ループの最大トリップカウントの予測=40
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7)
+<Predicate Optimized v13>
+   remark #25422: 行 875 の不変条件がこのループの外に移動されました。
+   remark #15300: ループがベクトル化されました。
+   remark #15448: マスクなしアライン・ユニット・ストライド・ロード: 1 
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 3 
+   remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 2 
+   remark #15458: マスク付きインデックス (集約) ロード: 3 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 400 
+   remark #15477: ベクトルループのコスト: 47.870 
+   remark #15478: スピードアップの期待値: 8.230 
+   remark #15479: 軽いベクトル操作: 52 
+   remark #15482: ベクトル化された算術ライブラリーの呼び出し: 3 
+   remark #15487: 型変換: 1 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25015: ループの最大トリップカウントの予測=5
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7)
+<Remainder, Predicate Optimized v13>
+   remark #25015: ループの最大トリップカウントの予測=40
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7)
+<Predicate Optimized v14>
+   remark #15300: ループがベクトル化されました。
+   remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+   remark #15475: --- ベクトルループのコストサマリー開始 ---
+   remark #15476: スカラーループのコスト: 3 
+   remark #15477: ベクトルループのコスト: 1.000 
+   remark #15478: スピードアップの期待値: 2.600 
+   remark #15479: 軽いベクトル操作: 6 
+   remark #15488: --- ベクトルループのコストサマリー終了 ---
+   remark #25015: ループの最大トリップカウントの予測=5
+LOOP END
+
+LOOP BEGIN at nclass/nclass_mod.f(859,7)
+<Remainder, Predicate Optimized v14>
+   remark #25015: ループの最大トリップカウントの予測=40
+LOOP END
+===========================================================================
+
+最適化レポート開始: NCLASS_NU
+
+    レポート: プロシージャー間の最適化 [ipo]
+
+インライン展開レポート: (NCLASS_NU) [7] nclass/nclass_mod.f(1211,18)
+  -> EXTERN: (1260,12) rarray_zero_
+  -> EXTERN: (1261,12) rarray_zero_
+  -> EXTERN: (1262,12) rarray_zero_
+  -> EXTERN: (1270,15) u_erf_
+  -> EXTERN: (1271,38) expf
+  -> EXTERN: (1272,61) __powr4i4
+  -> EXTERN: (1274,67) __powr4i4
+  -> EXTERN: (1286,31) atanf
+
+
+    レポート: ループの入れ子、ベクトル、自動並列化の最適化 [loop, vec, par]
+
+
+LOOP BEGIN at nclass/nclass_mod.f(1263,7)
+   remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+   remark #15541: 外部 ループ は自動ベクトル化されませんでした: SIMD 宣言子の使用を検討してください。
+
+   LOOP BEGIN at nclass/nclass_mod.f(1266,9)
+      remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+      remark #15344: ループ はベクトル化されませんでした: ベクトル依存関係がベクトル化 . 最初の依存関係を以下に示します。詳細については、レベル 5 のレポートを使用してください。 を妨げています。
+      remark #15346: ベクトル依存関係: OUTPUT の依存関係が c2 行 1269 と c2 行 1270 の間に仮定されました。
+   LOOP END
+
+   LOOP BEGIN at nclass/nclass_mod.f(1280,11)
+      remark #17104: ループは並列化されませんでした: 並列依存関係が存在しています。
+      remark #15335: ループ はベクトル化されませんでした: ベクトル化は可能ですが非効率です。オーバーライドするには vector always 宣言子または -vec-threshold0 を使用してください。
+      remark #15450: マスクなし非アライン・ユニット・ストライド・ロード: 2 
+      remark #15451: マスクなし非アライン・ユニット・ストライド・ストア: 3 
+      remark #15475: --- ベクトルループのコストサマリー開始 ---
+      remark #15476: スカラーループのコスト: 102 
+      remark #15477: ベクトルループのコスト: 158.000 
+      remark #15478: スピードアップの期待値: 0.600 
+      remark #15479: 軽いベクトル操作: 98 
+      remark #15480: 中オーバーヘッドのベクトル操作: 1 
+      remark #15482: ベクトル化された算術ライブラリーの呼び出し: 1 
+      remark #15487: 型変換: 1 
+      remark #15488: --- ベクトルループのコストサマリー終了 ---
+      remark #25436: 完全なアンロール - 3  
+   LOOP END
+LOOP END
+===========================================================================

@@ -1,0 +1,466 @@
+\documentclass[11pt]{article}
+\usepackage{af}
+
+\makeatletter
+\def\eqnarray{\stepcounter{equation}\let\@currentlabel=\theequation
+\global\@eqnswtrue
+\global\@eqcnt\z@\tabskip\@centering\let\\=\@eqncr
+$$\halign to \displaywidth\bgroup\@eqnsel\hskip\@centering
+%%  $\displaystyle\tabskip\z@{##}$&\global\@eqcnt\@ne 
+    $\displaystyle\tabskip\z@{##}$&\global\@eqcnt\@ne 
+%%  \hskip 2\arraycolsep \hfil${##}$\hfil
+                         \hfil$\displaystyle{{}##{}}$\hfil
+%%  &\global\@eqcnt\tw@ \hskip 2\arraycolsep $\displaystyle\tabskip\z@{##}$\hfil 
+    &\global\@eqcnt\tw@                      $\displaystyle\tabskip\z@{##}$\hfil 
+   \tabskip\@centering&\llap{##}\tabskip\z@\cr}
+\makeatother
+
+\def\baselinestretch{1.20}
+\def\r#1{{\rm#1}}
+\def\ddt{\frac{\partial}{\partial t}}
+\def\ddr{\frac{\partial}{\partial r}}
+\def\ave#1{\left\langle#1\right\rangle}
+\def\me{m_\r{e}}
+\def\mi{m_\r{i}}
+\def\mb{m_\r{b}}
+\def\mue{\mu_\r{e}}
+\def\mui{\mu_\r{i}}
+\def\De{D_\r{e}}
+\def\Di{D_\r{i}}
+\def\chie{\chi_\r{e}}
+\def\chii{\chi_\r{i}}
+\def\ne{n_\r{e}}
+\def\ni{n_\r{i}}
+\def\nb{n_\r{b}}
+\def\uer{u_{\r{e}r}}
+\def\uir{u_{\r{i}r}}
+\def\ueth{u_{\r{e}\theta}}
+\def\uith{u_{\r{i}\theta}}
+\def\ubth{u_{\r{b}\theta}}
+\def\ueph{u_{\r{e}\phi}}
+\def\uiph{u_{\r{i}\phi}}
+\def\ubph{u_{\r{b}\phi}}
+\def\Er{E_r}
+\def\Eth{E_\theta}
+\def\Eph{E_\phi}
+\def\Bth{B_\theta}
+\def\Bph{B_\phi}
+\def\Te{T_\r{e}}
+\def\Ti{T_\r{i}}
+\def\nna{n_{01}}
+\def\nnb{n_{02}}
+\def\Zi{Z_\r{i}}
+\def\Zb{Z_\r{b}}
+\def\Pb{P_\r{b}}
+\def\Eb{E_\r{b}}
+\def\PRFe{P_\r{RFe}}
+\def\PRFi{P_\r{RFi}}
+
+\def\nuNCe{\nu_\r{NCe}}
+\def\nuNCi{\nu_\r{NCi}}
+\def\nuei{\nu_\r{ei}}
+\def\nube{\nu_\r{be}}
+\def\nubi{\nu_\r{bi}}
+\def\nune{\nu_\r{0e}}
+\def\nuni{\nu_\r{0i}}
+\def\nuL{\nu_\r{L}}
+\def\nuCX{\nu_\r{CX}}
+\def\nuion{\nu_\r{ionize}}
+\def\nub{\nu_\r{b}}
+\def\nuTei{\nu_\r{Tei}}
+\def\vb{v_\r{b}}
+\def\nediv{n_\r{ediv}}
+\def\Tediv{T_\r{ediv}}
+\def\Tidiv{T_\r{idiv}}
+
+\newcommand{\Frac}[2]{%
+  {\displaystyle {\displaystyle #1\over \displaystyle #2}}%
+}
+\newcommand{\rdprd}[2]{\Frac{\partial #1}{\partial #2}}
+\newcommand{\aveaveB}[1]{\left< \!\! \left< #1 \right> \!\! \right>}
+\newcommand{\hatomega}{\widehat{\omega}}
+
+\begin{document}
+
+\begin{center}
+TASK/TX V2.11 [99/01/26]
+\end{center}
+\begin{eqnarray}
+%
+% \Er
+%
+  0 &=&
+%
+  \frac{1}{r} \ddr r \Er
+%
+ - \frac{1}{\epsilon_0}
+  \left(-e \ne + \Zi e \ni + \Zb e \nb \right)
+\\[5mm]
+%
+% \Eth
+%
+  \frac{1}{c^2} \ddt \Eth &=&
+%
+  - \ddr \Bph
+%
+  - \mu_0 (-e \ne \ueth + \Zi e \ni \uith + \Zb e \nb \ubth)
+\\[5mm]
+%
+% \Eph
+%
+  \frac{1}{c^2} \ddt \Eph &=&
+%
+  \frac{1}{r} \ddr r \Bth
+%
+  - \mu_0 (-e \ne \ueph + \Zi e \ni \uiph + \Zb e \nb \ubph)
+\\[5mm]
+%
+% \Bth
+%
+  \ddt \Bth &=&
+%
+  \ddr \Eph
+\\[5mm]
+%
+% \Bph
+%
+  \ddt \Bph &=&
+%
+  - \frac{1}{r} \ddr r \Eth
+\\[5mm]
+%
+% \ne
+%
+  \ddt\ne &=&
+%
+  - \frac{1}{r} \ddr r \ne \uer 
+%
+  + \nuion\, \frac{\ne}{\nna+\nna}\, (\nna+\nnb)
+%
+  - \nuL (\ne - \nediv)
+\\[5mm]
+%
+% \ne \uer
+%
+  \ddt \ne \uer &=&
+%
+  - \frac{1}{r} \ddr r \uer \ne \uer
+%
+  + \frac{1}{r} \ueth \ne \ueth
+%
+  - \ddr \frac{\ne \Te}{\me}
+\nonumber\\[3mm]&&{}
+%
+  - \frac{e}{\me} \ne \Er
+%
+  - \frac{e}{\me} \Bph \ne \ueth
+%
+  + \frac{e}{\me} \Bth \ne \ueph
+\\[5mm]
+%
+% \ne \ueth
+%
+  \ddt \ne \ueth &=&
+%
+  - \frac{1}{r^2} \ddr r^2 \uer \ne \ueth
+%
+  + \frac{1}{r^2} \ddr r^3 \ne \mue \ddr \frac{\ueth}{r}
+%
+  - \frac{e}{\me} \ne \Eth
+%
+  + \frac{e}{\me} \Bph \ne \uer
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuNCe \ne \ueth
+%
+  - \nu_\r{ei} \ne (\ueth - \uith)
+%
+  - \frac{\mb}{\me} \nu_\r{be} \nb (\ueth - \ubth)
+\nonumber\\[2.5mm]&&{}
+%
+  - \frac{e^2 \Bph^2 \De}{\me\Te}\ne
+    \left(\ueth - \ave{\frac{\omega}{m}}_\r{e} r \right)
+%
+   + \frac{\Zi^2 e^2 \Bph^2 \Di}{\me\Ti}\ni
+    \left(\uith - \ave{\frac{\omega}{m}}_\r{i} r \right)
+\nonumber\\[2.5mm]&&{}
+%
+%%  + (-e) \Bph
+%%    \left\{
+%%     \ne \De
+%%      \left(
+%%        - \rdprd{}{r} \ln \ne
+%%        + \frac{(-e) E_r}{\Te}
+%%        + \aveaveB{\frac{\omega}{m}} r
+%%          \frac{(-e) \Bph}{\Te}
+%%      \right)
+%%      - \ne \left( \mue - \frac{\De}{2} \right) \rdprd{}{r} \ln \Te
+%%    \right\}
+%%\nonumber\\[2.5mm]&&{}
+%%  - \Zi e \Bph
+%%   \left\{
+%%     \ni \Di
+%%      \left(
+%%        - \rdprd{}{r} \ln \ni
+%%        + \frac{\Zi e E_r}{\Ti}
+%%        + \aveaveB{\frac{\omega}{m}} r
+%%          \frac{\Zi e \Bph}{\Ti}
+%%      \right)
+%%      - \ni \left( \mui - \frac{\Di}{2} \right) \rdprd{}{r} \ln \Ti
+%%    \right\}
+%%\nonumber\\[2.5mm]&&{}
+%
+  - 2\, \nuL \ne \ueth
+%
+  - \nune \ne \ueth
+\\[5mm]
+%
+% \ne \ueph
+%
+  \ddt \ne \ueph &=&
+%
+  - \frac{1}{r} \ddr r \uer \ne \ueph
+%
+  + \frac{1}{r} \ddr r \ne \mue \ddr \ueph
+%
+  - \frac{e}{\me} \ne \Eph
+%
+  - \frac{e}{\me} \Bth \ne \uer 
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuei \ne (\ueph - \uiph)
+%
+  - \frac{\mb}{\me} \nube \nb (\ueph - \ubph)
+\nonumber\\[2.5mm]&&{}
+%
+  - 2\, \nuL \ne \ueph
+%
+  - \nune \ne \ueph
+\\[5mm]
+%
+% \Te
+%
+  \ddt \, \frac{3}{2} \ne \Te &=&
+%
+ - \frac{1}{r} \ddr r
+   \left( \frac{5}{2} \uer \ne \Te - \frac{3}{2} \ne \chie \ddr \Te \right)
+%
+  -  e \Eph \ne \ueph 
+%
+  - \nuTei \ne (\Te - \Ti)
+\nonumber\\[2.5mm]&&{}
+%
+  - \frac{1}{2} \mb \vb \nube \nb (\ueph - \ubph)
+%
+  - \frac{5}{2} \nuL \ne (\Te - \Tediv)
+%
+  + \PRFe
+\\[5mm]
+%\end{eqnarray}
+%\newpage
+%\begin{eqnarray}
+%
+% \ni
+%
+  \ddt\ni &=&
+%
+  - \frac{1}{r} \ddr r \ni \uir
+%
+  + \frac{\nuion}{\Zi}\, \frac{\ne}{\nna+\nna}\, (\nna+\nnb)
+%
+  - \frac{\nuL}{\Zi} (\ne - \nediv) 
+\nonumber\\[2.5mm]&&{}
+%
+  + \nub \nb
+%
+  - \frac{\Pb}{\Eb}
+%
+  + S_\r{LC}
+\\[5mm]
+%
+% \ni \uir 
+%
+  \ddt \ni \uir &=&
+%
+  - \frac{1}{r} \ddr r \uir \ni \uir
+%
+  + \frac{1}{r} \uith \ni \uith
+%
+  - \ddr \frac{\ni \Ti}{\mi}
+\nonumber\\[3mm]&&{}
+%
+  + \Zi \frac{e}{\mi}\ni \Er
+%
+  + \Zi \frac{e}{\mi} \Bph \ni \uith
+%
+  - \Zi \frac{e}{\me} \Bth \ni \uiph
+\\[5mm]
+%
+% \ni \uith
+%
+  \ddt \ni \uith &=&
+%
+  - \frac{1}{r^2} \ddr r^2 \uir \ni \uith
+%
+  + \frac{1}{r^2} \ddr r^3 \ni \mui \ddr \frac{\uith}{r}
+%
+  + \Zi \frac{e}{\me} \ni \Eth
+%
+  - \Zi \frac{e}{\mi} \Bph \ni \uir
+\nonumber\\[2.5mm]&&{}
+%
+  - \nuNCi \ni \uith
+%
+  - \frac{\me}{\mi} \nuei \ne (\uith - \ueth)
+%
+  - \frac{\mb}{\mi} \nu_\r{bi} \nb (\uith - \ubth)
+\nonumber\\[2.5mm]&&{}
+%
+  + \frac{e^2 \Bph^2 \De}{\mi\Te}\ne
+    \left(\ueth - \ave{\frac{\omega}{m}}_\r{e} r \right)
+%
+  - \frac{\Zi^2 e^2 \Bph^2 \Di}{\mi\Ti}\ni
+    \left(\uith - \ave{\frac{\omega}{m}}_\r{i} r \right)
+%
+%%  - (-e) \Bph
+%%    \left\{
+%%      \ne \De
+%%      \left(
+%%        - \rdprd{}{r} \ln \ne
+%%        + \frac{(-e) E_r}{\Te}
+%%        + \aveaveB{\frac{\omega}{m}} r
+%%          \frac{(-e) \Bph}{\Te}
+%%      \right)
+%%      - \ne \left( \mue - \frac{\De}{2} \right) \rdprd{}{r} \ln \Te
+%%    \right\}
+%%\nonumber\\[2.5mm]&&{}
+%%  + \Zi e \Bph
+%%    \left\{
+%%      \ni \Di
+%%      \left(
+%%        - \rdprd{}{r} \ln \ni
+%%        + \frac{\Zi e E_r}{\Ti}
+%%        + \aveaveB{\frac{\omega}{m}} r
+%%          \frac{\Zi e \Bph}{\Ti}
+%%      \right)
+%%      - \ni \left( \mui - \frac{\Di}{2} \right) \rdprd{}{r} \ln \Ti
+%%    \right\}
+\nonumber\\[2.5mm]&&{}
+%
+  - 2\, \nuL \ni \uith
+%
+  - \nuni \ni \uith
+%
+  - \nuCX \ni \uith
+%
+  + S_\r{LC\theta}
+\\[5mm]
+%
+% \ni \uiph
+%
+  \ddt \ni \uiph &=&
+%
+  - \frac{1}{r} \ddr r \uir \ni \uiph
+%
+  + \frac{1}{r} \ddr r \ni \mui \ddr \uiph
+%\nonumber\\[2.5mm]&&{}
+%
+  + \Zi \frac{e}{\mi} \ni \Eph
+%
+  + \Zi \frac{e}{\mi} \Bth \ni \uir 
+\nonumber\\[2.5mm]&&{}
+%
+  - \frac{\me}{\mi} \nuei \ne (\uiph - \ueph)
+%
+  - \frac{\mb}{\mi} \nubi \nb (\uiph - \ubph)
+\nonumber\\[2.5mm]&&{}
+%
+  - 2\, \nuL \ni \uiph
+%
+  - \nuni \ni \uiph
+%
+  - \nuCX \ni \uiph
+%
+  + S_\r{LC\phi}
+\\[5mm]
+%
+% \Ti
+%
+  \ddt \, \frac{3}{2} \ni \Ti &=&
+%
+ - \frac{1}{r} \ddr r
+   \left( \frac{5}{2} \uir \ni \Ti - \frac{3}{2} \ni \chi \ddr \Ti \right)
+%
+  + \Zi e \Eph \ni \uiph
+%
+  - \nuTei \ne (\Ti - \Te)
+\nonumber\\[2.5mm]&&{}
+%
+  - \frac{1}{2} \mb \vb \nubi \nb (\uiph - \ubph)
+%
+  - \frac{5}{2} \nuL \ni (\Ti - \Tidiv)
+%
+  + \PRFi
+\\[5mm]
+%
+% \nb
+%
+  \ddt \nb &=&
+%
+    \frac{\Pb}{\Eb}
+%
+  - \nub \nb
+\\[5mm]
+%
+% \nb \ubth 
+%
+  0 &=&
+%
+    \frac{1}{r} \ubth \nb \ubth
+%
+  + \Zb \frac{e}{\mb} \nb \Er 
+%
+  + \Zb \frac{e}{\mb} \Bph \nb \ubth
+%
+  - \Zb \frac{e}{\mb} \Bth \nb \ubph
+\\[5mm]
+%
+% \nb  \ubph
+%
+  \ddt \nb \ubph &=&
+%
+  - \nube \nb (\ubph - \ueph)
+%
+  - \nubi \nb (\ubph - \uiph)
+%
+  + \vb \frac{\Pb}{\Eb}
+\\[5mm]
+%
+% \nna
+%
+  \ddt \nna &=& 
+%
+    \frac{1}{r} \ddr r D_{01} \ddr \nna
+%
+  - \frac{1}{\Zi}\, \nuion\, \frac{\ne}{\nna+\nnb}\, \nna
+%
+  - \nuCX\, \frac{\ni}{\nna+\nnb}\, \nna
+\nonumber\\[2.5mm]&&{}
+%
+  + \gamma_0 \frac{\nuL}{\Zi} \, (\ne - \nediv)
+\\[5mm]
+%
+% \nnb
+%
+  \ddt \nnb &=& 
+%
+    \frac{1}{r} \ddr r D_{02} \ddr \nnb
+%
+  - \frac{1}{\Zi}\, \nuion\, \frac{\ne}{\nna+\nnb}\, \nnb
+%
+  + \nuCX\, \frac{\ni}{\nna+\nnb}\, \nna
+%
+  + \frac{\Pb}{\Eb}
+\end{eqnarray}
+
+\end{document}

@@ -1,4 +1,4 @@
-!     $Id$
+!     $Id: fpnfrr.f90,v 1.20 2013/01/14 16:48:26 fukuyama Exp $
 
 ! **********************************
 !      Nuclear Fusion Reaction Rate

@@ -200,6 +200,10 @@ SUBROUTINE WFGPPC(NW,NWMAX,KWD)
   integer :: NS,NSDO
   real(8) :: X,Y,WC(NSMAX),WP(NSMAX),WW
   real(8) :: BABS,AL(3),RTPR(NSM),RTPP(NSM),RZCL(NSM),RN(NSM)
+  REAL(4) :: GTCO_MAX,GTCR_MAX,GTHR_MAX,GTRC_MAX,GTLC_MAX
+  INTEGER :: NBSD,NSD,NN1,NN2
+  REAL(4) :: R1,Z1,R2,Z2
+
   REAL(8),DIMENSION(:,:),ALLOCATABLE:: TCO,TCR,THR,TRC,TLC
   real(4) :: GUCLIP
   integer,DIMENSION (:,:,:),ALLOCATABLE :: KA
@@ -289,6 +293,12 @@ SUBROUTINE WFGPPC(NW,NWMAX,KWD)
 
      n_para=NPH*VC/(RR*WW)
 
+     GTCO_MAX=0.D0
+     GTCR_MAX=0.D0
+     GTHR_MAX=0.D0
+     GTRC_MAX=0.D0
+     GTLC_MAX=0.D0
+
      DO NGY=1,NGYMAX
         Y=ZNDMIN+DY*(NGY-1)
         DO NGX=1,NGXMAX
@@ -303,30 +313,31 @@ SUBROUTINE WFGPPC(NW,NWMAX,KWD)
               WC(NSDO)=PZ(NSDO)*AEE*BABS/(PA(NSDO)*AMP)
            end DO
 
-           
-
-           TCR(NGX,NGY)=WC(NS)
-           THR(NGX,NGY)=sqrt(WP(1)**2+WC(1)**2)
-           TCO(NGX,NGY)=WP(NS)
-           TRC(NGX,NGY)=1.d0
-           TLC(NGX,NGY)=1.d0
+           TCR(NGX,NGY)=WC(NS)**2/(WW*WW)
+           TCO(NGX,NGY)=1.D0
+           THR(NGX,NGY)=1.D0
+           TRC(NGX,NGY)=1.D0
+           TLC(NGX,NGY)=1.D0
            do NSDO=1,NSMAX
+              TCO(NGX,NGY)=TCO(NGX,NGY)-WP(NSDO)**2/(WW*WW)
+              THR(NGX,NGY)=THR(NGX,NGY)-WP(NSDO)**2/(WW**2-WC(NSDO)**2)
               TRC(NGX,NGY)=TRC(NGX,NGY)-WP(NSDO)**2/(WW*(WW+WC(NSDO)))
               TLC(NGX,NGY)=TLC(NGX,NGY)-WP(NSDO)**2/(WW*(WW-WC(NSDO)))
            end do
            
-!           TRC(NGX,NGY)=0.5d0*(sqrt(WC**2+4.d0*WP**2)+abs(WC))
-!           TLC(NGX,NGY)=0.5d0*(sqrt(WC**2+4.d0*WP**2)-abs(WC))
-
-           GTCO(NGX,NGY)=GUCLIP(1.D0-TCO(NGX,NGY)**2/WW**2)
-           GTCR(NGX,NGY)=GUCLIP(1.D0-TCR(NGX,NGY)**2/WW**2)
-           GTHR(NGX,NGY)=GUCLIP(1.D0-THR(NGX,NGY)**2/WW**2)
+           GTCR(NGX,NGY)=GUCLIP(1.D0-TCR(NGX,NGY))
+           GTCO(NGX,NGY)=GUCLIP(TCO(NGX,NGY))
+           GTHR(NGX,NGY)=GUCLIP(THR(NGX,NGY))
            GTRC(NGX,NGY)=GUCLIP(n_para**2-TRC(NGX,NGY))
            GTLC(NGX,NGY)=GUCLIP(n_para**2-TLC(NGX,NGY))
+           GTCR_MAX=MAX(GTCR_MAX,ABS(GTCR(NGX,NGY)))
+           GTCO_MAX=MAX(GTCO_MAX,ABS(GTCO(NGX,NGY)))
+           GTHR_MAX=MAX(GTHR_MAX,ABS(GTHR(NGX,NGY)))
+           GTRC_MAX=MAX(GTRC_MAX,ABS(GTRC(NGX,NGY)))
+           GTLC_MAX=MAX(GTLC_MAX,ABS(GTLC(NGX,NGY)))
 
         END DO
      END DO
-
 
      CALL GDEFIN(GPXMIN,GPXMAX,GPYMIN,GPYMAX,GXMIN,GXMAX,GYMIN,GYMAX)
      CALL SETCHS(0.3,0.0)
@@ -335,59 +346,59 @@ SUBROUTINE WFGPPC(NW,NWMAX,KWD)
      !  ****** DRAW CYCROTRON REASONANCE SURFACE (yellow, dot-dashed) ******
      
      CALL SETRGB(1.0,0.5,0.0)
-     CALL CONTP2(GTCR,GAX,GAY,NGXMAX,NGXMAX,NGYMAX,0.0,0.1,1,2,4,KA)
+     CALL CONTP2(GTCR,GAX,GAY,NGXMAX,NGXMAX,NGYMAX,0.0,0.5*GTCR_MAX,1,0,4,KA)
      
      !   ****** DRAW PLASMA CUT OFF SURFACE (black, two-dot-dashed) ******
      
      CALL SETRGB(0.0,0.0,0.0)
-     CALL CONTP2(GTCO,GAX,GAY,NGXMAX,NGXMAX,NGYMAX,0.0,1.0,1,2,6,KA)
+     CALL CONTP2(GTCO,GAX,GAY,NGXMAX,NGXMAX,NGYMAX,0.0,0.5*GTCO_MAX,1,0,6,KA)
      
      !     ****** DRAW RIGHT CUT OFF SURFACE (blue, two-dot-dashed) ******
 
      CALL SETRGB(0.0,0.0,1.0)
-     CALL CONTP2(GTRC,GAX,GAY,NGXMAX,NGXMAX,NGYMAX,0.0,0.1,1,2,6,KA)
+     CALL CONTP2(GTRC,GAX,GAY,NGXMAX,NGXMAX,NGYMAX,0.0,0.5*GTRC_MAX,1,0,6,KA)
      
      !     ****** DRAW LEFT CUT OFF SURFACE (green, two-dots-dashed) ******
      
      CALL SETRGB(0.0,1.0,0.0)
-     CALL CONTP2(GTLC,GAX,GAY,NGXMAX,NGXMAX,NGYMAX,0.0,0.1,1,2,6,KA)
+     CALL CONTP2(GTLC,GAX,GAY,NGXMAX,NGXMAX,NGYMAX,0.0,0.5*GTLC_MAX,1,0,6,KA)
      
      !     ****** DRAW HYBRID RESONANCE SURFACE (purple, long-dashed) ******
      
      CALL SETRGB(1.0,0.0,1.0)
-     CALL CONTP2(GTHR,GAX,GAY,NGXMAX,NGXMAX,NGYMAX,0.0,0.1,1,2,3,KA)
+     CALL CONTP2(GTHR,GAX,GAY,NGXMAX,NGXMAX,NGYMAX,0.0,0.5*GTHR_MAX,1,0,3,KA)
      
   end if
 
   ! --- smoozing Z ---
-!  do NGY=1,NGYMAX
-!     do NGX=1,NGXMAX
-!        GZ_temp(NGX,NGY)=GZ(NGX,NGY)
-!     end do
-!  end do
-!
-!  do NGY=1,NGYMAX
-!     do NGX=1,NGXMAX
-!        GZ(NGX,NGY)=0.0
-!        if(NGX.ne.1.and.NGY.ne.1) &
-!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX-1,NGY-1)*0.0625
-!        if(NGY.ne.1) &
-!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX  ,NGY-1)*0.125
-!        if(NGX.ne.NGXMAX.and.NGY.ne.1) &
-!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX+1,NGY-1)*0.0625
-!        if(NGX.ne.1) &
-!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX-1,NGY  )*0.125
-!        GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX  ,NGY  )*0.25
-!        if(NGX.ne.NGXMAX) &
-!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX+1,NGY  )*0.125
-!        if(NGX.ne.1.and.NGY.ne.NGYMAX) &
-!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX-1,NGY+1)*0.0625
-!        if(NGY.ne.NGYMAX) &
-!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX  ,NGY+1)*0.125
-!        if(NGX.ne.NGXMAX.and.NGY.ne.NGYMAX) &
-!             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX+1,NGY+1)*0.0625
-!     end do
-!  end do
+  do NGY=1,NGYMAX
+     do NGX=1,NGXMAX
+        GZ_temp(NGX,NGY)=GZ(NGX,NGY)
+     end do
+  end do
+
+  do NGY=1,NGYMAX
+     do NGX=1,NGXMAX
+        GZ(NGX,NGY)=0.0
+        if(NGX.ne.1.and.NGY.ne.1) &
+             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX-1,NGY-1)*0.0625
+        if(NGY.ne.1) &
+             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX  ,NGY-1)*0.125
+        if(NGX.ne.NGXMAX.and.NGY.ne.1) &
+             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX+1,NGY-1)*0.0625
+        if(NGX.ne.1) &
+             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX-1,NGY  )*0.125
+        GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX  ,NGY  )*0.25
+        if(NGX.ne.NGXMAX) &
+             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX+1,NGY  )*0.125
+        if(NGX.ne.1.and.NGY.ne.NGYMAX) &
+             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX-1,NGY+1)*0.0625
+        if(NGY.ne.NGYMAX) &
+             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX  ,NGY+1)*0.125
+        if(NGX.ne.NGXMAX.and.NGY.ne.NGYMAX) &
+             GZ(NGX,NGY)=GZ(NGX,NGY)+GZ_temp(NGX+1,NGY+1)*0.0625
+     end do
+  end do
 
   ! --- scaling Z & PLOT---
 
@@ -421,7 +432,21 @@ SUBROUTINE WFGPPC(NW,NWMAX,KWD)
 
 ! ----- PRINT MAX,MIN,STP ----- 
 
-1000 CALL SETLIN(0,0,7)
+1000 CONTINUE
+  CALL SETLIN(0,2,7)
+  DO NBSD=1,NBSID
+     NSD=NSDBS(NBSD)
+     NN1=NDSID(1,NSD)
+     NN2=NDSID(2,NSD)
+     R1=RNODE(NN1)
+     Z1=ZNODE(NN1)
+     R2=RNODE(NN2)
+     Z2=ZNODE(NN2)
+     CALL MOVE2D(R1,Z1)
+     CALL DRAW2D(R2,Z2)
+  END DO
+
+  CALL SETLIN(0,0,7)
   CALL SETCHS(0.2,0.0)
   GXPOS=0.5*(GPXMIN+GPXMAX-17*0.2)
   GYPOS=GPYMIN-0.4
@@ -931,7 +956,7 @@ SUBROUTINE WFGPRM
   GYL=GYL+GDY
   CALL MOVE(GXL,GYL)
   CALL TEXT('NNMAX=',6)
-  CALL NUMBI(NNMAX,'(I6)',6)
+  CALL NUMBI(NNMAX,'(I8)',8)
   
   GXL=GXL+GDX
   CALL MOVE(GXL,GYL)
@@ -944,7 +969,7 @@ SUBROUTINE WFGPRM
   GYL=GYL+GDY
   CALL MOVE(GXL,GYL)
   CALL TEXT('NEMAX=',6)
-  CALL NUMBI(NEMAX,'(I6)',6)
+  CALL NUMBI(NEMAX,'(I8)',8)
   
   GXL=GXL+GDX
   CALL MOVE(GXL,GYL)
@@ -1312,27 +1337,27 @@ SUBROUTINE WFPRME
   GYL=GYMAX
   CALL MOVE(GXL,GYL)
   CALL TEXT('NNMAX=',6)
-  CALL NUMBI(NNMAX,'(I5)',5)
+  CALL NUMBI(NNMAX,'(I8)',8)
   
   GYL=GYL-GDY
   CALL MOVE(GXL,GYL)
   CALL TEXT('NEMAX=',6)
-  CALL NUMBI(NEMAX,'(I5)',5)
+  CALL NUMBI(NEMAX,'(I8)',8)
   
   GYL=GYL-GDY
   CALL MOVE(GXL,GYL)
   CALL TEXT('NBMAX=',6)
-  CALL NUMBI(NBMAX,'(I5)',5)
+  CALL NUMBI(NBMAX,'(I8)',8)
   
   GYL=GYL-GDY
   CALL MOVE(GXL,GYL)
 !  CALL TEXT('MBND =',6)
-!  CALL NUMBI(MBND,'(I5)',5)
+!  CALL NUMBI(MBND,'(I8)',8)
   
   GYL=GYL-GDY
   CALL MOVE(GXL,GYL)
   CALL TEXT('MLEN =',6)
-  CALL NUMBI(MLEN,'(I5)',5)
+  CALL NUMBI(MLEN,'(I8)',8)
   RETURN
 END SUBROUTINE WFPRME
 
@@ -1415,27 +1440,27 @@ SUBROUTINE WFPRMJ
   GYL=GYMAX
   CALL MOVE(GXL,GYL)
   CALL TEXT('NNMAX=',6)
-  CALL NUMBI(NNMAX,'(I5)',5)
+  CALL NUMBI(NNMAX,'(I8)',8)
   
   GYL=GYL-GDY
   CALL MOVE(GXL,GYL)
   CALL TEXT('NEMAX=',6)
-  CALL NUMBI(NEMAX,'(I5)',5)
+  CALL NUMBI(NEMAX,'(I8)',8)
   
   GYL=GYL-GDY
   CALL MOVE(GXL,GYL)
   CALL TEXT('NBMAX=',6)
-  CALL NUMBI(NBMAX,'(I5)',5)
+  CALL NUMBI(NBMAX,'(I8)',8)
   
   GYL=GYL-GDY
   CALL MOVE(GXL,GYL)
 !  CALL TEXT('MBND =',6)
-!  CALL NUMBI(MBND,'(I5)',5)
+!  CALL NUMBI(MBND,'(I8)',8)
   
   GYL=GYL-GDY
   CALL MOVE(GXL,GYL)
   CALL TEXT('MLEN =',6)
-  CALL NUMBI(MLEN,'(I5)',5)
+  CALL NUMBI(MLEN,'(I8)',8)
   
   GYL=GYL-GDY
   CALL MOVE(GXL,GYL)

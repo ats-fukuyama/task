@@ -70,7 +70,7 @@ CONTAINS
       IF(dxmin .LE. 0.D0) THEN
          nxmax=(xmax-xmin)/dx0
       ELSE
-         xres=LOG(pn0)/alfa    ! resonance position (omegape=omega)
+         xres=LOG(pn0)    ! resonance position (omegape=omega)
          x=xmin
          nx=0
          DO WHILE (x.LT.xmax)
@@ -159,7 +159,11 @@ CONTAINS
       INTEGER(ikind):: nx
 
       DO NX=0,NXMAX
-         CWE(NX)=DEXP(-0.5D0*ALFA*xgrid(nx))
+         IF(-0.5D0*ALFA*xgrid(nx).GT.100.D0) THEN
+            CWE(NX)=DEXP(100.D0)
+         ELSE
+            CWE(NX)=DEXP(-0.5D0*ALFA*xgrid(nx))
+         END IF
          CWP(NX)=PN0
       END DO
       RETURN

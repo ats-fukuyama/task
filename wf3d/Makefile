@@ -3,11 +3,11 @@ include ../make.header
 
 ##### Without PETSc library #####
 #FLINKER=$(FCFREE)
-#LIBMTX=../../task/mtxp/libmtxbnd.o ../../task/mtxp/libmtxnompi.o
+#LIBMTX=../mtxp/libmtxbnd.o ../mtxp/libmtxnompi.o
 #LIBMUMPSX=
 ##### With MUMPS library #####
 FLINKER=$(MF90)
-LIBMTX=../../task/mtxp/libmtxmumps.o ../../task/mtxp/libmtxmpi.o
+LIBMTX=../mtxp/libmtxmumps.o ../mtxp/libmtxmpi.o
 LIBMUMPSX=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common \
   -lpord -lscalapack -lparmetis -lmetis -llapack -lblas
 
@@ -17,8 +17,8 @@ LIBMUMPSX=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common \
 #FFLAGS = $(OFLAGS)
 FFLAGS = $(DFLAGS)
 
-MODINCLUDE= -I../../task/plx/$(MOD) -I../../task/eq/$(MOD) \
-            -I../../bpsd/$(MOD) -I../../task/mtxp -I $(MOD)
+MODINCLUDE= -I../plx/$(MOD) -I../eq/$(MOD) \
+            -I../../bpsd/$(MOD) -I../mtxp -I $(MOD)
 
 SRCS = wfcomm.f90 wfmenu.f90 wfinit.f90 wfdiv.f90 wfant.f90 wfwave.f90 \
        wfsolv.f90 wfprof.f90 wfsub.f90 wfnas.f90 wfsort.f90 wffile.f90 \
@@ -26,8 +26,8 @@ SRCS = wfcomm.f90 wfmenu.f90 wfinit.f90 wfdiv.f90 wfant.f90 wfwave.f90 \
        wfgsub.f90 wfgutl.f90 mbant.f90
 OBJS = $(SRCS:.f90=.o)
 
-LIBS = wflib.a ../../task/plx/pllib.a ../../task/eq/eqlib.a   \
-        ../../task/lib/tasklib.a ../../bpsd/bpsdlib.a $(LIBMTX)
+LIBS = wflib.a ../plx/pllib.a ../eq/eqlib.a   \
+        ../lib/tasklib.a ../../bpsd/bpsdlib.a $(LIBMTX)
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -41,28 +41,28 @@ wflib.a: $(OBJS)
 
 ../../bpsd/bpsdlib.a:
 	(cd ../../bpsd; make bpsdlib.a)
-../../task/lib/tasklib.a:
-	(cd ../../task/lib; make tasklib.a)
-../../task/mtxp/libmtxbnd.o:
-	(cd ../../task/mtxp; make libmtxbnd.o)
-../../task/mtxp/libmtxmumps.o:
-	(cd ../../task/mtxp; make libmtxmumps.o)
-../../task/mtxp/libmtxmpi.o:
-	(cd ../../task/mtxp; make libmtxmpi.o)
-../../task/mtxp/libmtxnompi.o:
-	(cd ../../task/mtxp; make libmtxnompi.o)
-../../task/plx/pllib.a:
+../lib/tasklib.a:
+	(cd ../lib; make tasklib.a)
+../mtxp/libmtxbnd.o:
+	(cd ../mtxp; make libmtxbnd.o)
+../mtxp/libmtxmumps.o:
+	(cd ../mtxp; make libmtxmumps.o)
+../mtxp/libmtxmpi.o:
+	(cd ../mtxp; make libmtxmpi.o)
+../mtxp/libmtxnompi.o:
+	(cd ../mtxp; make libmtxnompi.o)
+../plx/pllib.a:
 	(cd ../../plx; make pllib.a)
-../../task/eq/eqlib.a:
-	(cd ../../task/eq; make eqlib.a)
+../eq/eqlib.a:
+	(cd ../eq; make eqlib.a)
 
 libs:
-	(cd ../../task/lib; make tasklib.a)
+	(cd ../lib; make tasklib.a)
 	(cd ../../bpsd; make bpsdlib.a)
-	(cd ../../task/mtxp; make libmtxmpi.o libmtxnompi.o \
+	(cd ../mtxp; make libmtxmpi.o libmtxnompi.o \
                                   libmtxbnd.o libmtxmumps.o)
-	(cd ../../task/eq; make eqlib.a)
-	(cd ../../task/plx; make pllib.a)
+	(cd ../eq; make eqlib.a)
+	(cd ../plx; make pllib.a)
 
 wf : libs wflib.a wfmain.o
 	$(FLINKER) wfmain.o -o $@ $(FFLAGS) $(LIBS) $(FLIBS) $(LIBMUMPSX)

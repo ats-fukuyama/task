@@ -48,16 +48,15 @@ CONTAINS
       USE wicomm
       IMPLICIT NONE
       COMPLEX(rkind):: ciky,cbb
-      REAL(rkind):: rky,rky2,dx,beta2,dky
+      REAL(rkind):: rky,rky2,dx,dky
       INTEGER(ikind):: ML,MW,I,J,NX,ID,JD
       INTEGER(ikind):: KK,KD,IOB,IO,I2
 
-      RKY=ANY*BETA
+      RKY=ANY
       RKY2=RKY**2
-      BETA2=BETA*BETA
       DKY=ANY*ANY
-      CIKY=CI*ANY/BETA
-      CBB=CI/(DSQRT(1.D0-ANY*ANY)*BETA)
+      CIKY=CI*ANY
+      CBB=CI/DSQRT(1.D0-ANY*ANY)
 
       MLMAX=2*NXMAX+3
       MWMAX=7
@@ -81,7 +80,7 @@ CONTAINS
                CK(JD  ,ID+2)=CK(JD  ,ID+2) &
                             -CIKY*D1(I-NX,J-NX)
                CK(JD+1,ID+2)=CK(JD+1,ID+2) &
-                            +D2(I-NX,J-NX)/(DX*BETA2) &
+                            +D2(I-NX,J-NX)/DX &
                             -DX*D0(I-NX,J-NX)
             END DO
          END DO
@@ -125,7 +124,7 @@ CONTAINS
       COMPLEX(rkind):: CBB
       INTEGER(ikind):: ML
 
-      CBB=CI/(DSQRT(1.D0-ANY*ANY)*BETA)
+      CBB=CI/DSQRT(1.D0-ANY*ANY)
 
       DO ML=1,NXMAX*2+1
          CSO(ML)=(0.D0,0.D0)
@@ -159,7 +158,7 @@ CONTAINS
       INTEGER(ikind):: NX,i,j,id,jd,kk,kd
       REAL(rkind):: rky,rky2,dx,AD,BD
 
-      RKY=ANY*BETA
+      RKY=ANY
       RKY2=RKY**2
 
       DO NX=0,NXMAX

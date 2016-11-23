@@ -27,6 +27,8 @@
       END TYPE mtx_mpi_type
       PUBLIC mtx_mpi_type
 
+      PUBLIC mtx_mpi
+
       PUBLIC mtx_set_communicator_global
       PUBLIC mtx_set_communicator
       PUBLIC mtx_reset_communicator
@@ -103,6 +105,19 @@
       INTEGER:: ncomm,nrank,nsize
 
       CONTAINS
+
+!-----
+
+      SUBROUTINE mtx_mpi(ncomm_,nrank_,nsize_)
+        USE commpi
+        IMPLICIT NONE
+        INTEGER,INTENT(IN):: ncomm_,nrank_,nsize_
+
+        ncomm=ncomm_
+        nrank=nrank_
+        nsize=nsize_
+        return
+      END SUBROUTINE mtx_mpi
 
 !-----
 
@@ -1596,10 +1611,14 @@
         ELSE
            IF(dest.ge.nsize) THEN
               dest_=MPI_PROC_NULL
+           ELSEIF(dest.lt.0) THEN
+              dest_=MPI_PROC_NULL
            ELSE
               dest_=dest
            END IF
            IF(source.lt.0) THEN
+              source_=MPI_PROC_NULL
+           ELSEIF(source.ge.nsize) THEN
               source_=MPI_PROC_NULL
            ELSE
               source_=source
@@ -1632,10 +1651,15 @@
         ELSE
            IF(dest.ge.nsize) THEN
               dest_=MPI_PROC_NULL
+           ELSEIF(dest.lt.0) THEN
+              dest_=MPI_PROC_NULL
            ELSE
               dest_=dest
            END IF
+
            IF(source.lt.0) THEN
+              source_=MPI_PROC_NULL
+           ELSEIF(source.ge.nsize) THEN
               source_=MPI_PROC_NULL
            ELSE
               source_=source

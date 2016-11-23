@@ -4,34 +4,44 @@ include ../make.header
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-#FLFLAGS = $(OFLAGS)
-FLFLAGS = $(DFLAGS)
 #FFLAGS = $(OFLAGS)
 FFLAGS = $(DFLAGS)
 
-MODINCLUDE= -I./$(MOD) -I../lib/$(MOD)
+MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD)
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-SOURCES= w1main.f w1init.f w1prep.f w1prof.f w1bcnd.f w1rslt.f w1out.f \
-         w1grf1.f w1grf2.f w1disp.f w1mlm.f w1fem.f w1intg.f w1lib.f
+SRCSFIXED=w1init.f w1prep.f w1prof.f w1bcnd.f w1rslt.f w1out.f \
+          w1grf1.f w1grf2.f w1disp.f w1mlm.f w1fem.f w1intg.f w1lib.f
+SRCSFREE = 
 
-OBJS=$(SOURCES:.f=.o)
-LIBS=../lib/tasklib.a
+OBJS = $(SRCSFIXED:.f=.o) $(SRCSFREE:.f90=.o) 
+LIBS = w1lib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a
 
-w1:$(OBJS)
-	$(FCFIXED) $(OBJS) $(LIBS) $(FFLAGS) $(FLIBS) -o $@
+all: w1
 
-check:
-	ftnchek $(SOURCES) | less
+../lib/tasklib.a:
+	(cd ../lib; make tasklib.a)
+../../bpsd/bpsdlib.a:
+	(cd ../../bpsd; make bpsdlib.a)
+w1lib.a: $(OBJS)
+	$(LD) $(LDFLAGS) w1lib.a $(OBJS)
+
+libs:
+	(cd ../lib; make tasklib.a)
+	(cd ../../bpsd; make bpsdlib.a)
+
+w1 : $(LIBS) w1main.o
+	$(FCFREE) w1main.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) \
+           $(MODDIR) $(MODINCLUDE)
 
 clean:
-	-rm -f core ./*.o ./*~ ./\#*
-veryclean:
-	-rm -f w1 core ./*.o ./*~ ./\#*
+	-rm -f core ./*.o *.mod ./*~ ./\#* *.a $(MOD)/*.mod
+veryclean: clean
+	-rm -f w1 core
 
 w1main.o: w1comm.f w1main.f
 w1init.o: w1comm.f w1init.f
