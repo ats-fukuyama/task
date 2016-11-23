@@ -33,11 +33,11 @@ CONTAINS
 
     IF(NZMAX_save /= 0) CALL wim_deallocate
 
-    NLEN=3*NZMAX+7
+    NLEN=3*NZMAX+7   ! 3*(nzmax+1) + 4  (E on nodes and outgoing R and L)
     IF(NZMAX.EQ.NWMAX) THEN
        NWID=3*NZMAX+7
     ELSE
-       NWID=6*NWMAX+7
+       NWID=6*NWMAX+5  ! 2 * 3 * (NWMAX+1) -1
     END IF
 
     ALLOCATE(ZA(0:NZMAX))

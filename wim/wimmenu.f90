@@ -6,7 +6,8 @@ CONTAINS
 
   SUBROUTINE wim_menu
 
-    USE wimcomm,ONLY: ikind,rkind,wim_allocate,wim_deallocate,nzmax
+    USE wimcomm,ONLY: ikind,rkind,wim_allocate,wim_deallocate, &
+         nzmax,nwmax,modelp
     USE wimparm,ONLY: wim_parm,wim_view
     USE wimexec,ONLY: wim_exec
     USE wimgout,ONLY: wim_gout
@@ -17,6 +18,7 @@ CONTAINS
     CHARACTER(LEN=80) :: line
     INTEGER(ikind)    :: init=0
     INTEGER(ikind)    :: nzmax_save=0
+    INTEGER(ikind)    :: nwmax_save=0
 
 1   CONTINUE
     ierr=0
@@ -33,9 +35,13 @@ CONTAINS
     ELSEIF(kid.EQ.'V') THEN
        CALL wim_view
     ELSEIF(kid.EQ.'R') THEN
+       NWMAX_SAVE=NWMAX
+       IF(MODELP.EQ.0) NWMAX=1
        CALL wim_allocate
        nzmax_save=nzmax
        CALL wim_exec(ierr)
+       NWMAX=NWMAX_SAVE
+       NZMAX_SAVE=NZMAX
        INIT=1
     ELSEIF(kid.EQ.'G') THEN
        IF(INIT.EQ.0) THEN
