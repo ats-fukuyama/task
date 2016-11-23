@@ -32,8 +32,20 @@ C           200-299 : PROPAGATION  = COLD
 C                     POLARIZATION = COLD
 C                     ABSORPTION   = GIVEN MODEL
 C
-C           300-399 : PROPAGATION  = KINETIC
-C                     POLARIZATION = KINETIC
+C           300-399 : PROPAGATION  = KINETIC 4
+C                     POLARIZATION = GIVEN MODEL
+C                     ABSORPTION   = GIVEN MODEL
+C
+C           400-499 : PROPAGATION  = KINETIC 4
+C                     POLARIZATION = KINETIC 4
+C                     ABSORPTION   = GIVEN MODEL
+C
+C           500-599 : PROPAGATION  = KINETIC 6
+C                     POLARIZATION = GIVEN MODEL
+C                     ABSORPTION   = GIVEN MODEL
+C
+C           600-699 : PROPAGATION  = KINETIC 6
+C                     POLARIZATION = KINETIC 6
 C                     ABSORPTION   = GIVEN MODEL
 C
 C     MODELV : NUMERICAL MODEL (*: not yet implemented)
@@ -256,7 +268,8 @@ C
 C
       WRITE(6,100)
       DO NS=1,NSMAX
-        WRITE(6,110) NS,MODELP(NS),MODELV(NS),NDISP1(NS),NDISP2(NS),PMAX(NS)
+         WRITE(6,110) 
+     &       NS,MODELP(NS),MODELV(NS),NDISP1(NS),NDISP2(NS),PMAX(NS)
       ENDDO
       WRITE(6,601) 'RMIN  ',RMIN  ,'RMAX  ',RMAX
       WRITE(6,602) 'NPMAX ',NPMAX ,'NTHMAX',NTHMAX,

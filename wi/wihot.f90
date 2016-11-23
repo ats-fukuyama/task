@@ -333,15 +333,23 @@ CONTAINS
                         CP4=DX2*RKY2*(CU(1,KK-KD)-CI*CU(2,KK-KD)) &
                             *D0(I-NX,KK-NX)*D0(J-NN,KD-NN) &
                            +CU(1,KK-KD)*D1(I-NX,KK-NX)*D1(J-NN,KD-NN)
+                        CP1=-CI*CP1
+                        CP2=-CI*CP2
+                        CP3=-CI*CP3
+                        CP4=-CI*CP4
                         CPA=CWP(KD)*CWE(KK)*CWE(KD)*BETA &
-                            *(CONJG(CFY(ID+1))*(CP1*CFY(JD+1)+CP2*CFY(JD+2))  &
-                             +CONJG(CFY(ID+2))*(CP3*CFY(JD+1)+CP4*CFY(JD+2)))
+                            *(CONJG(CFY(ID+1))*(CP1*CFY(JD+1) &
+                                               +CP2*CFY(JD+2))  &
+                             +CONJG(CFY(ID+2))*(CP3*CFY(JD+1) &
+                                               +CP4*CFY(JD+2)))
                         CPB=CWP(KD)*CWE(KK)*CWE(KD)*BETA &
-                            *(CFY(ID+1)*CONJG(CP1*CFY(JD+1)+CP3*CFY(JD+2))  &
-                             +CFY(ID+2)*CONJG(CP2*CFY(JD+1)+CP4*CFY(JD+2)))
-                        CPOWER(NX  )=CPOWER(NX  )-CI*AD*0.5D0*(CPA-CPB)
-                        CPOWER(NX+1)=CPOWER(NX+1)-CI*BD*0.5D0*(CPA-CPB)
-                        PTOT=PTOT-REAL(CI*0.5D0*(CPA-CPB))
+                            *(CONJG(CFY(ID+1))*(CONJG(CP1)*CFY(JD+1) &
+                                               +CONJG(CP3)*CFY(JD+2))  &
+                             +CONJG(CFY(ID+2))*(CONJG(CP2)*CFY(JD+1) &
+                                               +CONJG(CP4)*CFY(JD+2)))
+                        CPOWER(NX  )=CPOWER(NX  )+AD*0.5D0*(CPA+CPB)
+                        CPOWER(NX+1)=CPOWER(NX+1)+BD*0.5D0*(CPA+CPB)
+                        PTOT=PTOT+REAL(0.5D0*(CPA+CPB))
                      END DO
                   END DO
                END DO

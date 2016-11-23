@@ -807,18 +807,29 @@ CONTAINS
                         +D1(I-MM,KI-MM)*D0(J-NN,KJ-NN)*DZJ*DMJ &
                         +D0(I-MM,KI-MM)*D0(J-NN,KJ-NN)*DZI*DZJ*(DMI*DMJ+DPM) 
                       DE=D0(I-MM,KI-MM)*D0(J-NN,KJ-NN)*DZI*DZJ
-                      CP1=-0.5D0*PN0*CI*X1*(CF1P*DP+CF1M*DM)
-                      CP2=-0.5D0*PN0    *X1*(CF1P*DP-CF1M*DM)
-                      CP3=-      PN0*CI*X4*(CF1Z*DE-X5*CF2Z*DE) 
+!                      CP1=-0.5D0*PN0*CI*X1*(CF1P*DP+CF1M*DM)
+!                      CP2=-0.5D0*PN0    *X1*(CF1P*DP-CF1M*DM)
+!                      CP3=-      PN0*CI*X4*(CF1Z*DE-X5*CF2Z*DE) 
+                      CP1= 0.5D0*PN0   *X1*(CF1P*DP+CF1M*DM)
+                      CP2=-0.5D0*PN0*CI*X1*(CF1P*DP-CF1M*DM)
+                      CP3=       PN0   *X4*(CF1Z*DE-X5*CF2Z*DE) 
                       CPA=CONJG(CE(ID+1))*( CP1*CE(JD+1)+CP2*CE(JD+2)) &
                          +CONJG(CE(ID+2))*(-CP2*CE(JD+1)+CP1*CE(JD+2)) &
                          +CONJG(CE(ID+3))*  CP3*CE(JD+3)
-                      CPB=CE(ID+1)*CONJG( CP1*CE(JD+1)-CP2*CE(JD+2)) &
-                         +CE(ID+2)*CONJG( CP2*CE(JD+1)+CP1*CE(JD+2)) &
-                         +CE(ID+3)*CONJG( CP3*CE(JD+3))
-                      CPWR(MM)  =CPWR(MM)  +CI*AD*0.5D0*(CPA+CPB)
-                      CPWR(MM+1)=CPWR(MM+1)+CI*BD*0.5D0*(CPA+CPB)
-                      CPTOT     =CPTOT     +CI   *0.5D0*(CPA+CPB)
+                      CPB=CONJG(CE(ID+1))*(CONJG( CP1)*CE(JD+1) &
+                                          +CONJG(-CP2)*CE(JD+2)) &
+                         +CONJG(CE(ID+2))*(CONJG( CP2)*CE(JD+1) &
+                                          +CONJG( CP1)*CE(JD+2)) &
+                         +CONJG(CE(ID+3))* CONJG( CP3)*CE(JD+3)
+!                      CPB=CE(ID+1)*CONJG( CP1*CE(JD+1)-CP2*CE(JD+2)) &
+!                         +CE(ID+2)*CONJG( CP2*CE(JD+1)+CP1*CE(JD+2)) &
+!                         +CE(ID+3)*CONJG( CP3*CE(JD+3))
+                      CPWR(MM)  =CPWR(MM)  +AD*0.5D0*(CPA+CPB)
+                      CPWR(MM+1)=CPWR(MM+1)+BD*0.5D0*(CPA+CPB)
+                      CPTOT     =CPTOT     +   0.5D0*(CPA+CPB)
+!                      CPWR(MM)  =CPWR(MM)  +AD*CPA
+!                      CPWR(MM+1)=CPWR(MM+1)+BD*CPA
+!                      CPTOT     =CPTOT     +   CPA
                    END DO
                 END DO
              END DO

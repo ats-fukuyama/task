@@ -1186,6 +1186,7 @@ c$$$         if(ns.eq.1.and.abs(th).lt.0.1)
 c$$$     &    write(6,'(a,2i5,1p5e12.4)') 'm,n,kpara:',
 c$$$     &         mm,nn,dble(ckpara),rho,babs,bsupth,bsupph
 
+      CALL pl_prof_old(rho)
       CALL dpcalc(cw,ckpara,ckperp,rho,babs,ns,fml)
 
       return

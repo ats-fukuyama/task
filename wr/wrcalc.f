@@ -291,33 +291,27 @@ C
          ENDDO
          YN(8,IT)=Y7-YM(7)
 
-         IF(MODELG.LE.10) THEN
-            CALL PL_MAG_OLD(YM(1),YM(2),YM(3),PSIN)
-            IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
-               RL  =YM(1)
-               PHIL=ASIN(YM(2)/(2.D0*PI*RR))
-               ZL  =YM(3)
-               RKRL=YM(4)
-            ELSE
-               RL  =SQRT(YM(1)**2+YM(2)**2)
-               PHIL=ATAN2(YM(2),YM(1))
-               ZL  =YM(3)
-               RKRL=(YM(4)*YM(1)+YM(5)*YM(2))/RL
-            ENDIF
-            RNPHI_IDEI= -YM(4)*VC/OMG*SIN(PHIL) + YM(5)*VC/OMG*COS(PHIL)
-            DELTA=DISPXR( YM(1), YM(2), YM(3), YM(4), YM(5), YM(6), OMG)
-            RKPARA=YM(4)*BNX+YM(5)*BNY+YM(6)*BNZ
-            RKPERP=SQRT((YM(4)*YM(4)+YM(5)*YM(5)+YM(6)*YM(6))-RKPARA**2)
-         ELSE
+         CALL PL_MAG_OLD(YM(1),YM(2),YM(3),PSIN)
+         IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
+            RL  =YM(1)
+            PHIL=ASIN(YM(2)/(2.D0*PI*RR))
+            ZL  =YM(3)
+            RKRL=YM(4)
+         ELSE IF(MODELG.EQ.11) THEN
             RL  =YM(1)
             PHIL=YM(2)
             ZL  =YM(3)
             RKRL=YM(4)
-            RNPHI_IDEI= YM(5)*VC/OMG
-            DELTA=DISPXR( YM(1), YM(2), YM(3), YM(4), YM(5), YM(6), OMG)
-            RKPARA=YM(4)*BNX+YM(5)*BNY+YM(6)*BNZ
-            RKPERP=SQRT((YM(4)*YM(4)+YM(5)*YM(5)+YM(6)*YM(6))-RKPARA**2)
-         END IF
+         ELSE
+            RL  =SQRT(YM(1)**2+YM(2)**2)
+            PHIL=ATAN2(YM(2),YM(1))
+            ZL  =YM(3)
+            RKRL=(YM(4)*YM(1)+YM(5)*YM(2))/RL
+         ENDIF
+         RNPHI_IDEI= -YM(4)*VC/OMG*SIN(PHIL) + YM(5)*VC/OMG*COS(PHIL)
+         DELTA=DISPXR( YM(1), YM(2), YM(3), YM(4), YM(5), YM(6), OMG)
+         RKPARA=YM(4)*BNX+YM(5)*BNY+YM(6)*BNZ
+         RKPERP=SQRT((YM(4)*YM(4)+YM(5)*YM(5)+YM(6)*YM(6))-RKPARA**2)
 C
          IF(MDLWRW.GE.1) THEN
             ID=0
@@ -397,6 +391,8 @@ C
       DO 10 IT = 1,ITMAX
          Y7=Y(7)
          CALL ODERK(7,WRFDRV,X0,XE,1,Y,YM,WORK)
+C         write(6,'(A,I5,1p2E12.4)') 
+C     &        'WRRKFT_WITHD0: IT,Y,YM=',IT,Y(1),YM(1)
 
          delta=DISPXR(YM(1),YM(2),YM(3),YM(4),YM(5),YM(6),OMG)
 CBGNIDEI_WRMOD		 
@@ -1055,6 +1051,7 @@ C
 C      WRITE(21,'(1P3E12.4)') X,DOMG,DS
 C      CALL GUFLSH
 C
+C      write(6,'(A,1P3E12.4)') 'WRFDRV: DOMG,DS,DKXP',DOMG,DS,DKXP
       VX   =-DKXP/DS
       VY   =-DKYP/DS
       VZ   =-DKZP/DS
@@ -1081,6 +1078,7 @@ C
 C      WRITE(6,'(A,1P6E12.4)') 'XY:',X,Y(1),Y(4),Y(5),Y(6),Y(7)
 C      WRITE(6,'(A,1P6E12.4)') 'F :',F(1),F(2),F(3),F(4),F(5),F(6)
 C      CALL GUFLSH
+C      write(6,'(A,1P3E12.4)') 'WRFDRV: X,Y(1),F(1)=',X,Y(1),F(1)
       RETURN
       END
 C
@@ -1169,7 +1167,7 @@ C
 C      WRITE(6,*) S,T,S/T
       RKR=RKRI-S/T
       IF(MDLWRW.NE.0) 
-     &     WRITE(6,'(A,1P3E12.4)') RKR,RKRI,-S/T
+     &     WRITE(6,'(A,1P3E12.4)') 'RKR,RKRI,-S/T=',RKR,RKRI,-S/T
 C
       IF(ABS((RKR-RKRI)/RKRI).LE.EPSNW) GOTO 9000
 C      WRITE(6,*) ABS((RKR-RKRI)/RKRI), RKR
@@ -1199,6 +1197,13 @@ C
          X=RP
          Y=2.D0*PI*RR*SIN(PHI)
          Z=ZP
+      ELSEIF(MODELG.EQ.11) THEN
+         CKX=DCMPLX(RKR,0.D0)
+         CKY=DCMPLX(RKPHI,0.D0)
+         CKZ=DCMPLX(RKZ,0.D0)
+         X=RP
+         Y=PHI
+         Z=ZP
       ELSE
          CKX=DCMPLX(RKR*COS(PHI)-RKPHI*SIN(PHI),0.D0)
          CKY=DCMPLX(RKR*SIN(PHI)+RKPHI*COS(PHI),0.D0)
@@ -1210,9 +1215,9 @@ C
 C            
       DO NS=1,NSMAX
          MODELPS(NS)=MODELP(NS)
-         IF(MODELP(NS).GE.10.AND.MODELP(NS).LT.30) MODELP(NS)=0
-         IF(MODELP(NS).GE.30.AND.MODELP(NS).LT.50) MODELP(NS)=4
-         IF(MODELP(NS).GE.50.AND.MODELP(NS).LT.60) MODELP(NS)=5
+         IF(MODELP(NS).GE.100.AND.MODELP(NS).LT.300) MODELP(NS)=0
+         IF(MODELP(NS).GE.300.AND.MODELP(NS).LT.500) MODELP(NS)=4
+         IF(MODELP(NS).GE.500.AND.MODELP(NS).LT.600) MODELP(NS)=6
       ENDDO
 C
       CF=CFDISP(CRF,CKX,CKY,CKZ,X,Y,Z)
@@ -1250,9 +1255,9 @@ C
 C            
       DO NS=1,NSMAX
          MODELPS(NS)=MODELP(NS)
-         IF(MODELP(NS).GE.10.AND.MODELP(NS).LT.30) MODELP(NS)=0
-         IF(MODELP(NS).GE.30.AND.MODELP(NS).LT.50) MODELP(NS)=4
-         IF(MODELP(NS).GE.50.AND.MODELP(NS).LT.60) MODELP(NS)=5
+         IF(MODELP(NS).GE.100.AND.MODELP(NS).LT.300) MODELP(NS)=0
+         IF(MODELP(NS).GE.300.AND.MODELP(NS).LT.500) MODELP(NS)=4
+         IF(MODELP(NS).GE.500.AND.MODELP(NS).LT.600) MODELP(NS)=6
       ENDDO
 C
 C      CF=CFDISP(CRF,CKX,CKY,CKZ,X,Y,Z)
