@@ -319,7 +319,8 @@ CONTAINS
 
     USE wimcomm,ONLY: rkind,CI,PN0,DBDZ,ANX,BETA,ZMIN,ZMAX,DZMAX,DZWID,ZA, &
                       CK,CV,CA1,CB1,CD1,CE1,CF1,CG1,CA2,CB2,CD2,CE2,CF2,CG2, &
-                      D0,D1,D2,D3
+                      D0,D1,D2,D3,NWID,NLEN
+    USE libgrf
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NZMAX,NWMAX,MODELW
     INTEGER:: NZMAX3,NBAND,NWMAX3R,NWMAX6,NWMAX3L, &
@@ -328,6 +329,8 @@ CONTAINS
                   VMI,VMJ,VVP,VVM,VVZ,X1,X4,X5,DPI,DMI,DPJ,DMJ,DPM,DP,DM,DE, &
                   VY,DS
     COMPLEX(rkind):: CIKX,CF1P,CF1M,CF2Z,CF1Z,CP1,CP2,CP3
+    REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: AKR,AKI
+    REAL(rkind),DIMENSION(:),ALLOCATABLE:: XX1,XX2
  
     RKX=ANX*BETA
     RKX2=RKX**2
@@ -472,6 +475,16 @@ CONTAINS
                       CK(JD+1-NBAND,ID+2)  =CK(JD+1-NBAND,ID+2)  -CP2 
                       CK(JD+2-NBAND,ID+2)  =CK(JD+2-NBAND,ID+2)  +CP1 
                       CK(JD+3-2*NBAND,ID+3)=CK(JD+3-2*NBAND,ID+3)+CP3 
+                      IF(MM.EQ.86) THEN
+                         IF(ABS(CP1).GT.1.D3.OR. &
+                            ABS(CP2).GT.1.D3.OR. &
+                            ABS(CP3).GT.1.D3) THEN
+                            WRITE(6,'(A,4I5)') &
+                                 'first:',KI,KJ,ID,JD
+                            WRITE(6,'(A,1P6E12.4)') &
+                                 '      ',CP1,CP2,CP3
+                         END IF
+                      END IF
                    END DO
                 END DO
              END DO
@@ -498,6 +511,9 @@ CONTAINS
                                    -DS*CI*PN0*YY*VY/(1.D0-VY*VY)
                 CK(JD+2-NBAND,ID+2)=CK(JD+2-NBAND,ID+2) &
                                    +DS*PN0*YY/(1.D0-VY*VY) 
+!                IF(MM.EQ.86) THEN
+!                   WRITE(6,'(A,4I5,1P2E12.4)') 'second:',I,J,ID,JD,YY,DS
+!                END IF
              END DO
           END DO
        END DO
@@ -527,6 +543,33 @@ CONTAINS
        CK(I1,3)=(1.D0,0.D0)
        CK(I2,4)=(1.D0,0.D0)
     ENDIF
+
+    ALLOCATE(AKR(NWID,NLEN),AKI(NWID,NLEN),XX1(NWID),XX2(NLEN))
+    DO J=1,NLEN
+       XX2(J)=REAL(J)
+    END DO
+    DO I=1,NWID
+       XX1(I)=REAL(I)
+    END DO
+    DO J=1,NLEN
+       DO I=1,NWID
+          AKR(I,J)=REAL(CK(I,J))
+          AKI(I,J)=IMAG(CK(I,J))
+       END DO
+    END DO
+    CALL pages
+       CALL GRD2D(0,XX1,XX2,AKR,NWID,NWID,NLEN,'@AKR@')
+    CALL pagee
+    CALL pages
+       CALL GRD2D(0,XX1,XX2,AKI,NWID,NWID,NLEN,'@AKI@')
+    CALL pagee
+    CALL pages
+       CALL GRD1D(1,XX1,AKR(1:NWID,261),NWID,NWID,1,'@AKR(*,261)@')
+       CALL GRD1D(2,XX1,AKR(1:NWID,262),NWID,NWID,1,'@AKR(*,262)@')
+       CALL GRD1D(3,XX1,AKR(1:NWID,263),NWID,NWID,1,'@AKR(*,263)@')
+    CALL pagee
+    WRITE(6,'(I,1P3E12.4)') (I,AKR(I,261),AKR(I,262),AKR(I,263),I=1,NWID)
+    
     RETURN
   END SUBROUTINE SUBCK2
 
@@ -536,7 +579,7 @@ CONTAINS
 
     USE wimcomm,ONLY: rkind,CI,PN0,DBDZ,ANX,BETA,ZMIN,ZMAX,DZMAX,DZWID,ZA, &
                       CK,CV,CA1,CB1,CD1,CE1,CF1,CG1,CA2,CB2,CD2,CE2,CF2,CG2, &
-                      D0,D1,D2,D3,PZCL 
+                      D0,D1,D2,D3,PZCL,NWID,NLEN
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NZMAX,NWMAX,MODELW
     INTEGER:: NZMAX3,NBAND,NWMAX3R,NWMAX6,NWMAX3L, &
@@ -556,8 +599,8 @@ CONTAINS
     NWMAX6=6*NWMAX
     NWMAX3L=3*NWMAX
 
-    DO I=1,NZMAX3+7
-       DO J=1,NWMAX6+7
+    DO I=1,NLEN
+       DO J=1,NWID
           CK(J,I)=(0.D0,0.D0)
        END DO
     END DO
