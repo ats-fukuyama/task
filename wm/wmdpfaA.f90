@@ -9,9 +9,9 @@ MODULE wmfa
  REAL(8) :: LBint,RBint
  INTEGER :: la,n,s,NTHv
  COMPLEX(8) :: Cp0N,Cv0N,ImCp0N
+ COMPLEX(8) :: CFfa
  REAL(8) :: PmaxN
-! REAL(8),PARAMETER :: PmaxN=7.D0
-
+! REAL(8),PARAMETER :: PmaxN=5.D0
 END MODULE wmfa
  
 ! ******************************************************
@@ -61,6 +61,7 @@ SUBROUTINE WMDPFAA(CW,RHOWM,RKPR,AE2N0,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
      RTA=RTFP0(3)*AEE*1.D3 !  T_thermal difinition ????
      VTA=SQRT(RTA/AM) ! VTA=SQRT(2.D0*RTA/AM) ???
      PTA=VTA*AM
+     CFfa=CW*1.D-6/(2.D0*PI) !???
      CX=ABS(RKPR)/(CW*AM)
      CPM1=(0.D0,0.D0)
      CPM2=(0.D0,0.D0)
@@ -69,7 +70,7 @@ SUBROUTINE WMDPFAA(CW,RHOWM,RKPR,AE2N0,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
      CRM1=(0.D0,0.D0)
      CRM2=(0.D0,0.D0)
 
-!  WRITE(6,'(1P5E12.4)') RTA,VTA,PTA,DELTH
+!  WRITE(6,'(1P5E12.4)') CFfa!RTA,VTA,PTA,DELTH
 
 ! distribution function from FP --------------------------
 ! DO NNP=1,100
@@ -141,9 +142,9 @@ SUBROUTINE WMDPFAA(CW,RHOWM,RKPR,AE2N0,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
         AR=TSNM(NTH)*TCSM(NTH)*TCSM(NTH)
 !-----PRICIPAL VALUE
 
-        IF((p0N.LT.5.D-4).OR.(p0N.GE.PmaxN-5.D-4)) THEN
-           LBi3=1.4D-3
-           RBi3=PmaxN-1.4D-3
+        IF((p0N.LT.0.5D0*DELP(3)).OR.(p0N.GE.PmaxN-0.5D0*DELP(3))) THEN
+           LBi3=DELP(3)
+           RBi3=PmaxN-DELP(3)
          CALL PVINT(1,3,CIP1)   ! 3 => INTEGRAL 0.14 < pN < 4.86
           CPM1=CPM1 + AP*CIP1
          CALL PVINT(2,3,CIP2)
@@ -181,7 +182,7 @@ SUBROUTINE WMDPFAA(CW,RHOWM,RKPR,AE2N0,CPM1,CPM2,CQM1,CQM2,CRM1,CRM2)
          CALL PVINT(4,2,CIQR2)
           CQM2=CQM2 + AQ*(CIQL2+CIQR2)
 
-         CALL PVINT(5,1,CIRL1)
+          CALL PVINT(5,1,CIRL1)
          CALL PVINT(5,2,CIRR1)
           CRM1=CRM1 + AR*(CIRL1+CIRR1)
          CALL PVINT(6,1,CIRL2)
@@ -274,7 +275,7 @@ SUBROUTINE PVINT(j,l,CINT)
  USE pllocal
  USE bpsd_constants,ONLY : CI,PI
  USE wmfa
- USE libde,ONLY : DEFTC
+! USE libde,ONLY : DEFTC
  USE libgrf
  INCLUDE '../dp/dpcomm.inc'
 ! IMPLICIT NONE
@@ -288,12 +289,13 @@ SUBROUTINE PVINT(j,l,CINT)
  INTEGER:: m
  REAL(8):: xg(0:1000),yg(0:1000)
   H0=0.5
-  EPS=1.D-4 !!!??
+  EPS=1.D-6 !!!??
   ILST=0
 
-   WRITE(LINE,'(3I5,1P5E12.4)') j,l,NTHv,p0N,RHO0
-!  IF(RHO0.GT.2.25D-1) ILST=1
-!ILST=1
+!   WRITE(6,'(1I5,1P5E12.4)') NTHv, RHO0, CWfa
+   WRITE(LINE,'(1I5,1P5E12.4)') NTHv,RHO0,CFfa,Cp0N
+!   WRITE(LINE,'(1P4E12.4)') j.l,Cp0N,LBint,RBint   
+!   IF(RHO0.GE.9.84D-1) ILST=1
    la=l
    IF(mod(j,2).EQ.1) THEN
     s=1
@@ -308,51 +310,37 @@ SUBROUTINE PVINT(j,l,CINT)
      RBint=RBi1
      ImCp0N=Cp0N-p0N
 
-!      IF(RHO0.GT.1.4D-1) THEN
-!      do m=0,100
-!        xg(m)=-9.999D-1+dble(m)/50
+     IF(s.EQ.1) THEN
+      CALL DEFTCFA(CINT,ES,H0,EPS,ILST,CFUNCpldp,KID='CFUNCpldp'//TRIM(LINE))
+     ELSE
+      CALL DEFTCFA(CINT,ES,H0,EPS,ILST,CFUNCpldr,KID='CFUNCpldr'//TRIM(LINE))
+     ENDIF
+
+!      IF(ILST.EQ.1) THEN
+!      WRITE(6,'(1I5,1P5E12.4)') NTHv, RHO0, CWfa, LBint, RBint
+!      do m=0,1000
+!        xg(m)=-9.999999999D-1+dble(m)/2000
 !        yg(m)=CFUNCpldp(xg(m),1.D0-xg(m),1.D0+xg(m))
 !      end do
 !      CALL pages
-!      CALL GRD1D(0,xg,yg,101,101,1,'CFUNCpldp')
+!      CALL GRD1D(0,xg,yg,1001,1001,1,'CFUNCpldp')
 !      CALL pagee
 !      ENDIF
-
-     IF(s.EQ.1) THEN
-      CALL DEFTC(CINT,ES,H0,EPS,ILST,CFUNCpldp,KID='CFUNCpldp'//TRIM(LINE))
-     ELSE
-      CALL DEFTC(CINT,ES,H0,EPS,ILST,CFUNCpldr,KID='CFUNCpldr'//TRIM(LINE))
-     ENDIF
 
    ELSEIF(l.EQ.2) THEN
      LBint=LBi2
      RBint=RBi2
 
-!     IF(RHO0.GT.9.4D-1) THEN
-!      do m=0,100
-!        xg(m)=-9.999D-1+dble(m)/50
-!        yg(m)=CFUNCdp(xg(m),1.D0-xg(m),1.D0+xg(m))
-!      end do
-!      CALL pages
-!      CALL GRD1D(0,xg,yg,101,101,1,'CFUNCdp')
-!      CALL pagee
-!     ENDIF
-
      IF(s.EQ.1) THEN
-      CALL DEFTC(CINT,ES,H0,EPS,ILST,CFUNCdp,KID='CFUNCdp'//TRIM(LINE))
+      CALL DEFTCFA(CINT,ES,H0,EPS,ILST,CFUNCdp,KID='CFUNCdp'//TRIM(LINE))
      ELSE
-      CALL DEFTC(CINT,ES,H0,EPS,ILST,CFUNCdr,KID='CFUNCdr'//TRIM(LINE))
+      CALL DEFTCFA(CINT,ES,H0,EPS,ILST,CFUNCdr,KID='CFUNCdr'//TRIM(LINE))
      ENDIF
 
-   ELSEIF(l.EQ.3) THEN
-!      ILST=1
-     LBint=LBi3
-     RBint=RBi3
-
-!     IF(RHO0.GT.9.6D-1) THEN
-!      WRITE(6,'(1I5,1P6E12.4)') NTHv, Cp0N
+!     IF(ILST.EQ.1) THEN
+!      WRITE(6,'(1I5,1P5E12.4)') NTHv, RHO0, CWfa, LBint, RBint
 !      do m=0,1000
-!        xg(m)=-9.999D-1+dble(m)/500
+!        xg(m)=-9.999999999D-1+dble(m)/2000
 !        yg(m)=CFUNCdp(xg(m),1.D0-xg(m),1.D0+xg(m))
 !      end do
 !      CALL pages
@@ -360,15 +348,44 @@ SUBROUTINE PVINT(j,l,CINT)
 !      CALL pagee
 !     ENDIF
 
+   ELSEIF(l.EQ.3) THEN
+!      ILST=1
+     LBint=LBi3
+     RBint=RBi3
+
      IF(s.EQ.1) THEN
-      CALL DEFTC(CINT,ES,H0,EPS,ILST,CFUNCdp,KID='CFUNCdp'//TRIM(LINE))
+      CALL DEFTCFA(CINT,ES,H0,EPS,ILST,CFUNCdp,KID='CFUNCdp'//TRIM(LINE))
      ELSE
-      CALL DEFTC(CINT,ES,H0,EPS,ILST,CFUNCdr,KID='CFUNCdr'//TRIM(LINE))
+      CALL DEFTCFA(CINT,ES,H0,EPS,ILST,CFUNCdr,KID='CFUNCdr'//TRIM(LINE))
      ENDIF
+
+!     IF(ILST.GT.1) THEN
+!      WRITE(6,'(1I5,1P5E12.4)') NTHv, RHO0, CWfa, LBint, RBint
+!      do m=0,1000
+!        xg(m)=-9.999999999D-1+dble(m)/2000
+!        yg(m)=CFUNCdp(xg(m),1.D0-xg(m),1.D0+xg(m))
+!      end do
+!      CALL pages
+!      CALL GRD1D(0,xg,yg,1001,1001,1,'CFUNCdp')
+!      CALL pagee
+!     ENDIF
 
    ELSE
     RETURN
    ENDIF
+
+!===Check convergence
+!     IF(ILST.NE.0) THEN       
+!      WRITE(6,'(1I5,1P5E12.4)') NTHv, RHO0, CWfa, LBint, RBint
+!      do m=0,1000
+!        xg(m)=-9.999999999D-1+dble(m)/500
+!        yg(m)=CFUNCdr(xg(m),1.D0-xg(m),1.D0+xg(m))
+!      end do
+!      CALL pages
+!      CALL GRD1D(0,xg,yg,1001,1001,1,'CFUNCdr')
+!      CALL pagee
+!     ENDIF
+!===Check convergence
 
  CONTAINS
 
@@ -402,11 +419,8 @@ SUBROUTINE PVINT(j,l,CINT)
 
     CALL SPL2DD(paN,RHO0,fax,DFPax,DFRax,PMa0,RHOa0,&
          US(1:4,1:4,1:NPM,1:NRM,NTHv),NPM,NPMAX+2,NRMAXFP+2,IERR)
-!   WRITE(6,'(1I5,1P6E12.4)') la,p0N,paN,RHO0,fax,DFPax,DFRax
 
       CFUNCdr=A0*DFRax*(paN**n)/(1-paN/Cp0N)
-! WRITE(6,'(2I5,1P6E12.4)') NTHv,la,p0N,x,xm,xp,CFUNCdr
-! WRITE(6,'(1P5E12.4)') A0,DFRax,paN,Cp0N
  END FUNCTION CFUNCdr
 
  FUNCTION CFUNCpldp(x,xm,xp)
@@ -461,5 +475,138 @@ SUBROUTINE PVINT(j,l,CINT)
 
  END FUNCTION CFUNCpldr
 
-END SUBROUTINE PVINT
+!END SUBROUTINE PVINT
 
+!     ************************************************************
+!        FINITE INTEGRAL BY DOUBLE-EXPONENTIAL FORMULA
+!                    (-1.D0, +1.D0)
+!         INTEGRAND SHOULD BE DEFINED BY FUNC(X,1-X,1+X)
+!     ************************************************************
+!
+!        For integral with respect to y from a to b,
+!            variable transformation should be
+!                 x = (2*y-a-b)/(b-a)
+!
+!                 near y ~ a   y-a=(b-a)*(1+x)/2
+!                 near y ~ b   b-y=(b-a)*(1-x)/2
+!                 otherwize      y=(b-a)*x/2+(a+b)/2
+
+ SUBROUTINE DEFTCFA(CS,ES,H0,EPS,ILST,CFUNC,KID)
+    IMPLICIT NONE
+    COMPLEX(8),INTENT(OUT):: CS   ! Integral
+    REAL(8),INTENT(OUT):: ES   ! Estimated error 
+    REAL(8),INTENT(IN)::  H0   ! Initial step size
+    REAL(8),INTENT(IN)::  EPS  ! Convergence thrshold
+    INTEGER,INTENT(INOUT)::  ILST ! print out control: 0 for no print out
+    INTERFACE
+       FUNCTION CFUNC(X,XM,XP)
+         COMPLEX(8):: CFUNC
+         REAL(8),INTENT(IN):: X,XM,XP
+       END FUNCTION CFUNC
+    END INTERFACE
+    CHARACTER(LEN=*),INTENT(IN),OPTIONAL:: KID   ! function identifier string
+    REAL(8),PARAMETER:: HP=1.5707963267948966192D0
+
+    COMPLEX(8):: CSI,CSP,CT
+    REAL(8):: EPS1,H,X,ATP,ATM,HN,HC,HS,CC,XM,XP,AT
+    INTEGER:: NP,NM,NPMIN,NMMIN,IND,NPD,NMD,NMAX
+
+      EPS1=EPS**0.75D0
+      H=H0
+      X=0.D0
+      CSI=HP*CFUNC(X,1.D0-X,1.D0+X)
+      CS=H*CSI
+      CSP=0.D0
+      NP=0
+      NM=0
+      NPMIN=1
+      NMMIN=1
+
+    1 IND=0
+      ATP=ABS(CSI)
+      ATM=ATP
+      NPD=2
+      IF(NP.EQ.0) NPD=1
+      NMD=2
+      IF(NM.EQ.0) NMD=1
+
+   10 IF(IND.NE.1) THEN
+         IF(NP.EQ.NPMIN+2) NPD=1
+         NP=NP+NPD
+         HN=DBLE(NP)*H
+         HC=HP*H*COSH(HN)
+         HS=HP*SINH(-HN)
+         X=TANH(HS)
+         CC=1.D0/COSH(HS)
+         XM=CC*EXP(-HS)
+         XP=CC*EXP( HS)
+         CT=HC*CFUNC(X,XM,XP)*CC*CC
+         CS=CS+CT
+         AT=ATP
+         ATP=ABS(CT)/H
+         IF(NP.GE.NPMIN) THEN
+            IF(AT+ATP.LE.EPS1*ABS(CS)) THEN
+               IF(IND.EQ.-1) GO TO 100
+               IND=1
+            ENDIF
+         ENDIF
+      ENDIF
+
+      IF(IND.NE.-1) THEN
+         IF(NM.EQ.NMMIN+2) NMD=1
+         NM=NM+NMD
+         HN=DBLE(NM)*H
+         HC=HP*H*COSH(HN)
+         HS=HP*SINH( HN)
+         X=TANH(HS)
+         CC=1.D0/COSH(HS)
+         XM=CC*EXP(-HS)
+         XP=CC*EXP( HS)
+         CT=HC*CFUNC(X,XM,XP)*CC*CC
+         CS=CS+CT
+         AT=ATM
+         ATM=ABS(CT)/H
+         IF(NM.GE.NMMIN) THEN
+            IF(AT+ATM.LE.EPS1*ABS(CS)) THEN
+               IF(IND.EQ.1) GO TO 100
+               IND=-1
+            ENDIF
+         ENDIF
+      ENDIF
+      GO TO 10
+
+  100 ES=ABS(CS-CSP)
+      IF(ILST.NE.0) THEN
+         IF(H.GE.H0) WRITE(6,601) H,NP,NM,CS
+         IF(H.LT.H0) WRITE(6,602) H,NP,NM,CS,ES
+      ENDIF
+      CSP=CS
+      IF(ES.LE.EPS1*ABS(CS)) GO TO 200
+      NMAX=MAX0(NP,NM)
+      IF(NMAX.GT.1000) THEN
+         WRITE(6,603) TRIM(KID)
+         IF(ABS(CS).LT.1.D-20) THEN
+            CS=(0.D0,0.D0)
+            GO TO 200            
+         ELSE
+            GO TO 9999
+         ENDIF
+      ENDIF
+      H=0.5D0*H
+      CS=0.5D0*CS
+      NPMIN=NP*2-1
+      NMMIN=NM*2-1
+      NP=-1
+      NM=-1
+      GO TO 1
+
+  200 RETURN
+
+  501 FORMAT(A1)
+  601 FORMAT(1H ,1PD13.5,2I8,1PD24.15)
+  602 FORMAT(1H ,1PD13.5,2I8,1PD24.15,1PD14.5)
+  603 FORMAT(1H ,'XX DEFT: NMAX EXCEEDS 1000: FUNC=',A)
+ 9999 STOP
+ END SUBROUTINE DEFTCFA
+
+END SUBROUTINE PVINT

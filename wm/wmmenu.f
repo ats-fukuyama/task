@@ -25,6 +25,7 @@ C
      &      'G,Y/GRAPH T/TAE O/OUT S,W/SAVE Q/QUIT')
             CALL TASK_KLIN(LINE,KID,MODE,WMPARM)
          ENDIF
+         CALL DPPREP(NTHMAX,NRMAX+1,XRHO(1),XRHO(NRMAX+1),RR,IERR) !=====
          CALL MPBCIA(MODE)
          IF(MODE.EQ.2) CALL WMPRBC
       IF(MODE.NE.1) GOTO 1
@@ -39,6 +40,7 @@ C
             KID=' '
          ELSE IF(KID.EQ.'V') THEN
             IF(NRANK.EQ.0) CALL WMVIEW
+            CALL DPPREP(NTHMAX,NRMAX+1,XRHO(1),XRHO(NRMAX+1),RR,IERR) !=====
             CALL MPSYNC
             KID=' '
 C
@@ -55,7 +57,8 @@ C        *** AMPLITUDE SURVEY ***
 C
       ELSEIF(KID.EQ.'D') THEN
 C         CALL plfile_prof_read(modeln,modelq,ierr)
-         READ(LINE(2:),*,ERR=1,END=1) NID
+         IF(NRANK.EQ.0) READ(LINE(2:),*,ERR=1,END=1) NID
+         CALL MPBCIA(NID)
          IF(NID.EQ.0) THEN
             CALL WMAM0D(KID,LINE)
          ELSEIF(NID.EQ.1) THEN

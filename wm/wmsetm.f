@@ -54,9 +54,9 @@ C
       DIMENSION CGP12(MDM,NDM),CGP13(MDM,NDM)
       DIMENSION CDVM(3,3),CDVC(3,3),CDVP(3,3)
 C
-         IF(NR.EQ.NBST) THEN
+         IF(NR.EQ.1) THEN
 C
-            CALL WMSETF(NBST,0)
+            CALL WMSETF(1,0)
 C
             DO KDX=1,KDSIZ
                DO LDX=1,LDSIZ
@@ -83,7 +83,7 @@ C
             ENDDO
             ENDDO
 C
-            CALL WMSETF(NBST+1,0)
+            CALL WMSETF(2,0)
 C
          ENDIF
 C

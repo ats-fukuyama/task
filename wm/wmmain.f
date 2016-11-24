@@ -17,15 +17,6 @@ C
 C
       CALL mtx_initialize
 
-C      IF(NSIZE.LT.NCPUMIN) THEN
-C         WRITE(6,*) 'XX NSIZE.LT.NCPUMIN :',NSIZE,'.LT.',NCPUMIN
-C         STOP
-C      ENDIF
-C      IF(NSIZE.GT.NCPUMAX) THEN
-C         WRITE(6,*) 'XX NSIZE.GT.NCPUMAX :',NSIZE,'.GT.',NCPUMAX
-C         STOP
-C      ENDIF
-C
       IF(NRANK.EQ.0) THEN
          WRITE(6,*) '##### /TASK/WM  05/06/22 #####'
          CALL GSOPEN

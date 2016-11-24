@@ -29,13 +29,13 @@ SUBROUTINE WMDPFA(CX,CFN,COEF,RHOR,CPM,CQM,CRM,MODEFA)
   IF(MODEFA.EQ.1) THEN
 !---use libdsp-plasma dispersion function Z
      CALL DSPFN(CX,Zf,DZf)
-     SUMf=SQRT(PI)*Zf
-     CPM=-CFN*COEF*RHOR*RHOR*(CX*(5.D-1+CX*CX+CX*CX*CX*CX)*SUMf &
-                            +CX*CX*(1.5D0+CX*CX)*SQRT(PI))*4.D0*CI/PI
-     CQM=-CFN*COEF*RHOR*     (CX*CX*(5.D-1+CX*CX)*SUMf &
-                            +CX*(1.D0+CX*CX)*SQRT(PI))*4.D0*CI/PI
-     CRM=-CFN*COEF*         ((CX*CX*CX)*SUMf &
-                            +(CX*CX)*SQRT(PI))*4.D0*CI/PI
+     SUMf=Zf
+     CPM=-CFN*(CI*COEF/SQRT(PI))*RHOR*RHOR*(CX*(5.D-1+CX*CX+CX*CX*CX*CX)*SUMf &
+                            +CX*CX*(1.5D0+CX*CX))*2.D0
+     CQM=-CFN*(CI*COEF/SQRT(PI))*RHOR*     (CX*CX*(5.D-1+CX*CX)*SUMf &
+                            +CX*(1.D0+CX*CX))*2.D0
+     CRM=-CFN*(CI*COEF/SQRT(PI))*         ((CX*CX*CX)*SUMf &
+                            +(CX*CX))*2.D0
 !---           
   ELSE
 !--suuchisekibunn
