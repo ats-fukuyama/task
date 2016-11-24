@@ -706,9 +706,15 @@
          DTPM=0.5D0*DTPM
          DTTM=0.5D0*DTTM
       ENDIF
-      RL=RM(NR)
-      DRRM=RG(NR  )
-      DRRP=RG(NR+1)
+      IF(MODELA.eq.0)THEN
+         RL=RM(NR)
+         DRRM=RG(NR  )
+         DRRP=RG(NR+1)
+      ELSE
+         RL=1.D0
+         DRRM=1.D0
+         DRRP=1.D0
+      END IF
       IF(NTBM.NE.0) THEN
          DRRM=0.5D0*DRRM
       ENDIF
@@ -755,8 +761,8 @@
          IF(NR.NE.1) THEN
             NL=NL+1
             LL(NM,NL)=NMA(NTH,NP,NR-1)
-            AL(NM,NL)=DRR(NTH  ,NP  ,NR,NSA)    *DIVDRR*DRRM &
-                     +FRR(NTH  ,NP  ,NR,NSA)*WRM*DIVFRR*DRRM 
+            AL(NM,NL)=DRR(NTH  ,NP  ,NR,NSA)    *DIVDRR*DRRM&
+                     +FRR(NTH  ,NP  ,NR,NSA)*WRM*DIVFRR*DRRM
             IF(ABS(AL(NM,NL)).LT.1.D-70) THEN
                LL(NM,NL)=0
                AL(NM,NL)=0.D0
@@ -765,8 +771,8 @@
             IF(NTBM.NE.0) THEN
                NL=NL+1
                LL(NM,NL)=NMA(NTBM,NP,NR-1)
-               AL(NM,NL)=DRR(NTBM ,NP  ,NR,NSA)     *DIVDRR*DRRM &
-                        +FRR(NTBM ,NP  ,NR,NSA)*WRBM*DIVFRR*DRRM 
+               AL(NM,NL)=DRR(NTBM ,NP  ,NR,NSA)     *DIVDRR*DRRM&
+                        +FRR(NTBM ,NP  ,NR,NSA)*WRBM*DIVFRR*DRRM
                IF(ABS(AL(NM,NL)).LT.1.D-70) THEN
                   LL(NM,NL)=0
                   AL(NM,NL)=0.D0
@@ -774,7 +780,7 @@
                ENDIF
             ENDIF
          ENDIF
-      ENDIF
+      ENDIF ! MODELD
 
       IF(NP.NE.1.AND.NTH.NE.1) THEN
          NL=NL+1
@@ -929,8 +935,8 @@
          IF(NR.NE.NRMAX) THEN
             NL=NL+1
             LL(NM,NL)=NMA(NTH,NP,NR+1)
-            AL(NM,NL)=DRR(NTH  ,NP  ,NR+1,NSA)    *DIVDRR*DRRP &
-                     -FRR(NTH  ,NP  ,NR+1,NSA)*VRP*DIVFRR*DRRP 
+            AL(NM,NL)=DRR(NTH  ,NP  ,NR+1,NSA)    *DIVDRR*DRRP&
+                     -FRR(NTH  ,NP  ,NR+1,NSA)*VRP*DIVFRR*DRRP
             IF(ABS(AL(NM,NL)).LT.1.D-70) THEN
                LL(NM,NL)=0
                AL(NM,NL)=0.D0
@@ -981,16 +987,14 @@
 
       IF(MODELD.GT.0) THEN
          DL(NM)= DL(NM) &
-              -DRR(NTH  ,NP  ,NR+1,NSA)    *DIVDRR*DRRP &
-              -FRR(NTH  ,NP  ,NR+1,NSA)*WRP*DIVFRR*DRRP &
-              -DRR(NTH  ,NP  ,NR  ,NSA)    *DIVDRR*DRRM &
-              +FRR(NTH  ,NP  ,NR  ,NSA)*VRM*DIVFRR*DRRM 
+              -DRR(NTH  ,NP  ,NR+1,NSA)    *DIVDRR*DRRP&
+              -FRR(NTH  ,NP  ,NR+1,NSA)*WRP*DIVFRR*DRRP&
+              -DRR(NTH  ,NP  ,NR  ,NSA)    *DIVDRR*DRRM&
+              +FRR(NTH  ,NP  ,NR  ,NSA)*VRM*DIVFRR*DRRM
          IF(NTBM.ne.0)THEN
             DL(NM)= DL(NM) &
                  -DRR(NTBM ,NP  ,NR  ,NSA)    *DIVDRR*DRRM &
-                               *RLAMDAG(NTBM,NR) &
-                 +FRR(NTBM ,NP  ,NR  ,NSA)*VRM*DIVFRR*DRRM &
-                               *RLAMDAG(NTBM,NR)
+                 +FRR(NTBM ,NP  ,NR  ,NSA)*VRM*DIVFRR*DRRM 
          END IF
 !            IF(NR.NE.NRMAX) THEN
 !               DL(NM)= DL(NM) &
@@ -1027,14 +1031,14 @@
                 +SPPF(NTH,NP,NR,NSA) &
                 +SPPS(NTH,NP,NR,NSA) &
                 +SPPL(NTH,NP,NR,NSA) &
-                +SPPI(NTH,NP,NR,NSA) )
+                +SPPI(NTH,NP,NR,NSA) ) 
 
       IF(MODELD.GT.0.AND.NR.EQ.NRMAX) THEN
          SPPD(NTH,NP,NSA)= FS2(NTH,NP,NSA) &
               *(DRR(NTH,NP,NR+1,NSA)    *DIVDRR &
                -FRR(NTH,NP,NR+1,NSA)*VRP*DIVFRR)*DRRP
          SPP(NTH,NP,NR,NSA) = SPP(NTH,NP,NR,NSA) &
-              + SPPD(NTH,NP,NSA)
+              + SPPD(NTH,NP,NSA) 
       ENDIF
 
 !         IF(NP.NE.NPMAX) THEN

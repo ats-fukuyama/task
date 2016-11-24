@@ -323,6 +323,7 @@
          END DO
       END IF
 
+! e-e collision time
       DO NSA=1,NSAMAX
          DO NR=NRSTART, NREND
             IF(MODEL_IMPURITY.eq.0)THEN
@@ -341,7 +342,7 @@
       END DO
 
       CALL mtx_set_communicator(comm_nr)
-      call mtx_allgather_real8(LNL_L,NREND-NRSTART+1,LNL_G)
+      call mtx_allgather_real8(LNL_L,NREND-NRSTART+1,LNL_GL)
 
       CALL mtx_set_communicator(comm_nsanr)
       NSW=NSAEND-NSASTART+1
@@ -355,10 +356,10 @@
       DO NR=1,NRMAX
          ER_drei(NR)=SQRT(RT_quench(NR)*1.D3*AEE*AMFP(1))/(ABS(AEFP(1))*POST_tau_ta(NR,1) )
          ER_crit(NR)=ER_drei(NR)*RT_quench(NR)*1.D3*AEE/(AMFP(1)*VC*VC) &
-              /lnL_G(NR)*lnL_ED  ! lnL for knock on collision
+              /lnl_gl(NR)*lnL_ED  ! lnL for knock on collision
 
 !         ER_drei(NR)=SQRT(RT_quench(NR)*1.D3*AEE*AMFP(1))/(ABS(AEFP(1))*POST_tau_ta(NR,1) ) &
-!              /lnL_G(NR)*lnL_ED ! lnL for fixed value
+!              /lnl_gl(NR)*lnL_ED ! lnL for fixed value
 !         ER_crit(NR)=ER_drei(NR)*RT_quench(NR)*1.D3*AEE/(AMFP(1)*VC*VC) ! SWITCH
       END DO
 
@@ -523,8 +524,9 @@
       neoc=(1.D0-phi)*(1.D0-C_*phi)*(1.D0+0.47D0*(Z_i-1.D0))/ &
            (Z_i*(1.D0+0.27D0*(Z_i-1.D0)) )
 
-      sigma=sigma*neoc
-!      sigma=sigma*1.D0
+      neoc=( 1.D0-SQRT(EPSRM2(NR)) )**2 ! simple correction
+!      sigma=sigma*neoc
+      sigma=sigma*1.D0
 !      WRITE(*,'(2I,6E14.6)') NRANK, NR, SIGMA, neoc, Z_i, phi, tau_rela, POST_LNLAM(NR,1,1)
 
       END SUBROUTINE SPITZER_SIGMA
@@ -1526,7 +1528,12 @@
             EM_W(NR)=E1(NR)
          END IF
       END DO
-      IF(TIMEFP.ge.time_quench_start) CALL Tquench_trans
+
+      IF(TIMEFP.ge.time_quench_start) CALL Tquench_trans ! evolution of temperature
+      IF(MODEL_IMPURITY.eq.1.and.TIMEFP.le.tau_mgi)THEN ! evolution of electron density
+         CALL MGI_DENSITY 
+      END IF
+
       CALL set_post_disrupt_Clog
       DO NR=NRSTART,NREND
          CALL SPITZER_SIGMA(NR,sigma)
@@ -1735,6 +1742,9 @@
       
 ! re_pitch
       WRITE(15,'(1P128E15.6e3)') TIMEFP, (RE_PITCH(NTH), NTH=1,NTHMAX)
+
+! e-e collision time: taus = 0.5*tau_ee
+      WRITE(23,'(1P128E15.6e3)') TIMEFP, (POST_tau_ta(NR,1), NR=1,NRMAX)
 
 
       END IF

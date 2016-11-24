@@ -126,6 +126,10 @@
       BP= RSRHON(RHON)*BT/(RR*QL)
       EPSRM(NRMAX+1)=RSRHON(RHON)/RR
       BPM(NRMAX+1)= RSRHON(RHON)*BT/(RR*QL)
+      IF(NRANK.eq.0) &
+           write(6,'(A,I5,1P5E12.4)') 'nr,rm,rsrhon,epsrm,bpm,ql=', &
+           NRMAX+1,RM(NRMAX)+DELR,RSRHON(RHON),EPSRM(NRMAX+1),BPM(NRMAX+1),QLM(NRMAX+1)
+
 !      IF(NRANK.eq.0) WRITE(*,*) "BP=", BP
       DO NR=1,NRMAX+1
          RHON=RG(NR)
@@ -284,24 +288,33 @@
                ETAM(NTH,NR)=PI*0.5D0
                RLAMDA(NTH,NR)=1.D0
                RLAMDC(NTH,NR)=1.D0
-               ETAM_G(NTH,NR)=PI*0.5D0
-               RLAMDA_G(NTH,NR)=1.D0
                RLAMDC_G(NTH,NR)=1.D0
             ENDDO
             DO NTH=1,NTHMAX+1
-               ETAG(NTH,NR)=PI/2.D0
-               ETAG_G(NTH,NR)=PI/2.D0
+               ETAG_RG(NTH,NR)=PI/2.D0
             ENDDO
          ENDDO
+!
+         DO NR=NRSTART,NRENDWG
+            DO NTH=1,NTHMAX
+               ETAM_RG(NTH,NR)=PI*0.5D0
+               RLAMDA_RG(NTH,NR)=1.D0
+            END DO
+            DO NTH=1,NTHMAX+1
+               ETAG_RG(NTH,NR)=PI/2.D0
+            ENDDO
+         END DO
 
          DO NTH=1, NTHMAX
-            RLAMDA_GG(NTH,NRMAX+1)=1.D0
+            RLAMDAG_RG(NTH,NRMAX+1)=1.D0
+            RLAMDA_NRMAXP1(NTH)=1.D0
          END DO
          DO NR=1,NRMAX+1
             RFSADG(NR)=1.D0
-            RFSAD_GG(NR)=1.D0
+            RFSADG_RG(NR)=1.D0
          END DO
       ELSE
+         RLAMDA_NRMAXP1(:)=0.D0
          DO NR=1,NRMAX+1
             CALL SET_RFSAD(NR)
          END DO
@@ -312,18 +325,6 @@
       allocate(work(nrstart:nrend),workg(NRMAX))
 
       CALL mtx_set_communicator(comm_nr)
-      DO NTH=1,NTHMAX
-         DO NR=NRSTART,NREND
-            work(NR)=RLAMDA(NTH,NR)
-         ENDDO
-         CALL mtx_allgatherv_real8(work(NRSTART:NREND),MTXLEN(NRANK+1), &
-                                   workg,NRMAX,MTXLEN,MTXPOS)
-         DO NR=1,NRMAX
-            RLAMDAG(NTH,NR)=workg(NR)
-         ENDDO
-         RLAMDAG(NTH,NRMAX+1)=RLAMDAG(NTH,NRMAX)
-      ENDDO
-      
       DO NTH=1,NTHMAX
          DO NR=NRSTART,NREND
             work(NR)=ETAM(NTH,NR)
@@ -337,31 +338,44 @@
 
       DO NTH=1,NTHMAX
          DO NR=NRSTART,NREND
-            work(NR)=RLAMDA_G(NTH,NR)
+            work(NR)=RLAMDA(NTH,NR)
          ENDDO
          CALL mtx_allgatherv_real8(work(NRSTART:NREND),MTXLEN(NRANK+1), &
                                    workg,NRMAX,MTXLEN,MTXPOS)
          DO NR=1,NRMAX
-            RLAMDA_GG(NTH,NR)=workg(NR)
+            RLAMDAG(NTH,NR)=workg(NR)
+         ENDDO
+         RLAMDAG(NTH,NRMAX+1)=RLAMDA_NRMAXP1(NTH)
+      ENDDO
+      
+      DO NTH=1,NTHMAX
+         DO NR=NRSTART,NREND
+            work(NR)=ETAM_RG(NTH,NR)
+         ENDDO
+         CALL mtx_allgatherv_real8(work(NRSTART:NREND),MTXLEN(NRANK+1), &
+                                   workg,NRMAX,MTXLEN,MTXPOS)
+         DO NR=1,NRMAX
+            ETAMG_RG(NTH,NR)=workg(NR)
          ENDDO
       ENDDO
 
       DO NTH=1,NTHMAX
          DO NR=NRSTART,NREND
-            work(NR)=ETAM_G(NTH,NR)
+            work(NR)=RLAMDA_RG(NTH,NR)
          ENDDO
          CALL mtx_allgatherv_real8(work(NRSTART:NREND),MTXLEN(NRANK+1), &
                                    workg,NRMAX,MTXLEN,MTXPOS)
          DO NR=1,NRMAX
-            ETAM_GG(NTH,NR)=workg(NR)
+            RLAMDAG_RG(NTH,NR)=workg(NR)
          ENDDO
       ENDDO
+
       CALL mtx_reset_communicator
 
       IF(MODELA.eq.1)THEN
       IF(NRANK.eq.0)THEN
       open(8,file='RLAMDAG.dat')
-      DO NR =1, NRMAX
+      DO NR =1, NRMAX+1
          DO NTH=1,NTHMAX
             WRITE(8,'(2I4, 4E14.6)') NR, NTH, COSM(NTH), RLAMDAG(NTH,NR), RFSADG(NR)
          END DO
@@ -369,7 +383,24 @@
          WRITE(8,*) " "
       END DO
       close(8)
+      open(8,file='RLAMDAG_RG.dat')
+      DO NR =1, NRMAX+1
+         DO NTH=1,NTHMAX
+            WRITE(8,'(2I4, 4E14.6)') NR, NTH, COSM(NTH), RLAMDAG_RG(NTH,NR), RFSADG_RG(NR)
+         END DO
+         WRITE(8,*) " "
+         WRITE(8,*) " "
+      END DO
+      close(8)
       END IF
+      END IF
+
+      IF(NREND.eq.NRMAX)THEN
+         open(8,file='RLAMDA_RG_MAX.dat')
+         DO NTH=1, NTHMAX
+            WRITE(8,'(2I4, 4E14.6)') NRMAX+1, NTH, COSM(NTH), RLAMDA_RG(NTH,NRMAX+1), RFSADG_RG(NRMAX+1)
+         END DO
+         CLOSE(8)
       END IF
 
 !      IF(NRANK.eq.0)THEN
@@ -748,144 +779,6 @@
 
       END SUBROUTINE FNSP_INIT_EDGE
 !-------------------------------------------------------------
-      SUBROUTINE fp_set_bounceaverage_param
-
-      USE libmtx
-      IMPLICIT NONE
-      INTEGER:: NTH, NP, NR, NSA, NSB, NSBA
-      real(kind8):: RSUM1,RSUM2,RSUM3,RSUM4,RSUM5,RSUM6
-      real(kind8),DIMENSION(:),POINTER:: work,workg
-
-      CALL mtx_set_communicator(comm_np) 
-      IF(MODELA.eq.1)THEN
-         NSB=NSASTART ! arbitrary
-         DO NR=NRSTART,NREND
-            RSUM1=0.D0
-            RSUM2=0.D0
-            RSUM3=0.D0
-            RSUM4=0.D0
-            DO NTH=1,NTHMAX
-               RSUM1 = RSUM1+RLAMDAG(NTH,NR)/RFSADG(NR)*SINM(NTH)*DELTH
-               RSUM2 = RSUM2+SINM(NTH)*DELTH
-               RSUM3 = rsum3+RLAMDA_GG(NTH,NR)/RFSAD_GG(NR)*SINM(NTH)*DELTH
-               RSUM4 = rsum4+SINM(NTH)*DELTH
-            END DO
-            IF(RSUM1.EQ.0.D0) &
-                 WRITE(6,'(1P3E12.4)') VOLP(1,1,NSB),FNSP(1,1,1,NSB),RLAMDA(1,1)
-
-            RCOEFN(NR)=1.D0
-            RCOEFN_G(NR)=1.D0
-         END DO
-      ELSE
-         DO NR=NRSTART,NREND
-            RCOEFN(NR)=1.D0
-            RCOEFN_G(NR)=1.D0
-         ENDDO
-      END IF
-
-!
-      IF(MODELA.eq.1)THEN
-         NSBA=NSASTART
-         RSUM1=0.D0
-         RSUM2=0.D0
-         RSUM3=0.D0
-         RSUM4=0.D0
-         RSUM5=0.D0
-         RSUM6=0.D0
-         DO NTH=1,NTHMAX
-            RSUM1 = RSUM1+RLAMDA_GG(NTH,1)/RFSAD_GG(1)*SINM(NTH)*DELTH
-            RSUM2 = RSUM2+SINM(NTH)*DELTH
-            RSUM3 = RSUM3+RLAMDA_GG(NTH,NRMAX+1)/RFSAD_GG(NRMAX+1)*SINM(NTH)*DELTH
-!            RSUM4 = RSUM4+SINM(NTH)*DELTH
-            RSUM5 = RSUM5+RLAMDAG(NTH,NRMAX+1)/RFSADG(NRMAX+1)*SINM(NTH)*DELTH
-!            RSUM6 = RSUM6+SINM(NTH)*DELTH
-         END DO
-
-!         RCOEFN_GG(1) = RSUM2/RSUM1
-!         RCOEFN_GG(NRMAX+1) = RSUM2/RSUM3
-!         RCOEFNG(NRMAX+1) = RSUM2/RSUM5
-
-         RCOEFN_GG(1) = 1.D0
-         RCOEFN_GG(NRMAX+1) = 1.D0
-         RCOEFNG(NRMAX+1) = 1.D0
-      ELSE
-         RCOEFN_GG(1) = 1.D0
-         RCOEFN_GG(NRMAX+1) = 1.D0
-         RCOEFNG(NRMAX+1) = 1.D0
-      END IF
-!      CALL mtx_reset_communicator
-!!!!
-      IF(MODELA.eq.1)THEN
-         DO NR=NRSTART,NREND
-            RSUM1=0.D0
-            RSUM2=0.D0
-            DO NTH=1,NTHMAX/2
-               RSUM1 = RSUM1 + RLAMDA(NTH,NR)*COSM(NTH)*SINM(NTH)*DELTH
-               RSUM2 = RSUM2 + COSM(NTH)*SINM(NTH)*DELTH
-            END DO
-            RCOEFJ(NR)=RSUM2/RSUM1*RFSADG(NR)
-         END DO
-      ELSE
-         DO NR=NRSTART,NREND
-            RCOEFJ(NR)=1.D0
-         END DO
-      END IF
-!!!!!!!!!!!!!!!!!!!!!
-
-      allocate(work(nrstart:nrend),workg(NRMAX))
-
-      CALL mtx_set_communicator(comm_nr)
-
-      DO NR=NRSTART,NREND
-         work(NR)=RCOEFN(NR)
-      ENDDO
-      CALL mtx_allgatherv_real8(work(NRSTART:NREND),MTXLEN(NRANK+1), &
-                                workg,NRMAX,MTXLEN,MTXPOS)
-      DO NR=1,NRMAX
-         RCOEFNG(NR)=workg(NR)
-      ENDDO
-
-      DO NR=NRSTART,NREND
-         work(NR)=RCOEFN_G(NR)
-      ENDDO
-      CALL mtx_allgatherv_real8(work(NRSTART:NREND),MTXLEN(NRANK+1), &
-                                workg,NRMAX,MTXLEN,MTXPOS)
-      DO NR=2,NRMAX
-         RCOEFN_GG(NR)=workg(NR)
-      ENDDO
-
-      DO NR=NRSTART,NREND
-         work(NR)=RCOEFJ(NR)
-      ENDDO
-      CALL mtx_allgatherv_real8(work(NRSTART:NREND),MTXLEN(NRANK+1), &
-                                workg,NRMAX,MTXLEN,MTXPOS)
-      DO NR=1,NRMAX
-         RCOEFJG(NR)=workg(NR)
-      ENDDO
-      CALL mtx_reset_communicator
-
-      deallocate(work,workg)
-
-      DO NR=1,NRMAX
-         DO NTH=1,NTHMAX
-            RLAMDAG(NTH,NR)=RLAMDAG(NTH,NR)*RCOEFNG(NR)
-         END DO
-      END DO
-      DO NR=NRSTART,NREND
-         DO NTH=1,NTHMAX
-            RLAMDA(NTH,NR)=RLAMDA(NTH,NR)*RCOEFNG(NR)
-         END DO
-      END DO
-
-!      IF(NRANK.eq.0)THEN
-!         DO NR=1,NRMAX
-!            WRITE(*,'(I3,3E16.8)') NR, RM(NR), RCOEFNG(NR), RCOEFJG(NR)
-!         END DO
-!      END IF
-
-
-      END SUBROUTINE fp_set_bounceaverage_param
-!-------------------------------------------------------------
       SUBROUTINE fp_set_normalize_param
 
       USE plprof
@@ -956,8 +849,6 @@
 
          DO NSB=1,NSBMAX
             NS=NS_NSB(NSB)
-!            AEFD(NSB)=PZ(NS)*AEE
-!            AMFD(NSB)=PA(NS)*AMP
             RNFD(NR,NSB)=PLF(NS)%RN
             RTFD(NR,NSB)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
             PTFD(NR,NSB)=SQRT(RTFD(NR,NSB)*1.D3*AEE*AMFD(NSB))
@@ -1208,6 +1099,7 @@
       IMPLICIT NONE
       INTEGER:: NR, NSB
 
+      IF(nrank.EQ.0) WRITE(*,*) "SET INITIAL VALUE FROM f"
       IF(NRANK.eq.0.and.MODEL_disrupt.ne.0)THEN
          CALL display_disrupt_initials
       END IF
@@ -1316,8 +1208,6 @@
       CALL FNSP_INIT
       CALL FNSP_INIT_EDGE
 !      WRITE(6,*) "END INIT"
-!     ----- normalize bounce average parameter ---------
-!      CALL fp_set_bounceaverage_param ! RCOEF
 !     ----- set background f
       CALL mtx_set_communicator(comm_nsa)
       CALL update_fnsb
@@ -1331,8 +1221,8 @@
             EP(NR)=E1(NR) ! plus
             EM(NR)=0.D0 ! minus
          END DO
+         allocate(conduct_temp(NRSTART:NREND))
          DO NR=NRSTART,NREND
-            allocate(conduct_temp(NRSTART:NREND))
             CALL SPITZER_SIGMA(NR,SIGMA)
             conduct_temp(NR)=sigma
          END DO
@@ -1340,9 +1230,9 @@
          call mtx_allgather_real8(conduct_temp,NREND-NRSTART+1,conduct_sp)
          CALL mtx_reset_communicator
       ELSE
+         allocate(conduct_temp(NRSTART:NREND))
+         allocate(E1_temp(NRSTART:NREND))
          DO NR=NRSTART,NREND
-            allocate(conduct_temp(NRSTART:NREND))
-            allocate(E1_temp(NRSTART:NREND))
             CALL SPITZER_SIGMA(NR,SIGMA)
             conduct_temp(NR)=sigma
             IF(MODELE.eq.0)THEN

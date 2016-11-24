@@ -293,7 +293,6 @@
       CALL mtx_reset_communicator
       CALL scatter_fns_to_fns0
 
-      CALL fp_set_bounceaverage_param 
       CALL mtx_set_communicator(comm_nsa)
       CALL update_fnsb
       CALL mtx_reset_communicator
@@ -548,6 +547,7 @@
          open(14,file='nth-re.dat')
          open(15,file='re_pitch.dat')
          open(18,file='efield_ref.dat')
+         open(23,file='collision_time.dat')
       END IF
 
       open(19,file='p-T_bulk.dat')
@@ -570,6 +570,7 @@
          close(14)
          close(15)
          close(18)  
+         close(23)  
       END IF
       close(19)
 !      close(20)  

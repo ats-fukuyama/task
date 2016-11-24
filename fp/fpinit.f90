@@ -231,7 +231,7 @@
 !     MODELC: 0 : non-relative background Maxwell
 !             1 : isotropic background f
 !             2 : isotropic background f, Temperature is updated
-!             4 : nonlinear collision operator
+!             4 : nonlinear collision operator (require to satisfy NSAMAX=NSBMAX)
 !             5 : linear coll. operator for different species (for debug)
 !             6 : nonlinear coll. operator for different species (for debug)
 !            -1 : linear collision operator for same with ion scattering
@@ -260,7 +260,7 @@
 !                 4 for wave E field calculated by WM
 
       MODELE= 0
-      MODELA= 1
+      MODELA= 0
       MODELC= 0
       MODELR= 0
       MODELD= 0

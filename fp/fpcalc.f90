@@ -252,6 +252,7 @@
          CALL PAGEE
       ENDIF
 
+
       IF(MOD(IDBGFP/16,2).EQ.1) THEN
 !
 !     +++ plot of D_coll +++
@@ -1077,38 +1078,37 @@
       DO NSB=1,NSBMAX
          DO NP=NPSTART,NPENDWG
             DO NTH=1,NTHMAX
-               FACT=RLAMDA(NTH,NR)!/A_chi0(NR)
+               FACT=RLAMDA(NTH,NR)
                DCPP2(NTH,NP,NR,NSB,NSA) &
-                    =FACT*DCPP2(NTH,NP,NR,NSB,NSA)*2.D0
+                    =FACT*DCPP2(NTH,NP,NR,NSB,NSA)!*2.D0
                FCPP2(NTH,NP,NR,NSB,NSA) &
-                    =FACT*FCPP2(NTH,NP,NR,NSB,NSA)*2.D0
+                    =FACT*FCPP2(NTH,NP,NR,NSB,NSA)!*2.D0
             ENDDO
-!            ITLB=ITL_judge(NR)
-            ITLB=ITL(NR)-1
-            ITUB=NTHMAX-ITLB+1
-            DCPP2(ITLB,NP,NR,NSB,NSA) &
-                     =RLAMDA(ITLB,NR)/4.D0 &
-                       *( DCPP2(ITLB-1,NP,NR,NSB,NSA) &
-                                   /RLAMDA(ITLB-1,NR) &
-                         +DCPP2(ITLB+1,NP,NR,NSB,NSA) &
-                                   /RLAMDA(ITLB+1,NR) &
-                         +DCPP2(ITUB-1,NP,NR,NSB,NSA) &
-                                   /RLAMDA(ITUB-1,NR) &
-                         +DCPP2(ITUB+1,NP,NR,NSB,NSA) &
-                                   /RLAMDA(ITUB+1,NR) )
+!            ITLB=ITL(NR)-1
+!            ITUB=NTHMAX-ITLB+1
+!            DCPP2(ITLB,NP,NR,NSB,NSA) &
+!                     =RLAMDA(ITLB,NR)/4.D0 &
+!                       *( DCPP2(ITLB-1,NP,NR,NSB,NSA) &
+!                                   /RLAMDA(ITLB-1,NR) &
+!                         +DCPP2(ITLB+1,NP,NR,NSB,NSA) &
+!                                   /RLAMDA(ITLB+1,NR) &
+!                         +DCPP2(ITUB-1,NP,NR,NSB,NSA) &
+!                                   /RLAMDA(ITUB-1,NR) &
+!                         +DCPP2(ITUB+1,NP,NR,NSB,NSA) &
+!                                   /RLAMDA(ITUB+1,NR) )
 
-            FCPP2(ITLB,NP,NR,NSB,NSA) &
-                    =RLAMDA(ITLB,NR)/4.D0  &
-                      *( FCPP2(ITLB-1,NP,NR,NSB,NSA) &
-                                    /RLAMDA(ITLB-1,NR) &
-                        +FCPP2(ITLB+1,NP,NR,NSB,NSA) &
-                                    /RLAMDA(ITLB+1,NR) &
-                        +FCPP2(ITUB-1,NP,NR,NSB,NSA) &
-                                    /RLAMDA(ITUB-1,NR) &
-                        +FCPP2(ITUB+1,NP,NR,NSB,NSA) &
-                                    /RLAMDA(ITUB+1,NR) ) 
-            DCPP2(ITUB,NP,NR,NSB,NSA)=DCPP2(ITLB,NP,NR,NSB,NSA)
-            FCPP2(ITUB,NP,NR,NSB,NSA)=FCPP2(ITLB,NP,NR,NSB,NSA)
+!            FCPP2(ITLB,NP,NR,NSB,NSA) &
+!                    =RLAMDA(ITLB,NR)/4.D0  &
+!                      *( FCPP2(ITLB-1,NP,NR,NSB,NSA) &
+!                                    /RLAMDA(ITLB-1,NR) &
+!                        +FCPP2(ITLB+1,NP,NR,NSB,NSA) &
+!                                    /RLAMDA(ITLB+1,NR) &
+!                        +FCPP2(ITUB-1,NP,NR,NSB,NSA) &
+!                                    /RLAMDA(ITUB-1,NR) &
+!                        +FCPP2(ITUB+1,NP,NR,NSB,NSA) &
+!                                    /RLAMDA(ITUB+1,NR) ) 
+!            DCPP2(ITUB,NP,NR,NSB,NSA)=DCPP2(ITLB,NP,NR,NSB,NSA)
+!            FCPP2(ITUB,NP,NR,NSB,NSA)=FCPP2(ITLB,NP,NR,NSB,NSA)
          END DO
 
 ! DCTT
@@ -1123,7 +1123,6 @@
                      PSIB=(1.D0+EPSRM2(NR))/(1.D0+X)
                      ARG=1.D0-PSIB*SING(NTH)**2
                      PCOS = SQRT(ARG)
-                     PSIN = SQRT(PSIB)*SING(NTH)
                      sum=sum + DCTT2(NTH,NP,NR,NSB,NSA)*PCOS/(PSIB*ABS(COSG(NTH))) 
                   END DO
                   DCTT2(NTH,NP,NR,NSB,NSA)=sum*DELH*Line_Element(NR)*A_chi0(NR)*2.D0
@@ -1132,15 +1131,14 @@
                END IF
             ENDDO
 
-            ITLB=ITL_judge(NR)+1
-!            DO NTH=ITL(NR)+1,NTHMAX/2
-            DO NTH=ITLB,NTHMAX/2
-               DCTT2(NTH,NP,NR,NSB,NSA)        &
-                    =(DCTT2(NTH,NP,NR,NSB,NSA) &
-                    +DCTT2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0
-               DCTT2(NTHMAX-NTH+2,NP,NR,NSB,NSA) &
-                    =DCTT2(NTH,NP,NR,NSB,NSA) 
-            END DO
+!            ITLB=ITL_judge(NR)+1
+!            DO NTH=ITLB,NTHMAX/2
+!               DCTT2(NTH,NP,NR,NSB,NSA)        &
+!                    =(DCTT2(NTH,NP,NR,NSB,NSA) &
+!                    +DCTT2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0
+!               DCTT2(NTHMAX-NTH+2,NP,NR,NSB,NSA) &
+!                    =DCTT2(NTH,NP,NR,NSB,NSA) 
+!            END DO
 
          END DO ! NP
       END DO ! NSB
@@ -1161,7 +1159,6 @@
                DCPT2(NTH,NP,NR,NSB,NSA)=sum*DELH*Line_Element(NR)*A_chi0(NR)*2.D0
             ENDDO
 
-!            ITLB=ITL_judge(NR)
             ITLB=ITL(NR)-1
             ITUB=NTHMAX-ITLB+1
 
@@ -1195,13 +1192,7 @@
             ENDDO
 
             ITLB=ITL_judge(NR)+1
-!            IF(ITL_judge(NR).eq.ITL(NR))THEN
-!               ITLB = ITL(NR) + 1
-!            ELSE
-!               ITLB = ITL(NR) 
-!            END IF
             DO NTH=ITLB,NTHMAX/2
-!            DO NTH=ITL(NR)+1,NTHMAX/2
                DCTP2(NTH,NP,NR,NSB,NSA)        &
                     =(DCTP2(NTH,NP,NR,NSB,NSA) &
                     +DCTP2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0

@@ -24,48 +24,40 @@
 !     ON RM(NR)
       DO NR=NRSTART, NREND
          CALL SET_ETAMG(NR) ! obtain the poloidal angle of bounce points
-
          CALL SET_RLAMDA(NR) ! NAVMAX 
-!         CALL SET_RLAMDA_DE(NR) (except theta_B and trapped)
-!         CALL SET_RLAMDA_ELL(NR) !(except theta_B)
-
-!         CALL SET_RLAMDA_TPB(NR) ! Kileen
-!         CALL SET_RLAMDA_TPB2(NR) ! Kileen with correction DE
-!         CALL SET_RLAMDA_TPB3(NR) ! Kileen with correction NAVMAX
-!         CALL SET_RLAMDA_TPB4(NR) ! Kileen with correction ELL
-
-!multiple A_chi0
+!multiply A_chi0
          A_chi0(NR) = 2.D0*PI*RA**2*RM(NR)*(RR+RA*RM(NR))/(QLM(NR)*RR)
          FACT = RA**2*RM(NR)*( RR+RA*RM(NR) )*2.D0 ! *2.D0 from oint 
-!         A_chi0(NR) = 1.D0
-!         FACT = RR*QLM(NR) ! *2.D0 from oint 
          DO NTH=1, NTHMAX
             RLAMDA(NTH,NR)=RLAMDA(NTH,NR)*FACT
          END DO
-!         IF(NSASTART.eq.1)THEN
-            CALL SET_RLAMDA_TPB_FROM_DENS(NR) ! RLAMDA(ITL,NR) is set to satisfy init dens
-!         END IF
+         CALL SET_RLAMDA_TPB_FROM_DENS(NR) ! RLAMDA(ITL,NR) is set to satisfy init dens
       END DO
+! on RM(NRMAX)+DELR
+      CALL SET_ETAMG_NRMAXP1
+      CALL SET_RLAMDA_NRMAXP1
+      FACT = RA**2*(RM(NRMAX)+DELR)*( RR+RA*(RM(NRMAX)+DELR) )*2.D0 ! *2.D0 from oint 
+      DO NTH=1, NTHMAX
+         RLAMDA_NRMAXP1(NTH)=RLAMDA_NRMAXP1(NTH)*FACT
+      END DO
+      CALL SET_RLAMDA_TPB_FROM_DENS_NRMAXP1
 
 !     ON RG(NR)
       DO NR=NRSTART, NRENDWG
          IF(NR.eq.1)THEN
             DO NTH=1,NTHMAX
-               RLAMDA_G(NTH,NR)=0.D0
+               RLAMDA_RG(NTH,NR)=0.D0
             END DO
-         ELSEIF(NR.eq.NRMAX+1)THEN
-            CALL SET_ETAMG_GMAX(NR)
-            CALL SET_RLAMDA_GMAX(NR)
          ELSE
-            CALL SET_ETAMG_G(NR)
-            CALL SET_RLAMDA_G(NR)
+            CALL SET_ETAMG_RG(NR)
+            CALL SET_RLAMDA_RG(NR)
          END IF
-         IF(NR.ne.1.and.NR.ne.NRMAX+1)THEN
+         IF(NR.ne.1)THEN
             DO NTH=1, NTHMAX
-               RLAMDA_G(NTH,NR)=RLAMDA_G(NTH,NR)*RA**2*RG(NR)*( RR+RA*RG(NR) )*2.D0
+               RLAMDA_RG(NTH,NR)=RLAMDA_RG(NTH,NR)*RA**2*RG(NR)*( RR+RA*RG(NR) )*2.D0
             END DO
          END IF
-         CALL SET_RLAMDA_G_TPB_FROM_DENS(NR) ! RLAMDA(ITL,NR) is set to satisfy init dens
+         IF(NR.ne.1) CALL SET_RLAMDA_RG_TPB_FROM_DENS(NR) ! RLAMDA(ITL,NR) is set to satisfy init dens
       END DO
 
 !     RLAMDA means lambda*A_chi0
@@ -77,6 +69,7 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     SET BOUNCE POINT chi_b/2=ETAM ON RM(NR)
+!     ETAM: ON THM, ETAG: ON THG
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       SUBROUTINE SET_ETAMG(NR)
 
@@ -93,7 +86,6 @@
       DO NTH=1,ITL(NR)-1
          ETAM(NTH,NR)=PI*0.5D0
       ENDDO
-!      DO NTH=ITL(NR)+1,ITU(NR)-1
       DO NTH=ITL(NR),ITU(NR)
          A1=FACT*COSM(NTH)**2
          ETAM(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
@@ -124,9 +116,54 @@
 
       END SUBROUTINE SET_ETAMG
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!     SET BOUNCE POINT chi_b/2=ETAM ON RG(NR)
+      SUBROUTINE SET_ETAMG_NRMAXP1
+
+      IMPLICIT NONE
+      INTEGER:: NTH
+      DOUBLE PRECISION:: EPSL, FACT, A1, pitch
+
+      EPSL=EPSRM2(NRMAX+1)
+      FACT=(1.D0+EPSL)/(2.D0*EPSL)
+
+      pitch = ACOS(SQRT(2.D0*EPSRM2(NRMAX+1)/(1.D0+EPSRM2(NRMAX+1))))
+      
+      DO NTH=1,ITL(NRMAX+1)-1
+         ETAM_NRMAXP1(NTH)=PI*0.5D0
+      ENDDO
+      DO NTH=ITL(NRMAX+1),ITU(NRMAX+1)
+         A1=FACT*COSM(NTH)**2
+         ETAM_NRMAXP1(NTH)=0.5D0*DACOS(1.D0-2.D0*A1)
+      ENDDO
+      DO NTH=ITU(NRMAX+1)+1,NTHMAX
+         ETAM_NRMAXP1(NTH)=PI*0.5D0
+      ENDDO
+!
+      DO NTH=1,ITL(NRMAX+1)-1
+         ETAG_NRMAXP1(NTH)=PI*0.5D0
+      ENDDO
+      DO NTH=ITL(NRMAX+1)+1,ITU(NRMAX+1)
+         A1=FACT*COSG(NTH)**2
+         ETAG_NRMAXP1(NTH)=0.5D0*DACOS(1.D0-2.D0*A1)
+      ENDDO
+      DO NTH=ITU(NRMAX+1)+2,NTHMAX+1
+         ETAG_NRMAXP1(NTH)=PI*0.5D0
+      ENDDO
+
+      IF(THG(ITL(NRMAX+1)).ge.pitch)THEN ! trapped
+         A1=FACT*COSG(ITL(NRMAX+1))**2
+         ETAG_NRMAXP1(ITL(NRMAX+1))  =0.5D0*DACOS(1.D0-2.D0*A1)
+         ETAG_NRMAXP1(ITU(NRMAX+1)+1)=ETAG_NRMAXP1(ITL(NRMAX+1))
+      ELSE
+         ETAG_NRMAXP1(ITL(NRMAX+1))=PI*0.5D0
+         ETAG_NRMAXP1(ITU(NRMAX+1)+1)=PI*0.5D0
+      END IF
+
+      END SUBROUTINE SET_ETAMG_NRMAXP1
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      SUBROUTINE SET_ETAMG_G(NR)
+!     SET BOUNCE POINT chi_b/2=ETAM ON RG(NR)
+!     _G means ON RG GRID
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      SUBROUTINE SET_ETAMG_RG(NR)
 
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NR
@@ -138,37 +175,37 @@
       pitch = ACOS(SQRT(2.D0*EPSRG2(NR)/(1.D0+EPSRG2(NR))))
       
       DO NTH=1,ITLG(NR)-1
-         ETAM_G(NTH,NR)=PI*0.5D0
+         ETAM_RG(NTH,NR)=PI*0.5D0
       ENDDO
       DO NTH=ITLG(NR),ITUG(NR)
          A1=FACT*COSM(NTH)**2
-         ETAM_G(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
+         ETAM_RG(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
       ENDDO
       DO NTH=ITUG(NR)+1,NTHMAX
-         ETAM_G(NTH,NR)=PI*0.5D0
+         ETAM_RG(NTH,NR)=PI*0.5D0
       ENDDO
 !
       DO NTH=1,ITLG(NR)-1
-         ETAG_G(NTH,NR)=PI*0.5D0
+         ETAG_RG(NTH,NR)=PI*0.5D0
       ENDDO
       DO NTH=ITLG(NR)+1,ITUG(NR)
          A1=FACT*COSG(NTH)**2
-         ETAG_G(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
+         ETAG_RG(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
       ENDDO
       DO NTH=ITUG(NR)+2,NTHMAX+1
-         ETAG_G(NTH,NR)=PI*0.5D0
+         ETAG_RG(NTH,NR)=PI*0.5D0
       ENDDO
 
       IF(THG(ITL(NR)).ge.pitch)THEN ! trapped
          A1=FACT*COSG(ITL(NR))**2
-         ETAG_G(ITLG(NR),NR)  =0.5D0*DACOS(1.D0-2.D0*A1)
-         ETAG_G(ITUG(NR)+1,NR)=ETAG_G(ITL(NR),NR)
+         ETAG_RG(ITLG(NR),NR)  =0.5D0*DACOS(1.D0-2.D0*A1)
+         ETAG_RG(ITUG(NR)+1,NR)=ETAG_RG(ITL(NR),NR)
       ELSE
-         ETAG_G(ITLG(NR),NR)=PI*0.5D0
-         ETAG_G(ITUG(NR)+1,NR)=PI*0.5D0
+         ETAG_RG(ITLG(NR),NR)=PI*0.5D0
+         ETAG_RG(ITUG(NR)+1,NR)=PI*0.5D0
       END IF
 
-      END SUBROUTINE SET_ETAMG_G
+      END SUBROUTINE SET_ETAMG_RG
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     BOUNDARY LAYER THM = THETA_B
@@ -258,8 +295,8 @@
 !     
       K_1_x  = mub*SQRT(1.D0-mub**2)*(k1-k2*( LOG(2.D0*DEL2T)-1.D0 ) )
 !
-      RLAMDA_G(ITLG(NR),NR) = 2.D0*QLG(NR)*RR*(K_1_x - sum)/SINM(ITLG(NR))
-      RLAMDA_G(ITUG(NR),NR) = RLAMDA_G(ITLG(NR),NR)
+      RLAMDA_RG(ITLG(NR),NR) = 2.D0*QLG(NR)*RR*(K_1_x - sum)/SINM(ITLG(NR))
+      RLAMDA_RG(ITUG(NR),NR) = RLAMDA_RG(ITLG(NR),NR)
 
       END SUBROUTINE SET_RLAMDA_TPB_G
 
@@ -364,14 +401,14 @@
             DO i = 0, m
                SUM = SUM + alpha(i)*( mub )**(2*i)*j2m(i)
             END DO
-            RLAMDA_G(NTH,NR) = SUM * ( QLG(NR)*RR ) * 2.D0
+            RLAMDA_RG(NTH,NR) = SUM * ( QLG(NR)*RR ) * 2.D0
          END DO
 !     BOUNDARY
-!         RLAMDA_G(ITLG(NR),NR) = 0.5D0* &
-!              ( RLAMDA_G(ITLG(NR)-1,NR) + RLAMDA_G(ITLG(NR)+1,NR) )
+!         RLAMDA_RG(ITLG(NR),NR) = 0.5D0* &
+!              ( RLAMDA_RG(ITLG(NR)-1,NR) + RLAMDA_RG(ITLG(NR)+1,NR) )
 !     symmetry
          DO NTH=ITLG(NR)+1,NTHMAX/2
-            RLAMDA_G(NTHMAX-NTH+1,NR)=RLAMDA_G(NTH,NR)
+            RLAMDA_RG(NTHMAX-NTH+1,NR)=RLAMDA_RG(NTH,NR)
          ENDDO
       END IF
 
@@ -420,18 +457,21 @@
       INTEGER:: NR
 
       RFSADG(NR)=1.D0
-      RFSAD_GG(NR)=1.D0
+      RFSADG_RG(NR)=1.D0 ! RFSAD GLOBAL on R_GRID
 
       IF(NR.ne.NRMAX+1)THEN
 !         RFSADG(NR)=(1.D0+EPSRM2(NR))/(2.D0*PI*RA**2*RM(NR)*(RR+RA*RM(NR)) )
          RFSADG(NR)=2.D0*PI/( 2.D0*PI*RR *2.D0*PI*RA**2*RM(NR) )
          Line_Element(NR) = RR*QLM(NR)/(2.D0*PI)
+      ELSE
+         RFSADG(NR)=2.D0*PI/( 2.D0*PI*RR *2.D0*PI*RA**2*(RM(NRMAX)+DELR) )
+         Line_Element(NR) = RR*QLM(NR)/(2.D0*PI)         
       END IF
 
       IF(NR.eq.1)THEN
-         RFSAD_GG(NR)=(1.D0+EPSRM2(NR))/(2.D0*PI*RA**2)
+         RFSADG_RG(NR)=(1.D0+EPSRM2(NR))/(2.D0*PI*RA**2)
       ELSE
-         RFSAD_GG(NR)=(1.D0+EPSRG2(NR))/(2.D0*PI*RA**2*RG(NR)*(RR+RA*RG(NR)) )
+         RFSADG_RG(NR)=(1.D0+EPSRG2(NR))/(2.D0*PI*RA**2*RG(NR)*(RR+RA*RG(NR)) )
       END IF
 
       END SUBROUTINE SET_RFSAD
@@ -466,7 +506,35 @@
 !
 !-----------------------------
 !
-      SUBROUTINE SET_RLAMDA_G(NR)
+      SUBROUTINE SET_RLAMDA_NRMAXP1
+
+      USE libmtx
+      USE plprof
+
+      IMPLICIT NONE
+      integer:: NR, NTH, NG
+      real(kind8):: EPSL, FACT, A1, RINT0, ES, DELH
+      real(kind8):: SUML, ETAL, X, PSIB, PCOS, RINT2, SUML2, RINTL
+
+      DO NTH=1,NTHMAX/2
+            DELH=2.D0*ETAM_NRMAXP1(NTH)/NAVMAX
+            suml=0.D0
+            DO NG=1,NAVMAX
+               ETAL=DELH*(NG-0.5D0)
+               PSIB=(1.D0+EPSRM2(NRMAX+1))/(1.D0+EPSRM2(NRMAX+1)*COS(ETAL))
+               PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
+               suml=suml+1.D0/PCOS
+            END DO
+            RINT0 = suml*DELH
+            RLAMDA_NRMAXP1(NTH)=RINT0*ABS(COSM(NTH)) ! lambda = |cos\theta_0| oint 1/|cos\theta|
+            RLAMDA_NRMAXP1(NTHMAX-NTH+1)=RLAMDA_NRMAXP1(NTH)
+      ENDDO
+
+      END SUBROUTINE SET_RLAMDA_NRMAXP1
+!
+!-----------------------------
+!
+      SUBROUTINE SET_RLAMDA_RG(NR)
 
       IMPLICIT NONE
       integer:: NR, NTH, NG
@@ -474,8 +542,8 @@
       real(kind8):: SUML, ETAL, X, PSIB, PCOS
 
       DO NTH=1,NTHMAX/2
-         IF(NTH.ne.ITLG(NR)) THEN
-            DELH=2.D0*ETAM_G(NTH,NR)/NAVMAX
+!         IF(NTH.ne.ITLG(NR)) THEN
+            DELH=2.D0*ETAM_RG(NTH,NR)/NAVMAX
             suml=0.D0
             DO NG=1,NAVMAX
                ETAL=DELH*(NG-0.5D0)
@@ -485,16 +553,16 @@
                suml=suml+1.D0/PCOS
             END DO
             RINT0 = suml *DELH
-            RLAMDA_G(NTH,NR)=RINT0*ABS(COSM(NTH)) 
-            RLAMDA_G(NTHMAX-NTH+1,NR)=RLAMDA_G(NTH,NR)
-         ENDIF
+            RLAMDA_RG(NTH,NR)=RINT0*ABS(COSM(NTH)) 
+            RLAMDA_RG(NTHMAX-NTH+1,NR)=RLAMDA_RG(NTH,NR)
+!         ENDIF
       ENDDO
 
-      END SUBROUTINE SET_RLAMDA_G
+      END SUBROUTINE SET_RLAMDA_RG
 !
 !-----------------------------
 !
-      SUBROUTINE SET_RLAMDA_GMAX(NR)
+      SUBROUTINE SET_RLAMDA_RGMAX(NR)
 
       IMPLICIT NONE
       integer:: NR, NTH, NG
@@ -502,7 +570,7 @@
       real(kind8):: SUML, ETAL, X, PSIB, PCOS
 
       DO NTH=1,NTHMAX/2
-            DELH=2.D0*ETAM_GG(NTH,NR)/NAVMAX
+            DELH=2.D0*ETAMG_RG(NTH,NR)/NAVMAX
             suml=0.D0 
             DO NG=1,NAVMAX
                ETAL=DELH*(NG-0.5D0)
@@ -512,14 +580,14 @@
                suml=suml + 1.D0/PCOS
             END DO
             RINT0 = suml*DELH
-            RLAMDA_GG(NTH,NR)=RINT0*ABS(COSM(NTH))! lambda = v_0*|cos\theta_0|*tau_B
-            RLAMDA_GG(NTHMAX-NTH+1,NR)=RLAMDA_GG(NTH,NR)
+            RLAMDAG_RG(NTH,NR)=RINT0*ABS(COSM(NTH))! lambda = v_0*|cos\theta_0|*tau_B
+            RLAMDAG_RG(NTHMAX-NTH+1,NR)=RLAMDAG_RG(NTH,NR)
       ENDDO
 
-      END SUBROUTINE SET_RLAMDA_GMAX
+      END SUBROUTINE SET_RLAMDA_RGMAX
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      SUBROUTINE SET_ETAMG_GMAX(NR)
+      SUBROUTINE SET_ETAMG_RGMAX(NR)
 
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NR
@@ -530,17 +598,17 @@
       FACT=(1.D0+EPSL)/(2.D0*EPSL)
       
       DO NTH=1,ITLG(NR)-1
-         ETAM_GG(NTH,NR)=PI*0.5D0
+         ETAMG_RG(NTH,NR)=PI*0.5D0
       ENDDO
       DO NTH=ITLG(NR),ITUG(NR)
          A1=FACT*COSM(NTH)**2
-         ETAM_GG(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
+         ETAMG_RG(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
       ENDDO
       DO NTH=ITUG(NR)+1,NTHMAX
-         ETAM_GG(NTH,NR)=PI*0.5D0
+         ETAMG_RG(NTH,NR)=PI*0.5D0
       ENDDO
 
-      END SUBROUTINE SET_ETAMG_GMAX
+      END SUBROUTINE SET_ETAMG_RGMAX
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       SUBROUTINE SET_RLAMDA_TPB_GMAX(NR)
 
@@ -580,8 +648,8 @@
 !     
       K_1_x  = mub*SQRT(1.D0-mub**2)*(k1-k2*( LOG(2.D0*DEL2T)-1.D0 ) )
 !
-      RLAMDA_GG(ITLG(NR),NR) = 2.D0*QLG(NR)*RR*(K_1_x - sum)/SINM(ITLG(NR))
-      RLAMDA_GG(ITUG(NR),NR) = RLAMDA_GG(ITLG(NR),NR)
+      RLAMDAG_RG(ITLG(NR),NR) = 2.D0*QLG(NR)*RR*(K_1_x - sum)/SINM(ITLG(NR))
+      RLAMDAG_RG(ITUG(NR),NR) = RLAMDAG_RG(ITLG(NR),NR)
 
       END SUBROUTINE SET_RLAMDA_TPB_GMAX
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -606,11 +674,11 @@
             DO i = 0, m
                SUM = SUM + alpha(i)*( mub )**(2*i)*j2m(i)
             END DO
-            RLAMDA_GG(NTH,NR) = SUM * ( QLG(NR)*RR ) * 2.D0
+            RLAMDAG_RG(NTH,NR) = SUM * ( QLG(NR)*RR ) * 2.D0
          END DO
 !     symmetry
          DO NTH=ITLG(NR)+1,NTHMAX/2
-            RLAMDA_GG(NTHMAX-NTH+1,NR)=RLAMDA_GG(NTH,NR)
+            RLAMDAG_RG(NTHMAX-NTH+1,NR)=RLAMDAG_RG(NTH,NR)
          ENDDO
       END IF
 
@@ -899,11 +967,11 @@
 !     L_b means lambda_B * SIN(TEHTA_B) *DELTHB
 
       IF(NR.ne.NRMAX+1)THEN
-         RLAMDA_G(ITLG(NR),NR) = ( L_b + L_ex )/( SINM(ITLG(NR))*DELTH )
-         RLAMDA_G(ITUG(NR),NR) = RLAMDA_G(ITLG(NR),NR)
+         RLAMDA_RG(ITLG(NR),NR) = ( L_b + L_ex )/( SINM(ITLG(NR))*DELTH )
+         RLAMDA_RG(ITUG(NR),NR) = RLAMDA_RG(ITLG(NR),NR)
       ELSE
-         RLAMDA_GG(ITLG(NR),NR) = ( L_b + L_ex )/( SINM(ITLG(NR))*DELTH )
-         RLAMDA_GG(ITUG(NR),NR) = RLAMDA_GG(ITLG(NR),NR)
+         RLAMDAG_RG(ITLG(NR),NR) = ( L_b + L_ex )/( SINM(ITLG(NR))*DELTH )
+         RLAMDAG_RG(ITUG(NR),NR) = RLAMDAG_RG(ITLG(NR),NR)
       END IF
 
       END SUBROUTINE SET_RLAMDA_TPB3_G
@@ -940,7 +1008,32 @@
 
       END SUBROUTINE SET_RLAMDA_TPB_FROM_DENS
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      SUBROUTINE SET_RLAMDA_G_TPB_FROM_DENS(NR)
+      SUBROUTINE SET_RLAMDA_TPB_FROM_DENS_NRMAXP1
+
+      IMPLICIT NONE
+      INTEGER:: NTH, ITLB
+      double precision:: RSUM1, RSUM2, RSUM3, ratio
+
+      RSUM1=0.D0
+      RSUM2=0.D0
+      RSUM3=0.D0
+      ITLB=ITL_judge(NRMAX+1)
+
+      DO NTH=1, NTHMAX/2
+         RSUM1 = RSUM1 + VOLP(NTH,NPSTART,NSASTART)
+         IF(NTH.ne.ITLB)THEN
+            RSUM2 = RSUM2 + VOLP(NTH,NPSTART,NSASTART)*RLAMDA_NRMAXP1(NTH)*RFSADG(NRMAX+1)
+         ELSE
+            RSUM3 = VOLP(NTH,NPSTART,NSASTART)*RFSADG(NRMAX+1)
+         END IF
+      END DO
+      
+      RLAMDA_NRMAXP1(ITLB) = (RSUM1 - RSUM2)/RSUM3
+      RLAMDA_NRMAXP1(NTHMAX-ITLB+1)=RLAMDA_NRMAXP1(ITLB)
+
+      END SUBROUTINE SET_RLAMDA_TPB_FROM_DENS_NRMAXP1
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      SUBROUTINE SET_RLAMDA_RG_TPB_FROM_DENS(NR)
 
       IMPLICIT NONE
       INTEGER:: NTH, ITLB
@@ -956,18 +1049,18 @@
       DO NTH=1, NTHMAX/2
          RSUM1 = RSUM1 +  VOLP(NTH,NPSTART,NSASTART)
          IF(NTH.ne.ITLB)THEN
-            RSUM2 = RSUM2 + VOLP(NTH,NPSTART,NSASTART)*RLAMDA_G(NTH,NR)*RFSAD_GG(NR)
+            RSUM2 = RSUM2 + VOLP(NTH,NPSTART,NSASTART)*RLAMDA_RG(NTH,NR)*RFSADG_RG(NR)
          ELSE
-            RSUM3 = VOLP(NTH,NPSTART,NSASTART)*RFSAD_GG(NR)
+            RSUM3 = VOLP(NTH,NPSTART,NSASTART)*RFSADG_RG(NR)
          END IF
       END DO
       
-!      RLAMDA_G(ITLG_judge(NR),NR) = (RSUM1 - RSUM2)/RSUM3
-!      RLAMDA_G(NTHMAX-ITLG_judge(NR)+1,NR)=RLAMDA_G(ITLG_judge(NR),NR)
-      RLAMDA_G(ITLB,NR) = (RSUM1 - RSUM2)/RSUM3
-      RLAMDA_G(NTHMAX-ITLB+1,NR)=RLAMDA_G(ITLB,NR)
+!      RLAMDA_RG(ITLG_judge(NR),NR) = (RSUM1 - RSUM2)/RSUM3
+!      RLAMDA_RG(NTHMAX-ITLG_judge(NR)+1,NR)=RLAMDA_RG(ITLG_judge(NR),NR)
+      RLAMDA_RG(ITLB,NR) = (RSUM1 - RSUM2)/RSUM3
+      RLAMDA_RG(NTHMAX-ITLB+1,NR)=RLAMDA_RG(ITLB,NR)
 
-      END SUBROUTINE SET_RLAMDA_G_TPB_FROM_DENS
+      END SUBROUTINE SET_RLAMDA_RG_TPB_FROM_DENS
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       END MODULE FPBOUNCE

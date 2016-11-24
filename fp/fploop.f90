@@ -84,9 +84,9 @@
          IF(MODEL_DISRUPT.ne.0)THEN
             CALL TOP_OF_TIME_LOOP_DISRUPT(NT) ! include fpcoef
 !            IF(MODEL_IMPURITY.eq.1.and.TIMEFP.le.5.D0*tau_quench)THEN
-            IF(MODEL_IMPURITY.eq.1.and.TIMEFP.le.tau_mgi)THEN
-               CALL MGI_DENSITY
-            END IF
+!            IF(MODEL_IMPURITY.eq.1.and.TIMEFP.le.tau_mgi)THEN
+!               CALL MGI_DENSITY
+!            END IF
          END IF
          CALL GUTIME(gut_coef2)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -106,13 +106,7 @@
                ISW_D=1
                CALL GUTIME(gut_exe1)
                IF(ISW_D.eq.0)THEN ! separate p, r ! usually not use this
-                  modeld_temp=modeld
-                  modeld=0
                   CALL fp_exec(NSA,IERR,its) ! F1 and FNS0 changed
-                  modeld=modeld_temp
-                  IF(MODELD.ge.1)THEN
-!                     CALL fp_drexec(NSA,IERR,its)
-                  END IF
                ELSEIF(ISW_D.eq.1)THEN !
                   IF(MODEL_conner_fp.eq.1.or.MODEL_DISRUPT.eq.0)THEN ! Conner model doesn't require f evolution
                      CALL fp_exec(NSA,IERR,its) ! F1 and FNS0 changed
@@ -217,7 +211,7 @@
 
             CALL fusion_source_init
 !           update FNSB (fnsb is required by NL collsion and NF reaction)
-            IF(MODELC.ge.4.or.MODELS.eq.2)THEN
+            IF(MODELC.ge.4.or.MODELS.ge.2)THEN
                CALL mtx_set_communicator(comm_nsa)
                CALL update_fnsb
                CALL mtx_reset_communicator
