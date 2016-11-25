@@ -6,76 +6,129 @@ MODULE fpcalr
 
 CONTAINS
 
-  SUBROUTINE FP_CALR(NSA)
+  SUBROUTINE FP_CALR
 
       USE fpcomm
       USE plprof
+      USE cdbm_mod
       USE libmpi,ONLY: mtx_set_communicator, mtx_reset_communicator
       USE fpmpi,ONLY: p_theta_integration
       IMPLICIT NONE
-      integer:: NSA, NSBA, NS, NR, NTH, NP, NG
+      integer:: NSA, NSBA, NS, NR, NTH, NP, NG, NSB, NR1, NR2
       real(kind8):: RHON, RTFPL, FACTR, FACTP, SV
       real(kind8):: PSIB, PCOS, X, ETAL, sumd, sumf, DELH
       real(kind8):: DNDR, NEDGE, FACT, DINT_D, DINT_F, WRL
       real(kind8):: sum1, temp1, SRHODP, SRHODM, SRHOFP, SRHOFM
       real(kind8):: WRH, DFDR_D, DFDR_F, F_R2, DFDR_R2, F_R1, DFDR_R1
+      REAL(kind8):: SHEAR,PNEL,RHONI,DPDR,DVEXBDR,CALF,CKAP,CEXB,FSZ,FEZ
+      REAL(kind8):: CHI_CDBM
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
       double precision:: densm, densp, rgama
       INTEGER:: ISW_D
 
-      ISW_D=MOD(MODELD,10)
+      DO NSA=NSASTART,NSAEND
       NS=NS_NSA(NSA)
       NSBA=NSB_NSA(NSA)
 
       DO NR=NRSTART,NRENDWG
          RHON=RG(NR)
-         IF(NR.ne.NRMAX+1)THEN
+         IF(NR.EQ.1) THEN
+            NR1=NR
+            NR2=NR
+         ELSE IF(NR.EQ.NRMAX+1) THEN
+            NR1=NR-1
+            NR2=NR-1
+         ELSE
+            NR1=NR-1
+            NR2=NR
+         ENDIF
+
+         IF(NR.EQ.1) THEN
             RTFPL= RTFP_G(NR,NSA)/RTFP0(NSA)
          ELSE
             RTFPL=RTFPS(NSA)/RTFP0(NSA)
          END IF
+
+!------------- SET R DEPENDENCE
+         SELECT CASE(MODELD_RDEP)
+         CASE(0)
+            FACTR=(DRR0-DRRS)*(1.D0-RHON**2)+DRRS 
+         CASE(1)
+            FACTR=PI*RR*QLM(NR)*deltaB_B**2 *PTFP0(NSBA)/AMFP(NSBA)
+         CASE(2)
+            IF(NR.EQ.1) THEN
+               SHEAR=0.D0
+            ELSE IF(NR.EQ.NRMAX+1) THEN  !QLM(NRMAX+1)=QLG(rhon=1)
+               SHEAR=(RHON/QLM(NR))*(QLM(NR)-QLM(NR-1))/(RG(NR)-RM(NR-1))
+            ELSE
+               SHEAR=(RHON/(RM(NR)-RM(NR-1)))*(QLM(NR)-QLM(NR-1)) &
+                     *2.D0/(QLM(NR)+QLM(NR-1))
+            END IF
+            IF(NR.EQ.1) THEN ! assuming NSB=1 is electron
+               PNEL=RNFD(NR,1)*1.D20
+            ELSE IF(NR.EQ.NRMAX+1) THEN
+               PNEL=RNFD(NR-1,1)*1.D20
+            ELSE
+               PNEL=0.5D0*(RNFD(NR-1,1)+RNFD(NR,1))*1.D20
+            END IF
+            RHONI=0.D0
+            DO NSB=1,NSBMAX
+               NS=NS_NSB(NSB)
+               IF(ID_NS(NS).EQ.1) RHONI=RHONI+PA(NS)*AMP*RNFD(NR,NSB)*1.D20
+            END DO
+            DPDR=1.D0
+            dvexbdr=0.D0
+            CALF=1.D0
+            CKAP=1.D0
+            CEXB=0.D0
+!            FSZ=1.D0     ! option
+!            CURVZ=0.D0   ! option
+!            FEZ=0.D0     ! option
+
+            CALL CDBM(BB,RR,RA*RHON,RKAP,QLM(NR),SHEAR,PNEL,RHONI,DPDR, &
+                      DVEXBDR,CALF,CKAP,CEXB,MODELD_CDBM,CHI_CDBM)
+            FACTR=FACTOR_CDBM*CHI_CDBM
+         CASE DEFAULT
+            WRITE(6,*) 'XX FPCALR: Undefined MODELD_RDEP'
+            STOP
+         END SELECT
+
+!------------- SET EDGE VALUE
+         SELECT CASE(MODELD_EDGE)
+         CASE(1)
+            IF(RHON.GT.RHO_EDGE) FACTR=DRR_EDGE
+         CASE(2)
+            IF(RHON.GT.RHO_EDGE) FACTR=FACTOR_DRR_EDGE*FACTR
+         END SELECT
+            
          DO NP=NPSTART,NPEND
             DO NTH=1,NTHMAX
+
 !------------- SET P DEPENDENCE
-               SELECT CASE(ISW_D)
-               CASE(0) ! no transport
-                  FACTP=0.D0
-                  FACTR= (DRR0-DRRS)*(1.D0-RHON**2)+DRRS 
-               CASE(1) ! no p dependence
+               SELECT CASE(MODELD_PDEP)
+               CASE(0) ! no p dependence
                   FACTP=1.D0
-                  FACTR= (DRR0-DRRS)*(1.D0-RHON**2)+DRRS 
-               CASE(2) ! depend on 1/p_perp
-                  FACTP=SQRT(RTFPL)/SQRT(RTFPL+PM(NP,NSBA)**2*SINM(NTH)**2)
-!                  FACTP=1.D0/SQRT(RTFPL+PM(NP,NSBA)**2*SINM(NTH)**2)
-                  FACTR= (DRR0-DRRS)*(1.D0-RHON**2)+DRRS 
-               CASE(3) ! depend on 1/sqrt{p_perp}
-                  FACTP=SQRT(RTFPL)/SQRT(RTFPL+PM(NP,NSBA)*SINM(NTH))
-!                  FACTP=1.D0/SQRT(RTFPL+PM(NP,NSBA)*SINM(NTH))
-                  FACTR= (DRR0-DRRS)*(1.D0-RHON**2)+DRRS 
-               CASE(4) ! depend on 1/p^2
+               CASE(1) ! proportional to 1/sqrt{p_perp}
+                  FACTP=(RTFPL/(RTFPL+PM(NP,NSBA)**2*SINM(NTH)**2))**0.25D0
+               CASE(2) ! proportional to 1/p_perp
+                  FACTP=SQRT(RTFPL/(RTFPL+PM(NP,NSBA)**2*SINM(NTH)**2))
+               CASE(3) ! proportional to 1/p_perp^2
                   FACTP=RTFPL/(RTFPL+PM(NP,NSBA)**2*SINM(NTH)**2)
-!                  FACTP=1.D0/(RTFPL+PM(NP,NSBA)**2*SINM(NTH)**2)
-                  FACTR= (DRR0-DRRS)*(1.D0-RHON**2)+DRRS 
-               CASE(5) ! stochastic delta B /B
+               CASE(4) ! stochastic delta B /B; relativistic
                   RGAMA=SQRT(1.D0+THETA0(NSBA)*PM(NP,NSBA)**2)
                   FACTP=PM(NP,NSBA)*ABS(COSM(NTH))/RGAMA
-                  FACTR=PI*RR*QLM(NR)*deltaB_B**2 *PTFP0(NSBA)/AMFP(NSBA)
-               CASE(6) ! depend on 1/p and H-mode like (constant(1.D0) when rho >= 0.9)
-                  FACTP=SQRT(RTFPL)/SQRT(RTFPL+PM(NP,NSBA)**2*SINM(NTH)**2)
-                  IF(RHON.GE.0.9D0) THEN
-                     FACTR=1.D0
-                  ELSE
-                     FACTR= (DRR0-DRRS)*(1.D0-RHON**2)+DRRS 
-                  END IF
                END SELECT
-                  DRR(NTH,NP,NR,NSA)= FACTR*FACTP/(RA**2)
+               DRR(NTH,NP,NR,NSA)= FACTR*FACTP/RA**2   ! normalization for rhon
             ENDDO
          ENDDO
 
 ! ------ SET PINCH TERM
-         DINT_D=0.D0
-         DINT_F=1.D0
-         IF(MODELD.ge.10)THEN
+
+         SELECT CASE(MODELD_PINCH)
+         CASE(0) ! no pinch
+            FACT=0.D0
+         CASE(1) ! no radial particle transport (particle flux = 0)
+            DINT_D=0.D0
             DINT_F=0.D0
             DO NP=NPSTART,NPEND
                DO NTH=1,NTHMAX
@@ -83,29 +136,33 @@ CONTAINS
                      IF(NR.eq.1)THEN
                         WRL=0.25D0 ! not necessary
                      ELSE
-                        WRL=(4.D0*RG(NR)+DELR)/(8.D0*RG(NR))                     
+                        WRL=(4.D0*RG(NR)+DELR)/(8.D0*RG(NR))
                      END IF
                   ELSE
                      WRL=WEIGHR(NTH,NP,NR,NSA)
                   END IF
 
                   IF(NR.eq.1)THEN
-                     DFDR_R1 = ( FNSP(NTH,NP,NR,NSA)-FS0(NTH,NP,NSA) ) / DELR *2.D0*0
+                     DFDR_R1 = ( FNSP(NTH,NP,NR,NSA)-FS0(NTH,NP,NSA) ) &
+                               / DELR *2.D0*0
                      F_R1 = FS0(NTH,NP,NSA)
                      SRHODM=DFDR_R1 * DRR(NTH,NP,NR,NSA)
                      SRHOFM=F_R1    * DRR(NTH,NP,NR,NSA)
                   ELSEIF(NR.eq.NRMAX+1)THEN ! FS2 = F at rho=1+delR/2
                      DFDR_R1 = ( FS2(NTH,NP,NSA)-FNSP(NTH,NP,NR-1,NSA) ) / DELR
                      IF(MODELD_boundary.eq.0)THEN
-                        F_R1 = ( (1.D0-WRL)*FS2(NTH,NP,NSA) + WRL*FNSP(NTH,NP,NR-1,NSA) )
+                        F_R1 = ( (1.D0-WRL)*FS2(NTH,NP,NSA) &
+                             + WRL*FNSP(NTH,NP,NR-1,NSA) )
                      ELSEIF(MODELD_boundary.eq.1)THEN
                         F_R1 = FS1(NTH,NP,NSA)
                      END IF
                      SRHODM=DFDR_R1 * DRR(NTH,NP,NR,NSA)
                      SRHOFM=F_R1    * DRR(NTH,NP,NR,NSA)
                   ELSE
-                     DFDR_R1 = ( FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP,NR-1,NSA) ) / DELR
-                     F_R1 = ( (1.D0-WRL)*FNSP(NTH,NP,NR,NSA) + WRL*FNSP(NTH,NP,NR-1,NSA) ) 
+                     DFDR_R1 = ( FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP,NR-1,NSA) ) &
+                               / DELR
+                     F_R1 = ( (1.D0-WRL)*FNSP(NTH,NP,NR,NSA) &
+                            + WRL*FNSP(NTH,NP,NR-1,NSA) ) 
                      SRHODM=DFDR_R1 * DRR(NTH,NP,NR,NSA)
                      SRHOFM=F_R1    * DRR(NTH,NP,NR,NSA)
                   END IF
@@ -118,30 +175,23 @@ CONTAINS
             CALL p_theta_integration(DINT_D) 
             CALL p_theta_integration(DINT_F) 
             CALL mtx_reset_communicator 
-!         WRITE(*,'(A,2I3,2E14.6)') "DINT=", NSA,NR,DINT_D, DINT_F
-         ENDIF
 
-         FACT=DINT_D/DINT_F
+!         WRITE(*,'(A,2I3,2E14.6)') "DINT=", NSA,NR,DINT_D, DINT_F
+
+            FACT=DINT_D/DINT_F
+
+         CASE(2) ! pinch for Gaussian profile
+            FACT=-2.D0*FACTOR_PINCH*RHON/RA
+         END SELECT
+
          DO NP=NPSTART,NPEND
             DO NTH=1,NTHMAX
                FRR(NTH,NP,NR,NSA) = FACT * DRR(NTH,NP,NR,NSA)
             END DO
          END DO
 
-!         IF(NR.eq.NREND+1.and.NSA.eq.1) WRITE(*,'(I4,3E16.8)') NR, DRR(1,1,NR,1), FRR(1,1,NR,1),WRL
-!         IF(NPSTART.eq.1.and.NSA.eq.1) WRITE(*,'(I4,3E16.8)') NR, DRR(1,1,NR,1), FRR(1,1,NR,1), WRL
-
-! boudary condition
-!         IF(NR.eq.NRMAX+1)THEN
-!            DO NP=NPSTART, NPEND
-!               DO NTH=1,NTHMAX
-!                  DRR(NTH,NP,NR,NSA)= 0.D0
-!                  FRR(NTH,NP,NR,NSA)= 0.D0
-!               END DO
-!            END DO
-!         END IF
-
-      ENDDO ! NR
+      END DO ! NR
+      END DO ! NSA
 
       RETURN
       END SUBROUTINE FP_CALR

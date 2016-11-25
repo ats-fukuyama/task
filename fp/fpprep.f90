@@ -9,6 +9,7 @@
       USE fpinit
       USE fpsave
       USE fpcoef
+      USE fpcalw
       USE fpbounce
       USE equnit_mod
       USE fpmpi
@@ -38,7 +39,7 @@
 
 !     ----- exec EQ -----
 
-      IF(MODELG.EQ.3.OR.MODELG.EQ.8) THEN
+      IF(MODELG.EQ.3.OR.MODELG.EQ.5.OR.MODELG.EQ.8) THEN
          IF(nrank.EQ.0) THEN
             CALL eq_load(MODELG,KNAMEQ,IERR)
             IF(IERR.NE.0) THEN
@@ -976,7 +977,9 @@
          RNE=PLF(1)%RN
          RTE=(PLF(1)%RTPR+2.D0*PLF(1)%RTPP)/3.D0
          E_EDGEM=0.D0
+
 !-----   Coulomb log
+
          ISW_CLOG=0 ! =0 Wesson, =1 NRL
          DO NSA=1,NSAMAX
             NSFP=NS_NSB(NSA)
@@ -1036,6 +1039,7 @@
 
       CALL mtx_broadcast1_real8(ZEFF)
       call mtx_broadcast_real8(tau_ta0,nsamax)
+
 !     ----- set relativistic parameters -----
 
       IF (MODELR.EQ.0) THEN
@@ -1176,8 +1180,9 @@
       IF(MODELS.ne.0) CALL NF_REACTION_COEF
       CALL fusion_source_init
 
+      CALL FP_COEF(0)
+
       DO NSA=NSASTART,NSAEND
-         CALL FP_COEF(NSA)
          NSBA=NSB_NSA(NSA)
          DO NR=NRSTART,NREND
             DO NP=NPSTARTW,NPENDWM
@@ -1244,6 +1249,7 @@
       integer,dimension(6*nsize):: idata2
 
       CALL GUTIME(gut1)
+
 !     ----- Initialize time counter -----
 
       TIMEFP=0.D0
@@ -1255,6 +1261,7 @@
       CALL fp_comm_setup
 
 !     ----- Allocate variables -----
+
       CALL fp_allocate
       call fp_allocate_ntg1
       call fp_allocate_ntg2
@@ -1318,11 +1325,15 @@
 !      WRITE(6,*) "END INIT"
 !     ----- normalize bounce average parameter ---------
 !      CALL fp_set_bounceaverage_param ! RCOEF
+
 !     ----- set background f
+
       CALL mtx_set_communicator(comm_nsa)
       CALL update_fnsb
       CALL mtx_reset_communicator
+
 !     ----- set parallel electric field -----
+
       IF(MODEL_DISRUPT.eq.0)THEN
          DO NR=1,NRMAX
             E1(NR)=E0!*E_drei0(1)
@@ -1331,8 +1342,8 @@
             EP(NR)=E1(NR) ! plus
             EM(NR)=0.D0 ! minus
          END DO
+         allocate(conduct_temp(NRSTART:NREND))
          DO NR=NRSTART,NREND
-            allocate(conduct_temp(NRSTART:NREND))
             CALL SPITZER_SIGMA(NR,SIGMA)
             conduct_temp(NR)=sigma
          END DO
@@ -1340,9 +1351,9 @@
          call mtx_allgather_real8(conduct_temp,NREND-NRSTART+1,conduct_sp)
          CALL mtx_reset_communicator
       ELSE
+         allocate(conduct_temp(NRSTART:NREND))
+         allocate(E1_temp(NRSTART:NREND))
          DO NR=NRSTART,NREND
-            allocate(conduct_temp(NRSTART:NREND))
-            allocate(E1_temp(NRSTART:NREND))
             CALL SPITZER_SIGMA(NR,SIGMA)
             conduct_temp(NR)=sigma
             IF(MODELE.eq.0)THEN

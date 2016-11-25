@@ -577,6 +577,18 @@
          END DO
       END DO
 
+      DO NSA=1,NSAMAX
+         DO NR=1,NRMAX
+            RNFP(NR,NSA)=RNS(NR,NSA)
+            RTFP(NR,NSA)=RT_T(NR,NSA)
+            NSB=NSB_NSA(NSA)
+            IF(NSB.NE.0) THEN
+               RNFD(NR,NSB)=RNFP(NR,NSA)
+               RTFD(NR,NSB)=RTFP(NR,NSA)
+            END IF
+         END DO
+      END DO
+
 !      IF(NRANK.eq.0) WRITE(6,'(A,2E16.8)') "FNSP ",FNSP(1,2,1,1), FNSP(NTHMAX,2,1,1)
 !      IF(NRANK.eq.0) WRITE(6,'(A,E14.6)') "-----FPSSUB=", gut2-gut1
 
@@ -859,7 +871,7 @@
 !
       IMPLICIT NONE
       integer:: NSA, NSB, NR, NP, NTH
-      real(8):: RTFDL, RTFD0L, THETAL, rtemp, rtemp2
+      real(8):: RTFDL, RTFD0L, THETAL, rtemp, rtemp2, temp
       character:: fmt0*50
 !
 !      WRITE(fmt0,'(a15)') '(2I3,1P20E13.4)'
@@ -903,6 +915,11 @@
                     ER_crit(NR)
 !                    RP_crit(NR)
             ELSE
+               IF(E1(NR).NE.0.D0) THEN
+                  TEMP=RJS(NR,NSA)/E1(NR)
+               ELSE
+                  TEMP=0.D0
+               ENDIF
                WRITE(6,fmt0) NSA,NS_NSA(NSA),&
                     RM(NR),RNT(NR,NSA,NTG2),RTT(NR,NSA,NTG2), &
                     RJT(NR,NSA,NTG2),RPCT(NR,NSA,NTG2),       &
@@ -916,7 +933,7 @@
 !RSPFT(NR,NSA,NTG2),RPDRT(NR,NSA,NTG2), &
                     RPDR(NR,NSA), &
                     RT_BULK(NR,NSA), &
-                    RJS(NR,NSA)/E1(NR), conduct_sp(NR)
+                    TEMP, conduct_sp(NR)
 !                    RATE_RUNAWAY(NR,NTG2), RPLS(NR,NSA)!, &
 !                    RATE_RUNAWAY2(NR,NSA,NTG2)
 !,RNDRT(NR,NSA,NTG2)

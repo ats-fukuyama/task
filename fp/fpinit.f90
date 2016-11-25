@@ -259,9 +259,15 @@
 !                   2 : reduced by FACTOR_DRR_edge for rho > rho_edge
 !     MODELD_PINCH  0 : no pinch
 !                   1 : no radial particle transport (particle flux = 0)
-!                   2 : v = - 2 * FACTOR_PINCH * r * DRR
+!                   2 : v = - 2 * FACTOR_PINCH * r * DRR / RA**2
 !     MODELD_BOUNDARY : 0 fix f at rho=1+DELR/2, namely FS2
 !                     : 1 fix f at rho = 1, namely FS1. FS2 is variable.
+!     MODELD_CDBM     :  0: CDBM original
+!                        1: CDBM05 including elongation
+!                        2: CDBM original with weak ExB shear
+!                        3: CDBM05 with weak ExB shear
+!                        4: CDBM original with strong ExB shear
+!                        5: CDBM05 with strong ExB shear
 !     MODEL_LOSS      : 1 for LOSS TERM
 !     MODEL_SYNCH     : 1 for synchlotron radiation
 !     MODEL_NBI       : 1 for NBI calculation
@@ -282,6 +288,7 @@
       MODELD_EDGE = 0
       MODELD_PINCH = 0
       MODELD_BOUNDARY= 0
+      MODELD_CDBM= 0
 
       MODEL_LOSS=0
       MODEL_SYNCH=0
@@ -471,7 +478,7 @@
            NTG2STEP,NTG2MIN,NTG2MAX, &
            MODELE,MODELA,MODELC,MODELR,MODELS,MODELW, &
            MODELD,MODELD_RDEP,MODELD_PDEP,MODELD_EDGE, &
-           MODELD_PINCH,MODELD_BOUNDARY, &
+           MODELD_PINCH,MODELD_BOUNDARY,MODELD_CDBM, &
            MODEL_LOSS,MODEL_SYNCH,MODEL_NBI,MODEL_WAVE, &
            IMTX,MODEL_KSP,MODEL_PC,LMAXFP,LMAXE, &
            NGLINE,NGRAPH,LLMAX,LLMAX_NF,IDBGFP, &
@@ -526,7 +533,7 @@
       WRITE(6,*) '      NTG2STEP,NTG2MIN,NTG2MAX,'
       WRITE(6,*) '      MODELE,MODELA,MODELC,MODELR,MODELS,MODELW,'
       WRITE(6,*) '      MODELD,MODELD_RDEP,MODELD_PDEP,MODELD_EDGE,'
-      WRITE(6,*) '      MODELD_BOUNDARY,MODELD_PINCH,'
+      WRITE(6,*) '      MODELD_BOUNDARY,MODELD_CDBM,MODELD_PINCH,'
       WRITE(6,*) '      MODEL_LOSS,MODEL_SYNCH,MODEL_NBI,MODEL_WAVE,'
       WRITE(6,*) '      IMTX,MODEL_KSP,MODEL_PC,LMAXFP,LMAXE,'
       WRITE(6,*) '      NGLINE,NGRAPH,LLMAX,LLMAX_NF,IDBGFP,'
@@ -548,7 +555,7 @@
       WRITE(6,*) '      PGMAX,RGMAX,RGMIN,'
       WRITE(6,*) '      T0_quench,tau_quench,tau_mgi,'
       WRITE(6,*) '      time_quench_start,RJPROF1,RJPROF2,'
-      WRITE(6,*) '      v_RE,target_zeff,SPITOT,'
+      WRITE(6,*) '      v_RE,target_zeff,SPITOT'
 
       RETURN
     END SUBROUTINE fp_plst
@@ -705,35 +712,36 @@
       idata(28)=MODELD_EDGE
       idata(29)=MODELD_PINCH
       idata(30)=MODELD_BOUNDARY
-      idata(31)=MODEL_LOSS
-      idata(32)=MODEL_SYNCH
-      idata(33)=MODEL_NBI
-      idata(34)=MODEL_WAVE
-      idata(35)=IMTX
-      idata(36)=MODEL_KSP
-      idata(37)=MODEL_PC
-      idata(38)=LMAXFP
-      idata(39)=LMAXE
-      idata(40)=NGLINE
-      idata(41)=NGRAPH
-      idata(42)=LLMAX
-      idata(43)=LLMAX_NF
-      idata(44)=IDBGFP
-      idata(45)=MODEL_DISRUPT
-      idata(46)=MODEL_Connor_FP
-      idata(47)=MODEL_BS
-      idata(48)=MODEL_jfp
-      idata(49)=MODEL_LNL
-      idata(50)=MODEL_RE_pmax
-      idata(51)=MODELD_n_RE
-      idata(52)=MODEL_IMPURITY
-      idata(53)=MODEL_SINK
-      idata(54)=n_impu
-      idata(55)=N_partition_r
-      idata(56)=N_partition_s
-      idata(57)=N_partition_p
+      idata(31)=MODELD_CDBM
+      idata(32)=MODEL_LOSS
+      idata(33)=MODEL_SYNCH
+      idata(34)=MODEL_NBI
+      idata(35)=MODEL_WAVE
+      idata(36)=IMTX
+      idata(37)=MODEL_KSP
+      idata(38)=MODEL_PC
+      idata(39)=LMAXFP
+      idata(40)=LMAXE
+      idata(41)=NGLINE
+      idata(42)=NGRAPH
+      idata(43)=LLMAX
+      idata(44)=LLMAX_NF
+      idata(45)=IDBGFP
+      idata(46)=MODEL_DISRUPT
+      idata(47)=MODEL_Connor_FP
+      idata(48)=MODEL_BS
+      idata(49)=MODEL_jfp
+      idata(50)=MODEL_LNL
+      idata(51)=MODEL_RE_pmax
+      idata(52)=MODELD_n_RE
+      idata(53)=MODEL_IMPURITY
+      idata(54)=MODEL_SINK
+      idata(55)=n_impu
+      idata(56)=N_partition_r
+      idata(57)=N_partition_s
+      idata(58)=N_partition_p
 
-      CALL mtx_broadcast_integer(idata,57)
+      CALL mtx_broadcast_integer(idata,58)
       NSAMAX         =idata( 1)
       NSBMAX         =idata( 2)
       LMAXNWR        =idata( 3)
@@ -764,33 +772,34 @@
       MODELD_EDGE    =idata(28)
       MODELD_PINCH   =idata(29)
       MODELD_BOUNDARY=idata(30)
-      MODEL_LOSS     =idata(31)
-      MODEL_SYNCH    =idata(32)
-      MODEL_NBI      =idata(33)
-      MODEL_WAVE     =idata(34)
-      IMTX           =idata(35)
-      MODEL_KSP      =idata(36)
-      MODEL_PC       =idata(37)
-      LMAXFP         =idata(38)
-      LMAXE          =idata(39)
-      NGLINE         =idata(40)
-      NGRAPH         =idata(41)
-      LLMAX          =idata(42)
-      LLMAX_NF       =idata(43)
-      IDBGFP         =idata(44)
-      MODEL_DISRUPT  =idata(45)
-      MODEL_Connor_FP=idata(46)
-      MODEL_BS       =idata(47)
-      MODEL_jfp      =idata(48)
-      MODEL_LNL      =idata(49)
-      MODEL_RE_pmax  =idata(50)
-      MODELD_n_RE    =idata(51)
-      MODEL_IMPURITY =idata(52)
-      MODEL_SINK     =idata(53)
-      n_impu         =idata(54)
-      N_partition_r  =idata(55)
-      N_partition_s  =idata(56)
-      N_partition_p  =idata(57)
+      MODELD_CDBM    =idata(31)
+      MODEL_LOSS     =idata(32)
+      MODEL_SYNCH    =idata(33)
+      MODEL_NBI      =idata(34)
+      MODEL_WAVE     =idata(35)
+      IMTX           =idata(36)
+      MODEL_KSP      =idata(37)
+      MODEL_PC       =idata(38)
+      LMAXFP         =idata(39)
+      LMAXE          =idata(40)
+      NGLINE         =idata(41)
+      NGRAPH         =idata(42)
+      LLMAX          =idata(43)
+      LLMAX_NF       =idata(44)
+      IDBGFP         =idata(45)
+      MODEL_DISRUPT  =idata(46)
+      MODEL_Connor_FP=idata(47)
+      MODEL_BS       =idata(48)
+      MODEL_jfp      =idata(49)
+      MODEL_LNL      =idata(50)
+      MODEL_RE_pmax  =idata(51)
+      MODELD_n_RE    =idata(52)
+      MODEL_IMPURITY =idata(53)
+      MODEL_SINK     =idata(54)
+      n_impu         =idata(55)
+      N_partition_r  =idata(56)
+      N_partition_s  =idata(57)
+      N_partition_p  =idata(58)
 
       CALL mtx_broadcast_integer(NS_NSA,NSAMAX)
       CALL mtx_broadcast_integer(NS_NSB,NSBMAX)
@@ -1098,7 +1107,8 @@
                    'MODELD_PDEP     ',MODELD_PDEP
       WRITE(6,606) 'MODELD_EDGE     ',MODELD_EDGE    , &
                    'MODELD_PINCH    ',MODELD_PINCH
-      WRITE(6,606) 'MODELD_BOUNDARY ',MODELD_BOUNDARY
+      WRITE(6,606) 'MODELD_BOUNDARY ',MODELD_BOUNDARY, &
+                   'MODELD_CDBM     ',MODELD_CDBM
       WRITE(6,606) 'MODEL_LOSS      ',MODEL_LOSS     , &
                    'MODEL_SYNCH     ',MODEL_SYNCH
       WRITE(6,606) 'MODEL_NBI       ',MODEL_NBI      , &
@@ -1199,6 +1209,8 @@
          WRITE(6,*) 'GIVEN PLASMA GEOMETRY'
       ELSE IF(MODELG.EQ.3)THEN
          WRITE(6,*) 'MHD EQUILIBRIUM FROM TASK/EQ'
+      ELSE IF(MODELG.EQ.5)THEN
+         WRITE(6,*) 'MHD EQUILIBRIUM FROM EFIT'
       ELSE
          WRITE(6,*) 'XX UNKNOWN MODELG: MODELG =',MODELG
       END IF

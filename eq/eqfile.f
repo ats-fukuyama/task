@@ -61,6 +61,7 @@ C
       MODELG=MODELG1
       KNAMEQ=KNAMEQ1
       CALL EQREAD(IERR)
+      CALL EQCALQ(IERR)
       CALL eq_bpsd_set(ierr)
       RETURN
       END
@@ -76,7 +77,6 @@ C
          CALL EQRTSK(IERR)
       ELSEIF(MODELG.EQ.5) THEN
          CALL EQDSKR(IERR)
-C         CALL EQDSKR2(IERR)
       ELSEIF(MODELG.EQ.8) THEN
          CALL EQJAEAR(IERR)
       ELSEIF(MODELG.EQ.15) THEN
@@ -170,12 +170,12 @@ C     ***** READ EQDSK FORMAT FILE *****
 C
       SUBROUTINE EQDSKR(IERR)
 C
+      USE libgrf
       INCLUDE '../eq/eqcomq.inc'
 C
       character case(6)*10
       dimension rlim(NSUM),zlim(NSUM),pressw(NPSM),pwprim(NPSM),
      &          dmion(NSUM),rhovn(NSUM),ajtor(NPSM)
-      DIMENSION HJTRG(NRGM,NZGM),HJTZG(NRGM,NZGM),HJTRZG(NRGM,NZGM)
 C
       ierr=0
 
@@ -231,15 +231,15 @@ C  Change normalization
       PSIA=2.D0*PI*PSIA
 C
       DPS=(PSIA-PSI0)/(NPSMAX-1)
-      PSI0=PSI0-PSIA
       DO NPS=1,NPSMAX
-         PSIPS(NPS)=DPS*(NPS-1)-PSIA
+         PSIPS(NPS)=DPS*(NPS-1)+PSI0
       ENDDO
-      PSIPA=-PSIA
+      PSIPA=PSIA-PSI0
+      PSI0=PSI0-PSIA
 
       DO NZG=1,NZGMAX
          DO NRG=1,NRGMAX
-            PSIRZ(NRG,NZG)=2.D0*PI*PSIRZ(NRG,NZG)-PSIA
+            PSIRZ(NRG,NZG)=2.D0*PI*PSIRZ(NRG,NZG)
          ENDDO
       ENDDO
       DO i=1,NPSMAX
@@ -257,6 +257,7 @@ C
       ENDDO
 
       read (neqdsk,2022,END=1800) NSUMAX,limitr
+      write(6,'(A,2I5)') 'NSUMAX,limitr=',NSUMAX,limitr
       read (neqdsk,2020) (RSU(i),ZSU(i),i=1,NSUMAX)
       read (neqdsk,2020) (rlim(i),zlim(i),i=1,limitr)
 
@@ -309,67 +310,7 @@ C
 
  1900 CONTINUE
 
-      CALL EQCALQ(IERR)
-
-      REWIND(neqdsk)
-      CLOSE(neqdsk)
-
       RETURN
-
-      CALL setup_psig
-
-      CALL SPL1D(PSIPS,TTDTTPS,DERIV,UDTTPS,NPSMAX,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for TTDTTPS: IERR=',IERR
-      CALL SPL1D(PSIPS,DPPPS,DERIV,UDPPPS,NPSMAX,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for DPPPS: IERR=',IERR
-
-      DO NZG=1,NZGMAX
-      DO NRG=1,NRGMAX
-         PSIPSL=PSIRZ(NRG,NZG)
-         IF(PSIPSL.GT.PSIPS(NPSMAX)) THEN
-            DTTPSL=0.D0
-            DPPPSL=0.D0
-         ELSE
-            CALL SPL1DF(PSIPSL,DTTPSL,PSIPS,UDTTPS,NPSMAX,IERR)
-            IF(IERR.NE.0) WRITE(6,*) 'XX SPL1DF for DTTPS: IERR=',IERR
-            CALL SPL1DF(PSIPSL,DPPPSL,PSIPS,UDPPPS,NPSMAX,IERR)
-            IF(IERR.NE.0) WRITE(6,*) 'XX SPL1DF for DPPPS: IERR=',IERR
-         END IF
-         RRL=RG(NRG)
-         HJTRZ(NRG,NZG)=-RRL*DPPPSL-DTTPSL/RRL
-      ENDDO
-      ENDDO
-      CALL SPL2D(RG,ZG,HJTRZ,HJTRG,HJTZG,HJTRZG,UHJTRZ,
-     &           NRGM,NRGMAX,NZGMAX,0,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX SPL2D for HJTRZ: IERR=',IERR
-
-      CALL SPL1D(PSIPS,PPPS,  DERIV,UPPPS, NPSMAX,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for PPPS: IERR=',IERR
-      CALL SPL1D(PSIPS,TTPS,  DERIV,UTTPS, NPSMAX,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for TTPS: IERR=',IERR
-
-      CALL EQCALQP(IERR)
-      IF(IERR.NE.0) RETURN
-C
-      IF(NSUMAX.GT.0) THEN
-         CALL EQCALQV(IERR)
-         IF(IERR.NE.0) RETURN
-      ENDIF
-C
-      CALL EQSETS_RHO(IERR)
-      CALL EQSETS(IERR)
-C
-      REWIND(neqdsk)
-      CLOSE(neqdsk)
-
-C
-C      WRITE(6,'(1P3E12.4)') RR,BB,RIP
-C      WRITE(6,'(1P4E12.4)') RAXIS,ZAXIS,PSI0,PSIA
-C      WRITE(6,'(1P4E12.4)') RG(1),RG(2),RG(NRGMAX-1),RG(NRGMAX)
-C      WRITE(6,'(1P4E12.4)') ZG(1),ZG(2),ZG(NZGMAX-1),ZG(NZGMAX)
-C      WRITE(6,'(1P4E12.4)') PSIPS(1),PSIPS(2),
-C     &                      PSIPS(NPSMAX-1),PSIPS(NPSMAX)
-C
       return
 c     
  2000 format (6a8,3i4)
@@ -387,8 +328,8 @@ C
 C
       integer(4):: ir,iz
       REAL(8),DIMENSION(:,:),ALLOCATABLE:: psi_temp
-      DIMENSION PSIRG(NRGM,NZGM),PSIZG(NRGM,NZGM),PSIRZG(NRGM,NZGM)
-      DIMENSION PSIx1(NRGM,NZGM),psix2(NRGM,NZGM),PSIx3(NRGM,NZGM)
+      REAL(8),DIMENSION(:,:),ALLOCATABLE::  PSIRG,PSIZG,PSIRZG
+      REAL(8),DIMENSION(:,:),ALLOCATABLE::  PSIx1,psix2,PSIx3
       REAL(8):: DERIV(NPSM)
       REAL(8),DIMENSION(1)::  THIN=(/0.035/)
       REAL(8),DIMENSION(:),ALLOCATABLE:: rc_xp,zc_xp,psic_xp
@@ -399,6 +340,9 @@ C
       REAL(8):: psic_max,psic_min
       EXTERNAL RBB,PSIGZ0
 C
+      ALLOCATE(PSIRG(NRGM,NZGM),PSIZG(NRGM,NZGM),PSIRZG(NRGM,NZGM))
+      ALLOCATE(PSIx1(NRGM,NZGM),psix2(NRGM,NZGM),PSIx3(NRGM,NZGM))
+
       neqdsk=21
       CALL FROPEN(neqdsk,KNAMEQ,0,MODEFR,'EQ',IERR)
       IF(IERR.NE.0) RETURN
@@ -674,6 +618,8 @@ C
          HJTRZ(NRG,NZG)=0.D0
       ENDDO
       ENDDO
+      DEALLOCATE(PSIRG,PSIZG,PSIRZG)
+      DEALLOCATE(PSIx1,psix2,PSIx3)
       RETURN
       END
 

@@ -15,7 +15,6 @@
       USE fpcalwr
       USE fpcalr
       USE libbes,ONLY: besekn
-!      USE fpcaleind
       USE libmtx
 
       INTEGER,parameter:: MODEL_T_IMP=2
@@ -23,19 +22,19 @@
 
       contains
 !-------------------------------------------------------------
-      SUBROUTINE FP_COEF(NSA)
+      SUBROUTINE FP_COEF(NT)
 
       IMPLICIT NONE
+      INTEGER,INTENT(IN):: NT
       integer:: NSA, NR, NTH, NP, NS
       real(kind8):: FPMAX
       integer:: NCONST_RF
-!      real(kind8),dimension(NTHMAX,NPMAX+1,NRSTART:NREND):: DWPPM, DWPTM
-!      real(kind8),dimension(NTHMAX+1,NPMAX,NRSTART:NREND):: DWTPM, DWTTM
       real(kind8):: DWTTEC, DWTTIC, DWTPEC, DWTPIC
 
       ISAVE=0
-      NS=NS_NSA(NSA)
 
+      DO NSA=NSASTART,NSAEND
+         NS=NS_NSA(NSA)
       DO NR=NRSTART,NREND
          DO NP=NPSTART,NPENDWG
          DO NTH=1,NTHMAX
@@ -64,208 +63,39 @@
          ENDDO
          ENDDO
       ENDDO
-!
+      ENDDO
+
 !     ----- Parallel electric field accleration term -----
-!
-!      IF(E0.ne.0.D0)THEN
-      CALL FP_CALE(NSA)
-!      END IF
-!
+
+      IF(E0.ne.0.D0) CALL FP_CALE
+
 !     ----- Quasi-linear wave-particle interaction term -----
-      IF(MODEL_WAVE.ne.0)THEN
-!!!   reduce the number of call of fp_calwm and fp_calw
-!     include 2 IF
-      IF(N_IMPL.eq.0)THEN ! N_IMPL=0
 
-!     ----- Initialize ------------------------------------- 
-      DO NR=NRSTART,NREND
-         DO NP=NPSTART,NPENDWG
-           DO NTH=1,NTHMAX
-               DWECPP(NTH,NP,NR,NSA)=0.D0
-               DWECPT(NTH,NP,NR,NSA)=0.D0
-            END DO
-         END DO
-         DO NP=NPSTARTW,NPENDWM
-            DO NTH=1,NTHMAX+1
-               DWECTP(NTH,NP,NR,NSA)=0.D0
-               DWECTT(NTH,NP,NR,NSA)=0.D0
-            END DO
-         END DO
-      END DO
+      IF(MODEL_WAVE.ne.0) CALL FP_CALW
 
-!     ECRF 
-      IF(DEC.ne.0.and.NSA.eq.1) THEN
-         CALL FP_CALW(NSA)
-         DO NR=NRSTART,NREND
-            DO NP=NPSTART,NPENDWG
-               DO NTH=1,NTHMAX
-                  DWECPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA)
-                  DWECPT(NTH,NP,NR,NSA)=DWPT(NTH,NP,NR,NSA)
-                  DWPP(NTH,NP,NR,NSA)=0.D0
-                  DWPT(NTH,NP,NR,NSA)=0.D0
-               END DO
-            END DO
-            DO NP=NPSTARTW,NPENDWM
-               DO NTH=1,NTHMAX+1
-                  DWECTP(NTH,NP,NR,NSA)=DWTP(NTH,NP,NR,NSA)
-                  DWECTT(NTH,NP,NR,NSA)=DWTT(NTH,NP,NR,NSA)
-                  DWTP(NTH,NP,NR,NSA)=0.D0
-                  DWTT(NTH,NP,NR,NSA)=0.D0
-               END DO
-            END DO
-         END DO
-      END IF
-
-!     ICRF
-      IF(MODELW(NS).EQ.1) THEN
-         CALL FP_CALWR(NSA)
-      ELSEIF(MODELW(NS).EQ.2) THEN
-         CALL FP_CALWR(NSA)
-      ELSEIF(MODELW(NS).EQ.3) THEN
-         CALL FP_CALWM(NSA)
-      ELSEIF(MODELW(NS).EQ.4) THEN
-         CALL FP_CALWM(NSA)
-      ELSEIF(MODELW(NS).ne.0) THEN
-         IF(nrank.eq.0) WRITE(6,*) 'XX UNKNOWN MODELW =',MODELW(NS)
-      ENDIF
-
-      DO NR=NRSTART,NREND
-         DO NP=NPSTART,NPENDWG
-            DO NTH=1,NTHMAX
-               DWICPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA)
-               DWICPT(NTH,NP,NR,NSA)=DWPT(NTH,NP,NR,NSA)
-               DWPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA) + DWECPP(NTH,NP,NR,NSA)
-               DWPT(NTH,NP,NR,NSA)=DWPT(NTH,NP,NR,NSA) + DWECPT(NTH,NP,NR,NSA)
-            END DO
-         END DO
-         DO NP=NPSTARTW,NPENDWM
-            DO NTH=1,NTHMAX+1
-               DWTP(NTH,NP,NR,NSA)=DWTP(NTH,NP,NR,NSA) + DWECTP(NTH,NP,NR,NSA)
-               DWTT(NTH,NP,NR,NSA)=DWTT(NTH,NP,NR,NSA) + DWECTT(NTH,NP,NR,NSA)
-            END DO
-         END DO
-      END DO
-
-!     POOL coef DW in order to reduce the number of call fp_calwm
-      DO NR=NRSTART, NREND
-         DO NP=NPSTART,NPENDWG
-            DO NTH=1,NTHMAX
-               DWPP_P(NTH,NP,NR,NSA) = DWPP(NTH,NP,NR,NSA)
-               DWPT_P(NTH,NP,NR,NSA) = DWPT(NTH,NP,NR,NSA)
-               DWICPP_P(NTH,NP,NR,NSA) = DWICPP(NTH,NP,NR,NSA)
-               DWICPT_P(NTH,NP,NR,NSA) = DWICPT(NTH,NP,NR,NSA)
-               DWECPP_P(NTH,NP,NR,NSA) = DWECPP(NTH,NP,NR,NSA)
-               DWECPT_P(NTH,NP,NR,NSA) = DWECPT(NTH,NP,NR,NSA)
-            END DO
-         END DO
-         DO NP=NPSTARTW,NPENDWM
-            DO NTH=1,NTHMAX+1
-               DWTP_P(NTH,NP,NR,NSA) = DWTP(NTH,NP,NR,NSA)
-               DWTT_P(NTH,NP,NR,NSA) = DWTT(NTH,NP,NR,NSA)
-!              IC, EC is not updated
-            END DO
-         END DO
-      END DO
-
-      END IF ! N_IMPL=0
-
-      IF(N_IMPL.ne.0)THEN ! N_IMPL!=0
-      DO NR=NRSTART, NREND
-         DO NP=NPSTART,NPENDWG
-            DO NTH=1,NTHMAX
-               DWPP(NTH,NP,NR,NSA) = DWPP_P(NTH,NP,NR,NSA)
-               DWPT(NTH,NP,NR,NSA) = DWPT_P(NTH,NP,NR,NSA)
-               DWICPP(NTH,NP,NR,NSA) = DWICPP_P(NTH,NP,NR,NSA)
-               DWICPT(NTH,NP,NR,NSA) = DWICPT_P(NTH,NP,NR,NSA)
-               DWECPP(NTH,NP,NR,NSA) = DWECPP_P(NTH,NP,NR,NSA)
-               DWECPT(NTH,NP,NR,NSA) = DWECPT_P(NTH,NP,NR,NSA)
-            END DO
-         END DO
-         DO NP=NPSTARTW,NPENDWM
-            DO NTH=1,NTHMAX+1
-               DWTP(NTH,NP,NR,NSA) = DWTP_P(NTH,NP,NR,NSA)
-               DWTT(NTH,NP,NR,NSA) = DWTT_P(NTH,NP,NR,NSA)
-!              IC, EC is not updated
-            END DO
-         END DO
-      END DO
-      END IF ! N_IMPL!=0
-!!!   end of the reduction of the number of calling fp_calwm and fp_calw
-
-
-!     N_IMPL = 0 means initial state in fpprep
-      IF(N_IMPL.ne.0) CALL FPWAVE_CONST
-!     ----- Constant Dw
-      NCONST_RF=3
-      IF(MODELW(NSA).eq.4.and.NCONST_RF.eq.2.and.N_IMPL.ne.0)THEN ! TOTAL Pabs(r) invariant
-         DO NR=NRSTART,NREND
-            DO NP=NPSTART,NPENDWG
-               DO NTH=1,NTHMAX
-                  IF(RPW_IMPL(NR,NSA,N_IMPL).gt.0.D0)THEN
-                     DWPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA)*RPW_INIT(NR,NSA)/RPW_IMPL(NR,NSA,N_IMPL)
-                     DWPT(NTH,NP,NR,NSA)=DWPT(NTH,NP,NR,NSA)*RPW_INIT(NR,NSA)/RPW_IMPL(NR,NSA,N_IMPL)
-                     DWECPP(NTH,NP,NR,NSA)=DWECPP(NTH,NP,NR,NSA)*RPW_INIT(NR,NSA)/RPW_IMPL(NR,NSA,N_IMPL)
-                     DWECPT(NTH,NP,NR,NSA)=DWECPT(NTH,NP,NR,NSA)*RPW_INIT(NR,NSA)/RPW_IMPL(NR,NSA,N_IMPL)
-                  END IF
-               END DO
-            END DO
-            DO NP=NPSTARTW,NPENDWM
-               DO NTH=1,NTHMAX+1
-                  IF(RPW_IMPL(NR,NSA,N_IMPL).gt.0.D0)THEN
-                     DWTP(NTH,NP,NR,NSA)=DWTP(NTH,NP,NR,NSA)*RPW_INIT(NR,NSA)/RPW_IMPL(NR,NSA,N_IMPL)
-                     DWTT(NTH,NP,NR,NSA)=DWTT(NTH,NP,NR,NSA)*RPW_INIT(NR,NSA)/RPW_IMPL(NR,NSA,N_IMPL)
-                  END IF
-               END DO
-            END DO
-         END DO
-      ELSEIF(MODELW(NSA).eq.4.and.NCONST_RF.eq.3.and.N_IMPL.ne.0)THEN ! Pabs_EC(r), Pabs_IC(r) invariant
-         DO NR=NRSTART,NREND
-            DO NP=NPSTART,NPENDWG
-               DO NTH=1,NTHMAX
-                  IF(RPWEC_IMPL(NR,NSA,N_IMPL).gt.0.D0)THEN
-                     DWECPP(NTH,NP,NR,NSA)=DWECPP(NTH,NP,NR,NSA)*RPWEC_INIT(NR,NSA)/RPWEC_IMPL(NR,NSA,N_IMPL)
-                     DWECPT(NTH,NP,NR,NSA)=DWECPT(NTH,NP,NR,NSA)*RPWEC_INIT(NR,NSA)/RPWEC_IMPL(NR,NSA,N_IMPL)
-                  END IF
-                  IF(RPWIC_IMPL(NR,NSA,N_IMPL).gt.0.D0)THEN
-                     DWICPP(NTH,NP,NR,NSA)=DWICPP(NTH,NP,NR,NSA)*RPWIC_INIT(NR,NSA)/RPWIC_IMPL(NR,NSA,N_IMPL)
-                     DWICPT(NTH,NP,NR,NSA)=DWICPT(NTH,NP,NR,NSA)*RPWIC_INIT(NR,NSA)/RPWIC_IMPL(NR,NSA,N_IMPL)
-                  END IF
-                  DWPP(NTH,NP,NR,NSA)=DWECPP(NTH,NP,NR,NSA)+DWICPP(NTH,NP,NR,NSA)
-                  DWPT(NTH,NP,NR,NSA)=DWECPT(NTH,NP,NR,NSA)+DWICPT(NTH,NP,NR,NSA)
-               END DO
-            END DO
-            DO NP=NPSTARTW,NPENDWM
-               DO NTH=1,NTHMAX+1
-                  DWTPEC=0.D0
-                  DWTPIC=0.D0
-                  DWTTEC=0.D0
-                  DWTTIC=0.D0
-                  IF(RPWEC_IMPL(NR,NSA,N_IMPL).gt.0.D0)THEN
-                     DWTPEC = DWECTP(NTH,NP,NR,NSA)*RPWEC_INIT(NR,NSA)/RPWEC_IMPL(NR,NSA,N_IMPL) 
-                     DWTTEC = DWECTT(NTH,NP,NR,NSA)*RPWEC_INIT(NR,NSA)/RPWEC_IMPL(NR,NSA,N_IMPL) 
-                  END IF
-                  IF(RPWIC_IMPL(NR,NSA,N_IMPL).gt.0.D0)THEN
-                     DWTPIC =( DWTP(NTH,NP,NR,NSA)-DWECTP(NTH,NP,NR,NSA) ) &
-                          *RPWIC_INIT(NR,NSA)/RPWIC_IMPL(NR,NSA,N_IMPL) 
-                     DWTTIC =( DWTT(NTH,NP,NR,NSA)-DWECTT(NTH,NP,NR,NSA) ) &
-                          *RPWIC_INIT(NR,NSA)/RPWIC_IMPL(NR,NSA,N_IMPL) 
-                  END IF
-                  DWTP(NTH,NP,NR,NSA)=DWTPEC+DWTPIC
-                  DWTT(NTH,NP,NR,NSA)=DWTTEC+DWTTIC
-               END DO
-            END DO
-         END DO
-      END IF
-      END IF ! end MODEL_WAVE
 !     ----- Collisional slowing down and diffusion term -----
-      CALL FP_CALC(NSA)
+
+      IF(MOD(NT,NTSTEP_COLL).EQ.0) CALL FP_CALC
+
+!     ----- Synchrotoron radiation -----
+
+      IF(MODEL_synch.ne.0) CALL synchrotron
+
+!     ----- Loss term -----
+
+      IF(MODEL_loss.ne.0) CALL loss_for_CNL
+
+!     ----- Radial diffusion term -----
+
+      IF(MODELD.NE.1) CALL FP_CALR
+
 !     ----- Particle source term -----
-      IF(MODEL_synch.ne.0)THEN
-         CALL synchrotron(NSA)
-      END IF
-      IF(MODEL_LOSS.eq.1) CALL loss_for_CNL(NSA)
+
+      CALL FP_CALS
+!
 !     ----- Sum up velocity diffusion terms -----
 
+      DO NSA=NSASTART,NSAEND
       DO NR=NRSTART,NREND
          DO NP=NPSTART,NPENDWG
          DO NTH=1,NTHMAX
@@ -282,28 +112,19 @@
             DTP(NTH,NP,NR,NSA)=DCTP(NTH,NP,NR,NSA)+DWTP(NTH,NP,NR,NSA)
             DTT(NTH,NP,NR,NSA)=DCTT(NTH,NP,NR,NSA)+DWTT(NTH,NP,NR,NSA)
             FTH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)+FCTH(NTH,NP,NR,NSA) &
-                 +FSTH(NTH,NP,NR,NSA)
+                              +FSTH(NTH,NP,NR,NSA)
          ENDDO
          ENDDO
       ENDDO
-!      IF(NRANK.eq.0) &
-!           WRITE(6,'(A,E14.6,A,E14.6)') "FEPP = ", FEPP(1,2,1,1), " FLPP = ", FLPP(1,2,1,1)
-!     ----- Radial diffusion term -----
+      ENDDO
 
-      IF(MODELD.ge.1) THEN
-            CALL FP_CALR(NSA)
-      END IF
-
-!     ----- Particle source term -----
-
-      CALL FP_CALS(NSA)
-!
 !     ****************************
 !     Boundary condition at p=pmax
 !     ****************************
 !
       IF(NPENDWG.eq.NPMAX+1)THEN
-      DO NR=NRSTART,NREND
+         DO NSA=NSASTART,NSAEND
+         DO NR=NRSTART,NREND
          DO NTH=1,NTHMAX
             DPP(NTH,NPMAX+1,NR,NSA)=0.D0
             DPT(NTH,NPMAX+1,NR,NSA)=0.D0
@@ -317,7 +138,8 @@
                FPP(NTH,NPMAX+1,NR,NSA)=0.D0
             END IF
          END DO
-      END DO
+         END DO
+         END DO
       END IF
 
       RETURN
@@ -327,40 +149,44 @@
 !     Parallel electric field
 ! ****************************************
 
-      SUBROUTINE FP_CALE(NSA)
+      SUBROUTINE FP_CALE
 
       IMPLICIT NONE
       integer:: NSA, NSB, NR, NTH, NP
 !      real(kind8):: PSP, SUML, ANGSP, SPL, FPMAX
       integer:: NG
 
+      DO NSA=NSASTART,NSAEND
       DO NR=NRSTART,NREND
          DO NP=NPSTART,NPENDWG
             DO NTH=1,NTHMAX
                FEPP(NTH,NP,NR,NSA)= AEFP(NSA)*EP(NR)/PTFP0(NSA)*COSM(NTH)
             ENDDO
          ENDDO
-      ENDDO
 
-      DO NR=NRSTART,NREND
          DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX+1
                FETH(NTH,NP,NR,NSA)=-AEFP(NSA)*EP(NR)/PTFP0(NSA)*SING(NTH)
             ENDDO
          ENDDO
       ENDDO
+      ENDDO
       
       IF(MODELA.eq.1)THEN
+         DO NSA=NSASTART,NSAEND
          DO NR=NRSTART,NREND
             CALL FP_CALE_LAV(NR,NSA)
+         ENDDO
          ENDDO
       END IF
       
       RETURN
       END SUBROUTINE FP_CALE
+
 ! ****************************************
 !     BOUNCE AVERAGING FEPP, FETH
 ! ****************************************
+
       SUBROUTINE FP_CALE_LAV(NR, NSA)
 
       IMPLICIT NONE
@@ -378,7 +204,8 @@
             FEPP(NTH,NP,NR,NSA)=0.D0
          END DO
          DO NTH=ITU(NR)+1,NTHMAX
-            FEPP(NTH,NP,NR,NSA) = AEFP(NSA)*EP(NR)/PTFP0(NSA)*COSM(NTH)*Line_Element(NR)*A_chi0(NR)*2.D0*PI
+            FEPP(NTH,NP,NR,NSA) = AEFP(NSA)*EP(NR)/PTFP0(NSA)*COSM(NTH) &
+                                *Line_Element(NR)*A_chi0(NR)*2.D0*PI
          END DO
          ITLB=ITL(NR)-1
          ITUB=NTHMAX-ITLB+1
@@ -402,23 +229,25 @@
       ITUB=NTHMAX+2-ITLB
       DO NP=NPSTARTW,NPENDWM
          DO NTH=1,ITLB ! FETH(NTH=1)=0
-            FETH(NTH,NP,NR,NSA) = -AEFP(NSA)*EP(NR)/PTFP0(NSA)*SING(NTH)*Line_Element(NR)*A_chi0(NR)*2.D0*PI
+            FETH(NTH,NP,NR,NSA) = -AEFP(NSA)*EP(NR)/PTFP0(NSA)*SING(NTH) &
+                                  *Line_Element(NR)*A_chi0(NR)*2.D0*PI
          END DO
          DO NTH=ITLB+1,ITUB-1
             FETH(NTH,NP,NR,NSA)=0.D0
          END DO
          DO NTH=ITUB,NTHMAX+1 ! FETH(NTHMAX+1)=0 
-            FETH(NTH,NP,NR,NSA) = -AEFP(NSA)*EP(NR)/PTFP0(NSA)*SING(NTH)*Line_Element(NR)*A_chi0(NR)*2.D0*PI
+            FETH(NTH,NP,NR,NSA) = -AEFP(NSA)*EP(NR)/PTFP0(NSA)*SING(NTH) &
+                                  *Line_Element(NR)*A_chi0(NR)*2.D0*PI
          END DO
       END DO ! END NP
 
       END SUBROUTINE FP_CALE_LAV
 
 ! ****************************************
-!     Particle source and loss
+!     Particle source and sink
 ! ****************************************
 
-      SUBROUTINE FP_CALS(NSA)
+      SUBROUTINE FP_CALS
 
       USE fpnfrr
       IMPLICIT NONE
@@ -426,12 +255,13 @@
       integer:: NBEAM, NSABEAM, NSAX, ISW_LOSS
       real(kind8):: PSP, SUML, ANGSP, SPL, FL
 
-      NS=NS_NSA(NSA)
-      NSBA=NSB_NSA(NSA)
+      DO NSA=NSASTART,NSAEND
+         NS=NS_NSA(NSA)
+         NSBA=NSB_NSA(NSA)
 
 !     ----- Particle source term -----
 
-      DO NR=NRSTART,NREND
+         DO NR=NRSTART,NREND
          DO NP=NPSTART,NPEND
             DO NTH=1,NTHMAX
                PPL(NTH,NP,NR,NSA)=0.D0
@@ -442,7 +272,7 @@
                SPPD(NTH,NP,NSA)=0.D0
             ENDDO
          ENDDO
-      ENDDO
+         ENDDO
 !     ----- NBI source term -----
 
       IF(MODEL_NBI.ne.0)THEN
@@ -539,6 +369,7 @@
       IF(MODEL_SINK.eq.1)THEN
          CALL DELTA_B_LOSS_TERM(NSA)
       END IF
+      END DO
 
       RETURN
       END SUBROUTINE FP_CALS
@@ -672,23 +503,6 @@
       RETURN
       END SUBROUTINE FPMXWL_EDGE
 !-------------------------------------------------------------
-      SUBROUTINE update_radial_f_boundary(NSA)
-
-      IMPLICIT NONE
-      integer,intent(in):: NSA
-      integer:: NTH, NP, NR, NS, NSBA
-
-      NS=NS_NSA(NSA)
-      NSBA=NSB_NSA(NSA)
-
-      DO NP=NPSTARTW, NPENDWM
-         DO NTH=1, NTHMAX
-            FS2(NTH,NP,NS) = 2.D0*FS1(NTH,NP,NS) - FNSP(NTH,NP,NRMAX,NSBA)
-         END DO
-      END DO
-
-      END SUBROUTINE update_radial_f_boundary
-!-------------------------------------------------------------
       FUNCTION FPMXWL_LT(PML,NR,NS)
 
       USE plprof
@@ -742,111 +556,6 @@
 
       RETURN
       END FUNCTION FPMXWL_LT
-!-------------------------------------------------------------
-
-      SUBROUTINE FPWAVE_CONST
-!
-      USE fpmpi
-      IMPLICIT NONE
-      integer:: NR, NSA, NSB, NSBA, NP, NTH, NS, NPS
-      integer:: IERR
-      real(kind8):: RSUM_W,RSUM_EC,RSUM_IC
-      real(kind8):: PV, WPL, WPM, WPP
-      real(kind8):: DFP, DFT, FFP, FACT
-
-      CALL mtx_set_communicator(comm_np) 
-      DO NR=NRSTART,NREND
-         DO NSA=NSASTART,NSAEND
-            NS=NS_NSA(NSA)
-            NSBA=NSB_NSA(NSA)
-
-            RSUM_W=0.D0
-            RSUM_EC=0.D0
-            RSUM_IC=0.D0
-
-            IF(NPSTART.eq.1)THEN
-               NPS=2
-            ELSE
-               NPS=NPSTART
-            END IF
-!            DO NP=2,NPMAX
-            DO NP=NPS,NPEND
-               PV=SQRT(1.D0+THETA0(NSA)*PG(NP,NSBA)**2)
-               DO NTH=1,NTHMAX
-                  WPL=WEIGHP(NTH  ,NP,NR,NSA)
-                  IF(NTH.EQ.1) THEN
-                     WPM=0.D0
-                  ELSE
-                     WPM=WEIGHP(NTH-1,NP,NR,NSA)
-                  ENDIF
-                  IF(NTH.EQ.NTHMAX) THEN
-                     WPP=0.D0
-                  ELSE
-                     WPP=WEIGHP(NTH+1,NP,NR,NSA)
-                  ENDIF
-                  DFP=    PG(NP,NSBA) &
-                       /DELP(NSBA)*(FNSP(NTH,NP,NR,NSBA)-FNSP(NTH,NP-1,NR,NSBA))
-                  IF(NTH.EQ.1) THEN
-                     DFT=1.D0/DELTH                             &
-                         *(                                     &
-                            ((1.D0-WPP)*FNSP(NTH+1,NP  ,NR,NSBA)   &
-                                  +WPP *FNSP(NTH+1,NP-1,NR,NSBA))&
-                           -                                    &
-                            ((1.D0-WPM)*FNSP(NTH,NP  ,NR,NSBA)     &
-                                  +WPM *FNSP(NTH,NP-1,NR,NSBA))&
-                          )
-
-                  ELSE IF(NTH.EQ.NTHMAX) THEN
-                     DFT=    1.D0/DELTH                         & 
-                         *(-                                    &
-                            ((1.D0-WPM)*FNSP(NTH-1,NP  ,NR,NSBA)   &
-                                  +WPM *FNSP(NTH-1,NP-1,NR,NSBA))&
-                          +                                     &
-                            ((1.D0-WPP)*FNSP(NTH,NP  ,NR,NSBA)     &
-                                  +WPP *FNSP(NTH,NP-1,NR,NSBA))&
-                          )
-                  ELSE
-                     DFT=    1.D0/(2.D0*DELTH)                  &
-                         *(                                     &
-                            ((1.D0-WPP)*FNSP(NTH+1,NP  ,NR,NSBA)   &
-                                  +WPP *FNSP(NTH+1,NP-1,NR,NSBA))&
-                           -                                    &
-                            ((1.D0-WPM)*FNSP(NTH-1,NP  ,NR,NSBA)   &
-                                  +WPM *FNSP(NTH-1,NP-1,NR,NSBA))&
-                                  )
-                  ENDIF
-
-                  RSUM_W = RSUM_W+PG(NP,NSBA)**2*SINM(NTH)/PV   &
-                         *(DWPP(NTH,NP,NR,NSA)*DFP           &
-                          +DWPT(NTH,NP,NR,NSA)*DFT)
-                  RSUM_IC = RSUM_IC+PG(NP,NSBA)**2*SINM(NTH)/PV   &
-                         *(DWICPP(NTH,NP,NR,NSA)*DFP         &
-                          +DWICPT(NTH,NP,NR,NSA)*DFT)
-                  RSUM_EC = RSUM_EC+PG(NP,NSBA)**2*SINM(NTH)/PV   &
-                         *(DWECPP(NTH,NP,NR,NSA)*DFP         &
-                          +DWECPT(NTH,NP,NR,NSA)*DFT)
-               ENDDO
-            ENDDO
-            CALL p_theta_integration(RSUM_W)
-            CALL p_theta_integration(RSUM_IC)
-            CALL p_theta_integration(RSUM_EC)
-               
-            FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)
-            RPW_IMPL(NR,NSA,N_IMPL)=-RSUM_W*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6 
-            RPWIC_IMPL(NR,NSA,N_IMPL)=-RSUM_IC*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
-            RPWEC_IMPL(NR,NSA,N_IMPL)=-RSUM_EC*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
-            IF(N_IMPL.eq.0)THEN
-!               WRITE(6,'("ALERT ", 3I4)') NR, NSA, N_IMPL
-               RPW_INIT(NR,NSA)=-RSUM_W*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6 
-               RPWIC_INIT(NR,NSA)=-RSUM_IC*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
-               RPWEC_INIT(NR,NSA)=-RSUM_EC*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
-            END IF
-         ENDDO
-      ENDDO
-
-      CALL mtx_reset_communicator
-      RETURN
-      END SUBROUTINE FPWAVE_CONST
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       SUBROUTINE NBI_SOURCE_A1(NSA)
 
@@ -1262,13 +971,13 @@
 
       END SUBROUTINE fusion_source_init
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      SUBROUTINE synchrotron(NSA)
+      SUBROUTINE synchrotron
 
       IMPLICIT NONE
       real(8):: alpha, rgama_para, u, rgama
-      integer:: NTH, NP, NR
-      integer, intent(in):: NSA
+      integer:: NSA, NTH, NP, NR
 
+      DO NSA=nSASTART,NSAEND
       DO NR=NRSTART, NREND
 
          DO NP=NPSTART, NPENDWG
@@ -1300,16 +1009,17 @@
          END DO
          
       END DO
+      END DO
       
       END SUBROUTINE synchrotron
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      SUBROUTINE loss_for_CNL(NSA)
+      SUBROUTINE loss_for_CNL
 
       IMPLICIT NONE
-      INTEGER,INTENT(IN):: NSA
       real(8):: rgama
-      INTEGER:: NTH, NP, NR
+      INTEGER:: NSA,NTH, NP, NR
 
+      DO NSA=NSASTART, NSAEND
       DO NR=NRSTART, NREND
       DO NP=NPSTART, NPENDWG
          rgama=SQRT(1.D0+THETA0(NSA)*PG(NP,NSA)**2)
@@ -1325,6 +1035,7 @@
                DLPP(NTH,NP,NR,NSA)=0.D0
             END DO
          END IF
+      END DO
       END DO
       END DO
 

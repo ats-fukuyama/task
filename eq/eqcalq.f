@@ -58,11 +58,15 @@ C
 C
       INCLUDE '../eq/eqcomq.inc'
 C
-      DIMENSION PSIRG(NRGM,NZGM),PSIZG(NRGM,NZGM),PSIRZG(NRGM,NZGM)
-      DIMENSION HJTRG(NRGM,NZGM),HJTZG(NRGM,NZGM),HJTRZG(NRGM,NZGM)
+      REAL(8),DIMENSION(:,:),ALLOCATABLE:: PSIRG,PSIZG,PSIRZG
+      REAL(8),DIMENSION(:,:),ALLOCATABLE:: HJTRG,HJTZG,HJTRZG
+
       DIMENSION DERIV(NPSM)
       EXTERNAL PSIGD
 C
+      ALLOCATE(PSIRG(NRGM,NZGM),PSIZG(NRGM,NZGM),PSIRZG(NRGM,NZGM))
+      ALLOCATE(HJTRG(NRGM,NZGM),HJTZG(NRGM,NZGM),HJTRZG(NRGM,NZGM))
+
       CALL SPL2D(RG,ZG,PSIRZ,PSIRG,PSIZG,PSIRZG,UPSIRZ,
      &           NRGM,NRGMAX,NZGMAX,0,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL2D for PSIRZ: IERR=',IERR
@@ -72,14 +76,20 @@ C
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL2D for HJTRZ: IERR=',IERR
 C
 C     *** Initial parameters for first guess of EQAXIS input ***
-      RAXIS=RR
-      ZAXIS=0.D0
+      IF(MODELG.NE.5) THEN
+         RAXIS=RR
+         ZAXIS=0.D0
+      END IF
       PSI0=PSIG(RAXIS,ZAXIS)
       PSIPA=-PSI0
 C     **********************************************************
 C
 C     *** Calculate RAXIS, ZAXIS, PSI0 and PSIPA ***
+C      WRITE(6,'(A,1P4E12.4)') 
+C     &     'IN:RAXIS,ZAXIS,PSI0,PSIPA=',RAXIS,ZAXIS,PSI0,PSIPA
       CALL EQAXIS(IERR)
+C      WRITE(6,'(A,1P4E12.4)') 
+C     &     'OT:RAXIS,ZAXIS,PSI0,PSIPA=',RAXIS,ZAXIS,PSI0,PSIPA
       IF(IERR.NE.0) RETURN
 C     **********************************************
 C
@@ -113,6 +123,9 @@ C
          CALL SPL1D(PSIPS,DTTPS,  DERIV,UDTTPS, NPSMAX,0,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for DTTPS: IERR=',IERR
       ENDIF
+
+      DEALLOCATE(PSIRG,PSIZG,PSIRZG)
+      DEALLOCATE(HJTRG,HJTZG,HJTRZG)
 C
       RETURN
       END
@@ -136,7 +149,7 @@ C
 C
 C     ----- SET DR, DTH -----
 C
-!      write(6,'(A,1p4E12.4)') 'RB,RA,REDGE,RAXIS=',RB,RA,REDGE,RAXIS
+      write(6,'(A,1p4E12.4)') 'RB,RA,REDGE,RAXIS=',RB,RA,REDGE,RAXIS
       IF(NSUMAX.EQ.0.OR.RA-RB.EQ.0.D0.OR.RR+RB-REDGE.EQ.0.D0) THEN
          NRPMAX=NRMAX
       ELSE
@@ -195,6 +208,8 @@ C
          RMAX=RAXIS
          ZMIN=ZAXIS
          ZMAX=ZAXIS
+         NZMINR=1
+         NZMAXR=1
          BMIN=ABS(2.D0*BB)
          BMAX=0.D0
 C

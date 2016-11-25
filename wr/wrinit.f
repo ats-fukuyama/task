@@ -228,9 +228,9 @@ C
 C
       IERR=0
 C
-      IF(MODELG.EQ.3) THEN
+      IF(MODELG.EQ.3.OR.MODELG.EQ.5) THEN
          IF(INITEQ.EQ.0) THEN
-            CALL EQLOAD(3,KNAMEQ,IERR)
+            CALL EQLOAD(MODELG,KNAMEQ,IERR)
             IF(IERR.EQ.0) THEN
                write(LINE,'(A,I5)') 'nrmax =',51
                call eqparm(2,line,ierr)

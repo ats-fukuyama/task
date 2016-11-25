@@ -226,9 +226,7 @@
 
 ! IF MODEL_DISRUPT=1, FP_COEF is already called in TOP_OF_TIME_LOOP_DISRUPT
             IF(MODEL_DISRUPT.eq.0)THEN 
-               DO NSA=NSASTART,NSAEND
-                  IF (MOD(NT,NTSTEP_COEF).EQ.0) CALL FP_COEF(NSA)
-               END DO
+               IF (MOD(NT,NTSTEP_COEF).EQ.0) CALL FP_COEF(NT)
             END IF
 
 !           sum up SPPF
@@ -466,6 +464,25 @@
 
       RETURN
       END SUBROUTINE FP_LOOP
+
+!-------------------------------------------------------------
+
+      SUBROUTINE update_radial_f_boundary(NSA)
+
+      IMPLICIT NONE
+      integer,intent(in):: NSA
+      integer:: NTH, NP, NR, NS, NSBA
+
+      NS=NS_NSA(NSA)
+      NSBA=NSB_NSA(NSA)
+
+      DO NP=NPSTARTW, NPENDWM
+         DO NTH=1, NTHMAX
+            FS2(NTH,NP,NS) = 2.D0*FS1(NTH,NP,NS) - FNSP(NTH,NP,NRMAX,NSBA)
+         END DO
+      END DO
+
+      END SUBROUTINE update_radial_f_boundary
 
 ! ************************************
 !     PREDICTION OF ELECTRIC FIELD

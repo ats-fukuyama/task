@@ -1,8 +1,8 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS=-g $(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=-g $(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../plx/$(MOD) -I../lib/$(MOD)
 
@@ -100,6 +100,16 @@ eqsplf.o: eqsplf.f $(EQCOMM) eqcom3.inc
 eqfile.o: eqfile.f $(EQCOMM) eqcom2.inc
 eqintf.o: eqintf.f $(EQCOMM) eqcom2.inc
 eqgout.o: eqgout.f $(EQCOMM) eqcom2.inc eqcom3.inc
+eqbpsd.o: eqbpsd.f $(EQCOMM) eqcom3.inc
+eqjft2m.o: eqjft2m.f $(EQCOMM) eqcom3.inc
+equnit.o: equnit.f eqbpsd.f
+eqgsub.o: eqgsub.f
+eqg2d.o: eqg2d.f $(EQCOMM) eqcom3.inc
+eqg3d.o: eqg3d.f $(EQCOMM) eqcom3.inc
+equcom.o: equcom.f90
+equread.o: equread.f90 equcom.f90
+equintf.o: equintf.f $(EQCOMM) eqcom3.inc
+eqrppl.o: eqrppl.f $(EQCOMM) eqcom3.inc
 trtest.o: trtest.f
 treqin.o: treqin.f $(EQCOMM) eqcom3.inc eqcom4.inc
 pltest.o: pltest.f

@@ -517,9 +517,11 @@
       END IF
 
       C_ = 0.56D0/Z_i*(3.0D0-Z_i)/(3.D0+Z_i)
-      f_t=1.D0 -(1.D0-EPSRM2(NR))**2/ ( SQRT(1.D0-EPSRM2(NR)**2)*(1.D0+1.46D0*SQRT(EPSRM2(NR))) )
-      phi = f_t/(1.D0 + (0.58D0+0.2D0*Z_i)*(2.D0*RR*QLM(NR)*EPSRM2(NR)**(-1.5D0) )/ &
-           (3.D0*SQRT(2.D0*PI)*VC*tau_rela)/theta_l**2 )
+      f_t=1.D0 -(1.D0-EPSRM2(NR))**2 &
+               /( SQRT(1.D0-EPSRM2(NR)**2)*(1.D0+1.46D0*SQRT(EPSRM2(NR))) )
+      phi = f_t/(1.D0 + (0.58D0+0.2D0*Z_i)*theta_l**2 &
+                       *(2.D0*RR*QLM(NR)*EPSRM2(NR)**(-1.5D0) ) &
+                       /(3.D0*SQRT(2.D0*PI)*VC*tau_rela) )
       neoc=(1.D0-phi)*(1.D0-C_*phi)*(1.D0+0.47D0*(Z_i-1.D0))/ &
            (Z_i*(1.D0+0.27D0*(Z_i-1.D0)) )
 
@@ -1548,9 +1550,7 @@
          END DO
       END DO
 !            IF(MODEL_jfp.eq.1)THEN
-         DO NSA=NSASTART,NSAEND
-            IF (MOD(NT,NTSTEP_COEF).EQ.0) CALL FP_COEF(NSA)
-         END DO
+            IF (MOD(NT,NTSTEP_COEF).EQ.0) CALL FP_COEF(NT)
 !            END IF
          DO NR=1,NRMAX
             RN_runaway_M(NR)=RN_runaway(NR)
@@ -1587,9 +1587,7 @@
             DO NR=NRSTART,NREND
                EP(NR)=E1(NR)
             END DO
-            DO NSA=NSASTART, NSAEND
-               CALL FP_CALE(NSA)
-            END DO
+            CALL FP_CALE
             CALL update_fpp
          END DO
          IF (MOD(NT,NTG1STEP).EQ.0.and.NRANK.eq.0) &
@@ -1622,9 +1620,7 @@
             DO NR=NRSTART,NREND
                EP(NR)=E1(NR)
             END DO
-            DO NSA=NSASTART, NSAEND
-               CALL FP_CALE(NSA)
-            END DO
+            CALL FP_CALE
             CALL update_fpp
          END DO
          
