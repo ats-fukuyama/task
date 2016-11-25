@@ -169,11 +169,14 @@ CONTAINS
             ex,ey,ez,bx,by,bz,dt,ctomi,xib,yib,zib, &
             vparai,vperpi,model_boundary,vcfact)
 
+      !  CALL particle_collision(npmax,nxmax,nymax,xe,ye,ze,vxe,vye,vze,ctome, &
+      !       xi,yi,zi,ctomi)
+
        !----- treat particles being out of the boundary
 
        IF(model_boundary .EQ. 0) THEN
-          CALL bound_periodic(npmax,xe,ye,ze,x1,x2,y1,y2,z1,z2,alx,aly,alz)
-          CALL bound_periodic(npmax,xi,yi,zi,x1,x2,y1,y2,z1,z2,alx,aly,alz)
+          CALL bound_periodic(npmax,xe,ye,ze,xeb,yeb,xemid,yemid,x1,x2,y1,y2,z1,z2,alx,aly,alz)
+          CALL bound_periodic(npmax,xi,yi,zi,xib,yib,ximid,yimid,x1,x2,y1,y2,z1,z2,alx,aly,alz)
        ELSE
           CALL bound_reflective(npmax,xe,ye,ze,xeb,yeb,xemid,yemid,vxe,vye,vze, &
                x1,x2,y1,y2,z1,z2,alx,aly,alz,vzone)
@@ -405,7 +408,7 @@ CONTAINS
   !***********************************************************************
   SUBROUTINE push(npmax,nxmax,nymax,x,y,z,vx,vy,vz,ex,ey,ez,bx,by,bz,&
                 dt,ctom,xb,yb,zb,vpara,vperp,model_boundary,vcfact)
-    !***********************************************************************
+  !***********************************************************************
     IMPLICIT NONE
     REAL(8), DIMENSION(npmax) :: x, y, z, xb, yb, zb
     REAL(8), DIMENSION(npmax) :: vx, vy, vz, vpara, vperp
@@ -416,9 +419,9 @@ CONTAINS
     REAL(8) :: btot, vtot, bb2 ,vcfact, gamma
     INTEGER :: npmax, nxmax, nymax, model_boundary
     INTEGER :: np, nxp, nyp, nxpp, nxpm, nypp, nypm, nxppp, nyppp
-    !$omp parallel do Private(nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,&
-    !$omp dx,dy,dx1,dy1,sx2m,sx2,sx2p,sy2m,sy2,sy2p,exx,eyy,ezz,bxx,byy,bzz,&
-    !$omp vxm,vym,vzm,vxzero,vyzero,vzzero,gamma,btot,vtot,bb2)
+    !!$omp parallel do Private(nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,&
+    !!$omp dx,dy,dx1,dy1,sx2m,sx2,sx2p,sy2m,sy2,sy2p,exx,eyy,ezz,bxx,byy,bzz,&
+    !!$omp vxm,vym,vzm,vxzero,vyzero,vzzero,gamma,btot,vtot,bb2)
 
     DO np = 1, npmax
       ! calculate the electric field at the particle position
@@ -683,14 +686,24 @@ CONTAINS
        END IF
 
     END DO
-  !$omp end parallel do
+  !!$omp end parallel do
   END SUBROUTINE push
-
+  ! !***********************************************************************
+  ! SUBROUTINE particle_collision(npmax,nxmax,nymax,xe,ye,ze,vxe,vye,vze,ctome, &
+  !      xi,yi,zi,ctomi)
+  ! !***********************************************************************
+  !   IMPLICIT NONE
+  !   REAL(8), DIMENSION(npmax) :: xe, ye, ze, xi, yi, zi
+  !   REAL(8) :: ctome, ctomi
+  !   INTEGER :: npmax, nxmax, nymax
+  !
+  !
+  ! END SUBROUTINE particle_collision
   !***********************************************************************
-  SUBROUTINE bound_periodic(npmax,x,y,z,x1,x2,y1,y2,z1,z2,alx,aly,alz)
+  SUBROUTINE bound_periodic(npmax,x,y,z,xb,yb,xmid,ymid,x1,x2,y1,y2,z1,z2,alx,aly,alz)
     !***********************************************************************
     IMPLICIT NONE
-    REAL(8), DIMENSION(npmax) :: x, y, z
+    REAL(8), DIMENSION(npmax) :: x, y, z, xb, yb, xmid, ymid
     REAL(8) :: alx, aly, alz, x1, x2, y1, y2, z1, z2
     INTEGER :: npmax, np
     DO np = 1, npmax
@@ -703,7 +716,7 @@ CONTAINS
              x(np) = x(np) - alx
           END DO
        ENDIF
-
+       xmid(np)=0.5D0*(xb(np)+x(np))
        IF( y(np) .LT. y1 ) THEN
           DO WHILE(y(np) .LT. y1)
              y(np) = y(np) + aly
@@ -713,7 +726,7 @@ CONTAINS
              y(np) = y(np) - aly
           END DO
        ENDIF
-
+       ymid(np)=0.5D0*(yb(np)+y(np))
        IF( z(np) .LT. z1 ) THEN
           DO WHILE(z(np) .LT. z1)
             z(np) = z(np) + alz
@@ -746,7 +759,7 @@ CONTAINS
     z4 = z2 - vdzone
     !alx1 = alx - vzone
     !aly1 = aly - vzone
-    !$omp parallel do Private(x,y,z,vx,vy)
+    !$omp parallel do Private(xl_before,xl_after,yl_before,yl_after)
     DO np = 1, npmax
        xmid(np)=0.5D0*(xb(np)+x(np))
        IF( x(np) .LT. x3  ) THEN
@@ -759,7 +772,7 @@ CONTAINS
           xl_before=x4 - xb(np)
           x(np) = x4 - (x(np) - x4)
           xl_after=x4 - x(np)
-          xmid(np)=x4+0.5D0*ABS(xl_after-xl_before)
+          xmid(np)=x4-0.5D0*ABS(xl_after-xl_before)
           vx(np) = -vx(np)
        ENDIF
        ymid(np)=0.5D0*(yb(np)+y(np))
@@ -770,22 +783,21 @@ CONTAINS
           ymid(np)=y3+0.5D0*ABS(yl_after-yl_before)
           vy(np) = -vy(np)
        ELSEIF( y(np) .GT. y4 ) THEN
-          xl_before=x4 - xb(np)
-          x(np) = x4 - (x(np) - x4)
-          xl_after=x4 - x(np)
-          xmid(np)=x4+0.5D0*ABS(xl_after-xl_before)
+          yl_before=y4 - yb(np)
+          y(np) = y4 - (y(np) - y4)
+          yl_after=y4 - y(np)
+          ymid(np)=y4-0.5D0*ABS(yl_after-yl_before)
           vy(np) = -vy(np)
        ENDIF
-
-       IF( z(np) .LT. z3 ) THEN
-          DO WHILE(z(np) .LT. z3)
-            z(np) = z(np) + alz
-          END DO
-       ELSEIF( z(np) .GT. z4 ) THEN
-          DO WHILE(z(np) .GT. z4)
-             z(np) = z(np) - alz
-          END DO
-       ENDIF
+      !  IF( z(np) .LT. z3 ) THEN
+      !     !DO WHILE(z(np) .LT. z3)
+      !       z(np) = z(np) + alz
+      !     !END DO
+      !  ELSEIF( z(np) .GT. z4 ) THEN
+      !     !DO WHILE(z(np) .GT. z4)
+      !        z(np) = z(np) - alz
+      !     !END DO
+      !  ENDIF
 
        !IF( z(np) .LT. z1 ) THEN
       !    z(np) = -z(np)
@@ -818,7 +830,7 @@ CONTAINS
     END IF
     !*poption parallel, psum(rho)
     !$omp parallel do Private (np,nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2p,sx2,sx2m,sy2p,sy2,sy2m) &
-    !$omp reduction (+:rho)
+    !$omp reduction(+:rho)
 
     DO np = 1, npmax
        nxp = x(np)
@@ -1038,8 +1050,9 @@ CONTAINS
     ELSE
        factor=chrg*DBLE(nxmax)*DBLE(nymax)/DBLE(npmax)
     END IF
-    !$omp parallel do Private (np,nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2p,sx2,sx2m,sy2p,sy2,sy2m) &
-    !$omp Reduction(+:jx,jy,jz)
+    !!$omp parallel do Private (nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2p,sx2,sx2m,sy2p,sy2,sy2m)&
+    !!$omp Reduction(+:jx,jy,jz)
+
     DO np = 1, npmax
        nxp = xmid(np)
        nyp = ymid(np)
@@ -1301,7 +1314,7 @@ CONTAINS
 
        ENDIF
     END DO
-    !$omp end parallel do
+    !!$omp end parallel do
   END SUBROUTINE current
 
   !***********************************************************************
