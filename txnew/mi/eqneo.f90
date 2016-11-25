@@ -546,4 +546,45 @@ contains
     stop 'error stop'
   end subroutine eqneo0
 
+  ! ********************************************************************
+  !      Coefficients for Pfirsch-Schluter viscosity (nccoe)
+  ! ********************************************************************
+
+  subroutine wrap_eqneo
+    use tx_commons, only : ieqread, NRMAX, gamneo, Pisq, sdt, bbrt, mxneo, epst, fmneo, q, RR
+    integer(4) :: NR, i
+    real(8) :: epsl, coefmneo, smallvalue = 1.d-4
+
+    if( ieqread >= 2 ) then
+       call eqneo
+    else
+       do NR = 1, NRMAX
+          gamneo(NR) = 4.d0 * Pisq * sdt(NR) / bbrt(NR) ! = bthco(NR) / bbrt(NR)
+          mxneo(NR) = 3
+          epsl = epst(NR)
+          coefmneo = 1.d0 - epsl**2
+          do i = 1, mxneo(NR)
+             fmneo(i,NR) = real(i,8)* ( (1.d0-sqrt(coefmneo))/epsl)**(2*i) &
+                  &                 * (1.d0+real(i,8)*sqrt(coefmneo)) &
+                  &                 / (coefmneo*sqrt(coefmneo)*(q(NR)*RR)**2)
+          end do
+          fmneo(mxneo(NR)+1:10,NR) = 0.d0
+       end do
+    end if
+    ! Even at axis, fmneo=0 should be avoided because it would cause K_PS = 0.
+    NR = 0
+       gamneo(NR) = 4.d0 * Pisq * sdt(NR) / bbrt(NR) ! = bthco(NR) / bbrt(NR)
+       mxneo(NR) = 3
+!       fmneo(1:10,NR) = 0.d0
+       epsl = smallvalue
+       coefmneo = 1.d0 - epsl**2
+       do i = 1, mxneo(NR)
+          fmneo(i,NR) = real(i,8)* ( (1.d0-sqrt(coefmneo))/epsl)**(2*i) &
+               &                 * (1.d0+real(i,8)*sqrt(coefmneo)) &
+               &                 / (coefmneo*sqrt(coefmneo)*(q(NR)*RR)**2)
+       end do
+       fmneo(mxneo(NR)+1:10,NR) = 0.d0
+
+  end subroutine wrap_eqneo
+
 end module mod_eqneo

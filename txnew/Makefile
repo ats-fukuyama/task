@@ -108,7 +108,7 @@ txexec.o: txexec.f90 $(MOD)/tx_commons.mod $(MOD)/tx_interface.mod $(MOD)/tx_coe
 	$(FCFREE) $(FFLAGS) $(PREPRO) $(FOMP) -c $< -o $@ $(MODDIR) $(MODLA95) $(MODLIB)
 txfile.o: txfile.f90 $(MOD)/tx_commons.mod $(MOD)/tx_interface.mod $(MOD)/tx_coefficients.mod \
 	  $(MOD)/tx_variables.mod $(MOD)/tx_parameter_control.mod $(MOD)/tx_graphic.mod \
-	  $(MOD)/tx_core_module.mod
+	  $(MOD)/tx_core_module.mod $(MOD)/mod_eqneo.mod
 txgraf.o: txgraf.f90 $(MOD)/tx_commons.mod $(MOD)/tx_interface.mod $(MOD)/tx_variables.mod \
 	  $(MOD)/tx_ripple.mod $(MOD)/tx_core_module.mod $(MOD)/equ_params.mod
 txinit.o: txinit.f90 $(MOD)/tx_commons.mod $(MOD)/tx_interface.mod $(MOD)/tx_variables.mod \

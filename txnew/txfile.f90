@@ -348,6 +348,7 @@ SUBROUTINE TXLOAD(IST)
   use tx_variables
   use tx_coefficients, only : TXCALA
   use tx_parameter_control, only : TXPARM_CHECK
+  use mod_eqneo, only : wrap_eqneo
   implicit none
   integer(4), intent(out) :: IST
   INTEGER(4) :: NQ, NR, NC, I, IGYT, IGYV
@@ -453,6 +454,8 @@ SUBROUTINE TXLOAD(IST)
   PNsV_FIX(:,2) = Var(:,2)%n
   PTsV_FIX(:,2) = Var(:,2)%T
   ErV_FIX (:) = ErV (:)
+
+  call wrap_eqneo
 
   CALL TXCALC(0)
   CALL TXCALA

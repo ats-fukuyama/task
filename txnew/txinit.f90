@@ -954,7 +954,7 @@ SUBROUTINE TXPROF
   use sauter_mod
   use tx_ntv, only : perturb_mag, Wnm_spline
   use eqread_mod, only : AJphVRL
-  use mod_eqneo, only : eqneo
+  use mod_eqneo, only : wrap_eqneo
 #ifdef laself
   ! for self-compiled lapack
   use f95_lapack, only : GESV => LA_GESV
@@ -966,14 +966,13 @@ SUBROUTINE TXPROF
 #endif
 
   implicit none
-  INTEGER(4) :: NR, IER, ifile, NHFM, NR_smt, NR_smt_start = 10, i
+  INTEGER(4) :: NR, IER, ifile, NHFM, NR_smt, NR_smt_start = 10
   REAL(8) :: rhol, PROFN, PROFT, PTePROF, PTiPROF!, RL, QL, dRIP
   REAL(8) :: AJFCT, SUM_INT, DR1, DR2
   REAL(8) :: EpsL, FTL, PBA, dPN, CfN1, CfN2, pea, pia, pediv, pidiv, dpea, dpia, &
        &     Cfpe1, Cfpe2, Cfpi1, Cfpi2, sigma, fexp, PN0L, PNaL, PNeDIVL, &
        &     PTe0L, PTi0L, PTeaL, PTiaL, PTeDIVL, PTiDIVL
   real(8) :: BCLQm3, etanc, etaspz, dum=0.d0, tmp
-  real(8) :: coefmneo, smallvalue = 1.d-4
   REAL(8) :: aitken2p!, DERIV4
   real(8), dimension(:), allocatable :: AJPHL, tmpa, RHSV, Prof1, Prof2, &
        & Profsdt, dProfsdt
@@ -1460,36 +1459,38 @@ SUBROUTINE TXPROF
   !      Coefficients for Pfirsch-Schluter viscosity (nccoe)
   ! ********************************************************************
 
-  if( ieqread >= 2 ) then
-!     if( MDLNEOL == 2 ) call eqneo
-     call eqneo
-  else
-     do NR = 1, NRMAX
-        gamneo(NR) = 4.d0 * Pisq * sdt(NR) / bbrt(NR) ! = bthco(NR) / bbrt(NR)
-        mxneo(NR) = 3
-        epsl = epst(NR)
-        coefmneo = 1.d0 - epsl**2
-        do i = 1, mxneo(NR)
-           fmneo(i,NR) = real(i,8)* ( (1.d0-sqrt(coefmneo))/epsl)**(2*i) &
-                &                 * (1.d0+real(i,8)*sqrt(coefmneo)) &
-                &                 / (coefmneo*sqrt(coefmneo)*(q(NR)*RR)**2)
-        end do
-        fmneo(mxneo(NR)+1:10,NR) = 0.d0
-     end do
-  end if
-  ! Even at axis, fmneo=0 should be avoided because it would cause K_PS = 0.
-  NR = 0
-     gamneo(NR) = 4.d0 * Pisq * sdt(NR) / bbrt(NR) ! = bthco(NR) / bbrt(NR)
-     mxneo(NR) = 3
-!     fmneo(1:10,NR) = 0.d0
-     epsl = smallvalue
-     coefmneo = 1.d0 - epsl**2
-     do i = 1, mxneo(NR)
-        fmneo(i,NR) = real(i,8)* ( (1.d0-sqrt(coefmneo))/epsl)**(2*i) &
-             &                 * (1.d0+real(i,8)*sqrt(coefmneo)) &
-             &                 / (coefmneo*sqrt(coefmneo)*(q(NR)*RR)**2)
-     end do
-     fmneo(mxneo(NR)+1:10,NR) = 0.d0
+  call wrap_eqneo
+
+!!$  if( ieqread >= 2 ) then
+!!$!     if( MDLNEOL == 2 ) call eqneo
+!!$     call eqneo
+!!$  else
+!!$     do NR = 1, NRMAX
+!!$        gamneo(NR) = 4.d0 * Pisq * sdt(NR) / bbrt(NR) ! = bthco(NR) / bbrt(NR)
+!!$        mxneo(NR) = 3
+!!$        epsl = epst(NR)
+!!$        coefmneo = 1.d0 - epsl**2
+!!$        do i = 1, mxneo(NR)
+!!$           fmneo(i,NR) = real(i,8)* ( (1.d0-sqrt(coefmneo))/epsl)**(2*i) &
+!!$                &                 * (1.d0+real(i,8)*sqrt(coefmneo)) &
+!!$                &                 / (coefmneo*sqrt(coefmneo)*(q(NR)*RR)**2)
+!!$        end do
+!!$        fmneo(mxneo(NR)+1:10,NR) = 0.d0
+!!$     end do
+!!$  end if
+!!$  ! Even at axis, fmneo=0 should be avoided because it would cause K_PS = 0.
+!!$  NR = 0
+!!$     gamneo(NR) = 4.d0 * Pisq * sdt(NR) / bbrt(NR) ! = bthco(NR) / bbrt(NR)
+!!$     mxneo(NR) = 3
+!!$!     fmneo(1:10,NR) = 0.d0
+!!$     epsl = smallvalue
+!!$     coefmneo = 1.d0 - epsl**2
+!!$     do i = 1, mxneo(NR)
+!!$        fmneo(i,NR) = real(i,8)* ( (1.d0-sqrt(coefmneo))/epsl)**(2*i) &
+!!$             &                 * (1.d0+real(i,8)*sqrt(coefmneo)) &
+!!$             &                 / (coefmneo*sqrt(coefmneo)*(q(NR)*RR)**2)
+!!$     end do
+!!$     fmneo(mxneo(NR)+1:10,NR) = 0.d0
 
   ! ********************************************************************
   !      Miscellaneous
