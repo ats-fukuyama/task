@@ -13,6 +13,7 @@ MODULE fpcomm_parm
 
       integer,parameter:: kind8=rkind
       integer,parameter:: NBEAMM=20
+      real(rkind),parameter:: rkev=aee*1.D3
 
       integer:: NSAMAX,NSBMAX,NS_NSA(NSM),NS_NSB(NSM)
       integer:: LMAXNWR,NCMIN(NSM),NCMAX(NSM),NBEAMMAX,NSSPB(NBEAMM),NSSPF

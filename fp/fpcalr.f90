@@ -15,20 +15,109 @@ CONTAINS
       USE fpmpi,ONLY: p_theta_integration
       IMPLICIT NONE
       integer:: NSA, NSBA, NS, NR, NTH, NP, NG, NSB, NR1, NR2
-      real(kind8):: RHON, RTFPL, FACTR, FACTP, SV
+      real(kind8):: RHON, RTFPL, FACTR, FACTP, SV, PPP, PPM
       real(kind8):: PSIB, PCOS, X, ETAL, sumd, sumf, DELH
       real(kind8):: DNDR, NEDGE, FACT, DINT_D, DINT_F, WRL
       real(kind8):: sum1, temp1, SRHODP, SRHODM, SRHOFP, SRHOFM
       real(kind8):: WRH, DFDR_D, DFDR_F, F_R2, DFDR_R2, F_R1, DFDR_R1
       REAL(kind8):: SHEAR,PNEL,RHONI,DPDR,DVEXBDR,CALF,CKAP,CEXB,FSZ,FEZ
-      REAL(kind8):: CHI_CDBM
+      REAL(kind8),DIMENSION(NRSTART:NREND):: CHI_CDBM
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
       double precision:: densm, densp, rgama
       INTEGER:: ISW_D
 
+!---- Calculation of CDBM diffusion coefficient ----
+
+      IF(MODELD_RDEP.EQ.2) THEN
+         DO NR=NRSTART,NRENDWG
+            RHON=RG(NR)
+
+            IF(NR.EQ.1) THEN        ! magnetic shear s=(r/q)(dq/dr)
+               SHEAR=0.D0
+            ELSE IF(NR.EQ.NRMAX+1) THEN  !QLM(NRMAX+1)=QLG(rhon=1)
+               SHEAR=(RHON/QLM(NR))*(QLM(NR)-QLM(NR-1)) &
+                     *0.5D0/(RG(NR)-RM(NR-1))
+            ELSE
+               SHEAR=(RHON/(RM(NR)-RM(NR-1)))*(QLM(NR)-QLM(NR-1)) &
+                     *2.D0/(QLM(NR)+QLM(NR-1))
+            END IF
+
+            PNEL=0.D0               ! electron density
+            DO NSB=1,NSBMAX
+               NS=NS_NSB(NSB)
+               IF(ID_NS(NS).EQ.-1) THEN
+                  IF(NR.EQ.1) THEN
+                     PNEL=PNEL+RNFD(NR,NSB)*1.D20
+                  ELSE IF(NR.EQ.NRMAX+1) THEN
+                     PNEL=PNEL+RNFD(NR-1,NSB)*1.D20
+                  ELSE
+                     PNEL=PNEL+0.5D0*(RNFD(NR-1,NSB)+RNFD(NR,NSB))*1.D20
+                  END IF
+               END IF
+            END DO
+
+            RHONI=0.D0              ! ion mass density
+            DO NSB=1,NSBMAX
+               NS=NS_NSB(NSB)
+               IF(ID_NS(NS).EQ.1) THEN
+                  IF(NR.EQ.1) THEN
+                     RHONI=RHONI+PA(NS)*AMP*RNFD(NR,NSB)*1.D20
+                  ELSE IF(NR.EQ.NRMAX+1) THEN
+                     RHONI=RHONI+PA(NS)*AMP*RNFD(NR-1,NSB)*1.D20
+                  ELSE
+                     RHONI=RHONI+PA(NS)*AMP &
+                                *0.5D0*(RNFD(NR-1,NSB)+RNFD(NR,NSB))*1.D20
+                  END IF
+               END IF
+            END DO
+
+            DPDR=0.D0               ! pressure gradient
+            PPP=0.D0
+            PPM=0.D0
+            DO NSB=1,NSBMAX
+               NS=NS_NSB(NSB)
+               IF(ID_NS(NS).EQ.1.OR.ID_NS(NS).EQ.-1) THEN
+                  IF(NR.EQ.1) THEN
+                     PPP=PPP+RHONI+RNFD(NR,NSB)*1.D20*RTFD(NR,NSB)*RKEV
+                     PPM=PPM+RHONI+RNFD(NR,NSB)*1.D20*RTFD(NR,NSB)*RKEV
+                  ELSE IF(NR.EQ.NRMAX) THEN
+                     PPP=PPP+RHONI+RNFD(NR  ,NSB)*1.D20*RTFD(NR  ,NSB)*RKEV
+                     PPM=PPM+RHONI+RNFD(NR-1,NSB)*1.D20*RTFD(NR-1,NSB)*RKEV
+                  ELSE IF(NR.EQ.NRMAX+1) THEN
+                     PPP=PPP+RHONI+RNFD(NR-1,NSB)*1.D20*RTFD(NR-1,NSB)*RKEV
+                     PPM=PPM+RHONI+RNFD(NR-2,NSB)*1.D20*RTFD(NR-2,NSB)*RKEV
+                  ELSE
+                     PPP=PPP+RHONI+RNFD(NR+1,NSB)*1.D20*RTFD(NR+1,NSB)*RKEV
+                     PPM=PPM+RHONI+RNFD(NR-1,NSB)*1.D20*RTFD(NR-1,NSB)*RKEV
+                  END IF
+               END IF
+            END DO
+            IF(NR.EQ.1) THEN
+               DPDR=0.D0
+            ELSE IF(NR.EQ.NRMAX) THEN
+               DPDR=(PPP-PPM)/(RM(NR  )-RM(NR-1))
+            ELSE IF(NR.EQ.NRMAX+1) THEN
+               DPDR=(PPP-PPM)/(RM(NR-1)-RM(NR-2))
+            ELSE
+               DPDR=(PPP-PPM)/(RM(NR+1)-RM(NR-1))
+            END IF
+
+            dvexbdr=0.D0
+            CALF=1.D0
+            CKAP=1.D0
+            CEXB=0.D0
+!            FSZ=1.D0     ! option
+!            CURVZ=0.D0   ! option
+!            FEZ=0.D0     ! option
+
+            CALL CDBM(BB,RR,RA*RHON,RKAP,QLM(NR),SHEAR,PNEL,RHONI,DPDR, &
+                      DVEXBDR,CALF,CKAP,CEXB,MODELD_CDBM,CHI_CDBM(NR))
+         END DO
+      END IF
+
       DO NSA=NSASTART,NSAEND
-      NS=NS_NSA(NSA)
-      NSBA=NSB_NSA(NSA)
+         NS=NS_NSA(NSA)
+         NSBA=NSB_NSA(NSA)
 
       DO NR=NRSTART,NRENDWG
          RHON=RG(NR)
@@ -56,38 +145,7 @@ CONTAINS
          CASE(1)
             FACTR=PI*RR*QLM(NR)*deltaB_B**2 *PTFP0(NSBA)/AMFP(NSBA)
          CASE(2)
-            IF(NR.EQ.1) THEN
-               SHEAR=0.D0
-            ELSE IF(NR.EQ.NRMAX+1) THEN  !QLM(NRMAX+1)=QLG(rhon=1)
-               SHEAR=(RHON/QLM(NR))*(QLM(NR)-QLM(NR-1))/(RG(NR)-RM(NR-1))
-            ELSE
-               SHEAR=(RHON/(RM(NR)-RM(NR-1)))*(QLM(NR)-QLM(NR-1)) &
-                     *2.D0/(QLM(NR)+QLM(NR-1))
-            END IF
-            IF(NR.EQ.1) THEN ! assuming NSB=1 is electron
-               PNEL=RNFD(NR,1)*1.D20
-            ELSE IF(NR.EQ.NRMAX+1) THEN
-               PNEL=RNFD(NR-1,1)*1.D20
-            ELSE
-               PNEL=0.5D0*(RNFD(NR-1,1)+RNFD(NR,1))*1.D20
-            END IF
-            RHONI=0.D0
-            DO NSB=1,NSBMAX
-               NS=NS_NSB(NSB)
-               IF(ID_NS(NS).EQ.1) RHONI=RHONI+PA(NS)*AMP*RNFD(NR,NSB)*1.D20
-            END DO
-            DPDR=1.D0
-            dvexbdr=0.D0
-            CALF=1.D0
-            CKAP=1.D0
-            CEXB=0.D0
-!            FSZ=1.D0     ! option
-!            CURVZ=0.D0   ! option
-!            FEZ=0.D0     ! option
-
-            CALL CDBM(BB,RR,RA*RHON,RKAP,QLM(NR),SHEAR,PNEL,RHONI,DPDR, &
-                      DVEXBDR,CALF,CKAP,CEXB,MODELD_CDBM,CHI_CDBM)
-            FACTR=FACTOR_CDBM*CHI_CDBM
+            FACTR=FACTOR_CDBM*CHI_CDBM(NR)
          CASE DEFAULT
             WRITE(6,*) 'XX FPCALR: Undefined MODELD_RDEP'
             STOP
