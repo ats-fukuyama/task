@@ -744,8 +744,8 @@ ENDIF
     !$omp parallel do Private(gamma) &
     !$omp reduction(+:akin)
     DO np = 1, npmax
-      gamma = 1.d0/sqrt(1.d0 - (vx(np)**2+vy(np)**2+vz(np)**2)/vcfact**2)
-       akin = akin + vcfact ** 2 * (gamma - 1)
+       gamma = sqrt(1.d0 + (vx(np)**2+vy(np)**2+vz(np)**2)/vcfact**2)
+       akin = akin + vcfact ** 2 * (gamma - 1.D0)
     END DO
 
     IF(npmax.EQ.0) THEN
