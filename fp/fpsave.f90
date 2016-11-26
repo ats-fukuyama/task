@@ -578,7 +578,7 @@
       END DO
 
       DO NSA=1,NSAMAX
-         DO NR=1,NRMAX
+         DO NR=NRSTART,NREND
             RNFP(NR,NSA)=RNS(NR,NSA)
             RTFP(NR,NSA)=RT_T(NR,NSA)
             NSB=NSB_NSA(NSA)
@@ -709,7 +709,12 @@
 !         PNT_BULK(NSA,NTG1) =PNT_BULK(NSA,NTG1)/TVOLR
 !         PNDR(NSA,NTG1)=PNDR(NSA,NTG1)/TVOLR
       ENDDO
-         
+
+      IF(MODEL_NBI.NE.0) THEN
+         Q_ENG(NTG1)=5*PSPFT(4,NTG1)/PSPBT(2,NTG1)
+         WRITE(6,*) 'Q_ENG', Q_ENG(NTG1)
+      ENDIF         
+
       RETURN
       END SUBROUTINE FPSGLB
 !
