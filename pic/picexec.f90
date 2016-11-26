@@ -93,11 +93,10 @@ CONTAINS
                     ,jx,jy,jz, model_boundary)
        CALL current(npmax,nxmax,nymax,xi,yi,xib,yib,ximid,yimid,vxi,vyi,vzi,chrgi&
                     ,jx,jy,jz, model_boundary)
-       IF (model_antenna .EQ. 1) THEN
+        IF (model_antenna .EQ. 1) THEN
           CALL antenna(nxmax,nymax,jxant,jyant,jzant,phxant,phyant,phzant, &
                omega,time,jx,jy,jz)
        END IF
-
        CALL boundary_j(nxmax,nymax,jx,jy,jz,model_boundary)
        !..... sum current densities over cores
        CALL mtx_allreduce_real8(jx,nxymax,3,suma,locva)
@@ -139,8 +138,8 @@ CONTAINS
          CALL efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
               ex,ey,ez,exb,eyb,ezb,exbb,eybb,ezbb,bxb,byb,bzb,&
               esx,esy,esz,emx,emy,emz,jx,jy,jz,vcfact,model_push,model_boundary)
-         !.......... calculate bxg and byg and bzg
-         CALL bfield(nxmax,nymax,dt,Ax,Ay,Az,Axb,Ayb,Azb,ex,ey,ez, &
+        !.......... calculate bxg and byg and bzg
+        CALL bfield(nxmax,nymax,dt,Ax,Ay,Az,Axb,Ayb,Azb,ex,ey,ez, &
               bx,by,bz,bxb,byb,bzb,bxbb,bybb,bzbb,bxbg,bybg,bzbg,bb,vcfact,model_push,model_boundary)
          IF(model_wg .eq. 0) THEN
            CALL wave(nxmax,nymax,dt,Ex,Ey,Ez,vcfact,xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi)
@@ -150,7 +149,7 @@ CONTAINS
           CALL kine(npmax,vxi,vyi,vzi,akini1,mi,vcfact)
           CALL pote(nxmax,nymax,ex,ey,ez,bx,by,bz,bxbg,bybg,bzbg,vcfact, &
                apote,apotm)
-          CALL mtx_allreduce1_real8(akine1,3,sum,locv)
+         CALL mtx_allreduce1_real8(akine1,3,sum,locv)
           akine1=sum/dble(nsize)
           CALL mtx_allreduce1_real8(akini1,3,sum,locv)
           akini1=sum/dble(nsize)
@@ -1050,8 +1049,9 @@ CONTAINS
     ELSE
        factor=chrg*DBLE(nxmax)*DBLE(nymax)/DBLE(npmax)
     END IF
-    !$omp parallel do Private (nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2p,sx2,sx2m,sy2p,sy2,sy2m) &
+    !$omp parallel do Private (nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2p,sx2,sx2m,sy2p,sy2,sy2m)&
     !$omp Reduction(+:jx,jy,jz)
+
     DO np = 1, npmax
        nxp = xmid(np)
        nyp = ymid(np)

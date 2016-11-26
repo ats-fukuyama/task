@@ -718,7 +718,7 @@ ENDIF
      yc=0.5d0*(ymin_wg+ymax_wg)
      ylen=(ymax_wg-ymin_wg)
      IF(ylen .NE. 0) dph=ph_wg/ylen
-     amp_start = time * vcfact/100.d0
+     amp_start = time * vcfact/10.d0
      IF(amp_start .GE. 1.d0) amp_start=1.0d0
      DO ny=0,nymax
         y=DBLE(ny)
@@ -808,6 +808,6 @@ ENDIF
     !$omp end parallel do
     apote = 0.5D0 * apote / (DBLE(nxmax)*DBLE(nymax))
     apotm = 0.5D0 * vcfact**2 * apotm / (DBLE(nxmax)*DBLE(nymax))
-  END SUBROUTINE pote
+ END SUBROUTINE pote
 
 END MODULE picsub
