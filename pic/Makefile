@@ -13,7 +13,8 @@ FFLAGS=$(OFLAGS) -fopenmp
 
 MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD) -I../mtxp/$(MOD) -I../lib/$(MOD)
 #FINCLUDE=-I /usr/local/mpich313-ifort-gcc/include
-FINCLUDE=-I /usr/local/mpich3-intel140/include
+FINCLUDE=-I /usr/local/mpich32-ifort-gcc5/include
+#FINCLUDE=-I /usr/local/mpich3-intel140/include
 #FINCLUDE=-I /home/hoge/lib/openmpi/include
 
 .f.o :
@@ -33,6 +34,8 @@ LIBS = ../../bpsd/bpsdlib.a ../lib/tasklib.a piclib.a
 
 all : pic
 
+disp: pic
+
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)
 ../../bpsd/bpsdlib.a:
@@ -47,6 +50,9 @@ libs:
 
 pic : $(LIBS) picmain.o
 	$(FLINKER) picmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
+
+disp: disp.o
+	$(FCFREE) disp.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 testplot2 : $(LIBS) libgrf/testplot2.o
 	$(MF90) libgrf/testplot2.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) \
