@@ -936,10 +936,9 @@
       DO NR=1,NRMAX
          RHON=RM(NR)
          CALL PL_PROF(RHON,PLF)
-         DO NSB=1, NSBMAX
-            NS=NS_NSB(NSB)
-            RT_IMPL(NR,NSB)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
-            RN_IMPL(NR,NSB)=PLF(NS)%RN
+         DO NS=1,NSMAX
+            RT_IMPL(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+            RN_IMPL(NR,NS)=PLF(NS)%RN
          END DO
       END DO
 
@@ -1108,9 +1107,9 @@
             DO NSB=1,NSBMAX
                NSFD=NS_NSB(NSB)
                IF(MODEL_disrupt.eq.0)THEN
-                  IF(NSB.le.NSAMAX)THEN
-                     RNB=RN_IMPL(NR,NSB)
-                     RTB=RT_IMPL(NR,NSB)
+                  IF(NSFD.NE.0)THEN
+                     RNB=RN_IMPL(NR,NSFD)
+                     RTB=RT_IMPL(NR,NSFD)
                   ELSE
                      RNB=RNFD(NR,NSB)
                      RTB=RTFD(NR,NSB)

@@ -45,30 +45,28 @@ CONTAINS
             END IF
 
             PNEL=0.D0               ! electron density
-            DO NSB=1,NSBMAX
-               NS=NS_NSB(NSB)
+            DO NS=1,NSMAX
                IF(ID_NS(NS).EQ.-1) THEN
                   IF(NR.EQ.1) THEN
-                     PNEL=PNEL+RNFD(NR,NSB)*1.D20
+                     PNEL=PNEL+RN_IMPL(NR,NS)*1.D20
                   ELSE IF(NR.EQ.NRMAX+1) THEN
-                     PNEL=PNEL+RNFD(NR-1,NSB)*1.D20
+                     PNEL=PNEL+RN_IMPL(NR-1,NS)*1.D20
                   ELSE
-                     PNEL=PNEL+0.5D0*(RNFD(NR-1,NSB)+RNFD(NR,NSB))*1.D20
+                     PNEL=PNEL+0.5D0*(RN_IMPL(NR-1,NS)+RN_IMPL(NR,NS))*1.D20
                   END IF
                END IF
             END DO
 
             RHONI=0.D0              ! ion mass density
-            DO NSB=1,NSBMAX
-               NS=NS_NSB(NSB)
+            DO NS=1,NSMAX
                IF(ID_NS(NS).EQ.1) THEN
                   IF(NR.EQ.1) THEN
-                     RHONI=RHONI+PA(NS)*AMP*RNFD(NR,NSB)*1.D20
+                     RHONI=RHONI+PA(NS)*AMP*RN_IMPL(NR,NS)*1.D20
                   ELSE IF(NR.EQ.NRMAX+1) THEN
-                     RHONI=RHONI+PA(NS)*AMP*RNFD(NR-1,NSB)*1.D20
+                     RHONI=RHONI+PA(NS)*AMP*RN_IMPL(NR-1,NS)*1.D20
                   ELSE
                      RHONI=RHONI+PA(NS)*AMP &
-                                *0.5D0*(RNFD(NR-1,NSB)+RNFD(NR,NSB))*1.D20
+                                *0.5D0*(RN_IMPL(NR-1,NS)+RN_IMPL(NR,NS))*1.D20
                   END IF
                END IF
             END DO
@@ -76,21 +74,20 @@ CONTAINS
             DPDR=0.D0               ! pressure gradient
             PPP=0.D0
             PPM=0.D0
-            DO NSB=1,NSBMAX
-               NS=NS_NSB(NSB)
+            DO NS=1,NSMAX
                IF(ID_NS(NS).EQ.1.OR.ID_NS(NS).EQ.-1) THEN
                   IF(NR.EQ.1) THEN
-                     PPP=PPP+RHONI+RNFD(NR,NSB)*1.D20*RTFD(NR,NSB)*RKEV
-                     PPM=PPM+RHONI+RNFD(NR,NSB)*1.D20*RTFD(NR,NSB)*RKEV
+                     PPP=PPP+RHONI+RN_IMPL(NR,NS)*1.D20*RT_IMPL(NR,NS)*RKEV
+                     PPM=PPM+RHONI+RN_IMPL(NR,NS)*1.D20*RT_IMPL(NR,NS)*RKEV
                   ELSE IF(NR.EQ.NRMAX) THEN
-                     PPP=PPP+RHONI+RNFD(NR  ,NSB)*1.D20*RTFD(NR  ,NSB)*RKEV
-                     PPM=PPM+RHONI+RNFD(NR-1,NSB)*1.D20*RTFD(NR-1,NSB)*RKEV
+                     PPP=PPP+RHONI+RN_IMPL(NR  ,NS)*1.D20*RT_IMPL(NR  ,NS)*RKEV
+                     PPM=PPM+RHONI+RN_IMPL(NR-1,NS)*1.D20*RT_IMPL(NR-1,NS)*RKEV
                   ELSE IF(NR.EQ.NRMAX+1) THEN
-                     PPP=PPP+RHONI+RNFD(NR-1,NSB)*1.D20*RTFD(NR-1,NSB)*RKEV
-                     PPM=PPM+RHONI+RNFD(NR-2,NSB)*1.D20*RTFD(NR-2,NSB)*RKEV
+                     PPP=PPP+RHONI+RN_IMPL(NR-1,NS)*1.D20*RT_IMPL(NR-1,NS)*RKEV
+                     PPM=PPM+RHONI+RN_IMPL(NR-2,NS)*1.D20*RT_IMPL(NR-2,NS)*RKEV
                   ELSE
-                     PPP=PPP+RHONI+RNFD(NR+1,NSB)*1.D20*RTFD(NR+1,NSB)*RKEV
-                     PPM=PPM+RHONI+RNFD(NR-1,NSB)*1.D20*RTFD(NR-1,NSB)*RKEV
+                     PPP=PPP+RHONI+RN_IMPL(NR+1,NS)*1.D20*RT_IMPL(NR+1,NS)*RKEV
+                     PPM=PPM+RHONI+RN_IMPL(NR-1,NS)*1.D20*RT_IMPL(NR-1,NS)*RKEV
                   END IF
                END IF
             END DO

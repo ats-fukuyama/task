@@ -1352,19 +1352,21 @@
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
 
       DO NS=1,NSMAX
-         IF(NS.le.NSAMAX)THEN
+         DO NR=1,NRMAX
+            RHON=RM(NR) 
+            CALL PL_PROF(RHON,PLF) 
+            RN_IMPL(NR,NS)=PLF(NS)%RN
+            RT_IMPL(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+         ENDDO
+      END DO
+      Do NSA=1,NSAMAX
+         NS=NS_NSA(NSA)
+         IF(NS.NE.0)THEN
             DO NR=1,NRMAX
-               RN_IMPL(NR,NS) = RNS(NR,NS)
-!               RT_IMPL(NR,NS)=RT_BULK(NR,NS)
-               RT_IMPL(NR,NS)=RT_T(NR,NS)
-            ENDDO
-         ELSE
-            DO NR=1,NRMAX
-               RHON=RM(NR) 
-               CALL PL_PROF(RHON,PLF) 
-               RN_IMPL(NR,NS)=PLF(NS)%RN
-               RT_IMPL(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
-            ENDDO            
+               RN_IMPL(NR,NS) = RNS(NR,NSA)
+               RT_IMPL(NR,NS) = RT_BULK(NR,NSA)
+!               RT_IMPL(NR,NS) = RT_T(NR,NSA)
+            END DO
          END IF
       ENDDO
 
