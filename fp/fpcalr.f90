@@ -21,7 +21,7 @@ CONTAINS
       real(kind8):: sum1, temp1, SRHODP, SRHODM, SRHOFP, SRHOFM
       real(kind8):: WRH, DFDR_D, DFDR_F, F_R2, DFDR_R2, F_R1, DFDR_R1
       REAL(kind8):: SHEAR,PNEL,RHONI,DPDR,DVEXBDR,CALF,CKAP,CEXB,FSZ,FEZ
-      REAL(kind8),DIMENSION(NRSTART:NREND):: CHI_CDBM
+      REAL(kind8),DIMENSION(NRSTART:NRENDWG):: CHI_CDBM
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
       double precision:: densm, densp, rgama
       INTEGER:: ISW_D
@@ -29,6 +29,8 @@ CONTAINS
 !---- Calculation of CDBM diffusion coefficient ----
 
       IF(MODELD_RDEP.EQ.2) THEN
+         write(18,'(A,1PE12.4/A)') 'T =',TIMEFP,&
+                 'NR,RS/QLM,SHEAR,PNEL,RHONI,DPDR,CHI_CDBM'
          DO NR=NRSTART,NRENDWG
             RHON=RG(NR)
 
@@ -95,11 +97,11 @@ CONTAINS
             IF(NR.EQ.1) THEN
                DPDR=0.D0
             ELSE IF(NR.EQ.NRMAX) THEN
-               DPDR=(PPP-PPM)/(RM(NR  )-RM(NR-1))
+               DPDR=(PPP-PPM)/(RA*(RM(NR  )-RM(NR-1)))
             ELSE IF(NR.EQ.NRMAX+1) THEN
-               DPDR=(PPP-PPM)/(RM(NR-1)-RM(NR-2))
+               DPDR=(PPP-PPM)/(RA*(RM(NR-1)-RM(NR-2)))
             ELSE
-               DPDR=(PPP-PPM)/(RM(NR+1)-RM(NR-1))
+               DPDR=(PPP-PPM)/(RA*(RM(NR+1)-RM(NR-1)))
             END IF
 
             dvexbdr=0.D0
@@ -112,6 +114,8 @@ CONTAINS
 
             CALL CDBM(BB,RR,RA*RHON,RKAP,QLM(NR),SHEAR,PNEL,RHONI,DPDR, &
                       DVEXBDR,CALF,CKAP,CEXB,MODELD_CDBM,CHI_CDBM(NR))
+            write(18,'(I2,1P7E11.3)'), &
+                 NR,RA*RHON,QLM(NR),SHEAR,PNEL,RHONI,DPDR,CHI_CDBM(NR)
          END DO
       END IF
 

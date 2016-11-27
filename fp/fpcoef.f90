@@ -87,7 +87,7 @@
 
 !     ----- Radial diffusion term -----
 
-      IF(MODELD.NE.1) CALL FP_CALR
+      IF(MODELD.NE.0) CALL FP_CALR
 
 !     ----- Particle source term -----
 
