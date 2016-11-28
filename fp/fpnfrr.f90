@@ -359,7 +359,7 @@
 !     comm fnsb for nsb2
       DO NP1=NPSTART, NPEND
          DO NTH1=1,NTHMAX
-            FNSB_temp(nth1,np1)=FNSB(nth1,np1,nr,nsb2)*VOLP(NTH1,NP1,NSB2)
+            FNSB_temp(nth1,np1)=FNSB(nth1,np1,nr,nsb2)*VOLP(NTH1,NP1,NSB2)*RLAMDAG(NTH1,NR)*RFSADG(NR)
          END DO
       END DO
       CALL mtx_set_communicator(comm_np)
@@ -380,7 +380,7 @@
                  * FACT3
             
             IF(PM(NP1,NSB1).ge.pmax_bb(NSB1).and.PM(NP2,NSB2).ge.pmax_bb(NSB2))THEN
-               FACT1 = VOLP(NTH1,NP1,NSB1)*FNSB(NTH1,NP1,NR,NSB1)
+               FACT1 = VOLP(NTH1,NP1,NSB1)*FNSB(NTH1,NP1,NR,NSB1)*RLAMDAG(NTH1,NR)*RFSADG(NR)
                RSUM3 = RSUM3 + FACT3*FACT1*FACT2
             END IF
          END DO
@@ -407,7 +407,7 @@
          RSUM_sum=0.D0
          DO NP1=NPSTART,NPEND
          DO NTH1=1,NTHMAX
-            FACT1 = VOLP(NTH1,NP1,NSB1)*FNSB(NTH1,NP1,NR,NSB1)
+            FACT1 = VOLP(NTH1,NP1,NSB1)*FNSB(NTH1,NP1,NR,NSB1)*RLAMDAG(NTH1,NR)*RFSADG(NR)
             FACT3 = SIGMAV_NF(NTH1,NP1,NTH2,NP2,ID) * FACT
            
             RSUM_B2 = RSUM_B2 &
@@ -427,7 +427,7 @@
       DO NP1=NPSTART,NPEND
       DO NTH1=1,NTHMAX
          RSUM2 = RSUM2 &
-              + RATE_NF_D1(NTH1,NP1,NR,ID) *VOLP(NTH1,NP1,NSB1)
+              + RATE_NF_D1(NTH1,NP1,NR,ID) *VOLP(NTH1,NP1,NSB1)*RLAMDAG(NTH1,NR)*RFSADG(NR)
       END DO
       END DO
       CALL mtx_allreduce1_real8(RSUM2,3,RSUM_sum,vloc) ! integrate np1, nth1

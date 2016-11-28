@@ -1036,7 +1036,7 @@
       IF(MODELD.GT.0.AND.NR.EQ.NRMAX) THEN
          SPPD(NTH,NP,NSA)= FS2(NTH,NP,NSA) &
               *(DRR(NTH,NP,NR+1,NSA)    *DIVDRR &
-               -FRR(NTH,NP,NR+1,NSA)*VRP*DIVFRR)*DRRP
+               -FRR(NTH,NP,NR+1,NSA)*VRP*DIVFRR)*DRRP/RLAMDA_RG(NTH,NRMAX+1)
          SPP(NTH,NP,NR,NSA) = SPP(NTH,NP,NR,NSA) &
               + SPPD(NTH,NP,NSA) 
       ENDIF

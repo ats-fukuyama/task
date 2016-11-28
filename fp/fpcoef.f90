@@ -579,11 +579,11 @@
 !     ----- NBI source term -----
 
       IF(MODEL_NBI.ne.0)THEN
-         IF(MODELA.eq.0)THEN
+!         IF(MODELA.eq.0)THEN
             CALL NBI_SOURCE_A0(NSA)
-         ELSE
-            CALL NBI_SOURCE_A1(NSA)
-         END IF
+!         ELSE
+!            CALL NBI_SOURCE_A1(NSA)
+!         END IF
       END IF
 !     ----- Fixed fusion source term -----
 
@@ -619,11 +619,11 @@
 
 !     ----- non-Maxwell fusion source term -----
       IF(MODELS.EQ.2.OR.MODELS.EQ.3) THEN
-         IF(MODELA.eq.0)THEN
+!         IF(MODELA.eq.0)THEN
             CALL FUSION_SOURCE_S2A0(NSA)
-         ELSE
-            CALL FUSION_SOURCE_S2A1(NSA)            
-         END IF
+!         ELSE
+!            CALL FUSION_SOURCE_S2A1(NSA)            
+!         END IF
       ENDIF ! MODELS=2 or MODELS=3
 !
 !     ----- Particle loss and source terms -----
@@ -644,7 +644,7 @@
                   IF(PM(NP,NSBA).le.3.D0)THEN ! for beam benchmark
                      FL=FPMXWL(PM(NP,NSBA),NR,NS) 
                      DO NTH=1,NTHMAX
-                        PPL(NTH,NP,NR,NSA)=-1.D0/TLOSS(NS)!*RLAMDA(NTH,NR)
+                        PPL(NTH,NP,NR,NSA)=-1.D0/TLOSS(NS)*RLAMDA(NTH,NR)
 !                        SPPS(NTH,NP,NR,NSA)= FL /TLOSS(NS)!*RLAMDA(NTH,NR)
                      ENDDO
                   END IF
@@ -1123,7 +1123,7 @@
                         DO NR=1,NRMAX
                            SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
                            SUML=SUML &
-                                +SPL*VOLP(NTH,NP,NSBA)*VOLR(NR)
+                                +SPL*VOLP(NTH,NP,NSBA)*VOLR(NR)*RLAMDAG(NTH,NR)*RFSADG(NR)
                         ENDDO
                      ENDIF
                   ENDDO
@@ -1138,7 +1138,7 @@
                         DO NR=NRSTART,NREND
                            SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
                            SPPB(NTH,NP,NR,NSA)=SPPB(NTH,NP,NR,NSA) &
-                                + SPBTOT(NBEAM)*SPL/SUML
+                                + SPBTOT(NBEAM)*SPL/SUML!*RLAMDAG(NTH,NR)!*RFSADG(NR)
                         ENDDO
                      ENDIF
                   ENDDO
@@ -1167,7 +1167,7 @@
                            DO NR=1,NRMAX
                               SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
                               SUML=SUML &
-                                   +SPL*VOLP(NTH,NP,NSBA)*VOLR(NR)
+                                   +SPL*VOLP(NTH,NP,NSBA)*VOLR(NR)*RLAMDAG(NTH,NR)*RFSADG(NR)
                            ENDDO
                         ENDIF
                      ENDDO
@@ -1183,7 +1183,7 @@
                            DO NR=NRSTART,NREND
                               SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
                               SPPB(NTH,NP,NR,NSA)=SPPB(NTH,NP,NR,NSA) &
-                                   +PZ(NSABEAM)*SPBTOT(NBEAM)*SPL/SUML
+                                   +PZ(NSABEAM)*SPBTOT(NBEAM)*SPL/SUML!*RLAMDAG(NTH,NR)!*RFSADG(NR)
                            ENDDO
                         ENDIF
                      ENDDO
@@ -1216,12 +1216,11 @@
             DO NR=NRSTART,NREND
                IF(MODELS.NE.3) CALL NF_REACTION_RATE(NR,ID)
                IF(MODELS.EQ.3) CALL NF_REACTION_RATE_LG(NR,ID)
-!               DO NP=1,NPMAX-1
                DO NP=NPSTART,NPEND
                   IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
                      SUML=0.D0
                      DO NTH=1,NTHMAX
-                        SUML=SUML+VOLP(NTH,NP,NSBA)
+                        SUML=SUML+VOLP(NTH,NP,NSBA)*RLAMDAG(NTH,NR)*RFSADG(NR)
                      ENDDO
                      DO NTH=1,NTHMAX
                         SPPF(NTH,NP,NR,NSA)=SPPF(NTH,NP,NR,NSA) &
@@ -1241,7 +1240,7 @@
                   DO NR=NRSTART,NREND
                      SUML=0.D0
                      DO NTH=1,NTHMAX
-                        SUML=SUML+VOLP(NTH,NP,NSBA)
+                        SUML=SUML+VOLP(NTH,NP,NSBA)*RLAMDAG(NTH,NR)*RFSADG(NR)
                      ENDDO
                      DO NTH=1,NTHMAX
                         SPPF(NTH,NP,NR,NSA)=SPPF(NTH,NP,NR,NSA) &
@@ -1261,7 +1260,7 @@
                   IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
                      SUML=0.D0
                      DO NTH=1,NTHMAX
-                        SUML=SUML+VOLP(NTH,NP,NSBA)
+                        SUML=SUML+VOLP(NTH,NP,NSBA)*RLAMDAG(NTH,NR)*RFSADG(NR)
                      ENDDO
                      DO NTH=1,NTHMAX
                         SPPF(NTH,NP,NR,NSA)=SPPF(NTH,NP,NR,NSA) &
@@ -1273,7 +1272,6 @@
          ENDIF
          IF( NSA.EQ.NSA1_NF(ID).or.NSA.EQ.NSA2_NF(ID) ) THEN
             DO NR=NRSTART,NREND
-!               DO NP=1,NPMAX
                DO NP=NPSTART,NPEND
                   DO NTH=1,NTHMAX
                      SPPF(NTH,NP,NR,NSB1_NF(ID))=                  &

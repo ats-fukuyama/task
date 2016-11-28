@@ -136,7 +136,7 @@
 !     SPBRW(nbeam) : Source width [r/a]
 !     SPBENG(nbeam): Particle energy [eV]
 !     SPBPANG(nbeam): Source poloidal angle [degree]
-!     SPBANG(nbeam): Source pitch angle [degree] ! at phi=SPBPANG
+!     SPBANG(nbeam): Source pitch angle [degree] ! at chi=SPBPANG
 
 !     NSSPF  : Fusion product particle species
 !     SPFTOT : Particle source [1/m^3 s]
@@ -155,7 +155,7 @@
          SPBRW(NBEAM)=0.2d0
          SPBENG(NBEAM)=1.D6
          SPBANG(NBEAM)=20.D0
-         SPBPANG(NBEAM)=20.D0
+         SPBPANG(NBEAM)=0.D0
       ENDDO
 
       NSSPF=4

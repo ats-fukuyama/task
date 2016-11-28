@@ -324,38 +324,38 @@
                   PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
                   DO NTH=1,NTHMAX
                      RSUM11B = RSUM11B + PM(NP,NSBA)**2*SINM(NTH) &
-                          *(PV-1.D0)/THETA0(NSA)*SPPB(NTH,NP,NR,NSA)!*RLAMDA(NTH,NR)
+                          *(PV-1.D0)/THETA0(NSA)*SPPB(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
                      RSUM11F = RSUM11F + PM(NP,NSBA)**2*SINM(NTH) &
-                          *(PV-1.D0)/THETA0(NSA)*SPPF(NTH,NP,NR,NSA)!*RLAMDA(NTH,NR)
+                          *(PV-1.D0)/THETA0(NSA)*SPPF(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
                      IF(MODEL_SINK.eq.0)THEN
                         RSUM11S = RSUM11S + PM(NP,NSBA)**2*SINM(NTH) &
-                             *(PV-1.D0)/THETA0(NSA)*SPPS(NTH,NP,NR,NSA)!*RLAMDA(NTH,NR)
+                             *(PV-1.D0)/THETA0(NSA)*SPPS(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
                      ELSE
                         RSUM11S = RSUM11S + PM(NP,NSBA)**2*SINM(NTH) &
-                             *(PV-1.D0)/THETA0(NSA)*SPPL(NTH,NP,NR,NSA)!*RLAMDA(NTH,NR)
+                             *(PV-1.D0)/THETA0(NSA)*SPPL(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
                      END IF
                      RSUM11L = RSUM11L + PM(NP,NSBA)**2*SINM(NTH) &
-                          *(PV-1.D0)/THETA0(NSA)* PPL(NTH,NP,NR,NSA)&!*RLAMDA(NTH,NR) &
-                          *FNSP(NTH,NP,NR,NSBA)
+                          *(PV-1.D0)/THETA0(NSA)* PPL(NTH,NP,NR,NSA)&
+                          *FNSP(NTH,NP,NR,NSBA)!*RLAMDA(NTH,NR)!*RFSADG(NR) PPL includes RLAMDA
                   END DO
                END DO
             ELSE ! MODELR=0
                DO NP=NPSTART,NPEND
                   DO NTH=1,NTHMAX
                      RSUM11B = RSUM11B + PM(NP,NSBA)**2*SINM(NTH) &
-                          *0.5D0*PM(NP,NSBA)**2*SPPB(NTH,NP,NR,NSA)
+                          *0.5D0*PM(NP,NSBA)**2*SPPB(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
                      RSUM11F = RSUM11F + PM(NP,NSBA)**2*SINM(NTH) &
-                          *0.5D0*PM(NP,NSBA)**2*SPPF(NTH,NP,NR,NSA)
+                          *0.5D0*PM(NP,NSBA)**2*SPPF(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
                      IF(MODEL_SINK.eq.0)THEN
                         RSUM11S = RSUM11S + PM(NP,NSBA)**2*SINM(NTH) &
-                             *0.5D0*PM(NP,NSBA)**2*SPPS(NTH,NP,NR,NSA)
+                             *0.5D0*PM(NP,NSBA)**2*SPPS(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
                      ELSE
                         RSUM11S = RSUM11S + PM(NP,NSBA)**2*SINM(NTH) &
-                             *0.5D0*PM(NP,NSBA)**2*SPPL(NTH,NP,NR,NSA)
+                             *0.5D0*PM(NP,NSBA)**2*SPPL(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
                      END IF
                      RSUM11L = RSUM11L + PM(NP,NSBA)**2*SINM(NTH) &
                           *0.5D0*PM(NP,NSBA)**2*PPL(NTH,NP,NR,NSA) &
-                          *FNSP(NTH,NP,NR,NSBA)
+                          *FNSP(NTH,NP,NR,NSBA)!*RLAMDA(NTH,NR)!*RFSADG(NR)
                   END DO
                END DO
             END IF
