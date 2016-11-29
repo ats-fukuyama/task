@@ -118,7 +118,7 @@ module fpcomm
            BP,QR,RJ1,E1,RJ2,E2,BPG,BPM,QLM,QLG, &
            EP,EM,EM_W, &
            RN_disrupt, RN_runaway, Rj_ohm, RJ_runaway, conduct_sp, &
-           SIGMA_SPP, SIGMA_SPM, ER_drei, ER_crit, Rconner, LNL_GL, RFP_ava, &
+           SIGMA_SPP, SIGMA_SPM, ER_drei, ER_crit, Rconnor, LNL_GL, RFP_ava, &
            RFPL, RFP, RP_crit, RT_quench,RT_quench_f,previous_rate, RJ_bs, &
            previous_rate_p, rn_drei, RJ_bsm, RN_runaway_M, R_djdt, &
            previous_rate_G, previous_rate_p_G
@@ -434,7 +434,7 @@ module fpcomm
              allocate(DWICPT_P(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX))
           END IF
           IF(MODEL_DISRUPT.ne.0)THEN
-             allocate(ER_drei(NRMAX),ER_crit(NRMAX),Rconner(NRMAX),lnl_gl(NRMAX),RP_crit(NRMAX))
+             allocate(ER_drei(NRMAX),ER_crit(NRMAX),Rconnor(NRMAX),lnl_gl(NRMAX),RP_crit(NRMAX))
              allocate(RN_disrupt(NRMAX),RN_runaway(NRMAX), RN_drei(NRMAX),RN_runaway_M(NRMAX))
              allocate(Rj_ohm(NRMAX),RJ_runaway(NRMAX),RJ_bs(NRMAX),R_djdt(NRMAX))
              allocate(RJ_bsm(NRSTART:NREND))
