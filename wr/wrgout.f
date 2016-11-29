@@ -94,7 +94,7 @@ C
       CALL SETLIN(0,2,4)
       CALL GPLOTP(GRS,GZS,1,NSUMAX+1,1,0,0,0)
 C
-      IF(MODELG.EQ.3.OR.MODELG.EQ.8) THEN
+      IF(MODELG.EQ.3.OR.MODELG.EQ.5.OR.MODELG.EQ.8) THEN
          DGX=DBLE(GRMAX-GRMIN)/(NGXL-1)
          DO NGX=1,NGXL
             GCX(NGX)=GRMIN+(NGX-1)*GUCLIP(DGX)
@@ -402,7 +402,9 @@ C
             GKX( IT+1,NRAY)=GUCLIP(RHON)
             GKY1(IT+1,NRAY)=GUCLIP(RKPARA*VC
      &                             /(2*PI*RAYIN(1,NRAY)*1.D6))
-            GKY2(IT+1,NRAY)=GUCLIP(RKPERP)
+C            GKY2(IT+1,NRAY)=GUCLIP(RKPERP)
+            GKY2(IT+1,NRAY)=GUCLIP(RKPERP*VC
+     &                             /(2*PI*RAYIN(1,NRAY)*1.D6))
          ENDDO
       ENDDO
 C
@@ -438,7 +440,8 @@ C
 C
       CALL GQSCAL(GYMIN2,GYMAX2,GYMIN,GYMAX,GYSTEP)
       CALL MOVE(13.7,8.1)
-      CALL TEXT('k-perp',6)
+C      CALL TEXT('k-perp',6)
+      CALL TEXT('n-perp',6)
       CALL GDEFIN(13.7,23.7,1.0,8.0,0.0,GXMAX,GYMIN,GYMAX)
       CALL SETLIN(0,2,7)
       CALL GFRAME
@@ -846,7 +849,7 @@ C     -------------------------------------------------------------------
 C     ----- CALCULATE RADIAL DEPOSITION PROFILE (with beam radial)-------
 C     -------------------------------------------------------------------
 C
-      IF (MODELG.EQ.3.OR.MODELG.EQ.8) THEN
+      IF (MODELG.EQ.3.OR.MODELG.EQ.5.OR.MODELG.EQ.8) THEN
        DRHO=1.D0/NRZMAX  
       DO NRAY=1,NRAYMX
          DO NRZ=1,NRZMAX

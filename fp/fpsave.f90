@@ -594,6 +594,18 @@
          END DO
       END DO
 
+      DO NSA=1,NSAMAX
+         DO NR=NRSTART,NREND
+            RNFP(NR,NSA)=RNS(NR,NSA)
+            RTFP(NR,NSA)=RT_T(NR,NSA)
+            NSB=NSB_NSA(NSA)
+            IF(NSB.NE.0) THEN
+               RNFD(NR,NSB)=RNFP(NR,NSA)
+               RTFD(NR,NSB)=RTFP(NR,NSA)
+            END IF
+         END DO
+      END DO
+
 !      IF(NRANK.eq.0) WRITE(6,'(A,2E16.8)') "FNSP ",FNSP(1,2,1,1), FNSP(NTHMAX,2,1,1)
 !      IF(NRANK.eq.0) WRITE(6,'(A,E14.6)') "-----FPSSUB=", gut2-gut1
 
@@ -714,7 +726,12 @@
 !         PNT_BULK(NSA,NTG1) =PNT_BULK(NSA,NTG1)/TVOLR
 !         PNDR(NSA,NTG1)=PNDR(NSA,NTG1)/TVOLR
       ENDDO
-         
+
+      IF(MODEL_NBI.NE.0) THEN
+         Q_ENG(NTG1)=5*PSPFT(4,NTG1)/PSPBT(2,NTG1)
+         WRITE(6,*) 'Q_ENG', Q_ENG(NTG1)
+      ENDIF         
+
       RETURN
       END SUBROUTINE FPSGLB
 !
@@ -876,7 +893,7 @@
 !
       IMPLICIT NONE
       integer:: NSA, NSB, NR, NP, NTH
-      real(8):: RTFDL, RTFD0L, THETAL, rtemp, rtemp2
+      real(8):: RTFDL, RTFD0L, THETAL, rtemp, rtemp2, temp
       character:: fmt0*50
 !
 !      WRITE(fmt0,'(a15)') '(2I3,1P20E13.4)'
@@ -914,12 +931,17 @@
                     RN_runaway(NR), RN_runaway(NR)-RN_drei(NR), RJ_ohm(NR), RJ_runaway(NR), &
                     RJ_bs(NR), &
                     RT_quench(NR), &
-                    RFP(NR), Rconner(NR), RFP_ava(NR), &
-!                    RFP(NR)*tau_ta0(NSA), Rconner(NR)*tau_ta0(NSA), RFP_ava(NR)*tau_ta0(NSA), &
+                    RFP(NR), Rconnor(NR), RFP_ava(NR), &
+!                    RFP(NR)*tau_ta0(NSA), Rconnor(NR)*tau_ta0(NSA), RFP_ava(NR)*tau_ta0(NSA), &
 !                    E1(NR)/ER_drei(NR)!, RPSS(NR,NSA)
                     ER_crit(NR)
 !                    RP_crit(NR)
             ELSE
+               IF(E1(NR).NE.0.D0) THEN
+                  TEMP=RJS(NR,NSA)/E1(NR)
+               ELSE
+                  TEMP=0.D0
+               ENDIF
                WRITE(6,fmt0) NSA,NS_NSA(NSA),&
                     RM(NR),RNT(NR,NSA,NTG2),RTT(NR,NSA,NTG2), &
                     RJT(NR,NSA,NTG2),RPCT(NR,NSA,NTG2),       &
@@ -933,8 +955,7 @@
 !RSPFT(NR,NSA,NTG2),RPDRT(NR,NSA,NTG2), &
                     RPDR(NR,NSA), &
                     RT_BULK(NR,NSA), &
-                    RJS(NR,NSA)/E1(NR), &
-                    conduct_sp(NR)
+                    TEMP, conduct_sp(NR)
 !                    RATE_RUNAWAY(NR,NTG2), RPLS(NR,NSA)!, &
 !                    RATE_RUNAWAY2(NR,NSA,NTG2)
 !,RNDRT(NR,NSA,NTG2)
@@ -956,7 +977,7 @@
            ' NBI   ',5X,'j_fp   ',5X,'E1    ',5X,  &
            'sigma  ',5X,'n_bulk ',5X,'n_run  ',5X,'n_second',4X,  &
            'j_ohm  ',5X,'j_run  ',5X,'j_bs   ',5X,'T      ',5X, &
-           'r_rate ',5X,'Rconner',5X,'rate_a ',5X,'E_C')
+           'r_rate ',5X,'Rconnor',5X,'rate_a ',5X,'E_C')
 
       END SUBROUTINE FPWRTPRF
 ! ***********************************************************
@@ -1348,19 +1369,21 @@
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
 
       DO NS=1,NSMAX
-         IF(NS.le.NSAMAX)THEN
+         DO NR=1,NRMAX
+            RHON=RM(NR) 
+            CALL PL_PROF(RHON,PLF) 
+            RN_IMPL(NR,NS)=PLF(NS)%RN
+            RT_IMPL(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+         ENDDO
+      END DO
+      Do NSA=1,NSAMAX
+         NS=NS_NSA(NSA)
+         IF(NS.NE.0)THEN
             DO NR=1,NRMAX
-               RN_IMPL(NR,NS) = RNS(NR,NS)
-!               RT_IMPL(NR,NS)=RT_BULK(NR,NS)
-               RT_IMPL(NR,NS)=RT_T(NR,NS)
-            ENDDO
-         ELSE
-            DO NR=1,NRMAX
-               RHON=RM(NR) 
-               CALL PL_PROF(RHON,PLF) 
-               RN_IMPL(NR,NS)=PLF(NS)%RN
-               RT_IMPL(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
-            ENDDO            
+               RN_IMPL(NR,NS) = RNS(NR,NSA)
+               RT_IMPL(NR,NS) = RT_BULK(NR,NSA)
+!               RT_IMPL(NR,NS) = RT_T(NR,NSA)
+            END DO
          END IF
       ENDDO
 

@@ -53,12 +53,16 @@ C     ***** LOAD EQUILIBRIUM DATA *****
 C
       SUBROUTINE EQLOAD(MODELG1,KNAMEQ1,IERR)
 C
+      USE eq_bpsd_mod
       INCLUDE '../eq/eqcomc.inc'
       CHARACTER KNAMEQ1*80
+      INTEGER ierr
 C
       MODELG=MODELG1
       KNAMEQ=KNAMEQ1
       CALL EQREAD(IERR)
+      CALL EQCALQ(IERR)
+      CALL eq_bpsd_set(ierr)
       RETURN
       END
 C
@@ -66,6 +70,7 @@ C     ***** LOAD EQUILIBRIUM DATA *****
 C
       SUBROUTINE EQREAD(IERR)
 C
+      USE eqread_mod
       INCLUDE '../eq/eqcomc.inc'
 C
       IF(MODELG.EQ.3.OR.MODELG.EQ.9) THEN
@@ -74,6 +79,8 @@ C
          CALL EQDSKR(IERR)
       ELSEIF(MODELG.EQ.8) THEN
          CALL EQJAEAR(IERR)
+      ELSEIF(MODELG.EQ.15) THEN
+         CALL EQDSK
       ELSE
          WRITE(6,*) 'XX EQLOAD: UNKNOWN MODELG: MODELG=',MODELG
       ENDIF
@@ -163,20 +170,41 @@ C     ***** READ EQDSK FORMAT FILE *****
 C
       SUBROUTINE EQDSKR(IERR)
 C
-      INCLUDE '../eq/eqcomc.inc'
+      USE libgrf
+      INCLUDE '../eq/eqcomq.inc'
 C
       character case(6)*10
       dimension rlim(NSUM),zlim(NSUM),pressw(NPSM),pwprim(NPSM),
      &          dmion(NSUM),rhovn(NSUM),ajtor(NPSM)
 C
-      neqdsk=21
+      ierr=0
+
+      neqdsk=31
       CALL FROPEN(neqdsk,KNAMEQ,1,MODEFR,'EQ',IERR)
       IF(IERR.NE.0) RETURN
 c
       REWIND(neqdsk)
       read (neqdsk,2000) (case(i),i=1,6),idum,NRGMAX,NZGMAX
+      write(6,'(A,2I5)') 'NRGMAX,NZGMAX=',NRGMAX,NZGMAX
       NPSMAX=NRGMAX
       read (neqdsk,2020) rdim,zdim,Rctr,rleft,zmid
+      write(6,'(A/1P5E12.4)') 'rdim,zdim,Rctr,rleft,zmid=',
+     &                         rdim,zdim,Rctr,rleft,zmid
+      read (neqdsk,2020) RAXIS,ZAXIS,PSI0,PSIA,Bctr
+      write(6,'(A/1P5E12.4)') 'RAXIS,ZAXIS,PSI0,PSIA,Bctr=',
+     &                         RAXIS,ZAXIS,PSI0,PSIA,Bctr
+C
+      read (neqdsk,2020) RIP,simag,xdum,rmaxis,xdum
+      read (neqdsk,2020) zmaxis,xdum,sibry,xdum,xdum
+      read (neqdsk,2020) (TTPS(i),i=1,NPSMAX)
+      read (neqdsk,2020) (PPPS(i),i=1,NPSMAX)
+      read (neqdsk,2020) (TTDTTPS(i),i=1,NPSMAX)
+      read (neqdsk,2020) (DPPPS(i),i=1,NPSMAX)
+      read (neqdsk,2020) ((PSIRZ(i,j),i=1,NRGMAX),j=1,NZGMAX)
+      read (neqdsk,2020) (QQPS(i),i=1,NPSMAX)
+
+C Radial and vertical mesh
+
       DR=rdim/(NRGMAX-1)
       DZ=zdim/(NZGMAX-1)
       DO NRG=1,NRGMAX
@@ -185,30 +213,54 @@ c
       DO NZG=1,NZGMAX
          ZG(NZG)=zmid-0.5D0*zdim+DZ*(NZG-1)
       ENDDO
-      read (neqdsk,2020) RAXIS,ZAXIS,PSI0,PSIA,Bctr
-C
+
+C for negative Ip and negative BB
+      IF(RIP.LT.0.D0) RIP=-RIP
+      IF(Bctr.LT.0.D0) Bctr=-Bctr
+      IF(TTPS(1).LT.0.D0) THEN
+         DO NPS=1,NPSMAX
+            TTPS(NPS)=-TTPS(NPS)
+         ENDDO
+      ENDIF
+
+C  Change normalization
+
+      RIP=RIP/1.D6
+
       PSI0=2.D0*PI*PSI0
       PSIA=2.D0*PI*PSIA
 C
       DPS=(PSIA-PSI0)/(NPSMAX-1)
-      PSI0=PSI0-PSIA
-      PSIPA=-PSI0
       DO NPS=1,NPSMAX
-         PSIPS(NPS)=DPS*(NPS-1)
+         PSIPS(NPS)=DPS*(NPS-1)+PSI0
       ENDDO
-      read (neqdsk,2020) RIP,simag,xdum,rmaxis,xdum
-      RIP=RIP/1.D6
-      read (neqdsk,2020) zmaxis,xdum,sibry,xdum,xdum
-      read (neqdsk,2020) (TTPS(i),i=1,NPSMAX)
-      read (neqdsk,2020) (PPPS(i),i=1,NPSMAX)
-      read (neqdsk,2020) (TTDTTPS(i),i=1,NPSMAX)
-      read (neqdsk,2020) (DPPPS(i),i=1,NPSMAX)
-      read (neqdsk,2020) ((PSIRZ(i,j),i=1,NRGMAX),j=1,NZGMAX)
-      read (neqdsk,2020) (QQPS(i),i=1,NPSMAX)
-      read (neqdsk,2022) NSUMAX,limitr
+      PSIPA=PSIA-PSI0
+      PSI0=PSI0-PSIA
+
+      DO NZG=1,NZGMAX
+         DO NRG=1,NRGMAX
+            PSIRZ(NRG,NZG)=2.D0*PI*PSIRZ(NRG,NZG)
+         ENDDO
+      ENDDO
+      DO i=1,NPSMAX
+         TTPS(i)   =2.D0*PI*TTPS(i)
+         TTDTTPS(i)=2.D0*PI*TTDTTPS(i)
+         DPPPS(i)=DPPPS(i)/(2.D0*PI)
+         DTTPS(i)  =TTDTTPS(i)/TTPS(i)
+      ENDDO
+      PSIA=0.D0
+C
+      DO NZG=1,NZGMAX
+      DO NRG=1,NRGMAX
+         HJTRZ(NRG,NZG)=0.D0
+      ENDDO
+      ENDDO
+
+      read (neqdsk,2022,END=1800) NSUMAX,limitr
+      write(6,'(A,2I5)') 'NSUMAX,limitr=',NSUMAX,limitr
       read (neqdsk,2020) (RSU(i),ZSU(i),i=1,NSUMAX)
       read (neqdsk,2020) (rlim(i),zlim(i),i=1,limitr)
-C
+
       RSUMAX = Rctr
       RSUMIN = Rctr
       ZSUMAX = 0.d0
@@ -227,85 +279,38 @@ C
             R_ZSUMIN = RSU(i)
          end if
       enddo
-C for negative Ip and negative BB
-      IF(RIP.LT.0.D0) RIP=-RIP
-      IF(Bctr.LT.0.D0) Bctr=-Bctr
-      IF(TTPS(1).LT.0.D0) THEN
-         DO NPS=1,NPSMAX
-            TTPS(NPS)=-TTPS(NPS)
-         ENDDO
-      ENDIF
 
 C *** The following variable defined in Tokamaks 3rd, Sec. 14.14 ***
       RR   = 0.5d0 * (RSUMAX - RSUMIN) + RSUMIN
       RA   = RR - RSUMIN
-      !==  RB: wall minor radius  ======================
-      !    Multiplication factor 1.1 is tentatively set.
-      RB   = 1.1d0 * RA
-!      RB   = 1.2d0 * RA
-      !=================================================
+      IF(RBRA.LE.1.D0) THEN
+         RB = 1.1D0*RA
+      ELSE
+         RB = RBRA * RA
+      END IF
       RKAP = (ZSUMAX - ZSUMIN) / (RSUMAX - RSUMIN)
-
-!  ---- corrected on 2010/01/18 for negative triangularity ----
-!      RDLT = 0.5d0 * (ABS(RR-R_ZSUMIN) + ABS(RR-R_ZSUMAX)) / RA
-
       RDLT = 0.5d0 * ((RR-R_ZSUMIN) + (RR-R_ZSUMAX)) / RA
-      BB   = Rctr * Bctr / RR
+      BB   = Bctr
       RIPX = RIP
+
+      GO TO 1900
 C
-C      GOTO 1000
-C      kvtor=0
-C      rvtor=0
-C      nmass=0
-C      read (neqdsk,2024,end=1000) kvtor,rvtor,nmass
-C      WRITE(6,*) kvtor,rvtor,nmass
-C      if (kvtor.gt.0) then
-C         read (neqdsk,2020) (pressw(i),i=1,NPSMAX)
-C         read (neqdsk,2020) (pwprim(i),i=1,NPSMAX)
-C      endif
-C      if (nmass.gt.0) then
-C         read (neqdsk,2020) (dmion(i),i=1,NPSMAX)
-C      endif
-C      read (neqdsk,2020,end=1000) (rhovn(i),i=1,NPSMAX)
-C 1000 CONTINUE
+C     without surface data
 C
-      REWIND(neqdsk)
-      CLOSE(neqdsk)
-!      write (6,'(I5,1PE12.4)') (i,QQPS(i),i=1,NPSMAX)
-C
-C      WRITE(6,'(1P3E12.4)') RR,BB,RIP
-C      WRITE(6,'(1P4E12.4)') RAXIS,ZAXIS,PSI0,PSIA
-C      WRITE(6,'(1P4E12.4)') RG(1),RG(2),RG(NRGMAX-1),RG(NRGMAX)
-C      WRITE(6,'(1P4E12.4)') ZG(1),ZG(2),ZG(NZGMAX-1),ZG(NZGMAX)
-C      WRITE(6,'(1P4E12.4)') PSIPS(1),PSIPS(2),
-C     &                      PSIPS(NPSMAX-1),PSIPS(NPSMAX)
-C
-      DO NZG=1,NZGMAX
-         DO NRG=1,NRGMAX
-            PSIRZ(NRG,NZG)=2.D0*PI*PSIRZ(NRG,NZG)-PSIA
-         ENDDO
-      ENDDO
-      DO i=1,NPSMAX
-         TTPS(i)   =2.D0*PI*TTPS(i)
-         TTDTTPS(i)=4.D0*PI**2*TTDTTPS(i)
-         DTTPS(i)  =TTDTTPS(i)/TTPS(i)
-Chonda         write(6,*) PSIPS(i),QQPS(i)
-      ENDDO
-C
-      DO NZG=1,NZGMAX
-      DO NRG=1,NRGMAX
-         HJTRZ(NRG,NZG)=0.D0
-      ENDDO
-      ENDDO
-C
-C     ** Simplified check for Toroidal current and parallel current **
-C
-c$$$      DO i=1,NPSMAX
-c$$$         write(6,*) PSIPS(i),
-c$$$     &              -RR*DPPPS(i)-TTDTTPS(i)/(4.D0*PI**2*RR*RMU0),
-c$$$     &              (-TTPS(i)*DPPPS(i)/BB-DTTPS(i)*BB/RMU0)/(2.D0*PI)
-c$$$      ENDDO
-C
+ 1800 CONTINUE
+
+      NSUMAX = 0
+      limitr = 0
+      RR   = Rctr
+      RB   = RG(NRGMAX)-Rctr
+      RKAP = (ZG(NRGMAX)-ZG(1))/(RG(NRGMAX)-RG(1))
+      RDLT = 0.D0
+      BB   = Bctr
+      RIPX = RIP
+
+ 1900 CONTINUE
+
+      RETURN
       return
 c     
  2000 format (6a8,3i4)
@@ -323,8 +328,8 @@ C
 C
       integer(4):: ir,iz
       REAL(8),DIMENSION(:,:),ALLOCATABLE:: psi_temp
-      DIMENSION PSIRG(NRGM,NZGM),PSIZG(NRGM,NZGM),PSIRZG(NRGM,NZGM)
-      DIMENSION PSIx1(NRGM,NZGM),psix2(NRGM,NZGM),PSIx3(NRGM,NZGM)
+      REAL(8),DIMENSION(:,:),ALLOCATABLE::  PSIRG,PSIZG,PSIRZG
+      REAL(8),DIMENSION(:,:),ALLOCATABLE::  PSIx1,psix2,PSIx3
       REAL(8):: DERIV(NPSM)
       REAL(8),DIMENSION(1)::  THIN=(/0.035/)
       REAL(8),DIMENSION(:),ALLOCATABLE:: rc_xp,zc_xp,psic_xp
@@ -335,6 +340,9 @@ C
       REAL(8):: psic_max,psic_min
       EXTERNAL RBB,PSIGZ0
 C
+      ALLOCATE(PSIRG(NRGM,NZGM),PSIZG(NRGM,NZGM),PSIRZG(NRGM,NZGM))
+      ALLOCATE(PSIx1(NRGM,NZGM),psix2(NRGM,NZGM),PSIx3(NRGM,NZGM))
+
       neqdsk=21
       CALL FROPEN(neqdsk,KNAMEQ,0,MODEFR,'EQ',IERR)
       IF(IERR.NE.0) RETURN
@@ -610,6 +618,8 @@ C
          HJTRZ(NRG,NZG)=0.D0
       ENDDO
       ENDDO
+      DEALLOCATE(PSIRG,PSIZG,PSIRZG)
+      DEALLOCATE(PSIx1,psix2,PSIx3)
       RETURN
       END
 

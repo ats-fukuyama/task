@@ -146,6 +146,7 @@ CONTAINS
          DO I=1,N
             RQ=RQ+WK(I,2)*WK(I,3)
          END DO
+         IF(RQ.EQ.0.D0) RQ=1.D0
          ALP=C1/RQ
 !*    E=R-ALP*Q.
          DO I=1,N
@@ -167,6 +168,7 @@ CONTAINS
             AMU=AMU+WK(I,4)*WK(I,5)
             SS=SS+WK(I,5)**2
          END DO
+         IF(SS.EQ.0.D0) SS=1.D0
          AMU=AMU/SS
 !*    X=X+ALP*P+AMU*E , R=E-AMU*V , RN=(R,R) , C1=(R0,R).
          RN=0.D0
@@ -177,6 +179,7 @@ CONTAINS
             RN=RN+B(I)**2
             C1=C1+B(I)*WK(I,2)
          END DO
+         IF(BN.EQ.0.D0) BN=1.D0
          ERR=DSQRT(RN/BN)
          IF(ERR.LE.EPS) GO TO 110
 !*    BETA=C1/(AMU*RQ).

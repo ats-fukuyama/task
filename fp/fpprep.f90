@@ -9,6 +9,7 @@
       USE fpinit
       USE fpsave
       USE fpcoef
+      USE fpcalw
       USE fpbounce
       USE equnit_mod
       USE fpmpi
@@ -38,7 +39,7 @@
 
 !     ----- exec EQ -----
 
-      IF(MODELG.EQ.3.OR.MODELG.EQ.8) THEN
+      IF(MODELG.EQ.3.OR.MODELG.EQ.5.OR.MODELG.EQ.8) THEN
          IF(nrank.EQ.0) THEN
             CALL eq_load(MODELG,KNAMEQ,IERR)
             IF(IERR.NE.0) THEN
@@ -828,10 +829,9 @@
       DO NR=1,NRMAX
          RHON=RM(NR)
          CALL PL_PROF(RHON,PLF)
-         DO NSB=1, NSBMAX
-            NS=NS_NSB(NSB)
-            RT_IMPL(NR,NSB)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
-            RN_IMPL(NR,NSB)=PLF(NS)%RN
+         DO NS=1,NSMAX
+            RT_IMPL(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+            RN_IMPL(NR,NS)=PLF(NS)%RN
          END DO
       END DO
 
@@ -867,7 +867,9 @@
          RNE=PLF(1)%RN
          RTE=(PLF(1)%RTPR+2.D0*PLF(1)%RTPP)/3.D0
          E_EDGEM=0.D0
+
 !-----   Coulomb log
+
          ISW_CLOG=0 ! =0 Wesson, =1 NRL
          DO NSA=1,NSAMAX
             NSFP=NS_NSB(NSA)
@@ -927,6 +929,7 @@
 
       CALL mtx_broadcast1_real8(ZEFF)
       call mtx_broadcast_real8(tau_ta0,nsamax)
+
 !     ----- set relativistic parameters -----
 
       IF (MODELR.EQ.0) THEN
@@ -995,9 +998,9 @@
             DO NSB=1,NSBMAX
                NSFD=NS_NSB(NSB)
                IF(MODEL_disrupt.eq.0)THEN
-                  IF(NSB.le.NSAMAX)THEN
-                     RNB=RN_IMPL(NR,NSB)
-                     RTB=RT_IMPL(NR,NSB)
+                  IF(NSFD.NE.0)THEN
+                     RNB=RN_IMPL(NR,NSFD)
+                     RTB=RT_IMPL(NR,NSFD)
                   ELSE
                      RNB=RNFD(NR,NSB)
                      RTB=RTFD(NR,NSB)
@@ -1067,8 +1070,9 @@
       IF(MODELS.ne.0) CALL NF_REACTION_COEF
       CALL fusion_source_init
 
+      CALL FP_COEF(0)
+
       DO NSA=NSASTART,NSAEND
-         CALL FP_COEF(NSA)
          NSBA=NSB_NSA(NSA)
          DO NR=NRSTART,NREND
             DO NP=NPSTARTW,NPENDWM
@@ -1129,13 +1133,14 @@
       integer :: ierr,NSA,NSB,NS,NR,NP,NTH,NSBA,N,NSW,j,i
       INTEGER:: NSEND, NSWI
       real:: gut1, gut2, gut_prep
-      real(8):: alp, z_i, h_alpha_z, lambda_alpha, gamma_alpha_z, G_conner
-      real(8):: G_conner_nr, G_conner_lm, SIGMA
+      real(8):: alp, z_i, h_alpha_z, lambda_alpha, gamma_alpha_z
+      real(8):: SIGMA
       real(8),dimension(:),allocatable:: conduct_temp, E1_temp
       integer,dimension(6):: idata
       integer,dimension(6*nsize):: idata2
 
       CALL GUTIME(gut1)
+
 !     ----- Initialize time counter -----
 
       TIMEFP=0.D0
@@ -1147,6 +1152,7 @@
       CALL fp_comm_setup
 
 !     ----- Allocate variables -----
+
       CALL fp_allocate
       call fp_allocate_ntg1
       call fp_allocate_ntg2
@@ -1209,10 +1215,13 @@
       CALL FNSP_INIT_EDGE
 !      WRITE(6,*) "END INIT"
 !     ----- set background f
+
       CALL mtx_set_communicator(comm_nsa)
       CALL update_fnsb
       CALL mtx_reset_communicator
+
 !     ----- set parallel electric field -----
+
       IF(MODEL_DISRUPT.eq.0)THEN
          DO NR=1,NRMAX
             E1(NR)=E0!*E_drei0(1)

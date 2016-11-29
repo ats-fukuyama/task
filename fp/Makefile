@@ -6,8 +6,8 @@ include ../mtxp/make.mtxp
 LIBX_MTX=$(LIBX_MTX_MUMPS)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 .SUFFIXES:
 .SUFFIXES: .f90 .mod .o .a
@@ -22,8 +22,9 @@ MODINCLUDE= -I.$(MOD) -I../lib/$(MOD) \
             -I../../bpsd/$(MOD) -I../mtxp/$(MOD)
 
 SRCS = fpcomm.f90 fpinit.f90 fpmpi.f90 fpbroadcast.f90 fpexec.f90 fpsave.f90 \
-       fpwmin.f90 fpwrin.f90 fpcalw.f90 fpcalwm.f90 fpcalwr.f90 \
-       fpcalcn.f90 fpcalcnr.f90 fpcalc.f90 fpnfrr.f90 fpnflg.f90 fpcoef.f90 fpcale.f90 \
+       fpwmin.f90 fpwrin.f90 fpcalwm.f90 fpcalwr.f90 fpcalw.f90 \
+       fpcalcn.f90 fpcalcnr.f90 fpcalc.f90 fpnfrr.f90 fpnflg.f90 \
+       cdbm.f90 fpcalr.f90 fpcoef.f90 fpcale.f90 \
        fpbounce.f90 fpdisrupt.f90 fpprep.f90 fploop.f90 \
        fpcont.f90 fpfout.f90 fpgout.f90 fpfile.f90 fpmenu.f90
 
@@ -31,11 +32,6 @@ OBJS = $(SRCS:.f90=.o)
 
 LIBS = fplib.a ../plx/pllib.a ../eq/eqlib.a   \
         ../lib/tasklib.a ../../bpsd/bpsdlib.a
-
-.f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
-.f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
 all: libs fp
 
@@ -85,7 +81,7 @@ fpcoef.o : fpcoef.f90 fpcomm.f90
 fpcalc.o : fpcalc.f90 fpcomm.f90
 fpcalcn.o : fpcalcn.f90 fpcomm.f90
 fpcalcnr.o : fpcalcnr.f90 fpcomm.f90
-fpcalw.o : fpcalw.f90 fpcomm.f90
+fpcalw.o : fpcalw.f90 fpcalwr.f90 fpcalwm.f90 fpcomm.f90
 fpcalwr.o : fpcalwr.f90 fpcomm.f90
 fpcalwm.o : fpcalwm.f90 fpcomm.f90
 fpcont.o : fpcont.f90 fpcomm.f90
@@ -96,5 +92,6 @@ fpsave.o : fpsave.f90 fpcomm.f90
 fpwrin.o : fpwrin.f90 fpcomm.f90
 fpwmin.o : fpwrin.f90 fpcomm.f90
 fpbounce.o : fpbounce.f90 fpcomm.f90
-fpcale.o: fpmpi.f90
+fpcale.o: fpcale.f90 fpmpi.f90
 fpdisrupt.o: fpdisrupt.f90 fpcomm.f90
+fpcalr.o: fpcalr.f90 fpcomm.f90

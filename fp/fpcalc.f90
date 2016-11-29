@@ -26,7 +26,7 @@
 
 !----------------------------------
 
-      SUBROUTINE FP_CALC(NSA)
+      SUBROUTINE FP_CALC
 
       USE libmtx
       USE fpcalcn, ONLY: FPCALC_NL
@@ -36,6 +36,7 @@
       integer:: nsrc,nsend
       real(8):: RGAMH, RGAMH2, RZI, RTE, PFPL, VFPL, U, DCTTL, RGAMA, DFDP, DFDTH
 
+      DO NSA=NSASTART,NSAEND
       DO NR=NRSTART,NREND
          DO NP=NPSTART,NPENDWG
          DO NTH=1,NTHMAX
@@ -236,12 +237,14 @@
             END DO
          END DO
       ENDDO
+      END DO
 
       IF(nrank.eq.0) THEN
       IF(MOD(IDBGFP/8,2).EQ.1) THEN
 !
 !     +++ plot of D_coll +++
 !
+         DO NSA=NSASTART,NSAEND
          CALL PAGES
          CALL FPGRFA(1,DCPP,PG,1,'@DCPP(P)@',NTHMAX+1,NPMAX+1,NRMAX+1, &
                                              NTHMAX,NPMAX,NRMAX,NSA)
@@ -250,6 +253,7 @@
          CALL FPGRFA(3,FCPP,PG,1,'@FCPP(P)@',NTHMAX+1,NPMAX+1,NRMAX+1, &
                                              NTHMAX,NPMAX,NRMAX,NSA)
          CALL PAGEE
+         END DO
       ENDIF
 
 
@@ -257,6 +261,7 @@
 !
 !     +++ plot of D_coll +++
 !
+         DO NSA=NSASTART,NSAEND
          CALL PAGES
          CALL FPGRFB(1,DCPP,THM,1,'@DCPP(TH)@',NTHMAX+1,NPMAX+1,NRMAX+1, &
                                                NTHMAX,NPMAX,NRMAX,NSA)
@@ -265,6 +270,7 @@
          CALL FPGRFB(3,FCPP,THM,1,'@FCPP(TH)@',NTHMAX+1,NPMAX+1,NRMAX+1, &
                                                NTHMAX,NPMAX,NRMAX,NSA)
          CALL PAGEE
+         END DO
       ENDIF
       ENDIF
 
@@ -868,8 +874,8 @@
                RNFDL_C=RNFD(NR,NSB) 
                RTFDL_C=RTFD(NR,NSB)
             ELSEIF(MODELC.eq.2)THEN ! variable n, T
-               RNFDL_C=RN_IMPL(NR,NSB)
-               RTFDL_C=RT_IMPL(NR,NSB)
+               RNFDL_C=RN_IMPL(NR,NS_NSB(NSB))
+               RTFDL_C=RT_IMPL(NR,NS_NSB(NSB))
             END IF
          ELSEIF(MODEL_DISRUPT.ge.1)THEN
             IF(MODEL_IMPURITY.eq.0)THEN 
@@ -883,10 +889,10 @@
          END IF
          THETAL_C =THETA0L_C*RTFDL_C/RTFD0L_C
          P_thermal=SQRT(RTFDL_C*1.D3*AEE*AMFD(NSB))
-!         pe_thermal=SQRT(RTFDL_C*1.D3*AEE*AMFD(NSA))
-         v_thermal=SQRT( RTFDL_C*1.D3*AEE/AMFD(NSB)*(1.D0-2.5D0*THETAL_C+55.D0/8.D0*THETAL_C**2) )
-
+         v_thermal=SQRT(RTFDL_C*1.D3*AEE/AMFD(NSB) &
+                        *(1.D0-2.5D0*THETAL_C+55.D0/8.D0*THETAL_C**2) )
          CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R,"DEHIFT_0R")
+
          DO NP=NPSTART,NPENDWG
             IF(NP.EQ.1) THEN
                PNFPL=PG(NP,NSBA)

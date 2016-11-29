@@ -91,9 +91,7 @@
          TIMEFP=0.D0
          CALL fp_prep(ierr)
          IF(ierr.ne.0) GO TO 1
-         DO NSA=1,NSAMAX
-            CALL fp_coef(NSA)
-         END DO
+         CALL fp_coef(0)
          CALL fpsglb
          CALL fpwrtglb
          CALL fpsprf
