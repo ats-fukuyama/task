@@ -21,7 +21,7 @@ CONTAINS
       real(kind8):: sum1, temp1, SRHODP, SRHODM, SRHOFP, SRHOFM
       real(kind8):: WRH, DFDR_D, DFDR_F, F_R2, DFDR_R2, F_R1, DFDR_R1
       REAL(kind8):: SHEAR,PNEL,RHONI,DPDR,DVEXBDR,CALF,CKAP,CEXB,FSZ,FEZ
-      REAL(kind8),DIMENSION(NRSTART:NRENDWG):: CHI_CDBM
+      REAL(kind8),DIMENSION(1:NRMAX+1):: CHI_CDBM
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
       double precision:: densm, densp, rgama
       INTEGER:: ISW_D
@@ -29,9 +29,16 @@ CONTAINS
 !---- Calculation of CDBM diffusion coefficient ----
 
       IF(MODELD_RDEP.EQ.2) THEN
-         write(18,'(A,1PE12.4/A)') 'T =',TIMEFP,&
-                 'NR,RS/QLM,SHEAR,PNEL,RHONI,DPDR,CHI_CDBM'
-         DO NR=NRSTART,NRENDWG
+         IF(nrank.EQ.0) THEN
+            NR1=1
+            NR2=NRMAX+1
+            write(18,'(A,1PE12.4/A)') 'T =',TIMEFP,&
+                     'NR,RS/QLM,SHEAR,PNEL,RHONI,DPDR,CHI_CDBM'
+         ELSE
+            NR1=NRSTART
+            NR2=NRENDWG
+         END IF
+         DO NR=NR1,NR2
             RHON=RG(NR)
 
             IF(NR.EQ.1) THEN        ! magnetic shear s=(r/q)(dq/dr)
@@ -111,8 +118,10 @@ CONTAINS
 
             CALL CDBM(BB,RR,RA*RHON,RKAP,QLM(NR),SHEAR,PNEL,RHONI,DPDR, &
                       DVEXBDR,CALF,CKAP,CEXB,MODELD_CDBM,CHI_CDBM(NR))
-            write(18,'(I2,1P7E11.3)'), &
+            IF(nrank.EQ.0) THEN
+               write(18,'(I2,1P7E11.3)'), &
                  NR,RA*RHON,QLM(NR),SHEAR,PNEL,RHONI,DPDR,CHI_CDBM(NR)
+            END IF
          END DO
       END IF
 
