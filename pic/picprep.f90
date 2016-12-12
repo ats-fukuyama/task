@@ -91,14 +91,14 @@ CONTAINS
 
       !..... set initial positions and velocities of electrons
       call iniset(npmax,npxmax,npymax,nxmax,nymax,densx, &
-                  xe,ye,ze,xeb,yeb,zeb,vxe,vye,vze,vte,dt,iran,&
+                  xe,ye,ze,xeb,yeb,zeb,xemid,yemid,vxe,vye,vze,vte,dt,iran,&
                   x1,x2,y1,y2,alx,aly,model_boundary,vzone)
 
       !..... set initial positions and velocities of ions
       call iniset(npmax,npxmax,npymax,nxmax,nymax,densx, &
-                  xi,yi,zi,xib,yib,zib,vxi,vyi,vzi,vti,dt,iran,&
+                  xi,yi,zi,xib,yib,zib,ximid,yimid,vxi,vyi,vzi,vti,dt,iran,&
                   x1,x2,y1,y2,alx,aly,model_boundary,vzone)
-
+      
       !..... initialize scalar potential by poisson solver
       ipssn = 0
        IF(model_boundary.EQ.0) THEN
@@ -107,11 +107,11 @@ CONTAINS
        END IF
 
       !..... initialize wall clock time
-      call mpi_barrier(mpi_comm_world,ierr)
+      call mtx_barrier
       wtime1 = mpi_wtime()
 
-      DO nx=0,nxmax
-         DO ny=0,nymax
+      DO nx=vzone,nxmax-vzone
+         DO ny=vzone,nymax-vzone
             factor=DBLE(nx)/DBLE(nxmax)
             bxbg(nx,ny)=bxmin+(bxmax-bxmin)*factor
             bybg(nx,ny)=bymin+(bymax-bymin)*factor
@@ -162,14 +162,15 @@ CONTAINS
 
 !***********************************************************************
       subroutine iniset(npmax,npxmax,npymax,nxmax,nymax,densx,&
-                        x,y,z,xb,yb,zb,vx,vy,vz,vt,dt,iran,&
+                        x,y,z,xb,yb,zb,xmid,ymid,vx,vy,vz,vt,dt,iran,&
                         x1,x2,y1,y2,alx,aly,model_boundary,vzone)
 !***********************************************************************
       implicit none
-      real(8), dimension(npmax) :: x, y, z, xb, yb, zb, vx, vy, vz
+      real(8), dimension(npmax) :: x, y, z, xb, yb, zb, vx, vy, vz,xmid,ymid
       integer :: npmax, npxmax, npymax, nxmax, nymax, iran, vzone
       real(8) :: vt, dt, factx, facty, rvx, rvy, rvz, densx, inter, position,&
-                 x1,x2,y1,y2,x3,x4,y3,y4,alx,aly,alx1,aly1,vdzone
+                 x1,x2,y1,y2,x3,x4,y3,y4,alx,aly,alx1,aly1,vdzone,&
+                 xl_before,xl_after,yl_before,yl_after
       integer :: npx, npy, np, model_boundary
 
       factx = dble(nxmax) / dble(npxmax)
@@ -199,18 +200,77 @@ CONTAINS
          xb(np) = x(np) - vx(np) * dt
          yb(np) = y(np) - vy(np) * dt
          zb(np) = z(np) - vz(np) * dt
-
+        IF(model_boundary .eq. 0) THEN
+           IF( xb(np) .LT. x1 ) THEN
+              DO WHILE(xb(np) .LT. x1)
+                xb(np) = xb(np) + alx
+              END DO
+           ELSEIF( xb(np) .GT. x2 ) THEN
+              DO WHILE(xb(np) .GT. x2)
+                xb(np) = xb(np) - alx
+              END DO
+           END IF
+           xmid(np) = 0.5d0*(xb(np)+x(np))
+           IF( yb(np) .LT. y1 ) THEN
+              DO WHILE(yb(np) .LT. y1)
+                yb(np) = yb(np) + aly
+              END DO
+           ELSEIF( yb(np) .GT. y2 ) THEN
+              DO WHILE(yb(np) .GT. 2)
+                yb(np) = yb(np) - aly
+              END DO
+           ENDIF
+           ymid(np) = 0.5d0*(yb(np)+y(np))
+         ELSE
+           xmid(np)=0.5D0*(xb(np)+x(np))
+           IF( x(np) .LT. x3  ) THEN
+              xl_before=xb(np) - x3
+              x(np) = x3 + (x3  - x(np))
+              xl_after=x(np) - x3
+              xmid(np)=x3+0.5D0*ABS(xl_after-xl_before)
+              vx(np) = -vx(np)
+           ELSEIF( x(np) .GT. x4 ) THEN
+              xl_before=x4 - xb(np)
+              x(np) = x4 - (x(np) - x4)
+              xl_after=x4 - x(np)
+              xmid(np)=x4-0.5D0*ABS(xl_after-xl_before)
+              vx(np) = -vx(np)
+           ENDIF
+           ymid(np)=0.5D0*(yb(np)+y(np))
+           IF( y(np) .LT. y3 ) THEN
+             yl_before=yb(np) - y3
+             y(np) = y3 + (y3  - y(np))
+             yl_after=y(np) - y3
+             ymid(np)=y3+0.5D0*ABS(yl_after-yl_before)
+             vy(np) = -vy(np)
+           ELSEIF( y(np) .GT. y4 ) THEN
+             yl_before=y4 - yb(np)
+             y(np) = y4 - (y(np) - y4)
+             yl_after=y4 - y(np)
+             ymid(np)=y4-0.5D0*ABS(yl_after-yl_before)
+             vy(np) = -vy(np)
+           ENDIF
+        ENDIF                                             
       END DO
       END DO
    ELSE ! subroutine for density gradient
-      inter = dble(nxmax-2*vdzone)/((dble(npxmax)+1.0d0)*(1.0d0-0.5d0*densx))
+      inter = 0.d0
+      DO npx = 1 , npxmax+1
+      inter = inter + 1.d0/(dble(npx)*(1.d0/(1.d0-densx)-1.d0)/(dble(npxmax-1))&
+                           +(dble(npxmax)-1.d0/(1.d0-densx))/dble(npxmax-1))
+      END DO
+       ! inter = dble(nxmax-2*vdzone)/((dble(npxmax)+1.0d0)*(1.0d0-0.5d0*densx))
+      !inter = dble(nxmax-2*vdzone) / inter
+      inter = 0.5d0*(1.d0+densx)*(1.d0-densx)
       DO npy = 1, npymax
          position = 0.d0
       DO npx = 1, npxmax
          np = np + 1
-         position = position &
-                  + inter * (1.0d0 - densx * (dble(npx) - 1.0d0)/dble(npxmax))
-         x(np) = position + vdzone
+         !position = position &
+         !         + inter/(dble(npx)*(1.d0/(1.d0-densx)-1.d0)/(dble(npxmax-1))&
+         !                  +(dble(npxmax)-1.d0/(1.d0-densx))/dble(npxmax-1))
+         !x(np) = position + vdzone
+         x(np) =dble(nxmax-2*vzone)*(sqrt((1.d0-0.5*densx)**2+2.d0*densx*dble(npx)/dble(npxmax+1))-1.d0+0.5*densx)/densx+dble(vzone)
          y(np) = (dble(npy) - 0.5d0 ) * facty + vdzone
 
          call gauss(rvx,rvy,rvz,iran)
@@ -221,7 +281,7 @@ CONTAINS
          yb(np) = y(np) - vy(np) * dt
          zb(np) = z(np) - vz(np) * dt
          ! particle reflect condition on boundary
-         IF(model_boundary .ne. 0) THEN
+        IF(model_boundary .eq. 0) THEN
            IF( xb(np) .LT. x1 ) THEN
               DO WHILE(xb(np) .LT. x1)
                 xb(np) = xb(np) + alx
@@ -230,29 +290,48 @@ CONTAINS
               DO WHILE(xb(np) .GT. x2)
                 xb(np) = xb(np) - alx
               END DO
-           ENDIF
-
+           END IF
+           xmid(np) = 0.5d0*(xb(np)+x(np))
            IF( yb(np) .LT. y1 ) THEN
               DO WHILE(yb(np) .LT. y1)
                 yb(np) = yb(np) + aly
               END DO
            ELSEIF( yb(np) .GT. y2 ) THEN
-              DO WHILE(yb(np) .GT. y2)
+              DO WHILE(yb(np) .GT. 2)
                 yb(np) = yb(np) - aly
               END DO
            ENDIF
+           ymid(np) = 0.5d0*(yb(np)+y(np))
          ELSE
-           IF( xb(np) .LT. x3  ) THEN
-               xb(np) = -xb(np) + 3.d0
-           ELSEIF( xb(np) .GT. x4 ) THEN
-               xb(np) = alx1 - (xb(np) - alx1)
+           xmid(np)=0.5D0*(xb(np)+x(np))
+           IF( x(np) .LT. x3  ) THEN
+             xl_before=xb(np) - x3
+             x(np) = x3 + (x3  - x(np))
+             xl_after=x(np) - x3
+             xmid(np)=x3+0.5D0*ABS(xl_after-xl_before)
+             vx(np) = -vx(np)
+           ELSEIF( x(np) .GT. x4 ) THEN
+             xl_before=x4 - xb(np)
+             x(np) = x4 - (x(np) - x4)
+             xl_after=x4 - x(np)
+             xmid(np)=x4-0.5D0*ABS(xl_after-xl_before)
+             vx(np) = -vx(np)
            ENDIF
-           IF( yb(np) .LT. y3 ) THEN
-               yb(np) = -yb(np) + 3.d0
-           ELSEIF( yb(np) .GT. y4 ) THEN
-               yb(np) = aly1 - (yb(np) - aly1)
+           ymid(np)=0.5D0*(yb(np)+y(np))
+           IF( y(np) .LT. y3 ) THEN
+             yl_before=yb(np) - y3
+             y(np) = y3 + (y3  - y(np))
+             yl_after=y(np) - y3
+             ymid(np)=y3+0.5D0*ABS(yl_after-yl_before)
+             vy(np) = -vy(np)
+           ELSEIF( y(np) .GT. y4 ) THEN
+             yl_before=y4 - yb(np)
+             y(np) = y4 - (y(np) - y4)
+             yl_after=y4 - y(np)
+             ymid(np)=y4-0.5D0*ABS(yl_after-yl_before)
+             vy(np) = -vy(np)
            ENDIF
-         ENDIF
+        ENDIF
       END DO
       END DO
       END IF

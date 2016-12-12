@@ -13,11 +13,12 @@ CONTAINS
     USE picsub,ONLY: poisson_f,poisson_m,efield,bfield,wave,kine,pote,absorb_phi
     USE piclib
     USE libmpi
+    USE OMP_LIB
     IMPLICIT NONE
     INCLUDE 'mpif.h'
     INTEGER,INTENT(OUT):: iout
     REAL(8)::sum
-    INTEGER:: nx,ny,nt,locv,npo,np
+    INTEGER:: nx,ny,nt,locv,npo,np,threads
     INTEGER,DIMENSION(:),ALLOCATABLE:: locva
     REAL(8),DIMENSION(:,:),ALLOCATABLE:: suma
 
@@ -97,7 +98,6 @@ CONTAINS
           CALL antenna(nxmax,nymax,jxant,jyant,jzant,phxant,phyant,phzant, &
                omega,time,jx,jy,jz)
        END IF
-
        CALL boundary_j(nxmax,nymax,jx,jy,jz,model_boundary)
        !..... sum current densities over cores
        CALL mtx_allreduce_real8(jx,nxymax,3,suma,locva)
@@ -139,8 +139,8 @@ CONTAINS
          CALL efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb, &
               ex,ey,ez,exb,eyb,ezb,exbb,eybb,ezbb,bxb,byb,bzb,&
               esx,esy,esz,emx,emy,emz,jx,jy,jz,vcfact,model_push,model_boundary)
-         !.......... calculate bxg and byg and bzg
-         CALL bfield(nxmax,nymax,dt,Ax,Ay,Az,Axb,Ayb,Azb,ex,ey,ez, &
+        !.......... calculate bxg and byg and bzg
+        CALL bfield(nxmax,nymax,dt,Ax,Ay,Az,Axb,Ayb,Azb,ex,ey,ez, &
               bx,by,bz,bxb,byb,bzb,bxbb,bybb,bzbb,bxbg,bybg,bzbg,bb,vcfact,model_push,model_boundary)
          IF(model_wg .eq. 0) THEN
            CALL wave(nxmax,nymax,dt,Ex,Ey,Ez,vcfact,xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi)
@@ -150,7 +150,7 @@ CONTAINS
           CALL kine(npmax,vxi,vyi,vzi,akini1,mi,vcfact)
           CALL pote(nxmax,nymax,ex,ey,ez,bx,by,bz,bxbg,bybg,bzbg,vcfact, &
                apote,apotm)
-          CALL mtx_allreduce1_real8(akine1,3,sum,locv)
+         CALL mtx_allreduce1_real8(akine1,3,sum,locv)
           akine1=sum/dble(nsize)
           CALL mtx_allreduce1_real8(akini1,3,sum,locv)
           akini1=sum/dble(nsize)
@@ -419,9 +419,9 @@ CONTAINS
     REAL(8) :: btot, vtot, bb2 ,vcfact, gammai
     INTEGER :: npmax, nxmax, nymax, model_boundary
     INTEGER :: np, nxp, nyp, nxpp, nxpm, nypp, nypm, nxppp, nyppp
-    !!$omp parallel do Private(nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,&
-    !!$omp dx,dy,dx1,dy1,sx2m,sx2,sx2p,sy2m,sy2,sy2p,exx,eyy,ezz,bxx,byy,bzz,&
-    !!$omp vxm,vym,vzm,vxzero,vyzero,vzzero,gammai,btot,vtot,bb2)
+    !$omp parallel do Private(nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,&
+    !$omp dx,dy,dx1,dy1,sx2m,sx2,sx2p,sy2m,sy2,sy2p,exx,eyy,ezz,bxx,byy,bzz,&
+    !$omp vxm,vym,vzm,vxzero,vyzero,vzzero,gammai,btot,vtot,bb2)
 
     DO np = 1, npmax
       ! calculate the electric field at the particle position
@@ -464,8 +464,8 @@ CONTAINS
           IF( nxp .EQ. nxmax-1) nxppp = 1
           IF( nyp .EQ. nymax-1) nyppp = 1
        ELSE   ! reflective:
-          !IF( nxp .EQ. 0  ) nxpm = 0
-          !IF( nyp .EQ. 0  ) nypm = 0
+          IF( nxp .EQ. 0  ) nxpm = 0
+          IF( nyp .EQ. 0  ) nypm = 0
           !IF( nxp .EQ. nxmax-1) nxppp = nxmax
           !IF( nyp .EQ. nymax-1) nyppp = nymax
           IF( nxp .EQ. nxmax-1 .and. dx .GE. 0.5d0) THEN
@@ -685,7 +685,7 @@ CONTAINS
        END IF
 
     END DO
-  !!$omp end parallel do
+  !$omp end parallel do
   END SUBROUTINE push
   ! !***********************************************************************
   ! SUBROUTINE particle_collision(npmax,nxmax,nymax,xe,ye,ze,vxe,vye,vze,ctome, &
@@ -748,7 +748,7 @@ CONTAINS
     REAL(8) :: x1, x2, y1, y2, z1, z2, alx, aly, alz, x3, y3, z3, x4, y4, z4,&
     alx1, aly1, alz1, vdzone, xl_before, yl_before, xl_after, yl_after
     INTEGER :: npmax, np, vzone
-    ! colision wall in nx = 1,nxmax-1, ny = 1, nymax
+    ! colision wall in nx=vzone,nxmax-vzone, ny=vzone,nymax-vzone
     vdzone = dble(vzone)
     x3 = x1 + vdzone
     y3 = y1 + vdzone
@@ -762,30 +762,38 @@ CONTAINS
     DO np = 1, npmax
        xmid(np)=0.5D0*(xb(np)+x(np))
        IF( x(np) .LT. x3  ) THEN
-          xl_before=xb(np) - x3
-          x(np) = x3 + (x3  - x(np))
-          xl_after=x(np) - x3
-          xmid(np)=x3+0.5D0*ABS(xl_after-xl_before)
+          !xl_before=xb(np) - x3
+          !x(np) = x3 + (x3  - x(np))
+          !xl_after=x(np) - x3
+          !xmid(np)=x3+0.5D0*ABS(xl_after-xl_before)
+          x(np) = x3 + (x3 - x(np))
+       xmid(np)=0.5D0*(xb(np)+x(np))
           vx(np) = -vx(np)
        ELSEIF( x(np) .GT. x4 ) THEN
-          xl_before=x4 - xb(np)
+          !xl_before=x4 - xb(np)
+          !x(np) = x4 - (x(np) - x4)
+          !xl_after=x4 - x(np)
+          !xmid(np)=x4-0.5D0*ABS(xl_after-xl_before)
           x(np) = x4 - (x(np) - x4)
-          xl_after=x4 - x(np)
-          xmid(np)=x4-0.5D0*ABS(xl_after-xl_before)
+       xmid(np)=0.5D0*(xb(np)+x(np))
           vx(np) = -vx(np)
        ENDIF
        ymid(np)=0.5D0*(yb(np)+y(np))
        IF( y(np) .LT. y3 ) THEN
-          yl_before=yb(np) - y3
+          !yl_before=yb(np) - y3
+          !y(np) = y3 + (y3  - y(np))
+          !yl_after=y(np) - y3
+          !ymid(np)=y3+0.5D0*ABS(yl_after-yl_before)
           y(np) = y3 + (y3  - y(np))
-          yl_after=y(np) - y3
-          ymid(np)=y3+0.5D0*ABS(yl_after-yl_before)
+       ymid(np)=0.5D0*(yb(np)+y(np))
           vy(np) = -vy(np)
        ELSEIF( y(np) .GT. y4 ) THEN
-          yl_before=y4 - yb(np)
+          !yl_before=y4 - yb(np)
+          !y(np) = y4 - (y(np) - y4)
+          !yl_after=y4 - y(np)
+          !ymid(np)=y4-0.5D0*ABS(yl_after-yl_before)
           y(np) = y4 - (y(np) - y4)
-          yl_after=y4 - y(np)
-          ymid(np)=y4-0.5D0*ABS(yl_after-yl_before)
+       ymid(np)=0.5D0*(yb(np)+y(np))
           vy(np) = -vy(np)
        ENDIF
       !  IF( z(np) .LT. z3 ) THEN
@@ -798,13 +806,13 @@ CONTAINS
       !     !END DO
       !  ENDIF
 
-       !IF( z(np) .LT. z1 ) THEN
+      ! IF( z(np) .LT. z1 ) THEN
       !    z(np) = -z(np)
       !    vz(np) = -vz(np)
-       !ELSEIF( z(np) .GT. z2 ) THEN
+      ! ELSEIF( z(np) .GT. z2 ) THEN
       !    z(np) = alz - (z(np) - alz)
       !    vz(np) = -vz(np)
-       !ENDIF
+      ! ENDIF
     END DO
     !$omp end parallel do
 
@@ -828,8 +836,8 @@ CONTAINS
        factor=chrg*DBLE(nxmax)*DBLE(nymax)/DBLE(npmax)
     END IF
     !*poption parallel, psum(rho)
-    !$omp parallel do Private (np,nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2p,sx2,sx2m,sy2p,sy2,sy2m) &
-    !$omp reduction(+:rho)
+    !$omp parallel do Private (nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2p,sx2,sx2m,sy2p,sy2,sy2m) &
+    !$omp reduction (+:rho)
 
     DO np = 1, npmax
        nxp = x(np)
@@ -1049,8 +1057,8 @@ CONTAINS
     ELSE
        factor=chrg*DBLE(nxmax)*DBLE(nymax)/DBLE(npmax)
     END IF
-    !!$omp parallel do Private (nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2p,sx2,sx2m,sy2p,sy2,sy2m)&
-    !!$omp Reduction(+:jx,jy,jz)
+    !$omp parallel do Private (gammai,nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2p,sx2,sx2m,sy2p,sy2,sy2m)&
+    !$omp Reduction(+:jx,jy,jz)
 
     DO np = 1, npmax
        gammai = 1.D0/sqrt(1.D0 + (vx(np)**2 + vy(np)**2 + vz(np)**2)/vcfact**2)
@@ -1314,7 +1322,7 @@ CONTAINS
 
        ENDIF
     END DO
-    !!$omp end parallel do
+    !$omp end parallel do
   END SUBROUTINE current
 
   !***********************************************************************
