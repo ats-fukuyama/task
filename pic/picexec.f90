@@ -13,11 +13,12 @@ CONTAINS
     USE picsub,ONLY: poisson_f,poisson_m,efield,bfield,wave,kine,pote,absorb_phi
     USE piclib
     USE libmpi
+    USE OMP_LIB
     IMPLICIT NONE
     INCLUDE 'mpif.h'
     INTEGER,INTENT(OUT):: iout
     REAL(8)::sum
-    INTEGER:: nx,ny,nt,locv,npo,np
+    INTEGER:: nx,ny,nt,locv,npo,np,threads
     INTEGER,DIMENSION(:),ALLOCATABLE:: locva
     REAL(8),DIMENSION(:,:),ALLOCATABLE:: suma
 
@@ -747,7 +748,7 @@ CONTAINS
     REAL(8) :: x1, x2, y1, y2, z1, z2, alx, aly, alz, x3, y3, z3, x4, y4, z4,&
     alx1, aly1, alz1, vdzone, xl_before, yl_before, xl_after, yl_after
     INTEGER :: npmax, np, vzone
-    ! colision wall in nx = 1,nxmax-1, ny = 1, nymax
+    ! colision wall in nx=vzone,nxmax-vzone, ny=vzone,nymax-vzone
     vdzone = dble(vzone)
     x3 = x1 + vdzone
     y3 = y1 + vdzone
@@ -761,30 +762,38 @@ CONTAINS
     DO np = 1, npmax
        xmid(np)=0.5D0*(xb(np)+x(np))
        IF( x(np) .LT. x3  ) THEN
-          xl_before=xb(np) - x3
-          x(np) = x3 + (x3  - x(np))
-          xl_after=x(np) - x3
-          xmid(np)=x3+0.5D0*ABS(xl_after-xl_before)
+          !xl_before=xb(np) - x3
+          !x(np) = x3 + (x3  - x(np))
+          !xl_after=x(np) - x3
+          !xmid(np)=x3+0.5D0*ABS(xl_after-xl_before)
+          x(np) = x3 + (x3 - x(np))
+       xmid(np)=0.5D0*(xb(np)+x(np))
           vx(np) = -vx(np)
        ELSEIF( x(np) .GT. x4 ) THEN
-          xl_before=x4 - xb(np)
+          !xl_before=x4 - xb(np)
+          !x(np) = x4 - (x(np) - x4)
+          !xl_after=x4 - x(np)
+          !xmid(np)=x4-0.5D0*ABS(xl_after-xl_before)
           x(np) = x4 - (x(np) - x4)
-          xl_after=x4 - x(np)
-          xmid(np)=x4-0.5D0*ABS(xl_after-xl_before)
+       xmid(np)=0.5D0*(xb(np)+x(np))
           vx(np) = -vx(np)
        ENDIF
        ymid(np)=0.5D0*(yb(np)+y(np))
        IF( y(np) .LT. y3 ) THEN
-          yl_before=yb(np) - y3
+          !yl_before=yb(np) - y3
+          !y(np) = y3 + (y3  - y(np))
+          !yl_after=y(np) - y3
+          !ymid(np)=y3+0.5D0*ABS(yl_after-yl_before)
           y(np) = y3 + (y3  - y(np))
-          yl_after=y(np) - y3
-          ymid(np)=y3+0.5D0*ABS(yl_after-yl_before)
+       ymid(np)=0.5D0*(yb(np)+y(np))
           vy(np) = -vy(np)
        ELSEIF( y(np) .GT. y4 ) THEN
-          yl_before=y4 - yb(np)
+          !yl_before=y4 - yb(np)
+          !y(np) = y4 - (y(np) - y4)
+          !yl_after=y4 - y(np)
+          !ymid(np)=y4-0.5D0*ABS(yl_after-yl_before)
           y(np) = y4 - (y(np) - y4)
-          yl_after=y4 - y(np)
-          ymid(np)=y4-0.5D0*ABS(yl_after-yl_before)
+       ymid(np)=0.5D0*(yb(np)+y(np))
           vy(np) = -vy(np)
        ENDIF
       !  IF( z(np) .LT. z3 ) THEN
@@ -1048,7 +1057,7 @@ CONTAINS
     ELSE
        factor=chrg*DBLE(nxmax)*DBLE(nymax)/DBLE(npmax)
     END IF
-    !$omp parallel do Private (nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2p,sx2,sx2m,sy2p,sy2,sy2m)&
+    !$omp parallel do Private (gammai,nxp,nyp,nxpp,nxpm,nypp,nypm,nxppp,nyppp,dx,dy,dx1,dy1,sx2p,sx2,sx2m,sy2p,sy2,sy2m)&
     !$omp Reduction(+:jx,jy,jz)
 
     DO np = 1, npmax

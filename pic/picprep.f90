@@ -110,8 +110,8 @@ CONTAINS
       call mtx_barrier
       wtime1 = mpi_wtime()
 
-      DO nx=0,nxmax
-         DO ny=0,nymax
+      DO nx=vzone,nxmax-vzone
+         DO ny=vzone,nymax-vzone
             factor=DBLE(nx)/DBLE(nxmax)
             bxbg(nx,ny)=bxmin+(bxmax-bxmin)*factor
             bybg(nx,ny)=bymin+(bymax-bymin)*factor
@@ -260,15 +260,17 @@ CONTAINS
                            +(dble(npxmax)-1.d0/(1.d0-densx))/dble(npxmax-1))
       END DO
        ! inter = dble(nxmax-2*vdzone)/((dble(npxmax)+1.0d0)*(1.0d0-0.5d0*densx))
-      inter = dble(nxmax-2*vdzone) / inter
+      !inter = dble(nxmax-2*vdzone) / inter
+      inter = 0.5d0*(1.d0+densx)*(1.d0-densx)
       DO npy = 1, npymax
          position = 0.d0
       DO npx = 1, npxmax
          np = np + 1
-         position = position &
-                  + inter/(dble(npx)*(1.d0/(1.d0-densx)-1.d0)/(dble(npxmax-1))&
-                           +(dble(npxmax)-1.d0/(1.d0-densx))/dble(npxmax-1))
-         x(np) = position + vdzone
+         !position = position &
+         !         + inter/(dble(npx)*(1.d0/(1.d0-densx)-1.d0)/(dble(npxmax-1))&
+         !                  +(dble(npxmax)-1.d0/(1.d0-densx))/dble(npxmax-1))
+         !x(np) = position + vdzone
+         x(np) =dble(nxmax-2*vzone)*(sqrt((1.d0-0.5*densx)**2+2.d0*densx*dble(npx)/dble(npxmax+1))-1.d0+0.5*densx)/densx+dble(vzone)
          y(np) = (dble(npy) - 0.5d0 ) * facty + vdzone
 
          call gauss(rvx,rvy,rvz,iran)

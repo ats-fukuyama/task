@@ -9,13 +9,13 @@ PROGRAM disp
 
   USE libgrf
   IMPLICIT NONE
+  INCLUDE 'mpif.h'
   INTEGER:: nmax,n
   REAL(8):: Xmin,Xmax,Ymin,Ymax,Npara,dz,delX,delY,D
   REAL(8),DIMENSION(:),ALLOCATABLE:: X,Y,Z,WC,WCC,WUH,OC,RC1,RC2,LC1,LC2
   REAL(8),DIMENSION(:,:),ALLOCATABLE:: G
   REAL(8),DIMENSION(:,:),ALLOCATABLE:: LINE_RGB
   INTEGER,DIMENSION(:),ALLOCATABLE:: LINE_MARK,LINE_PAT
-
   CALL gsopen
   Xmin=1.0D0   ! X = omegap2^2/omegape0^2
   Xmax=1.0D0
