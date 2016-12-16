@@ -1220,27 +1220,27 @@ CONTAINS
        END IF
 
        jx(nxpm,nypm) = jx(nxpm,nypm) + factor * vx(np) * sy2m * dx1 * gammai
-       jx(nxpm,nyp ) = jx(nxpm,nyp ) + factor * vx(np) * sy20 * dx1 * gammai
+       jx(nxpm,nyp0) = jx(nxpm,nyp0) + factor * vx(np) * sy20 * dx1 * gammai
        jx(nxpm,nypp) = jx(nxpm,nypp) + factor * vx(np) * sy2p * dx1 * gammai
-       jx(nxp ,nypm) = jx(nxp,nypm)  + factor * vx(np) * sy2m * dx0 * gammai
-       jx(nxp ,nyp ) = jx(nxp,nyp )  + factor * vx(np) * sy20 * dx0 * gammai
-       jx(nxp ,nypp) = jx(nxp,nypp)  + factor * vx(np) * sy2p * dx0 * gammai
+       jx(nxp0,nypm) = jx(nxp0,nypm) + factor * vx(np) * sy2m * dx0 * gammai
+       jx(nxp0,nyp0) = jx(nxp0,nyp0) + factor * vx(np) * sy20 * dx0 * gammai
+       jx(nxp0,nypp) = jx(nxp0,nypp) + factor * vx(np) * sy2p * dx0 * gammai
 
        jy(nxpm,nypm) = jy(nxpm,nypm) + factor * vy(np) * sx2m * dy1 * gammai
-       jy(nxp ,nypm) = jy(nxp ,nypm) + factor * vy(np) * sx20 * dy1 * gammai
+       jy(nxp0,nypm) = jy(nxp0,nypm) + factor * vy(np) * sx20 * dy1 * gammai
        jy(nxpp,nypm) = jy(nxpp,nypm) + factor * vy(np) * sx2p * dy1 * gammai
-       jy(nxpm,nyp ) = jy(nxpm,nyp)  + factor * vy(np) * sx2m * dy0 * gammai
-       jy(nxp ,nyp ) = jy(nxp ,nyp)  + factor * vy(np) * sx20 * dy0 * gammai
-       jy(nxpp,nyp ) = jy(nxpp,nyp)  + factor * vy(np) * sx2p * dy0 * gammai
+       jy(nxpm,nyp0) = jy(nxpm,nyp)  + factor * vy(np) * sx2m * dy0 * gammai
+       jy(nxp0,nyp0) = jy(nxp0,nyp)  + factor * vy(np) * sx20 * dy0 * gammai
+       jy(nxpp,nyp0) = jy(nxpp,nyp)  + factor * vy(np) * sx2p * dy0 * gammai
 
        jz(nxpm,nypm) = jz(nxpm,nypm) + factor * vz(np) * sx2m * sy2m* gammai
-       jz(nxpm,nyp ) = jz(nxpm,nyp ) + factor * vz(np) * sx2m * sy20* gammai
+       jz(nxpm,nyp0) = jz(nxpm,nyp0) + factor * vz(np) * sx2m * sy20* gammai
        jz(nxpm,nypp) = jz(nxpm,nypp) + factor * vz(np) * sx2m * sy2p* gammai
-       jz(nxp ,nypm) = jz(nxp ,nypm) + factor * vz(np) * sx20 * sy2m* gammai
-       jz(nxp ,nyp ) = jz(nxp ,nyp ) + factor * vz(np) * sx20 * sy20* gammai
-       jz(nxp ,nypp) = jz(nxp ,nypp) + factor * vz(np) * sx20 * sy2p* gammai
+       jz(nxp0,nypm) = jz(nxp0,nypm) + factor * vz(np) * sx20 * sy2m* gammai
+       jz(nxp0,nyp0) = jz(nxp0,nyp0) + factor * vz(np) * sx20 * sy20* gammai
+       jz(nxp0,nypp) = jz(nxp0,nypp) + factor * vz(np) * sx20 * sy2p* gammai
        jz(nxpp,nypm) = jz(nxpp,nypm) + factor * vz(np) * sx2p * sy2m* gammai
-       jz(nxpp,nyp ) = jz(nxpp,nyp ) + factor * vz(np) * sx2p * sy20* gammai
+       jz(nxpp,nyp0) = jz(nxpp,nyp0) + factor * vz(np) * sx2p * sy20* gammai
        jz(nxpp,nypp) = jz(nxpp,nypp) + factor * vz(np) * sx2p * sy2p* gammai
 
     END DO
