@@ -13,12 +13,15 @@ CONTAINS
     !***********************************************************************
     IMPLICIT NONE
     !INCLUDE 'fftw3.f'
-    REAL(8), DIMENSION(nxmax1,nymax1) :: rho,phi
-    REAL(8), DIMENSION(nxmax,nymax) :: awk
-    COMPLEx(8), DIMENSION(nxmaxh1,nymax) :: afwk
-    COMPLEx(8), DIMENSION(nxmaxh1,nymax) :: rhof, phif
-    REAL(8), DIMENSION(nxmaxh1,nymax) :: cform
-    INTEGER(4) :: nxmax, nymax,nxmaxh1,nxmax1,nymax1,ipssn
+    INTEGER,INTENT(IN) :: nxmax, nymax,nxmaxh1,nxmax1,nymax1
+    INTEGER,INTENT(INOUT) :: ipssn
+    REAL(8),DIMENSION(nxmax1,nymax1),INTENT(INOUT) :: rho
+    REAL(8),DIMENSION(nxmax1,nymax1),INTENT(INOUT) :: phi
+    REAL(8),DIMENSION(nxmax,nymax),INTENT(INOUT) :: awk
+    COMPLEx(8),DIMENSION(nxmaxh1,nymax),INTENT(INOUT) :: afwk
+    COMPLEx(8),DIMENSION(nxmaxh1,nymax),INTENT(INOUT) :: rhof
+    COMPLEx(8),DIMENSION(nxmaxh1,nymax),INTENT(INOUT) :: phif
+    REAL(8),DIMENSION(nxmaxh1,nymax),INTENT(INOUT) :: cform
     INTEGER(4) :: ifset
 
     IF(ipssn.EQ.0) THEN
@@ -46,9 +49,10 @@ CONTAINS
   SUBROUTINE poisson_sub(nxmax,nymax,nxmaxh1,rhof,phif,cform,ipssn)
     !***********************************************************************
     IMPLICIT NONE
-    COMPLEx(8), DIMENSION(nxmaxh1,nymax) :: rhof, phif
-    REAL(8), DIMENSION(nxmaxh1,nymax) :: cform
-    INTEGER(4) :: nxmax, nymax, nxmaxh1
+    INTEGER,INTENT(IN) :: nxmax, nymax, nxmaxh1
+    COMPLEx(8),DIMENSION(nxmaxh1,nymax),INTENT(IN) :: rhof
+    COMPLEx(8),DIMENSION(nxmaxh1,nymax),INTENT(INOUT) :: phif
+    REAL(8),DIMENSION(nxmaxh1,nymax),INTENT(INOUT) :: cform
     INTEGER(4) :: nx, ny, nymaxh,ipssn
     REAL(8) :: alxi, alyi, pi, twopi, am, an, amn2, afsp, afsp2
 
@@ -99,11 +103,12 @@ CONTAINS
     !***********************************************************************
     IMPLICIT NONE
     INCLUDE 'fftw3.f'
-    REAL(8), DIMENSION(nxmax1,nymax1) :: a
-    REAL(8), DIMENSION(nxmax,nymax) :: awk
+    INTEGER,INTENT(IN) :: nxmax, nymax, nxmaxh1, nxmax1, nymax1
+    REAL(8),DIMENSION(nxmax1,nymax1),INTENT(INOUT) :: a
+    COMPLEx(8),DIMENSION(nxmaxh1,nymax),INTENT(INOUT) :: af
+    REAL(8),DIMENSION(nxmax,nymax),INTENT(INOUT) :: awk
+    COMPLEx(8),DIMENSION(nxmaxh1,nymax),INTENT(INOUT) :: afwk
     REAL(8) :: alx, aly
-    COMPLEx(8), DIMENSION(nxmaxh1,nymax) :: af, afwk
-    INTEGER(4) :: nxmax, nymax, nxmaxh1, nxmax1, nymax1
     INTEGER(4) :: ifset, nx, ny
     !....integer(8), save :: FFTW_ESTIMATE
     INTEGER(8), SAVE :: plan1, plan2
@@ -175,15 +180,16 @@ CONTAINS
     USE commpi
     USE libmtx
     IMPLICIT NONE
-    REAL(8), DIMENSION(nxmax1,nymax1) :: rho,phi
-    REAL(8), DIMENSION(:),ALLOCATABLE :: x
-    REAL(8):: tolerance_matrix,dlen,inv,xd,yd,xdmax,ydmax
-    INTEGER :: nxmax1,nymax1,nxymax,ipssn
-    INTEGER :: model_matrix0,model_matrix1,model_matrix2
+    INTEGER,INTENT(IN) :: nxmax1,nymax1,ipssn
+    INTEGER,INTENT(IN) :: model_matrix0,model_matrix1,model_matrix2
+    REAL(8),DIMENSION(nxmax1,nymax1),INTENT(IN) :: rho
+    REAL(8),DIMENSION(nxmax1,nymax1),INTENT(INOUT) :: phi
+    REAL(8),DIMENSION(:),ALLOCATABLE :: x
+    REAL(8),INTENT(IN) :: tolerance_matrix,dlen,model_boundary
+    REAL(8):: inv,xd,yd,xdmax,ydmax
     INTEGER :: nxmax,nymax,mode,imax,isize,jwidth,ileng
     INTEGER,SAVE:: status=0,istart,iend,irange
     INTEGER :: i,nx,ny,l,m,its,ilen
-    INTEGER :: model_boundary
 
     nxmax=nxmax1-2
     nymax=nymax1-2
@@ -258,16 +264,19 @@ CONTAINS
 
   !***********************************************************************
   SUBROUTINE efield(nxmax,nymax,dt,phi,Ax,Ay,Az,Axb,Ayb,Azb,&
-       Ex,Ey,Ez,Exb,Eyb,Ezb,Exbb,Eybb,Ezbb,Bxb,Byb,Bzb,Esx,Esy,Esz,Emx,Emy,Emz,&
-       jx,jy,jz,vcfact,model_push,model_boundary)
+       Ex,Ey,Ez,Exb,Eyb,Ezb,Exbb,Eybb,Ezbb,Bxb,Byb,Bzb,Esx,Esy,Esz, &
+       Emx,Emy,Emz,jx,jy,jz,vcfact,model_push,model_boundary)
   !***********************************************************************
     IMPLICIT NONE
-    REAL(8), DIMENSION(0:nxmax,0:nymax) ::Ex,Ey,Ez,Exb,Eyb,Ezb,Exbb,Eybb,Ezbb,&
-    Bxb,Byb,Bzb,Esx,Esy,Esz,Emx,Emy,Emz
-    REAL(8), DIMENSION(0:nxmax,0:nymax) ::phi,Ax,Ay,Az,Axb,Ayb,Azb,jx,jy,jz
-    REAL(8):: dt,vcfact,dl,dm,dn
-    INTEGER:: nxmax, nymax, nx, ny, nxm, nxp, nym, nyp
-    INTEGER:: model_push, model_boundary,model_wg
+    INTEGER,INTENT(IN):: nxmax, nymax, model_push, model_boundary
+    REAL(8), DIMENSION(0:nxmax,0:nymax),INTENT(IN) :: &
+         Exb,Eyb,Ezb,Exbb,Eybb,Ezbb,Bxb,Byb,Bzb,Axb,Ayb,Azb,jx,jy,jz
+    REAL(8), DIMENSION(0:nxmax,0:nymax),INTENT(INOUT):: &
+         Ex,Ey,Ez,Esx,Esy,Esz,Emx,Emy,Emz,phi,Ax,Ay,Az
+    REAL(8),INTENT(IN):: dt,vcfact
+    INTEGER:: nx,ny,nxm,nxp,nym,nyp
+    REAL(8):: dl,dm,dn
+
     IF(model_boundary .EQ. 0) THEN
       !$omp parallel do private(nxm,nym,nxp,nyp)
        DO nx = 0, nxmax
@@ -491,13 +500,17 @@ ENDIF
        model_push,model_boundary)
   !***********************************************************************
     IMPLICIT NONE
-    REAL(8), DIMENSION(0:nymax) :: Bxnab,Bynab,Bznab
-    REAL(8), DIMENSION(0:nxmax,0:nymax) :: Ex,Ey,Ez,Bx,By,Bz,Bxb,Byb,Bzb, &
-                                           Bxbb,Bybb,Bzbb,Bxbg,Bybg,Bzbg,bb
-    REAL(8), DIMENSION(0:nxmax,0:nymax) :: Ax,Ay,Az,Axb,Ayb,Azb
-    INTEGER :: nxmax, nymax, nx, ny, nxp, nyp, nxm, nym
-    INTEGER :: model_push, model_boundary
-    REAL(8) :: Bxx,Byy,Bzz,vcfact,dt,dl,dm,dn
+    INTEGER,INTENT(IN) :: nxmax, nymax, model_push, model_boundary
+    REAL(8), DIMENSION(0:nxmax,0:nymax),INTENT(IN) :: &
+         Ex,Ey,Ez
+    REAL(8), DIMENSION(0:nxmax,0:nymax),INTENT(INOUT) :: &
+         Bx,By,Bz,Bxb,Byb,Bzb,Bxbb,Bybb,Bzbb,Bxbg,Bybg,Bzbg,bb
+    REAL(8), DIMENSION(0:nxmax,0:nymax),INTENT(IN) :: Axb,Ayb,Azb
+    REAL(8), DIMENSION(0:nxmax,0:nymax),INTENT(INOUT) :: Ax,Ay,Az
+    REAL(8),INTENT(IN) :: vcfact,dt
+    INTEGER :: nx, ny, nxp, nyp, nxm, nym
+    REAL(8) :: Bxx,Byy,Bzz,dl,dm,dn
+
     IF(model_boundary .EQ. 0) THEN
       !$omp parallel do private(nxm,nym,nxp,nyp)
        DO ny = 0, nymax
@@ -707,13 +720,19 @@ ENDIF
   END SUBROUTINE bfield
 
   !***********************************************************************
-  SUBROUTINE wave(nxmax,nymax,dt,Ex,Ey,Ez,vcfact,xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi)
+  SUBROUTINE wave(nxmax,nymax,dt,Ex,Ey,Ez,vcfact, &
+                  xmin_wg,xmax_wg,ymin_wg,ymax_wg, &
+                  amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi)
   !***********************************************************************
      IMPLICIT NONE
-     REAL(8), DIMENSION(0:nxmax,0:nymax) :: ex,ey,ez
-     INTEGER :: nxmax,nymax,ny
-     REAL(8) :: dt,xmin_wg,xmax_wg,ymin_wg,ymax_wg,yc,ylen,dph,y,factor,&
-     amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi,vcfact,amp_start
+     INTEGER,INTENT(IN) :: nxmax,nymax
+     REAL(8),DIMENSION(0:nxmax,0:nymax),INTENT(INOUT) :: ex,ey,ez
+     REAL(8),INTENT(IN) :: &
+          dt,vcfact,xmin_wg,xmax_wg,ymin_wg,ymax_wg, &
+          amp_wg,ph_wg,rot_wg,eli_wg,omega,time,pi
+     INTEGER :: ny
+     REAL(8) :: yc,ylen,dph,y,factor,amp_start
+
      yc=0.5d0*(ymin_wg+ymax_wg)
      ylen=(ymax_wg-ymin_wg)
      IF(ylen .NE. 0) dph=ph_wg/ylen
@@ -732,13 +751,18 @@ ENDIF
         END IF
     END DO
   END SUBROUTINE wave
+
   !***********************************************************************
   SUBROUTINE kine(npmax,vx,vy,vz,akin,mass,vcfact)
   !***********************************************************************
     IMPLICIT NONE
-    REAL(8), DIMENSION(npmax) :: vx, vy, vz
-    REAL(8) :: akin, mass, vcfact, gamma
-    INTEGER(4) :: npmax, np
+    INTEGER,INTENT(IN):: npmax
+    REAL(8), DIMENSION(npmax),INTENT(IN) :: vx, vy, vz
+    REAL(8),INTENT(IN) :: mass, vcfact
+    REAL(8),INTENT(OUT) :: akin
+    INTEGER :: np
+    REAL(8) :: gamma
+
     akin = 0.d0
     !$omp parallel do Private(gamma)&
     !$omp reduction(+:akin)
@@ -759,9 +783,12 @@ ENDIF
        apote,apotm)
     !***********************************************************************
     IMPLICIT NONE
-    REAL(8), DIMENSION(0:nxmax,0:nymax) :: Ex,Ey,Ez,Bx,By,Bz,Bxbg,Bybg,Bzbg
-    REAL(8) :: apote,apotm,vcfact
-    INTEGER(4) :: nxmax, nymax, nx, ny
+    INTEGER,INTENT(IN) :: nxmax, nymax
+    REAL(8), DIMENSION(0:nxmax,0:nymax),INTENT(IN) :: &
+         Ex,Ey,Ez,Bx,By,Bz,Bxbg,Bybg,Bzbg
+    REAL(8),INTENT(IN) :: vcfact
+    REAL(8),INTENT(OUT) :: apote,apotm
+    INTEGER :: nx, ny
 
     apote = 0.d0
     apotm = 0.d0

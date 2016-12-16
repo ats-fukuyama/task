@@ -8,13 +8,15 @@ LIBX_MTX=$(LIBX_MTX_PCG)
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-FFLAGS=$(OFLAGS) -fopenmp
+FFLAGS=$(OFLAGS) -fopenmp -Wl,-stack_size,0x80000000,-stack_addr,0xf0000000
+#FFLAGS=$(OFLAGS) -fopenmp
+#FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS) #-fopenmp
 
 MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD) -I../mtxp/$(MOD) -I../lib/$(MOD)
 #FINCLUDE=-I /usr/local/mpich313-ifort-gcc/include
-#FINCLUDE=-I /usr/local/mpich32-ifort-gcc5/include
-FINCLUDE=-I /usr/local/mpich3-intel140/include
+FINCLUDE=-I /usr/local/mpich32-ifort-gcc5/include
+#FINCLUDE=-I /usr/local/mpich3-intel140/include
 #FINCLUDE=-I /home/hoge/lib/openmpi/include
 
 .f.o :
@@ -46,9 +48,9 @@ piclib.a: $(OBJS)
 libs:
 	(cd ../lib; make tasklib.a)
 	(cd ../../bpsd; make bpsdlib.a)
-	(cd ../../mtxp; make)
+	(cd ../mtxp; make)
 
-pic : $(LIBS) picmain.o
+pic : $(LIBS) $(LIBX_MTX) picmain.o
 	$(FLINKER) picmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 disp: disp.o

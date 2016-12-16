@@ -542,9 +542,11 @@
       IMPLICIT NONE
       INTEGER,DIMENSION(n1,m2),INTENT(INOUT):: vdata
       INTEGER,INTENT(IN):: n1,m1,m2
-      INTEGER,DIMENSION(m1*m2):: tdata
+!      INTEGER,DIMENSION(m1*m2):: tdata
+      INTEGER,DIMENSION(:),allocatable:: tdata
       INTEGER:: i,i1,i2,ierr
 
+      ALLOCATE(tdata(m1*m2))
       i=0
       DO i2=1,m2
          DO i1=1,m1
@@ -562,6 +564,7 @@
             vdata(i1,i2)=tdata(i)
          END DO
       END DO
+      DEALLOCATE(tdata)
       RETURN
       END SUBROUTINE mtx_broadcast2D_integer
 
@@ -571,9 +574,11 @@
       IMPLICIT NONE
       REAL(4),DIMENSION(n1,m2),INTENT(INOUT):: vdata
       INTEGER,INTENT(IN):: n1,m1,m2
-      REAL(4),DIMENSION(m1*m2):: tdata
+!      REAL(4),DIMENSION(m1*m2):: tdata
+      REAL(4),DIMENSION(:),allocatable:: tdata
       INTEGER:: i,i1,i2,ierr
 
+      ALLOCATE(tdata(m1*m2))
       i=0
       DO i2=1,m2
          DO i1=1,m1
@@ -591,6 +596,7 @@
             vdata(i1,i2)=tdata(i)
          END DO
       END DO
+      DEALLOCATE(tdata)
       RETURN
       END SUBROUTINE mtx_broadcast2D_real4
 
@@ -600,9 +606,11 @@
       IMPLICIT NONE
       REAL(8),DIMENSION(n1,m2),INTENT(INOUT):: vdata
       INTEGER,INTENT(IN):: n1,m1,m2
-      REAL(8),DIMENSION(m1*m2):: tdata
+!      REAL(8),DIMENSION(m1*m2):: tdata
+      REAL(8),DIMENSION(:),allocatable:: tdata
       INTEGER:: i,i1,i2,ierr
 
+      ALLOCATE(tdata(m1*m2))
       i=0
       DO i2=1,m2
          DO i1=1,m1
@@ -620,6 +628,7 @@
             vdata(i1,i2)=tdata(i)
          END DO
       END DO
+      DEALLOCATE(tdata)
       RETURN
       END SUBROUTINE mtx_broadcast2D_real8
 
@@ -629,9 +638,11 @@
       IMPLICIT NONE
       COMPLEX(8),DIMENSION(n1,m2),INTENT(INOUT):: vdata
       INTEGER,INTENT(IN):: n1,m1,m2
-      COMPLEX(8),DIMENSION(m1*m2):: tdata
+!      COMPLEX(8),DIMENSION(m1*m2):: tdata
+      COMPLEX(8),DIMENSION(:),allocatable:: tdata
       INTEGER:: i,i1,i2,ierr
 
+      ALLOCATE(tdata(m1*m2))
       i=0
       DO i2=1,m2
          DO i1=1,m1
@@ -649,6 +660,7 @@
             vdata(i1,i2)=tdata(i)
          END DO
       END DO
+      DEALLOCATE(tdata)
       RETURN
       END SUBROUTINE mtx_broadcast2D_complex8
 
@@ -1136,9 +1148,11 @@
       INTEGER,INTENT(IN):: ndata,nop
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vreduce
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
-      INTEGER,DIMENSION(2,ndata):: d_send, d_recv
+!      INTEGER,DIMENSION(2,ndata):: d_send, d_recv
+      INTEGER,DIMENSION(:,:),ALLOCATABLE:: d_send, d_recv
       INTEGER:: ierr,i
 
+      ALLOCATE(d_send(2,ndata),d_recv(2,ndata))
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_REDUCE(vdata,vreduce,ndata,MPI_INTEGER, &
@@ -1169,6 +1183,7 @@
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_reduce_integer: MPI_REDUCE: ierr=',ierr
+      DEALLOCATE(d_send,d_recv)
       RETURN
       END SUBROUTINE mtx_reduce_integer
       
@@ -1180,9 +1195,11 @@
       INTEGER,INTENT(IN):: ndata,nop
       REAL(4),DIMENSION(ndata),INTENT(OUT):: vreduce
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
-      REAL(4),DIMENSION(2,ndata):: d_send, d_recv
+!      REAL(4),DIMENSION(2,ndata):: d_send, d_recv
+      REAL(4),DIMENSION(:,:),ALLOCATABLE:: d_send, d_recv
       INTEGER:: ierr, i
 
+      ALLOCATE(d_send(2,ndata),d_recv(2,ndata))
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_REDUCE(vdata,vreduce,ndata,MPI_REAL, &
@@ -1213,6 +1230,7 @@
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_reduce_real4: MPI_REDUCE: ierr=',ierr
+      DEALLOCATE(d_send,d_recv)
       RETURN
       END SUBROUTINE mtx_reduce_real4
       
@@ -1224,9 +1242,11 @@
       INTEGER,INTENT(IN):: ndata,nop
       REAL(8),DIMENSION(ndata),INTENT(OUT):: vreduce
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
-      REAL(8),DIMENSION(2,ndata):: d_send, d_recv
+!      REAL(8),DIMENSION(2,ndata):: d_send, d_recv
+      REAL(8),DIMENSION(:,:),ALLOCATABLE:: d_send, d_recv
       INTEGER:: ierr, i
 
+      ALLOCATE(d_send(2,ndata),d_recv(2,ndata))
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_REDUCE(vdata,vreduce,ndata,MPI_DOUBLE_PRECISION, &
@@ -1257,6 +1277,7 @@
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_reduce_real8: MPI_REDUCE: ierr=',ierr
+      DEALLOCATE(d_send,d_recv)
       RETURN
       END SUBROUTINE mtx_reduce_real8
       
@@ -1268,9 +1289,11 @@
       INTEGER,INTENT(IN):: ndata,nop
       COMPLEX(8),DIMENSION(ndata),INTENT(OUT):: vreduce
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
-      COMPLEX(8),DIMENSION(2,ndata):: d_send, d_recv
+!      COMPLEX(8),DIMENSION(2,ndata):: d_send, d_recv
+      COMPLEX(8),DIMENSION(:,:),ALLOCATABLE:: d_send, d_recv
       INTEGER:: ierr,i
 
+      ALLOCATE(d_send(2,ndata),d_recv(2,ndata))
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_REDUCE(vdata,vreduce,ndata,MPI_DOUBLE_COMPLEX, &
@@ -1301,6 +1324,7 @@
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_reduce_complex8: MPI_REDUCE: ierr=',ierr
+      DEALLOCATE(d_send,d_recv)
       RETURN
       END SUBROUTINE mtx_reduce_complex8
       
@@ -1388,9 +1412,11 @@
       INTEGER,INTENT(IN):: ndata,nop
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vreduce
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
-      INTEGER,DIMENSION(2,ndata):: d_send, d_recv
+!      INTEGER,DIMENSION(2,ndata):: d_send, d_recv
+      INTEGER,DIMENSION(:,:),allocatable:: d_send, d_recv
       INTEGER:: ierr,i
 
+      ALLOCATE(d_send(2,ndata),d_recv(2,ndata))
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_ALLREDUCE(vdata,vreduce,ndata,MPI_INTEGER, &
@@ -1421,6 +1447,7 @@
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_allreduce_integer: MPI_allREDUCE: ierr=',ierr
+      DEALLOCATE(d_send,d_recv)
       RETURN
       END SUBROUTINE mtx_allreduce_integer
       
@@ -1432,9 +1459,11 @@
       INTEGER,INTENT(IN):: ndata,nop
       REAL(4),DIMENSION(ndata),INTENT(OUT):: vreduce
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
-      REAL(4),DIMENSION(2,ndata):: d_send, d_recv
+!      REAL(4),DIMENSION(2,ndata):: d_send, d_recv
+      REAL(4),DIMENSION(:,:),allocatable:: d_send, d_recv
       INTEGER:: ierr,i
 
+      ALLOCATE(d_send(2,ndata),d_recv(2,ndata))
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_ALLREDUCE(vdata,vreduce,ndata,MPI_REAL, &
@@ -1465,6 +1494,7 @@
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_allreduce_real4: MPI_ALLREDUCE: ierr=',ierr
+      DEALLOCATE(d_send,d_recv)
       RETURN
       END SUBROUTINE mtx_allreduce_real4
       
@@ -1476,9 +1506,11 @@
       INTEGER,INTENT(IN):: ndata,nop
       REAL(8),DIMENSION(ndata),INTENT(OUT):: vreduce
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
-      REAL(8),DIMENSION(2,ndata):: d_send, d_recv
+!      REAL(8),DIMENSION(2,ndata):: d_send, d_recv
+      REAL(8),DIMENSION(:,:),allocatable:: d_send, d_recv
       INTEGER:: ierr,i
 
+      ALLOCATE(d_send(2,ndata),d_recv(2,ndata))
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_ALLREDUCE(vdata,vreduce,ndata,MPI_DOUBLE_PRECISION, &
@@ -1509,6 +1541,7 @@
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_allreduce_real8: MPI_ALLREDUCE: ierr=',ierr
+      DEALLOCATE(d_send,d_recv)
       RETURN
       END SUBROUTINE mtx_allreduce_real8
       
@@ -1520,9 +1553,11 @@
       INTEGER,INTENT(IN):: ndata,nop
       COMPLEX(8),DIMENSION(ndata),INTENT(OUT):: vreduce
       INTEGER,DIMENSION(ndata),INTENT(OUT):: vloc
-      COMPLEX(8),DIMENSION(2,ndata):: d_send, d_recv
+!      COMPLEX(8),DIMENSION(2,ndata):: d_send, d_recv
+      COMPLEX(8),DIMENSION(:,:),allocatable:: d_send, d_recv
       INTEGER:: ierr,i
 
+      ALLOCATE(d_send(2,ndata),d_recv(2,ndata))
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_ALLREDUCE(vdata,vreduce,ndata,MPI_DOUBLE_COMPLEX, &
@@ -1553,6 +1588,7 @@
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_allreduce_complex8: MPI_ALLREDUCE: ierr=',ierr
+      DEALLOCATE(d_send,d_recv)
       RETURN
       END SUBROUTINE mtx_allreduce_complex8
 

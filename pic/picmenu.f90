@@ -41,9 +41,12 @@ CONTAINS
     ELSEIF(kid.EQ.'V') THEN
        IF(nrank == 0) CALL pic_view
     ELSEIF(kid.EQ.'R') THEN
+       write(6,*) 'point 001'
        CALL pic_prep(ierr)
+       write(6,*) 'point 002'
        if(ierr /= 0) GO TO 1
        init=1
+       write(6,*) 'point 003'
        CALL pic_exec(ierr)
     ELSEIF(kid.EQ.'C') THEN
        IF(init /= 0) CALL pic_exec(ierr)

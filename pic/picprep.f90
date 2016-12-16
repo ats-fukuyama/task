@@ -166,12 +166,15 @@ CONTAINS
                         x1,x2,y1,y2,alx,aly,model_boundary,vzone)
 !***********************************************************************
       implicit none
-      real(8), dimension(npmax) :: x, y, z, xb, yb, zb, vx, vy, vz,xmid,ymid
-      integer :: npmax, npxmax, npymax, nxmax, nymax, iran, vzone
-      real(8) :: vt, dt, factx, facty, rvx, rvy, rvz, densx, inter, position,&
-                 x1,x2,y1,y2,x3,x4,y3,y4,alx,aly,alx1,aly1,vdzone,&
-                 xl_before,xl_after,yl_before,yl_after
-      integer :: npx, npy, np, model_boundary
+      INTEGER,INTENT(IN) :: &
+           npmax, npxmax, npymax, nxmax, nymax, iran, vzone, model_boundary
+      REAL(8),DIMENSION(npmax),INTENT(INOUT) :: &
+           x, y, z, xb, yb, zb, vx, vy, vz, xmid, ymid
+      REAL(8),INTENT(IN) :: densx,dt, vt,x1,x2,y1,y2,alx,aly
+      REAL(8):: factx, facty, rvx, rvy, rvz, inter, position,&
+           x3,x4,y3,y4,alx1,aly1,vdzone,&
+           xl_before,xl_after,yl_before,yl_after
+      integer :: npx, npy, np
 
       factx = dble(nxmax) / dble(npxmax)
       facty = dble(nymax) / dble(npymax)
