@@ -8,8 +8,8 @@ LIBX_MTX=$(LIBX_MTX_PCG)
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-FFLAGS=$(OFLAGS) -fopenmp
-#FFLAGS=$(DFLAGS) #-fopenmp
+FFLAGS=$(OFLAGS) -openmp
+#FFLAGS=$(DFLAGS) -openmp
 
 MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD) -I../mtxp/$(MOD) -I../lib/$(MOD)
 #FINCLUDE=-I /usr/local/mpich313-ifort-gcc/include
@@ -74,6 +74,7 @@ picexec.o: picexec.f90 piccomm.f90 picsub.f90 piclib.f90
 picgout.o: picgout.f90 piccomm.f90 picparm.f90 libgrf/grd2dp.f90
 picsub.o: picsub.f90
 piclib.o: piclib.f90
+#disp.o: disp.f90
 libgrf/grd2dp.o: libgrf/grd2dp.f90 libgrf/grdpconvert.f90 \
                  libgrf/grf2dpexec.f90
 libgrf/grf2dp.o: libgrf/grf2dp.f90 libgrf/grfpconvert.f90 \

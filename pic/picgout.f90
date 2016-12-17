@@ -144,15 +144,15 @@ CONTAINS
        CALL PAGEE
     CASE('E5')
        CALL PAGES
-         CALL GRD2D( 1,x,y,ex,nxmax1,nxmax1,nymax1,'@Ex@',ASPECT=aspect, &
-                      XMIN=0.D0,XMAX=DBLE(nxmax),YMIN=0.D0,YMAX=DBLE(nymax),&
-                      NLMAX=nlmax,LINE_PAT=WORK_PAT)
-         CALL GRD2D( 2,x,y,ey,nxmax1,nxmax1,nymax1,'@Ey@',ASPECT=aspect, &
+         !CALL GRD2D( 1,x,y,ex,nxmax1,nxmax1,nymax1,'@Ex@',ASPECT=aspect, &
+         !             XMIN=0.D0,XMAX=DBLE(nxmax),YMIN=0.D0,YMAX=DBLE(nymax),&
+         !             NLMAX=nlmax,LINE_PAT=WORK_PAT)
+         CALL GRD2D( 0,x,y,ey,nxmax1,nxmax1,nymax1,'@Ey@',ASPECT=aspect, &
                        XMIN=0.D0,XMAX=DBLE(nxmax),YMIN=0.D0,YMAX=DBLE(nymax), &
                        NLMAX=nlmax,LINE_PAT=WORK_PAT)
-         CALL GRD2D( 3,x,y,ez,nxmax1,nxmax1,nymax1,'@Ez@',ASPECT=aspect, &
-                       XMIN=0.D0,XMAX=DBLE(nxmax),YMIN=0.D0,YMAX=DBLE(nymax), &
-                      NLMAX=nlmax,LINE_PAT=WORK_PAT)
+         !CALL GRD2D( 3,x,y,ez,nxmax1,nxmax1,nymax1,'@Ez@',ASPECT=aspect, &
+         !              XMIN=0.D0,XMAX=DBLE(nxmax),YMIN=0.D0,YMAX=DBLE(nymax), &
+         !             NLMAX=nlmax,LINE_PAT=WORK_PAT)
        !  CALL GRD2D( 8,x,y,esx,nxmax1,nxmax1,nymax1,'@ESx@',ASPECT=aspect, &
        !               XMIN=0.D0,XMAX=DBLE(nxmax),YMIN=0.D0,YMAX=DBLE(nymax), &
        !               NLMAX=nlmax,LINE_PAT=WORK_PAT)
