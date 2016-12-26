@@ -116,7 +116,8 @@
            EP,EM,EM_W, &
            RN_disrupt, RN_runaway, Rj_ohm, RJ_runaway, conduct_sp, &
            SIGMA_SPP, SIGMA_SPM, ER_drei, ER_crit, Rconner, LNL_G, RFP_ava, &
-           RFPL, RFP, RP_crit, RT_quench,RT_quench_f,previous_rate, RJ_bs, &
+           RFP_local, RFP, RP_crit, RT_quench,RT_quench_f,previous_rate, &
+           RJ_bs, &
            previous_rate_p, rn_drei, RJ_bsm, RN_runaway_M, R_djdt
       real(rkind),dimension(:),POINTER :: & ! (NRM)
            EPSRM,EPSRG,EPSRM2,EPSRG2
@@ -451,7 +452,7 @@
           allocate(RN_IMPL(NRMAX,NSAMAX),RT_IMPL(NRMAX,NSAMAX) )
           
           allocate(RNSL(NRSTART:NRENDX,NSAMAX),RJSL(NRSTART:NRENDX,NSAMAX))
-          allocate(RFPL(NRSTART:NRENDX),RJSRL(NRSTART:NRENDX,NSAMAX))
+          allocate(RFP_local(NRSTART:NRENDX),RJSRL(NRSTART:NRENDX,NSAMAX))
           allocate(RWSL(NRSTART:NRENDX,NSAMAX),RWS123L(NRSTART:NRENDX,NSAMAX))
           allocate(RSPBL(NRSTART:NRENDX,NSAMAX),RSPFL(NRSTART:NRENDX,NSAMAX))
           allocate(RSPSL(NRSTART:NRENDX,NSAMAX),RSPLL(NRSTART:NRENDX,NSAMAX))
@@ -654,7 +655,7 @@
 !          deallocate(DCPP2B,DCPT2B,FCPP2B)
 
           deallocate(RN_IMPL,RT_IMPL)
-          deallocate(RNSL,RJSL,RWSL,RWS123L,RFPL,RJSRL)
+          deallocate(RNSL,RJSL,RWSL,RWS123L,RFP_local,RJSRL)
           deallocate(RSPBL,RSPFL,RSPSL,RSPLL,RPCSL,RPESL)
           deallocate(RLHSL,RFWSL,RECSL,RICSL,RPCS2L)
           deallocate(RDIDT, RDIDTL)
