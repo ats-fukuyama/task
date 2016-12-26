@@ -119,13 +119,14 @@
     SUBROUTINE pl_mag(X,Y,Z,RHON,MAG)
 
       USE plcomm, ONLY: RA,RR,BB,MODELG
+      USE plprof2d
       USE plload
       IMPLICIT NONE
       REAL(rkind),INTENT(in):: X,Y,Z
       REAL(rkind),INTENT(OUT):: RHON
       TYPE(pl_mag_type),INTENT(OUT):: MAG
       INTEGER:: IERR
-      REAL(8):: BTOT
+      REAL(8):: BABS,AL(3)
 
       REAL(8) :: RL, BR, BT, BX, BY, BZ, &
                  RSINT, RCOST
@@ -142,7 +143,19 @@
          CALL pl_mag_rz(X,Y,Z,BR,BZ,BT,RHON)
          BX = BR*RCOST-BT*RSINT
          BY = BR*RSINT+BT*RCOST
+      CASE(11)
+         CALL PLSMAG11(X,Y,BABS,AL)
+         BX = BABS*AL(1)
+         BY = BABS*AL(2)
+         BZ = BABS*AL(3)
       CASE(12)
+         CALL pl_read_p2Dmag(X,Y,BX,BY,BZ,IERR)
+      CASE(13)
+         CALL PLSMAG13(X,Y,BABS,AL)
+         BX = BABS*AL(1)
+         BY = BABS*AL(2)
+         BZ = BABS*AL(3)
+      CASE(14)
          CALL pl_read_p2Dmag(X,Y,BX,BY,BZ,IERR)
       END SELECT
 
@@ -165,13 +178,14 @@
     SUBROUTINE pl_mag_rz(X,Y,Z,BR,BZ,BT,RHON)
 
       USE plcomm, ONLY: RA,RR,BB,MODELG
+      USE plprof2d
       USE plload
       IMPLICIT NONE
       REAL(rkind),INTENT(in):: X,Y,Z
       REAL(rkind),INTENT(OUT):: BR,BZ,BT,RHON
 
       INTEGER:: IERR
-      REAL(8) :: BP, PP, QL, RL, RS, &
+      REAL(rkind) :: BP, PP, QL, RL, RS, BABS, AL(3), &
                  RSINP, RCOSP
 
       SELECT CASE(MODELG)
@@ -224,7 +238,22 @@
          PP=0.D0
          CALL GETRZ(RL,Z,PP,BR,BZ,BT,RHON)
 
+      CASE(11)
+         CALL plsmag11(X,Y,BABS,AL)
+         BR=BABS*AL(1)
+         BZ=BABS*AL(2)
+         BT=BABS*AL(3)
+
       CASE(12)
+         CALL pl_read_p2Dmag(X,Y,BR,BZ,BT,IERR)
+
+      CASE(13)
+         CALL plsmag13(X,Y,BABS,AL)
+         BR=BABS*AL(1)
+         BZ=BABS*AL(2)
+         BT=BABS*AL(3)
+
+      CASE(14)
          CALL pl_read_p2Dmag(X,Y,BR,BZ,BT,IERR)
 
       END SELECT
@@ -323,13 +352,15 @@
         USE plcomm,ONLY: PZ,PN,PTPR,PTPP,PU,PNS,PTS,PUS, &
              NSMAX,MODELN,MODELG, &
              RR,RA
+        USE plprof2d
         USE plload
         IMPLICIT NONE
         REAL(rkind),INTENT(IN):: X,Y,Z
         TYPE(pl_plf_type),DIMENSION(NSMAX),INTENT(OUT):: PLF
-        REAL(rkind),DIMENSION(NSMAX) :: RNPL,RTPL,RUPL
+        REAL(rkind),DIMENSION(NSMAX) :: RNPL,RTPL,RUPL,RTPRPL,RTPPPL,RZCLPL
         REAL(rkind):: RHON,FACTX,FACTY,FACTN,FACTT,FACTU
         INTEGER:: NS,NSMAXL,IERR
+
 
         SELECT CASE(MODELG)
         CASE(0)
@@ -372,6 +403,14 @@
               PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACTT+PTS(NS)
               PLF(NS)%RU  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
            END DO
+        CASE(11)
+           CALL PLSDEN11(X,Y,RNPL,RTPRPL,RTPPPL,RZCLPL)
+           DO NS=1,NSMAX
+              PLF(NS)%RN  =RNPL(NS)
+              PLF(NS)%RTPR=RTPRPL(NS)
+              PLF(NS)%RTPP=RTPPPL(NS)
+              PLF(NS)%RU  =0.D0
+           ENDDO
         CASE(12)
            CALL pl_read_p2D(X,Y,RNPL,RTPL,RUPL,NSMAXL,IERR)
            DO NS=1,NSMAXL
@@ -379,6 +418,14 @@
               PLF(NS)%RTPR=RTPL(NS)
               PLF(NS)%RTPP=RTPL(NS)
               PLF(NS)%RU  =RUPL(NS)
+           ENDDO
+        CASE(13)
+           CALL PLSDEN13(X,Y,RNPL,RTPRPL,RTPPPL,RZCLPL)
+           DO NS=1,NSMAX
+              PLF(NS)%RN  =RNPL(NS)
+              PLF(NS)%RTPR=RTPRPL(NS)
+              PLF(NS)%RTPP=RTPPPL(NS)
+              PLF(NS)%RU  =0.D0
            ENDDO
         CASE DEFAULT
            CALL pl_mag_old(X,Y,Z,RHON)

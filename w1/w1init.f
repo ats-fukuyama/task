@@ -48,7 +48,7 @@ C     ======( PROGRAM CONTROL )======
       APRFTR= 1.D0
       APRFTP= 1.D0
       NDMAX = 100
-      XDMAX = 10.D0
+      XDMAX = 5.D0
       NMODEL= 5
       NSYS  = 0
       NDISP = 0

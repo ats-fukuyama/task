@@ -25,8 +25,13 @@ CONTAINS
     BETA=0.01D0         ! Plasma temperature (v_te/c)
     DZMAX=5.D0          ! Mesh accumulation factor
     DZWID=50.D0         ! Mesh accumulation width
+    PZCL=0.003D0        ! Collision factor (nu/omega) 
+                        !    effective only for modelp=0
     MODELW=0            ! 0: absorption boundary
                         ! 1: reflection boundary
+    MODELP=2            ! 0: cold plasma model
+                        ! 1: warm plasma model (differential form)
+                        ! 2: hot plasma model (integral form)
 
     NTSET=0             ! tabulation setup (do no change)
     TMAXST=0.D0         ! tabulation setup (do no change)

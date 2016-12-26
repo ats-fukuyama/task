@@ -6,10 +6,15 @@ MODULE plcomm
       INTEGER,PARAMETER:: NSM=100 ! Maximum number of particle species
 
       INTEGER:: NSMAX,MODELG,MODELN,MODELQ,IDEBUG,MODEFR,MODEFW
+      INTEGER:: MODEL_NPROF
 
       REAL(rkind):: RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ
       REAL(rkind):: PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2
       REAL(rkind):: RHOMIN,QMIN,RHOEDG,RHOITB,RHOGMN,RHOGMX
+      REAL(rkind):: PPN0,PTN0,RFPL
+      REAL(rkind),DIMENSION(3):: r_corner,z_corner
+      REAL(rkind),DIMENSION(3):: br_corner,bz_corner,bt_corner
+      REAL(rkind),DIMENSION(3,NSM):: pn_corner,ptpr_corner,ptpp_corner
 
       REAL(rkind),DIMENSION(NSM):: & 
            PA,PZ,PZ0,IDION,PN,PNS,PTPR,PTPP,PTS,PU,PUS, &

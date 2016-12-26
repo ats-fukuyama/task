@@ -51,7 +51,7 @@ CONTAINS
     INTEGER,PARAMETER:: NSM=100
 
     NAMELIST /WIM/ NZMAX,NWMAX,ZMIN,ZMAX,PN0,DBDZ,ANX,BETA,NTMAX,TMAX, &
-                   CER1,CEL1,CER2,CEL2,DZMAX,DZWID,MODELW
+                   CER1,CEL1,CER2,CEL2,DZMAX,DZWID,PZCL,MODELW,MODELP
 
     READ(NID,WIM,IOSTAT=IST,ERR=9800,END=9900)
 
@@ -69,8 +69,9 @@ CONTAINS
   SUBROUTINE wim_plst
 
     IMPLICIT NONE
-    WRITE(6,'(A/)') '# &WIM : NZ,NW,ZMIN,ZMAX,PN0,DBDZ,ANX,BETA,NT,TMAX, ', &
-                    '         CER1,CEL1,CER2,CEL2,DZMAX,DZWID,MODELW'
+    WRITE(6,'(A/)') &
+    '# &WIM : NZMAX,NWMAX,ZMIN,ZMAX,PN0,DBDZ,ANX,BETA,NTMAX,',&
+    '         TMAX,CER1,CEL1,CER2,CEL2,DZMAX,DZWID,PZCL,MODELW,MODELP'
     RETURN
 
   END SUBROUTINE wim_plst
@@ -100,12 +101,13 @@ CONTAINS
     implicit none
 
     WRITE(6,601) 'NZMAX   ',NZMAX   ,'NWMAX   ',NWMAX   , &
-                 'NTMAX   ',NTMAX   ,'MODELW  ',MODELW
+                 'NTMAX   ',NTMAX
+    WRITE(6,601) 'MODELW  ',MODELW  ,'MODELP  ',MODELP
     WRITE(6,602) 'ZMIN    ',ZMIN    ,'ZMAX    ',ZMAX    , &
                  'PN0     ',PN0     ,'DBDZ    ',DBDZ    , &
                  'ANX     ',ANX     ,'BETA    ',BETA    , &
                  'TMAX    ',TMAX    ,'DZMAX   ',DZMAX   , &
-                 'DZWID   ',DZWID
+                 'DZWID   ',DZWID   ,'PZCL    ',PZCL
     WRITE(6,603) 'CER1    ',CER1    ,'CEL1    ',CEL1    ,&
                  'CER2    ',CER2    ,'CEL2    ',CEL2   
     RETURN

@@ -1,5 +1,3 @@
-!     $Id$
-
   MODULE plinit
 
   CONTAINS
@@ -259,6 +257,32 @@
 
       ENDIF
 
+!     *** PLANE  PARAMETERS ***
+  r_corner(1)=0.D0
+  r_corner(2)=RA
+  r_corner(3)=0.D0
+  z_corner(1)=0.D0
+  z_corner(2)=0.D0
+  z_corner(3)=2.D0*PI*RR
+
+  br_corner(1:3)=0.D0
+  bz_corner(1:3)=0.D0
+  bt_corner(1:3)=BB
+
+  DO ns=1,nsm
+     pn_corner(1,ns)=pn(ns)
+     pn_corner(2,ns)=pns(ns)
+     pn_corner(3,ns)=pn(ns)
+     ptpr_corner(1,ns)=ptpr(ns)
+     ptpr_corner(2,ns)=pts(ns)
+     ptpr_corner(3,ns)=ptpr(ns)
+     ptpp_corner(1,ns)=ptpp(ns)
+     ptpp_corner(2,ns)=pts(ns)
+     ptpp_corner(3,ns)=ptpp(ns)
+  END DO
+
+
+
 !     ======( PROFILE PARAMETERS )======
 
 
@@ -305,10 +329,15 @@
 !        MODELQ: Control safety factor profile (for MODELG=1,2)
 !                   0: Parabolic q profile (Q0,QA,RHOMIN,RHOITB)
 !                   1: Given current profile (RIP,PROFJ)
+!        MODEL_NPROF: neutral profile parameter
+!                   0: Flat profile
+!                   1: Flat only in plasma, 0 outside
+!                   2: (1-psi) dependence, 0 outside
 
       MODELG= 2
       MODELN= 0
       MODELQ= 0
+      MODEL_NPROF=0
 
 !        RHOMIN: rho at minimum q (0 for positive shear)
 !        QMIN  : q minimum for reversed shear
@@ -319,6 +348,14 @@
       QMIN   = 1.5D0
       RHOITB = 0.D0
       RHOEDG = 1.D0
+
+!        PPN0: Neutral pressure [Pa] 1 Torr = 1 mmHg = 133.322 Pa
+!        PTN0: Neutral temperature [eV]
+!        RFPL: wave frequency [MHz], usually set in wave code
+
+      PPN0 = 3.0D0
+      PTN0 = 0.03D0
+      RFPL = 1.D6    ! 1THz to reduce pzcl
 
 !     ======( GRAPHIC PARAMETERS )======
 
@@ -409,9 +446,12 @@
       use plcomm, only:RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ, &
                     NSMAX,PA,PZ,PZ0,PN,PNS,PTPR,PTPP,PTS,PU,PUS, &
                     PNITB,PTITB,PUITB,PZCL, &
+                    r_corner,z_corner, &
+                    br_corner,bz_corner,bt_corner, &
+                    pn_corner,ptpr_corner,ptpp_corner, &
                     PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
-                    RHOMIN,QMIN,RHOITB,RHOEDG, &
-                    MODELG,MODELN,MODELQ,RHOGMN,RHOGMX, &
+                    RHOMIN,QMIN,RHOITB,RHOEDG,PPN0,PTN0,RFPL, &
+                    MODELG,MODELN,MODELQ,MODEL_NPROF,RHOGMN,RHOGMX, &
                     KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF, &
                     MODEFR,MODEFW,IDEBUG, &
                     rkind,pl_allocate_ns
@@ -423,9 +463,13 @@
 
       NAMELIST /PL/ RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ, &
                     NSMAX,PA,PZ,PZ0,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PZCL, &
+                    r_corner,z_corner, &
+                    br_corner,bz_corner,bt_corner, &
+                    pn_corner,ptpr_corner,ptpp_corner, &
                     PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
                     RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG, &
-                    MODELG,MODELN,MODELQ,RHOGMN,RHOGMX, &
+                    PPN0,PTN0,RFPL, &
+                    MODELG,MODELN,MODELQ,MODEL_NPROF,RHOGMN,RHOGMX, &
                     KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF, &
                     MODEFR,MODEFW,IDEBUG
 
@@ -451,8 +495,11 @@
   601 FORMAT(' ','# &EQ : RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,'/ &
              9X,'NSMAX,PA,PZ,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PZCL,'/ &
              9X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,'/ &
+             9X,'r_corner,z_corner,br_corner,bz_corner,bt_corner,'/ &
+             9X,'pn_corner,ptpr_corner,ptpp_corner,'/ &
              9X,'RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG,'/ &
-             9X,'MODELG,MODELN,MODELQ,RHOGMN,RHOGMX,'/ &
+             9X,'PPN0,PTN0,RFCL,'/ &
+             9X,'MODELG,MODELN,MODELQ,MODEL_NPROF,RHOGMN,RHOGMX,'/ &
              9X,'KNAMEQ,KNAMWR,KNAMFP,KNAMFO,IDEBUG'/ &
              9X,'MODEFW,MODEFR')
     END SUBROUTINE pl_plst
@@ -473,7 +520,7 @@
             WRITE(6,*) 'XX pl_check: INVALID MODELG: MODELG=',MODELG
             IERR=1
          ENDIF
-         IF((MODELN.NE.0).AND.(MODELN.NE.12)) THEN
+         IF((MODELN.LT.0).OR.(MODELN.GT.14)) THEN
             WRITE(6,*) 'XX pl_check: INVALID MODELN: MODELN=',MODELN
             IERR=1
          ENDIF
@@ -482,8 +529,7 @@
             IERR=1
          ENDIF
       ELSE
-         IF((MODELN.NE.0).AND.(MODELN.NE.1).AND.(MODELN.NE.2).AND. &
-            (MODELN.NE.9)) THEN
+         IF((MODELN.LT.0).OR.(MODELN.GT.14)) THEN
             WRITE(6,*) 'XX pl_check: INVALID MODELN: MODELN=',MODELN
             IERR=1
          ENDIF
@@ -517,7 +563,7 @@
 
       use plcomm
       implicit none
-      integer:: NS
+      integer:: NS,i
 
       WRITE(6,601) 'BB    ',BB    ,'RR    ',RR    , &
                    'RA    ',RA    ,'RB    ',RB
@@ -532,6 +578,7 @@
       WRITE(6,604) 'MODELG',MODELG,'MODELN',MODELN, &
                    'MODELQ',MODELQ
       WRITE(6,604) 'MODEFR',MODEFR,'MODEFW',MODEFW
+      WRITE(6,'(A,I5)') 'MODEL_NPROF =',MODEL_NPROF
 
       WRITE(6,100)
       DO NS=1,NSMAX
@@ -541,27 +588,47 @@
       DO NS=1,NSMAX
          WRITE(6,130) NS,PTPR(NS),PTPP(NS),PTS(NS),PU(NS),PUS(NS)
       ENDDO
+
+      WRITE(6,601) 'PPN0  ',PPN0  ,'PTN0  ',PTN0  , &
+                   'RFPL  ',RFPL
+
       IF(RHOITB.GT.0.D0) THEN
          WRITE(6,140)
          DO NS=1,NSMAX
            WRITE(6,150) NS,PNITB(NS),PTITB(NS),PUITB(NS),PZCL(NS)
          ENDDO
-      ENDIF
+      END IF
+
+      IF(MODELG.EQ.11.OR.MODELG.EQ.13) THEN
+         WRITE(6,606) 'r_corner:  ',(r_corner(i),i=1,3)
+         WRITE(6,606) 'z_corner:  ',(z_corner(i),i=1,3)
+         WRITE(6,606) 'br_corner: ',(br_corner(i),i=1,3)
+         WRITE(6,606) 'bz_corner: ',(bz_corner(i),i=1,3)
+         WRITE(6,606) 'bt_corner: ',(bt_corner(i),i=1,3)
+         DO ns=1,NSMAX
+            WRITE(6,'(A,I3)') 'ns=',ns
+            WRITE(6,606) 'pn_corner: ',(pn_corner(i,ns),i=1,3)
+            WRITE(6,606) 'ptpr_corner:',(ptpr_corner(i,ns),i=1,3)
+            WRITE(6,606) 'ptpp_corner:',(ptpp_corner(i,ns),i=1,3)
+         END DO
+      END IF
+
       RETURN
 
-  100 FORMAT(1H ,'NS    PA          PZ          PZ0         ', &
+  100 FORMAT(' ','NS    PA          PZ          PZ0         ', &
                  'PN          PNS')
-  110 FORMAT(1H ,I2,' ',1P5E12.3)
-  120 FORMAT(1H ,'NS    PTPR        PTPP        PTS         ', &
+  110 FORMAT(' ',I2,' ',1P5E12.3)
+  120 FORMAT(' ','NS    PTPR        PTPP        PTS         ', &
                  'PU          PUS')
-  130 FORMAT(1H ,I2,' ',1P5E12.3)                               
-  140 FORMAT(1H ,'NS    PNITB       PTITB       PUITB'      , &
+  130 FORMAT(' ',I2,' ',1P5E12.3)                               
+  140 FORMAT(' ','NS    PNITB       PTITB       PUITB'      , &
                  'PZCL')
-  150 FORMAT(1H ,I2,' ',1P4E12.4)                               
-  601 FORMAT(1H ,A6,'=',1PE11.3:2X,A6,'=',1PE11.3: &
+  150 FORMAT(' ',I2,' ',1P4E12.4)                               
+  601 FORMAT(' ',A6,'=',1PE11.3:2X,A6,'=',1PE11.3: &
              2X,A6,'=',1PE11.3:2X,A6,'=',1PE11.3)
-  604 FORMAT(1H ,A6,'=',I7,4X  :2X,A6,'=',I7,4X  : &
+  604 FORMAT(' ',A6,'=',I7,4X  :2X,A6,'=',I7,4X  : &
              2X,A6,'=',I7,4X  :2X,A6,'=',I7)
+  606 FORMAT(' ',A12,1P3E12.4)
     END SUBROUTINE pl_view
 
   END MODULE plinit
