@@ -275,6 +275,7 @@ C
          ENDIF
          CALL GQSCAL(GZMIN,GZMAX,GQZMIN,GQZMAX,GZSCAL)
          GZDEL=0.5*GZSCAL
+         IF(KWD(1:3).EQ.'EZA') GZDEL=0.05*GZSCAL
          ISTEP=INT((GQZMAX-GQZMIN)/GZDEL)
          IF(IDP.EQ.2) THEN
             GZDEL=1.0
@@ -341,6 +342,7 @@ C
          ELSE
             CALL GQSCAL(GZMIN,GZMAX,GQZMIN,GQZMAX,GZSCAL)
             GZDEL=0.5*GZSCAL
+            IF(KWD(1:3).EQ.'EZA') GZDEL=0.05*GZSCAL
             ISTEP=INT((GQZMAX-GQZMIN)/GZDEL)
             IF(GZMIN*GZMAX.GE.0.0) THEN
                IF(GZMAX.GT.0.D0) THEN
@@ -1658,12 +1660,14 @@ C
             CALL SETRGB(1.0,1.0,1.0)
          ELSEIF(KE.EQ.1) THEN
             CALL SETRGB(0.8,1.0,0.8)
+            CALL POLY(GX,GY,4)
          ELSEIF(KE.EQ.2) THEN
             CALL SETRGB(1.0,0.8,0.8)
+            CALL POLY(GX,GY,4)
          ELSEIF(KE.EQ.3) THEN
             CALL SETRGB(0.8,0.8,1.0)
+            CALL POLY(GX,GY,4)
          ENDIF
-         CALL POLY(GX,GY,4)
          CALL SETRGB(0.0,1.0,0.0)
          CALL LINES(GX,GY,4)
       ENDDO

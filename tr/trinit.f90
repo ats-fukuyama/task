@@ -1112,9 +1112,9 @@
          STOP
       ENDIF
 
-      NSS(1:NEQMAXM)=-1
-      NSV(1:NEQMAXM)=-1
-      NNS(1:NEQMAXM)=0
+      NSS(1:NEQMAXM)=-1  ! 0: EM, particle species
+      NSV(1:NEQMAXM)=-1  ! 1: density, 2: temperature 3: toroidal flow
+      NNS(1:NEQMAXM)=0   ! 
       NST(1:NEQMAXM)=0
       NEQ=0
       IF(MDLEQB.EQ.1) THEN

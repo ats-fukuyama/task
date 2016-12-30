@@ -1,5 +1,3 @@
-!  ***** TASK/XX COMMON *****
-
 MODULE xxcomm_parm
 
   USE bpsd_kinds

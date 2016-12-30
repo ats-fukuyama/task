@@ -2,11 +2,14 @@ subroutine wfmenu
 
   use wfcomm
   use libmpi
+  USE plload, ONLY: pl_load
+  USE wfload, ONLY: wf_load_wg
   implicit none
   
   integer  :: MODE
   integer  :: IERR
   character:: KID*1,LINE*80
+  INTEGER:: IDEBUG_SAVE
 
 1 continue
 
@@ -41,8 +44,12 @@ subroutine wfmenu
      if (nrank.eq.0) call WFGOUT
 !  elseif (KID.eq.'S') then
 !     call WFWFLD
-!  elseif (KID.eq.'L') then
-!     call WFRFLD
+  elseif (KID.eq.'L') then
+     IDEBUG_SAVE=IDEBUG
+     IDEBUG=1
+     CALL pl_load(ierr)
+     CALL wf_load_wg(ierr)
+     IDEBUG=IDEBUG_SAVE
   elseif (KID.eq.'?') then
      if(nrank.eq.0) call WFINFO
   elseif (KID.eq.'Q') then

@@ -1196,7 +1196,7 @@
       CASE(4,5)! MAX/MINLOC
          DO i=1,ndata
             d_send(1,i)=vdata(i)
-            d_send(2,i)=nrank*1.D0
+            d_send(2,i)=nrank*1.0
          END DO
          SELECT CASE(NOP)
          CASE(4) ! MAXLOC
@@ -1448,7 +1448,7 @@
       CASE(4,5)! MAX/MINLOC
          DO i=1,ndata
             d_send(1,i)=vdata(i)
-            d_send(2,i)=nrank*1.D0
+            d_send(2,i)=nrank*1.0
          END DO
          SELECT CASE(NOP)
          CASE(4) ! MAXLOC

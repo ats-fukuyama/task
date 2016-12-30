@@ -1,5 +1,3 @@
-!  ***** TASK/XX INIT *****
-
 MODULE xxinit
 
 PUBLIC xx_init

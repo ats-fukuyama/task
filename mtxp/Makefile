@@ -11,7 +11,7 @@ FFLAGS=$(OFLAGS)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-MODINCLUDE=-I $(MOD) -I../lib/$(MOD)
+MODINCLUDE=-I./$(MOD) -I../lib/$(MOD)
 
 all: $(EXEC)
 
@@ -42,10 +42,8 @@ testksp: $(LIB_MTX_KSP) testmtx.o
 	../lib/tasklib.a $(FLIBS)
 
 
-testmtx.o: testmtx.f90
-	$(FLINKER) $(FFLAGS) -c testmtx.f90 $(MODINCLUDE)
-testmtxc.o: testmtxc.f90
-	$(FLINKER) $(FFLAGS) -c testmtxc.f90 $(MODINCLUDE)
+testmtx.o: $(LIBMTXMPI) testmtx.f90
+testmtxc.o: $(LIBMTXMPI) testmtxc.f90
 ../mtxp/libmtxmpi.o: libmtxmpi.f90
 	$(FLINKER) $(FFLAGS) -c libmtxmpi.f90 $(MODDIR) $(MODINCLUDE)
 ../mtxp/libmtxnompi.o: libmtxnompi.f90

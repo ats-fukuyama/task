@@ -83,7 +83,7 @@ C
 C        NCMAX : Number of coil
 C        RC    : Radial position of coil current               (m)
 C        ZC    : Axial position of coil current                (m)
-C        B2    : Magnetic filed on axis, center of coil        (T)
+C        BC    : Magnetic field on axis, center of coil        (T)
 C
       NCMAX  = 3
       RC(1)  = 0.35D0

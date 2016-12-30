@@ -62,6 +62,7 @@ CONTAINS
     REAL:: SMINX,SMAXX,SMINF,SMAXF,SMINE,SMAXE,SMINP,SMAXP
     REAL:: SGMINX,SGMAXX,SGMINF,SGMAXF,SGMINE,SGMAXE,SGMINP,SGMAXP
     REAL:: SCALX,SCALF,SCALE,SCALP
+    REAL(8):: ANB
     REAL(rkind):: R,T,S
     INTEGER:: J,JD
     
@@ -156,8 +157,9 @@ CONTAINS
     CALL TEXT('  PNU   = ',10)
     CALL NUMBD(PNU,'(F7.3)',7)
     CALL MOVE(15.5,12.75)
+
     CALL TEXT('  R     = ',10)
-    R=ABS(CFY(NXMAX*2+3))**2 
+    R=ABS(CFY(NXMAX*2+3))**2
     CALL NUMBD(R,'(F9.5)',9)
     CALL MOVE(15.5,12.25)
     CALL TEXT('  A     = ',10)
@@ -165,7 +167,17 @@ CONTAINS
     CALL NUMBD(T,'(F9.5)',9)
     CALL MOVE(15.5,11.5)
     CALL TEXT('  P-IN  = ',10)
-    S=T/(DSQRT(1.D0-ANY*ANY)) 
+
+    IF(ALFA*xgrid(nxmax).GT.100.D0) THEN
+       ANB=0.D0
+    ELSE
+       ANB=DEXP(-ALFA*xgrid(nxmax))
+    END IF
+    IF(1.D0-ANB-ANY*ANY.LT.0.D0) THEN
+       S=0.D0
+    ELSE
+       S=T/(DSQRT(1.D0-ANB-ANY*ANY)) 
+    END IF
     CALL NUMBD(S,'(F9.5)',9)
     CALL MOVE(15.5,11.0)
     CALL TEXT('  P-ABS = ',10)

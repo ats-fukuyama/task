@@ -18,7 +18,8 @@ MODINCLUDE= -I./$(MOD) -I../plx/$(MOD) -I../eq/$(MOD) \
             -I../../bpsd/$(MOD) -I../mtxp/$(MOD) \
             -I../lib/$(MOD)
 
-SRCS = 	wfcomm.f90 wfmenu.f90 wfinit.f90 wfdiv.f90 wflib.f90 wfsub.f90 \
+SRCS = 	wfcomm.f90 wfinit.f90 wfload.f90 wfmenu.f90 \
+        wfdiv.f90 wflib.f90 wfsub.f90 \
         wfindx.f90 wfsort.f90 wfgsub.f90 wfgutl.f90 wfant.f90 wfwave.f90 \
 	wfsolv.f90 wfgout.f90 wfprof.f90
 
@@ -86,6 +87,7 @@ wfsub.o: wfsub.f90 wfcomm.f90
 wfnas.o: wfnas.f90 wfcomm.f90
 wfsort.o: wfsort.f90 wfcomm.f90
 wffile.o: wffile.f90 wfcomm.f90
+wfload.o: wfload.f90 wfcomm.f90
 wfindx.o: wfindx.f90 wfcomm.f90
 wfgout.o: wfgout.f90 wfcomm.f90
 wfgsub.o: wfgsub.f90 wfcomm.f90

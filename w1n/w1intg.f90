@@ -5,18 +5,30 @@ C     ******* LOCAL PLASMA PARAMETERS *******
 C
       SUBROUTINE W1DSPQ(ICL)
 C
-      USE w1comm
-      IMPLICIT NONE
-      INTEGER,INTENT(OUT):: ICL
-      INTEGER:: IL,IA,IB,I,NS,J,NX,NC,NN,MWIDTH,JJ,ICLS
-      REAL(rkind):: X1(4),RT2,RW,FWP,FWC,FVT,RKPR,WC,UD,AKPR,ARG,RT
-      REAL(rkind):: DELTAX,DXA,DXB
-      REAL(rkind):: VXA,VKA,VXB,VKB,VXC,VKC,VXD,VKD,VX,VK
-      COMPLEX(rkind):: CSB(3,3,4)
-      COMPLEX(rkind):: CT0A,CT1A,CT2A,CT3A,CT0B,CT1B,CT2B,CT3B
-      COMPLEX(rkind):: CT0C,CT1C,CT2C,CT3C,CT0D,CT1D,CT2D,CT3D
-      COMPLEX(rkind):: CT0,CT1,CT2,CT3
-      
+      IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-H,O-Z)
+C
+      INCLUDE 'w1comm.f'
+      PARAMETER (NZPM=2**NZLM)
+      PARAMETER (NXTM=NXPM+2*NXVM,NXM=NXPM*6+10,NXQ=NXPM+1)
+      PARAMETER (NHM=2*NHARMM+1,NHM1=NHARMM+1)
+      COMMON /W1PRM1/ NXP,NXV,NXT,ISMAX,IAMAX
+      COMMON /W1PRM2/ RF,RKZ,BB,RR,RA,RD,RB,WALLR
+      COMMON /W1PRM3/ PA(ISM),PZ(ISM),PN(ISM),PTPP(ISM),PTPR(ISM),
+     &                PNS(ISM),PTS(ISM),PU(ISM),PZCL(ISM)
+      COMMON /W1CNST/ AEE,AME,AMM,VC,EPS0,AMYU0,PI
+      COMMON /W1XDAT/ XA(NXQ),XAM(NXTM)
+      COMMON /W1PRF1/ PROFB(NXPM),PROFPN(NXPM,ISM),PROFPU(NXPM,ISM),
+     &                PROFTR(NXPM,ISM),PROFTP(NXPM,ISM)
+      COMMON /W1ZETA/ CZ(NXPM,NHM),CDZ(NXPM,NHM),CDDZ(NXPM,NHM),
+     &                GZ(NXPM,NHM)
+      PARAMETER (NCLW=2*MATLM+1)
+      COMMON /W1QCLM/ CL(3,3,4,NCLM),NCL(NCLW,NXPM,ISM)
+      COMMON /W1QCTL/ XDMAX,DXD,NDMAX,NHARM,IHARM(ISM),MATL,NMODEL
+      COMMON /W1QSST/ XM(NXPM),YX(NXPM),YK(NXPM),
+     &                CS0(NXPM),CS1(NXPM),CS2(NXPM),CS3(NXPM)
+C
+      DIMENSION  X1(4),CSB(3,3,4)
+C
       MATL=1
       ICL=0
 C
@@ -26,48 +38,48 @@ C
       DO 10 I=1,NCLM
          CL(IA,IB,IL,I)=(0.D0,0.D0)
    10 CONTINUE
-      DO 20 NS=1,NSMAX
+      DO 20 IS=1,ISMAX
       DO 20 J=1,2*MATLM+1
       DO 20 I=1,NXP
-         NCL(J,I,NS)=0
+         NCL(J,I,IS)=0
    20 CONTINUE
 C
       RT2  = SQRT ( 2.D0 )
       RW  = 2.D6*PI*RF
 C
-      DO 1000 NS=1,NSMAX
-         FWP = 1.D20*AEE*AEE*PZ(NS)*PZ(NS)/(AMP*PA(NS)*EPS0*RW*RW)
-         FWC = AEE*PZ(NS)*BB/(AMP*PA(NS))
-         FVT = AEE*1.D3/(AMP*PA(NS))
+      DO 1000 IS=1,ISMAX
+         FWP = 1.D20*AEE*AEE*PZ(IS)*PZ(IS)/(AMM*PA(IS)*EPS0*RW*RW)
+         FWC = AEE*PZ(IS)*BB/(AMM*PA(IS))
+         FVT = AEE*1.D3/(AMM*PA(IS))
          DO 100 NX = 1 , NXP
             RKPR=RKZ
             WC = FWC*PROFB(NX)
-            UD = SQRT(FVT*PROFPU(NX,NS))
-            AKPR = RT2*ABS(RKPR)*SQRT(FVT*PROFTR(NX,NS))
+            UD = SQRT(FVT*PROFPU(NX,IS))
+            AKPR = RT2*ABS(RKPR)*SQRT(FVT*PROFTR(NX,IS))
 C 
 *VDIR NOVECTOR
-         DO 100 NC=1,2*ABS(IHARM(NS))+1
-            NN=NC-ABS(IHARM(NS))-1
+         DO 100 NC=1,2*ABS(IHARM(IS))+1
+            NN=NC-ABS(IHARM(IS))-1
             ARG=(RW-NN*WC)/AKPR
             GZ(NX,NC)= ARG
             CZ(NX,NC)= ARG
   100    CONTINUE
 C
-         DO 200 NC=1,2*ABS(IHARM(NS))+1
+         DO 200 NC=1,2*ABS(IHARM(IS))+1
             CALL DSPFNA(CZ(1,NC),CDZ(1,NC),CDDZ(1,NC),NXP)
   200    CONTINUE
 C
-         DO 400 NC=1,2*ABS(IHARM(NS))+1
-            NN=NC-ABS(IHARM(NS))-1
+         DO 400 NC=1,2*ABS(IHARM(IS))+1
+            NN=NC-ABS(IHARM(IS))-1
             DO 300 NX=1,NXP
                RKPR = RKZ
                WC = FWC*PROFB(NX)
-               UD = SQRT(FVT*PROFPU(NX,NS))
-               AKPR = RT2*ABS(RKPR)*SQRT(FVT*PROFTR(NX,NS))
-               RT = PROFTP(NX,NS)/PROFTR(NX,NS)
+               UD = SQRT(FVT*PROFPU(NX,IS))
+               AKPR = RT2*ABS(RKPR)*SQRT(FVT*PROFTR(NX,IS))
+               RT = PROFTP(NX,IS)/PROFTR(NX,IS)
                XM(NX)=XAM(NX)
-               YX(NX)=WC/SQRT(FVT*PROFTP(NX,NS))
-               YK(NX)=FWP*PROFPN(NX,NS)*ABS(YX(NX))*RW/AKPR
+               YX(NX)=WC/SQRT(FVT*PROFTP(NX,IS))
+               YK(NX)=FWP*PROFPN(NX,IS)*ABS(YX(NX))*RW/AKPR
                CS0(NX)=GZ(NX,NC)*CDZ(NX,NC)
                CS1(NX)=CZ(NX,NC)+0.5D0*(1.D0-RT)*AKPR*CDZ(NX,NC)/RW
                CS2(NX)=(RT+(1.D0-RT)*NN*WC/RW)*CDZ(NX,NC)
@@ -76,7 +88,7 @@ C
   300       CONTINUE
          DO 400 I=1,NXP-1
             DELTAX=ABS(XA(I)-XA(I+1))
-            MWIDTH=INT(XDMAX/(YX(I)*DELTAX))+1
+            MWIDTH=INT(XDMAX/(ABS(YX(I))*DELTAX))+1
             IF(MWIDTH.GT.MATLM) MWIDTH=MATLM
             IF(MWIDTH.LT.2)     MWIDTH=2
             MATL=MAX(MATL,MWIDTH)
@@ -113,17 +125,17 @@ C
             CT3=0.25D0*(CT3A+CT3B+CT3C+CT3D)
             CALL W1QCAL(X1,DXA,DXB,VX,CT0,CT1,CT2,CT3,CSB,NN)
 C
-            IF(NCL(JJ,I,NS).EQ.0) THEN
+            IF(NCL(JJ,I,IS).EQ.0) THEN
                ICL=ICL+1
-               NCL(JJ,I,NS)=ICL
+               NCL(JJ,I,IS)=ICL
                ICLS=ICL
             ELSE
-               ICLS=NCL(JJ,I,NS)
+               ICLS=NCL(JJ,I,IS)
             ENDIF
             IF(ICL.GT.NCLM) THEN
-               WRITE(6,*) 'XX ICL.GT.NCLM AT NS,I,J = ',NS,',',I,',',J
+               WRITE(6,*) 'XX ICL.GT.NCLM AT IS,I,J = ',IS,',',I,',',J
                ICL=1
-               NCL(JJ,I,NS)=ICL
+               NCL(JJ,I,IS)=ICL
                ICLS=ICL
             ENDIF
          DO 400 IL=1,4
@@ -137,31 +149,40 @@ C
 C
       RETURN
       END
-
 C     ******* BAND MATRIX COEFFICIENT *******
 C
       SUBROUTINE W1BNDQ(IERR)
 C
-      USE w1comm
-      IMPLICIT NONE
-      INTEGER,INTENT(OUT):: IERR
-      INTEGER:: NSF,I,N,KML,J,L,NX,N1,N2,M,NS,ICL,IA,IB,IND,IM,IL
-      REAL(rkind):: RW,RKV,DTT0,DSS0,DTS1,DTS2,DTTW
-      REAL(rkind):: RKPR,RNPR,DX,DMAT
-      REAL(rkind),DIMENSION(2,2):: DS0=
-     &         (/0.33333 33333 33333D0,0.16666 66666 66667D0,
-     &           0.16666 66666 66667D0,0.33333 33333 33333D0/)
-      REAL(rkind),DIMENSION(2,2):: DS1=
-     &         (/1.D0,0.D0,0.D0,0.D0/)
-      REAL(rkind),DIMENSION(2,2):: DS2=
-     &         (/-1.D0,1.D0,0.D0,0.D0/)
-      REAL(rkind),DIMENSION(2,2):: DS3=
-     &         (/1.D0,-1.D0,-1.D0,1.D0/)
+      IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-H,O-Z)
+C
+      INCLUDE 'w1comm.f'
+      PARAMETER (NZPM=2**NZLM)
+      PARAMETER (NXTM=NXPM+2*NXVM,NXM=NXPM*6+10,NXQ=NXPM+1)
+      PARAMETER (NHM=2*NHARMM+1,NHM1=NHARMM+1)
+      COMMON /W1PRM1/ NXP,NXV,NXT,ISMAX,IAMAX
+      COMMON /W1PRM2/ RF,RKZ,BB,RR,RA,RD,RB,WALLR
+      COMMON /W1CNST/ AEE,AME,AMM,VC,EPS0,AMYU0,PI
+      COMMON /W1BND1/ CGIN(3,5),CGOT(3,5),CFJY1,CFJY2,CFJZ1,CFJZ2
+      COMMON /W1BND2/ CA(NXM)
+      COMMON /W1XDAT/ XA(NXQ),XAM(NXTM)
+      COMMON /W1MTRX/ CF(6*MATLM+5,NXM)
+      PARAMETER (NCLW=2*MATLM+1)
+      COMMON /W1QCLM/ CL(3,3,4,NCLM),NCL(NCLW,NXPM,ISM)
+      COMMON /W1QCTL/ XDMAX,DXD,NDMAX,NHARM,IHARM(ISM),MATL,NMODEL
+C
+      DIMENSION DS0(2,2),DS1(2,2),DS2(2,2),DS3(2,2)
+      DATA DS0/0.33333 33333 33333D0,0.16666 66666 66667D0,
+     &         0.16666 66666 66667D0,0.33333 33333 33333D0/
+      DATA DS1/1.D0,0.D0,0.D0,0.D0/
+      DATA DS2/-1.D0,1.D0,0.D0,0.D0/
+      DATA DS3/1.D0,-1.D0,-1.D0,1.D0/
+      DATA CI/(0.D0,1.D0)/
 C
       RW=2.D6*PI*RF
-      RKV=RW/VC
+C
 C
       NSF=3*NXP+4
+      RKV=RW/VC
       DO 20 I=1,6*MATLM+5
       DO 20 N=1,NSF
          CF(I,N)=(0.D0,0.D0)
@@ -236,13 +257,13 @@ C
  5000 CONTINUE
  6000 CONTINUE
 C
-      DO 7000 NS=1,NSMAX
+      DO 7000 IS=1,ISMAX
       DO 7000 NX=1,NXP
          M=3*(NX-1)+2
 C
       DO 7000 J=MAX(MATLM-NX+2,1)  ,MIN(2*MATLM+1,NXP+1-NX+MATLM)
          L=3*J-1
-         ICL=NCL(J,NX,NS)
+         ICL=NCL(J,NX,IS)
          IF(ICL.NE.0) THEN
            DO 40 IA=1,3
            DO 40 IB=1,3
@@ -280,19 +301,32 @@ C     ******* ELECTROMAGNETIC FIELD IN PLASMA *******
 C
       SUBROUTINE W1EPWQ(NZ)
 C
-      USE w1comm
-      IMPLICIT NONE
-      INTEGER,INTENT(IN):: NZ
-      INTEGER::NS,NX,J,MX,ICL,IL,NN,MM,IA,IB
-      REAL(rkind):: RKV,RCE,DX,PABSL
-      COMPLEX(rkind):: CABSL
+      IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-H,O-Z)
+C
+      INCLUDE 'w1comm.f'
+      PARAMETER (NZPM=2**NZLM)
+      PARAMETER (NXTM=NXPM+2*NXVM,NXM=NXPM*6+10,NXQ=NXPM+1)
+      PARAMETER (NHM=2*NHARMM+1,NHM1=NHARMM+1)
+      COMMON /W1PRM1/ NXP,NXV,NXT,ISMAX,IAMAX
+      COMMON /W1PRM2/ RF,RKZ,BB,RR,RA,RD,RB,WALLR
+      COMMON /W1CNST/ AEE,AME,AMM,VC,EPS0,AMYU0,PI
+      COMMON /W1BND2/ CA(NXM)
+      COMMON /W1EF2D/ CE2DA(NZPM,NXTM,3)
+      COMMON /W1PWR0/ PABS(NXPM,ISM),FLUX(NXTM)
+      COMMON /W1XDAT/ XA(NXQ),XAM(NXTM)
+      PARAMETER (NCLW=2*MATLM+1)
+      COMMON /W1QCLM/ CL(3,3,4,NCLM),NCL(NCLW,NXPM,ISM)
+      COMMON /W1QCTL/ XDMAX,DXD,NDMAX,NHARM,IHARM(ISM),MATL,NMODEL
+C
+      DATA CI/(0.D0,1.D0)/
 C
       RKV=2.D6*PI*RF/VC
+C
       RCE=VC*EPS0
 C
-      DO 100 NS=1,NSMAX
+      DO 100 IS=1,ISMAX
       DO 100 NX=1,NXP
-         PABS(NX,NS)=0.D0
+         PABS(NX,IS)=0.D0
   100 CONTINUE
       DO 110 NX=1,NXP
          FLUX(NX)=0.D0
@@ -304,12 +338,12 @@ C
          CE2DA(NZ,NX,3)=CA(3*NX+2)
   200 CONTINUE
 C
-      DO 6000 NS=1,NSMAX
+      DO 6000 IS=1,ISMAX
       DO 6000 NX=1,NXP-1
          DX=RKV*(XA(NX+1)-XA(NX))
       DO 6000 J=MAX(MATLM-NX+2,1),MIN(2*MATLM+1,NXP+1-NX+MATLM)
          MX=NX+J-MATLM-1
-         ICL=NCL(J,NX,NS)
+         ICL=NCL(J,NX,IS)
          IF(ICL.NE.0) THEN
             DO 6020 IL=1,4
                CABSL=0.D0
@@ -326,17 +360,17 @@ C
  6010       CONTINUE
             PABSL=-CI*RCE*CABSL*RKV
             IF(IL.EQ.1) THEN
-               PABS(NX,  NS)=PABS(NX,  NS)+0.5D0*PABSL
-               PABS(MX,  NS)=PABS(MX,  NS)+0.5D0*PABSL
+               PABS(NX,  IS)=PABS(NX,  IS)+0.5D0*PABSL
+               PABS(MX,  IS)=PABS(MX,  IS)+0.5D0*PABSL
             ELSEIF(IL.EQ.2) THEN
-               PABS(NX+1,NS)=PABS(NX+1,NS)+0.5D0*PABSL
-               PABS(MX,  NS)=PABS(MX,  NS)+0.5D0*PABSL
+               PABS(NX+1,IS)=PABS(NX+1,IS)+0.5D0*PABSL
+               PABS(MX,  IS)=PABS(MX,  IS)+0.5D0*PABSL
             ELSEIF(IL.EQ.3) THEN
-               PABS(NX,  NS)=PABS(NX,  NS)+0.5D0*PABSL
-               PABS(MX+1,NS)=PABS(MX+1,NS)+0.5D0*PABSL
+               PABS(NX,  IS)=PABS(NX,  IS)+0.5D0*PABSL
+               PABS(MX+1,IS)=PABS(MX+1,IS)+0.5D0*PABSL
             ELSEIF(IL.EQ.4) THEN
-               PABS(NX+1,NS)=PABS(NX+1,NS)+0.5D0*PABSL
-               PABS(MX+1,NS)=PABS(MX+1,NS)+0.5D0*PABSL
+               PABS(NX+1,IS)=PABS(NX+1,IS)+0.5D0*PABSL
+               PABS(MX+1,IS)=PABS(MX+1,IS)+0.5D0*PABSL
             ENDIF
  6020       CONTINUE
          ENDIF
@@ -350,72 +384,54 @@ C      ****** MAKE TABLE OF F,G,H ******
 C
       SUBROUTINE W1QTBL(NDMAX,XDMAX,NHARM)
 C
-      USE w1comm,ONLY: rkind,SF,SG,AF,AG
-      IMPLICIT NONE
-      INTEGER,INTENT(IN):: NDMAX,NHARM
-      REAL(rkind),INTENT(IN):: XDMAX
-      INTEGER,SAVE:: NDMAX_SAVE=0
-      INTEGER,SAVE:: NHARM_SAVE=0
-      REAL(rkind),SAVE:: XDMAX_SAVE
-      INTEGER:: NC,NN,N
-      REAL(rkind):: DXDL
-      INTERFACE
-         FUNCTION W1FNMN(X,NF1,NN1,NM1)
-         USE bpsd_kinds
-         IMPLICIT NONE
-         REAL(rkind),INTENT(IN):: X
-         INTEGER,INTENT(IN):: NF1,NN1,NM1
-         REAL(rkind):: W1FNMN
-         END FUNCTION
-      END INTERFACE
 C
-      IF(NDMAX.EQ.NDMAX_SAVE.AND.
-     &   ABS(XDMAX-XDMAX_SAVE).LE.1.D-32.AND.
-     &   NHARM.EQ.NHARM_SAVE) RETURN
-      DXDL=XDMAX/NDMAX
+      IMPLICIT REAL*8(A-H,O-Z)
+C
+      INCLUDE 'w1comm.f'
+      PARAMETER (NZPM=2**NZLM)
+      PARAMETER (NXTM=NXPM+2*NXVM,NXM=NXPM*6+10,NXQ=NXPM+1)
+      PARAMETER (NHM=2*NHARMM+1,NHM1=NHARMM+1)
+      COMMON /W1QSFG/ SF(NDM,NHM1,3),SG(NDM,NHM1,3),
+     &                AF(NDM,NHM1,2),AG(NDM,NHM1,2)
+C
+      DATA XDMAX1,NDMAX1,NHARM1/0.D0,0,0/
+C
+      IF(NDMAX.EQ.NDMAX1.AND.
+     &   ABS(XDMAX-XDMAX1).LE.1.D-32.AND.
+     &   NHARM.EQ.NHARM1) RETURN
+      NDMAX1=NDMAX
+      XDMAX1=XDMAX
+      NHARM1=NHARM
+      DXD=XDMAX/NDMAX
       DO 10 NC=1,NHARM+1
          NN=NC-1
       DO 10 N=1,NDMAX+1
-         SF(N,NC,1)= W1FNMN((N-1)*DXDL,1,NN,1)
-         SF(N,NC,2)= W1FNMN((N-1)*DXDL,1,NN,3)
-         SF(N,NC,3)= W1FNMN((N-1)*DXDL,1,NN,5)
-         SG(N,NC,1)= W1FNMN((N-1)*DXDL,2,NN,0)
-         SG(N,NC,2)= W1FNMN((N-1)*DXDL,2,NN,2)
-         SG(N,NC,3)= W1FNMN((N-1)*DXDL,2,NN,4)
-         AF(N,NC,1)=-W1FNMN((N-1)*DXDL,3,NN,1)
-         AF(N,NC,2)=-W1FNMN((N-1)*DXDL,3,NN,3)
-         AG(N,NC,1)=-W1FNMN((N-1)*DXDL,4,NN,0)
-         AG(N,NC,2)=-W1FNMN((N-1)*DXDL,4,NN,2)
+         SF(N,NC,1)= W1FNMN((N-1)*DXD,1,NN,1)
+         SF(N,NC,2)= W1FNMN((N-1)*DXD,1,NN,3)
+         SF(N,NC,3)= W1FNMN((N-1)*DXD,1,NN,5)
+         SG(N,NC,1)= W1FNMN((N-1)*DXD,2,NN,0)
+         SG(N,NC,2)= W1FNMN((N-1)*DXD,2,NN,2)
+         SG(N,NC,3)= W1FNMN((N-1)*DXD,2,NN,4)
+         AF(N,NC,1)=-W1FNMN((N-1)*DXD,3,NN,1)
+         AF(N,NC,2)=-W1FNMN((N-1)*DXD,3,NN,3)
+         AG(N,NC,1)=-W1FNMN((N-1)*DXD,4,NN,0)
+         AG(N,NC,2)=-W1FNMN((N-1)*DXD,4,NN,2)
    10 CONTINUE
-      NDMAX_SAVE=NDMAX
-      XDMAX_SAVE=XDMAX
-      NHARM_SAVE=NHARM
       RETURN
 C
       END
 C
 C     ****** FUNCTION FOR INTEGRO-DIFFERENTIAL ANALYSIS ******
 C
-      FUNCTION W1FNMN(X,NF1,NN1,NM1)
+      DOUBLE PRECISION FUNCTION W1FNMN(X,NF1,NN1,NM1)
 C
-      USE bpsd_kinds
-      USE bpsd_constants,ONLY: PI
-      USE w1comm_dec
-      IMPLICIT NONE
-      REAL(rkind),INTENT(IN):: X
-      INTEGER,INTENT(IN):: NF1,NN1,NM1
-      REAL(rkind):: W1FNMN
-      INTEGER:: ILST
-      REAL(rkind):: H0,EPS,CS,ES
-      REAL(rkind),PARAMETER:: SP=2.506628275D0
-      INTERFACE
-         FUNCTION W1FNFG(X,XM,XP)
-         USE bpsd_kinds
-         IMPLICIT NONE
-         REAL(rkind),INTENT(IN):: X,XM,XP
-         REAL(rkind):: W1FNFG
-         END FUNCTION
-      END INTERFACE
+      IMPLICIT REAL*8(A-H,O-Z)
+C
+      COMMON /W1DEC1/ G1,NF,NN,NM
+C
+      DATA SP/2.506628275D0/
+      DATA PI/3.141592654D0/
+      EXTERNAL W1FNFG
 C
       NF=NF1
       NN=NN1
@@ -486,24 +502,15 @@ C
 C
 C     ****** SLAVE FUNTION FOR DE INTEGRATION ******
 C
-      FUNCTION W1FNFG(X,XM,XP)
-
-      USE bpsd_kinds
-      USE bpsd_constants,ONLY: PI
-      USE w1comm_dec
-      IMPLICIT NONE
-      REAL(rkind),INTENT(IN):: X,XM,XP
-      REAL(rkind):: W1FNFG
-      REAL(rkind),PARAMETER:: SP=2.506628275D0
-      REAL(rkind):: DUMMY,T,S,XX
-      INTERFACE
-         FUNCTION ERFC1(U)
-         USE bpsd_kinds
-         REAL(rkind):: U
-         REAL(rkind):: ERFC1
-         END FUNCTION
-      END INTERFACE
-
+      DOUBLE PRECISION FUNCTION W1FNFG(X,XM,XP)
+C
+      IMPLICIT REAL*8(A-H,O-Z)
+C
+      COMMON /W1DEC1/ G1,NF,NN,NM
+C
+      DATA SP/2.506628275D0/
+      DATA PI/3.141592654D0/
+C
       DUMMY=X
       DUMMY=XM
       T=0.5D0*PI*XP
@@ -528,37 +535,32 @@ C
 C
 C     ******** LINEAR INTERPOLATION  ******************************
 C
-      SUBROUTINE W1QCAL(GX,DXA,DXB,YXL,CT0,CT1,CT2,CT3,CSB,NN)
+      SUBROUTINE W1QCAL(GX,DXA,DXB,YX,CT0,CT1,CT2,CT3,CSB,NN)
 C
-      USE w1comm
-      IMPLICIT NONE
-      REAL(rkind),INTENT(IN):: GX(4),DXA,DXB,YXL
-      COMPLEX(rkind),INTENT(IN):: CT0,CT1,CT2,CT3
-      INTEGER,INTENT(IN):: NN
-      COMPLEX(rkind),INTENT(OUT):: CSB(3,3,4)
-      REAL(rkind):: AF0(4,3),AG0(4,3)
-      REAL(rkind):: AF1(4,2),AF2(4,2),AF3(4,1),AF4(4,1)
-      REAL(rkind):: AG1(4,2),AG2(4,2),AG3(4,1),AG4(4,1)
-      REAL(rkind):: GV(4),ADF(4),ADG(4),AQF(4),AQG(4),AQH(4)
-      REAL(rkind):: AAF(4),ABF(4),ACF(4),AAG(4),ABG(4),BDG(4)
-      INTEGER:: NNA,IV,IR,NPV,NPV1,NPV2,IU
-      REAL(rkind):: ESGN,VSGN,YSGN,V,PV,PVS,PVT
-      REAL(rkind):: EI,EJ,E0,E1,E2,E3,E4
-      REAL(rkind):: FA0,FA1,FA2,FA3,FA4
-      REAL(rkind):: GA0,GA1,GA2,GA3,GA4
-      REAL(rkind):: HA0,HA1,HA2
-      REAL(rkind):: FF,FFS,FFT,FFST,FG,FGS,FGT,FGST
-      REAL(rkind):: DF,DFS,DFT,DFST,DG,DGS,DGT,DGST
-      REAL(rkind):: QF,QFS,QFT,QFST,QG,QGS,QGT,QGST
-      REAL(rkind):: QH,QHS,QHT,QHST
+      IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-H,O-Z)
+C
+      INCLUDE 'w1comm.f'
+      PARAMETER (NZPM=2**NZLM)
+      PARAMETER (NXTM=NXPM+2*NXVM,NXM=NXPM*6+10,NXQ=NXPM+1)
+      PARAMETER (NHM=2*NHARMM+1,NHM1=NHARMM+1)
+      COMMON /W1PRM2/ RF,RKZ,BB,RR,RA,RD,RB,WALLR
+      COMMON /W1QCTL/ XDMAX,DXD,NDMAX,NHARM,IHARM(ISM),MATL,NMODEL
+      COMMON /W1QSFG/ SF(NDM,NHM1,3),SG(NDM,NHM1,3),
+     &                AF(NDM,NHM1,2),AG(NDM,NHM1,2)
+C
+      DIMENSION  GX(4),CSB(3,3,4),AF0(4,3),AG0(4,3),
+     &           AF1(4,2),AF2(4,2),AF3(4,1),AF4(4,1),
+     &           AG1(4,2),AG2(4,2),AG3(4,1),AG4(4,1)
+      DIMENSION  GV(4),AAF(4),AAG(4),ADF(4),ADG(4),AQF(4),AQG(4),AQH(4)
+      DIMENSION  ABF(4),ACF(4),ABG(4),BDG(4)
 C
       NNA=ABS(NN)+1
       ESGN=SIGN(1.D0,DBLE(NN))
 C
       DO 10 IV=1,4
-      GV(IV)=YXL*GX(IV)
+      GV(IV)=YX*GX(IV)
       VSGN=SIGN(1.D0,GV(IV))
-      YSGN=SIGN(1.D0,YXL)
+      YSGN=SIGN(1.D0,YX)
       V=ABS(GV(IV))
       IF(V.GT.XDMAX) THEN
          DO 7 IR=1,3
@@ -620,8 +622,8 @@ C
       AG4(IV,1)=(4.D0*AG2(IV,2)+GV(IV)*AG3(IV,1))/3.D0
    10 CONTINUE
 C
-      EI=YXL*DXA
-      EJ=YXL*DXB
+      EI=YX*DXA
+      EJ=YX*DXB
       E0=EI
       E1=EI*EJ
       E2=EI*EI*EJ
@@ -762,14 +764,16 @@ C
 C     ******** LINEAR INTERPOLATION 2 ******************************
 C
       SUBROUTINE W1QLNI(V,VX,VK,CT0,CT1,CT2,CT3)
+      IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-H,O-Z)
 C
-      USE w1comm
-      IMPLICIT NONE
-      REAL(rkind),INTENT(IN):: V
-      REAL(rkind),INTENT(OUT):: VX,VK
-      COMPLEX(rkind),INTENT(OUT):: CT0,CT1,CT2,CT3
-      INTEGER:: NHF,I,NPV
-      REAL(rkind):: PVS
+      INCLUDE 'w1comm.f'
+      PARAMETER (NZPM=2**NZLM)
+      PARAMETER (NXTM=NXPM+2*NXVM,NXM=NXPM*6+10,NXQ=NXPM+1)
+      PARAMETER (NHM=2*NHARMM+1,NHM1=NHARMM+1)
+      COMMON /W1PRM2/ RF,RKZ,BB,RR,RA,RD,RB,WALLR
+      COMMON /W1PRM1/ NXP,NXV,NXT,ISMAX,IAMAX
+      COMMON /W1QSST/ XM(NXPM),YX(NXPM),YK(NXPM),
+     &                CS0(NXPM),CS1(NXPM),CS2(NXPM),CS3(NXPM)
 C
       IF(V.LE.XM(1)) THEN
          VX=YX(1)

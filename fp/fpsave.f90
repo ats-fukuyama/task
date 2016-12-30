@@ -477,7 +477,7 @@
             RNSL(NR,NSA) = RSUM1*FACT*1.D-20!*RCOEFNG(NR)
             RJSL(NR,NSA) = RSUM2*FACT*AEFP(NSA)*PTFP0(NSA) &
                            /AMFP(NSA)*1.D-6!*RCOEFJG(NR)
-!            RFPL(NR,NSA)=2.D0*PI*DELTH* FLUXS_PMAX / RSUM1
+!            RFP_local(NR,NSA)=2.D0*PI*DELTH* FLUXS_PMAX / RSUM1
 
 
             FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)/RFSADG(NR)!*RCOEFNG(NR)
@@ -1075,7 +1075,7 @@
       DO N=1,NSW
          NSA=N+NSASTART-1
          CALL fp_gatherv_real8_sav(RNSL,SAVLEN(NRANK+1),RNS,N,NSA)
-!         CALL fp_gatherv_real8_sav(RFPL,SAVLEN(NRANK+1),RFP,N,NSA)
+!         CALL fp_gatherv_real8_sav(RFP_loacl,SAVLEN(NRANK+1),RFP,N,NSA)
          CALL fp_gatherv_real8_sav(RJSL,SAVLEN(NRANK+1),RJS,N,NSA)
          CALL fp_gatherv_real8_sav(RWSL,SAVLEN(NRANK+1),RWS,N,NSA)
          CALL fp_gatherv_real8_sav(RWS123L,SAVLEN(NRANK+1),RWS123,N,NSA)

@@ -1,11 +1,5 @@
-!
-!               ############# TASK/XX #############
-!
-!                  Template for TASK components
-!
-!-----------------------------------------------------------------------
-
 PROGRAM xx_main
+
   USE xxinit,ONLY: xx_init
   USE xxparm,ONLY: xx_parm
   USE xxmenu,ONLY: xx_menu

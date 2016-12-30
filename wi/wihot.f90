@@ -42,6 +42,11 @@ CONTAINS
        CALL SUBFYW                               ! calculate field vector
     ENDIF
     CALL SUBPOW    ! calculate sbsorbed power
+!!!       RATEA=1.D0-ABS(CFY(NXMAX*2+3))**2
+!       WRITE(6,'(A,1PE12.4)') 'ABS(CFY(NXMAX*2+2))**2=',ABS(CFY(NXMAX*2+2))**2
+!       WRITE(6,'(A,1PE12.4)') 'ABS(CFY(NXMAX*2+3))**2=',ABS(CFY(NXMAX*2+3))**2
+!       WRITE(6,'(A,1P2E12.4)') 'CFY(NXMAX*2+2)=',CFY(NXMAX*2+2)
+!       WRITE(6,'(A,1P2E12.4)') 'CFY(NXMAX*2+3)=',CFY(NXMAX*2+3)
        RATEA=1.D0-ABS(CFY(NXMAX*2+3))**2
        IF(iprint > 0) WRITE(6,'(A,F8.5)') '## Absorption rate: ',RATEA
 9900  CONTINUE
@@ -81,18 +86,18 @@ CONTAINS
       USE wicomm
       IMPLICIT NONE
       COMPLEX(rkind):: ciky,cbb
-      REAL(rkind):: rky,rky2,dx,dx2,beta2,dky
-      REAL(rkind):: ANB
+      REAL(rkind):: rky,rky2,dx,dx2,dky
+      REAL(rkind):: ANB,beta0
       INTEGER(ikind):: NDUB,NBAND,NWDUB,NWDDUB,I,J,MM,ID,JD,NS,NE,NN
       INTEGER(ikind):: KK,KD,KS,IOB,IO,I2
 
       RKY=ANY
       RKY2=RKY**2
-      BETA2=BETA*BETA
       DKY=ANY*ANY
       CIKY=CI*ANY
       ANB=DEXP(-ALFA*xgrid(nxmax))
       CBB=CI/DSQRT(1.D0-ANB-ANY*ANY)
+      BETA0=BETA
 
       NDUB=2*NXMAX
       IF(NWMAX.EQ.NXMAX) THEN
@@ -139,6 +144,15 @@ CONTAINS
          NE=MM+NWMAX-1
          IF(NS.LE.0) NS=0
          IF(NE.GE.NXMAX-1) NE=NXMAX-1
+         IF(XMAX.GE.500.D0.AND.ALFA*XMAX.LT.10.D0) THEN
+            IF(XMAX-XGRID(MM).LT.Bwidth) THEN
+               BETA=BETA0*(XMAX-XGRID(MM))/Bwidth
+            ELSE
+               BETA=BETA0
+            END IF
+         ELSE
+            BETA=BETA0
+         END IF
          DO NN=NS,NE
             DO I=MM,MM+1
                ID=2*I
@@ -207,6 +221,7 @@ CONTAINS
          I2=2
       ENDIF
       CK(I2,2)=(1.D0,0.D0)
+      BETA=BETA0
       RETURN
     END SUBROUTINE SUBCK2
 
@@ -269,10 +284,11 @@ CONTAINS
       IMPLICIT NONE
       COMPLEX(ikind):: cp1,cp2,cp3,cp4,cpa
       INTEGER(ikind):: NX,ns,ne,nn,i,j,id,jd,kk,kd
-      REAL(rkind):: rky,rky2,dx,dx2,AD,BD
+      REAL(rkind):: rky,rky2,dx,dx2,AD,BD,BETA0
 
       RKY=ANY
       RKY2=RKY**2
+      BETA0=BETA
 
       DO NX=0,NXMAX
          CPOWER(NX)=(0.D0,0.D0)
@@ -280,6 +296,15 @@ CONTAINS
       PTOT=0.D0
 
       DO NX=0,NXMAX-1
+         IF(XMAX.GE.500.D0.AND.ALFA*XMAX.LT.10.D0) THEN
+            IF(XMAX-XGRID(NX).LT.Bwidth) THEN
+               BETA=BETA0*(XMAX-XGRID(NX))/Bwidth
+            ELSE
+               BETA=BETA0
+            END IF
+         ELSE
+            BETA=BETA0
+         END IF
          DX=xgrid(nx+1)-xgrid(nx)
          DX2=DX*DX
          NS=NX-NWMAX+1
@@ -320,6 +345,7 @@ CONTAINS
             END DO
          END DO
       END DO
+      BETA=BETA0
       RETURN
     END SUBROUTINE SUBPOW
 
@@ -338,7 +364,19 @@ CONTAINS
       COMPLEX(rkind),INTENT(OUT):: CS
       REAL(rkind),DIMENSION(LMAX)::  A,B
       INTEGER(ikind):: ILST,K
-      REAL(rkind):: H0,EPS,SR1,SI1,SR,SI,ESR,ESI,SR2,SI2,PARITY,SKR,SKI
+      REAL(rkind):: H0,EPS,SR1,SI1,SR,SI,ESR,ESI,SR2,SI2,PARITY,SKR,SKI,BETA0
+
+      BETA0=BETA
+      IF(XMAX.GE.500.D0.AND.ALFA*XMAX.LT.10.D0) THEN
+         IF(XMAX-X.LT.Bwidth) THEN
+            BETA=BETA0*(XMAX-X)/Bwidth
+         ELSE
+            BETA=BETA0
+         END IF
+      ELSE
+         BETA=BETA0
+      END IF
+
 
       G2=HP
       G3=X/BETA
@@ -393,6 +431,9 @@ CONTAINS
       SR=(SR1+SR2)/SQRT(4.D0*G2)
       SI=(SI1+SI2)/SQRT(4.D0*G2)
       CS=CMPLX(SR,SI)
+
+      BETA=BETA0
+
       RETURN
 
  9000 WRITE(6,*) ' ## DIMENSION OVERFLOW IN EULER TRANSFORMATION.'

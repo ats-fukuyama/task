@@ -1,20 +1,3 @@
-!     $Id$
-
-  MODULE plxprf
-
-    USE bpsd_kinds
-
-!     NXPRF : Maximum number of spatial points read from external file
-!     NXSPC : Maximum number of species read from external file
-    
-    INTEGER(ikind),PARAMETER:: NXPRF=101,NXSPC=6
-
-    INTEGER(ikind):: NPRF
-    REAL(rkind),DIMENSION(NXPRF):: PRFRHO,DERIV
-    REAL(rkind),DIMENSION(4,NXPRF,NXSPC):: UPRFN,UPRFT
-
-  END MODULE plxprf
-
   MODULE pllocal
     USE plcomm,ONLY: rkind,NSM
 
@@ -136,29 +119,45 @@
     SUBROUTINE pl_mag(X,Y,Z,RHON,MAG)
 
       USE plcomm, ONLY: RA,RR,BB,MODELG
-
+      USE plprof2d
+      USE plload
       IMPLICIT NONE
       REAL(rkind),INTENT(in):: X,Y,Z
       REAL(rkind),INTENT(OUT):: RHON
       TYPE(pl_mag_type),INTENT(OUT):: MAG
+      INTEGER:: IERR
+      REAL(8):: BABS,AL(3)
 
       REAL(8) :: RL, BR, BT, BX, BY, BZ, &
                  RSINT, RCOST
 
       SELECT CASE(MODELG)
       CASE(0,1)
-         RSINT= 0.D0
-         RCOST= 1.D0
+         CALL pl_mag_rz(X,Y,Z,BR,BZ,BT,RHON)
+         BX = BR
+         BY = BT
       CASE(2,3,5,8)
          RL=SQRT(X**2+Y**2)
          RCOST= X/RL
          RSINT= Y/RL
+         CALL pl_mag_rz(X,Y,Z,BR,BZ,BT,RHON)
+         BX = BR*RCOST-BT*RSINT
+         BY = BR*RSINT+BT*RCOST
+      CASE(11)
+         CALL PLSMAG11(X,Y,BABS,AL)
+         BX = BABS*AL(1)
+         BY = BABS*AL(2)
+         BZ = BABS*AL(3)
+      CASE(12)
+         CALL pl_read_p2Dmag(X,Y,BX,BY,BZ,IERR)
+      CASE(13)
+         CALL PLSMAG13(X,Y,BABS,AL)
+         BX = BABS*AL(1)
+         BY = BABS*AL(2)
+         BZ = BABS*AL(3)
+      CASE(14)
+         CALL pl_read_p2Dmag(X,Y,BX,BY,BZ,IERR)
       END SELECT
-
-      CALL pl_mag_rz(X,Y,Z,BR,BZ,BT,RHON)
-
-      BX = BR*RCOST-BT*RSINT
-      BY = BR*RSINT+BT*RCOST
 
       MAG%BABS = SQRT(BX**2+BY**2+BZ**2)
 
@@ -179,12 +178,14 @@
     SUBROUTINE pl_mag_rz(X,Y,Z,BR,BZ,BT,RHON)
 
       USE plcomm, ONLY: RA,RR,BB,MODELG
-
+      USE plprof2d
+      USE plload
       IMPLICIT NONE
       REAL(rkind),INTENT(in):: X,Y,Z
       REAL(rkind),INTENT(OUT):: BR,BZ,BT,RHON
 
-      REAL(8) :: BP, PP, QL, RL, RS, &
+      INTEGER:: IERR
+      REAL(rkind) :: BP, PP, QL, RL, RS, BABS, AL(3), &
                  RSINP, RCOSP
 
       SELECT CASE(MODELG)
@@ -236,6 +237,25 @@
          RL=SQRT(X**2+Y**2)
          PP=0.D0
          CALL GETRZ(RL,Z,PP,BR,BZ,BT,RHON)
+
+      CASE(11)
+         CALL plsmag11(X,Y,BABS,AL)
+         BR=BABS*AL(1)
+         BZ=BABS*AL(2)
+         BT=BABS*AL(3)
+
+      CASE(12)
+         CALL pl_read_p2Dmag(X,Y,BR,BZ,BT,IERR)
+
+      CASE(13)
+         CALL plsmag13(X,Y,BABS,AL)
+         BR=BABS*AL(1)
+         BZ=BABS*AL(2)
+         BT=BABS*AL(3)
+
+      CASE(14)
+         CALL pl_read_p2Dmag(X,Y,BR,BZ,BT,IERR)
+
       END SELECT
 
       RETURN
@@ -332,11 +352,15 @@
         USE plcomm,ONLY: PZ,PN,PTPR,PTPP,PU,PNS,PTS,PUS, &
              NSMAX,MODELN,MODELG, &
              RR,RA
+        USE plprof2d
+        USE plload
         IMPLICIT NONE
         REAL(rkind),INTENT(IN):: X,Y,Z
         TYPE(pl_plf_type),DIMENSION(NSMAX),INTENT(OUT):: PLF
+        REAL(rkind),DIMENSION(NSMAX) :: RNPL,RTPL,RUPL,RTPRPL,RTPPPL,RZCLPL
         REAL(rkind):: RHON,FACTX,FACTY,FACTN,FACTT,FACTU
-        INTEGER:: NS
+        INTEGER:: NS,NSMAXL,IERR
+
 
         SELECT CASE(MODELG)
         CASE(0)
@@ -379,6 +403,30 @@
               PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACTT+PTS(NS)
               PLF(NS)%RU  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
            END DO
+        CASE(11)
+           CALL PLSDEN11(X,Y,RNPL,RTPRPL,RTPPPL,RZCLPL)
+           DO NS=1,NSMAX
+              PLF(NS)%RN  =RNPL(NS)
+              PLF(NS)%RTPR=RTPRPL(NS)
+              PLF(NS)%RTPP=RTPPPL(NS)
+              PLF(NS)%RU  =0.D0
+           ENDDO
+        CASE(12)
+           CALL pl_read_p2D(X,Y,RNPL,RTPL,RUPL,NSMAXL,IERR)
+           DO NS=1,NSMAXL
+              PLF(NS)%RN  =RNPL(NS)
+              PLF(NS)%RTPR=RTPL(NS)
+              PLF(NS)%RTPP=RTPL(NS)
+              PLF(NS)%RU  =RUPL(NS)
+           ENDDO
+        CASE(13)
+           CALL PLSDEN13(X,Y,RNPL,RTPRPL,RTPPPL,RZCLPL)
+           DO NS=1,NSMAX
+              PLF(NS)%RN  =RNPL(NS)
+              PLF(NS)%RTPR=RTPRPL(NS)
+              PLF(NS)%RTPP=RTPPPL(NS)
+              PLF(NS)%RU  =0.D0
+           ENDDO
         CASE DEFAULT
            CALL pl_mag_old(X,Y,Z,RHON)
            CALL pl_prof(RHON,PLF)
@@ -574,6 +622,7 @@
             PLF(NS)%RTPP=RTPPPL(NS)
             PLF(NS)%RU  =RUPL(NS)
          ENDDO
+
       END SELECT
 
       RETURN
@@ -828,8 +877,8 @@
 
       IFNO=22
       OPEN ( IFNO, FILE=TRFILE, ERR=9995 )
-      READ ( IFNO, '(I3)', END=9996, ERR=9996 ) NPRF
-      DO N=1,NPRF
+      READ ( IFNO, '(I3)', END=9996, ERR=9996 ) NPRFMAX
+      DO N=1,NPRFMAX
          READ ( IFNO, '(13E14.7)', END=9996, ERR=9996 ) &
              PRFRHO(N), (PRFN(N,I), I=1,NXSPC), &
                         (PRFT(N,I), I=1,NXSPC)
@@ -837,7 +886,7 @@
 
 !----  Modification for charge neutrality
 
-!      DO NR=1,NPRF
+!      DO NR=1,NPRFMAX
 !         VAL=0.D0
 !         DO NS=2,NSMAX-1
 !            VAL=VAL+PZ(NS)*PRFN(NR,NS)
@@ -845,7 +894,7 @@
 !         PRFN(NR,NSMAX)=(PRFN(NR,1)-VAL)/PZ(NSMAX)
 !      ENDDO
 
-      DO NR=1,NPRF
+      DO NR=1,NPRFMAX
          VAL=0.D0
          DO NS=2,NSMAX
             VAL=VAL+PZ(NS)*PRFN(NR,NS)
@@ -856,9 +905,9 @@
 !----  Set coefficient for spline
 
       DO NS=1,NSMAX
-         CALL SPL1D(PRFRHO,PRFN(1,NS),DERIV,UPRFN(1,1,NS), NPRF,0,IRC)
+         CALL SPL1D(PRFRHO,PRFN(1,NS),DERIV,UPRFN(1,1,NS), NPRFMAX,0,IRC)
          IF (IRC.NE.0) GO TO 9997
-         CALL SPL1D(PRFRHO,PRFT(1,NS),DERIV,UPRFT(1,1,NS), NPRF,0,IRC)
+         CALL SPL1D(PRFRHO,PRFT(1,NS),DERIV,UPRFT(1,1,NS), NPRFMAX,0,IRC)
          IF (IRC.NE.0) GO TO 9997
       ENDDO
 
@@ -884,7 +933,7 @@
 
     SUBROUTINE wmspl_prof(Rhol,NS,PNL,PTL)
 
-      USE plcomm,ONLY: PTS,modeln
+      USE plcomm,ONLY: PNS,PTS,modeln
       USE plxprf
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: rhol   ! Normalized radius
@@ -902,9 +951,9 @@
          END IF
          PTL = PTS(NS)
       ELSE
-         CALL SPL1DF(Rhol,PPL,PRFRHO,UPRFN(1,1,NS),NPRF,IERR)
+         CALL SPL1DF(Rhol,PPL,PRFRHO,UPRFN(1,1,NS),NPRFMAX,IERR)
          PNL=PPL
-         CALL SPL1DF(Rhol,PPL,PRFRHO,UPRFT(1,1,NS),NPRF,IERR)
+         CALL SPL1DF(Rhol,PPL,PRFRHO,UPRFT(1,1,NS),NPRFMAX,IERR)
          PTL=PPL
       ENDIF
 
@@ -979,5 +1028,7 @@
 
       RETURN
     END SUBROUTINE pl_getB
+
+    
 
   END MODULE plprof

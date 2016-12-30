@@ -6,7 +6,7 @@ SUBROUTINE DEFMLEN
 
   use wfcomm
   implicit none
-  integer :: NSD,NBSID,NN,NBNOD
+  integer :: NSD,NN
 
   NBSID=0
   do NSD=1,NSDMAX

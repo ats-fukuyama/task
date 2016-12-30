@@ -57,11 +57,15 @@ end subroutine WFWAVE
 
 subroutine WFWPRE(IERR)
 
-  use wfcomm
-  implicit none
-  integer,intent(out) :: IERR
+  USE wfcomm
+  USE plload,ONLY: pl_load
+  IMPLICIT NONE
+  INTEGER,INTENT(OUT) :: IERR
 
   IERR=0
+
+  CALL pl_load(ierr)
+  if(IERR.ne.0) return
 
   call LPELMT
 
@@ -139,7 +143,7 @@ subroutine DTENSR(NE,DTENS)
      FZ=AL(3)
      
      CALL WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
-     
+
      do NS=1,NSMAX
         
         CWP = WP(NS)*RN(NS)/(1.D0+CII*RZCL(NS))
@@ -149,7 +153,7 @@ subroutine DTENSR(NE,DTENS)
         CDP0= CWP
         
         CDT=CDT0       
-        CDP=CDP0-CDT
+        CDP=CDP0-CDT0
         CDX=CDX0
 
         CRR= CDT   +CDP*FR*FR
@@ -172,7 +176,8 @@ subroutine DTENSR(NE,DTENS)
         DTENS(NS,IN,3,2)=DTENS(NS,IN,3,2)-CZP
         DTENS(NS,IN,3,3)=DTENS(NS,IN,3,3)-CZZ
 
-     end do
+     END do
+
 
      IF(WDAMP.GT.0.D0) THEN
         CDAMP=CII*PZCL(NSMAX)
@@ -310,7 +315,7 @@ SUBROUTINE CVCALC
         CJ(2)=CVJ*RR
         CJ(3)=0.D0
         SELECT CASE(MODELG)
-        CASE(0)
+        CASE(0,12)
            do I=1,3
               LIF(I)=A(I)*RR &
                     +B(I)*R1*RR &
@@ -348,7 +353,7 @@ SUBROUTINE CVCALC
         CJ(3)=CVJ*Z21  
 
         SELECT CASE(MODELG)
-        CASE(0)
+        CASE(0,12)
            do I=1,3
               LIF(I)=A(I)*RR &
                     +B(I)*(R1+R2)*RR/2.D0 &
@@ -458,7 +463,7 @@ SUBROUTINE CMCALC(NE)
   ! --- E1F1 ---
 
   SELECT CASE(MODELG)
-  CASE(0)
+  CASE(0,12)
      do K=1,3 
         do J=1,3
            do I=1,3
@@ -502,7 +507,7 @@ SUBROUTINE CMCALC(NE)
   ! --- E1F2 --- 
 
   SELECT CASE(MODELG)
-  CASE(0)
+  CASE(0,12)
      do K=1,3
         do J=1,3
            do I=1,3
@@ -526,8 +531,8 @@ SUBROUTINE CMCALC(NE)
         do J=1,3
            do I=1,3
               CM1(I,J)=CM1(I,J) &
-
-!                      +(CII*real(NPH)) &
+!
+                       +(CII*real(NPH)) &
                        *(-B(I) &
                           *(AW(J)-BW(J)*Z(K)) &
                          +C(I) &
@@ -557,7 +562,7 @@ SUBROUTINE CMCALC(NE)
   ! --- E2F1 ---
 
   SELECT CASE(MODELG)
-  CASE(0)
+  CASE(0,12)
      do K=1,3
         do J=1,3
            do I=1,3
@@ -611,7 +616,7 @@ SUBROUTINE CMCALC(NE)
   ! --- E2F2 ---
 
   SELECT CASE(MODELG)
-  CASE(0)
+  CASE(0,12)
      do K=1,3
         do J=1,3
            do I=1,3
@@ -678,7 +683,7 @@ SUBROUTINE CMCALC(NE)
   end do
 
   SELECT CASE(MODELG)
-  CASE(0)
+  CASE(0,12)
      do JJ=1,6
         do II=1,6
            do K=1,3
@@ -839,7 +844,7 @@ SUBROUTINE PWRABS
 
      do NS=1,NSMAX
         SELECT CASE(MODELG)
-        CASE(0)
+        CASE(0,12)
            do JJ=1,6
               do II=1,6
                  do K=1,3
@@ -966,7 +971,7 @@ SUBROUTINE PWRRAD
         call WFABC(NE,A,B,C)
 
         SELECT CASE(MODELG)
-        CASE(0)
+        CASE(0,12)
            do I=1,3
               LIF(I)= A(I)*RR &
                      +B(I)*RR*(R2+R1)/2.d0 &

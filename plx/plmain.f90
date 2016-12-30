@@ -25,11 +25,13 @@
 
       WRITE(6,*) '## TASK/PL 2009/07/2108'
       OPEN(7,STATUS='SCRATCH')
+      CALL gsopen
       CALL pl_init
       CALL pl_parm(1,'plparm',IERR)
 
       CALL pl_menu
 
+      CALL gsclos
       CLOSE(7)
       STOP
     END PROGRAM plmain

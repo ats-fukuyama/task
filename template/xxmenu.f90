@@ -1,5 +1,3 @@
-!  ***** TASK/XX MENU *****
-
 MODULE xxmenu
 
 PRIVATE

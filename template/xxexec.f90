@@ -1,5 +1,3 @@
-!  ***** TASK/XX EXEC *****
-
 Module xxexec
   PRIVATE
   PUBLIC xx_exec
