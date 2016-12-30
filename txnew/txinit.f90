@@ -660,8 +660,9 @@ SUBROUTINE TXINIT
 
   !   Model of neoclassical transport model, espcially for calculating
   !     friction coefficients and viscosities
-  !   1    : Matrix Inversion
-  !   2    : NCLASS
+  !   1    : Matrix Inversion (booth9)
+  !   2    : Matrix Inversion (nccoe)
+  !   3    : NCLASS
   !   +10  : Both (Users cannot specify)
   MDLNEO  = 1
 
@@ -953,6 +954,7 @@ SUBROUTINE TXPROF
   use sauter_mod
   use tx_ntv, only : perturb_mag, Wnm_spline
   use eqread_mod, only : AJphVRL
+  use mod_eqneo, only : wrap_eqneo
 #ifdef laself
   ! for self-compiled lapack
   use f95_lapack, only : GESV => LA_GESV
@@ -1454,6 +1456,43 @@ SUBROUTINE TXPROF
   if( allocated(AJphVRL) ) deallocate(AJphVRL)
 
   ! ********************************************************************
+  !      Coefficients for Pfirsch-Schluter viscosity (nccoe)
+  ! ********************************************************************
+
+  call wrap_eqneo
+
+!!$  if( ieqread >= 2 ) then
+!!$!     if( MDLNEOL == 2 ) call eqneo
+!!$     call eqneo
+!!$  else
+!!$     do NR = 1, NRMAX
+!!$        gamneo(NR) = 4.d0 * Pisq * sdt(NR) / bbrt(NR) ! = bthco(NR) / bbrt(NR)
+!!$        mxneo(NR) = 3
+!!$        epsl = epst(NR)
+!!$        coefmneo = 1.d0 - epsl**2
+!!$        do i = 1, mxneo(NR)
+!!$           fmneo(i,NR) = real(i,8)* ( (1.d0-sqrt(coefmneo))/epsl)**(2*i) &
+!!$                &                 * (1.d0+real(i,8)*sqrt(coefmneo)) &
+!!$                &                 / (coefmneo*sqrt(coefmneo)*(q(NR)*RR)**2)
+!!$        end do
+!!$        fmneo(mxneo(NR)+1:10,NR) = 0.d0
+!!$     end do
+!!$  end if
+!!$  ! Even at axis, fmneo=0 should be avoided because it would cause K_PS = 0.
+!!$  NR = 0
+!!$     gamneo(NR) = 4.d0 * Pisq * sdt(NR) / bbrt(NR) ! = bthco(NR) / bbrt(NR)
+!!$     mxneo(NR) = 3
+!!$!     fmneo(1:10,NR) = 0.d0
+!!$     epsl = smallvalue
+!!$     coefmneo = 1.d0 - epsl**2
+!!$     do i = 1, mxneo(NR)
+!!$        fmneo(i,NR) = real(i,8)* ( (1.d0-sqrt(coefmneo))/epsl)**(2*i) &
+!!$             &                 * (1.d0+real(i,8)*sqrt(coefmneo)) &
+!!$             &                 / (coefmneo*sqrt(coefmneo)*(q(NR)*RR)**2)
+!!$     end do
+!!$     fmneo(mxneo(NR)+1:10,NR) = 0.d0
+
+  ! ********************************************************************
   !      Miscellaneous
   ! ********************************************************************
 
@@ -1688,7 +1727,7 @@ contains
        IF(CMESH0 < 0.D0 .OR. CMESH < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(WMESH0 < 0.D0 .OR. WMESH < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        ! /// idx = 51 - 52 ///
-       IF(MDLNEO /= 1 .AND. MDLNEO /= 2) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(MDLNEO /= 1 .AND. MDLNEO /= 2 .AND. MDLNEO /= 3) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(MDBEAM /= 0 .AND. MDBEAM /= 1) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        RETURN
     END DO

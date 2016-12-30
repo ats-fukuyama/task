@@ -608,8 +608,7 @@
 !         Response contributions           
           DO jm=1,m_i
             CALL RARRAY_ZERO(k_order,xl)
-!            DO l=1,k_order
-            DO l=1,1
+            DO l=1,k_order
               l1=jm+(l-1)*m_i
               DO k=1,k_order
                 xl(k)=xl(k)-caln_ii(k,l,im,jm)*xab(l1,m) ! Eq.(27)
@@ -968,7 +967,7 @@
           capn_ii(1,2,im,jm)=-xab2*capm_ii(1,2,im,jm)
 !         Momentum conservation, Eqn 4.12 for N10 (HS81)
           capn_ii(2,1,im,jm)=-capm_ii(2,1,im,jm)
-!         Eqn 4.14 for N11 (HS81)	- corrected rhs
+!         Eqn 4.14 for N11 (HS81) - corrected rhs
           capn_ii(2,2,im,jm)=(27.0/4.0)*SQRT(xtab)*xab2/yab52
           IF(k_order.eq.3) THEN
 !           Eqn 4.15 for N02 (HS81) - corrected rhs by Ta/Tb

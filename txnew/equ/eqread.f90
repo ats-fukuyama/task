@@ -260,7 +260,7 @@ contains
     ! vro: dV/drho
 
     vro(0) = 0.d0
-    vro(1:nrmax) = 2.d0 * PsitV(nrmax) * rho(1:nrmax) / hdt(1:nrmax)
+    vro(1:nrmax) = 2.d0 * PsitV(nra) * rho(1:nrmax) / hdt(1:nrmax)
 
     ! <B^2>
     
@@ -489,7 +489,7 @@ contains
       nz=(nsz-1)/2+1
       nszm=nsz-1
       nvm=nv-1
-!-----	  
+!-----
     dr=rg(2)-rg(1)
     dz=zg(2)-zg(1)
     dr2i=1.d0/(2.d0*dr)
@@ -1215,7 +1215,7 @@ contains
 !!$!----  Calculate the Coefficient Matrix of Normal Equation
 !!$
 !!$!----           n
-!!$!----    XAij = Σ(Xk**(i) * Xk**(j) * Wk)
+!!$!----    XAij = Sum (Xk**(i) * Xk**(j) * Wk)
 !!$!----           k=1
 !!$
 !!$    do i=1,m1
@@ -1232,7 +1232,7 @@ contains
 !!$!----  Calculate the Constant Vector of Normal Equation
 !!$
 !!$!----         n
-!!$!----    Bj = Σ(Xk**(j) * Yk * Wk)
+!!$!----    Bj = Sum (Xk**(j) * Yk * Wk)
 !!$!----         k=1
 !!$
 !!$    do i=1,m1

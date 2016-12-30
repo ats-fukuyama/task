@@ -634,7 +634,7 @@ contains
           rNuAsi(NR) = 1.D0 / rNuAsI_inv
        END IF
 
-       if( MDLNEO == 2 .or. MDLNEO > 10 ) then
+       if( MDLNEOL == 3 .or. MDLNEO > 10 ) then
           !     *** Neoclassical coefficients by NCLASS ***
           !     (W. A. Houlberg, et al., Phys. Plasmas 4 (1997) 3230)
 
@@ -645,15 +645,18 @@ contains
 !          write(6,'(A,F8.5,1P2E15.7)') 'NCLASS',rho(NR),chincpe(nr),chincte(nr)
 !          write(6,'(A,F8.5,1P2E15.7)') 'NCLASS',rho(NR),chincpi(nr),chincti(nr)
        end if
-       if( MDLNEO == 1 .or. MDLNEO > 10 ) then
+       if( MDLNEOL <= 2 .or. MDLNEO > 10 ) then
           !     *** Neoclassical coefficients by Matrix Inversion ***
           !     (M. Kikuchi and M. Azumi, Plasma Phys. Control. Fusion 37 (1995) 1215)
 
           call tx_matrix_inversion(NR,ETAvar(NR,1),BJBSvar(NR,1), &
                &         ChiNCpe(NR),ChiNCte(NR),ChiNCpi(NR),ChiNCti(NR), &
-               &         ddPhidpsi(NR)*MDOSQZN)
+               &         ddPhidpsi(NR)*MDOSQZN,MDLNEOL)
 !          write(6,'(A,F8.5,1P2E15.7)') 'MATINV',rho(NR),chincpe(nr),chincte(nr)
 !          write(6,'(A,F8.5,1P2E15.7)') 'MATINV',rho(NR),chincpi(nr),chincti(nr)
+!!$          !     Resistivity should be the classical (Spitzer) one at axis.
+!!$          if( NR == 0 ) ETAvar(NR,1) = CORR(1.D0) * amas(1) * amqp * rNuei(NR) &
+!!$               &                     / (Var(NR,1)%n * 1.D20 * AEE)
        end if
 
        !     *** Helical neoclassical viscosity ***
@@ -1255,7 +1258,14 @@ contains
     if( MDBSETA == 0 ) then
        do NR = 0, NRMAX
           ! Bootstrap current density estimated by the neoclassical transport model
-          BJBS(NR) = BJBSvar(NR,MDLNEOL)
+          select case(MDLNEOL)
+          case(1:2) ! MI
+             BJBS(NR) = BJBSvar(NR,1)
+          case(3)   ! NCLASS
+             BJBS(NR) = BJBSvar(NR,2)
+          case default
+             BJBS(NR) = BJBSvar(NR,3)
+          end select
 
           ! Parallel Ohmic current density
           BJOH(NR) = BJPARA(NR) - BJBS(NR) - BJNB(NR)
@@ -1282,8 +1292,16 @@ contains
 
        ! Rough estimate of the resistivity using the bootstrap estimation
        !    ETA is less sensitive than the bootstrap current.
-       ETAvar(NR,0) = BEpara(NR) / (BJPARA(NR) - BJBSvar(NR,MDLNEOL) - BJNB(NR))
+!       ETAvar(NR,0) = BEpara(NR) / (BJPARA(NR) - BJBSvar(NR,MDLNEOL) - BJNB(NR))
+       if( BJOH(NR) /= 0.d0 ) then
+          ETAvar(NR,0) = BEpara(NR) / BJOH(NR)
+       else
+          ! BJOH = 0.d0 sometimes happen in the SOL region.
+          ETAvar(NR,0) = 0.d0
+       end if
+!       write(6,'(F8.5,1P3E15.7)') rho(nr),BEpara(NR),BJOH(NR),ETAvar(NR,0)
     end do
+!    write(6,*)
 
     !     ***** Ion Orbit Loss *****
 
