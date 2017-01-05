@@ -362,13 +362,14 @@
 
 !     ***********************************************************
 
-!           GRAPHIC : RADIAL PROFILE : PIN,SSIN,PELLET
+!           GRAPHIC : RADIAL PROFILE : PIN,SSIN,PELLET,SPSC
 
 !     ***********************************************************
 
       SUBROUTINE TRGRR6(INQ)
 
-      USE TRCOMM, ONLY : GRM, GYR, MDLUF, NRMAX, NRMP, NSM, PIN, RPSI, SCX, SEX, SIE, SNBU, SSIN, SWLU
+      USE TRCOMM, ONLY : GRM, GYR, MDLUF, NRMAX, NRMP, NSM, PIN, &
+           RPSI, SCX, SEX, SIE, SNBU, SSIN, SWLU, NSMAX, SPSC
       IMPLICIT NONE
       INTEGER(4),INTENT(IN) :: INQ
       INTEGER(4) :: NR, NS
@@ -415,10 +416,18 @@
       ENDDO
       CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,'@SCX, SIE [10$+20$=/sm$+3$=]  vs r@',2+INQ)
 
-      DO NR=1,NRMAX
-         GYR(NR,1) = GUCLIP(RPSI(NR))
-      ENDDO
-      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,1,'@PSI [Wb]  vs r@',2+INQ)
+      DO NS=1,NSMAX
+         DO NR=1,NRMAX
+            GYR(NR,NS) = GUCLIP(SPSC(NR,NS))
+         END DO
+      END DO
+      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSMAX, &
+                  '@SPSC(NS) vs r@',2+INQ)
+!      DO NR=1,NRMAX
+!         GYR(NR,1) = GUCLIP(RPSI(NR))
+!      ENDDO
+!      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,1, &
+!                   '@PSI [Wb]  vs r@',2+INQ)
 !$$$      CALL TRGRTM
 !$$$C
 !$$$      CALL MOVE(17.5,4.0)
