@@ -692,6 +692,7 @@
       idata( 8)=NRMAX
       idata( 9)=NAVMAX
       idata(10)=NP2MAX
+
       idata(11)=NTMAX
       idata(12)=NTSTEP_COEF
       idata(13)=NTSTEP_COLL
@@ -701,6 +702,7 @@
       idata(17)=NTG2STEP
       idata(18)=NTG2MIN
       idata(19)=NTG2MAX
+
       idata(20)=MODELE
       idata(21)=MODELA
       idata(22)=MODELC
@@ -720,6 +722,7 @@
       idata(36)=IMTX
       idata(37)=MODEL_KSP
       idata(38)=MODEL_PC
+
       idata(39)=LMAXFP
       idata(40)=LMAXE
       idata(41)=NGLINE
@@ -727,6 +730,7 @@
       idata(43)=LLMAX
       idata(44)=LLMAX_NF
       idata(45)=IDBGFP
+
       idata(46)=MODEL_DISRUPT
       idata(47)=MODEL_Connor_FP
       idata(48)=MODEL_BS
@@ -752,6 +756,7 @@
       NRMAX          =idata( 8)
       NAVMAX         =idata( 9)
       NP2MAX         =idata(10)
+
       NTMAX          =idata(11)
       NTSTEP_COEF    =idata(12)
       NTSTEP_COLL    =idata(13)
@@ -761,6 +766,7 @@
       NTG2STEP       =idata(17)
       NTG2MIN        =idata(18)
       NTG2MAX        =idata(19)
+
       MODELE         =idata(20)
       MODELA         =idata(21)
       MODELC         =idata(22)
@@ -780,6 +786,7 @@
       IMTX           =idata(36)
       MODEL_KSP      =idata(37)
       MODEL_PC       =idata(38)
+
       LMAXFP         =idata(39)
       LMAXE          =idata(40)
       NGLINE         =idata(41)

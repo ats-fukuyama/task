@@ -73,28 +73,6 @@
       ENDDO
       ENDDO
 
-!      DO NR=NRSTART,NREND
-!         DO NP=1, NPMAX+1
-!         DO NTH=1,4
-!            DCPPB(NTH,NP,NR,NSA)=0.D0
-!            DCPTB(NTH,NP,NR,NSA)=0.D0
-!            FCPPB(NTH,NP,NR,NSA)=0.D0
-!         END DO
-!         END DO
-!      END DO
-
-!      DO NSB=1,NSBMAX
-!      DO NR=NRSTART,NREND
-!         DO NP=1, NPMAX+1
-!         DO NTH=1,4
-!            DCPP2B(NTH,NP,NR,NSB,NSA)=0.D0
-!            DCPT2B(NTH,NP,NR,NSB,NSA)=0.D0
-!            FCPP2B(NTH,NP,NR,NSB,NSA)=0.D0
-!         END DO
-!         END DO
-!      END DO
-!      END DO
-
       DO NR=NRSTART,NREND
          DO NSB=1,NSBMAX
 !            if(nr.eq.1) write(6,'(A,I8,1P2E12.4)') 
@@ -188,21 +166,7 @@
 
 !     ----- bounce average -----
          IF(MODELA.EQ.1) THEN
-!            IF(MODELC.EQ.0.or.MODELC.eq.1) THEN
-               CALL FPCALC_LAV(NR,NSA)
-!            ELSEIF(MODELC.EQ.2.or.MODELC.eq.3) THEN
-!               CALL FPCALC_NLAV(NR,NSA)
-!            ELSEIF(MODELC.EQ.4) THEN
-!               CALL FPCALC_NLAV(NR,NSA)
-!            ELSEIF(MODELC.EQ.5) THEN
-!               CALL FPCALC_LAV(NR,NSA)
-!            ELSEIF(MODELC.EQ.6) THEN
-!               CALL FPCALC_NLAV(NR,NSA)
-!            ELSEIF(MODELC.EQ.-1) THEN
-!               CALL FPCALC_LAV(NR,NSA)
-!            ELSEIF(MODELC.EQ.-2) THEN
-!               CALL FPCALC_NLAV(NR,NSA)
-!            ENDIF
+            CALL FPCALC_LAV(NR,NSA)
          ENDIF
 !     sum up coefficients by species
          DO NSB=1,NSBMAX
@@ -215,16 +179,7 @@
                   FCPP(NTH,NP,NR,NSA)=FCPP(NTH,NP,NR,NSA) &
                                      +FCPP2(NTH,NP,NR,NSB,NSA)
                END DO
-!               DO NTH=1,4
-!                  DCPPB(NTH,NP,NR,NSA)=DCPPB(NTH,NP,NR,NSA) &
-!                                     +DCPP2B(NTH,NP,NR,NSB,NSA)
-!                  DCPTB(NTH,NP,NR,NSA)=DCPTB(NTH,NP,NR,NSA) &
-!                                     +DCPT2B(NTH,NP,NR,NSB,NSA)
-!                  FCPPB(NTH,NP,NR,NSA)=FCPPB(NTH,NP,NR,NSA) &
-!                                     +FCPP2B(NTH,NP,NR,NSB,NSA)
-!               END DO
             END DO
-!            DO NP=1,NPMAX
             DO NP=NPSTARTW,NPENDWM
                DO NTH=1,NTHMAX+1
                   DCTP(NTH,NP,NR,NSA)=DCTP(NTH,NP,NR,NSA) &
@@ -237,7 +192,7 @@
             END DO
          END DO
       ENDDO
-      END DO
+      END DO ! NSA
 
       IF(nrank.eq.0) THEN
       IF(MOD(IDBGFP/8,2).EQ.1) THEN
@@ -870,7 +825,7 @@
          RNFD0L_C=RNFD0(NSB)
          THETA0L_C=THETA0(NSB)
          IF(MODEL_DISRUPT.eq.0)THEN
-            IF(MODELC.eq.1)THEN ! constant T
+            IF(MODELC.eq.1.or.MODELC.eq.0)THEN ! constant T
                RNFDL_C=RNFD(NR,NSB) 
                RTFDL_C=RTFD(NR,NSB)
             ELSEIF(MODELC.eq.2)THEN ! variable n, T
