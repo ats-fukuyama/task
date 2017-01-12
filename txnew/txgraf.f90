@@ -3,8 +3,8 @@ module tx_graphic
   implicit none
   private
   integer(4), parameter :: NGRM=20, NGTM=5000, NGVM=5000, &
-       &                   NGYRM=200, NGYTM=53, NGYVM=58, &
-       &                   NGPRM=24, NGPTM=8, NGPVM=15
+       &                   NGYRM=217, NGYTM=54, NGYVM=58, &
+       &                   NGPRM=25, NGPTM=8, NGPVM=15
   real(4) :: GXM, GYM, GYS
   integer(4) :: MODEG, MODEGL, NGR, NGT, NGVV, NGRSTP, NGTSTP, NGVSTP, NP
   real(4), dimension(:),     allocatable :: GX
@@ -83,7 +83,7 @@ contains
     use libbes, only : BESIN
     use libgrf, only : GRD1D
     use tx_commons, only : T_TX, TPRE, NQMAX, NRMAX, rhob, RA, PI, RR, NRA, thrp, kappa, &
-         &                 IRPIN, DltRPn, NTCOIL, DltRP_mid, DltRP, epst, rho
+         &                 IRPIN, DltRPn, NTCOIL, DltRP_mid, DltRP, epst, rho, ieqread
     use tx_interface, only : TXGRUR, TOUPPER, TXGLOD
     use tx_ripple, only : ripple
 
@@ -158,6 +158,8 @@ contains
              CALL TXGRFR(-5,MODE)
           CASE('D')
              CALL TXGRFR(-9,MODE)
+          CASE('E')
+             CALL TXGRFR(-11,MODE)
           CASE DEFAULT
              READ(STR(2:5),*,IOSTAT=IST) NGPR
              IF (IST /= 0) THEN
@@ -294,8 +296,8 @@ contains
           IF (NGYR >= 1 .AND. NGYR <= NGYRM) THEN
              ALLOCATE(FX(0:NRMAX),FY(0:NRMAX,1))
              DO NR=0,NRMAX
-                FX(NR)=DBLE(GX(NR))
-                FY(NR,1)=DBLE(GYT(NR,NGT,NGYR))
+                FX(NR)=real(GX(NR),8)
+                FY(NR,1)=real(GYT(NR,NGT,NGYR),8)
              ENDDO
              STRL='@profile'//STR(2:5)//'@'
              CALL PAGES
@@ -314,11 +316,11 @@ contains
           IF (NGYR >= 1 .AND. NGYR <= NGYRM) THEN
              ALLOCATE(FX(0:NRMAX),FY(0:NRMAX,0:NGT))
              DO NR=0,NRMAX
-                FX(NR)=DBLE(GX(NR))
+                FX(NR)=real(GX(NR),8)
              ENDDO
              DO NGTDO=0,NGT
              DO NR=0,NRMAX
-                FY(NR,NGTDO)=DBLE(GYT(NR,NGTDO,NGYR))
+                FY(NR,NGTDO)=real(GYT(NR,NGTDO,NGYR),8)
              ENDDO
              ENDDO
              STRL='@profile'//STR(2:5)//'@'
@@ -329,154 +331,156 @@ contains
           END IF
 
        CASE('E')
-          ! *** Contour of ripple amplitude ***
-          CALL PAGES
-          CALL INQFNT(IFNT)
-          CALL SETFNT(32)
+          if( ieqread >= 2) call psi_out_gnuplot
 
-          if(IRPIN == 0) then
-             DltRPnL = REAL(DltRPn) * 100.0
-
-             allocate(RRL(1:NXMAX),ZZL(1:NYMAX),VAL(1:NXMAX,1:NYMAX),KA(1:8,1:NXMAX,1:NYMAX))
-             DR = (4.5 - 2.0) / (NXMAX - 1)
-             DZ =  1.5        / (NYMAX - 1)
-             DO NX = 1, NXMAX
-                RRL(NX) = 2.0 + DR * (NX - 1)
-                DO NY = 1, NYMAX
-                   ZZL(NY) = DZ * (NY - 1)
-                   AL = SQRT(((RRL(NX) - 2.4)**2 + ZZL(NY)**2) * (2.4 / RRL(NX)))
-                   VAL(NX,NY) = REAL(DltRPnL * BESIN(0,NTCOIL/2.4D0*AL))
-                END DO
-             END DO
-
-             CALL GQSCAL(2.0,4.5,GSRMIN,GSRMAX,GSRSTP)
-             CALL GQSCAL(0.0,1.5,GSZMIN,GSZMAX,GSZSTP)
-
-             CALL GDEFIN(3.0,18.0,1.5,10.5,2.0,4.5,0.0,1.5)
-             CALL GFRAME
-
-             CALL GSCALE(GSRMIN,GSRSTP,0.0,0.0,0.1,9)
-             CALL GVALUE(GSRMIN,GSRSTP*2,0.0,0.0,NGULEN(GSRSTP))
-             CALL GSCALE(0.0,0.0,0.0,GSZSTP,0.1,9)
-             CALL GVALUE(0.0,0.0,0.0,GSZSTP*2,NGULEN(GSZSTP*2))
-
-             IPAT = 1
-             IPRD = 0
-
-             ZORG  = 0.0003
-             ZSTEP = 0.0002
-             NSTEP = 3
-             CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*1,KA)
-
-             ZORG  = 0.001
-             ZSTEP = 0.002
-             NSTEP = 4
-             CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*2,KA)
-
-             ZORG  = 0.01
-             ZSTEP = 0.02
-             NSTEP = 4
-             CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*3,KA)
-
-             ZORG  = 0.0
-             ZSTEP = 0.1
-             NSTEP = 2
-             CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*4,KA)
-
-             ZORG  = 0.0
-             ZSTEP = 0.25
-             NSTEP = 4
-             CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*4,KA)
-
-             ZORG  = 1.0
-             ZSTEP = 0.5
-             NSTEP = 3
-             CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*5,KA)
-
-             deallocate(RRL,ZZL,VAL,KA)
-
-             allocate(RRL(1:NTHMAX),ZZL(1:NTHMAX))
-             dtheta = PI / (NTHMAX - 1)
-             theta = 0.d0
-             DO I = 1, 2
-                IF(I == 1) THEN
-                   kappal = 1.d0
-                ELSE
-                   kappal = kappa
-                END IF
-                DO NTH = 1, NTHMAX
-                   theta = (NTH - 1) * dtheta
-                   RRL(NTH) = real(RR + RA * cos(theta))
-                   ZZL(NTH) = real(kappal * RA * sin(theta))
-                   IF(ABS(ZZL(NTH)) < EPSILON(1.0)) ZZL(NTH) = 0.0
-                END DO
-                CALL LINES2D(RRL,ZZL,NTHMAX)
-             END DO
-             deallocate(RRL,ZZL)
-
-             allocate(RRL(1:2*NRMAX),ZZL(1:2*NRMAX))
-             RRL(1:NRMAX) = RR * (1.d0 + epst(NRMAX:1:-1) * COS(thrp(1:NRMAX)))
-             ZZL(1:NRMAX) = kappa * RR * epst(NRMAX:1:-1) * SIN(thrp(1:NRMAX))
-             RRL(NRMAX+1:2*NRMAX) = RR * (1.d0 + epst(1:NRMAX) * COS(thrp(NRMAX+1:2*NRMAX)))
-             ZZL(NRMAX+1:2*NRMAX) = kappa * RR * epst(1:NRMAX) * SIN(thrp(NRMAX+1:2*NRMAX))
-             CALL LINES2D(RRL,ZZL,2*NRMAX)
-             deallocate(RRL,ZZL)
-          end if
-
-          !  *** 1D graphic ***
-
-          IF (MODEG == 2) THEN
-             IND = 9
-          ELSE
-             IND = 0
-          END IF
-
-          GPXY(1) =  3.0
-          GPXY(2) = 11.5
-          GPXY(3) = 11.5
-          GPXY(4) = 17.5
-          GXMAX = REAL(rhob)
-          allocate(GRPL(0:NRMAX,1:2))
-          DO NR = 0, NRMAX
-             if(IRPIN == 0) then
-                GRPL(NR,1) = real(ripple(rho(NR),0.D0,1.D0))
-             else
-                GRPL(NR,1) = real(DltRP_mid(NR))
-             end if
-          END DO
-          WRITE(KOUT,'(F6.4)') GRPL(NRA,1)
-          KOUT = '$#d$#$-a$=='//KOUT(1:6)
-          CALL GTEXT(GPXY(1)+5.5,GPXY(4)-1.5,KOUT,len_trim(KOUT),0)
-          STRL = '@DltRP at mid-plane(r)@'
-          CALL TXGRAF(GPXY,GX,GRPL,NRMAX+1,NRMAX+1,1,0.0,GXMAX,STRL,0.26,MODE,IND,0)
-
-          GPXY(1) = 13.5
-          GPXY(2) = 22.0
-          GPXY(3) = 11.5
-          GPXY(4) = 17.5
-          GXMAX = REAL(rhob)
-          thetab = 0.5D0 * PI
-          DO NR = 0, NRMAX
-             rhol = rho(NR) * (1.D0 + (kappa - 1.D0) * sin(thetab))
-             if(IRPIN == 0) then
-                GRPL(NR,1) = real(ripple(rhol,thetab,1.D0))
-                GRPL(NR,2) = real(ripple(rho(NR),thetab,1.D0))
-                NG = 2
-             else
-                GRPL(NR,1) = real(DltRP(NR))
-                NG = 1
-             end if
-          END DO
-          if(IRPIN == 0) then
-             STRL = '@DltRP at tip point with and w/o elongation(r)@'
-          else
-             STRL = '@DltRP at tip point(r)@'
-          end if
-          CALL TXGRAF(GPXY,GX,GRPL,NRMAX+1,NRMAX+1,NG,0.0,GXMAX,STRL,0.26,MODE,IND,0)
-          deallocate(GRPL)
-
-          CALL SETFNT(IFNT)
-          CALL PAGEE
+!!$          ! *** Contour of ripple amplitude ***
+!!$          CALL PAGES
+!!$          CALL INQFNT(IFNT)
+!!$          CALL SETFNT(32)
+!!$
+!!$          if(IRPIN == 0) then
+!!$             DltRPnL = REAL(DltRPn) * 100.0
+!!$
+!!$             allocate(RRL(1:NXMAX),ZZL(1:NYMAX),VAL(1:NXMAX,1:NYMAX),KA(1:8,1:NXMAX,1:NYMAX))
+!!$             DR = (4.5 - 2.0) / (NXMAX - 1)
+!!$             DZ =  1.5        / (NYMAX - 1)
+!!$             DO NX = 1, NXMAX
+!!$                RRL(NX) = 2.0 + DR * (NX - 1)
+!!$                DO NY = 1, NYMAX
+!!$                   ZZL(NY) = DZ * (NY - 1)
+!!$                   AL = SQRT(((RRL(NX) - 2.4)**2 + ZZL(NY)**2) * (2.4 / RRL(NX)))
+!!$                   VAL(NX,NY) = REAL(DltRPnL * BESIN(0,NTCOIL/2.4D0*AL))
+!!$                END DO
+!!$             END DO
+!!$
+!!$             CALL GQSCAL(2.0,4.5,GSRMIN,GSRMAX,GSRSTP)
+!!$             CALL GQSCAL(0.0,1.5,GSZMIN,GSZMAX,GSZSTP)
+!!$
+!!$             CALL GDEFIN(3.0,18.0,1.5,10.5,2.0,4.5,0.0,1.5)
+!!$             CALL GFRAME
+!!$
+!!$             CALL GSCALE(GSRMIN,GSRSTP,0.0,0.0,0.1,9)
+!!$             CALL GVALUE(GSRMIN,GSRSTP*2,0.0,0.0,NGULEN(GSRSTP))
+!!$             CALL GSCALE(0.0,0.0,0.0,GSZSTP,0.1,9)
+!!$             CALL GVALUE(0.0,0.0,0.0,GSZSTP*2,NGULEN(GSZSTP*2))
+!!$
+!!$             IPAT = 1
+!!$             IPRD = 0
+!!$
+!!$             ZORG  = 0.0003
+!!$             ZSTEP = 0.0002
+!!$             NSTEP = 3
+!!$             CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*1,KA)
+!!$
+!!$             ZORG  = 0.001
+!!$             ZSTEP = 0.002
+!!$             NSTEP = 4
+!!$             CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*2,KA)
+!!$
+!!$             ZORG  = 0.01
+!!$             ZSTEP = 0.02
+!!$             NSTEP = 4
+!!$             CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*3,KA)
+!!$
+!!$             ZORG  = 0.0
+!!$             ZSTEP = 0.1
+!!$             NSTEP = 2
+!!$             CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*4,KA)
+!!$
+!!$             ZORG  = 0.0
+!!$             ZSTEP = 0.25
+!!$             NSTEP = 4
+!!$             CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*4,KA)
+!!$
+!!$             ZORG  = 1.0
+!!$             ZSTEP = 0.5
+!!$             NSTEP = 3
+!!$             CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*5,KA)
+!!$
+!!$             deallocate(RRL,ZZL,VAL,KA)
+!!$
+!!$             allocate(RRL(1:NTHMAX),ZZL(1:NTHMAX))
+!!$             dtheta = PI / (NTHMAX - 1)
+!!$             theta = 0.d0
+!!$             DO I = 1, 2
+!!$                IF(I == 1) THEN
+!!$                   kappal = 1.d0
+!!$                ELSE
+!!$                   kappal = kappa
+!!$                END IF
+!!$                DO NTH = 1, NTHMAX
+!!$                   theta = (NTH - 1) * dtheta
+!!$                   RRL(NTH) = real(RR + RA * cos(theta))
+!!$                   ZZL(NTH) = real(kappal * RA * sin(theta))
+!!$                   IF(ABS(ZZL(NTH)) < EPSILON(1.0)) ZZL(NTH) = 0.0
+!!$                END DO
+!!$                CALL LINES2D(RRL,ZZL,NTHMAX)
+!!$             END DO
+!!$             deallocate(RRL,ZZL)
+!!$
+!!$             allocate(RRL(1:2*NRMAX),ZZL(1:2*NRMAX))
+!!$             RRL(1:NRMAX) = RR * (1.d0 + epst(NRMAX:1:-1) * COS(thrp(1:NRMAX)))
+!!$             ZZL(1:NRMAX) = kappa * RR * epst(NRMAX:1:-1) * SIN(thrp(1:NRMAX))
+!!$             RRL(NRMAX+1:2*NRMAX) = RR * (1.d0 + epst(1:NRMAX) * COS(thrp(NRMAX+1:2*NRMAX)))
+!!$             ZZL(NRMAX+1:2*NRMAX) = kappa * RR * epst(1:NRMAX) * SIN(thrp(NRMAX+1:2*NRMAX))
+!!$             CALL LINES2D(RRL,ZZL,2*NRMAX)
+!!$             deallocate(RRL,ZZL)
+!!$          end if
+!!$
+!!$          !  *** 1D graphic ***
+!!$
+!!$          IF (MODEG == 2) THEN
+!!$             IND = 9
+!!$          ELSE
+!!$             IND = 0
+!!$          END IF
+!!$
+!!$          GPXY(1) =  3.0
+!!$          GPXY(2) = 11.5
+!!$          GPXY(3) = 11.5
+!!$          GPXY(4) = 17.5
+!!$          GXMAX = REAL(rhob)
+!!$          allocate(GRPL(0:NRMAX,1:2))
+!!$          DO NR = 0, NRMAX
+!!$             if(IRPIN == 0) then
+!!$                GRPL(NR,1) = real(ripple(rho(NR),0.D0,1.D0))
+!!$             else
+!!$                GRPL(NR,1) = real(DltRP_mid(NR))
+!!$             end if
+!!$          END DO
+!!$          WRITE(KOUT,'(F6.4)') GRPL(NRA,1)
+!!$          KOUT = '$#d$#$-a$=='//KOUT(1:6)
+!!$          CALL GTEXT(GPXY(1)+5.5,GPXY(4)-1.5,KOUT,len_trim(KOUT),0)
+!!$          STRL = '@DltRP at mid-plane(r)@'
+!!$          CALL TXGRAF(GPXY,GX,GRPL,NRMAX+1,NRMAX+1,1,0.0,GXMAX,STRL,0.26,MODE,IND,0)
+!!$
+!!$          GPXY(1) = 13.5
+!!$          GPXY(2) = 22.0
+!!$          GPXY(3) = 11.5
+!!$          GPXY(4) = 17.5
+!!$          GXMAX = REAL(rhob)
+!!$          thetab = 0.5D0 * PI
+!!$          DO NR = 0, NRMAX
+!!$             rhol = rho(NR) * (1.D0 + (kappa - 1.D0) * sin(thetab))
+!!$             if(IRPIN == 0) then
+!!$                GRPL(NR,1) = real(ripple(rhol,thetab,1.D0))
+!!$                GRPL(NR,2) = real(ripple(rho(NR),thetab,1.D0))
+!!$                NG = 2
+!!$             else
+!!$                GRPL(NR,1) = real(DltRP(NR))
+!!$                NG = 1
+!!$             end if
+!!$          END DO
+!!$          if(IRPIN == 0) then
+!!$             STRL = '@DltRP at tip point with and w/o elongation(r)@'
+!!$          else
+!!$             STRL = '@DltRP at tip point(r)@'
+!!$          end if
+!!$          CALL TXGRAF(GPXY,GX,GRPL,NRMAX+1,NRMAX+1,NG,0.0,GXMAX,STRL,0.26,MODE,IND,0)
+!!$          deallocate(GRPL)
+!!$
+!!$          CALL SETFNT(IFNT)
+!!$          CALL PAGEE
 
        CASE('W')
           ! *** Write out numerical values of a certain variable ***
@@ -619,7 +623,7 @@ contains
                    IND = 0
                 END IF
                 DO I = 1, NGPR
-                   WRITE(STRL,'(I)') NGPRL(I)
+                   WRITE(STRL,*) NGPRL(I)
                    STRL = "@"//trim(adjustl(STRL))//"@"
                    CALL APPROPGY(MODEG, GY(0,0,NGPRL(I)), GYL2, STRL, NRMAX, NGR, gDIV(NGPRL(I)))
                    J = I - 1
@@ -768,7 +772,7 @@ contains
                 J = 6 ; GZ = 7.0
              END IF
              DO I = 1, NGPR
-                WRITE(STRA(I),'(I)') NGPRL(I)
+                WRITE(STRA(I),*) NGPRL(I)
                 STRA(I) = "@"//trim(adjustl(STRA(I)))//"@"
                 CALL APPROPGY(MODEG, GYT(0,0,NGPRL(I)), GYL(0,0,I), STRA(I), NRMAX, NGT, &
                      &        gDIV(NGPRL(I)), GMAX=GMAXA(I), GMIN=GMINA(I))
@@ -898,7 +902,9 @@ contains
     real(4), dimension(0:NGM), intent(out), optional :: GTL
     real(4), dimension(0:NXM,0:NGM,1:NGYRM), intent(out) :: GYL
 
-    INTEGER(4) :: NX
+    INTEGER(4) :: NX, MDLNEOL
+
+    MDLNEOL = mod(MDLNEO,10)
 
     if(present(GTL)) then
        IF (NG < NGM) NG = NG + 1
@@ -931,9 +937,9 @@ contains
        GYL(NX,NG,20) = REAL(Q(NX))
 
        GYL(NX,NG,21) = REAL(AJ(NX))
-       GYL(NX,NG,22) = REAL(aee*achg(1)*Var(NX,1)%n*Var(NX,1)%UphR*1.d20/d_rrr(NX))
-       GYL(NX,NG,23) = REAL(aee*achg(2)*Var(NX,2)%n*Var(NX,2)%UphR*1.d20/d_rrr(NX))
-       GYL(NX,NG,24) = REAL(aee*achgb*PNbV(NX)*(aat(NX)*fipol(NX)/bbt(NX)*BUbparV(NX))*1.d20/d_rrr(NX))
+       GYL(NX,NG,22) = REAL(aee*achg(1)*Var(NX,1)%n*Var(NX,1)%UphR*1.d20/ait(NX))
+       GYL(NX,NG,23) = REAL(aee*achg(2)*Var(NX,2)%n*Var(NX,2)%UphR*1.d20/ait(NX))
+       GYL(NX,NG,24) = REAL(aee*achgb*PNbV(NX)*(aat(NX)*fipol(NX)/bbt(NX)*BUbparV(NX))*1.d20/ait(NX))
 
        GYL(NX,NG,25) = real(Var(NX,1)%RUph/fipol(NX)-Var(NX,1)%BUpar/bbt(NX))
        GYL(NX,NG,26) = REAL(Var(NX,1)%BUpar)
@@ -1044,11 +1050,7 @@ contains
        GYL(NX,NG,112) = REAL(DltRP(NX))
        GYL(NX,NG,113) = REAL(Ubrp(NX))
        GYL(NX,NG,114) = REAL(Dbrp(NX))
-       IF(PNbV(NX) == 0.D0) THEN
-          GYL(NX,NG,115) = 0.D0
-       ELSE
-          GYL(NX,NG,115) = REAL(PNbrpV(NX)/PNbV(NX))
-       END IF
+       GYL(NX,NG,115) = REAL(PNbrpV(NX)*PNbVinv(NX))
 !       GYL(NX,NG,115) = REAL(PNbrpLV(NX)*1.D20)
 
        GYL(NX,NG,116) = REAL(rNuLB(NX))
@@ -1072,7 +1074,7 @@ contains
        GYL(NX,NG,127) = REAL(DMAGi(NX))
 
        ! *** Rho vs Psi *************************************************
-       GYL(NX,NG,128) = real(Psiv(NX)-Psiv(0))/(Psiv(NRA)-Psiv(0))
+       GYL(NX,NG,128) = real((Psiv(NX)-Psiv(0))/(Psiv(NRA)-Psiv(0)))
 
        ! *** Effective neoclassical thermal diffusivity *****************
        GYL(NX,NG,129) = REAL(ChiNCpe(NX)+ChiNCte(NX))
@@ -1178,11 +1180,27 @@ contains
        GYL(NX,NG,197) = real(X(NX,LQb7))
        GYL(NX,NG,198) = real(X(NX,LQb2))
        GYL(NX,NG,199) = real(aee*(sum(achg(:)*Var(NX,:)%n*Var(NX,:)%UrV)+achgb*PNbV(NX)*UbrVV(NX))*1.d20) ! e_s<Gamma_s.grad V>
-       if(NX == 0) then
-          GYL(NX,NG,200) = 0.0
-       else
-          GYL(NX,NG,200) = real(PNbV(NX)*UbrVV(NX)/vro(NX))*1.e20
-       end if
+       GYL(NX,NG,200) = real(aee*achgb*PNbV(NX)*UbrVV(NX)*1.d20) ! e_b<Gamma_b.grad V>
+       GYL(NX,NG,201) = real(vlt(NX))
+       GYL(NX,NG,202) = real(gflux(NX,1,MDLNEOL))
+       GYL(NX,NG,203) = real(gflux(NX,2,MDLNEOL))
+
+       ! *** Metrics and quantities related to an equilibrium ***
+
+       GYL(NX,NG,204) = real(epst(NX))
+       GYL(NX,NG,205) = real(aat(NX))
+       GYL(NX,NG,206) = real(rrt(NX))
+       GYL(NX,NG,207) = real(ckt(NX))
+       GYL(NX,NG,208) = real(suft(NX))
+       GYL(NX,NG,209) = real(sst(NX))
+       GYL(NX,NG,210) = real(vro(NX))
+       GYL(NX,NG,211) = real(vlt(NX))
+       GYL(NX,NG,212) = real(art(NX))
+       GYL(NX,NG,213) = real(ait(NX))
+       GYL(NX,NG,214) = real(bit(NX))
+       GYL(NX,NG,215) = real(bbrt(NX))
+       GYL(NX,NG,216) = real(elip(NX))
+       GYL(NX,NG,217) = real(trig(NX))
 
     end do
 
@@ -1203,8 +1221,9 @@ contains
          &              PN01V, PN02V, PN03V, BEpol, BUbparV, Q, Di, De, &
          &              rG1h2, FCDBM, S, Alpha, rKappa, NRA, rNuION, &
          &              Chie,  Chii, PIE, PCX, SIE, PBr, Deff, rKeV, FCDIM, &
-         &              AJ, d_rrr, aat, fipol, bbt, BUbparV, qhatsq, Var
-    use tx_interface, only : rLINEAVE, sub_intg_vol
+         &              AJ, ait, aat, fipol, bbt, BUbparV, qhatsq, Var
+    use tx_interface, only : rLINEAVE
+    use tx_core_module, only : sub_intg_vol
 
     REAL(4), INTENT(IN) :: GTIME
     integer(4) :: NRL
@@ -1239,9 +1258,9 @@ contains
     GVY(NGVV,20) = REAL(Q(0))
 
     GVY(NGVV,21) = REAL(AJ(0))
-    GVY(NGVV,22) = REAL(aee*achg(1)*Var(0,1)%n*Var(0,1)%UphR*1.d20/d_rrr(0))
-    GVY(NGVV,23) = REAL(aee*achg(2)*Var(0,2)%n*Var(0,2)%UphR*1.d20/d_rrr(0))
-    GVY(NGVV,24) = REAL(aee*achgb*PNbV(0)*(aat(0)*fipol(0)/bbt(0)*BUbparV(0))*1.d20/d_rrr(0))
+    GVY(NGVV,22) = REAL(aee*achg(1)*Var(0,1)%n*Var(0,1)%UphR*1.d20/ait(0))
+    GVY(NGVV,23) = REAL(aee*achg(2)*Var(0,2)%n*Var(0,2)%UphR*1.d20/ait(0))
+    GVY(NGVV,24) = REAL(aee*achgb*PNbV(0)*(aat(0)*fipol(0)/bbt(0)*BUbparV(0))*1.d20/ait(0))
 
     GVY(NGVV,25) = real(Var(NRC,1)%RUph/fipol(NRC)-Var(NRC,1)%BUpar/bbt(NRC))
     GVY(NGVV,26) = real(Var(NRC,1)%BUpar)
@@ -1312,7 +1331,7 @@ contains
          &              AJT, AJOHT, AJNBT, AJBST, POUT, PCXT, PIET, QF, ANS0, &
          &              ANSAV, WPT, WBULKT, WST, TAUE1, TAUE2, TAUEP, BETAA, &
          &              BETA0, BETAPA, BETAP0, VLOOP, ALI, Q, RQ1, ANF0, ANFAV, &
-         &              VOLAVN, TAUP, TAUPA, Gamma_a, TNBcol, TTqt
+         &              VOLAVN, TAUP, TAUPA, Gamma_a, TNBcol, TTqt, PnumN0
     REAL(4), INTENT(IN) :: GTIME
 
     IF (NGT < NGTM) NGT=NGT+1
@@ -1384,6 +1403,7 @@ contains
     END IF
     GTY(NGT,52) = real(TNBcol)
     GTY(NGT,53) = real(TTqt)
+    GTY(NGT,54) = real(PnumN0)
 
     ! Store data for 3D graphics
     CALL TXSTGR(NGT,GYL=GYT,NGM=NGTM)
@@ -1784,7 +1804,7 @@ contains
 !       CALL TXGRFRX(3,GX,GYL,NRMAX,NGR,STR,MODE,IND)
        DO NG = 0, NGR
           DO NR = 0, NRMAX
-             GYL(NR,NG) = GLOG(DBLE(GY(NR,NG,16)),1.D0,1.D23)
+             GYL(NR,NG) = GLOG(real(GY(NR,NG,16),8),1.D0,1.D23)
           END DO
        END DO
        CALL TXGRFRX(3,GX,GYL,NRMAX,NGR,STR,MODE,IND,ILOGIN=1)
@@ -1795,7 +1815,7 @@ contains
        STR = '@SCX@'
        DO NG = 0, NGR
           DO NR = 0, NRMAX
-             GYL(NR,NG) = GLOG(DBLE(GY(NR,NG,133)),1.D10,1.D23)
+             GYL(NR,NG) = GLOG(real(GY(NR,NG,133),8),1.D10,1.D23)
           END DO
        END DO
        CALL TXGRFRX(0,GX,GYL,NRMAX,NGR,STR,MODE,IND,GYMIN=18.0,ILOGIN=1)
@@ -1803,7 +1823,7 @@ contains
        STR = '@SIE@'
        DO NG = 0, NGR
           DO NR = 0, NRMAX
-             GYL(NR,NG) = GLOG(DBLE(GY(NR,NG,90)),1.D10,1.D23)
+             GYL(NR,NG) = GLOG(real(GY(NR,NG,90),8),1.D10,1.D23)
           END DO
        END DO
        CALL TXGRFRX(1,GX,GYL,NRMAX,NGR,STR,MODE,IND,GYMIN=18.0,ILOGIN=1)
@@ -1945,17 +1965,16 @@ contains
 
     CASE(21)
        STR = '@$#S$#e$-s$=$#G$#$-s$=.grad V@'
-       CALL TXGRFRX(0,GX,GY(0,0,160),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRX(0, GX, GY(0,0,160), NRMAX, NGR, STR, MODE, IND)
 
        STR = '@Additional Torque@'
-       CALL TXGRFRX(1,GX,GY(0,0,131),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRX(1, GX, GY(0,0,131), NRMAX, NGR, STR, MODE, IND)
 
        STR = '@$#S$#e$-s$=$#G$#$-s$=.grad V w/ beam@'
-       CALL TXGRFRX(2,GX,GY(0,0,199),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRX(2, GX, GY(0,0,199), NRMAX, NGR, STR, MODE, IND)
 
-       STR = '@$#G$#$-b$=.grad $#r$#@'
-       CALL APPROPGY(MODEG, GY(0,0,200), GYL, STR, NRMAX, NGR, gDIV(200))
-       CALL TXGRFRX(3,GX,GYL,NRMAX,NGR,STR,MODE,IND)
+       STR = '@e$-b$=$#G$#$-b$=.grad V@'
+       CALL TXGRFRX(3, GX, GY(0,0,200), NRMAX, NGR, STR, MODE, IND)
 
 !       STR = '@F$-CDIM$=@'
 !       CALL TXGRFRX(3,GX,GY(0,0,140),NRMAX,NGR,STR,MODE,IND)
@@ -1996,6 +2015,20 @@ contains
        CALL TXGRFRX( 3,GX,GY(0,0,190),NRMAX,NGR,STR,MODE,IND)
 
     CASE(24)
+       STR = '@$#w$#$-ExB$=@'
+       CALL APPROPGY(MODEG, GY(0,0,141), GYL, STR, NRMAX, NGR, gDIV(141))
+       CALL TXGRFRX(0,GX,GYL,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@G$-1$=h$+2$=@'
+       CALL TXGRFRX(1,GX,GY(0,0, 30),NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@$#c$#$-e$=@'
+       CALL TXGRFRX(2,GX,GY(0,0,134),NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@$#c$#$-i$=@'
+       CALL TXGRFRX(3,GX,GY(0,0,135),NRMAX,NGR,STR,MODE,IND)
+
+    CASE(25)
        STR = '@PRFe@'
        CALL APPROPGY(MODEG, GY(0,0,85), GYL, STR, NRMAX, NGR, gDIV(85))
        CALL TXGRFRX(0,GX,GYL,NRMAX,NGR,STR,MODE,IND)
@@ -2003,13 +2036,6 @@ contains
        STR = '@PRFi@'
        CALL APPROPGY(MODEG, GY(0,0,86), GYL, STR, NRMAX, NGR, gDIV(86))
        CALL TXGRFRX(1,GX,GYL,NRMAX,NGR,STR,MODE,IND)
-
-       STR = '@$#w$#$-ExB$=@'
-       CALL APPROPGY(MODEG, GY(0,0,141), GYL, STR, NRMAX, NGR, gDIV(141))
-       CALL TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND)
-
-       STR = '@$#c$#$-i$=@'
-       CALL TXGRFRX(3,GX,GY(0,0,135),NRMAX,NGR,STR,MODE,IND)
 
     CASE(-1)
        STR = '@E$-r$=@'
@@ -2090,8 +2116,11 @@ contains
        CALL APPROPGY(MODEG, GY(0,0,13), GYL, STR, NRMAX, NGR, gDIV(13))
        CALL TXGRFRXS(2,GX,GYL,NRMAX  ,NGR,STR,MODE,IND)     
 
-       STR = '@Ripple n$-b$=@'
-       CALL APPROPGY(MODEG, GY(0,0,109), GYL, STR, NRMAX, NGR, gDIV(109))
+!       STR = '@Ripple n$-b$=@'
+!       CALL APPROPGY(MODEG, GY(0,0,110), GYL, STR, NRMAX, NGR, gDIV(110))
+!       CALL TXGRFRXS(3,GX,GYL,NRMAX,NGR,STR,MODE,IND)
+       STR = '@f$-t$=@'
+       CALL APPROPGY(MODEG, GY(0,0,194), GYL, STR, NRMAX, NGR, gDIV(194))
        CALL TXGRFRXS(3,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
        STR = '@TOTAL N$-0$=@'
@@ -2099,7 +2128,7 @@ contains
 !       CALL TXGRFRXS(4,GX,GYL,NRMAX,NGR,STR,MODE,IND)
        DO NG = 0, NGR
           DO NR = 0, NRMAX
-             GYL(NR,NG) = GLOG(DBLE(GY(NR,NG,16)),1.D0,1.D23)
+             GYL(NR,NG) = GLOG(real(GY(NR,NG,16),8),1.D0,1.D23)
           END DO
        END DO
        CALL TXGRFRXS(4,GX,GYL,NRMAX,NGR,STR,MODE,IND,ILOGIN=1)
@@ -2341,7 +2370,10 @@ contains
 !!$       CALL TXGRFRXS( 8,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
 
        STR = '@WPM@'
-       CALL TXGRFRXS( 9,GX,GY(0,0,66),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRXS( 8,GX,GY(0,0,66),NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@SiLC@'
+       CALL TXGRFRXS( 9,GX,GY(0,0,81),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@rNu0b@'
        CALL TXGRFRXS(10,GX,GY(0,0,87),NRMAX,NGR,STR,MODE,IND)
@@ -2358,9 +2390,6 @@ contains
 
        STR = '@rNuLB@'
        CALL TXGRFRXS(14,GX,GY(0,0,116),NRMAX,NGR,STR,MODE,IND)
-
-!!$       STR = '@SiLC@'
-!!$       CALL TXGRFRXS(11,GX,GY(0,0,81),NRMAX,NGR,STR,MODE,IND)
 
 !!$       STR = '@rNubrp1@'
 !!$       CALL TXGRFRXS( 4,GX,GY(0,0,111),NRMAX,NGR,STR,MODE,IND)
@@ -2504,6 +2533,71 @@ contains
        CALL APPROPGY(MODEG, GY(0,0,165), GYL, STR, NRMAX, NGR, gDIV(165))
        CALL TXGRFRX( 3,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
 
+    CASE(-11)
+       STR = '@epst@'
+       CALL APPROPGY(MODEG, GY(0,0,204), GYL, STR, NRMAX, NGR, gDIV(204))
+       CALL TXGRFRXS( 0,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@aat@'
+       CALL APPROPGY(MODEG, GY(0,0,205), GYL, STR, NRMAX, NGR, gDIV(205))
+       CALL TXGRFRXS( 1,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@rrt@'
+       CALL APPROPGY(MODEG, GY(0,0,206), GYL, STR, NRMAX, NGR, gDIV(206))
+       CALL TXGRFRXS( 2,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@ckt@'
+       CALL APPROPGY(MODEG, GY(0,0,207), GYL, STR, NRMAX, NGR, gDIV(207))
+       CALL TXGRFRXS( 3,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@suft@'
+       CALL APPROPGY(MODEG, GY(0,0,208), GYL, STR, NRMAX, NGR, gDIV(208))
+       CALL TXGRFRXS( 4,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@sst@'
+       CALL APPROPGY(MODEG, GY(0,0,209), GYL, STR, NRMAX, NGR, gDIV(209))
+       CALL TXGRFRXS( 5,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@vro@'
+       CALL APPROPGY(MODEG, GY(0,0,210), GYL, STR, NRMAX, NGR, gDIV(210))
+       CALL TXGRFRXS( 6,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@vlt@'
+       CALL APPROPGY(MODEG, GY(0,0,211), GYL, STR, NRMAX, NGR, gDIV(211))
+       CALL TXGRFRXS( 7,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@art@'
+       CALL APPROPGY(MODEG, GY(0,0,212), GYL, STR, NRMAX, NGR, gDIV(212))
+       CALL TXGRFRXS( 8,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@ait@'
+       CALL APPROPGY(MODEG, GY(0,0,213), GYL, STR, NRMAX, NGR, gDIV(213))
+       CALL TXGRFRXS( 9,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@bit@'
+       CALL APPROPGY(MODEG, GY(0,0,214), GYL, STR, NRMAX, NGR, gDIV(214))
+       CALL TXGRFRXS(10,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@bbrt@'
+       CALL APPROPGY(MODEG, GY(0,0,215), GYL, STR, NRMAX, NGR, gDIV(215))
+       CALL TXGRFRXS(11,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@elip@'
+       CALL APPROPGY(MODEG, GY(0,0,216), GYL, STR, NRMAX, NGR, gDIV(216))
+       CALL TXGRFRXS(12,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@trig@'
+       CALL APPROPGY(MODEG, GY(0,0,217), GYL, STR, NRMAX, NGR, gDIV(217))
+       CALL TXGRFRXS(13,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@fipol@'
+       CALL APPROPGY(MODEG, GY(0,0, 18), GYL, STR, NRMAX, NGR, gDIV( 18))
+       CALL TXGRFRXS(14,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@sdt@'
+       CALL APPROPGY(MODEG, GY(0,0,161), GYL, STR, NRMAX, NGR, gDIV(161))
+       CALL TXGRFRXS(15,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
+
     CASE DEFAULT
        WRITE(6,*) 'Unknown NGYR: NGYR = ',NGYR
     END SELECT
@@ -2530,6 +2624,8 @@ contains
     CASE(-9)
        NGYR = -10 ; CYCLE
     CASE(-10)
+       NGYR =  0  ; EXIT
+    CASE(-11)
        NGYR =  0  ; EXIT
     CASE DEFAULT
        EXIT
@@ -3372,10 +3468,12 @@ contains
 
   SUBROUTINE TXGRCP(MODE)
 
-    use tx_commons, only : NRMAX, DT, NRA, UsthNCL, BJPARA, BEpara, BJBSvar, ETAvar, Var
+    use tx_commons, only : NRMAX, DT, NRA, UsthNCL, BJPARA, BEpara, BJBSvar, ETAvar, Var, &
+         &                 MDLNEO, sdt, gflux
+    use tx_variables, only : TXCALC
     integer(4), intent(in) :: MODE
-    character(len=50) :: STR
-    integer(4) :: IND, IFNT, NR, inum, ipage
+    character(len=69) :: STR
+    integer(4) :: IND, IFNT, NR, inum, ipage, MDLNEOstore, MDLNEOL
     real(4), dimension(:,:), allocatable :: GYL, GYL2
 
     IF (NGR <= -1) THEN
@@ -3416,41 +3514,46 @@ contains
 !    call gtextx(5.5,9.4,'@Please compare ETA and BJBS in the limit of Zeff = 1.@',0)
 !!    CALL SETFNT(-1)
 
+    MDLNEOstore = MDLNEO
+    MDLNEO = 10 + MDLNEO
+    call TXCALC(1)
+    MDLNEO = MDLNEOstore
+
     ! Resistivity
 
     inum = 4
     DO NR = 0, NRMAX
-       GYL(NR,1) = GLOG(ETAvar(NR,2),1.D-10,1.D0) ! NCLASS
-       GYL(NR,2) = GLOG(ETAvar(NR,3),1.D-10,1.D0) ! Sauter
-       GYL(NR,3) = GLOG(ETAvar(NR,5),1.D-10,1.D0) ! MI
-       GYL(NR,4) = GLOG(ETAvar(NR,1),1.D-10,1.D0) ! TX, tentative
+       GYL(NR,1) = GLOG(ETAvar(NR,1),1.D-10,1.D0) ! MI
+       GYL(NR,2) = GLOG(ETAvar(NR,2),1.D-10,1.D0) ! NCLASS
+       GYL(NR,3) = GLOG(ETAvar(NR,3),1.D-10,1.D0) ! Sauter
+       GYL(NR,4) = GLOG(ETAvar(NR,0),1.D-10,1.D0) ! TX
 !       GYL(NR,3) = GLOG(ETAS(NR),1.D-10,1.D0)
     END DO
 
-    STR = '@LOG: ETA NCLASS, SAUTER, MI, TX@'
+    STR = '@LOG: ETA MI, NCLASS, SAUTER, TX@'
     CALL TXGRFRS(0, GX(1:NRA), GYL(1:NRA,:), NRA-1, inum, STR, MODE, IND, 1, 0, 'STATIC')
 
     ! Bootstrap current
 
     inum = 3
-    GYL(0:NRMAX,1) = REAL(BJBSvar(0:NRMAX,2)) ! NCLASS
-    GYL(0,1) = 0.0
-    GYL(0:NRMAX,2) = REAL(BJBSvar(0:NRMAX,3)) ! Sauter
-    GYL(0:NRMAX,3) = REAL(BJBSvar(0:NRMAX,5)) ! MI
+    GYL(0:NRMAX,1) = REAL(BJBSvar(0:NRMAX,1)) ! MI
+    GYL(0:NRMAX,2) = REAL(BJBSvar(0:NRMAX,2)) ! NCLASS
+    GYL(0:NRMAX,3) = REAL(BJBSvar(0:NRMAX,3)) ! Sauter
 
-    STR = '@BJ$-BS$= NCLASS, SAUTER, MI@'
+    STR = '@BJ$-BS$= MI, NCLASS, SAUTER@'
     CALL APPROPGY(MODEG, GYL, GYL2, STR, NRMAX, inum-1, gDIV(22))
     CALL TXGRFRS(1, GX(1:NRA), GYL2(1:NRA,:), NRA-1, inum, STR, MODE, IND, 0, 0, 'STATIC')
 
     ! Poloidal rotations
 
+    inum = 4
     GYL(0:NRMAX,1) = REAL(Var(0:NRMAX,1)%Uthhat) ! TX
     GYL(0:NRMAX,3) = REAL(UsthNCL(0:NRMAX,1,1))  ! Neo. solver, from p' T'
     GYL(0:NRMAX,4) = REAL(UsthNCL(0:NRMAX,1,2))  ! Neo. solver, from <E.B>
     GYL(0:NRMAX,2) = GYL(0:NRMAX,3) + GYL(0:NRMAX,4) ! Neo. solver, total
 
     STR = '@Ueth@'
-    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRMAX, 4-1, gDIV(4))
+    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRMAX, inum-1, gDIV(4))
     CALL TXGRFRS(2, GX(1:NRA), GYL2(1:NRA,:), NRA-1, 4, STR, MODE, IND, 0, 0, 'STATIC')
 
     GYL(0:NRMAX,1) = REAL(Var(0:NRMAX,2)%Uthhat)
@@ -3459,7 +3562,7 @@ contains
     GYL(0:NRMAX,2) = GYL(0:NRMAX,3) + GYL(0:NRMAX,4)
 
     STR = '@Uith@'
-    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRMAX, 4-1, gDIV(7))
+    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRMAX, inum-1, gDIV(7))
     CALL TXGRFRS(3, GX(1:NRA), GYL2(1:NRA,:), NRA-1, 4, STR, MODE, IND, 0, 0, 'STATIC')
 
     CALL PAGEE
@@ -3485,17 +3588,39 @@ contains
     CALL TEXT('  NGRSTP = ', 11)
     CALL NUMBI(NGRSTP,'(I4)',4)
 
+    ! Particle flux  <Gamma_s . grad psi>
+
+    MDLNEOL = mod(MDLNEO,10)
+    if( MDLNEOL == 3 ) MDLNEOL = 2
+
+    inum = 3
+    GYL(0:NRMAX,1) = real(Var(0:NRMAX,1)%n*Var(0:NRMAX,1)%UrV*sdt(0:NRMAX))*1.e20 ! TX
+    GYL(0:NRMAX,2) = real(gflux(0:NRMAX,1,MDLNEOL))                               ! MI
+    GYL(0:NRMAX,3) = real(gflux(0:NRMAX,1,3))                                     ! NCLASS
+
+    STR = '@Gamma$-e$=$+psi$= [10$+20$=T/m$+2$=s$+1$=] TX, MI, NCLASS@'
+    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRMAX, inum-1, gDIV(136))
+    CALL TXGRFRS(0, GX, GYL2, NRMAX, inum, STR, MODE, IND, 0, 0, 'STATIC')
+
+    GYL(0:NRMAX,1) = real(Var(0:NRMAX,2)%n*Var(0:NRMAX,2)%UrV*sdt(0:NRMAX))*1.e20 ! TX
+    GYL(0:NRMAX,2) = real(gflux(0:NRMAX,2,MDLNEOL))                               ! MI
+    GYL(0:NRMAX,3) = real(gflux(0:NRMAX,2,3))                                     ! NCLASS
+
+    STR = '@Gamma$-i$=$+psi$= [10$+20$=T/m$+2$=s$+1$=] TX, MI, NCLASS@'
+    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRMAX, inum-1, gDIV(137))
+    CALL TXGRFRS(1, GX, GYL2, NRMAX, inum, STR, MODE, IND, 0, 0, 'STATIC')
+
     ! Total current
 
     inum = 4
-    GYL(0:NRMAX,1) = real(BJPARA(0:NRMAX))                              ! TX
-    GYL(0:NRMAX,2) = real(BEpara(0:NRMAX)/ETAvar(0:NRMAX,2)+BJBSvar(0:NRMAX,2)) ! NCLASS
-    GYL(0:NRMAX,3) = real(BEpara(0:NRMAX)/ETAvar(0:NRMAX,3)+BJBSvar(0:NRMAX,3)) ! Sauter
-    GYL(0:NRMAX,4) = real(BEpara(0:NRMAX)/ETAvar(0:NRMAX,5)+BJBSvar(0:NRMAX,5)) ! MI
+    GYL(0:NRMAX,1) = real(BJPARA(0:NRMAX))                                      ! TX
+    GYL(0:NRMAX,2) = real(BEpara(0:NRMAX)/ETAvar(0:NRMAX,1)+BJBSvar(0:NRMAX,1)) ! MI
+    GYL(0:NRMAX,3) = real(BEpara(0:NRMAX)/ETAvar(0:NRMAX,2)+BJBSvar(0:NRMAX,2)) ! NCLASS
+    GYL(0:NRMAX,4) = real(BEpara(0:NRMAX)/ETAvar(0:NRMAX,3)+BJBSvar(0:NRMAX,3)) ! Sauter
 
-    STR = '@BJ// TX, NCLASS, SAUTER, MI@'
+    STR = '@BJ// TX, MI, NCLASS, SAUTER@'
     CALL APPROPGY(MODEG, GYL, GYL2, STR, NRMAX, inum-1, gDIV(22))
-    CALL TXGRFRS(0, GX, GYL2, NRMAX, inum, STR, MODE, IND, 0, 0, 'STATIC')
+    CALL TXGRFRS(2, GX, GYL2, NRMAX, inum, STR, MODE, IND, 0, 0, 'STATIC')
 
     CALL PAGEE
 
@@ -3550,7 +3675,7 @@ contains
     GYL(0:NRMAX,2) = GY(0:NRMAX,NGR,165) ! Neo. solver
 
     STR = '@Bqhat$-i//$= TX, Neo. solver@'
-    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRMAX, inum-1, gDIV(164))
+    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRMAX, inum-1, gDIV(159))
     CALL TXGRFRS(3, GX, GYL2, NRMAX, inum, STR, MODE, IND, 0, 0, 'STATIC')
 
     CALL PAGEE
@@ -4348,8 +4473,11 @@ contains
        STR = '@TNBcol [Nm] vs t@'
        CALL TXGRFTX(4, GTX, GTY(0,52), NGTM, NGT, 1, STR, IND)
 
+       STR = '@Num. of Neutrals vs t@'
+       CALL TXGRFTX(5, GTX, GTY(0,54), NGTM, NGT, 1, STR, IND)
+
        STR = '@TTqt [Nm] vs t@'
-       CALL TXGRFTX(5, GTX, GTY(0,53), NGTM, NGT, 1, STR, IND)
+       CALL TXGRFTX(6, GTX, GTY(0,53), NGTM, NGT, 1, STR, IND)
 
     CASE DEFAULT
        WRITE(6,*) 'Unknown NGYT: NGYT = ',NGYT
@@ -4951,7 +5079,7 @@ contains
     case('D') ! R-derivative of a radial profile
        if (n >= 0 .and. n <= NGYRM) then
           allocate(dVdr(0:nrmax))
-          dVdr(0:nrmax) = dfdx(R,dble(gy(0:nrmax,ngr,n)),nrmax,0)
+          dVdr(0:nrmax) = dfdx(R,real(gy(0:nrmax,ngr,n),8),nrmax,0)
           write(6,'(A1,6X,A3,11X,A5)') "#","rho","dValue/dR"
           do i = 0, nrmax
              write(6,*) gx(i),real(dVdr(i))
@@ -4987,5 +5115,54 @@ contains
     IERR = 1
 
   end subroutine return_NGT_from_T
+
+  !***********************************************************
+  !
+  !   Psi contour output for gnuplot
+  !
+  !***********************************************************
+
+  subroutine psi_out_gnuplot
+
+    use equ_params, only : psi, rg, zg, nsr, nsz
+    integer(4) :: i, j, ist, iopsi = 21, iogpl = 22
+    character(len=9)  :: file_psi = 'psi_out.d'
+    character(len=11) :: file_gpl = 'psi_out.gpl' &
+         &              ,file_out = 'psi_out.eps'
+
+    ! Create psi contour data
+
+    open(iopsi,file=file_psi,iostat=ist,status='replace',form='formatted')
+    do j = 1, nsz
+       do i = 1, nsr
+          write(iopsi,*) rg(i), zg(j), psi(i+(j-1)*nsr)
+       end do
+       write(iopsi,*) 
+    end do
+
+    ! Create gnuplot script
+
+    open(iogpl,file=file_gpl,iostat=ist,status='replace',form='formatted')
+    write(iogpl,*) 'unset surface'
+    write(iogpl,*) 'unset ztics'
+    write(iogpl,*) 'set key outside'
+    write(iogpl,*) 'set contour base'
+    write(iogpl,*) 'set cntrparam levels auto 20'
+    write(iogpl,*) 'set view 0,0'
+    write(iogpl,*) 'set view equal xy' ! N.B. 'set size ratio -1' for 2D
+    write(iogpl,*) 'set term postscript enh color "Helvetica" 18'
+    write(iogpl,*) 'set output "',file_out,'"'
+    write(iogpl,*) 'splot "',file_psi,'" using 1:2:3 w l'
+    write(iogpl,*) 'exit'
+
+    ! Call gnuplot
+
+    call system("gnuplot "//file_gpl)
+    call system("gv "//file_out)
+
+    close(iopsi,status='delete')
+    close(iogpl,status='delete')
+
+  end subroutine psi_out_gnuplot
 
 end module tx_graphic

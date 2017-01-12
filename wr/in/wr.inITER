@@ -9,7 +9,7 @@ p
    KNAMWR='wrdata.ITER'
    NSMAX=3
    PA(2)=2.0,PA(3)=3.0
-   modelp=25,1,1
+   modelp=205,1,1
    modelv=3,0,0
    PN=1.0,0.5,0.5
    PNS=0.01,0.005,0.005

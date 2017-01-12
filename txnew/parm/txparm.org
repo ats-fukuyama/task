@@ -1,0 +1,11 @@
+ &tx
+  ntmax=50
+  ngrstp=10
+
+  ieqread=2
+ &end
+
+ &txequ
+  eqfile='eqdata_circular'
+  eqfile='eqdata'
+ &end

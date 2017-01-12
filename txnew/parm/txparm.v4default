@@ -1,0 +1,18 @@
+ &tx
+    RR=1.3, RA=0.35, BB=1.3, rIPs=0.15, rIPe=0.15,
+    PN0=0.4, PNa=0.05, PNeDIV=10.e-3, PROFN1=3.0, 
+    PTe0=700.e-3, PTea=50.e-3, PTeDIV=10.d-3, 
+    PTi0=700.e-3, PTia=50.e-3, PTiDIV=10.d-3, 
+    ieqread=0,
+    De0=0.05, rMue0=0.3, rMui0=0.3, Chie0=0.3, Chii0=0.3, ChiNC=0.0, 
+    PROFD=3.0, PROFD1=3.0, PROFD2=2.0,
+    FSBOHM=0.0, FSVAHL=0.0, FSPCLD=1.0,
+    Ebmax=32.0, RNBT10=0.0,
+    V0=1.5e3, rGASPF=0.01, 
+    rG1=24.0, 
+    RMAGMN=0.35, RMAGMX=0.35,
+
+    NTMAX=10, NTSTEP=10, NGRSTP=1, NGTSTP=1, NGVSTP=1,
+    MODEG=1, MDLPCK=0, MDOSQZ=11, MDITST=1, MDINTT=0,
+    ISMTHD=1,
+ &end

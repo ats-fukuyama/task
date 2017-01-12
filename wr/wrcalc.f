@@ -1166,7 +1166,7 @@ C
 C
 C      WRITE(6,*) S,T,S/T
       RKR=RKRI-S/T
-      IF(MDLWRW.NE.0) 
+      IF(MDLWRW.EQ.1) 
      &     WRITE(6,'(A,1P3E12.4)') 'RKR,RKRI,-S/T=',RKR,RKRI,-S/T
 C
       IF(ABS((RKR-RKRI)/RKRI).LE.EPSNW) GOTO 9000

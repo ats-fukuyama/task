@@ -7,14 +7,15 @@
 
 SUBROUTINE TXWDAT
   use tx_commons, only : PI, RB, PN01V, NRMAX, WPT, Var
-  use tx_interface, only : intg_area, rLINEAVE
+  use tx_interface, only : rLINEAVE
+  use tx_core_module, only : intg_area
 
   implicit none
   REAL(8) :: rNbar
 
   !     ***** Volume-averaged density *****
 
-  rNbar = intg_area(Var(0:NRMAX,1)%n) * 1.D20
+  rNbar = intg_area(Var(:,1)%n) * 1.D20
   rNbar = rNbar / (PI * RB**2)
 
   WRITE(6,'((1X,A," =",1PD9.2,3(2X,A,"=",1PD9.2)))') &
@@ -68,7 +69,7 @@ subroutine TXSTAT
   use tx_commons, only : VOLAVN, ALI, VLOOP, TAUE1, TAUE2, TAUEP, TAUEH, BETAA, &
        &                 BETAPA, BETAN, Q, ANSAV, rIp, PI, RA, NRA, NRMAX, &
        &                 rMui, Chii, TSAV, Gamma_a, TAUPA, achg, &
-       &                 rKeV, amas, amp, RR, rNuei, rho, Var
+       &                 rKeV, amas, amp, RR, rNuei, rho, Var, vlt
   implicit none
   integer(4) :: NR, NRL1, NRL2
   real(8) :: rhol1, rhol2, rmuil, chiil, uiphl, PTeVL, WDe, rNueiL
@@ -119,7 +120,7 @@ subroutine TXSTAT
   write(6,'(1X,2(A27,1PD10.3,3X))') "Ion Prandtl num. at 0.3  = ", rmuil/chiil, &
        &                            "Ion tor. velocity at 0.3 = ", uiphl
   write(6,'(1X,2(A27,1PD10.3,3X))') "Eff .col. freq. at 0.5   = ", rNueiL/WDe, &
-       &                            "Plasma volume inside sep.= ", 2.D0*PI*RR*PI*RA**2
+       &                            "Plasma volume inside sep.= ", vlt(NRA)
 
 end subroutine TXSTAT
 
@@ -207,7 +208,8 @@ END FUNCTION rLINEAVE
 
 SUBROUTINE TXSAVE
   use tx_commons, only : &
-       & SLID,RA,rhob,rhoaccum,RR,BB,amas,achg,Zeff,rIPs,rIPe,PN0,PNa,PTe0,PTea,PTi0,PTia, &
+       & SLID,RA,rhob,rhoaccum,RR,BB,rbvt,ravl,rbvl,amas,achg,Zeff,rIPs,rIPe, &
+       & PN0,PNa,PTe0,PTea,PTi0,PTia, &
        & PROFJ,PROFN1,PROFN2,PROFT1,PROFT2,Uiph0,PROFD,PROFD1,PROFD2,PROFDB,PROFM,PROFM1,PROFMB,PROFC,PROFC1,PROFCB, &
        & De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC,FSDFIX,FSANOM,FSCBKP,FSCBSH,rG1, &
        & FSBOHM,FSPCLD,FSPCLM,FSPCLC,FSVAHL,FSMPCH,FSPARV,FSCX,FSLC,FSNC,FSNCB,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03, &
@@ -218,7 +220,7 @@ SUBROUTINE TXSAVE
        & ICMAX,NRMAX,NTMAX,NTSTEP,T_TX,TMAX,NT,NTCUM,NQMAX,IERR,X, &
        & NLCMAX,NCM,NTCOIL,DltRPn,m_pol,n_tor, &
        & MODEAV,IDIAG,MDLPCK,MODECV,oldmix,iSUPG2,iSUPG3,iSUPG6,SUPGstab, &
-       & IGBDF,MDFIXT,MDBEAM,MDOSQZ,MDLETA,MDANOM, &
+       & IGBDF,MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDANOM, &
        & MDLNBD,PNBMPD,PNBPTC,thrp,kappa
   use tx_graphic, only : NGYTM,NGYVM,MODEG,MODEGL,NGT,NGVV,NGRSTP,NGTSTP,NGVSTP,GTY,GVY,GQY,GTX,GVX
   use tx_interface, only : TOUPPER
@@ -280,7 +282,7 @@ SUBROUTINE TXSAVE
   WRITE(21) SLID
   WRITE(21) RCSId
 
-  WRITE(21) RA,rhob,rhoaccum,RR,BB
+  WRITE(21) RA,rhob,rhoaccum,RR,BB,rbvt,ravl,rbvl
   WRITE(21) amas,achg,Zeff,rIPs,rIPe
   WRITE(21) PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,PROFN1,PROFN2,PROFT1,PROFT2,Uiph0
   WRITE(21) PROFD,PROFD1,PROFD2,PROFDB,PROFM,PROFM1,PROFMB,PROFC,PROFC1,PROFCB
@@ -294,7 +296,8 @@ SUBROUTINE TXSAVE
   WRITE(21) DltRPn,kappa
   WRITE(21) DT,EPS,ADV,tiny_cap,CMESH0,WMESH0,CMESH,WMESH
   WRITE(21) ICMAX,NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
-  WRITE(21) MODEG,MODEAV,MODEGL,IDIAG,MDLPCK,MODECV,oldmix,iSUPG2,iSUPG3,iSUPG6,SUPGstab,IGBDF,MDFIXT,MDBEAM,MDOSQZ,MDLETA,MDANOM
+  WRITE(21) MODEG,MODEAV,MODEGL,IDIAG,MDLPCK,MODECV,oldmix,iSUPG2,iSUPG3,iSUPG6,SUPGstab,IGBDF
+  WRITE(21) MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDANOM
   WRITE(21) MDLNBD,MDLC,NTCOIL,m_pol,n_tor
 
   WRITE(21) T_TX,TMAX,NT,NTCUM,NQMAX,IERR
@@ -323,7 +326,8 @@ END SUBROUTINE TXSAVE
 SUBROUTINE TXLOAD(IST)
   use tx_commons, only : &
        & allocate_txcomm, deallocate_txcomm, &
-       & RA,RB,rhob,rhoaccum,RR,BB,amas,achg,Zeff,rIPs,rIPe,PN0,PNa,PTe0,PTea,PTi0,PTia, &
+       & RA,RB,rhob,rhoaccum,RR,BB,rbvt,ravl,rbvl,amas,achg,Zeff,rIPs,rIPe, &
+       & PN0,PNa,PTe0,PTea,PTi0,PTia, &
        & PROFJ,PROFN1,PROFN2,PROFT1,PROFT2,Uiph0,PROFD,PROFD1,PROFD2,PROFDB,PROFM,PROFM1,PROFMB,PROFC,PROFC1,PROFCB, &
        & De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC,FSDFIX,FSANOM,FSCBKP,FSCBSH,rG1, &
        & FSBOHM,FSPCLD,FSPCLM,FSPCLC,FSVAHL,FSMPCH,FSPARV,FSCX,FSLC,FSNC,FSNCB,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03, &
@@ -334,7 +338,7 @@ SUBROUTINE TXLOAD(IST)
        & ICMAX,NRMAX,NTMAX,NTSTEP,T_TX,TMAX,NT,NTCUM,NQMAX,IERR,X, &
        & NLCMAX,NCM,NTCOIL,DltRPn,m_pol,n_tor, &
        & MODEAV,IDIAG,MDLPCK,MODECV,oldmix,iSUPG2,iSUPG3,iSUPG6,SUPGstab, &
-       & IGBDF,MDFIXT,MDBEAM,MDOSQZ,MDLETA,MDANOM, &
+       & IGBDF,MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDANOM, &
        & MDLNBD,PNBMPD,PNBPTC,rIP,thrp,kappa, &
        & ErV,PTsV_FIX,PNsV_FIX,ErV_FIX, &
        & rMU0,rMUb1,rMUb2,NEMAX,ICONT,TAUE2,LQb1,Var
@@ -344,6 +348,7 @@ SUBROUTINE TXLOAD(IST)
   use tx_variables
   use tx_coefficients, only : TXCALA
   use tx_parameter_control, only : TXPARM_CHECK
+  use mod_eqneo, only : wrap_eqneo
   implicit none
   integer(4), intent(out) :: IST
   INTEGER(4) :: NQ, NR, NC, I, IGYT, IGYV
@@ -384,7 +389,7 @@ SUBROUTINE TXLOAD(IST)
   !  IF(LOADSLID(1:5) == 'tx459') THEN
   READ(21) RCSId
 
-  READ(21) RA,rhob,rhoaccum,RR,BB
+  READ(21) RA,rhob,rhoaccum,RR,BB,rbvt,ravl,rbvl
   READ(21) amas,achg,Zeff,rIPs,rIPe
   READ(21) PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,PROFN1,PROFN2,PROFT1,PROFT2,Uiph0
   READ(21) PROFD,PROFD1,PROFD2,PROFDB,PROFM,PROFM1,PROFMB,PROFC,PROFC1,PROFCB
@@ -398,7 +403,8 @@ SUBROUTINE TXLOAD(IST)
   READ(21) DltRPn,kappa
   READ(21) DT,EPS,ADV,tiny_cap,CMESH0,WMESH0,CMESH,WMESH
   READ(21) ICMAX,NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
-  READ(21) MODEG,MODEAV,MODEGL,IDIAG,MDLPCK,MODECV,oldmix,iSUPG2,iSUPG3,iSUPG6,SUPGstab,IGBDF,MDFIXT,MDBEAM,MDOSQZ,MDLETA,MDANOM
+  READ(21) MODEG,MODEAV,MODEGL,IDIAG,MDLPCK,MODECV,oldmix,iSUPG2,iSUPG3,iSUPG6,SUPGstab,IGBDF
+  READ(21) MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDANOM
   READ(21) MDLNBD,MDLC,NTCOIL,m_pol,n_tor
 
   READ(21) T_TX,TMAX,NT,NTCUM,NQMAX,IERR
@@ -436,18 +442,20 @@ SUBROUTINE TXLOAD(IST)
   CALL TXCALM
 
 !!  IF(rMUb1 == rMU0 .and. (PNBHT1 /= 0.D0 .OR. PNBHT2 /= 0.D0 .OR. PNBHP /= 0.D0)) THEN
-  IF(rMUb1 == rMU0 .and. (maxval(X(LQb1,0:NRMAX)) > epsilon(1.d0))) THEN
+  IF(rMUb1 == rMU0 .and. (maxval(X(:,LQb1)) > epsilon(1.d0))) THEN
      rMUb1 = 1.D0
      rMUb2 = rMU0
   END IF
 
   CALL TXCALV(X,0)
 
-  PNsV_FIX(0:NRMAX,1) = Var(0:NRMAX,1)%n
-  PTsV_FIX(0:NRMAX,1) = Var(0:NRMAX,1)%T
-  PNsV_FIX(0:NRMAX,2) = Var(0:NRMAX,2)%n
-  PTsV_FIX(0:NRMAX,2) = Var(0:NRMAX,2)%T
-  ErV_FIX (0:NRMAX) = ErV (0:NRMAX)
+  PNsV_FIX(:,1) = Var(:,1)%n
+  PTsV_FIX(:,1) = Var(:,1)%T
+  PNsV_FIX(:,2) = Var(:,2)%n
+  PTsV_FIX(:,2) = Var(:,2)%T
+  ErV_FIX (:) = ErV (:)
+
+  call wrap_eqneo
 
   CALL TXCALC(0)
   CALL TXCALA
@@ -457,7 +465,7 @@ SUBROUTINE TXLOAD(IST)
 
   ! TAUE2 uses data one step before the data was stored.
   ! Then TAUE2 is reconstituted by using the graphic data of TAUE2.
-  TAUE2 = DBLE(GTY(NGT,34))
+  TAUE2 = real(GTY(NGT,34),8)
 
   ! Reset start point of graphics
   NGT=-1
@@ -476,7 +484,7 @@ END SUBROUTINE TXLOAD
 SUBROUTINE TXGSAV
 
   use tx_commons, only : &
-       & SLID,RA,rhob,RR,BB,amas,achg,Zeff,PTe0,PTea,PTi0,PTia, &
+       & SLID,RA,rhob,RR,BB,rbvt,ravl,rbvl,amas,achg,Zeff,PTe0,PTea,PTi0,PTia, &
        & De0,Di0,rMue0,rMui0,WPM0,Chie0,Chii0,FSDFIX,FSANOM,FSCBKP,FSCBSH, &
        & FSBOHM,FSPCLD,FSPCLM,FSPCLC,FSVAHL,FSMPCH,FSPARV,PROFD,PROFC, &
        & FSCX,FSLC,FSRP,FSNC,FSNCB,FSLP,FSLTE,FSLTI,FSION, &
@@ -535,7 +543,7 @@ SUBROUTINE TXGSAV
     WRITE(21) SLID
 !!$    WRITE(21) RCSId
 
-  WRITE(21) RA,rhob,RR,BB
+  WRITE(21) RA,rhob,RR,BB,rbvt,ravl,rbvl
   WRITE(21) amas,achg,Zeff
   WRITE(21) PTe0,PTea,PTi0,PTia
   WRITE(21) De0,Di0,rMue0,rMui0,WPM0,Chie0,Chii0
@@ -580,7 +588,7 @@ SUBROUTINE TXGLOD(IST)
 
   use tx_commons, only : &
        & allocate_txcomm, deallocate_txcomm, &
-       & RA,RB,rhob,RR,BB,amas,achg,Zeff,PTe0,PTea,PTi0,PTia, &
+       & RA,RB,rhob,RR,BB,rbvt,ravl,rbvl,amas,achg,Zeff,PTe0,PTea,PTi0,PTia, &
        & De0,Di0,rMue0,rMui0,WPM0,Chie0,Chii0,FSDFIX,FSANOM,FSCBKP,FSCBSH, &
        & FSBOHM,FSPCLD,FSPCLM,FSPCLC,FSVAHL,FSMPCH,FSPARV,PROFD,PROFC, &
        & FSCX,FSLC,FSRP,FSNC,FSNCB,FSLP,FSLTE,FSLTI,FSION, &
@@ -634,7 +642,7 @@ SUBROUTINE TXGLOD(IST)
 !!$    !  IF(LOADSLID(1:5) == 'tx459') THEN
 !!$    READ(21) RCSId
 
-  READ(21) RA,rhob,RR,BB
+  READ(21) RA,rhob,RR,BB,rbvt,ravl,rbvl
   READ(21) amas,achg,Zeff
   READ(21) PTe0,PTea,PTi0,PTia
   READ(21) De0,Di0,rMue0,rMui0,WPM0,Chie0,Chii0
@@ -1323,21 +1331,21 @@ subroutine for_ofmc
      psirho(NR) = psiV(NR) - psiV(0) !- RR * (AphV(NR) - AphV(0))
   end do
   psirho_a = psirho(NRA)
-  psirho(0:NRMAX) = psirho(0:NRMAX) / psirho_a
+  psirho(:) = psirho(:) / psirho_a
 
   ! Equally-spaced psi on a half mesh
-  dpsi = 1.d0 / dble(nmax)
+  dpsi = 1.d0 / real(nmax,8)
   do i = 1, nmax
      psi_out(i) = i * dpsi - 0.5d0 * dpsi
   end do
 
   do i = 1, 3
      if     (i == 1) then ! Ne
-        data(0:NRMAX) = Var(0:NRMAX,1)%n * 1.D20 ! in m^{-3}
+        data(:) = Var(:,1)%n * 1.D20 ! in m^{-3}
      else if(i == 2) then ! Te
-        data(0:NRMAX) = Var(0:NRMAX,1)%T * 1.D3  ! in eV
+        data(:) = Var(:,1)%T * 1.D3  ! in eV
      else if(i == 3) then ! Ti
-        data(0:NRMAX) = Var(0:NRMAX,2)%T * 1.D3  ! in eV
+        data(:) = Var(:,2)%T * 1.D3  ! in eV
      end if
 
      ! Output data on the magnetic axis

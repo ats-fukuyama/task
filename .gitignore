@@ -6,6 +6,7 @@
 *.gs
 *.dat
 *.i
+*.optrpt
 .DS_Store
 make.header
 lib/testbes
@@ -51,6 +52,9 @@ trn/trparm
 tx/tx2
 tx/tx
 tx/txparm
+txnew/tx2
+txnew/tx
+txnew/txparm
 w1/w1
 w1/w1parm
 w1n/w1

@@ -531,8 +531,8 @@ SUBROUTINE CMCALC(NE)
         do J=1,3
            do I=1,3
               CM1(I,J)=CM1(I,J) &
-
-!                      +(CII*real(NPH)) &
+!
+                       +(CII*real(NPH)) &
                        *(-B(I) &
                           *(AW(J)-BW(J)*Z(K)) &
                          +C(I) &

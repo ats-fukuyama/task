@@ -1,13 +1,14 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS=-g $(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=-g $(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../plx/$(MOD) -I../lib/$(MOD)
 
 SRCS = eqbpsd.f eqinit.f eqmenu.f eqcalc.f eqcalq.f eqcalv.f \
-       eqsub.f eqfunc.f eqintf.f eqsplf.f eqfile.f \
+       eqsub.f eqfunc.f eqintf.f eqsplf.f \
+       eqf-efit.f eqf-qst.f eqfile.f \
        eqgout.f eqgsub.f \
        newton.f invematrix.f equnit.f eqrppl.f
 SRCT = trtest.f treqin.f

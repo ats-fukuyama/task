@@ -21,7 +21,8 @@ contains
     !            of the perpendicular NBI to the momentum input.
 
     use tx_commons
-    use tx_interface, only : intg_vol, inexpolate, fgaussian, coulog
+    use tx_interface, only : inexpolate, fgaussian, coulog
+    use tx_core_module, only : intg_vol
 
     INTEGER(4) :: NR, i, ideriv = 1, nrbound
     REAL(8) :: SL, SLT1, SLT2, PNBP0, PNBT10, PNBT20, PNBex0, SNBPDi_INTG, &
@@ -488,7 +489,7 @@ contains
   subroutine deposition_profile(S,SINT,R0,RW,CHR,PNBCD)
     use tx_commons, only : NRMAX, NRA, FSRP, RA, PI, RR, &
          &                 amb, amqp, Vb, achgb, BthV, Q, BphV, rho, epst
-    use tx_interface, only : intg_vol
+    use tx_core_module, only : intg_vol
     real(8), intent(in)  :: R0, RW
     real(8), intent(in), optional :: PNBCD
     character(len=*), intent(in) :: CHR

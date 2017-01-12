@@ -30,10 +30,8 @@ SRCS = $(SRC0) nowmsolv.f
 
 OBJS = $(SRCX:.f90=.o) $(SRCS:.f=.o)
 
-LIB0 = ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a \
+LIBS = wmlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a \
        ../eq/eqlib.a ../dp/dplib.a
-
-LIBS = $(LIBX_MTX) ../mpi/mpilib.o ../mtx/mtxlib.a $(LIB0) wmlib.a  
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -69,7 +67,7 @@ libs:
 	(cd ../dp; make dplib.a)
 
 wm : libs $(LIBS) wmmain.o
-	$(FCFIXED) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+	$(FCFIXED) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 mpiwm : wmmain.o $(LIBM)
 	$(MFC) wmmain.o $(LIBM) -o $@ $(FFLAGS) $(FLIBS)

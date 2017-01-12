@@ -234,23 +234,23 @@ C
 C
       IERR=0
 C
-      IF(MODELG.EQ.3) THEN
-         IF(INITEQ.EQ.0) THEN
-            CALL EQLOAD(3,KNAMEQ,IERR)
-            IF(IERR.EQ.0) THEN
-               write(LINE,'(A,I5)') 'nrmax =',51
+      if(modelg.eq.3.OR.modelg.EQ.5) then
+         if(initeq.eq.0) then
+            call eqload(modelg,knameq,ierr)
+            if(ierr.eq.0) then
+               write(line,'(a,i5)') 'nrmax =',51
                call eqparm(2,line,ierr)
-               write(LINE,'(A,I5)') 'nthmax=',64
+               write(line,'(a,i5)') 'nthmax=',64
                call eqparm(2,line,ierr)
-               write(LINE,'(A,I5)') 'nsumax=',64
+               write(line,'(a,i5)') 'nsumax=',64
                call eqparm(2,line,ierr)
-               CALL EQCALQ(IERR)
-               CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
-               INITEQ=1
-            ELSE
-               WRITE(6,*) 'XX EQLOAD: IERR=',IERR
-               INITEQ=0
-            ENDIF
+               call eqcalq(ierr)
+               call eqgetb(bb,rr,rip,ra,rkap,rdlt,rb)
+               initeq=1
+            else
+               write(6,*) 'xx eqload: ierr=',ierr
+               initeq=0
+            endif
          ENDIF
       ELSE IF(MODELG.EQ.8) THEN
          IF(INITEQ.EQ.0) THEN

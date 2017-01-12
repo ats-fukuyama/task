@@ -16,34 +16,37 @@ SUBROUTINE TXINIT
 
   !   ***** Configuration parameters *****
 
-  !   Plasma minor radius (m)
-  ra = 0.35D0
+  !   Plasma minor radius (m), geometrically defined by (Rmax-Rmin)/2
+  ra = 0.8D0
 
-  !   Virtual wall radius in rho coordinate (-)
+  !   Plasma minor radius (m), defined by sqrt(V/(2 Pi Pi R))
+  ravl = 0.8D0
+
+  !   Virtual wall radius in rho coordinate (-) for defining rb
   !     The position of the virtual wall follows the change in that of the separatrix
   !     when an equilibrium evolves.
   !     That is, the virtual wall always locates at rhob distance from the separatrix.
   rhob = 1.1d0
-
-  !   Virtual wall radius (m)
-!  RB = ra * rhob
 
   !   Mesh accumulation radius (-)
   !     rhoaccum coincides with rho=1.d0 when rhoaccum is minus. (-1: default)
   !     rhoaccum is valid when rhoaccum is plus.
   rhoaccum = - 1.d0
 
-  !   Plasma major radius (m)
-  RR = 1.3D0
+  !   Plasma major radius (m), geometrically defined by (Rmax+Rmin)/2
+  RR = 3.2D0
 
-  !   Toroidal magnetic field (T)
-  BB = 1.3D0
+  !   Toroidal magnetic field (T) at R=RR
+  BB = 2.68D0
+
+  !   Poloidal current function at the virtual wall (Tm)
+  rbvt = rr * bb
 
   !   Plasma current start (MA)
-  rIPs= 0.15D0
+  rIPs= 1.D0
 
   !   Plasma current end (MA)
-  rIPe= 0.15D0
+  rIPe= 1.D0
 
   !   ***** Plasma components *****
 
@@ -63,40 +66,40 @@ SUBROUTINE TXINIT
   !   ***** Initial plasma parameters *****
 
   !   Initial electron density at rho = 0 (10^20 m^-3)
-  PN0 = 0.4D0
+  PN0 = 0.2D0
 
   !   Initial electron density at rho = a (10^20 m^-3)
   PNa = 0.05D0
 
-  !   Electron density in diverter region (Minimum density in SOL)
-  PNeDIV = 10.D-3
+  !   Electron density in divertor region (Minimum density in SOL)
+  PNeDIV = 0.01D0
 
-  !   Initial electron temperature at rho = 0 (keV)
-  PTe0 = 700.D-3
-
-  !   Initial electron temperature at rho = a (keV)
-  PTea =  50.D-3
-
-  !   Electron temperature in diverter region (Minimum Te in SOL)
-  PTeDIV = 10.D-3
-
-  !   Ion density in diverter region (Minimum density in SOL)
+  !   Ion density in divertor region (Minimum density in SOL)
   PNiDIV = PNeDIV
 
+  !   Initial electron temperature at rho = 0 (keV)
+  PTe0 = 2.D0
+
+  !   Initial electron temperature at rho = a (keV)
+  PTea = 0.2D0
+
+  !   Electron temperature in divertor region (Minimum Te in SOL)
+  PTeDIV = 0.05D0
+
   !   Initial ion temperature  at rho = 0 (keV)
-  PTi0 = 700.D-3
+  PTi0 = 2.D0
 
   !   Initial ion temperature  at rho = a (keV)
-  PTia =  50.D-3
+  PTia = 0.2D0
 
-  !   Ion temperature in diverter region (Minimum Ti in SOL)
-  PTiDIV = 10.D-3
+  !   Ion temperature in divertor region (Minimum Ti in SOL)
+  PTiDIV = 0.05D0
 
   !   Initial current profile parameter
   PROFJ = 2.D0
 
   !   Initial density profile parameters
-  PROFN1 = 3.D0
+  PROFN1 = 2.D0
   PROFN2 = 1.D0
 
   !   Initial temperature profile parameters
@@ -110,7 +113,7 @@ SUBROUTINE TXINIT
   !     ieqread = 0 : Large aspect ratio limit
   !             = 1 : Large aspect ratio approximation
   !             = 2 : Read equilibrium parameters (not yet)
-  ieqread = 0
+  ieqread = 1
 
   !   ***** Particle diffusivity and viscosity parameters *****
 
@@ -118,16 +121,16 @@ SUBROUTINE TXINIT
   VWpch0 = 0.D0
 
   !   Electron-driven diffusion parameter
-  De0 = 0.05D0
+  De0 = 0.1D0
 
   !   Ion-driven diffusion parameter (usually inactive)
   Di0 = 0.D0
 
   !   Electron viscosity parameter
-  rMue0 = 0.3D0
+  rMue0 = 0.5D0
 
   !   Ion viscosity parameter
-  rMui0 = 0.3D0
+  rMui0 = 0.5D0
 
   !   Drift frequency parameter (omega/omega*e)
   WPM0 = 0.D0
@@ -136,11 +139,11 @@ SUBROUTINE TXINIT
 
   !   Electron thermal diffusivity parameter (Chie/D)
   !     0 for fixed temperature profile
-  Chie0 = 0.3D0
+  Chie0 = 0.5D0
 
   !   Ion thermal diffusivity parameter (Chie/D)
   !     0 for fixed temperature profile
-  Chii0 = 0.3D0
+  Chii0 = 0.5D0
 
   !   ***** Turbulent transport control parameters *****
 
@@ -163,7 +166,11 @@ SUBROUTINE TXINIT
   !     3 : thermal transport
   FSANOM(1:3) = 0.D0
 
-  !   Effect of ExB shear stabilization
+  !   Model of ExB shear stabilization
+  !     0 : No ExB shear stabilization
+  !     1 : Lorentz-type ExB shear stabilization (very weak)
+  !     2 : Exponent-type ExB shear stabilization [M. Honda (2007) dissertation, Chapter 4]
+  !     3 : Lorentz-type ExB shear stabilization [M. Yagi (2012) CPP p.372]
   FSCBSH = 0.D0
 
   !   Position of ETB shoulder (valid only when MDLETB /= 0)
@@ -180,6 +187,7 @@ SUBROUTINE TXINIT
   !   ==== CDBM transport coefficient parameters ============================
   !      The finer time step size, typically less than or equal to DT=5.D-4,
   !         is anticipated when using CDBM.
+  !      See also iprestab
 
   !   Effect of magnetic curvatures-alpha
   FSCBAL = 1.D0
@@ -193,7 +201,7 @@ SUBROUTINE TXINIT
   FSCBEL = 1.D0
 
   !   Factor of E x B rotation shear
-  rG1 = 24.D0
+  rG1 = 10.D0
 
   !   ==== Neoclassical transport coefficient parameters ====================
 
@@ -204,7 +212,7 @@ SUBROUTINE TXINIT
   FSPARV(1:NSM) = 1.d0
 
   !   Neoclassical thermal diffusivity parameter
-  ChiNC = 0.D0
+  ChiNC = 1.D0
 
   !   Neoclassical viscosity parameter
   FSNC = 1.D0
@@ -218,10 +226,10 @@ SUBROUTINE TXINIT
   !   =======================================================================
 
   !   Bohm transport coefficient parameter in SOL
-  FSBOHM = 0.D0
+  FSBOHM = 1.D0
 
   !   Pseud-classical particle transport coefficient parameter in SOL
-  FSPCLD = 0.D0
+  FSPCLD = 1.D0
 
   !   Pseud-classical mom. transport coefficient parameter in SOL
   FSPCLM = 0.D0
@@ -230,13 +238,13 @@ SUBROUTINE TXINIT
   FSPCLC = 0.D0
 
   !   Controller for thermodiffusive pinch term of turbulent particle flux
-  FSVAHL = 0.D0
+  FSVAHL =-0.5D0
 
   !   Particle diffusion coefficient profile parameter (D(r=a)/D(r=0))
-  PROFD =  3.D0
+  PROFD =  5.D0
 
   !   Exponent of particle diffusion coefficient profile
-  PROFD1 = 3.D0
+  PROFD1 = 2.D0
 
   !   Gaussian modification of particle diffusion coefficient profile
   PROFD2 = 0.D0
@@ -279,7 +287,7 @@ SUBROUTINE TXINIT
   !   Orbit loss parameter
   !     FSLC = 0 : No orbit loss included.
   !            1 : Loss term is expressed as damping term.
-  !            2 : Loss term is expressed as source and sink term.
+  !          +10 : Loss term is expressed as source and sink term.
   FSLC = 0.D0
 
   !   Orbit loss model
@@ -318,15 +326,15 @@ SUBROUTINE TXINIT
   !   ***** initial parameters *****
 
   !   Initial Density scale length in SOL normalized by minor radius (-), valid if MDITSN /= 0
-  rLn = 0.03D0 / ra
+  rLn = 0.0857D0
 
   !   Initail Temperature scale length in SOL normalized by minor radius (-), valid if MDITST /= 0
-  rLT = 0.03D0 / ra
+  rLT = 0.0857D0
 
   !   ***** Heating parameters *****
 
   !   Maximum NBI beam energy (keV)
-  Ebmax = 32.D0
+  Ebmax = 80.D0
 
   !   Fraction of particles with Ebmax, Ebmax/2 and Ebmax/3 energies
   !      Positive-ion-source NBI : 0.75, 0.15, 0.10 (typically)
@@ -348,7 +356,7 @@ SUBROUTINE TXINIT
   RNBT2  = 0.5d0
 
   !   Heating center of first tangential NBI heating (-)
-  RNBT10 = 0.d0
+  RNBT10 = 0.2d0
 
   !   Heating center of second tangential NBI heating (-)
   RNBT20 = 0.d0
@@ -410,7 +418,7 @@ SUBROUTINE TXINIT
 
   !   Neutral thermal velocity (m/s)
   !     V0 = SQRT(2.D0*X[eV]*AEE/(amas(2)*AMP))
-  V0 = 1.5D3
+  V0 = 1.6954D4
 
   !   Recycling rate in SOL
   rGamm0 = 0.8D0
@@ -418,8 +426,10 @@ SUBROUTINE TXINIT
   !   Gas-puff particle flux (10^20 m^-2 1/s)
   !      If you input Gamma_0 [particles/sec], you translate it into
   !      rGASPF [1/(m^2 s)]:
-  !        rGASPF = Gamma_0 / (2.D0*PI*RR*2.D0*PI*RB)
-  rGASPF = 0.1D0
+  !        rGASPF = Gamma_0 / <|nabla V|>
+  !               = Gamma_0 / surt(NRMAX)
+  !               ~ Gamma_0 / (2.D0*PI*RR*2.D0*PI*RB)
+  rGASPF = 0.2D0
 
   !   ***** Ripple loss parameters *****
 
@@ -479,6 +489,7 @@ SUBROUTINE TXINIT
   !     ADV = 0     : Explicit scheme       (Not usable)
   !           0.5   : Crank-Nicolson scheme (Not usable)
   !           2/3   : Galerkin scheme       (Not usable)
+  !           0.729 : Minimum value at which a simulation can be run.
   !           0.878 : Liniger scheme
   !           1     : Implicit scheme       (Recommended)
   ADV = 1.D0
@@ -497,7 +508,7 @@ SUBROUTINE TXINIT
   !              1  : dPhiV/drho with dPhiV/drho = 0 at rho = 0 and dPs/drho with dPs/drho at rho = 0
   !              11 : dPhiV/drho(1) and dPs/drho(1) are interpolated by "replace_interpolate_value".
   !                   Smooth profiles regarding diamag. flow would be obtained.
-  ISMTHD = 1
+  ISMTHD = 11
 
   !   Lower bound of dependent variables
   tiny_cap = 1.d-14
@@ -526,7 +537,7 @@ SUBROUTINE TXINIT
   !     iSUPG2 for LQe2CC and LQi2CC
   !     iSUPG3 for LQe3CC and LQi3CC; LQb3CC only when iSUPG3 = -1
   !     iSUPG6 for LQe6CC and LQi6CC
-  iSUPG2 = 0
+  iSUPG2 = 0 ! Should be on when the turbulent particle flux is off (De0=0.0).
   iSUPG3 = 0
   iSUPG6 = 0
 
@@ -536,6 +547,19 @@ SUBROUTINE TXINIT
   !                    = 2.d0 : [Ganjoo and Tezduyar, NASA report CR-180124 (1986)]
   !                    = 4.d0 : Seemingly best, but no ground in the light of numerical analysis
   SUPGstab = 2.d0
+
+  !   Model for stabilizing oscillation due to the nonlinearity of the pressure gradient
+  !   when typically using CDBM model.
+  !     0 : Doing nothing (often not work)
+  !     1 : Mixing pressure in that instant and that at IC = 1 (good)
+  !     2 : Mixing pressure in that instant and that converged at previous time
+  !         (slightly unstable when ExB shearing is on with larger time step size.)
+  !     3 : Mixing pressure at IC = 1 and that converged at previous time (excessive assumption)
+  !
+  !   N.B. Dt=1.e-3 is ok, but dt=1.e-4 realizes more stable calculation.
+  !        Choosing iprestab=3 is that diffusivities are estimated by using the pressure gradient
+  !        at almost previous time, which is fixed during iteration.
+  iprestab = 1
 
   !   ***** Mesh number parameters *****
 
@@ -558,12 +582,12 @@ SUBROUTINE TXINIT
   !   ***** Time parameter *****
 
   !   Number of time step
-  NTMAX = 10
+  NTMAX = 100
 
   !   ***** Diagnostics parameters *****
 
   !   Time step interval between print output
-  NTSTEP = 10
+  NTSTEP = 50
 
   !   Mode of AV (Diagnostic message in terms of convergence)
   !   0 : OFF (recommended)
@@ -583,19 +607,19 @@ SUBROUTINE TXINIT
   !   ***** Graphic parameters (module tx_graphic) *****
 
   !   Time step interval between lines in f(r) graph
-  NGRSTP = 1
+  NGRSTP = 20
 
   !   Time step interval between points in f(t) graph
-  NGTSTP = 1
+  NGTSTP = 5
 
   !   Time step interval between points in f(t) graph
-  NGVSTP = 1
+  NGVSTP = 5
 
   !   Mode of Graph
   !   0 : for Display (with grid, w/o power)
   !   1 : for Display (with grid and power)
   !   2 : for Print Out (w/o grid, with power)
-  MODEG = 1
+  MODEG = 2
 
   !   MODE of Graph Line
   !   0 : Change Line Color (Last Color Fixed)
@@ -610,7 +634,7 @@ SUBROUTINE TXINIT
   !   Mode of LAPACK
   !   0    : Use BANDRD
   !   else : Use LAPACK_DGBSV or LA_GBSV
-  MDLPCK = 0
+  MDLPCK = 1
 
   !   Mode of fixed temperature profile
   !   0    : not fixed
@@ -622,19 +646,43 @@ SUBROUTINE TXINIT
   !   1    : more    ; LQb1, LQb2, LQb3, LQb4, LQb7
   MDBEAM = 1
 
-  !   Mode of orbit squeezing effect in NCLASS
-  !   0    : No orbit squeezing effect
-  !   1    : Orbit squeezing effect
-  !   2    : Orbit squeezing effect, fixed during iteration
+  !   Mode of how to calculate the derivative of Phi w.r.t. psi for orbit squeezing effect
+  !   0    : Calculate the derivative in an usual manner
+  !   1    : The derivative is fixed during iteration
   !   +10  : Smoothing d/dpsi(dPhi/dpsi) profile using moving_average
-  MDOSQZ = 11
+  MDOSQZ = 0
 
-  !   Mode of neoclassical resistivity model
-  !   0    : original
-  !   1    : NCLASS
-  !   2    : Sauter
+  !   Model of neoclassical resistivity model (mainly for graphics)
+  !   1    : depending upon MDLNEO
+  !   2    : Sauter model
   !   3    : Hirshman, Hawryluk and Birge
-  MDLETA = 0
+  MDLETA = 1
+
+  !   Model of neoclassical transport model, espcially for calculating
+  !     friction coefficients and viscosities
+  !   1    : Matrix Inversion (booth9)
+  !   2    : Matrix Inversion (nccoe)
+  !   3    : NCLASS
+  !   +10  : Both (Users cannot specify)
+  MDLNEO  = 1
+
+  !   Mode of orbit squeezing effect for neoclassical transport solver
+  !   0    : not considered
+  !   1    : considered
+  MDOSQZN = 0
+
+  !   Choice of taking whether the bootstrap (BS) current or the resistivity
+  !     from the neoclassical transport solver determined by MDLNEO
+  !   This parameter is used for estimating the fraction of the BS current
+  !     and the ohmic current, because TASK/TX cannot decompose the components
+  !     of the current.
+  !   0    : BS current is calculated by the external module.
+  !          Ohmic current is subserviently determined. (strongly recommended)
+  !   else : Ohmic current is calculated using the resistivity calculated by
+  !          the external module. BS current is subserviently determined.
+  !          NOTE: This option may cause the estimate of the negative BS current
+  !                when NBs are injected.
+  MDBSETA  = 0
 
   !   Mode of initial density profiles
   !   -2   : read from file and smooth
@@ -648,7 +696,7 @@ SUBROUTINE TXINIT
   !   0    : original
   !   1    : pedestal model
   !   2    : empirical steady state temperature profile
-  MDINTT = 0
+  MDINTT = 2
 
   !   Mode of initial current density profiles
   !   -2   : read from file and smooth
@@ -666,7 +714,7 @@ SUBROUTINE TXINIT
   !   1    : exponential decay model
   !   2    : exponential decay model 2
   !          This should be chosen if MDINTT=2.
-  MDITST = 1
+  MDITST = 2
 
   !   Mode of Edge Transport barrier
   !   0    : Nothing to do
@@ -744,7 +792,6 @@ SUBROUTINE TXINIT
 !  gDIV(187) = 1.E-9
   gDIV(188) = 1.E-6
   gDIV(196:197) = 1.E3
-  gDIV(200) = 1.E20
 
   !   *** Density perturbation technique ***
 
@@ -759,10 +806,6 @@ SUBROUTINE TXINIT
   !   Index for graphic save interval (module tx_graphic)
 
   NGR=-1
-
-  !   Save numerical cost
-
-  pisq = pi * pi
 
   RETURN
 END SUBROUTINE TXINIT
@@ -783,10 +826,6 @@ SUBROUTINE TXCALM
   real(8)    :: MAXAMP, C1L, C2L, W1L, W2L, CLNEW
   real(8)    :: rhoc, rhol, rhocl
 
-  !   Square root permittivity for LQm1
-  !     for the sake of acceleration of convergence
-  sqeps0 = sqrt(EPS0)
-
   !  Mesh
 
   if(rhoaccum < 0.d0) then
@@ -805,7 +844,7 @@ SUBROUTINE TXCALM
   nr_rhoc_near = 0
   R(0) = 0.D0
   DO NR = 1, NRMAX - 1
-     rhol = DBLE(NR) / DBLE(NRMAX) * rhob
+     rhol = NR * rhob / NRMAX
      CALL BISECTION(LORENTZ,C1L,C2L,W1L,W2L,0.D0,rhoc,MAXAMP,rhol,rhob,rho(NR))
      IF(ABS(rho(NR)-rhoc) <= ABS(rho(NR)-rho(nr_rhoc_near))) nr_rhoc_near = NR
   END DO
@@ -814,7 +853,7 @@ SUBROUTINE TXCALM
   !  Construct new CL value that separatrix is just on mesh.
   !  New CL is chosen in order not to be settle so far from given CL.
   !  The mesh finally obtained is well-defined.
-  rhocl = DBLE(nr_rhoc_near) / DBLE(NRMAX) * rhob
+  rhocl = nr_rhoc_near * rhob / NRMAX
   CLNEW = ( (rhoc - rhocl) * rhob - rhocl * C1L * LORENTZ_PART(rhob,W1L,W2L,0.D0,rhoc,0) &
        &   + rhob * C1L * LORENTZ_PART(rhoc,W1L,W2L,0.D0,rhoc,0)) &
        &  / (  rhocl * LORENTZ_PART(rhob,W1L,W2L,0.D0,rhoc,1) &
@@ -822,7 +861,7 @@ SUBROUTINE TXCALM
   MAXAMP = LORENTZ(rhob,C1L,CLNEW,W1L,W2L,0.D0,rhoc) / rhob
   rho(0) = 0.D0
   DO NR = 1, NRMAX - 1
-     rhol = DBLE(NR) / DBLE(NRMAX) * rhob
+     rhol = NR * rhob / NRMAX
      CALL BISECTION(LORENTZ,C1L,CLNEW,W1L,W2L,0.D0,rhoc,MAXAMP,rhol,rhob,rho(NR))
   END DO
   rho(NRMAX) = rhob
@@ -892,20 +931,8 @@ SUBROUTINE TXCALM
      END IF
   END DO
 
-  !  Equlibrium
+  !  Equilibrium
   call txequ
-
-  !  Mesh coordinate
-
-  r(0:NRMAX)  = rho(0:NRMAX) * ra
-  rhosq(0:NRMAX) = rho(0:NRMAX)**2
-
-  vv(0:NRMAX) = vlt(0:NRMAX)
-  vvn(0:NRMAX) = vv(0:NRMAX) / vv(NRA) ! Volume normalized by the plasma volume
-
-  !  Mesh interval
-
-  hv(1:NEMAX) = vlt(1:NRMAX) - vlt(0:NRMAX-1)
 
   RETURN
 END SUBROUTINE TXCALM
@@ -921,15 +948,26 @@ SUBROUTINE TXPROF
   use tx_commons
   use tx_graphic, only : NGR, NGT, NGVV
   use tx_variables
-  use tx_interface, only : intg_area, intg_area_p, INTDERIV3, detect_datatype, dfdx, &
-       &                   initprof_input, moving_average, CORR, coulog, intg_vol_p, &
-       &                   inexpolate
+  use tx_interface, only : INTDERIV3, detect_datatype, dfdx, &
+       &                   initprof_input, moving_average, CORR, coulog, inexpolate
+  use tx_core_module, only : intg_area, intg_area_p, intg_vol_p 
   use sauter_mod
   use tx_ntv, only : perturb_mag, Wnm_spline
+  use eqread_mod, only : AJphVRL
+  use mod_eqneo, only : wrap_eqneo
+#ifdef laself
+  ! for self-compiled lapack
+  use f95_lapack, only : GESV => LA_GESV
+#else
+  ! for intel mkl LAPACK95, 
+  !  Note: This module file includes "ptsv" subroutine, 
+  !        whose name conflicts with PTsV defined in TASK/TX.  
+  use lapack95, only : GESV
+#endif
 
   implicit none
   INTEGER(4) :: NR, IER, ifile, NHFM, NR_smt, NR_smt_start = 10
-  REAL(8) :: rhol, RL, PROFN, PROFT, PTePROF, PTiPROF!, QL, dRIP
+  REAL(8) :: rhol, PROFN, PROFT, PTePROF, PTiPROF!, RL, QL, dRIP
   REAL(8) :: AJFCT, SUM_INT, DR1, DR2
   REAL(8) :: EpsL, FTL, PBA, dPN, CfN1, CfN2, pea, pia, pediv, pidiv, dpea, dpia, &
        &     Cfpe1, Cfpe2, Cfpi1, Cfpi2, sigma, fexp, PN0L, PNaL, PNeDIVL, &
@@ -937,11 +975,8 @@ SUBROUTINE TXPROF
   real(8) :: BCLQm3, etanc, etaspz, dum=0.d0, tmp
   REAL(8) :: aitken2p!, DERIV4
   real(8), dimension(:), allocatable :: AJPHL, tmpa, RHSV, Prof1, Prof2, &
-       & Profsdt, dProfsdt, AJphVRL
+       & Profsdt, dProfsdt
   real(8), dimension(:,:), allocatable :: CMTX!, dPsV
-
-  !   Virtual wall radius (m)
-  rb = rhob * ra
 
   !  Read spline table for neoclassical toroidal viscosity
   IF(FSRP /= 0.D0) CALL Wnm_spline
@@ -955,13 +990,16 @@ SUBROUTINE TXPROF
   !  Contribution of perturbed magnetic field
 !  IF(DltRPn /= 0.D0) CALL perturb_mag
 
-  !  Initialize variable vector
+  !  Initialize variable array
 
-  X(0:NRMAX,1:NQMAX) = 0.D0
+  X = 0.D0
 
   !  Variables
 
-  ! === B.C. and shape of density, temperature, pressure ===
+  ! ********************************************************************
+  !      B.C. and profiles of density, temperature, pressure
+  ! ********************************************************************
+
   if(MDINTN < 0 .or. MDINTT < 0 .or. ABS(MDINTC) /= 0) call initprof_input
   if(MDINTN < 0) then ! density at the boundaries
      call initprof_input(  0,1,PN0L)
@@ -988,7 +1026,7 @@ SUBROUTINE TXPROF
      PTiDIVL = PTiDIV
   end if
   PBA   = rhob - 1.d0
-  dPN   = - 3.D0 * (PN0L - PNaL) / RA
+  dPN   = - 3.D0 * (PN0L - PNaL) / ravl
   CfN1  = - (3.D0 * PBA * dPN + 4.D0 * (PNaL - PNeDIVL)) / PBA**3
   CfN2  =   (2.D0 * PBA * dPN + 3.D0 * (PNaL - PNeDIVL)) / PBA**4
   IF(MDFIXT == 0) THEN
@@ -1006,7 +1044,6 @@ SUBROUTINE TXPROF
   Cfpi2 =   (2.D0 * PBA * dpia + 3.D0 * (pia - pidiv)) / PBA**4
 
   DO NR = 0, NRMAX
-     RL = R(NR)
      rhol = rho(NR)
      ! === Density, temperature, pressure ===
      ! +++ Core +++
@@ -1105,8 +1142,8 @@ SUBROUTINE TXPROF
   ! === Smoothing profiles ===
   IF(MDINTT == -2) THEN ! Smoothing temperatures
      allocate(Prof1(0:NRMAX),Prof2(0:NRMAX))
-     Prof1(0:NRMAX) = X(0:NRMAX,LQe5) / X(0:NRMAX,LQe1)
-     Prof2(0:NRMAX) = X(0:NRMAX,LQi5) / X(0:NRMAX,LQi1)
+     Prof1(:) = X(:,LQe5) / X(:,LQe1)
+     Prof2(:) = X(:,LQi5) / X(:,LQi1)
      NR_smt = NRA - NR_smt_start ! smoothing data only in the edge region
      DO NR = NR_smt, NRMAX
         X(NR,LQe5) = moving_average(NR,Prof1,NRMAX) * X(NR,LQe1)
@@ -1116,50 +1153,63 @@ SUBROUTINE TXPROF
   END IF
   IF(MDINTN == -2) THEN ! Smoothing densities
      allocate(Prof1(0:NRMAX))
-     X(0:NRMAX,LQe5) = X(0:NRMAX,LQe5) / X(0:NRMAX,LQe1)
-     X(0:NRMAX,LQi5) = X(0:NRMAX,LQi5) / X(0:NRMAX,LQi1)
-     Prof1(0:NRMAX) = X(0:NRMAX,LQe1)
+     X(:,LQe5) = X(:,LQe5) / X(:,LQe1)
+     X(:,LQi5) = X(:,LQi5) / X(:,LQi1)
+     Prof1(:) = X(:,LQe1)
      NR_smt = NRA - NR_smt_start ! smoothing data only in the edge region
      DO NR = NR_smt, NRMAX
         X(NR,LQe1) = moving_average(NR,Prof1,NRMAX)
         X(NR,LQi1) = X(NR,LQe1) / achg(2)       ! Ni
      END DO
-     X(0:NRMAX,LQe5) = X(0:NRMAX,LQe5) * X(0:NRMAX,LQe1)
-     X(0:NRMAX,LQi5) = X(0:NRMAX,LQi5) * X(0:NRMAX,LQi1)
+     X(:,LQe5) = X(:,LQe5) * X(:,LQe1)
+     X(:,LQi5) = X(:,LQi5) * X(:,LQi1)
      deallocate(Prof1)
   END IF
 
-  ! === Poloidal current function, fipol = R B_t ===
+  ! ********************************************************************
+  !      Poloidal current function, fipol = R B_t
+  !      Poloidal magnetic field, BthV
+  !      dpsi/dV, sdt
+  ! ********************************************************************
 
-  sum_int = 0.d0
-  fipol(0:NRMAX) = rr * bb ! flat fipol assumed at initial
-  do NR = 0, NRMAX
-     sum_int = sum_int + intg_vol_p(aat,nr) * fipol(NRMAX) / (4.d0 * Pisq)
-     X(NR,LQm5) = sum_int / rMU0 ! PsitV / rMU0
-  end do
+  if( ieqread >= 2 ) then
+     ! PsitV, fipol and sdt have already been determined in intequ.
 
-  ! === Poloidal magnetic field ===
+     X(:,LQm5) = PsitV(:) / rMU0 ! PsitV / rMU0
 
-  allocate(Profsdt(0:NRMAX),dProfsdt(0:NRMAX))
-  BCLQm3 = 2.d0 * Pi * rMUb1 * rIps * 1.d6
-  !  dPsi/dV
-  do NR = 1, NRMAX
-     if(rho(nr) < 1.d0) then ! Core
-        ! Profsdt is used for AJPHL. dProfsdt = d Profsdt/d vvn
-        Profsdt(NR) = 1.d0 - (1.d0 - vvn(NR))**(PROFJ+1)
-        dProfsdt(NR) = (PROFJ+1) * (1.d0 - vvn(NR))**PROFJ
-        sdt(NR)  = BCLQm3 / ckt(NR) * Profsdt(NR)
-     else ! SOL, no current assumption
-        Profsdt(NR) = 1.d0
-        dProfsdt(NR) = 0.d0
-        sdt(NR)  = BCLQm3 / ckt(NR)
-     end if
-     BthV(NR) = sqrt(ckt(NR)) * sdt(NR)
-  end do
-  BthV(0) = 0.d0
-  sdt(0)  = aitken2p(0.d0,sdt(1),sdt(2),sdt(3),vv(1),vv(2),vv(3))
-  Profsdt(0) = 1.d0
-  dProfsdt(0) = PROFJ+1
+     BthV(0)       = 0.d0
+     BthV(1:NRMAX) = sqrt(ckt(1:NRMAX)) * sdt(1:NRMAX)
+  else
+     sum_int = 0.d0
+     fipol(:) = rbvt ! flat fipol assumed at initial
+     do NR = 0, NRMAX
+        sum_int = sum_int + intg_vol_p(aat,nr) * fipol(NRMAX) / (4.d0 * Pisq)
+        X(NR,LQm5) = sum_int / rMU0 ! PsitV / rMU0
+     end do
+
+     ! === Poloidal magnetic field ===
+
+     allocate(Profsdt(0:NRMAX),dProfsdt(0:NRMAX))
+     BCLQm3 = 2.d0 * Pi * rMUb1 * rIps * 1.d6
+     !  dPsi/dV
+     do NR = 1, NRMAX
+        if(rho(nr) < 1.d0) then ! Core
+           ! Profsdt is used for AJPHL. dProfsdt = d Profsdt/d (vv/vv(NRA))
+           Profsdt(NR) = 1.d0 - (1.d0 - vv(NR)/vv(NRA))**(PROFJ+1)
+           dProfsdt(NR) = (PROFJ+1) * (1.d0 - vv(NR)/vv(NRA))**PROFJ
+           sdt(NR)  = BCLQm3 / ckt(NR) * Profsdt(NR)
+        else ! SOL, no current assumption
+           Profsdt(NR) = 1.d0
+           dProfsdt(NR) = 0.d0
+           sdt(NR)  = BCLQm3 / ckt(NR)
+        end if
+        BthV(NR) = sqrt(ckt(NR)) * sdt(NR)
+     end do
+     BthV(0) = 0.d0
+     sdt(0)  = aitken2p(0.d0,sdt(1),sdt(2),sdt(3),vv(1),vv(2),vv(3))
+     Profsdt(0) = 1.d0
+     dProfsdt(0) = PROFJ+1
+  end if
 
 !  IF(FSHL /= 0.D0) THEN
 !     BthV(0) = 0.D0
@@ -1171,40 +1221,95 @@ SUBROUTINE TXPROF
 !     END DO
 !  END IF
 
-  ! === Toroidal electron current ===
-
+  ! ********************************************************************
+  !      Toroidal electron current 
+  !
   !   electron current: AJPHL   = - e ne <ueph/R> / <1/R>
   !                   : AJphVRL = - e ne <ueph/R>
+  !
+  !      dpsi/dV, sdt (in some case)
+  ! ********************************************************************
 
-  allocate(AJPHL(0:NRMAX),AJphVRL(0:NRMAX))
-  ifile = detect_datatype('LQe4')
-  if(ifile == 0) then ! No toroidal current (LQe4) data in a structured type
-     IF(MDINTC <= -1) THEN ! Current density read from file
-        DO NR = 0, NRA
-           call initprof_input(NR,4,AJPHL(NR)) ! electron current read from an external file
-        END DO
-        AJPHL(NRA+1:NRMAX) = 0.D0
-        AJFCT = rIPs * 1.D6 / intg_area(AJPHL)
-        ! Artificially extrapolate a current density in the SOL for numerical stability
-        DO NR = NRA+1, NRMAX
-           AJPHL(NR) = AJPHL(NRA) * EXP(- (rho(NR) - 1.d0) / (0.5d0 * rLn))
-        END DO
-        
-        IF(MDINTC == -2) THEN ! Smoothing current density
-           allocate(Prof1(0:NRMAX))
-           Prof1(0:NRMAX) = AJPHL(0:NRMAX)
-           NR_smt = NRA - NR_smt_start ! smoothing data only in the edge region
-           DO NR = NR_smt, NRMAX
-              AJPHL(NR) = moving_average(NR,Prof1,NRMAX)
+  if( ieqread >= 2 ) then
+     ! AJphVRL have already been allocated and determined in intequ.
+
+     DO NR = 0, NRMAX
+        X(NR,LQe7) =-AJphVRL(NR) / (AEE * 1.D20)
+        X(NR,LQe4) = X(NR,LQe7) / aat(NR) ! approx
+        AJOH(NR)   = X(NR,LQe7) / ait(NR)
+        X(NR,LQm4) = PsiV(NR)
+     END DO
+
+  else
+     
+     ! === File input ===
+
+     allocate(AJPHL(0:NRMAX),AJphVRL(0:NRMAX))
+     ifile = detect_datatype('LQe4')
+     if(ifile == 0) then ! No toroidal current (LQe4) data in a structured type
+        IF(MDINTC <= -1) THEN ! Current density read from file
+           DO NR = 0, NRA
+              call initprof_input(NR,4,AJPHL(NR)) ! electron current read from an external file
            END DO
-           deallocate(Prof1)
+           AJPHL(NRA+1:NRMAX) = 0.D0
+           AJFCT = rIPs * 1.D6 / intg_area(AJPHL)
+           ! Artificially extrapolate a current density in the SOL for numerical stability
+           DO NR = NRA+1, NRMAX
+              AJPHL(NR) = AJPHL(NRA) * EXP(- (rho(NR) - 1.d0) / (0.5d0 * rLn))
+           END DO
+
+           IF(MDINTC == -2) THEN ! Smoothing current density
+              allocate(Prof1(0:NRMAX))
+              Prof1(:) = AJPHL(:)
+              NR_smt = NRA - NR_smt_start ! smoothing data only in the edge region
+              DO NR = NR_smt, NRMAX
+                 AJPHL(NR) = moving_average(NR,Prof1,NRMAX)
+              END DO
+              deallocate(Prof1)
+           END IF
+
+           DO NR = 0, NRMAX
+              AJPHL(NR)   = AJFCT * AJPHL(NR)
+              AJphVRL(NR) = AJPHL(NR) * ait(NR)
+              X(NR,LQe4)  =-AJphVRL(NR) / (AEE * 1.D20) * rrt(NR) ! approx
+              X(NR,LQe7)  =-AJphVRL(NR) / (AEE * 1.D20)
+              AJOH(NR)    = AJPHL(NR)
+           END DO
+
+           BthV(0) = 0.d0
+           sum_int = 0.d0
+           DO NR = 1, NRMAX
+              sum_int  = sum_int + intg_vol_p(AJphVRL,NR)
+              BthV(NR) = rMUb1 * sum_int / sqrt(ckt(NR))
+              sdt(NR)  = rMUb1 * sum_int / ckt(NR)
+           END DO
+           sdt(0)  = aitken2p(0.d0,sdt(1),sdt(2),sdt(3),vv(1),vv(2),vv(3))
+        ELSE ! (MDINTC == 0); Current density constructed
+           DO NR = 0, NRMAX
+              AJphVRL(NR) = BCLQm3 / (rMUb1 * vlt(nra)) * dProfsdt(NR) ! <j_zeta/R>
+              AJPHL(NR)   = AJphVRL(NR) / ait(NR) ! <j_zeta/R>/<1/R>
+              X(NR,LQi7)  = (Uiph0 * ait(NR)) * X(NR,LQi1) * (dProfsdt(NR) / dProfsdt(0))
+              X(NR,LQi4)  = X(NR,LQi7) * rrt(NR) ! n <R u_zeta> = n <u_zeta/R>/<R^2>
+              X(NR,LQe7)  =-AJphVRL(NR) / (AEE * 1.D20) + achg(2) * X(NR,LQi7)
+              X(NR,LQe4)  = X(NR,LQe7) * rrt(NR) ! n <R u_zeta> = n <u_zeta/R>/<R^2>
+              AJOH(NR)    = AJPHL(NR)
+!              IF(FSHL == 0.D0) THEN
+!                 AJphVRL(NR) = 0.D0
+!                 X(NR,LQe4)  = 0.D0
+!                 X(NR,LQe7)  = 0.D0
+!                 AJOH(NR)    = 0.D0
+!              END IF
+           END DO
         END IF
 
+     else ! Detect toroidal current data in a structured type
+        call inexpolate(infiles(ifile)%nol,infiles(ifile)%r,infiles(ifile)%data,NRMAX,RHO,5,AJPHL)
+        AJFCT = rIPs * 1.D6 / intg_area(AJPHL)
         DO NR = 0, NRMAX
            AJPHL(NR)   = AJFCT * AJPHL(NR)
-           AJphVRL(NR) = AJPHL(NR) * d_rrr(NR)
-           X(NR,LQe4)  =-AJphVRL(NR) / (AEE * 1.D20) * rrt(NR) ! approx
-           X(NR,LQe7)  =-AJphVRL(NR) / (AEE * 1.D20)
+           AJphVRL(NR) = AJPHL(NR) * ait(NR)
+           X(NR,LQe4)  =-AJPHL(NR) / (AEE * 1.D20) * rrt(NR) ! approx
+           X(NR,LQe7)  =-AJPHL(NR) / (AEE * 1.D20)
            AJOH(NR)    = AJPHL(NR)
         END DO
 
@@ -1216,124 +1321,105 @@ SUBROUTINE TXPROF
            sdt(NR)  = rMUb1 * sum_int / ckt(NR)
         END DO
         sdt(0)  = aitken2p(0.d0,sdt(1),sdt(2),sdt(3),vv(1),vv(2),vv(3))
-     ELSE ! (MDINTC == 0); Current density constructed
-        DO NR = 0, NRMAX
-           AJphVRL(NR) = BCLQm3 / (rMUb1 * vlt(nra)) * dProfsdt(NR) ! <j_zeta/R>
-           AJPHL(NR)   = AJphVRL(NR) / d_rrr(NR) ! <j_zeta/R>/<1/R>
-!!$           X(NR,LQe4)  =-AJphVRL(NR) / (AEE * 1.D20) * rrt(NR) ! approx
-!!$           X(NR,LQe7)  =-AJphVRL(NR) / (AEE * 1.D20)
-           X(NR,LQi7)  = (Uiph0 * d_rrr(NR)) * X(NR,LQi1) * (dProfsdt(NR) / dProfsdt(0))
-           X(NR,LQi4)  = X(NR,LQi7) * rrt(NR) ! n <R u_zeta> = n <u_zeta/R>/<R^2>
-           X(NR,LQe7)  =-AJphVRL(NR) / (AEE * 1.D20) + achg(2) * X(NR,LQi7)
-           X(NR,LQe4)  = X(NR,LQe7) * rrt(NR) ! n <R u_zeta> = n <u_zeta/R>/<R^2>
-           AJOH(NR)    = AJPHL(NR)
-!           IF(FSHL == 0.D0) THEN
-!              AJphVRL(NR) = 0.D0
-!              X(NR,LQe4)  = 0.D0
-!              X(NR,LQe7)  = 0.D0
-!              AJOH(NR)    = 0.D0
-!           END IF
-        END DO
-     END IF
-  else ! Detect toroidal current data in a structured type
-     call inexpolate(infiles(ifile)%nol,infiles(ifile)%r,infiles(ifile)%data,NRMAX,RHO,5,AJPHL)
-     AJFCT = rIPs * 1.D6 / intg_area(AJPHL)
-     DO NR = 0, NRMAX
-        AJPHL(NR)   = AJFCT * AJPHL(NR)
-        AJphVRL(NR) = AJPHL(NR) * d_rrr(NR)
-        X(NR,LQe4)  =-AJPHL(NR) / (AEE * 1.D20) * rrt(NR) ! approx
-        X(NR,LQe7)  =-AJPHL(NR) / (AEE * 1.D20)
-        AJOH(NR)    = AJPHL(NR)
-     END DO
+     end if
 
-     BthV(0) = 0.d0
+     deallocate(Profsdt,dProfsdt,AJPHL)
+
      sum_int = 0.d0
-     DO NR = 1, NRMAX
-        sum_int  = sum_int + intg_vol_p(AJphVRL,NR)
-        BthV(NR) = rMUb1 * sum_int / sqrt(ckt(NR))
-        sdt(NR)  = rMUb1 * sum_int / ckt(NR)
-     END DO
-     sdt(0)  = aitken2p(0.d0,sdt(1),sdt(2),sdt(3),vv(1),vv(2),vv(3))
+     X(0,LQm4) = 0.d0
+     do NR = 1, NRMAX
+        sum_int = sum_int + intg_vol_p(sdt,nr)
+        X(NR,LQm4) = sum_int
+     end do
   end if
-  deallocate(Profsdt,dProfsdt)
 
+  ! deallocate arrays in initprof_input
   if(MDINTN < 0 .or. MDINTT < 0 .or. ABS(MDINTC) /= 0) call initprof_input(idx = 0)
+
+  ! ********************************************************************
+  !      Electrostatic potential, Phi
+  ! ********************************************************************
 
   ! Inverse matrix of derivative formula for integration
 
   allocate(CMTX(1:NRMAX,1:NRMAX),RHSV(1:NRMAX))
   CMTX(:,:) = 0.D0
-  DO NR = 1, NRMAX
-     IF(NR == 1) THEN
-        DR1 = vv(NR-1) - vv(NR)
-        DR2 = vv(NR+1) - vv(NR)
-        CMTX(NR,NR  ) = - (DR1 + DR2) / (DR1 * DR2)
-        CMTX(NR,NR+1) = - DR1**2 / (DR1 * DR2 * (DR2 - DR1))
-     ELSEIF(NR == NRMAX) THEN
-        DR1 = vv(NR-1) - vv(NR)
-        DR2 = vv(NR-2) - vv(NR)
-        CMTX(NR,NR-2) = - DR1**2 / (DR1 * DR2 * (DR2 - DR1))
-        CMTX(NR,NR-1) =   DR2**2 / (DR1 * DR2 * (DR2 - DR1))
-        CMTX(NR,NR  ) = - (DR1 + DR2) / (DR1 * DR2)
-     ELSE
-        DR1 = vv(NR-1) - vv(NR)
-        DR2 = vv(NR+1) - vv(NR)
-        CMTX(NR,NR-1) =   DR2**2 / (DR1 * DR2 * (DR2 - DR1))
-        CMTX(NR,NR  ) = - (DR1 + DR2) / (DR1 * DR2)
-        CMTX(NR,NR+1) = - DR1**2 / (DR1 * DR2 * (DR2 - DR1))
-     END IF
+  NR = 1
+     DR1 = vv(NR-1) - vv(NR)
+     DR2 = vv(NR+1) - vv(NR)
+     CMTX(NR,NR  ) = - (DR1 + DR2) / (DR1 * DR2)
+     CMTX(NR,NR+1) = - DR1**2 / (DR1 * DR2 * (DR2 - DR1))
+  DO NR = 2, NRMAX-1
+     DR1 = vv(NR-1) - vv(NR)
+     DR2 = vv(NR+1) - vv(NR)
+     CMTX(NR,NR-1) =   DR2**2 / (DR1 * DR2 * (DR2 - DR1))
+     CMTX(NR,NR  ) = - (DR1 + DR2) / (DR1 * DR2)
+     CMTX(NR,NR+1) = - DR1**2 / (DR1 * DR2 * (DR2 - DR1))
   END DO
-  CALL INVMRD(CMTX,NRMAX,NRMAX,IER)
+  NR = NRMAX
+     DR1 = vv(NR-1) - vv(NR)
+     DR2 = vv(NR-2) - vv(NR)
+     CMTX(NR,NR-2) = - DR1**2 / (DR1 * DR2 * (DR2 - DR1))
+     CMTX(NR,NR-1) =   DR2**2 / (DR1 * DR2 * (DR2 - DR1))
+     CMTX(NR,NR  ) = - (DR1 + DR2) / (DR1 * DR2)
 
   ! Numerical solution for LQm1: integrate Phi' = - p_i'/(Z_i e n_i) over V
 
   allocate(tmpa(0:NRMAX))
   if(MDFIXT == 0) then
-     tmpa(0:NRMAX) = dfdx(vv,X(0:NRMAX,LQi5),NRMAX,0) * rKilo ! p'
+     tmpa(:) = dfdx(vv,X(:,LQi5),NRMAX,0) * rKilo ! p'
   else
-     tmpa(0:NRMAX) = dfdx(vv,X(0:NRMAX,LQi1)*X(0:NRMAX,LQi5),NRMAX,0) * rKilo ! p'
+     tmpa(:) = dfdx(vv,X(:,LQi1)*X(:,LQi5),NRMAX,0) * rKilo ! p'
   end if
 
   RHSV(1:NRMAX) = - tmpa(0:NRMAX-1) / (X(0:NRMAX-1,LQi1) * achg(2))
-  tmpa(0) = 0.d0
-  tmpa(1:NRMAX) = matmul(CMTX,RHSV)
-  do NR = 0, NRMAX-1
-     X(NR,LQm1) = tmpa(NR) - tmpa(NRMAX)
+  if( MDLPCK /= 0 ) then
+     call gesv(CMTX,RHSV)
+  else
+     CALL INVMRD(CMTX,NRMAX,NRMAX,IER)
+     RHSV(1:NRMAX) = matmul(CMTX,RHSV)
+  end if
+
+  do NR = NRMAX, 1, -1
+     X(NR,LQm1) = RHSV(NR) - RHSV(NRMAX)
   end do
+  X(0,LQm1) = - RHSV(NRMAX)
   deallocate(tmpa,CMTX,RHSV)
 
-  sum_int = 0.d0
-  X(0,LQm4) = 0.d0
-  do NR = 1, NRMAX
-     sum_int = sum_int + intg_vol_p(sdt,nr)
-     X(NR,LQm4) = sum_int
-  end do
-
-  do NR = 0, NRMAX
+  ! ********************************************************************
+  !      Parallel flows
+  !      Safety factor, Q
+  ! ********************************************************************
 
   ! === Parallel flow ===
-
-     bbt(NR) = bb**2
-     tmp = bbt(NR) / fipol(NR)
-     X(NR,LQe3) = X(NR,LQe4) / X(NR,LQe1) * tmp
-     X(NR,LQi3) = X(NR,LQi4) / X(NR,LQi1) * tmp
+  if( ieqread >= 2 ) then
+     X(:,LQe3) = X(:,LQe4) / X(:,LQe1) * (bbt(:) / fipol(:))
+     X(:,LQi3) = X(:,LQi4) / X(:,LQi1) * (bbt(:) / fipol(:))
+  else
+     do NR = 0, NRMAX
+        bbt(NR) = bb * bb
+        tmp = bbt(NR) / fipol(NR)
+        X(NR,LQe3) = X(NR,LQe4) / X(NR,LQe1) * tmp
+        X(NR,LQi3) = X(NR,LQi4) / X(NR,LQi1) * tmp
+     end do
+  end if
 
   ! === Safety factor ===
 
-     Q(NR) = fipol(NR) * aat(NR) / (4.d0 * Pisq * sdt(NR))
+  Q(:) = fipol(:) * aat(:) / (4.d0 * Pisq * sdt(:))
 
   ! === Poloidal current density (Virtual current for helical system) ===
 
-     AJV(NR)=0.D0
-
-  end do
+  AJV(:)=0.D0
 
 !  IF(FSHL == 0.D0) THEN
 !     ! Integrate 1 / (r * rMU0) * d/dr (r * BthV) to obtain AJV
-!     AJV(0:NRMAX) = BB / (RR * rMU0) * 2.d0 * Q0 / Q(0:NRMAX)**2
+!     AJV(:) = BB / (RR * rMU0) * 2.d0 * Q0 / Q(:)**2
 !  END IF
 
-  ! === Toroidal electric field for initial NCLASS calculation ===
+  ! ********************************************************************
+  !      Toroidal electric field for initial NCLASS calculation
+  ! ********************************************************************
 
   DO NR = 0, NRMAX
      Var(NR,1)%n = X(NR,LQe1)
@@ -1346,7 +1432,7 @@ SUBROUTINE TXPROF
         Var(NR,2)%T = X(NR,LQi5)
      END IF
      ! Inverse aspect ratio
-     EpsL = rho(NR) * ra / RR
+     EpsL = epst(NR)
      ! Trapped particle fraction
      FTL  = 1.46D0 * SQRT(EpsL) - 0.46D0 * EpsL**1.5D0
      ! Estimating parallel resistivity
@@ -1366,8 +1452,49 @@ SUBROUTINE TXPROF
      X(NR,LQm3) = eta(NR) * AJphVRL(NR) / aat(NR)
      IF(X(NR,LQm3) == 0.D0) X(NR,LQm3) = 1.D-4
   END DO
-!  IF(FSHL == 0.D0) X(0:NRMAX,LQm3) = 0.D0
-  deallocate(AJPHL)
+!  IF(FSHL == 0.D0) X(:,LQm3) = 0.D0
+  if( allocated(AJphVRL) ) deallocate(AJphVRL)
+
+  ! ********************************************************************
+  !      Coefficients for Pfirsch-Schluter viscosity (nccoe)
+  ! ********************************************************************
+
+  call wrap_eqneo
+
+!!$  if( ieqread >= 2 ) then
+!!$!     if( MDLNEOL == 2 ) call eqneo
+!!$     call eqneo
+!!$  else
+!!$     do NR = 1, NRMAX
+!!$        gamneo(NR) = 4.d0 * Pisq * sdt(NR) / bbrt(NR) ! = bthco(NR) / bbrt(NR)
+!!$        mxneo(NR) = 3
+!!$        epsl = epst(NR)
+!!$        coefmneo = 1.d0 - epsl**2
+!!$        do i = 1, mxneo(NR)
+!!$           fmneo(i,NR) = real(i,8)* ( (1.d0-sqrt(coefmneo))/epsl)**(2*i) &
+!!$                &                 * (1.d0+real(i,8)*sqrt(coefmneo)) &
+!!$                &                 / (coefmneo*sqrt(coefmneo)*(q(NR)*RR)**2)
+!!$        end do
+!!$        fmneo(mxneo(NR)+1:10,NR) = 0.d0
+!!$     end do
+!!$  end if
+!!$  ! Even at axis, fmneo=0 should be avoided because it would cause K_PS = 0.
+!!$  NR = 0
+!!$     gamneo(NR) = 4.d0 * Pisq * sdt(NR) / bbrt(NR) ! = bthco(NR) / bbrt(NR)
+!!$     mxneo(NR) = 3
+!!$!     fmneo(1:10,NR) = 0.d0
+!!$     epsl = smallvalue
+!!$     coefmneo = 1.d0 - epsl**2
+!!$     do i = 1, mxneo(NR)
+!!$        fmneo(i,NR) = real(i,8)* ( (1.d0-sqrt(coefmneo))/epsl)**(2*i) &
+!!$             &                 * (1.d0+real(i,8)*sqrt(coefmneo)) &
+!!$             &                 / (coefmneo*sqrt(coefmneo)*(q(NR)*RR)**2)
+!!$     end do
+!!$     fmneo(mxneo(NR)+1:10,NR) = 0.d0
+
+  ! ********************************************************************
+  !      Miscellaneous
+  ! ********************************************************************
 
   !   NBI total input power (MW)
   PNBH = PNBHP + PNBHT1 + PNBHT2
@@ -1391,7 +1518,7 @@ SUBROUTINE TXPROF
 
   CALL TXCALV(X,0) ! Set variables as well as pres0 and ErV0
   !  --- Fixed Er to keep it constant during iterations ---
-  ErV_FIX(0:NRMAX) = ErV(0:NRMAX)
+  ErV_FIX(:) = ErV(:)
 
   !  Calculate various physical quantities
 
@@ -1412,7 +1539,7 @@ module tx_parameter_control
   implicit none
   public
   NAMELIST /TX/ &
-       & RA,rhob,rhoaccum,RR,BB, &
+       & RA,rhob,rhoaccum,RR,BB,rbvt, &
        & amas,achg,Zeff, &
        & PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,PROFN1,PROFN2,PROFT1,PROFT2,Uiph0, &
        & De0,Di0,VWpch0,rMue0,rMui0,WPM0, &
@@ -1432,8 +1559,8 @@ module tx_parameter_control
        & DMAG0,RMAGMN,RMAGMX, &
        & rG1,FSHL,Q0,QA, &
        & rIPs,rIPe, &
-       & MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,iSUPG2,iSUPG3,iSUPG6,SUPGstab, &
-       & MDFIXT,MDBEAM,MDOSQZ,MDLETA,MDITSN,MDITST,MDINTN,MDINTT,MDINTC,MDLETB, &
+       & MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,iSUPG2,iSUPG3,iSUPG6,SUPGstab,iprestab, &
+       & MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDBSETA,MDITSN,MDITST,MDINTN,MDINTT,MDINTC,MDLETB, &
        & IDIAG,IGBDF,ISMTHD,MDLNBD, & ! 09/06/17~ miki_m
        & EpsHM, HPN  ! 10/08/06 miki_m
   private :: TXPLST
@@ -1535,8 +1662,8 @@ contains
        IF(rhoaccum > rhob) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(RR <= rhob) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(rIPs < 0.D0 .OR. rIPe < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
-       IF(amas(1) < 0.D0 .OR. amas(2) < 0.D0 .OR. achg(1) > 0.D0 .OR. achg(2) < 0.D0 .OR. Zeff < 1.D0) THEN ; EXIT ; ELSE
-          idx = idx + 1 ; ENDIF
+       IF(amas(1) < 0.D0 .OR. amas(2) < 0.D0 .OR. achg(1) > 0.D0 .OR. achg(2) < 0.D0 .OR. Zeff < 1.D0) THEN
+          EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(PN0 < 0.D0 .OR. PNa < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(PTe0 < 0.D0 .OR. PTea < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        ! /// idx = 11 - 20 ///
@@ -1560,7 +1687,8 @@ contains
        ! /// idx = 21 - 30 ///
        IF(FSLC < 0.D0 .OR. FSRP < 0.D0 .OR. FSNC < 0.D0 .OR. FSNCB < 0.D0) THEN ; EXIT ; ELSE
           idx = idx + 1 ; ENDIF
-       IF(FSHL < 0.D0 .OR. FSNF < 0.D0 .OR. FSADV < 0.d0 .OR. FSADVB < 0.d0 .OR. FSUG < 0.d0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(FSHL < 0.D0 .OR. FSNF < 0.D0 .OR. FSADV < 0.d0 .OR. FSADVB < 0.d0 .OR. FSUG < 0.d0) THEN
+          EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(FSLP < 0.D0 .OR. FSLTE < 0.D0 .OR. FSLTI < 0.D0) THEN ; EXIT ; ELSE
           idx = idx + 1 ; ENDIF
        IF(FSION < 0.D0)  THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
@@ -1598,7 +1726,9 @@ contains
        IF(oldmix < 0.D0 .OR. oldmix > 1.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(CMESH0 < 0.D0 .OR. CMESH < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(WMESH0 < 0.D0 .OR. WMESH < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
-
+       ! /// idx = 51 - 52 ///
+       IF(MDLNEO /= 1 .AND. MDLNEO /= 2 .AND. MDLNEO /= 3) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(MDBEAM /= 0 .AND. MDBEAM /= 1) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        RETURN
     END DO
 
@@ -1614,7 +1744,7 @@ contains
     WRITE(6,601)
     RETURN
 
-601 FORMAT(' ','# &TX : RA,rhob,rhoaccum,RR,BB,amas,achg,Zeff,'/ &
+601 FORMAT(' ','# &TX : RA,rhob,rhoaccum,RR,BB,rbvt,amas,achg,Zeff,'/ &
          &       ' ',8X,'PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,,PROFN1,PROFN2,PROFT1,PROFT2,Uiph0,'/ &
          &       ' ',8X,'De0,Di0,VWpch0,rMue0,rMui0,WPM0,'/ &
          &       ' ',8X,'Chie0,Chii0,ChiNC,'/ &
@@ -1634,8 +1764,8 @@ contains
          &       ' ',8X,'Dmag0,RMAGMN,RMAGMX,EpsHM,HPN,'/ &   ! 10/08/06 miki_m
          &       ' ',8X,'rG1,FSHL,Q0,QA,'/ &
          &       ' ',8X,'rIPs,rIPe,'/ &
-         &       ' ',8X,'MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,iSUPG2,iSUPG3,iSUPG6,SUPGstab,'/ &
-         &       ' ',8X,'MDFIXT,MDBEAM,MDOSQZ,MDLETA,MDITSN,MDITST,MDINTN,MDINTT,MDLETB,' / & 
+         &       ' ',8X,'MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,iSUPG2,iSUPG3,iSUPG6,SUPGstab,iprestab,'/ &
+         &       ' ',8X,'MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDBSETA,MDITSN,MDITST,MDINTN,MDINTT,MDLETB,' / & 
          &       ' ',8X,'IDIAG,IGBDF,ISMTHD,MDLNBD')
   END SUBROUTINE TXPLST
 
@@ -1647,115 +1777,119 @@ contains
 
   SUBROUTINE TXVIEW
 
-    WRITE(6,'((1X,A7," =",1PD9.2,3(2X,A7," =",1PD9.2)))') &
-         &   'RA     ', RA    ,  'RHOB   ', RHOB  ,  &
-         &   'RR     ', RR    ,  'BB     ', BB    ,  &
-         &   'amas2  ', amas(2), 'achg2  ', achg(2), &
-         &   'PN0    ', PN0   ,  'PNa    ', PNa   ,  &
-         &   'PTe0   ', PTe0  ,  'PTea   ', PTea  ,  &
-         &   'PTi0   ', PTi0  ,  'PTia   ', PTia  ,  &
-         &   'rIP    ', rIP   ,  'Zeff   ', Zeff  ,  &
-         &   'PROFJ  ', PROFJ ,  'PROFN1 ', PROFN1,  &
-         &   'PROFN2 ', PROFN2,  'PROFT1 ', PROFT1,  &
-         &   'PROFT2 ', PROFT2,  'Uiph0  ', Uiph0 ,  &
-         &   'CMESH0 ', CMESH0,  &
-         &   'WMESH0 ', WMESH0,  'CMESH  ', CMESH ,  &
-         &   'WMESH  ', WMESH ,  'ADV    ', ADV   ,  &
-         &   'De0    ', De0   ,  'Di0    ', Di0   ,  &
-         &   'rMue0  ', rMue0 ,  'rMui0  ', rMui0 ,  &
-         &   'FSMPCH1',FSMPCH(1), 'FSMPCH2',FSMPCH(2), &
-         &   'FSPARV1',FSPARV(1), 'FSPARV2',FSPARV(2), &
-         &   'VWpch0 ', VWpch0,  'WPM0   ', WPM0  ,  &
-         &   'PROFD  ', PROFD ,  'PROFD1 ', PROFD1,  &
-         &   'PROFD2 ', PROFD2,  'PROFDB ', PROFDB,  &
-         &   'PROFM  ', PROFM ,  'PROFM1 ', PROFM1,  &
-         &   'PROFMB ', PROFMB,  'PROFC  ', PROFC ,  &
-         &   'PROFC1 ', PROFC1,  'PROFCB ', PROFCB,  &
-         &   'ChiNC  ', ChiNC ,  &
-         &   'Chie0  ', Chie0 ,  'Chii0  ', Chii0 ,  &
-         &   'FSDFX1 ', FSDFIX(1),  'FSDFX2 ', FSDFIX(2),  &
-         &   'FSDFX3 ', FSDFIX(3),  'FANOM1 ', FSANOM(1),  &
-         &   'FANOM2 ', FSANOM(2),  'FANOM3 ', FSANOM(3),  &
-         &   'RoETB1 ', RhoETB(1),  'RoETB2 ', RhoETB(2),  &
-         &   'RoETB3 ', RhoETB(3),  &
-         &   'FSCBAL ', FSCBAL,  'FSCBKP ', FSCBKP,  &
-         &   'FSCBEL ', FSCBEL,  'FSCBSH ', FSCBSH,  &
-         &   'FSBOHM ', FSBOHM,  'FSPCLD ', FSPCLD,  &
-         &   'FSPCLM ', FSPCLM,  'FSPCLC ', FSPCLC,  &
-         &   'FSVAHL ', FSVAHL,  'FSCX   ', FSCX  ,  &
-         &   'FSLC   ', FSLC  ,  'FSRP   ', FSRP  ,  &
-         &   'FSNF   ', FSNF  ,  'FSNC   ', FSNC  ,  &
-         &   'FSADV  ', FSADV ,  'FSADVB ', FSADVB,  &
-         &   'FSUG   ', FSUG  ,  &
-         &   'FSLP   ', FSLP  ,  'FSLTE  ', FSLTE ,  &
-         &   'FSLTI  ', FSLTI ,  'FSION  ', FSION ,  &
-         &   'FSD01  ', FSD01 ,  'FSD02  ', FSD02 ,  &
-         &   'FSD03  ', FSD03 ,  &
-         &   'rLn    ', rLn   ,  'rLT    ', rLT   ,  &
-         &   'Ebmax  ', Ebmax ,  'esps(1)', esps(1), &
-         &   'esps(2)', esps(2), 'esps(3)', esps(3), &
-         &   'FSNCB  ', FSNCB ,  &
-         &   'RNBP   ', RNBP  ,  'RNBP0  ', RNBP0 ,  &
-         &   'RNBT1  ', RNBT1 ,  'RNBT10 ', RNBT10,  &
-         &   'RNBT2  ', RNBT2 ,  'RNBT20 ', RNBT20,  &
-         &   'PNBHP  ', PNBHP ,  'PNBHT1 ', PNBHT1,  &
-         &   'PNBHT2 ', PNBHT2,  'PNBHex ', PNBHex,  &
-         &   'PNBMPD ', PNBMPD,  'PNBPTC ', PNBPTC,  &
-         &   'rNRFe  ', rNRFe ,  'RRFew  ', RRFew ,  &
-         &   'RRFe0  ', RRFe0 ,  'PRFHe  ', PRFHe ,  &
-         &   'rNRFi  ', rNRFe ,  'RRFiw  ', RRFiw ,  &
-         &   'RRFi0  ', RRFi0 ,  'PRFHi  ', PRFHi ,  &
-         &   'Tqt0   ', Tqt0  ,  'Tqp0   ', Tqp0  ,  &
-         &   'rGamm0 ', rGamm0,  'V0     ', V0    ,  &
-         &   'rGASPF ', rGASPF,  &
-         &   'PNeDIV ', PNeDIV,  'PNiDIV ', PNiDIV,  &
-         &   'PTeDIV ', PTeDIV,  'PTiDIV ', PTiDIV,  &
-         &   'DltRPn ', DltRPn,  'kappa  ', kappa ,  &
-         &   'PN0s   ', PN0s  ,  'EPS    ', EPS   ,  &
-         &   'tiny   ', tiny_cap,'DT     ', DT    ,  &
-         &   'rG1    ', rG1   ,  'Zeff   ', Zeff  ,  &
-         &   'rIPs   ', rIPs  ,  'rIPe   ', rIPe  ,  &
-         &   'DMAG0  ', DMAG0 ,  'RMAGMN ', RMAGMN,  &
-         &   'RMAGMX ', RMAGMX,  &
-         &   'FSHL   ', FSHL  ,    &  ! Too many elements of EpsHM to show miki_m 10-08-11
-         &   'Q0     ', Q0    ,  'QA     ', QA    ,  &
-!!$         &   'EpsHM(1,:) ', EpsHM(1,0:3) ,         &
-!!$         &   'EpsHM(2,:) ', EpsHM(2,0:3) ,         &
-!!$         &   'EpsHM(3,:) ', EpsHM(3,0:3)
-         &   'SUPGstb', SUPGstab,   'oldmix ', oldmix, &
-         &   'EpsH10 ', EpsHM(1,0), 'EpsH11 ', EpsHM(1,1), &
-         &   'EpsH12 ', EpsHM(1,2), 'EpsH13 ', EpsHM(1,3), &
-         &   'EpsH20 ', EpsHM(2,0), 'EpsH21 ', EpsHM(2,1), &
-         &   'EpsH22 ', EpsHM(2,2), 'EpsH23 ', EpsHM(2,3), &
-         &   'EpsH30 ', EpsHM(3,0), 'EpsH31 ', EpsHM(3,1), &
-         &   'EpsH32 ', EpsHM(3,2), 'EpsH33 ', EpsHM(3,3), &
-         &   'EpsH40 ', EpsHM(4,0), 'EpsH41 ', EpsHM(4,1), &
-         &   'EpsH42 ', EpsHM(4,2), 'EpsH43 ', EpsHM(4,3)
-    WRITE(6,'((" ",A7," =",I5,3(6X,A7," =",I5)))') &
-         &   'NRMAX  ', NRMAX ,  &
-         &   'NTMAX  ', NTMAX ,  'NTSTEP ', NTSTEP,  &
-         &   'NGRSTP ', NGRSTP,  'NGTSTP ', NGTSTP,  &
-         &   'NGVSTP ', NGVSTP,  'ieqrea ', ieqread, &
-         &   'ICMAX  ', ICMAX ,  'MODEG  ', MODEG ,  &
-         &   'MODEAV ', MODEAV,  'MODEGL ', MODEGL,  &
-         &   'MDLPCK ', MDLPCK,  'MODECV ', MODECV,  &
-         &   'iSUPG2 ', iSUPG2,  'iSUPG3 ', iSUPG3,  &
-         &   'iSUPG6 ', iSUPG6,  'MDFIXT ', MDFIXT,  &
-         &   'MDBEAM ', MDBEAM,  'MDOSQZ ', MDOSQZ,  &
-         &   'MDLETA ', MDLETA,  'MDANOM ', MDANOM,  &
-         &   'MDITSN ', MDITSN,  'MDITST ', MDITST,  &
-         &   'MDINTN ', MDINTN,  'MDINTT ', MDINTT,  &
-         &   'MDINTC ', MDINTC,  &
-         &   'MDLETB ', MDLETB,  'IDIAG  ', IDIAG ,  &
-         &   'IGBDF  ', IGBDF,   'ISMTHD ', ISMTHD,  &
-         &   'NTCOIL ', NTCOIL,  'MDLC   ', MDLC,    &
-         &   'm_pol  ', m_pol ,  'n_tor  ', n_tor,   &
-         &   'MDLNBD ', MDLNBD,  &
-!         &   'NCph   ', NCph  ,  'NCth  ', NCth,    &
-         &   'HPNth1   ', HPN(1,1), 'HPNph1   ', HPN(1,2), &
-         &   'HPNth2   ', HPN(2,1), 'HPNph2   ', HPN(2,2), &
-         &   'HPNth3   ', HPN(3,1), 'HPNph3   ', HPN(3,2), &
-         &   'HPNth4   ', HPN(4,1), 'HPNph4   ', HPN(4,2)
+    WRITE(6,'((1X,A10," =",1PD11.4,2(2X,A10," =",1PD11.4)))') &
+         &   'RA        ', RA       , 'RHOB      ', RHOB     ,  &
+         &   'RR        ', RR       , 'BB        ', BB       ,  &
+         &   'RAVL      ', RAVL     , 'RBVL      ', RBVL     ,  &
+         &   'rbvt      ', rbvt     , &
+         &   'amas(2)   ', amas(2)  , 'achg(2)   ', achg(2)  ,  &
+         &   'PN0       ', PN0      , 'PNa       ', PNa      ,  &
+         &   'PTe0      ', PTe0     , 'PTea      ', PTea     ,  &
+         &   'PTi0      ', PTi0     , 'PTia      ', PTia     ,  &
+         &   'Zeff      ', Zeff     , 'rIP       ', rIP      ,  &
+         &   'rIPs      ', rIPs     , 'rIPe      ', rIPe     ,  &
+         &   'PROFJ     ', PROFJ    , 'PROFN1    ', PROFN1   ,  &
+         &   'PROFN2    ', PROFN2   , 'PROFT1    ', PROFT1   ,  &
+         &   'PROFT2    ', PROFT2   , 'Uiph0     ', Uiph0    ,  &
+         &   'CMESH0    ', CMESH0   , &
+         &   'WMESH0    ', WMESH0   , 'CMESH     ', CMESH    ,  &
+         &   'WMESH     ', WMESH    , 'ADV       ', ADV      ,  &
+         &   'De0       ', De0      , 'Di0       ', Di0      ,  &
+         &   'rMue0     ', rMue0    , 'rMui0     ', rMui0    ,  &
+         &   'FSMPCH(1) ', FSMPCH(1), 'FSMPCH(2) ', FSMPCH(2),  &
+         &   'FSPARV(1) ', FSPARV(1), 'FSPARV(2) ', FSPARV(2),  &
+         &   'VWpch0    ', VWpch0   , 'WPM0      ', WPM0     ,  &
+         &   'PROFD     ', PROFD    , 'PROFD1    ', PROFD1   ,  &
+         &   'PROFD2    ', PROFD2   , 'PROFDB    ', PROFDB   ,  &
+         &   'PROFM     ', PROFM    , 'PROFM1    ', PROFM1   ,  &
+         &   'PROFMB    ', PROFMB   , 'PROFC     ', PROFC    ,  &
+         &   'PROFC1    ', PROFC1   , 'PROFCB    ', PROFCB   ,  &
+         &   'ChiNC     ', ChiNC    , &
+         &   'Chie0     ', Chie0    , 'Chii0     ', Chii0    ,  &
+         &   'FSDFIX(1) ', FSDFIX(1), 'FSDFIX(2) ', FSDFIX(2),  &
+         &   'FSDFIX(3) ', FSDFIX(3), 'FSANOM(1) ', FSANOM(1),  &
+         &   'FSANOM(2) ', FSANOM(2), 'FSANOM(3) ', FSANOM(3),  &
+         &   'RhoETB(1) ', RhoETB(1), 'RhoETB(2) ', RhoETB(2),  &
+         &   'RhoETB(3) ', RhoETB(3),  &
+         &   'FSCBAL    ', FSCBAL   , 'FSCBKP    ', FSCBKP   ,  &
+         &   'FSCBEL    ', FSCBEL   , 'FSCBSH    ', FSCBSH   ,  &
+         &   'FSBOHM    ', FSBOHM   , 'FSPCLD    ', FSPCLD   ,  &
+         &   'FSPCLM    ', FSPCLM   , 'FSPCLC    ', FSPCLC   ,  &
+         &   'FSVAHL    ', FSVAHL   , 'FSCX      ', FSCX     ,  &
+         &   'FSLC      ', FSLC     , 'FSRP      ', FSRP     ,  &
+         &   'FSNF      ', FSNF     , 'FSNC      ', FSNC     ,  &
+         &   'FSADV     ', FSADV    , 'FSADVB    ', FSADVB   ,  &
+         &   'FSUG      ', FSUG     ,  &
+         &   'FSLP      ', FSLP     , 'FSLTE     ', FSLTE    ,  &
+         &   'FSLTI     ', FSLTI    , 'FSION     ', FSION    ,  &
+         &   'FSD01     ', FSD01    , 'FSD02     ', FSD02    ,  &
+         &   'FSD03     ', FSD03    ,  &
+         &   'rLn       ', rLn      , 'rLT       ', rLT      ,  &
+         &   'Ebmax     ', Ebmax    , 'esps(1)   ', esps(1)  ,  &
+         &   'esps(2)   ', esps(2)  , 'esps(3)   ', esps(3)  ,  &
+         &   'FSNCB     ', FSNCB    ,  &
+         &   'RNBP      ', RNBP     , 'RNBP0     ', RNBP0    ,  &
+         &   'RNBT1     ', RNBT1    , 'RNBT10    ', RNBT10   ,  &
+         &   'RNBT2     ', RNBT2    , 'RNBT20    ', RNBT20   ,  &
+         &   'PNBHP     ', PNBHP    , 'PNBHT1    ', PNBHT1   ,  &
+         &   'PNBHT2    ', PNBHT2   , 'PNBHex    ', PNBHex   ,  &
+         &   'PNBMPD    ', PNBMPD   , 'PNBPTC    ', PNBPTC   ,  &
+         &   'rNRFe     ', rNRFe    , 'RRFew     ', RRFew    ,  &
+         &   'RRFe0     ', RRFe0    , 'PRFHe     ', PRFHe    ,  &
+         &   'rNRFi     ', rNRFe    , 'RRFiw     ', RRFiw    ,  &
+         &   'RRFi0     ', RRFi0    , 'PRFHi     ', PRFHi    ,  &
+         &   'Tqt0      ', Tqt0     , 'Tqp0      ', Tqp0     ,  &
+         &   'rGamm0    ', rGamm0   , 'V0        ', V0       ,  &
+         &   'rGASPF    ', rGASPF   ,  &
+         &   'PNeDIV    ', PNeDIV   , 'PNiDIV    ', PNiDIV   ,  &
+         &   'PTeDIV    ', PTeDIV   , 'PTiDIV    ', PTiDIV   ,  &
+         &   'DltRPn    ', DltRPn   , 'kappa     ', kappa    ,  &
+         &   'PN0s      ', PN0s     , 'EPS       ', EPS      ,  &
+         &   'tiny_cap  ', tiny_cap , 'DT        ', DT       ,  &
+         &   'rG1       ', rG1      ,  &
+         &   'DMAG0     ', DMAG0    , 'RMAGMN    ', RMAGMN   ,  &
+         &   'RMAGMX    ', RMAGMX   ,  &
+         &   'FSHL      ', FSHL     ,  &  ! Too many elements of EpsHM to show miki_m 10-08-11
+         &   'Q0        ', Q0       , 'QA        ', QA       ,  &
+!!$         &   'EpsHM(1,:)', EpsHM(1,0:3) , &
+!!$         &   'EpsHM(2,:)', EpsHM(2,0:3) , &
+!!$         &   'EpsHM(3,:)', EpsHM(3,0:3) , &
+         &   'SUPGstb   ', SUPGstab,  'oldmix    ', oldmix   , &
+         &   'EpsHM(1,0)', EpsHM(1,0),'EpsHM(1,1)', EpsHM(1,1), &
+         &   'EpsHM(1,2)', EpsHM(1,2),'EpsHM(1,3)', EpsHM(1,3), &
+         &   'EpsHM(2,0)', EpsHM(2,0),'EpsHM(2,1)', EpsHM(2,1), &
+         &   'EpsHM(2,2)', EpsHM(2,2),'EpsHM(2,3)', EpsHM(2,3), &
+         &   'EpsHM(3,0)', EpsHM(3,0),'EpsHM(3,1)', EpsHM(3,1), &
+         &   'EpsHM(3,2)', EpsHM(3,2),'EpsHM(3,3)', EpsHM(3,3), &
+         &   'EpsHM(4,0)', EpsHM(4,0),'EpsHM(4,1)', EpsHM(4,1), &
+         &   'EpsHM(4,2)', EpsHM(4,2),'EpsHM(4,3)', EpsHM(4,3)
+    WRITE(6,'((" ",A10," =",I5,2(8X,A10," =",I5)))') &
+         &   'NRMAX     ', NRMAX    , &
+         &   'NTMAX     ', NTMAX    , 'NTSTEP    ', NTSTEP   ,  &
+         &   'NGRSTP    ', NGRSTP   , 'NGTSTP    ', NGTSTP   ,  &
+         &   'NGVSTP    ', NGVSTP   , 'ieqread   ', ieqread  ,  &
+         &   'ICMAX     ', ICMAX    , 'MODEG     ', MODEG    ,  &
+         &   'MODEAV    ', MODEAV   , 'MODEGL    ', MODEGL   ,  &
+         &   'MDLPCK    ', MDLPCK   , 'MODECV    ', MODECV   ,  &
+         &   'iSUPG2    ', iSUPG2   , 'iSUPG3    ', iSUPG3   ,  &
+         &   'iSUPG6    ', iSUPG6   , 'MDFIXT    ', MDFIXT   ,  &
+         &   'MDBEAM    ', MDBEAM   , &
+         &   'MDOSQZ    ', MDOSQZ   , 'MDOSQZN   ', MDOSQZN  ,  &
+         &   'MDLETA    ', MDLETA   , 'MDLNEO    ', MDLNEO   ,  &
+         &   'MDBSETA   ', MDBSETA  , 'MDANOM    ', MDANOM   ,  &
+         &   'MDITSN    ', MDITSN   , 'MDITST    ', MDITST   ,  &
+         &   'MDINTN    ', MDINTN   , 'MDINTT    ', MDINTT   ,  &
+         &   'MDINTC    ', MDINTC   , &
+         &   'MDLETB    ', MDLETB   , 'IDIAG     ', IDIAG    ,  &
+         &   'IGBDF     ', IGBDF    , 'ISMTHD    ', ISMTHD   ,  &
+         &   'NTCOIL    ', NTCOIL   , 'MDLC      ', MDLC     ,  &
+         &   'm_pol     ', m_pol    , 'n_tor     ', n_tor    ,  &
+         &   'MDLNBD    ', MDLNBD   , 'iprestab  ', iprestab ,  &
+!         &   'NCph      ', NCph     , 'NCth      ', NCth     ,  &
+         &   'HPN(1,1)  ', HPN(1,1) , 'HPN(1,2)  ', HPN(1,2) , &
+         &   'HPN(2,1)  ', HPN(2,1) , 'HPN(2,2)  ', HPN(2,2) , &
+         &   'HPN(3,1)  ', HPN(3,1) , 'HPN(3,2)  ', HPN(3,2) , &
+         &   'HPN(4,1)  ', HPN(4,1) , 'HPN(4,2)  ', HPN(4,2)
     RETURN
   END SUBROUTINE TXVIEW
 end module tx_parameter_control

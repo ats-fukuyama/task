@@ -17,7 +17,8 @@ module tx_interface
   !****************!
 
   interface
-     subroutine txmmm95(dNedr,dNidr,dTedr,dTidr,dQdr,gamma)
+     subroutine txmmm95(dNedr,dNidr,dTedr,dTidr,dQdr,cexb,gamma)
+       real(8), intent(in) :: cexb
        real(8), dimension(:), intent(in) :: dNedr,dNidr,dTedr,dTidr,dQdr
        real(8), dimension(:), intent(out), optional :: gamma
      end subroutine txmmm95
@@ -85,41 +86,6 @@ module tx_interface
        real(8), dimension(0:nmax) :: dfdx
        real(8), optional :: daxs, dbnd
      end function dfdx
-  end interface
-
-  interface
-     real(8) function intg_vol(X)
-       real(8), dimension(:), intent(in) :: X
-     end function intg_vol
-  end interface
-
-  interface
-     real(8) function intg_area(X)
-       real(8), dimension(:), intent(in) :: X
-     end function intg_area
-  end interface
-
-  interface
-     real(8) function intg_vol_p(X,NR)
-       integer(4), intent(in) :: NR
-       real(8), dimension(:), intent(in) :: X
-     end function intg_vol_p
-  end interface
-
-  interface
-     real(8) function intg_area_p(X,NR)
-       integer(4), intent(in) :: NR
-       real(8), dimension(:), intent(in) :: X
-     end function intg_area_p
-  end interface
-
-  interface
-     subroutine sub_intg_vol(X,NRLMAX,VAL,NR_START)
-       integer(4), intent(in) :: NRLMAX
-       integer(4), intent(in), optional :: NR_START
-       real(8), dimension(:), intent(in) :: X
-       real(8), intent(out) :: VAL
-     end subroutine sub_intg_vol
   end interface
 
   interface
@@ -207,7 +173,7 @@ module tx_interface
   end interface
 
   interface
-     pure real(8) function ftfunc(x)
+     elemental real(8) function ftfunc(x)
        real(8), intent(in) ::x 
      end function ftfunc
   end interface
@@ -225,14 +191,14 @@ module tx_interface
   end interface
 
   interface
-     function coulog_gen( ne, te, CDi, A1, Z1, t1, A2, Z2, t2 ) result( lambda )
+     pure function coulog_gen( ne, te, CDi, A1, Z1, t1, A2, Z2, t2 ) result( lambda )
        real(8), intent(in) :: ne, te, CDi, A1, Z1, t1, A2, Z2, t2
        real(8) :: lambda
      end function coulog_gen
   end interface
 
   interface
-     real(8) function coulog_NRL(imodel, Ne, Te, Ni, Ti, PA, PZ) result(f)
+     pure function coulog_NRL(imodel, Ne, Te, Ni, Ti, PA, PZ) result(f)
        integer(4), intent(in) :: imodel
        real(8), intent(in) :: Ne, Te
        real(8), intent(in), optional :: Ni, Ti, PA, PZ

@@ -60,12 +60,19 @@ module tx_commons
   !   Conversion factor from keV to eV
   real(8), parameter :: rKilo = 1.D3
   
+  !   Square of pi
+  real(8), parameter :: Pisq = pi * pi
+
+  !   Square root permittivity for LQm1
+  !     for the sake of acceleration of convergence
+  real(8), parameter :: sqeps0 = sqrt(EPS0)
+
   !**********************!
   !   INPUT PARAMETERS   !
   !**********************!
 
   ! Configuration parameters
-  real(8) :: RA, RB, RR, BB, rIPs, rIPe
+  real(8) :: RA, RB, ravl, rbvl, RR, BB, rbvt, rIPs, rIPe
   real(8) :: rhob, rhoaccum
 
   ! Species
@@ -148,7 +155,7 @@ module tx_commons
   integer(4) :: MDFIXT, MDBEAM
 
   ! Transport model
-  integer(4) :: MDOSQZ, MDLETA, MDLETB
+  integer(4) :: MDOSQZ, MDOSQZN, MDLETA, MDLETB, MDLNEO, MDBSETA
 
   ! Initial condition
   integer(4) :: MDITSN, MDITST, MDINTN, MDINTT, MDINTC
@@ -164,18 +171,17 @@ module tx_commons
   ! Configuration parameters
   integer(4) :: NQMAX, IERR, ICONT, IRPIN
   real(4) :: AVE_IC
-  real(8) :: Vb, sqeps0, Pisq
   real(8) :: rIP
   real(8) :: UHth, UHph
-  real(8) :: Rax, Zax, perimlcfs
-  real(8), dimension(:), allocatable :: R, vv, vvn, rho, rhosq
+  real(8) :: Rax, Zax, surflcfs
+  real(8), dimension(:), allocatable :: R, vv, rho, rhosq
   real(8), dimension(:), allocatable :: hv
 
   ! Convergence accelerator
   real(8) :: rMUb1, rMUb2
 
   ! Convergence parameter
-  integer(4) :: MODECV
+  integer(4) :: MODECV, iprestab
   real(8) :: oldmix
 
   ! SUPG parameter
@@ -221,19 +227,21 @@ module tx_commons
        & DMAG, DMAGe, DMAGi, &
        & Ubrp, RUbrp, Dbrp, DltRP, DltRP_mid, rNubL, rip_rat, rNuOL, Vbpara, &
        & SiVizA, SiVcxA, wexb, &
-       & UgV
+       & UgV, PNbVinv
   real(8), dimension(:,:), allocatable :: gamITG
   real(8), dimension(:,:), allocatable :: Vhps, Vmps, PiRess
 
   ! Coefficients related to neoclassical transport
-  real(8), dimension(:,:), allocatable :: xmuf, BnablaPi
-  real(8), dimension(:,:,:), allocatable :: lff
+  integer(4), dimension(:),allocatable :: mxneo
+  real(8), dimension(:),   allocatable :: gamneo
+  real(8), dimension(:,:), allocatable :: fmneo, xmuf, BnablaPi
+  real(8), dimension(:,:,:), allocatable :: lff, gflux
   real(8), dimension(:,:,:,:), allocatable :: xmu, laf, lfb
   real(8), dimension(:,:,:,:,:), allocatable :: lab
 
   ! Equilibrium metrics 
   real(8), dimension(:), allocatable :: &
-       & aat, rrt, ckt, suft, sst, vro, vlt, rhov, art, epst, d_rrr, elip, trig
+       & aat, rrt, ckt, suft, sst, vro, vlt, rhov, art, epst, ait, elip, trig
   real(8), dimension(:), allocatable :: fipol, Bpsq, qhatsq, Fqhatsq, BEpara, bri
   real(8), dimension(:), allocatable :: sdt, hdt
   real(8), dimension(:), allocatable :: bit, bbrt
@@ -259,14 +267,14 @@ module tx_commons
        &                                SNB, SNBe, SNBi, SNBb, SNBPDi, SNBTGi, &
        &                                PNBe, PNBi, MNB, PRFe, PRFi, &
        &                                POH, POHe, POHi, PEQe, PEQi, &
-       &                                SiLC, SiLCth, SiLCph, PALFe, PALFi, &
+       &                                SiLC, SiLCB, SiLCph, PALFe, PALFi, &
        &                                BSmb, Tqt, Tqp
   real(8), dimension(:), allocatable :: PIE, PCX, SIE, SCX, PBr
-  real(8) :: Eb, RatCX
+  real(8) :: Eb, Vb, RatCX
 
   ! Safety factor, currents, resistivity
-  real(8), dimension(:), allocatable :: Q, AJ, AJOH, AJV, AJRF, AJNB, BJPARA, &
-       &                                BJBS, ETA, ETAS 
+  real(8), dimension(:), allocatable :: Q, AJ, BJPARA, AJOH, BJOH, AJV, AJRF, AJNB, BJNB, &
+       &                                BJBS, AJBS, ETA, ETAS 
   real(8), dimension(:,:), allocatable :: BJBSvar, ETAvar
 
   ! Derivatives
@@ -286,7 +294,7 @@ module tx_commons
   real(8) :: WPDOT, TAUE1, TAUE2, TAUEP, TAUEH, TAUP, TAUPA
   real(8) :: BETAP0, BETAPA, BETA0, BETAA, BETAQ0, BETAN
   real(8) :: TPRE, WPPRE
-  real(8) :: VOLAVN, Gamma_a
+  real(8) :: VOLAVN, Gamma_a, PnumN0
 
   ! Internal variables for transport matrix
   real(8),    dimension(:,:,:), allocatable :: ALC, BLC, CLC, PLC
@@ -349,7 +357,7 @@ contains
     end if
 
     do
-       allocate(R(0:N),      vv(0:N),    vvn(0:N),   rho(0:N),   rhosq(0:N),  stat = ierl(1))
+       allocate(R(0:N),      vv(0:N),    rho(0:N),   rhosq(0:N),              stat = ierl(1))
        allocate(hv(0:NEMAX),                                                  stat = ierl(2))
        ier = sum(ierl) ; iflag = 1
        if (ier /= 0) exit
@@ -400,18 +408,20 @@ contains
        allocate(gamITG(0:N,1:3),                                              stat = ierl(15))
        allocate(DMAG(0:N),   DMAGe(0:N),  DMAGi(0:N),                         stat = ierl(16))
        allocate(SiVizA(0:N), SiVcxA(0:N), wexb(0:N),                          stat = ierl(17))
-       allocate(UgV(0:N),                                                     stat = ierl(18))
+       allocate(UgV(0:N),    PNbVinv(0:N),                                    stat = ierl(18))
        allocate(Vhps(0:N,NS),Vmps(0:N,NS), PiRess(0:N,NS),                    stat = ierl(19))
        ier = sum(ierl) ; iflag = 4
        if (ier /= 0) exit
 
        allocate(xmu(0:N,NS,3,3), lab(0:N,NS,NS,3,3),                          stat = ierl(1))
        allocate(laf(0:N,NS,2,2), lfb(0:N,NS,2,2), lff(0:N,2,2), xmuf(0:N,3),  stat = ierl(2))
-       allocate(BnablaPi(0:N,NS),                                             stat = ierl(3))
+       allocate(BnablaPi(0:N,NS),gflux(0:N,NS,3),                             stat = ierl(3))
+       allocate(mxneo(0:N),  fmneo(1:10,0:N), gamneo(0:N),                    stat = ierl(4))
        ier = sum(ierl) ; iflag = 5
        if (ier /= 0) exit
 
-       allocate(aat(0:N), rrt(0:N), ckt(0:N), suft(0:N), sst(0:N), vro(0:N), vlt(0:N), rhov(0:N), art(0:N), epst(0:N), d_rrr(0:N), elip(0:N), trig(0:N), stat = ierl(1))
+       allocate(aat(0:N), rrt(0:N), ckt(0:N), suft(0:N), sst(0:N), vro(0:N), vlt(0:N), rhov(0:N), &
+            &   art(0:N), epst(0:N), ait(0:N), elip(0:N), trig(0:N), stat = ierl(1))
        allocate(fipol(0:N), Bpsq(0:N), qhatsq(0:N), Fqhatsq(0:N), BEpara(0:N), bri(0:N),stat = ierl(2))
        allocate(sdt(0:N), hdt(0:N),                                           stat = ierl(3))
        allocate(bit(0:N), bbrt(0:N),                                          stat = ierl(4))
@@ -429,16 +439,16 @@ contains
        allocate(SNBPDi(0:N),SNBTGi(0:N),                                      stat = ierl(3))
        allocate(PNBe(0:N),  PNBi(0:N),   MNB(0:N),    PRFe(0:N),  PRFi(0:N),  stat = ierl(4))
        allocate(POH(0:N),   POHe(0:N),   POHi(0:N),   PEQe(0:N),  PEQi(0:N),  stat = ierl(5))
-       allocate(SiLC(0:N),  SiLCth(0:N), SiLCph(0:N), PALFe(0:N), PALFi(0:N), stat = ierl(6))
+       allocate(SiLC(0:N),  SiLCB(0:N),  SiLCph(0:N), PALFe(0:N), PALFi(0:N), stat = ierl(6))
        allocate(PIE(0:N),   PCX(0:N),    SIE(0:N),    SCX(0:N),   PBr(0:N),   stat = ierl(7))
        allocate(BSmb(0:N),  Tqt(0:N),    Tqp(0:N),                            stat = ierl(8))
        ier = sum(ierl) ; iflag = 8
        if (ier /= 0) exit
 
-       allocate(Q(0:N), AJ(0:N), AJOH(0:N), AJV(0:N), AJRF(0:N),  AJNB(0:N),  stat = ierl(1))
-       allocate(BJBS(0:N), ETA(0:N), ETAS(0:N),                               stat = ierl(2))
-       allocate(BJBSvar(0:N,5), ETAvar(0:N,5),                                stat = ierl(3))
-       allocate(BJPARA(0:N),                                                  stat = ierl(4))
+       allocate(Q(0:N), AJ(0:N), BJPARA(0:N), AJOH(0:N), BJOH(0:N), AJV(0:N), stat = ierl(1))
+       allocate(AJRF(0:N), AJNB(0:N), BJNB(0:N), BJBS(0:N), AJBS(0:N),        stat = ierl(2))
+       allocate(ETA(0:N), ETAS(0:N),                                          stat = ierl(3))
+       allocate(BJBSvar(0:N,0:3), ETAvar(0:N,0:4),                            stat = ierl(4))
        ier = sum(ierl) ; iflag = 9
        if (ier /= 0) exit
 
@@ -475,7 +485,7 @@ contains
 
   subroutine deallocate_txcomm
 
-    deallocate(R,      vv,      vvn,    rho,   rhosq)
+    deallocate(R,      vv,      rho,   rhosq)
     deallocate(hv)
 
     deallocate(ErV,    BEpol,   Etor,   BthV,  BphV)
@@ -515,12 +525,12 @@ contains
     deallocate(gamITG)
     deallocate(DMAG,   DMAGe,  DMAGi)  !***AF (2008-06-08)
     deallocate(SiVizA, SiVcxA, wexb)
-    deallocate(UgV)
+    deallocate(UgV,    PNbVinv)
     deallocate(Vhps,   Vmps,   PiRess)
 
-    deallocate(xmu, xmuf, lab, laf, lfb, lff, BnablaPi)
+    deallocate(xmu, xmuf, lab, laf, lfb, lff, BnablaPi, gflux, mxneo, fmneo, gamneo)
 
-    deallocate(aat, rrt, ckt, suft, sst, vro, vlt, rhov, art, epst, d_rrr, elip, trig)
+    deallocate(aat, rrt, ckt, suft, sst, vro, vlt, rhov, art, epst, ait, elip, trig)
     deallocate(fipol, Bpsq, qhatsq, Fqhatsq, BEpara, bri)
     deallocate(sdt, hdt)
     deallocate(bit, bbrt)
@@ -534,12 +544,13 @@ contains
     deallocate(SNB,    SNBe,  SNBi,  SNBb,   SNBPDi, SNBTGi)
     deallocate(PNBe,   PNBi,  MNB,   PRFe,   PRFi)
     deallocate(POH,    POHe,  POHi,  PEQe,   PEQi)
-    deallocate(SiLC,   SiLCth,SiLCph,PALFe,  PALFi)
+    deallocate(SiLC,   SiLCB, SiLCph,PALFe,  PALFi)
     deallocate(PIE,    PCX,   SIE,   SCX,    PBr)
     deallocate(BSmb,   Tqt,   Tqp)
 
-    deallocate(Q, AJ, AJOH, AJV, AJRF, AJNB, BJPARA)
-    deallocate(BJBS, ETA, ETAS)
+    deallocate(Q, AJ, BJPARA, AJOH, BJOH, AJV)
+    deallocate(AJRF, AJNB, BJNB, BJBS, AJBS)
+    deallocate(ETA, ETAS)
     deallocate(BJBSvar, ETAvar)
 
     deallocate(dPsdpsi, dTsdpsi)

@@ -5,6 +5,7 @@
 !             TOKAMAK TRANSPORT SIMULATION CODE
 !    INCLUDING RADIAL ELECTRIC FIELD AND PLASMA ROTATION
 !                        "TASK/TX"
+!           (TX : acronym of Transport Extended)
 !
 !      FEM scheme with Linear interpolation function
 !      in the axisymmetric flux coordinates
@@ -13,13 +14,19 @@
 !
 !               ADVANCED PLASMA MODELING GROUP
 !                   NAKA FUSION INSTITUTE
-!                JAPAN ATOMIC ENERGY AGENCY
+!      NATIONAL INSTITUTES FOR QUANTUM AND RADIOLOGICAL
+!                  SCIENCE AND TECHNOLOGY
 !
 !             DEPARTMENT OF NUCLEAR ENGINEERING
 !              GRADUATE SCHOOL OF ENGINEERING
 !                     KYOTO UNIVERSITY
 !
 !   References:
+!     (Current version)
+!     M. Honda and A. Fukuyama
+!       "Development of the fluid-type transport code
+!          on the flux coordinates in a tokamak",
+!       Computational Physics Communications, 208 (2016) 117-134.
 !     (Original)
 !     M. Honda and A. Fukuyama
 !       "Dynamic transport simulation code including plasma rotation
@@ -104,8 +111,8 @@ PROGRAM TASK_TX
 
   !     ***** Version ID *****
   !     SLID is used to identify data file.
-  SLID = 'tx500.0'
-  WRITE(6,*) '######## TASK/TX V5.00.00 16/01/14 ########'
+  SLID = 'tx505.0'
+  WRITE(6,*) '######## TASK/TX V5.05.00 16/11/25 ########'
 
   CALL TXINIT
   KPNAME='txparm'
