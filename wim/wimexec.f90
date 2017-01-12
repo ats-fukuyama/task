@@ -6,7 +6,7 @@ END MODULE decomm
 
 Module wimexec
   PRIVATE
-  PUBLIC wim_exec
+  PUBLIC wim_exec,subfw
  
 CONTAINS
 
@@ -28,7 +28,7 @@ CONTAINS
     CALL DIVZ(NZMAX) 
 
     IF(NTMAX.NE.NTSET.OR.ABS(TMAX-TMAXST).GT.1.D-8) THEN
-       CALL SUBFW
+       CALL SUBFW(0)
        CALL GUTIME(RNT2)
        WRITE(6,601) 'SUBFW ',RNT2-RNT1
        NTSET=NTMAX
@@ -51,7 +51,7 @@ CONTAINS
     CASE(0)
        CALL BANDCD(CK,CV,NLEN,NWID,NWID,IERR)
        IF(IERR.NE.0) GOTO 9900
-       CALL SUBFYW(NZMAX)
+       CALL SUBFYW(NLEN)
     CASE(2)   
        IF(NWMAX.EQ.NZMAX) THEN
           CALL INVMCD(CK,NLEN,NWID,IERR)
@@ -59,11 +59,11 @@ CONTAINS
              WRITE(6,*) 'XX INVMCD ERROR: IERR=',IERR
              GOTO 9900
           END IF
-          CALL SUBFY(NZMAX)
+          CALL SUBFY(NLEN)
        ELSE
           CALL BANDCD(CK,CV,NLEN,NWID,NWID,IERR)
           IF(IERR.NE.0) GOTO 9900
-          CALL SUBFYW(NZMAX)
+          CALL SUBFYW(NLEN)
        ENDIF
     END SELECT
     CALL GUTIME(RNT2)
@@ -151,12 +151,13 @@ CONTAINS
 
 !     *****  CALCULATE KERNEL FUNCTION  *****
 
-  SUBROUTINE SUBFW
+  SUBROUTINE SUBFW(ID)
 
     USE wimcomm,ONLY: rkind,TT,TMAX,NTMAX,CFK1,CFKS1,CFK2,CFKS2,PI
     USE decomm,ONLY: N1
     USE libgrf
     IMPLICIT NONE
+    INTEGER,INTENT(IN):: ID    ! ID=1 for graphic output
     INTEGER:: IOPT(2),NT,L,IER
     REAL(rkind):: DT
     COMPLEX(rkind):: CDF(2)
@@ -187,13 +188,15 @@ CONTAINS
     IOPT(2)=3
     CALL DSPLC(TT,NTMAX,CFK2,CDF,IOPT,CFKS2,NTMAX,IER)
 
-!    CALL PAGES
-!    F(1:NTMAX,1)=REAL(CFK1(1:NTMAX))
-!    F(1:NTMAX,2)=IMAG(CFK1(1:NTMAX))
-!    F(1:NTMAX,3)=REAL(CFK2(1:NTMAX))
-!    F(1:NTMAX,4)=IMAG(CFK2(1:NTMAX))
-!    CALL GRD1D(0,TT,F,NTMAX,NTMAX,4,'CFK')
-!    CALL PAGEE
+    IF(ID.EQ.1) THEN
+       CALL PAGES
+       F(1:NTMAX,1)=REAL(CFK1(1:NTMAX))
+       F(1:NTMAX,2)=IMAG(CFK1(1:NTMAX))
+       F(1:NTMAX,3)=REAL(CFK2(1:NTMAX))
+       F(1:NTMAX,4)=IMAG(CFK2(1:NTMAX))
+       CALL GRD1D(0,TT,F,NTMAX,NTMAX,4,'CFK')
+       CALL PAGEE
+    END IF
 
     RETURN
   END SUBROUTINE SUBFW
@@ -323,40 +326,39 @@ CONTAINS
 
     USE wimcomm,ONLY: rkind,CI,PN0,DBDZ,ANX,BETA,ZMIN,ZMAX,DZMAX,DZWID,ZA, &
                       CK,CV,CA1,CB1,CD1,CE1,CF1,CG1,CA2,CB2,CD2,CE2,CF2,CG2, &
-                      D0,D1,D2,D3,NWID,NLEN
+                      D0,D1,D2,D3,NWID,NLEN,IDEBUG,PZCL
     USE libgrf
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NZMAX,NWMAX,MODELW
-    INTEGER:: NZMAX3,NBAND,NWMAX3R,NWMAX6,NWMAX3L, &
+    INTEGER:: NBAND,NWCENTER, &
               I,J,MM,ID,JD,NS,NE,NN,KI,KJ,I1,I2
-    REAL(rkind):: RKX,RKX2,BETA2,ANX2,DZ,DZI,DZJ,YY,YYI,YYJ,VP,VM,VPI,VPJ, &
-                  VMI,VMJ,VVP,VVM,VVZ,X1,X4,X5,DPI,DMI,DPJ,DMJ,DPM,DP,DM,DE, &
-                  VY,DS
-    COMPLEX(rkind):: CIKX,CF1P,CF1M,CF2Z,CF1Z,CP1,CP2,CP3
+    REAL(rkind):: RKX,RKX2,BETA2,ANX2,DZ,DZI,DZJ
+    COMPLEX(rkind):: YY,YYI,YYJ,VP,VM,VPI,VPJ,VMI,VMJ,X1,X4,X5,VY
+    REAL(rkind):: VVP,VVM,VVZ,DS
+    COMPLEX(rkind):: DPI,DMI,DPJ,DMJ,DPM,DP,DM,DE
+    COMPLEX(rkind):: CIKX,CF1P,CF1M,CF2Z,CF1Z,CP1,CP2,CP3,CCOL
     REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: AKR,AKI
     REAL(rkind),DIMENSION(:),ALLOCATABLE:: XX1,XX2
+    REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: LINE_RGB
+    INTEGER,DIMENSION(:),ALLOCATABLE:: LINE_MARK
  
     RKX=ANX*BETA
     RKX2=RKX**2
-    NZMAX3=3*NZMAX
     BETA2=BETA*BETA
     ANX2=ANX*ANX
     CIKX=CI*ANX/BETA
+    CCOL=CI*PZCL
  
     IF(NWMAX.EQ.NZMAX) THEN
        NBAND=0
-       NWMAX3R=NZMAX3
-       NWMAX6=3*NZMAX
-       NWMAX3L=0
+       NWCENTER=0
     ELSE
        NBAND=1
-       NWMAX3R=3*NWMAX
-       NWMAX6=6*NWMAX
-       NWMAX3L=3*NWMAX
+       NWCENTER=(NWID+1)/2-1
     ENDIF
 
-    DO I=1,NZMAX3+7
-       DO J=1,NWMAX6+7
+    DO I=1,NLEN
+       DO J=1,NWID
           CK(J,I)=(0.D0,0.D0)
        END DO
     END DO
@@ -367,7 +369,7 @@ CONTAINS
           ID=3*I+2
           DO J=MM,MM+1
              JD=3*J+2
-             IF(NWMAX.NE.NZMAX) JD=3*NWMAX+4+3*J-3*I
+             IF(NWMAX.NE.NZMAX) JD=NWCENTER+3*J-3*I
              CK(JD+1,ID+1)=CK(JD+1,ID+1) &
                           +D2(I-MM,J-MM)/(BETA2*DZ)  &
                           -DZ*D0(I-MM,J-MM)
@@ -384,40 +386,53 @@ CONTAINS
        END DO
     END DO
 
-    CK(NWMAX3L+1+2*NBAND,1)=-1.D0
-    CK(NWMAX3L+2+2*NBAND,1)=-1.D0
-    CK(NWMAX3L+3+2*NBAND,1)= 1.D0
-    CK(NWMAX3L+1+  NBAND,2)=-CF1
-    CK(NWMAX3L+2+  NBAND,2)=-CG1
-    CK(NWMAX3L+4+  NBAND,2)= 1.D0
-    CK(NWMAX3L+1        ,3)=-CA1
-    CK(NWMAX3L+2        ,3)=-CB1
-    CK(NWMAX3L+1-  NBAND,4)=-CD1
-    CK(NWMAX3L+2-  NBAND,4)=-CE1
-    CK(NWMAX3R+6+2*NBAND,NZMAX3+3)=-CA2
-    CK(NWMAX3R+7+2*NBAND,NZMAX3+3)=-CB2
-    CK(NWMAX3R+6+  NBAND,NZMAX3+4)=-CD2
-    CK(NWMAX3R+7+  NBAND,NZMAX3+4)=-CE2
-    CK(NWMAX3R+3-  NBAND,NZMAX3+6)= 1.D0
-    CK(NWMAX3R+6-  NBAND,NZMAX3+6)=-1.D0
-    CK(NWMAX3R+7-  NBAND,NZMAX3+6)=-1.D0
-    CK(NWMAX3R+4-2*NBAND,NZMAX3+7)= 1.D0
-    CK(NWMAX3R+6-2*NBAND,NZMAX3+7)=-CF2
-    CK(NWMAX3R+7-2*NBAND,NZMAX3+7)=-CG2
+    CK(NWCENTER+1,1)=-1.D0
+    CK(NWCENTER+2,1)=-1.D0
+    CK(NWCENTER+3,1)= 1.D0
+    CK(NWCENTER+1-NBAND,2)=-CF1
+    CK(NWCENTER+2-NBAND,2)=-CG1
+    CK(NWCENTER+4-NBAND,2)= 1.D0
+    CK(NWCENTER+1-2*NBAND,3)=-CA1
+    CK(NWCENTER+2-2*NBAND,3)=-CB1
+    CK(NWCENTER+1-3*NBAND,4)=-CD1
+    CK(NWCENTER+2-3*NBAND,4)=-CE1
+    IF(NWMAX.EQ.NZMAX) THEN
+       CK(NLEN-1,NLEN-4)=-CA2
+       CK(NLEN  ,NLEN-4)=-CB2
+       CK(NLEN-1,NLEN-3)=-CD2
+       CK(NLEN  ,NLEN-3)=-CE2
+       CK(NLEN-4,NLEN-1)= 1.D0
+       CK(NLEN-1,NLEN-1)=-1.D0
+       CK(NLEN  ,NLEN-1)=-1.D0
+       CK(NLEN-3,NLEN  )= 1.D0
+       CK(NLEN-1,NLEN  )=-CF2
+       CK(NLEN  ,NLEN  )=-CG2
+    ELSE
+       CK(NWCENTER+4,NLEN-4)=-CA2
+       CK(NWCENTER+5,NLEN-4)=-CB2
+       CK(NWCENTER+3,NLEN-3)=-CD2
+       CK(NWCENTER+4,NLEN-3)=-CE2
+       CK(NWCENTER-2,NLEN-1)= 1.D0
+       CK(NWCENTER+1 ,NLEN-1)=-1.D0
+       CK(NWCENTER+2,NLEN-1)=-1.D0
+       CK(NWCENTER-2,NLEN  )= 1.D0
+       CK(NWCENTER  ,NLEN  )=-CF2
+       CK(NWCENTER+1,NLEN  )=-CG2
+    END IF
 
     DO MM=0,NZMAX-1
        DZI=ZA(MM+1)-ZA(MM)
-       NS=MM-NWMAX
-       NE=MM+NWMAX-1
+       NS=MM-NWMAX+1
+       NE=MM+NWMAX-2
        IF(NS.LE.0) NS=0
        IF(NE.GE.NZMAX-1) NE=NZMAX-1
        DO NN=NS,NE
           DZJ=ZA(NN+1)-ZA(NN)
           DO KI=MM,MM+1
              DO KJ=NN,NN+1
-                YY =1.D0+0.5D0*DBDZ*(ZA(KJ)+ZA(KI)) 
-                YYI=1.D0+DBDZ*ZA(KI) 
-                YYJ=1.D0+DBDZ*ZA(KJ) 
+                YY =1.D0+0.5D0*DBDZ*(ZA(KJ)+ZA(KI))+CCOL
+                YYI=1.D0+DBDZ*ZA(KI)+CCOL
+                YYJ=1.D0+DBDZ*ZA(KJ)+CCOL
                 VP =1.D0+YY
                 VM =1.D0-YY
                 VPI=1.D0+YYI
@@ -435,23 +450,35 @@ CONTAINS
                 DPJ=1.5D0*DBDZ/YYJ-DBDZ/YY-DBDZ/VPJ
                 DMJ=1.5D0*DBDZ/YYJ-DBDZ/YY+DBDZ/VMJ
                 DPM=0.5D0*DBDZ*DBDZ/(YY*YY)
-                IF(VP.GT.0.D0) THEN
+                IF(DBLE(VP).GT.0.D0) THEN
                    CF1P=-CI*CFN1(VVP)/(VPI*VPJ) 
                 ELSE
                    CF1P= CI*CONJG(CFN1(VVP))/(VPI*VPJ) 
                 ENDIF
-                IF(VM.GT.0.D0) THEN
+                CF1P=VP*CF1P
+                IF(ABS(CF1P).GT.1.D4) THEN
+                   WRITE(6,'(A,1P2E12.4)') 'CF1P:',CF1P
+                   WRITE(6,'(A,4I6)')      '     MM,NN,KI,KJ:',MM,NN,KI,KJ
+                   WRITE(6,'(A,1P3E12.4)') '     VVP,VPI,VPJ:',VVM,VMI,VMJ
+                END IF
+                IF(DBLE(VM).GT.0.D0) THEN
                    CF1M=-CI*CFN1(VVM)/(VMI*VMJ) 
                 ELSE
                    CF1M= CI*CONJG(CFN1(VVM))/(VMI*VMJ) 
                 ENDIF
+                CF1M=VM*CF1M
+                IF(ABS(CF1M).GT.1.D4) THEN
+                   WRITE(6,'(A,1P2E12.4)') 'CF1M:',CF1M
+                   WRITE(6,'(A,4I6)')      '     MM,NN,KI,KJ:',MM,NN,KI,KJ
+                   WRITE(6,'(A,1P3E12.4)') '     VVM,VMI,VMJ:',VVM,VMI,VMJ
+                END IF
                 CF2Z= CFN2(VVZ)
                 CF1Z=-CI*CFN1(VVZ)
                 DO I=MM,MM+1
                    ID=3*I+2
                    DO J=NN,NN+1
                       JD=3*J+2
-                      IF(NWMAX.NE.NZMAX) JD=3*NWMAX+4+3*J-3*I
+                      IF(NWMAX.NE.NZMAX) JD=NWCENTER+3*J-3*I
                       IF(JD.LE.0) THEN
                          WRITE(6,*) 'JD=',JD
                          WRITE(6,*) 'NN,NS,NE=',NN,NS,NE
@@ -460,7 +487,6 @@ CONTAINS
                          WRITE(6,*) 'J=',J
                          WRITE(6,*) 'NWMAX=',NWMAX
                          WRITE(6,*) 'NZMAX=',NZMAX
-                         STOP
                       END IF
                       DP=D1(I-MM,KI-MM)*D1(J-NN,KJ-NN) &
                         +D0(I-MM,KI-MM)*D1(J-NN,KJ-NN)*DZI*DPI &
@@ -474,21 +500,23 @@ CONTAINS
                       CP1=-0.5D0*PN0*CI*X1*(CF1P*DP+CF1M*DM)
                       CP2=-0.5D0*PN0   *X1*(CF1P*DP-CF1M*DM)
                       CP3=-      PN0*CI*X4*(CF1Z*DE-X5*CF2Z*DE) 
+                      IF(ABS(CP1).GT.1.D11) THEN
+                         WRITE(6,'(A,6I5,1P2E12.4)') 'CP1:',MM,NN,I,J,KI,KJ,CP1
+                         WRITE(6,'(A,1P4E12.4)') '    DP,DM,DE,X1',DP,DM,DE,X1
+                         WRITE(6,'(A,1P4E12.4)') '    CF1P,CF1M  ',CF1P,CF1M
+                      END IF
+                      IF(ABS(CP2).GT.1.D11) THEN
+                         WRITE(6,'(A,6I5,1P2E12.4)') 'CP2:',MM,NN,I,J,KI,KJ,CP2
+                      END IF
+                      IF(ABS(CP3).GT.1.D11) THEN
+                         WRITE(6,'(A,6I5,1P2E12.4)') 'CP3:',MM,NN,I,J,KI,KJ,CP3
+                      END IF
+
                       CK(JD+1,ID+1)        =CK(JD+1,ID+1)        +CP1 
                       CK(JD+2,ID+1)        =CK(JD+2,ID+1)        +CP2 
                       CK(JD+1-NBAND,ID+2)  =CK(JD+1-NBAND,ID+2)  -CP2 
                       CK(JD+2-NBAND,ID+2)  =CK(JD+2-NBAND,ID+2)  +CP1 
                       CK(JD+3-2*NBAND,ID+3)=CK(JD+3-2*NBAND,ID+3)+CP3 
-                      IF(MM.EQ.86) THEN
-                         IF(ABS(CP1).GT.1.D3.OR. &
-                            ABS(CP2).GT.1.D3.OR. &
-                            ABS(CP3).GT.1.D3) THEN
-                            WRITE(6,'(A,4I5)') &
-                                 'first:',KI,KJ,ID,JD
-                            WRITE(6,'(A,1P6E12.4)') &
-                                 '      ',CP1,CP2,CP3
-                         END IF
-                      END IF
                    END DO
                 END DO
              END DO
@@ -502,7 +530,7 @@ CONTAINS
           ID=3*I+2
           DO J=MM,MM+1
              JD=3*J+2
-             IF(NWMAX.NE.NZMAX) JD=3*NWMAX+2+3*J-3*I
+             IF(NWMAX.NE.NZMAX) JD=NWCENTER+3*J-3*I
              DO KI=MM,MM+1
                 YY=1.D0+DBDZ*ZA(KI) 
                 VY=YY 
@@ -515,19 +543,16 @@ CONTAINS
                                    -DS*CI*PN0*YY*VY/(1.D0-VY*VY)
                 CK(JD+2-NBAND,ID+2)=CK(JD+2-NBAND,ID+2) &
                                    +DS*PN0*YY/(1.D0-VY*VY) 
-!                IF(MM.EQ.86) THEN
-!                   WRITE(6,'(A,4I5,1P2E12.4)') 'second:',I,J,ID,JD,YY,DS
-!                END IF
              END DO
           END DO
        END DO
     END DO
 
     IF(MODELW.EQ.1) THEN
-       DO I=1,NWMAX6+7
+       DO I=1,NLEN
           IF(NWMAX.NE.NZMAX) THEN
-             I1=NWMAX*3+4-I
-             I2=NWMAX*3+5-I
+             I1=NWCENTER+2-I
+             I2=NWCENTER+3-I
           ELSE
              I1=3
              I2=4
@@ -548,32 +573,109 @@ CONTAINS
        CK(I2,4)=(1.D0,0.D0)
     ENDIF
 
-    ALLOCATE(AKR(NWID,NLEN),AKI(NWID,NLEN),XX1(NWID),XX2(NLEN))
-    DO J=1,NLEN
-       XX2(J)=REAL(J)
-    END DO
-    DO I=1,NWID
-       XX1(I)=REAL(I)
-    END DO
-    DO J=1,NLEN
-       DO I=1,NWID
-          AKR(I,J)=REAL(CK(I,J))
-          AKI(I,J)=IMAG(CK(I,J))
+    IF(IDEBUG.EQ.1) THEN
+       ALLOCATE(AKR(NLEN,11),AKI(NLEN,11),XX1(NLEN))
+       ALLOCATE(LINE_MARK(11),LINE_RGB(3,11))
+       DO I=1,11
+          LINE_MARK(I)=1
        END DO
-    END DO
-    CALL pages
-       CALL GRD2D(0,XX1,XX2,AKR,NWID,NWID,NLEN,'@AKR@')
-    CALL pagee
-    CALL pages
-       CALL GRD2D(0,XX1,XX2,AKI,NWID,NWID,NLEN,'@AKI@')
-    CALL pagee
-    CALL pages
-       CALL GRD1D(1,XX1,AKR(1:NWID,261),NWID,NWID,1,'@AKR(*,261)@')
-       CALL GRD1D(2,XX1,AKR(1:NWID,262),NWID,NWID,1,'@AKR(*,262)@')
-       CALL GRD1D(3,XX1,AKR(1:NWID,263),NWID,NWID,1,'@AKR(*,263)@')
-    CALL pagee
-    WRITE(6,'(I,1P3E12.4)') (I,AKR(I,261),AKR(I,262),AKR(I,263),I=1,NWID)
-    
+       LINE_RGB(1:3, 1)=(/0.0D0,1.0D0,1.0D0/)
+       LINE_RGB(1:3, 2)=(/0.0D0,1.0D0,0.8D0/)
+       LINE_RGB(1:3, 3)=(/0.0D0,1.0D0,0.6D0/)
+       LINE_RGB(1:3, 4)=(/0.0D0,1.0D0,0.4D0/)
+       LINE_RGB(1:3, 5)=(/0.0D0,1.0D0,0.2D0/)
+       LINE_RGB(1:3, 6)=(/0.0D0,1.0D0,0.0D0/)
+       LINE_RGB(1:3, 7)=(/0.2D0,1.0D0,0.0D0/)
+       LINE_RGB(1:3, 8)=(/0.4D0,1.0D0,0.0D0/)
+       LINE_RGB(1:3, 9)=(/0.6D0,1.0D0,0.0D0/)
+       LINE_RGB(1:3,10)=(/0.8D0,1.0D0,0.0D0/)
+       LINE_RGB(1:3,11)=(/1.0D0,1.0D0,0.0D0/)
+
+       DO J=1,NLEN
+          XX1(J)=REAL(J)
+       END DO
+       DO J=6,NLEN-5
+          DO I=1,11
+             AKR(J-5,I)=0.D0
+             AKI(J-5,I)=0.D0
+          END DO
+       END DO
+       DO J=6,NLEN-5
+          DO I=1,6
+             AKR(J-5,I)=REAL(CK(NWCENTER-6+I,J))
+             AKI(J-5,I)=IMAG(CK(NWCENTER-6+I,J))
+          END DO
+       END DO
+       CALL pages
+          CALL GRD1D(1,XX1,AKR,NLEN,NLEN-10,11,'@AKR@', &
+                     LINE_MARK=LINE_MARK,LINE_RGB=LINE_RGB,NLMAX=11)
+          CALL GRD1D(2,XX1,AKI,NLEN,NLEN-10,11,'@AKI@', &
+                     LINE_MARK=LINE_MARK,LINE_RGB=LINE_RGB,NLMAX=11)
+       DO J=6,NLEN-5
+          DO I=1,11
+             AKR(J-5,I)=0.D0
+             AKI(J-5,I)=0.D0
+          END DO
+       END DO
+       DO J=6,NLEN-5
+          DO I=6,11
+             AKR(J-5,I)=REAL(CK(NWCENTER-6+I,J))
+             AKI(J-5,I)=IMAG(CK(NWCENTER-6+I,J))
+          END DO
+       END DO
+          CALL GRD1D(3,XX1,AKR,NLEN,NLEN-10,11,'@AKR@', &
+                     LINE_MARK=LINE_MARK,LINE_RGB=LINE_RGB,NLMAX=11)
+          CALL GRD1D(4,XX1,AKI,NLEN,NLEN-10,11,'@AKI@', &
+                     LINE_MARK=LINE_MARK,LINE_RGB=LINE_RGB,NLMAX=11)
+       CALL PAGEE
+       CALL PAGES
+       DO J=6,NLEN-5
+          DO I=1,11
+             AKR(J-5,I)=MAX(LOG10(ABS(REAL(CK(NWCENTER-6+I,J)))),-1.0)
+             AKI(J-5,I)=MAX(LOG10(ABS(IMAG(CK(NWCENTER-6+I,J)))),-1.0)
+          END DO
+       END DO
+          CALL GRD1D(3,XX1,AKR,NLEN,NLEN-10,11,'@LOG10(ABS(AKR))@', &
+                     LINE_MARK=LINE_MARK,LINE_RGB=LINE_RGB,NLMAX=11)
+          CALL GRD1D(4,XX1,AKI,NLEN,NLEN-10,11,'@LOG10(ABS(AKI))@', &
+                     LINE_MARK=LINE_MARK,LINE_RGB=LINE_RGB,NLMAX=11)
+       CALL pagee
+!       CALL pages
+!          CALL GRD1D(1,XX1,AKR(1:NWID,261),NWID,NWID,1,'@AKR(*,261)@')
+!          CALL GRD1D(2,XX1,AKR(1:NWID,262),NWID,NWID,1,'@AKR(*,262)@')
+!          CALL GRD1D(3,XX1,AKR(1:NWID,263),NWID,NWID,1,'@AKR(*,263)@')
+!       CALL pagee
+!       WRITE(6,'(I,1P3E12.4)') (I,AKR(I,261),AKR(I,262),AKR(I,263),I=1,NWID)
+    END IF
+
+    IF(IDEBUG.EQ.2) THEN
+       ALLOCATE(AKR(NWID,NLEN),AKI(NWID,NLEN),XX1(NWID),XX2(NLEN))
+       DO J=1,NLEN
+          XX2(J)=REAL(J)
+       END DO
+       DO I=1,NWID
+          XX1(I)=REAL(I)
+       END DO
+       DO J=3,NLEN-2
+          DO I=1,NWID
+             AKR(I,J-2)=REAL(CK(I,J))
+             AKI(I,J-2)=IMAG(CK(I,J))
+          END DO
+       END DO
+       CALL pages
+          CALL GRD2D(0,XX1,XX2,AKR,NWID,NWID,NLEN-4,'@AKR@')
+       CALL pagee
+       CALL pages
+          CALL GRD2D(0,XX1,XX2,AKI,NWID,NWID,NLEN-4,'@AKI@')
+       CALL pagee
+!       CALL pages
+!          CALL GRD1D(1,XX1,AKR(1:NWID,261),NWID,NWID,1,'@AKR(*,261)@')
+!          CALL GRD1D(2,XX1,AKR(1:NWID,262),NWID,NWID,1,'@AKR(*,262)@')
+!          CALL GRD1D(3,XX1,AKR(1:NWID,263),NWID,NWID,1,'@AKR(*,263)@')
+!       CALL pagee
+       WRITE(6,'(I,1P3E12.4)') (I,AKR(I,261),AKR(I,262),AKR(I,263),I=1,NWID)
+    END IF
+   
     RETURN
   END SUBROUTINE SUBCK2
 
@@ -583,13 +685,17 @@ CONTAINS
 
     USE wimcomm,ONLY: rkind,CI,PN0,DBDZ,ANX,BETA,ZMIN,ZMAX,DZMAX,DZWID,ZA, &
                       CK,CV,CA1,CB1,CD1,CE1,CF1,CG1,CA2,CB2,CD2,CE2,CF2,CG2, &
-                      D0,D1,D2,D3,PZCL,NWID,NLEN
+                      D0,D1,D2,D3,PZCL,NWID,NLEN,IDEBUG
+    USE libgrf
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NZMAX,NWMAX,MODELW
     INTEGER:: NBAND,NWCENTER, &
               I,J,MM,ID,JD,NN,KI,I1,I2
     REAL(rkind):: RKX,RKX2,BETA2,ANX2,DZ,DP,DM,DE,DS
     COMPLEX(rkind):: CIKX,CP1,CP2,CP3,CCOL,YY,VY
+    REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: AKR,AKI,LINE_RGB
+    REAL(rkind),DIMENSION(:),ALLOCATABLE:: XX1,XX2
+    INTEGER,DIMENSION(:),ALLOCATABLE:: LINE_MARK
  
     RKX=ANX*BETA
     RKX2=RKX**2
@@ -652,7 +758,7 @@ CONTAINS
     CK(NWCENTER  ,NLEN  )=-CF2
     CK(NWCENTER+1,NLEN  )=-CG2
 
-    CCOL=1.D0+CI*PZCL
+    CCOL=CI*PZCL
     DO MM=0,NZMAX-1
        DZ=ZA(MM+1)-ZA(MM) 
        DO I=MM,MM+1
@@ -660,8 +766,8 @@ CONTAINS
           DO J=MM,MM+1
              JD=NWCENTER+3*J-3*I
              DO KI=MM,MM+1
-                YY=(1.D0+DBDZ*ZA(KI))/CCOL
-                VY=YY/CCOL
+                YY=1.D0+DBDZ*ZA(KI)+CCOL
+                VY=YY
                 DS=DZ*D3(I-MM,J-MM,KI-MM)
                 CK(JD+1,ID+1)=CK(JD+1,ID+1) &
                              +DS*PN0*YY/(1.D0-VY*VY) 
@@ -697,6 +803,82 @@ CONTAINS
        CK(I1,3)=(1.D0,0.D0)
        CK(I2,4)=(1.D0,0.D0)
     ENDIF
+
+    IF(IDEBUG.EQ.1) THEN
+       ALLOCATE(AKR(NLEN,11),AKI(NLEN,11),XX1(NLEN))
+       ALLOCATE(LINE_MARK(11),LINE_RGB(3,11))
+       DO I=1,11
+          LINE_MARK(I)=1
+       END DO
+       LINE_RGB(1:3, 1)=(/0.0D0,1.0D0,1.0D0/)
+       LINE_RGB(1:3, 2)=(/0.0D0,1.0D0,0.8D0/)
+       LINE_RGB(1:3, 3)=(/0.0D0,1.0D0,0.6D0/)
+       LINE_RGB(1:3, 4)=(/0.0D0,1.0D0,0.4D0/)
+       LINE_RGB(1:3, 5)=(/0.0D0,1.0D0,0.2D0/)
+       LINE_RGB(1:3, 6)=(/0.0D0,1.0D0,0.0D0/)
+       LINE_RGB(1:3, 7)=(/0.2D0,1.0D0,0.0D0/)
+       LINE_RGB(1:3, 8)=(/0.4D0,1.0D0,0.0D0/)
+       LINE_RGB(1:3, 9)=(/0.6D0,1.0D0,0.0D0/)
+       LINE_RGB(1:3,10)=(/0.8D0,1.0D0,0.0D0/)
+       LINE_RGB(1:3,11)=(/1.0D0,1.0D0,0.0D0/)
+
+       DO J=1,NLEN
+          XX1(J)=REAL(J)
+       END DO
+       DO J=6,NLEN-5
+          DO I=1,11
+             AKR(J-5,I)=0.D0
+             AKI(J-5,I)=0.D0
+          END DO
+       END DO
+       DO J=6,NLEN-5
+          DO I=1,6
+             AKR(J-5,I)=REAL(CK(I,J))
+             AKI(J-5,I)=IMAG(CK(I,J))
+          END DO
+       END DO
+       CALL pages
+          CALL GRD1D(1,XX1,AKR,NLEN,NLEN-10,11,'@AKR@', &
+                     LINE_MARK=LINE_MARK,LINE_RGB=LINE_RGB,NLMAX=11)
+          CALL GRD1D(2,XX1,AKI,NLEN,NLEN-10,11,'@AKI@', &
+                     LINE_MARK=LINE_MARK,LINE_RGB=LINE_RGB,NLMAX=11)
+       DO J=6,NLEN-5
+          DO I=1,11
+             AKR(J-5,I)=0.D0
+             AKI(J-5,I)=0.D0
+          END DO
+       END DO
+       DO J=6,NLEN-5
+          DO I=6,11
+             AKR(J-5,I)=REAL(CK(I,J))
+             AKI(J-5,I)=IMAG(CK(I,J))
+          END DO
+       END DO
+          CALL GRD1D(3,XX1,AKR,NLEN,NLEN-10,11,'@AKR@', &
+                     LINE_MARK=LINE_MARK,LINE_RGB=LINE_RGB,NLMAX=11)
+          CALL GRD1D(4,XX1,AKI,NLEN,NLEN-10,11,'@AKI@', &
+                     LINE_MARK=LINE_MARK,LINE_RGB=LINE_RGB,NLMAX=11)
+       CALL PAGEE
+       CALL PAGES
+       DO J=6,NLEN-5
+          DO I=1,11
+             AKR(J-5,I)=MAX(LOG10(ABS(REAL(CK(I,J)))),-1.0)
+             AKI(J-5,I)=MAX(LOG10(ABS(IMAG(CK(I,J)))),-1.0)
+          END DO
+       END DO
+          CALL GRD1D(3,XX1,AKR,NLEN,NLEN-10,11,'@LOG10(ABS(AKR))@', &
+                     LINE_MARK=LINE_MARK,LINE_RGB=LINE_RGB,NLMAX=11)
+          CALL GRD1D(4,XX1,AKI,NLEN,NLEN-10,11,'@LOG10(ABS(AKI))@', &
+                     LINE_MARK=LINE_MARK,LINE_RGB=LINE_RGB,NLMAX=11)
+       CALL pagee
+!       CALL pages
+!          CALL GRD1D(1,XX1,AKR(1:NWID,261),NWID,NWID,1,'@AKR(*,261)@')
+!          CALL GRD1D(2,XX1,AKR(1:NWID,262),NWID,NWID,1,'@AKR(*,262)@')
+!          CALL GRD1D(3,XX1,AKR(1:NWID,263),NWID,NWID,1,'@AKR(*,263)@')
+!       CALL pagee
+!       WRITE(6,'(I,1P3E12.4)') (I,AKR(I,261),AKR(I,262),AKR(I,263),I=1,NWID)
+    END IF
+
     RETURN
   END SUBROUTINE SUBCK0
 
@@ -710,10 +892,9 @@ CONTAINS
     INTEGER,INTENT(IN):: NZMAX
     COMPLEX(rkind),INTENT(IN):: CER1,CEL1,CER2,CEL2
     REAL(rkind):: FACTOR
-    INTEGER:: NZMAX3,K1,I
+    INTEGER:: K1,I
 
-    NZMAX3=3*NZMAX 
-    DO K1=6,NZMAX3+2
+    DO K1=1,NLEN
        CV(K1)=(0.D0,0.D0)
     END DO
     FACTOR=1.D0/SQRT(2.D0)
@@ -728,43 +909,37 @@ CONTAINS
     CV(NLEN-1)=FACTOR*(     CER2+    CEL2)
     CV(NLEN  )=FACTOR*( CF2*CER2+CG2*CEL2)
 
-!    DO I=1,5
-!       WRITE(6,'(1P4E12.4)') CV(I),CV(NZMAX3+I+2)
-!    END DO
     RETURN
   END SUBROUTINE SUBINI
 
 !     *****  SET ELECTRIC FIELD (FULL MATRIX)  ***** 
 
-  SUBROUTINE SUBFY(NZMAX)
+  SUBROUTINE SUBFY(NLEN)
 
     USE wimcomm,ONLY: CE,CK,CV
     IMPLICIT NONE
-    INTEGER,INTENT(IN):: NZMAX
+    INTEGER,INTENT(IN):: NLEN
     INTEGER:: I,J
 
-    DO I=1,3*NZMAX+7
+    DO I=1,NLEN
        CE(I)=(0.D0,0.D0)
-       DO J=1,3*NZMAX+7
+       DO J=1,NLEN
           CE(I)=CE(I)+CK(J,I)*CV(J)
        END DO
     END DO
-!    DO I=1,NZMAX
-!       WRITE(6,'(I5,1P6E12.4)') I,CE(3*I+3),CE(3*I+4),CE(3*I+5)
-!    END DO
     RETURN
   END SUBROUTINE SUBFY
 
 !     *****  SET ELECTRIC FIELD (BAND MATRIX)  ***** 
 
-  SUBROUTINE SUBFYW(NZMAX)
+  SUBROUTINE SUBFYW(NLEN)
 
     USE wimcomm,ONLY: CE,CV
     IMPLICIT NONE
-    INTEGER,INTENT(IN):: NZMAX
+    INTEGER,INTENT(IN):: NLEN
     INTEGER:: I
 
-    DO I=1,3*NZMAX+7
+    DO I=1,NLEN
        CE(I)=CV(I)
     END DO
     RETURN
@@ -899,7 +1074,7 @@ CONTAINS
        CPWR(NZ)=(0.D0,0.D0)
     END DO
 
-    CCOL=1.D0+CI*PZCL
+    CCOL=CI*PZCL
     DO MM=0,NZMAX-1
        DZ=ZA(MM+1)-ZA(MM)
        AD=0.5D0/DZ
@@ -909,8 +1084,8 @@ CONTAINS
           DO J=MM,MM+1
              JD=3*J+2
              DO KI=MM,MM+1
-                YY=(1.D0+DBDZ*ZA(KI))/CCOL
-                VY=YY/CCOL
+                YY=1.D0+DBDZ*ZA(KI)+CCOL
+                VY=YY
                 DS=DZ*D3(I-MM,J-MM,KI-MM)
                 CP1=   DS*PN0*YY   /(1.D0-VY*VY)
                 CP2=CI*DS*PN0*YY*VY/(1.D0-VY*VY)

@@ -9,7 +9,7 @@ CONTAINS
     USE wimcomm,ONLY: ikind,rkind,wim_allocate,wim_deallocate, &
          nzmax,nwmax,modelp
     USE wimparm,ONLY: wim_parm,wim_view
-    USE wimexec,ONLY: wim_exec
+    USE wimexec,ONLY: wim_exec,subfw
     USE wimgout,ONLY: wim_gout
 
     IMPLICIT NONE
@@ -22,7 +22,7 @@ CONTAINS
 
 1   CONTINUE
     ierr=0
-    WRITE(6,'(A)') '## WIM MENU: P,V/PARM  R/RUN  G/GRAF  Q/QUIT'
+    WRITE(6,'(A)') '## WIM MENU: P,V/PARM  R/RUN  G/GRAF  K/Kernel Q/QUIT'
 
     CALL TASK_KLIN(line,kid,mode,wim_parm)
     IF(mode /= 1) GOTO 1
@@ -49,6 +49,9 @@ CONTAINS
        ELSE
           CALL wim_gout
        END IF
+    ELSEIF(kid.EQ.'K') THEN
+       CALL wim_allocate
+       CALL SUBFW(1)
     ELSEIF(kid.EQ.'Q') THEN
        GOTO 9000
     ELSE
