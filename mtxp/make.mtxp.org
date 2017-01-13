@@ -17,8 +17,10 @@
 #LIB_MTX_PCG=$(LIBMTXMPI) ../mtxp/libmtxpcgmpi.o
 
 
-#### With MPI, With PETSc
+#### With MPI, With PETSc, With MUMPS
 #EXEC=testbnd testbndc testpcg testdmumps testzmumps testksp
+#### With MPI, With PETSc, no MUMPS
+#EXEC=testbnd testbndc testpcg testksp
 ##### select either of below items
 ##### PETSc 3.4
 #INCLUDE_MTX_MUMPS=-I${PETSC_DIR}/externalpackages/MUMPS/include
