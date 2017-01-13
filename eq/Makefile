@@ -24,8 +24,8 @@ OBJA = $(SRCA:.f=.o)
 OBJ2D=$(SRC2D:.f=.o)
 OBJ3D=$(SRC3D:.f=.o)
 
-LIBS2 = ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a eqlib.a
-LIBS3 = ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a eq3lib.a
+LIBS2 = ../plx/pllib.a eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a
+LIBS3 = ../plx/pllib.a eq3lib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a eq3lib.a
 
 .SUFFIXES: .f90
 
