@@ -9,8 +9,7 @@ PROGRAM disp
 
   USE libgrf
   IMPLICIT NONE
-  INCLUDE 'mpif.h'
-  INTEGER:: nmax,n
+  INTEGER:: nmax,n,k
   REAL(8):: Xmin,Xmax,Ymin,Ymax,Npara,dz,delX,delY,D
   REAL(8),DIMENSION(:),ALLOCATABLE:: X,Y,Z,WC,WCC,WUH,OC,RC1,RC2,LC1,LC2
   REAL(8),DIMENSION(:,:),ALLOCATABLE:: G
@@ -89,6 +88,7 @@ PROGRAM disp
      G(n,6)=RC2(n)
      G(n,7)=LC1(n)
      G(n,8)=LC2(n)
+     write(6,'(I5,8F9.4)') n,(G(n,k),k=1,8)
   END DO
 
   CALL pages

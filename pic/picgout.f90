@@ -144,15 +144,15 @@ CONTAINS
        CALL PAGEE
     CASE('E5')
        CALL PAGES
-         !CALL GRD2D( 1,x,y,ex,nxmax1,nxmax1,nymax1,'@Ex@',ASPECT=aspect, &
-         !             XMIN=0.D0,XMAX=DBLE(nxmax),YMIN=0.D0,YMAX=DBLE(nymax),&
-         !             NLMAX=nlmax,LINE_PAT=WORK_PAT)
-         CALL GRD2D( 0,x,y,ey,nxmax1,nxmax1,nymax1,'@Ey@',ASPECT=aspect, &
+         CALL GRD2D( 1,x,y,ex,nxmax1,nxmax1,nymax1,'@Ex@',ASPECT=aspect, &
+                      XMIN=0.D0,XMAX=DBLE(nxmax),YMIN=0.D0,YMAX=DBLE(nymax),&
+                      NLMAX=nlmax,LINE_PAT=WORK_PAT)
+         CALL GRD2D( 2,x,y,ey,nxmax1,nxmax1,nymax1,'@Ey@',ASPECT=aspect, &
                        XMIN=0.D0,XMAX=DBLE(nxmax),YMIN=0.D0,YMAX=DBLE(nymax), &
                        NLMAX=nlmax,LINE_PAT=WORK_PAT)
-         !CALL GRD2D( 3,x,y,ez,nxmax1,nxmax1,nymax1,'@Ez@',ASPECT=aspect, &
-         !              XMIN=0.D0,XMAX=DBLE(nxmax),YMIN=0.D0,YMAX=DBLE(nymax), &
-         !             NLMAX=nlmax,LINE_PAT=WORK_PAT)
+         CALL GRD2D( 3,x,y,ez,nxmax1,nxmax1,nymax1,'@Ez@',ASPECT=aspect, &
+                       XMIN=0.D0,XMAX=DBLE(nxmax),YMIN=0.D0,YMAX=DBLE(nymax), &
+                      NLMAX=nlmax,LINE_PAT=WORK_PAT)
        !  CALL GRD2D( 8,x,y,esx,nxmax1,nxmax1,nymax1,'@ESx@',ASPECT=aspect, &
        !               XMIN=0.D0,XMAX=DBLE(nxmax),YMIN=0.D0,YMAX=DBLE(nymax), &
        !               NLMAX=nlmax,LINE_PAT=WORK_PAT)
@@ -174,24 +174,24 @@ CONTAINS
        CALL PAGEE
     CASE('E6')
        CALL PAGES
-       CALL GRD1D( 5,x,ex,nxmax1,nxmax1,nymax1,'@Ex(x)@', &
+       CALL GRD1D( 1,x,ex,nxmax1,nxmax1,nymax1,'@Ex(x)@', &
                       XMIN=0.D0,XMAX=DBLE(nxmax))
-        CALL GRD1D( 6,x,ey,nxmax1,nxmax1,nymax1,'@Ey(x)@', &
+        CALL GRD1D( 2,x,ey,nxmax1,nxmax1,nymax1,'@Ey(x)@', &
                       XMIN=0.D0,XMAX=DBLE(nxmax))
-        CALL GRD1D( 7,x,ez,nxmax1,nxmax1,nymax1,'@Ez(x)@', &
+        CALL GRD1D( 3,x,ez,nxmax1,nxmax1,nymax1,'@Ez(x)@', &
                     XMIN=0.D0,XMAX=DBLE(nxmax))
-        CALL GRD1D( 8,x,esx,nxmax1,nxmax1,nymax1,'@ESx(x)@', &
-                      XMIN=0.D0,XMAX=DBLE(nxmax))
-        CALL GRD1D( 9,x,esy,nxmax1,nxmax1,nymax1,'@ESy(x)@', &
-                     XMIN=0.D0,XMAX=DBLE(nxmax))
-        CALL GRD1D(10,x,esz,nxmax1,nxmax1,nymax1,'@ESz(x)@', &
-                     XMIN=0.D0,XMAX=DBLE(nxmax))
-        CALL GRD1D(11,x,emx,nxmax1,nxmax1,nymax1,'@EMx(x)@', &
-                     XMIN=0.D0,XMAX=DBLE(nxmax))
-        CALL GRD1D(12,x,emy,nxmax1,nxmax1,nymax1,'@EMy(x)@', &
-                     XMIN=0.D0,XMAX=DBLE(nxmax))
-        CALL GRD1D(13,x,emz,nxmax1,nxmax1,nymax1,'@EMz(x)@', &
-                     XMIN=0.D0,XMAX=DBLE(nxmax))
+       ! CALL GRD1D( 8,x,esx,nxmax1,nxmax1,nymax1,'@ESx(x)@', &
+       !               XMIN=0.D0,XMAX=DBLE(nxmax))
+       ! CALL GRD1D( 9,x,esy,nxmax1,nxmax1,nymax1,'@ESy(x)@', &
+       !              XMIN=0.D0,XMAX=DBLE(nxmax))
+       ! CALL GRD1D(10,x,esz,nxmax1,nxmax1,nymax1,'@ESz(x)@', &
+       !              XMIN=0.D0,XMAX=DBLE(nxmax))
+       ! CALL GRD1D(11,x,emx,nxmax1,nxmax1,nymax1,'@EMx(x)@', &
+       !              XMIN=0.D0,XMAX=DBLE(nxmax))
+       ! CALL GRD1D(12,x,emy,nxmax1,nxmax1,nymax1,'@EMy(x)@', &
+       !              XMIN=0.D0,XMAX=DBLE(nxmax))
+       ! CALL GRD1D(13,x,emz,nxmax1,nxmax1,nymax1,'@EMz(x)@', &
+       !              XMIN=0.D0,XMAX=DBLE(nxmax))
        CALL PAGEE
     CASE('E7')
        CALL PAGES

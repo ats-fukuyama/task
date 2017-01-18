@@ -8,8 +8,9 @@ LIBX_MTX=$(LIBX_MTX_PCG)
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-FFLAGS=$(OFLAGS) -openmp
+#FFLAGS=$(OFLAGS) -openmp
 #FFLAGS=$(DFLAGS) -openmp
+FFLAGS=$(OFLAGS) #-fopenmp #-Wl, -stack_size,0x80000000,-stack_addr,0xf0000000
 
 MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD) -I../mtxp/$(MOD) -I../lib/$(MOD)
 #FINCLUDE=-I /usr/local/mpich313-ifort-gcc/include
@@ -46,9 +47,9 @@ piclib.a: $(OBJS)
 libs:
 	(cd ../lib; make tasklib.a)
 	(cd ../../bpsd; make bpsdlib.a)
-	(cd ../../mtxp; make)
+	(cd ../mtxp; make)
 
-pic : $(LIBS) picmain.o
+pic : $(LIBS) $(LIBX_MTX) picmain.o
 	$(FLINKER) picmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 disp: disp.o

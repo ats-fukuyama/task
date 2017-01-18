@@ -57,6 +57,7 @@ CONTAINS
               dt,eps,vcfact,dlen, &
               omega,jxant,jyant,jzant,phxant,phyant,phzant,dlen,&
               xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg, ph_wg,rot_wg,eli_wg, &
+              n_gas, sigma_total,&
               model_push,model_boundary,model_antenna,model_wg,vzone,&
               model_matrix0,model_matrix1,model_matrix2,tolerance_matrix
 
@@ -84,6 +85,7 @@ CONTAINS
     '         dt,eps,vcfact,dlen,', &
     '         omega,jxant,jyant,jzant,phxant,phyant,phzant', &
     '         xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg, ph_wg,rot_wg,eli_wg', &
+    '         n_gas,sigma_total',&
     '         model_push,model_boundary,model_antenna,model_wg','vzone', &
     '         model_matrix0,model_matrix1,model_matrix2,tolerance_matrix'
     RETURN
@@ -116,7 +118,7 @@ CONTAINS
     USE libmpi
     IMPLICIT NONE
     integer,parameter:: nint=19
-    integer,parameter:: ndbl=33
+    integer,parameter:: ndbl=35
     integer:: idata(nint)
     REAL(8):: ddata(ndbl)
 
@@ -194,8 +196,10 @@ CONTAINS
        ddata(29)=ph_wg
        ddata(30)=rot_wg
        ddata(31)=eli_wg
-       ddata(32)=tolerance_matrix
-       ddata(33)=dlen
+       ddata(32)=n_gas
+       ddata(33)=sigma_total
+       ddata(34)=tolerance_matrix
+       ddata(35)=dlen
     END IF
     CALL mtx_broadcast_real8(ddata,ndbl)
        me=ddata(1)
@@ -229,8 +233,10 @@ CONTAINS
        ph_wg=ddata(29)
        rot_wg=ddata(30)
        eli_wg=ddata(31)
-       tolerance_matrix=ddata(32)
-       dlen=ddata(33)
+       n_gas=ddata(32)
+       sigma_total=ddata(33)
+       tolerance_matrix=ddata(34)
+       dlen=ddata(35)
     RETURN
 
   END SUBROUTINE pic_broadcast
@@ -268,6 +274,7 @@ CONTAINS
     WRITE(6,612) 'ymin_wg     ',ymin_wg,'ymax_wg     ',ymax_wg
     WRITE(6,612) 'amp_wg      ',amp_wg, 'ph_wg       ',ph_wg
     WRITE(6,612) 'rot_wg      ',rot_wg,'eli_wg       ',eli_wg
+    WRITE(6,612) 'n_gas       ',n_gas,'simga_total   ',sigma_total
     WRITE(6,621) 'model_push           =',model_push
     WRITE(6,621) 'model_boundary       =',model_boundary
     WRITE(6,621) 'model_antenna        =',model_antenna

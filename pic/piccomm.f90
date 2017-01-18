@@ -14,6 +14,7 @@ MODULE piccomm_parm
        bxmin,bxmax,bymin,bymax,bzmin,bzmax,vcfact,omega,eps,dlen
   REAL(rkind):: jxant,jyant,jzant,phxant,phyant,phzant
   REAL(rkind):: xmin_wg,xmax_wg,ymin_wg,ymax_wg,amp_wg,ph_wg,rot_wg,eli_wg
+  REAL(rkind):: n_gas,sigma_total
   REAL(rkind):: tolerance_matrix
 
 END MODULE piccomm_parm

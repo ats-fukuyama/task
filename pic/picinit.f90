@@ -100,7 +100,9 @@ CONTAINS
       rot_wg  = 0.D0        ! angle of wave electric fields: 0 for y-direction
                             !                               90 for z-direction
       eli_wg  = 0.D0        ! angle of elipticity of wave electric field
-
+      
+      n_gas = 1.d0          ! density of newtral gas(/cm^3)
+      sigma_total = 1.d0    ! Ionization cross-sectional area (cm^2)
       model_matrix0 = 0     ! ksp default
       model_matrix1 = 4     ! ksp default
       model_matrix2 = 5     ! ksp default
