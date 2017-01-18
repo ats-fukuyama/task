@@ -104,9 +104,9 @@ CONTAINS
        jx(:,:)=0.d0
        jy(:,:)=0.d0
        jz(:,:)=0.d0
-       CALL current(npmax,nxmax,nymax,xe,ye,xeb,yeb,xemid,yemid,vxe,vye,vze, &
+       CALL current(npmax,nxmax,nymax,xe,ye,xeb,yeb,xemid,yemid,vxeav,vyeav,vze, &
                     chrge,jx,jy,jz,vcfact,model_boundary)
-       CALL current(npmax,nxmax,nymax,xi,yi,xib,yib,ximid,yimid,vxi,vyi,vzi, &
+       CALL current(npmax,nxmax,nymax,xi,yi,xib,yib,ximid,yimid,vxiav,vyiav,vzi, &
                     chrgi,jx,jy,jz,vcfact,model_boundary)
        IF (model_antenna .EQ. 1) THEN
           CALL antenna(nxmax,nymax,jxant,jyant,jzant,phxant,phyant,phzant, &
@@ -193,9 +193,9 @@ CONTAINS
           CALL bound_periodic(npmax,xi,yi,zi,xib,yib,ximid,yimid,x1,x2,y1,y2,z1,z2,alx,aly,alz)
        ELSE
           CALL bound_reflective(npmax,xe,ye,ze,xeb,yeb,xemid,yemid,vxe,vye,vze, &
-               x1,x2,y1,y2,z1,z2,alx,aly,alz,vzone)
+               vxeav,vyeav,x1,x2,y1,y2,z1,z2,alx,aly,alz,vzone)
           CALL bound_reflective(npmax,xi,yi,zi,xib,yib,ximid,yimid,vxi,vyi,vzi, &
-               x1,x2,y1,y2,z1,z2,alx,aly,alz,vzone)
+               vxiav,vyiav,x1,x2,y1,y2,z1,z2,alx,aly,alz,vzone)
        ENDIF
 
        IF(npomax.GT.0) THEN
@@ -765,78 +765,80 @@ CONTAINS
 
   !***********************************************************************
   SUBROUTINE bound_reflective(npmax,x,y,z,xb,yb,xmid,ymid,vx,vy,vz,&
-       x1,x2,y1,y2,z1,z2,alx,aly,alz,vzone)
+       vxav,vyav,x1,x2,y1,y2,z1,z2,alx,aly,alz,vzone)
   !***********************************************************************
     IMPLICIT NONE
     INTEGER,INTENT(IN) :: npmax,vzone
     REAL(8), DIMENSION(npmax),INTENT(INOUT):: &
-         x, y, z, xb, yb ,vx, vy, vz, xmid, ymid
+         x, y, z, xb, yb ,vx, vy, vz, vxav, vyav, xmid, ymid
     REAL(8),INTENT(IN) :: x1, x2, y1, y2, z1, z2, alx, aly, alz
-    REAL(8) :: x3, y3, z3, x4, y4, z4, alx1, aly1, alz1, &
+    REAL(8) :: xmin, ymin, zmin, xmax, ymax, zmax, alx1, aly1, alz1, &
          vdzone, xl_before, yl_before, xl_after, yl_after
     INTEGER :: np
     ! colision wall in nx=vzone,nxmax-vzone, ny=vzone,nymax-vzone
     vdzone = dble(vzone)
-    x3 = x1 + vdzone
-    y3 = y1 + vdzone
-    z3 = z1 + vdzone
-    x4 = x2 - vdzone
-    y4 = y2 - vdzone
-    z4 = z2 - vdzone
+    xmin = x1 + vdzone
+    ymin = y1 + vdzone
+    zmin = z1 + vdzone
+    xmax = x2 - vdzone
+    ymax = y2 - vdzone
+    zmax = z2 - vdzone
     !alx1 = alx - vzone
     !aly1 = aly - vzone
     !$omp parallel do Private(xl_before,xl_after,yl_before,yl_after)
     DO np = 1, npmax
-       xmid(np)=0.5D0*(xb(np)+x(np))
-       IF( x(np) .LT. x3  ) THEN
-          !xl_before=xb(np) - x3
-          !x(np) = x3 + (x3  - x(np))
-          !xl_after=x(np) - x3
-          !xmid(np)=x3+0.5D0*ABS(xl_after-xl_before)
-          x(np) = x3 + (x3 - x(np))
-       xmid(np)=0.5D0*(xb(np)+x(np))
+       vxav(np)=vx(np)
+       IF( x(np) .LT. xmin  ) THEN
+          !xl_before=xb(np) - xmin
+          !x(np) = xmin + (xmin  - x(np))
+          !xl_after=x(np) - xmin
+          !xmid(np)=xmin+0.5D0*ABS(xl_after-xl_before)
+          x(np) = xmin + (xmin - x(np))
           vx(np) = -vx(np)
-       ELSEIF( x(np) .GT. x4 ) THEN
-          !xl_before=x4 - xb(np)
-          !x(np) = x4 - (x(np) - x4)
-          !xl_after=x4 - x(np)
-          !xmid(np)=x4-0.5D0*ABS(xl_after-xl_before)
-          x(np) = x4 - (x(np) - x4)
-       xmid(np)=0.5D0*(xb(np)+x(np))
+          vxav(np) = (x(np)-xb(np))/(x(np)+xb(np)-2.d0*xmin)
+       ELSEIF( x(np) .GT. xmax ) THEN
+          !xl_before=xmax - xb(np)
+          !x(np) = xmax - (x(np) - xmax)
+          !xl_after=xmax - x(np)
+          !xmid(np)=xmax-0.5D0*ABS(xl_after-xl_before)
+          x(np) = xmax - (x(np) - xmax)
           vx(np) = -vx(np)
+          vxav(np) = (x(np)-xb(np))/(2.d0*xmax-x(np)-xb(np))
+       ENDIF
+       xmid(np)=0.5D0*(xb(np)+x(np))
+       vyav(np)=vy(np)
+       IF( y(np) .LT. ymin ) THEN
+          !yl_before=yb(np) - ymin
+          !y(np) = ymin + (ymin  - y(np))
+          !yl_after=y(np) - ymin
+          !ymid(np)=ymin+0.5D0*ABS(yl_after-yl_before)
+          y(np) = ymin + (ymin  - y(np))
+          vy(np) = -vy(np)
+          vyav(np) = (y(np)-yb(np))/(y(np)+yb(np)-2.d0*ymin)
+       ELSEIF( y(np) .GT. ymax ) THEN
+          !yl_before=ymax - yb(np)
+          !y(np) = ymax - (y(np) - ymax)
+          !yl_after=ymax - y(np)
+          !ymid(np)=ymax-0.5D0*ABS(yl_after-yl_before)
+          y(np) = ymax - (y(np) - ymax)
+          vy(np) = -vy(np)
+          vyav(np) = (y(np)-yb(np))/(2.d0*ymax-y(np)-yb(np))
        ENDIF
        ymid(np)=0.5D0*(yb(np)+y(np))
-       IF( y(np) .LT. y3 ) THEN
-          !yl_before=yb(np) - y3
-          !y(np) = y3 + (y3  - y(np))
-          !yl_after=y(np) - y3
-          !ymid(np)=y3+0.5D0*ABS(yl_after-yl_before)
-          y(np) = y3 + (y3  - y(np))
-       ymid(np)=0.5D0*(yb(np)+y(np))
-          vy(np) = -vy(np)
-       ELSEIF( y(np) .GT. y4 ) THEN
-          !yl_before=y4 - yb(np)
-          !y(np) = y4 - (y(np) - y4)
-          !yl_after=y4 - y(np)
-          !ymid(np)=y4-0.5D0*ABS(yl_after-yl_before)
-          y(np) = y4 - (y(np) - y4)
-       ymid(np)=0.5D0*(yb(np)+y(np))
-          vy(np) = -vy(np)
-       ENDIF
-      !  IF( z(np) .LT. z3 ) THEN
-      !     !DO WHILE(z(np) .LT. z3)
+      !  IF( z(np) .LT. zmin ) THEN
+      !     !DO WHILE(z(np) .LT. zmin)
       !       z(np) = z(np) + alz
       !     !END DO
-      !  ELSEIF( z(np) .GT. z4 ) THEN
-      !     !DO WHILE(z(np) .GT. z4)
+      !  ELSEIF( z(np) .GT. zmax ) THEN
+      !     !DO WHILE(z(np) .GT. zmax)
       !        z(np) = z(np) - alz
       !     !END DO
       !  ENDIF
 
-      ! IF( z(np) .LT. z1 ) THEN
+      ! IF( z(np) .LT. zmin ) THEN
       !    z(np) = -z(np)
       !    vz(np) = -vz(np)
-      ! ELSEIF( z(np) .GT. z2 ) THEN
+      ! ELSEIF( z(np) .GT. zmax ) THEN
       !    z(np) = alz - (z(np) - alz)
       !    vz(np) = -vz(np)
       ! ENDIF

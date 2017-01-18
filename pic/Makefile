@@ -10,7 +10,7 @@ LIBX_MTX=$(LIBX_MTX_PCG)
 
 #FFLAGS=$(OFLAGS) -openmp
 #FFLAGS=$(DFLAGS) -openmp
-FFLAGS=$(OFLAGS) #-fopenmp #-Wl, -stack_size,0x80000000,-stack_addr,0xf0000000
+FFLAGS=$(OFLAGS) -fopenmp #-Wl, -stack_size,0x80000000,-stack_addr,0xf0000000
 
 MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD) -I../mtxp/$(MOD) -I../lib/$(MOD)
 #FINCLUDE=-I /usr/local/mpich313-ifort-gcc/include
