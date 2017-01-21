@@ -10,8 +10,8 @@ LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIBXMTX_KSP)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
-FFLAGS = $(OFLAGS)
-#FFLAGS = $(DFLAGS)
+#FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
@@ -24,9 +24,9 @@ SRCS = mpilib.f wmmenu.f wminit.f wmeign.f wmsetg.f \
        wmsetm.f wmsetf.f wmxprf.f wmdprf.f wmsolv.f \
        wmpout.f wmgout.f wmgsub.f wmdout.f wmfout.f \
        wmexec.f wmloop.f wmtae.f \
-       wmvmec.f wmbooz.f wmvout.f wmtpcs.f
+       wmvmec.f wmbooz.f wmvout.f wmtpcs.f wmsolv.f
 
-SRCX = wmcont.f90 wmtest.f90 wmdpfa.f90
+SRCX = wmcont.f90 wmtest.f90 wmdpfa.f90 wmdpfa2.f90 wmdpfaA.f90 #wmdpfa3.f90
 
 # wmtrfile.f
 
@@ -62,8 +62,8 @@ libs:
 	(cd ../eq; make eqlib.a)
 	(cd ../dp; make dplib.a)
 
-wm : libs $(LIBS) wmmain.o
-	$(FLINKER) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
+wm : libs wmmain.o
+	$(FLINKER) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIB_MTX)
 
 mpiwm : wmmain.o $(LIBM)
 	$(MFC) wmmain.o $(LIBM) -o $@ $(FFLAGS) $(FLIBS)
@@ -109,7 +109,6 @@ wmbooz.o : wmbooz.f $(WMCOMM) vmcomm.inc
 wmvout.o : wmvout.f $(WMCOMM) vmcomm.inc
 
 wmsolv.o : wmsolv.f $(WMCOMM)
-nowmsolv.o : nowmsolv.f $(WMCOMM)
 wmvout.o : wmvout.f $(WMCOMM) vmcomm.inc
 
 ../eq/wmeqin.o : ../eq/wmeqin.f

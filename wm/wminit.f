@@ -136,11 +136,6 @@ C                   3: Precession of both alpha particles and electrons
 C                   4: Calculate alpha particle density using slowing down
 C        MODELM: Control matrix solver
 C                   0: BANDCD
-C                   1: BANDCDB
-C                   2: BSTABCDB
-C                   8: BANDCDM
-C                   9: BANDCDBM
-C                  10: BSTABCDBM
 C        MODELW: Control writing a data of absorped power
 C                   0: Not writting
 C                   1: Writting
@@ -281,6 +276,7 @@ C
      &              KNAMEQ,KNAMTR,KNAMWM,KNAMFP,KNAMFO,KNAMPF,
      &              WAEMIN,WAEMAX,PRFIN,MODELPR,MODELVR,
      &              NSUMAX,NSWMAX,NPHMAX,NPH0L,PFRACL
+
 C
       RF=DREAL(CRF)
       RFI=DIMAG(CRF)
@@ -390,6 +386,7 @@ C
          WRITE(6,*) '                  MODELJ =',MODELJ
          IERR=1
       ENDIF
+    
 C
       RETURN
       END
@@ -529,7 +526,7 @@ C
 C
       INCLUDE 'wmcomm.inc'
 C
-      DIMENSION IPARA(23),DPARA(28)
+      DIMENSION IPARA(24),DPARA(28)
 C
       IF(NRANK.EQ.0) THEN
          RF=DBLE(CRF)
@@ -557,7 +554,8 @@ C
          IPARA(21)=MODENW
          IPARA(22)=NCONT
          IPARA(23)=NPHMAX
-C
+         IPARA(24)=MODEFA
+C     
          DPARA(1) =BB
          DPARA(2) =RR
          DPARA(3) =RA
@@ -588,7 +586,7 @@ C
          DPARA(28)=PRFIN
       ENDIF
 C
-      CALL MPBCIN(IPARA,23)
+      CALL MPBCIN(IPARA,24)
       CALL MPBCDN(DPARA,28)
 C
       IF(NRANK.NE.0) THEN
@@ -615,7 +613,8 @@ C
          MODENW=IPARA(21)
          NCONT =IPARA(22)
          NPHMAX=IPARA(23)
-C       
+         MODEFA=IPARA(24)
+C     
          BB    =DPARA(1) 
          RR    =DPARA(2) 
          RA    =DPARA(3) 
@@ -661,6 +660,7 @@ C
       CALL MPBCDN(PTITB,NSMAX)
       CALL MPBCDN(PUITB,NSMAX)
       CALL MPBCIN(MODELP,NSMAX)
+      CALL MPBCIN(MODELV,NSMAX) !!
       CALL MPBCDN(AJ,NAMAX)
       CALL MPBCDN(AEWGT,NAMAX)
       CALL MPBCDN(AEWGZ,NAMAX)

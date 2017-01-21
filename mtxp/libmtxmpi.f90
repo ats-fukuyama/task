@@ -209,7 +209,6 @@
         CALL MPI_Comm_split(ncomm,commx1%rankg,commx1%rankl, &
                             commx1%comm,ierr)
         IF(ierr.ne.0) WRITE(6,*) &
-
              "XX mtx_comm_split2D: MPI_Comm_split_1: ierr=", ierr
         CALL MPI_Comm_split(ncomm,commx2%rankg,commx2%rankl, &
                             commx2%comm,ierr)
@@ -493,7 +492,7 @@
       INTEGER,DIMENSION(ndata),INTENT(INOUT):: vdata
       INTEGER,INTENT(IN):: ndata
       INTEGER:: ierr
-      
+
       call MPI_BCAST(vdata,ndata,MPI_INTEGER,0,ncomm,ierr)
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_broadcast_integer: MPI_BCAST: ierr=',ierr

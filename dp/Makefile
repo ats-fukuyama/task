@@ -1,10 +1,15 @@
 ### $Id$ ###
 include ../make.header
+include ../mtxp/make.mtxp
+LIBX_MTX=$(LIBX_MTX_BND)
+#LIBX_MTX=$(LIBX_MTX_PCG)
+#LIBX_MTX=$(LIBX_MTX_MUMPS)
+#LIBX_MTX=$(LIBX_MTX_KSP)
 
 #FFLAGS=$(OFLAGS)
 FFLAGS=$(DFLAGS)
 
-MODINCLUDE= -I $(MOD) -I../plx/$(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD)
+MODINCLUDE= -I $(MOD) -I../plx/$(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD) -I../mtxp/$(MOD) 
 
 SRCS = dpmenu.f dpinit.f dproot.f dpcont.f dpdisp.f \
        dptens.f dptnsr1.f dptnsr2.f \
@@ -12,7 +17,7 @@ SRCS = dpmenu.f dpinit.f dproot.f dpcont.f dpdisp.f \
 
 OBJS = $(SRCS:.f=.o) 
 
-LIBS = ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a \
+LIBS = $(LIBX_MTX) ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a \
        ../eq/eqlib.a dplib.a 
 
 .f.o :
@@ -40,7 +45,7 @@ libs:
 	(cd ../eq; make eqlib.a)
 
 dp : $(LIBS) dpmain.o
-	$(FCFIXED) dpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+	$(FLINKER) dpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 check :
 	ftnchek $(FCKFLAGS) $(SRCS) | less
