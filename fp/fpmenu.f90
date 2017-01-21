@@ -45,6 +45,7 @@
          IF(nrank.EQ.0) CALL CPU_TIME(cputime1)
          IF(KID.EQ.'R') THEN
             CALL fp_prep(ierr)
+            CALL OPEN_EVOLVE_DATA_OUTPUT
             IF(ierr.ne.0) GO TO 1
          ELSEIF(KID.eq.'C')THEN
             CALL fp_continue(ierr)
@@ -90,20 +91,23 @@
          TIMEFP=0.D0
          CALL fp_prep(ierr)
          IF(ierr.ne.0) GO TO 1
-         DO NSA=1,NSAMAX
-            CALL fp_coef(NSA)
-         END DO
+         CALL fp_coef(0)
          CALL fpsglb
          CALL fpwrtglb
          CALL fpsprf
          CALL fpwrtprf
       ELSEIF (KID.EQ.'S') THEN
-         if(nrank.eq.0) CALL fp_save
+         CALL FP_PRE_SAVE
+         if(nrank.eq.0) CALL fp_save2
          CALL mtx_barrier
       ELSEIF (KID.EQ.'L') THEN
-         if(nrank.eq.0) CALL fp_load
+         CALL OPEN_EVOLVE_DATA_OUTPUT
+         CALL FP_PRE_LOAD
+         if(nrank.eq.0) CALL fp_load2
          CALL mtx_barrier
+         CALL FP_POST_LOAD
       ELSEIF (KID.EQ.'Q') THEN
+         CALL CLOSE_EVOLVE_DATA_OUTPUT 
          GO TO 9000
 
       ELSE IF(KID.EQ.'X'.OR.KID.EQ.'#') THEN

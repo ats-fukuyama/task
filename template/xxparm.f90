@@ -1,5 +1,3 @@
-!  ***** TASK/XX PARAMETER *****
-
 Module xxparm
 
   PRIVATE
@@ -110,4 +108,3 @@ CONTAINS
   END SUBROUTINE xx_view
 
 END MODULE xxparm
-

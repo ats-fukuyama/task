@@ -187,7 +187,7 @@ SUBROUTINE FEP(R,Z,IE)
         INMIN=3
      ENDIF
 
-     IF(IDEBUG.NE.0) THEN
+     IF(IDEBUG.EQ.2) THEN
         if (nrank.eq.0) THEN
            WRITE(6,'(A,I8,1P5E12.4)') 'IE,WGT,R,Z:', &
                         IE,WGT(1),WGT(2),WGT(3),R,Z
@@ -235,7 +235,7 @@ SUBROUTINE FEP(R,Z,IE)
                     CALL WFWGT(IE,R,Z,WGT)
                     WGTMIN=MIN(WGT(1),WGT(2),WGT(3))
                     if (nrank.eq.0) then
-                       IF(IDEBUG.NE.0) THEN
+                       IF(IDEBUG.EQ.2) THEN
                           WRITE(6,'(A,I8,1P3E12.4)') &
                                      'IE,R,Z,WGTMIN=', &
                                       IE,R,Z,WGTMIN

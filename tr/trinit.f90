@@ -18,9 +18,10 @@
      &                  PROFN2, PROFT1, PROFT2, PROFU1, PROFU2, PT, PTS, PZ, RA, RDLT, RHOA, RIPE, RIPS, RKAP, RKEV, RMU0, RR, &
      &                  SUMPBM, TIME_INT, TPRST, TSST, VC, VOID, KUFDIR, &
      MDLPR,SYNCABS,SYNCSELF, PU, PUS, PROFNU1, PROFNU2, &
-     ELMWID, ELMDUR, ELMNRD, ELMTRD, ELMENH, NSMM, MDLELM, KNAMEQ2
+     ELMWID, ELMDUR, ELMNRD, ELMTRD, ELMENH, NSMM, MDLELM, KNAMEQ2, &
+     MDLPSC,NPSCMAX,NPSCM,PSCTOT,PSCR0,PSCRW,NSPSC
       IMPLICIT NONE
-      INTEGER(4) NS, IERR
+      INTEGER(4) NS, IERR, NPSC
 
 !     ==== DEVICE PARAMETERS ====
 
@@ -512,6 +513,25 @@
          PELPAT(NS) = 0.0D0
       ENDDO
 
+!     ==== CONTINUOUS PARTICLE SOURCE PARAMETERS ====
+
+!        MDLPSC : Partcicle SOurce MODEL TYPE
+!                    0:OFF  1:GAUSSIAN
+!        NPSCMAX: Number of particle sources (Max: NPSCM)
+!        PSCTOT : Time rate of particle source [10^{20} /s]
+!        PSCR0  : Radial position of particle source [m]
+!        PSCRW  : Radial width of particle source [m]
+!        NSPSC  : Ion species of particle source
+
+      MDLPSC = 0
+      NPSCMAX = 1
+      DO NPSC=1,NPSCM
+         PSCTOT(NPSC) = 0.D0
+         PSCR0(NPSC)  = 0.D0
+         PSCRW(NPSC)  = 0.5D0
+         NSPSC(NPSC)  = 2
+      END DO
+
 !     ==== RADIATION ====
 
 !     MDLPR  : MODEL OF RADIATION
@@ -751,7 +771,9 @@
      MDLPR, SYNCABS, SYNCSELF,  &
      &                   PELTIM, KNAMEQ, KNAMTR, KFNLOG, MDLEQB, MDLEQN, MDLEQT, MDLEQU, MDLEQZ, MDLEQ0, MDLEQE,        &
      &                   MDLEOI, NSMAX, NSZMAX, NSNMAX, KUFDIR, KUFDEV, KUFDCG, TIME_INT, MODEP, MDNI, MDLJQ,  &
-     &                   MDTC, MDLPCK, NTMAX_SAVE, knameq2
+     &                   MDTC, MDLPCK, NTMAX_SAVE, knameq2, &
+          MDLPSC,NPSCMAX,PSCTOT,PSCR0,PSCRW,NSPSC
+
       USE TRCOM3
       IMPLICIT NONE
       INTEGER(4),INTENT(IN) :: NID
@@ -778,7 +800,9 @@
      &              PELTIM,PELPAT,KNAMEQ,KNAMEQ2,KNAMTR,KFNLOG, &
      &              MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0,MDLEQE, &
      &              MDLEOI,NSMAX,NSZMAX,NSNMAX, &
-     &              KUFDIR,KUFDEV,KUFDCG,TIME_INT,MODEP,MDNI,MDLJQ,MDTC,MDLPCK
+     &              KUFDIR,KUFDEV,KUFDCG,TIME_INT,MODEP,MDNI,MDLJQ,MDTC, &
+                    MDLPCK,MDLPSC,NPSCMAX,PSCTOT,PSCR0,PSCRW,NSPSC
+
 
       IF(NID.LT.0) THEN
          IF(NSTMAX2 .GE. NSMAX+NSZMAX+NSNMAX) THEN
@@ -888,7 +912,8 @@
      &       ' ',8X,'MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0'/ &
      &       ' ',8X,'MDLEQE,MDLEOI,NSMAX,NSZMAX,NSNMAX,KUFDIR,KUFDEV,KUFDCG'/ &
      &       ' ',8X,'TIME_INT,MODEP,MDNI,MDLJQ,MDTC,MDLPCK'/ &
-     &       ' ',8X,'KNAMEQ,KNAMEQ2,KNAMTR,KFNLOG')
+     &       ' ',8X,'KNAMEQ,KNAMEQ2,KNAMTR,KFNLOG'/ &
+     &       ' ',8X,'MDLPSC,NPSCMAX,PSCTOT,PSCR0,PSCRW,NSPSC')
       END SUBROUTINE TRPLST
 
 !     ***** CHECK INPUT PARAMETERS *****
@@ -942,10 +967,11 @@
            PNBRTG, PNBRW, PNBTOT, PNBVW, PNBVY, PNC, PNFE, PNNU, PNNUS, &
            PNS, PROFJ1, PROFJ2, PROFN1, PROFN2, PROFT1, PROFT2, PROFU1, &
            PROFU2, PT, PTS, PZ, RA, RDLT, RHOA, RIPE, RIPS, RKAP, RR, TPRST, &
-           TSST
+           TSST,MDLPSC,NPSCMAX,PSCTOT,PSCR0,PSCRW,NSPSC
+
       IMPLICIT NONE
       INTEGER(4),INTENT(IN) :: ID
-      INTEGER(4) :: NS
+      INTEGER(4) :: NS,NPSC
 
 
       WRITE(6,*) '** TRANSPORT **'
@@ -1015,6 +1041,13 @@
          WRITE(6,601) 'PELTOT',PELTOT,'PELR0 ',PELR0,'PELRW ',PELRW
          WRITE(6,603) 'MDLPEL',MDLPEL,'PELRAD',PELRAD,'PELVEL',PELVEL,'PELTIM',PELTIM
       ENDIF
+      IF(MDLPSC.GT.0) THEN
+         WRITE(6,622) 'MDLPSC  ',MDLPSC,'NPSCMAX ',NPSCMAX
+         DO NPSC=1,NPSCMAX
+            WRITE(6,603) 'NSPSC ',NSPSC(NPSC) ,'PSCTOT',PSCTOT(NPSC), &
+                         'PSCR0 ',PSCR0(NPSC) ,'PSCRW ',PSCRW(NPSC)
+         END DO
+      END IF
 
       IF((MDLPR.GE.1).OR.(ID.EQ.1)) THEN
          WRITE(6,623) 'MDLPR   ',MDLPR,   'SYNCABS ',SYNCABS, &
@@ -1034,6 +1067,8 @@
      &        2X,A6,'=',1X,A6,4X:2X,A6,'=',I7)
   605 FORMAT(' ',A6,'=',I7,4X   :2X,A6,'=',I7,4X  : &
      &        2X,A6,'=',I7,4X   :2X,A6,'=',1PE11.3)
+  622 FORMAT(' ',A8,'=',I5,4X   :2X,A8,'=',I5,4X  : &
+     &        2X,A8,'=',I5,4X   :2X,A8,'=',I5)
   623 FORMAT(' ',A8,'=',I7,4X   :2X,A8,'=',1PE11.3: &
      &        2X,A8,'=',1PE11.3)
       END SUBROUTINE TRVIEW
@@ -1112,9 +1147,9 @@
          STOP
       ENDIF
 
-      NSS(1:NEQMAXM)=-1
-      NSV(1:NEQMAXM)=-1
-      NNS(1:NEQMAXM)=0
+      NSS(1:NEQMAXM)=-1  ! 0: EM, particle species
+      NSV(1:NEQMAXM)=-1  ! 1: density, 2: temperature 3: toroidal flow
+      NNS(1:NEQMAXM)=0   ! 
       NST(1:NEQMAXM)=0
       NEQ=0
       IF(MDLEQB.EQ.1) THEN

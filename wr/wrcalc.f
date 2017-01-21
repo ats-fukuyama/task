@@ -49,6 +49,12 @@ C
             WRITE(6,'(1PE12.4,0P7F9.2)') 
      &                         RF,RPI,ZPI,PHII,MODEW,ANGZ,ANGPH,UUI
          ENDIF
+      ELSEIF(MDLWRI.EQ.11) THEN
+         WRITE(6,*) 
+     &   '# default values: RF,RP,ZP,RKR0,RNZ,RNPHI,UU'
+         WRITE(6,'(1PE12.4,0P7F9.2)') 
+     &                      RF,RPI,ZPI,RKR0,RNZI,RNPHII,UUI
+         PHII=0.D0
       ENDIF
 c
 c     --- eliminate disp factor for same z/a species ---
@@ -66,7 +72,7 @@ C     --- Each ray tracing ---
 C
       DO NRAY=1,NRAYMX
 C
-         IF(MDLWRI.LT.10) THEN
+         IF(MDLWRI.LT.100) THEN
 C
     1       WRITE(6,*) '# NRAY = ',NRAY
             IF(MDLWRI.EQ.0) THEN
@@ -120,6 +126,29 @@ C
                IF(ANGPH.LT.0.D0) RNPHII=-RNPHII
                WRITE(6,*) 'XX MDLWRI=2 IS NOT SUPPORTED YET.'
                GOTO 1
+            ELSEIF(MDLWRI.EQ.11) THEN
+               READ(5,*,ERR=1,END=9000) 
+     &                      RF,RPI,ZPI,RKR0,RNZI,RNPHII,UUI
+               WRITE(6,*) 
+     &         '# initial values: RF,RP,ZP,RKR0,RNZ,RNPHI,UU'
+               WRITE(6,'(1PE12.4,0P7F9.2)') 
+     &                      RF,RPI,ZPI,RKR0,RNZI,RNPHII,UUI
+               IF(ABS(RNZI).GT.1.D0) THEN
+                  ANGZ=0.D0
+                  ANGPH=0.D0
+               ELSE
+                  ANGZ=ASIN(RNZI)*180.D0/PI
+                  IF(ABS(RNZI).GT.SQRT(1.D0-RNPHII**2)) THEN
+                     ANGZ=0.D0
+                  ELSE
+                     ANGZ=ASIN(RNZI/SQRT(1.D0-RNPHII**2))*180.D0/PI
+                  ENDIF
+                  IF(ABS(RNPHII).GT.SQRT(1.D0-RNZI**2)) THEN
+                     ANGPH=0.D0
+                  ELSE
+                     ANGPH=ASIN(RNPHII/SQRT(1.D0-RNZI**2))*180.D0/PI
+                  ENDIF
+               ENDIF
             ENDIF
          ELSE
             RF=RFIN(NRAY)
@@ -132,7 +161,7 @@ C
             ANGZ=ANGZIN(NRAY)
             ANGPH=ANGPHIN(NRAY)
             UUI=UUIN(NRAY)
-            IF(MDLWRI.EQ.10)THEN
+            IF(MDLWRI.EQ.100)THEN
                WRITE(6,*) 
      &         '# initial values: RF,RP,ZP,PHI,RKR0,RNZ,RNPHI,UU'
                WRITE(6,'(1PE12.4,0P7F9.2)') 
@@ -181,7 +210,7 @@ C
          CALL WRNWTN(RKRI,RKZI,RKPHII,IERR)
          IF(IERR.NE.0) GOTO 1200
 C
-         IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
+         IF(MODELG.EQ.0.OR.MODELG.EQ.1.OR.MODELG.EQ.11) THEN
             Y(1)= RPI
             Y(2)= PHII
             Y(3)= ZPI
@@ -268,6 +297,11 @@ C
             PHIL=ASIN(YM(2)/(2.D0*PI*RR))
             ZL  =YM(3)
             RKRL=YM(4)
+         ELSE IF(MODELG.EQ.11) THEN
+            RL  =YM(1)
+            PHIL=YM(2)
+            ZL  =YM(3)
+            RKRL=YM(4)
          ELSE
             RL  =SQRT(YM(1)**2+YM(2)**2)
             PHIL=ATAN2(YM(2),YM(1))
@@ -275,10 +309,9 @@ C
             RKRL=(YM(4)*YM(1)+YM(5)*YM(2))/RL
          ENDIF
          RNPHI_IDEI= -YM(4)*VC/OMG*SIN(PHIL) + YM(5)*VC/OMG*COS(PHIL)
-         DELTA=DISPXR( YM(1), YM(2), YM(3), YM(4), YM(5), YM(6), OMG )
+         DELTA=DISPXR( YM(1), YM(2), YM(3), YM(4), YM(5), YM(6), OMG)
          RKPARA=YM(4)*BNX+YM(5)*BNY+YM(6)*BNZ
          RKPERP=SQRT((YM(4)*YM(4)+YM(5)*YM(5)+YM(6)*YM(6))-RKPARA**2)
-
 C
          IF(MDLWRW.GE.1) THEN
             ID=0
@@ -307,10 +340,12 @@ C
             NIT = IT
             GOTO 11
          ENDIF
-         CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
-         IF(RHON.GT.RB/RA*RKAP) THEN
-            NIT = IT
-            GOTO 11
+         IF(MODELG.LE.10) THEN
+            CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
+            IF(RHON.GT.RB/RA*RKAP) THEN
+               NIT = IT
+               GOTO 11
+            ENDIF
          ENDIF
  10   CONTINUE
       NIT=ITMAX
@@ -356,6 +391,8 @@ C
       DO 10 IT = 1,ITMAX
          Y7=Y(7)
          CALL ODERK(7,WRFDRV,X0,XE,1,Y,YM,WORK)
+C         write(6,'(A,I5,1p2E12.4)') 
+C     &        'WRRKFT_WITHD0: IT,Y,YM=',IT,Y(1),YM(1)
 
          delta=DISPXR(YM(1),YM(2),YM(3),YM(4),YM(5),YM(6),OMG)
 CBGNIDEI_WRMOD		 
@@ -381,6 +418,11 @@ CENDIDEI
             ELSE
                PHIL=ASIN(YM(2)/(2.D0*PI*RR))
             ENDIF
+            ZL  =YM(3)
+            RKRL=YM(4)
+         ELSE IF(MODELG.EQ.11) THEN
+            RL  =YM(1)
+            PHIL=YM(2)
             ZL  =YM(3)
             RKRL=YM(4)
          ELSE
@@ -429,11 +471,13 @@ C
             NIT = IT
             GOTO 11
          ENDIF
-         CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
-         IF(RHON.GT.RB/RA*RKAP) THEN
-            NIT = IT
-            GOTO 11
-         ENDIF         
+         IF(MODELG.LE.10) THEN
+            CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
+            IF(RHON.GT.RB/RA*RKAP) THEN
+               NIT = IT
+               GOTO 11
+            ENDIF        
+         END IF
  10   CONTINUE
       NIT=ITMAX
 C     
@@ -1007,6 +1051,7 @@ C
 C      WRITE(21,'(1P3E12.4)') X,DOMG,DS
 C      CALL GUFLSH
 C
+C      write(6,'(A,1P3E12.4)') 'WRFDRV: DOMG,DS,DKXP',DOMG,DS,DKXP
       VX   =-DKXP/DS
       VY   =-DKYP/DS
       VZ   =-DKZP/DS
@@ -1033,6 +1078,7 @@ C
 C      WRITE(6,'(A,1P6E12.4)') 'XY:',X,Y(1),Y(4),Y(5),Y(6),Y(7)
 C      WRITE(6,'(A,1P6E12.4)') 'F :',F(1),F(2),F(3),F(4),F(5),F(6)
 C      CALL GUFLSH
+C      write(6,'(A,1P3E12.4)') 'WRFDRV: X,Y(1),F(1)=',X,Y(1),F(1)
       RETURN
       END
 C
@@ -1120,8 +1166,8 @@ C
 C
 C      WRITE(6,*) S,T,S/T
       RKR=RKRI-S/T
-      IF(MDLWRW.NE.0) 
-     &     WRITE(6,'(1P3E12.4)') RKR,RKRI,-S/T
+      IF(MDLWRW.EQ.1) 
+     &     WRITE(6,'(A,1P3E12.4)') 'RKR,RKRI,-S/T=',RKR,RKRI,-S/T
 C
       IF(ABS((RKR-RKRI)/RKRI).LE.EPSNW) GOTO 9000
 C      WRITE(6,*) ABS((RKR-RKRI)/RKRI), RKR
@@ -1151,6 +1197,13 @@ C
          X=RP
          Y=2.D0*PI*RR*SIN(PHI)
          Z=ZP
+      ELSEIF(MODELG.EQ.11) THEN
+         CKX=DCMPLX(RKR,0.D0)
+         CKY=DCMPLX(RKPHI,0.D0)
+         CKZ=DCMPLX(RKZ,0.D0)
+         X=RP
+         Y=PHI
+         Z=ZP
       ELSE
          CKX=DCMPLX(RKR*COS(PHI)-RKPHI*SIN(PHI),0.D0)
          CKY=DCMPLX(RKR*SIN(PHI)+RKPHI*COS(PHI),0.D0)
@@ -1162,9 +1215,9 @@ C
 C            
       DO NS=1,NSMAX
          MODELPS(NS)=MODELP(NS)
-         IF(MODELP(NS).GE.10.AND.MODELP(NS).LT.30) MODELP(NS)=0
-         IF(MODELP(NS).GE.30.AND.MODELP(NS).LT.50) MODELP(NS)=4
-         IF(MODELP(NS).GE.50.AND.MODELP(NS).LT.60) MODELP(NS)=5
+         IF(MODELP(NS).GE.100.AND.MODELP(NS).LT.300) MODELP(NS)=0
+         IF(MODELP(NS).GE.300.AND.MODELP(NS).LT.500) MODELP(NS)=4
+         IF(MODELP(NS).GE.500.AND.MODELP(NS).LT.600) MODELP(NS)=6
       ENDDO
 C
       CF=CFDISP(CRF,CKX,CKY,CKZ,X,Y,Z)
@@ -1202,9 +1255,9 @@ C
 C            
       DO NS=1,NSMAX
          MODELPS(NS)=MODELP(NS)
-         IF(MODELP(NS).GE.10.AND.MODELP(NS).LT.30) MODELP(NS)=0
-         IF(MODELP(NS).GE.30.AND.MODELP(NS).LT.50) MODELP(NS)=4
-         IF(MODELP(NS).GE.50.AND.MODELP(NS).LT.60) MODELP(NS)=5
+         IF(MODELP(NS).GE.100.AND.MODELP(NS).LT.300) MODELP(NS)=0
+         IF(MODELP(NS).GE.300.AND.MODELP(NS).LT.500) MODELP(NS)=4
+         IF(MODELP(NS).GE.500.AND.MODELP(NS).LT.600) MODELP(NS)=6
       ENDDO
 C
 C      CF=CFDISP(CRF,CKX,CKY,CKZ,X,Y,Z)

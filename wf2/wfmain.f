@@ -40,10 +40,10 @@ C
       ENDIF
 C
     1 WRITE(6,601)
-  601 FORMAT(1H ,'## INPUT: P,V:PARM  D,Z:DIV  A:ANT  W:WAVE',
+  601 FORMAT(1H ,'## INPUT: P,V:PARM  D:DIV  Z:ZONE  A:ANT  W:WAVE',
      &                   '  T:EVOL  G:GRAPH  '/
      &       1H ,'          R:RUN  C:CONT  S:SAVE  L:LOAD',
-     &                   '  Q:QUIT')
+     &                   '  B:FREQ  Q:QUIT')
       CALL WFKLIN(LINE,KID,MODE)
       IF(MODE.NE.1) GOTO 1
 C
@@ -70,16 +70,6 @@ C
          T=0.D0
          CALL WFSTUP
          CALL WFWAVE
-      ELSEIF(KID.EQ.'F') THEN 
-         NEVOL=3
-         T=0.D0
-C         CALL TFEVIN
-C         CALL TFEVST
-         DO NT=1,NTMAX
-            T=T+DT
-C            CALL TFEVOL
-C            CALL TFEVST
-         ENDDO
       ELSEIF(KID.EQ.'T') THEN 
          NEVOL=1
          T=0.D0
@@ -94,11 +84,7 @@ C            CALL TFEVST
       ELSEIF (KID.EQ.'B') THEN
          CALL WFFREQ
       ELSEIF (KID.EQ.'G') THEN
-         IF(NEVOL.EQ.3) THEN
-C            CALL TFGOUT
-         ELSE
-            CALL WFGOUT
-         ENDIF
+         CALL WFGOUT
       ELSEIF(KID.EQ.'R') THEN
          NEVOL=2
          T=0.D0
@@ -129,8 +115,6 @@ C               CALL TFEVST
                CALL WFEVST
             ENDDO
          ENDIF
-      ELSEIF (KID.EQ.'M') THEN
-C         CALL WFCALP
       ELSEIF (KID.EQ.'S') THEN
          CALL WFWFLD
       ELSEIF (KID.EQ.'L') THEN

@@ -87,6 +87,7 @@ C
       DO NTG=1,NTGMAX
           PSI(NTG,NSG)=PSI0*(1.D0-SIGM(NSG)*SIGM(NSG))
           DELPSI(NTG,NSG)=0.D0
+          HJT(NTG,NSG)=0.D0
       ENDDO
       ENDDO
 C
@@ -142,6 +143,7 @@ C
       DO NTG=1,NTGMAX
           PSI(NTG,NSG)=PSI0*(1-SIGM(NSG)*SIGM(NSG))
           DELPSI(NTG,NSG)=0.D0
+          HJT(NTG,NSG)=0.D0
       ENDDO
       ENDDO
 C

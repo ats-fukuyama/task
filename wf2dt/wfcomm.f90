@@ -1,4 +1,4 @@
-!     $Id: wfcomm.f90,v 1.23 2012/03/05 06:29:02 maruyama Exp $
+!   Define and allocate global variables
 
 module wfcomm
 
@@ -53,7 +53,8 @@ module wfcomm
   real(rkind),DIMENSION(3):: br_corner,bz_corner,bt_corner
   real(rkind),DIMENSION(3,NSM):: pn_corner,ptpr_corner,ptpp_corner
   real(rkind):: R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG,AMPWG,ANGWG,ELPWG,DPHWG
-  integer(ikind):: NSHWG
+  integer(ikind):: MODELWG
+  CHARACTER(LEN=80):: KNAMWG
   real(rkind):: gfactor
 
 !       /WFPRK/
@@ -73,7 +74,7 @@ module wfcomm
   integer(ikind):: iddiv
          
 !       /WFELM/
-  integer(ikind):: NNMAX,NEMAX
+  integer(ikind):: NNMAX,NEMAX,NBNOD,NBSID
   real(rkind)   ,dimension(:)  ,pointer :: RNODE,ZNODE !(NNMAX)
   integer(ikind),dimension(:)  ,pointer :: KANOD,KBNOD !(NNMAX)
   real(rkind)   ,dimension(:)  ,pointer :: SELM        !(NEMAX)

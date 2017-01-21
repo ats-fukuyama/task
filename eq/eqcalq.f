@@ -39,7 +39,9 @@ C
       CALL EQCALQP(IERR)
       IF(IERR.NE.0) RETURN
 C
-      IF(NSUMAX.GT.0) THEN
+      IF(.NOT.(NSUMAX.EQ.0.OR.
+     &         RA-RB.EQ.0.D0.OR. 
+     &         RR+RB-REDGE.EQ.0.D0)) THEN
          CALL EQCALQV(IERR)
          IF(IERR.NE.0) RETURN
       ENDIF
@@ -56,11 +58,15 @@ C
 C
       INCLUDE '../eq/eqcomq.inc'
 C
-      DIMENSION PSIRG(NRGM,NZGM),PSIZG(NRGM,NZGM),PSIRZG(NRGM,NZGM)
-      DIMENSION HJTRG(NRGM,NZGM),HJTZG(NRGM,NZGM),HJTRZG(NRGM,NZGM)
+      REAL(8),DIMENSION(:,:),ALLOCATABLE:: PSIRG,PSIZG,PSIRZG
+      REAL(8),DIMENSION(:,:),ALLOCATABLE:: HJTRG,HJTZG,HJTRZG
+
       DIMENSION DERIV(NPSM)
       EXTERNAL PSIGD
 C
+      ALLOCATE(PSIRG(NRGM,NZGM),PSIZG(NRGM,NZGM),PSIRZG(NRGM,NZGM))
+      ALLOCATE(HJTRG(NRGM,NZGM),HJTZG(NRGM,NZGM),HJTRZG(NRGM,NZGM))
+
       CALL SPL2D(RG,ZG,PSIRZ,PSIRG,PSIZG,PSIRZG,UPSIRZ,
      &           NRGM,NRGMAX,NZGMAX,0,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL2D for PSIRZ: IERR=',IERR
@@ -70,18 +76,24 @@ C
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL2D for HJTRZ: IERR=',IERR
 C
 C     *** Initial parameters for first guess of EQAXIS input ***
-      RAXIS=RR
-      ZAXIS=0.D0
+      IF(MODELG.NE.5) THEN
+         RAXIS=RR
+         ZAXIS=0.D0
+      END IF
       PSI0=PSIG(RAXIS,ZAXIS)
       PSIPA=-PSI0
 C     **********************************************************
 C
 C     *** Calculate RAXIS, ZAXIS, PSI0 and PSIPA ***
+C      WRITE(6,'(A,1P4E12.4)') 
+C     &     'IN:RAXIS,ZAXIS,PSI0,PSIPA=',RAXIS,ZAXIS,PSI0,PSIPA
       CALL EQAXIS(IERR)
+C      WRITE(6,'(A,1P4E12.4)') 
+C     &     'OT:RAXIS,ZAXIS,PSI0,PSIPA=',RAXIS,ZAXIS,PSI0,PSIPA
       IF(IERR.NE.0) RETURN
 C     **********************************************
 C
-      IF(MODELG.EQ.5) THEN
+C      IF(MODELG.EQ.5) THEN
 C     *** Reconstruct PSIPS ***********************************************
 C     *  PSIPS originates from PSI0 and PSIA in eqdsk data.
 C     *  However, EQAXIS calculates PSI0 and the position of the magnetic
@@ -89,12 +101,12 @@ C     *    axis by using PSIRZ interpolated by cubic spline, and these
 C     *    are slightly different from those in eqdsk data.
 C     *  Then the radial psi-coordinate is corrected to fit itself to the
 C     *    interpolated PSI contour.
-         DPS = PSIPA / (NPSMAX - 1)
-         DO NPS=1,NPSMAX
-            PSIPS(NPS) = DPS * (NPS - 1)
-         ENDDO
+C         DPS = PSIPA / (NPSMAX - 1)
+C         DO NPS=1,NPSMAX
+C            PSIPS(NPS) = DPS * (NPS - 1)
+C         ENDDO
 C     *********************************************************************
-      ENDIF
+C      ENDIF
 C
 C      DO NPS=1,NPSMAX
 C         WRITE(6,'(A,I5,1P3E12.4)') 'NPS:',NPS,PSIPS(NPS),
@@ -111,6 +123,9 @@ C
          CALL SPL1D(PSIPS,DTTPS,  DERIV,UDTTPS, NPSMAX,0,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for DTTPS: IERR=',IERR
       ENDIF
+
+      DEALLOCATE(PSIRG,PSIZG,PSIRZG)
+      DEALLOCATE(HJTRG,HJTZG,HJTRZG)
 C
       RETURN
       END
@@ -134,13 +149,13 @@ C
 C
 C     ----- SET DR, DTH -----
 C
-!      write(6,'(A,1p4E12.4)') 'RB,RA,REDGE,RAXIS=',RB,RA,REDGE,RAXIS
-      IF(NSUMAX.EQ.0) THEN
+      IF(NSUMAX.EQ.0.OR.RA-RB.EQ.0.D0.OR.RR+RB-REDGE.EQ.0.D0) THEN
          NRPMAX=NRMAX
       ELSE
          DR=(RB-RA+REDGE-RAXIS)/(NRMAX-1)
          NRPMAX=NINT((REDGE-RAXIS)/DR)+1
       ENDIF
+!      write(6,*) 'nrmax,nrpmax,nsumax=',nrmax,nrpmax,nsumax
       DR=(REDGE-RAXIS)/(NRPMAX-1)
       DTH=2.d0*PI/NTHMAX
 C
@@ -170,13 +185,10 @@ C
          PPS(NR)=PPFUNC(PSIP(NR))
          TTS(NR)=TTFUNC(PSIP(NR))
 C
-C         WRITE(6,'(A,I5,1P5E12.4)') 'NR:',NR,
-C     &        PSIP(NR),PPS(NR),TTS(NR),RINIT,ZINIT
-C         pause
+!         WRITE(6,'(A,I5,1P5E12.4)') 'NR:',NR,
+!     &        PSIP(NR),PPS(NR),TTS(NR),RINIT,ZINIT
 C
          CALL EQMAGS(RINIT,ZINIT,NTVMAX,XA,YA,NA,IERR)
-         DO N=1,NA
-         END DO
 C
          SUMS=0.D0
          SUMV=0.D0
@@ -195,6 +207,8 @@ C
          RMAX=RAXIS
          ZMIN=ZAXIS
          ZMAX=ZAXIS
+         NZMINR=1
+         NZMAXR=1
          BMIN=ABS(2.D0*BB)
          BMAX=0.D0
 C
@@ -257,7 +271,6 @@ C
          ENDDO
 C
          QPS(NR)=SUMAVIR2*TTS(NR)/(4.D0*PI**2)
-Chonda         write(6,*) PSIP(NR),QPS(NR)
          DVDPSIP(NR)=SUMV
          DVDPSIT(NR)=SUMV/QPS(NR)
          SPS(NR)=SUMS*2.D0*PI
@@ -536,15 +549,20 @@ C     &           'NR,PSIP,PSIT,QPS=',NR,PSIP(NR),PSIT(NR),QPS(NR)
       DR_OUT=(RR+RB-REDGE)/(NRMAX-NRPMAX)
       DR_IN =FRBIN*(RR+RB-REDGE)/(NRMAX-NRPMAX)
       DTH=2.d0*PI/NTHMAX
+
+            write(6,'(A,1P5E12.4)') 
+     &           'DR_IN,DR_OUT,RR,RB,REDGE=',
+     &            DR_IN,DR_OUT,RR,RB,REDGE
+
       IF(MDLEQF.LT.10) THEN
          DO NR=NRPMAX+1,NRMAX
             RL_OUT=REDGE+DR_OUT*(NR-NRPMAX)
             RL_IN =REDGE+DR_IN *(NR-NRPMAX)
             ZL=ZAXIS
             Sratio=(RL_OUT-RR)**2/(REDGE-RR)**2
-C            write(6,'(A,I5,1P3E12.4)') 
-C     &           'NR,RL_OUT,ratio,Sratio=',
-C     &            NR,RL_OUT,RL_OUT/REDGE,Sratio
+!            write(6,'(A,I5,1P3E12.4)') 
+!     &           'NR,RL_OUT,ratio,Sratio=',
+!     &            NR,RL_OUT,RL_OUT/REDGE,Sratio
             PSIP(NR)=PSIG(RL_OUT,ZL)-PSI0
 !            write(6,'(A,I5,1P3E12.4)') 
 !     &           'NR,PSIP,PSIG,PSI0=',NR,PSIP(NR),PSIG(RL_OUT,ZL),PSI0
@@ -922,6 +940,10 @@ C
 C
 C     *** For functions defined in eqsplf.f ***
 C
+!      WRITE(6,'(A)') 'PSIP='
+!      WRITE(6,'(1P5E12.4)') (PSIP(NR),NR=1,NRMAX)
+!      write(6,'(A)') 'psit='
+!      write(6,'(1P5E12.4)') (PSIT(NR),NR=1,NRMAX)
       CALL SPL1D(PSIP,PSIT,DERIV,UPSIT,NRMAX,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for PSIT: IERR=',IERR
       CALL SPL1D(PSIT,PSIP,DERIV,UPSIP,NRMAX,0,IERR)
@@ -1237,6 +1259,10 @@ C
 C
       INCLUDE '../eq/eqcomq.inc'
 C
+      IF(PSIPL.GT.PSIPS(NPSMAX)) THEN
+         PPFUNC=0.D0
+         RETURN
+      END IF
       CALL SPL1DF(PSIPL,PPL,PSIPS,UPPPS,NPSMAX,IERR)
       IF(IERR.NE.0) THEN
          WRITE(6,*) 'XX PPFUNC: SPL1DF ERROR : IERR=',IERR
@@ -1252,6 +1278,11 @@ C
 C
       INCLUDE '../eq/eqcomq.inc'
 C
+      IF(PSIPL.GT.PSIPS(NPSMAX)) THEN
+         CALL SPL1DF(PSIPS(NPSMAX),TTL,PSIPS,UTTPS,NPSMAX,IERR)
+         TTFUNC=TTL
+         RETURN
+      END IF
       CALL SPL1DF(PSIPL,TTL,PSIPS,UTTPS,NPSMAX,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX TTFUNC: SPL1DF ERROR : IERR=',IERR
       TTFUNC=TTL
@@ -1264,6 +1295,15 @@ C
 C
       INCLUDE '../eq/eqcomq.inc'
 C
+      IF(PSIPL.GT.PSIPS(NPSMAX)) THEN
+         IF(MODELG.EQ.5) THEN
+            CALL SPL1DF(PSIPS(NPSMAX),DPPL,PSIPS,UDPPPS,NPSMAX,IERR)
+         ELSE
+            CALL SPL1DD(PSIPS(NPSMAX),PPL,DPPL,PSIPS,UPPPS,NPSMAX,IERR)
+         END IF
+         DPPFUNC=DPPL
+         RETURN
+      END IF
       IF(MODELG.EQ.5) THEN
          CALL SPL1DF(PSIPL,DPPL,PSIPS,UDPPPS,NPSMAX,IERR)
          IF(IERR.NE.0)WRITE(6,*) 'XX DPPFUNC: SPL1DF ERROR : IERR=',IERR
@@ -1285,6 +1325,15 @@ C
 C
       INCLUDE '../eq/eqcomq.inc'
 C
+      IF(PSIPL.GT.PSIPS(NPSMAX)) THEN
+         IF(MODELG.EQ.5) THEN
+            CALL SPL1DF(PSIPS(NPSMAX),DTTL,PSIPS,UDTTPS,NPSMAX,IERR)
+         ELSE
+            CALL SPL1DD(PSIPS(NPSMAX),TTL,DTTL,PSIPS,UTTPS,NPSMAX,IERR)
+         END IF
+         DTTFUNC=DTTL
+         RETURN
+      END IF
       IF(MODELG.EQ.5) THEN
          CALL SPL1DF(PSIPL,DTTL,PSIPS,UDTTPS,NPSMAX,IERR)
          IF(IERR.NE.0)WRITE(6,*) 'XX DTTFUNC: SPL1DF ERROR : IERR=',IERR

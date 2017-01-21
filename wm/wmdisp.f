@@ -441,7 +441,7 @@ C            UYY2=0.D0
 C
             CKPR=RKPR
             CKPP=RKPP
-            CALL DPCALC(CW,CKPR,CKPP,RHON,BABS,NS,CDTNS)
+            CALL DPCALC(CW,CKPR,CKPP,NS,CDTNS)
 C
 C      IF(NR.EQ.1.AND.
 C     &   MD.EQ.0.AND.

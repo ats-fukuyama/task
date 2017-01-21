@@ -17,7 +17,6 @@ SRCS = main.f
 OBJS = $(SRCS:.f=.o)
 
 LIBS = ../lib/mdslib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a \
-       ../mtx/mtxlib.a ../mpi/mpilib.o \
        ../plx/pllib.a \
        ../tr/trcom2.o ../tr/trcom3.o $(EQLIBS) \
        ../tr/tr2lib.a ../dp/dplib.a ../wr/wrlib.a ../wm/wmlib.a \
@@ -44,12 +43,6 @@ all : tot
 	(cd ../mtxp; make libmtxmumps.o)
 ../mtxp/libmtxbnd.o:
 	(cd ../mtxp; make libmtxbnd.o)
-../mpi/mpilib.o:
-	(cd ../mpi; make mpilib.o)
-../mtx/mtxlib.a:
-	(cd ../mtx; make mtxlib.a)
-../mtx/mpimtxlib.a:
-	(cd ../mtx; make mpimtxlib.a)
 ../../bpsd/bpsdlib.a:
 	(cd ../../bpsd; make bpsdlib.a)
 ../plx/pllib.a:
@@ -82,8 +75,6 @@ libs:
 	(cd ../lib; make mdslib.a)
 	(cd ../../bpsd; make bpsdlib.a)
 	(cd ../mtxp; make)
-	(cd ../mtx; make mtxlib.a)
-	(cd ../mpi; make mpilib.o)
 	(cd ../plx; make pllib.a)
 	(cd ../plx; make noeqlib.o)
 	(cd ../plx; make noequlib.o)

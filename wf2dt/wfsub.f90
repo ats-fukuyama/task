@@ -15,7 +15,7 @@ SUBROUTINE WFSLIM
   ZNDMIN=ZNODE(1)
   ZNDMAX=ZNODE(1)
   SELECT CASE(MODELG)
-  CASE(0)
+  CASE(0,12)
      LNODE=SQRT(RNODE(1)**2+ZNODE(1)**2)
   CASE(2)
      LNODE=SQRT((RNODE(1)-RR)**2+ZNODE(1)**2)
@@ -29,7 +29,7 @@ SUBROUTINE WFSLIM
      ZNDMIN=MIN(ZNDMIN,ZNODE(IN))
      ZNDMAX=MAX(ZNDMAX,ZNODE(IN))
      SELECT CASE(MODELG)
-     CASE(0)
+     CASE(0,12)
         LNODE=SQRT(RNODE(IN)**2+ZNODE(IN)**2)
      CASE(2)
         LNODE=SQRT((RNODE(IN)-RR)**2+ZNODE(IN)**2)
@@ -37,6 +37,7 @@ SUBROUTINE WFSLIM
      LNDMIN=MIN(LNDMIN,LNODE)
      LNDMAX=MAX(LNDMAX,LNODE)
   ENDDO
+  write(6,'(A,1p4E12.4)') ':wfsub:',RNDMIN,RNDMAX,ZNDMIN,ZNDMAX
 
   RETURN
 END SUBROUTINE WFSLIM
@@ -257,7 +258,7 @@ SUBROUTINE SETBDY(IERR)
   integer,intent(out) :: IERR
   integer :: ISD,NSD,NE
   integer :: NN1,NN2,NN3,NSD1,NSD2,NSD3
-  integer :: NEL,NSDL,NBSID
+  integer :: NEL,NSDL
 
 ! ----- SET NSDMAX & KNELM -----
 ! NBSID :: Number of Boundary Side
@@ -463,10 +464,12 @@ END SUBROUTINE SETBDY
 
 SUBROUTINE SETEWG
 
-  use wfcomm
+  USE wfcomm
+  USE wfload,ONLY: wf_read_wg 
   implicit none
-  INTEGER:: NBSID,NSD,NN1,NN2,NBNOD,NN,NBSD,NBND
+  INTEGER:: NSD,NN1,NN2,NN,NBSD,NBND,IERR
   REAL(rkind):: ANGLE,R,Z,PHASE,PROD,FACTOR,SN
+  COMPLEX(rkind):: CEX,CEY,CEZ
 
   ANGLE=ANGWG*PI/180.D0
 
@@ -497,29 +500,43 @@ SUBROUTINE SETEWG
      NN2=NDSID(2,NSD)
      R=0.5D0*(RNODE(NN1)+RNODE(NN2))
      Z=0.5D0*(ZNODE(NN1)+ZNODE(NN2))
-     IF((R.GE.R1WG).AND.(R.LE.R2WG).AND. &
-        (Z.GE.Z1WG).AND.(Z.LE.Z2WG)) THEN
-        PROD=(R2WG-R1WG)*(RNODE(NN2)-RNODE(NN1)) &
-            +(Z2WG-Z1WG)*(ZNODE(NN2)-ZNODE(NN1))
-        IF(ABS(R1WG-R2WG).LT.1.D-8) THEN
-           FACTOR=(Z-0.5D0*(Z1WG+Z2WG))**2/(Z1WG-Z2WG)**2
-        ELSE IF(ABS(Z1WG-Z2WG).LT.1.D-8) THEN
-           FACTOR=(R-0.5D0*(R1WG+R2WG))**2/(R1WG-R2WG)**2
+     SELECT CASE(MODELWG)
+     CASE(0,1)
+        IF((R.GE.R1WG).AND.(R.LE.R2WG).AND. &
+           (Z.GE.Z1WG).AND.(Z.LE.Z2WG)) THEN
+           PROD=(R2WG-R1WG)*(RNODE(NN2)-RNODE(NN1)) &
+               +(Z2WG-Z1WG)*(ZNODE(NN2)-ZNODE(NN1))
+           IF(ABS(R1WG-R2WG).LT.1.D-8) THEN
+              FACTOR=(Z-0.5D0*(Z1WG+Z2WG))**2/(Z1WG-Z2WG)**2
+           ELSE IF(ABS(Z1WG-Z2WG).LT.1.D-8) THEN
+              FACTOR=(R-0.5D0*(R1WG+R2WG))**2/(R1WG-R2WG)**2
+           ELSE
+              FACTOR=(R-0.5D0*(R1WG+R2WG))**2/(R1WG-R2WG)**2 &
+                    +(Z-0.5D0*(Z1WG+Z2WG))**2/(Z1WG-Z2WG)**2
+           END IF
+           SN=SQRT((R   -R1WG)**2+(Z   -Z1WG)**2) &
+             /SQRT((R2WG-R1WG)**2+(Z2WG-Z1WG)**2) ! SN=0 at 1, 1 at 2
+           PHASE=(PH1WG+(PH2WG-PH1WG)*SN+DPHWG*4.D0*SN*(1.D0-SN))*PI/180.D0
+           CEBSD(NBSD)= AMPWG*EXP(CII*PHASE)*(COS(ANGLE)+CII*ELPWG*SIN(ANGLE))
+           IF(MODELG.EQ.1) CEBSD(NBSD)=CEBSD(NBSD)*EXP(-10.D0*FACTOR)
+           IF(PROD.GT.0.D0) CEBSD(NBSD)=-CEBSD(NBSD)
+           IF(nrank.EQ.0) &
+                WRITE(6,'(A,2I8,1P5E12.4)') &
+                'SD:',NSD,NBSD,CEBSD(NBSD),AMPWG,PHASE,ANGLE
         ELSE
-           FACTOR=(R-0.5D0*(R1WG+R2WG))**2/(R1WG-R2WG)**2 &
-                 +(Z-0.5D0*(Z1WG+Z2WG))**2/(Z1WG-Z2WG)**2
+           CEBSD(NBSD)=(0.D0,0.D0)
         END IF
-        SN=SQRT((R   -R1WG)**2+(Z   -Z1WG)**2) &
-          /SQRT((R2WG-R1WG)**2+(Z2WG-Z1WG)**2) ! SN=0 at 1, 1 at 2
-        PHASE=(PH1WG+(PH2WG-PH1WG)*SN+DPHWG*4.D0*SN*(1.D0-SN))*PI/180.D0
-        CEBSD(NBSD)= AMPWG*EXP(CII*PHASE)*(COS(ANGLE)+CII*ELPWG*SIN(ANGLE))
-        IF(NSHWG.EQ.1) CEBSD(NBSD)=CEBSD(NBSD)*EXP(-10.D0*FACTOR)
-        IF(PROD.GT.0.D0) CEBSD(NBSD)=-CEBSD(NBSD)
-        IF(nrank.EQ.0) &
-        WRITE(6,'(A,2I8,1P5E12.4)') 'SD:',NSD,NBSD,CEBSD(NBSD),AMPWG,PHASE,ANGLE
-     ELSE
-        CEBSD(NBSD)=(0.D0,0.D0)
-     END IF
+     CASE(12)
+        IF((R.GE.R1WG).AND.(R.LE.R2WG)) THEN
+           PROD=(R2WG-R1WG)*(RNODE(NN2)-RNODE(NN1)) &
+               +(Z2WG-Z1WG)*(ZNODE(NN2)-ZNODE(NN1))
+           CALL wf_read_wg(Z,CEX,CEY,CEZ,IERR)
+           CEBSD(NBSD)=-AMPWG*CEY
+           IF(PROD.GT.0.D0) CEBSD(NBSD)=-CEBSD(NBSD)
+        ELSE
+           CEBSD(NBSD)=(0.D0,0.D0)
+        END IF
+     END SELECT
   END DO
 
 ! --- WG Electric field on boundary node ---  
@@ -547,27 +564,38 @@ SUBROUTINE SETEWG
      NN=NNDBS(NBND)
      R=RNODE(NN)
      Z=ZNODE(NN)
-     IF((R.GE.R1WG).AND.(R.LE.R2WG).AND. &
-        (Z.GE.Z1WG).AND.(Z.LE.Z2WG)) THEN
-        IF(ABS(R1WG-R2WG).LT.1.D-8) THEN
-           FACTOR=(Z-0.5D0*(Z1WG+Z2WG))**2/(Z1WG-Z2WG)**2
-        ELSE IF(ABS(Z1WG-Z2WG).LT.1.D-8) THEN
-           FACTOR=(R-0.5D0*(R1WG+R2WG))**2/(R1WG-R2WG)**2
+     SELECT CASE(MODELWG)
+     CASE(0,1)
+        IF((R.GE.R1WG).AND.(R.LE.R2WG).AND. &
+           (Z.GE.Z1WG).AND.(Z.LE.Z2WG)) THEN
+           IF(ABS(R1WG-R2WG).LT.1.D-8) THEN
+              FACTOR=(Z-0.5D0*(Z1WG+Z2WG))**2/(Z1WG-Z2WG)**2
+           ELSE IF(ABS(Z1WG-Z2WG).LT.1.D-8) THEN
+              FACTOR=(R-0.5D0*(R1WG+R2WG))**2/(R1WG-R2WG)**2
+           ELSE
+              FACTOR=(R-0.5D0*(R1WG+R2WG))**2/(R1WG-R2WG)**2 &
+                    +(Z-0.5D0*(Z1WG+Z2WG))**2/(Z1WG-Z2WG)**2
+           END IF
+           SN=SQRT((R   -R1WG)**2+(Z   -Z1WG)**2) &
+                /SQRT((R2WG-R1WG)**2+(Z2WG-Z1WG)**2) ! SN=0 at 1, 1 at 2
+           PHASE=(PH1WG+(PH2WG-PH1WG)*SN+DPHWG*4.D0*SN*(1.D0-SN))*PI/180.D0
+           CEBND(NBND)= AMPWG*EXP(CII*PHASE)*(SIN(ANGLE)-CII*ELPWG*COS(ANGLE))
+           IF(MODELWG.EQ.1) CEBND(NBND)=CEBND(NBND)*EXP(-10.D0*FACTOR)
+           IF(nrank.EQ.0) &
+                WRITE(6,'(A,2I8,1P5E12.4)') &
+                'ND:',NN,NBND,CEBND(NBND),AMPWG,PHASE,ANGLE
         ELSE
-           FACTOR=(R-0.5D0*(R1WG+R2WG))**2/(R1WG-R2WG)**2 &
-                 +(Z-0.5D0*(Z1WG+Z2WG))**2/(Z1WG-Z2WG)**2
+           CEBND(NBND)=(0.D0,0.D0)
         END IF
-        SN=SQRT((R   -R1WG)**2+(Z   -Z1WG)**2) &
-          /SQRT((R2WG-R1WG)**2+(Z2WG-Z1WG)**2) ! SN=0 at 1, 1 at 2
-        PHASE=(PH1WG+(PH2WG-PH1WG)*SN+DPHWG*4.D0*SN*(1.D0-SN))*PI/180.D0
-        CEBND(NBND)= AMPWG*EXP(CII*PHASE)*(SIN(ANGLE)-CII*ELPWG*COS(ANGLE))
-        IF(NSHWG.EQ.1) CEBND(NBND)=CEBND(NBND)*EXP(-10.D0*FACTOR)
-        IF(nrank.EQ.0) &
-             WRITE(6,'(A,2I8,1P5E12.4)') 'ND:',NN,NBND,CEBND(NBND),AMPWG,PHASE,ANGLE
-     ELSE
-        CEBND(NBND)=(0.D0,0.D0)
-     END IF
-  END DO
+     CASE(12)
+        IF((R.GE.R1WG).AND.(R.LE.R2WG)) THEN
+           CALL wf_read_wg(Z,CEX,CEY,CEZ,IERR)
+           CEBND(NBND)=AMPWG*CEZ
+        ELSE
+           CEBND(NBND)=(0.D0,0.D0)
+        END IF
+     END SELECT
+     END DO
   RETURN
 END SUBROUTINE SETEWG
 
@@ -640,7 +668,7 @@ SUBROUTINE MODANT(IERR)
         RJ(N,NA)=RC
         ZJ(N,NA)=ZC
         JELMT(N,NA)=NE
-        IF(IDEBUG.NE.0) THEN
+        IF(IDEBUG.EQ.2) THEN
            if(nrank.eq.0) WRITE(6,'(A,3I8,1P3E12.4)') 'NA,N,NE,R,Z=' ,&
                 &NA,N,NE,RJ(N,NA),ZJ(N,NA)
         ENDIF
@@ -652,7 +680,7 @@ SUBROUTINE MODANT(IERR)
         RJ(N,NA)=RJ0(1,NA)
         ZJ(N,NA)=ZJ0(1,NA)
         JELMT(N,NA)=NE
-        IF(IDEBUG.NE.0) THEN
+        IF(IDEBUG.EQ.2) THEN
            if(nrank.eq.0) WRITE(6,'(A,3I8,1P3E12.4)') 'NA,N,NE,R,Z=',&
                 &NA,N,NE,RJ(N,NA),ZJ(N,NA)
         ENDIF
@@ -682,7 +710,7 @@ SUBROUTINE MODANT(IERR)
         RJ(N,NA)=RC
         ZJ(N,NA)=ZC
         JELMT(N,NA)=NE
-        IF(IDEBUG.NE.0) THEN
+        IF(IDEBUG.EQ.2) THEN
            if(nrank.eq.0) WRITE(6,'(A,3I8,1P3E12.4)') 'NA,N,NE,R,Z=',&
                 &NA,N,NE,RJ(N,NA),ZJ(N,NA)
         ENDIF
@@ -704,7 +732,7 @@ SUBROUTINE MODANT(IERR)
         ZJ(N,NA)=ZJ0(ID,NA)
         JELMT(N,NA)=NE
         LS=0
-        IF(IDEBUG.NE.0) THEN
+        IF(IDEBUG.EQ.2) THEN
            if(nrank.eq.0) WRITE(6,'(A,3I8,1P3E12.4)') 'NA,N,NE,R,Z=',&
                 & NA,N,NE,RJ(N,NA),ZJ(N,NA)
         ENDIF

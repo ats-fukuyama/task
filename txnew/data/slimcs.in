@@ -1,0 +1,26 @@
+*** We use two files in this simulation: slim.dat, slimcs_init.***
+*** First, remove "!pedestal" comment in txcalv.f. ***
+$ tx
+l
+slimcs_init
+f
+slim.dat
+2
+2
+1
+2
+5
+1
+3
+chie0=0.33 chii0=0.33 rmue0=0.33 rmui0=0.33 ntmax=90 ngrstp=9
+c
+ntmax=900 ngrstp=90
+c
+ntmax=1000 ngrstp=100
+c
+c
+c
+g
+slim
+x
+q

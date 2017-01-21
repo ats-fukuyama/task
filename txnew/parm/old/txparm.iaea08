@@ -1,0 +1,24 @@
+ &tx
+     RA=0.8,RB=0.88,RR=3.2
+     BB=2.68,rIPs=1.0,rIPe=1.0
+     PTe0=2.0,PTea=0.1,PTeDIV=0.05
+     PTi0=2.0,PTia=0.1,PTiDIV=0.05
+     Pn0=0.2,Pna=0.04,PNeDIV=0.01
+     De0=0.017,Di0=0.0
+     Chie0=0.38,Chii0=0.38
+     rMue0=0.38,rMui0=0.38
+     FSDFIX=1.0,FSCDBM=0.0
+     FSBOHM=1.0,PROFD=3.0,PROFC=20.0,FSPCLD=0.0
+     PNBHT1=0.0,RNBT1=0.35,RNBT10=0.15,PNBHT2=0.0,RNBT2=0.25,RNBT20=0.65
+     PNBHP=0.0,RNBP=0.2,RNBP0=0.5,PNBCD=1.0,Eb=82.0
+     PA=2.0, Zeff=2.0, rGASPF=0.2, rGamm0=0.8, V0=16954.0
+     ntmax=50,ngrstp=5,ngtstp=2,ntstep=50,ngvstp=2
+     NRMAX=60,CMESH=10,WMESH=0.05
+     RG1=10.0,icmax=10,modeav=0,idiag=0
+     DT=1.D-3,MODEG=2,eps=1.D-3,MODEGL=1
+     MDLPCK=1, FSNC=1.0, FSLC=0.0, FSRP=0.0, DltRPn=0.000002, kappa=1.15
+     MDLNBD=1, PNBMPD=1
+     MDLWTB=0, WPE0=0.0, WPI0=0.0
+     FSLP=0.3, FSLTE=1.0, FSLTI=1.0
+     PRFHi=0.0,RRFi0=0.2,RRFiw=0.5
+ &end

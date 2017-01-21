@@ -13,11 +13,11 @@
            NROMAX, NSM, NSMAX, PBCL, PBIN, PCX, PELTIM, PEX, PFCL, PFIN, &
            PI, PIE, PIN, PN, PNB, PNF, POH, PRB, PRC, PRF, PRFV, PRL, PRSUM, &
            Q0, QP, RDP, RG, RHOA, RR, SCX, SEX, SIE, SNB, SNF, SPE, SSIN, &
-           T, TAUF, TTRHOG, RDPVRHOG
+           T, TAUF, TTRHOG, RDPVRHOG, SPSC
       USE tr_cytran_mod
       IMPLICIT NONE
       INTEGER(4),INTENT(OUT)    :: IERR
-      INTEGER(4)                :: NR
+      INTEGER(4)                :: NR,NS
       REAL(8)                   :: FCTR
 
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
@@ -43,6 +43,7 @@
       AJRFV(1:NRMAX,3)=0.D0
       AJRF(1:NRMAX)=0.D0
       AJBS(1:NRMAX)=0.D0
+      SPSC(1:NRMAX,1:NSMAX)=0.D0
       SPE(1:NRMAX,1:NSMAX)=0.D0
       PBCL(1:NRMAX,1:NSMAX)=0.D0
       PFCL(1:NRMAX,1:NSMAX)=0.D0
@@ -67,6 +68,7 @@
       CALL TRERAD
 
       IF(T.LT.PELTIM+0.5D0*DT.AND. T.GE.PELTIM-0.5D0*DT) CALL TRPELT
+      CALL TRPSC
       CALL TRZEFF
       IF(MDLPR.GT.0) CALL TR_CYTRAN
 
@@ -112,19 +114,42 @@
 
       DO NR=1,NRMAX
          IF(MDLEQ0.EQ.0) THEN
-            SSIN(NR,1)=SIE(NR)                            +SNB(NR)+SEX(NR,1)
-            SSIN(NR,2)=PN(2)*SIE(NR)/(PN(2)+PN(3))-SNF(NR)+SNB(NR)+SEX(NR,2)
-            SSIN(NR,3)=PN(3)*SIE(NR)/(PN(2)+PN(3))-SNF(NR)        +SEX(NR,3)
-            SSIN(NR,4)=                            SNF(NR)        +SEX(NR,4)
-            SSIN(NR,7)=-SIE(NR)                                   -SCX(NR)
-            SSIN(NR,8)=                                    SNB(NR)+SCX(NR)
+            DO NS=1,NSMAX
+               SELECT CASE(NS)
+               CASE(1)
+                  SSIN(NR,1)= SIE(NR) &
+                                     +SNB(NR)+SEX(NR,1)+SPSC(NR,1)
+               CASE(2)
+                  SSIN(NR,2)= PN(2)*SIE(NR)/(PN(2)+PN(3)) &
+                             -SNF(NR)+SNB(NR)+SEX(NR,2)+SPSC(NR,2)
+               CASE(3)
+                  SSIN(NR,3)= PN(3)*SIE(NR)/(PN(2)+PN(3)) &
+                             -SNF(NR)        +SEX(NR,3)+SPSC(NR,3)
+               CASE(4)
+                  SSIN(NR,4)= SNF(NR)        +SEX(NR,4)+SPSC(NR,4)
+               CASE(7)
+                  SSIN(NR,7)=-SIE(NR)        -SCX(NR)
+               CASE(8)
+                  SSIN(NR,8)=         SNB(NR)+SCX(NR)
+               END SELECT
+            END DO
          ELSEIF(MDLEQ0.EQ.1) THEN
-            SSIN(NR,1)=                                    SNB(NR)+SEX(NR,1)
-            SSIN(NR,2)=                           -SNF(NR)+SNB(NR)+SEX(NR,2)
-            SSIN(NR,3)=                           -SNF(NR)        +SEX(NR,3)
-            SSIN(NR,4)=                            SNF(NR)        +SEX(NR,4)
-            SSIN(NR,7)=0.D0
-            SSIN(NR,8)=                                    SNB(NR)
+            DO NS=1,NSMAX
+               SELECT CASE(NS)
+               CASE(1)
+                  SSIN(NR,1)=         SNB(NR)+SEX(NR,1)+SPSC(NR,1)
+               CASE(2)
+                  SSIN(NR,2)=-SNF(NR)+SNB(NR)+SEX(NR,2)+SPSC(NR,2)
+               CASE(3)
+                  SSIN(NR,3)=-SNF(NR)        +SEX(NR,3)+SPSC(NR,3)
+               CASE(4)
+                  SSIN(NR,4)= SNF(NR)        +SEX(NR,4)+SPSC(NR,4)
+               CASE(7)
+                  SSIN(NR,7)=0.D0
+               CASE(8)
+                  SSIN(NR,8)=         SNB(NR)
+               END SELECT
+            END DO
          ENDIF
          PIN(NR,1)=PBCL(NR,1)+PFCL(NR,1)+PRF(NR,1) &
               &   +POH(NR)-PRSUM(NR)-PIE(NR)+PEX(NR,1)

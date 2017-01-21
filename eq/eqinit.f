@@ -34,6 +34,7 @@ C
       PROFJ = 2.D0
 C
       FRBIN = 1.D0
+      RBRA  = RB/RA
 C
 C     ======( PLASMA PARAMETERS )======
 C
@@ -263,10 +264,10 @@ C
       PT1    = 0.0D0
       PT2    = 0.0D0
       PTSEQ  = 0.05D0
-C---- conflict with PROFT? in pl -----
-C      PROFT0 = 1.5D0
-C      PROFT1 = 1.5D0
-C      PROFT2 = 2.0D0
+C
+      PROFT0 = 1.5D0
+      PROFT1 = 1.5D0
+      PROFT2 = 2.0D0
 C----
 C        PV0   : Toroidal rotation (main component)              (m/s)
 C        PV1   : Toroidal rotation (sub component)               (m/s)
@@ -494,6 +495,7 @@ C
      &              PSIB,NPFCMAX,RIPFC,RPFC,ZPFC,WPFC,FRBIN
 C
       READ(NID,EQ,IOSTAT=IST,ERR=9800,END=9900)
+      RBRA=RB/RA
       IERR=0
       RETURN
 C
