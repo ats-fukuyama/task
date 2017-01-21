@@ -192,9 +192,9 @@ CONTAINS
        A%ASPECT=GUCLIP(ASPECT)
        IF(A%ASPECT /= 0.0) THEN
           IF(A%ASPECT >= 1.0) THEN
-             A%GPXMAX=A%GPXMIN+(A%GPYMAX-A%GPYMIN)*A%ASPECT
+             A%GPXMAX=A%GPXMIN+(A%GPYMAX-A%GPYMIN)/A%ASPECT
           ELSE
-             A%GPYMAX=A%GPYMIN+(A%GPXMAX-A%GPXMIN)/A%ASPECT
+             A%GPYMAX=A%GPYMIN+(A%GPXMAX-A%GPXMIN)*A%ASPECT
           END IF
        END IF
     ELSE
@@ -448,7 +448,7 @@ CONTAINS
        IF(PRESENT(LINE_PAT)) THEN
           NLL=SIZE(LINE_PAT,DIM=1)
           DO NL=1,A%NLMAX
-             A%LINE_PAT(1:NL)=LINE_PAT(MOD(NL-1,NLL)+1)
+             A%LINE_PAT(NL)=LINE_PAT(MOD(NL-1,NLL)+1)
           END DO
        ELSE
           DO NL=1,A%NLMAX
@@ -621,7 +621,7 @@ CONTAINS
        IF(PRESENT(LINE_PAT)) THEN
           NLL=SIZE(LINE_PAT,DIM=1)
           DO NL=1,A%NLMAX
-             A%LINE_PAT(1:NL)=LINE_PAT(MOD(NL-1,NLL)+1)
+             A%LINE_PAT(NL)=LINE_PAT(MOD(NL-1,NLL)+1)
           END DO
        ELSE
           IF(A%FMIN < 0.0 .AND. A%FMAX > 0.0) THEN

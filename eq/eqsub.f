@@ -261,7 +261,7 @@ C
       EXTERNAL PSIGD
 C
       DELT=1.D-8
-      EPS=1.D-4
+      EPS=1.D-6
       ILMAX=40
       LIST=0
       RINIT=RXPNT2

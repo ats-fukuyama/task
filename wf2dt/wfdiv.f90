@@ -43,9 +43,13 @@ subroutine WFDIV
                                             BDRMIN,BDRMAX,BDZMIN,BDZMAX
            write(6,'(A)')        '## INPUT: BDRMIN,BDRMAX,BDZMIN,BDZMAX ? '
            read(5,*,ERR=3,END=2)            BDRMIN,BDRMAX,BDZMIN,BDZMAX
+           write(6,'(A,4F10.4)') '## DIV:   BDRMIN,BDRMAX,BDZMIN,BDZMAX = ',&
+                                            BDRMIN,BDRMAX,BDZMIN,BDZMAX
 4          write(6,'(A,2F10.4)') '## DIV:   DELR,DELZ = ',DELR,DELZ
            write(6,'(A)')        '## INPUT: DELR,DELZ ? '
            read(5,*,ERR=4,END=2) DELR,DELZ
+           write(6,'(A,2F10.4)') '## DIV:   DELR,DELZ = ',DELR,DELZ
+           write(6,'(A)')        '## INPUT: DELR,DELZ ? '
            if(abs(DELR).le.1.d-6.or.abs(DELZ).le.1.d-6) goto 2
            iddiv=1
            r_corner(1)=BDRMIN

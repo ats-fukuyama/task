@@ -61,7 +61,6 @@ C
       MODELG=MODELG1
       KNAMEQ=KNAMEQ1
       CALL EQREAD(IERR)
-      CALL EQCALQ(IERR)
       CALL eq_bpsd_set(ierr)
       RETURN
       END
@@ -77,6 +76,7 @@ C
          CALL EQRTSK(IERR)
       ELSEIF(MODELG.EQ.5) THEN
          CALL EQDSKR(IERR)
+         CALL EQCALQ(IERR)
       ELSEIF(MODELG.EQ.8) THEN
          CALL EQJAEAR(IERR)
       ELSEIF(MODELG.EQ.15) THEN

@@ -1,4 +1,3 @@
-% $Id$
 \let\dsp=\displaystyle
 \let\para=\parallel
 
@@ -13,8 +12,8 @@
 \newcommand{\vave}[1]{\left\langle #1 \right\rangle}
 \renewcommand{\vec}[1]{\leavevmode\hbox{\boldmath$#1$}}
 \newcommand{\svec}[1]{\leavevmode\hbox{\boldmath$\scriptstyle#1$}}
-\newcommand{\tensor}[1]{\mathord{\displaystyle\mathop#1^\leftrightarrow}}
-%\newcommand{\tensor}[1]{\mathord{\mathop{\kern0pt #1}\limits^{\smash{\lower0.4ex \hbox{$\leftrightarrow$}}}}}
+%\newcommand{\tensor}[1]{\mathord{\displaystyle\mathop#1^\leftrightarrow}}
+\newcommand{\tensor}[1]{\mathord{\mathop{\kern0pt #1}\limits^{\smash{\lower0.4ex \hbox{$\leftrightarrow$}}}}}
 
 \newcommand{\rd}{\r{d}}
 \newcommand{\exe}{\,\r{e}\,}
@@ -46,9 +45,13 @@
 
 \newcommand{\re}{\r{e}}
 \newcommand{\ri}{\r{i}}
+\newcommand{\rs}{\r{s}}
+\newcommand{\rb}{\r{b}}
 \newcommand{\me}{m_\r{e}}
 \newcommand{\mi}{m_\r{i}}
+\newcommand{\mb}{m_\r{b}}
 \newcommand{\ms}{m_s}
+\newcommand{\es}{e_s}
 \newcommand{\nne}{n_\r{e}}
 \newcommand{\nni}{n_\r{i}}
 \newcommand{\nns}{n_s}
@@ -56,12 +59,16 @@
 \newcommand{\Te}{T_\r{e}}
 \newcommand{\Ti}{T_\r{i}}
 \newcommand{\Ts}{T_s}
+\newcommand{\Zi}{Z_\r{i}}
+\newcommand{\ppe}{p_\r{e}}
+\newcommand{\ppi}{p_\r{i}}
+\newcommand{\pps}{p_s}
 \newcommand{\vte}{v_\r{Te}}
 \newcommand{\vti}{v_\r{Ti}}
-\newcommand{\vts}{v_{\r{T}s}
+\newcommand{\vts}{v_{\r{T}s}}
 \newcommand{\mue}{\mu_\r{e}}
 \newcommand{\mui}{\mu_\r{i}}
-\newcommand{\mus}{\mu_s}}
+\newcommand{\mus}{\mu_s}
 \newcommand{\rhoe}{\rho_\r{e}}
 \newcommand{\rhoi}{\rho_\r{i}}
 \newcommand{\rhos}{\rho_s}
@@ -79,9 +86,6 @@
 \newcommand{\vE}{\vec{E}}
 \newcommand{\vF}{\vec{F}}
 \newcommand{\vS}{\vec{S}}
-\newcommand{\va}{\vec{a}}
-\newcommand{\vb}{\vec{b}}
-\newcommand{\ve}{\vec{e}}
 \newcommand{\vj}{\vec{j}}
 \newcommand{\vk}{\vec{k}}
 \newcommand{\vnabla}{\vec{\nabla}}
@@ -89,9 +93,69 @@
 \newcommand{\vr}{\vec{r}}
 \newcommand{\vu}{\vec{u}}
 \newcommand{\vv}{\vec{v}}
+\newcommand{\ve}{\vec{e}}
+\newcommand{\vb}{\vec{b}}
 \newcommand{\vxi}{\vec{\xi}}
+\newcommand{\vus}{\vec{u}_s}
 
-\newcommand{\ddr}{\frac{\partial}{\partial r}}
-\newcommand{\ddt}{\frac{\partial}{\partial t}}
-\newcommand{\ddrX}[1]{\frac{\partial #1}{\partial r}}
-\newcommand{\ddtX}[1]{\frac{\partial #1}{\partial t}}
+\newcommand{\chis}{\chi_s}
+\newcommand{\Ss}{S_s}
+\newcommand{\usr}{u_{sr}}
+\newcommand{\ustheta}{u_{s\theta}}
+\newcommand{\usphi}{u_{s\phi}}
+\newcommand{\uer}{u_{\r{e}r}}
+\newcommand{\uetheta}{u_\r{e\theta}}
+\newcommand{\uephi}{u_\r{e\phi}}
+\newcommand{\uir}{u_\r{ir}}
+\newcommand{\uitheta}{u_\r{i\theta}}
+\newcommand{\uiphi}{u_\r{i\phi}}
+\newcommand{\ubtheta}{u_\r{b\theta}}
+\newcommand{\ubphi}{u_\r{b\phi}}
+
+\newcommand{\Er}{E_r}
+\newcommand{\Etheta}{E_{\theta}}
+\newcommand{\Ephi}{E_{\phi}}
+\newcommand{\Btheta}{B_{\theta}}
+\newcommand{\Bphi}{B_{\phi}}
+
+\newcommand{\pdd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\pddr}{\frac{\partial}{\partial r}}
+\newcommand{\pddt}{\frac{\partial}{\partial t}}
+\newcommand{\pddv}{\frac{\partial}{\partial v}}
+\newcommand{\pddx}{\frac{\partial}{\partial x}}
+\newcommand{\pddrX}[1]{\frac{\partial #1}{\partial r}}
+\newcommand{\pddtX}[1]{\frac{\partial #1}{\partial t}}
+\newcommand{\pddvX}[1]{\frac{\partial #1}{\partial v}}
+\newcommand{\pddxX}[1]{\frac{\partial #1}{\partial x}}
+\newcommand{\odd}[2]{\frac{\rd #1}{\rd #2}}
+\newcommand{\oddr}{\frac{\rd}{\rd r}}
+\newcommand{\oddt}{\frac{\rd}{\rd t}}
+\newcommand{\oddv}{\frac{\rd}{\rd v}}
+\newcommand{\oddx}{\frac{\rd}{\rd x}}
+\newcommand{\oddrX}[1]{\frac{\rd #1}{\rd r}}
+\newcommand{\oddtX}[1]{\frac{\rd #1}{\rd t}}
+\newcommand{\oddvX}[1]{\frac{\rd #1}{\rd v}}
+\newcommand{\oddxX}[1]{\frac{\rd #1}{\rd x}}
+\newcommand{\odds}[2]{\left(\frac{\rd #1}{\rd #2}\right)_s}
+
+\newcommand{\fs}{f_s}
+\newcommand{\FMs}{F_{\r{M}s}}
+\renewcommand{\es}{e_s}
+\newcommand{\hs}{h_s}
+\newcommand{\omegans}{\omega_{*s}}
+\newcommand{\omegaTs}{\omega_{\r{T}s}}
+\newcommand{\omegads}{\omega_{\r{d}s}}
+\newcommand{\nuL}{\nu_\r{L}}
+
+\newcommand{\vTs}{v_\r{Ts}}
+\newcommand{\FithW}{F_{\r{i}\theta}^\r{W}}
+\newcommand{\FethW}{F_{\r{e}\theta}^\r{W}}
+\newcommand{\FiphW}{F_{\r{i}\phi}^\r{W}}
+\newcommand{\FephW}{F_{\r{e}\phi}^\r{W}}
+\newcommand{\Bph}{B_{\phi}}
+\newcommand{\Bth}{B_{\theta}}
+\newcommand{\De}{D_\r{e}}
+\newcommand{\ueth}{u_\r{e\theta}}
+\newcommand{\ueph}{u_\r{e\phi}}
+\newcommand{\lave}[1]{\left\langle#1\right\rangle}
+\newcommand{\vJ}{\vec{J}}

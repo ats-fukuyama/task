@@ -1,0 +1,184 @@
+\begin{flushright}
+2016-12-25
+\end{flushright}
+\begin{center}\LARGE\bf
+Users' guide for 2D full wave code TASK/WF2
+\end{center}
+
+\tableofcontents
+
+\begin{center}
+\hrule
+\end{center}
+
+\section{Structure}
+
+\subsection{Source program}
+\[
+\begin{tabular}{lll}
+\hline
+Header
+& common variables & wfcomm.inc \\
+\hline
+Function
+& global control & wfmain.f \\
+& element data generation & wfdiv.f \\
+& zone data generation & wfzone.f \\
+& antenna data generation & wfant.f \\
+& wave analysis & wfwave.f \\
+& transport analysis & wfevol.f \\
+& graphics & wfgout.f \\
+& dispersion relation & wffreq.f \\
+\hline
+Library
+& profile setting & wfprof.f \\
+& file I/O & wffile.f \\
+& common subroutines & wfsub.f \\
+& graphic subroutines & wfgsub.f \\
+& common library & wflib.f \\
+\hline
+\end{tabular}
+\]
+\begin{itemize}
+\item
+wfsub.f and wfgsub.f depends on wfcomm.inc.
+\item
+wflib.f is independent of wfcomm.inc.
+\end{itemize}
+
+\subsection{Execution procedure}
+
+\[
+\begin{tabular}{l@{\ }lp{110mm}}
+1. & Element definition & Define node points in computation area and
+generate triangular elements.
+
+\\
+2. & Zone definition & Define plasma, dielectric, and vacuum zones and
+boundary attributes, 
+\\
+3. & Antenna definition & Define antenna shape and position.
+\\
+4. & Wave analysis & Calculate wave field excited by antenna and
+absorbed power density.
+\\
+5. & Transport analysis & Calculate time evolution of density and
+temperature of electrons and ions,
+\\
+6. & Graphic display & Indicate spatial profiles and time evolution,
+\end{tabular}
+\]
+\begin{itemize}
+\item
+For simulation of plasma production by waves, steps 4 and 5 should be
+repeated to analyze time evoluton.
+\item
+For simulation of plasma production without waves, step 5 should be
+repeated to analyze time evoluton.
+\item
+Defined element data, zone data, and antenna data can be saved in
+files and loaded for new and continuation simulations.
+\item
+Calculated spatial profiles will be saved in a file and loaded for
+continuation simulations (not yet implemented). 
+\end{itemize}
+
+\subsection{How to install}
+
+\begin{itemize}
+\item
+Download gsaf, and task. 
+\item
+Install gsaf library.
+\item
+cd to task directory
+\item
+Copy make.header.org to make.header
+\item
+Edit make.header for you computational environment.
+\item
+\verb/make/
+\end{itemize}
+
+
+
+
+
+
+\subsection{Coordinates}
+
+\begin{itemize}
+\item
+Cartesian coordinates (\verb/MODELS=0/)
+\\\qquad horizontal: $x$, vertical: $y$, near side: $z$
+\item
+Cylindrical coordinates (\verb/MODELS=1/)
+\\\qquad horizontal: $R$, vertical: $Z$, near side: $\theta$
+\item
+Toroidal coordinates: (\verb/MODELS=2/)
+\\\qquad horizontal: $R-R_0$, vertical: $Z$, near side: $\theta$
+\end{itemize}
+
+
+\newpage
+
+\subsection{Compile parameter}
+
+\begin{itemize}
+\item
+The size of arrays are defined in \verb/wfcomm.inc/ as \verb/paremter/
+sentences.  If the file is modified, all depending files will be
+recompiled ed by \verb/make/.
+
+\[
+\begin{tabular}{lrl}
+Variables & Default values & Explanation \\
+\hline
+NAM & 8 & maximum number of antenna \\
+NFM & 2 & maximum number of particle species in TR \\
+NSM & 3 & maximum number of particle species in WF \\
+NXM & 200 & maximum number of division in X direction \\
+NYM & 200 & maximum number of division in Y direction \\
+JNUMM & 800 & maximum number of antenna elements \\
+NBDYM & 500 & maximum number of boundary nodes \\
+NNODM & 2200 & maximum number of nodes \\
+NELMM & 4000 & maximum number of elements \\
+MBNDM & 400 & maximum number of width of the band matrix \\
+MLENM & 12000 & maximum number of length of the band maxrix \\
+NCNM & 36 & \\
+NRM & 101 & maximum number of radial division for absorbed power density \\
+NDM & 20 & maximum number of element attribute data \\
+NBM & 50 & maximum number of boundary attribute data \\
+NMM & 8 & maximum number of dielectric attribute data \\
+NVM & 2 & maximum number of electric potential data \\
+NGTM & 1001 & maximum number of time evolution data \\
+NZLM & 5 & log\_2 of maximum number of fourier modes in Z direction \\
+NWDM & 12 & maximum number of graphs on a page \\
+NCHM & 10 & maximum character number of a graph attribute variable \\
+NCM & 3 & maximum number of static magnetic field coil \\
+\hline
+\end{tabular}
+\]
+
+\item
+Parameters defined in a specific file
+
+\[
+\begin{tabular}{llrl}
+File name & Variables & Default values & Explanation \\
+\hline
+wfdiv.f  & NXQM & 11 & maximum number of horizontal number of rectangulars \\
+wfdiv.f  & NYQM & 11 & maximum number of vertical number of rectangulars \\
+wffreq.f & NNXM & 201 & maximum number of horizontal division in
+1D plot \\
+wfgsub.f & NGXM & 101 & maximum number of horizontal division in
+contour plots \\
+wfgsub.f & NGYM & 101 & maximum number of vertical division in contour
+plots \\
+wfgsub.f & NSTEPM & 101 & maximum number of contours in contour plots \\
+libspl.f & NMAX & 1001 & maximum number of data for spline interpolation \\
+\hline
+\end{tabular}
+\]
+\end{itemize}
+

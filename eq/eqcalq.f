@@ -149,7 +149,6 @@ C
 C
 C     ----- SET DR, DTH -----
 C
-      write(6,'(A,1p4E12.4)') 'RB,RA,REDGE,RAXIS=',RB,RA,REDGE,RAXIS
       IF(NSUMAX.EQ.0.OR.RA-RB.EQ.0.D0.OR.RR+RB-REDGE.EQ.0.D0) THEN
          NRPMAX=NRMAX
       ELSE
@@ -186,8 +185,8 @@ C
          PPS(NR)=PPFUNC(PSIP(NR))
          TTS(NR)=TTFUNC(PSIP(NR))
 C
-C         WRITE(6,'(A,I5,1P5E12.4)') 'NR:',NR,
-C     &        PSIP(NR),PPS(NR),TTS(NR),RINIT,ZINIT
+!         WRITE(6,'(A,I5,1P5E12.4)') 'NR:',NR,
+!     &        PSIP(NR),PPS(NR),TTS(NR),RINIT,ZINIT
 C
          CALL EQMAGS(RINIT,ZINIT,NTVMAX,XA,YA,NA,IERR)
 C
@@ -550,9 +549,11 @@ C     &           'NR,PSIP,PSIT,QPS=',NR,PSIP(NR),PSIT(NR),QPS(NR)
       DR_OUT=(RR+RB-REDGE)/(NRMAX-NRPMAX)
       DR_IN =FRBIN*(RR+RB-REDGE)/(NRMAX-NRPMAX)
       DTH=2.d0*PI/NTHMAX
-C            write(6,'(A,1P5E12.4)') 
-C     &           'DR_IN,DR_OUT,RR,RB,REDGE=',
-C     &            DR_IN,DR_OUT,RR,RB,REDGE
+
+            write(6,'(A,1P5E12.4)') 
+     &           'DR_IN,DR_OUT,RR,RB,REDGE=',
+     &            DR_IN,DR_OUT,RR,RB,REDGE
+
       IF(MDLEQF.LT.10) THEN
          DO NR=NRPMAX+1,NRMAX
             RL_OUT=REDGE+DR_OUT*(NR-NRPMAX)

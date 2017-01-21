@@ -144,7 +144,7 @@
          RFP(NR)=0.D0
       END DO
       DO NR=NRSTART,NREND
-         RFPL(NR)=0.D0
+         RFP_local(NR)=0.D0
       END DO
 
       IF(MODEL_BS.ge.1)THEN
@@ -840,7 +840,7 @@
             IF(NSA.eq.1) THEN ! time integration
                FACT=RNFP0(NSA)*1.D20/RFSADG(NR)
                RSUM1=RNS(NR,1)/FACT*1.D20
-               RFPL(NR)=2.D0*PI*DELTH* FLUXS_PMAX / RSUM1
+               RFP_local(NR)=2.D0*PI*DELTH* FLUXS_PMAX / RSUM1
                
                DO NTH=1,NTHMAX
                   RE_PITCH(NTH)=RE_PITCH(NTH)+ &
@@ -851,9 +851,9 @@
          END DO
       END DO
       CALL mtx_set_communicator(comm_nsa) 
-      CALL mtx_broadcast_real8(RFPL,NREND-NRSTART+1)
+      CALL mtx_broadcast_real8(RFP_local,NREND-NRSTART+1)
       CALL mtx_set_communicator(comm_nr)
-      call mtx_allgather_real8(RFPL,NREND-NRSTART+1,RFP)
+      call mtx_allgather_real8(RFP_local,NREND-NRSTART+1,RFP)
          
       IF(ISW_Z.eq.0)THEN
          z_i = Z_ef 

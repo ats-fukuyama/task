@@ -676,7 +676,7 @@ module fpcomm
 !          deallocate(DCPP2B,DCPT2B,FCPP2B)
 
           deallocate(RN_IMPL,RT_IMPL)
-          deallocate(RNSL,RJSL,RWSL,RWS123L,RFPL,RJSRL)
+          deallocate(RNSL,RJSL,RWSL,RWS123L,RFP_local,RJSRL)
           deallocate(RSPBL,RSPFL,RSPSL,RSPLL,RPCSL,RPESL)
           deallocate(RLHSL,RFWSL,RECSL,RICSL,RPCS2L)
           deallocate(RDIDT, RDIDTL)

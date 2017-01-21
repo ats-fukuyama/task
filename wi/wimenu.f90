@@ -72,7 +72,7 @@ CONTAINS
        INIT=1
     ELSEIF(kid.EQ.'S') THEN
        CALL wi_prep
-       rk0l=beta/alfa
+       rk0l=1.D0/alfa
        write(6,'(A,1P4E12.4)')     '## alfa,beta,pn0,rk0l      =', &
                                        alfa,beta,pn0,any
        write(6,'(A,1PE12.4,3I12)') '## xmax,nxmax,nwmax,modelp =', &

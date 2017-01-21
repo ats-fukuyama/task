@@ -1105,6 +1105,7 @@ CONTAINS
       SUBROUTINE wmfem_dielectric(rho,th,ph,mm,nn,ns,fml)
 
       use wmfem_comm
+      use pllocal
       IMPLICIT NONE
       REAL(8),INTENT(IN):: rho,th,ph
       INTEGER,INTENT(IN):: mm,nn,ns
@@ -1127,7 +1128,8 @@ CONTAINS
 !$$$     &    write(6,'(a,2i5,1p5e12.4)') 'm,n,kpara:',
 !$$$     &         mm,nn,dble(ckpara),rho,babs,bsupth,bsupph
 
-      CALL dpcalc(cw,ckpara,ckperp,rho,babs,ns,fml)
+      CALL PL_PROF_OLD(RHO)
+      CALL dpcalc(cw,ckpara,ckperp,ns,fml)
 
       RETURN
 

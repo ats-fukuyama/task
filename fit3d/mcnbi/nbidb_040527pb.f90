@@ -2448,12 +2448,14 @@ MODULE mcnbi_all
 !======================================================================c
 
   USE mcnmod, ONLY : ntest
+  USE libspf
   IMPLICIT NONE
-  EXTERNAL derf
+!  EXTERNAL derf
   REAL(8),INTENT(IN) :: x(ntest)
   REAL(8),INTENT(OUT):: fx(ntest), fx1(ntest), fx2(ntest), gx(ntest)
   INTEGER(4):: ip
-  REAL(8):: f(ntest),derf
+!  REAL(8):: f(ntest),derf
+  REAL(8):: f(ntest)
   REAL(8):: cpi=3.141592653589793d0
 !      DATA RH / 0.70710678118654752440D+00/
 !      data cpi/3.141592653589793d0/

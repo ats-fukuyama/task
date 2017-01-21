@@ -1,0 +1,43 @@
+\section{Execution contraol ({\tt wfmain})}
+\begin{enumerate}
+\item
+Function
+\begin{itemize}
+\item
+Command input
+
+\qquad
+\begin{tabular}{ll}
+P:& parameter input \\
+V:& view parameter \\
+D:& division of elements \\
+Z:& zone data creation \\
+A:& antenna data creation \\
+W:& wave analysis \\
+T:& tranport analysis \\
+R:& run wave-transport coupled analysis \\
+C:& continue wave-transport analysis \\
+G:& graphic output \\
+S:& save data in a file \\
+L:& load data from a file \\
+B:& characteristic frequencies vs density \\
+Q:& quit
+\end{tabular}
+\item
+Parameter input in a {\tt namelist} format
+\\\qquad \verb/BB=1.2d0/
+\\\qquad If variable name is not diefined in {\tt namelist},
+\\\qquad a list of variables defined in {\tt namelist} is shown.
+\end{itemize}
+
+\item
+Order of parameter setup
+\begin{itemize}
+\item
+Initialization in {\tt WFINIT}
+\item
+Input from a namelist file {\tt wfparm}
+\item
+Input in a command line
+\end{itemize}
+\end{enumerate}

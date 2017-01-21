@@ -172,11 +172,7 @@ C
       COMMON /W1XDAT/ XA(NXQ),XAM(NXTM)
       COMMON /W1CDDT/ AJCDX(NXPM),AJCDK(NZPM),AJCDT,ZEFF,WVYSIZ,NCDTYP
 C
-C      COMMON /UNDFLC/ IUNFL8,IUNFL4
-C
 C     ************************************************************
-C
-      DATA IGRAPH/0/
 C
       NAMELIST /W1/ BB,RR,RZ,RA,RD,RB,RF,WALLR,APRFPN,APRFTR,APRFTP,
      &              RKZ,DRF,DRKZ,DXFACT,DXWDTH,
@@ -193,6 +189,9 @@ C      ON REAL*4 UNDERFLOW CALL UNDFL4
 C      IUNFL8=0
 C      IUNFL4=0
 C     CALL FPARAM(1,136)
+
+      CALL GSOPEN
+
       WRITE(6,600)
       WRITE(6,601) 'TASK/W1 --- V2.12 : 94/01/12',
      &             NXPM,NXVM,NZPM,ISM,IAM,MATLM,NHARMM,NDM
@@ -203,8 +202,8 @@ C
 C
 C     ******* PARAMETER INPUT *******
 C
-      OPEN(15,FILE='w1parm',STATUS='old',FORM='formatted',ERR=1)
-      READ(15,W1,ERR=1,END=1)
+      OPEN(7,FILE='w1parm',STATUS='old',FORM='formatted',ERR=1)
+      READ(7,W1,ERR=1,END=1)
       WRITE(6,*) '## &W1 UPDATED BY w1data'
 C
     1 WRITE( 6,602)
@@ -254,13 +253,13 @@ C
       IF(NDISP.EQ.1) THEN
          XMIN=-RA
          XMAX= RA
-         IF(NGRAPH.GT.0) THEN
-            IF(IGRAPH.EQ.0) CALL GSOPEN
-            IGRAPH=1
-         ENDIF
+
   100    WRITE(6,*) '## INPUT : XMIN,XMAX,KXMIN,KXMAX,NXP ?'
-         READ(5,*,ERR=100,END=2) XMIN,XMAX,PKXMIN,PKXMAX,NXP
+         NXP1=NXP
+         READ(5,*,ERR=100,END=2) XMIN,XMAX,PKXMIN,PKXMAX,NXP1
          IF(ABS(XMAX-XMIN).LE.1.D-32) GOTO 2
+         IF(NXP1.EQ.0) GO TO 2
+         NXP=NXP1
          DO 110 NX=1,NXP
             XAM(NX)=XMIN+(XMAX-XMIN)*(NX-0.5)/NXP
   110    CONTINUE
@@ -365,7 +364,6 @@ C
          CALL W1PRNT(NPRINT)
          CALL W1FILE(NFILE)
          IF(NGRAPH.GT.0) THEN
-            IF(IGRAPH.EQ.0) CALL GSOPEN
             IF(NZP.EQ.1) THEN
                CALL W1GR1D(MOD(NGRAPH,   4))
                CALL W1GR1B(MOD(NGRAPH/4, 2))
@@ -377,7 +375,6 @@ C
                CALL W1GR2D(MOD(NGRAPH,   4))
                CALL W1GR1D(MOD(NGRAPH,   4))
             ENDIF
-            IGRAPH=1
          ENDIF
          IF(NLOOP.NE.1) THEN
             RF   = RF   + DRF
@@ -393,8 +390,7 @@ C
       GOTO 2
 C
  9000 CONTINUE
-      IF(IGRAPH.NE.0) CALL GSCLOS
-C      WRITE(6,*) 'UNDERFLOW COUNT (4,8) = ',IUNFL4,IUNFL8
+      CALL GSCLOS
       STOP
 C
   600 FORMAT(1H1)
@@ -443,25 +439,10 @@ C
   614 FORMAT(1H ,    28X,'PNS(E20/M3) PTS(KEV)    PZCL    IHARM',
      &                   '   IELEC')
   615 FORMAT(1H ,26X,1P3D12.4,I3,5X,I3)
-  616 FORMAT(1H ,'## INTEGRO-DIFF EQ. : ',
-     &           'MATL  MATLM  ICL   NCLM  NDMAX XDMAX'/
-     &       1H ,22X,I3,3X,I3,3X,I5,1X,I5,1X,I3,1P1D12.4)
+  616 FORMAT('## INTEGRO-DIFF EQ. : ',
+     &           'MATL    MATLM    ICL     NCLM    NDMAX   XDMAX'/
+     &       22X,5I8,1P1D12.4)
   630 FORMAT(1H /
      &       1H ,'** RF = ',1PD12.4,' (MHZ) , RKZ = ',1PD12.4,
      &           ' (/M) **')
       END
-C
-C      SUBROUTINE UNDFL8(D)
-C      REAL*8 D
-C      COMMON /UNDFLC/ IUNFL8,IUNFL4
-C      D=0.D0
-C      IUNFL8=IUNFL8+1
-C      RETURN
-C      END
-C
-C      SUBROUTINE UNDFL4(A)
-C      COMMON /UNDFLC/ IUNFL8,IUNFL4
-C      A=0.0
-C      IUNFL4=IUNFL4+1
-C      RETURN
-C      END
