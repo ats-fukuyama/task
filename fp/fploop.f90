@@ -167,7 +167,8 @@
             DEPS = DEPS_MAX
 
             CALL mtx_set_communicator(comm_nr) !3D
-            CALL mtx_allreduce_real8(DEPSV,NSW,4,DEPS_MAXVL,ILOCL) ! the peak DEPSV for each NSA
+            CALL mtx_allreduce_real8(DEPSV,NSW,4,DEPS_MAXVL,ILOCL) 
+                                                ! the peak DEPSV for each NSA
 
             CALL mtx_set_communicator(comm_nsa) !3D
             CALL mtx_gather_real8(DEPS_MAXVL,nsw,DEPS_MAXV) 

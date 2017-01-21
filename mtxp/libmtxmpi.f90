@@ -1439,6 +1439,7 @@
          CALL MPI_ALLREDUCE(vdata,vreduce,ndata,MPI_INTEGER, &
                             MPI_SUM,ncomm,ierr)
       CASE(4,5)! MAX/MINOC
+         ALLOCATE(d_send(2,ndata),d_recv(2,ndata))
          DO i=1,ndata
             d_send(1,i)=vdata(i)
             d_send(2,i)=nrank
@@ -1455,6 +1456,7 @@
             vreduce(i)=d_recv(1,i)
             vloc(i)=d_recv(2,i)
          END DO
+         DEALLOCATE(d_send,d_recv)
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_allreduce_integer: MPI_allREDUCE: ierr=',ierr
@@ -1487,6 +1489,7 @@
          CALL MPI_ALLREDUCE(vdata,vreduce,ndata,MPI_REAL, &
                             MPI_SUM,ncomm,ierr)
       CASE(4,5)! MAX/MINLOC
+         ALLOCATE(d_send(2,ndata),d_recv(2,ndata))
          DO i=1,ndata
             d_send(1,i)=vdata(i)
             d_send(2,i)=nrank*1.0
@@ -1503,6 +1506,7 @@
             vreduce(i)=d_recv(1,i)
             vloc(i)=int(d_recv(2,i))
          END DO
+         DEALLOCATE(d_send,d_recv)
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_allreduce_real4: MPI_ALLREDUCE: ierr=',ierr
@@ -1535,6 +1539,7 @@
          CALL MPI_ALLREDUCE(vdata,vreduce,ndata,MPI_DOUBLE_PRECISION, &
                             MPI_SUM,ncomm,ierr)
       CASE(4,5)! MAX/MINLOC
+         allocate(d_send(2,ndata),d_recv(2,ndata))
          DO i=1,ndata
             d_send(1,i)=vdata(i)
             d_send(2,i)=nrank*1.D0
@@ -1551,6 +1556,7 @@
             vreduce(i)=d_recv(1,i)
             vloc(i)=int(d_recv(2,i))
          END DO
+         DEALLOCATE(d_send,d_recv)
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_allreduce_real8: MPI_ALLREDUCE: ierr=',ierr
@@ -1583,6 +1589,7 @@
          CALL MPI_ALLREDUCE(vdata,vreduce,ndata,MPI_DOUBLE_COMPLEX, &
                             MPI_SUM,ncomm,ierr)
       CASE(4,5)! MAX/MINLOC
+         ALLOCATE(d_send(2,ndata),d_recv(2,ndata))
          DO i=1,ndata
             d_send(1,i)=abs(vdata(i))
             d_send(2,i)=nrank*1.D0
@@ -1599,6 +1606,7 @@
             vreduce(i)=d_recv(1,i)
             vloc(i)=int(d_recv(2,i))
          END DO
+         DEALLOCATE(d_send,d_recv)
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_allreduce_complex8: MPI_ALLREDUCE: ierr=',ierr

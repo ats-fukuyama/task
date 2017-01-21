@@ -28,12 +28,10 @@ SRCS = mpilib.f wmmenu.f wminit.f wmeign.f wmsetg.f \
 
 SRCX = wmcont.f90 wmtest.f90 wmdpfa.f90 wmdpfa2.f90 wmdpfaA.f90 #wmdpfa3.f90
 
-# wmtrfile.f
-
 OBJS = $(SRCX:.f90=.o) $(SRCS:.f=.o)
 
-LIBS = wmlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a \
-       ../eq/eqlib.a ../dp/dplib.a
+LIBS = wmlib.a ../dp/dplib.a ../plx/pllib.a  ../eq/eqlib.a \
+       $(LIB_MTX) ../lib/tasklib.a ../../bpsd/bpsdlib.a
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -62,8 +60,8 @@ libs:
 	(cd ../eq; make eqlib.a)
 	(cd ../dp; make dplib.a)
 
-wm : libs wmmain.o
-	$(FLINKER) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIB_MTX)
+wm : $(LIBS) wmmain.o
+	$(FLINKER) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 mpiwm : wmmain.o $(LIBM)
 	$(MFC) wmmain.o $(LIBM) -o $@ $(FFLAGS) $(FLIBS)
