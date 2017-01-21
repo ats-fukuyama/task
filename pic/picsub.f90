@@ -735,21 +735,23 @@ ENDIF
 
      yc=0.5d0*(ymin_wg+ymax_wg)
      ylen=(ymax_wg-ymin_wg)
-     IF(ylen .NE. 0) dph=ph_wg/ylen
-     amp_start = time * vcfact/10.d0
-     IF(amp_start .GE. 1.d0) amp_start=1.0d0
-     DO ny=0,nymax
-        y=DBLE(ny)
-        IF(y.GE.ymin_wg.AND.y.LE.ymax_wg) THEN
-           factor=ExP(-12.D0*(y-yc)**2/(ylen)**2)
-           Ey(1,ny)=amp_wg*amp_start &
-                *factor*COS(rot_wg*pi/180.D0) &
-                *SIN(omega*time-pi*dph*(y-ymin_wg)/180.D0)
-           Ez(0,ny)=amp_wg*amp_start &
-                *factor*SIN(rot_wg*pi/180.D0) &
-                *SIN(omega*time-pi*dph*(y-ymin_wg)/180.D0)
-        END IF
-    END DO
+     IF(ylen .NE. 0) THEN
+        dph=ph_wg/ylen
+        amp_start = time * vcfact/10.d0
+        IF(amp_start .GE. 1.d0) amp_start=1.0d0
+        DO ny=0,nymax
+           y=DBLE(ny)
+           IF(y.GE.ymin_wg.AND.y.LE.ymax_wg) THEN
+              factor=ExP(-12.D0*(y-yc)**2/(ylen)**2)
+              Ey(1,ny)=amp_wg*amp_start &
+                   *factor*COS(rot_wg*pi/180.D0) &
+                   *SIN(omega*time-pi*dph*(y-ymin_wg)/180.D0)
+              Ez(0,ny)=amp_wg*amp_start &
+                   *factor*SIN(rot_wg*pi/180.D0) &
+                   *SIN(omega*time-pi*dph*(y-ymin_wg)/180.D0)
+           END IF
+        END DO
+     END IF
   END SUBROUTINE wave
 
   !***********************************************************************

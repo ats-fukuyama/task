@@ -178,8 +178,8 @@ CONTAINS
 
       factx = dble(nxmax) / dble(npxmax)
       facty = dble(nymax) / dble(npymax)
+      vdzone = dble(vzone)
       IF(model_boundary .ne. 0) THEN
-        vdzone = dble(vzone)
         factx = dble(nxmax-2*vzone) / dble(npxmax)
         facty = dble(nymax-2*vzone) / dble(npymax)
         x3 = x1 + vdzone
