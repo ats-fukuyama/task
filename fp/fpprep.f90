@@ -640,11 +640,21 @@
                NS_NSA(NSA)=NSA
             ENDIF
          ENDDO
-
          DO NSB=1,NSBMAX
             IF(NS_NSB(NSB).EQ.0) THEN
                WRITE(6,*) 'XX NS_NSB(NSB)=0 for NSB=', NSB
                WRITE(6,*) '   NS_NSB(NSB)=NSB substituted'
+               NS_NSB(NSB)=NSB
+            ENDIF
+         ENDDO
+      ELSE
+         DO NSA=1,NSAMAX
+            IF(NS_NSA(NSA).EQ.0) THEN
+               NS_NSA(NSA)=NSA
+            ENDIF
+         ENDDO
+         DO NSB=1,NSBMAX
+            IF(NS_NSB(NSB).EQ.0) THEN
                NS_NSB(NSB)=NSB
             ENDIF
          ENDDO

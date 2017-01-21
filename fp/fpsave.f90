@@ -459,7 +459,6 @@
             DO NSB=1,NSBMAX
                CALL p_theta_integration(RSUM10(NSB))
             END DO
-            CALL p_theta_integration(RSUM1R)
 
  888        FORMAT(2I4,12E14.6)
             FACT=RNFP0(NSA)*1.D20

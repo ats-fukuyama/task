@@ -1,9 +1,13 @@
 ### $Id: Makefile,v 1.69 2012/07/25 07:53:52 nuga Exp $ ###
 include ../make.header
 include ../mtxp/make.mtxp
+#LIB_MTX=$(LIB_MTX_BND)
 #LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_PCG)
 #LIBX_MTX=$(LIBX_MTX_PCG)
+#LIB_MTX=$(LIB_MTX_MUMPS)
 #LIBX_MTX=$(LIBX_MTX_MUMPS)
+LIB_MTX=$(LIBXMTX_KSP)
 LIBX_MTX=$(LIBX_MTX_KSP)
 
 FFLAGS=$(OFLAGS)
@@ -30,7 +34,7 @@ SRCS = fpcomm.f90 fpinit.f90 fpmpi.f90 fpbroadcast.f90 fpexec.f90 fpsave.f90 \
 
 OBJS = $(SRCS:.f90=.o)
 
-LIBS = fplib.a ../plx/pllib.a ../eq/eqlib.a   \
+LIBS = fplib.a ../plx/pllib.a ../eq/eqlib.a  \
         ../lib/tasklib.a ../../bpsd/bpsdlib.a
 
 all: libs fp
@@ -54,7 +58,7 @@ libs:
 	(cd ../plx; make pllib.a)
 	(cd ../lib; make tasklib.a)
 
-fp : $(LIBS) fpmain.o 
+fp : $(LIB_MTX) $(LIBS) fpmain.o 
 	$(FLINKER) fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 clean :

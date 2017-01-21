@@ -82,7 +82,7 @@
             END DO
          END DO
          nsend=NTHMAX*(NPEND-NPSTART+1)*(NREND-NRSTART+1)
-         CALL mtx_gather_real8(dsend,nsend,drecv) 
+         CALL mtx_allgather_real8(dsend,nsend,drecv) 
          DO NR=1,NRMAX
             DO NP=1,NPMAX
                DO NTH=1,NTHMAX

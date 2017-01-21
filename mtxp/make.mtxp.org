@@ -10,7 +10,7 @@
 
 #### With MPI, Without PETSc
 #EXEC=testbnd testbndc testpcg
-#FLINKER=$(MF90)
+#FLINKER=$(MFC)
 #INCLUDE_MTX_MPI=-I /usr/local/mpich313-ifort-gcc/include
 #LIBMTXMPI=../mtxp/libmtxmpi.o
 #LIB_MTX_BND=$(LIBMTXMPI) ../mtxp/libmtxbndmpi.o

@@ -1130,6 +1130,9 @@
       INTEGER,DIMENSION(2,ndata):: d_send, d_recv
       INTEGER:: ierr,i
 
+      DO i=1,ndata
+         vloc(i)=0
+      END DO
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_REDUCE(vdata,vreduce,ndata,MPI_INTEGER, &
@@ -1174,6 +1177,9 @@
       REAL(4),DIMENSION(2,ndata):: d_send, d_recv
       INTEGER:: ierr, i
 
+      DO i=1,ndata
+         vloc(i)=0
+      END DO
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_REDUCE(vdata,vreduce,ndata,MPI_REAL, &
@@ -1218,6 +1224,9 @@
       REAL(8),DIMENSION(2,ndata):: d_send, d_recv
       INTEGER:: ierr, i
 
+      DO i=1,ndata
+         vloc(i)=0
+      END DO
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_REDUCE(vdata,vreduce,ndata,MPI_DOUBLE_PRECISION, &
@@ -1243,7 +1252,7 @@
          END SELECT
          DO i=1,ndata
             vreduce(i)=d_recv(1,i)
-            vloc(i)=idint(d_recv(2,i))
+            vloc(i)=int(d_recv(2,i))
          END DO
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
@@ -1262,6 +1271,9 @@
       COMPLEX(8),DIMENSION(2,ndata):: d_send, d_recv
       INTEGER:: ierr,i
 
+      DO i=1,ndata
+         vloc(i)=0
+      END DO
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_REDUCE(vdata,vreduce,ndata,MPI_DOUBLE_COMPLEX, &
@@ -1287,7 +1299,7 @@
          END SELECT
          DO i=1,ndata
             vreduce(i)=d_recv(1,i)
-            vloc(i)=idint(real(d_recv(2,i)))
+            vloc(i)=int(d_recv(2,i))
          END DO
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
@@ -1382,6 +1394,9 @@
       INTEGER,DIMENSION(2,ndata):: d_send, d_recv
       INTEGER:: ierr,i
 
+      DO i=1,ndata
+         vloc(i)=0
+      END DO
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_ALLREDUCE(vdata,vreduce,ndata,MPI_INTEGER, &
@@ -1426,6 +1441,9 @@
       REAL(4),DIMENSION(2,ndata):: d_send, d_recv
       INTEGER:: ierr,i
 
+      DO i=1,ndata
+         vloc(i)=0
+      END DO
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_ALLREDUCE(vdata,vreduce,ndata,MPI_REAL, &
@@ -1470,6 +1488,9 @@
       REAL(8),DIMENSION(2,ndata):: d_send, d_recv
       INTEGER:: ierr,i
 
+      DO i=1,ndata
+         vloc(i)=0
+      END DO
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_ALLREDUCE(vdata,vreduce,ndata,MPI_DOUBLE_PRECISION, &
@@ -1495,7 +1516,7 @@
          END SELECT
          DO i=1,ndata
             vreduce(i)=d_recv(1,i)
-            vloc(i)=idint(d_recv(2,i))
+            vloc(i)=int(d_recv(2,i))
          END DO
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
@@ -1514,6 +1535,9 @@
       COMPLEX(8),DIMENSION(2,ndata):: d_send, d_recv
       INTEGER:: ierr,i
 
+      DO i=1,ndata
+         vloc(i)=0
+      END DO
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_ALLREDUCE(vdata,vreduce,ndata,MPI_DOUBLE_COMPLEX, &
@@ -1539,7 +1563,7 @@
          END SELECT
          DO i=1,ndata
             vreduce(i)=d_recv(1,i)
-            vloc(i)=idint(real(d_recv(2,i)))
+            vloc(i)=int(d_recv(2,i))
          END DO
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &

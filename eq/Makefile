@@ -1,8 +1,8 @@
 ### $Id$ ###
 include ../make.header
 
-#FFLAGS=-g $(OFLAGS)
-FFLAGS=$(DFLAGS)
+FFLAGS=-g $(OFLAGS)
+#FFLAGS=$(DFLAGS)
 
 MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../plx/$(MOD) -I../lib/$(MOD)
 
@@ -44,6 +44,7 @@ all : eq
 ../plx/pllib.a:
 	(cd ../plx; make pllib.a)
 eqlib.a: $(OBJS) $(OBJ2D)
+	(cd ../plx; make plcomm.o)
 	$(LD) $(LDFLAGS) eqlib.a $(OBJS) $(OBJ2D)
 eq3lib.a: $(OBJS) $(OBJ3D)
 	$(LD) $(LDFLAGS) eq3lib.a $(OBJS) $(OBJ3D)
