@@ -234,11 +234,11 @@ C
 C
       IERR=0
 C
-      if(modelg.eq.3.OR.modelg.EQ.5) then
-         if(initeq.eq.0) then
-            call eqload(modelg,knameq,ierr)
-            if(ierr.eq.0) then
-               write(line,'(a,i5)') 'nrmax =',51
+      IF(MODELG.EQ.3.OR.MODELG.EQ.5) THEN
+         IF(INITEQ.EQ.0) THEN
+            CALL EQLOAD(MODELG,KNAMEQ,IERR)
+            IF(IERR.EQ.0) THEN
+               write(LINE,'(A,I5)') 'nrmax =',51
                call eqparm(2,line,ierr)
                write(line,'(a,i5)') 'nthmax=',64
                call eqparm(2,line,ierr)

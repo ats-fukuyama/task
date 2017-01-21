@@ -40,7 +40,7 @@
       RETURN
       END SUBROUTINE fp_gatherv_real8_sav
 !-----
-      SUBROUTINE update_fnsb 
+      SUBROUTINE update_fnsb
 
       IMPLICIT NONE
       integer:: nsend, nth, np, nr, nsa
@@ -82,7 +82,7 @@
             END DO
          END DO
          nsend=NTHMAX*(NPEND-NPSTART+1)*(NREND-NRSTART+1)
-         CALL mtx_gather_real8(dsend,nsend,drecv) 
+         CALL mtx_allgather_real8(dsend,nsend,drecv) 
          DO NR=1,NRMAX
             DO NP=1,NPMAX
                DO NTH=1,NTHMAX
@@ -114,7 +114,7 @@
          sendbuf(:,:,:,:)=0.D0
          sendbuf(:,:,:,:)=array(:,:,:,:)
 
-         CALL mtx_allreduce_real8(sendbuf, ncount, 1, recvbuf,lloc)
+         CALL mtx_allreduce_real8(sendbuf, ncount, 3, recvbuf,lloc)
 
          array(:,:,:,:) = recvbuf(:,:,:,:)
 
@@ -250,5 +250,77 @@
       END IF
 
       END SUBROUTINE shadow_comm_nr
-!-----
+!-----------------------------------------------------------
+      SUBROUTINE scatter_fns_to_fns0
+
+      IMPLICIT NONE
+      integer:: NTH,NP,NR,NSA,NSBA, I, J
+      integer:: NPS, NPE, NRS, NRE, NSAS, NSAE
+      integer:: sendcount, recvcount
+      integer:: dest, source, tag
+      double precision,dimension(:,:,:,:),allocatable:: sendbuf, recvbuf
+
+      CALL mtx_reset_communicator 
+
+      IF(NRANK.eq.0)THEN
+         DO I=0,nsize-1
+            NPS=Rank_Partition_Data(1,I)
+            NPE=Rank_Partition_Data(2,I)
+            NRS=Rank_Partition_Data(3,I)
+            NRE=Rank_Partition_Data(4,I)
+            NSAS=Rank_Partition_Data(5,I)
+            NSAE=Rank_Partition_Data(6,I)
+            allocate(sendbuf(NTHMAX, 1-NPS+NPE, 1-NRS+NRE, 1-NSAS+NSAE))
+            
+            DO NSA=NSAS,NSAE
+               DO NR=NRS,NRE
+                  DO NP=NPS,NPE
+                     DO NTH=1, NTHMAX
+                        sendbuf(NTH, NP-NPS+1, NR-NRS+1, NSA-NSAS+1)=FNS(NTH,NP,NR,NSA)
+                     END DO
+                  END DO
+               END DO
+            END DO
+            
+            IF(I.eq.0)THEN
+               DO NSA=NSASTART,NSAEND
+                  DO NR=NRSTARTW,NRENDWM
+                     DO NP=NPSTARTW,NPENDWM
+                        DO NTH=1,NTHMAX
+                           FNS0(NTH,NP,NR,NSA)=sendbuf(NTH,NP-NPSTARTW+1,NR-NRSTARTW+1,NSA-NSASTART+1)
+                        END DO
+                     END DO
+                  END DO
+               END DO
+            ELSE
+               dest = I
+               tag=dest
+               sendcount=nthmax*(NPE-NPS+1)*(NRE-NRS+1)*(NSAE-NSAS+1)
+               CALL mtx_send_real8(sendbuf,sendcount,dest,tag)
+            END IF
+            deallocate(sendbuf)
+         END DO
+      ELSE
+         source = 0
+         recvcount=nthmax*(NPENDWM-NPSTARTW+1)*(NRENDWM-NRSTARTW+1)*(NSAEND-NSASTART+1)
+         allocate(recvbuf(NTHMAX, NPSTARTW:NPENDWM, NRSTARTW:NRENDWM, NSASTART:NSAEND))
+
+         tag=NRANK
+         CALL mtx_recv_real8(recvbuf,recvcount,source,tag)
+         DO NSA=NSASTART,NSAEND
+            DO NR=NRSTARTW,NRENDWM
+               DO NP=NPSTARTW,NPENDWM
+                  DO NTH=1,NTHMAX
+                     FNS0(NTH,NP,NR,NSA)=recvbuf(NTH,NP,NR,NSA)
+                  END DO
+               END DO
+            END DO
+         END DO
+         deallocate(recvbuf)
+      END IF
+
+      FNSP(:,:,:,:)=FNS0(:,:,:,:)
+
+      END SUBROUTINE scatter_fns_to_fns0
+!-----------------------------------------------------------
       END MODULE FPMPI

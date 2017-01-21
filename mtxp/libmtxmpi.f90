@@ -101,6 +101,12 @@
       PUBLIC mtx_sendrecv_real8
       PUBLIC mtx_sendrecv_comple8
 
+      PUBLIC mtx_scatterv_real8
+      PUBLIC mtx_send_real8
+      PUBLIC mtx_recv_real8
+
+      PUBLIC mtx_abort
+
       TYPE(mtx_mpi_type):: mtx_global
       INTEGER:: ncomm,nrank,nsize
 
@@ -1139,6 +1145,9 @@
       INTEGER,DIMENSION(2,ndata):: d_send, d_recv
       INTEGER:: ierr,i
 
+      DO i=1,ndata
+         vloc(i)=0
+      END DO
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_REDUCE(vdata,vreduce,ndata,MPI_INTEGER, &
@@ -1183,6 +1192,9 @@
       REAL(4),DIMENSION(2,ndata):: d_send, d_recv
       INTEGER:: ierr, i
 
+      DO i=1,ndata
+         vloc(i)=0
+      END DO
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_REDUCE(vdata,vreduce,ndata,MPI_REAL, &
@@ -1227,6 +1239,9 @@
       REAL(8),DIMENSION(2,ndata):: d_send, d_recv
       INTEGER:: ierr, i
 
+      DO i=1,ndata
+         vloc(i)=0
+      END DO
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_REDUCE(vdata,vreduce,ndata,MPI_DOUBLE_PRECISION, &
@@ -1252,7 +1267,7 @@
          END SELECT
          DO i=1,ndata
             vreduce(i)=d_recv(1,i)
-            vloc(i)=idint(d_recv(2,i))
+            vloc(i)=int(d_recv(2,i))
          END DO
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
@@ -1271,6 +1286,9 @@
       COMPLEX(8),DIMENSION(2,ndata):: d_send, d_recv
       INTEGER:: ierr,i
 
+      DO i=1,ndata
+         vloc(i)=0
+      END DO
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_REDUCE(vdata,vreduce,ndata,MPI_DOUBLE_COMPLEX, &
@@ -1296,7 +1314,7 @@
          END SELECT
          DO i=1,ndata
             vreduce(i)=d_recv(1,i)
-            vloc(i)=idint(real(d_recv(2,i)))
+            vloc(i)=int(d_recv(2,i))
          END DO
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
@@ -1391,6 +1409,9 @@
       INTEGER,DIMENSION(2,ndata):: d_send, d_recv
       INTEGER:: ierr,i
 
+      DO i=1,ndata
+         vloc(i)=0
+      END DO
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_ALLREDUCE(vdata,vreduce,ndata,MPI_INTEGER, &
@@ -1435,6 +1456,9 @@
       REAL(4),DIMENSION(2,ndata):: d_send, d_recv
       INTEGER:: ierr,i
 
+      DO i=1,ndata
+         vloc(i)=0
+      END DO
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_ALLREDUCE(vdata,vreduce,ndata,MPI_REAL, &
@@ -1479,6 +1503,9 @@
       REAL(8),DIMENSION(2,ndata):: d_send, d_recv
       INTEGER:: ierr,i
 
+      DO i=1,ndata
+         vloc(i)=0
+      END DO
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_ALLREDUCE(vdata,vreduce,ndata,MPI_DOUBLE_PRECISION, &
@@ -1504,7 +1531,7 @@
          END SELECT
          DO i=1,ndata
             vreduce(i)=d_recv(1,i)
-            vloc(i)=idint(d_recv(2,i))
+            vloc(i)=int(d_recv(2,i))
          END DO
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
@@ -1523,6 +1550,9 @@
       COMPLEX(8),DIMENSION(2,ndata):: d_send, d_recv
       INTEGER:: ierr,i
 
+      DO i=1,ndata
+         vloc(i)=0
+      END DO
       SELECT CASE(NOP)
       CASE(1)! MAX
          CALL MPI_ALLREDUCE(vdata,vreduce,ndata,MPI_DOUBLE_COMPLEX, &
@@ -1548,7 +1578,7 @@
          END SELECT
          DO i=1,ndata
             vreduce(i)=d_recv(1,i)
-            vloc(i)=idint(real(d_recv(2,i)))
+            vloc(i)=int(d_recv(2,i))
          END DO
       END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
@@ -1708,7 +1738,63 @@
         END IF
         RETURN
       END SUBROUTINE mtx_sendrecv_complex8
+!-----------------------------------------------------------
+      SUBROUTINE mtx_scatterv_real8(sendbuf,sendbuf_size,recvcount,recvbuf)
 
+      IMPLICIT NONE
+      integer:: ierr
+      integer,intent(in):: sendbuf_size, recvcount
+      double precision,dimension(sendbuf_size),intent(in)::sendbuf
+      double precision,dimension(recvcount),intent(out)::recvbuf
+
+      call MPI_Scatter(sendbuf, recvcount, MPI_DOUBLE_PRECISION, &
+                       recvbuf, recvcount, MPI_DOUBLE_PRECISION, &
+                       0, ncomm, ierr)
+
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_scatterv_real8: MPI_SCATTER: ierr=',ierr
+      RETURN
+
+      END SUBROUTINE mtx_scatterv_real8
+!-----------------------------------------------------------
+      SUBROUTINE mtx_send_real8(sendbuf,sendcount,dest,tag)
+
+      IMPLICIT NONE
+      INTEGER,INTENT(IN):: sendcount
+      REAL(8),INTENT(IN),DIMENSION(sendcount):: sendbuf
+      INTEGER,INTENT(IN):: dest,tag
+      INTEGER:: ierr,i
+      integer:: istatus(MPI_STATUS_SIZE)
+
+      CALL MPI_SEND(sendbuf, sendcount, MPI_DOUBLE_PRECISION, &
+           dest, tag, ncomm, ierr)
+
+
+      END SUBROUTINE mtx_send_real8
+!-----------------------------------------------------------
+      SUBROUTINE mtx_recv_real8(recvbuf,recvcount,source,tag)
+
+      IMPLICIT NONE
+      INTEGER,INTENT(IN):: recvcount
+      REAL(8),INTENT(OUT),DIMENSION(recvcount):: recvbuf
+      INTEGER,INTENT(IN):: source,tag
+      INTEGER:: ierr,i
+      integer:: istatus(MPI_STATUS_SIZE)
+
+      CALL MPI_RECV(recvbuf, recvcount, MPI_DOUBLE_PRECISION, &
+           source, tag, ncomm, istatus, ierr)
+
+
+      END SUBROUTINE MTX_RECV_REAL8
+!-----------------------------------------------------------
+      SUBROUTINE mtx_abort(ierr_g)
+
+      IMPLICIT NONE
+      integer:: ierr, ierr_g
+
+      CALL MPI_ABORT(ncomm,ierr_g,ierr)
+
+      END SUBROUTINE mtx_abort
 !-----
       END MODULE libmpi
 

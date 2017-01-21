@@ -1456,7 +1456,7 @@ c      WI1=DABS(EN)*WI
       WR1=WR
       WI1=WI
       WRITE(*,00020) WR1,WI1,J
-00020 FORMAT(2X,'WR=',D11.5,' WI=',D11.5,' J=',I5)
+00020 FORMAT(2X,'WR=',D11.3,' WI=',D11.3,' J=',I5)
       WRITE(*,10020) WR2,WI2,J
 10020 FORMAT('  WR in sec**-1 ',G11.3,' WI in sec**-1 ',G11.3,' J=',I5)
 00021 CONTINUE

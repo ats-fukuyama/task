@@ -42,7 +42,7 @@
 
 !-------------------------------------------------------
 
-      SUBROUTINE FP_CALWM(NSA)
+      SUBROUTINE FP_CALWM
 
       IMPLICIT NONE
       real(8),DIMENSION(NSBMAX):: sum11,sum12,sum13,sum14,sum15,sum16
@@ -54,6 +54,7 @@
 ! =============  CALCULATION OF DWPP AND DWPT  ===============
 !
       FACT=0.5D0
+      DO NSA=NSASTART,NSAEND
       NSBA=NSB_NSA(NSA)
 
       DO NRDO=NRSTART,NREND
@@ -228,6 +229,7 @@
                END DO
             END DO
          END IF
+      END DO
       END DO
 
 !      WRITE(*,*)"NCM",NCMIN(NSa),NCMAX(NSA)
@@ -448,7 +450,7 @@
          BTL=BB/(1.D0+X/RR)
          CALL PL_QPRF(RHOL,QL)
          BPL=RS*BTL/((RR+X)*QL)
-      ELSEIF(MODELG.EQ.3) THEN
+      ELSEIF(MODELG.EQ.3.OR.MODELG.EQ.5) THEN
          CALL pl_rrminmax(RHOL,RRMINL,RRMAXL)
 !         CALL PL_RRMX(RHOL,RRMINL,RRMAXL)
          RS1=RRMAXL-RR

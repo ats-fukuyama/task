@@ -42,8 +42,10 @@ testksp: $(LIB_MTX_KSP) testmtx.o
 	../lib/tasklib.a $(FLIBS)
 
 
-testmtx.o: $(LIBMTXMPI) testmtx.f90
-testmtxc.o: $(LIBMTXMPI) testmtxc.f90
+testmtx.o: testmtx.f90
+	$(FLINKER) $(FFLAGS) -c testmtx.f90 $(MODINCLUDE)
+testmtxc.o: testmtxc.f90
+	$(FLINKER) $(FFLAGS) -c testmtxc.f90 $(MODINCLUDE)
 ../mtxp/libmtxmpi.o: libmtxmpi.f90
 	$(FLINKER) $(FFLAGS) -c libmtxmpi.f90 $(MODDIR) $(MODINCLUDE)
 ../mtxp/libmtxnompi.o: libmtxnompi.f90
@@ -65,4 +67,4 @@ testmtxc.o: $(LIBMTXMPI) testmtxc.f90
 clean :
 	-rm -f core a.out *.o *.a ./#* ./*~ ./*.mod ./mod/*.mod
 veryclean : clean
-	-rm -f testbnd testbndc testpcg testdmumps testzmumps testksp
+	-rm testbnd testbndc testpcg testdmumps testzmumps testksp

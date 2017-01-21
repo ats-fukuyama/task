@@ -125,14 +125,14 @@ C
 C
 C     ***** GET R and Z for rhot and th *****
 C
-      SUBROUTINE GET_RZ(rhon_,chip_,R_,Z_)
+      SUBROUTINE GET_RZ(rhon_,rchip_,R_,Z_)
 C
       INCLUDE '../eq/eqcomq.inc'
       REAL(8):: chip_
 C
-      CALL SPL2DF(chip_,rhon_,R_,
+      CALL SPL2DF(rchip_,rhon_,R_,
      &                  CHIP,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
-      CALL SPL2DF(chip_,rhon_,Z_,
+      CALL SPL2DF(rchip_,rhon_,Z_,
      &                  CHIP,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
       RETURN
       END

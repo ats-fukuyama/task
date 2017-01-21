@@ -55,17 +55,19 @@
 !        PUITB : Toroidal rotation velocity increment at ITB   (m/s)
 !        PZCL  : normalized collision frequency
 
-!        KIDNS : index of particle species
-!        IDION :  1 : fast ion particle
-!                 0 : else
+!        KID_NS: index of particle species
+!        ID_NS : -1 : electron
+!                 0 : neutral
+!                 1 : ion
+!                 2 : fast ion
 
       NSMAX = 2                  ! Default number of particle species
 
-         ! electron
+!     *** electron ***
          NS = 1
 
-         KIDNS(NS)= 'e'
-         IDION(NS)= 0.0D0
+         KID_NS(NS)= ' e'
+         ID_NS(NS) = -1
          PA(NS)   = AME/AMP
          PZ(NS)   =-1.0D0
          PZ0(NS)  =-1.0D0
@@ -81,31 +83,11 @@
          PUITB(NS)= 0.D0
          PZCL(NS) = 0.D0
 
-      IF(NSM.GE.2) THEN
-         ! *** hydrogen ***
-!!$         NS = 2
-!!$
-!!$         KIDNS(NS)= 'H'
-!!$         IDION(NS)= 0.0D0
-!!$         PA(NS)   = 1.0D0
-!!$         PZ(NS)   = 1.0D0
-!!$         PZ0(NS)  = 1.0D0
-!!$         PN(NS)   = 1.0D0
-!!$         PNS(NS)  = 0.0D0
-!!$         PTPR(NS) = 5.0D0
-!!$         PTPP(NS) = 5.0D0
-!!$         PTS(NS)  = 0.05D0
-!!$         PU(NS)   = 0.D0
-!!$         PUS(NS)  = 0.D0
-!!$         PNITB(NS)= 0.D0
-!!$         PTITB(NS)= 0.D0
-!!$         PUITB(NS)= 0.D0
-
-         ! *** deuterium ***
+!     *** deuteron ***
          NS = 2
 
-         KIDNS(NS)= 'D'
-         IDION(NS)= 0.0D0
+         KID_NS(NS)= ' D'
+         ID_NS(NS) = 1
          PA(NS)   = 2.0D0
          PZ(NS)   = 1.0D0
          PZ0(NS)  = 1.0D0
@@ -120,125 +102,48 @@
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
 
-         ! *** tritium ***
-!!$         NS = 3
-!!$
-!!$         KIDNS(NS)= 'T'
-!!$         IDION(NS)= 0.0D0
-!!$         PA(NS)   = 3.0D0
-!!$         PZ(NS)   = 1.0D0
-!!$         PZ0(NS)  = 1.0D0
-!!$         PN(NS)   = 1.0D0
-!!$         PNS(NS)  = 0.0D0
-!!$         PTPR(NS) = 5.0D0
-!!$         PTPP(NS) = 5.0D0
-!!$         PTS(NS)  = 0.05D0
-!!$         PU(NS)   = 0.D0
-!!$         PUS(NS)  = 0.D0
-!!$         PNITB(NS)= 0.D0
-!!$         PTITB(NS)= 0.D0
-!!$         PUITB(NS)= 0.D0
-
-!!$         ! *** helium ***
-!!$         NS =
-!!$
-!!$         KIDNS(NS)= 'A'
-!!$         IDION(NS)= 0.0D0
-!!$         PA(NS)   = 4.0D0
-!!$         PZ(NS)   = 2.0D0
-!!$         PZ0(NS)  = 2.0D0
-!!$         PN(NS)   = 1.0D0
-!!$         PNS(NS)  = 0.0D0
-!!$         PTPR(NS) = 5.0D0
-!!$         PTPP(NS) = 5.0D0
-!!$         PTS(NS)  = 0.05D0
-!!$         PU(NS)   = 0.D0
-!!$         PUS(NS)  = 0.D0
-!!$         PNITB(NS)= 0.D0
-!!$         PTITB(NS)= 0.D0
-!!$         PUITB(NS)= 0.D0
-
-         ! *** hydrogen (fast) ***
-!!$         NS = 5
-!!$
-!!$         KIDNS(NS)= 'H'
-!!$         IDION(NS)= 1.0D0
-!!$         PA(NS)   = PA(2)
-!!$         PZ(NS)   = PZ(2)
-!!$         PZ0(NS)  = PZ0(2)
-!!$         PN(NS)   = 0.0001D0
-!!$         PNS(NS)  = 0.00005D0
-!!$         PTPR(NS) = 50.D0
-!!$         PTPP(NS) = 50.D0
-!!$         PTS(NS)  = 10.D0
-!!$         PU(NS)   = 0.D0
-!!$         PUS(NS)  = 0.D0
-!!$         PNITB(NS)= 0.D0
-!!$         PTITB(NS)= 0.D0
-!!$         PUITB(NS)= 0.D0
-
-         ! *** deuterium (fast) ***
+!     *** triton ***
          NS = 3
 
-         KIDNS(NS)= 'D'
-         IDION(NS)= 1.0D0
-         PA(NS)   = 2.0D0
+         KID_NS(NS)= ' T'
+         ID_NS(NS) = 1
+         PA(NS)   = 3.0D0
          PZ(NS)   = 1.0D0
          PZ0(NS)  = 1.0D0
-         PN(NS)   = 0.D0
-         PNS(NS)  = 0.D0
-         PTPR(NS) = 50.D0
-         PTPP(NS) = 50.D0
-         PTS(NS)  = 10.D0
+         PN(NS)   = 1.0D0
+         PNS(NS)  = 0.0D0
+         PTPR(NS) = 5.0D0
+         PTPP(NS) = 5.0D0
+         PTS(NS)  = 0.05D0
          PU(NS)   = 0.D0
          PUS(NS)  = 0.D0
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
 
-!!$         ! *** helium (fast,alpha) ***
-!!$         NS = 5
-!!$
-!!$         KIDNS(NS)= 'A'
-!!$         IDION(NS)= 1.0D0
-!!$         PA(NS)   = PA(5)
-!!$         PZ(NS)   = PZ(5)
-!!$         PZ0(NS)  = PZ0(5)
-!!$         PN(NS)   = 0.0D0
-!!$         PNS(NS)  = 0.0D0
-!!$         PTPR(NS) = 50.D0
-!!$         PTPP(NS) = 50.D0
-!!$         PTS(NS)  = 50.D0
-!!$         PU(NS)   = 0.D0
-!!$         PUS(NS)  = 0.D0
-!!$         PNITB(NS)= 0.D0
-!!$         PTITB(NS)= 0.D0
-!!$         PUITB(NS)= 0.D0
-
-         ! *** carbon ***
+!     *** Helium ion ***
          NS = 4
-         
-         KIDNS(NS)= 'C'
-         IDION(NS)= 0.0D0
-         PA(NS)   = 12.d0
-         PZ(NS)   = 6.d0
-         PZ0(NS)  = 6.d0
-         PN(NS)   = 0.D0
-         PNS(NS)  = 0.D0
-         PTPR(NS) = 1.D0
-         PTPP(NS) = 1.D0
-         PTS(NS)  = 0.1D0
+
+         KID_NS(NS)= 'He'
+         ID_NS(NS) = 1
+         PA(NS)   = 4.0D0
+         PZ(NS)   = 2.0D0
+         PZ0(NS)  = 2.0D0
+         PN(NS)   = 1.0D0
+         PNS(NS)  = 0.0D0
+         PTPR(NS) = 5.0D0
+         PTPP(NS) = 5.0D0
+         PTS(NS)  = 0.05D0
          PU(NS)   = 0.D0
          PUS(NS)  = 0.D0
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
-         PZCL(NS) = 0.D0
 
          ! *** dummy ***
       DO NS = 5, NSM
-         KIDNS(NS)= ' '
-         IDION(NS)= 0.0D0
+         KID_NS(NS)= ' H'
+         ID_NS(NS)= 1
          PA(NS)   = 1.0D0
          PZ(NS)   = 1.0D0
          PZ0(NS)  = 1.0D0
@@ -254,8 +159,6 @@
          PUITB(NS)= 0.D0
          PZCL(NS) = 0.D0
       ENDDO
-
-      ENDIF
 
 !     *** PLANE  PARAMETERS ***
   r_corner(1)=0.D0
@@ -280,8 +183,6 @@
      ptpp_corner(2,ns)=pts(ns)
      ptpp_corner(3,ns)=ptpp(ns)
   END DO
-
-
 
 !     ======( PROFILE PARAMETERS )======
 

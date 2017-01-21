@@ -61,14 +61,14 @@
                ELSE
                   rn_runm=rn_runaway(NR)
                END IF
-               IF(MODEL_Conner_FP.eq.0)THEN
+               IF(MODEL_Connor_FP.eq.0)THEN
                   RHS=SIGMA_SPM(NR)*EM(NR) &
                        -&
 !                       ( &
 !                       DR_coef/(RM(NR)*DELR**2)*( &
 !                       RG(NR+1)*RN_runaway(NR+1)-2.D0*RM(NR)*RN_runaway(NR)+RG(NR)*RN_runm&
 !                       )*1.D20 &
-!                       + ((Rconner(NR)+RFP_ava(NR))*RN_disrupt(NR)*1.D20)&
+!                       + ((Rconnor(NR)+RFP_ava(NR))*RN_disrupt(NR)*1.D20)&
 !                       )&
                        dndt(NR)*1.D20 &
                        *AEE*VC*DELT &
@@ -86,15 +86,15 @@
                        *AEE*VC*DELT &
                        - (RJ_bs(NR)-RJ_bsm(NR))*1.d6
                END IF
-            ELSE
-!               IF(MODEL_Conner_FP.eq.0)THEN ! default
-               IF(MODEL_Conner_FP.eq.1)THEN ! for given E prof. 
+            ELSE ! no RE transport
+               IF(MODEL_Connor_FP.eq.0)THEN ! default
+!               IF(MODEL_Connor_FP.eq.1)THEN ! for given E prof. 
                   RHS=SIGMA_SPM(NR)*EM(NR) &
-                       - AEE*VC*((Rconner(NR)+RFP_ava(NR))*RN_disrupt(NR)*1.D20)*DELT &
+                       - AEE*v_RE*VC*((Rconnor(NR)+RFP_ava(NR))*RN_disrupt(NR)*1.D20)*DELT &
                        - (RJ_bs(NR)-RJ_bsm(NR))*1.d6
                ELSE
                   RHS=SIGMA_SPM(NR)*EM(NR) &
-                       - AEE*VC*((RFP(NR)+RFP_ava(NR))*RN_disrupt(NR)*1.D20)*DELT &
+                       - AEE*v_RE*VC*((RFP(NR)+RFP_ava(NR))*RN_disrupt(NR)*1.D20)*DELT &
                        - (RJ_bs(NR)-RJ_bsm(NR))*1.d6
                END IF
             END IF
@@ -109,14 +109,14 @@
                FACTR=QLM(NR)*deltaB_B**2
                FACTP=PI*RR*VC/SQRT(2.D0)
                DR_coef=FACTP*FACTR/(RA**2)
-               IF(MODEL_Conner_FP.eq.0)THEN
+               IF(MODEL_Connor_FP.eq.0)THEN
                   RHS=SIGMA_SPM(NR)*EM(NR) -Aij_p1*E_e &
                        - &
 !                       ( &
 !                       DR_coef/(RM(NR)*DELR**2)*( &
 !                       -2.D0*RM(NR)*RN_runaway(NR)+RG(NR)*RN_runaway(NR-1)&
 !                       )*1.D20 &
-!                       + ((Rconner(NR)+RFP_ava(NR))*RN_disrupt(NR)*1.D20)&
+!                       + ((Rconnor(NR)+RFP_ava(NR))*RN_disrupt(NR)*1.D20)&
 !                       ) &
                        dndt(NR)*1.D20 &
                        *AEE*VC*DELT &
@@ -134,15 +134,15 @@
                        *AEE*VC*DELT &
                        - (RJ_bs(NR)-RJ_bsm(NR))*1.d6
                END IF
-            ELSE
-!               IF(MODEL_Conner_FP.eq.0)THEN ! default
-               IF(MODEL_Conner_FP.eq.0)THEN ! for given E prof.
+            ELSE ! no RE transport
+               IF(MODEL_Connor_FP.eq.0)THEN ! default
+!               IF(MODEL_Connor_FP.eq.1)THEN ! for given E prof.
                   RHS=SIGMA_SPM(NR)*EM(NR) -Aij_p1*E_e &
-                       - AEE*VC*((Rconner(NR)+RFP_ava(NR))*RN_disrupt(NR)*1.D20)*DELT &
+                       - AEE*v_RE*VC*((Rconnor(NR)+RFP_ava(NR))*RN_disrupt(NR)*1.D20)*DELT &
                        - (RJ_bs(NR)-RJ_bsm(NR))*1.d6
                ELSE
                   RHS=SIGMA_SPM(NR)*EM(NR) -Aij_p1*E_e &
-                       - AEE*VC*((RFP(NR)+RFP_ava(NR))*RN_disrupt(NR)*1.D20)*DELT &
+                       - AEE*v_RE*VC*((RFP(NR)+RFP_ava(NR))*RN_disrupt(NR)*1.D20)*DELT &
                        - (RJ_bs(NR)-RJ_bsm(NR))*1.d6
                END IF
             END IF
@@ -197,7 +197,7 @@
 
       END SUBROUTINE E_IND_EXPLICIT
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
-      SUBROUTINE E_IND_IMPLICIT_FP(E_SIGMA)
+      SUBROUTINE E_IND_IMPLICIT_FP(E_SIGMA) ! MODEL_jfp=1
 
       IMPLICIT NONE
       integer:: NR
@@ -235,12 +235,12 @@
 !---- RIGHT HAND SIDE
       DO NR=NRSTART,NREND
          IF(NR.ne.NRMAX)THEN
-            IF(MODEL_Conner_FP.eq.0)THEN
+            IF(MODEL_Connor_FP.eq.0)THEN
 !               RHS= -( RJ_P-RJS_M(NR,1) )*1.D6 &
                RHS= -( -RJS_M(NR,1) )*1.D6 &
-                    - AEE*VC*((Rconner(NR)+RFP_ava(NR))*RNS(NR,1)*1.D20)*DELT &
+                    - AEE*VC*((Rconnor(NR)+RFP_ava(NR))*RNS(NR,1)*1.D20)*DELT &
                     - (RJ_bs(NR)-RJ_bsm(NR))*1.d6
-            ELSEIF(MODEL_Conner_FP.eq.1)THEN
+            ELSEIF(MODEL_Connor_FP.eq.1)THEN
 !               RHS= -( RJ_P-RJS_M(NR,1) )*1.D6 &
                RHS= -( -RJS_M(NR,1) )*1.D6 &
                     - AEE*VC*((RFP(NR)+RFP_ava(NR))*RNS(NR,1)*1.D20)*DELT &
@@ -254,13 +254,13 @@
             coef_ln=-LOG(b_wall/(a_e*(1.D0+DELR*0.5D0) ) )*(b_wall/(a_e*DELR))
 !            E_e=-coef_ln*EP(NRMAX)/(1.D0-coef_ln)
             E_e=-coef_ln*E_SIGMA(NRMAX)/(1.D0-coef_ln)
-            IF(MODEL_Conner_FP.eq.0)THEN
+            IF(MODEL_Connor_FP.eq.0)THEN
 !               RHS= -( RJ_P-RJS_M(NR,1) )*1.D6 &
                RHS= -( -RJS_M(NR,1) )*1.D6 &
                     - Aij_p1*E_e &
-                    - AEE*VC*((Rconner(NR)+RFP_ava(NR))*RNS(NR,1)*1.D20)*DELT &
+                    - AEE*VC*((Rconnor(NR)+RFP_ava(NR))*RNS(NR,1)*1.D20)*DELT &
                     - (RJ_bs(NR)-RJ_bsm(NR))*1.d6
-            ELSEIF(MODEL_Conner_FP.eq.1)THEN
+            ELSEIF(MODEL_Connor_FP.eq.1)THEN
 !               RHS= -( RJ_P-RJS_M(NR,1) )*1.D6 &
                RHS= -( -RJS_M(NR,1) )*1.D6 &
                     - Aij_p1*E_e &
@@ -333,12 +333,12 @@
          Aij_m1=0.5D0*DELT/(RMU0*DELR**2*RA**2)*(1.D0-0.5D0*DELR/RM(NR))
          Aij_p1=0.5D0*DELT/(RMU0*DELR**2*RA**2)*(1.D0+0.5D0*DELR/RM(NR))
          IF(NR.ne.NRMAX)THEN
-            IF(MODEL_Conner_FP.eq.0)THEN
+            IF(MODEL_Connor_FP.eq.0)THEN
                RHS= -( -RJS_M(NR,1) )*1.D6 &
-                    - AEE*VC*((Rconner(NR)+RFP_ava(NR))*RNS(NR,1)*1.D20)*DELT &
+                    - AEE*VC*((Rconnor(NR)+RFP_ava(NR))*RNS(NR,1)*1.D20)*DELT &
                     - (RJ_bs(NR)-RJ_bsm(NR))*1.d6 &
                     + Aij_m1*EM_W(NR-1) - Aij*EM_W(NR) + Aij_p1*EM_W(NR+1)
-            ELSEIF(MODEL_Conner_FP.eq.1)THEN
+            ELSEIF(MODEL_Connor_FP.eq.1)THEN
                RHS= -( -RJS_M(NR,1) )*1.D6 &
                     - AEE*VC*((RFP(NR)+RFP_ava(NR))*RNS(NR,1)*1.D20)*DELT &
                     - (RJ_bs(NR)-RJ_bsm(NR))*1.d6 &
@@ -346,13 +346,13 @@
             END IF
          ELSE
 ! ------ boundary condition
-            IF(MODEL_Conner_FP.eq.0)THEN
+            IF(MODEL_Connor_FP.eq.0)THEN
                RHS= -( -RJS_M(NR,1) )*1.D6 &
                     - Aij_p1*E_e &
-                    - AEE*VC*((Rconner(NR)+RFP_ava(NR))*RNS(NR,1)*1.D20)*DELT &
+                    - AEE*VC*((Rconnor(NR)+RFP_ava(NR))*RNS(NR,1)*1.D20)*DELT &
                     - (RJ_bs(NR)-RJ_bsm(NR))*1.d6 &
                     + Aij_m1*EM_W(NR-1) - Aij*EM_W(NR) + Aij_p1*EM_W(NR+1)
-            ELSEIF(MODEL_Conner_FP.eq.1)THEN
+            ELSEIF(MODEL_Connor_FP.eq.1)THEN
                RHS= -( -RJS_M(NR,1) )*1.D6 &
                     - Aij_p1*E_e &
                     - AEE*VC*((RFP(NR)+RFP_ava(NR))*RNS(NR,1)*1.D20)*DELT &
@@ -422,9 +422,9 @@
 !---- RIGHT HAND SIDE
       DO NR=NRSTART,NREND
          IF(NR.ne.NRMAX)THEN
-            IF(MODEL_Conner_FP.eq.0)THEN
+            IF(MODEL_Connor_FP.eq.0)THEN
                RHS= -( RB_POL_P(NR+1)*DELR*RA - RB_POL_M(NR+1)*DELR*RA)/DELT
-            ELSEIF(MODEL_Conner_FP.eq.1)THEN
+            ELSEIF(MODEL_Connor_FP.eq.1)THEN
                RHS= -( RB_POL_P(NR+1)*DELR*RA - RB_POL_M(NR+1)*DELR*RA)/DELT
             END IF
          ELSE
@@ -434,10 +434,10 @@
             a_e=RA
             coef_ln=-LOG(b_wall/(a_e*(1.D0+DELR*0.5D0) ) )*(b_wall/(a_e*DELR))
             E_e=-coef_ln*EP(NRMAX)/(1.D0-coef_ln)
-            IF(MODEL_Conner_FP.eq.0)THEN
+            IF(MODEL_Connor_FP.eq.0)THEN
                RHS= -( RB_POL_P(NRMAX)*RM(NRMAX)/(RM(NRMAX)+DELR)*DELR &
                     -RB_POL_M(NRMAX)*RM(NRMAX)/(RM(NRMAX)+DELR)*DELR )/DELT +E_e
-            ELSEIF(MODEL_Conner_FP.eq.1)THEN
+            ELSEIF(MODEL_Connor_FP.eq.1)THEN
                RHS= -( RB_POL_P(NRMAX)*RM(NRMAX)/(RM(NRMAX)+DELR)*DELR &
                     -RB_POL_M(NRMAX)*RM(NRMAX)/(RM(NRMAX)+DELR)*DELR )/DELT +E_e
             END IF
@@ -495,8 +495,8 @@
       END DO
 !---- RIGHT HAND SIDE
       DO NR=NRSTART,NREND
-         IF(MODEL_Conner_FP.eq.0)THEN
-            RHS = RN_runaway(NR) + (Rconner(NR)+RFP_ava(NR))*RN_disrupt(NR)*DELT
+         IF(MODEL_Connor_FP.eq.0)THEN
+            RHS = RN_runaway(NR) + (Rconnor(NR)+RFP_ava(NR))*RN_disrupt(NR)*DELT
          ELSE
             RHS = RN_runaway(NR) + (RFP(NR)+RFP_ava(NR))*RN_disrupt(NR)*DELT
          END IF
@@ -513,10 +513,10 @@
       DO NR=1,NRMAX
          dndt(NR)=(RN_new(NR)-RN_runaway(NR))/DELT
          IF(NRANK.eq.0) WRITE(*,'(A,I3,4E14.6)') "test NR",NR ,dndt(NR), &
-              (Rconner(NR)+RFP_ava(NR))*RN_disrupt(NR), &
-              RN_new(NR), RN_runaway(NR)+(Rconner(NR)+RFP_ava(NR))*RN_disrupt(NR)*DELT
+              (Rconnor(NR)+RFP_ava(NR))*RN_disrupt(NR), &
+              RN_new(NR), RN_runaway(NR)+(Rconnor(NR)+RFP_ava(NR))*RN_disrupt(NR)*DELT
          sum1 = sum1 + dndt(NR)*VOLR(NR)
-         sum2 = sum2 +  (Rconner(NR)+RFP_ava(NR))*RN_disrupt(NR)*VOLR(NR)
+         sum2 = sum2 +  (Rconnor(NR)+RFP_ava(NR))*RN_disrupt(NR)*VOLR(NR)
       END DO
       IF(NRANK.eq.0) WRITE(*,*) "sum1 sum2 ", sum1, sum2
       IF(NRANK.eq.0) WRITE(*,*) " "
@@ -535,16 +535,16 @@
 
       time_read=0.D0
       IF(NRANK.eq.0)THEN
-!         open(18,file='efield_ref.dat',status='old')
+         open(18,file='efield_ref.dat',status='old')
 
-!         DO while(timefp.ge.time_read)
+         DO while(timefp.ge.time_read)
             read(18,'(33E14.6)') time_read, (read_E(j),j=1,NRMAX)
 !            WRITE(*,'(A,3E14.6)') "TEST",timefp, time_read, read_E(1)
-!         END DO
+         END DO
          DO i=1,NRMAX
             E1(i)=read_E(i)
          END DO
-!         close(18)
+         close(18)
       END IF
 
       CALL mtx_broadcast_real8(E1,NRMAX)

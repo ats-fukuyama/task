@@ -10,18 +10,18 @@
 
 #### With MPI, Without PETSc
 #EXEC=testbnd testbndc testpcg
-#FLINKER=$(MF90)
+#FLINKER=$(MFC)
 #INCLUDE_MTX_MPI=-I /usr/local/mpich313-ifort-gcc/include
 #LIBMTXMPI=../mtxp/libmtxmpi.o
 #LIB_MTX_BND=$(LIBMTXMPI) ../mtxp/libmtxbndmpi.o
 #LIB_MTX_PCG=$(LIBMTXMPI) ../mtxp/libmtxpcgmpi.o
 
-
-#### With MPI, With PETSc, With MUMPS
+#### With MPI, With PETSc
+##### With MUMPS
 #EXEC=testbnd testbndc testpcg testdmumps testzmumps testksp
-#### With MPI, With PETSc, no MUMPS
+##### Without MUMPS
 #EXEC=testbnd testbndc testpcg testksp
-##### select either of below items
+#### select either of below items
 ##### PETSc 3.4
 #INCLUDE_MTX_MUMPS=-I${PETSC_DIR}/externalpackages/MUMPS/include
 #include ${PETSC_DIR}/conf/variables
