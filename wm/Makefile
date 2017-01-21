@@ -1,9 +1,13 @@
 ### $Id$ ###
 include ../make.header
 include ../mtxp/make.mtxp
+LIB_MTX=$(LIB_MTX_BND)
 LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_PCG)
 #LIBX_MTX=$(LIBX_MTX_PCG)
+#LIB_MTX=$(LIB_MTX_MUMPS)
 #LIBX_MTX=$(LIBX_MTX_MUMPS)
+#LIB_MTX=$(LIBXMTX_KSP)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
 FFLAGS = $(OFLAGS)
@@ -15,9 +19,9 @@ FFLAGS = $(OFLAGS)
 MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../plx/$(MOD) -I../eq/$(MOD) \
             -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
-SRC0 = wmmenu.f wminit.f wmeign.f wmsetg.f \
+SRCS = mpilib.f wmmenu.f wminit.f wmeign.f wmsetg.f \
        ../eq/wmeqin.f wmprof.f wmdisp.f \
-       wmsetm.f wmsetf.f wmxprf.f wmdprf.f \
+       wmsetm.f wmsetf.f wmxprf.f wmdprf.f wmsolv.f \
        wmpout.f wmgout.f wmgsub.f wmdout.f wmfout.f \
        wmexec.f wmloop.f wmtae.f \
        wmvmec.f wmbooz.f wmvout.f wmtpcs.f
@@ -25,8 +29,6 @@ SRC0 = wmmenu.f wminit.f wmeign.f wmsetg.f \
 SRCX = wmcont.f90 wmtest.f90 wmdpfa.f90
 
 # wmtrfile.f
-
-SRCS = $(SRC0) nowmsolv.f 
 
 OBJS = $(SRCX:.f90=.o) $(SRCS:.f=.o)
 
@@ -43,10 +45,6 @@ all: wm
 wmlib.a: $(OBJS)
 	$(LD) $(LDFLAGS) wmlib.a $(OBJS)
 
-../mpi/mpilib.o:
-	(cd ../mpi; make mpilib.o)
-../mtx/mtxlib.a:
-	(cd ../mtx; make mtxlib.a)
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)
 ../plx/pllib.a:
@@ -60,14 +58,12 @@ wmlib.a: $(OBJS)
 libs:
 	(cd ../lib; make tasklib.a)
 	(cd ../mtxp; make)
-	(cd ../mpi; make mpilib.o)
-	(cd ../mtx; make mtxlib.a)
 	(cd ../plx; make pllib.a)
 	(cd ../eq; make eqlib.a)
 	(cd ../dp; make dplib.a)
 
 wm : libs $(LIBS) wmmain.o
-	$(FCFIXED) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
+	$(FLINKER) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 mpiwm : wmmain.o $(LIBM)
 	$(MFC) wmmain.o $(LIBM) -o $@ $(FFLAGS) $(FLIBS)

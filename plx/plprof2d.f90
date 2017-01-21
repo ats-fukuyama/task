@@ -55,7 +55,7 @@ SUBROUTINE PLCOLL(rn,rtpr,rtpp,rzcl)
               RNUEI=RNZI*RLAMEI/(1.51D-4*SQRT(TE*1.D-3)**3)
               RNUEN=PNN0*SN*0.88D0*VTE
               RNUE=RNUEE+RNUEI+RNUEN
-              RZCL(NS)=RNUE/(2.D6*PI*RFPL)
+              RZCL(NS)=RNUE/(2.D6*PI*RF_PL)
            ELSE
               TI=(RTPR(NS)+2.D0*RTPP(NS))*1.D3/3.D0
               VTI=SQRT(2.D0*TI*AEE/(PA(NS)*AMP))
@@ -65,7 +65,7 @@ SUBROUTINE PLCOLL(rn,rtpr,rtpp,rzcl)
                        /(5.31D-3*SQRT(TI*1.D-3)**3*SQRT(PA(NS)))
               RNUIN=PNN0*SN*0.88D0*VTI
               RNUI=RNUIE+RNUII+RNUIN
-!              RZCL(NS)=RNUI/(2.D6*PI*RFPL)
+!              RZCL(NS)=RNUI/(2.D6*PI*RF_PL)
               RZCL(NS)=0.D0
            ENDIF
         ELSE

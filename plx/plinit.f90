@@ -252,11 +252,11 @@
 
 !        PPN0: Neutral pressure [Pa] 1 Torr = 1 mmHg = 133.322 Pa
 !        PTN0: Neutral temperature [eV]
-!        RFPL: wave frequency [MHz], usually set in wave code
+!        RF_PL: wave frequency [MHz], usually set in wave code
 
       PPN0 = 3.0D0
       PTN0 = 0.03D0
-      RFPL = 1.D6    ! 1THz to reduce pzcl
+      RF_PL = 1.D6    ! 1THz to reduce pzcl
 
 !     ======( GRAPHIC PARAMETERS )======
 
@@ -351,7 +351,7 @@
                     br_corner,bz_corner,bt_corner, &
                     pn_corner,ptpr_corner,ptpp_corner, &
                     PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
-                    RHOMIN,QMIN,RHOITB,RHOEDG,PPN0,PTN0,RFPL, &
+                    RHOMIN,QMIN,RHOITB,RHOEDG,PPN0,PTN0,RF_PL, &
                     MODELG,MODELN,MODELQ,MODEL_NPROF,RHOGMN,RHOGMX, &
                     KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF, &
                     MODEFR,MODEFW,IDEBUG, &
@@ -369,7 +369,7 @@
                     pn_corner,ptpr_corner,ptpp_corner, &
                     PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
                     RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG, &
-                    PPN0,PTN0,RFPL, &
+                    PPN0,PTN0,RF_PL, &
                     MODELG,MODELN,MODELQ,MODEL_NPROF,RHOGMN,RHOGMX, &
                     KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF, &
                     MODEFR,MODEFW,IDEBUG
@@ -491,7 +491,7 @@
       ENDDO
 
       WRITE(6,601) 'PPN0  ',PPN0  ,'PTN0  ',PTN0  , &
-                   'RFPL  ',RFPL
+                   'RF_PL ',RF_PL
 
       IF(RHOITB.GT.0.D0) THEN
          WRITE(6,140)

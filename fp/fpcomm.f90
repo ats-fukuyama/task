@@ -119,7 +119,7 @@ module fpcomm
            EP,EM,EM_W, &
            RN_disrupt, RN_runaway, Rj_ohm, RJ_runaway, conduct_sp, &
            SIGMA_SPP, SIGMA_SPM, ER_drei, ER_crit, Rconnor, LNL_GL, RFP_ava, &
-           RFPL, RFP, RP_crit, RT_quench,RT_quench_f,previous_rate, RJ_bs, &
+           RFPL,RFP,RP_crit,RT_quench,RT_quench_f,previous_rate, RJ_bs, &
            previous_rate_p, rn_drei, RJ_bsm, RN_runaway_M, R_djdt, &
            previous_rate_G, previous_rate_p_G
       real(rkind),dimension(:),POINTER :: & ! (NRM)
@@ -676,7 +676,7 @@ module fpcomm
 !          deallocate(DCPP2B,DCPT2B,FCPP2B)
 
           deallocate(RN_IMPL,RT_IMPL)
-          deallocate(RNSL,RJSL,RWSL,RWS123L,RFP_local,RJSRL)
+          deallocate(RNSL,RJSL,RWSL,RWS123L,RFPL,RJSRL)
           deallocate(RSPBL,RSPFL,RSPSL,RSPLL,RPCSL,RPESL)
           deallocate(RLHSL,RFWSL,RECSL,RICSL,RPCS2L)
           deallocate(RDIDT, RDIDTL)
