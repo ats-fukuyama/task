@@ -41,7 +41,7 @@ libs:
 	(cd ../eq; make eqlib.a)
 
 pl : $(LIBS) plmain.o
-	$(FCFIXED) plmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODDIR) $(MODINCLUDE)
+	$(FCFIXED) plmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 check :
 	ftnchek $(FCKFLAGS) $(SRCSFIXED) | less
