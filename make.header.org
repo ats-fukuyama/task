@@ -43,7 +43,7 @@ GFLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11
 GLLIBS=-L/usr/local/lib -lgsgl
 
 ## for FX-100 NIFS Plasma Simulator
-#GFLIBS=-L/home/fukuyama/lib -lg3d-xcb -lgsp-xcb -lgdp-xcb -L/usr/X11R6/lib -lX11
+#GFLIBS=-L/home/fukuyama/lib -lg3d-xcb -lgsp-xcb -lgdum-xcb
 #GLLIBS=-L/home/fukuyama/lib -lgsgl
 #OFLAGS = -Kfast
 #DFLAGS = -Haefosu
