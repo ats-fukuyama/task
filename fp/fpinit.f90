@@ -131,7 +131,7 @@
 !-----NBI---------------------------------------------------------------
 !     NBEAMMAX     : Number of NBI
 !     NSSPB(nbeam) : NBI particle species
-!     SPBTOT(nbeam): Particle source [1/m^3 s] ! [1/s]? 
+!     SPBTOT(nbeam): Particle source [1/s] 
 !     SPBR0(nbeam) : Source radius [r/a]
 !     SPBRW(nbeam) : Source width [r/a]
 !     SPBENG(nbeam): Particle energy [eV]

@@ -373,36 +373,36 @@
 
       CALL mtx_reset_communicator
 
-      IF(MODELA.eq.1)THEN
-      IF(NRANK.eq.0)THEN
-      open(8,file='RLAMDAG.dat')
-      DO NR =1, NRMAX+1
-         DO NTH=1,NTHMAX
-            WRITE(8,'(2I4, 4E14.6)') NR, NTH, COSM(NTH), RLAMDAG(NTH,NR), RFSADG(NR)
-         END DO
-         WRITE(8,*) " "
-         WRITE(8,*) " "
-      END DO
-      close(8)
-      open(8,file='RLAMDAG_RG.dat')
-      DO NR =1, NRMAX+1
-         DO NTH=1,NTHMAX
-            WRITE(8,'(2I4, 4E14.6)') NR, NTH, COSM(NTH), RLAMDAG_RG(NTH,NR), RFSADG_RG(NR)
-         END DO
-         WRITE(8,*) " "
-         WRITE(8,*) " "
-      END DO
-      close(8)
-      END IF
-      END IF
+!      IF(MODELA.eq.1)THEN
+!      IF(NRANK.eq.0)THEN
+!      open(8,file='RLAMDAG.dat')
+!      DO NR =1, NRMAX+1
+!         DO NTH=1,NTHMAX
+!            WRITE(8,'(2I4, 4E14.6)') NR, NTH, COSM(NTH), RLAMDAG(NTH,NR), RFSADG(NR)
+!         END DO
+!         WRITE(8,*) " "
+!         WRITE(8,*) " "
+!      END DO
+!      close(8)
+!      open(8,file='RLAMDAG_RG.dat')
+!      DO NR =1, NRMAX+1
+!         DO NTH=1,NTHMAX
+!            WRITE(8,'(2I4, 4E14.6)') NR, NTH, COSM(NTH), RLAMDAG_RG(NTH,NR), RFSADG_RG(NR)
+!         END DO
+!         WRITE(8,*) " "
+!         WRITE(8,*) " "
+!      END DO
+!      close(8)
+!      END IF
+!      END IF
 
-      IF(NREND.eq.NRMAX)THEN
-         open(8,file='RLAMDA_RG_MAX.dat')
-         DO NTH=1, NTHMAX
-            WRITE(8,'(2I4, 4E14.6)') NRMAX+1, NTH, COSM(NTH), RLAMDA_RG(NTH,NRMAX+1), RFSADG_RG(NRMAX+1)
-         END DO
-         CLOSE(8)
-      END IF
+!      IF(NREND.eq.NRMAX)THEN
+!         open(8,file='RLAMDA_RG_MAX.dat')
+!         DO NTH=1, NTHMAX
+!            WRITE(8,'(2I4, 4E14.6)') NRMAX+1, NTH, COSM(NTH), RLAMDA_RG(NTH,NRMAX+1), RFSADG_RG(NRMAX+1)
+!         END DO
+!         CLOSE(8)
+!      END IF
 
 !      IF(NRANK.eq.0)THEN
 !      DO NR=1,NRMAX

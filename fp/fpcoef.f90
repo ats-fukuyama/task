@@ -320,7 +320,7 @@
 !
 !     ----- Particle loss and source terms -----
 !
-      ISW_LOSS=0
+      ISW_LOSS=1
       IF(TLOSS(NS).EQ.0.D0) THEN
          DO NR=NRSTART,NREND
             DO NP=NPSTART,NPEND
@@ -330,7 +330,7 @@
             ENDDO
          ENDDO
       ELSE
-         IF(ISW_LOSS.eq.0)THEN
+         IF(ISW_LOSS.eq.0)THEN ! loss term depends on the present FNSP
             DO NR=NRSTART,NREND
                DO NP=NPSTART,NPEND
                   IF(PM(NP,NSBA).le.3.D0)THEN ! for beam benchmark
@@ -342,6 +342,35 @@
                   END IF
                ENDDO
             ENDDO
+         ELSEIF(ISW_LOSS.eq.1)THEN ! loss term depends on initial FNS
+            SUML=0.D0
+            DO NR=NRSTART,NREND
+               DO NP=NPSTART,NPEND
+                  IF(PM(NP,NSBA).le.5.D0)THEN ! for beam benchmark
+                     FL=FPMXWL(PM(NP,NSBA),NR,NS) 
+                     DO NTH=1,NTHMAX
+                        SUML = SUML &
+                             + FL*VOLP(NTH,NP,NSBA) * VOLR(NR)*RLAMDAG(NTH,NR)*RFSADG(NR)
+!                        SPPL(NTH,NP,NR,NSA)=-FL/TLOSS(NS)*RLAMDA(NTH,NR)
+!                        SPPS(NTH,NP,NR,NSA)= FL /TLOSS(NS)!*RLAMDA(NTH,NR)
+                     ENDDO
+                  END IF
+               ENDDO
+            ENDDO
+            CALL mtx_set_communicator(comm_np)
+            CALL p_theta_integration(SUML)
+            CALL mtx_reset_communicator
+            SUML = SUML*RNFP0(NSA)
+            DO NR=NRSTART, NREND
+               DO NP=NPSTART, NPEND
+                  FL=FPMXWL(PM(NP,NSBA),NR,NS) 
+                  IF(PM(NP,NSBA).le.5.D0)THEN ! for beam benchmark
+                     DO NTH=1, NTHMAX
+                        SPPL(NTH,NP,NR,NSA)=-SPBTOT(1)*FL/SUML
+                     END DO
+                  END IF
+               END DO
+            END DO
          ELSE
             DO NR=NRSTART,NREND
                DO NP=NPSTART,NPEND
@@ -364,7 +393,7 @@
       IF(MODEL_SINK.eq.1)THEN
          CALL DELTA_B_LOSS_TERM(NSA)
       END IF
-      END DO
+      END DO ! NSA
 
       RETURN
       END SUBROUTINE FP_CALS

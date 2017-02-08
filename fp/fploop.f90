@@ -359,7 +359,8 @@
 !      IF(MODEL_DISRUPT.eq.1) CALL FLUXS_PTH
       IF(NRANK.eq.0) WRITE(6,'(A,E14.6)') "---------TIME UPDATE FNS =",gut2-gut1
 
-      IF(NRANK.eq.0.and.MODEL_DISRUPT.ne.0)THEN
+!      IF(NRANK.eq.0.and.MODEL_DISRUPT.ne.0)THEN
+      IF(NRANK.eq.0)THEN
          DO NP=1,NPMAX
 !pitch angle average
             pitch_angle_av = 0.D0
@@ -367,11 +368,16 @@
                pitch_angle_av = pitch_angle_av + FNS(NTH,NP,1,1)
             END DO
             pitch_angle_av = pitch_angle_av/NTHMAX
+!            WRITE(9,'(1PE12.4,I6,1P30E17.8e3)') PTG(NTG1)*1000, NP, PM(NP,1), &
+!                 PM(NP,1)*PTFP0(1)/AMFP(1)/VC/SQRT(1.D0+PM(NP,1)**2*THETA0(1)), &
+!                 PM(NP,1)**2, &
+!                 PTFP0(1)**2*PM(NP,1)**2/(AEE*AMFP(1)*1.D3), FNS(1,NP,1,1), FNS(NTHMAX-3,NP,1,1), &
+!                 FNS(NTHMAX/2,NP,1,1), pitch_angle_av!, &
             WRITE(9,'(1PE12.4,I6,1P30E17.8e3)') PTG(NTG1)*1000, NP, PM(NP,1), &
                  PM(NP,1)*PTFP0(1)/AMFP(1)/VC/SQRT(1.D0+PM(NP,1)**2*THETA0(1)), &
                  PM(NP,1)**2, &
-                 PTFP0(1)**2*PM(NP,1)**2/(AEE*AMFP(1)*1.D3), FNS(1,NP,1,1), FNS(NTHMAX,NP,1,1), &
-                 FNS(NTHMAX/2,NP,1,1), pitch_angle_av!, &
+                 PTFP0(1)**2*PM(NP,1)**2/(AEE*AMFP(1)*1.D3), FNS(1,NP,1,2), FNS(NTHMAX-3,NP,1,2), &
+                 FNS(NTHMAX/2,NP,1,2), pitch_angle_av!, &
          END DO
          WRITE(9,*) " "
          WRITE(9,*) " "

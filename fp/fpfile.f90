@@ -538,6 +538,7 @@
       USE libmpi      
       IMPLICIT NONE
 
+      OPEN(9,file="f1_1.dat") 
       IF(MODEL_DISRUPT.ne.0.and.NRANK.eq.0)THEN
          OPEN(9,file="f1_1.dat") 
          open(10,file='time_evol.dat') 
@@ -550,7 +551,7 @@
          open(23,file='collision_time.dat')
       END IF
 
-      open(19,file='p-T_bulk.dat')
+!      open(19,file='p-T_bulk.dat')
 !      open(20,file='DCPP.dat')
 !      open(16,file='err_message_for_RT_BULK.dat')
 
@@ -561,8 +562,8 @@
       USE libmpi      
       IMPLICIT NONE
 
+      close(9)
       IF(MODEL_DISRUPT.ne.0.and.NRANK.eq.0)THEN
-         close(9)
          close(10)
          close(11)
          close(12)
@@ -572,7 +573,7 @@
          close(18)  
          close(23)  
       END IF
-      close(19)
+!      close(19)
 !      close(20)  
 !      close(16)  
 

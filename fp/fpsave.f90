@@ -313,13 +313,13 @@
                           *(PV-1.D0)/THETA0(NSA)*SPPB(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
                      RSUM11F = RSUM11F + PM(NP,NSBA)**2*SINM(NTH) &
                           *(PV-1.D0)/THETA0(NSA)*SPPF(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
-                     IF(MODEL_SINK.eq.0)THEN
-                        RSUM11S = RSUM11S + PM(NP,NSBA)**2*SINM(NTH) &
-                             *(PV-1.D0)/THETA0(NSA)*SPPS(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
-                     ELSE
+!                     IF(MODEL_SINK.eq.0)THEN
+!                        RSUM11S = RSUM11S + PM(NP,NSBA)**2*SINM(NTH) &
+!                             *(PV-1.D0)/THETA0(NSA)*SPPS(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
+!                     ELSE
                         RSUM11S = RSUM11S + PM(NP,NSBA)**2*SINM(NTH) &
                              *(PV-1.D0)/THETA0(NSA)*SPPL(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
-                     END IF
+!                     END IF
                      RSUM11L = RSUM11L + PM(NP,NSBA)**2*SINM(NTH) &
                           *(PV-1.D0)/THETA0(NSA)* PPL(NTH,NP,NR,NSA)&
                           *FNSP(NTH,NP,NR,NSBA)!*RLAMDA(NTH,NR)!*RFSADG(NR) PPL includes RLAMDA
@@ -332,13 +332,13 @@
                           *0.5D0*PM(NP,NSBA)**2*SPPB(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
                      RSUM11F = RSUM11F + PM(NP,NSBA)**2*SINM(NTH) &
                           *0.5D0*PM(NP,NSBA)**2*SPPF(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
-                     IF(MODEL_SINK.eq.0)THEN
-                        RSUM11S = RSUM11S + PM(NP,NSBA)**2*SINM(NTH) &
-                             *0.5D0*PM(NP,NSBA)**2*SPPS(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
-                     ELSE
+!                     IF(MODEL_SINK.eq.0)THEN
+!                        RSUM11S = RSUM11S + PM(NP,NSBA)**2*SINM(NTH) &
+!                             *0.5D0*PM(NP,NSBA)**2*SPPS(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
+!                     ELSE
                         RSUM11S = RSUM11S + PM(NP,NSBA)**2*SINM(NTH) &
                              *0.5D0*PM(NP,NSBA)**2*SPPL(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
-                     END IF
+!                     END IF
                      RSUM11L = RSUM11L + PM(NP,NSBA)**2*SINM(NTH) &
                           *0.5D0*PM(NP,NSBA)**2*PPL(NTH,NP,NR,NSA) &
                           *FNSP(NTH,NP,NR,NSBA)!*RLAMDA(NTH,NR)!*RFSADG(NR)
@@ -459,6 +459,7 @@
             DO NSB=1,NSBMAX
                CALL p_theta_integration(RSUM10(NSB))
             END DO
+!            CALL p_theta_integration(RSUM1R)
 
  888        FORMAT(2I4,12E14.6)
             FACT=RNFP0(NSA)*1.D20
