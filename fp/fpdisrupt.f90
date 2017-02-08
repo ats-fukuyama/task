@@ -1717,7 +1717,7 @@
       END IF
 
 ! time_evol.dat
-      WRITE(10,'(I6,1P30E16.7e3)') NT, TIMEFP, RT_T(1,1), &
+      WRITE(10,'(I6,1P30E16.7e3)') NT, TIMEFP, RT_TEMP(1,1), &
            RT_quench(1), RJ_ohm(1), &
            RJ_runaway(1), RN_disrupt(1), RN_runaway(1), &
            RN_drei(1), &

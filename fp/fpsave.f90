@@ -33,12 +33,12 @@
       real(8),dimension(NTHMAX,NPMAX):: T_BULK
       real(8),dimension(NPSTART:NPEND):: RPL_BULK_send
       real(8),dimension(NPMAX):: RPL_BULK_recv
-      integer,dimension(NRSTART:NREND,NSBMAX):: NP_BULK
-      real(8):: ratio, RSUM_T, RSUM_V, P_BULK_R, FACT_BULK, RATIO_0_S
+!      integer,dimension(NRSTART:NREND,NSBMAX):: NP_BULK
+      real(8):: ratio, RSUM_T, RSUM_V, P_BULK_R, RATIO_0_S
       real(8):: SRHOR1, SRHOR2, RSUM_DRS, RSUMN_DRS
       real(8):: DSDR, SRHOP, SRHOM, RSUM63
       real:: gut1,gut2
-      real(8)::FLUXS_PMAX,FLUXS_PC, rtemp, DRRM, DRRp, RL
+      real(8)::FLUXS_PMAX,FLUXS_PC, rtemp, DRRM, DRRp, RL, PMAX_BULK
 
       IF(ISAVE.NE.0) RETURN
       CALL GUTIME(gut1)
@@ -99,19 +99,19 @@
 
 !           DEFINE BULK MOMENTUM RANGE: 0 < NP < NP_BULK(NR,NSA) 
             IF(NT_init.eq.0)THEN
-               FACT_BULK = 3.D0
+               PMAX_BULK = FACT_BULK
             ELSE
-               FACT_BULK = SQRT( RT_BULK(NR,NSA)/RTFP(NR,NSA) )*3.D0
+               PMAX_BULK = SQRT( RT_BULK(NR,NSA)/RTFP(NR,NSA) )*FACT_BULK
             END IF
             RATIO_0_S=SQRT(RTFPS(NSA)/RTFP0(NSA)) ! p_th(r)/p_th(0)
-            P_BULK_R = FACT_BULK* ( (1.D0-RATIO_0_S)*(1.D0-RM(NR)**2)+RATIO_0_S )
+            P_BULK_R = PMAX_BULK* ( (1.D0-RATIO_0_S)*(1.D0-RM(NR)**2)+RATIO_0_S )
             DO NP=NPMAX, 1, -1
                IF(P_BULK_R.lt.PG(NP,NSA)) NP_BULK(NR,NSA)=NP
             END DO
             IF(PMAX(NSA).lt.P_BULK_R)THEN
                NP_BULK(NR,NSA) = NPMAX
             END IF
-!            WRITE(*,*) NSA, NR, NP_BULK(NR,NSA)
+!            IF(NRANK.eq.0) WRITE(*,'(A,3I5,3E14.6)') "TEST NP_BULK =",NSA, NR, NP_BULK(NR,NSA),FACT_BULK,PMAX_BULK,P_BULK_R
                
 !
             IF(MODELA.eq.0) THEN
@@ -1268,17 +1268,17 @@
          DO NR=1,NRMAX
             RHON=RM(NR) 
             CALL PL_PROF(RHON,PLF) 
-            RN_IMPL(NR,NS)=PLF(NS)%RN
-            RT_IMPL(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+            RN_TEMP(NR,NS)=PLF(NS)%RN
+            RT_TEMP(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
          ENDDO
       END DO
       Do NSA=1,NSAMAX
          NS=NS_NSA(NSA)
          IF(NS.NE.0)THEN
             DO NR=1,NRMAX
-               RN_IMPL(NR,NS) = RNS(NR,NSA)
-               RT_IMPL(NR,NS) = RT_BULK(NR,NSA)
-!               RT_IMPL(NR,NS) = RT_T(NR,NSA)
+               RN_TEMP(NR,NS) = RNS(NR,NSA)
+               RT_TEMP(NR,NS) = RT_BULK(NR,NSA)
+!               RT_TEMP(NR,NS) = RT_T(NR,NSA)
             END DO
          END IF
       ENDDO
@@ -1356,13 +1356,13 @@
                   END IF
                   IF(MODEL_DISRUPT.ne.1)THEN
                      IF(DFDP.ne.DFDP)THEN ! NaN never equals to any other variables.
-                        WRITE(16,'(A,E14.6,3I4,3E14.6)') "DFDP is NaN in fpsave. TIMEFP= ", TIMEFP, NP, NTH, NSA, &
-                             FNSP(NTH,NP,NR,NSA), FNSP(NTH,NP-1,NR,NSA), FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA)
+!                        WRITE(16,'(A,E14.6,3I4,3E14.6)') "DFDP is NaN in fpsave. TIMEFP= ", TIMEFP, NP, NTH, NSA, &
+!                             FNSP(NTH,NP,NR,NSA), FNSP(NTH,NP-1,NR,NSA), FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA)
                         DFDP=0.D0
                      END IF
                      IF(DFDP.gt.0.D0)THEN
-                        WRITE(16,'(A,E14.6,3I4,3E14.6)') "DFDP is positive in fpsave. TIMEFP= ", TIMEFP, NP, NTH, NSA, &
-                             FNSP(NTH,NP,NR,NSA), FNSP(NTH,NP-1,NR,NSA), FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA)
+!                        WRITE(16,'(A,E14.6,3I4,3E14.6)') "DFDP is positive in fpsave. TIMEFP= ", TIMEFP, NP, NTH, NSA, &
+!                             FNSP(NTH,NP,NR,NSA), FNSP(NTH,NP-1,NR,NSA), FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA)
                         DFDP=0.D0
                      END IF
                   END IF
@@ -1472,7 +1472,7 @@
             END IF
          END IF
 
-         WRITE(*,'(A,I3,3E14.6)') "TEST", NRANK, RWL_BULK, RNL_BULK, RTL_BULK(NR,NSA)
+!         WRITE(*,'(A,I3,3E14.6)') "TEST", NRANK, RWL_BULK, RNL_BULK, RTL_BULK(NR,NSA)
          DO NP=1, NPMAX
             RPL_BULK(NP,NR,NSA) = 0.D0
          END DO

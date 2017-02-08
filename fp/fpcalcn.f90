@@ -999,7 +999,7 @@
       ELSE
          RNFDL=PLF(NS)%RN/RNFD0L
 !         RNFDL=PNT(NR,NS,NTG2)
-!         RTFDL=RT_IMPL(NR,NS)
+!         RTFDL=RT_TEMP(NR,NS)
          RTFDL=RT_BULK(NR,NS)
       END IF
 

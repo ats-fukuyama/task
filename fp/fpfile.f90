@@ -93,8 +93,8 @@
          END DO
       END DO
 
-      WRITE(21) ( (RN_IMPL(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
-      WRITE(21) ( (RT_IMPL(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
+      WRITE(21) ( (RN_TEMP(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
+      WRITE(21) ( (RT_TEMP(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
       WRITE(21) (E1(NR),NR=1,NRMAX) ! -> EP
 
       IF(MODELD.ne.0)THEN
@@ -162,8 +162,8 @@
          END DO
       END DO
       
-      READ(21) ( (RN_IMPL(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
-      READ(21) ( (RT_IMPL(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
+      READ(21) ( (RN_TEMP(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
+      READ(21) ( (RT_TEMP(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
       READ(21) (E1(NR),NR=1,NRMAX) ! -> EP
 
       IF(MODELD.ne.0)THEN
@@ -336,8 +336,8 @@
       END DO
       TIMEFP=rdata(NRMAX+1)
 
-      CALL mtx_broadcast_real8(RN_IMPL,NRMAX*NSAMAX)
-      CALL mtx_broadcast_real8(RT_IMPL,NRMAX*NSAMAX)
+      CALL mtx_broadcast_real8(RN_TEMP,NRMAX*NSAMAX)
+      CALL mtx_broadcast_real8(RT_TEMP,NRMAX*NSAMAX)
 
       IF(MODELD.ne.0)THEN
          CALL mtx_broadcast_real8(WEIGHR_G,NTHMAX*NPMAX*(NRMAX+1)*NSAMAX)

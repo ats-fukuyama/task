@@ -829,8 +829,8 @@
                RNFDL_C=RNFD(NR,NSB) 
                RTFDL_C=RTFD(NR,NSB)
             ELSEIF(MODELC.eq.2)THEN ! variable n, T
-               RNFDL_C=RN_IMPL(NR,NS_NSB(NSB))
-               RTFDL_C=RT_IMPL(NR,NS_NSB(NSB))
+               RNFDL_C=RN_TEMP(NR,NS_NSB(NSB))
+               RTFDL_C=RT_TEMP(NR,NS_NSB(NSB))
             END IF
          ELSEIF(MODEL_DISRUPT.ge.1)THEN
             IF(MODEL_IMPURITY.eq.0)THEN 

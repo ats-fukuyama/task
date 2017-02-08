@@ -1331,14 +1331,14 @@
          IF(NS.le.NSAMAX)THEN
             RNFDL=PLF(NS)%RN/RNFD0L
             RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
-            RNFDL=RN_IMPL(NR,NS)/RNFD0L
-!            RTFDL=RT_IMPL(NR,NS)
+            RNFDL=RN_TEMP(NR,NS)/RNFD0L
+!            RTFDL=RT_TEMP(NR,NS)
             RTFDL=RT_BULK(NR,NS)
          ELSE
             RNFDL=PLF(NS)%RN/RNFD0L
             RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
          END IF
-!         IF(NRANK.eq.0) WRITE(*,'(A,2I5,10E14.6)') "TEST_cnr ", NR, NS, RNFDL, RN_IMPL(NR,NS)/RNFD0L, RTFDL, RT_IMPL(NR,NS), RN_IMPL(NR,NS)
+!         IF(NRANK.eq.0) WRITE(*,'(A,2I5,10E14.6)') "TEST_cnr ", NR, NS, RNFDL, RN_TEMP(NR,NS)/RNFD0L, RTFDL, RT_TEMP(NR,NS), RN_TEMP(NR,NS)
       END IF
 
       THETA0L=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)

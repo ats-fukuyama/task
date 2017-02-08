@@ -4,7 +4,7 @@
 !     MAIN LOOP
 ! *****************
 
-      MODULE fploop
+      MODULE fploop_exp
 
       USE fpcomm
       use fpexec
@@ -19,40 +19,32 @@
 
 !-----------------------------
 
-      SUBROUTINE FP_LOOP
+      SUBROUTINE FP_LOOP_EXP
 
       USE libmtx
+      USE fploop
       USE FPMPI
       USE fpprep, only: Coulomb_log 
       IMPLICIT NONE
-      real(kind8),dimension(NRSTART:NREND,NSAMAX):: RJNS
-      real(kind8),dimension(NRSTART:NREND):: RJN,RJ3,E3,DELE
       real(kind8),dimension(NSAMAX)::RSUMF,RSUMF0,RSUM_SS
-      real(kind8):: RSUMF_, RSUMF0_, RGAMA, FACTP, FACTR, diff_c, tau_dB
+      real(kind8):: RSUMF_, RSUMF0_, FL
 
-      integer:: NT, NR, NP, NTH, NSA, NTI, NSBA, NTE
-      integer:: L, IERR, I
-      real(kind8):: RSUM, DELEM, RJNL, dw, RSUM1, RSUM2
-      real(4):: gut, gut_exe1, gut_exe2, gut_conv3, gut_coef1
+      integer:: NT, NR, NP, NTH, NSA, NSBA, NS
+      integer:: IERR
+      real(4):: gut_exe1, gut_exe2, gut_conv3, gut_coef1
       real(4):: gut_loop1, gut_loop2, gut_cale7, gut_coef2, gut1, gut2
       real(4):: gut_out1, gut_out2, gut_out
       real(4):: gut_ex, gut_coef, gut_1step, gut_conv, gut_cale
-      real(kind8),DIMENSION(nsize):: RSUMA
-      integer,dimension(NSAMAX)::NTCLSTEP2
-      real(kind8):: DEPS_MAX, DEPS, DEPS1, DEPSE
-      real(kind8),dimension(NSASTART:NSAEND):: DEPS_MAXVL, DEPSV, DEPS_SS_LOCAL
+      real(kind8):: DEPS_MAX, DEPS, DEPS1
+      real(kind8),dimension(NSASTART:NSAEND):: DEPS_MAXVL, DEPSV
       real(kind8),dimension(NSAMAX):: DEPS_MAXV
       integer,dimension(NSASTART:NSAEND):: ILOCL
       integer,dimension(NSAMAX):: ILOC
-      integer:: NSTEST
-      real(kind8):: temp_send, temp_recv
       character:: fmt*40
-      integer:: modela_temp, NSW, NSWI,its
-      integer:: ILOC1, nsend,j, ISW_D, NDIMPL
-      real(8):: sigma, ip_all, ip_ohm, ip_run, jbs, IP_bs, l_ind, IP_prim, DEPS_E2
-      real(8):: IP_all_FP, FPL, pitch_angle_av
-      real(8),dimension(NPSTART:NPEND):: DCPP_L1, DCPP_L2, FCPP_L1, FCPP_L2, DCTT_L1, DCTT_L2, DPP_L, FPP_L, DTT_L
-      real(8),dimension(NPMAX):: DCPP_1, DCPP_2, FCPP_1, FCPP_2, DCTT_1, DCTT_2, DPP_A, FPP_A, DTT_A
+      integer:: NSW, its
+      integer:: ILOC1, ISW_D
+!      real(8):: sigma, ip_all, ip_ohm, ip_run, jbs, IP_bs, l_ind, IP_prim, 
+      real(8):: pitch_angle_av
 
 !     +++++ Time loop +++++
 
@@ -81,9 +73,6 @@
          gut_cale=0.0
          CALL GUTIME(gut_loop1)
 
-         IF(MODEL_DISRUPT.ne.0)THEN
-            CALL TOP_OF_TIME_LOOP_DISRUPT(NT) ! include fpcoef
-         END IF
          CALL GUTIME(gut_coef2)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          nsw = NSAEND-NSASTART+1
@@ -187,14 +176,7 @@
             CALL GUTIME(gut_conv3)
             gut_conv = gut_conv + (gut_conv3-gut_exe2)
 
-
-            DEPS_E2=0.D0 ! changed
-            IF(MODEL_DISRUPT.eq.1)THEN ! E field evolution for DISRUPT
-               CALL E_FIELD_EVOLUTION_DISRUPT(NT,IP_all_FP,DEPS_E2)
-            END IF
-!                  CALL djdt
-
-            IF(NRANK.eq.0.and.DEPS.le.EPSFP.and.DEPS_E2.le.EPSFP)THEN
+            IF(NRANK.eq.0.and.DEPS.le.EPSFP)THEN
                N_IMPL=1+LMAXFP ! exit dowhile
             ENDIF
             CALL mtx_broadcast1_integer(N_IMPL)
@@ -233,6 +215,33 @@
          END DO ! END OF DOWHILE
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!        Bulk f is replaced by Maxwellian
+
+!        temporary
+         DO NSA=NSASTART, NSAEND
+            NS=NS_NSA(NSA)
+            DO NR=NRSTART, NREND
+               RN_READ(NR,NS)=RNFP(NR,NSA)
+               RT_READ(NR,NS)=RTFP(NR,NSA)
+!               WRITE(*,'(A,2I5,2E14.6)') "TEST READ ", NR, NS, RN_READ(NR,NS), RT_READ(NR,NS)
+            END DO
+         END DO
+!
+         DO NSA=NSASTART, NSAEND
+            NS=NS_NSB(NSA)
+            DO NR=NRSTART, NREND
+               DO NP=NPSTART, NPEND
+                  IF(NP.le.NP_BULK(NR,NSA))THEN
+                     DO NTH=1, NTHMAX
+                        FL=FPMXWL_EXP(PM(NP,NSA),NR,NS)
+                        FNSP(NTH,NP,NR,NSA)=FL
+                     END DO
+                  END IF
+               END DO
+            END DO
+         END DO
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
          DO NSA=NSASTART,NSAEND
             DO NR=NRSTART,NREND
                DO NP=NPSTARTW,NPENDWM
@@ -267,9 +276,6 @@
          TIMEFP=TIMEFP+DELT
 
          CALL GUTIME(gut_out1)
-         IF(MODEL_DISRUPT.eq.1)THEN
-            CALL FILE_OUTPUT_DISRUPT(NT,IP_all_FP)
-         END IF
          CALL GUTIME(gut_out2)
          gut_out=gut_out2-gut_out1
          IF (MOD(NT,NTG1STEP).EQ.0) THEN
@@ -412,51 +418,59 @@
 !      END IF
 
       RETURN
-      END SUBROUTINE FP_LOOP
+      END SUBROUTINE FP_LOOP_EXP
 
-!-------------------------------------------------------------
+! ****************************************
+!     MAXWELLIAN VELOCITY DISTRIBUTION
+! ****************************************
 
-      SUBROUTINE update_radial_f_boundary(NSA)
+      FUNCTION FPMXWL_EXP(PML,NR,NS)
 
-      IMPLICIT NONE
-      integer,intent(in):: NSA
-      integer:: NTH, NP, NR, NS, NSBA
+      USE plprof
+      implicit none
+      integer :: NR, NS
+      real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
+      real(kind8) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
+      TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
+      real(kind8):: FPMXWL_EXP
 
-      NS=NS_NSA(NSA)
-      NSBA=NSB_NSA(NSA)
+      AMFDL=PA(NS)*AMP
+      AEFDL=PZ(NS)*AEE
+      RNFD0L=PN(NS)
+      RTFD0L=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
+      PTFD0L=SQRT(RTFD0L*1.D3*AEE*AMFDL)
 
-      DO NP=NPSTARTW, NPENDWM
-         DO NTH=1, NTHMAX
-            FS2(NTH,NP,NS) = 2.D0*FS1(NTH,NP,NS) - FNSP(NTH,NP,NRMAX,NSBA)
-         END DO
-      END DO
+      IF(NR.eq.0)THEN
+         RL=0.D0
+         RHON=ABS(RL)
+      ELSEIF(NR.EQ.NRMAX+1) THEN
+         RL=RM(NRMAX)+DELR
+         RHON=MIN(RL,1.D0)
+      ELSE
+         RL=RM(NR)
+         RHON=RL
+      ENDIF
+      CALL PL_PROF(RHON,PLF)
 
-      END SUBROUTINE update_radial_f_boundary
+      RNFDL=RN_READ(NR,NS)/RNFD0L
+      RTFDL=RT_READ(NR,NS)
 
-! ************************************
-!     PREDICTION OF ELECTRIC FIELD
-! ************************************
+      IF(MODELR.EQ.0) THEN
+         FACT=RNFDL/SQRT(2.D0*PI*RTFDL/RTFD0L)**3
+         EX=PML**2/(2.D0*RTFDL/RTFD0L)
+         FPMXWL_EXP=FACT*EXP(-EX)
+      ELSE
+         THETA0L=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)
+         THETAL=THETA0L*RTFDL/RTFD0L
+         Z=1.D0/THETAL
+         DKBSL=BESEKN(2,Z)
+         FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DKBSL) &
+              *RTFD0L
+         EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
+         FPMXWL_EXP=FACT*EXP(EX)
+      END IF
 
-!      SUBROUTINE FPNEWE
-!
-!      IMPLICIT NONE
-!      integer:: NR
-!
-!      DO NR=2,NRMAX
-!         BP(NR)=BP(NR)+(E1(NR)-E1(NR-1))*DELT/(RA*DELR)
-!      ENDDO
-!
-!      DO NR=NRSTART,NREND
-!         RJ2(NR)=(RG(NR+1)*BP(NR+1)-RG(NR)*BP(NR)) &
-!                 /(RMU0*RM(NR)*DELR*RA)
-!      ENDDO
-!
-!      DO NR=NRSTART,NREND
-!         E2(NR)=RJ2(NR)*E1(NR)/RJ1(NR)
-!      ENDDO
-!
-!      RETURN
-!      END SUBROUTINE FPNEWE
-
+      RETURN
+      END FUNCTION FPMXWL_EXP
 !------------------------------------
-      END MODULE fploop
+      END MODULE fploop_exp

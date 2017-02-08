@@ -192,12 +192,14 @@
 !     NRMAX : radial division number
 !     NAVMAX: wave diuffusion bounce average division number
 !     NP2MAX: minor mesh number for electron momentum
+!     FACT_BULK: Definition of the bulk region, 0<p<FACT_BULK*p_th is the bulk region
 
       NPMAX = 50
       NTHMAX= 50
       NRMAX = 1
       NAVMAX= 100
       NP2MAX= 20
+      FACT_BULK = 5.D0
 
 !-----NUMBER OF TIME STEP-----------------------------------------------
 !     NTMAX   : maximum time step count
@@ -272,6 +274,8 @@
 !     MODEL_SYNCH     : 1 for synchlotron radiation
 !     MODEL_NBI       : 1 for NBI calculation
 !     MODEL_WAVE      : 1 for wave calculation
+!     MODEL_EX_READ   : 0 for preduction
+!                     : 1 read experiment data RN_READ and RT_READ
 
       MODELE= 0
       MODELA= 0
@@ -295,6 +299,7 @@
       MODEL_NBI=0
       MODEL_WAVE=0 ! 0=no wave calc., 1=wave calc.
 
+      MODEL_EX_READ=0
 !-----COMPUTATION PARAMETERS------------------------------------------
 !     DELT  : time step size (s)
 !     RIMPL : implicit computation parameter
@@ -500,7 +505,7 @@
            PGMAX,RGMAX,RGMIN, &
            T0_quench,tau_quench,tau_mgi, &
            time_quench_start,RJPROF1,RJPROF2, &
-           v_RE,target_zeff,SPITOT
+           v_RE,target_zeff,SPITOT, MODEL_EX_READ, FACT_BULK
 
       READ(nid,FP,IOSTAT=ist,ERR=9800,END=9900)
 
@@ -555,7 +560,7 @@
       WRITE(6,*) '      PGMAX,RGMAX,RGMIN,'
       WRITE(6,*) '      T0_quench,tau_quench,tau_mgi,'
       WRITE(6,*) '      time_quench_start,RJPROF1,RJPROF2,'
-      WRITE(6,*) '      v_RE,target_zeff,SPITOT'
+      WRITE(6,*) '      v_RE,target_zeff,SPITOT,MODEL_EX_READ,FACT_BULK'
 
       RETURN
     END SUBROUTINE fp_plst
@@ -744,8 +749,9 @@
       idata(56)=N_partition_r
       idata(57)=N_partition_s
       idata(58)=N_partition_p
+      idata(59)=MODEL_EX_READ
 
-      CALL mtx_broadcast_integer(idata,58)
+      CALL mtx_broadcast_integer(idata,59)
       NSAMAX         =idata( 1)
       NSBMAX         =idata( 2)
       LMAXNWR        =idata( 3)
@@ -807,6 +813,7 @@
       N_partition_r  =idata(56)
       N_partition_s  =idata(57)
       N_partition_p  =idata(58)
+      MODEL_EX_READ  =idata(59)
 
       CALL mtx_broadcast_integer(NS_NSA,NSAMAX)
       CALL mtx_broadcast_integer(NS_NSB,NSBMAX)
@@ -877,8 +884,9 @@
       rdata(60)=v_RE
       rdata(61)=target_zeff
       rdata(62)=SPITOT
+      rdata(63)=FACT_BULK
 
-      CALL mtx_broadcast_real8(rdata,62)
+      CALL mtx_broadcast_real8(rdata,63)
       R1               =rdata( 1)
       DELR1            =rdata( 2)
       RMIN             =rdata( 3)
@@ -941,6 +949,7 @@
       v_RE             =rdata(60)
       target_zeff      =rdata(61)
       SPITOT           =rdata(62)
+      FACT_BULK        =rdata(63)
 
       CALL mtx_broadcast_real8(pmax,NSAMAX)
       CALL mtx_broadcast_real8(pmax_bb,NSAMAX)

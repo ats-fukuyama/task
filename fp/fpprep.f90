@@ -840,8 +840,8 @@
          RHON=RM(NR)
          CALL PL_PROF(RHON,PLF)
          DO NS=1,NSMAX
-            RT_IMPL(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
-            RN_IMPL(NR,NS)=PLF(NS)%RN
+            RT_TEMP(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+            RN_TEMP(NR,NS)=PLF(NS)%RN
          END DO
       END DO
 
@@ -994,23 +994,24 @@
          DO NSA=1,NSAMAX
             NSFP=NS_NSB(NSA)
             IF(MODEL_disrupt.eq.0)THEN
-               RNA=RN_IMPL(NR,NSA)
-               RTA=RT_T(NR,NSA)
-               RNE=RN_IMPL(NR,1)
+               RNA=RN_TEMP(NR,NSA)
+!               RTA=RT_T(NR,NSA)
+               RTA=RT_TEMP(NR,NSA)
+               RNE=RN_TEMP(NR,1)
             ELSE
                RNE=RNFP(NR,1)
                RNA=RNS(NR,NSA)
                RTA=RT_quench(NR)
             END IF
 
-!            RNA=RN_IMPL(NR,NSA)
-!            RTA=RT_IMPL(NR,NSA)
+!            RNA=RN_TEMP(NR,NSA)
+!            RTA=RT_TEMP(NR,NSA)
             DO NSB=1,NSBMAX
                NSFD=NS_NSB(NSB)
                IF(MODEL_disrupt.eq.0)THEN
                   IF(NSFD.NE.0)THEN
-                     RNB=RN_IMPL(NR,NSFD)
-                     RTB=RT_IMPL(NR,NSFD)
+                     RNB=RN_TEMP(NR,NSFD)
+                     RTB=RT_TEMP(NR,NSFD)
                   ELSE
                      RNB=RNFD(NR,NSB)
                      RTB=RTFD(NR,NSB)
@@ -1056,7 +1057,7 @@
                       /(2*AMFD(NSB)*VTFD(NR,NSB)**2*PTFP0(NSA))
             ENDDO
          ENDDO
-!      WRITE(*,'(I3,A,10E16.8)') NR, " Coulomb log=", LNLAM(NR,1,1), LNLAM(NR,1,2), LNLAM(NR,2,1), LNLAM(NR,2,2), RN_IMPL(NR,2), RT_T(NR,2), RT_IMPL(NR,2) 
+!      WRITE(*,'(I3,A,10E16.8)') NR, " Coulomb log=", LNLAM(NR,1,1), LNLAM(NR,1,2), LNLAM(NR,2,1), LNLAM(NR,2,2), RN_TEMP(NR,2), RT_T(NR,2), RT_TEMP(NR,2) 
       ENDDO
 !      IF(NR.eq.NRMAX) WRITE(*,'(A,1P4E16.8)') "Coulomb log",CLOG(1,1), CLOG(1,2), CLOG(2,1), CLOG(2,2)
 

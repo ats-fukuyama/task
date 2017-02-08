@@ -12,6 +12,7 @@
       USE fpinit
       USE fpprep
       USE fploop
+      USE fploop_exp
       USE fpgout
       USE fpfout
       USE plinit
@@ -51,7 +52,11 @@
             CALL fp_continue(ierr)
             IF(ierr.ne.0) GO TO 1
          ENDIF
-         CALL fp_loop
+         IF(MODEL_EX_READ.eq.0)THEN
+            CALL fp_loop
+         ELSEIF(MODEL_EX_READ.eq.1)THEN
+            CALL fp_loop_exp
+         END IF
          IF(nrank.eq.0) THEN
             CALL CPU_TIME(cputime2)
             write(6,'(A,F12.3)') &
