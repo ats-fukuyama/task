@@ -138,6 +138,7 @@ C      READ(21) PTS,PN0,HM
  1001 CONTINUE
 C      
       CLOSE(21)
+      RIPX=RIP
 C
       IF(MODELG.EQ.9) THEN
          CALL EQMESH
