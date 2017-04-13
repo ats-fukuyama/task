@@ -14,6 +14,7 @@
       use libmpi
       use fpmpi
       use fpdisrupt
+      use eg_read
 
       contains
 
@@ -22,6 +23,7 @@
       SUBROUTINE FP_LOOP
 
       USE libmtx
+      USE plprof
       USE FPMPI
       USE fpprep, only: Coulomb_log 
       IMPLICIT NONE
@@ -30,7 +32,7 @@
       real(kind8),dimension(NSAMAX)::RSUMF,RSUMF0,RSUM_SS
       real(kind8):: RSUMF_, RSUMF0_, RGAMA, FACTP, FACTR, diff_c, tau_dB
 
-      integer:: NT, NR, NP, NTH, NSA, NTI, NSBA, NTE
+      integer:: NT, NR, NP, NTH, NSA, NTI, NSBA, NTE, NS
       integer:: L, IERR, I
       real(kind8):: RSUM, DELEM, RJNL, dw, RSUM1, RSUM2
       real(4):: gut, gut_exe1, gut_exe2, gut_conv3, gut_coef1
@@ -50,27 +52,29 @@
       integer:: modela_temp, NSW, NSWI,its
       integer:: ILOC1, nsend,j, ISW_D, NDIMPL
       real(8):: sigma, ip_all, ip_ohm, ip_run, jbs, IP_bs, l_ind, IP_prim, DEPS_E2
-      real(8):: IP_all_FP, FPL, pitch_angle_av
+      real(8):: IP_all_FP, FPL, pitch_angle_av, FL
       real(8),dimension(NPSTART:NPEND):: DCPP_L1, DCPP_L2, FCPP_L1, FCPP_L2, DCTT_L1, DCTT_L2, DPP_L, FPP_L, DTT_L
       real(8),dimension(NPMAX):: DCPP_1, DCPP_2, FCPP_1, FCPP_2, DCTT_1, DCTT_2, DPP_A, FPP_A, DTT_A
-
+      real(8),dimension(NRMAX,NSMAX):: tempt, tempn
+      TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
+      real(8):: RHON
 !     +++++ Time loop +++++
 
       DO NT=1,NTMAX
-
          N_IMPL=0
          DEPS=1.D0
          DO NSA=NSASTART,NSAEND
             NSBA=NSB_NSA(NSA)
-            DO NR=NRSTART-1,NREND+1 ! local
-               IF(NR.ge.1.and.NR.le.NRMAX)THEN
+!            DO NR=NRSTART-1,NREND+1 ! local
+            DO NR=NRSTARTW,NRENDWM ! local
+!               IF(NR.ge.1.and.NR.le.NRMAX)THEN
                   DO NP=NPSTARTW,NPENDWM
                      DO NTH=1,NTHMAX
 !                        FNSP(NTH,NP,NR,NSBA)=FNS(NTH,NP,NR,NSBA)  ! new step: variant in each N_IMPL ! for fp_load
                         FNSM(NTH,NP,NR,NSBA)=FNSP(NTH,NP,NR,NSBA) ! minus step: invariant during N_IMPL 
                      END DO
                   END DO
-               END IF
+!               END IF
             END DO
          END DO
  
@@ -85,6 +89,7 @@
             CALL TOP_OF_TIME_LOOP_DISRUPT(NT) ! include fpcoef
          END IF
          CALL GUTIME(gut_coef2)
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          nsw = NSAEND-NSASTART+1
          DO WHILE(N_IMPL.le.LMAXFP) ! start do while
@@ -101,11 +106,11 @@
 
                ISW_D=1
                CALL GUTIME(gut_exe1)
-               IF(ISW_D.eq.0)THEN ! separate p, r ! usually not use this
+               IF(ISW_D.eq.0)THEN 
                   CALL fp_exec(NSA,IERR,its) ! F1 and FNS0 changed
                ELSEIF(ISW_D.eq.1)THEN !
                   IF(MODEL_connor_fp.eq.1.or.MODEL_DISRUPT.eq.0)THEN ! Connor model doesn't require f evolution
-                     CALL fp_exec(NSA,IERR,its) ! F1 and FNS0 changed
+                     CALL fp_exec(NSA,IERR,its) ! F1 and FNS0 are changed
                   END IF
                   IERR=0
                END IF
@@ -231,6 +236,47 @@
             GUT_COEF = GUT_COEF + (gut_coef1-gut_cale7) + (gut_coef2-gut_loop1)
 
          END DO ! END OF DOWHILE
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+         IF(MODEL_BULK_CONST.eq.1)THEN
+!        Bulk f is replaced by Maxwellian
+            DO NSA=1, NSAMAX
+               DO NR=1, NRMAX
+                  NS=NS_NSA(NSA)
+                  tempn(NR,NS)=RN_TEMP(NR,NS)
+                  tempt(NR,NS)=RT_TEMP(NR,NS)
+               END DO
+            END DO
+
+            DO NSA=NSASTART, NSAEND
+               NS=NS_NSB(NSA)
+               DO NR=NRSTARTW, NRENDWM
+                  RHON=RM(NR)
+                  CALL PL_PROF(RHON,PLF)
+                  RN_TEMP(NR,NS)=PLF(NS)%RN
+                  RT_TEMP(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+
+                  DO NP=NPSTART, NPEND
+                     IF(NP.le.NP_BULK(NR,NSA))THEN
+                        DO NTH=1, NTHMAX
+                           FL=FPMXWL_EXP(PM(NP,NSA),NR,NS)
+                           FNS0(NTH,NP,NR,NSA)=FL
+                           FNSP(NTH,NP,NR,NSA)=FL
+                        END DO
+                     END IF
+                  END DO
+               END DO
+            END DO
+
+            DO NSA=1, NSAMAX
+               DO NR=1, NRMAX
+                  NS=NS_NSA(NSA)
+                  RN_TEMP(NR,NS)=tempn(NR,NS)
+                  RT_TEMP(NR,NS)=tempt(NR,NS)
+               END DO
+            END DO
+         END IF
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          DO NSA=NSASTART,NSAEND
@@ -376,8 +422,10 @@
             WRITE(9,'(1PE12.4,I6,1P30E17.8e3)') PTG(NTG1)*1000, NP, PM(NP,1), &
                  PM(NP,1)*PTFP0(1)/AMFP(1)/VC/SQRT(1.D0+PM(NP,1)**2*THETA0(1)), &
                  PM(NP,1)**2, &
-                 PTFP0(1)**2*PM(NP,1)**2/(AEE*AMFP(1)*1.D3), FNS(1,NP,1,2), FNS(NTHMAX-3,NP,1,2), &
+                 PTFP0(1)**2*PM(NP,1)**2/(AEE*AMFP(1)*1.D3), FNS(1,NP,1,2), FNS(4,NP,1,2), & ! ion
                  FNS(NTHMAX/2,NP,1,2), pitch_angle_av!, &
+!                 PTFP0(1)**2*PM(NP,1)**2/(AEE*AMFP(1)*1.D3), FNS(1,NP,1,1), FNS(NTHMAX,NP,1,1), & ! electron
+!                 FNS(NTHMAX/2,NP,1,1), pitch_angle_av!, &
          END DO
          WRITE(9,*) " "
          WRITE(9,*) " "
@@ -388,25 +436,28 @@
 !         DO NSA=1,NSAMAX
 !            SELECT CASE(NSA)
 !            CASE(1)
-!               open(9,file='fns_e.dat')
+!               open(29,file='fns_e.dat')
 !            CASE(2)
-!               open(9,file='fns_D.dat')
+!               open(29,file='fns_D.dat')
 !            CASE(3)
-!               open(9,file='fns_T.dat')
+!               open(29,file='fns_T.dat')
 !            END SELECT
 !            IF(NSA.LE.3) THEN
 !               DO NR=1,NRMAX
 !                  DO NP=1,NPMAX
 !                     DO NTH=1,NTHMAX
-!                        WRITE(9,'(3I4,3E17.8)') NR, NP, NTH, &
-!                             FNS(NTH,NP,NR,NSA), &
-!                             PM(NP,NSA)*COSM(NTH), PM(NP,NSA)*SINM(NTH)
+!!                        WRITE(9,'(3I4,3E17.8)') NR, NP, NTH, &
+!!                             FNS(NTH,NP,NR,NSA), &
+!!                             PM(NP,NSA)*COSM(NTH), PM(NP,NSA)*SINM(NTH)
+!                        WRITE(29,'(5E17.8)') PM(NP,NSA), THM(NTH), &
+!                             PM(NP,NSA)*COSM(NTH), PM(NP,NSA)*SINM(NTH), &
+!                             FNS(NTH,NP,NR,NSA)
 !                     END DO
 !                  END DO
-!                  WRITE(9,*) " "
-!                  WRITE(9,*) " "
+!                  WRITE(29,*) " "
+!                  WRITE(29,*) " "
 !               END DO
-!               close(9)
+!               close(29)
 !            ENDIF
 !         END DO
 !      END IF

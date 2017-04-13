@@ -539,8 +539,9 @@
       IMPLICIT NONE
 
       OPEN(9,file="f1_1.dat") 
+!      OPEN(24,file="time_evol_f1.dat") 
       IF(MODEL_DISRUPT.ne.0.and.NRANK.eq.0)THEN
-         OPEN(9,file="f1_1.dat") 
+!         OPEN(9,file="f1_1.dat") 
          open(10,file='time_evol.dat') 
          open(11,file='efield_e1.dat') 
          open(12,file='dndt.dat') 
@@ -563,6 +564,7 @@
       IMPLICIT NONE
 
       close(9)
+!      close(24)
       IF(MODEL_DISRUPT.ne.0.and.NRANK.eq.0)THEN
          close(10)
          close(11)

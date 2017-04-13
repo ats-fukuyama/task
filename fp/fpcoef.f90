@@ -92,7 +92,15 @@
 !     ----- Particle source term -----
 
       CALL FP_CALS
-!
+
+!     ----- Charge Exchange Loss Term ----
+      IF(MODEL_CX_LOSS.eq.1)THEN
+         DO NSA=NSASTART, NSAEND
+            IF(PA(NSA).eq.1.D0.or.PA(NSA).eq.2.D0)THEN
+               CALL CX_LOSS_TERM(NSA) 
+            END IF
+         END DO
+      END IF
 !     ----- Sum up velocity diffusion terms -----
 
       DO NSA=NSASTART,NSAEND
@@ -104,6 +112,7 @@
             DPT(NTH,NP,NR,NSA)=DCPT(NTH,NP,NR,NSA)+DWPT(NTH,NP,NR,NSA)
             FPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)+FCPP(NTH,NP,NR,NSA) &
                  + FSPP(NTH,NP,NR,NSA) + FLPP(NTH,NP,NR,NSA)
+!            WRITE(*,'(A,5I5,3E14.6)') "TEST1 ", NRANK, NSA, NR, NP, NTH, DCPP(NTH,NP,NR,NSA), FEPP(NTH,NP,NR,NSA), EP(NR)
          ENDDO
          ENDDO
 !
@@ -113,6 +122,7 @@
             DTT(NTH,NP,NR,NSA)=DCTT(NTH,NP,NR,NSA)+DWTT(NTH,NP,NR,NSA)
             FTH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)+FCTH(NTH,NP,NR,NSA) &
                               +FSTH(NTH,NP,NR,NSA)
+!            WRITE(*,'(A,5I5,3E14.6)') "TEST2 ", NRANK, NSA, NR, NP, NTH, DCTT(NTH,NP,NR,NSA), FETH(NTH,NP,NR,NSA), EP(NR)
          ENDDO
          ENDDO
       ENDDO
@@ -265,6 +275,7 @@
                SPPS(NTH,NP,NR,NSA)=0.D0
                SPPI(NTH,NP,NR,NSA)=0.D0
                SPPD(NTH,NP,NSA)=0.D0
+               IF(MODEL_CX_LOSS.eq.1) SPPL_CX(NTH,NP,NR,NSA)=0.D0
             ENDDO
          ENDDO
          ENDDO
@@ -342,11 +353,11 @@
                   END IF
                ENDDO
             ENDDO
-         ELSEIF(ISW_LOSS.eq.1)THEN ! loss term depends on initial FNS
+         ELSEIF(ISW_LOSS.eq.1)THEN ! loss term depends on initial FNS, const total density
             SUML=0.D0
             DO NR=NRSTART,NREND
                DO NP=NPSTART,NPEND
-                  IF(PM(NP,NSBA).le.5.D0)THEN ! for beam benchmark
+                  IF(PM(NP,NSBA).le.NP_BULK(NR,NSBA))THEN ! for beam benchmark
                      FL=FPMXWL(PM(NP,NSBA),NR,NS) 
                      DO NTH=1,NTHMAX
                         SUML = SUML &
@@ -428,9 +439,21 @@
          RL=RM(NR)
          RHON=RL
       ENDIF
-      CALL PL_PROF(RHON,PLF)
-      RNFDL=PLF(NS)%RN/RNFD0L
-      RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+      IF(MODEL_EX_READ.eq.0)THEN
+         CALL PL_PROF(RHON,PLF)
+         RNFDL=PLF(NS)%RN/RNFD0L
+         RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+      ELSEIF(MODEL_EX_READ.eq.1)THEN
+         RNFDL=RN_TEMP(NR,NS)/RNFD0L
+         RTFDL=RT_TEMP(NR,NS)
+         IF(NR.eq.0)THEN
+            RNFDL=RN_TEMP(1,NS)/RNFD0L
+            RTFDL=RT_TEMP(1,NS)
+         ELSEIF(NR.eq.NRMAX+1)THEN
+            RNFDL=RNE_EXP_EDGE/RNFD0L
+            RTFDL=RTE_EXP_EDGE
+         END IF
+      END IF
 
       IF(MODELR.EQ.0) THEN
          FACT=RNFDL/SQRT(2.D0*PI*RTFDL/RTFD0L)**3
@@ -441,6 +464,7 @@
          THETAL=THETA0L*RTFDL/RTFD0L
          Z=1.D0/THETAL
          DKBSL=BESEKN(2,Z)
+!         WRITE(*,'(A,2I5,4E14.6)') "TEST MXWL ", NR, NS, PML, Z, THETAL, DKBSL
          FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DKBSL) &
               *RTFD0L
          EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
@@ -466,19 +490,15 @@
       RTFD0L=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
       PTFD0L=SQRT(RTFD0L*1.D3*AEE*AMFDL)
 
-!      IF(NR.eq.NRMAX)THEN
-!         RL=RM(NR)
-!         RHON=RL
-!      ELSEIF(NR.EQ.NRMAX+1) THEN
-!         RL=RM(NRMAX)+DELR
-!         RHON=MIN(RL,1.D0)
-!      ENDIF
+      IF(MODEL_EX_READ.eq.0)THEN
+         CALL PL_PROF(RHON,PLF)
+         RNFDL=PNS(NS)/RNFD0L*1.D-1
+         RTFDL=PTS(NS)*1.D-2
+      ELSEIF(MODEL_EX_READ.eq.1)THEN
+         RNFDL=RNE_EXP_EDGE/RNFD0L*1.D-1
+         RTFDL=RTE_EXP_EDGE*1.D-1
+      END IF
 
-!      CALL PL_PROF(RHON,PLF)
-!      RNFDL=PLF(NS)%RN/RNFD0L
-!      RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
-      RNFDL=PNS(NS)/RNFD0L*1.D-1
-      RTFDL=PTS(NS)*1.D-2
 
       IF(MODELR.EQ.0) THEN
          FACT=RNFDL/SQRT(2.D0*PI*RTFDL/RTFD0L)**3
@@ -492,11 +512,11 @@
          THETA0L=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)
          THETAL=THETA0L*RTFDL/RTFD0L
          Z=1.D0/THETAL
-            DKBSL=BESEKN(2,Z)
-            FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DKBSL) &
-             *RTFD0L
-            EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
-            FPMXWL_S=FACT*EXP(EX)
+         DKBSL=BESEKN(2,Z)
+         FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DKBSL) &
+              *RTFD0L
+         EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
+         FPMXWL_S=FACT*EXP(EX)
       END IF
 
       RETURN
@@ -1071,7 +1091,8 @@
       INTEGER:: NS,NTH,NP,NR,NSB
       real(kind8):: tau_imp, FACTZ, imp_charge, SUM_MGI
 
-      tau_imp=5.D0*tau_quench
+!      tau_imp=5.D0*tau_quench
+      tau_imp=tau_mgi
 !      N_impu=3
 !      target_zeff_mgi=3.D0
 !      SPITOT=0.5D0 ! m^-3 on axis ! desired value of e dens.
@@ -1168,5 +1189,39 @@
 
 
       END SUBROUTINE DELTA_B_LOSS_TERM
+!-------------------------------------------------------------
+      SUBROUTINE CX_LOSS_TERM(NSA)
+
+      IMPLICIT NONE
+      integer,intent(in):: NSA
+      double precision:: sigma_cx, k_energy, log_energy
+      integer:: NP, NTH, NR
+
+      DO NR=NRSTART, NREND
+         DO NP=NPSTART, NPEND
+            k_energy = 0.5D0*(PTFP0(NSA)*PM(NP,NSA))**2/(AMFP(NSA)*AEE)
+            log_energy = dlog10(k_energy)
+!     sigma_cx in literature is written in [cm^2]
+            sigma_cx = 0.6937D-14*(1.D0-0.155D0*log_energy)**2/ &
+                 (1.D0+0.1112D-14*k_energy**3.3D0)*1.D-4
+!            WRITE(*,'(I5,1P4E14.6)') NP, PM(NP,NSA), k_energy, k_energy*AEE, sigma_cx*1.D4
+
+            DO NTH=1, NTHMAX
+               SPPL_CX(NTH,NP,NR,NSA) = -RN_NEU0*1.D20 &
+                    *sigma_cx*VTFP0(NSA)*PM(NP,NSA)*FNSP(NTH,NP,NR,NSA)
+            END DO
+
+         END DO
+      END DO
+      
+!      DO NR=NRSTART, NREND
+!         DO NP=NPSTART, NPEND
+!            DO NTH=1, NTHMAX
+!               SPPL(NTH,NP,NR,NSA) = SPPL(NTH,NP,NR,NSA) + SPPL_CX(NTH,NP,NR,NSA)
+!            END DO
+!         END DO
+!      END DO
+
+      END SUBROUTINE CX_LOSS_TERM
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       END MODULE fpcoef

@@ -161,6 +161,12 @@
       SPFRW=0.2d0
       SPFENG=3.5D6
 
+!-----CHARGE EXCHANGE REACTION-------------------------------------------
+!     MODEL_CX_LOSS: 0=off, 1=on 
+!     RN_NEU0      : neutral gas density [m^-3] D or H gas is assumed temporally
+
+      MODEL_CX_LOSS=0
+      RN_NEU0 = 1.D-14
 !-----RADIAL DIFFUSION--------------------------------------------------
 !     DRR0  : radial diffusion coefficient at magnetic axis [m^2/s]
 !     DRRS  : radial diffusion coefficient at plasma surface [m^2/s]
@@ -274,8 +280,10 @@
 !     MODEL_SYNCH     : 1 for synchlotron radiation
 !     MODEL_NBI       : 1 for NBI calculation
 !     MODEL_WAVE      : 1 for wave calculation
-!     MODEL_EX_READ   : 0 for preduction
+!     MODEL_BULK_CONST: 0 ordinary, 1: for bench mark
+!     MODEL_EX_READ   : 0 for prediction
 !                     : 1 read experiment data RN_READ and RT_READ
+!     time_exp_offset : TIMEFP + time_exp_offset = time in experiment
 
       MODELE= 0
       MODELA= 0
@@ -300,6 +308,8 @@
       MODEL_WAVE=0 ! 0=no wave calc., 1=wave calc.
 
       MODEL_EX_READ=0
+      MODEL_BULK_CONST=0
+      time_exp_offset=0.D0
 !-----COMPUTATION PARAMETERS------------------------------------------
 !     DELT  : time step size (s)
 !     RIMPL : implicit computation parameter
@@ -505,7 +515,8 @@
            PGMAX,RGMAX,RGMIN, &
            T0_quench,tau_quench,tau_mgi, &
            time_quench_start,RJPROF1,RJPROF2, &
-           v_RE,target_zeff,SPITOT, MODEL_EX_READ, FACT_BULK
+           v_RE,target_zeff,SPITOT, MODEL_EX_READ, &
+           FACT_BULK, time_exp_offset, MODEL_BULK_CONST, RN_NEU0, MODEL_CX_LOSS
 
       READ(nid,FP,IOSTAT=ist,ERR=9800,END=9900)
 
@@ -561,6 +572,7 @@
       WRITE(6,*) '      T0_quench,tau_quench,tau_mgi,'
       WRITE(6,*) '      time_quench_start,RJPROF1,RJPROF2,'
       WRITE(6,*) '      v_RE,target_zeff,SPITOT,MODEL_EX_READ,FACT_BULK'
+      WRITE(6,*) '      time_exp_offset, MODEL_BULK_CONST, RN_NEU0, MODEL_CX_LOSS'
 
       RETURN
     END SUBROUTINE fp_plst
@@ -750,8 +762,10 @@
       idata(57)=N_partition_s
       idata(58)=N_partition_p
       idata(59)=MODEL_EX_READ
+      idata(60)=MODEL_BULK_CONST
+      idata(61)=MODEL_CX_LOSS
 
-      CALL mtx_broadcast_integer(idata,59)
+      CALL mtx_broadcast_integer(idata,61)
       NSAMAX         =idata( 1)
       NSBMAX         =idata( 2)
       LMAXNWR        =idata( 3)
@@ -814,6 +828,8 @@
       N_partition_s  =idata(57)
       N_partition_p  =idata(58)
       MODEL_EX_READ  =idata(59)
+      MODEL_BULK_CONST =idata(60)
+      MODEL_CX_LOSS  =idata(61)
 
       CALL mtx_broadcast_integer(NS_NSA,NSAMAX)
       CALL mtx_broadcast_integer(NS_NSB,NSBMAX)
@@ -885,8 +901,10 @@
       rdata(61)=target_zeff
       rdata(62)=SPITOT
       rdata(63)=FACT_BULK
+      rdata(64)=time_exp_offset
+      rdata(65)=RN_NEU0
 
-      CALL mtx_broadcast_real8(rdata,63)
+      CALL mtx_broadcast_real8(rdata,65)
       R1               =rdata( 1)
       DELR1            =rdata( 2)
       RMIN             =rdata( 3)
@@ -950,6 +968,8 @@
       target_zeff      =rdata(61)
       SPITOT           =rdata(62)
       FACT_BULK        =rdata(63)
+      time_exp_offset  =rdata(64)
+      RN_NEU0          =rdata(65)
 
       CALL mtx_broadcast_real8(pmax,NSAMAX)
       CALL mtx_broadcast_real8(pmax_bb,NSAMAX)

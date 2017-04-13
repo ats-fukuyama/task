@@ -520,15 +520,18 @@
       C_ = 0.56D0/Z_i*(3.0D0-Z_i)/(3.D0+Z_i)
       f_t=1.D0 -(1.D0-EPSRM2(NR))**2 &
                /( SQRT(1.D0-EPSRM2(NR)**2)*(1.D0+1.46D0*SQRT(EPSRM2(NR))) )
-      phi = f_t/(1.D0 + (0.58D0+0.2D0*Z_i)*theta_l**2 &
+!      phi = f_t/(1.D0 + (0.58D0+0.2D0*Z_i)*theta_l**2 &
+!                       *(2.D0*RR*QLM(NR)*EPSRM2(NR)**(-1.5D0) ) &
+!                       /(3.D0*SQRT(2.D0*PI)*VC*tau_rela) )
+      phi = f_t/(1.D0 + (0.58D0+0.2D0*Z_i) &
                        *(2.D0*RR*QLM(NR)*EPSRM2(NR)**(-1.5D0) ) &
-                       /(3.D0*SQRT(2.D0*PI)*VC*tau_rela) )
+                       /(3.D0*SQRT(2.D0*PI)*VC*tau_rela)/theta_l**2 )
       neoc=(1.D0-phi)*(1.D0-C_*phi)*(1.D0+0.47D0*(Z_i-1.D0))/ &
            (Z_i*(1.D0+0.27D0*(Z_i-1.D0)) )
 
-      neoc=( 1.D0-SQRT(EPSRM2(NR)) )**2 ! simple correction
-!      sigma=sigma*neoc
-      sigma=sigma*1.D0
+!      neoc=( 1.D0-SQRT(EPSRM2(NR)) )**2 ! simple correction
+      sigma=sigma*neoc
+!      sigma=sigma*1.D0
 !      WRITE(*,'(2I,6E14.6)') NRANK, NR, SIGMA, neoc, Z_i, phi, tau_rela, POST_LNLAM(NR,1,1)
 
       END SUBROUTINE SPITZER_SIGMA
@@ -1699,7 +1702,7 @@
 ! nth-re
          WRITE(14,'(A, 1PE15.6e3, i7)') "# TIME ", TIMEFP, N_f1 ! RE_pitch.dat
          DO NTH=1,NTHMAX
-            WRITE(14,'(I4, 1P13E17.8e3)'), NTH, RE_PITCH(NTH), SINM(NTH)
+            WRITE(14,'(I4, 1P13E17.8e3)'), NTH, RE_PITCH(NTH), SINM(NTH), THM(NTH)
          END DO
          WRITE(14,'(A)') " "
          WRITE(14,'(A)') " "

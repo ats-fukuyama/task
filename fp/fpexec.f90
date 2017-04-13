@@ -1031,7 +1031,8 @@
                 +SPPF(NTH,NP,NR,NSA) &
                 +SPPS(NTH,NP,NR,NSA) &
                 +SPPL(NTH,NP,NR,NSA) &
-                +SPPI(NTH,NP,NR,NSA) ) 
+                +SPPI(NTH,NP,NR,NSA) &
+                +SPPL_CX(NTH,NP,NR,NSA) )
 
       IF(MODELD.GT.0.AND.NR.EQ.NRMAX) THEN
          SPPD(NTH,NP,NSA)= FS2(NTH,NP,NSA) &

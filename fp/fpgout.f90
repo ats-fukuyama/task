@@ -1315,10 +1315,12 @@
       ELSEIF(MODE.EQ.4) THEN
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX
-!               IF(FG(NTH,NP,NR).LT.1.D-70) THEN
-!                  GF(NP,NTH)=-70.0
-               IF(FG(NTH,NP,NR).LT.1.D-12) THEN
-                  GF(NP,NTH)=-12.0
+               IF(FG(NTH,NP,NR).LT.1.D-70) THEN ! TEST
+                  GF(NP,NTH)=-70.0
+!               IF(FG(NTH,NP,NR).LT.1.D-50) THEN ! TEST
+!                  GF(NP,NTH)=-50.0
+!               IF(FG(NTH,NP,NR).LT.1.D-12) THEN 
+!                  GF(NP,NTH)=-12.0
                ELSE
                   GF(NP,NTH)=GUCLIP(LOG10(ABS(FG(NTH,NP,NR))))
                ENDIF

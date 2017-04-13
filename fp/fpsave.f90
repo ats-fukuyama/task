@@ -23,7 +23,7 @@
       integer:: NR, NSA, NSB, NSBA, NP, NTH, NS, NPS, NPE
       integer:: IERR
       real(8):: RSUM1, RSUM2, RSUM3, RSUM4, RSUM5, RSUM6, RSUM7, RSUM_FS2
-      real(8):: RSUM8, RSUM9, RSUM123, RSUM11B,RSUM11F,RSUM11S,RSUM11L
+      real(8):: RSUM8, RSUM9, RSUM123, RSUM11B,RSUM11F,RSUM11S,RSUM11L,RSUM11S_CX
       real(8):: RSUM12, RSUM_IC, rsum_test, RSUM1R,RSUM2R, RSUM_synch, RSUM_loss
       real(8):: PV, WPL, WPM, WPP
       real(8):: DFP, DFT, FFP, testa, testb, FACT, DFDP, WRL, WRH, DINT_DFDT_R1, DINT_DFDT_R2
@@ -33,12 +33,13 @@
       real(8),dimension(NTHMAX,NPMAX):: T_BULK
       real(8),dimension(NPSTART:NPEND):: RPL_BULK_send
       real(8),dimension(NPMAX):: RPL_BULK_recv
-!      integer,dimension(NRSTART:NREND,NSBMAX):: NP_BULK
       real(8):: ratio, RSUM_T, RSUM_V, P_BULK_R, RATIO_0_S
       real(8):: SRHOR1, SRHOR2, RSUM_DRS, RSUMN_DRS
       real(8):: DSDR, SRHOP, SRHOM, RSUM63
       real:: gut1,gut2
-      real(8)::FLUXS_PMAX,FLUXS_PC, rtemp, DRRM, DRRp, RL, PMAX_BULK
+      real(8)::FLUXS_PMAX,FLUXS_PC, rtemp, DRRM, DRRp, RL, PMAX_BULK, RTFPL, RHON
+      real(8),dimension(NRMAX):: P_BULK_R2
+      TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
 
       IF(ISAVE.NE.0) RETURN
       CALL GUTIME(gut1)
@@ -54,6 +55,38 @@
       END DO
 
       CALL mtx_set_communicator(comm_np) 
+
+
+!     DEFINE BULK MOMENTUM RANGE: 0 < NP < NP_BULK(NR,NSA) 
+!      DO NSA=NSASTART, NSAEND
+      DO NSA=1, NSAMAX
+!         DO NR=NRSTART, NREND
+         DO NR=1, NRMAX
+            IF(NT_init.eq.0)THEN
+               PMAX_BULK = FACT_BULK
+!               P_BULK_R = PMAX_BULK* RTFP(NR,NSA)/RTFP0(NSA)
+               P_BULK_R = PMAX_BULK* RT_TEMP(NR,NSA)/RTFP0(NSA)
+            ELSE
+               RHON=RM(NR)
+               CALL PL_PROF(RHON,PLF)
+               NS=NS_NSA(NSA)
+               RTFPL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+               PMAX_BULK = SQRT( RT_BULK(NR,NSA)/RTFPL )*FACT_BULK
+!               PMAX_BULK = SQRT( RT_BULK(NR,NSA)/RTFP(NR,NSA) )*FACT_BULK
+               P_BULK_R = PMAX_BULK* RT_BULK(NR,NSA)/RTFP0(NSA)
+            END IF
+            DO NP=NPMAX, 1, -1
+               IF(P_BULK_R.lt.PG(NP,NSA)) NP_BULK(NR,NSA)=NP
+            END DO
+            IF(PMAX(NSA).lt.P_BULK_R)THEN
+               NP_BULK(NR,NSA) = NPMAX
+            END IF
+!            IF(NPSTART.eq.1) &
+!                 WRITE(*,'(A,3I5,1P4E14.6)') "TEST NP_BULK =",NSA, NR, NP_BULK(NR,NSA), FACT_BULK, PMAX_BULK, P_BULK_R, RT_BULK(NR,NSA)
+         END DO
+      END DO
+
+
       DO NR=NRSTART,NREND
          DO NSA=NSASTART,NSAEND
             NS=NS_NSA(NSA)
@@ -79,6 +112,7 @@
             RSUM11F=0.D0
             RSUM11S=0.D0
             RSUM11L=0.D0
+            RSUM11S_CX=0.D0
 
             RSUM12=0.D0
 
@@ -97,21 +131,6 @@
                ENDDO
             END IF
 
-!           DEFINE BULK MOMENTUM RANGE: 0 < NP < NP_BULK(NR,NSA) 
-            IF(NT_init.eq.0)THEN
-               PMAX_BULK = FACT_BULK
-            ELSE
-               PMAX_BULK = SQRT( RT_BULK(NR,NSA)/RTFP(NR,NSA) )*FACT_BULK
-            END IF
-            RATIO_0_S=SQRT(RTFPS(NSA)/RTFP0(NSA)) ! p_th(r)/p_th(0)
-            P_BULK_R = PMAX_BULK* ( (1.D0-RATIO_0_S)*(1.D0-RM(NR)**2)+RATIO_0_S )
-            DO NP=NPMAX, 1, -1
-               IF(P_BULK_R.lt.PG(NP,NSA)) NP_BULK(NR,NSA)=NP
-            END DO
-            IF(PMAX(NSA).lt.P_BULK_R)THEN
-               NP_BULK(NR,NSA) = NPMAX
-            END IF
-!            IF(NRANK.eq.0) WRITE(*,'(A,3I5,3E14.6)') "TEST NP_BULK =",NSA, NR, NP_BULK(NR,NSA),FACT_BULK,PMAX_BULK,P_BULK_R
                
 !
             IF(MODELA.eq.0) THEN
@@ -322,7 +341,9 @@
 !                     END IF
                      RSUM11L = RSUM11L + PM(NP,NSBA)**2*SINM(NTH) &
                           *(PV-1.D0)/THETA0(NSA)* PPL(NTH,NP,NR,NSA)&
-                          *FNSP(NTH,NP,NR,NSBA)!*RLAMDA(NTH,NR)!*RFSADG(NR) PPL includes RLAMDA
+                          *FNSP(NTH,NP,NR,NSBA)!*RLAMDA(NTH,NR)!*RFSADG(NR) PPL includes RLAMDA 
+                     RSUM11S_CX = RSUM11S_CX + PM(NP,NSBA)**2*SINM(NTH) &
+                          *(PV-1.D0)/THETA0(NSA)*SPPL_CX(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
                   END DO
                END DO
             ELSE ! MODELR=0
@@ -342,6 +363,8 @@
                      RSUM11L = RSUM11L + PM(NP,NSBA)**2*SINM(NTH) &
                           *0.5D0*PM(NP,NSBA)**2*PPL(NTH,NP,NR,NSA) &
                           *FNSP(NTH,NP,NR,NSBA)!*RLAMDA(NTH,NR)!*RFSADG(NR)
+                     RSUM11S_CX = RSUM11S_CX + PM(NP,NSBA)**2*SINM(NTH) &
+                          *0.5D0*PM(NP,NSBA)**2*SPPL_CX(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
                   END DO
                END DO
             END IF
@@ -456,6 +479,7 @@
             CALL p_theta_integration(RSUM11F)
             CALL p_theta_integration(RSUM11S)
             CALL p_theta_integration(RSUM11L)
+            CALL p_theta_integration(RSUM11S_CX)
             DO NSB=1,NSBMAX
                CALL p_theta_integration(RSUM10(NSB))
             END DO
@@ -491,6 +515,7 @@
             RSPFL(NR,NSA)= RSUM11F*FACT*2.D0*PI*DELP(NSBA)*DELTH*1.D-6
             RSPSL(NR,NSA)= RSUM11S*FACT*2.D0*PI*DELP(NSBA)*DELTH*1.D-6
             RSPLL(NR,NSA)= RSUM11L*FACT*2.D0*PI*DELP(NSBA)*DELTH*1.D-6
+            RSPSL_CX(NR,NSA)= RSUM11S_CX*FACT*2.D0*PI*DELP(NSBA)*DELTH*1.D-6
          ENDDO ! NSA
       ENDDO ! NR
       CALL mtx_reset_communicator 
@@ -849,7 +874,8 @@
 !                    RPCT2(NR,NSA,NSA,NTG2), &
 !                    RECT(NR,NSA,NTG2),    &
 !RSPFT(NR,NSA,NTG2),RPDRT(NR,NSA,NTG2), &
-                    RPDR(NR,NSA), &
+!                    RPDR(NR,NSA), &
+                    RSPS_CX(NR,NSA), &
                     RT_BULK(NR,NSA)!, &
 !                    TEMP, conduct_sp(NR)
             END IF
@@ -952,7 +978,6 @@
 !           /(RNS(NR,NSA)*1.D20*PTFP0(NSA)**2*1.D-6)
       EAVE=RWSL_*AMFP(NSA)*THETA0(NSA) & 
            /(RNSL_*1.D20*PTFP0(NSA)**2*1.D-6)
-
 !-----initial value of THETAL
       THETAL=2.d0*EAVE/3.d0
       xtemp=AMFP(NSA)*VC**2*THETAL/(AEE*1.D3)
@@ -1091,11 +1116,15 @@
          CALL fp_gatherv_real8_sav(RDIDTL,SAVLEN(NRANK+1),RDIDT,N,NSA)
          CALL fp_gatherv_real8_sav(RPSSL,SAVLEN(NRANK+1),RPSS,N,NSA)
          CALL fp_gatherv_real8_sav(RPLSL,SAVLEN(NRANK+1),RPLS,N,NSA)
+         CALL fp_gatherv_real8_sav(RSPSL_CX,SAVLEN(NRANK+1),RSPS_CX,N,NSA)
       END DO
+      work(:,:)=0.D0
+      workg(:,:)=0.D0
       DO NSB=1,NSBMAX
          DO NSA=NSASTART,NSAEND
             DO NR=NRSTART,NREND
                work(NR,NSA) = RPCS2L(NR,NSB,NSA)
+!               WRITE(*,'(A,3I5,2E14.6)') "TEST WORK ", NPSTART, NSB, NSA, work(NR,NSA), RPCS2L(NR,NSB,NSA)
             END DO
          END DO
          DO N=1,NSW
@@ -1106,6 +1135,7 @@
          DO NSA=1,NSAMAX
             DO NR=1,NRMAX
                RPCS2(NR,NSB,NSA) = workg(NR,NSA)
+!               WRITE(*,'(A,3I5,2E14.6)') "TEST WORKG ", NPSTART, NSB, NSA, workg(NR,NSA), RPCS2(NR,NSB,NSA)
             END DO
          END DO
       ENDDO
@@ -1264,24 +1294,42 @@
       real(8):: rtemp, rhon
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
 
-      DO NS=1,NSMAX
-         DO NR=1,NRMAX
-            RHON=RM(NR) 
-            CALL PL_PROF(RHON,PLF) 
-            RN_TEMP(NR,NS)=PLF(NS)%RN
-            RT_TEMP(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
-         ENDDO
-      END DO
-      Do NSA=1,NSAMAX
-         NS=NS_NSA(NSA)
-         IF(NS.NE.0)THEN
+      IF(MODEL_EX_READ.eq.0)THEN
+         DO NS=1,NSMAX
             DO NR=1,NRMAX
-               RN_TEMP(NR,NS) = RNS(NR,NSA)
-               RT_TEMP(NR,NS) = RT_BULK(NR,NSA)
+               RHON=RM(NR) 
+               CALL PL_PROF(RHON,PLF) 
+               RN_TEMP(NR,NS)=PLF(NS)%RN
+               RT_TEMP(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+            ENDDO
+         END DO
+         Do NSA=1,NSAMAX
+            NS=NS_NSA(NSA)
+            IF(NS.NE.0)THEN
+               DO NR=1,NRMAX
+                  RN_TEMP(NR,NS) = RNS(NR,NSA)
+                  RT_TEMP(NR,NS) = RT_BULK(NR,NSA)
 !               RT_TEMP(NR,NS) = RT_T(NR,NSA)
-            END DO
-         END IF
-      ENDDO
+               END DO
+            END IF
+         ENDDO
+      ELSEIF(MODEL_EX_READ.eq.1)THEN
+         DO NS=1,NSMAX
+            DO NR=1,NRMAX
+               RN_TEMP(NR,NS)=RN_READ(NR,NS)
+               RT_TEMP(NR,NS)=RT_READ(NR,NS)
+            ENDDO
+         END DO
+         Do NSA=1,NSAMAX
+            NS=NS_NSA(NSA)
+            IF(NS.NE.0)THEN
+               DO NR=1,NRMAX
+                  RN_TEMP(NR,NS)=RN_READ(NR,NS)
+                  RT_TEMP(NR,NS)=RT_READ(NR,NS)
+               END DO
+            END IF
+         ENDDO         
+      END IF
 
       RETURN
       END SUBROUTINE FPSPRF2
@@ -1330,8 +1378,8 @@
       real(8),dimension(NPMAX):: RPL_BULK_recv
       real(8):: RNL_BULK, RWL_BULK, rtemp
 
-      ISW_BULK=0 ! sometimes DFDP becomes 0 and then it makes density NaN
-!      ISW_BULK=1 ! requires higher FACT_BULK (FACT_BULK > 5) to obtain accurate T_bulk
+      ISW_BULK=0 ! sometimes DFDP becomes 0 and then it makes density NaN. (for FACT_BULK < 4)
+!      ISW_BULK=1 ! requires higher FACT_BULK (FACT_BULK >= 4) to obtain accurate RT_bulk
 
       NS=NS_NSA(NSA)
       NSBA=NSB_NSA(NSA)

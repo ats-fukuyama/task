@@ -609,7 +609,7 @@
       real(8):: PNFPL, RGAMA, vtatb, ptatb, PCRIT
       real(8):: RINT0, ES0, RINT1, ES1, RINT2, ES2, RINT4, ES4, RINT5, ES5
       real(8):: RINT6, ES6, RINT7, ES7, RINT8, ES8, RINT9, ES9
-      real(8):: RINT3, ES3, p_thermal, v_thermal, pe_thermal, EX
+      real(8):: RINT3, ES3, p_thermal, v_thermal, pe_thermal, EX, RNFDL
 
 !     ------ define --------
       RNNL=RNFD(NR,NSB)/RNFP0(NSA)
@@ -638,56 +638,71 @@
                RTFDL_C=RT_quench(NR) ! [keV]
                v_thermal=SQRT( RTFDL_C*1.D3*AEE/AMFD(NSB))
             END IF
-         DO NP=NPSTART,NPENDWG
-            IF(NP.EQ.1) THEN
-               DCPPL=RGAMH*RNFD(NR,NSB)*1.D20*(2.D0/(3.D0*SQRT(PI))) &
-                          *(VTFP0(NSA)/(SQRT(2.D0)*VTFD(NR,NSB))) 
-               FCPPL=0.D0
-            ELSE
-               PFPL=PG(NP,NSBA)*PTFP0(NSA)
-               VFPL=PFPL/AMFP(NSA)
-               V=VFPL/VTFP0(NSA)
+            DO NP=NPSTART,NPENDWG
+               IF(NP.EQ.1) THEN
+                  DCPPL=RGAMH*RNFD(NR,NSB)*1.D20*(2.D0/(3.D0*SQRT(PI))) &
+                       *(VTFP0(NSA)/(SQRT(2.D0)*VTFD(NR,NSB))) 
+                  FCPPL=0.D0
+               ELSE
+                  PFPL=PG(NP,NSBA)*PTFP0(NSA)
+                  VFPL=PFPL/AMFP(NSA)
+                  V=VFPL/VTFP0(NSA)
 !               U=VFPL/(SQRT(2.D0)*VTFD(NR,NSB))
-               U=VFPL/(SQRT(2.D0)*v_thermal)
-               DCPPL= 0.5D0*RNUDL/U   *(ERF0(U)/U**2-ERF1(U)/U)
-               FCPPL=-      RNUFL/U**2*(ERF0(U)-U*ERF1(U))
-            ENDIF
-            DO NTH=1,NTHMAX
-               DCPP2(NTH,NP,NR,NSB,NSA)=DCPP2(NTH,NP,NR,NSB,NSA)+DCPPL
-               FCPP2(NTH,NP,NR,NSB,NSA)=FCPP2(NTH,NP,NR,NSB,NSA)+FCPPL
-            ENDDO
+                  U=VFPL/(SQRT(2.D0)*v_thermal)
+                  DCPPL= 0.5D0*RNUDL/U   *(ERF0(U)/U**2-ERF1(U)/U)
+                  FCPPL=-      RNUFL/U**2*(ERF0(U)-U*ERF1(U))
+               ENDIF
+               DO NTH=1,NTHMAX
+                  DCPP2(NTH,NP,NR,NSB,NSA)=DCPP2(NTH,NP,NR,NSB,NSA)+DCPPL
+                  FCPP2(NTH,NP,NR,NSB,NSA)=FCPP2(NTH,NP,NR,NSB,NSA)+FCPPL
+               ENDDO
 !            WRITE(*,'(3I4,3E16.8)') NP, NSA,NSB,PG(NP,NSBA), DCPPL, FCPPL
-         ENDDO
+            ENDDO
 
 !         DO NP=1,NPMAX
-         DO NP=NPSTARTW,NPENDWM
-            PFPL=PM(NP,NSA)*PTFP0(NSA)
-            VFPL=PFPL/AMFP(NSA)
-            V=VFPL/VTFP0(NSA)
+            DO NP=NPSTARTW,NPENDWM
+               PFPL=PM(NP,NSA)*PTFP0(NSA)
+               VFPL=PFPL/AMFP(NSA)
+               V=VFPL/VTFP0(NSA)
 !            U=VFPL/(SQRT(2.D0)*VTFD(NR,NSB))
-            U=VFPL/(SQRT(2.D0)*v_thermal)
-            DCTTL= 0.25D0*RNUDL/U &
-                         *((2.D0-1.D0/U**2)*ERF0(U)+ERF1(U)/U)
+               U=VFPL/(SQRT(2.D0)*v_thermal)
+               DCTTL= 0.25D0*RNUDL/U &
+                    *((2.D0-1.D0/U**2)*ERF0(U)+ERF1(U)/U)
 !
-            DO NTH=1,NTHMAX+1
-               DCTT2(NTH,NP,NR,NSB,NSA)=DCTT2(NTH,NP,NR,NSB,NSA)+DCTTL
+               DO NTH=1,NTHMAX+1
+                  DCTT2(NTH,NP,NR,NSB,NSA)=DCTT2(NTH,NP,NR,NSB,NSA)+DCTTL
+               ENDDO
             ENDDO
-         ENDDO
-
-         ELSEIF(MODELC.eq.1)THEN ! isotoropic
+!         ELSEIF(MODELC.eq.1)THEN ! isotoropic
+         ELSEIF(MODELC.ge.2)THEN ! isotoropic
             PMAXC=PMAX(NSBA)
             THETAL_C =0.D0
             THETA0L_C=0.D0
             RGAMA=1.D0
             NSB_ISO=NSB
-            IF(MODEL_DISRUPT.eq.0)THEN
+            IF(MODELC.eq.1)THEN ! Collision term for initial temperature
                RTFDL_C=RTFD(NR,NSB)
                RTFD0L_C=RTFD0(NSB)
-            ELSEIF(MODEL_DISRUPT.ge.1)THEN
-!               RTFDL_C=RTFD(NR,NSB)*1.D-1
+               RNFDL=RNFD(NR,NSB)
+            ELSEIF(MODELC.eq.2)THEN ! for updating temperature
+               RTFDL_C=RT_TEMP(NR,NSB)
+               RTFD0L_C=RTFD0(NSB)
+               RNFDL=RN_TEMP(NR,NSB)
+               RGAMH=AEFP(NSA)**2*AEFD(NSB)**2*LNLAM(NR,NSB,NSA)/(4.D0*PI*EPS0**2) &
+                    *AMFP(NSA)/PTFP0(NSA)**3 
+            END IF
+            IF(MODEL_DISRUPT.eq.1)THEN
                RTFDL_C=RT_quench(NR) ! [keV]
                RTFD0L_C=RTFD0(NSB)
+               IF(MODEL_IMPURITY.eq.0)THEN 
+                  RNFDL_C=RNFD(NR,NSB)
+               ELSE
+                  RNFDL=RN_MGI(NR,NSB)
+               END IF
+               RGAMH=AEFP(NSA)**2*AEFD(NSB)**2*POST_LNLAM(NR,NSB,NSA)/(4.D0*PI*EPS0**2) &
+                    *AMFP(NSA)/PTFP0(NSA)**3 
             END IF
+
             DO NP=NPSTART,NPENDWG
                IF(NP.EQ.1) THEN
                   PNFPL=PG(NP,NSBA)
@@ -699,7 +714,7 @@
                   DCPPL=RGAMH/(3.D0*RINT0)*( &
                        (AMFD(NSB)*PTFP0(NSA))                     &
                        /(AMFP(NSA)*PTFD0(NSB))*RINT2 )             &
-                       *RNFD(NR,NSB)*1.D20
+                       *RNFDL*1.D20
                   FCPPL=0.D0
                ELSE
 !                  PFPL=PG(NP,NSBA)*PTFP0(NSA)
@@ -722,7 +737,7 @@
                           /(AMFD(NSB)**2*PTFP0(NSA)**2*PNFP_C**3)*RINT1 &
                           +(AMFD(NSB)*PTFP0(NSA))                     &
                           /(AMFP(NSA)*PTFD0(NSB))*RINT2 )             &
-                          *RNFD(NR,NSB)*1.D20
+                          *RNFDL*1.D20
                      PNFP_C=PCRIT
                      CALL DEFT  (RINT4,ES4,H0DE,EPSDE,0,FPFN4R,"N4R_FCPP")
                      CALL DEFT  (RINT5,ES5,H0DE,EPSDE,0,FPFN5R,"N5R_FCPP")
@@ -733,7 +748,7 @@
                           *(3.D0*RINT4-THETA0L_C*RINT5)           &
                           +2.D0*(PTFP0(NSA)*PNFP_C)                  &
                           /(PTFD0(NSB)*RGAMA)*THETA0(NSA)*RINT6 )   &
-                          *RNFD(NR,NSB)*1.D20
+                          *RNFDL*1.D20
                   ELSEIF(PCRIT.gt.PMAX(NSB))THEN
                      CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R,"N0R_PMAX_DCPP")
                      PNFP_C=PMAX(NSBA)
@@ -748,7 +763,7 @@
                           *(RINT1+RINT7)                        &
                           +(AMFD(NSB)*PTFP0(NSA))                &
                           /(AMFP(NSA)*PTFD0(NSB))*RINT2 )       &
-                          *RNFD(NR,NSB)*1.D20
+                          *RNFDL*1.D20
                      PNFP_C=PMAX(NSBA)
                      CALL DEFT  (RINT4,ES4,H0DE,EPSDE,0,FPFN4R,"N4R_PMAX_FCPP")
                      CALL DEFT  (RINT5,ES5,H0DE,EPSDE,0,FPFN5R,"N5R_PMAX_FCPP")
@@ -762,7 +777,7 @@
                           *(3.D0*(RINT4+RINT8)-THETA0L_C*(RINT5+RINT9)) &
                           +2.D0*(PTFP0(NSA)*PNFP_C)/(PTFD0(NSB)*RGAMA) &
                           *THETA0(NSA)*RINT6 ) &
-                          *RNFD(NR,NSB)*1.D20
+                          *RNFDL*1.D20
                   ENDIF
                ENDIF
                DO NTH=1,NTHMAX
@@ -793,7 +808,7 @@
                        -0.5D0*(AMFP(NSA)**2*PTFD0(NSB)**2*RGAMA**3) &
                        /(AMFD(NSB)**2*PTFP0(NSA)**2*PNFP_C**3)*RINT1 &
                        +(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*RINT2 ) &
-                       *RNFD(NR,NSB)*1.D20
+                       *RNFDL*1.D20
                ELSEIF(PCRIT.gt.PMAX(NSB))THEN
                   CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R,"N0R_PMAX_DCTT")
                   PNFP_C=PMAX(NSBA)
@@ -809,7 +824,7 @@
                        -0.5D0*(AMFP(NSA)**2*PTFD0(NSB)**2*RGAMA**3) &
                        /(AMFD(NSB)**2*PTFP0(NSA)**2*PNFP_C**3)*(RINT1+RINT4) &
                        +(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*RINT2 ) &
-                       *RNFD(NR,NSB)*1.D20
+                       *RNFDL*1.D20
               ENDIF
                
                DO NTH=1,NTHMAX+1

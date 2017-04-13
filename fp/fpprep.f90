@@ -115,9 +115,9 @@
          BP= RSRHON(RHON)*BT/(RR*QL)
          EPSRM(NR)=RSRHON(RHON)/RR
          BPM(NR)= RSRHON(RHON)*BT/(RR*QL)
-         IF(NRANK.eq.0) &
-         write(6,'(A,I5,1P5E12.4)') 'nr,rm,rsrhon,epsrm,bpm,ql=', &
-              NR,RM(NR),RSRHON(RHON),EPSRM(NR),BPM(NR),QL
+!         IF(NRANK.eq.0) &
+!         write(6,'(A,I5,1P5E12.4)') 'nr,rm,rsrhon,epsrm,bpm,ql=', &
+!              NR,RM(NR),RSRHON(RHON),EPSRM(NR),BPM(NR),QL
       ENDDO
 !      RHON=RG(NRMAX+1)
       RHON=RM(NRMAX)+DELR
@@ -793,6 +793,7 @@
       SUBROUTINE fp_set_normalize_param
 
       USE plprof
+      USE EG_READ
       IMPLICIT NONE
       INTEGER:: NSA, NSB, NS, NSBA, NSFP, NSFD, NR, ISW_CLOG, NP
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
@@ -827,7 +828,7 @@
       ENDDO
 
 !     ----- set profile data -----
-      DO NR=NRSTART, NRENDWG
+      DO NR=NRSTART, NRENDWG ! fixed initial vaule
          RHON=RG(NR)
          CALL PL_PROF(RHON,PLF)
          DO NSA=1, NSAMAX
@@ -836,7 +837,7 @@
          END DO
       END DO
 
-      DO NR=1,NRMAX
+      DO NR=1,NRMAX ! change in time
          RHON=RM(NR)
          CALL PL_PROF(RHON,PLF)
          DO NS=1,NSMAX
@@ -845,11 +846,25 @@
          END DO
       END DO
 
+      IF(MODEL_EX_READ.eq.1)THEN
+         CALL READ_EXP_DATA
+         DO NS=1,NSMAX ! temporal
+            DO NR=1, NRMAX
+               RT_READ(NR,NS)=RTE_EXP(NR) ! Te=Ti
+               RN_READ(NR,NS)=RNE_EXP(NR) ! ne=ni
+               
+               RT_TEMP(NR,NS)=RTE_EXP(NR) ! Te=Ti
+               RN_TEMP(NR,NS)=RNE_EXP(NR) ! ne=ni
+            END DO
+         END DO
+      END IF
+!      WRITE(*,*) NR, NS, RT_READ(NR,NS), RN_READ(NR,NS), RT_TEMP(NR,NS), RN_TEMP(NR,NS)
+
       DO NR=NRSTART,NRENDWM
          RHON=RM(NR)
          CALL PL_PROF(RHON,PLF)
 
-         DO NSA=1,NSAMAX
+         DO NSA=1,NSAMAX ! fixed initial vaule
             NS=NS_NSA(NSA)
             RNFP(NR,NSA)=PLF(NS)%RN
             RTFP(NR,NSA)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
@@ -864,6 +879,16 @@
             PTFD(NR,NSB)=SQRT(RTFD(NR,NSB)*1.D3*AEE*AMFD(NSB))
             VTFD(NR,NSB)=SQRT(RTFD(NR,NSB)*1.D3*AEE/AMFD(NSB))
          ENDDO
+
+         IF(MODEL_EX_READ.eq.1)THEN
+            DO NSA=1,NSAMAX ! temporal
+               NS=NS_NSA(NSA)
+               RNFP(NR,NSA)=RN_TEMP(NR,NS)
+               RTFP(NR,NSA)=RT_TEMP(NR,NS)
+               PTFP(NR,NSA)=SQRT(RTFP(NR,NSA)*1.D3*AEE*AMFP(NSA))
+               VTFP(NR,NSA)=SQRT(RTFP(NR,NSA)*1.D3*AEE/AMFP(NSA))
+            END DO
+         END IF
 
          IF(MODEL_IMPURITY.eq.1)THEN
             zeff_imp= (target_zeff*SPITOT - RNFP0(1)) &
@@ -883,19 +908,23 @@
          ISW_CLOG=0 ! =0 Wesson, =1 NRL
          DO NSA=1,NSAMAX
             NSFP=NS_NSB(NSA)
-            RNA=RNFP(NR,NSA)
-            RTA=RTFP(NR,NSA)
+!            RNA=RNFP(NR,NSA)
+!            RTA=RTFP(NR,NSA)
+            RNA=RN_TEMP(NR,NSFP)
+            RTA=RT_TEMP(NR,NSFP)
             DO NSB=1,NSBMAX
                NSFD=NS_NSB(NSB)
-               RNB=RNFD(NR,NSB)
-               RTB=RTFD(NR,NSB)
+               RNB=RN_TEMP(NR,NSFD)
+               RTB=RT_TEMP(NR,NSFD)
+!               RNB=RNFD(NR,NSB)
+!               RTB=RTFD(NR,NSB)
                IF(ISW_CLOG.eq.0)THEN
                   IF(PZ(NSFP).eq.-1.and.PZ(NSFD).eq.-1) THEN !e-e
                      RLNRL=14.9D0-0.5D0*LOG(RNE)+LOG(RTE) 
                   ELSEIF(PZ(NSFP).eq.-1.OR.PZ(NSFD).eq.-1) THEN
                      RLNRL=15.2D0-0.5D0*LOG(RNE)+LOG(RTE) ! e-i T>10eV
                   ELSE
-                     RLNRL=17.3D0-0.5D0*LOG(RNE)+1.5D0*LOG(RTFD(NR,NSB)) ! i-i T < m_i/m_p*10 keV, single charge
+                     RLNRL=17.3D0-0.5D0*LOG(RNE)+1.5D0*LOG(RTB) ! i-i T < m_i/m_p*10 keV, single charge
                   ENDIF
                ELSEIF(ISW_CLOG.eq.1)THEN
                   IF(PZ(NSFP).eq.-1.and.PZ(NSFD).eq.-1) THEN !e-e
@@ -951,9 +980,11 @@
          ENDDO
       ELSE
          DO NSB=1,NSBMAX
+            NS=NS_NSB(NSB) 
             THETA0(NSB)=RTFD0(NSB)*1.D3*AEE/(AMFD(NSB)*VC*VC)
             DO NR=NRSTART,NREND
-               THETA(NR,NSB)=THETA0(NSB)*RTFD(NR,NSB)/RTFD0(NSB)
+!               THETA(NR,NSB)=THETA0(NSB)*RTFD(NR,NSB)/RTFD0(NSB)
+               THETA(NR,NSB)=THETA0(NSB)*RT_TEMP(NR,NS)/RTFD0(NSB)
             ENDDO
          ENDDO
       ENDIF
@@ -993,19 +1024,18 @@
          ISW_CLOG=0 ! =0 Wesson, =1 NRL
          DO NSA=1,NSAMAX
             NSFP=NS_NSB(NSA)
-            IF(MODEL_disrupt.eq.0)THEN
-               RNA=RN_TEMP(NR,NSA)
-!               RTA=RT_T(NR,NSA)
-               RTA=RT_TEMP(NR,NSA)
-               RNE=RN_TEMP(NR,1)
-            ELSE
-               RNE=RNFP(NR,1)
-               RNA=RNS(NR,NSA)
-               RTA=RT_quench(NR)
-            END IF
-
-!            RNA=RN_TEMP(NR,NSA)
-!            RTA=RT_TEMP(NR,NSA)
+!            IF(MODEL_disrupt.eq.0)THEN
+!               RNE=RN_TEMP(NR,1)
+!               RNA=RN_TEMP(NR,NSA)
+!               RTA=RT_TEMP(NR,NSA)
+!            ELSE
+!               RNE=RNFP(NR,1)
+!               RNA=RNS(NR,NSA)
+!               RTA=RT_quench(NR)
+!            END IF
+            RNE=RN_TEMP(NR,1)
+            RNA=RN_TEMP(NR,NSA)
+            RTA=RT_TEMP(NR,NSA)
             DO NSB=1,NSBMAX
                NSFD=NS_NSB(NSB)
                IF(MODEL_disrupt.eq.0)THEN
@@ -1262,6 +1292,7 @@
             ELSEIF(MODELE.eq.2)THEN
                E1_temp(NR)=E0*(1.D0-RM(NR)**1.5)**1 ! arbitrary profile
             END IF
+            EP(NR)=0.D0
          END DO
          CALL mtx_set_communicator(comm_nr)
          call mtx_allgather_real8(conduct_temp,NREND-NRSTART+1,conduct_sp)

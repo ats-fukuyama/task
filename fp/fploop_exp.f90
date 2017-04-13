@@ -14,6 +14,7 @@
       use libmpi
       use fpmpi
       use fpdisrupt
+      USE EG_READ
 
       contains
 
@@ -44,11 +45,13 @@
       integer:: NSW, its
       integer:: ILOC1, ISW_D
 !      real(8):: sigma, ip_all, ip_ohm, ip_run, jbs, IP_bs, l_ind, IP_prim, 
-      real(8):: pitch_angle_av
+      real(8):: pitch_angle_av, beam_peak_value
+      integer:: NP_2e_h, NP_2e_l, NP_1e_h, NP_1e_l, NP_half_l, NP_half_h
 
 !     +++++ Time loop +++++
 
       DO NT=1,NTMAX
+         CALL READ_EXP_DATA
 
          N_IMPL=0
          DEPS=1.D0
@@ -221,8 +224,8 @@
          DO NSA=NSASTART, NSAEND
             NS=NS_NSA(NSA)
             DO NR=NRSTART, NREND
-               RN_READ(NR,NS)=RNFP(NR,NSA)
-               RT_READ(NR,NS)=RTFP(NR,NSA)
+               RN_READ(NR,NS)=RN_TEMP(NR,NS)
+               RT_READ(NR,NS)=RT_TEMP(NR,NS)
 !               WRITE(*,'(A,2I5,2E14.6)') "TEST READ ", NR, NS, RN_READ(NR,NS), RT_READ(NR,NS)
             END DO
          END DO
@@ -367,6 +370,7 @@
 
 !      IF(NRANK.eq.0.and.MODEL_DISRUPT.ne.0)THEN
       IF(NRANK.eq.0)THEN
+         NR=3
          DO NP=1,NPMAX
 !pitch angle average
             pitch_angle_av = 0.D0
@@ -382,12 +386,57 @@
             WRITE(9,'(1PE12.4,I6,1P30E17.8e3)') PTG(NTG1)*1000, NP, PM(NP,1), &
                  PM(NP,1)*PTFP0(1)/AMFP(1)/VC/SQRT(1.D0+PM(NP,1)**2*THETA0(1)), &
                  PM(NP,1)**2, &
-                 PTFP0(1)**2*PM(NP,1)**2/(AEE*AMFP(1)*1.D3), FNS(1,NP,1,2), FNS(NTHMAX-3,NP,1,2), &
-                 FNS(NTHMAX/2,NP,1,2), pitch_angle_av!, &
+                 PTFP0(1)**2*PM(NP,1)**2/(AEE*AMFP(1)*1.D3), FNS(1,NP,NR,2), FNS(3,NP,NR,2), &
+                 FNS(NTHMAX/2,NP,NR,2), pitch_angle_av!, &
          END DO
          WRITE(9,*) " "
          WRITE(9,*) " "
 
+         NP_2e_l=1
+         NP_2e_h=1
+         NP_1e_l=1
+         NP_1e_h=1
+         NP_half_l=1
+         NP_half_h=1
+         beam_peak_value=0.D0
+         DO NP=1, NPMAX-1
+            IF(FNS(3,NP,NR,2).le.2.D-5.and.FNS(3,NP+1,NR,2).ge.2.D-5)THEN
+               NP_2e_l=NP
+            ELSEIF(FNS(3,NP,NR,2).ge.2.D-5.and.FNS(3,NP+1,NR,2).le.2.D-5)THEN
+               NP_2e_h=NP
+            END IF
+            IF(FNS(3,NP,NR,2).le.5.D-6.and.FNS(3,NP+1,NR,2).ge.5.D-6)THEN
+               NP_1e_l=NP
+            ELSEIF(FNS(3,NP,NR,2).ge.5.D-6.and.FNS(3,NP+1,NR,2).le.5.D-6)THEN
+               NP_1e_h=NP
+            END IF
+         END DO
+
+         DO NP=NP_BULK(NR,2), NPMAX-1 ! half value width
+            IF(FNS(3,NP-1,NR,2).le.FNS(3,NP,NR,2).and.FNS(3,NP,NR,2).ge.FNS(3,NP+1,NR,2))THEN
+               beam_peak_value=FNS(3,NP,NR,2)*0.5D0
+            END IF
+         END DO
+         DO NP=1, NPMAX-1
+            IF(FNS(3,NP,NR,2).le.beam_peak_value.and.FNS(3,NP+1,NR,2).ge.beam_peak_value)THEN
+               NP_half_l=NP
+            ELSEIF(FNS(3,NP,NR,2).ge.beam_peak_value.and.FNS(3,NP+1,NR,2).le.beam_peak_value)THEN
+               NP_half_h=NP
+            END IF
+         END DO
+
+
+         WRITE(24,'(E14.6,2I5,20E14.6)') TIMEFP, NP_2e_l, NP_2e_h, &
+              PTFP0(2)**2*PM(NP_2e_l,2)**2/(AEE*AMFP(2)*1.D3)*0.5D0, &
+              PTFP0(2)**2*PM(NP_2e_h,2)**2/(AEE*AMFP(2)*1.D3)*0.5D0, &
+              FNS(3,NP_2e_l,NR,2), FNS(3,NP_2e_h,NR,2), &
+              PTFP0(2)**2*PM(NP_1e_l,2)**2/(AEE*AMFP(2)*1.D3)*0.5D0, &
+              PTFP0(2)**2*PM(NP_1e_h,2)**2/(AEE*AMFP(2)*1.D3)*0.5D0, &
+              FNS(3,NP_1e_l,NR,2), FNS(3,NP_1e_h,NR,2), &
+              PTFP0(2)**2*PM(NP_half_l,2)**2/(AEE*AMFP(2)*1.D3)*0.5D0, &
+              PTFP0(2)**2*PM(NP_half_h,2)**2/(AEE*AMFP(2)*1.D3)*0.5D0, &
+              FNS(3,NP_half_l,NR,2), FNS(3,NP_half_h,NR,2)
+         WRITE(*,'(A,E14.6,6I5,E14.6,I5)') "BEAM_HALF ",TIMEFP, NP_2e_l, NP_2e_h, NP_1e_l, NP_1e_h, NP_half_l, NP_half_h, beam_peak_value, NP_BULK(NR,2)
       END IF
 
 !      IF(NRANK.eq.0)THEN
@@ -420,57 +469,57 @@
       RETURN
       END SUBROUTINE FP_LOOP_EXP
 
-! ****************************************
-!     MAXWELLIAN VELOCITY DISTRIBUTION
-! ****************************************
+! ! ****************************************
+! !     MAXWELLIAN VELOCITY DISTRIBUTION
+! ! ****************************************
 
-      FUNCTION FPMXWL_EXP(PML,NR,NS)
+!       FUNCTION FPMXWL_EXP(PML,NR,NS)
 
-      USE plprof
-      implicit none
-      integer :: NR, NS
-      real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
-      real(kind8) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
-      TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
-      real(kind8):: FPMXWL_EXP
+!       USE plprof
+!       implicit none
+!       integer :: NR, NS
+!       real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
+!       real(kind8) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
+!       TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
+!       real(kind8):: FPMXWL_EXP
 
-      AMFDL=PA(NS)*AMP
-      AEFDL=PZ(NS)*AEE
-      RNFD0L=PN(NS)
-      RTFD0L=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
-      PTFD0L=SQRT(RTFD0L*1.D3*AEE*AMFDL)
+!       AMFDL=PA(NS)*AMP
+!       AEFDL=PZ(NS)*AEE
+!       RNFD0L=PN(NS)
+!       RTFD0L=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
+!       PTFD0L=SQRT(RTFD0L*1.D3*AEE*AMFDL)
 
-      IF(NR.eq.0)THEN
-         RL=0.D0
-         RHON=ABS(RL)
-      ELSEIF(NR.EQ.NRMAX+1) THEN
-         RL=RM(NRMAX)+DELR
-         RHON=MIN(RL,1.D0)
-      ELSE
-         RL=RM(NR)
-         RHON=RL
-      ENDIF
-      CALL PL_PROF(RHON,PLF)
+!       IF(NR.eq.0)THEN
+!          RL=0.D0
+!          RHON=ABS(RL)
+!       ELSEIF(NR.EQ.NRMAX+1) THEN
+!          RL=RM(NRMAX)+DELR
+!          RHON=MIN(RL,1.D0)
+!       ELSE
+!          RL=RM(NR)
+!          RHON=RL
+!       ENDIF
+!       CALL PL_PROF(RHON,PLF)
 
-      RNFDL=RN_READ(NR,NS)/RNFD0L
-      RTFDL=RT_READ(NR,NS)
+!       RNFDL=RN_TEMP(NR,NS)/RNFD0L
+!       RTFDL=RT_TEMP(NR,NS)
 
-      IF(MODELR.EQ.0) THEN
-         FACT=RNFDL/SQRT(2.D0*PI*RTFDL/RTFD0L)**3
-         EX=PML**2/(2.D0*RTFDL/RTFD0L)
-         FPMXWL_EXP=FACT*EXP(-EX)
-      ELSE
-         THETA0L=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)
-         THETAL=THETA0L*RTFDL/RTFD0L
-         Z=1.D0/THETAL
-         DKBSL=BESEKN(2,Z)
-         FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DKBSL) &
-              *RTFD0L
-         EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
-         FPMXWL_EXP=FACT*EXP(EX)
-      END IF
+!       IF(MODELR.EQ.0) THEN
+!          FACT=RNFDL/SQRT(2.D0*PI*RTFDL/RTFD0L)**3
+!          EX=PML**2/(2.D0*RTFDL/RTFD0L)
+!          FPMXWL_EXP=FACT*EXP(-EX)
+!       ELSE
+!          THETA0L=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)
+!          THETAL=THETA0L*RTFDL/RTFD0L
+!          Z=1.D0/THETAL
+!          DKBSL=BESEKN(2,Z)
+!          FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DKBSL) &
+!               *RTFD0L
+!          EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
+!          FPMXWL_EXP=FACT*EXP(EX)
+!       END IF
 
-      RETURN
-      END FUNCTION FPMXWL_EXP
+!       RETURN
+!       END FUNCTION FPMXWL_EXP
 !------------------------------------
       END MODULE fploop_exp
