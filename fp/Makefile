@@ -5,10 +5,10 @@ include ../mtxp/make.mtxp
 #LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIB_MTX_PCG)
 #LIBX_MTX=$(LIBX_MTX_PCG)
-LIB_MTX=$(LIB_MTX_MUMPS)
-LIBX_MTX=$(LIBX_MTX_MUMPS)
-#LIB_MTX=$(LIBXMTX_KSP)
-#LIBX_MTX=$(LIBX_MTX_KSP)
+#LIB_MTX=$(LIB_MTX_MUMPS)
+#LIBX_MTX=$(LIBX_MTX_MUMPS)
+LIB_MTX=$(LIBXMTX_KSP)
+LIBX_MTX=$(LIBX_MTX_KSP)
 
 FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
@@ -28,8 +28,8 @@ MODINCLUDE= -I.$(MOD) -I../lib/$(MOD) \
 SRCS = fpcomm.f90 fpinit.f90 fpmpi.f90 fpbroadcast.f90 fpexec.f90 fpsave.f90 \
        fpwmin.f90 fpwrin.f90 fpcalwm.f90 fpcalwr.f90 fpcalw.f90 \
        fpcalcn.f90 fpcalcnr.f90 fpcalc.f90 fpnfrr.f90 fpnflg.f90 \
-       cdbm.f90 fpcalr.f90 fpcoef.f90 fpcale.f90 \
-       fpbounce.f90 fpdisrupt.f90 fpprep.f90 fploop.f90 \
+       cdbm.f90 fpcalr.f90 sv_read.f90 fpcoef.f90 fpcale.f90 \
+       fpbounce.f90 fpdisrupt.f90 eg_read.f90 fpprep.f90 fploop.f90 fploop_exp.f90 \
        fpcont.f90 fpfout.f90 fpgout.f90 fpfile.f90 fpmenu.f90
 
 OBJS = $(SRCS:.f90=.o)
@@ -78,6 +78,7 @@ fpmenu.o : fpmenu.f90 fpcomm.f90
 fpinit.o : fpinit.f90 fpcomm.f90
 fpprep.o : fpprep.f90 fpcomm.f90
 fploop.o : fploop.f90 fpcomm.f90
+fploop_exp.o : fploop_exp.f90 fpcomm.f90
 fpexec.o : fpexec.f90 fpcomm.f90
 fpdrexec.o : fpdrexec.f90 fpcomm.f90
 fpbroadcast.o : fpbroadcast.f90 fpcomm.f90
