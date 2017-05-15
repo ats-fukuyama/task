@@ -744,7 +744,7 @@ C
                   CJ(2)=CVJ*(Y2-Y1)
                   CJ(3)=0.D0
                ENDIF
-            ELSEIF(NTYPJ0(NA).GE.0) THEN
+            ELSEIF(NTYPJ0(NA).GE.0.AND.NTYPJ0(NA).LE.9) THEN
                PHL=PHJ0(NA)*PI/180.D0
                IF(IJ.EQ.1) THEN
                   XM=XJ(IJ,NA)
@@ -777,6 +777,45 @@ C
                   CJ(1)=CVJ*(X2-X1)
                   CJ(2)=CVJ*(Y2-Y1)
                   CJ(3)=-CVJ*PHL*XM/((ZJH2-ZJH1)*NPHI)*(Y2-Y1)
+               ENDIF
+C               WRITE(6,'(A,I3,1P6E12.4)') 'CV=',IJ,(CJ(I),I=1,3)
+            ELSEIF(NTYPJ0(NA).GE.10) THEN
+               PHL=PHJ0(NA)*PI/180.D0
+               IF(IJ.EQ.1) THEN
+                  XM=XJ(IJ,NA)
+                  YM=YJ(IJ,NA)
+                  IE=JAELM(IJ,NA)
+                  CVJ=CNST*CAJ(NA)*CI*EXP( CI*NPHI*PHL)/(PI*NPHI)
+                  CALL WFABC(IE,A,B,C,S)
+                  CJ(1)=(0.D0,0.D0)
+                  CJ(2)=(0.D0,0.D0)
+                  CJ(3)=CVJ
+               ELSEIF(IJ.EQ.IJMAX) THEN
+                  XM=XJ(IJ-1,NA)
+                  YM=YJ(IJ-1,NA)
+                  IE=JAELM(IJ-1,NA)
+                  CVJ=-CNST*CAJ(NA)*CI*EXP(-CI*NPHI*PHL)/(PI*NPHI)
+                  CALL WFABC(IE,A,B,C,S)
+                  CJ(1)=(0.D0,0.D0)
+                  CJ(2)=(0.D0,0.D0)
+                  CJ(3)=CVJ
+               ELSE
+                  X1=XJ(IJ-1,NA)
+                  Y1=YJ(IJ-1,NA)
+                  X2=XJ(IJ,NA)
+                  Y2=YJ(IJ,NA)
+                  IE=JAELM(IJ,NA)
+                  CALL WFABC(IE,A,B,C,S)
+                  XM=0.5D0*(X1+X2)
+                  YM=0.5D0*(Y1+Y2)
+                  PHIL=(YM-0.5D0*(ZJH1+ZJH2))*2.D0*PHL/(ZJH2-ZJH1)
+                  CVJ=CNST*CAJ(NA)*EXP(-CI*NPHI*PHIL)/PI
+                  FACT=1.D0/SQRT((ZJH2-ZJH1)**2+(2.D0*RD*PHL)**2)
+                  FACTZ=FACT*(ZJH2-ZJH1)
+                  FACTPH=FACT*2.D0*RD*PHL
+                  CJ(1)=0.D0
+                  CJ(2)=CVJ*FACTZ
+                  CJ(3)=CVJ*FACTPH
                ENDIF
 C               WRITE(6,'(A,I3,1P6E12.4)') 'CV=',IJ,(CJ(I),I=1,3)
             ELSE

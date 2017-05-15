@@ -490,9 +490,10 @@ CONTAINS
        IF(PRESENT(NLMAX)) THEN
           A%NLMAX=NLMAX
        ELSE
-          A%NLMAX=MIN(NINT(ABS((A%FMAX-A%FMIN)/A%FSCALE_STEP))+2,1001)
+          A%NLMAX=MIN(NINT(ABS((A%FMAX-A%FMIN)/A%FSCALE_STEP))+2,1000)
           IF(A%FMIN < 0.0 .AND. A%FMAX > 0.0) THEN
-             IF(MOD(A%NLMAX,2) == 0) A%NLMAX=A%NLMAX+1
+!             IF(MOD(A%NLMAX,2) == 0) A%NLMAX=A%NLMAX+1
+             IF(MOD(A%NLMAX,2) == 1) A%NLMAX=A%NLMAX+1
           ENDIF
        ENDIF
 

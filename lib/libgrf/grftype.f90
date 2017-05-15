@@ -49,7 +49,7 @@ MODULE grftype
 !                           1 : X:LOG     Y:LINEAR
 !                           2 : X:LINEAR  Y:LOG
 !                           3 : X:LOG     Y:LOG
-     REAL(4):: SCALE_RGB(3)          ! Scalse color
+     REAL(4):: SCALE_RGB(3)          ! Scale color
      REAL(4):: SCALE_Zero_RGB(3)     ! Zero scale color
      REAL(4):: SCALE_THICKNESS       ! Scale thickness
      REAL(4):: SCALE_ZERO_THICKNESS  ! Zero Scale thickness
