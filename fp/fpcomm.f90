@@ -15,7 +15,7 @@ MODULE fpcomm_parm
       integer,parameter:: NBEAMM=20
       real(rkind),parameter:: rkev=aee*1.D3
 
-      integer:: NSAMAX,NSBMAX,NS_NSA(NSM),NS_NSB(NSM)
+      integer:: NSAMAX,NSBMAX,NS_NSA(NSM),NS_NSB(NSM), NS_F1
       integer:: LMAXNWR,NCMIN(NSM),NCMAX(NSM),NBEAMMAX,NSSPB(NBEAMM),NSSPF
       integer:: NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX
       integer:: NTMAX,NTSTEP_COEF,NTSTEP_COLL
@@ -32,7 +32,7 @@ MODULE fpcomm_parm
       integer:: MODEL_EX_READ, MODEL_BULK_CONST, MODEL_CX_LOSS
       integer:: N_partition_r,N_partition_s,N_partition_p
 
-      real(rkind):: PMAX(NSM),PMAX_BB(NSM)
+      real(rkind):: PMAX(NSM),PMAX_BB(NSM),EMAX(NSM)
       real(rkind):: R1,DELR1,RMIN,RMAX
       real(rkind):: E0,ZEFF
       real(rkind):: PWAVE,RFDW,DELNPR,EPSNWR,REWY,DREWY,FACTWM
@@ -54,14 +54,22 @@ MODULE fpcomm_parm
       real(rkind):: RN_NEU0 ! temporal 
 
 !     for read experiment data
-      CHARACTER(len=80):: EG_FILE_TMS, EG_FILE_CX
+      CHARACTER(len=80):: EG_NAME_TMS, EG_NAME_CX
       real(rkind),dimension(:,:),pointer:: read_tms_double, read_cx_double !!    containers of profile data
       integer,dimension(:,:),pointer:: read_tms_int
-      real(rkind),dimension(:),pointer:: cte_fit !!    fitting param
+      real(rkind),dimension(:),pointer:: cte_fit, cti_fit !!    fitting param
       real(rkind),dimension(:),pointer:: cne_fit !!    fitting param
       integer:: nend_tms, nend_cx !!    # time step
-      real(rkind),dimension(:),pointer:: RNE_EXP, RTE_EXP !! container of exp. profile data for electron on TIMEFP
-      real(rkind):: time_exp_offset, RNE_EXP_EDGE, RTE_EXP_EDGE
+      real(rkind),dimension(:),pointer:: RNE_EXP, RTE_EXP, RTI_EXP !! container of exp. profile data at TIMEFP
+      real(rkind):: time_exp_offset, RNE_EXP_EDGE, RTE_EXP_EDGE, RTI_EXP_EDGE
+
+!     for read FIT3D result
+      CHARACTER(len=80):: SV_FILE_NAME
+      double precision,dimension(:),pointer:: time_grid_fit
+      integer:: ntmax_fit
+      integer,dimension(:,:),pointer:: I_FIT
+      double precision,dimension(:),pointer:: D_FIT
+      integer,dimension(:,:),pointer:: number_of_lines_fit
 
 END module fpcomm_parm
 
@@ -251,7 +259,7 @@ module fpcomm
       real(rkind),dimension(:,:),POINTER :: &
            PL_NF ! (0:LLMAX_NF,NTHMAX)
       real(rkind),dimension(:,:),POINTER :: & 
-           RATE_NF ! (NRSTART:NREND,6)
+           RATE_NF, RATE_NF_BB ! (NRSTART:NREND,6)
       real(rkind),dimension(:,:,:,:),POINTER :: & 
            RATE_NF_D1, RATE_NF_D2 ! (NTHMAX,NPMAX,NRSTART:NREND,6)
       real(rkind),dimension(:,:),POINTER :: & ! (NPM:NSAM)
@@ -263,7 +271,7 @@ module fpcomm
       real(rkind),dimension(:,:),POINTER:: EPTR
       real(rkind):: E_EDGEM, SIGP_E, RN_E, RT_E, RLNRL_E
       real(rkind):: pc_runaway
-      real(rkind):: Zeff_imp
+      real(rkind):: Zeff_imp, tauE0_NB_e, tauE0_NB_i, tauE0_NB
       integer:: NPC_runaway
       integer:: nt_init, N_f1
       integer:: ierr_g
@@ -478,8 +486,8 @@ module fpcomm
           allocate(RN_TEMP(NRMAX,NSMAX),RT_TEMP(NRMAX,NSMAX) )
           IF(MODEL_EX_READ.ne.0)THEN
              allocate(RN_READ(NRMAX,NSMAX),RT_READ(NRMAX,NSMAX) )
-             allocate(RNE_EXP(NRMAX), RTE_EXP(NRMAX))
-             allocate(cte_fit(5),cne_fit(6))
+             allocate(RNE_EXP(NRMAX), RTE_EXP(NRMAX), RTI_EXP(NRMAX))
+             allocate(cte_fit(5),cne_fit(6),cti_fit(5))
           END IF
           allocate(RNSL(NRSTART:NREND,NSAMAX),RJSL(NRSTART:NREND,NSAMAX))
           allocate(RFPL(NRSTART:NREND),RJSRL(NRSTART:NREND,NSAMAX))
@@ -552,7 +560,7 @@ module fpcomm
              IF(MODELS.eq.3) allocate( &
                   SIGMAV_LG(0:LLMAX_NF,NPSTART:NPEND,0:LLMAX_NF,NPMAX,6), &
                   PL_NF(0:LLMAX_NF,NTHMAX))
-             allocate(RATE_NF(NRSTART:NREND,6))
+             allocate(RATE_NF(NRSTART:NREND,6),RATE_NF_BB(NRSTART:NREND,6))
 !             allocate(RATE_NF_D1(NTHMAX,NPMAX,NRSTART:NREND,6))
              allocate(RATE_NF_D2(NTHMAX,NPMAX,NRSTART:NREND,6))
              allocate(RATE_NF_D1(NTHMAX,NPSTART:NPEND,NRSTART:NREND,6))
@@ -702,8 +710,8 @@ module fpcomm
           deallocate(RN_TEMP,RT_TEMP,RT_T)
           IF(MODEL_EX_READ.ne.0)THEN
              deallocate(RN_READ, RT_READ)
-             deallocate(RNE_EXP, RTE_EXP)
-             deallocate(cte_fit, cne_fit)
+             deallocate(RNE_EXP, RTE_EXP, RTI_EXP)
+             deallocate(cte_fit, cne_fit, cti_fit)
           END IF
           deallocate(RNSL,RJSL,RWSL,RWS123L,RFPL,RJSRL)
           deallocate(RSPBL,RSPFL,RSPSL,RSPLL,RPCSL,RPESL,RSPSL_CX)
@@ -741,7 +749,7 @@ module fpcomm
           IF(MODELS.eq.2.OR.MODELS.eq.3)THEN
              IF(MODELS.eq.2) deallocate(SIGMAV_NF)
              IF(MODELS.eq.3) deallocate(SIGMAV_LG,PL_NF)
-             deallocate(RATE_NF,RATE_NF_D1,RATE_NF_D2)
+             deallocate(RATE_NF,RATE_NF_D1,RATE_NF_D2,RATE_NF_BB)
           END IF
           deallocate(DEPS_SS)
           return

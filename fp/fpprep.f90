@@ -36,6 +36,28 @@
       real(kind8),DIMENSION(:),POINTER:: work,workg
       real(kind8)::suml, delh, etal, x, psib, pcos
       integer:: NG
+      real(kind8):: Rmass, RRTFP, RPTFP,RVTFP, sumEmax
+
+!     ----- define upper boundary of p from Emax-----
+      sumEmax=0.D0
+      DO NSB=1,NSBMAX
+         sumEmax=sumEmax+EMAX(nsb)
+      END DO
+      IF(sumEmax.ne.0.D0)THEN
+         IF(NRANK.eq.0) WRITE(6,'(A,1P6E12.4)') "old pmax= ", (pmax(nsb),nsb=1,nsbmax)
+         DO NSB=1, NSBMAX
+            IF(EMAX(NSB).ne.0.D0)THEN
+               NS=NS_NSB(NSB)
+               Rmass=PA(NS)*AMP
+               RRTFP=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
+               RPTFP=SQRT(RRTFP*1.D3*AEE*Rmass)
+               RVTFP=SQRT(RRTFP*1.D3*AEE/Rmass)
+               pmax(nsb)=SQRT(2.D0*AEE*Rmass*1.D3*EMAX(NSB))/RPTFP
+            END IF
+         END DO
+         IF(NRANK.eq.0) WRITE(6,'(A,1P6E12.4)') "new pmax= ", (pmax(nsb),nsb=1,nsbmax)
+      END IF
+!      IF(NRANK.eq.0) WRITE(6,'(A,1P6E12.4)') "new vmax[m/s] ", (pmax(nsb)*RVTFP,nsb=1,nsbmax)
 
 !     ----- exec EQ -----
 
@@ -797,7 +819,7 @@
       IMPLICIT NONE
       INTEGER:: NSA, NSB, NS, NSBA, NSFP, NSFD, NR, ISW_CLOG, NP
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
-      real(kind8):: RTFD0L, RHON, RNE, RTE, RLNRL, FACT, RNA, RTA, RNB, RTB, SUM
+      real(kind8):: RTFD0L, RHON, RNE, RTE, RLNRL, FACT, RNA, RTA, RNB, RTB, SUM, v_beam
 
       DO NSA=1,NSAMAX
          NS=NS_NSA(NSA)
@@ -848,15 +870,26 @@
 
       IF(MODEL_EX_READ.eq.1)THEN
          CALL READ_EXP_DATA
-         DO NS=1,NSMAX ! temporal
-            DO NR=1, NRMAX
-               RT_READ(NR,NS)=RTE_EXP(NR) ! Te=Ti
-               RN_READ(NR,NS)=RNE_EXP(NR) ! ne=ni
-               
-               RT_TEMP(NR,NS)=RTE_EXP(NR) ! Te=Ti
-               RN_TEMP(NR,NS)=RNE_EXP(NR) ! ne=ni
-            END DO
-         END DO
+         CALL MAKE_EXP_PROF(timefp)
+!         DO NS=1,NSMAX ! temporal
+!            IF(NS.eq.1)THEN
+!               DO NR=1, NRMAX
+!                  RT_READ(NR,NS)=RTE_EXP(NR)
+!                  RN_READ(NR,NS)=RNE_EXP(NR)
+!                  
+!                  RT_TEMP(NR,NS)=RTE_EXP(NR)
+!                  RN_TEMP(NR,NS)=RNE_EXP(NR)
+!               END DO
+!            ELSE
+!               DO NR=1, NRMAX
+!                  RT_READ(NR,NS)=RTI_EXP(NR) ! 
+!                  RN_READ(NR,NS)=RNE_EXP(NR) ! ne=ni
+!                  
+!                  RT_TEMP(NR,NS)=RTI_EXP(NR) ! Te=Ti
+!                  RN_TEMP(NR,NS)=RNE_EXP(NR) ! ne=ni
+!               END DO               
+!            END IF
+!         END DO
       END IF
 !      WRITE(*,*) NR, NS, RT_READ(NR,NS), RN_READ(NR,NS), RT_TEMP(NR,NS), RN_TEMP(NR,NS)
 
@@ -989,6 +1022,19 @@
          ENDDO
       ENDIF
 
+! ---- NBI energy loss time
+      IF(MODEL_NBI.ne.0.and.NRANK.eq.0.and.NSAMAX.ge.3)THEN ! assuming AMFD(3)=D, D beam, ZEFF=1
+         v_beam = SQRT(2.D0*180.D3*AEE/AMFP(3))
+         tauE0_NB_e=(3.D0*PI*SQRT(2.D0*PI)*EPS0**2*AMFD(3)*AMFP(1)*VTFP0(1)**3)/&
+              (AEFP(1)**4*LNLAM(1,1,1)*RNFP0(1)*1.D20)
+         tauE0_NB_i=(2.D0*PI*EPS0**2*AMFD(3)*AMFD(3)*v_beam**3)/&
+              (AEFP(3)**4*LNLAM(1,2,1)*RNFP0(3)*1.D20)
+         tauE0_NB=1.D0/(1.D0/tauE0_NB_i+1.D0/tauE0_NB_i)
+
+         WRITE(*,'(A,E14.6)') "tauE0_NB_e= ", tauE0_NB_e
+         WRITE(*,'(A,E14.6)') "tauE0_NB_i= ", tauE0_NB_i
+         WRITE(*,'(A,E14.6)') "tauE0_NB= ", tauE0_NB
+      END IF
 ! ----set runaway
       IF(MODEL_DISRUPT.ne.0.and.nt_init.eq.0)THEN 
          IF(MODEL_IMPURITY.eq.1)THEN
@@ -1168,6 +1214,7 @@
       USE fpnfrr
       USE libmtx
       USE fpnflg
+      USE FP_READ_FIT
 
       Implicit none
 
@@ -1261,6 +1308,10 @@
       CALL update_fnsb
       CALL mtx_reset_communicator
 
+!     ----- READ FIT3D result for NBI -----
+      IF(MODEL_NBI.eq.2)THEN
+         CALL READ_FIT3D
+      END IF
 !     ----- set parallel electric field -----
 
       IF(MODEL_DISRUPT.eq.0)THEN

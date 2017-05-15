@@ -20,7 +20,7 @@
       USE libmtx
       USE fpmpi
       IMPLICIT NONE
-      integer:: NR, NSA, NSB, NSBA, NP, NTH, NS, NPS, NPE
+      integer:: NR, NSA, NSB, NSBA, NP, NTH, NS, NPS, NPE, i
       integer:: IERR
       real(8):: RSUM1, RSUM2, RSUM3, RSUM4, RSUM5, RSUM6, RSUM7, RSUM_FS2
       real(8):: RSUM8, RSUM9, RSUM123, RSUM11B,RSUM11F,RSUM11S,RSUM11L,RSUM11S_CX
@@ -56,36 +56,7 @@
 
       CALL mtx_set_communicator(comm_np) 
 
-
-!     DEFINE BULK MOMENTUM RANGE: 0 < NP < NP_BULK(NR,NSA) 
-!      DO NSA=NSASTART, NSAEND
-      DO NSA=1, NSAMAX
-!         DO NR=NRSTART, NREND
-         DO NR=1, NRMAX
-            IF(NT_init.eq.0)THEN
-               PMAX_BULK = FACT_BULK
-!               P_BULK_R = PMAX_BULK* RTFP(NR,NSA)/RTFP0(NSA)
-               P_BULK_R = PMAX_BULK* RT_TEMP(NR,NSA)/RTFP0(NSA)
-            ELSE
-               RHON=RM(NR)
-               CALL PL_PROF(RHON,PLF)
-               NS=NS_NSA(NSA)
-               RTFPL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
-               PMAX_BULK = SQRT( RT_BULK(NR,NSA)/RTFPL )*FACT_BULK
-!               PMAX_BULK = SQRT( RT_BULK(NR,NSA)/RTFP(NR,NSA) )*FACT_BULK
-               P_BULK_R = PMAX_BULK* RT_BULK(NR,NSA)/RTFP0(NSA)
-            END IF
-            DO NP=NPMAX, 1, -1
-               IF(P_BULK_R.lt.PG(NP,NSA)) NP_BULK(NR,NSA)=NP
-            END DO
-            IF(PMAX(NSA).lt.P_BULK_R)THEN
-               NP_BULK(NR,NSA) = NPMAX
-            END IF
-!            IF(NPSTART.eq.1) &
-!                 WRITE(*,'(A,3I5,1P4E14.6)') "TEST NP_BULK =",NSA, NR, NP_BULK(NR,NSA), FACT_BULK, PMAX_BULK, P_BULK_R, RT_BULK(NR,NSA)
-         END DO
-      END DO
-
+      CALL Define_Bulk_NP
 
       DO NR=NRSTART,NREND
          DO NSA=NSASTART,NSAEND
@@ -1288,6 +1259,7 @@
 !
       SUBROUTINE FPSPRF2
 !
+      USE EG_READ
       USE plprof
       IMPLICIT NONE
       integer:: NR, NSA, NSB, NS
@@ -1314,6 +1286,8 @@
             END IF
          ENDDO
       ELSEIF(MODEL_EX_READ.eq.1)THEN
+         CALL MAKE_EXP_PROF(timefp+delt)
+
          DO NS=1,NSMAX
             DO NR=1,NRMAX
                RN_TEMP(NR,NS)=RN_READ(NR,NS)
@@ -1385,6 +1359,7 @@
       NSBA=NSB_NSA(NSA)
 
       CALL mtx_set_communicator(comm_np)
+      IF(MODEL_EX_READ.eq.0)THEN
       IF(ISW_BULK.eq.0)THEN ! BULK T calculation using dfdp
          RSUM_T=0.D0
          RSUM_V=0.D0
@@ -1525,10 +1500,64 @@
             RPL_BULK(NP,NR,NSA) = 0.D0
          END DO
       END IF
-      CALL mtx_reset_communicator 
-      
+      ELSE ! MODEL_EX_READ=1
+         RTL_BULK(NR,NSA)=RT_READ(NR,NS)
+      END IF
+      CALL mtx_reset_communicator       
 
       END SUBROUTINE BULK_TEMPERATURE
+!==============================================================
+      SUBROUTINE Define_Bulk_NP
+
+      IMPLICIT NONE
+      integer:: NTH, NP, NR, NSA, NS, i
+      double precision:: pmax_bulk, p_bulk_r, rhon, RTFPL
+      TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
+
+!     DEFINE BULK MOMENTUM RANGE: 0 < NP < NP_BULK(NR,NSA) 
+      IF(MODEL_BULK_CONST.eq.0)THEN
+         DO NSA=1, NSAMAX
+            DO NR=1, NRMAX
+               IF(NT_init.eq.0)THEN
+                  PMAX_BULK = FACT_BULK
+                  P_BULK_R = PMAX_BULK* RT_TEMP(NR,NSA)/RTFP0(NSA)
+               ELSE
+                  RHON=RM(NR)
+                  CALL PL_PROF(RHON,PLF)
+                  NS=NS_NSA(NSA)
+                  RTFPL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+                  PMAX_BULK = SQRT( RT_BULK(NR,NSA)/RTFPL )*FACT_BULK
+                  P_BULK_R = PMAX_BULK* RT_BULK(NR,NSA)/RTFP0(NSA)
+               END IF
+               DO NP=NPMAX, 1, -1
+                  IF(P_BULK_R.lt.PG(NP,NSA)) NP_BULK(NR,NSA)=NP
+               END DO
+               IF(PMAX(NSA).lt.P_BULK_R)THEN
+                  NP_BULK(NR,NSA) = NPMAX
+               END IF
+            END DO
+         END DO
+      ELSE
+         DO NSA=1, NSAMAX
+            DO NR=1, NRMAX
+               PMAX_BULK = FACT_BULK
+               IF(MODEL_EX_READ.eq.0)THEN
+                  P_BULK_R = PMAX_BULK* RTFP(NR,NSA)/RTFP0(NSA)
+               ELSE
+                  P_BULK_R = PMAX_BULK* RT_TEMP(NR,NSA)/RTFP0(NSA)
+               END IF
+               DO NP=NPMAX, 1, -1
+                  IF(P_BULK_R.lt.PG(NP,NSA)) NP_BULK(NR,NSA)=NP
+               END DO
+               IF(PMAX(NSA).lt.P_BULK_R)THEN
+                  NP_BULK(NR,NSA) = NPMAX
+               END IF
+            END DO
+         END DO
+      END IF
+!      IF(NRANK.eq.0) WRITE(*,'(A,E14.6,2I5,2E14.6)') "NR, time, NP_BULK ", timefp, (NP_BULK(1,i),i=1,NSAMAX), (RT_bulk(1,i),i=1,NSAMAX)
+
+      END SUBROUTINE Define_Bulk_NP
 !==============================================================
 
 

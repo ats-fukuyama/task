@@ -11,6 +11,7 @@
 
       PUBLIC NF_REACTION_COEF
       PUBLIC NF_REACTION_RATE
+      PUBLIC ALLREDUCE_NF_RATE
 
       PRIVATE
 
@@ -333,7 +334,7 @@
       USE libmpi
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NR,ID
-      INTEGER:: NSB1, NSB2, NSA1, NSA2, NP1, NP2, NTH1, NTH2, VLOC
+      INTEGER:: NSB1, NSB2, NSA1, NSA2, NP1, NP2, NTH1, NTH2, VLOC, i, NSA
       REAL(8):: RSUM, FACT, RSUM2, FACT1, FACT2, FACT3
       real(8):: double_count, RSUM3, RSUM_B2, RSUM_sum, RSUM_B1
       real(8),dimension(NTHMAX,NPMAX):: FNSB_B2_VOLP
@@ -443,8 +444,71 @@
          WRITE(6,'("  ",4I5,1PE14.6,1PE12.4, 1P2E14.6)') ID,NR,NSB1,NSB2,RSUM2/FACT,ENG1_NF(ID), RSUM2, RSUM3
       END IF
       RATE_NF(NR,ID) = RSUM2
+      RATE_NF_BB(NR,ID) = RSUM3
+
+!      WRITE(*,'(4I5,6E14.6)') nrank, comm_np%rank, comm_nr%rank, comm_nsa%rank, (RATE_NF(NR,i), i=1,6)
 
       end SUBROUTINE NF_REACTION_RATE
+!===========================================================
+      SUBROUTINE ALLREDUCE_NF_RATE
+
+      USE fpcomm
+      USE libmpi
+      IMPLICIT NONE
+      double precision,dimension((NREND-NRSTART+1)*6):: RATE_NF_SEND, RATE_NF_BB_SEND
+      double precision,dimension((NREND-NRSTART+1)*6):: RATE_NF_RECV, RATE_NF_BB_RECV
+      integer,dimension(6*(NREND-NRSTART+1)):: vloc ! empty
+      INTEGER:: NR,ID,ndata,NSA1,NSA2,i,j
+
+      RATE_NF_SEND(:)=0.D0
+      RATE_NF_BB_SEND(:)=0.D0
+      RATE_NF_RECV(:)=0.D0
+      RATE_NF_BB_RECV(:)=0.D0
+
+      NSA1=0
+      NSA2=0
+      DO i=1,NSMAX
+         IF(PA(i).eq.1.and.PZ(i).eq.1) NSA1=i ! proton
+         IF(PA(i).eq.3.and.PZ(i).eq.1) NSA2=i ! triton
+      END DO
+
+      CALL mtx_set_communicator(comm_nsa)
+
+      ndata = 6*(NREND-NRSTART+1)
+      j=0
+      DO ID=1,6
+         DO NR=NRSTART, NREND
+            j=j+1
+            RATE_NF_SEND(j)=RATE_NF(NR,ID)
+            RATE_NF_BB_SEND(j)=RATE_NF_BB(NR,ID)
+         END DO
+      END DO
+
+      CALL mtx_allreduce_real8(RATE_NF_SEND,ndata,3,RATE_NF_RECV,vloc)
+      CALL mtx_allreduce_real8(RATE_NF_BB_SEND,ndata,3,RATE_NF_BB_RECV,vloc)
+
+      j=0
+      DO ID=1,6
+         DO NR=NRSTART, NREND
+            j=j+1
+            IF(ID.eq.1)THEN
+               IF(NSA1*NSA2.eq.0)THEN
+                  RATE_NF(NR,ID)=RATE_NF_RECV(j)
+                  RATE_NF_BB(NR,ID)=RATE_NF_BB_RECV(j)
+               ELSE
+                  RATE_NF(NR,ID)=RATE_NF_RECV(j)*0.5D0
+                  RATE_NF_BB(NR,ID)=RATE_NF_BB_RECV(j)*0.5D0
+               END IF
+            ELSE
+               RATE_NF(NR,ID)=RATE_NF_RECV(j)
+               RATE_NF_BB(NR,ID)=RATE_NF_BB_RECV(j)
+            END IF
+         END DO
+      END DO
+
+      CALL mtx_reset_communicator
+
+      END SUBROUTINE ALLREDUCE_NF_RATE
 !===========================================================
 
       end MODULE fpnfrr

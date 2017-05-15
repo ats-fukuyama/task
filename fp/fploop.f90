@@ -26,6 +26,7 @@
       USE plprof
       USE FPMPI
       USE fpprep, only: Coulomb_log 
+      USE fpnfrr
       IMPLICIT NONE
       real(kind8),dimension(NRSTART:NREND,NSAMAX):: RJNS
       real(kind8),dimension(NRSTART:NREND):: RJN,RJ3,E3,DELE
@@ -237,6 +238,7 @@
 
          END DO ! END OF DOWHILE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
          IF(MODEL_BULK_CONST.eq.1)THEN
 !        Bulk f is replaced by Maxwellian
             DO NSA=1, NSAMAX
@@ -276,7 +278,13 @@
             END DO
          END IF
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+         IF(MODELS.ne.0)THEN
+            CALL ALLREDUCE_NF_RATE
+            IF(NRANK.eq.0)THEN
+!               WRITE(25,'(A,2I5)') "# ", NRANK, NSASTART
+               WRITE(25,'(20E14.6)') TIMEFP+DELT, (RATE_NF(1,i),i=1,6), (RATE_NF_BB(1,i),i=1,6)
+            END IF
+         END IF
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          DO NSA=NSASTART,NSAEND
@@ -411,7 +419,7 @@
 !pitch angle average
             pitch_angle_av = 0.D0
             DO NTH=1,NTHMAX
-               pitch_angle_av = pitch_angle_av + FNS(NTH,NP,1,1)
+               pitch_angle_av = pitch_angle_av + FNS(NTH,NP,1,NS_F1)
             END DO
             pitch_angle_av = pitch_angle_av/NTHMAX
 !            WRITE(9,'(1PE12.4,I6,1P30E17.8e3)') PTG(NTG1)*1000, NP, PM(NP,1), &
@@ -419,11 +427,11 @@
 !                 PM(NP,1)**2, &
 !                 PTFP0(1)**2*PM(NP,1)**2/(AEE*AMFP(1)*1.D3), FNS(1,NP,1,1), FNS(NTHMAX-3,NP,1,1), &
 !                 FNS(NTHMAX/2,NP,1,1), pitch_angle_av!, &
-            WRITE(9,'(1PE12.4,I6,1P30E17.8e3)') PTG(NTG1)*1000, NP, PM(NP,1), &
-                 PM(NP,1)*PTFP0(1)/AMFP(1)/VC/SQRT(1.D0+PM(NP,1)**2*THETA0(1)), &
-                 PM(NP,1)**2, &
-                 PTFP0(1)**2*PM(NP,1)**2/(AEE*AMFP(1)*1.D3), FNS(1,NP,1,2), FNS(4,NP,1,2), & ! ion
-                 FNS(NTHMAX/2,NP,1,2), pitch_angle_av!, &
+            WRITE(9,'(1PE12.4,I6,1P30E17.8e3)') PTG(NTG1)*1000, NP, PM(NP,NS_F1), &
+                 PM(NP,NS_F1)*PTFP0(NS_F1)/AMFP(NS_F1)/VC/SQRT(1.D0+PM(NP,NS_F1)**2*THETA0(NS_F1)), &
+                 PM(NP,NS_F1)**2, &
+                 0.5D0*PTFP0(NS_F1)**2*PM(NP,NS_F1)**2/(AEE*AMFP(NS_F1)*1.D3), FNS(1,NP,1,NS_F1), FNS(4,NP,1,NS_F1), & ! ion
+                 FNS(NTHMAX/2,NP,1,NS_F1), pitch_angle_av!, &
 !                 PTFP0(1)**2*PM(NP,1)**2/(AEE*AMFP(1)*1.D3), FNS(1,NP,1,1), FNS(NTHMAX,NP,1,1), & ! electron
 !                 FNS(NTHMAX/2,NP,1,1), pitch_angle_av!, &
          END DO
@@ -471,7 +479,7 @@
 
       IMPLICIT NONE
       integer,intent(in):: NSA
-      integer:: NTH, NP, NR, NS, NSBA
+      integer:: NTH, NP, NS, NSBA
 
       NS=NS_NSA(NSA)
       NSBA=NSB_NSA(NSA)

@@ -21,6 +21,7 @@
 !     ns_nsa(nsa): mapping from NSA to NS in pl 
 !     ns_nsb(nsb): mapping from NSB to NS in pl
 !     pmax(nsb)  : maximum momentum (normailzed by central thermal momentum)
+!     Emax(nsb)  : if Emax is not 0, p upper boundary is defined from not pmax but sqrt(2*m*Emax)/PTFP0
 
       nsamax = 1
       nsbmax = 1
@@ -31,6 +32,7 @@
          ns_nsb(nsb)=nsb          ! default field particle species lise
          pmax(nsb)=7.d0           ! default pmax=7
          pmax_bb(nsb)=5.d0        ! default pmax=5 R_beam_beam
+         Emax(nsb)=0.D0
       ENDDO
 
 !-----RADIAL MESH---------------------------------------------------------
@@ -137,6 +139,7 @@
 !     SPBENG(nbeam): Particle energy [eV]
 !     SPBPANG(nbeam): Source poloidal angle [degree]
 !     SPBANG(nbeam): Source pitch angle [degree] ! at chi=SPBPANG
+!     for f1_1.dat
 
       DO NBEAM=1,NBEAMM
          NSSPB(NBEAM)=2
@@ -147,6 +150,7 @@
          SPBANG(NBEAM)=20.D0
          SPBPANG(NBEAM)=0.D0
       ENDDO
+      NS_F1=2
 
 !-----FUSION REACTION----------------------------------------------------
 !     NSSPF  : Fusion product particle species
@@ -278,7 +282,8 @@
 !                        5: CDBM05 with strong ExB shear
 !     MODEL_LOSS      : 1 for LOSS TERM
 !     MODEL_SYNCH     : 1 for synchlotron radiation
-!     MODEL_NBI       : 1 for NBI calculation
+!     MODEL_NBI       : 1 for NBI calculation with simple model
+!                     : 2 read FIT3D data (limited)
 !     MODEL_WAVE      : 1 for wave calculation
 !     MODEL_BULK_CONST: 0 ordinary, 1: for bench mark
 !     MODEL_EX_READ   : 0 for prediction
@@ -501,7 +506,7 @@
            MODEL_LNL,MODEL_RE_pmax,MODELD_n_RE,MODEL_IMPURITY, &
            MODEL_SINK,N_IMPU, &
            N_partition_r,N_partition_s,N_partition_p, &
-           PMAX,PMAX_BB, &
+           PMAX,PMAX_BB,EMAX, &
            R1,DELR1,RMIN,RMAX,E0,ZEFF, &
            PWAVE,RFDW,DELNPR,EPSNWR,REWY,DREWY,FACTWM, &
            DEC,PEC1,PEC2,PEC3,PEC4,RFEC,DELYEC, &
@@ -516,7 +521,8 @@
            T0_quench,tau_quench,tau_mgi, &
            time_quench_start,RJPROF1,RJPROF2, &
            v_RE,target_zeff,SPITOT, MODEL_EX_READ, &
-           FACT_BULK, time_exp_offset, MODEL_BULK_CONST, RN_NEU0, MODEL_CX_LOSS
+           FACT_BULK, time_exp_offset, MODEL_BULK_CONST, RN_NEU0, MODEL_CX_LOSS, &
+           EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME, NS_F1
 
       READ(nid,FP,IOSTAT=ist,ERR=9800,END=9900)
 
@@ -557,7 +563,7 @@
       WRITE(6,*) '      MODEL_LNL,MODEL_RE_pmax,MODELD_n_RE,MODEL_IMPURITY,'
       WRITE(6,*) '      MODEL_SINK,N_IMPU,'
       WRITE(6,*) '      N_partition_r,N_partition_s,N_partition_p,'
-      WRITE(6,*) '      PMAX,PMAX_BB,'
+      WRITE(6,*) '      PMAX,PMAX_BB,EMAX'
       WRITE(6,*) '      R1,DELR1,RMIN,RMAX,E0,ZEFF,'
       WRITE(6,*) '      PWAVE,RFDW,DELNPR,EPSNWR,REWY,DREWY,FACTWM,'
       WRITE(6,*) '      DEC,PEC1,PEC2,PEC3,PEC4,RFEC,DELYEC,'
@@ -573,6 +579,7 @@
       WRITE(6,*) '      time_quench_start,RJPROF1,RJPROF2,'
       WRITE(6,*) '      v_RE,target_zeff,SPITOT,MODEL_EX_READ,FACT_BULK'
       WRITE(6,*) '      time_exp_offset, MODEL_BULK_CONST, RN_NEU0, MODEL_CX_LOSS'
+      WRITE(6,*) '      EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME, NS_F1'
 
       RETURN
     END SUBROUTINE fp_plst
@@ -693,6 +700,10 @@
       CALL mtx_broadcast_character(KNAMFO,80)
       CALL mtx_broadcast_character(KNAMTR,80)
       CALL mtx_broadcast_character(KNAMEQ2,80)
+      CALL mtx_broadcast_character(EG_NAME_TMS,80)
+      CALL mtx_broadcast_character(EG_NAME_CX,80)
+      CALL mtx_broadcast_character(SV_FILE_NAME,80)
+
       DO NS=1,NSMAX
          CALL mtx_broadcast_character(KID_NS(NS),2)
       END DO
@@ -764,8 +775,9 @@
       idata(59)=MODEL_EX_READ
       idata(60)=MODEL_BULK_CONST
       idata(61)=MODEL_CX_LOSS
+      idata(62)=NS_F1
 
-      CALL mtx_broadcast_integer(idata,61)
+      CALL mtx_broadcast_integer(idata,62)
       NSAMAX         =idata( 1)
       NSBMAX         =idata( 2)
       LMAXNWR        =idata( 3)
@@ -830,6 +842,7 @@
       MODEL_EX_READ  =idata(59)
       MODEL_BULK_CONST =idata(60)
       MODEL_CX_LOSS  =idata(61)
+      NS_F1 = idata(62)
 
       CALL mtx_broadcast_integer(NS_NSA,NSAMAX)
       CALL mtx_broadcast_integer(NS_NSB,NSBMAX)
@@ -973,6 +986,7 @@
 
       CALL mtx_broadcast_real8(pmax,NSAMAX)
       CALL mtx_broadcast_real8(pmax_bb,NSAMAX)
+      CALL mtx_broadcast_real8(Emax,NSAMAX)
       CALL mtx_broadcast_real8(TLOSS,NSMAX)
 
       CALL mtx_broadcast_real8(SPBTOT,NBEAMMAX)

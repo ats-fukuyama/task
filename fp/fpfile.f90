@@ -95,6 +95,7 @@
 
       WRITE(21) ( (RN_TEMP(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
       WRITE(21) ( (RT_TEMP(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
+      WRITE(21) ( (RT_BULK(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
       WRITE(21) (E1(NR),NR=1,NRMAX) ! -> EP
 
       IF(MODELD.ne.0)THEN
@@ -164,6 +165,7 @@
       
       READ(21) ( (RN_TEMP(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
       READ(21) ( (RT_TEMP(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
+      READ(21) ( (RT_BULK(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
       READ(21) (E1(NR),NR=1,NRMAX) ! -> EP
 
       IF(MODELD.ne.0)THEN
@@ -338,6 +340,7 @@
 
       CALL mtx_broadcast_real8(RN_TEMP,NRMAX*NSAMAX)
       CALL mtx_broadcast_real8(RT_TEMP,NRMAX*NSAMAX)
+      CALL mtx_broadcast_real8(RT_BULK,NRMAX*NSAMAX)
 
       IF(MODELD.ne.0)THEN
          CALL mtx_broadcast_real8(WEIGHR_G,NTHMAX*NPMAX*(NRMAX+1)*NSAMAX)
@@ -539,7 +542,7 @@
       IMPLICIT NONE
 
       OPEN(9,file="f1_1.dat") 
-!      OPEN(24,file="time_evol_f1.dat") 
+      OPEN(24,file="time_evol_f1.dat") 
       IF(MODEL_DISRUPT.ne.0.and.NRANK.eq.0)THEN
 !         OPEN(9,file="f1_1.dat") 
          open(10,file='time_evol.dat') 
@@ -550,6 +553,9 @@
          open(15,file='re_pitch.dat')
          open(18,file='efield_ref.dat')
          open(23,file='collision_time.dat')
+      END IF
+      IF(MODELS.eq.2)THEN
+         open(25,file='fusion_reaction_rate.dat')
       END IF
 
 !      open(19,file='p-T_bulk.dat')
@@ -564,7 +570,7 @@
       IMPLICIT NONE
 
       close(9)
-!      close(24)
+      close(24)
       IF(MODEL_DISRUPT.ne.0.and.NRANK.eq.0)THEN
          close(10)
          close(11)
@@ -574,6 +580,9 @@
          close(15)
          close(18)  
          close(23)  
+      END IF
+      IF(MODELS.eq.2)THEN
+         close(25)
       END IF
 !      close(19)
 !      close(20)  

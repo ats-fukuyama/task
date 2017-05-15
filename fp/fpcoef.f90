@@ -16,6 +16,7 @@
       USE fpcalr
       USE libbes,ONLY: besekn
       USE libmtx
+      USE FP_READ_FIT
 
       INTEGER,parameter:: MODEL_T_IMP=2
 !      double precision,parameter::deltaB_B=1.D-4
@@ -281,12 +282,14 @@
          ENDDO
 !     ----- NBI source term -----
 
-      IF(MODEL_NBI.ne.0)THEN
+      IF(MODEL_NBI.eq.1)THEN
 !         IF(MODELA.eq.0)THEN
-            CALL NBI_SOURCE_A0(NSA)
+         CALL NBI_SOURCE_A0(NSA)
 !         ELSE
 !            CALL NBI_SOURCE_A1(NSA)
 !         END IF
+      ELSEIF(MODEL_NBI.eq.2)THEN
+         CALL NBI_SOURCE_FIT3D
       END IF
 !     ----- Fixed fusion source term -----
 
@@ -830,6 +833,9 @@
       NS=NS_NSA(NSA)
       NSBA=NSB_NSA(NSA)
 
+      RATE_NF(:,:)=0.D0
+      RATE_NF_BB(:,:)=0.D0
+
       DO ID=1,6
          IF(NSA.EQ.NSA1_NF(ID)) THEN
             PSP=SQRT(2.D0*AMFP(NSA)*ENG1_NF(ID)*AEE)/PTFP0(NSA)
@@ -1010,6 +1016,8 @@
       IMPLICIT NONE
 
       SPPF(:,:,:,:)=0.D0
+!      RATE_NF(:,:)=0.D0
+!      RATE_NF_BB(:,:)=0.D0
 
       END SUBROUTINE fusion_source_init
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

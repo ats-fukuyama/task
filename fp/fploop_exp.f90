@@ -51,7 +51,7 @@
 !     +++++ Time loop +++++
 
       DO NT=1,NTMAX
-         CALL READ_EXP_DATA
+         CALL MAKE_EXP_PROF(timefp)
 
          N_IMPL=0
          DEPS=1.D0
@@ -219,16 +219,16 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !        Bulk f is replaced by Maxwellian
-
+         CALL Define_Bulk_NP
 !        temporary
-         DO NSA=NSASTART, NSAEND
-            NS=NS_NSA(NSA)
-            DO NR=NRSTART, NREND
-               RN_READ(NR,NS)=RN_TEMP(NR,NS)
-               RT_READ(NR,NS)=RT_TEMP(NR,NS)
-!               WRITE(*,'(A,2I5,2E14.6)') "TEST READ ", NR, NS, RN_READ(NR,NS), RT_READ(NR,NS)
-            END DO
-         END DO
+!         DO NSA=NSASTART, NSAEND
+!            NS=NS_NSA(NSA)
+!            DO NR=NRSTART, NREND
+!               RN_READ(NR,NS)=RN_TEMP(NR,NS)
+!               RT_READ(NR,NS)=RT_TEMP(NR,NS)
+!!               WRITE(*,'(A,2I5,2E14.6)') "TEST READ ", NR, NS, RN_READ(NR,NS), RT_READ(NR,NS)
+!            END DO
+!         END DO
 !
          DO NSA=NSASTART, NSAEND
             NS=NS_NSB(NSA)
@@ -310,7 +310,7 @@
                IF(RNS(NR,NSA).lt.0)THEN
                   ierr_g = ierr_g + 1
                   IF(NRANK.eq.0)THEN
-                     WRITE(*,'(A,2I5)') "NEGATIVE DENS. at NR= ", NR, NSA 
+                     WRITE(*,'(A,3I5,E14.6)') "NEGATIVE DENS. at NR= ", NR, NSA, ierr_g, RNS(NR,NSA)
                   END IF
                END IF
             END DO
@@ -375,7 +375,7 @@
 !pitch angle average
             pitch_angle_av = 0.D0
             DO NTH=1,NTHMAX
-               pitch_angle_av = pitch_angle_av + FNS(NTH,NP,1,1)
+               pitch_angle_av = pitch_angle_av + FNS(NTH,NP,1,2)
             END DO
             pitch_angle_av = pitch_angle_av/NTHMAX
 !            WRITE(9,'(1PE12.4,I6,1P30E17.8e3)') PTG(NTG1)*1000, NP, PM(NP,1), &

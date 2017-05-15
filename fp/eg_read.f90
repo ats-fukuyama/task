@@ -14,31 +14,53 @@
 
       contains
 !-----------------------------------
-      SUBROUTINE READ_EXP_DATA ! RNE_EXP and RTE_EXP are updated
+      SUBROUTINE READ_EXP_DATA ! EGDATA OF TMS and CX are READ
 
       IMPLICIT NONE
-      double precision:: weight
-      integer:: ntime1, ntime2, NS, NR
-
-!      CALL TEMPORARY_RHO_GRID 
 
       CALL READ_EXP_TMS
       CALL READ_EXP_CX 
 
-      CALL time_interpolation(timefp, ntime1, ntime2, weight)
+      END SUBROUTINE READ_EXP_DATA
+!-----------------------------------
+      SUBROUTINE MAKE_EXP_PROF(time) ! RNE_EXP and RTE_EXP are updated
+
+      IMPLICIT NONE
+      double precision,intent(in):: time
+      double precision:: weight
+      integer:: ntime1, NS, NR
+
+      CALL time_interpolation_tms(time, ntime1, weight)
       CALL MAKE_PROF_FROM_TMS(ntime1,weight)
 
-      DO NS=1, NSMAX
-         DO NR=1, NRMAX
-            RT_READ(NR,NS)=RTE_EXP(NR)
-            RN_READ(NR,NS)=RNE_EXP(NR)
+      CALL time_interpolation_cx(time, ntime1, weight)
+      CALL MAKE_PROF_FROM_CX(ntime1,weight)
 
-            RT_TEMP(NR,NS)=RTE_EXP(NR)
-            RN_TEMP(NR,NS)=RNE_EXP(NR)
-         END DO
+      DO NS=1, NSMAX
+         IF(NS.eq.1)THEN
+            DO NR=1, NRMAX
+               RT_READ(NR,NS)=RTE_EXP(NR)
+               RN_READ(NR,NS)=RNE_EXP(NR)
+               
+               RT_TEMP(NR,NS)=RTE_EXP(NR)
+               RN_TEMP(NR,NS)=RNE_EXP(NR)
+               
+               RT_BULK(NR,NS)=RTE_EXP(NR)
+            END DO
+         ELSE
+            DO NR=1, NRMAX
+               RT_READ(NR,NS)=RTI_EXP(NR)
+               RN_READ(NR,NS)=RNE_EXP(NR)
+               
+               RT_TEMP(NR,NS)=RTI_EXP(NR)
+               RN_TEMP(NR,NS)=RNE_EXP(NR)
+               
+               RT_BULK(NR,NS)=RTI_EXP(NR)
+            END DO
+         END IF
       END DO
 
-      END SUBROUTINE READ_EXP_DATA
+      END SUBROUTINE MAKE_EXP_PROF
 !-----------------------------------
       SUBROUTINE READ_EXP_TMS
 
@@ -47,7 +69,8 @@
       double precision,dimension(27,1000):: read_temporary_double
       integer,dimension(2,1000):: read_temporary_int
 
-      open(22,file='./dat/tswpe@119489.dat',status='old')
+!      open(22,file='./dat/tswpe@119489.dat',status='old')
+      open(22,file=EG_NAME_TMS,status='old')
 
       DO i=1,29
          READ(22,*) 
@@ -87,11 +110,11 @@
       SUBROUTINE READ_EXP_CX
 
       IMPLICIT NONE
-      integer:: i,j,nend2
+      integer:: i,j,nend2, k
+      double precision,dimension(34,1000):: read_cx_temp, read_cx_temp2
 
-      allocate(read_cx_double(34,1000))
-
-      open(22,file='./dat/cxswpi7@119489.dat',status='old')
+!      open(22,file='./dat/cxswpi7@119489.dat',status='old')
+      open(22,file=EG_NAME_CX,status='old')
 
       DO i=1,21
          READ(22,*) 
@@ -99,12 +122,33 @@
       
       nend2=0
       DO i=1,1000
-         READ(22,*,end=200) (read_cx_double(j,i),j=1,34)
+         READ(22,*,end=200) (read_cx_temp(j,i),j=1,34)
+!         READ(22,*,end=200) (read_cx_double(j,i),j=1,34)
          nend2=nend2+1
       END DO
-      nend_cx=nend2
       
 200   close(22)
+      nend_cx=nend2
+
+
+      k=0
+      DO i=1, nend_cx
+         IF(read_cx_temp(29,i).ne.0.D0)THEN
+            k=k+1
+            DO j=1,34
+               read_cx_temp2(j,k)=read_cx_temp(j,i)
+            END DO
+         END IF
+      END DO
+
+      nend_cx=k
+      allocate(read_cx_double(34,nend_cx))
+
+      DO i=1, nend_cx
+         DO j=1,34
+            read_cx_double(j,i)=read_cx_temp2(j,i)
+         END DO
+      END DO
       
 !       WRITE(*,*) "END LINE", nend2
 
@@ -155,7 +199,7 @@
       RTE_EXP_EDGE= read_tms_double(24,i) 
       RNE_EXP_EDGE= read_tms_double(25,i)*1.D-1
        
-      open(22,file='prof.dat')
+      open(22,file='prof_tms.dat')
       IF(NRANK.eq.0)THEN
          WRITE(22,'(A,3E14.6)') "# TIME, TE_EDGE, NE_EDGE", TIMEFP, RTE_EXP_EDGE, RNE_EXP_EDGE
          DO NR=1, NRMAX
@@ -167,10 +211,10 @@
       END IF
       close(22)
       
-      open(22,file='evol.dat')
+      open(22,file='evol_tms.dat')
       IF(NRANK.eq.0)THEN
          DO i=1, nend_tms 
-            IF(read_tms_double(15,i).ne.0.and.read_tms_double(19,i).ne.0)THEN
+            IF(read_tms_double(15,i).ne.0.and.read_tms_double(19,i).ne.0)THEN ! time, Te, n_e
                WRITE(22,'(3E14.6)') read_tms_double(1,i), read_tms_double(15,i), read_tms_double(19,i)
             END IF
          END DO
@@ -178,12 +222,110 @@
       close(22)
 
       END SUBROUTINE MAKE_PROF_FROM_TMS
+!--------------------------------
+      SUBROUTINE MAKE_PROF_FROM_CX(ntime1,weight)
+
+      IMPLICIT NONE
+      integer,intent(in):: ntime1
+      double precision,intent(in):: weight
+      integer:: i,j,k
+      integer:: NR
+      double precision:: rti_ex, rho
+      double precision,dimension(NRMAX,2):: prof_ti_temp
+      
+      DO k=1, 2
+         i=k-1+ntime1
+         
+         DO j=1,5
+            cti_fit(j)=read_cx_double(28+j,i)
+         END DO
+
+!          WRITE(*,*) " cte_fit(1)", i, cte_fit(1)
+!          WRITE(*,*) " cne_fit(1)", i, cne_fit(1)
+         
+         DO NR=1, NRMAX
+            rho = RM(NR)
+            rti_ex = cti_fit(1)+cti_fit(2)*rho**2+cti_fit(3)*rho**4+cti_fit(4)*rho**6
+            
+            prof_ti_temp(NR,k)=rti_ex
+         END DO
+      END DO
+      
+! time interpolation
+      DO NR=1, NRMAX
+         RTI_EXP(NR)=(1.D0-weight)*prof_ti_temp(NR,1) + weight*prof_ti_temp(NR,2)
+      END DO
+      RTI_EXP_EDGE= read_cx_double(34,i) 
+       
+      open(22,file='prof_cx.dat')
+      IF(NRANK.eq.0)THEN
+         WRITE(22,'(A,3E14.6)') "# TIME, TI_EDGE ", TIMEFP, RTI_EXP_EDGE
+         DO NR=1, NRMAX
+            WRITE(22,'(I5,7E14.6)') NR, RM(NR), prof_ti_temp(NR,1), RTI_EXP(NR), prof_ti_temp(NR,2)
+         END DO
+         WRITE(22,*) " "
+         WRITE(22,*) " "
+      END IF
+      close(22)
+      
+      open(22,file='evol_cx.dat')
+      IF(NRANK.eq.0)THEN
+         DO i=1, nend_cx 
+            IF(read_cx_double(28,i).ne.0)THEN ! time, Ti
+               WRITE(22,'(2E14.6)') read_cx_double(1,i), read_cx_double(29,i)
+            END IF
+         END DO
+      END IF
+      close(22)
+
+      END SUBROUTINE MAKE_PROF_FROM_CX
 !------------------------------------
-      SUBROUTINE time_interpolation(time, ntime1, ntime2, weight)
+      SUBROUTINE time_interpolation_cx(time, ntime1, weight)
 
       IMPLICIT NONE
       double precision, intent(in):: time
-      integer,intent(out):: ntime1, ntime2
+      integer,intent(out):: ntime1
+      integer:: ntime2
+      double precision,intent(out):: weight ! y=(1-alpha)*y1 + alpha*y2
+      double precision:: time_exp
+      integer:: i
+
+      time_exp= time + time_exp_offset
+!      WRITE(*,*) "TEST_NEND_CX ", nend_cx
+      IF(time_exp.lt.read_cx_double(1,1))THEN
+         ntime1=1
+         ntime2=1
+         weight=1.D0
+      ELSEIF(read_cx_double(1,nend_cx).lt.time_exp)THEN
+         ntime1=nend_cx
+         ntime2=nend_cx
+         weight=1.D0
+      ELSE
+         DO i=1, nend_cx
+            IF(read_cx_double(1,i).le.time_exp.and.time_exp.lt.read_cx_double(1,i+1))THEN
+               ntime1=i
+               ntime2=i+1
+            END IF
+!      IF(NRANK.eq.0) WRITE(*,*) "TEST", i, nend_cx, read_cx_double(1,1), read_cx_double(1,2)
+         END DO
+         weight=(time_exp-read_cx_double(1,ntime1))/(read_cx_double(1,ntime2)-read_cx_double(1,ntime1))
+      END IF
+ 
+
+!      IF(NRANK.eq.0)THEN
+!         WRITE(*,'(A,2I5)') "ntime1, 2= ", ntime1, ntime2
+!         WRITE(*,'(A,1P3E14.6)') "timefp + offset ", read_tms_double(1,ntime1), time+time_exp_offset, read_tms_double(1,ntime2)
+!         WRITE(*,*) "weight ", weight
+!      END IF
+
+      END SUBROUTINE time_interpolation_cx
+!------------------------------------
+      SUBROUTINE time_interpolation_tms(time, ntime1, weight)
+
+      IMPLICIT NONE
+      double precision, intent(in):: time
+      integer,intent(out):: ntime1
+      integer:: ntime2
       double precision,intent(out):: weight ! y=(1-alpha)*y1 + alpha*y2
       double precision:: time_exp
       integer:: i
@@ -198,13 +340,13 @@
       
       weight=(time_exp-read_tms_double(1,ntime1))/(read_tms_double(1,ntime2)-read_tms_double(1,ntime1))
 
-      IF(NRANK.eq.0)THEN
-         WRITE(*,'(A,2I5)') "ntime1, 2= ", ntime1, ntime2
-         WRITE(*,'(A,1P3E14.6)') "timefp + offset ", read_tms_double(1,ntime1), time+time_exp_offset, read_tms_double(1,ntime2)
-         WRITE(*,*) "weight ", weight
-      END IF
+!      IF(NRANK.eq.0)THEN
+!         WRITE(*,'(A,2I5)') "ntime1, 2= ", ntime1, ntime2
+!         WRITE(*,'(A,1P3E14.6)') "timefp + offset ", read_tms_double(1,ntime1), time+time_exp_offset, read_tms_double(1,ntime2)
+!         WRITE(*,*) "weight ", weight
+!      END IF
 
-      END SUBROUTINE time_interpolation
+      END SUBROUTINE time_interpolation_tms
 !------------------------------------
 ! ****************************************
 !     MAXWELLIAN VELOCITY DISTRIBUTION
