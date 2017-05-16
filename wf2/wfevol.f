@@ -1045,7 +1045,7 @@ C
 C      UI=13.6D0   (Hydrogen)
 C      UI=15.76D0  (Argon)
 C
-      UI=15.76D0
+      UI=13.6D0
       U=UI/TEFF
       IF(U.GT.100.D0) THEN
          RNUION=0.D0

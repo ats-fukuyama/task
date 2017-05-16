@@ -1386,14 +1386,14 @@ C
       CALL TEXT(' PHIAVE=',8)
       CALL NUMBD(PHIT(NGTMAX,1),'(1PE10.3)',10)
 C
-      GX=GXMIN+4.8*GDX
+      GX=GXMIN+5.8*GDX
       GY=GYMAX-6.3*GDY
       CALL MOVE(GX,GY)
       CALL TEXT('IS  ',4)
       CALL TEXT('   PABS  ',9)
 C
       DO 30 IS=1,NSMAX
-         GX=GXMIN+4.8*GDX
+         GX=GXMIN+5.8*GDX
          GY=GY-GDY
          CALL MOVE(GX,GY)
          IST=IS
