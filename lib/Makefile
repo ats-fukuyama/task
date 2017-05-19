@@ -4,8 +4,8 @@ include ../make.header
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-#LFLAGS = $(OFLAGS)
-LFLAGS = $(DFLAGS)
+LFLAGS = $(OFLAGS)
+#LFLAGS = $(DFLAGS)
 FFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I $(MOD)
@@ -45,12 +45,6 @@ tasklib.a: $(OBJSFREE) $(OBJSFIXED)
 
 mdslib.a: $(OBJSMDS)
 	$(LD) $(LDFLAGS) mdslib.a $(OBJSMDS)
-
-new :
-	mkdir ../libnew
-	cp -f Makefile ../libnew
-	cp -f *.f90 ../libnew
-	cp -f *.f ../libnew
 
 check :
 	ftnchek $(SRCSFREE) $(SRCSFIXED) $(MDSPLUS) | less

@@ -415,9 +415,9 @@ C
       DO K=1,3
          IF(MODELS.EQ.1) THEN
             RL(K)=2.D0*PI*XE(K)
-            IF(XE(K).LE.0.D0) THEN
-               RI(K)=0.D0
-            ELSE
+            RI(K)=0.D0
+            IF(XE(K).NE.0.D0) THEN
+               IF(XE(K).EQ.0.D0) WRITE(6,*) XE(K)
                RI(K)=1.D0/XE(K)
             ENDIF
             CKZ(K)=CI*NPHI*RI(K)
@@ -696,6 +696,16 @@ C
    11 CONTINUE
 C
       DO 10 NA=1,NAMAX
+         SELECT CASE(NTYPJ0(NA))
+         CASE(0,2,10)
+            RD=XJ0(1,NA)
+            ZJH1=YJ0(1,NA)
+            ZJH2=YJ0(2,NA)
+         CASE(1,3)
+            RD=XJ0(2,NA)
+            ZJH1=YJ0(2,NA)
+            ZJH2=YJ0(3,NA)
+         END SELECT
          IF(NTYPJ0(NA).GE.0.OR.JNUM0(NA).EQ.2) THEN
             IJMAX=JNUM(NA)+1
          ELSE
@@ -716,8 +726,8 @@ C
                   XM=XJ(IJ,NA)
                   YM=YJ(IJ,NA)
                   IE=JAELM(IJ,NA)
-                  CVJ= CNST*CAJ(NA)*CI*XM/NPHI
                   CALL WFABC(IE,A,B,C,S)
+                  CVJ= CNST*CAJ(NA)*CI*XM/NPHI
                   CJ(1)=(0.D0,0.D0)
                   CJ(2)=(0.D0,0.D0)
                   CJ(3)=CVJ
@@ -725,8 +735,8 @@ C
                   XM=XJ(IJ-1,NA)
                   YM=YJ(IJ-1,NA)
                   IE=JAELM(IJ-1,NA)
-                  CVJ=-CNST*CAJ(NA)*CI*XM/NPHI
                   CALL WFABC(IE,A,B,C,S)
+                  CVJ=-CNST*CAJ(NA)*CI*XM/NPHI
                   CJ(1)=(0.D0,0.D0)
                   CJ(2)=(0.D0,0.D0)
                   CJ(3)=CVJ
@@ -785,8 +795,8 @@ C               WRITE(6,'(A,I3,1P6E12.4)') 'CV=',IJ,(CJ(I),I=1,3)
                   XM=XJ(IJ,NA)
                   YM=YJ(IJ,NA)
                   IE=JAELM(IJ,NA)
-                  CVJ=CNST*CAJ(NA)*CI*EXP( CI*NPHI*PHL)/(PI*NPHI)
                   CALL WFABC(IE,A,B,C,S)
+                  CVJ= CNST*CAJ(NA)*CI*RD/(PI*NPHI)
                   CJ(1)=(0.D0,0.D0)
                   CJ(2)=(0.D0,0.D0)
                   CJ(3)=CVJ
@@ -794,8 +804,8 @@ C               WRITE(6,'(A,I3,1P6E12.4)') 'CV=',IJ,(CJ(I),I=1,3)
                   XM=XJ(IJ-1,NA)
                   YM=YJ(IJ-1,NA)
                   IE=JAELM(IJ-1,NA)
-                  CVJ=-CNST*CAJ(NA)*CI*EXP(-CI*NPHI*PHL)/(PI*NPHI)
                   CALL WFABC(IE,A,B,C,S)
+                  CVJ=-CNST*CAJ(NA)*CI*RD*EXP(-CI*NPHI*PHL)/(PI*NPHI)
                   CJ(1)=(0.D0,0.D0)
                   CJ(2)=(0.D0,0.D0)
                   CJ(3)=CVJ
@@ -804,15 +814,41 @@ C               WRITE(6,'(A,I3,1P6E12.4)') 'CV=',IJ,(CJ(I),I=1,3)
                   Y1=YJ(IJ-1,NA)
                   X2=XJ(IJ,NA)
                   Y2=YJ(IJ,NA)
-                  IE=JAELM(IJ,NA)
+C                  IF(IJ.EQ.2) THEN
+C                     XM=X1
+C                     YM=Y1
+C                  ELSEIF(IJ.EQ.IJMAX-1) THEN
+C                     XM=X2
+C                     YM=Y2
+C                  ELSE
+                     XM=0.5D0*(X1+X2)
+                     YM=0.5D0*(Y1+Y2)
+C                  END IF
+                  CALL WFFEP(XM,YM,IE)
                   CALL WFABC(IE,A,B,C,S)
-                  XM=0.5D0*(X1+X2)
-                  YM=0.5D0*(Y1+Y2)
-                  PHIL=(YM-0.5D0*(ZJH1+ZJH2))*2.D0*PHL/(ZJH2-ZJH1)
-                  CVJ=CNST*CAJ(NA)*EXP(-CI*NPHI*PHIL)/PI
-                  FACT=1.D0/SQRT((ZJH2-ZJH1)**2+(2.D0*RD*PHL)**2)
-                  FACTZ=FACT*(ZJH2-ZJH1)
-                  FACTPH=FACT*2.D0*RD*PHL
+C
+                  PHIL=PHL*(YM-ZJH1)/(ZJH2-ZJH1)
+C                  CVJ=CNST*CAJ(NA)*EXP(-CI*NPHI*PHIL)*(Y2-Y1)/(PI*NPHI)
+                  CVJ=CNST*CAJ(NA)*EXP(-CI*NPHI*PHIL)*(Y2-Y1)/(PI)
+C
+                  FACTZ=1.D0
+                  FACTPH=RD*PHL/(ZJH2-ZJH1)
+C                  FACTZ =(ZJH2-ZJH1)/SQRT((ZJH2-ZJH1)**2
+C     &                                   +(RD*PHL)**2)
+C                  FACTPH=RD*PHL/SQRT((ZJH2-ZJH1)**2
+C     &                                   +(RD*PHL)**2)
+C
+C                  IF(PHL.EQ.0.D0) THEN
+C                     CVJ=CNST*CAJ(NA)*(Y2-Y1)/PI
+C                  ELSE
+C                     FACTOR=PHL/(ZJH2-ZJH1)
+C                     PHIL1=FACTOR*(Y1-ZJH1)
+C                     PHIL2=FACTOR*(Y2-ZJH1)
+C                     CVJ=CNST*CAJ(NA)/PI
+C     &                       *(EXP(-CI*NPHI*PHIL2)-EXP(-CI*NPHI*PHIL1))
+C     &                       /(-CI*NPHI*FACTOR)
+C                  END IF
+C     
                   CJ(1)=0.D0
                   CJ(2)=CVJ*FACTZ
                   CJ(3)=CVJ*FACTPH
@@ -859,6 +895,8 @@ C
      &                           -CI*B(N)*CJ(1)*RL
      &                           -CI*C(N)*CJ(2)*RL
      &                           +CI*CKZ *CJ(3)*WEIGHT*RL
+C                  write(6,'(I8,1P8E9.1)') IN,CRV(IBND(IN)  ),
+C     &                  CRV(IBND(IN)+1),CRV(IBND(IN)+2),CRV(IBND(IN)+3)
                ELSE IF(MOD(KNODW(IN),2).EQ.0) THEN
                   CRV(IBND(IN)  )=CRV(IBND(IN)  )
      &                 +ANXN(IN)*WEIGHT*CJ(1)*RL
