@@ -753,6 +753,23 @@
          END DO
       END DO
 
+      DO NSA=NSASTART,NSAEND
+         IF(MODEL_DELTA_F(NSA).eq.1)THEN
+            NS=NS_NSB(NSA)
+            DO NR=NRSTARTW,NRENDWM
+               IF(NR.ge.1.and.NR.le.NRMAX)THEN
+                  DO NP=NPSTARTW,NPENDWM
+                     FL=FPMXWL(PM(NP,NSA),NR,NS)
+                     DO NTH=1,NTHMAX
+                        FNSP_MXWL(NTH,NP,NR,NSA)=FL
+                        FNSP_DEL(NTH,NP,NR,NSA)=FL*1.D-10
+                     END DO
+                  ENDDO
+               END IF
+            END DO
+         END IF
+      END DO
+
       END SUBROUTINE FNSP_INIT
 !-------------------------------------------------------------
       SUBROUTINE FNSP_INIT_EDGE
@@ -871,25 +888,7 @@
       IF(MODEL_EX_READ.eq.1)THEN
          CALL READ_EXP_DATA
          CALL MAKE_EXP_PROF(timefp)
-!         DO NS=1,NSMAX ! temporal
-!            IF(NS.eq.1)THEN
-!               DO NR=1, NRMAX
-!                  RT_READ(NR,NS)=RTE_EXP(NR)
-!                  RN_READ(NR,NS)=RNE_EXP(NR)
-!                  
-!                  RT_TEMP(NR,NS)=RTE_EXP(NR)
-!                  RN_TEMP(NR,NS)=RNE_EXP(NR)
-!               END DO
-!            ELSE
-!               DO NR=1, NRMAX
-!                  RT_READ(NR,NS)=RTI_EXP(NR) ! 
-!                  RN_READ(NR,NS)=RNE_EXP(NR) ! ne=ni
-!                  
-!                  RT_TEMP(NR,NS)=RTI_EXP(NR) ! Te=Ti
-!                  RN_TEMP(NR,NS)=RNE_EXP(NR) ! ne=ni
-!               END DO               
-!            END IF
-!         END DO
+         IF(NRANK.eq.0) WRITE(*,'(A,E14.6)') "time_exp_offset= ", time_exp_offset
       END IF
 !      WRITE(*,*) NR, NS, RT_READ(NR,NS), RN_READ(NR,NS), RT_TEMP(NR,NS), RN_TEMP(NR,NS)
 
@@ -1299,7 +1298,8 @@
 !     ----- set parameters for target species -----
       CALL fp_set_normalize_param
 !     ----- Initialize velocity distribution function of all species -----
-      CALL FNSP_INIT
+      CALL FNSP_INIT     
+
       CALL FNSP_INIT_EDGE
 !      WRITE(6,*) "END INIT"
 !     ----- set background f

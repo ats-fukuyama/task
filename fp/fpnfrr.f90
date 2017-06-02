@@ -430,6 +430,10 @@
          RSUM2 = RSUM2 &
               + RATE_NF_D1(NTH1,NP1,NR,ID) *VOLP(NTH1,NP1,NSB1)*RLAMDAG(NTH1,NR)*RFSADG(NR)
       END DO
+!      IF(ID.eq.1)THEN
+!         WRITE(*,'(I5,3E14.6)') ID, PM(NP1,NSB1), 0.5D0*(PTFP0(NSB1)*PM(NP1,NSB1))**2/(AMFP(NSB1)*AEE), &
+!              RATE_NF_D1(NTH1,NP1,NR,ID)/(FNSB(NTH1,NP1,NR,NSB1)*RNFD0(NSB1)*RNFD0(NSB2)*1.D20*double_count)              
+!      END IF
       END DO
       CALL mtx_allreduce1_real8(RSUM2,3,RSUM_sum,vloc) ! integrate np1, nth1
       RSUM2=RSUM_sum

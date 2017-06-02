@@ -73,7 +73,11 @@
                      DO NTH=1,NTHMAX
 !                        FNSP(NTH,NP,NR,NSBA)=FNS(NTH,NP,NR,NSBA)  ! new step: variant in each N_IMPL ! for fp_load
                         FNSM(NTH,NP,NR,NSBA)=FNSP(NTH,NP,NR,NSBA) ! minus step: invariant during N_IMPL 
+                        IF(MODEL_DELTA_F(NSA).eq.1)THEN
+                           FNSM(NTH,NP,NR,NSBA)=FNSP_DEL(NTH,NP,NR,NSBA) ! minus step: invariant during N_IMPL 
+                        END IF
                      END DO
+!                     IF(NSA.eq.3) WRITE(*,'(2I5,4E14.6)') NT, NP, FNSM(1,NP,NR,3), FNSP(1,NP,NR,3), FNSP_del(1,NP,NR,3), FNSP_mxwl(1,NP,NR,3)
                   END DO
 !               END IF
             END DO
@@ -91,6 +95,7 @@
          END IF
          CALL GUTIME(gut_coef2)
 
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          nsw = NSAEND-NSASTART+1
          DO WHILE(N_IMPL.le.LMAXFP) ! start do while
@@ -105,6 +110,16 @@
                END DO
                END DO
 
+               IF(MODEL_DELTA_F(NSA).eq.1)THEN
+                  DO NR=NRSTART,NREND
+                     DO NP=NPSTARTW,NPENDWM
+                        DO NTH=1,NTHMAX
+                           FNSP(NTH,NP,NR,NSBA)=FNSP_DEL(NTH,NP,NR,NSBA)
+                        END DO
+                     END DO
+                  END DO
+               END IF
+
                ISW_D=1
                CALL GUTIME(gut_exe1)
                IF(ISW_D.eq.0)THEN 
@@ -116,6 +131,18 @@
                   IERR=0
                END IF
                nt_init=1
+
+               IF(MODEL_DELTA_F(NSA).eq.1)THEN
+                  DO NR=NRSTART,NREND
+                     DO NP=NPSTARTW,NPENDWM
+                        DO NTH=1,NTHMAX
+                           FNSP(NTH,NP,NR,NSBA)=FNSP_DEL(NTH,NP,NR,NSBA)+FNSP_MXWL(NTH,NP,NR,NSBA)
+                           FNSP_DEL(NTH,NP,NR,NSBA)=FNS0(NTH,NP,NR,NSBA)
+                           FNS0(NTH,NP,NR,NSBA)=FNSP_DEL(NTH,NP,NR,NSBA)+FNSP_MXWL(NTH,NP,NR,NSBA)
+                        END DO
+                     END DO
+                  END DO
+               END IF
 
 !--------------convergence check of f
                IF(IERR.NE.0) GOTO 250
@@ -253,19 +280,37 @@
                NS=NS_NSB(NSA)
                DO NR=NRSTARTW, NRENDWM
                   RHON=RM(NR)
-                  CALL PL_PROF(RHON,PLF)
+                  CALL PL_PROF(RHON,PLF) ! bulk values are fixed to initial values
                   RN_TEMP(NR,NS)=PLF(NS)%RN
                   RT_TEMP(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
-
-                  DO NP=NPSTART, NPEND
-                     IF(NP.le.NP_BULK(NR,NSA))THEN
+                  IF(MODEL_DELTA_F(NSA).eq.0)THEN
+                     DO NP=NPSTARTW, NPENDWM
+                        IF(NP.le.NP_BULK(NR,NSA))THEN
+                           DO NTH=1, NTHMAX
+                              FL=FPMXWL_EXP(PM(NP,NSA),NR,NS)
+                              FNS0(NTH,NP,NR,NSA)=FL
+                              FNSP(NTH,NP,NR,NSA)=FL
+                           END DO
+                        END IF
+                     END DO
+                  ELSE ! delta_f mode: update f_M and delta_f
+                     DO NP=NPSTARTW, NPENDWM
+                        IF(NP.le.NP_BULK(NR,NSA))THEN ! reduce delta f in bulk region
+                           DO NTH=1, NTHMAX
+                              FNSP_DEL(NTH,NP,NR,NSA)=0.D0
+                           END DO
+                        END IF
                         DO NTH=1, NTHMAX
                            FL=FPMXWL_EXP(PM(NP,NSA),NR,NS)
-                           FNS0(NTH,NP,NR,NSA)=FL
-                           FNSP(NTH,NP,NR,NSA)=FL
+                           FNSP_MXWL(NTH,NP,NR,NSA)=FL
                         END DO
-                     END IF
-                  END DO
+                        DO NTH=1, NTHMAX
+                           FNS0(NTH,NP,NR,NS)=FNSP_DEL(NTH,NP,NR,NS)+FNSP_MXWL(NTH,NP,NR,NS)
+                           FNSP(NTH,NP,NR,NS)=FNSP_DEL(NTH,NP,NR,NS)+FNSP_MXWL(NTH,NP,NR,NS)
+                        END DO
+                     END DO
+                  END IF
+
                END DO
             END DO
 
@@ -437,8 +482,13 @@
          END DO
          WRITE(9,*) " "
          WRITE(9,*) " "
-
       END IF
+
+!      IF(NSASTART.eq.3)THEN
+!         DO NP=NPSTART, NPEND
+!            WRITE(*,'(I5,3E14.6)') NP, FNSP(1,NP,1,3), FNSP_DEL(1,NP,1,3), FNSP_MXWL(1,NP,1,3)
+!         END DO
+!      END IF
 
 !      IF(NRANK.eq.0)THEN
 !         DO NSA=1,NSAMAX

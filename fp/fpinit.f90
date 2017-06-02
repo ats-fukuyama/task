@@ -151,7 +151,7 @@
          SPBPANG(NBEAM)=0.D0
       ENDDO
       NS_F1=2
-
+      NTH_F1=3
 !-----FUSION REACTION----------------------------------------------------
 !     NSSPF  : Fusion product particle species
 !     SPFTOT : Particle source [1/m^3 s]
@@ -289,6 +289,10 @@
 !     MODEL_EX_READ   : 0 for prediction
 !                     : 1 read experiment data RN_READ and RT_READ
 !     time_exp_offset : TIMEFP + time_exp_offset = time in experiment
+!
+!     MODEL_DELTA_F(NSA): 0 ordinary mode
+!                       : 1 f is described as f=f_M + delta f
+!                         Evolution of f_M is not solved.
 
       MODELE= 0
       MODELA= 0
@@ -315,6 +319,10 @@
       MODEL_EX_READ=0
       MODEL_BULK_CONST=0
       time_exp_offset=0.D0
+
+      DO NSA=1,NSM
+         MODEL_DELTA_F(NSA)=0
+      END DO
 !-----COMPUTATION PARAMETERS------------------------------------------
 !     DELT  : time step size (s)
 !     RIMPL : implicit computation parameter
@@ -504,7 +512,7 @@
            NGLINE,NGRAPH,LLMAX,LLMAX_NF,IDBGFP, &
            MODEL_DISRUPT,MODEL_Connor_fp,MODEL_BS,MODEL_jfp, &
            MODEL_LNL,MODEL_RE_pmax,MODELD_n_RE,MODEL_IMPURITY, &
-           MODEL_SINK,N_IMPU, &
+           MODEL_SINK,N_IMPU,MODEL_DELTA_F, &
            N_partition_r,N_partition_s,N_partition_p, &
            PMAX,PMAX_BB,EMAX, &
            R1,DELR1,RMIN,RMAX,E0,ZEFF, &
@@ -522,7 +530,7 @@
            time_quench_start,RJPROF1,RJPROF2, &
            v_RE,target_zeff,SPITOT, MODEL_EX_READ, &
            FACT_BULK, time_exp_offset, MODEL_BULK_CONST, RN_NEU0, MODEL_CX_LOSS, &
-           EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME, NS_F1
+           EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME, NS_F1, NTH_F1
 
       READ(nid,FP,IOSTAT=ist,ERR=9800,END=9900)
 
@@ -561,7 +569,7 @@
       WRITE(6,*) '      NGLINE,NGRAPH,LLMAX,LLMAX_NF,IDBGFP,'
       WRITE(6,*) '      MODEL_DISRUPT,MODEL_Connor_fp,MODEL_BS,MODEL_jfp,'
       WRITE(6,*) '      MODEL_LNL,MODEL_RE_pmax,MODELD_n_RE,MODEL_IMPURITY,'
-      WRITE(6,*) '      MODEL_SINK,N_IMPU,'
+      WRITE(6,*) '      MODEL_SINK,N_IMPU,MODEL_DELTA_F'
       WRITE(6,*) '      N_partition_r,N_partition_s,N_partition_p,'
       WRITE(6,*) '      PMAX,PMAX_BB,EMAX'
       WRITE(6,*) '      R1,DELR1,RMIN,RMAX,E0,ZEFF,'
@@ -579,7 +587,7 @@
       WRITE(6,*) '      time_quench_start,RJPROF1,RJPROF2,'
       WRITE(6,*) '      v_RE,target_zeff,SPITOT,MODEL_EX_READ,FACT_BULK'
       WRITE(6,*) '      time_exp_offset, MODEL_BULK_CONST, RN_NEU0, MODEL_CX_LOSS'
-      WRITE(6,*) '      EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME, NS_F1'
+      WRITE(6,*) '      EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME, NS_F1, NTH_F1'
 
       RETURN
     END SUBROUTINE fp_plst
@@ -776,8 +784,9 @@
       idata(60)=MODEL_BULK_CONST
       idata(61)=MODEL_CX_LOSS
       idata(62)=NS_F1
+      idata(63)=NTH_F1
 
-      CALL mtx_broadcast_integer(idata,62)
+      CALL mtx_broadcast_integer(idata,63)
       NSAMAX         =idata( 1)
       NSBMAX         =idata( 2)
       LMAXNWR        =idata( 3)
@@ -843,6 +852,7 @@
       MODEL_BULK_CONST =idata(60)
       MODEL_CX_LOSS  =idata(61)
       NS_F1 = idata(62)
+      NTH_F1 = idata(63)
 
       CALL mtx_broadcast_integer(NS_NSA,NSAMAX)
       CALL mtx_broadcast_integer(NS_NSB,NSBMAX)
@@ -850,6 +860,7 @@
       CALL mtx_broadcast_integer(NCMAX,NSAMAX)
       CALL mtx_broadcast_integer(NSSPB,NBEAMMAX)
       CALL mtx_broadcast_integer(MODELW,NSAMAX)
+      CALL mtx_broadcast_integer(MODEL_DELTA_F,NSAMAX)
 
       rdata( 1)=R1
       rdata( 2)=DELR1

@@ -1205,22 +1205,40 @@
       double precision:: sigma_cx, k_energy, log_energy
       integer:: NP, NTH, NR
 
-      DO NR=NRSTART, NREND
-         DO NP=NPSTART, NPEND
-            k_energy = 0.5D0*(PTFP0(NSA)*PM(NP,NSA))**2/(AMFP(NSA)*AEE)
-            log_energy = dlog10(k_energy)
+      IF(MODEL_DELTA_F(NSA).eq.0)THEN
+         DO NR=NRSTART, NREND
+            DO NP=NPSTART, NPEND
+               k_energy = 0.5D0*(PTFP0(NSA)*PM(NP,NSA))**2/(AMFP(NSA)*AEE)
+               log_energy = dlog10(k_energy)
 !     sigma_cx in literature is written in [cm^2]
-            sigma_cx = 0.6937D-14*(1.D0-0.155D0*log_energy)**2/ &
-                 (1.D0+0.1112D-14*k_energy**3.3D0)*1.D-4
-!            WRITE(*,'(I5,1P4E14.6)') NP, PM(NP,NSA), k_energy, k_energy*AEE, sigma_cx*1.D4
-
-            DO NTH=1, NTHMAX
-               SPPL_CX(NTH,NP,NR,NSA) = -RN_NEU0*1.D20 &
-                    *sigma_cx*VTFP0(NSA)*PM(NP,NSA)*FNSP(NTH,NP,NR,NSA)
+               sigma_cx = 0.6937D-14*(1.D0-0.155D0*log_energy)**2/ &
+                    (1.D0+0.1112D-14*k_energy**3.3D0)*1.D-4
+!            WRITE(*,'(I5,1P5E14.6)') NP, PM(NP,NSA), k_energy, k_energy*AEE, sigma_cx, sigma_cx*VTFP0(NSA)*PM(NP,NSA)
+               DO NTH=1, NTHMAX
+                  SPPL_CX(NTH,NP,NR,NSA) = -RN_NEU0*1.D20 &
+                       *sigma_cx*VTFP0(NSA)*PM(NP,NSA)*FNSP(NTH,NP,NR,NSA)
+               END DO
             END DO
-
          END DO
-      END DO
+      ELSEIF(MODEL_DELTA_F(NSA).eq.1)THEN
+         DO NR=NRSTART, NREND
+            DO NP=NPSTART, NPEND
+               k_energy = 0.5D0*(PTFP0(NSA)*PM(NP,NSA))**2/(AMFP(NSA)*AEE)
+               log_energy = dlog10(k_energy)
+!     sigma_cx in literature is written in [cm^2]
+               sigma_cx = 0.6937D-14*(1.D0-0.155D0*log_energy)**2/ &
+                    (1.D0+0.1112D-14*k_energy**3.3D0)*1.D-4
+!            WRITE(*,'(I5,1P5E14.6)') NP, PM(NP,NSA), k_energy, k_energy*AEE, sigma_cx, sigma_cx*VTFP0(NSA)*PM(NP,NSA)
+               DO NTH=1, NTHMAX
+                  SPPL_CX(NTH,NP,NR,NSA) = -RN_NEU0*1.D20 &
+                       *sigma_cx*VTFP0(NSA)*PM(NP,NSA)*FNSP_DEL(NTH,NP,NR,NSA)
+               END DO
+            END DO
+         END DO
+
+
+      END IF
+
       
 !      DO NR=NRSTART, NREND
 !         DO NP=NPSTART, NPEND

@@ -162,7 +162,7 @@
             END DO
          END DO
       END DO
-      
+
       READ(21) ( (RN_TEMP(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
       READ(21) ( (RT_TEMP(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
       READ(21) ( (RT_BULK(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
@@ -289,8 +289,13 @@
       USE fpprep
       USE libmpi
       USE fpmpi
+      USE eg_read
+      USE plprof
       IMPLICIT NONE
-      integer:: NSW, N, NSA, ierr, i, NR, NSB
+      integer:: NSW, N, NSA, ierr, i, NR, NSB, NS, NP, NTH
+      double precision:: FL, RHON
+      real(8),dimension(NRMAX,NSMAX):: tempt, tempn 
+      TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
 
       CALL mtx_reset_communicator
       CALL scatter_fns_to_fns0
@@ -309,10 +314,61 @@
          EM(NR)=0.D0
       END DO
 
+      IF(MODEL_NBI.eq.2)THEN
+         CALL READ_FIT3D
+      END IF
+      
       CALL FNSP_INIT_EDGE
       CALL fp_continue(ierr)
       CALL fp_set_initial_value_from_f
 
+      DO NSA=1, NSAMAX
+         DO NR=1, NRMAX
+            NS=NS_NSA(NSA)
+            tempn(NR,NS)=RN_TEMP(NR,NS)
+            tempt(NR,NS)=RT_TEMP(NR,NS)
+         END DO
+      END DO
+
+      DO NSA=NSASTART,NSAEND
+         NS=NS_NSB(NSA)
+         IF(MODEL_DELTA_F(NSA).eq.1)THEN
+            DO NR=NRSTARTW, NRENDWM
+               IF(MODEL_BULK_CONST.eq.1)THEN
+                  RHON=RM(NR)
+                  CALL PL_PROF(RHON,PLF)
+                  RN_TEMP(NR,NS)=PLF(NS)%RN
+                  RT_TEMP(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+               END IF
+               DO NP=NPSTARTW, NPENDWM
+                  IF(NP.le.NP_BULK(NR,NSA))THEN
+                     DO NTH=1, NTHMAX
+                        FL=FPMXWL_EXP(PM(NP,NSA),NR,NS)
+                        FNSP_MXWL(NTH,NP,NR,NSA)=FL
+                        FNSP_DEL(NTH,NP,NR,NSA)=0.D0
+                     END DO
+                  ELSE
+                     DO NTH=1, NTHMAX
+                        FL=FPMXWL_EXP(PM(NP,NSA),NR,NS)
+                        FNSP_MXWL(NTH,NP,NR,NSA)=FL
+                        FNSP_DEL(NTH,NP,NR,NSA)=FNS0(NTH,NP,NR,NSA)-FNSP_MXWL(NTH,NP,NR,NSA)
+                     END DO
+                  END IF
+                  NTH=1
+!                  IF(NSA.eq.3)WRITE(*,'(4I5,3E14.6)') NRANK, NP, NR, NSA, FNSP_MXWL(NTH,NP,NR,NSA),FNSP_DEL(NTH,NP,NR,NSA),FNS0(NTH,NP,NR,NSA)
+               END DO
+!               WRITE(*,'(3I5,3E14.6)') NR, NS, NRANK, RN_TEMP(NR,NS), RT_TEMP(NR,NS), RT_BULK(NR,NS)
+            END DO
+         END IF
+      END DO
+
+      DO NSA=1, NSAMAX
+         DO NR=1, NRMAX
+            NS=NS_NSA(NSA)
+            RN_TEMP(NR,NS)=tempn(NR,NS)
+            RT_TEMP(NR,NS)=tempt(NR,NS)
+         END DO
+      END DO
 
       END SUBROUTINE FP_POST_LOAD
 !------------------------------------------      
@@ -543,6 +599,8 @@
 
       OPEN(9,file="f1_1.dat") 
       OPEN(24,file="time_evol_f1.dat") 
+!      OPEN(28,file="RPCS2_NSB_D.dat")
+!      OPEN(29,file="RPCS2_NSB_H.dat")
       IF(MODEL_DISRUPT.ne.0.and.NRANK.eq.0)THEN
 !         OPEN(9,file="f1_1.dat") 
          open(10,file='time_evol.dat') 
@@ -571,6 +629,8 @@
 
       close(9)
       close(24)
+!      close(28)
+!      close(29)
       IF(MODEL_DISRUPT.ne.0.and.NRANK.eq.0)THEN
          close(10)
          close(11)

@@ -45,8 +45,8 @@
       IF(KID.EQ.'R'.OR.KID.EQ.'C') THEN
          IF(nrank.EQ.0) CALL CPU_TIME(cputime1)
          IF(KID.EQ.'R') THEN
-            CALL fp_prep(ierr)
             CALL OPEN_EVOLVE_DATA_OUTPUT
+            CALL fp_prep(ierr)
             IF(ierr.ne.0) GO TO 1
          ELSEIF(KID.eq.'C')THEN
             CALL fp_continue(ierr)

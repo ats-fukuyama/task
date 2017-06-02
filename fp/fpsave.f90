@@ -20,7 +20,7 @@
       USE libmtx
       USE fpmpi
       IMPLICIT NONE
-      integer:: NR, NSA, NSB, NSBA, NP, NTH, NS, NPS, NPE, i
+      integer:: NR, NSA, NSB, NSBA, NP, NTH, NS, NPS, NPE, i, NSD, NSH
       integer:: IERR
       real(8):: RSUM1, RSUM2, RSUM3, RSUM4, RSUM5, RSUM6, RSUM7, RSUM_FS2
       real(8):: RSUM8, RSUM9, RSUM123, RSUM11B,RSUM11F,RSUM11S,RSUM11L,RSUM11S_CX
@@ -510,6 +510,18 @@
             ENDIF
          END DO
       END DO
+
+!      IF(NRANK.eq.0)THEN
+!         DO i=1, NSAMAX
+!            IF(PA(i).eq.2.and.PZ(i).eq.1)THEN
+!               NSD=i
+!            ELSEIF(PA(i).eq.1.and.PZ(i).eq.1)THEN
+!               NSH=i               
+!            END IF
+!         END DO
+!         WRITE(29,'(99E14.6)') TIMEFP, ((RPCS2(NR,NSB,NSH),NR=1,NRMAX),NSB=1,NSBMAX)
+!         WRITE(28,'(99E14.6)') TIMEFP, ((RPCS2(NR,NSB,NSD),NR=1,NRMAX),NSB=1,NSBMAX)
+!      END IF
 
 !      DO NSA=1,NSAMAX
 !        DO NR=NRSTART,NREND

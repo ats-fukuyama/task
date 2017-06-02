@@ -15,13 +15,13 @@ MODULE fpcomm_parm
       integer,parameter:: NBEAMM=20
       real(rkind),parameter:: rkev=aee*1.D3
 
-      integer:: NSAMAX,NSBMAX,NS_NSA(NSM),NS_NSB(NSM), NS_F1
+      integer:: NSAMAX,NSBMAX,NS_NSA(NSM),NS_NSB(NSM), NS_F1, NTH_F1
       integer:: LMAXNWR,NCMIN(NSM),NCMAX(NSM),NBEAMMAX,NSSPB(NBEAMM),NSSPF
       integer:: NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX
       integer:: NTMAX,NTSTEP_COEF,NTSTEP_COLL
       integer:: NTG1STEP,NTG1MIN,NTG1MAX
       integer:: NTG2STEP,NTG2MIN,NTG2MAX
-      integer:: MODELE,MODELA,MODELC,MODELR,MODELD,MODELS,MODELW(NSM)
+      integer:: MODELE,MODELA,MODELC,MODELR,MODELD,MODELS,MODELW(NSM),MODEL_DELTA_F(NSM)
       integer:: MODEL_ne_D,MODELD_RDEP,MODELD_PDEP,MODELD_EDGE,MODELD_PINCH
       integer:: MODELD_BOUNDARY,MODELD_CDBM
       integer:: MODEL_LOSS,MODEL_SYNCH,MODEL_NBI,MODEL_WAVE
@@ -159,7 +159,7 @@ module fpcomm
       real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSBM)
            FNS
       real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRS:NRE,NSAM)
-           FNS0,FNSP,FNSM
+           FNS0,FNSP,FNSM,FNSP_DEL,FNSP_MXWL
       real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSBM)
            FNS_L
       real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSBMAX)
@@ -350,6 +350,8 @@ module fpcomm
           allocate(FNS0(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND))
           allocate(FNSP(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND)) 
           allocate(FNSM(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND))
+          allocate(FNSP_DEL(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND)) 
+          allocate(FNSP_MXWL(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND)) 
           allocate(FNSB(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSBMAX)) ! backgroud f
 
           allocate(FS0(NTHMAX,NPSTARTW:NPENDWM,NSAMAX))
@@ -625,6 +627,7 @@ module fpcomm
           deallocate(FNS0)
           deallocate(FNSP)
           deallocate(FNSM)
+          deallocate(FNSP_DEL,FNSP_MXWL)
           deallocate(FNSB)
           deallocate(FS0,FS2,FS1)
 
