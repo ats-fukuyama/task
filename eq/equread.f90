@@ -152,7 +152,6 @@ contains
     write(6,'(1P5E12.4)') (dummy(i),i=101,200)
     write(6,*)
     write(6,'(1P5E12.4)') (dummy(i),i=201,300)
-    pause
     
     CALL equ_set_var1(nsr,nsz,nv,nsu,ilimt,btv,saxis,ell,trg)
     CALL equ_set_psi(psi)
