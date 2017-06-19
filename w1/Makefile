@@ -14,8 +14,10 @@ MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-SRCSFIXED=w1init.f w1prep.f w1prof.f w1bcnd.f w1rslt.f w1out.f \
-          w1grf1.f w1grf2.f w1disp.f w1mlm.f w1fem.f w1intg.f w1lib.f
+SRCSFIXED=w1init.f w1parm.f w1lib.f w1grf1.f w1grf2.f \
+          w1prep.f w1prof.f w1bcnd.f w1rslt.f w1out.f \
+          w1disp.f w1gdsp.f w1mlm.f w1fem.f w1intg.f w1exec.f \
+          w1menu.f
 SRCSFREE = 
 
 OBJS = $(SRCSFIXED:.f=.o) $(SRCSFREE:.f90=.o) 
