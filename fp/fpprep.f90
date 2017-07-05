@@ -30,12 +30,10 @@
       USE fpwmin
 
       Implicit none
-      integer :: ierr,NSA,NSB,NS,NR,NP,NTH,id,NP2
-      character(LEN=80)::line 
-      real(kind8)::rhon,rhol,rhol1,rhol2,A1,epsl,fact,rint0,es,rint2,ql,BT
+      integer :: ierr,NSA,NSB,NS,NR,NP,NTH,id
+!      character(LEN=80)::line 
+      real(kind8)::rhon,rhol,rhol1,rhol2,A1,epsl,ql,BT
       real(kind8),DIMENSION(:),POINTER:: work,workg
-      real(kind8)::suml, delh, etal, x, psib, pcos
-      integer:: NG
       real(kind8):: Rmass, RRTFP, RPTFP,RVTFP, sumEmax
 
 !     ----- define upper boundary of p from Emax-----
@@ -500,7 +498,7 @@
 
       USE libmtx
       IMPLICIT NONE
-      INTEGER:: ierr, colors, keys, N, NREND1, NPEND1, I
+      INTEGER:: ierr, NREND1, keys
       INTEGER,DIMENSION(nsize):: ima1,ima2,npa1,npa2,nra1,nra2,nma1,nma2,insa1,insa2
 
 !     ----- Check nsize -----
@@ -735,7 +733,7 @@
       SUBROUTINE FNSP_INIT
 
       IMPLICIT NONE
-      INTEGER:: NTH,NP,NR,NSA,NSB,NS,NSBA
+      INTEGER:: NTH,NP,NR,NSA,NS!,NSBA
       REAL(8):: FL
 
       DO NSA=NSASTART,NSAEND
@@ -762,7 +760,7 @@
                      FL=FPMXWL(PM(NP,NSA),NR,NS)
                      DO NTH=1,NTHMAX
                         FNSP_MXWL(NTH,NP,NR,NSA)=FL
-                        FNSP_DEL(NTH,NP,NR,NSA)=FL*1.D-10
+                        FNSP_DEL(NTH,NP,NR,NSA)=FL*1.D-30
                      END DO
                   ENDDO
                END IF
@@ -775,8 +773,7 @@
       SUBROUTINE FNSP_INIT_EDGE
 
       IMPLICIT NONE
-      INTEGER:: NTH,NP,NR,NSA,NSB,NS,NSBA
-      integer:: isw
+      INTEGER:: NTH,NP,NR,NSA,NS,NSBA
       REAL(8):: FL
 
       DO NSA=NSASTART,NSAEND
@@ -834,7 +831,7 @@
       USE plprof
       USE EG_READ
       IMPLICIT NONE
-      INTEGER:: NSA, NSB, NS, NSBA, NSFP, NSFD, NR, ISW_CLOG, NP
+      INTEGER:: NSA, NSB, NS, NSFP, NSFD, NR, ISW_CLOG
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
       real(kind8):: RTFD0L, RHON, RNE, RTE, RLNRL, FACT, RNA, RTA, RNB, RTB, SUM, v_beam
 
@@ -1057,8 +1054,8 @@
       SUBROUTINE Coulomb_log
 
       IMPLICIT NONE
-      INTEGER:: NTH, NP, NR, NSA, NSFP, NSFD, NSB, ISW_CLOG
-      DOUBLE PRECISION:: RTE,NTE,RTA,RTB,RNA,RNB, RLNRL, FACT,RNE
+      INTEGER:: NR, NSA, NSFP, NSFD, NSB, ISW_CLOG
+      DOUBLE PRECISION:: RTA,RTB,RNA,RNB, RLNRL, FACT,RNE
       double precision,dimension(NSAMAX,NSBMAX):: CLOG
       double precision:: VTFDL, PTFDL
 
@@ -1144,9 +1141,7 @@
       USE libmtx
       USE fpnflg
       IMPLICIT NONE
-      integer :: ierr,NSA,NSB,NS,NR,NP,NTH,NSBA,N,NSW,j
-      INTEGER:: NSEND, NSWI
-      real:: gut1, gut2, gut_prep
+      integer :: ierr,NSA,NR,NP,NTH,NSBA
 
       IF(NRANK.eq.0) &
       WRITE(6,*) "----- SET COEFFICIENTS AND DISTRIBUTION FUNCTIONS -----"
@@ -1156,6 +1151,7 @@
       IF(MODELS.ne.0) CALL NF_REACTION_COEF
       CALL fusion_source_init
 
+      CALL Define_Bulk_NP
       CALL FP_COEF(0)
 
       DO NSA=NSASTART,NSAEND
@@ -1187,7 +1183,6 @@
 
       USE libmtx
       IMPLICIT NONE
-      INTEGER:: NR, NSB
 
       IF(nrank.EQ.0) WRITE(*,*) "SET INITIAL VALUE FROM f"
       IF(NRANK.eq.0.and.MODEL_disrupt.ne.0)THEN
@@ -1217,10 +1212,8 @@
 
       Implicit none
 
-      integer :: ierr,NSA,NSB,NS,NR,NP,NTH,NSBA,N,NSW,j,i
-      INTEGER:: NSEND, NSWI
+      integer :: ierr,NSA,NS,NR,N,NSW,i
       real:: gut1, gut2, gut_prep
-      real(8):: alp, z_i, h_alpha_z, lambda_alpha, gamma_alpha_z
       real(8):: SIGMA
       real(8),dimension(:),allocatable:: conduct_temp, E1_temp
       integer,dimension(6):: idata
@@ -1310,7 +1303,14 @@
 
 !     ----- READ FIT3D result for NBI -----
       IF(MODEL_NBI.eq.2)THEN
-         CALL READ_FIT3D
+         DO NS=1, NBEAMMAX
+            NSA=NSSPB(NS)
+            IF(PA(NSA).eq.1)THEN
+               CALL READ_FIT3D_H
+            ELSEIF(PA(NSA).eq.2)THEN
+               CALL READ_FIT3D_D
+            END IF
+         END DO
       END IF
 !     ----- set parallel electric field -----
 

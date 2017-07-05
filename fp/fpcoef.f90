@@ -259,7 +259,7 @@
       IMPLICIT NONE
       integer:: NSA, NSB, NSBA, NR, NTH, NP, NS, ID
       integer:: NBEAM, NSABEAM, NSAX, ISW_LOSS
-      real(kind8):: PSP, SUML, ANGSP, SPL, FL
+      real(kind8):: PSP, SUML, ANGSP, SPL, FL, const_inv_tau
 
       DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
@@ -289,7 +289,7 @@
 !            CALL NBI_SOURCE_A1(NSA)
 !         END IF
       ELSEIF(MODEL_NBI.eq.2)THEN
-         CALL NBI_SOURCE_FIT3D
+         CALL NBI_SOURCE_FIT3D(NSA)
       END IF
 !     ----- Fixed fusion source term -----
 
@@ -399,6 +399,25 @@
             ENDDO
          END IF
       ENDIF
+
+      const_inv_tau=1.d3 ! tau=1ms
+      NS=NS_NSA(NSA)
+      NSBA=NSB_NSA(NSA)
+      IF(MODEL_DELTA_F(NSA).eq.1.and.MODEL_BULK_CONST.eq.2)THEN ! sink in bulk region for delta f
+         DO NR=NRSTART,NREND
+            DO NP=NPSTART,NPEND
+               IF(NP.le.NP_BULK(NR,NSA))THEN
+                  DO NTH=1,NTHMAX
+                     PPL(NTH,NP,NR,NSA)=PPL(NTH,NP,NR,NSA) -const_inv_tau*RLAMDA(NTH,NR)
+                  END DO
+               ELSEIF(NP_BULK(NR,NSA).le.NP.and.NP.le.NP_BULK(NR,NSA)+1)THEN
+                  DO NTH=1,NTHMAX
+                     PPL(NTH,NP,NR,NSA)=PPL(NTH,NP,NR,NSA) +const_inv_tau*(NP-NP_BULK(NR,NSA)-1)*RLAMDA(NTH,NR)
+                  END DO
+               END IF
+            END DO
+         END DO
+      END IF
 
       IF(MODEL_IMPURITY.ne.0.and.TIMEFP.le.5.D0*tau_quench)THEN
          CALL IMPURITY_SOURCE(NSA)
@@ -1204,6 +1223,12 @@
       integer,intent(in):: NSA
       double precision:: sigma_cx, k_energy, log_energy
       integer:: NP, NTH, NR
+      double precision,dimension(NRSTART:NREND):: RN_NEU
+
+
+      DO NR=NRSTART, NREND
+         RN_NEU(NR)=RN_NEU0 + RM(NR)**2*(RN_NEUS-RN_NEU0)
+      END DO
 
       IF(MODEL_DELTA_F(NSA).eq.0)THEN
          DO NR=NRSTART, NREND
@@ -1215,7 +1240,7 @@
                     (1.D0+0.1112D-14*k_energy**3.3D0)*1.D-4
 !            WRITE(*,'(I5,1P5E14.6)') NP, PM(NP,NSA), k_energy, k_energy*AEE, sigma_cx, sigma_cx*VTFP0(NSA)*PM(NP,NSA)
                DO NTH=1, NTHMAX
-                  SPPL_CX(NTH,NP,NR,NSA) = -RN_NEU0*1.D20 &
+                  SPPL_CX(NTH,NP,NR,NSA) = -RN_NEU(NR)*1.D20 &
                        *sigma_cx*VTFP0(NSA)*PM(NP,NSA)*FNSP(NTH,NP,NR,NSA)
                END DO
             END DO
@@ -1230,7 +1255,7 @@
                     (1.D0+0.1112D-14*k_energy**3.3D0)*1.D-4
 !            WRITE(*,'(I5,1P5E14.6)') NP, PM(NP,NSA), k_energy, k_energy*AEE, sigma_cx, sigma_cx*VTFP0(NSA)*PM(NP,NSA)
                DO NTH=1, NTHMAX
-                  SPPL_CX(NTH,NP,NR,NSA) = -RN_NEU0*1.D20 &
+                  SPPL_CX(NTH,NP,NR,NSA) = -RN_NEU(NR)*1.D20 &
                        *sigma_cx*VTFP0(NSA)*PM(NP,NSA)*FNSP_DEL(NTH,NP,NR,NSA)
                END DO
             END DO

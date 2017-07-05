@@ -152,6 +152,7 @@
       ENDDO
       NS_F1=2
       NTH_F1=3
+      NR_F1=1
 !-----FUSION REACTION----------------------------------------------------
 !     NSSPF  : Fusion product particle species
 !     SPFTOT : Particle source [1/m^3 s]
@@ -167,10 +168,12 @@
 
 !-----CHARGE EXCHANGE REACTION-------------------------------------------
 !     MODEL_CX_LOSS: 0=off, 1=on 
-!     RN_NEU0      : neutral gas density [m^-3] D or H gas is assumed temporally
-
+!     RN_NEU0      : neutral gas density on axis [m^-3] D or H gas is assumed temporally
+!     RN_NEUS      : neutral gas density on edge [m^-3] D or H gas is assumed temporally
+!                    [1.e20]
       MODEL_CX_LOSS=0
-      RN_NEU0 = 1.D-14
+      RN_NEU0 = 1.D-6
+      RN_NEUS = 1.D-5
 !-----RADIAL DIFFUSION--------------------------------------------------
 !     DRR0  : radial diffusion coefficient at magnetic axis [m^2/s]
 !     DRRS  : radial diffusion coefficient at plasma surface [m^2/s]
@@ -529,8 +532,8 @@
            T0_quench,tau_quench,tau_mgi, &
            time_quench_start,RJPROF1,RJPROF2, &
            v_RE,target_zeff,SPITOT, MODEL_EX_READ, &
-           FACT_BULK, time_exp_offset, MODEL_BULK_CONST, RN_NEU0, MODEL_CX_LOSS, &
-           EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME, NS_F1, NTH_F1
+           FACT_BULK, time_exp_offset, MODEL_BULK_CONST, RN_NEU0, MODEL_CX_LOSS, RN_NEUS, &
+           EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME_H, SV_FILE_NAME_D, NS_F1, NTH_F1, NR_F1
 
       READ(nid,FP,IOSTAT=ist,ERR=9800,END=9900)
 
@@ -586,8 +589,8 @@
       WRITE(6,*) '      T0_quench,tau_quench,tau_mgi,'
       WRITE(6,*) '      time_quench_start,RJPROF1,RJPROF2,'
       WRITE(6,*) '      v_RE,target_zeff,SPITOT,MODEL_EX_READ,FACT_BULK'
-      WRITE(6,*) '      time_exp_offset, MODEL_BULK_CONST, RN_NEU0, MODEL_CX_LOSS'
-      WRITE(6,*) '      EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME, NS_F1, NTH_F1'
+      WRITE(6,*) '      time_exp_offset, MODEL_BULK_CONST, RN_NEU0, MODEL_CX_LOSS, RN_NEUS'
+      WRITE(6,*) '      EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME_H, SV_FILE_NAME_D, NS_F1, NTH_F1, NR_F1'
 
       RETURN
     END SUBROUTINE fp_plst
@@ -710,7 +713,8 @@
       CALL mtx_broadcast_character(KNAMEQ2,80)
       CALL mtx_broadcast_character(EG_NAME_TMS,80)
       CALL mtx_broadcast_character(EG_NAME_CX,80)
-      CALL mtx_broadcast_character(SV_FILE_NAME,80)
+      CALL mtx_broadcast_character(SV_FILE_NAME_H,80)
+      CALL mtx_broadcast_character(SV_FILE_NAME_D,80)
 
       DO NS=1,NSMAX
          CALL mtx_broadcast_character(KID_NS(NS),2)
@@ -785,8 +789,9 @@
       idata(61)=MODEL_CX_LOSS
       idata(62)=NS_F1
       idata(63)=NTH_F1
+      idata(64)=NR_F1
 
-      CALL mtx_broadcast_integer(idata,63)
+      CALL mtx_broadcast_integer(idata,64)
       NSAMAX         =idata( 1)
       NSBMAX         =idata( 2)
       LMAXNWR        =idata( 3)
@@ -853,6 +858,7 @@
       MODEL_CX_LOSS  =idata(61)
       NS_F1 = idata(62)
       NTH_F1 = idata(63)
+      NR_F1 = idata(64)
 
       CALL mtx_broadcast_integer(NS_NSA,NSAMAX)
       CALL mtx_broadcast_integer(NS_NSB,NSBMAX)
@@ -927,8 +933,9 @@
       rdata(63)=FACT_BULK
       rdata(64)=time_exp_offset
       rdata(65)=RN_NEU0
+      rdata(66)=RN_NEUS
 
-      CALL mtx_broadcast_real8(rdata,65)
+      CALL mtx_broadcast_real8(rdata,66)
       R1               =rdata( 1)
       DELR1            =rdata( 2)
       RMIN             =rdata( 3)
@@ -994,6 +1001,7 @@
       FACT_BULK        =rdata(63)
       time_exp_offset  =rdata(64)
       RN_NEU0          =rdata(65)
+      RN_NEUS          =rdata(66)
 
       CALL mtx_broadcast_real8(pmax,NSAMAX)
       CALL mtx_broadcast_real8(pmax_bb,NSAMAX)

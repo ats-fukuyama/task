@@ -15,7 +15,7 @@ MODULE fpcomm_parm
       integer,parameter:: NBEAMM=20
       real(rkind),parameter:: rkev=aee*1.D3
 
-      integer:: NSAMAX,NSBMAX,NS_NSA(NSM),NS_NSB(NSM), NS_F1, NTH_F1
+      integer:: NSAMAX,NSBMAX,NS_NSA(NSM),NS_NSB(NSM), NS_F1, NTH_F1, NR_F1
       integer:: LMAXNWR,NCMIN(NSM),NCMAX(NSM),NBEAMMAX,NSSPB(NBEAMM),NSSPF
       integer:: NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX
       integer:: NTMAX,NTSTEP_COEF,NTSTEP_COLL
@@ -51,7 +51,7 @@ MODULE fpcomm_parm
       real(rkind):: T0_quench,tau_quench,tau_mgi
       real(rkind):: time_quench_start,RJPROF1,RJPROF2
       real(rkind):: v_RE,target_zeff,SPITOT,FACT_BULK
-      real(rkind):: RN_NEU0 ! temporal 
+      real(rkind):: RN_NEU0, RN_NEUS ! temporal 
 
 !     for read experiment data
       CHARACTER(len=80):: EG_NAME_TMS, EG_NAME_CX
@@ -64,12 +64,12 @@ MODULE fpcomm_parm
       real(rkind):: time_exp_offset, RNE_EXP_EDGE, RTE_EXP_EDGE, RTI_EXP_EDGE
 
 !     for read FIT3D result
-      CHARACTER(len=80):: SV_FILE_NAME
-      double precision,dimension(:),pointer:: time_grid_fit
-      integer:: ntmax_fit
-      integer,dimension(:,:),pointer:: I_FIT
-      double precision,dimension(:),pointer:: D_FIT
-      integer,dimension(:,:),pointer:: number_of_lines_fit
+      CHARACTER(len=80):: SV_FILE_NAME_H, SV_FILE_NAME_D
+      double precision,dimension(:),pointer:: time_grid_fit_H, time_grid_fit_D
+      integer:: ntmax_fit_H, ntmax_fit_D
+      integer,dimension(:,:),pointer:: I_FIT_H, I_FIT_D
+      double precision,dimension(:),pointer:: D_FIT_H, D_FIT_D
+      integer,dimension(:,:),pointer:: number_of_lines_fit_H, number_of_lines_fit_D
 
 END module fpcomm_parm
 
@@ -196,7 +196,7 @@ module fpcomm
       real(rkind),dimension(:,:,:),POINTER :: & ! (NPM,NRM,NSAM)
            RP_BULK,RPL_BULK
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSAM,NSBM)
-           RPCS2L
+           RPCS2L, RPCS2L_DEL
 
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSAM,NSBM)
            RPW_IMPL, RPWEC_IMPL, RPWIC_IMPL
@@ -210,7 +210,7 @@ module fpcomm
       real(rkind),dimension(:),POINTER :: & ! (NSAM)
            RNS_S2
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSAM,NSBM)
-           RPCS2
+           RPCS2, RPCS2_DEL
 
       real(rkind),dimension(:),POINTER :: & ! (NTG1M)
            PTG,PET,PQT,Q_ENG
@@ -502,6 +502,7 @@ module fpcomm
           allocate(RFWSL(NRSTART:NREND,NSAMAX),RECSL(NRSTART:NREND,NSAMAX))
           allocate(RICSL(NRSTART:NREND,NSAMAX))
           allocate(RPCS2L(NRSTART:NREND,NSBMAX,NSAMAX))
+          allocate(RPCS2L_DEL(NRSTART:NREND,NSBMAX,NSAMAX))
           allocate(RDIDTL(NRSTART:NREND,NSAMAX))
           allocate(RDIDT(NRMAX,NSAMAX))
           allocate(RPSSL(NRSTART:NREND,NSAMAX))
@@ -520,6 +521,7 @@ module fpcomm
           allocate(RFWS(NRMAX,NSAMAX),RECS(NRMAX,NSAMAX))
           allocate(RICS(NRMAX,NSAMAX))
           allocate(RPCS2(NRMAX,NSBMAX,NSAMAX))
+          allocate(RPCS2_DEL(NRMAX,NSBMAX,NSAMAX))
           allocate(RPSS(NRMAX,NSAMAX))
           allocate(RPLS(NRMAX,NSAMAX))
 
@@ -718,7 +720,7 @@ module fpcomm
           END IF
           deallocate(RNSL,RJSL,RWSL,RWS123L,RFPL,RJSRL)
           deallocate(RSPBL,RSPFL,RSPSL,RSPLL,RPCSL,RPESL,RSPSL_CX)
-          deallocate(RLHSL,RFWSL,RECSL,RICSL,RPCS2L)
+          deallocate(RLHSL,RFWSL,RECSL,RICSL,RPCS2L,RPCS2L_DEL)
           deallocate(RDIDT, RDIDTL)
           deallocate(RPSSL, RPLSL)
 
@@ -729,7 +731,7 @@ module fpcomm
           deallocate(RSPL,RSPS,RSPS_CX)
           deallocate(RPCS,RPES)
           deallocate(RPWS,RLHS)
-          deallocate(RFWS,RECS,RICS,RPCS2)
+          deallocate(RFWS,RECS,RICS,RPCS2,RPCS2_DEL)
           deallocate(RPSS, RPLS)
 
           deallocate(RPDR,RNDR,RPDRS,RNDRS)

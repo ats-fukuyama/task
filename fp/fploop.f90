@@ -28,34 +28,27 @@
       USE fpprep, only: Coulomb_log 
       USE fpnfrr
       IMPLICIT NONE
-      real(kind8),dimension(NRSTART:NREND,NSAMAX):: RJNS
-      real(kind8),dimension(NRSTART:NREND):: RJN,RJ3,E3,DELE
       real(kind8),dimension(NSAMAX)::RSUMF,RSUMF0,RSUM_SS
-      real(kind8):: RSUMF_, RSUMF0_, RGAMA, FACTP, FACTR, diff_c, tau_dB
+      real(kind8):: RSUMF_, RSUMF0_!, RGAMA, FACTP, FACTR, diff_c, tau_dB
 
-      integer:: NT, NR, NP, NTH, NSA, NTI, NSBA, NTE, NS
-      integer:: L, IERR, I
-      real(kind8):: RSUM, DELEM, RJNL, dw, RSUM1, RSUM2
-      real(4):: gut, gut_exe1, gut_exe2, gut_conv3, gut_coef1
+      integer:: NT, NR, NP, NTH, NSA, NSBA, NS
+      integer:: IERR, I
+      real(4):: gut_exe1, gut_exe2, gut_conv3, gut_coef1
       real(4):: gut_loop1, gut_loop2, gut_cale7, gut_coef2, gut1, gut2
       real(4):: gut_out1, gut_out2, gut_out
       real(4):: gut_ex, gut_coef, gut_1step, gut_conv, gut_cale
-      real(kind8),DIMENSION(nsize):: RSUMA
-      integer,dimension(NSAMAX)::NTCLSTEP2
-      real(kind8):: DEPS_MAX, DEPS, DEPS1, DEPSE
-      real(kind8),dimension(NSASTART:NSAEND):: DEPS_MAXVL, DEPSV, DEPS_SS_LOCAL
+      real(kind8):: DEPS_MAX, DEPS, DEPS1
+      real(kind8),dimension(NSASTART:NSAEND):: DEPS_MAXVL, DEPSV
       real(kind8),dimension(NSAMAX):: DEPS_MAXV
       integer,dimension(NSASTART:NSAEND):: ILOCL
       integer,dimension(NSAMAX):: ILOC
-      integer:: NSTEST
-      real(kind8):: temp_send, temp_recv
       character:: fmt*40
-      integer:: modela_temp, NSW, NSWI,its
-      integer:: ILOC1, nsend,j, ISW_D, NDIMPL
-      real(8):: sigma, ip_all, ip_ohm, ip_run, jbs, IP_bs, l_ind, IP_prim, DEPS_E2
-      real(8):: IP_all_FP, FPL, pitch_angle_av, FL
-      real(8),dimension(NPSTART:NPEND):: DCPP_L1, DCPP_L2, FCPP_L1, FCPP_L2, DCTT_L1, DCTT_L2, DPP_L, FPP_L, DTT_L
-      real(8),dimension(NPMAX):: DCPP_1, DCPP_2, FCPP_1, FCPP_2, DCTT_1, DCTT_2, DPP_A, FPP_A, DTT_A
+      integer:: NSW, its
+      integer:: ILOC1, ISW_D
+      real(8):: DEPS_E2
+      real(8):: IP_all_FP, pitch_angle_av, FL
+!      real(8),dimension(NPSTART:NPEND):: DCPP_L1, DCPP_L2, FCPP_L1, FCPP_L2, DCTT_L1, DCTT_L2, DPP_L, FPP_L, DTT_L
+!      real(8),dimension(NPMAX):: DCPP_1, DCPP_2, FCPP_1, FCPP_2, DCTT_1, DCTT_2, DPP_A, FPP_A, DTT_A
       real(8),dimension(NRMAX,NSMAX):: tempt, tempn
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
       real(8):: RHON
@@ -266,7 +259,7 @@
          END DO ! END OF DOWHILE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-         IF(MODEL_BULK_CONST.eq.1)THEN
+         IF(MODEL_BULK_CONST.ge.1)THEN
 !        Bulk f is replaced by Maxwellian
             DO NSA=1, NSAMAX
                DO NR=1, NRMAX
@@ -295,7 +288,7 @@
                      END DO
                   ELSE ! delta_f mode: update f_M and delta_f
                      DO NP=NPSTARTW, NPENDWM
-                        IF(NP.le.NP_BULK(NR,NSA))THEN ! reduce delta f in bulk region
+                        IF(NP.le.NP_BULK(NR,NSA).and.MODEL_BULK_CONST.ne.2)THEN ! reduce delta f in bulk region
                            DO NTH=1, NTHMAX
                               FNSP_DEL(NTH,NP,NR,NSA)=0.D0
                            END DO

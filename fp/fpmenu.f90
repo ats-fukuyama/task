@@ -23,7 +23,7 @@
       IMPLICIT NONE
       CHARACTER(LEN=1)::  KID
       CHARACTER(LEN=80):: LINE
-      integer:: ierr,NSA,NGRAPH_SAVE
+      integer:: ierr,NGRAPH_SAVE
       integer,DIMENSION(1):: mode
       REAL(4):: cputime1,cputime2
 

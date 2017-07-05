@@ -56,6 +56,7 @@
       READ(21) NRMAX,NPMAX,NTHMAX,NSAMAX
       READ(21) DELR,DELTH,RMIN,RMAX
       DO NSA=1,NSAMAX
+         NSBA=NSB_NSA(NSA)
          READ(21) NS_NSA(NSA)
          READ(21) DELP(NSBA)
          READ(21) AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
@@ -216,11 +217,11 @@
       USE fpmpi
       IMPLICIT NONE
       integer:: NSW, N, NSA, ierr, i
-      real:: gut1, gut2
+!      real:: gut1, gut2
       integer,dimension(1:6):: idata
       integer,dimension(6*nsize):: idata2
 
-      CALL GUTIME(gut1) 
+!      CALL GUTIME(gut1) 
       CALL fp_comm_setup
       CALL fp_allocate
       call fp_allocate_ntg1
@@ -281,6 +282,8 @@
          CALL set_post_disrupt_Clog_f
          call mtx_broadcast_real8(POST_tau_ta0_f,nsamax)
       END IF
+!      CALL GUTIME(gut2) 
+!      WRITE(*,'(A,E14.6)') "PRE LOAD GUT= ", gut2-gut1
 
       END SUBROUTINE FP_PRE_LOAD
 !------------------------------------------      
@@ -292,7 +295,7 @@
       USE eg_read
       USE plprof
       IMPLICIT NONE
-      integer:: NSW, N, NSA, ierr, i, NR, NSB, NS, NP, NTH
+      integer:: NSA, ierr, NR, NS, NP, NTH
       double precision:: FL, RHON
       real(8),dimension(NRMAX,NSMAX):: tempt, tempn 
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
@@ -315,7 +318,15 @@
       END DO
 
       IF(MODEL_NBI.eq.2)THEN
-         CALL READ_FIT3D
+         DO NS=1, NBEAMMAX
+            NSA=NSSPB(NS)
+            IF(PA(NSA).eq.1)THEN
+               CALL READ_FIT3D_H
+            ELSEIF(PA(NSA).eq.2)THEN
+               CALL READ_FIT3D_D
+            END IF
+         END DO
+!         CALL UNITE_READ_DATA_FIT
       END IF
       
       CALL FNSP_INIT_EDGE
@@ -334,7 +345,7 @@
          NS=NS_NSB(NSA)
          IF(MODEL_DELTA_F(NSA).eq.1)THEN
             DO NR=NRSTARTW, NRENDWM
-               IF(MODEL_BULK_CONST.eq.1)THEN
+               IF(MODEL_BULK_CONST.ge.1)THEN
                   RHON=RM(NR)
                   CALL PL_PROF(RHON,PLF)
                   RN_TEMP(NR,NS)=PLF(NS)%RN
@@ -508,12 +519,8 @@
       integer,dimension(NTHMAX,NPMAX)::vloc_max
 
       double precision,dimension(nthmax,npmax,nrmax+1,nsastart:nsaend):: temp_l2
-      double precision,dimension(nthmax,npstart:npend):: dsend2
-      double precision,dimension(nthmax,npmax):: drecv2
-      integer,dimension(NRMAX,NSBMAX)::vloc
-      integer,dimension(NTHMAX*(NPEND-NPSTART+1))::vloc2
       integer:: nsend
-      INTEGER:: NR, NSB, NSA, NTH, NP, dest, source, tag, nn, Isum, NRE
+      INTEGER:: NR, NSB, NSA, NTH, NP!, dest, source, tag, nn, Isum
 !!!!!!!!!!!!
 
       IF(MODELD.ne.0)THEN
@@ -600,9 +607,11 @@
       OPEN(9,file="f1_1.dat") 
       OPEN(24,file="time_evol_f1.dat") 
 !      OPEN(28,file="RPCS2_NSB_D.dat")
-!      OPEN(29,file="RPCS2_NSB_H.dat")
+      OPEN(29,file="RPCS2_NSB_H.dat")
+      OPEN(30,file="RPCS2_NSB_H_DEL.dat")
+      OPEN(31,file="t-beam_count.dat")
+      OPEN(32,file="RSPL_NSB.dat")
       IF(MODEL_DISRUPT.ne.0.and.NRANK.eq.0)THEN
-!         OPEN(9,file="f1_1.dat") 
          open(10,file='time_evol.dat') 
          open(11,file='efield_e1.dat') 
          open(12,file='dndt.dat') 
@@ -630,7 +639,10 @@
       close(9)
       close(24)
 !      close(28)
-!      close(29)
+      close(29)
+      close(30)
+      close(31)
+      close(32)
       IF(MODEL_DISRUPT.ne.0.and.NRANK.eq.0)THEN
          close(10)
          close(11)
