@@ -208,11 +208,12 @@
        double precision,intent(in):: weight
        integer,intent(in):: ntime1, ntime2, NSA
        integer:: i
-       integer:: NTH, NP, NR
+       integer:: NTH, NP, NR, NS
        double precision,dimension(NTHMAX,NPMAX,NRMAX):: SPPB_FIT_TEMP1, SPPB_FIT_TEMP2
        double precision:: FACT
 !       double precision,dimension(NRMAX):: power1, power2, power3
 
+       NS=NS_NSA(NSA)
 !       FACT = VTFP0(NSA)**3/(RNFP0(NSA)*1.D20)*1.D6
        FACT = AMFP(NSA)/(RNFP0(NSA)*1.D20*PTFP0(NSA)**2)*1.D6
 !       FACT = 1.D0
@@ -229,7 +230,7 @@
           NP=I_FIT_H(1,i)
           NTH=I_FIT_H(2,i)
           NR=I_FIT_H(3,i)
-          SPPB_FIT_TEMP1(NTH,NP,NR)=D_FIT_H(i)*FACT/(VOLP(NTH,NP,NSA)*PM(NP,NSA)**2*0.5D0)
+          SPPB_FIT_TEMP1(NTH,NP,NR)=D_FIT_H(i)*FACT/(VOLP(NTH,NP,NS)*PM(NP,NS)**2*0.5D0)
 !          power1(NR)=power1(NR)+D_FIT(i)
        END DO
 
@@ -237,7 +238,7 @@
           NP=I_FIT_H(1,i)
           NTH=I_FIT_H(2,i)
           NR=I_FIT_H(3,i)
-          SPPB_FIT_TEMP2(NTH,NP,NR)=D_FIT_H(i)*FACT/(VOLP(NTH,NP,NSA)*PM(NP,NSA)**2*0.5D0)
+          SPPB_FIT_TEMP2(NTH,NP,NR)=D_FIT_H(i)*FACT/(VOLP(NTH,NP,NS)*PM(NP,NS)**2*0.5D0)
 !          power2(NR)=power2(NR)+D_FIT(i)
        END DO
 
@@ -272,11 +273,12 @@
        double precision,intent(in):: weight
        integer,intent(in):: ntime1, ntime2, NSA
        integer:: i
-       integer:: NTH, NP, NR
+       integer:: NTH, NP, NR, NS
        double precision,dimension(NTHMAX,NPMAX,NRMAX):: SPPB_FIT_TEMP1, SPPB_FIT_TEMP2
        double precision:: FACT
 !       double precision,dimension(NRMAX):: power1, power2, power3
 
+       NS=NS_NSA(NSA)
 !       FACT = VTFP0(NSA)**3/(RNFP0(NSA)*1.D20)*1.D6
        FACT = AMFP(NSA)/(RNFP0(NSA)*1.D20*PTFP0(NSA)**2)*1.D6
 !       FACT = 1.D0
@@ -293,7 +295,7 @@
           NP=I_FIT_D(1,i)
           NTH=I_FIT_D(2,i)
           NR=I_FIT_D(3,i)
-          SPPB_FIT_TEMP1(NTH,NP,NR)=D_FIT_D(i)*FACT/(VOLP(NTH,NP,NSA)*PM(NP,NSA)**2*0.5D0)
+          SPPB_FIT_TEMP1(NTH,NP,NR)=D_FIT_D(i)*FACT/(VOLP(NTH,NP,NS)*PM(NP,NS)**2*0.5D0)
 !          power1(NR)=power1(NR)+D_FIT(i)
        END DO
 
@@ -301,7 +303,7 @@
           NP=I_FIT_D(1,i)
           NTH=I_FIT_D(2,i)
           NR=I_FIT_D(3,i)
-          SPPB_FIT_TEMP2(NTH,NP,NR)=D_FIT_D(i)*FACT/(VOLP(NTH,NP,NSA)*PM(NP,NSA)**2*0.5D0)
+          SPPB_FIT_TEMP2(NTH,NP,NR)=D_FIT_D(i)*FACT/(VOLP(NTH,NP,NS)*PM(NP,NS)**2*0.5D0)
 !          power2(NR)=power2(NR)+D_FIT(i)
        END DO
 
@@ -335,15 +337,16 @@
        IMPLICIT NONE
        integer,intent(in):: NSA
        double precision:: weight, time
-       integer:: ntime1, ntime2, NBEAM
+       integer:: ntime1, ntime2, NBEAM, NS
 
+       NS=NS_NSA(NSA)
        DO NBEAM=1,NBEAMMAX
-          IF(NSA.eq.NSSPB(NBEAM))THEN
-             IF(PA(NSA).eq.1)THEN !H BEAM
+          IF(NS.eq.NSSPB(NBEAM))THEN
+             IF(PA(NS).eq.1)THEN !H BEAM
                 time = timefp + time_exp_offset
                 CALL time_interpolation_fit_H(time, ntime1, ntime2, weight)
                 CALL MAKE_SPPB_FIT_H(weight, ntime1, ntime2, NSA)
-             ELSEIF(PA(NSA).eq.2)THEN ! D beam
+             ELSEIF(PA(NS).eq.2)THEN ! D beam
                 time = timefp + time_exp_offset
                 CALL time_interpolation_fit_D(time, ntime1, ntime2, weight)
                 CALL MAKE_SPPB_FIT_D(weight, ntime1, ntime2, NSA)

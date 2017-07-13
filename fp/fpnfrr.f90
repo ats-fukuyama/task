@@ -103,11 +103,15 @@
       REAL(8),INTENT(OUT):: E0L, E1L ! Energy in keV
       REAL(8):: VPARA1, VPARA2, VPERP1, VPERP2, V_MS
       REAL(8):: RED_MASS
+      INTEGER:: NS1, NS2
 
-      VPARA1=PM(NP1,NSB1)*COSM(NTH1)*VTFD0(NSB1)
-      VPARA2=PM(NP2,NSB2)*COSM(NTH2)*VTFD0(NSB2)
-      VPERP1=PM(NP1,NSB1)*SINM(NTH1)*VTFD0(NSB1)
-      VPERP2=PM(NP2,NSB2)*SINM(NTH2)*VTFD0(NSB2)
+      NS1=NS_NSB(NSB1)
+      NS2=NS_NSB(NSB2)
+
+      VPARA1=PM(NP1,NS1)*COSM(NTH1)*VTFD0(NSB1)
+      VPARA2=PM(NP2,NS2)*COSM(NTH2)*VTFD0(NSB2)
+      VPERP1=PM(NP1,NS1)*SINM(NTH1)*VTFD0(NSB1)
+      VPERP2=PM(NP2,NS2)*SINM(NTH2)*VTFD0(NSB2)
 !        MEAN SQUARE VELOCITY
       V_MS=VPERP1**2+VPERP2**2+(VPARA1-VPARA2)**2
 !        REDUCED MASS
@@ -129,7 +133,7 @@
       REAL(8),DIMENSION(NEMAX):: E0A,E1A
       REAL(8),DIMENSION(NEMAX,NEMAX):: SIGMAVA,FX,FY,FXY
       REAL(8),DIMENSION(4,4,NEMAX,NEMAX):: USV
-      INTEGER:: NSA,NSB,NS,NSB1,NSB2,ID,NE0,NE1,NTH1,NTH2,NP1,NP2,IERR,L,K
+      INTEGER:: NSA,NSB,NS,NSB1,NSB2,ID,NE0,NE1,NTH1,NTH2,NP1,NP2,IERR,L,K,NS1,NS2
       REAL(8):: RED_MASS,V1MAX,V2MAX,E0MAX,E1MAX,DELE0,DELE1,SUM,E0L,E1L,F0
       REAL(8):: E3
 
@@ -142,7 +146,6 @@
       NSA_HE3=0
       NSA_HE4=0
       DO NSA=1,NSAMAX
-!      DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
          IF(PA(NS).EQ.1.D0.AND.PZ(NS).EQ.1.D0) NSA_H=NSA
          IF(PA(NS).EQ.2.D0.AND.PZ(NS).EQ.1.D0) NSA_D=NSA
@@ -218,6 +221,8 @@
 
          NSB1=NSB1_NF(ID)
          NSB2=NSB2_NF(ID)
+         NS1=NS_NSB(NSB1)
+         NS2=NS_NSB(NSB2)
 
 !     ---- identify whether reaction can be described or not ----
 
@@ -232,8 +237,8 @@
 !     ---- calculate reaction rate table for spline ----
 !          - energy mesh is equally spaced in SQRT(E), not E
 
-            V1MAX=VTFD0(NSB1)*PMAX(NSB1)
-            V2MAX=VTFD0(NSB2)*PMAX(NSB2)
+            V1MAX=VTFD0(NSB1)*PMAX(NS1)
+            V2MAX=VTFD0(NSB2)*PMAX(NS2)
 !         WRITE(*,*) V1MAX**2*AMFD(NSB1)/(AEE*1.D3)
 !         E0MAX=0.5D0*RED_MASS*(V1MAX+V2MAX)**2 /(AEE*1.D3)*2.D0
 !         E1MAX=      RED_MASS* V1MAX*V2MAX     /(AEE*1.D3)*2.D0
@@ -334,7 +339,7 @@
       USE libmpi
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NR,ID
-      INTEGER:: NSB1, NSB2, NSA1, NSA2, NP1, NP2, NTH1, NTH2, VLOC, i, NSA
+      INTEGER:: NSB1, NSB2, NSA1, NSA2, NP1, NP2, NTH1, NTH2, VLOC, i, NSA, NS1, NS2
       REAL(8):: RSUM, FACT, RSUM2, FACT1, FACT2, FACT3
       real(8):: double_count, RSUM3, RSUM_B2, RSUM_sum, RSUM_B1
       real(8),dimension(NTHMAX,NPMAX):: FNSB_B2_VOLP
@@ -344,6 +349,8 @@
       NSB2=NSB2_NF(ID)
       NSA1=NSA1_NF(ID)
       NSA2=NSA2_NF(ID)
+      NS1=NS_NSB(NSB1)
+      NS2=NS_NSB(NSB2)
 
       double_count=1.D0
       IF(ID.eq.1.or.ID.eq.2.or.ID.eq.5) double_count=0.5D0
@@ -360,7 +367,7 @@
 !     comm fnsb for nsb2
       DO NP1=NPSTART, NPEND
          DO NTH1=1,NTHMAX
-            FNSB_temp(nth1,np1)=FNSB(nth1,np1,nr,nsb2)*VOLP(NTH1,NP1,NSB2)*RLAMDAG(NTH1,NR)*RFSADG(NR)
+            FNSB_temp(nth1,np1)=FNSB(nth1,np1,nr,nsb2)*VOLP(NTH1,NP1,NS2)*RLAMDAG(NTH1,NR)*RFSADG(NR)
          END DO
       END DO
       CALL mtx_set_communicator(comm_np)
@@ -380,8 +387,8 @@
                  * FACT2 &
                  * FACT3
             
-            IF(PM(NP1,NSB1).ge.pmax_bb(NSB1).and.PM(NP2,NSB2).ge.pmax_bb(NSB2))THEN
-               FACT1 = VOLP(NTH1,NP1,NSB1)*FNSB(NTH1,NP1,NR,NSB1)*RLAMDAG(NTH1,NR)*RFSADG(NR)
+            IF(PM(NP1,NS1).ge.pmax_bb(NS1).and.PM(NP2,NS2).ge.pmax_bb(NS2))THEN
+               FACT1 = VOLP(NTH1,NP1,NS1)*FNSB(NTH1,NP1,NR,NSB1)*RLAMDAG(NTH1,NR)*RFSADG(NR)
                RSUM3 = RSUM3 + FACT3*FACT1*FACT2
             END IF
          END DO
@@ -408,7 +415,7 @@
          RSUM_sum=0.D0
          DO NP1=NPSTART,NPEND
          DO NTH1=1,NTHMAX
-            FACT1 = VOLP(NTH1,NP1,NSB1)*FNSB(NTH1,NP1,NR,NSB1)*RLAMDAG(NTH1,NR)*RFSADG(NR)
+            FACT1 = VOLP(NTH1,NP1,NS1)*FNSB(NTH1,NP1,NR,NSB1)*RLAMDAG(NTH1,NR)*RFSADG(NR)
             FACT3 = SIGMAV_NF(NTH1,NP1,NTH2,NP2,ID) * FACT
            
             RSUM_B2 = RSUM_B2 &
@@ -428,12 +435,8 @@
       DO NP1=NPSTART,NPEND
       DO NTH1=1,NTHMAX
          RSUM2 = RSUM2 &
-              + RATE_NF_D1(NTH1,NP1,NR,ID) *VOLP(NTH1,NP1,NSB1)*RLAMDAG(NTH1,NR)*RFSADG(NR)
+              + RATE_NF_D1(NTH1,NP1,NR,ID) *VOLP(NTH1,NP1,NS1)*RLAMDAG(NTH1,NR)*RFSADG(NR)
       END DO
-!      IF(ID.eq.1)THEN
-!         WRITE(*,'(I5,3E14.6)') ID, PM(NP1,NSB1), 0.5D0*(PTFP0(NSB1)*PM(NP1,NSB1))**2/(AMFP(NSB1)*AEE), &
-!              RATE_NF_D1(NTH1,NP1,NR,ID)/(FNSB(NTH1,NP1,NR,NSB1)*RNFD0(NSB1)*RNFD0(NSB2)*1.D20*double_count)              
-!      END IF
       END DO
       CALL mtx_allreduce1_real8(RSUM2,3,RSUM_sum,vloc) ! integrate np1, nth1
       RSUM2=RSUM_sum
@@ -444,7 +447,7 @@
          WRITE(6,'(A,3I4)') '|-NF_REACTION_RATE:', nrank, comm_nr%rank, comm_nsa%rank
          WRITE(6,'(A,I5,A,2I5,A,2I5)') '   |-ID,NSB1,NSB2 -> NSA1,NSA2=' &
               ,ID,':  ',NSB1,NSB2,' -> ',NSA1,NSA2
-         WRITE(6, *) "  |-ID,  NR,NSB1,NSB2,  <sigma*v>,      ENG1_NF,      RATE_NF,   RATE_beam-beam"
+         WRITE(6, *) "  |-ID,  NR,NSB1,NSB2,  <sigma*v>,      ENG1_NF,      RATE_NF,   RATE_NF_BB"
          WRITE(6,'("  ",4I5,1PE14.6,1PE12.4, 1P2E14.6)') ID,NR,NSB1,NSB2,RSUM2/FACT,ENG1_NF(ID), RSUM2, RSUM3
       END IF
       RATE_NF(NR,ID) = RSUM2

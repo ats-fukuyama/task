@@ -153,7 +153,7 @@ CONTAINS
          CASE(0)
             FACTR=(DRR0-DRRS)*(1.D0-RHON**2)+DRRS 
          CASE(1)
-            FACTR=PI*RR*QLM(NR)*deltaB_B**2 *PTFP0(NSBA)/AMFP(NSBA)
+            FACTR=PI*RR*QLM(NR)*deltaB_B**2 *PTFP0(NS)/AMFP(NS)
          CASE(2)
             FACTR=FACTOR_CDBM*CHI_CDBM(NR)
          CASE DEFAULT
@@ -177,14 +177,14 @@ CONTAINS
                CASE(0) ! no p dependence
                   FACTP=1.D0
                CASE(1) ! proportional to 1/sqrt{p_perp}
-                  FACTP=(RTFPL/(RTFPL+PM(NP,NSBA)**2*SINM(NTH)**2))**0.25D0
+                  FACTP=(RTFPL/(RTFPL+PM(NP,NS)**2*SINM(NTH)**2))**0.25D0
                CASE(2) ! proportional to 1/p_perp
-                  FACTP=SQRT(RTFPL/(RTFPL+PM(NP,NSBA)**2*SINM(NTH)**2))
+                  FACTP=SQRT(RTFPL/(RTFPL+PM(NP,NS)**2*SINM(NTH)**2))
                CASE(3) ! proportional to 1/p_perp^2
-                  FACTP=RTFPL/(RTFPL+PM(NP,NSBA)**2*SINM(NTH)**2)
+                  FACTP=RTFPL/(RTFPL+PM(NP,NS)**2*SINM(NTH)**2)
                CASE(4) ! stochastic delta B /B; relativistic
-                  RGAMA=SQRT(1.D0+THETA0(NSBA)*PM(NP,NSBA)**2)
-                  FACTP=PM(NP,NSBA)*ABS(COSM(NTH))/RGAMA
+                  RGAMA=SQRT(1.D0+THETA0(NS)*PM(NP,NS)**2)
+                  FACTP=PM(NP,NS)*ABS(COSM(NTH))/RGAMA
                END SELECT
                DRR(NTH,NP,NR,NSA)= FACTR*FACTP/RA**2*RLAMDA_RG(NTH,NR)   ! normalization for rhon
             ENDDO
@@ -234,8 +234,8 @@ CONTAINS
                      SRHODM=DFDR_R1 * DRR(NTH,NP,NR,NSA)
                      SRHOFM=F_R1    * DRR(NTH,NP,NR,NSA)
                   END IF
-                  DINT_D = DINT_D + VOLP(NTH,NP,NSBA)*SRHODM
-                  DINT_F = DINT_F + VOLP(NTH,NP,NSBA)*SRHOFM
+                  DINT_D = DINT_D + VOLP(NTH,NP,NS)*SRHODM
+                  DINT_F = DINT_F + VOLP(NTH,NP,NS)*SRHOFM
                END DO
             END DO
 ! integration

@@ -41,7 +41,6 @@
 
       DO NSA=NSASTART,NSAEND
       NS=NS_NSA(NSA)
-      NSBA=NSB_NSA(NSA)
 
       IF(MODELW(NS).EQ.1.OR.MODELW(NS).EQ.2) THEN
          DO NRDO=NRSTART,NREND
@@ -164,7 +163,7 @@
             IF(NTH.NE.ITL(NR).AND.NTH.NE.ITU(NR)) THEN
 !               DO NP=1,NPMAX+1
                DO NP=NPSTART,NPENDWG
-                  CALL FPDWAV(ETAM(NTH,NR),SINM(NTH),COSM(NTH),PG(NP,NSBA), &
+                  CALL FPDWAV(ETAM(NTH,NR),SINM(NTH),COSM(NTH),PG(NP,NS), &
                               NR,NTH,DWPPS,DWPTS,DWTPS,DWTTS,NSA)
                   DWPP(NTH,NP,NR,NSA)=DWPPS
                   DWPT(NTH,NP,NR,NSA)=DWPTS
@@ -322,7 +321,7 @@
             IF(NTH.NE.NTHMAX/2+1) THEN
 !               DO NP=1,NPMAX
                DO NP=NPSTARTW,NPENDWM 
-                  CALL FPDWAV(ETAG(NTH,NR),SING(NTH),COSG(NTH),PM(NP,NSBA), &
+                  CALL FPDWAV(ETAG(NTH,NR),SING(NTH),COSG(NTH),PM(NP,NS), &
                               NR,NTH,DWPPS,DWPTS,DWTPS,DWTTS,NSA)
                   DWTP(NTH,NP,NR,NSA)=DWTPS
                   DWTT(NTH,NP,NR,NSA)=DWTTS
@@ -537,7 +536,7 @@
       CEPLUS =(CE1+CI*CE2)/SQRT(2.D0)
       CEMINUS=(CE1-CI*CE2)/SQRT(2.D0)
 
-      RGAMMA =SQRT(1.D0+P*P*THETA0(NSA))
+      RGAMMA =SQRT(1.D0+P*P*THETA0(NS))
       PPARA  =PTFP0(NSA)*P*PCOS
       PPERP  =PTFP0(NSA)*P*PSIN
       VPARA  =PPARA/(AMFP(NSA)*RGAMMA)

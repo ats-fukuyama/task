@@ -16,7 +16,7 @@
       USE libmtx
       USE fpmpi
       IMPLICIT NONE
-      integer:: NSA, NP, NTH, NR, NL, NM, NSBA, NN
+      integer:: NSA, NP, NTH, NR, NL, NM, NN, NS
       integer:: NTHS, NLL
       integer:: IERR,its,i,j,ll1
       integer:: imtxstart1,imtxend1
@@ -25,7 +25,7 @@
       real(8),dimension(nthmax):: sendbuf_p, recvbuf_p
       real(8),dimension(nthmax*(npend-npstart+1)):: sendbuf_r, recvbuf_r
 
-      NSBA=NSB_NSA(NSA)
+      NS=NS_NSA(NSA)
 
 !      CALL mtx_set_communicator(comm_nr) !2D
       CALL mtx_set_communicator(comm_nrnp) !3D
@@ -204,17 +204,17 @@
          DO NP=NPSTART, NPEND
             DO NTH=1,NTHMAX
                NM=NMA(NTH,NP,NR)
-               FNS0(NTH,NP,NR,NSBA)=BM_L(NM-NMSTART+1)
+               FNS0(NTH,NP,NR,NSA)=BM_L(NM-NMSTART+1)
             END DO
          END DO
       END DO
 !     shadow requires to communicate
       CALL mtx_set_communicator(comm_np)
       DO NR=NRSTART, NREND
-         CALL shadow_comm_np(NR,NSBA)
+         CALL shadow_comm_np(NR,NSA)
       END DO
       CALL mtx_set_communicator(comm_nr)
-      CALL shadow_comm_nr(NSBA)
+      CALL shadow_comm_nr(NSA)
       CALL mtx_set_communicator(comm_nrnp) !3D
 
 
@@ -223,7 +223,7 @@
 !         DO NP=NPSTARTW,NPENDWM
 !            DO NTH=1,NTHMAX
 !               NM=NMA(NTH,NP,NR)
-!               FNS0(NTH,NP,NR,NSBA)=BMTOT(NM)
+!               FNS0(NTH,NP,NR,NSA)=BMTOT(NM)
 !            ENDDO
 !         ENDDO
 !      ENDDO
@@ -241,7 +241,7 @@
       SUBROUTINE SET_FM_NMA(NSA,func_in)
 
       IMPLICIT NONE
-      integer:: NTH, NP, NR, NSA, NSBA, NM, NRS, NPS
+      integer:: NTH, NP, NR, NSA, NM, NRS, NPS
       double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND), &
            intent(IN):: func_in
 
@@ -260,12 +260,11 @@
          END DO
       END DO
 
-      NSBA=NSB_NSA(NSA)
       DO NR=NRSTART,NREND
          DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX
                NM=NMA(NTH,NP,NR)
-               FM(NM)=func_in(NTH,NP,NR,NSBA)
+               FM(NM)=func_in(NTH,NP,NR,NSA)
             ENDDO
          ENDDO
       ENDDO
@@ -274,7 +273,7 @@
          DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX
                NM=NMA(NTH,NP,NR)
-               FM_shadow_m(NM)=func_in(NTH,NP,NR,NSBA)
+               FM_shadow_m(NM)=func_in(NTH,NP,NR,NSA)
             ENDDO
          ENDDO
       END IF
@@ -283,7 +282,7 @@
          DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX
                NM=NMA(NTH,NP,NR)
-               FM_shadow_p(NM)=func_in(NTH,NP,NR,NSBA)
+               FM_shadow_p(NM)=func_in(NTH,NP,NR,NSA)
             ENDDO
          ENDDO
       END IF
@@ -299,7 +298,7 @@
       SUBROUTINE FPWEIGHT(NSA,IERR) ! proposed by Chang and Cooper [30] in Karney
 
       IMPLICIT NONE
-      integer:: NSA, NP, NTH, NR, NL, NM, NTHA, NTHB, NTB, NSBA
+      integer:: NSA, NP, NTH, NR, NL, NM, NTHA, NTHB, NTB, NS
       integer:: IERR
       real(8):: DFDTH, FVEL, DVEL, DFDP, DFDB
 
@@ -307,7 +306,7 @@
 
       real(8)::EPSWT=1.D-70
 
-      NSBA=NSB_NSA(NSA)
+      NS=NS_NSA(NSA)
       DO NR=NRSTART,NREND
 !      DO NP=1,NPMAX+1
       DO NP=NPSTART,NPENDWG
@@ -319,31 +318,31 @@
             IF(NP.EQ.NPMAX+1) THEN
                IF(ABS(F(NTH,NP-1,NR)).GT.EPSWT) THEN
                   DFDTH= (F(NTHA,NP-1,NR)-F(NTHB,NP-1,NR)) &
-                        /(2.D0*PG(NP,NSBA)*DELTH*F(NTH,NP-1,NR))
+                        /(2.D0*PG(NP,NS)*DELTH*F(NTH,NP-1,NR))
                ENDIF
             ELSE
                IF(ABS(F(NTH,NP-1,NR)).GT.EPSWT) THEN
                   IF(ABS(F(NTH,NP,NR)).GT.EPSWT) THEN
                      DFDTH= (F(NTHA,NP-1,NR)-F(NTHB,NP-1,NR)) &
-                           /(4.D0*PG(NP,NSBA)*DELTH*F(NTH,NP-1,NR)) &
+                           /(4.D0*PG(NP,NS)*DELTH*F(NTH,NP-1,NR)) &
                           + (F(NTHA,NP  ,NR)-F(NTHB,NP  ,NR)) &
-                           /(4.D0*PG(NP,NSBA)*DELTH*F(NTH,NP  ,NR))
+                           /(4.D0*PG(NP,NS)*DELTH*F(NTH,NP  ,NR))
                   ELSE
                      DFDTH= (F(NTHA,NP-1,NR)-F(NTHB,NP-1,NR)) &
-                           /(2.D0*PG(NP,NSBA)*DELTH*F(NTH,NP-1,NR)) 
+                           /(2.D0*PG(NP,NS)*DELTH*F(NTH,NP-1,NR)) 
                   ENDIF
                ELSE
                   IF(ABS(F(NTH,NP,NR)).GT.EPSWT) THEN
                      DFDTH= (F(NTHA,NP  ,NR)-F(NTHB,NP  ,NR)) &
-                           /(2.D0*PG(NP,NSBA)*DELTH*F(NTH,NP  ,NR))
+                           /(2.D0*PG(NP,NS)*DELTH*F(NTH,NP  ,NR))
                   ENDIF
                ENDIF
             ENDIF
          ENDIF
          FVEL=FPP(NTH,NP,NR,NSA)-DPT(NTH,NP,NR,NSA)*DFDTH
-         WEIGHP(NTH,NP,NR,NSA)=FPWEGH(-DELP(NSBA)*FVEL,DPP(NTH,NP,NR,NSA))
+         WEIGHP(NTH,NP,NR,NSA)=FPWEGH(-DELP(NS)*FVEL,DPP(NTH,NP,NR,NSA))
 !         FVEL=FCPP(NTH,NP,NR,NSA)-DCPT(NTH,NP,NR,NSA)*DFDTH
-!         WEIGHP(NTH,NP,NR,NSA)=FPWEGH(-DELP(NSBA)*FVEL,DCPP(NTH,NP,NR,NSA))
+!         WEIGHP(NTH,NP,NR,NSA)=FPWEGH(-DELP(NS)*FVEL,DCPP(NTH,NP,NR,NSA))
       ENDDO
       ENDDO
       ENDDO
@@ -351,33 +350,33 @@
       DO NR=NRSTART,NREND
 !      DO NP=1,NPMAX
       DO NP=NPSTART,NPEND
-         DFDP=-PM(NP,NSBA)*RTFP0(NSA)/RTFP(NR,NSA)
+         DFDP=-PM(NP,NS)*RTFP0(NSA)/RTFP(NR,NSA)
          DFDB=DFDP
       DO NTH=1,NTHMAX+1
         IF(NTH.EQ.1) THEN
             IF(F(NTH,NP,NR).GT.EPSWT) THEN
                IF(NP.EQ.1) THEN
                   DFDP= (F(NTH  ,NP+1,NR)-F(NTHMAX-NTH+1,1,NR)) &
-                       /(2.D0*DELP(NSBA)*F(NTH  ,NP,NR))
+                       /(2.D0*DELP(NS)*F(NTH  ,NP,NR))
                ELSEIF(NP.EQ.NPMAX) THEN
                   DFDP= (F(NTH  ,NP,NR)-F(NTH  ,NP-1,NR)) &
-                       /(     DELP(NSBA)*F(NTH  ,NP,NR))
+                       /(     DELP(NS)*F(NTH  ,NP,NR))
                ELSE
                   DFDP= (F(NTH  ,NP+1,NR)-F(NTH  ,NP-1,NR)) &
-                       /(2.D0*DELP(NSBA)*F(NTH  ,NP,NR))
+                       /(2.D0*DELP(NS)*F(NTH  ,NP,NR))
                ENDIF
             ENDIF
          ELSEIF(NTH.EQ.NTHMAX+1) THEN
             IF(F(NTH-1,NP,NR).GT.EPSWT) THEN
                IF(NP.EQ.1) THEN
                   DFDP= (F(NTH-1,NP+1,NR)-F(NTHMAX-NTH+2,1,NR)) &
-                       /(2.D0*DELP(NSBA)*F(NTH-1,NP,NR))
+                       /(2.D0*DELP(NS)*F(NTH-1,NP,NR))
                ELSEIF(NP.EQ.NPMAX) THEN
                   DFDP= (F(NTH-1,NP,NR)-F(NTH-1,NP-1,NR)) &
-                       /(     DELP(NSBA)*F(NTH-1,NP,NR))
+                       /(     DELP(NS)*F(NTH-1,NP,NR))
                ELSE
                   DFDP= (F(NTH-1,NP+1,NR)-F(NTH-1,NP-1,NR)) &
-                       /(2.D0*DELP(NSBA)*F(NTH-1,NP,NR))
+                       /(2.D0*DELP(NS)*F(NTH-1,NP,NR))
                ENDIF
             ENDIF
          ELSE IF(NTH.EQ.ITL(NR)) THEN
@@ -386,51 +385,51 @@
                IF(F(NTH-1,NP,NR).GT.EPSWT) THEN
                   IF(F(NTH,NP,NR).GT.EPSWT) THEN
                      DFDP= (F(NTH-1,NP+1,NR)-F(NTHMAX-NTH+2,1,NR)) &
-                          /(4.D0*DELP(NSBA)*F(NTH-1,NP,NR)) &
+                          /(4.D0*DELP(NS)*F(NTH-1,NP,NR)) &
                           +(F(NTH  ,NP+1,NR)-F(NTHMAX-NTH+1,1,NR)) &
-                          /(4.D0*DELP(NSBA)*F(NTH  ,NP,NR))
+                          /(4.D0*DELP(NS)*F(NTH  ,NP,NR))
                   ELSE
                      DFDP= (F(NTH-1,NP+1,NR)-F(NTHMAX-NTH+2,1,NR)) &
-                          /(2.D0*DELP(NSBA)*F(NTH-1,NP,NR))
+                          /(2.D0*DELP(NS)*F(NTH-1,NP,NR))
                   ENDIF
                ELSE
                   IF(F(NTH,NP,NR).GT.EPSWT) THEN
                      DFDP= (F(NTH  ,NP+1,NR)-F(NTHMAX-NTH+1,1,NR)) &
-                          /(2.D0*DELP(NSBA)*F(NTH  ,NP,NR))
+                          /(2.D0*DELP(NS)*F(NTH  ,NP,NR))
                   ENDIF
                ENDIF
             ELSEIF(NP.EQ.NPMAX) THEN
                IF(F(NTH-1,NP,NR).GT.EPSWT) THEN
                   IF(ABS(F(NTH,NP,NR)).GT.EPSWT) THEN
                      DFDP= (F(NTH-1,NP,NR)-F(NTH-1,NP-1,NR)) &
-                          /(2.D0*DELP(NSBA)*F(NTH-1,NP,NR)) &
+                          /(2.D0*DELP(NS)*F(NTH-1,NP,NR)) &
                           +(F(NTH  ,NP,NR)-F(NTH  ,NP-1,NR)) &
-                          /(2.D0*DELP(NSBA)*F(NTH  ,NP,NR))
+                          /(2.D0*DELP(NS)*F(NTH  ,NP,NR))
                   ELSE
                      DFDP= (F(NTH-1,NP,NR)-F(NTH-1,NP-1,NR)) &
-                          /(     DELP(NSBA)*F(NTH-1,NP,NR))
+                          /(     DELP(NS)*F(NTH-1,NP,NR))
                   ENDIF
                ELSE
                   IF(F(NTH,NP,NR).GT.EPSWT) THEN
                      DFDP= (F(NTH  ,NP,NR)-F(NTH  ,NP-1,NR)) &
-                          /(     DELP(NSBA)*F(NTH  ,NP,NR))
+                          /(     DELP(NS)*F(NTH  ,NP,NR))
                   ENDIF
                ENDIF
             ELSE
                IF(F(NTH-1,NP,NR).GT.EPSWT) THEN
                   IF(F(NTH,NP,NR).GT.EPSWT) THEN
                      DFDP= (F(NTH-1,NP+1,NR)-F(NTH-1,NP-1,NR)) &
-                          /(4.D0*DELP(NSBA)*F(NTH-1,NP,NR)) &
+                          /(4.D0*DELP(NS)*F(NTH-1,NP,NR)) &
                           +(F(NTH  ,NP+1,NR)-F(NTH  ,NP-1,NR)) &
-                          /(4.D0*DELP(NSBA)*F(NTH  ,NP,NR))
+                          /(4.D0*DELP(NS)*F(NTH  ,NP,NR))
                   ELSE
                      DFDP= (F(NTH-1,NP+1,NR)-F(NTH-1,NP-1,NR)) &
-                          /(2.D0*DELP(NSBA)*F(NTH-1,NP,NR))
+                          /(2.D0*DELP(NS)*F(NTH-1,NP,NR))
                   ENDIF
                ELSE
                   IF(F(NTH,NP,NR).GT.EPSWT) THEN
                      DFDP= (F(NTH  ,NP+1,NR)-F(NTH  ,NP-1,NR)) &
-                          /(2.D0*DELP(NSBA)*F(NTH  ,NP,NR))
+                          /(2.D0*DELP(NS)*F(NTH  ,NP,NR))
                   ENDIF
                ENDIF
             ENDIF
@@ -438,51 +437,51 @@
                IF(F(NTB-1,NP,NR).GT.EPSWT) THEN
                   IF(F(NTB,NP,NR).GT.EPSWT) THEN
                      DFDB= (F(NTB-1,NP+1,NR)-F(NTHMAX-NTB+2,1,NR)) &
-                          /(4.D0*DELP(NSBA)*F(NTB-1,NP,NR)) &
+                          /(4.D0*DELP(NS)*F(NTB-1,NP,NR)) &
                           +(F(NTB  ,NP+1,NR)-F(NTHMAX-NTB+1,1,NR)) &
-                          /(4.D0*DELP(NSBA)*F(NTB  ,NP,NR))
+                          /(4.D0*DELP(NS)*F(NTB  ,NP,NR))
                   ELSE
                      DFDB= (F(NTB-1,NP+1,NR)-F(NTHMAX-NTB+2,1,NR)) &
-                          /(2.D0*DELP(NSBA)*F(NTB-1,NP,NR))
+                          /(2.D0*DELP(NS)*F(NTB-1,NP,NR))
                   ENDIF
                ELSE
                   IF(F(NTB,NP,NR).GT.EPSWT) THEN
                      DFDB= (F(NTB  ,NP+1,NR)-F(NTHMAX-NTB+1,1,NR)) &
-                          /(2.D0*DELP(NSBA)*F(NTB  ,NP,NR))
+                          /(2.D0*DELP(NS)*F(NTB  ,NP,NR))
                   ENDIF
                ENDIF
             ELSEIF(NP.EQ.NPMAX) THEN
                IF(F(NTB-1,NP,NR).GT.EPSWT) THEN
                   IF(F(NTB,NP,NR).GT.EPSWT) THEN
                      DFDB= (F(NTB-1,NP,NR)-F(NTB-1,NP-1,NR)) &
-                          /(2.D0*DELP(NSBA)*F(NTB-1,NP,NR)) &
+                          /(2.D0*DELP(NS)*F(NTB-1,NP,NR)) &
                           +(F(NTB  ,NP,NR)-F(NTB  ,NP-1,NR)) &
-                          /(2.D0*DELP(NSBA)*F(NTB  ,NP,NR))
+                          /(2.D0*DELP(NS)*F(NTB  ,NP,NR))
                   ELSE
                      DFDB= (F(NTB-1,NP,NR)-F(NTB-1,NP-1,NR)) &
-                          /(     DELP(NSBA)*F(NTB-1,NP,NR))
+                          /(     DELP(NS)*F(NTB-1,NP,NR))
                   ENDIF
                ELSE
                   IF(F(NTB,NP,NR).GT.EPSWT) THEN
                      DFDB= (F(NTB  ,NP,NR)-F(NTB  ,NP-1,NR)) &
-                          /(     DELP(NSBA)*F(NTB  ,NP,NR))
+                          /(     DELP(NS)*F(NTB  ,NP,NR))
                   ENDIF
                ENDIF
             ELSE
                IF(F(NTB-1,NP,NR).GT.EPSWT) THEN
                   IF(F(NTB,NP,NR).GT.EPSWT) THEN
                      DFDB= (F(NTB-1,NP+1,NR)-F(NTB-1,NP-1,NR)) &
-                          /(4.D0*DELP(NSBA)*F(NTB-1,NP,NR)) &
+                          /(4.D0*DELP(NS)*F(NTB-1,NP,NR)) &
                           +(F(NTB  ,NP+1,NR)-F(NTB  ,NP-1,NR)) &
-                          /(4.D0*DELP(NSBA)*F(NTB  ,NP,NR))
+                          /(4.D0*DELP(NS)*F(NTB  ,NP,NR))
                   ELSE
                      DFDB= (F(NTB-1,NP+1,NR)-F(NTB-1,NP-1,NR)) &
-                          /(2.D0*DELP(NSBA)*F(NTB-1,NP,NR))
+                          /(2.D0*DELP(NS)*F(NTB-1,NP,NR))
                   ENDIF
                ELSE
                   IF(F(NTB,NP,NR).GT.EPSWT) THEN
                      DFDB= (F(NTB  ,NP+1,NR)-F(NTB  ,NP-1,NR)) &
-                          /(2.D0*DELP(NSBA)*F(NTB  ,NP,NR))
+                          /(2.D0*DELP(NS)*F(NTB  ,NP,NR))
                   ENDIF
                ENDIF
             ENDIF
@@ -491,51 +490,51 @@
                IF(F(NTH-1,NP,NR).GT.EPSWT) THEN
                   IF(F(NTH,NP,NR).GT.EPSWT) THEN
                      DFDP= (F(NTH-1,NP+1,NR)-F(NTHMAX-NTH+2,1,NR)) &
-                          /(4.D0*DELP(NSBA)*F(NTH-1,NP,NR)) &
+                          /(4.D0*DELP(NS)*F(NTH-1,NP,NR)) &
                           +(F(NTH  ,NP+1,NR)-F(NTHMAX-NTH+1,1,NR)) &
-                          /(4.D0*DELP(NSBA)*F(NTH  ,NP,NR))
+                          /(4.D0*DELP(NS)*F(NTH  ,NP,NR))
                   ELSE
                      DFDP= (F(NTH-1,NP+1,NR)-F(NTHMAX-NTH+2,1,NR)) &
-                          /(2.D0*DELP(NSBA)*F(NTH-1,NP,NR))
+                          /(2.D0*DELP(NS)*F(NTH-1,NP,NR))
                   ENDIF
                ELSE
                   IF(F(NTH,NP,NR).GT.EPSWT) THEN
                      DFDP= (F(NTH  ,NP+1,NR)-F(NTHMAX-NTH+1,1,NR)) &
-                          /(2.D0*DELP(NSBA)*F(NTH  ,NP,NR))
+                          /(2.D0*DELP(NS)*F(NTH  ,NP,NR))
                   ENDIF
                ENDIF
             ELSEIF(NP.EQ.NPMAX) THEN
                IF(F(NTH-1,NP,NR).GT.EPSWT) THEN
                   IF(F(NTH,NP,NR).GT.EPSWT) THEN
                      DFDP= (F(NTH-1,NP,NR)-F(NTH-1,NP-1,NR)) &
-                          /(2.D0*DELP(NSBA)*F(NTH-1,NP,NR)) &
+                          /(2.D0*DELP(NS)*F(NTH-1,NP,NR)) &
                           +(F(NTH  ,NP,NR)-F(NTH  ,NP-1,NR)) &
-                          /(2.D0*DELP(NSBA)*F(NTH  ,NP,NR))
+                          /(2.D0*DELP(NS)*F(NTH  ,NP,NR))
                   ELSE
                      DFDP= (F(NTH-1,NP,NR)-F(NTH-1,NP-1,NR)) &
-                          /(     DELP(NSBA)*F(NTH-1,NP,NR))
+                          /(     DELP(NS)*F(NTH-1,NP,NR))
                   ENDIF
                ELSE
                   IF(F(NTH,NP,NR).GT.EPSWT) THEN
                      DFDP= (F(NTH  ,NP,NR)-F(NTH  ,NP-1,NR)) &
-                          /(     DELP(NSBA)*F(NTH  ,NP,NR))
+                          /(     DELP(NS)*F(NTH  ,NP,NR))
                   ENDIF
                ENDIF
             ELSE
                IF(F(NTH-1,NP,NR).GT.EPSWT) THEN
                   IF(F(NTH,NP,NR).GT.EPSWT) THEN
                      DFDP= (F(NTH-1,NP+1,NR)-F(NTH-1,NP-1,NR)) &
-                          /(4.D0*DELP(NSBA)*F(NTH-1,NP,NR)) &
+                          /(4.D0*DELP(NS)*F(NTH-1,NP,NR)) &
                           +(F(NTH  ,NP+1,NR)-F(NTH  ,NP-1,NR)) &
-                          /(4.D0*DELP(NSBA)*F(NTH  ,NP,NR))
+                          /(4.D0*DELP(NS)*F(NTH  ,NP,NR))
                   ELSE
                      DFDP= (F(NTH-1,NP+1,NR)-F(NTH-1,NP-1,NR)) &
-                          /(2.D0*DELP(NSBA)*F(NTH-1,NP,NR))
+                          /(2.D0*DELP(NS)*F(NTH-1,NP,NR))
                   ENDIF
                ELSE
                   IF(F(NTH,NP,NR).GT.EPSWT) THEN
                      DFDP= (F(NTH  ,NP+1,NR)-F(NTH  ,NP-1,NR)) &
-                          /(2.D0*DELP(NSBA)*F(NTH  ,NP,NR))
+                          /(2.D0*DELP(NS)*F(NTH  ,NP,NR))
                   ENDIF
                ENDIF
             ENDIF
@@ -554,7 +553,7 @@
             DVEL=DCTT(NTH,NP,NR,NSA)
          ENDIF
          WEIGHT(NTH,NP,NR,NSA) &
-                 =FPWEGH(-DELTH*PM(NP,NSBA)*FVEL,DVEL)
+                 =FPWEGH(-DELTH*PM(NP,NS)*FVEL,DVEL)
 !         WEIGHT(NTH,NP,NR,NSA) &
 !                 =0.5D0
       ENDDO
@@ -657,7 +656,7 @@
       INTEGER:: NTBP ! if NTH>=ITU(NR)+1 and NTH<=ITU(NR+1)
                      !    then NTBP=ITL(NR+1)+ITU(NR+1)-NTH, else NTBP=0
 
-      integer:: IERR, NSBA
+      integer:: IERR, NS
       real(8):: DFDTH, FVEL, DVEL, DFDP, DFDB
       real(8):: DPPM, DPPP, DPTM, DPTP, SL, DTPM, DTPP, DTTM, DTTP
       real(8):: WPM, WPP, WTM, WTP, VPM, VPP, VTM, VTP
@@ -667,7 +666,7 @@
       real(8):: PL
       DOUBLE PRECISION:: WPBM, VPBM, WPBP, VPBP
 
-      NSBA=NSB_NSA(NSA)
+      NS=NS_NSA(NSA)
 
       NTB=0
       NTBM=0
@@ -690,11 +689,11 @@
 
       NL=0
       NM=NMA(NTH,NP,NR)
-      PL=PM(NP,NSBA)
-      DPPM=PG(NP,NSBA  )**2
-      DPPP=PG(NP+1,NSBA)**2
-      DPTM=PG(NP,NSBA  )
-      DPTP=PG(NP+1,NSBA)
+      PL=PM(NP,NS)
+      DPPM=PG(NP,NS  )**2
+      DPPP=PG(NP+1,NS)**2
+      DPTM=PG(NP,NS  )
+      DPTP=PG(NP+1,NS)
       SL=SINM(NTH)
       DTPM=SING(NTH  )
       DTPP=SING(NTH+1)
@@ -744,11 +743,11 @@
          WRBM=WEIGHR(NTBM,NP  ,NR,NSA)
          VRBM=1.D0-WRBM
       ENDIF
-      DIVDPP=1.D0/(     PL*PL*DELP(NSBA) *DELP(NSBA))
-      DIVDPT=1.D0/(2.D0*PL*PL*DELP(NSBA) *DELTH)
-      DIVDTP=1.D0/(2.D0*PL*SL*DELTH*DELP(NSBA))
+      DIVDPP=1.D0/(     PL*PL*DELP(NS) *DELP(NS))
+      DIVDPT=1.D0/(2.D0*PL*PL*DELP(NS) *DELTH)
+      DIVDTP=1.D0/(2.D0*PL*SL*DELTH*DELP(NS))
       DIVDTT=1.D0/(     PL*SL*DELTH*DELTH)
-      DIVFPP=1.D0/(     PL*PL*DELP(NSBA))
+      DIVFPP=1.D0/(     PL*PL*DELP(NS))
       DIVFTH=1.D0/(     PL*SL*DELTH)
       DIVDRR=1.D0/(     RL   *DELR *DELR)
       DIVFRR=1.D0/(     RL   *DELR)

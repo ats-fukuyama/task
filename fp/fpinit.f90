@@ -150,7 +150,7 @@
          SPBANG(NBEAM)=20.D0
          SPBPANG(NBEAM)=0.D0
       ENDDO
-      NS_F1=2
+      NSA_F1=2
       NTH_F1=3
       NR_F1=1
 !-----FUSION REACTION----------------------------------------------------
@@ -323,8 +323,8 @@
       MODEL_BULK_CONST=0
       time_exp_offset=0.D0
 
-      DO NSA=1,NSM
-         MODEL_DELTA_F(NSA)=0
+      DO NS=1,NSM
+         MODEL_DELTA_F(NS)=0
       END DO
 !-----COMPUTATION PARAMETERS------------------------------------------
 !     DELT  : time step size (s)
@@ -533,7 +533,7 @@
            time_quench_start,RJPROF1,RJPROF2, &
            v_RE,target_zeff,SPITOT, MODEL_EX_READ, &
            FACT_BULK, time_exp_offset, MODEL_BULK_CONST, RN_NEU0, MODEL_CX_LOSS, RN_NEUS, &
-           EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME_H, SV_FILE_NAME_D, NS_F1, NTH_F1, NR_F1
+           EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME_H, SV_FILE_NAME_D, NSA_F1, NTH_F1, NR_F1
 
       READ(nid,FP,IOSTAT=ist,ERR=9800,END=9900)
 
@@ -590,7 +590,7 @@
       WRITE(6,*) '      time_quench_start,RJPROF1,RJPROF2,'
       WRITE(6,*) '      v_RE,target_zeff,SPITOT,MODEL_EX_READ,FACT_BULK'
       WRITE(6,*) '      time_exp_offset, MODEL_BULK_CONST, RN_NEU0, MODEL_CX_LOSS, RN_NEUS'
-      WRITE(6,*) '      EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME_H, SV_FILE_NAME_D, NS_F1, NTH_F1, NR_F1'
+      WRITE(6,*) '      EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME_H, SV_FILE_NAME_D, NSA_F1, NTH_F1, NR_F1'
 
       RETURN
     END SUBROUTINE fp_plst
@@ -787,7 +787,7 @@
       idata(59)=MODEL_EX_READ
       idata(60)=MODEL_BULK_CONST
       idata(61)=MODEL_CX_LOSS
-      idata(62)=NS_F1
+      idata(62)=NSA_F1
       idata(63)=NTH_F1
       idata(64)=NR_F1
 
@@ -856,7 +856,7 @@
       MODEL_EX_READ  =idata(59)
       MODEL_BULK_CONST =idata(60)
       MODEL_CX_LOSS  =idata(61)
-      NS_F1 = idata(62)
+      NSA_F1 = idata(62)
       NTH_F1 = idata(63)
       NR_F1 = idata(64)
 
@@ -865,8 +865,8 @@
       CALL mtx_broadcast_integer(NCMIN,NSAMAX)
       CALL mtx_broadcast_integer(NCMAX,NSAMAX)
       CALL mtx_broadcast_integer(NSSPB,NBEAMMAX)
-      CALL mtx_broadcast_integer(MODELW,NSAMAX)
-      CALL mtx_broadcast_integer(MODEL_DELTA_F,NSAMAX)
+      CALL mtx_broadcast_integer(MODELW,NSMAX)
+      CALL mtx_broadcast_integer(MODEL_DELTA_F,NSMAX)
 
       rdata( 1)=R1
       rdata( 2)=DELR1
@@ -1003,9 +1003,9 @@
       RN_NEU0          =rdata(65)
       RN_NEUS          =rdata(66)
 
-      CALL mtx_broadcast_real8(pmax,NSAMAX)
-      CALL mtx_broadcast_real8(pmax_bb,NSAMAX)
-      CALL mtx_broadcast_real8(Emax,NSAMAX)
+      CALL mtx_broadcast_real8(pmax,NSMAX)
+      CALL mtx_broadcast_real8(pmax_bb,NSMAX)
+      CALL mtx_broadcast_real8(Emax,NSMAX)
       CALL mtx_broadcast_real8(TLOSS,NSMAX)
 
       CALL mtx_broadcast_real8(SPBTOT,NBEAMMAX)

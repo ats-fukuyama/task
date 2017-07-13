@@ -627,7 +627,7 @@
       USE fpmpi
       USE libmpi
       IMPLICIT NONE
-      integer:: NTH, NP, NR, NSA, N, NSW, NS, NSBA, NSB
+      integer:: NTH, NP, NR, NSA, N, NSW, NS, NSB
       integer:: nps, npe, nite
       real(8):: FLUXS_PMAX, FFP, RSUM1, FACT, SUMZ, RSUM2, PV
       real(8),intent(out):: IP_all_FP
@@ -637,7 +637,6 @@
       CALL mtx_set_communicator(comm_np)
       DO NR=NRSTART, NREND
          DO NSA=NSASTART,NSAEND
-            NSBA=NSB_NSA(NSA)
             NS=NS_NSA(NSA)
             RSUM1=0.D0
             RSUM2=0.D0
@@ -650,7 +649,7 @@
             RSUMP2=0.D0
             DO NP=NPSTART, NPEND
                DO NTH=1, NTHMAX
-                  RSUMP2 = RSUMP2 + VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)
+                  RSUMP2 = RSUMP2 + VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA)
                END DO
             END DO
             CALL p_theta_integration(RSUMP2)
@@ -666,7 +665,7 @@
 
                DO NP=NPSTART, NPE
                   DO NTH=1, NTHMAX
-                     RSUMP1 = RSUMP1 + VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)
+                     RSUMP1 = RSUMP1 + VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA)
                   END DO
                END DO
                CALL p_theta_integration(RSUMP1)
@@ -682,13 +681,13 @@
             IF(MODELA.eq.0)THEN
                DO NP=NPSTART,NPEND
                   DO NTH=1,NTHMAX
-                     RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)
+                     RSUM1 = RSUM1+VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA)
                   END DO
                ENDDO
             ELSE
                DO NP=NPSTART,NPEND
                   DO NTH=1,NTHMAX
-                     RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
+                     RSUM1 = RSUM1+VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA) &
                           *RLAMDA(NTH,NR)
                   END DO
                ENDDO
@@ -699,17 +698,17 @@
                   DO NP=NPSTART,NPEND
                      DO NTH=1,NTHMAX
                         RSUM2 = RSUM2                       &
-                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
-                             *PM(NP,NSBA)*COSM(NTH)
+                             +VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA) &
+                             *PM(NP,NS)*COSM(NTH)
                      END DO
                   ENDDO
                ELSE
                   DO NP=NPSTART,NPEND
-                     PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
+                     PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NS)**2)
                      DO NTH=1,NTHMAX
                         RSUM2 = RSUM2                       &
-                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
-                             *PM(NP,NSBA)*COSM(NTH)/PV
+                             +VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA) &
+                             *PM(NP,NS)*COSM(NTH)/PV
                      END DO
                   END DO
                ENDIF
@@ -790,7 +789,7 @@
       USE fpmpi
       USE libmpi
       IMPLICIT NONE
-      integer:: NTH, NP, NR, NSA, N, NSW, NS, NSBA, NSB
+      integer:: NTH, NP, NR, NSA, N, NSW, NS, NSB
       real(8):: FLUXS_PMAX, FFP, RSUM1, FACT, SUMZ, RSUM2, PV, PITCH, v_thermal, tau_th
       real(8),dimension(NRSTART:NREND):: Rconnor_l
       real(8):: alp, z_i, h_alpha_z, lambda_alpha, gamma_alpha_z, theta_l, E00, tau_rela
@@ -799,7 +798,6 @@
       CALL mtx_set_communicator(comm_np)
       DO NR=NRSTART, NREND
          DO NSA=NSASTART,NSAEND
-            NSBA=NSB_NSA(NSA)
             NS=NS_NSA(NSA)
             FLUXS_PMAX=0.D0
             RE_PITCH_L(:)=0.D0
@@ -807,28 +805,28 @@
 ! FLUX S_p crossing pmax for runaway rate
                IF(NPEND.eq.NPMAX)THEN
                   DO NTH=1,NTHMAX
-                     FFP=    PG(NPMAX+1,NSBA)*FNSP(NTH,NPMAX,NR,NSBA)
+                     FFP=    PG(NPMAX+1,NS)*FNSP(NTH,NPMAX,NR,NSA)
                      
                      FLUXS_PMAX = FLUXS_PMAX +  &
                           FPP(NTH,NPMAX+1,NR,NSA)*FFP  &
-                          * PG(NPMAX+1,NSBA)*SINM(NTH)!*tau_ta0(NSA) ! gamma
+                          * PG(NPMAX+1,NS)*SINM(NTH)!*tau_ta0(NSA) ! gamma
                      RE_PITCH_L(NTH)= &
                           FPP(NTH,NPMAX+1,NR,NSA)*FFP  & 
-                          * PG(NPMAX+1,NSBA)*SINM(NTH)!*tau_ta0(NSA) ! gamma
+                          * PG(NPMAX+1,NS)*SINM(NTH)!*tau_ta0(NSA) ! gamma
                   END DO
                END IF
             ELSEIF(MODEL_RE_pmax.eq.1)THEN
 ! FLUX S_p across NPC_runaway for runaway rate
                IF(NPSTART.le.NPC_runaway.and.NPEND.ge.NPC_runaway)THEN
                   DO NTH=1,NTHMAX
-                     FFP=    PG(NPC_runaway+1,NSBA)*FNSP(NTH,NPC_runaway,NR,NSBA)
+                     FFP=    PG(NPC_runaway+1,NS)*FNSP(NTH,NPC_runaway,NR,NSA)
                      
                      FLUXS_PMAX = FLUXS_PMAX +  &
                           FPP(NTH,NPC_runaway+1,NR,NSA)*FFP  &
-                          * PG(NPC_runaway+1,NSBA)*SINM(NTH)!*tau_ta0(NSA) ! gamma
+                          * PG(NPC_runaway+1,NS)*SINM(NTH)!*tau_ta0(NSA) ! gamma
                      RE_PITCH_L(NTH)= &
                           FPP(NTH,NPC_runaway+1,NR,NSA)*FFP  & 
-                          * PG(NPC_runaway+1,NSBA)*SINM(NTH)!*tau_ta0(NSA) ! gamma
+                          * PG(NPC_runaway+1,NS)*SINM(NTH)!*tau_ta0(NSA) ! gamma
                   END DO
                END IF
             END IF
@@ -1147,14 +1145,14 @@
       USE libmtx
       USE fpmpi
       IMPLICIT NONE
-      INTEGER:: NSA, NR, NP, NTH, NPS, NSBA
+      INTEGER:: NSA, NR, NP, NTH, NPS, NS
       REAL(8):: PV, WPL, WPM, WPP, DFP, DFT, FFP
       REAL(8):: P2_S_P, P2_S_T, RSUMP, RSUMT, FACT
       REAL(8),DIMENSION(NRSTART:NREND):: R_djdtl
 
       CALL mtx_set_communicator(comm_np)
       DO NSA=NSASTART, NSAEND
-         NSBA=NSB_NSA(NSA)
+         NS=NS_NSA(NSA)
          DO NR=NRSTART, NREND
             RSUMP=0.D0
             RSUMT=0.D0
@@ -1164,7 +1162,7 @@
                NPS=NPSTART
             END IF
             DO NP=NPS,NPEND
-               PV=SQRT(1.D0+THETA0(NSA)*PG(NP,NSBA)**2)
+               PV=SQRT(1.D0+THETA0(NSA)*PG(NP,NS)**2)
                DO NTH=1,NTHMAX
                   WPL=WEIGHP(NTH  ,NP,NR,NSA)
                   IF(NTH.EQ.1) THEN
@@ -1177,42 +1175,42 @@
                   ELSE
                      WPP=WEIGHP(NTH+1,NP,NR,NSA)
                   ENDIF
-                  DFP=    PG(NP,NSBA) &
-                       /DELP(NSBA)*(FNSP(NTH,NP,NR,NSBA)-FNSP(NTH,NP-1,NR,NSBA))
+                  DFP=    PG(NP,NS) &
+                       /DELP(NS)*(FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA))
                   IF(NTH.EQ.1) THEN
                      DFT=1.D0/DELTH                             &
                          *(                                     &
-                            ((1.D0-WPP)*FNSP(NTH+1,NP  ,NR,NSBA)   &
-                                  +WPP *FNSP(NTH+1,NP-1,NR,NSBA))&
+                            ((1.D0-WPP)*FNSP(NTH+1,NP  ,NR,NSA)   &
+                                  +WPP *FNSP(NTH+1,NP-1,NR,NSA))&
                            -                                    &
-                            ((1.D0-WPM)*FNSP(NTH,NP  ,NR,NSBA)     &
-                                  +WPM *FNSP(NTH,NP-1,NR,NSBA))&
+                            ((1.D0-WPM)*FNSP(NTH,NP  ,NR,NSA)     &
+                                  +WPM *FNSP(NTH,NP-1,NR,NSA))&
                           )
 
                   ELSE IF(NTH.EQ.NTHMAX) THEN
                      DFT=    1.D0/DELTH                         & 
                          *(-                                    &
-                            ((1.D0-WPM)*FNSP(NTH-1,NP  ,NR,NSBA)   &
-                                  +WPM *FNSP(NTH-1,NP-1,NR,NSBA))&
+                            ((1.D0-WPM)*FNSP(NTH-1,NP  ,NR,NSA)   &
+                                  +WPM *FNSP(NTH-1,NP-1,NR,NSA))&
                           +                                     &
-                            ((1.D0-WPP)*FNSP(NTH,NP  ,NR,NSBA)     &
-                                  +WPP *FNSP(NTH,NP-1,NR,NSBA))&
+                            ((1.D0-WPP)*FNSP(NTH,NP  ,NR,NSA)     &
+                                  +WPP *FNSP(NTH,NP-1,NR,NSA))&
                           )
                   ELSE
                      DFT=    1.D0/(2.D0*DELTH)                  &
                          *(                                     &
-                            ((1.D0-WPP)*FNSP(NTH+1,NP  ,NR,NSBA)   &
-                                  +WPP *FNSP(NTH+1,NP-1,NR,NSBA))&
+                            ((1.D0-WPP)*FNSP(NTH+1,NP  ,NR,NSA)   &
+                                  +WPP *FNSP(NTH+1,NP-1,NR,NSA))&
                            -                                    &
-                            ((1.D0-WPM)*FNSP(NTH-1,NP  ,NR,NSBA)   &
-                                  +WPM *FNSP(NTH-1,NP-1,NR,NSBA))&
+                            ((1.D0-WPM)*FNSP(NTH-1,NP  ,NR,NSA)   &
+                                  +WPM *FNSP(NTH-1,NP-1,NR,NSA))&
                                   )
                   ENDIF
-                  FFP=    PG(NP,NSBA)                           &
-                         *((1.D0-WPL)*FNSP(NTH  ,NP  ,NR,NSBA)  &
-                                +WPL *FNSP(NTH  ,NP-1,NR,NSBA))
+                  FFP=    PG(NP,NS)                           &
+                         *((1.D0-WPL)*FNSP(NTH  ,NP  ,NR,NSA)  &
+                                +WPL *FNSP(NTH  ,NP-1,NR,NSA))
 
-                  P2_S_P = PG(NP,NSBA)*( &
+                  P2_S_P = PG(NP,NS)*( &
                        -DPP(NTH,NP,NR,NSA)*DFP &
                        -DPT(NTH,NP,NR,NSA)*DFT &
                        +FPP(NTH,NP,NR,NSA)*FFP )
@@ -1224,7 +1222,7 @@
             END DO
 
             DO NP=NPSTART,NPEND
-               PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
+               PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NS)**2)
                DO NTH=2,NTHMAX
                   WPL=WEIGHT(NTH  ,NP,NR,NSA)
                   IF(NP.EQ.1) THEN
@@ -1237,19 +1235,19 @@
                   ELSE
                      WPP=WEIGHT(NTH,NP+1,NR,NSA)
                   ENDIF
-!                     DFP = PM(NP,NSBA)*0.5D0/DELP*( &
-!                          (1.D0-WPP)*FNSP(NTH+1,NP+1,NR,NSBA) &
-!                          +     WPP *FNSP(NTH,  NP+1,NR,NSBA) - &
-!                          (1.D0-WPM)*FNSP(NTH+1,NP-1,NR,NSBA) &
-!                          -     WPM *FNSP(NTH,  NP-1,NR,NSBA) &
+!                     DFP = PM(NP,NS)*0.5D0/DELP*( &
+!                          (1.D0-WPP)*FNSP(NTH+1,NP+1,NR,NSA) &
+!                          +     WPP *FNSP(NTH,  NP+1,NR,NSA) - &
+!                          (1.D0-WPM)*FNSP(NTH+1,NP-1,NR,NSA) &
+!                          -     WPM *FNSP(NTH,  NP-1,NR,NSA) &
 !                          )
                   DFT = 1.D0/DELTH &
-                       *(FNSP(NTH,NP,NR,NSBA)-FNSP(NTH-1,NP,NR,NSBA))
-                  FFP = PM(NP,NSBA)*( &
-                       (1.D0-WPL)*FNSP(NTH,  NP,NR,NSBA) &
-                       +     WPL *FNSP(NTH-1,NP,NR,NSBA) )
+                       *(FNSP(NTH,NP,NR,NSA)-FNSP(NTH-1,NP,NR,NSA))
+                  FFP = PM(NP,NS)*( &
+                       (1.D0-WPL)*FNSP(NTH,  NP,NR,NSA) &
+                       +     WPL *FNSP(NTH-1,NP,NR,NSA) )
 
-                  P2_S_T = PM(NP,NSBA)*( &
+                  P2_S_T = PM(NP,NS)*( &
 !                       -DTP(NTH,NP,NR,NSA)*DFP &
                        -DTT(NTH,NP,NR,NSA)*DFT &
                        +FTH(NTH,NP,NR,NSA)*FFP )
@@ -1394,7 +1392,7 @@
 
       USE libmpi
       IMPLICIT NONE
-      INTEGER:: NTH, NP, NR, NSA, NPS, NPE, NSBA, NTHSTEP
+      INTEGER:: NTH, NP, NR, NSA, NPS, NPE, NS, NTHSTEP
       DOUBLE PRECISION:: WPL, WPM, WPP, WTP, DFT, DFP, FFP, FFT
       DOUBLE PRECISION, dimension(NTHMAX,NPSTART:NPEND+1):: FLUXS_PL_L
       DOUBLE PRECISION, dimension(NTHMAX+1,NPSTART:NPEND):: FLUXS_TL_L
@@ -1415,16 +1413,16 @@
       NSA=1
       FLUXS_PL_L(:,:)=0.D0
       NR=NRSTART
-      NSBA=NSB_NSA(NSA)
+      NS=NS_NSA(NSA)
 !FLUXS_P
       DO NP=NPS,NPE
          DO NTH=1,NTHMAX
             WPL=WEIGHP(NTH  ,NP,NR,NSA)
             DFP=    1.D0 &
-                 /DELP(NSBA)*(FNSP(NTH,NP,NR,NSBA)-FNSP(NTH,NP-1,NR,NSBA))
+                 /DELP(NS)*(FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA))
             FFP=    1.D0                           &
-                 *((1.D0-WPL)*FNSP(NTH  ,NP  ,NR,NSBA)  &
-                 +WPL *FNSP(NTH  ,NP-1,NR,NSBA))
+                 *((1.D0-WPL)*FNSP(NTH  ,NP  ,NR,NSA)  &
+                 +WPL *FNSP(NTH  ,NP-1,NR,NSA))
             FLUXS_PL_L(NTH,NP)= &
                  -DPP(NTH,NP,NR,NSA)*DFP+FPP(NTH,NP,NR,NSA)*FFP
          END DO
@@ -1445,16 +1443,16 @@
          DO NTH=1,NTHMAX+1
             WTP = WEIGHT(NTH,NP,NR,NSA)
             IF(NTH.eq.1)THEN
-               FFT= FNSP(1,NP,NR,NSBA) 
+               FFT= FNSP(1,NP,NR,NSA) 
                DFT = 0.D0
             ELSEIF(NTH.eq.NTHMAX+1)THEN
-               FFT= FNSP(NTHMAX,NP,NR,NSBA) 
+               FFT= FNSP(NTHMAX,NP,NR,NSA) 
                DFT = 0.D0
             ELSE
-               FFT= (1.D0-WTP)*FNSP(NTH,NP,NR,NSBA)+ &
-                    WTP * FNSP(NTH,NP,NR,NSBA) 
+               FFT= (1.D0-WTP)*FNSP(NTH,NP,NR,NSA)+ &
+                    WTP * FNSP(NTH,NP,NR,NSA) 
                DFT = 1.D0/DELTH*&
-                    (FNSP(NTH,NP,NR,NSBA)-FNSP(NTH-1,NP,NR,NSBA))
+                    (FNSP(NTH,NP,NR,NSA)-FNSP(NTH-1,NP,NR,NSA))
             END IF
             FLUXS_TL_L(NTH,NP) = -DFT*DCTT(NTH,NP,NR,NSA)/PM(NP,NSA) &
                  + FFT*FTH(NTH,NP,NR,NSA)

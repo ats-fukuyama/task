@@ -46,7 +46,7 @@
 
       IMPLICIT NONE
       real(8),DIMENSION(NSBMAX):: sum11,sum12,sum13,sum14,sum15,sum16
-      integer:: NSA, NR, NRDO, NTH, NP, NSBA
+      integer:: NSA, NR, NRDO, NTH, NP, NS
       real(8):: FACT, ETA, DWPPS, DWPTS, DWTPS, DWTTS, RHOL, P
       real(8):: DWPPL, DWPTL, DWTPL, DWTTL
       real(4):: gut, gut1, gut2
@@ -55,7 +55,7 @@
 !
       FACT=0.5D0
       DO NSA=NSASTART,NSAEND
-      NSBA=NSB_NSA(NSA)
+      NS=NS_NSA(NSA)
 
       DO NRDO=NRSTART,NREND
          NR=NRDO
@@ -163,7 +163,7 @@
                   DWTP(NTH,NP,NR,NSA)=DWTPS
                   DWTT(NTH,NP,NR,NSA)=DWTTS
                ELSE
-!                  P=PM(NP,NSA)
+!                  P=PM(NP,NS)
 !                  ETA=ETAG(NTH,NR)
 !                  CALL FPWAVV(RHOL,ETA,SING(NTH),COSG(NTH),P,SING(NTH),COSG(NTH),NSA,1, &
 !                       DWTPL,DWTTL)
@@ -249,19 +249,20 @@
       real(8):: ETA, RSIN, RCOS, P, DWPPS, DWPTS, DWTPS, DWTTS
       REAL(8):: DELH, RHOL, ETAL, PSIN, PCOS, BMIN, PSI, BMAX
       REAL(8):: DWPPL, DWPTL, DWTPL, DWTTL
-      integer:: N
+      integer:: N, NS
       real(4):: gut2, gut1, gut
 
+      NS=NS_NSA(NSA)
       IF(NSW_PT.eq.0)THEN
          DELH=2.D0*ETAM(NTH,NR)/NAVMAX
          RCOS=COSM(NTH)
          RSIN=SINM(NTH)
-         P=PG(NP,NSA)
+         P=PG(NP,NS)
       ELSEIF(NSW_PT.eq.1)THEN
          DELH=2.D0*ETAG(NTH,NR)/NAVMAX
          RCOS=COSG(NTH)
          RSIN=SING(NTH)
-         P=PM(NP,NSA)
+         P=PM(NP,NS)
       END IF
       DWPS=0.D0
       DWTS=0.D0
@@ -331,7 +332,7 @@
       CEPLUS =(CER+CI*CEPERP)/SQRT(2.D0)
       CEMINUS=(CER-CI*CEPERP)/SQRT(2.D0)
 
-      RGAMMA =SQRT(1.D0+P*P*THETA0(NSA))
+      RGAMMA =SQRT(1.D0+P*P*THETA0(NS))
       PPARA  =PTFP0(NSA)*P*PCOS
       PPERP  =PTFP0(NSA)*P*PSIN
       VPARA  =PTFP0(NSA)*P*PCOS/(AMFP(NSA)*RGAMMA)
@@ -472,10 +473,11 @@
       REAL(8):: RHOL, ETAL, RFWM, RKR, RKTH, RKPH
       COMPLEX(8):: CER, CETH, CEPH
       COMPLEX(8):: CEWR1, CEWTH1, CEWPH1, CKWR1, CKWTH1, CKWPH1
-      INTEGER:: NSA, IERR
+      INTEGER:: NSA, IERR, NS
       REAL(8):: Y, ARG, FACT, PHL
 
-      IF(MODELW(NS_NSA(NSA)).EQ.3) THEN
+      NS=NS_NSA(NSA)
+      IF(MODELW(NS).EQ.3) THEN
          Y=RHOL*RA*SIN(ETAL)
 
          DREWY=1.D1

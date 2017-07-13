@@ -15,7 +15,7 @@ MODULE fpcomm_parm
       integer,parameter:: NBEAMM=20
       real(rkind),parameter:: rkev=aee*1.D3
 
-      integer:: NSAMAX,NSBMAX,NS_NSA(NSM),NS_NSB(NSM), NS_F1, NTH_F1, NR_F1
+      integer:: NSAMAX,NSBMAX,NS_NSA(NSM),NS_NSB(NSM), NSA_F1, NTH_F1, NR_F1
       integer:: LMAXNWR,NCMIN(NSM),NCMAX(NSM),NBEAMMAX,NSSPB(NBEAMM),NSSPF
       integer:: NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX
       integer:: NTMAX,NTSTEP_COEF,NTSTEP_COLL
@@ -166,7 +166,7 @@ module fpcomm
            FNSB
 
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
-           RNFP,RTFP,PTFP,VTFP,THETA,DKBSR, POST_tau_ta,RNFP_G,RTFP_G,RT_T
+           RNFP,RTFP,PTFP,VTFP,THETA,DKBSR, POST_tau_ta,RNFP_G,RTFP_G
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSBM)
            RNFD,RTFD,PTFD,VTFD, RN_MGI, RN_MGI_G
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSBM,NSAM)
@@ -322,13 +322,12 @@ module fpcomm
           allocate(ITLG_RG(NRMAX+1),ITUG_RG(NRMAX+1))
           allocate(ITL_judge(NRMAX+1),ITLG_judge(NRMAX+1))
 
-          allocate(PG(NPMAX+1,NSBMAX),PM(NPMAX,NSBMAX))
+          allocate(PG(NPMAX+1,NSMAX),PM(NPMAX,NSMAX))
           allocate(THG(NTHMAX+1),THM(NTHMAX))
-          allocate(DELP(NSBMAX))
-          allocate(PG2(NP2MAX+1,NSBMAX),PM2(NP2MAX,NSBMAX))
+          allocate(DELP(NSMAX))
+          allocate(PG2(NP2MAX+1,NSMAX),PM2(NP2MAX,NSMAX))
 
-!          allocate(VOLP(NTHMAX,NPMAX,NSBMAX))
-          allocate(VOLP(NTHMAX,NPSTART:NPEND,NSBMAX))
+          allocate(VOLP(NTHMAX,NPSTART:NPEND,NSMAX))
           allocate(ETAG(NTHMAX+1,NRSTART:NREND+1),ETAM(NTHMAX,NRSTART:NREND+1))
           allocate(ETAG_RG(NTHMAX+1,NRSTART:NREND+1),ETAM_RG(NTHMAX,NRSTART:NREND+1))
           allocate(RLAMDA(NTHMAX,NRSTART:NREND),RLAMDC(NTHMAX+1,NRSTART:NREND))
@@ -366,20 +365,19 @@ module fpcomm
           allocate(RNFD0(NSBMAX))
           allocate(AEFD(NSBMAX),AMFD(NSBMAX))
           allocate(PTFD0(NSBMAX),VTFD0(NSBMAX))
-          allocate(THETA0(NSBMAX))
+          allocate(THETA0(NSMAX))
 
           allocate(RNFP(NRSTART:NREND+1,NSAMAX),RTFP(NRSTART:NREND+1,NSAMAX))
           allocate(RNFP_G(NRSTART:NRENDWG,NSAMAX),RTFP_G(NRSTART:NRENDWG,NSAMAX))
-          allocate(RT_T(NRMAX,NSBMAX)) ! 
           allocate(PTFP(NRSTART:NREND+1,NSAMAX),VTFP(NRSTART:NREND+1,NSAMAX))
-          allocate(THETA(NRSTART:NREND,NSBMAX),DKBSR(NRSTART:NREND,NSAMAX))
+          allocate(THETA(NRSTART:NREND,NSMAX),DKBSR(NRSTART:NREND,NSAMAX))
           allocate(WEIGHP(NTHMAX  ,NPSTART:NPENDWG,NRSTART:NREND+1,NSAMAX))
           allocate(WEIGHT(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NREND+1,NSAMAX))
           allocate(WEIGHR(NTHMAX,NPSTART:NPEND,NRSTART:NREND+1,NSAMAX))
           IF(MODELD.ne.0)THEN
              allocate(WEIGHR_G(NTHMAX,NPMAX,NRMAX+1,NSAMAX))
           END IF
-          allocate(RNFD(NRSTART:NREND+1,NSBMAX),RTFD(NRSTART:NREND+1,NSBMAX))
+          allocate(RNFD(NRSTART:NRENDWM,NSBMAX),RTFD(NRSTART:NRENDWM,NSBMAX))
           allocate(RN0_MGI(NSBMAX))
           allocate(RN_MGI(NRSTART:NREND,NSBMAX))
           allocate(RN_MGI_G(NRMAX,NSBMAX))
@@ -570,7 +568,7 @@ module fpcomm
              allocate(RATE_NF_D1(NTHMAX,NPSTART:NPEND,NRSTART:NREND,6))
 !             allocate(RATE_NF_D2(NTHMAX,NPSTART:NPEND,NRSTART:NREND,6))
           ENDIF
-          allocate(NP_BULK(NRMAX,NSBMAX))
+          allocate(NP_BULK(NRMAX,NSAMAX))
 
           allocate(DEPS_SS(NSAMAX))
           NPMAX_save=NPMAX
@@ -712,7 +710,7 @@ module fpcomm
 !          deallocate(DCPPB,DCPTB,FCPPB)
 !          deallocate(DCPP2B,DCPT2B,FCPP2B)
 
-          deallocate(RN_TEMP,RT_TEMP,RT_T)
+          deallocate(RN_TEMP,RT_TEMP)
           IF(MODEL_EX_READ.ne.0)THEN
              deallocate(RN_READ, RT_READ)
              deallocate(RNE_EXP, RTE_EXP, RTI_EXP)

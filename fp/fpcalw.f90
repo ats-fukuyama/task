@@ -156,9 +156,9 @@ contains
       NCONST_RF=3
 
       DO NSA=NSASTART,NSAEND
-
+         NS=NS_NSA(NSA)
 ! TOTAL Pabs(r) invariant
-      IF(MODELW(NSA).eq.4.and.NCONST_RF.eq.2.and.N_IMPL.ne.0)THEN 
+      IF(MODELW(NS).eq.4.and.NCONST_RF.eq.2.and.N_IMPL.ne.0)THEN 
          DO NR=NRSTART,NREND
             DO NP=NPSTART,NPENDWG
                DO NTH=1,NTHMAX
@@ -190,7 +190,7 @@ contains
             END DO
          END DO
 ! Pabs_EC(r), Pabs_IC(r) invariant
-      ELSEIF(MODELW(NSA).eq.4.and.NCONST_RF.eq.3.and.N_IMPL.ne.0)THEN 
+      ELSEIF(MODELW(NS).eq.4.and.NCONST_RF.eq.3.and.N_IMPL.ne.0)THEN 
          DO NR=NRSTART,NREND
             DO NP=NPSTART,NPENDWG
                DO NTH=1,NTHMAX
@@ -243,7 +243,7 @@ contains
 !
       USE plprof, only: rsrhon
       IMPLICIT NONE
-      integer:: NSA, NR, NP, NTH
+      integer:: NSA, NR, NP, NTH, NS
       real(8):: DLHA, DFWA, DECA, DECB, DECC, DLHL, DFWL, DECL
       real(8):: FACT
 !
@@ -251,12 +251,13 @@ contains
 !
       FACT=0.5D0
       DO NSA=NSASTART,NSAEND
+         NS=NS_NSA(NSA)
       DO NR=NRSTART,NREND
          DO NTH=1,NTHMAX
             IF(NTH.EQ.ITL(NR).OR.NTH.EQ.ITU(NR)) GOTO 101
 !            DO NP=1,NPMAX+1
             DO NP=NPSTART,NPENDWG
-               CALL FPSUMW(ETAM(NTH,NR),SINM(NTH),COSM(NTH),PG(NP,NSA),NR, &
+               CALL FPSUMW(ETAM(NTH,NR),SINM(NTH),COSM(NTH),PG(NP,NS),NR, &
                            DLHA,DFWA,DECA,DECB,DECC,NSA)
                DWPP(NTH,NP,NR,NSA)  =ABS(COSM(NTH))  &
                                      *(DLHA+DFWA+SINM(NTH)**2*DECA)
@@ -397,13 +398,14 @@ contains
 ! =============  CALCULATION OF DWTP AND DWTT  ===============
 !
       DO NSA=NSASTART,NSAEND
+         NS=NS_NSA(NSA)
       DO NR=NRSTART,NREND
 !
          DO NTH=1,NTHMAX+1
             IF(NTH.NE.NTHMAX/2+1) THEN
 !               DO NP=1,NPMAX
                DO NP=NPSTARTW,NPENDWM
-                  CALL FPSUMW(ETAG(NTH,NR),SING(NTH),COSG(NTH),PM(NP,NSA), &
+                  CALL FPSUMW(ETAG(NTH,NR),SING(NTH),COSG(NTH),PM(NP,NS), &
                               NR,DLHA,DFWA,DECA,DECB,DECC,NSA)
 !
                   IF(NTH.LE.NTHMAX/2) THEN
@@ -460,7 +462,6 @@ contains
       DO NR=NRSTART,NREND
          DO NSA=NSASTART,NSAEND
             NS=NS_NSA(NSA)
-            NSBA=NSB_NSA(NSA)
 
             RSUM_W=0.D0
             RSUM_EC=0.D0
@@ -473,7 +474,7 @@ contains
             END IF
 !            DO NP=2,NPMAX
             DO NP=NPS,NPEND
-               PV=SQRT(1.D0+THETA0(NSA)*PG(NP,NSBA)**2)
+               PV=SQRT(1.D0+THETA0(NS)*PG(NP,NS)**2)
                DO NTH=1,NTHMAX
                   WPL=WEIGHP(NTH  ,NP,NR,NSA)
                   IF(NTH.EQ.1) THEN
@@ -486,45 +487,45 @@ contains
                   ELSE
                      WPP=WEIGHP(NTH+1,NP,NR,NSA)
                   ENDIF
-                  DFP=    PG(NP,NSBA) &
-                       /DELP(NSBA)*(FNSP(NTH,NP,NR,NSBA)-FNSP(NTH,NP-1,NR,NSBA))
+                  DFP=    PG(NP,NS) &
+                       /DELP(NS)*(FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA))
                   IF(NTH.EQ.1) THEN
                      DFT=1.D0/DELTH                             &
                          *(                                     &
-                            ((1.D0-WPP)*FNSP(NTH+1,NP  ,NR,NSBA)   &
-                                  +WPP *FNSP(NTH+1,NP-1,NR,NSBA))&
+                            ((1.D0-WPP)*FNSP(NTH+1,NP  ,NR,NSA)   &
+                                  +WPP *FNSP(NTH+1,NP-1,NR,NSA))&
                            -                                    &
-                            ((1.D0-WPM)*FNSP(NTH,NP  ,NR,NSBA)     &
-                                  +WPM *FNSP(NTH,NP-1,NR,NSBA))&
+                            ((1.D0-WPM)*FNSP(NTH,NP  ,NR,NSA)     &
+                                  +WPM *FNSP(NTH,NP-1,NR,NSA))&
                           )
 
                   ELSE IF(NTH.EQ.NTHMAX) THEN
                      DFT=    1.D0/DELTH                         & 
                          *(-                                    &
-                            ((1.D0-WPM)*FNSP(NTH-1,NP  ,NR,NSBA)   &
-                                  +WPM *FNSP(NTH-1,NP-1,NR,NSBA))&
+                            ((1.D0-WPM)*FNSP(NTH-1,NP  ,NR,NSA)   &
+                                  +WPM *FNSP(NTH-1,NP-1,NR,NSA))&
                           +                                     &
-                            ((1.D0-WPP)*FNSP(NTH,NP  ,NR,NSBA)     &
-                                  +WPP *FNSP(NTH,NP-1,NR,NSBA))&
+                            ((1.D0-WPP)*FNSP(NTH,NP  ,NR,NSA)     &
+                                  +WPP *FNSP(NTH,NP-1,NR,NSA))&
                           )
                   ELSE
                      DFT=    1.D0/(2.D0*DELTH)                  &
                          *(                                     &
-                            ((1.D0-WPP)*FNSP(NTH+1,NP  ,NR,NSBA)   &
-                                  +WPP *FNSP(NTH+1,NP-1,NR,NSBA))&
+                            ((1.D0-WPP)*FNSP(NTH+1,NP  ,NR,NSA)   &
+                                  +WPP *FNSP(NTH+1,NP-1,NR,NSA))&
                            -                                    &
-                            ((1.D0-WPM)*FNSP(NTH-1,NP  ,NR,NSBA)   &
-                                  +WPM *FNSP(NTH-1,NP-1,NR,NSBA))&
+                            ((1.D0-WPM)*FNSP(NTH-1,NP  ,NR,NSA)   &
+                                  +WPM *FNSP(NTH-1,NP-1,NR,NSA))&
                                   )
                   ENDIF
 
-                  RSUM_W = RSUM_W+PG(NP,NSBA)**2*SINM(NTH)/PV   &
+                  RSUM_W = RSUM_W+PG(NP,NS)**2*SINM(NTH)/PV   &
                          *(DWPP(NTH,NP,NR,NSA)*DFP           &
                           +DWPT(NTH,NP,NR,NSA)*DFT)
-                  RSUM_IC = RSUM_IC+PG(NP,NSBA)**2*SINM(NTH)/PV   &
+                  RSUM_IC = RSUM_IC+PG(NP,NS)**2*SINM(NTH)/PV   &
                          *(DWICPP(NTH,NP,NR,NSA)*DFP         &
                           +DWICPT(NTH,NP,NR,NSA)*DFT)
-                  RSUM_EC = RSUM_EC+PG(NP,NSBA)**2*SINM(NTH)/PV   &
+                  RSUM_EC = RSUM_EC+PG(NP,NS)**2*SINM(NTH)/PV   &
                          *(DWECPP(NTH,NP,NR,NSA)*DFP         &
                           +DWECPT(NTH,NP,NR,NSA)*DFT)
                ENDDO
@@ -534,14 +535,14 @@ contains
             CALL p_theta_integration(RSUM_EC)
                
             FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)
-            RPW_IMPL(NR,NSA,N_IMPL)=-RSUM_W*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6 
-            RPWIC_IMPL(NR,NSA,N_IMPL)=-RSUM_IC*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
-            RPWEC_IMPL(NR,NSA,N_IMPL)=-RSUM_EC*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
+            RPW_IMPL(NR,NSA,N_IMPL)=-RSUM_W*FACT*2.D0*PI*DELP(NS)*DELTH *1.D-6 
+            RPWIC_IMPL(NR,NSA,N_IMPL)=-RSUM_IC*FACT*2.D0*PI*DELP(NS)*DELTH *1.D-6
+            RPWEC_IMPL(NR,NSA,N_IMPL)=-RSUM_EC*FACT*2.D0*PI*DELP(NS)*DELTH *1.D-6
             IF(N_IMPL.eq.0)THEN
 !               WRITE(6,'("ALERT ", 3I4)') NR, NSA, N_IMPL
-               RPW_INIT(NR,NSA)=-RSUM_W*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6 
-               RPWIC_INIT(NR,NSA)=-RSUM_IC*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
-               RPWEC_INIT(NR,NSA)=-RSUM_EC*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
+               RPW_INIT(NR,NSA)=-RSUM_W*FACT*2.D0*PI*DELP(NS)*DELTH *1.D-6 
+               RPWIC_INIT(NR,NSA)=-RSUM_IC*FACT*2.D0*PI*DELP(NS)*DELTH *1.D-6
+               RPWEC_INIT(NR,NSA)=-RSUM_EC*FACT*2.D0*PI*DELP(NS)*DELTH *1.D-6
             END IF
          ENDDO
       ENDDO
@@ -629,14 +630,16 @@ contains
       SUBROUTINE FPWAVE(PPARA,PPERP,NR,X,Y,DLHL,DFWL,DECL,NSA)
 !
       IMPLICIT NONE
-      integer:: NR, NSA, NSB
+      integer:: NR, NSA, NSB, NS
       real(8):: PPARA, PPERP, X, Y, DLHL, DFWL, DECL
       real(8):: P2, PVPARA, RNUDL, RNUFL, AMI, AEI, WPI2, FACT, FACT2
       real(8):: DFWL1, DFWL2, ARG, ARG1, FACT1, W, PARAN, FN, DELF, ARG2
       real(8):: WFW2, ARG3, FACT3
 !
+      NS=NS_NSA(NSA)
+
       P2=PPARA**2+PPERP**2
-      PVPARA=PPARA/SQRT(1.D0+P2*THETA0(NSA))
+      PVPARA=PPARA/SQRT(1.D0+P2*THETA0(NS))
       RNUDL=0.D0 
       DO NSB=1,NSBMAX
          IF(NS_NSB(NSB).EQ.NS_NSA(NSA)) THEN
@@ -750,7 +753,7 @@ contains
 
             W=RFEC/(1.D0+X/RR)
             PARAN=PPARA*SQRT(RTFP0(NSA)*1.D3*AEE/(AMFP(NSA)*VC*VC))
-            FN=PEC1*PARAN-SQRT(1.D0+THETA0(NSA)*P2)+W
+            FN=PEC1*PARAN-SQRT(1.D0+THETA0(NS)*P2)+W
             DELF=PEC2*PARAN
             ARG2=(FN/DELF)**2
             IF(ARG2.LT.20.0) THEN

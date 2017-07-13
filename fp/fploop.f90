@@ -31,7 +31,7 @@
       real(kind8),dimension(NSAMAX)::RSUMF,RSUMF0,RSUM_SS
       real(kind8):: RSUMF_, RSUMF0_!, RGAMA, FACTP, FACTR, diff_c, tau_dB
 
-      integer:: NT, NR, NP, NTH, NSA, NSBA, NS
+      integer:: NT, NR, NP, NTH, NSA, NS, NS_F1
       integer:: IERR, I
       real(4):: gut_exe1, gut_exe2, gut_conv3, gut_coef1
       real(4):: gut_loop1, gut_loop2, gut_cale7, gut_coef2, gut1, gut2
@@ -54,20 +54,21 @@
       real(8):: RHON
 !     +++++ Time loop +++++
 
+      NS_F1=NS_NSA(NSA_F1)
       DO NT=1,NTMAX
          N_IMPL=0
          DEPS=1.D0
          DO NSA=NSASTART,NSAEND
-            NSBA=NSB_NSA(NSA)
+            NS=NS_NSA(NSA)
 !            DO NR=NRSTART-1,NREND+1 ! local
             DO NR=NRSTARTW,NRENDWM ! local
 !               IF(NR.ge.1.and.NR.le.NRMAX)THEN
                   DO NP=NPSTARTW,NPENDWM
                      DO NTH=1,NTHMAX
-!                        FNSP(NTH,NP,NR,NSBA)=FNS(NTH,NP,NR,NSBA)  ! new step: variant in each N_IMPL ! for fp_load
-                        FNSM(NTH,NP,NR,NSBA)=FNSP(NTH,NP,NR,NSBA) ! minus step: invariant during N_IMPL 
-                        IF(MODEL_DELTA_F(NSA).eq.1)THEN
-                           FNSM(NTH,NP,NR,NSBA)=FNSP_DEL(NTH,NP,NR,NSBA) ! minus step: invariant during N_IMPL 
+!                        FNSP(NTH,NP,NR,NSA)=FNS(NTH,NP,NR,NSA)  ! new step: variant in each N_IMPL ! for fp_load
+                        FNSM(NTH,NP,NR,NSA)=FNSP(NTH,NP,NR,NSA) ! minus step: invariant during N_IMPL 
+                        IF(MODEL_DELTA_F(NS).eq.1)THEN
+                           FNSM(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA) ! minus step: invariant during N_IMPL 
                         END IF
                      END DO
 !                     IF(NSA.eq.3) WRITE(*,'(2I5,4E14.6)') NT, NP, FNSM(1,NP,NR,3), FNSP(1,NP,NR,3), FNSP_del(1,NP,NR,3), FNSP_mxwl(1,NP,NR,3)
@@ -87,27 +88,25 @@
             CALL TOP_OF_TIME_LOOP_DISRUPT(NT) ! include fpcoef
          END IF
          CALL GUTIME(gut_coef2)
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
          nsw = NSAEND-NSASTART+1
          DO WHILE(N_IMPL.le.LMAXFP) ! start do while
             N_IMPL=N_IMPL+1
             DO NSA=NSASTART,NSAEND 
-               NSBA=NSB_NSA(NSA)
+               NS=NS_NSA(NSA)
                DO NR=NRSTART,NREND
                DO NP=NPSTARTW,NPENDWM
                DO NTH=1,NTHMAX
-                  F(NTH,NP,NR)=FNSP(NTH,NP,NR,NSBA) ! used at fpweight only!
+                  F(NTH,NP,NR)=FNSP(NTH,NP,NR,NSA) ! used at fpweight only!
                END DO
                END DO
                END DO
 
-               IF(MODEL_DELTA_F(NSA).eq.1)THEN
+               IF(MODEL_DELTA_F(NS).eq.1)THEN
                   DO NR=NRSTART,NREND
                      DO NP=NPSTARTW,NPENDWM
                         DO NTH=1,NTHMAX
-                           FNSP(NTH,NP,NR,NSBA)=FNSP_DEL(NTH,NP,NR,NSBA)
+                           FNSP(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA)
                         END DO
                      END DO
                   END DO
@@ -125,13 +124,13 @@
                END IF
                nt_init=1
 
-               IF(MODEL_DELTA_F(NSA).eq.1)THEN
+               IF(MODEL_DELTA_F(NS).eq.1)THEN
                   DO NR=NRSTART,NREND
                      DO NP=NPSTARTW,NPENDWM
                         DO NTH=1,NTHMAX
-                           FNSP(NTH,NP,NR,NSBA)=FNSP_DEL(NTH,NP,NR,NSBA)+FNSP_MXWL(NTH,NP,NR,NSBA)
-                           FNSP_DEL(NTH,NP,NR,NSBA)=FNS0(NTH,NP,NR,NSBA)
-                           FNS0(NTH,NP,NR,NSBA)=FNSP_DEL(NTH,NP,NR,NSBA)+FNSP_MXWL(NTH,NP,NR,NSBA)
+                           FNSP(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA)+FNSP_MXWL(NTH,NP,NR,NSA)
+                           FNSP_DEL(NTH,NP,NR,NSA)=FNS0(NTH,NP,NR,NSA)
+                           FNS0(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA)+FNSP_MXWL(NTH,NP,NR,NSA)
                         END DO
                      END DO
                   END DO
@@ -149,16 +148,16 @@
                DO NP=NPSTART,NPEND
                DO NTH=1,NTHMAX
                   RSUMF(NSA)=RSUMF(NSA) &
-                         +ABS(FNSP(NTH,NP,NR,NSBA)-FNS0(NTH,NP,NR,NSBA) )**2
+                         +ABS(FNSP(NTH,NP,NR,NSA)-FNS0(NTH,NP,NR,NSA) )**2
                   RSUMF0(NSA)=RSUMF0(NSA) &
-                         +ABS(FNSP(NTH,NP,NR,NSBA))**2
+                         +ABS(FNSP(NTH,NP,NR,NSA))**2
                ENDDO
                ENDDO
                ENDDO
                DO NR=NRSTARTW,NRENDWM
                   DO NP=NPSTARTW,NPENDWM
                      DO NTH=1,NTHMAX
-                        FNSP(NTH,NP,NR,NSBA)=FNS0(NTH,NP,NR,NSBA)
+                        FNSP(NTH,NP,NR,NSA)=FNS0(NTH,NP,NR,NSA)
                      ENDDO
                   ENDDO
                ENDDO
@@ -235,7 +234,8 @@
 !           update FNSB (fnsb is required by NL collsion and NF reaction)
             IF(MODELC.ge.4.or.MODELS.ge.2)THEN
                CALL mtx_set_communicator(comm_nsa)
-               CALL update_fnsb
+               CALL update_fnsb_maxwell
+               CALL update_fnsb 
                CALL mtx_reset_communicator
             END IF
 !           end of update FNSB
@@ -270,17 +270,17 @@
             END DO
 
             DO NSA=NSASTART, NSAEND
-               NS=NS_NSB(NSA)
+               NS=NS_NSA(NSA)
                DO NR=NRSTARTW, NRENDWM
                   RHON=RM(NR)
                   CALL PL_PROF(RHON,PLF) ! bulk values are fixed to initial values
                   RN_TEMP(NR,NS)=PLF(NS)%RN
                   RT_TEMP(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
-                  IF(MODEL_DELTA_F(NSA).eq.0)THEN
+                  IF(MODEL_DELTA_F(NS).eq.0)THEN
                      DO NP=NPSTARTW, NPENDWM
                         IF(NP.le.NP_BULK(NR,NSA))THEN
                            DO NTH=1, NTHMAX
-                              FL=FPMXWL_EXP(PM(NP,NSA),NR,NS)
+                              FL=FPMXWL_EXP(PM(NP,NS),NR,NS)
                               FNS0(NTH,NP,NR,NSA)=FL
                               FNSP(NTH,NP,NR,NSA)=FL
                            END DO
@@ -288,18 +288,18 @@
                      END DO
                   ELSE ! delta_f mode: update f_M and delta_f
                      DO NP=NPSTARTW, NPENDWM
-                        IF(NP.le.NP_BULK(NR,NSA).and.MODEL_BULK_CONST.ne.2)THEN ! reduce delta f in bulk region
+                        IF(NP.le.NP_BULK(NR,NSA).and.MODEL_BULK_CONST.eq.1)THEN ! eliminate delta f in bulk region
                            DO NTH=1, NTHMAX
                               FNSP_DEL(NTH,NP,NR,NSA)=0.D0
                            END DO
                         END IF
                         DO NTH=1, NTHMAX
-                           FL=FPMXWL_EXP(PM(NP,NSA),NR,NS)
+                           FL=FPMXWL_EXP(PM(NP,NS),NR,NS)
                            FNSP_MXWL(NTH,NP,NR,NSA)=FL
                         END DO
                         DO NTH=1, NTHMAX
-                           FNS0(NTH,NP,NR,NS)=FNSP_DEL(NTH,NP,NR,NS)+FNSP_MXWL(NTH,NP,NR,NS)
-                           FNSP(NTH,NP,NR,NS)=FNSP_DEL(NTH,NP,NR,NS)+FNSP_MXWL(NTH,NP,NR,NS)
+                           FNS0(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA)+FNSP_MXWL(NTH,NP,NR,NSA)
+                           FNSP(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA)+FNSP_MXWL(NTH,NP,NR,NSA)
                         END DO
                      END DO
                   END IF
@@ -329,7 +329,7 @@
             DO NR=NRSTART,NREND
                DO NP=NPSTARTW,NPENDWM
                   DO NTH=1,NTHMAX
-                     F(NTH,NP,NR)=FNSP(NTH,NP,NR,NSBA) ! used at fpweight only!
+                     F(NTH,NP,NR)=FNSP(NTH,NP,NR,NSA) ! used at fpweight only!
                   END DO
                END DO
             END DO
@@ -382,7 +382,7 @@
                CALL FPWRTPRF
             ENDIF
          ENDIF
-         CALL mtx_broadcast_real8(RT_T,NRMAX*NSAMAX)
+!         CALL mtx_broadcast_real8(RT_T,NRMAX*NSAMAX)
          CALL mtx_broadcast_real8(RNS,NRMAX*NSAMAX)
          CALL mtx_broadcast1_integer(NTG1)
          CALL mtx_broadcast1_integer(NTG2)
@@ -454,10 +454,11 @@
 !      IF(NRANK.eq.0.and.MODEL_DISRUPT.ne.0)THEN
       IF(NRANK.eq.0)THEN
          DO NP=1,NPMAX
+            FL=FPMXWL(PM(NP,3),NR,3)
 !pitch angle average
             pitch_angle_av = 0.D0
             DO NTH=1,NTHMAX
-               pitch_angle_av = pitch_angle_av + FNS(NTH,NP,1,NS_F1)
+               pitch_angle_av = pitch_angle_av + FNS(NTH,NP,1,NSA_F1)
             END DO
             pitch_angle_av = pitch_angle_av/NTHMAX
 !            WRITE(9,'(1PE12.4,I6,1P30E17.8e3)') PTG(NTG1)*1000, NP, PM(NP,1), &
@@ -466,10 +467,10 @@
 !                 PTFP0(1)**2*PM(NP,1)**2/(AEE*AMFP(1)*1.D3), FNS(1,NP,1,1), FNS(NTHMAX-3,NP,1,1), &
 !                 FNS(NTHMAX/2,NP,1,1), pitch_angle_av!, &
             WRITE(9,'(1PE12.4,I6,1P30E17.8e3)') PTG(NTG1)*1000, NP, PM(NP,NS_F1), &
-                 PM(NP,NS_F1)*PTFP0(NS_F1)/AMFP(NS_F1)/VC/SQRT(1.D0+PM(NP,NS_F1)**2*THETA0(NS_F1)), &
+                 PM(NP,NS_F1)*PTFP0(NSA_F1)/AMFP(NSA_F1)/VC/SQRT(1.D0+PM(NP,NS_F1)**2*THETA0(NS_F1)), &
                  PM(NP,NS_F1)**2, &
-                 0.5D0*PTFP0(NS_F1)**2*PM(NP,NS_F1)**2/(AEE*AMFP(NS_F1)*1.D3), FNS(1,NP,1,NS_F1), FNS(4,NP,1,NS_F1), & ! ion
-                 FNS(NTHMAX/2,NP,1,NS_F1), pitch_angle_av!, &
+                 0.5D0*PTFP0(NSA_F1)**2*PM(NP,NSA_F1)**2/(AEE*AMFP(NSA_F1)*1.D3), FNS(1,NP,1,NSA_F1), FNS(NTH_F1,NP,NR_F1,NSA_F1), & ! ion
+                 FNS(NTHMAX/2,NP,1,NSA_F1), pitch_angle_av, FL
 !                 PTFP0(1)**2*PM(NP,1)**2/(AEE*AMFP(1)*1.D3), FNS(1,NP,1,1), FNS(NTHMAX,NP,1,1), & ! electron
 !                 FNS(NTHMAX/2,NP,1,1), pitch_angle_av!, &
          END DO
@@ -522,14 +523,11 @@
 
       IMPLICIT NONE
       integer,intent(in):: NSA
-      integer:: NTH, NP, NS, NSBA
-
-      NS=NS_NSA(NSA)
-      NSBA=NSB_NSA(NSA)
+      integer:: NTH, NP
 
       DO NP=NPSTARTW, NPENDWM
          DO NTH=1, NTHMAX
-            FS2(NTH,NP,NS) = 2.D0*FS1(NTH,NP,NS) - FNSP(NTH,NP,NRMAX,NSBA)
+            FS2(NTH,NP,NSA) = 2.D0*FS1(NTH,NP,NSA) - FNSP(NTH,NP,NRMAX,NSA)
          END DO
       END DO
 

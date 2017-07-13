@@ -43,8 +43,9 @@
       SUBROUTINE update_fnsb
 
       IMPLICIT NONE
-      integer:: nsend, nth, np, nr, nsa
+      integer:: nsend, nth, np, nr, nsa, NS
       double precision,dimension(nthmax,npstart:npend,nrstart:nrend,nsastart:nsaend):: dsend
+      double precision,dimension(nthmax,npstart:npend,nrstart:nrend,nsamax):: drecv
 
       DO NSA=NSASTART,NSAEND
          DO NR=NRSTART,NREND
@@ -57,7 +58,22 @@
       END DO
 
       nsend=NTHMAX*(NPEND-NPSTART+1)*(NREND-NRSTART+1)*(NSAEND-NSASTART+1)
-      CALL mtx_allgather_real8(dsend,nsend,FNSB(1:NTHMAX,NPSTART,NRSTART,1)) 
+!      CALL mtx_allgather_real8(dsend,nsend,FNSB(1:NTHMAX,NPSTART,NRSTART,1)) 
+      CALL mtx_allgather_real8(dsend,nsend,drecv(1,NPSTART,NRSTART,1)) 
+
+
+      DO NSA=1, NSAMAX
+         NS=NS_NSA(NSA)
+         IF(NS.ne.0)THEN
+            DO NR=NRSTART,NREND
+               DO NP=NPSTART,NPEND
+                  DO NTH=1,NTHMAX
+                     FNSB(NTH,NP,NR,NS)=drecv(nth,np,nr,nsa)
+                  END DO
+               END DO
+            END DO
+         END IF
+      END DO
 
       END SUBROUTINE update_fnsb
 !-----
@@ -146,16 +162,16 @@
 
       END SUBROUTINE fpl_comm
 !-----
-      SUBROUTINE shadow_comm_np(NR,NSBA)
+      SUBROUTINE shadow_comm_np(NR,NSA)
 
       IMPLICIT NONE
       double precision,dimension(nthmax)::sendbuf
       double precision,dimension(nthmax)::recvbuf
-      integer,intent(in):: NR,NSBA
+      integer,intent(in):: NR,NSA
       integer:: sendcount, recvcount, dest, source, nth
 
       DO NTH=1,NTHMAX
-         sendbuf(nth)=FNS0(NTH,NPEND,NR,NSBA)
+         sendbuf(nth)=FNS0(NTH,NPEND,NR,NSA)
          recvbuf(nth)=0.D0
       END DO
       
@@ -168,12 +184,12 @@
 
       IF(NPSTART.ne.NPSTARTW)THEN
          DO NTH=1,NTHMAX
-            FNS0(NTH,NPSTARTW,NR,NSBA)=recvbuf(nth)
+            FNS0(NTH,NPSTARTW,NR,NSA)=recvbuf(nth)
          END DO
       END IF
 !============
       DO NTH=1,NTHMAX
-         sendbuf(nth)=FNS0(NTH,NPSTART,NR,NSBA)
+         sendbuf(nth)=FNS0(NTH,NPSTART,NR,NSA)
          recvbuf(nth)=0.D0
       END DO
       
@@ -185,24 +201,24 @@
 
       IF(NPEND.ne.NPENDWM)THEN
          DO NTH=1,NTHMAX
-            FNS0(NTH,NPENDWM,NR,NSBA)=recvbuf(nth)
+            FNS0(NTH,NPENDWM,NR,NSA)=recvbuf(nth)
          END DO
       END IF
 
       END SUBROUTINE shadow_comm_np
 !-----
-      SUBROUTINE shadow_comm_nr(NSBA)
+      SUBROUTINE shadow_comm_nr(NSA)
 
       IMPLICIT NONE
       double precision,dimension(nthmax*(npendwm-npstartw+1))::sendbuf
       double precision,dimension(nthmax*(npendwm-npstartw+1))::recvbuf
-      integer,intent(in):: NSBA
+      integer,intent(in):: NSA
       integer:: sendcount, recvcount, dest, source, nth, np, NM
 
       DO NP=NPSTARTW,NPENDWM
          DO NTH=1,NTHMAX
             NM=NTH+NTHMAX*(NP-NPSTARTW)
-            sendbuf(NM)=FNS0(NTH,NP,NREND,NSBA)
+            sendbuf(NM)=FNS0(NTH,NP,NREND,NSA)
             recvbuf(NM)=0.D0
          END DO
       END DO
@@ -219,7 +235,7 @@
          DO NP=NPSTARTW, NPENDWM
             DO NTH=1,NTHMAX
                NM=NTH+NTHMAX*(NP-NPSTARTW)
-               FNS0(NTH,NP,NRSTARTW,NSBA)=recvbuf(NM)
+               FNS0(NTH,NP,NRSTARTW,NSA)=recvbuf(NM)
             END DO
          END DO
       END IF
@@ -227,7 +243,7 @@
       DO NP=NPSTARTW,NPENDWM
          DO NTH=1,NTHMAX
             NM=NTH+NTHMAX*(NP-NPSTARTW)
-            sendbuf(NM)=FNS0(NTH,NP,NRSTART,NSBA)
+            sendbuf(NM)=FNS0(NTH,NP,NRSTART,NSA)
             recvbuf(NM)=0.D0
          END DO
       END DO
@@ -244,7 +260,7 @@
          DO NP=NPSTARTW, NPENDWM
             DO NTH=1,NTHMAX
                NM=NTH+NTHMAX*(NP-NPSTARTW)
-               FNS0(NTH,NP,NRENDWM,NSBA)=recvbuf(NM)
+               FNS0(NTH,NP,NRENDWM,NSA)=recvbuf(NM)
             END DO
          END DO
       END IF
@@ -254,7 +270,7 @@
       SUBROUTINE scatter_fns_to_fns0
 
       IMPLICIT NONE
-      integer:: NTH,NP,NR,NSA,NSBA, I, J
+      integer:: NTH,NP,NR,NSA, I, J
       integer:: NPS, NPE, NRS, NRE, NSAS, NSAE
       integer:: sendcount, recvcount
       integer:: dest, source, tag

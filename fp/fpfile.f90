@@ -24,11 +24,11 @@
       WRITE(21) NRMAX,NPMAX,NTHMAX,NSAMAX
       WRITE(21) DELR,DELTH,RMIN,RMAX
       DO NSA=1,NSAMAX
-         NSBA=NSB_NSA(NSA)
+         NS=NS_NSA(NSA)
          WRITE(21) NS_NSA(NSA)
-         WRITE(21) DELP(NSBA)
+         WRITE(21) DELP(NS)
          WRITE(21) AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
-         WRITE(21) (((FNS(NTH,NP,NR,NSBA),NTH=1,NTHMAX), &
+         WRITE(21) (((FNS(NTH,NP,NR,NSA),NTH=1,NTHMAX), &
                       NP=1,NPMAX),NR=1,NRMAX)
       ENDDO
       CLOSE(21)
@@ -56,9 +56,9 @@
       READ(21) NRMAX,NPMAX,NTHMAX,NSAMAX
       READ(21) DELR,DELTH,RMIN,RMAX
       DO NSA=1,NSAMAX
-         NSBA=NSB_NSA(NSA)
+         NS=NS_NSA(NSA)
          READ(21) NS_NSA(NSA)
-         READ(21) DELP(NSBA)
+         READ(21) DELP(NS)
          READ(21) AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
          READ(21) (((FNS(NTH,NP,NR,NSA),NTH=1,NTHMAX), &
                       NP=1,NPMAX),NR=1,NRMAX)
@@ -73,7 +73,7 @@
       SUBROUTINE FP_SAVE2
 
       IMPLICIT NONE
-      INTEGER:: NSA, NR, NP, NTH, NSB, NS, IERR, NSBA
+      INTEGER:: NSA, NR, NP, NTH, NSB, NS, IERR
 
       CALL FWOPEN(21,KNAMFP,0,MODEFW,'FP',IERR)
       IF(IERR.NE.0) THEN
@@ -128,10 +128,11 @@
       WRITE(21) NRMAX,NPMAX,NTHMAX,NSAMAX
       WRITE(21) DELR,DELTH,RMIN,RMAX
       DO NSA=1,NSAMAX
-         NSBA=NSB_NSA(NSA)
          WRITE(21) NS_NSA(NSA)
-         WRITE(21) DELP(NSBA),PMAX(NSA)
          WRITE(21) AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
+      ENDDO
+      DO NS=1,NSMAX
+         WRITE(21) DELP(NS),PMAX(NS),EMAX(NS)
       ENDDO
       CLOSE(21)
 
@@ -143,7 +144,7 @@
       SUBROUTINE FP_LOAD2
 
       IMPLICIT NONE
-      INTEGER:: NSA, NR, NP, NTH, NSB, IERR, NSBA, NS
+      INTEGER:: NSA, NR, NP, NTH, NSB, IERR, NS
 
       CALL FROPEN(21,KNAMFP,0,MODEFR,'FP',IERR)
       IF(IERR.NE.0) THEN
@@ -194,14 +195,15 @@
       END IF
 
 
-! required for other compponents
+! required for other components
       READ(21) NRMAX,NPMAX,NTHMAX,NSAMAX
       READ(21) DELR,DELTH,RMIN,RMAX
       DO NSA=1,NSAMAX
-         NSBA=NSB_NSA(NSA)
          READ(21) NS_NSA(NSA)
-         READ(21) DELP(NSBA),PMAX(NSA)
          READ(21) AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
+      ENDDO
+      DO NS=1,NSMAX
+         READ(21) DELP(NS),PMAX(NS),EMAX(NS)
       ENDDO
       CLOSE(21)
 
@@ -294,8 +296,10 @@
       USE fpmpi
       USE eg_read
       USE plprof
+      USE fpnfrr
+      USE fpnflg
       IMPLICIT NONE
-      integer:: NSA, ierr, NR, NS, NP, NTH
+      integer:: NSA, ierr, NR, NS, NP, NTH, NBEAM
       double precision:: FL, RHON
       real(8),dimension(NRMAX,NSMAX):: tempt, tempn 
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
@@ -304,6 +308,7 @@
       CALL scatter_fns_to_fns0
 
       CALL mtx_set_communicator(comm_nsa)
+      CALL update_fnsb_maxwell
       CALL update_fnsb
       CALL mtx_reset_communicator
 
@@ -318,11 +323,11 @@
       END DO
 
       IF(MODEL_NBI.eq.2)THEN
-         DO NS=1, NBEAMMAX
-            NSA=NSSPB(NS)
-            IF(PA(NSA).eq.1)THEN
+         DO NBEAM=1, NBEAMMAX
+            NS=NSSPB(NBEAM)
+            IF(PA(NS).eq.1)THEN
                CALL READ_FIT3D_H
-            ELSEIF(PA(NSA).eq.2)THEN
+            ELSEIF(PA(NS).eq.2)THEN
                CALL READ_FIT3D_D
             END IF
          END DO
@@ -330,39 +335,48 @@
       END IF
       
       CALL FNSP_INIT_EDGE
+      IF(MODELS.eq.3) CALL NF_LG_FUNCTION
+      IF(MODELS.ne.0) CALL NF_REACTION_COEF
       CALL fp_continue(ierr)
       CALL fp_set_initial_value_from_f
 
-      DO NSA=1, NSAMAX
-         DO NR=1, NRMAX
-            NS=NS_NSA(NSA)
-            tempn(NR,NS)=RN_TEMP(NR,NS)
-            tempt(NR,NS)=RT_TEMP(NR,NS)
-         END DO
-      END DO
+!      DO NS=1, NSMAX
+!         DO NR=1, NRMAX
+!            tempn(NR,NS)=RN_TEMP(NR,NS)
+!            tempt(NR,NS)=RT_TEMP(NR,NS)
+!         END DO
+!      END DO
 
       DO NSA=NSASTART,NSAEND
-         NS=NS_NSB(NSA)
-         IF(MODEL_DELTA_F(NSA).eq.1)THEN
+         NS=NS_NSA(NSA)
+         IF(MODEL_DELTA_F(NS).eq.1)THEN
             DO NR=NRSTARTW, NRENDWM
-               IF(MODEL_BULK_CONST.ge.1)THEN
-                  RHON=RM(NR)
-                  CALL PL_PROF(RHON,PLF)
-                  RN_TEMP(NR,NS)=PLF(NS)%RN
-                  RT_TEMP(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
-               END IF
+!               IF(MODEL_BULK_CONST.ge.1)THEN
+!                  RHON=RM(NR)
+!                  CALL PL_PROF(RHON,PLF)
+!                  RN_TEMP(NR,NS)=PLF(NS)%RN
+!                  RT_TEMP(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+!               END IF
                DO NP=NPSTARTW, NPENDWM
                   IF(NP.le.NP_BULK(NR,NSA))THEN
                      DO NTH=1, NTHMAX
-                        FL=FPMXWL_EXP(PM(NP,NSA),NR,NS)
+                        IF(MODEL_EX_READ.eq.0)THEN
+                           FL=FPMXWL(PM(NP,NS),NR,NS)   
+                        ELSE
+                           FL=FPMXWL_EXP(PM(NP,NS),NR,NS)
+                        END IF
                         FNSP_MXWL(NTH,NP,NR,NSA)=FL
-                        FNSP_DEL(NTH,NP,NR,NSA)=0.D0
+                        FNSP_DEL(NTH,NP,NR,NSA)=FNSP(NTH,NP,NR,NSA)-FNSP_MXWL(NTH,NP,NR,NSA)
                      END DO
                   ELSE
                      DO NTH=1, NTHMAX
-                        FL=FPMXWL_EXP(PM(NP,NSA),NR,NS)
+                        IF(MODEL_EX_READ.eq.0)THEN
+                           FL=FPMXWL(PM(NP,NS),NR,NS)   
+                        ELSE
+                           FL=FPMXWL_EXP(PM(NP,NS),NR,NS)
+                        END IF
                         FNSP_MXWL(NTH,NP,NR,NSA)=FL
-                        FNSP_DEL(NTH,NP,NR,NSA)=FNS0(NTH,NP,NR,NSA)-FNSP_MXWL(NTH,NP,NR,NSA)
+                        FNSP_DEL(NTH,NP,NR,NSA)=FNSP(NTH,NP,NR,NSA)-FNSP_MXWL(NTH,NP,NR,NSA)
                      END DO
                   END IF
                   NTH=1
@@ -373,13 +387,13 @@
          END IF
       END DO
 
-      DO NSA=1, NSAMAX
-         DO NR=1, NRMAX
-            NS=NS_NSA(NSA)
-            RN_TEMP(NR,NS)=tempn(NR,NS)
-            RT_TEMP(NR,NS)=tempt(NR,NS)
-         END DO
-      END DO
+!      DO NSA=1, NSAMAX
+!         DO NR=1, NRMAX
+!            NS=NS_NSA(NSA)
+!            RN_TEMP(NR,NS)=tempn(NR,NS)
+!            RT_TEMP(NR,NS)=tempt(NR,NS)
+!         END DO
+!      END DO
 
       END SUBROUTINE FP_POST_LOAD
 !------------------------------------------      
