@@ -95,7 +95,7 @@
       CALL FP_CALS
 
 !     ----- Charge Exchange Loss Term ----
-      IF(MODEL_CX_LOSS.eq.1)THEN
+      IF(MODEL_CX_LOSS.ne.0)THEN
          DO NSA=NSASTART, NSAEND
             NS=NS_NSA(NSA)
             IF(PA(NS).eq.1.D0.or.PA(NS).eq.2.D0)THEN
@@ -276,7 +276,7 @@
                SPPS(NTH,NP,NR,NSA)=0.D0
                SPPI(NTH,NP,NR,NSA)=0.D0
                SPPD(NTH,NP,NSA)=0.D0
-               IF(MODEL_CX_LOSS.eq.1) SPPL_CX(NTH,NP,NR,NSA)=0.D0
+               IF(MODEL_CX_LOSS.ne.0) SPPL_CX(NTH,NP,NR,NSA)=0.D0
             ENDDO
          ENDDO
          ENDDO
@@ -460,11 +460,11 @@
          RL=RM(NR)
          RHON=RL
       ENDIF
-      IF(MODEL_EX_READ.eq.0)THEN
+      IF(MODEL_EX_READ_Tn.eq.0)THEN
          CALL PL_PROF(RHON,PLF)
          RNFDL=PLF(NS)%RN/RNFD0L
          RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
-      ELSEIF(MODEL_EX_READ.eq.1)THEN
+      ELSEIF(MODEL_EX_READ_Tn.eq.1)THEN
          RNFDL=RN_TEMP(NR,NS)/RNFD0L
          RTFDL=RT_TEMP(NR,NS)
          IF(NR.eq.0)THEN
@@ -511,11 +511,11 @@
       RTFD0L=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
       PTFD0L=SQRT(RTFD0L*1.D3*AEE*AMFDL)
 
-      IF(MODEL_EX_READ.eq.0)THEN
+      IF(MODEL_EX_READ_Tn.eq.0)THEN
          CALL PL_PROF(RHON,PLF)
          RNFDL=PNS(NS)/RNFD0L*1.D-1
          RTFDL=PTS(NS)*1.D-2
-      ELSEIF(MODEL_EX_READ.eq.1)THEN
+      ELSEIF(MODEL_EX_READ_Tn.eq.1)THEN
          RNFDL=RNE_EXP_EDGE/RNFD0L*1.D-1
          RTFDL=RTE_EXP_EDGE*1.D-1
       END IF
@@ -1222,14 +1222,24 @@
       IMPLICIT NONE
       integer,intent(in):: NSA
       double precision:: sigma_cx, k_energy, log_energy
+      double precision:: log10_neu0, log10_neus, alpha, beta
       integer:: NP, NTH, NR, NS
       double precision,dimension(NRSTART:NREND):: RN_NEU
 
       NS=NS_NSA(NSA)
 
-      DO NR=NRSTART, NREND
-         RN_NEU(NR)=RN_NEU0 + RM(NR)**2*(RN_NEUS-RN_NEU0)
-      END DO
+      log10_neu0=LOG10(RN_NEU0)
+      log10_neus=LOG10(RN_NEUS)
+
+!     neutral gas profile
+      SELECT CASE(MODEL_CX_LOSS)
+      CASE(1)
+         alpha=2.5D0
+         beta=0.8D0
+         DO NR=NRSTART, NREND
+            RN_NEU(NR)=10**( (log10_neu0-log10_neus)*(1.D0-RM(NR)**alpha)**beta+log10_neus )
+         END DO
+      END SELECT
 
       IF(MODEL_DELTA_F(NS).eq.0)THEN
          DO NR=NRSTART, NREND

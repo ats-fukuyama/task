@@ -15,6 +15,7 @@
       use fpmpi
       use fpdisrupt
       use eg_read
+      use fpoutdata
 
       contains
 
@@ -31,7 +32,7 @@
       real(kind8),dimension(NSAMAX)::RSUMF,RSUMF0,RSUM_SS
       real(kind8):: RSUMF_, RSUMF0_!, RGAMA, FACTP, FACTR, diff_c, tau_dB
 
-      integer:: NT, NR, NP, NTH, NSA, NS, NS_F1
+      integer:: NT, NR, NP, NTH, NSA, NS
       integer:: IERR, I
       real(4):: gut_exe1, gut_exe2, gut_conv3, gut_coef1
       real(4):: gut_loop1, gut_loop2, gut_cale7, gut_coef2, gut1, gut2
@@ -54,7 +55,6 @@
       real(8):: RHON
 !     +++++ Time loop +++++
 
-      NS_F1=NS_NSA(NSA_F1)
       DO NT=1,NTMAX
          N_IMPL=0
          DEPS=1.D0
@@ -71,7 +71,6 @@
                            FNSM(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA) ! minus step: invariant during N_IMPL 
                         END IF
                      END DO
-!                     IF(NSA.eq.3) WRITE(*,'(2I5,4E14.6)') NT, NP, FNSM(1,NP,NR,3), FNSP(1,NP,NR,3), FNSP_del(1,NP,NR,3), FNSP_mxwl(1,NP,NR,3)
                   END DO
 !               END IF
             END DO
@@ -417,102 +416,15 @@
 
 
 !
-      IF(NRANK.eq.0)THEN
-!         open(10,file='time_evol.dat')
-!         DO NTI=1,NTG1
-!            WRITE(10,'(I4,F12.3,1P8E16.8)') NTI, PTG(NTI)*1000, &
-
-!               WRITE(9,'(I4,F12.3,14E16.8)') NTI, PTG(NTI)*1000 &
-!                    ,PTT2(1,NTI),PTT2(2,NTI),PIT(1,NTI),PIT(2,NTI) &
-!                    ,EPTR(1,NTI),EPTR(NRMAX,NTI) &
-!                    ,RTT(1,1,NTI),RTT(1,2,NTI),RTT(NRMAX,1,NTI),RTT(NRMAX,2,NTI) &
-!                    ,RJT(1,1,NTI),RJT(1,2,NTI),RJT(NRMAX,1,NTI),RJT(NRMAX,2,NTI)
-!               WRITE(9,645) NTI, PTG(NTI)*1000 &
-!                    ,PPCT2(1,1,NTI),PPCT2(2,1,NTI),PPCT2(3,1,NTI),PPCT2(4,1,NTI),PPCT(1,NTI) &
-!                    ,PPCT2(1,2,NTI),PPCT2(2,2,NTI),PPCT2(3,2,NTI),PPCT2(4,2,NTI),PPCT(2,NTI) &
-!                    ,PPCT2(1,3,NTI),PPCT2(2,3,NTI),PPCT2(3,3,NTI),PPCT2(4,3,NTI),PPCT(3,NTI) &
-!                    ,PPCT2(1,4,NTI),PPCT2(2,4,NTI),PPCT2(3,4,NTI),PPCT2(4,4,NTI),PPCT(4,NTI) &
-!                    ,PPWT(1,NTI),PPWT(2,NTI),PPWT(3,NTI),PPWT(4,NTI) &
-!                    ,PDR(1,NTI),PDR(2,NTI),PDR(3,NTI),PDR(4,NTI) &
-!                    ,PWT(1,NTI),PWT(2,NTI),PWT(3,NTI),PWT(4,NTI) &
-!                    ,PNT(1,NTI),PNT(2,NTI),PNT(3,NTI),PNT(4,NTI) &
-!                    ,PTT2(1,NTI),PTT2(2,NTI),PTT2(3,NTI),PTT2(4,NTI) &
-!                    ,PTT_BULK(1,NTI),PTT_BULK(2,NTI),PTT_BULK(3,NTI),PTT_BULK(4,NTI) &
-!                    ,PSPBT(2,NTI),PSPFT(2,NTI),PSPFT(3,NTI),PSPFT(4,NTI) &
-!                   ,PECT(1,NTI)
-!         END DO
-!         close(10)
-      END IF
-
-
       CALL GUTIME(gut1)
       CALL update_fns
       CALL GUTIME(gut2)
 !      IF(MODEL_DISRUPT.eq.1) CALL FLUXS_PTH
       IF(NRANK.eq.0) WRITE(6,'(A,E14.6)') "---------TIME UPDATE FNS =",gut2-gut1
 
-!      IF(NRANK.eq.0.and.MODEL_DISRUPT.ne.0)THEN
       IF(NRANK.eq.0)THEN
-         DO NP=1,NPMAX
-            FL=FPMXWL(PM(NP,3),NR,3)
-!pitch angle average
-            pitch_angle_av = 0.D0
-            DO NTH=1,NTHMAX
-               pitch_angle_av = pitch_angle_av + FNS(NTH,NP,1,NSA_F1)
-            END DO
-            pitch_angle_av = pitch_angle_av/NTHMAX
-!            WRITE(9,'(1PE12.4,I6,1P30E17.8e3)') PTG(NTG1)*1000, NP, PM(NP,1), &
-!                 PM(NP,1)*PTFP0(1)/AMFP(1)/VC/SQRT(1.D0+PM(NP,1)**2*THETA0(1)), &
-!                 PM(NP,1)**2, &
-!                 PTFP0(1)**2*PM(NP,1)**2/(AEE*AMFP(1)*1.D3), FNS(1,NP,1,1), FNS(NTHMAX-3,NP,1,1), &
-!                 FNS(NTHMAX/2,NP,1,1), pitch_angle_av!, &
-            WRITE(9,'(1PE12.4,I6,1P30E17.8e3)') PTG(NTG1)*1000, NP, PM(NP,NS_F1), &
-                 PM(NP,NS_F1)*PTFP0(NSA_F1)/AMFP(NSA_F1)/VC/SQRT(1.D0+PM(NP,NS_F1)**2*THETA0(NS_F1)), &
-                 PM(NP,NS_F1)**2, &
-                 0.5D0*PTFP0(NSA_F1)**2*PM(NP,NSA_F1)**2/(AEE*AMFP(NSA_F1)*1.D3), FNS(1,NP,1,NSA_F1), FNS(NTH_F1,NP,NR_F1,NSA_F1), & ! ion
-                 FNS(NTHMAX/2,NP,1,NSA_F1), pitch_angle_av, FL
-!                 PTFP0(1)**2*PM(NP,1)**2/(AEE*AMFP(1)*1.D3), FNS(1,NP,1,1), FNS(NTHMAX,NP,1,1), & ! electron
-!                 FNS(NTHMAX/2,NP,1,1), pitch_angle_av!, &
-         END DO
-         WRITE(9,*) " "
-         WRITE(9,*) " "
+         IF(OUTPUT_TXT_F1.eq.1) CALL OUT_TXT_F1
       END IF
-
-!      IF(NSASTART.eq.3)THEN
-!         DO NP=NPSTART, NPEND
-!            WRITE(*,'(I5,3E14.6)') NP, FNSP(1,NP,1,3), FNSP_DEL(1,NP,1,3), FNSP_MXWL(1,NP,1,3)
-!         END DO
-!      END IF
-
-!      IF(NRANK.eq.0)THEN
-!         DO NSA=1,NSAMAX
-!            SELECT CASE(NSA)
-!            CASE(1)
-!               open(29,file='fns_e.dat')
-!            CASE(2)
-!               open(29,file='fns_D.dat')
-!            CASE(3)
-!               open(29,file='fns_T.dat')
-!            END SELECT
-!            IF(NSA.LE.3) THEN
-!               DO NR=1,NRMAX
-!                  DO NP=1,NPMAX
-!                     DO NTH=1,NTHMAX
-!!                        WRITE(9,'(3I4,3E17.8)') NR, NP, NTH, &
-!!                             FNS(NTH,NP,NR,NSA), &
-!!                             PM(NP,NSA)*COSM(NTH), PM(NP,NSA)*SINM(NTH)
-!                        WRITE(29,'(5E17.8)') PM(NP,NSA), THM(NTH), &
-!                             PM(NP,NSA)*COSM(NTH), PM(NP,NSA)*SINM(NTH), &
-!                             FNS(NTH,NP,NR,NSA)
-!                     END DO
-!                  END DO
-!                  WRITE(29,*) " "
-!                  WRITE(29,*) " "
-!               END DO
-!               close(29)
-!            ENDIF
-!         END DO
-!      END IF
 
       RETURN
       END SUBROUTINE FP_LOOP

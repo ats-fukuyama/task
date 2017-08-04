@@ -360,7 +360,7 @@
                DO NP=NPSTARTW, NPENDWM
                   IF(NP.le.NP_BULK(NR,NSA))THEN
                      DO NTH=1, NTHMAX
-                        IF(MODEL_EX_READ.eq.0)THEN
+                        IF(MODEL_EX_READ_Tn.eq.0)THEN
                            FL=FPMXWL(PM(NP,NS),NR,NS)   
                         ELSE
                            FL=FPMXWL_EXP(PM(NP,NS),NR,NS)
@@ -370,7 +370,7 @@
                      END DO
                   ELSE
                      DO NTH=1, NTHMAX
-                        IF(MODEL_EX_READ.eq.0)THEN
+                        IF(MODEL_EX_READ_Tn.eq.0)THEN
                            FL=FPMXWL(PM(NP,NS),NR,NS)   
                         ELSE
                            FL=FPMXWL_EXP(PM(NP,NS),NR,NS)
@@ -618,13 +618,17 @@
       USE libmpi      
       IMPLICIT NONE
 
-      OPEN(9,file="f1_1.dat") 
-      OPEN(24,file="time_evol_f1.dat") 
+      IF(OUTPUT_TXT_F1.eq.1) OPEN(9,file="f1_1.dat") 
+      IF(OUTPUT_TXT_BEAM_WIDTH.eq.1)THEN
+         OPEN(24,file="time_evol_f1.dat") 
+         OPEN(31,file="t-beam_count.dat")
+      END IF
 !      OPEN(28,file="RPCS2_NSB_D.dat")
-      OPEN(29,file="RPCS2_NSB_H.dat")
-      OPEN(30,file="RPCS2_NSB_H_DEL.dat")
-      OPEN(31,file="t-beam_count.dat")
-      OPEN(32,file="RSPL_NSB.dat")
+      IF(OUTPUT_TXT_HEAT_PROF.eq.1)THEN
+         OPEN(29,file="RPCS2_NSB_H.dat")
+         OPEN(30,file="RPCS2_NSB_H_DEL.dat")
+         OPEN(32,file="RSPL_NSB.dat")
+      END IF
       IF(MODEL_DISRUPT.ne.0.and.NRANK.eq.0)THEN
          open(10,file='time_evol.dat') 
          open(11,file='efield_e1.dat') 
@@ -638,6 +642,7 @@
       IF(MODELS.eq.2)THEN
          open(25,file='fusion_reaction_rate.dat')
       END IF
+      IF(OUTPUT_TXT_DELTA_F.eq.1) OPEN(33,file='output_fns_del.dat')
 
 !      open(19,file='p-T_bulk.dat')
 !      open(20,file='DCPP.dat')
@@ -650,13 +655,17 @@
       USE libmpi      
       IMPLICIT NONE
 
-      close(9)
-      close(24)
-!      close(28)
-      close(29)
-      close(30)
-      close(31)
-      close(32)
+      IF(OUTPUT_TXT_F1.eq.1) close(9)
+      IF(OUTPUT_TXT_BEAM_WIDTH.eq.1)THEN
+         close(24)
+         close(31)
+      END IF
+      IF(OUTPUT_TXT_HEAT_PROF.eq.1)THEN
+         close(29)
+         close(30)
+         close(32)
+      END IF
+
       IF(MODEL_DISRUPT.ne.0.and.NRANK.eq.0)THEN
          close(10)
          close(11)
@@ -670,6 +679,7 @@
       IF(MODELS.eq.2)THEN
          close(25)
       END IF
+      IF(OUTPUT_TXT_DELTA_F.eq.1) close(33)
 !      close(19)
 !      close(20)  
 !      close(16)  

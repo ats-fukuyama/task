@@ -2,7 +2,12 @@
       MODULE EG_READ
 
       USE fpcomm
+
+      PUBLIC READ_EXP_DATA
+      PUBLIC MAKE_EXP_PROF
+      PUBLIC FPMXWL_EXP
       
+      PRIVATE
 !      double precision,dimension(:,:),pointer:: read_tms_double, read_cx_double
 !      integer,dimension(:,:),pointer:: read_tms_int
 !      double precision,dimension(5):: cte_fit
@@ -50,10 +55,10 @@
          ELSE
             DO NR=1, NRMAX
                RT_READ(NR,NS)=RTI_EXP(NR)
-               RN_READ(NR,NS)=RNE_EXP(NR)
+               RN_READ(NR,NS)=RNE_EXP(NR)*NI_RATIO(NS)
                
                RT_TEMP(NR,NS)=RTI_EXP(NR)
-               RN_TEMP(NR,NS)=RNE_EXP(NR)
+               RN_TEMP(NR,NS)=RNE_EXP(NR)*NI_RATIO(NS)
                
                RT_BULK(NR,NS)=RTI_EXP(NR)
             END DO
@@ -401,37 +406,6 @@
 
       RETURN
       END FUNCTION FPMXWL_EXP
-!------------------------------------
-!      SUBROUTINE TEMPORARY_RHO_GRID
-!
-!      IMPLICIT NONE
-!      double precision:: delr
-!      INTEGER:: NR
-!
-!      delr=1.D0/NRMAX
-!
-!      DO NR=1, NRMAX
-!         RM(NR)=(NR-1)*DELR + 0.5D0*DELR
-!      END DO
-!
-!      END SUBROUTINE TEMPORARY_RHO_GRID
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       END MODULE EG_READ
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-       ! Program read_eg_file
-
-       ! USE READ_EXP
-       ! IMPLICIT NONE
-       ! double precision:: timefp, weight
-       ! integer:: ntime1, ntime2
-
-       ! timefp=4.5D0
-       ! CALL TEMPORARY_RHO_GRID 
-
-       ! CALL READ_EXP_TMS
-       ! CALL READ_EXP_CX 
-
-       ! CALL time_interpolation(timefp, ntime1, ntime2, weight)
-       ! CALL MAKE_PROF_FROM_TMS(ntime1,weight)
- 
-       ! END Program read_eg_file

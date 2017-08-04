@@ -52,9 +52,9 @@
             CALL fp_continue(ierr)
             IF(ierr.ne.0) GO TO 1
          ENDIF
-         IF(MODEL_EX_READ.eq.0)THEN
+         IF(MODEL_EX_READ_Tn.eq.0)THEN
             CALL fp_loop
-         ELSEIF(MODEL_EX_READ.eq.1)THEN
+         ELSEIF(MODEL_EX_READ_Tn.eq.1)THEN
             CALL fp_loop_exp
          END IF
          IF(nrank.eq.0) THEN

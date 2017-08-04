@@ -1356,21 +1356,22 @@
       real(4):: GPMIN1, GPMAX1, GPSTEP, GLIN, GFFMAX
       integer:: NR, NP, NTH, NSB, NRG, MODE, LMODE
       integer:: NPG, NTHG, NPM, NTHM, NGLMAX, NGL
-      integer:: I
+      integer:: I, NS
 
       NPM=NPMAX+1
       NTHM=NTHMAX+1
 
       LMODE=MODE/4
+      NS=NS_NSA(NSB)
 !
       IF(MODE.EQ.1) THEN
          DO NP=1,NPMAX+1
-            GP(NP)=GUCLIP(PG(NP,NSB))
+            GP(NP)=GUCLIP(PG(NP,NS))
          END DO
          NPG=NPMAX+1
       ELSE
          DO NP=1,NPMAX
-            GP(NP)=GUCLIP(PM(NP,NSB))
+            GP(NP)=GUCLIP(PM(NP,NS))
          END DO
          NPG=NPMAX
       ENDIF
@@ -1387,7 +1388,7 @@
          NTHG=NTHMAX
       ENDIF
 !
-      GPMAX=GUCLIP(PMAX(NSB))
+      GPMAX=GUCLIP(PMAX(NS))
 !
       CALL PAGES
       CALL SETLNW(0.07)
@@ -1528,22 +1529,23 @@
       real(4):: GPMIN1, GPMAX1, GPSTEP, GLIN, GFFMAX
       integer:: NR, NP, NTH, NSB, NRG, MODE, LMODE
       integer:: NPG, NTHG, NPM, NTHM, NRM, NM, NGLMAX, NGL
-      integer:: I
+      integer:: I, NS
 
       NPM=NPMAX+1
       NTHM=NTHMAX+1
       NRM=NRMAX+1
 
       LMODE=MODE/4
+      NS=NS_NSB(NSB)
 !
       IF(MODE.EQ.1) THEN
          DO NP=1,NPMAX+1
-            GP(NP)=GUCLIP(PG(NP,NSB))
+            GP(NP)=GUCLIP(PG(NP,NS))
          END DO
          NPG=NPMAX+1
       ELSE
          DO NP=1,NPMAX
-            GP(NP)=GUCLIP(PM(NP,NSB))
+            GP(NP)=GUCLIP(PM(NP,NS))
          END DO
          NPG=NPMAX
       ENDIF
@@ -1560,7 +1562,7 @@
          NTHG=NTHMAX
       ENDIF
 !
-      GPMAX=GUCLIP(PMAX(NSB))
+      GPMAX=GUCLIP(PMAX(NS))
 !
       CALL PAGES
       CALL SETLNW(0.07)
@@ -1827,13 +1829,13 @@
       REAL(4):: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
       real(4):: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
       real(4):: GPMIN1, GPMAX1, GPSTEP, GLIN
-      integer:: NR, NTH, NP, NSA, MODE, NRG, LMODE, NTHG
+      integer:: NR, NTH, NP, NSA, MODE, NRG, LMODE, NTHG, NS
       integer:: NPM, NTHM, NRM, NM, NGL, NGLMAX, I, NPG
       NPM=NPMAX+1
       NTHM=NTHMAX+1
       NRM=NRMAX+1
 
-
+      NS=NS_NSA(NSA)
       IF(NGRAPH.EQ.0) THEN
          CALL FPFOTC(STRING,FG,MODE)
          RETURN
@@ -1859,12 +1861,12 @@
 !
       IF(MOD(MODE,2).EQ.0) THEN
          DO NP=1,NPMAX
-            GP(NP)=GUCLIP(PM(NP,NSA))
+            GP(NP)=GUCLIP(PM(NP,NS))
          END DO
          NPG=NPMAX
       ELSE
          DO NP=1,NPMAX+1
-            GP(NP)=GUCLIP(PG(NP,NSA))
+            GP(NP)=GUCLIP(PG(NP,NS))
          END DO
          NPG=NPMAX+1
       ENDIF
@@ -1885,36 +1887,36 @@
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX
                NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-               GF(NP,NTH)=GUCLIP(FG(NM)*PM(NP,NSA))
+               GF(NP,NTH)=GUCLIP(FG(NM)*PM(NP,NS))
             END DO
          END DO
       ELSEIF(MODE.EQ.1) THEN
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX+1
                NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-               GF(NP,NTH)=GUCLIP(FG(NM)*PG(NP,NSA))
+               GF(NP,NTH)=GUCLIP(FG(NM)*PG(NP,NS))
             END DO
          END DO
       ELSEIF(MODE.EQ.2) THEN
          DO NTH=1,NTHMAX+1
             DO NP=1,NPMAX
                NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-               GF(NP,NTH)=GUCLIP(FG(NM)*PM(NP,NSA))
+               GF(NP,NTH)=GUCLIP(FG(NM)*PM(NP,NS))
             END DO
          END DO
       ELSEIF(MODE.EQ.4) THEN
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX
                NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-               IF(FG(NM)*PM(NP,NSA).LT.1.D-70) THEN
+               IF(FG(NM)*PM(NP,NS).LT.1.D-70) THEN
                   GF(NP,NTH)=-70.0
                ELSE
-                  GF(NP,NTH)=GUCLIP(LOG10(ABS(FG(NM)*PM(NP,NSA))))
+                  GF(NP,NTH)=GUCLIP(LOG10(ABS(FG(NM)*PM(NP,NS))))
                ENDIF
             END DO
          END DO
       ENDIF
-      GPMAX=GUCLIP(PMAX(NSA))
+      GPMAX=GUCLIP(PMAX(NS))
 
       CALL PAGES
       CALL SETLNW(0.07)

@@ -880,6 +880,7 @@
          RHON=RG(NR)
          CALL PL_PROF(RHON,PLF)
          DO NSA=1, NSAMAX
+            NS=NS_NSA(NSA)
             RNFP_G(NR,NSA)=PLF(NS)%RN
             RTFP_G(NR,NSA)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
          END DO
@@ -894,7 +895,7 @@
          END DO
       END DO
 
-      IF(MODEL_EX_READ.eq.1)THEN
+      IF(MODEL_EX_READ_Tn.eq.1)THEN
          CALL READ_EXP_DATA
          CALL MAKE_EXP_PROF(timefp)
          IF(NRANK.eq.0) WRITE(*,'(A,E14.6)') "time_exp_offset= ", time_exp_offset
@@ -922,7 +923,7 @@
          ENDDO
 !         WRITE(*,'(3I4, 4E14.6)') NRANK, NR, NPSTART, RTFD(NR,1), RTFD(NR,2)
 
-         IF(MODEL_EX_READ.eq.1)THEN
+         IF(MODEL_EX_READ_Tn.eq.1)THEN
             DO NSA=1,NSAMAX ! temporal
                NS=NS_NSA(NSA)
                RNFP(NR,NSA)=RN_TEMP(NR,NS)
@@ -1204,6 +1205,7 @@
       USE libmtx
       USE fpnflg
       USE FP_READ_FIT
+      USE FPOUTDATA
 
       Implicit none
 
@@ -1356,6 +1358,8 @@
       CALL GUTIME(gut2)
       gut_prep=gut2-gut1
       IF(NRANK.eq.0) WRITE(6,'(A,E14.6)') "---------------PREP_TIME=", gut_prep
+
+      IF(OUTPUT_TXT_DELTA_F.eq.1.and.NRANK.eq.0) CALL OUT_TXT_FNS_DEL
  
       RETURN
       END subroutine fp_prep

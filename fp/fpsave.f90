@@ -592,12 +592,14 @@
             END DO
          END DO
          DO NR=1, NRMAX
-            RSUM_PSPL=RSUM_PSPL+RSPL(NR,NSH)*VOLR(NR)
+            RSUM_RSPL=RSUM_RSPL+RSPL(NR,NSH)*VOLR(NR)
          END DO
 
-         WRITE(29,'(99E14.6)') TIMEFP, ((RPCS2(NR,NSB,NSH),NR=1,NRMAX),NSB=1,NSBMAX), (RSUM_PC(NSB),NSB=1,NSBMAX)
-         WRITE(30,'(99E14.6)') TIMEFP, ((RPCS2_DEL(NR,NSB,NSH),NR=1,NRMAX),NSB=1,NSBMAX), (RSUM_PC_DEL(NSB),NSB=1,NSBMAX)
-         WRITE(32,'(99E14.6)') TIMEFP, (RSPL(NR,NSH),NR=1,NRMAX), RSUM_RSPL
+         IF(OUTPUT_TXT_HEAT_PROF.eq.1) THEN
+            WRITE(29,'(99E14.6)') TIMEFP, ((RPCS2(NR,NSB,NSH),NR=1,NRMAX),NSB=1,NSBMAX), (RSUM_PC(NSB),NSB=1,NSBMAX)
+            WRITE(30,'(99E14.6)') TIMEFP, ((RPCS2_DEL(NR,NSB,NSH),NR=1,NRMAX),NSB=1,NSBMAX), (RSUM_PC_DEL(NSB),NSB=1,NSBMAX)
+            WRITE(32,'(99E14.6)') TIMEFP, (RSPL(NR,NSH),NR=1,NRMAX), RSUM_RSPL
+         END IF
 !         WRITE(28,'(99E14.6)') TIMEFP, ((RPCS2(NR,NSB,NSD),NR=1,NRMAX),NSB=1,NSBMAX)
       END IF
 
@@ -1352,7 +1354,7 @@
       real(8):: rhon
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
 
-      IF(MODEL_EX_READ.eq.0)THEN
+      IF(MODEL_EX_READ_Tn.eq.0)THEN
          DO NS=1,NSMAX
             DO NR=1,NRMAX
                RHON=RM(NR) 
@@ -1368,7 +1370,7 @@
                RT_TEMP(NR,NS) = RT_BULK(NR,NSA)
             END DO
          ENDDO
-      ELSEIF(MODEL_EX_READ.eq.1)THEN
+      ELSEIF(MODEL_EX_READ_Tn.eq.1)THEN
          CALL MAKE_EXP_PROF(timefp+delt)
 
          DO NS=1,NSMAX
@@ -1441,7 +1443,7 @@
       NS=NS_NSA(NSA)
 
       CALL mtx_set_communicator(comm_np)
-      IF(MODEL_EX_READ.eq.0)THEN
+      IF(MODEL_EX_READ_Tn.eq.0)THEN
       IF(ISW_BULK.eq.0)THEN ! BULK T calculation using dfdp
          RSUM_T=0.D0
          RSUM_V=0.D0
@@ -1582,7 +1584,7 @@
             RPL_BULK(NP,NR,NSA) = 0.D0
          END DO
       END IF
-      ELSE ! MODEL_EX_READ=1
+      ELSE ! MODEL_EX_READ_Tn=1
          RTL_BULK(NR,NSA)=RT_READ(NR,NS)
       END IF
       CALL mtx_reset_communicator       
@@ -1624,7 +1626,7 @@
             NS=NS_NSA(NSA)
             DO NR=1, NRMAX
                PMAX_BULK = FACT_BULK
-               IF(MODEL_EX_READ.eq.0)THEN
+               IF(MODEL_EX_READ_Tn.eq.0)THEN
                   P_BULK_R = PMAX_BULK* RTFP(NR,NSA)/RTFP0(NSA)
                ELSE
                   P_BULK_R = PMAX_BULK* RT_TEMP(NR,NS)/RTFP0(NSA)

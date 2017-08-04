@@ -983,7 +983,8 @@
       INTEGER,intent(in):: NR
       double precision:: RSUM1, RSUM2, RSUM3
 
-      NS=NS_NSA(NSASTART)
+!      NS=NS_NSA(NSASTART)
+      NS=1
       RSUM1=0.D0
       RSUM2=0.D0
       RSUM3=0.D0
@@ -1015,7 +1016,8 @@
       INTEGER:: NTH, ITLB, NS
       double precision:: RSUM1, RSUM2, RSUM3, ratio
       
-      NS=NS_NSA(NSASTART)
+!      NS=NS_NSA(NSASTART)
+      NS=1
       RSUM1=0.D0
       RSUM2=0.D0
       RSUM3=0.D0
@@ -1042,7 +1044,8 @@
       INTEGER,intent(in):: NR
       double precision:: RSUM1, RSUM2, RSUM3
 
-      NS=NS_NSA(NSASTART)
+!      NS=NS_NSA(NSASTART)
+      NS=1
       RSUM1=0.D0
       RSUM2=0.D0
       RSUM3=0.D0

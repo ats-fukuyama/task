@@ -29,8 +29,9 @@ MODULE fpcomm_parm
       integer:: NGLINE,NGRAPH,LLMAX,LLMAX_NF,IDBGFP
       integer:: MODEL_DISRUPT,MODEL_Connor_fp,MODEL_BS,MODEL_jfp,MODEL_LNL
       integer:: MODEL_RE_pmax,MODELD_n_RE,MODEL_IMPURITY,MODEL_SINK,N_IMPU
-      integer:: MODEL_EX_READ, MODEL_BULK_CONST, MODEL_CX_LOSS
+      integer:: MODEL_EX_READ_Tn, MODEL_EX_READ_DH_RATIO, MODEL_BULK_CONST, MODEL_CX_LOSS
       integer:: N_partition_r,N_partition_s,N_partition_p
+      integer:: OUTPUT_TXT_DELTA_F, OUTPUT_TXT_F1, OUTPUT_TXT_BEAM_WIDTH, OUTPUT_TXT_HEAT_PROF
 
       real(rkind):: PMAX(NSM),PMAX_BB(NSM),EMAX(NSM)
       real(rkind):: R1,DELR1,RMIN,RMAX
@@ -52,9 +53,10 @@ MODULE fpcomm_parm
       real(rkind):: time_quench_start,RJPROF1,RJPROF2
       real(rkind):: v_RE,target_zeff,SPITOT,FACT_BULK
       real(rkind):: RN_NEU0, RN_NEUS ! temporal 
+      real(rkind):: NI_RATIO(NSM)
 
 !     for read experiment data
-      CHARACTER(len=80):: EG_NAME_TMS, EG_NAME_CX
+      CHARACTER(len=80):: EG_NAME_TMS, EG_NAME_CX, EG_NAME_HA3
       real(rkind),dimension(:,:),pointer:: read_tms_double, read_cx_double !!    containers of profile data
       integer,dimension(:,:),pointer:: read_tms_int
       real(rkind),dimension(:),pointer:: cte_fit, cti_fit !!    fitting param
@@ -484,7 +486,7 @@ module fpcomm
           allocate(SPPL_CX(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX))
 
           allocate(RN_TEMP(NRMAX,NSMAX),RT_TEMP(NRMAX,NSMAX) )
-          IF(MODEL_EX_READ.ne.0)THEN
+          IF(MODEL_EX_READ_Tn.ne.0)THEN
              allocate(RN_READ(NRMAX,NSMAX),RT_READ(NRMAX,NSMAX) )
              allocate(RNE_EXP(NRMAX), RTE_EXP(NRMAX), RTI_EXP(NRMAX))
              allocate(cte_fit(5),cne_fit(6),cti_fit(5))
@@ -711,7 +713,7 @@ module fpcomm
 !          deallocate(DCPP2B,DCPT2B,FCPP2B)
 
           deallocate(RN_TEMP,RT_TEMP)
-          IF(MODEL_EX_READ.ne.0)THEN
+          IF(MODEL_EX_READ_Tn.ne.0)THEN
              deallocate(RN_READ, RT_READ)
              deallocate(RNE_EXP, RTE_EXP, RTI_EXP)
              deallocate(cte_fit, cne_fit, cti_fit)

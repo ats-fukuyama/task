@@ -150,8 +150,8 @@
          SPBANG(NBEAM)=20.D0
          SPBPANG(NBEAM)=0.D0
       ENDDO
-      NSA_F1=2
-      NTH_F1=3
+      NSA_F1=1
+      NTH_F1=1
       NR_F1=1
 !-----FUSION REACTION----------------------------------------------------
 !     NSSPF  : Fusion product particle species
@@ -289,8 +289,11 @@
 !                     : 2 read FIT3D data (limited)
 !     MODEL_WAVE      : 1 for wave calculation
 !     MODEL_BULK_CONST: 0 ordinary, 1: for bench mark
-!     MODEL_EX_READ   : 0 for prediction
-!                     : 1 read experiment data RN_READ and RT_READ
+!     MODEL_EX_READ_Tn
+!     MODEL_EX_READ_DH_RATIO
+!                     : 0 for prediction
+!                     : 1 constant ratio. Use NI_RATIO
+!                     : 2 read egdata 
 !     time_exp_offset : TIMEFP + time_exp_offset = time in experiment
 !
 !     MODEL_DELTA_F(NSA): 0 ordinary mode
@@ -319,13 +322,27 @@
       MODEL_NBI=0
       MODEL_WAVE=0 ! 0=no wave calc., 1=wave calc.
 
-      MODEL_EX_READ=0
+      MODEL_EX_READ_Tn=0
+      MODEL_EX_READ_DH_RATIO=0
+      DO NS=1,NSM
+         NI_RATIO(NS)=1.D0
+      END DO
+
       MODEL_BULK_CONST=0
       time_exp_offset=0.D0
 
       DO NS=1,NSM
          MODEL_DELTA_F(NS)=0
       END DO
+!-----TXT TYPE OUTPUT COMMAND------------------------------------------
+!     OUTPUT_TXT_DELTA_F: OUTPUT DELTA f
+!     OUTPUT_TXT_F1: OUTPUT E-f1 on NR_F1 DIRECT TO NTH_F1
+
+      OUTPUT_TXT_DELTA_F=0
+      OUTPUT_TXT_F1=0
+      OUTPUT_TXT_BEAM_WIDTH=0
+      OUTPUT_TXT_HEAT_PROF=0
+
 !-----COMPUTATION PARAMETERS------------------------------------------
 !     DELT  : time step size (s)
 !     RIMPL : implicit computation parameter
@@ -531,9 +548,11 @@
            PGMAX,RGMAX,RGMIN, &
            T0_quench,tau_quench,tau_mgi, &
            time_quench_start,RJPROF1,RJPROF2, &
-           v_RE,target_zeff,SPITOT, MODEL_EX_READ, &
+           v_RE,target_zeff,SPITOT, MODEL_EX_READ_Tn, MODEL_EX_READ_DH_RATIO,  &
            FACT_BULK, time_exp_offset, MODEL_BULK_CONST, RN_NEU0, MODEL_CX_LOSS, RN_NEUS, &
-           EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME_H, SV_FILE_NAME_D, NSA_F1, NTH_F1, NR_F1
+           EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME_H, SV_FILE_NAME_D, NSA_F1, NTH_F1, NR_F1, &
+           OUTPUT_TXT_F1, OUTPUT_TXT_DELTA_F, OUTPUT_TXT_HEAT_PROF, OUTPUT_TXT_BEAM_WIDTH, &
+           NI_RATIO
 
       READ(nid,FP,IOSTAT=ist,ERR=9800,END=9900)
 
@@ -588,9 +607,11 @@
       WRITE(6,*) '      PGMAX,RGMAX,RGMIN,'
       WRITE(6,*) '      T0_quench,tau_quench,tau_mgi,'
       WRITE(6,*) '      time_quench_start,RJPROF1,RJPROF2,'
-      WRITE(6,*) '      v_RE,target_zeff,SPITOT,MODEL_EX_READ,FACT_BULK'
+      WRITE(6,*) '      v_RE,target_zeff,SPITOT,MODEL_EX_READ_Tn, MODEL_EX_READ_DH_RATIO, FACT_BULK'
       WRITE(6,*) '      time_exp_offset, MODEL_BULK_CONST, RN_NEU0, MODEL_CX_LOSS, RN_NEUS'
       WRITE(6,*) '      EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME_H, SV_FILE_NAME_D, NSA_F1, NTH_F1, NR_F1'
+      WRITE(6,*) '      OUTPUT_TXT_F1, OUTPUT_TXT_DELTA_F, OUTPUT_TXT_HEAT_PROF, OUTPUT_TXT_BEAM_WIDTH'
+      WRITE(6,*) '      NI_RATIO'
 
       RETURN
     END SUBROUTINE fp_plst
@@ -784,14 +805,19 @@
       idata(56)=N_partition_r
       idata(57)=N_partition_s
       idata(58)=N_partition_p
-      idata(59)=MODEL_EX_READ
+      idata(59)=MODEL_EX_READ_Tn
       idata(60)=MODEL_BULK_CONST
       idata(61)=MODEL_CX_LOSS
       idata(62)=NSA_F1
       idata(63)=NTH_F1
       idata(64)=NR_F1
+      idata(65)=MODEL_EX_READ_DH_RATIO
+      idata(66)=OUTPUT_TXT_F1
+      idata(67)=OUTPUT_TXT_DELTA_F
+      idata(68)=OUTPUT_TXT_HEAT_PROF
+      idata(69)=OUTPUT_TXT_BEAM_WIDTH
 
-      CALL mtx_broadcast_integer(idata,64)
+      CALL mtx_broadcast_integer(idata,69)
       NSAMAX         =idata( 1)
       NSBMAX         =idata( 2)
       LMAXNWR        =idata( 3)
@@ -853,12 +879,17 @@
       N_partition_r  =idata(56)
       N_partition_s  =idata(57)
       N_partition_p  =idata(58)
-      MODEL_EX_READ  =idata(59)
+      MODEL_EX_READ_Tn  =idata(59)
       MODEL_BULK_CONST =idata(60)
       MODEL_CX_LOSS  =idata(61)
       NSA_F1 = idata(62)
       NTH_F1 = idata(63)
       NR_F1 = idata(64)
+      MODEL_EX_READ_DH_RATIO=idata(65)
+      OUTPUT_TXT_F1=idata(66)
+      OUTPUT_TXT_DELTA_F=idata(67)
+      OUTPUT_TXT_HEAT_PROF=idata(68)
+      OUTPUT_TXT_BEAM_WIDTH=idata(69)
 
       CALL mtx_broadcast_integer(NS_NSA,NSAMAX)
       CALL mtx_broadcast_integer(NS_NSB,NSBMAX)
@@ -1007,6 +1038,7 @@
       CALL mtx_broadcast_real8(pmax_bb,NSMAX)
       CALL mtx_broadcast_real8(Emax,NSMAX)
       CALL mtx_broadcast_real8(TLOSS,NSMAX)
+      CALL mtx_broadcast_real8(NI_RATIO,NSMAX)
 
       CALL mtx_broadcast_real8(SPBTOT,NBEAMMAX)
       CALL mtx_broadcast_real8(SPBR0 ,NBEAMMAX)
