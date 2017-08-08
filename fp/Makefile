@@ -53,10 +53,10 @@ fplib.a: $(OBJS)
 
 libs:
 	(cd ../../bpsd; make bpsdlib.a)
-	(cd ../eq; make eqlib.a)
+	(cd ../lib; make tasklib.a)
 	(cd ../mtxp; make)
 	(cd ../plx; make pllib.a)
-	(cd ../lib; make tasklib.a)
+	(cd ../eq; make eqlib.a)
 
 fp : $(LIB_MTX) $(LIBS) fpmain.o 
 	$(FLINKER) fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
