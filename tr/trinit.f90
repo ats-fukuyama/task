@@ -221,6 +221,7 @@
 !      ***  MDLKAI.EQ. 13  : etac=1 1/(1+exp) *(1+q^2)             ***
 !      ***  MDLKAI.EQ. 14  : etac=1+2.5*(Ln/RR-0.2) 1/(1+exp)      ***
 !      ***  MDLKAI.EQ. 15  : etac=1 1/(1+exp) func(q,eps,Ln)       ***
+!      ***  MDLKAI.EQ. 16  : (MDLKAI=15) + ZONAL FLOW              ***
 
 !      ***  MDLKAI.EQ. 20  : Rebu-Lalla model                      ***
 

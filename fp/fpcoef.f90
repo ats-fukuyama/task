@@ -16,6 +16,7 @@
       USE fpcalr
       USE libbes,ONLY: besekn
       USE libmtx
+      USE FP_READ_FIT
 
       INTEGER,parameter:: MODEL_T_IMP=2
 !      double precision,parameter::deltaB_B=1.D-4
@@ -92,7 +93,16 @@
 !     ----- Particle source term -----
 
       CALL FP_CALS
-!
+
+!     ----- Charge Exchange Loss Term ----
+      IF(MODEL_CX_LOSS.ne.0)THEN
+         DO NSA=NSASTART, NSAEND
+            NS=NS_NSA(NSA)
+            IF(PA(NS).eq.1.D0.or.PA(NS).eq.2.D0)THEN
+               CALL CX_LOSS_TERM(NSA) 
+            END IF
+         END DO
+      END IF
 !     ----- Sum up velocity diffusion terms -----
 
       DO NSA=NSASTART,NSAEND
@@ -104,6 +114,7 @@
             DPT(NTH,NP,NR,NSA)=DCPT(NTH,NP,NR,NSA)+DWPT(NTH,NP,NR,NSA)
             FPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)+FCPP(NTH,NP,NR,NSA) &
                  + FSPP(NTH,NP,NR,NSA) + FLPP(NTH,NP,NR,NSA)
+!            WRITE(*,'(A,5I5,3E14.6)') "TEST1 ", NRANK, NSA, NR, NP, NTH, DCPP(NTH,NP,NR,NSA), FEPP(NTH,NP,NR,NSA), EP(NR)
          ENDDO
          ENDDO
 !
@@ -113,6 +124,7 @@
             DTT(NTH,NP,NR,NSA)=DCTT(NTH,NP,NR,NSA)+DWTT(NTH,NP,NR,NSA)
             FTH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)+FCTH(NTH,NP,NR,NSA) &
                               +FSTH(NTH,NP,NR,NSA)
+!            WRITE(*,'(A,5I5,3E14.6)') "TEST2 ", NRANK, NSA, NR, NP, NTH, DCTT(NTH,NP,NR,NSA), FETH(NTH,NP,NR,NSA), EP(NR)
          ENDDO
          ENDDO
       ENDDO
@@ -246,13 +258,12 @@
 
       USE fpnfrr
       IMPLICIT NONE
-      integer:: NSA, NSB, NSBA, NR, NTH, NP, NS, ID
+      integer:: NSA, NSB, NR, NTH, NP, NS, ID
       integer:: NBEAM, NSABEAM, NSAX, ISW_LOSS
-      real(kind8):: PSP, SUML, ANGSP, SPL, FL
+      real(kind8):: PSP, SUML, ANGSP, SPL, FL, const_inv_tau
 
       DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
-         NSBA=NSB_NSA(NSA)
 
 !     ----- Particle source term -----
 
@@ -265,17 +276,20 @@
                SPPS(NTH,NP,NR,NSA)=0.D0
                SPPI(NTH,NP,NR,NSA)=0.D0
                SPPD(NTH,NP,NSA)=0.D0
+               IF(MODEL_CX_LOSS.ne.0) SPPL_CX(NTH,NP,NR,NSA)=0.D0
             ENDDO
          ENDDO
          ENDDO
 !     ----- NBI source term -----
 
-      IF(MODEL_NBI.ne.0)THEN
+      IF(MODEL_NBI.eq.1)THEN
 !         IF(MODELA.eq.0)THEN
-            CALL NBI_SOURCE_A0(NSA)
+         CALL NBI_SOURCE_A0(NSA)
 !         ELSE
 !            CALL NBI_SOURCE_A1(NSA)
 !         END IF
+      ELSEIF(MODEL_NBI.eq.2)THEN
+         CALL NBI_SOURCE_FIT3D(NSA)
       END IF
 !     ----- Fixed fusion source term -----
 
@@ -284,19 +298,19 @@
             PSP=SQRT(2.D0*AMFP(NSA)*SPFENG*AEE)/PTFP0(NSA)
             SUML=0.D0
             DO NP=NPSTART,NPEND
-               IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
+               IF(PG(NP,NS).LE.PSP.AND.PG(NP+1,NS).GT.PSP) THEN
                   DO NR=1,NRMAX
                      SPL=EXP(-(RM(NR)-SPFR0)**2/SPFRW**2)
                      DO NTH=1,NTHMAX
                         SUML=SUML &
-                            +SPL*VOLP(NTH,NP,NSBA)*VOLR(NR)!*RLAMDAG(NTH,NR)
+                            +SPL*VOLP(NTH,NP,NS)*VOLR(NR)!*RLAMDAG(NTH,NR)
                      ENDDO
                   ENDDO
                ENDIF
             ENDDO
             SUML=SUML*RNFP0(NSA)
             DO NP=NPSTART,NPEND
-               IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
+               IF(PG(NP,NS).LE.PSP.AND.PG(NP+1,NS).GT.PSP) THEN
                   DO NR=NRSTART,NREND
                      SPL=EXP(-(RM(NR)-SPFR0)**2/SPFRW**2)
                      DO NTH=1,NTHMAX
@@ -320,7 +334,7 @@
 !
 !     ----- Particle loss and source terms -----
 !
-      ISW_LOSS=0
+      ISW_LOSS=1
       IF(TLOSS(NS).EQ.0.D0) THEN
          DO NR=NRSTART,NREND
             DO NP=NPSTART,NPEND
@@ -330,11 +344,11 @@
             ENDDO
          ENDDO
       ELSE
-         IF(ISW_LOSS.eq.0)THEN
+         IF(ISW_LOSS.eq.0)THEN ! loss term depends on the present FNSP
             DO NR=NRSTART,NREND
                DO NP=NPSTART,NPEND
-                  IF(PM(NP,NSBA).le.3.D0)THEN ! for beam benchmark
-                     FL=FPMXWL(PM(NP,NSBA),NR,NS) 
+                  IF(PM(NP,NS).le.3.D0)THEN ! for beam benchmark
+                     FL=FPMXWL(PM(NP,NS),NR,NS) 
                      DO NTH=1,NTHMAX
                         PPL(NTH,NP,NR,NSA)=-1.D0/TLOSS(NS)*RLAMDA(NTH,NR)
 !                        SPPS(NTH,NP,NR,NSA)= FL /TLOSS(NS)!*RLAMDA(NTH,NR)
@@ -342,10 +356,39 @@
                   END IF
                ENDDO
             ENDDO
+         ELSEIF(ISW_LOSS.eq.1)THEN ! loss term depends on initial FNS, const total density
+            SUML=0.D0
+            DO NR=NRSTART,NREND
+               DO NP=NPSTART,NPEND
+                  IF(PM(NP,NS).le.NP_BULK(NR,NSA))THEN ! for beam benchmark
+                     FL=FPMXWL(PM(NP,NS),NR,NS) 
+                     DO NTH=1,NTHMAX
+                        SUML = SUML &
+                             + FL*VOLP(NTH,NP,NS) * VOLR(NR)*RLAMDAG(NTH,NR)*RFSADG(NR)
+!                        SPPL(NTH,NP,NR,NSA)=-FL/TLOSS(NS)*RLAMDA(NTH,NR)
+!                        SPPS(NTH,NP,NR,NSA)= FL /TLOSS(NS)!*RLAMDA(NTH,NR)
+                     ENDDO
+                  END IF
+               ENDDO
+            ENDDO
+            CALL mtx_set_communicator(comm_np)
+            CALL p_theta_integration(SUML)
+            CALL mtx_reset_communicator
+            SUML = SUML*RNFP0(NSA)
+            DO NR=NRSTART, NREND
+               DO NP=NPSTART, NPEND
+                  FL=FPMXWL(PM(NP,NS),NR,NS) 
+                  IF(PM(NP,NS).le.5.D0)THEN ! for beam benchmark
+                     DO NTH=1, NTHMAX
+                        SPPL(NTH,NP,NR,NSA)=-SPBTOT(1)*FL/SUML
+                     END DO
+                  END IF
+               END DO
+            END DO
          ELSE
             DO NR=NRSTART,NREND
                DO NP=NPSTART,NPEND
-                  FL=FPMXWL_LT(PM(NP,NSBA),NR,NS)
+                  FL=FPMXWL_LT(PM(NP,NS),NR,NS)
                   DO NTH=1,NTHMAX
                      PPL(NTH,NP,NR,NSA)=-1.D0/TLOSS(NS)
                      SPPS(NTH,NP,NR,NSA)=FL/TLOSS(NS)
@@ -357,6 +400,24 @@
          END IF
       ENDIF
 
+      const_inv_tau=1.d3 ! tau=1ms
+      NS=NS_NSA(NSA)
+      IF(MODEL_DELTA_F(NS).eq.1.and.MODEL_BULK_CONST.eq.2)THEN ! sink in bulk region for delta f
+         DO NR=NRSTART,NREND
+            DO NP=NPSTART,NPEND
+               IF(NP.le.NP_BULK(NR,NSA))THEN
+                  DO NTH=1,NTHMAX
+                     PPL(NTH,NP,NR,NSA)=PPL(NTH,NP,NR,NSA) -const_inv_tau*RLAMDA(NTH,NR)
+                  END DO
+               ELSEIF(NP_BULK(NR,NSA).le.NP.and.NP.le.NP_BULK(NR,NSA)+1)THEN
+                  DO NTH=1,NTHMAX
+                     PPL(NTH,NP,NR,NSA)=PPL(NTH,NP,NR,NSA) +const_inv_tau*(NP-NP_BULK(NR,NSA)-1)*RLAMDA(NTH,NR)
+                  END DO
+               END IF
+            END DO
+         END DO
+      END IF
+
       IF(MODEL_IMPURITY.ne.0.and.TIMEFP.le.5.D0*tau_quench)THEN
          CALL IMPURITY_SOURCE(NSA)
       END IF
@@ -364,7 +425,7 @@
       IF(MODEL_SINK.eq.1)THEN
          CALL DELTA_B_LOSS_TERM(NSA)
       END IF
-      END DO
+      END DO ! NSA
 
       RETURN
       END SUBROUTINE FP_CALS
@@ -399,9 +460,21 @@
          RL=RM(NR)
          RHON=RL
       ENDIF
-      CALL PL_PROF(RHON,PLF)
-      RNFDL=PLF(NS)%RN/RNFD0L
-      RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+      IF(MODEL_EX_READ_Tn.eq.0)THEN
+         CALL PL_PROF(RHON,PLF)
+         RNFDL=PLF(NS)%RN/RNFD0L
+         RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+      ELSEIF(MODEL_EX_READ_Tn.eq.1)THEN
+         RNFDL=RN_TEMP(NR,NS)/RNFD0L
+         RTFDL=RT_TEMP(NR,NS)
+         IF(NR.eq.0)THEN
+            RNFDL=RN_TEMP(1,NS)/RNFD0L
+            RTFDL=RT_TEMP(1,NS)
+         ELSEIF(NR.eq.NRMAX+1)THEN
+            RNFDL=RNE_EXP_EDGE/RNFD0L
+            RTFDL=RTE_EXP_EDGE
+         END IF
+      END IF
 
       IF(MODELR.EQ.0) THEN
          FACT=RNFDL/SQRT(2.D0*PI*RTFDL/RTFD0L)**3
@@ -412,6 +485,7 @@
          THETAL=THETA0L*RTFDL/RTFD0L
          Z=1.D0/THETAL
          DKBSL=BESEKN(2,Z)
+!         WRITE(*,'(A,2I5,4E14.6)') "TEST MXWL ", NR, NS, PML, Z, THETAL, DKBSL
          FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DKBSL) &
               *RTFD0L
          EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
@@ -437,19 +511,15 @@
       RTFD0L=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
       PTFD0L=SQRT(RTFD0L*1.D3*AEE*AMFDL)
 
-!      IF(NR.eq.NRMAX)THEN
-!         RL=RM(NR)
-!         RHON=RL
-!      ELSEIF(NR.EQ.NRMAX+1) THEN
-!         RL=RM(NRMAX)+DELR
-!         RHON=MIN(RL,1.D0)
-!      ENDIF
+      IF(MODEL_EX_READ_Tn.eq.0)THEN
+         CALL PL_PROF(RHON,PLF)
+         RNFDL=PNS(NS)/RNFD0L*1.D-1
+         RTFDL=PTS(NS)*1.D-2
+      ELSEIF(MODEL_EX_READ_Tn.eq.1)THEN
+         RNFDL=RNE_EXP_EDGE/RNFD0L*1.D-1
+         RTFDL=RTE_EXP_EDGE*1.D-1
+      END IF
 
-!      CALL PL_PROF(RHON,PLF)
-!      RNFDL=PLF(NS)%RN/RNFD0L
-!      RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
-      RNFDL=PNS(NS)/RNFD0L*1.D-1
-      RTFDL=PTS(NS)*1.D-2
 
       IF(MODELR.EQ.0) THEN
          FACT=RNFDL/SQRT(2.D0*PI*RTFDL/RTFD0L)**3
@@ -463,11 +533,11 @@
          THETA0L=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)
          THETAL=THETA0L*RTFDL/RTFD0L
          Z=1.D0/THETAL
-            DKBSL=BESEKN(2,Z)
-            FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DKBSL) &
-             *RTFD0L
-            EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
-            FPMXWL_S=FACT*EXP(EX)
+         DKBSL=BESEKN(2,Z)
+         FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DKBSL) &
+              *RTFD0L
+         EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
+         FPMXWL_S=FACT*EXP(EX)
       END IF
 
       RETURN
@@ -479,21 +549,20 @@
       implicit none
 !      integer,intent(in):: NP, NSA
       integer:: NP, NSA
-      integer:: NSBA, NS
+      integer:: NS
       real(kind8):: FL1, FL2
 !      real(kind8),intent(out):: FL
       real(kind8):: FL
 
       NS=NS_NSA(NSA)
-      NSBA=NSB_NSA(NSA)
 
-!      FL1=FPMXWL_S(PM(NP,NSBA),NRMAX,NS) ! at RM(NRMAX)
-!      FL2=FPMXWL_S(PM(NP,NSBA),NRMAX+1,NS) ! at RG(NRMAX+1)
+!      FL1=FPMXWL_S(PM(NP,NS),NRMAX,NS) ! at RM(NRMAX)
+!      FL2=FPMXWL_S(PM(NP,NS),NRMAX+1,NS) ! at RG(NRMAX+1)
 
 !     F at R=1.0+DELR/2
 !      FL=FL2*1.D-1
 
-      FL=FPMXWL_S(PM(NP,NSBA),NRMAX,NS) 
+      FL=FPMXWL_S(PM(NP,NS),NRMAX,NS) 
 
       RETURN
       END SUBROUTINE FPMXWL_EDGE
@@ -557,12 +626,11 @@
       USE fpmpi
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NSA
-      INTEGER:: NTH, NP, NR, NBEAM, NS, NSBA, NSABEAM, NSAX
+      INTEGER:: NTH, NP, NR, NBEAM, NS, NSABEAM, NSAX
       DOUBLE PRECISION:: PSP, ANGSP, SUML, SPL, SPFS, PSI, PCOS
       DOUBLE PRECISION:: TH0B, PANGSP
 
       NS=NS_NSA(NSA)
-      NSBA=NSB_NSA(NSA)
 
 !     NBI distribute Gaussian in rho space
 !     and distribute as delta function in p, theta, poloidal angle, respectively. 
@@ -578,10 +646,10 @@
                PSI = (1.D0+EPSRM2(NR))/(1.D0+EPSRM2(NR)*COS(PANGSP) )
                TH0B = ASIN( SQRT(SIN(ANGSP)**2/PSI) )
                DO NP=NPSTART, NPEND
-                  IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
+                  IF(PG(NP,NS).LE.PSP.AND.PG(NP+1,NS).GT.PSP) THEN
                      DO NTH=1, NTHMAX
                         IF(THG(NTH).LE.TH0B.AND.THG(NTH+1).GT.TH0B) THEN 
-                           SPFS = VOLP(NTH,NP,NSBA)!*RLAMDAG(NTH,NR)
+                           SPFS = VOLP(NTH,NP,NS)!*RLAMDAG(NTH,NR)
                            SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2) 
                            SUML = SUML &
                                 + SPFS * SPL * VOLR(NR)
@@ -600,7 +668,7 @@
                SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
 !               DO NP=1, NPMAX-1
                DO NP=NPSTART, NPEND
-                  IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
+                  IF(PG(NP,NS).LE.PSP.AND.PG(NP+1,NS).GT.PSP) THEN
                      DO NTH=1, NTHMAX
                         IF(THG(NTH).LE.TH0B.AND.THG(NTH+1).GT.TH0B) THEN
 !                           WRITE(*,'(A,2I4,2E14.6)') "TH0B", NR, NTH, TH0B, ANGSP
@@ -632,10 +700,10 @@
                   TH0B = ASIN( SQRT(SIN(ANGSP)**2/PSI) )
 !                  DO NP=1,NPMAX-1
                   DO NP=NPSTART,NPEND
-                     IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
+                     IF(PG(NP,NS).LE.PSP.AND.PG(NP+1,NS).GT.PSP) THEN
                         DO NTH=1,NTHMAX
                            IF(THG(NTH).LE.TH0B.AND.THG(NTH+1).GT.TH0B) THEN
-                              SPFS = VOLP(NTH,NP,NSBA)!*RLAMDAG(NTH,NR)
+                              SPFS = VOLP(NTH,NP,NS)!*RLAMDAG(NTH,NR)
                               SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2) 
                               SUML = SUML &
                                    + SPFS * SPL * VOLR(NR)
@@ -650,7 +718,7 @@
                   TH0B = ASIN( SQRT(SIN(ANGSP)**2/PSI) )
 !                  DO NP=1,NPMAX-1
                   DO NP=NPSTART,NPEND
-                     IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
+                     IF(PG(NP,NS).LE.PSP.AND.PG(NP+1,NS).GT.PSP) THEN
                         DO NTH=1,NTHMAX
                            IF(THG(NTH).LE.TH0B.AND.THG(NTH+1).GT.TH0B) THEN
                               SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
@@ -674,12 +742,11 @@
       USE fpmpi
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NSA
-      integer:: NSB, NSBA, NR, NTH, NP, NS, ID
+      integer:: NSB, NR, NTH, NP, NS, ID
       integer:: NBEAM, NSABEAM, NSAX
       DOUBLE PRECISION:: PSP, SUML, ANGSP, SPL
 
       NS=NS_NSA(NSA)
-      NSBA=NSB_NSA(NSA)
       CALL mtx_set_communicator(comm_np)
 
       DO NBEAM=1,NBEAMMAX
@@ -688,13 +755,13 @@
             ANGSP=PI*SPBANG(NBEAM)/180.D0
             SUML=0.D0
             DO NP=NPSTART,NPEND
-               IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
+               IF(PG(NP,NS).LE.PSP.AND.PG(NP+1,NS).GT.PSP) THEN
                   DO NTH=1,NTHMAX
                      IF(THG(NTH).LE.ANGSP.AND.THG(NTH+1).GT.ANGSP) THEN
                         DO NR=1,NRMAX
                            SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
                            SUML=SUML &
-                                +SPL*VOLP(NTH,NP,NSBA)*VOLR(NR)*RLAMDAG(NTH,NR)*RFSADG(NR)
+                                +SPL*VOLP(NTH,NP,NS)*VOLR(NR)*RLAMDAG(NTH,NR)*RFSADG(NR)
                         ENDDO
                      ENDIF
                   ENDDO
@@ -703,7 +770,7 @@
             SUML=SUML*RNFP0(NSA)
             CALL p_theta_integration(SUML)
             DO NP=NPSTART,NPEND
-               IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
+               IF(PG(NP,NS).LE.PSP.AND.PG(NP+1,NS).GT.PSP) THEN
                   DO NTH=1,NTHMAX
                      IF(THG(NTH).LE.ANGSP.AND.THG(NTH+1).GT.ANGSP) THEN
                         DO NR=NRSTART,NREND
@@ -732,13 +799,13 @@
                SUML=0.D0
 !               DO NP=1,NPMAX-1
                DO NP=NPSTART,NPEND
-                  IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
+                  IF(PG(NP,NS).LE.PSP.AND.PG(NP+1,NS).GT.PSP) THEN
                      DO NTH=1,NTHMAX
                         IF(THG(NTH).LE.ANGSP.AND.THG(NTH+1).GT.ANGSP) THEN
                            DO NR=1,NRMAX
                               SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
                               SUML=SUML &
-                                   +SPL*VOLP(NTH,NP,NSBA)*VOLR(NR)*RLAMDAG(NTH,NR)*RFSADG(NR)
+                                   +SPL*VOLP(NTH,NP,NS)*VOLR(NR)*RLAMDAG(NTH,NR)*RFSADG(NR)
                            ENDDO
                         ENDIF
                      ENDDO
@@ -748,7 +815,7 @@
                CALL p_theta_integration(SUML)
 !               DO NP=1,NPMAX-1
                DO NP=NPSTART,NPEND
-                  IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
+                  IF(PG(NP,NS).LE.PSP.AND.PG(NP+1,NS).GT.PSP) THEN
                      DO NTH=1,NTHMAX
                         IF(THG(NTH).LE.ANGSP.AND.THG(NTH+1).GT.ANGSP) THEN
                            DO NR=NRSTART,NREND
@@ -774,12 +841,14 @@
       USE fpnflg
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NSA
-      integer:: NSB, NSBA, NR, NTH, NP, NS, ID
+      integer:: NSB, NR, NTH, NP, NS, ID, NSA1, NSA2
       integer:: NBEAM, NSABEAM, NSAX
       DOUBLE PRECISION:: PSP, SUML, ANGSP, SPL
 
       NS=NS_NSA(NSA)
-      NSBA=NSB_NSA(NSA)
+
+      RATE_NF(:,:)=0.D0
+      RATE_NF_BB(:,:)=0.D0
 
       DO ID=1,6
          IF(NSA.EQ.NSA1_NF(ID)) THEN
@@ -788,10 +857,10 @@
                IF(MODELS.NE.3) CALL NF_REACTION_RATE(NR,ID)
                IF(MODELS.EQ.3) CALL NF_REACTION_RATE_LG(NR,ID)
                DO NP=NPSTART,NPEND
-                  IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
+                  IF(PG(NP,NS).LE.PSP.AND.PG(NP+1,NS).GT.PSP) THEN
                      SUML=0.D0
                      DO NTH=1,NTHMAX
-                        SUML=SUML+VOLP(NTH,NP,NSBA)*RLAMDAG(NTH,NR)*RFSADG(NR)
+                        SUML=SUML+VOLP(NTH,NP,NS)*RLAMDAG(NTH,NR)*RFSADG(NR)
                      ENDDO
                      DO NTH=1,NTHMAX
                         SPPF(NTH,NP,NR,NSA)=SPPF(NTH,NP,NR,NSA) &
@@ -800,18 +869,18 @@
                   ENDIF
                ENDDO
             ENDDO
-            IF(PSP.ge.PG(NPMAX,NSBA))THEN
+            IF(PSP.ge.PG(NPMAX,NS))THEN
                NP=NPMAX
                IF(N_IMPL.eq.0.or.N_IMPL.gt.LMAXFP)THEN
                   write(6,'(A,I5,1P3E12.4)') '   |-NP,PSP,PG=',&
-                       NP,PSP,PMAX(NSBA)
+                       NP,PSP,PMAX(NS)
                   WRITE(6,*) '  |-  OUT OF RANGE PMAX'
                END IF
                IF(NPEND.eq.NPMAX)THEN
                   DO NR=NRSTART,NREND
                      SUML=0.D0
                      DO NTH=1,NTHMAX
-                        SUML=SUML+VOLP(NTH,NP,NSBA)*RLAMDAG(NTH,NR)*RFSADG(NR)
+                        SUML=SUML+VOLP(NTH,NP,NS)*RLAMDAG(NTH,NR)*RFSADG(NR)
                      ENDDO
                      DO NTH=1,NTHMAX
                         SPPF(NTH,NP,NR,NSA)=SPPF(NTH,NP,NR,NSA) &
@@ -828,10 +897,10 @@
                IF(MODELS.EQ.3) CALL NF_REACTION_RATE_LG(NR,ID)
 !               DO NP=1,NPMAX-1
                DO NP=NPSTART,NPEND
-                  IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
+                  IF(PG(NP,NS).LE.PSP.AND.PG(NP+1,NS).GT.PSP) THEN
                      SUML=0.D0
                      DO NTH=1,NTHMAX
-                        SUML=SUML+VOLP(NTH,NP,NSBA)*RLAMDAG(NTH,NR)*RFSADG(NR)
+                        SUML=SUML+VOLP(NTH,NP,NS)*RLAMDAG(NTH,NR)*RFSADG(NR)
                      ENDDO
                      DO NTH=1,NTHMAX
                         SPPF(NTH,NP,NR,NSA)=SPPF(NTH,NP,NR,NSA) &
@@ -842,17 +911,19 @@
             ENDDO
          ENDIF
          IF( NSA.EQ.NSA1_NF(ID).or.NSA.EQ.NSA2_NF(ID) ) THEN
+            NSA1=NSA_NSB(NSB1_NF(ID))
+            NSA2=NSA_NSB(NSB2_NF(ID))
             DO NR=NRSTART,NREND
                DO NP=NPSTART,NPEND
                   DO NTH=1,NTHMAX
-                     SPPF(NTH,NP,NR,NSB1_NF(ID))=                  &
-                          SPPF(NTH,NP,NR,NSB1_NF(ID))              &
+                     SPPF(NTH,NP,NR,NSA1)=                  &
+                          SPPF(NTH,NP,NR,NSA1)              &
                           -RATE_NF_D1(NTH,NP,NR,ID)                &
-                          /RNFP0(NSB1_NF(ID))
-                     SPPF(NTH,NP,NR,NSB2_NF(ID))=                  &
-                          SPPF(NTH,NP,NR,NSB2_NF(ID))              &
+                          /RNFP0(NSA1)
+                     SPPF(NTH,NP,NR,NSA2)=                  &
+                          SPPF(NTH,NP,NR,NSA2)              &
                           -RATE_NF_D2(NTH,NP,NR,ID)                &
-                          /RNFP0(NSB2_NF(ID))
+                          /RNFP0(NSA2)
                   ENDDO
                ENDDO
             ENDDO
@@ -867,12 +938,11 @@
       USE fpnflg
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NSA
-      integer:: NSB, NSBA, NR, NTH, NP, NS, ID
+      integer:: NSB, NR, NTH, NP, NS, ID, NSA1, NSA2
       integer:: NBEAM, NSABEAM, NSAX
       DOUBLE PRECISION:: PSP, SUML, ANGSP, SPL
 
       NS=NS_NSA(NSA)
-      NSBA=NSB_NSA(NSA)
 
       DO ID=1,6
          IF(NSA.EQ.NSA1_NF(ID)) THEN
@@ -882,10 +952,10 @@
                IF(MODELS.EQ.3) CALL NF_REACTION_RATE_LG(NR,ID)
 !               DO NP=1,NPMAX-1
                DO NP=NPSTART,NPEND
-                  IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
+                  IF(PG(NP,NS).LE.PSP.AND.PG(NP+1,NS).GT.PSP) THEN
                      SUML=0.D0
                      DO NTH=1,NTHMAX
-                        SUML=SUML+VOLP(NTH,NP,NSBA)!*RLAMDA(NTH,NR)
+                        SUML=SUML+VOLP(NTH,NP,NS)!*RLAMDA(NTH,NR)
                      ENDDO
                      DO NTH=1,NTHMAX
                         SPPF(NTH,NP,NR,NSA)=SPPF(NTH,NP,NR,NSA) &
@@ -894,18 +964,18 @@
                   ENDIF
                ENDDO
             ENDDO
-            IF(PSP.ge.PG(NPMAX,NSBA))THEN
+            IF(PSP.ge.PG(NPMAX,NS))THEN
                NP=NPMAX
                IF(N_IMPL.eq.0.or.N_IMPL.gt.LMAXFP)THEN
                   write(6,'(A,I5,1P3E12.4)') '  |-NP,PSP,PG=',&
-                       NP,PSP,PMAX(NSBA)
+                       NP,PSP,PMAX(NS)
                   WRITE(6,*) ' |-  OUT OF RANGE PMAX'
                END IF
                IF(NPEND.eq.NPMAX)THEN
                   DO NR=NRSTART,NREND
                      SUML=0.D0
                      DO NTH=1,NTHMAX
-                        SUML=SUML+VOLP(NTH,NP,NSBA)!*RLAMDA(NTH,NR)
+                        SUML=SUML+VOLP(NTH,NP,NS)!*RLAMDA(NTH,NR)
                      ENDDO
                      DO NTH=1,NTHMAX
                         SPPF(NTH,NP,NR,NSA)=SPPF(NTH,NP,NR,NSA) &
@@ -922,10 +992,10 @@
                IF(MODELS.EQ.3) CALL NF_REACTION_RATE_LG(NR,ID)
 !               DO NP=1,NPMAX-1
                DO NP=NPSTART,NPEND
-                  IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
+                  IF(PG(NP,NS).LE.PSP.AND.PG(NP+1,NS).GT.PSP) THEN
                      SUML=0.D0
                      DO NTH=1,NTHMAX
-                        SUML=SUML+VOLP(NTH,NP,NSBA)!*RLAMDA(NTH,NR)
+                        SUML=SUML+VOLP(NTH,NP,NS)!*RLAMDA(NTH,NR)
                      ENDDO
                      DO NTH=1,NTHMAX
                         SPPF(NTH,NP,NR,NSA)=SPPF(NTH,NP,NR,NSA) &
@@ -936,18 +1006,19 @@
             ENDDO
          ENDIF
          IF( NSA.EQ.NSA1_NF(ID).or.NSA.EQ.NSA2_NF(ID) ) THEN
+            NSA1=NSA_NSB(NSB1_NF(ID))
+            NSA2=NSA_NSB(NSB2_NF(ID))
             DO NR=NRSTART,NREND
-!               DO NP=1,NPMAX
                DO NP=NPSTART,NPEND
                   DO NTH=1,NTHMAX
-                     SPPF(NTH,NP,NR,NSB1_NF(ID))=                  &
-                          SPPF(NTH,NP,NR,NSB1_NF(ID))              &
+                     SPPF(NTH,NP,NR,NSA1)=                  &
+                          SPPF(NTH,NP,NR,NSA1)              &
                           -RATE_NF_D1(NTH,NP,NR,ID)                &
-                          /RNFP0(NSB1_NF(ID))
-                     SPPF(NTH,NP,NR,NSB2_NF(ID))=                  &
-                          SPPF(NTH,NP,NR,NSB2_NF(ID))              &
+                          /RNFP0(NSA1)
+                     SPPF(NTH,NP,NR,NSA2)=                  &
+                          SPPF(NTH,NP,NR,NSA2)              &
                           -RATE_NF_D2(NTH,NP,NR,ID)                &
-                          /RNFP0(NSB2_NF(ID))
+                          /RNFP0(NSA2)
                   ENDDO
                ENDDO
             ENDDO
@@ -961,6 +1032,8 @@
       IMPLICIT NONE
 
       SPPF(:,:,:,:)=0.D0
+!      RATE_NF(:,:)=0.D0
+!      RATE_NF_BB(:,:)=0.D0
 
       END SUBROUTINE fusion_source_init
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -968,17 +1041,18 @@
 
       IMPLICIT NONE
       real(8):: alpha, rgama_para, u, rgama
-      integer:: NSA, NTH, NP, NR
+      integer:: NSA, NTH, NP, NR, NS
 
-      DO NSA=nSASTART,NSAEND
+      DO NSA=NSASTART,NSAEND
+         NS=NS_NSA(NSA)
       DO NR=NRSTART, NREND
 
          DO NP=NPSTART, NPENDWG
-            rgama=SQRT(1.D0+THETA0(NSA)*PG(NP,NSA)**2)
+            rgama=SQRT(1.D0+THETA0(NS)*PG(NP,NSA)**2)
             alpha=(2.D0*AEE**4)/(3*AMFP(NSA)**3*VC**5*RGAMA)*1.e30
             u=PTFP0(NSA)*PG(NP,NSA)/AMFP(NSA)
             DO NTH=1, NTHMAX
-               rgama_para=SQRT(1.D0+THETA0(NSA)*PG(NP,NSA)**2*COSM(NTH)**2)
+               rgama_para=SQRT(1.D0+THETA0(NS)*PG(NP,NSA)**2*COSM(NTH)**2)
                
                FSPP(NTH,NP,NR,NSA)= -&
                     alpha*BB**2*rgama_para**2*U*SINM(NTH)**2* &
@@ -988,11 +1062,11 @@
          END DO
          
          DO NP=NPSTARTW, NPENDWM
-            rgama=SQRT(1.D0+THETA0(NSA)*PM(NP,NSA)**2)
+            rgama=SQRT(1.D0+THETA0(NS)*PM(NP,NSA)**2)
             alpha=(2.D0*AEE**4)/(3*AMFP(NSA)**3*VC**5*RGAMA)*1.e30
             u=PTFP0(NSA)*PM(NP,NSA)/AMFP(NSA)
             DO NTH=1, NTHMAX+1
-               rgama_para=SQRT(1.D0+THETA0(NSA)*PM(NP,NSA)**2*COSG(NTH)**2)
+               rgama_para=SQRT(1.D0+THETA0(NS)*PM(NP,NSA)**2*COSG(NTH)**2)
                
                FSTH(NTH,NP,NR,NSA)= -&
                     alpha*BB**2*rgama_para**2*U*SING(NTH)*COSG(NTH)* &
@@ -1010,17 +1084,18 @@
 
       IMPLICIT NONE
       real(8):: rgama
-      INTEGER:: NSA,NTH, NP, NR
+      INTEGER:: NSA,NTH, NP, NR, NS
 
       DO NSA=NSASTART, NSAEND
+         NS=NS_NSA(NSA)
       DO NR=NRSTART, NREND
       DO NP=NPSTART, NPENDWG
-         rgama=SQRT(1.D0+THETA0(NSA)*PG(NP,NSA)**2)
+         rgama=SQRT(1.D0+THETA0(NS)*PG(NP,NS)**2)
          IF(NP.ne.1)THEN
             DO NTH=1,NTHMAX
                FLPP(NTH,NP,NR,NSA)=-1.D0/tau_quench!/PG(NP,NSA)**2
                DLPP(NTH,NP,NR,NSA)=-FLPP(NTH,NP,NR,NSA) * &
-                    (RT_quench(NR)*rgama)/(RTFP0(NSA)*PG(NP,NSA))
+                    (RT_quench(NR)*rgama)/(RTFP0(NSA)*PG(NP,NS))
             END DO
          ELSE
             DO NTH=1,NTHMAX
@@ -1042,7 +1117,8 @@
       INTEGER:: NS,NTH,NP,NR,NSB
       real(kind8):: tau_imp, FACTZ, imp_charge, SUM_MGI
 
-      tau_imp=5.D0*tau_quench
+!      tau_imp=5.D0*tau_quench
+      tau_imp=tau_mgi
 !      N_impu=3
 !      target_zeff_mgi=3.D0
 !      SPITOT=0.5D0 ! m^-3 on axis ! desired value of e dens.
@@ -1067,18 +1143,20 @@
 
       implicit none
       integer,intent(in):: NR,NSA,N_ion
+      integer:: NS
       real(kind8),intent(in):: PML
       real(kind8):: rnfp0l,rtfp0l,ptfp0l,RTFD0L
       real(kind8):: amfpl,rnfpl,rtfpl,fact,ex,theta0l,thetal,z,dkbsl
       real(kind8):: FPMXWL_IMP, target_Z, target_ne, target_ni
 
+      NS=NS_NSA(NSA)
 !      AMFPL=PA(NSA)*AMP
-      RTFD0L=(PTPR(NSA)+2.D0*PTPP(NSA))/3.D0
-      RNFP0L=PN(NSA)
-      RTFP0L=(PTPR(NSA)+2.D0*PTPP(NSA))/3.D0
+      RTFD0L=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
+      RNFP0L=PN(NS)
+      RTFP0L=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
       PTFP0L=SQRT(RTFD0L*1.D3*AEE*AMFPL)
 
-      target_z=ABS(PZ(NSA))
+      target_z=ABS(PZ(NS))
       target_ni=(SPITOT-RNFP0(1))*RNFP(NR,NSA)/RNFP0(NSA)/target_z
 
       RNFPL=target_ni
@@ -1100,7 +1178,7 @@
             FPMXWL_IMP=FACT*EXP(-EX)
          ENDIF
       ELSE
-         THETA0L=THETA0(NSA)
+         THETA0L=THETA0(NS)
          THETAL=THETA0L*RTFPL/RTFP0L
          Z=1.D0/THETAL
             DKBSL=BESEKN(2,Z)
@@ -1117,27 +1195,114 @@
 
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NSA
-      INTEGER:: NS,NTH,NP,NR, NSBA
+      INTEGER:: NS,NTH,NP,NR
       double precision:: tau_dB, rgama, factp, factr, diff_c
 
       NS=NS_NSA(NSA)
-      NSBA=NSB_NSA(NSA)
 
       DO NR=NRSTART, NREND
          DO NP=NPSTART, NPEND
             DO NTH=1, NTHMAX
-               RGAMA=SQRT(1.D0+THETA0(NSBA)*PM(NP,NSBA)**2)
-               FACTP=PI*RR*PM(NP,NSBA)*ABS(COSM(NTH))/RGAMA *PTFP0(NSBA)/AMFP(NSBA)
+               RGAMA=SQRT(1.D0+THETA0(NS)*PM(NP,NS)**2)
+               FACTP=PI*RR*PM(NP,NS)*ABS(COSM(NTH))/RGAMA *PTFP0(NSA)/AMFP(NSA)
                FACTR=QLM(NR)*deltaB_B**2
                diff_c = FACTR*FACTP/(RA**2)
                tau_dB = 3.D0*(1.D0-RM(NR)**2)/(4.D0*diff_c)
 
-               SPPL(NTH,NP,NR,NSBA) = -FNSP(NTH,NP,NR,NSBA)/tau_dB
+               SPPL(NTH,NP,NR,NSA) = -FNSP(NTH,NP,NR,NSA)/tau_dB
             END DO
          END DO
       END DO
 
 
       END SUBROUTINE DELTA_B_LOSS_TERM
+!-------------------------------------------------------------
+      SUBROUTINE CX_LOSS_TERM(NSA)
+
+      IMPLICIT NONE
+      integer,intent(in):: NSA
+      double precision:: sigma_cx, k_energy, log_energy
+      double precision:: log10_neu0, log10_neus, alpha, beta
+      integer:: NP, NTH, NR, NS
+      double precision,dimension(NRSTART:NREND):: RN_NEU
+
+      NS=NS_NSA(NSA)
+
+      log10_neu0=LOG10(RN_NEU0)
+      log10_neus=LOG10(RN_NEUS)
+
+!     neutral gas profile
+      SELECT CASE(MODEL_CX_LOSS)
+      CASE(1)
+         alpha=2.5D0
+         beta=0.8D0
+         DO NR=NRSTART, NREND
+            RN_NEU(NR)=10**( (log10_neu0-log10_neus)*(1.D0-RM(NR)**alpha)**beta+log10_neus )
+         END DO
+      END SELECT
+
+      IF(MODEL_DELTA_F(NS).eq.0)THEN
+         DO NR=NRSTART, NREND
+            DO NP=NPSTART, NPEND
+               k_energy = 0.5D0*(PTFP0(NSA)*PM(NP,NS))**2/(AMFP(NSA)*AEE)
+               log_energy = dlog10(k_energy)
+!     sigma_cx in literature is written in [cm^2]
+               sigma_cx = 0.6937D-14*(1.D0-0.155D0*log_energy)**2/ &
+                    (1.D0+0.1112D-14*k_energy**3.3D0)*1.D-4
+!            WRITE(*,'(I5,1P5E14.6)') NP, PM(NP,NSA), k_energy, k_energy*AEE, sigma_cx, sigma_cx*VTFP0(NSA)*PM(NP,NSA)
+               DO NTH=1, NTHMAX
+                  SPPL_CX(NTH,NP,NR,NSA) = -RN_NEU(NR)*1.D20 &
+                       *sigma_cx*VTFP0(NSA)*PM(NP,NS)*FNSP(NTH,NP,NR,NSA)
+               END DO
+            END DO
+         END DO
+      ELSEIF(MODEL_DELTA_F(NS).eq.1)THEN
+         DO NR=NRSTART, NREND
+            DO NP=NPSTART, NPEND
+               k_energy = 0.5D0*(PTFP0(NSA)*PM(NP,NS))**2/(AMFP(NSA)*AEE)
+               log_energy = dlog10(k_energy)
+!     sigma_cx in literature is written in [cm^2]
+               sigma_cx = 0.6937D-14*(1.D0-0.155D0*log_energy)**2/ &
+                    (1.D0+0.1112D-14*k_energy**3.3D0)*1.D-4
+!            WRITE(*,'(I5,1P5E14.6)') NP, PM(NP,NSA), k_energy, k_energy*AEE, sigma_cx, sigma_cx*VTFP0(NSA)*PM(NP,NSA)
+               DO NTH=1, NTHMAX
+                  SPPL_CX(NTH,NP,NR,NSA) = -RN_NEU(NR)*1.D20 &
+                       *sigma_cx*VTFP0(NSA)*PM(NP,NS)*FNSP_DEL(NTH,NP,NR,NSA)
+               END DO
+            END DO
+         END DO
+
+
+      END IF
+
+      
+!      DO NR=NRSTART, NREND
+!         DO NP=NPSTART, NPEND
+!            DO NTH=1, NTHMAX
+!               SPPL(NTH,NP,NR,NSA) = SPPL(NTH,NP,NR,NSA) + SPPL_CX(NTH,NP,NR,NSA)
+!            END DO
+!         END DO
+!      END DO
+
+      END SUBROUTINE CX_LOSS_TERM
+!-------------------------------------------------------------
+      SUBROUTINE update_fnsb_maxwell
+
+      IMPLICIT NONE
+      INTEGER:: NS, NR, NP, NTH
+      double precision:: FL
+
+      DO NS=1, NSMAX
+         DO NR=NRSTART,NREND
+            DO NP=NPSTART,NPEND
+               FL=FPMXWL(PM(NP,NS),NR,NS)
+               DO NTH=1,NTHMAX
+                  FNSB(NTH,NP,NR,NS)=FL
+               END DO
+            ENDDO
+         END DO
+      END DO
+
+      END SUBROUTINE update_fnsb_maxwell
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       END MODULE fpcoef

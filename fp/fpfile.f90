@@ -24,11 +24,11 @@
       WRITE(21) NRMAX,NPMAX,NTHMAX,NSAMAX
       WRITE(21) DELR,DELTH,RMIN,RMAX
       DO NSA=1,NSAMAX
-         NSBA=NSB_NSA(NSA)
+         NS=NS_NSA(NSA)
          WRITE(21) NS_NSA(NSA)
-         WRITE(21) DELP(NSBA)
+         WRITE(21) DELP(NS)
          WRITE(21) AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
-         WRITE(21) (((FNS(NTH,NP,NR,NSBA),NTH=1,NTHMAX), &
+         WRITE(21) (((FNS(NTH,NP,NR,NSA),NTH=1,NTHMAX), &
                       NP=1,NPMAX),NR=1,NRMAX)
       ENDDO
       CLOSE(21)
@@ -56,8 +56,9 @@
       READ(21) NRMAX,NPMAX,NTHMAX,NSAMAX
       READ(21) DELR,DELTH,RMIN,RMAX
       DO NSA=1,NSAMAX
+         NS=NS_NSA(NSA)
          READ(21) NS_NSA(NSA)
-         READ(21) DELP(NSBA)
+         READ(21) DELP(NS)
          READ(21) AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
          READ(21) (((FNS(NTH,NP,NR,NSA),NTH=1,NTHMAX), &
                       NP=1,NPMAX),NR=1,NRMAX)
@@ -72,7 +73,7 @@
       SUBROUTINE FP_SAVE2
 
       IMPLICIT NONE
-      INTEGER:: NSA, NR, NP, NTH, NSB, NS, IERR, NSBA
+      INTEGER:: NSA, NR, NP, NTH, NSB, NS, IERR
 
       CALL FWOPEN(21,KNAMFP,0,MODEFW,'FP',IERR)
       IF(IERR.NE.0) THEN
@@ -93,8 +94,9 @@
          END DO
       END DO
 
-      WRITE(21) ( (RN_IMPL(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
-      WRITE(21) ( (RT_IMPL(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
+      WRITE(21) ( (RN_TEMP(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
+      WRITE(21) ( (RT_TEMP(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
+      WRITE(21) ( (RT_BULK(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
       WRITE(21) (E1(NR),NR=1,NRMAX) ! -> EP
 
       IF(MODELD.ne.0)THEN
@@ -126,10 +128,11 @@
       WRITE(21) NRMAX,NPMAX,NTHMAX,NSAMAX
       WRITE(21) DELR,DELTH,RMIN,RMAX
       DO NSA=1,NSAMAX
-         NSBA=NSB_NSA(NSA)
          WRITE(21) NS_NSA(NSA)
-         WRITE(21) DELP(NSBA),PMAX(NSA)
          WRITE(21) AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
+      ENDDO
+      DO NS=1,NSMAX
+         WRITE(21) DELP(NS),PMAX(NS),EMAX(NS)
       ENDDO
       CLOSE(21)
 
@@ -141,7 +144,7 @@
       SUBROUTINE FP_LOAD2
 
       IMPLICIT NONE
-      INTEGER:: NSA, NR, NP, NTH, NSB, IERR, NSBA, NS
+      INTEGER:: NSA, NR, NP, NTH, NSB, IERR, NS
 
       CALL FROPEN(21,KNAMFP,0,MODEFR,'FP',IERR)
       IF(IERR.NE.0) THEN
@@ -161,9 +164,10 @@
             END DO
          END DO
       END DO
-      
-      READ(21) ( (RN_IMPL(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
-      READ(21) ( (RT_IMPL(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
+
+      READ(21) ( (RN_TEMP(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
+      READ(21) ( (RT_TEMP(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
+      READ(21) ( (RT_BULK(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
       READ(21) (E1(NR),NR=1,NRMAX) ! -> EP
 
       IF(MODELD.ne.0)THEN
@@ -191,14 +195,15 @@
       END IF
 
 
-! required for other compponents
+! required for other components
       READ(21) NRMAX,NPMAX,NTHMAX,NSAMAX
       READ(21) DELR,DELTH,RMIN,RMAX
       DO NSA=1,NSAMAX
-         NSBA=NSB_NSA(NSA)
          READ(21) NS_NSA(NSA)
-         READ(21) DELP(NSBA),PMAX(NSA)
          READ(21) AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
+      ENDDO
+      DO NS=1,NSMAX
+         READ(21) DELP(NS),PMAX(NS),EMAX(NS)
       ENDDO
       CLOSE(21)
 
@@ -214,11 +219,11 @@
       USE fpmpi
       IMPLICIT NONE
       integer:: NSW, N, NSA, ierr, i
-      real:: gut1, gut2
+!      real:: gut1, gut2
       integer,dimension(1:6):: idata
       integer,dimension(6*nsize):: idata2
 
-      CALL GUTIME(gut1) 
+!      CALL GUTIME(gut1) 
       CALL fp_comm_setup
       CALL fp_allocate
       call fp_allocate_ntg1
@@ -279,6 +284,8 @@
          CALL set_post_disrupt_Clog_f
          call mtx_broadcast_real8(POST_tau_ta0_f,nsamax)
       END IF
+!      CALL GUTIME(gut2) 
+!      WRITE(*,'(A,E14.6)') "PRE LOAD GUT= ", gut2-gut1
 
       END SUBROUTINE FP_PRE_LOAD
 !------------------------------------------      
@@ -287,13 +294,21 @@
       USE fpprep
       USE libmpi
       USE fpmpi
+      USE eg_read
+      USE plprof
+      USE fpnfrr
+      USE fpnflg
       IMPLICIT NONE
-      integer:: NSW, N, NSA, ierr, i, NR, NSB
+      integer:: NSA, ierr, NR, NS, NP, NTH, NBEAM
+      double precision:: FL, RHON
+      real(8),dimension(NRMAX,NSMAX):: tempt, tempn 
+      TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
 
       CALL mtx_reset_communicator
       CALL scatter_fns_to_fns0
 
       CALL mtx_set_communicator(comm_nsa)
+      CALL update_fnsb_maxwell
       CALL update_fnsb
       CALL mtx_reset_communicator
 
@@ -307,10 +322,78 @@
          EM(NR)=0.D0
       END DO
 
+      IF(MODEL_NBI.eq.2)THEN
+         DO NBEAM=1, NBEAMMAX
+            NS=NSSPB(NBEAM)
+            IF(PA(NS).eq.1)THEN
+               CALL READ_FIT3D_H
+            ELSEIF(PA(NS).eq.2)THEN
+               CALL READ_FIT3D_D
+            END IF
+         END DO
+!         CALL UNITE_READ_DATA_FIT
+      END IF
+      
       CALL FNSP_INIT_EDGE
+      IF(MODELS.eq.3) CALL NF_LG_FUNCTION
+      IF(MODELS.ne.0) CALL NF_REACTION_COEF
       CALL fp_continue(ierr)
       CALL fp_set_initial_value_from_f
 
+!      DO NS=1, NSMAX
+!         DO NR=1, NRMAX
+!            tempn(NR,NS)=RN_TEMP(NR,NS)
+!            tempt(NR,NS)=RT_TEMP(NR,NS)
+!         END DO
+!      END DO
+
+      DO NSA=NSASTART,NSAEND
+         NS=NS_NSA(NSA)
+         IF(MODEL_DELTA_F(NS).eq.1)THEN
+            DO NR=NRSTARTW, NRENDWM
+!               IF(MODEL_BULK_CONST.ge.1)THEN
+!                  RHON=RM(NR)
+!                  CALL PL_PROF(RHON,PLF)
+!                  RN_TEMP(NR,NS)=PLF(NS)%RN
+!                  RT_TEMP(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+!               END IF
+               DO NP=NPSTARTW, NPENDWM
+                  IF(NP.le.NP_BULK(NR,NSA))THEN
+                     DO NTH=1, NTHMAX
+                        IF(MODEL_EX_READ_Tn.eq.0)THEN
+                           FL=FPMXWL(PM(NP,NS),NR,NS)   
+                        ELSE
+                           FL=FPMXWL_EXP(PM(NP,NS),NR,NS)
+                        END IF
+                        FNSP_MXWL(NTH,NP,NR,NSA)=FL
+                        FNSP_DEL(NTH,NP,NR,NSA)=FNSP(NTH,NP,NR,NSA)-FNSP_MXWL(NTH,NP,NR,NSA)
+                     END DO
+                  ELSE
+                     DO NTH=1, NTHMAX
+                        IF(MODEL_EX_READ_Tn.eq.0)THEN
+                           FL=FPMXWL(PM(NP,NS),NR,NS)   
+                        ELSE
+                           FL=FPMXWL_EXP(PM(NP,NS),NR,NS)
+                        END IF
+                        FNSP_MXWL(NTH,NP,NR,NSA)=FL
+                        FNSP_DEL(NTH,NP,NR,NSA)=FNSP(NTH,NP,NR,NSA)-FNSP_MXWL(NTH,NP,NR,NSA)
+                     END DO
+                  END IF
+                  NTH=1
+!                  IF(NSA.eq.3)WRITE(*,'(4I5,3E14.6)') NRANK, NP, NR, NSA, FNSP_MXWL(NTH,NP,NR,NSA),FNSP_DEL(NTH,NP,NR,NSA),FNS0(NTH,NP,NR,NSA)
+               END DO
+!               WRITE(*,'(3I5,3E14.6)') NR, NS, NRANK, RN_TEMP(NR,NS), RT_TEMP(NR,NS), RT_BULK(NR,NS)
+            END DO
+         END IF
+      END DO
+
+!      DO NSA=1, NSAMAX
+!         DO NR=1, NRMAX
+!            NS=NS_NSA(NSA)
+!            RN_TEMP(NR,NS)=tempn(NR,NS)
+!            RT_TEMP(NR,NS)=tempt(NR,NS)
+!         END DO
+!      END DO
 
       END SUBROUTINE FP_POST_LOAD
 !------------------------------------------      
@@ -336,8 +419,9 @@
       END DO
       TIMEFP=rdata(NRMAX+1)
 
-      CALL mtx_broadcast_real8(RN_IMPL,NRMAX*NSAMAX)
-      CALL mtx_broadcast_real8(RT_IMPL,NRMAX*NSAMAX)
+      CALL mtx_broadcast_real8(RN_TEMP,NRMAX*NSAMAX)
+      CALL mtx_broadcast_real8(RT_TEMP,NRMAX*NSAMAX)
+      CALL mtx_broadcast_real8(RT_BULK,NRMAX*NSAMAX)
 
       IF(MODELD.ne.0)THEN
          CALL mtx_broadcast_real8(WEIGHR_G,NTHMAX*NPMAX*(NRMAX+1)*NSAMAX)
@@ -449,12 +533,8 @@
       integer,dimension(NTHMAX,NPMAX)::vloc_max
 
       double precision,dimension(nthmax,npmax,nrmax+1,nsastart:nsaend):: temp_l2
-      double precision,dimension(nthmax,npstart:npend):: dsend2
-      double precision,dimension(nthmax,npmax):: drecv2
-      integer,dimension(NRMAX,NSBMAX)::vloc
-      integer,dimension(NTHMAX*(NPEND-NPSTART+1))::vloc2
       integer:: nsend
-      INTEGER:: NR, NSB, NSA, NTH, NP, dest, source, tag, nn, Isum, NRE
+      INTEGER:: NR, NSB, NSA, NTH, NP!, dest, source, tag, nn, Isum
 !!!!!!!!!!!!
 
       IF(MODELD.ne.0)THEN
@@ -538,8 +618,18 @@
       USE libmpi      
       IMPLICIT NONE
 
+      IF(OUTPUT_TXT_F1.eq.1) OPEN(9,file="f1_1.dat") 
+      IF(OUTPUT_TXT_BEAM_WIDTH.eq.1)THEN
+         OPEN(24,file="time_evol_f1.dat") 
+         OPEN(31,file="t-beam_count.dat")
+      END IF
+!      OPEN(28,file="RPCS2_NSB_D.dat")
+      IF(OUTPUT_TXT_HEAT_PROF.eq.1)THEN
+         OPEN(29,file="RPCS2_NSB_H.dat")
+         OPEN(30,file="RPCS2_NSB_H_DEL.dat")
+         OPEN(32,file="RSPL_NSB.dat")
+      END IF
       IF(MODEL_DISRUPT.ne.0.and.NRANK.eq.0)THEN
-         OPEN(9,file="f1_1.dat") 
          open(10,file='time_evol.dat') 
          open(11,file='efield_e1.dat') 
          open(12,file='dndt.dat') 
@@ -549,8 +639,12 @@
          open(18,file='efield_ref.dat')
          open(23,file='collision_time.dat')
       END IF
+      IF(MODELS.eq.2)THEN
+         open(25,file='fusion_reaction_rate.dat')
+      END IF
+      IF(OUTPUT_TXT_DELTA_F.eq.1) OPEN(33,file='output_fns_del.dat')
 
-      open(19,file='p-T_bulk.dat')
+!      open(19,file='p-T_bulk.dat')
 !      open(20,file='DCPP.dat')
 !      open(16,file='err_message_for_RT_BULK.dat')
 
@@ -561,8 +655,18 @@
       USE libmpi      
       IMPLICIT NONE
 
+      IF(OUTPUT_TXT_F1.eq.1) close(9)
+      IF(OUTPUT_TXT_BEAM_WIDTH.eq.1)THEN
+         close(24)
+         close(31)
+      END IF
+      IF(OUTPUT_TXT_HEAT_PROF.eq.1)THEN
+         close(29)
+         close(30)
+         close(32)
+      END IF
+
       IF(MODEL_DISRUPT.ne.0.and.NRANK.eq.0)THEN
-         close(9)
          close(10)
          close(11)
          close(12)
@@ -572,7 +676,11 @@
          close(18)  
          close(23)  
       END IF
-      close(19)
+      IF(MODELS.eq.2)THEN
+         close(25)
+      END IF
+      IF(OUTPUT_TXT_DELTA_F.eq.1) close(33)
+!      close(19)
 !      close(20)  
 !      close(16)  
 

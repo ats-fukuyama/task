@@ -15,7 +15,7 @@
 
 !--------------------------------------
 
-      SUBROUTINE FP_CALWR
+      SUBROUTINE FP_CALWR(NSA)
 
       USE fpwrin
       USE plprof,ONLY: pl_getRZ
@@ -39,9 +39,7 @@
       ALLOCATE(DLA(0:NITMAXM,NRAYMAX))
       FACT=0.5D0
 
-      DO NSA=NSASTART,NSAEND
       NS=NS_NSA(NSA)
-      NSBA=NSB_NSA(NSA)
 
       IF(MODELW(NS).EQ.1.OR.MODELW(NS).EQ.2) THEN
          DO NRDO=NRSTART,NREND
@@ -55,7 +53,7 @@
 
                   DO NRAY=1,NRAYMAX
                      NITMX=NITMAX(NRAY)
-                     RFDW=RAYIN(1,NRAY)
+                     RF_WR=RAYIN(1,NRAY)
 
                      DO NIT=0,NITMX
                         RXB=RXS(NIT,NRAY)
@@ -64,6 +62,8 @@
                         RRLB=SQRT(RXB**2+RYB**2)
                         RZLB=RZB
                         DLA(NIT,NRAY)=SQRT((RRLB-RL)**2+(RZLB-ZL)**2)
+!                        write(6,'(A,2I5,1P3E12.4)') &
+!                          'point 2',NRAY,NIT,RRLB,RZLB,DLA(NIT,NRAY)
                      ENDDO
 
                      MINNB1=0
@@ -81,6 +81,10 @@
                      ELSE
                         MINNB2=MINNB1+1
                      ENDIF
+
+!                     write(6,'(A,4I5,1P4E12.4)') &
+!                    'point 3',NRAY,NIT,MINNB1,MINNB2, &
+!                     DLA(MINNB1,NRAY),DLA(MINNB2,NRAY)
 
                      DLAMN1=   DLA(MINNB1,NRAY)
                      RXMIN1=   RXS(MINNB1,NRAY)
@@ -146,10 +150,10 @@
 1                    CONTINUE
             
 !            IF(IDEBUG.EQ.1) THEN
-!               WRITE(6,'(3I3)') NR,NAV,NCR
-!               WRITE(6,'(1P3E12.4)') X,Y,Z
-!               WRITE(6,'(1P3E12.4)') RX,RY,RZ
-!               WRITE(6,'(1P3E12.4)') DELR2,DELCR2,ARG
+!               WRITE(6,'(5I5)') NR,NTH,NAV,NRAY,NIT
+!               WRITE(6,'(1P4E12.4)') RRLMN1,RRLMN2,RZLMN1,RZLMN2
+!               WRITE(6,'(1P6E12.4)') CEX,CEY,CEZ
+!               WRITE(6,'(1P3E12.4)') DELCR2,DELRB2,ARG
 !            ENDIF
 
                   ENDDO
@@ -164,10 +168,14 @@
             IF(NTH.NE.ITL(NR).AND.NTH.NE.ITU(NR)) THEN
 !               DO NP=1,NPMAX+1
                DO NP=NPSTART,NPENDWG
-                  CALL FPDWAV(ETAM(NTH,NR),SINM(NTH),COSM(NTH),PG(NP,NSBA), &
+                  CALL FPDWAV(ETAM(NTH,NR),SINM(NTH),COSM(NTH),PG(NP,NS), &
                               NR,NTH,DWPPS,DWPTS,DWTPS,DWTTS,NSA)
-                  DWPP(NTH,NP,NR,NSA)=DWPPS
-                  DWPT(NTH,NP,NR,NSA)=DWPTS
+                  DWWRPP(NTH,NP,NR,NSA)=DWPPS
+                  DWWRPT(NTH,NP,NR,NSA)=DWPTS
+!                  IF(ABS(DWPPS).GT.1.D-12) THEN
+!                     WRITE(6,'(A,3I5,1PE12.4)') &
+!                          'NR,NTH,NP,DWPPS=',NR,NTH,NP,DWPPS
+!                  END IF
                ENDDO
             ENDIF
          ENDDO
@@ -176,26 +184,26 @@
 !            DO NP=1,NPMAX+1
             DO NP=NPSTART,NPENDWG
                DO NTH=ITL(NR)+1,NTHMAX/2
-                  DWPP(NTH,NP,NR,NSA)  =(DWPP(NTH,NP,NR,NSA) &
-                                        +DWPP(NTHMAX-NTH+1,NP,NR,NSA))*FACT
-                  DWPT(NTH,NP,NR,NSA)  =(DWPT(NTH,NP,NR,NSA) &
-                                        +DWPT(NTHMAX-NTH+1,NP,NR,NSA))*FACT
-                  DWPP(NTHMAX-NTH+1,NP,NR,NSA)  =DWPP(NTH,NP,NR,NSA)
-                  DWPT(NTHMAX-NTH+1,NP,NR,NSA)  =DWPT(NTH,NP,NR,NSA)
+                  DWWRPP(NTH,NP,NR,NSA)  =(DWWRPP(NTH,NP,NR,NSA) &
+                                          +DWWRPP(NTHMAX-NTH+1,NP,NR,NSA))*FACT
+                  DWWRPT(NTH,NP,NR,NSA)  =(DWWRPT(NTH,NP,NR,NSA) &
+                                          +DWWRPT(NTHMAX-NTH+1,NP,NR,NSA))*FACT
+                  DWWRPP(NTHMAX-NTH+1,NP,NR,NSA)  =DWWRPP(NTH,NP,NR,NSA)
+                  DWWRPT(NTHMAX-NTH+1,NP,NR,NSA)  =DWWRPT(NTH,NP,NR,NSA)
                ENDDO
-               DWPP(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)/4.D0             &
-                    *( DWPP(ITL(NR)-1,NP,NR,NSA)/RLAMDA(ITL(NR)-1,NR) &
-                      +DWPP(ITL(NR)+1,NP,NR,NSA)/RLAMDA(ITL(NR)+1,NR) &
-                      +DWPP(ITU(NR)-1,NP,NR,NSA)/RLAMDA(ITU(NR)-1,NR) &
-                      +DWPP(ITU(NR)+1,NP,NR,NSA)/RLAMDA(ITU(NR)+1,NR))
+               DWWRPP(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)/4.D0             &
+                    *( DWWRPP(ITL(NR)-1,NP,NR,NSA)/RLAMDA(ITL(NR)-1,NR) &
+                      +DWWRPP(ITL(NR)+1,NP,NR,NSA)/RLAMDA(ITL(NR)+1,NR) &
+                      +DWWRPP(ITU(NR)-1,NP,NR,NSA)/RLAMDA(ITU(NR)-1,NR) &
+                      +DWWRPP(ITU(NR)+1,NP,NR,NSA)/RLAMDA(ITU(NR)+1,NR))
 
-               DWPT(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)/4.D0             &
-                    *( DWPT(ITL(NR)-1,NP,NR,NSA)/RLAMDA(ITL(NR)-1,NR) &
-                      +DWPT(ITL(NR)+1,NP,NR,NSA)/RLAMDA(ITL(NR)+1,NR) &
-                      +DWPT(ITU(NR)-1,NP,NR,NSA)/RLAMDA(ITU(NR)-1,NR) &
-                      +DWPT(ITU(NR)+1,NP,NR,NSA)/RLAMDA(ITU(NR)+1,NR))
-               DWPP(ITU(NR),NP,NR,NSA)  =DWPP(ITL(NR),NP,NR,NSA)
-               DWPT(ITU(NR),NP,NR,NSA)  =DWPT(ITL(NR),NP,NR,NSA)
+               DWWRPT(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)/4.D0             &
+                    *( DWWRPT(ITL(NR)-1,NP,NR,NSA)/RLAMDA(ITL(NR)-1,NR) &
+                      +DWWRPT(ITL(NR)+1,NP,NR,NSA)/RLAMDA(ITL(NR)+1,NR) &
+                      +DWWRPT(ITU(NR)-1,NP,NR,NSA)/RLAMDA(ITU(NR)-1,NR) &
+                      +DWWRPT(ITU(NR)+1,NP,NR,NSA)/RLAMDA(ITU(NR)+1,NR))
+               DWWRPP(ITU(NR),NP,NR,NSA)  =DWWRPP(ITL(NR),NP,NR,NSA)
+               DWWRPT(ITU(NR),NP,NR,NSA)  =DWWRPT(ITL(NR),NP,NR,NSA)
             ENDDO
          ENDIF
       ENDDO
@@ -213,7 +221,7 @@
 
                   DO NRAY=1,NRAYMAX
                      NITMX=NITMAX(NRAY)
-                     RFDW=RAYIN(1,NRAY)
+                     RF_WR=RAYIN(1,NRAY)
 
                      DO NIT=0,NITMX
                         RXB=RXS(NIT,NRAY)
@@ -322,16 +330,16 @@
             IF(NTH.NE.NTHMAX/2+1) THEN
 !               DO NP=1,NPMAX
                DO NP=NPSTARTW,NPENDWM 
-                  CALL FPDWAV(ETAG(NTH,NR),SING(NTH),COSG(NTH),PM(NP,NSBA), &
+                  CALL FPDWAV(ETAG(NTH,NR),SING(NTH),COSG(NTH),PM(NP,NS), &
                               NR,NTH,DWPPS,DWPTS,DWTPS,DWTTS,NSA)
-                  DWTP(NTH,NP,NR,NSA)=DWTPS
-                  DWTT(NTH,NP,NR,NSA)=DWTTS
+                  DWWRTP(NTH,NP,NR,NSA)=DWTPS
+                  DWWRTT(NTH,NP,NR,NSA)=DWTTS
                ENDDO
             ELSE
 !               DO NP=1,NPMAX
                DO NP=NPSTARTW,NPENDWM 
-                  DWTP(NTH,NP,NR,NSA)=0.D0
-                  DWTT(NTH,NP,NR,NSA)=0.D0
+                  DWWRTP(NTH,NP,NR,NSA)=0.D0
+                  DWWRTT(NTH,NP,NR,NSA)=0.D0
                ENDDO
             ENDIF
          ENDDO
@@ -340,17 +348,16 @@
             DO NTH=ITL(NR)+1,NTHMAX/2
                DO NP=NPSTARTW,NPENDWM 
 !               DO NP=1,NPMAX
-                  DWTP(NTH,NP,NR,NSA)=(DWTP(NTH,NP,NR,NSA) &
-                                      -DWTP(NTHMAX-NTH+2,NP,NR,NSA))*FACT
-                  DWTT(NTH,NP,NR,NSA)=(DWTT(NTH,NP,NR,NSA) &
-                                      +DWTT(NTHMAX-NTH+2,NP,NR,NSA))*FACT
-                  DWTP(NTHMAX-NTH+2,NP,NR,NSA)=-DWTP(NTH,NP,NR,NSA)
-                  DWTT(NTHMAX-NTH+2,NP,NR,NSA)= DWTT(NTH,NP,NR,NSA)
+                  DWWRTP(NTH,NP,NR,NSA)=(DWWRTP(NTH,NP,NR,NSA) &
+                                        -DWWRTP(NTHMAX-NTH+2,NP,NR,NSA))*FACT
+                  DWWRTT(NTH,NP,NR,NSA)=(DWWRTT(NTH,NP,NR,NSA) &
+                                        +DWWRTT(NTHMAX-NTH+2,NP,NR,NSA))*FACT
+                  DWWRTP(NTHMAX-NTH+2,NP,NR,NSA)=-DWWRTP(NTH,NP,NR,NSA)
+                  DWWRTT(NTHMAX-NTH+2,NP,NR,NSA)= DWWRTT(NTH,NP,NR,NSA)
                ENDDO
             ENDDO
          ENDIF
       ENDDO
-      END DO
 
       DEALLOCATE(DLA)
       RETURN
@@ -386,23 +393,12 @@
 
       DO NAV=1,NAVMAX
          ETAL=DELH*(NAV-0.5D0)-2.D0*ETA
-
-!         THETAL=ATAN2(RKAP*SIN(ETAL),COS(ETAL))
-!         RRAVE=0.5D0*(RRMAX(NR)+RRMIN(NR))
-!         RSAVE=0.5D0*(RRMAX(NR)-RRMIN(NR))
-!         X=RRAVE+RSAVE*COS(THETAL)
-!         Y=0.D0
-!         Z=      RSAVE*SIN(THETAL)*RKAP
-!
-!         RL=SQRT(X**2+Y**2)
-!         ZL=Z
-
          CALL pl_getRZ(RM(NR),ETAL,RL,ZL)
 
          DO NRAY=1,NRAYMAX
-            RFDW=RAYIN(1,NRAY)
+            RF_WR=RAYIN(1,NRAY)
 
-            IF(MODELW(NS).EQ.1.OR.MODELW(NS).EQ.2) THEN
+            IF(MODELW(NS).EQ.1) THEN
                DO NCR=1,NCRMAX(NR,NRAY)
                   RX=RCR(1,NCR,NR,NRAY)
                   RY=RCR(2,NCR,NR,NRAY)
@@ -440,7 +436,7 @@
                ENDDO
             ENDIF
 
-            IF(MODELW(NS).EQ.1.OR.MODELW(NS).EQ.2) THEN
+            IF(MODELW(NS).EQ.2) THEN
                ARG=ARGB(NR,NTH,NAV,NRAY)
                IF(ARG.GT.0.D0.AND.ARG.LT.15.D0) THEN
                   FACTOR= EXP(-ARG)
@@ -463,28 +459,10 @@
                   DWTPS=DWTPS+DWTPL          /SQRT(PSI)
                   DWTTS=DWTTS+DWTTL*PCOS/RCOS/PSI
 
-!                  WRITE(21,*) NR,NTH,DWPPS
-!                  IF(IDEBUG.EQ.1) THEN
-!                     WRITE(21,'(3I3)') NR,NAV,NCR
-!                     WRITE(21,'(1P3E12.4)') X,Y,Z
-!                     WRITE(21,'(1P3E12.4)') RX,RY,RZ
-!                     WRITE(21,'(1P3E12.4)') DELR2,DELCR2,ARG
-!                  ENDIF
-
                ENDIF
             ENDIF
          ENDDO
       ENDDO
-
-      FACTOR=PWAVE*1.D6/(VC*EPS0) &
-            /(2.D0*PI*RR)         &
-            /SQRT(PI*DELYEC**2/2) &
-            *DELH/(2.D0*PI)
-!      write(6,'(A,2I5,1P5E12.4)') 'FPDWAV:',NR,NTH,FACTOR,DWPPS,ETA,RSIN
-      DWPPS=DWPPS*FACTOR
-      DWPTS=DWPTS*FACTOR
-      DWTPS=DWTPS*FACTOR
-      DWTTS=DWTTS*FACTOR
 
       RETURN
       END SUBROUTINE FPDWAV
@@ -516,7 +494,7 @@
       NS=NS_NSA(NSA)
       CALL pl_mag(RX,RY,RZ,RHON,MAG)
 
-      RW     =2.D0*PI*RFDW*1.D6
+      RW     =2.D0*PI*RF_WR*1.D6
       RWC    =AEFP(NSA)*MAG%BABS/AMFP(NSA)
 
       RKPARA = RKX*MAG%BNX +RKY*MAG%BNY +RKZ*MAG%BNZ
@@ -537,7 +515,7 @@
       CEPLUS =(CE1+CI*CE2)/SQRT(2.D0)
       CEMINUS=(CE1-CI*CE2)/SQRT(2.D0)
 
-      RGAMMA =SQRT(1.D0+P*P*THETA0(NSA))
+      RGAMMA =SQRT(1.D0+P*P*THETA0(NS))
       PPARA  =PTFP0(NSA)*P*PCOS
       PPERP  =PTFP0(NSA)*P*PSIN
       VPARA  =PPARA/(AMFP(NSA)*RGAMMA)
@@ -602,12 +580,13 @@
             DWC=0.D0  
          ELSE
             EX=-((RGAMMA-RKPARA*PPARA/(RW*AMFP(NSA))-NC*RWC/RW) &
-                 /(PPARA*DELNPR/(AMFP(NSA)*VC)))**2
+                 /(PPARA*DELNPR_WR/(AMFP(NSA)*VC)))**2
             IF (EX.LT.-100.D0) THEN 
                 DWC=0.D0
             ELSE
                 DWC=0.5D0*SQRT(PI)*AEFP(NSA)**2*EXP(EX)/PTFP0(NSA)**2 &
-                    /(RW*ABS(PPARA)*DELNPR/(AMFP(NSA)*VC))
+                     /(RW*ABS(PPARA)*DELNPR_WR/(AMFP(NSA)*VC))
+!                WRITE(6,'(A,1P4E12.4)') 'RW,NC*RWC,EX,DWC=',RW,NC*RWC,EX,DWC
             ENDIF
          ENDIF
          DWC11=DWC11+DWC*A11
@@ -625,6 +604,10 @@
            -PSIN*(PSIN*DWC21+PCOS*DWC22)
       DWTTL=PCOS*(PCOS*DWC11-PSIN*DWC12) &
            -PSIN*(PCOS*DWC21-PSIN*DWC22)
+!      IF(ABS(DWPPL).GT.1.D-12) THEN
+!         WRITE(6,'(A,1PE12.4)') 'DWPPL=',DWPPL
+!         WRITE(6,'(A,1P3E12.4)') 'RL,RZ=',SQRT(RX**2+RY**2),RZ
+!      END IF
 
       RETURN
       END SUBROUTINE FPDWLL

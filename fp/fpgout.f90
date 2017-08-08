@@ -71,7 +71,7 @@
       IMPLICIT NONE
       integer,SAVE:: NSA=1,NSB=0
       DATA NSA,NSB/1,0/
-      integer:: NR, NP, NTH, NSA1, NSBA
+      integer:: NR, NP, NTH, NSA1, NS
 !
       real(8),DIMENSION(NTHMAX,NPMAX,NRMAX)::TEMP
       CHARACTER KID*5,KID1*1,KID2*3
@@ -92,20 +92,20 @@
          CALL GUCPTL(KID2(2:2))
          CALL GUCPTL(KID2(3:3))
 !
-      NSBA=NSB_NSA(NSA)
+      NS=NS_NSA(NSA)
       IF (KID1.EQ.'F') THEN
          IF(KID2.EQ.'1  ') THEN
-            CALL FPGRAPA('F1',FNS,NSBA)
+            CALL FPGRAPA('F1',FNS,NSA)
          ELSE IF(KID2.EQ.'R1 ') THEN
-            CALL FPGRAPRA('FR1',FNS,NSBA)
+            CALL FPGRAPRA('FR1',FNS,NSA)
          ELSE IF(KID2.EQ.'2  ') THEN
-            CALL FPGRACB('F2',FNS,4,NSBA)
+            CALL FPGRACB('F2',FNS,4,NSA)
          ELSE IF(KID2.EQ.'X2  ') THEN
             DO NR=1,NRMAX
             DO NP=1,NPMAX
             DO NTH=1,NTHMAX
-               TEMP(NTH,NP,NR)=FNS(NTH,NP,NR,NSBA)         &
-                              -FNS(NTHMAX+1-NTH,NP,NR,NSBA)
+               TEMP(NTH,NP,NR)=FNS(NTH,NP,NR,NSA)         &
+                              -FNS(NTHMAX+1-NTH,NP,NR,NSA)
             ENDDO
             ENDDO
             ENDDO
@@ -115,8 +115,8 @@
             DO NR=1,NRMAX
             DO NP=1,NPMAX
             DO NTH=1,NTHMAX
-               TEMP(NTH,NP,NR)=FNS(NTH,NP,NR,NSBA)         &
-                              -FNS(NTHMAX+1-NTH,NP,NR,NSBA)
+               TEMP(NTH,NP,NR)=FNS(NTH,NP,NR,NSA)         &
+                              -FNS(NTHMAX+1-NTH,NP,NR,NSA)
             ENDDO
             ENDDO
             ENDDO
@@ -661,7 +661,7 @@
       CHARACTER(LEN=80):: STRING1
 !      real(8):: PGMAX, RGMAX, RGMIN
       real(4):: GXMAX, GXMINP, GYMIN, GYMAX, GYMINP, GYSTEP, GXSTEP, GXMAXP, GYMAXP
-      integer:: NR, NP, NTH, NPM, NSBA
+      integer:: NR, NP, NTH, NPM, NS
 
       IF(NGRAPH.EQ.0) THEN
          CALL FPFOTP(STRING,FG)
@@ -673,7 +673,7 @@
       IF(NTH.LT.1) GOTO 9000
       IF(NTH.GT.NTHMAX) GOTO 1
       WRITE(STRING1,'(A,A,I4)') STRING,' : NTH=',NTH
-      NSBA=NSB_NSA(NSA)
+      NS=NS_NSA(NSA)
 
       CALL PAGES
       CALL SETLNW(0.07)
@@ -689,9 +689,9 @@
          END DO
       END DO
       DO NP=1,NPMAX
-         GX(NP)=GUCLIP(PM(NP,NSBA)**2)
+         GX(NP)=GUCLIP(PM(NP,NS)**2)
       ENDDO
-      GXMAX=GUCLIP(PMAX(NSBA)**2)
+      GXMAX=GUCLIP(PMAX(NS)**2)
       IF(PGMAX.NE.0.0) GXMAX=GUCLIP(PGMAX**2)
 
       CALL GMNMX2(GY,NPM,1,NPMAX,1,1,NRMAX,1,GYMIN,GYMAX)
@@ -780,14 +780,14 @@
       real(4),dimension(NPMAX,NRMAX):: GZ
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
-      integer:: NR, NP, NTH, NSA, NSBA, NPGMAX, NPM
+      integer:: NR, NP, NTH, NSA, NS, NPGMAX, NPM
       real(4):: GX1, GX2, GY1, GY2
 
       IF(NGRAPH.EQ.0) THEN
          CALL FPFOTP(STRING,FG)
          RETURN
       ENDIF
-      NSBA=NSB_NSA(NSA)
+      NS=NS_NSA(NSA)
 
     1 WRITE(6,'(A,I4,A)') '# INPUT NTH (1..',NTHMAX,' or 0) :'
       READ(5,*,ERR=1,END=9000) NTH
@@ -798,10 +798,10 @@
       NPGMAX=1
       DO NP=1,NPMAX
          IF(PGMAX.NE.0.0) THEN
-            IF(PM(NP,NSBA).GT.PGMAX) GOTO 10
+            IF(PM(NP,NS).GT.PGMAX) GOTO 10
          ENDIF
          NPGMAX=NP
-         GX(NP)=GUCLIP(PM(NP,NSBA)**2)
+         GX(NP)=GUCLIP(PM(NP,NS)**2)
       ENDDO
    10 CONTINUE
       DO NR=1,NRMAX
@@ -955,9 +955,9 @@
       REAL(8),dimension(NTHMAX+1,NPMAX+1,NRMAX+1):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
-      integer:: NR, NP, NTH, NSA, NSBA
+      integer:: NR, NP, NTH, NSA, NS
       integer:: MODE
-      NSBA=NSB_NSA(NSA)
+      NS=NS_NSA(NSA)
 !
       IF(MODE.EQ.0.OR.MODE.EQ.4) THEN
          DO NR=1,NRMAX
@@ -993,7 +993,7 @@
          ENDDO
       ENDIF
       WRITE(STRING1,'(A,A1,I2,A1)') STRING,'(',NSA,')'
-      CALL FPGRAC(TRIM(STRING1),TEMP,MODE,NSBA)
+      CALL FPGRAC(TRIM(STRING1),TEMP,MODE,NSA)
       RETURN
       END SUBROUTINE FPGRACA
 !---------------------------------------------------
@@ -1004,12 +1004,12 @@
       REAL(4),dimension(NTHMAX+1,NPMAX+1):: GF
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
-      integer:: NPM, NTHM, NRM, NR, NP, NTH, NSA, NSBA
+      integer:: NPM, NTHM, NRM, NR, NP, NTH, NSA, NS
       integer:: NM, NM1, MODE
       NPM=NPMAX+1
       NTHM=NTHMAX+1
       NRM=NRMAX+1
-      NSBA=NSB_NSA(NSA)
+      NS=NS_NSA(NSA)
 !
       IF(MODE.EQ.0) THEN
          DO NP=1,NPMAX
@@ -1047,7 +1047,7 @@
          END DO
       ENDIF
       WRITE(STRING1,'(A,A1,I2,A1)') STRING,'(',NSA,')'
-      CALL FPGRACX(TRIM(STRING1),GF,MODE,NSBA)
+      CALL FPGRACX(TRIM(STRING1),GF,MODE,NSA)
       RETURN
       END SUBROUTINE FPGRACXA
 !---------------------------------------------------
@@ -1107,12 +1107,12 @@
       real(8),dimension((NRMAX+1)*(NTHMAX+1)*(NPMAX+1)):: TEMP
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
-      integer:: NR, NP, NTH, NSA,NSB,NSBA,NM, NM1, NPM, NTHM, NRM, NSBM, MODE
+      integer:: NR, NP, NTH, NSA,NSB,NS,NM, NM1, NPM, NTHM, NRM, NSBM, MODE
       NPM=NPMAX+1
       NTHM=NTHMAX+1
       NRM=NRMAX+1
       NSBM=NSBMAX
-      NSBA=NSB_NSA(NSA)
+      NS=NS_NSA(NSA)
 !
       IF(MODE.EQ.0.OR.MODE.EQ.4) THEN
          DO NR=1,NRMAX
@@ -1152,7 +1152,7 @@
          ENDDO
       ENDIF
       WRITE(STRING1,'(A,A1,I2,A1,I2,A1)') STRING,'(',NSA,',',NSB,')'
-      CALL FPGRAC(TRIM(STRING1),TEMP,MODE,NSBA)
+      CALL FPGRAC(TRIM(STRING1),TEMP,MODE,NSA)
       RETURN
       END SUBROUTINE FPGRACAB
 !--------------------------------------------------
@@ -1315,10 +1315,12 @@
       ELSEIF(MODE.EQ.4) THEN
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX
-!               IF(FG(NTH,NP,NR).LT.1.D-70) THEN
-!                  GF(NP,NTH)=-70.0
-               IF(FG(NTH,NP,NR).LT.1.D-12) THEN
-                  GF(NP,NTH)=-12.0
+               IF(FG(NTH,NP,NR).LT.1.D-70) THEN ! TEST
+                  GF(NP,NTH)=-70.0
+!               IF(FG(NTH,NP,NR).LT.1.D-50) THEN ! TEST
+!                  GF(NP,NTH)=-50.0
+!               IF(FG(NTH,NP,NR).LT.1.D-12) THEN 
+!                  GF(NP,NTH)=-12.0
                ELSE
                   GF(NP,NTH)=GUCLIP(LOG10(ABS(FG(NTH,NP,NR))))
                ENDIF
@@ -1354,21 +1356,22 @@
       real(4):: GPMIN1, GPMAX1, GPSTEP, GLIN, GFFMAX
       integer:: NR, NP, NTH, NSB, NRG, MODE, LMODE
       integer:: NPG, NTHG, NPM, NTHM, NGLMAX, NGL
-      integer:: I
+      integer:: I, NS
 
       NPM=NPMAX+1
       NTHM=NTHMAX+1
 
       LMODE=MODE/4
+      NS=NS_NSA(NSB)
 !
       IF(MODE.EQ.1) THEN
          DO NP=1,NPMAX+1
-            GP(NP)=GUCLIP(PG(NP,NSB))
+            GP(NP)=GUCLIP(PG(NP,NS))
          END DO
          NPG=NPMAX+1
       ELSE
          DO NP=1,NPMAX
-            GP(NP)=GUCLIP(PM(NP,NSB))
+            GP(NP)=GUCLIP(PM(NP,NS))
          END DO
          NPG=NPMAX
       ENDIF
@@ -1385,7 +1388,7 @@
          NTHG=NTHMAX
       ENDIF
 !
-      GPMAX=GUCLIP(PMAX(NSB))
+      GPMAX=GUCLIP(PMAX(NS))
 !
       CALL PAGES
       CALL SETLNW(0.07)
@@ -1526,22 +1529,23 @@
       real(4):: GPMIN1, GPMAX1, GPSTEP, GLIN, GFFMAX
       integer:: NR, NP, NTH, NSB, NRG, MODE, LMODE
       integer:: NPG, NTHG, NPM, NTHM, NRM, NM, NGLMAX, NGL
-      integer:: I
+      integer:: I, NS
 
       NPM=NPMAX+1
       NTHM=NTHMAX+1
       NRM=NRMAX+1
 
       LMODE=MODE/4
+      NS=NS_NSB(NSB)
 !
       IF(MODE.EQ.1) THEN
          DO NP=1,NPMAX+1
-            GP(NP)=GUCLIP(PG(NP,NSB))
+            GP(NP)=GUCLIP(PG(NP,NS))
          END DO
          NPG=NPMAX+1
       ELSE
          DO NP=1,NPMAX
-            GP(NP)=GUCLIP(PM(NP,NSB))
+            GP(NP)=GUCLIP(PM(NP,NS))
          END DO
          NPG=NPMAX
       ENDIF
@@ -1558,7 +1562,7 @@
          NTHG=NTHMAX
       ENDIF
 !
-      GPMAX=GUCLIP(PMAX(NSB))
+      GPMAX=GUCLIP(PMAX(NS))
 !
       CALL PAGES
       CALL SETLNW(0.07)
@@ -1825,13 +1829,13 @@
       REAL(4):: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
       real(4):: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
       real(4):: GPMIN1, GPMAX1, GPSTEP, GLIN
-      integer:: NR, NTH, NP, NSA, MODE, NRG, LMODE, NTHG
+      integer:: NR, NTH, NP, NSA, MODE, NRG, LMODE, NTHG, NS
       integer:: NPM, NTHM, NRM, NM, NGL, NGLMAX, I, NPG
       NPM=NPMAX+1
       NTHM=NTHMAX+1
       NRM=NRMAX+1
 
-
+      NS=NS_NSA(NSA)
       IF(NGRAPH.EQ.0) THEN
          CALL FPFOTC(STRING,FG,MODE)
          RETURN
@@ -1857,12 +1861,12 @@
 !
       IF(MOD(MODE,2).EQ.0) THEN
          DO NP=1,NPMAX
-            GP(NP)=GUCLIP(PM(NP,NSA))
+            GP(NP)=GUCLIP(PM(NP,NS))
          END DO
          NPG=NPMAX
       ELSE
          DO NP=1,NPMAX+1
-            GP(NP)=GUCLIP(PG(NP,NSA))
+            GP(NP)=GUCLIP(PG(NP,NS))
          END DO
          NPG=NPMAX+1
       ENDIF
@@ -1883,36 +1887,36 @@
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX
                NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-               GF(NP,NTH)=GUCLIP(FG(NM)*PM(NP,NSA))
+               GF(NP,NTH)=GUCLIP(FG(NM)*PM(NP,NS))
             END DO
          END DO
       ELSEIF(MODE.EQ.1) THEN
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX+1
                NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-               GF(NP,NTH)=GUCLIP(FG(NM)*PG(NP,NSA))
+               GF(NP,NTH)=GUCLIP(FG(NM)*PG(NP,NS))
             END DO
          END DO
       ELSEIF(MODE.EQ.2) THEN
          DO NTH=1,NTHMAX+1
             DO NP=1,NPMAX
                NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-               GF(NP,NTH)=GUCLIP(FG(NM)*PM(NP,NSA))
+               GF(NP,NTH)=GUCLIP(FG(NM)*PM(NP,NS))
             END DO
          END DO
       ELSEIF(MODE.EQ.4) THEN
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX
                NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-               IF(FG(NM)*PM(NP,NSA).LT.1.D-70) THEN
+               IF(FG(NM)*PM(NP,NS).LT.1.D-70) THEN
                   GF(NP,NTH)=-70.0
                ELSE
-                  GF(NP,NTH)=GUCLIP(LOG10(ABS(FG(NM)*PM(NP,NSA))))
+                  GF(NP,NTH)=GUCLIP(LOG10(ABS(FG(NM)*PM(NP,NS))))
                ENDIF
             END DO
          END DO
       ENDIF
-      GPMAX=GUCLIP(PMAX(NSA))
+      GPMAX=GUCLIP(PMAX(NS))
 
       CALL PAGES
       CALL SETLNW(0.07)

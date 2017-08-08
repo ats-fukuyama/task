@@ -16,12 +16,15 @@ MODULE fpcomm_parm
       real(rkind),parameter:: rkev=aee*1.D3
 
       integer:: NSAMAX,NSBMAX,NS_NSA(NSM),NS_NSB(NSM)
-      integer:: LMAXNWR,NCMIN(NSM),NCMAX(NSM),NBEAMMAX,NSSPB(NBEAMM),NSSPF
+      integer:: NSA_F1,NTH_F1,NR_F1
+      integer:: LMAX_WR,NCMIN(NSM),NCMAX(NSM)
+      integer:: NBEAMMAX,NSSPB(NBEAMM),NSSPF
       integer:: NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX
       integer:: NTMAX,NTSTEP_COEF,NTSTEP_COLL
       integer:: NTG1STEP,NTG1MIN,NTG1MAX
       integer:: NTG2STEP,NTG2MIN,NTG2MAX
       integer:: MODELE,MODELA,MODELC,MODELR,MODELD,MODELS,MODELW(NSM)
+      integer:: MODEL_DELTA_F(NSM)
       integer:: MODEL_ne_D,MODELD_RDEP,MODELD_PDEP,MODELD_EDGE,MODELD_PINCH
       integer:: MODELD_BOUNDARY,MODELD_CDBM
       integer:: MODEL_LOSS,MODEL_SYNCH,MODEL_NBI,MODEL_WAVE
@@ -29,12 +32,18 @@ MODULE fpcomm_parm
       integer:: NGLINE,NGRAPH,LLMAX,LLMAX_NF,IDBGFP
       integer:: MODEL_DISRUPT,MODEL_Connor_fp,MODEL_BS,MODEL_jfp,MODEL_LNL
       integer:: MODEL_RE_pmax,MODELD_n_RE,MODEL_IMPURITY,MODEL_SINK,N_IMPU
+      integer:: MODEL_EX_READ_Tn,MODEL_EX_READ_DH_RATIO
+      integer:: MODEL_BULK_CONST,MODEL_CX_LOSS
       integer:: N_partition_r,N_partition_s,N_partition_p
+      integer:: OUTPUT_TXT_DELTA_F,OUTPUT_TXT_F1
+      integer:: OUTPUT_TXT_BEAM_WIDTH,OUTPUT_TXT_HEAT_PROF
 
-      real(rkind):: PMAX(NSM),PMAX_BB(NSM)
+      real(rkind):: PMAX(NSM),PMAX_BB(NSM),EMAX(NSM)
       real(rkind):: R1,DELR1,RMIN,RMAX
       real(rkind):: E0,ZEFF
-      real(rkind):: PWAVE,RFDW,DELNPR,EPSNWR,REWY,DREWY,FACTWM
+      real(rkind):: PABS_EC,PABS_LH,PABS_FW,PABS_WR,PABS_WM
+      real(rkind):: FACT_WR,FACT_WM,DELNPR_WR,DELNPR_WM
+      real(rkind):: RF_WM,EPS_WR,DELY_WR,DELY_WM,Y0_WM
       real(rkind):: DEC,PEC1,PEC2,PEC3,PEC4,RFEC,DELYEC
       real(rkind):: DLH,PLH1,PLH2,RLH
       real(rkind):: DFW,PFW1,PFW2,RFW
@@ -49,7 +58,27 @@ MODULE fpcomm_parm
       real(rkind):: PGMAX,RGMAX,RGMIN
       real(rkind):: T0_quench,tau_quench,tau_mgi
       real(rkind):: time_quench_start,RJPROF1,RJPROF2
-      real(rkind):: v_RE,target_zeff,SPITOT
+      real(rkind):: v_RE,target_zeff,SPITOT,FACT_BULK
+      real(rkind):: RN_NEU0, RN_NEUS ! temporal 
+      real(rkind):: NI_RATIO(NSM)
+
+!     for read experiment data
+      CHARACTER(len=80):: EG_NAME_TMS, EG_NAME_CX, EG_NAME_HA3
+      real(rkind),dimension(:,:),pointer:: read_tms_double, read_cx_double !!    containers of profile data
+      integer,dimension(:,:),pointer:: read_tms_int
+      real(rkind),dimension(:),pointer:: cte_fit, cti_fit !!    fitting param
+      real(rkind),dimension(:),pointer:: cne_fit !!    fitting param
+      integer:: nend_tms, nend_cx !!    # time step
+      real(rkind),dimension(:),pointer:: RNE_EXP, RTE_EXP, RTI_EXP !! container of exp. profile data at TIMEFP
+      real(rkind):: time_exp_offset, RNE_EXP_EDGE, RTE_EXP_EDGE, RTI_EXP_EDGE
+
+!     for read FIT3D result
+      CHARACTER(len=80):: SV_FILE_NAME_H, SV_FILE_NAME_D
+      double precision,dimension(:),pointer:: time_grid_fit_H, time_grid_fit_D
+      integer:: ntmax_fit_H, ntmax_fit_D
+      integer,dimension(:,:),pointer:: I_FIT_H, I_FIT_D
+      double precision,dimension(:),pointer:: D_FIT_H, D_FIT_D
+      integer,dimension(:,:),pointer:: number_of_lines_fit_H, number_of_lines_fit_D
 
 END module fpcomm_parm
 
@@ -139,14 +168,14 @@ module fpcomm
       real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSBM)
            FNS
       real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRS:NRE,NSAM)
-           FNS0,FNSP,FNSM
+           FNS0,FNSP,FNSM,FNSP_DEL,FNSP_MXWL
       real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSBM)
            FNS_L
       real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSBMAX)
            FNSB
 
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
-           RNFP,RTFP,PTFP,VTFP,THETA,DKBSR, RT_T, POST_tau_ta,RNFP_G,RTFP_G
+           RNFP,RTFP,PTFP,VTFP,THETA,DKBSR, POST_tau_ta,RNFP_G,RTFP_G
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSBM)
            RNFD,RTFD,PTFD,VTFD, RN_MGI, RN_MGI_G
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSBM,NSAM)
@@ -158,12 +187,15 @@ module fpcomm
       real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSAM)
            DPP,DPT,DTP,DTT,FPP,FTH,DRR,FRR,SPP,PPL, &
            FEPP,FETH,DCPP,DCPT,DCTP,DCTT,FCPP,FCTH, &
-           DWPP,DWPT,DWTP,DWTT,DWLHPP,DWLHPT,DWFWPP,DWFWPT, &
-           DWECPP,DWECPT,SPPB,SPPF,SPPS,SPPI,DWICPP,DWICPT, &
-           DWPP_P, DWPT_P, DWTP_P, DWTT_P, &
-           DWICPP_P, DWICPT_P, DWECPP_P, DWECPT_P, &
-           DWECTP, DWECTT, DCPPB, DCPTB, FCPPB, &
-           FSPP, FSTH, DLPP, FLPP, SPPL
+           DWPP,DWPT,DWTP,DWTT, &
+           DWECPP,DWECPT,DWLHPP,DWLHPT,DWFWPP,DWFWPT, &
+           DWWRPP,DWWRPT,DWWMPP,DWWMPT, &
+           SPPB,SPPF,SPPS,SPPI, &
+           DWPP_P,DWPT_P,DWTP_P,DWTT_P, &
+           DWWRPP_P,DWWRPT_P,DWWMPP_P,DWWMPT_P, &
+           DWECTP,DWECTT,DWWRTP,DWWRTT,DWWMTP,DWWMTT, &
+           DCPPB,DCPTB,FCPPB, &
+           FSPP,FSTH,DLPP,FLPP,SPPL,SPPL_CX
       real(rkind),dimension(:,:,:),POINTER :: SPPD
       real(rkind),dimension(:,:,:,:,:),POINTER :: &
            DCPP2,DCPT2,DCTP2,DCTT2,FCPP2,FCTH2  !(NTHM,NPM,NRM,NSAM,NSBM)
@@ -171,32 +203,31 @@ module fpcomm
            DCPP2B,DCPT2B,FCPP2B  !(NTHM,NPM,NRM,NSAM,NSBM)
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
            RNSL,RJSL,RWSL,RPCSL,RPWSL,RPESL,RLHSL,RFWSL,RECSL,RWS123L, &
-           RSPBL,RSPFL,RSPSL,RSPLL,RPDR,RNDR, RTL_BULK, RT_BULK, RICSL,&
-           RDIDTL, RJSRL, RPSSL, RPLSL
+           RSPBL,RSPFL,RSPSL,RSPLL,RPDR,RNDR, RTL_BULK, RT_BULK, &
+           RWRSL,RWMSL, &
+           RDIDTL, RJSRL, RPSSL, RPLSL, RSPSL_CX
       real(rkind),dimension(:,:,:),POINTER :: & ! (NPM,NRM,NSAM)
            RP_BULK,RPL_BULK
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSAM,NSBM)
-           RPCS2L
+           RPCS2L, RPCS2L_DEL
 
-      real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSAM,NSBM)
-           RPW_IMPL, RPWEC_IMPL, RPWIC_IMPL
-      real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM,NSBM)
-           RPW_INIT, RPWEC_INIT, RPWIC_INIT
+      real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
+           RPWEC_L,RPWLH_L,RPWFW_L,RPWWR_L,RPWWM_L
 
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
            RNS,RJS,RWS,RPCS,RPWS,RPES,RLHS,RFWS,RECS,RWS123, &
-           RSPB,RSPF,RSPS,RSPL, RPDRL,RNDRL, RICS, RDIDT,&
-           RJSR, RPSS, RPLS, RJS_M
+           RSPB,RSPF,RSPS,RSPL,RPDRL,RNDRL,RWRS,RWMS,RDIDT,&
+           RJSR,RPSS,RPLS,RJS_M,RSPS_CX
       real(rkind),dimension(:),POINTER :: & ! (NSAM)
            RNS_S2
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSAM,NSBM)
-           RPCS2
+           RPCS2, RPCS2_DEL
 
       real(rkind),dimension(:),POINTER :: & ! (NTG1M)
            PTG,PET,PQT,Q_ENG
       real(rkind),dimension(:,:),POINTER :: & ! (NTG1M,NSAM)
            PNT,PWT,PTT,PIT,PPCT,PPWT,PPET,PLHT,PFWT,PECT,PTT3, &
-           PITT,PWTT,PICT,PIRT, PPST, PPLT
+           PITT,PWTT,PWRT,PWMT,PIRT,PPST,PPLT
       real(rkind),dimension(:,:),POINTER :: & ! (NTG1M,NSAM)
            PSPT,PSPBT,PSPFT,PSPLT,PSPST
       real(rkind),dimension(:,:),POINTER :: & ! (NTG1M,NSAM)
@@ -212,12 +243,12 @@ module fpcomm
            RET,RQT,RATE_RUNAWAY
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NTG2M,NSAM)
            RNT,RWT,RTT,RJT,RPCT,RPWT,RPET,RLHT,RFWT,RECT, &
-           RSPBT,RSPFT,RSPLT,RSPST,RPDRT,RNDRT,RTT_BULK,RICT,&
+           RSPBT,RSPFT,RSPLT,RSPST,RPDRT,RNDRT,RTT_BULK,RWRT,RWMT,&
            RATE_RUNAWAY2,RJRT
       real(rkind),dimension(:,:,:,:),POINTER :: & ! (NRM,NTG2M,NSAM,NSBM)
            RPCT2
       real(rkind),dimension(:,:),POINTER:: & !(NRM, NSAM)
-           RN_IMPL, RT_IMPL
+           RN_TEMP, RT_TEMP, RN_READ, RT_READ
       integer:: NMMAX,NLMAXM
       integer,dimension(:,:,:),POINTER :: & ! (NTHM,NPM,NRM)
            NMA
@@ -239,7 +270,7 @@ module fpcomm
       real(rkind),dimension(:,:),POINTER :: &
            PL_NF ! (0:LLMAX_NF,NTHMAX)
       real(rkind),dimension(:,:),POINTER :: & 
-           RATE_NF ! (NRSTART:NREND,6)
+           RATE_NF, RATE_NF_BB ! (NRSTART:NREND,6)
       real(rkind),dimension(:,:,:,:),POINTER :: & 
            RATE_NF_D1, RATE_NF_D2 ! (NTHMAX,NPMAX,NRSTART:NREND,6)
       real(rkind),dimension(:,:),POINTER :: & ! (NPM:NSAM)
@@ -250,11 +281,13 @@ module fpcomm
       real,dimension(10):: gut_comm
       real(rkind),dimension(:,:),POINTER:: EPTR
       real(rkind):: E_EDGEM, SIGP_E, RN_E, RT_E, RLNRL_E
-      real(rkind):: pc_runaway
-      real(rkind):: Zeff_imp
+      real(rkind):: pc_runaway, RF_WR
+      real(rkind):: Zeff_imp, tauE0_NB_e, tauE0_NB_i, tauE0_NB
       integer:: NPC_runaway
       integer:: nt_init, N_f1
       integer:: ierr_g
+      integer,dimension(:,:),POINTER :: & ! (NRM,NSM)
+           NP_BULK
 
       contains
 
@@ -300,13 +333,12 @@ module fpcomm
           allocate(ITLG_RG(NRMAX+1),ITUG_RG(NRMAX+1))
           allocate(ITL_judge(NRMAX+1),ITLG_judge(NRMAX+1))
 
-          allocate(PG(NPMAX+1,NSBMAX),PM(NPMAX,NSBMAX))
+          allocate(PG(NPMAX+1,NSMAX),PM(NPMAX,NSMAX))
           allocate(THG(NTHMAX+1),THM(NTHMAX))
-          allocate(DELP(NSBMAX))
-          allocate(PG2(NP2MAX+1,NSBMAX),PM2(NP2MAX,NSBMAX))
+          allocate(DELP(NSMAX))
+          allocate(PG2(NP2MAX+1,NSMAX),PM2(NP2MAX,NSMAX))
 
-!          allocate(VOLP(NTHMAX,NPMAX,NSBMAX))
-          allocate(VOLP(NTHMAX,NPSTART:NPEND,NSBMAX))
+          allocate(VOLP(NTHMAX,NPSTART:NPEND,NSMAX))
           allocate(ETAG(NTHMAX+1,NRSTART:NREND+1),ETAM(NTHMAX,NRSTART:NREND+1))
           allocate(ETAG_RG(NTHMAX+1,NRSTART:NREND+1),ETAM_RG(NTHMAX,NRSTART:NREND+1))
           allocate(RLAMDA(NTHMAX,NRSTART:NREND),RLAMDC(NTHMAX+1,NRSTART:NREND))
@@ -328,6 +360,8 @@ module fpcomm
           allocate(FNS0(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND))
           allocate(FNSP(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND)) 
           allocate(FNSM(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND))
+          allocate(FNSP_DEL(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND)) 
+          allocate(FNSP_MXWL(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND)) 
           allocate(FNSB(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSBMAX)) ! backgroud f
 
           allocate(FS0(NTHMAX,NPSTARTW:NPENDWM,NSAMAX))
@@ -342,20 +376,19 @@ module fpcomm
           allocate(RNFD0(NSBMAX))
           allocate(AEFD(NSBMAX),AMFD(NSBMAX))
           allocate(PTFD0(NSBMAX),VTFD0(NSBMAX))
-          allocate(THETA0(NSBMAX))
+          allocate(THETA0(NSMAX))
 
           allocate(RNFP(NRSTART:NREND+1,NSAMAX),RTFP(NRSTART:NREND+1,NSAMAX))
           allocate(RNFP_G(NRSTART:NRENDWG,NSAMAX),RTFP_G(NRSTART:NRENDWG,NSAMAX))
-          allocate(RT_T(NRMAX,NSBMAX)) ! 
           allocate(PTFP(NRSTART:NREND+1,NSAMAX),VTFP(NRSTART:NREND+1,NSAMAX))
-          allocate(THETA(NRSTART:NREND,NSBMAX),DKBSR(NRSTART:NREND,NSAMAX))
+          allocate(THETA(NRSTART:NREND,NSMAX),DKBSR(NRSTART:NREND,NSAMAX))
           allocate(WEIGHP(NTHMAX  ,NPSTART:NPENDWG,NRSTART:NREND+1,NSAMAX))
           allocate(WEIGHT(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NREND+1,NSAMAX))
           allocate(WEIGHR(NTHMAX,NPSTART:NPEND,NRSTART:NREND+1,NSAMAX))
           IF(MODELD.ne.0)THEN
              allocate(WEIGHR_G(NTHMAX,NPMAX,NRMAX+1,NSAMAX))
           END IF
-          allocate(RNFD(NRSTART:NREND+1,NSBMAX),RTFD(NRSTART:NREND+1,NSBMAX))
+          allocate(RNFD(NRSTART:NRENDWM,NSBMAX),RTFD(NRSTART:NRENDWM,NSBMAX))
           allocate(RN0_MGI(NSBMAX))
           allocate(RN_MGI(NRSTART:NREND,NSBMAX))
           allocate(RN_MGI_G(NRMAX,NSBMAX))
@@ -420,21 +453,22 @@ module fpcomm
           allocate(DWECPT(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX))
           allocate(DWECTP(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX))
           allocate(DWECTT(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX))
-          allocate(DWICPP(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX))
-          allocate(DWICPT(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX))
+          allocate(DWWRPP(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX))
+          allocate(DWWRPT(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX))
+          allocate(DWWRTP(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX))
+          allocate(DWWRTT(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX))
+          allocate(DWWMPP(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX))
+          allocate(DWWMPT(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX))
+          allocate(DWWMTP(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX))
+          allocate(DWWMTT(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX))
           IF(MODEL_WAVE.ne.0)THEN
              allocate(DWPP_P(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX))
              allocate(DWPT_P(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX))
              allocate(DWTP_P(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX))
              allocate(DWTT_P(NTHMAX+1,NPSTARTW:NPENDWM,NRSTART:NRENDWM,NSAMAX))
-
-             allocate(DWECPP_P(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX))
-             allocate(DWECPT_P(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX))
-             allocate(DWICPP_P(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX))
-             allocate(DWICPT_P(NTHMAX  ,NPSTART :NPENDWG,NRSTART:NRENDWM,NSAMAX))
           END IF
           IF(MODEL_DISRUPT.ne.0)THEN
-             allocate(ER_drei(NRMAX),ER_crit(NRMAX),Rconnor(NRMAX),lnl_gl(NRMAX),RP_crit(NRMAX))
+             allocate(ER_drei(NRMAX),ER_crit(NRMAX),Rconnor(NRMAX), lnl_gl(NRMAX),RP_crit(NRMAX))
              allocate(RN_disrupt(NRMAX),RN_runaway(NRMAX), RN_drei(NRMAX),RN_runaway_M(NRMAX))
              allocate(Rj_ohm(NRMAX),RJ_runaway(NRMAX),RJ_bs(NRMAX),R_djdt(NRMAX))
              allocate(RJ_bsm(NRSTART:NREND))
@@ -459,19 +493,26 @@ module fpcomm
           allocate(SPPI(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX))
           allocate(SPPD(NTHMAX,NPSTART:NPEND,NSAMAX))
           allocate(SPPL(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX))
+          allocate(SPPL_CX(NTHMAX,NPSTART:NPEND,NRSTART:NREND,NSAMAX))
 
-          allocate(RN_IMPL(NRMAX,NSMAX),RT_IMPL(NRMAX,NSMAX) )
-          
+          allocate(RN_TEMP(NRMAX,NSMAX),RT_TEMP(NRMAX,NSMAX) )
+          IF(MODEL_EX_READ_Tn.ne.0)THEN
+             allocate(RN_READ(NRMAX,NSMAX),RT_READ(NRMAX,NSMAX) )
+             allocate(RNE_EXP(NRMAX), RTE_EXP(NRMAX), RTI_EXP(NRMAX))
+             allocate(cte_fit(5),cne_fit(6),cti_fit(5))
+          END IF
           allocate(RNSL(NRSTART:NREND,NSAMAX),RJSL(NRSTART:NREND,NSAMAX))
           allocate(RFPL(NRSTART:NREND),RJSRL(NRSTART:NREND,NSAMAX))
           allocate(RWSL(NRSTART:NREND,NSAMAX),RWS123L(NRSTART:NREND,NSAMAX))
           allocate(RSPBL(NRSTART:NREND,NSAMAX),RSPFL(NRSTART:NREND,NSAMAX))
           allocate(RSPSL(NRSTART:NREND,NSAMAX),RSPLL(NRSTART:NREND,NSAMAX))
+          allocate(RSPSL_CX(NRSTART:NREND,NSAMAX))
           allocate(RPCSL(NRSTART:NREND,NSAMAX),RPESL(NRSTART:NREND,NSAMAX))
           allocate(RPWSL(NRSTART:NREND,NSAMAX),RLHSL(NRSTART:NREND,NSAMAX))
           allocate(RFWSL(NRSTART:NREND,NSAMAX),RECSL(NRSTART:NREND,NSAMAX))
-          allocate(RICSL(NRSTART:NREND,NSAMAX))
+          allocate(RWRSL(NRSTART:NREND,NSAMAX),RWMSL(NRSTART:NREND,NSAMAX))
           allocate(RPCS2L(NRSTART:NREND,NSBMAX,NSAMAX))
+          allocate(RPCS2L_DEL(NRSTART:NREND,NSBMAX,NSAMAX))
           allocate(RDIDTL(NRSTART:NREND,NSAMAX))
           allocate(RDIDT(NRMAX,NSAMAX))
           allocate(RPSSL(NRSTART:NREND,NSAMAX))
@@ -484,11 +525,13 @@ module fpcomm
           allocate(RWS(NRMAX,NSAMAX),RWS123(NRMAX,NSAMAX))
           allocate(RSPB(NRMAX,NSAMAX),RSPF(NRMAX,NSAMAX))
           allocate(RSPL(NRMAX,NSAMAX),RSPS(NRMAX,NSAMAX))
+          allocate(RSPS_CX(NRMAX,NSAMAX))
           allocate(RPCS(NRMAX,NSAMAX),RPES(NRMAX,NSAMAX))
           allocate(RPWS(NRMAX,NSAMAX),RLHS(NRMAX,NSAMAX))
           allocate(RFWS(NRMAX,NSAMAX),RECS(NRMAX,NSAMAX))
-          allocate(RICS(NRMAX,NSAMAX))
+          allocate(RWRS(NRMAX,NSAMAX),RWMS(NRMAX,NSAMAX))
           allocate(RPCS2(NRMAX,NSBMAX,NSAMAX))
+          allocate(RPCS2_DEL(NRMAX,NSBMAX,NSAMAX))
           allocate(RPSS(NRMAX,NSAMAX))
           allocate(RPLS(NRMAX,NSAMAX))
 
@@ -501,12 +544,11 @@ module fpcomm
           allocate(RP_BULK(NPMAX,NRMAX,NSAMAX))
           allocate(RPL_BULK(NPMAX,NRSTART:NREND,NSASTART:NSAEND))
 
-          allocate(RPW_IMPL(NRSTART:NREND,NSAMAX,0:LMAXFP+1))
-          allocate(RPWEC_IMPL(NRSTART:NREND,NSAMAX,0:LMAXFP+1))
-          allocate(RPWIC_IMPL(NRSTART:NREND,NSAMAX,0:LMAXFP+1))
-          allocate(RPW_INIT(NRSTART:NREND,NSAMAX))
-          allocate(RPWEC_INIT(NRSTART:NREND,NSAMAX))
-          allocate(RPWIC_INIT(NRSTART:NREND,NSAMAX))
+          allocate(RPWLH_L(NRSTART:NREND,NSAMAX))
+          allocate(RPWFW_L(NRSTART:NREND,NSAMAX))
+          allocate(RPWEC_L(NRSTART:NREND,NSAMAX))
+          allocate(RPWWR_L(NRSTART:NREND,NSAMAX))
+          allocate(RPWWM_L(NRSTART:NREND,NSAMAX))
 
           allocate(RIPP(NRMAX,NSAMAX))
 !         NLMAXM= 8   ! this is for analysis without bounce average
@@ -531,12 +573,13 @@ module fpcomm
              IF(MODELS.eq.3) allocate( &
                   SIGMAV_LG(0:LLMAX_NF,NPSTART:NPEND,0:LLMAX_NF,NPMAX,6), &
                   PL_NF(0:LLMAX_NF,NTHMAX))
-             allocate(RATE_NF(NRSTART:NREND,6))
+             allocate(RATE_NF(NRSTART:NREND,6),RATE_NF_BB(NRSTART:NREND,6))
 !             allocate(RATE_NF_D1(NTHMAX,NPMAX,NRSTART:NREND,6))
              allocate(RATE_NF_D2(NTHMAX,NPMAX,NRSTART:NREND,6))
              allocate(RATE_NF_D1(NTHMAX,NPSTART:NPEND,NRSTART:NREND,6))
 !             allocate(RATE_NF_D2(NTHMAX,NPSTART:NPEND,NRSTART:NREND,6))
           ENDIF
+          allocate(NP_BULK(NRMAX,NSAMAX))
 
           allocate(DEPS_SS(NSAMAX))
           NPMAX_save=NPMAX
@@ -595,6 +638,7 @@ module fpcomm
           deallocate(FNS0)
           deallocate(FNSP)
           deallocate(FNSM)
+          deallocate(FNSP_DEL,FNSP_MXWL)
           deallocate(FNSB)
           deallocate(FS0,FS2,FS1)
 
@@ -644,11 +688,9 @@ module fpcomm
 
              deallocate(DWLHPP,DWLHPT)
              deallocate(DWFWPP,DWFWPT)
-             deallocate(DWECPP,DWECPT)
-             deallocate(DWECTP,DWECTT)
-             deallocate(DWICPP,DWICPT)
-             deallocate(DWECPP_P,DWECPT_P)
-             deallocate(DWICPP_P,DWICPT_P)
+             deallocate(DWECPP,DWECPT,DWECTP,DWECTT)
+             deallocate(DWWRPP,DWWRPT,DWWRTP,DWWRTT)
+             deallocate(DWWMPP,DWWMPT,DWWMTP,DWWMTT)
           END IF
           IF(MODEL_DISRUPT.ne.0)THEN
              deallocate(ER_drei, ER_crit,RP_crit)
@@ -667,6 +709,8 @@ module fpcomm
           deallocate(tau_ta0)
 
           deallocate(SPPB,SPPF,SPPS,SPPD,SPPI,SPPL)
+          deallocate(SPPL_CX)
+          
 
           deallocate(DCPP2,DCPT2)
           deallocate(DCTP2,DCTT2)
@@ -675,10 +719,15 @@ module fpcomm
 !          deallocate(DCPPB,DCPTB,FCPPB)
 !          deallocate(DCPP2B,DCPT2B,FCPP2B)
 
-          deallocate(RN_IMPL,RT_IMPL)
+          deallocate(RN_TEMP,RT_TEMP)
+          IF(MODEL_EX_READ_Tn.ne.0)THEN
+             deallocate(RN_READ, RT_READ)
+             deallocate(RNE_EXP, RTE_EXP, RTI_EXP)
+             deallocate(cte_fit, cne_fit, cti_fit)
+          END IF
           deallocate(RNSL,RJSL,RWSL,RWS123L,RFPL,RJSRL)
-          deallocate(RSPBL,RSPFL,RSPSL,RSPLL,RPCSL,RPESL)
-          deallocate(RLHSL,RFWSL,RECSL,RICSL,RPCS2L)
+          deallocate(RSPBL,RSPFL,RSPSL,RSPLL,RPCSL,RPESL,RSPSL_CX)
+          deallocate(RLHSL,RFWSL,RECSL,RWRSL,RWMSL,RPCS2L,RPCS2L_DEL)
           deallocate(RDIDT, RDIDTL)
           deallocate(RPSSL, RPLSL)
 
@@ -686,18 +735,17 @@ module fpcomm
           deallocate(RNS_S2)
           deallocate(RWS,RWS123)
           deallocate(RSPB,RSPF)
-          deallocate(RSPL,RSPS)
+          deallocate(RSPL,RSPS,RSPS_CX)
           deallocate(RPCS,RPES)
           deallocate(RPWS,RLHS)
-          deallocate(RFWS,RECS,RICS,RPCS2)
+          deallocate(RFWS,RECS,RWRS,RWMS,RPCS2,RPCS2_DEL)
           deallocate(RPSS, RPLS)
 
           deallocate(RPDR,RNDR,RPDRS,RNDRS)
           deallocate(RPDRL,RNDRL,RT_BULK,RTL_BULK)
           deallocate(RP_BULK)
           
-          deallocate(RPW_IMPL,RPWEC_IMPL,RPWIC_IMPL)
-          deallocate(RPW_INIT,RPWEC_INIT,RPWIC_INIT)
+          deallocate(RPWLH_L,RPWFW_L,RPWEC_L,RPWWR_L,RPWWM_L)
           deallocate(RIPP)
 
           deallocate(NMA)
@@ -707,11 +755,12 @@ module fpcomm
           deallocate(FM)
           deallocate(FM_shadow_m, FM_shadow_p)
 !          deallocate(BMTOT)
+          deallocate(NP_BULK)
 
           IF(MODELS.eq.2.OR.MODELS.eq.3)THEN
              IF(MODELS.eq.2) deallocate(SIGMAV_NF)
              IF(MODELS.eq.3) deallocate(SIGMAV_LG,PL_NF)
-             deallocate(RATE_NF,RATE_NF_D1,RATE_NF_D2)
+             deallocate(RATE_NF,RATE_NF_D1,RATE_NF_D2,RATE_NF_BB)
           END IF
           deallocate(DEPS_SS)
           return
@@ -752,7 +801,8 @@ module fpcomm
           allocate(PLHT(NSAMAX,NTG1M))
           allocate(PFWT(NSAMAX,NTG1M))
           allocate(PECT(NSAMAX,NTG1M))
-          allocate(PICT(NSAMAX,NTG1M))
+          allocate(PWRT(NSAMAX,NTG1M))
+          allocate(PWMT(NSAMAX,NTG1M))
           allocate(PTT3(NSAMAX,NTG1M))
           allocate(PITT(NSAMAX,NTG1M))
           allocate(PWTT(NSAMAX,NTG1M))
@@ -795,7 +845,8 @@ module fpcomm
           deallocate(PLHT)
           deallocate(PFWT)
           deallocate(PECT)
-          deallocate(PICT)
+          deallocate(PWRT)
+          deallocate(PWMT)
           deallocate(PTT3)
           deallocate(PITT)
           deallocate(PWTT)
@@ -843,7 +894,8 @@ module fpcomm
                       PLHT(NSA,NTG)=PLHT(NSA,2*NTG-1)
                       PFWT(NSA,NTG)=PFWT(NSA,2*NTG-1)
                       PECT(NSA,NTG)=PECT(NSA,2*NTG-1)
-                      PICT(NSA,NTG)=PICT(NSA,2*NTG-1)
+                      PWRT(NSA,NTG)=PWRT(NSA,2*NTG-1)
+                      PWMT(NSA,NTG)=PWMT(NSA,2*NTG-1)
                       PTT3(NSA,NTG)=PTT3(NSA,2*NTG-1)
                       PITT(NSA,NTG)=PITT(NSA,2*NTG-1)
                       PWTT(NSA,NTG)=PWTT(NSA,2*NTG-1)
@@ -889,7 +941,8 @@ module fpcomm
                 call fp_adjust_ntg1_B(PLHT,tempB,NTG1M_NEW)
                 call fp_adjust_ntg1_B(PFWT,tempB,NTG1M_NEW)
                 call fp_adjust_ntg1_B(PECT,tempB,NTG1M_NEW)
-                call fp_adjust_ntg1_B(PICT,tempB,NTG1M_NEW)
+                call fp_adjust_ntg1_B(PWRT,tempB,NTG1M_NEW)
+                call fp_adjust_ntg1_B(PWMT,tempB,NTG1M_NEW)
                 call fp_adjust_ntg1_B(PTT3,tempB,NTG1M_NEW)
                 call fp_adjust_ntg1_B(PITT,tempB,NTG1M_NEW)
                 call fp_adjust_ntg1_B(PWTT,tempB,NTG1M_NEW)
@@ -1009,7 +1062,8 @@ module fpcomm
           allocate(RLHT(NRMAX,NSAMAX,NTG2M))
           allocate(RFWT(NRMAX,NSAMAX,NTG2M))
           allocate(RECT(NRMAX,NSAMAX,NTG2M))
-          allocate(RICT(NRMAX,NSAMAX,NTG2M))
+          allocate(RWRT(NRMAX,NSAMAX,NTG2M))
+          allocate(RWMT(NRMAX,NSAMAX,NTG2M))
           allocate(RSPBT(NRMAX,NSAMAX,NTG2M))
           allocate(RSPFT(NRMAX,NSAMAX,NTG2M))
           allocate(RSPLT(NRMAX,NSAMAX,NTG2M))
@@ -1045,7 +1099,7 @@ module fpcomm
           deallocate(RLHT)
           deallocate(RFWT)
           deallocate(RECT)
-          deallocate(RICT)
+          deallocate(RWRT,RWMT)
           deallocate(RSPBT,RSPFT,RSPLT,RSPST)
           deallocate(RPDRT,RNDRT)
           deallocate(RTT_BULK)
@@ -1089,7 +1143,8 @@ module fpcomm
                          RLHT(NR,NSA,NTG)=RLHT(NR,NSA,2*NTG-1)
                          RFWT(NR,NSA,NTG)=RFWT(NR,NSA,2*NTG-1)
                          RECT(NR,NSA,NTG)=RECT(NR,NSA,2*NTG-1)
-                         RICT(NR,NSA,NTG)=RICT(NR,NSA,2*NTG-1)
+                         RWRT(NR,NSA,NTG)=RWRT(NR,NSA,2*NTG-1)
+                         RWMT(NR,NSA,NTG)=RWMT(NR,NSA,2*NTG-1)
                          RSPBT(NR,NSA,NTG)=RSPBT(NR,NSA,2*NTG-1)
                          RSPFT(NR,NSA,NTG)=RSPFT(NR,NSA,2*NTG-1)
                          RSPLT(NR,NSA,NTG)=RSPLT(NR,NSA,2*NTG-1)
@@ -1130,7 +1185,8 @@ module fpcomm
                 call fp_adjust_ntg2_B(RLHT,tempB,NTG2M_NEW)
                 call fp_adjust_ntg2_B(RFWT,tempB,NTG2M_NEW)
                 call fp_adjust_ntg2_B(RECT,tempB,NTG2M_NEW)
-                call fp_adjust_ntg2_B(RICT,tempB,NTG2M_NEW)
+                call fp_adjust_ntg2_B(RWRT,tempB,NTG2M_NEW)
+                call fp_adjust_ntg2_B(RWMT,tempB,NTG2M_NEW)
                 call fp_adjust_ntg2_B(RSPBT,tempB,NTG2M_NEW)
                 call fp_adjust_ntg2_B(RSPFT,tempB,NTG2M_NEW)
                 call fp_adjust_ntg2_B(RSPLT,tempB,NTG2M_NEW)

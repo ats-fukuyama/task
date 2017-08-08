@@ -21,6 +21,7 @@
 !     ns_nsa(nsa): mapping from NSA to NS in pl 
 !     ns_nsb(nsb): mapping from NSB to NS in pl
 !     pmax(nsb)  : maximum momentum (normailzed by central thermal momentum)
+!     Emax(nsb)  : if Emax is not 0, p upper boundary is defined from not pmax but sqrt(2*m*Emax)/PTFP0
 
       nsamax = 1
       nsbmax = 1
@@ -31,6 +32,7 @@
          ns_nsb(nsb)=nsb          ! default field particle species lise
          pmax(nsb)=7.d0           ! default pmax=7
          pmax_bb(nsb)=5.d0        ! default pmax=5 R_beam_beam
+         Emax(nsb)=0.D0
       ENDDO
 
 !-----RADIAL MESH---------------------------------------------------------
@@ -52,28 +54,44 @@
       ZEFF  = 1.D0
 
 !-----WM/WR-------------------------------------------------------------
-!     PWAVE : input power
-!     RFDW  : wave frequency [MHz]
-!     DELNPR: width of toroidal mode number
-!     LMAXNWR: max loop count in newton method to find ray position
-!     EPSNWR: convergence criterion in newton method to find ray position
-!     REWY  : vertical position of ray [r/a]
-!     DREWY : vertical half-width of ray [r/a]
-!     FACTWM: Numerical factor for wave amplitude
-!     NCMIN(NSA): minimum order of cyclotron harmonics
-!     NCMAX(NSA): maximum order of cyclotron harmonics
+!     PABS_LH : input power of LH [MW] (0 for given DLH) MODELW=0
+!     PABS_FW : input power of FW [MW] (0 for given DFW) MODELW=0
+!     PABS_EC : input power of EC [MW] (0 for given DEC) MODELW=0
+!     PABS_WR : input power of WR [MW] (0 for given E) MODELW=1 or 2
+!     PABS_WM : input power of WM [MW] (0 for given E) MODELW=3 or 4
+!     RF_WM   : wave frequency [MHz] used for MODELW=3
 
-      PWAVE = 1.0D0
-      RFDW  = 170.D3
-      DELNPR= 0.05D0
-      LMAXNWR=100
-      EPSNWR=1.D-6
-      REWY  = 0.D0
-      DREWY = 0.1D0
-      FACTWM= 1.D0
-      DO NSA=1,NSM
-         NCMIN(NSA) = -3
-         NCMAX(NSA) = 3
+!     FACT_WM: Numerical factor for wave amplitude for WR
+!     FACT_WR: Numerical factor for wave amplitude for WM
+!     DELNPR_WR: width of toroidal mode number for WR
+!     DELNPR_WM: width of toroidal mode number for WM
+!     LMAX_WR: max loop count in newton method to find ray position
+!     EPS_WR: convergence criterion in newton method to find ray position
+!     DELY_WR: vertical half-width of ray [r/a]
+!     Y0_WM: vertical position of wave beam [r/a]
+!     DELY_WM: vertical half-width of wave beam [r/a]
+!     NCMIN(NS): minimum order of cyclotron harmonics for species NS
+!     NCMAX(NS): maximum order of cyclotron harmonics for species NS
+
+      PABS_LH = 0.0D0
+      PABS_FW = 0.0D0
+      PABS_EC = 0.0D0
+      PABS_WR = 0.0D0
+      PABS_WM = 0.0D0
+      RF_WM   = 64.D0
+
+      FACT_WR  = 1.D0
+      FACT_WM  = 1.D0
+      DELNPR_WR= 0.05D0
+      DELNPR_WM= 0.05D0
+      LMAX_WR = 100
+      EPS_WR  = 1.D-6
+      DELY_WR = 0.1D0
+      Y0_WM   = 0.D0
+      DELY_WM =10.D0
+      DO NS=1,NSM
+         NCMIN(NS) = -3
+         NCMAX(NS) = 3
       ENDDO
 
 !-----EC/LH/FW----------------------------------------------------------
@@ -131,12 +149,13 @@
 !-----NBI---------------------------------------------------------------
 !     NBEAMMAX     : Number of NBI
 !     NSSPB(nbeam) : NBI particle species
-!     SPBTOT(nbeam): Particle source [1/m^3 s] ! [1/s]? 
+!     SPBTOT(nbeam): Particle source [1/s] 
 !     SPBR0(nbeam) : Source radius [r/a]
 !     SPBRW(nbeam) : Source width [r/a]
 !     SPBENG(nbeam): Particle energy [eV]
 !     SPBPANG(nbeam): Source poloidal angle [degree]
 !     SPBANG(nbeam): Source pitch angle [degree] ! at chi=SPBPANG
+!     for f1_1.dat
 
       DO NBEAM=1,NBEAMM
          NSSPB(NBEAM)=2
@@ -147,7 +166,9 @@
          SPBANG(NBEAM)=20.D0
          SPBPANG(NBEAM)=0.D0
       ENDDO
-
+      NSA_F1=1
+      NTH_F1=1
+      NR_F1=1
 !-----FUSION REACTION----------------------------------------------------
 !     NSSPF  : Fusion product particle species
 !     SPFTOT : Particle source [1/m^3 s]
@@ -161,6 +182,14 @@
       SPFRW=0.2d0
       SPFENG=3.5D6
 
+!-----CHARGE EXCHANGE REACTION-------------------------------------------
+!     MODEL_CX_LOSS: 0=off, 1=on 
+!     RN_NEU0      : neutral gas density on axis [m^-3] D or H gas is assumed temporally
+!     RN_NEUS      : neutral gas density on edge [m^-3] D or H gas is assumed temporally
+!                    [1.e20]
+      MODEL_CX_LOSS=0
+      RN_NEU0 = 1.D-6
+      RN_NEUS = 1.D-5
 !-----RADIAL DIFFUSION--------------------------------------------------
 !     DRR0  : radial diffusion coefficient at magnetic axis [m^2/s]
 !     DRRS  : radial diffusion coefficient at plasma surface [m^2/s]
@@ -192,12 +221,14 @@
 !     NRMAX : radial division number
 !     NAVMAX: wave diuffusion bounce average division number
 !     NP2MAX: minor mesh number for electron momentum
+!     FACT_BULK: Definition of the bulk region, 0<p<FACT_BULK*p_th is the bulk region
 
       NPMAX = 50
       NTHMAX= 50
       NRMAX = 1
       NAVMAX= 100
       NP2MAX= 20
+      FACT_BULK = 5.D0
 
 !-----NUMBER OF TIME STEP-----------------------------------------------
 !     NTMAX   : maximum time step count
@@ -270,8 +301,20 @@
 !                        5: CDBM05 with strong ExB shear
 !     MODEL_LOSS      : 1 for LOSS TERM
 !     MODEL_SYNCH     : 1 for synchlotron radiation
-!     MODEL_NBI       : 1 for NBI calculation
+!     MODEL_NBI       : 1 for NBI calculation with simple model
+!                     : 2 read FIT3D data (limited)
 !     MODEL_WAVE      : 1 for wave calculation
+!     MODEL_BULK_CONST: 0 ordinary, 1: for bench mark
+!     MODEL_EX_READ_Tn
+!     MODEL_EX_READ_DH_RATIO
+!                     : 0 for prediction
+!                     : 1 constant ratio. Use NI_RATIO
+!                     : 2 read egdata 
+!     time_exp_offset : TIMEFP + time_exp_offset = time in experiment
+!
+!     MODEL_DELTA_F(NSA): 0 ordinary mode
+!                       : 1 f is described as f=f_M + delta f
+!                         Evolution of f_M is not solved.
 
       MODELE= 0
       MODELA= 0
@@ -294,6 +337,27 @@
       MODEL_SYNCH=0
       MODEL_NBI=0
       MODEL_WAVE=0 ! 0=no wave calc., 1=wave calc.
+
+      MODEL_EX_READ_Tn=0
+      MODEL_EX_READ_DH_RATIO=0
+      DO NS=1,NSM
+         NI_RATIO(NS)=1.D0
+      END DO
+
+      MODEL_BULK_CONST=0
+      time_exp_offset=0.D0
+
+      DO NS=1,NSM
+         MODEL_DELTA_F(NS)=0
+      END DO
+!-----TXT TYPE OUTPUT COMMAND------------------------------------------
+!     OUTPUT_TXT_DELTA_F: OUTPUT DELTA f
+!     OUTPUT_TXT_F1: OUTPUT E-f1 on NR_F1 DIRECT TO NTH_F1
+
+      OUTPUT_TXT_DELTA_F=0
+      OUTPUT_TXT_F1=0
+      OUTPUT_TXT_BEAM_WIDTH=0
+      OUTPUT_TXT_HEAT_PROF=0
 
 !-----COMPUTATION PARAMETERS------------------------------------------
 !     DELT  : time step size (s)
@@ -471,7 +535,7 @@
            KNAMEQ,KNAMWR,KNAMFP,KNAMWM,KNAMPF, &
            KNAMFO,KNAMTR,KNAMEQ2,KID_NS,ID_NS, &
            NSAMAX,NSBMAX,NS_NSA,NS_NSB, &
-           LMAXNWR,NCMIN,NCMAX,NBEAMMAX,NSSPB,NSSPF, &
+           LMAX_WR,NCMIN,NCMAX,NBEAMMAX,NSSPB,NSSPF, &
            NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX, &
            NTMAX,NTSTEP_COEF,NTSTEP_COLL, &
            NTG1STEP,NTG1MIN,NTG1MAX, &
@@ -484,11 +548,12 @@
            NGLINE,NGRAPH,LLMAX,LLMAX_NF,IDBGFP, &
            MODEL_DISRUPT,MODEL_Connor_fp,MODEL_BS,MODEL_jfp, &
            MODEL_LNL,MODEL_RE_pmax,MODELD_n_RE,MODEL_IMPURITY, &
-           MODEL_SINK,N_IMPU, &
+           MODEL_SINK,N_IMPU,MODEL_DELTA_F, &
            N_partition_r,N_partition_s,N_partition_p, &
-           PMAX,PMAX_BB, &
+           PMAX,PMAX_BB,EMAX, &
            R1,DELR1,RMIN,RMAX,E0,ZEFF, &
-           PWAVE,RFDW,DELNPR,EPSNWR,REWY,DREWY,FACTWM, &
+           PABS_LH,PABS_FW,PABS_EC,PABS_wr,PABS_WM,RF_WM, &
+           FACT_WM,FACT_WR,DELNPR_WR,DELNPR_WM,EPS_WR,DELY_WR, &
            DEC,PEC1,PEC2,PEC3,PEC4,RFEC,DELYEC, &
            DLH,PLH1,PLH2,RLH,DFW,PFW1,PFW2,RFW, &
            CEWR,CEWTH,CEWPH,RKWR,RKWTH,RKWPH, &
@@ -500,7 +565,11 @@
            PGMAX,RGMAX,RGMIN, &
            T0_quench,tau_quench,tau_mgi, &
            time_quench_start,RJPROF1,RJPROF2, &
-           v_RE,target_zeff,SPITOT
+           v_RE,target_zeff,SPITOT, MODEL_EX_READ_Tn, MODEL_EX_READ_DH_RATIO,  &
+           FACT_BULK, time_exp_offset, MODEL_BULK_CONST, RN_NEU0, MODEL_CX_LOSS, RN_NEUS, &
+           EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME_H, SV_FILE_NAME_D, NSA_F1, NTH_F1, NR_F1, &
+           OUTPUT_TXT_F1, OUTPUT_TXT_DELTA_F, OUTPUT_TXT_HEAT_PROF, OUTPUT_TXT_BEAM_WIDTH, &
+           NI_RATIO
 
       READ(nid,FP,IOSTAT=ist,ERR=9800,END=9900)
 
@@ -526,7 +595,7 @@
       WRITE(6,*) '      KNAMEQ,KNAMWR,KNAMFP,KNAMWM,KNAMPF,'
       WRITE(6,*) '      KNAMFO,KNAMTR,KNAMEQ2,KID_NS,ID_NS,'
       WRITE(6,*) '      NSAMAX,NSBMAX,NS_NSA,NS_NSB,'
-      WRITE(6,*) '      LMAXNWR,NCMIN,NCMAX,NBEAMMAX,NSSPB,NSSPF,'
+      WRITE(6,*) '      LMAX_WR,NCMIN,NCMAX,NBEAMMAX,NSSPB,NSSPF,'
       WRITE(6,*) '      NPMAX,NTHMAX,NRMAX,NAVMAX,NP2MAX,'
       WRITE(6,*) '      NTMAX,NTSTEP_COEF,NTSTEP_COLL,'
       WRITE(6,*) '      NTG1STEP,NTG1MIN,NTG1MAX,'
@@ -539,11 +608,13 @@
       WRITE(6,*) '      NGLINE,NGRAPH,LLMAX,LLMAX_NF,IDBGFP,'
       WRITE(6,*) '      MODEL_DISRUPT,MODEL_Connor_fp,MODEL_BS,MODEL_jfp,'
       WRITE(6,*) '      MODEL_LNL,MODEL_RE_pmax,MODELD_n_RE,MODEL_IMPURITY,'
-      WRITE(6,*) '      MODEL_SINK,N_IMPU,'
+      WRITE(6,*) '      MODEL_SINK,N_IMPU,MODEL_DELTA_F'
       WRITE(6,*) '      N_partition_r,N_partition_s,N_partition_p,'
-      WRITE(6,*) '      PMAX,PMAX_BB,'
+      WRITE(6,*) '      PMAX,PMAX_BB,EMAX'
       WRITE(6,*) '      R1,DELR1,RMIN,RMAX,E0,ZEFF,'
-      WRITE(6,*) '      PWAVE,RFDW,DELNPR,EPSNWR,REWY,DREWY,FACTWM,'
+      WRITE(6,*) '      PABS_LH,PABS_FW,PABS_EC,PABS_WR,PABS_WM,RF_WM,'
+      WRITE(6,*) '      FACT_WM,FACT_WR,DELNPR_WR,DELNPR_WM,EPS_WR,DELY_WR,'
+      WRITE(6,*) '      Y0_WM,DELY_WM,'
       WRITE(6,*) '      DEC,PEC1,PEC2,PEC3,PEC4,RFEC,DELYEC,'
       WRITE(6,*) '      DLH,PLH1,PLH2,RLH,DFW,PFW1,PFW2,RFW,'
       WRITE(6,*) '      CEWR,CEWTH,CEWPH,RKWR,RKWTH,RKWPH,'
@@ -555,7 +626,11 @@
       WRITE(6,*) '      PGMAX,RGMAX,RGMIN,'
       WRITE(6,*) '      T0_quench,tau_quench,tau_mgi,'
       WRITE(6,*) '      time_quench_start,RJPROF1,RJPROF2,'
-      WRITE(6,*) '      v_RE,target_zeff,SPITOT'
+      WRITE(6,*) '      v_RE,target_zeff,SPITOT,MODEL_EX_READ_Tn, MODEL_EX_READ_DH_RATIO, FACT_BULK'
+      WRITE(6,*) '      time_exp_offset, MODEL_BULK_CONST, RN_NEU0, MODEL_CX_LOSS, RN_NEUS'
+      WRITE(6,*) '      EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME_H, SV_FILE_NAME_D, NSA_F1, NTH_F1, NR_F1'
+      WRITE(6,*) '      OUTPUT_TXT_F1, OUTPUT_TXT_DELTA_F, OUTPUT_TXT_HEAT_PROF, OUTPUT_TXT_BEAM_WIDTH'
+      WRITE(6,*) '      NI_RATIO'
 
       RETURN
     END SUBROUTINE fp_plst
@@ -676,6 +751,11 @@
       CALL mtx_broadcast_character(KNAMFO,80)
       CALL mtx_broadcast_character(KNAMTR,80)
       CALL mtx_broadcast_character(KNAMEQ2,80)
+      CALL mtx_broadcast_character(EG_NAME_TMS,80)
+      CALL mtx_broadcast_character(EG_NAME_CX,80)
+      CALL mtx_broadcast_character(SV_FILE_NAME_H,80)
+      CALL mtx_broadcast_character(SV_FILE_NAME_D,80)
+
       DO NS=1,NSMAX
          CALL mtx_broadcast_character(KID_NS(NS),2)
       END DO
@@ -684,7 +764,7 @@
 
       idata( 1)=NSAMAX
       idata( 2)=NSBMAX
-      idata( 3)=LMAXNWR
+      idata( 3)=LMAX_WR
       idata( 4)=NBEAMMAX
       idata( 5)=NSSPF
       idata( 6)=NPMAX
@@ -744,11 +824,22 @@
       idata(56)=N_partition_r
       idata(57)=N_partition_s
       idata(58)=N_partition_p
+      idata(59)=MODEL_EX_READ_Tn
+      idata(60)=MODEL_BULK_CONST
+      idata(61)=MODEL_CX_LOSS
+      idata(62)=NSA_F1
+      idata(63)=NTH_F1
+      idata(64)=NR_F1
+      idata(65)=MODEL_EX_READ_DH_RATIO
+      idata(66)=OUTPUT_TXT_F1
+      idata(67)=OUTPUT_TXT_DELTA_F
+      idata(68)=OUTPUT_TXT_HEAT_PROF
+      idata(69)=OUTPUT_TXT_BEAM_WIDTH
 
-      CALL mtx_broadcast_integer(idata,58)
+      CALL mtx_broadcast_integer(idata,69)
       NSAMAX         =idata( 1)
       NSBMAX         =idata( 2)
-      LMAXNWR        =idata( 3)
+      LMAX_WR        =idata( 3)
       NBEAMMAX       =idata( 4)
       NSSPF          =idata( 5)
       NPMAX          =idata( 6)
@@ -807,13 +898,25 @@
       N_partition_r  =idata(56)
       N_partition_s  =idata(57)
       N_partition_p  =idata(58)
+      MODEL_EX_READ_Tn  =idata(59)
+      MODEL_BULK_CONST =idata(60)
+      MODEL_CX_LOSS  =idata(61)
+      NSA_F1 = idata(62)
+      NTH_F1 = idata(63)
+      NR_F1 = idata(64)
+      MODEL_EX_READ_DH_RATIO=idata(65)
+      OUTPUT_TXT_F1=idata(66)
+      OUTPUT_TXT_DELTA_F=idata(67)
+      OUTPUT_TXT_HEAT_PROF=idata(68)
+      OUTPUT_TXT_BEAM_WIDTH=idata(69)
 
       CALL mtx_broadcast_integer(NS_NSA,NSAMAX)
       CALL mtx_broadcast_integer(NS_NSB,NSBMAX)
       CALL mtx_broadcast_integer(NCMIN,NSAMAX)
       CALL mtx_broadcast_integer(NCMAX,NSAMAX)
       CALL mtx_broadcast_integer(NSSPB,NBEAMMAX)
-      CALL mtx_broadcast_integer(MODELW,NSAMAX)
+      CALL mtx_broadcast_integer(MODELW,NSMAX)
+      CALL mtx_broadcast_integer(MODEL_DELTA_F,NSMAX)
 
       rdata( 1)=R1
       rdata( 2)=DELR1
@@ -821,130 +924,168 @@
       rdata( 4)=RMAX
       rdata( 5)=E0
       rdata( 6)=ZEFF
-      rdata( 7)=PWAVE
-      rdata( 8)=RFDW
-      rdata( 9)=DELNPR
-      rdata(10)=EPSNWR
-      rdata(11)=REWY
-      rdata(12)=DREWY
-      rdata(13)=FACTWM
-      rdata(14)=DEC
-      rdata(15)=PEC1
-      rdata(16)=PEC2
-      rdata(17)=PEC3
-      rdata(18)=PEC4
-      rdata(19)=RFEC
-      rdata(20)=DELYEC
-      rdata(21)=DLH
-      rdata(22)=PLH1
-      rdata(23)=PLH2
-      rdata(24)=RLH
-      rdata(25)=DFW
-      rdata(26)=PFW1
-      rdata(27)=PFW2
-      rdata(28)=RFW
-      rdata(29)=RKWR
-      rdata(30)=RKWTH
-      rdata(31)=RKWPH
-      rdata(32)=SPFTOT
-      rdata(33)=SPFR0
-      rdata(34)=SPFRW
-      rdata(35)=SPFENG
-      rdata(36)=DRR0
-      rdata(37)=DRRS
-      rdata(38)=FACTOR_CDBM
-      rdata(39)=DRR_EDGE
-      rdata(40)=RHO_EDGE
-      rdata(41)=FACTOR_DRR_EDGE
-      rdata(42)=FACTOR_PINCH
-      rdata(43)=DELTAB_B
-      rdata(44)=DELT
-      rdata(45)=RIMPL
-      rdata(46)=EPSFP
-      rdata(47)=EPSM
-      rdata(48)=EPSE
-      rdata(49)=EPSDE
-      rdata(50)=H0DE
-      rdata(51)=PGMAX
-      rdata(52)=RGMAX
-      rdata(53)=RGMIN
-      rdata(54)=T0_quench
-      rdata(55)=tau_quench
-      rdata(56)=tau_mgi
-      rdata(57)=time_quench_start
-      rdata(58)=RJPROF1
-      rdata(59)=RJPROF2
-      rdata(60)=v_RE
-      rdata(61)=target_zeff
-      rdata(62)=SPITOT
+      rdata( 7)=PABS_LH
+      rdata( 8)=PABS_FW
+      rdata( 9)=PABS_EC
+      rdata(10)=PABS_WR
 
-      CALL mtx_broadcast_real8(rdata,62)
+      rdata(11)=PABS_WM
+      rdata(12)=RF_WM
+      rdata(13)=FACT_WM
+      rdata(14)=FACT_WR
+      rdata(15)=DELNPR_WR
+      rdata(16)=DELNPR_WM
+      rdata(17)=EPS_WR
+      rdata(18)=DELY_WR
+      rdata(19)=Y0_WM
+      rdata(20)=DELY_WM
+
+      rdata(21)=DEC
+      rdata(22)=PEC1
+      rdata(23)=PEC2
+      rdata(24)=PEC3
+      rdata(25)=PEC4
+      rdata(26)=RFEC
+      rdata(27)=DELYEC
+      rdata(28)=DLH
+      rdata(29)=PLH1
+      rdata(30)=PLH2
+
+      rdata(31)=RLH
+      rdata(32)=DFW
+      rdata(33)=PFW1
+      rdata(34)=PFW2
+      rdata(35)=RFW
+      rdata(36)=RKWR
+      rdata(37)=RKWTH
+      rdata(38)=RKWPH
+      rdata(39)=SPFTOT
+      rdata(40)=SPFR0
+
+      rdata(41)=SPFRW
+      rdata(42)=SPFENG
+      rdata(43)=DRR0
+      rdata(44)=DRRS
+      rdata(45)=FACTOR_CDBM
+      rdata(46)=DRR_EDGE
+      rdata(47)=RHO_EDGE
+      rdata(48)=FACTOR_DRR_EDGE
+      rdata(49)=FACTOR_PINCH
+      rdata(50)=DELTAB_B
+
+      rdata(51)=DELT
+      rdata(52)=RIMPL
+      rdata(53)=EPSFP
+      rdata(54)=EPSM
+      rdata(55)=EPSE
+      rdata(56)=EPSDE
+      rdata(57)=H0DE
+      rdata(58)=PGMAX
+      rdata(59)=RGMAX
+      rdata(60)=RGMIN
+
+      rdata(61)=T0_quench
+      rdata(62)=tau_quench
+      rdata(63)=tau_mgi
+      rdata(64)=time_quench_start
+      rdata(65)=RJPROF1
+      rdata(66)=RJPROF2
+      rdata(67)=v_RE
+      rdata(68)=target_zeff
+      rdata(69)=SPITOT
+      rdata(70)=FACT_BULK
+      rdata(71)=time_exp_offset
+      rdata(72)=RN_NEU0
+      rdata(73)=RN_NEUS
+
+      CALL mtx_broadcast_real8(rdata,73)
+
       R1               =rdata( 1)
       DELR1            =rdata( 2)
       RMIN             =rdata( 3)
       RMAX             =rdata( 4)
       E0               =rdata( 5)
       ZEFF             =rdata( 6)
-      PWAVE            =rdata( 7)
-      RFDW             =rdata( 8)
-      DELNPR           =rdata( 9)
-      EPSNWR           =rdata(10)
-      REWY             =rdata(11)
-      DREWY            =rdata(12)
-      FACTWM           =rdata(13)
-      DEC              =rdata(14)
-      PEC1             =rdata(15)
-      PEC2             =rdata(16)
-      PEC3             =rdata(17)
-      PEC4             =rdata(18)
-      RFEC             =rdata(19)
-      DELYEC           =rdata(20)
-      DLH              =rdata(21)
-      PLH1             =rdata(22)
-      PLH2             =rdata(23)
-      RLH              =rdata(24)
-      DFW              =rdata(25)
-      PFW1             =rdata(26)
-      PFW2             =rdata(27)
-      RFW              =rdata(28)
-      RKWR             =rdata(29)
-      RKWTH            =rdata(30)
-      RKWPH            =rdata(31)
-      SPFTOT           =rdata(32)
-      SPFR0            =rdata(33)
-      SPFRW            =rdata(34)
-      SPFENG           =rdata(35)
-      DRR0             =rdata(36)
-      DRRS             =rdata(37)
-      FACTOR_CDBM      =rdata(38)
-      DRR_EDGE         =rdata(39)
-      RHO_EDGE         =rdata(40)
-      FACTOR_DRR_EDGE  =rdata(41)
-      FACTOR_PINCH     =rdata(42)
-      DELTAB_B         =rdata(43)
-      DELT             =rdata(44)
-      RIMPL            =rdata(45)
-      EPSFP            =rdata(46)
-      EPSM             =rdata(47)
-      EPSE             =rdata(48)
-      EPSDE            =rdata(49)
-      H0DE             =rdata(50)
-      PGMAX            =rdata(51)
-      RGMAX            =rdata(52)
-      RGMIN            =rdata(53)
-      T0_quench        =rdata(54)
-      tau_quench       =rdata(55)
-      tau_mgi          =rdata(56)
-      time_quench_start=rdata(57)
-      RJPROF1          =rdata(58)
-      RJPROF2          =rdata(59)
-      v_RE             =rdata(60)
-      target_zeff      =rdata(61)
-      SPITOT           =rdata(62)
+      PABS_LH          =rdata( 7)
+      PABS_FW          =rdata( 8)
+      PABS_EC          =rdata( 9)
+      PABS_WR          =rdata(10)
 
-      CALL mtx_broadcast_real8(pmax,NSAMAX)
-      CALL mtx_broadcast_real8(pmax_bb,NSAMAX)
+      PABS_WM          =rdata(11)
+      RF_WM            =rdata(12)
+      FACT_WM          =rdata(13)
+      FACT_WR          =rdata(14)
+      DELNPR_WR        =rdata(15)
+      DELNPR_WM        =rdata(16)
+      EPS_WR           =rdata(17)
+      DELY_WR          =rdata(18)
+      Y0_WM            =rdata(19)
+      DELY_WM          =rdata(20)
+
+      DEC              =rdata(21)
+      PEC1             =rdata(22)
+      PEC2             =rdata(23)
+      PEC3             =rdata(24)
+      PEC4             =rdata(25)
+      RFEC             =rdata(26)
+      DELYEC           =rdata(27)
+      DLH              =rdata(28)
+      PLH1             =rdata(29)
+      PLH2             =rdata(30)
+
+      RLH              =rdata(31)
+      DFW              =rdata(32)
+      PFW1             =rdata(33)
+      PFW2             =rdata(34)
+      RFW              =rdata(35)
+      RKWR             =rdata(36)
+      RKWTH            =rdata(37)
+      RKWPH            =rdata(38)
+      SPFTOT           =rdata(39)
+      SPFR0            =rdata(40)
+
+      SPFRW            =rdata(41)
+      SPFENG           =rdata(42)
+      DRR0             =rdata(43)
+      DRRS             =rdata(44)
+      FACTOR_CDBM      =rdata(45)
+      DRR_EDGE         =rdata(46)
+      RHO_EDGE         =rdata(47)
+      FACTOR_DRR_EDGE  =rdata(48)
+      FACTOR_PINCH     =rdata(49)
+      DELTAB_B         =rdata(50)
+
+      DELT             =rdata(51)
+      RIMPL            =rdata(52)
+      EPSFP            =rdata(53)
+      EPSM             =rdata(54)
+      EPSE             =rdata(55)
+      EPSDE            =rdata(56)
+      H0DE             =rdata(57)
+      PGMAX            =rdata(58)
+      RGMAX            =rdata(59)
+      RGMIN            =rdata(60)
+
+      T0_quench        =rdata(61)
+      tau_quench       =rdata(62)
+      tau_mgi          =rdata(63)
+      time_quench_start=rdata(64)
+      RJPROF1          =rdata(65)
+      RJPROF2          =rdata(66)
+      v_RE             =rdata(67)
+      target_zeff      =rdata(68)
+      SPITOT           =rdata(69)
+      FACT_BULK        =rdata(70)
+
+      time_exp_offset  =rdata(71)
+      RN_NEU0          =rdata(72)
+      RN_NEU0          =rdata(73)
+
+      CALL mtx_broadcast_real8(pmax,NSMAX)
+      CALL mtx_broadcast_real8(pmax_bb,NSMAX)
+      CALL mtx_broadcast_real8(Emax,NSMAX)
       CALL mtx_broadcast_real8(TLOSS,NSMAX)
+      CALL mtx_broadcast_real8(NI_RATIO,NSMAX)
 
       CALL mtx_broadcast_real8(SPBTOT,NBEAMMAX)
       CALL mtx_broadcast_real8(SPBR0 ,NBEAMMAX)
@@ -1005,8 +1146,9 @@
          
          IF(MODELW(NS).EQ.0) THEN
             
-            WRITE(6,600) 'DEC     ',DEC     ,'RFEC    ',RFEC    , &
-                         'DELYEC  ',DELYEC
+            WRITE(6,600) 'PABS_LH ',PABS_LH ,'PABS_FW ',PABS_FW , &
+                         'DABS_EC ',PABS_EC
+            WRITE(6,600) 'DEC     ',DEC     ,'DELYEC  ',DELYEC
             WRITE(6,600) 'PEC1    ',PEC1    ,'PEC2    ',PEC2
             WRITE(6,600) 'PEC3    ',PEC3    ,'PEC4    ',PEC4
             WRITE(6,600) 'DLH     ',DLH     ,'RLH     ',RLH
@@ -1015,27 +1157,29 @@
             WRITE(6,600) 'PFW1    ',PFW1    ,'PFW2    ',PFW2
             
          ELSEIF(MODELW(NS).EQ.1) THEN
-            WRITE(6,600) 'RFDW    ',RFDW    ,'DELNPR  ',DELNPR
-            WRITE(6,600) 'PWAVE   ',PWAVE   ,'DELYEC  ',DELYEC
-            WRITE(6,602) 'EPSNWR  ',EPSNWR  ,'LMAXNWR ',LMAXNWR
-            
+            WRITE(6,600) 'PABS_WR ',PABS_WR ,'DELNPR_R',DELNPR_WR, &
+                         'DELY_WR ',DELY_WR
+            WRITE(6,602) 'EPS_WR  ',EPS_WR  ,'LMAX_WR ',LMAX_WR
+
          ELSEIF(MODELW(NS).EQ.2) THEN
-            WRITE(6,600) 'RFDW    ',RFDW    ,'DELNPR  ',DELNPR
-            WRITE(6,600) 'PWAVE   ',PWAVE   ,'DELYEC  ',DELYEC
-            WRITE(6,602) 'EPSNWR  ',EPSNWR  ,'LMAXNWR ',LMAXNWR
+            WRITE(6,600) 'PABS_WR ',PABS_WR ,'DELNPR_R',DELNPR_WR, &
+                         'DELY_WR ',DELY_WR
+            WRITE(6,601) 'FACT_WR ',FACT_WR ,'EPS_WR  ',EPS_WR   , &
+                         'LMAX_WR ',LMAX_WR
             
          ELSEIF(MODELW(NS).EQ.3) THEN
-            WRITE(6,600) 'RFDW    ',RFDW    ,'DELNPR  ',DELNPR
+            WRITE(6,600) 'PABS_WM ',PABS_WM ,'RF_WM   ',RF_WM, &
+                         'DELNPR_M',DELNPR_WM
+            WRITE(6,600) 'Y0_WM   ',Y0_WM      ,'DELY_WM ',DELY_WM
             WRITE(6,600) 'CEWR/R  ',DBLE(CEWR) ,'CEWR/I  ',DIMAG(CEWR)
             WRITE(6,600) 'CEWTH/R ',DBLE(CEWTH),'CEWTH/I ',DIMAG(CEWTH)
             WRITE(6,600) 'CEWPH/R ',DBLE(CEWPH),'CEWPH/I ',DIMAG(CEWPH)
-            WRITE(6,600) 'REWY    ',REWY    ,'DREWY   ',DREWY
-            WRITE(6,600) 'RKWR    ',RKWR    ,'RKWTH   ',RKWTH   , &
+            WRITE(6,600) 'RKWR    ',RKWR       ,'RKWTH   ',RKWTH   , &
                          'RKWPH   ',RKWPH
             
          ELSEIF(MODELW(NS).EQ.4) THEN
-            WRITE(6,600) 'RFDW    ',RFDW    ,'DELNPR  ',DELNPR
-            WRITE(6,600) 'FACTWM  ',FACTWM
+            WRITE(6,600) 'PABS_WM  ',PABS_WM   ,'DELNPR_M',DELNPR_WM, &
+                         'FACT_WM  ',FACT_WM
          ENDIF
          
          IF(TLOSS(NS).NE.0.D0) THEN
@@ -1218,6 +1362,8 @@
          WRITE(6,*) 'MHD EQUILIBRIUM FROM TASK/EQ'
       ELSE IF(MODELG.EQ.5)THEN
          WRITE(6,*) 'MHD EQUILIBRIUM FROM EFIT'
+      ELSE IF(MODELG.EQ.8)THEN
+         WRITE(6,*) 'MHD EQUILIBRIUM FROM TOPICS/EQU'
       ELSE
          WRITE(6,*) 'XX UNKNOWN MODELG: MODELG =',MODELG
       END IF

@@ -20,25 +20,20 @@
       USE libmtx
       USE fpmpi
       IMPLICIT NONE
-      integer:: NR, NSA, NSB, NSBA, NP, NTH, NS, NPS, NPE
-      integer:: IERR
-      real(8):: RSUM1, RSUM2, RSUM3, RSUM4, RSUM5, RSUM6, RSUM7, RSUM_FS2
-      real(8):: RSUM8, RSUM9, RSUM123, RSUM11B,RSUM11F,RSUM11S,RSUM11L
-      real(8):: RSUM12, RSUM_IC, rsum_test, RSUM1R,RSUM2R, RSUM_synch, RSUM_loss
-      real(8):: PV, WPL, WPM, WPP
-      real(8):: DFP, DFT, FFP, testa, testb, FACT, DFDP, WRL, WRH, DINT_DFDT_R1, DINT_DFDT_R2
-      real(8):: DFDR_R1, DFDR_R2, DFDT_R1, DFDT_R2, DINT_DR, RSUM_DR,RGAMA,F_R1,F_R2, RSUMN_DR
-      real(8),dimension(NSBMAX):: RSUM10
+      integer:: NR, NSA, NSB, NP, NTH, NS, NPS, i, NSD, NSH
+      real(8):: RSUM1, RSUM2, RSUM3, RSUM4, RSUM5, RSUM6, RSUM7
+      real(8):: RSUM8, RSUM9, RSUM11B,RSUM11F,RSUM11S,RSUM11L,RSUM11S_CX
+      real(8):: RSUM12, RSUM_WR, RSUM_WM, RSUM_synch, RSUM_loss
+      real(8):: PV, WPL, WPM, WPP, DFP_DEL, DFT_DEL, FFP_DEL
+      real(8):: DFP, DFT, FFP, FACT, WRL, WRH, DINT_DFDT_R1, DINT_DFDT_R2
+      real(8):: DFDR_R1, DFDR_R2, DFDT_R1, DFDT_R2, DINT_DR
+      real(8):: RSUM_DR,RGAMA,F_R1,F_R2, RSUMN_DR
+      real(8),dimension(NSBMAX):: RSUM10, RSUM_PC, RSUM10_DEL, RSUM_PC_DEL
       real(8),dimension(NPMAX):: RSUMNP_E
-      real(8),dimension(NTHMAX,NPMAX):: T_BULK
-      real(8),dimension(NPSTART:NPEND):: RPL_BULK_send
-      real(8),dimension(NPMAX):: RPL_BULK_recv
-      integer,dimension(NRSTART:NREND,NSBMAX):: NP_BULK
-      real(8):: ratio, RSUM_T, RSUM_V, P_BULK_R, FACT_BULK, RATIO_0_S
       real(8):: SRHOR1, SRHOR2, RSUM_DRS, RSUMN_DRS
-      real(8):: DSDR, SRHOP, SRHOM, RSUM63
+      real(8):: RSUM63, RSUM_RSPL, RSUM_PSPL
       real:: gut1,gut2
-      real(8)::FLUXS_PMAX,FLUXS_PC, rtemp, DRRM, DRRp, RL
+      real(8)::rtemp, DRRM, DRRp, RL
 
       IF(ISAVE.NE.0) RETURN
       CALL GUTIME(gut1)
@@ -54,10 +49,12 @@
       END DO
 
       CALL mtx_set_communicator(comm_np) 
+
+      CALL Define_Bulk_NP
+
       DO NR=NRSTART,NREND
          DO NSA=NSASTART,NSAEND
             NS=NS_NSA(NSA)
-            NSBA=NSB_NSA(NSA)
 
             RSUM1=0.D0
             RSUM2=0.D0
@@ -69,49 +66,37 @@
             RSUM7=0.D0
             RSUM8=0.D0
             RSUM9=0.D0
-            RSUM_IC=0.D0
+            RSUM_WR=0.D0
+            RSUM_WM=0.D0
             RSUM_synch=0.D0
             RSUM_loss=0.D0
             DO NSB=1,NSBMAX
                RSUM10(NSB)=0.D0
+               RSUM10_DEL(NSB)=0.D0
             ENDDO
             RSUM11B=0.D0
             RSUM11F=0.D0
             RSUM11S=0.D0
             RSUM11L=0.D0
+            RSUM11S_CX=0.D0
 
             RSUM12=0.D0
 
             IF(MODELA.eq.0)THEN
                DO NP=NPSTART,NPEND
                   DO NTH=1,NTHMAX
-                     RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)
+                     RSUM1 = RSUM1+VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA)
                   END DO
                ENDDO
             ELSE
                DO NP=NPSTART,NPEND
                   DO NTH=1,NTHMAX
-                     RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
+                     RSUM1 = RSUM1+VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA) &
                           *RLAMDA(NTH,NR)*RFSADG(NR)
                   END DO
                ENDDO
             END IF
 
-!           DEFINE BULK MOMENTUM RANGE: 0 < NP < NP_BULK(NR,NSA) 
-            IF(NT_init.eq.0)THEN
-               FACT_BULK = 3.D0
-            ELSE
-               FACT_BULK = SQRT( RT_BULK(NR,NSA)/RTFP(NR,NSA) )*3.D0
-            END IF
-            RATIO_0_S=SQRT(RTFPS(NSA)/RTFP0(NSA)) ! p_th(r)/p_th(0)
-            P_BULK_R = FACT_BULK* ( (1.D0-RATIO_0_S)*(1.D0-RM(NR)**2)+RATIO_0_S )
-            DO NP=NPMAX, 1, -1
-               IF(P_BULK_R.lt.PG(NP,NSA)) NP_BULK(NR,NSA)=NP
-            END DO
-            IF(PMAX(NSA).lt.P_BULK_R)THEN
-               NP_BULK(NR,NSA) = NPMAX
-            END IF
-!            WRITE(*,*) NSA, NR, NP_BULK(NR,NSA)
                
 !
             IF(MODELA.eq.0) THEN
@@ -119,24 +104,24 @@
                   DO NP=NPSTART,NPEND
                      DO NTH=1,NTHMAX
                         RSUM2 = RSUM2                       &
-                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
-                             *PM(NP,NSBA)*COSM(NTH)
+                             +VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA) &
+                             *PM(NP,NS)*COSM(NTH)
                         RSUM3 = RSUM3                       &
-                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
-                             *0.5D0*PM(NP,NSBA)**2
+                             +VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA) &
+                             *0.5D0*PM(NP,NS)**2
                      END DO
                      RSUMNP_E(NP)=RSUM3
                   ENDDO
                ELSE
                   DO NP=NPSTART,NPEND
-                     PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
+                     PV=SQRT(1.D0+THETA0(NS)*PM(NP,NS)**2)
                      DO NTH=1,NTHMAX
                         RSUM2 = RSUM2                       &
-                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
-                             *PM(NP,NSBA)*COSM(NTH)/PV
+                             +VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA) &
+                             *PM(NP,NS)*COSM(NTH)/PV
                         RSUM3 = RSUM3                       &
-                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
-                             *(PV-1.D0)/THETA0(NSA)
+                             +VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA) &
+                             *(PV-1.D0)/THETA0(NS)
                      END DO
                      RSUMNP_E(NP)=RSUM3
                   END DO
@@ -146,33 +131,33 @@
                   DO NP=NPSTART,NPEND
                      DO NTH=1,NTHMAX
                         RSUM2 = RSUM2                        &
-                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)  &
-                             *PM(NP,NSBA)*COSM(NTH)*RLAMDA(NTH,NR)*RFSADG(NR)
+                             +VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA)  &
+                             *PM(NP,NS)*COSM(NTH)*RLAMDA(NTH,NR)*RFSADG(NR)
                         RSUM3 = RSUM3                        &
-                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)  &
-                             *0.5D0*PM(NP,NSBA)**2*RLAMDA(NTH,NR)*RFSADG(NR)
+                             +VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA)  &
+                             *0.5D0*PM(NP,NS)**2*RLAMDA(NTH,NR)*RFSADG(NR)
                      END DO
                      RSUMNP_E(NP)=RSUM3
                   ENDDO
                ELSE
                   DO NP=NPSTART,NPEND
-                     PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
+                     PV=SQRT(1.D0+THETA0(NS)*PM(NP,NS)**2)
                      DO NTH=1, ITL(NR)-1
                         RSUM2 = RSUM2                        &
-                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)  &
-                             *PM(NP,NSBA)*COSM(NTH)/PV &
+                             +VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA)  &
+                             *PM(NP,NS)*COSM(NTH)/PV &
                              *(1.D0+EPSRM2(NR))
                      END DO
                      DO NTH=ITU(NR)+1, NTHMAX
                         RSUM2 = RSUM2                        &
-                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)  &
-                             *PM(NP,NSBA)*COSM(NTH)/PV &
+                             +VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA)  &
+                             *PM(NP,NS)*COSM(NTH)/PV &
                              *(1.D0+EPSRM2(NR))
                      END DO
                      DO NTH=1,NTHMAX
                         RSUM3 = RSUM3                        &
-                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)  &
-                             *(PV-1.D0)/THETA0(NSA)*RLAMDA(NTH,NR)*RFSADG(NR)
+                             +VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA)  &
+                             *(PV-1.D0)/THETA0(NS)*RLAMDA(NTH,NR)*RFSADG(NR)
                      END DO
                      RSUMNP_E(NP)=RSUM3
                   END DO
@@ -188,20 +173,20 @@
 !            IF(MODELR.eq.0)THEN
 !               DO NP=NPS, NPE
 !                  DO NTH=1,NTHMAX
-!                     RSUM1R = RSUM1R+VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)                     
+!                     RSUM1R = RSUM1R+VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA)                     
 !                     RSUM2R = RSUM2R                       &
-!                          +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
-!                          *PM(NP,NSBA)*COSM(NTH)
+!                          +VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA) &
+!                          *PM(NP,NS)*COSM(NTH)
 !                  END DO
 !               END DO
 !            ELSEIF(MODELR.eq.1)THEN
 !               DO NP=NPS, NPE
-!                  PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
+!                  PV=SQRT(1.D0+THETA0(NS)*PM(NP,NS)**2)
 !                  DO NTH=1,NTHMAX
-!                     RSUM1R = RSUM1R+VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)                     
+!                     RSUM1R = RSUM1R+VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA)                     
 !                     RSUM2R = RSUM2R                       &
-!                          +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
-!                          *PM(NP,NSBA)*COSM(NTH)/PV
+!                          +VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA) &
+!                          *PM(NP,NS)*COSM(NTH)/PV
 !                  END DO
 !               END DO
 !            END IF
@@ -212,7 +197,7 @@
                NPS=NPSTART
             END IF
             DO NP=NPS,NPEND
-               PV=SQRT(1.D0+THETA0(NSA)*PG(NP,NSBA)**2)
+               PV=SQRT(1.D0+THETA0(NS)*PG(NP,NS)**2)
                DO NTH=1,NTHMAX
                   WPL=WEIGHP(NTH  ,NP,NR,NSA)
                   IF(NTH.EQ.1) THEN
@@ -225,78 +210,81 @@
                   ELSE
                      WPP=WEIGHP(NTH+1,NP,NR,NSA)
                   ENDIF
-                  DFP=    PG(NP,NSBA) &
-                       /DELP(NSBA)*(FNSP(NTH,NP,NR,NSBA)-FNSP(NTH,NP-1,NR,NSBA))
+                  DFP=    PG(NP,NS) &
+                       /DELP(NS)*(FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA))
                   IF(NTH.EQ.1) THEN
                      DFT=1.D0/DELTH                             &
                           *(                                     &
-                          ((1.D0-WPP)*FNSP(NTH+1,NP  ,NR,NSBA)   &
-                          +WPP *FNSP(NTH+1,NP-1,NR,NSBA)) &
+                          ((1.D0-WPP)*FNSP(NTH+1,NP  ,NR,NSA)   &
+                          +WPP *FNSP(NTH+1,NP-1,NR,NSA)) &
                           -                                    &
-                          ((1.D0-WPM)*FNSP(NTH,NP  ,NR,NSBA)     &
-                          +WPM *FNSP(NTH,NP-1,NR,NSBA)) &
+                          ((1.D0-WPM)*FNSP(NTH,NP  ,NR,NSA)     &
+                          +WPM *FNSP(NTH,NP-1,NR,NSA)) &
                           )
                      
                   ELSE IF(NTH.EQ.NTHMAX) THEN
                      DFT=    1.D0/DELTH                         & 
                           *(-                                    &
-                          ((1.D0-WPM)*FNSP(NTH-1,NP  ,NR,NSBA)   &
-                          +WPM *FNSP(NTH-1,NP-1,NR,NSBA)) &
+                          ((1.D0-WPM)*FNSP(NTH-1,NP  ,NR,NSA)   &
+                          +WPM *FNSP(NTH-1,NP-1,NR,NSA)) &
                           +                                     &
-                          ((1.D0-WPP)*FNSP(NTH,NP  ,NR,NSBA)     &
-                          +WPP *FNSP(NTH,NP-1,NR,NSBA)) &
+                          ((1.D0-WPP)*FNSP(NTH,NP  ,NR,NSA)     &
+                          +WPP *FNSP(NTH,NP-1,NR,NSA)) &
                           )
                   ELSE
                      DFT=    1.D0/(2.D0*DELTH)                  &
                           *(                                     &
-                          ((1.D0-WPP)*FNSP(NTH+1,NP  ,NR,NSBA)   &
-                          +WPP *FNSP(NTH+1,NP-1,NR,NSBA)) &
+                          ((1.D0-WPP)*FNSP(NTH+1,NP  ,NR,NSA)   &
+                          +WPP *FNSP(NTH+1,NP-1,NR,NSA)) &
                           -                                    &
-                          ((1.D0-WPM)*FNSP(NTH-1,NP  ,NR,NSBA)   &
-                          +WPM *FNSP(NTH-1,NP-1,NR,NSBA)) &
+                          ((1.D0-WPM)*FNSP(NTH-1,NP  ,NR,NSA)   &
+                          +WPM *FNSP(NTH-1,NP-1,NR,NSA)) &
                           )
                   ENDIF
-                  FFP=    PG(NP,NSBA)                           &
-                       *((1.D0-WPL)*FNSP(NTH  ,NP  ,NR,NSBA)  &
-                       +WPL *FNSP(NTH  ,NP-1,NR,NSBA))
+                  FFP=    PG(NP,NS)                           &
+                       *((1.D0-WPL)*FNSP(NTH  ,NP  ,NR,NSA)  &
+                       +WPL *FNSP(NTH  ,NP-1,NR,NSA))
 !
-                  RSUM4 = RSUM4+PG(NP,NSBA)**2*SINM(NTH)/PV   &
+                  RSUM4 = RSUM4+PG(NP,NS)**2*SINM(NTH)/PV   &
                        *(DCPP(NTH,NP,NR,NSA)*DFP           &
                         +DCPT(NTH,NP,NR,NSA)*DFT           &
                         -FCPP(NTH,NP,NR,NSA)*FFP           &
                           )
-                  RSUM5 = RSUM5+PG(NP,NSBA)**2*SINM(NTH)/PV   &
+                  RSUM5 = RSUM5+PG(NP,NS)**2*SINM(NTH)/PV   &
                           *(DWPP(NTH,NP,NR,NSA)*DFP           &
                            +DWPT(NTH,NP,NR,NSA)*DFT)
-                  RSUM6 = RSUM6-PG(NP,NSBA)**2*SINM(NTH)/PV   &
+                  RSUM6 = RSUM6-PG(NP,NS)**2*SINM(NTH)/PV   &
                           *(FEPP(NTH,NP,NR,NSA)*FFP)
-                  RSUM7 = RSUM7+PG(NP,NSBA)**2*SINM(NTH)/PV   &
+                  RSUM7 = RSUM7+PG(NP,NS)**2*SINM(NTH)/PV   &
                           *(DWLHPP(NTH,NP,NR,NSA)*DFP         &
                            +DWLHPT(NTH,NP,NR,NSA)*DFT)
-                  RSUM8 = RSUM8+PG(NP,NSBA)**2*SINM(NTH)/PV   &
+                  RSUM8 = RSUM8+PG(NP,NS)**2*SINM(NTH)/PV   &
                           *(DWFWPP(NTH,NP,NR,NSA)*DFP         &
                        +DWFWPT(NTH,NP,NR,NSA)*DFT)
-                  RSUM9 = RSUM9+PG(NP,NSBA)**2*SINM(NTH)/PV   &
+                  RSUM9 = RSUM9+PG(NP,NS)**2*SINM(NTH)/PV   &
                           *(DWECPP(NTH,NP,NR,NSA)*DFP         &
                        +DWECPT(NTH,NP,NR,NSA)*DFT)
-                  RSUM_IC = RSUM_IC+PG(NP,NSBA)**2*SINM(NTH)/PV   &
-                              *(DWICPP(NTH,NP,NR,NSA)*DFP         &
-                               +DWICPT(NTH,NP,NR,NSA)*DFT)
+                  RSUM_WR = RSUM_WR+PG(NP,NS)**2*SINM(NTH)/PV   &
+                              *(DWWRPP(NTH,NP,NR,NSA)*DFP         &
+                               +DWWRPT(NTH,NP,NR,NSA)*DFT)
+                  RSUM_WM = RSUM_WM+PG(NP,NS)**2*SINM(NTH)/PV   &
+                              *(DWWMPP(NTH,NP,NR,NSA)*DFP         &
+                               +DWWMPT(NTH,NP,NR,NSA)*DFT)
                   RSUM_synch = RSUM_synch + &
-                       PG(NP,NSBA)**2*SINM(NTH)/PV   &
+                       PG(NP,NS)**2*SINM(NTH)/PV   &
                        *( -FSPP(NTH,NP,NR,NSA)*FFP )
                   RSUM_loss = RSUM_loss + &
-                       PG(NP,NSBA)**2*SINM(NTH)/PV   &
+                       PG(NP,NS)**2*SINM(NTH)/PV   &
                        *(DLPP(NTH,NP,NR,NSA)*DFP           &
                         -FLPP(NTH,NP,NR,NSA)*FFP )
 
                   DO NSB=1,NSBMAX
-                     RSUM10(NSB)=RSUM10(NSB)+PG(NP,NSBA)**2*SINM(NTH)/PV &
+                     RSUM10(NSB)=RSUM10(NSB)+PG(NP,NS)**2*SINM(NTH)/PV &
                              *(DCPP2(NTH,NP,NR,NSB,NSA)*DFP              &
                               +DCPT2(NTH,NP,NR,NSB,NSA)*DFT              & 
                               -FCPP2(NTH,NP,NR,NSB,NSA)*FFP)
                   END DO
-                  RSUM12 = RSUM12+PG(NP,NSBA)**2*SINM(NTH)/PV   &
+                  RSUM12 = RSUM12+PG(NP,NS)**2*SINM(NTH)/PV   &
                              *(DPP(NTH,NP,NR,NSA)*DFP           &
                               +DPT(NTH,NP,NR,NSA)*DFT           &
                               -FPP(NTH,NP,NR,NSA)*FFP           &
@@ -304,44 +292,115 @@
                ENDDO ! NTH
             ENDDO
 
+!      Collisional power transfer delta f
+            IF(MODEL_DELTA_F(NS).eq.1)THEN
+               DO NP=NPS,NPEND
+                  PV=SQRT(1.D0+THETA0(NS)*PG(NP,NS)**2)
+                  DO NTH=1,NTHMAX
+                     WPL=WEIGHP(NTH  ,NP,NR,NSA)
+                     IF(NTH.EQ.1) THEN
+                        WPM=0.D0
+                     ELSE
+                        WPM=WEIGHP(NTH-1,NP,NR,NSA)
+                     ENDIF
+                     IF(NTH.EQ.NTHMAX) THEN
+                        WPP=0.D0
+                     ELSE
+                        WPP=WEIGHP(NTH+1,NP,NR,NSA)
+                     ENDIF
+                     DFP_DEL=    PG(NP,NS) &
+                          /DELP(NS)*(FNSP_DEL(NTH,NP,NR,NSA)-FNSP_DEL(NTH,NP-1,NR,NSA))
+                     IF(NTH.EQ.1) THEN
+                        DFT_DEL=1.D0/DELTH                             &
+                             *(                                     &
+                             ((1.D0-WPP)*FNSP_DEL(NTH+1,NP  ,NR,NSA)   &
+                             +WPP *FNSP_DEL(NTH+1,NP-1,NR,NSA)) &
+                             -                                    &
+                             ((1.D0-WPM)*FNSP_DEL(NTH,NP  ,NR,NSA)     &
+                             +WPM *FNSP_DEL(NTH,NP-1,NR,NSA)) &
+                             )
+                        
+                     ELSE IF(NTH.EQ.NTHMAX) THEN
+                        DFT_DEL=    1.D0/DELTH                         & 
+                             *(-                                    &
+                             ((1.D0-WPM)*FNSP_DEL(NTH-1,NP  ,NR,NSA)   &
+                             +WPM *FNSP_DEL(NTH-1,NP-1,NR,NSA)) &
+                             +                                     &
+                             ((1.D0-WPP)*FNSP_DEL(NTH,NP  ,NR,NSA)     &
+                             +WPP *FNSP_DEL(NTH,NP-1,NR,NSA)) &
+                             )
+                     ELSE
+                        DFT_DEL=    1.D0/(2.D0*DELTH)                  &
+                             *(                                     &
+                             ((1.D0-WPP)*FNSP_DEL(NTH+1,NP  ,NR,NSA)   &
+                             +WPP *FNSP_DEL(NTH+1,NP-1,NR,NSA)) &
+                             -                                    &
+                             ((1.D0-WPM)*FNSP_DEL(NTH-1,NP  ,NR,NSA)   &
+                             +WPM *FNSP_DEL(NTH-1,NP-1,NR,NSA)) &
+                             )
+                     ENDIF
+                     FFP_DEL=    PG(NP,NS)                           &
+                          *((1.D0-WPL)*FNSP_DEL(NTH  ,NP  ,NR,NSA)  &
+                          +WPL *FNSP_DEL(NTH  ,NP-1,NR,NSA))
+                     DO NSB=1,NSBMAX
+                        RSUM10_DEL(NSB)=RSUM10_DEL(NSB)+PG(NP,NS)**2*SINM(NTH)/PV &
+                             *(DCPP2(NTH,NP,NR,NSB,NSA)*DFP_DEL              &
+                             +DCPT2(NTH,NP,NR,NSB,NSA)*DFT_DEL              & 
+                             -FCPP2(NTH,NP,NR,NSB,NSA)*FFP_DEL)
+                     END DO
+                  END DO
+               END DO
+            END IF !delta f
+
 !      SOURCE POWER
             IF(MODELR.eq.1)THEN
                DO NP=NPSTART,NPEND
-                  PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
+                  PV=SQRT(1.D0+THETA0(NS)*PM(NP,NS)**2)
                   DO NTH=1,NTHMAX
-                     RSUM11B = RSUM11B + PM(NP,NSBA)**2*SINM(NTH) &
-                          *(PV-1.D0)/THETA0(NSA)*SPPB(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
-                     RSUM11F = RSUM11F + PM(NP,NSBA)**2*SINM(NTH) &
-                          *(PV-1.D0)/THETA0(NSA)*SPPF(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
-                     IF(MODEL_SINK.eq.0)THEN
-                        RSUM11S = RSUM11S + PM(NP,NSBA)**2*SINM(NTH) &
-                             *(PV-1.D0)/THETA0(NSA)*SPPS(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
-                     ELSE
-                        RSUM11S = RSUM11S + PM(NP,NSBA)**2*SINM(NTH) &
-                             *(PV-1.D0)/THETA0(NSA)*SPPL(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
+                     RSUM11B = RSUM11B + PM(NP,NS)**2*SINM(NTH) &
+                          *(PV-1.D0)/THETA0(NS)*SPPB(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
+                     RSUM11F = RSUM11F + PM(NP,NS)**2*SINM(NTH) &
+                          *(PV-1.D0)/THETA0(NS)*SPPF(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
+!                     IF(MODEL_SINK.eq.0)THEN
+!                        RSUM11S = RSUM11S + PM(NP,NS)**2*SINM(NTH) &
+!                             *(PV-1.D0)/THETA0(NS)*SPPS(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
+!                     ELSE
+                     RSUM11S = RSUM11S + PM(NP,NS)**2*SINM(NTH) &
+                          *(PV-1.D0)/THETA0(NS)*SPPL(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
+!                     END IF
+                     IF(MODEL_DELTA_F(NS).eq.0)THEN
+                        RSUM11L = RSUM11L + PM(NP,NS)**2*SINM(NTH) &
+                             *(PV-1.D0)/THETA0(NS)* PPL(NTH,NP,NR,NSA)&
+                             *FNSP(NTH,NP,NR,NSA)!*RLAMDA(NTH,NR)!*RFSADG(NR) PPL includes RLAMDA 
+                     ELSEIF(MODEL_DELTA_F(NS).eq.1)THEN
+                        RSUM11L = RSUM11L + PM(NP,NS)**2*SINM(NTH) &
+                             *(PV-1.D0)/THETA0(NS)* PPL(NTH,NP,NR,NSA)&
+                             *FNSP_DEL(NTH,NP,NR,NSA)!*RLAMDA(NTH,NR)!*RFSADG(NR) PPL includes RLAMDA 
                      END IF
-                     RSUM11L = RSUM11L + PM(NP,NSBA)**2*SINM(NTH) &
-                          *(PV-1.D0)/THETA0(NSA)* PPL(NTH,NP,NR,NSA)&
-                          *FNSP(NTH,NP,NR,NSBA)!*RLAMDA(NTH,NR)!*RFSADG(NR) PPL includes RLAMDA
+                     RSUM11S_CX = RSUM11S_CX + PM(NP,NS)**2*SINM(NTH) &
+                          *(PV-1.D0)/THETA0(NS)*SPPL_CX(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
                   END DO
                END DO
             ELSE ! MODELR=0
                DO NP=NPSTART,NPEND
                   DO NTH=1,NTHMAX
-                     RSUM11B = RSUM11B + PM(NP,NSBA)**2*SINM(NTH) &
-                          *0.5D0*PM(NP,NSBA)**2*SPPB(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
-                     RSUM11F = RSUM11F + PM(NP,NSBA)**2*SINM(NTH) &
-                          *0.5D0*PM(NP,NSBA)**2*SPPF(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
-                     IF(MODEL_SINK.eq.0)THEN
-                        RSUM11S = RSUM11S + PM(NP,NSBA)**2*SINM(NTH) &
-                             *0.5D0*PM(NP,NSBA)**2*SPPS(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
-                     ELSE
-                        RSUM11S = RSUM11S + PM(NP,NSBA)**2*SINM(NTH) &
-                             *0.5D0*PM(NP,NSBA)**2*SPPL(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
+                     RSUM11B = RSUM11B + PM(NP,NS)**2*SINM(NTH) &
+                          *0.5D0*PM(NP,NS)**2*SPPB(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
+                     RSUM11F = RSUM11F + PM(NP,NS)**2*SINM(NTH) &
+                          *0.5D0*PM(NP,NS)**2*SPPF(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
+                     RSUM11S = RSUM11S + PM(NP,NS)**2*SINM(NTH) &
+                          *0.5D0*PM(NP,NS)**2*SPPL(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
+                     IF(MODEL_DELTA_F(NS).eq.0)THEN
+                        RSUM11L = RSUM11L + PM(NP,NS)**2*SINM(NTH) &
+                             *0.5D0*PM(NP,NS)**2*PPL(NTH,NP,NR,NSA) &
+                             *FNSP(NTH,NP,NR,NSA)!*RLAMDA(NTH,NR)!*RFSADG(NR)
+                     ELSEIF(MODEL_DELTA_F(NS).eq.1)THEN
+                        RSUM11L = RSUM11L + PM(NP,NS)**2*SINM(NTH) &
+                             *0.5D0*PM(NP,NS)**2*PPL(NTH,NP,NR,NSA) &
+                             *FNSP_DEL(NTH,NP,NR,NSA)!*RLAMDA(NTH,NR)!*RFSADG(NR)
                      END IF
-                     RSUM11L = RSUM11L + PM(NP,NSBA)**2*SINM(NTH) &
-                          *0.5D0*PM(NP,NSBA)**2*PPL(NTH,NP,NR,NSA) &
-                          *FNSP(NTH,NP,NR,NSBA)!*RLAMDA(NTH,NR)!*RFSADG(NR)
+                     RSUM11S_CX = RSUM11S_CX + PM(NP,NS)**2*SINM(NTH) &
+                          *0.5D0*PM(NP,NS)**2*SPPL_CX(NTH,NP,NR,NSA)*RLAMDA(NTH,NR)!*RFSADG(NR)
                   END DO
                END DO
             END IF
@@ -373,7 +432,7 @@
             END IF
             IF(MODELD.ne.0)THEN
                DO NP=NPSTART,NPEND
-                  RGAMA=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
+                  RGAMA=SQRT(1.D0+THETA0(NS)*PM(NP,NS)**2)
                   DO NTH=1,NTHMAX
                      WRL=WEIGHR(NTH,NP,NR,NSA)
                      WRH=WEIGHR(NTH,NP,NR+1,NSA)
@@ -405,19 +464,19 @@
                      
                      DINT_DR = ( DFDT_R2 - DFDT_R1 )/DELR/RL*RFSADG(NR)
 
-                     RSUMN_DR=RSUMN_DR +             DINT_DR*VOLP(NTH,NP,NSBA)
+                     RSUMN_DR=RSUMN_DR +             DINT_DR*VOLP(NTH,NP,NS)
                      IF(MODELR.eq.1)THEN
-                        RSUM_DR=RSUM_DR+(RGAMA-1.D0)/THETA0(NSA)*DINT_DR*VOLP(NTH,NP,NSBA)
+                        RSUM_DR=RSUM_DR+(RGAMA-1.D0)/THETA0(NS)*DINT_DR*VOLP(NTH,NP,NS)
                      ELSEIF(MODELR.eq.0)THEN
-                        RSUM_DR=RSUM_DR + 0.5D0*PG(NP,NSBA)**2*DINT_DR*VOLP(NTH,NP,NSBA)
+                        RSUM_DR=RSUM_DR + 0.5D0*PG(NP,NS)**2*DINT_DR*VOLP(NTH,NP,NS)
                      END IF
 !
                      IF(NR.eq.NRMAX)THEN
-                        RSUMN_DRS=RSUMN_DRS +      DFDT_R2*VOLP(NTH,NP,NSBA)/DELR *RFSADG(NR)/RL
+                        RSUMN_DRS=RSUMN_DRS +      DFDT_R2*VOLP(NTH,NP,NS)/DELR *RFSADG(NR)/RL
                         IF(MODELR.eq.1)THEN
-                           RSUM_DRS=RSUM_DRS+(RGAMA-1.D0)/THETA0(NSA)*DFDT_R2*VOLP(NTH,NP,NSBA)/DELR *RFSADG(NR)
+                           RSUM_DRS=RSUM_DRS+(RGAMA-1.D0)/THETA0(NS)*DFDT_R2*VOLP(NTH,NP,NS)/DELR *RFSADG(NR)
                         ELSE
-                           RSUM_DRS=RSUM_DRS+0.5D0*PG(NP,NSBA)**2*DFDT_R2*VOLP(NTH,NP,NSBA)/DELR *RFSADG(NR)
+                           RSUM_DRS=RSUM_DRS+0.5D0*PG(NP,NS)**2*DFDT_R2*VOLP(NTH,NP,NS)/DELR *RFSADG(NR)
                         END IF
                      END IF
                   END DO
@@ -449,16 +508,20 @@
             CALL p_theta_integration(RSUM7)
             CALL p_theta_integration(RSUM8)
             CALL p_theta_integration(RSUM9)
-            CALL p_theta_integration(RSUM_IC)
+            CALL p_theta_integration(RSUM_WR)
+            CALL p_theta_integration(RSUM_WM)
             CALL p_theta_integration(RSUM_synch)
             CALL p_theta_integration(RSUM_loss)
             CALL p_theta_integration(RSUM11B)
             CALL p_theta_integration(RSUM11F)
             CALL p_theta_integration(RSUM11S)
             CALL p_theta_integration(RSUM11L)
+            CALL p_theta_integration(RSUM11S_CX)
             DO NSB=1,NSBMAX
                CALL p_theta_integration(RSUM10(NSB))
+               CALL p_theta_integration(RSUM10_DEL(NSB))
             END DO
+!            CALL p_theta_integration(RSUM1R)
 
  888        FORMAT(2I4,12E14.6)
             FACT=RNFP0(NSA)*1.D20
@@ -467,28 +530,32 @@
                            /AMFP(NSA)*1.D-6
             FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)
             RWSL(NR,NSA) = RSUM3*FACT               *1.D-6
-            RWS123L(NR,NSA) =-RSUM12*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
+            RWS123L(NR,NSA) =-RSUM12*FACT*2.D0*PI*DELP(NS)*DELTH *1.D-6
 
             FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)*RFSADG(NR)
-            RPCSL(NR,NSA)=-RSUM4*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
-            RPWSL(NR,NSA)=-RSUM5*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
-            RPESL(NR,NSA)=-RSUM6*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
-            RLHSL(NR,NSA)=-RSUM7*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
-            RFWSL(NR,NSA)=-RSUM8*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
-            RECSL(NR,NSA)=-RSUM9*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
-            RICSL(NR,NSA)=-RSUM_IC*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
-            RPSSL(NR,NSA)=-RSUM_synch*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
-            RPLSL(NR,NSA)=-RSUM_loss*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
+            RPCSL(NR,NSA)=-RSUM4*FACT*2.D0*PI*DELP(NS)*DELTH *1.D-6
+            RPWSL(NR,NSA)=-RSUM5*FACT*2.D0*PI*DELP(NS)*DELTH *1.D-6
+            RPESL(NR,NSA)=-RSUM6*FACT*2.D0*PI*DELP(NS)*DELTH *1.D-6
+            RLHSL(NR,NSA)=-RSUM7*FACT*2.D0*PI*DELP(NS)*DELTH *1.D-6
+            RFWSL(NR,NSA)=-RSUM8*FACT*2.D0*PI*DELP(NS)*DELTH *1.D-6
+            RECSL(NR,NSA)=-RSUM9*FACT*2.D0*PI*DELP(NS)*DELTH *1.D-6
+            RWRSL(NR,NSA)=-RSUM_WR*FACT*2.D0*PI*DELP(NS)*DELTH *1.D-6
+            RWMSL(NR,NSA)=-RSUM_WM*FACT*2.D0*PI*DELP(NS)*DELTH *1.D-6
+            RPSSL(NR,NSA)=-RSUM_synch*FACT*2.D0*PI*DELP(NS)*DELTH *1.D-6
+            RPLSL(NR,NSA)=-RSUM_loss*FACT*2.D0*PI*DELP(NS)*DELTH *1.D-6
             DO NSB=1,NSBMAX
                RPCS2L(NR,NSB,NSA)=-RSUM10(NSB) &
-                    *FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
+                    *FACT*2.D0*PI*DELP(NS)*DELTH *1.D-6
+               RPCS2L_DEL(NR,NSB,NSA)=-RSUM10_DEL(NSB) &
+                    *FACT*2.D0*PI*DELP(NS)*DELTH *1.D-6
             END DO
 
             FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)*RFSADG(NR)
-            RSPBL(NR,NSA)= RSUM11B*FACT*2.D0*PI*DELP(NSBA)*DELTH*1.D-6
-            RSPFL(NR,NSA)= RSUM11F*FACT*2.D0*PI*DELP(NSBA)*DELTH*1.D-6
-            RSPSL(NR,NSA)= RSUM11S*FACT*2.D0*PI*DELP(NSBA)*DELTH*1.D-6
-            RSPLL(NR,NSA)= RSUM11L*FACT*2.D0*PI*DELP(NSBA)*DELTH*1.D-6
+            RSPBL(NR,NSA)= RSUM11B*FACT*2.D0*PI*DELP(NS)*DELTH*1.D-6
+            RSPFL(NR,NSA)= RSUM11F*FACT*2.D0*PI*DELP(NS)*DELTH*1.D-6
+            RSPSL(NR,NSA)= RSUM11S*FACT*2.D0*PI*DELP(NS)*DELTH*1.D-6
+            RSPLL(NR,NSA)= RSUM11L*FACT*2.D0*PI*DELP(NS)*DELTH*1.D-6
+            RSPSL_CX(NR,NSA)= RSUM11S_CX*FACT*2.D0*PI*DELP(NS)*DELTH*1.D-6
          ENDDO ! NSA
       ENDDO ! NR
       CALL mtx_reset_communicator 
@@ -497,21 +564,50 @@
 
       CALL GUTIME(gut2)
 
-      DO NSA=1,NSAMAX
-         DO NR=1,NRMAX
-            IF(RNS(NR,NSA).NE.0.D0) THEN
-               IF(MODELR.eq.0)THEN
-                  RT_T(NR,NSA) = RWS(NR,NSA)*1.D6 &
-                       /(1.5D0*RNS(NR,NSA)*1.D20*AEE*1.D3)
-               ELSEIF(MODELR.eq.1)THEN
-                  CALL FPNEWTON(NR,NSA,RNS(NR,NSA),RWS(NR,NSA),rtemp)
-                  RT_T(NR,NSA) = rtemp
-               END IF
-            ELSE
-               RT_T(NR,NSA) = 0.D0
-            ENDIF
+!      DO NSA=1,NSAMAX
+!         DO NR=1,NRMAX
+!            IF(RNS(NR,NSA).NE.0.D0) THEN
+!               IF(MODELR.eq.0)THEN
+!                  RT_T(NR,NSA) = RWS(NR,NSA)*1.D6 &
+!                       /(1.5D0*RNS(NR,NSA)*1.D20*AEE*1.D3)
+!               ELSEIF(MODELR.eq.1)THEN
+!                  CALL FPNEWTON(NR,NSA,RNS(NR,NSA),RWS(NR,NSA),rtemp)
+!                  RT_T(NR,NSA) = rtemp
+!               END IF
+!            ELSE
+!               RT_T(NR,NSA) = 0.D0
+!            ENDIF
+!         END DO
+!      END DO
+
+      IF(NRANK.eq.0.and.MODEL_NBI.eq.2)THEN
+         DO i=1, NSMAX
+            IF(PA(i).eq.2.and.PZ(i).eq.1)THEN
+               NSD=i
+            ELSEIF(PA(i).eq.1.and.PZ(i).eq.1)THEN
+               NSH=i               
+            END IF
          END DO
-      END DO
+         RSUM_PC(:)=0.D0
+         RSUM_PC_DEL(:)=0.D0
+         RSUM_RSPL=0.D0
+         DO NSB=1, NSBMAX
+            DO NR=1, NRMAX
+               RSUM_PC(NSB)=RSUM_PC(NSB)+RPCS2(NR,NSB,NSH)*VOLR(NR)
+               RSUM_PC_DEL(NSB)=RSUM_PC_DEL(NSB)+RPCS2_DEL(NR,NSB,NSH)*VOLR(NR)
+            END DO
+         END DO
+         DO NR=1, NRMAX
+            RSUM_RSPL=RSUM_RSPL+RSPL(NR,NSH)*VOLR(NR)
+         END DO
+
+         IF(OUTPUT_TXT_HEAT_PROF.eq.1) THEN
+            WRITE(29,'(99E14.6)') TIMEFP, ((RPCS2(NR,NSB,NSH),NR=1,NRMAX),NSB=1,NSBMAX), (RSUM_PC(NSB),NSB=1,NSBMAX)
+            WRITE(30,'(99E14.6)') TIMEFP, ((RPCS2_DEL(NR,NSB,NSH),NR=1,NRMAX),NSB=1,NSBMAX), (RSUM_PC_DEL(NSB),NSB=1,NSBMAX)
+            WRITE(32,'(99E14.6)') TIMEFP, (RSPL(NR,NSH),NR=1,NRMAX), RSUM_RSPL
+         END IF
+!         WRITE(28,'(99E14.6)') TIMEFP, ((RPCS2(NR,NSB,NSD),NR=1,NRMAX),NSB=1,NSBMAX)
+      END IF
 
 !      DO NSA=1,NSAMAX
 !        DO NR=NRSTART,NREND
@@ -539,8 +635,8 @@
       SUBROUTINE FPSGLB
 !
       IMPLICIT NONE
-      integer:: NSA, NSB, NR, NP, NTH 
-      real(8):: EAVE, EAVE2, rtemp, rtemp2, THETAL, THETAL2
+      integer:: NSA, NSB, NR
+      real(8):: rtemp, rtemp2
 
       NTG1=NTG1+1
       call fp_adjust_ntg1
@@ -557,7 +653,8 @@
          PLHT(NSA,NTG1)=0.D0
          PFWT(NSA,NTG1)=0.D0
          PECT(NSA,NTG1)=0.D0
-         PICT(NSA,NTG1)=0.D0
+         PWRT(NSA,NTG1)=0.D0
+         PWMT(NSA,NTG1)=0.D0
          PWT2(NSA,NTG1)=0.D0
          PSPBT(NSA,NTG1)=0.D0
          PSPFT(NSA,NTG1)=0.D0
@@ -584,7 +681,8 @@
             PLHT(NSA,NTG1)=PLHT(NSA,NTG1)+RLHS(NR,NSA)*VOLR(NR)
             PFWT(NSA,NTG1)=PFWT(NSA,NTG1)+RFWS(NR,NSA)*VOLR(NR)
             PECT(NSA,NTG1)=PECT(NSA,NTG1)+RECS(NR,NSA)*VOLR(NR)
-            PICT(NSA,NTG1)=PICT(NSA,NTG1)+RICS(NR,NSA)*VOLR(NR)
+            PWRT(NSA,NTG1)=PWRT(NSA,NTG1)+RWRS(NR,NSA)*VOLR(NR)
+            PWMT(NSA,NTG1)=PWMT(NSA,NTG1)+RWMS(NR,NSA)*VOLR(NR)
             PSPBT(NSA,NTG1)=PSPBT(NSA,NTG1)+RSPB(NR,NSA)*VOLR(NR)
             PSPFT(NSA,NTG1)=PSPFT(NSA,NTG1)+RSPF(NR,NSA)*VOLR(NR)
             PSPST(NSA,NTG1)=PSPST(NSA,NTG1)+RSPS(NR,NSA)*VOLR(NR)
@@ -618,28 +716,13 @@
                  /(1.5D0*PNT(NSA,NTG1)*1.D20*AEE*1.D3)
             PTT2(NSA,NTG1) =PWT2(NSA,NTG1)*1.D6 &
                  /(1.5D0*PNT(NSA,NTG1)*1.D20*AEE*1.D3)
-!            IF(MODELR.eq.1)THEN
-!               PTT_BULK(NSA,NTG1) =PWT_BULK2(NSA,NTG1)*1.D6 &
-!                    /(1.5D0*PNT_BULK(NSA,NTG1)*1.D20*AEE*1.D3)
-!            ELSE
-!               PTT_BULK(NSA,NTG1) =PWT_BULK(NSA,NTG1)*1.D6 &
-!                    /(1.5D0*PNT_BULK(NSA,NTG1)*1.D20*AEE*1.D3)               
-!            END IF
          ELSE
             PTT(NSA,NTG1)=0.D0
             PTT2(NSA,NTG1)=0.D0
-!            PTT_BULK(NSA,NTG1)=0.D0
          ENDIF
          PTT_BULK(NSA,NTG1) = PTT_BULK(NSA,NTG1)/PNT(NSA,NTG1)
          PNT(NSA,NTG1) =PNT(NSA,NTG1)/TVOLR
-!         PNT_BULK(NSA,NTG1) =PNT_BULK(NSA,NTG1)/TVOLR
-!         PNDR(NSA,NTG1)=PNDR(NSA,NTG1)/TVOLR
       ENDDO
-
-!      IF(MODEL_NBI.NE.0) THEN
-!        Q_ENG(NTG1)=5*PSPFT(4,NTG1)/PSPBT(2,NTG1)
-!         WRITE(6,*) 'Q_ENG', Q_ENG(NTG1)
-!      ENDIF         
 
       RETURN
       END SUBROUTINE FPSGLB
@@ -651,8 +734,8 @@
       SUBROUTINE FPSPRF
 !
       IMPLICIT NONE
-      integer:: NR, NSA, NSB, NS
-      real(8):: RS, rtemp, rtemp2, EAVE2, THETAL2
+      integer:: NR, NSA, NSB
+      real(8):: RS, rtemp
 
       NTG2=NTG2+1
       call fp_adjust_ntg2
@@ -671,7 +754,8 @@
             RLHT(NR,NSA,NTG2)= RLHS(NR,NSA)
             RFWT(NR,NSA,NTG2)= RFWS(NR,NSA)
             RECT(NR,NSA,NTG2)= RECS(NR,NSA)
-            RICT(NR,NSA,NTG2)= RICS(NR,NSA)
+            RWRT(NR,NSA,NTG2)= RWRS(NR,NSA)
+            RWMT(NR,NSA,NTG2)= RWMS(NR,NSA)
             DO NSB=1,NSBMAX
                RPCT2(NR,NSB,NSA,NTG2)= RPCS2(NR,NSB,NSA)
             END DO
@@ -697,7 +781,7 @@
             RET(NR,NTG2) = E1(NR)
             RS=RSRHON(RM(NR))
             RQT(NR,NTG2) = RS*BB*2.D0/(RR*(BP(NR)+BP(NR+1)))
-            RT_T(NR,NSA) = RTT(NR,NSA,NTG2)
+!            RT_T(NR,NSA) = RTT(NR,NSA,NTG2)
          ENDDO
       ENDDO
       DO NR=1,NRMAX
@@ -716,9 +800,9 @@
       SUBROUTINE FPWRTGLB
 !
       IMPLICIT NONE
-      integer:: NSA, NSB, NR, NP, NTH
+      integer:: NSA, NSB
       real(8):: rtotalPW, rtotalPC,rtotalSP,rtotalPC2
-      real(8):: rtotalDR,rtotalEC,rtotalIC,rtotalIP
+      real(8):: rtotalDR,rtotalLH,rtotalFW,rtotalEC,rtotalWR,rtotalWM,rtotalIP
       character:: fmt0*50
 !
       WRITE(6,*)"--------------------------------------------"
@@ -739,8 +823,11 @@
       rtotalPC=0.D0
       rtotalSP=0.D0
       rtotalPC2=0.D0
+      rtotalLH=0.D0
+      rtotalFW=0.D0
       rtotalEC=0.D0
-      rtotalIC=0.D0
+      rtotalWR=0.D0
+      rtotalWM=0.D0
       rtotalIP=0.D0
 
       WRITE(fmt0,'(a48)') &
@@ -752,8 +839,11 @@
          rtotalPC=rtotalPC + PPCT(NSA,NTG1)
          rtotalSP=rtotalSP + PSPT(NSA,NTG1)
          rtotalPC2 = rtotalPC2 +PPCT(NSA,NTG1)-PPCT2(NSA,NSA,NTG1)
+         rtotalLH=rtotalLH + PLHT(NSA,NTG1)
+         rtotalFW=rtotalFW + PFWT(NSA,NTG1)
          rtotalEC=rtotalEC + PECT(NSA,NTG1)
-         rtotalIC=rtotalIC + PICT(NSA,NTG1)
+         rtotalWR=rtotalWR + PWRT(NSA,NTG1)
+         rtotalWM=rtotalWM + PWMT(NSA,NTG1)
          rtotalIP=rtotalIP + PIT(NSA,NTG1)
       END DO
       DO NSA=1,NSAMAX
@@ -768,7 +858,8 @@
                                       PSPST(NSA,NTG1),PSPLT(NSA,NTG1), &
                                       PSPST(NSA,NTG1)+PSPLT(NSA,NTG1)
       END DO
-      write(6,105) rtotalpw,rtotalEC,rtotalIC
+      write(6,105) rtotalpw,rtotalWR,rtotalWM
+      write(6,115) rtotalLH,rtotalFW,rtotalEC
       write(6,107) rtotalPC
       write(6,109) rtotalSP
       write(6,110) rtotalPC2
@@ -779,8 +870,8 @@
   101 FORMAT(' TIME=',F12.3,' ms')
   112 FORMAT(' NSA,NS=',2I2,' n,T,W,I,dn,T2=',1PE11.4,1P6E12.4)
   104 FORMAT('        ',2I2,' PCAB    =',10X,1P14E12.4)
-
- 105  FORMAT('Total absorption power [MW]', 1PE12.4,'    EC:',1PE12.4,'    IC:',1PE12.4)
+  105 FORMAT('Total absorption power [MW]', 1PE12.4,'    WR:',1PE12.4,'    WM:',1PE12.4)
+  115 FORMAT('   absorption power [MW] LH', 1PE12.4,'    FW:',1PE12.4,'    EC:',1PE12.4)
  106  FORMAT(F12.4, 8E12.4)
  107  FORMAT('total collision power  [MW]', 1PE12.4)
  108  FORMAT('        ',2I2,' PSPB/F/S/L/S+L=',4X,1P5E12.4) 
@@ -794,8 +885,8 @@
       SUBROUTINE FPWRTPRF
 !
       IMPLICIT NONE
-      integer:: NSA, NSB, NR, NP, NTH
-      real(8):: RTFDL, RTFD0L, THETAL, rtemp, rtemp2, temp
+      integer:: NSA, NR
+      real(8):: rtemp
       character:: fmt0*50
 !
 !      WRITE(fmt0,'(a15)') '(2I3,1P20E13.4)'
@@ -831,25 +922,14 @@
                     RFP(NR), Rconnor(NR), RFP_ava(NR), &
                     ER_crit(NR)
             ELSE
-!               IF(E1(NR).NE.0.D0) THEN
-!                  TEMP=RJS(NR,NSA)/E1(NR)
-!               ELSE
-!                  TEMP=0.D0
-!               ENDIF
                WRITE(6,fmt0) NSA,NS_NSA(NSA),&
                     RM(NR),RNT(NR,NSA,NTG2),RTT(NR,NSA,NTG2), &
                     RJT(NR,NSA,NTG2),RPCT(NR,NSA,NTG2),       &
                     RPET(NR,NSA,NTG2), &
                     RPWT(NR,NSA,NTG2),&
                     RSPBT(NR,NSA,NTG2), &
-!                    RDIDT(NR,NSA), &
-!                    RPCT2(NR,NSAMAX-NSA+1,NSA,NTG2), &
-!                    RPCT2(NR,NSA,NSA,NTG2), &
-!                    RECT(NR,NSA,NTG2),    &
-!RSPFT(NR,NSA,NTG2),RPDRT(NR,NSA,NTG2), &
-                    RPDR(NR,NSA), &
+                    RSPS_CX(NR,NSA), &
                     RT_BULK(NR,NSA)!, &
-!                    TEMP, conduct_sp(NR)
             END IF
          ENDDO
       ENDDO
@@ -876,9 +956,8 @@
       SUBROUTINE FPWRTSNAP
 !
       IMPLICIT NONE
-      integer:: NR, NSA, NSB, NP, NTH
+      integer:: NR, NSA, NSB, NS
       real(8):: rnute, resist
-      real(8):: FACT1, FACT2, rntv
       real(8):: taue_col, sigma_sp, FACT
       real(8):: taue_col2, sigma_sp2
 
@@ -887,6 +966,7 @@
          NR=1
          NSA=1
          NSB=2
+         NS=NS_NSA(NSA)
 !         Do NSA=1,NSAMAX
 !         Do NSB=1,NSBMAX
             rnute=RNUD(NR,NSA,NSA)*SQRT(2.D0)*RNFP(NR,NSA)/RNFP0(NSA)     &
@@ -904,7 +984,7 @@
 
             if(E0.ne.0)THEN 
                write(6,'(A,1PE16.8)') &
-                    " THETA0= ", THETA0(NSA)
+                    " THETA0= ", THETA0(NS)
                write(6,'(A,1PE16.8,A,1PE16.8,A,1PE16.8,A,1PE16.8)') &
                     " whole space sigma_norm= ",(RJS(1,1)+RJS(1,2))/E1(1)*1.D6*resist, &
                     " sigma=j/E*1.D6=", (RJS(1,NSA)+RJS(1,2))/E1(1)*1.D6
@@ -941,16 +1021,16 @@
       INTEGER,INTENT(IN)::NR,NSA
       double precision,intent(in):: RNSL_, RWSL_ 
       double precision,intent(out)::rtemp
-      integer:: NSB, NP, NTH, ncount
-      real(8):: rtemp2, xeave, xeave2
-      real(8):: xtemp, xtemp2, thetal,thetal2, EAVE, EAVE2
+      integer:: ncount, NS
+      real(8):: xeave
+      real(8):: xtemp, thetal, EAVE
 
+      NS=NS_NSA(NSA)
 !-----Average kinetic energy
-!      EAVE=RWS(NR,NSA)*AMFP(NSA)*THETA0(NSA) &
+!      EAVE=RWS(NR,NSA)*AMFP(NSA)*THETA0(NS) &
 !           /(RNS(NR,NSA)*1.D20*PTFP0(NSA)**2*1.D-6)
-      EAVE=RWSL_*AMFP(NSA)*THETA0(NSA) & 
+      EAVE=RWSL_*AMFP(NSA)*THETA0(NS) & 
            /(RNSL_*1.D20*PTFP0(NSA)**2*1.D-6)
-
 !-----initial value of THETAL
       THETAL=2.d0*EAVE/3.d0
       xtemp=AMFP(NSA)*VC**2*THETAL/(AEE*1.D3)
@@ -966,7 +1046,6 @@
 
       SUBROUTINE xnewton(eave,thetal,ncount)
       IMPLICIT NONE
-      INTEGER NR,NSA
       REAL(8),intent(in):: eave
       REAL(8),intent(inout):: thetal
       INTEGer,intent(out):: ncount
@@ -989,7 +1068,6 @@
 
       FUNCTION rfunc(thetal)
       IMPLICIT NONE
-      INTEGER NR,NSA
       REAL(8):: thetal,rfunc
       REAL(8):: z,dkbsl1,dkbsl2
       z=1.D0/thetal
@@ -1012,7 +1090,6 @@
       
       FUNCTION dfunc(thetal)
       IMPLICIT NONE
-      INTEGER NR,NSA
       REAL(8):: thetal,dfunc
       REAL(8):: z,dkbsl0,dkbsl1,dkbsl2,dkbsl3
       z=1.D0/thetal
@@ -1048,12 +1125,7 @@
       USE libmtx
       USE fpmpi
       IMPLICIT NONE
-      integer:: NR, NSA, NSB, NSBA, NP, NTH, NS, NSW, N
-      double precision,dimension(:),allocatable::DDATA
-      double precision,dimension(:),allocatable::DDATA_R
-      INTEGER:: NOFFSET, NR2, NLENGTH, NALL
-      INTEGER,dimension(nsize)::COMPOS, COMLEN
-      double precision,dimension(NSAMAX*2)::tempr_in, tempr_out
+      integer:: NR, NSA, NSB, NP, NSW, N
       double precision,dimension(NRSTART:NREND,NSAMAX):: work
       double precision,dimension(NRMAX,NSAMAX):: workg
       double precision,dimension(NSAMAX):: temp_nsanr
@@ -1061,14 +1133,12 @@
       double precision,dimension(NPMAX,NRMAX):: temp_npnr2
       double precision,dimension(NPMAX,NRMAX,NSASTART:NSAEND):: temp_npnr3
       integer,dimension(NSAMAX):: vloc
-      INTEGER:: isave_sw
 
       CALL mtx_set_communicator(comm_nsanr) 
       NSW=NSAEND-NSASTART+1
       DO N=1,NSW
          NSA=N+NSASTART-1
          CALL fp_gatherv_real8_sav(RNSL,SAVLEN(NRANK+1),RNS,N,NSA)
-!         CALL fp_gatherv_real8_sav(RFP_loacl,SAVLEN(NRANK+1),RFP,N,NSA)
          CALL fp_gatherv_real8_sav(RJSL,SAVLEN(NRANK+1),RJS,N,NSA)
          CALL fp_gatherv_real8_sav(RWSL,SAVLEN(NRANK+1),RWS,N,NSA)
          CALL fp_gatherv_real8_sav(RWS123L,SAVLEN(NRANK+1),RWS123,N,NSA)
@@ -1078,7 +1148,8 @@
          CALL fp_gatherv_real8_sav(RLHSL,SAVLEN(NRANK+1),RLHS,N,NSA)
          CALL fp_gatherv_real8_sav(RFWSL,SAVLEN(NRANK+1),RFWS,N,NSA)
          CALL fp_gatherv_real8_sav(RECSL,SAVLEN(NRANK+1),RECS,N,NSA)
-         CALL fp_gatherv_real8_sav(RICSL,SAVLEN(NRANK+1),RICS,N,NSA)
+         CALL fp_gatherv_real8_sav(RWRSL,SAVLEN(NRANK+1),RWRS,N,NSA)
+         CALL fp_gatherv_real8_sav(RWMSL,SAVLEN(NRANK+1),RWMS,N,NSA)
          CALL fp_gatherv_real8_sav(RSPBL,SAVLEN(NRANK+1),RSPB,N,NSA)
          CALL fp_gatherv_real8_sav(RSPFL,SAVLEN(NRANK+1),RSPF,N,NSA)
          CALL fp_gatherv_real8_sav(RSPSL,SAVLEN(NRANK+1),RSPS,N,NSA)
@@ -1086,14 +1157,18 @@
          CALL fp_gatherv_real8_sav(RPDRL,SAVLEN(NRANK+1),RPDR,N,NSA)
          CALL fp_gatherv_real8_sav(RNDRL,SAVLEN(NRANK+1),RNDR,N,NSA)
          CALL fp_gatherv_real8_sav(RTL_BULK,SAVLEN(NRANK+1),RT_BULK,N,NSA) 
-         CALL fp_gatherv_real8_sav(RDIDTL,SAVLEN(NRANK+1),RDIDT,N,NSA)
+!         CALL fp_gatherv_real8_sav(RDIDTL,SAVLEN(NRANK+1),RDIDT,N,NSA)
          CALL fp_gatherv_real8_sav(RPSSL,SAVLEN(NRANK+1),RPSS,N,NSA)
          CALL fp_gatherv_real8_sav(RPLSL,SAVLEN(NRANK+1),RPLS,N,NSA)
+         CALL fp_gatherv_real8_sav(RSPSL_CX,SAVLEN(NRANK+1),RSPS_CX,N,NSA)
       END DO
+      work(:,:)=0.D0
+      workg(:,:)=0.D0
       DO NSB=1,NSBMAX
          DO NSA=NSASTART,NSAEND
             DO NR=NRSTART,NREND
                work(NR,NSA) = RPCS2L(NR,NSB,NSA)
+!               WRITE(*,'(A,3I5,2E14.6)') "TEST WORK ", NPSTART, NSB, NSA, work(NR,NSA), RPCS2L(NR,NSB,NSA)
             END DO
          END DO
          DO N=1,NSW
@@ -1104,6 +1179,29 @@
          DO NSA=1,NSAMAX
             DO NR=1,NRMAX
                RPCS2(NR,NSB,NSA) = workg(NR,NSA)
+!               WRITE(*,'(A,3I5,2E14.6)') "TEST WORKG ", NPSTART, NSB, NSA, workg(NR,NSA), RPCS2(NR,NSB,NSA)
+            END DO
+         END DO
+      ENDDO
+
+      work(:,:)=0.D0
+      workg(:,:)=0.D0
+      DO NSB=1,NSBMAX
+         DO NSA=NSASTART,NSAEND
+            DO NR=NRSTART,NREND
+               work(NR,NSA) = RPCS2L_DEL(NR,NSB,NSA)
+!               WRITE(*,'(A,3I5,2E14.6)') "TEST WORK ", NPSTART, NSB, NSA, work(NR,NSA), RPCS2L(NR,NSB,NSA)
+            END DO
+         END DO
+         DO N=1,NSW
+            NSA=N+NSASTART-1
+            CALL fp_gatherv_real8_sav(work,SAVLEN(NRANK+1),workg,N,NSA)
+         ENDDO
+
+         DO NSA=1,NSAMAX
+            DO NR=1,NRMAX
+               RPCS2_DEL(NR,NSB,NSA) = workg(NR,NSA)
+!               WRITE(*,'(A,3I5,2E14.6)') "TEST WORKG ", NPSTART, NSB, NSA, workg(NR,NSA), RPCS2(NR,NSB,NSA)
             END DO
          END DO
       ENDDO
@@ -1162,17 +1260,14 @@
       USE libmtx
       USE fpmpi
       IMPLICIT NONE
-      integer:: NR, NSA, NSB, NSBA, NP, NTH, NS, NPS
-      integer:: IERR
+      integer:: NR, NSA, NP, NTH, NS
       real(8):: RSUM1, RSUM3, fact
-      real(8):: PV, WPL, WPM, WPP
-      real:: gut1,gut2
+      real(8):: PV
 
       CALL mtx_set_communicator(comm_np) 
       DO NR=NRSTART,NREND
          DO NSA=NSASTART,NSAEND
             NS=NS_NSA(NSA)
-            NSBA=NSB_NSA(NSA)
 
             RSUM1=0.D0
             RSUM3=0.D0
@@ -1180,13 +1275,13 @@
             IF(MODELA.eq.0)THEN
                DO NP=NPSTART,NPEND
                   DO NTH=1,NTHMAX
-                     RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)
+                     RSUM1 = RSUM1+VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA)
                   END DO
                ENDDO
             ELSE
                DO NP=NPSTART,NPEND
                   DO NTH=1,NTHMAX
-                     RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
+                     RSUM1 = RSUM1+VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA) &
                           *RLAMDA(NTH,NR)*RFSADG(NR) 
                   END DO
                ENDDO
@@ -1197,17 +1292,17 @@
                   DO NP=NPSTART,NPEND
                      DO NTH=1,NTHMAX
                         RSUM3 = RSUM3                       &
-                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
-                             *0.5D0*PM(NP,NSBA)**2
+                             +VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA) &
+                             *0.5D0*PM(NP,NS)**2
                      END DO
                   ENDDO
                ELSE
                   DO NP=NPSTART,NPEND
-                     PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
+                     PV=SQRT(1.D0+THETA0(NS)*PM(NP,NS)**2)
                      DO NTH=1,NTHMAX
                         RSUM3 = RSUM3                       &
-                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
-                             *(PV-1.D0)/THETA0(NSA)
+                             +VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA) &
+                             *(PV-1.D0)/THETA0(NS)
                      END DO
                   END DO
                ENDIF
@@ -1216,17 +1311,17 @@
                   DO NP=NPSTART,NPEND
                      DO NTH=1,NTHMAX
                         RSUM3 = RSUM3                        &
-                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)  &
-                             *0.5D0*PM(NP,NSBA)**2*RLAMDA(NTH,NR)*RFSADG(NR) 
+                             +VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA)  &
+                             *0.5D0*PM(NP,NS)**2*RLAMDA(NTH,NR)*RFSADG(NR) 
                      END DO
                   ENDDO
                ELSE
                   DO NP=NPSTART,NPEND
-                     PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
+                     PV=SQRT(1.D0+THETA0(NS)*PM(NP,NS)**2)
                      DO NTH=1,NTHMAX
                         RSUM3 = RSUM3                        &
-                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)  &
-                             *(PV-1.D0)/THETA0(NSA)*RLAMDA(NTH,NR)*RFSADG(NR) 
+                             +VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA)  &
+                             *(PV-1.D0)/THETA0(NS)*RLAMDA(NTH,NR)*RFSADG(NR) 
                      END DO
                   END DO
                ENDIF 
@@ -1256,30 +1351,48 @@
 !
       SUBROUTINE FPSPRF2
 !
+      USE EG_READ
       USE plprof
       IMPLICIT NONE
-      integer:: NR, NSA, NSB, NS
-      real(8):: rtemp, rhon
+      integer:: NR, NSA, NS
+      real(8):: rhon
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
 
-      DO NS=1,NSMAX
-         DO NR=1,NRMAX
-            RHON=RM(NR) 
-            CALL PL_PROF(RHON,PLF) 
-            RN_IMPL(NR,NS)=PLF(NS)%RN
-            RT_IMPL(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
-         ENDDO
-      END DO
-      Do NSA=1,NSAMAX
-         NS=NS_NSA(NSA)
-         IF(NS.NE.0)THEN
+      IF(MODEL_EX_READ_Tn.eq.0)THEN
+         DO NS=1,NSMAX
             DO NR=1,NRMAX
-               RN_IMPL(NR,NS) = RNS(NR,NSA)
-               RT_IMPL(NR,NS) = RT_BULK(NR,NSA)
-!               RT_IMPL(NR,NS) = RT_T(NR,NSA)
+               RHON=RM(NR) 
+               CALL PL_PROF(RHON,PLF) 
+               RN_TEMP(NR,NS)=PLF(NS)%RN
+               RT_TEMP(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+            ENDDO
+         END DO
+         DO NSA=1,NSAMAX
+            NS=NS_NSA(NSA)
+            DO NR=1,NRMAX
+               RN_TEMP(NR,NS) = RNS(NR,NSA)
+               RT_TEMP(NR,NS) = RT_BULK(NR,NSA)
             END DO
-         END IF
-      ENDDO
+         ENDDO
+      ELSEIF(MODEL_EX_READ_Tn.eq.1)THEN
+         CALL MAKE_EXP_PROF(timefp+delt)
+
+         DO NS=1,NSMAX
+            DO NR=1,NRMAX
+               RN_TEMP(NR,NS)=RN_READ(NR,NS)
+               RT_TEMP(NR,NS)=RT_READ(NR,NS)
+            ENDDO
+         END DO
+!         DO NSA=1,NSAMAX
+!            NS=NS_NSA(NSA)
+!            IF(NS.NE.0)THEN
+!               DO NR=1,NRMAX
+!                  RN_TEMP(NR,NS)=RN_READ(NR,NS)
+!                  RT_TEMP(NR,NS)=RT_READ(NR,NS)
+!               END DO
+!            END IF
+!         ENDDO         
+      END IF
 
       RETURN
       END SUBROUTINE FPSPRF2
@@ -1289,7 +1402,7 @@
       USE libmtx
       USE fpmpi
       IMPLICIT NONE
-      integer:: NR, NSA, NSB, NSBA, NP, NTH, NS, NSW, N
+      integer:: NSA, NSW, N
 
       CALL mtx_set_communicator(comm_nsanr) 
       NSW=NSAEND-NSASTART+1
@@ -1321,54 +1434,54 @@
       IMPLICIT NONE
       INTEGER,intent(in):: NPB, NR, NSA
 !      REAL(8),INTENT(OUT):: RTL
-      integer:: ISW_BULK, NP, NTH, NS, NSBA
+      integer:: ISW_BULK, NP, NTH, NS
       real(8):: RSUM_T, RSUM_V, PV, DFDP, WPL, FFP, RSUMN, RSUMW, FACT
       real(8),dimension(NTHMAX,NPMAX):: T_BULK
       real(8),dimension(NPSTART:NPEND):: RPL_BULK_send 
       real(8),dimension(NPMAX):: RPL_BULK_recv
       real(8):: RNL_BULK, RWL_BULK, rtemp
 
-      ISW_BULK=0 ! sometimes DFDP becomes 0 and then it makes density NaN
-!      ISW_BULK=1 ! requires higher FACT_BULK (FACT_BULK > 5) to obtain accurate T_bulk
+!      ISW_BULK=0 ! sometimes DFDP becomes 0 and then it makes density NaN. (for FACT_BULK < 4)
+      ISW_BULK=1 ! requires higher FACT_BULK (FACT_BULK >= 4) to obtain accurate RT_bulk
 
       NS=NS_NSA(NSA)
-      NSBA=NSB_NSA(NSA)
 
       CALL mtx_set_communicator(comm_np)
+      IF(MODEL_EX_READ_Tn.eq.0)THEN
       IF(ISW_BULK.eq.0)THEN ! BULK T calculation using dfdp
          RSUM_T=0.D0
          RSUM_V=0.D0
          DO NP=NPSTART,NPEND
             IF(NP.ge.2.and.NP.le.NPB)THEN
-               PV=SQRT(1.D0+THETA0(NSA)*PG(NP,NSBA)**2)
+               PV=SQRT(1.D0+THETA0(NS)*PG(NP,NS)**2)
                DO NTH=1,NTHMAX
                   IF(FNSP(NTH,NP,NR,NSA).gt.0.D0.and.FNSP(NTH,NP-1,NR,NSA).gt.0.D0)THEN
-                     DFDP=DELP(NSA)/ &
+                     DFDP=DELP(NS)/ &
                           ( log(FNSP(NTH,NP,NR,NSA))-log(FNSP(NTH,NP-1,NR,NSA)) )
                   ELSE
                      WPL=WEIGHP(NTH  ,NP,NR,NSA)
-                     FFP=   ( (1.D0-WPL)*FNSP(NTH  ,NP  ,NR,NSBA)  &
-                          +WPL *FNSP(NTH  ,NP-1,NR,NSBA) )
-                     DFDP=DELP(NSA)*FFP/(                         &
+                     FFP=   ( (1.D0-WPL)*FNSP(NTH  ,NP  ,NR,NSA)  &
+                          +WPL *FNSP(NTH  ,NP-1,NR,NSA) )
+                     DFDP=DELP(NS)*FFP/(                         &
                           FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA) )
                   END IF
                   IF(MODEL_DISRUPT.ne.1)THEN
                      IF(DFDP.ne.DFDP)THEN ! NaN never equals to any other variables.
-                        WRITE(16,'(A,E14.6,3I4,3E14.6)') "DFDP is NaN in fpsave. TIMEFP= ", TIMEFP, NP, NTH, NSA, &
-                             FNSP(NTH,NP,NR,NSA), FNSP(NTH,NP-1,NR,NSA), FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA)
+!                        WRITE(16,'(A,E14.6,3I4,3E14.6)') "DFDP is NaN in fpsave. TIMEFP= ", TIMEFP, NP, NTH, NSA, &
+!                             FNSP(NTH,NP,NR,NSA), FNSP(NTH,NP-1,NR,NSA), FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA)
                         DFDP=0.D0
                      END IF
                      IF(DFDP.gt.0.D0)THEN
-                        WRITE(16,'(A,E14.6,3I4,3E14.6)') "DFDP is positive in fpsave. TIMEFP= ", TIMEFP, NP, NTH, NSA, &
-                             FNSP(NTH,NP,NR,NSA), FNSP(NTH,NP-1,NR,NSA), FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA)
+!                        WRITE(16,'(A,E14.6,3I4,3E14.6)') "DFDP is positive in fpsave. TIMEFP= ", TIMEFP, NP, NTH, NSA, &
+!                             FNSP(NTH,NP,NR,NSA), FNSP(NTH,NP-1,NR,NSA), FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA)
                         DFDP=0.D0
                      END IF
                   END IF
                   
-                  T_BULK(NTH,NP)=-PG(NP,NSA)*PTFP0(NSA)*DFDP &
+                  T_BULK(NTH,NP)=-PG(NP,NS)*PTFP0(NSA)*DFDP &
                        /AEE/1.D3*VTFP0(NSA)/PV 
-                  RSUM_T = RSUM_T + T_BULK(NTH,NP)*VOLP(NTH,NP,NSBA)
-                  RSUM_V = RSUM_V + VOLP(NTH,NP,NSBA)
+                  RSUM_T = RSUM_T + T_BULK(NTH,NP)*VOLP(NTH,NP,NS)
+                  RSUM_V = RSUM_V + VOLP(NTH,NP,NS)
                END DO
                RPL_BULK_send(NP) = RSUM_T/RSUM_V
             ELSE
@@ -1391,7 +1504,7 @@
             DO NP=NPSTART,NPEND
                IF(NP.le.NPB)THEN
                   DO NTH=1,NTHMAX
-                     RSUMN = RSUMN+VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)
+                     RSUMN = RSUMN+VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA)
                   END DO
                END IF
             ENDDO
@@ -1399,7 +1512,7 @@
             DO NP=NPSTART,NPEND
                IF(NP.le.NPB)THEN
                   DO NTH=1,NTHMAX
-                     RSUMN = RSUMN+VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
+                     RSUMN = RSUMN+VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA) &
                           *RLAMDA(NTH,NR)*RFSADG(NR)
                   END DO
                END IF
@@ -1411,19 +1524,19 @@
                   IF(NP.le.NPB)THEN
                      DO NTH=1,NTHMAX
                         RSUMW = RSUMW                       &
-                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
-                             *0.5D0*PM(NP,NSBA)**2
+                             +VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA) &
+                             *0.5D0*PM(NP,NS)**2
                      END DO
                   END IF
                ENDDO
             ELSE
                DO NP=NPSTART,NPEND
                   IF(NP.le.NPB)THEN
-                     PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
+                     PV=SQRT(1.D0+THETA0(NS)*PM(NP,NS)**2)
                      DO NTH=1,NTHMAX
                         RSUMW = RSUMW                       &
-                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA) &
-                             *(PV-1.D0)/THETA0(NSA)
+                             +VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA) &
+                             *(PV-1.D0)/THETA0(NS)
                      END DO
                   END IF
                END DO
@@ -1434,19 +1547,19 @@
                   IF(NP.le.NPB)THEN
                      DO NTH=1,NTHMAX
                         RSUMW = RSUMW                        &
-                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)  &
-                             *0.5D0*PM(NP,NSBA)**2*RLAMDA(NTH,NR)*RFSADG(NR)
+                             +VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA)  &
+                             *0.5D0*PM(NP,NS)**2*RLAMDA(NTH,NR)*RFSADG(NR)
                      END DO
                   END IF
                ENDDO
             ELSE
                DO NP=NPSTART,NPEND
                   IF(NP.le.NPB)THEN
-                     PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
+                     PV=SQRT(1.D0+THETA0(NS)*PM(NP,NS)**2)
                      DO NTH=1,NTHMAX
                         RSUMW = RSUMW                        &
-                             +VOLP(NTH,NP,NSBA)*FNSP(NTH,NP,NR,NSBA)  &
-                             *(PV-1.D0)/THETA0(NSA)*RLAMDA(NTH,NR)*RFSADG(NR)
+                             +VOLP(NTH,NP,NS)*FNSP(NTH,NP,NR,NSA)  &
+                             *(PV-1.D0)/THETA0(NS)*RLAMDA(NTH,NR)*RFSADG(NR)
                      END DO
                   END IF
                END DO
@@ -1470,15 +1583,70 @@
             END IF
          END IF
 
-         WRITE(*,'(A,I3,3E14.6)') "TEST", NRANK, RWL_BULK, RNL_BULK, RTL_BULK(NR,NSA)
+!         WRITE(*,'(A,I3,3E14.6)') "TEST", NRANK, RWL_BULK, RNL_BULK, RTL_BULK(NR,NSA)
          DO NP=1, NPMAX
             RPL_BULK(NP,NR,NSA) = 0.D0
          END DO
       END IF
-      CALL mtx_reset_communicator 
-      
+      ELSE ! MODEL_EX_READ_Tn=1
+         RTL_BULK(NR,NSA)=RT_READ(NR,NS)
+      END IF
+      CALL mtx_reset_communicator       
 
       END SUBROUTINE BULK_TEMPERATURE
+!==============================================================
+      SUBROUTINE Define_Bulk_NP
+
+      IMPLICIT NONE
+      integer:: NP, NR, NSA, NS
+      double precision:: pmax_bulk, p_bulk_r, rhon, RTFPL
+      TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
+
+!     DEFINE BULK MOMENTUM RANGE: 0 < NP < NP_BULK(NR,NSA) 
+      IF(MODEL_BULK_CONST.eq.0)THEN
+         DO NSA=1, NSAMAX
+            NS=NS_NSA(NSA)
+            DO NR=1, NRMAX
+               IF(NT_init.eq.0)THEN
+                  PMAX_BULK = FACT_BULK
+                  P_BULK_R = PMAX_BULK* RT_TEMP(NR,NS)/RTFP0(NSA)
+               ELSE
+                  RHON=RM(NR)
+                  CALL PL_PROF(RHON,PLF)
+                  RTFPL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+                  PMAX_BULK = SQRT( RT_BULK(NR,NSA)/RTFPL )*FACT_BULK
+                  P_BULK_R = PMAX_BULK* RT_BULK(NR,NSA)/RTFP0(NSA)
+               END IF
+               DO NP=NPMAX, 1, -1
+                  IF(P_BULK_R.lt.PG(NP,NS)) NP_BULK(NR,NSA)=NP
+               END DO
+               IF(PMAX(NS).lt.P_BULK_R)THEN
+                  NP_BULK(NR,NSA) = NPMAX
+               END IF
+            END DO
+         END DO
+      ELSE
+         DO NSA=1, NSAMAX
+            NS=NS_NSA(NSA)
+            DO NR=1, NRMAX
+               PMAX_BULK = FACT_BULK
+               IF(MODEL_EX_READ_Tn.eq.0)THEN
+                  P_BULK_R = PMAX_BULK* RTFP(NR,NSA)/RTFP0(NSA)
+               ELSE
+                  P_BULK_R = PMAX_BULK* RT_TEMP(NR,NS)/RTFP0(NSA)
+               END IF
+               DO NP=NPMAX, 1, -1
+                  IF(P_BULK_R.lt.PG(NP,NS)) NP_BULK(NR,NSA)=NP
+               END DO
+               IF(PMAX(NS).lt.P_BULK_R)THEN
+                  NP_BULK(NR,NSA) = NPMAX
+               END IF
+            END DO
+         END DO
+      END IF
+!      IF(NRANK.eq.0) WRITE(*,'(A,E14.6,2I5,2E14.6)') "NR, time, NP_BULK ", timefp, (NP_BULK(1,i),i=1,NSAMAX), (RT_bulk(1,i),i=1,NSAMAX)
+
+      END SUBROUTINE Define_Bulk_NP
 !==============================================================
 
 

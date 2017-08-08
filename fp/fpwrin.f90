@@ -197,9 +197,9 @@
       IF(nrank.EQ.0) THEN
          DO NRAY=1,NRAYMAX
             READ(21) (RAYIN(I,NRAY),I=1,8)
-            READ(21) (CEXS(NIT,NRAY),NIT=0,NITMAX(NRAY))
-            READ(21) (CEYS(NIT,NRAY),NIT=0,NITMAX(NRAY))
-            READ(21) (CEZS(NIT,NRAY),NIT=0,NITMAX(NRAY))
+            READ(21,ERR=9101,END=9001) (CEXS(NIT,NRAY),NIT=0,NITMAX(NRAY))
+            READ(21,ERR=9102,END=9002) (CEYS(NIT,NRAY),NIT=0,NITMAX(NRAY))
+            READ(21,ERR=9103,END=9003) (CEZS(NIT,NRAY),NIT=0,NITMAX(NRAY))
             READ(21) (RKXS(NIT,NRAY),NIT=0,NITMAX(NRAY))
             READ(21) (RKYS(NIT,NRAY),NIT=0,NITMAX(NRAY))
             READ(21) (RKZS(NIT,NRAY),NIT=0,NITMAX(NRAY))
@@ -214,7 +214,7 @@
          ENDDO
          CLOSE(21)
          WRITE(6,*) '# DATA WAS SUCCESSFULLY LOADED FROM THE FILE.'
-         WRITE(6,*) 'NRAYMAX=',NRAYMAX
+         WRITE(6,'(A,I5)') 'NRAYMAX=',NRAYMAX
       ENDIF
 
       DO NRAY=1,NRAYMAX
@@ -275,7 +275,7 @@
 !
       DO NRAY=1,NRAYMAX
          NITMX=NITMAX(NRAY)
-
+         WRITE(6,'(A,I5,1PE12.4)') 'NRAY,RF_WR=',NRAY,RAYIN(1,NRAY)
          DO NR=1,NRMAX
             PSICR =RM(NR)**2
             PSIPRE=PSIX(0,NRAY)
@@ -293,9 +293,9 @@
                   
                   IF(NCR.LT.NCRMAXM) THEN
                      NCR=NCR+1
-                     CECR(1,NCR,NR,NRAY)=CEX
-                     CECR(2,NCR,NR,NRAY)=CEY
-                     CECR(3,NCR,NR,NRAY)=CEZ
+                     CECR(1,NCR,NR,NRAY)=FACT_WR*CEX
+                     CECR(2,NCR,NR,NRAY)=FACT_WR*CEY
+                     CECR(3,NCR,NR,NRAY)=FACT_WR*CEZ
                      RKCR(1,NCR,NR,NRAY)=RKX
                      RKCR(2,NCR,NR,NRAY)=RKY
                      RKCR(3,NCR,NR,NRAY)=RKZ
@@ -319,6 +319,19 @@
       ENDDO
 
   900 IERR=0
+      RETURN
+9001  write(6,*) '9001:NIT=',NIT
+      stop
+9002  write(6,*) '9002:NIT=',NIT
+      stop
+9003  write(6,*) '9003:NIT=',NIT
+      stop
+9101  write(6,*) '9101:NIT=',NIT
+      stop
+9102  write(6,*) '9102:NIT=',NIT
+      stop
+9103  write(6,*) '9103:NIT=',NIT
+      stop
       RETURN
       END SUBROUTINE fp_wr_read
 !
@@ -349,8 +362,8 @@
          ICOUNT=ICOUNT+1
 
 !         WRITE(6,'(A,I3,1P4E15.7)') 'FPCROS:',ICOUNT,X,DX,Y,YNEW
-         IF(ABS(Y).LE.EPSNWR) GOTO 7000
-         IF(ICOUNT.GT.LMAXNWR) GOTO 8100
+         IF(ABS(Y).LE.EPS_WR) GOTO 7000
+         IF(ICOUNT.GT.LMAX_WR) GOTO 8100
          IF(DYDX.EQ.0.D0) GOTO 8200
          DX=-Y/DYDX
          IF(DX.EQ.0.D0) GOTO 8300
@@ -366,7 +379,7 @@
 
  8000 WRITE(6,*) 'XX FPCROS: INVALID INITIAL VALUES: X0=X1'
       GOTO 7000
- 8100 WRITE(6,*) 'XX FPCROS: ICOUNT EXCEEDS LMAXNWR AT SI =',X
+ 8100 WRITE(6,*) 'XX FPCROS: ICOUNT EXCEEDS LMAX_WR AT SI =',X
       GOTO 7000
  8200 WRITE(6,*) 'XX FPCROS: DYDX BECOMES 0 AT SI =',X
       GOTO 7000

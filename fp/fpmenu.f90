@@ -12,6 +12,7 @@
       USE fpinit
       USE fpprep
       USE fploop
+      USE fploop_exp
       USE fpgout
       USE fpfout
       USE plinit
@@ -22,7 +23,7 @@
       IMPLICIT NONE
       CHARACTER(LEN=1)::  KID
       CHARACTER(LEN=80):: LINE
-      integer:: ierr,NSA,NGRAPH_SAVE
+      integer:: ierr,NGRAPH_SAVE
       integer,DIMENSION(1):: mode
       REAL(4):: cputime1,cputime2
 
@@ -44,14 +45,18 @@
       IF(KID.EQ.'R'.OR.KID.EQ.'C') THEN
          IF(nrank.EQ.0) CALL CPU_TIME(cputime1)
          IF(KID.EQ.'R') THEN
-            CALL fp_prep(ierr)
             CALL OPEN_EVOLVE_DATA_OUTPUT
+            CALL fp_prep(ierr)
             IF(ierr.ne.0) GO TO 1
          ELSEIF(KID.eq.'C')THEN
             CALL fp_continue(ierr)
             IF(ierr.ne.0) GO TO 1
          ENDIF
-         CALL fp_loop
+         IF(MODEL_EX_READ_Tn.eq.0)THEN
+            CALL fp_loop
+         ELSEIF(MODEL_EX_READ_Tn.eq.1)THEN
+            CALL fp_loop_exp
+         END IF
          IF(nrank.eq.0) THEN
             CALL CPU_TIME(cputime2)
             write(6,'(A,F12.3)') &
