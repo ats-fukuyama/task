@@ -1,0 +1,52 @@
+!
+! Test program to read OPEN-ADAS ADF11 files (Unresolved only)
+!
+PROGRAM test_adf11
+
+  USE ADF11
+  IMPLICIT NONE
+  INTEGER:: IERR,IZ0,ICLASS,IS,ND
+  REAL(dp):: PN,PT,DR
+
+  CALL LOAD_ADF11_bin(IERR)
+  IF(IERR.NE.0) THEN
+     WRITE(6,*) 'XX test_adf11: LOAD_ADF11_bin: IERR=',IERR
+     STOP
+  END IF
+  ID=1
+  ND=0
+
+1 CONTINUE
+
+  WRITE(6,*) '## Input mode: 0: one data, 1: 1D plot, 2: 2D plot, 9:End'
+  READ(5,*,ERR=1,END=9000) ID,IZ0
+
+  SELECT CASE(ID)
+  CASE(0)
+     ND=ND_TABLE(IZ0,ICLASS)
+     IF(ND.EQ.0) THEN
+     WRITE(6,*) 'XX TEST_ADF11 ERROR: no data for IZ0,ICLASS=',IZ0,ICLASS
+     GOTO 1
+  END IF
+  IF(IS.LT.IS1MINA(ND).OR.IS.GT.IS1MAXA(ND)) THEN
+     WRITE(6,*) 'XX TEST_ADF11 ERROR: IS out of range: IS,MIN,MAXS=', &
+                IS,IS1MINA(ND),IS1MAXA(ND)
+     GOTO 1
+  END IF
+
+  CALL CALC_ADF11(ND,IS,PN,PT,DR,IERR)
+  IF(IERR.NE.0) THEN
+     WRITE(6,*) 'XX TEST_ADF11 ERROR: CALC_ADF11 ERROR IERR=',IERR
+     GOTO 1
+  END IF
+
+  WRITE(6,*) '  IZ0,ICLASS,IS=',IZ0,ICLASS,IS
+  WRITE(6,'(A,1PE12.4,A)') 'PN= ',PN, ' 10^{20}m^{-3}'
+  WRITE(6,'(A,1PE12.4,A)') 'PT= ',PT, ' keV'
+  WRITE(6,'(A,1PE12.4)')   'DR= ',DR
+  GOTO 1
+
+9000 CONTINUE
+  STOP
+END PROGRAM test_adf11
+
