@@ -4,49 +4,106 @@
 PROGRAM test_adf11
 
   USE ADF11
+  USE libgrf
   IMPLICIT NONE
-  INTEGER:: IERR,IZ0,ICLASS,IS,ND
+  INTEGER:: IERR,ND,IND,IZ0,IS,ID,IT,NXMAX,NYMAX,NX,NY
   REAL(dp):: PN,PT,DR
+  REAL(dp),DIMENSION(:),ALLOCATABLE:: XDATA,YDATA
+  REAL(dp),DIMENSION(:,:),ALLOCATABLE:: FDATA
 
+  CALL GSOPEN
   CALL LOAD_ADF11_bin(IERR)
   IF(IERR.NE.0) THEN
      WRITE(6,*) 'XX test_adf11: LOAD_ADF11_bin: IERR=',IERR
      STOP
   END IF
-  ID=1
+  IND=1
   ND=0
 
 1 CONTINUE
 
-  WRITE(6,*) '## Input mode: 0: one data, 1: 1D plot, 2: 2D plot, 9:End'
-  READ(5,*,ERR=1,END=9000) ID,IZ0
+  WRITE(6,*) '## Input Data Number ND (0 for quit):'
+  READ(5,*,ERR=1,END=9000) ND
+  IF(ND.LE.0) GOTO 9000
 
-  SELECT CASE(ID)
-  CASE(0)
-     ND=ND_TABLE(IZ0,ICLASS)
-     IF(ND.EQ.0) THEN
-     WRITE(6,*) 'XX TEST_ADF11 ERROR: no data for IZ0,ICLASS=',IZ0,ICLASS
-     GOTO 1
-  END IF
-  IF(IS.LT.IS1MINA(ND).OR.IS.GT.IS1MAXA(ND)) THEN
-     WRITE(6,*) 'XX TEST_ADF11 ERROR: IS out of range: IS,MIN,MAXS=', &
-                IS,IS1MINA(ND),IS1MAXA(ND)
-     GOTO 1
-  END IF
+2 CONTINUE
 
-  CALL CALC_ADF11(ND,IS,PN,PT,DR,IERR)
-  IF(IERR.NE.0) THEN
-     WRITE(6,*) 'XX TEST_ADF11 ERROR: CALC_ADF11 ERROR IERR=',IERR
-     GOTO 1
-  END IF
+  WRITE(6,*) '## Input Plot type (1-5: DR(PN,PT) 11-15:DR(PT,IS) -1:end):'
+  READ(5,*,ERR=2,END=1) IND
+  IF(IND.LE.0) GOTO 1
 
-  WRITE(6,*) '  IZ0,ICLASS,IS=',IZ0,ICLASS,IS
-  WRITE(6,'(A,1PE12.4,A)') 'PN= ',PN, ' 10^{20}m^{-3}'
-  WRITE(6,'(A,1PE12.4,A)') 'PT= ',PT, ' keV'
-  WRITE(6,'(A,1PE12.4)')   'DR= ',DR
-  GOTO 1
-
+  SELECT CASE(IND)
+  CASE(1:5)
+3    WRITE(6,'(A,2I5)') '## Input IZ0 (-1 for end):IZ0MIN,IZ0MAX=', &
+                        IS1MINA(ND)-1,IS1MAXA(ND)-1
+     READ(5,*,ERR=3,END=2) IZ0
+     IF(IZ0.LT.0) GO TO 2
+     IS=IZ0+1
+     NXMAX=ITMAXA(ND)
+     NYMAX=IDMAXA(ND)
+     ALLOCATE(XDATA(NXMAX),YDATA(NYMAX),FDATA(NXMAX,NYMAX))
+     XDATA(1:NXMAX)=DTEMPA(1:ITMAXA(ND),ND)-3.D0
+     YDATA(1:NYMAX)=DDENSA(1:IDMAXA(ND),ND)+6.D0
+     DO NY=1,NYMAX
+        DO NX=1,NXMAX
+           FDATA(NX,NY)=DRCOFA(NY,NX,IS,ND)
+        END DO
+     END DO
+     CALL PAGES
+     SELECT CASE(IND)
+     CASE(1)
+        CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NYMAX,'@DR vs T[keV]@',3)
+     CASE(2:4)
+        CALL GRD2D(0,XDATA,YDATA,FDATA,NXMAX,NXMAX,NYMAX, &
+                   '@DR(T,n)@',3,0,IND-1)
+     CASE(5)
+        CALL GRD2D(0,XDATA,YDATA,FDATA,NXMAX,NXMAX,NYMAX, &
+                   '@DR(T,n)@',3,0,IND+14)
+     END SELECT
+     CALL PAGEE
+     DEALLOCATE(XDATA,YDATA,FDATA)
+     GO TO 3
+  CASE(11:15)
+13    WRITE(6,'(A,1P2E12.4)') '## Input PN (0 for end):PNMIN,PNMAX=', &
+                        DDENSA(1,ND)-14.D0,DDENSA(IDMAXA(ND),ND)-14.D0
+     READ(5,*,ERR=13,END=2) PN
+     NXMAX=ITMAXA(ND)
+     NYMAX=ISMAXA(ND)
+     ALLOCATE(XDATA(NXMAX),YDATA(NYMAX),FDATA(NXMAX,NYMAX))
+     XDATA(1:NXMAX)=DTEMPA(1:ITMAXA(ND),ND)-3.D0
+     DO NY=1,NYMAX
+        YDATA(NY)=DBLE(NY-1+IS1MINA(ND))
+     END DO
+     DO NY=1,NYMAX
+        DO NX=1,NXMAX
+           PT=XDATA(NX)
+           write(6,'(A,2I5,1P2E12.4)') 'ND,NT,PN,PT=',ND,NY-1+IS1MINA(ND),PN,PT
+           CALL CALC_ADF11(ND,NY-1+IS1MINA(ND),PN,PT,DR,IERR)
+           write(6,'(A,1PE12.4)')      '         DR=',DR
+           iF(IERR.NE.0) THEN
+              WRITE(6,*) 'XX test-adf11:CALC_ADF11: IERR=',IERR
+              GOTO 13
+           END IF
+           FDATA(NX,NY)=DR
+        END DO
+     END DO
+     CALL PAGES
+     SELECT CASE(IND)
+     CASE(11)
+        CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NYMAX,'@DR vs T[keV]@',3)
+     CASE(12:14)
+        CALL GRD2D(0,XDATA,YDATA,FDATA,NXMAX,NXMAX,NYMAX, &
+                   '@DR(T,n)@',3,0,IND-11)
+     CASE(15)
+        CALL GRD2D(0,XDATA,YDATA,FDATA,NXMAX,NXMAX,NYMAX, &
+                   '@DR(T,n)@',3,0,IND+4)
+     END SELECT
+     CALL PAGEE
+     DEALLOCATE(XDATA,YDATA,FDATA)
+     GO TO 13
+  END SELECT
+  GOTO 2
+  
 9000 CONTINUE
   STOP
 END PROGRAM test_adf11
-

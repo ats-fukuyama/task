@@ -10,7 +10,7 @@ include ../../../make.header
 #FFLAGS=$(OFLAGS)
 FFLAGS=$(DFLAGS)
 
-MODINCLUDE= -I./$(MOD)
+MODINCLUDE= -I./$(MOD) -I../../../lib/mod
 
 SRCS = \
 xxdata_11.for \
