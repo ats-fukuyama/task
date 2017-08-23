@@ -64,27 +64,31 @@ PROGRAM test_adf11
      DEALLOCATE(XDATA,YDATA,FDATA)
      GO TO 3
   CASE(11:15)
-13    WRITE(6,'(A,1P2E12.4)') '## Input PN (0 for end):PNMIN,PNMAX=', &
-                        DDENSA(1,ND)-14.D0,DDENSA(IDMAXA(ND),ND)-14.D0
+13    WRITE(6,'(A,1P2E12.4)') &
+          '## Input log_10 PN (-10 for end):PNMIN,PNMAX=', &
+          DDENSA(1,ND)-14.D0,DDENSA(IDMAXA(ND),ND)-14.D0
      READ(5,*,ERR=13,END=2) PN
+     IF(PN.LE.-10.D0) GOTO 2
      NXMAX=ITMAXA(ND)
      NYMAX=ISMAXA(ND)
      ALLOCATE(XDATA(NXMAX),YDATA(NYMAX),FDATA(NXMAX,NYMAX))
      XDATA(1:NXMAX)=DTEMPA(1:ITMAXA(ND),ND)-3.D0
      DO NY=1,NYMAX
-        YDATA(NY)=DBLE(NY-1+IS1MINA(ND))
+!        YDATA(NY)=DBLE(NY-1+IS1MINA(ND))
+        YDATA(NY)=DBLE(NY+IS1MINA(ND))
      END DO
      DO NY=1,NYMAX
         DO NX=1,NXMAX
            PT=XDATA(NX)
-           write(6,'(A,2I5,1P2E12.4)') 'ND,NT,PN,PT=',ND,NY-1+IS1MINA(ND),PN,PT
-           CALL CALC_ADF11(ND,NY-1+IS1MINA(ND),PN,PT,DR,IERR)
-           write(6,'(A,1PE12.4)')      '         DR=',DR
+!           write(6,'(A,2I5,1P2E12.4)') 'ND,NT,PN,PT=',ND,NY-1+IS1MINA(ND),PN,PT
+!           CALL CALC_ADF11(ND,NY-1+IS1MINA(ND),PN,PT,DR,IERR)
+           CALL CALC_ADF11(ND,NY+IS1MINA(ND),PN,PT,DR,IERR)
+!           write(6,'(A,1PE12.4)')      '         DR=',DR
            iF(IERR.NE.0) THEN
               WRITE(6,*) 'XX test-adf11:CALC_ADF11: IERR=',IERR
               GOTO 13
            END IF
-           FDATA(NX,NY)=DR
+           FDATA(NX,NY)=MAX(DR,-20.D0)
         END DO
      END DO
      CALL PAGES
@@ -93,7 +97,7 @@ PROGRAM test_adf11
         CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NYMAX,'@DR vs T[keV]@',3)
      CASE(12:14)
         CALL GRD2D(0,XDATA,YDATA,FDATA,NXMAX,NXMAX,NYMAX, &
-                   '@DR(T,n)@',3,0,IND-11)
+                   '@DR(T,n)@',1,0,IND-11)
      CASE(15)
         CALL GRD2D(0,XDATA,YDATA,FDATA,NXMAX,NXMAX,NYMAX, &
                    '@DR(T,n)@',3,0,IND+4)

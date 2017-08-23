@@ -49,7 +49,7 @@ test-adf11 : $(LIBS) test-adf11.o
 	$(FCFIXED) test-adf11.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODDIR) $(MODINCLUDE)
 
 clean:
-	-rm -f core test-xxdata_11 *.o *.a ./*~ $(MOD)/*.mod
+	-rm -f core conv-adf11 test-adf11 *.o *.a ./*~ $(MOD)/*.mod
 
 veryclean: clean
 	-rm -f test-xxdata_11
