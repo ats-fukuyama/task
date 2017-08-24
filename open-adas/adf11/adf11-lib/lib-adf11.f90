@@ -143,8 +143,8 @@ CONTAINS
              FX(IDMAXA(ND),IT)=0.D0
           END DO
           DO ID=1,IDMAXA(ND)
-             FX(ID,1         )=0.D0
-             FX(ID,ITMAXA(ND))=0.D0
+             FY(ID,1         )=0.D0
+             FY(ID,ITMAXA(ND))=0.D0
           END DO
           FXY(1,1)=0.D0
           FXY(IDMAXA(ND),1)=0.D0
