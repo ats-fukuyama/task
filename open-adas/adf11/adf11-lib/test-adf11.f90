@@ -170,6 +170,10 @@ PROGRAM test_adf11
      GO TO 5
 
   CASE(4)
+     IF(ISMAXA(ND).EQ.1) THEN
+        WRITE(6,*) 'XX ISMAXA(ND)=1: no contour plot available'
+        GO TO 2
+     END IF
      NXMAX=NXMAX_SAVE
      NYMAX=NYMAX_SAVE
 6    WRITE(6,'(A)') &
