@@ -482,10 +482,10 @@ CONTAINS
 
     CASE(1:) ! 2D contour line and paint and 3D Bird's ey view
 
-       IF(A%FMIN < 0.0 .AND. A%FMAX > 0.0) THEN
-           A%FMAX=MAX(ABS(A%FMIN),ABS(A%FMAX))
-           A%FMIN=-A%FMAX
-       ENDIF
+!       IF(A%FMIN < 0.0 .AND. A%FMAX > 0.0) THEN
+!           A%FMAX=MAX(ABS(A%FMIN),ABS(A%FMAX))
+!           A%FMIN=-A%FMAX
+!       ENDIF
 
        IF(PRESENT(NLMAX)) THEN
           A%NLMAX=NLMAX
