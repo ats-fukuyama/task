@@ -665,7 +665,10 @@ CONTAINS
 !       2 Plot DRI(PZ),DRR(PZ),PNZ(PZ) 
 
     USE libgrf
+    use, intrinsic :: ieee_arithmetic, only : IEEE_SELECTED_REAL_KIND
+    use, intrinsic :: ieee_exceptions
     IMPLICIT NONE
+    
     INTEGER,INTENT(IN):: IZ0,IND
     INTEGER,INTENT(OUT):: IERR
     REAL(dp),INTENT(IN):: PN,PT
@@ -673,7 +676,8 @@ CONTAINS
     REAL(dp):: DR,PNZTOT,RATIO
     REAL(dp),ALLOCATABLE,DIMENSION(:):: DRI,DRR,PNZ,XDATA,CVEC
     REAL(dp),ALLOCATABLE,DIMENSION(:,:):: FDATA,CMAT
-
+    LOGICAL:: should_halt, was_flagged
+    
     NDI=ND_TABLE(IZ0,2)  ! ionization rate
     NDR=ND_TABLE(IZ0,1)  ! recombination rate
 
@@ -748,11 +752,11 @@ CONTAINS
 
     DO IZ=0,NXMAX
        PNZ(IZ)=CVEC(IZ+1)
-       IF(IZ.LT.NXMAX) THEN
-          RATIO=DRR(IZ)/DRI(IZ)
-       ELSE
-          RATIO=0.D0
-       END IF
+!       IF(IZ.LT.NXMAX) THEN
+!          RATIO=DRR(IZ)/DRI(IZ)
+!       ELSE
+!          RATIO=0.D0
+!       END IF
 !       write(6,'(A,I5,1P2E12.4)') 'IZ,PNZ,R/I=',IZ,PNZ(IZ),RATIO
     END DO
     DEALLOCATE(CMAT,CVEC)
@@ -762,12 +766,27 @@ CONTAINS
        PNZTOT=PNZTOT+PNZ(IZ)
     END DO
 
-    DO IZ=0,NXMAX
-       PNZ(IZ)=PNZ(IZ)/PNZTOT
-       IF(PNZ(IZ).LT.1.D-30) PNZ(IZ)=1.D-30
+    ! Get the original halting mode and signal state
+    call ieee_get_halting_mode(IEEE_UNDERFLOW, should_halt)
+    call ieee_get_flag(IEEE_UNDERFLOW, was_flagged)
+
+    ! Ensure we aren't going to halt on underflow
+    call ieee_set_halting_mode(IEEE_UNDERFLOW, .FALSE.)
+    
+     DO IZ=0,NXMAX
+!        WRITE(6,'(A,1P2E12.4)') 'PNZ:',PNZ(IZ),PNZTOT
+       IF(PNZ(IZ).LT.1.D-30) THEN
+          PNZ(IZ)=1.D-30/PNZTOT
+       ELSE
+          PNZ(IZ)=PNZ(IZ)/PNZTOT
+       END IF
     END DO
 
-    IF(IND.GE.1) THEN
+    ! And restore our old state
+    call ieee_set_halting_mode(IEEE_UNDERFLOW, should_halt)
+    call ieee_set_flag(IEEE_UNDERFLOW, was_flagged)
+
+    IF(IND.GE.1) THEN    
        DO NX=0,NXMAX
           XDATA(NX)=DBLE(NX)
           FDATA(NX,1)=LOG10(PNZ(NX))
