@@ -758,7 +758,6 @@
          IF(FACT.EQ.0.D0) GOTO 9001
          FACT=1.D0/FACT
          AAN=-CN*FACT
-!!!         WRITE(6,'(A,1P3E12.4)') '!!! ',CN,FACT,DN-AN*BBN
          BBN= (DN-AN*BBN)*FACT
          A(1,N)=AAN
          A(2,N)=BBN
