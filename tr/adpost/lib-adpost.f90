@@ -174,11 +174,13 @@ CONTAINS
 
   FUNCTION func_adpost(IZ0,ID,PT)
 
+    IMPLICIT NONE
     REAL(rkind):: func_adpost
-    INTEGER,INTENT(IN):: IZ0 ! Atomic number
-    INTEGER,INTENT(IN):: ID  ! Data type 1=Z_ave,2=Z^2_ave, 3=I_rad
-    REAL(rkind):: PT         ! Electron temperature [keV]
-    INTEGER:: ND,N
+    INTEGER,INTENT(IN):: IZ0    ! Atomic number
+    INTEGER,INTENT(IN):: ID     ! Data type 1=Z_ave,2=Z^2_ave, 3=I_rad
+    REAL(rkind),INTENT(IN):: PT ! Electron temperature [keV]
+    REAL(rkinD):: PTL,SUMX
+    INTEGER:: ND,N,L,LMAX,NL
 
     ND=ND_TABLE(IZ0)
 
@@ -211,12 +213,12 @@ CONTAINS
              IF(PTL.LE.TMAXA(NL,ND)) EXIT
           END DO
        END IF
-       SUM=0.D0
+       SUMX=0.D0
        PTL=LOG10(PTL)
        DO N=5,0,-1
-          SUM=COEFA(N,L,ND)+PTL*SUM
+          SUMX=COEFA(N,L,ND)+PTL*SUMX
        END DO
-       func_adpost=SUM
+       func_adpost=SUMX
     CASE(2)
        IF(PTL.LT.TMINB(1,ND)) THEN
           PTL=TMINB(1,ND)
@@ -230,12 +232,12 @@ CONTAINS
              IF(PTL.LE.TMAXB(NL,ND)) EXIT
           END DO
        END IF
-       SUM=0.D0
+       SUMX=0.D0
        PTL=LOG10(PTL)
        DO N=5,0,-1
-          SUM=COEFB(N,L,ND)+PTL*SUM
+          SUMX=COEFB(N,L,ND)+PTL*SUMX
        END DO
-       func_adpost=SUM
+       func_adpost=SUMX
     CASE(3)
        IF(PTL.LT.TMINC(1,ND)) THEN
           PTL=TMINC(1,ND)
@@ -249,12 +251,12 @@ CONTAINS
              IF(PTL.LE.TMAXC(NL,ND)) EXIT
           END DO
        END IF
-       SUM=0.D0
+       SUMX=0.D0
        PTL=LOG10(PTL)
        DO N=5,0,-1
-          SUM=COEFC(N,L,ND)+PTL*SUM
+          SUMX=COEFC(N,L,ND)+PTL*SUMX
        END DO
-       func_adpost=sum
+       func_adpost=SUMX
     CASE DEFAULT
        func_adpost=0.D0
     END SELECT
@@ -262,6 +264,7 @@ CONTAINS
   END FUNCTION func_adpost
 
   FUNCTION AVAILABLE_IZ0(IZ0)
+    IMPLICIT NONE
     LOGICAL:: AVAILABLE_IZ0
     INTEGER,INTENT(IN):: IZ0
 
