@@ -150,7 +150,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #LD=ar
 #LDFLAGS=ru
 
-## for Mac OSX Intel fortran compiler 32bi
+## for Mac OSX Intel fortran compiler 32bit
 #GFLIBS=-L/usr/local/lib -lg3d-ifc -lgsp-ifc -lgdp-ifc -L/usr/X11R6/lib -lX11
 #GLLIBS=-L/usr/local/lib -lgsgl-ixc
 #OFLAGS = -g -O3 -vec-report0
@@ -166,7 +166,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #GFLIBS=-L/usr/local/lib -lg3d-ifc64 -lgsp-ifc64 -lgdp-ifc64 -L/usr/X11R6/lib -lX11
 #GLLIBS=-L/usr/local/lib -lgsgl-ixc
 #OFLAGS = -O3
-#DFLAGS = -g -C -traceback -debug extended -align -fpe-all0 -fmath-errno -fstack-security-check -no-ftz
+#DFLAGS = -g -C -traceback -debug extended -align -fpe-all=0 -fmath-errno -fstack-security-check -no-ftz -check all
 #FCFIXED = ifort
 #FCFREE  = ifort
 #MOD = mod
@@ -245,7 +245,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 ## for gfortran (64bit)
 #GFLIBS=-L/usr/local/lib -lg3d-gfc64 -lgsp-gfc64 -lgdp-gfc64  -L/usr/X11R6/lib -lX11
 #OFLAGS = -g -O3 -m64
-#DFLAGS = -g -m64 -fbounds-check -ffpe-trap=invalid,zero,overflow
+#DFLAGS = -g -m64 -fbounds-check -ffpe-trap=invalid,zero,overflow,underflow -fbacktrace -fcheck=all
 #FCFIXED = gfortran -ffixed-form
 #FCFREE = gfortran -ffree-form
 #MOD = mod
