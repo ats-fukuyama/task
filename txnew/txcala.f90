@@ -5,6 +5,7 @@ module tx_coefficients
   implicit none
   private
   real(8), dimension(:,:,:,:), allocatable :: ELM
+  real(8), dimension(:,:), allocatable :: ELM_inner,ELM_outer
   real(8), dimension(:), allocatable ::  &
        & DTf, Dbrpft, &
        & Chie1, Chie2, Chii1, Chii2
@@ -50,6 +51,15 @@ contains
     !************************************************************!
 
     allocate(ELM(1:NEMAX,1:4,0:NCM,1:NQMAX),DTf(1:NQMAX))
+    allocate(ELM_inner(1:NEMAX,1:4),ELM_outer(1:NEMAX,1:4))
+    DO NE=1,NRA
+       ELM_inner(NE,1:4) = 1.D0
+       ELM_outer(NE,1:4) = 0.D0
+    END DO
+    DO NE=NRA+1,NEMAX
+       ELM_inner(NE,1:4) = 0.D0
+       ELM_outer(NE,1:4) = 1.D0
+    END DO
 
     !     Preconditioning
 
@@ -217,7 +227,12 @@ contains
     if(FSPARV(2) == 0.d0) CALL BOUNDARY(0    ,LQi3,0,Var(0,2)%RUph*bbt(0)/fipol(0))
     ! -----------------------------------------------------------
 !    end if
-    CALL BOUNDARY(NRMAX,LQm1,0)
+    SELECT CASE(MDPHIS)
+    CASE (0,1)
+       CALL BOUNDARY(NRMAX,LQm1,0)
+    CASE(2)
+       CALL BOUNDARY(NRA,LQm1,0,PHIS(NRA))
+    END SELECT
     CALL BOUNDARY(0    ,LQm2,0)
 !!!    CALL BOUNDARY(NRMAX,LQe2,0) ! Violates quasi-neutrality and breaks down calculation
 !    CALL BOUNDARY(NRMAX,LQe3,0)   ! OK
@@ -256,6 +271,8 @@ contains
     CALL BOUNDARY(NRMAX,LQn1,1, suft(NRMAX)*rGASPF)
 
     deallocate(ELM, DTf)
+    deallocate(ELM_inner)
+    deallocate(ELM_outer)
     deallocate(Dbrpft, Chie1, Chie2, Chii1, Chii2)
 !       &       rGASPFA, rNueHLphthVR, rNuiHLphthVR)
     deallocate(UsrgV, rrtinv, aatinv, bthcoinv, FqhatsqI, &
@@ -345,21 +362,45 @@ contains
     ELM(:,:,1,NEQ) =   sqeps0 / AEE * 1.D-20 * fem_int(12,sst)
     NLC(1,NEQ) = LQm1
 
-    ELM(:,:,2,NEQ) = - achg(1) * fem_int(1) * sqeps0inv
-    NLC(2,NEQ) = LQe1
+    ELM(:,:,2,NEQ) = - sqeps0 / AEE * 1.D-20 * fem_int(-12,sst,phis)
+    NLC(2,NEQ) = 0
 
-    ELM(:,:,3,NEQ) = - achg(2) * fem_int(1) * sqeps0inv
-    NLC(3,NEQ) = LQi1
+    ELM(:,:,3,NEQ) = - achg(1) * fem_int(1) * sqeps0inv
+    NLC(3,NEQ) = LQe1
 
-    ELM(:,:,4,NEQ) = - achgb   * fem_int(1) * sqeps0inv * BeamSW
-    NLC(4,NEQ) = LQb1
+    ELM(:,:,4,NEQ) = - achg(2) * fem_int(1) * sqeps0inv
+    NLC(4,NEQ) = LQi1
 
-    ELM(:,:,5,NEQ) = - achgb   * fem_int(2,rip_rat) * sqeps0inv * RpplSW
-    NLC(5,NEQ) = LQr1
+    ELM(:,:,5,NEQ) = - achgb   * fem_int(1) * sqeps0inv * BeamSW
+    NLC(5,NEQ) = LQb1
+
+    ELM(:,:,6,NEQ) = - achgb   * fem_int(2,rip_rat) * sqeps0inv * RpplSW
+    NLC(6,NEQ) = LQr1
+
+    ELM(:,:,7,NEQ) =   fem_int(1)
+    NLC(7,NEQ) = LQm1
+
+    ELM(:,:,8,NEQ) = - fem_int(-1,phis)
+    NLC(8,NEQ) = 0
+
+    SELECT CASE(MDPHIS)
+    CASE(0,1)
+       ELM(:,:,7,NEQ) = 0.D0
+       ELM(:,:,8,NEQ) = 0.D0
+    CASE(2)
+       ELM(:,:,1,NEQ) = ELM_inner(:,:)*ELM(:,:,1,NEQ)
+       ELM(:,:,2,NEQ) = ELM_inner(:,:)*ELM(:,:,2,NEQ)
+       ELM(:,:,3,NEQ) = ELM_inner(:,:)*ELM(:,:,3,NEQ)
+       ELM(:,:,4,NEQ) = ELM_inner(:,:)*ELM(:,:,4,NEQ)
+       ELM(:,:,5,NEQ) = ELM_inner(:,:)*ELM(:,:,5,NEQ)
+       ELM(:,:,6,NEQ) = ELM_inner(:,:)*ELM(:,:,6,NEQ)
+       ELM(:,:,7,NEQ) = ELM_outer(:,:)*ELM(:,:,7,NEQ)
+       ELM(:,:,8,NEQ) = ELM_outer(:,:)*ELM(:,:,8,NEQ)
+    END SELECT
 
     ! phi(b) : 0
 
-    NLCMAX(NEQ) = 5
+    NLCMAX(NEQ) = 8
     RETURN
   END SUBROUTINE LQm1CC
 

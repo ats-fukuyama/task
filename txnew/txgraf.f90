@@ -3,7 +3,7 @@ module tx_graphic
   implicit none
   private
   integer(4), parameter :: NGRM=20, NGTM=5000, NGVM=5000, &
-       &                   NGYRM=217, NGYTM=54, NGYVM=58, &
+       &                   NGYRM=218, NGYTM=54, NGYVM=58, &
        &                   NGPRM=25, NGPTM=8, NGPVM=15
   real(4) :: GXM, GYM, GYS
   integer(4) :: MODEG, MODEGL, NGR, NGT, NGVV, NGRSTP, NGTSTP, NGVSTP, NP
@@ -1202,6 +1202,9 @@ contains
        GYL(NX,NG,216) = real(elip(NX))
        GYL(NX,NG,217) = real(trig(NX))
 
+       ! *** Sheath potentical ***
+
+       GYL(NX,NG,218) = real(phis(NX))
     end do
 
     RETURN

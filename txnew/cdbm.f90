@@ -33,7 +33,7 @@ MODULE cdbm_mod
 
 CONTAINS
 
-  SUBROUTINE cdbm(bb,rr,rs,rkap,qp,shear,pne,rhoni,dpdr,dvexbdr, &
+  SUBROUTINE cdbm(bb,rr,rs,rkap,qp,shear,pne,rhoni,dpdr,dvexbdr,dvexbdr2, &
        &             calf,ckap,cexb,model,chi_cdbm,fsz,curvz,fez,omgexb)
 
     real(rkind),intent(in):: bb      ! Magnetic field strength [T]
@@ -47,6 +47,7 @@ CONTAINS
     real(rkind),intent(in):: rhoni   ! Ion mass density [kg/m^3]
     !                                  (sum of ion-mass times ion-density)
     real(rkind),intent(in):: dvexbdr ! ExB drift velocity gradient [1/s]
+    real(rkind),intent(in):: dvexbdr2! ExB drift velocity second derv [1/(m s)]
     real(rkind),intent(in):: calf    ! Factor in s-alpha effects [1.0]
     real(rkind),intent(in):: ckap    ! Factor in magnetic curvature effects [1.0]
     real(rkind),intent(in):: cexb    ! Factor in ExB drift effects [1.0]
@@ -70,6 +71,7 @@ CONTAINS
     integer(ikind),parameter :: nexp = 2    ! Fixed numerical factor 
     real(rkind),parameter :: ckcdbm = 12.d0 ! Fixed numerical factor 
     real(rkind):: va,wpe2,delta2,alpha,curv,wexb,shearl,fs,fk,fe,gamcdbm,taua
+    real(rkind):: wexb2,wexbav
 
     if(model.lt.0.or.model.gt.7) then
        write(6,*) 'XX cdbm: model: out of range'
@@ -92,9 +94,14 @@ CONTAINS
     curv=-(rs/rr)*(1.D0-1.D0/(qp*qp))
 
     !     rotational shear
-    shearl=sqrt(shear**2+0.1D0**2)   !
+!    shearl=sqrt(shear**2+0.1D0**2)   !
+    shearl=sqrt(shear**2+0.5D0**2)   !
     wexb = -qp*rr/(shearl*va)*dvexbdr
+    wexb2 =-qp*rr/(shearl*va)*dvexbdr2
+!    wexbav=SQRT(wexb**2+wexb2**2)
+    wexbav=SQRT(wexb**2)
 !    write(6,'(1P5E15.7)') qp,rr,1.d0/(shearl*va),dvexbdr,wexb
+!    write(6,'(1P5E15.7)') qp,rr,wexb,wexb2,wexbav
 
     SELECT CASE(MOD(model,2))
     CASE(0)
@@ -109,9 +116,9 @@ CONTAINS
     CASE(0)
        fe=1.D0
     CASE(1)
-       fe=1.D0/(1.D0+cexb*wexb**2)
+       fe=1.D0/(1.D0+cexb*wexbav**2)
     CASE(2)
-       fe=fexb(wexb,shear,alpha)
+       fe=fexb(wexbav,shear,alpha)
     CASE(3)
        taua=qp*rr/va
        gamcdbm = fs*sqrt(abs(alpha))/taua

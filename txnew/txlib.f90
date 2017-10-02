@@ -116,7 +116,7 @@ contains
        icheck = 0
     case(-101,-8,-4:-1,2:3,5:7,9:10,12:14,102,103,105,106)
        if(.not. present(a)) icheck = 1
-    case(-102,-9,20:27,120:122)
+    case(-102,-12,-9,20:27,120:122)
        if(.not. present(a) .or. .not. present(b)) icheck = 2
     case(-120,-23:-22,-20,30:33,36:38,130:132)
        if(.not. present(a) .or. .not. present(b) .or. .not. present(c)) icheck = 3
@@ -173,6 +173,13 @@ contains
           x(ne,2) = (-       a(ne-1) - 2.d0 * a(ne)) * c16 * b(ne)
           x(ne,3) = ( 2.d0 * a(ne-1) +        a(ne)) * c16 * b(ne-1)
           x(ne,4) = (        a(ne-1) + 2.d0 * a(ne)) * c16 * b(ne)
+       end do
+    case(-12)
+       do ne = 1, nemax
+          x(ne,1) = 0.5d0 * ( a(ne-1) + a(ne) ) * b(ne-1) / hv(ne)
+          x(ne,2) =-0.5d0 * ( a(ne-1) + a(ne) ) * b(ne  ) / hv(ne)
+          x(ne,3) =-0.5d0 * ( a(ne-1) + a(ne) ) * b(ne-1) / hv(ne)
+          x(ne,4) = 0.5d0 * ( a(ne-1) + a(ne) ) * b(ne  ) / hv(ne)
        end do
     case(-20)
        do ne = 1, nemax

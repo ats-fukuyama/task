@@ -323,6 +323,14 @@ SUBROUTINE TXINIT
   !   Halo neutral diffusion factor
   FSD03 = 1.D0
 
+  !   Sheath potential model
+  !     MDPHIS = 0 : no sheath potential
+  !              1 : Laplacian (phi-phis) = - charge density
+  !                  phis=0.5*ln(mi/(2*pi*me))*Tes**2/(Tes+g*Tis) for rho > 1
+  !                  phis=phis(rho=1) for rho < 1
+  !              2 : phi=phis for rho > 1
+  MDPHIS = 0
+
   !   ***** initial parameters *****
 
   !   Initial Density scale length in SOL normalized by minor radius (-), valid if MDITSN /= 0
@@ -1561,6 +1569,7 @@ module tx_parameter_control
        & rIPs,rIPe, &
        & MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,iSUPG2,iSUPG3,iSUPG6,SUPGstab,iprestab, &
        & MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDBSETA,MDITSN,MDITST,MDINTN,MDINTT,MDINTC,MDLETB, &
+       & MDPHIS, &
        & IDIAG,IGBDF,ISMTHD,MDLNBD, & ! 09/06/17~ miki_m
        & EpsHM, HPN  ! 10/08/06 miki_m
   private :: TXPLST
@@ -1766,7 +1775,7 @@ contains
          &       ' ',8X,'rIPs,rIPe,'/ &
          &       ' ',8X,'MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MODECV,oldmix,iSUPG2,iSUPG3,iSUPG6,SUPGstab,iprestab,'/ &
          &       ' ',8X,'MDFIXT,MDBEAM,MDOSQZ,MDOSQZN,MDLETA,MDLNEO,MDBSETA,MDITSN,MDITST,MDINTN,MDINTT,MDLETB,' / & 
-         &       ' ',8X,'IDIAG,IGBDF,ISMTHD,MDLNBD')
+         &       ' ',8X,'IDIAG,IGBDF,ISMTHD,MDLNBD,MDPHIS')
   END SUBROUTINE TXPLST
 
 !***************************************************************
@@ -1879,7 +1888,7 @@ contains
          &   'MDBSETA   ', MDBSETA  , 'MDANOM    ', MDANOM   ,  &
          &   'MDITSN    ', MDITSN   , 'MDITST    ', MDITST   ,  &
          &   'MDINTN    ', MDINTN   , 'MDINTT    ', MDINTT   ,  &
-         &   'MDINTC    ', MDINTC   , &
+         &   'MDINTC    ', MDINTC   , 'MDPHIS    ', MDPHIS   ,  &
          &   'MDLETB    ', MDLETB   , 'IDIAG     ', IDIAG    ,  &
          &   'IGBDF     ', IGBDF    , 'ISMTHD    ', ISMTHD   ,  &
          &   'NTCOIL    ', NTCOIL   , 'MDLC      ', MDLC     ,  &

@@ -97,6 +97,8 @@ module tx_commons
 
   ! Scale lengths in SOL
   real(8) :: rLn, rLT
+  ! SOL model
+  integer(4) :: MDPHIS
 
   ! Heat sources
   real(8) :: Ebmax, RNBP, RNBP0, RNBT1, RNBT2, RNBT10, RNBT20, &
@@ -255,12 +257,15 @@ module tx_commons
   ! CDBM
   real(8), dimension(:), allocatable :: rG1h2, FCDBM, S, Alpha, rKappa
 
-  ! For numerical stability
-  real(8), dimension(:), allocatable :: pres0, ErV0
-
   ! CDIM
   ! 09/06/17~ miki_m
   real(8), dimension(:), allocatable :: rG1h2IM, FCDIM, RAQPR
+
+  ! Sheath potential
+  real(8), dimension(:), allocatable :: phis
+
+  ! For numerical stability
+  real(8), dimension(:), allocatable :: pres0, ErV0
 
   ! Sources and sinks
   real(8), dimension(:), allocatable :: PNB, PNBTG, PNBPD, PNBcol_e, PNBcol_i, &
@@ -430,6 +435,8 @@ contains
 
        allocate(rG1h2(0:N),  FCDBM(0:N),  S(0:N),     Alpha(0:N), rKappa(0:N),stat = ierl(1))
        allocate(rG1h2IM(0:N),  FCDIM(0:N),  RAQPR(0:N),                       stat = ierl(2)) !09/06/17 miki_m
+       allocate(PHIS(0:N))
+
        allocate(pres0(0:N),  ErV0(0:N),                                       stat = ierl(3))
        ier = sum(ierl) ; iflag = 7
        if (ier /= 0) exit

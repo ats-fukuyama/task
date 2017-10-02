@@ -304,14 +304,16 @@ contains
     real(8) :: Frdc, Dcoef
     real(8) :: omegaer, omegaere, omegaeri
     real(8) :: EFT, CR
-    real(8) :: rhoni, dvexbdr ! CDBM
+    real(8) :: rhoni, dvexbdr, dvexbdr2 ! CDBM
     real(8) :: xb, fp, fdp, gfun
     real(8) :: AITKEN2P ! function
     real(8), dimension(0:NRMAX) :: pres, ddPhidpsi, tmp
     ! Mainly for derivatives
     real(8), dimension(:), allocatable :: dErdr, dpdr, dErdrS, ErVlc
+    real(8), dimension(:), allocatable :: dErdr2,dErdrS2
     real(8), dimension(:), allocatable :: dQdrho, dlnNedrhov
     real(8), dimension(:,:), allocatable :: dTsdV, dPsdV, dNsdrho, dTsdrho
+    real(8), parameter :: rg=1.D0
 
     MDANOMabs = abs(MDANOM)
     MDLNEOL   = mod(MDLNEO,10)
@@ -387,9 +389,15 @@ contains
     !          directly calculated.
 
     allocate(dErdr(0:NRMAX),dErdrS(0:NRMAX))
+    allocate(dErdr2(0:NRMAX),dErdrS2(0:NRMAX))
     allocate(dpdr(0:NRMAX))
     dErdr (:) =                 dfdx(R  ,ErVlc,NRMAX,0)
     dpdr  (:) = vro(:) / ravl * dfdx(vv ,pres ,NRMAX,0)
+    dErdr2(1)    =(dErdr(2)-dErdr(1))/(R(2)-R(1))
+    dErdr2(NRMAX)=(dErdr(NRMAX)-dErdr(NRMAX-1))/(R(NRMAX)-R(NRMAX-1))
+    DO NR=2,NRMAX-1
+       dErdr2(NR)=(dErdr(NR+1)-dErdr(NR-1))/(R(NR+1)-R(NR-1))
+    END DO
 
     allocate(dQdrho(0:NRMAX), dlnNedrhov(0:NRMAX))
     allocate(dTsdV(0:NRMAX,NSM), dPsdV(0:NRMAX,NSM))
@@ -408,7 +416,8 @@ contains
 
     !  Smoothing Er gradient for numerical stability
     do NR = 0, NRMAX
-       dErdrS(NR) = moving_average(NR,dErdr,NRMAX,NRA)
+       dErdrS(NR)  = moving_average(NR,dErdr, NRMAX,NRA)
+       dErdrS2(NR) = moving_average(NR,dErdr2,NRMAX,NRA)
     end do
 
     ! *** Temperatures for neutrals ***
@@ -822,10 +831,11 @@ contains
           IF (MDANOMabs == 1) THEN
              rhoni = Var(NR,2)%n * 1.D20 * (amas(2)*amp)
              dvexbdr = dErdrS(NR) / bbrt(NR)
+             dvexbdr2 = dErdrS2(NR) / bbrt(NR)
 !             dvexbdr = dErdr(NR) / bbrt(NR)
 
              call cdbm(BBL,rr,r(NR),elip(NR),Q(NR),S(NR),Var(NR,1)%n*1.d20,rhoni,dpdr(NR), &
-                  &    dvexbdr,FSCBAL,FSCBKP,rG1,model_cdbm,Dturb, &
+                  &    dvexbdr,dvexbdr2,FSCBAL,FSCBKP,rG1,model_cdbm,Dturb, &
                   &    FCDBM(NR),rKappa(NR),rG1h2(NR),wexb(NR))
 
           !   *** CDIM model ***
@@ -1052,6 +1062,23 @@ contains
           rNuLTi(NR) = 0.D0
           rNuLB(NR) = 0.D0
        END IF
+
+       !     *** Sheath potential ***
+
+       SELECT CASE(MDPHIS)
+       CASE(0)
+          PHIS(NR) = 0.D0
+       CASE(1,2)
+          IF(NR > NRA) THEN
+             PHIS(NR)=0.5D0*LOG(amas(2)/(2.D0*PI*amas(1))) &
+                     *(Var(NR,1)%T/(Var(NR,1)%T+Var(NR,2)%T)) &
+                     * Var(NR,1)%T * rkilo
+          ELSE
+             PHIS(NR)=0.5D0*LOG(amas(2)/(2.D0*PI*amas(1))) &
+                     *(Var(NRA,1)%T/(Var(NRA,1)%T+rg*Var(NRA,2)%T)) &
+                     * Var(NRA,1)%T * rkilo
+          END IF
+       END SELECT
 
        !     *** Current density profile ***
 
@@ -1420,6 +1447,7 @@ contains
 !    UastNC(:) = 0.D0
 
     deallocate(dErdr,dpdr,dErdrS,ErVlc)
+    deallocate(dErdr2,dErdrS2)
     deallocate(dQdrho,dlnNedrhov)
     deallocate(dTsdV,dTsdrho,dPsdV,dNsdrho)
 
