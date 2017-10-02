@@ -78,16 +78,25 @@ END SUBROUTINE WFCOLL
 
 SUBROUTINE WFSMAG(R,Z,BABS,AL)
 
-  use wfcomm,ONLY: MODELG
+  USE wfcomm,ONLY: MODELG
+  USE plload
   implicit none
   real(8),intent(in) :: R,Z
   real(8),intent(out):: BABS,AL(3)
+  REAL(8):: BR,BZ,BT
+  integer:: IERR
 
   SELECT CASE(MODELG)
   CASE(0)
      CALL WFSMAG0(R,Z,BABS,AL)
   CASE(2)
      CALL WFSMAG2(R,Z,BABS,AL)
+  CASE(12)
+     CALL pl_read_p2Dmag(R,Z,BR,BZ,BT,IERR)
+     BABS=SQRT(BR**2+BZ**2+BT**2)
+     AL(1)=BR/BABS
+     AL(2)=BT/BABS
+     AL(3)=BZ/BABS
   END SELECT
   RETURN
 END SUBROUTINE WFSMAG
@@ -95,6 +104,7 @@ END SUBROUTINE WFSMAG
 SUBROUTINE WFSMAG0(R,Z,BABS,AL)
 
   use wfcomm
+  USE plload
   implicit none
   integer :: I
   real(8),intent(in) :: R,Z
@@ -116,7 +126,6 @@ SUBROUTINE WFSMAG0(R,Z,BABS,AL)
   al(3)=bz/babs
   RETURN
 END SUBROUTINE WFSMAG0
-
 SUBROUTINE WFSMAG2(R,Z,BABS,AL)
 
   use wfcomm
@@ -169,16 +178,25 @@ END SUBROUTINE WFSMAG2
 
 SUBROUTINE WFSDEN(R,Z,RN,RTPR,RTPP,RZCL)
 
-  use wfcomm,ONLY: modelg,nsm
+  use wfcomm,ONLY: modelg,nsm,NSMAX
+  use plload
   implicit none
   real(8),intent(in) :: R,Z
   real(8),intent(out):: RN(NSM),RTPR(NSM),RTPP(NSM),RZCL(NSM)
+  REAL(8):: RU(NSM)
+  INTEGER:: NSMAXL,IERR,NS
 
   SELECT CASE(MODELG)
   CASE(0)
      CALL WFSDEN0(R,Z,RN,RTPR,RTPP,RZCL)
   CASE(2)
      CALL WFSDEN2(R,Z,RN,RTPR,RTPP,RZCL)
+  CASE(12)
+     CALL pl_read_p2D(R,Z,RN,RTPR,RU,NSMAXL,IERR)
+     DO NS=1,NSMAXL
+        RTPP(NS)=RTPR(NS)
+     END DO
+     CALL WFCOLL(rn,rtpr,rtpp,rzcl)
   END SELECT
   RETURN
 END SUBROUTINE WFSDEN
@@ -199,17 +217,32 @@ SUBROUTINE WFSDEN0(R,Z,RN,RTPR,RTPP,RZCL)
 
   ! --- set DENSITY
 
-  DO ns=1,nsmax
-     rn(ns)=pn_corner(1,ns) &
-           +(pn_corner(2,ns)-pn_corner(1,ns))*rfactor &
-           +(pn_corner(3,ns)-pn_corner(1,ns))*zfactor
-     rtpr(ns)=ptpr_corner(1,ns) &
-             +(ptpr_corner(2,ns)-ptpr_corner(1,ns))*rfactor &
-             +(ptpr_corner(3,ns)-ptpr_corner(1,ns))*zfactor
-     rtpp(ns)=ptpp_corner(1,ns) &
-             +(ptpp_corner(2,ns)-ptpp_corner(1,ns))*rfactor &
-             +(ptpp_corner(3,ns)-ptpp_corner(1,ns))*zfactor
-  END DO
+  SELECT CASE(MODELN)
+  CASE(0)
+     DO ns=1,nsmax
+        rn(ns)=pn_corner(1,ns) &
+              +(pn_corner(2,ns)-pn_corner(1,ns))*rfactor &
+              +(pn_corner(3,ns)-pn_corner(1,ns))*zfactor
+        rtpr(ns)=ptpr_corner(1,ns) &
+                +(ptpr_corner(2,ns)-ptpr_corner(1,ns))*rfactor &
+                +(ptpr_corner(3,ns)-ptpr_corner(1,ns))*zfactor
+        rtpp(ns)=ptpp_corner(1,ns) &
+                +(ptpp_corner(2,ns)-ptpp_corner(1,ns))*rfactor &
+                +(ptpp_corner(3,ns)-ptpp_corner(1,ns))*zfactor
+     END DO
+  CASE(1)
+     DO ns=1,nsmax
+        rn(ns)=pn_corner(1,ns) &
+              +(pn_corner(2,ns)-pn_corner(1,ns))*rfactor**2 &
+              +(pn_corner(3,ns)-pn_corner(1,ns))*zfactor**2
+        rtpr(ns)=ptpr_corner(1,ns) &
+                +(ptpr_corner(2,ns)-ptpr_corner(1,ns))*rfactor**2 &
+                +(ptpr_corner(3,ns)-ptpr_corner(1,ns))*zfactor**2
+        rtpp(ns)=ptpp_corner(1,ns) &
+                +(ptpp_corner(2,ns)-ptpp_corner(1,ns))*rfactor**2 &
+                +(ptpp_corner(3,ns)-ptpp_corner(1,ns))*zfactor**2
+     END DO
+  END SELECT
   CALL WFCOLL(rn,rtpr,rtpp,rzcl)
 
   RETURN

@@ -1,5 +1,3 @@
-!     $Id$
-
   MODULE plinit
 
   CONTAINS
@@ -57,17 +55,19 @@
 !        PUITB : Toroidal rotation velocity increment at ITB   (m/s)
 !        PZCL  : normalized collision frequency
 
-!        KIDNS : index of particle species
-!        IDION :  1 : fast ion particle
-!                 0 : else
+!        KID_NS: index of particle species
+!        ID_NS : -1 : electron
+!                 0 : neutral
+!                 1 : ion
+!                 2 : fast ion
 
       NSMAX = 2                  ! Default number of particle species
 
-         ! electron
+!     *** electron ***
          NS = 1
 
-         KIDNS(NS)= 'e'
-         IDION(NS)= 0.0D0
+         KID_NS(NS)= ' e'
+         ID_NS(NS) = -1
          PA(NS)   = AME/AMP
          PZ(NS)   =-1.0D0
          PZ0(NS)  =-1.0D0
@@ -83,31 +83,11 @@
          PUITB(NS)= 0.D0
          PZCL(NS) = 0.D0
 
-      IF(NSM.GE.2) THEN
-         ! *** hydrogen ***
-!!$         NS = 2
-!!$
-!!$         KIDNS(NS)= 'H'
-!!$         IDION(NS)= 0.0D0
-!!$         PA(NS)   = 1.0D0
-!!$         PZ(NS)   = 1.0D0
-!!$         PZ0(NS)  = 1.0D0
-!!$         PN(NS)   = 1.0D0
-!!$         PNS(NS)  = 0.0D0
-!!$         PTPR(NS) = 5.0D0
-!!$         PTPP(NS) = 5.0D0
-!!$         PTS(NS)  = 0.05D0
-!!$         PU(NS)   = 0.D0
-!!$         PUS(NS)  = 0.D0
-!!$         PNITB(NS)= 0.D0
-!!$         PTITB(NS)= 0.D0
-!!$         PUITB(NS)= 0.D0
-
-         ! *** deuterium ***
+!     *** deuteron ***
          NS = 2
 
-         KIDNS(NS)= 'D'
-         IDION(NS)= 0.0D0
+         KID_NS(NS)= ' D'
+         ID_NS(NS) = 1
          PA(NS)   = 2.0D0
          PZ(NS)   = 1.0D0
          PZ0(NS)  = 1.0D0
@@ -122,125 +102,48 @@
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
 
-         ! *** tritium ***
-!!$         NS = 3
-!!$
-!!$         KIDNS(NS)= 'T'
-!!$         IDION(NS)= 0.0D0
-!!$         PA(NS)   = 3.0D0
-!!$         PZ(NS)   = 1.0D0
-!!$         PZ0(NS)  = 1.0D0
-!!$         PN(NS)   = 1.0D0
-!!$         PNS(NS)  = 0.0D0
-!!$         PTPR(NS) = 5.0D0
-!!$         PTPP(NS) = 5.0D0
-!!$         PTS(NS)  = 0.05D0
-!!$         PU(NS)   = 0.D0
-!!$         PUS(NS)  = 0.D0
-!!$         PNITB(NS)= 0.D0
-!!$         PTITB(NS)= 0.D0
-!!$         PUITB(NS)= 0.D0
-
-!!$         ! *** helium ***
-!!$         NS =
-!!$
-!!$         KIDNS(NS)= 'A'
-!!$         IDION(NS)= 0.0D0
-!!$         PA(NS)   = 4.0D0
-!!$         PZ(NS)   = 2.0D0
-!!$         PZ0(NS)  = 2.0D0
-!!$         PN(NS)   = 1.0D0
-!!$         PNS(NS)  = 0.0D0
-!!$         PTPR(NS) = 5.0D0
-!!$         PTPP(NS) = 5.0D0
-!!$         PTS(NS)  = 0.05D0
-!!$         PU(NS)   = 0.D0
-!!$         PUS(NS)  = 0.D0
-!!$         PNITB(NS)= 0.D0
-!!$         PTITB(NS)= 0.D0
-!!$         PUITB(NS)= 0.D0
-
-         ! *** hydrogen (fast) ***
-!!$         NS = 5
-!!$
-!!$         KIDNS(NS)= 'H'
-!!$         IDION(NS)= 1.0D0
-!!$         PA(NS)   = PA(2)
-!!$         PZ(NS)   = PZ(2)
-!!$         PZ0(NS)  = PZ0(2)
-!!$         PN(NS)   = 0.0001D0
-!!$         PNS(NS)  = 0.00005D0
-!!$         PTPR(NS) = 50.D0
-!!$         PTPP(NS) = 50.D0
-!!$         PTS(NS)  = 10.D0
-!!$         PU(NS)   = 0.D0
-!!$         PUS(NS)  = 0.D0
-!!$         PNITB(NS)= 0.D0
-!!$         PTITB(NS)= 0.D0
-!!$         PUITB(NS)= 0.D0
-
-         ! *** deuterium (fast) ***
+!     *** triton ***
          NS = 3
 
-         KIDNS(NS)= 'D'
-         IDION(NS)= 1.0D0
-         PA(NS)   = 2.0D0
+         KID_NS(NS)= ' T'
+         ID_NS(NS) = 1
+         PA(NS)   = 3.0D0
          PZ(NS)   = 1.0D0
          PZ0(NS)  = 1.0D0
-         PN(NS)   = 0.D0
-         PNS(NS)  = 0.D0
-         PTPR(NS) = 50.D0
-         PTPP(NS) = 50.D0
-         PTS(NS)  = 10.D0
+         PN(NS)   = 1.0D0
+         PNS(NS)  = 0.0D0
+         PTPR(NS) = 5.0D0
+         PTPP(NS) = 5.0D0
+         PTS(NS)  = 0.05D0
          PU(NS)   = 0.D0
          PUS(NS)  = 0.D0
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
 
-!!$         ! *** helium (fast,alpha) ***
-!!$         NS = 5
-!!$
-!!$         KIDNS(NS)= 'A'
-!!$         IDION(NS)= 1.0D0
-!!$         PA(NS)   = PA(5)
-!!$         PZ(NS)   = PZ(5)
-!!$         PZ0(NS)  = PZ0(5)
-!!$         PN(NS)   = 0.0D0
-!!$         PNS(NS)  = 0.0D0
-!!$         PTPR(NS) = 50.D0
-!!$         PTPP(NS) = 50.D0
-!!$         PTS(NS)  = 50.D0
-!!$         PU(NS)   = 0.D0
-!!$         PUS(NS)  = 0.D0
-!!$         PNITB(NS)= 0.D0
-!!$         PTITB(NS)= 0.D0
-!!$         PUITB(NS)= 0.D0
-
-         ! *** carbon ***
+!     *** Helium ion ***
          NS = 4
-         
-         KIDNS(NS)= 'C'
-         IDION(NS)= 0.0D0
-         PA(NS)   = 12.d0
-         PZ(NS)   = 6.d0
-         PZ0(NS)  = 6.d0
-         PN(NS)   = 0.D0
-         PNS(NS)  = 0.D0
-         PTPR(NS) = 1.D0
-         PTPP(NS) = 1.D0
-         PTS(NS)  = 0.1D0
+
+         KID_NS(NS)= 'He'
+         ID_NS(NS) = 1
+         PA(NS)   = 4.0D0
+         PZ(NS)   = 2.0D0
+         PZ0(NS)  = 2.0D0
+         PN(NS)   = 1.0D0
+         PNS(NS)  = 0.0D0
+         PTPR(NS) = 5.0D0
+         PTPP(NS) = 5.0D0
+         PTS(NS)  = 0.05D0
          PU(NS)   = 0.D0
          PUS(NS)  = 0.D0
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
-         PZCL(NS) = 0.D0
 
          ! *** dummy ***
       DO NS = 5, NSM
-         KIDNS(NS)= ' '
-         IDION(NS)= 0.0D0
+         KID_NS(NS)= ' H'
+         ID_NS(NS)= 1
          PA(NS)   = 1.0D0
          PZ(NS)   = 1.0D0
          PZ0(NS)  = 1.0D0
@@ -257,7 +160,29 @@
          PZCL(NS) = 0.D0
       ENDDO
 
-      ENDIF
+!     *** PLANE  PARAMETERS ***
+  r_corner(1)=0.D0
+  r_corner(2)=RA
+  r_corner(3)=0.D0
+  z_corner(1)=0.D0
+  z_corner(2)=0.D0
+  z_corner(3)=2.D0*PI*RR
+
+  br_corner(1:3)=0.D0
+  bz_corner(1:3)=0.D0
+  bt_corner(1:3)=BB
+
+  DO ns=1,nsm
+     pn_corner(1,ns)=pn(ns)
+     pn_corner(2,ns)=pns(ns)
+     pn_corner(3,ns)=pn(ns)
+     ptpr_corner(1,ns)=ptpr(ns)
+     ptpr_corner(2,ns)=pts(ns)
+     ptpr_corner(3,ns)=ptpr(ns)
+     ptpp_corner(1,ns)=ptpp(ns)
+     ptpp_corner(2,ns)=pts(ns)
+     ptpp_corner(3,ns)=ptpp(ns)
+  END DO
 
 !     ======( PROFILE PARAMETERS )======
 
@@ -279,29 +204,41 @@
 !     ======( MODEL PARAMETERS )======
 
 !        MODELG: Control plasma geometry model
-!                   0: Slab geometry
-!                   1: Cylindrical geometry
-!                   2: Toroidal geometry
-!                   3: TASK/EQ output geometry
-!                   4: VMEC output geometry
-!                   5: EQDSK output geometry
-!                   6: Boozer output geometry
-!                   7: new VMEC output geometry
-!                   8: call TOPICS/EQU
-!                   9: call TASK/EQ
+!                   0: XYZ Slab geometry
+!                   1: XYZ Cylindrical geometry
+!                   2: RZphi Toroidal geometry
+!                   3: RZphi Read TASK/EQ output geometry
+!                   4: RZphi Read VMEC output geometry
+!                   5: RZphi Read EQDSK output geometry
+!                   6: RZphi Read Boozer output geometry
+!                   7: RZphi Read new VMEC output geometry
+!                   8: RZphi call TASK/EQU
+!                   9: RZphi call TASK/EQ
+!                  10: reserved for GAMMA-10
+!                  11: XY 2D plane profile (MODELGX: 0:linear, 1,2:parabolic)
+!                  12: XY 2D plane Read 2D mag file 
+!                  13: RZ 2D toroidal profile (linear)
+!                  14: RZ 2D toroidal Read 2D mag file 
 !        MODELN: Control plasma profile
 !                   0: Calculated from PN,PNS,PTPR,PTPP,PTS,PU,PUS; 0 in SOL
 !                   1: Calculated from PN,PNS,PTPR,PTPP,PTS,PU,PUS; PNS in SOL
-!                   7: Read from file by means of WMDPRF routine (DIII-D)
-!                   8: Read from file by means of WMXPRF routine (JT-60)
+!                   7: Read from file through WMDPRF (DIII-D)
+!                   8: Read from file through WMXPRF (JT-60)
 !                   9: Read from file KNAMTR (TASK/TR)
-!        MODELQ: Control safety factor profile (for MODELG=0,1,2)
+!                  12: Read from 2D nT file
+!                  14: Read from 2D nT file
+!        MODELQ: Control safety factor profile (for MODELG=1,2)
 !                   0: Parabolic q profile (Q0,QA,RHOMIN,RHOITB)
 !                   1: Given current profile (RIP,PROFJ)
+!        MODEL_NPROF: neutral profile parameter
+!                   0: Flat profile
+!                   1: Flat only in plasma, 0 outside
+!                   2: (1-psi) dependence, 0 outside
 
       MODELG= 2
       MODELN= 0
       MODELQ= 0
+      MODEL_NPROF=0
 
 !        RHOMIN: rho at minimum q (0 for positive shear)
 !        QMIN  : q minimum for reversed shear
@@ -312,6 +249,14 @@
       QMIN   = 1.5D0
       RHOITB = 0.D0
       RHOEDG = 1.D0
+
+!        PPN0: Neutral pressure [Pa] 1 Torr = 1 mmHg = 133.322 Pa
+!        PTN0: Neutral temperature [eV]
+!        RF_PL: wave frequency [MHz], usually set in wave code
+
+      PPN0 = 3.0D0
+      PTN0 = 0.03D0
+      RF_PL = 1.D6    ! 1THz to reduce pzcl
 
 !     ======( GRAPHIC PARAMETERS )======
 
@@ -402,9 +347,12 @@
       use plcomm, only:RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ, &
                     NSMAX,PA,PZ,PZ0,PN,PNS,PTPR,PTPP,PTS,PU,PUS, &
                     PNITB,PTITB,PUITB,PZCL, &
+                    r_corner,z_corner, &
+                    br_corner,bz_corner,bt_corner, &
+                    pn_corner,ptpr_corner,ptpp_corner, &
                     PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
-                    RHOMIN,QMIN,RHOITB,RHOEDG, &
-                    MODELG,MODELN,MODELQ,RHOGMN,RHOGMX, &
+                    RHOMIN,QMIN,RHOITB,RHOEDG,PPN0,PTN0,RF_PL, &
+                    MODELG,MODELN,MODELQ,MODEL_NPROF,RHOGMN,RHOGMX, &
                     KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF, &
                     MODEFR,MODEFW,IDEBUG, &
                     rkind,pl_allocate_ns
@@ -416,9 +364,13 @@
 
       NAMELIST /PL/ RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ, &
                     NSMAX,PA,PZ,PZ0,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PZCL, &
+                    r_corner,z_corner, &
+                    br_corner,bz_corner,bt_corner, &
+                    pn_corner,ptpr_corner,ptpp_corner, &
                     PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
                     RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG, &
-                    MODELG,MODELN,MODELQ,RHOGMN,RHOGMX, &
+                    PPN0,PTN0,RF_PL, &
+                    MODELG,MODELN,MODELQ,MODEL_NPROF,RHOGMN,RHOGMX, &
                     KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF, &
                     MODEFR,MODEFW,IDEBUG
 
@@ -444,8 +396,11 @@
   601 FORMAT(' ','# &EQ : RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,'/ &
              9X,'NSMAX,PA,PZ,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PZCL,'/ &
              9X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,'/ &
+             9X,'r_corner,z_corner,br_corner,bz_corner,bt_corner,'/ &
+             9X,'pn_corner,ptpr_corner,ptpp_corner,'/ &
              9X,'RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG,'/ &
-             9X,'MODELG,MODELN,MODELQ,RHOGMN,RHOGMX,'/ &
+             9X,'PPN0,PTN0,RFCL,'/ &
+             9X,'MODELG,MODELN,MODELQ,MODEL_NPROF,RHOGMN,RHOGMX,'/ &
              9X,'KNAMEQ,KNAMWR,KNAMFP,KNAMFO,IDEBUG'/ &
              9X,'MODEFW,MODEFR')
     END SUBROUTINE pl_plst
@@ -466,7 +421,7 @@
             WRITE(6,*) 'XX pl_check: INVALID MODELG: MODELG=',MODELG
             IERR=1
          ENDIF
-         IF((MODELN.NE.0).AND.(MODELN.NE.9)) THEN
+         IF((MODELN.LT.0).OR.(MODELN.GT.14)) THEN
             WRITE(6,*) 'XX pl_check: INVALID MODELN: MODELN=',MODELN
             IERR=1
          ENDIF
@@ -475,8 +430,7 @@
             IERR=1
          ENDIF
       ELSE
-         IF((MODELN.NE.0).AND.(MODELN.NE.1).AND.(MODELN.NE.2).AND. &
-            (MODELN.NE.9)) THEN
+         IF((MODELN.LT.0).OR.(MODELN.GT.14)) THEN
             WRITE(6,*) 'XX pl_check: INVALID MODELN: MODELN=',MODELN
             IERR=1
          ENDIF
@@ -510,7 +464,7 @@
 
       use plcomm
       implicit none
-      integer:: NS
+      integer:: NS,i
 
       WRITE(6,601) 'BB    ',BB    ,'RR    ',RR    , &
                    'RA    ',RA    ,'RB    ',RB
@@ -525,6 +479,7 @@
       WRITE(6,604) 'MODELG',MODELG,'MODELN',MODELN, &
                    'MODELQ',MODELQ
       WRITE(6,604) 'MODEFR',MODEFR,'MODEFW',MODEFW
+      WRITE(6,'(A,I5)') 'MODEL_NPROF =',MODEL_NPROF
 
       WRITE(6,100)
       DO NS=1,NSMAX
@@ -534,27 +489,47 @@
       DO NS=1,NSMAX
          WRITE(6,130) NS,PTPR(NS),PTPP(NS),PTS(NS),PU(NS),PUS(NS)
       ENDDO
+
+      WRITE(6,601) 'PPN0  ',PPN0  ,'PTN0  ',PTN0  , &
+                   'RF_PL ',RF_PL
+
       IF(RHOITB.GT.0.D0) THEN
          WRITE(6,140)
          DO NS=1,NSMAX
            WRITE(6,150) NS,PNITB(NS),PTITB(NS),PUITB(NS),PZCL(NS)
          ENDDO
-      ENDIF
+      END IF
+
+      IF(MODELG.EQ.11.OR.MODELG.EQ.13) THEN
+         WRITE(6,606) 'r_corner:  ',(r_corner(i),i=1,3)
+         WRITE(6,606) 'z_corner:  ',(z_corner(i),i=1,3)
+         WRITE(6,606) 'br_corner: ',(br_corner(i),i=1,3)
+         WRITE(6,606) 'bz_corner: ',(bz_corner(i),i=1,3)
+         WRITE(6,606) 'bt_corner: ',(bt_corner(i),i=1,3)
+         DO ns=1,NSMAX
+            WRITE(6,'(A,I3)') 'ns=',ns
+            WRITE(6,606) 'pn_corner: ',(pn_corner(i,ns),i=1,3)
+            WRITE(6,606) 'ptpr_corner:',(ptpr_corner(i,ns),i=1,3)
+            WRITE(6,606) 'ptpp_corner:',(ptpp_corner(i,ns),i=1,3)
+         END DO
+      END IF
+
       RETURN
 
-  100 FORMAT(1H ,'NS    PA          PZ          PZ0         ', &
+  100 FORMAT(' ','NS    PA          PZ          PZ0         ', &
                  'PN          PNS')
-  110 FORMAT(1H ,I2,' ',1P5E12.3)
-  120 FORMAT(1H ,'NS    PTPR        PTPP        PTS         ', &
+  110 FORMAT(' ',I2,' ',1P5E12.3)
+  120 FORMAT(' ','NS    PTPR        PTPP        PTS         ', &
                  'PU          PUS')
-  130 FORMAT(1H ,I2,' ',1P5E12.3)                               
-  140 FORMAT(1H ,'NS    PNITB       PTITB       PUITB'      , &
+  130 FORMAT(' ',I2,' ',1P5E12.3)                               
+  140 FORMAT(' ','NS    PNITB       PTITB       PUITB'      , &
                  'PZCL')
-  150 FORMAT(1H ,I2,' ',1P4E12.4)                               
-  601 FORMAT(1H ,A6,'=',1PE11.3:2X,A6,'=',1PE11.3: &
+  150 FORMAT(' ',I2,' ',1P4E12.4)                               
+  601 FORMAT(' ',A6,'=',1PE11.3:2X,A6,'=',1PE11.3: &
              2X,A6,'=',1PE11.3:2X,A6,'=',1PE11.3)
-  604 FORMAT(1H ,A6,'=',I7,4X  :2X,A6,'=',I7,4X  : &
+  604 FORMAT(' ',A6,'=',I7,4X  :2X,A6,'=',I7,4X  : &
              2X,A6,'=',I7,4X  :2X,A6,'=',I7)
+  606 FORMAT(' ',A12,1P3E12.4)
     END SUBROUTINE pl_view
 
   END MODULE plinit

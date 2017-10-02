@@ -92,7 +92,7 @@ C
          IF(KNAM(1:2).NE.'/ ') KNAMEQ=KNAM
 C
          CALL EQREAD(IERR)
-         IF(IERR.NE.0) GOTO 10
+C         IF(IERR.NE.0) GOTO 10
          CALL EQCALQ(IERR)
          MSTAT=2
 C

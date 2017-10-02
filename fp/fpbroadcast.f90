@@ -1,4 +1,4 @@
-!     $Id$
+!     $Id: fpbroadcast.f90,v 1.3 2013/01/14 16:48:26 fukuyama Exp $
 
 MODULE fpbroadcast
 

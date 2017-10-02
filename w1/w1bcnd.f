@@ -22,8 +22,13 @@ C
       RKPR=RKZ
       RNPR=VC*RKPR/RW
       RCE=VC*EPS0
-      CKKV2=RNPR*RNPR-1.D0
-      CKKV =SQRT(CKKV2)
+      FACTJ=1.D0/(1.D0-RNPR*RNPR)
+      RNX2=1.D0-RNPR*RNPR
+      IF(RNX2.GE.0.D0) THEN
+         CKKV=-CI*SQRT(RNX2)
+      ELSE
+         CKKV=SQRT(-RNX2)
+      ENDIF
       CFCTD=EXP(-2.D0*CKKV*RKV*(RD-RA))
       CFCTB=EXP(-2.D0*CKKV*RKV*(RB-RA))
       IF(ABS(WALLR).GT.1.D-12) THEN
@@ -40,8 +45,8 @@ C
       CFCJ=(0.D0,-0.5D0)*EXP(CKKV*RKV*(RD-RA))/(RCE*CKKV)
       CJY1=CFCJ*CFJY1
       CJY2=CFCJ*CFJY2
-      CJZ1=CFCJ*CFJZ1
-      CJZ2=CFCJ*CFJZ2
+      CJZ1=CFCJ*CFJZ1*FACTJ
+      CJZ2=CFCJ*CFJZ2*FACTJ
 C
       DO 110 I=1,3
          DO 110 J=1,5
@@ -77,7 +82,7 @@ C
          CGIN(3,4)=-(1.D0-CRJ)/CKKV*CJZ1
          CGOT(1,1)=  1.D0+CRE
          CGOT(1,2)=-(1.D0-CRE)*CKKV
-         CGOT(2,3)=  1.D0+CRM
+         CGOT(2,3)=  1.D0+CRM 
          CGOT(2,4)=-(1.D0-CRM)/CKKV
          CGOT(3,1)= (1.D0+CRJ)     *CJY2
          CGOT(3,2)=-(1.D0-CRJ)*CKKV*CJY2
@@ -109,6 +114,7 @@ C
      &                PIBW1,PIBW2,PIBW,PERR
       COMMON /W1XDAT/ XA(NXQ),XAM(NXTM)
       COMMON /W1QCTL/ XDMAX,DXD,NDMAX,NHARM,IHARM(ISM),MATL,NMODEL
+      DATA CI/(0.D0,1.D0)/
 C
       RW=2.D6*PI*RF
       RKV=RW/VC
@@ -123,8 +129,14 @@ C
       ENDIF
       RKPR=RKZ
       RNPR=VC*RKPR/RW
-      CKKV2=RNPR*RNPR-1.D0
-      CKKV =SQRT(CKKV2)
+      CFACT1=-RNPR*CFJZ1/(1.D0-RNPR*RNPR)/RCE
+      CFACT2=-RNPR*CFJZ2/(1.D0-RNPR*RNPR)/RCE
+      RNX2=1.D0-RNPR*RNPR
+      IF(RNX2.GE.0.D0) THEN
+         CKKV=-CI*SQRT(RNX2)
+      ELSE
+         CKKV=SQRT(-RNX2)
+      ENDIF
       CFCTD=EXP(-2.D0*CKKV*RKV*(RD-RA))
       CFCTB=EXP(-2.D0*CKKV*RKV*(RB-RA))
       IF(ABS(WALLR).GT.1.D-12) THEN
@@ -167,38 +179,46 @@ C
             CAY2=(0.D0,0.D0)
             CAZ1=(0.D0,0.D0)
             CAZ2=(0.D0,0.D0)
+            FACTj=1.D0
+            CFACT1=-RNPR*CFJZ1/(1.D0-RNPR*RNPR)/RCE
+            CFACT2=-RNPR*CFJZ2/(1.D0-RNPR*RNPR)/RCE
          ELSE
             DX=RKV*(RD-RA)/DBLE(NXVH-1)
             CAY1=CJY1
             CAY2=CJY2
+            FACTJ=1.D0/(1.D0-RNPR*RNPR)
             CAZ1=CJZ1
             CAZ2=CJZ2
+            CFACT1=(0.D0,0.D0)
+            CFACT2=(0.D0,0.D0)
          ENDIF
 C
          CEX1  =CA(2    )*( 0.D0,-1.D0)*RNPR/CKKV*(CEAM-CRM*CEAP)
      &         +CAZ1     *( 0.D0,-1.D0)*RNPR/CKKV*(CEAM-CRJ*CEAP)
+     &         +CFACT1
          CEY1  =CA(1    )                        *(CEAM+CRE*CEAP)
      &         +CAY1                             *(CEAM+CRJ*CEAP)
          CEZ1  =CA(2    )                        *(CEAM+CRM*CEAP)
-     &         +CAZ1                             *(CEAM+CRJ*CEAP)
+     &         +CAZ1*FACTJ                       *(CEAM+CRJ*CEAP)
          CEX1DX=CA(2    )*(-1.D0, 0.D0)*RNPR     *(CEAM+CRM*CEAP)
      &         +CAZ1     *(-1.D0, 0.D0)*RNPR     *(CEAM+CRJ*CEAP)
          CEY1DX=CA(1    )*( 0.D0,-1.D0)*CKKV     *(CEAM-CRE*CEAP)
      &         +CAY1     *( 0.D0,-1.D0)*CKKV     *(CEAM-CRJ*CEAP)
          CEZ1DX=CA(2    )*( 0.D0,-1.D0)*CKKV     *(CEAM-CRM*CEAP)
-     &         +CAZ1     *( 0.D0,-1.D0)*CKKV     *(CEAM-CRJ*CEAP)
+     &         +CAZ1*FACTJ*( 0.D0,-1.D0)*CKKV     *(CEAM-CRJ*CEAP)
          CEX2  =CA(NSF  )*( 0.D0, 1.D0)*RNPR/CKKV*(CEAM-CRM*CEAP)
      &         +CAZ2     *( 0.D0, 1.D0)*RNPR/CKKV*(CEAM-CRJ*CEAP)
+     &         +CFACT2
          CEY2  =CA(NSF-1)                        *(CEAM+CRE*CEAP)
      &         +CAY2                             *(CEAM+CRJ*CEAP)
          CEZ2  =CA(NSF  )                        *(CEAM+CRM*CEAP)
-     &         +CAZ2                             *(CEAM+CRJ*CEAP)
+     &         +CAZ2*FACTJ                       *(CEAM+CRJ*CEAP)
          CEX2DX=CA(NSF  )*(-1.D0, 0.D0)*RNPR     *(CEAM+CRM*CEAP)
      &         +CAZ2     *(-1.D0, 0.D0)*RNPR     *(CEAM+CRJ*CEAP)
          CEY2DX=CA(NSF-1)*( 0.D0, 1.D0)*CKKV     *(CEAM-CRE*CEAP)
      &         +CAY2     *( 0.D0, 1.D0)*CKKV     *(CEAM-CRJ*CEAP)
          CEZ2DX=CA(NSF  )*( 0.D0, 1.D0)*CKKV     *(CEAM-CRM*CEAP)
-     &         +CAZ2     *( 0.D0, 1.D0)*CKKV     *(CEAM-CRJ*CEAP)
+     &         +CAZ2*FACTJ*( 0.D0, 1.D0)*CKKV     *(CEAM-CRJ*CEAP)
 C
          CE2DA(NZ,NX1,1)=CEX1
          CE2DA(NZ,NX1,2)=CEY1

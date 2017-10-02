@@ -88,12 +88,13 @@ end module ufile_integer
     use ufile_integer
     implicit none
 !    COMMON /UFMODE/ MODEL
-    integer(4),               intent(in)  :: NTXMAX, NTUM
-    real(8), dimension(NTUM), intent(in)  :: TT
     character(len=80),        intent(in)  :: KDIRX, KUFDEV, KUFDCG
     character(len=10),        intent(in)  :: KFID
-    integer(4),               intent(out) :: MDCHK, IERR
+    real(8), dimension(NTUM), intent(out) :: TT
     real(8), dimension(NTUM), intent(out) :: F1
+    integer(4),               intent(out) :: NTXMAX
+    integer(4),               intent(in)  :: NTUM
+    integer(4),               intent(out) :: MDCHK, IERR
     integer(4) :: IKNDEV, IKNDCG, IKDIRX, KL1, IST
     character(len=100) :: KDIRR1, KFILE
     LOGICAL :: LEX

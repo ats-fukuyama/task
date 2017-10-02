@@ -115,7 +115,7 @@
             ENDIF
          END DO
          IF(P <= EPS) THEN
-            ILL=900
+            ILL=NN
             RETURN
          END IF
          IF(IP /= NN) THEN

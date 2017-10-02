@@ -6,9 +6,10 @@ C
 C
       INCLUDE '../eq/eqcomc.inc'
 C
-      DIMENSION PSIRG(NRGM,NZGM),PSIZG(NRGM,NZGM),PSIRZG(NRGM,NZGM)
+      REAL(8),DIMENSION(:,:),ALLOCATABLE::  PSIRG,PSIZG,PSIRZG
       EXTERNAL PSIGD,PSIGZ0
 C
+      ALLOCATE(PSIRG(NRGM,NZGM),PSIZG(NRGM,NZGM),PSIRZG(NRGM,NZGM))
       IERR=0
 C
 C     ----- calculate setup for psig(R,Z) -----
@@ -56,6 +57,7 @@ C
       ENDIF
 C      write(6,*) 'redge=',redge
 C
+      DEALLOCATE(PSIRG,PSIZG,PSIRZG)
       RETURN
       END
 C
@@ -181,16 +183,19 @@ C
 C
       INCLUDE '../eq/eqcomc.inc'
 C
-      DIMENSION PSIRG(NRGM,NZGM),PSIZG(NRGM,NZGM),PSIRZG(NRGM,NZGM)
+      REAL(8),DIMENSION(:,:),ALLOCATABLE:: PSIRG,PSIZG,PSIRZG
 C
 C     ----- calculate spline coef for psi(R,Z) -----
 C
+      ALLOCATE(PSIRG(NRGM,NZGM),PSIZG(NRGM,NZGM),PSIRZG(NRGM,NZGM))
+
       CALL SPL2D(RG,ZG,PSIRZ,PSIRG,PSIZG,PSIRZG,UPSIRZ,
      &           NRGM,NRGMAX,NZGMAX,0,0,IERR)
       IF(IERR.NE.0) THEN
          WRITE(6,*) 'XX setup_psig: SPL2D ERROR: IERR=',IERR
          STOP
       ENDIF
+      DEALLOCATE(PSIRG,PSIZG,PSIRZG)
       RETURN
       END
 C
@@ -256,7 +261,7 @@ C
       EXTERNAL PSIGD
 C
       DELT=1.D-8
-      EPS=1.D-4
+      EPS=1.D-6
       ILMAX=40
       LIST=0
       RINIT=RXPNT2

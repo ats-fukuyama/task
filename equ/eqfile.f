@@ -62,7 +62,7 @@ C                                       !RAXIS,ZAXIS,PSITA,PSIPA,PSI0
       WRITE(21) (0.d0,NRV=1,NRVMAX)
       WRITE(21) (0.d0,NRV=1,NRVMAX)
       WRITE(21) (0.d0,NRV=1,NRVMAX)
-      WRITE(21) rpla,elip,trig,rpla*1.1    !RA,RKAP,RDLT,RB
+      WRITE(21) rpla,elip,trig,rpla*1.1,1.D0    !RA,RKAP,RDLT,RB,FRBIN
       WRITE(21) 0.d0,0.d0,0.d0,0.d0,0.d0,0.d0 !PJ0,PJ1,PJ2,PROFJ0,PROFJ1,PROFJ2
       WRITE(21) 0.d0,0.d0,0.d0,0.d0,0.d0,0.d0 !PP0,PP1,PP2,PROFP0,PROFP1,PROFP2
       WRITE(21) 0.d0,0.d0,0.d0,0.d0,0.d0,0.d0 !PT0,PT1,PT2,PROFT0,PROFT1,PROFT2

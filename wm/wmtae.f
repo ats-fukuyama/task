@@ -55,6 +55,7 @@ C
 C         WRITE(6,'(I5,1P3E12.4)') NR,BABS_AV,RIOTA_AV,QPS(NR)
 C
          RIOTAL=QPS(NR)
+!         WRITE(6,'(I5,1P3E12.4)') NR,RIOTAL  !!!!
 C
          DO NHH=1,NHHMAX
          DO NTH=1,NTHMAX
@@ -86,11 +87,13 @@ C
                MM1=MM+MD1
 C
                RKPR2=MM1+NN1*RIOTAL
+               IF(ABS(RKPR1).LE.1.D-6) RKPR1=1.D-6
+               IF(ABS(RKPR2).LE.1.D-6) RKPR2=1.D-6
 C
                NW1=MAX(1,MDSIZ-1)*(NDX1-1)+(MDX1-1)+1
                NW1=NW1-NW0+1
                IF(NW1.GE.1.AND.NW1.LE.MHMAX+1) THEN
-                  FM(NW1,NW)=DBLE(CWALFK(MDX1,NDX1))/(RKPR1*RKPR2)
+                 FM(NW1,NW)=DBLE(CWALFK(MDX1,NDX1))/(RKPR1*RKPR2)
      &                      *RIOTAL**2
                ENDIF
             ENDDO
@@ -113,9 +116,9 @@ C
          CALL LAPACK_DSTEBZ('V','B',MMMAX,VL,VU,IMIN,IMAX,EPSEG,
      &               DM,EM,INMAX,NSPLIT,W,
      &               IBLOCK,ISPLIT,WORK,IWORK,INFO2)
-C         WRITE(6,*) 'NR,INFO1,INFO2,INMAX=',NR,INFO1,INFO2,INMAX
-C         WRITE(6,601) (W(IN),IN=1,INMAX)
-C  601    FORMAT(1P5E14.6)
+         WRITE(6,*) 'NR,INFO1,INFO2,INMAX=',NR,INFO1,INFO2,INMAX
+         WRITE(6,601) (W(IN),IN=1,INMAX)
+  601    FORMAT(1P5E14.6)
 C
          GX(NR) =GUCLIP(XRHO(NR))
          NGY(NR)=INMAX

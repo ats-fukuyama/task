@@ -1,4 +1,4 @@
-!     $Id$
+!     $Id: fpcalc.f90,v 1.25 2013/02/08 07:36:24 nuga Exp $
 !
 ! ******************************************************************
 !
@@ -10,282 +10,197 @@
       MODULE fpcalc
 
       USE fpcomm
-      USE fpcalcn
-      USE fpcalcnr
       USE fpmpi
       USE libmpi
       USE libspf, ONLY: ERF0,ERF1
       real(8):: PMAXC
       integer:: NSB_ISO
-      real(8):: RTFD0L, RTFDL
+      real(8):: THETA0L_C, THETAL_C
+      real(8):: RTFD0L_C, RTFDL_C, PNFP_C
+      real(8):: RNFD0L_C, RNFDL_C
+
       integer,parameter:: ISW_NOTAIL=0
+      integer,parameter:: MODEL_DE=1
 
       contains
 
 !----------------------------------
 
-      SUBROUTINE FP_CALC(NSA)
+      SUBROUTINE FP_CALC
 
       USE libmtx
+      USE fpcalcn, ONLY: FPCALC_NL
+      USE fpcalcnr, ONLY: FPCALC_NLR 
       IMPLICIT NONE
-      integer:: NSA,NSB,NR, NP, NTH
+      integer:: NSA,NSB,NR, NP, NTH,NS
       integer:: nsrc,nsend
       real(8):: RGAMH, RGAMH2, RZI, RTE, PFPL, VFPL, U, DCTTL, RGAMA, DFDP, DFDTH
 
-      DO NR=NRSTART,NREND
-         DO NP=NPSTART,NPENDWG
-         DO NTH=1,NTHMAX
-            DCPP(NTH,NP,NR,NSA)=0.D0
-            DCPT(NTH,NP,NR,NSA)=0.D0
-            FCPP(NTH,NP,NR,NSA)=0.D0
+      DO NSA=NSASTART,NSAEND
+         NS=NS_NSA(NSA)
+         DO NR=NRSTART,NREND
+            DO NP=NPSTART,NPENDWG
+               DO NTH=1,NTHMAX
+                  DCPP(NTH,NP,NR,NSA)=0.D0
+                  DCPT(NTH,NP,NR,NSA)=0.D0
+                  FCPP(NTH,NP,NR,NSA)=0.D0
+               ENDDO
+            ENDDO
+            DO NP=NPSTARTW,NPENDWM
+               DO NTH=1,NTHMAX+1
+                  DCTP(NTH,NP,NR,NSA)=0.D0
+                  DCTT(NTH,NP,NR,NSA)=0.D0
+                  FCTH(NTH,NP,NR,NSA)=0.D0
+               ENDDO
+            ENDDO
          ENDDO
-         ENDDO
-         DO NP=NPSTARTW,NPENDWM
-         DO NTH=1,NTHMAX+1
-            DCTP(NTH,NP,NR,NSA)=0.D0
-            DCTT(NTH,NP,NR,NSA)=0.D0
-            FCTH(NTH,NP,NR,NSA)=0.D0
-         ENDDO
-         ENDDO
-      ENDDO
-
-      DO NSB=1,NSBMAX
-      DO NR=NRSTART,NREND
-         DO NP=NPSTART,NPENDWG
-         DO NTH=1,NTHMAX
-            DCPP2(NTH,NP,NR,NSB,NSA)=0.D0
-            DCPT2(NTH,NP,NR,NSB,NSA)=0.D0
-            FCPP2(NTH,NP,NR,NSB,NSA)=0.D0
-         ENDDO
-         ENDDO
-         DO NP=NPSTARTW,NPENDWM
-         DO NTH=1,NTHMAX+1
-            DCTP2(NTH,NP,NR,NSB,NSA)=0.D0
-            DCTT2(NTH,NP,NR,NSB,NSA)=0.D0
-            FCTH2(NTH,NP,NR,NSB,NSA)=0.D0
-         ENDDO
-         ENDDO
-      ENDDO
-      ENDDO
-
-!      DO NR=NRSTART,NREND
-!         DO NP=1, NPMAX+1
-!         DO NTH=1,4
-!            DCPPB(NTH,NP,NR,NSA)=0.D0
-!            DCPTB(NTH,NP,NR,NSA)=0.D0
-!            FCPPB(NTH,NP,NR,NSA)=0.D0
-!         END DO
-!         END DO
-!      END DO
-
-!      DO NSB=1,NSBMAX
-!      DO NR=NRSTART,NREND
-!         DO NP=1, NPMAX+1
-!         DO NTH=1,4
-!            DCPP2B(NTH,NP,NR,NSB,NSA)=0.D0
-!            DCPT2B(NTH,NP,NR,NSB,NSA)=0.D0
-!            FCPP2B(NTH,NP,NR,NSB,NSA)=0.D0
-!         END DO
-!         END DO
-!      END DO
-!      END DO
-
-      DO NR=NRSTART,NREND
+         
          DO NSB=1,NSBMAX
+            DO NR=NRSTART,NREND
+               DO NP=NPSTART,NPENDWG
+                  DO NTH=1,NTHMAX
+                     DCPP2(NTH,NP,NR,NSB,NSA)=0.D0
+                     DCPT2(NTH,NP,NR,NSB,NSA)=0.D0
+                     FCPP2(NTH,NP,NR,NSB,NSA)=0.D0
+                  ENDDO
+               ENDDO
+               DO NP=NPSTARTW,NPENDWM
+                  DO NTH=1,NTHMAX+1
+                     DCTP2(NTH,NP,NR,NSB,NSA)=0.D0
+                     DCTT2(NTH,NP,NR,NSB,NSA)=0.D0
+                     FCTH2(NTH,NP,NR,NSB,NSA)=0.D0
+                  ENDDO
+               ENDDO
+            ENDDO
+         ENDDO
+         
+         DO NR=NRSTART,NREND
+            DO NSB=1,NSBMAX
 !            if(nr.eq.1) write(6,'(A,I8,1P2E12.4)') 
 !     &           ' NSB,RN,RNFD=',NSB,RN(NSB),RNFD(NR,NSB)
 !
-            IF(MODELC.EQ.0.or.MODELC.eq.1) THEN
-               CALL FPCALC_L(NR,NSB,NSA)
-            ELSEIF(MODELC.EQ.2.or.MODELC.eq.3) THEN
-               IF(NS_NSB(NSB).EQ.NS_NSA(NSA)) THEN
-                  CALL FPCALC_NL(NR,NSB,NSA)
-               ELSE
+               IF(MODELC.EQ.0.or.MODELC.eq.1.or.MODELC.eq.2) THEN
                   CALL FPCALC_L(NR,NSB,NSA)
-               ENDIF
-            ELSEIF(MODELC.EQ.4) THEN
-               IF(MODELR.eq.0)THEN
-                  CALL FPCALC_NL(NR,NSB,NSA)
-               ELSE IF(MODELR.eq.1)THEN
-                  CALL FPCALC_NLR(NR,NSB,NSA)
-               END IF
-            ELSEIF(MODELC.EQ.5) THEN
-               IF(NS_NSB(NSB).NE.NS_NSA(NSA)) THEN
-                  CALL FPCALC_L(NR,NSB,NSA)
-               ENDIF
-            ELSEIF(MODELC.EQ.6) THEN
-               IF(NS_NSB(NSB).NE.NS_NSA(NSA)) THEN
-                  CALL FPCALC_NL(NR,NSB,NSA)
-               ENDIF
-            ELSEIF(MODELC.EQ.7) THEN
-               IF(MODELR.eq.0)THEN
-                  IF(NS_NSB(NSB).EQ.NS_NSA(NSA)) THEN
+               ELSEIF(MODELC.EQ.4) THEN
+                  IF(MODELR.eq.0)THEN
                      CALL FPCALC_NL(NR,NSB,NSA)
-                  ELSE
-                     CALL FPCALC_L(NR,NSB,NSA)
-                  ENDIF
-               ELSE IF(MODELR.eq.1)THEN
-                  IF(NS_NSB(NSB).EQ.NS_NSA(NSA)) THEN
+                  ELSE IF(MODELR.eq.1)THEN
                      CALL FPCALC_NLR(NR,NSB,NSA)
-                  ELSE
+                  END IF
+               ELSEIF(MODELC.EQ.5) THEN
+                  IF(NS_NSB(NSB).NE.NS_NSA(NSA)) THEN
                      CALL FPCALC_L(NR,NSB,NSA)
                   ENDIF
-               END IF
+               ELSEIF(MODELC.EQ.6) THEN
+                  IF(NS_NSB(NSB).NE.NS_NSA(NSA)) THEN
+                     CALL FPCALC_NL(NR,NSB,NSA)
+                  ENDIF
+               ELSEIF(MODELC.EQ.7) THEN
+                  IF(MODELR.eq.0)THEN
+                     IF(NS_NSB(NSB).EQ.NS_NSA(NSA)) THEN
+                        CALL FPCALC_NL(NR,NSB,NSA)
+                     ELSE
+                        CALL FPCALC_L(NR,NSB,NSA)
+                     ENDIF
+                  ELSE IF(MODELR.eq.1)THEN
+                     IF(NS_NSB(NSB).EQ.NS_NSA(NSA)) THEN
+                        CALL FPCALC_NLR(NR,NSB,NSA)
+                     ELSE
+                        CALL FPCALC_L(NR,NSB,NSA)
+                     ENDIF
+                  END IF
 ! For conductivity check. Karney adopt simple calculation for e-i
-            ELSEIF(MODELC.EQ.-1) THEN
-               IF(NS_NSB(NSB).EQ.NS_NSA(NSA)) THEN
-                  MODELC=0
-                  CALL FPCALC_L(NR,NSB,NSA)
-                  MODELC=-1
-               ENDIF
-            ELSEIF(MODELC.EQ.-2) THEN 
-               IF(NS_NSB(NSB).EQ.NS_NSA(NSA)) THEN
-                  MODELC=1
-                  CALL FPCALC_L(NR,NSB,NSA)
-                  MODELC=-2
-               ENDIF
-            ELSEIF(MODELC.EQ.-4) THEN
-               IF(NS_NSB(NSB).EQ.NS_NSA(NSA)) THEN
-                  IF(MODELR.eq.0)THEN
-                     CALL FPCALC_NL(NR,NSB,NSA)
-                  ELSE IF(MODELR.eq.1)THEN
-                     CALL FPCALC_NLR(NR,NSB,NSA)
-                  END IF
-               ELSEIF(NS_NSB(NSB).eq.1.and.NS_NSA(NSA).eq.2)THEN
-                  IF(MODELR.eq.0)THEN
-                     CALL FPCALC_NL(NR,NSB,NSA)
-                  ELSE IF(MODELR.eq.1)THEN
-                     CALL FPCALC_NLR(NR,NSB,NSA)
-                  END IF
-               ENDIF
-            ENDIF
-         ENDDO
-!        ----- Simple electron-ion collision term using ZEFF ----- neglect i-e
-         IF(MODELC.LT.0) THEN
-            IF(NS_NSA(NSA).EQ.1) THEN
-               DO NSB=1,NSBMAX
-                  IF(NS_NSB(NSB).EQ.2) THEN
-                     RGAMH=RNUD(NR,NSA,NSA)*SQRT(2.D0)*VTFD(NR,NSA)*AMFP(NSA) &
-                          /(RNFP0(NSA)*PTFP0(NSA)*1.D20)*RNFD0(NSA)
-                     RGAMH2=RGAMH*RNFP(NR,NSA)*1.D20*PTFP0(NSA)/AMFP(NSA)/RNFD0(NSA)
-                     rZI = -PZ(2)/PZ(1) &
-!                     rZI = ( PZ(2)/PZ(1) )**2 * RNFD(NR,NSB)/RNFP(NR,NSA) &
-                          /(14.9D0-0.5D0*LOG(RNFP(NR,NSA))+LOG(RTFP(NR,NSA)))* &
-                          (15.2D0-0.5D0*LOG(RNFP(NR,NSA))+LOG(RTFP(NR,NSA)))
-                     DO NP=NPSTARTW,NPENDWM
-                        RGAMA =SQRT(1.D0+PM(NP,NSA)**2*THETA0(NSA))
-                        PFPL=PM(NP,NSA)*PTFP0(NSA)
-                        VFPL=PFPL/AMFP(NSA)/RGAMA
-                        DCTTL=0.5D0*RZI*RGAMH2/VFPL
-                        DO NTH=1,NTHMAX+1
-                           DCTT2(NTH,NP,NR,NSB,NSA) &
-                                =DCTT2(NTH,NP,NR,NSB,NSA)+DCTTL
-                        ENDDO
-                     ENDDO
+               ELSEIF(MODELC.EQ.-1) THEN
+                  IF(NS_NSB(NSB).EQ.NS_NSA(NSA)) THEN
+                     MODELC=0
+                     CALL FPCALC_L(NR,NSB,NSA)
+                     MODELC=-1
                   ENDIF
-               ENDDO
+               ELSEIF(MODELC.EQ.-2) THEN 
+                  IF(NS_NSB(NSB).EQ.NS_NSA(NSA)) THEN
+                     MODELC=1
+                     CALL FPCALC_L(NR,NSB,NSA)
+                     MODELC=-2
+                  ENDIF
+               ELSEIF(MODELC.EQ.-4) THEN
+                  IF(NS_NSB(NSB).EQ.NS_NSA(NSA)) THEN
+                     IF(MODELR.eq.0)THEN
+                        CALL FPCALC_NL(NR,NSB,NSA)
+                     ELSE IF(MODELR.eq.1)THEN
+                        CALL FPCALC_NLR(NR,NSB,NSA)
+                     END IF
+                  ELSEIF(NS_NSB(NSB).eq.1.and.NS_NSA(NSA).eq.2)THEN
+                     IF(MODELR.eq.0)THEN
+                        CALL FPCALC_NL(NR,NSB,NSA)
+                     ELSE IF(MODELR.eq.1)THEN
+                        CALL FPCALC_NLR(NR,NSB,NSA)
+                     END IF
+                  ENDIF
+               ENDIF
+            ENDDO
+!        ----- Simple electron-ion collision term using ZEFF ----- neglect i-e
+            IF(MODELC.LT.0) THEN
+               IF(NS_NSA(NSA).EQ.1) THEN
+                  DO NSB=1,NSBMAX
+                     IF(NS_NSB(NSB).EQ.2) THEN
+                        RGAMH=RNUD(NR,NSA,NSA)*SQRT(2.D0)*VTFD(NR,NSA)*AMFP(NSA) &
+                             /(RNFP0(NSA)*PTFP0(NSA)*1.D20)*RNFD0(NSA)
+                        RGAMH2=RGAMH*RNFP(NR,NSA)*1.D20*PTFP0(NSA)/AMFP(NSA)/RNFD0(NSA)
+                        rZI = -PZ(2)/PZ(1) &
+!                     rZI = ( PZ(2)/PZ(1) )**2 * RNFD(NR,NSB)/RNFP(NR,NSA) &
+                             /(14.9D0-0.5D0*LOG(RNFP(NR,NSA))+LOG(RTFP(NR,NSA)))* &
+                             (15.2D0-0.5D0*LOG(RNFP(NR,NSA))+LOG(RTFP(NR,NSA)))
+                        DO NP=NPSTARTW,NPENDWM
+                           RGAMA =SQRT(1.D0+PM(NP,NS)**2*THETA0(NS))
+                           PFPL=PM(NP,NS)*PTFP0(NSA)
+                           VFPL=PFPL/AMFP(NSA)/RGAMA
+                           DCTTL=0.5D0*RZI*RGAMH2/VFPL
+                           DO NTH=1,NTHMAX+1
+                              DCTT2(NTH,NP,NR,NSB,NSA) &
+                                   =DCTT2(NTH,NP,NR,NSB,NSA)+DCTTL
+                           ENDDO
+                        ENDDO
+                     ENDIF
+                  ENDDO
+               ENDIF
             ENDIF
-         ENDIF
 
 !     ----- bounce average -----
-         IF(MODELA.EQ.1) THEN
-            IF(MODELC.EQ.0.or.MODELC.eq.1) THEN
+            IF(MODELA.EQ.1) THEN
                CALL FPCALC_LAV(NR,NSA)
-            ELSEIF(MODELC.EQ.2.or.MODELC.eq.3) THEN
-               CALL FPCALC_NLAV(NR,NSA)
-            ELSEIF(MODELC.EQ.4) THEN
-               CALL FPCALC_NLAV(NR,NSA)
-            ELSEIF(MODELC.EQ.5) THEN
-               CALL FPCALC_LAV(NR,NSA)
-            ELSEIF(MODELC.EQ.6) THEN
-               CALL FPCALC_NLAV(NR,NSA)
-            ELSEIF(MODELC.EQ.-1) THEN
-               CALL FPCALC_LAV(NR,NSA)
-            ELSEIF(MODELC.EQ.-2) THEN
-               CALL FPCALC_NLAV(NR,NSA)
             ENDIF
-         ENDIF
 !     sum up coefficients by species
-         DO NSB=1,NSBMAX
-            DO NP=NPSTART,NPENDWG
-               DO NTH=1,NTHMAX
-                  DCPP(NTH,NP,NR,NSA)=DCPP(NTH,NP,NR,NSA) &
-                                     +DCPP2(NTH,NP,NR,NSB,NSA)
-                  DCPT(NTH,NP,NR,NSA)=DCPT(NTH,NP,NR,NSA) &
-                                     +DCPT2(NTH,NP,NR,NSB,NSA)
-                  FCPP(NTH,NP,NR,NSA)=FCPP(NTH,NP,NR,NSA) &
-                                     +FCPP2(NTH,NP,NR,NSB,NSA)
+            DO NSB=1,NSBMAX
+               DO NP=NPSTART,NPENDWG
+                  DO NTH=1,NTHMAX
+                     DCPP(NTH,NP,NR,NSA)=DCPP(NTH,NP,NR,NSA) &
+                          +DCPP2(NTH,NP,NR,NSB,NSA)
+                     DCPT(NTH,NP,NR,NSA)=DCPT(NTH,NP,NR,NSA) &
+                          +DCPT2(NTH,NP,NR,NSB,NSA)
+                     FCPP(NTH,NP,NR,NSA)=FCPP(NTH,NP,NR,NSA) &
+                          +FCPP2(NTH,NP,NR,NSB,NSA)
+                  END DO
                END DO
-!               DO NTH=1,4
-!                  DCPPB(NTH,NP,NR,NSA)=DCPPB(NTH,NP,NR,NSA) &
-!                                     +DCPP2B(NTH,NP,NR,NSB,NSA)
-!                  DCPTB(NTH,NP,NR,NSA)=DCPTB(NTH,NP,NR,NSA) &
-!                                     +DCPT2B(NTH,NP,NR,NSB,NSA)
-!                  FCPPB(NTH,NP,NR,NSA)=FCPPB(NTH,NP,NR,NSA) &
-!                                     +FCPP2B(NTH,NP,NR,NSB,NSA)
-!               END DO
-            END DO
-!            DO NP=1,NPMAX
-            DO NP=NPSTARTW,NPENDWM
-               DO NTH=1,NTHMAX+1
-                  DCTP(NTH,NP,NR,NSA)=DCTP(NTH,NP,NR,NSA) &
-                                     +DCTP2(NTH,NP,NR,NSB,NSA)
-                  DCTT(NTH,NP,NR,NSA)=DCTT(NTH,NP,NR,NSA) &
-                                     +DCTT2(NTH,NP,NR,NSB,NSA)
-                  FCTH(NTH,NP,NR,NSA)=FCTH(NTH,NP,NR,NSA) &
-                                     +FCTH2(NTH,NP,NR,NSB,NSA)
+               DO NP=NPSTARTW,NPENDWM
+                  DO NTH=1,NTHMAX+1
+                     DCTP(NTH,NP,NR,NSA)=DCTP(NTH,NP,NR,NSA) &
+                          +DCTP2(NTH,NP,NR,NSB,NSA)
+                     DCTT(NTH,NP,NR,NSA)=DCTT(NTH,NP,NR,NSA) &
+                          +DCTT2(NTH,NP,NR,NSB,NSA)
+                     FCTH(NTH,NP,NR,NSA)=FCTH(NTH,NP,NR,NSA) &
+                          +FCTH2(NTH,NP,NR,NSB,NSA)
+                  END DO
                END DO
             END DO
-         END DO
-      ENDDO
-
-!      IF(NSA.eq.1)THEN
-!         open(8,file='T_c4.dat')
-!         DO NP=2,NPMAX
-!            WRITE(8,'(I3,2E18.10)') NP, PG(NP,1), PG(NP,1)*DCPP2(1,NP,1,1,1)/FCPP2(1,NP,1,1,1)
-!         END DO
-!         close(8)
-!      ENDIF
-
-!      IF(NRANK.eq.0)THEN
-!      open(8,file='DCe-i.dat')
-!      DO NP=1,NPMAX+1
-!            WRITE(8,'(4E16.8)') &
-!                 PG(NP,NSA), DCTT2(1,NP,1,2,1), DCPP2(1,NP,1,2,1), FCPP2(1,NP,1,2,1)
-!      END DO
-!      close(8)
-!      END IF
-
-!      open(9,file='flux_th.dat')
-!      DO NP=1,NPMAX
-!!         DO NTH=1,NTHMAX+1
-!            WRITE(9,'(4E16.8)') &
-!!PM(NP,NSA)*COSG(NTH),PM(NP,NSA)*SING(NTH),
-!                 PM(NP,NSA), DCTP2(NTH,NP,NR,1,1),DCTT2(NTH,NP,NR,1,1),FCTH2(NTH,NP,NR,1,1)
-!!         END DO
-!!         WRITE(9,*) " "
-!!         WRITE(9,*) " "
-!      END DO
-!      close(9)
-!      END IF
-
-!      IF(MODELR.eq.1)THEN
-!         DO NP=2,NPMAX+1
-!            RGAMA =SQRT(1.D0+PG(NP,1)**2*THETA0(1))
-!            WRITE(*,'(I3,3E18.10)') NP, PG(NP,1),FCPP2(NTH,NP,NR,1,1)/DCPP2(NTH,NP,NR,1,1)*RGAMA/PG(NP,1), -THETA0(1)/THETA(NR,NSA)
-!         END DO
-!      ELSE
-!         DO NP=2,NPMAX+1
-!            WRITE(*,'(I3,3E18.10)') NP, PG(NP,1),FCPP2(NTH,NP,NR,1,1)/DCPP2(NTH,NP,NR,1,1)/PG(NP,1), -RTFP0(1)/RTFD(NR,1)
-!         END DO
-!      END IF
-!      END IF
+         ENDDO
+      END DO ! NSA
 
       IF(nrank.eq.0) THEN
       IF(MOD(IDBGFP/8,2).EQ.1) THEN
 !
 !     +++ plot of D_coll +++
 !
+         DO NSA=NSASTART,NSAEND
          CALL PAGES
          CALL FPGRFA(1,DCPP,PG,1,'@DCPP(P)@',NTHMAX+1,NPMAX+1,NRMAX+1, &
                                              NTHMAX,NPMAX,NRMAX,NSA)
@@ -294,12 +209,15 @@
          CALL FPGRFA(3,FCPP,PG,1,'@FCPP(P)@',NTHMAX+1,NPMAX+1,NRMAX+1, &
                                              NTHMAX,NPMAX,NRMAX,NSA)
          CALL PAGEE
+         END DO
       ENDIF
+
 
       IF(MOD(IDBGFP/16,2).EQ.1) THEN
 !
 !     +++ plot of D_coll +++
 !
+         DO NSA=NSASTART,NSAEND
          CALL PAGES
          CALL FPGRFB(1,DCPP,THM,1,'@DCPP(TH)@',NTHMAX+1,NPMAX+1,NRMAX+1, &
                                                NTHMAX,NPMAX,NRMAX,NSA)
@@ -308,6 +226,7 @@
          CALL FPGRFB(3,FCPP,THM,1,'@FCPP(TH)@',NTHMAX+1,NPMAX+1,NRMAX+1, &
                                                NTHMAX,NPMAX,NRMAX,NSA)
          CALL PAGEE
+         END DO
       ENDIF
       ENDIF
 
@@ -439,10 +358,17 @@
       IMPLICIT NONE
       real(8)::FPFN0R
       real(8),INTENT(IN):: X
-      real(8)::PN
+      real(8)::PN, FACT
 !
-      PN=X
-      FPFN0R=PN**2*FPRMXW(PN)
+      IF(MODEL_DE.eq.0)THEN
+         FACT=1.D0
+      ELSE
+         FACT=SQRT(RTFDL_C/RTFD0L_C)
+      END IF
+
+!      PN=X
+      PN=X*FACT
+      FPFN0R=PN**2*FPRMXW(PN)*FACT
 !
       RETURN
       END FUNCTION FPFN0R
@@ -452,11 +378,17 @@
       IMPLICIT NONE
       real(8)::FPFN1R
       real(8),INTENT(IN)::X, XM, XP
-      real(8)::PN, A, B
+      real(8)::PN, A, B, FACT
 
-      A=0.5D0*PNFP
+!      IF(MODEL_DE.eq.0)THEN
+!         FACT=1.D0
+!      ELSE
+!         FACT=SQRT(RTFDL_C/RTFD0L_C)
+!      END IF
+
+      A=0.5D0*PNFP_C
       PN=A*XP
-      B=PN**4/(1.D0+PN**2*TMC2FD0)
+      B=PN**4/(1.D0+PN**2*THETA0L_C)
       FPFN1R=A*B*FPRMXW(PN)
 
       RETURN
@@ -468,12 +400,22 @@
 
       real(8):: FPFN2R
       real(8),INTENT(IN):: X
-      real(8):: A, PN, B
+      real(8):: A, PN, B, FACT
+
+      IF(MODEL_DE.eq.0)THEN
+         FACT=1.D0
+      ELSE
+         FACT=SQRT(RTFDL_C/RTFD0L_C)
+      END IF
 
       A=1.D0
-      PN=A*(X+PNFP)
-      B=PN*SQRT(1.D0+PN**2*TMC2FD0)
-      FPFN2R=A*B*FPRMXW(PN)
+      PN=A*(X*FACT+PNFP_C)
+      IF(MODEL_DE.eq.0)THEN
+         B=PN*SQRT(1.D0+PN**2*THETA0L_C)
+      ELSE
+         B=PN*SQRT(1.D0+PN**2*THETA0L_C)
+      END IF
+      FPFN2R=A*B*FPRMXW(PN)*FACT
 
       RETURN
       END FUNCTION FPFN2R
@@ -484,9 +426,9 @@
 
       real(8):: FPFN3R
       real(8),INTENT(IN):: X, XM, XP
-      real(8):: A, PN
+      real(8):: A, PN, FACT
 
-      A=0.5D0*PNFP
+      A=0.5D0*PNFP_C
       PN=A*XP
       FPFN3R=A*PN**2*FPRMXW(PN)
 
@@ -499,11 +441,11 @@
 
       real(8):: FPFN4R
       real(8),INTENT(IN):: X, XM, XP
-      real(8):: A, PN, B
+      real(8):: A, PN, B, FACT
 
-      A=0.5D0*PNFP
+      A=0.5D0*PNFP_C
       PN=A*XP
-      B=PN**2/SQRT(1.D0+PN**2*TMC2FD0)
+      B=PN**2/SQRT(1.D0+PN**2*THETA0L_C)
       FPFN4R=A*B*FPRMXW(PN)
 
       RETURN
@@ -515,11 +457,11 @@
 
       real(8):: FPFN5R
       real(8),INTENT(IN):: X, XM, XP
-      real(8):: A, PN, B
+      real(8):: A, PN, B, FACT
 
-      A=0.5D0*PNFP
+      A=0.5D0*PNFP_C
       PN=A*XP
-      B=PN**4/(SQRT(1.D0+PN**2*TMC2FD0))**3
+      B=PN**4/(SQRT(1.D0+PN**2*THETA0L_C))**3
       FPFN5R=A*B*FPRMXW(PN)
 
       RETURN
@@ -531,26 +473,33 @@
 
       real(8):: FPFN6R
       real(8),INTENT(IN):: X
-      real(8):: A, PN
+      real(8):: A, PN, FACT
+
+      IF(MODEL_DE.eq.0)THEN
+         FACT=1.D0
+      ELSE
+         FACT=SQRT(RTFDL_C/RTFD0L_C)
+      END IF
 
       A=1.D0
-      PN=A*(X+PNFP)
-      FPFN6R=A*PN*FPRMXW(PN)
+      PN=A*(X*FACT+PNFP_C)
+      FPFN6R=A*PN*FPRMXW(PN)*FACT
 
       RETURN
       END FUNCTION FPFN6R
 !
 ! =============================================================== 
-      FUNCTION FPFN7R(X,XM,XP)
+      FUNCTION FPFN7R(X,XM,XP)!
 !                            
       real(8):: FPFN7R
       real(8),INTENT(IN):: X, XM, XP
-      real(8):: A, PN, B, PMAX2
+      real(8):: A, PN, B, PMAX2, FACT
+
 
       PMAX2=PMAXC
-      A=0.5D0*(PNFP-PMAX2)
-      PN=A*XP+0.5D0*(PNFP+PMAX2)
-      B=PN**4/(1.D0+PN**2*TMC2FD0)
+      A=0.5D0*(PNFP_C-PMAX2)
+      PN=( A*XP+0.5D0*(PNFP_C+PMAX2) )
+      B=PN**4/(1.D0+PN**2*THETA0L_C)
       FPFN7R=A*B*FPRMXW(PN)
 
       RETURN
@@ -558,15 +507,16 @@
 !
 ! =============================================================== 
 !
-      FUNCTION FPFN8R(X,XM,XP)
+      FUNCTION FPFN8R(X,XM,XP)!
 
       real(8):: FPFN8R
       real(8),INTENT(IN):: X, XM, XP
-      real(8):: A, PN, B, PMAX2
+      real(8):: A, PN, B, PMAX2, FACT
+
 
       PMAX2=PMAXC
-      A=0.5D0*(PNFP-PMAX2)
-      PN=A*XP+0.5D0*(PNFP+PMAX2)
+      A=0.5D0*(PNFP_C-PMAX2)
+      PN=( A*XP+0.5D0*(PNFP_C+PMAX2) )
       FPFN8R=A*PN**2*FPRMXW(PN)
 
       RETURN
@@ -574,16 +524,17 @@
 !
 ! =============================================================== 
 !
-      FUNCTION FPFN9R(X,XM,XP)
+      FUNCTION FPFN9R(X,XM,XP)!
 
       real(8):: FPFN9R
       real(8),INTENT(IN):: X, XM, XP
-      real(8):: A, PN, B, PMAX2
+      real(8):: A, PN, B, PMAX2, FACT
+
 
       PMAX2=PMAXC
-      A=0.5D0*(PNFP-PMAX2)
-      PN=A*XP+0.5D0*(PNFP+PMAX2)
-      B=PN**2/SQRT(1.D0+PN**2*TMC2FD0)
+      A=0.5D0*(PNFP_C-PMAX2)
+      PN=( A*XP+0.5D0*(PNFP_C+PMAX2) )
+      B=PN**2/SQRT(1.D0+PN**2*THETA0L_C)
       FPFN9R=A*B*FPRMXW(PN)
 
       RETURN
@@ -591,16 +542,16 @@
 !
 ! =============================================================== 
 !
-      FUNCTION FPFN10R(X,XM,XP)
+      FUNCTION FPFN10R(X,XM,XP)!
 
       real(8):: FPFN10R
       real(8),INTENT(IN):: X, XM, XP
-      real(8):: A, PN, B, PMAX2
+      real(8):: A, PN, B, PMAX2, FACT
 
       PMAX2=PMAXC
-      A=0.5D0*(PNFP-PMAX2)
-      PN=A*XP+0.5D0*(PNFP+PMAX2)
-      B=PN**4/(SQRT(1.D0+PN**2*TMC2FD0))**3
+      A=0.5D0*(PNFP_C-PMAX2)
+      PN=( A*XP+0.5D0*(PNFP_C+PMAX2) )
+      B=PN**4/(SQRT(1.D0+PN**2*THETA0L_C))**3
       FPFN10R=A*B*FPRMXW(PN)
 
       RETURN
@@ -610,20 +561,28 @@
 !
       FUNCTION FPRMXW(PN)
 
+      USE libbes,ONLY: besekn
       USE plprof
       real(8):: FPRMXW
       real(8),INTENT(IN):: PN
       real(8):: EX
+      real(8):: FACT, DKBSL, Z
 
       IF(MODELR.eq.1)THEN
-         EX=(1.D0-SQRT(1.D0+PN**2*TMC2FD0))/TMC2FD
+         Z=1.D0/THETAL_C
+         DKBSL=BESEKN(2,Z)
+         FACT=RNFDL_C*SQRT(THETA0L_C)/(4.D0*PI*RTFDL_C*DKBSL) &
+              *RTFD0L_C
+
+         EX=(1.D0-SQRT(1.D0+PN**2*THETA0L_C)) /THETAL_C
+
 !         IF (EX.LT.-100.D0)THEN
 !            FPRMXW=0.D0
 !         ELSE
-            FPRMXW=EXP(EX)
+            FPRMXW=EXP(EX)*FACT
 !         ENDIF
       ELSEIF(MODELR.eq.0)THEN
-         EX=-PN**2/(2.D0*RTFDL/RTFD0L)
+         EX=-PN**2/(2.D0*RTFDL_C/RTFD0L_C)
 !         IF (EX.LT.-100.D0)THEN
 !            FPRMXW=0.D0
 !         ELSE
@@ -645,13 +604,13 @@
       USE libde
       IMPLICIT NONE
 
-      integer:: NSA, NSB, NR, NP, NTH, NSBA
+      integer:: NSA, NSB, NR, NP, NTH, NSSA, NSSB
       real(8):: RGAMH, RGAMH2, RZI, RTE, PFPL, VFPL, U, DCTTL
       real(8):: RNNL, RNUFL, RNUDL, DCPPL, FCPPL, V
       real(8):: PNFPL, RGAMA, vtatb, ptatb, PCRIT
       real(8):: RINT0, ES0, RINT1, ES1, RINT2, ES2, RINT4, ES4, RINT5, ES5
       real(8):: RINT6, ES6, RINT7, ES7, RINT8, ES8, RINT9, ES9
-      real(8):: RINT3, ES3, p_thermal, v_thermal, pe_thermal, EX
+      real(8):: RINT3, ES3, p_thermal, v_thermal, pe_thermal, EX, RNFDL
 
 !     ------ define --------
       RNNL=RNFD(NR,NSB)/RNFP0(NSA)
@@ -663,7 +622,8 @@
       RGAMH=AEFP(NSA)**2*AEFD(NSB)**2*LNLAM(NR,NSB,NSA)/(4.D0*PI*EPS0**2) &
            *AMFP(NSA)/PTFP0(NSA)**3 
 !     RGAMH = \hat{\Gamma}/n_b
-      NSBA=NSB_NSA(NSA)
+      NSSA=NS_NSA(NSA)
+      NSSB=NS_NSB(NSB)
 
 !      WRITE(*,*) " "
 !      WRITE(*,'(2I4,3E16.8)') NSA,NSB,RGAMH,RNFD(1,NSB),VTFD(1,NSB)
@@ -673,137 +633,155 @@
       IF(MODELR.EQ.0) THEN 
          IF(MODELC.eq.0)THEN ! maxwellian
             IF(MODEL_DISRUPT.eq.0)THEN
-               RTFDL=RTFD(NR,NSB)
-               RTFD0L=RTFD0(NSB)
+               RTFDL_C=RTFD(NR,NSB)
+               RTFD0L_C=RTFD0(NSB)
                v_thermal=VTFD(NR,NSB)
             ELSEIF(MODEL_DISRUPT.ge.1)THEN
-               RTFDL=RT_quench(NR) ! [keV]
-               v_thermal=SQRT( RTFDL*1.D3*AEE/AMFD(NSB))
-            END IF
-         DO NP=NPSTART,NPENDWG
-            IF(NP.EQ.1) THEN
-               DCPPL=RGAMH*RNFD(NR,NSB)*1.D20*(2.D0/(3.D0*SQRT(PI))) &
-                          *(VTFP0(NSA)/(SQRT(2.D0)*VTFD(NR,NSB))) 
-               FCPPL=0.D0
-            ELSE
-               PFPL=PG(NP,NSBA)*PTFP0(NSA)
-               VFPL=PFPL/AMFP(NSA)
-               V=VFPL/VTFP0(NSA)
-!               U=VFPL/(SQRT(2.D0)*VTFD(NR,NSB))
-               U=VFPL/(SQRT(2.D0)*v_thermal)
-               DCPPL= 0.5D0*RNUDL/U   *(ERF0(U)/U**2-ERF1(U)/U)
-               FCPPL=-      RNUFL/U**2*(ERF0(U)-U*ERF1(U))
-            ENDIF
-            DO NTH=1,NTHMAX
-               DCPP2(NTH,NP,NR,NSB,NSA)=DCPP2(NTH,NP,NR,NSB,NSA)+DCPPL
-               FCPP2(NTH,NP,NR,NSB,NSA)=FCPP2(NTH,NP,NR,NSB,NSA)+FCPPL
-            ENDDO
-!            WRITE(*,'(3I4,3E16.8)') NP, NSA,NSB,PG(NP,NSBA), DCPPL, FCPPL
-         ENDDO
-
-!         DO NP=1,NPMAX
-         DO NP=NPSTARTW,NPENDWM
-            PFPL=PM(NP,NSA)*PTFP0(NSA)
-            VFPL=PFPL/AMFP(NSA)
-            V=VFPL/VTFP0(NSA)
-!            U=VFPL/(SQRT(2.D0)*VTFD(NR,NSB))
-            U=VFPL/(SQRT(2.D0)*v_thermal)
-            DCTTL= 0.25D0*RNUDL/U &
-                         *((2.D0-1.D0/U**2)*ERF0(U)+ERF1(U)/U)
-!
-            DO NTH=1,NTHMAX+1
-               DCTT2(NTH,NP,NR,NSB,NSA)=DCTT2(NTH,NP,NR,NSB,NSA)+DCTTL
-            ENDDO
-         ENDDO
-
-         ELSEIF(MODELC.eq.1)THEN ! isotoropic
-            PMAXC=PMAX(NSBA)
-            TMC2FD =0.D0
-            TMC2FD0=0.D0
-            RGAMA=1.D0
-            NSB_ISO=NSB
-            IF(MODEL_DISRUPT.eq.0)THEN
-               RTFDL=RTFD(NR,NSB)
-               RTFD0L=RTFD0(NSB)
-            ELSEIF(MODEL_DISRUPT.ge.1)THEN
-!               RTFDL=RTFD(NR,NSB)*1.D-1
-               RTFDL=RT_quench(NR) ! [keV]
-               RTFD0L=RTFD0(NSB)
+               RTFDL_C=RT_quench(NR) ! [keV]
+               v_thermal=SQRT( RTFDL_C*1.D3*AEE/AMFD(NSB))
             END IF
             DO NP=NPSTART,NPENDWG
                IF(NP.EQ.1) THEN
-                  PNFPL=PG(NP,NSBA)
-                  PNFP=PNFPL
+                  DCPPL=RGAMH*RNFD(NR,NSB)*1.D20*(2.D0/(3.D0*SQRT(PI))) &
+                       *(VTFP0(NSA)/(SQRT(2.D0)*VTFD(NR,NSB))) 
+                  FCPPL=0.D0
+               ELSE
+                  PFPL=PG(NP,NSSA)*PTFP0(NSA)
+                  VFPL=PFPL/AMFP(NSA)
+                  V=VFPL/VTFP0(NSA)
+!               U=VFPL/(SQRT(2.D0)*VTFD(NR,NSB))
+                  U=VFPL/(SQRT(2.D0)*v_thermal)
+                  DCPPL= 0.5D0*RNUDL/U   *(ERF0(U)/U**2-ERF1(U)/U)
+                  FCPPL=-      RNUFL/U**2*(ERF0(U)-U*ERF1(U))
+               ENDIF
+               DO NTH=1,NTHMAX
+                  DCPP2(NTH,NP,NR,NSB,NSA)=DCPP2(NTH,NP,NR,NSB,NSA)+DCPPL
+                  FCPP2(NTH,NP,NR,NSB,NSA)=FCPP2(NTH,NP,NR,NSB,NSA)+FCPPL
+               ENDDO
+!            WRITE(*,'(3I4,3E16.8)') NP, NSA,NSB,PG(NP,NSBA), DCPPL, FCPPL
+            ENDDO
+
+!         DO NP=1,NPMAX
+            DO NP=NPSTARTW,NPENDWM
+               PFPL=PM(NP,NSSA)*PTFP0(NSA)
+               VFPL=PFPL/AMFP(NSA)
+               V=VFPL/VTFP0(NSA)
+!            U=VFPL/(SQRT(2.D0)*VTFD(NR,NSB))
+               U=VFPL/(SQRT(2.D0)*v_thermal)
+               DCTTL= 0.25D0*RNUDL/U &
+                    *((2.D0-1.D0/U**2)*ERF0(U)+ERF1(U)/U)
+!
+               DO NTH=1,NTHMAX+1
+                  DCTT2(NTH,NP,NR,NSB,NSA)=DCTT2(NTH,NP,NR,NSB,NSA)+DCTTL
+               ENDDO
+            ENDDO
+!         ELSEIF(MODELC.eq.1)THEN ! isotoropic
+         ELSEIF(MODELC.ge.2)THEN ! isotoropic
+            PMAXC=PMAX(NSSB)
+            THETAL_C =0.D0
+            THETA0L_C=0.D0
+            RGAMA=1.D0
+            NSB_ISO=NSB
+            IF(MODELC.eq.1)THEN ! Collision term for initial temperature
+               RTFDL_C=RTFD(NR,NSB)
+               RTFD0L_C=RTFD0(NSB)
+               RNFDL=RNFD(NR,NSB)
+            ELSEIF(MODELC.eq.2)THEN ! for updating temperature
+               RTFDL_C=RT_TEMP(NR,NSB)
+               RTFD0L_C=RTFD0(NSB)
+               RNFDL=RN_TEMP(NR,NSB)
+               RGAMH=AEFP(NSA)**2*AEFD(NSB)**2*LNLAM(NR,NSB,NSA)/(4.D0*PI*EPS0**2) &
+                    *AMFP(NSA)/PTFP0(NSA)**3 
+            END IF
+            IF(MODEL_DISRUPT.eq.1)THEN
+               RTFDL_C=RT_quench(NR) ! [keV]
+               RTFD0L_C=RTFD0(NSB)
+               IF(MODEL_IMPURITY.eq.0)THEN 
+                  RNFDL_C=RNFD(NR,NSB)
+               ELSE
+                  RNFDL=RN_MGI(NR,NSB)
+               END IF
+               RGAMH=AEFP(NSA)**2*AEFD(NSB)**2*POST_LNLAM(NR,NSB,NSA)/(4.D0*PI*EPS0**2) &
+                    *AMFP(NSA)/PTFP0(NSA)**3 
+            END IF
+
+            DO NP=NPSTART,NPENDWG
+               IF(NP.EQ.1) THEN
+                  PNFPL=PG(NP,NSSA)
+                  PNFP_C=PNFPL
                   PCRIT=0.D0
                   CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R,"N0R_NP1")
-                  PNFP=PCRIT
+                  PNFP_C=PCRIT
                   CALL DEHIFT(RINT2,ES2,H0DE,EPSDE,0,FPFN2R,"N2R_NP1")
                   DCPPL=RGAMH/(3.D0*RINT0)*( &
                        (AMFD(NSB)*PTFP0(NSA))                     &
                        /(AMFP(NSA)*PTFD0(NSB))*RINT2 )             &
-                       *RNFD(NR,NSB)*1.D20
+                       *RNFDL*1.D20
                   FCPPL=0.D0
                ELSE
 !                  PFPL=PG(NP,NSBA)*PTFP0(NSA)
 !                  VFPL=PFPL/SQRT(AMFP(NSA)**2+PFPL**2/VC**2)
-                  PNFPL=PG(NP,NSBA)
-                  PNFP=PNFPL
+                  PNFPL=PG(NP,NSSA)
+                  PNFP_C=PNFPL
                   vtatb=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))
-                  ptatb=PG(NP,NSBA)/RGAMA
-                  PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2)) &
-                       *ptatb
-                  IF(PCRIT.le.PMAX(NSB))THEN
+                  ptatb=PG(NP,NSSA)/RGAMA
+!                  PCRIT=SQRT(vtatb**2/(1.D0-THETA0L_C*vtatb**2*ptatb**2)) &
+!                       *ptatb
+                  PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PG(NP,NSSA)
+                  IF(PCRIT.le.PMAX(NSSB))THEN
                      CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R,"N0R_DCPP")
-                     PNFP=PCRIT
+                     PNFP_C=PCRIT
                      CALL DEFT  (RINT1,ES1,H0DE,EPSDE,0,FPFN1R,"N1R_DCPP")
                      CALL DEHIFT(RINT2,ES2,H0DE,EPSDE,0,FPFN2R,"N2R_DCPP")
-                     PNFP=PNFPL
+                     PNFP_C=PNFPL
                      DCPPL=RGAMH/(3.D0*RINT0)*(                       &
                           (AMFP(NSA)**2*PTFD0(NSB)**2*RGAMA**3)       &
-                          /(AMFD(NSB)**2*PTFP0(NSA)**2*PNFP**3)*RINT1 &
+                          /(AMFD(NSB)**2*PTFP0(NSA)**2*PNFP_C**3)*RINT1 &
                           +(AMFD(NSB)*PTFP0(NSA))                     &
                           /(AMFP(NSA)*PTFD0(NSB))*RINT2 )             &
-                          *RNFD(NR,NSB)*1.D20
-                     PNFP=PCRIT
+                          *RNFDL*1.D20
+                     PNFP_C=PCRIT
                      CALL DEFT  (RINT4,ES4,H0DE,EPSDE,0,FPFN4R,"N4R_FCPP")
                      CALL DEFT  (RINT5,ES5,H0DE,EPSDE,0,FPFN5R,"N5R_FCPP")
                      CALL DEHIFT(RINT6,ES6,H0DE,EPSDE,0,FPFN6R,"N6R_FCPP")
-                     PNFP=PNFPL
+                     PNFP_C=PNFPL
                      FCPPL=-RGAMH/(3.D0*RINT0)*(                &
-                          (AMFP(NSA)*RGAMA**2)/(AMFD(NSB)*PNFP**2) &
-                          *(3.D0*RINT4-TMC2FD0*RINT5)           &
-                          +2.D0*(PTFP0(NSA)*PNFP)                  &
-                          /(PTFD0(NSB)*RGAMA)*THETA0(NSA)*RINT6 )   &
-                          *RNFD(NR,NSB)*1.D20
-                  ELSEIF(PCRIT.gt.PMAX(NSB))THEN
+                          (AMFP(NSA)*RGAMA**2)/(AMFD(NSB)*PNFP_C**2) &
+                          *(3.D0*RINT4-THETA0L_C*RINT5)           &
+                          +2.D0*(PTFP0(NSA)*PNFP_C)                  &
+                          /(PTFD0(NSB)*RGAMA)*THETA0(NSSA)*RINT6 )   &
+                          *RNFDL*1.D20
+                  ELSEIF(PCRIT.gt.PMAX(NSSB))THEN
                      CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R,"N0R_PMAX_DCPP")
-                     PNFP=PMAX(NSBA)
+!                     PNFP_C=PMAX(NSBA)
+                     PNFP_C=PMAX(NSSB)
                      CALL DEFT  (RINT1,ES1,H0DE,EPSDE,0,FPFN1R,"N1R_PMAX_DCPP")
-                     PNFP=PCRIT
+                     PNFP_C=PCRIT
                      CALL DEFT  (RINT7,ES7,H0DE,EPSDE,0,FPFN7R,"N7R_PMAX_DCPP")
                      CALL DEHIFT(RINT2,ES2,H0DE,EPSDE,0,FPFN2R,"N2R_PMAX_DCPP")
-                     PNFP=PNFPL
+                     PNFP_C=PNFPL
                      DCPPL=RGAMH/(3.D0*RINT0)*(                 &
                           (AMFP(NSA)**2*PTFD0(NSB)**2*RGAMA**3) &
-                          /(AMFD(NSB)**2*PTFP0(NSA)**2*PNFP**3) &
+                          /(AMFD(NSB)**2*PTFP0(NSA)**2*PNFP_C**3) &
                           *(RINT1+RINT7)                        &
                           +(AMFD(NSB)*PTFP0(NSA))                &
                           /(AMFP(NSA)*PTFD0(NSB))*RINT2 )       &
-                          *RNFD(NR,NSB)*1.D20
-                     PNFP=PMAX(NSBA)
+                          *RNFDL*1.D20
+!                     PNFP_C=PMAX(NSBA)
+                     PNFP_C=PMAX(NSSB)
                      CALL DEFT  (RINT4,ES4,H0DE,EPSDE,0,FPFN4R,"N4R_PMAX_FCPP")
                      CALL DEFT  (RINT5,ES5,H0DE,EPSDE,0,FPFN5R,"N5R_PMAX_FCPP")
-                     PNFP=PCRIT
+                     PNFP_C=PCRIT
                      CALL DEFT  (RINT8,ES8,H0DE,EPSDE,0,FPFN9R,"N9R_PMAX_FCPP")
                      CALL DEFT  (RINT9,ES9,H0DE,EPSDE,0,FPFN10R,"N10R_PMAX_FCPP")
                      CALL DEHIFT(RINT6,ES6,H0DE,EPSDE,0,FPFN6R,"N6R_PMAX_FCPP")
-                     PNFP=PNFPL
+                     PNFP_C=PNFPL
                      FCPPL=-RGAMH/(3.D0*RINT0)*(                &
-                          (AMFP(NSA)*RGAMA**2)/(AMFD(NSB)*PNFP**2) &
-                          *(3.D0*(RINT4+RINT8)-TMC2FD0*(RINT5+RINT9)) &
-                          +2.D0*(PTFP0(NSA)*PNFP)/(PTFD0(NSB)*RGAMA) &
-                          *THETA0(NSA)*RINT6 ) &
-                          *RNFD(NR,NSB)*1.D20
+                          (AMFP(NSA)*RGAMA**2)/(AMFD(NSB)*PNFP_C**2) &
+                          *(3.D0*(RINT4+RINT8)-THETA0L_C*(RINT5+RINT9)) &
+                          +2.D0*(PTFP0(NSA)*PNFP_C)/(PTFD0(NSB)*RGAMA) &
+                          *THETA0(NSSA)*RINT6 ) &
+                          *RNFDL*1.D20
                   ENDIF
                ENDIF
                DO NTH=1,NTHMAX
@@ -813,43 +791,44 @@
             ENDDO
 
             DO NP=NPSTARTW,NPENDWM
-!               PFPL=PM(NP,NSA)*PTFP0(NSA)
-!               VFPL=PFPL/SQRT(AMFP(NSA)**2+PTFP(NR,NSA)**2/VC**2)
-               PNFPL=PM(NP,NSBA)
-               PNFP=PNFPL
+!               PNFPL=PM(NP,NSBA)
+               PNFPL=PM(NP,NSSA)
+               PNFP_C=PNFPL
                vtatb=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))
-               ptatb=PM(NP,NSA)/RGAMA
-               PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2)) &
-                    *ptatb
-               IF(PCRIT.le.PMAX(NSBA))THEN
+               ptatb=PM(NP,NSSA)/RGAMA
+!               PCRIT=SQRT(vtatb**2/(1.D0-THETA0L_C*vtatb**2*ptatb**2)) &
+!                    *ptatb
+               PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PM(NP,NSSA)
+               IF(PCRIT.le.PMAX(NSSB))THEN
                   CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R,"N0R_DCTT")
-                  PNFP=PCRIT
+                  PNFP_C=PCRIT
                   CALL DEFT  (RINT1,ES1,H0DE,EPSDE,0,FPFN1R,"N1R_DCTT")
                   CALL DEHIFT(RINT2,ES2,H0DE,EPSDE,0,FPFN2R,"N2R_DCTT")
                   CALL DEFT  (RINT3,ES3,H0DE,EPSDE,0,FPFN3R,"N3R_DCTT")
-                  PNFP=PNFPL
+                  PNFP_C=PNFPL
                   DCTTL=RGAMH/(3.D0*RINT0)*( &
-                       1.5D0*RGAMA/PNFP*RINT3 &
+                       1.5D0*RGAMA/PNFP_C*RINT3 &
                        -0.5D0*(AMFP(NSA)**2*PTFD0(NSB)**2*RGAMA**3) &
-                       /(AMFD(NSB)**2*PTFP0(NSA)**2*PNFP**3)*RINT1 &
+                       /(AMFD(NSB)**2*PTFP0(NSA)**2*PNFP_C**3)*RINT1 &
                        +(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*RINT2 ) &
-                       *RNFD(NR,NSB)*1.D20
-               ELSEIF(PCRIT.gt.PMAX(NSB))THEN
+                       *RNFDL*1.D20
+               ELSEIF(PCRIT.gt.PMAX(NSSB))THEN
                   CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R,"N0R_PMAX_DCTT")
-                  PNFP=PMAX(NSBA)
+!                  PNFP_C=PMAX(NSBA)
+                  PNFP_C=PMAX(NSSB)
                   CALL DEFT  (RINT1,ES1,H0DE,EPSDE,0,FPFN1R,"N1R_PMAX_DCTT")
                   CALL DEFT  (RINT3,ES3,H0DE,EPSDE,0,FPFN3R,"N3R_PMAX_DCTT")
-                  PNFP=PNFPL*PTFP0(NSA)*AMFD(NSB)/(PTFD0(NSB)*AMFP(NSA))
+                  PNFP_C=PNFPL*PTFP0(NSA)*AMFD(NSB)/(PTFD0(NSB)*AMFP(NSA))
                   CALL DEFT  (RINT4,ES1,H0DE,EPSDE,0,FPFN7R,"N7R_PMAX_DCTT")
                   CALL DEFT  (RINT5,ES3,H0DE,EPSDE,0,FPFN8R,"N8R_PMAX_DCTT")
                   CALL DEHIFT(RINT2,ES2,H0DE,EPSDE,0,FPFN2R,"N2R_PMAX_DCTT")
-                  PNFP=PNFPL
+                  PNFP_C=PNFPL
                   DCTTL=RGAMH/(3.D0*RINT0)*( &
-                       1.5D0*RGAMA/PNFP*(RINT3+RINT5) &
+                       1.5D0*RGAMA/PNFP_C*(RINT3+RINT5) &
                        -0.5D0*(AMFP(NSA)**2*PTFD0(NSB)**2*RGAMA**3) &
-                       /(AMFD(NSB)**2*PTFP0(NSA)**2*PNFP**3)*(RINT1+RINT4) &
+                       /(AMFD(NSB)**2*PTFP0(NSA)**2*PNFP_C**3)*(RINT1+RINT4) &
                        +(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*RINT2 ) &
-                       *RNFD(NR,NSB)*1.D20
+                       *RNFDL*1.D20
               ENDIF
                
                DO NTH=1,NTHMAX+1
@@ -860,128 +839,137 @@
 !     ----- Relativistic -----
 !
       ELSE
-         PMAXC=PMAX(NSBA)
+!         PMAXC=PMAX(NSBA)
+         PMAXC=PMAX(NSSB)
+         RTFD0L_C=RTFD0(NSB)
+         RNFD0L_C=RNFD0(NSB)
+         THETA0L_C=THETA0(NSSB)
          IF(MODEL_DISRUPT.eq.0)THEN
-            RTFDL=RTFD(NR,NSB)
-            RTFD0L=RTFD0(NSB)
-            P_thermal=SQRT(RTFDL*1.D3*AEE*AMFD(NSB))
+            IF(MODELC.eq.1.or.MODELC.eq.0)THEN ! constant T
+               RNFDL_C=RNFD(NR,NSB) 
+               RTFDL_C=RTFD(NR,NSB)
+            ELSEIF(MODELC.eq.2)THEN ! variable n, T
+               RNFDL_C=RN_TEMP(NR,NS_NSB(NSB))
+               RTFDL_C=RT_TEMP(NR,NS_NSB(NSB))
+            END IF
          ELSEIF(MODEL_DISRUPT.ge.1)THEN
+            IF(MODEL_IMPURITY.eq.0)THEN 
+               RNFDL_C=RNFD(NR,NSB)
+            ELSE
+               RNFDL_C=RN_MGI(NR,NSB)
+            END IF
             RGAMH=AEFP(NSA)**2*AEFD(NSB)**2*POST_LNLAM(NR,NSB,NSA)/(4.D0*PI*EPS0**2) &
                  *AMFP(NSA)/PTFP0(NSA)**3 
-            IF(ISW_NOTAIL.eq.0)THEN
-               RTFDL=RT_quench(NR) ! [keV] ! thermal quench
-            ELSE
-               RTFDL=RTFD(NR,NSB) ! no tail effect
-            END IF
-            RTFD0L=RTFD0(NSB)
-            P_thermal=SQRT(RTFDL*1.D3*AEE*AMFD(NSB))
+            RTFDL_C=RT_quench(NR)
          END IF
-         pe_thermal=SQRT(RTFDL*1.D3*AEE*AMFD(NSA))
-         TMC2FD =(P_thermal/(AMFD(NSB)*VC))**2
-         TMC2FD0=(PTFD0(NSB)/(AMFD(NSB)*VC))**2
-         v_thermal=SQRT( RTFDL*1.D3*AEE/AMFD(NSB)*(1.D0-2.5D0*TMC2FD+55.D0/8.D0*TMC2FD**2) )
-         
+         THETAL_C =THETA0L_C*RTFDL_C/RTFD0L_C
+         P_thermal=SQRT(RTFDL_C*1.D3*AEE*AMFD(NSB))
+         v_thermal=SQRT(RTFDL_C*1.D3*AEE/AMFD(NSB) &
+                        *(1.D0-2.5D0*THETAL_C+55.D0/8.D0*THETAL_C**2) )
+         CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R,"DEHIFT_0R")
+
          DO NP=NPSTART,NPENDWG
             IF(NP.EQ.1) THEN
-               PNFPL=PG(NP,NSBA)
-               PNFP=PNFPL
-               RGAMA=SQRT(1.D0+PNFP**2*THETA0(NSA))
+!               PNFPL=PG(NP,NSBA)
+               PNFPL=PG(NP,NSSA)
+               PNFP_C=PNFPL
+               RGAMA=SQRT(1.D0+PNFP_C**2*THETA0(NSSA))
                PCRIT=0.D0
-               CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R,"DEHIFT_0R")
-               PNFP=PCRIT
+               PNFP_C=PCRIT
                CALL DEHIFT(RINT2,ES2,H0DE,EPSDE,0,FPFN2R,"DEHIFT_2R")
                DCPPL=RGAMH/(3.D0*RINT0)*( &
                     (AMFD(NSB)*PTFP0(NSA))                     &
                     /(AMFP(NSA)*PTFD0(NSB))*RINT2 )             &
-                    *RNFD(NR,NSB)*1.D20
+!                    *RNFD(NR,NSB)*1.D20
+                    *RNFDL_C*1.D20 
                FCPPL=0.D0
             ELSE
-               PNFPL=PG(NP,NSBA)
-               PNFP=PNFPL
-               RGAMA=SQRT(1.D0+PNFP**2*THETA0(NSA))
-               VFPL=PG(NP,NSBA)*PTFP0(NSA)/(AMFP(NSA)*RGAMA)
+!               PNFPL=PG(NP,NSBA)
+               PNFPL=PG(NP,NSSA)
+               PNFP_C=PNFPL
+               RGAMA=SQRT(1.D0+PNFP_C**2*THETA0(NSSA))
+               VFPL=PG(NP,NSSA)*PTFP0(NSA)/(AMFP(NSA)*RGAMA)
                vtatb=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))
-               ptatb=PG(NP,NSBA)/RGAMA
-               PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2)) &
-                    *ptatb
-
-               EX=(1.D0-SQRT(1.D0+PG(NP,NSA)**2*TMC2FD0))/TMC2FD
+               ptatb=PG(NP,NSSA)/RGAMA
+               PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PG(NP,NSSA)
 
                IF(VFPL.le.v_thermal*10)THEN
-!               IF(EX.ge.-500.D0.and.NSA.eq.NSB)THEN
-!               IF(PTFP0(NSA)/Pe_thermal*PG(NP,NSBA).le.PMAX(NSA).and.NSA.eq.NSB) THEN ! normal velocity
-!               IF(PTFP0(NSA)/Pe_thermal*PG(NP,NSBA).le.PMAX(NSA)) THEN ! normal velocity
-!               IF(PTFP0(NSA)*PG(NP,NSBA).le.PTFP0(NSA)*PMAX(NSA)*2) THEN ! normal velocity
-!                  IF(PCRIT.le.PMAX(NSB))THEN
-                  IF(PCRIT.le.PMAX(NSBA))THEN
-                     CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R,"DEHIFT_0R_2")
-                     PNFP=PCRIT
+                  IF(PCRIT.le.PMAX(NSSB))THEN
+!                     CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R,"DEHIFT_0R_2")
+                     PNFP_C=PCRIT
                      CALL DEFT  (RINT1,ES1,H0DE,EPSDE,0,FPFN1R,"DEFT1_le")
+!                     IF(TIMEFP.ge.0.D-3) WRITE(*,'(3I5,A,E14.6)') NSA, NSB, NP, " RINT1=", RINT1
                      CALL DEHIFT(RINT2,ES2,H0DE,EPSDE,0,FPFN2R,"DEHIFT_2R_2")
-                     PNFP=PNFPL
+!                     IF(TIMEFP.eq.5.D-3) WRITE(*,'(3I5,A,E14.6)') NSA, NSB, NP, " RINT2=", RINT2
+                     PNFP_C=PNFPL
                      DCPPL=RGAMH/(3.D0*RINT0)*(                       &
                           (AMFP(NSA)**2*PTFD0(NSB)**2*RGAMA**3)       &
-                          /(AMFD(NSB)**2*PTFP0(NSA)**2*PNFP**3)*RINT1 &
+                          /(AMFD(NSB)**2*PTFP0(NSA)**2*PNFP_C**3)*RINT1 &
                           +(AMFD(NSB)*PTFP0(NSA))                     &
                           /(AMFP(NSA)*PTFD0(NSB))*RINT2 )             &
-                          *RNFD(NR,NSB)*1.D20
-                     PNFP=PCRIT
+!                          *RNFD(NR,NSB)*1.D20
+                          *RNFDL_C*1.D20
+                     PNFP_C=PCRIT
                      CALL DEFT  (RINT4,ES4,H0DE,EPSDE,0,FPFN4R,"DEFT4_le")
+!                     IF(TIMEFP.eq.5.D-3) WRITE(*,'(3I5,A,E14.6)') NSA, NSB, NP, "RINT4=", RINT4
                      CALL DEFT  (RINT5,ES5,H0DE,EPSDE,0,FPFN5R,"DEFT5_le")
+!                     IF(TIMEFP.eq.5.D-3) WRITE(*,'(3I5,A,E14.6)') NSA, NSB, NP, "RINT5=", RINT5
                      CALL DEHIFT(RINT6,ES6,H0DE,EPSDE,0,FPFN6R,"DEHIFT_6R")
-                     PNFP=PNFPL
+!                     IF(TIMEFP.eq.5.D-3) WRITE(*,'(3I5,A,E14.6)') NSA, NSB, NP, "RINT6=", RINT6
+                     PNFP_C=PNFPL
                      FCPPL=-RGAMH/(3.D0*RINT0)*(                &
-                          (AMFP(NSA)*RGAMA**2)/(AMFD(NSB)*PNFP**2) &
-                          *(3.D0*RINT4-TMC2FD0*RINT5)           &
-                          +2.D0*(PTFP0(NSA)*PNFP)                  &
-                          /(PTFD0(NSB)*RGAMA)*THETA0(NSA)*RINT6 )   &
-                          *RNFD(NR,NSB)*1.D20
-!                     WRITE(6,'(A,2I5,1P10E14.6)') "low v e-e ", NP, NSB, TMC2FD, RINT0, RINT1, PCRIT, DCPPL, FCPPL
-!                  ELSEIF(PCRIT.gt.PMAX(NSB))THEN
-                  ELSEIF(PCRIT.gt.PMAX(NSBA))THEN
-                     CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R,"DEHIFT_0R_3")
-                     PNFP=PMAX(NSBA)
+                          (AMFP(NSA)*RGAMA**2)/(AMFD(NSB)*PNFP_C**2) &
+                          *(3.D0*RINT4-THETA0L_C*RINT5)           &
+                          +2.D0*(PTFP0(NSA)*PNFP_C)                  &
+                          /(PTFD0(NSB)*RGAMA)*THETA0(NSSA)*RINT6 )   &
+!                          *RNFD(NR,NSB)*1.D20
+                          *RNFDL_C*1.D20
+!                     WRITE(6,'(A,2I5,1P10E14.6)') "low v e-e ", NP, NSB, THETAL_C, RINT0, RINT1, PCRIT, DCPPL, FCPPL
+                  ELSEIF(PCRIT.gt.PMAX(NSSB))THEN
+!                     CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R,"DEHIFT_0R_3")
+                     PNFP_C=PMAX(NSSB)
                      CALL DEFT  (RINT1,ES1,H0DE,EPSDE,0,FPFN1R,"DEFT1_gt")
-                     PNFP=PCRIT
-!                     CALL DEFT  (RINT7,ES7,H0DE,EPSDE,0,FPFN7R,"DEFT7_gt")
+                     PNFP_C=PCRIT
                      RINT7=0.D0
-!                     CALL DEHIFT(RINT2,ES2,H0DE,EPSDE,0,FPFN2R,"DEHIFT_2R_3")
                      RINT2=0.D0
-                     PNFP=PNFPL
+                     PNFP_C=PNFPL
                      DCPPL=RGAMH/(3.D0*RINT0)*(                 &
                           (AMFP(NSA)**2*PTFD0(NSB)**2*RGAMA**3) &
-                          /(AMFD(NSB)**2*PTFP0(NSA)**2*PNFP**3) &
+                          /(AMFD(NSB)**2*PTFP0(NSA)**2*PNFP_C**3) &
                           *(RINT1+RINT7)                        &
                           +(AMFD(NSB)*PTFP0(NSA))                &
                           /(AMFP(NSA)*PTFD0(NSB))*RINT2 )       &
-                          *RNFD(NR,NSB)*1.D20
-                     PNFP=PMAX(NSBA)
+!                          *RNFD(NR,NSB)*1.D20
+                          *RNFDL_C*1.D20
+                     PNFP_C=PMAX(NSSB)
                      CALL DEFT  (RINT4,ES4,H0DE,EPSDE,0,FPFN4R,"DEFT4_gt")
                      CALL DEFT  (RINT5,ES5,H0DE,EPSDE,0,FPFN5R,"DEFT5_gt")
-                     PNFP=PCRIT
+                     PNFP_C=PCRIT
                      RINT8=0.D0
                      RINT9=0.D0
                      RINT6=0.D0
-!                     CALL DEFT  (RINT8,ES8,H0DE,EPSDE,0,FPFN9R,"DEFT9_gt")
-!                     CALL DEFT  (RINT9,ES9,H0DE,EPSDE,0,FPFN10R,"DEFT10_gt")
-!                     CALL DEHIFT(RINT6,ES6,H0DE,EPSDE,0,FPFN6R,"DEHIFT_6R_2")
-                     PNFP=PNFPL
+                     PNFP_C=PNFPL
                      FCPPL=-RGAMH/(3.D0*RINT0)*(                &
-                          (AMFP(NSA)*RGAMA**2)/(AMFD(NSB)*PNFP**2) &
-                          *(3.D0*(RINT4+RINT8)-TMC2FD0*(RINT5+RINT9)) &
-                          +2.D0*(PTFP0(NSA)*PNFP)/(PTFD0(NSB)*RGAMA) &
-                          *THETA0(NSA)*RINT6 ) &
-                          *RNFD(NR,NSB)*1.D20
-!                     WRITE(6,'(A,2I5,1P10E14.6)') "low v e-i ", NP, NSB, TMC2FD, RINT0, RINT1, PCRIT, DCPPL, FCPPL
+                          (AMFP(NSA)*RGAMA**2)/(AMFD(NSB)*PNFP_C**2) &
+                          *(3.D0*(RINT4+RINT8)-THETA0L_C*(RINT5+RINT9)) &
+                          +2.D0*(PTFP0(NSA)*PNFP_C)/(PTFD0(NSB)*RGAMA) &
+                          *THETA0(NSSA)*RINT6 ) &
+!                          *RNFD(NR,NSB)*1.D20
+                          *RNFDL_C*1.D20
+!                     WRITE(6,'(A,2I5,1P10E14.6)') "low v e-i ", NP, NSB, THETAL_C, RINT0, RINT1, PCRIT, DCPPL, FCPPL
                   ENDIF
                ELSE! high velocity limit 
-                  DCPPL = RGAMH*(AMFP(NSA)/PTFP0(NSA))**2*(RGAMA/PG(NP,NSBA))**3 &
-                       *v_thermal**2 * RNFD(NR,NSB)*1.D20
-                  FCPPL =-RGAMH*(RGAMA/PG(NP,NSBA))**2 &
-                       *(1.D0-2.5D0*TMC2FD+55.D0/8.D0*TMC2FD**2) &
-                       * RNFD(NR,NSB)*1.D20*AMFP(NSA)/AMFD(NSB)
+                  DCPPL = RGAMH*(AMFP(NSA)/PTFP0(NSA))**2*(RGAMA/PG(NP,NSSA))**3 &
+                       *v_thermal**2 &
+!                       * RNFD(NR,NSB)*1.D20
+                       * RNFDL_C*1.D20
+                  FCPPL =-RGAMH*(RGAMA/PG(NP,NSSA))**2 &
+                       *(1.D0-2.5D0*THETAL_C+55.D0/8.D0*THETAL_C**2) &
+                       *AMFP(NSA)/AMFD(NSB) &
+!                       * RNFD(NR,NSB)*1.D20 
+                       * RNFDL_C*1.D20 
 
-!                  WRITE(6,'(A,2I5,1P4E14.6)') "high v ", NP, NSB, TMC2FD, v_thermal, DCPPL, FCPPL
+!                  WRITE(6,'(A,2I5,1P4E14.6)') "high v ", NP, NSB, THETAL_C, v_thermal, DCPPL, FCPPL
                END IF
             END IF
             DO NTH=1,NTHMAX
@@ -991,66 +979,64 @@
          ENDDO
 
          DO NP=NPSTARTW,NPENDWM
-            PNFPL=PM(NP,NSBA)
-            PNFP=PNFPL
-            RGAMA=SQRT(1.D0+PNFP**2*THETA0(NSA))
-            VFPL=PM(NP,NSBA)*PTFP0(NSA)/(AMFP(NSA)*RGAMA)
+            PNFP_C=PM(NP,NSSA)
+            PNFP_C=PNFPL
+            RGAMA=SQRT(1.D0+PNFP_C**2*THETA0(NSSA))
+            VFPL=PM(NP,NSSA)*PTFP0(NSA)/(AMFP(NSA)*RGAMA)
             vtatb=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))
-            ptatb=PM(NP,NSA)/RGAMA
-            PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2)) &
-                 *ptatb
+            ptatb=PM(NP,NSSA)/RGAMA
+            PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PM(NP,NSSA)
 
-            EX=(1.D0-SQRT(1.D0+PM(NP,NSA)**2*TMC2FD0))/TMC2FD
             IF(VFPL.le.v_thermal*10)THEN
-!            IF(EX.ge.-500.D0.and.NSA.eq.NSB)THEN
-!            IF(PTFP0(NSA)/Pe_thermal*PG(NP,NSBA).le.PMAX(NSA).and.NSA.eq.NSB) THEN ! normal velocity
-!            IF(PTFP0(NSA)/P_thermal*PG(NP,NSBA).le.PMAX(NSB))THEN
-!            IF(PTFP0(NSA)*PG(NP,NSBA).le.PE_thermal*PMAX(NSA)*2) THEN ! normal velocity
-               IF(PCRIT.le.PMAX(NSBA))THEN
+               IF(PCRIT.le.PMAX(NSSB))THEN
                   CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R,"DEHIFT_0R_4")
-                  PNFP=PCRIT
+                  PNFP_C=PCRIT
                   CALL DEFT  (RINT1,ES1,H0DE,EPSDE,0,FPFN1R,"DEFT1_le_tt")
                   CALL DEHIFT(RINT2,ES2,H0DE,EPSDE,0,FPFN2R,"DEHIFT_2R_4")
                   CALL DEFT  (RINT3,ES3,H0DE,EPSDE,0,FPFN3R,"DEFT3_le_tt")
-                  PNFP=PNFPL
+                  PNFP_C=PNFPL
                   DCTTL=RGAMH/(3.D0*RINT0)*( &
-                       1.5D0*RGAMA/PNFP*RINT3 &
+                       1.5D0*RGAMA/PNFP_C*RINT3 &
                        -0.5D0*(AMFP(NSA)**2*PTFD0(NSB)**2*RGAMA**3) &
-                       /(AMFD(NSB)**2*PTFP0(NSA)**2*PNFP**3)*RINT1 &
+                       /(AMFD(NSB)**2*PTFP0(NSA)**2*PNFP_C**3)*RINT1 &
                        +(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*RINT2 ) &
-                       *RNFD(NR,NSB)*1.D20
-!               ELSEIF(PCRIT.gt.PMAX(NSB))THEN
-               ELSEIF(PCRIT.gt.PMAX(NSBA))THEN
+!                       *RNFD(NR,NSB)*1.D20
+                       *RNFDL_C*1.D20
+               ELSEIF(PCRIT.gt.PMAX(NSSB))THEN
                   CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R,"DEHIFT_0R_5")
-                  PNFP=PMAX(NSBA)
+                  PNFP_C=PMAX(NSSB)
                   CALL DEFT  (RINT1,ES1,H0DE,EPSDE,0,FPFN1R,"DEFT1_gt_tt")
                   CALL DEFT  (RINT3,ES3,H0DE,EPSDE,0,FPFN3R,"DEFT3_gt_tt")
-                  PNFP=PNFPL*PTFP0(NSA)*AMFD(NSB)/(PTFD0(NSB)*AMFP(NSA))
-!                  CALL DEFT  (RINT4,ES1,H0DE,EPSDE,0,FPFN7R,"DEFT7_gt_tt")
-!                  CALL DEFT  (RINT5,ES3,H0DE,EPSDE,0,FPFN8R,"DEFT8_gt_tt")
-!                  CALL DEHIFT(RINT2,ES2,H0DE,EPSDE,0,FPFN2R,"DEHIFT_2R_5")
+                  PNFP_C=PNFPL*PTFP0(NSA)*AMFD(NSB)/(PTFD0(NSB)*AMFP(NSA))
                   RINT4=0.D0
                   RINT5=0.D0
                   RINT2=0.D0
-                  PNFP=PNFPL
+                  PNFP_C=PNFPL
                   DCTTL=RGAMH/(3.D0*RINT0)*( &
-                       1.5D0*RGAMA/PNFP*(RINT3+RINT5) &
+                       1.5D0*RGAMA/PNFP_C*(RINT3+RINT5) &
                        -0.5D0*(AMFP(NSA)**2*PTFD0(NSB)**2*RGAMA**3) &
-                       /(AMFD(NSB)**2*PTFP0(NSA)**2*PNFP**3)*(RINT1+RINT4) &
+                       /(AMFD(NSB)**2*PTFP0(NSA)**2*PNFP_C**3)*(RINT1+RINT4) &
                        +(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*RINT2 ) &
-                       *RNFD(NR,NSB)*1.D20
+!                       *RNFD(NR,NSB)*1.D20
+                       *RNFDL_C*1.D20
                ENDIF
             ELSE
-!               DCTTL=RGAMH/PG(NP,NSBA)*(1.D0-P_thermal**2/PFPL**2)
-               DCTTL=0.5D0*RGAMH*RGAMA/PM(NP,NSBA)* &
-                    (1.D0-(v_thermal*AMFP(NSA)/PTFP0(NSA))**2*(RGAMA/PM(NP,NSBA))**2) &
-                    * RNFD(NR,NSB)*1.D20
+               DCTTL=0.5D0*RGAMH*RGAMA/PM(NP,NSSA)* &
+                    (1.D0-(v_thermal*AMFP(NSA)/PTFP0(NSA))**2*(RGAMA/PM(NP,NSSA))**2) &
+!                    * RNFD(NR,NSB)*1.D20
+                    * RNFDL_C*1.D20
             END IF
             DO NTH=1,NTHMAX+1
                DCTT2(NTH,NP,NR,NSB,NSA)=DCTT2(NTH,NP,NR,NSB,NSA)+DCTTL
             ENDDO
          ENDDO
       ENDIF
+
+!      IF(TIMEFP.eq.5.D-3.and.NPSTART.eq.1)THEN
+!         DO NP=NPSTART,NPEND
+!            WRITE(*,'(A,3I4,4E14.6)') "TEST ", NSA, NSB, NP, PM(NP,NSSA), DCPP2(1,NP,1,NSB,NSA), DCTT2(1,NP,1,NSB,NSA), FCPP2(1,NP,1,NSB,NSA)
+!         END DO
+!      END IF
 
       RETURN
       END SUBROUTINE FPCALC_L
@@ -1068,51 +1054,47 @@
       integer:: NSA, NSB,NR, NP, NTH
       real(8):: RGAMH, RGAMH2, RZI, RTE, PFPL, VFPL, U, DCTTL
       real(8):: FACT
-      real(8):: PNFP,TMC2FD,TMC2FD0 
-      DOUBLE PRECISION:: DELH, sum, etal, psib, pcos, arg, x
-      INTEGER:: NG
+      DOUBLE PRECISION:: DELH, sum, etal, psib, pcos, arg, x, PSIN
+      INTEGER:: NG, ITLB, ITUB
 
+! DCPP, FCPP
       DO NSB=1,NSBMAX
-!         DO NP=1,NPMAX+1
          DO NP=NPSTART,NPENDWG
             DO NTH=1,NTHMAX
                FACT=RLAMDA(NTH,NR)
                DCPP2(NTH,NP,NR,NSB,NSA) &
-                    =FACT*DCPP2(NTH,NP,NR,NSB,NSA)
+                    =FACT*DCPP2(NTH,NP,NR,NSB,NSA)!*2.D0
                FCPP2(NTH,NP,NR,NSB,NSA) &
-                    =FACT*FCPP2(NTH,NP,NR,NSB,NSA)
+                    =FACT*FCPP2(NTH,NP,NR,NSB,NSA)!*2.D0
             ENDDO
-            DCPP2(ITL(NR),NP,NR,NSB,NSA) &
-                     =RLAMDA(ITL(NR),NR)/4.D0 &
-                       *( DCPP2(ITL(NR)-1,NP,NR,NSB,NSA) &
-                                   /RLAMDA(ITL(NR)-1,NR) &
-                         +DCPP2(ITL(NR)+1,NP,NR,NSB,NSA) &
-                                   /RLAMDA(ITL(NR)+1,NR) &
-                         +DCPP2(ITU(NR)-1,NP,NR,NSB,NSA) &
-                                   /RLAMDA(ITU(NR)-1,NR) &
-                         +DCPP2(ITU(NR)+1,NP,NR,NSB,NSA) &
-                                   /RLAMDA(ITU(NR)+1,NR))
+!            ITLB=ITL(NR)-1
+!            ITUB=NTHMAX-ITLB+1
+!            DCPP2(ITLB,NP,NR,NSB,NSA) &
+!                     =RLAMDA(ITLB,NR)/4.D0 &
+!                       *( DCPP2(ITLB-1,NP,NR,NSB,NSA) &
+!                                   /RLAMDA(ITLB-1,NR) &
+!                         +DCPP2(ITLB+1,NP,NR,NSB,NSA) &
+!                                   /RLAMDA(ITLB+1,NR) &
+!                         +DCPP2(ITUB-1,NP,NR,NSB,NSA) &
+!                                   /RLAMDA(ITUB-1,NR) &
+!                         +DCPP2(ITUB+1,NP,NR,NSB,NSA) &
+!                                   /RLAMDA(ITUB+1,NR) )
 
-            FCPP2(ITL(NR),NP,NR,NSB,NSA) &
-                    =RLAMDA(ITL(NR),NR)/4.D0  &
-                      *( FCPP2(ITL(NR)-1,NP,NR,NSB,NSA) &
-                                    /RLAMDA(ITL(NR)-1,NR) &
-                        +FCPP2(ITL(NR)+1,NP,NR,NSB,NSA) &
-                                    /RLAMDA(ITL(NR)+1,NR) &
-                        +FCPP2(ITU(NR)-1,NP,NR,NSB,NSA) &
-                                    /RLAMDA(ITU(NR)-1,NR) &
-                        +FCPP2(ITU(NR)+1,NP,NR,NSB,NSA) &
-                                    /RLAMDA(ITU(NR)+1,NR)) 
-            DCPP2(ITU(NR),NP,NR,NSB,NSA)=DCPP2(ITL(NR),NP,NR,NSB,NSA)
-            FCPP2(ITU(NR),NP,NR,NSB,NSA)=FCPP2(ITL(NR),NP,NR,NSB,NSA)
+!            FCPP2(ITLB,NP,NR,NSB,NSA) &
+!                    =RLAMDA(ITLB,NR)/4.D0  &
+!                      *( FCPP2(ITLB-1,NP,NR,NSB,NSA) &
+!                                    /RLAMDA(ITLB-1,NR) &
+!                        +FCPP2(ITLB+1,NP,NR,NSB,NSA) &
+!                                    /RLAMDA(ITLB+1,NR) &
+!                        +FCPP2(ITUB-1,NP,NR,NSB,NSA) &
+!                                    /RLAMDA(ITUB-1,NR) &
+!                        +FCPP2(ITUB+1,NP,NR,NSB,NSA) &
+!                                    /RLAMDA(ITUB+1,NR) ) 
+!            DCPP2(ITUB,NP,NR,NSB,NSA)=DCPP2(ITLB,NP,NR,NSB,NSA)
+!            FCPP2(ITUB,NP,NR,NSB,NSA)=FCPP2(ITLB,NP,NR,NSB,NSA)
          END DO
-!         FACT=RLAMDC(NTH,NR)
-!         DO NP=1,NPMAX
-!            DO NTH=1,NTHMAX+1
-!               DCTT2(NTH,NP,NR,NSB,NSA)=FACT*DCTT2(NTH,NP,NR,NSB,NSA)
-!            ENDDO
-!         END DO
-!         DO NP=1,NPMAX
+
+! DCTT
          DO NP=NPSTARTW,NPENDWM
             DO NTH=1,NTHMAX+1
                IF(NTH.NE.NTHMAX/2+1) THEN 
@@ -1120,27 +1102,382 @@
                   SUM=0.D0
                   DO NG=1,NAVMAX
                      ETAL = DELH*(NG-0.5D0)
-                     X=EPSRM2(NR)*COS(ETAL)*RR 
-                     PSIB=(1.D0+EPSRM2(NR))/(1.D0+X/RR)
+                     X=EPSRM2(NR)*COS(ETAL)
+                     PSIB=(1.D0+EPSRM2(NR))/(1.D0+X)
                      ARG=1.D0-PSIB*SING(NTH)**2
                      PCOS = SQRT(ARG)
-                     sum=sum + DCTT2(NTH,NP,NR,NSB,NSA)*PCOS/(PSIB*COSG(NTH)) 
+                     sum=sum + DCTT2(NTH,NP,NR,NSB,NSA)*PCOS/(PSIB*ABS(COSG(NTH))) 
                   END DO
-                  DCTT2(NTH,NP,NR,NSB,NSA)=sum*DELH
+                  DCTT2(NTH,NP,NR,NSB,NSA)=sum*DELH*Line_Element(NR)*A_chi0(NR)*2.D0
                ELSE
                   DCTT2(NTH,NP,NR,NSB,NSA)=0.D0
                END IF
             ENDDO
+
+!            ITLB=ITL_judge(NR)+1
+!            DO NTH=ITLB,NTHMAX/2
+!               DCTT2(NTH,NP,NR,NSB,NSA)        &
+!                    =(DCTT2(NTH,NP,NR,NSB,NSA) &
+!                    +DCTT2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0
+!               DCTT2(NTHMAX-NTH+2,NP,NR,NSB,NSA) &
+!                    =DCTT2(NTH,NP,NR,NSB,NSA) 
+!            END DO
+
+         END DO ! NP
+      END DO ! NSB
+
+!     DPT, DTP, FTH
+      IF(MODELC.ge.3)THEN
+      DO NSB=1,NSBMAX
+         DO NP=NPSTART,NPENDWG
+            DO NTH=1,NTHMAX
+               DELH = 2.D0*ETAM(NTH,NR)/NAVMAX
+               SUM=0.D0
+               DO NG=1,NAVMAX
+                  ETAL = DELH*(NG-0.5D0)
+                  X=EPSRM2(NR)*COS(ETAL)
+                  PSIB=(1.D0+EPSRM2(NR))/(1.D0+X)
+                  sum=sum + DCPT2(NTH,NP,NR,NSB,NSA)/SQRT(PSIB)
+               END DO
+               DCPT2(NTH,NP,NR,NSB,NSA)=sum*DELH*Line_Element(NR)*A_chi0(NR)*2.D0
+            ENDDO
+
+            ITLB=ITL(NR)-1
+            ITUB=NTHMAX-ITLB+1
+
+            DCPT2(ITLB,NP,NR,NSB,NSA) &
+                     =RLAMDA(ITLB,NR)/4.D0 &
+                       *( DCPT2(ITLB-1,NP,NR,NSB,NSA) &
+                                   /RLAMDA(ITLB-1,NR) &
+                         +DCPT2(ITLB+1,NP,NR,NSB,NSA) &
+                                   /RLAMDA(ITLB+1,NR) &
+                         +DCPT2(ITUB-1,NP,NR,NSB,NSA) &
+                                   /RLAMDA(ITUB-1,NR) &
+                         +DCPT2(ITUB+1,NP,NR,NSB,NSA) &
+                                   /RLAMDA(ITUB+1,NR) )
+
+            DCPT2(ITUB,NP,NR,NSB,NSA)=DCPT2(ITLB,NP,NR,NSB,NSA)
+         END DO
+
+! DTP, FTH
+         DO NP=NPSTARTW,NPENDWM
+            DO NTH=1,NTHMAX+1
+               DELH = 2.D0*ETAG(NTH,NR)/NAVMAX
+               SUM=0.D0
+               DO NG=1,NAVMAX
+                  ETAL = DELH*(NG-0.5D0)
+                  X=EPSRM2(NR)*COS(ETAL)
+                  PSIB=(1.D0+EPSRM2(NR))/(1.D0+X)
+                  sum=sum + 1.D0/SQRT(PSIB)
+               END DO
+               DCTP2(NTH,NP,NR,NSB,NSA)=sum*DCTP2(NTH,NP,NR,NSB,NSA)*DELH*Line_Element(NR)*A_chi0(NR)*2.D0
+               FCTH2(NTH,NP,NR,NSB,NSA)=sum*FCTH2(NTH,NP,NR,NSB,NSA)*DELH*Line_Element(NR)*A_chi0(NR)*2.D0
+            ENDDO
+
+            ITLB=ITL_judge(NR)+1
+            DO NTH=ITLB,NTHMAX/2
+               DCTP2(NTH,NP,NR,NSB,NSA)        &
+                    =(DCTP2(NTH,NP,NR,NSB,NSA) &
+                    +DCTP2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0
+               DCTP2(NTHMAX-NTH+2,NP,NR,NSB,NSA) &
+                    =DCTP2(NTH,NP,NR,NSB,NSA) 
+
+               FCTH2(NTH,NP,NR,NSB,NSA)        &
+                    =(FCTH2(NTH,NP,NR,NSB,NSA) &
+                    +FCTH2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0
+               FCTH2(NTHMAX-NTH+2,NP,NR,NSB,NSA) &
+                    =FCTH2(NTH,NP,NR,NSB,NSA) 
+            END DO
+         END DO ! NP
+      END DO ! NSB
+      END IF
+
+      RETURN
+      END SUBROUTINE FPCALC_LAV
+!-----------------------------------------
+      SUBROUTINE FPCALC_NLAV(NR,NSA)
+!
+      IMPLICIT NONE
+      integer,intent(in):: NR, NSA
+      integer:: NSB, NTH, NP, NG
+      real(8):: DELH, ETAL, X, PSIB, PCOS, ARG
+      real(8):: sum1, sum2, sum3, sum4, sum5, sum6, sum7, sum8, sum9
+      real(8):: temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8, temp9
+      INTEGER:: ISW_LAV, INTH
+     
+      ISW_LAV=0
+! INTEGRATION OF BOUNCE AVERAGING
+      DO NSB = 1,NSBMAX
+         DO NP=NPSTART,NPENDWG
+            DO NTH=1,NTHMAX
+               IF(NTH.ne.ITL(NR).and.NTH.ne.ITU(NR))THEN
+                  DELH=2.D0*ETAM(NTH,NR)/NAVMAX
+                  sum1=0.D0
+                  sum2=0.D0
+                  sum3=0.D0
+                  DO NG=1,NAVMAX
+                     ETAL=DELH*(NG-0.5D0)
+                     X=EPSRM2(NR)*COS(ETAL)
+                     PSIB=(1.D0+EPSRM2(NR))/(1.D0+X)
+                     PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
+
+                     sum1=sum1 + DCPP2(NTH,NP,NR,NSB,NSA)*ABS(COSM(NTH))/PCOS
+                     sum2=sum2 + DCPT2(NTH,NP,NR,NSB,NSA)/SQRT(PSIB)
+                     sum3=sum3 + FCPP2(NTH,NP,NR,NSB,NSA)*ABS(COSM(NTH))/PCOS
+                  END DO ! END NAVMAX 
+                  
+                  DCPP2(NTH,NP,NR,NSB,NSA)=SUM1*DELH
+                  DCPT2(NTH,NP,NR,NSB,NSA)=SUM2*DELH
+                  FCPP2(NTH,NP,NR,NSB,NSA)=SUM3*DELH
+               END IF
+            END DO ! END NTH
+!            IF(ISW_LAV.eq.1)THEN
+!               INTH=0
+!               DO NTH=ITL(NR),ITL(NR)+1
+!                  INTH=INTH+1
+!                  DELH=2.D0*ETAM(NTH,NR)/NAVMAX
+!                  sum7=0.D0
+!                  sum8=0.D0
+!                  sum9=0.D0
+!                  
+!                  temp7 = DCPP2B(INTH,NP,NR,NSB,NSA)
+!                  temp8 = FCPP2B(INTH,NP,NR,NSB,NSA)
+!                  temp9 = DCPT2B(INTH,NP,NR,NSB,NSA)
+!                  
+!                  IF (COSM(NTH).GE.0.D0) THEN
+!                     DO NG=1,NAVMAX
+!                        ETAL=DELH*(NG-0.5D0)
+!                        X=EPSRM(NR)*COS(ETAL)*RR
+!                        PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
+!                        PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
+!                        
+!                        sum7=sum7 + temp7*COSM(NTH)/PCOS
+!                        sum8=sum8 + temp8*COSM(NTH)/PCOS
+!                        sum9=sum9 + temp9/SQRT(PSIB)
+!                     END DO ! END NAVMAX 
+!                  ELSE ! SIGN OF PCOS
+!                     DO NG=1,NAVMAX
+!                        ETAL=DELH*(NG-0.5D0)
+!                        X=EPSRM(NR)*COS(ETAL)*RR
+!                        PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
+!                        PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
+!                        
+!                        sum7=sum7 + temp7*COSM(NTH)/PCOS
+!                        sum8=sum8 + temp8*COSM(NTH)/PCOS
+!                        sum9=sum9 + temp9/SQRT(PSIB)
+!                     END DO ! END NAVMAX
+!                  END IF
+!                  
+!                  DCPP2B(INTH,NP,NR,NSB,NSA)=SUM7*DELH
+!                  FCPP2B(INTH,NP,NR,NSB,NSA)=SUM8*DELH
+!                  DCPT2B(INTH,NP,NR,NSB,NSA)=SUM9*DELH
+!               END DO ! END NTH
+!               DO NTH=ITU(NR),ITU(NR)+1
+!                  INTH=INTH+1
+!                  DELH=2.D0*ETAM(NTH,NR)/NAVMAX
+!                  sum7=0.D0
+!                  sum8=0.D0
+!                  sum9=0.D0
+!                  
+!                  temp7 = DCPP2B(INTH,NP,NR,NSB,NSA)
+!                  temp8 = FCPP2B(INTH,NP,NR,NSB,NSA)
+!                  temp9 = DCPT2B(INTH,NP,NR,NSB,NSA)
+!                  
+!                  IF (COSM(NTH).GE.0.D0) THEN
+!                     DO NG=1,NAVMAX
+!                        ETAL=DELH*(NG-0.5D0)
+!                        X=EPSRM(NR)*COS(ETAL)*RR
+!                        PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
+!                        PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
+!                        
+!                        sum7=sum7 + temp7*COSM(NTH)/PCOS
+!                        sum8=sum8 + temp8*COSM(NTH)/PCOS
+!                        sum9=sum9 + temp9/SQRT(PSIB)
+!                     END DO ! END NAVMAX 
+!                  ELSE ! SIGN OF PCOS
+!                     DO NG=1,NAVMAX
+!                        ETAL=DELH*(NG-0.5D0)
+!                        X=EPSRM(NR)*COS(ETAL)*RR
+!                        PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
+!                        PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
+!                        
+!                        sum7=sum7 + temp7*COSM(NTH)/PCOS
+!                        sum8=sum8 + temp8*COSM(NTH)/PCOS
+!                        sum9=sum9 + temp9/SQRT(PSIB)
+!                     END DO ! END NAVMAX
+!                  END IF
+!
+!                  DCPP2B(INTH,NP,NR,NSB,NSA)=SUM7*DELH
+!                  FCPP2B(INTH,NP,NR,NSB,NSA)=SUM8*DELH
+!                  DCPT2B(INTH,NP,NR,NSB,NSA)=SUM9*DELH
+!               END DO ! END NTH
+!            END IF ! NEW GRID ISW
+         END DO ! END NP
+         DO NP=NPSTARTW,NPENDWM
+            DO NTH=1,NTHMAX+1
+               IF(NTH.NE.NTHMAX/2+1) THEN
+                  DELH=2.D0*ETAG(NTH,NR)/NAVMAX
+                  sum4=0.D0
+                  sum5=0.D0
+                  sum6=0.D0
+                  DO NG=1,NAVMAX
+                     ETAL=DELH*(NG-0.5D0)
+                     X=EPSRM2(NR)*COS(ETAL)
+                     PSIB=(1.D0+EPSRM2(NR))/(1.D0+X)
+                     ARG=1.D0-PSIB*SING(NTH)**2
+                     IF(ARG.GT.0.D0) THEN
+                        IF (COSG(NTH).GE.0.D0) THEN
+                           PCOS= SQRT(ARG)
+                        ELSE
+                           PCOS=-SQRT(ARG)
+                        ENDIF
+                     ELSE
+                        PCOS=0.D0
+                     ENDIF
+                     sum4=sum4 + DCTP2(NTH,NP,NR,NSB,NSA)/SQRT(PSIB)
+                     sum5=sum5 + DCTT2(NTH,NP,NR,NSB,NSA)*PCOS/(PSIB*COSG(NTH))
+                     sum6=sum6 + FCTH2(NTH,NP,NR,NSB,NSA)/SQRT(PSIB)
+                  END DO ! END NAVMAX
+                  DCTP2(NTH,NP,NR,NSB,NSA)=sum4*DELH
+                  DCTT2(NTH,NP,NR,NSB,NSA)=sum5*DELH
+                  FCTH2(NTH,NP,NR,NSB,NSA)=sum6*DELH
+               ELSE
+                  DCTP2(NTH,NP,NR,NSB,NSA)=0.D0
+                  DCTT2(NTH,NP,NR,NSB,NSA)=0.D0!?
+                  FCTH2(NTH,NP,NR,NSB,NSA)=0.D0
+               ENDIF ! END NTH!=pi/2
+            END DO ! END NTH
+         END DO ! END NP
+      END DO ! END NSB
+! END OF INTEGRATION
+
+! BALANCE TRAPPED REGION for P direction
+      DO NSB=1,NSBMAX
+         DO NP=NPSTART,NPENDWG
+            DO NTH=ITL(NR)+1,NTHMAX/2
+               DCPP2(NTH,NP,NR,NSB,NSA) &
+                    =(DCPP2(NTH,NP,NR,NSB,NSA) &
+                    +DCPP2(NTHMAX-NTH+1,NP,NR,NSB,NSA))*0.5D0
+               DCPP2(NTHMAX-NTH+1,NP,NR,NSB,NSA) &
+                    =DCPP2(NTH,NP,NR,NSB,NSA)
+            END DO ! END NTH
+            IF(ISW_LAV.ne.1)THEN
+               DCPP2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)*0.25D0     &
+                    *( DCPP2(ITL(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
+                    +DCPP2(ITL(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR) &
+                    +DCPP2(ITU(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR) &
+                    +DCPP2(ITU(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
+               DCPP2(ITU(NR),NP,NR,NSB,NSA)=DCPP2(ITL(NR),NP,NR,NSB,NSA)
+            ELSE
+!               DCPP2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)*0.25D0 &
+!                    *( DCPP2B(1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
+!                    +DCPP2B(2,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR)   &
+!                    +DCPP2B(3,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR)   &
+!                    +DCPP2B(4,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
+!               DCPP2(ITU(NR),NP,NR,NSB,NSA)=DCPP2(ITL(NR),NP,NR,NSB,NSA)
+            END IF
+         END DO ! END NP
+      END DO ! END NSB
+      DO NSB=1,NSBMAX
+         DO NP=NPSTART,NPENDWG
+            DO NTH=ITL(NR)+1,NTHMAX/2
+               FCPP2(NTH,NP,NR,NSB,NSA) &
+                    =(FCPP2(NTH,NP,NR,NSB,NSA) &
+                    +FCPP2(NTHMAX-NTH+1,NP,NR,NSB,NSA))*0.5D0
+               FCPP2(NTHMAX-NTH+1,NP,NR,NSB,NSA) &
+                    =FCPP2(NTH,NP,NR,NSB,NSA)
+            END DO ! END NTH
+            IF(ISW_LAV.ne.1)THEN
+               FCPP2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)*0.25D0     &
+                    *( FCPP2(ITL(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
+                    +FCPP2(ITL(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR) &
+                    +FCPP2(ITU(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR) &
+                    +FCPP2(ITU(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
+               FCPP2(ITU(NR),NP,NR,NSB,NSA)=FCPP2(ITL(NR),NP,NR,NSB,NSA)
+            ELSE
+!               FCPP2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)*0.25D0     &
+!                    *( FCPP2B(1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
+!                    +FCPP2B(2,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR) &
+!                    +FCPP2B(3,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR) &
+!                    +FCPP2B(4,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
+!               FCPP2(ITU(NR),NP,NR,NSB,NSA)=FCPP2(ITL(NR),NP,NR,NSB,NSA)
+            END IF
+         END DO ! END NP
+      END DO ! END NSB
+      DO NSB=1,NSBMAX
+         DO NP=NPSTART,NPENDWG
+            DO NTH=ITL(NR)+1,NTHMAX/2
+               DCPT2(NTH,NP,NR,NSB,NSA) &
+                    =(DCPT2(NTH,NP,NR,NSB,NSA) &
+!                     +DCPT2(NTHMAX-NTH+1,NP,NR,NSB,NSA))*0.5D0 ! symmetry
+                     -DCPT2(NTHMAX-NTH+1,NP,NR,NSB,NSA))*0.5D0 ! assymmetry
+               DCPT2(NTHMAX-NTH+1,NP,NR,NSB,NSA) &
+!                    =DCPT2(NTH,NP,NR,NSB,NSA) ! symmetry
+                    =-DCPT2(NTH,NP,NR,NSB,NSA) ! assymmetry
+            END DO ! END NTH
+            IF(ISW_LAV.ne.1)THEN
+               DCPT2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)*0.25D0     &
+                    *( DCPT2(ITL(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
+                    +DCPT2(ITL(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR) &
+!                    +DCPT2(ITU(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR) & ! symmetry
+!                    +DCPT2(ITU(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
+                    -DCPT2(ITU(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR) & ! assymetry
+                    -DCPT2(ITU(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
+!               DCPT2(ITU(NR),NP,NR,NSB,NSA)=DCPT2(ITL(NR),NP,NR,NSB,NSA) ! symmetry
+               DCPT2(ITU(NR),NP,NR,NSB,NSA)=-DCPT2(ITL(NR),NP,NR,NSB,NSA) ! assymmetry
+            ELSE
+!               DCPT2(ITL(NR),NP,NR,NSB,NSA)=RLAMDA(ITL(NR),NR)*0.25D0     &
+!                    *( DCPT2B(1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)-1,NR) &
+!                    +DCPT2B(2,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR) &
+!                    +DCPT2B(3,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR) &
+!                    +DCPT2B(4,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
+!               DCPT2(ITU(NR),NP,NR,NSB,NSA)=-DCPT2(ITL(NR),NP,NR,NSB,NSA)
+            END IF
+         END DO ! END NP
+      END DO ! END NSB
+! END OF BALANCE TRAPPED REGION for P direction
+
+! BALANCE TRAPPED REGION for THETA direction
+      DO NSB=1,NSBMAX
+         DO NP=NPSTARTW,NPENDWM
             DO NTH=ITL(NR)+1,NTHMAX/2
                DCTT2(NTH,NP,NR,NSB,NSA)        &
                     =(DCTT2(NTH,NP,NR,NSB,NSA) &
                     +DCTT2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0
                DCTT2(NTHMAX-NTH+2,NP,NR,NSB,NSA) &
-                    =DCTT2(NTH,NP,NR,NSB,NSA) 
+                    =DCTT2(NTH,NP,NR,NSB,NSA)
             END DO
-         END DO ! NP
-      END DO ! NSB
-
+         END DO
+      END DO
+      DO NSB=1,NSBMAX
+         DO NP=NPSTARTW,NPENDWM
+            DO NTH=ITL(NR)+1,NTHMAX/2
+               FCTH2(NTH,NP,NR,NSB,NSA)        &
+                    =(FCTH2(NTH,NP,NR,NSB,NSA) &
+!                     +FCTH2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0 ! symmetry
+                     -FCTH2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0 ! a
+               FCTH2(NTHMAX-NTH+2,NP,NR,NSB,NSA) &
+!                    =FCTH2(NTH,NP,NR,NSB,NSA) ! symmetry
+                    =-FCTH2(NTH,NP,NR,NSB,NSA)
+            END DO
+         END DO
+      END DO
+      DO NSB=1,NSBMAX
+         DO NP=NPSTARTW,NPENDWM
+            DO NTH=ITL(NR)+1,NTHMAX/2
+               DCTP2(NTH,NP,NR,NSB,NSA)        &
+                    =(DCTP2(NTH,NP,NR,NSB,NSA) &
+!                     +DCTP2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0 ! symmetry
+                     -DCTP2(NTHMAX-NTH+2,NP,NR,NSB,NSA))*0.5D0
+               DCTP2(NTHMAX-NTH+2,NP,NR,NSB,NSA) &
+!                    =DCTP2(NTH,NP,NR,NSB,NSA) ! symmetry
+                    =-DCTP2(NTH,NP,NR,NSB,NSA)
+            END DO
+         END DO
+      END DO
+! END OF BALANCE TRAPPED REGION for THETA direction
+      
       RETURN
-      END SUBROUTINE FPCALC_LAV
+      END SUBROUTINE FPCALC_NLAV
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       END MODULE fpcalc

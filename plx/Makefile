@@ -1,13 +1,13 @@
 ### $Id$ ###
-include ../../task/make.header
+include ../make.header
 
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
-MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD)
+MODINCLUDE=-I $(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD)
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -16,13 +16,13 @@ MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD)
 
 SRCSFIXED = 
 SRCSFREE = modules.f90 pl_vmec.f90 plcomm.f90 plinit.f90 \
-           plprof.f90 plmenu.f90
+           plload.f90 plprof2d.f90 plprof.f90 plmenu.f90
 SRCO = noeqlib.f noequlib.f
 
 OBJS = $(SRCSFIXED:.f=.o) $(SRCSFREE:.f90=.o) 
 OBJO = $(SRCO:.f=.o) 
 
-LIBS = ../lib/tasklib.a ../../bpsd/bpsdlib.a ../eq/eqlib.a pllib.a
+LIBS = pllib.a ../eq/eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a
 
 all : pllib.a  noeqlib.o noequlib.o pl
 
@@ -41,7 +41,7 @@ libs:
 	(cd ../eq; make eqlib.a)
 
 pl : $(LIBS) plmain.o
-	$(FCFIXED) plmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODDIR) $(MODINCLUDE)
+	$(FCFIXED) plmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 check :
 	ftnchek $(FCKFLAGS) $(SRCSFIXED) | less
@@ -65,6 +65,6 @@ plmenu.o: plmenu.f90 plcomm.f90
 plinit.o: plinit.f90 plcomm.f90
 plintf.o: plintf.f90 plcomm.f90
 pldata.o: pldata.f90 plcomm.f90
-plprof.o: plprof.f90 plcomm.f90 plxprf.f90
-plxprf.o: plxprf.f90
+plprof.o: plprof.f90 plcomm.f90 plload.f90
+plload.o: plload.f90
 plcomm.o: plcomm.f90

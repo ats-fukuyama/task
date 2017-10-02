@@ -26,6 +26,8 @@
       END TYPE mtx_mpi_type
       PUBLIC mtx_mpi_type
 
+      PUBLIC mtx_mpi
+
       PUBLIC mtx_set_communicator_global
       PUBLIC mtx_set_communicator
       PUBLIC mtx_reset_communicator
@@ -97,10 +99,32 @@
       PUBLIC mtx_sendrecv_real8
       PUBLIC mtx_sendrecv_comple8
 
+      PUBLIC mtx_scatterv_real8
+      PUBLIC mtx_send_real8
+      PUBLIC mtx_recv_real8
+
+      PUBLIC mtx_abort
+
       TYPE(mtx_mpi_type):: mtx_global
       INTEGER:: ncomm,nrank,nsize
 
+      INTEGER:: real8_buffer_count
+      REAL(8),DIMENSION(:),ALLOCATABLE:: real8_buffer
+
+
       CONTAINS
+
+!-----
+
+      SUBROUTINE mtx_mpi(ncomm_,nrank_,nsize_)
+        IMPLICIT NONE
+        INTEGER,INTENT(IN):: ncomm_,nrank_,nsize_
+
+        ncomm=ncomm_
+        nrank=nrank_
+        nsize=nsize_
+        return
+      END SUBROUTINE mtx_mpi
 
 !-----
 
@@ -1093,5 +1117,62 @@
         RETURN
       END SUBROUTINE mtx_sendrecv_complex8
 
+!-----------------------------------------------------------
+      SUBROUTINE mtx_scatterv_real8(sendbuf,sendbuf_size,recvcount,recvbuf)
+
+      IMPLICIT NONE
+      integer,intent(in):: sendbuf_size, recvcount
+      double precision,dimension(sendbuf_size),intent(in)::sendbuf
+      double precision,dimension(recvcount),intent(out)::recvbuf
+      integer:: i
+
+      DO i=1,recvcount
+         recvbuf(i)=sendbuf(i)
+      END DO
+      RETURN
+
+      END SUBROUTINE mtx_scatterv_real8
+!-----------------------------------------------------------
+      SUBROUTINE mtx_send_real8(sendbuf,sendcount,dest,tag)
+
+      IMPLICIT NONE
+      INTEGER,INTENT(IN):: sendcount
+      REAL(8),INTENT(IN),DIMENSION(sendcount):: sendbuf
+      INTEGER,INTENT(IN):: dest,tag
+      INTEGER:: i
+
+      ALLOCATE(real8_buffer(sendcount))
+
+      real8_buffer_count=sendcount
+      DO i=1,sendcount
+         real8_buffer(i)=sendbuf(i)
+      END DO
+
+      END SUBROUTINE mtx_send_real8
+!-----------------------------------------------------------
+      SUBROUTINE mtx_recv_real8(recvbuf,recvcount,source,tag)
+
+      IMPLICIT NONE
+      INTEGER,INTENT(IN):: recvcount
+      REAL(8),INTENT(OUT),DIMENSION(recvcount):: recvbuf
+      INTEGER,INTENT(IN):: source,tag
+      INTEGER:: i
+
+      DO i=1,MIN(recvcount,real8_buffer_count)
+         recvbuf(i)=real8_buffer(i)
+      END DO
+      DEALLOCATE(real8_buffer)
+
+      END SUBROUTINE MTX_RECV_REAL8
+!-----------------------------------------------------------
+      SUBROUTINE mtx_abort(ierr_g)
+
+      IMPLICIT NONE
+      integer:: ierr_g
+
+      ierr_g=0
+
+      END SUBROUTINE mtx_abort
+!-----
     END MODULE libmpi
 

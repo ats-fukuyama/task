@@ -63,7 +63,7 @@
     3    idata(1)=0
     4    CONTINUE
       ENDIF
-      CALL mtx_broadcast_integer(idata,6)
+      CALL mtx_broadcast_integer(idata,7)
       CALL mtx_broadcast_real8(ddata,1)
       idimen=idata(1)
       isiz=idata(2)

@@ -1,0 +1,14 @@
+Installation of OPEN-ADAS data files and program files
+
+   Since the OPEN-ADAS data files and program files 
+   cannot be included in distribution, they have to be 
+   installed separately from the OPEN-ADAS depository.
+
+1. download xxdata_11.tar.gz in this directory
+2. expand the tar.gz file
+       tar xvzf xxdata_11.tar.gz
+       program files 
+3. download data files in this directory
+       e.g. adf11/acd50/acd50_w.dat
+4. list data files in adf11-lib/ADF11-FILE-LIST
+       see ADF11-FILE-LIST.example

@@ -21,7 +21,8 @@
            & SNFT, SOUT, SPE, SPET, T, TAUE1, TAUE2, TAUE89, TAUE98, TF0, &
            & TFAV, TPRE, TS0, TSAV, VLOOP, VV, WBULKT, WFT, WPDOT, WPPRE, & 
            & WPT, WST, WTAILT, ZEFF, ZEFF0, ABVRHOG, RDPVRHOG, &
-           & PRB,PRC,PRL,PRSUM,PRBT,PRCT,PRLT,PRSUMT
+           & PRB,PRC,PRL,PRSUM,PRBT,PRCT,PRLT,PRSUMT, &
+             NSMAX,SPSCT,SPSC 
       IMPLICIT NONE
       INTEGER(4):: NEQ, NF, NMK, NR, NRL, NS, NSSN, NSSN1, NSVN, NSVN1, NSW, NW
       REAL(8)   :: ANFSUM, C83, DRH, DV53, FCTR, PAI, PLST, RNSUM, RNTSUM, &
@@ -156,6 +157,12 @@
       DO NS=1,NSM
          ANLAV(NS)=SUM(RN(1:NRMAX,NS))*DR
       ENDDO
+
+!     *** Particle source ***
+
+      DO NS=1,NSMAX
+         SPSCT(NS) = SUM(SPSC(1:NRMAX,NS)*DVRHO(1:NRMAX))*DR
+      END DO
 
 !     *** Ohmic, NBI and fusion powers ***
 

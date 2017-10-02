@@ -356,6 +356,7 @@ C        MODELW = 0 : fixed density and temperature
 C                 1 : fixed density and free temperature
 C                 2 : free density and temperature
 C
+
       DO M=1,3
          IM=IELM(M,IE)
          KNODPL=KNODP(IM)
@@ -1045,7 +1046,7 @@ C
 C      UI=13.6D0   (Hydrogen)
 C      UI=15.76D0  (Argon)
 C
-      UI=15.76D0
+      UI=13.6D0
       U=UI/TEFF
       IF(U.GT.100.D0) THEN
          RNUION=0.D0
@@ -1211,10 +1212,15 @@ C
          X=XD(IN)
          Y=YD(IN)
 C
-         SIONZ=SGIVEN* EXP(-(X-XGIVEN)**2/RGIVEN**2)
-     &               * EXP(-(Y-YGIVEN)**2/RGIVEN**2)
-         PABSZ=PGIVEN* EXP(-(X-XGIVEN)**2/RGIVEN**2)
-     &               * EXP(-(Y-YGIVEN)**2/RGIVEN**2)
+         XX=(X-XGIVEN)**2/RGIVEN**2
+         YY=(Y-YGIVEN)**2/RGIVEN**2
+         IF(XX.LT.100.D0.AND.YY.LT.100.D0) THEN
+            SIONZ=SGIVEN* EXP(-XX-YY)
+            PABSZ=PGIVEN* EXP(-XX-YY)
+         ELSE
+            SIONZ=0.D0
+            PABSZ=0.D0
+         END IF
 C
 C        *** JOULE HEATING ***
 C

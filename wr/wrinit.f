@@ -29,14 +29,16 @@ C
 C     MDLWRI : INPUT TYPE OF WAVE PARAMETERS
 C              0 : RF,RP,ZP,PHI,RKR0,RNZ,RNPHI,UU
 C              1 : RF,RP,ZP,PHI,RKR0,ANGZ,ANGPH,UU
-C             10 : RFIN,RPIN,ZPIN,PHIIN,RKRIN,RNZIN,RNPHIIN,UUIN: namelist
-C             11 : RFIN,RPIN,ZPIN,PHIIN,RKRIN,ANGZIN,ANGPHIN,UUIN: namelist
+C             11 : RF,RP,ZP,RKR0,RNZ,RNPHI,UU
+C            100 : RFIN,RPIN,ZPIN,PHIIN,RKRIN,RNZIN,RNPHIIN,UUIN: namelist
+C            101 : RFIN,RPIN,ZPIN,PHIIN,RKRIN,ANGZIN,ANGPHIN,UUIN: namelist
 C
 C     MDLWRG : TYPE OF GRAPHICS
 C              0 : FULL TORUS, FULL RADIUS FOR DEPOSITION
 C              1 : PARTIAL TORUS, FULL RADIUS FOR DEPOSITION
 C              2 : FULL TORUS, PARTIAL RADIUS FOR DEPOSITION
 C              3 : PARTIAL TORUS, PARTIAL RADIUS FOR DEPOSITION
+C             11 : 2D plane
 C
 C     MDLWRQ : TYPE OF DIFFERENTIAL EQUATION IN RAY TRACING
 C              0 : RUNGE-KUTTA, FIXED STEPSIZE
@@ -165,9 +167,13 @@ C
 C
       NAMELIST /WR/ RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,
      &              NSMAX,PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PU,PUS,
+     &              r_corner,z_corner,
+     &              br_corner,bz_corner,bt_corner,
+     &              pn_corner,ptpr_corner,ptpp_corner,
      &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
      &              RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG,
-     &              MODELG,MODELN,MODELQ,
+     &              PPN0,PTN0,RFPL,
+     &              MODELG,MODELN,MODELQ,MODEL_NPROF,RHOGMN,RHOGMX,
      &              KNAMEQ,KNAMWR,KNAMFP,KNAMFO,KNAMEQ2,
      &              MODELP,NDISP1,NDISP2,
      &              MODELV,MDLWRI,MDLWRG,RHOGMN,RHOGMX,MDLWRQ,MDLWRW,
@@ -228,23 +234,23 @@ C
 C
       IERR=0
 C
-      IF(MODELG.EQ.3) THEN
+      IF(MODELG.EQ.3.OR.MODELG.EQ.5) THEN
          IF(INITEQ.EQ.0) THEN
-            CALL EQLOAD(3,KNAMEQ,IERR)
+            CALL EQLOAD(MODELG,KNAMEQ,IERR)
             IF(IERR.EQ.0) THEN
                write(LINE,'(A,I5)') 'nrmax =',51
                call eqparm(2,line,ierr)
-               write(LINE,'(A,I5)') 'nthmax=',64
+               write(line,'(a,i5)') 'nthmax=',64
                call eqparm(2,line,ierr)
-               write(LINE,'(A,I5)') 'nsumax=',64
+               write(line,'(a,i5)') 'nsumax=',64
                call eqparm(2,line,ierr)
-               CALL EQCALQ(IERR)
-               CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
-               INITEQ=1
-            ELSE
-               WRITE(6,*) 'XX EQLOAD: IERR=',IERR
-               INITEQ=0
-            ENDIF
+               call eqcalq(ierr)
+               call eqgetb(bb,rr,rip,ra,rkap,rdlt,rb)
+               initeq=1
+            else
+               write(6,*) 'xx eqload: ierr=',ierr
+               initeq=0
+            endif
          ENDIF
       ELSE IF(MODELG.EQ.8) THEN
          IF(INITEQ.EQ.0) THEN

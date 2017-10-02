@@ -1,4 +1,4 @@
-!     $Id$
+!     $Id: fpmenu.f90,v 1.3 2013/01/14 16:48:26 fukuyama Exp $
 
 !     ***** TASK/FP MENU *****
 
@@ -12,6 +12,7 @@
       USE fpinit
       USE fpprep
       USE fploop
+      USE fploop_exp
       USE fpgout
       USE fpfout
       USE plinit
@@ -22,7 +23,7 @@
       IMPLICIT NONE
       CHARACTER(LEN=1)::  KID
       CHARACTER(LEN=80):: LINE
-      integer:: ierr,NSA,NGRAPH_SAVE
+      integer:: ierr,NGRAPH_SAVE
       integer,DIMENSION(1):: mode
       REAL(4):: cputime1,cputime2
 
@@ -44,13 +45,18 @@
       IF(KID.EQ.'R'.OR.KID.EQ.'C') THEN
          IF(nrank.EQ.0) CALL CPU_TIME(cputime1)
          IF(KID.EQ.'R') THEN
+            CALL OPEN_EVOLVE_DATA_OUTPUT
             CALL fp_prep(ierr)
             IF(ierr.ne.0) GO TO 1
          ELSEIF(KID.eq.'C')THEN
             CALL fp_continue(ierr)
             IF(ierr.ne.0) GO TO 1
          ENDIF
-         CALL fp_loop
+         IF(MODEL_EX_READ_Tn.eq.0)THEN
+            CALL fp_loop
+         ELSEIF(MODEL_EX_READ_Tn.eq.1)THEN
+            CALL fp_loop_exp
+         END IF
          IF(nrank.eq.0) THEN
             CALL CPU_TIME(cputime2)
             write(6,'(A,F12.3)') &
@@ -90,20 +96,23 @@
          TIMEFP=0.D0
          CALL fp_prep(ierr)
          IF(ierr.ne.0) GO TO 1
-         DO NSA=1,NSAMAX
-            CALL fp_coef(NSA)
-         END DO
+         CALL fp_coef(0)
          CALL fpsglb
          CALL fpwrtglb
          CALL fpsprf
          CALL fpwrtprf
       ELSEIF (KID.EQ.'S') THEN
-         if(nrank.eq.0) CALL fp_save
+         CALL FP_PRE_SAVE
+         if(nrank.eq.0) CALL fp_save2
          CALL mtx_barrier
       ELSEIF (KID.EQ.'L') THEN
-         if(nrank.eq.0) CALL fp_load
+         CALL OPEN_EVOLVE_DATA_OUTPUT
+         CALL FP_PRE_LOAD
+         if(nrank.eq.0) CALL fp_load2
          CALL mtx_barrier
+         CALL FP_POST_LOAD
       ELSEIF (KID.EQ.'Q') THEN
+         CALL CLOSE_EVOLVE_DATA_OUTPUT 
          GO TO 9000
 
       ELSE IF(KID.EQ.'X'.OR.KID.EQ.'#') THEN

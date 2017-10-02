@@ -159,6 +159,12 @@ C
                YJ0(3,NA)=ZJH2
                XJ0(4,NA)=RDX
                YJ0(4,NA)=ZJH2
+            ELSEIF(NTYPJH.EQ.10) THEN
+               NJMAX=2
+               XJ0(1,NA)=RD
+               YJ0(1,NA)=ZJH1
+               XJ0(2,NA)=RD
+               YJ0(2,NA)=ZJH2
             ENDIF
             JNUM0(NA)=NJMAX
             PHJ0(NA)=PHJH

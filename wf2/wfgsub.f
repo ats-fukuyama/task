@@ -47,6 +47,8 @@ C
 C
       IF(NWXMAX.EQ.0) THEN
          IF(DRATIO.GT.1.25D0) THEN
+            NWW=8
+         ELSEIF(DRATIO.GT.1.25D0) THEN
             NWW=6
          ELSEIF(DRATIO.GT.0.5D0) THEN
             IF(NWMAX.LE.3) then
@@ -275,6 +277,7 @@ C
          ENDIF
          CALL GQSCAL(GZMIN,GZMAX,GQZMIN,GQZMAX,GZSCAL)
          GZDEL=0.5*GZSCAL
+         IF(KWD(1:3).EQ.'EZA') GZDEL=0.05*GZSCAL
          ISTEP=INT((GQZMAX-GQZMIN)/GZDEL)
          IF(IDP.EQ.2) THEN
             GZDEL=1.0
@@ -341,6 +344,7 @@ C
          ELSE
             CALL GQSCAL(GZMIN,GZMAX,GQZMIN,GQZMAX,GZSCAL)
             GZDEL=0.5*GZSCAL
+            IF(KWD(1:3).EQ.'EZA') GZDEL=0.05*GZSCAL
             ISTEP=INT((GQZMAX-GQZMIN)/GZDEL)
             IF(GZMIN*GZMAX.GE.0.0) THEN
                IF(GZMAX.GT.0.D0) THEN
@@ -467,9 +471,9 @@ C
          CALL GMNMX2(GZ,NGXM,1,NGXMAX,1,1,NGYMAX,1,GZMIN,GZMAX)
          IF(GZMIN*GZMAX.LT.0.D0) THEN
             GZA=MAX(ABS(GZMAX),ABS(GZMIN))
-            GDZ=2*GZA/ISTEP
+            GZDEL=2*GZA/ISTEP
             DO I=1,ISTEP
-               GZL(I)=GDZ*(I-0.5)-GZA
+               GZL(I)=GZDEL*(I-0.5)-GZA
             ENDDO
 C      
             DO I=0,ISTEP
@@ -478,9 +482,9 @@ C
             ENDDO
          ELSE
             GZA=GZMIN
-            GDZ=(GZMAX-GZMIN)/ISTEP
+            GZDEL=(GZMAX-GZMIN)/ISTEP
             DO I=1,ISTEP
-               GZL(I)=GDZ*I+GZA
+               GZL(I)=GZDEL*I+GZA
             ENDDO
             DO I=0,ISTEP
                GFACT=REAL(I)/REAL(ISTEP)
@@ -510,7 +514,7 @@ C
          CALL GMNMX2(GZ,NGXM,1,NGXMAX,1,1,NGYMAX,1,GZMIN,GZMAX)
          GMAX=MAX(ABS(GZMIN),ABS(GZMAX))
          IF(GMAX.LE.0.D0) GOTO 1000
-         CALL GQSCAL(GZMIN,GZMAX,GQZMIN,GQZMAX,GZSCAL)
+         CALL GQSCAL(GZMIN,GZMAX,GQZMIN,GQZMAX,GZDEL)
 C
          CALL GDEFIN(GPXMIN,GPXMAX,GPYMIN,GPYMAX,
      &               GXN1,GXN2,GYN1,GYN2)
@@ -568,8 +572,8 @@ C
       ENDIF
 C
  1000 CALL SETLIN(0,0,7)
-      CALL SETCHS(0.25,0.0)
-      GXPOS=0.5*(GPXMIN+GPXMAX)-6.5*0.25
+      CALL SETCHS(0.20,0.0)
+      GXPOS=0.5*(GPXMIN+GPXMAX)-6.5*0.20
       GYPOS=GPYMIN-0.35
       CALL MOVE(GXPOS,GYPOS)
       IF(KWD(1:1).EQ.'P') THEN
@@ -1382,14 +1386,14 @@ C
       CALL TEXT(' PHIAVE=',8)
       CALL NUMBD(PHIT(NGTMAX,1),'(1PE10.3)',10)
 C
-      GX=GXMIN+4.8*GDX
+      GX=GXMIN+5.8*GDX
       GY=GYMAX-6.3*GDY
       CALL MOVE(GX,GY)
       CALL TEXT('IS  ',4)
       CALL TEXT('   PABS  ',9)
 C
       DO 30 IS=1,NSMAX
-         GX=GXMIN+4.8*GDX
+         GX=GXMIN+5.8*GDX
          GY=GY-GDY
          CALL MOVE(GX,GY)
          IST=IS
@@ -1658,12 +1662,14 @@ C
             CALL SETRGB(1.0,1.0,1.0)
          ELSEIF(KE.EQ.1) THEN
             CALL SETRGB(0.8,1.0,0.8)
+            CALL POLY(GX,GY,4)
          ELSEIF(KE.EQ.2) THEN
             CALL SETRGB(1.0,0.8,0.8)
+            CALL POLY(GX,GY,4)
          ELSEIF(KE.EQ.3) THEN
             CALL SETRGB(0.8,0.8,1.0)
+            CALL POLY(GX,GY,4)
          ENDIF
-         CALL POLY(GX,GY,4)
          CALL SETRGB(0.0,1.0,0.0)
          CALL LINES(GX,GY,4)
       ENDDO

@@ -27,7 +27,7 @@ SUBROUTINE WFGOUT
   ENDIF
   
 1 WRITE(6,*) '# INPUT : E/B/D,X/Y/Z/+/-/P/F,[R/I/A][Xx/Yy/Zz/B6]/'
-  WRITE(6,*) '          Xyz/Yxz/Zxy/A9 0-9 V,0-9'
+  WRITE(6,*) '          Xyz/Yxz/Zxy/A9 0-9 V,0-9, L'
   WRITE(6,*) '          P/F,1/2,CXx/CYy/CZz/Xyz/Yxz/Zxy  X=EXIT'
   CALL GUFLSH
   READ(5,'(A80)',ERR=1,END=9000) KLINE
@@ -128,7 +128,6 @@ SUBROUTINE WFGOUT
         GOTO 1000
      ENDIF
      KID=KWD(3:3)
-     WRITE(6,*) 'KID,NGRAPH=',KID,NGRAPH
      IF(    KID.EQ.'R'.OR.&
        &    KID.EQ.'I'.OR.&
        &    KID.EQ.'A'.OR.&

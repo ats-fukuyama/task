@@ -259,10 +259,8 @@ C
             ELSE
                RN(NS)  =(PN(NS)  -PNS(NS))*FACT+PNS(NS)
             ENDIF
-C            RTPR(NS)=(PTPR(NS)-PTS(NS))*FACT+PTS(NS)
-C            RTPP(NS)=(PTPP(NS)-PTS(NS))*FACT+PTS(NS)
-            RTPR(NS)=PTPR(NS)
-            RTPP(NS)=PTPP(NS)
+            RTPR(NS)=(PTPR(NS)-PTS(NS))*FACT+PTS(NS)
+            RTPP(NS)=(PTPP(NS)-PTS(NS))*FACT+PTS(NS)
          ENDDO
          PNE(IN)=RN(1)
          PNI(IN)=RN(2)

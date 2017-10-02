@@ -192,9 +192,9 @@ CONTAINS
        A%ASPECT=GUCLIP(ASPECT)
        IF(A%ASPECT /= 0.0) THEN
           IF(A%ASPECT >= 1.0) THEN
-             A%GPXMAX=A%GPXMIN+(A%GPYMAX-A%GPYMIN)*A%ASPECT
+             A%GPXMAX=A%GPXMIN+(A%GPYMAX-A%GPYMIN)/A%ASPECT
           ELSE
-             A%GPYMAX=A%GPYMIN+(A%GPXMAX-A%GPXMIN)/A%ASPECT
+             A%GPYMAX=A%GPYMIN+(A%GPXMAX-A%GPXMIN)*A%ASPECT
           END IF
        END IF
     ELSE
@@ -448,7 +448,7 @@ CONTAINS
        IF(PRESENT(LINE_PAT)) THEN
           NLL=SIZE(LINE_PAT,DIM=1)
           DO NL=1,A%NLMAX
-             A%LINE_PAT(1:NL)=LINE_PAT(MOD(NL-1,NLL)+1)
+             A%LINE_PAT(NL)=LINE_PAT(MOD(NL-1,NLL)+1)
           END DO
        ELSE
           DO NL=1,A%NLMAX
@@ -482,17 +482,18 @@ CONTAINS
 
     CASE(1:) ! 2D contour line and paint and 3D Bird's ey view
 
-       IF(A%FMIN < 0.0 .AND. A%FMAX > 0.0) THEN
-           A%FMAX=MAX(ABS(A%FMIN),ABS(A%FMAX))
-           A%FMIN=-A%FMAX
-       ENDIF
+!       IF(A%FMIN < 0.0 .AND. A%FMAX > 0.0) THEN
+!           A%FMAX=MAX(ABS(A%FMIN),ABS(A%FMAX))
+!           A%FMIN=-A%FMAX
+!       ENDIF
 
        IF(PRESENT(NLMAX)) THEN
           A%NLMAX=NLMAX
        ELSE
-          A%NLMAX=MIN(NINT(ABS((A%FMAX-A%FMIN)/A%FSCALE_STEP))+2,1001)
+          A%NLMAX=MIN(NINT(ABS((A%FMAX-A%FMIN)/A%FSCALE_STEP))+2,1000)
           IF(A%FMIN < 0.0 .AND. A%FMAX > 0.0) THEN
-             IF(MOD(A%NLMAX,2) == 0) A%NLMAX=A%NLMAX+1
+!             IF(MOD(A%NLMAX,2) == 0) A%NLMAX=A%NLMAX+1
+             IF(MOD(A%NLMAX,2) == 1) A%NLMAX=A%NLMAX+1
           ENDIF
        ENDIF
 
@@ -621,7 +622,7 @@ CONTAINS
        IF(PRESENT(LINE_PAT)) THEN
           NLL=SIZE(LINE_PAT,DIM=1)
           DO NL=1,A%NLMAX
-             A%LINE_PAT(1:NL)=LINE_PAT(MOD(NL-1,NLL)+1)
+             A%LINE_PAT(NL)=LINE_PAT(MOD(NL-1,NLL)+1)
           END DO
        ELSE
           IF(A%FMIN < 0.0 .AND. A%FMAX > 0.0) THEN

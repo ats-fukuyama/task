@@ -1,4 +1,4 @@
-!     $Id$
+!     $Id: fpcalcnr.f90,v 1.22 2013/02/08 07:36:24 nuga Exp $
 !
 ! ************************************************************
 !
@@ -11,7 +11,7 @@
       USE fpcomm
       USE libspf, ONLY: dpleg
 !      USE fpcoef, ONLY: FPMXWL
-      real(8):: PNFP, TMC2FD0, TMC2FD
+      real(8):: PNFP_NLR, THETA0L_NLR, THETAL_NLR
 
 
       contains
@@ -57,7 +57,7 @@
            DPSI02G,DPSI022G,PSI0G,PSI02G,PSI022G,DPSI1G,DPSI11G
 
 
-      integer:: NP, NTH, NSA, NSB, L, NR, LLMIN, NI, NA, NNP, NPG, NSBA
+      integer:: NP, NTH, NSA, NSB, L, NR, LLMIN, NI, NA, NNP, NPG, NSSA, NSSB
       integer:: IER, LTEST, INTH
       real(8):: RGAMH, SUM1, SUM2, SUM3, SUM4, SUM5
       real(8):: PSUM, PCRIT, RGAMA, RGAMB, RUFP, FACT, FACT2, RUFD
@@ -67,13 +67,18 @@
 !
 !----- DEFINITION OF LOCAL QUANTITIES -------------
 ! 
-      TMC2FD0=THETA0(NSB)
-      TMC2FD =(PTFD(NR,NSB)/(AMFD(NSB)*VC))**2 
+      NSSA=NS_NSA(NSA)
+      NSSB=NS_NSB(NSB)
+      THETA0L_NLR=THETA0(NSSB)
+      IF(MODEL_DISRUPT.eq.0)THEN 
+         THETAL_NLR =(PTFD(NR,NSB)/(AMFD(NSB)*VC))**2 
+      ELSE
+         THETAL_NLR =THETA0(NSSB)*RT_quench(NR)/RTFD0(NSB)
+      END IF
       FACT=AEFP(NSA)**2*AEFD(NSB)**2*LNLAM(NR,NSB,NSA)/(4.D0*PI*EPS0**2)
 !      RGAMH=RNUD(NR,NSB,NSA)*SQRT(2.D0)*VTFD(NR,NSB)*AMFP(NSA) &
 !           /(RNFP0(NSA)*PTFP0(NSA)*1.D20)
       RGAMH=FACT*AMFP(NSA)/PTFP0(NSA)**3
-      NSBA=NSB_NSA(NSA)
 !
 !   --- calculation of Legendre Polynomials and its derivatives---
 !
@@ -139,8 +144,6 @@
 !
 !     ----- Legendre expansion of distribution funstion FNS -----
 !
-!      open(8,file='FPL_t1.dat')
-!      NS=NS_NSB(NSB)
 
       CALL mtx_set_communicator(comm_np) 
       DO L=LLMIN,LLMAX
@@ -168,7 +171,7 @@
 !
          TX(1)=0.D0
          TY(1)=0.D0
-         FPLS1_temp=FPMXWL_calcnr(0.D0,NR,NSB)
+         FPLS1_temp=FPMXWL_calcnr(0.D0,NR,NSSB)
          DO NTH=1,NTHMAX
             TX(NTH+1)=THM(NTH)
             TY(NTH+1)=FPLS1_temp*PLM(NTH,L)*SINM(NTH)
@@ -204,8 +207,8 @@
 !      END IF
       DO L = 0,LLMAX
          DO NP = NPSTARTW, NPENDWM
-            RGAMA=SQRT(1.D0+PM(NP,NSBA)**2*THETA0(NSA))
-            RUFP = (PTFP0(NSA)*PM(NP,NSBA))/AMFP(NSA)
+            RGAMA=SQRT(1.D0+PM(NP,NSSA)**2*THETA0(NSSA))
+            RUFP = (PTFP0(NSA)*PM(NP,NSSA))/AMFP(NSA)
 
             CALL FKLF_JY(RUFP,RJ_1,RY_1)
             CALL DERIV_JY(RUFP,RJ_1,RY_1,DERJ,DERY)
@@ -257,29 +260,8 @@
             PSI1M(NP,L) = ( RY_1(L,1)*RJABM(NP,L,0,1) &
                  +RJ_1(L,1)*RYABM(NP,L,0,1) )/VC
 
-!         IF(NSA.eq.1.and.NSB.eq.2) THEN
-!            WRITE(8,'(2I4,1P28E14.6)') L, NP, RUFP/VC, &
-!                 (AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PM(NP,NSBA), &
-!                 DPSI02M(NP,L), DPSI022M(NP,L), &
-!                 PSI02M(NP,L), PSI022M(NP,L), PSI11M(NP,L), PSI1M(NP,L), & ! 7,8,9,10
-!                 RJ_1(L+2,0), RJ_1(L+2,1), RJ_1(L+2,2), &
-!                 RY_1(L+2,0), RY_1(L+2,1), RY_1(L+2,2)
-!!                 RJABM(NP,L,0,0), RJABM(NP,L,0,1), RJABM(NP,L,0,2), &
-!!                 RJABM(NP,L,1,0), RJABM(NP,L,1,1), RJABM(NP,L,1,2), & 
-!!                 RJABM(NP,L,2,0), RJABM(NP,L,2,1), RJABM(NP,L,2,2), & ! 17 18 19
-!!                 RYABM(NP,L,0,0), RYABM(NP,L,0,1), RYABM(NP,L,0,2), &
-!!                 RYABM(NP,L,1,0), RYABM(NP,L,1,1), RYABM(NP,L,1,2), & 
-!!                 RYABM(NP,L,2,0), RYABM(NP,L,2,1), RYABM(NP,L,2,2)    ! 26 27 28
-!         END IF
          END DO
-!         IF(NSA.eq.1.and.NSB.eq.2) THEN
-!            WRITE(8,*)" "
-!            WRITE(8,*)" "
-!         END IF
       END DO
-!      IF(NSA.eq.1.and.NSB.eq.2) THEN
-!         close(8)
-!      END IF
 
 !
 !----------- END OF MID 
@@ -287,9 +269,6 @@
 !
 !----------- ON GRID
 !
-!      IF(NSA.eq.1.and.NSB.eq.2) THEN
-!         open(9,file='RJYG.dat')
-!      END IF
       IF(NPSTART.eq.1)THEN
          NPS=2
       ELSE
@@ -297,8 +276,8 @@
       END IF
       DO L=0,LLMAX
          DO NP = NPS, NPENDWG
-            RGAMA=SQRT(1.D0+PG(NP,NSBA)**2*THETA0(NSA))
-            RUFP = (PTFP0(NSA)*PG(NP,NSBA))/AMFP(NSA)
+            RGAMA=SQRT(1.D0+PG(NP,NSSA)**2*THETA0(NSSA))
+            RUFP = (PTFP0(NSA)*PG(NP,NSSA))/AMFP(NSA)
             CALL FKLF_JY(RUFP,RJ_1,RY_1)
             CALL DERIV_JY(RUFP,RJ_1,RY_1,DERJ,DERY)
 
@@ -349,24 +328,8 @@
                  +(RJ_1(L+1,0)+RUFP*DERJ(L+1,0))*RYABG(NP,L,0,1) &
                  -DERJ(L,1)*RYABG(NP,L,1,0) )
 
-!            IF(NSA.eq.1.and.NSB.eq.2) THEN
-!               WRITE(9,'(2I4,1P23E14.6)') L, NP, RUFP/VC, &
-!                    PG(NP,NSA), DPSI02G(NP,L), DPSI022G(NP,L), PSI0G(NP,L), & ! 4,5,6,7
-!                    PSI02G(NP,L), PSI022G(NP,L), DPSI1G(NP,L), DPSI11G(NP,L), & ! 
-!                    RJ_1(L+2,0), RJ_1(L+2,1), RJ_1(L+2,2), & ! 12,13,14
-!                    RY_1(L+2,0), RY_1(L+2,1), RY_1(L+2,2), &
-!                    DERJ(L+2,0), DERJ(L+2,1), DERJ(L+2,2), &
-!                    DERY(L+2,0), DERY(L+2,1), DERY(L+2,2)
-!            END IF
          END DO
-!         IF(NSA.eq.1.and.NSB.eq.2) THEN
-!            WRITE(9,*)" "
-!            WRITE(9,*)" "
-!         END IF
       END DO
-!      IF(NSA.eq.1.and.NSB.eq.2) THEN
-!         close(9)
-!      END IF
 
 !
 !----------END OF ON GIRD
@@ -382,8 +345,8 @@
 !-----DCPP & FCPP-----------------
 !      DO NP=2,NPMAX+1
       DO NP=NPS,NPENDWG
-         RGAMA=SQRT(1.D0+PG(NP,NSBA)**2*THETA0(NSA))
-         RUFP = (PTFP0(NSA)*PG(NP,NSBA))/AMFP(NSA)
+         RGAMA=SQRT(1.D0+PG(NP,NSSA)**2*THETA0(NSSA))
+         RUFP = (PTFP0(NSA)*PG(NP,NSSA))/AMFP(NSA)
          DO NTH=1,NTHMAX
             DO L=LLMAX,LLMIN,-1
                SUMA = DPSI02G(NP,L) *PLM(NTH,L)
@@ -407,57 +370,6 @@
                     *( -SUMF + 2.D0/VC**2*SUMG )
             END DO
          END DO 
-! FOR BOUNDARY VALUE
-!         INTH=0
-!         DO NTH=ITL(NR), ITL(NR)+1
-!            INTH=INTH+1
-!            DO L=LLMAX,LLMIN,-1
-!               SUMA = DPSI02G(NP,L) *PLG(NTH,L)
-!               SUMB = DPSI022G(NP,L)*PLG(NTH,L)
-!               SUMC = PSI0G(NP,L)   *PLG(NTH,L)
-!               SUMD = PSI02G(NP,L)  *PLG(NTH,L)
-!               SUME = PSI022G(NP,L) *PLG(NTH,L)
-!               SUMF = DPSI1G(NP,L)  *PLG(NTH,L)
-!               SUMG = DPSI11G(NP,L) *PLG(NTH,L)
-!               
-!               DCPP2B(INTH,NP,NR,NSB,NSA)=DCPP2B(INTH,NP,NR,NSB,NSA) &
-!                    + FACT * RGAMA / RUFP *(                        &
-!                    2.D0*RGAMA**2* SUMA                             &
-!                    -8.D0*(RGAMA/VC)**2* SUMB                       &
-!                    -RUFP* SUMC - L*(L+1)/RUFP* SUMD                &
-!                    +(8.D0*(RUFP/VC)**2+4.D0*L*(L+1))/(RUFP*VC**2)  &
-!                    *SUME    )
-!               
-!               FCPP2B(INTH,NP,NR,NSB,NSA) = FCPP2B(INTH,NP,NR,NSB,NSA) &
-!                    +FACT2 * AMFP(NSA)/AMFD(NSB)*RGAMA             &
-!                    *( -SUMF + 2.D0/VC**2*SUMG )
-!            END DO
-!         END DO
-!         DO NTH=ITU(NR), ITU(NR)+1
-!            INTH=INTH+1
-!            DO L=LLMAX,LLMIN,-1
-!               SUMA = DPSI02G(NP,L) *PLG(NTH,L)
-!               SUMB = DPSI022G(NP,L)*PLG(NTH,L)
-!               SUMC = PSI0G(NP,L)   *PLG(NTH,L)
-!               SUMD = PSI02G(NP,L)  *PLG(NTH,L)
-!               SUME = PSI022G(NP,L) *PLG(NTH,L)
-!               SUMF = DPSI1G(NP,L)  *PLG(NTH,L)
-!               SUMG = DPSI11G(NP,L) *PLG(NTH,L)
-!               
-!               DCPP2B(INTH,NP,NR,NSB,NSA)=DCPP2B(INTH,NP,NR,NSB,NSA) &
-!                    + FACT * RGAMA / RUFP *(                        &
-!                    2.D0*RGAMA**2* SUMA                             &
-!                    -8.D0*(RGAMA/VC)**2* SUMB                       &
-!                    -RUFP* SUMC - L*(L+1)/RUFP* SUMD                &
-!                    +(8.D0*(RUFP/VC)**2+4.D0*L*(L+1))/(RUFP*VC**2)  &
-!                    *SUME    )
-!               
-!               FCPP2B(INTH,NP,NR,NSB,NSA) = FCPP2B(INTH,NP,NR,NSB,NSA) &
-!                    +FACT2 * AMFP(NSA)/AMFD(NSB)*RGAMA             &
-!                    *( -SUMF + 2.D0/VC**2*SUMG )
-!            END DO
-!         END DO
-! END FOR BOUNDARY VALUE         
       END DO
 
 
@@ -466,11 +378,10 @@
          DO NTH=1,NTHMAX
             FCPP2(NTH,1,NR,NSB,NSA) = 0.D0
             
-            PNFP=0.D0
-!         THETA0(NSB)=(PTFD0(NSB)/(AMFD(NSB)*VC))**2
+            PNFP_NLR=0.D0
             PCRIT=0.D0
             CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R2)
-            PNFP=PCRIT
+            PNFP_NLR=PCRIT
             CALL DEHIFT(RINT2,ES2,H0DE,EPSDE,0,FPFN2R2)
             DCPP2(NTH,1,NR,NSB,NSA) = RGAMH/(3.D0*RINT0)*(  &
                  (AMFD(NSB)*PTFP0(NSA))                     &
@@ -493,8 +404,8 @@
 
 !      DO NP=1,NPMAX
       DO NP=NPSTARTW,NPENDWM
-         RGAMA=SQRT(1.D0+PM(NP,NSBA)**2*THETA0(NSA))
-         RUFP = (PTFP0(NSA)*PM(NP,NSBA))/AMFP(NSA)
+         RGAMA=SQRT(1.D0+PM(NP,NSSA)**2*THETA0(NSSA))
+         RUFP = (PTFP0(NSA)*PM(NP,NSSA))/AMFP(NSA)
          DO NTH=1,NTHMAX+1
             SUMA = 0.D0
             SUMB = 0.D0
@@ -539,8 +450,8 @@
       END IF
 
       DO NP=NPS,NPENDWG
-         RGAMA=SQRT(1.D0+PG(NP,NSBA)**2*THETA0(NSA))
-         RUFP = (PTFP0(NSA)*PG(NP,NSBA))/AMFP(NSA)
+         RGAMA=SQRT(1.D0+PG(NP,NSSA)**2*THETA0(NSSA))
+         RUFP = (PTFP0(NSA)*PG(NP,NSSA))/AMFP(NSA)
          DO NTH=1,NTHMAX
             SUMA = 0.D0
             SUMB = 0.D0
@@ -558,40 +469,11 @@
                  *( 4.D0/VC**2*SUMA - SUMB                       &
                  - 4.D0/(RUFP*VC**2)*SUMC + SUMD/RUFP )
          END DO
-! FOR BAUNDARY
-!         INTH=0
-!         DO NTH=ITL(NR), ITL(NR)+1
-!            INTH=INTH+1
-!            DO L=LLMAX,LLMIN,-1
-!               SUMA = SUMA + DPSI022G(NP,L) * D1PLG(NTH,L)
-!               SUMB = SUMB + DPSI02G(NP,L) * D1PLG(NTH,L)
-!               SUMC = SUMC + PSI022G(NP,L) * D1PLG(NTH,L)
-!               SUMD = SUMD + PSI02G(NP,L) * D1PLG(NTH,L)
-!            END DO
-!            DCPT2B(INTH,NP,NR,NSB,NSA) = DCPT2B(INTH,NP,NR,NSB,NSA)  &
-!                 +FACT*RGAMA/RUFP                                &
-!                 *( 4.D0/VC**2*SUMA - SUMB                       &
-!                 - 4.D0/(RUFP*VC**2)*SUMC + SUMD/RUFP )
-!         END DO
-!         DO NTH=ITU(NR), ITU(NR)+1
-!            INTH=INTH+1
-!            DO L=LLMAX,LLMIN,-1
-!               SUMA = SUMA + DPSI022G(NP,L) * D1PLG(NTH,L)
-!               SUMB = SUMB + DPSI02G(NP,L) * D1PLG(NTH,L)
-!               SUMC = SUMC + PSI022G(NP,L) * D1PLG(NTH,L)
-!               SUMD = SUMD + PSI02G(NP,L) * D1PLG(NTH,L)
-!            END DO
-!            DCPT2B(INTH,NP,NR,NSB,NSA) = DCPT2B(INTH,NP,NR,NSB,NSA)  &
-!                 +FACT*RGAMA/RUFP                                &
-!                 *( 4.D0/VC**2*SUMA - SUMB                       &
-!                 - 4.D0/(RUFP*VC**2)*SUMC + SUMD/RUFP )
-!         END DO
-! END FOR BOUNDARY
       END DO
 
       DO NP=NPSTARTW,NPENDWM
-         RGAMA=SQRT(1.D0+PM(NP,NSBA)**2*THETA0(NSA))
-         RUFP = (PTFP0(NSA)*PM(NP,NSBA))/AMFP(NSA)
+         RGAMA=SQRT(1.D0+PM(NP,NSSA)**2*THETA0(NSSA))
+         RUFP = (PTFP0(NSA)*PM(NP,NSSA))/AMFP(NSA)
          DO NTH=1,NTHMAX+1
             SUMA = 0.D0
             SUMB = 0.D0
@@ -610,39 +492,6 @@
                  - 4.D0/(RUFP*VC**2)*SUMC + SUMD/RUFP )
          END DO
       END DO
-
-!! p -> infty limit 
-!      DO NTH=1,NTHMAX
-!         RGAMA=SQRT(1.D0+THETA0(NSA)*PMAX(NSBA)**2)
-!         RUFD=PTFD0(NSB)/AMFD(NSB)
-!         RUFP=PTFP0(NSA)/AMFP(NSA)*PMAX(NSA)
-!         Z=1.D0/THETA(NR,NSB)
-!         DKBSL0=BESEKN(0,Z)
-!         DKBSL1=BESEKN(1,Z)
-!         DKBSL2=BESEKN(2,Z)
-
-!         DCPP2(NTH,NPMAX+1,NR,NSB,NSA) = &
-!              FACT / (4.D0*PI) &
-!              * RUFD**2 &
-!              /(RUFP/RGAMA)**3*DKBSL1/DKBSL2 &
-!              *(1.D0- DKBSL0/DKBSL1*(RUFD/RGAMA/VC)**2 )
-
-!         DCTT2(NTH,NPMAX,NR,NSB,NSA) = &
-!              FACT / (4.D0*PI) &
-!              *0.5D0/(RUFP/RGAMA) &
-!              *(1.D0-DKBSL1/DKBSL2*( (RUFD/RUFP)**2+RUFD**2/(RGAMA*VC)**2) &
-!              +DKBSL0/DKBSL2*(RUFD/RUFP)**2*(RUFD/RGAMA/VC)**2)
-
-!         FCPP2(NTH,NPMAX+1,NR,NSB,NSA) = &
-!              -FACT2 / (4.D0*PI) &
-!              *AMFP(NSA)/AMFD(NSB) &
-!              /(RUFP/RGAMA)**2*DKBSL1/DKBSL2 &
-!              *(1.D0-DKBSL0/DKBSL1*(RUFD/RGAMA/VC)**2)
-
-!      END DO
-!      DCTT2(NTHMAX+1,NPMAX,NR,NSB,NSA) = DCTT2(NTHMAX,NPMAX,NR,NSB,NSA)
-
-!! end of p -> infty limit
 
       RETURN
       END SUBROUTINE FPCALC_NLR
@@ -898,13 +747,14 @@
       real(8),DIMENSION(NPSTARTW:NPENDWM, 0:LLMAX, 0:2, -1:2):: RYABM
       real(8),DIMENSION(NPSTART:NPENDWG , 0:LLMAX, 0:2, -1:2):: RYABG
 
-      integer:: NP, NTH, NSA, NSB, L, LLMIN, NI, NA, NNP, NPG, NSBA
+      integer:: NP, NTH, NSA, NSB, L, LLMIN, NI, NA, NNP, NPG, NSSA, NSSB
       integer:: IER, NS, NPS
       real(8):: SUM1, SUM2, SUM3, SUM4, SUM5
       real(8):: PSUM, PCRIT, RGAMA, RGAMB, RUFP, FACT, FACT2
       real(8):: vtatb, pabbar, ptatb, PMAX2, testF
 
-      NSBA=NSB_NSA(NSA)
+      NSSA=NS_NSA(NSA)
+      NSSB=NS_NSB(NSB)
       IF(NPSTART.eq.1)THEN
          NPS=2
       ELSE
@@ -918,26 +768,26 @@
          TX1(1)=0.D0
          TY1(1)=0.D0
          DO NNP=1,NPMAX
-            RGAMB=SQRT(1.D0+PM(NNP,NSB)**2*THETA0(NSB))
-            RUFP = (PTFD0(NSB)*PM(NNP,NSB))/AMFD(NSB)
+            RGAMB=SQRT(1.D0+PM(NNP,NSSB)**2*THETA0(NSSB))
+            RUFP = (PTFD0(NSB)*PM(NNP,NSSB))/AMFD(NSB)
             CALL FKLF_JY(RUFP,RJ_1,RY_1)
-            TX1(NNP+1)=PM(NNP,NSB)
-            TY1(NNP+1)=FPL(NNP,L)*(PM(NNP,NSB)**(2+NI))/RGAMB &
+            TX1(NNP+1)=PM(NNP,NSSB)
+            TY1(NNP+1)=FPL(NNP,L)*(PM(NNP,NSSB)**(2+NI))/RGAMB &
                  *RJ_1(L+NI,NA)
          END DO
-         TX1(NPMAX+2)=PMAX(NSB)
+         TX1(NPMAX+2)=PMAX(NSSB)
          TY1(NPMAX+2)=0.D0
          DF1(1)   = 0.D0
          DF1(NPMAX+2)   = 0.D0
-         PMAX2=PMAX(NSB)
+         PMAX2=PMAX(NSSB)
          CALL SPL1D(TX1,TY1,DF1,UTY1,NPMAX+2,3,IER)
          CALL SPL1DI0(TX1,UTY1,UTY10,NPMAX+2,IER)
          CALL SPL1DI(PMAX2,PSUM,TX1,UTY1,UTY10,NPMAX+2,IER)
 
 !         DO NP=1,NPMAX
          DO NP=NPSTARTW,NPENDWM
-            PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PM(NP,NSBA)
-            IF(PCRIT.le.PMAX(NSB)) THEN
+            PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PM(NP,NSSA)
+            IF(PCRIT.le.PMAX(NSSB)) THEN
                CALL SPL1DI(PCRIT,SUM2,TX1,UTY1,UTY10,NPMAX+2,IER)
                RJABM(NP,L,NI,NA)=SUM2*(PTFD0(NSB)/AMFD(NSB))**NI
             ELSE
@@ -949,8 +799,8 @@
             IF(NPG.eq.1)THEN
                RJABG(1,L,NI,NA)=0.D0
             ELSE
-               PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PG(NPG,NSBA)
-               IF(PCRIT.le.PMAX(NSB)) THEN
+               PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PG(NPG,NSSA)
+               IF(PCRIT.le.PMAX(NSSB)) THEN
                   CALL SPL1DI(PCRIT,SUM3,TX1,UTY1,UTY10,NPMAX+2,IER)
                   RJABG(NPG,L,NI,NA)=SUM3*(PTFD0(NSB)/AMFD(NSB))**NI
                ELSE
@@ -964,14 +814,14 @@
          TX1(1)=0.D0
          TY1(1)=0.D0
          DO NNP=1,NPMAX
-            RGAMB=SQRT(1.D0+PM(NNP,NSB)**2*THETA0(NSB))
-            RUFP = (PTFD0(NSB)*PM(NNP,NSB))/AMFD(NSB)
+            RGAMB=SQRT(1.D0+PM(NNP,NSSB)**2*THETA0(NSSB))
+            RUFP = (PTFD0(NSB)*PM(NNP,NSSB))/AMFD(NSB)
             CALL FKLF_JY(RUFP,RJ_1,RY_1)
-            TX1(NNP+1)=PM(NNP,NSB)
-            TY1(NNP+1)=FPL(NNP,L)*(PM(NNP,NSB)**(2+NI))/RGAMB &
+            TX1(NNP+1)=PM(NNP,NSSB)
+            TY1(NNP+1)=FPL(NNP,L)*(PM(NNP,NSSB)**(2+NI))/RGAMB &
                  *RY_1(L-NI,NA)
          END DO
-         TX1(NPMAX+2)=PMAX(NSB)
+         TX1(NPMAX+2)=PMAX(NSSB)
          TY1(NPMAX+2)=0.D0
          IF(NI.ne.0)THEN
             DF1(1) = 0.D0
@@ -980,15 +830,15 @@
 !            DF1(1) = - AMFD(NSB)*VC/PTFD0(NSB)*(3.D0*FPL(1,L)-FPL(2,L))/2.D0
          END IF
          DF1(NPMAX+2)   = 0.D0
-         PMAX2=PMAX(NSB)
+         PMAX2=PMAX(NSSB)
          CALL SPL1D(TX1,TY1,DF1,UTY1,NPMAX+2,3,IER)
          CALL SPL1DI0(TX1,UTY1,UTY10,NPMAX+2,IER)
          CALL SPL1DI(PMAX2,PSUM,TX1,UTY1,UTY10,NPMAX+2,IER)
 
 !         DO NP=1,NPMAX
          DO NP=NPSTARTW,NPENDWM
-            PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PM(NP,NSBA)
-            IF(PCRIT.le.PMAX(NSB)) THEN
+            PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PM(NP,NSSA)
+            IF(PCRIT.le.PMAX(NSSB)) THEN
                CALL SPL1DI(PCRIT,SUM4,TX1,UTY1,UTY10,NPMAX+2,IER)
                RYABM(NP,L,NI,NA)=(PSUM-SUM4)*(PTFD0(NSB)/AMFD(NSB))**NI
             ELSE
@@ -997,8 +847,8 @@
          END DO
 !         DO NPG=1,NPMAX+1
          DO NPG=NPSTART,NPENDWG
-            PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PG(NPG,NSBA)
-            IF(PCRIT.le.PMAX(NSB)) THEN
+            PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PG(NPG,NSSA)
+            IF(PCRIT.le.PMAX(NSSB)) THEN
                CALL SPL1DI(PCRIT,SUM5,TX1,UTY1,UTY10,NPMAX+2,IER)
                RYABG(NPG,L,NI,NA)=(PSUM-SUM5)*(PTFD0(NSB)/AMFD(NSB))**NI
             ELSE
@@ -1034,8 +884,8 @@
       real(8):: A, PN, B
 
       A=1.D0
-      PN=A*(X+PNFP)
-      B=PN*SQRT(1.D0+PN**2*TMC2FD0)
+      PN=A*(X+PNFP_NLR)
+      B=PN*SQRT(1.D0+PN**2*THETA0L_NLR)
       FPFN2R2=A*B*FPRMXW2(PN)
 
       RETURN
@@ -1050,7 +900,7 @@
       real(8),INTENT(IN):: PN
       real(8):: EX
 
-      EX=(1.D0-SQRT(1.D0+PN**2*TMC2FD0))/TMC2FD
+      EX=(1.D0-SQRT(1.D0+PN**2*THETA0L_NLR))/THETAL_NLR
       IF (EX.LT.-100.D0)THEN
          FPRMXW2=0.D0
       ELSE
@@ -1082,15 +932,16 @@
       real(8),DIMENSION(NPSTARTW:NPENDWM, 0:LLMAX, 0:2, -1:2),INTENT(OUT):: RYABM
       real(8),DIMENSION(NPSTART:NPENDWG , 0:LLMAX, 0:2, -1:2),INTENT(OUT):: RYABG
 
-      integer:: NP, NTH, L, LLMIN, NI, NA, NNP, NPG, NSBA
+      integer:: NP, NTH, L, LLMIN, NI, NA, NNP, NPG, NSSA, NSSB
       integer:: IER, NS, NPF
       real(8):: SUM1, SUM2, SUM3, SUM4, SUM5
       real(8):: PSUM, PCRIT, RGAMA, RGAMB, RUFP, FACT, FACT2
       real(8):: vtatb, pabbar, ptatb, PMAX2, testF, testP
       integer:: N_fine_range
 
-      TMC2FD0=(PTFD0(NSB)/(AMFD(NSB)*VC))**2
-      NSBA=NSB_NSA(NSA)
+      THETA0L_NLR=(PTFD0(NSB)/(AMFD(NSB)*VC))**2
+      NSSA=NS_NSA(NSA)
+      NSSB=NS_NSB(NSB)
       N_fine_range=1
 
 !      open(9,file='spl_j_fine.dat')
@@ -1101,16 +952,16 @@
          TX1(1)=0.D0
          TY1(1)=FPL0(1,L)
          DO NP=1,NPMAX
-            TX1(NP+1)=PM(NP,NSB)
+            TX1(NP+1)=PM(NP,NSSB)
             TY1(NP+1)=FPL(NP,L)
          END DO
-         TX1(NPMAX+2)=PMAX(NSB)
+         TX1(NPMAX+2)=PMAX(NSSB)
          TY1(NPMAX+2)=0.D0
          DF1(1)=0.D0
          DF1(NPMAX+2)=0.D0
          CALL SPL1D(TX1,TY1,DF1,UTY1,NPMAX+2,3,IER)
          DO NP=1,NPMAX-1
-            testP=PM(NP,NSB)/PMAX(NSB)*N_fine_range
+            testP=PM(NP,NSSB)/PMAX(NSSB)*N_fine_range
             CALL SPL1DF(testP,testF,TX1,UTY1,NPMAX+2,IER)
             FPL0(NP+1,L)=testF
          END DO
@@ -1123,8 +974,8 @@
          TX1(1)=0.D0
          TY1(1)=0.D0
          DO NNP=1,NPMAX-1
-            testP=PM(NNP,NSB)/PMAX(NSB)*N_fine_range
-            RGAMB=SQRT(1.D0+testP**2*THETA0(NSB))
+            testP=PM(NNP,NSSB)/PMAX(NSSB)*N_fine_range
+            RGAMB=SQRT(1.D0+testP**2*THETA0(NSSB))
             RUFP = (PTFD0(NSB)*testP)/AMFD(NSB)
             CALL FKLF_JY(RUFP,RJ_1,RY_1)
             TX1(NNP+1)=testP
@@ -1134,22 +985,22 @@
          END DO
          NPF=NPMAX
          DO NNP=1,NPMAX
-            RGAMB=SQRT(1.D0+PM(NNP,NSB)**2*THETA0(NSB))
-            RUFP = (PTFD0(NSB)*PM(NNP,NSB))/AMFD(NSB)
-            IF(PM(NNP,NSB).ge.1.D0*N_fine_range)THEN
+            RGAMB=SQRT(1.D0+PM(NNP,NSSB)**2*THETA0(NSSB))
+            RUFP = (PTFD0(NSSB)*PM(NNP,NSSB))/AMFD(NSB)
+            IF(PM(NNP,NSSB).ge.1.D0*N_fine_range)THEN
                NPF=NPF+1
                CALL FKLF_JY(RUFP,RJ_1,RY_1)
-               TX1(NPF)=PM(NNP,NSB)
-               TY1(NPF)=FPL(NNP,L)*(PM(NNP,NSB)**(2+NI))/RGAMB &
+               TX1(NPF)=PM(NNP,NSSB)
+               TY1(NPF)=FPL(NNP,L)*(PM(NNP,NSSB)**(2+NI))/RGAMB &
                     *RJ_1(L+NI,NA)
 !               IF(L.eq.1) TY1(NPF)=0.D0
             END IF
          END DO
-         TX1(NPF+1)=PMAX(NSB)
+         TX1(NPF+1)=PMAX(NSSB)
          TY1(NPF+1)=0.D0
          DF1(1)   = 0.D0
          DF1(NPF+1)   = 0.D0
-         PMAX2=PMAX(NSB)
+         PMAX2=PMAX(NSSB)
          CALL SPL1D(TX1,TY1,DF1,UTY1,NPF+1,3,IER)
          CALL SPL1DI0(TX1,UTY1,UTY10,NPF+1,IER)
          CALL SPL1DI(PMAX2,PSUM,TX1,UTY1,UTY10,NPF+1,IER)
@@ -1162,8 +1013,8 @@
 
 !         DO NP=1,NPMAX
          DO NP=NPSTARTW,NPENDWM
-            PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PM(NP,NSBA)
-            IF(PCRIT.le.PMAX(NSB)) THEN
+            PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PM(NP,NSSA)
+            IF(PCRIT.le.PMAX(NSSB)) THEN
                CALL SPL1DI(PCRIT,SUM2,TX1,UTY1,UTY10,NPF+1,IER)
                RJABM(NP,L,NI,NA)=SUM2*(PTFD0(NSB)/AMFD(NSB))**NI
             ELSE
@@ -1175,8 +1026,8 @@
             IF(NPG.eq.1)THEN
                RJABG(1,L,NI,NA)=0.D0
             ELSE
-               PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PG(NPG,NSBA)
-               IF(PCRIT.le.PMAX(NSB)) THEN
+               PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PG(NPG,NSSA)
+               IF(PCRIT.le.PMAX(NSSB)) THEN
                   CALL SPL1DI(PCRIT,SUM3,TX1,UTY1,UTY10,NPF+1,IER)
                   RJABG(NPG,L,NI,NA)=SUM3*(PTFD0(NSB)/AMFD(NSB))**NI
                ELSE
@@ -1195,13 +1046,13 @@
          IF(L.eq.1.and.NI.eq.0)THEN
             TY1(1)=-(AMFD(NSB)*VC/PTFD0(NSB))**2*FPL0(1,L)
          ELSEIF(L.eq.2.and.NI.eq.0)THEN
-            TY1(1)=-3.D0*(AMFD(NSB)*VC/PTFD0(NSB))**3*FPL0(1,L)/(PM(1,NSB)*VTFP0(NSA)/VTFD0(NSB)/PMAX(NSB))
+            TY1(1)=-3.D0*(AMFD(NSB)*VC/PTFD0(NSB))**3*FPL0(1,L)/(PM(1,NSSB)*VTFP0(NSA)/VTFD0(NSB)/PMAX(NSSB))
          ELSE
             TY1(1)=0.D0
          END IF
          DO NNP=1,NPMAX-1
-            testP=PM(NNP,NSB)/PMAX(NSB)*N_fine_range
-            RGAMB=SQRT(1.D0+testP**2*THETA0(NSB))
+            testP=PM(NNP,NSSB)/PMAX(NSSB)*N_fine_range
+            RGAMB=SQRT(1.D0+testP**2*THETA0(NSSB))
             RUFP = (PTFD0(NSB)*testP)/AMFD(NSB)
             CALL FKLF_JY(RUFP,RJ_1,RY_1)
             TX1(NNP+1)=testP
@@ -1210,17 +1061,17 @@
          END DO
          NPF=NPMAX
          DO NNP=1,NPMAX
-            RGAMB=SQRT(1.D0+PM(NNP,NSB)**2*THETA0(NSB))
-            RUFP = (PTFD0(NSB)*PM(NNP,NSB))/AMFD(NSB)
-            IF(PM(NNP,NSB).ge.1.D0*N_fine_range)THEN
+            RGAMB=SQRT(1.D0+PM(NNP,NSSB)**2*THETA0(NSSB))
+            RUFP = (PTFD0(NSB)*PM(NNP,NSSB))/AMFD(NSB)
+            IF(PM(NNP,NSSB).ge.1.D0*N_fine_range)THEN
                NPF=NPF+1
                CALL FKLF_JY(RUFP,RJ_1,RY_1)
-               TX1(NPF)=PM(NNP,NSB)
-               TY1(NPF)=FPL(NNP,L)*(PM(NNP,NSB)**(2+NI))/RGAMB &
+               TX1(NPF)=PM(NNP,NSSB)
+               TY1(NPF)=FPL(NNP,L)*(PM(NNP,NSSB)**(2+NI))/RGAMB &
                     *RY_1(L-NI,NA)
             END IF
          END DO
-         TX1(NPF+1)=PMAX(NSB)
+         TX1(NPF+1)=PMAX(NSSB)
          TY1(NPF+1)=0.D0
          IF(L.eq.0.and.NI.ne.0)THEN
             DF1(1) = - AMFD(NSB)*VC/PTFD0(NSB)*FPL0(1,L)
@@ -1228,12 +1079,12 @@
          ELSEIF(L.eq.2.and.NI.eq.1)THEN
             DF1(1) = - (AMFD(NSB)*VC/PTFD0(NSB))**2*FPL0(1,L)
          ELSEIF(L.eq.2.and.NI.eq.0)THEN
-            DF1(1) = 3.D0*(AMFD(NSB)*VC/PTFD0(NSB))**3*FPL0(1,L)/(PM(1,NSB)*VTFP0(NSA)/VTFD0(NSA)/PMAX(NSB))**2
+            DF1(1) = 3.D0*(AMFD(NSB)*VC/PTFD0(NSB))**3*FPL0(1,L)/(PM(1,NSSB)*VTFP0(NSA)/VTFD0(NSA)/PMAX(NSSB))**2
          ELSE
             DF1(1) = 0.D0
          END IF
          DF1(NPF+1)   = 0.D0
-         PMAX2=PMAX(NSB)
+         PMAX2=PMAX(NSSB)
          CALL SPL1D(TX1,TY1,DF1,UTY1,NPF+1,3,IER)
          CALL SPL1DI0(TX1,UTY1,UTY10,NPF+1,IER)
          CALL SPL1DI(PMAX2,PSUM,TX1,UTY1,UTY10,NPF+1,IER)
@@ -1246,8 +1097,8 @@
 !         END DO
 
          DO NP=NPSTARTW,NPENDWM
-            PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PM(NP,NSBA)
-            IF(PCRIT.le.PMAX(NSB)) THEN
+            PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PM(NP,NSSA)
+            IF(PCRIT.le.PMAX(NSSB)) THEN
                CALL SPL1DI(PCRIT,SUM4,TX1,UTY1,UTY10,NPF+1,IER)
 !               CALL SPL1DI_inv(PCRIT,SUM4,TX1,UTY1,UTY10,NPF+1,IER)
                RYABM(NP,L,NI,NA)=(PSUM-SUM4)*(PTFD0(NSB)/AMFD(NSB))**NI
@@ -1259,8 +1110,8 @@
             ENDIF
          END DO
          DO NPG=NPSTART,NPENDWG
-            PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PG(NPG,NSBA)
-            IF(PCRIT.le.PMAX(NSB)) THEN
+            PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PG(NPG,NSSA)
+            IF(PCRIT.le.PMAX(NSSB)) THEN
                CALL SPL1DI(PCRIT,SUM5,TX1,UTY1,UTY10,NPF+1,IER)
                RYABG(NPG,L,NI,NA)=(PSUM-SUM5)*(PTFD0(NSB)/AMFD(NSB))**NI
             ELSE
@@ -1324,9 +1175,11 @@
          RNFDL=PLF(NS)%RN/RNFD0L
          RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
       ELSE
-!         RNFDL=PLF(NS)%RN/RNFD0L
-         RNFDL=RN_IMPL(NR,NS)/RNFD0L
-         RTFDL=RT_IMPL(NR,NS)
+         RNFDL=PLF(NS)%RN/RNFD0L
+         RNFDL=RN_TEMP(NR,NS)/RNFD0L
+         RTFDL=RT_TEMP(NR,NS)
+!            RTFDL=RT_BULK(NR,NS)
+!         IF(NRANK.eq.0) WRITE(*,'(A,2I5,10E14.6)') "TEST_cnr ", NR, NS, RNFDL, RN_TEMP(NR,NS)/RNFD0L, RTFDL, RT_TEMP(NR,NS), RN_TEMP(NR,NS)
       END IF
 
       THETA0L=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)

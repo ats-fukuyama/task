@@ -1,0 +1,91 @@
+\section{Creation of antena data ({\tt wfant})}
+\begin{enumerate}
+\item
+Function
+\begin{itemize}
+\item[A:]
+creation of antenna data
+\item[G:]
+graphic output of antenna data
+\item[W:]
+numerical output of antenna data
+\item[S:]
+save antenna data to a file
+\item[L:]
+load antenna data from a file
+\item[X:]
+exit
+\end{itemize}
+
+\item
+Definition on antenna
+\begin{itemize}
+\item
+NAMAX: maximum number of antenna
+\item
+Shape of antenna
+\begin{itemize}
+\item[C:]
+Circular antenna: RD, RKAP, NJMAX 
+\\ (antenna radius, ellipticity, number of division)
+\item[A:]
+Arc antenna: THETA1, THETA2, RD, RKAP, NJMAX 
+\\istart angle, end angle, antenna radius, ellipticity, number of division)
+\item[P:]
+Loop/Line antenna: NJMAX (number of antenna node)
+\begin{itemize}
+\item
+NJMAX $=1$: loop antenna
+\item
+NJMAX $>1$: line antenna connecting nodes (actually a plane in $z$ direction)
+\end{itemize}
+\item[H:]
+Helical antenna:
+\begin{itemize}
+\item
+ZJH1  : Axial start position of helical antenna (m)
+\item
+ZJH2  : Axial end position of helical antenna (m)
+\item
+RD    : antenna radius (m)
+\item
+PHJH  : Rotation angle of helical antenna (degree)
+\item
+NTYPJH: Type of helical antenna
+\begin{itemize}
+\item
+0 : Loop antenas on both ends (NJMAX=2)
+\item
+1 : Loop antena on the second end (NJMAX=3)
+\item
+2 : Loop antena on the first end (NJMAX=3)
+\item
+3 : No loop antena (NJMAX=4)
+\item
+10 : Helicon antena (NJMAX=2)
+\end{itemize}
+\item
+NJMAX $>1$: line antenna connecting nodes (actually a plane in $z$ direction)
+\end{itemize}
+\end{itemize}
+\end{itemize}
+
+\item
+created data
+\begin{itemize}
+\item
+Antenna node position: 
+\quad \t{XJ0(NJ0,NA)}, \t{YJ0(NJ0,NA)}
+\item
+Variables
+\begin{itemize}
+\item
+\t{NA} = antenna number
+\quad maximum: \t{NAMAX}
+\item
+\t{NJ0} = antenna node number
+\quad maximum: \t{NJ0MAX(NA)}
+\end{itemize}
+\end{itemize}
+\end{enumerate}
+

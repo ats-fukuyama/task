@@ -32,8 +32,20 @@ C           200-299 : PROPAGATION  = COLD
 C                     POLARIZATION = COLD
 C                     ABSORPTION   = GIVEN MODEL
 C
-C           300-399 : PROPAGATION  = KINETIC
-C                     POLARIZATION = KINETIC
+C           300-399 : PROPAGATION  = KINETIC 4
+C                     POLARIZATION = GIVEN MODEL
+C                     ABSORPTION   = GIVEN MODEL
+C
+C           400-499 : PROPAGATION  = KINETIC 4
+C                     POLARIZATION = KINETIC 4
+C                     ABSORPTION   = GIVEN MODEL
+C
+C           500-599 : PROPAGATION  = KINETIC 6
+C                     POLARIZATION = GIVEN MODEL
+C                     ABSORPTION   = GIVEN MODEL
+C
+C           600-699 : PROPAGATION  = KINETIC 6
+C                     POLARIZATION = KINETIC 6
 C                     ABSORPTION   = GIVEN MODEL
 C
 C     MODELV : NUMERICAL MODEL (*: not yet implemented)
@@ -45,6 +57,7 @@ C              4 : KINETIC: READ FPDATA DISTRIBUTION (RELATIVISTIC)
 C              5 : DRIFTKINETIC: ANALYTIC MAXWELLIAN DISTRIBUTION
 C              6 : DRIFTKINETIC: READ FPDATA DISTRIBUTION
 C              9 : LOCAL MODEL (MODELV locally specified by MODELVR)
+!     MODEFA : Type of fast particle contribution
 C
 C     NDISP1: MINIMUM HARMONIC NUMBER
 C     NDISP2: MAXMUM  HARMONIC NUMBER
@@ -72,6 +85,7 @@ C
          NDISP1(1)=-2
          NDISP2(1)= 2
          modelv(1)= 0
+         MODEFA=4 !!fa
 C
       IF(NSM.GE.2) THEN
          MODELP(2)= 0
@@ -87,7 +101,7 @@ C
          modelv(NS)= 0
       ENDDO
 C
-      DO NS=1,NSM
+      DO NS=1,NSAM
          PMAX(NS)= 7.D0
       ENDDO
 C
@@ -152,6 +166,7 @@ C
       IF(IERR.NE.0) RETURN
 C
       CALL EQCHEK(IERR)
+      CALL DPCHEK(IERR)
       IF(MODE.EQ.0.AND.IERR.NE.0) GOTO 1
       IF(IERR.NE.0) IERR=IERR+100
 C
@@ -169,7 +184,7 @@ C
      &              NSMAX,PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PU,PUS,
      &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
      &              RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,
-     &              MODELG,MODELN,MODELQ,
+     &              MODELG,MODELN,MODELQ,MODEFA,
      &              KNAMEQ,KNAMWR,KNAMFP,MODEFR,MODEFW,IDEBUG,
      &              MODELP,NDISP1,NDISP2,
      &              RF0,RFI0,RKX0,RKY0,RKZ0,RX0,RY0,RZ0,
@@ -199,7 +214,7 @@ C
      &       9X,'NSMAX,PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PU,PUS,'/
      &       9X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,'/
      &       9X,'RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,'/
-     &       9X,'MODELG,MODELN,MODELQ,'/
+     &       9X,'MODELG,MODELN,MODELQ,MODEFA,'/
      &       9X,'KNAMEQ,KNAMWR,KNAMFP,IDEBUG,MODEFR,MODEFW,'/
      &       9X,'MODELP,NDISP1,NDISP2,'/
      &       9X,'RF0,RFI0,RKX0,RKY0,RKZ0,RX0,RY0,RZ0,'/
@@ -211,7 +226,19 @@ C
 C
 C     ***** CHECK INPUT PARAMETERS *****
 C
-      SUBROUTINE DPCHEK(NCHMAX,NRMAX_1,RMIN_1,RMAX_1,RR_1,IERR)
+      SUBROUTINE DPCHEK(IERR)
+C
+      USE plcomm
+      INCLUDE 'dpcomm.inc'
+
+      IERR=0
+C
+      RETURN
+      END
+C
+C     ***** CALL DPLDFP *****
+C
+      SUBROUTINE DPPREP(NCHMAX,NRMAX_1,RMIN_1,RMAX_1,RR_1,IERR)
 C
       USE plcomm
       INCLUDE 'dpcomm.inc'
@@ -227,13 +254,13 @@ C
      &       MODELV(NS).EQ.4.OR.
      &       MODELV(NS).EQ.9)) THEN
             IF(INITFP.EQ.0) THEN
-               write(6,*) '----- DPLDFP ----- NS=',NS
+!               write(6,*) '----- DPLDFP ----- NS=',NS
                CALL DPLDFP
                INITFP=1
             ENDIF
          ELSEIF(MODELV(NS).EQ.5) THEN
             IF(INITFM.EQ.0) THEN
-               write(6,*) '----- DPLDFM ----- NS=',NS
+!               write(6,*) '----- DPLDFM ----- NS=',NS
                CALL DPLDFM(0,NCHMAX,NRMAX_1,RMIN_1,RMAX_1)
                INITFM=1
             ENDIF
@@ -246,7 +273,6 @@ C
 C
       RETURN
       END
-C
 C     ****** SHOW PARAMETERS ******
 C
       SUBROUTINE DPVIEW
@@ -256,7 +282,8 @@ C
 C
       WRITE(6,100)
       DO NS=1,NSMAX
-        WRITE(6,110) NS,MODELP(NS),MODELV(NS),NDISP1(NS),NDISP2(NS),PMAX(NS)
+         WRITE(6,110) 
+     &       NS,MODELP(NS),MODELV(NS),NDISP1(NS),NDISP2(NS),PMAX(NS)
       ENDDO
       WRITE(6,601) 'RMIN  ',RMIN  ,'RMAX  ',RMAX
       WRITE(6,602) 'NPMAX ',NPMAX ,'NTHMAX',NTHMAX,

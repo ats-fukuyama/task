@@ -807,11 +807,14 @@ C
       INCLUDE 'eqcomq.inc'
 C
       DIMENSION GR(NTHMP),GZ(NTHMP)
-      DIMENSION GPSIRZ(NRGM,NZGM),GDPSIDR(NRGM,NZGM),GDPSIDZ(NRGM,NZGM)
+      REAL(4),DIMENSION(:,:),ALLOCATABLE:: GPSIRZ,GDPSIDR,GDPSIDZ
       DIMENSION GRG(NRGM),GZG(NZGM)
-      DIMENSION KA(8,NRGM,NZGM)
+      INTEGER,DIMENSION(:,:,:),ALLOCATABLE:: KA
       CHARACTER KTITL*80
 C
+      ALLOCATE(GPSIRZ(NRGM,NZGM),GDPSIDR(NRGM,NZGM),GDPSIDZ(NRGM,NZGM))
+      ALLOCATE(KA(8,NRGM,NZGM))
+
       CALL setup_psig
 C
       DO NR=1,NRGMAX
@@ -1092,7 +1095,7 @@ C
       CALL EQGPRM
       CALL PAGEE
 C
-      
+      DEALLOCATE(GPSIRZ,GDPSIDR,GDPSIDZ,KA)
 C
       RETURN
       END
@@ -1696,16 +1699,17 @@ C
       INCLUDE 'eqcomq.inc'
 C
       DIMENSION GR(NTHMP),GZ(NTHMP)
-      DIMENSION GPSIRZ(NRGM,NZGM),GRG(NRGM),GZG(NZGM)
-      DIMENSION GRrp(NRrpM), GZrp(NZrpM),GrpplRZ(NRrpM,NZrpM)
-      DIMENSION KA(8,NRGM,NZGM),KB(8,NRrpM,NZrpM),KC(2,NRrpM,NZrpM)
-c$$$      integer(4), dimension(:), allocatable :: ILN
-c$$$      real(4), dimension(:), allocatable :: GZL, WLN
-c$$$      real(4), dimension(:,:), allocatable :: RGB
+      DIMENSION GRG(NRGM),GZG(NZGM)
+      DIMENSION GRrp(NRrpM), GZrp(NZrpM)
+      REAL(4),DIMENSION(:,:),ALLOCATABLE:: GPSIRZ,GrpplRZ
+      INTEGER,DIMENSION(:,:,:),ALLOCATABLE:: KA,KB,KC
       CHARACTER KTITL*80
 C
 C     *** Psi contour ***
 C
+      ALLOCATE(GPSIRZ(NRGM,NZGM),GrpplRZ(NRrpM,NZrpM))
+      ALLOCATE(KA(8,NRGM,NZGM),KB(8,NRrpM,NZrpM),KC(2,NRrpM,NZrpM))
+
       DO NR=1,NRGMAX
          GRG(NR)=GUCLIP(RG(NR))
       ENDDO
@@ -1890,6 +1894,9 @@ C     // Post-processing //
       CALL SETRGB(0.0,0.0,0.0)
       CALL EQGPRM
       CALL PAGEE
+
+      DEALLOCATE(GPSIRZ,GrpplRZ)
+      DEALLOCATE(KA,KB,KC)
 C
       RETURN
       END

@@ -84,18 +84,24 @@ C
      &        13.8, 21.6,  9.5, 16.5,
      &        13.8, 21.6,  1.0,  8.0/
 C
-      GXMIN=GUCLIP(XR(1))
-      GXMAX=GUCLIP(XR(NRMAX+1))
+!      GXMIN=GUCLIP(XR(1))
+!      GXMAX=GUCLIP(XR(NRMAX+1))
+      GXMIN=GUCLIP(XRHO(1))
+      GXMAX=GUCLIP(XRHO(NRMAX+1))
 C
       IF(K2.EQ.'E'.OR.
      &   K2.EQ.'N'.OR.
      &   K2.EQ.'P') THEN
          NR=1
-            GX1(NR)=GUCLIP(       XR(NR))
-            GX2(NR)=GUCLIP(       XR(NR))
+!            GX1(NR)=GUCLIP(       XR(NR))
+!            GX2(NR)=GUCLIP(       XR(NR))
+            GX1(NR)=GUCLIP(       XRHO(NR))
+            GX2(NR)=GUCLIP(       XRHO(NR))
          DO NR=2,NRMAX+1
-            GX1(NR)=GUCLIP(       XR(NR))
-            GX2(NR)=GUCLIP(0.5D0*(XR(NR-1)+XR(NR)))
+!            GX1(NR)=GUCLIP(       XR(NR))
+!            GX2(NR)=GUCLIP(0.5D0*(XR(NR-1)+XR(NR)))
+            GX1(NR)=GUCLIP(       XRHO(NR))
+            GX2(NR)=GUCLIP(0.5D0*(XRHO(NR-1)+XRHO(NR)))
          ENDDO
          NX1=NRMAX+1
          NX2=NRMAX+1
@@ -116,11 +122,15 @@ C
          KTITL(4)='Pabs  '
       ELSEIF(K2.EQ.'A') THEN
          NR=1
-            GX1(NR)=GUCLIP(       XR(NR))
-            GX2(NR)=GUCLIP(       XR(NR))
+!            GX1(NR)=GUCLIP(       XR(NR))
+!            GX2(NR)=GUCLIP(       XR(NR))
+            GX1(NR)=GUCLIP(       XRHO(NR))
+            GX2(NR)=GUCLIP(       XRHO(NR))
          DO NR=2,NRMAX+1
-            GX1(NR)=GUCLIP(       XR(NR))
-            GX2(NR)=GUCLIP(0.5D0*(XR(NR-1)+XR(NR)))
+!            GX1(NR)=GUCLIP(       XR(NR))
+!            GX2(NR)=GUCLIP(0.5D0*(XR(NR-1)+XR(NR)))
+            GX1(NR)=GUCLIP(       XRHO(NR))
+            GX2(NR)=GUCLIP(0.5D0*(XRHO(NR-1)+XRHO(NR)))
          ENDDO
          NX1=NRMAX+1
          NX2=NRMAX+1
@@ -131,11 +141,15 @@ C
          KTITL(4)='Pabs 3'
       ELSE
          NR=1
-            GX2(NR)=GUCLIP(       XR(NR))
-            GX1(NR)=GUCLIP(       XR(NR))
+!            GX2(NR)=GUCLIP(       XR(NR))
+!            GX1(NR)=GUCLIP(       XR(NR))
+            GX2(NR)=GUCLIP(       XRHO(NR))
+            GX1(NR)=GUCLIP(       XRHO(NR))
          DO NR=2,NRMAX+1
-            GX2(NR)=GUCLIP(       XR(NR))
-            GX1(NR)=GUCLIP(0.5D0*(XR(NR-1)+XR(NR)))
+!            GX2(NR)=GUCLIP(       XR(NR))
+!            GX1(NR)=GUCLIP(0.5D0*(XR(NR-1)+XR(NR)))
+            GX2(NR)=GUCLIP(       XRHO(NR))
+            GX1(NR)=GUCLIP(0.5D0*(XRHO(NR-1)+XRHO(NR)))
          ENDDO
          NX1=NRMAX+1
          NX2=NRMAX+1
@@ -739,7 +753,8 @@ C
       CALL SETCHS(0.3,0.0)
 C
       DO I=1,NX
-        GXR(I)=GUCLIP(XR(I))
+!        GXR(I)=GUCLIP(XR(I))
+        GXR(I)=GUCLIP(XRHO(I))
       ENDDO
 C
       CALL GMNMX1(GXR,1,NX,1,GRMIN,GRMAX)
@@ -966,8 +981,10 @@ C
       DIMENSION GY(MDM+1),GZL(NRM,MDM+1)
       CHARACTER K2,K3,K4
 C
-      GXMIN=GUCLIP(XR(1))
-      GXMAX=GUCLIP(XR(NRMAX+1))
+!      GXMIN=GUCLIP(XR(1))
+!      GXMAX=GUCLIP(XR(NRMAX+1))
+      GXMIN=GUCLIP(XRHO(1))
+      GXMAX=GUCLIP(XRHO(NRMAX+1))
 C
       DO MD=MDMIN-1,MDMAX
          MDX=MD-MDMIN+2
