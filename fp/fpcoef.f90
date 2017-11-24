@@ -66,6 +66,19 @@
       ENDDO
       ENDDO
 
+      FRR(:,:,:,:)=0.D0
+      DRR(:,:,:,:)=0.D0
+      DWLHPP(:,:,:,:)=0.D0
+      DWLHPT(:,:,:,:)=0.D0
+      DWFWPP(:,:,:,:)=0.D0
+      DWFWPT(:,:,:,:)=0.D0
+      DWECPP(:,:,:,:)=0.D0
+      DWECPT(:,:,:,:)=0.D0
+      DWECTP(:,:,:,:)=0.D0
+      DWECTT(:,:,:,:)=0.D0
+      DWICPP(:,:,:,:)=0.D0
+      DWICPT(:,:,:,:)=0.D0
+
 !     ----- Parallel electric field accleration term -----
 
       IF(E0.ne.0.D0) CALL FP_CALE
@@ -267,19 +280,25 @@
 
 !     ----- Particle source term -----
 
-         DO NR=NRSTART,NREND
-         DO NP=NPSTART,NPEND
-            DO NTH=1,NTHMAX
-               PPL(NTH,NP,NR,NSA)=0.D0
-               SPPL(NTH,NP,NR,NSA)=0.D0
-               SPPB(NTH,NP,NR,NSA)=0.D0
-               SPPS(NTH,NP,NR,NSA)=0.D0
-               SPPI(NTH,NP,NR,NSA)=0.D0
-               SPPD(NTH,NP,NSA)=0.D0
-               IF(MODEL_CX_LOSS.ne.0) SPPL_CX(NTH,NP,NR,NSA)=0.D0
-            ENDDO
-         ENDDO
-         ENDDO
+!         DO NR=NRSTART,NREND
+!         DO NP=NPSTART,NPEND
+!            DO NTH=1,NTHMAX
+!               PPL(NTH,NP,NR,NSA)=0.D0
+!               SPPL(NTH,NP,NR,NSA)=0.D0
+!               SPPB(NTH,NP,NR,NSA)=0.D0
+!               SPPS(NTH,NP,NR,NSA)=0.D0
+!               SPPI(NTH,NP,NR,NSA)=0.D0
+!               SPPD(NTH,NP,NSA)=0.D0
+!            ENDDO
+!         ENDDO
+ !        ENDDO
+         PPL(:,:,:,:)=0.D0
+         SPPL(:,:,:,:)=0.D0
+         SPPB(:,:,:,:)=0.D0
+         SPPS(:,:,:,:)=0.D0
+         SPPI(:,:,:,:)=0.D0
+         SPPD(:,:,:)=0.D0
+         SPPL_CX(:,:,:,:)=0.D0
 !     ----- NBI source term -----
 
       IF(MODEL_NBI.eq.1)THEN
@@ -334,7 +353,7 @@
 !
 !     ----- Particle loss and source terms -----
 !
-      ISW_LOSS=1
+      ISW_LOSS=0
       IF(TLOSS(NS).EQ.0.D0) THEN
          DO NR=NRSTART,NREND
             DO NP=NPSTART,NPEND
@@ -347,13 +366,9 @@
          IF(ISW_LOSS.eq.0)THEN ! loss term depends on the present FNSP
             DO NR=NRSTART,NREND
                DO NP=NPSTART,NPEND
-                  IF(PM(NP,NS).le.3.D0)THEN ! for beam benchmark
-                     FL=FPMXWL(PM(NP,NS),NR,NS) 
-                     DO NTH=1,NTHMAX
-                        PPL(NTH,NP,NR,NSA)=-1.D0/TLOSS(NS)*RLAMDA(NTH,NR)
-!                        SPPS(NTH,NP,NR,NSA)= FL /TLOSS(NS)!*RLAMDA(NTH,NR)
-                     ENDDO
-                  END IF
+                  DO NTH=1,NTHMAX
+                     PPL(NTH,NP,NR,NSA)=-1.D0/TLOSS(NS)*RLAMDA(NTH,NR)
+                  ENDDO
                ENDDO
             ENDDO
          ELSEIF(ISW_LOSS.eq.1)THEN ! loss term depends on initial FNS, const total density
@@ -409,10 +424,10 @@
                   DO NTH=1,NTHMAX
                      PPL(NTH,NP,NR,NSA)=PPL(NTH,NP,NR,NSA) -const_inv_tau*RLAMDA(NTH,NR)
                   END DO
-               ELSEIF(NP_BULK(NR,NSA).le.NP.and.NP.le.NP_BULK(NR,NSA)+1)THEN
-                  DO NTH=1,NTHMAX
-                     PPL(NTH,NP,NR,NSA)=PPL(NTH,NP,NR,NSA) +const_inv_tau*(NP-NP_BULK(NR,NSA)-1)*RLAMDA(NTH,NR)
-                  END DO
+!               ELSEIF(NP_BULK(NR,NSA).le.NP.and.NP.le.NP_BULK(NR,NSA)+1)THEN
+!                  DO NTH=1,NTHMAX
+!                     PPL(NTH,NP,NR,NSA)=PPL(NTH,NP,NR,NSA) +const_inv_tau*(NP-NP_BULK(NR,NSA)-1)*RLAMDA(NTH,NR)
+!                  END DO
                END IF
             END DO
          END DO
@@ -464,15 +479,16 @@
          CALL PL_PROF(RHON,PLF)
          RNFDL=PLF(NS)%RN/RNFD0L
          RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
-      ELSEIF(MODEL_EX_READ_Tn.eq.1)THEN
-         RNFDL=RN_TEMP(NR,NS)/RNFD0L
-         RTFDL=RT_TEMP(NR,NS)
+      ELSEIF(MODEL_EX_READ_Tn.ne.0)THEN
          IF(NR.eq.0)THEN
             RNFDL=RN_TEMP(1,NS)/RNFD0L
             RTFDL=RT_TEMP(1,NS)
          ELSEIF(NR.eq.NRMAX+1)THEN
             RNFDL=RNE_EXP_EDGE/RNFD0L
             RTFDL=RTE_EXP_EDGE
+         ELSE
+            RNFDL=RN_TEMP(NR,NS)/RNFD0L
+            RTFDL=RT_TEMP(NR,NS)
          END IF
       END IF
 
@@ -515,7 +531,7 @@
          CALL PL_PROF(RHON,PLF)
          RNFDL=PNS(NS)/RNFD0L*1.D-1
          RTFDL=PTS(NS)*1.D-2
-      ELSEIF(MODEL_EX_READ_Tn.eq.1)THEN
+      ELSEIF(MODEL_EX_READ_Tn.ne.0)THEN
          RNFDL=RNE_EXP_EDGE/RNFD0L*1.D-1
          RTFDL=RTE_EXP_EDGE*1.D-1
       END IF
@@ -871,23 +887,24 @@
             ENDDO
             IF(PSP.ge.PG(NPMAX,NS))THEN
                NP=NPMAX
-               IF(N_IMPL.eq.0.or.N_IMPL.gt.LMAXFP)THEN
-                  write(6,'(A,I5,1P3E12.4)') '   |-NP,PSP,PG=',&
-                       NP,PSP,PMAX(NS)
+!               IF(N_IMPL.eq.0.or.N_IMPL.gt.LMAXFP)THEN
+               IF(N_IMPL.eq.0.and.NRSTART.eq.1.and.NPSTART.eq.1)THEN
+                  write(6,'(A,2I5,1P3E12.4)') '   |-NP,NSA,PSP,PG=',&
+                       NP,NSA,PSP,PMAX(NS)
                   WRITE(6,*) '  |-  OUT OF RANGE PMAX'
                END IF
-               IF(NPEND.eq.NPMAX)THEN
-                  DO NR=NRSTART,NREND
-                     SUML=0.D0
-                     DO NTH=1,NTHMAX
-                        SUML=SUML+VOLP(NTH,NP,NS)*RLAMDAG(NTH,NR)*RFSADG(NR)
-                     ENDDO
-                     DO NTH=1,NTHMAX
-                        SPPF(NTH,NP,NR,NSA)=SPPF(NTH,NP,NR,NSA) &
-                             +RATE_NF(NR,ID)/SUML/RNFP0(NSA)
-                     ENDDO
-                  ENDDO
-               END IF
+!               IF(NPEND.eq.NPMAX)THEN
+!                  DO NR=NRSTART,NREND
+!                     SUML=0.D0
+!                     DO NTH=1,NTHMAX
+!                        SUML=SUML+VOLP(NTH,NP,NS)*RLAMDAG(NTH,NR)*RFSADG(NR)
+!                     ENDDO
+!                     DO NTH=1,NTHMAX
+!                        SPPF(NTH,NP,NR,NSA)=SPPF(NTH,NP,NR,NSA) &
+!                             +RATE_NF(NR,ID)/SUML/RNFP0(NSA)
+!                     ENDDO
+!                  ENDDO
+!               END IF
             END IF
          ENDIF ! NSA=NSA1_NF(ID)
          IF(NSA.EQ.NSA2_NF(ID)) THEN
@@ -909,7 +926,16 @@
                   ENDIF
                ENDDO
             ENDDO
+            IF(PSP.ge.PG(NPMAX,NS))THEN
+               NP=NPMAX
+               IF(N_IMPL.eq.0.and.NRSTART.eq.1.and.NPSTART.eq.1)THEN
+                  write(6,'(A,2I5,1P3E12.4)') '   |-NP,NSA,PSP,PG=',&
+                       NP,NSA,PSP,PMAX(NS)
+                  WRITE(6,*) '  |-  OUT OF RANGE PMAX'
+               END IF
+            END IF
          ENDIF
+!
          IF( NSA.EQ.NSA1_NF(ID).or.NSA.EQ.NSA2_NF(ID) ) THEN
             NSA1=NSA_NSB(NSB1_NF(ID))
             NSA2=NSA_NSB(NSB2_NF(ID))
@@ -1150,7 +1176,7 @@
       real(kind8):: FPMXWL_IMP, target_Z, target_ne, target_ni
 
       NS=NS_NSA(NSA)
-!      AMFPL=PA(NSA)*AMP
+      AMFPL=PA(NS)*AMP
       RTFD0L=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
       RNFP0L=PN(NS)
       RTFP0L=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
@@ -1288,20 +1314,34 @@
 !-------------------------------------------------------------
       SUBROUTINE update_fnsb_maxwell
 
+      USE EG_READ
       IMPLICIT NONE
       INTEGER:: NS, NR, NP, NTH
       double precision:: FL
 
-      DO NS=1, NSMAX
-         DO NR=NRSTART,NREND
-            DO NP=NPSTART,NPEND
-               FL=FPMXWL(PM(NP,NS),NR,NS)
-               DO NTH=1,NTHMAX
-                  FNSB(NTH,NP,NR,NS)=FL
-               END DO
-            ENDDO
+      IF(MODEL_EX_READ_Tn.eq.0)THEN
+         DO NS=1, NSMAX
+            DO NR=NRSTART,NREND
+               DO NP=NPSTART,NPEND
+                  FL=FPMXWL(PM(NP,NS),NR,NS)
+                  DO NTH=1,NTHMAX
+                     FNSB(NTH,NP,NR,NS)=FL
+                  END DO
+               ENDDO
+            END DO
          END DO
-      END DO
+      ELSEIF(MODEL_EX_READ_Tn.eq.1)THEN
+         DO NS=1, NSMAX
+            DO NR=NRSTART,NREND
+               DO NP=NPSTART,NPEND
+                  FL=FPMXWL_EXP(PM(NP,NS),NR,NS)
+                  DO NTH=1,NTHMAX
+                     FNSB(NTH,NP,NR,NS)=FL
+                  END DO
+               ENDDO
+            END DO
+         END DO
+      END IF
 
       END SUBROUTINE update_fnsb_maxwell
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
