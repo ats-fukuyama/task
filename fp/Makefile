@@ -54,10 +54,10 @@ fplib.a: $(OBJS)
 
 libs:
 	(cd ../../bpsd; make bpsdlib.a)
-	(cd ../eq; make eqlib.a)
+	(cd ../lib; make tasklib.a)
 	(cd ../mtxp; make)
 	(cd ../plx; make pllib.a)
-	(cd ../lib; make tasklib.a)
+	(cd ../eq; make eqlib.a)
 
 fp : $(LIB_MTX) $(LIBS) fpmain.o 
 	$(FLINKER) fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
@@ -75,11 +75,10 @@ new:
 	cp -f *.inc ../fpnew
 
 fpmain.o : fpinit.f90 fpmain.f90 fpcomm.f90
-fpmenu.o : fpwrin.f90 fpgout.f90 fpfout.f90 fploop_exp.f90 fploop.f90 fpprep.f90 fpinit.f90 fpfile.f90 fpmenu.f90 fpcomm.f90
+fpmenu.o : fpwrin.f90 fpgout.f90 fpfout.f90 fploop.f90 fpprep.f90 fpinit.f90 fpfile.f90 fpmenu.f90 fpcomm.f90
 fpinit.o : fpinit.f90 fpcomm.f90
 fpprep.o : fpoutdata.f90 fpcale.f90 fpbounce.f90 fpnfrr.f90 fpwmin.f90 fpwrin.f90 fpsave.f90 fpcalw.f90 fpbroadcast.f90 fpinit.f90 fpcoef.f90 fpdisrupt.f90 eg_read.f90 sv_read.f90 fpprep.f90 fpcomm.f90
 fploop.o : fpoutdata.f90 fpnfrr.f90 fpsave.f90 fpexec.f90 fpprep.f90 fpcoef.f90 fpdisrupt.f90 eg_read.f90 fploop.f90 fpcomm.f90 fpoutdata.f90
-fploop_exp.o : fpoutdata.f90 fpsave.f90 fpexec.f90 fploop.f90 fpprep.f90 fpcoef.f90 eg_read.f90 fploop_exp.f90 fpcomm.f90
 fpexec.o : fpexec.f90 fpcomm.f90
 fpdrexec.o : fpdrexec.f90 fpcomm.f90
 fpbroadcast.o : fpbroadcast.f90 fpcomm.f90

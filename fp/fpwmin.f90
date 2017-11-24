@@ -107,7 +107,7 @@
          DO NWR=1,NWRMAX
             DO I=1,3
                DO NWTH=1,NWTHMAX
-                  CEWL(NWTH)=FACTWM*CEWV(I,NWTH,1,NWR)
+                  CEWL(NWTH)=FACT_WM*CEWV(I,NWTH,1,NWR)
                ENDDO
                CALL FPFFT(CEWL,NWTHMAX,1)
                DO NWTH=1,NWTHMAX

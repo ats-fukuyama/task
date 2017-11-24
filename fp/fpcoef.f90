@@ -76,8 +76,6 @@
       DWECPT(:,:,:,:)=0.D0
       DWECTP(:,:,:,:)=0.D0
       DWECTT(:,:,:,:)=0.D0
-      DWICPP(:,:,:,:)=0.D0
-      DWICPT(:,:,:,:)=0.D0
 
 !     ----- Parallel electric field accleration term -----
 

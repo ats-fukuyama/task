@@ -1209,7 +1209,6 @@
          CALL source_allreduce(SPPF)
          CALL mtx_reset_communicator
       END IF
-      IF(NTG1.eq.0.and.MODEL_WAVE.ne.0) CALL FPWAVE_CONST ! all nrank must have RPWT  
 
       ISAVE=0
 
