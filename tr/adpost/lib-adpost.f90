@@ -58,6 +58,7 @@ CONTAINS
     DO IZ0=1,IZDIMD
        ND_TABLE(IZ0)=0
     END DO
+    LUN=12
 
     CALL FROPEN(LUN,'ADPOST-DATA',1,0,'ADPOST',IERR)
     IF(IERR.NE.0) THEN
@@ -200,7 +201,7 @@ CONTAINS
     PTL=PT
     LMAX=LMAXA(ND)
     SELECT CASE(ID)
-    CASE(1)
+    CASE(3) ! Radiated power
        IF(PTL.LT.TMINA(1,ND)) THEN
           PTL=TMINA(1,ND)
           L=1
@@ -219,7 +220,7 @@ CONTAINS
           SUMX=COEFA(N,L,ND)+PTL*SUMX
        END DO
        func_adpost=SUMX
-    CASE(2)
+    CASE(1)  ! Z
        IF(PTL.LT.TMINB(1,ND)) THEN
           PTL=TMINB(1,ND)
           L=1
@@ -238,7 +239,7 @@ CONTAINS
           SUMX=COEFB(N,L,ND)+PTL*SUMX
        END DO
        func_adpost=SUMX
-    CASE(3)
+    CASE(2) ! Z^2
        IF(PTL.LT.TMINC(1,ND)) THEN
           PTL=TMINC(1,ND)
           L=1
