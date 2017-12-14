@@ -87,11 +87,11 @@ CONTAINS
 ! --------------------------------------------------------------------------
     USE trcomm, ONLY: tr_neq_allocate, &
          nsm,nsamax,nrmax,neqmax,nvmax,nsabmax,nsafmax,nsanmax,    &
-         pz,pz0,pa,idion,idnsa,kidns,ns_nsa,idion,nsa_neq,nva_neq, &
+         pz,pz0,pa,idion,idnsa,kid_ns,ns_nsa,idion,nsa_neq,nva_neq, &
          nsab_nsa,nsaf_nsa,nsan_nsa,nsab_nsaf
     IMPLICIT NONE
 
-    CHARACTER(len=1) :: kidnsf
+    CHARACTER(len=1) :: kid_nsf
     INTEGER(ikind)   :: nsa,ns,nsa1,ns1,nva,neq
 
     !   nsa_neq = 0 : magnetic field
@@ -138,7 +138,7 @@ CONTAINS
 
     DO nsa = 1, nsamax
        ns=ns_nsa(nsa)
-       IF(kidns(ns) == ' ') CYCLE ! exclude for dummy species (see plinit)
+       IF(kid_ns(ns) == ' ') CYCLE ! exclude for dummy species (see plinit)
 
        IF(NINT(pz0(ns)) == -1) THEN
           idnsa(nsa) = -1 ! electron
@@ -159,10 +159,10 @@ CONTAINS
                 nsafmax = nsafmax + 1
                 nsaf_nsa(nsa) = nsafmax
 
-                kidnsf = kidns(ns)
+                kid_nsf = kid_ns(ns)
                 DO nsa1 = 1, nsamax
                    ns1 = ns_nsa(nsa1)
-                   IF(ns /= ns1 .AND. kidnsf == kidns(ns1))THEN
+                   IF(ns /= ns1 .AND. kid_nsf == kid_ns(ns1))THEN
                       nsab_nsaf(nsa) = nsa1
                    END IF
                 END DO
@@ -323,7 +323,7 @@ CONTAINS
 ! ------------------------------------------------------------------------
 !   print conversion table for equations, species
 ! ------------------------------------------------------------------------
-    USE trcomm,ONLY: neqmax,kidns,ns_nsa,nsa_neq,nva_neq,neqr_neq, &
+    USE trcomm,ONLY: neqmax,kid_ns,ns_nsa,nsa_neq,nva_neq,neqr_neq, &
          nsab_nsaf
 
     IMPLICIT NONE
@@ -334,7 +334,7 @@ CONTAINS
     fmt_table = '(1X,I3,I5,I4,I4,A6,I5)'
     WRITE(6,*) ! spacing
     WRITE(6,*) '# Variables conversion table'
-    WRITE(6,*) 'NEQ NEQR NVA NSA KIDNS NSAB'
+    WRITE(6,*) 'NEQ NEQR NVA NSA KID_NS NSAB'
 
     neqr = 0
     nva  = 0
@@ -349,7 +349,7 @@ CONTAINS
           nva  = nva_neq(neq)
           ns   = ns_nsa(nsa)
           nsab = nsab_nsaf(nsa)
-          kid  = kidns(ns)
+          kid  = kid_ns(ns)
        END IF
 
        WRITE(6,fmt_table) neq,neqr,nva,nsa,kid,nsab

@@ -11,7 +11,7 @@ CONTAINS
 
   SUBROUTINE tr_status
 
-    USE trcomm, ONLY : nsamax,ns_nsa,nsab_nsa,t,qp,rt,kidns,nitmax, &
+    USE trcomm, ONLY : nsamax,ns_nsa,nsab_nsa,t,qp,rt,kid_ns,nitmax, &
                        wp_t,taue1,taue2,taue3,dt
     IMPLICIT NONE
     INTEGER(ikind)    :: nsa
@@ -26,7 +26,7 @@ CONTAINS
 
     DO nsa = 1, nsamax
        IF(nsab_nsa(nsa)==0) CYCLE
-       WRITE(6,fmt_2,ADVANCE='NO') '  T',kidns(ns_nsa(nsa)),': '
+       WRITE(6,fmt_2,ADVANCE='NO') '  T',kid_ns(ns_nsa(nsa)),': '
        WRITE(6,fmt_3,ADVANCE='NO') rt(nsa,0),'(keV)  '
     END DO
     WRITE(6,*) ! line break
@@ -38,7 +38,7 @@ CONTAINS
   END SUBROUTINE tr_status
 
   SUBROUTINE tr_latest_status
-    USE trcomm, ONLY: t,kidns,ns_nsa,nsamax,nsab_nsa,            &
+    USE trcomm, ONLY: t,kid_ns,ns_nsa,nsamax,nsab_nsa,            &
          mdluf,rw,wp_inc,wpu_inc,std_rt,off_rt,std_ipb,off_ipb,  &
          qp,rt,wp_t,taue3,betan,taue89,taue98,h89,h98y2
     IMPLICIT NONE
@@ -57,7 +57,7 @@ CONTAINS
 
     DO nsa = 1, nsamax
        IF(nsab_nsa(nsa)==0) CYCLE
-       WRITE(6,'(A3,A1,A1)',ADVANCE='NO') '  T',kidns(ns_nsa(nsa)),': '
+       WRITE(6,'(A3,A1,A1)',ADVANCE='NO') '  T',kid_ns(ns_nsa(nsa)),': '
        WRITE(6,'(F7.3,A7)',ADVANCE='NO') rt(nsa,0),'(keV)  '
     END DO
     
@@ -75,25 +75,25 @@ CONTAINS
        DO nsa = 1, nsamax
           IF(nsab_nsa(nsa)==0) CYCLE
           WRITE(6,fmt_aaa1,ADVANCE='NO') &
-               '  STD_T(',kidns(ns_nsa(nsa)),')  : ',std_rt(nsa)
+               '  STD_T(',kid_ns(ns_nsa(nsa)),')  : ',std_rt(nsa)
        END DO
        WRITE(6,*) ! line break
        DO nsa = 1, nsamax
           IF(nsab_nsa(nsa)==0) CYCLE
           WRITE(6,fmt_aaa2,ADVANCE='NO') &
-               '  STD_IPB(',kidns(ns_nsa(nsa)),'): ',std_ipb(nsa)
+               '  STD_IPB(',kid_ns(ns_nsa(nsa)),'): ',std_ipb(nsa)
        END DO
        WRITE(6,*) ! line break
        DO nsa = 1, nsamax
           IF(nsab_nsa(nsa)==0) CYCLE
           WRITE(6,fmt_aaa1,ADVANCE='NO') &
-               '  OFF_T(',kidns(ns_nsa(nsa)),')  : ',off_rt(nsa)
+               '  OFF_T(',kid_ns(ns_nsa(nsa)),')  : ',off_rt(nsa)
        END DO
        WRITE(6,*) ! line break
        DO nsa = 1, nsamax
           IF(nsab_nsa(nsa)==0) CYCLE
           WRITE(6,fmt_aaa2,ADVANCE='NO') &
-               '  OFF_IPB(',kidns(ns_nsa(nsa)),'): ',off_ipb(nsa)
+               '  OFF_IPB(',kid_ns(ns_nsa(nsa)),'): ',off_ipb(nsa)
        END DO
     END IF
     

@@ -65,6 +65,7 @@ testmtxc.o: testmtxc.f90
 	$(INCLUDE_MTX_PETSC)
 
 clean :
-	-rm -f core a.out *.o *.a ./#* ./*~ ./*.mod ./mod/*.mod
+	-rm -f core a.out *.o *.a *.i90 ./#* ./*~ ./*.mod ./mod/*.mod
+
 veryclean : clean
 	-rm testbnd testbndc testpcg testdmumps testzmumps testksp

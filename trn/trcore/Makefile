@@ -1,4 +1,4 @@
-TASKDIR=../../../task
+TASKDIR=../..
 BPSDDIR=../../../bpsd
 include $(TASKDIR)/make.header
 

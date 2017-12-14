@@ -63,9 +63,6 @@ libs:
 wm : $(LIBS) wmmain.o
 	$(FLINKER) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
-mpiwm : wmmain.o $(LIBM)
-	$(MFC) wmmain.o $(LIBM) -o $@ $(FFLAGS) $(FLIBS)
-
 clean:
 	rm -f core *.o ./*~ ../mtx/*.o *.a $(MOD)/*.mod
 

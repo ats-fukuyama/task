@@ -11,7 +11,7 @@
 #### With MPI, Without PETSc
 #EXEC=testbnd testbndc testpcg
 #FLINKER=$(MFC)
-#INCLUDE_MTX_MPI=-I /usr/local/mpich313-ifort-gcc/include
+#INCLUDE_MTX_MPI=-I /usr/local/mpich32-ifort-gcc7/include
 #LIBMTXMPI=../mtxp/libmtxmpi.o
 #LIB_MTX_BND=$(LIBMTXMPI) ../mtxp/libmtxbndmpi.o
 #LIB_MTX_PCG=$(LIBMTXMPI) ../mtxp/libmtxpcgmpi.o
@@ -31,7 +31,7 @@
 ##### PETSc 3.6
 #INCLUDE_MTX_MUMPS=-I${PETSC_DIR}/${PETSC_ARCH}/externalpackages/MUMPS/include
 #include ${PETSC_DIR}/lib/petsc/conf/variables
-##### PETSc 3.7
+##### PETSc 3.7 and later
 #INCLUDE_MTX_MUMPS=-I${PETSC_DIR}/${PETSC_ARCH}/externalpackages/git.mumps/include
 #include ${PETSC_DIR}/lib/petsc/conf/variables
 #####

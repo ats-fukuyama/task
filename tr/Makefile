@@ -4,15 +4,16 @@ include ../make.header
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-#FFLAGS = -g $(OFLAGS)
-FFLAGS = $(DFLAGS)
+FFLAGS = -g $(OFLAGS)
+#FFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD)
 EQLIBS=../eq/eqlib.a
 PLLIBS=../../bpsd/bpsdlib.a ../plx/pllib.a 
 
 SRC90M=trcom0.f90 trcom1.f90 trcomm.f90 tr_bpsd.f90
-SRC90=trinit.f90 trprof.f90 trufsub.f90 trufile.f90 trfile.f90 trhelp.f90 \
+SRC90=trinit.f90 trparm.f90 trprep.f90  \
+      trprof.f90 trufsub.f90 trufile.f90 trfile.f90 trhelp.f90 \
       trexec.f90 trcalc.f90 cdbm.f90 trmodels.f90 trcoef.f90 tritg.f90 \
       trrslt.f90 trpnb.f90 trprf.f90 trpnf.f90 trpel.f90 trpsc.f90 trmdlt.f90 \
       trgout.f90 trgrar.f90 trgrat.f90 trgrap.f90 trgrae.f90 \
@@ -128,6 +129,8 @@ new :
 trmain.o : trmain.f90 trcomm.f90  
 trmenu.o : trmenu.f90 trcomm.f90 trcom1.f90 trunit.f90
 trinit.o : trinit.f90 trcomm.f90 trcom1.f90 trcom3.f90
+trparm.o : trparm.f90 trcomm.f90 trcom1.f90 trcom3.f90
+trprep.o : trprep.f90 trcomm.f90 trcom1.f90 trcom3.f90
 trprof.o : trprof.f90 trcomm.f90 trcom1.f90
 trfile.o : trfile.f90 trcomm.f90 trcom1.f90
 trufile.o : trufile.f90 trcomm.f90 trcom1.f90

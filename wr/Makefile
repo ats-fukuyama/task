@@ -1,19 +1,26 @@
 ### $Id$ ###
 include ../make.header
+include ../mtxp/make.mtxp
+LIB_MTX=$(LIB_MTX_BND)
+LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_PCG)
+#LIBX_MTX=$(LIBX_MTX_PCG)
+#LIB_MTX=$(LIB_MTX_MUMPS)
+#LIBX_MTX=$(LIBX_MTX_MUMPS)
+#LIB_MTX=$(LIBXMTX_KSP)
+#LIBX_MTX=$(LIBX_MTX_KSP)
 
 #FFLAGS=$(OFLAGS)
 FFLAGS=$(DFLAGS)
 
-MODINCLUDE= -I./$(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD) -I../plx/$(MOD)
+MODINCLUDE= -I./$(MOD) -I../plx/$(MOD) -I../lib/$(MOD) -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
 SRCS = wrmenu.f wrinit.f wrcalc.f wrbeam.f wrgout.f wrfile.f
 
 OBJS = $(SRCS:.f=.o)
 
-#LIBS = wrlib.a ../plx/pllib.a ../eq/eqlib.a ../dp/dplib.a \
-       ../../bpsd/bpsdlib.a ../lib/tasklib.a
-LIBS = ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a ../eq/eqlib.a ../dp/dplib.a wrlib.a 
-
+LIBS = wrlib.a  ../dp/dplib.a ../eq/eqlib.a ../plx/pllib.a \
+       $(LIB_MTX) ../lib/tasklib.a ../../bpsd/bpsdlib.a
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
@@ -42,10 +49,7 @@ libs:
 	(cd ../dp; make dplib.a)
 
 wr : $(LIBS) wrmain.o
-	$(FCFIXED) wrmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODDIR) $(MODINCLUDE)
-
-check :
-	ftnchek $(FCKFLAGS) $(SRCS) | less
+	$(FLINKER) wrmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 clean:
 	-rm -f core a.out *.o *.a ./*~ $(MOD)/*.mod

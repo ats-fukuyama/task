@@ -44,8 +44,8 @@
 
          DO NR=1,NRMAX
             SPSCL = S0*DEXP(-((RA*RM(NR)-PSCR0(NPSC))/PSCRW(NPSC))**2)
-            SPSC(NR, 1)=SPSC(NR,NS) + PZ(NS)+SPSCL  ! Electron
-            SPSC(NR,NS)=SPSC(NR,NS) + SPSCL         ! Ion
+            SPSC(NR, 1)=SPSC(NR, 1) + PZ(NS)*SPSCL  ! Electron
+            SPSC(NR,NS)=SPSC(NR,NS) +        SPSCL  ! Ion
          ENDDO
       ENDDO
 

@@ -4,8 +4,8 @@ include ../make.header
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD)
 
@@ -23,7 +23,7 @@ OBJS = $(SRCSFIXED:.f=.o) $(SRCSFREE:.f90=.o)
 
 LIBS = wilib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a
 
-all : wi
+all : wi plotwi plotwi2
 
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)
@@ -46,6 +46,12 @@ wiunmag : wiunmag-old.f
 clean:
 	-rm -f core a.out *.o *.mod ./*~ ./#* *.a $(MOD)/*.mod
 
+plotwi : plotwi.o
+	$(FCFREE) plotwi.o ../lib/tasklib.a -o $@ $(FFLAGS) $(FLIBS)
+
+plotwi2 : plotwi2.o
+	$(FCFREE) plotwi2.o ../lib/tasklib.a -o $@ $(FFLAGS) $(FLIBS)
+
 veryclean: clean
 	-rm -f wi wiunmag
 
@@ -59,3 +65,5 @@ wiwarm.o: wiwarm.f90 wicomm.f90
 wihot.o: wihot.f90 wicomm.f90
 wiscan.o: wiscan.f90 wicomm.f90
 wigout.o: wigout.f90 wicomm.f90
+plotwi.o: plotwi.f90
+plotwi2.o: plotwi2.f90
