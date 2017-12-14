@@ -2,6 +2,10 @@
 
       MODULE libmtx
 
+!  for PETSc V3.8
+#include "petsc/finclude/petsc.h"
+      use petsc
+!
       use libmpi
       use commpi
       PRIVATE
@@ -70,14 +74,19 @@
 !     petscviewer.h - viewers
 !     petscis.h     - index sets
 !
-#include "finclude/petsc.h"
+!  for PETSc V3.8: remove #include 
+!#include "finclude/petsc.h"
+
+
 !#include "finclude/petscvec.h"
 !#include "finclude/petscmat.h"
 !#include "finclude/petscpc.h"
 !#include "finclude/petscksp.h"
 !#include "finclude/petscsys.h"
 !#include "finclude/petsckspdef.h"
-#include "finclude/petscvec.h90"
+
+!  for PETSc V3.8: remove #include 
+!#include "finclude/petscvec.h90"
 !
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !                   Variable declarations
@@ -428,15 +437,20 @@
 
 !  Set operators. Here the matrix that defines the linear system
 !  also serves as the preconditioning matrix.
-      SELECT CASE(itype/2)
-      CASE(0)
+!
+!  for PETSc V3.8
+!
+!      SELECT CASE(itype/2)
+!      CASE(0)
 !         CALL KSPSetOperators(ksp,A,A,DIFFERENT_NONZERO_PATTERN,ierr)
-         CALL KSPSetOperators(ksp,A,A,ierr)
-      CASE(1)
-         CALL KSPSetOperators(ksp,A,A,SAME_NONZERO_PATTERN,ierr)
-      CASE(2)
-         CALL KSPSetOperators(ksp,A,A,SAME_PRECONDITIONER,ierr)
-      END SELECT
+!      CASE(1)
+!         CALL KSPSetOperators(ksp,A,A,SAME_NONZERO_PATTERN,ierr)
+!      CASE(2)
+!         CALL KSPSetOperators(ksp,A,A,SAME_PRECONDITIONER,ierr)
+!      END SELECT
+
+      CALL KSPSetOperators(ksp,A,A,ierr)
+
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_solve: KSPSetOperators: ierr=',ierr
 
