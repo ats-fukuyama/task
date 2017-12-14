@@ -304,8 +304,13 @@
 !     MODEL_NBI       : 1 for NBI calculation with simple model
 !                     : 2 read FIT3D data (limited)
 !     MODEL_WAVE      : 1 for wave calculation
-!     MODEL_BULK_CONST: 0 ordinary, 1: for bench mark
-!     MODEL_EX_READ_Tn
+!     MODEL_BULK_CONST: 0 ordinary
+!                     : 1 If MODEL_DELTA_F=0, FNSP in bulk region is Maxwellian
+!                         IF MODEL_DELTA_F=1, FNSP_DEL in bulk region replaced by FNSP_DEL=0 
+!                     : 2 Strong artifical sink term reduce FNSP_DEL in bulk (DELTA_F ONLY)
+!     MODEL_EX_READ_Tn: 0 Read temperature and density
+!                     : 1 Read electron temperature and density (no ion data case)
+!                     : 2 Read electron and ion temperature and density 
 !     MODEL_EX_READ_DH_RATIO
 !                     : 0 for prediction
 !                     : 1 constant ratio. Use NI_RATIO
@@ -358,6 +363,7 @@
       OUTPUT_TXT_F1=0
       OUTPUT_TXT_BEAM_WIDTH=0
       OUTPUT_TXT_HEAT_PROF=0
+      OUTPUT_TXT_BEAM_DENS=0
 
 !-----COMPUTATION PARAMETERS------------------------------------------
 !     DELT  : time step size (s)
@@ -569,7 +575,7 @@
            FACT_BULK, time_exp_offset, MODEL_BULK_CONST, RN_NEU0, MODEL_CX_LOSS, RN_NEUS, &
            EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME_H, SV_FILE_NAME_D, NSA_F1, NTH_F1, NR_F1, &
            OUTPUT_TXT_F1, OUTPUT_TXT_DELTA_F, OUTPUT_TXT_HEAT_PROF, OUTPUT_TXT_BEAM_WIDTH, &
-           NI_RATIO
+           OUTPUT_TXT_BEAM_DENS, NI_RATIO
 
       READ(nid,FP,IOSTAT=ist,ERR=9800,END=9900)
 
@@ -630,7 +636,7 @@
       WRITE(6,*) '      time_exp_offset, MODEL_BULK_CONST, RN_NEU0, MODEL_CX_LOSS, RN_NEUS'
       WRITE(6,*) '      EG_NAME_TMS, EG_NAME_CX, SV_FILE_NAME_H, SV_FILE_NAME_D, NSA_F1, NTH_F1, NR_F1'
       WRITE(6,*) '      OUTPUT_TXT_F1, OUTPUT_TXT_DELTA_F, OUTPUT_TXT_HEAT_PROF, OUTPUT_TXT_BEAM_WIDTH'
-      WRITE(6,*) '      NI_RATIO'
+      WRITE(6,*) '      OUTPUT_TXT_BEAM_DENS, NI_RATIO'
 
       RETURN
     END SUBROUTINE fp_plst
@@ -835,8 +841,9 @@
       idata(67)=OUTPUT_TXT_DELTA_F
       idata(68)=OUTPUT_TXT_HEAT_PROF
       idata(69)=OUTPUT_TXT_BEAM_WIDTH
+      idata(70)=OUTPUT_TXT_BEAM_DENS
 
-      CALL mtx_broadcast_integer(idata,69)
+      CALL mtx_broadcast_integer(idata,70)
       NSAMAX         =idata( 1)
       NSBMAX         =idata( 2)
       LMAX_WR        =idata( 3)
@@ -909,6 +916,7 @@
       OUTPUT_TXT_DELTA_F=idata(67)
       OUTPUT_TXT_HEAT_PROF=idata(68)
       OUTPUT_TXT_BEAM_WIDTH=idata(69)
+      OUTPUT_TXT_BEAM_DENS=idata(70)
 
       CALL mtx_broadcast_integer(NS_NSA,NSAMAX)
       CALL mtx_broadcast_integer(NS_NSB,NSBMAX)
@@ -1079,7 +1087,7 @@
 
       time_exp_offset  =rdata(71)
       RN_NEU0          =rdata(72)
-      RN_NEU0          =rdata(73)
+      RN_NEUS          =rdata(73)
 
       CALL mtx_broadcast_real8(pmax,NSMAX)
       CALL mtx_broadcast_real8(pmax_bb,NSMAX)

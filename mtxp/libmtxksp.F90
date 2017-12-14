@@ -2,15 +2,10 @@
 
       MODULE libmtx
 
+!  for PETSc V3.8
 #include "petsc/finclude/petsc.h"
-        use petsc
-
-!      use petscvec
-!      use petscmat
-!      use petscpc
-!      use petscksp
-!      use petscsys
-
+      use petsc
+!
       use libmpi
       use commpi
       PRIVATE
@@ -79,15 +74,18 @@
 !     petscviewer.h - viewers
 !     petscis.h     - index sets
 !
-
+!  for PETSc V3.8: remove #include 
+!#include "finclude/petsc.h"
 !#include "finclude/petscvec.h"
 !#include "finclude/petscmat.h"
 !#include "finclude/petscpc.h"
 !#include "finclude/petscksp.h"
 !#include "finclude/petscsys.h"
 !#include "finclude/petsckspdef.h"
-!#include "petsc/finclude/petscvec.h"
-!
+
+!  for PETSc V3.8: remove #include 
+!#include "finclude/petscvec.h90"
+
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !                   Variable declarations
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -437,6 +435,9 @@
 
 !  Set operators. Here the matrix that defines the linear system
 !  also serves as the preconditioning matrix.
+!
+!  for PETSc V3.8, comment out the following
+!
 !      SELECT CASE(itype/2)
 !      CASE(0)
 !         CALL KSPSetOperators(ksp,A,A,DIFFERENT_NONZERO_PATTERN,ierr)
@@ -447,6 +448,7 @@
 !      END SELECT
 
       CALL KSPSetOperators(ksp,A,A,ierr)
+
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_solve: KSPSetOperators: ierr=',ierr
 

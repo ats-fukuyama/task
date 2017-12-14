@@ -1,4 +1,3 @@
-
 MODULE fpcomm_parm
 
       use bpsd_kinds
@@ -35,8 +34,8 @@ MODULE fpcomm_parm
       integer:: MODEL_EX_READ_Tn,MODEL_EX_READ_DH_RATIO
       integer:: MODEL_BULK_CONST,MODEL_CX_LOSS
       integer:: N_partition_r,N_partition_s,N_partition_p
-      integer:: OUTPUT_TXT_DELTA_F,OUTPUT_TXT_F1
-      integer:: OUTPUT_TXT_BEAM_WIDTH,OUTPUT_TXT_HEAT_PROF
+      integer:: OUTPUT_TXT_DELTA_F, OUTPUT_TXT_F1, OUTPUT_TXT_BEAM_WIDTH, OUTPUT_TXT_HEAT_PROF
+      integer:: OUTPUT_TXT_BEAM_DENS
 
       real(rkind):: PMAX(NSM),PMAX_BB(NSM),EMAX(NSM)
       real(rkind):: R1,DELR1,RMIN,RMAX
@@ -206,6 +205,8 @@ module fpcomm
            RSPBL,RSPFL,RSPSL,RSPLL,RPDR,RNDR, RTL_BULK, RT_BULK, &
            RWRSL,RWMSL, &
            RDIDTL, RJSRL, RPSSL, RPLSL, RSPSL_CX
+      real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
+           RNSL_DELF, RWSL_PARA, RWSL_PERP
       real(rkind),dimension(:,:,:),POINTER :: & ! (NPM,NRM,NSAM)
            RP_BULK,RPL_BULK
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSAM,NSBM)
@@ -216,8 +217,14 @@ module fpcomm
 
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
            RNS,RJS,RWS,RPCS,RPWS,RPES,RLHS,RFWS,RECS,RWS123, &
+!<<<<<<< HEAD
+!           RSPB,RSPF,RSPS,RSPL,RPDRL,RNDRL, RICS, RDIDT,&
+!=======
            RSPB,RSPF,RSPS,RSPL,RPDRL,RNDRL,RWRS,RWMS,RDIDT,&
-           RJSR,RPSS,RPLS,RJS_M,RSPS_CX
+!>>>>>>> 99be190441bc8e2207d531603f711f4c3ea7e640
+           RJSR,RPSS,RPLS,RJS_M,RSPS_CX, RNS_DELF
+      real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
+           RNS_DELF_NSA, RWS_DELF_PARA, RWS_DELF_PERP, RWS_PARA, RWS_PERP
       real(rkind),dimension(:),POINTER :: & ! (NSAM)
            RNS_S2
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSAM,NSBM)
@@ -288,6 +295,7 @@ module fpcomm
       integer:: ierr_g
       integer,dimension(:,:),POINTER :: & ! (NRM,NSM)
            NP_BULK
+      real(rkind):: Ebeam0, Ebeam1
 
       contains
 
@@ -502,6 +510,8 @@ module fpcomm
              allocate(cte_fit(5),cne_fit(6),cti_fit(5))
           END IF
           allocate(RNSL(NRSTART:NREND,NSAMAX),RJSL(NRSTART:NREND,NSAMAX))
+          allocate(RNSL_DELF(NRSTART:NREND,NSAMAX))
+          allocate(RWSL_PARA(NRSTART:NREND,NSAMAX),RWSL_PERP(NRSTART:NREND,NSAMAX))
           allocate(RFPL(NRSTART:NREND),RJSRL(NRSTART:NREND,NSAMAX))
           allocate(RWSL(NRSTART:NREND,NSAMAX),RWS123L(NRSTART:NREND,NSAMAX))
           allocate(RSPBL(NRSTART:NREND,NSAMAX),RSPFL(NRSTART:NREND,NSAMAX))
@@ -519,6 +529,11 @@ module fpcomm
           allocate(RPLSL(NRSTART:NREND,NSAMAX))
 
           allocate(RNS(NRMAX,NSAMAX),RJS(NRMAX,NSAMAX),RJS_M(NRMAX,NSAMAX))
+          allocate(RNS_DELF_NSA(NRMAX,NSAMAX))
+          allocate(RWS_DELF_PARA(NRMAX,NSAMAX),RWS_DELF_PERP(NRMAX,NSAMAX))
+          allocate(RNS_DELF(NRMAX,NSMAX))
+          allocate(RWS_PARA(NRMAX,NSMAX),RWS_PERP(NRMAX,NSMAX))
+
           allocate(RFP(NRMAX),RJSR(NRMAX,NSAMAX))
           allocate(RFP_ava(NRMAX))
           allocate(RNS_S2(NSAMAX))
@@ -730,8 +745,11 @@ module fpcomm
           deallocate(RLHSL,RFWSL,RECSL,RWRSL,RWMSL,RPCS2L,RPCS2L_DEL)
           deallocate(RDIDT, RDIDTL)
           deallocate(RPSSL, RPLSL)
+          deallocate(RNSL_DELF,RWSL_PARA,RWSL_PERP)
 
           deallocate(RNS,RJS,RJS_M,RFP,RJSR,Rconnor,RFP_ava)
+          deallocate(RNS_DELF_NSA,RWS_DELF_PARA,RWS_DELF_PERP)
+          deallocate(RNS_DELF,RWS_PARA,RWS_PERP)
           deallocate(RNS_S2)
           deallocate(RWS,RWS123)
           deallocate(RSPB,RSPF)
