@@ -468,7 +468,7 @@ SUBROUTINE CMCALC(NE)
         do J=1,3
            do I=1,3
               CM1(I,J)=CM1(I,J) &
-                      +(real(NPH)**2)/RR &
+                      +(RKZ**2)*RR &
                        *( AW(I)*AW(J)-(AW(I)*BW(J)+AW(J)*BW(I))*Z(K) &
                          +CW(I)*CW(J)-(BW(I)*CW(J)+BW(J)*CW(I))*R(K) &
                          +BW(I)*BW(J)*(R(K)**2+Z(K)**2)) &
@@ -512,17 +512,12 @@ SUBROUTINE CMCALC(NE)
         do J=1,3
            do I=1,3
               CM1(I,J)=CM1(I,J) &
-!
-                      +(CII*real(NPH)) &
+                      +(CII*RKZ*RR) &
                        *(-B(I) &
                           *(AW(J)-BW(J)*Z(K)) &
                          +C(I) &
                           *(CW(J)-BW(J)*R(K))) &
                        *S*AIF1(K)
-!
-!                      +(CII*real(NPH)) &
-!                       *(-(AW(J)-BW(J)*Z(K))/RR) &
-!                      *S*AIF2(I,K)
            end do
         end do
      end do
@@ -567,17 +562,12 @@ SUBROUTINE CMCALC(NE)
         do J=1,3
            do I=1,3
               CM1(I,J)=CM1(I,J) &
-!
-                      -(CII*real(NPH)) &
+                      -(CII*RKZ*RR) &
                        *(-B(J) &
                           *(AW(I)-BW(I)*Z(K)) &
                          +C(J)&
                           *(CW(I)-BW(I)*R(K))) &
                         *S*AIF1(K)
-!
-!                      -(CII*real(NPH)) &
-!                       *(-(AW(I)-BW(I)*Z(K))/RR) &
-!                        *S*AIF2(J,K)
            end do
         end do
      end do

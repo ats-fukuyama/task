@@ -70,10 +70,12 @@ SUBROUTINE WFINIT
 !     *** RF PARAMETERS ***
 !
 !        RF    : Wave frequency                               (MHz)
-!        NPH   : Toroidal Mode Number
+!        NPH   : Toroidal Mode Number for modelg=2
+!        RKZ   : Vertical wave number for modelg=0,12         (1/m)
 
   RF     = 5000.D0
   NPH    = 0
+  RKZ    = 0.D0
 
 !     *** ANTENNA PARAMETERS ***
 !
@@ -292,7 +294,7 @@ SUBROUTINE WFPLST
   use wfcomm
 
   if (nrank.eq.0) then
-     WRITE(6,*) '&WF: BB,RA,RR,RF,AJ,APH,AWD,APOS,NPH,'
+     WRITE(6,*) '&WF: BB,RA,RR,RF,AJ,APH,AWD,APOS,NPH,RKZ,'
      WRITE(6,*) '     PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PPN0,PTN0,'
      WRITE(6,*) '     NSMAX,NAMAX,MODELI,'
      WRITE(6,*) '     MODELG,MODELB,MODELD,MODELP,MODELN,'
@@ -323,7 +325,7 @@ SUBROUTINE WFPARM(KID)
   LOGICAL LEX
   CHARACTER KPNAME*32,KLINE*70,KNAME*80,KID*1
 
-  NAMELIST /WF/ BB,RA,RR,RF,AJ,APH,AWD,APOS,NPH,&
+  NAMELIST /WF/ BB,RA,RR,RF,AJ,APH,AWD,APOS,NPH,RKZ,&
                 PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PPN0,PTN0,&
                 NSMAX,NAMAX,MODELI,&
                 MODELG,MODELB,MODELD,MODELP,MODELN,&
@@ -416,8 +418,8 @@ SUBROUTINE WFVIEW
   write(6,*) '*** USED PARAMETERS ***'
   write(6,'(A8,1PE11.3:2X,A7,1PE11.3:2X,A7,1PE11.3)')&
        & ' BB    =',BB    ,'RA    =',RA    ,'RR    ',RR    
-  write(6,'(A8,1PE11.3:2X,A7,I11)')&
-       & ' RF    =',RF    ,'NPH   =',NPH
+  write(6,'(A8,1PE11.3:2X,A7,I11    :2X,A7,1PE11.3)')&
+       & ' RF    =',RF    ,'NPH   =',NPH   ,'RKZ   ',RKZ
   
   write(6,*) '***** DIV *****'
   write(6,'(5A10)') &  
@@ -507,7 +509,9 @@ SUBROUTINE WFVIEW
 611 FORMAT(' ',A4,I2,3(1PE11.3))
 
 END SUBROUTINE WFVIEW
+
 ! --------------------------------------------------------
+
 subroutine wfparm_broadcast
 
   use libmpi
@@ -515,7 +519,7 @@ subroutine wfparm_broadcast
   implicit none
 
   integer,dimension(21) :: idata
-  real(8),dimension(34) :: ddata
+  real(8),dimension(35) :: ddata
   
 ! ---  broadcast integer data -----
 
@@ -604,9 +608,10 @@ subroutine wfparm_broadcast
      ddata(32)=rdamp_max
      ddata(33)=zdamp_min
      ddata(34)=zdamp_max
+     ddata(35)=rkz
   end if
 
-  call mtx_broadcast_real8(ddata,34)
+  call mtx_broadcast_real8(ddata,35)
   
   BB    =ddata(1)
   RA    =ddata(2)
@@ -642,6 +647,7 @@ subroutine wfparm_broadcast
   rdamp_max=ddata(32)
   zdamp_min=ddata(33)
   zdamp_max=ddata(34)
+  rkz   =ddata(35)
 
   call mtx_broadcast_real8(AJ  ,8)
   call mtx_broadcast_real8(APH ,8)

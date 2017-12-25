@@ -278,6 +278,8 @@ SUBROUTINE SETBDY(IERR)
      IF(KNELM(1,NE).EQ.0) NBSID=NBSID+1
      IF(KNELM(2,NE).EQ.0) NBSID=NBSID+1
      IF(KNELM(3,NE).EQ.0) NBSID=NBSID+1
+!     WRITE(6,'(A,4I5)') 'SETBDY NE,NE1,NE2,NE3:', &
+!                        NE,KNELM(1,NE),KNELM(2,NE),KNELM(3,NE)
   ENDDO
   NSDMAX=(3*NEMAX-NBSID)/2+NBSID
 
@@ -527,11 +529,12 @@ SUBROUTINE SETEWG
            CEBSD(NBSD)=(0.D0,0.D0)
         END IF
      CASE(12)
-        IF((R.GE.R1WG).AND.(R.LE.R2WG)) THEN
+        IF((R.GE.R1WG).AND.(R.LE.R2WG).AND. &
+           (Z.GE.Z1WG).AND.(Z.LE.Z2WG)) THEN
            PROD=(R2WG-R1WG)*(RNODE(NN2)-RNODE(NN1)) &
                +(Z2WG-Z1WG)*(ZNODE(NN2)-ZNODE(NN1))
            CALL wf_read_wg(Z,CEX,CEY,CEZ,IERR)
-           CEBSD(NBSD)=-AMPWG*CEY
+           CEBSD(NBSD)=AMPWG*CEY
            IF(PROD.GT.0.D0) CEBSD(NBSD)=-CEBSD(NBSD)
         ELSE
            CEBSD(NBSD)=(0.D0,0.D0)

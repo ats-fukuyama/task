@@ -64,9 +64,9 @@ SUBROUTINE PWRPLOT(NS)
   implicit none
 
   integer,intent(in) :: NS
-  integer    :: NE,NGX,NGY
+  integer    :: IE,NGX,NGY
   real(4)    :: GCLIP
-  real(8)    :: DX,DY,X,Y
+  real(8)    :: X,Y
   integer    :: I,J,K,IN
   real(8)    :: PABS
   real(8)    :: RW,WGT(3)
@@ -78,29 +78,20 @@ SUBROUTINE PWRPLOT(NS)
   
   RW=2.D0*PI*RF*1.D6
   CIWE=CII*RW*EPS0
-  NE=0
 
-  DY=(ZNDMAX-ZNDMIN)/(NGYMAX-1)
-  DX=(RNDMAX-RNDMIN)/(NGXMAX-1)
-  DO NGX=1,NGXMAX
-     G2X(NGX)=GCLIP(RNDMIN+DX*(NGX-1))
-  ENDDO
+  CALL WFGMESH
   DO NGY=1,NGYMAX
-     G2Y(NGY)=GCLIP(ZNDMIN+DY*(NGY-1))
-  ENDDO
-
-  DO NGY=1,NGYMAX
-     Y=ZNDMIN+DY*(NGY-1)
+     Y=G2Y(NGY)
      DO NGX=1,NGXMAX
-        X=RNDMIN+DX*(NGX-1)
-        CALL FEP(X,Y,NE)
-        IF(NE.EQ.0) THEN
+        X=G2X(NGX)
+        IE=IEGZ(NGX,NGY)
+        IF(IE.EQ.0) THEN
            GZ(NGX,NGY)=0.0
         ELSE
            ! --- calculate conductivity tensor ---
 
-           CALL DTENSR(NE,DTENS)
-           call WFWGT(NE,X,Y,WGT)
+           CALL DTENSR(IE,DTENS)
+           call WFWGT(IE,X,Y,WGT)
 
            CTENS=(0.d0,0.d0)
 
@@ -112,11 +103,10 @@ SUBROUTINE PWRPLOT(NS)
               end do
            end do
 
-
            ! --- calculate power absorption ---
-           call FIELDCR(NE,X,Y,CESD,CER)
-           call FIELDCP(NE,X,Y,CEND,CEP)
-           call FIELDCZ(NE,X,Y,CESD,CEZ)
+           call FIELDCR(IE,X,Y,CESD,CER)
+           call FIELDCP(IE,X,Y,CEND,CEP)
+           call FIELDCZ(IE,X,Y,CESD,CEZ)
 
            JP  =(0.d0,0.d0)
            PABS=0.d0
@@ -130,9 +120,10 @@ SUBROUTINE PWRPLOT(NS)
            PABS=0.5d0*real(JP(1)*conjg(CER)&
                           +JP(2)*conjg(CEP)&
                           +JP(3)*conjg(CEZ))
-           
+           IF(ABS(PABS).LE.1.D-20) PABS=0.D0
            GZ(NGX,NGY)=GCLIP(PABS)
 
+!        write(6,'(A,3I8,1P3E12.4)') 'NGX,NGY,IE,X,Y,PABS=',NGX,NGY,IE,X,Y,PABS
         ENDIF
      END DO
   ENDDO
@@ -291,7 +282,13 @@ SUBROUTINE WFGPPC(NW,NWMAX,KWD)
         NS=3
      end if
 
-     n_para=NPH*VC/(RR*WW)
+!!! the following should corrected
+     SELECT CASE(MODELG)
+     CASE(0,12)
+        n_para=RKZ*VC/WW
+     CASE(2)
+        n_para=NPH*VC/(RR*WW)
+     END SELECT
 
      GTCO_MAX=0.D0
      GTCR_MAX=0.D0
@@ -308,21 +305,21 @@ SUBROUTINE WFGPPC(NW,NWMAX,KWD)
            CALL WFSDEN(X,Y,RN,RTPR,RTPP,RZCL)
 
            DO NSDO=1,NSMAX
-              WP(NSDO)=sqrt(PZ(NSDO)*PZ(NSDO)*AEE*AEE*RN(NSDO)*1.D20 &
-                            /(PA(NSDO)*AMP*EPS0))
-              WC(NSDO)=PZ(NSDO)*AEE*BABS/(PA(NSDO)*AMP)
+              WP(NSDO)=PZ(NSDO)*PZ(NSDO)*AEE*AEE*RN(NSDO)*1.D20 &
+                            /(PA(NSDO)*AMP*EPS0*WW*WW)
+              WC(NSDO)=PZ(NSDO)*AEE*BABS/(PA(NSDO)*AMP*WW)
            end DO
 
-           TCR(NGX,NGY)=WC(NS)**2/(WW*WW)
+           TCR(NGX,NGY)=WC(NS)**2
            TCO(NGX,NGY)=1.D0
            THR(NGX,NGY)=1.D0
            TRC(NGX,NGY)=1.D0
            TLC(NGX,NGY)=1.D0
            do NSDO=1,NSMAX
-              TCO(NGX,NGY)=TCO(NGX,NGY)-WP(NSDO)**2/(WW*WW)
-              THR(NGX,NGY)=THR(NGX,NGY)-WP(NSDO)**2/(WW**2-WC(NSDO)**2)
-              TRC(NGX,NGY)=TRC(NGX,NGY)-WP(NSDO)**2/(WW*(WW+WC(NSDO)))
-              TLC(NGX,NGY)=TLC(NGX,NGY)-WP(NSDO)**2/(WW*(WW-WC(NSDO)))
+              TCO(NGX,NGY)=TCO(NGX,NGY)-WP(NSDO)
+              THR(NGX,NGY)=THR(NGX,NGY)-WP(NSDO)/(1.D0-WC(NSDO)**2)
+              TRC(NGX,NGY)=TRC(NGX,NGY)-WP(NSDO)/(1.D0+WC(NSDO))
+              TLC(NGX,NGY)=TLC(NGX,NGY)-WP(NSDO)/(1.D0-WC(NSDO))
            end do
            
            GTCR(NGX,NGY)=GUCLIP(1.D0-TCR(NGX,NGY))
@@ -948,8 +945,14 @@ SUBROUTINE WFGPRM
   
   GXL=GXL+GDX
   CALL MOVE(GXL,GYL)
-  CALL TEXT('NPH=',4)
-  CALL NUMBI(NPH,'(I3)',3)
+  SELECT CASE(MODELG)
+  CASE(0,12)
+     CALL TEXT('RKZ=',4)
+     CALL NUMBD(RKZ,'(F7.2)',7)
+  CASE(2)
+     CALL TEXT('NPH=',4)
+     CALL NUMBI(NPH,'(I3)',3)
+  END SELECT
   
   GXL=GXMIN
   GXL=GXL+GRCHH
@@ -1476,3 +1479,51 @@ SUBROUTINE WFPRMJ
   END DO
   RETURN
 END SUBROUTINE WFPRMJ
+
+SUBROUTINE WFGMESH
+  USE wfcomm
+  IMPLICIT NONE
+  INTEGER,SAVE:: NGXMAX_SAVE=0,NGYMAX_SAVE=0
+  REAL(8),SAVE:: RNDMIN_SAVE=0.D0,RNDMAX_SAVE=0.D0
+  REAL(8),SAVE:: ZNDMIN_SAVE=0.D0,ZNDMAX_SAVE=0.D0
+  REAL(8):: DX,DY,X,Y
+  INTEGER:: NGX,NGY,IE
+  INTERFACE
+     FUNCTION GCLIP(X)
+       REAL(4):: GCLIP
+       REAL(8):: X
+     END FUNCTION GCLIP
+  END INTERFACE
+
+  IF(NGXMAX.NE.NGXMAX_SAVE.OR. &
+     NGYMAX.NE.NGYMAX_SAVE.OR. &
+     RNDMIN.NE.RNDMIN_SAVE.OR. &
+     RNDMAX.NE.RNDMAX_SAVE.OR. &
+     ZNDMIN.NE.ZNDMIN_SAVE.OR. &
+     ZNDMAX.NE.ZNDMAX_SAVE) THEN
+     IE=0
+     DY=(ZNDMAX-ZNDMIN)/(NGYMAX-1)
+     DX=(RNDMAX-RNDMIN)/(NGXMAX-1)
+     DO NGX=1,NGXMAX
+        G2X(NGX)=GCLIP(RNDMIN+DX*(NGX-1))
+     ENDDO
+     DO NGY=1,NGYMAX
+        G2Y(NGY)=GCLIP(ZNDMIN+DY*(NGY-1))
+     ENDDO
+     DO NGY=1,NGYMAX
+        Y=ZNDMIN+DY*(NGY-1)
+        DO NGX=1,NGXMAX
+           X=RNDMIN+DX*(NGX-1)
+           CALL FEP(X,Y,IE)
+           IEGZ(NGX,NGY)=IE
+        END DO
+     END DO
+     NGXMAX_SAVE=NGXMAX
+     NGYMAX_SAVE=NGYMAX
+     RNDMIN_SAVE=RNDMIN
+     RNDMAX_SAVE=RNDMAX
+     ZNDMIN_SAVE=ZNDMIN
+     ZNDMAX_SAVE=ZNDMAX
+  END IF
+  RETURN
+END SUBROUTINE WFGMESH

@@ -25,7 +25,7 @@ CONTAINS
 
       USE bpsd_kinds
       USE plcomm,ONLY: idebug
-      USE wfcomm,ONLY: KNAMWG
+      USE wfcomm,ONLY: KNAMWG,RKZ
       USE wfwg1D
       USE libgrf
       IMPLICIT NONE
@@ -47,7 +47,9 @@ CONTAINS
                                        !open to read formatted without pronpt
       IF(ierr.NE.0) GOTO 9990
 
-      READ(NFL,*,END=9991) ! skip 2 lines: title,XYZ
+      READ(NFL,*,END=9991) ! skip 1 lines: KZ
+      READ(NFL,*,ERR=9994,END=9991) RKZ
+      READ(NFL,*,END=9991) ! skip 2 lines: title,nymax
       READ(NFL,*,END=9991)
       READ(NFL,*,ERR=9994,END=9991) NYMAX
 

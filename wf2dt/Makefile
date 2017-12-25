@@ -9,10 +9,10 @@ LIBX_MTX=$(LIBX_MTX_MUMPS)
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-#FFLAGS = $(OFLAGS)
-#LFLAGS = $(OFLAGS)
-FFLAGS = $(DFLAGS)
-LFLAGS = $(DFLAGS)
+FFLAGS = $(OFLAGS)
+LFLAGS = $(OFLAGS)
+#FFLAGS = $(DFLAGS)
+#LFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I./$(MOD) -I../plx/$(MOD) -I../eq/$(MOD) \
             -I../../bpsd/$(MOD) -I../mtxp/$(MOD) \
