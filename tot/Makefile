@@ -1,19 +1,20 @@
 ### $Id$ ###
 include ../make.header
 include ../mtxp/make.mtxp
-#LIB_MTX=$(LIB_MTX_BND)
-#LIBX_MTX=$(LIBX_MTX_BND)
+LIB_MTX=$(LIB_MTX_BND)
+LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIB_MTX_PCG)
 #LIBX_MTX=$(LIBX_MTX_PCG)
-LIB_MTX=$(LIB_MTX_MUMPS)
-LIBX_MTX=$(LIBX_MTX_MUMPS)
+#LIB_MTX=$(LIB_MTX_MUMPS)
+#LIBX_MTX=$(LIBX_MTX_MUMPS)
 #LIB_MTX=$(LIBXMTX_KSP)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
 FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
-MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD) -I../fp/$(MOD) -I../mtxp/$(MOD)
+MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) \
+            -I../plx/$(MOD) -I../fp/$(MOD) -I../mtxp/$(MOD)
 EQLIBS= ../plx/noequlib.o ../eq/eqlib.a 
 
 SRCS = main.f
@@ -24,7 +25,7 @@ LIBS = ../lib/mdslib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a \
        ../plx/pllib.a \
        ../tr/trcom2.o ../tr/trcom3.o $(EQLIBS) \
        ../tr/tr2lib.a ../dp/dplib.a ../wr/wrlib.a ../wm/wmlib.a \
-       ../fp/fplib.a $(LIB_MTX)
+       ../fp/fplib.a
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)

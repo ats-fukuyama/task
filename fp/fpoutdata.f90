@@ -116,13 +116,15 @@
       END DO
 
       DO NP=NP_BULK(NR_F1,NSA_F1), NPMAX-1 ! half value width
-         IF(FNS(NTH_F1,NP-1,NR_F1,NSA_F1).le.FNS(NTH_F1,NP,NR_F1,NSA_F1).and.FNS(NTH_F1,NP,NR_F1,NSA_F1).ge.FNS(NTH_F1,NP+1,NR_F1,NSA_F1))THEN
+         IF(FNS(NTH_F1,NP-1,NR_F1,NSA_F1).le.FNS(NTH_F1,NP,NR_F1,NSA_F1) &
+       .and.FNS(NTH_F1,NP,NR_F1,NSA_F1).ge.FNS(NTH_F1,NP+1,NR_F1,NSA_F1))THEN
             beam_peak_value=FNS(NTH_F1,NP,NR_F1,NSA_F1)*0.5D0
             NP_B_peak=NP
          END IF
       END DO
       DO NP=1, NPMAX-1
-         IF(FNS(NTH_F1,NP,NR_F1,NSA_F1).le.beam_peak_value.and.FNS(NTH_F1,NP+1,NR_F1,NSA_F1).ge.beam_peak_value)THEN
+         IF(FNS(NTH_F1,NP,NR_F1,NSA_F1).le.beam_peak_value &
+       .and.FNS(NTH_F1,NP+1,NR_F1,NSA_F1).ge.beam_peak_value)THEN
             NP_half_l=NP
          ELSEIF(FNS(NTH_F1,NP,NR_F1,NSA_F1).ge.beam_peak_value.and.FNS(NTH_F1,NP+1,NR_F1,NSA_F1).le.beam_peak_value)THEN
             NP_half_h=NP
@@ -143,7 +145,9 @@
            PTFP0(NSA_F1)**2*PM(NP_half_h,NS_F1)**2/(AEE*AMFP(NSA_F1)*1.D3)*0.5D0, &
            PTFP0(NSA_F1)**2*PM(NP_B_peak,NS_F1)**2/(AEE*AMFP(NSA_F1)*1.D3)*0.5D0, &
            FNS(NTH_F1,NP_half_l,NR_F1,NSA_F1), FNS(NTH_F1,NP_half_h,NR_F1,NSA_F1), beam_peak_value*2.D0
-      WRITE(*,'(A,E14.6,6I5,E14.6,I5)') "BEAM_HALF ",TIMEFP, NP_2e_l, NP_2e_h, NP_1e_l, NP_1e_h, NP_half_l, NP_half_h, beam_peak_value, NP_BULK(NR_F1,NSA_F1)
+      WRITE(*,'(A,E14.6,6I5,E14.6,I5)') "BEAM_HALF ",TIMEFP, NP_2e_l, &
+           NP_2e_h, NP_1e_l, NP_1e_h, NP_half_l, NP_half_h, &
+           beam_peak_value, NP_BULK(NR_F1,NSA_F1)
 
 
 !      log10_neu0=LOG10(RN_NEU0)
