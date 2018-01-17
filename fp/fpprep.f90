@@ -843,9 +843,11 @@
       USE plprof
       USE EG_READ
       IMPLICIT NONE
-      INTEGER:: NSA, NSB, NS, NSFP, NSFD, NR, ISW_CLOG
+      INTEGER:: NSA, NSB, NS, NSFP, NSFD, NR, ISW_CLOG, i, j
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
-      real(kind8):: RTFD0L, RHON, RNE, RTE, RLNRL, FACT, RNA, RTA, RNB, RTB, SUM, v_beam, AMFDL
+      real(kind8):: RTFD0L, RHON, RNE, RTE, RLNRL, FACT, RNA, RTA, RNB, RTB, SUM, AMFDL
+      real(kind8):: A_D, tau_se_E0, k_energy, log_energy, sigma_cx0, sigma_cx, tau_cx_E1
+      real(kind8):: tau_se_E0E1, k_energy1, log10_neu0, log10_neus, alpha, beta, N_NEUT, E_CR
 
       DO NSA=1,NSAMAX
          NS=NS_NSA(NSA)
@@ -895,7 +897,7 @@
          END DO
       END DO
 
-      IF(MODEL_EX_READ_Tn.eq.1)THEN
+      IF(MODEL_EX_READ_Tn.ne.0)THEN
          CALL READ_EXP_DATA
          CALL MAKE_EXP_PROF(timefp)
          IF(NRANK.eq.0) WRITE(*,'(A,E14.6)') "time_exp_offset= ", time_exp_offset
@@ -923,7 +925,7 @@
          ENDDO
 !         WRITE(*,'(3I4, 4E14.6)') NRANK, NR, NPSTART, RTFD(NR,1), RTFD(NR,2)
 
-         IF(MODEL_EX_READ_Tn.eq.1)THEN
+         IF(MODEL_EX_READ_Tn.ne.0)THEN
             DO NSA=1,NSAMAX ! temporal
                NS=NS_NSA(NSA)
                RNFP(NR,NSA)=RN_TEMP(NR,NS)
@@ -1029,17 +1031,59 @@
       ENDIF
 
 ! ---- NBI energy loss time
-      IF(MODEL_NBI.ne.0.and.NRANK.eq.0.and.NSAMAX.ge.3)THEN ! assuming AMFD(3)=D, D beam, ZEFF=1
-         v_beam = SQRT(2.D0*180.D3*AEE/AMFP(3))
-         tauE0_NB_e=(3.D0*PI*SQRT(2.D0*PI)*EPS0**2*AMFD(3)*AMFP(1)*VTFP0(1)**3)/&
-              (AEFP(1)**4*LNLAM(1,1,1)*RNFP0(1)*1.D20)
-         tauE0_NB_i=(2.D0*PI*EPS0**2*AMFD(3)*AMFD(3)*v_beam**3)/&
-              (AEFP(3)**4*LNLAM(1,2,1)*RNFP0(3)*1.D20)
-         tauE0_NB=1.D0/(1.D0/tauE0_NB_i+1.D0/tauE0_NB_i)
+!      IF(MODEL_NBI.ne.0.and.NRANK.eq.0.and.MODEL_CX_LOSS.eq.1)THEN ! assuming AMFD(NSA_F1)=D, D beam, ZEFF=1
 
-         WRITE(*,'(A,E14.6)') "tauE0_NB_e= ", tauE0_NB_e
-         WRITE(*,'(A,E14.6)') "tauE0_NB_i= ", tauE0_NB_i
-         WRITE(*,'(A,E14.6)') "tauE0_NB= ", tauE0_NB
+      IF(MODEL_NBI.ne.0.and.MODEL_CX_LOSS.eq.1)THEN ! assuming AMFD(NSA_F1)=D, D beam, ZEFF=1
+         NS=NS_NSA(NSA_F1)
+         A_D=RN_TEMP(NRSTART,1)*1.D20*AEFD(1)**4*LNLAM(NRSTART,1,NSA_F1)/(2.D0*PI*EPS0**2*AMFP(NSA_F1)**2)
+         tau_se_E0 = (3.D0*sqrt(2.D0*PI)*(RT_TEMP(NRSTART,1)*AEE*1.D3)**1.5)/(sqrt(AMFD(1))*AMFP(NSA_F1)*A_D) 
+
+         Ebeam0= 140.D3
+         log_energy = dlog10(Ebeam0)
+         sigma_cx0 = 0.6937D-14*(1.D0-0.155D0*log_energy)**2/ &
+              (1.D0+0.1112D-14*Ebeam0**3.3D0)*1.D-4 * SQRT(Ebeam0*AEE/AMFD(NSA_F1))
+
+         j=0
+         DO i=1, 100
+            Ebeam1= (140.D0-1.D0*i)*1.D3
+            log_energy = dlog10(Ebeam1)
+            sigma_cx = 0.6937D-14*(1.D0-0.155D0*log_energy)**2/ &
+                 (1.D0+0.1112D-14*Ebeam1**3.3D0)*1.D-4 *SQRT(Ebeam1*AEE/AMFD(NSA_F1))
+            IF(sigma_cx.le.sigma_cx0*exp(1.D0))THEN
+               j=i
+            END IF
+         END DO
+         Ebeam1= (140.D0-1.D0*j)*1.D3
+         log_energy = dlog10(Ebeam1)
+         sigma_cx = 0.6937D-14*(1.D0-0.155D0*log_energy)**2/ &
+              (1.D0+0.1112D-14*Ebeam1**3.3D0)*1.D-4 *SQRT(Ebeam1*AEE/AMFD(NSA_F1))
+
+         E_CR=14.8D0*PA(NS)/PA(NS)**(2.D0/3.D0)*RT_TEMP(NRSTART,1)*1.D3
+!         tau_se_E0E1=tau_se_E0*log(Ebeam0/Ebeam1)*0.5D0
+         tau_se_E0E1=tau_se_E0*&
+              log( (Ebeam0**(1.5D0)+E_CR**(1.5D0) )/( Ebeam1**(1.5D0)+E_CR**(1.5D0) ) )&
+              /3.D0
+
+         log10_neu0=LOG10(RN_NEU0)
+         log10_neus=LOG10(RN_NEUS)
+!     neutral gas profile
+         alpha=2.5D0
+         beta=0.8D0
+         N_NEUT=10**( (log10_neu0-log10_neus)*(1.D0-RM(NRSTART)**alpha)**beta+log10_neus )
+
+         tau_cx_E1 = 1.D0/(N_NEUT*1.D20*EXP(1.D0)*sigma_cx0)
+
+         IF(NRANK.eq.0)THEN
+            WRITE(*,'(A,E14.6)') "E_CR on axis=   ", E_CR
+            WRITE(*,'(A,1PE14.6,2E14.6)') "E0, tau_se_E0 on axis=   ", Ebeam0, tau_se_E0
+            WRITE(*,'(A,1PE14.6,2E14.6)') "E1, tau_se_E0E1, wo E_CR on axis= ", Ebeam1, tau_se_E0E1, tau_se_E0*log(Ebeam0/Ebeam1)*0.5D0
+            WRITE(*,'(A,E14.6)') "tau_cx_E1 on axis=   ", tau_cx_E1
+         END IF
+         IF(NRSTART.eq.NRMAX.and.NPSTART.eq.1.and.NSASTART.eq.1)THEN
+            WRITE(*,'(A,1PE14.6,2E14.6)') "E0, tau_se_E0, on edge=   ", Ebeam0, tau_se_E0
+            WRITE(*,'(A,1PE14.6,2E14.6)') "E1, tau_se_E0E1, on edge= ", Ebeam1, tau_se_E0E1, tau_se_E0*log(Ebeam0/Ebeam1)*0.5D0
+            WRITE(*,'(A,E14.6)') "tau_cx_E1 on edge=   ", tau_cx_E1
+         END IF
       END IF
 ! ----set runaway
       IF(MODEL_DISRUPT.ne.0.and.nt_init.eq.0)THEN 
@@ -1058,6 +1102,8 @@
          CALL set_post_disrupt_Clog
          call mtx_broadcast_real8(POST_tau_ta0_f,nsamax)
       END IF
+      RWS_PARA(:,:)=0.D0
+      RWS_PERP(:,:)=0.D0
 
       END SUBROUTINE fp_set_normalize_param
 !==============================================================
@@ -1068,9 +1114,6 @@
       DOUBLE PRECISION:: RTA,RTB,RNA,RNB, RLNRL, FACT,RNE
       double precision,dimension(NSAMAX,NSBMAX):: CLOG
       double precision:: VTFDL, PTFDL
-
-!      CALL FPSSUB2
-!      CALL FPSPRF2
 
       DO NR=NRSTART,NRENDWM
          ISW_CLOG=0 ! =0 Wesson, =1 NRL
@@ -1179,6 +1222,7 @@
       USE libmtx
       IMPLICIT NONE
 
+      RNS(:,:)=0.D0
       IF(nrank.EQ.0) WRITE(*,*) "SET INITIAL VALUE FROM f"
       IF(NRANK.eq.0.and.MODEL_disrupt.ne.0)THEN
          CALL display_disrupt_initials
@@ -1284,6 +1328,7 @@
 !      WRITE(6,*) "END MESH"
 !     ----- Initialize diffusion coef. -----
       call FPCINI
+      RNS_DELF(:,:)=0.D0
 !     ----- set parameters for target species -----
       CALL fp_set_normalize_param
 !     ----- Initialize velocity distribution function of all species -----
@@ -1307,7 +1352,8 @@
             ELSEIF(PA(NSFP).eq.2)THEN
                CALL READ_FIT3D_D
             END IF
-         END DO
+            CALL SV_WEIGHT_R
+        END DO
       END IF
 !     ----- set parallel electric field -----
 
@@ -1351,7 +1397,12 @@
 !continue start
       IF(MODELS.eq.3) CALL NF_LG_FUNCTION
       IF(MODELS.ne.0) CALL NF_REACTION_COEF
+
       CALL fp_continue(ierr)
+      IF(MODELS.ge.2)THEN
+         CALL ALLREDUCE_NF_RATE
+         CALL PROF_OF_NF_REACTION_RATE(1)
+      END IF
       CALL fp_set_initial_value_from_f
 
       CALL GUTIME(gut2)
