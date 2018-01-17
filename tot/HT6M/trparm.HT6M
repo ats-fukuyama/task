@@ -1,0 +1,15 @@
+ &tr
+   modelg=3
+   knameq='eqdata-HT6M'
+   nsmax=2
+   PA(2)=1.D0,PZ(2)=1.D0
+   pn=0.01D0,0.01D0
+   pns=0.001D0,0.001D0
+   pt=0.001D0,0.001D0,1.D-6,1.D-6
+   pts=0.001D0,0.001D0,1.D-6,1.D-6
+   dt=0.0001D0
+   ntmax=1000
+   ntstep=100
+   ngrstp=100
+ &end
+ 
