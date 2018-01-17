@@ -5,13 +5,13 @@
 
 !     ********************************************
 
-MODULE cdbm_mod
+MODULE cdbmfp_mod
 
   USE bpsd_kinds
   USE bpsd_constants
   IMPLICIT NONE
   PRIVATE
-  PUBLIC:: cdbm
+  PUBLIC:: cdbmfp
 
 !  integer,parameter :: rkind=selected_real_kind(12,100)
 !  integer,parameter :: ikind=selected_int_kind(8)
@@ -35,7 +35,7 @@ MODULE cdbm_mod
 
 CONTAINS
 
-  SUBROUTINE cdbm(bb,rr,rs,rkap,qp,shear,pne,rhoni,dpdr,dvexbdr, &
+  SUBROUTINE cdbmfp(bb,rr,rs,rkap,qp,shear,pne,rhoni,dpdr,dvexbdr, &
        &             calf,ckap,cexb,model,chi_cdbm,fsz,curvz,fez)
 
     real(rkind),intent(in):: bb      ! Magnetic field strength [T]
@@ -107,10 +107,10 @@ CONTAINS
        fe=1.D0/(1.D0+cexb*wexb**2)
     CASE(2)
        shearl=sqrt(shear**2+0.1D0**2)   !
-       fe=cexb*fexb(wexb,shear,alpha)
+       fe=cexb*fexbfp(wexb,shear,alpha)
     END SELECT
 
-    fs=trcofs(shear,calf*alpha,ckap*curv)
+    fs=trcofsfp(shear,calf*alpha,ckap*curv)
 
     chi_cdbm=ckcdbm*fs*fk*fe*SQRT(ABS(alpha))**3*delta2*va/(qp*rr)
 
@@ -119,11 +119,11 @@ CONTAINS
     IF(PRESENT(fez))   fez=fe
     
     RETURN
-  END SUBROUTINE cdbm
+  END SUBROUTINE cdbmfp
 
 ! *** Form factor in CDBM model ***
 
-  REAL(rkind) FUNCTION trcofs(shear,alpha,curv)
+  REAL(rkind) FUNCTION trcofsfp(shear,alpha,curv)
 
     IMPLICIT NONE
     real(rkind),intent(in):: shear ! Magnetic shear
@@ -162,14 +162,14 @@ CONTAINS
           fs2=0.D0
        ENDIF
     ENDIF
-    trcofs=MAX(fs1,fs2)
+    trcofsfp=MAX(fs1,fs2)
 
     RETURN
-  END FUNCTION trcofs
+  END FUNCTION trcofsfp
 
 ! *** ExB shearing effect for CDBM model ***
 
-  REAL(rkind) FUNCTION fexb(wexb,shear,alpha)
+  REAL(rkind) FUNCTION fexbfp(wexb,shear,alpha)
 
     IMPLICIT NONE
     REAL(rkind),intent(in):: wexb  ! omega ExB
@@ -196,10 +196,10 @@ CONTAINS
 
     arg=beta*abs(wexb)**gamma
     IF(arg.GT.70.D0) THEN
-       fexb=0.D0
+       fexbfp=0.D0
     ELSE
-       fexb=EXP(-arg)
+       fexbfp=EXP(-arg)
     ENDIF
     RETURN
-  END FUNCTION FEXB
-END MODULE cdbm_mod
+  END FUNCTION FEXBfp
+END MODULE cdbmfp_mod

@@ -16,7 +16,7 @@ FFLAGS = $(DFLAGS)
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../plx/$(MOD) -I../eq/$(MOD) \
+MODINCLUDE= -I./$(MOD) -I../lib/$(MOD) -I../plx/$(MOD) -I../eq/$(MOD) \
             -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
 SRCS = mpilib.f wmmenu.f wminit.f wmeign.f wmsetg.f \
@@ -24,14 +24,14 @@ SRCS = mpilib.f wmmenu.f wminit.f wmeign.f wmsetg.f \
        wmsetm.f wmsetf.f wmxprf.f wmdprf.f wmsolv.f \
        wmpout.f wmgout.f wmgsub.f wmdout.f wmfout.f \
        wmexec.f wmloop.f wmtae.f \
-       wmvmec.f wmbooz.f wmvout.f wmtpcs.f wmsolv.f
+       wmvmec.f wmbooz.f wmvout.f wmtpcs.f
 
 SRCX = wmcont.f90 wmtest.f90 wmdpfa.f90 wmdpfa2.f90 wmdpfaA.f90 #wmdpfa3.f90
 
 OBJS = $(SRCX:.f90=.o) $(SRCS:.f=.o)
 
 LIBS = wmlib.a ../dp/dplib.a ../plx/pllib.a  ../eq/eqlib.a \
-       $(LIB_MTX) ../lib/tasklib.a ../../bpsd/bpsdlib.a
+       ../lib/tasklib.a ../../bpsd/bpsdlib.a
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
