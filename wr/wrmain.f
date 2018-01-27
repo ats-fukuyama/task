@@ -21,36 +21,36 @@ C
       USE plinit,ONLY: PL_INIT,PL_PARM
       INCLUDE 'wrcomm.inc'
 
-      CALL mtx_initialize
+C      CALL mtx_initialize
 
-      IF(NRANK.EQ.0) THEN
+C      IF(NRANK.EQ.0) THEN
          WRITE(6,*) '## TASK/WR 2017/12/06'
          CALL GSOPEN
-      END IF
-      CALL MPSYNC
+C      END IF
+C      CALL MPSYNC
 
       CALL PL_INIT
       CALL EQINIT
       CALL DPINIT
       CALL WRINIT
-      IF(NRANK.EQ.0) THEN
+C      IF(NRANK.EQ.0) THEN
          OPEN(7,STATUS='SCRATCH')
          CALL PL_PARM(1,'plparm',IERR)
          CALL EQPARM(1,'eqparm',IERR)
          CALL DPPARM(1,'dpparm',IERR)
          CALL WRPARM(1,'wrparm',IERR)
-      END IF
-      CALL MPSYNC
-      CALL WRPRBC
+C      END IF
+C      CALL MPSYNC
+C      CALL WRPRBC
 
       CALL WRMENU
 
-      IF(NRANK.EQ.0) THEN
+C      IF(NRANK.EQ.0) THEN
          CLOSE(7)
          CALL GSCLOS
-      END IF
+C      END IF
 
-      CALL mtx_finalize
+C      CALL mtx_finalize
 
       STOP
       END

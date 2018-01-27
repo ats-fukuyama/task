@@ -1,0 +1,178 @@
+MODULE DPPARM
+
+CONTAINS
+
+!     ****** INPUT PARAMETERS ******
+
+  SUBROUTINE DP_PARM(MODE,KIN,IERR)
+
+!     MODE=0 : standard namelinst input
+!     MODE=1 : namelist file input
+!     MODE=2 : namelist line input
+
+!     IERR=0 : normal end
+!     IERR=1 : namelist standard input error
+!     IERR=2 : namelist file does not exist
+!     IERR=3 : namelist file open error
+!     IERR=4 : namelist file read error
+!     IERR=5 : namelist file abormal end of file
+!     IERR=6 : namelist line input error
+!     IERR=7 : unknown MODE
+!     IERR=10X : input parameter out of range
+
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: MODE
+    CHARACTER(LEN=*),INTENT(IN):: KIN
+    INTEGER,INTENT(OUT):: IERR
+
+1   CALL TASK_PARM(MODE,'DP',KIN,DPNLIN,DPPLST,IERR)
+    IF(IERR.NE.0) RETURN
+
+    CALL EQCHEK(IERR)
+    CALL DPCHEK(IERR)
+    IF(MODE.EQ.0.AND.IERR.NE.0) GOTO 1
+    IF(IERR.NE.0) IERR=IERR+100
+
+    RETURN
+  END SUBROUTINE DP_PARM
+
+!     ****** INPUT NAMELIST ******
+
+  SUBROUTINE DPNLIN(NID,IST,IERR)
+
+    USE dpcomm_parm,DPX=>DP
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: NID
+    INTEGER,INTENT(OUT):: IST,IERR
+
+
+    NAMELIST /DP/ RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ, &
+                  NSMAX,PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PU,PUS, &
+                  PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
+                  RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB, &
+                  MODELG,MODELN,MODELQ,MODEL_NPROF, &
+                  KNAMEQ,KNAMWR,KNAMFP,MODEFR,MODEFW,IDEBUG, &
+                  MODELP,NDISP1,NDISP2, &
+                  RF0,RFI0,RKX0,RKY0,RKZ0,RX0,RY0,RZ0, &
+                  RF1,RFI1,RKX1,RKY1,RKZ1,RX1, &
+                  RF2,RFI2,RKX2,RKY2,RKZ2,RX2, &
+                  NXMAX,NYMAX,NGXMAX,NGYMAX,NGPMAX,EPSRT,LMAXRT, &
+                  MODELV,NPMAX,NTHMAX,NRMAX,NSAMAX,PMAX,RMIN,RMAX
+
+    READ(NID,DP,IOSTAT=IST,ERR=9800,END=9900)
+    IERR=0
+    RETURN
+
+9800 IERR=8
+    RETURN
+9900 IERR=9
+    RETURN
+  END SUBROUTINE DPNLIN
+
+!     ***** INPUT PARAMETER LIST *****
+
+  SUBROUTINE DPPLST
+
+    WRITE(6,601)
+    RETURN
+
+601 FORMAT(' ','# &DP : RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,'/ &
+            9X,'NSMAX,PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PU,PUS,'/ &
+            9X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,'/ &
+            9X,'RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,'/ &
+            9X,'MODELG,MODELN,MODELQ,MODEFA,'/ &
+            9X,'KNAMEQ,KNAMWR,KNAMFP,IDEBUG,MODEFR,MODEFW,'/ &
+            9X,'MODELP,NDISP1,NDISP2,'/ &
+            9X,'RF0,RFI0,RKX0,RKY0,RKZ0,RX0,RY0,RZ0,'/ &
+            9X,'RF1,RFI1,RKX1,RKY1,RKZ1,RX1,'/ &
+            9X,'RF2,RFI2,RKX2,RKY2,RKZ2,RX2,'/ &
+            9X,'NXMAX,NYMAX,NGXMAX,NGYMAX,NGPMAX,EPSRT,LMAXRT,'/ &
+            9X,'MODELV,NPMAX,NTHMAX,NRMAX,NSAMAX,PMAX,RMIN,RMAX')
+  END SUBROUTINE DPPLST
+
+!     ***** CHECK INPUT PARAMETERS *****
+
+  SUBROUTINE DPCHEK(IERR)
+
+    USE dpcomm_parm
+    USE dpcomm,ONLY: ADJ,ADJD
+    IMPLICIT NONE
+    INTEGER,SAVE:: INIT=0
+    INTEGER,SAVE:: NHMAX_SAVE=0
+    INTEGER,INTENT(OUT):: IERR
+
+    IF(INIT.EQ.0) THEN
+       ALLOCATE(ADJ(0:NHMAX),ADJD(0:NHMAX))
+       NHMAX_SAVE=NHMAX
+       INIT=1
+    ELSE
+       IF(NHMAX.NE.NHMAX_SAVE) THEN
+          DEALLOCATE(ADJ,ADJD)
+          ALLOCATE(ADJ(0:NHMAX),ADJD(0:NHMAX))
+          NHMAX_SAVE=NHMAX
+       END IF
+    END IF
+
+    IERR=0
+
+    RETURN
+  END SUBROUTINE DPCHEK
+
+!     ***** CALL DPLDFP *****
+
+  SUBROUTINE DPPREP(NTHMAX_1,NRMAX_1,RMIN_1,RMAX_1,RR_1,IERR)
+
+    USE dpcomm
+    IMPLICIT NONE
+    INTEGER,INTENT(IN):: NTHMAX_1,NRMAX_1,RMIN_1,RMAX_1,RR_1
+    INTEGER,INTENT(OUT):: IERR
+    INTEGER,SAVE:: INITFP=0
+    INTEGER:: INITFM,NS
+
+    NRMAX=NRMAX_1
+    RR=RR_1
+
+    DO NS=1,NSMAX
+       IF(MODELV(NS).EQ.2.OR. &
+          MODELV(NS).EQ.4.OR. &
+          MODELV(NS).EQ.9) THEN
+          IF(INITFP.EQ.0) THEN
+             CALL DPLDFP
+             INITFP=1
+          ENDIF
+       ELSEIF(MODELV(NS).EQ.5) THEN
+          CALL DPLDFM(0,NCHMAX,NRMAX_1,RMIN_1,RMAX_1)
+       ENDIF
+    ENDDO
+    IERR=0
+
+    RETURN
+  END SUBROUTINE DPPREP
+
+!     ****** SHOW PARAMETERS ******
+
+  SUBROUTINE DP_VIEW
+
+    USE dpcomm_parm
+    IMPLICIT NONE
+    INTEGER:: NS
+
+    WRITE(6,100)
+    DO NS=1,NSMAX
+       WRITE(6,110) &
+            NS,MODELP(NS),MODELV(NS),NDISP1(NS),NDISP2(NS),PMAX(NS)
+    ENDDO
+    WRITE(6,601) 'RMIN  ',RMIN  ,'RMAX  ',RMAX
+    WRITE(6,602) 'NPMAX ',NPMAX ,'NTHMAX',NTHMAX, &
+                 'NRMAX ',NRMAX ,'NSAMAX',NSAMAX
+
+    RETURN
+
+100 FORMAT(1H ,'NS    MODELP  MODELV  NDISP1  NDISP2  PMAX')
+110 FORMAT(1H ,I2,' ',4I8,1PE12.4)                               
+601 FORMAT(' ',A6,'=',1PE11.3 :2X,A6,'=',1PE11.3: &
+            2X,A6,'=',1PE11.3 :2X,A6,'=',1PE11.3)
+602 FORMAT(1H ,A6,'=',I7,4X  :2X,A6,'=',I7,4X  : &
+            2X,A6,'=',I7,4X  :2X,A6,'=',I7)
+  END SUBROUTINE DP_VIEW
+END MODULE DPPARM

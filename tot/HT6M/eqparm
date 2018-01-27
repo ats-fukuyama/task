@@ -1,0 +1,11 @@
+ &eq
+    RR=0.65D0
+    RA=0.20D0
+    RKAP=1.D0
+    RDLT=.1D0
+    RIP=0.02D0
+    BB=1.5D0
+    pp0=6.4D-6
+    knameq='eqdata-HT6M'
+ &end
+ 

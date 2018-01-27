@@ -353,8 +353,8 @@
 
       SUBROUTINE mtx_broadcast_character(vdata,ndata)
         IMPLICIT NONE
-        CHARACTER(LEN=ndata),INTENT(INOUT):: vdata
         INTEGER,INTENT(IN):: ndata
+        CHARACTER(LEN=ndata),INTENT(INOUT):: vdata
         RETURN
       END SUBROUTINE mtx_broadcast_character
 

@@ -1076,7 +1076,8 @@
          IF(NRANK.eq.0)THEN
             WRITE(*,'(A,E14.6)') "E_CR on axis=   ", E_CR
             WRITE(*,'(A,1PE14.6,2E14.6)') "E0, tau_se_E0 on axis=   ", Ebeam0, tau_se_E0
-            WRITE(*,'(A,1PE14.6,2E14.6)') "E1, tau_se_E0E1, wo E_CR on axis= ", Ebeam1, tau_se_E0E1, tau_se_E0*log(Ebeam0/Ebeam1)*0.5D0
+            WRITE(*,'(A,1PE14.6,2E14.6)') "E1, tau_se_E0E1, wo E_CR on axis= ",&
+                 Ebeam1, tau_se_E0E1, tau_se_E0*log(Ebeam0/Ebeam1)*0.5D0
             WRITE(*,'(A,E14.6)') "tau_cx_E1 on axis=   ", tau_cx_E1
          END IF
          IF(NRSTART.eq.NRMAX.and.NPSTART.eq.1.and.NSASTART.eq.1)THEN

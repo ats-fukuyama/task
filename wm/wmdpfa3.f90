@@ -321,7 +321,7 @@ SUBROUTINE PVINT3(j,l,CINT)
   USE wmfa
   INCLUDE '../dp/dpcomm.inc'
   REAL(8),INTENT(IN) :: x,xm,xp
-  COMPLEX(8) :: CFUNCdp
+  COMPLEX(8) :: CFUNCdp3
 
     paN=0.5D0*(RBint+LBint)+0.5D0*(RBint-LBint)*x 
     A0 =0.5D0*(RBint-LBint)
@@ -329,7 +329,7 @@ SUBROUTINE PVINT3(j,l,CINT)
     CALL SPL2DD(paN,RHO0,fax,DFPax,DFRax,PMa0,RHOa0,&
          US(1:4,1:4,1:NPM,1:NRM,NTHv),NPM,NPMAX+2,NRMAXFP+2,IERR)
 
-      CFUNCdp=A0*DFPax*(paN**n)/(1-paN/Cp0N)
+      CFUNCdp3=A0*DFPax*(paN**n)/(1-paN/Cp0N)
  END FUNCTION CFUNCdp3
 
  FUNCTION CFUNCdr3(x,xm,xp)

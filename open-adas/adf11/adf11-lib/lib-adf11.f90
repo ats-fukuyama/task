@@ -546,7 +546,7 @@ CONTAINS
     CLOSE(LUN)
 
     WRITE(6,'(A)') &
-       '       (1) (2) (3) (4) (5) (6) (7) (8) (9)(10)(11)(12)'
+       ' ICL   (1) (2) (3) (4) (5) (6) (7) (8) (9)(10)(11)(12)'
     WRITE(6,'(A)') &
        ' IZ0   acd scd ccd prb prc qcd xcd plt pls zcd ycd ecd'
     DO IZ=1,IZDIMD
@@ -676,10 +676,12 @@ CONTAINS
     INTEGER,INTENT(IN):: IZ0,IND
     INTEGER,INTENT(OUT):: IERR
     REAL(dp),INTENT(IN):: PN,PT
+    REAL(dp),ALLOCATABLE,DIMENSION(:), INTENT(OUT):: PNZ
     INTEGER:: NDI,NDR,NXMAX,NX,IZ
     REAL(dp):: DR,PNZTOT,RATIO
-    REAL(dp),ALLOCATABLE,DIMENSION(:):: DRI,DRR,PNZ,XDATA,CVEC
+    REAL(dp),ALLOCATABLE,DIMENSION(:):: DRI,DRR,XDATA,CVEC
     REAL(dp),ALLOCATABLE,DIMENSION(:,:):: FDATA,CMAT
+!    REAL(dp),ALLOCATABLE,DIMENSION(:,:):: CMAT_SAVE
     LOGICAL:: should_halt, was_flagged
     
     NDI=ND_TABLE(IZ0,2)  ! ionization rate
@@ -712,19 +714,28 @@ CONTAINS
        END IF
     END DO
 
+    IF(NXMAX.EQ.1) THEN
+       PNZ(0)=DRR(0)/(DRR(0)+DRI(0))
+       PNZ(1)=DRI(0)/(DRR(0)+DRI(0))
+       IERR=0
+       RETURN       
+    END IF
+
     IF(IND.EQ.2) THEN
        DO NX=0,NXMAX-1
           XDATA(NX)=DBLE(NX)
           FDATA(NX,1)=LOG10(DRI(NX))
           FDATA(NX,2)=LOG10(DRR(NX))
+!          write(6,'(A,I5,1P4E12.4)') 'DR:',NX,DRI(NX),DRR(NX)
        END DO
 
        CALL PAGES
-       CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,2,'@DRI,DRR vs Z@',2)
+       CALL GRD1D(0,XDATA,FDATA,NXMAX+1,NXMAX,2,'@DRI,DRR vs Z@',2)
        CALL PAGEE
     END IF
 
     ALLOCATE(CMAT(3,NXMAX+1),CVEC(NXMAX+1))
+!    ALLOCATE(CMAT_SAVE(3,NXMAX+1))
     CMAT(1,1)= 0.D0
     CMAT(2,1)=-DRI(0)
     CMAT(3,1)= DRR(0)
@@ -744,7 +755,7 @@ CONTAINS
     NX=1
     DO IZ=0,NXMAX-1
        RATIO=DRR(IZ)/DRI(IZ)
-       IF(RATIO.LT.1.D0) NX=IZ
+       IF(RATIO.LT.1.D0) NX=IZ+1
     END DO
 
     CMAT(1,NX)=0.D0
@@ -752,7 +763,11 @@ CONTAINS
     CMAT(3,NX)=0.D0
     CVEC(NX)=1.D0
 
-    CALL BANDRDU(CMAT,CVEC,NXMAX+1,3,3,IERR)
+!    CMAT_SAVE=CMAT
+
+    CALL BANDRD(CMAT,CVEC,NXMAX+1,3,3,IERR)
+
+!    CMAT=CMAT_SAVE
 
     DO IZ=0,NXMAX
        PNZ(IZ)=CVEC(IZ+1)
@@ -762,8 +777,23 @@ CONTAINS
 !          RATIO=0.D0
 !       END IF
 !       write(6,'(A,I5,1P2E12.4)') 'IZ,PNZ,R/I=',IZ,PNZ(IZ),RATIO
+        IF(IZ.EQ.0) THEN
+           CVEC(IZ+1)=CMAT(2,IZ+1)*PNZ(IZ) &
+                     +CMAT(3,IZ+1)*PNZ(IZ+1)
+        ELSE IF(IZ.EQ.NXMAX) THEN
+           CVEC(IZ+1)=CMAT(1,IZ+1)*PNZ(IZ-1) &
+                     +CMAT(2,IZ+1)*PNZ(IZ)
+        ELSE
+           CVEC(IZ+1)=CMAT(1,IZ+1)*PNZ(IZ-1) &
+                     +CMAT(2,IZ+1)*PNZ(IZ) &
+                     +CMAT(3,IZ+1)*PNZ(IZ+1)
+        END IF
+!        write(6,'(A,I5,1P7E10.2)') 'EQ: ',IZ, &
+!              CMAT(1,IZ+1),CMAT(2,IZ+1),CMAT(3,IZ+1),PNZ(IZ),CVEC(IZ+1), &
+!              DRI(MIN(IZ,NXMAX-1)),DRR(MIN(IZ,NXMAX-1))
     END DO
     DEALLOCATE(CMAT,CVEC)
+!    DEALLOCATE(CMAT_SAVE)
 
     PNZTOT=0.D0
     DO IZ=1,NXMAX
@@ -793,11 +823,13 @@ CONTAINS
     IF(IND.GE.1) THEN    
        DO NX=0,NXMAX
           XDATA(NX)=DBLE(NX)
-          FDATA(NX,1)=LOG10(PNZ(NX))
+!          FDATA(NX,1)=LOG10(PNZ(NX))
+          FDATA(NX,1)=MAX(PNZ(NX),1.D-20)
        END DO
 
        CALL PAGES
-       CALL GRD1D(0,XDATA,FDATA,NXMAX+1,NXMAX+1,1,'@PNZ vs Z@',2)
+!       CALL GRD1D(0,XDATA,FDATA,NXMAX+1,NXMAX+1,1,'@PNZ vs Z@',2)
+       CALL GRD1D(0,XDATA,FDATA,NXMAX+1,NXMAX+1,1,'@PNZ vs Z@',0)
        CALL PAGEE
     END IF
 
