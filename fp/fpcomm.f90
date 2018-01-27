@@ -217,7 +217,7 @@ module fpcomm
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
            RNS,RJS,RWS,RPCS,RPWS,RPES,RLHS,RFWS,RECS,RWS123, &
            RSPB,RSPF,RSPS,RSPL,RPDRL,RNDRL,RWRS,RWMS,RDIDT,&
-           RJSR,RPSS,RPLS,RJS_M,RSPS_CX
+           RJSR,RPSS,RPLS,RJS_M,RSPS_CX,RNS_DELF,RWS_PARA,RWS_PERP
       real(rkind),dimension(:),POINTER :: & ! (NSAM)
            RNS_S2
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSAM,NSBM)
@@ -288,6 +288,7 @@ module fpcomm
       integer:: ierr_g
       integer,dimension(:,:),POINTER :: & ! (NRM,NSM)
            NP_BULK
+      REAL(rkind):: Ebeam0,Ebeam1
 
       contains
 
@@ -519,6 +520,8 @@ module fpcomm
           allocate(RPLSL(NRSTART:NREND,NSAMAX))
 
           allocate(RNS(NRMAX,NSAMAX),RJS(NRMAX,NSAMAX),RJS_M(NRMAX,NSAMAX))
+          allocate(RNS_DELF(NRMAX,NSMAX))
+          allocate(RWS_PARA(NRMAX,NSMAX),RWS_PERP(NRMAX,NSMAX))
           allocate(RFP(NRMAX),RJSR(NRMAX,NSAMAX))
           allocate(RFP_ava(NRMAX))
           allocate(RNS_S2(NSAMAX))

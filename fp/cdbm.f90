@@ -5,13 +5,13 @@
 
 !     ********************************************
 
-MODULE cdbm_mod
+MODULE cdbmfp_mod
 
   USE bpsd_kinds
   USE bpsd_constants
   IMPLICIT NONE
   PRIVATE
-  PUBLIC:: cdbm
+  PUBLIC:: cdbmfp
 
 !  integer,parameter :: rkind=selected_real_kind(12,100)
 !  integer,parameter :: ikind=selected_int_kind(8)
@@ -35,7 +35,7 @@ MODULE cdbm_mod
 
 CONTAINS
 
-  SUBROUTINE cdbm(bb,rr,rs,rkap,qp,shear,pne,rhoni,dpdr,dvexbdr, &
+  SUBROUTINE cdbmfp(bb,rr,rs,rkap,qp,shear,pne,rhoni,dpdr,dvexbdr, &
        &             calf,ckap,cexb,model,chi_cdbm,fsz,curvz,fez)
 
     real(rkind),intent(in):: bb      ! Magnetic field strength [T]
@@ -119,7 +119,7 @@ CONTAINS
     IF(PRESENT(fez))   fez=fe
     
     RETURN
-  END SUBROUTINE cdbm
+  END SUBROUTINE cdbmfp
 
 ! *** Form factor in CDBM model ***
 
@@ -202,4 +202,4 @@ CONTAINS
     ENDIF
     RETURN
   END FUNCTION FEXB
-END MODULE cdbm_mod
+END MODULE cdbmfp_mod

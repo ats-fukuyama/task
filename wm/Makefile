@@ -21,7 +21,7 @@ MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../plx/$(MOD) -I../eq/$(MOD) \
 
 SRCS = mpilib.f wmmenu.f wminit.f wmeign.f wmsetg.f \
        ../eq/wmeqin.f wmprof.f wmdisp.f \
-       wmsetm.f wmsetf.f wmxprf.f wmdprf.f wmsolv.f \
+       wmsetm.f wmsetf.f wmxprf.f wmdprf.f \
        wmpout.f wmgout.f wmgsub.f wmdout.f wmfout.f \
        wmexec.f wmloop.f wmtae.f \
        wmvmec.f wmbooz.f wmvout.f wmtpcs.f wmsolv.f

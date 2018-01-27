@@ -5,6 +5,10 @@
 
        integer,dimension(:,:),pointer:: I_FIT_temp
        double precision,dimension(:),pointer:: D_FIT_temp
+       integer:: npm_fit, nthm_fit, nrm_fit
+       double precision,dimension(:),pointer:: weight_r
+       double precision,dimension(:),pointer:: rm_fit
+       double precision:: rho_del_fit
 
        contains
 !-----------------------------------
@@ -356,7 +360,37 @@
 
        END SUBROUTINE NBI_SOURCE_FIT3D
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!------------------------------------
+       SUBROUTINE SV_WEIGHT_R
+       
+       IMPLICIT NONE
+       integer:: i, j, k
+
+       allocate(WEIGHT_R(NRMAX))
+       allocate(rm_fit(nrm_fit+1))
+       DO i=1, nrm_fit+1
+          rm_fit(i)=rho_del_fit*(i-1)+0.5D0*rho_del_fit
+       END DO
+
+       DO i=1, NRMAX
+          DO j=1, nrm_fit
+             IF(rm_fit(j).le.RM(i).and.RM(i).lt.rm_fit(j+1))THEN
+                k=j
+                WEIGHT_R(i)=(RM(i)-RM_FIT(k))/rho_del_fit
+             END IF
+          END DO
+          IF(RM(i).lt.rm_fit(1))THEN
+             WEIGHT_R(i)=(RM(i)-RM_FIT(1))/rho_del_fit             
+          ELSEIF(rm_fit(nrm_fit).lt.RM(i))THEN
+             WEIGHT_R(i)=(RM(i)-RM_FIT(nrm_fit-1))/rho_del_fit
+          END IF
+       END DO
+!       WRITE(*,'(A,100E14.6)') "TEST RM_FIT ", (RM_FIT(i),i=1,nrm_fit)
+!       WRITE(*,'(A,100E14.6)') "TEST WEIGHT_R ", (WEIGHT_R(i),i=1,nrmax)
+
+       END SUBROUTINE SV_WEIGHT_R
      END MODULE FP_READ_FIT
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !       Program read_fit_file
 !

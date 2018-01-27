@@ -1678,20 +1678,24 @@
          WRITE(13,'(A)') "# RM, RN, RT, RN_r, RN_p, RN_s J_ohm, J_run, J_bs, E1, E_drei, dndt_p, dndt_s, RJS " 
          IF(MODEL_connor_fp.eq.1)THEN
             DO NR=1,NRMAX
-               WRITE(13,'(1P100E17.8e3)'), RM(NR), RN_disrupt(NR), RT_quench(NR), & 
+               WRITE(13,'(1P100E17.8e3)') &
+                    RM(NR), RN_disrupt(NR), RT_quench(NR), & 
                     RN_runaway(NR), RN_drei(NR), RN_runaway(NR)-RN_drei(NR), &
                     RJ_ohm(NR), RJ_runaway(NR), RJ_bs(NR), &
                     E1(NR), ER_drei(NR), &
-                    RFP(NR)*RN_disrupt(NR)*1.D20, RFP_AVA(NR)*RN_disrupt(NR)*1.D20, &
+                    RFP(NR)*RN_disrupt(NR)*1.D20, &
+                    RFP_AVA(NR)*RN_disrupt(NR)*1.D20, &
                     RJS(NR,1),ER_crit(NR)
             END DO
          ELSE
             DO NR=1,NRMAX
-               WRITE(13,'(1P14E17.8e3)'), RM(NR), RN_disrupt(NR), RT_quench(NR), & 
+               WRITE(13,'(1P14E17.8e3)') RM(NR), RN_disrupt(NR), &
+                    RT_quench(NR), & 
                     RN_runaway(NR), RN_drei(NR), RN_runaway(NR)-RN_drei(NR), &
                     RJ_ohm(NR), RJ_runaway(NR), RJ_bs(NR), &
                     E1(NR), ER_drei(NR), &
-                    Rconnor(NR)*RN_disrupt(NR)*1.D20, RFP_AVA(NR)*RN_disrupt(NR)*1.D20, &
+                    Rconnor(NR)*RN_disrupt(NR)*1.D20, &
+                    RFP_AVA(NR)*RN_disrupt(NR)*1.D20, &
                     RJS(NR,1),ER_crit(NR)
             END DO
          END IF
@@ -1700,7 +1704,8 @@
 ! nth-re
          WRITE(14,'(A, 1PE15.6e3, i7)') "# TIME ", TIMEFP, N_f1 ! RE_pitch.dat
          DO NTH=1,NTHMAX
-            WRITE(14,'(I4, 1P13E17.8e3)'), NTH, RE_PITCH(NTH), SINM(NTH), THM(NTH)
+            WRITE(14,'(I4, 1P13E17.8e3)') &
+                 NTH, RE_PITCH(NTH), SINM(NTH), THM(NTH)
          END DO
          WRITE(14,'(A)') " "
          WRITE(14,'(A)') " "
