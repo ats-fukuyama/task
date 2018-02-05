@@ -11,8 +11,8 @@ PROGRAM testmtxc
   IMPLICIT NONE
   integer :: isize,itype,idata(2)
   integer :: istart,iend,its
-  integer :: imax,jwidth,jsource
-  integer :: ndiv,i,j
+  integer :: imax,jwidth
+  integer :: ndiv,i
   integer :: MODE
   real(8) :: tolerance,ddata(1)
   real(8) :: xmin,xmax,dt,dx

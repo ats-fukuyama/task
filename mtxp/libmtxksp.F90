@@ -17,6 +17,7 @@
       PUBLIC mtx_set_matrix
       PUBLIC mtx_set_source
       PUBLIC mtx_set_vector
+      PUBLIC mtx_split_operation
       PUBLIC mtx_solve
       PUBLIC mtx_get_vector_j
       PUBLIC mtx_get_vector
@@ -635,7 +636,7 @@
 
       REAL(8),DIMENSION(irange),intent(out):: v
       PetscScalar,pointer:: x_value(:)
-      INTEGER:: j,ierr,imax_
+      INTEGER:: j,ierr
 
       call VecGetArrayF90(x,x_value,ierr)
       IF(ierr.NE.0) WRITE(6,*) &
