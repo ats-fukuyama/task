@@ -777,11 +777,20 @@
 
       CALL mtx_set_communicator(comm_nsanr) 
       NSW=NSAEND-NSASTART+1
+!      DO N=1,NRMAX
+!         WRITE(6,'(A,I5,1pE12.4)') 'NR,RTL_BULK=', &
+!              N,RTL_BULK(N,1)
+!      END DO
       DO N=1,NSW
          NSA=N+NSASTART-1
          CALL fp_gatherv_real8_sav(RNSL,SAVLEN(NRANK+1),RNS,N,NSA)
          CALL fp_gatherv_real8_sav(RWSL,SAVLEN(NRANK+1),RWS,N,NSA)
+         CALL fp_gatherv_real8_sav(RTL_BULK,SAVLEN(NRANK+1),RT_BULK,N,NSA) 
       END DO
+!      DO N=1,NRMAX
+!         WRITE(6,'(A,I5,1p2E12.4)') 'NR,RTL_BULK,RT_BULK=', &
+!              N,RTL_BULK(N,1),RT_BULK(N,1)
+!      END DO
       CALL mtx_reset_communicator 
 
 
@@ -803,8 +812,19 @@
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
       double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND),intent(in):: recv
 
+      CALL Define_Bulk_NP
       CALL MOMENT_0TH_ORDER(recv,RNSL)
       CALL MOMENT_2ND_ORDER(recv,RWSL)
+      DO NR=NRSTART,NREND
+         DO NSA=NSASTART,NSAEND
+            NS=NS_NSA(NSA)
+!-------    Calculation of bulk temperature
+            CALL BULK_TEMPERATURE(NP_BULK(NR,NSA),NR,NSA) 
+            CALL mtx_set_communicator(comm_np) 
+!-------    Calculation of bulk temperature
+         ENDDO ! NSA
+      ENDDO ! NR
+      CALL mtx_reset_communicator
       CALL FPSAVECOMM2
 
       IF(MODEL_EX_READ_Tn.eq.0)THEN
@@ -814,6 +834,11 @@
                CALL PL_PROF(RHON,PLF) 
                RN_TEMP(NR,NS)=PLF(NS)%RN
                RT_TEMP(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+!               IF(NRANK.EQ.0) THEN
+!                  IF(RT_TEMP(NR,NS).LE.0.D0) &
+!                       WRITE(6,'(A,2I5,1P3E12.4)') &
+!                       'NS,NR,RTPR,RTPP=',NS,NR,PLF(NS)%RTPR,PLF(NS)%RTPP
+!               END IF
             ENDDO
          END DO
          DO NSA=1,NSAMAX
@@ -821,6 +846,11 @@
             DO NR=1,NRMAX
                RN_TEMP(NR,NS) = RNS(NR,NSA)
                RT_TEMP(NR,NS) = RT_BULK(NR,NSA)
+!               IF(NRANK.EQ.0) THEN
+!                  IF(RT_TEMP(NR,NS).LE.0.D0) &
+!                       WRITE(6,'(A,2I5,1P4E12.4)') &
+!                       'NSA,NR,RT_BULK=',NSA,NR,RNS(NR,NSA),RT_BULK(NR,NSA)
+!               END IF
             END DO
          ENDDO
       ELSEIF(MODEL_EX_READ_Tn.ne.0)THEN
@@ -846,8 +876,8 @@
       ISW_BULK=1 ! requires higher FACT_BULK (FACT_BULK >= 4) to obtain accurate RT_bulk
 
       NS=NS_NSA(NSA)
-      RTL_BULK(:,:)=0.D0
-      RPL_BULK(:,:,:)=0.D0
+!      RTL_BULK(:,:)=0.D0
+!      RPL_BULK(:,:,:)=0.D0
 
       CALL mtx_set_communicator(comm_np)
       IF(MODEL_EX_READ_Tn.eq.0)THEN
@@ -990,6 +1020,9 @@
          DO NP=1, NPMAX
             RPL_BULK(NP,NR,NSA) = 0.D0
          END DO
+!         write(6,'(A,4I5,1P3E12.4)') &
+!              'NR,NSA,A,R,RNL,RWL,RTL_BULK', &
+!              NR,NSA,MODELA,MODELR,RNL_BULK,RWL_BULK,RTL_BULK(NR,NSA)
       END IF
       ELSE ! MODEL_EX_READ_Tn!=0
          RTL_BULK(NR,NSA)=RT_READ(NR,NS)

@@ -630,7 +630,7 @@ CBGNIDEI_MODCONV_OX
          RL  =SQRT(YM(1)**2+YM(2)**2)
          RKRL=(YM(4)*YM(1)+YM(5)*YM(2))/RL
          IF ( RKRL.GE.0D0.AND.IOX.EQ.0 ) THEN
-            CALL WRMODCOV_OX(IOX,YM,F)
+            CALL WRMODCONV_OX(IOX,YM,F,OXEFF)
             IF(IOX.GE.100000) THEN
                WRITE(6,*) 'ERROR in WRMODCON_OX routine IOX=',IOX
             ELSE 
@@ -722,7 +722,7 @@ C
 C
 C************************************************************************
 C
-      SUBROUTINE WRMODCOV_OX(IOX, Y, F, OXEFF) 
+      SUBROUTINE WRMODCONV_OX(IOX, Y, F, OXEFF) 
 C
       USE plcomm
       USE pllocal

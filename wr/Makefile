@@ -20,7 +20,7 @@ SRCS = wrmenu.f wrinit.f wrcalc.f wrbeam.f wrgout.f wrfile.f
 OBJS = $(SRCS:.f=.o)
 
 LIBS = wrlib.a  ../dp/dplib.a ../eq/eqlib.a ../plx/pllib.a \
-       $(LIB_MTX) ../lib/tasklib.a ../../bpsd/bpsdlib.a
+       ../lib/tasklib.a ../../bpsd/bpsdlib.a
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :

@@ -204,7 +204,11 @@
          DO NP=NPSTART, NPEND
             DO NTH=1,NTHMAX
                NM=NMA(NTH,NP,NR)
-               FNS0(NTH,NP,NR,NSA)=BM_L(NM-NMSTART+1)
+               IF(ABS(BM_L(NM-NMSTART+1)).LT.1.D-100) THEN
+                  FNS0(NTH,NP,NR,NSA)=0.D0
+               ELSE
+                  FNS0(NTH,NP,NR,NSA)=BM_L(NM-NMSTART+1)
+               END IF
             END DO
          END DO
       END DO

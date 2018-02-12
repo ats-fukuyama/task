@@ -281,9 +281,12 @@
             DO NR=NRSTARTW,NRENDWM
                DO NP=NPSTARTW,NPENDWM
                   DO NTH=1,NTHMAX
-                     FNSP(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA)+FNSP_MXWL(NTH,NP,NR,NSA) ! at n step
-                     FNSP_DEL(NTH,NP,NR,NSA)=FNS0(NTH,NP,NR,NSA) ! at n+1 step
-                     send(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA)+FNSP_MXWL(NTH,NP,NR,NSA) ! MODEL_EX_READ_Tn=0
+                     FNSP(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA) &
+                                        +FNSP_MXWL(NTH,NP,NR,NSA) ! at n step
+                     FNSP_DEL(NTH,NP,NR,NSA)=FNS0(NTH,NP,NR,NSA)  ! at n+1 step
+                     send(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA) &
+                                        +FNSP_MXWL(NTH,NP,NR,NSA)
+                                                           ! MODEL_EX_READ_Tn=0
                   END DO
                END DO
             END DO
@@ -295,8 +298,11 @@
             DO NR=NRSTARTW,NRENDWM
                DO NP=NPSTARTW,NPENDWM
                   DO NTH=1,NTHMAX
-                     FNSP_MXWL(NTH,NP,NR,NSA)=FPMXWL_EXP(PM(NP,NS),NR,NS) ! at n+1 step
-                     FNS0(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA)+FNSP_MXWL(NTH,NP,NR,NSA) ! at n+1 step
+                     FNSP_MXWL(NTH,NP,NR,NSA)=FPMXWL_EXP(PM(NP,NS),NR,NS)
+                                                           ! at n+1 step
+                     FNS0(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA) &
+                                        +FNSP_MXWL(NTH,NP,NR,NSA)
+                                                           ! at n+1 step
                   END DO
                END DO
             END DO
@@ -329,9 +335,13 @@
          DO NR=NRSTART,NREND
             DO NP=NPSTART,NPEND
                DO NTH=1,NTHMAX
-                  RSUMF(NSA)=ABS(FNSP(NTH,NP,NR,NSA)-FNS0(NTH,NP,NR,NSA) )**2 &
+!                  IF(NRANK.EQ.0) WRITE(6,'(A,4I5,1P4E12.4)') &
+!                       'NSA,NR,NP,NTH,FNSP,FNS0,DIFF,RSUMF=', &
+!                       NSA,NR,NP,NTH,FNSP(NTH,NP,NR,NSA),FNS0(NTH,NP,NR,NSA),&
+!                       FNSP(NTH,NP,NR,NSA)-FNS0(NTH,NP,NR,NSA),RSUMF(NSA)
+                  RSUMF(NSA)=(FNSP(NTH,NP,NR,NSA)-FNS0(NTH,NP,NR,NSA) )**2 &
                        + RSUMF(NSA)
-                  RSUMF0(NSA)=ABS(FNSP(NTH,NP,NR,NSA))**2 + RSUMF0(NSA)
+                  RSUMF0(NSA)=(FNSP(NTH,NP,NR,NSA))**2 + RSUMF0(NSA)
                ENDDO
             ENDDO
          ENDDO

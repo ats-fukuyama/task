@@ -522,7 +522,10 @@
                /( SQRT(1.D0-EPSRM2(NR)**2)*(1.D0+1.46D0*SQRT(EPSRM2(NR))) )
 !      phi = f_t/(1.D0 + (0.58D0+0.2D0*Z_i)*theta_l**2 &
 !                       *(2.D0*RR*QLM(NR)*EPSRM2(NR)**(-1.5D0) ) &
-!                       /(3.D0*SQRT(2.D0*PI)*VC*tau_rela) )
+      !                       /(3.D0*SQRT(2.D0*PI)*VC*tau_rela) )
+!      IF(NRANK.EQ.0) write(6,'(A,I5,1P5E12.4)') &
+!           'NR,RR,QLM,EPSRM2,tau_rela,theta_l', &
+!           NR,RR,QLM(NR),EPSRM2(NR),tau_rela,theta_l
       phi = f_t/(1.D0 + (0.58D0+0.2D0*Z_i) &
                        *(2.D0*RR*QLM(NR)*EPSRM2(NR)**(-1.5D0) ) &
                        /(3.D0*SQRT(2.D0*PI)*VC*tau_rela)/theta_l**2 )
@@ -1678,7 +1681,8 @@
          WRITE(13,'(A)') "# RM, RN, RT, RN_r, RN_p, RN_s J_ohm, J_run, J_bs, E1, E_drei, dndt_p, dndt_s, RJS " 
          IF(MODEL_connor_fp.eq.1)THEN
             DO NR=1,NRMAX
-               WRITE(13,'(1P100E17.8e3)'), RM(NR), RN_disrupt(NR), RT_quench(NR), & 
+               WRITE(13,'(1P100E17.8e3)') &
+                    RM(NR), RN_disrupt(NR), RT_quench(NR), & 
                     RN_runaway(NR), RN_drei(NR), RN_runaway(NR)-RN_drei(NR), &
                     RJ_ohm(NR), RJ_runaway(NR), RJ_bs(NR), &
                     E1(NR), ER_drei(NR), &
@@ -1687,7 +1691,8 @@
             END DO
          ELSE
             DO NR=1,NRMAX
-               WRITE(13,'(1P14E17.8e3)'), RM(NR), RN_disrupt(NR), RT_quench(NR), & 
+               WRITE(13,'(1P14E17.8e3)') &
+                    RM(NR), RN_disrupt(NR), RT_quench(NR), & 
                     RN_runaway(NR), RN_drei(NR), RN_runaway(NR)-RN_drei(NR), &
                     RJ_ohm(NR), RJ_runaway(NR), RJ_bs(NR), &
                     E1(NR), ER_drei(NR), &
@@ -1700,14 +1705,16 @@
 ! nth-re
          WRITE(14,'(A, 1PE15.6e3, i7)') "# TIME ", TIMEFP, N_f1 ! RE_pitch.dat
          DO NTH=1,NTHMAX
-            WRITE(14,'(I4, 1P13E17.8e3)'), NTH, RE_PITCH(NTH), SINM(NTH), THM(NTH)
+            WRITE(14,'(I4, 1P13E17.8e3)') &
+                 NTH, RE_PITCH(NTH), SINM(NTH), THM(NTH)
          END DO
          WRITE(14,'(A)') " "
          WRITE(14,'(A)') " "
 
 !         WRITE(19,'(A, 1PE15.6e3, i7)') "# TIME ", TIMEFP, N_f1
 !         DO NP=NPSTART, NPEND
-!            WRITE(19,'(I5,1P7E14.6)') NP, PM(NP,1), DCPP2(1,NP,1,1,1), DCPP2(1,NP,1,2,1) &
+!            WRITE(19,'(I5,1P7E14.6)') &
+!         NP, PM(NP,1), DCPP2(1,NP,1,1,1), DCPP2(1,NP,1,2,1) &
 !                 , DCTT2(1,NP,1,1,1), DCTT2(1,NP,1,2,1) &
 !                 , FCPP2(1,NP,1,1,1), FCPP2(1,NP,1,2,1)
 !         END DO

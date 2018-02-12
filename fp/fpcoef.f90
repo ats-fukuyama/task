@@ -550,8 +550,12 @@
          DKBSL=BESEKN(2,Z)
          FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DKBSL) &
               *RTFD0L
-         EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
-         FPMXWL_S=FACT*EXP(EX)
+         EX=-(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
+         IF(EX.GT.100.D0) THEN
+            FPMXWL_S=0.D0
+         ELSE
+            FPMXWL_S=FACT*EXP(-EX)
+         END IF
       END IF
 
       RETURN
