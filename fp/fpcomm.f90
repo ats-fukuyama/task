@@ -217,11 +217,7 @@ module fpcomm
 
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
            RNS,RJS,RWS,RPCS,RPWS,RPES,RLHS,RFWS,RECS,RWS123, &
-!<<<<<<< HEAD
-!           RSPB,RSPF,RSPS,RSPL,RPDRL,RNDRL, RICS, RDIDT,&
-!=======
            RSPB,RSPF,RSPS,RSPL,RPDRL,RNDRL,RWRS,RWMS,RDIDT,&
-!>>>>>>> 99be190441bc8e2207d531603f711f4c3ea7e640
            RJSR,RPSS,RPLS,RJS_M,RSPS_CX, RNS_DELF
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
            RNS_DELF_NSA, RWS_DELF_PARA, RWS_DELF_PERP, RWS_PARA, RWS_PERP

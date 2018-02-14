@@ -43,7 +43,7 @@
       SUBROUTINE update_fnsb
 
       IMPLICIT NONE
-      integer:: nsend, nth, np, nr, nsa, NS
+      integer:: nsend, nth, np, nr, nsa, nsb, NS
       double precision,dimension(nthmax,npstart:npend,nrstart:nrend,nsastart:nsaend):: dsend
       double precision,dimension(nthmax,npstart:npend,nrstart:nrend,nsamax):: drecv
 
@@ -63,12 +63,12 @@
 
 
       DO NSA=1, NSAMAX
-         NS=NS_NSA(NSA)
-         IF(NS.ne.0)THEN
+         NSB=NSB_NSA(NSA)
+         IF(NSB.ne.0)THEN
             DO NR=NRSTART,NREND
                DO NP=NPSTART,NPEND
                   DO NTH=1,NTHMAX
-                     FNSB(NTH,NP,NR,NS)=drecv(nth,np,nr,nsa)
+                     FNSB(NTH,NP,NR,NSB)=drecv(nth,np,nr,nsa)
                   END DO
                END DO
             END DO
@@ -81,7 +81,7 @@
 
       USE libmtx
       IMPLICIT NONE
-      integer:: nsend, nth, np, nr, nsa, nsw, nswi,N
+      integer:: nsend, nth, np, nr, nsa, nsb, nsw, nswi,N
 !      double precision,dimension(nthmax,npstart:npend,nrstart:nrend):: dsend
 !      double precision,dimension(nthmax,npmax,nrmax,n_partition_s):: drecv
       double precision,dimension(nthmax,npstart:npend,nrstart:nrend):: dsend

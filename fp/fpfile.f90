@@ -296,6 +296,7 @@
       USE fpnfrr
       USE fpnflg
       USE fpoutdata
+      USE fpsub
       IMPLICIT NONE
       integer:: NSA, ierr, NR, NS, NP, NTH, NBEAM
       double precision:: FL, RHON

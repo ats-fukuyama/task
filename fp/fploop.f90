@@ -8,7 +8,6 @@
 
       USE fpcomm
       use fpexec
-      use fpcoef
       use fpsave
       use libmpi
       use fpmpi
@@ -22,6 +21,8 @@
 
       SUBROUTINE FP_LOOP
 
+      USE fpcoef
+      USE fpsub
       USE libmtx
       USE plprof
       USE FPMPI
