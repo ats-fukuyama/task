@@ -497,7 +497,7 @@
 
       USE libmtx
       IMPLICIT NONE
-      INTEGER:: ierr, NREND1, keys
+      INTEGER:: ierr, NREND1, keys,N
       INTEGER,DIMENSION(nsize):: ima1,ima2,npa1,npa2,nra1,nra2,nma1,nma2,insa1,insa2
 
 !     ----- Check nsize -----
@@ -615,6 +615,8 @@
       nmstart= imtxstart !3D
       nmend  = imtxend
 
+      CALL mtx_reset_communicator
+
       CALL mtx_gather1_integer(imtxstart,ima1)
       CALL mtx_gather1_integer(imtxend,  ima2)
       CALL mtx_gather1_integer(npstart,  npa1)
@@ -626,16 +628,17 @@
       CALL mtx_gather1_integer(nsastart,insa1)
       CALL mtx_gather1_integer(nsaend,  insa2)
 
-!      IF(nrank.EQ.0) THEN
-!         write(6,'(A,2I10)') '  imtxsize,imtxwidth=',imtxsize,imtxwidth
-!         write(6,'(A,A,A)') '     nrank   imtxstart   imtxend   npstart    npend', &
-!                          '    nrstart     nrend   nmstart     nmend', &
-!                          '      nsastart      nsaend'
-!         DO N=1,nsize
-!            write(6,'(11I10)') N,ima1(N),ima2(N),npa1(N),npa2(N),nra1(N),nra2(N), &
-!                              nma1(N),nma2(N),insa1(N),insa2(N)
-!         ENDDO
-!      ENDIF
+      IF(nrank.EQ.0) THEN
+         write(6,'(A,2I10)') '  imtxsize,imtxwidth=',imtxsize,imtxwidth
+         write(6,'(A,A,A)') '  nrank imtxstart end  npstart  end', &
+                                   ' nrstart   end  nmstart  end', &
+                                   ' nsastart  end'
+         DO N=1,nsize
+            write(6,'(11I7)') N,ima1(N),ima2(N),npa1(N),npa2(N), &
+                                nra1(N),nra2(N),nma1(N),nma2(N), &
+                                insa1(N),insa2(N)
+         ENDDO
+      ENDIF
 
 !      IF(NRANK.eq.0) WRITE(6,*) "      NRANK, nsa_rank, nr_rank, np_rank, nrnp_rank, nsanp_rank, nsanr_rank"
 !      write(6,'(7I10)') NRANK, comm_nsa%rankl, comm_nr%rankl, &

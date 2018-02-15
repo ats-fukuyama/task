@@ -8,6 +8,7 @@ MODULE fpsub
   PUBLIC FPMXWL_EDGE
   PUBLIC FPMXWL_LT
   PUBLIC update_fnsb_maxwell
+  PUBLIC FPNEWTON
 
 CONTAINS
 
@@ -318,4 +319,113 @@ CONTAINS
       END IF
 
     END SUBROUTINE update_fnsb_maxwell
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      Subroutine FPNEWTON(NR,NSA,RNSL_,RWSL_,rtemp)
+
+      USE fpcomm,ONLY: NS_NSA,AMFP,THETA0,PTFP0,VC,AEE
+      USE libbes
+      IMPLICIT NONE
+      INTEGER,INTENT(IN)::NR,NSA
+      double precision,intent(in):: RNSL_, RWSL_ 
+      double precision,intent(out)::rtemp
+      integer:: ncount, NS
+      real(8):: xeave
+      real(8):: xtemp, thetal, EAVE
+
+      NS=NS_NSA(NSA)
+!-----Average kinetic energy
+!      EAVE=RWS(NR,NSA)*AMFP(NSA)*THETA0(NS) &
+!           /(RNS(NR,NSA)*1.D20*PTFP0(NSA)**2*1.D-6)
+      EAVE=RWSL_*AMFP(NSA)*THETA0(NS) & 
+           /(RNSL_*1.D20*PTFP0(NSA)**2*1.D-6)
+!-----initial value of THETAL
+      THETAL=2.d0*EAVE/3.d0
+      xtemp=AMFP(NSA)*VC**2*THETAL/(AEE*1.D3)
+
+      CALL XNEWTON(EAVE,THETAL,ncount)
+
+      rtemp=AMFP(NSA)*VC**2*THETAL/(AEE*1.D3)
+      xeave=AMFP(NSA)*VC**2*EAVE/(AEE*1.D3)
+
+      RETURN
+
+      CONTAINS
+
+      SUBROUTINE xnewton(eave,thetal,ncount)
+      IMPLICIT NONE
+      REAL(8),intent(in):: eave
+      REAL(8),intent(inout):: thetal
+      INTEGer,intent(out):: ncount
+      REAL(8),parameter:: eps=1.d-10
+      REAL(8):: delthetal,thetalnew,epsthetal
+
+!--------iteration start
+      ncount=0
+      DO while(ncount.le.100)
+         ncount=ncount+1
+         delthetal=-(rfunc(thetal)-eave)/dfunc(thetal)
+         thetalnew=thetal+delthetal
+         epsthetal=ABS(delthetal/thetal)
+
+         thetal=thetalnew
+         IF(epsthetal.le.eps) EXIT
+      END DO
+      RETURN
+      END SUBROUTINE xnewton
+
+      FUNCTION rfunc(thetal)
+      IMPLICIT NONE
+      REAL(8):: thetal,rfunc
+      REAL(8):: z,dkbsl1,dkbsl2
+      z=1.D0/thetal
+      dkbsl1=BESEKN(1,Z)
+      dkbsl2=BESEKN(2,Z)
+      rfunc= (dkbsl1 /dkbsl2 -1.D0+3.D0/Z)
+      RETURN
+      END FUNCTION rfunc
+
+      FUNCTION rfuncp(thetal)
+      IMPLICIT NONE
+      REAL(8):: thetal,rfuncp
+      REAL(8):: z,dkbsl1,dkbsl2
+      z=1.D0/thetal
+      dkbsl1=1.D0 +  3.D0/8.D0/z -  15.D0/128.D0/z**2
+      dkbsl2=1.D0 + 15.D0/8.D0/z + 105.D0/128.D0/z**2
+      rfuncp= dkbsl1 /dkbsl2 -1.D0+3.D0/Z
+      RETURN
+      END FUNCTION rfuncp
+      
+      FUNCTION dfunc(thetal)
+      IMPLICIT NONE
+      REAL(8):: thetal,dfunc
+      REAL(8):: z,dkbsl0,dkbsl1,dkbsl2,dkbsl3
+      z=1.D0/thetal
+      dkbsl0=BESEKN(0,z)
+      dkbsl1=BESEKN(1,z)
+      dkbsl2=BESEKN(2,z)
+      dkbsl3=BESEKN(3,z)
+      dfunc =( (dkbsl0 +dkbsl2 )/dkbsl2                           &
+                -(dkbsl1 +dkbsl3 )*dkbsl1 /dkbsl2 **2)*0.5d0*z**2 &
+            +3.d0
+      RETURN
+      END FUNCTION dfunc
+
+      FUNCTION dfuncp(thetal)
+      IMPLICIT NONE
+      REAL(8):: thetal,dfuncp
+      REAL(8):: z,dkbsl0,dkbsl1,dkbsl2,dkbsl3
+      z=1.D0/thetal
+      dkbsl0=1.D0 -  1.D0/8.D0/z +   9.D0/128.D0/z**2
+      dkbsl1=1.D0 +  3.D0/8.D0/z -  15.D0/128.D0/z**2
+      dkbsl2=1.D0 + 15.D0/8.D0/z + 105.D0/128.D0/z**2
+      dkbsl3=1.D0 + 35.D0/8.D0/z + 945.D0/128.D0/z**2
+      dfuncp =( (dkbsl0 +dkbsl2 )/dkbsl2                          &
+               -(dkbsl1 +dkbsl3 )*dkbsl1 /dkbsl2 **2)*0.5d0*z**2  & 
+            +3.d0
+      RETURN
+      END FUNCTION dfuncp
+      
+      end Subroutine FPNEWTON
 END MODULE fpsub

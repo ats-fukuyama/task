@@ -24,8 +24,7 @@
 
       IF(ISAVE.NE.0) RETURN
 
-!      DO NSA=NSASTART,NSAEND
-      DO NSA=1,NSAMAX
+      DO NSA=NSASTART,NSAEND
          RNDRS(NSA) =0.D0
          RPDRS(NSA) =0.D0
          DO NR=NRSTART, NREND
@@ -34,7 +33,7 @@
          END DO
       END DO
 
-      CALL mtx_set_communicator(comm_np) 
+      CALL mtx_reset_communicator
 
       CALL Define_Bulk_NP
 
@@ -43,13 +42,10 @@
       CALL MOMENT_2ND_ORDER(FNSP,RWSL)
       CALL POWER_FROM_DIFFUSION_COEF
       CALL POWER_FROM_SOURCE_TERM
+      CALL mtx_reset_communicator 
       DO NR=NRSTART,NREND
          DO NSA=NSASTART,NSAEND
-            NS=NS_NSA(NSA)
-!-------    Calculation of bulk temperature
             CALL BULK_TEMPERATURE(NP_BULK(NR,NSA),NR,NSA) 
-            CALL mtx_set_communicator(comm_np) 
-!-------    Calculation of bulk temperature
          ENDDO ! NSA
       ENDDO ! NR
       CALL POWER_FROM_RADIAL_TRANSPORT
@@ -68,6 +64,7 @@
 !
       SUBROUTINE FPSGLB
 !
+        USE fpsub
       IMPLICIT NONE
       integer:: NSA, NSB, NR
       real(8):: rtemp, rtemp2
@@ -125,7 +122,8 @@
             PSPLT(NSA,NTG1)=PSPLT(NSA,NTG1)+RSPL(NR,NSA)*VOLR(NR)
             PDR(NSA,NTG1) = PDR(NSA,NTG1) + RPDR(NR,NSA)*VOLR(NR)
             PNDR(NSA,NTG1) = PNDR(NSA,NTG1) + RNDR(NR,NSA)*VOLR(NR)
-            PTT_BULK(NSA,NTG1)=PTT_BULK(NSA,NTG1) + RT_BULK(NR,NSA)*VOLR(NR)*RNS(NR,NSA)
+            PTT_BULK(NSA,NTG1)=PTT_BULK(NSA,NTG1) &
+                              +RT_BULK(NR,NSA)*VOLR(NR)*RNS(NR,NSA)
             PPST(NSA,NTG1)=PPST(NSA,NTG1)+RPSS(NR,NSA)*VOLR(NR)
             PPLT(NSA,NTG1)=PPLT(NSA,NTG1)+RPLS(NR,NSA)*VOLR(NR)
 
@@ -169,6 +167,7 @@
 !
       SUBROUTINE FPSPRF
 !
+        USE fpsub
       IMPLICIT NONE
       integer:: NR, NSA, NSB
       real(8):: RS, rtemp
@@ -320,6 +319,7 @@
 
       SUBROUTINE FPWRTPRF
 !
+        USE fpsub
       IMPLICIT NONE
       integer:: NSA, NR, NS
       real(8):: rtemp
@@ -342,11 +342,6 @@
       DO NSA=1,NSAMAX
          NS=NS_NSA(NSA)
          DO NR=1,NRMAX
-            IF(MODELR.eq.1)THEN
-               CALL FPNEWTON(NR,NSA,RNS(NR,NSA),RWS(NR,NSA),rtemp)
-               RTT(NR,NSA,NTG2)=rtemp
-            END IF
-
             IF(MODEL_DISRUPT.ne.0)THEN
                WRITE(6,fmt0) NSA,NS_NSA(NSA),&
                     RM(NR),RNT(NR,NSA,NTG2),RTT(NR,NSA,NTG2), &
@@ -451,112 +446,6 @@
       RETURN
 
       END SUBROUTINE FPWRTSNAP
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-      Subroutine FPNEWTON(NR,NSA,RNSL_,RWSL_,rtemp)
-
-      IMPLICIT NONE
-      INTEGER,INTENT(IN)::NR,NSA
-      double precision,intent(in):: RNSL_, RWSL_ 
-      double precision,intent(out)::rtemp
-      integer:: ncount, NS
-      real(8):: xeave
-      real(8):: xtemp, thetal, EAVE
-
-      NS=NS_NSA(NSA)
-!-----Average kinetic energy
-!      EAVE=RWS(NR,NSA)*AMFP(NSA)*THETA0(NS) &
-!           /(RNS(NR,NSA)*1.D20*PTFP0(NSA)**2*1.D-6)
-      EAVE=RWSL_*AMFP(NSA)*THETA0(NS) & 
-           /(RNSL_*1.D20*PTFP0(NSA)**2*1.D-6)
-!-----initial value of THETAL
-      THETAL=2.d0*EAVE/3.d0
-      xtemp=AMFP(NSA)*VC**2*THETAL/(AEE*1.D3)
-
-      CALL XNEWTON(EAVE,THETAL,ncount)
-
-      rtemp=AMFP(NSA)*VC**2*THETAL/(AEE*1.D3)
-      xeave=AMFP(NSA)*VC**2*EAVE/(AEE*1.D3)
-
-      RETURN
-
-      CONTAINS
-
-      SUBROUTINE xnewton(eave,thetal,ncount)
-      IMPLICIT NONE
-      REAL(8),intent(in):: eave
-      REAL(8),intent(inout):: thetal
-      INTEGer,intent(out):: ncount
-      REAL(8),parameter:: eps=1.d-10
-      REAL(8):: delthetal,thetalnew,epsthetal
-
-!--------iteration start
-      ncount=0
-      DO while(ncount.le.100)
-         ncount=ncount+1
-         delthetal=-(rfunc(thetal)-eave)/dfunc(thetal)
-         thetalnew=thetal+delthetal
-         epsthetal=ABS(delthetal/thetal)
-
-         thetal=thetalnew
-         IF(epsthetal.le.eps) EXIT
-      END DO
-      RETURN
-      END SUBROUTINE xnewton
-
-      FUNCTION rfunc(thetal)
-      IMPLICIT NONE
-      REAL(8):: thetal,rfunc
-      REAL(8):: z,dkbsl1,dkbsl2
-      z=1.D0/thetal
-      dkbsl1=BESEKN(1,Z)
-      dkbsl2=BESEKN(2,Z)
-      rfunc= (dkbsl1 /dkbsl2 -1.D0+3.D0/Z)
-      RETURN
-      END FUNCTION rfunc
-
-      FUNCTION rfuncp(thetal)
-      IMPLICIT NONE
-      REAL(8):: thetal,rfuncp
-      REAL(8):: z,dkbsl1,dkbsl2
-      z=1.D0/thetal
-      dkbsl1=1.D0 +  3.D0/8.D0/z -  15.D0/128.D0/z**2
-      dkbsl2=1.D0 + 15.D0/8.D0/z + 105.D0/128.D0/z**2
-      rfuncp= dkbsl1 /dkbsl2 -1.D0+3.D0/Z
-      RETURN
-      END FUNCTION rfuncp
-      
-      FUNCTION dfunc(thetal)
-      IMPLICIT NONE
-      REAL(8):: thetal,dfunc
-      REAL(8):: z,dkbsl0,dkbsl1,dkbsl2,dkbsl3
-      z=1.D0/thetal
-      dkbsl0=BESEKN(0,z)
-      dkbsl1=BESEKN(1,z)
-      dkbsl2=BESEKN(2,z)
-      dkbsl3=BESEKN(3,z)
-      dfunc =( (dkbsl0 +dkbsl2 )/dkbsl2                           &
-                -(dkbsl1 +dkbsl3 )*dkbsl1 /dkbsl2 **2)*0.5d0*z**2 &
-            +3.d0
-      RETURN
-      END FUNCTION dfunc
-
-      FUNCTION dfuncp(thetal)
-      IMPLICIT NONE
-      REAL(8):: thetal,dfuncp
-      REAL(8):: z,dkbsl0,dkbsl1,dkbsl2,dkbsl3
-      z=1.D0/thetal
-      dkbsl0=1.D0 -  1.D0/8.D0/z +   9.D0/128.D0/z**2
-      dkbsl1=1.D0 +  3.D0/8.D0/z -  15.D0/128.D0/z**2
-      dkbsl2=1.D0 + 15.D0/8.D0/z + 105.D0/128.D0/z**2
-      dkbsl3=1.D0 + 35.D0/8.D0/z + 945.D0/128.D0/z**2
-      dfuncp =( (dkbsl0 +dkbsl2 )/dkbsl2                          &
-               -(dkbsl1 +dkbsl3 )*dkbsl1 /dkbsl2 **2)*0.5d0*z**2  & 
-            +3.d0
-      RETURN
-      END FUNCTION dfuncp
-      
-      end Subroutine FPNEWTON
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!     
       SUBROUTINE FPSAVECOMM
 
@@ -600,13 +489,13 @@
          CALL fp_gatherv_real8_sav(RPLSL,SAVLEN(NRANK+1),RPLS,N,NSA)
          CALL fp_gatherv_real8_sav(RSPSL_CX,SAVLEN(NRANK+1),RSPS_CX,N,NSA)
       END DO
+
       work(:,:)=0.D0
       workg(:,:)=0.D0
       DO NSB=1,NSBMAX
          DO NSA=NSASTART,NSAEND
             DO NR=NRSTART,NREND
                work(NR,NSA) = RPCS2L(NR,NSB,NSA)
-!               WRITE(*,'(A,3I5,2E14.6)') "TEST WORK ", NPSTART, NSB, NSA, work(NR,NSA), RPCS2L(NR,NSB,NSA)
             END DO
          END DO
          DO N=1,NSW
@@ -617,7 +506,6 @@
          DO NSA=1,NSAMAX
             DO NR=1,NRMAX
                RPCS2(NR,NSB,NSA) = workg(NR,NSA)
-!               WRITE(*,'(A,3I5,2E14.6)') "TEST WORKG ", NPSTART, NSB, NSA, workg(NR,NSA), RPCS2(NR,NSB,NSA)
             END DO
          END DO
       ENDDO
@@ -628,7 +516,6 @@
          DO NSA=NSASTART,NSAEND
             DO NR=NRSTART,NREND
                work(NR,NSA) = RPCS2L_DEL(NR,NSB,NSA)
-!               WRITE(*,'(A,3I5,2E14.6)') "TEST WORK ", NPSTART, NSB, NSA, work(NR,NSA), RPCS2L(NR,NSB,NSA)
             END DO
          END DO
          DO N=1,NSW
@@ -639,7 +526,6 @@
          DO NSA=1,NSAMAX
             DO NR=1,NRMAX
                RPCS2_DEL(NR,NSB,NSA) = workg(NR,NSA)
-!               WRITE(*,'(A,3I5,2E14.6)') "TEST WORKG ", NPSTART, NSB, NSA, workg(NR,NSA), RPCS2(NR,NSB,NSA)
             END DO
          END DO
       ENDDO
@@ -647,6 +533,7 @@
 
       CALL mtx_broadcast_real8(RNS,NRMAX*NSAMAX)
       CALL mtx_broadcast_real8(RWS,NRMAX*NSAMAX)
+      CALL mtx_broadcast_real8(RT_BULK,NRMAX*NSAMAX)
 !      CALL mtx_broadcast_real8(RFP,NRMAX)
 
       IF(MODELD.ne.0)THEN
@@ -772,24 +659,16 @@
       USE libmtx
       USE fpmpi
       IMPLICIT NONE
-      integer:: NSA, NSW, N
+      integer:: NSA, NSW, N,NR
 
       CALL mtx_set_communicator(comm_nsanr) 
       NSW=NSAEND-NSASTART+1
-!      DO N=1,NRMAX
-!         WRITE(6,'(A,I5,1pE12.4)') 'NR,RTL_BULK=', &
-!              N,RTL_BULK(N,1)
-!      END DO
       DO N=1,NSW
          NSA=N+NSASTART-1
          CALL fp_gatherv_real8_sav(RNSL,SAVLEN(NRANK+1),RNS,N,NSA)
          CALL fp_gatherv_real8_sav(RWSL,SAVLEN(NRANK+1),RWS,N,NSA)
          CALL fp_gatherv_real8_sav(RTL_BULK,SAVLEN(NRANK+1),RT_BULK,N,NSA) 
       END DO
-!      DO N=1,NRMAX
-!         WRITE(6,'(A,I5,1p2E12.4)') 'NR,RTL_BULK,RT_BULK=', &
-!              N,RTL_BULK(N,1),RT_BULK(N,1)
-!      END DO
       CALL mtx_reset_communicator 
 
 
@@ -811,16 +690,23 @@
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
       double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND),intent(in):: recv
 
+      CALL mtx_reset_communicator
+      DO NSA=NSASTART,NSAEND
+         NS=NS_NSA(NSA)
+         DO NR=NRSTART,NREND
+            RHON=RM(NR) 
+            CALL PL_PROF(RHON,PLF) 
+            RN_TEMP(NR,NS)=PLF(NS)%RN
+            RT_TEMP(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+         ENDDO
+      END DO
+
       CALL Define_Bulk_NP
       CALL MOMENT_0TH_ORDER(recv,RNSL)
       CALL MOMENT_2ND_ORDER(recv,RWSL)
       DO NR=NRSTART,NREND
          DO NSA=NSASTART,NSAEND
-            NS=NS_NSA(NSA)
-!-------    Calculation of bulk temperature
             CALL BULK_TEMPERATURE(NP_BULK(NR,NSA),NR,NSA) 
-            CALL mtx_set_communicator(comm_np) 
-!-------    Calculation of bulk temperature
          ENDDO ! NSA
       ENDDO ! NR
       CALL mtx_reset_communicator
@@ -833,11 +719,6 @@
                CALL PL_PROF(RHON,PLF) 
                RN_TEMP(NR,NS)=PLF(NS)%RN
                RT_TEMP(NR,NS)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
-!               IF(NRANK.EQ.0) THEN
-!                  IF(RT_TEMP(NR,NS).LE.0.D0) &
-!                       WRITE(6,'(A,2I5,1P3E12.4)') &
-!                       'NS,NR,RTPR,RTPP=',NS,NR,PLF(NS)%RTPR,PLF(NS)%RTPP
-!               END IF
             ENDDO
          END DO
          DO NSA=1,NSAMAX
@@ -845,11 +726,6 @@
             DO NR=1,NRMAX
                RN_TEMP(NR,NS) = RNS(NR,NSA)
                RT_TEMP(NR,NS) = RT_BULK(NR,NSA)
-!               IF(NRANK.EQ.0) THEN
-!                  IF(RT_TEMP(NR,NS).LE.0.D0) &
-!                       WRITE(6,'(A,2I5,1P4E12.4)') &
-!                       'NSA,NR,RT_BULK=',NSA,NR,RNS(NR,NSA),RT_BULK(NR,NSA)
-!               END IF
             END DO
          ENDDO
       ELSEIF(MODEL_EX_READ_Tn.ne.0)THEN
@@ -860,6 +736,7 @@
 !==============================================================
       SUBROUTINE BULK_TEMPERATURE(NPB,NR,NSA)
 
+        USE fpsub
       USE fpmpi
       IMPLICIT NONE
       INTEGER,intent(in):: NPB, NR, NSA
@@ -871,10 +748,13 @@
       real(8),dimension(NPMAX):: RPL_BULK_recv
       real(8):: RNL_BULK, RWL_BULK, rtemp
 
-!      ISW_BULK=0 ! sometimes DFDP becomes 0 and then it makes density NaN. (for FACT_BULK < 4)
-      ISW_BULK=1 ! requires higher FACT_BULK (FACT_BULK >= 4) to obtain accurate RT_bulk
+!      ISW_BULK=0 ! sometimes DFDP becomes 0 and 
+!                   then it makes density NaN. (for FACT_BULK < 4)
+      ISW_BULK=1  ! requires higher FACT_BULK (FACT_BULK >= 4) 
+!                   to obtain accurate RT_bulk
 
       NS=NS_NSA(NSA)
+
 !      RTL_BULK(:,:)=0.D0
 !      RPL_BULK(:,:,:)=0.D0
 
@@ -887,25 +767,33 @@
             IF(NP.ge.2.and.NP.le.NPB)THEN
                PV=SQRT(1.D0+THETA0(NS)*PG(NP,NS)**2)
                DO NTH=1,NTHMAX
-                  IF(FNSP(NTH,NP,NR,NSA).gt.0.D0.and.FNSP(NTH,NP-1,NR,NSA).gt.0.D0)THEN
-                     DFDP=DELP(NS)/ &
-                          ( log(FNSP(NTH,NP,NR,NSA))-log(FNSP(NTH,NP-1,NR,NSA)) )
+                  IF(FNSP(NTH,NP,NR,NSA).gt.0.D0.and. &
+                     FNSP(NTH,NP-1,NR,NSA).gt.0.D0)THEN
+                     DFDP=DELP(NS) &
+                          /( log(FNSP(NTH,NP  ,NR,NSA)) &
+                            -log(FNSP(NTH,NP-1,NR,NSA)) )
                   ELSE
                      WPL=WEIGHP(NTH  ,NP,NR,NSA)
                      FFP=   ( (1.D0-WPL)*FNSP(NTH  ,NP  ,NR,NSA)  &
-                          +WPL *FNSP(NTH  ,NP-1,NR,NSA) )
+                                   +WPL *FNSP(NTH  ,NP-1,NR,NSA) )
                      DFDP=DELP(NS)*FFP/(                         &
                           FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA) )
                   END IF
                   IF(MODEL_DISRUPT.ne.1)THEN
-                     IF(DFDP.ne.DFDP)THEN ! NaN never equals to any other variables.
-!                        WRITE(16,'(A,E14.6,3I4,3E14.6)') "DFDP is NaN in fpsave. TIMEFP= ", TIMEFP, NP, NTH, NSA, &
-!                             FNSP(NTH,NP,NR,NSA), FNSP(NTH,NP-1,NR,NSA), FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA)
+                     IF(DFDP.ne.DFDP)THEN 
+                                   ! NaN never equals to any other variables.
+!                              "DFDP is NaN in fpsave. TIMEFP= ", &
+!                               TIMEFP, NP, NTH, NSA, &
+!                               FNSP(NTH,NP,NR,NSA),FNSP(NTH,NP-1,NR,NSA), &
+!                               FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA)
                         DFDP=0.D0
                      END IF
                      IF(DFDP.gt.0.D0)THEN
-!                        WRITE(16,'(A,E14.6,3I4,3E14.6)') "DFDP is positive in fpsave. TIMEFP= ", TIMEFP, NP, NTH, NSA, &
-!                             FNSP(NTH,NP,NR,NSA), FNSP(NTH,NP-1,NR,NSA), FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA)
+!                        WRITE(16,'(A,E14.6,3I4,3E14.6)') &
+!                             "DFDP is positive in fpsave. TIMEFP= ", &
+!                             TIMEFP, NP, NTH, NSA, &
+!                             FNSP(NTH,NP,NR,NSA),FNSP(NTH,NP-1,NR,NSA), &
+!                             FNSP(NTH,NP,NR,NSA)-FNSP(NTH,NP-1,NR,NSA)
                         DFDP=0.D0
                      END IF
                   END IF
@@ -1015,13 +903,9 @@
             END IF
          END IF
 
-!         WRITE(*,'(A,I3,3E14.6)') "TEST", NRANK, RWL_BULK, RNL_BULK, RTL_BULK(NR,NSA)
          DO NP=1, NPMAX
             RPL_BULK(NP,NR,NSA) = 0.D0
          END DO
-!         write(6,'(A,4I5,1P3E12.4)') &
-!              'NR,NSA,A,R,RNL,RWL,RTL_BULK', &
-!              NR,NSA,MODELA,MODELR,RNL_BULK,RWL_BULK,RTL_BULK(NR,NSA)
       END IF
       ELSE ! MODEL_EX_READ_Tn!=0
          RTL_BULK(NR,NSA)=RT_READ(NR,NS)
@@ -1039,9 +923,9 @@
 
 !     DEFINE BULK MOMENTUM RANGE: 0 < NP < NP_BULK(NR,NSA) 
       IF(MODEL_BULK_CONST.eq.0)THEN
-         DO NSA=1, NSAMAX
+         DO NSA=NSASTART,NSAEND
             NS=NS_NSA(NSA)
-            DO NR=1, NRMAX
+            DO NR=NRSTART,NREND
                IF(NT_init.eq.0)THEN
                   PMAX_BULK = FACT_BULK
                   P_BULK_R = PMAX_BULK* RT_TEMP(NR,NS)/RTFP0(NSA)
@@ -1052,35 +936,29 @@
                   PMAX_BULK = SQRT( RT_BULK(NR,NSA)/RTFPL )*FACT_BULK
                   P_BULK_R = PMAX_BULK* RT_BULK(NR,NSA)/RTFP0(NSA)
                END IF
+               NP_BULK(NR,NSA) = NPMAX
                DO NP=NPMAX, 1, -1
                   IF(P_BULK_R.lt.PG(NP,NS)) NP_BULK(NR,NSA)=NP
                END DO
-               IF(PMAX(NS).lt.P_BULK_R)THEN
-                  NP_BULK(NR,NSA) = NPMAX
-               END IF
             END DO
          END DO
       ELSE
-         DO NSA=1, NSAMAX
+         DO NSA=NSASTART, NSAEND
             NS=NS_NSA(NSA)
-            DO NR=1, NRMAX
+            DO NR=NRSTART, NREND
                PMAX_BULK = FACT_BULK
                IF(MODEL_EX_READ_Tn.eq.0)THEN
                   P_BULK_R = PMAX_BULK* RTFP(NR,NSA)/RTFP0(NSA)
                ELSE
                   P_BULK_R = PMAX_BULK* RT_TEMP(NR,NS)/RTFP0(NSA)
                END IF
+               NP_BULK(NR,NSA) = NPMAX
                DO NP=NPMAX, 1, -1
                   IF(P_BULK_R.lt.PG(NP,NS)) NP_BULK(NR,NSA)=NP
                END DO
-               IF(PMAX(NS).lt.P_BULK_R)THEN
-                  NP_BULK(NR,NSA) = NPMAX
-               END IF
             END DO
          END DO
       END IF
-!      IF(NRANK.eq.0) WRITE(*,'(A,E14.6,2I5,5E14.6)') &
-!           "NR, time, NP_BULK ", timefp, (NP_BULK(1,i),i=1,NSAMAX)
 
       END SUBROUTINE Define_Bulk_NP
 !==============================================================
@@ -1096,12 +974,12 @@
       double precision,dimension(NTHMAX,NPSTARTW:NPENDWM,NRSTARTW:NRENDWM,NSASTART:NSAEND),intent(in)::SEND
       double precision,dimension(NRSTART:NREND,NSAMAX),intent(out):: RECV
 
-      RSUM1=0.D0
       CALL mtx_set_communicator(comm_np)
 
       DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
          DO NR=NRSTART,NREND
+            RSUM1=0.D0
             IF(MODELA.eq.0)THEN
                DO NP=NPSTART,NPEND
                   DO NTH=1,NTHMAX
@@ -1681,7 +1559,3 @@
 
 
       end MODULE fpsave
-
-
-
-

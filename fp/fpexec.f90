@@ -199,7 +199,7 @@
 
 !     ----- Get solution vector -----
 
-      CALL mtx_gather_vector(BM_L)
+      CALL mtx_get_vector(BM_L)
 
       DO NR=NRSTART, NREND
          DO NP=NPSTART, NPEND
@@ -221,7 +221,6 @@
       CALL mtx_set_communicator(comm_nr)
       CALL shadow_comm_nr(NSA)
       CALL mtx_set_communicator(comm_nrnp) !3D
-
 
 !      CALL mtx_gather_vector(BMTOT)
 !      DO NR=NRSTARTW,NRENDWM
