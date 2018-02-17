@@ -551,10 +551,9 @@
 !!!!!!!!!!!!
 
       IF(MODELD.ne.0)THEN
-         CALL mtx_set_communicator(comm_nrnp)
-         nsend=NTHMAX*(NPEND-NPSTART+1)*(NREND-NRSTART+1)
-
          DO NSA=NSASTART, NSAEND
+            CALL mtx_set_communicator(comm_nrnp)
+            nsend=NTHMAX*(NPEND-NPSTART+1)*(NREND-NRSTART+1)
             DO NR=NRSTART, NREND
                DO NP=NPSTART, NPEND
                   DO NTH=1, NTHMAX
@@ -571,29 +570,24 @@
                END DO
             END DO
             IF(NREND.eq.NRMAX)THEN
+               CALL mtx_set_communicator(comm_np)
                DO NP=NPSTART, NPEND
                   DO NTH=1, NTHMAX
                      dsend_max(nth,np)=WEIGHR(NTH,NP,NRMAX+1,NSA)
                   END DO
                END DO
-            ELSE
-               DO NP=NPSTART, NPEND
+               CALL mtx_allreduce_real8(dsend_max,NTHMAX*NPMAX,3, &
+                                        drecv_max,vloc_max)
+               DO NP=1, NPMAX
                   DO NTH=1, NTHMAX
-                     dsend_max(nth,np)=0.D0
+                     temp_l2(nth,np,nrmax+1,nsa)=drecv_max(NTH,NP)
                   END DO
                END DO
             END IF
-            CALL mtx_allreduce_real8(dsend_max,NTHMAX*NPMAX,3,drecv_max,vloc_max)
-            DO NP=1, NPMAX
-               DO NTH=1, NTHMAX
-                  temp_l2(nth,np,nrmax+1,nsa)=drecv_max(NTH,NP)
-               END DO
-            END DO
          END DO
          CALL mtx_set_communicator(comm_nsa)
          nsend=NTHMAX*NPMAX*(NRMAX+1)*(NSAEND-NSASTART+1) 
          CALL mtx_gather_real8(temp_l2,nsend,WEIGHR_G)
-         CALL mtx_reset_communicator 
       END IF ! END MODELD
 
 !!!!!!!!!!!!!
