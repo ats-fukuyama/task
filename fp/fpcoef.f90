@@ -585,7 +585,8 @@
                         DO NR=1,NRMAX
                            SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
                            SUML=SUML &
-                                +SPL*VOLP(NTH,NP,NS)*VOLR(NR)*RLAMDAG(NTH,NR)*RFSADG(NR)
+                                +SPL*VOLP(NTH,NP,NS)*VOLR(NR) &
+                                *RLAMDAG(NTH,NR)*RFSADG(NR)
                         ENDDO
                      ENDIF
                   ENDDO
@@ -600,7 +601,7 @@
                         DO NR=NRSTART,NREND
                            SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
                            SPPB(NTH,NP,NR,NSA)=SPPB(NTH,NP,NR,NSA) &
-                                + SPBTOT(NBEAM)*SPL/SUML!*RLAMDAG(NTH,NR)!*RFSADG(NR)
+                          + SPBTOT(NBEAM)*SPL/SUML
                         ENDDO
                      ENDIF
                   ENDDO
@@ -621,7 +622,6 @@
                     /AMFP(NSABEAM))/PTFP0(NSA)
                ANGSP=PI*SPBANG(NBEAM)/180.D0
                SUML=0.D0
-!               DO NP=1,NPMAX-1
                DO NP=NPSTART,NPEND
                   IF(PG(NP,NS).LE.PSP.AND.PG(NP+1,NS).GT.PSP) THEN
                      DO NTH=1,NTHMAX
@@ -637,7 +637,6 @@
                ENDDO
                SUML=SUML*RNFP0(NSA)
                CALL p_theta_integration(SUML)
-!               DO NP=1,NPMAX-1
                DO NP=NPSTART,NPEND
                   IF(PG(NP,NS).LE.PSP.AND.PG(NP+1,NS).GT.PSP) THEN
                      DO NTH=1,NTHMAX
@@ -645,7 +644,7 @@
                            DO NR=NRSTART,NREND
                               SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
                               SPPB(NTH,NP,NR,NSA)=SPPB(NTH,NP,NR,NSA) &
-                                   +PZ(NSABEAM)*SPBTOT(NBEAM)*SPL/SUML!*RLAMDAG(NTH,NR)!*RFSADG(NR)
+                                   +PZ(NSABEAM)*SPBTOT(NBEAM)*SPL/SUML
                            ENDDO
                         ENDIF
                      ENDDO
