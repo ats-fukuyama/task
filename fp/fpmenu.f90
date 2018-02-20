@@ -31,7 +31,7 @@
          ierr=0
          WRITE(6,601)
   601    FORMAT('## FP MENU: R:RUN C:CONT P,V:PARAM G,F:GRAPH', &
-                           ' L,S:FILE Y:COEF Q:QUIT')
+                           ' L,S:FILE Y:COEF W:WRITE Q:QUIT')
          CALL TASK_KLIN(LINE,KID,MODE(1),fp_parm)
       ENDIF
       CALL mtx_barrier
@@ -79,14 +79,15 @@
          ENDIF
          CALL mtx_barrier
       ELSEIF (KID.EQ.'W') THEN
-         IF(NTG2.ne.0)THEN
-            CALL fpsglb
-            CALL fpwrtglb
-            CALL fpsprf
-            CALL fpwrtprf
-         ELSE
-            if(nrank.eq.0) WRITE(6,*) 'XX no data to write'
-         END IF
+         CALL FPWRTSNAP
+!         IF(NTG2.ne.0)THEN
+!            CALL fpsglb
+!            CALL fpwrtglb
+!            CALL fpsprf
+!            CALL fpwrtprf
+!         ELSE
+!            if(nrank.eq.0) WRITE(6,*) 'XX no data to write'
+!         END IF
       ELSEIF (KID.EQ.'Y') THEN
          TIMEFP=0.D0
          CALL fp_prep(ierr)

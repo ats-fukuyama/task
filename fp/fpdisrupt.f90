@@ -491,14 +491,12 @@
          C_log = POST_LNLAM(NR,NSA,NSA)
       END IF
 
-
 !      FACT=AEFP(NSA)**2*AEFD(NSB)**2*POST_LNLAM(NR,NSB,NSA)*RNE*1.D20
       FACT=Z_i*AEFP(NSA)**4*C_log*RNE*1.D20
       taue_col=3.D0*SQRT((2.D0*PI)**3)/FACT &
            *SQRT(AMFP(1)*(AEE*RTE*1.D3)**3)*(EPS0**2)
       sigma=1.96D0*RNE*1.D20*AEFP(NSA)**2*taue_col/AMFP(NSA) ! Wesson P. 174, 737
 !      sigma= ! P. 71
-
 
 !!     NEO-CLASSICAL CORRECTION
 !      neoc=(1.D0-SQRT(invasp))**2 ! P. 174     
@@ -526,9 +524,11 @@
 !      IF(NRANK.EQ.0) write(6,'(A,I5,1P5E12.4)') &
 !           'NR,RR,QLM,EPSRM2,tau_rela,theta_l', &
 !           NR,RR,QLM(NR),EPSRM2(NR),tau_rela,theta_l
+
       phi = f_t/(1.D0 + (0.58D0+0.2D0*Z_i) &
                        *(2.D0*RR*QLM(NR)*EPSRM2(NR)**(-1.5D0) ) &
                        /(3.D0*SQRT(2.D0*PI)*VC*tau_rela)/theta_l**2 )
+
       neoc=(1.D0-phi)*(1.D0-C_*phi)*(1.D0+0.47D0*(Z_i-1.D0))/ &
            (Z_i*(1.D0+0.27D0*(Z_i-1.D0)) )
 
