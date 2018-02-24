@@ -157,6 +157,7 @@
 !     SPBANG(nbeam): Source pitch angle [degree] ! at chi=SPBPANG
 !     for f1_1.dat
 
+      NBEAMMAX=0
       DO NBEAM=1,NBEAMM
          NSSPB(NBEAM)=2
          SPBTOT(NBEAM)=0.d0
