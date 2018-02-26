@@ -17,7 +17,7 @@ CONTAINS
 
 
     DO
-       WRITE(6,'(A)') '# SELECT : R0-R5, T1, X/EXIT'
+       WRITE(6,'(A)') '# SELECT : R0-R5, R9, T1, X/EXIT'
        READ(5,'(A2)',IOSTAT=IST) KIG
        IF(IST.GT.0) CYCLE
        IF(IST.LT.0) EXIT
@@ -42,6 +42,7 @@ CONTAINS
 
     USE ticomm
     USE libgrf
+    USE ADPOST
     IMPLICIT NONE
     CHARACTER(LEN=1),INTENT(IN):: K2
     REAL(rkind),DIMENSION(:),ALLOCATABLE:: XDATA
@@ -71,8 +72,12 @@ CONTAINS
              FDATA(NX,NF)=MAX(RTA(NF,NX),1.D-6)
           CASE(5)
              FDATA(NX,NF)=LOG10(MAX(RTA(NF,NX),1.D-6))
-          CASE(6)
-             FDATAA(NX,NF)=func_adpost(18
+          CASE(7)
+             FDATA(NX,NF)=func_adpost(18,1,RTA(1,NX))
+          CASE(8)
+             FDATA(NX,NF)=func_adpost(26,1,RTA(1,NX))
+          CASE(9)
+             FDATA(NX,NF)=func_adpost(74,1,RTA(1,NX))
           CASE DEFAULT
              FDATA(NX,NF)=0.D0
           END SELECT
@@ -98,6 +103,15 @@ CONTAINS
                   XMIN=0.D0,XMAX=RA,FMIN=0.D0)
     CASE(5)
        CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@ln T vs r@',2, &
+                  XMIN=0.D0,XMAX=RA)
+    CASE(7)
+       CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@Z Ar vs r@',0, &
+                  XMIN=0.D0,XMAX=RA)
+    CASE(8)
+       CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@Z FE vs r@',0, &
+                  XMIN=0.D0,XMAX=RA)
+    CASE(9)
+       CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@Z W vs r@',0, &
                   XMIN=0.D0,XMAX=RA)
     END SELECT
     CALL PAGEE
