@@ -164,7 +164,7 @@
         GOTO 1000
       ENDIF
 !     Highest charge state at least 1 but not greater than mx_mz
-      IF(m_z.lt.1.or.m_i.gt.mx_mz) THEN
+      IF(m_z.lt.1.or.m_z.gt.mx_mz) THEN
         iflag=3
         GOTO 1000
       ENDIF
