@@ -50,7 +50,8 @@ module wfcomm
   integer(ikind):: NAMAX
 !  real(rkind),dimension(NSM):: PZCL
   real(rkind):: ZPMIN,ZPMAX,ZPLEN
-  real(rkind):: PPN0,PTN0,PIN
+!  real(rkind):: PPN0,PTN0,PIN
+  real(rkind):: PIN
   integer(ikind):: NPRINT,NDRAWD,NDRAWA,NGRAPH
   integer(ikind):: MODELI,MODELB
   integer(ikind):: MODELD,MODELP,MODELS,MODELX,MODELA

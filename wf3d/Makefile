@@ -18,7 +18,7 @@ LIBMUMPSX=-L${PETSC_DIR}/${PETSC_ARCH}/lib -ldmumps -lzmumps -lmumps_common \
 FFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I../plx/$(MOD) -I../eq/$(MOD) \
-            -I../../bpsd/$(MOD) -I../mtxp -I $(MOD)
+            -I../../bpsd/$(MOD) -I../mtxp/$(MOD) -I $(MOD)
 
 SRCS = wfcomm.f90 wfmenu.f90 wfinit.f90 wfdiv.f90 wfant.f90 wfwave.f90 \
        wfsolv.f90 wfprof.f90 wfsub.f90 wfnas.f90 wfsort.f90 wffile.f90 \
