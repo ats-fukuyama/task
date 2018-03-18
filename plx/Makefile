@@ -4,8 +4,8 @@ include ../make.header
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-#FFLAGS=$(OFLAGS)
-FFLAGS=$(DFLAGS)
+FFLAGS=$(OFLAGS)
+#FFLAGS=$(DFLAGS)
 
 MODINCLUDE=-I $(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD)
 
@@ -16,7 +16,7 @@ MODINCLUDE=-I $(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD)
 
 SRCSFIXED = 
 SRCSFREE = modules.f90 pl_vmec.f90 plcomm.f90 plinit.f90 \
-           plgout.f90 plload.f90 plprof2d.f90 plprof.f90 plmenu.f90
+           plload.f90 plprof2d.f90 plprof.f90 plgout.f90 plmenu.f90
 SRCO = noeqlib.f noequlib.f
 
 OBJS = $(SRCSFIXED:.f=.o) $(SRCSFREE:.f90=.o) 
