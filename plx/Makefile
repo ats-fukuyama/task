@@ -16,7 +16,7 @@ MODINCLUDE=-I $(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD)
 
 SRCSFIXED = 
 SRCSFREE = modules.f90 pl_vmec.f90 plcomm.f90 plinit.f90 \
-           plload.f90 plprof2d.f90 plprof.f90 plmenu.f90
+           plgout.f90 plload.f90 plprof2d.f90 plprof.f90 plmenu.f90
 SRCO = noeqlib.f noequlib.f
 
 OBJS = $(SRCSFIXED:.f=.o) $(SRCSFREE:.f90=.o) 
@@ -66,5 +66,6 @@ plinit.o: plinit.f90 plcomm.f90
 plintf.o: plintf.f90 plcomm.f90
 pldata.o: pldata.f90 plcomm.f90
 plprof.o: plprof.f90 plcomm.f90 plload.f90
+plgout.o: plgout.f90 plcomm.f90
 plload.o: plload.f90
 plcomm.o: plcomm.f90
