@@ -280,7 +280,9 @@ C
 C
       RF=DREAL(CRF)
       RFI=DIMAG(CRF)
+
       READ(NID,WM,IOSTAT=IST,ERR=9800,END=9900)
+
       CRF=DCMPLX(RF,RFI)
       IF(NHHMAX.EQ.1) THEN
          NHHMAX2=1
@@ -292,6 +294,18 @@ C
       ELSE
          NTHMAX2=2*NTHMAX
       ENDIF
+
+      IF(MODEL_PROF.EQ.0) THEN
+         DO NS=2,NSMAX
+            PROFN1(NS)=PROFN1(1)
+            PROFN2(NS)=PROFN2(1)
+            PROFT1(NS)=PROFT1(1)
+            PROFT2(NS)=PROFT2(1)
+            PROFU1(NS)=PROFU1(1)
+            PROFU2(NS)=PROFU2(1)
+         END DO
+      END IF
+
       IERR=0
       RETURN
 C
@@ -395,6 +409,7 @@ C     ****** DISPLAY INPUT DATA ******
 C
       SUBROUTINE WMVIEW
 C
+      USE plinit,ONLY: pl_view
       INCLUDE 'wmcomm.inc'
 C
       IF(NPRINT.LT.2) RETURN
@@ -463,37 +478,26 @@ C
 C
       RF =DBLE(CRF)
       RFI=DIMAG(CRF)
-      WRITE(6,601) 'BB    ',BB    ,'RR    ',RR    ,
-     &             'RA    ',RA    ,'RB    ',RB
-      WRITE(6,601) 'Q0    ',Q0    ,'QA    ',QA    ,
-     &             'RKAP  ',RKAP  ,'RDLT  ',RDLT
-      WRITE(6,601) 'PROFN1',PROFN1,'PROFN2',PROFN2,
-     &             'PROFT1',PROFT1,'PROFT2',PROFT2
+
+      CALL pl_view
+
       WRITE(6,601) 'ZEFF  ',ZEFF  ,'PNA   ',PNA   ,
      &             'PNAL  ',PNAL  ,'PTA   ',PTA
-      WRITE(6,601) 'PROFU1',PROFU1,'PROFU2',PROFU2,
-     &             'RHOMIN',RHOMIN,'QMIN  ',QMIN
-      WRITE(6,601) 'RHOITB',RHOITB,'PRFIN ',PRFIN
+      WRITE(6,601) 'RHOMIN',RHOMIN,'QMIN  ',QMIN  ,
+     &             'PRFIN ',PRFIN
       WRITE(6,601) 'RF    ',RF    ,'RFI   ',RFI   ,
      &             'RD    ',RD    ,'BETAJ ',BETAJ
       WRITE(6,602) 'NRMAX ',NRMAX ,'NTHMAX',NTHMAX,
      &             'NHHMAX',NHHMAX
       WRITE(6,602) 'NTH0  ',NTH0  ,'NPH0  ',NPH0  ,
      &             'NHC   ',NHC
-      WRITE(6,602) 'MODELG',MODELG,'MODELJ',MODELJ,
-     &             'MODELN',MODELN,'MODELA',MODELA
-      WRITE(6,602) 'MODELM',MODELM,'MODELQ',MODELQ,
-     &             'MODEFR',MODEFR,'MODEFW',MODEFW
+      WRITE(6,602) 'MODELJ',MODELJ,'MODELA',MODELA,
+     &             'MODELM',MODELM
       WRITE(6,602) 'MODEFA',MODEFA,'MWGMAX',MWGMAX
 C
       WRITE(6,692)
       DO NS=1,NSMAX
-         WRITE(6,611) NS,PA(NS),PZ(NS),PN(NS),PNS(NS),
-     &                   PTPR(NS),PTPP(NS),PTS(NS)
-      ENDDO
-      DO NS=1,NSMAX
-         WRITE(6,612) NS,MODELP(NS),MODELV(NS),NDISP1(NS),NDISP2(NS),
-     &          PZCL(NS),PU(NS),PUS(NS),PNITB(NS),PTITB(NS),PUITB(NS)
+         WRITE(6,612) NS,MODELP(NS),MODELV(NS),NDISP1(NS),NDISP2(NS)
       ENDDO
 C
       WRITE(6,693)
@@ -510,12 +514,9 @@ C
      &        2X,A6,'=',I7,4X  :2X,A6,'=',I7)
   610 FORMAT(' ',I1,6(1PE11.3))
   611 FORMAT(' ',I1,7(1PE11.3))
-  612 FORMAT(' ',I1,3I3,I2,6(1PE11.3))
+  612 FORMAT(' ',I1,4I4)
   613 FORMAT(' ',1X,6(1PE11.3))
-  692 FORMAT(' ','NS    PA',9X,'PZ',9X,'PN',9X,'PNS',
-     &                      8X,'PTPR',7X,'PTPP',7X,'PTS'/
-     &       ' ','  MP MV ND1 ND2',2X,'PZCL',7X,'PU',9X,'PUS',
-     &                      8X,'PNITB',6X,'PTITB',6X,'PUITB')
+  692 FORMAT(' ','NS  MP  MV ND1 ND2')
   693 FORMAT(' ','NA    AJ',9X,'APH',8X,'THJ1',7X,'THJ2',
      &                      7X,'PHJ1',7X,'PHJ2')
       END
@@ -526,7 +527,7 @@ C
 C
       INCLUDE 'wmcomm.inc'
 C
-      DIMENSION IPARA(24),DPARA(28)
+      DIMENSION IPARA(99),DPARA(99)
 C
       IF(NRANK.EQ.0) THEN
          RF=DBLE(CRF)
@@ -555,6 +556,8 @@ C
          IPARA(22)=NCONT
          IPARA(23)=NPHMAX
          IPARA(24)=MODEFA
+         IPARA(25)=MODEL_PROF
+         IPARA(26)=MODEL_NPROF
 C     
          DPARA(1) =BB
          DPARA(2) =RR
@@ -564,30 +567,23 @@ C
          DPARA(6) =QA
          DPARA(7) =RKAP
          DPARA(8) =RDLT
-         DPARA(9) =PROFN1
-         DPARA(10)=PROFN2
-         DPARA(11)=PROFT1
-         DPARA(12)=PROFT2
-         DPARA(13)=ZEFF
-         DPARA(14)=PNA
-         DPARA(15)=PNAL
-         DPARA(16)=PTA
-         DPARA(17)=RF
-         DPARA(18)=RFI
-         DPARA(19)=RD
-         DPARA(20)=BETAJ
-         DPARA(21)=DLTNW
-         DPARA(22)=EPSNW
-         DPARA(23)=RHOMIN
-         DPARA(24)=QMIN
-         DPARA(25)=RHOITB
-         DPARA(26)=PROFU1
-         DPARA(27)=PROFU2
-         DPARA(28)=PRFIN
+         DPARA(9)=ZEFF
+         DPARA(10)=PNA
+         DPARA(11)=PNAL
+         DPARA(12)=PTA
+         DPARA(13)=RF
+         DPARA(14)=RFI
+         DPARA(15)=RD
+         DPARA(16)=BETAJ
+         DPARA(17)=DLTNW
+         DPARA(18)=EPSNW
+         DPARA(19)=RHOMIN
+         DPARA(20)=QMIN
+         DPARA(21)=PRFIN
       ENDIF
 C
-      CALL MPBCIN(IPARA,24)
-      CALL MPBCDN(DPARA,28)
+      CALL MPBCIN(IPARA,26)
+      CALL MPBCDN(DPARA,21)
 C
       IF(NRANK.NE.0) THEN
          NSMAX =IPARA(1) 
@@ -614,6 +610,8 @@ C
          NCONT =IPARA(22)
          NPHMAX=IPARA(23)
          MODEFA=IPARA(24)
+         MODEL_PROF=IPARA(25)
+         MODEL_NROF=IPARA(26)
 C     
          BB    =DPARA(1) 
          RR    =DPARA(2) 
@@ -623,26 +621,19 @@ C
          QA    =DPARA(6) 
          RKAP  =DPARA(7) 
          RDLT  =DPARA(8) 
-         PROFN1=DPARA(9) 
-         PROFN2=DPARA(10)
-         PROFT1=DPARA(11)
-         PROFT2=DPARA(12)
-         ZEFF  =DPARA(13)
-         PNA   =DPARA(14)
-         PNAL  =DPARA(15)
-         PTA   =DPARA(16)
-         RF    =DPARA(17)
-         RFI   =DPARA(18)
-         RD    =DPARA(19)
-         BETAJ =DPARA(20)
-         DLTNW =DPARA(21)
-         EPSNW =DPARA(22)
-         RHOMIN=DPARA(23)
-         QMIN  =DPARA(24)
-         RHOITB=DPARA(25)
-         PROFU1=DPARA(26)
-         PROFU2=DPARA(27)
-         PRFIN =DPARA(28)
+         ZEFF  =DPARA(9)
+         PNA   =DPARA(10)
+         PNAL  =DPARA(11)
+         PTA   =DPARA(12)
+         RF    =DPARA(13)
+         RFI   =DPARA(14)
+         RD    =DPARA(15)
+         BETAJ =DPARA(16)
+         DLTNW =DPARA(17)
+         EPSNW =DPARA(18)
+         RHOMIN=DPARA(19)
+         QMIN  =DPARA(20)
+         PRFIN =DPARA(21)
          CRF=DCMPLX(RF,RFI)
       ENDIF
 C
@@ -656,9 +647,16 @@ C
       CALL MPBCDN(PTS,NSMAX)
       CALL MPBCDN(PU,NSMAX)
       CALL MPBCDN(PUS,NSMAX)
+      CALL MPBCDN(RHOITB,NSMAX)
       CALL MPBCDN(PNITB,NSMAX)
       CALL MPBCDN(PTITB,NSMAX)
       CALL MPBCDN(PUITB,NSMAX)
+      CALL MPBCDN(PROFN1,NSMAX)
+      CALL MPBCDN(PROFN2,NSMAX)
+      CALL MPBCDN(PROFT1,NSMAX)
+      CALL MPBCDN(PROFT2,NSMAX)
+      CALL MPBCDN(PROFU1,NSMAX)
+      CALL MPBCDN(PROFU2,NSMAX)
       CALL MPBCIN(MODELP,NSMAX)
       CALL MPBCIN(MODELV,NSMAX) !!
       CALL MPBCDN(AJ,NAMAX)

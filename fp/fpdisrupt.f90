@@ -1124,8 +1124,12 @@
             dtidr=dtedr            
          END IF
       ELSE
-         dndr=-PROFN1*R1**(PROFN1-1.D0)*(1-R1**PROFN1)**(PROFN2-1.D0)*PROFN2*(PN(1)-PNS(1))*1.D20/RA
-         dtedr=-PROFT1*R1**(PROFT1-1.D0)*(1-R1**PROFT1)**(PROFT2-1.D0)*PROFT2*(PTPR(1)-PTS(1))*1.D3*AEE/RA
+         dndr=-PROFN1(1)*R1**(PROFN1(1)-1.D0) &
+              *(1-R1**PROFN1(1))**(PROFN2(1)-1.D0)*PROFN2(1) &
+              *(PN(1)-PNS(1))*1.D20/RA
+         dtedr=-PROFT1(1)*R1**(PROFT1(1)-1.D0) &
+              *(1-R1**PROFT1(1))**(PROFT2(1)-1.D0)*PROFT2(1) &
+              *(PTPR(1)-PTS(1))*1.D3*AEE/RA
          dtidr=dtedr
       END IF
 
