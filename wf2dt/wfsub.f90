@@ -472,6 +472,7 @@ SUBROUTINE SETEWG
   INTEGER:: NSD,NN1,NN2,NN,NBSD,NBND,IERR
   REAL(rkind):: ANGLE,R,Z,PHASE,PROD,FACTOR,SN
   COMPLEX(rkind):: CEX,CEY,CEZ
+  REAL(rkind),PARAMETER:: EPSWG=1.D-12
 
   ANGLE=ANGWG*PI/180.D0
 
@@ -529,13 +530,15 @@ SUBROUTINE SETEWG
            CEBSD(NBSD)=(0.D0,0.D0)
         END IF
      CASE(12)
-        IF((R.GE.R1WG).AND.(R.LE.R2WG).AND. &
-           (Z.GE.Z1WG).AND.(Z.LE.Z2WG)) THEN
+        IF((R.GE.R1WG-EPSWG).AND.(R.LE.R2WG+EPSWG).AND. &
+           (Z.GE.Z1WG-EPSWG).AND.(Z.LE.Z2WG+EPSWG)) THEN
            PROD=(R2WG-R1WG)*(RNODE(NN2)-RNODE(NN1)) &
                +(Z2WG-Z1WG)*(ZNODE(NN2)-ZNODE(NN1))
            CALL wf_read_wg(Z,CEX,CEY,CEZ,IERR)
+           write(6,'(A,1P6E12.4)') 'R,Z,CEY=', &
+                                    R,Z,CEY,PROD,ZNODE(NN2)-ZNODE(NN1)
+!!!           IF(PROD.GT.0.D0) CEY=-CEY
            CEBSD(NBSD)=AMPWG*CEY
-           IF(PROD.GT.0.D0) CEBSD(NBSD)=-CEBSD(NBSD)
         ELSE
            CEBSD(NBSD)=(0.D0,0.D0)
         END IF
@@ -591,8 +594,10 @@ SUBROUTINE SETEWG
            CEBND(NBND)=(0.D0,0.D0)
         END IF
      CASE(12)
-        IF((R.GE.R1WG).AND.(R.LE.R2WG)) THEN
+        IF((R.GE.R1WG-EPSWG).AND.(R.LE.R2WG+EPSWG).AND. &
+           (Z.GE.Z1WG-EPSWG).AND.(Z.LE.Z2WG+EPSWG)) THEN
            CALL wf_read_wg(Z,CEX,CEY,CEZ,IERR)
+           write(6,'(A,1P4E12.4)') 'R,Z,CEZ=',R,Z,CEZ
            CEBND(NBND)=AMPWG*CEZ
         ELSE
            CEBND(NBND)=(0.D0,0.D0)
