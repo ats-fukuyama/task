@@ -552,7 +552,7 @@ END SUBROUTINE XYPROF
             WRITE(8,200,ERR=600) ZND(NN),CEF(1,NN), &
                                  AEP(1),AEP(2), &
                                  ABP(1),ABP(2)
- 200        FORMAT(1P7(E12.4,','))
+ 200        FORMAT(7(1PE12.4,','))
          ENDIF
       ENDDO
       GOTO 900
@@ -588,7 +588,7 @@ END SUBROUTINE AXPROF
      &                        CLOAD(5),CLOAD(6),&
      &                        CLOAD(7),CLOAD(8),&
      &                        CLOAD(9),CLOAD(10)
- 200     FORMAT(1P12(E12.4,','))
+ 200     FORMAT(12(1PE12.4,','))
       GOTO 900
 !
  500  WRITE(6,*)'!! FILE OPEN ERROR : IOSTAT = ',IST

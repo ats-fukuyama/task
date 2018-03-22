@@ -147,12 +147,12 @@ SUBROUTINE CVSOLV(IERR)
   integer :: MLENP
   integer :: JMIN,JMAX,MILEN,MJLEN
   integer :: NNZME!Number of Non-Zero Matrix Element
-  integer,dimension(:),pointer :: NEFLAG
+  integer,dimension(:),ALLOCATABLE :: NEFLAG
   real(8) :: tolerance
   real(8),dimension(1) :: ddata
   real(4) :: cputime1,cputime2
-  complex(8),dimension(:),pointer   :: CRVP
-  complex(8),dimension(:,:),pointer :: CEQP
+  complex(8),dimension(:),ALLOCATABLE   :: CRVP
+  complex(8),dimension(:,:),ALLOCATABLE :: CEQP
 
 ! ----- initialize for parallel computing -----
 

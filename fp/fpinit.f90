@@ -508,13 +508,27 @@
 !     ierr=7 : unknown MODE
 !     ierr=10X : input parameter out of range
 
+      USE plcomm,ONLY: MODEL_PROF,NSMAX, &
+           PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2
       IMPLICIT NONE
       INTEGER,INTENT(IN):: mode
       CHARACTER(LEN=*),INTENT(IN)::  kin
       INTEGER,INTENT(OUT):: ierr
+      INTEGER:: NS
 
     1 CALL task_parm(mode,'FP',kin,fp_nlin,fp_plst,ierr)
       IF(ierr.NE.0) RETURN
+
+      IF(MODEL_PROF.EQ.0) THEN
+         DO NS=1,NSMAX
+            PROFN1(NS)=PROFN1(1)
+            PROFN2(NS)=PROFN2(1)
+            PROFT1(NS)=PROFT1(1)
+            PROFT2(NS)=PROFT2(1)
+            PROFU1(NS)=PROFU1(1)
+            PROFU2(NS)=PROFu2(1)
+         END DO
+      END IF
 
       CALL fp_check(ierr)
       IF(mode.EQ.0.AND.ierr.NE.0) GO TO 1
@@ -677,6 +691,8 @@
       idata( 5)=IDEBUG
       idata( 6)=MODEFR
       idata( 7)=MODEFW
+      idata( 8)=MODEL_PROF
+      idata( 9)=MODEL_PROF
 
       CALL mtx_broadcast_integer(idata,7)
       NSMAX =idata( 1)
@@ -697,20 +713,13 @@
       rdata( 8)=QA
       rdata( 9)=RIP
       rdata(10)=PROFJ
-      rdata(11)=PROFN1
-      rdata(12)=PROFN2
-      rdata(13)=PROFT1
-      rdata(14)=PROFT2
-      rdata(15)=PROFU1
-      rdata(16)=PROFU2
-      rdata(17)=RHOMIN
-      rdata(18)=QMIN
-      rdata(19)=RHOEDG
-      rdata(20)=RHOITB
-      rdata(21)=RHOGMN
-      rdata(22)=RHOGMX
+      rdata(11)=RHOMIN
+      rdata(12)=QMIN
+      rdata(13)=RHOEDG
+      rdata(14)=RHOGMN
+      rdata(15)=RHOGMX
 
-      CALL mtx_broadcast_real8(rdata,22)
+      CALL mtx_broadcast_real8(rdata,15)
       RR    =rdata( 1)
       RA    =rdata( 2)
       RB    =rdata( 3)
@@ -721,18 +730,11 @@
       QA    =rdata( 8)
       RIP   =rdata( 9)
       PROFJ =rdata(10)
-      PROFN1=rdata(11)
-      PROFN2=rdata(12)
-      PROFT1=rdata(13)
-      PROFT2=rdata(14)
-      PROFU1=rdata(15)
-      PROFU2=rdata(16)
-      RHOMIN=rdata(17)
-      QMIN  =rdata(18)
-      RHOEDG=rdata(19)
-      RHOITB=rdata(20)
-      RHOGMN=rdata(21)
-      RHOGMX=rdata(22)
+      RHOMIN=rdata(11)
+      QMIN  =rdata(12)
+      RHOEDG=rdata(13)
+      RHOGMN=rdata(14)
+      RHOGMX=rdata(15)
 
       CALL mtx_broadcast_real8(PA,NSMAX)
       CALL mtx_broadcast_real8(PZ,NSMAX)
@@ -745,9 +747,16 @@
       CALL mtx_broadcast_real8(PTS,NSMAX)
       CALL mtx_broadcast_real8(PU,NSMAX)
       CALL mtx_broadcast_real8(PUS,NSMAX)
+      CALL mtx_broadcast_real8(RHOITB,NSMAX)
       CALL mtx_broadcast_real8(PNITB,NSMAX)
       CALL mtx_broadcast_real8(PTITB,NSMAX)
       CALL mtx_broadcast_real8(PUITB,NSMAX)
+      CALL mtx_broadcast_real8(PROFN1,NSMAX)
+      CALL mtx_broadcast_real8(PROFN2,NSMAX)
+      CALL mtx_broadcast_real8(PROFT1,NSMAX)
+      CALL mtx_broadcast_real8(PROFT2,NSMAX)
+      CALL mtx_broadcast_real8(PROFU1,NSMAX)
+      CALL mtx_broadcast_real8(PROFU2,NSMAX)
       CALL mtx_broadcast_real8(PZCL,NSMAX)
 
       CALL mtx_broadcast_character(KNAMEQ,80)

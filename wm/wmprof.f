@@ -21,16 +21,16 @@ C
                RU(NS)  =PUS(NS)
             ENDDO
          ELSE
-            FACTN=(1.D0-RHOL**PROFN1)**PROFN2
-            FACTT=(1.D0-RHOL**PROFT1)**PROFT2
-            FACTU=(1.D0-RHOL**PROFU1)**PROFU2
             DO NS=1,NSMAX
+               FACTN=(1.D0-RHOL**PROFN1(NS))**PROFN2(NS)
+               FACTT=(1.D0-RHOL**PROFT1(NS))**PROFT2(NS)
+               FACTU=(1.D0-RHOL**PROFU1(NS))**PROFU2(NS)
                RN(NS)  =((PN(NS)  -PNS(NS))*FACTN+PNS(NS))
                RTPR(NS)=((PTPR(NS)-PTS(NS))*FACTT+PTS(NS))
                RTPP(NS)=((PTPP(NS)-PTS(NS))*FACTT+PTS(NS))
                RU(NS)  = (PU(NS)  -PUS(NS))*FACTU+PUS(NS)
-               IF(RHOL.LT.RHOITB) THEN
-                  FACTITB=(1.D0-(RHOL/RHOITB)**4)**2
+               IF(RHOL.LT.RHOITB(NS)) THEN
+                  FACTITB=(1.D0-(RHOL/RHOITB(NS))**4)**2
                   RN(NS)  =RN(NS)  +PNITB(NS)*FACTITB
                   RTPR(NS)=RTPR(NS)+PTITB(NS)*FACTITB
                   RTPP(NS)=RTPP(NS)+PTITB(NS)*FACTITB
@@ -48,11 +48,11 @@ C
                RU(NS)  =PUS(NS)
             ENDDO
          ELSE
-            FACTU=(1.D0-RHOL**PROFU1)**PROFU2
             DO NS=1,NSMAX
                RN(NS)  = RNPRF(NR,NS)
                RTPR(NS)= RTPRF(NR,NS)
                RTPP(NS)= RTPRF(NR,NS)
+               FACTU=(1.D0-RHOL**PROFU1(NS))**PROFU2(NS)
                RU(NS)  = (PU(NS)  -PUS(NS))*FACTU+PUS(NS)
             ENDDO
          ENDIF
@@ -71,15 +71,15 @@ C
                RU(NS)  =PUS(NS)
             ENDDO
          ELSE
-            FACTN=(1.D0-RHOL**PROFN1)**PROFN2
-            FACTT=(1.D0-RHOL**PROFT1)**PROFT2
-            FACTU=(1.D0-RHOL**PROFU1)**PROFU2
             DO NS=1,NSMAX
                IF (NS.EQ.1.OR.NS.GT.1) THEN
                   RN(NS)  = PN60(NR,NS)*1.D-20
                   RTPR(NS)= PT60(NR,NS)*1.D-3
                   RTPP(NS)= PT60(NR,NS)*1.D-3
                ELSE
+                  FACTN=(1.D0-RHOL**PROFN1(NS))**PROFN2(NS)
+                  FACTT=(1.D0-RHOL**PROFT1(NS))**PROFT2(NS)
+                  FACTU=(1.D0-RHOL**PROFU1(NS))**PROFU2(NS)
                   RN(NS)  =((PN(NS)  -PNS(NS))*FACTN+PNS(NS))
                   RTPR(NS)=((PTPR(NS)-PTS(NS))*FACTT+PTS(NS))
                   RTPP(NS)=((PTPP(NS)-PTS(NS))*FACTT+PTS(NS))

@@ -50,6 +50,7 @@
 !        PTS   : Temperature on surface                        (keV)
 !        PU    : Toroidal rotation velocity at center          (m/s)
 !        PUS   : Toroidal rotation velocity on surface         (m/s)
+!        RHOITB: rho at ITB (0 for no ITB)
 !        PNITB : Density increment at ITB              (1.0E20/Mm*3)
 !        PTITB : Temperature increment at ITB                  (keV)
 !        PUITB : Toroidal rotation velocity increment at ITB   (m/s)
@@ -78,6 +79,7 @@
          PTS(NS)  = 0.05D0
          PU(NS)   = 0.D0
          PUS(NS)  = 0.D0
+         RHOITB(NS)=0.D0
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
@@ -98,6 +100,7 @@
          PTS(NS)  = 0.05D0
          PU(NS)   = 0.D0
          PUS(NS)  = 0.D0
+         RHOITB(NS)=0.D0
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
@@ -117,6 +120,7 @@
          PTS(NS)  = 0.05D0
          PU(NS)   = 0.D0
          PUS(NS)  = 0.D0
+         RHOITB(NS)=0.D0
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
@@ -136,6 +140,7 @@
          PTS(NS)  = 0.05D0
          PU(NS)   = 0.D0
          PUS(NS)  = 0.D0
+         RHOITB(NS)=0.D0
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
@@ -154,6 +159,7 @@
          PTS(NS)  = 0.0D0
          PU(NS)   = 0.D0
          PUS(NS)  = 0.D0
+         RHOITB(NS)=0.D0
          PNITB(NS)= 0.D0
          PTITB(NS)= 0.D0
          PUITB(NS)= 0.D0
@@ -194,12 +200,14 @@
 !        PROFU1: Rotation profile parameter (power of rho)
 !        PROFU2: Rotation profile parameter (power of (1 - rho^PROFN1))
 
-      PROFN1= 2.D0
-      PROFN2= 0.5D0
-      PROFT1= 2.D0
-      PROFT2= 1.D0
-      PROFU1= 2.D0
-      PROFU2= 1.D0
+  DO NS=1,NSM
+     PROFN1(NS)= 2.D0
+     PROFN2(NS)= 0.5D0
+     PROFT1(NS)= 2.D0
+     PROFT2(NS)= 1.D0
+     PROFU1(NS)= 2.D0
+     PROFU2(NS)= 1.D0
+  END DO
 
 !     ======( MODEL PARAMETERS )======
 
@@ -228,8 +236,11 @@
 !                  12: Read from 2D nT file
 !                  14: Read from 2D nT file
 !        MODELQ: Control safety factor profile (for MODELG=1,2)
-!                   0: Parabolic q profile (Q0,QA,RHOMIN,RHOITB)
+!                   0: Parabolic q profile (Q0,QA,RHOMIN)
 !                   1: Given current profile (RIP,PROFJ)
+!        MODEL_PROF: profile parameter
+!                   0: PROFX1(NS)=PROFX1(1),PROFX2(NS)=PROFX2(1): compatibility
+!                   1: PROFX1(NS),PROFX2(NS): defined separately
 !        MODEL_NPROF: neutral profile parameter
 !                   0: Flat profile
 !                   1: Flat only in plasma, 0 outside
@@ -238,6 +249,7 @@
       MODELG= 2
       MODELN= 0
       MODELQ= 0
+      MODEL_PROF=0
       MODEL_NPROF=0
 
 !        RHOMIN: rho at minimum q (0 for positive shear)
@@ -247,7 +259,6 @@
 
       RHOMIN = 0.D0
       QMIN   = 1.5D0
-      RHOITB = 0.D0
       RHOEDG = 1.D0
 
 !        PPN0: Neutral pressure [Pa] 1 Torr = 1 mmHg = 133.322 Pa
@@ -346,13 +357,14 @@
 
       use plcomm, only:RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ, &
                     NSMAX,PA,PZ,PZ0,PN,PNS,PTPR,PTPP,PTS,PU,PUS, &
-                    PNITB,PTITB,PUITB,PZCL, &
+                    RHOITB,PNITB,PTITB,PUITB,PZCL, &
+                    PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
                     r_corner,z_corner, &
                     br_corner,bz_corner,bt_corner, &
                     pn_corner,ptpr_corner,ptpp_corner, &
-                    PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
-                    RHOMIN,QMIN,RHOITB,RHOEDG,PPN0,PTN0,RF_PL, &
-                    MODELG,MODELN,MODELQ,MODEL_NPROF,RHOGMN,RHOGMX, &
+                    RHOMIN,QMIN,RHOEDG,PPN0,PTN0,RF_PL, &
+                    MODELG,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF, &
+                    RHOGMN,RHOGMX, &
                     KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF, &
                     MODEFR,MODEFW,IDEBUG, &
                     rkind,pl_allocate_ns
@@ -361,6 +373,7 @@
       integer,intent(in) :: NID
       integer,intent(out) :: IST,IERR
       integer,parameter:: NSM=100
+      INTEGER:: NS
 
       NAMELIST /PL/ RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ, &
                     NSMAX,PA,PZ,PZ0,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PZCL, &
@@ -370,11 +383,23 @@
                     PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
                     RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG, &
                     PPN0,PTN0,RF_PL, &
-                    MODELG,MODELN,MODELQ,MODEL_NPROF,RHOGMN,RHOGMX, &
+                    MODELG,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF, &
+                    RHOGMN,RHOGMX, &
                     KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF, &
                     MODEFR,MODEFW,IDEBUG
 
       READ(NID,PL,IOSTAT=IST,ERR=9800,END=9900)
+
+      IF(MODEL_PROF.EQ.0) THEN
+         DO NS=2,NSMAX
+            PROFN1(NS)=PROFN1(1)
+            PROFN2(NS)=PROFN2(1)
+            PROFT1(NS)=PROFT1(1)
+            PROFT2(NS)=PROFT2(1)
+            PROFU1(NS)=PROFU1(1)
+            PROFU2(NS)=PROFU2(1)
+         END DO
+      END IF
 
       IERR=0
       RETURN
@@ -400,7 +425,8 @@
              9X,'pn_corner,ptpr_corner,ptpp_corner,'/ &
              9X,'RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG,'/ &
              9X,'PPN0,PTN0,RFCL,'/ &
-             9X,'MODELG,MODELN,MODELQ,MODEL_NPROF,RHOGMN,RHOGMX,'/ &
+             9X,'MODELG,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF,'/ &
+             9X,'RHOGMN,RHOGMX,'/ &
              9X,'KNAMEQ,KNAMWR,KNAMFP,KNAMFO,IDEBUG'/ &
              9X,'MODEFW,MODEFR')
     END SUBROUTINE pl_plst
@@ -470,15 +496,13 @@
                    'RA    ',RA    ,'RB    ',RB
       WRITE(6,601) 'RKAP  ',RKAP  ,'RDLT  ',RDLT  , &
                    'Q0    ',Q0    ,'QA    ',QA
-      WRITE(6,601) 'RIP   ',RIP   ,'PROFJ ',PROFJ , &
-                   'PROFN1',PROFN1,'PROFN2',PROFN2
-      WRITE(6,601) 'PROFT1',PROFT1,'PROFT2',PROFT2, &
-                   'PROFU1',PROFU1,'PROFU2',PROFU2
+      WRITE(6,601) 'RIP   ',RIP   ,'PROFJ ',PROFJ
       WRITE(6,601) 'RHOEDG',RHOEDG,'RHOGMN',RHOGMN, &
                    'RHOGMX',RHOGMX
       WRITE(6,604) 'MODELG',MODELG,'MODELN',MODELN, &
                    'MODELQ',MODELQ
       WRITE(6,604) 'MODEFR',MODEFR,'MODEFW',MODEFW
+      WRITE(6,'(A,I5)') 'MODEL_PROF  =',MODEL_PROF
       WRITE(6,'(A,I5)') 'MODEL_NPROF =',MODEL_NPROF
 
       WRITE(6,100)
@@ -490,15 +514,19 @@
          WRITE(6,130) NS,PTPR(NS),PTPP(NS),PTS(NS),PU(NS),PUS(NS)
       ENDDO
 
+      WRITE(6,140)
+      DO NS=1,NSMAX
+         WRITE(6,150) NS,RHOITB(NS),PNITB(NS),PTITB(NS),PUITB(NS),PZCL(NS)
+      END DO
+
+      WRITE(6,160)
+      DO NS=1,NSMAX
+         WRITE(6,170) NS,PROFN1(NS),PROFN2(NS),PROFT1(NS),PROFT2(NS), &
+                         PROFU1(NS),PROFU2(NS)
+      END DO
+
       WRITE(6,601) 'PPN0  ',PPN0  ,'PTN0  ',PTN0  , &
                    'RF_PL ',RF_PL
-
-      IF(RHOITB.GT.0.D0) THEN
-         WRITE(6,140)
-         DO NS=1,NSMAX
-           WRITE(6,150) NS,PNITB(NS),PTITB(NS),PUITB(NS),PZCL(NS)
-         ENDDO
-      END IF
 
       IF(MODELG.EQ.11.OR.MODELG.EQ.13) THEN
          WRITE(6,606) 'r_corner:  ',(r_corner(i),i=1,3)
@@ -517,14 +545,17 @@
       RETURN
 
   100 FORMAT(' ','NS    PA          PZ          PZ0         ', &
-                 'PN          PNS')
-  110 FORMAT(' ',I2,' ',1P5E12.3)
+                       'PN          PNS')
+  110 FORMAT(' ',I2,' ',1P5E12.4)
   120 FORMAT(' ','NS    PTPR        PTPP        PTS         ', &
-                 'PU          PUS')
-  130 FORMAT(' ',I2,' ',1P5E12.3)                               
-  140 FORMAT(' ','NS    PNITB       PTITB       PUITB'      , &
-                 'PZCL')
-  150 FORMAT(' ',I2,' ',1P4E12.4)                               
+                       'PU          PUS')
+  130 FORMAT(' ',I2,' ',1P5E12.4)                               
+  140 FORMAT(' ','NS    RHOITB      PNITB       PTITB       ', &
+                       'PUITB       PZCL')
+  150 FORMAT(' ',I2,' ',1P5E12.4)                               
+  160 FORMAT(' ','NS    PROFN1      PROFN2      PROFT1      ', &
+                       'PROFT2      PROFU1      PROFU2')
+  170 FORMAT(' ',I2,' ',1P6E12.4)                               
   601 FORMAT(' ',A6,'=',1PE11.3:2X,A6,'=',1PE11.3: &
              2X,A6,'=',1PE11.3:2X,A6,'=',1PE11.3)
   604 FORMAT(' ',A6,'=',I7,4X  :2X,A6,'=',I7,4X  : &
