@@ -7,6 +7,7 @@ CONTAINS
     USE w1comm,ONLY: ikind,rkind,w1_allocate,w1_deallocate
     USE w1parm,ONLY: w1_parm,w1_view
     USE w1exec,ONLY: w1_exec
+    USE w1gdsp,ONLY: w1_gdsp
     USE w1gout,ONLY: w1_gout
 
     IMPLICIT NONE
@@ -41,7 +42,7 @@ CONTAINS
        END IF
     ELSEIF(kid.EQ.'D') THEN
        CALL w1_allocate
-       CALL w1_disp(ierr)
+       CALL w1_gdsp
        INIT=1
     ELSEIF(kid.EQ.'Q') THEN
        GOTO 9000

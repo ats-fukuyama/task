@@ -301,4 +301,283 @@ CONTAINS
   613 FORMAT(I4,2(1PE12.4:))
 
     END SUBROUTINE ti_view
+
+!     ***** BROADCAST INPUT PARAMETERS *****
+
+    SUBROUTINE ti_broadcast
+
+      USE ticomm_parm
+      USE libmpi
+      IMPLICIT NONE
+      INTEGER,DIMENSION(99):: idata
+      REAL(rkind),DIMENSION(99):: rdata
+      INTEGER:: NS
+
+!----- PL input parameters -----     
+
+      idata( 1)=NSMAX
+      idata( 2)=MODELG
+      idata( 3)=MODELN
+      idata( 4)=MODELQ
+      idata( 5)=IDEBUG
+      idata( 6)=MODEFR
+      idata( 7)=MODEFW
+      idata( 8)=MODEL_PROF
+      idata( 9)=MODEL_PROF
+
+      CALL mtx_broadcast_integer(idata,9)
+      NSMAX =idata( 1)
+      MODELG=idata( 2)
+      MODELN=idata( 3)
+      MODELQ=idata( 4)
+      IDEBUG=idata( 5)
+      MODEFR=idata( 6)
+      MODEFW=idata( 7)
+      MODEL_PROF=idata( 8)
+      MODEL_PROF=idata( 9)
+
+      rdata( 1)=RR
+      rdata( 2)=RA
+      rdata( 3)=RB
+      rdata( 4)=RKAP
+      rdata( 5)=RDLT
+      rdata( 6)=BB
+      rdata( 7)=Q0
+      rdata( 8)=QA
+      rdata( 9)=RIP
+      rdata(10)=PROFJ
+      rdata(11)=RHOMIN
+      rdata(12)=QMIN
+      rdata(13)=RHOEDG
+      rdata(14)=RHOGMN
+      rdata(15)=RHOGMX
+      rdata(16)=PPN0
+      rdata(17)=PTN0
+      rdata(18)=RF_PL
+
+      CALL mtx_broadcast_real8(rdata,18)
+      RR    =rdata( 1)
+      RA    =rdata( 2)
+      RB    =rdata( 3)
+      RKAP  =rdata( 4)
+      RDLT  =rdata( 5)
+      BB    =rdata( 6)
+      Q0    =rdata( 7)
+      QA    =rdata( 8)
+      RIP   =rdata( 9)
+      PROFJ =rdata(10)
+      RHOMIN=rdata(11)
+      QMIN  =rdata(12)
+      RHOEDG=rdata(13)
+      RHOGMN=rdata(14)
+      RHOGMX=rdata(15)
+      PPN0=rdata(16)
+      PTN0=rdata(17)
+      RF_PL=rdata(18)
+
+      CALL mtx_broadcast_real8(PM,NSMAX)
+      CALL mtx_broadcast_real8(PZ,NSMAX)
+      CALL mtx_broadcast_real8(PZ0,NSMAX)
+      CALL mtx_broadcast_real8(PN,NSMAX)
+      CALL mtx_broadcast_real8(PNS,NSMAX)
+      CALL mtx_broadcast_real8(PTPR,NSMAX)
+      CALL mtx_broadcast_real8(PTPP,NSMAX)
+      CALL mtx_broadcast_real8(PTS,NSMAX)
+      CALL mtx_broadcast_real8(PU,NSMAX)
+      CALL mtx_broadcast_real8(PUS,NSMAX)
+      CALL mtx_broadcast_real8(RHOITB,NSMAX)
+      CALL mtx_broadcast_real8(PNITB,NSMAX)
+      CALL mtx_broadcast_real8(PTITB,NSMAX)
+      CALL mtx_broadcast_real8(PUITB,NSMAX)
+      CALL mtx_broadcast_real8(PROFN1,NSMAX)
+      CALL mtx_broadcast_real8(PROFN2,NSMAX)
+      CALL mtx_broadcast_real8(PROFT1,NSMAX)
+      CALL mtx_broadcast_real8(PROFT2,NSMAX)
+      CALL mtx_broadcast_real8(PROFU1,NSMAX)
+      CALL mtx_broadcast_real8(PROFU2,NSMAX)
+      CALL mtx_broadcast_real8(PZCL,NSMAX)
+
+      CALL mtx_broadcast_integer(ID_NS,NSMAX)
+      DO NS=1,NSMAX
+         CALL mtx_broadcast_character(KID_NS(NS),2)
+      END DO
+
+      CALL mtx_broadcast_real8(r_corner,3)
+      CALL mtx_broadcast_real8(z_corner,3)
+      CALL mtx_broadcast_real8(br_corner,3)
+      CALL mtx_broadcast_real8(bz_corner,3)
+      CALL mtx_broadcast_real8(bt_corner,3)
+      DO NS=1,NSMAX
+         CALL mtx_broadcast_real8(pn_corner(1:3,NS),3)
+         CALL mtx_broadcast_real8(ptpr_corner(1:3,NS),3)
+         CALL mtx_broadcast_real8(ptpp_corner(1:3,NS),3)
+      END DO
+      CALL mtx_broadcast_character(KNAMEQ,80)
+      CALL mtx_broadcast_character(KNAMWR,80)
+      CALL mtx_broadcast_character(KNAMFP,80)
+      CALL mtx_broadcast_character(KNAMWM,80)
+      CALL mtx_broadcast_character(KNAMPF,80)
+      CALL mtx_broadcast_character(KNAMFO,80)
+      CALL mtx_broadcast_character(KNAMTR,80)
+      CALL mtx_broadcast_character(KNAMEQ2,80)
+
+!----- TI input parameters -----
+
+      idata( 1)=NRMAX
+      idata( 2)=NTMAX
+      idata( 3)=NTSTEP
+      idata( 4)=NGTSTEP
+      idata( 5)=NGRSTEP
+      idata( 6)=NGTMAX_INIT
+      idata( 7)=NGRMAX_INIT
+      idata( 8)=NTSTEP_COEF
+      idata( 9)=LMAXTI
+      idata(10)=MODEL_EQB
+      idata(11)=MODEL_EQN
+      idata(12)=MODEL_EQT
+      idata(13)=MODEL_EQU
+      idata(14)=MODEL_KAI
+      idata(15)=MODEL_DRR
+      idata(16)=MODEL_VR
+      idata(17)=MODEL_NC
+      idata(18)=MODEL_NF
+      idata(19)=MODEL_NB
+      idata(20)=MODEL_EC
+      idata(21)=MODEL_LH
+      idata(22)=MODEL_IC
+      idata(23)=MODEL_CD
+      idata(24)=MODEL_SYNC
+      idata(25)=MODEL_PEL
+      idata(26)=MODEL_PSC
+
+      CALL mtx_broadcast_integer(idata,26)
+      NRMAX=idata( 1)
+      NTMAX=idata( 2)
+      NTSTEP=idata( 3)
+      NGTSTEP=idata( 4)
+      NGRSTEP=idata( 5)
+      NGTMAX_INIT=idata( 6)
+      NGRMAX_INIT=idata( 7)
+      NTSTEP_COEF=idata( 8)
+      LMAXTI=idata( 9)
+      MODEL_EQB=idata(10)
+      MODEL_EQN=idata(11)
+      MODEL_EQT=idata(12)
+      MODEL_EQU=idata(13)
+      MODEL_KAI=idata(14)
+      MODEL_DRR=idata(15)
+      MODEL_VR=idata(16)
+      MODEL_NC=idata(17)
+      MODEL_NF=idata(18)
+      MODEL_NB=idata(19)
+      MODEL_EC=idata(20)
+      MODEL_LH=idata(21)
+      MODEL_IC=idata(22)
+      MODEL_CD=idata(23)
+      MODEL_SYNC=idata(24)
+      MODEL_PEL=idata(25)
+      MODEL_PSC=idata(26)
+
+      rdata( 1)=PROFJ1
+      rdata( 2)=PROFJ2
+      rdata( 3)=DT
+      rdata( 4)=EPSLTI
+      rdata( 5)=AK0
+      rdata( 6)=AD0
+      rdata( 7)=AV0
+      rdata( 8)=DK0
+      rdata( 9)=DKS
+      rdata(10)=PNBIN
+      rdata(11)=PNBR0
+      rdata(12)=PNBRW
+      rdata(13)=PNBENG
+      rdata(14)=PNBRTG
+      rdata(15)=PECIN
+      rdata(16)=PECR0
+      rdata(17)=PECRW
+      rdata(18)=PECTOE
+      rdata(19)=PECNPR
+      rdata(20)=PLHR0
+      rdata(21)=PLHRW
+      rdata(22)=PLHTOE
+      rdata(23)=PLHNPR
+      rdata(24)=PICIN
+      rdata(25)=PICR0
+      rdata(26)=PICRW
+      rdata(27)=PICTOE
+      rdata(28)=PICNPR
+      rdata(29)=PNBCD
+      rdata(30)=PECCD
+      rdata(31)=PLHCD
+      rdata(32)=PICCD
+      rdata(33)=PBSCD
+      rdata(34)=PELIN
+      rdata(35)=PELR0
+      rdata(36)=PELRW
+      rdata(37)=PELDT
+      rdata(38)=PELTE
+      rdata(39)=PELRAD
+      rdata(40)=PELVEL
+      rdata(41)=PSCIN
+      rdata(42)=PSCR0
+      rdata(43)=PSCRW
+      rdata(44)=SYNC_WALL
+      rdata(45)=SYNC_CONV
+
+      CALL mtx_broadcast_real8(rdata,45)
+      PROFJ1=rdata( 1)
+      PROFJ2=rdata( 2)
+      DT=rdata( 3)
+      EPSLTI=rdata( 4)
+      AK0=rdata( 5)
+      AD0=rdata( 6)
+      AV0=rdata( 7)
+      DK0=rdata( 8)
+      DKS=rdata( 9)
+      PNBIN=rdata(10)
+      PNBR0=rdata(11)
+      PNBRW=rdata(12)
+      PNBENG=rdata(13)
+      PNBRTG=rdata(14)
+      PECIN=rdata(15)
+      PECR0=rdata(16)
+      PECRW=rdata(17)
+      PECTOE=rdata(18)
+      PECNPR=rdata(19)
+      PLHR0=rdata(20)
+      PLHRW=rdata(21)
+      PLHTOE=rdata(22)
+      PLHNPR=rdata(23)
+      PICIN=rdata(24)
+      PICR0=rdata(25)
+      PICRW=rdata(26)
+      PICTOE=rdata(27)
+      PICNPR=rdata(28)
+      PNBCD=rdata(29)
+      PECCD=rdata(30)
+      PLHCD=rdata(31)
+      PICCD=rdata(32)
+      PBSCD=rdata(33)
+      PELIN=rdata(34)
+      PELR0=rdata(35)
+      PELRW=rdata(36)
+      PELDT=rdata(37)
+      PELTE=rdata(38)
+      PELRAD=rdata(39)
+      PELVEL=rdata(40)
+      PSCIN=rdata(41)
+      PSCR0=rdata(42)
+      PSCRW=rdata(43)
+      SYNC_WALL=rdata(44)
+      SYNC_CONV=rdata(45)
+
+      CALL mtx_broadcast_integer(NZMIN_NS,NSMAX)
+      CALL mtx_broadcast_integer(NZMAX_NS,NSMAX)
+      CALL mtx_broadcast_integer(NZINI_NS,NSMAX)
+      CALL mtx_broadcast_real8(PT,NSMAX)
+      CALL mtx_broadcast_real8(PELPAT,NSMAX)
+      CALL mtx_broadcast_real8(PSCPAT,NSMAX)
+
+    END SUBROUTINE ti_broadcast
+
   END MODULE tiparm

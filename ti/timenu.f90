@@ -12,7 +12,7 @@ CONTAINS
       USE tiinit
       USE tiparm
       USE tiprep
-      USE tiloop
+      USE tiexec
       USE tigout
       
       IMPLICIT NONE
@@ -51,10 +51,10 @@ CONTAINS
       ELSE IF(KID.EQ.'R') THEN
          CALL ti_prep(ierr)
          if(ierr.ne.0) GO TO 1
-         CALL ti_loop(ierr)
+         CALL ti_exec(ierr)
          INIT=2
       ELSE IF(KID.EQ.'C'.AND.INIT.EQ.2) THEN
-         CALL ti_loop(ierr)
+         CALL ti_exec(ierr)
       ELSE IF(KID.EQ.'G'.AND.INIT.GE.1) THEN
          CALL ti_gout
       ELSE IF(KID.EQ.'W'.AND.INIT.EQ.2) THEN

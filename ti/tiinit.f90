@@ -54,11 +54,17 @@ CONTAINS
 !        NZINI_NS(NS)*: charge number of initial profile: NZINI=-1 for all 0
       
 !        PM(NS),PZ(NS) : definition of element for NS
-!        IF(ID_NS==0) DEFAULT (thermal component)
+!        IF(ID_NS==-1) (electron)
 !           NSA.range=1
 !   　　    PMA(NSA)=PM(NS)
 !           PZA(NSA)=PZ(NS)
-!        ELSE IF(ID_NS==1) (beam component)
+!        ELSEIF(ID_NS==0) Not solved
+!           NSA.range=0
+!        ELSE IF(ID_NS==1) (thermal ion)
+!           NSA.range=1
+!   　　    PMA(NSA)=PM(NS)
+!           PZA(NSA)=PZ(NS)
+!        ELSE IF(ID_NS==2) (beam ion)
 !           NSA.range=1
 !   　　    PMA(NSA)=PM(NS)
 !           PZA(NSA)=PZ(NS)
@@ -71,22 +77,33 @@ CONTAINS
 !           PMA(NSA)=PM(NS)
 !           PZA(NSA)=PZ(NS)
 !        ELSE IF(ID_NS==10) multi-level ionization [OPEN-ADAS]
-!           NSA.range=NZMAX_NS(NS)-NZMIN(NS)+1 (max PZ+1)
+!           NSA.range=NZMAX_NS(NS)-NZMIN_NS(NS)+1 (max PZ+1)
 !           PMA(NSA)=PM(NS)
 !           PZA(NSA)=NS-NSAMIN+NZMIN_NS(NS)
 !           NZINI_NS: NZ for initial profile, 0 for all zero
+!           RNA(NSAMIN:NSAMIN+NSA.range)
+!           RTA(NSAMIN)
+!           RUA(NSAMIN)
+!        ELSE IF(ID_NS==11) multi-level ionization [OPEN-ADAS]
+!           RNA(NSAMIN:NSAMIN+NSA.range)
+!           RTA(NSAMIN:NSAMIN+NSA.range)
+!           RUA(NSAMIN)
+!        ELSE IF(ID_NS==12) multi-level ionization [OPEN-ADAS]
+!           RNA(NSAMIN:NSAMIN+NSA.range)
+!           RTA(NSAMIN:NSAMIN+NSA.range)
+!           RUA(NSAMIN:NSAMIN+NSA.range)
 !        END IF
 
 !        PT(NS)=(PTPR(NS)+2*PTPP(NS))/3
     NS=1
        KID_NS(NS)= ' e'
-       ID_NS(NS)= 0
+       ID_NS(NS)=-1
        NZMIN_NS(NS) = 0
        NZMAX_NS(NS) = 0
        NZINI_NS(NS) = 0
     DO NS =2, NSM
        KID_NS(NS)= ' H'
-       ID_NS(NS)= 0
+       ID_NS(NS)= 1
        NZMIN_NS(NS) = 0
        NZMAX_NS(NS) = 1
        NZINI_NS(NS) = 0

@@ -21,9 +21,11 @@ CONTAINS
     NSA=0
     DO NS=1,NSMAX
        SELECT CASE(ID_NS(NS))
-       CASE(-1,0,1,5,6)
+       CASE(0)
+          CONTINUE
+       CASE(-1,1,2,5,6)
           NSA=NSA+1
-       CASE(10)
+       CASE(10,11,12)
           DO NZ=NZMIN_NS(NS),NZMAX_NS(NS)
              NSA=NSA+1
           END DO
@@ -49,14 +51,16 @@ CONTAINS
     NSA=0
     DO NS=1,NSMAX
        SELECT CASE(ID_NS(NS))
-       CASE(-1,0,1,5,6)
+       CASE(0)
+          CONTINUE
+       CASE(-1,1,2,5,6)
           NSA=NSA+1
           PMA(NSA)=PM(NS)
           PZA(NSA)=PZ(NS)   ! for ID_NS=5,6, PZ will be ealuated later
           NS_NSA(NSA)=NS
           NSA_DN(NSA)=0
           NSA_UP(NSA)=0
-       CASE(10)
+       CASE(10,11,12)
           DO NZ=NZMIN_NS(NS),NZMAX_NS(NS)
              NSA=NSA+1
              PMA(NSA)=PM(NS)
@@ -82,7 +86,7 @@ CONTAINS
 
 !   *** Display NSA variables ***
 
-    WRITE(6,*) 'NSA  ','NS   ','ID   ','PMA            ','PZA'
+    WRITE(6,*) 'NSA  ','NS   ','ID   ','PMA         ','PZA'
     DO NSA=1,NSAMAX
        WRITE(6,'(3I5,1P2E12.4)') &
             NSA,NS_NSA(NSA),ID_NS(NS_NSA(NSA)),PMA(NSA),PZA(NSA)
@@ -92,13 +96,27 @@ CONTAINS
 
     NEQ=0
     IF(MODEL_EQB.EQ.1) NEQ=NEQ+1
-    DO NSA=1,NSAMAX
-       NS=NS_NSA(NSA)
-       IF(ID_NS(NS).GE.0) THEN
+    DO NS=1,NSMAX
+       SELECT CASE(ID_NS(NS))
+       CASE(0)
+          CONTINUE
+       CASE(-1,1,2,5,6)
           IF(MODEL_EQN.EQ.1) NEQ=NEQ+1
           IF(MODEL_EQU.EQ.1) NEQ=NEQ+1
           IF(MODEL_EQT.EQ.1) NEQ=NEQ+1
-       END IF
+       CASE(10)
+          IF(MODEL_EQN.EQ.1) NEQ=NEQ+NZMAX_NS(NS)-NZMIN_NS(NS)+1
+          IF(MODEL_EQU.EQ.1) NEQ=NEQ+1
+          IF(MODEL_EQT.EQ.1) NEQ=NEQ+1
+       CASE(11)
+          IF(MODEL_EQN.EQ.1) NEQ=NEQ+NZMAX_NS(NS)-NZMIN_NS(NS)+1
+          IF(MODEL_EQU.EQ.1) NEQ=NEQ+NZMAX_NS(NS)-NZMIN_NS(NS)+1
+          IF(MODEL_EQT.EQ.1) NEQ=NEQ+1
+       CASE(12)
+          IF(MODEL_EQN.EQ.1) NEQ=NEQ+NZMAX_NS(NS)-NZMIN_NS(NS)+1
+          IF(MODEL_EQU.EQ.1) NEQ=NEQ+NZMAX_NS(NS)-NZMIN_NS(NS)+1
+          IF(MODEL_EQT.EQ.1) NEQ=NEQ+NZMAX_NS(NS)-NZMIN_NS(NS)+1
+       END SELECT
     END DO
     NEQMAX=NEQ
     WRITE(6,'(A,I5)') 'NEQMAX=',NEQMAX
@@ -117,26 +135,45 @@ CONTAINS
     IF(MODEL_EQB.EQ.1) THEN
        NEQ=NEQ+1
        NSA_NEQ(NEQ)=0
-       NV_NEQ(NEQ)=0
+       NV_NEQ(NEQ)=1
     END IF
     DO NSA=1,NSAMAX
        NS=NS_NSA(NSA)
-       IF(ID_NS(NS).GE.0) THEN
-          IF(MODEL_EQN.EQ.1) THEN
+       IF(MODEL_EQN.EQ.1) THEN
+          SELECT CASE(ID_NS(NS))
+          CASE(-1,1,2,5,6,10,11,12)
              NEQ=NEQ+1
              NSA_NEQ(NEQ)=NSA
              NV_NEQ(NEQ)=1
-          END IF
-          IF(MODEL_EQU.EQ.1) THEN
+          END SELECT
+       END IF
+       IF(MODEL_EQT.EQ.1) THEN
+          SELECT CASE(ID_NS(NS))
+          CASE(-1,1,2,5,6,10,11)
              NEQ=NEQ+1
              NSA_NEQ(NEQ)=NSA
              NV_NEQ(NEQ)=2
-          END IF
-          IF(MODEL_EQT.EQ.1) THEN
+          CASE(12)
+             IF(NINT(PZ(NSA)).EQ.NZMIN_NS(NS)) THEN
+                NEQ=NEQ+1
+                NSA_NEQ(NEQ)=NSA
+                NV_NEQ(NEQ)=2
+             END IF
+          END SELECT
+       END IF
+       IF(MODEL_EQU.EQ.1) THEN
+          SELECT CASE(ID_NS(NS))
+          CASE(-1,1,2,5,6,10)
              NEQ=NEQ+1
              NSA_NEQ(NEQ)=NSA
              NV_NEQ(NEQ)=3
-          END IF
+          CASE(11,12)
+             IF(NINT(PZ(NSA)).EQ.NZMIN_NS(NS)) THEN
+                NEQ=NEQ+1
+                NSA_NEQ(NEQ)=NSA
+                NV_NEQ(NEQ)=3
+             END IF
+          END SELECT
        END IF
     END DO
     IF(NEQ.NE.NEQMAX) THEN
@@ -144,7 +181,7 @@ CONTAINS
        STOP
     END IF
 
-    NEQ_NVNSA(1:3,1:NSAMAX)=0.D0
+    NEQ_NVNSA(1:3,0:NSAMAX)=0.D0
     DO NEQ=1,NEQMAX
        NV=NV_NEQ(NEQ)
        NSA=NSA_NEQ(NEQ)
@@ -153,11 +190,17 @@ CONTAINS
 
 !   *** Display NEQ variables ***
 
-    WRITE(6,*) 'NEQ  ','NS   ','NSA   ','NV  '
+    WRITE(6,*) 'NEQ  ','NS   ','NSA  ','NV   '
     DO NEQ=1,NEQMAX
        WRITE(6,'(4I5)') &
             NEQ,NS_NSA(NSA_NEQ(NEQ)),NSA_NEQ(NEQ),NV_NEQ(NEQ)
     END DO
+    WRITE(6,*) 'NS   ','NSA  ','NV   ','NEQ  '
+    DO NSA=1,NSAMAX
+       DO NV=1,3
+          WRITE(6,'(4I5)') NS_NSA(NSA),NSA,NV,NEQ_NVNSA(NV,NSA)
+       END DO
+    END DO   
 
 !   *** radial mesh ***
 

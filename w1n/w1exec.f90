@@ -5,35 +5,41 @@ CONTAINS
   SUBROUTINE w1_exec(ierr)
 
     USE w1comm
+    USE w1prof,ONLY: w1_prof
+    USE w1prep,ONLY: w1ants,w1fftl,w1setx,w1setz,w1syms
+    USE w1bcnd,ONLY: w1_bcnd,w1evac
+    USE w1disp,ONLY: w1dspa
+    USE w1fem,ONLY: w1bnda,w1bndc,w1epwa,w1epwc
+    USE w1mlm,ONLY: w1bndb,w1bndd,w1epwb,w1epwd,w1wkxb,w1wkxd
+    USE w1intg,ONLY: w1bndq,w1epwq,w1qtbl,w1dspq
+    USE w1rslt,ONLY: w1clcd,w1clpw,w1held,w1pwri,w1pwrs
+    USE w1out,ONLY: w1file,w1prnt
     IMPLICIT NONE
     REAL(rkind):: DXD,RFSAVE,RKSAVE
     INTEGER:: NS,NL,NZP,IERR,IC,ICL,NX
 
     IF(MOD(NXVMAX,2).NE.0) NXVMAX=NXVMAX+1
     IF(ABS(RZ).LE.1.D-8) RZ=2.D0*PI*RR
-    IF(NDMAX.GT.NDM-1) NDMAX=NDM-1
-    NHARM=0
+    NHMAX=0
     IF(NMODEL.EQ.6) THEN
        DO NS=1,NSMAX
-          IF(ABS(IHARM(NS)).GT.NHARMM) IHARM(NS)=NHARMM
-          IF(ABS(IHARM(NS)).GT.NHARM)  NHARM=IHARM(NS)
+          IF(ABS(IHARM(NS)).GT.NHMAX)  NHMAX=IHARM(NS)
        END DO
        DXD=XDMAX/NDMAX
-       CALL W1QTBL(NDMAX,XDMAX,NHARM)
+       CALL W1QTBL
     ENDIF
-
+    NCMAX=2*NHMAX+1 
 !     ******* 2-DIMENSIONAL ANALYSIS *******
 
     RFSAVE=RF
     RKSAVE=RKZ
     DO NL=1,NLOOP
        IF(NLOOP.NE.1) WRITE(6,630) RF,RKZ
-       CALL W1SETZ(IERR)
-           IF(IERR.NE.0) GOTO 2000
+       CALL W1SETZ
        CALL W1ANTS
        CALL W1SETX(IERR)
            IF(IERR.NE.0) GOTO 2000
-       CALL W1PROF
+       CALL W1_PROF
        CALL W1PWRI
 
 !     ******* FOURIER TRANSFORM OF ANTENNA CURRENT *******
@@ -52,11 +58,11 @@ CONTAINS
              CFJY2 = CJ2(NZP)
              CFJZ1 = CJ3(NZP)
              CFJZ2 = CJ4(NZP)
-             CALL W1BCND
+             CALL W1_BCND
              IF(NMODEL.LE.5) THEN
-                CALL W1DSPA(NALPHA)
+                CALL W1DSPA
              ELSE
-                CALL W1DSPQ(ICL)
+                CALL W1DSPQ
              ENDIF
              IF(NMODEL.EQ.0.OR.NMODEL.EQ.2) THEN
                 CALL W1BNDA(IERR)
@@ -64,7 +70,7 @@ CONTAINS
                 CALL W1EPWA(NZP)
              ELSEIF(NMODEL.EQ.1.OR.NMODEL.EQ.3) THEN
                 CALL W1WKXB
-                CALL W1BNDB(IERR,NXABS)
+                CALL W1BNDB(IERR)
                    IF(IERR.NE.0) GOTO 2000
                 CALL W1EPWB(NZP)
                 CALL W1HELD(4)
@@ -74,7 +80,7 @@ CONTAINS
                 CALL W1EPWC(NZP)
              ELSEIF(NMODEL.EQ.5) THEN
                 CALL W1WKXD
-                CALL W1BNDD(IERR,NXABS)
+                CALL W1BNDD(IERR)
                    IF(IERR.NE.0) GOTO 2000
                 CALL W1EPWD(NZP)
                 CALL W1HELD(6)
@@ -83,15 +89,15 @@ CONTAINS
                    IF(IERR.NE.0) GOTO 2000
                 CALL W1EPWQ(NZP)
              ENDIF
-             CALL W1EVAC(NZP,NSYM)
+             CALL W1EVAC(NZP)
              CALL W1CLCD(NZP)
-             CALL W1CLPW(NZP,NSYM)
+             CALL W1CLPW(NZP)
           ELSE
-             CALL W1SYMS(NZP,NSYM)
+             CALL W1SYMS(NZP)
           END IF
        END DO
 
-       IF(NMODEL.EQ.6) WRITE(6,616) MATL,MATLM,ICL,NCLM,NDMAX,XDMAX
+       IF(NMODEL.EQ.6) WRITE(6,616) NLWMAX,NCLMAX,NCMAX,NDMAX,XDMAX
 
 !     ******* INVERSE FOURIER TRANSFORM *******
 
@@ -109,8 +115,8 @@ CONTAINS
 !     ******* POWER ABSORPTION AND OUTPUT *******
 
       CALL W1PWRS
-      CALL W1PRNT(NPRINT)
-      CALL W1FILE(NFILE)
+      CALL W1PRNT
+      CALL W1FILE
       IF(NLOOP.NE.1) THEN
          RF   = RF   + DRF
          RKZ  = RKZ  + DRKZ
@@ -125,8 +131,8 @@ CONTAINS
 2000 CONTINUE
     RETURN
   616 FORMAT('## INTEGRO-DIFF EQ. : ', &
-                 'MATL  MATLM  ICL   NCLM  NDMAX XDMAX'/ &
-             22X,5I6,1P1D12.4)
+                 'NLWMAX NCLMAX NCMAX   NDMAX   XDMAX'/ &
+             22X,5I8,1P1D12.4)
   630 FORMAT(1H / &
             1H ,'** RF = ',1PD12.4,' (MHZ) , RKZ = ',1PD12.4, &
                 ' (/M) **')

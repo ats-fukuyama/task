@@ -1,5 +1,15 @@
 ### $Id$ ###
 include ../make.header
+include ../mtxp/make.mtxp
+
+LIB_MTX=$(LIB_MTX_BND)
+LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_PCG)
+#LIBX_MTX=$(LIBX_MTX_PCG)
+#LIB_MTX=$(LIB_MTX_MUMPS)
+#LIBX_MTX=$(LIBX_MTX_MUMPS)
+#LIB_MTX=$(LIBXMTX_KSP)
+#LIBX_MTX=$(LIBX_MTX_KSP)
 
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
@@ -7,15 +17,9 @@ include ../make.header
 #FFLAGS = $(OFLAGS)
 FFLAGS = $(DFLAGS)
 
-MODINCLUDE= -I./$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD) -I../lib/$(MOD)
-
-BPSDLIB=../../bpsd/bpsdlib.a
-PLLIB=../plx/pllib.a 
-EQLIB=../eq/eqlib.a
-
-SRCS= ticomm.f90 libmtxbnd.f90 adpost/lib-adpost.f90 \
+SRCS= ticomm.f90 adpost/lib-adpost.f90 \
 	tiinit.f90 tiparm.f90 tiprep.f90 \
-	ticoef.f90 tisource.f90 ticalc.f90 tiloop.f90 tigout.f90 timenu.f90
+	ticoef.f90 tisource.f90 ticalc.f90 tiexec.f90 tigout.f90 timenu.f90
 
 #      trprof.f90 trufsub.f90 trufile.f90 trfile.f90 trhelp.f90 \
 #      trexec.f90 trcalc.f90 \
@@ -27,7 +31,10 @@ SRCS= ticomm.f90 libmtxbnd.f90 adpost/lib-adpost.f90 \
 #      trunit.f90 trloop.f90 trmenu.f90 tr_bpsd.f90
 
 OBJS=$(SRCS:.f90=.o)
-LIBS=tilib.a $(EQLIB) $(PLLIB) ../lib/tasklib.a $(BPSDLIB)
+LIBS=tilib.a ../eq/eqlib.a ../plx/pllib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a
+
+MODINCLUDE= -I./$(MOD) -I./adpost/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD) \
+            -I../mtxp/$(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD) 
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -40,26 +47,23 @@ all: ti
 tilib.a: $(OBJS)
 	$(LD) $(LDFLAGS) tilib.a $(OBJS)
 
-../lib/tasklib.a:
-	(cd ../lib; make tasklib.a)
-../lib/mdslib.a:
-	(cd ../lib; make mdslib.a)
-../../bpsd/bpsdlib.a:
-	(cd ../../bpsd; make bpsdlib.a)
-../plx/pllib.a:
-	(cd ../plx; make pllib.a)
 ../eq/eqlib.a:
 	(cd ../eq; make eqlib.a)
-	(cd ../tr; make tr3lib.a)
+../plx/pllib.a:
+	(cd ../plx; make pllib.a)
+../lib/tasklib.a:
+	(cd ../lib; make tasklib.a)
+../../bpsd/bpsdlib.a:
+	(cd ../../bpsd; make bpsdlib.a)
 
 libs:
-	(cd ../lib; make tasklib.a)
 	(cd ../../bpsd; make bpsdlib.a)
+	(cd ../lib; make tasklib.a)
 	(cd ../plx; make pllib.a)
 	(cd ../eq; make eqlib.a)
 
-ti: $(LIBS) timain.o 
-	$(FCFREE) timain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODINCLUDE)
+ti: $(LIB_MTX) $(LIBS) timain.o 
+	$(FLINKER) timain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 clean : 
 	rm -f ./#* ./*~ *.o nclass/*.o itg/*.o glf/*.o cytran/*.o mmm95/*.o mbgb/*.o a.out core *.a *.mod $(MOD)/*.mod
@@ -80,7 +84,7 @@ tiinit.o : tiinit.f90 ticomm.f90
 tiparm.o : tiparm.f90 ticomm.f90
 tiprep.o : tiprep.f90 ticomm.f90
 tigout.o : tigout.f90 ticomm.f90
-tiloop.o : tiloop.f90 ticomm.f90
+tiexec.o : tiexec.f90 ticomm.f90
 ticoef.o : ticoef.f90 ticomm.f90
 tisource.o : tisource.f90 ticomm.f90
 ticalc.o : ticalc.f90 ticomm.f90

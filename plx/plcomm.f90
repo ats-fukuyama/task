@@ -16,7 +16,7 @@ MODULE plcomm
       REAL(rkind),DIMENSION(3,NSM):: pn_corner,ptpr_corner,ptpp_corner
 
       REAL(rkind),DIMENSION(NSM):: & 
-           PA,PZ,PZ0,IDION,PN,PNS,PTPR,PTPP,PTS,PU,PUS, &
+           PA,PZ,PZ0,PN,PNS,PTPR,PTPP,PTS,PU,PUS, &
            RHOITB,PNITB,PTITB,PUITB, &
            PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
            PZCL

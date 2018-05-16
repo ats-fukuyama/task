@@ -145,7 +145,7 @@ CONTAINS
                  'NPRINT',NPRINT,'NFILE ',NFILE, &
                  'NGRAPH',NGRAPH,'NLOOP ',NLOOP, &
                  'NSYM  ',NSYM  ,'NMODEL',NMODEL, &
-                 'NALPHA',NALPHA,'NHARM ',NHARM, &
+                 'NALPHA',NALPHA, &
                  'NSYS  ',NSYS  ,'NDISP ',NDISP, &
                  'NCDTYP',NCDTYP,'NXABS ',NXABS
     RETURN

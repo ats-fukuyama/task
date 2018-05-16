@@ -195,7 +195,7 @@
         k_banana=0
         iflag=-3
       ENDIF
-!     No viscsoity
+!     No viscosity
       IF((k_banana.eq.0).and.(k_pfirsch.eq.0)) THEN
         k_potato=0
         iflag=-4

@@ -598,6 +598,7 @@ SUBROUTINE MODANT(IERR)
            if(nrank.eq.0) WRITE(6,'(A,3I8,1P3E12.4)') 'NA,N,NE,X,Y,Z=',&
                 & NA,N,NE,XJ(N,NA),YJ(N,NA),ZJ(N,NA)
         ENDIF
+        LS=0
      ENDDO
      
 6000 JNUM(NA)=N

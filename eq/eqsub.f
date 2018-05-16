@@ -87,15 +87,15 @@ C
       H=FACT*2.D0*PI*RKAP*(RINIT-RAXIS)/NMAX
       ISTEP=0
 C
-C      WRITE(6,'(I5,1P3E12.4)') 0,H,RAXIS,ZAXIS
-C      WRITE(6,'(I5,1P3E12.4)') NMAX,FACT,PI,RKAP
+      WRITE(6,'(I5,1P3E12.4)') 0,H,RAXIS,ZAXIS
+      WRITE(6,'(I5,1P3E12.4)') NMAX,FACT,PI,RKAP
 C      pause
 C
   100 X=0.D0
       Y(1)=RINIT
       Y(2)=ZINIT
 C
-C      WRITE(6,'(I5,1P3E12.4)') 1,X,Y(1),Y(2)
+      WRITE(6,'(I5,1P3E12.4)') 1,X,Y(1),Y(2)
 C
       N=1
       XA(N)=X
@@ -129,6 +129,7 @@ C
          GOTO 100
       ENDIF
       WRITE(6,*) 'XX EQMAGS: NOT ENOUGH N'
+      pause
       IERR=1
       RETURN
 C
