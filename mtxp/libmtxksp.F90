@@ -489,7 +489,7 @@
          CALL KSPSetType(ksp,KSPRICHARDSON,ierr)
          CALL KSPRichardsonSetScale(ksp,damping_factor_,ierr)
       CASE(1)
-         CALL KSPSetType(ksp,KSPCHEBYCHEV,ierr)
+         CALL KSPSetType(ksp,KSPCHEBYSHEV,ierr)
          CALL KSPChebyshevSetEigenvalues(ksp,emax_,emin_,ierr)
       CASE(2)
          CALL KSPSetType(ksp,KSPCG,ierr)

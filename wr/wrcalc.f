@@ -239,6 +239,10 @@ C
          ELSE
             WRITE(6,*) 'XX WRCALC: unknown MDLWRQ =', MDLWRQ
          ENDIF
+         DO NIT=0,NITMAX(NRAY)
+            RAYRB1(NIT,NRAY)=0.D0
+            RAYRB2(NIT,NRAY)=0.D0
+         END DO
          CALL WRCALE(RAYS(0,0,NRAY),NITMAX(NRAY),NRAY)
          WRITE(6,'(A,1PE12.4,A,1PE12.4)') 
      &        '    RKRI=  ',RKRI,  '  PABS/PIN=',
@@ -1317,6 +1321,7 @@ C
       SUBROUTINE WRCALE(YN,NITMX,NRAY)
 C    
       USE plcomm
+      USE plprof,ONLY: PL_MAG_OLD
       INCLUDE 'wrcomm.inc'
       DIMENSION YN(0:NEQ,0:NITM),CDET(3,3)
       DIMENSION CDETP(3,3),CDETM(3,3),CDETD(3,3)
@@ -1389,8 +1394,12 @@ C
          RXS(NIT,NRAY)=X1
          RYS(NIT,NRAY)=Y1
          RZS(NIT,NRAY)=Z1
-         RAYRB1(NIT,NRAY)=0.d0
-         RAYRB2(NIT,NRAY)=0.d0
+
+         CALL pl_mag_old(X1,Y1,Z1,RHON)
+         BNXS(NIT,NRAY)=BNX
+         BNYS(NIT,NRAY)=BNY
+         BNZS(NIT,NRAY)=BNZ
+         BABSS(NIT,NRAY)=BABS
 C
 C         IF(NRAYMX.EQ.1) THEN
 C            FACTA=0.D0
