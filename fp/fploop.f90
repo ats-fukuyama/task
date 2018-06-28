@@ -31,10 +31,11 @@
       IMPLICIT NONE
       real(kind8):: DEPS,IP_all_FP,DEPS_E2
 
-      integer:: NT, NR, NP, NTH, NSA, NS, IERR
+      integer:: NT, NR, NP, NTH, NSA, NS, IERR, NSB
       real(4):: gut_exe1, gut_exe2, gut_coef1, gut_coef2, gut_coef3
       real(4):: gut_loop1, gut_loop2, gut1, gut2, gut_conv3
       real(4):: sum_gut_ex, sum_gut_coef, gut_1step, sum_gut_conv
+      LOGICAL:: flag
 
 !     +++++ Time loop +++++
 
@@ -100,7 +101,12 @@
 
             CALL fusion_source_init
 !           update FNSB (fnsb is required by NL collsion and NF reaction)
-            IF(MODELC.ge.4.or.MODELS.ge.2)THEN
+            FLAG=.FALSE.
+            DO NSB=1,NSBMAX
+               NS=NS_NSB(NSB)
+               IF(MODELC(NS).GE.4) FLAG=.TRUE.
+            END DO
+            IF(FLAG.or.MODELS.ge.2)THEN
                CALL mtx_set_communicator(comm_nsa)
                CALL update_fnsb_maxwell
                CALL update_fnsb

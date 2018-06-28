@@ -262,6 +262,13 @@
       ENDDO
       DEALLOCATE(rdata)
 
+!      NRAY=1
+!      DO NIT=NITMAX(NRAY)-10,NITMAX(NRAY)
+!         CALL pl_mag(RXS(NIT,NRAY),RYS(NIT,NRAY),RZS(NIT,NRAY),RHON,MAG)
+!         WRITE(6,'(A,I5,1P5E12.4)') 'NIT,X,Y,Z,B,B=',NIT, &
+!              RXS(NIT,NRAY),RYS(NIT,NRAY),RZS(NIT,NRAY), &
+!              MAG.BABS,BABSS(NIT,NRAY)
+!      END DO
 !     ----- Calculate spline coefficients -----
 !
       ALLOCATE(CFD(0:NITMAXM))

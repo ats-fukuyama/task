@@ -66,9 +66,11 @@ t2:$(LIBS) t2main.o
 	$(FLINKER)  t2main.o -o $@ $(FFLAGS) $(LIBS)  $(FLIBS) $(LIBMUMPSX)
 #cleaning
 clean:
-	rm -f *.o *.mod *.a ./mod/*.mod t2 *.vtk *.dat *~
+	-rm -f *.o *.mod *.a ./mod/*.mod t2 *.vtk *.dat *~
 cleand:
-	rm -f *.vtk *.dat 
+	-rm -f *.vtk *.dat 
+veryclean: clean cleand
+	-rm -f t2
 t2main.o: t2main.f90 t2comm.f90 t2cnst.f90
 t2menu.o: t2menu.f90 t2comm.f90 t2cnst.f90
 t2init.o: t2init.f90 t2comm.f90 t2cnst.f90

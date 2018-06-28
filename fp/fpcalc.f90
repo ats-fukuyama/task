@@ -32,7 +32,7 @@
       USE fpcalcn, ONLY: FPCALC_NL
       USE fpcalcnr, ONLY: FPCALC_NLR 
       IMPLICIT NONE
-      integer:: NSA,NSB,NR, NP, NTH,NS
+      integer:: NSA,NSB,NSSB,NR, NP, NTH,NS
       integer:: nsrc,nsend
       real(8):: RGAMH, RGAMH2, RZI, RTE, PFPL, VFPL, U, DCTTL, RGAMA, DFDP, DFDTH
 
@@ -76,26 +76,28 @@
          
          DO NR=NRSTART,NREND
             DO NSB=1,NSBMAX
+               NSSB=NS_NSB(NSB)
 !            if(nr.eq.1) write(6,'(A,I8,1P2E12.4)') 
 !     &           ' NSB,RN,RNFD=',NSB,RN(NSB),RNFD(NR,NSB)
 !
-               IF(MODELC.EQ.0.or.MODELC.eq.1.or.MODELC.eq.2) THEN
+               IF(MODELC(NSSB).EQ.0.or. &
+                  MODELC(NSSB).eq.1.or.MODELC(NS).eq.2) THEN
                   CALL FPCALC_L(NR,NSB,NSA)
-               ELSEIF(MODELC.EQ.4) THEN
+               ELSEIF(MODELC(NSSB).EQ.4) THEN
                   IF(MODELR.eq.0)THEN
                      CALL FPCALC_NL(NR,NSB,NSA)
                   ELSE IF(MODELR.eq.1)THEN
                      CALL FPCALC_NLR(NR,NSB,NSA)
                   END IF
-               ELSEIF(MODELC.EQ.5) THEN
+               ELSEIF(MODELC(NSSB).EQ.5) THEN
                   IF(NS_NSB(NSB).NE.NS_NSA(NSA)) THEN
                      CALL FPCALC_L(NR,NSB,NSA)
                   ENDIF
-               ELSEIF(MODELC.EQ.6) THEN
+               ELSEIF(MODELC(NSSB).EQ.6) THEN
                   IF(NS_NSB(NSB).NE.NS_NSA(NSA)) THEN
                      CALL FPCALC_NL(NR,NSB,NSA)
                   ENDIF
-               ELSEIF(MODELC.EQ.7) THEN
+               ELSEIF(MODELC(NSSB).EQ.7) THEN
                   IF(MODELR.eq.0)THEN
                      IF(NS_NSB(NSB).EQ.NS_NSA(NSA)) THEN
                         CALL FPCALC_NL(NR,NSB,NSA)
@@ -110,19 +112,19 @@
                      ENDIF
                   END IF
 ! For conductivity check. Karney adopt simple calculation for e-i
-               ELSEIF(MODELC.EQ.-1) THEN
+               ELSEIF(MODELC(NSSB).EQ.-1) THEN
                   IF(NS_NSB(NSB).EQ.NS_NSA(NSA)) THEN
-                     MODELC=0
+                     MODELC(NSSB)=0
                      CALL FPCALC_L(NR,NSB,NSA)
-                     MODELC=-1
+                     MODELC(NSSB)=-1
                   ENDIF
-               ELSEIF(MODELC.EQ.-2) THEN 
+               ELSEIF(MODELC(NSSB).EQ.-2) THEN 
                   IF(NS_NSB(NSB).EQ.NS_NSA(NSA)) THEN
-                     MODELC=1
+                     MODELC(NSSB)=1
                      CALL FPCALC_L(NR,NSB,NSA)
-                     MODELC=-2
+                     MODELC(NSSB)=-2
                   ENDIF
-               ELSEIF(MODELC.EQ.-4) THEN
+               ELSEIF(MODELC(NSSB).EQ.-4) THEN
                   IF(NS_NSB(NSB).EQ.NS_NSA(NSA)) THEN
                      IF(MODELR.eq.0)THEN
                         CALL FPCALC_NL(NR,NSB,NSA)
@@ -139,7 +141,7 @@
                ENDIF
             ENDDO
 !        ----- Simple electron-ion collision term using ZEFF ----- neglect i-e
-            IF(MODELC.LT.0) THEN
+            IF(MODELC(NS).LT.0) THEN
                IF(NS_NSA(NSA).EQ.1) THEN
                   DO NSB=1,NSBMAX
                      IF(NS_NSB(NSB).EQ.2) THEN
@@ -631,7 +633,7 @@
 !     ----- Non-Relativistic -----
 !
       IF(MODELR.EQ.0) THEN 
-         IF(MODELC.eq.0)THEN ! maxwellian
+         IF(MODELC(NSSB).eq.0)THEN ! maxwellian
             IF(MODEL_DISRUPT.eq.0)THEN
                RTFDL_C=RTFD(NR,NSB)
                RTFD0L_C=RTFD0(NSB)
@@ -675,18 +677,18 @@
                   DCTT2(NTH,NP,NR,NSB,NSA)=DCTT2(NTH,NP,NR,NSB,NSA)+DCTTL
                ENDDO
             ENDDO
-!         ELSEIF(MODELC.eq.1)THEN ! isotoropic
-         ELSEIF(MODELC.ge.2)THEN ! isotoropic
+!         ELSEIF(MODELC(NS).eq.1)THEN ! isotoropic
+         ELSEIF(MODELC(NSSB).ge.2)THEN ! isotoropic
             PMAXC=PMAX(NSSB)
             THETAL_C =0.D0
             THETA0L_C=0.D0
             RGAMA=1.D0
             NSB_ISO=NSB
-            IF(MODELC.eq.1)THEN ! Collision term for initial temperature
+            IF(MODELC(NSSB).eq.1)THEN ! Collision term for initial temperature
                RTFDL_C=RTFD(NR,NSB)
                RTFD0L_C=RTFD0(NSB)
                RNFDL=RNFD(NR,NSB)
-            ELSEIF(MODELC.eq.2)THEN ! for updating temperature
+            ELSEIF(MODELC(NSSB).eq.2)THEN ! for updating temperature
                RTFDL_C=RT_TEMP(NR,NSB)
                RTFD0L_C=RTFD0(NSB)
                RNFDL=RN_TEMP(NR,NSB)
@@ -845,10 +847,10 @@
          RNFD0L_C=RNFD0(NSB)
          THETA0L_C=THETA0(NSSB)
          IF(MODEL_DISRUPT.eq.0)THEN
-            IF(MODELC.eq.1.or.MODELC.eq.0)THEN ! constant T
+            IF(MODELC(NSSB).eq.1.or.MODELC(NSSB).eq.0)THEN ! constant T
                RNFDL_C=RNFD(NR,NSB) 
                RTFDL_C=RTFD(NR,NSB)
-            ELSEIF(MODELC.eq.2)THEN ! variable n, T
+            ELSEIF(MODELC(NSSB).eq.2)THEN ! variable n, T
                RNFDL_C=RN_TEMP(NR,NS_NSB(NSB))
                RTFDL_C=RT_TEMP(NR,NS_NSB(NSB))
             END IF
@@ -1055,7 +1057,7 @@
       real(8):: RGAMH, RGAMH2, RZI, RTE, PFPL, VFPL, U, DCTTL
       real(8):: FACT
       DOUBLE PRECISION:: DELH, sum, etal, psib, pcos, arg, x, PSIN
-      INTEGER:: NG, ITLB, ITUB
+      INTEGER:: NG, ITLB, ITUB, NSSB
 
 ! DCPP, FCPP
       DO NSB=1,NSBMAX
@@ -1127,8 +1129,9 @@
       END DO ! NSB
 
 !     DPT, DTP, FTH
-      IF(MODELC.ge.3)THEN
       DO NSB=1,NSBMAX
+         NSSB=NS_NSB(NSB)
+         IF(MODELC(NSSB).ge.3)THEN
          DO NP=NPSTART,NPENDWG
             DO NTH=1,NTHMAX
                DELH = 2.D0*ETAM(NTH,NR)/NAVMAX
@@ -1189,8 +1192,8 @@
                     =FCTH2(NTH,NP,NR,NSB,NSA) 
             END DO
          END DO ! NP
+         END IF
       END DO ! NSB
-      END IF
 
       RETURN
       END SUBROUTINE FPCALC_LAV

@@ -88,7 +88,7 @@
       EPS_WR  = 1.D-6
       DELY_WR = 0.1D0
       Y0_WM   = 0.D0
-      DELY_WM =10.D0
+      DELY_WM =0.1D0
       DO NS=1,NSM
          NCMIN(NS) = -3
          NCMAX(NS) = 3
@@ -257,20 +257,20 @@
 !             1 for predicting electric field
 !     MODELA: 0 without bounce average
 !             1 with bounce average
-!     MODELC: 0 : non-relative background Maxwell
-!             1 : isotropic background f
-!             2 : isotropic background f, Temperature is updated
-!             4 : nonlinear collision operator (require to satisfy NSAMAX=NSBMAX)
-!             5 : linear coll. operator for different species (for debug)
-!             6 : nonlinear coll. operator for different species (for debug)
-!            -1 : linear collision operator for same with ion scattering
-!            -2 : nonlinear collision operator for same with ion scattering
+!     MODELC(ns): 0 : non-relativistic background Maxwell
+!                 1 : isotropic background f
+!                 2 : isotropic background f, Temperature is updated
+!                 4 : nonlinear collision operator
+!                 5 : linear col. operator for different species (for debug)
+!                 6 : nonlinear col. operator for different species (for debug)
+!                -1 : linear collision operator for same with ion scattering
+!                -2 : nonlinear collision operator for same with ion scattering
 !     MODELR: 0 : without relativistic effect
 !             1 : with relativistic effect
-!     MODELS : 0 No fusion reaction
-!              1 DT reaction source (NSSPF,SPFTOT,SPFR0,SPFRW,SPFENG)
-!              2 DT reaction source (self-consistent reactioin rate)
-!              3 Using Legendre expansion in fusion reaction rate calculation
+!     MODELS: 0 No fusion reaction
+!             1 DT reaction source (NSSPF,SPFTOT,SPFR0,SPFRW,SPFENG)
+!             2 DT reaction source (self-consistent reactioin rate)
+!             3 Using Legendre expansion in fusion reaction rate calculation
 !     MODELW(ns): 0 for given diffusion coefficient model
 !                 1 for wave E field calculated by WR(without beam radius)
 !                 2 for wave E field calculated by WR(with beam radius)
@@ -324,7 +324,6 @@
 
       MODELE= 0
       MODELA= 0
-      MODELC= 0
       MODELR= 0
       MODELS= 0
       DO NSA=1,NSM
@@ -801,7 +800,8 @@
 
       idata(20)=MODELE
       idata(21)=MODELA
-      idata(22)=MODELC
+!      idata(22)=MODELC
+      idata(22)=0.D0
       idata(23)=MODELR
       idata(24)=MODELS
       idata(25)=MODELD
@@ -877,7 +877,7 @@
 
       MODELE         =idata(20)
       MODELA         =idata(21)
-      MODELC         =idata(22)
+!      MODELC         =idata(22)
       MODELR         =idata(23)
       MODELS         =idata(24)
       MODELD         =idata(25)
@@ -934,6 +934,7 @@
       CALL mtx_broadcast_integer(NCMAX,NSAMAX)
       CALL mtx_broadcast_integer(NSSPB,NBEAMMAX)
       CALL mtx_broadcast_integer(MODELW,NSMAX)
+      CALL mtx_broadcast_integer(MODELC,NSMAX)
       CALL mtx_broadcast_integer(MODEL_DELTA_F,NSMAX)
 
       rdata( 1)=R1
@@ -1270,7 +1271,7 @@
       WRITE(6,603) 'NTG2STEP',NTG2STEP,'NTG2MIN ',NTG2MIN ,'NTG2MAX ',NTG2MAX
       WRITE(6,606) 'NTSTEP_COEF     ',NTSTEP_COEF, &
                    'NTSTEP_COLL     ',NTSTEP_COLL
-      WRITE(6,603) 'MODELE  ',MODELE  ,'MODELA  ',MODELA  ,'MODELC  ',MODELC
+      WRITE(6,603) 'MODELE  ',MODELE  ,'MODELA  ',MODELA
       WRITE(6,603) 'MODELR  ',MODELR  ,'MODELS  ',MODELS  ,'MODELD  ',MODELD
       WRITE(6,606) 'MODELD_RDEP     ',MODELD_RDEP    , &
                    'MODELD_PDEP     ',MODELD_PDEP
@@ -1354,25 +1355,34 @@
          WRITE(6,*) 'XX UNKNOWN MODELA: MODELA =',MODELA
       ENDIF
 
-      IF(MODELC.EQ.0)THEN
-         WRITE(6,*) 'LINEAR COLLISION OPERATOR & CONST. T'
-      ELSE IF(MODELC.eq.1)THEN
-         WRITE(6,*) 'LINEAR COLLISION OPERATOR & VARIABLE. T'
-      ELSE IF(MODELC.EQ.2)THEN
-         WRITE(6,*) &
-              'NONLINEAR COLLISION OPERATOR FOR LIKE PARTILCES & CONST. T'
-      ELSE IF(MODELC.eq.3)THEN
-         WRITE(6,*) &
-              'NONLINEAR COLLISION OPERATOR FOR LIKE PARTILCES & VARIABLE T'
-      ELSE IF(MODELC.eq.4)THEN
-         WRITE(6,*) 'NONLINEAR COLLISION OPERATOR'
-      ELSE IF(MODELC.EQ.5)THEN
-         WRITE(6,*) 'NONLINEAR COLLISION OPERATOR'
-      ELSE IF(MODELC.EQ.-1)THEN
-         WRITE(6,*) 'LINEAR COLLISION OPERATOR WITH ION SCATTERING'
-      ELSE
-         WRITE(6,*) 'XX UNKNOWN MODELC: MODELC =',MODELC
-      END IF
+      DO NSB=1,NSBMAX
+         NS=NS_NSB(NSB)
+         IF(MODELC(NS).EQ.0)THEN
+            WRITE(6,'(A,I5,A)') 'NSB=',NSB, &
+                 ': LINEAR COLLISION OPERATOR & CONST. T'
+         ELSE IF(MODELC(NS).eq.1)THEN
+            WRITE(6,'(A,I5,A)') 'NSB=',NSB, &
+                 ': LINEAR COLLISION OPERATOR & VARIABLE. T'
+         ELSE IF(MODELC(NS).EQ.2)THEN
+            WRITE(6,'(A,I5,A)') 'NSB=',NSB, &
+                 ': NONLINEAR COLLISION OPERATOR FOR LIKE PARTILCES & CONST. T'
+         ELSE IF(MODELC(NS).eq.3)THEN
+            WRITE(6,'(A,I5,A)') 'NSB=',NSB, &
+                 ': NONLINEAR COLLISION OPERATOR FOR LIKE PARTILCES & VAR. T'
+         ELSE IF(MODELC(NS).eq.4)THEN
+            WRITE(6,'(A,I5,A)') 'NSB=',NSB, &
+                 ': NONLINEAR COLLISION OPERATOR'
+         ELSE IF(MODELC(NS).EQ.5)THEN
+            WRITE(6,'(A,I5,A)') 'NSB=',NSB, &
+                 ': NONLINEAR COLLISION OPERATOR'
+         ELSE IF(MODELC(NS).EQ.-1)THEN
+            WRITE(6,'(A,I5,A)') 'NSB=',NSB, &
+                 ': LINEAR COLLISION OPERATOR WITH ION SCATTERING'
+         ELSE
+            WRITE(6,'(A,I5,A)') 'NSB=',NSB, &
+                 ': XX UNKNOWN MODELC: MODELC =',MODELC(NS)
+         END IF
+      END DO
 
       IF(MODELG.EQ.2)THEN
          WRITE(6,*) 'GIVEN PLASMA GEOMETRY'

@@ -211,7 +211,7 @@
             VOLR(NR)=2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1)) &
                  *2.D0*PI*RR
          ENDDO
-      CASE(3:4) ! toroidal
+      CASE(3,5,8) ! toroidal
          DO NR=1,NRMAX
             RHOL=RM(NR)
             RHOL1=RG(NR)

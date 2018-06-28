@@ -178,20 +178,20 @@ C
                IF(ANGZ.LT.0.D0) RNZI=-RNZI
                IF(ANGPH.LT.0.D0) RNPHII=-RNPHII
 
-               IF(RNZI.EQ.0.D0.AND.RNPHII.EQ.0.D0) THEN
-                  ANGZ_=0.D0
-                  ANGPH_=0.D0
-               ELSE
-                  SINP2=RNZI**4  /(RNZI**2+RNPHII**2-RNZI**2*RNPHII**2)
-                  SINT2=RNPHII**4/(RNZI**2+RNPHII**2-RNZI**2*RNPHII**2)
-                  ANGZ_= 180.D0/PI*ASIN(SQRT(SINP2))
-                  ANGPH_=180.D0/PI*ASIN(SQRT(SINT2))
-                  IF(RNZI  .LT.0.D0) ANGZ_= -ANGZ_
-                  IF(RNPHII.LT.0.D0) ANGPH_=-ANGPH_
-               ENDIF
-               WRITE(6,'(A,1P2E12.4)') 'ANG:  ',ANGZ,ANGPH
-               WRITE(6,'(A,1P2E12.4)') 'RNI:  ',RNZI,RNPHII
-               WRITE(6,'(A,1P2E12.4)') 'ANG_: ',ANGZ_,ANGPH_
+C               IF(RNZI.EQ.0.D0.AND.RNPHII.EQ.0.D0) THEN
+C                  ANGZ_=0.D0
+C                  ANGPH_=0.D0
+C               ELSE
+C                  SINP2=RNZI**4  /(RNZI**2+RNPHII**2-RNZI**2*RNPHII**2)
+C                  SINT2=RNPHII**4/(RNZI**2+RNPHII**2-RNZI**2*RNPHII**2)
+C                  ANGZ_= 180.D0/PI*ASIN(SQRT(SINP2))
+C                  ANGPH_=180.D0/PI*ASIN(SQRT(SINT2))
+C                  IF(RNZI  .LT.0.D0) ANGZ_= -ANGZ_
+C                  IF(RNPHII.LT.0.D0) ANGPH_=-ANGPH_
+C               ENDIF
+C               WRITE(6,'(A,1P2E12.4)') 'ANG:  ',ANGZ,ANGPH
+C               WRITE(6,'(A,1P2E12.4)') 'RNI:  ',RNZI,RNPHII
+C               WRITE(6,'(A,1P2E12.4)') 'ANG_: ',ANGZ_,ANGPH_
             ENDIF
          ENDIF
 C
@@ -208,6 +208,7 @@ C
          RKZI  =2.D6*PI*RF*RNZI  /VC
          RKPHII=2.D6*PI*RF*RNPHII/VC
          CALL WRNWTN(RKRI,RKZI,RKPHII,IERR)
+         WRITE(6,'(A,1PE16.8)') 'RKRI= ',RKRI
          IF(IERR.NE.0) GOTO 1200
 C
          IF(MODELG.EQ.0.OR.MODELG.EQ.1.OR.MODELG.EQ.11) THEN
@@ -1322,6 +1323,7 @@ C
 C    
       USE plcomm
       USE plprof,ONLY: PL_MAG_OLD
+      USE pllocal
       INCLUDE 'wrcomm.inc'
       DIMENSION YN(0:NEQ,0:NITM),CDET(3,3)
       DIMENSION CDETP(3,3),CDETM(3,3),CDETD(3,3)
@@ -1400,6 +1402,8 @@ C
          BNYS(NIT,NRAY)=BNY
          BNZS(NIT,NRAY)=BNZ
          BABSS(NIT,NRAY)=BABS
+C         IF(MOD(NIT,100).EQ.0) WRITE(6,'(A,I5,1P5E12.4)')
+C     &        'NIT,X,BN,BABS=',NIT,X1,BNX,BNY,BNZ,BABS
 C
 C         IF(NRAYMX.EQ.1) THEN
 C            FACTA=0.D0

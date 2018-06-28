@@ -150,11 +150,12 @@
                  /(1.5D0*PNT(NSA,NTG1)*1.D20*AEE*1.D3)
             PTT2(NSA,NTG1) =PWT2(NSA,NTG1)*1.D6 &
                  /(1.5D0*PNT(NSA,NTG1)*1.D20*AEE*1.D3)
+            PTT_BULK(NSA,NTG1) = PTT_BULK(NSA,NTG1)/PNT(NSA,NTG1)
          ELSE
             PTT(NSA,NTG1)=0.D0
             PTT2(NSA,NTG1)=0.D0
+            PTT_BULK(NSA,NTG1) = 0.D0
          ENDIF
-         PTT_BULK(NSA,NTG1) = PTT_BULK(NSA,NTG1)/PNT(NSA,NTG1)
          PNT(NSA,NTG1) =PNT(NSA,NTG1)/TVOLR
       ENDDO
 
