@@ -21,7 +21,7 @@ C
       COMMON /W1MAT2/ CM0(4,NXPM,ISM),CM1(2,NXPM,ISM),CM2(4,NXPM,ISM)
       COMMON /W1XDAT/ XA(NXQ),XAM(NXTM)
       COMMON /W1ZETA/ CZ(NXPM,NHM),CDZ(NXPM,NHM),CDDZ(NXPM,NHM),
-     &                GZ(NXPM,NHM)
+     &                CGZ(NXPM,NHM)
       COMMON /W1QCTL/ XDMAX,DXD,NDMAX,NHARM,IHARM(ISM),MATL,NMODEL
 C
 C      CM0 , CD0         CM1 , CD1          CM2 , CD2
@@ -128,7 +128,7 @@ C
             DO 300 NC=1,2*ABS(IHARM(IS))+1
                NN= NC-ABS(IHARM(IS))-1
                ARG = (RW-NN*WC)/AKPR
-               GZ(NX,NC)= ARG
+               CGZ(NX,NC)= ARG
                CZ(NX,NC)= ARG
   300       CONTINUE
 C
@@ -150,7 +150,7 @@ C
                IF(ABS(NN).LT.IHMIN) GOTO 500
                CA1 = RW*CZ(NX,NC)/AKPR+0.5D0*(1.D0-RT)*CDZ(NX,NC)
                CA2 = 0.5D0*(RT*RW/WC-NN*(RT-1.D0))*CDZ(NX,NC)
-               CA3 =-(RW-NN*WC*(1.D0-1.D0/RT))*GZ(NX,NC)*CDZ(NX,NC)
+               CA3 =-(RW-NN*WC*(1.D0-1.D0/RT))*CGZ(NX,NC)*CDZ(NX,NC)
      &               /AKPR
                ALAMC=ALAM(ABS(NN))
                ALAMM=ALAM(ABS(NN-1))

@@ -32,7 +32,11 @@ C
 C
       CHARACTER INDEX*8
 C
-      RNORM=1.D0/PANT
+      IF(PANT.EQ.0.D0) THEN
+         RNORM=1.D0
+      ELSE
+         RNORM=1.D0/PANT
+      END IF
       IF(NPRINT.LE.-1) THEN
          WRITE(6,611) (PROFPN(NX,4),NX=1,NXP)
   611    FORMAT(1H ,'*** ALPHA PARTICLE DENSITY PROFILE ***'/

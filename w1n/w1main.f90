@@ -51,13 +51,13 @@ PROGRAM w1_main
   INTEGER(ikind)  :: ierr
 
   CALL GSOPEN
-  WRITE(6,*) '## TASK/W1 2016/02/25'
+  WRITE(6,*) '## TASK/W1 2018/07/01'
   OPEN(7,STATUS='SCRATCH')
 
   CALL w1_init
-  CALL w1_parm(1,'w1parm.nl',ierr)
+  CALL w1_parm(1,'w1parm',ierr)
   IF(ierr /= 0 .AND. ierr /= 2) THEN
-     WRITE(6,*) 'XX Error during reading the namelist file: w1parm.nl'
+     WRITE(6,*) 'XX Error during reading the namelist file: w1parm'
      WRITE(6,*) '     ierr = ',ierr
      STOP
   END IF

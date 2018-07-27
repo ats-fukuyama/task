@@ -320,7 +320,11 @@ CONTAINS
     CALL SETLIN(0,2,4)
 
     DO NX=1,NXPMAX
-       GDATA1(NX)=-RHL(NX,7)/RHL(NX,6)
+       IF(RHL(NX,6).EQ.0.D0) THEN
+          GDATA1(NX)=0.0
+       ELSE
+          GDATA1(NX)=-RHL(NX,7)/RHL(NX,6)
+       END IF
 !        IF(F.GT.1.D0) THEN  
 !            GDATA1(NX)= 2.D0-1.D0/F
 !         ELSEIF(F.LT.-1.D0) THEN
@@ -446,7 +450,11 @@ CONTAINS
     CALL SETLIN(0,0,4)
 
     DO NX=1,NXPMAX
-       GDATA1(NX)=-RHL(NX,7)/RHL(NX,6)
+       IF(RHL(NX,6).EQ.0.D0) THEN
+          GDATA1(NX)=0.0
+       ELSE
+          GDATA1(NX)=-RHL(NX,7)/RHL(NX,6)
+       END IF
 !        IF(F.GT.1.D0) THEN  
 !            GDATA1(NX)= 2.D0-1.D0/F
 !         ELSEIF(F.LT.-1.D0) THEN

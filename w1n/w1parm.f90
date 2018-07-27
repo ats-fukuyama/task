@@ -50,8 +50,8 @@ CONTAINS
     INTEGER,INTENT(OUT) :: IST,IERR
 
     NAMELIST /W1/ BB,RR,RZ,RA,RD,RB,RF,WALLR,APRFPN,APRFTR,APRFTP, &
-                  RKZ,DRF,DRKZ,DXFACT,DXWDTH, &
-                  AJYH,ALYH,APYH,AJYL,ALYL,APYL,AJZH,AJZL,NAMAX, &
+                  RKZ,DRF,DRKZ,DXFACT,DXWDTH,NAMAX, &
+                  AJYH,AJZH,APYH,APZH,ALZH,APHH,AJYL,AJZL,APYL,APZL,ALZL,APHL,&
                   PA,PZ,PN,PTPP,PTPR,PU,PNS,PTS,PZCL,NSMAX, &
                   NXPMAX,NXVMAX,NZPMAX,NPRINT,NFILE,NGRAPH,NLOOP,NSYM, &
                   NMODEL,NALPHA,NDMAX,XDMAX,IHARM,NSYS,NDISP, &
@@ -75,8 +75,9 @@ CONTAINS
     IMPLICIT NONE
     WRITE(6,'(A)') &
          '# &W1 : BB,RR,RZ,RA,RD,RB,RF,WALLR,APRFPN,APRFTR,APRFTP,',&
-         '        RKZ,DRF,DRKZ,DXFACT,DXWDTH, ',&
-         '        AJYH,ALYH,APYH,AJYL,ALYL,APYL,AJZH,AJZL,NAMAX,', &
+         '        RKZ,DRF,DRKZ,DXFACT,DXWDTH,NXMAX, ',&
+         '        AJYH,AJZH,APYH,APZH,ALZH,APHH, ',&
+         '        AJYL,AJZL,APYL,APZL,ALZL,APHL,', &
          '        PA,PZ,PN,PTPP,PTPR,PU,PNS,PTS,PZCL,NSMAX,', &
          '        NXPMAX,NXVMAX,NZPMAX,NPRINT,NFILE,NGRAPH,NLOOP,NSYM,', &
          '        NMODEL,NALPHA,NDMAX,XDMAX,IHARM,NSYS,NDISP,', &
@@ -99,6 +100,12 @@ CONTAINS
        WRITE(6,'(A,I8)') 'W1 w1_check: INVALID nxmax: nxmax=',nxpmax
        IERR=1
     ENDIF
+
+    IF(NAMAX.GT.1.AND.NZPMAX.EQ.1) THEN
+       WRITE(6,'(A,I8)') 'W1 w1_check: NAMAX shoule be 1 for NZPMAX=1',namax
+       IERR=2
+    ENDIF
+
     RETURN
   END SUBROUTINE w1_check
 
@@ -130,13 +137,16 @@ CONTAINS
             '     ',IELEC(NS),PZ(NS),PNS(NS),PTS(NS),PU(NS)
     END DO
 
-    WRITE(6,'(A)') '     ', &
-          '  NA     AJYH/AJYL   AJZH/AJZL   ALYH/ALYL   APYH/APYL'
+    WRITE(6,'(A,A,A)') '   ', &
+          '    NA AJYH/AJYL   AJZH/AJZL   APYH/APYL   APZH/APZL', &
+              '   ALZH/ALZL   APHH/APHL'
     DO NA=1,NAMAX
-       WRITE(6,'(A,I6,1P4E12.4)') &
-            'ANT-H',NA,AJYH(NA),AJZH(NA),ALYH(NA),APYH(NA)
-       WRITE(6,'(A,I6,1P4E12.4)') &
-            'ANT-L',NA,AJYL(NA),AJZL(NA),ALYL(NA),APYL(NA)
+       IF(AJYH(NA).NE.0.D0) &
+       WRITE(6,'(A,I2,1P6E12.4)') &
+            ' ANT-H',NA,AJYH(NA),AJZH(NA),APYH(NA),APZH(NA),ALZH(NA),APHH(NA)
+       IF(AJYL(NA).NE.0.D0) &
+       WRITE(6,'(A,I2,1P6E12.4)') &
+            ' ANT-L',NA,AJYL(NA),AJZL(NA),APYL(NA),APZL(NA),ALZL(NA),APHL(NA)
     END DO
 
     WRITE(6,602) 'NXPMAX',NXPMAX,'NXVMAX',NXVMAX, &

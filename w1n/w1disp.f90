@@ -26,15 +26,10 @@ CONTAINS
     COMPLEX(rkind):: CW1,CW2,CW3,CW4,CW5,CF2,CF3,CF4,CG2,CG3,CG4
     COMPLEX(rkind):: CDT,CDX,CA1,CA2,CA3
 
-    write(6,*) 'point 10'
-    write(6,'(4I5)') NXTMAX,NXPMAX,NCMAX,NHMAX
-
     ALLOCATE(RKPP(NXTMAX))
     ALLOCATE(CGZ(NXPMAX,NCMAX),CZ(NXPMAX,NCMAX),CDZ(NXPMAX,NCMAX))
     ALLOCATE(CDDZ(NXPMAX,NCMAX),CDDDZ(NXPMAX,NCMAX))
     ALLOCATE(ALAM(0:NHMAX+1))
-
-    write(6,*) 'point 11'
 
     RT2= SQRT(2.D0)
     RW  = 2.D6*PI*RF
@@ -262,13 +257,9 @@ CONTAINS
        END IF
     END DO
     
-    write(6,*) 'point 12'
-
     DEALLOCATE(RKPP)
     DEALLOCATE(CGZ,CZ,CDZ,CDDZ,CDDDZ)
     DEALLOCATE(ALAM)
-
-    write(6,*) 'point 13'
 
     DO NX = 1 , NXPMAX
        CD0( 1 , NX ) =  1.D0 - RNPR*RNPR

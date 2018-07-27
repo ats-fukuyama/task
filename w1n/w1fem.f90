@@ -10,14 +10,14 @@ CONTAINS
     INTEGER,INTENT(OUT):: IERR
     REAL(rkind):: DS0(2,2,2),DS1(2,2,2),DS2(2,2,2)
     REAL(rkind):: DT0(2,2,2),DT1(2,2,2),DU0(2,2,2)
-    INTEGER:: NW,NSF,I,J,K,N,KML,L,N1,N2,M,NX
+    INTEGER:: I,J,K,N,KML,L,N1,N2,M,NX
     REAL(rkind):: RKV,DX,DS01,DS02
     REAL(rkind):: DS11,DS12,DS11A,DS12A,DS21,DS22
     REAL(rkind):: DT11,DT12,DT11A,DT12A,DT21,DT22
 
-    NW=11
-    NSF=3*NXPMAX+4
-    ALLOCATE(CF(NW,NSF))
+    MWID=11
+    MLEN=3*NXPMAX+4
+    ALLOCATE(CF(MWID,MLEN))
 
     RKV=2.D6*PI*RF/VC
 
@@ -69,12 +69,12 @@ CONTAINS
        END DO
     END DO
 
-    DO I=1,11
-       DO N=1,NSF
+    DO I=1,MWID
+       DO N=1,MLEN
           CF(I,N)=(0.D0,0.D0)
        END DO
     END DO
-    DO N=1,NSF
+    DO N=1,MLEN
        CA(N)=(0.D0,0.0D0)
     END DO
 
@@ -90,26 +90,26 @@ CONTAINS
     CF(KML+2,5)=CGIN(1,4)
     CF(KML+3,5)=CGIN(2,4)
 
-    CF(KML+6,NSF-1)=CGOT(1,1)
-    CF(KML+7,NSF-1)=CGOT(2,1)
-    CF(KML+4,NSF-1)=(-1.D0,0.D0)
-    CF(KML+5,NSF  )=CGOT(1,3)
-    CF(KML+6,NSF  )=CGOT(2,3)
-    CF(KML+4,NSF  )=(-1.D0,0.D0)
-    CF(KML+8,NSF-3)=CGOT(1,2)
-    CF(KML+9,NSF-3)=CGOT(2,2)
-    CF(KML+7,NSF-2)=CGOT(1,4)
-    CF(KML+8,NSF-2)=CGOT(2,4)
-    CF(KML+6,NSF-4)=1.D0
+    CF(KML+6,MLEN-1)=CGOT(1,1)
+    CF(KML+7,MLEN-1)=CGOT(2,1)
+    CF(KML+4,MLEN-1)=(-1.D0,0.D0)
+    CF(KML+5,MLEN  )=CGOT(1,3)
+    CF(KML+6,MLEN  )=CGOT(2,3)
+    CF(KML+4,MLEN  )=(-1.D0,0.D0)
+    CF(KML+8,MLEN-3)=CGOT(1,2)
+    CF(KML+9,MLEN-3)=CGOT(2,2)
+    CF(KML+7,MLEN-2)=CGOT(1,4)
+    CF(KML+8,MLEN-2)=CGOT(2,4)
+    CF(KML+6,MLEN-4)=1.D0
 
     CA(1    )=-CGIN(3,1)
     CA(2    )=-CGIN(3,3)
     CA(4    )=-CGIN(3,2)
     CA(5    )=-CGIN(3,4)
-    CA(NSF-1)=-CGOT(3,1)
-    CA(NSF  )=-CGOT(3,3)
-    CA(NSF-3)=-CGOT(3,2)
-    CA(NSF-2)=-CGOT(3,4)
+    CA(MLEN-1)=-CGOT(3,1)
+    CA(MLEN  )=-CGOT(3,3)
+    CA(MLEN-3)=-CGOT(3,2)
+    CA(MLEN-2)=-CGOT(3,4)
 
     DO I=1,2
        DO J=1,2
@@ -170,8 +170,9 @@ CONTAINS
 !     WRITE(6,999) ((L,M,CF(L,M),L=30,41),M=195,197)
 ! 999 FORMAT((1H ,3(3X,I3,I4,1P2E14.6)))
 
-    CALL BANDCD(CF,CA,NSF,NW,NW,IERR)
+    CALL BANDCD(CF,CA,MLEN,MWID,MWID,IERR)
     IF(IERR.NE.0) WRITE(6,601) IERR
+    DEALLOCATE(CF)
     RETURN
 
 601 FORMAT(1H ,'!! ERROR IN BANDCD : IND = ',I5)
@@ -364,10 +365,13 @@ CONTAINS
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
     REAL(rkind):: DS0(2,2,2),DS1(2,2,2),DS2(2,2,2)
-    INTEGER:: I,J,K,NW,NSF,N,KML,N1,N2,M,L,NX
+    INTEGER:: I,J,K,N,KML,N1,N2,M,L,NX
     REAL(rkind):: RKV,DS01,DS02,DS21,DS22,DS11,DS12,DT11,DT12,DX
 
     RKV=2.D6*PI*RF/VC
+    MWID=11
+    MLEN=3*NXPMAX+4
+    ALLOCATE(CF(MWID,MLEN))
 
     DO I=1,2
        DO J=1,2
@@ -394,14 +398,12 @@ CONTAINS
        END DO
     END DO
 
-    NW=11
-    NSF=3*NXPMAX+4
     DO I=1,11
-       DO N=1,NSF
+       DO N=1,MLEN
           CF(I,N)=(0.D0,0.D0)
        END DO
     END DO
-    DO  N=1,NSF
+    DO  N=1,MLEN
        CA(N)=(0.D0,0.0D0)
     END DO
 
@@ -417,25 +419,25 @@ CONTAINS
     CF(KML+2,5)=CGIN(1,4)
     CF(KML+3,5)=CGIN(2,4)
 
-    CF(KML+6,NSF-1)=CGOT(1,1)
-    CF(KML+7,NSF-1)=CGOT(2,1)
-    CF(KML+4,NSF-1)=(-1.D0,0.D0)
-    CF(KML+5,NSF  )=CGOT(1,3)
-    CF(KML+6,NSF  )=CGOT(2,3)
-    CF(KML+4,NSF  )=(-1.D0,0.D0)
-    CF(KML+8,NSF-3)=CGOT(1,2)
-    CF(KML+9,NSF-3)=CGOT(2,2)
-    CF(KML+7,NSF-2)=CGOT(1,4)
-    CF(KML+8,NSF-2)=CGOT(2,4)
+    CF(KML+6,MLEN-1)=CGOT(1,1)
+    CF(KML+7,MLEN-1)=CGOT(2,1)
+    CF(KML+4,MLEN-1)=(-1.D0,0.D0)
+    CF(KML+5,MLEN  )=CGOT(1,3)
+    CF(KML+6,MLEN  )=CGOT(2,3)
+    CF(KML+4,MLEN  )=(-1.D0,0.D0)
+    CF(KML+8,MLEN-3)=CGOT(1,2)
+    CF(KML+9,MLEN-3)=CGOT(2,2)
+    CF(KML+7,MLEN-2)=CGOT(1,4)
+    CF(KML+8,MLEN-2)=CGOT(2,4)
 
     CA(1    )=-CGIN(3,1)
     CA(2    )=-CGIN(3,3)
     CA(4    )=-CGIN(3,2)
     CA(5    )=-CGIN(3,4)
-    CA(NSF-1)=-CGOT(3,1)
-    CA(NSF  )=-CGOT(3,3)
-    CA(NSF-3)=-CGOT(3,2)
-    CA(NSF-2)=-CGOT(3,4)
+    CA(MLEN-1)=-CGOT(3,1)
+    CA(MLEN  )=-CGOT(3,3)
+    CA(MLEN-3)=-CGOT(3,2)
+    CA(MLEN-2)=-CGOT(3,4)
 
     DO I=1,2
        DO J=1,2
@@ -498,8 +500,9 @@ CONTAINS
 !     WRITE(6,999) ((L,M,CF(L,M),L=30,41),M=195,197)
 ! 999 FORMAT((1H ,3(3X,I3,I4,1P2E14.6)))
 
-    CALL BANDCD(CF,CA,NSF,NW,NW,IERR)
+    CALL BANDCD(CF,CA,MLEN,MWID,MWID,IERR)
     IF(IERR.NE.0) WRITE(6,601) IERR
+    DEALLOCATE(CF)
     RETURN
 
   601 FORMAT(1H ,'!! ERROR IN BANDCD : IND = ',I5)

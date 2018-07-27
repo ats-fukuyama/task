@@ -20,15 +20,17 @@ CONTAINS
 
     IF(MOD(NXVMAX,2).NE.0) NXVMAX=NXVMAX+1
     IF(ABS(RZ).LE.1.D-8) RZ=2.D0*PI*RR
+
     NHMAX=0
+    DO NS=1,NSMAX
+       IF(ABS(IHARM(NS)).GT.NHMAX)  NHMAX=ABS(IHARM(NS))
+    END DO
+    NCMAX=MAX(2*NHMAX+1,5)
+
     IF(NMODEL.EQ.6) THEN
-       DO NS=1,NSMAX
-          IF(ABS(IHARM(NS)).GT.NHMAX)  NHMAX=IHARM(NS)
-       END DO
        DXD=XDMAX/NDMAX
        CALL W1QTBL
     ENDIF
-    NCMAX=2*NHMAX+1 
 !     ******* 2-DIMENSIONAL ANALYSIS *******
 
     RFSAVE=RF
@@ -58,37 +60,52 @@ CONTAINS
              CFJY2 = CJ2(NZP)
              CFJZ1 = CJ3(NZP)
              CFJZ2 = CJ4(NZP)
+
              CALL W1_BCND
-             IF(NMODEL.LE.5) THEN
+             SELECT CASE(NMODEL)
+             CASE(0) ! FEM (no FLR)
                 CALL W1DSPA
-             ELSE
-                CALL W1DSPQ
-             ENDIF
-             IF(NMODEL.EQ.0.OR.NMODEL.EQ.2) THEN
                 CALL W1BNDA(IERR)
                    IF(IERR.NE.0) GOTO 2000
                 CALL W1EPWA(NZP)
-             ELSEIF(NMODEL.EQ.1.OR.NMODEL.EQ.3) THEN
+             CASE(1) ! MLM (no FLR)
+                CALL W1DSPA
                 CALL W1WKXB
                 CALL W1BNDB(IERR)
                    IF(IERR.NE.0) GOTO 2000
                 CALL W1EPWB(NZP)
                 CALL W1HELD(4)
-             ELSEIF(NMODEL.EQ.4) THEN
+             CASE(2) ! FEM (fast wave)
+                CALL W1DSPA
+                CALL W1BNDA(IERR)
+                   IF(IERR.NE.0) GOTO 2000
+                CALL W1EPWA(NZP)
+             CASE(3) ! MLM (fast wave)
+                CALL W1DSPA
+                CALL W1WKXB
+                CALL W1BNDB(IERR)
+                   IF(IERR.NE.0) GOTO 2000
+                CALL W1EPWB(NZP)
+                CALL W1HELD(4)
+             CASE(4) ! FEM (2nd order FLR)
+                CALL W1DSPA
                 CALL W1BNDC(IERR)
                    IF(IERR.NE.0) GOTO 2000
                 CALL W1EPWC(NZP)
-             ELSEIF(NMODEL.EQ.5) THEN
+             CASE(5) ! MLM  (2nd order FLR)
+                CALL W1DSPA
                 CALL W1WKXD
                 CALL W1BNDD(IERR)
                    IF(IERR.NE.0) GOTO 2000
                 CALL W1EPWD(NZP)
                 CALL W1HELD(6)
-             ELSEIF(NMODEL.EQ.6) THEN
+             CASE(6) ! 
+                CALL W1DSPQ
                 CALL W1BNDQ(IERR)
                    IF(IERR.NE.0) GOTO 2000
                 CALL W1EPWQ(NZP)
-             ENDIF
+             END SELECT
+
              CALL W1EVAC(NZP)
              CALL W1CLCD(NZP)
              CALL W1CLPW(NZP)
@@ -96,8 +113,6 @@ CONTAINS
              CALL W1SYMS(NZP)
           END IF
        END DO
-
-       IF(NMODEL.EQ.6) WRITE(6,616) NLWMAX,NCLMAX,NCMAX,NDMAX,XDMAX
 
 !     ******* INVERSE FOURIER TRANSFORM *******
 
@@ -108,7 +123,7 @@ CONTAINS
 !
        DO NX=1,NXTMAX
           DO IC=1,3
-            CALL W1FFTL(CE2DA(1,NX,IC),NZP,1)
+            CALL W1FFTL(CE2DA(1:NZPMAX,NX,IC),NZPMAX,1)
          END DO
       ENDDO
 

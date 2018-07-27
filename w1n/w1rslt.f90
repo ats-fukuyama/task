@@ -40,7 +40,7 @@ CONTAINS
     NXANT2=NXPMAX       +NXVMAX/2
     PANTK(NZ)=-RZ*DCONJG(CE2DA(NZ,NXANT1,2))*CFJY1 &
               -RZ*DCONJG(CE2DA(NZ,NXANT2,2))*CFJY2 &
-              -RZ*DCONJG(CE2DA(NZ,NXANT1,3))*CFJZ2 &
+              -RZ*DCONJG(CE2DA(NZ,NXANT1,3))*CFJZ1 &
               -RZ*DCONJG(CE2DA(NZ,NXANT2,3))*CFJZ2
 
     PAKT(NZ,3)=0.D0
@@ -154,34 +154,34 @@ CONTAINS
     PERR  = PANT - ( PABSTT + PWALL + PIBW )
 
     DO NA = 1 , NAMAX
-       PHASE  = APYH(NA)*PI/180.D0
-       CPHASE = DCMPLX( DCOS( PHASE ) , DSIN( PHASE ) )
-       CJYH   = AJYH( NA ) * CPHASE
-       CJZH   = AJZH( NA ) * CPHASE
-       PHASE  = APYL(NA)*PI/180.D0
-       CPHASE = DCMPLX( DCOS( PHASE ) , DSIN( PHASE ) )
-       CJYL   = AJYL( NA ) * CPHASE
-       CJZL   = AJZL( NA ) * CPHASE
        RANT1(NA)=0.D0
        XANT1(NA)=0.D0
+       CJYH=CJ1(NZANTYH(NA))
        IF( ABS( CJYH ) .GT. 1.E-6 ) THEN
-          RANT1(NA) = RANT1(NA)-DBLE( CE2DA(NZANT1(NA),NXANT1,2)/ CJYH)
-          XANT1(NA) = XANT1(NA)+IMAG( CE2DA(NZANT1(NA),NXANT1,2)/ CJYH)
+          RANT1(NA) = RANT1(NA)-DBLE( CE2DA(NZANTYH(NA),NXANT1,2)/ CJYH)
+          XANT1(NA) = XANT1(NA)+IMAG( CE2DA(NZANTYH(NA),NXANT1,2)/ CJYH)
        END IF
-       IF( ABS( CJZH ) .GT. 1.E-6 ) THEN
-          RANT1(NA) = RANT1(NA)-DBLE( CE2DA(NZANT1(NA),NXANT1,3)/ CJZH)
-          XANT1(NA) = XANT1(NA)+IMAG( CE2DA(NZANT1(NA),NXANT1,3)/ CJZH)
-       END IF
+       DO NZ=NZANTZH(NA),NZANTLH(NA)
+          CJZH=CJ3(NZ)
+          IF( ABS( CJZH ) .GT. 1.E-6 ) THEN
+             RANT1(NA) = RANT1(NA)-DBLE( CE2DA(NZ,NXANT1,3)/ CJZH)
+             XANT1(NA) = XANT1(NA)+IMAG( CE2DA(NZ,NXANT1,3)/ CJZH)
+          END IF
+       END DO
        RANT2(NA)=0.D0
        XANT2(NA)=0.D0
+       CJYL=CJ2(NZANTYL(NA))
        IF( ABS( CJYL ) .GT. 1.E-6 ) THEN
-          RANT2(NA) = RANT2(NA)-REAL( CE2DA(NZANT2(NA),NXANT2,2)/ CJYL)
-          XANT2(NA) = XANT2(NA)+IMAG( CE2DA(NZANT2(NA),NXANT2,2)/ CJYL)
+          RANT2(NA) = RANT2(NA)-DBLE( CE2DA(NZANTYL(NA),NXANT2,2)/ CJYL)
+          XANT2(NA) = XANT2(NA)+IMAG( CE2DA(NZANTYL(NA),NXANT2,2)/ CJYL)
        END IF
-       IF( ABS( CJZL ) .GT. 1.E-6 ) THEN
-          RANT2(NA) = RANT2(NA)-REAL( CE2DA(NZANT2(NA),NXANT2,3)/ CJZL)
-          XANT2(NA) = XANT2(NA)+IMAG( CE2DA(NZANT2(NA),NXANT2,3)/ CJZL)
-       ENDIF
+       DO NZ=NZANTZL(NA),NZANTLL(NA)
+          CJZL=CJ4(NZ)
+          IF( ABS( CJZL ) .GT. 1.E-6 ) THEN
+             RANT2(NA) = RANT2(NA)-DBLE( CE2DA(NZ,NXANT2,3)/ CJZL)
+             XANT2(NA) = XANT2(NA)+IMAG( CE2DA(NZ,NXANT2,3)/ CJZL)
+          END IF
+       END DO
     END DO
     RETURN
   END SUBROUTINE W1PWRS
@@ -225,10 +225,14 @@ CONTAINS
 !                   EFCD=(16.D0*E0+30.D0*E1+24.D0*E2+14.D0*E3)/84.D0
                 ENDIF
              ENDIF
-             RLNLMD=16.1D0 - 1.15D0*LOG10(PROFPN(NX,1)) &
-                           + 2.30D0*LOG10(PROFTR(NX,1))
-             AJCD=0.384D0*PROFTR(NX,NS)*EFCD/(PROFPN(NX,1)*RLNLMD) &
-                 *PABS(NX,NS)
+             IF(PROFPN(NX,1).LE.0.D0) THEN
+                AJCD=0.D0
+             ELSE
+                RLNLMD=16.1D0 - 1.15D0*LOG10(PROFPN(NX,1)) &
+                              + 2.30D0*LOG10(PROFTR(NX,1))
+                AJCD=0.384D0*PROFTR(NX,NS)*EFCD/(PROFPN(NX,1)*RLNLMD) &
+                     *PABS(NX,NS)
+             END IF
              IF(VPH.LT.0.D0) AJCD=-AJCD
              AJCDX(NX)=AJCDX(NX)+AJCD
              AJCDK(NZ)=AJCDK(NZ)+AJCD

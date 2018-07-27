@@ -273,11 +273,14 @@ C
 C        PIN   : Input Power (W); Set 0.0 to calculate from antenna current
 C        PHIW  : Potential of wave electrode                    (V)
 C        RD    : Antenna radius (m)
-C        THETJ1: Start angle of arc antenna (degree)
-C        THETJ2: End angle of arc antenna (degree)
+C        THJ1  : Start angle of arc antenna (degree)
+C        THJ2  : End angle of arc antenna (degree)
 C        ZJH1  : Axial start position of helical antenna (m)
 C        ZJH2  : Axial end position of helical antenna (m)
-C        PHJH  : Rotation angle of helical antenna (degree)
+C        ZJH3  : Axial inward feeder position of helical antenna (m)
+C        ZJH4  : Axial outward feeder position of helical antenna (m)
+C        RTJ1  : Rotation angle of helical antenna (degree)
+C        RTJ2  : Rotation angle of helical antenna (degree)
 C        NTYPJH: Type of helical antenna
 C                0 : Loop antenas on both ends
 C                1 : Loop antena on the second end
@@ -288,11 +291,14 @@ C
       PIN    = 0.D0
       PHIW   = 0.D0
       RD     = 0.22D0
-      THETJ1 = 40.D0
-      THETJ2 =-40.D0
+      THJ1   = 40.D0
+      THJ2   =-40.D0
       ZJH1   = 0.01D0
       ZJH2   = 0.19D0
-      PHJH   = 360.D0
+      ZJH3   = 0.09D0
+      ZJH4   = 0.11D0
+      RTJ1   = 0.D0
+      RTJ2   = 360.D0
       NTYPJH = 0
       NJMAX  = 41
 C
@@ -467,7 +473,8 @@ C
       WRITE(6,*) '     BXMIN,BXMAX,BYMIN,BYMAX,'
       WRITE(6,*) '     RB,BKAP,BDEL,DELX,DELY,'
       WRITE(6,*) '     PIN,EPSIMP,FACIMP,EPSSUM,MAXIMP,'
-      WRITE(6,*) '     RD,THETJ1,THETJ2,ZJH1,ZJH2,PHJH,NTYPJH,NJMAX,'
+      WRITE(6,*) '     RD,THJ1,THJ2,ZJH1,ZJH2,ZJH3,ZJH4,'
+      WRITE(6,*) '     RTJ1,RTJ2,NTYPJH,NJMAX,'
       WRITE(6,*) '     DT,NTMAX,NTSTEP,NFMAX,RFES,PHIES,MODELT,MODELN,'
       WRITE(6,*) '     PNE0,PTE0,PTI0,PNES,PTES,PTIS,PPN0,PTN0'
       WRITE(6,*) '     DC,PGIVEN,SGIVEN,XGIVEN,YGIVEN,RGIVEN'
@@ -492,7 +499,8 @@ C
      &              BXMIN,BXMAX,BYMIN,BYMAX,
      &              RB,BKAP,BDEL,DELX,DELY,
      &              PIN,EPSIMP,EPSSUM,FACIMP,MAXIMP,
-     &              RD,THETJ1,THETJ2,ZJH1,ZJH2,PHJH,NTYPJH,NJMAX,
+     &              RD,THJ1,THJ2,ZJH1,ZJH2,ZJH3,ZJH4,RTJ1,RTJ2,
+     &              NTYPJH,NJMAX,
      &              DT,NTMAX,NTSTEP,NFMAX,RFES,PHIES,MODELT,
      &              PNE0,PTE0,PTI0,PNES,PTES,PTIS,PPN0,PTN0,
      &              DC,PGIVEN,SGIVEN,XGIVEN,YGIVEN,RGIVEN,
@@ -545,7 +553,8 @@ C
       ENTRY WFPARL(KLINE)
 C
       MODE=1
-      KNAME=' &WF '//KLINE//' &END'
+      CALL KTRIM(KLINE,KL)
+      KNAME=' &WF '//KLINE(1:KL)//' &END'
 C      KNAME=' &WF '//KLINE//' /'
 C
 C     --- when internal file does not accept namelist ---
@@ -558,7 +567,7 @@ C     --- when internal file accepts namelist ---
 C
 C      READ(KNAME,IN,ERR=8,END=8)
 C
-      WRITE(6,*) '#### PARM INPUT ACCEPTED.'
+      WRITE(6,*) '#### PARM INPUT ACCEPTED: ',KLINE(1:KL)
       GOTO 9
     8 WRITE(6,*) 'XX IO ERROR: IOSTAT=',IST
       CALL WFPLST

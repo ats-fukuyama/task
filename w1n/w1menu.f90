@@ -33,7 +33,11 @@ CONTAINS
     ELSEIF(kid.EQ.'R') THEN
        CALL w1_allocate
        CALL w1_exec(ierr)
-       INIT=1
+       IF(ierr.EQ.0) THEN
+          INIT=1
+       ELSE
+          INIT=0
+       END IF
     ELSEIF(kid.EQ.'G') THEN
        IF(INIT.EQ.0) THEN
           WRITE(6,*) 'W1 data is not ready or destroyed'

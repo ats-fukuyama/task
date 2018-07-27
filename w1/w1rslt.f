@@ -270,10 +270,14 @@ C     *** WEIGHTING WITH PARABOLIC POWER DENSITY PROFILE ***
 C              EFCD=(16*E0+30*E1+24*E2+14*E3)/84.D0
             ENDIF
          ENDIF
-         RLNLMD=16.1D0 - 1.15D0*LOG10(PROFPN(NX,1))
-     &                 + 2.30D0*LOG10(PROFTR(NX,1))
-         AJCD=0.384D0*PROFTR(NX,IS)*EFCD/(PROFPN(NX,1)*RLNLMD)
-     &        *PABS(NX,IS)
+         IF(PROFPN(NX,1).LE.0.D0) THEN
+            AJCD=0.D0
+         ELSE
+            RLNLMD=16.1D0 - 1.15D0*LOG10(PROFPN(NX,1))
+     &                    + 2.30D0*LOG10(PROFTR(NX,1))
+            AJCD=0.384D0*PROFTR(NX,IS)*EFCD/(PROFPN(NX,1)*RLNLMD)
+     &           *PABS(NX,IS)
+         END IF
          IF(VPH.LT.0.D0) AJCD=-AJCD
          AJCDX(NX)=AJCDX(NX)+AJCD
          AJCDK(NZ)=AJCDK(NZ)+AJCD

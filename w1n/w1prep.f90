@@ -137,31 +137,53 @@ CONTAINS
     END DO
 
     IF(NZPMAX.EQ.1) THEN
-       NZANT1(1)=1
-       CJ1(1)   =AJYH(1)/DZ
-       NZANT2(1)=1
-       CJ2(1)   =AJYL(1)/DZ
-       CJ3(1)   =AJZH(1)
-       CJ4(1)   =AJZL(1)
+       PHASE            = APHH(1)*PI/180.D0
+       CPHASE           = DCMPLX( DCOS( PHASE ) , DSIN( PHASE ) )
+       NZANTYH(1)=1
+       CJ1(1)=AJYH(1)/DZ*CPHASE 
+       NZANTZH(1)=1
+       NZANTLH(1)=1
+       CJ3(1)=AJZH(1)
+
+       PHASE            = APHL(1)*PI/180.D0
+       CPHASE           = DCMPLX( DCOS( PHASE ) , DSIN( PHASE ) )
+       NZANTYL(1)=1
+       CJ2(1)=AJYL(1)/DZ*CPHASE 
+       NZANTZL(1)=1
+       NZANTLL(1)=1
+       CJ4(1)=AJZL(1)
     ELSE
        DO NA = 1 , NAMAX
-          ANTPOS            = RZ*ALYH(NA)/360.D0 + (RZ + DZ)*.5D0
-          NZANT1(NA)        = INT( ANTPOS/DZ ) + 1
-          PHASE             = APYH(NA)*PI/180.D0
-          CPHASE            = DCMPLX( DCOS( PHASE ) , DSIN( PHASE ) )
-          CJ1( NZANT1(NA) ) = AJYH( NA ) / DZ * CPHASE &
-                            + CJ1( NZANT1(NA) )
-          CJ3( NZANT1(NA) ) = AJZH( NA ) * CPHASE &
-                            + CJ3( NZANT1(NA) )
+          PHASE            = APHH(NA)*PI/180.D0
+          CPHASE           = DCMPLX( DCOS( PHASE ) , DSIN( PHASE ) )
+          ANTPOS           = RZ*APYH(NA)/360.D0
+          NZANTYH(NA)      = NINT( ANTPOS/DZ ) + 1
+          CJ1(NZANTYH(NA)) = CJ1( NZANTYH(NA) ) &
+                           + AJYH( NA ) / DZ * CPHASE
+          ANTPOS           = RZ*APZH(NA)/360.D0
+          NZANTZH(NA)      = NINT( ANTPOS/DZ ) + 1
+          ANTPOS           = RZ*(APZH(NA)+ALZH(NA))/360.D0
+          NZANTLH(NA)      = NINT( ANTPOS/DZ ) + 1
+          DO NZ=NZANTZH(NA),NZANTLH(NA)
+             CJ3(NZ) = CJ3(NZ)+AJZH( NA ) / DZ * CPHASE
+          END DO
 
-          ANTPOS            = RZ*ALYL(NA)/360.D0 + (RZ + DZ)*.5D0
-          NZANT2(NA)        = INT( ANTPOS/DZ ) + 1
-          PHASE             = APYL(NA)*PI/180.D0
-          CPHASE            = DCMPLX( DCOS( PHASE ) , DSIN( PHASE ) )
-          CJ2( NZANT2(NA) ) = AJYL( NA ) / DZ * CPHASE &
-                            + CJ2( NZANT2(NA) )
-          CJ4( NZANT2(NA) ) = AJZL( NA ) * CPHASE &
-                            + CJ4( NZANT2(NA) )
+          PHASE            = APHL(NA)*PI/180.D0
+          CPHASE           = DCMPLX( DCOS( PHASE ) , DSIN( PHASE ) )
+          ANTPOS           = RZ*APYL(NA)/360.D0
+          NZANTYL(NA)      = NINT( ANTPOS/DZ ) + 1
+          CJ2(NZANTYL(NA)) = CJ2( NZANTYL(NA) ) &
+                           + AJYL( NA ) / DZ * CPHASE
+          ANTPOS           = RZ*APZL(NA)/360.D0
+          NZANTZL(NA)      = NINT( ANTPOS/DZ ) + 1
+          ANTPOS           = RZ*(APZL(NA)+ALZL(NA))/360.D0
+          NZANTLL(NA)      = NINT( ANTPOS/DZ ) + 1
+          DO NZ=NZANTZL(NA),NZANTLL(NA)
+             CJ4(NZ) = CJ4(NZ)+AJZL( NA ) / DZ * CPHASE
+          END DO
+          write(6,'(A,7I5)') 'NZANT:',NA,NZANTYL(NA),NZANTYH(NA), &
+                                         NZANTZL(NA),NZANTZH(NA), &
+                                         NZANTLL(NA),NZANTLH(NA)
        END DO
     END IF
 
