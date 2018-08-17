@@ -50,9 +50,9 @@ trlib.a: $(OBJTR)
 equ: $(LIBS) eqmenu.o eqmain.o
 	$(FCFIXED) eqmain.o eqmenu.o $(LIBS) $(FLIBS) -o $@ $(FFLAGS)
 clean:
-	-rm *.a *.o $(MOD)/*.mod *~
+	-rm -f *.a *.o $(MOD)/*.mod *~
 veryclean: clean
-	-rm equ ${EXE}
+	-rm -f equ
 #
 eqmain.o : eqmain.f
 eqmenu.o : eqmenu.f

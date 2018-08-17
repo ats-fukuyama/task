@@ -164,7 +164,7 @@
         GOTO 1000
       ENDIF
 !     Highest charge state at least 1 but not greater than mx_mz
-      IF(m_z.lt.1.or.m_i.gt.mx_mz) THEN
+      IF(m_z.lt.1.or.m_z.gt.mx_mz) THEN
         iflag=3
         GOTO 1000
       ENDIF
@@ -195,7 +195,7 @@
         k_banana=0
         iflag=-3
       ENDIF
-!     No viscsoity
+!     No viscosity
       IF((k_banana.eq.0).and.(k_pfirsch.eq.0)) THEN
         k_potato=0
         iflag=-4

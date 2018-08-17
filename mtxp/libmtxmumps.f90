@@ -48,7 +48,7 @@
       COMPLEX(8),DIMENSION(:),POINTER:: bc,bc_loc
 
       INTEGER,DIMENSION(:),POINTER:: istartx,iendx,isizex,nz_tot
-      INTEGER:: imax,istart,iend,irange,jwidth,nzcount,nzmax_save,idebug_save
+      INTEGER:: imax,istart,iend,irange,nzcount,nzmax_save,idebug_save
 
       CONTAINS
 

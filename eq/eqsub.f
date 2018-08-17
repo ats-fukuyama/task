@@ -129,6 +129,7 @@ C
          GOTO 100
       ENDIF
       WRITE(6,*) 'XX EQMAGS: NOT ENOUGH N'
+      pause
       IERR=1
       RETURN
 C

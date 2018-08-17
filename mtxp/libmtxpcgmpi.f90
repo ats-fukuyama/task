@@ -39,7 +39,7 @@
 
       TYPE(mtx_mpi_type):: mtx_global
 
-      INTEGER:: imax,jmax,nzmax_save,nzcount,idebug_save
+      INTEGER:: imax,nzmax_save,nzcount,idebug_save
       INTEGER,DIMENSION(:),ALLOCATABLE:: iC,jC
       REAL(8),DIMENSION(:),ALLOCATABLE:: x,b
       REAL(8),DIMENSION(:),ALLOCATABLE:: vC
@@ -52,7 +52,7 @@
 
       SUBROUTINE mtx_initialize
       IMPLICIT NONE
-      INTEGER:: ncomm_in,ierr
+      INTEGER:: ierr
 
       CALL MPI_Init(ierr)
       IF(ierr.NE.0) WRITE(6,*) &

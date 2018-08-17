@@ -53,7 +53,7 @@ PROGRAM test_adf11
      IF(ND.EQ.0) GO TO 2
      DRMIN=DRCOFA(1,1,1,ND)+14.0
      DRMAX=DRCOFA(1,1,1,ND)+14.0
-     DO IS=1,ISMAXA(ND)
+     DO IS=1,IZMAXA(ND)
         DO IT=1,ITMAXA(ND)
            DO ID=1,IDMAXA(ND)
               DRMIN=MIN(DRMIN,DRCOFA(ID,IT,IS,ND))
@@ -79,11 +79,10 @@ PROGRAM test_adf11
      SELECT CASE(IND)
      CASE(1)
 11      WRITE(6,'(A,2I5)') &
-             '## Input IZ (-1 for end):IZMIN,IZMAX=', &
-             IS1MINA(ND)-1,IS1MAXA(ND)-1
+             '## Input IZ (0 for end):IZMIN,IZMAX=', &
+             IZMINA(ND),IZMAXA(ND)
         READ(5,*,ERR=11,END=3) IZ
-        IF(IZ.LT.0) GO TO 3
-        IS=IZ+1
+        IF(IZ.LE.0) GO TO 3
         NXMAX=ITMAXA(ND)
         NYMAX=IDMAXA(ND)
         ALLOCATE(XDATA(NXMAX),YDATA(NYMAX),FDATA(NXMAX,NYMAX))
@@ -91,7 +90,7 @@ PROGRAM test_adf11
         YDATA(1:NYMAX)=DDENSA(1:IDMAXA(ND),ND)-14.D0
         DO NY=1,NYMAX
            DO NX=1,NXMAX
-              FDATA(NX,NY)=DRCOFA(NY,NX,IS,ND)+14.D0
+              FDATA(NX,NY)=DRCOFA(NY,NX,IZ,ND)+14.D0
            END DO
         END DO
         CALL PAGES
@@ -108,11 +107,11 @@ PROGRAM test_adf11
         READ(5,*,ERR=12,END=3) PN
         IF(PN.LE.-10.D0) GOTO 3
         NXMAX=ITMAXA(ND)
-        NYMAX=ISMAXA(ND)
+        NYMAX=IZMAXA(ND)
         ALLOCATE(XDATA(NXMAX),YDATA(NYMAX),FDATA(NXMAX,NYMAX))
         XDATA(1:NXMAX)=DTEMPA(1:NXMAX,ND)-3.D0
         DO NY=1,NYMAX
-           IZ=NY-2+IS1MINA(ND)
+           IZ=NY-1+IZMINA(ND)
            YDATA(NY)=DBLE(IZ)
            DO NX=1,NXMAX
               PT=XDATA(NX)
@@ -135,12 +134,12 @@ PROGRAM test_adf11
         NXMAX=NXMAX_SAVE
         NYMAX=NYMAX_SAVE
 13      WRITE(6,'(A)') &
-             '## Input IZ,NXMAX,NYMAX (IZ=-1 for end):'
+             '## Input IZ,NXMAX,NYMAX (IZ=0 for end):'
         WRITE(6,'(A,4I5)') &
           '      IZMIN,IZMAX,NXMAX,NYMAX=', &
-                 IS1MINA(ND)-1,IS1MAXA(ND)-1,NXMAX,NYMAX
+                 IZMINA(ND),IZMAXA(ND),NXMAX,NYMAX
         READ(5,*,ERR=13,END=3) IZ,NXMAX,NYMAX
-        IF(IZ.LT.0) GO TO 3
+        IF(IZ.LE.0) GO TO 3
         IF(NXMAX.LE.1) GO TO 13
         IF(NYMAX.LE.1) GO TO 13
         NXMAX_SAVE=NXMAX
@@ -190,8 +189,8 @@ PROGRAM test_adf11
         GO TO 13
 
      CASE(4)
-        IF(ISMAXA(ND).EQ.1) THEN
-           WRITE(6,*) 'XX ISMAXA(ND)=1: no contour plot available'
+        IF(IZMAXA(ND).EQ.1) THEN
+           WRITE(6,*) 'XX IZMAXA(ND)=1: no contour plot available'
            GO TO 3
         END IF
         NXMAX=NXMAX_SAVE
@@ -210,8 +209,8 @@ PROGRAM test_adf11
         XMIN=DTEMPA(         1,ND)-3.D0
         XMAX=DTEMPA(ITMAXA(ND),ND)-3.D0
         DX=(XMAX-XMIN)/(NXMAX-1)
-        YMIN=DBLE(IS1MINA(ND))-1.D0
-        YMAX=DBLE(IS1MAXA(ND))-1.D0
+        YMIN=DBLE(IZMINA(ND))
+        YMAX=DBLE(IZMAXA(ND))
         DY=(YMAX-YMIN)/(NYMAX-1)
         write(6,'(A,1P3E12.4)') 'X: ',XMIN,XMAX,DX
         write(6,'(A,1P3E12.4)') 'Y: ',YMIN,YMAX,DY
@@ -303,7 +302,7 @@ PROGRAM test_adf11
 
      NPTMAX_SAVE=NPTMAX
      NYMAX=NPTMAX
-     NXMAX=ISMAXA(NDI)
+     NXMAX=IZMAXA(NDI)
      ALLOCATE(XDATA(0:NXMAX),YDATA(NYMAX),FDATA(0:NXMAX,NYMAX),PNZ(0:NXMAX))
      DO NX=0,NXMAX
         XDATA(NX)=DBLE(NX)
@@ -323,7 +322,8 @@ PROGRAM test_adf11
      END DO
 
      CALL PAGES
-     CALL GRD1D(0,XDATA,FDATA,NXMAX+1,NXMAX+1,NYMAX,'@PNZ(Z) for PT@',2)
+     CALL GRD1D(0,XDATA,FDATA,NXMAX+1,NXMAX+1,NYMAX,'@PNZ(Z) for PT@',2, &
+                FMIN=-8.D0)
      CALL PAGEE
 
      DEALLOCATE(XDATA,YDATA,FDATA,PNZ)
@@ -358,10 +358,10 @@ PROGRAM test_adf11
         FDATA(NX,2)=PZ2AV
         FDATA(NX,3)=LOG10(PWBAV)
         FDATA(NX,4)=LOG10(PWLAV)
-        WRITE(6,'(I5,1P5E12.4)') NX,XDATA(NX),(FDATA(NX,I),I=1,4)
+!        WRITE(6,'(I5,1P5E12.4)') NX,XDATA(NX),(FDATA(NX,I),I=1,4)
      END DO
-     FMAX=DBLE(NINT(MAXVAL(FDATA(1:NXMAX,4))))
-     FMIN=FMAX-3.D0
+     FMAX=DBLE(NINT(MAXVAL(FDATA(1:NXMAX,4))))+1
+     FMIN=FMAX-4.D0
      CALL PAGES
      CALL GRD1D(1,XDATA,FDATA(1:NXMAX,1),NXMAX,NXMAX,1,'@PZAV vs PT@',1)
      CALL GRD1D(3,XDATA,FDATA(1:NXMAX,2),NXMAX,NXMAX,1,'@PZ2AV vs PT@',1)
@@ -393,10 +393,10 @@ PROGRAM test_adf11
 
         WRITE(6,'(A,I5,A,I5,A)') &
              '## Input NZMIN,NZMAX,NZSTEP: ', &
-             IS1MINA(ND1),' <= NZ <= ',IS1MAXA(ND1)
+             IZMINA(ND1),' <= NZ <= ',IZMAXA(ND1)
         READ(5,*,ERR=31,END=2) NZMIN,NZMAX,NZSTEP
-        IF(NZMAX.LT.IS1MINA(ND1)) GO TO 31
-        IF(NZMAX.GT.IS1MAXA(ND1)) GO TO 31
+        IF(NZMAX.LT.IZMINA(ND1)) GO TO 31
+        IF(NZMAX.GT.IZMAXA(ND1)) GO TO 31
         NZCOUNT=(NZMAX-NZMIN)/NZSTEP+1
 
         ALLOCATE(XDATA(NTMAX),FDATA(NTMAX,NZCOUNT))
@@ -407,8 +407,8 @@ PROGRAM test_adf11
            XDATA(NT)=PT
            DO NZ=NZMIN,NZMAX,NZSTEP
               NZL=(NZ-NZMIN)/NZSTEP+1
-              CALL CALC_ADF11(ND1,NZ+1,PN,LOG10(PT),DRR,IERR)
-              CALL CALC_ADF11(ND2,NZ+1,PN,LOG10(PT),DRI,IERR)
+              CALL CALC_ADF11(ND1,NZ,PN,LOG10(PT),DRR,IERR)
+              CALL CALC_ADF11(ND2,NZ,PN,LOG10(PT),DRI,IERR)
               FDATA(NT,NZL)=10.D0**DRI-10.D0**DRR
            END DO
         END DO
@@ -424,6 +424,8 @@ PROGRAM test_adf11
 
      CASE(32)
 32      WRITE(6,'(A)') '## DRI-DRR vs Z for PTs'
+        ND1=ND_TABLE(IZ0,1)
+        ND2=ND_TABLE(IZ0,2)
         NZMIN=1
         NZMAX=IZ0
         NTMAX=6
@@ -432,11 +434,11 @@ PROGRAM test_adf11
         PN=-1.D0
         WRITE(6,'(A,I5,A,I5,A)') &
              '## Input NZMIN,NZMAX: ', &
-             IS1MINA(ND1),' <= NZ <= ',IS1MAXA(ND1),' : NZMIN=0 for end'
+             IZMINA(ND1),' <= NZ <= ',IZMAXA(ND1),' : NZMIN=0 for end'
         READ(5,*,ERR=32,END=2) NZMIN,NZMAX
         IF(NZMIN.LE.0) GO TO 2
-        IF(NZMAX.LT.IS1MINA(ND1)) GO TO 32
-        IF(NZMAX.GT.IS1MAXA(ND1)) GO TO 32
+        IF(NZMAX.LT.IZMINA(ND1)) GO TO 32
+        IF(NZMAX.GT.IZMAXA(ND1)) GO TO 32
 
         WRITE(6,'(A)') &
              '## Input NTMAX,PTmin,PTmax,log(PN): NTMAX=0 for end'
@@ -455,8 +457,8 @@ PROGRAM test_adf11
            XDATA(NZ)=DBLE(NZ)
            DO NT=1,NTMAX
               PT=PTMIN+PTSTEP*(NT-1)
-              CALL CALC_ADF11(ND1,NZ+1,PN,LOG10(PT),DRR,IERR)
-              CALL CALC_ADF11(ND2,NZ+1,PN,LOG10(PT),DRI,IERR)
+              CALL CALC_ADF11(ND1,NZ,PN,LOG10(PT),DRR,IERR)
+              CALL CALC_ADF11(ND2,NZ,PN,LOG10(PT),DRI,IERR)
               FDATA(NZ,NT)=10.D0**DRI-10.D0**DRR
            END DO
         END DO

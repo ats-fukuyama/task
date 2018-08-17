@@ -381,6 +381,17 @@ C
          IBDYP(NB)=IBDYL(NB)
       ENDDO
 C
+      DO IE=1,NELM
+         IF(KELM(IE).NE.0) THEN
+            IN=IELM(1,IE)
+            IF(KNODP(IN).EQ.0) KNODP(IN)=10
+            IN=IELM(2,IE)
+            IF(KNODP(IN).EQ.0) KNODP(IN)=10
+            IN=IELM(3,IE)
+            IF(KNODP(IN).EQ.0) KNODP(IN)=10
+         ENDIF
+      ENDDO
+C
       DO NBP=1,NBPMAX
          XMIN=XYBDYP(1,NBP)
          XMAX=XYBDYP(2,NBP)
@@ -404,16 +415,6 @@ C  601       FORMAT('XX BOUNDARY DEF ERROR: IN,XD,YD =',I5,2F10.4)
 C         ENDIF
 C      ENDDO
 C
-      DO IE=1,NELM
-         IF(KELM(IE).NE.0) THEN
-            IN=IELM(1,IE)
-            IF(KNODP(IN).EQ.0) KNODP(IN)=10
-            IN=IELM(2,IE)
-            IF(KNODP(IN).EQ.0) KNODP(IN)=10
-            IN=IELM(3,IE)
-            IF(KNODP(IN).EQ.0) KNODP(IN)=10
-         ENDIF
-      ENDDO
 C
       NELMP=0
       DO IE=1,NELM

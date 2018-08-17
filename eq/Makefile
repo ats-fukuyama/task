@@ -1,8 +1,8 @@
 ### $Id$ ###
 include ../make.header
 
-#FFLAGS=-g $(OFLAGS)
-FFLAGS=$(DFLAGS)
+FFLAGS=-g $(OFLAGS)
+#FFLAGS=$(DFLAGS)
 
 MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../plx/$(MOD) -I../lib/$(MOD)
 

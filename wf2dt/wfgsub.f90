@@ -282,10 +282,12 @@ SUBROUTINE WFGPPC(NW,NWMAX,KWD)
         NS=3
      end if
 
-!!! the following should corrected
+!!! the following should be corrected by including poloidal magnetic field
      SELECT CASE(MODELG)
      CASE(0,12)
         n_para=RKZ*VC/WW
+     CASE(0,12)
+        n_para=NPH*VC/(RA*WW)
      CASE(2)
         n_para=NPH*VC/(RR*WW)
      END SELECT
@@ -898,7 +900,7 @@ SUBROUTINE WFGPRM
   use wfcomm
   implicit none
   integer :: NA,NB,L,NS!,NK,NM
-  real(8) :: REST(NAM),REAT(NAM)
+  real(8) :: REST(NAM),REAT(NAM),WW,RNZ
   real(4) :: GXMIN,GYMAX,GRCHH,GDX,GDY,GXL,GYL
   real(8) :: SRFR(NMDM,NBM),SRFI(NMDM,NBM),SRFL(NMDM,NBM)
   
@@ -946,12 +948,17 @@ SUBROUTINE WFGPRM
   GXL=GXL+GDX
   CALL MOVE(GXL,GYL)
   SELECT CASE(MODELG)
-  CASE(0,12)
+  CASE(0)
      CALL TEXT('RKZ=',4)
      CALL NUMBD(RKZ,'(F7.2)',7)
-  CASE(2)
+  CASE(1,2)
      CALL TEXT('NPH=',4)
      CALL NUMBI(NPH,'(I3)',3)
+  CASE(12)
+     WW=2*PI*RF*1.0d6
+     RNZ=RKZ*VC/WW
+     CALL TEXT('RNZ=',4)
+     CALL NUMBD(RNZ,'(F7.3)',7)
   END SELECT
   
   GXL=GXMIN
@@ -1030,9 +1037,7 @@ SUBROUTINE WFGPRM
         CALL NUMBI(NS,'(I3)',3)
         CALL NUMBD(PA(NS),   '(1PE10.3)',10)
         CALL NUMBD(PZ(NS),   '(1PE10.3)',10)
-        IF(MODELG.EQ.0) THEN
-           CALL NUMBD(pn_corner(1,NS),'(1PE10.3)',10)
-        ELSEIF(MODELG.EQ.12) THEN
+        IF(MODELG.EQ.0,12) THEN
            CALL NUMBD(pn_corner(1,NS),'(1PE10.3)',10)
         ELSE
            CALL NUMBD(PN(NS),   '(1PE10.3)',10)

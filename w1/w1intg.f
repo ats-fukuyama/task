@@ -20,7 +20,7 @@ C
       COMMON /W1PRF1/ PROFB(NXPM),PROFPN(NXPM,ISM),PROFPU(NXPM,ISM),
      &                PROFTR(NXPM,ISM),PROFTP(NXPM,ISM)
       COMMON /W1ZETA/ CZ(NXPM,NHM),CDZ(NXPM,NHM),CDDZ(NXPM,NHM),
-     &                GZ(NXPM,NHM)
+     &                CGZ(NXPM,NHM)
       PARAMETER (NCLW=2*MATLM+1)
       COMMON /W1QCLM/ CL(3,3,4,NCLM),NCL(NCLW,NXPM,ISM)
       COMMON /W1QCTL/ XDMAX,DXD,NDMAX,NHARM,IHARM(ISM),MATL,NMODEL
@@ -61,13 +61,18 @@ C
          DO 100 NC=1,2*ABS(IHARM(IS))+1
             NN=NC-ABS(IHARM(IS))-1
             ARG=(RW-NN*WC)/AKPR
-            GZ(NX,NC)= ARG
+            CGZ(NX,NC)= ARG
             CZ(NX,NC)= ARG
   100    CONTINUE
 C
          DO 200 NC=1,2*ABS(IHARM(IS))+1
             CALL DSPFNA(CZ(1,NC),CDZ(1,NC),CDDZ(1,NC),NXP)
   200    CONTINUE
+
+C       NX=NXP/2
+C       NC=3
+C       WRITE(6,'(A,3I5,1P4E12.4)') 'DSP:',IS,NX,NC,CGZ(NX,NC),CZ(NX,NC)
+
 C
          DO 400 NC=1,2*ABS(IHARM(IS))+1
             NN=NC-ABS(IHARM(IS))-1
@@ -80,7 +85,7 @@ C
                XM(NX)=XAM(NX)
                YX(NX)=WC/SQRT(FVT*PROFTP(NX,IS))
                YK(NX)=FWP*PROFPN(NX,IS)*ABS(YX(NX))*RW/AKPR
-               CS0(NX)=GZ(NX,NC)*CDZ(NX,NC)
+               CS0(NX)=CGZ(NX,NC)*CDZ(NX,NC)
                CS1(NX)=CZ(NX,NC)+0.5D0*(1.D0-RT)*AKPR*CDZ(NX,NC)/RW
                CS2(NX)=(RT+(1.D0-RT)*NN*WC/RW)*CDZ(NX,NC)
      &               /SQRT(2.D0*RT)
@@ -128,6 +133,7 @@ C
             IF(NCL(JJ,I,IS).EQ.0) THEN
                ICL=ICL+1
                NCL(JJ,I,IS)=ICL
+C               WRITE(21,'(A,4I5)') 'JJ,I,IS,ICL=',JJ,I,IS,ICL
                ICLS=ICL
             ELSE
                ICLS=NCL(JJ,I,IS)
@@ -146,6 +152,16 @@ C
   400    CONTINUE
 C
  1000 CONTINUE
+
+C      DO ICLS=600,602
+C         DO IL=1,4
+C            DO IB=1,3
+C               WRITE(6,'(A,I4,2I2,1P6E11.3)') 
+C     &              'CL:',ICLS,IL,IB,(CL(IA,IB,IL,ICLS),IA=1,3)
+C            END DO
+C         END DO
+C      END DO
+
 C
       RETURN
       END
@@ -289,6 +305,16 @@ C
          CF(IL,IM)=CF(IL+3*DMAT,IM)
  8000 CONTINUE
 C
+C      DO I=NSF/2-3,NSF/2+3
+C         DO J=1,15,3
+C            WRITE(6,'(A,2I4,1P6E11.3)')
+C     &           'CF:',I,J,CF(J,I),CF(J+1,I),CF(J+2,I)
+C         END DO
+C         J=16
+C            WRITE(6,'(A,2I4,1P4E11.3)')
+C     &           'CF:',I,J,CF(J,I),CF(J+1,I)
+C      END DO
+                                                                   
       CALL BANDCD(CF,CA,NSF,6*MATL+5,6*MATLM+5,IND)
          IF(IND.NE.0) WRITE(6,601) IND
       IERR=0
@@ -365,6 +391,8 @@ C     &              -0.5D0*CONJG(CA(NN+IA))*CL(IA,IB,IL,ICL)*CA(MM+IB)
 C     &              -0.5D0*CONJG(CA(MM+IA))*CL(IA,IB,IL,ICLM)*CA(NN+IB)
  6010       CONTINUE
             PABSL=-CI*RCE*CABSL*RKV
+C            WRITE(6,'(A,2I5,1P5E12.4)') 
+C     &           'PABS:',IS,NX,RCE,CABSL,RKV,PABSL
             IF(IL.EQ.1) THEN
                PABS(NX,  IS)=PABS(NX,  IS)+0.5D0*PABSL
                PABS(MX,  IS)=PABS(MX,  IS)+0.5D0*PABSL

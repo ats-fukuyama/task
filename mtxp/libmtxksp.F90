@@ -17,6 +17,7 @@
       PUBLIC mtx_set_matrix
       PUBLIC mtx_set_source
       PUBLIC mtx_set_vector
+      PUBLIC mtx_split_operation
       PUBLIC mtx_solve
       PUBLIC mtx_get_vector_j
       PUBLIC mtx_get_vector
@@ -488,7 +489,7 @@
          CALL KSPSetType(ksp,KSPRICHARDSON,ierr)
          CALL KSPRichardsonSetScale(ksp,damping_factor_,ierr)
       CASE(1)
-         CALL KSPSetType(ksp,KSPCHEBYCHEV,ierr)
+         CALL KSPSetType(ksp,KSPCHEBYSHEV,ierr)
          CALL KSPChebyshevSetEigenvalues(ksp,emax_,emin_,ierr)
       CASE(2)
          CALL KSPSetType(ksp,KSPCG,ierr)
@@ -635,7 +636,7 @@
 
       REAL(8),DIMENSION(irange),intent(out):: v
       PetscScalar,pointer:: x_value(:)
-      INTEGER:: j,ierr,imax_
+      INTEGER:: j,ierr
 
       call VecGetArrayF90(x,x_value,ierr)
       IF(ierr.NE.0) WRITE(6,*) &

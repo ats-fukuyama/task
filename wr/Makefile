@@ -10,8 +10,8 @@ LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIBXMTX_KSP)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
-#FFLAGS=$(OFLAGS)
-FFLAGS=$(DFLAGS)
+FFLAGS=$(OFLAGS)
+#FFLAGS=$(DFLAGS)
 
 MODINCLUDE= -I./$(MOD) -I../plx/$(MOD) -I../lib/$(MOD) -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
@@ -20,7 +20,7 @@ SRCS = wrmenu.f wrinit.f wrcalc.f wrbeam.f wrgout.f wrfile.f
 OBJS = $(SRCS:.f=.o)
 
 LIBS = wrlib.a  ../dp/dplib.a ../eq/eqlib.a ../plx/pllib.a \
-       $(LIB_MTX) ../lib/tasklib.a ../../bpsd/bpsdlib.a
+       ../lib/tasklib.a ../../bpsd/bpsdlib.a
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
@@ -44,6 +44,7 @@ wrlib.a: $(OBJS)
 libs:
 	(cd ../lib; make tasklib.a)
 	(cd ../../bpsd; make bpsdlib.a)
+	(cd ../mtxp; make)
 	(cd ../plx; make pllib.a)
 	(cd ../eq; make eqlib.a)
 	(cd ../dp; make dplib.a)

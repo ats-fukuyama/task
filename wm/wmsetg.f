@@ -180,10 +180,12 @@ C
             RHOL=XRHO(NR)
             IF(RHOL.LE.1.D0) THEN
                FEDGE=PNS(1)/PN(1)
-               FACTN=(1.D0-FEDGE)*(1.D0-RHOL**PROFN1)**PROFN2+FEDGE
+               FACTN=(1.D0-FEDGE)*(1.D0-RHOL**PROFN1(1))**PROFN2(1)
+     &              +FEDGE
                PT=(PTPR(1)+2*PTPP(1))/3.D0
                FEDGE=PTS(1)/PT
-               FACTT=(1.D0-FEDGE)*(1.D0-RHOL**PROFT1)**PROFT2+FEDGE
+               FACTT=(1.D0-FEDGE)*(1.D0-RHOL**PROFT1(1))**PROFT2(1)
+     &              +FEDGE
                PPS(NR)=P0*FACTN*FACTT
             ELSE
                PPS(NR)=0.D0
@@ -303,10 +305,12 @@ C
                ELSE
                   FEDGE=PNS(1)/PN(1)
                END IF
-               FACTN=(1.D0-FEDGE)*(1.D0-RHOL**PROFN1)**PROFN2+FEDGE
+               FACTN=(1.D0-FEDGE)*(1.D0-RHOL**PROFN1(1))**PROFN2(1)
+     &              +FEDGE
                PT=(PTPR(1)+2*PTPP(1))/3.D0
                FEDGE=PTS(1)/PT
-               FACTT=(1.D0-FEDGE)*(1.D0-RHOL**PROFT1)**PROFT2+FEDGE
+               FACTT=(1.D0-FEDGE)*(1.D0-RHOL**PROFT1(1))**PROFT2(1)
+     &              +FEDGE
                PPS(NR)=P0*FACTN*FACTT
             ELSE
                PPS(NR)=0.D0

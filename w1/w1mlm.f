@@ -358,6 +358,11 @@ C
          DO 2000 NX = 1 , NXP
             DX = XA( NX+1 ) - XA( NX )
 C
+          WRITE(6,'(A,I4,1P4E12.4)') 'CM0=',NX,CM0(1,NX,IS),CM0(2,NX,IS)
+          WRITE(6,'(A,I4,1P4E12.4)') 'CM0=', 0,CM0(3,NX,IS),CM0(4,NX,IS)
+          WRITE(6,'(A,1P6E12.4)') 'CEX=',CEX(NX),CEY(NX),CEZ(NX)
+          WRITE(6,'(A,I4,1P4E12.4)') 'CM1=',NX,CM1(1,NX,IS),CM1(2,NX,IS)
+          WRITE(6,'(A,1P4E12.4)') 'CDX=',CDY(NX),CDZ(NX)
             PABS0 =(CM0(1,NX,IS)* DCONJG(CEX(NX))*CEX(NX)
      &             +CM0(2,NX,IS)* DCONJG(CEX(NX))*CEY(NX)
      &             +CM0(3,NX,IS)* DCONJG(CEY(NX))*CEY(NX)

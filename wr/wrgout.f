@@ -165,7 +165,7 @@ C
                SDR=(RHON2-RHON1)/DRHO
                DELP=RAYS(8,IT+1,NRAY)/SDR
                GPY(NRS1,NRAY)=GPY(NRS1,NRAY)
-     &                       +GUCLIP((DBLE(NRS1)-RHON1/DRHO)*DELP)
+     &                 +GUCLIP((DBLE(NRS1)-RHON1/DRHO)*DELP)
                DO NR=NRS1+1,NRS2-1
                   GPY(NR,NRAY)=GPY(NR,NRAY)+GUCLIP(DELP)
                ENDDO

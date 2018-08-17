@@ -35,9 +35,9 @@ C      CALL MPSYNC
       CALL WRINIT
 C      IF(NRANK.EQ.0) THEN
          OPEN(7,STATUS='SCRATCH')
-         CALL PL_PARM(1,'plparm',IERR)
-         CALL EQPARM(1,'eqparm',IERR)
-         CALL DPPARM(1,'dpparm',IERR)
+C         CALL PL_PARM(1,'plparm',IERR)
+C         CALL EQPARM(1,'eqparm',IERR)
+C         CALL DPPARM(1,'dpparm',IERR)
          CALL WRPARM(1,'wrparm',IERR)
 C      END IF
 C      CALL MPSYNC

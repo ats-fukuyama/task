@@ -68,4 +68,4 @@ clean :
 	-rm -f core a.out *.o *.a *.i90 ./#* ./*~ ./*.mod ./mod/*.mod
 
 veryclean : clean
-	-rm testbnd testbndc testpcg testdmumps testzmumps testksp
+	-rm -f $(EXEC)

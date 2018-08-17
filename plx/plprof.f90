@@ -477,17 +477,17 @@
                  PLF(NS)%RU  =PUS(NS)
               ENDDO
            ELSE
-              FACTN=(1.D0-RHOL**PROFN1)**PROFN2
-              FACTT=(1.D0-RHOL**PROFT1)**PROFT2
-              FACTU=(1.D0-RHOL**PROFU1)**PROFU2
 
               DO NS=1,NSMAX
+                 FACTN=(1.D0-RHOL**PROFN1(NS))**PROFN2(NS)
+                 FACTT=(1.D0-RHOL**PROFT1(NS))**PROFT2(NS)
+                 FACTU=(1.D0-RHOL**PROFU1(NS))**PROFU2(NS)
                  PLF(NS)%RN  =(PN(NS)  -PNS(NS))*FACTN+PNS(NS)
                  PLF(NS)%RTPR=(PTPR(NS)-PTS(NS))*FACTT+PTS(NS)
                  PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACTT+PTS(NS)
                  PLF(NS)%RU  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
-                 IF(RHOL.LT.RHOITB) THEN
-                    FACTITB =(1.D0-(RHOL/RHOITB)**4)**2
+                 IF(RHOL.LT.RHOITB(NS)) THEN
+                    FACTITB =(1.D0-(RHOL/RHOITB(NS))**4)**2
                     PLF(NS)%RN  =PLF(NS)%RN  +PNITB(NS)*FACTITB
                     PLF(NS)%RTPR=PLF(NS)%RTPR+PTITB(NS)*FACTITB
                     PLF(NS)%RTPP=PLF(NS)%RTPP+PTITB(NS)*FACTITB
@@ -508,8 +508,8 @@
             CALL GETPP(0.D0,PL0)
             CALL GETPP(RHOL,PL)
             FACT=SQRT(PL/PL0)
-            FACTU=(1.D0-RHOL**PROFU1)**PROFU2
             DO NS=1,NSMAX
+               FACTU=(1.D0-RHOL**PROFU1(NS))**PROFU2(NS)
                PLF(NS)%RN  =PN(NS)  *FACT
                PLF(NS)%RTPR=PTPR(NS)*FACT
                PLF(NS)%RTPP=PTPP(NS)*FACT
@@ -526,40 +526,40 @@
                PLF(NS)%RU  =PUS(NS)
             ENDDO
          ELSE
-            IF(RHOL.LE.RHOEDG) THEN
-               FACTN=(1.D0-RHOL**PROFN1)**PROFN2
-               FACTT=(1.D0-RHOL**PROFT1)**PROFT2
-               FACTU=(1.D0-RHOL**PROFU1)**PROFU2
-            ELSE
-               FNX=(1.D0-RHOEDG**PROFN1)**PROFN2
-               DFNX=-PROFN1*PROFN2*RHOEDG**(PROFN1-1.D0) &
-     &             *(1.D0-RHOEDG**PROFN1)**(PROFN2-1.D0)
-               AN= 3.D0*FNX/(1.D0-RHOEDG)**2+DFNX/(1.D0-RHOEDG)
-               BN=-2.D0*FNX/(1.D0-RHOEDG)**3-DFNX/(1.D0-RHOEDG)**2
-               FACTN=AN*(1.D0-RHOL)**2+BN*(1.D0-RHOL)**3
-
-               FTX=(1.D0-RHOEDG**PROFT1)**PROFT2
-               DFTX=-PROFT1*PROFT2*RHOEDG**(PROFT1-1.D0) &
-     &             *(1.D0-RHOEDG**PROFT1)**(PROFT2-1.D0)
-               AT= 3.D0*FTX/(1.D0-RHOEDG)**2+DFTX/(1.D0-RHOEDG)
-               BT=-2.D0*FTX/(1.D0-RHOEDG)**3-DFTX/(1.D0-RHOEDG)**2
-               FACTT=AT*(1.D0-RHOL)**2+BT*(1.D0-RHOL)**3
-
-               FUX=(1.D0-RHOEDG**PROFU1)**PROFU2
-               DFUX=-PROFU1*PROFU2*RHOEDG**(PROFU1-1.D0) &
-     &             *(1.D0-RHOEDG**PROFU1)**(PROFU2-1.D0)
-               AU= 3.D0*FUX/(1.D0-RHOEDG)**2+DFUX/(1.D0-RHOEDG)
-               BU=-2.D0*FUX/(1.D0-RHOEDG)**3-DFUX/(1.D0-RHOEDG)**2
-               FACTU=AU*(1.D0-RHOL)**2+BU*(1.D0-RHOL)**3
-            ENDIF
-
             DO NS=1,NSMAX
+               IF(RHOL.LE.RHOEDG) THEN
+                  FACTN=(1.D0-RHOL**PROFN1(NS))**PROFN2(NS)
+                  FACTT=(1.D0-RHOL**PROFT1(NS))**PROFT2(NS)
+                  FACTU=(1.D0-RHOL**PROFU1(NS))**PROFU2(NS)
+               ELSE
+                  FNX=(1.D0-RHOEDG**PROFN1(NS))**PROFN2(NS)
+                  DFNX=-PROFN1(NS)*PROFN2(NS)*RHOEDG**(PROFN1(NS)-1.D0) &
+                       *(1.D0-RHOEDG**PROFN1(NS))**(PROFN2(NS)-1.D0)
+                  AN= 3.D0*FNX/(1.D0-RHOEDG)**2+DFNX/(1.D0-RHOEDG)
+                  BN=-2.D0*FNX/(1.D0-RHOEDG)**3-DFNX/(1.D0-RHOEDG)**2
+                  FACTN=AN*(1.D0-RHOL)**2+BN*(1.D0-RHOL)**3
+
+                  FTX=(1.D0-RHOEDG**PROFT1(NS))**PROFT2(NS)
+                  DFTX=-PROFT1(NS)*PROFT2(NS)*RHOEDG**(PROFT1(NS)-1.D0) &
+                       *(1.D0-RHOEDG**PROFT1(NS))**(PROFT2(NS)-1.D0)
+                  AT= 3.D0*FTX/(1.D0-RHOEDG)**2+DFTX/(1.D0-RHOEDG)
+                  BT=-2.D0*FTX/(1.D0-RHOEDG)**3-DFTX/(1.D0-RHOEDG)**2
+                  FACTT=AT*(1.D0-RHOL)**2+BT*(1.D0-RHOL)**3
+
+                  FUX=(1.D0-RHOEDG**PROFU1(NS))**PROFU2(NS)
+                  DFUX=-PROFU1(NS)*PROFU2(NS)*RHOEDG**(PROFU1(NS)-1.D0) &
+                       *(1.D0-RHOEDG**PROFU1(NS))**(PROFU2(NS)-1.D0)
+                  AU= 3.D0*FUX/(1.D0-RHOEDG)**2+DFUX/(1.D0-RHOEDG)
+                  BU=-2.D0*FUX/(1.D0-RHOEDG)**3-DFUX/(1.D0-RHOEDG)**2
+                  FACTU=AU*(1.D0-RHOL)**2+BU*(1.D0-RHOL)**3
+               ENDIF
+
                PLF(NS)%RN  =(PN(NS)  -PNS(NS))*FACTN+PNS(NS)
                PLF(NS)%RTPR=(PTPR(NS)-PTS(NS))*FACTT+PTS(NS)
                PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACTT+PTS(NS)
                PLF(NS)%RU  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
-               IF(RHOL.LT.RHOITB) THEN
-                  FACTITB =(1.D0-(RHOL/RHOITB)**4)**2
+               IF(RHOL.LT.RHOITB(NS)) THEN
+                  FACTITB =(1.D0-(RHOL/RHOITB(NS))**4)**2
                   PLF(NS)%RN  =PLF(NS)%RN  +PNITB(NS)*FACTITB
                   PLF(NS)%RTPR=PLF(NS)%RTPR+PTITB(NS)*FACTITB
                   PLF(NS)%RTPP=PLF(NS)%RTPP+PTITB(NS)*FACTITB
@@ -597,10 +597,10 @@
                PLF(NS)%RU  =PUS(NS)
             ENDDO
          ELSE
-            FACTN=(1.D0-RHOL**PROFN1)**PROFN2
-            FACTT=(1.D0-RHOL**PROFT1)**PROFT2
-            FACTU=(1.D0-RHOL**PROFU1)**PROFU2
             DO NS=1,NSMAX
+               FACTN=(1.D0-RHOL**PROFN1(NS))**PROFN2(NS)
+               FACTT=(1.D0-RHOL**PROFT1(NS))**PROFT2(NS)
+               FACTU=(1.D0-RHOL**PROFU1(NS))**PROFU2(NS)
                IF (NS.EQ.1.OR.NS.GT.1) THEN
                   PLF(NS)%RN  = RNPL(NS)*1.D-20
                   PLF(NS)%RTPR= RTPL(NS)*1.D-3

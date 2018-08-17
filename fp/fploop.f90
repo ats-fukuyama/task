@@ -8,7 +8,6 @@
 
       USE fpcomm
       use fpexec
-      use fpcoef
       use fpsave
       use libmpi
       use fpmpi
@@ -22,6 +21,8 @@
 
       SUBROUTINE FP_LOOP
 
+      USE fpcoef
+      USE fpsub
       USE libmtx
       USE plprof
       USE FPMPI
@@ -30,10 +31,11 @@
       IMPLICIT NONE
       real(kind8):: DEPS,IP_all_FP,DEPS_E2
 
-      integer:: NT, NR, NP, NTH, NSA, NS, IERR
+      integer:: NT, NR, NP, NTH, NSA, NS, IERR, NSB
       real(4):: gut_exe1, gut_exe2, gut_coef1, gut_coef2, gut_coef3
       real(4):: gut_loop1, gut_loop2, gut1, gut2, gut_conv3
       real(4):: sum_gut_ex, sum_gut_coef, gut_1step, sum_gut_conv
+      LOGICAL:: flag
 
 !     +++++ Time loop +++++
 
@@ -99,7 +101,12 @@
 
             CALL fusion_source_init
 !           update FNSB (fnsb is required by NL collsion and NF reaction)
-            IF(MODELC.ge.4.or.MODELS.ge.2)THEN
+            FLAG=.FALSE.
+            DO NSB=1,NSBMAX
+               NS=NS_NSB(NSB)
+               IF(MODELC(NS).GE.4) FLAG=.TRUE.
+            END DO
+            IF(FLAG.or.MODELS.ge.2)THEN
                CALL mtx_set_communicator(comm_nsa)
                CALL update_fnsb_maxwell
                CALL update_fnsb
@@ -281,9 +288,12 @@
             DO NR=NRSTARTW,NRENDWM
                DO NP=NPSTARTW,NPENDWM
                   DO NTH=1,NTHMAX
-                     FNSP(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA)+FNSP_MXWL(NTH,NP,NR,NSA) ! at n step
-                     FNSP_DEL(NTH,NP,NR,NSA)=FNS0(NTH,NP,NR,NSA) ! at n+1 step
-                     send(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA)+FNSP_MXWL(NTH,NP,NR,NSA) ! MODEL_EX_READ_Tn=0
+                     FNSP(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA) &
+                                        +FNSP_MXWL(NTH,NP,NR,NSA) ! at n step
+                     FNSP_DEL(NTH,NP,NR,NSA)=FNS0(NTH,NP,NR,NSA)  ! at n+1 step
+                     send(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA) &
+                                        +FNSP_MXWL(NTH,NP,NR,NSA)
+                                                           ! MODEL_EX_READ_Tn=0
                   END DO
                END DO
             END DO
@@ -295,8 +305,11 @@
             DO NR=NRSTARTW,NRENDWM
                DO NP=NPSTARTW,NPENDWM
                   DO NTH=1,NTHMAX
-                     FNSP_MXWL(NTH,NP,NR,NSA)=FPMXWL_EXP(PM(NP,NS),NR,NS) ! at n+1 step
-                     FNS0(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA)+FNSP_MXWL(NTH,NP,NR,NSA) ! at n+1 step
+                     FNSP_MXWL(NTH,NP,NR,NSA)=FPMXWL_EXP(PM(NP,NS),NR,NS)
+                                                           ! at n+1 step
+                     FNS0(NTH,NP,NR,NSA)=FNSP_DEL(NTH,NP,NR,NSA) &
+                                        +FNSP_MXWL(NTH,NP,NR,NSA)
+                                                           ! at n+1 step
                   END DO
                END DO
             END DO
@@ -329,9 +342,13 @@
          DO NR=NRSTART,NREND
             DO NP=NPSTART,NPEND
                DO NTH=1,NTHMAX
-                  RSUMF(NSA)=ABS(FNSP(NTH,NP,NR,NSA)-FNS0(NTH,NP,NR,NSA) )**2 &
+!                  IF(NRANK.EQ.0) WRITE(6,'(A,4I5,1P4E12.4)') &
+!                       'NSA,NR,NP,NTH,FNSP,FNS0,DIFF,RSUMF=', &
+!                       NSA,NR,NP,NTH,FNSP(NTH,NP,NR,NSA),FNS0(NTH,NP,NR,NSA),&
+!                       FNSP(NTH,NP,NR,NSA)-FNS0(NTH,NP,NR,NSA),RSUMF(NSA)
+                  RSUMF(NSA)=(FNSP(NTH,NP,NR,NSA)-FNS0(NTH,NP,NR,NSA) )**2 &
                        + RSUMF(NSA)
-                  RSUMF0(NSA)=ABS(FNSP(NTH,NP,NR,NSA))**2 + RSUMF0(NSA)
+                  RSUMF0(NSA)=(FNSP(NTH,NP,NR,NSA))**2 + RSUMF0(NSA)
                ENDDO
             ENDDO
          ENDDO

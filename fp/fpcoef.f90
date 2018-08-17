@@ -267,6 +267,7 @@
 
       SUBROUTINE FP_CALS
 
+      USE fpsub
       USE fpnfrr
       IMPLICIT NONE
       integer:: NSA, NSB, NR, NTH, NP, NS, ID
@@ -443,197 +444,6 @@
       RETURN
       END SUBROUTINE FP_CALS
 
-! ****************************************
-!     MAXWELLIAN VELOCITY DISTRIBUTION
-! ****************************************
-
-      FUNCTION FPMXWL(PML,NR,NS)
-
-      USE plprof
-      implicit none
-      integer :: NR, NS
-      real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
-      real(kind8) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
-      TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
-      real(kind8):: FPMXWL
-
-      AMFDL=PA(NS)*AMP
-      AEFDL=PZ(NS)*AEE
-      RNFD0L=PN(NS)
-      RTFD0L=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
-      PTFD0L=SQRT(RTFD0L*1.D3*AEE*AMFDL)
-
-      IF(NR.eq.0)THEN
-         RL=0.D0
-         RHON=ABS(RL)
-      ELSEIF(NR.EQ.NRMAX+1) THEN
-         RL=RM(NRMAX)+DELR
-         RHON=MIN(RL,1.D0)
-      ELSE
-         RL=RM(NR)
-         RHON=RL
-      ENDIF
-      IF(MODEL_EX_READ_Tn.eq.0)THEN
-         CALL PL_PROF(RHON,PLF)
-         RNFDL=PLF(NS)%RN/RNFD0L
-         RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
-      ELSEIF(MODEL_EX_READ_Tn.ne.0)THEN
-         IF(NR.eq.0)THEN
-            RNFDL=RN_TEMP(1,NS)/RNFD0L
-            RTFDL=RT_TEMP(1,NS)
-         ELSEIF(NR.eq.NRMAX+1)THEN
-            RNFDL=RNE_EXP_EDGE/RNFD0L
-            RTFDL=RTE_EXP_EDGE
-         ELSE
-            RNFDL=RN_TEMP(NR,NS)/RNFD0L
-            RTFDL=RT_TEMP(NR,NS)
-         END IF
-      END IF
-
-      IF(MODELR.EQ.0) THEN
-         FACT=RNFDL/SQRT(2.D0*PI*RTFDL/RTFD0L)**3
-         EX=PML**2/(2.D0*RTFDL/RTFD0L)
-         FPMXWL=FACT*EXP(-EX)
-      ELSE
-         THETA0L=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)
-         THETAL=THETA0L*RTFDL/RTFD0L
-         Z=1.D0/THETAL
-         DKBSL=BESEKN(2,Z)
-!         WRITE(*,'(A,2I5,4E14.6)') "TEST MXWL ", NR, NS, PML, Z, THETAL, DKBSL
-         FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DKBSL) &
-              *RTFD0L
-         EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
-         FPMXWL=FACT*EXP(EX)
-      END IF
-
-      RETURN
-      END FUNCTION FPMXWL
-!-------------------------------------------------------------
-      FUNCTION FPMXWL_S(PML,NR,NS)
-
-      USE plprof
-      implicit none
-      integer :: NR, NS
-      real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
-      real(kind8) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
-      TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
-      real(kind8):: FPMXWL_S
-
-      AMFDL=PA(NS)*AMP
-      AEFDL=PZ(NS)*AEE
-      RNFD0L=PN(NS)
-      RTFD0L=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
-      PTFD0L=SQRT(RTFD0L*1.D3*AEE*AMFDL)
-
-      IF(MODEL_EX_READ_Tn.eq.0)THEN
-         CALL PL_PROF(RHON,PLF)
-         RNFDL=PNS(NS)/RNFD0L*1.D-1
-         RTFDL=PTS(NS)*1.D-2
-      ELSEIF(MODEL_EX_READ_Tn.ne.0)THEN
-         RNFDL=RNE_EXP_EDGE/RNFD0L*1.D-1
-         RTFDL=RTE_EXP_EDGE*1.D-1
-      END IF
-
-
-      IF(MODELR.EQ.0) THEN
-         FACT=RNFDL/SQRT(2.D0*PI*RTFDL/RTFD0L)**3
-         EX=PML**2/(2.D0*RTFDL/RTFD0L)
-         IF(EX.GT.100.D0) THEN
-            FPMXWL_S=0.D0
-         ELSE
-            FPMXWL_S=FACT*EXP(-EX)
-         ENDIF
-      ELSE
-         THETA0L=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)
-         THETAL=THETA0L*RTFDL/RTFD0L
-         Z=1.D0/THETAL
-         DKBSL=BESEKN(2,Z)
-         FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DKBSL) &
-              *RTFD0L
-         EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
-         FPMXWL_S=FACT*EXP(EX)
-      END IF
-
-      RETURN
-      END FUNCTION FPMXWL_S
-!-------------------------------------------------------------
-
-      SUBROUTINE FPMXWL_EDGE(NP,NSA,FL)
-
-      implicit none
-!      integer,intent(in):: NP, NSA
-      integer:: NP, NSA
-      integer:: NS
-      real(kind8):: FL1, FL2
-!      real(kind8),intent(out):: FL
-      real(kind8):: FL
-
-      NS=NS_NSA(NSA)
-
-!      FL1=FPMXWL_S(PM(NP,NS),NRMAX,NS) ! at RM(NRMAX)
-!      FL2=FPMXWL_S(PM(NP,NS),NRMAX+1,NS) ! at RG(NRMAX+1)
-
-!     F at R=1.0+DELR/2
-!      FL=FL2*1.D-1
-
-      FL=FPMXWL_S(PM(NP,NS),NRMAX,NS) 
-
-      RETURN
-      END SUBROUTINE FPMXWL_EDGE
-!-------------------------------------------------------------
-      FUNCTION FPMXWL_LT(PML,NR,NS)
-
-      USE plprof
-      implicit none
-      integer :: NR, NS
-      real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
-      real(kind8) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
-      TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
-      real(kind8):: FPMXWL_LT
-
-      AMFDL=PA(NS)*AMP
-      AEFDL=PZ(NS)*AEE
-      RNFD0L=PN(NS)
-      RTFD0L=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
-      PTFD0L=SQRT(RTFD0L*1.D3*AEE*AMFDL)
-
-      IF(NR.eq.0)THEN
-         RL=0.D0
-         RHON=ABS(RL)
-      ELSEIF(NR.EQ.NRMAX+1) THEN
-         RL=RM(NRMAX)+DELR
-         RHON=MIN(RL,1.D0)
-      ELSE
-         RL=RM(NR)
-         RHON=RL
-      ENDIF
-
-      CALL PL_PROF(RHON,PLF)
-      RNFDL=PLF(NS)%RN/RNFD0L
-!      RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
-      RTFDL=PTS(NS)*1.D-1
-
-      IF(MODELR.EQ.0) THEN
-         FACT=RNFDL/SQRT(2.D0*PI*RTFDL/RTFD0L)**3
-         EX=PML**2/(2.D0*RTFDL/RTFD0L)
-         IF(EX.GT.100.D0) THEN
-            FPMXWL_LT=0.D0
-         ELSE
-            FPMXWL_LT=FACT*EXP(-EX)
-         ENDIF
-      ELSE
-         THETA0L=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)
-         THETAL=THETA0L*RTFDL/RTFD0L
-         Z=1.D0/THETAL
-            DKBSL=BESEKN(2,Z)
-            FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DKBSL) &
-             *RTFD0L
-            EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
-            FPMXWL_LT=FACT*EXP(EX)
-      END IF
-
-      RETURN
-      END FUNCTION FPMXWL_LT
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       SUBROUTINE NBI_SOURCE_A1(NSA)
 
@@ -775,7 +585,8 @@
                         DO NR=1,NRMAX
                            SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
                            SUML=SUML &
-                                +SPL*VOLP(NTH,NP,NS)*VOLR(NR)*RLAMDAG(NTH,NR)*RFSADG(NR)
+                                +SPL*VOLP(NTH,NP,NS)*VOLR(NR) &
+                                *RLAMDAG(NTH,NR)*RFSADG(NR)
                         ENDDO
                      ENDIF
                   ENDDO
@@ -790,7 +601,7 @@
                         DO NR=NRSTART,NREND
                            SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
                            SPPB(NTH,NP,NR,NSA)=SPPB(NTH,NP,NR,NSA) &
-                                + SPBTOT(NBEAM)*SPL/SUML!*RLAMDAG(NTH,NR)!*RFSADG(NR)
+                          + SPBTOT(NBEAM)*SPL/SUML
                         ENDDO
                      ENDIF
                   ENDDO
@@ -811,7 +622,6 @@
                     /AMFP(NSABEAM))/PTFP0(NSA)
                ANGSP=PI*SPBANG(NBEAM)/180.D0
                SUML=0.D0
-!               DO NP=1,NPMAX-1
                DO NP=NPSTART,NPEND
                   IF(PG(NP,NS).LE.PSP.AND.PG(NP+1,NS).GT.PSP) THEN
                      DO NTH=1,NTHMAX
@@ -827,7 +637,6 @@
                ENDDO
                SUML=SUML*RNFP0(NSA)
                CALL p_theta_integration(SUML)
-!               DO NP=1,NPMAX-1
                DO NP=NPSTART,NPEND
                   IF(PG(NP,NS).LE.PSP.AND.PG(NP+1,NS).GT.PSP) THEN
                      DO NTH=1,NTHMAX
@@ -835,7 +644,7 @@
                            DO NR=NRSTART,NREND
                               SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
                               SPPB(NTH,NP,NR,NSA)=SPPB(NTH,NP,NR,NSA) &
-                                   +PZ(NSABEAM)*SPBTOT(NBEAM)*SPL/SUML!*RLAMDAG(NTH,NR)!*RFSADG(NR)
+                                   +PZ(NSABEAM)*SPBTOT(NBEAM)*SPL/SUML
                            ENDDO
                         ENDIF
                      ENDDO
@@ -1309,38 +1118,5 @@
 !      END DO
 
       END SUBROUTINE CX_LOSS_TERM
-!-------------------------------------------------------------
-      SUBROUTINE update_fnsb_maxwell
-
-      USE EG_READ
-      IMPLICIT NONE
-      INTEGER:: NS, NR, NP, NTH
-      double precision:: FL
-
-      IF(MODEL_EX_READ_Tn.eq.0)THEN
-         DO NS=1, NSMAX
-            DO NR=NRSTART,NREND
-               DO NP=NPSTART,NPEND
-                  FL=FPMXWL(PM(NP,NS),NR,NS)
-                  DO NTH=1,NTHMAX
-                     FNSB(NTH,NP,NR,NS)=FL
-                  END DO
-               ENDDO
-            END DO
-         END DO
-      ELSEIF(MODEL_EX_READ_Tn.eq.1)THEN
-         DO NS=1, NSMAX
-            DO NR=NRSTART,NREND
-               DO NP=NPSTART,NPEND
-                  FL=FPMXWL_EXP(PM(NP,NS),NR,NS)
-                  DO NTH=1,NTHMAX
-                     FNSB(NTH,NP,NR,NS)=FL
-                  END DO
-               ENDDO
-            END DO
-         END DO
-      END IF
-
-      END SUBROUTINE update_fnsb_maxwell
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       END MODULE fpcoef

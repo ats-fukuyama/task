@@ -60,12 +60,13 @@ C
       IF(NAMAX.EQ.0) GOTO 9000
       IF(NAMAX.LT.1.OR.NAMAX.GT.NAM) GOTO 1
 C
-      DO 100 NA=1,NAMAX
+      NA=1
+  100 CONTINUE
          JNUM0(NA)=0
 C
     2    WRITE(6,*) '## ANTENNA NUMBER = ',NA
          WRITE(6,*) '## TYPE:  C/CIRCLE  A/ARC  P/POINTS  ',
-     &              'H/Helical  X/EXIT'
+     &              'H/Helical  L/Helicon  X/EXIT'
          READ(5,'(A1)',ERR=2,END=1) KID
          CALL GUCPTL(KID)
 C
@@ -81,29 +82,31 @@ C
                YJ0(NJ,NA)=RD*SIN(THETA)*RKAP
    30       CONTINUE
             JNUM0(NA)=NJMAX
-            PHJ0(NA)=0.D0
+            RTJ0(1,NA)=0.D0
+            RTJ0(2,NA)=0.D0
             NTYPJ0(NA)=-1
 C
          ELSEIF(KID.EQ.'A') THEN
-    4       WRITE(6,603) THETJ1,THETJ2,RD,RKAP,NJMAX
-  603       FORMAT(1H ,'## THETJ1,THETJ2 = ',2F10.3/
+    4       WRITE(6,603) THJ1,THJ2,RD,RKAP,NJMAX
+  603       FORMAT(1H ,'## THJ1,THJ2 = ',2F10.3/
      &             1H ,'## RD,RKAP,NJMAX = ',2F10.3,I5)
-            READ(5,*,ERR=4,END=2) THETJ1,THETJ2,RD,RKAP,NJMAX
+            READ(5,*,ERR=4,END=2) THJ1,THJ2,RD,RKAP,NJMAX
 C
-            THETA=DEGN*THETJ1
+            THETA=DEGN*THJ1
             XJ0(1,NA)=1.5D0*RD*COS(THETA)
             YJ0(1,NA)=1.5D0*RD*SIN(THETA)*RKAP
-            DTHETA=(THETJ2-THETJ1)/(NJMAX-3)
+            THJ0(1,NA)=THJ1
+            THJ0(1,NA)=THJ2
+            DTHETA=(THJ2-THJ1)/(NJMAX-3)
             DO 40 NJ=2,NJMAX-1
-               THETA=DEGN*(DTHETA*(NJ-2)+THETJ1)
+               THETA=DEGN*(DTHETA*(NJ-2)+THJ1)
                XJ0(NJ,NA)=RD*COS(THETA)
                YJ0(NJ,NA)=RD*SIN(THETA)*RKAP
    40       CONTINUE
-            THETA=DEGN*THETJ2
+            THETA=DEGN*THJ2
             XJ0(NJMAX,NA)=1.5D0*RD*COS(THETA)
             YJ0(NJMAX,NA)=1.5D0*RD*SIN(THETA)*RKAP
             JNUM0(NA)=NJMAX
-            PHJ0(NA)=0.D0
             NTYPJ0(NA)=-1
 C
          ELSEIF(KID.EQ.'P') THEN
@@ -116,17 +119,18 @@ C
                YJ0(NJ,NA)=Y
    50       CONTINUE
             JNUM0(NA)=NJMAX
-            PHJ0(NA)=0.D0
             NTYPJ0(NA)=-1
 C
          ELSEIF(KID.EQ.'H') THEN
-    7       WRITE(6,604) ZJH1,ZJH2,RD,PHJH,NTYPJH
+    7       WRITE(6,604) ZJH1,ZJH2,RD,RTJ1,RTJ2,NTYPJH
   604       FORMAT(1H ,'## ZJH1,ZJH2 = ',2F10.3/
-     &             1H ,'## RD,PHJH,NTYPJH = ',2F10.3,I5)
-            READ(5,*,ERR=7,END=2) ZJH1,ZJH2,RD,PHJH,NTYPJH
+     &             1H ,'## RD,RTJ1,RTJ2,NTYPJH = ',3F10.3,I5)
+            READ(5,*,ERR=7,END=2) ZJH1,ZJH2,RD,RTJ1,RTJ2,NTYPJH
 C
             RDX=MAX(ABS(XDMIN),ABS(XDMAX))+0.01D0
 C
+            RTJ0(1,NA)=RTJ1
+            RTJ0(2,NA)=RTJ2
             IF(NTYPJH.EQ.0) THEN
                NJMAX=2
                XJ0(1,NA)=RD
@@ -167,9 +171,64 @@ C
                YJ0(2,NA)=ZJH2
             ENDIF
             JNUM0(NA)=NJMAX
-            PHJ0(NA)=PHJH
             NTYPJ0(NA)=NTYPJH
 C
+         ELSEIF(KID.EQ.'L') THEN
+    8       WRITE(6,605) ZJH1,ZJH2,ZJH3,ZJH4,RTJ1,RTJ2,RD
+  605       FORMAT(1H ,'## ZJH1,ZJH2,ZJH3,ZJH4 = ',4F10.3/
+     &             1H ,'## RTJ1,RTJ2,RD        = ',3F10.3)
+            READ(5,*,ERR=8,END=2) ZJH1,ZJH2,ZJH3,ZJH4,
+     &                            RTJ1,RTJ2,RD
+C
+            RDX=MAX(ABS(XDMIN),ABS(XDMAX))+0.01D0
+C
+            NTYPJH=11
+            NAMAX=4
+            DO NA=2,NAMAX
+               AJ(NA)=AJ(1)
+               APH(NA)=APH(1)
+            END DO
+
+            NA=1
+            JNUM0(NA)=1
+            XJ0(1,NA)=RD
+            YJ0(1,NA)=ZJH1
+            RTJ0(1,NA)=RTJ1
+            RTJ0(2,NA)=RTJ2
+            NTYPJ0(NA)=NTYPJH
+
+            NA=2
+            JNUM0(NA)=1
+            XJ0(1,NA)=RD
+            YJ0(1,NA)=ZJH2
+            RTJ0(1,NA)=RTJ1
+            RTJ0(2,NA)=RTJ2
+            NTYPJ0(NA)=NTYPJH
+
+            NA=3
+            JNUM0(NA)=2
+            XJ0(1,NA)=RD
+            YJ0(1,NA)=ZJH1
+            XJ0(2,NA)=RD
+            YJ0(2,NA)=ZJH2
+            RTJ0(1,NA)=RTJ1
+            RTJ0(2,NA)=RTJ2
+            NTYPJ0(NA)=NTYPJH
+
+            NA=4
+            JNUM0(NA)=4
+            XJ0(1,NA)=RDX
+            YJ0(1,NA)=ZJH3
+            XJ0(2,NA)=RD
+            YJ0(2,NA)=ZJH3
+            XJ0(3,NA)=RD
+            YJ0(3,NA)=ZJH4
+            XJ0(4,NA)=RDX
+            YJ0(4,NA)=ZJH4
+            RTJ0(1,NA)=RTJ1
+            RTJ0(2,NA)=RTJ2
+            NTYPJ0(NA)=NTYPJH
+
          ELSEIF(KID.EQ.'X') THEN
             GOTO 1
          ELSE
@@ -177,7 +236,9 @@ C
             GOTO 2
          ENDIF            
 C
-  100 CONTINUE
+         NA=NA+1
+         IF(NA.LE.NAMAX) GOTO 100
+
       CALL MODANT(IERR)
       IF(IERR.NE.0) GOTO 9000
 C

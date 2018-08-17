@@ -32,8 +32,8 @@ CONTAINS
          IF(nrank.EQ.0) THEN
             NR1=1
             NR2=NRMAX+1
-            write(18,'(A,1PE12.4/A)') 'T =',TIMEFP,&
-                     'NR,RS/QLM,SHEAR,PNEL,RHONI,DPDR,CHI_CDBM'
+!            write(18,'(A,1PE12.4/A)') 'T =',TIMEFP,&
+!                     'NR,RS/QLM,SHEAR,PNEL,RHONI,DPDR,CHI_CDBM'
          ELSE
             NR1=NRSTART
             NR2=NRENDWG
@@ -118,10 +118,10 @@ CONTAINS
 
             CALL CDBMFP(BB,RR,RA*RHON,RKAP,QLM(NR),SHEAR,PNEL,RHONI,DPDR, &
                       DVEXBDR,CALF,CKAP,CEXB,MODELD_CDBM,CHI_CDBM(NR))
-            IF(nrank.EQ.0) THEN
-               write(18,'(I2,1P7E11.3)'), &
-                 NR,RA*RHON,QLM(NR),SHEAR,PNEL,RHONI,DPDR,CHI_CDBM(NR)
-            END IF
+!            IF(nrank.EQ.0) THEN
+!               write(18,'(I2,1P7E11.3)') &
+!                 NR,RA*RHON,QLM(NR),SHEAR,PNEL,RHONI,DPDR,CHI_CDBM(NR)
+!            END IF
          END DO
       END IF
 

@@ -1,9 +1,3 @@
-MODULE w1fft
-  USE w1comm,ONLY: rkind
-  REAL(rkind),ALLOCATABLE,DIMENSION(:):: RFFT
-  INTEGER,ALLOCATABLE,DIMENSION(:):: LFFT
-END MODULE w1fft
-
 MODULE w1prep
 
 CONTAINS
@@ -16,15 +10,8 @@ CONTAINS
     INTEGER:: NXVH,NHM,NHM1,NXM,NXQ,NS,NXPMAX1,NSACM,NX,NX1,NX2,IERR,NZH,I
     REAL(rkind):: RW,FWC,WCH,WCL,XACM,DX,FVT,DXACM,WT,X,FACT,X1,DX1,DX2
 
-    NHARMM=30
-    MATLM=70
-    NDM=101
-
     NXTMAX=NXPMAX+2*NXVMAX
     NXVH=NXVMAX/2
-    NCLM=140*NXPMAX
-    NHM=2*NHARMM+1
-    NHM1=NHARMM+1
     NXM=NXPMAX*6+10
     NXQ=NXPMAX+1
 
@@ -105,7 +92,6 @@ CONTAINS
 
     USE w1comm
     IMPLICIT NONE
-    INTEGER,INTENT(OUT):: IERR
     INTEGER:: NZH,NZ
     REAL(rkind):: AKZ0
 
@@ -151,31 +137,53 @@ CONTAINS
     END DO
 
     IF(NZPMAX.EQ.1) THEN
-       NZANT1(1)=1
-       CJ1(1)   =AJYH(1)/DZ
-       NZANT2(1)=1
-       CJ2(1)   =AJYL(1)/DZ
-       CJ3(1)   =AJZH(1)
-       CJ4(1)   =AJZL(1)
+       PHASE            = APHH(1)*PI/180.D0
+       CPHASE           = DCMPLX( DCOS( PHASE ) , DSIN( PHASE ) )
+       NZANTYH(1)=1
+       CJ1(1)=AJYH(1)/DZ*CPHASE 
+       NZANTZH(1)=1
+       NZANTLH(1)=1
+       CJ3(1)=AJZH(1)
+
+       PHASE            = APHL(1)*PI/180.D0
+       CPHASE           = DCMPLX( DCOS( PHASE ) , DSIN( PHASE ) )
+       NZANTYL(1)=1
+       CJ2(1)=AJYL(1)/DZ*CPHASE 
+       NZANTZL(1)=1
+       NZANTLL(1)=1
+       CJ4(1)=AJZL(1)
     ELSE
        DO NA = 1 , NAMAX
-          ANTPOS            = RZ*ALYH(NA)/360.D0 + (RZ + DZ)*.5D0
-          NZANT1(NA)        = INT( ANTPOS/DZ ) + 1
-          PHASE             = APYH(NA)*PI/180.D0
-          CPHASE            = DCMPLX( DCOS( PHASE ) , DSIN( PHASE ) )
-          CJ1( NZANT1(NA) ) = AJYH( NA ) / DZ * CPHASE &
-                            + CJ1( NZANT1(NA) )
-          CJ3( NZANT1(NA) ) = AJZH( NA ) * CPHASE &
-                            + CJ3( NZANT1(NA) )
+          PHASE            = APHH(NA)*PI/180.D0
+          CPHASE           = DCMPLX( DCOS( PHASE ) , DSIN( PHASE ) )
+          ANTPOS           = RZ*APYH(NA)/360.D0
+          NZANTYH(NA)      = NINT( ANTPOS/DZ ) + 1
+          CJ1(NZANTYH(NA)) = CJ1( NZANTYH(NA) ) &
+                           + AJYH( NA ) / DZ * CPHASE
+          ANTPOS           = RZ*APZH(NA)/360.D0
+          NZANTZH(NA)      = NINT( ANTPOS/DZ ) + 1
+          ANTPOS           = RZ*(APZH(NA)+ALZH(NA))/360.D0
+          NZANTLH(NA)      = NINT( ANTPOS/DZ ) + 1
+          DO NZ=NZANTZH(NA),NZANTLH(NA)
+             CJ3(NZ) = CJ3(NZ)+AJZH( NA ) / DZ * CPHASE
+          END DO
 
-          ANTPOS            = RZ*ALYL(NA)/360.D0 + (RZ + DZ)*.5D0
-          NZANT2(NA)        = INT( ANTPOS/DZ ) + 1
-          PHASE             = APYL(NA)*PI/180.D0
-          CPHASE            = DCMPLX( DCOS( PHASE ) , DSIN( PHASE ) )
-          CJ2( NZANT2(NA) ) = AJYL( NA ) / DZ * CPHASE &
-                            + CJ2( NZANT2(NA) )
-          CJ4( NZANT2(NA) ) = AJZL( NA ) * CPHASE &
-                            + CJ4( NZANT2(NA) )
+          PHASE            = APHL(NA)*PI/180.D0
+          CPHASE           = DCMPLX( DCOS( PHASE ) , DSIN( PHASE ) )
+          ANTPOS           = RZ*APYL(NA)/360.D0
+          NZANTYL(NA)      = NINT( ANTPOS/DZ ) + 1
+          CJ2(NZANTYL(NA)) = CJ2( NZANTYL(NA) ) &
+                           + AJYL( NA ) / DZ * CPHASE
+          ANTPOS           = RZ*APZL(NA)/360.D0
+          NZANTZL(NA)      = NINT( ANTPOS/DZ ) + 1
+          ANTPOS           = RZ*(APZL(NA)+ALZL(NA))/360.D0
+          NZANTLL(NA)      = NINT( ANTPOS/DZ ) + 1
+          DO NZ=NZANTZL(NA),NZANTLL(NA)
+             CJ4(NZ) = CJ4(NZ)+AJZL( NA ) / DZ * CPHASE
+          END DO
+          write(6,'(A,7I5)') 'NZANT:',NA,NZANTYL(NA),NZANTYH(NA), &
+                                         NZANTZL(NA),NZANTZH(NA), &
+                                         NZANTLL(NA),NZANTLH(NA)
        END DO
     END IF
 
@@ -184,51 +192,34 @@ CONTAINS
 
 !     ****** INTERFACE FOR FFT ******
 
-  SUBROUTINE W1FFTL(CA,N,KEY)
-
-    USE w1comm
-    USE w1fft
+  SUBROUTINE W1FFTL(CAF,N,KEY)
+    USE libfft
+    USE w1comm,ONLY: rkind
     IMPLICIT NONE
 
-    COMPLEX(rkind),INTENT(INOUT):: CA(N)
+    COMPLEX(rkind),INTENT(INOUT):: CAF(N)
+    COMPLEX(rkind),DIMENSION(:),ALLOCATABLE:: CBF
     INTEGER,INTENT(IN):: N,KEY
-    INTEGER:: IND,I
-    INTEGER,SAVE:: NS=0
-    COMPLEX(rkind),DIMENSION(:),ALLOCATABLE:: CT
 
-    IF(N.LT.0) THEN
-       WRITE(6,*) 'XX W1FFTL: N is negative: N=',N
-       STOP
-    END IF
-    IF(N.EQ.1) RETURN
+    ALLOCATE(CBF(N))
+    CALL CFFT1D(CAF,CBF,N,KEY)
+    CAF(1:N)=CBF(1:N)
+    DEALLOCATE(CBF)
 
-    IF(N.EQ.NS) THEN
-       IND=0
-    ELSE
-       IND=1
-       IF(NS.NE.0) DEALLOCATE(RFFT,LFFT)
-       ALLOCATE(RFFT(N),LFFT(N))
-       NS=N
-    ENDIF
-    ALLOCATE(CT(N))
-    DO I=1,N
-       CT(I)=CA(I)
-    END DO
-    CALL FFT2L(CT,CA,RFFT,LFFT,N,IND,KEY)
-    DEALLOCATE(CT)
     RETURN
   END SUBROUTINE W1FFTL
 
 !     ****** SUBSTITUTION BY VIRUE OF SYMMETRY IN Z-DIRECTION ******
 
-  SUBROUTINE W1SYMS(NZ,NSYM)
+  SUBROUTINE W1SYMS(NZ)
 
     USE w1comm
     IMPLICIT NONE
-    INTEGER:: NZ,NSYM  
+    INTEGER:: NZ 
     INTEGER:: NZ0,NX
+    INTEGER:: NS
 
-    NZ0 = NZP +2 -NZ
+    NZ0 = NZPMAX +2 -NZ
 
     IF(NSYM.EQ.1) THEN
        DO NX = 1, NXTMAX

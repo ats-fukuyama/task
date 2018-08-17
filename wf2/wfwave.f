@@ -137,9 +137,9 @@ C
 C
       IF(NZMAX.EQ.1) THEN
          RKZF(1)=RKZ
-         DO 10 IA=1,NAMAX
-            PHASE =APH(IA)*PI/180.D0
-            CAJF(1,IA)=AJ(IA)*CDEXP(DCMPLX(0.D0,PHASE))
+         DO 10 NA=1,NAMAX
+            PHASE =APH(NA)*PI/180.D0
+            CAJF(1,NA)=AJ(NA)*CDEXP(DCMPLX(0.D0,PHASE))
    10    CONTINUE
       ELSE
          LP=INT(LOG(DBLE(NZMAX))/ALOG2 + 0.001D0)
@@ -154,14 +154,14 @@ C
             RKZF(NZMAX-NZ+1)=-DKZ*NZ
    20    CONTINUE
 C
-         DO 40 IA=1,NAMAX
+         DO 40 NA=1,NAMAX
             DO 30 NZ=1,NZMAX
                CJ(NZ)=(0.D0,0.D0)
    30       CONTINUE
-            NZ    =INT(APOS(IA)*PI/(180.D0*DZ)) + 1
-            PHASE =APH(IA)*PI/180.D0
-            CJ(NZ)=AJ(IA)*CDEXP(DCMPLX(0.D0,PHASE))/DZ
-            CALL FFT2L(CJ,CAJF(1,IA),RFFT,LIST,NZMAX,IFFT,1)
+            NZ    =INT(APOS(NA)*PI/(180.D0*DZ)) + 1
+            PHASE =APH(NA)*PI/180.D0
+            CJ(NZ)=AJ(NA)*CDEXP(DCMPLX(0.D0,PHASE))/DZ
+            CALL FFT2L(CJ,CAJF(1,NA),RFFT,LIST,NZMAX,IFFT,1)
    40    CONTINUE
       ENDIF
 C
@@ -706,12 +706,15 @@ C
             ZJH1=YJ0(2,NA)
             ZJH2=YJ0(3,NA)
          END SELECT
-         IF(NTYPJ0(NA).GE.0.OR.JNUM0(NA).EQ.2) THEN
+         IF(NTYPJ0(NA).EQ.11) THEN
+            IJMAX=JNUM(NA)
+         ELSEIF(NTYPJ0(NA).GE.0.OR.JNUM0(NA).EQ.2) THEN
             IJMAX=JNUM(NA)+1
          ELSE
             IJMAX=JNUM(NA)
          ENDIF
          DO 20 IJ=1,IJMAX
+            IF(NTYPJ0(NA).LE.10) THEN
             IF(JNUM0(NA).EQ.1) THEN
                XM=XJ(1,NA)
                YM=YJ(1,NA)
@@ -755,7 +758,6 @@ C
                   CJ(3)=0.D0
                ENDIF
             ELSEIF(NTYPJ0(NA).GE.0.AND.NTYPJ0(NA).LE.9) THEN
-               PHL=PHJ0(NA)*PI/180.D0
                IF(IJ.EQ.1) THEN
                   XM=XJ(IJ,NA)
                   YM=YJ(IJ,NA)
@@ -770,7 +772,7 @@ C
                   YM=YJ(IJ-1,NA)
                   IE=JAELM(IJ-1,NA)
                   CALL WFABC(IE,A,B,C,S)
-                  CVJ=-CNST*CAJ(NA)*CI*XM/NPHI*EXP(CI*PHL)
+                  CVJ=-CNST*CAJ(NA)*CI*XM/NPHI
                   CJ(1)=(0.D0,0.D0)
                   CJ(2)=(0.D0,0.D0)
                   CJ(3)=CVJ
@@ -783,14 +785,17 @@ C
                   CALL WFABC(IE,A,B,C,S)
                   XM=0.5D0*(X1+X2)
                   YM=0.5D0*(Y1+Y2)
-                  CVJ=CNST*CAJ(NA)*EXP(CI*PHL*(YM-ZJH1)/(ZJH2-ZJH1))
+                  RTJ1=RTJ0(1,NA)*PI/180.D0
+                  RTJ2=RTJ0(2,NA)*PI/180.D0
+                  PHL=RTJ2-RTJ1
+                  CVJ=CNST*CAJ(NA)
+     &                    *EXP(CI*(PHL*(YM-ZJH1)/(ZJH2-ZJH1)+RTJ1))
                   CJ(1)=CVJ*(X2-X1)
                   CJ(2)=CVJ*(Y2-Y1)
                   CJ(3)=-CVJ*PHL*XM/((ZJH2-ZJH1)*NPHI)*(Y2-Y1)
                ENDIF
 C               WRITE(6,'(A,I3,1P6E12.4)') 'CV=',IJ,(CJ(I),I=1,3)
-            ELSEIF(NTYPJ0(NA).GE.10) THEN
-               PHL=PHJ0(NA)*PI/180.D0
+            ELSEIF(NTYPJ0(NA).EQ.10) THEN
                IF(IJ.EQ.1) THEN
                   XM=XJ(IJ,NA)
                   YM=YJ(IJ,NA)
@@ -805,7 +810,7 @@ C               WRITE(6,'(A,I3,1P6E12.4)') 'CV=',IJ,(CJ(I),I=1,3)
                   YM=YJ(IJ-1,NA)
                   IE=JAELM(IJ-1,NA)
                   CALL WFABC(IE,A,B,C,S)
-                  CVJ=-CNST*CAJ(NA)*CI*RD*EXP(-CI*NPHI*PHL)/(PI*NPHI)
+                  CVJ=-CNST*CAJ(NA)*CI*RD/(PI*NPHI)
                   CJ(1)=(0.D0,0.D0)
                   CJ(2)=(0.D0,0.D0)
                   CJ(3)=CVJ
@@ -814,40 +819,21 @@ C               WRITE(6,'(A,I3,1P6E12.4)') 'CV=',IJ,(CJ(I),I=1,3)
                   Y1=YJ(IJ-1,NA)
                   X2=XJ(IJ,NA)
                   Y2=YJ(IJ,NA)
-C                  IF(IJ.EQ.2) THEN
-C                     XM=X1
-C                     YM=Y1
-C                  ELSEIF(IJ.EQ.IJMAX-1) THEN
-C                     XM=X2
-C                     YM=Y2
-C                  ELSE
-                     XM=0.5D0*(X1+X2)
-                     YM=0.5D0*(Y1+Y2)
-C                  END IF
+                  XM=0.5D0*(X1+X2)
+                  YM=0.5D0*(Y1+Y2)
+
                   CALL WFFEP(XM,YM,IE)
                   CALL WFABC(IE,A,B,C,S)
 C
-                  PHIL=PHL*(YM-ZJH1)/(ZJH2-ZJH1)
+                  RTJ1=RTJ0(1,NA)*PI/180.D0
+                  RTJ2=RTJ0(2,NA)*PI/180.D0
+                  PHL=RTJ2-RTJ1
+                  PHIL=PHL*(YM-ZJH1)/(ZJH2-ZJH1)+RTJ1
                   CVJ=CNST*CAJ(NA)*EXP(-CI*NPHI*PHIL)*(Y2-Y1)/(PI)
 C
                   FACTZ=1.D0
                   FACTPH=RD*PHL/(ZJH2-ZJH1)
-C                  FACTZ =(ZJH2-ZJH1)/SQRT((ZJH2-ZJH1)**2
-C     &                                   +(RD*PHL)**2)
-C                  FACTPH=RD*PHL/SQRT((ZJH2-ZJH1)**2
-C     &                                   +(RD*PHL)**2)
 C
-C                  IF(PHL.EQ.0.D0) THEN
-C                     CVJ=CNST*CAJ(NA)*(Y2-Y1)/PI
-C                  ELSE
-C                     FACTOR=PHL/(ZJH2-ZJH1)
-C                     PHIL1=FACTOR*(Y1-ZJH1)
-C                     PHIL2=FACTOR*(Y2-ZJH1)
-C                     CVJ=CNST*CAJ(NA)/PI
-C     &                       *(EXP(-CI*NPHI*PHIL2)-EXP(-CI*NPHI*PHIL1))
-C     &                       /(-CI*NPHI*FACTOR)
-C                  END IF
-C     
                   CJ(1)=0.D0
                   CJ(2)=CVJ*FACTZ
                   CJ(3)=CVJ*FACTPH
@@ -868,6 +854,72 @@ C               WRITE(6,'(A,I3,1P6E12.4)') 'CV=',IJ,(CJ(I),I=1,3)
                CJ(2)=CVJ*(Y2-Y1)
                CJ(3)=(0.D0,0.D0)
             ENDIF
+         ELSEIF(NTYPJ0(NA).EQ.11) THEN
+            SELECT CASE(NA)
+            CASE(1,2)
+               XM=XJ(1,NA)
+               YM=YJ(1,NA)
+               IE=JAELM(1,NA)
+               CALL WFABC(IE,A,B,C,S)
+               IF(MOD(NPHI,2).EQ.0) THEN
+                  CVJ=(0.D0,0.D0)
+               ELSE
+                  IF(NA.EQ.1) THEN
+                     CFACT= EXP(CI*NPHI*RTJ0(1,NA)*PI/180.D00)
+                  ELSE
+                     CFACT=-EXP(CI*NPHI*RTJ0(2,NA)*PI/180.D00)
+                  END IF
+                  CVJ=-CI*CNST*CFACT*CAJ(1)/(PI*NPHI)
+               END IF
+               CJ(1)=(0.D0,0.D0)
+               CJ(2)=(0.D0,0.D0)
+               CJ(3)=CVJ
+            CASE(3)
+               IF(IJ.EQ.1) GO TO 20
+               X1=XJ(IJ-1,NA)
+               Y1=YJ(IJ-1,NA)
+               X2=XJ(IJ,NA)
+               Y2=YJ(IJ,NA)
+               IE=JAELM(IJ,NA)
+               CALL WFABC(IE,A,B,C,S)
+               XM=0.5D0*(X1+X2)
+               YM=0.5D0*(Y1+Y2)
+               ARG=(RTJ0(2,NA)-RTJ0(1,NA))*(YM-YJ0(1,NA))
+     &                                    /(YJ0(2,NA)-YJ0(1,NA))
+     &            +RTJ0(1,NA)
+               CFACT=EXP(CI*NPHI*ARG*PI/180.D00)
+               FACTOR=XJ0(1,NA)*(RTJ0(2,NA)-RTJ0(1,NA))*PI/180.D0
+     &                  /(YJ0(2,NA)-YJ0(1,NA))
+               IF(MOD(NPHI,2).EQ.0) THEN
+                  CVJ=0.D0
+               ELSE
+                  CVJ=-2.D0*CNST*CFACT*CAJ(1)
+               END IF
+               CJ(1)= (0.D0,0.D0)
+               CJ(2)= CVJ*(Y2-Y1)
+               CJ(3)= CVJ*FACTOR*(Y2-Y1)
+            CASE(4)
+               IF(IJ.EQ.1) GO TO 20
+               X1=XJ(IJ-1,NA)
+               Y1=YJ(IJ-1,NA)
+               X2=XJ(IJ,NA)
+               Y2=YJ(IJ,NA)
+               IE=JAELM(IJ,NA)
+               CALL WFABC(IE,A,B,C,S)
+               XM=0.5D0*(X1+X2)
+               YM=0.5D0*(Y1+Y2)
+               ARG=(RTJ0(2,NA)-RTJ0(1,NA))*(YM-YJ0(1,3))
+     &                                    /(YJ0(2,3)-YJ0(1,3))
+     &            +RTJ0(1,NA)
+               CFACT=EXP(CI*NPHI*ARG*PI/180.D00)
+               FACTOR=XJ0(1,NA)*(RTJ0(2,NA)-RTJ0(1,NA))*PI/180.D0
+     &                   /(YJ0(2,3)-YJ0(1,3))
+               CVJ=CNST*CFACT*CAJ(1)
+               CJ(1)= CVJ*(X2-X1)
+               CJ(2)= CVJ*(Y2-Y1)
+               CJ(3)= CVJ*FACTOR*(Y2-Y1)
+            END SELECT
+            END IF
 C
             IF(MODELS.EQ.1) THEN
                RL=2.D0*PI*XM
@@ -1042,8 +1094,8 @@ C
       LCO=ABS(LHED(LPIVCO))
 C_MSP IF(ABS(CPIVOT).LT.1.D-15) WRITE(6,601)
       IF(CDABS(CPIVOT).LT.1.D-15) THEN 
-         WRITE(6,601) NELL
-         WRITE(6,*) CPIVOT
+         WRITE(6,601) NELL,CPIVOT
+         GO TO 9000
       ENDIF
       DO 100 L=1,LCOL
          CQQ(L)=CEQ(LPIVCO,L)/CPIVOT
@@ -1107,8 +1159,10 @@ C
       IF(LCOL.GT.1) GOTO 2000
       LCO=ABS(LHED(1))
       CPIVOT=CEQ(1,1)
-C_MSP IF(ABS(CPIVOT).LT.1.D-15) WRITE(6,601)
-      IF(CDABS(CPIVOT).LT.1.D-15) WRITE(6,601)
+      IF(CDABS(CPIVOT).LT.1.D-15) THEN
+         WRITE(6,601) NELL,CPIVOT
+         GOTO 9000
+      END IF
       CSV(LCO)=CRV(LCO)/CPIVOT
       IF(NZ.EQ.1.AND.IBUFF.NE.0) WRITE(6,*) '## BUFFER MAX = ',IBUFF
 C
@@ -1135,7 +1189,7 @@ C
       RETURN
 C
   601 FORMAT(1H ,'## FRONT WARNING : SINGULAR OR ILL CONDITIONED'/
-     &       1H ,'       AT NELL = ',I5)
+     &       1H ,'       AT NELL = ',I5,'  CPIVOT=',1P2E12.4)
   602 FORMAT(1H ,'## FRONT ERROR : ERR =',I5/
      &       1H ,'       LCOL EXCEEDS NMAX')
       END
@@ -1489,6 +1543,8 @@ C
       DIMENSION CJ(3),CE(3),CIMPK(NAM)
       REAL*8 A(3),B(3),C(3)
 C
+      CNST=1.D0
+C
       DO 100 NA=1,NAMAX
          SELECT CASE(NTYPJ0(NA))
          CASE(0,2,10)
@@ -1500,13 +1556,16 @@ C
             ZJH1=YJ0(2,NA)
             ZJH2=YJ0(3,NA)
          END SELECT
-         IF(NTYPJ0(NA).NE.0.OR.JNUM0(NA).EQ.2) THEN
+         IF(NTYPJ0(NA).EQ.11) THEN
+            IJMAX=JNUM(NA)
+         ELSEIF(NTYPJ0(NA).NE.0.OR.JNUM0(NA).EQ.2) THEN
             IJMAX=JNUM(NA)+1
          ELSE
             IJMAX=JNUM(NA)
          ENDIF
          CIMPK(NA)=0.D0
          DO 50 IJ=1,IJMAX
+            IF(NTYPJ0(NA).LE.10) THEN
             IF(JNUM(NA).EQ.1) THEN
                XM=XJ(1,NA)
                YM=YJ(1,NA)
@@ -1550,7 +1609,6 @@ C
                   CJ(3)=0.D0
                ENDIF
             ELSEIF(NTYPJ0(NA).GE.0.AND.NTYPJ0(NA).LE.9) THEN
-               PHL=PHJ0(NA)*PI/180.D0
                IF(IJ.EQ.1) THEN
                   XM=XJ(IJ,NA)
                   YM=YJ(IJ,NA)
@@ -1565,7 +1623,7 @@ C
                   YM=YJ(IJ-1,NA)
                   IE=JAELM(IJ-1,NA)
                   CALL WFABC(IE,A,B,C,S)
-                  CVJ=-CAJ(NA)*CI*XM/NPHI*EXP(CI*PHL)
+                  CVJ=-CAJ(NA)*CI*XM/NPHI
                   CJ(1)=(0.D0,0.D0)
                   CJ(2)=(0.D0,0.D0)
                   CJ(3)=CVJ
@@ -1578,14 +1636,16 @@ C
                   CALL WFABC(IE,A,B,C,S)
                   XM=0.5D0*(X1+X2)
                   YM=0.5D0*(Y1+Y2)
-                  CVJ=CAJ(NA)*EXP(CI*PHL*(YM-ZJH1)/(ZJH2-ZJH1))
+                  RTJ1=RTJ0(1,NA)*PI/180.D0
+                  RTJ2=RTJ0(2,NA)*PI/180.D0
+                  PHL=RTJ2-RTJ1
+                  CVJ=CAJ(NA)*EXP(CI*(PHL*(YM-ZJH1)/(ZJH2-ZJH1)+RTJ1))
                   CJ(1)=CVJ*(X2-X1)
                   CJ(2)=CVJ*(Y2-Y1)
                   CJ(3)=-CVJ*PHL*XM/((ZJH2-ZJH1)*NPHI)*(Y2-Y1)
                ENDIF
 C               WRITE(6,'(A,I3,1P6E12.4)') 'CV=',IJ,(CJ(I),I=1,3)
             ELSEIF(NTYPJ0(NA).GE.10) THEN
-               PHL=PHJ0(NA)*PI/180.D0
                IF(IJ.EQ.1) THEN
                   XM=XJ(IJ,NA)
                   YM=YJ(IJ,NA)
@@ -1622,7 +1682,10 @@ C                  END IF
                   CALL WFFEP(XM,YM,IE)
                   CALL WFABC(IE,A,B,C,S)
 C
-                  PHIL=PHL*(YM-ZJH1)/(ZJH2-ZJH1)
+                  RTJ1=RTJ0(1,NA)*PI/180.D0
+                  RTJ2=RTJ0(2,NA)*PI/180.D0
+                  PHL=RTJ2-RTJ1
+                  PHIL=PHL*(YM-ZJH1)/(ZJH2-ZJH1)+RTJ1
                   CVJ=CAJ(NA)*EXP(-CI*NPHI*PHIL)*(Y2-Y1)/(PI)
 C
                   FACTZ=1.D0
@@ -1633,12 +1696,12 @@ C                  FACTPH=RD*PHL/SQRT((ZJH2-ZJH1)**2
 C     &                                   +(RD*PHL)**2)
 C
 C                  IF(PHL.EQ.0.D0) THEN
-C                     CVJ=CNST*CAJ(NA)*(Y2-Y1)/PI
+C                     CVJ=CAJ(NA)*(Y2-Y1)/PI
 C                  ELSE
 C                     FACTOR=PHL/(ZJH2-ZJH1)
 C                     PHIL1=FACTOR*(Y1-ZJH1)
 C                     PHIL2=FACTOR*(Y2-ZJH1)
-C                     CVJ=CNST*CAJ(NA)/PI
+C                     CVJ=CAJ(NA)/PI
 C     &                       *(EXP(-CI*NPHI*PHIL2)-EXP(-CI*NPHI*PHIL1))
 C     &                       /(-CI*NPHI*FACTOR)
 C                  END IF
@@ -1662,6 +1725,72 @@ C               WRITE(6,'(A,I3,1P6E12.4)') 'CV=',IJ,(CJ(I),I=1,3)
                CJ(1)=CVJ*(X2-X1)
                CJ(2)=CVJ*(Y2-Y1)
                CJ(3)=(0.D0,0.D0)
+            END IF
+         ELSEIF(NTYPJ0(NA).EQ.11) THEN
+            SELECT CASE(NA)
+            CASE(1,2)
+               XM=XJ(1,NA)
+               YM=YJ(1,NA)
+               IE=JAELM(1,NA)
+               CALL WFABC(IE,A,B,C,S)
+               IF(MOD(NPHI,2).EQ.0) THEN
+                  CVJ=(0.D0,0.D0)
+               ELSE
+                  IF(NA.EQ.1) THEN
+                     CFACT= EXP(CI*NPHI*RTJ0(1,NA)*PI/180.D00)
+                  ELSE
+                     CFACT=-EXP(CI*NPHI*RTJ0(2,NA)*PI/180.D00)
+                  END IF
+                  CVJ=-CI*CNST*CFACT*CAJ(1)/(PI*NPHI)
+               END IF
+               CJ(1)=(0.D0,0.D0)
+               CJ(2)=(0.D0,0.D0)
+               CJ(3)=CVJ
+            CASE(3)
+               IF(IJ.EQ.1) GO TO 50
+               X1=XJ(IJ-1,NA)
+               Y1=YJ(IJ-1,NA)
+               X2=XJ(IJ,NA)
+               Y2=YJ(IJ,NA)
+               IE=JAELM(IJ,NA)
+               CALL WFABC(IE,A,B,C,S)
+               XM=0.5D0*(X1+X2)
+               YM=0.5D0*(Y1+Y2)
+               ARG=(RTJ0(2,NA)-RTJ0(1,NA))*(YM-YJ0(1,NA))
+     &                                    /(YJ0(2,NA)-YJ0(1,NA))
+     &            +RTJ0(1,NA)
+               CFACT=EXP(CI*NPHI*ARG*PI/180.D00)
+               FACTOR=XJ0(1,NA)*(RTJ0(2,NA)-RTJ0(1,NA))*PI/180.D0
+     &                  /(YJ0(2,NA)-YJ0(1,NA))
+               IF(MOD(NPHI,2).EQ.0) THEN
+                  CVJ=0.D0
+               ELSE
+                  CVJ=-2.D0*CNST*CAJ(1)*CFACT
+               END IF
+               CJ(1)= (0.D0,0.D0)
+               CJ(2)= CVJ*(Y2-Y1)
+               CJ(3)= CVJ*FACTOR*(Y2-Y1)
+            CASE(4)
+               IF(IJ.EQ.1) GO TO 50
+               X1=XJ(IJ-1,NA)
+               Y1=YJ(IJ-1,NA)
+               X2=XJ(IJ,NA)
+               Y2=YJ(IJ,NA)
+               IE=JAELM(IJ,NA)
+               CALL WFABC(IE,A,B,C,S)
+               XM=0.5D0*(X1+X2)
+               YM=0.5D0*(Y1+Y2)
+               ARG=(RTJ0(2,NA)-RTJ0(1,NA))*(YM-YJ0(1,3))
+     &                                    /(YJ0(2,3)-YJ0(1,3))
+     &            +RTJ0(1,NA)
+               CFACT=EXP(CI*NPHI*ARG*PI/180.D00)
+               FACTOR=XJ0(1,NA)*(RTJ0(2,NA)-RTJ0(1,NA))*PI/180.D0
+     &                   /(YJ0(2,3)-YJ0(1,3))
+               CVJ=CNST*CAJ(1)*CFACT
+               CJ(1)= CVJ*(X2-X1)
+               CJ(2)= CVJ*(Y2-Y1)
+               CJ(3)= CVJ*FACTOR*(Y2-Y1)
+            END SELECT
             ENDIF
 
             IF(MODELS.EQ.1) THEN
@@ -1863,9 +1992,9 @@ C
   130 FORMAT(1H ,' I JNUM', '  AJ(I)','  APH(I)','  AWD(I)',
      &                     ' APOS(I)',' XJ(I)','  YJ(I)',
      &           8X,'LOADING IMP.[ohm]')
-      DO 10 IA=1,NAMAX
-         WRITE(6,140) IA,JNUM(IA),AJ(IA),APH(IA),AWD(IA),APOS(IA),
-     &                            XJ(1,IA),YJ(1,IA),CIMP(IA)
+      DO 10 NA=1,NAMAX
+         WRITE(6,140) NA,JNUM(NA),AJ(NA),APH(NA),AWD(NA),APOS(NA),
+     &                            XJ(1,NA),YJ(1,NA),CIMP(NA)
   140    FORMAT(1H ,I2,I3,0PF8.2,F8.2,1X,4F7.4,2X,'(',1P2E12.4,')')
 C  140    FORMAT(1H ,I3,I3,0PF7.4,F7.2,4F7.4,2X,'(',1P2E12.4,')')
    10 CONTINUE

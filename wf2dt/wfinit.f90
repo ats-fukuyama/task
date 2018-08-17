@@ -16,6 +16,7 @@ SUBROUTINE WFINIT
 !
 !        MODELG = Model geometry
 !                0 : slab geometry
+!                1 : axisymetric mirror geometry
 !              * 2 : toroidal geometry
 !               12 : slab geometry with B, n, T data input
 !
@@ -70,7 +71,7 @@ SUBROUTINE WFINIT
 !     *** RF PARAMETERS ***
 !
 !        RF    : Wave frequency                               (MHz)
-!        NPH   : Toroidal Mode Number for modelg=2
+!        NPH   : Toroidal Mode Number for modelg=1,2
 !        RKZ   : Vertical wave number for modelg=0,12         (1/m)
 
   RF     = 5000.D0
