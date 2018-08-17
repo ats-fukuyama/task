@@ -321,7 +321,7 @@ SUBROUTINE CVCALC
                     +B(I)*R1*RR &
                     +C(I)*Z1*RR
            end do
-        CASE(2)
+        CASE(1,2)
            do I=1,3
               LIF(I)=A(I)*R1 &
                     +B(I)*R1*R1 &
@@ -359,7 +359,7 @@ SUBROUTINE CVCALC
                     +B(I)*(R1+R2)*RR/2.D0 &
                     +C(I)*(Z1+Z2)*RR/2.D0
            end do
-        CASE(2)
+        CASE(1,2)
            do I=1,3
               LIF(I)=A(I)*(R1+R2)/2.d0 &
                     +B(I)*(R2**2+R1*R2+R1**2)/3.d0 &
@@ -454,13 +454,13 @@ SUBROUTINE CMCALC(NE)
 
   ! ----- rotErotF term -----
 
+  ! --- E1F1 ---
+
   do J=1,3
      do I=1,3
         CM1(I,J)=(0.d0,0.d0)
      end do
   end do
-
-  ! --- E1F1 ---
 
   SELECT CASE(MODELG)
   CASE(0,12)
@@ -498,13 +498,13 @@ SUBROUTINE CMCALC(NE)
      end do
   end do
 
+  ! --- E1F2 --- 
+
   do J=1,3
      do I=1,3
         CM1(I,J)=(0.d0,0.d0)
      end do
   end do
-
-  ! --- E1F2 --- 
 
   SELECT CASE(MODELG)
   CASE(0,12)
@@ -521,7 +521,7 @@ SUBROUTINE CMCALC(NE)
            end do
         end do
      end do
-  CASE(2)
+  CASE(1,2)
      do K=1,3
         do J=1,3
            do I=1,3
@@ -548,13 +548,13 @@ SUBROUTINE CMCALC(NE)
      end do
   end do
 
+  ! --- E2F1 ---
+
   do J=1,3
      do I=1,3
         CM1(I,J)=(0.d0,0.d0)
      end do
   end do
-
-  ! --- E2F1 ---
 
   SELECT CASE(MODELG)
   CASE(0,12)
@@ -571,7 +571,7 @@ SUBROUTINE CMCALC(NE)
            end do
         end do
      end do
-  CASE(2)
+  CASE(1,2)
      do K=1,3
         do J=1,3
            do I=1,3
@@ -597,13 +597,13 @@ SUBROUTINE CMCALC(NE)
      end do
   end do
 
+  ! --- E2F2 ---
+
   do J=1,3
      do I=1,3
         CM1(I,J)=(0.d0,0.d0)
      end do
   end do
-
-  ! --- E2F2 ---
 
   SELECT CASE(MODELG)
   CASE(0,12)
@@ -618,7 +618,7 @@ SUBROUTINE CMCALC(NE)
            end do
         end do
      end do
-  CASE(2)
+  CASE(1,2)
      do K=1,3
         do J=1,3
            do I=1,3

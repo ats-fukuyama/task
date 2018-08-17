@@ -12,14 +12,14 @@ C
 C
       NBSIZ=3*MDSIZ*NDSIZ
       IF(MODEWG.EQ.0) THEN
-         MSIZ=NRMAX*NBSIZ
+         MSIZ=(NRMAX+2)*NBSIZ
       ELSE
-         MSIZ=NRMAX*NBSIZ+MWGMAX*NAMAX
+         MSIZ=(NRMAX+2)*NBSIZ+MWGMAX*NAMAX
       ENDIF
       MBND=2*NBSIZ
 
       IF(MODEEG.EQ.0) THEN
-         CALL WMSOLV_MTXP(CFVG,MSIZ,2*MBND-1,WMSETM,IERR)
+         CALL WMSOLV_MTXP(CFVG,MSIZ,2*MBND-1,NBSIZ,WMSETM,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XXX WMSOLV_MTXP: ERROR: IERR=',IERR
       ELSE
          CALL WMSOLV_BAND(CFVG,MSIZ,2*MBND-1,WMSETM,IERR)
@@ -29,12 +29,12 @@ C
       RETURN
       END
 
-      SUBROUTINE WMSOLV_MTXP(XX , N , L , WMSETM, IERR )
+      SUBROUTINE WMSOLV_MTXP(XX , N , L , NBSIZ, WMSETM, IERR )
 
       USE libmtx
-      IMPLICIT NONE
+      INCLUDE 'wmcomm.inc'
       COMPLEX(8),DIMENSION(N),INTENT(OUT):: XX
-      INTEGER,INTENT(IN):: N,L
+      INTEGER,INTENT(IN):: N,L,NBSIZ
       INTEGER,INTENT(OUT)::IERR 
       EXTERNAL WMSETM
       COMPLEX(8),DIMENSION(:),ALLOCATABLE:: A
@@ -47,9 +47,16 @@ C
 
       CALL mtxc_setup(N,istart,iend,jwidth=L)
 
+      NBST=(istart-1)/NBSIZ+1
+      NBED=(iend-1)/NBSIZ+1
+      write(6,'(A,2I5)') 'NBST,NBED=',NBST,NBED
+      IF(NRANK.EQ.NSIZE-1) NBED=NRMAX+2
+
 C   ***** CALCULATE MATRIX COEFFICIENTS *****
 
       NRP=0
+      NBMODE=0
+
       DO i=istart,iend
          X=(0.D0,0.D0)
          A(1:L)=(0.D0,0.D0)
@@ -80,7 +87,7 @@ C     ****** SOLUTION OF BAND MATRIX (GAUSSIAN ELIMINATION) ******
 C
       SUBROUTINE WMSOLV_BAND(XX , N , L , WMSETM, IERR )
 C
-      IMPLICIT NONE
+      INCLUDE 'wmcomm.inc'
       COMPLEX(8),DIMENSION(:,:),ALLOCATABLE:: A
       COMPLEX(8),DIMENSION(:),ALLOCATABLE:: X
       COMPLEX(8),DIMENSION(N):: XX
@@ -91,10 +98,15 @@ C
       EXTERNAL WMSETM
       DATA EPS/ 1.D-70 /
 C
+      NBST=1
+      NBED=NRMAX+2
+
       ALLOCATE(A(L,N))
       ALLOCATE(X(N))
 C
       NRP=0
+      NBMODE=0
+
       DO MS=1,N
          X(MS)=(0.D0,0.D0)
          DO MB=1,L

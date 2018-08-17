@@ -1,34 +1,38 @@
-### $Id$ ###
+### Makefile for WM ###
 include ../make.header
 include ../mtxp/make.mtxp
 
+# using mtxp complex solver
 #LIB_MTX=$(LIB_MTX_BND)
 #LIBX_MTX=$(LIBX_MTX_BND)
 LIB_MTX=$(LIB_MTX_MUMPS)
 LIBX_MTX=$(LIBX_MTX_MUMPS)
 
-FFLAGS = $(OFLAGS)
-#FFLAGS = $(DFLAGS)
+# select compile options
+#FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-MODINCLUDE= -I./$(MOD) -I../lib/$(MOD) -I../plx/$(MOD) -I../eq/$(MOD) \
+MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../plx/$(MOD) -I../eq/$(MOD) \
             -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
-SRCS = mpilib.f wmmenu.f wminit.f wmeign.f wmsetg.f \
+SRCS = wmmenu.f wminit.f wmeign.f wmsetg.f \
        ../eq/wmeqin.f wmprof.f wmdisp.f \
-       wmsetm.f wmsetf.f wmxprf.f wmdprf.f wmsolv.f \
+       wmsetm.f wmsetf.f wmxprf.f wmdprf.f \
        wmpout.f wmgout.f wmgsub.f wmdout.f wmfout.f \
-       wmexec.f wmloop.f wmtae.f \
+       wmsolv.f wmexec.f wmloop.f wmtae.f \
        wmvmec.f wmbooz.f wmvout.f wmtpcs.f
 
-SRCX = wmcont.f90 wmtest.f90 wmdpfa.f90 wmdpfa2.f90 wmdpfaA.f90 #wmdpfa3.f90
+SRCX = wmcont.f90 wmtest.f90
+
+# wmtrfile.f
 
 OBJS = $(SRCX:.f90=.o) $(SRCS:.f=.o)
 
-LIBS = wmlib.a ../dp/dplib.a ../plx/pllib.a  ../eq/eqlib.a \
-       ../lib/tasklib.a ../../bpsd/bpsdlib.a
+LIBS =  wmlib.a ../plx/pllib.a ../eq/eqlib.a ../dpseki/dplib.a \
+        ../lib/tasklib.a ../../bpsd/bpsdlib.a $(LIB_MTX)
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -40,6 +44,22 @@ all: wm
 wmlib.a: $(OBJS)
 	$(LD) $(LDFLAGS) wmlib.a $(OBJS)
 
+../mtxp/libmtxmpi.o:
+	(cd ../mtxp; make libmtxmpi.o)
+../mtxp/libmtxnompi.o:
+	(cd ../mtxp; make libmtxnompi.o)
+../mtxp/libmtxksp.o:
+	(cd ../mtxp; make libmtxksp.o)
+../mtxp/libmtxmumps.o:
+	(cd ../mtxp; make libmtxmumps.o)
+../mtxp/libmtxbnd.o:
+	(cd ../mtxp; make libmtxbnd.o)
+../mpi/mpilib.o:
+	(cd ../mpi; make mpilib.o)
+../mtx/mtxlib.a:
+	(cd ../mtx; make mtxlib.a)
+../mtx/mpimtxlib.a:
+	(cd ../mtx; make mpimtxlib.a)
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)
 ../plx/pllib.a:
@@ -48,14 +68,15 @@ wmlib.a: $(OBJS)
 	(cd ../eq; make eqlib.a)
 ../eq/wmeqin.o:
 	(cd ../eq; make wmeqin.o)
-../dp/dplib.a:
-	(cd ../dp; make dplib.a)
+../dpseki/dplib.a:
+	(cd ../dpseki; make dplib.a)
 libs:
+	(cd ../../bpsd; make bpsdlib.a)
 	(cd ../lib; make tasklib.a)
 	(cd ../mtxp; make)
 	(cd ../plx; make pllib.a)
 	(cd ../eq; make eqlib.a)
-	(cd ../dp; make dplib.a)
+	(cd ../dpseki; make dplib.a)
 
 wm : $(LIBS) wmmain.o
 	$(FLINKER) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
@@ -67,7 +88,7 @@ veryclean: clean
 	rm -f wm
 
 WMCOMM = wmcomm.inc wmcom0.inc wmcom1.inc ../plx/plcomm.f90 \
- ../dp/dpcom1.inc
+ ../dpseki/dpcom1.inc
 
 wmmain.o : wmmain.f $(WMCOMM)
 
@@ -101,6 +122,7 @@ wmbooz.o : wmbooz.f $(WMCOMM) vmcomm.inc
 wmvout.o : wmvout.f $(WMCOMM) vmcomm.inc
 
 wmsolv.o : wmsolv.f $(WMCOMM)
+nowmsolv.o : nowmsolv.f $(WMCOMM)
 wmvout.o : wmvout.f $(WMCOMM) vmcomm.inc
 
 ../eq/wmeqin.o : ../eq/wmeqin.f

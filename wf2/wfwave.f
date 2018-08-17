@@ -1189,7 +1189,7 @@ C
       RETURN
 C
   601 FORMAT(1H ,'## FRONT WARNING : SINGULAR OR ILL CONDITIONED'/
-     &       1H ,'       AT NELL = ',I5,'  CPIVOT=',1P2E12.4 )
+     &       1H ,'       AT NELL = ',I5,'  CPIVOT=',1P2E12.4)
   602 FORMAT(1H ,'## FRONT ERROR : ERR =',I5/
      &       1H ,'       LCOL EXCEEDS NMAX')
       END
