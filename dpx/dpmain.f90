@@ -21,12 +21,17 @@ PROGRAM DP
   USE dpinit, ONLY: dp_init
   USE dpparm, ONLY: dp_parm
   USE dpmenu, ONLY: dp_menu
+  USE dpcomm, ONLY: BB,nrank
+  use libmtx
   IMPLICIt NONE
   INTEGER:: IERR
 
-  WRITE(6,*) '## TASK/DP 2017/08/18'
-  CALL GSOPEN
-  OPEN(7,STATUS='SCRATCH')
+  CALL mtx_initialize
+  IF(nrank.EQ.0) THEN
+     WRITE(6,*) '## TASK/DP 2018/08/21'
+     CALL GSOPEN
+     OPEN(7,STATUS='SCRATCH')
+  END IF
   CALL PL_INIT
   CALL DP_INIT
   CALL PL_PARM(1,'plparm',IERR)
@@ -34,7 +39,9 @@ PROGRAM DP
   
   CALL DP_MENU
 
-  CLOSE(7)
-  CALL GSCLOS
+  IF(nrank.EQ.0) THEN
+     CLOSE(7)
+     CALL GSCLOS
+  END IF
   STOP
 END program DP

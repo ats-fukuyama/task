@@ -127,26 +127,31 @@ CONTAINS
     USE dpfpin
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
-    INTEGER,SAVE:: INITFP=0
-    INTEGER:: INITFM,NS
+    INTEGER:: NS,IND
 
     IERR=0
+    IND=0
     DO NS=1,NSMAX
        IF(MODELV(NS).EQ.2.OR. &
           MODELV(NS).EQ.4.OR. &
-          MODELV(NS).EQ.9) THEN
-          IF(INITFP.EQ.0) THEN
-             CALL DPLDFP(IERR)
-             IF(IERR.NE.0) RETURN
-             INITFP=1
-          ENDIF
-       ELSEIF(MODELV(NS).EQ.1.OR. &
-              MODELV(NS).EQ.3) THEN
-          CALL DPLDFM(0,IERR)
-          IF(IERR.NE.0) RETURN
-       ENDIF
-    ENDDO
+          MODELV(NS).EQ.9) IND=1
+    END DO
 
+    IF(IND.EQ.1) THEN
+       CALL DPLDFP(IERR)
+       IF(IERR.NE.0) RETURN
+    END IF
+
+    DO NS=1,NSMAX
+       IF(MODELV(NS).EQ.1) THEN
+          CALL DPLDFM(NS,0,IERR)
+          IF(IERR.NE.0) RETURN
+       END IF
+       IF(MODELV(NS).EQ.3) THEN
+          CALL DPLDFM(NS,1,IERR)
+          IF(IERR.NE.0) RETURN
+       END IF
+    END DO
     RETURN
   END SUBROUTINE DPPREP_LOCAL
 

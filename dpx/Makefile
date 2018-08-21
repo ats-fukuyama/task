@@ -58,7 +58,7 @@ libs:
 	(cd ../eq; make eqlib.a)
 
 dp : $(LIBS) dpmain.o
-	$(FLINKER) dpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+	$(FLINKER) dpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 clean:
 	-rm -f core a.out *.o *.a ./*~
