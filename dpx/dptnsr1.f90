@@ -11,7 +11,9 @@ MODULE DPTNSR1
 !             CLDISP(4)=EPS_ZX
 !             CLDISP(5)=EPS_XY
 !             CLDISP(6)=EPS_YZ
-!           
+
+  PUBLIC DPTNCL,DPTNCC,DPTNIM,DPTNRM,DPTNWP,DPTNUP,DPTNHP
+  PUBLIC DPTNKL,DPTNKS,DPTNKP,DPTNKR
 
 CONTAINS
 
@@ -325,6 +327,7 @@ CONTAINS
   SUBROUTINE DPTNKS(CW,CKPR,CKPP,NS,CLDISP)
 
       USE libdsp,ONLY: DSPFN
+      USE libbes,ONLY: LAMBDA
       USE dpcomm
       USE pllocal
       IMPLICIT NONE
@@ -335,15 +338,15 @@ CONTAINS
       COMPLEX(rkind):: CWP,CWC,CBETA,CPR,CGZ,CZ,CDZ,CK,CFW,CFF,CFG
       COMPLEX(rkind):: CLAM,CLAMM,CLAMP,CDLAM,CBLAM
       REAL(rkind):: WTPR,WTPP,WTPX
-      INTEGER:: I,NMIN,NMAX,NC,IERR
+      INTEGER:: I,NCMIN,NCMAX,NHMAX,NC,IERR
 
       DO I=1,6
          CLDISP(I)=0.D0
       ENDDO
 
-      NMIN=NDISP1(NS)
-      NMAX=NDISP2(NS)
-      NHMAX=MAX(ABS(NMIN),ABS(NMAX))+1
+      NCMIN=NDISP1(NS)
+      NCMAX=NDISP2(NS)
+      NHMAX=MAX(ABS(NCMIN),ABS(NCMAX))+1
       ALLOCATE(CALAM(0:NHMAX))
 
       CWP=RN(NS)*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
@@ -357,7 +360,7 @@ CONTAINS
       IF(IERR.EQ.1) WRITE(6,*) 'XX LAMBDA: N out of range'
 !      IF(IERR.EQ.2) WRITE(6,*) 'XX LAMBDA: CBETA out of range'
 
-      DO NC=NMIN,NMAX
+      DO NC=NCMIN,NCMAX
 
          IF(ABS(CKPR).LE.0.D0) THEN
             CPR=CW/SQRT(2.D0*1.D-4**2*WTPR)
@@ -396,6 +399,7 @@ CONTAINS
     SUBROUTINE DPTNKP(CW,CKPR,CKPP,NS,CLDISP)
 
       USE libdsp,ONLY: DSPFN
+      USE libbes,ONLY: LAMBDA
       USE dpcomm
       USE pllocal
       IMPLICIT NONE
@@ -406,15 +410,15 @@ CONTAINS
       COMPLEX(rkind):: CWP,CWC,CBETA,CPR,CGZ,CZ,CDZ,CK,CFW,CFF,CFG
       COMPLEX(rkind):: CLAM,CLAMM,CLAMP,CDLAM,CBLAM
       REAL(rkind):: WTPR,WTPP,WTPX
-      INTEGER:: I,NMIN,NMAX,NC,IERR
+      INTEGER:: I,NCMIN,NCMAX,NHMAX,NC,IERR
 
       DO I=1,6
          CLDISP(I)=0.D0
       ENDDO
 
-      NMIN=NDISP1(NS)
-      NMAX=NDISP2(NS)
-      NHMAX=MAX(ABS(NMIN),ABS(NMAX))+1
+      NCMIN=NDISP1(NS)
+      NCMAX=NDISP2(NS)
+      NHMAX=MAX(ABS(NCMIN),ABS(NCMAX))+1
       ALLOCATE(CALAM(0:NHMAX))
 
       CWP=RN(NS)*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
@@ -428,7 +432,7 @@ CONTAINS
       IF(IERR.EQ.1) WRITE(6,*) 'XX LAMBDA: N out of range'
 !      IF(IERR.EQ.2) WRITE(6,*) 'XX LAMBDA: CBETA out of range'
 
-      DO NC=NMIN,NMAX
+      DO NC=NCMIN,NCMAX
 
          IF(ABS(CKPR).LE.0.D0) THEN
             CPR=CW/SQRT(2.D0*1.D-4**2*WTPR)
@@ -479,12 +483,12 @@ CONTAINS
       COMPLEX(rkind):: CN1,CN2,CN3,CF1,CF2,CF3,CF4,CF5,CF6,CF7,CPART
       COMPLEX(rkind):: CE11,CE12,CE22,CE23,CE31,CE33
       REAL(rkind):: DELZ,WTPR,WTPP,RMU,DKAI
-      INTEGER:: NMIN,NMAX,IC,N,NSIG
+      INTEGER:: NCMIN,NCMAX,NC,N,NSIG
 
       DELZ=1.D-6
 
-      NMIN=NDISP1(NS)
-      NMAX=NDISP2(NS)
+      NCMIN=NDISP1(NS)
+      NCMAX=NDISP2(NS)
 
       CWP=RN(NS)*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
       CWC=ABS(BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW))
@@ -503,11 +507,11 @@ CONTAINS
       CSUM4=(0.D0,0.D0)
       CSUM5=(0.D0,0.D0)
 
-      DO IC=NMIN,NMAX
-         IF(IC.NE.0)THEN
-            N=ABS(IC)
-            NSIG=IC/N
-            CZ=IC*RMU*CWC
+      DO NC=NCMIN,NCMAX
+         IF(NC.NE.0)THEN
+            N=ABS(NC)
+            NSIG=NC/N
+            CZ=NC*RMU*CWC
             DKAI=DKAIJO(N)
             CN1=N**2*CBETA**(N-1)/(2**N*DKAI)
             CN2=N   *CBETA**(N-1)/(2**N*DKAI)
@@ -602,6 +606,7 @@ CONTAINS
 
       USE bpsd_kinds,ONLY: rkind
       USE bpsd_constants,ONLY: CI,PI
+      USE libdsp,ONLY: DSPFN
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: Q
       COMPLEX(rkind),INTENT(IN):: CZ

@@ -7,13 +7,17 @@ CONTAINS
   SUBROUTINE DP_TENS(CW,CKPR,CKPP,NS,CLDISP)
 
     USE dpcomm
+    USE dptnsr1
+    USE dpfpin
+    USE dphotf
+    USE dphotr
     USE pllocal
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NS
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     COMPLEX(rkind):: CLDISP1(6)
-    INTEGER:: ID1,ID2,IDV
+    INTEGER:: ID1,ID2,IDV,IERR
 
       IF(RN(NS).LE.0.D0) THEN
          CALL DPTNCL(CW,CKPR,CKPP,NS,CLDISP)
@@ -30,30 +34,32 @@ CONTAINS
          CASE(1)
             CALL DPFMFL(NS,0)
             IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
-               CALL DPHOTFI(CW,CKPR,CKPP,NS,CLDISP)
+               CALL DP_HOTFI(CW,CKPR,CKPP,NS,CLDISP)
             ELSE
-               CALL DPHOTF(CW,CKPR,CKPP,NS,CLDISP)
+               CALL DP_HOTF(CW,CKPR,CKPP,NS,CLDISP)
             ENDIF
          CASE(2)
-            CALL DPFPFL(NS)
+            CALL DPFPFL(NS,IERR)
+            IF(IERR.NE.0) RETURN
             IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
-               CALL DPHOTFI(CW,CKPR,CKPP,NS,CLDISP)
+               CALL DP_HOTFI(CW,CKPR,CKPP,NS,CLDISP)
             ELSE
-               CALL DPHOTF(CW,CKPR,CKPP,NS,CLDISP)
+               CALL DP_HOTF(CW,CKPR,CKPP,NS,CLDISP)
             ENDIF
          CASE(3)
             CALL DPFMFL(NS,1)
             IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
-               CALL DPHOTRI(CW,CKPR,CKPP,NS,CLDISP)
+               CALL DP_HOTRI(CW,CKPR,CKPP,NS,CLDISP)
             ELSE
-               CALL DPHOTR(CW,CKPR,CKPP,NS,CLDISP)
+               CALL DP_HOTR(CW,CKPR,CKPP,NS,CLDISP)
             ENDIF
          CASE(4)
-            CALL DPFPFL(NS)
+            CALL DPFPFL(NS,IERR)
+            IF(IERR.NE.0) RETURN
             IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
-               CALL DPHOTRI(CW,CKPR,CKPP,NS,CLDISP)
+               CALL DP_HOTRI(CW,CKPR,CKPP,NS,CLDISP)
             ELSE
-               CALL DPHOTR(CW,CKPR,CKPP,NS,CLDISP)
+               CALL DP_HOTR(CW,CKPR,CKPP,NS,CLDISP)
             ENDIF
          END SELECT
 
@@ -89,6 +95,8 @@ CONTAINS
 
     USE dpcomm
     USE pllocal
+    USE dptnsr1
+    USE dptnsr2
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: ID1,NS

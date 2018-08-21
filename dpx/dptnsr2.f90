@@ -12,6 +12,9 @@ MODULE dptnsr2
 !             CLDISP(5)=EPS_XY
 !             CLDISP(6)=EPS_YZ
 
+  PRIVATE
+  PUBLIC DPTNFK2,DPTNDK0
+
 CONTAINS
 
 !     ****** CALCULATE HOT DIELECTRIC TENSOR ******
