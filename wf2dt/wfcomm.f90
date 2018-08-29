@@ -29,7 +29,8 @@ module wfcomm
   integer,parameter::   NKM = 100  ! Maximum number of material type
   integer,parameter::   NMM = 100  ! Maximum number of medium type
   integer,parameter::   NAM =   8  ! Maximum number of antenna
-  integer,parameter::   NJM = 800  ! Maximum number of antenna current
+  integer,parameter::   NJM = 800  ! Maximum number of antenna current position
+  integer,parameter::   NCM =  30  ! Maximum number of magnectic coil position
   
 !  integer,parameter::  NGXM = 301  ! resolution in x direction
 !  integer,parameter::  NGYM = 301  ! resolution in y direction
@@ -49,12 +50,11 @@ module wfcomm
 !  real(rkind):: PPN0,PTN0
   real(rkind):: PIN
   integer(ikind):: NPRINT,NDRAWD,NDRAWA,NDRAWE,NGRAPH,NDRAWV
-  integer(ikind):: MODELI,MODELB
+  integer(ikind):: MODELI
   integer(ikind):: MODELD,MODELP
-!  moved to plx
-!  real(rkind),DIMENSION(3):: r_corner,z_corner
-!  real(rkind),DIMENSION(3):: br_corner,bz_corner,bt_corner
-!  real(rkind),DIMENSION(3,NSM):: pn_corner,ptpr_corner,ptpp_corner
+  integer(ikind):: NCMAX
+  REAL(rkind):: RCOIL(NCM),ZCOIL(NCM),BCOIL(NCM)
+  REAL(rkind):: PSIA
   real(rkind):: R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG,AMPWG,ANGWG,ELPWG,DPHWG
   integer(ikind):: MODELWG
   CHARACTER(LEN=80):: KNAMWG

@@ -2,77 +2,60 @@
 
 !     ****** set psi ******
 
-SUBROUTINE WFSPSI(RL,ZL,PSI)
+SUBROUTINE WFBPSI(R,Z,PSI)
 
-  use wfcomm,ONLY: RA
+  use wfcomm,ONLY: PI,RA,ZBB,RMIR,BB,MODELG,MODELB
   implicit none
-  real(8),intent(in) :: RL,ZL
+  real(8),intent(in) :: R,Z
   real(8),intent(out):: PSI
+  REAL(rkind):: A0,A1,RL,ZL
 
-  PSI=(RL*RL+ZL*ZL)/(RA*RA)
-
-  RETURN
-END SUBROUTINE WFSPSI
-
-SUBROUTINE WFCOLL(rn,rtpr,rtpp,rzcl)
-  USE wfcomm
-  IMPLICIT NONE
-  REAL(8),DIMENSION(NSM):: rn,rtpr,rtpp,rzcl
-  REAL(8):: TE,TI,RNTI,RNZI,RLAMEE,RLAMEI,RLAMII,SN,PNN0
-  REAL(8):: VTE,RNUEE,RNUEI,RNUEN,RNUE
-  REAL(8):: VTI,RNUIE,RNUII,RNUIN,RNUI
-  INTEGER:: ns
-
-  ! --- set collision frequency ---
-  
-  IF(rn(1).GT.0.D0) THEN
-     TE=(RTPR(1)+2.D0*RTPP(1))*1.D3/3.D0
-     RNTI=0.D0
-     RNZI=0.D0
-     DO ns=2,nsmax
-        RNTI=RNTI+RN(ns)*(RTPR(ns)+2.D0*RTPP(ns))*1.D3/3.D0
-        RNZI=RNZI+RN(ns)*PZ(ns)**2
-     END DO
-     TI=RNTI/rn(1)
-     RLAMEE= 8.0D0+2.3D0*(LOG10(TE)-0.5D0*LOG10(RN(1)))
-     RLAMEI= RLAMEE+0.3D0
-     RLAMII=12.1D0+2.3D0*(LOG10(TI)-0.5D0*LOG10(RN(1)))
-
-     SN=1.D-20 ! tytpical ionizatioin crosssection
-     PNN0=PPN0/(PTN0*AEE) ! neutral density
-
-     DO NS=1,NSMAX
-        IF(PZCL(NS).EQ.0) THEN
-           IF(NS.EQ.1) THEN
-              VTE=SQRT(2.D0*TE*AEE/AME)
-              RNUEE=RN(1)*RLAMEE/(1.24D-4*SQRT(TE*1.D-3)**3)
-              RNUEI=RNZI*RLAMEI/(1.51D-4*SQRT(TE*1.D-3)**3)
-              RNUEN=PNN0*SN*0.88D0*VTE
-              RNUE=RNUEE+RNUEI+RNUEN
-              RZCL(NS)=RNUE/(2.D6*PI*RF)
-           ELSE
-              TI=(RTPR(NS)+2.D0*RTPP(NS))*1.D3/3.D0
-              VTI=SQRT(2.D0*TI*AEE/(PA(NS)*AMP))
-              RNUIE=PZ(NS)**2*RN(1)*RLAMEI &
-                       /(2.00D-1*SQRT(TE*1.D-3)**3*PA(NS))
-              RNUII=RNZI*RLAMII &
-                       /(5.31D-3*SQRT(TI*1.D-3)**3*SQRT(PA(NS)))
-              RNUIN=PNN0*SN*0.88D0*VTI
-              RNUI=RNUIE+RNUII+RNUIN
-              RZCL(NS)=RNUI/(2.D6*PI*RF)
+  SELECT CASE(MODELG)
+  CASE(0)  ! slab
+     SELECT CASE(MODELB)
+     CASE(0)
+        PSI=BB*R
+     CASE(1)
+        A0=0.5D0*(1.D0+RMIR)*BB
+        A1=0.5D0*(1.D0-RMIR)*BB
+        RL = PI* R/ZBB
+        ZL = PI* Z/ZBB
+        PSI = A0*R +A1*(ZBB/PI)*COS(ZL)*SINH(RL )
+     CASE(2,3)
+        PSI=0.D0
+        DO NC=1,NCMAX
+           IF(R.NE.0.D0) THEN
+              PSI=PSI+BC(NC)*WFPSIS(R,Z-ZC(NC),RC(NC))
            ENDIF
-        ELSE
-           RZCL(NS)=PZCL(NS)
-        ENDIF
-     ENDDO
-  ELSE
-     DO NS=1,NSMAX
-        RZCL(NS)=0.D0
-     ENDDO
-  ENDIF
+        ENDDO
+     END SELECT
+  CASE(1)  ! cylindrical
+     SELECT CASE(MODELB)
+     CASE(0)
+        PSI=BB*(R*R)/(RA*RA)
+     CASE(1)
+        A0=0.5D0*(1.D0+RMIR)*BB
+        A1=0.5D0*(1.D0-RMIR)*BB
+        RL = PI* R/ZBB
+        ZL = PI* Z/ZBB
+        PSI = 0.5D0*A0*R *R +A1*(ZBB/PI)**2*COS(ZL)*RL *BESIN(1,RL )
+     CASE(2,3)
+         PSI=0.D0
+         DO NC=1,NCMAX
+            IF(R.NE.0.D0) THEN
+               PSI=PSI+BC(NC)*WFPSIC(R,Z-ZC(NC),RC(NC))
+            ENDIF
+         ENDDO
+     END SELECT
+  CASE(3,5,6,8,9)   ! toroidal
+     PSI=PSIG(R,Z)
+  CASE(11)   ! straight helical
+     XH1=H1*R
+     YH1=H1*Z
+     PSI=(XH1**2+YH1**2+2.D0*HA1*(XH1**2-YH1**2))
+  END SELECT
   RETURN
-END SUBROUTINE WFCOLL
-
+END SUBROUTINE WFBPSI
 
 !     ****** set magnetic field ******
 
@@ -126,6 +109,7 @@ SUBROUTINE WFSMAG0(R,Z,BABS,AL)
   al(3)=bz/babs
   RETURN
 END SUBROUTINE WFSMAG0
+
 SUBROUTINE WFSMAG2(R,Z,BABS,AL)
 
   use wfcomm
@@ -303,3 +287,61 @@ SUBROUTINE WFSDEN2(R,Z,RN,RTPR,RTPP,RZCL)
   RETURN
 END SUBROUTINE WFSDEN2
 
+SUBROUTINE WFCOLL(rn,rtpr,rtpp,rzcl)
+  USE wfcomm
+  IMPLICIT NONE
+  REAL(8),DIMENSION(NSM):: rn,rtpr,rtpp,rzcl
+  REAL(8):: TE,TI,RNTI,RNZI,RLAMEE,RLAMEI,RLAMII,SN,PNN0
+  REAL(8):: VTE,RNUEE,RNUEI,RNUEN,RNUE
+  REAL(8):: VTI,RNUIE,RNUII,RNUIN,RNUI
+  INTEGER:: ns
+
+  ! --- set collision frequency ---
+  
+  IF(rn(1).GT.0.D0) THEN
+     TE=(RTPR(1)+2.D0*RTPP(1))*1.D3/3.D0
+     RNTI=0.D0
+     RNZI=0.D0
+     DO ns=2,nsmax
+        RNTI=RNTI+RN(ns)*(RTPR(ns)+2.D0*RTPP(ns))*1.D3/3.D0
+        RNZI=RNZI+RN(ns)*PZ(ns)**2
+     END DO
+     TI=RNTI/rn(1)
+     RLAMEE= 8.0D0+2.3D0*(LOG10(TE)-0.5D0*LOG10(RN(1)))
+     RLAMEI= RLAMEE+0.3D0
+     RLAMII=12.1D0+2.3D0*(LOG10(TI)-0.5D0*LOG10(RN(1)))
+
+     SN=1.D-20 ! tytpical ionizatioin crosssection
+     PNN0=PPN0/(PTN0*AEE) ! neutral density
+
+     DO NS=1,NSMAX
+        IF(PZCL(NS).EQ.0) THEN
+           IF(NS.EQ.1) THEN
+              VTE=SQRT(2.D0*TE*AEE/AME)
+              RNUEE=RN(1)*RLAMEE/(1.24D-4*SQRT(TE*1.D-3)**3)
+              RNUEI=RNZI*RLAMEI/(1.51D-4*SQRT(TE*1.D-3)**3)
+              RNUEN=PNN0*SN*0.88D0*VTE
+              RNUE=RNUEE+RNUEI+RNUEN
+              RZCL(NS)=RNUE/(2.D6*PI*RF)
+           ELSE
+              TI=(RTPR(NS)+2.D0*RTPP(NS))*1.D3/3.D0
+              VTI=SQRT(2.D0*TI*AEE/(PA(NS)*AMP))
+              RNUIE=PZ(NS)**2*RN(1)*RLAMEI &
+                       /(2.00D-1*SQRT(TE*1.D-3)**3*PA(NS))
+              RNUII=RNZI*RLAMII &
+                       /(5.31D-3*SQRT(TI*1.D-3)**3*SQRT(PA(NS)))
+              RNUIN=PNN0*SN*0.88D0*VTI
+              RNUI=RNUIE+RNUII+RNUIN
+              RZCL(NS)=RNUI/(2.D6*PI*RF)
+           ENDIF
+        ELSE
+           RZCL(NS)=PZCL(NS)
+        ENDIF
+     ENDDO
+  ELSE
+     DO NS=1,NSMAX
+        RZCL(NS)=0.D0
+     ENDDO
+  ENDIF
+  RETURN
+END SUBROUTINE WFCOLL

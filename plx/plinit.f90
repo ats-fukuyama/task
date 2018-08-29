@@ -212,21 +212,30 @@
 !     ======( MODEL PARAMETERS )======
 
 !        MODELG: Control plasma geometry model
-!                   0: XYZ Slab geometry
-!                   1: XYZ Cylindrical geometry
-!                   2: RZphi Toroidal geometry
-!                   3: RZphi Read TASK/EQ output geometry
-!                   4: RZphi Read VMEC output geometry
-!                   5: RZphi Read EQDSK output geometry
-!                   6: RZphi Read Boozer output geometry
-!                   7: RZphi Read new VMEC output geometry
-!                   8: RZphi call TASK/EQU
-!                   9: RZphi call TASK/EQ
-!                  10: reserved for GAMMA-10
-!                  11: XY 2D plane profile (MODELGX: 0:linear, 1,2:parabolic)
-!                  12: XY 2D plane Read 2D mag file 
-!                  13: RZ 2D toroidal profile (linear)
-!                  14: RZ 2D toroidal Read 2D mag file 
+!              0: XYZ Slab geometry
+!                 MODELB: 
+!                      0: Translational mirror
+!                      1: Translational mirror with curent rod (NCMAX.GT.0)
+!                      2: XY 2D plane profile (defined at corners)
+!                               (MODELGX: 0:linear, 1,2:parabolic)
+!                      3: XY 2D plane Read 2D mag file 
+!              1: RZphi Cylindrical geometry
+!                 MODEL B:
+!                      0: Axisymmetric mirror
+!                      1: Axisymmetric mirror with circular coils (NCMAX.GT.0)
+!                      2: RZ 2D toroidal profile (defined at corners)
+!                          (MODELGX: 0:linear,1,2:parabolic)
+!                      3: RZ 2D toroidal Read 2D mag file 
+!              2: RZphi Toroidal geometry
+!              3: RZphi Read TASK/EQ output geometry
+!              4: RZphi Read VMEC output geometry
+!              5: RZphi Read EQDSK output geometry
+!              6: RZphi Read Boozer output geometry
+!              7: RZphi Read new VMEC output geometry
+!              8: RZphi call TASK/EQU
+!              9: RZphi call TASK/EQ
+!             10: reserved for GAMMA-10
+!             11: Straight helical geometry
 !        MODELN: Control plasma profile
 !                   0: Calculated from PN,PNS,PTPR,PTPP,PTS,PU,PUS; 0 in SOL
 !                   1: Calculated from PN,PNS,PTPR,PTPP,PTS,PU,PUS; PNS in SOL
@@ -247,6 +256,7 @@
 !                   2: (1-psi) dependence, 0 outside
 
       MODELG= 2
+      MODELB= 0
       MODELN= 0
       MODELQ= 0
       MODEL_PROF=0
@@ -363,7 +373,7 @@
                     br_corner,bz_corner,bt_corner, &
                     pn_corner,ptpr_corner,ptpp_corner, &
                     RHOMIN,QMIN,RHOEDG,PPN0,PTN0,RF_PL, &
-                    MODELG,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF, &
+                    MODELG,MODELB,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF, &
                     RHOGMN,RHOGMX, &
                     KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF, &
                     MODEFR,MODEFW,IDEBUG, &
@@ -383,7 +393,7 @@
                     PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
                     RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG, &
                     PPN0,PTN0,RF_PL, &
-                    MODELG,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF, &
+                    MODELG,MODELB,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF, &
                     RHOGMN,RHOGMX, &
                     KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF, &
                     MODEFR,MODEFW,IDEBUG
@@ -418,17 +428,17 @@
       WRITE(6,601)
       RETURN
 
-  601 FORMAT(' ','# &EQ : RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,'/ &
+  601 FORMAT(' ','# &PL : RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,'/ &
              9X,'NSMAX,PA,PZ,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PZCL,'/ &
              9X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,'/ &
              9X,'r_corner,z_corner,br_corner,bz_corner,bt_corner,'/ &
              9X,'pn_corner,ptpr_corner,ptpp_corner,'/ &
              9X,'RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG,'/ &
              9X,'PPN0,PTN0,RFCL,'/ &
-             9X,'MODELG,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF,'/ &
+             9X,'MODELG,MODELB,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF,'/ &
              9X,'RHOGMN,RHOGMX,'/ &
-             9X,'KNAMEQ,KNAMWR,KNAMFP,KNAMFO,IDEBUG'/ &
-             9X,'MODEFW,MODEFR')
+             9X,'KNAMEQ,KNAMWR,KNAMFP,KNAMFO,KNAMEQ2'/ &
+             9X,'MODEFW,MODEFR,IDEBUG')
     END SUBROUTINE pl_plst
 
 !     ****** CHECK INPUT PARAMETER ******
@@ -443,7 +453,7 @@
       IERR=0
 
       IF(MODELG.NE.3) THEN
-         IF((MODELG.LT.0).OR.(MODELG.GT.2)) THEN
+         IF((MODELG.LT.0).OR.(MODELG.GT.11)) THEN
             WRITE(6,*) 'XX pl_check: INVALID MODELG: MODELG=',MODELG
             IERR=1
          ENDIF
@@ -499,8 +509,8 @@
       WRITE(6,601) 'RIP   ',RIP   ,'PROFJ ',PROFJ
       WRITE(6,601) 'RHOEDG',RHOEDG,'RHOGMN',RHOGMN, &
                    'RHOGMX',RHOGMX
-      WRITE(6,604) 'MODELG',MODELG,'MODELN',MODELN, &
-                   'MODELQ',MODELQ
+      WRITE(6,604) 'MODELG',MODELG,'MODELB',MODELB, &
+                   'MODELN',MODELN,'MODELQ',MODELQ
       WRITE(6,604) 'MODEFR',MODEFR,'MODEFW',MODEFW
       WRITE(6,'(A,I5)') 'MODEL_PROF  =',MODEL_PROF
       WRITE(6,'(A,I5)') 'MODEL_NPROF =',MODEL_NPROF

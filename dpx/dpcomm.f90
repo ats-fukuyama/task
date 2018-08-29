@@ -38,6 +38,8 @@ MODULE dpcomm
   REAL(rkind):: RHON_MIN,RHON_MAX
   INTEGER:: ILIST
 
+  INTEGER:: NSDP(NSM)
+
   REAL(rkind):: DELTH,DELR
   REAL(rkind):: PN0,PT0,PTH0
   REAL(rkind):: FPDATA(2),NFPDATA(3)

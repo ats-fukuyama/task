@@ -286,9 +286,9 @@ SUBROUTINE WFGPPC(NW,NWMAX,KWD)
      SELECT CASE(MODELG)
      CASE(0,12)
         n_para=RKZ*VC/WW
-     CASE(0,12)
+     CASE(1)
         n_para=NPH*VC/(RA*WW)
-     CASE(2)
+     CASE(2:6)
         n_para=NPH*VC/(RR*WW)
      END SELECT
 
@@ -1037,7 +1037,7 @@ SUBROUTINE WFGPRM
         CALL NUMBI(NS,'(I3)',3)
         CALL NUMBD(PA(NS),   '(1PE10.3)',10)
         CALL NUMBD(PZ(NS),   '(1PE10.3)',10)
-        IF(MODELG.EQ.0,12) THEN
+        IF(MODELG.EQ.0.OR.EQMODEL,12) THEN
            CALL NUMBD(pn_corner(1,NS),'(1PE10.3)',10)
         ELSE
            CALL NUMBD(PN(NS),   '(1PE10.3)',10)

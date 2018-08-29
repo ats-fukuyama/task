@@ -13,16 +13,15 @@ subroutine wfmenu
 
 1 continue
 
-  if(nrank.eq.0) then
-     write(6,*) '## INPUT: P,V:PARM  D:DIV  A:ANT', &
+  IF(nrank.EQ.0) THEN
+     WRITE(6,*) '## INPUT: P,V:PARM  D:DIV  A:ANT', &
                          ' W,C:WAVE G:GRAPH  S,L:FILE  Q:QUIT'
-     call GUFLSH
-     call WFKLIN(LINE,KID,MODE)
-  end if
+     CALL TASK_KLIN(LINE,KID,MODE,WFPARM)
+  END IF
+  call mtx_barrier
 
   call mtx_broadcast1_character(KID)
   call mtx_broadcast1_integer(MODE)
-  call mtx_barrier
   if(MODE.ne.1) goto 1
 
   if     (KID.eq.'P') then
