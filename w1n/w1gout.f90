@@ -4,7 +4,7 @@ CONTAINS
 
   SUBROUTINE w1_gout
     USE w1comm
-    USE w1grf1,ONLY: w1gr2dw,w1gr2dr,w1grud
+    USE w1grf1,ONLY: w1gr2dw,w1gr2dr,w1grud,w1gr1dj
     USE w1grf2,ONLY: w1gr1b,w1gr1d,w1gr1f,w1gr1h,w1gruf
     IMPLICIT NONE
     INTEGER:: NID
@@ -12,7 +12,7 @@ CONTAINS
 1   WRITE(6,*) '## Input choice of plot: 1-6 for 1D, 1-2 for 2D, 0 for end'
     READ(5,*,END=9000,ERR=1) NID
     IF(NID.EQ.0) GO TO 9000
-    IF(NZPMAX.EQ.1) THEN
+    IF(NZMAX.EQ.1) THEN
        SELECT CASE(NID)
        CASE(1)
           CALL W1GR1D
@@ -35,6 +35,8 @@ CONTAINS
           CALL W1GR1D
        CASE(3)          
           CALL W1GR2DR
+       CASE(4)          
+          CALL W1GR1DJ
        END SELECT
     ENDIF
     GO TO 1

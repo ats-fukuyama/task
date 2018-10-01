@@ -4,46 +4,47 @@
 
 SUBROUTINE WFBPSI(R,Z,PSI)
 
-  use wfcomm,ONLY: PI,RA,ZBB,RMIR,BB,MODELG,MODELB
-  implicit none
-  real(8),intent(in) :: R,Z
-  real(8),intent(out):: PSI
-  REAL(rkind):: A0,A1,RL,ZL
+  USE wfcomm,ONLY: rkind,PI,RA,ZBB,RMIR,BB,MODELG,MODELB,NCOILMAX, &
+       RCOIL,ZCOIL,BCOIL,H1,H2,RRC
+  USE libbes,ONLY: BESIN
+  IMPLICIT NONE
+  REAL(8),INTENT(IN) :: R,Z
+  REAL(8),INTENT(OUT):: PSI
+  INTEGER:: NCOIL
+  REAL(rkind):: A0,A1,RL,ZL,WFPSIC,XH1,XH2
 
   SELECT CASE(MODELG)
   CASE(0)  ! slab
      SELECT CASE(MODELB)
      CASE(0)
-        PSI=BB*R
-     CASE(1)
         A0=0.5D0*(1.D0+RMIR)*BB
         A1=0.5D0*(1.D0-RMIR)*BB
         RL = PI* R/ZBB
         ZL = PI* Z/ZBB
         PSI = A0*R +A1*(ZBB/PI)*COS(ZL)*SINH(RL )
-     CASE(2,3)
+     CASE(1)
         PSI=0.D0
-        DO NC=1,NCMAX
+        DO NCOIL=1,NCOILMAX
            IF(R.NE.0.D0) THEN
-              PSI=PSI+BC(NC)*WFPSIS(R,Z-ZC(NC),RC(NC))
+              PSI=PSI+BCOIL(NCOIL) &
+                      *LOG(RCOIL(NCOIL)) &
+                      /LOG(SQRT((R-RCOIL(NCOIL))**2+(Z-ZCOIL(NCOIL))**2))
            ENDIF
         ENDDO
      END SELECT
   CASE(1)  ! cylindrical
      SELECT CASE(MODELB)
      CASE(0)
-        PSI=BB*(R*R)/(RA*RA)
-     CASE(1)
         A0=0.5D0*(1.D0+RMIR)*BB
         A1=0.5D0*(1.D0-RMIR)*BB
         RL = PI* R/ZBB
         ZL = PI* Z/ZBB
-        PSI = 0.5D0*A0*R *R +A1*(ZBB/PI)**2*COS(ZL)*RL *BESIN(1,RL )
-     CASE(2,3)
+        PSI = 0.5D0*A0*R *R +A1*(ZBB/PI)**2*COS(ZL)*RL *BESIN(1,RL)
+     CASE(1)
          PSI=0.D0
-         DO NC=1,NCMAX
+         DO NCOIL=1,NCOILMAX
             IF(R.NE.0.D0) THEN
-               PSI=PSI+BC(NC)*WFPSIC(R,Z-ZC(NC),RC(NC))
+               PSI=PSI+BCOIL(NCOIL)*WFPSIC(R,Z-ZCOIL(NCOIL),RCOIL(NCOIL))
             ENDIF
          ENDDO
      END SELECT
@@ -56,6 +57,27 @@ SUBROUTINE WFBPSI(R,Z,PSI)
   END SELECT
   RETURN
 END SUBROUTINE WFBPSI
+
+!   --- psi function for circular coil ---
+
+  FUNCTION WFPSIC(RL,ZL,RC)
+
+!        R*A_psi
+
+    USE wfcomm,ONLY: rkind,PI
+    USE libell,ONLY: ELLFC,ELLEC
+    IMPLICIT NONE
+    REAL(rkind),INTENT(IN):: RL,ZL,RC
+    REAL(rkind):: WFPSIC
+    REAL(rkind):: RX,RK
+
+    RX=SQRT(RC**2+RL**2+ZL**2+2.D0*RC*RL)
+    RK=SQRT(4.D0*RC*RL)/RX
+    WFPSIC=(RC/PI)*RX &
+          *((1.D0-0.5D0*RK**2)*ELLFC(RK,IERR1)-ELLEC(RK,IERR2))
+    RETURN
+  END FUNCTION WFPSIC
+
 
 !     ****** set magnetic field ******
 

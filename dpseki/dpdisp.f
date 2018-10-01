@@ -348,10 +348,10 @@ C
       CCD=SQRT(CCB**2-4.D0*CCA*CCC)
       CKPPA=(-CCB+CCD)/(2.D0*CCA)
       CKPPB=(-CCB-CCD)/(2.D0*CCA)
-      RKPPA2=REAL(CKPPA**2)
-      RKPPB2=REAL(CKPPB**2)
-      RKPPA2_im=abs(imag(CKPPA**2))
-      RKPPB2_im=abs(imag(CKPPB**2))
+      RKPPA2=REAL(CKPPA)
+      RKPPB2=REAL(CKPPB)
+      RKPPA2_im=abs(imag(CKPPA))
+      RKPPB2_im=abs(imag(CKPPB))
       IF(RKPPA2.GE.0.D0 .and. RKPPA2_im .LT. 1d-18) THEN
          IF(RKPPB2.GE.0.D0 .and. RKPPB2_im .LT. 1d-18) THEN
 !      IF(RKPPA2.GE.0.D0 ) THEN

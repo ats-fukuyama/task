@@ -18,7 +18,8 @@ C                      V3.10  : 2000 NOV 25
 C     --------------------------------------------------------
 C
       USE plcomm
-      USE plinit,ONLY: PL_INIT,PL_PARM
+      USE plinit,ONLY: PL_INIT
+      USE plparm,ONLY: PL_PARM
       INCLUDE 'wrcomm.inc'
 
 C      CALL mtx_initialize

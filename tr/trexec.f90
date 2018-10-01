@@ -34,21 +34,24 @@
       ICHCK=0
 
  1000 L=0
-!     /* Making New Variables */
+!     /* Setting New Variables */
       CALL TRATOX
 
-!     /* Stored Variables for Convergence Check */
+!     /* Store Variables for Convergence Check */
       forall(J=1:NEQMAX,NR=1:NRMAX) XX(NEQMAX*(NR-1)+J) = XV(J,NR)
       YY(1:NFM,1:NRMAX) = YV(1:NFM,1:NRMAX)
       IF(MDTC.NE.0) ZZ(1:NSMAX,1:NRMAX) = ZV(1:NSMAX,1:NRMAX)
 
  2000 CONTINUE
+
 !      CALL TR_EDGE_SELECTOR(0)
 
-!     /* Matrix Producer */
+!     /* Calcualte matrix coefficients */
+
       CALL TRMTRX(NEQRMAX)
 
-!     /* Matrix Solver */
+!     /* Solve matrix equation */
+
       IF(MDLPCK.EQ.0) THEN
          MWRMAX=4*NEQRMAX-1
          CALL BANDRD(AX,X,NEQRMAX*NRMAX,MWRMAX,LDAB,IERR)
@@ -86,10 +89,13 @@
          ENDIF
       ENDIF
 
+!    /* Solve equation for fast particl
+
       Y(1:NFM,1:NRMAX) = Y(1:NFM,1:NRMAX)/AY(1:NFM,1:NRMAX)
       IF(MDTC.NE.0) Z(1:NSMAX,1:NRMAX) = Z(1:NSMAX,1:NRMAX)/AZ(1:NSMAX,1:NRMAX)
 
 !     /* Convergence check */
+
       DO I=1,NEQRMAX*NRMAX
          IF (ABS(X(I)-XX(I)).GT.EPSLTR*ABS(X(I))) GOTO 3000
       ENDDO
@@ -138,58 +144,71 @@
                   RDP(NR) = XV(NEQ,NR)
                ELSE
                   RDP(NR) = 0.5D0*(XV(NEQ,NR)+X(NEQRMAX*(NR-1)+NSTN))
-!                  if(nr==nrmax)write(6,*) NEQMAX,NEQRMAX,NEQRMAX*(NR-1)+NSTN,NEQMAX*(NR-1)+NSTN,NSTN
-!                  if(nr==nrmax)write(6,*) "NSTN/=0",XV(NEQ,NR),X(NEQRMAX*(NR-1)+NSTN),X(NEQMAX*(NR-1)+NSTN)
+!                  if(nr==nrmax) write(6,*) &
+!                         NEQMAX,NEQRMAX,NEQRMAX*(NR-1)+NSTN, &
+!                         NEQMAX*(NR-1)+NSTN,NSTN
+!                  if(nr==nrmax) write(6,*) &
+!                         "NSTN/=0",XV(NEQ,NR),X(NEQRMAX*(NR-1)+NSTN), &
+!                         X(NEQMAX*(NR-1)+NSTN)
                ENDIF
                RDPVRHOG(NR) = RDP(NR) / DVRHOG(NR)
             ELSEIF(NSVN.EQ.1) THEN
-               IF(MDLEQN.NE.0) THEN !!!
-               IF(NSSN.EQ.1.AND.MDLEQE.EQ.0) THEN
-                  RN(NR,NSSN) = 0.D0
-                  DO NEQ1=1,NEQMAX
-                     NSSN1=NSS(NEQ1)
-                     NSVN1=NSV(NEQ1)
-                     NSTN1=NST(NEQ1)
-                     IF(NSVN1.EQ.1.AND.NSSN1.NE.1) THEN
-                        IF(NSTN1.EQ.0) THEN
-                           RN(NR,NSSN) = RN(NR,NSSN)+PZ(NSSN1)*XV(NEQ1,NR)
-                        ELSE
-                           RN(NR,NSSN) = RN(NR,NSSN)+PZ(NSSN1)*0.5D0*(XV(NEQ1,NR)+X(NEQRMAX*(NR-1)+NSTN1))
+               IF(MDLEQN.NE.0) THEN
+                  IF(NSSN.EQ.1.AND.MDLEQE.EQ.0) THEN
+                     RN(NR,NSSN) = 0.D0
+                     DO NEQ1=1,NEQMAX
+                        NSSN1=NSS(NEQ1)
+                        NSVN1=NSV(NEQ1)
+                        NSTN1=NST(NEQ1)
+                        IF(NSVN1.EQ.1.AND.NSSN1.NE.1) THEN
+                           IF(NSTN1.EQ.0) THEN
+                              RN(NR,NSSN) = RN(NR,NSSN) &
+                                   + PZ(NSSN1)*XV(NEQ1,NR)
+                           ELSE
+                              RN(NR,NSSN) = RN(NR,NSSN) &
+                                   + PZ(NSSN1)*0.5D0*(XV(NEQ1,NR) &
+                                                   +X(NEQRMAX*(NR-1)+NSTN1))
+                           ENDIF
                         ENDIF
-                     ENDIF
-                  ENDDO
-                  RN(NR,NSSN) = RN(NR,NSSN)+PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
-               ELSEIF(NSSN.EQ.1.AND.MDLEQE.EQ.1) THEN
-                  RN(NR,NSSN) = 0.5D0*(XV(NEQ,NR)+X(NEQRMAX*(NR-1)+NEQ))
-               ELSEIF(NSSN.EQ.2.AND.MDLEQE.EQ.2) THEN
-                  RN(NR,NSSN) = 0.D0
-                  DO NEQ1=1,NEQMAX
-                     NSSN1=NSS(NEQ1)
-                     NSVN1=NSV(NEQ1)
-                     NSTN1=NST(NEQ1)
-                     IF(NSVN1.EQ.1.AND.NSSN1.NE.2) THEN
-                        IF(NSTN1.EQ.0) THEN
-                           RN(NR,NSSN) = RN(NR,NSSN)+ABS(PZ(NSSN1))*XV(NEQ1,NR)
-                        ELSE
-                           RN(NR,NSSN) = RN(NR,NSSN)+ABS(PZ(NSSN1))*0.5D0*(XV(NEQ1,NR)+X(NEQRMAX*(NR-1)+NSTN1))
+                     ENDDO
+                     RN(NR,NSSN) = RN(NR,NSSN) &
+                          +PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
+                  ELSEIF(NSSN.EQ.1.AND.MDLEQE.EQ.1) THEN
+                     RN(NR,NSSN) = 0.5D0*(XV(NEQ,NR)+X(NEQRMAX*(NR-1)+NEQ))
+                  ELSEIF(NSSN.EQ.2.AND.MDLEQE.EQ.2) THEN
+                     RN(NR,NSSN) = 0.D0
+                     DO NEQ1=1,NEQMAX
+                        NSSN1=NSS(NEQ1)
+                        NSVN1=NSV(NEQ1)
+                        NSTN1=NST(NEQ1)
+                        IF(NSVN1.EQ.1.AND.NSSN1.NE.2) THEN
+                           IF(NSTN1.EQ.0) THEN
+                              RN(NR,NSSN) = RN(NR,NSSN) &
+                                   +ABS(PZ(NSSN1))*XV(NEQ1,NR)
+                           ELSE
+                              RN(NR,NSSN) = RN(NR,NSSN) &
+                                   +ABS(PZ(NSSN1))*0.5D0*(XV(NEQ1,NR) &
+                                   +X(NEQRMAX*(NR-1)+NSTN1))
+                           ENDIF
                         ENDIF
+                     ENDDO
+                     RN(NR,NSSN) = RN(NR,NSSN) &
+                          +PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
+                  ELSE
+                     IF(NSTN.EQ.0) THEN
+                        RN(NR,NSSN) = XV(NEQ,NR)
+                     ELSE
+                        RN(NR,NSSN) = 0.5D0*(XV(NEQ,NR) &
+                                            + X(NEQRMAX*(NR-1)+NSTN))
                      ENDIF
-                  ENDDO
-                  RN(NR,NSSN) = RN(NR,NSSN)+PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
+                  ENDIF
                ELSE
                   IF(NSTN.EQ.0) THEN
                      RN(NR,NSSN) = XV(NEQ,NR)
                   ELSE
-                     RN(NR,NSSN) = 0.5D0*(XV(NEQ,NR) + X(NEQRMAX*(NR-1)+NSTN))
+                     RN(NR,NSSN) = 0.5D0*(XV(NEQ,NR) +  X(NEQRMAX*(NR-1)+NSTN))
                   ENDIF
                ENDIF
-            ELSE !!!
-               IF(NSTN.EQ.0) THEN
-                  RN(NR,NSSN) = XV(NEQ,NR)
-               ELSE
-                  RN(NR,NSSN) = 0.5D0*(XV(NEQ,NR) +  X(NEQRMAX*(NR-1)+NSTN))
-               ENDIF
-            ENDIF !!!
             ELSEIF(NSVN.EQ.2) THEN
                IF(NSTN.EQ.0) THEN
                   IF(NSSN.NE.NSM) THEN
@@ -205,14 +224,18 @@
                   ENDIF
                ELSE
                   IF(NSSN.NE.NSM) THEN
-                     RT(NR,NSSN) = 0.5D0*(XV(NEQ,NR) +X(NEQRMAX*(NR-1)+NSTN))/RN(NR,NSSN)
-!                     write(6,'(A,3I5,1P4E12.4)') '-2- ',NR,NSSN,NSTN, &
-!                     & XV(NEQ,NR),RN(NR,NSSN),RT(NR,NSSN),X(NEQRMAX*(NR-1)+NSTN)
+                     RT(NR,NSSN) = 0.5D0*(XV(NEQ,NR) &
+                                         +X(NEQRMAX*(NR-1)+NSTN))/RN(NR,NSSN)
+!                     write(6,'(A,3I5,1P4E12.4)') &
+!                             '-2- ',NR,NSSN,NSTN, &
+!                              XV(NEQ,NR),RN(NR,NSSN),RT(NR,NSSN),&
+!                              X(NEQRMAX*(NR-1)+NSTN)
                   ELSE
                      IF(RN(NR,NSM).LT.1.D-70) THEN
                         RT(NR,NSM) = 0.D0
                      ELSE
-                        RT(NR,NSM) = 0.5D0*(XV(NEQ,NR) +X(NEQRMAX*(NR-1)+NSTN))/RN(NR,NSM)
+                        RT(NR,NSM) = 0.5D0*(XV(NEQ,NR) &
+                             +X(NEQRMAX*(NR-1)+NSTN))/RN(NR,NSM)
 !                     write(6,'(A,2I5,1P3E12.4)') '-3- ',NR,NSM, &
 !                     & XV(NEQ,NR),RN(NR,NSM),RT(NR,NSM)
                      ENDIF
@@ -222,7 +245,8 @@
                IF(NSTN.EQ.0) THEN
                   RU(NR,NSSN) = XV(NEQ,NR)/(PA(NSSN)*AMM*RN(NR,NSSN))
                ELSE
-                  RU(NR,NSSN) = 0.5D0*(XV(NEQ,NR) + X(NEQRMAX*(NR-1)+NSTN))/(PA(NSSN)*AMM*RN(NR,NSSN))
+                  RU(NR,NSSN) = 0.5D0*(XV(NEQ,NR) &
+                       + X(NEQRMAX*(NR-1)+NSTN))/(PA(NSSN)*AMM*RN(NR,NSSN))
                ENDIF
             ENDIF
          ENDDO
@@ -243,6 +267,9 @@
       END IF
 
 !      CALL TR_EDGE_SELECTOR(1)
+
+!     /* update matrix coefficients */
+
       CALL TRCALC(IERR)
       IF(IERR.NE.0) RETURN
       GOTO 2000
@@ -250,15 +277,20 @@
  4000 T=T+DT
       VSEC=VSEC+VLOOP*DT
       RIP=RIP+DIPDT*DT
+
 !      write(6,'(A,1P4E12.4)') "T,RIP,RIPE,DIP=",T,RIP,RIPE,DIPDT*DT
 
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
+
 !     calculate plasma current at next time from interpolating data
+
          TSL=T
          CALL TIMESPL(TSL,RIP,TMU1,RIPU,NTXMAX1,NTUM,IERR)
          IF(MDLEQB.NE.0) THEN
+
 !     calculate poloidal flux (derivative) of uncalculated region
 !     i.e. rho < rhoa
+
             IF(RHOA.NE.1.D0) NRMAX=NROMAX
             DO NR=NRAMAX+1,NRMAX
                CALL TIMESPL(TSL,AJL,TMU,AJU(1,NR),NTXMAX,NTUM,IERR)
@@ -287,12 +319,15 @@
       IF(MDTC.NE.0) ZV(1:NSMAX,1:NRMAX) = Z(1:NSMAX,1:NRMAX)
 
 !     /* Making New Physical Variables */
+
       CALL TRXTOA
+
 !      CALL TR_EDGE_SELECTOR(1)
 
 !     /* Check negative temperature */
+
       IF(ICHCK.EQ.0) CALL TRCHCK(ICHCK)
-!     /* In case of negative temperature */
+
       IF(ICHCK.EQ.1) THEN
          CALL TRGLOB
          CALL TRATOT
@@ -303,6 +338,8 @@
       ENDIF
 
  8000 continue
+
+!     /* calculate physical quauntities */
 
       CALL TRCALC(IERR)
       IF(IERR.NE.0) RETURN
@@ -388,7 +425,8 @@
      &             NV, NW
       REAL(8)   :: ADV, C1, COEF, COULOG, DV53, FADV, PRV, RDPA, RLP
 
-      ! Boundary condition for magnetic diffusion equation
+! Boundary condition for magnetic diffusion equation
+
       IF(MDLEQB.NE.0) THEN
          IF(MDLCD.EQ.0) THEN
             RDPS=2.D0*PI*RMU0*RIP*1.D6*DVRHOG(NRMAX)/ABVRHOG(NRMAX)
@@ -406,7 +444,6 @@
             RDPS=2.D0*PI*RMU0*RIPA*1.D6*DVRHOG(NRMAX)/ABVRHOG(NRMAX)
          ENDIF
       ENDIF
-!      RDPS=RDP(NRMAX)
 
       COEF = AEE**4*1.D20/(3.D0*SQRT(2.D0*PI)*PI*EPS0**2)
 
@@ -631,7 +668,8 @@
       DO NEQ=1,NEQMAX
          NSTN=NST(NEQ)
          IF(NSTN.NE.0) THEN
-            X(NEQRMAX*(NR-1)+NSTN) = X(NEQMAX*(NR-1)+NEQ)+PPA(NEQ,NR)+PPB(NEQ,NR)+PPC(NEQ,NR)
+            X(NEQRMAX*(NR-1)+NSTN) = X(NEQMAX*(NR-1)+NEQ) &
+                 +PPA(NEQ,NR)+PPB(NEQ,NR)+PPC(NEQ,NR)
          ENDIF
       ENDDO
       ENDDO
@@ -1383,14 +1421,18 @@
             ELSEIF(NSSN.EQ.6) THEN
                D(NEQ,NR) = VOID
             ELSEIF(NSSN.EQ.7.OR.NSSN.EQ.8) THEN
-               D(NEQ,NR) = SSIN(NR,NSSN)*DV11+(-VI(NEQ,NEQ,2,NSW)+C83*DI(NEQ,NEQ,2,NSW))*RNV(NR,NSSN)
+               D(NEQ,NR) = SSIN(NR,NSSN)*DV11 &
+                    +(-VI(NEQ,NEQ,2,NSW)+C83*DI(NEQ,NEQ,2,NSW))*RNV(NR,NSSN)
             ELSE
                IF(NSVN.EQ.1) THEN
-                  D(NEQ,NR) = (SSIN(NR,NSSN)+SPE(NR,NSSN)/DT)*DV11+(-VI(NEQ,NEQ,2,NSW)+C83*DI(NEQ,NEQ,2,NSW))*RNV(NR,NSSN)
+                  D(NEQ,NR) = (SSIN(NR,NSSN)+SPE(NR,NSSN)/DT)*DV11 &
+                       +(-VI(NEQ,NEQ,2,NSW)+C83*DI(NEQ,NEQ,2,NSW))*RNV(NR,NSSN)
                ELSEIF(NSVN.EQ.2) THEN
                   D(NEQ,NR) = (PIN(NR,NSSN)/(RKEV*1.D20)  )*DV53 &
-     &                 +(-VI(NEQ,NEQ-1,2,NSW)+C83*DI(NEQ,NEQ-1,2,NSW))*RNV(NR,NSSN) &
-     &                 +(-VI(NEQ,NEQ  ,2,NSW)+C83*DI(NEQ,NEQ  ,2,NSW))*RPV(NR,NSSN)
+                       +(-VI(NEQ,NEQ-1,2,NSW)+C83*DI(NEQ,NEQ-1,2,NSW)) &
+                       *RNV(NR,NSSN) &
+                       +(-VI(NEQ,NEQ  ,2,NSW)+C83*DI(NEQ,NEQ  ,2,NSW)) &
+                       *RPV(NR,NSSN)
                ELSEIF(NSVN.EQ.3) THEN
                   D(NEQ,NR) = VOID
                ELSE

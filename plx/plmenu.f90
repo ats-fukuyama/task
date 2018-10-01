@@ -9,9 +9,9 @@
     SUBROUTINE pl_menu
 
       USE plcomm
-      USE plinit
-      USE plgout, ONLY: pl_gout
-      USE plload, ONLY: pl_load
+      USE plparm,ONLY: pl_parm,pl_view
+      USE plgout,ONLY: pl_gout
+      USE plload,ONLY: pl_load
 
       IMPLICIT NONE
       INTEGER(ikind)    :: IERR, MODE

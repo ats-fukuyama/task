@@ -17,7 +17,8 @@ PROGRAM DP
 
 !-----------------------------------------------------------------------
 
-  USE plinit, ONLY: pl_init,pl_parm
+  USE plinit, ONLY: pl_init
+  USE plparm, ONLY: pl_parm
   USE dpinit, ONLY: dp_init
   USE dpparm, ONLY: dp_parm
   USE dpmenu, ONLY: dp_menu

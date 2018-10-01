@@ -17,13 +17,14 @@
 
     PROGRAM plmain
       USE plcomm
-      USE plinit
-      USE plmenu
+      USE plinit,ONLY: pl_init
+      USE plparm,ONLY: pl_parm
+      USE plmenu,ONLY: pl_menu
 
       IMPLICIT none
       INTEGER(ikind)  :: ierr
 
-      WRITE(6,*) '## TASK/PL 2009/07/2108'
+      WRITE(6,*) '## TASK/PL 2018/09/14'
       OPEN(7,STATUS='SCRATCH')
       CALL gsopen
       CALL pl_init

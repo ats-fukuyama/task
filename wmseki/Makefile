@@ -3,10 +3,10 @@ include ../make.header
 include ../mtxp/make.mtxp
 
 # using mtxp complex solver
-#LIB_MTX=$(LIB_MTX_BND)
-#LIBX_MTX=$(LIBX_MTX_BND)
-LIB_MTX=$(LIB_MTX_MUMPS)
-LIBX_MTX=$(LIBX_MTX_MUMPS)
+LIB_MTX=$(LIB_MTX_BND)
+LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_MUMPS)
+#LIBX_MTX=$(LIBX_MTX_MUMPS)
 
 # select compile options
 #FFLAGS = $(OFLAGS)

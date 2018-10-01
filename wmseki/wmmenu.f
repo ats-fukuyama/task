@@ -51,12 +51,11 @@ C            CALL plfile_prof_read(modeln,modelq,ierr)
             NPHMAX_SV = NPHMAX
             NHHMAX_SV = NHHMAX
 
-            IF(NHHMAX.GT.1) THEN
+            IF(NPHMAX.eq.NHHMAX .and. NHC .gt. 1) THEN
               NHHMAX=NPHMAX/NHC
               NPHMAX=NHC
-            ELSE
-              NHC=1
             END IF
+
             IF (NPHMAX .EQ. 1 .and. NHHMAX .NE. 1)THEN
                CALL WMEXEC(IERR)
             ELSE
@@ -109,11 +108,9 @@ C
             NPHMAX_SV = NPHMAX
             NHHMAX_SV = NHHMAX
 
-            IF(NHHMAX.GT.1) THEN
+            IF(NPHMAX.eq.NHHMAX .and. NHC .gt. 1) THEN
               NHHMAX=NPHMAX/NHC
               NPHMAX=NHC
-            ELSE
-              NHC=1
             END IF
 
             IF(NRANK.EQ.0) THEN

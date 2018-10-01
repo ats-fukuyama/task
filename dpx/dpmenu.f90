@@ -12,14 +12,12 @@ CONTAINS
 
     USE dpcomm
     USE pllocal
-    USE plprof,ONLY:pl_mag_old,pl_prof_old
-    USE plinit
-    USE dpinit
-    USE dpparm
-    USE dproot
-    USE dpcont
-    USE dptens
-    USE dptnsr1
+    USE plprof,ONLY: pl_mag_old,pl_prof_old
+    USE plparm,ONLY: pl_view
+    USE dpparm,ONLY: dp_parm,dp_view
+    USE dproot,ONLY: dp_root,dpgrp1
+    USE dpcont,ONLY: dp_cont,dp_contx
+    USE dptens,ONLY: dp_tens
     IMPLICIT NONE
       
     REAL(4),ALLOCATABLE:: GX(:),GY(:,:)

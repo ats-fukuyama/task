@@ -53,11 +53,16 @@ CONTAINS
                   RKZ,DRF,DRKZ,DXFACT,DXWDTH,NAMAX, &
                   AJYH,AJZH,APYH,APZH,ALZH,APHH,AJYL,AJZL,APYL,APZL,ALZL,APHL,&
                   PA,PZ,PN,PTPP,PTPR,PU,PNS,PTS,PZCL,NSMAX, &
-                  NXPMAX,NXVMAX,NZPMAX,NPRINT,NFILE,NGRAPH,NLOOP,NSYM, &
+                  NXMAX,NZMAX,NPRINT,NFILE,NGRAPH,NLOOP,NSYM, &
                   NMODEL,NALPHA,NDMAX,XDMAX,IHARM,NSYS,NDISP, &
-                  EPSH,ZEFF,WVYSIZ,NCDTYP,NXABS,IELEC
+                  EPSH,ZEFF,WVYSIZ,NCDTYP,NXABS,IELEC, &
+                  MDLWG,MDLWGS,WGZ1,WGZ2,WGAMP,WGNZ
+
+    RZ=0.D0
 
     READ(NID,W1,IOSTAT=IST,ERR=9800,END=9900)
+
+    IF(RZ.EQ.0.D0) RZ=2.D0*PI*(RR+RB)
 
     IERR=0
     RETURN
@@ -79,9 +84,10 @@ CONTAINS
          '        AJYH,AJZH,APYH,APZH,ALZH,APHH, ',&
          '        AJYL,AJZL,APYL,APZL,ALZL,APHL,', &
          '        PA,PZ,PN,PTPP,PTPR,PU,PNS,PTS,PZCL,NSMAX,', &
-         '        NXPMAX,NXVMAX,NZPMAX,NPRINT,NFILE,NGRAPH,NLOOP,NSYM,', &
+         '        NXMAX,NZMAX,NPRINT,NFILE,NGRAPH,NLOOP,NSYM,', &
          '        NMODEL,NALPHA,NDMAX,XDMAX,IHARM,NSYS,NDISP,', &
-         '        EPSH,ZEFF,WVYSIZ,NCDTYP,NXABS,IELEC'
+         '        EPSH,ZEFF,WVYSIZ,NCDTYP,NXABS,IELEC', &
+         '        MDLWG,MDLWGS,WGZ1,WGZ2,WGAMP,WGNZ'
     RETURN
 
   END SUBROUTINE w1_plst
@@ -96,13 +102,13 @@ CONTAINS
 
     IERR=0
 
-    IF(NXPMAX < 0) THEN
-       WRITE(6,'(A,I8)') 'W1 w1_check: INVALID nxmax: nxmax=',nxpmax
+    IF(NXMAX < 0) THEN
+       WRITE(6,'(A,I8)') 'W1 w1_check: INVALID nxmax: nxmax=',nxmax
        IERR=1
     ENDIF
 
-    IF(NAMAX.GT.1.AND.NZPMAX.EQ.1) THEN
-       WRITE(6,'(A,I8)') 'W1 w1_check: NAMAX shoule be 1 for NZPMAX=1',namax
+    IF(NAMAX.GT.1.AND.NZMAX.EQ.1) THEN
+       WRITE(6,'(A,I8)') 'W1 w1_check: NAMAX shoule be 1 for NZMAX=1',namax
        IERR=2
     ENDIF
 
@@ -126,7 +132,9 @@ CONTAINS
                  'DRF   ',DRF   ,'DRKZ  ',DRKZ, &
                  'DXFACT',DXFACT,'DXWDTH',DXWDTH, &
                  'EPSH  ',EPSH  ,'ZEFF  ',ZEFF, &
-                 'WVYSIZ',WVYSIZ,'XDMAX ',XDMAX
+                 'WVYSIZ',WVYSIZ,'XDMAX ',XDMAX, &
+                 'WGZ1  ',WGZ1  ,'WGZ1  ',WGZ2,  &
+                 'WGAMP ',WGAMP ,'WGNZ  ',WGNZ
 
     WRITE(6,'(A)') '     ', &
           '  NS/IELEC   PA/PZ      PN/PNS    PTPR/PTS     PTPP/PU    PZCL'
@@ -149,15 +157,16 @@ CONTAINS
             ' ANT-L',NA,AJYL(NA),AJZL(NA),APYL(NA),APZL(NA),ALZL(NA),APHL(NA)
     END DO
 
-    WRITE(6,602) 'NXPMAX',NXPMAX,'NXVMAX',NXVMAX, &
-                 'NZPMAX',NZPMAX,'NSMAX ',NSMAX, &
+    WRITE(6,602) 'NXMAX ',NXMAX , &
+                 'NZMAX ',NZMAX ,'NSMAX ',NSMAX, &
                  'NAMAX ',NAMAX ,'NDMAX ',NDMAX, &
                  'NPRINT',NPRINT,'NFILE ',NFILE, &
                  'NGRAPH',NGRAPH,'NLOOP ',NLOOP, &
                  'NSYM  ',NSYM  ,'NMODEL',NMODEL, &
                  'NALPHA',NALPHA, &
                  'NSYS  ',NSYS  ,'NDISP ',NDISP, &
-                 'NCDTYP',NCDTYP,'NXABS ',NXABS
+                 'NCDTYP',NCDTYP,'NXABS ',NXABS, &
+                 'MDLWG ',MDLWG ,'MDLWGS',MDLWGS
     RETURN
 
 601 FORMAT(' ',A6,'=',1PE11.3:2X,A6,'=',1PE11.3: &

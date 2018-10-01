@@ -5,7 +5,7 @@ C
       SUBROUTINE WRMENU
 C
       use plcomm
-      use plinit,ONLY: pl_view
+      use plparm,ONLY: pl_view
       INCLUDE 'wrcomm.inc'
 C
       EXTERNAL WRPARM

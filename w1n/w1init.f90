@@ -16,20 +16,20 @@ CONTAINS
 
 !     BB    : MAGNETIC FIELD AT X=0   (T)
 !     RR    : PLASMA MAJOR RADIUS     (M)
-!     RZ    : PERIODIC LENGTH         (M)  (IN Z DIRECTION)
-!                           *** IF RZ.EQ.0. THEN RZ=2*PI*RR ***
 !     RA    : PLASMA MINOR RADIUS     (M)
 !     RD    : ANTENNA RADIUS          (M)
 !     RB    : WALL RADIUS             (M)
+!     RZ    : PERIODIC LENGTH         (M)  (IN Z DIRECTION)
+!                           *** IF RZ.EQ.0. THEN RZ=2*PI*(RR+RB) ***
 !     WALLR : WALL RESISTIVITY        (OHM-M)
 !     EPSH  : HELICAL RIPPLE IN HELICAL SYSTEM
 
     BB    = 3.5D0
     RR    = 3.000D0
-    RZ    = 0.D0
     RA    = 1.2D0
     RD    = 1.25D0
     RB    = 1.3D0
+    RZ    = 2.D0*PI*(RR+RB)
     WALLR = 0.0D-5
     EPSH  = -0.3D0
 
@@ -154,9 +154,10 @@ CONTAINS
 
 !   ======( PROGRAM CONTROL )======
 !
-!     NXPMAX: NUMBER OF X-MESHES IN PLASMA
-!     NXVMAX: NUMBER OF X-MESHES IN VACUUM (EVEN NUMBER)
-!     NZPMAX: NUMBER OF Z-MESHES  (POWER OF 2, 2**N), 1 for single mode
+!     NXMAX: NUMBER OF X-MESHES
+!            NXPMAX = NXMAX*RA/RB : NUMBER OF X-MESHES IN PLASMA
+!            NXVMAX = NXMAX-NXPMAX: NUMBER OF X-MESHES IN VACUUM (EVEN NUMBER)
+!     NZMAX: NUMBER OF Z-MESHES  (POWER OF 2, 2**N), 1 for single mode
 !
 !     NMODEL: 0 : NO FLR CONDUCTIVITY MODEL        (FINITE ELEMENT)
 !             1 : NO FLR CONDUCTIVITY MODEL        (MULTI LAYER)
@@ -212,9 +213,8 @@ CONTAINS
 !            .GT.0 :    ABSORBING WALL AT NX=NXABS
 !            .LT.0 :    ABSORBING WALL AT NX=ABS(NXABS) FOR BACKWARD WAVE
 
-    NXPMAX= 100
-    NXVMAX= 10
-    NZPMAX= 1
+    NXMAX= 130
+    NZMAX= 1
 
     NMODEL= 5
 
@@ -243,7 +243,30 @@ CONTAINS
     NCDTYP=1
     ZEFF=2.D0
     WVYSIZ=0.D0
-!     ======( MESH SIZE )======
+
+!     ======( WG Parameters )======
+!     MDLWG: Wave guide excitation parameter
+!            0  no WG
+!            1  LFS O-mode
+!            2  LFS X-mode
+!            3  HFS O-mode
+!            4  HFS X-mode
+!     MDLWGS: Wave guide shape parameter
+!            0: Rectangular shape
+!            1: Parabolic shape
+!            2: Gaussian shape
+!     WGZ1   : Lower end position of WG [m]
+!     WGZ2   : Upper end position of WG [m]
+!     WGAMP  : Waveguide electric field amplitude [V/m]
+!     WGNZ   : Parallel refractive index
+
+      MDLWG  = 0
+      MDLWGS = 0
+      WGZ1   = 0.05D0
+      WGZ2   = 0.15D0
+      WGAMP  = 1.D0
+      WGNZ   = 0.2D0
+
     RETURN
   END SUBROUTINE w1_init
 END MODULE w1init

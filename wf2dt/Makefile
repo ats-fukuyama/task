@@ -75,6 +75,7 @@ clean:
 veryclean: clean
 	rm -f wf testin 
 
+wfcomm.o: wfcomm.f90 ../plx/plcomm.f90
 wfmain.o: wfmain.f90 wfcomm.f90
 wfmenu.o: wfmenu.f90 wfcomm.f90
 wfinit.o: wfinit.f90 wfcomm.f90

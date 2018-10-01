@@ -26,7 +26,7 @@ CONTAINS
          STOP
       ENDIF
 
-      DO n2=1,n2
+      DO n2=1,n2max
          DO n1=1,n1max
             CA1(n1)=CA(n1,n2)
          ENDDO

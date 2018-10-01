@@ -6,8 +6,8 @@ C
 C
       USE plcomm
       USE pllocal
-      USE plprof,ONLY:pl_mag_old,pl_prof_old
-      USE plinit
+      USE plprof,ONLY: pl_mag_old,pl_prof_old
+      USE plparm,ONLY: pl_view
       INCLUDE 'dpcomm.inc'
 C
       PARAMETER (NXGM=101)

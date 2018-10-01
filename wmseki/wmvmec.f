@@ -168,10 +168,15 @@ C
       write(6,*) 'NR,XRHO,XR'
       DO NR=1,NRMAX+1
          XRHO(NR)=DRHO*(NR-1)
-         XR(NR)  =RB*XRHO(NR)
+C         XR(NR)  =RB*XRHO(NR)
+         XR(NR)  =RA*XRHO(NR)
       write(6,*) nr,xrho(nr),xr(nr)
       ENDDO
       write(6,*) 'RA,RB,DRHO=',RA,RB,DRHO
+C
+C     seki
+      bsu=bsu*B0_FACT
+      bsv=bsv*B0_FACT
 C
       RETURN
       END
@@ -388,6 +393,7 @@ C
 C      ***** CULCULATE METRIC TENSOR AND JACOBIAN*****
 C 
       DTH=2.D0*PI/NTHMAX_F
+      print *,NHC,NHHMAX_F
       DPH=2.D0*PI/(NHC*NHHMAX_F)
 C
       DO NR=1,NRMAX+1
@@ -640,6 +646,7 @@ C
 C
       NSUMAX=31
       DTHU=2.D0*PI/(NSUMAX-1)
+      DPH=2.D0*PI/(NHC*NHHMAX)
       DO NSU=1,NSUMAX
          DO NHH=1,NHHMAX
             RSU(NSU,NHH)=0.D0

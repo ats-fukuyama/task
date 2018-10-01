@@ -106,6 +106,7 @@ C
 C
 C     ----- Inverse Fourier transform ----
 C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       DO NR=1,NRMAX+1
       DO I=1,3
          CEFM1=0d0
@@ -113,20 +114,21 @@ C
          NDXM=NHC*(NDX-1)+1
          IF (NHC /= 1)THEN
              NPH  = NPH0 + NPHMAX/2 + 1 - NPH0_SV
-             NDXM = NDXM + NPH 
+             NDXM = NDXM + NPH + (NHCF-NHC)*NDSIZ/2
          ENDIF
          DO MDX=1,MDMSIZ
             CEFM1(MDX,NDXM)=CEFLD(I,MDX,NDX,NR)
          ENDDO
          ENDDO
          CALL WMSUBEM(CEFM1,CEFM2)
-         DO NHH=1,NHHMAX_SV
+         DO NHH=1,NDMSIZ
          DO NTH=1,NTHMAX
             CEFLDM(I,NTH,NHH,NR)=CEFM2(NTH,NHH)
          ENDDO
          ENDDO
       ENDDO
       ENDDO
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       DO NR=1,NRMAX+1
       DO I=1,3
          DO NDX=1,NDSIZ
@@ -175,7 +177,7 @@ C
       DO NTH=1,NTHMAX
          NHHF=(NHH-1)*NFACT +1
          NTHF=(NTH-1)*MFACT +1
-         NHHD=(NHH-1)*NHC +1
+         NHHD=(NHH-1)*NHCF +1
 C
 C        ----- Calculate rotation matrix mu=RMA -----
 C
@@ -345,7 +347,7 @@ C
       DO NTH=1,NTHMAX
          NHHF=(NHH-1)*NFACT +1
          NTHF=(NTH-1)*MFACT +1
-         NHHD=(NHH-1)*NHC +1
+         NHHD=(NHH-1)*NHCF +1
 C 
          RF11=(RG22(NTHF,NHHF,NR)*RG33(NTHF,NHHF,NR)
      &        -RG23(NTHF,NHHF,NR)**2)/RJ(NTHF,NHHF,NR)**2
@@ -534,23 +536,24 @@ C
 C
       DO NR=1,NRMAX+1
       DO I=1,3
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          DO NDX=1,NDSIZ
          NDXM=(NDX-1)*NHC + 1
          IF (NHC /= 1)THEN
              NPH  = NPH0 + NPHMAX/2 + 1 - NPH0_SV
-             NDXM = NDXM + NPH 
+             NDXM = NDXM + NPH + (NHCF-NHC)*NDSIZ/2
          ENDIF
          DO MDX=1,MDMSIZ
             CBFM1(MDX,NDXM)=CBFLDK(I,MDX,NDX,NR)
          ENDDO
          ENDDO
          CALL WMSUBEM(CBFM1,CBFM2)
-         DO NHH=1,NHHMAX_SV
+         DO NHH=1,NDMSIZ
          DO NTH=1,NTHMAX
             CBFLDM(I,NTH,NHH,NR)=CBFM2(NTH,NHH)
          ENDDO
          ENDDO
-
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          DO NDX=1,NDSIZ
          DO MDX=1,MDSIZ
             CBF1(MDX,NDX)=CBFLDK(I,MDX,NDX,NR)
@@ -570,7 +573,7 @@ C
       DO NTH=1,NTHMAX
          NHHF=(NHH-1)*NFACT +1
          NTHF=(NTH-1)*MFACT +1
-         NHHD=(NHH-1)*NHC +1
+         NHHD=(NHH-1)*NHCF +1
 C
          CBFLD(1,NTH,NHH,NR)=CBFLD(1,NTH,NHH,NR)/RJ(NTHF,NHHF,NR)
      &                      *SQRT(RG11(NTHF,NHHF,NR))
@@ -919,13 +922,14 @@ C
          DO NDX=1,NDMSIZ
             CFN(NDX)=CF2(NTH,NDX)
          ENDDO
-         CALL WMXFFT(CFN,NHHMAX_SV,1)
-         DO NHH=1,NHHMAX_SV
+         CALL WMXFFT(CFN,NDMSIZ,1)
+         DO NHH=1,NDMSIZ
             CF2(NTH,NHH)=CFN(NHH)
          ENDDO
       ENDDO
       RETURN
       END
+
 C
 C     ****** 2D FOURIER TRANSFORM ******
 C
@@ -1010,6 +1014,7 @@ C
       NR=NBSTX
       DO NS=1,NSMAX
 C
+         IF(NR.LE.NR_S-1) THEN
          CALL WMSETF(NR,NS)
          DO NDX=1,NDSIZ
          DO KDX=1,KDSIZ_F
@@ -1025,6 +1030,23 @@ C
          ENDDO
          ENDDO
          ENDDO
+         ELSEIF(NR.GE.NR_S+2) THEN
+         CALL WMSETF_OUT(NR,NS)
+         DO NDX=1,NDSIZ
+         DO KDX=1,KDSIZ_F
+         DO MDX=1,MDSIZ
+         DO LDX=1,LDSIZ_F
+         DO J=1,3
+         DO I=1,3
+            CGDD(I,J,LDX,MDX,KDX,NDX,2)=CGDD(I,J,LDX,MDX,KDX,NDX,3)
+            CGDDH(I,J,LDX,MDX,KDX,NDX,2)=CGDDH(I,J,LDX,MDX,KDX,NDX,3)
+         ENDDO
+         ENDDO
+         ENDDO
+         ENDDO
+         ENDDO
+         ENDDO
+         ENDIF
 C
       DO NR=1,NRMAX+1
       DO NHH=1,NHHMAX
@@ -1044,10 +1066,28 @@ C
 
       DO NB=NBSTX,NBED
 C
-         IF(NB.LE.NR_S-2) THEN
+         IF(NB.LE.NR_S-1) THEN
             NR=NB
-         ELSEIF(NB.GE.NR_S+1) THEN
+         ELSEIF(NB.GE.NR_S+2) THEN
             NR=NB-2
+            IF (NB .EQ. NR_S +2)THEN
+            CALL WMSETF_OUT(NR,NS)
+            DO NDX=1,NDSIZ
+            DO KDX=1,KDSIZ_F
+            DO MDX=1,MDSIZ
+            DO LDX=1,LDSIZ_F
+            DO J=1,3
+            DO I=1,3
+               CGDD(I,J,LDX,MDX,KDX,NDX,2)=CGDD(I,J,LDX,MDX,KDX,NDX,3)
+               CGDDH(I,J,LDX,MDX,KDX,NDX,2)=CGDDH(I,J,LDX,MDX,KDX,NDX,3)
+            ENDDO
+            ENDDO
+            ENDDO
+            ENDDO
+            ENDDO
+            ENDDO
+
+            ENDIF
          ELSE
             CYCLE
          END IF
@@ -1062,7 +1102,7 @@ C
          ENDDO
          ENDDO
 
-         IF (NR <= NR_S - 1)THEN
+         IF (NB <= NR_S - 1)THEN
             CALL WMSETF(NR+1,NS)
             DO NDX=1,NDSIZ
             DO KDX=1,KDSIZ_F
@@ -1083,23 +1123,23 @@ C
 
 
          ELSE
-            CALL WMSETF_OUT(NR,NS)
-            DO NDX=1,NDSIZ
-            DO KDX=1,KDSIZ_F
-            DO MDX=1,MDSIZ
-            DO LDX=1,LDSIZ_F
-            DO J=1,3
-            DO I=1,3
-               CGDD(I,J,LDX,MDX,KDX,NDX,1)=CGDD(I,J,LDX,MDX,KDX,NDX,2)
-               CGDD(I,J,LDX,MDX,KDX,NDX,2)=CGDD(I,J,LDX,MDX,KDX,NDX,3)
-               CGDDH(I,J,LDX,MDX,KDX,NDX,1)=CGDDH(I,J,LDX,MDX,KDX,NDX,2)
-               CGDDH(I,J,LDX,MDX,KDX,NDX,2)=CGDDH(I,J,LDX,MDX,KDX,NDX,3)
-            ENDDO
-            ENDDO
-            ENDDO
-            ENDDO
-            ENDDO
-            ENDDO
+C            CALL WMSETF_OUT(NR,NS)
+C            DO NDX=1,NDSIZ
+C            DO KDX=1,KDSIZ_F
+C            DO MDX=1,MDSIZ
+C            DO LDX=1,LDSIZ_F
+C            DO J=1,3
+C            DO I=1,3
+C               CGDD(I,J,LDX,MDX,KDX,NDX,1)=CGDD(I,J,LDX,MDX,KDX,NDX,2)
+C               CGDD(I,J,LDX,MDX,KDX,NDX,2)=CGDD(I,J,LDX,MDX,KDX,NDX,3)
+C               CGDDH(I,J,LDX,MDX,KDX,NDX,1)=CGDDH(I,J,LDX,MDX,KDX,NDX,2)
+C               CGDDH(I,J,LDX,MDX,KDX,NDX,2)=CGDDH(I,J,LDX,MDX,KDX,NDX,3)
+C            ENDDO
+C            ENDDO
+C            ENDDO
+C            ENDDO
+C            ENDDO
+C            ENDDO
 
             CALL WMSETF_OUT(NR+1,NS)
             DO NDX=1,NDSIZ
@@ -1499,7 +1539,6 @@ C
                    DO NTH=1,NTHMAX
                      NHHF=(NHH-1)*NFACT +1
                      NTHF=(NTH-1)*MFACT +1
-                     NHHD=(NHH-1)*NHC +1
                      CALL WMCMAG_F(NR,NTHF,NHHF,BABS,BSUPTH,BSUPPH)
                      RKPR=MM*BSUPTH/BABS+NN*BSUPPH/BABS
                     IF(ABS(RKPR).LT.1.D-8) RKPR=1.D-8
@@ -1528,7 +1567,6 @@ C
                DO NTH=1,NTHMAX
                   NHHF=(NHH-1)*NFACT +1
                   NTHF=(NTH-1)*MFACT +1
-                  NHHD=(NHH-1)*NHC +1
                   CALL WMCMAG_F(NR+1,NTHF,NHHF,BABS,BSUPTH,BSUPPH)
                   RKPR=MM*BSUPTH/BABS+NN*BSUPPH/BABS
                  IF(ABS(RKPR).LT.1.D-8) RKPR=1.D-8

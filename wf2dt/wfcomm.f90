@@ -52,8 +52,6 @@ module wfcomm
   integer(ikind):: NPRINT,NDRAWD,NDRAWA,NDRAWE,NGRAPH,NDRAWV
   integer(ikind):: MODELI
   integer(ikind):: MODELD,MODELP
-  integer(ikind):: NCMAX
-  REAL(rkind):: RCOIL(NCM),ZCOIL(NCM),BCOIL(NCM)
   REAL(rkind):: PSIA
   real(rkind):: R1WG,Z1WG,R2WG,Z2WG,PH1WG,PH2WG,AMPWG,ANGWG,ELPWG,DPHWG
   integer(ikind):: MODELWG

@@ -1,5 +1,8 @@
 MODULE DPPARM
 
+  PRIVATE
+  PUBLIC dp_parm,dp_chek,dpprep,dpprep_local,dp_view
+
 CONTAINS
 
 !     ****** INPUT PARAMETERS ******
@@ -31,7 +34,7 @@ CONTAINS
     IF(IERR.NE.0) RETURN
 
     CALL EQCHEK(IERR)
-    CALL DPCHEK(IERR)
+    CALL DP_CHEK(IERR)
     IF(MODE.EQ.0.AND.IERR.NE.0) GOTO 1
     CALL DPPREP_LOCAL(IERR)
     RETURN
@@ -104,7 +107,7 @@ CONTAINS
 
 !     ***** CHECK INPUT PARAMETERS *****
 
-  SUBROUTINE DPCHEK(IERR)
+  SUBROUTINE DP_CHEK(IERR)
 
     USE dpcomm_parm
     IMPLICIT NONE
@@ -113,7 +116,7 @@ CONTAINS
     IERR=0
 
     RETURN
-  END SUBROUTINE DPCHEK
+  END SUBROUTINE DP_CHEK
 
 !     ***** Setup velocity distribution function *****
 

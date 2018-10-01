@@ -108,10 +108,10 @@ C
          NDSIZX_F = 1
       ELSE
          NDSIZ  = NHHMAX
-         NDMSIZ  = NHHMAX_SV    !
+         NDMSIZ  = NHHMAX*NHCF    !
          NHHMAX_F  = NHHMAX*NFACT
 !         NHHMAX_IPS_F  = NHHMAX_F*NIPSFACT
-         NHHMAX_IPS_F  = NDMIPSF
+!         NHHMAX_IPS_F  = NDMIPSF
          NDSIZ_F  = NHHMAX_F
          NDMIN  =-NHHMAX/2+1
          NDMMIN  =-NHHMAX_SV/2+1  !
@@ -167,7 +167,7 @@ C
          MDSIZ  = NTHMAX
          NTHMAX_F  = NTHMAX*MFACT
 !         NTHMAX_IPS_F  = NTHMAX_F*MIPSFACT
-         NTHMAX_IPS_F  = MDMIPSF
+!         NTHMAX_IPS_F  = MDMIPSF
          MDMSIZ  = NTHMAX        !
          MDSIZ_F  = NTHMAX_F
          MDMIN  =-NTHMAX/2+1

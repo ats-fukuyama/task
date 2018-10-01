@@ -2195,9 +2195,9 @@ C        ****** R=0 ******
 
 
 C        ****** EPH'(0) = 0 FOR MM.EQ.0 ******
-
                   IF(MM.EQ.0 .and. 
      &                  CMAF(3,3,-MDMIN+1,-NDMIN+1,1) .NE.0 ) THEN
+                      
                     LBND=MBND-3*KD*MDSIZ-3*LD-1
                     CEMP(LBND   +3,NKX,MLX,1)
      &                               =CEMP(LBND   +3,NKX,MLX,1)

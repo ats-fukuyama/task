@@ -16,7 +16,7 @@ c
          RETURN
       ENDIF
 
-!      NPH0_SV  = NPH0
+      NPH0_SV  = NPH0
 !      NPHMAX_SV = NPHMAX
 !      NHHMAX_SV = NHHMAX
 !
@@ -38,7 +38,7 @@ C
       ENDDO
 
       DO NR=1,NRMAX+1
-         DO NPH=1,NPHMAX_SV
+         DO NPH=1,NPHMAX
             DO NTH=1,NTHMAX
                CEFLD3D(1,NTH,NPH,NR)=(0.D0,0.D0)
                CEFLD3D(2,NTH,NPH,NR)=(0.D0,0.D0)
@@ -123,10 +123,11 @@ C             KNAMWM=''//KNAMWM_SAVE(1:IKNWM)//'_'//KNPH0//'_'//KNHC//''
          ENDIF
       ENDDO
 C
+      NPH0  = NPH0_SV
       CALL WMEFLD_POST
       CALL WMPABS_POST
+      CALL WMPOUT
 
-!      NPH0  = NPH0_SV
 !      DO NS=1,NSMAX
 !         DO NR=1,NRMAX+1
 !         PABSR(NR,NS) = PABSR_SV(NR,NS)

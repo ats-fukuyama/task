@@ -64,12 +64,12 @@ CONTAINS
 
 !     *** CIRCULAR COIL/STRAIGHT ROD PARAMETERS (MODELB=1) ***
 !
-!        NCMAX : Number of coil
+!        NCOILMAX : Number of coils
 !        RCOIL : Radial position of coil current               (m)
 !        ZCOIL : Axial position of coil current                (m)
 !        BCOIL : Magnetic field on axis, center of coil        (T)
 
-    NCMAX     = 0
+    NCOILMAX  = 0
     RCOIL(1)  = 0.35D0
     ZCOIL(1)  = 0.D0
     BCOIL(1)  = 0.001D0
