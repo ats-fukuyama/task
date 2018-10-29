@@ -222,7 +222,7 @@
 !   *** 130.GE.MDLKAI.LE.134 : CDBM model                       ***
 !   *** 140.GE.MDLKAI.LE.143 : Mixed Boam and gyroBohm model    ***
 !   *** 150.GE.MDLKAI.LE.151 : mmm95 model                      ***
-!   *** 160.GE.MDLKAI.LE.152 : mmm7_1 model                     ***
+!   *** 160.GE.MDLKAI.LE.152 : mmm7_1 model (ETG not included)  ***
 !   ***************************************************************
 
 !      ***  MDLKAI.EQ. 0   : CONSTANT*(1+A*rho^2)              ***

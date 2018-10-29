@@ -140,6 +140,7 @@ CONTAINS
 
       USE plcomm,ONLY: ikind,rkind,idebug,KNAMPF
       USE plp2D
+      USE libfio
       USE libgrf
       IMPLICIT NONE
       INTEGER,INTENT(OUT):: ierr

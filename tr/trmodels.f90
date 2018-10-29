@@ -369,10 +369,6 @@ CONTAINS
     REAL(rkind):: PNIL,PNTIL,ZEFFL,ZNIL,ZZL,AMZL,AMHL,AMIL,QPL,BBL,WEXBL,RSL
     REAL(rkind):: DNEDR,DNIDR,DNHDR,DNZDR,DTEDR,DTIDR
 
-    cmodel(1)=1.D0   ! Weiland20
-    cmodel(2)=1.D0   ! DRIBM
-    cmodel(3)=0.D0   ! ETG (ETG requires multi-points)
-    
     IF(NR.EQ.NRMAX) THEN
        DO NS=1,NSMAX
           RNL(NS)=PNSS(NS)
@@ -554,6 +550,11 @@ CONTAINS
 !   n_Z  = thermal impurity density,  Z = average impurity charge
 !                     summed over all impurities
 
+   cmodel(1)=1.D0   ! Weiland20
+   cmodel(2)=1.D0   ! DRIBM
+   cmodel(3)=0.D0   ! ETG (ETG requires multi-points)
+   cswitch(1:MAXNOPT,1:4)=0.D0
+    
    lprint=1  ! Verbose level
    nprout=21 ! Output unit number for long printout
 

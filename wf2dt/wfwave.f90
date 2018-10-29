@@ -59,13 +59,27 @@ subroutine WFWPRE(IERR)
 
   USE wfcomm
   USE plload,ONLY: pl_load
+  USE libbes
   IMPLICIT NONE
+  REAL(rkind):: RGAMMA
   INTEGER,INTENT(OUT) :: IERR
 
   IERR=0
 
   CALL pl_load(ierr)
   if(IERR.ne.0) return
+
+  IF(MODELG.EQ.11) THEN
+     RGAMMA=ABS(Hpitch1*RRCH)
+     IF(RGAMMA.LT.1.D-5) THEN
+        HA1=0.D0
+     ELSE
+        HA1=RGAMMA*BESKN(1,2.D0*RGAMMA)+BESKN(2,2.D0*RGAMMA)
+     ENDIF
+     RKAP=SQRT((1.D0+2.D0*HA1)/(1.D0-2.D0*HA1))
+     WRITE(6,'(A,1P2E12.4)') 'HA1,RKAP=',HA1,RKAP
+  ENDIF
+  
 
   SELECT CASE(MODELG)
   CASE(0,1,10,11)

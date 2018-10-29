@@ -3,12 +3,14 @@ C     ***** CALCULATE RIPPLE WELL REGION INSIDE THE PLASMA *****
 C
       SUBROUTINE EQRPPL(IERR)
 C
+      USE libfio
       INCLUDE '../eq/eqcomq.inc'
 C
       EXTERNAL EQDERV
       DIMENSION XA(NTVM),YA(2,NTVM)
       DIMENSION rip_rat(NRM),DltRPV(NRM),DltRP_rim(NRM),theta_rim(NRM)
       DIMENSION DltRP_mid(NRM)
+      CHARACTER*80 FNAME
 C
       IERR=0
 C
@@ -170,7 +172,8 @@ C
 C     ----- File output for TASK/TX -----
 C
       ntxout=22
-      CALL FWOPEN(ntxout,'tx_ripple.dat',1,0,'EQ RIPPLE TO TX',IERR)
+      FNAME='tx_ripple.dat'
+      CALL FWOPEN(ntxout,FNAME,1,0,'EQ RIPPLE TO TX',IERR)
       write(ntxout,'(I4)') nrpmax
       write(ntxout,'(2X,A,6X,A,9X,A,6X,A,7X,A,9X,A,8X,A)') 'NR','RHON',
      &     'DltRP_rim','theta_rim','rip_rat','DltRP','DltRP_mid'

@@ -16,6 +16,7 @@ C
       use imp_mod
       use eqsub_mod
       use tpxssl_mod
+      USE libfio
       implicit none
       character(len=80),intent(in)::  knameq
       integer,intent(in):: modep

@@ -212,6 +212,7 @@ C
       USE plcomm
       USE commpi
       USE libmpi
+      USE libfio
       INCLUDE 'dpcomm.inc'
       CHARACTER(LEN=80),SAVE::  KNAMFP_SAVE=' '
       REAL(8),DIMENSION(:,:,:,:),ALLOCATABLE :: FNSDP

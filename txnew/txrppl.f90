@@ -407,6 +407,7 @@ contains
 
   subroutine ripple_input(ier)
 
+    USE libfio
     integer(4) :: ier, nrpin, ist, nrpmax, n, i, j
     character(len=130) :: kline
 

@@ -34,6 +34,7 @@
 
       SUBROUTINE fp_wm_read(IERR)
 
+      USE libfio
       USE libmpi
       USE libmtx
       IMPLICIT NONE
