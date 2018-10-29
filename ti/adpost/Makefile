@@ -1,6 +1,5 @@
 ###
-### This Makefile should be located at task/open-adas/adf11/adf11-lib
-### Data file should be located at task/open-adas, e.g. task/open-adas/acd50
+### This Makefile should be located at task/ti/adpost
 ###
 include ../../make.header
 

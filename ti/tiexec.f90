@@ -28,6 +28,7 @@ CONTAINS
     
     NRSTART=(istart+NEQMAX-1)/NEQMAX
     NREND=(iend+NEQMAX-1)/NEQMAX
+    WRITE(6,'(A,2I5)') 'NRSTART,NREND=',NRSTART,NREND
 
     DO NTL=1,NTMAX
        NT=NT+1
@@ -63,22 +64,32 @@ CONTAINS
           i=(NR-1)*NEQMAX+NEQ
           SELECT CASE(NV)
           CASE(1)
-             SOL_PREV(i)=RNA(NSA,NR)
+             SOL_ORG(i)=RNA(NSA,NR)
           CASE(2)
-             SOL_PREV(i)=RUA(NSA,NR)
+             SOL_ORG(i)=RUA(NSA,NR)
           CASE(3)
-             SOL_PREV(i)=RTA(NSA,NR)
+             SOL_ORG(i)=RTA(NSA,NR)
           END SELECT
        END DO
     END DO
+
+!   *** start iteration using previous time step variables ***       
 
     ICOUNT=0
     DO
        ICOUNT=ICOUNT+1
 
+!   *** solve transport equation using previous iteration variables ***       
+
        CALL ti_solve
 
-!   *** update present value ***       
+!   *** convergence check ***       
+
+       CALL ti_convergence(RESIDUAL)
+       WRITE(6,'(A,I5,1PE12.4)') &
+            'Convergence: ICOUNT,RESIDUAL=',ICOUNT,RESIDUAL
+
+!   *** update with new iteration variables ***       
 
        DO NR=1,NRMAX
           DO NEQ=1,NEQMAX
@@ -94,11 +105,8 @@ CONTAINS
                 RTA(NSA,NR)=SOL_NEW(i)
              END SELECT
           END DO
-    END DO
+       END DO
 
-       CALL ti_convergence(RESIDUAL)
-       WRITE(6,'(A,I5,1PE12.4)') &
-            'Convergence: ICOUNT,RESIDUAL=',ICOUNT,RESIDUAL
        SOL_PREV(1:imax)=SOL_NEW(1:imax)
        IF(RESIDUAL.LE.EPSLTI) GOTO 8000
        IF(ICOUNT.GE.LMAXTI) GOTO 9000
@@ -121,10 +129,15 @@ CONTAINS
     INTEGER:: itype,iterations,i,j,IL,JL,NR
     REAL(rkind):: tolerance
 
+    DO NR=MAX(1,NRSTART-1),MIN(NRMAX,NREND+1)
+       CALL ti_coef(NR)    ! calculate DD,VV,CC
+       CALL ti_source(NR)  ! calculate SSIN,VSIN,PSIN,AJIN
+    END DO
+
     DO NR=NRSTART,NREND
-       CALL ti_coef(NR) 
-       CALL ti_source(NR) 
-       CALL ti_calc(NR)
+
+       CALL ti_calc(NR) ! assemble coeeficint matrix and RHS vector
+
        DO IL=1,NEQMAX
           i=(NR-1)*NEQMAX+IL
           IF(i.GE.istart.AND.i.LE.iend) THEN

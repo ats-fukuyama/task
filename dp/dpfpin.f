@@ -131,6 +131,8 @@ C
       DO NP=1,NPMAX
          PM(NP,NS)=DELP(NS)*(NP-0.5D0)
          PG(NP,NS)=DELP(NS)* NP
+         RGMM(NP)=SQRT(1.D0+PTH0W*PM(NP,NS)**2)
+         RGMG(NP)=SQRT(1.D0+PTH0W*PG(NP,NS)**2)
       ENDDO
 C
       DO NTH=1,NTHMAX

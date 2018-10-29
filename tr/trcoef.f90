@@ -19,7 +19,8 @@
       SUBROUTINE TRCFDW
 
       USE TRCOMM, ONLY : &
-           AEE, AGMP, AKDW, AME, AMM, AR1RHOG, AR2RHOG, BB, CALF, CDW, CK0, &
+           AEE, ADDW, AGMP, AKDW, AME, AMM, AR1RHOG, AR2RHOG, BB, CALF, CDW, &
+           CK0, &
            CK1, CKALFA, CKBETA, CKGUMA, CWEB, DR, EPS0, EPSRHO, ER, EZOH, &
            KGR1, KGR2, KGR3, KGR4, MDCD05, MDLKAI, MDLUF, MDTC, NRMAX, NSM, &
            NSMAX, NSTM, PA, PADD, PBM, PI, PNSS, PTS, PZ, Q0, QP, RA, RDPS, &
@@ -27,7 +28,8 @@
            RNF, RR, RT, RW, S, ALPHA, RKCV, SUMPBM, TAUK, VC, VEXB, VGR1, &
            VGR2, VGR3, VGR4, WEXB, ZEFF, VEXBP, WEXBP, BP
       USE cdbm_mod
-      USE trmodels,ONLY: mbgb_driver
+      USE trmodels,ONLY: mbgb_driver,mmm95_driver,mmm71_driver
+      USE libgrf
       IMPLICIT NONE
       INTEGER(4):: &
            NS, NR08, NR, I
@@ -47,6 +49,12 @@
            RS,RKAPL,SHEARL,PNEL,RHONI,DPDRL,DVEXBDRL,CEXB,CKAP,chi_cdbm, &
            PAL,PZL,ADFFI,ACHIE,ACHII,ACHIEB,ACHIIB,ACHIEGB,ACHIIGB, &
            VTIL, GAMMA0, EXBfactor, SHRfactor
+      REAL(8):: CHIIW,DIFHW,CHIEW,DIMPW, &
+                CHIIRB,DIFHRB,CHIERB,DIMPRB, &
+                CHIIKB,DIFHKB,CHIEKB,DIMPKB, &
+                ADDWHL,ADDWZL
+      REAL(8):: CHII,DIFH,CHIE,DIFZ,VIST,VISP, &
+                CHIIB,DIFHB,CHIEB,CHIEG 
       INTEGER:: MODEL,ierr
       REAL(8),DIMENSION(NRMAX):: S_HM
       REAL(8)   :: DERIV3P
@@ -98,6 +106,16 @@
          KGR2='/ExB Factor/'
          KGR3='/magnetic shear/'
          KGR4='/alpha/'
+      case(150:159)
+         KGR1='/chi-tb-e/'
+         KGR2='/chi-tb-i/'
+         KGR3='/dif-tb-h/'
+         KGR4='/dif-tb-z/'
+      case(160:169)
+         KGR1='/chi-tb-e/'
+         KGR2='/chi-tb-i/'
+         KGR3='/Dif-tb-h/'
+         KGR4='/Dif-tb-z/'
       case default
          KGR1='//'
          KGR2='//'
@@ -462,7 +480,8 @@
                ENDIF
             case(15:16)
                ETAC    = 1.D0
-               RRSTAX  = ABS(RR*(1.D0-(2.D0+1.D0   /QL**2)*EPS) /(1.D0-(2.D0+RKAP**2/QL**2)*EPS))
+               RRSTAX  = ABS(RR*(1.D0-(2.D0+1.D0   /QL**2)*EPS) &
+                             /(1.D0-(2.D0+RKAP**2/QL**2)*EPS))
                RREFF = RRSTAX/(1.2D0*ABS(CLN))
                FDREV = SQRT(2.D0*PI)*RREFF**1.5D0*(RREFF-1.5D0) *EXP(-RREFF)
                RRSTAR= MIN(RRSTAX,CLS)
@@ -936,6 +955,75 @@
             VGR4(NR,2)=0.D0
             VGR4(NR,3)=0.D0
 
+         CASE(150:159) ! MMM95 transport model
+            CALL mmm95_driver(NR,CHIIW,DIFHW,CHIEW,DIMPW, &
+                                 CHIIRB,DIFHRB,CHIERB,DIMPRB, &
+                                 CHIIKB,DIFHKB,CHIEKB,DIMPKB,IERR)
+
+            AKDWEL=CHIEW+CHIERB+CHIEKB
+            AKDWIL=CHIIW+CHIIRB+CHIIKB
+            ADDWHL=DIFHW+DIFHRB+DIFHKB
+            ADDWZL=DIMPW+DIMPRB+DIMPKB
+
+            AKDW(NR,1)=AKDWEL         ! electron thermal diffusivity
+            AKDW(NR,2:NSMAX)=AKDWIL   ! ion thermal diffusivity
+            ADDW(NR,1)=ADDWHL         ! electron partilcle diffusivity (adhoc)
+            DO NS=2,NSMAX
+               IF(PA(NS).LE.3.D0.AND.PZ(NS).EQ.1.D0) THEN  
+                  ADDW(NR,2:NSMAX)=ADDWHL   ! hydrogen ion particle diffusivity
+               ELSE
+                  ADDW(NR,2:NSMAX)=ADDWZL   ! impurity ion particle diffusivity
+               END IF
+            END DO
+            
+            VGR1(NR,1)=CHIEW
+            VGR1(NR,2)=CHIEW+CHIERB
+            VGR1(NR,3)=CHIEW+CHIERB+CHIEKB
+            VGR2(NR,1)=CHIIW
+            VGR2(NR,2)=CHIIW+CHIIRB
+            VGR2(NR,3)=CHIIW+CHIIRB+CHIIKB
+            VGR3(NR,1)=DIFHW
+            VGR3(NR,2)=DIFHW+DIFHRB
+            VGR3(NR,3)=DIFHW+DIFHRB+DIFHKB
+            VGR4(NR,1)=DIMPW
+            VGR4(NR,2)=DIMPW+DIMPRB
+            VGR4(NR,3)=DIMPW+DIMPRB+DIMPKB
+
+         CASE(160:169) ! mmm7_1 transport model
+            CALL mmm71_driver(NR,CHII,DIFH,CHIE,DIFZ,VIST,VISP, &
+                                 CHIIW,DIFHW,CHIEW,CHIIB,DIFHB,CHIEB,CHIEG, &
+                                 IERR)
+
+            AKDWEL=CHIE
+            AKDWIL=CHII
+            ADDWHL=DIFH
+            ADDWZL=DIFZ
+
+            AKDW(NR,1)=CHIE           ! electron thermal diffusivity
+            AKDW(NR,2:NSMAX)=CHII     ! ion thermal diffusivity
+            ADDW(NR,1)=DIFH           ! electron partilcle diffusivity (adhoc)
+            DO NS=2,NSMAX
+               IF(PA(NS).LE.3.D0.AND.PZ(NS).EQ.1.D0) THEN  
+                  ADDW(NR,2:NSMAX)=DIFH   ! hydrogen ion particle diffusivity
+               ELSE
+                  ADDW(NR,2:NSMAX)=DIFZ   ! impurity ion particle diffusivity
+               END IF
+            END DO
+            
+            VGR1(NR,1)=CHIEW
+            VGR1(NR,2)=CHIEW+CHIEB
+            VGR1(NR,3)=CHIEW+CHIEB+CHIEG
+            VGR2(NR,1)=CHIIW
+            VGR2(NR,2)=CHIIW+CHIIB
+            VGR2(NR,3)=CHII
+            VGR3(NR,1)=DIFHW
+            VGR3(NR,2)=DIFHW+DIFHB
+            VGR3(NR,3)=DIFH
+            VGR4(NR,1)=VIST
+            VGR4(NR,2)=VISP
+            VGR4(NR,3)=0.D0
+
+
 !         CASE DEFAULT
 !            WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
 !            AKDW(NR,1)=0.D0
@@ -944,7 +1032,22 @@
 !            AKDW(NR,4)=0.D0
          END SELECT
       ENDDO
-!      STOP
+
+!      DO NR=1,NRMAX
+!         WRITE(6,'(I5,1P6E12.4)') NR,VGR1(NR,1),VGR1(NR,2),VGR1(NR,3), &
+!                                     VGR2(NR,1),VGR2(NR,2),VGR2(NR,3)
+!      END DO
+!      DO NR=1,NRMAX
+!         WRITE(6,'(I5,1P6E12.4)') NR,VGR3(NR,1),VGR3(NR,2),VGR3(NR,3), &
+!                                     VGR4(NR,1),VGR4(NR,2),VGR4(NR,3)
+!      END DO
+         
+!            CALL PAGES
+!            CALL GRD1D(1,RG,VGR1,NRMAX,NRMAX,3,'CHIE vs RS')
+!            CALL GRD1D(2,RG,VGR2,NRMAX,NRMAX,3,'CHII vs RS')
+!            CALL GRD1D(3,RG,VGR3,NRMAX,NRMAX,3,'ADIH vs RS')
+!            CALL GRD1D(4,RG,VGR4,NRMAX,NRMAX,3,'ADIZ vs RS')
+!            CALL PAGEE
 
       IF(MDLKAI.EQ.60.OR.MDLKAI.EQ.61) THEN
          CALL GLF23_DRIVER(S_HM)

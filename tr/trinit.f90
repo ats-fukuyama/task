@@ -6,20 +6,31 @@
 
       SUBROUTINE TRINIT
 
-      USE TRCOMM,ONLY : AD0, AEE, ALP, AME, AMM, AV0, BB, CALF, CDH, CDP, CDW, CHP, CK0, CK1, CKALFA, CKBETA, CKGUMA,          &
-                        CNB, CNH, CNN, CNP, CSPRS, CWEB, DT, EPS0, EPSLTR, IREAD, IZERO, KFNLOG, KNAMEQ, KNAMTR, KUFDCG,       &
-                        KUFDEV, LMAXTR, MDCD05, MDDW, MDEDGE, MDLAD, MDLAVK, MDLCD, MDLEC, MDLEOI, MDLEQ0, MDLEQB, MDLEQE,     &
-                        MDLEQN, MDLEQT, MDLEQU, MDLEQZ, MDLER, MDLETA, MDLFLX, MDLIC, MDLJBS, MDLJQ, MDLKAI, MDLKNC, MDLLH,    &
-                        MDLNB, MDLNF, MDLPCK, MDLPEL, MDLST, MDLTPF, MDLUF, MDLWLD, MDLXP, MDNCLS, MDNI, MDTC, MODELG, MODEP,  &
-                        NGPST, NGRSTP, NGTSTP, NRMAX, NSLMAX, NSMAX, NSNMAX, NSTM, NSZMAX, NT, NTEQIT, NTMAX, NTSTEP, PA, PBSCD, &
-                        PECCD, PECNPR, PECR0, PECRW, PECTOE, PECTOT, PELPAT, PELR0, PELRAD, PELRW, PELTIM, PELTOT, PELVEL, PI, &
-                        PICCD, PICNPR, PICR0, PICRW, PICTOE, PICTOT, PLHNPR, PLHR0, PLHRW, PLHTOE, PLHTOT, PN, PNBCD, PNBENG,  &
-                        PNBR0, PNBRTG, PNBRW, PNBTOT, PNBVW, PNBVY, PNC, PNFE, PNNU, PNNUS, PNS, PROFJ1, PROFJ2, PROFN1,       &
-                        PROFN2, PROFT1, PROFT2, PROFU1, PROFU2, PT, PTS, PZ, RA, RDLT, RHOA, RIPE, RIPS, RKAP, RKEV, RMU0, RR, &
-                        SUMPBM, TIME_INT, TPRST, TSST, VC, VOID, KUFDIR, &
-     MDLPR,SYNCABS,SYNCSELF, PU, PUS, PROFNU1, PROFNU2, &
-     ELMWID, ELMDUR, ELMNRD, ELMTRD, ELMENH, NSMM, MDLELM, KNAMEQ2, &
-     MDLPSC,NPSCMAX,NPSCM,PSCTOT,PSCR0,PSCRW,NSPSC
+      USE TRCOMM,ONLY : &
+           AD0, AEE, ALP, AME, AMM, AV0, BB, CALF, CDH, CDP, CDW, CHP, &
+           CK0, CK1, CKALFA, CKBETA, CKGUMA,          &
+           CNB, CNH, CNN, CNP, CSPRS, CWEB, DT, EPS0, EPSLTR, IREAD, &
+           IZERO, KFNLOG, KNAMEQ, KNAMTR, KUFDCG,       &
+           KUFDEV, LMAXTR, MDCD05, MDDW, MDEDGE, MDLAD, MDLAVK, MDLCD, &
+           MDLEC, MDLEOI, MDLEQ0, MDLEQB, MDLEQE,     &
+           MDLEQN, MDLEQT, MDLEQU, MDLEQZ, MDLER, MDLETA, MDLFLX, MDLIC, &
+           MDLJBS, MDLJQ, MDLKAI, MDLKNC, MDLLH,    &
+           MDLNB, MDLNF, MDLPCK, MDLPEL, MDLST, MDLTPF, MDLUF, MDLWLD, &
+           MDLXP, MDNCLS, MDNI, MDTC, MODELG, MODEP,  &
+           NGPST, NGRSTP, NGTSTP, NRMAX, NSLMAX, NSMAX, NSNMAX, NSTM, &
+           NSZMAX, NT, NTEQIT, NTMAX, NTSTEP, PA, PBSCD, &
+           PECCD, PECNPR, PECR0, PECRW, PECTOE, PECTOT, PELPAT, PELR0, &
+           PELRAD, PELRW, PELTIM, PELTOT, PELVEL, PI, &
+           PICCD, PICNPR, PICR0, PICRW, PICTOE, PICTOT, PLHNPR, PLHR0, &
+           PLHRW, PLHTOE, PLHTOT, PN, PNBCD, PNBENG,  &
+           PNBR0, PNBRTG, PNBRW, PNBTOT, PNBVW, PNBVY, PNC, PNFE, PNNU, &
+           PNNUS, PNS, PROFJ1, PROFJ2, PROFN1,       &
+           PROFN2, PROFT1, PROFT2, PROFU1, PROFU2, PT, PTS, PZ, RA, RDLT, &
+           RHOA, RIPE, RIPS, RKAP, RKEV, RMU0, RR, &
+           SUMPBM, TIME_INT, TPRST, TSST, VC, VOID, KUFDIR, &
+           MDLPR,SYNCABS,SYNCSELF, PU, PUS, PROFNU1, PROFNU2, &
+           ELMWID, ELMDUR, ELMNRD, ELMTRD, ELMENH, NSMM, MDLELM, KNAMEQ2, &
+           MDLPSC,NPSCMAX,NPSCM,PSCTOT,PSCR0,PSCRW,NSPSC
       IMPLICIT NONE
       INTEGER(4) NS, IERR, NPSC
 
@@ -201,14 +212,18 @@
 
 !        MDLKAI: TURBULENT TRANSPORT MODEL
 
-!   *************************************************************
-!   ***  0.GE.MDLKAI.LT.10 : CONSTANT COEFFICIENT MODEL       ***
-!   *** 10.GE.MDLKAI.LT.20 : DRIFT WAVE (+ITG +ETG) MODEL     ***
-!   *** 20.GE.MDLKAI.LT.30 : REBU-LALLA MODEL                 ***
-!   *** 30.GE.MDLKAI.LT.40 : CURRENT-DIFFUSIVITY DRIVEN MODEL ***
-!   *** 40.GE.MDLKAI.LT.60 : DRIFT WAVE BALLOONING MODEL      ***
-!   ***       MDLKAI.GE.60 : ITG(/TEM, ETG) MODEL ETC         ***
-!   *************************************************************
+!   ***************************************************************
+!   ***   0.GE.MDLKAI.LE.  9 : CONSTANT COEFFICIENT MODEL       ***
+!   ***  10.GE.MDLKAI.LE. 19 : DRIFT WAVE (+ITG +ETG) MODEL     ***
+!   ***  20.GE.MDLKAI.LE. 29 : REBU-LALLA MODEL                 ***
+!   ***  30.GE.MDLKAI.LE. 30 : CURRENT-DIFFUSIVITY DRIVEN MODEL ***
+!   ***  40.GE.MDLKAI.LE. 49 : DRIFT WAVE BALLOONING MODEL      ***
+!   ***  60.GE.MDLKAI.LE. 64 : CLF23,IFS/PPPL,Weiland models    ***
+!   *** 130.GE.MDLKAI.LE.134 : CDBM model                       ***
+!   *** 140.GE.MDLKAI.LE.143 : Mixed Boam and gyroBohm model    ***
+!   *** 150.GE.MDLKAI.LE.151 : mmm95 model                      ***
+!   *** 160.GE.MDLKAI.LE.152 : mmm7_1 model                     ***
+!   ***************************************************************
 
 !      ***  MDLKAI.EQ. 0   : CONSTANT*(1+A*rho^2)              ***
 !      ***  MDLKAI.EQ. 1   : CONSTANT/(1-A*rho^2)                  ***
@@ -253,6 +268,12 @@
 !      ***  MDLKAI.EQ. 141 : mBgB model with suppresion by Tara     ***
 !      ***  MDLKAI.EQ. 142 : mBgB model with suppresion by Pacher (EXB)  ***
 !      ***  MDLKAI.EQ. 143 : mBgB model with suppresion by Pacher (EXB+SHAR)***
+
+!      ***  MDLKAI.EQ. 150 : mmm95 (Multi-Mode transport Model) (no ExB) ***
+!      ***  MDLKAI.EQ. 151 : mmm95 (Multi-Mode transport Model) (with ExB) ***
+
+!      ***  MDLKAI.EQ. 160 : mmm7_1 (Multi-Mode transport Model) (no ExB) ***
+!      ***  MDLKAI.EQ. 161 : mmm7_1 (Multi-Mode transport Model) (with ExB) ***
 
 !     +++++ WARNING +++++++++++++++++++++++++++++++++++++++++++
 !     +  Parameters below are valid only if MDNCLS /= 0,      +
@@ -322,7 +343,7 @@
 !                   you could control a ratio of anomalous particle
 !                   transport to total particle transport to manipulate
 !                   the factor of AD0.
-!            else : this is because you chose MDLKAI=60, 61, or 63
+!            else : this is because you chose MDLKAI=60, 61, 63, or 150:159 
 !                   which assign the transport models that can calculate
 !                   an anomalous particle transport coefficient
 !                   on their own.

@@ -4,6 +4,7 @@ C     ***** SAVE TASK/EQ DATA *****
 C
       SUBROUTINE EQSAVE
 C
+      USE libfio
       INCLUDE '../eq/eqcomc.inc'
 C
       CALL FWOPEN(21,KNAMEQ,0,MODEFW,'EQ',IERR)
@@ -91,6 +92,7 @@ C     ***** LOAD TASK/EQ DATA *****
 C
       SUBROUTINE EQRTSK(IERR)
 C
+      USE libfio
       INCLUDE '../eq/eqcomc.inc'
       DIMENSION DERIV(NRVM)
 C
@@ -170,6 +172,7 @@ C     ***** SAVE METRICS *****
 C
       SUBROUTINE EQMETRIC(IERR)
 C
+      USE libfio
       INCLUDE '../eq/eqcomq.inc'
 C
       character KNAMET*80
@@ -205,6 +208,7 @@ C     ***** READ RIPPLE CONTOUR DATA FROM OFMC ****
 C
       subroutine read_rppl(ierr)
 C
+      USE libfio
       INCLUDE '../eq/eqcomq.inc'
 C
       character kfile*20, kline*130

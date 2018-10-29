@@ -388,6 +388,7 @@ C
             XR(NR)=RA*RHOL
             CALL PL_QPRF(RHOL,QPS(NR))
          ENDDO
+         WRITE(6,'(I5,1P2E12.4)') (NR,XRHO(NR),XR(NR),NR=1,NRMAX+1)
 C
 !  seki
          DTH=2.D0*PI/NTHMAX_F

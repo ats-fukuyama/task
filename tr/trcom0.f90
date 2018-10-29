@@ -1,5 +1,7 @@
 MODULE TRCOM0
+
   IMPLICIT NONE
+  integer, parameter :: rkind=selected_real_kind(12,100)
 
 ! TRCOM0
   INTEGER(4)  :: NEQMAXM, NVM, MWM, MLM, NRMP, NGLF, LDAB
