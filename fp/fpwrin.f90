@@ -152,6 +152,7 @@
       SUBROUTINE fp_wr_read(IERR)
 
       USE plprof
+      USE libfio
       USE libmpi
       USE libmtx
       IMPLICIT NONE

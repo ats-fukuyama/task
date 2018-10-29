@@ -14,6 +14,8 @@
 !----------------------------------------------------------------
       SUBROUTINE FP_SAVE
 
+      USE libfio
+
       CALL FWOPEN(21,KNAMFP,0,MODEFW,'FP',IERR)
       IF(IERR.NE.0) THEN
          WRITE(6,*) 'XX FPSAVE: FWOPEN: IERR=',IERR
@@ -46,6 +48,8 @@
 !
       SUBROUTINE FP_LOAD
 
+      USE libfio
+
       CALL FROPEN(21,KNAMFP,0,MODEFR,'FP',IERR)
       IF(IERR.NE.0) THEN
          WRITE(6,*) 'XX FP_LOAD: FROPEN: IERR=',IERR
@@ -72,6 +76,7 @@
 !------------------------------------------      
       SUBROUTINE FP_SAVE2
 
+        USE libfio
       IMPLICIT NONE
       INTEGER:: NSA, NR, NP, NTH, NSB, NS, IERR
 
@@ -150,6 +155,7 @@
 !------------------------------------------      
       SUBROUTINE FP_LOAD2
 
+        USE libfio
       IMPLICIT NONE
       INTEGER:: NSA, NR, NP, NTH, NSB, IERR, NS
 

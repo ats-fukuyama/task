@@ -27,6 +27,7 @@ CONTAINS
       USE plcomm,ONLY: idebug
       USE wfcomm,ONLY: KNAMWG,RKZ
       USE wfwg1D
+      USE libfio
       USE libgrf
       IMPLICIT NONE
       INTEGER,INTENT(OUT):: ierr

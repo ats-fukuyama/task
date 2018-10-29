@@ -2,6 +2,7 @@ subroutine wfmenu
 
   use wfcomm
   use libmpi
+  USE wfparm, ONLY: wf_parm
   USE plload, ONLY: pl_load
   USE wfload, ONLY: wf_load_wg
   implicit none
@@ -16,7 +17,7 @@ subroutine wfmenu
   IF(nrank.EQ.0) THEN
      WRITE(6,*) '## INPUT: P,V:PARM  D:DIV  A:ANT', &
                          ' W,C:WAVE G:GRAPH  S,L:FILE  Q:QUIT'
-     CALL TASK_KLIN(LINE,KID,MODE,WFPARM)
+     CALL TASK_KLIN(LINE,KID,MODE,WF_PARM)
   END IF
   call mtx_barrier
 
@@ -25,7 +26,7 @@ subroutine wfmenu
   if(MODE.ne.1) goto 1
 
   if     (KID.eq.'P') then
-     if(nrank.eq.0) call wfparm(KID)
+     if(nrank.eq.0) call wf_parm(0,'wf',IERR)
      call wfparm_broadcast
      goto 1
   elseif (KID.eq.'V') then

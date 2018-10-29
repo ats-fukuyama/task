@@ -7,6 +7,7 @@ CONTAINS
   SUBROUTINE DPLDFP(IERR)
 
       USE dpcomm
+      USE libfio
       USE commpi
       USE libmpi
       IMPLICIT NONE

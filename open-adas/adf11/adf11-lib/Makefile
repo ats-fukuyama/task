@@ -10,7 +10,7 @@ include ../../../make.header
 #FFLAGS=$(OFLAGS)
 FFLAGS=$(DFLAGS)
 
-MODINCLUDE= -I./$(MOD) -I../../../lib/mod
+MODINCLUDE= -I./$(MOD) -I../../../lib/$(MOD)
 
 SRCS = \
 xxdata_11.for \
@@ -43,10 +43,10 @@ libs:
 	(cd ../../../lib; make)
 
 conv-adf11 : $(LIBS) conv-adf11.o
-	$(FCFIXED) conv-adf11.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODDIR) $(MODINCLUDE)
+	$(FCFIXED) conv-adf11.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 test-adf11 : $(LIBS) test-adf11.o
-	$(FCFIXED) test-adf11.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODDIR) $(MODINCLUDE)
+	$(FCFIXED) test-adf11.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 clean:
 	-rm -f core conv-adf11 test-adf11 *.o *.a ./*~ $(MOD)/*.mod

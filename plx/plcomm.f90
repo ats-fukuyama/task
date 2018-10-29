@@ -36,6 +36,8 @@ MODULE plcomm
 
   USE plcomm_parm
 
+  REAL(rkind):: HA1
+
 CONTAINS
 
   SUBROUTINE pl_allocate_ns

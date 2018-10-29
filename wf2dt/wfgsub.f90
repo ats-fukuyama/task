@@ -1037,7 +1037,7 @@ SUBROUTINE WFGPRM
         CALL NUMBI(NS,'(I3)',3)
         CALL NUMBD(PA(NS),   '(1PE10.3)',10)
         CALL NUMBD(PZ(NS),   '(1PE10.3)',10)
-        IF(MODELG.EQ.0.OR.EQMODEL,12) THEN
+        IF(MODELG.EQ.0.OR.MODELB.EQ.2) THEN
            CALL NUMBD(pn_corner(1,NS),'(1PE10.3)',10)
         ELSE
            CALL NUMBD(PN(NS),   '(1PE10.3)',10)

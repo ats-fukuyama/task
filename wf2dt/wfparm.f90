@@ -1,6 +1,6 @@
 ! wfparm.f90
 
-MODULE WRPARM
+MODULE WFPARM
 
   PRIVATE
   PUBLIC wf_parm,wf_view
@@ -68,7 +68,7 @@ CONTAINS
                   pn_corner,ptpr_corner,ptpp_corner, &
                   tolerance,wdamp,fdamp,gfactor, &
                   mdamp,rdamp_min,rdamp_max,zdamp_min,zdamp_max, &
-                  NCMAX,RCOIL,ZCOIL,BCOIL
+                  NCOILMAX,RCOIL,ZCOIL,BCOIL
 
     READ(NID,WF,IOSTAT=IST,ERR=9800,END=9900)
     IF(IST.NE.0) GO TO 9100
@@ -104,9 +104,10 @@ CONTAINS
        IERR=1
     ENDIF
 
-    IF(NCMAX.GT.NCM) THEN
-       WRITE(6,*) '## NCMAX .GT. NCM : NCMAX =',NAMAX,'  NCM = ',NAM
-       NCMAX=NCM
+    IF(NCOILMAX.GT.NCOILM) THEN
+       WRITE(6,*) '## NCOILMAX .GT. NCOILM : NCOILMAX =',NCOILMAX, &
+                                          '  NCOILM = ',NCOILM
+       NCOILMAX=NCOILM
        IERR=1
     ENDIF
 
@@ -137,7 +138,7 @@ CONTAINS
        WRITE(6,*) '     pn_corner,ptpr_corner,ptpp_corner,'
        WRITE(6,*) '     tolerance,wdamp,fdamp,gfactor,'
        WRITE(6,*) '     mdamp,rdamp_min,rdamp_max,zdamp_min,zdamp_max,'
-       WRITE(6,*) '     NCMAX,RCOIL,ZCOIL,BCOIL'
+       WRITE(6,*) '     NCOILMAX,RCOIL,ZCOIL,BCOIL'
     end if
     RETURN
   END SUBROUTINE WFPLST
@@ -163,12 +164,12 @@ CONTAINS
     write(6,'(5I10)') &
          NNMAX,NEMAX,NSDMAX,MLEN
 
-    IF(NCMAX.GT.0) THEN
-       WRITE(6,'(A,I5)') 'NCMAX=',NCMAX
+    IF(NCOILMAX.GT.0) THEN
+       WRITE(6,'(A,I5)') 'NCOILMAX=',NCOILMAX
        WRITE(6,'(A,I5,3(A,1PE12.4)/)') &
             ('  NC=',NC,'  RC=',RCOIL(NC), &
              '  ZC=',ZCOIL(NC),'  BC=',BCOIL(NC), &
-             NC=1,NCMAX)
+             NC=1,NCOILMAX)
     END IF
   
     IF(NAMAX.GT.0) THEN
@@ -288,7 +289,7 @@ SUBROUTINE wfparm_broadcast
      idata(19)=NPH
      idata(20)=MODELWG
      idata(21)=MDAMP
-     idata(22)=NCMAX
+     idata(22)=NCOILMAX
   end if
   
   call mtx_broadcast_integer(idata,22)
@@ -314,7 +315,7 @@ SUBROUTINE wfparm_broadcast
   NPH   =idata(19)
   MODELWG =idata(20)
   MDAMP =idata(21)
-  NCMAX =idata(22)
+  NCOILMAX =idata(22)
 
 ! ----- broadcast real(8) data ------
 
@@ -412,9 +413,9 @@ SUBROUTINE wfparm_broadcast
   call mtx_broadcast_real8(pn_corner,3*nsmax)
   call mtx_broadcast_real8(ptpr_corner,3*nsmax)
   call mtx_broadcast_real8(ptpp_corner,3*nsmax)
-  call mtx_broadcast_real8(RCOIL,NCMAX)
-  call mtx_broadcast_real8(ZCOIL,NCMAX)
-  call mtx_broadcast_real8(BCOIL,NCMAX)
+  call mtx_broadcast_real8(RCOIL,NCOILMAX)
+  call mtx_broadcast_real8(ZCOIL,NCOILMAX)
+  call mtx_broadcast_real8(BCOIL,NCOILMAX)
 
 ! ------ broadcast character ------
 
@@ -435,4 +436,4 @@ SUBROUTINE wfparm_broadcast
 
   RETURN
 END SUBROUTINE wfparm_broadcast
-END MODULE WRPARM
+END MODULE WFPARM
