@@ -1,14 +1,18 @@
-MODULE plcomm
+MODULE plcomm_parm
 
       USE bpsd_kinds
       USE bpsd_constants
 
-      INTEGER,PARAMETER:: NSM=100 ! Maximum number of particle species
+      INTEGER,PARAMETER:: NSM=100   ! Maximum number of particle species
+      INTEGER,PARAMETER:: NCOILM=30 ! Maximum number of mirror coils
 
-      INTEGER:: NSMAX,MODELG,MODELN,MODELQ,IDEBUG,MODEFR,MODEFW
+      INTEGER:: NSMAX,NCOILMAX
+      INTEGER:: MODELG,MODELB,MODELN,MODELQ,IDEBUG,MODEFR,MODEFW
       INTEGER:: MODEL_PROF,MODEL_NPROF
 
       REAL(rkind):: RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ
+      REAL(rkind):: RMIR,ZBB,Hpitch1,Hpitch2,RRCH
+      REAL(rkind),DIMENSION(NCOILM):: RCOIL,ZCOIL,BCOIL
       REAL(rkind):: RHOMIN,QMIN,RHOEDG,RHOGMN,RHOGMX
       REAL(rkind):: PPN0,PTN0,RF_PL
       REAL(rkind),DIMENSION(3):: r_corner,z_corner
@@ -26,15 +30,21 @@ MODULE plcomm
       CHARACTER(len=80):: KNAMEQ,KNAMWR,KNAMFP,KNAMWM,KNAMPF,KNAMFO,KNAMTR
       CHARACTER(len=80):: KNAMEQ2
 
-      CONTAINS
+END MODULE plcomm_parm
 
-        SUBROUTINE pl_allocate_ns
-          ! DUMMY SUBROUTINE 
-          NSMAX=1
-          return
-        end subroutine pl_allocate_ns
+MODULE plcomm
 
-      end module plcomm
+  USE plcomm_parm
+
+CONTAINS
+
+  SUBROUTINE pl_allocate_ns
+    ! DUMMY SUBROUTINE 
+    NSMAX=1
+    return
+  end subroutine pl_allocate_ns
+
+END MODULE plcomm
 
 MODULE plxprf
 

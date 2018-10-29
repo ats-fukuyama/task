@@ -81,10 +81,17 @@
          RETURN
       ENDIF
 
-! required for FP
-! the values that update in each step
       REWIND(21)
-      WRITE(21) TIMEFP, NT_init
+
+      WRITE(21) NRMAX,NPMAX,NTHMAX,NSAMAX,NSBMAX,NSMAX
+      WRITE(21) DELR,DELTH,RMIN,RMAX
+      DO NSA=1,NSAMAX
+         WRITE(21) NS_NSA(NSA)
+         WRITE(21) AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
+      ENDDO
+      DO NS=1,NSMAX
+         WRITE(21) DELP(NS),PMAX(NS),EMAX(NS)
+      ENDDO
 
       DO NSA=1, NSAMAX
          DO NR=1, NRMAX
@@ -93,6 +100,11 @@
             END DO
          END DO
       END DO
+
+! required for FP
+! the values that update in each step
+
+      WRITE(21) TIMEFP, NT_init
 
       WRITE(21) ( (RN_TEMP(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
       WRITE(21) ( (RT_TEMP(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
@@ -125,16 +137,6 @@
          END IF
       END IF
 
-! required for other components
-      WRITE(21) NRMAX,NPMAX,NTHMAX,NSAMAX
-      WRITE(21) DELR,DELTH,RMIN,RMAX
-      DO NSA=1,NSAMAX
-         WRITE(21) NS_NSA(NSA)
-         WRITE(21) AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
-      ENDDO
-      DO NS=1,NSMAX
-         WRITE(21) DELP(NS),PMAX(NS),EMAX(NS)
-      ENDDO
       CLOSE(21)
 
       WRITE(6,*) '# DATA WAS SUCCESSFULLY SAVED TO THE FILE.'
@@ -160,7 +162,16 @@
 ! required for FP
 ! the values that update in each step
       REWIND(21)
-      READ(21) TIMEFP, NT_init
+
+      READ(21) NRMAX,NPMAX,NTHMAX,NSAMAX,NSBMAX,NSMAX
+      READ(21) DELR,DELTH,RMIN,RMAX
+      DO NSA=1,NSAMAX
+         READ(21) NS_NSA(NSA)
+         READ(21) AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
+      ENDDO
+      DO NS=1,NSMAX
+         READ(21) DELP(NS),PMAX(NS),EMAX(NS)
+      ENDDO
 
       DO NSA=1, NSAMAX
          DO NR=1, NRMAX
@@ -169,6 +180,10 @@
             END DO
          END DO
       END DO
+
+! ------
+
+      READ(21) TIMEFP, NT_init
 
       READ(21) ( (RN_TEMP(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
       READ(21) ( (RT_TEMP(NR,NS), NR=1,NRMAX), NS=1,NSMAX)
@@ -200,17 +215,6 @@
          END IF
       END IF
 
-
-! required for other components
-      READ(21) NRMAX,NPMAX,NTHMAX,NSAMAX
-      READ(21) DELR,DELTH,RMIN,RMAX
-      DO NSA=1,NSAMAX
-         READ(21) NS_NSA(NSA)
-         READ(21) AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
-      ENDDO
-      DO NS=1,NSMAX
-         READ(21) DELP(NS),PMAX(NS),EMAX(NS)
-      ENDDO
       CLOSE(21)
 
       WRITE(6,*) '# DATA WAS SUCCESSFULLY LOADED FROM THE FILE.'

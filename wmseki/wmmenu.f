@@ -4,7 +4,6 @@ C     ***** TASK/WM MENU *****
 C
       SUBROUTINE WMMENU
 C
-C      use plfile_prof_mod
       use wmtest
       INCLUDE 'wmcomm.inc'
 C
@@ -45,23 +44,8 @@ C
 C        *** WAVE CALCULATION ***
 C
          ELSEIF (KID.EQ.'R') THEN
-C            CALL plfile_prof_read(modeln,modelq,ierr)
-            
-            NPH0_SV  = NPH0
-            NPHMAX_SV = NPHMAX
-            NHHMAX_SV = NHHMAX
 
-            IF(NHHMAX.GT.1) THEN
-              NHHMAX=NPHMAX/NHC
-              NPHMAX=NHC
-            ELSE
-              NHC=1
-            END IF
-            IF (NPHMAX .EQ. 1 .and. NHHMAX .NE. 1)THEN
-               CALL WMEXEC(IERR)
-            ELSE
-               CALL WM_LOOP(IERR)
-            ENDIF
+            CALL WM_LOOP(IERR)
             CALL mtx_barrier
             IF(IERR.NE.0) GOTO 1
             KID=' '
@@ -69,7 +53,6 @@ C
 C        *** AMPLITUDE SURVEY ***
 C
       ELSEIF(KID.EQ.'D') THEN
-C         CALL plfile_prof_read(modeln,modelq,ierr)
          READ(LINE(2:),*,ERR=1,END=1) NID
          IF(NID.EQ.0) THEN
             CALL WMAM0D(KID,LINE)
@@ -86,7 +69,6 @@ C
 C        *** FIND ROOT ***
 C
          ELSE IF (KID.EQ.'F') THEN
-C            CALL plfile_prof_read(modeln,modelq,ierr)
             CALL WMEIGN(KID,LINE)
 C
 C        *** GRAPHICS ***
@@ -105,17 +87,6 @@ C
             CALL mtx_barrier
             KID=' '
          ELSE IF (KID.EQ.'L') THEN
-            NPH0_SV  = NPH0
-            NPHMAX_SV = NPHMAX
-            NHHMAX_SV = NHHMAX
-
-            IF(NHHMAX.GT.1) THEN
-              NHHMAX=NPHMAX/NHC
-              NPHMAX=NHC
-            ELSE
-              NHC=1
-            END IF
-
             IF(NRANK.EQ.0) THEN
                CALL WMLOAD
             ENDIF

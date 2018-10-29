@@ -794,10 +794,27 @@ C
       RF=X
       RFI=Y
       CRF=DCMPLX(RF,RFI)
-C
+
+C --- similar to wmloop ---
+
       MODEEG=1
+      MODELK=1
+C     MODELK=0
 
       CALL WMSETG(IERR)
+      IF(IERR.NE.0) RETURN
+
+      DO NNR=1,NRMAX
+         IF(XRHO(NNR)>1.d0) EXIT
+      ENDDO
+      NR_S=NNR-1
+      
+      CALL DPCHEK(NTHMAX,NRMAX+1,XRHO(1),XRHO(NRMAX+1),RR,IERR)
+      IF(IERR.NE.0) RETURN
+      CALL WMSOLV_PREP
+
+C --- similar to wmexec ---
+
       CALL WMSOLV
       CALL WMEFLD
 C

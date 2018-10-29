@@ -3,6 +3,7 @@ C     ***** READ QST (A>K>A> JAREA) EQ FORMAT FILE *****
 C
       SUBROUTINE EQJAEAR(IERR)
 C
+      USE libfio
       USE libgrf
       INCLUDE '../eq/eqcomq.inc'
 C

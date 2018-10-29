@@ -7,33 +7,12 @@ C
       INCLUDE 'wmcomm.inc'
 C
       IERR=0
-      MODEEG=0
-      MODELK=1
-C      MODELK=0
 C
-      CALL WMSETG(IERR)
-      IF(IERR.NE.0) RETURN
-      CALL DPCHEK(NTHMAX,NRMAX+1,XRHO(1),XRHO(NRMAX+1),RR,IERR)
-      IF(IERR.NE.0) RETURN
       CALL WMSETJ(IERR)
       IF(IERR.NE.0) RETURN
       CALL WMSETEW
      
-!      if (MODELP(1)==5) then
-!        CALL WMINIKPARA
-!      endif
-       
-      DO NNR=1,NRMAX
-         IF(XRHO(NNR)>1.d0)EXIT
-      ENDDO
-!      NR_S=N
-      NR_S=NNR-1
-!      NR_S=NNR+3000
-      print *,NR_S
-      print *, MODELM,NRANK
-      
       CALL WMSOLV
-      NBST=1
       CALL WMEFLD
       CALL WMBFLD
       CALL WMPABS

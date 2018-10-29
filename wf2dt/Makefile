@@ -18,10 +18,10 @@ MODINCLUDE= -I./$(MOD) -I../plx/$(MOD) -I../eq/$(MOD) \
             -I../../bpsd/$(MOD) -I../mtxp/$(MOD) \
             -I../lib/$(MOD)
 
-SRCS = 	wfcomm.f90 wfinit.f90 wfload.f90 wfmenu.f90 \
+SRCS = 	wfcomm.f90 wfinit.f90 wfparm.f90 wfload.f90 wfprof.f90 \
         wfdiv.f90 wflib.f90 wfsub.f90 \
         wfindx.f90 wfsort.f90 wfgsub.f90 wfgutl.f90 wfant.f90 wfwave.f90 \
-	wfsolv.f90 wfgout.f90 wfprof.f90
+	wfsolv.f90 wfgout.f90 wfmenu.f90
 
 OBJS = $(SRCS:.f90=.o)
 
@@ -75,6 +75,7 @@ clean:
 veryclean: clean
 	rm -f wf testin 
 
+wfcomm.o: wfcomm.f90 ../plx/plcomm.f90
 wfmain.o: wfmain.f90 wfcomm.f90
 wfmenu.o: wfmenu.f90 wfcomm.f90
 wfinit.o: wfinit.f90 wfcomm.f90

@@ -17,7 +17,8 @@ C                      V3.10  : 2000 NOV 25
 C
 C-----------------------------------------------------------------------
 C
-      USE plinit,ONLY: pl_init,pl_parm
+      USE plinit,ONLY: pl_init
+      USE plparm,ONLY: pl_parm
 
       WRITE(6,*) '## TASK/DP 2013/01/020'
       CALL GSOPEN

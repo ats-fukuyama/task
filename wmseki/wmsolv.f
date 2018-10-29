@@ -1,6 +1,56 @@
 C     $Id$
 C
-C     ****** SOLVE SIMULTANEOUS EQUATIONS ******
+C     ****** PREPARE for Matrix equation solver ******
+C
+      SUBROUTINE WMSOLV_PREP
+C
+      INCLUDE 'wmcomm.inc'
+C
+      NBSIZ=3*MDSIZ*NDSIZ
+      IF(MODEWG.EQ.0) THEN
+         MLEN=(NRMAX+2)*NBSIZ
+      ELSE
+         MLEN=(NRMAX+2)*NBSIZ+MWGMAX*NAMAX
+      ENDIF
+      MBND=4*NBSIZ-1
+
+      IF(MODEEG.EQ.0) THEN
+         CALL mtxc_setup(MLEN,istart,iend,jwidth=MBND)
+         CALL mtxc_cleanup
+      ELSE
+         istart=1
+         iend=MLEN
+      END IF
+
+      NBST=(istart-1)/NBSIZ+1
+      NBED=(iend-1)/NBSIZ+1
+      IF(NRANK.EQ.NSIZE-1) NBED=NRMAX+2
+
+      IF(NBST.LE.NR_S-2) THEN
+         NRST=NBST
+      ELSE IF (NBST.GE.NR_S+1) THEN
+         NRST=NBST-2
+      ELSE
+         NRST=NR_S-1
+      END IF
+      IF(NBED.LE.NR_S-2) THEN
+         NRED=NBED
+      ELSE IF (NBED.GE.NR_S+1) THEN
+         NRED=NBED-2
+      ELSE
+         NRST=NR_S-2
+      END IF
+
+      IF(nrank.EQ.0) THEN
+         WRITE(6,'(A,2I8)') 'MLEN,MBND=',MLEN,MBND
+         WRITE(6,'(A)') 'nrank,istart,iend,NBST,NBED,NRST,NRED='
+      END IF
+      WRITE(6,'(7I8)') nrank,istart,iend,NBST,NBED,NRST,NRED
+
+      RETURN
+      END
+      
+C     ****** Matrix equation solver ******
 C
       SUBROUTINE WMSOLV
 C
@@ -10,74 +60,58 @@ C
 C
       PARAMETER (NBSIZM=3*MDM*NDM)
 C
-      NBSIZ=3*MDSIZ*NDSIZ
-      IF(MODEWG.EQ.0) THEN
-         MSIZ=(NRMAX+2)*NBSIZ
-      ELSE
-         MSIZ=(NRMAX+2)*NBSIZ+MWGMAX*NAMAX
-      ENDIF
-      MBND=2*NBSIZ
-
       IF(MODEEG.EQ.0) THEN
-         CALL WMSOLV_MTXP(CFVG,MSIZ,2*MBND-1,NBSIZ,WMSETM,IERR)
+         CALL WMSOLV_MTXP(IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XXX WMSOLV_MTXP: ERROR: IERR=',IERR
       ELSE
-         CALL WMSOLV_BAND(CFVG,MSIZ,2*MBND-1,WMSETM,IERR)
+         CALL WMSOLV_BAND(IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XXX WMSOLV_BAND: ERROR: IERR=',IERR
       END IF
 
       RETURN
       END
 
-      SUBROUTINE WMSOLV_MTXP(XX , N , L , NBSIZ, WMSETM, IERR )
+      SUBROUTINE WMSOLV_MTXP(IERR)
 
       USE libmtx
       INCLUDE 'wmcomm.inc'
-      COMPLEX(8),DIMENSION(N),INTENT(OUT):: XX
-      INTEGER,INTENT(IN):: N,L,NBSIZ
       INTEGER,INTENT(OUT)::IERR 
-      EXTERNAL WMSETM
-      COMPLEX(8),DIMENSION(:),ALLOCATABLE:: A
+      COMPLEX(8),DIMENSION(MBND):: A
       COMPLEX(8):: X
-      INTEGER:: istart,iend,i,j,NRP
+      INTEGER:: i,j,NRP
       INTEGER:: itype,its
       REAL(8):: tolerance
 
-      ALLOCATE(A(L))        ! local coefficient matrix
-
-      CALL mtxc_setup(N,istart,iend,jwidth=L)
-
-      NBST=(istart-1)/NBSIZ+1
-      NBED=(iend-1)/NBSIZ+1
-      write(6,'(A,2I5)') 'NBST,NBED=',NBST,NBED
-      IF(NRANK.EQ.NSIZE-1) NBED=NRMAX+2
+      WRITE(6,*) MLEN,istart,iend,MBND
+      write(6,*) '*** point 1'
+      CALL mtxc_setup(MLEN,istart,iend,jwidth=MBND)
 
 C   ***** CALCULATE MATRIX COEFFICIENTS *****
 
       NRP=0
       NBMODE=0
 
+      write(6,*) '*** point 2'
       DO i=istart,iend
          X=(0.D0,0.D0)
-         A(1:L)=(0.D0,0.D0)
-         CALL WMSETM(A,X,i,L,NRP)
-         DO j=MAX(i-(L+1)/2+1,1),MIN(N,i+(L+1)/2-1)
-            IF(ABS(A(j-i+(L+1)/2)).GT.0.D0) THEN
-               CALL mtxc_set_matrix(i,j,A(j-i+(L+1)/2))
+         A(1:MBND)=(0.D0,0.D0)
+         CALL WMSETM(A,X,i,MBND,NRP)
+         DO j=MAX(i-(MBND+1)/2+1,1),MIN(MLEN,i+(MBND+1)/2-1)
+            IF(ABS(A(j-i+(MBND+1)/2)).GT.0.D0) THEN
+               CALL mtxc_set_matrix(i,j,A(j-i+(MBND+1)/2))
             END IF
          END DO
          CALL mtxc_set_source(i,X)
       END DO
+      write(6,*) '*** point 3'
 
       itype=0
       tolerance=1.D-12
       CALL mtxc_solve(itype,tolerance,its)
 
-      CALL mtxc_gather_vector(XX)
-
+      CALL mtxc_gather_vector(CFVG)
       CALL mtxc_cleanup
-C
-      DEALLOCATE(A)
+
       IERR=0
 
       RETURN
@@ -85,12 +119,11 @@ C
 C
 C     ****** SOLUTION OF BAND MATRIX (GAUSSIAN ELIMINATION) ******
 C
-      SUBROUTINE WMSOLV_BAND(XX , N , L , WMSETM, IERR )
+      SUBROUTINE WMSOLV_BAND(IERR)
 C
       INCLUDE 'wmcomm.inc'
       COMPLEX(8),DIMENSION(:,:),ALLOCATABLE:: A
       COMPLEX(8),DIMENSION(:),ALLOCATABLE:: X
-      COMPLEX(8),DIMENSION(N):: XX
       COMPLEX(8):: TEMP
       REAL(8):: EPS , ABS1 , ABS2
       INTEGER:: N,L,NRP,NR,MS,MB,LH,LHM,NM,K,LHMK,NPMK,I,LPMI,J
@@ -98,8 +131,8 @@ C
       EXTERNAL WMSETM
       DATA EPS/ 1.D-70 /
 C
-      NBST=1
-      NBED=NRMAX+2
+      N=MLEN
+      L=MBND
 
       ALLOCATE(A(L,N))
       ALLOCATE(X(N))
@@ -199,7 +232,7 @@ C
          IF( JJ .LT. L ) JJ = JJ + 1
       ENDDO
 C
-      XX(1:N)=X(1:N)
+      CFVG(1:N)=X(1:N)
       DEALLOCATE(A,X)
       IERR = 0
       RETURN

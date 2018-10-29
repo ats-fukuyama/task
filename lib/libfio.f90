@@ -1,6 +1,15 @@
+! libfio.f90
+
+MODULE libfio
+
+  PRIVATE
+  PUBLIC fropen,fwopen
+
+CONTAINS
+
 !     ***** OPEN FILE FOR READ *****
 
-      SUBROUTINE FROPEN(NFL,KNAMFL,MODEF,MODEP,KPR,IERR)
+      SUBROUTINE FROPEN(NFL,KNAMFL,MODEF,MODEP,KPR,IERR,CONVERT)
 
 !     INPUT:
 !        NFL    : FILE DEVICE NUMBER
@@ -10,6 +19,7 @@
 !        MODEP  : 0 : WITHOUT PROMPT
 !                 1 : WITH FILE NAME INPUT
 !        KPR    : PROMPT
+!        CONVERT: OPTIONAL: 'BIG_ENDIAN','LITTLE_ENDIAN','NATIVE'
 
 !     OUTPUT:
 !        IERR   : ERROR CODE
@@ -29,9 +39,17 @@
       INTEGER(4),       INTENT(OUT)  :: IERR
       CHARACTER(LEN=*), INTENT(INOUT):: KNAMFL
       CHARACTER(LEN=*), INTENT(IN)   :: KPR
+      CHARACTER(LEN=*), INTENT(IN),OPTIONAL :: CONVERT
+      CHARACTER(LEN=256):: CONVERT_
       INTEGER(4)        :: IST
       CHARACTER(LEN=80) :: KNAM
       LOGICAL           :: LEX
+
+      IF(PRESENT(CONVERT)) THEN
+         CONVERT_=CONVERT
+      ELSE
+         CONVERT_="native"
+      END IF
 
       KNAM=KNAMFL
       IF(MODEP.EQ.0) THEN
@@ -51,10 +69,10 @@
       IF(LEX) THEN
          IF(MODEF.EQ.0) THEN
             OPEN(NFL,FILE=KNAMFL,IOSTAT=IST,STATUS='OLD',ERR=20, &
-     &           FORM='UNFORMATTED')
+     &           FORM='UNFORMATTED',CONVERT=CONVERT_)
          ELSEIF(MODEF.EQ.1) THEN
             OPEN(NFL,FILE=KNAMFL,IOSTAT=IST,STATUS='OLD',ERR=20, &
-     &           FORM='FORMATTED')
+     &           FORM='FORMATTED',CONVERT=CONVERT_)
          ELSE
             WRITE(6,*) 'XX FROPEN: UNKNOWN MODEF : MODEF=',MODEF
             GOTO 9005
@@ -238,4 +256,5 @@
 
  9008 IERR=8
       RETURN
-      END SUBROUTINE FWOPEN
+    END SUBROUTINE FWOPEN
+END MODULE libfio

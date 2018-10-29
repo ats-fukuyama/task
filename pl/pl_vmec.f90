@@ -32,6 +32,7 @@ subroutine set_equil(file_name,ierr)
   use def_kind
   use def_param
   use var_equil3D
+  USE libfio
   implicit none
 
   character(len=*),intent(in):: file_name

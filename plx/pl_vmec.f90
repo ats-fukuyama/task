@@ -13,7 +13,7 @@ subroutine pl_vmec(file_name,ierr)
 
   use def_kind
   implicit none
-  character(len=*),intent(in):: file_name
+  character(len=*),intent(inout):: file_name
   integer(kind=ikind),intent(out):: ierr
 
   call set_equil(file_name,ierr)
@@ -32,9 +32,10 @@ subroutine set_equil(file_name,ierr)
   use def_kind
   use def_param
   use var_equil3D
+  USE libfio
   implicit none
 
-  character(len=*),intent(in):: file_name
+  character(len=*),intent(inout):: file_name
   integer(kind=ikind),intent(out):: ierr
   character(len=80)   :: cdummy
   real(kind=rkind)    :: dummy

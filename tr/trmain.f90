@@ -35,7 +35,8 @@
 
       USE TRCOMM, ONLY : GTCPU1, NFM, NGM, NSM, NTM
       use bpsd
-      use plinit,ONLY: pl_init,pl_parm
+      use plinit,ONLY: pl_init
+      use plparm,ONLY: pl_parm
       use equnit_mod
 !      use equunit_mod
       use trunit

@@ -25,11 +25,11 @@ MODINCLUDE= -I $(MOD) -I../plx/$(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD) -I../m
 
 SRCS = dpcomm.f90 dpinit.f90 dpparm.f90 \
        dptnsr1.f90 dptnsr2.f90 dptens.f90 dpdisp.f90 \
-       dpfpin.f90 dphof.f90 dphotr.f90 dpdkdt.f90 \
+       dpfpin.f90 dphotf.f90 dphotr.f90 \
        dpgsub.f90 dproot.f90 dpcont.f90 \
        dpmenu.f90	
 	
-SRCSX = dpfpin.f dphotf.f dphotr.f dpdkdt.f dptestk.f
+SRCSX = dpdkdt.f dptestk.f
 
 
 OBJS = $(SRCS:.f90=.o)
@@ -58,7 +58,7 @@ libs:
 	(cd ../eq; make eqlib.a)
 
 dp : $(LIBS) dpmain.o
-	$(FLINKER) dpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+	$(FLINKER) dpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 clean:
 	-rm -f core a.out *.o *.a ./*~

@@ -6,12 +6,13 @@ MODULE dpinit
   SUBROUTINE dp_init
 
     USE dpcomm_parm
-    USE dpcomm,ONLY: RHON_MIN,RHON_MAX
     IMPLICIT NONE
     INTEGER:: NS
 
 !
 !     *********** INPUT PARAMETERS ***********
+!
+!     --- PLASMA MODEL PARAMETERS ---
 !
 !     MODELP: TYPE OF ANALYTIC DIELECTRIC TENSOR
 !                 0 : COLLISIONLESS COLD MODEL
@@ -69,37 +70,36 @@ MODULE dpinit
 !              6 : DRIFTKINETIC: READ FPDATA DISTRIBUTION
 !              9 : LOCAL MODEL (MODELV locally specified by MODELVR)
 !
-!     MODEFA: Type of fast particle contribution
-!
 !     NDISP1: MINIMUM HARMONIC NUMBER
 !     NDISP2: MAXMUM  HARMONIC NUMBER
-!     MODEFA : Type of fast particle contribution
-!
-!     RF0,RFI0,RKX0,RKY0,RKZ0 : STANDARD PARAMETER FOR ROOT FINDING
-!     RF1,RF2                 : SCAN RANGE OF REAL FREQUENCY (MHZ)
-!     RFI1,RFI2               : SCAN RANGE OF IMAGINARY FREQUENCY (MHZ)
-!     RKX1,RKX2               : SCAN RANGE OF WAVE NUMBER KX (1/M)
-!     RKY1,RKY2               : SCAN RANGE OF WAVE NUMBER KY (1/M)
-!     RKZ1,RKZ2               : SCAN RANGE OF WAVE NUMBER KZ (1/M)
-!     X1,X2                   : SCAN RANGE OF POSITION X (M)
-!
-!     NXMAX  : NUMBER OF SCAN POINTS
-!     EPSRT  : CONVERGENCE CRITERION OF ROOT FINDING
-!     LMAXRT : MAXIMUM ITERATION COUNT OF ROOT FINDING
-!
 
     DO NS=1,NSM
        MODELP(NS)= 0
        MODELV(NS)= 0
        NDISP1(NS)=-2
        NDISP2(NS)= 2
-    ENDDO
-    MODEFA   = 0
-!
-    DO NS=1,NSM
        PMAX(NS)= 7.D0
+       NS_NSA(NS)=NS
     ENDDO
+
+!     --- Root finding and dispersion plot parameters ---
 !
+!     RF0,RFI0,RKX0,RKY0,RKZ0 : STANDARD PARAMETER FOR ROOT FINDING
+!     RX0,RY0,RZ0             : STANDARD POSITION FOR ROOT FINDING
+!     RF1,RF2                 : SCAN RANGE OF REAL FREQUENCY (MHZ)
+!     RFI1,RFI2               : SCAN RANGE OF IMAGINARY FREQUENCY (MHZ)
+!     RKX1,RKX2               : SCAN RANGE OF WAVE NUMBER KX (1/M)
+!     RKY1,RKY2               : SCAN RANGE OF WAVE NUMBER KY (1/M)
+!     RKZ1,RKZ2               : SCAN RANGE OF WAVE NUMBER KZ (1/M)
+!     RX1,RX2                 : SCAN RANGE OF POSITION X (M)
+!
+!     NGXMAX : NUMBER OF 1D SCAN POINTS
+!     NGYMAX : NUMBER OF 2D SCAN POINTS
+!     NGPMAX : NUMBER OF PARAMETER SCAN POINTS
+!
+!     EPSRT  : CONVERGENCE CRITERION OF ROOT FINDING
+!     LMAXRT : MAXIMUM ITERATION COUNT OF ROOT FINDING
+
     RF0    = 160.D3
     RFI0   =   0.D0
     RKX0   = 800.D0
@@ -121,23 +121,34 @@ MODULE dpinit
     RKZ2   = 1600.D0
     RX1    = RR+0.D0
     RX2    = RR+0.5D0
-!
-    NXMAX  = 21
-    NYMAX  = 21
+
     NGXMAX  = 21
     NGYMAX  = 21
     NGPMAX  = 21
+
     EPSRT  = 1.D-8
     LMAXRT = 20
+
+!     --- Velocity distribution function parameters ---
 !
+!     NPMAX  : number of momentum magnitude mesh
+!     NTHMAX : number of momentum angle mesh
+!     NRMAX  : number of radial mesh
+!     NSAMAX : number of test particle species
+!     MODEFA : Type of fast particle contribution
+!     RMIN   : minimum of radial mesh (r/a)
+!     RMAX   : maximum of radial mesh (r/a)
+
     NPMAX=50
     NTHMAX=50
     NRMAX=3
+    NSMAX=2
     NSAMAX=2
     RMIN=0.1D0
     RMAX=0.3D0
-    RHON_MIN=0.D0
-    RHON_MAX=1.D0
+    MODEFA   = 0
+    RMIN=0.D0
+    RMAX=1.D0
 !
     RETURN
   END SUBROUTINE dp_init

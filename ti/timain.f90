@@ -10,7 +10,8 @@ PROGRAM ti
 
   USE ticomm
   USE bpsd
-  USE plinit,ONLY: pl_init,pl_parm
+  USE plinit,ONLY: pl_init
+  USE plparm,ONLY: pl_parm
   USE equnit_mod
   USE tiinit,ONLY: ti_init
   USE tiparm,ONLY: ti_parm

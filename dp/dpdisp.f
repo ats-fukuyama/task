@@ -267,8 +267,11 @@ C
       CCD=SQRT(CCB**2-4.D0*CCA*CCC)
       CKPPA=(-CCB+CCD)/(2.D0*CCA)
       CKPPB=(-CCB-CCD)/(2.D0*CCA)
-      RKPPA2=REAL(CKPPA**2)
-      RKPPB2=REAL(CKPPB**2)
+C----- 2018-08-29 ----- correction by AF -----
+C      RKPPA2=REAL(CKPPA**2)
+C      RKPPB2=REAL(CKPPB**2)
+      RKPPA2=REAL(CKPPA)
+      RKPPB2=REAL(CKPPB)
       IF(RKPPA2.GE.0.D0) THEN
          IF(RKPPB2.GE.0.D0) THEN
             IF(RKPPA2.GT.RKPPB2) THEN

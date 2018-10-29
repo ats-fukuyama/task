@@ -131,8 +131,8 @@ CONTAINS
 
       DT     = 0.01D0
       NRMAX  = 50
-      NTMAX  = 100
-      NTSTEP = 10
+      NTMAX  = 1
+      NTSTEP = 1
       NGTSTEP = 2
       NGRSTEP = 100
       NGTMAX_INIT = 10000

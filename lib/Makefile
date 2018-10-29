@@ -21,7 +21,8 @@ SRCSFREE  =  libbrn.f90 libinv.f90 libbnd.f90 \
 	     libgrf/grf1dexec.f90 libgrf/grf2dexec.f90 \
 	     libgrf/grfconvert.f90 libgrf/grdconvert.f90 \
              libgrf/grf1d.f90 libgrf/grd1d.f90 \
-	     libgrf/grf2d.f90 libgrf/grd2d.f90 libgrf.f90 \
+	     libgrf/grf2d.f90 libgrf/grd2d.f90 libgrf/grd2dframe.f90 \
+	     libgrf.f90 \
              libbes.f90 libde.f90 libdsp.f90 libell.f90 libspf.f90 \
 	     libfft.f90 \
              libqsort.f90 \
@@ -103,6 +104,8 @@ libgrf/grd1d.o: libgrf/grd1d.f90 libgrf/grf1dexec.f90 libgrf/grf2dexec.f90 \
 libgrf/grf2d.o: libgrf/grf2d.f90 libgrf/grf1dexec.f90 libgrf/grf2dexec.f90 \
                 libgrf/grfconvert.f90 libgrf/grftype.f90
 libgrf/grd2d.o: libgrf/grd2d.f90 libgrf/grf1dexec.f90 libgrf/grf2dexec.f90 \
+                libgrf/grdconvert.f90 libgrf/grftype.f90
+libgrf/grd2dframe.o: libgrf/grd2dframe.f90 \
                 libgrf/grdconvert.f90 libgrf/grftype.f90
 
 libufile/ufinit.o: libufile/ufinit.f90

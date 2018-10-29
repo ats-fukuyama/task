@@ -58,6 +58,9 @@ c
 c@mmm95.tex
 c--------1---------2---------3---------4---------5---------6---------7-c
 c
+      MODULE modmmm95
+      CONTAINS
+
       subroutine mmm95 (
      &   rminor,  rmajor,   elong
      & , dense,   densh,    densimp,  densfe
@@ -1329,3 +1332,4 @@ c
 !| 
 !| %**********************************************************************c
 !| \end{document}             % End of document.
+      end module modmmm95

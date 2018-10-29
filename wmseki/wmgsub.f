@@ -682,8 +682,10 @@ C
          NTHGMAX=NTHMAX
          DO NR=1,NRMAX+1
          DO NTH=1,NTHGMAX
-            GRL(NR,NTH)=GUCLIP(RPST(NTH,NHH,NR))
-            GZL(NR,NTH)=GUCLIP(ZPST(NTH,NHH,NR))
+            NHHF=(NHH-1)*NFACT +1
+            NTHF=(NTH-1)*MFACT +1
+            GRL(NR,NTH)=GUCLIP(RPST(NTHF,NHHF,NR))
+            GZL(NR,NTH)=GUCLIP(ZPST(NTHF,NHHF,NR))
          ENDDO
          ENDDO
       ELSE
@@ -700,11 +702,14 @@ C
       DO NR=1,NRMAX+1
       DO NTH=1,NTHMAX
          NTHP=NTH+1
+         NHHF=(NHH-1)*NFACT +1
+         NTHF=(NTH-1)*MFACT +1
+         NTHPF=(NTHP-1)*MFACT +1
          IF(NTHP.GT.NTHMAX) NTHP=1
          DO NTHG=1,NTHGS
             NTHL=(NTH-1)*NTHGS+NTHG
             FACT=DBLE(NTHG-1)/DBLE(NTHGS)
-            VAL=(1.D0-FACT)*BPST(NTH,NHH,NR)+FACT*BPST(NTHP,NHH,NR)
+            VAL=(1.D0-FACT)*BPST(NTHF,NHHF,NR)+FACT*BPST(NTHPF,NHHF,NR)
             GBY(NR,NTHL)=GUCLIP(VAL)
             VAL=(1.D0-FACT)*DBLE(GGL(NR,NTH))+FACT*DBLE(GGL(NR,NTHP))
             GFL(NR,NTHL)=GUCLIP(VAL)
@@ -713,6 +718,16 @@ C
       ENDDO
 C
       CALL GMNMX2(GFL,NRM,1,NRMAX+1,1,1,NTHGMAX,1,GFMIN,GFMAX)
+       print *, GFMIN,GFMAX,NRMAX+1
+       DO NR=1,NRMAX
+          if ( 1d0 > xrho(NR) ) then
+             NRLCFS=NR
+          endif
+       ENDDO
+      CALL GMNMX2(GFL,NRM,1,NRLCFS,1,1,NTHGMAX,1,GFMIN,GFMAX)
+      IF(ABS(GFMIN)>GFMAX)GFMAX=ABS(GFMIN)
+      GFMIN=-ABS(GFMAX)
+
       CALL GQSCAL(GFMIN,GFMAX,GGFMIN,GGFMAX,GGFSTP)
 C      NSTEP=INT((GGFMAX-GGFMIN)/(2*GGFSTP))+1
 C
@@ -871,15 +886,17 @@ C
 C
       DO NR=1,NRMAX+1
       DO NTH=1,NTHMAX
-         RBS(NR,NTH)=RPST(NTH,NHH,NR)
-         ZBS(NR,NTH)=ZPST(NTH,NHH,NR)
+         NHHF=(NHH-1)*NFACT +1
+         NTHF=(NTH-1)*MFACT +1
+         RBS(NR,NTH)=RPST(NTHF,NHHF,NR)
+         ZBS(NR,NTH)=ZPST(NTHF,NHHF,NR)
          FBS(NR,NTH)=DBLE(GFL(NR,NTH))
       ENDDO
       ENDDO
 C
       DO NR=1,NRMAX+1
-         RBS(NR,NTHMAX+1)=RPST(1,NHH,NR)
-         ZBS(NR,NTHMAX+1)=ZPST(1,NHH,NR)
+         RBS(NR,NTHMAX+1)=RPST(1,NHHF,NR)
+         ZBS(NR,NTHMAX+1)=ZPST(1,NHHF,NR)
          FBS(NR,NTHMAX+1)=DBLE(GFL(NR,1))
       ENDDO
 C

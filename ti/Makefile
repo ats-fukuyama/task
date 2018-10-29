@@ -17,7 +17,7 @@ LIBX_MTX=$(LIBX_MTX_BND)
 #FFLAGS = $(OFLAGS)
 FFLAGS = $(DFLAGS)
 
-SRCS= ticomm.f90 adpost/lib-adpost.f90 \
+SRCS=   ticomm.f90 adpost/lib-adpost.f90 \
 	tiinit.f90 tiparm.f90 tiprep.f90 \
 	ticoef.f90 tisource.f90 ticalc.f90 tiexec.f90 tigout.f90 timenu.f90
 

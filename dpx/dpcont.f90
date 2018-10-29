@@ -8,7 +8,7 @@ CONTAINS
 
     USE dpcomm
     USE pllocal
-    USE PLINIT,ONLY: pl_parm,pl_view
+    USE PLPARM,ONLY: pl_parm,pl_view
     USE dpparm
     USE dpdisp
     IMPLICIT NONE

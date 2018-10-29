@@ -67,6 +67,13 @@ subroutine WFWPRE(IERR)
   CALL pl_load(ierr)
   if(IERR.ne.0) return
 
+  SELECT CASE(MODELG)
+  CASE(0,1,10,11)
+     CALL WFBPSI(RA,0.D0,PSIA)
+  CASE(2:9)
+     CALL WFBPSI(RR+RA,0.D0,PSIA)
+  END SELECT
+
   call LPELMT
 
   if (nrank.eq.0) write(6,*) '----- SETBDY start ---'

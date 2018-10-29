@@ -12,25 +12,31 @@
       INTEGER(4):: NR
       REAL(8)   :: TE, TRZEC, TRZEFE
 
-      IF(MDLUF.EQ.0) THEN
-         DO NR=1,NRMAX
-            TE =RT(NR,1)
-            ZEFF(NR) =(PZ(2)  *PZ(2)  *RN(NR,2) +PZ(3)  *PZ(3)  *RN(NR,3) +PZ(4)  *PZ(4)  *RN(NR,4) &
-     &                +TRZEC(TE)**2   *ANC (NR) +TRZEFE(TE)**2  *ANFE(NR))/RN(NR,1)
-         ENDDO
-      ELSE
-         IF(MDLEQN.EQ.0) THEN ! fixed density
-            DO NR=1,NRMAX
-               ZEFF(NR) =(PZ(2)  *PZ(2)  *RN(NR,2) +PZ(3)  *PZ(3)  *RN(NR,3) +PZ(2)  *PZ(2)  *RNF(NR,1))/RN(NR,1)
-            ENDDO
-         ENDIF
-      ENDIF
-
       DO NR=1,NRMAX
          TE=RT(NR,1)
          PZC(NR)=TRZEC(TE)
          PZFE(NR)=TRZEFE(TE)
       ENDDO
+
+      IF(MDLUF.EQ.0) THEN
+         DO NR=1,NRMAX
+            TE =RT(NR,1)
+            ZEFF(NR) =(PZ(2)**2   *RN(NR,2) &
+                      +PZ(3)**2   *RN(NR,3) &
+                      +PZ(4)**2   *RN(NR,4) &
+                      +PZC(NR)**2 *ANC (NR) &
+                      +PZFE(NR)**2*ANFE(NR))/RN(NR,1)
+         ENDDO
+      ELSE
+         IF(MDLEQN.EQ.0) THEN ! fixed density
+            DO NR=1,NRMAX
+               ZEFF(NR) =(PZ(2)**2*RN(NR,2) &
+                         +PZ(3)**2*RN(NR,3) &
+                         +PZ(2)**2*RNF(NR,1))/RN(NR,1)
+            ENDDO
+         ENDIF
+      ENDIF
+
 !
       RETURN
       END SUBROUTINE TRZEFF
@@ -133,26 +139,37 @@
 
       IMPLICIT NONE
       REAL(8):: TE,TEL,ARG
-      REAL(8):: AC00=1.965300D+03, AC01=4.572039D+03, AC02=4.159590D+03, AC03=1.871560D+03, AC04=4.173889D+02, AC05=3.699382D+01
-      REAL(8):: AC10=7.467599D+01, AC11=4.549038D+02, AC12=8.372937D+02, AC13=7.402515D+02, AC14=3.147607D+02, AC15=5.164578D+01
-      REAL(8):: AC20=-2.120151D+01,AC21=-3.668933D-01,AC22=7.295099D-01, AC23=-1.944827D-01,AC24=-1.263576D-01,AC25=-1.491027D-01
-      REAL(8):: AC30=-2.121979D+01,AC31=-2.346986D-01,AC32=4.093794D-01, AC33=7.874548D-02, AC34=-1.841379D-01,AC35=5.590744D-02
-      REAL(8):: AC40=-2.476796D+01,AC41=9.408181D+00, AC42=-9.657446D+00,AC43=4.999161D+00, AC44=-1.237382D+00,AC45=1.160610D-01
+      REAL(8):: AC00= 1.965300D+03, AC01= 4.572039D+03, AC02= 4.159590D+03, &
+                AC03= 1.871560D+03, AC04= 4.173889D+02, AC05= 3.699382D+01
+      REAL(8):: AC10= 7.467599D+01, AC11= 4.549038D+02, AC12= 8.372937D+02, &
+                AC13= 7.402515D+02, AC14= 3.147607D+02, AC15= 5.164578D+01
+      REAL(8):: AC20=-2.120151D+01, AC21=-3.668933D-01, AC22= 7.295099D-01, &
+                AC23=-1.944827D-01, AC24=-1.263576D-01, AC25=-1.491027D-01
+      REAL(8):: AC30=-2.121979D+01, AC31=-2.346986D-01, AC32= 4.093794D-01, &
+                AC33= 7.874548D-02, AC34=-1.841379D-01, AC35= 5.590744D-02
+      REAL(8):: AC40=-2.476796D+01, AC41= 9.408181D+00, AC42=-9.657446D+00, &
+                AC43= 4.999161D+00, AC44=-1.237382D+00, AC45= 1.160610D-01
 
       TEL = LOG10(TE)
       IF(TE.LE.3.D-3) THEN
          TEL=LOG10(3.D-3)
-         ARG=AC00+(AC01*TEL)+(AC02*TEL**2)+(AC03*TEL**3)+(AC04*TEL**4)+(AC05*TEL**5)
+         ARG=AC00+(AC01*TEL)+(AC02*TEL**2)+(AC03*TEL**3) &
+                            +(AC04*TEL**4)+(AC05*TEL**5)
       ELSEIF(TE.LE.2.D-2) THEN
-         ARG=AC00+(AC01*TEL)+(AC02*TEL**2)+(AC03*TEL**3)+(AC04*TEL**4)+(AC05*TEL**5)
+         ARG=AC00+(AC01*TEL)+(AC02*TEL**2)+(AC03*TEL**3) &
+                            +(AC04*TEL**4)+(AC05*TEL**5)
       ELSEIF(TE.LE.0.2D0) THEN
-         ARG=AC10+(AC11*TEL)+(AC12*TEL**2)+(AC13*TEL**3)+(AC14*TEL**4)+(AC15*TEL**5)
+         ARG=AC10+(AC11*TEL)+(AC12*TEL**2)+(AC13*TEL**3) &
+                            +(AC14*TEL**4)+(AC15*TEL**5)
       ELSEIF(TE.LE.2.D0) THEN
-         ARG=AC20+(AC21*TEL)+(AC22*TEL**2)+(AC23*TEL**3)+(AC24*TEL**4)+(AC25*TEL**5)
+         ARG=AC20+(AC21*TEL)+(AC22*TEL**2)+(AC23*TEL**3) &
+                            +(AC24*TEL**4)+(AC25*TEL**5)
       ELSEIF(TE.LE.20.D0) THEN
-         ARG=AC30+(AC31*TEL)+(AC32*TEL**2)+(AC33*TEL**3)+(AC34*TEL**4)+(AC35*TEL**5)
+         ARG=AC30+(AC31*TEL)+(AC32*TEL**2)+(AC33*TEL**3) &
+                            +(AC34*TEL**4)+(AC35*TEL**5)
       ELSEIF(TE.LE.1.D2) THEN
-         ARG=AC40+(AC41*TEL)+(AC42*TEL**2)+(AC43*TEL**3)+(AC44*TEL**4)+(AC45*TEL**5)
+         ARG=AC40+(AC41*TEL)+(AC42*TEL**2)+(AC43*TEL**3) &
+                            +(AC44*TEL**4)+(AC45*TEL**5)
       ENDIF
       TRRPC = 10.D0**(ARG-13.D0)
 
@@ -169,24 +186,32 @@
 
       IMPLICIT NONE
       REAL(8)::TE,TEL,ARG
-      REAL(8)::AF10=-2.752599D+01,AF11=-3.908228D+01,AF12=-6.469423D+01,AF13=-5.555048D+01,AF14=-2.405568D+01,AF15=-4.093160D+00
-      REAL(8)::AF20=-1.834973D+01,AF21=-1.252028D+00,AF22=-7.533115D+00,AF23=-3.289693D+00,AF24=2.866739D+01, AF25=2.830249D+01
-      REAL(8)::AF30=-1.671042D+01,AF31=-1.646143D+01,AF32=3.766238D+01, AF33=-3.944080D+01,AF34=1.918529D+01, AF35=-3.509238D+00
-      REAL(8)::AF40=-2.453957D+01,AF41=1.795222D+01, AF42=-2.356360D+01,AF43=1.484503D+01, AF44=-4.542323D+00,AF45=5.477462D-01
-
+      REAL(8)::AF10=-2.752599D+01, AF11=-3.908228D+01, AF12=-6.469423D+01, &
+               AF13=-5.555048D+01, AF14=-2.405568D+01, AF15=-4.093160D+00
+      REAL(8)::AF20=-1.834973D+01, AF21=-1.252028D+00, AF22=-7.533115D+00, &
+               AF23=-3.289693D+00, AF24= 2.866739D+01, AF25= 2.830249D+01
+      REAL(8)::AF30=-1.671042D+01, AF31=-1.646143D+01, AF32= 3.766238D+01, &
+               AF33=-3.944080D+01, AF34= 1.918529D+01, AF35=-3.509238D+00
+      REAL(8)::AF40=-2.453957D+01, AF41= 1.795222D+01, AF42=-2.356360D+01, &
+               AF43= 1.484503D+01, AF44=-4.542323D+00, AF45= 5.477462D-01
 
       TEL = LOG10(TE)
       IF(TE.LE.3.D-3) THEN
          TEL=LOG10(3.D-3)
-         ARG=AF10+(AF11*TEL)+(AF12*TEL**2)+(AF13*TEL**3)+(AF14*TEL**4)+(AF15*TEL**5)
+         ARG=AF10+(AF11*TEL)+(AF12*TEL**2)+(AF13*TEL**3) &
+                            +(AF14*TEL**4)+(AF15*TEL**5)
       ELSEIF(TE.LE.0.2D0) THEN
-         ARG=AF10+(AF11*TEL)+(AF12*TEL**2)+(AF13*TEL**3)+(AF14*TEL**4)+(AF15*TEL**5)
+         ARG=AF10+(AF11*TEL)+(AF12*TEL**2)+(AF13*TEL**3) &
+                            +(AF14*TEL**4)+(AF15*TEL**5)
       ELSEIF(TE.LE.2.D0) THEN
-         ARG=AF20+(AF21*TEL)+(AF22*TEL**2)+(AF23*TEL**3)+(AF24*TEL**4)+(AF25*TEL**5)
+         ARG=AF20+(AF21*TEL)+(AF22*TEL**2)+(AF23*TEL**3) &
+                            +(AF24*TEL**4)+(AF25*TEL**5)
       ELSEIF(TE.LE.20.D0) THEN
-         ARG=AF30+(AF31*TEL)+(AF32*TEL**2)+(AF33*TEL**3)+(AF34*TEL**4)+(AF35*TEL**5)
+         ARG=AF30+(AF31*TEL)+(AF32*TEL**2)+(AF33*TEL**3) &
+                            +(AF34*TEL**4)+(AF35*TEL**5)
       ELSEIF(TE.LE.1.D2) THEN
-         ARG=AF40+(AF41*TEL)+(AF42*TEL**2)+(AF43*TEL**3)+(AF44*TEL**4)+(AF45*TEL**5)
+         ARG=AF40+(AF41*TEL)+(AF42*TEL**2)+(AF43*TEL**3) &
+                            +(AF44*TEL**4)+(AF45*TEL**5)
       ENDIF
       TRRPFE = 10.D0**(ARG-13.D0)
 
@@ -208,7 +233,8 @@
       USE tr_cytran_mod, ONLY: tr_cytran
       IMPLICIT NONE
       INTEGER(4):: IERR, NR
-      REAL(8):: ANDX, ANE, ANHE, ANT, EION, PLC, PLD, PLFE, PLHE, PLTT, PRLL, SCH, SION, TD, TE, TN, TNU, TRRPC, TRRPFE, TSL
+      REAL(8):: ANDX, ANE, ANHE, ANT, EION, PLC, PLD, PLFE, PLHE, PLTT, &
+           PRLL, SCH, SION, TD, TE, TN, TNU, TRRPC, TRRPFE, TSL
 
 
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN

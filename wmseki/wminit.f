@@ -230,6 +230,9 @@ C
 C
       KNAMWM=' '
 
+C    seki for vmec field strength 
+      B0_FACT=1.0
+
       RETURN
       END
 C
@@ -276,12 +279,12 @@ C
      &              PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PU,PUS,NSMAX,
      &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
      &              PNA,PNAL,PTA,ZEFF,NDISP1,NDISP2,
-     &              RF,RFI,RD,BETAJ,AJ,AEWGT,AEWGZ,
+     &              RF,RFI,RD,BETAJ,AJ,AEWGT,AEWGZ,ANTANG,
      &              APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,
-     &              NRMAX,NTHMAX,NHHMAX,NTH0,NPH0,NHC,
+     &              NRMAX,NTHMAX,NTH0,NPH0,NHC,
      &              NPRINT,NGRAPH,MODELG,MODELJ,MODELP,MODELN,MODELA,
      &              MODELQ,MODELM,MODELW,MODELV,
-     &              MWGMAX,MODEFR,MODEFW,ANTANG,
+     &              MWGMAX,MODEFR,MODEFW,
      &              FRMIN,FRMAX,FIMIN,FIMAX,FI0,FRINI,FIINI,
      &              NGFMAX,NGXMAX,NGYMAX,SCMIN,SCMAX,NSCMAX,LISTEG,
      &              DLTNW,EPSNW,LMAXNW,LISTNW,MODENW,NCONT,
@@ -289,8 +292,11 @@ C
      &              RHOITB,PNITB,PTITB,PUITB,
      &              KNAMEQ,KNAMTR,KNAMWM,KNAMFP,KNAMFO,KNAMPF,
      &              WAEMIN,WAEMAX,PRFIN,MODELPR,MODELVR,
+!     &              NSUMAX,NSWMAX,NPHMAX,NPH0L,PFRACL
+! seki
      &              NSUMAX,NSWMAX,NPHMAX,NPH0L,PFRACL,
-     &              MDMAX_IPS,NDMAX_IPS
+     &              MDMAX_IPS,NDMAX_IPS,
+     &              B0_FACT,MODELPH
 C
       RF=DREAL(CRF)
       RFI=DIMAG(CRF)
@@ -339,8 +345,12 @@ C
      &       9X,'RHOMIN,QMIN,PU,PUS,PROFU1,PROFU2'/
      &       9X,'RHOITB,PNITB,PTITB,PUITB'/
      &       9X,'WAEMIN,WAEMAX,KNAMWM,KNAMFP,KNAMFO'/
+!     &       9X,'NSUMAX,NSWMAX,NPHMAX,NPH0L,PFRACL')
+!    seki
      &       9X,'NSUMAX,NSWMAX,NPHMAX,NPH0L,PFRACL'/
-     &       9X,'MDMAX_IPS,NDMAX_IPS')
+     &       9X,'MDMAX_IPS,NDMAX_IPS'/
+     &       9X,'B0_FACT')
+!    seki
       END
 C
 C     ***** CHECK INPUT PARAMETERS *****
@@ -487,7 +497,7 @@ C
       WRITE(6,601) 'RF    ',RF    ,'RFI   ',RFI   ,
      &             'RD    ',RD    ,'BETAJ ',BETAJ
       WRITE(6,602) 'NRMAX ',NRMAX ,'NTHMAX',NTHMAX,
-     &             'NHHMAX',NHHMAX
+     &             'NHHMAX',NHHMAX,'NPHMAX',NPHMAX
       WRITE(6,602) 'NTH0  ',NTH0  ,'NPH0  ',NPH0  ,
      &             'NHC   ',NHC   ,'MWGMAX',MWGMAX
       WRITE(6,602) 'MODELG',MODELG,'MODELJ',MODELJ,

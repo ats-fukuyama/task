@@ -471,22 +471,49 @@ C     ----- Fourier decompose A, B, C -----
 
       DO ND=NDMIN,NDMAX
          NDX=ND-NDMIN+1
+      DO MD=NDMIN,NDMAX
+         MDX=MD-MDMIN+1
+      DO NDN=1,NDMF
+      DO MDN=1,MDMF
+            DO J=1,3
+            DO I=1,3
+        CSUMA(I,J,MDN,MDX,NDN,NDX)=0d0
+        CSUMAH(I,J,MDN,MDX,NDN,NDX)=0d0
+        CSUMPF(I,J,MDN,MDX,NDN,NDX)=0d0
+        CSUMPHF(I,J,MDN,MDX,NDN,NDX)=0d0
+            ENDDO
+            ENDDO
+      ENDDO
+      ENDDO
+      ENDDO
+      ENDDO
+
+      DO ND=NDMIN,NDMAX
+         NDX=ND-NDMIN+1
+!$OMP PARALLEL DO default (shared)
+!$OMP+private(MDX)
+!$OMP+private(KA, KB, KAB,NB1,NB2)
+!$OMP+private(KAX,KBX,KABX)
+!$OMP+private(LA, LB, LAB,MB1,MB2)
+!$OMP+private(LAX,LBX,LABX,K,I,L,J)
+!$OMP+private(LBXK,KBXK)
       DO MD=MDMIN,MDMAX
          MDX=MD-MDMIN+1
-         DO KAB=KDMIN_F,KDMAX_F
-            KABX=KAB-KDMIN_F+1
-         DO LAB=LDMIN_F,LDMAX_F
-            LABX=LAB-LDMIN_F+1
-         DO K=1,3
-         DO I=1,3
-            CS(I,K,LABX,KABX)=0.D0
-            CSH(I,K,LABX,KABX)=0.D0
-            CPF(I,K,LABX,KABX)=0.D0
-            CPHF(I,K,LABX,KABX)=0.D0
-         ENDDO
-         ENDDO
-         ENDDO
-         ENDDO
+
+C         DO KAB=KDMIN_F,KDMAX_F
+C            KABX=KAB-KDMIN_F+1
+C         DO LAB=LDMIN_F,LDMAX_F
+C            LABX=LAB-LDMIN_F+1
+C         DO K=1,3
+C        DO I=1,3
+C           CS(I,K,LABX,KABX)=0.D0
+C            CSH(I,K,LABX,KABX)=0.D0
+C            CPF(I,K,LABX,KABX)=0.D0
+C            CPHF(I,K,LABX,KABX)=0.D0
+C         ENDDO
+C         ENDDO
+C         ENDDO
+C         ENDDO
 
          DO KA=KDMIN_F,KDMAX_F
             KAX=KA-KDMIN_F+1
@@ -521,13 +548,15 @@ C     ----- Fourier decompose A, B, C -----
                   DO K=1,3
                   DO I=1,3
                   DO L=1,3
-                     CS(I,K,LABX,KABX)=CS(I,K,LABX,KABX)
+!                     CS(I,K,LABX,KABX)=CS(I,K,LABX,KABX)
+        CSUMA(I,K,LABX,MDX,KABX,NDX)=CSUMA(I,K,LABX,MDX,KABX,NDX)
      &                      +CFA(LAX,KAX,I,L)
      &                      *0.25D0*(CFB(LBX,KBX,L,K,MB1,NB1)
      &                              +CFB(LBX,KBX,L,K,MB1,NB2)
      &                              +CFB(LBX,KBX,L,K,MB2,NB1)
      &                              +CFB(LBX,KBX,L,K,MB2,NB2))
-                     CSH(I,K,LABX,KABX)=CSH(I,K,LABX,KABX)
+!                     CSH(I,K,LABX,KABX)=CSH(I,K,LABX,KABX)
+        CSUMAH(I,K,LABX,MDX,KABX,NDX)=CSUMAH(I,K,LABX,MDX,KABX,NDX)
      &                      +CFHA(LAX,KAX,I,L)
      &                      *0.25D0*(CFHB(LBX,KBX,L,K,MB1,NB1)
      &                              +CFHB(LBX,KBX,L,K,MB1,NB2)
@@ -573,12 +602,14 @@ C     ----- Fourier decompose A, B, C -----
                      KBXK=KBX
                      DO K=1,3
                      DO L=1,3
-                     CPF(L,K,LBXK,KBXK)=CPF(L,K,LBXK,KBXK)
+!                     CPF(L,K,LBXK,KBXK)=CPF(L,K,LBXK,KBXK)
+      CSUMPF(L,K,LBXK,MDX,KBXK,NDX)=CSUMPF(L,K,LBXK,MDX,KBXK,NDX)
      &                       +0.25D0*(CFB(LBX,KBX,L,K,MB1,NB1)
      &                               +CFB(LBX,KBX,L,K,MB1,NB2)
      &                               +CFB(LBX,KBX,L,K,MB2,NB1)
      &                               +CFB(LBX,KBX,L,K,MB2,NB2))
-                     CPHF(L,K,LBXK,KBXK)=CPHF(L,K,LBXK,KBXK)
+!                     CPHF(L,K,LBXK,KBXK)=CPHF(L,K,LBXK,KBXK)
+      CSUMPHF(L,K,LBXK,MDX,KBXK,NDX)=CSUMPHF(L,K,LBXK,MDX,KBXK,NDX)
      &                       +0.25D0*(CFHB(LBX,KBX,L,K,MB1,NB1)
      &                               +CFHB(LBX,KBX,L,K,MB1,NB2)
      &                               +CFHB(LBX,KBX,L,K,MB2,NB1)
@@ -588,15 +619,16 @@ C     ----- Fourier decompose A, B, C -----
                ENDDO
          ENDDO
 
-            DO J=1,3
-            DO I=1,3
-            CSUMA(I,J,1:MDMF,MDX,1:NDMF,NDX)=CS(I,J,1:MDMF,1:NDMF)
-            CSUMAH(I,J,1:MDMF,MDX,1:NDMF,NDX)=CSH(I,J,1:MDMF,1:NDMF)
-            CSUMPF(I,J,1:MDMF,MDX,1:NDMF,NDX)=CPF(I,J,1:MDMF,1:NDMF)
-            CSUMPHF(I,J,1:MDMF,MDX,1:NDMF,NDX)=CPHF(I,J,1:MDMF,1:NDMF)
-            ENDDO
-            ENDDO
+!            DO J=1,3
+!            DO I=1,3
+!            CSUMA(I,J,1:MDMF,MDX,1:NDMF,NDX)=CS(I,J,1:MDMF,1:NDMF)
+!            CSUMAH(I,J,1:MDMF,MDX,1:NDMF,NDX)=CSH(I,J,1:MDMF,1:NDMF)
+!            CSUMPF(I,J,1:MDMF,MDX,1:NDMF,NDX)=CPF(I,J,1:MDMF,1:NDMF)
+!            CSUMPHF(I,J,1:MDMF,MDX,1:NDMF,NDX)=CPHF(I,J,1:MDMF,1:NDMF)
+!            ENDDO
+!            ENDDO
       ENDDO
+!$OMP END PARALLEL DO
       ENDDO
 
 
@@ -618,6 +650,7 @@ C     ----- Fourier decompose A, B, C -----
       ENDDO
       ENDDO
       ENDDO
+
       DO ND=NDMIN,NDMAX
          NDX=ND-NDMIN+1
       DO KD=KDMIN_F,KDMAX_F

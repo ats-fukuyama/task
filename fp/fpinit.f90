@@ -41,7 +41,7 @@
 !     RMIN  : minimum radius for NRMAX<>1 (r/a)
 !     RMIN  : maximum radius for NRMAX<>1 (r/a)
 
-      R1    = 0.1D0*RR
+      R1    = 0.3D0
       DELR1 = 0.1D0
       RMIN  = 0.05D0
       RMAX  = 0.3D0

@@ -7,7 +7,8 @@ include ../make.header
 FFLAGS = -g $(OFLAGS)
 #FFLAGS = $(DFLAGS)
 
-MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD)
+MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD) -I../eq/$(MOD) \
+	    -I../plx/$(MOD)
 EQLIBS=../eq/eqlib.a
 PLLIBS=../../bpsd/bpsdlib.a ../plx/pllib.a 
 
@@ -19,8 +20,7 @@ SRC90=trinit.f90 trparm.f90 trprep.f90  \
       trrslt.f90 trpnb.f90 trprf.f90 trpnf.f90 trpel.f90 trpsc.f90 trmdlt.f90 \
       trgout.f90 trgrar.f90 trgrat.f90 trgrap.f90 trgrae.f90 \
       trgrad.f90 trgram.f90 trgsub.f90 trfout.f90 \
-      trunit.f90 trloop.f90 trmenu.f90 \
-
+      trunit.f90 trloop.f90 trmenu.f90
 
 SRCITG= glf/callglf2d.f \
         itg/ifspppl_model.f itg/weiland.f
@@ -36,7 +36,8 @@ SRCNC=trncls.f nclass/nclass_mod.f nclass/rarray_sum.f \
 INCNC=trncls.inc nclass/pamx_mi.inc nclass/pamx_ms.inc nclass/pamx_mz.inc
 INCGLF=trglf.inc glf/glf.m
 SRCCYT=cytran/cytran_mod.f90 cytran/tr_cytran_mod.f90
-SRCMMM=mmm95/stripx.f mmm95/tomsqz.f mmm95/weiland14.f mmm95/mmm95.f
+SRCMMM95=mmm95/stripx.f mmm95/tomsqz.f mmm95/weiland14.f mmm95/mmm95.f
+SRCMMM7=libmmm7_1/w20mod.f90 libmmm7_1/modmmm7_1.f90
 SRCMBGB=mbgb/mixed_Bohm_gyro_Bohm.f
 
 OBJM= $(SRC90M:.f90=.o)
@@ -45,7 +46,7 @@ OBJE=$(SRCE:.f=.o)
 OBJL=$(SRCL:.f=.o)
 OBJNC=$(SRCNC:.f=.o)
 OBJCYT=$(SRCCYT:.f90=.o)
-OBJMMM=$(SRCMMM:.f=.o)
+OBJMMM=$(SRCMMM95:.f=.o) $(SRCMMM7:.f90=.o)
 OBJMBGB=$(SRCMBGB:.f=.o)
 OBJTR=$(OBJM) $(OBJE) $(OBJL) $(OBJNC) $(OBJCYT) $(OBJMMM) $(OBJMBGB) $(OBJS)
 OBJ2D=$(SRC2D:.f90=.o)
@@ -98,7 +99,7 @@ check : $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRCE) $(SRCL) $(SRC2D) $(SRCNC) $(FCKPIPE) | less
 
 clean : 
-	-rm -f ./#* ./*~ *.o nclass/*.o itg/*.o glf/*.o cytran/*.o mmm95/*.o mbgb/*.o a.out core *.a *.mod $(MOD)/*.mod
+	-rm -f ./#* ./*~ *.o nclass/*.o itg/*.o glf/*.o cytran/*.o mmm95/*.o libmmm7_1/*.o mbgb/*.o a.out core *.a *.mod $(MOD)/*.mod
 
 veryclean : clean
 	-rm -f tr2 tr3
@@ -107,25 +108,6 @@ distclean: clean
 	cd ../plx && make clean
 	cd ../eq && make clean
 	cd ../lib && make clean
-
-new :
-	-mkdir ../trnew
-	cp Makefile ../trnew
-	-cp -f HISTORY ../trnew
-	cp *.f ../trnew
-	cp *.inc ../trnew
-	-mkdir ../trnew/itg
-	-cp -f itg/*.f ../trnew/itg
-	-mkdir ../trnew/glf
-	-cp -f glf/*.f ../trnew/glf
-	-cp -f glf/*.m ../trnew/glf
-	-cp -f glf/*.F ../trnew/glf
-	-cp -f glf/*.h ../trnew/glf
-	-mkdir ../trnew/nclass
-	-cp -f nclass/*.f ../trnew/nclass
-	-cp -f nclass/*.inc ../trnew/nclass
-	-mkdir ../trnew/doc
-	-cp -f doc/* ../trnew/doc
 
 trmain.o : trmain.f90 trcomm.f90  
 trmenu.o : trmenu.f90 trcomm.f90 trcom1.f90 trunit.f90
@@ -190,4 +172,6 @@ mmm95/stripx.o: mmm95/stripx.f
 mmm95/tomsqz.o: mmm95/tomsqz.f
 mmm95/weiland14.: mmm95/weiland14.f
 mmm95/mmm95.o: mmm95/mmm95.f
+libmmm7_1/w20mod.o: libmmm7_1/w20mod.f90
+libmmm7_1/modmmm7_1.o: libmmm7_1/modmmm7_1.f90 libmmm7_1/w20mod.f90
 mbgb/mixed_Bohm_gyro_Bohm.o: mbgb/mixed_Bohm_gyro_Bohm.f

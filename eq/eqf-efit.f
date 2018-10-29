@@ -3,6 +3,7 @@ C     ***** READ EQDSK FORMAT FILE *****
 C
       SUBROUTINE EQDSKR(IERR)
 C
+      USE libfio
       INCLUDE '../eq/eqcomc.inc'
 C
       character case(6)*10

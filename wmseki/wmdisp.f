@@ -395,12 +395,14 @@ C            CTNSR(3,3,MD,ND,NTH,NHH)= CPARA
 C
             CTNSR(1,1,MD,ND,NTH,NHH)
      &     =CTNSR(1,1,MD,ND,NTH,NHH) + CPERP + UXX2*CPERM
+!     &     =CTNSR(1,1,MD,ND,NTH,NHH) + CPERP + UYY2*CPERM
             CTNSR(1,2,MD,ND,NTH,NHH)
      &     =CTNSR(1,2,MD,ND,NTH,NHH) - CCROS
             CTNSR(2,1,MD,ND,NTH,NHH)
      &     =CTNSR(2,1,MD,ND,NTH,NHH) + CCROS
             CTNSR(2,2,MD,ND,NTH,NHH)
      &     =CTNSR(2,2,MD,ND,NTH,NHH) + CPERP + UYY2*CPERM
+!     &     =CTNSR(2,2,MD,ND,NTH,NHH) + CPERP + UXX2*CPERM
             CTNSR(3,3,MD,ND,NTH,NHH)
      &     =CTNSR(3,3,MD,ND,NTH,NHH) + CPARA
 C
@@ -481,6 +483,7 @@ C         ENDIF
 C
 !!!!!!!! seki
          BTH=ABS(BSUPTH*RA*RHON)
+!         BTH=ABS(BSUPTH*RA)
          WTPR=RTPR(NS)*1.D3*AEE/(AMP*PA(NS))
          RKPR_EFF=SQRT(CW*BTH/SQRT(8.D0*WTPR)/RR/BABS)
          IF (RKPR_EFF < 1d-5)then
@@ -520,9 +523,24 @@ C
                ENDDO
                RNPP2=((DTT-RNPR**2)**2-DTX**2)/(DTT-RNPR**2)
                RKPP2=RNPP2*WW*WW/(VC*VC)
-               RKX2=     MM*MM*RG22(NTH,NHH,NR)*XRHO(NR)**2
-     &             +2.D0*MM*NN*RG23(NTH,NHH,NR)*XRHO(NR)
-     &             +     NN*NN*RG33(NTH,NHH,NR)
+C               RKX2=     MM*MM*RG22(NTH,NHH,NR)*XRHO(NR)**2
+C     &             +2.D0*MM*NN*RG23(NTH,NHH,NR)*XRHO(NR)
+C     &             +     NN*NN*RG33(NTH,NHH,NR)
+              IF (NR .eq. 1)then
+                 RKX2= MM*MM/(RG22(NTH,NHH,2)*XRHO(2)**2)
+     &             +     NN*NN/(RG33(NTH,NHH,NR))
+!                 IF (ABS(RG23(NTH,NHH,2)) .gt. 1d-15)THEN
+!                    RKX2= RKX2
+!     &                  +2.D0*MM*NN/(RG23(NTH,NHH,2)*XRHO(2))
+!                 ENDIF
+               ELSE
+                 RKX2= MM*MM/(RG22(NTH,NHH,NR)*XRHO(NR)**2)
+     &             +     NN*NN/(RG33(NTH,NHH,NR))
+!                 IF (ABS(RG23(NTH,NHH,NR)) .gt. 1d-15)THEN
+!                    RKX2= RKX2
+!     &                  +2.D0*MM*NN/(RG23(NTH,NHH,NR)*XRHO(NR))
+!                 ENDIF
+               ENDIF
                IF(RKPP2.GT.0.D0) THEN
                   RKPP=SQRT(RKPP2)
                   RKT2=RKX2-RKPR**2
@@ -536,7 +554,8 @@ C
                      RKT2=0.D0
                      RKR2=RKPP2
                   ENDIF
-                  UXX2= RKX2/RKPP2
+!                  UXX2= RKX2/RKPP2
+                  UXX2= RKT2/RKPP2
                   UYY2= RKR2/RKPP2
                ELSE
 !                  print *,"seki",RKPP2
@@ -571,12 +590,12 @@ C
 
             CALL DPCALC_2(CW,CKPR,CKPP,RHON,BABS,BTH
      &                     ,NS,CDTNS)
-!            print *,"1"
-!            print *,CDTNS
-!            print *,"2"
-!            print *, UXX2,UYY2
-!            print *,"3"
-!            print *,CTNSR(:,:,MD,ND,NTH,NHH)
+C            print *,"1"
+C            print *,CDTNS
+C            print *,"2"
+C            print *, UXX2,UYY2
+C            print *,"3"
+C            print *,CKPR,CKPP
 
 C
 C      IF(NR.EQ.1.AND.
@@ -600,12 +619,14 @@ C
 C
             CTNSR(1,1,MD,ND,NTH,NHH)
      &     =CTNSR(1,1,MD,ND,NTH,NHH) + CDTNS(1,1) + UXX2*CPERM
+!     &     =CTNSR(1,1,MD,ND,NTH,NHH) + CDTNS(1,1) + UYY2*CPERM
             CTNSR(1,2,MD,ND,NTH,NHH)
      &     =CTNSR(1,2,MD,ND,NTH,NHH) + CDTNS(1,2)
             CTNSR(2,1,MD,ND,NTH,NHH)
      &     =CTNSR(2,1,MD,ND,NTH,NHH) + CDTNS(2,1)
             CTNSR(2,2,MD,ND,NTH,NHH)
      &     =CTNSR(2,2,MD,ND,NTH,NHH) + CDTNS(1,1) + UYY2*CPERM
+!     &     =CTNSR(2,2,MD,ND,NTH,NHH) + CDTNS(1,1) + UXX2*CPERM
             CTNSR(3,3,MD,ND,NTH,NHH)
      &     =CTNSR(3,3,MD,ND,NTH,NHH) + CDTNS(3,3)
 
@@ -721,6 +742,14 @@ C
 !      IF (MDSIZX_TMP==1)MDSIZX_TMP=0
 !!!!!!!! seki
       DO NHH=1,NHHMAX_IPS_F
+!$OMP PARALLEL DO DEFAULT(shared)
+!$OMP+private(BABS,BSUPTH,BSUPPH)
+!$OMP+private(BTH,WTPR,RKPR_EFF,RKTH,RKPH,RKPR)
+!$OMP+private(RNPR,NSS,AM,AE,WP,WC,DTT,DTX)
+!$OMP+private(RNPP2,RKPP2,RKX2,CDTNS)
+!$OMP+private(RKT2,RKR2,UXX2,UYY2)
+!$OMP+private(CKPR,CKPP,CPERM)
+!$OMP+private(MM,NN)
       DO NTH=1,NTHMAX_IPS_F
 !!!!!!!! seki
 C         CALL WMCMAG_F(NR,NTH,NHH,BABS,BSUPTH,BSUPPH)
@@ -730,13 +759,16 @@ C            WRITE(6,'(A,1P3E12.4)') 'BABS:',BABS,BSUPTH,BSUPPH
 C         ENDIF
 C
 !!!!!!!! seki
-         BTH=ABS(BSUPTH*RA)
+!         BTH=ABS(BSUPTH*RA)
+         BTH=ABS(BSUPTH*RA*RHON)
          WTPR=RTPR(NS)*1.D3*AEE/(AMP*PA(NS))
          RKPR_EFF=SQRT(CW*BTH/SQRT(8.D0*WTPR)/RR/BABS)
          IF (RKPR_EFF < 1d-5)then
-           print *,RKPR_EFF,BTH,WKPT
            RKPR_EFF=1.D-5
-           STOP
+           if (NR .NE. 1)then 
+             print *,RKPR_EFF,BTH,WKPT
+             STOP
+           ENDIF
          endif
 C         DO ND=-NDSIZX_TMP,NDSIZX_TMP
 !!!!!!!! seki
@@ -770,26 +802,46 @@ C
                ENDDO
                RNPP2=((DTT-RNPR**2)**2-DTX**2)/(DTT-RNPR**2)
                RKPP2=RNPP2*WW*WW/(VC*VC)
-               RKX2=     MM*MM*RG22_IPS(NTH,NHH,NR)*XRHO(NR)**2
-     &             +2.D0*MM*NN*RG23_IPS(NTH,NHH,NR)*XRHO(NR)
-     &             +     NN*NN*RG33_IPS(NTH,NHH,NR)
+C               RKX2=     MM*MM*RG22_IPS(NTH,NHH,NR)*XRHO(NR)**2
+C     &             +2.D0*MM*NN*RG23_IPS(NTH,NHH,NR)*XRHO(NR)
+C     &             +     NN*NN*RG33_IPS(NTH,NHH,NR)
+              IF (NR .eq. 1)then
+!                 RKX2= MM*MM/(RG22_IPS(NTH,NHH,2)*XRHO(2)**2)
+!     &             +     NN*NN/(RG33_IPS(NTH,NHH,NR))
+!                 IF (ABS(RG23_IPS(NTH,NHH,2)) .gt. 1d-15)THEN
+!                    RKX2= RKX2
+!     &                  +2.D0*MM*NN/(RG23_IPS(NTH,NHH,2)*XRHO(2))
+!                 ENDIF
+                 RKX2=  NN*NN/(RG33_IPS(NTH,NHH,NR))
+               ELSE
+                 RKX2= MM*MM/(RG22_IPS(NTH,NHH,NR)*XRHO(NR)**2)
+     &             +     NN*NN/(RG33_IPS(NTH,NHH,NR))
+!                 IF (ABS(RG23_IPS(NTH,NHH,NR)) .gt. 1d-15)THEN
+!                    RKX2= RKX2
+!     &                  +2.D0*MM*NN/(RG23_IPS(NTH,NHH,NR)*XRHO(NR))
+!                 ENDIF
+               ENDIF
+
                IF(RKPP2.GT.0.D0) THEN
                   RKPP=SQRT(RKPP2)
                   RKT2=RKX2-RKPR**2
+!                  print *,RKX2,RKPR**2,RKT2
                   IF(RKT2.GT.0.D0) THEN
                      IF(RKT2.LE.RKPP2) THEN
                         RKR2=RKPP2-RKT2
                      ELSE
                         RKR2=0.D0
+!                        RKT2=RKPP2
                      ENDIF
                   ELSE
                      RKT2=0.D0
                      RKR2=RKPP2
                   ENDIF
-                  UXX2= RKX2/RKPP2
+!                  UXX2= RKX2/RKPP2
+                  UXX2= RKT2/RKPP2
                   UYY2= RKR2/RKPP2
                ELSE
-!                  print *,"seki",RKPP2
+!                  print *,"seki2",RKPP2
 !                  RKPP2=0.D0
                   RKPP=0.D0
                   RKT2=0.D0
@@ -829,12 +881,12 @@ C
 !            print *,CW,CKPR,CKPP,RHON,BABS,BSUPTH*RA,NS
             CALL DPCALC_2(CW,CKPR,CKPP,RHON,BABS,BTH
      &                     ,NS,CDTNS)
-!            print *,"1"
-!            print *,CDTNS
-!            print *,"2"
-!            print *, UXX2,UYY2
-!            print *,"3"
-!            print *,CTNSR(:,:,MD,ND,NTH,NHH)
+C            print *,"1"
+C            print *,CDTNS
+C            print *,"2"
+C            print *, UXX2,UYY2
+C            print *,"3"
+C            print *,CKPR,CKPP
 
 C
 C      IF(NR.EQ.1.AND.
@@ -857,13 +909,15 @@ C
             CPERM=CDTNS(2,2)-CDTNS(1,1)
 C
             CTNSR_1(1,1,NTH,NHH)
-     &     =CTNSR_1(1,1,NTH,NHH) + CDTNS(1,1) + UXX2*CPERM
+     &     =CTNSR_1(1,1,NTH,NHH) + CDTNS(1,1)  + UXX2*CPERM
+!     &     =CTNSR_1(1,1,NTH,NHH) + CDTNS(1,1)  + UYY2*CPERM
             CTNSR_1(1,2,NTH,NHH)
      &     =CTNSR_1(1,2,NTH,NHH) + CDTNS(1,2)
             CTNSR_1(2,1,NTH,NHH)
      &     =CTNSR_1(2,1,NTH,NHH) + CDTNS(2,1)
             CTNSR_1(2,2,NTH,NHH)
-     &     =CTNSR_1(2,2,NTH,NHH) + CDTNS(1,1) + UYY2*CPERM
+     &     =CTNSR_1(2,2,NTH,NHH) + CDTNS(1,1)  + UYY2*CPERM
+!     &     =CTNSR_1(2,2,NTH,NHH) + CDTNS(1,1)  + UXX2*CPERM
             CTNSR_1(3,3,NTH,NHH)
      &     =CTNSR_1(3,3,NTH,NHH) + CDTNS(3,3)
 
@@ -918,6 +972,7 @@ C         ENDDO
 !           WRITE(113,"(i4,1x,(e15.6,1x))")
 !          endif
       ENDDO
+!$OMP END PARALLEL DO
       ENDDO
 !!         if (ns == 3 .and. nr==20)then
 !         if (ns == 3 )then
