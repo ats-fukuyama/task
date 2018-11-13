@@ -1,5 +1,5 @@
 ### $Id$ ###
-include ../make.header
+include ../../make.header
 
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
@@ -7,7 +7,7 @@ include ../make.header
 FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
-MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD)
+MODINCLUDE=-I $(MOD) -I../../../bpsd/$(MOD) -I../../lib/$(MOD)
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -20,20 +20,20 @@ SRCSFREE = wimcomm.f90 wiminit.f90 wimparm.f90 wimexec.f90 wimgout.f90 \
 
 OBJS = $(SRCSFREE:.f90=.o) 
 
-LIBS = wimlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a
+LIBS = wimlib.a ../../lib/tasklib.a ../../../bpsd/bpsdlib.a
 
 all : wim
 
-../lib/tasklib.a:
-	(cd ../lib; make tasklib.a)
-../../bpsd/bpsdlib.a:
-	(cd ../../bpsd; make bpsdlib.a)
+../../lib/tasklib.a:
+	(cd ../../lib; make tasklib.a)
+../../../bpsd/bpsdlib.a:
+	(cd ../../../bpsd; make bpsdlib.a)
 wimlib.a: $(OBJS)
 	$(LD) $(LDFLAGS) wimlib.a $(OBJS)
 
 libs:
-	(cd ../lib; make tasklib.a)
-	(cd ../../bpsd; make bpsdlib.a)
+	(cd ../../lib; make tasklib.a)
+	(cd ../../../bpsd; make bpsdlib.a)
 
 wim : $(LIBS) wimmain.o
 	$(FCFIXED) wimmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) \

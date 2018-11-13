@@ -30,7 +30,7 @@ CONTAINS
     PAKT(NZ,1) =  PAKT(NZ0,1)
     PAKT(NZ,2) =  PAKT(NZ0,2)
     PAKT(NZ,3) =  PAKT(NZ0,3)
-    PANTK(NZ)  =  PANTK(NZ0)
+    CPANTK(NZ) =  CPANTK(NZ0)
     DO NS = 1, NSMAX
        PAK(NZ,NS) =  PAK(NZ0,NS)
     END DO
