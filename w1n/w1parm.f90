@@ -169,9 +169,9 @@ CONTAINS
                  'MDLWG ',MDLWG ,'MDLWGS',MDLWGS
     RETURN
 
-601 FORMAT(' ',A6,'=',1PE11.3:2X,A6,'=',1PE11.3: &
+601 FORMAT(    A6,'=',1PE11.3:2X,A6,'=',1PE11.3: &
             2X,A6,'=',1PE11.3:2X,A6,'=',1PE11.3)
-602 FORMAT(' ',A6,'=',I7,4X  :2X,A6,'=',I7,4X  : &
+602 FORMAT(    A6,'=',I7,4X  :2X,A6,'=',I7,4X  : &
             2X,A6,'=',I7,4X  :2X,A6,'=',I7)
   END SUBROUTINE w1_view
 

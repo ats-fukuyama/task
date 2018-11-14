@@ -176,8 +176,6 @@ CONTAINS
   616 FORMAT('## INTEGRO-DIFF EQ. : ', &
                  'NLWMAX NCLMAX NCMAX   NDMAX   XDMAX'/ &
              22X,5I8,1P1D12.4)
-  630 FORMAT(1H / &
-            1H ,'** RF = ',1PD12.4,' (MHZ) , RKZ = ',1PD12.4, &
-                ' (/M) **')
+  630 FORMAT(/' (/M) **')
   END SUBROUTINE w1_exec
 END MODULE w1exec

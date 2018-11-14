@@ -6,10 +6,9 @@ CONTAINS
 
   SUBROUTINE wim_menu
 
-    USE wimcomm,ONLY: ikind,rkind,wim_allocate,wim_deallocate, &
-         nzmax,nwmax,modelp
+    USE wimcomm,ONLY: ikind,rkind,wim_allocate,wim_deallocate,nzmax
     USE wimparm,ONLY: wim_parm,wim_view
-    USE wimexec,ONLY: wim_exec,subfw
+    USE wimexec,ONLY: wim_exec
     USE wimgout,ONLY: wim_gout
 
     IMPLICIT NONE
@@ -18,11 +17,10 @@ CONTAINS
     CHARACTER(LEN=80) :: line
     INTEGER(ikind)    :: init=0
     INTEGER(ikind)    :: nzmax_save=0
-    INTEGER(ikind)    :: nwmax_save=0
 
 1   CONTINUE
     ierr=0
-    WRITE(6,'(A)') '## WIM MENU: P,V/PARM  R/RUN  G/GRAF  K/Kernel Q/QUIT'
+    WRITE(6,'(A)') '## WIM MENU: P,V/PARM  R/RUN  G/GRAF  Q/QUIT'
 
     CALL TASK_KLIN(line,kid,mode,wim_parm)
     IF(mode /= 1) GOTO 1
@@ -35,13 +33,9 @@ CONTAINS
     ELSEIF(kid.EQ.'V') THEN
        CALL wim_view
     ELSEIF(kid.EQ.'R') THEN
-       NWMAX_SAVE=NWMAX
-       IF(MODELP.EQ.0) NWMAX=1
        CALL wim_allocate
        nzmax_save=nzmax
        CALL wim_exec(ierr)
-       NWMAX=NWMAX_SAVE
-       NZMAX_SAVE=NZMAX
        INIT=1
     ELSEIF(kid.EQ.'G') THEN
        IF(INIT.EQ.0) THEN
@@ -49,9 +43,6 @@ CONTAINS
        ELSE
           CALL wim_gout
        END IF
-    ELSEIF(kid.EQ.'K') THEN
-       CALL wim_allocate
-       CALL SUBFW(1)
     ELSEIF(kid.EQ.'Q') THEN
        GOTO 9000
     ELSE
