@@ -7,6 +7,7 @@ C
       SUBROUTINE WRSAVE
 C
       USE plcomm
+      USE libfio
       INCLUDE 'wrcomm.inc'
 C
       NFL=21
@@ -66,6 +67,7 @@ C
       SUBROUTINE WRLOAD(NSTAT)
 C
       USE plcomm
+      USE libfio
       INCLUDE 'wrcomm.inc'
 C
       NSTAT=0

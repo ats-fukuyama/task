@@ -632,6 +632,7 @@ CONTAINS
                          CABSL=CABSL &
                          -0.5D0*CONJG(CA(NN+IA))*CL(IA,IB,IL,NCL)*CA(MM+IB) &
                          -0.5D0*CA(NN+IA)*CONJG(CL(IB,IA,IL,NCL)*CA(MM+IB))
+!                         -CONJG(CA(NN+IA))*CL(IA,IB,IL,NCL)*CA(MM+IB)
                       END DO
                    END DO
                    PABSL=-CI*RCE*CABSL*RKV

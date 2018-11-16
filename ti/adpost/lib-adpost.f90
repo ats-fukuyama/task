@@ -7,6 +7,7 @@
 MODULE ADPOST
 
   USE bpsd
+  USE libfio
 
   INTEGER,PARAMETER:: IZDIMD = 140   ! maximum number of IZ0s
 
