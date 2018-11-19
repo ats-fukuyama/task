@@ -1051,7 +1051,7 @@ CONTAINS
                +RZ*      FACT *DCONJG(CE2DA(NZ,NXANT1+1,3))*CFJZ1
     END IF
 
-!   antenna power in LFA
+!   antenna power in LFS
 
     IF(NXANT1.GE.2) THEN
        CFJX2=CI*RKZA*CFJZ2
