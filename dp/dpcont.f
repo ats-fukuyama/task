@@ -170,7 +170,7 @@ C *** remove sign change due to cyclotron resonance ***
             CW=2.D0*PI*1.D6*CRF
             DO NS=1,NSMAX
                CWC=BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
-               CD=CD*(1.D0-CWC)
+C               CD=CD*(1.D0-CWC)
             ENDDO
 C
             GX(NX)=GUCLIP(X)
