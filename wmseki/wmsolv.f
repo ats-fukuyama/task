@@ -82,16 +82,15 @@ C
       INTEGER:: itype,its
       REAL(8):: tolerance
 
-      WRITE(6,*) MLEN,istart,iend,MBND
-      write(6,*) '*** point 1'
       CALL mtxc_setup(MLEN,istart,iend,jwidth=MBND)
+      WRITE(6,'(A,4I10)') 'MLEN,istart,iend,jwidth=',
+     &                     MLEN,istart,iend,MBND
 
 C   ***** CALCULATE MATRIX COEFFICIENTS *****
 
       NRP=0
       NBMODE=0
 
-      write(6,*) '*** point 2'
       DO i=istart,iend
          X=(0.D0,0.D0)
          A(1:MBND)=(0.D0,0.D0)
@@ -103,7 +102,6 @@ C   ***** CALCULATE MATRIX COEFFICIENTS *****
          END DO
          CALL mtxc_set_source(i,X)
       END DO
-      write(6,*) '*** point 3'
 
       itype=0
       tolerance=1.D-12

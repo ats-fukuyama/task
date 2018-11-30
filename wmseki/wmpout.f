@@ -6,27 +6,21 @@ C
 C
       INCLUDE 'wmcomm.inc'
       DIMENSION CEF1(MDM,NDM),CEF2(MDM,NDM),RMA(3,3)
-      DIMENSION CEFM1(MDM,NPHM),CEFM2(MDM,NPHM)
+      DIMENSION CEFM1(MDM,NDM),CEFM2(MDM,NDM)
       DIMENSION CEFLDR(MDM,NDM), CRMARHF(MDM,NDM)
-      DIMENSION CEFLDM(3,MDM,NPHM,NRM)
-C
-C   --- wave electric field F (NR=1..NR_S: local, NR_S..NRMAX+1: upper)
+      DIMENSION CEFLDM(3,MDM,NDM,NRM)
 C
       DRHO1=(XRHO(2)-XRHO(1))**2
       DRHO2=(XRHO(3)-XRHO(1))**2
       A1= DRHO2/(DRHO2-DRHO1)
       A2=-DRHO1/(DRHO2-DRHO1)
 C
-      DO NR=NRST,NRED
+      DO NR=1,NRMAX
       DO ND=NDMIN,NDMAX
          NDX=ND-NDMIN+1
       DO MD=MDMIN,MDMAX
          MDX=MD-MDMIN+1
-         IF(NR.LT.NR_S) THEN
-            IG=3*MDSIZ*NDSIZ*(NR-1)+3*MDSIZ*(NDX-1)+3*(MDX-1)
-         ELSE
-            IG=3*MDSIZ*NDSIZ*(NR+1)+3*MDSIZ*(NDX-1)+3*(MDX-1)
-         END IF
+         IG=3*MDSIZ*NDSIZ*(NR-1)+3*MDSIZ*(NDX-1)+3*(MDX-1)
          CEFLDK(1,MDX,NDX,NR+1)=CFVG(IG+1)
          CEFLDK(2,MDX,NDX,NR+1)=CFVG(IG+2)
          CEFLDK(3,MDX,NDX,NR+1)=CFVG(IG+3)
@@ -57,21 +51,32 @@ C
       ENDDO
       ENDDO
 C
-C   --- wave electric field R (NR=1..NR_S: local, NR_S..NRMAX+1: upper)
-C
       CEFLDR=0d0
-      DO NR=1,NRMAX+1
-         NRP=MIN(NR+1,NRMAX+1)
-         DO ND=NDMIN,NDMAX
-            NDX=ND-NDMIN+1
-         DO MD=MDMIN,MDMAX
-            MDX=MD-MDMIN+1
-            CEFLD(1,MDX,NDX,NR)=0.5D0*(CEFLDK(1,MDX,NDX,NR )
-     &                                +CEFLDK(1,MDX,NDX,NRP))
-            CEFLD(2,MDX,NDX,NR)=CEFLDK(2,MDX,NDX,NR)
-            CEFLD(3,MDX,NDX,NR)=CEFLDK(3,MDX,NDX,NR)
-         ENDDO
-         ENDDO
+      DO NR=1,NRMAX+3
+         NRP=MIN(NR+1,NRMAX+3)
+         IF (NR < NR_S)THEN 
+            DO ND=NDMIN,NDMAX
+               NDX=ND-NDMIN+1
+            DO MD=MDMIN,MDMAX
+               MDX=MD-MDMIN+1
+               CEFLD(1,MDX,NDX,NR)=0.5D0*(CEFLDK(1,MDX,NDX,NR )
+     &                                   +CEFLDK(1,MDX,NDX,NRP))
+               CEFLD(2,MDX,NDX,NR)=CEFLDK(2,MDX,NDX,NR)
+               CEFLD(3,MDX,NDX,NR)=CEFLDK(3,MDX,NDX,NR)
+            ENDDO
+            ENDDO
+         ELSEIF (NR > NR_S + 1)THEN
+            DO ND=NDMIN,NDMAX
+               NDX=ND-NDMIN+1
+            DO MD=MDMIN,MDMAX
+               MDX=MD-MDMIN+1
+               CEFLD(1,MDX,NDX,NR-2)=0.5D0*(CEFLDK(1,MDX,NDX,NR )
+     &                                     +CEFLDK(1,MDX,NDX,NRP))
+               CEFLD(2,MDX,NDX,NR-2)=CEFLDK(2,MDX,NDX,NR)
+               CEFLD(3,MDX,NDX,NR-2)=CEFLDK(3,MDX,NDX,NR)
+            ENDDO
+            ENDDO
+         ENDIF
       ENDDO
 C
       NR=1
@@ -101,6 +106,7 @@ C
 C
 C     ----- Inverse Fourier transform ----
 C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       DO NR=1,NRMAX+1
       DO I=1,3
          CEFM1=0d0
@@ -108,7 +114,7 @@ C
          NDXM=NHC*(NDX-1)+1
          IF (NHC /= 1)THEN
              NPH  = NPH0 + NPHMAX/2 + 1 - NPH0_SV
-             NDXM = NDXM + NPH + (NHCM-NHC)*NDSIZ/2
+             NDXM = NDXM + NPH
          ENDIF
          DO MDX=1,MDMSIZ
             CEFM1(MDX,NDXM)=CEFLD(I,MDX,NDX,NR)
@@ -122,7 +128,7 @@ C
          ENDDO
       ENDDO
       ENDDO
-
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       DO NR=1,NRMAX+1
       DO I=1,3
          DO NDX=1,NDSIZ
@@ -171,7 +177,7 @@ C
       DO NTH=1,NTHMAX
          NHHF=(NHH-1)*NFACT +1
          NTHF=(NTH-1)*MFACT +1
-         NHHD=(NHH-1)*NHCM +1
+         NHHD=(NHH-1)*NHC +1
 C
 C        ----- Calculate rotation matrix mu=RMA -----
 C
@@ -341,7 +347,7 @@ C
       DO NTH=1,NTHMAX
          NHHF=(NHH-1)*NFACT +1
          NTHF=(NTH-1)*MFACT +1
-         NHHD=(NHH-1)*NHCM +1
+         NHHD=(NHH-1)*NHC +1
 C 
          RF11=(RG22(NTHF,NHHF,NR)*RG33(NTHF,NHHF,NR)
      &        -RG23(NTHF,NHHF,NR)**2)/RJ(NTHF,NHHF,NR)**2
@@ -456,8 +462,8 @@ C
 C
       INCLUDE 'wmcomm.inc'
       DIMENSION CBF1(MDM,NDM),CBF2(MDM,NDM)
-      DIMENSION CBFM1(MDM,NPHM),CBFM2(MDM,NPHM)
-      DIMENSION CBFLDM(3,MDM,NPHM,NRM)
+      DIMENSION CBFM1(MDM,NDM),CBFM2(MDM,NDM)
+      DIMENSION CBFLDM(3,MDM,NDM,NRM)
 C
       CW=2.D0*PI*CRF*1.D6
 C
@@ -535,7 +541,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
          NDXM=(NDX-1)*NHC + 1
          IF (NHC /= 1)THEN
              NPH  = NPH0 + NPHMAX/2 + 1 - NPH0_SV
-             NDXM = NDXM + NPH + (NHCM-NHC)*NDSIZ/2
+             NDXM = NDXM + NPH
          ENDIF
          DO MDX=1,MDMSIZ
             CBFM1(MDX,NDXM)=CBFLDK(I,MDX,NDX,NR)
@@ -567,7 +573,7 @@ C
       DO NTH=1,NTHMAX
          NHHF=(NHH-1)*NFACT +1
          NTHF=(NTH-1)*MFACT +1
-         NHHD=(NHH-1)*NHCM +1
+         NHHD=(NHH-1)*NHC +1
 C
          CBFLD(1,NTH,NHH,NR)=CBFLD(1,NTH,NHH,NR)/RJ(NTHF,NHHF,NR)
      &                      *SQRT(RG11(NTHF,NHHF,NR))
@@ -899,8 +905,8 @@ C
 C
       INCLUDE 'wmcomm.inc'
 C
-      DIMENSION CF1(MDM,NPHM),CF2(MDM,NPHM)
-      DIMENSION CFM(MDM),CFN(NPHM)
+      DIMENSION CF1(MDM,NDM),CF2(MDM,NDM)
+      DIMENSION CFM(MDM),CFN(NDM)
 C
       DO NDX=1,NDMSIZ
          DO MDX=1,MDMSIZ
@@ -966,7 +972,7 @@ C
       DIMENSION RNC(NSM),RTPRC(NSM),RTPPC(NSM),RUC(NSM)
       DIMENSION DS(NRM),DSS(NTHM,NHHM,NRM)
       DIMENSION CPF1(MDM,NDM),CPF2(MDM,NDM)
-      DIMENSION CPMF1(MDM,NPHM),CPMF2(MDM,NPHM)
+      DIMENSION CPMF1(MDM,NDM),CPMF2(MDM,NDM)
       DIMENSION CPF1_B(MDM,NDM)
       DIMENSION CDV(3,3,3),CDW(3,3,3)
       DIMENSION iposa(nsize),ilena(nsize)
@@ -1919,8 +1925,7 @@ C
             CBFLD3DK(2,MDX,NDXH,NR)=CBFLDK(2,MDX,NDX,NR)
             CBFLD3DK(3,MDX,NDXH,NR)=CBFLDK(3,MDX,NDX,NR)
             DO NS=1,NSMAX
-              CPABSKF(MDX,NDXH,NR,NS)=CPABSK(MDX,NDX,NR,NS)
-               PABSKF(MDX,NDXH,NR,NS)= PABSK(MDX,NDX,NR,NS)
+              CPABS3DK(MDX,NDXH,NR,NS)=CPABSK(MDX,NDX,NR,NS)
             ENDDO
          ENDDO
          ENDDO
