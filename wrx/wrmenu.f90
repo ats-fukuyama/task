@@ -57,7 +57,7 @@ CONTAINS
          CALL DP_ROOT
       ELSEIF(KID.EQ.'R') THEN
          CALL wr_allocate
-         CALL WR_CALC
+         CALL WR_CALC(IERR)
          NSTAT=1
       ELSEIF(KID.EQ.'B') THEN
          CALL wr_allocate

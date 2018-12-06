@@ -25,7 +25,7 @@ MODINCLUDE= -I./$(MOD) -I../plx/$(MOD) -I../dpx/$(MOD) -I../lib/$(MOD) \
             -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
 SRCS = wrcomm.f90 wrinit.f90 wrparm.f90 \
-       wrcalc.f90 wrbeam.f90 wrgout.f90 wrfile.f90 \
+       wrsub.f90 wrexecr.f90 wrcalc.f90 wrbeam.f90 wrgout.f90 wrfile.f90 \
        wrmenu.f90
 
 OBJS = $(SRCS:.f90=.o)
@@ -71,6 +71,8 @@ wrmenu.o: wrmenu.f90 $(WRCOMM)
 wrinit.o: wrinit.f90 $(WRCOMM)
 wrparm.o: wrparm.f90 $(WRCOMM)
 wrcalc.o: wrcalc.f90 $(WRCOMM) ../plx/plprof.f90
+wrexecr.o:wrexecr.f90 $(WRCOMM) ../plx/plprof.f90
 wrbeam.o: wrbeam.f90 $(WRCOMM) ../plx/plprof.f90
+wrsub.o:  wrsub.f90 $(WRCOMM)
 wrgout.o: wrgout.f90 $(WRCOMM)
 wrfile.o: wrfile.f90 $(WRCOMM)

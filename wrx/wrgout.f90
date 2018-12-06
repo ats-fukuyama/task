@@ -351,7 +351,7 @@ CONTAINS
 
     USE wrcomm
     USE plprof,ONLY: PL_MAG_OLD
-    USE wrcalc,ONLY: wrcalk
+    USE wrsub,ONLY: wrcalk
     IMPLICIT NONE
     INTEGER,PARAMETER:: NSRM=101
     REAL(4):: GX(NSTPMAX+1),GY(NSTPMAX+1)
@@ -1729,7 +1729,7 @@ CONTAINS
 
       USE wrcomm
       USE plprof,ONLY: PL_RZSU,PL_MAG_OLD
-      USE wrcalc,ONLY: wrcalk
+      USE wrsub,ONLY: wrcalk
       IMPLICIT NONE
       INTEGER,PARAMETER:: NSUM=501
       INTEGER,PARAMETER:: NGXL=101
@@ -1967,7 +1967,7 @@ CONTAINS
 
       USE wrcomm
       USE plprof,ONLY: PL_MAG_OLD
-      USE wrcalc,ONLY: wrcalk
+      USE wrsub,ONLY: wrcalk
       IMPLICIT NONE
       INTEGER,PARAMETER:: NSRM=101
       REAL(4):: GX(NSTPMAX+1),GY(NSTPMAX+1)

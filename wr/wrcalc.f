@@ -9,7 +9,6 @@ C
 C
       DIMENSION Y(NEQ)
       REAL*4 TIME1,TIME2
-      DATA MODEW/0/
 C 
       CALL GUTIME(TIME1)
 C
@@ -17,9 +16,9 @@ C      CALL DPCHEK(IERR)
 C      IF(IERR.NE.0) RETURN
 C
 C_IDEI_QUEST_MAR15
-      CALL RKR0_WO_RNZ(RKR0_1,RKR0_2)
+C      CALL RKR0_WO_RNZ(RKR0_1,RKR0_2)
 C
-      RKR0 = RKR0_2
+C      RKR0 = RKR0_2
 C_IDEI_QUEST_MAR15
 
       IF(MDLWRI.EQ.0) THEN
@@ -167,6 +166,7 @@ C
             ANGZ=ANGZIN(NRAY)
             ANGPH=ANGPHIN(NRAY)
             UUI=UUIN(NRAY)
+            MODEW=MODEWIN(NRAY)
             IF(MDLWRI.EQ.100)THEN
                WRITE(6,*) 
      &         '# initial values: RF,RP,ZP,PHI,RKR0,RNZ,RNPHI,UU'
@@ -209,7 +209,30 @@ C
          RAYIN(6,NRAY)=ANGZ
          RAYIN(7,NRAY)=ANGPH
          RAYIN(8,NRAY)=UUI
-C          
+
+         RKZI  =2.D6*PI*RF*RNZI  /VC
+         RKPHII=2.D6*PI*RF*RNPHII/VC
+         IF(MODEW.NE.0) THEN
+            CALL WR_COLD_RKR0(RKR0_1,RKR0_2)
+            RKR0=RKR0_1
+            CALL WRCALE_I(EPARA1,EPERP1)
+            RKR0=RKR0_2
+            CALL WRCALE_I(EPARA2,EPERP2)
+            WRITE(6,'(A,1P3E12.4)')
+     &           'RKR0_1,EPARA,EPWEP=',RKR0_1,EPARA1,EPERP1
+            WRITE(6,'(A,1P3E12.4)') 
+     &           'RKR0_2,EPARA,EPWEP=',RKR0_2,EPARA2,EPERP2
+            IF(MODEW.EQ.1) THEN
+               RKR0=-RKR0_1
+            ELSE IF(MODEW.EQ.2) THEN
+               RKR0=-RKR0_2
+            ELSE IF(MODEW.EQ.-1) THEN
+               RKR0= RKR0_1
+            ELSE IF(MODEW.EQ.-2) THEN
+               RKR0= RKR0_2
+            END IF
+         END IF
+
          RKRI  = RKR0
          RKZI  =2.D6*PI*RF*RNZI  /VC
          RKPHII=2.D6*PI*RF*RNPHII/VC
@@ -271,8 +294,8 @@ C
       EXTERNAL WRFDRV
       DIMENSION Y(NEQ),YM(NEQ),YN(0:NEQ,0:NITM),WORK(2,NEQ)
 CIDEI
-	  DIMENSION YK(3), F(NEQ)
-CIDEI	   
+      DIMENSION YK(3), F(NEQ)
+CIDEI  
       X0 = 0.D0
       XE = DELS
       INIT = 1
@@ -378,8 +401,8 @@ C
       EXTERNAL WRFDRV
       DIMENSION Y(NEQ),YM(NEQ),YN(0:NEQ,0:NITM),WORK(2,NEQ)
 CIDEI
-	  DIMENSION YK(3), F(NEQ)
-CIDEI	   
+      DIMENSION YK(3), F(NEQ)
+CIDEI  
       X0 = 0.D0
       XE = DELS
       INIT = 1
@@ -400,14 +423,14 @@ C         write(6,'(A,I5,1p2E12.4)')
 C     &        'WRRKFT_WITHD0: IT,Y,YM=',IT,Y(1),YM(1)
 
          delta=DISPXR(YM(1),YM(2),YM(3),YM(4),YM(5),YM(6),OMG)
-CBGNIDEI_WRMOD		 
+CBGNIDEI_WRMOD 
          IF (ABS(DELTA).GT.1.0D-6) THEN
             CALL WRMODNWTN(YM,YK)
             DO I=1,3
                YM(I+3) = YK(I)
             END DO
          END IF 
-CENDIDEI		 
+CENDIDEI
 
          YN(0,IT)=XE
          DO I=1,7
@@ -441,17 +464,17 @@ CENDIDEI
          RKPARA=YM(4)*BNX+YM(5)*BNY+YM(6)*BNZ
          RKPERP=SQRT((YM(4)*YM(4)+YM(5)*YM(5)+YM(6)*YM(6))-RKPARA**2)
 
-CIDEI	 WRITE(6,*) 'BX=',BNX*BABS,'BY=',BNY*BABS,'BZ=',BNZ*BABS
-C	 WRITE(6,6001) YN(0,IT),RL,ZL,PHIL,YN(1,IT),
+CIDEI    WRITE(6,*) 'BX=',BNX*BABS,'BY=',BNY*BABS,'BZ=',BNZ*BABS
+C         WRITE(6,6001) YN(0,IT),RL,ZL,PHIL,YN(1,IT),
 C     &                YN(2,IT),YN(3,IT),YN(6,IT)*VC/OMG,YN(7,IT),
-C     &	               DELTA,RKPARA*VC/OMG,RKPERP*VC/OMG,RKRL,
-C     &	               RNPHI_IDEI
+C     &                DELTA,RKPARA*VC/OMG,RKPERP*VC/OMG,RKRL,
+C     &                RNPHI_IDEI
 C 6001    FORMAT(1H ,1P14E13.5)
 
 CC QUEST 25Dec2017
 C         WRITE(6,6001) YN(0,IT),RL,ZL,PHIL,YN(1,IT),
 C     &                YN(2,IT),YN(3,IT),YN(6,IT)*VC/OMG,YN(7,IT),
-C     &	               YN(8,IT),DELTA,RKPARA*VC/OMG,RKPERP*VC/OMG,
+C     &                YN(8,IT),DELTA,RKPARA*VC/OMG,RKPERP*VC/OMG,
 C     &	               RKRL,RNPHI_IDEI
 C6001     FORMAT(1H,1P15E20.5)
 CC QUEST 25Dec2017
@@ -475,8 +498,8 @@ C
      &           WRITE(6,'(1P7E11.3)') XE,RL,PHIL,ZL,RKRL,YM(7),YN(8,IT)
 C         WRITE(6,6001) YN(0,IT),RL,ZL,PHIL,YN(1,IT),
 C     &                YN(2,IT),YN(3,IT),YN(6,IT)*VC/OMG,YN(7,IT),
-C     &	               YN(8,IT),DELTA,RKPARA*VC/OMG,RKPERP*VC/OMG,
-C     &	               RKRL,RNPHI_IDEI
+C     &                YN(8,IT),DELTA,RKPARA*VC/OMG,RKPERP*VC/OMG,
+C     &                RKRL,RNPHI_IDEI
          ENDIF
 
          DO I=1,7
@@ -615,8 +638,8 @@ C
       EXTERNAL WRFDRV
       DIMENSION Y(NEQ),YM(NEQ),YN(0:NEQ,0:NITM),WORK(2,NEQ)
 CIDEI
-	  DIMENSION YK(3), F(NEQ)
-CIDEI	   
+      DIMENSION YK(3), F(NEQ)
+CIDEI  
       X0 = 0.D0
       XE = DELS
       INIT = 1
@@ -634,14 +657,14 @@ C
          Y7=Y(7)
          CALL ODERK(7,WRFDRV,X0,XE,1,Y,YM,WORK)
          delta=DISPXR(YM(1),YM(2),YM(3),YM(4),YM(5),YM(6),OMG)
-CBGNIDEI_WRMOD		 
+CBGNIDEI_WRMOD
          IF (ABS(DELTA).GT.1.0D-6) THEN
             CALL WRMODNWTN(YM,YK)
             DO I=1,3
                YM(I+3) = YK(I)
             END DO
          END IF 
-CENDIDEI		 
+CENDIDEI 
 
 CBGNIDEI_MODCONV_OX
          RL  =SQRT(YM(1)**2+YM(2)**2)
@@ -702,11 +725,11 @@ C
      &           WRITE(6,'(1P7E11.3)') XE,RL,PHIL,ZL,RKRL,YM(7),YN(8,IT)
          ENDIF
 
-CIDEI	 WRITE(6,*) 'BX=',BNX*BABS,'BY=',BNY*BABS,'BZ=',BNZ*BABS
-C	 WRITE(6,6001) YN(0,IT),RL,ZL,PHIL,YN(1,IT),
+CIDEI    WRITE(6,*) 'BX=',BNX*BABS,'BY=',BNY*BABS,'BZ=',BNZ*BABS
+C        WRITE(6,6001) YN(0,IT),RL,ZL,PHIL,YN(1,IT),
 C     &                YN(2,IT),YN(3,IT),YN(6,IT)*VC/OMG,YN(7,IT),
-C     &	               DELTA,RKPARA*VC/OMG,RKPERP*VC/OMG,RKRL,
-C     &	               RNPHI_IDEI
+C     &                DELTA,RKPARA*VC/OMG,RKPERP*VC/OMG,RKRL,
+C     &                RNPHI_IDEI
 C 6001    FORMAT(1H ,1P14E13.5)
 
          DO I=1,7
@@ -740,7 +763,7 @@ C
 C************************************************************************
 C_IDEI_QUEST_MAR15
 C
-      SUBROUTINE RKR0_WO_RNZ(RKR0_1,RKR0_2)
+      SUBROUTINE WR_COLD_RKR0(RKR0_1,RKR0_2)
 C
       USE plcomm
       USE pllocal
@@ -750,6 +773,9 @@ C
          OMG=2.D6*PI*RF
          CALL PL_MAG_OLD(RPI*COS(PHII),RPI*SIN(PHII),ZPI,PSIN)
          CALL PL_PROF_OLD(PSIN)
+         BNPHI=-BNX*SIN(PHII)+BNY*COS(PHII)
+         RNPARA= RNPHII*BNPHI+RNZI*BNZ
+         RNPERP=-RNPHII*BNZ  +RNZI*BNPHI
          OMG_C = BABS*AEE/(AME)
          WP2=RN(1)*1.D20*AEE*AEE/(EPS0*AMP*PA(1))
 
@@ -769,23 +795,22 @@ C         W_C = SWNSNK3*((SWNSNK1 - RNPHII**2)**2 + SWNSNK2*SWNSNK2)
 
         W_A = STIX_S
         W_B = - STIX_S**2 + STIX_D**2 - STIX_S*STIX_P
-        W_B = W_B + (STIX_S + STIX_P)*RNPHII**2
-        W_C = STIX_P * ( (STIX_S - RNPHII**2)**2 - STIX_D**2 )
+        W_B = W_B + (STIX_S + STIX_P)*RNPARA**2
+        W_C = STIX_P * ( (STIX_S - RNPARA**2)**2 - STIX_D**2 )
 
 
-         RN_1 = (-W_B+SQRT(W_B**2-4.D0*W_A*W_C))/2.D0/W_A
-         RN_2 = (-W_B-SQRT(W_B**2-4.D0*W_A*W_C))/2.D0/W_A
+         RN_1 = (-W_B+SQRT(W_B**2-4.D0*W_A*W_C))/2.D0/W_A-RNPERP**2
+         RN_2 = (-W_B-SQRT(W_B**2-4.D0*W_A*W_C))/2.D0/W_A-RNPERP**2
 
 C         WRITE(6,'(1P4E11.3)') W_B, SQRT(W_B**2-4.D0*W_A*W_C),RN_1, RN_2
 
 C         STOP
 
-         RKR0_1 = - SQRT(RN_1)*OMG/VC
-         RKR0_2 = - SQRT(RN_2)*OMG/VC
+         RKR0_1 = SQRT(RN_1)*OMG/VC
+         RKR0_2 = SQRT(RN_2)*OMG/VC
 C
       RETURN
       END
-
 C************************************************************************
 C
       SUBROUTINE WRMODCONV_OX(IOX, Y, F, OXEFF)
@@ -804,7 +829,7 @@ C
       OX_K0 = OMG / VC
       WRITE(6,*)'N_OPT=',OX_NZOPT,'NZ=',OX_NZ,'NY=',OX_NY
       WRITE(6,*)'K0=',OX_K0,'N=', 
-     &               SQRT((Y(4)**2+Y(5)**2+Y(6)**2))*(VC/OMG)	
+     &               SQRT((Y(4)**2+Y(5)**2+Y(6)**2))*(VC/OMG)
 
       OXEFF = ( 2.0*(1.0+OX_Y)*((OX_NZ-OX_NZOPT)**2) 
      &                  + OX_NY**2 )
@@ -812,18 +837,18 @@ C
       WRITE(6,*) 'OXEFF=',OXEFF 
 
       CALL PL_MAG_OLD(Y(1),Y(2),Y(3),PSIN)
-      CALL PL_PROF_OLD(PSIN)	   
+      CALL PL_PROF_OLD(PSIN)  
       BNX0 = BNX
       BNY0 = BNY
       BNZ0 = BNZ
       RL0  =SQRT(Y(1)**2+Y(2)**2)
       Rr_IDEI = RL0-RR
       RKPARA0=Y(4)*BNX0+Y(5)*BNY0+Y(6)*BNZ0
-C		WRITE(6,*)'RKPARA0=',RKPARA0
+C        WRITE(6,*)'RKPARA0=',RKPARA0
       S_O_X = 5.0D-5
 
-CC		0.46, 1.0D-6 EFF=0.33
-CC		0.66 5.0D-5 EFF=0.52
+CC              0.46, 1.0D-6 EFF=0.33
+CC              0.66 5.0D-5 EFF=0.52
 
       DELTAB =1.0D0
       DO IOX=1,1000000
@@ -844,7 +869,7 @@ CCC   WRITE(6,*) Y(1),Y(2),Y(3)
             Y6_OX = Y(6) - OX_KC * Y30
 C     Y4_OX = RKPARA0 * BNX0
 C     Y5_OX = RKPARA0 * BNY0
-C     Y6_OX = RKPARA0 * BNZ0					
+C     Y6_OX = RKPARA0 * BNZ0
          END IF
          Y1_OX = Y(1) - IOX * S_O_X * Y10*Y(1)
          Y2_OX = Y(2) - IOX * S_O_X * Y20*Y(2)
@@ -888,32 +913,32 @@ C
       USE plprof,ONLY: PL_MAG_OLD
       INCLUDE 'wrcomm.inc'
 
-	  DIMENSION Y(NEQ)
+      DIMENSION Y(NEQ)
 
-		OMG=2.D6*PI*RF 
-		
-		CALL PL_MAG_OLD(Y(1), Y(2), Y(3), PSIN)
-		OMG_C_OX = BABS*AEE/(AME)
-		OX_Y = OMG_C_OX / OMG
-		OX_NZOPT = SQRT(OX_Y/(1.D0+OX_Y))
-		OX_NZ = (Y(4)*BNX + Y(5)*BNY + Y(6)*BNZ)*VC/OMG
-C		WRITE(6,*)'OX_NZOPT =',OX_NZOPT,'OX_NZ=',OX_NZ
-	
-		RL  =SQRT(Y(1)**2+Y(2)**2)
-		Rr_IDEI = RL-RR
-		Y10 = (Rr_IDEI/RL)*Y(1)
-		Y20 = (Rr_IDEI/RL)*Y(2)
-		Y30 = Y(3)
-		Y10 = Y10 / SQRT(Y10**2+Y20**2+Y30**2)
-		Y20 = Y20 / SQRT(Y10**2+Y20**2+Y30**2)
-		Y30 = Y30 / SQRT(Y10**2+Y20**2+Y30**2)
-		OX_NX = (Y(4)*Y10 + Y(5)*Y20 + Y(6)*Y30)*VC/OMG
-		
-		OX_N2 = (Y(4)**2+Y(5)**2+Y(6)**2)*(VC/OMG)*(VC/OMG)		
-		OX_NY = OX_N2 - OX_NZ**2 - OX_NX**2
-		IF (OX_NY.LT.0.D0) OX_NY=0.0D0
-		OX_NY = SQRT(OX_NY)
-			
+      OMG=2.D6*PI*RF 
+
+      CALL PL_MAG_OLD(Y(1), Y(2), Y(3), PSIN)
+      OMG_C_OX = BABS*AEE/(AME)
+      OX_Y = OMG_C_OX / OMG
+      OX_NZOPT = SQRT(OX_Y/(1.D0+OX_Y))
+      OX_NZ = (Y(4)*BNX + Y(5)*BNY + Y(6)*BNZ)*VC/OMG
+C      WRITE(6,*)'OX_NZOPT =',OX_NZOPT,'OX_NZ=',OX_NZ
+
+      RL  =SQRT(Y(1)**2+Y(2)**2)
+      Rr_IDEI = RL-RR
+      Y10 = (Rr_IDEI/RL)*Y(1)
+      Y20 = (Rr_IDEI/RL)*Y(2)
+      Y30 = Y(3)
+      Y10 = Y10 / SQRT(Y10**2+Y20**2+Y30**2)
+      Y20 = Y20 / SQRT(Y10**2+Y20**2+Y30**2)
+      Y30 = Y30 / SQRT(Y10**2+Y20**2+Y30**2)
+      OX_NX = (Y(4)*Y10 + Y(5)*Y20 + Y(6)*Y30)*VC/OMG
+
+      OX_N2 = (Y(4)**2+Y(5)**2+Y(6)**2)*(VC/OMG)*(VC/OMG)
+      OX_NY = OX_N2 - OX_NZ**2 - OX_NX**2
+      IF (OX_NY.LT.0.D0) OX_NY=0.0D0
+      OX_NY = SQRT(OX_NY)
+
       RETURN
       END
 
@@ -927,34 +952,34 @@ C
       USE plprof,ONLY: PL_MAG_OLD,PL_PROF_OLD
       INCLUDE 'wrcomm.inc'
 C
-	  CALL PL_MAG_OLD(X,Y,Z, PSIN)
-	  CALL PL_PROF_OLD(PSIN)	  
-	  OX_NE = RN(1) 
+      CALL PL_MAG_OLD(X,Y,Z, PSIN)
+      CALL PL_PROF_OLD(PSIN)	  
+      OX_NE = RN(1) 
 	  
-	  RL0  =SQRT(X**2+Y**2)
-	  Rr_IDEI = RL0-RR
+      RL0  =SQRT(X**2+Y**2)
+      Rr_IDEI = RL0-RR
 
-	  OX_X0 = (Rr_IDEI/RL0)*X
-	  OX_Y0 = (Rr_IDEI/RL0)*Y
-	  OX_Z0 = Z
-	  D_OX_X0 = - (DELDER) * OX_X0 / SQRT(OX_X0**2+OX_Y0**2+OX_Z0**2)
-	  D_OX_Y0 = - (DELDER) * OX_Y0 / SQRT(OX_X0**2+OX_Y0**2+OX_Z0**2)
-	  D_OX_Z0 = - (DELDER) * OX_Z0 / SQRT(OX_X0**2+OX_Y0**2+OX_Z0**2)
+      OX_X0 = (Rr_IDEI/RL0)*X
+      OX_Y0 = (Rr_IDEI/RL0)*Y
+      OX_Z0 = Z
+      D_OX_X0 = - (DELDER) * OX_X0 / SQRT(OX_X0**2+OX_Y0**2+OX_Z0**2)
+      D_OX_Y0 = - (DELDER) * OX_Y0 / SQRT(OX_X0**2+OX_Y0**2+OX_Z0**2)
+      D_OX_Z0 = - (DELDER) * OX_Z0 / SQRT(OX_X0**2+OX_Y0**2+OX_Z0**2)
+ 
+C      WRITE(6,*)'X=',X,'Y=',Y,'Z=',Z
+C      WRITE(6,*)'DX=',D_OX_X0,'DY=',D_OX_Y0,'DZ=',D_OX_Z0
 	  
-C	  WRITE(6,*)'X=',X,'Y=',Y,'Z=',Z
-C	  WRITE(6,*)'DX=',D_OX_X0,'DY=',D_OX_Y0,'DZ=',D_OX_Z0
+      CALL PL_MAG_OLD(X+D_OX_X0, Y+D_OX_Y0, Z+D_OX_Z0, PSIN)
+      CALL PL_PROF_OLD(PSIN)	  
+      OX_NE_P = RN(1)	  
+      CALL PL_MAG_OLD(X-D_OX_X0, Y-D_OX_Y0, Z-D_OX_Z0, PSIN)
+      CALL PL_PROF_OLD(PSIN)	  
+      OX_NE_M = RN(1) 
+  
+C      WRITE(6,*) 'OX_NE_P(E18)=',OX_NE_P,'OX_NE_M(E18)=', OX_NE_M
 	  
-	  CALL PL_MAG_OLD(X+D_OX_X0, Y+D_OX_Y0, Z+D_OX_Z0, PSIN)
-	  CALL PL_PROF_OLD(PSIN)	  
-	  OX_NE_P = RN(1)	  
-	  CALL PL_MAG_OLD(X-D_OX_X0, Y-D_OX_Y0, Z-D_OX_Z0, PSIN)
-	  CALL PL_PROF_OLD(PSIN)	  
-	  OX_NE_M = RN(1) 
-	  
-C	  WRITE(6,*) 'OX_NE_P(E18)=',OX_NE_P,'OX_NE_M(E18)=', OX_NE_M
-	  
-	  OX_LN = OX_NE / ( (OX_NE_P-OX_NE_M)/(2.0D0*DELDER) )
-C	  WRITE(6,*) 'NE(E18)=',OX_NE,'OX_LN=',OX_LN
+      OX_LN = OX_NE / ( (OX_NE_P-OX_NE_M)/(2.0D0*DELDER) )
+C      WRITE(6,*) 'NE(E18)=',OX_NE,'OX_LN=',OX_LN
 
       RETURN
       END
@@ -1017,7 +1042,7 @@ C
 c_zhenya
          OMG=2.D6*PI*RF
          CALL PL_MAG_OLD(Y(1),Y(2),Y(3),PSIN)
-         CALL PL_PROF_OLD(PSIN)	  
+         CALL PL_PROF_OLD(PSIN) 
          OMG_C = BABS*AEE/(AME)
          WP2=RN(1)*1.D20*AEE*AEE/(EPS0*AMP*PA(1))
          wp2=sqrt(WP2)
@@ -1645,49 +1670,104 @@ C
 C
       DIMENSION Y(NEQ),YK(3),Y_zh(NEQ)
 C
-		Y=Y_zh
-		OMG=2.D6*PI*RF
-		DELTA=DISPXR( Y(1), Y(2), Y(3), Y(4), Y(5), Y(6), OMG )
-		XP=Y(1)
-		YP=Y(2)
-		ZP=Y(3)
-		VV=DELDER
-		TT=DELDER
+      Y=Y_zh
+      OMG=2.D6*PI*RF
+      DELTA=DISPXR( Y(1), Y(2), Y(3), Y(4), Y(5), Y(6), OMG )
+      XP=Y(1)
+      YP=Y(2)
+      ZP=Y(3)
+      VV=DELDER
+      TT=DELDER
 
-		  DO I=1,100
-			RKXP=Y(4)
-			RKYP=Y(5)
-			RKZP=Y(6)
-			RRKXP=MAX(ABS(RKXP)*VV,TT)
-			RRKYP=MAX(ABS(RKYP)*VV,TT)
-			RRKZP=MAX(ABS(RKZP)*VV,TT)
+      DO I=1,100
+         RKXP=Y(4)
+         RKYP=Y(5)
+         RKZP=Y(6)
+         RRKXP=MAX(ABS(RKXP)*VV,TT)
+         RRKYP=MAX(ABS(RKYP)*VV,TT)
+         RRKZP=MAX(ABS(RKZP)*VV,TT)
+C
+         DKXP=(DISPXR(XP,YP,ZP,RKXP+RRKXP,RKYP,RKZP,OMG)
+     &        -DISPXR(XP,YP,ZP,RKXP-RRKXP,RKYP,RKZP,OMG))/(2.D0*RRKXP)
+         DKYP=(DISPXR(XP,YP,ZP,RKXP,RKYP+RRKYP,RKZP,OMG)
+     &        -DISPXR(XP,YP,ZP,RKXP,RKYP-RRKYP,RKZP,OMG))/(2.D0*RRKYP)
+         DKZP=(DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP+RRKZP,OMG)
+     &        -DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP-RRKZP,OMG))/(2.D0*RRKZP)
 c
-			DKXP=(DISPXR(XP,YP,ZP,RKXP+RRKXP,RKYP,RKZP,OMG)
-     &			-DISPXR(XP,YP,ZP,RKXP-RRKXP,RKYP,RKZP,OMG))/(2.D0*RRKXP)
-			DKYP=(DISPXR(XP,YP,ZP,RKXP,RKYP+RRKYP,RKZP,OMG)
-     &			-DISPXR(XP,YP,ZP,RKXP,RKYP-RRKYP,RKZP,OMG))/(2.D0*RRKYP)
-			DKZP=(DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP+RRKZP,OMG)
-     &			-DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP-RRKZP,OMG))/(2.D0*RRKZP)
-c
-			DS2 = DKXP**2+DKYP**2+DKZP**2
-			FAC_NWTN = 10.D0
-			DO IMODNWTN=1,10
-			    FAC_NWTN = FAC_NWTN/10.D0
-				Y(4) = RKXP - (DELTA*DKXP)/DS2*FAC_NWTN
-				Y(5) = RKYP - (DELTA*DKYP)/DS2*FAC_NWTN
-				Y(6) = RKZP - (DELTA*DKZP)/DS2*FAC_NWTN
-				DDELTA = DISPXR(XP,YP,ZP,Y(4),Y(5),Y(6),OMG)
-c				WRITE (6,*) 'DDELTA', DDELTA
-			    IF (ABS(DDELTA) .LT. ABS(DELTA)) EXIT
-			END DO
-			IF (ABS(DDELTA).LT.1.0D-6) EXIT
-			DELTA = DDELTA
-		  END DO
-		  
-		DO I =1,3
-			YK(I) = Y(I+3)
-		END DO  
+         DS2 = DKXP**2+DKYP**2+DKZP**2
+         FAC_NWTN = 10.D0
+         DO IMODNWTN=1,10
+            FAC_NWTN = FAC_NWTN/10.D0
+            Y(4) = RKXP - (DELTA*DKXP)/DS2*FAC_NWTN
+            Y(5) = RKYP - (DELTA*DKYP)/DS2*FAC_NWTN
+            Y(6) = RKZP - (DELTA*DKZP)/DS2*FAC_NWTN
+            DDELTA = DISPXR(XP,YP,ZP,Y(4),Y(5),Y(6),OMG)
+c     WRITE (6,*) 'DDELTA', DDELTA
+            IF (ABS(DDELTA) .LT. ABS(DELTA)) EXIT
+         END DO
+         IF (ABS(DDELTA).LT.1.0D-6) EXIT
+         DELTA = DDELTA
+      END DO
 
+      DO I =1,3
+         YK(I) = Y(I+3)
+      END DO  
+
+      RETURN
+      END
+
+!  ----- calculate eigen electric field for initial position -----
+
+      SUBROUTINE WRCALE_I(EPARA,EPERP)
+
+      USE plcomm
+      USE pllocal
+      USE plprof,ONLY: PL_MAG_OLD
+      INCLUDE 'wrcomm.inc'
+      COMPLEX(rkind):: CDET(3,3)
+
+      OMG=2.D6*PI*RF
+      CRF=DCMPLX(OMG/(2.D6*PI),0.D0)
+
+      IF(MODELG.EQ.0.OR.MODELG.EQ.1.OR.MODELG.EQ.11) THEN
+         X1= RPI
+         Y1= PHII
+         Z1= ZPI
+         CKX1= RKR0
+         CKY1= RKPHII
+         CKZ1= RKZI
+      ELSE
+         X1= RPI*COS(PHII)
+         Y1= RPI*SIN(PHII)
+         Z1= ZPI
+         CKX1= RKR0*COS(PHII)-RKPHII*SIN(PHII)
+         CKY1= RKR0*SIN(PHII)+RKPHII*COS(PHII)
+         CKZ1= RKZI
+      ENDIF
+      CALL DPDISP(CRF,CKX1,CKY1,CKZ1,X1,Y1,Z1,CDET)
+      CE1=CDET(2,2)*CDET(1,3)-CDET(1,2)*CDET(2,3)
+      CE2=CDET(1,1)*CDET(2,3)-CDET(2,1)*CDET(1,3)
+      CE3=CDET(2,2)*CDET(1,1)-CDET(1,2)*CDET(2,1)
+      CE4=CDET(1,3)*CDET(2,1)-CDET(2,3)*CDET(1,1)
+      IF(CE2.EQ.0.OR.CE4.EQ.0)THEN
+         CEXY=0
+         CEZY=0
+      ELSE
+         CEXY=CE1/CE2
+         CEZY=CE3/CE4
+      ENDIF
+
+      EA=SQRT(ABS(CEXY)**2+1.D0+ABS(CEZY)**2)
+
+      CUEX=CEXY/EA
+      CUEY=1.D0/EA
+      CUEZ=CEZY/EA
+
+      CALL pl_mag_old(X1,Y1,Z1,RHON)
+      EPARA=ABS(CUEX*BNX+CUEY*BNY+CUEZ*BNZ)
+      EPERP=SQRT(ABS(CUEX)**2*(1.D0-BNX**2)
+     &     +ABS(CUEY)**2*(1.D0-BNY**2)
+     &     +ABS(CUEZ)**2*(1.D0-BNZ**2))
       RETURN
       END
 

@@ -9,7 +9,6 @@ C
 C
       DIMENSION Y(NBEQ)
       REAL*4 TIME1,TIME2
-      DATA MODEW/0/
 C 
       CALL GUTIME(TIME1)
 C
