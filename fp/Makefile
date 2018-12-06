@@ -1,12 +1,12 @@
 ### $Id: Makefile,v 1.69 2012/07/25 07:53:52 nuga Exp $ ###
 include ../make.header
 include ../mtxp/make.mtxp
-LIB_MTX=$(LIB_MTX_BND)
-LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_BND)
+#LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIB_MTX_PCG)
 #LIBX_MTX=$(LIBX_MTX_PCG)
-#LIB_MTX=$(LIB_MTX_MUMPS)
-#LIBX_MTX=$(LIBX_MTX_MUMPS)
+LIB_MTX=$(LIB_MTX_MUMPS)
+LIBX_MTX=$(LIBX_MTX_MUMPS)
 #LIB_MTX=$(LIBXMTX_KSP)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
@@ -24,7 +24,7 @@ FFLAGS=$(OFLAGS)
 MODINCLUDE= -I./$(MOD) -I../lib/$(MOD) -I../plx/$(MOD) -I../eq/$(MOD) -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
 SRCS = fpcomm.f90 eg_read.f90 fpinit.f90 fpmpi.f90 fpbroadcast.f90 fpsub.f90 \
-       fpexec.f90 fpsave.f90 \
+       fpexec.f90 fpsave.f90 fpcaltp.f90 fpcaldeff.f90 \
        fpoutdata.f90 fpwmin.f90 fpwrin.f90 fpcalwm.f90 fpcalwr.f90 fpcalw.f90 \
        fpcalcn.f90 fpcalcnr.f90 fpcalc.f90 fpnfrr.f90 fpnflg.f90 \
        cdbmfp.f90 fpcalr.f90 sv_read.f90 fpcoef.f90 fpcale.f90 \
@@ -102,3 +102,5 @@ fpcalr.o: fpcalr.f90 fpcomm.f90
 eg_read.o: eg_read.f90 fpcomm.f90
 sv_read.o: sv_read.f90 fpcomm.f90
 fpoutdata.o: fpoutdata.f90 eg_read.f90 fpcomm.f90
+fpcaltp.o: fpcaltp.f90 fpcomm.f90
+fpcaldeff.o: fpcaldeff.f90 fpcomm.f90

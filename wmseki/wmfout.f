@@ -8,6 +8,7 @@ C***********************************************************************
 C
       SUBROUTINE WMSAVE
 C
+      USE libfio
       INCLUDE './wmcomm.inc'
 C
       CALL FWOPEN(21,KNAMWM,0,MODEFW,'WM',IERR)
@@ -63,6 +64,7 @@ C***********************************************************************
 C
       SUBROUTINE WMLOAD
 C
+      USE libfio
       INCLUDE './wmcomm.inc'
 C
       IERR=0

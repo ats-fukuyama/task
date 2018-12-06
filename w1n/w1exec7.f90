@@ -632,6 +632,7 @@ CONTAINS
                          CABSL=CABSL &
                          -0.5D0*CONJG(CA(NN+IA))*CL(IA,IB,IL,NCL)*CA(MM+IB) &
                          -0.5D0*CA(NN+IA)*CONJG(CL(IB,IA,IL,NCL)*CA(MM+IB))
+!                         -CONJG(CA(NN+IA))*CL(IA,IB,IL,NCL)*CA(MM+IB)
                       END DO
                    END DO
                    PABSL=-CI*RCE*CABSL*RKV
@@ -1050,7 +1051,7 @@ CONTAINS
                +RZ*      FACT *DCONJG(CE2DA(NZ,NXANT1+1,3))*CFJZ1
     END IF
 
-!   antenna power in LFA
+!   antenna power in LFS
 
     IF(NXANT1.GE.2) THEN
        CFJX2=CI*RKZA*CFJZ2

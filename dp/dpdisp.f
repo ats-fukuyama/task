@@ -182,42 +182,15 @@ C
             CDISP(I)=0.D0
          ENDDO
          DO NS1=1,NSMAX
-            IF(modelp(ns1).EQ.5.OR.
-     &         modelp(ns1).EQ.6.OR.
-     &         modelp(ns1).eq.15) THEN
-               CALL DPCOLD_RKPERP(cw,ckpr,ckppf,ckpps)
-!               write(6,'(1P6E12.4)') ckpr,ckppf,ckpps 
-               IF(real(ckppf**2).GT.0.d0) THEN
-                  ckpp1=ckppf
-               ELSE
-                  ckpp1=ckpp
-               ENDIF
-            ELSE
-               ckpp1=ckpp
-            ENDIF
-            CALL DPTENS(CW,CKPR,CKPP1,NS1,CLDISP)
+            CALL DPTENS(CW,CKPR,CKPP,NS1,CLDISP)
             DO I=1,6
                CDISP(I)=CDISP(I)+CLDISP(I)
             ENDDO
          ENDDO
       ELSE
-         IF(modelp(ns).EQ.5.OR.
-     &      modelp(ns).eq.6.OR.
-     &      modelp(ns).eq.15) THEN
-            CALL DPCOLD_RKPERP(cw,ckpr,ckppf,ckpps)
-!            write(6,'(1P6E12.4)') ckpr,ckppf,ckpps 
-            IF(real(ckppf**2).GT.0.d0) THEN
-               ckpp1=ckppf
-            ELSE
-               ckpp1=ckpp
-            ENDIF
-         ELSE
-            ckpp1=ckpp
-         ENDIF
-         CALL DPTENS(CW,CKPR,CKPP1,NS,CDISP)
+         CALL DPTENS(CW,CKPR,CKPP,NS,CDISP)
       ENDIF
 C
-
       CDTNS(1,1)= CDISP(1)
       CDTNS(1,2)= CDISP(5)
       CDTNS(1,3)= CDISP(4)
@@ -267,31 +240,65 @@ C
       CCD=SQRT(CCB**2-4.D0*CCA*CCC)
       CKPPA=(-CCB+CCD)/(2.D0*CCA)
       CKPPB=(-CCB-CCD)/(2.D0*CCA)
-C----- 2018-08-29 ----- correction by AF -----
-C      RKPPA2=REAL(CKPPA**2)
-C      RKPPB2=REAL(CKPPB**2)
-      RKPPA2=REAL(CKPPA)
-      RKPPB2=REAL(CKPPB)
-      IF(RKPPA2.GE.0.D0) THEN
-         IF(RKPPB2.GE.0.D0) THEN
-            IF(RKPPA2.GT.RKPPB2) THEN
-               CTEMP=CKPPA
-               CKPPA=CKPPB
-               CKPPB=CTEMP
-            ENDIF
-         ELSE
-            CKPPB=0.D0
-         ENDIF
-      ELSE
-         IF(RKPPB2.GE.0.D0) THEN
-            CKPPA=CKPPB
-            CKPPB=0.D0
-         ELSE
-            CKPPA=0.D0
-            CKPPB=0.D0
-         ENDIF
-      ENDIF
-      CKPPF=SQRT(CKPPA)*CW/VC
-      CKPPS=SQRT(CKPPB)*CW/VC
+
+      RKPPA=REAL(CKPPA)
+      RKPPB=REAL(CKPPB)
+      IF(RKPPA.LE.RKPPB) THEN
+         CTEMP=CKPPA
+         CKPPA=CKPPB
+         CKPPB=CTEMP
+      END IF
+      IF(RKPPA.GE.0.D0) CKPPA=0.D0
+      IF(RKPPB.GE.0.D0) CKPPB=0.D0
+      CKPPS=SQRT(CKPPA)*CW/VC
+      CKPPF=SQRT(CKPPB)*CW/VC
+      RETURN
+      END
+C
+C     ****** CALCULATE KPERP ******
+C
+      SUBROUTINE DP_RKPERP(CW,CKPR,CKPPF,CKPPS)
+C
+      USE plcomm
+      USE pllocal
+      INCLUDE '../dp/dpcomm.inc'
+      DIMENSION CDISP(6),CLDISP(6)
+C
+      CDISP(1)=1.D0
+      DO I=2,6
+         CDISP(I)=0.D0
+      ENDDO
+      CKPP=(0.D0,0.D0)
+      CNPR=CKPR*VC/CW
+
+      DO NS1=1,NSMAX
+         CALL DPTENS(CW,CKPR,CKPP,NS1,CLDISP)
+         DO I=1,6
+            CDISP(I)=CDISP(I)+CLDISP(I)
+         ENDDO
+      ENDDO
+
+      CCS= CDISP(1)
+      CCD= -CI*CDISP(5)
+      CCP= CDISP(1)+CDISP(2)
+
+      CCA=CCS
+      CCB=(CCP+CCS)*CNPR**2-(CCS**2-CCD**2+CCS*CCP)
+      CCC=((CCS-CNPR**2)**2-CCD**2)*CCP
+      CCD=SQRT(CCB**2-4.D0*CCA*CCC)
+      CKPPA=(-CCB+CCD)/(2.D0*CCA)
+      CKPPB=(-CCB-CCD)/(2.D0*CCA)
+
+      RKPPA=REAL(CKPPA)
+      RKPPB=REAL(CKPPB)
+      IF(RKPPA.LE.RKPPB) THEN
+         CTEMP=CKPPA
+         CKPPA=CKPPB
+         CKPPB=CTEMP
+      END IF
+      IF(RKPPA.GE.0.D0) CKPPA=0.D0
+      IF(RKPPB.GE.0.D0) CKPPB=0.D0
+      CKPPS=SQRT(CKPPA)*CW/VC
+      CKPPF=SQRT(CKPPB)*CW/VC
       RETURN
       END

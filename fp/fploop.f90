@@ -28,6 +28,7 @@
       USE FPMPI
       USE fpprep, only: Coulomb_log 
       USE fpnfrr
+      USE fpcaltp
       IMPLICIT NONE
       real(kind8):: DEPS,IP_all_FP,DEPS_E2
 
@@ -72,7 +73,7 @@
             CALL TOP_OF_TIME_LOOP_DISRUPT(NT) ! include fpcoef
          END IF
          CALL GUTIME(gut_coef3)
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
          DO WHILE(N_IMPL.le.LMAXFP) ! start do while
 
             CALL GUTIME(gut_exe1)
@@ -129,6 +130,10 @@
             SUM_GUT_COEF = SUM_GUT_COEF + gut_coef2 - gut_coef1
 !-- end of updating diffusion coef
 
+            WRITE(6,'(A,1p3E12.4)') '---DEPS,DEPS2=', &
+                 DEPS,DEPS_E2,EPSFP
+
+
          END DO ! END OF DOWHILE
          SUM_GUT_COEF= SUM_GUT_COEF + gut_coef3 - gut_loop1
 
@@ -184,6 +189,7 @@
             IF(NRANK.EQ.0) THEN
                CALL FPSGLB
                CALL FPWRTGLB
+               CALL fp_caltp
             ENDIF
          ENDIF
          IF (MOD(NT,NTG2STEP).EQ.0) THEN

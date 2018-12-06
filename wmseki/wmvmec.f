@@ -26,6 +26,7 @@ C    ****** READ WOUT FILE ******
 C
       SUBROUTINE WMHGRD(IERR)
 C
+      USE libfio
       INCLUDE 'wmcomm.inc'
       INCLUDE 'vmcomm.inc'
 C

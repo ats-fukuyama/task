@@ -182,11 +182,12 @@ C
 C
       NAMELIST /DP/ RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,
      &              NSMAX,PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PU,PUS,
+     &              KID_NS,ID_NS,
      &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
      &              RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,
      &              MODELG,MODELN,MODELQ,MODEFA,
      &              KNAMEQ,KNAMWR,KNAMFP,MODEFR,MODEFW,IDEBUG,
-     &              MODELP,NDISP1,NDISP2,
+     &              MODELP,MODELV,NDISP1,NDISP2,
      &              RF0,RFI0,RKX0,RKY0,RKZ0,RX0,RY0,RZ0,
      &              RF1,RFI1,RKX1,RKY1,RKZ1,RX1,
      &              RF2,RFI2,RKX2,RKY2,RKZ2,RX2,

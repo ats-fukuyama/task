@@ -34,7 +34,7 @@ SRCSX = dpdkdt.f dptestk.f
 
 OBJS = $(SRCS:.f90=.o)
 
-LIBS = $(LIBX_MTX) ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a \
+LIBS = ../lib/tasklib.a ../../bpsd/bpsdlib.a ../plx/pllib.a \
        ../eq/eqlib.a dplib.a 
 
 all : dp

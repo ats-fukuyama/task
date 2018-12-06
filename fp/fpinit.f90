@@ -203,7 +203,7 @@
       DRR0       = 0.D0
       DRRS       = 0.D0
       DELTAB_B   = 0.D0 
-      FACTOR_CDBM= 0.D0
+      FACTOR_CDBM= 1.D0
       DRR_EDGE   = 0.1D0
       RHO_EDGE   = 0.95D0
       FACTOR_DRR_EDGE=0.1D0

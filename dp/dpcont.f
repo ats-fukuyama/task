@@ -17,23 +17,19 @@ C
 C
       IF(INIT.EQ.0) THEN
          KID='YW'
-         XMIN=0.D0
-         XMAX=100.D0
-         NXMAX=51
-         YMIN=10.D0
-         YMAX=100.D0
-         NYMAX=51
+         NXMAX=201
+         NYMAX=201
          INIT=1
       ENDIF
 C
     1 WRITE(6,*)'## SELECT : XY : W/RF X/KX Y/KY Z/KZ : ',
-     &          'P,D,V/PARM X/EXIT'
+     &          'P,D,V/PARM 0/EXIT'
       READ(5,'(A2)',ERR=1,END=9000) KID
       KID1=KID(1:1)
       KID2=KID(2:2)
       CALL GUCPTL(KID1)
       CALL GUCPTL(KID2)
-      IF(KID1.EQ.'X') THEN
+      IF(KID1.EQ.'0') THEN
          GOTO 9000
       ELSEIF(KID1.EQ.'P') THEN
          CALL PL_PARM(0,'PL',IERR)
@@ -48,39 +44,93 @@ C
       ENDIF
 C
     2 IF(KID1.EQ.'W') THEN
-         WRITE(6,*) ' INPUT X-AXIS: RF1,RF2,NXMAX'
+         WRITE(6,'(A,1P2E12.4,I5)') 
+     &        ' INPUT X-AXIS: RF1,RF2,NXMAX',RF1,RF2,NXMAX
+         XMIN=RF1
+         XMAX=RF2
       ELSE IF(KID1.EQ.'X') THEN
-         WRITE(6,*) ' INPUT X-AXIS: RKX1,RKX2,NXMAX'
+         WRITE(6,'(A,1P2E12.4,I5)') 
+     &        ' INPUT X-AXIS: RKX1,RKX2,NXMAX',RKX1,RKX2,NXMAX
+         XMIN=RKX1
+         XMAX=RKX2
       ELSE IF(KID1.EQ.'Y') THEN
-         WRITE(6,*) ' INPUT X-AXIS: RKY1,RKY2,NXMAX'
+         WRITE(6,'(A,1P2E12.4,I5)') 
+     &        ' INPUT X-AXIS: RKY1,RKY2,NXMAX',RKY1,RKY2,NXMAX
+         XMIN=RKY1
+         XMAX=RKY2
       ELSE IF(KID1.EQ.'Z') THEN
-         WRITE(6,*) ' INPUT X-AXIS: RKZ1,RKZ2,NXMAX'
+         WRITE(6,'(A,1P2E12.4,I5)') 
+     &        ' INPUT X-AXIS: RKZ1,RKZ2,NXMAX',RKZ1,RKZ2,NXMAX
+         XMIN=RKZ1
+         XMAX=RKZ2
       ELSE
          WRITE(6,*) 'XX UNKNOWN KID1'
          GOTO 1
       ENDIF
-      READ(5,*,ERR=2,END=1) XMIN,XMAX,NXMAX
+      NXMAX_SAVE=NXMAX
+      READ(5,*,ERR=2,END=101) XMIN,XMAX,NXMAX
+      IF(NXMAX.EQ.0) GO TO 101
       IF(NXMAX.GT.NGXM) THEN
          WRITE(6,*) 'XX NXMAX EXCEEDS NGXM =',NGXM
          GOTO 2
       ENDIF
+      IF(KID1.EQ.'W') THEN
+         RF1=XMIN
+         RF2=XMAX
+      ELSE IF(KID1.EQ.'X') THEN
+         RKX1=XMIN
+         RKX2=XMAX
+      ELSE IF(KID1.EQ.'Y') THEN
+         RKY1=XMIN
+         RKY2=XMAX
+      ELSE IF(KID1.EQ.'Z') THEN
+         RKZ1=XMIN
+         RKZ2=XMAX
+      ENDIF
 C
     3 IF(KID2.EQ.'W') THEN
-         WRITE(6,*) ' INPUT Y-AXIS: RF1,RF2,NYMAX'
+         WRITE(6,'(A,1P2E12.4,I5)') 
+     &        ' INPUT Y-AXIS: RF1,RF2,NYMAX',RF1,RF2,NYMAX
+         YMIN=RF1
+         YMAX=RF2
       ELSE IF(KID2.EQ.'X') THEN
-         WRITE(6,*) ' INPUT Y-AXIS: RKX1,RKX2,NYMAX'
+         WRITE(6,'(A,1P2E12.4,I5)') 
+     &        ' INPUT Y-AXIS: RKX1,RKX2,NYMAX',RKX1,RKX2,NYMAX
+         YMIN=RKX1
+         YMAX=RKX2
       ELSE IF(KID2.EQ.'Y') THEN
-         WRITE(6,*) ' INPUT Y-AXIS: RKY1,RKY2,NYMAX'
+         WRITE(6,'(A,1P2E12.4,I5)') 
+     &        ' INPUT Y-AXIS: RKY1,RKY2,NYMAX',RKY1,RKY2,NYMAX
+         YMIN=RKY1
+         YMAX=RKY2
       ELSE IF(KID2.EQ.'Z') THEN
-         WRITE(6,*) ' INPUT Y-AXIS: RKZ1,RKZ2,NYMAX'
+         WRITE(6,'(A,1P2E12.4,I5)') 
+     &        ' INPUT Y-AXIS: RKZ1,RKZ2,NYMAX',RKZ1,RKZ2,NYMAX
+         YMIN=RKZ1
+         YMAX=RKZ2
       ELSE
          WRITE(6,*) 'XX UNKNOWN KID2'
          GOTO 1
       ENDIF
-      READ(5,*,ERR=3,END=2) YMIN,YMAX,NYMAX
+      NYMAX_SAVE=NYMAX
+      READ(5,*,ERR=3,END=102) YMIN,YMAX,NYMAX
+      IF(NYMAX.EQ.0) GO TO 102
       IF(NYMAX.GT.NGYM) THEN
          WRITE(6,*) 'XX NYMAX EXCEEDS NGYM =',NGYM
          GOTO 3
+      ENDIF
+      IF(KID2.EQ.'W') THEN
+         RF1=YMIN
+         RF2=YMAX
+      ELSE IF(KID2.EQ.'X') THEN
+         RKX1=YMIN
+         RKX2=YMAX
+      ELSE IF(KID2.EQ.'Y') THEN
+         RKY1=YMIN
+         RKY2=YMAX
+      ELSE IF(KID2.EQ.'Z') THEN
+         RKZ1=YMIN
+         RKZ2=YMAX
       ENDIF
 C
       DY=(YMAX-YMIN)/(NYMAX-1)
@@ -114,10 +164,13 @@ C
                CKZ=X
             ENDIF
             CD=CFDISP(CRF,CKX,CKY,CKZ,RX0,RY0,RZ0)
+
+C *** remove sign change due to cyclotron resonance ***
+            
             CW=2.D0*PI*1.D6*CRF
             DO NS=1,NSMAX
                CWC=BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
-               CD=CD*(1.D0-CWC)
+C               CD=CD*(1.D0-CWC)
             ENDDO
 C
             GX(NX)=GUCLIP(X)
@@ -225,6 +278,10 @@ C
       GOTO 2
 C
  9000 RETURN
+  101 NXMAX=NXMAX_SAVE
+      GO TO 1
+  102 NYMAX=NYMAX_SAVE
+      GO TO 2
       END
 C
 C     ***** PLOT CONTOUR GRAPH *****

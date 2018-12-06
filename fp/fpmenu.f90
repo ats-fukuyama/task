@@ -18,6 +18,7 @@
       USE plinit
       USE plparm
       USE fpfile
+      USE fpcaldeff
       USE libmpi
       USE libmtx
 
@@ -33,7 +34,7 @@
          ierr=0
          WRITE(6,601)
   601    FORMAT('## FP MENU: R:RUN C:CONT P,V:PARAM G,F:GRAPH', &
-                           ' L,S:FILE Y:COEF W:WRITE Q:QUIT')
+                           ' L,S:FILE Y,Z:COEF W:WRITE Q:QUIT')
          CALL TASK_KLIN(LINE,KID,MODE(1),fp_parm)
       ENDIF
       CALL mtx_barrier
@@ -109,6 +110,8 @@
          if(nrank.eq.0) CALL fp_load2
          CALL mtx_barrier
          CALL FP_POST_LOAD
+      ELSEIF (KID.EQ.'Z') THEN
+         CALL fp_caldeff
       ELSEIF (KID.EQ.'Q') THEN
          CALL CLOSE_EVOLVE_DATA_OUTPUT 
          GO TO 9000

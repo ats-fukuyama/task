@@ -56,9 +56,11 @@ CONTAINS
       ELSEIF(KID.EQ.'F') THEN
          CALL DP_ROOT
       ELSEIF(KID.EQ.'R') THEN
-         CALL WR_CALC
+         CALL wr_allocate
+         CALL WR_CALC(IERR)
          NSTAT=1
       ELSEIF(KID.EQ.'B') THEN
+         CALL wr_allocate
          CALL WR_BEAM
          NSTAT=2
       ELSEIF(KID.EQ.'G') THEN
