@@ -251,7 +251,7 @@
 
       if(NRMAX.GT.1) then
     1    WRITE(6,*) '## NR ?'
-         READ(5,*,err=1,end=9999)
+         READ(5,*,err=1,end=9999) NR
          if(NR.LT.1.OR.NR.GT.NRMAX) THEN
             write(6,*) 'XX NR must be between 1 and NRMAX:',NRMAX
             goto 1
@@ -316,7 +316,7 @@
 
       if(NRMAX.GT.1) then
     1    WRITE(6,*) '## NR ?'
-         READ(5,*,err=1,end=9999)
+         READ(5,*,err=1,end=9999) NR
          if(NR.LT.1.OR.NR.GT.NRMAX) THEN
             write(6,*) 'XX NR must be between 1 and NRMAX:',NRMAX
             goto 1

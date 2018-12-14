@@ -8,10 +8,20 @@ MODULE plp2D
   REAL(rkind),DIMENSION(:,:,:,:,:),ALLOCATABLE:: UA
 END MODULE plp2D
 
+MODULE pl_trdata
+  USE bpsd_kinds
+  INTEGER(ikind):: NRMAX_TR,NSMAX_TR,NFMAX_TR
+  REAL(rkind),DIMENSION(:),ALLOCATABLE:: RM_TR,RG_TR,DERIV
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: RN_TR,RT_TR,RW_TR,RNF_TR,RTF_TR
+  REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: URN_TR,URT_TR
+  REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: URW_TR,URNF_TR,URTF_TR
+END MODULE pl_trdata
+
 MODULE plload
 
   private
-  public pl_load,pl_read_xprf,pl_read_p2D,pl_read_p2Dmag
+  public pl_load,pl_read_xprf,pl_read_p2D,pl_read_p2Dmag, &
+         pl_load_trdata,pl_read_trdata
 
 CONTAINS
 
@@ -26,6 +36,8 @@ CONTAINS
        CALL pl_load_xprf(ierr)
     CASE(12)
        CALL pl_load_p2D(ierr)
+    CASE(21)
+       CALL pl_load_trdata(ierr)
     END SELECT
 
     SELECT CASE(modelg)
@@ -133,6 +145,107 @@ CONTAINS
 
       RETURN
     END SUBROUTINE pl_read_xprf
+
+!     ***** LOAD PROFILE DATA from trdata *****
+
+    SUBROUTINE pl_load_trdata(ierr)
+
+      USE pl_trdata
+      USE libfio
+      IMPLICIT NONE
+      INTEGER,INTENT(OUT):: ierr
+      INTEGER:: NFL,NR,NS,NF
+      CHARACTER(LEN=80):: KFLNAM
+
+      ierr = 0
+      IF(ALLOCATED(RM_TR)) THEN
+         DEALLOCATE(RM_TR,RG_TR,DERIV)
+         DEALLOCATE(RN_TR,RT_TR,RW_TR,RNF_TR,RTF_TR)
+         DEALLOCATE(URN_TR,URT_TR,URW_TR,URNF_TR,URTF_TR)
+      END IF
+
+!----  Open profile data file and read
+
+      NFL=25
+      KFLNAM='trdata'
+      CALL FROPEN(NFL,KFLNAM,0,1,'trdata',IERR)
+      IF(IERR.NE.0) GO TO 9991
+      READ(NFL) NRMAX_TR,NSMAX_TR,NFMAX_TR
+      WRITE(6,'(A,3I5)') &
+           'NRMAX_TR,NSMAX_TR,NFMAX_TR=', &
+           NRMAX_TR,NSMAX_TR,NFMAX_TR
+
+      ALLOCATE(RM_TR(NRMAX_TR),RG_TR(NRMAX_TR),DERIV(NRMAX_TR))
+      ALLOCATE(RN_TR(NRMAX_TR,NSMAX_TR),RT_TR(NRMAX_TR,NSMAX_TR))
+      ALLOCATE(RW_TR(NRMAX_TR,NSMAX_TR))
+      ALLOCATE(RNF_TR(NRMAX_TR,NFMAX_TR),RTF_TR(NRMAX_TR,NFMAX_TR))
+      ALLOCATE(URN_TR(4,NRMAX_TR,NSMAX_TR),URT_TR(4,NRMAX_TR,NSMAX_TR))
+      ALLOCATE(URW_TR(4,NRMAX_TR,NSMAX_TR))
+      ALLOCATE(URNF_TR(4,NRMAX_TR,NFMAX_TR),URTF_TR(4,NRMAX_TR,NFMAX_TR))
+
+      READ(NFL) (RM_TR(NR),RG_TR(NR),NR=1,NRMAX_TR)
+      READ(NFL) ((RN_TR(NR,NS),RT_TR(NR,NS),NR=1,NRMAX_TR),NS=1,NSMAX_TR)
+      READ(NFL) ((RW_TR(NR,NF),RNF_TR(NR,NF),RTF_TR(NR,NF),NR=1,NRMAX_TR), &
+                                                           NF=1,NFMAX_TR)
+      CLOSE(NFL)
+      WRITE(6,'(1P5E12.4)') (RM_TR(NR),RN_TR(NR,1),RT_TR(NR,1),&
+                                       RN_TR(NR,2),RT_TR(NR,2),NR=1,NRMAX_TR)
+      WRITE(6,*) '## Data loaded frm trdata'
+
+!----  Set coefficient for spline
+
+      DERIV(1:NRMAX_TR)=0.D0
+      DO NS=1,NSMAX_TR
+         CALL SPL1D(RM_TR,RN_TR(1:NRMAX_TR,NS),DERIV, &
+                    URN_TR(1:4,1:NRMAX_TR,NS),NRMAX_TR,0,IERR)
+         IF (IERR.NE.0) GO TO 9992
+         CALL SPL1D(RM_TR,RT_TR(1:NRMAX_TR,NS),DERIV, &
+                    URT_TR(1:4,1:NRMAX_TR,NS),NRMAX_TR,0,IERR)
+         IF (IERR.NE.0) GO TO 9992
+      ENDDO
+      DO NF=1,NFMAX_TR
+         CALL SPL1D(RM_TR,RW_TR(1:NRMAX_TR,NF),DERIV, &
+                    URW_TR(1:4,1:NRMAX_TR,NF),NRMAX_TR,0,IERR)
+         IF (IERR.NE.0) GO TO 9992
+         CALL SPL1D(RM_TR,RNF_TR(1:NRMAX_TR,NF),DERIV, &
+                    URNF_TR(1:4,1:NRMAX_TR,NF),NRMAX_TR,0,IERR)
+         IF (IERR.NE.0) GO TO 9992
+         CALL SPL1D(RM_TR,RTF_TR(1:NRMAX_TR,NF),DERIV, &
+                    URTF_TR(1:4,1:NRMAX_TR,NF),NRMAX_TR,0,IERR)
+         IF (IERR.NE.0) GO TO 9992
+      ENDDO
+      RETURN
+
+9991  WRITE(6,*) '==========  pl_load_trdata FILE OPEN ERROR  =========='
+      RETURN
+9992  WRITE(6,*) '==========  pl_load_trdata SPLINE ERROR  =========='
+      RETURN
+
+    END SUBROUTINE pl_load_trdata
+
+    SUBROUTINE pl_read_trdata(rho,NS,PNL,PTL)
+
+      USE pl_trdata
+      IMPLICIT NONE
+      REAL(rkind),INTENT(IN):: rho    ! Normalized radius
+      INTEGER(ikind),INTENT(IN):: NS  ! Particle species
+      REAL(rkind),INTENT(OUT):: PNL   ! Density at rho
+      REAL(rkind),INTENT(OUT):: PTL   ! Temperature at rho
+      REAL(rkind):: rhol
+      INTEGER(ikind):: IERR
+
+      rhol=MIN(MAX(RM_TR(1),rho),RM_TR(NRMAX_TR))
+      IF(NS.LE.NSMAX_TR) THEN
+         CALL SPL1DF(rhol,PNL,RM_TR,URN_TR(1:4,1:NRMAX_TR,NS),NRMAX_TR,IERR)
+         CALL SPL1DF(rhol,PTL,RM_TR,URT_TR(1:4,1:NRMAX_TR,NS),NRMAX_TR,IERR)
+      ELSE
+         PNL=0.D0
+         PTL=0.003D0
+      END IF
+!      WRITE(6,'(A,I5,1P3E12.4)') 'NZ,rho,PNL,PTL=',NS,rho,PNL,PTL
+
+      RETURN
+    END SUBROUTINE pl_read_trdata
 
 !     ***** LOAD 2D PROFILE DATA *****
 

@@ -444,12 +444,13 @@
              NSMAX,MODELN,RA,RB, &
              PROFN1,PROFN2,PROFT1,PROFT2, PROFU1,PROFU2, &
              PNITB,PTITB,PUITB,RHOITB,RHOEDG
+        USE plload,ONLY: pl_read_trdata
         IMPLICIT NONE
         REAL(rkind),INTENT(IN):: RHON
         TYPE(pl_plf_type),DIMENSION(NSMAX),INTENT(OUT):: PLF
         REAL(rkind):: RHOL, FACTN, FACTT, FACTU, FACTITB, PL0, &
                       PL, FACT, FNX, DFNX, AN, BN, FTX, DFTX, &
-                      AT, BT, FUX, DFUX, AU, BU, VAL
+                      AT, BT, FUX, DFUX, AU, BU, VAL, PNL, PTL
         INTEGER(ikind)  :: NS
         REAL(rkind),DIMENSION(NSMAX) :: RNPL,RTPL,RTPRPL,RTPPPL,RUPL
 
@@ -621,6 +622,16 @@
             PLF(NS)%RTPR=RTPRPL(NS)
             PLF(NS)%RTPP=RTPPPL(NS)
             PLF(NS)%RU  =RUPL(NS)
+         ENDDO
+
+      CASE(21)
+         DO NS=1,NSMAX
+            CALL pl_read_trdata(RHOL,NS,PNL,PTL)
+            PLF(NS)%RN  =PNL
+            PLF(NS)%RTPR=PTL
+            PLF(NS)%RTPP=PTL
+            PLF(NS)%RU  =0.D0
+            IF(NS.EQ.1) WRITE(6,'(A,1P3E12.4)') 'rhol,pnl,ptl=',RHOL,PNL,PTL
          ENDDO
 
       END SELECT

@@ -58,6 +58,7 @@ end subroutine WFWAVE
 subroutine WFWPRE(IERR)
 
   USE wfcomm
+  USE wfparm
   USE plload,ONLY: pl_load
   USE libbes
   IMPLICIT NONE
@@ -110,7 +111,7 @@ subroutine WFWPRE(IERR)
   
   call wffld_allocate
 
-  if (nrank.eq.0) call WFVIEW
+  if (nrank.eq.0) call WF_VIEW
 
   return
 end subroutine WFWPRE

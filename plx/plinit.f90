@@ -282,6 +282,7 @@
 !                   9: Read from file KNAMTR (TASK/TR)
 !                  12: Read from 2D nT file
 !                  14: Read from 2D nT file
+!                  21: Read from trdata
 !        MODELQ: Control safety factor profile (for MODELG=1,2)
 !                   0: Parabolic q profile (Q0,QA,RHOMIN)
 !                   1: Given current profile (RIP,PROFJ)

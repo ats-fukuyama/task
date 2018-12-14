@@ -10,6 +10,7 @@ SUBROUTINE WFANT
 
   use libmpi
   use wfcomm
+  use wfparm
   implicit none
   integer   :: IERR,NA,N
   character :: KID*1
@@ -36,11 +37,11 @@ SUBROUTINE WFANT
      if (nrank.eq.0) CALL WFPLTA
 
   ELSEIF(KID.EQ.'P') THEN
-     if (nrank.eq.0) CALL WFPARM(KID)
+     if (nrank.eq.0) CALL WF_PARM(0,'wf',IERR)
      call wfparm_broadcast
 
   ELSEIF(KID.EQ.'V') THEN
-     if (nrank.eq.0) CALL WFVIEW
+     if (nrank.eq.0) CALL WF_VIEW
 
   ELSEIF(KID.EQ.'S') THEN
 !test     if (nrank.eq.0) CALL WFWANT

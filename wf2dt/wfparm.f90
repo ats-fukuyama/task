@@ -3,7 +3,7 @@
 MODULE WFPARM
 
   PRIVATE
-  PUBLIC wf_parm,wf_view
+  PUBLIC wf_parm,wf_view,wfparm_broadcast
 
 CONTAINS
 

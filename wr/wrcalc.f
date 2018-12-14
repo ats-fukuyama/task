@@ -761,7 +761,96 @@ C
       END
 C
 C************************************************************************
-C_IDEI_QUEST_MAR15
+C
+      SUBROUTINE WR_RKR0(RKR0_1,RKR0_2)
+C
+      USE plcomm
+      USE pllocal
+      USE plprof,ONLY: PL_MAG_OLD,PL_PROF_OLD
+      INCLUDE 'wrcomm.inc'
+
+      IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
+         CKX=DCMPLX(RKRI,0.D0)
+         CKY=DCMPLX(RKPHII,0.D0)
+         CKZ=DCMPLX(RKZI,0.D0)
+         X=RPI
+         Y=2.D0*PI*RR*SIN(PHII)
+         Z=ZPI
+      ELSEIF(MODELG.EQ.11) THEN
+         CKX=DCMPLX(RKRI,0.D0)
+         CKY=DCMPLX(RKPHII,0.D0)
+         CKZ=DCMPLX(RKZI,0.D0)
+         X=RPI
+         Y=PHII
+         Z=ZPI
+      ELSE
+         CKX=DCMPLX(RKRI*COS(PHII)-RKPHII*SIN(PHII),0.D0)
+         CKY=DCMPLX(RKRI*SIN(PHII)+RKPHII*COS(PHII),0.D0)
+         CKZ=DCMPLX(RKZI,0.D0)
+         X=RPI*COS(PHII)
+         Y=RPI*SIN(PHII)
+         Z=ZPI
+      ENDIF
+C            
+      DO NS=1,NSMAX
+         MODELPS(NS)=MODELP(NS)
+         IF(MODELP(NS).GE.100.AND.MODELP(NS).LT.300) MODELP(NS)=0
+         IF(MODELP(NS).GE.300.AND.MODELP(NS).LT.500) MODELP(NS)=4
+         IF(MODELP(NS).GE.500.AND.MODELP(NS).LT.600) MODELP(NS)=6
+      ENDDO
+
+      CALL PL_MAG_OLD(XPOS,YPOS,ZPOS,RHON)
+      IF(MODELG.LE.1.OR.MODELG.GT.10) THEN
+         CALL PL_PROF3D_OLD(XPOS,YPOS,ZPOS)
+      ELSE
+         CALL PL_PROF_OLD(RHON)
+      END IF
+
+      CW=2.D0*PI*1.D6*CRF
+      CKPR=BNX*CKX+BNY*CKY+BNZ*CKZ
+      IF(ABS(CKPR).LE.1.D-8) CKPR=1.D-8
+      CKPP=SQRT(CKX**2+CKY**2+CKZ**2-CKPR**2)
+
+      CALL DPCALC(CW,CKPR,CKPP,NS,CDTNS)
+
+         CALL DP_COLD_RKPERP
+
+         RNPERP=-RNPHII*BNZ  +RNZI*BNPHI
+         OMG_C = BABS*AEE/(AME)
+         WP2=RN(1)*1.D20*AEE*AEE/(EPS0*AMP*PA(1))
+
+C         SWNSNK1 = 1.D0 - WP2/(OMG*OMG-OMG_C*OMG_C)
+C         SWNSNK2 = DCMPLX(0.D0, OMG_C*WP2/OMG/(OMG*OMG-OMG_C*OMG_C))
+C         SWNSNK3 = 1.D0 - WP2/OMG/OMG
+C
+C         W_A = SWNSNK1
+C         W_B =-((SWNSNK1 - RNPHII**2)*(SWNSNK1+SWNSNK3)+SWNSNK2*SWNSNK2)
+C         W_C = SWNSNK3*((SWNSNK1 - RNPHII**2)**2 + SWNSNK2*SWNSNK2)
+
+        STIX_X = WP2/OMG/OMG
+        STIX_Y = OMG_C/OMG
+        STIX_S = (1.D0-(STIX_X+STIX_Y**2))/(1.D0-STIX_Y**2)
+        STIX_P = 1.D0 - STIX_X
+        STIX_D = - STIX_X*STIX_Y/(1.D0-STIX_Y**2)
+
+        W_A = STIX_S
+        W_B = - STIX_S**2 + STIX_D**2 - STIX_S*STIX_P
+        W_B = W_B + (STIX_S + STIX_P)*RNPARA**2
+        W_C = STIX_P * ( (STIX_S - RNPARA**2)**2 - STIX_D**2 )
+
+
+         RN_1 = (-W_B+SQRT(W_B**2-4.D0*W_A*W_C))/2.D0/W_A-RNPERP**2
+         RN_2 = (-W_B-SQRT(W_B**2-4.D0*W_A*W_C))/2.D0/W_A-RNPERP**2
+
+C         WRITE(6,'(1P4E11.3)') W_B, SQRT(W_B**2-4.D0*W_A*W_C),RN_1, RN_2
+
+C         STOP
+
+         RKR0_1 = SQRT(RN_1)*OMG/VC
+         RKR0_2 = SQRT(RN_2)*OMG/VC
+C
+      RETURN
+      END
 C
       SUBROUTINE WR_COLD_RKR0(RKR0_1,RKR0_2)
 C

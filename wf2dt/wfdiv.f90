@@ -7,8 +7,9 @@ subroutine WFDIV
 
   use libmpi
   use wfcomm
+  use wfparm
   implicit none
-  integer   :: NE,NN
+  integer   :: NE,NN,IERR
   character :: KID*1
 
 1 continue
@@ -119,11 +120,11 @@ subroutine WFDIV
      !     call WFRELM(ID)
      
   elseif(KID.eq.'P') then
-     if(nrank.eq.0) call WFPARM(KID)
+     if(nrank.eq.0) call WF_PARM(0,'WF',IERR)
      call wfparm_broadcast
      
   elseif(KID.eq.'V') then
-     if (nrank.eq.0) call WFVIEW
+     if (nrank.eq.0) call WF_VIEW
      
   elseif(KID.eq.'S') then
      !     if (nrank.eq.0) call WFWELM(0)
