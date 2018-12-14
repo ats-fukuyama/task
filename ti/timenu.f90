@@ -14,6 +14,7 @@ CONTAINS
       USE tiprep
       USE tiexec
       USE tigout
+      USE plload,ONLY: pl_load
       
       IMPLICIT NONE
       INTEGER(ikind)       :: IERR, MODE
@@ -48,6 +49,9 @@ CONTAINS
          CALL ti_parm(0,'TI',IERR)
       ELSE IF(KID.EQ.'V') THEN
          CALL ti_view
+      ELSE IF(KID.EQ.'L') THEN
+         CALL pl_load(ierr)
+         if(ierr.ne.0) GO TO 1
       ELSE IF(KID.EQ.'R') THEN
          CALL ti_prep(ierr)
          if(ierr.ne.0) GO TO 1

@@ -258,6 +258,7 @@ END SUBROUTINE WFSDEN0
 SUBROUTINE WFSDEN2(R,Z,RN,RTPR,RTPP,RZCL)
 
   use wfcomm
+  use plprof2d
   implicit none
   integer :: NS,NSI
   real(8),intent(in) :: R,Z
@@ -273,7 +274,7 @@ SUBROUTINE WFSDEN2(R,Z,RN,RTPR,RTPP,RZCL)
   else
      LR=R-RR
      LZ=Z
-     call WFSPSI(LR,LZ,PSI)
+     call PLSPSI(LR,LZ,PSI)
      if(PSI.lt.1.D0) then
         if(MODELP.eq.1) then
            FACT=1.D0

@@ -232,6 +232,8 @@ CONTAINS
           RTA(NSA,NR)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
           RUA(NSA,NR)=PLF(NS)%RU
        END DO
+       WRITE(6,'(A,I5,1P3E12.4)') &
+            'NR,RHON,RNE,RTE=',NR,RHON,RNA(1,NR),RTA(1,NR)
     END DO
     DEALLOCATE(PLF)
 

@@ -2,7 +2,7 @@ MODULE plprof2d
 
 PRIVATE
 
-PUBLIC plsmag11,plsmag13,plsden11,plsden13 
+PUBLIC plsmag11,plsmag13,plsden11,plsden13,plspsi
 
 CONTAINS
 
