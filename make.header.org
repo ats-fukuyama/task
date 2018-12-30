@@ -55,7 +55,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #LDFLAGS=-r -o
 
 ## for Mac OSX Intel fortran compiler EM64T
-#GFLIBS=-L/usr/local/lib -lg3d-ifc64 -lgsp-ifc64 -lgdp-ifc64 -L/usr/X11R6/lib -lX11
+#GFLIBS=-L/usr/local/lib -lg3d-ifc64 -lgsp-ifc64 -lgdp-ifc64 -L/opt/X11/lib -lX11
 #GLLIBS=-L/usr/local/lib -lgsgl-ixc
 #OFLAGS = -O3
 #DFLAGS = -g -C -traceback -debug extended -align -fpe-all=0 -fmath-errno -fstack-security-check -no-ftz -check all

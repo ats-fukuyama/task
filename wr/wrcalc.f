@@ -214,22 +214,37 @@ C
          RKPHII=2.D6*PI*RF*RNPHII/VC
          IF(MODEW.NE.0) THEN
             CALL WR_COLD_RKR0(RKR0_1,RKR0_2)
-            RKR0=RKR0_1
-            CALL WRCALE_I(EPARA1,EPERP1)
-            RKR0=RKR0_2
-            CALL WRCALE_I(EPARA2,EPERP2)
+            rkr0_11= rkr0_1
+            rkr0_12=-rkr0_1
+            rkr0_21= rkr0_2
+            rkr0_22=-rkr0_2
+            WRITE(6,'(A,1P2E12.4)') 'COLD: RKR0_1,RKR0_2',RKR0_1,RKR0_2
+!            CALL WR_RKR0(RKR0_11,RKR0_12,RKR0_21,RKR0_22)
+            RKR0=RKR0_11
+            CALL WRCALE_I(EPARA,EPERP)
             WRITE(6,'(A,1P3E12.4)')
-     &           'RKR0_1,EPARA,EPWEP=',RKR0_1,EPARA1,EPERP1
-            WRITE(6,'(A,1P3E12.4)') 
-     &           'RKR0_2,EPARA,EPWEP=',RKR0_2,EPARA2,EPERP2
+     &           'RKR0_11,EPARA,EPERP=',RKR0_11,EPARA,EPERP
+            RKR0=RKR0_12
+            CALL WRCALE_I(EPARA,EPERP)
+            WRITE(6,'(A,1P3E12.4)')
+     &           'RKR0_12,EPARA,EPERP=',RKR0_12,EPARA,EPERP
+            RKR0=RKR0_21
+            CALL WRCALE_I(EPARA,EPERP)
+            WRITE(6,'(A,1P3E12.4)')
+     &           'RKR0_21,EPARA,EPERP=',RKR0_21,EPARA,EPERP
+            RKR0=RKR0_22
+            CALL WRCALE_I(EPARA,EPERP)
+            WRITE(6,'(A,1P3E12.4)')
+     &           'RKR0_22,EPARA,EPERP=',RKR0_22,EPARA,EPERP
+
             IF(MODEW.EQ.1) THEN
-               RKR0=-RKR0_1
-            ELSE IF(MODEW.EQ.2) THEN
-               RKR0=-RKR0_2
+               RKR0=RKR0_11
             ELSE IF(MODEW.EQ.-1) THEN
-               RKR0= RKR0_1
+               RKR0=RKR0_12
+            ELSE IF(MODEW.EQ.2) THEN
+               RKR0=RKR0_21
             ELSE IF(MODEW.EQ.-2) THEN
-               RKR0= RKR0_2
+               RKR0=RKR0_22
             END IF
          END IF
 
@@ -762,13 +777,17 @@ C
 C
 C************************************************************************
 C
-      SUBROUTINE WR_RKR0(RKR0_1,RKR0_2)
+      SUBROUTINE WR_RKR0(RKR0_11,RKR0_12,RKR0_21,RKR0_22)
 C
       USE plcomm
       USE pllocal
-      USE plprof,ONLY: PL_MAG_OLD,PL_PROF_OLD
+      USE plprof,ONLY: PL_MAG_OLD,PL_PROF_OLD,PL_PROF3D_OLD
       INCLUDE 'wrcomm.inc'
+      DIMENSION CDTNS(3,3),MODELPS(NSMAX)
 
+      RW=2.D6*PI*RF
+      RKZI  =RW*RNZI  /VC
+      RKPHII=RW*RNPHII/VC
       IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
          CKX=DCMPLX(RKRI,0.D0)
          CKY=DCMPLX(RKPHII,0.D0)
@@ -794,63 +813,96 @@ C
 C            
       DO NS=1,NSMAX
          MODELPS(NS)=MODELP(NS)
-         IF(MODELP(NS).GE.100.AND.MODELP(NS).LT.300) MODELP(NS)=0
-         IF(MODELP(NS).GE.300.AND.MODELP(NS).LT.500) MODELP(NS)=4
-         IF(MODELP(NS).GE.500.AND.MODELP(NS).LT.600) MODELP(NS)=6
+!         IF(MODELP(NS).GE.100.AND.MODELP(NS).LT.300) MODELP(NS)=0
+!         IF(MODELP(NS).GE.300.AND.MODELP(NS).LT.500) MODELP(NS)=4
+!         IF(MODELP(NS).GE.500.AND.MODELP(NS).LT.600) MODELP(NS)=6
       ENDDO
 
-      CALL PL_MAG_OLD(XPOS,YPOS,ZPOS,RHON)
+      CALL PL_MAG_OLD(X,Y,Z,RHON)
       IF(MODELG.LE.1.OR.MODELG.GT.10) THEN
-         CALL PL_PROF3D_OLD(XPOS,YPOS,ZPOS)
+         CALL PL_PROF3D_OLD(X,Y,Z)
       ELSE
          CALL PL_PROF_OLD(RHON)
       END IF
 
-      CW=2.D0*PI*1.D6*CRF
+      CW=2.D6*PI*RF
       CKPR=BNX*CKX+BNY*CKY+BNZ*CKZ
       IF(ABS(CKPR).LE.1.D-8) CKPR=1.D-8
       CKPP=SQRT(CKX**2+CKY**2+CKZ**2-CKPR**2)
 
+      NS=0
       CALL DPCALC(CW,CKPR,CKPP,NS,CDTNS)
 
-         CALL DP_COLD_RKPERP
+      CNPR=CKPR*VC/CW
+      CNPP=CKPP*VC/CW
+      CEPSXX=CDTNS(1,1)
+      CEPSXY=CDTNS(1,2)
+      CEPSYX=CDTNS(2,1)
+      CEPSYY=CDTNS(2,2)
+      CEPSZZ=CDTNS(3,3)
+      IF(ABS(CNPR*CNPP).LE.1.D-16) THEN
+         CEPSXZ=1.D0
+         CEPSYZ=0.D0
+         CEPSZX=1.D0
+         CEPSZY=0.D0
+      ELSE
+         CEPSXZ=1.D0+CDTNS(1,3)/(CNPR*CNPP)
+         CEPSYZ=CDTNS(2,3)/(CNPR*CNPP)
+         CEPSZX=1.D0+CDTNS(3,1)/(CNPR*CNPP)
+         CEPSZY=CDTNS(3,2)/(CNPR*CNPP)
+      END IF
+      CA=CEPSXX-(1.D0-CEPSXZ*CEPSZX)*RNPR**2
+      CB=-(CEPSXX-RNPR**2)*(CEPSYY+CEPSZZ-RNPR**2)+CEPSYX*CEPSXY
+     &   +(CEPSXY*CEPSYZ*CEPSZX+CEPSYX*CEPSZY*CEPSXZ
+     &     -(CEPSXX-RNPR**2)*CEPSYZ*CEPSZY
+     &     -(CEPSYY-RNPR**2)*CEPSXZ*CEPSZX)*RNPR**2
+      CC=(CEPSXX-RNPR**2)*(CEPSYY-RNPR**2)*CEPSZZ
+     &     -CEPSZZ*CEPSYX*CEPSXY
+      CNPP_1=(-CB+SQRT(CB**2-4.D0*CA*CC))/(2.D0*CA)
+      CNPP_2=(-CB-SQRT(CB**2-4.D0*CA*CC))/(2.D0*CA)
 
-         RNPERP=-RNPHII*BNZ  +RNZI*BNPHI
-         OMG_C = BABS*AEE/(AME)
-         WP2=RN(1)*1.D20*AEE*AEE/(EPS0*AMP*PA(1))
+      RCA=1.D0-BNX**2*COS(PHII)**2-BNY**2*SIN(PHII)**2
+      RCB=2.D0*RKPHII*(BNX**2+BNY**2)*SIN(PHII)*COS(PHII)
+      RCC=RKPHII**2*(1.D0-BNX**2*SIN(PHII)**2-BNY**2*COS(PHII)**2)
+     &   +RKZI**2*(1.D0-BNZ**2)
 
-C         SWNSNK1 = 1.D0 - WP2/(OMG*OMG-OMG_C*OMG_C)
-C         SWNSNK2 = DCMPLX(0.D0, OMG_C*WP2/OMG/(OMG*OMG-OMG_C*OMG_C))
-C         SWNSNK3 = 1.D0 - WP2/OMG/OMG
-C
-C         W_A = SWNSNK1
-C         W_B =-((SWNSNK1 - RNPHII**2)*(SWNSNK1+SWNSNK3)+SWNSNK2*SWNSNK2)
-C         W_C = SWNSNK3*((SWNSNK1 - RNPHII**2)**2 + SWNSNK2*SWNSNK2)
+      IF(REAL(CNPP_1).GT.ABS(IMAG(CNPP_1))) THEN
+         RKPP_1=REAL(CNPP_1)*REAL(CW)**2/VC**2
+         D=RCB**2-4.D0*RCA*(RCC-RKPP_1)
+         IF(D.GT.0.D0) THEN
+            WRITE(6,'(A,1P3E12.4)') 'SQRT(RKPP_1),D=',RKPP_1,D,RKPHII
+            RKR0_11=(-RCB+SQRT(D))/(2.D0*RCA)
+            RKR0_12=(-RCB-SQRT(D))/(2.D0*RCA)
+         ELSE
+            RKR0_11=0.D0
+            RKR0_12=0.D0
+         END IF
+      ELSE
+         RKR0_11=0.D0
+         RKR0_12=0.D0
+      END IF
 
-        STIX_X = WP2/OMG/OMG
-        STIX_Y = OMG_C/OMG
-        STIX_S = (1.D0-(STIX_X+STIX_Y**2))/(1.D0-STIX_Y**2)
-        STIX_P = 1.D0 - STIX_X
-        STIX_D = - STIX_X*STIX_Y/(1.D0-STIX_Y**2)
+      IF(REAL(CNPP_2).GT.ABS(IMAG(CNPP_2))) THEN
+         RKPP_2=REAL(CNPP_2)*REAL(CW)**2/VC**2
+         D=RCB**2-4.D0*RCA*(RCC-RKPP_2)
+         IF(D.GT.0.D0) THEN
+            WRITE(6,'(A,1P3E12.4)') 'SQRT(RKPP_2),D=',RKPP_2,D,RKPHII
+            RKR0_21=(-RCB+SQRT(D))/(2.D0*RCA)
+            RKR0_22=(-RCB-SQRT(D))/(2.D0*RCA)
+         ELSE
+            RKR0_21=0.D0
+            RKR0_22=0.D0
+         END IF
+      ELSE
+         RKR0_21=0.D0
+         RKR0_22=0.D0
+      END IF
 
-        W_A = STIX_S
-        W_B = - STIX_S**2 + STIX_D**2 - STIX_S*STIX_P
-        W_B = W_B + (STIX_S + STIX_P)*RNPARA**2
-        W_C = STIX_P * ( (STIX_S - RNPARA**2)**2 - STIX_D**2 )
-
-
-         RN_1 = (-W_B+SQRT(W_B**2-4.D0*W_A*W_C))/2.D0/W_A-RNPERP**2
-         RN_2 = (-W_B-SQRT(W_B**2-4.D0*W_A*W_C))/2.D0/W_A-RNPERP**2
-
-C         WRITE(6,'(1P4E11.3)') W_B, SQRT(W_B**2-4.D0*W_A*W_C),RN_1, RN_2
-
-C         STOP
-
-         RKR0_1 = SQRT(RN_1)*OMG/VC
-         RKR0_2 = SQRT(RN_2)*OMG/VC
-C
+      DO NS=1,NSMAX
+         MODELP(NS)=MODELPS(NS)
+      END DO
       RETURN
-      END
+      END         
 C
       SUBROUTINE WR_COLD_RKR0(RKR0_1,RKR0_2)
 C

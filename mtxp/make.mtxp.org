@@ -35,8 +35,8 @@
 #INCLUDE_MTX_MUMPS=-I${PETSC_DIR}/${PETSC_ARCH}/externalpackages/git.mumps/include
 #include ${PETSC_DIR}/lib/petsc/conf/variables
 ##### PETSc 3.10
-INCLUDE_MTX_MUMPS=-I${PETSC_DIR}/${PETSC_ARCH}/include
-include ${PETSC_DIR}/lib/petsc/conf/variables
+#INCLUDE_MTX_MUMPS=-I${PETSC_DIR}/${PETSC_ARCH}/include
+#include ${PETSC_DIR}/lib/petsc/conf/variables
 #####
 #INCLUDE_MTX_PETSC=-I${PETSC_DIR}/include -I${PETSC_DIR}/include/petsc -I${PETSC_DIR}/${PETSC_ARCH}/include
 #LIBMTXMPI=../mtxp/libmtxmpi.o
