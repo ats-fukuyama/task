@@ -124,9 +124,9 @@ CONTAINS
 !        NTMAX  : NUMBER OF TIME STEP
 !        NTSTEP : INTERVAL OF SNAP DATA PRINT
 !        NGTSTEP: INTERVAL OF TIME EVOLUTION SAVE
-!        NGRSTEP: INTERVAL OF RADIAL PROFILE SAVE
-!        NGTMAX_INIT: INITIAL SIZE OF NGTSTEP DATA
-!        NGRMAX_INIT: INITIAL SIZE OF NGRSTEP DATA
+!        NGRSTEP: INTERVAL OF PROFILE EVOLUTION SAVE
+!        ngt_allocate_step: allocation step size of time evolution save
+!        ngr_allocate_step: allocation step size of profile evolution save
 
 
       DT     = 0.01D0
@@ -135,16 +135,24 @@ CONTAINS
       NTSTEP = 1
       NGTSTEP = 2
       NGRSTEP = 100
-      NGTMAX_INIT = 10000
-      NGRMAX_INIT = 1000
+      ngt_allocate_step=10001
+      ngr_allocate_step=101
 
 !     ==== Convergence Parameter ====
 
-!        EPSLTI : CONVERGENCE CRITERION OF ITERATION
-!        LMAXTI : MAXIMUM COUNT OF ITERATION
+!        EPSLOOP: CONVERGENCE CRITERION OF ITERATION LOOP
+!        MAXLOOP: MAXIMUM COUNT OF ITERATION LOOP
 
-      EPSLTI = 0.001D0
-      LMAXTI = 20
+      EPSLOOP= 0.001D0
+      MAXLOOP= 20
+
+!     ==== matrix solver parameter ====
+
+!        EPSMAT : TOLERANCE for matrix solver
+!        MATTYPE: matrix solver type parameter
+
+      EPSMAT = 1.D-8
+      MATTYPE= 0
 
 !     ==== Solver Parameter ====
 !        MODEL_EQB: Solve poloidal magnetic field (0:Off, 1:On)

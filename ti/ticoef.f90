@@ -16,13 +16,13 @@ CONTAINS
     RHON=RM(NR)/RA
     DK_FIXED=DK0+(DKS-DK0)*RHON**2
 
-    DO NSA=1,NSAMAX
+    DO NSA=1,nsa_max
        AKTB(NSA,NR)=AK0*DK_FIXED
        ADTB(NSA,NR)=AD0*DK_FIXED
        AVTB(NSA,NR)=AV0*DK_FIXED*RHON
     END DO
 
-    DO NSA=1,NSAMAX
+    DO NSA=1,nsa_max
        AKNC(NSA,NR)=0.D0
        ADNC(NSA,NR)=0.D0
        AVNC(NSA,NR)=0.D0

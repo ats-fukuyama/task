@@ -24,7 +24,8 @@ FFLAGS=$(OFLAGS)
 MODINCLUDE= -I./$(MOD) -I../lib/$(MOD) -I../plx/$(MOD) -I../eq/$(MOD) -I../mtxp/$(MOD) -I../../bpsd/$(MOD)
 
 SRCS = fpcomm.f90 eg_read.f90 fpinit.f90 fpmpi.f90 fpbroadcast.f90 fpsub.f90 \
-       fpexec.f90 fpsave.f90 fpcaltp.f90 fpcaldeff.f90 \
+       fpexec.f90 fpsave.f90 \
+       fpcaltp.f90 fpcalte.f90 fpcaldeff.f90 fpcalchieff.f90 \
        fpoutdata.f90 fpwmin.f90 fpwrin.f90 fpcalwm.f90 fpcalwr.f90 fpcalw.f90 \
        fpcalcn.f90 fpcalcnr.f90 fpcalc.f90 fpnfrr.f90 fpnflg.f90 \
        cdbmfp.f90 fpcalr.f90 sv_read.f90 fpcoef.f90 fpcale.f90 \

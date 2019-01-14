@@ -1,3 +1,13 @@
  &dp
-   modelv(1)=2
+   rf0=13.56D0
+   rky0=0.D0
+   bb=0.01D0
+   nsmax=2 pa(2)=1.D0 pz(2)=1.D0
+   MODELP=1,1
+   pn=1.D-2   1.D-2
+   ptpr=0.1D0 0.1D0
+   ptpp=0.1D0 0.1D0
+   pns=1.D-2  1.D-2
+   pts=0.1D0  0.1D0
  &end
+

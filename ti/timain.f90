@@ -9,7 +9,6 @@
 PROGRAM ti
 
   USE ticomm
-  USE bpsd
   USE plinit,ONLY: pl_init
   USE plparm,ONLY: pl_parm
   USE equnit_mod
@@ -17,28 +16,33 @@ PROGRAM ti
   USE tiparm,ONLY: ti_parm
   USE timenu,ONLY: ti_menu
   USE ADPOST
+  USE libmtx
   IMPLICIT NONE
   INTEGER(ikind):: IERR
 
 !     ------ INITIALIZATION ------
 
-  WRITE(6,*) '***** TASK/TI  18/02/24 *****'
+  CALL mtx_initialize
 
-  CALL GSOPEN
-  OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
-  CALL read_adpost(IERR)
-  IF(IERR.NE.0) WRITE(6,*) 'XX read_adpost: IERR=',IERR
+  IF(nrank.EQ.0) THEN
+     WRITE(6,*) '***** TASK/TI  19/01/11 *****'
+     CALL GSOPEN
+     OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
+     CALL read_adpost(IERR)
+     IF(IERR.NE.0) WRITE(6,*) 'XX read_adpost: IERR=',IERR
+  END IF
 
   CALL pl_init
   call eq_init
   CALL ti_init
 
-  CALL pl_parm(1,'plparm',IERR)
-  CALL eq_parm(1,'eqparm',IERR)
   CALL ti_parm(1,'tiparm',IERR)
 
   CALL ti_menu
 
-  CALL GSCLOS
+  IF(nrank.EQ.0) THEN
+     CALL GSCLOS
+  END IF
+  CALL mtx_finalize
   STOP
 END PROGRAM ti

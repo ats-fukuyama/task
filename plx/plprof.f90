@@ -3,24 +3,40 @@
 
     REAL(rkind):: XPOS_LOC,YPOS_LOC,ZPOS_LOC,RHON_LOC
     REAL(rkind):: BNX,BNY,BNZ,BABS
-    REAL(rkind),DIMENSION(NSM):: RN,RTPR,RTPP,RU,RZCL
-    REAL(rkind),DIMENSION(NSM):: RLN,RLTPR,RLTPP,RLU
+    REAL(rkind),DIMENSION(NSM):: RN,RTPR,RTPP,RU,RNUC,RZCL
+!    REAL(rkind),DIMENSION(NSM):: GRDN,GRDTPR,GRDTPP,GRDU
+    REAL(rkind),DIMENSION(NSM):: RLN,RLRPT,RLTPP,RLU
   END MODULE pllocal
 
   MODULE plprof
     USE bpsd_kinds
 
     TYPE pl_mag_type
-       real(rkind):: BABS,BNX,BNY,BNZ
+       real(rkind):: BABS,BNX,BNY,BNZ,RHON
+                           ! BABS: magnetic field strength [T]
+                           ! BNX:  normalized X component of B (phi=0 deg)
+                           ! BNY:  normalized Y component of B (phi=90 deg)
+                           ! BNZ:  normalized Z component of B (vertical)
+                           ! RHON: normalized minor radius
     END TYPE pl_mag_type
 
-    TYPE pl_plf_type
-       real(rkind):: RN,RTPR,RTPP,RU
+    TYPE pl_plf_type       ! local plasma parameter
+       real(rkind):: RN,RTPR,RTPP,RU,RNUC,RZCL
+                           ! RN:   number density [10^{20}m^{-3}]
+                           ! RTPR: parallel temperature [keV]
+                           ! RTPP: perpendicular temperature [keV]
+                           ! RU:   toroidal fluid velocity [m/s]
+                           ! RNUC: collision frequency [1/s]
+                           ! RZCL: collision parameter (RNUC/OMEGA)
     END TYPE pl_plf_type
 
-    TYPE pl_lng_type
-       real(rkind):: RLN,RLTPR,RLTPP,RLU
-    END TYPE pl_lng_type
+    TYPE pl_grd_type
+       real(rkind):: grdn,grdtpr,grdtpp,grdu
+                           ! GRDNN:  density gradient [1/m]
+                           ! GRDTPR: parallel temperature gradient [1/m]
+                           ! GRDTPP: perpendicular temperature gradient [1/m]
+                           ! RU:     toroidal fluid velocity gradient [1/m]
+    END TYPE pl_grd_type
 
     INTERFACE
        SUBROUTINE GETRZ(RL,Z,PP,BR,BZ,BT,RHON)
@@ -100,7 +116,8 @@
       REAL(rkind),INTENT(OUT):: RHON
       TYPE(pl_mag_type):: MAG
       
-      CALL pl_mag(X,Y,Z,RHON,MAG)
+      CALL pl_mag(X,Y,Z,MAG)
+      RHON=MAG%RHON
 
       XPOS_LOC=X
       YPOS_LOC=Y
@@ -116,15 +133,15 @@
 
 !     ****** CALCULATE LOCAL MAGNETIC FIELD ******
 
-    SUBROUTINE pl_mag(X,Y,Z,RHON,MAG)
+    SUBROUTINE pl_mag(X,Y,Z,MAG)
 
       USE plcomm, ONLY: RA,RR,BB,MODELG
       USE plprof2d
       USE plload
       IMPLICIT NONE
       REAL(rkind),INTENT(in):: X,Y,Z
-      REAL(rkind),INTENT(OUT):: RHON
       TYPE(pl_mag_type),INTENT(OUT):: MAG
+      REAL(rkind):: RHON
       INTEGER:: IERR
       REAL(8):: BABS,AL(3)
 
@@ -160,6 +177,7 @@
       END SELECT
 
       MAG%BABS = SQRT(BX**2+BY**2+BZ**2)
+      MAG%RHON = RHON
 
       IF(MAG%BABS.LE.0.D0) THEN
          MAG%BNX = 0.D0
@@ -278,6 +296,8 @@
          RTPR(NS)=PLF(NS)%RTPR
          RTPP(NS)=PLF(NS)%RTPP
          RU(NS)  =PLF(NS)%RU
+!         RNUC(NS)=PLF(NS)%RNUC
+!         RZCL(NS)=PLF(NS)%RZCL
       ENDDO
       RETURN
     END SUBROUTINE pl_prof2
@@ -287,7 +307,7 @@
     SUBROUTINE pl_prof3d_old(X,Y,Z)
 
       USE plcomm,ONLY: NSMAX
-      USE pllocal,ONLY: RN,RTPR,RTPP,RU
+      USE pllocal,ONLY: RN,RTPR,RTPP,RU,RNUC,RZCL
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: X,Y,Z
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
@@ -299,6 +319,8 @@
          RTPR(NS)=PLF(NS)%RTPR
          RTPP(NS)=PLF(NS)%RTPP
          RU(NS)=PLF(NS)%RU
+         RNUC(NS)=PLF(NS)%RNUC
+         RZCL(NS)=PLF(NS)%RZCL
       END DO
       RETURN
     END SUBROUTINE pl_prof3d_old
@@ -308,7 +330,7 @@
     SUBROUTINE pl_prof_old(RHON)
 
       USE plcomm,ONLY: NSMAX
-      USE pllocal,ONLY: RN,RTPR,RTPP,RU
+      USE pllocal,ONLY: RN,RTPR,RTPP,RU,RNUC,RZCL
       IMPLICIT NONE
       REAL(rkind),INTENT(IN):: RHON
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
@@ -320,6 +342,8 @@
          RTPR(NS)=PLF(NS)%RTPR
          RTPP(NS)=PLF(NS)%RTPP
          RU(NS)=PLF(NS)%RU
+         RNUC(NS)=PLF(NS)%RNUC
+         RZCL(NS)=PLF(NS)%RZCL
       END DO
       RETURN
     END SUBROUTINE pl_prof_old
@@ -332,6 +356,8 @@
 !             PLF(NS)%RTPR : Parallel temperature
 !             PLF(NS)%RTPP : Perpendicular temperature
 !             PLF(NS)%RU   : Toroidal rotation velocity
+!             PLF(NS)%RZCL : collision factor (=nu/omega) 
+!                                  : nu will be given separately in future
 
 
 !     ****** CALCULATE PLASMA PROFILE in 3D ******
@@ -349,7 +375,7 @@
 
     SUBROUTINE pl_prof3d(X,Y,Z,PLF)
 
-        USE plcomm,ONLY: PZ,PN,PTPR,PTPP,PU,PNS,PTS,PUS, &
+        USE plcomm,ONLY: PZ,PN,PTPR,PTPP,PU,PNS,PTS,PUS,PZCL, &
              NSMAX,MODELN,MODELG, &
              RR,RA
         USE plprof2d
@@ -382,6 +408,8 @@
               PLF(NS)%RTPR=(PTPR(NS)-PTS(NS))*FACTT+PTS(NS)
               PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACTT+PTS(NS)
               PLF(NS)%RU  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
+              PLF(NS)%RNUC=0.D0
+              PLF(NS)%RZCL=PZCL(NS)
            END DO
         CASE(1)
            IF(RA.EQ.0.D0) THEN
@@ -402,6 +430,8 @@
               PLF(NS)%RTPR=(PTPR(NS)-PTS(NS))*FACTT+PTS(NS)
               PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACTT+PTS(NS)
               PLF(NS)%RU  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
+              PLF(NS)%RNUC=0.D0
+              PLF(NS)%RZCL=PZCL(NS)
            END DO
         CASE(11)
            CALL PLSDEN11(X,Y,RNPL,RTPRPL,RTPPPL,RZCLPL)
@@ -410,6 +440,8 @@
               PLF(NS)%RTPR=RTPRPL(NS)
               PLF(NS)%RTPP=RTPPPL(NS)
               PLF(NS)%RU  =0.D0
+              PLF(NS)%RNUC=0.D0
+              PLF(NS)%RZCL=PZCL(NS)
            ENDDO
         CASE(12)
            CALL pl_read_p2D(X,Y,RNPL,RTPL,RUPL,NSMAXL,IERR)
@@ -418,6 +450,8 @@
               PLF(NS)%RTPR=RTPL(NS)
               PLF(NS)%RTPP=RTPL(NS)
               PLF(NS)%RU  =RUPL(NS)
+              PLF(NS)%RNUC=0.D0
+              PLF(NS)%RZCL=PZCL(NS)
            ENDDO
         CASE(13)
            CALL PLSDEN13(X,Y,RNPL,RTPRPL,RTPPPL,RZCLPL)
@@ -426,6 +460,8 @@
               PLF(NS)%RTPR=RTPRPL(NS)
               PLF(NS)%RTPP=RTPPPL(NS)
               PLF(NS)%RU  =0.D0
+              PLF(NS)%RNUC=0.D0
+              PLF(NS)%RZCL=PZCL(NS)
            ENDDO
         CASE DEFAULT
            CALL pl_mag_old(X,Y,Z,RHON)
@@ -440,7 +476,7 @@
 
     SUBROUTINE pl_prof(RHON,PLF)
 
-        USE plcomm,ONLY: PZ,PN,PTPR,PTPP,PU,PNS,PTS,PUS, &
+        USE plcomm,ONLY: PZ,PN,PTPR,PTPP,PU,PNS,PTS,PUS,PZCL, &
              NSMAX,MODELN,RA,RB, &
              PROFN1,PROFN2,PROFT1,PROFT2, PROFU1,PROFU2, &
              PNITB,PTITB,PUITB,RHOITB,RHOEDG
@@ -476,6 +512,8 @@
                  PLF(NS)%RTPR=PTS(NS)
                  PLF(NS)%RTPP=PTS(NS)
                  PLF(NS)%RU  =PUS(NS)
+                 PLF(NS)%RNUC=0.D0
+                 PLF(NS)%RZCL=PZCL(NS)
               ENDDO
            ELSE
 
@@ -487,12 +525,16 @@
                  PLF(NS)%RTPR=(PTPR(NS)-PTS(NS))*FACTT+PTS(NS)
                  PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACTT+PTS(NS)
                  PLF(NS)%RU  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
+                 PLF(NS)%RNUC=0.D0
+                 PLF(NS)%RZCL=PZCL(NS)
                  IF(RHOL.LT.RHOITB(NS)) THEN
                     FACTITB =(1.D0-(RHOL/RHOITB(NS))**4)**2
                     PLF(NS)%RN  =PLF(NS)%RN  +PNITB(NS)*FACTITB
                     PLF(NS)%RTPR=PLF(NS)%RTPR+PTITB(NS)*FACTITB
                     PLF(NS)%RTPP=PLF(NS)%RTPP+PTITB(NS)*FACTITB
                     PLF(NS)%RU  =PLF(NS)%RU  +PUITB(NS)*FACTITB
+                    PLF(NS)%RNUC=0.D0
+                    PLF(NS)%RZCL=PZCL(NS)
                ENDIF
             ENDDO
          ENDIF
@@ -504,6 +546,8 @@
                PLF(NS)%RTPR=PTS(NS)
                PLF(NS)%RTPP=PTS(NS)
                PLF(NS)%RU  =PUS(NS)
+               PLF(NS)%RNUC=0.D0
+               PLF(NS)%RZCL=PZCL(NS)
             ENDDO
          ELSE
             CALL GETPP(0.D0,PL0)
@@ -515,6 +559,8 @@
                PLF(NS)%RTPR=PTPR(NS)*FACT
                PLF(NS)%RTPP=PTPP(NS)*FACT
                PLF(NS)%RU  =(PU(NS)-PUS(NS))*FACTU+PUS(NS)
+               PLF(NS)%RNUC=0.D0
+               PLF(NS)%RZCL=PZCL(NS)
             ENDDO
          ENDIF
 
@@ -525,6 +571,8 @@
                PLF(NS)%RTPR=PTS(NS)
                PLF(NS)%RTPP=PTS(NS)
                PLF(NS)%RU  =PUS(NS)
+               PLF(NS)%RNUC=0.D0
+               PLF(NS)%RZCL=PZCL(NS)
             ENDDO
          ELSE
             DO NS=1,NSMAX
@@ -559,12 +607,16 @@
                PLF(NS)%RTPR=(PTPR(NS)-PTS(NS))*FACTT+PTS(NS)
                PLF(NS)%RTPP=(PTPP(NS)-PTS(NS))*FACTT+PTS(NS)
                PLF(NS)%RU  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
+               PLF(NS)%RNUC=0.D0
+               PLF(NS)%RZCL=PZCL(NS)
                IF(RHOL.LT.RHOITB(NS)) THEN
                   FACTITB =(1.D0-(RHOL/RHOITB(NS))**4)**2
                   PLF(NS)%RN  =PLF(NS)%RN  +PNITB(NS)*FACTITB
                   PLF(NS)%RTPR=PLF(NS)%RTPR+PTITB(NS)*FACTITB
                   PLF(NS)%RTPP=PLF(NS)%RTPP+PTITB(NS)*FACTITB
                   PLF(NS)%RU  =PLF(NS)%RU  +PUITB(NS)*FACTITB
+                  PLF(NS)%RNUC=0.D0
+                  PLF(NS)%RZCL=PZCL(NS)
                ENDIF
             ENDDO
          ENDIF
@@ -596,6 +648,8 @@
                   PLF(NS)%RTPP=PTS(NS)
                ENDIF
                PLF(NS)%RU  =PUS(NS)
+               PLF(NS)%RNUC=0.D0
+               PLF(NS)%RZCL=PZCL(NS)
             ENDDO
          ELSE
             DO NS=1,NSMAX
@@ -612,6 +666,8 @@
                   PLF(NS)%RTPP=((PTPP(NS)-PTS(NS))*FACTT+PTS(NS))
                ENDIF
                PLF(NS)%RU  = (PU(NS)  -PUS(NS))*FACTU+PUS(NS)
+               PLF(NS)%RNUC=0.D0
+               PLF(NS)%RZCL=PZCL(NS)
             ENDDO
          ENDIF
 
@@ -622,6 +678,8 @@
             PLF(NS)%RTPR=RTPRPL(NS)
             PLF(NS)%RTPP=RTPPPL(NS)
             PLF(NS)%RU  =RUPL(NS)
+            PLF(NS)%RNUC=0.D0
+            PLF(NS)%RZCL=PZCL(NS)
          ENDDO
 
       CASE(21)
@@ -631,6 +689,8 @@
             PLF(NS)%RTPR=PTL
             PLF(NS)%RTPP=PTL
             PLF(NS)%RU  =0.D0
+            PLF(NS)%RNUC=0.D0
+            PLF(NS)%RZCL=PZCL(NS)
             IF(NS.EQ.1) WRITE(6,'(A,1P3E12.4)') 'rhol,pnl,ptl=',RHOL,PNL,PTL
          ENDDO
 
@@ -638,6 +698,22 @@
 
       RETURN
     END SUBROUTINE pl_prof
+
+    SUBROUTINE pl_grad(rhon,grd)
+      USE plcomm,ONLY: ra,nsmax
+      IMPLICIT NONE
+      REAL(rkind),INTENT(IN):: rhon
+      TYPE(pl_grd_type),DIMENSION(NSMAX),INTENT(OUT):: grd
+      INTEGER:: ns
+
+      DO ns=1,nsmax
+         grd(ns)%grdn  =-2.D0*rhon/RA**2
+         grd(ns)%grdtpr=-2.D0*rhon/RA**2
+         grd(ns)%grdtpp=-2.D0*rhon/RA**2
+         grd(ns)%grdu  =-2.D0*rhon/RA**2
+      END DO
+      RETURN
+    END SUBROUTINE pl_grad
 
     SUBROUTINE pl_bpsd_get(rho,rn,rtpr,rtpp,ru)
       USE plcomm

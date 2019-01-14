@@ -134,11 +134,11 @@ CONTAINS
   SUBROUTINE DPLDFM(NS,ID,IERR)
 
     USE dpcomm
-    USE pllocal
-    USE plprof,ONLY: pl_prof_old
+    USE plprof
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NS,ID  ! ID=0 : non-relativistic, ID=1: relativistic
     INTEGER,INTENT(OUT):: IERR
+    TYPE(pl_plf_type),DIMENSION(nsmax):: plf
     INTEGER NR,NTH,NSA,NP,NSA1
     REAL(rkind):: PTH0W,RHON,RN0,TPR,TPP,RT0
     REAL(rkind):: TNPR,TNPP,SUM,PML,PPP,PPR,EX,TN00,FACTOR
@@ -200,11 +200,11 @@ CONTAINS
 
     DO NR=1,NRMAX
        RHON=RM(NR)
-       CALL PL_PROF_OLD(RHON)
+       CALL PL_PROF(RHON,plf)
 
-       RN0 = RN(NSA)
-       TPR = RTPR(NSA)
-       TPP = RTPP(NSA)
+       RN0 = plf(NSA)%RN
+       TPR = plf(NSA)%RTPR
+       TPP = plf(NSA)%RTPP
        RT0 = (TPR+2.D0*TPP)/3.D0
 
        IF(ID.EQ.0) THEN
@@ -264,14 +264,14 @@ CONTAINS
 
 !     ****** SET LOCAL VELOCITY DISTRIBUTION DATA ******
 
-  SUBROUTINE DPFPFL(NS1,IERR)
+  SUBROUTINE DPFPFL(NS1,mag,IERR)
 
       USE dpcomm
-      USE pllocal
-      USE plprof,ONLY: pl_bminmax
+      USE plprof
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NS1
       INTEGER,INTENT(OUT):: IERR
+      TYPE(pl_mag_type),INTENT(IN):: mag
       REAL(rkind),DimensION(:),ALLOCATABLE:: THT,FPT,FPTX,FPR,FPRX
       REAL(rkind),DimensION(:,:),ALLOCATABLE:: U2
       INTEGER:: NSA,NSA1,NS,NP,NTH,NR,ID,NTH2
@@ -347,9 +347,9 @@ CONTAINS
          ENDDO
       ENDDO
 
-      RHON=RHON_LOC
+      RHON=mag%rhon
       CALL PL_BMINMAX(RHON,BMINL,BMAXL)
-      PSIS=BABS/BMINL
+      PSIS=mag%BABS/BMINL
 
       DO NP=1,NPMAX
          DO NTH=1,NTHMAX
@@ -391,12 +391,13 @@ CONTAINS
 
 !****** SET MAXWELLIAN VELOCITY DISTRIBUTION DATA ******
 
-  SUBROUTINE DPFMFL(NS,ID)
+  SUBROUTINE DPFMFL(NS,plf,ID)
 
       USE dpcomm
-      USE pllocal
+      USE plprof
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NS,ID
+      TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
       REAL(RKIND):: RN0,TPR,TPP,RT0,PTH0W,TNPR,TNPP,SUM,PPP,PPR,EX
       REAL(RKIND):: TN00,PML,FACTOR
       INTEGER:: NP,NTH
@@ -408,9 +409,9 @@ CONTAINS
       PT0 = (PTPR(NS)+2*PTPP(NS))/3.D0
       PTH0 = SQRT(PT0*1.D3*AEE*AMP*PA(NS))
 
-      RN0 = RN(NS)
-      TPR = RTPR(NS)
-      TPP = RTPP(NS)
+      RN0 = plf(NS)%RN
+      TPR = plf(NS)%RTPR
+      TPP = plf(NS)%RTPP
       RT0 = (TPR+2.D0*TPP)/3.D0
 
       IF(ID.EQ.0) THEN

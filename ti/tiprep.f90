@@ -8,6 +8,8 @@ CONTAINS
 
     USE ticomm
     USE plprof
+    USE tirecord
+    USE libmtx
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
     INTEGER:: NS,NSA,NZ,NEQ,NR,NV
@@ -16,7 +18,7 @@ CONTAINS
 
     IERR=0
 
-!   *** count NSAMAX: number of active particles ***
+!   *** count NSA_MAX: number of active particles ***
 
     NSA=0
     DO NS=1,NSMAX
@@ -36,9 +38,9 @@ CONTAINS
           STOP
        END SELECT
     END DO
-    NSAMAX=NSA
+    nsa_max=NSA
 
-!   *** ALLOCATE array for NSAMAX and NRMAX ***
+!   *** ALLOCATE array for nsa_max and NRMAX ***
 
     CALL allocate_ticomm(IERR)
     IF(IERR.NE.0) THEN
@@ -79,15 +81,15 @@ CONTAINS
           END DO
        END SELECT
     END DO
-    IF(NSA.NE.NSAMAX) THEN
-       WRITE(6,*) 'XX ti_prep: INCONSISTENT NSAMAX'
+    IF(NSA.NE.nsa_max) THEN
+       WRITE(6,*) 'XX ti_prep: INCONSISTENT nsa_max'
        STOP
     END IF
 
 !   *** Display NSA variables ***
 
     WRITE(6,*) 'NSA  ','NS   ','ID   ','PMA         ','PZA'
-    DO NSA=1,NSAMAX
+    DO NSA=1,nsa_max
        WRITE(6,'(3I5,1P2E12.4)') &
             NSA,NS_NSA(NSA),ID_NS(NS_NSA(NSA)),PMA(NSA),PZA(NSA)
     END DO
@@ -137,7 +139,7 @@ CONTAINS
        NSA_NEQ(NEQ)=0
        NV_NEQ(NEQ)=1
     END IF
-    DO NSA=1,NSAMAX
+    DO NSA=1,nsa_max
        NS=NS_NSA(NSA)
        IF(MODEL_EQN.EQ.1) THEN
           SELECT CASE(ID_NS(NS))
@@ -181,7 +183,7 @@ CONTAINS
        STOP
     END IF
 
-    NEQ_NVNSA(1:3,0:NSAMAX)=0.D0
+    NEQ_NVNSA(1:3,0:nsa_max)=0.D0
     DO NEQ=1,NEQMAX
        NV=NV_NEQ(NEQ)
        NSA=NSA_NEQ(NEQ)
@@ -196,7 +198,7 @@ CONTAINS
             NEQ,NS_NSA(NSA_NEQ(NEQ)),NSA_NEQ(NEQ),NV_NEQ(NEQ)
     END DO
     WRITE(6,*) 'NS   ','NSA  ','NV   ','NEQ  '
-    DO NSA=1,NSAMAX
+    DO NSA=1,nsa_max
        DO NV=1,3
           WRITE(6,'(4I5)') NS_NSA(NSA),NSA,NV,NEQ_NVNSA(NV,NSA)
        END DO
@@ -212,9 +214,12 @@ CONTAINS
        RG(NR)=NR*DR
     END DO
 
+    voltot=0.D0
     DO NR=1,NRMAX
        DVRHO(NR)=4.D0*PI*PI*RR*RKAP*RM(NR)
+       voltot=voltot+DVRHO(NR)*DR
     END DO
+    DVRHOS=4.D0*PI*PI*RR*RKAP*RG(NRMAX)
 
 !   *** initial profile ***
 
@@ -222,7 +227,7 @@ CONTAINS
     DO NR=1,NRMAX
        RHON=RM(NR)/RA
        CALL pl_prof(RHON,plf)
-       DO NSA=1,NSAMAX
+       DO NSA=1,nsa_max
           NS=NS_NSA(NSA)
           IF(ID_NS(NS).LE.2) THEN
              RNA(NSA,NR)=PLF(NS)%RN
@@ -232,16 +237,38 @@ CONTAINS
           RTA(NSA,NR)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
           RUA(NSA,NR)=PLF(NS)%RU
        END DO
-       WRITE(6,'(A,I5,1P3E12.4)') &
-            'NR,RHON,RNE,RTE=',NR,RHON,RNA(1,NR),RTA(1,NR)
+!       WRITE(6,'(A,I5,1P3E12.4)') &
+!            'NR,RHON,RNE,RTE=',NR,RHON,RNA(1,NR),RTA(1,NR)
     END DO
     DEALLOCATE(PLF)
 
     NT=0
     T=0.D0
-    NTGT=0
-    NTGR=0
+    ngt_max=0
+    ngr_max=0
+    IF(ALLOCATED(gt)) DEALLOCATE(gt)
+    IF(ALLOCATED(gvt)) DEALLOCATE(gvt)
+    IF(ALLOCATED(gvta)) DEALLOCATE(gvta)
+    ngt_allocate_max=0
+    IF(ALLOCATED(grt)) DEALLOCATE(grt)
+    IF(ALLOCATED(gvrt)) DEALLOCATE(gvrt)
+    IF(ALLOCATED(gvrta)) DEALLOCATE(gvrta)
+    ngr_allocate_max=0
     
+    imax=NRMAX*NEQMAX
+    jwidth=4*NEQMAX-1
+    CALL mtx_setup(imax,istart,iend,jwidth)
+    NR_START=(istart+NEQMAX-1)/NEQMAX
+    NR_END=(iend+NEQMAX-1)/NEQMAX
+    CALL mtx_cleanup
+
+    WRITE(6,'(A,I5,6I8/)') 'nrank: imax/s/e,nrmax/s/e=', &
+                        nrank, imax,istart,iend,nrmax,nr_start,nr_end
+
+    IF(MOD(NT,NTSTEP ).EQ.0) CALL ti_snap         ! integrate and save
+    IF(MOD(NT,NGTSTEP).EQ.0) CALL ti_record_ngt   ! save for time history
+    IF(MOD(NT,NGRSTEP).EQ.0) CALL ti_record_ngr   ! save for radial profile
+
     RETURN
   END SUBROUTINE ti_prep
 END MODULE tiprep

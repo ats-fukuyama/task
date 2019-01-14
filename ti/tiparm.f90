@@ -78,7 +78,8 @@ CONTAINS
            KNAMEQ,KNAMEQ2,KNAMTR, &
            PT,PROFJ1,PROFJ2,DT, &
            NRMAX,NTMAX,NTSTEP,NGTSTEP,NGRSTEP, &
-           NGTMAX_INIT,NGRMAX_INIT,NTSTEP_COEF,EPSLTI,LMAXTI, &
+           ngt_allocate_step,ngr_allocate_step, &
+           EPSLOOP,MAXLOOP,EPSMAT,MATTYPE, &
            MODEL_EQB,MODEL_EQN,MODEL_EQT,MODEL_EQU, &
            MODEL_KAI,MODEL_DRR,MODEL_VR,MODEL_NC, &
            MODEL_NF,MODEL_NB,MODEL_EC,MODEL_LH,MODEL_IC, &
@@ -93,7 +94,7 @@ CONTAINS
            PELTS,PELDT,PELTE,PELRAD,PELVEL, &
            PSCIN,PSCR0,PSCRW,PSCPAT, &
            SYNC_WALL,SYNC_CONV, &
-           KNAMLOG
+           KNAMLOG,IDEBUG
       
       IERR=0
 
@@ -125,8 +126,9 @@ CONTAINS
       WRITE(6,'(A)') '        MODELG,MODELN,MODELQ,MODEL_NPROF,'
       WRITE(6,'(A)') '        KNAMEQ,KNAMEQ2,KNAMTR,'
       WRITE(6,'(A)') '        PT,PROFJ1,PROFJ2,DT,'
-      WRITE(6,'(A)') '        NRMAX,NTMAX,NTSTEP,NGTSTEP,NGRSTEP,NTSTEP_CONF,'
-      WRITE(6,'(A)') '        NGTMAX_INIT,NGRMAX_INIT,EPSLTI,LMAXTI,'
+      WRITE(6,'(A)') '        NRMAX,NTMAX,NTSTEP,NGTSTEP,NGRSTEP,'
+      WRITE(6,'(A)') '        ngt_allocate_step,ngr_allocate_step,'
+      WRITE(6,'(A)') '        EPSLOOP,MAXLOOP,EPSMAT,MATTYPE,'
       WRITE(6,'(A)') '        MODEL_EQB,MODEL_EQN,MODEL_EQT,MODEL_EQU,'
       WRITE(6,'(A)') '        MODEL_KAI,MODEL_DRR,MODEL_VR,MODEL_NC,'
       WRITE(6,'(A)') '        MODEL_NF,MODEL_NB,MODEL_EC,MODEL_LH,MODEL_IC,'
@@ -140,7 +142,7 @@ CONTAINS
       WRITE(6,'(A)') '        PELIN,PELR0,PELRW,PELPAT(NSM),'
       WRITE(6,'(A)') '        PELTS,PELDT,PELTE,PELRAD,PELVEL,'
       WRITE(6,'(A)') '        PSCIN,PSCR0,PSCRW,PSCPAT(NSM),'
-      WRITE(6,'(A)') '        SYNC_WALL,SYNC_CONV,KNAMLOG'
+      WRITE(6,'(A)') '        SYNC_WALL,SYNC_CONV,KNAMLOG,IEBUG'
       RETURN
     END SUBROUTINE ti_plst
 
@@ -187,23 +189,23 @@ CONTAINS
       WRITE(6,*) '    ','PN          ','PNS         ', &
                         'PT          ','PTS         ', &
                         'PU          ','PUS         '
+      WRITE(6,*) '    ','PROFN1      ','PROFN2      ', &
+                        'PROTT1      ','PROFT2      ', &
+                        'PROFU1      ','PROFU2      '
 
       DO NS=1,NSMAX
          WRITE(6,611) NS,PM(NS),PZ(NS),ID_NS(NS),NZMIN_NS(NS),NZMAX_NS(NS), &
                       NZINI_NS(NS),KID_NS(NS)
          WRITE(6,612) PN(NS),PNS(NS),PT(NS),PTS(NS),PU(NS),PUS(NS)
+         WRITE(6,612) PROFN1(NS),PROFN2(NS),PROFT1(NS),PROFT2(NS),&
+                      PROFU1(NS),PROFU2(NS)
       END DO
       
-      WRITE(6,601) 'PROFN1      ',PROFN1, &
-                   'PROFT1      ',PROFT1, &
-                   'PROFU1      ',PROFU1
-      WRITE(6,601) 'PROFN2      ',PROFN2, &
-                   'PROFT2      ',PROFT2, &
-                   'PROFU2      ',PROFU2
       WRITE(6,601) 'DT          ',DT, &
                    'PROFJ1      ',PROFJ1, &
                    'PROFJ2      ',PROFJ2
-      WRITE(6,601) 'EPSLTI      ',EPSLTI
+      WRITE(6,601) 'EPSLOOP     ',EPSLOOP, &
+                   'EPSMAT      ',EPSMAT
       WRITE(6,602) 'MODELG      ',MODELG, &
                    'MODELN      ',MODELN, &
                    'MODELQ      ',MODELQ, &
@@ -213,9 +215,8 @@ CONTAINS
                    'NGTSTEP     ',NGTSTEP, &
                    'NGRSTEP     ',NGRSTEP
       WRITE(6,602) 'NRMAX       ',NRMAX, &
-                   'NTSTEP_COEF ',NTSTEP_COEF, &
-                   'NGTMAX_INIT ',NGTMAX_INIT, &
-                   'NGRMAX_INIT ',NGRMAX_INIT
+                   'ngt_alc_step',ngt_allocate_step, &
+                   'ngr_alc_step',ngr_allocate_step
       WRITE(6,602) 'MODEL_EQB   ',MODEL_EQB, &
                    'MODEL_EQN   ',MODEL_EQN, &
                    'MODEL_EQT   ',MODEL_EQT, &
@@ -233,7 +234,9 @@ CONTAINS
                    'MODEL_PEL   ',MODEL_PEL, &
                    'MODEL_PSC   ',MODEL_PSC
       WRITE(6,602) 'MODEL_SYNC  ',MODEL_SYNC, &
-                   'LMAXTI      ',LMAXTI
+                   'MAXLOOP     ',MAXLOOP, &
+                   'MATTYPE     ',MATTYPE, &
+                   'IDEBUG      ',IDEBUG
       WRITE(6,*)
       WRITE(6,601) 'AK0         ',AK0, &
                    'AD0         ',AD0, &
@@ -295,7 +298,7 @@ CONTAINS
       RETURN
 
   601 FORMAT(A12,'=',1PE12.4:2X,A12,'=',1PE12.4:2X,A12,'=',1PE12.4)
-  602 FORMAT(A12,'=',I5:2X,A12,'=',I5:2X,A12,'=',I5,:2X,A12,'=',I5)
+  602 FORMAT(A12,'=',I5:2X,A12,'=',I5:2X,A12,'=',I5:2X,A12,'=',I5)
   611 FORMAT(I4,2(1PE12.4:),4I4,A)
   612 FORMAT(4X,6(1PE12.4:))
   613 FORMAT(I4,2(1PE12.4:))
@@ -428,148 +431,154 @@ CONTAINS
       idata( 3)=NTSTEP
       idata( 4)=NGTSTEP
       idata( 5)=NGRSTEP
-      idata( 6)=NGTMAX_INIT
-      idata( 7)=NGRMAX_INIT
-      idata( 8)=NTSTEP_COEF
-      idata( 9)=LMAXTI
-      idata(10)=MODEL_EQB
-      idata(11)=MODEL_EQN
-      idata(12)=MODEL_EQT
-      idata(13)=MODEL_EQU
-      idata(14)=MODEL_KAI
-      idata(15)=MODEL_DRR
-      idata(16)=MODEL_VR
-      idata(17)=MODEL_NC
-      idata(18)=MODEL_NF
-      idata(19)=MODEL_NB
-      idata(20)=MODEL_EC
-      idata(21)=MODEL_LH
-      idata(22)=MODEL_IC
-      idata(23)=MODEL_CD
-      idata(24)=MODEL_SYNC
-      idata(25)=MODEL_PEL
-      idata(26)=MODEL_PSC
+      idata( 6)=ngt_allocate_step
+      idata( 7)=ngr_allocate_step
+      idata( 8)=0.D0
+      idata( 9)=MAXLOOP
+      idata(10)=MATTYPE
+      idata(11)=MODEL_EQB
+      idata(12)=MODEL_EQN
+      idata(13)=MODEL_EQT
+      idata(14)=MODEL_EQU
+      idata(15)=MODEL_KAI
+      idata(16)=MODEL_DRR
+      idata(17)=MODEL_VR
+      idata(18)=MODEL_NC
+      idata(19)=MODEL_NF
+      idata(20)=MODEL_NB
+      idata(21)=MODEL_EC
+      idata(22)=MODEL_LH
+      idata(23)=MODEL_IC
+      idata(24)=MODEL_CD
+      idata(25)=MODEL_SYNC
+      idata(26)=MODEL_PEL
+      idata(27)=MODEL_PSC
+      idata(28)=IDEBUG
 
-      CALL mtx_broadcast_integer(idata,26)
+      CALL mtx_broadcast_integer(idata,28)
       NRMAX=idata( 1)
       NTMAX=idata( 2)
       NTSTEP=idata( 3)
       NGTSTEP=idata( 4)
       NGRSTEP=idata( 5)
-      NGTMAX_INIT=idata( 6)
-      NGRMAX_INIT=idata( 7)
-      NTSTEP_COEF=idata( 8)
-      LMAXTI=idata( 9)
-      MODEL_EQB=idata(10)
-      MODEL_EQN=idata(11)
-      MODEL_EQT=idata(12)
-      MODEL_EQU=idata(13)
-      MODEL_KAI=idata(14)
-      MODEL_DRR=idata(15)
-      MODEL_VR=idata(16)
-      MODEL_NC=idata(17)
-      MODEL_NF=idata(18)
-      MODEL_NB=idata(19)
-      MODEL_EC=idata(20)
-      MODEL_LH=idata(21)
-      MODEL_IC=idata(22)
-      MODEL_CD=idata(23)
-      MODEL_SYNC=idata(24)
-      MODEL_PEL=idata(25)
-      MODEL_PSC=idata(26)
+      ngt_allocate_step=idata( 6)
+      ngr_allocate_step=idata( 7)
+!      =idata( 8)
+      MAXLOOP=idata( 9)
+      MATTYPE=idata(10)
+      MODEL_EQB=idata(11)
+      MODEL_EQN=idata(12)
+      MODEL_EQT=idata(13)
+      MODEL_EQU=idata(14)
+      MODEL_KAI=idata(15)
+      MODEL_DRR=idata(16)
+      MODEL_VR=idata(17)
+      MODEL_NC=idata(18)
+      MODEL_NF=idata(19)
+      MODEL_NB=idata(20)
+      MODEL_EC=idata(21)
+      MODEL_LH=idata(22)
+      MODEL_IC=idata(23)
+      MODEL_CD=idata(24)
+      MODEL_SYNC=idata(25)
+      MODEL_PEL=idata(26)
+      MODEL_PSC=idata(27)
+      IDEBUG=idata(28)
 
       rdata( 1)=PROFJ1
       rdata( 2)=PROFJ2
       rdata( 3)=DT
-      rdata( 4)=EPSLTI
-      rdata( 5)=AK0
-      rdata( 6)=AD0
-      rdata( 7)=AV0
-      rdata( 8)=DK0
-      rdata( 9)=DKS
-      rdata(10)=PNBIN
-      rdata(11)=PNBR0
-      rdata(12)=PNBRW
-      rdata(13)=PNBENG
-      rdata(14)=PNBRTG
-      rdata(15)=PECIN
-      rdata(16)=PECR0
-      rdata(17)=PECRW
-      rdata(18)=PECTOE
-      rdata(19)=PECNPR
-      rdata(20)=PLHR0
-      rdata(21)=PLHRW
-      rdata(22)=PLHTOE
-      rdata(23)=PLHNPR
-      rdata(24)=PICIN
-      rdata(25)=PICR0
-      rdata(26)=PICRW
-      rdata(27)=PICTOE
-      rdata(28)=PICNPR
-      rdata(29)=PNBCD
-      rdata(30)=PECCD
-      rdata(31)=PLHCD
-      rdata(32)=PICCD
-      rdata(33)=PBSCD
-      rdata(34)=PELIN
-      rdata(35)=PELR0
-      rdata(36)=PELRW
-      rdata(37)=PELDT
-      rdata(38)=PELTE
-      rdata(39)=PELRAD
-      rdata(40)=PELVEL
-      rdata(41)=PSCIN
-      rdata(42)=PSCR0
-      rdata(43)=PSCRW
-      rdata(44)=SYNC_WALL
-      rdata(45)=SYNC_CONV
+      rdata( 4)=EPSLOOP
+      rdata( 5)=EPSMAT
+      rdata( 6)=AK0
+      rdata( 7)=AD0
+      rdata( 8)=AV0
+      rdata( 9)=DK0
+      rdata(10)=DKS
+      rdata(11)=PNBIN
+      rdata(12)=PNBR0
+      rdata(13)=PNBRW
+      rdata(14)=PNBENG
+      rdata(15)=PNBRTG
+      rdata(16)=PECIN
+      rdata(17)=PECR0
+      rdata(18)=PECRW
+      rdata(19)=PECTOE
+      rdata(20)=PECNPR
+      rdata(21)=PLHR0
+      rdata(22)=PLHRW
+      rdata(23)=PLHTOE
+      rdata(24)=PLHNPR
+      rdata(25)=PICIN
+      rdata(26)=PICR0
+      rdata(27)=PICRW
+      rdata(28)=PICTOE
+      rdata(29)=PICNPR
+      rdata(30)=PNBCD
+      rdata(31)=PECCD
+      rdata(32)=PLHCD
+      rdata(33)=PICCD
+      rdata(34)=PBSCD
+      rdata(35)=PELIN
+      rdata(36)=PELR0
+      rdata(37)=PELRW
+      rdata(38)=PELDT
+      rdata(39)=PELTE
+      rdata(40)=PELRAD
+      rdata(41)=PELVEL
+      rdata(42)=PSCIN
+      rdata(43)=PSCR0
+      rdata(44)=PSCRW
+      rdata(45)=SYNC_WALL
+      rdata(46)=SYNC_CONV
 
-      CALL mtx_broadcast_real8(rdata,45)
+      CALL mtx_broadcast_real8(rdata,46)
       PROFJ1=rdata( 1)
       PROFJ2=rdata( 2)
       DT=rdata( 3)
-      EPSLTI=rdata( 4)
-      AK0=rdata( 5)
-      AD0=rdata( 6)
-      AV0=rdata( 7)
-      DK0=rdata( 8)
-      DKS=rdata( 9)
-      PNBIN=rdata(10)
-      PNBR0=rdata(11)
-      PNBRW=rdata(12)
-      PNBENG=rdata(13)
-      PNBRTG=rdata(14)
-      PECIN=rdata(15)
-      PECR0=rdata(16)
-      PECRW=rdata(17)
-      PECTOE=rdata(18)
-      PECNPR=rdata(19)
-      PLHR0=rdata(20)
-      PLHRW=rdata(21)
-      PLHTOE=rdata(22)
-      PLHNPR=rdata(23)
-      PICIN=rdata(24)
-      PICR0=rdata(25)
-      PICRW=rdata(26)
-      PICTOE=rdata(27)
-      PICNPR=rdata(28)
-      PNBCD=rdata(29)
-      PECCD=rdata(30)
-      PLHCD=rdata(31)
-      PICCD=rdata(32)
-      PBSCD=rdata(33)
-      PELIN=rdata(34)
-      PELR0=rdata(35)
-      PELRW=rdata(36)
-      PELDT=rdata(37)
-      PELTE=rdata(38)
-      PELRAD=rdata(39)
-      PELVEL=rdata(40)
-      PSCIN=rdata(41)
-      PSCR0=rdata(42)
-      PSCRW=rdata(43)
-      SYNC_WALL=rdata(44)
-      SYNC_CONV=rdata(45)
+      EPSLOOP=rdata( 4)
+      EPSMAT=rdata( 5)
+      AK0=rdata( 6)
+      AD0=rdata( 7)
+      AV0=rdata( 8)
+      DK0=rdata( 9)
+      DKS=rdata(10)
+      PNBIN=rdata(11)
+      PNBR0=rdata(12)
+      PNBRW=rdata(13)
+      PNBENG=rdata(14)
+      PNBRTG=rdata(15)
+      PECIN=rdata(16)
+      PECR0=rdata(17)
+      PECRW=rdata(18)
+      PECTOE=rdata(19)
+      PECNPR=rdata(20)
+      PLHR0=rdata(21)
+      PLHRW=rdata(22)
+      PLHTOE=rdata(23)
+      PLHNPR=rdata(24)
+      PICIN=rdata(25)
+      PICR0=rdata(26)
+      PICRW=rdata(27)
+      PICTOE=rdata(28)
+      PICNPR=rdata(29)
+      PNBCD=rdata(30)
+      PECCD=rdata(31)
+      PLHCD=rdata(32)
+      PICCD=rdata(33)
+      PBSCD=rdata(34)
+      PELIN=rdata(35)
+      PELR0=rdata(36)
+      PELRW=rdata(37)
+      PELDT=rdata(38)
+      PELTE=rdata(39)
+      PELRAD=rdata(40)
+      PELVEL=rdata(41)
+      PSCIN=rdata(42)
+      PSCR0=rdata(43)
+      PSCRW=rdata(44)
+      SYNC_WALL=rdata(45)
+      SYNC_CONV=rdata(46)
 
       CALL mtx_broadcast_integer(NZMIN_NS,NSMAX)
       CALL mtx_broadcast_integer(NZMAX_NS,NSMAX)

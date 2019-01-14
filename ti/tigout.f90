@@ -17,7 +17,7 @@ CONTAINS
 
 
     DO
-       WRITE(6,'(A)') '# SELECT : R0-R5, R9, T1, X/EXIT'
+       WRITE(6,'(A)') '# SELECT : R1-5, R9, T1-3, G1-3, X/EXIT'
        READ(5,'(A2)',IOSTAT=IST) KIG
        IF(IST.GT.0) CYCLE
        IF(IST.LT.0) EXIT
@@ -29,14 +29,18 @@ CONTAINS
        SELECT CASE(K1)
        CASE('R')
           CALL TI_GOUT_R(K2)
+       CASE('G')
+          CALL TI_GOUT_G(K2)
        CASE('T')
-!          CALL TI_GOUT_T(K2)
+          CALL TI_GOUT_T(K2)
        CASE('X')
           EXIT
        END SELECT
     END DO
     RETURN
   END SUBROUTINE ti_gout
+
+! --- R Graphics: present radial profile --- 
 
   SUBROUTINE ti_gout_r(K2)
 
@@ -52,7 +56,7 @@ CONTAINS
     READ(K2,'(I1)',ERR=9000,END=9000) ID
 
     NXMAX=NRMAX
-    NFMAX=NSAMAX
+    NFMAX=nsa_max
     ALLOCATE(XDATA(NXMAX),FDATA(NXMAX,NFMAX))
     DO NX=1,NXMAX
        XDATA(NX)=RM(NX)
@@ -60,14 +64,12 @@ CONTAINS
     DO NX=1,NXMAX
        DO NF=1,NFMAX
           SELECT CASE(ID)
-          CASE(0)
-             FDATA(NX,NF)=MAX(RNA(NF,NX),1.D-6)
           CASE(1)
-             FDATA(NX,NF)=LOG10(MAX(RNA(NF,NX),1.D-6))
+             FDATA(NX,NF)=MAX(RNA(NF,NX),1.D-6)
           CASE(2)
-             FDATA(NX,NF)=RUA(NF,NX)
+             FDATA(NX,NF)=LOG10(MAX(RNA(NF,NX),1.D-6))
           CASE(3)
-             FDATA(NX,NF)=MIN(MAX(RUA(NF,NX),-1.D6),1.D6)
+             FDATA(NX,NF)=RUA(NF,NX)
           CASE(4)
              FDATA(NX,NF)=MAX(RTA(NF,NX),1.D-6)
           CASE(5)
@@ -86,14 +88,11 @@ CONTAINS
 
     CALL PAGES
     SELECT CASE(ID)
-    CASE(0)
+    CASE(1)
        CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@N vs r@',0, &
                   XMIN=0.D0,XMAX=RA,FMIN=0.D0)
-    CASE(1)
-       CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@ln N vs r@',2, &
-                  XMIN=0.D0,XMAX=RA)
     CASE(2)
-       CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@U vs r@',0, &
+       CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@ln N vs r@',2, &
                   XMIN=0.D0,XMAX=RA)
     CASE(3)
        CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@U vs r@',0, &
@@ -121,5 +120,153 @@ CONTAINS
 9000 WRITE(6,'(A,A1)') 'XX ti_gout_r: K1 error',K2
     RETURN
   END SUBROUTINE ti_gout_r
+    
+! --- T Graphics: time evolution --- 
+
+  SUBROUTINE ti_gout_t(K2)
+
+    USE ticomm
+    USE tirecord
+    USE libgrf
+    IMPLICIT NONE
+    CHARACTER(LEN=1),INTENT(IN):: K2
+    REAL(rkind),DIMENSION(:),ALLOCATABLE:: XDATA
+    REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: FDATA
+    INTEGER:: NXMAX,NFMAX,NX,NF,ID,NSA,NSA1X,NSA2X
+    INTEGER,SAVE:: NSA1=1
+    INTEGER,SAVE:: NSA2=0
+
+    READ(K2,'(I1)',ERR=9000,END=9000) ID
+
+1   WRITE(6,'(A,2I5)') &
+         '## INPUT: NSA1,NSA2 (NSA1=0 for end,NSA2= for single) ',NSA1,NSA2
+    NSA1X=NSA1
+    NSA2X=NSA2
+    READ(5,*,END=8000,ERR=1) NSA1X,NSA2X
+    IF(NSA1X.EQ.0) THEN
+       GOTO 8000
+    ELSE
+       NSA1=NSA1X
+    ENDIF
+    IF(NSA2X.EQ.0) THEN
+       NSA2=NSA1
+    ELSE
+       NSA2=NSA2X
+    ENDIF
+
+    SELECT CASE(ID)
+    CASE(1:3)
+       NXMAX=ngt_max
+       NFMAX=NSA2-NSA1+1
+       IF(NFMAX.EQ.1) NFMAX=3
+
+       WRITE(6,*) 'NXMAX,NFMAX=',NXMAX,NFMAX
+
+       ALLOCATE(XDATA(NXMAX),FDATA(NXMAX,NFMAX))
+       DO NX=1,NXMAX
+          XDATA(NX)=gt(NX)
+       END DO
+       DO NX=1,NXMAX
+          IF(NSA1.EQ.NSA2) THEN
+             FDATA(NX,1)=gvta(NX,NSA1,ID+6)
+             FDATA(NX,2)=gvta(NX,NSA1,ID)
+             FDATA(NX,3)=gvta(NX,NSA1,ID+3)
+          ELSE
+             DO NSA=NSA1,NSA2
+                NF=NSA-NSA1+1
+                FDATA(NX,NF)=gvta(NX,NSA,ID)
+             END DO
+          END IF
+       END DO
+
+       CALL PAGES
+       SELECT CASE(ID)
+       CASE(1)
+          CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@N(0) vs t@',0, &
+                     XMIN=0.D0,XMAX=gt(ngt_max),FMIN=0.D0)
+       CASE(2)
+          CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@N(a) vs t@',2, &
+                     XMIN=0.D0,XMAX=gt(ngt_max),FMIN=0.D0)
+       CASE(3)
+          CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@U(0) vs t@',0, &
+                     XMIN=0.D0,XMAX=gt(ngt_max),FMIN=0.D0)
+       END SELECT
+       DEALLOCATE(XDATA,FDATA)
+    END SELECT
+    CALL PAGEE
+    GO TO 1
+
+8000 CONTINUE
+    RETURN
+
+9000 CONTINUE
+    WRITE(6,'(A,A1)') 'XX ti_gout_r: K1 error',K2
+    RETURN
+  END SUBROUTINE ti_gout_t
+    
+! --- G Graphics: time evolution of radial profile --- 
+
+  SUBROUTINE ti_gout_g(K2)
+
+    USE ticomm
+    USE tirecord
+    USE libgrf
+    IMPLICIT NONE
+    CHARACTER(LEN=1),INTENT(IN):: K2
+    REAL(rkind),DIMENSION(:),ALLOCATABLE:: XDATA
+    REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: FDATA
+    INTEGER:: NXMAX,NFMAX,NX,NF,ID
+    INTEGER,SAVE:: NSA=1
+
+    READ(K2,'(I1)',ERR=9000,END=9000) ID
+
+1   WRITE(6,'(A,2I5)') &
+         '## INPUT: NSA (NSA=0 for end) ',NSA
+    READ(5,*,END=8000,ERR=1) NSA
+    IF(NSA.EQ.0) GO TO 8000
+    NXMAX=NRMAX
+    NFMAX=ngr_max
+    ALLOCATE(XDATA(NXMAX),FDATA(NXMAX,NFMAX))
+    DO NX=1,NXMAX
+       XDATA(NX)=RM(NX)
+    END DO
+    DO NX=1,NXMAX
+       DO NF=1,NFMAX
+          SELECT CASE(ID)
+          CASE(1)
+             FDATA(NX,NF)=MAX(gvrta(NX,NF,NSA,1),1.D-6)
+          CASE(2)
+             FDATA(NX,NF)=MAX(gvrta(NX,NF,NSA,2),1.D-6)
+          CASE(3)
+             FDATA(NX,NF)=MAX(gvrta(NX,NF,NSA,3),1.D-6)
+          CASE DEFAULT
+             FDATA(NX,NF)=0.D0
+          END SELECT
+       END DO
+    END DO
+
+    CALL PAGES
+    SELECT CASE(ID)
+    CASE(1)
+       CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@N vs r@',0, &
+                  XMIN=0.D0,XMAX=RA,FMIN=0.D0)
+    CASE(2)
+       CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@U vs r@',2, &
+                  XMIN=0.D0,XMAX=RA)
+    CASE(3)
+       CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@T vs r@',0, &
+                  XMIN=0.D0,XMAX=RA)
+    END SELECT
+    CALL PAGEE
+    DEALLOCATE(XDATA,FDATA)
+    GO TO 1
+
+8000 CONTINUE
+    RETURN
+
+9000 CONTINUE
+    WRITE(6,'(A,A1)') 'XX ti_gout_r: K1 error',K2
+    RETURN
+  END SUBROUTINE ti_gout_g
     
 END MODULE tigout

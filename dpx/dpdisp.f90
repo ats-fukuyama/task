@@ -79,6 +79,7 @@ CONTAINS
     COMPLEX(rkind):: CW,CL2
 
     CW=2.D0*PI*1.D6*CRF
+    IF(ABS(CW).LE.1.D-8) CW=(1.D-8,0.D0)
     CL2=VC*VC/(CW*CW)
 
     CALL DP_EXEC(CRF,CKX,CKY,CKZ,XPOS,YPOS,ZPOS,0,CDTNS)
@@ -101,13 +102,15 @@ CONTAINS
   SUBROUTINE DP_EXEC(CRF,CKX,CKY,CKZ,XPOS,YPOS,ZPOS,NS,CDTNS)
 
     USE dpcomm
-    USE pllocal
     USE plprof
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CRF,CKX,CKY,CKZ
     REAL(rkind),INTENT(IN):: XPOS,YPOS,ZPOS
     INTEGER,INTENT(IN):: NS
     COMPLEX(rkind),INTENT(OUT):: CDTNS(3,3)
+    TYPE(pl_mag_type):: mag
+    TYPE(pl_plf_type),DIMENSION(nsmax):: plf
+    TYPE(pl_grd_type),DIMENSION(nsmax):: grd
     REAL(rkind):: RHON,BNXY
     COMPLEX(rkind):: CW,CKPR,CKPP,CKPPF,CKPPS,CKPP1
     COMPLEX(rkind):: CU11,CU12,CU13,CU21,CU22,CU23,CU31,CU32,CU33
@@ -115,22 +118,25 @@ CONTAINS
                      CDET21,CDET22,CDET23, &
                      CDET31,CDET32,CDET33
 
-    CALL PL_MAG_OLD(XPOS,YPOS,ZPOS,RHON)
+    CALL PL_MAG(XPOS,YPOS,ZPOS,mag)
+    RHON=mag%rhon
     IF(MODELG.LE.1.OR.MODELG.GT.10) THEN
-       CALL PL_PROF3D_OLD(XPOS,YPOS,ZPOS)
+       CALL PL_PROF3D(XPOS,YPOS,ZPOS,plf)
     ELSE
-       CALL PL_PROF_OLD(RHON)
+       CALL PL_PROF(RHON,plf)
     END IF
+    CALL PL_GRAD(RHON,grd)
 
     CW=2.D0*PI*1.D6*CRF
-    CKPR=BNX*CKX+BNY*CKY+BNZ*CKZ
+    IF(ABS(CW).LE.1.D-8) CW=(1.D-8,0.D0)
+    CKPR=mag%BNX*CKX+mag%BNY*CKY+mag%BNZ*CKZ
     IF(ABS(CKPR).LE.1.D-8) CKPR=1.D-8
     CKPP=SQRT(CKX**2+CKY**2+CKZ**2-CKPR**2)
 
-    CALL DP_CALC(CW,CKPR,CKPP,NS,CDTNS)
+    CALL DP_CALC(CW,CKPR,CKPP,NS,mag,plf,CDTNS,GRD=grd)
 
     IF(ABS(CKPP).EQ.0.D0) THEN
-       BNXY=SQRT(BNX*BNX+BNY*BNY)
+       BNXY=SQRT(mag%BNX*mag%BNX+mag%BNY*mag%BNY)
        IF(BNXY.EQ.0.D0) THEN
           CU11= 1.D0
           CU12= 0.D0
@@ -142,26 +148,32 @@ CONTAINS
           CU32= 0.D0
           CU33= 0.D0
        ELSE
-          CU11=-BNZ*BNX/BNXY
-          CU12=-BNZ*BNY/BNXY
+          CU11=-mag%BNZ*mag%BNX/BNXY
+          CU12=-mag%BNZ*mag%BNY/BNXY
           CU13= BNXY
-          CU21= BNY/BNXY
-          CU22=-BNX/BNXY
+          CU21= mag%BNY/BNXY
+          CU22=-mag%BNX/BNXY
           CU23= 0.D0
-          CU31= BNX
-          CU32= BNY
-          CU33= BNZ
+          CU31= mag%BNX
+          CU32= mag%BNY
+          CU33= mag%BNZ
        ENDIF
     ELSE
-       CU11=( (1.D0-BNX**2)*CKX-BNX*BNY*CKY-BNX*BNZ*CKZ)/CKPP
-       CU12=(-BNY*BNX*CKX+(1.D0-BNY**2)*CKY-BNY*BNZ*CKZ)/CKPP
-       CU13=(-BNZ*BNX*CKX-BNZ*BNY*CKY+(1.D0-BNZ**2)*CKZ)/CKPP
-       CU21=(BNY*CKZ-BNZ*CKY)/CKPP
-       CU22=(BNZ*CKX-BNX*CKZ)/CKPP
-       CU23=(BNX*CKY-BNY*CKX)/CKPP
-       CU31=BNX
-       CU32=BNY
-       CU33=BNZ
+       CU11=( (1.D0-mag%BNX**2)*CKX &
+             -mag%BNX*mag%BNY*CKY &
+             -mag%BNX*mag%BNZ*CKZ )/CKPP
+       CU12=(-mag%BNY*mag%BNX*CKX &
+             +(1.D0-mag%BNY**2)*CKY &
+             -mag%BNY*mag%BNZ*CKZ )/CKPP
+       CU13=(-mag%BNZ*mag%BNX*CKX &
+             -mag%BNZ*mag%BNY*CKY &
+             +(1.D0-mag%BNZ**2)*CKZ )/CKPP
+       CU21=(mag%BNY*CKZ-mag%BNZ*CKY)/CKPP
+       CU22=(mag%BNZ*CKX-mag%BNX*CKZ)/CKPP
+       CU23=(mag%BNX*CKY-mag%BNY*CKX)/CKPP
+       CU31=mag%BNX
+       CU32=mag%BNY
+       CU33=mag%BNZ
     ENDIF
 
     CDET11=CDTNS(1,1)*CU11+CDTNS(1,2)*CU21+CDTNS(1,3)*CU31
@@ -189,15 +201,17 @@ CONTAINS
 
 !     ****** CALCULATE DIELECTRIC TENSOR ******
 
-  SUBROUTINE DP_CALC(CW,CKPR,CKPP,NS,CDTNS)
+  SUBROUTINE DP_CALC(CW,CKPR,CKPP,NS,mag,plf,CDTNS,grd)
 
     USE dpcomm
-    USE pllocal
-    USE plprof,ONLY: pl_prof_old
+    USE plprof
     USE DPTENS
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NS
+    TYPE(pl_mag_type),INTENT(IN):: mag
+    TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+    TYPE(pl_grd_type),DIMENSION(nsmax),OPTIONAL:: grd
     COMPLEX(rkind),INTENT(OUT):: CDTNS(3,3)
     COMPLEX(rkind):: CDISP(6),CLDISP(6)
     COMPLEX(rkind):: ckpps,ckppf,CKPP1
@@ -208,11 +222,22 @@ CONTAINS
        DO I=2,6
           CDISP(I)=0.D0
        ENDDO
+
+       IF(.NOT.PRESENT(grd)) THEN
+          DO ns1=1,nsmax
+             grd(ns1)%grdn=0.D0
+             grd(ns1)%grdtpr=0.D0
+             grd(ns1)%grdtpp=0.D0
+             grd(ns1)%grdu=0.D0
+          END DO
+       END IF
+          
        DO NS1=1,NSMAX
+
           IF(modelp(ns1).EQ.5.OR. &
              modelp(ns1).EQ.6.OR. &
              modelp(ns1).eq.15) THEN
-             CALL DPCOLD_RKPERP(cw,ckpr,ckppf,ckpps)
+             CALL DPCOLD_RKPERP(cw,ckpr,mag,plf,ckppf,ckpps)
              IF(real(ckppf**2).GT.0.d0) THEN
                 ckpp1=ckppf
              ELSE
@@ -221,16 +246,23 @@ CONTAINS
           ELSE
              ckpp1=ckpp
           ENDIF
-          CALL DP_TENS(CW,CKPR,CKPP1,NS1,CLDISP)
+          CALL DP_TENS(CW,CKPR,CKPP1,NS1,mag,plf,grd,CLDISP)
           DO I=1,6
              CDISP(I)=CDISP(I)+CLDISP(I)
           ENDDO
        ENDDO
     ELSE
+       IF(.NOT.PRESENT(grd)) THEN
+          grd(ns)%grdn=0.D0
+          grd(ns)%grdtpr=0.D0
+          grd(ns)%grdtpp=0.D0
+          grd(ns)%grdu=0.D0
+       END IF
+
        IF(modelp(ns).EQ.5.OR. &
           modelp(ns).eq.6.OR. &
           modelp(ns).eq.15) THEN
-          CALL DPCOLD_RKPERP(cw,ckpr,ckppf,ckpps)
+          CALL DPCOLD_RKPERP(cw,ckpr,mag,plf,ckppf,ckpps)
           IF(real(ckppf**2).GT.0.d0) THEN
              ckpp1=ckppf
           ELSE
@@ -239,9 +271,8 @@ CONTAINS
        ELSE
           ckpp1=ckpp
        ENDIF
-       CALL DP_TENS(CW,CKPR,CKPP1,NS,CDISP)
+       CALL DP_TENS(CW,CKPR,CKPP1,NS,mag,plf,grd,CDISP)
     ENDIF
-
 
     CDTNS(1,1)= CDISP(1)
     CDTNS(1,2)= CDISP(5)
@@ -258,18 +289,28 @@ CONTAINS
 
 !     ****** CALCULATE COLD KPERP ******
 
-  SUBROUTINE DPCOLD_RKPERP(CW,CKPR,CKPPF,CKPPS)
+  SUBROUTINE DPCOLD_RKPERP(CW,CKPR,mag,plf,CKPPF,CKPPS)
 
     USE dpcomm
-    USE pllocal
+    USE plprof
     USE dptens
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CW,CKPR
+    TYPE(pl_mag_type),INTENT(IN):: mag
+    TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+    TYPE(pl_grd_type),DIMENSION(nsmax):: grd
     COMPLEX(rkind),INTENT(OUT):: CKPPF,CKPPS
     COMPLEX(rkind):: CDISP(6),CLDISP(6)
     REAL(rkind):: RKPPA2,RKPPB2
     COMPLEX(rkind):: CKPP,CNPR,CCS,CCD,CCP,CCA,CCB,CCC,CKPPA,CKPPB,CTEMP
     INTEGER:: I,NS1,MODELP_SAVE
+
+    DO ns1=1,nsmax
+       grd(ns1)%grdn=0.D0
+       grd(ns1)%grdtpr=0.D0
+       grd(ns1)%grdtpp=0.D0
+       grd(ns1)%grdu=0.D0
+    END DO
 
     CDISP(1)=1.D0
     DO I=2,6
@@ -281,7 +322,7 @@ CONTAINS
     DO NS1=1,NSMAX
        MODELP_SAVE=MODELP(NS1)
        MODELP(NS1)=0
-       CALL DP_TENS(CW,CKPR,CKPP,NS1,CLDISP)
+       CALL DP_TENS(CW,CKPR,CKPP,NS1,mag,plf,grd,CLDISP)
        DO I=1,6
           CDISP(I)=CDISP(I)+CLDISP(I)
        ENDDO

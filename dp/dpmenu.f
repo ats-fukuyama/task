@@ -20,10 +20,11 @@ C
 C
     1 CONTINUE
          WRITE(6,*) '## DP MENU: P,V/PARM  ',
-     &       'D1,D2,D3/DISP  F/ROOT  T,S,K/TEST  Q/QUIT'
+     &       'D0,D1,D2,D3/DISP  F/ROOT  T,S,K/TEST  Q/QUIT'
 C
          CALL TASK_KLIN(LINE,KID,MODE,DPPARM)
       IF(MODE.NE.1) GOTO 1
+      CALL GUCPTL(KID)
 C
       IF(KID.EQ.'P') THEN
          CALL DPPARM(0,'DP',IERR)
@@ -32,7 +33,9 @@ C
          CALL DPVIEW
       ELSEIF(KID.EQ.'D') THEN
          READ(LINE(2:),*,ERR=1,END=1) NID
-         IF(NID.EQ.1) THEN
+         IF(NID.EQ.0) THEN
+            CALL DPGRP0
+         ELSEIF(NID.EQ.1) THEN
             CALL DPGRP1
          ELSEIF(NID.EQ.2) THEN
             CALL DPCONT

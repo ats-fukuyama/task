@@ -4,15 +4,13 @@ MODULE tiexec
 
   PRIVATE
   PUBLIC ti_exec
-
-  INTEGER:: imax,istart,iend,jwidth
-  INTEGER:: NRSTART,NREND
-
+  
 CONTAINS
 
   SUBROUTINE ti_exec(IERR)
 
     USE ticomm
+    USE tirecord
     USE libmtx
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
@@ -26,21 +24,30 @@ CONTAINS
     jwidth=4*NEQMAX-1
     CALL mtx_setup(imax,istart,iend,jwidth)
     
-    NRSTART=(istart+NEQMAX-1)/NEQMAX
-    NREND=(iend+NEQMAX-1)/NEQMAX
-    WRITE(6,'(A,2I5)') 'NRSTART,NREND=',NRSTART,NREND
+    NR_START=(istart+NEQMAX-1)/NEQMAX
+    NR_END=(iend+NEQMAX-1)/NEQMAX
+
+    residual_loop_max=0.D0
+    icount_loop_max=0
+    icount_mat_max=0
 
     DO NTL=1,NTMAX
-       NT=NT+1
-       T=T+DT
+       NT=NT+1              ! total time step
+       T=T+DT               ! total time 
 
-       CALL ti_step(ierr)
-       IF(ierr.ne.0) exit
+       CALL ti_step(ierr)   ! one time-step caculcation
 
-       IF(MOD(NT,NTSTEP).EQ.0) CALL ti_snap
-       IF(MOD(NT,NGTSTEP).EQ.0) CALL ti_save_ngt
-       IF(MOD(NT,NGRSTEP).EQ.0) CALL ti_save_ngr
+       residual_loop_max=MAX(residual_loop_max,residual_loop)
+       icount_loop_max=MAX(icount_loop_max,icount_loop)
+       icount_mat_max=MAX(icount_mat_max,icount_mat)
+
+       IF(MOD(NT,NTSTEP ).EQ.0) CALL ti_snap         ! integrate and save
+       IF(MOD(NT,NGTSTEP).EQ.0) CALL ti_record_ngt   ! save for time history
+       IF(MOD(NT,NGRSTEP).EQ.0) CALL ti_record_ngr   ! save for radial profile
     END DO
+
+    CALL mtx_cleanup
+
     RETURN
   END SUBROUTINE ti_exec
 
@@ -50,52 +57,85 @@ CONTAINS
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
     INTEGER:: ICOUNT
-    REAL(rkind):: RESIDUAL
+    REAL(rkind):: residual
     INTEGER:: NR,NEQ,NSA,NV,i
 
     IERR=0
 
-!   *** save present value as previous value ***       
+!   *** convert present value as a solution vector ***       
 
-    DO NR=1,NRMAX
+    DO NR=NR_START,NR_END
        DO NEQ=1,NEQMAX
-          NSA=NSA_NEQ(NEQ)
-          NV=NV_NEQ(NEQ)
-          i=(NR-1)*NEQMAX+NEQ
-          SELECT CASE(NV)
-          CASE(1)
-             SOL_ORG(i)=RNA(NSA,NR)
-          CASE(2)
-             SOL_ORG(i)=RUA(NSA,NR)
-          CASE(3)
-             SOL_ORG(i)=RTA(NSA,NR)
-          END SELECT
+          i=(NR-1)*NEQMAX+NEQ  ! position in solution vector
+          IF(i.GE.istart.AND.i.LE.iend) THEN
+             NSA=NSA_NEQ(NEQ)     ! species id
+             NV=NV_NEQ(NEQ)       ! equation id
+             SELECT CASE(NV)   ! setup solution vector at previous time
+             CASE(1)
+                SOL_BASE(i)=RNA(NSA,NR)
+             CASE(2)
+                SOL_BASE(i)=RUA(NSA,NR)
+             CASE(3)
+                SOL_BASE(i)=RTA(NSA,NR)
+             END SELECT
+          END IF
        END DO
     END DO
+    CALL ti_distribute_sol(sol_base)
+
+    DO i=istart,iend           ! setup sol_prev from sol_base
+       SOL_PREV(i)=SOL_BASE(i)
+    END DO
+    CALL ti_distribute_sol(sol_prev)
 
 !   *** start iteration using previous time step variables ***       
 
     ICOUNT=0
-    DO
+
+    DO WHILE(ICOUNT.LT.MAXLOOP)
        ICOUNT=ICOUNT+1
 
 !   *** solve transport equation using previous iteration variables ***       
 
-       CALL ti_solve
+       CALL ti_solve           ! calculate sol_new from sol_prev
 
 !   *** convergence check ***       
 
-       CALL ti_convergence(RESIDUAL)
-       WRITE(6,'(A,I5,1PE12.4)') &
-            'Convergence: ICOUNT,RESIDUAL=',ICOUNT,RESIDUAL
+       CALL ti_convergence(residual)  ! check ABS(sol_new - sol_prev)
+       IF(nrank.EQ.0.AND.idebug.EQ.1) THEN
+          WRITE(6,'(A,I5,1PE12.4)') &
+               'Convergence: ICOUNT,RESIDUAL=',ICOUNT,residual
+       END IF
 
-!   *** update with new iteration variables ***       
+       IF(residual.LE.EPSLOOP) GO TO 8000
 
-       DO NR=1,NRMAX
-          DO NEQ=1,NEQMAX
+!   *** update sol_prev with new iteration vector sol_new ***       
+
+       DO i=1,imax
+          sol_prev(i)=sol_new(i)
+       END DO
+
+    END DO
+
+    WRITE(6,*) 'XX ti_exec: No convergence'
+    residual_loop=residual
+    icount_loop=icount
+    IERR=1
+    RETURN
+
+8000 CONTINUE
+
+    residual_loop=residual
+    icount_loop=icount
+
+!   *** convert a new solution vector to present values ***       
+
+    DO NR=NR_START,NR_END
+       DO NEQ=1,NEQMAX
+          i=(NR-1)*NEQMAX+NEQ
+          IF(i.GE.istart.AND.i.LE.iend) THEN
              NSA=NSA_NEQ(NEQ)
              NV=NV_NEQ(NEQ)
-             i=(NR-1)*NEQMAX+NEQ
              SELECT CASE(NV)
              CASE(1)
                 RNA(NSA,NR)=SOL_NEW(i)
@@ -104,19 +144,12 @@ CONTAINS
              CASE(3)
                 RTA(NSA,NR)=SOL_NEW(i)
              END SELECT
-          END DO
+          END IF
        END DO
-
-       SOL_PREV(1:imax)=SOL_NEW(1:imax)
-       IF(RESIDUAL.LE.EPSLTI) GOTO 8000
-       IF(ICOUNT.GE.LMAXTI) GOTO 9000
     END DO
-
-8000 RETURN
-
-9000 WRITE(6,*) 'XX ti_exec: No convergence'
-    IERR=1
+    IERR=0
     RETURN
+
   END SUBROUTINE ti_step
 
   SUBROUTINE ti_solve
@@ -126,86 +159,95 @@ CONTAINS
     USE ticalc
     USE libmtx
     IMPLICIT NONE
-    INTEGER:: itype,iterations,i,j,IL,JL,NR
+    INTEGER:: itype,iterations,i,j,NEQ,NEQ1,NR
     REAL(rkind):: tolerance
 
-    DO NR=MAX(1,NRSTART-1),MIN(NRMAX,NREND+1)
+    DO NR=MAX(1,NR_START-1),MIN(NRMAX,NR_END+1)
        CALL ti_coef(NR)    ! calculate DD,VV,CC
        CALL ti_source(NR)  ! calculate SSIN,VSIN,PSIN,AJIN
     END DO
 
-    DO NR=NRSTART,NREND
+    DO NR=NR_START,NR_END
 
        CALL ti_calc(NR) ! assemble coeeficint matrix and RHS vector
 
-       DO IL=1,NEQMAX
-          i=(NR-1)*NEQMAX+IL
+       DO NEQ=1,NEQMAX
+          i=(NR-1)*NEQMAX+NEQ
           IF(i.GE.istart.AND.i.LE.iend) THEN
-             DO JL=1,3*NEQMAX
-                j=(NR-1)*NEQMAX+JL-NEQMAX
-                IF(j.ge.1.AND.j.LE.NRMAX*NEQMAX) THEN
-                   IF(ABS(MAT_LOCAL(IL,JL)).GT.0.D0) THEN
-                      CALL mtx_set_matrix(i,j,MAT_LOCAL(IL,JL))
+             DO NEQ1=1,3*NEQMAX
+                j=(NR-1)*NEQMAX+NEQ1-NEQMAX
+                IF(j.ge.1.AND.j.LE.imax) THEN
+                   IF(ABS(MAT_LOCAL(NEQ,NEQ1)).GT.0.D0) THEN
+                      CALL mtx_set_matrix(i,j,MAT_LOCAL(NEQ,NEQ1))
                    END IF
                 END IF
              END DO
-             CALL mtx_set_source(i,VEC_LOCAL(IL))
+             CALL mtx_set_source(i,VEC_LOCAL(NEQ))
              CALL mtx_set_vector(i,SOL_PREV(i))
           END IF
        END DO
     END DO
 
-    itype=0
-    tolerance=1.D-10
-    CALL mtx_solve(itype,tolerance,iterations)
-    IF(iterations.NE.0) WRITE(6,'(A,I5)') '## Iteration =',iterations
-
+    itype=MATTYPE
+    tolerance=EPSMAT
+    CALL mtx_solve(itype,tolerance,icount_mat)
+    
     CALL mtx_gather_vector(SOL_NEW)
   END SUBROUTINE ti_solve
 
-  SUBROUTINE ti_snap
-    USE ticomm
-    IMPLICIT NONE
-    WRITE(6,'(A,I5,1PE12.4)') '#NT,T=',NT,T
-    RETURN
-  END SUBROUTINE ti_snap
-
-  SUBROUTINE ti_save_ngt
-    USE ticomm
-    IMPLICIT NONE
-    RETURN
-  END SUBROUTINE ti_save_ngt
-
-  SUBROUTINE ti_save_ngr
-    USE ticomm
-    IMPLICIT NONE
-    RETURN
-  END SUBROUTINE ti_save_ngr
-
   SUBROUTINE ti_convergence(RESIDUAL)
     USE ticomm
+    USE libmpi
     IMPLICIT NONE
     REAL(rkind),INTENT(OUT):: RESIDUAL
-    REAL(rkind),DIMENSION(:),ALLOCATABLE:: bulk,diff
+    REAL(rkind),DIMENSION(:),ALLOCATABLE:: bulk,diff,bulk_tot,diff_tot
+    INTEGER,DIMENSION(:),ALLOCATABLE:: loc
     INTEGER:: NEQ,NR,i
 
-    ALLOCATE(bulk(NEQMAX),diff(NEQMAX))
+    ALLOCATE(bulk(NEQMAX),diff(NEQMAX),bulk_tot(NEQMAX),diff_tot(NEQMAX))
+    ALLOCATE(loc(NEQMAX))
     DO NEQ=1,NEQMAX
        bulk(NEQ)=0.D0
        diff(NEQ)=0.D0
     END DO
-    DO NR=1,NRMAX
+
+    DO NR=NR_START,NR_END
        DO NEQ=1,NEQMAX
           i=(NR-1)*NEQMAX+NEQ
-          bulk(NEQ)=bulk(NEQ)+SOL_NEW(i)**2
-          diff(NEQ)=diff(NEQ)+(SOL_NEW(i)-SOL_PREV(i))**2
+          IF(i.GE.istart.AND.i.LE.iend) THEN
+             bulk(NEQ)=bulk(NEQ)+SOL_NEW(i)**2
+             diff(NEQ)=diff(NEQ)+(SOL_NEW(i)-SOL_PREV(i))**2
+          END IF
        END DO
     END DO
-    RESIDUAL=0.D0
-    DO NEQ=1,NEQMAX
-       RESIDUAL=MAX(RESIDUAL,SQRT(diff(NEQ))/SQRT(1.D0+bulk(NEQ)))
-    END DO
-    DEALLOCATE(bulk,diff)
+
+    CALL mtx_reduce_real8(bulk,neqmax,3,bulk_tot,loc)
+    CALL mtx_reduce_real8(diff,neqmax,3,diff_tot,loc)
+
+    IF(nrank.eq.0) THEN
+       residual=0.D0
+       DO NEQ=1,NEQMAX
+          residual=MAX(residual,SQRT(diff_tot(NEQ))/SQRT(1.D0+bulk_tot(NEQ)))
+       END DO
+    END IF
+    CALL mtx_broadcast1_real8(residual)
+    DEALLOCATE(bulk,diff,bulk_tot,diff_tot,loc)
     RETURN
   END SUBROUTINE ti_convergence
+
+  SUBROUTINE ti_distribute_sol(sol)
+    USE libmpi
+    USE ticomm,ONLY: rkind,istart,iend,imax
+    IMPLICIT NONE
+    REAL(rkind),INTENT(INOUT):: sol(imax)
+    REAL(rkind):: vsend(istart:iend)
+    INTEGER:: i
+
+    DO i=istart,iend
+       vsend(i)=sol(i)
+    END DO
+    CALL mtx_allgather_real8(vsend,iend-istart+1,sol)
+    RETURN
+  END SUBROUTINE ti_distribute_sol
+    
 END MODULE tiexec

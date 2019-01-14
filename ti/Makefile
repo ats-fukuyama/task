@@ -18,8 +18,10 @@ LIBX_MTX=$(LIBX_MTX_BND)
 FFLAGS = $(DFLAGS)
 
 SRCS=   ticomm.f90 adpost/lib-adpost.f90 \
-	tiinit.f90 tiparm.f90 tiprep.f90 \
-	ticoef.f90 tisource.f90 ticalc.f90 tiexec.f90 tigout.f90 timenu.f90
+	tiinit.f90 tiparm.f90 \
+	ticoef.f90 tisource.f90 ticalc.f90 tirecord.f90 \
+        tiprep.f90 tiexec.f90 \
+        tigout.f90 timenu.f90
 
 #      trprof.f90 trufsub.f90 trufile.f90 trfile.f90 trhelp.f90 \
 #      trexec.f90 trcalc.f90 \
@@ -88,6 +90,7 @@ tiexec.o : tiexec.f90 ticomm.f90
 ticoef.o : ticoef.f90 ticomm.f90
 tisource.o : tisource.f90 ticomm.f90
 ticalc.o : ticalc.f90 ticomm.f90
+tirecord.o : tirecord.f90 ticomm.f90
 
 adpost/lib-adpost.o:adpost/lib-adpost.f90 
 

@@ -17,8 +17,8 @@ C
 C
       IF(INIT.EQ.0) THEN
          KID='YW'
-         NXMAX=201
-         NYMAX=201
+         NXMAX=51
+         NYMAX=51
          INIT=1
       ENDIF
 C
@@ -214,14 +214,14 @@ C
       ENDDO
       ENDDO
 C
-C      DO NY=1,NYMAX
-C      DO NX=1,NXMAX
-C            IF(MOD(NX-1,10).EQ.0.AND.MOD(NY-1,10).EQ.0) THEN
-C               WRITE(6,'(2I5,1P4E15.7)') 
-C     &              NX,NY,GX(NX),GY(NY),Z(NX,NY),GZ(NX,NY)
-C            ENDIF
-C      ENDDO
-C      ENDDO
+      DO NY=1,NYMAX
+      DO NX=1,NXMAX
+            IF(MOD(NX-1,10).EQ.0.AND.MOD(NY-1,10).EQ.0) THEN
+               WRITE(6,'(2I5,1P4E15.7)') 
+     &              NX,NY,GX(NX),GY(NY),Z(NX,NY),GZ(NX,NY)
+            ENDIF
+      ENDDO
+      ENDDO
 C
       CALL PAGES
       CALL SETLIN(0,0,7)

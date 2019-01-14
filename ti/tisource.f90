@@ -15,7 +15,7 @@ CONTAINS
 
     RHON=RM(NR)/RA
 
-    DO NSA=1,NSAMAX
+    DO NSA=1,NSA_MAX
        PNB(NSA,NR)=0.D0
        SNB(NSA,NR)=0.D0
        AJNB(NSA,NR)=0.D0
@@ -52,7 +52,7 @@ CONTAINS
 !    CALL TISCX(NR)
 !    CALL TISIE(NR)
 
-    DO NSA=1,NSAMAX
+    DO NSA=1,NSA_MAX
        PSIN(NSA,NR)=PNB(NSA,NR)+PEC(NSA,NR)+PLH(NSA,NR)+PIC(NSA,NR) &
                    +PNF(NSA,NR)+POH(NSA,NR)+PRB(NSA,NR)+PRC(NSA,NR) &
                    +PRL(NSA,NR)+PCX(NSA,NR)+PIE(NSA,NR)

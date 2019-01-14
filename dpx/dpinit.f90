@@ -92,6 +92,8 @@ MODULE dpinit
 !     RKY1,RKY2               : SCAN RANGE OF WAVE NUMBER KY (1/M)
 !     RKZ1,RKZ2               : SCAN RANGE OF WAVE NUMBER KZ (1/M)
 !     RX1,RX2                 : SCAN RANGE OF POSITION X (M)
+!     RY1,RY2                 : SCAN RANGE OF POSITION Y (M)
+!     RZ1,RZ2                 : SCAN RANGE OF POSITION Z (M)
 !
 !     NGXMAX : NUMBER OF 1D SCAN POINTS
 !     NGYMAX : NUMBER OF 2D SCAN POINTS
@@ -119,8 +121,12 @@ MODULE dpinit
     RKY2   = 1600.D0
     RKZ1   = 0.D0
     RKZ2   = 1600.D0
-    RX1    = RR+0.D0
-    RX2    = RR+0.5D0
+    RX1    = RR
+    RX2    = RR+RA
+    RY1    = -0.5D0
+    RY2    =  0.5D0
+    RZ1    = -RKAP*RA
+    RZ2    =  RKAP*RA
 
     NGXMAX  = 21
     NGYMAX  = 21

@@ -18,7 +18,7 @@ CONTAINS
     REAL(rkind):: RHON
     REAL(rkind):: DV11,DV11M,DV11P,DDM,DDP,VVM,VVP
     REAL(rkind):: DV23,DV53,CC25,CC83
-    INTEGER:: NSA,NV,NEQ,I
+    INTEGER:: NSA,NV,NEQ,i,j
 
     RHON=RM(NR)/RA
 
@@ -29,11 +29,11 @@ CONTAINS
     CC83=8.D0/3.D0
 
     IF(NR.EQ.1) THEN
-       DV11M=0.D0
+       DV11M=0.D0    ! gradient=0 at rho=0
        DV11P=0.5D0*(DVRHO(NR)+DVRHO(NR+1))
-    ELSEIF(NR.EQ.NRMAX) THEN
+    ELSE IF(NR.EQ.NRMAX) THEN
        DV11M=0.5D0*(DVRHO(NR-1)+DVRHO(NR))
-       DV11P=0.D0
+       DV11P=DVRHOS  ! evaluated at RG(NRMAX)=RA
     ELSE
        DV11M=0.5D0*(DVRHO(NR-1)+DVRHO(NR))
        DV11P=0.5D0*(DVRHO(NR)+DVRHO(NR+1))
@@ -48,15 +48,15 @@ CONTAINS
        SELECT CASE(NV)
        CASE(1)
           IF(NR.EQ.1) THEN
-             DDM=0.D0
+             DDM=       DD(NEQ,NR)                      ! symmetric around 0
              DDP=0.5D0*(DD(NEQ,NR)+DD(NEQ,NR+1))
-             VVM=0.D0
+             VVM=       0.D0                            ! anti-symmetric 
              VVP=0.5D0*(VV(NEQ,NR)+VV(NEQ,NR+1))
           ELSEIF(NR.EQ.NRMAX) THEN
              DDM=0.5D0*(DD(NEQ,NR-1)+DD(NEQ,NR))
-             DDP=0.D0
+             DDP=0.5D0*(-DD(NEQ,NR-1)+3.D0*DD(NEQ,NR))  ! extrapolate to NR+1
              VVM=0.5D0*(VV(NEQ,NR-1)+VV(NEQ,NR))
-             VVP=0.D0
+             VVP=0.5D0*(-VV(NEQ,NR-1)+3.D0*DD(NEQ,NR))  ! extrapolate to NR+1
           ELSE
              DDM=0.5D0*(DD(NEQ,NR-1)+DD(NEQ,NR))
              DDP=0.5D0*(DD(NEQ,NR)+DD(NEQ,NR+1))
@@ -64,37 +64,60 @@ CONTAINS
              VVP=0.5D0*(VV(NEQ,NR)+VV(NEQ,NR+1))
           ENDIF
 
+          IF(NR.EQ.NRMAX) THEN
+             NSA=NSA_NEQ(NEQ)
+             NV=NV_NEQ(NEQ)
+             SELECT CASE(NV)
+             CASE(1)
+                VAL_EDGE(NEQ)=PNS(NS_NSA(NSA))
+             CASE(2)
+                VAL_EDGE(NEQ)=PUS(NS_NSA(NSA))
+             CASE(3)
+                VAL_EDGE(NEQ)=PTS(NS_NSA(NSA))
+             END SELECT
+          END IF
+
 !  --- time derivative ---
 
+          i=(NR-1)*NEQMAX+NEQ
           MAT_LOCAL(NEQ,  NEQMAX+NEQ) &
                =MAT_LOCAL(NEQ,  NEQMAX+NEQ)+DV11
-          VEC_LOCAL(NEQ)=VEC_LOCAL(NEQ)+DV11*SOL_ORG(NEQ)
+          VEC_LOCAL(NEQ)=VEC_LOCAL(NEQ)+DV11*SOL_BASE(i)
 
 !  --- radial partilcle transport ---
 
           MAT_LOCAL(NEQ,         NEQ) = MAT_LOCAL(NEQ,         NEQ) &
-               +       DV11M*DDM/(DR)**2*DT &
-               - 0.5D0*DV11M*VVM/DR*DT
-          MAT_LOCAL(NEQ,  NEQMAX+NEQ) = MAT_LOCAL(NEQ,  NEQMAX+NEQ) &
                -       DV11M*DDM/(DR)**2*DT &
-               -       DV11P*DDP/(DR)**2*DT &
-               - 0.5D0*DV11M*VVM/DR*DT &
-               + 0.5D0*DV11P*VVP/DR*DT
-          MAT_LOCAL(NEQ,2*NEQMAX+NEQ) = MAT_LOCAL(NEQ,2*NEQMAX+NEQ) &
+               + 0.5D0*DV11M*VVM/DR*DT
+          MAT_LOCAL(NEQ,  NEQMAX+NEQ) = MAT_LOCAL(NEQ,  NEQMAX+NEQ) &
+               +       DV11M*DDM/(DR)**2*DT &
                +       DV11P*DDP/(DR)**2*DT &
-               + 0.5D0*DV11P*VVP/DR*DT
-
+               + 0.5D0*DV11M*VVM/DR*DT &
+               - 0.5D0*DV11P*VVP/DR*DT
+          MAT_LOCAL(NEQ,2*NEQMAX+NEQ) = MAT_LOCAL(NEQ,2*NEQMAX+NEQ) &
+               -       DV11P*DDP/(DR)**2*DT &
+               - 0.5D0*DV11P*VVP/DR*DT
 !  --- particle source and sink ---
 
-          VEC_LOCAL(NEQ) = VEC_LOCAL(NEQ) + DV11*SSIN(NSA,NR)
+          VEC_LOCAL(NEQ) = VEC_LOCAL(NEQ) + DV11*SSIN(NSA,NR)*DT
 
        END SELECT
+
+       IF(NR.EQ.NRMAX) THEN
+          MAT_LOCAL(NEQ,  NEQMAX+NEQ)=MAT_LOCAL(NEQ,  NEQMAX+NEQ) &
+               - MAT_LOCAL(NEQ,2*NEQMAX+NEQ)
+          VEC_LOCAL(NEQ)=VEC_LOCAL(NEQ) &
+               - 2.D0*MAT_LOCAL(NEQ,2*NEQMAX+NEQ)*VAL_EDGE(NEQ)
+          MAT_LOCAL(NEQ,2*NEQMAX+NEQ)=0.D0
+       END IF
     END DO
 
-    WRITE(6,'(A,I5,1P2E12.4)') 'NR,VEC = ',NR,(VEC_LOCAL(NEQ),NEQ=1,NEQMAX)
-    DO NEQ=1,NEQMAX
-       WRITE(6,'(1P6E12.4)') (MAT_LOCAL(NEQ,I),I=1,3*NEQMAX)
-    END DO
+    IF(NRANK.EQ.0.AND.IDEBUG.EQ.2) THEN
+       WRITE(6,'(A,I5,1P2E12.4)') 'NR,VEC = ',NR,(VEC_LOCAL(NEQ),NEQ=1,NEQMAX)
+       DO NEQ=1,NEQMAX
+          WRITE(6,'(1P6E12.4)') (MAT_LOCAL(NEQ,J),J=1,3*NEQMAX)
+       END DO
+    END IF
 
     RETURN
   END SUBROUTINE ti_calc

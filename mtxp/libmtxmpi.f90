@@ -79,6 +79,12 @@
       PUBLIC mtx_allgatherv_real8
       PUBLIC mtx_allgatherv_complex8
 
+!     reduce NOP=1: MAX
+!                2: MIN
+!                3: SUM
+!                4: MAXLOC
+!                5: MINLOC
+
       PUBLIC mtx_reduce1_integer
       PUBLIC mtx_reduce1_real4
       PUBLIC mtx_reduce1_real8
@@ -1159,7 +1165,7 @@
       CASE(3)! SUM
          CALL MPI_REDUCE(vdata,vreduce,ndata,MPI_INTEGER, &
                          MPI_SUM,0,ncomm,ierr)
-      CASE(4,5)! MAX/MINOC
+      CASE(4,5)! MAX/MINLOC
          ALLOCATE(d_send(2,ndata),d_recv(2,ndata))
          DO i=1,ndata
             d_send(1,i)=vdata(i)

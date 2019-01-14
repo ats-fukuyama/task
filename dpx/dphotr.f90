@@ -19,18 +19,21 @@ MODULE dphotr
 
 CONTAINS
 
-  SUBROUTINE DP_HOTR(CW,CKPR,CKPP,NS,CLDISP)
+  SUBROUTINE DP_HOTR(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
 
     USE dpcomm
+    USE plprof
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NS
+    TYPE(pl_mag_type),INTENT(IN):: mag
+    TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     COMPLEX(rkind):: CLDISP1(6),CLDISP2(6)
     INTEGER:: I
       
-    CALL DP_HOTRR(CW,CKPR,CKPP,NS,CLDISP1)
-    CALL DP_HOTRI(CW,CKPR,CKPP,NS,CLDISP2)
+    CALL DP_HOTRR(CW,CKPR,CKPP,NS,mag,plf,CLDISP1)
+    CALL DP_HOTRI(CW,CKPR,CKPP,NS,mag,plf,CLDISP2)
     DO I=1,6
        CLDISP(I)=CLDISP1(I)+CLDISP2(I)
     ENDDO
@@ -41,14 +44,16 @@ CONTAINS
 !                       DPHOTRR
 ! ******************************************************
 
-  SUBROUTINE DP_HOTRR(CW,CKPR,CKPP,NS,CLDISP)
+  SUBROUTINE DP_HOTRR(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
 
     USE dpcomm
-    USE pllocal
+    USE plprof
     USE libbes,ONLY: bessjn
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NS
+    TYPE(pl_mag_type),INTENT(IN):: mag
+    TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     REAL(rkind),DIMENSION(:),ALLOCATABLE:: ADJ,ADJD
     INTEGER:: NCMIN,NCMAX,NHMAX,NTH,NP,NC,NCD,INC
@@ -69,8 +74,8 @@ CONTAINS
       DELPL  = 0.5D0
 
       CWP=PN0*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
-      CWC=BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
-      WCM=BABS*PZ(NS)*AEE
+      CWC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
+      WCM=mag%BABS*PZ(NS)*AEE
       CKPRW=CKPR*PTH0/(AMP*PA(NS)*CW)
       DKPRW=DBLE(CKPRW)
       PTH0W=(PTH0/(AMP*PA(NS)*VC))**2
@@ -265,14 +270,16 @@ CONTAINS
 !                       DPHOTRI
 ! ******************************************************
 
-  SUBROUTINE DP_HOTRI(CW,CKPR,CKPP,NS,CLDISP)
+  SUBROUTINE DP_HOTRI(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
 
     USE dpcomm
-    USE pllocal
+    USE plprof
     USE libbes,ONLY: bessjn
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NS
+    TYPE(pl_mag_type),INTENT(IN):: mag
+    TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     REAL(rkind),DIMENSION(:),ALLOCATABLE:: ADJ,ADJD
     INTEGER:: NCMIN,NCMAX,NHMAX,NTH,NP,NC,NCD,NP1,INC,NP2
@@ -294,8 +301,8 @@ CONTAINS
       ALLOCATE(ADJ(0:NHMAX),ADJD(0:NHMAX))
 
       CWP=PN0*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
-      CWC=BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
-      WCM=BABS*PZ(NS)*AEE
+      CWC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
+      WCM=mag%BABS*PZ(NS)*AEE
       CKPRW=CKPR*PTH0/(AMP*PA(NS)*CW)
       DKPRW=DBLE(CKPRW)
       PTH0C=PTH0/(AMP*PA(NS)*VC)

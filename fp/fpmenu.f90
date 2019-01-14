@@ -18,7 +18,10 @@
       USE plinit
       USE plparm
       USE fpfile
+      USE fpcaltp
+      USE fpcalte
       USE fpcaldeff
+      USE fpcalchieff
       USE libmpi
       USE libmtx
 
@@ -112,6 +115,7 @@
          CALL FP_POST_LOAD
       ELSEIF (KID.EQ.'Z') THEN
          CALL fp_caldeff
+         CALL fp_calchieff
       ELSEIF (KID.EQ.'Q') THEN
          CALL CLOSE_EVOLVE_DATA_OUTPUT 
          GO TO 9000

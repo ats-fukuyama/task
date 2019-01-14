@@ -3,7 +3,7 @@
 ## if you have lapack library
 #LAPACK = lapack.f
 #LIBLA = /usr/local/lib/lapack.a /usr/local/lib/blas.a
-#LIBLA = -L/opt/intel/composerxe/mkl/lib -lmkl_intel -lmkl_sequential -lmkl_core -lpthread -lm
+#LIBLA = -L/opt/intel/mkl/lib -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lm
 #LIBLA=-L /opt/petsc/petsc/ifort/lib -lflapack -lfblas
 #LIBLA=-L /opt/PETSc/petsc/gfortran/lib -lflapack -lfblas
 #MODLA95 = -I/usr/local/lib/lapack95_modules
@@ -68,8 +68,8 @@ GLLIBS=-L/usr/local/lib -lgsgl
 
 ## for gfortran (64bit) lib
 #GFLIBS=-L/usr/local/lib -lg3d-gfc64 -lgsp-gfc64 -lgdp-gfc64  -L/usr/X11R6/lib -lX11
-#OFLAGS = -g -O3 -m64 -mcmodel=medium
-#DFLAGS = -g -m64 -fbounds-check -ffpe-trap=invalid,zero,overflow,underflow -fbacktrace -fcheck=all -mcmodel=medium
+#OFLAGS = -g -O3 -m64 -mcmodel=medium -std=legacy
+#DFLAGS = -g -m64 -fbounds-check -ffpe-trap=invalid,zero,overflow,underflow -fbacktrace -fcheck=all -mcmodel=medium -std=legacy
 #FCFIXED = gfortran -ffixed-form
 #FCFREE = gfortran -ffree-form
 #MOD = mod
@@ -79,8 +79,8 @@ GLLIBS=-L/usr/local/lib -lgsgl
 
 ## for gfortran (64bit) lib64
 #GFLIBS=-L/usr/local/lib64 -lg3d-gfc64 -lgsp-gfc64 -lgdp-gfc64  -L/usr/X11R6/lib -lX11
-#OFLAGS = -g -O3 -m64 -mcmodel=medium
-#DFLAGS = -g -m64 -fbounds-check -ffpe-trap=invalid,zero,overflow,underflow -fbacktrace -fcheck=all -mcmodel=medium
+#OFLAGS = -g -O3 -m64 -mcmodel=medium -std=legacy
+#DFLAGS = -g -m64 -fbounds-check -ffpe-trap=invalid,zero,overflow,underflow -fbacktrace -fcheck=all -mcmodel=medium -std=legacy
 #FCFIXED = gfortran -ffixed-form
 #FCFREE = gfortran -ffree-form
 #MOD = mod
