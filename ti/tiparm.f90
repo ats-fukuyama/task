@@ -3,7 +3,7 @@
 MODULE tiparm
 
   PRIVATE
-  PUBLIC ti_parm,ti_view
+  PUBLIC ti_parm,ti_view,ti_broadcast
 
 CONTAINS
 

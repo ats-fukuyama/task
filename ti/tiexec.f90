@@ -19,13 +19,7 @@ CONTAINS
 
     IERR=0
 
-    imax=NRMAX*NEQMAX
     ALLOCATE(v(imax))
-    jwidth=4*NEQMAX-1
-    CALL mtx_setup(imax,istart,iend,jwidth)
-    
-    NR_START=(istart+NEQMAX-1)/NEQMAX
-    NR_END=(iend+NEQMAX-1)/NEQMAX
 
     residual_loop_max=0.D0
     icount_loop_max=0
@@ -45,8 +39,6 @@ CONTAINS
        IF(MOD(NT,NGTSTEP).EQ.0) CALL ti_record_ngt   ! save for time history
        IF(MOD(NT,NGRSTEP).EQ.0) CALL ti_record_ngr   ! save for radial profile
     END DO
-
-    CALL mtx_cleanup
 
     RETURN
   END SUBROUTINE ti_exec
@@ -128,23 +120,22 @@ CONTAINS
     residual_loop=residual
     icount_loop=icount
 
-!   *** convert a new solution vector to present values ***       
+!   *** convert a new solution vector to present values *** 
+!       since sol_new has all values, all RNA,RUA,RTA are calculated
 
-    DO NR=NR_START,NR_END
+    DO NR=1,NRMAX
        DO NEQ=1,NEQMAX
           i=(NR-1)*NEQMAX+NEQ
-          IF(i.GE.istart.AND.i.LE.iend) THEN
-             NSA=NSA_NEQ(NEQ)
-             NV=NV_NEQ(NEQ)
-             SELECT CASE(NV)
-             CASE(1)
-                RNA(NSA,NR)=SOL_NEW(i)
-             CASE(2)
-                RUA(NSA,NR)=SOL_NEW(i)
-             CASE(3)
-                RTA(NSA,NR)=SOL_NEW(i)
-             END SELECT
-          END IF
+          NSA=NSA_NEQ(NEQ)
+          NV=NV_NEQ(NEQ)
+          SELECT CASE(NV)
+          CASE(1)
+             RNA(NSA,NR)=SOL_NEW(i)
+          CASE(2)
+             RUA(NSA,NR)=SOL_NEW(i)
+          CASE(3)
+             RTA(NSA,NR)=SOL_NEW(i)
+          END SELECT
        END DO
     END DO
     IERR=0
@@ -158,14 +149,22 @@ CONTAINS
     USE tisource
     USE ticalc
     USE libmtx
+    USE libmpi
     IMPLICIT NONE
     INTEGER:: itype,iterations,i,j,NEQ,NEQ1,NR
+    INTEGER:: istart_,iend_
     REAL(rkind):: tolerance
 
     DO NR=MAX(1,NR_START-1),MIN(NRMAX,NR_END+1)
        CALL ti_coef(NR)    ! calculate DD,VV,CC
        CALL ti_source(NR)  ! calculate SSIN,VSIN,PSIN,AJIN
     END DO
+
+    CALL mtx_setup(imax,istart_,iend_,jwidth)
+    IF(istart_.NE.istart.OR.iend_.NE.iend) THEN
+       WRITE(6,*) 'XX ti_solve: mtx_setup inconsistency'
+       STOP
+    END IF
 
     DO NR=NR_START,NR_END
 
@@ -192,7 +191,9 @@ CONTAINS
     tolerance=EPSMAT
     CALL mtx_solve(itype,tolerance,icount_mat)
     
-    CALL mtx_gather_vector(SOL_NEW)
+    CALL mtx_gather_vector(sol_new)
+
+    CALL mtx_cleanup
   END SUBROUTINE ti_solve
 
   SUBROUTINE ti_convergence(RESIDUAL)
@@ -237,7 +238,7 @@ CONTAINS
 
   SUBROUTINE ti_distribute_sol(sol)
     USE libmpi
-    USE ticomm,ONLY: rkind,istart,iend,imax
+    USE ticomm,ONLY: rkind,istart,iend,imax,nrank
     IMPLICIT NONE
     REAL(rkind),INTENT(INOUT):: sol(imax)
     REAL(rkind):: vsend(istart:iend)
@@ -246,6 +247,7 @@ CONTAINS
     DO i=istart,iend
        vsend(i)=sol(i)
     END DO
+    
     CALL mtx_allgather_real8(vsend,iend-istart+1,sol)
     RETURN
   END SUBROUTINE ti_distribute_sol

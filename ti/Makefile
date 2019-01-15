@@ -2,12 +2,12 @@
 include ../make.header
 include ../mtxp/make.mtxp
 
-LIB_MTX=$(LIB_MTX_BND)
-LIBX_MTX=$(LIBX_MTX_BND)
+#LIB_MTX=$(LIB_MTX_BND)
+#LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIB_MTX_PCG)
 #LIBX_MTX=$(LIBX_MTX_PCG)
-#LIB_MTX=$(LIB_MTX_MUMPS)
-#LIBX_MTX=$(LIBX_MTX_MUMPS)
+LIB_MTX=$(LIB_MTX_MUMPS)
+LIBX_MTX=$(LIBX_MTX_MUMPS)
 #LIB_MTX=$(LIBXMTX_KSP)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
@@ -17,7 +17,7 @@ LIBX_MTX=$(LIBX_MTX_BND)
 #FFLAGS = $(OFLAGS)
 FFLAGS = $(DFLAGS)
 
-SRCS=   ticomm.f90 adpost/lib-adpost.f90 \
+SRCS=   ticomm.f90 adpost/lib-adpost.f90 tiadas.f90 \
 	tiinit.f90 tiparm.f90 \
 	ticoef.f90 tisource.f90 ticalc.f90 tirecord.f90 \
         tiprep.f90 tiexec.f90 \
@@ -33,9 +33,10 @@ SRCS=   ticomm.f90 adpost/lib-adpost.f90 \
 #      trunit.f90 trloop.f90 trmenu.f90 tr_bpsd.f90
 
 OBJS=$(SRCS:.f90=.o)
-LIBS=tilib.a ../eq/eqlib.a ../plx/pllib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a
+LIBS=tilib.a ../open-adas/adf11/adf11-lib/adf11-lib.a ../eq/eqlib.a ../plx/pllib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a
 
-MODINCLUDE= -I./$(MOD) -I./adpost/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD) \
+MODINCLUDE= -I./$(MOD) -I../open-adas/adf11/adf11-lib/$(MOD) \
+            -I./adpost/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD) \
             -I../mtxp/$(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD) 
 
 .f.o :
@@ -53,6 +54,8 @@ tilib.a: $(OBJS)
 	(cd ../eq; make eqlib.a)
 ../plx/pllib.a:
 	(cd ../plx; make pllib.a)
+../open-adas/adf11/adf11-lib/adf11-lib.a: 
+	(cd ../open-adas/adf11/adf11-lib; make adf11-lib.a)
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)
 ../../bpsd/bpsdlib.a:
@@ -61,6 +64,8 @@ tilib.a: $(OBJS)
 libs:
 	(cd ../../bpsd; make bpsdlib.a)
 	(cd ../lib; make tasklib.a)
+	(cd ../mtxp; make)
+	(cd ../open-adas/adf11/adf11-lib; make adf11-lib.a)
 	(cd ../plx; make pllib.a)
 	(cd ../eq; make eqlib.a)
 

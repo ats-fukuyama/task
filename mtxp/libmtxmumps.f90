@@ -319,6 +319,7 @@
       id%JOB=6
       CALL dmumps(id)
 
+      CALL mtx_broadcast_real8(id%RHS,imax)
       its=0
       RETURN
       END SUBROUTINE mtx_solve
@@ -613,6 +614,7 @@
       idc%JOB=6
       CALL zmumps(idc)
 
+      CALL mtx_broadcast_complex8(idc%RHS,imax)
       its=0
       RETURN
       END SUBROUTINE mtxc_solve

@@ -9,7 +9,7 @@ CONTAINS
     USE ticomm
     USE plprof
     USE tirecord
-    USE libmtx
+    1USE libmtx
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
     INTEGER:: NS,NSA,NZ,NEQ,NR,NV
@@ -254,13 +254,18 @@ CONTAINS
     IF(ALLOCATED(gvrt)) DEALLOCATE(gvrt)
     IF(ALLOCATED(gvrta)) DEALLOCATE(gvrta)
     ngr_allocate_max=0
-    
+
+    WRITE(6,*) '--- point 1'
     imax=NRMAX*NEQMAX
     jwidth=4*NEQMAX-1
+    WRITE(6,'(A,I5,6I8/)') 'nrank: imax,nrmax=', &
+                        nrank, imax,nrmax
     CALL mtx_setup(imax,istart,iend,jwidth)
     NR_START=(istart+NEQMAX-1)/NEQMAX
     NR_END=(iend+NEQMAX-1)/NEQMAX
+    WRITE(6,*) '--- point 2'
     CALL mtx_cleanup
+    WRITE(6,*) '--- point 3'
 
     WRITE(6,'(A,I5,6I8/)') 'nrank: imax/s/e,nrmax/s/e=', &
                         nrank, imax,istart,iend,nrmax,nr_start,nr_end

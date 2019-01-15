@@ -4,7 +4,7 @@ MODULE ADF11
 
 !     Data size required by XXDATA_11
   INTEGER,PARAMETER:: ISDIMD = 200   ! maximum number of blocks
-  INTEGER,PARAMETER:: ITDIMD = 50    ! maximum number of temp values
+  INTEGER,PARAMETER:: ITDIMD = 60    ! maximum number of temp values
   INTEGER,PARAMETER:: IDDIMD = 40    ! maximum number of dens values
   INTEGER,PARAMETER:: IZDIMD = 160   ! maximum number of IZ0s
   INTEGER,ALLOCATABLE,DIMENSION(:):: IZ0A,ICLASSA,IM0A
