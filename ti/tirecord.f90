@@ -37,8 +37,8 @@ CONTAINS
     
     IMPLICIT NONE
     INTEGER:: nsa,nr,neq,nv,i
-    REAL(rkind):: temp(nsmax)
-    INTEGER:: loc(nsmax)
+    REAL(rkind):: temp(nsa_max)
+    INTEGER:: loc(nsa_max)
 
     DO nsa=1,nsa_max
        rnatot(nsa)=0.D0
@@ -64,12 +64,12 @@ CONTAINS
        END DO
     END DO
 
-    CALL mtx_reduce_real8(rnatot,3, nsmax,temp,loc)
-    IF(nrank.EQ.0) rnatot(1:nsmax)=temp(1:nsmax)
-    CALL mtx_reduce_real8(rnuatot,3,nsmax,temp,loc)
-    IF(nrank.EQ.0) rnuatot(1:nsmax)=temp(1:nsmax)
-    CALL mtx_reduce_real8(rntatot,3,nsmax,temp,loc)
-    IF(nrank.EQ.0) rntatot(1:nsmax)=temp(1:nsmax)
+    CALL mtx_reduce_real8(rnatot,nsa_max,3,temp,loc)
+    IF(nrank.EQ.0) rnatot(1:nsa_max)=temp(1:nsa_max)
+    CALL mtx_reduce_real8(rnuatot,nsa_max,3,temp,loc)
+    IF(nrank.EQ.0) rnuatot(1:nsa_max)=temp(1:nsa_max)
+    CALL mtx_reduce_real8(rntatot,nsa_max,3,temp,loc)
+    IF(nrank.EQ.0) rntatot(1:nsa_max)=temp(1:nsa_max)
 
     IF(nrank.EQ.0) THEN
        DO nsa=1,nsa_max
@@ -93,9 +93,9 @@ CONTAINS
     
     IF(ngt_max.GT.0) THEN
        ALLOCATE(gttemp(ngt_max))
-       ALLOCATE(gvtatemp(ngt_max,nsmax,9))
+       ALLOCATE(gvtatemp(ngt_max,nsa_max,9))
        gttemp(1:ngt_max)=gt(1:ngt_max)
-       gvtatemp(1:ngt_max,1:nsmax,1:9)=gvta(1:ngt_max,1:nsmax,1:9)
+       gvtatemp(1:ngt_max,1:nsa_max,1:9)=gvta(1:ngt_max,1:nsa_max,1:9)
     END IF
 
     IF(ALLOCATED(gt)) DEALLOCATE(gt)
@@ -103,11 +103,11 @@ CONTAINS
 
     ngt_allocate_max=ngt_allocate_max+ngt_allocate_step
     ALLOCATE(gt(ngt_allocate_max))
-    ALLOCATE(gvta(ngt_allocate_max,nsmax,9))
+    ALLOCATE(gvta(ngt_allocate_max,nsa_max,9))
 
     IF(ngt_max.GT.0) THEN
        gt(1:ngt_max)=gttemp(1:ngt_max)
-       gvta(1:ngt_max,1:nsmax,1:9)=gvtatemp(1:ngt_max,1:nsmax,1:9)
+       gvta(1:ngt_max,1:nsa_max,1:9)=gvtatemp(1:ngt_max,1:nsa_max,1:9)
        DEALLOCATE(gttemp,gvtatemp)
     END IF
     RETURN
@@ -148,7 +148,7 @@ CONTAINS
     REAL(rkind),ALLOCATABLE:: grttemp(:),gvrtatemp(:,:,:,:)
     
     IF(ngr_max.GT.0) THEN
-       ALLOCATE(grttemp(ngr_max),gvrtatemp(nrmax,ngr_max,nsmax,3))
+       ALLOCATE(grttemp(ngr_max),gvrtatemp(nrmax,ngr_max,nsa_max,3))
        grttemp(1:ngr_max)=grt(1:ngr_max)
        gvrtatemp(1:nrmax,1:ngr_max,1:nsa_max,1:3) &
             =gvrta(1:nrmax,1:ngr_max,1:nsa_max,1:3)

@@ -1,5 +1,11 @@
  &ti
-   NSMAX=1
+   NSMAX=3
+   PA(3)=26.D0
+   PM(3)=40.D0
+   ID_NS(3)=10
+   NZMIN_NS(3)=0
+   NZMAX_NS(3)=26
+!   
    AD0=1.D0
    AK0=0.D0
    AV0=0.D0
@@ -9,5 +15,5 @@
    NTSTEP=1
    NGTSTEP=1
    NGRSTEP=1
-   NTMAX=2
+   NTMAX=1
  &end

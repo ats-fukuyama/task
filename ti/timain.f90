@@ -15,8 +15,6 @@ PROGRAM ti
   USE tiinit,ONLY: ti_init
   USE tiparm,ONLY: ti_parm
   USE timenu,ONLY: ti_menu
-  USE ADPOST
-  USE ADF11
   USE libmtx
   IMPLICIT NONE
   INTEGER(ikind):: IERR
@@ -29,9 +27,6 @@ PROGRAM ti
      WRITE(6,*) '***** TASK/TI  19/01/11 *****'
      CALL GSOPEN
      OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
-     CALL read_adpost(IERR)
-     IF(IERR.NE.0) WRITE(6,*) 'XX read_adpost: IERR=',IERR
-     CALL LOAD_ADF11_bin(IERR)
   END IF
 
   CALL pl_init

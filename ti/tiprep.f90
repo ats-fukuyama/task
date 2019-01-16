@@ -9,14 +9,49 @@ CONTAINS
     USE ticomm
     USE plprof
     USE tirecord
-    1USE libmtx
+    USE ADPOST
+    USE ADF11
+    USE libmtx
+    USE libmpi
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
-    INTEGER:: NS,NSA,NZ,NEQ,NR,NV
+    INTEGER,SAVE:: init_adpost=0
+    INTEGER,SAVE:: init_adas=0
+    INTEGER:: NS,NSA,NZ,NEQ,NR,NV,ID_adpost,ID_adas
     REAL(rkind):: RHON
     TYPE(pl_plf_type),DIMENSION(:),ALLOCATABLE:: PLF
 
     IERR=0
+
+    ID_adpost=0
+    ID_adas=0
+    DO NS=1,NSMAX
+       SELECT CASE(ID_NS(NS))
+       CASE(5,6)
+          ID_adpost=1
+       CASE(10,11,12)
+          ID_adas=1
+       END SELECT
+    END DO
+
+    IF(ID_adpost.EQ.1) THEN
+       IF(init_adpost.EQ.0) THEN
+          CALL read_adpost(IERR)
+          IF(IERR.NE.0) WRITE(6,*) 'XX read_adpost: IERR=',IERR
+          init_adpost=1
+       END IF
+    END IF
+    IF(ID_adas.EQ.1) THEN
+       IF(init_adas.EQ.0) THEN
+          IF(nrank.EQ.0) THEN
+             CALL LOAD_ADF11_bin(IERR)
+             IF(IERR.NE.0) WRITE(6,*) 'XX load_ADF11_bin: IERR=',IERR
+          END IF
+          CALL broadcast_ADF11_bin(IERR)
+          IF(IERR.NE.0) WRITE(6,*) 'XX bloadcast_ADF11_bin: IERR=',IERR
+          init_adas=1
+       END IF
+    END IF
 
 !   *** count NSA_MAX: number of active particles ***
 
@@ -81,18 +116,26 @@ CONTAINS
           END DO
        END SELECT
     END DO
-    IF(NSA.NE.nsa_max) THEN
-       WRITE(6,*) 'XX ti_prep: INCONSISTENT nsa_max'
+    IF(NSA.GT.nsa_max) THEN
+       WRITE(6,'(A)') 'XX ti_prep: INCONSISTENT nsa_max'
        STOP
+    ELSE IF(NSA.LT.nsa_max) THEN
+       WRITE(6,'(A,I5)') &
+            '!! calculated nsa_max is lower than assumed nsa_max:',nsa_max
+       nsa_max=NSA
+       WRITE(6,'(A,I5)') &
+            '                              nsa_max is reduced to:',nsa_max
     END IF
 
 !   *** Display NSA variables ***
 
-    WRITE(6,*) 'NSA  ','NS   ','ID   ','PMA         ','PZA'
-    DO NSA=1,nsa_max
-       WRITE(6,'(3I5,1P2E12.4)') &
-            NSA,NS_NSA(NSA),ID_NS(NS_NSA(NSA)),PMA(NSA),PZA(NSA)
-    END DO
+    IF(nrank.EQ.0) THEN
+       WRITE(6,*) 'NSA  ','NS   ','ID   ','PMA         ','PZA'
+       DO NSA=1,nsa_max
+          WRITE(6,'(3I5,1P2E12.4)') &
+               NSA,NS_NSA(NSA),ID_NS(NS_NSA(NSA)),PMA(NSA),PZA(NSA)
+       END DO
+    END IF
 
 !   *** Count NEQMAX: Size of equation ***
 
@@ -121,13 +164,15 @@ CONTAINS
        END SELECT
     END DO
     NEQMAX=NEQ
-    WRITE(6,'(A,I5)') 'NEQMAX=',NEQMAX
+    IF(nrank.EQ.0) THEN
+       WRITE(6,'(A,I5)') 'NEQMAX=',NEQMAX
+    END IF
 
 !   *** ALLOCATE array for NEQMAX and NRMAX ***
 
     CALL allocate_neqmax(IERR)
     IF(IERR.NE.0) THEN
-       WRITE(6,*) 'XX tiprep: allocate_neqmax ERROR: IERR=',IERR
+       WRITE(6,*) 'XX ti_prep: allocate_neqmax ERROR: IERR=',IERR
        STOP
     END IF
 
@@ -192,17 +237,20 @@ CONTAINS
 
 !   *** Display NEQ variables ***
 
-    WRITE(6,*) 'NEQ  ','NS   ','NSA  ','NV   '
-    DO NEQ=1,NEQMAX
-       WRITE(6,'(4I5)') &
-            NEQ,NS_NSA(NSA_NEQ(NEQ)),NSA_NEQ(NEQ),NV_NEQ(NEQ)
-    END DO
-    WRITE(6,*) 'NS   ','NSA  ','NV   ','NEQ  '
-    DO NSA=1,nsa_max
-       DO NV=1,3
-          WRITE(6,'(4I5)') NS_NSA(NSA),NSA,NV,NEQ_NVNSA(NV,NSA)
+    IF(nrank.EQ.0) THEN
+       WRITE(6,*) 'NEQ  ','NS   ','NSA  ','NV   '
+       DO NEQ=1,NEQMAX
+          WRITE(6,'(4I5)') &
+               NEQ,NS_NSA(NSA_NEQ(NEQ)),NSA_NEQ(NEQ),NV_NEQ(NEQ)
        END DO
-    END DO   
+       WRITE(6,*) 'NS   ','NSA  ','NV   ','NEQ  '
+       DO NSA=1,nsa_max
+          DO NV=1,3
+             IF(NEQ_NVNSA(NV,NSA).NE.0) &
+                  WRITE(6,'(4I5)') NS_NSA(NSA),NSA,NV,NEQ_NVNSA(NV,NSA)
+          END DO
+       END DO
+    END IF
 
 !   *** radial mesh ***
 
@@ -255,20 +303,16 @@ CONTAINS
     IF(ALLOCATED(gvrta)) DEALLOCATE(gvrta)
     ngr_allocate_max=0
 
-    WRITE(6,*) '--- point 1'
     imax=NRMAX*NEQMAX
     jwidth=4*NEQMAX-1
-    WRITE(6,'(A,I5,6I8/)') 'nrank: imax,nrmax=', &
-                        nrank, imax,nrmax
     CALL mtx_setup(imax,istart,iend,jwidth)
     NR_START=(istart+NEQMAX-1)/NEQMAX
     NR_END=(iend+NEQMAX-1)/NEQMAX
-    WRITE(6,*) '--- point 2'
     CALL mtx_cleanup
-    WRITE(6,*) '--- point 3'
 
     WRITE(6,'(A,I5,6I8/)') 'nrank: imax/s/e,nrmax/s/e=', &
                         nrank, imax,istart,iend,nrmax,nr_start,nr_end
+    CALL mtx_barrier
 
     IF(MOD(NT,NTSTEP ).EQ.0) CALL ti_snap         ! integrate and save
     IF(MOD(NT,NGTSTEP).EQ.0) CALL ti_record_ngt   ! save for time history

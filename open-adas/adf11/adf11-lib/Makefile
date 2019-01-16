@@ -3,6 +3,7 @@
 ### Data file should be located at task/open-adas, e.g. task/open-adas/acd50
 ###
 include ../../../make.header
+include ../../../mtxp/make.mtxp
 
 .SUFFIXES:
 .SUFFIXES: .f .for .f90 .mod .o .a
@@ -10,7 +11,7 @@ include ../../../make.header
 #FFLAGS=$(OFLAGS)
 FFLAGS=$(DFLAGS)
 
-MODINCLUDE= -I./$(MOD) -I../../../lib/$(MOD)
+MODINCLUDE= -I./$(MOD) -I../../../mtxp/$(MOD) -I../../../lib/$(MOD)
 
 SRCS = \
 xxdata_11.for \
@@ -27,7 +28,7 @@ lib-adf11.f90 \
 
 OBJS = $(SRCS:.for=.o) $(SRCX:.f90=.o) 
 
-LIBS = adf11-lib.a ../../../lib/tasklib.a
+LIBS = adf11-lib.a ../../../mtxp/libmtxmpi.o ../../../lib/tasklib.a 
 
 .for.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -43,10 +44,10 @@ libs:
 	(cd ../../../lib; make)
 
 conv-adf11 : $(LIBS) conv-adf11.o
-	$(FCFIXED) conv-adf11.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+	$(FLINKER) conv-adf11.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 test-adf11 : $(LIBS) test-adf11.o
-	$(FCFIXED) test-adf11.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+	$(FLINKER) test-adf11.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 clean:
 	-rm -f core conv-adf11 test-adf11 *.o *.a ./*~ $(MOD)/*.mod

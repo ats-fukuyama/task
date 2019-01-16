@@ -626,6 +626,168 @@ CONTAINS
     RETURN
   END SUBROUTINE LOAD_ADF11_bin
 
+! --- broadcast loaded ADF11-bin-data ---
+
+  SUBROUTINE broadcast_ADF11_bin(IERR)
+
+    USE libfio
+    USE libmpi
+    USE commpi
+    IMPLICIT NONE
+    INTEGER,INTENT(OUT):: IERR
+    INTEGER:: ND,ID,IT,IS,nmax,n,IC,I,J
+    LOGICAL:: FLAG
+    REAL(dp),ALLOCATABLE:: work(:)
+
+    CALL mtx_broadcast1_integer(NDMAX)
+    CALL mtx_broadcast1_integer(ISMAX)
+    CALL mtx_broadcast1_integer(IDMAX)
+    CALL mtx_broadcast1_integer(ITMAX)
+
+    IF(nrank.NE.0) THEN
+       IF(ALLOCATED(IZ0A))    DEALLOCATE(IZ0A)
+       IF(ALLOCATED(IM0A))    DEALLOCATE(IM0A)
+       IF(ALLOCATED(ICLASSA)) DEALLOCATE(ICLASSA)
+       IF(ALLOCATED(KFNAMA))  DEALLOCATE(KFNAMA)
+       IF(ALLOCATED(IDMAXA))  DEALLOCATE(IDMAXA)
+       IF(ALLOCATED(ITMAXA))  DEALLOCATE(ITMAXA)
+       IF(ALLOCATED(IZTOTA))  DEALLOCATE(IZTOTA)
+       IF(ALLOCATED(IZMINA)) DEALLOCATE(IZMINA)
+       IF(ALLOCATED(IZMAXA)) DEALLOCATE(IZMAXA)
+       IF(ALLOCATED(DDENSA))  DEALLOCATE(DDENSA)
+       IF(ALLOCATED(DTEMPA))  DEALLOCATE(DTEMPA)
+       IF(ALLOCATED(DRCOFA))  DEALLOCATE(DRCOFA)
+       IF(ALLOCATED(UDRCOFA)) DEALLOCATE(UDRCOFA)
+       IF(ALLOCATED(UDRCOFL)) DEALLOCATE(UDRCOFL)
+
+       ALLOCATE(IZ0A(NDMAX),IM0A(NDMAX),ICLASSA(NDMAX),KFNAMA(NDMAX))
+       ALLOCATE(IDMAXA(NDMAX),ITMAXA(NDMAX),IZTOTA(NDMAX))
+       ALLOCATE(IZMINA(NDMAX),IZMAXA(NDMAX))
+       ALLOCATE(DDENSA(IDMAX,NDMAX))
+       ALLOCATE(DTEMPA(ITMAX,NDMAX))
+       ALLOCATE(DRCOFA(IDMAX,ITMAX,ISMAX,NDMAX))
+       ALLOCATE(UDRCOFA(4,4,IDMAX,ITMAX,ISMAX,NDMAX))
+       ALLOCATE(UDRCOFL(4,4,IDMAX,ITMAX))
+    END IF
+
+    CALL mtx_broadcast_integer(IZ0A,NDMAX)
+    CALL mtx_broadcast_integer(IM0A,NDMAX)
+    CALL mtx_broadcast_integer(ICLASSA,NDMAX)
+    DO ND=1,NDMAX
+       CALL mtx_broadcast_character(KFNAMA(ND),256)
+    END DO
+    CALL mtx_broadcast_integer(IDMAXA,NDMAX)
+    CALL mtx_broadcast_integer(ITMAXA,NDMAX)
+    CALL mtx_broadcast_integer(IZTOTA,NDMAX)
+    CALL mtx_broadcast_integer(IZMINA,NDMAX)
+    CALL mtx_broadcast_integer(IZMAXA,NDMAX)
+
+    WRITE(6,'(A,I5)') 'IDMAX,IDMAXA=',IDMAX
+    WRITE(6,'(10I5)') (IDMAXA(ND),ND=1,NDMAX)
+
+    DO ND=1,NDMAX
+       ALLOCATE(work(IDMAXA(ND)))
+       IF(nrank.EQ.0) THEN
+          DO ID=1,IDMAXA(ND)
+             work(ID)=DDENSA(ID,ND)
+          END DO
+       END IF
+       CALL mtx_broadcast_real8(work,IDMAXA(ND))
+       IF(nrank.NE.0) THEN
+          DO ID=1,IDMAXA(ND)
+             DDENSA(ID,ND)=work(ID)
+          END DO
+          DEALLOCATE(work)
+          ALLOCATE(work(ITMAXA(ND)))
+       ELSE
+          DEALLOCATE(work)
+          ALLOCATE(work(ITMAXA(ND)))
+          DO IT=1,ITMAXA(ND)
+             work(IT)=DTEMPA(IT,ND)
+          END DO
+       END IF
+       CALL mtx_broadcast_real8(work,ITMAXA(ND))
+       IF(nrank.NE.0) THEN
+          DO IT=1,ITMAXA(ND)
+             DTEMPA(IT,ND)=work(ID)
+          END DO
+       END IF
+       DEALLOCATE(work)
+    END DO
+
+    DO ND=1,NDMAX
+       nmax=IZTOTA(ND)*ITMAXA(ND)*IDMAXA(ND)
+       ALLOCATE(work(nmax))
+       IF(nrank.EQ.0) THEN
+          n=0
+          DO IS=1,IZTOTA(ND)
+             DO IT=1,ITMAXA(ND)
+                DO ID=1,IDMAXA(ND)
+                   n=n+1
+                   work(n)=DRCOFA(ID,IT,IS,ND)
+                END DO
+             END DO
+          END DO
+       END IF
+       CALL mtx_broadcast_real8(work,nmax)
+       IF(nrank.NE.0) THEN
+          n=0
+          DO IS=1,IZTOTA(ND)
+             DO IT=1,ITMAXA(ND)
+                DO ID=1,IDMAXA(ND)
+                   n=n+1
+                   DRCOFA(ID,IT,IS,ND)=work(n)
+                END DO
+             END DO
+          END DO
+       END IF
+       DEALLOCATE(work)
+    END DO
+    DO ND=1,NDMAX
+       nmax=IZTOTA(ND)*ITMAXA(ND)*IDMAXA(ND)*4*4
+       ALLOCATE(work(nmax))
+       IF(nrank.EQ.0) THEN
+          n=0
+          DO IS=1,IZTOTA(ND)
+             DO IT=1,ITMAXA(ND)
+                DO ID=1,IDMAXA(ND)
+                   DO J=1,4
+                      DO I=1,4
+                         n=n+1
+                         work(n)=UDRCOFA(I,J,ID,IT,IS,ND)
+                      END DO
+                   END DO
+                END DO
+             END DO
+          END DO
+       END IF
+       CALL mtx_broadcast_real8(work,nmax)
+       IF(nrank.NE.0) THEN
+          n=0
+          DO IS=1,IZTOTA(ND)
+             DO IT=1,ITMAXA(ND)
+                DO ID=1,IDMAXA(ND)
+                   DO J=1,4
+                      DO I=1,4
+                         n=n+1
+                         UDRCOFA(I,J,ID,IT,IS,ND)=work(n)
+                      END DO
+                   END DO
+                END DO
+             END DO
+          END DO
+       END IF
+       DEALLOCATE(work)
+    END DO
+
+    DO IC=1,12
+       CALL mtx_broadcast_integer(ND_TABLE(1:IZDIMD,IC),IZDIMD)
+    END DO
+
+    IERR=0
+    RETURN
+  END SUBROUTINE broadcast_ADF11_bin
+
   SUBROUTINE IONIZE_EQ2(IZ0,PN,PT,PZAV,PZ2AV,PWBAV,PWLAV,IND,IERR)
 
 !   IND=0 No plot
