@@ -109,7 +109,7 @@ CONTAINS
              SELECT CASE(NV1)
              CASE(1) 
                 MAT_LOCAL(NEQ,NEQMAX+NEQ1)=MAT_LOCAL(NEQ,NEQMAX+NEQ1) &
-                     +DV11*CCN(NSA,NSA1,NR)*DT
+                     -DV11*CCN(NSA,NSA1,NR)*DT
 !                IF(ABS(CCN(NSA,NSA1,NR)).GT.0.D0) THEN
 !                   WRITE(6,'(A,3I5,1PE12.4)') &
 !                        'NR,NSA,NSA1,CCN=',NR,NSA,NSA1,CCN(NSA,NSA1,NR)
