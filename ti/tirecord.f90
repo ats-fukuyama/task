@@ -56,9 +56,9 @@ CONTAINS
              CASE(1)
                 rnatot(nsa) =rnatot(nsa) +rna(nsa,nr)*dvrho(nr)*dr
              CASE(2)
-                rnuatot(nsa)=rnuatot(nsa)+rna(nsa,nr)*rua(nsa,nr)*dvrho(nr)*dr
-             CASE(3)
                 rntatot(nsa)=rntatot(nsa)+rna(nsa,nr)*rta(nsa,nr)*dvrho(nr)*dr
+             CASE(3)
+                rnuatot(nsa)=rnuatot(nsa)+rna(nsa,nr)*rua(nsa,nr)*dvrho(nr)*dr
              END SELECT
           END IF
        END DO

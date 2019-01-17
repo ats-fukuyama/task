@@ -66,9 +66,9 @@ CONTAINS
              CASE(1)
                 SOL_BASE(i)=RNA(NSA,NR)
              CASE(2)
-                SOL_BASE(i)=RUA(NSA,NR)
-             CASE(3)
                 SOL_BASE(i)=RTA(NSA,NR)
+             CASE(3)
+                SOL_BASE(i)=RUA(NSA,NR)
              END SELECT
           END IF
        END DO
@@ -132,9 +132,9 @@ CONTAINS
           CASE(1)
              RNA(NSA,NR)=SOL_NEW(i)
           CASE(2)
-             RUA(NSA,NR)=SOL_NEW(i)
-          CASE(3)
              RTA(NSA,NR)=SOL_NEW(i)
+          CASE(3)
+             RUA(NSA,NR)=SOL_NEW(i)
           END SELECT
        END DO
     END DO

@@ -17,7 +17,7 @@ CONTAINS
     INTEGER,INTENT(OUT):: IERR
     INTEGER,SAVE:: init_adpost=0
     INTEGER,SAVE:: init_adas=0
-    INTEGER:: NS,NSA,NZ,NEQ,NR,NV,ID_adpost,ID_adas
+    INTEGER:: NS,NSA,NZ,NEQ,NR,NV,ID_adpost,ID_adas,NPA
     REAL(rkind):: RHON
     TYPE(pl_plf_type),DIMENSION(:),ALLOCATABLE:: PLF
 
@@ -50,8 +50,13 @@ CONTAINS
           CALL broadcast_ADF11_bin(IERR)
           IF(IERR.NE.0) WRITE(6,*) 'XX bloadcast_ADF11_bin: IERR=',IERR
           init_adas=1
+
+          CALL CALC_ADF11(1,1,0.D0,0.D0,DR,IERR)
+          IF(IERR.NE.0) WRITE(6,*) 'XX tiprep: CALC_ADF11 error: IERR=',IERR
        END IF
     END IF
+
+    IF(IERR.NE.0) RETURN
 
 !   *** count NSA_MAX: number of active particles ***
 
@@ -89,19 +94,32 @@ CONTAINS
     DO NS=1,NSMAX
        SELECT CASE(ID_NS(NS))
        CASE(0)
-          CONTINUE
-       CASE(-1,1,2,5,6)
+          ND_adpost(NS)=0
+       CASE(-1,1,2)
           NSA=NSA+1
           PMA(NSA)=PM(NS)
-          PZA(NSA)=PZ(NS)   ! for ID_NS=5,6, PZ will be ealuated later
+          PZA(NSA)=PZ(NS)
+          PZ2A(NSA)=PZ(NS)**2
           NS_NSA(NSA)=NS
           NSA_DN(NSA)=0
           NSA_UP(NSA)=0
+          ND_adpost(NS)=0
+       CASE(5,6)
+          NSA=NSA+1
+          PMA(NSA)=PM(NS)
+          PZA(NSA)=PZ(NS)      ! for ID_NS=5,6, PZA will be ealuated later
+          PZ2A(NSA)=PZ(NS)**2  ! for ID_NS=5,6, PZ2A will be ealuated later
+          NS_NSA(NSA)=NS
+          NSA_DN(NSA)=0
+          NSA_UP(NSA)=0
+          NPA=NINT(PA(NS))
+          ND_adpost(NS)=ND_NPA_ADPOST(NPA)
        CASE(10,11,12)
           DO NZ=NZMIN_NS(NS),NZMAX_NS(NS)
              NSA=NSA+1
              PMA(NSA)=PM(NS)
              PZA(NSA)=DBLE(NZ)
+             PZ2A(NSA)=DBLE(NZ)**2
              NS_NSA(NSA)=NS
              IF(NZ.EQ.NZMIN_NS(NS)) THEN
                 NSA_DN(NSA)=0
@@ -114,17 +132,20 @@ CONTAINS
                 NSA_UP(NSA)=NSA+1
              END IF
           END DO
+          ND_adpost(NS)=0
        END SELECT
     END DO
     IF(NSA.GT.nsa_max) THEN
        WRITE(6,'(A)') 'XX ti_prep: INCONSISTENT nsa_max'
        STOP
     ELSE IF(NSA.LT.nsa_max) THEN
-       WRITE(6,'(A,I5)') &
-            '!! calculated nsa_max is lower than assumed nsa_max:',nsa_max
-       nsa_max=NSA
-       WRITE(6,'(A,I5)') &
-            '                              nsa_max is reduced to:',nsa_max
+       IF(nrank.EQ.0) THEN
+          WRITE(6,'(A,I5)') &
+               '!! calculated nsa_max is lower than assumed nsa_max:',nsa_max
+          nsa_max=NSA
+          WRITE(6,'(A,I5)') &
+               '                              nsa_max is reduced to:',nsa_max
+       END IF
     END IF
 
 !   *** Display NSA variables ***
@@ -281,6 +302,7 @@ CONTAINS
              RNA(NSA,NR)=PLF(NS)%RN
           ELSE
              RNA(NSA,NR)=0.D0
+             IF(PZA(NSA).EQ.0.D0.AND.NR.EQ.NRMAX) RNA(NSA,NR)=PLF(NS)%RN
           END IF
           RTA(NSA,NR)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
           RUA(NSA,NR)=PLF(NS)%RU

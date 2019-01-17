@@ -9,25 +9,28 @@ MODULE ADPOST
   USE bpsd
   USE libfio
 
-  INTEGER,PARAMETER:: IZDIMD = 140   ! maximum number of IZ0s
+  PRIVATE
+  PUBLIC read_adpost,func_adpost,nd_npa_adpost
+
+  INTEGER,PARAMETER:: IZDIMD = 140   ! maximum number of NPAs
 
   INTEGER:: NDMAX=0                      ! Maximum number of atomic data
   INTEGER:: LMAXM                        ! Maximum of number of data blocks
   CHARACTER(LEN=8),ALLOCATABLE:: KZ0A(:) ! Element name of data ND
-  INTEGER,ALLOCATABLE:: IZ0A(:)          ! Atomic Number of data ND
+  INTEGER,ALLOCATABLE:: NPAA(:)          ! Atomic Number of data ND
   INTEGER,ALLOCATABLE:: IM0A(:)          ! Mass Number of data ND
   INTEGER,ALLOCATABLE:: LMAXA(:)         ! Number of data blocks of data ND
-  REAL(rkind),ALLOCATABLE:: TMINA(:,:)    ! Minimum Te of a block L [keV]
-  REAL(rkind),ALLOCATABLE:: TMAXA(:,:)    ! Minimum Te of a block L [keV]
-  REAL(rkind),ALLOCATABLE:: TMINB(:,:)    ! Minimum Te of a block L [keV]
-  REAL(rkind),ALLOCATABLE:: TMAXB(:,:)    ! Maximum Te of a block L [keV]
-  REAL(rkind),ALLOCATABLE:: TMINC(:,:)    ! Minimum Te of a block L [keV]
-  REAL(rkind),ALLOCATABLE:: TMAXC(:,:)    ! Maximum Te of a block L [keV]
+  REAL(rkind),ALLOCATABLE:: TMINA(:,:)   ! Minimum Te of a block L [keV]
+  REAL(rkind),ALLOCATABLE:: TMAXA(:,:)   ! Minimum Te of a block L [keV]
+  REAL(rkind),ALLOCATABLE:: TMINB(:,:)   ! Minimum Te of a block L [keV]
+  REAL(rkind),ALLOCATABLE:: TMAXB(:,:)   ! Maximum Te of a block L [keV]
+  REAL(rkind),ALLOCATABLE:: TMINC(:,:)   ! Minimum Te of a block L [keV]
+  REAL(rkind),ALLOCATABLE:: TMAXC(:,:)   ! Maximum Te of a block L [keV]
   REAL(rkind),ALLOCATABLE:: COEFA(:,:,:) ! Cooling rate coef of ..
   REAL(rkind),ALLOCATABLE:: COEFB(:,:,:) ! Zav coef ..
   REAL(rkind),ALLOCATABLE:: COEFC(:,:,:) ! Z2av coef of (log_10 Te [keV])^N
-  INTEGER:: ND_TABLE(IZDIMD)             ! Table of ND for IZ0
-  INTEGER,ALLOCATABLE:: IZ0_TABLE(:)     ! Table of available IZ0 
+  INTEGER:: ND_TABLE(IZDIMD)             ! Table of ND for NPA
+  INTEGER,ALLOCATABLE:: NPA_TABLE(:)     ! Table of available NPA 
 
 CONTAINS
 
@@ -35,12 +38,12 @@ CONTAINS
 
     IMPLICIT NONE
     INTEGER,INTENT(OUT):: IERR
-    INTEGER:: LUN,IZ0,ND,NL,N
+    INTEGER:: LUN,NPA,ND,NL,N
 
 !   --- deallocate data array, if allocatd ---
 
     IF(ALLOCATED(KZ0A)) DEALLOCATE(KZ0A)
-    IF(ALLOCATED(IZ0A)) DEALLOCATE(IZ0A)
+    IF(ALLOCATED(NPAA)) DEALLOCATE(NPAA)
     IF(ALLOCATED(IM0A)) DEALLOCATE(IM0A)
     IF(ALLOCATED(LMAXA)) DEALLOCATE(LMAXA)
     IF(ALLOCATED(TMINA)) DEALLOCATE(TMINA)
@@ -52,12 +55,12 @@ CONTAINS
     IF(ALLOCATED(COEFA)) DEALLOCATE(COEFA)
     IF(ALLOCATED(COEFB)) DEALLOCATE(COEFB)
     IF(ALLOCATED(COEFC)) DEALLOCATE(COEFC)
-    IF(ALLOCATED(IZ0_TABLE)) DEALLOCATE(IZ0_TABLE)
+    IF(ALLOCATED(NPA_TABLE)) DEALLOCATE(NPA_TABLE)
 
-!   --- initialize conversion table between IZ0 and ND ---
+!   --- initialize conversion table between NPA and ND ---
 
-    DO IZ0=1,IZDIMD
-       ND_TABLE(IZ0)=0
+    DO NPA=1,IZDIMD
+       ND_TABLE(NPA)=0
     END DO
     LUN=12
 
@@ -71,7 +74,7 @@ CONTAINS
 !   --- start reading data file ---
 
     READ(LUN,*,ERR=9001,END=9011) NDMAX
-    ALLOCATE(KZ0A(NDMAX),IZ0A(NDMAX),IM0A(NDMAX),LMAXA(NDMAX))
+    ALLOCATE(KZ0A(NDMAX),NPAA(NDMAX),IM0A(NDMAX),LMAXA(NDMAX))
     READ(LUN,*,ERR=9002,END=9012) LMAXM
     ALLOCATE(TMINA(LMAXM,NDMAX),TMAXA(LMAXM,NDMAX))
     ALLOCATE(TMINB(LMAXM,NDMAX),TMAXB(LMAXM,NDMAX))
@@ -79,11 +82,11 @@ CONTAINS
     ALLOCATE(COEFA(0:5,LMAXM,NDMAX))
     ALLOCATE(COEFB(0:5,LMAXM,NDMAX))
     ALLOCATE(COEFC(0:5,LMAXM,NDMAX))
-    ALLOCATE(IZ0_TABLE(NDMAX))
+    ALLOCATE(NPA_TABLE(NDMAX))
 
     DO ND=1,NDMAX
        READ(LUN,*,ERR=9003,END=9013) KZ0A(ND)
-       READ(LUN,*,ERR=9004,END=9014) IZ0A(ND)
+       READ(LUN,*,ERR=9004,END=9014) NPAA(ND)
        READ(LUN,*,ERR=9005,END=9015) IM0A(ND)
        READ(LUN,*,ERR=9006,END=9016) LMAXA(ND)
        DO NL=1,LMAXA(ND)
@@ -98,18 +101,18 @@ CONTAINS
           READ(LUN,*,ERR=9009,END=9019) &
                TMINC(NL,ND),TMAXC(NL,ND),(COEFC(N,NL,ND),N=0,5)
        END DO
-       ND_TABLE(IZ0A(ND))=ND
+       ND_TABLE(NPAA(ND))=ND
     END DO
 
     ND=0
-    DO IZ0=1,IZDIMD
-       IF(ND_TABLE(IZ0).NE.0) THEN
+    DO NPA=1,IZDIMD
+       IF(ND_TABLE(NPA).NE.0) THEN
           ND=ND+1
-          IZ0_TABLE(ND)=IZ0
+          NPA_TABLE(ND)=NPA
        END IF
     END DO
-    WRITE(6,'(A)') '## List of available IZ0'
-    WRITE(6,'(20I4)') (IZ0_TABLE(ND),ND=1,NDMAX)
+    WRITE(6,'(A)') '## List of available NPA'
+    WRITE(6,'(20I4)') (NPA_TABLE(ND),ND=1,NDMAX)
 
     REWIND LUN
     CLOSE(LUN)
@@ -134,10 +137,10 @@ CONTAINS
 9013 WRITE(6,'(A)') 'XX READ_ADPOST: END OF FILE in reading KZ0A'
     IERR=13
     RETURN
-9004 WRITE(6,'(A)') 'XX READ_ADPOST: READ ERROR in reading IZ0A'
+9004 WRITE(6,'(A)') 'XX READ_ADPOST: READ ERROR in reading NPAA'
     IERR=4
     RETURN
-9014 WRITE(6,'(A)') 'XX READ_ADPOST: END OF FILE in reading IZ0A'
+9014 WRITE(6,'(A)') 'XX READ_ADPOST: END OF FILE in reading NPAA'
     IERR=14
     RETURN
 9005 WRITE(6,'(A)') 'XX READ_ADPOST: READ ERROR in reading IM0A'
@@ -174,20 +177,20 @@ CONTAINS
 
 !--- fucntion to calculate Z_ave, Z^2_ave, and D_rad.
 
-  FUNCTION func_adpost(IZ0,ID,PT)
+  FUNCTION func_adpost(NPA,ID,PT)
 
     IMPLICIT NONE
     REAL(rkind):: func_adpost
-    INTEGER,INTENT(IN):: IZ0    ! Atomic number
+    INTEGER,INTENT(IN):: NPA    ! Atomic number
     INTEGER,INTENT(IN):: ID     ! Data type 1=Z_ave,2=Z^2_ave, 3=I_rad
     REAL(rkind),INTENT(IN):: PT ! Electron temperature [keV]
     REAL(rkinD):: PTL,SUMX
     INTEGER:: ND,N,L,LMAX,NL
 
-    ND=ND_TABLE(IZ0)
+    ND=ND_TABLE(NPA)
 
     IF(ND.EQ.0) THEN
-       WRITE(6,'(A,I4)') 'XX func_adpost: Undefined IZ0: IZ0 =',IZ0
+       WRITE(6,'(A,I4)') 'XX func_adpost: Undefined NPA: NPA =',NPA
        func_adpost=0.D0
        RETURN
     END IF
@@ -265,26 +268,19 @@ CONTAINS
     RETURN
   END FUNCTION func_adpost
 
-  FUNCTION AVAILABLE_IZ0(IZ0)
+  FUNCTION nd_npa_adpost(NPA)
     IMPLICIT NONE
-    LOGICAL:: AVAILABLE_IZ0
-    INTEGER,INTENT(IN):: IZ0
+    INTEGER:: nd_npa_adpost
+    INTEGER,INTENT(IN):: NPA
 
     IF(NDMAX.EQ.0) THEN
        WRITE(6,'(A)') 'XX ADPOST data is empty'
-       AVAILABLE_IZ0=.FALSE.
-       RETURN
+       nd_npa_adpost=0
+    ELSE
+       nd_npa_adpost=ND_TABLE(NPA)
     END IF
-
-    IF(ND_TABLE(IZ0).EQ.0) THEN
-       WRITE(6,'(A,I4)') 'XX ADPOST data is not available for IZ0 =',IZ0
-       AVAILABLE_IZ0=.FALSE.
-       RETURN
-    END IF
-
-    AVAILABLE_IZ0=.TRUE.
     RETURN
-  END FUNCTION AVAILABLE_IZ0
+  END FUNCTION ND_NPA_ADPOST
     
 
 END MODULE ADPOST

@@ -1,10 +1,11 @@
  &ti
    NSMAX=3
-   PA(3)=26.D0
-   PM(3)=40.D0
+   PA(3)=18.D0
+   PM(3)=39.95D0
    ID_NS(3)=10
    NZMIN_NS(3)=0
-   NZMAX_NS(3)=26
+   NZMAX_NS(3)=18
+   PNS(3)=0.001D0
 !   
    AD0=1.D0
    AK0=0.D0

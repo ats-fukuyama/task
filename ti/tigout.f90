@@ -51,29 +51,54 @@ CONTAINS
     CHARACTER(LEN=1),INTENT(IN):: K2
     REAL(rkind),DIMENSION(:),ALLOCATABLE:: XDATA
     REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: FDATA
-    INTEGER:: NXMAX,NFMAX,NX,NF,ID
+    INTEGER:: NXMAX,NFMAX,NX,NF,ID,NSA,NSA1X,NSA2X
+    INTEGER,SAVE:: NSA1=1
+    INTEGER,SAVE:: NSA2=0
 
     READ(K2,'(I1)',ERR=9000,END=9000) ID
 
+1   WRITE(6,'(A,2I5)') &
+         '## INPUT: NSA1,NSA2 (NSA1=0 for end,=NSA2 for single) ',NSA1,NSA2
+    NSA1X=NSA1
+    NSA2X=NSA2
+    READ(5,*,END=8000,ERR=1) NSA1X,NSA2X
+    IF(NSA1X.EQ.0) THEN
+       GOTO 8000
+    ELSE
+       NSA1=NSA1X
+    ENDIF
+    IF(NSA2X.EQ.0) THEN
+       NSA2=NSA1
+    ELSE
+       NSA2=NSA2X
+    ENDIF
+
     NXMAX=NRMAX
-    NFMAX=nsa_max
+    SELECT CASE(ID)
+    CASE(1:5)
+       NFMAX=NSA2-NSA1+1
+    CASE DEFAULT
+       NFMAX=1
+    END SELECT
+
     ALLOCATE(XDATA(NXMAX),FDATA(NXMAX,NFMAX))
     DO NX=1,NXMAX
        XDATA(NX)=RM(NX)
     END DO
     DO NX=1,NXMAX
        DO NF=1,NFMAX
+          NSA=NSA1+NF-1
           SELECT CASE(ID)
           CASE(1)
-             FDATA(NX,NF)=MAX(RNA(NF,NX),1.D-6)
+             FDATA(NX,NF)=MAX(RNA(NSA,NX),1.D-6)
           CASE(2)
-             FDATA(NX,NF)=LOG10(MAX(RNA(NF,NX),1.D-6))
+             FDATA(NX,NF)=MAX(RTA(NSA,NX),1.D-6)
           CASE(3)
-             FDATA(NX,NF)=RUA(NF,NX)
+             FDATA(NX,NF)=RUA(NSA,NX)
           CASE(4)
-             FDATA(NX,NF)=MAX(RTA(NF,NX),1.D-6)
+             FDATA(NX,NF)=LOG10(MAX(RNA(NSA,NX),1.D-6))
           CASE(5)
-             FDATA(NX,NF)=LOG10(MAX(RTA(NF,NX),1.D-6))
+             FDATA(NX,NF)=LOG10(MAX(RTA(NSA,NX),1.D-6))
           CASE(7)
              FDATA(NX,NF)=func_adpost(18,1,RTA(1,NX))
           CASE(8)
@@ -115,6 +140,7 @@ CONTAINS
     END SELECT
     CALL PAGEE
     DEALLOCATE(XDATA,FDATA)
+8000 CONTINUE
     RETURN
 
 9000 WRITE(6,'(A,A1)') 'XX ti_gout_r: K1 error',K2
