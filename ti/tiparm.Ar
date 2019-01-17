@@ -1,8 +1,9 @@
  &ti
    NSMAX=3
-   PA(3)=18.D0
+   NPA(3)=18
    PM(3)=39.95D0
    ID_NS(3)=10
+   KID_NS(3)='Ar'
    NZMIN_NS(3)=0
    NZMAX_NS(3)=18
    PNS(3)=0.001D0
