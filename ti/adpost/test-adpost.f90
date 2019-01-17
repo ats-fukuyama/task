@@ -3,6 +3,7 @@
 !
 PROGRAM test_adpost
 
+  USE bpsd
   USE ADPOST
   USE libgrf
   IMPLICIT NONE
@@ -28,7 +29,7 @@ PROGRAM test_adpost
   WRITE(6,'(A)') '## Input Atomic Number IZ0 (0 for quit):'
   READ(5,*,ERR=1,END=9000) IZ0
   IF(IZ0.LE.0) GOTO 9000
-  IF(.NOT.AVAILABLE_IZ0(IZ0)) GOTO 1
+  IF(ND_NPA_ADPOST(IZ0).EQ.0) GOTO 1
 
 2 CONTINUE
   WRITE(6,'(A)') '## Input Data Type,LOG10_PTMIN,LO10_PTMAX,NXMAX:'
