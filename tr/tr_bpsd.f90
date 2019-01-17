@@ -39,7 +39,7 @@
       do ns=1,species%nsmax
          species%data(ns)%pa=pa(ns)
          species%data(ns)%pz=pz(ns)
-         species%data(ns)%pz0=pz(ns)
+         species%data(ns)%npa=npa(ns)
       enddo
       call bpsd_set_data(species,ierr)
 

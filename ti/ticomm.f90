@@ -2,7 +2,7 @@
 
 MODULE ticomm_parm
 
-  USE plcomm,pm=>pa,pa=>pz0
+  USE plcomm,pm=>pa
   USE commpi
 
 !     NSM=100 ! imported from plcomm
@@ -10,7 +10,7 @@ MODULE ticomm_parm
 ! IMPORTED FROM plcomm
 !     RR,RA,RKAP,RDLT,BB,RIP,
 !     NSM,NSMAX,
-!     PM(NSM),PZ(NSM),PA(NSM),PN(NSM),PNS(NSM),PTPR(NSM),PTPP(NSM),PTS(NSM),
+!     PA(NSM),PM(NSM),PZ(NSM),PN(NSM),PNS(NSM),PTPR(NSM),PTPP(NSM),PTS(NSM),
 !     PU(NSM),PUS(NSM),ID_NS(NSM),KID_NS(NSM)
 !     PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2
 !     MODELG,MODELN,MODELQ,MODEL_NPROF

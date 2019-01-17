@@ -17,7 +17,7 @@ CONTAINS
     INTEGER,INTENT(OUT):: IERR
     INTEGER,SAVE:: init_adpost=0
     INTEGER,SAVE:: init_adas=0
-    INTEGER:: NS,NSA,NZ,NEQ,NR,NV,ID_adpost,ID_adas,NPA
+    INTEGER:: NS,NSA,NZ,NEQ,NR,NV,ID_adpost,ID_adas
     REAL(rkind):: RHON
     TYPE(pl_plf_type),DIMENSION(:),ALLOCATABLE:: PLF
 
@@ -52,7 +52,8 @@ CONTAINS
           init_adas=1
 
           CALL CALC_ADF11(1,1,0.D0,0.D0,DR,IERR)
-          IF(IERR.NE.0) WRITE(6,*) 'XX tiprep: CALC_ADF11 error: IERR=',IERR
+          IF(IERR.NE.0) WRITE(6,*) &
+               'XX tiprep: CALC_ADF11 error: IERR,nrank=',IERR,NRANK
        END IF
     END IF
 
@@ -112,8 +113,7 @@ CONTAINS
           NS_NSA(NSA)=NS
           NSA_DN(NSA)=0
           NSA_UP(NSA)=0
-          NPA=NINT(PA(NS))
-          ND_adpost(NS)=ND_NPA_ADPOST(NPA)
+          ND_adpost(NS)=ND_NPA_ADPOST(NPA(NS))
        CASE(10,11,12)
           DO NZ=NZMIN_NS(NS),NZMAX_NS(NS)
              NSA=NSA+1
@@ -148,16 +148,6 @@ CONTAINS
        END IF
     END IF
 
-!   *** Display NSA variables ***
-
-    IF(nrank.EQ.0) THEN
-       WRITE(6,*) 'NSA  ','NS   ','ID   ','PMA         ','PZA'
-       DO NSA=1,nsa_max
-          WRITE(6,'(3I5,1P2E12.4)') &
-               NSA,NS_NSA(NSA),ID_NS(NS_NSA(NSA)),PMA(NSA),PZA(NSA)
-       END DO
-    END IF
-
 !   *** Count NEQMAX: Size of equation ***
 
     NEQ=0
@@ -185,9 +175,6 @@ CONTAINS
        END SELECT
     END DO
     NEQMAX=NEQ
-    IF(nrank.EQ.0) THEN
-       WRITE(6,'(A,I5)') 'NEQMAX=',NEQMAX
-    END IF
 
 !   *** ALLOCATE array for NEQMAX and NRMAX ***
 
@@ -259,18 +246,18 @@ CONTAINS
 !   *** Display NEQ variables ***
 
     IF(nrank.EQ.0) THEN
-       WRITE(6,*) 'NEQ  ','NS   ','NSA  ','NV   '
-       DO NEQ=1,NEQMAX
-          WRITE(6,'(4I5)') &
-               NEQ,NS_NSA(NSA_NEQ(NEQ)),NSA_NEQ(NEQ),NV_NEQ(NEQ)
-       END DO
-       WRITE(6,*) 'NS   ','NSA  ','NV   ','NEQ  '
-       DO NSA=1,nsa_max
-          DO NV=1,3
-             IF(NEQ_NVNSA(NV,NSA).NE.0) &
-                  WRITE(6,'(4I5)') NS_NSA(NSA),NSA,NV,NEQ_NVNSA(NV,NSA)
-          END DO
-       END DO
+       WRITE(6,*)
+       WRITE(6,'(A)') &
+          '       NEQ   NS  NSA  NPA          PM        PZ   NV  ID_NS KID_NS'
+       WRITE(6,'(5X,4I5,F12.5,F10.3,I5,I7,5X,A2)') &
+               (NEQ,NS_NSA(NSA_NEQ(NEQ)),NSA_NEQ(NEQ), &
+                NPA(NS_NSA(NSA_NEQ(NEQ))), &
+                PMA(NSA_NEQ(NEQ)), &
+                PZA(NSA_NEQ(NEQ)), &
+                NV_NEQ(NEQ), &
+                ID_NS(NS_NSA(NSA_NEQ(NEQ))), &
+                KID_NS(NS_NSA(NSA_NEQ(NEQ))), &
+                NEQ=1,NEQMAX)
     END IF
 
 !   *** radial mesh ***
@@ -332,7 +319,7 @@ CONTAINS
     NR_END=(iend+NEQMAX-1)/NEQMAX
     CALL mtx_cleanup
 
-    WRITE(6,'(A,I5,6I8/)') 'nrank: imax/s/e,nrmax/s/e=', &
+    WRITE(6,'(A,I5,6I8)') 'nrank: imax/s/e,nrmax/s/e=', &
                         nrank, imax,istart,iend,nrmax,nr_start,nr_end
     CALL mtx_barrier
 

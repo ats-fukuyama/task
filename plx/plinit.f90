@@ -77,9 +77,9 @@
 !     ======( PLASMA PARAMETERS )======
 
 !        NSMAX : Number of particle species
-!        PA    : Mass number
+!        NPA   : Atomic number (0 for electron)
+!        PA    : Mass number (to be replaced by PM)
 !        PZ    : Charge number
-!        PZ0   : Atomic number (-1 for electron)
 !        PN    : Density at center                     (1.0E20/m**3)
 !        PNS   : Density on plasma surface             (1.0E20/m**3)
 !        PTPR  : Parallel temperature at center                (keV)
@@ -106,9 +106,9 @@
 
          KID_NS(NS)= ' e'
          ID_NS(NS) = -1
+         NPA(NS)  = 0
          PA(NS)   = AME/AMP
          PZ(NS)   =-1.0D0
-         PZ0(NS)  =-1.0D0
          PN(NS)   = 1.0D0
          PNS(NS)  = 0.0D0
          PTPR(NS) = 5.0D0
@@ -127,9 +127,9 @@
 
          KID_NS(NS)= ' D'
          ID_NS(NS) = 1
+         NPA(NS)  = 1
          PA(NS)   = 2.0D0
          PZ(NS)   = 1.0D0
-         PZ0(NS)  = 1.0D0
          PN(NS)   = 1.0D0
          PNS(NS)  = 0.0D0
          PTPR(NS) = 5.0D0
@@ -147,9 +147,9 @@
 
          KID_NS(NS)= ' T'
          ID_NS(NS) = 1
+         NPA(NS)  = 1
          PA(NS)   = 3.0D0
          PZ(NS)   = 1.0D0
-         PZ0(NS)  = 1.0D0
          PN(NS)   = 1.0D0
          PNS(NS)  = 0.0D0
          PTPR(NS) = 5.0D0
@@ -167,9 +167,9 @@
 
          KID_NS(NS)= 'He'
          ID_NS(NS) = 1
+         NPA(NS)  = 2
          PA(NS)   = 4.0D0
          PZ(NS)   = 2.0D0
-         PZ0(NS)  = 2.0D0
          PN(NS)   = 1.0D0
          PNS(NS)  = 0.0D0
          PTPR(NS) = 5.0D0
@@ -186,9 +186,9 @@
       DO NS = 5, NSM
          KID_NS(NS)= ' H'
          ID_NS(NS)= 1
+         NPA(NS)  = 1
          PA(NS)   = 1.0D0
          PZ(NS)   = 1.0D0
-         PZ0(NS)  = 1.0D0
          PN(NS)   = 0.0D0
          PNS(NS)  = 0.0D0
          PTPR(NS) = 5.0D0

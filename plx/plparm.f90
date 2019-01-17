@@ -54,7 +54,7 @@ CONTAINS
       NAMELIST /PL/ &
            RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ, &
            RMIR,ZBB,Hpitch1,Hpitch2,RRCH,RCOIL,ZCOIL,BCOIL,NCOILMAX, &
-           NSMAX,PA,PZ,PZ0,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PZCL, &
+           NSMAX,NPA,PA,PZ,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PZCL, &
            r_corner,z_corner, &
            br_corner,bz_corner,bt_corner, &
            pn_corner,ptpr_corner,ptpp_corner, &
@@ -202,7 +202,7 @@ CONTAINS
 
       WRITE(6,100)
       DO NS=1,NSMAX
-         WRITE(6,110) NS,PA(NS),PZ(NS),PZ0(NS),PN(NS),PNS(NS)
+         WRITE(6,110) NS,NPA(NS),PA(NS),PZ(NS),PN(NS),PNS(NS)
       ENDDO
       WRITE(6,120)
       DO NS=1,NSMAX
@@ -239,9 +239,9 @@ CONTAINS
 
       RETURN
 
-  100 FORMAT(' ','NS    PA          PZ          PZ0         ', &
+  100 FORMAT(' ','NS    NPA         PA          PZ          ', &
                        'PN          PNS')
-  110 FORMAT(' ',I2,' ',1P5E12.4)
+  110 FORMAT(' ',I2,' ',I5,7X,1P4E12.4)
   120 FORMAT(' ','NS    PTPR        PTPP        PTS         ', &
                        'PU          PUS')
   130 FORMAT(' ',I2,' ',1P5E12.4)                               

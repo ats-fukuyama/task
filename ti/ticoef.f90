@@ -14,7 +14,7 @@ CONTAINS
     INTEGER,INTENT(IN):: NR
     REAL(rkind):: RHON,DK_FIXED,rne,rte
     REAL(rkind):: DR_inz,DR_rcb,DR_prb,DR_plt
-    INTEGER:: NSA,NEQ,NV,NS,ID,NPA,NPZ,NSA1,ierr
+    INTEGER:: NSA,NEQ,NV,NS,ID,NPZ,NSA1,ierr
 
     RHON=RM(NR)/RA
 
@@ -47,33 +47,31 @@ CONTAINS
           CASE(1,2) ! ions
              PRADE(NSA,NR)=0.D0
           CASE(5,6) ! ADPOST PZ-variable ions
-             NPA=NINT(PA(NS))
-             PZA(NSA)=func_adpost(NPA,1,rte)
-             PZ2A(NSA)=func_adpost(NPA,2,rte)
-             PRADE(NSA,NR)=func_adpost(NPA,3,rte)
+             PZA(NSA)=func_adpost(NPA(NS),1,rte)
+             PZ2A(NSA)=func_adpost(NPA(NS),2,rte)
+             PRADE(NSA,NR)=func_adpost(NPA(NS),3,rte)
           CASE(10,11,12) ! ionization and recombination with OPEN-ADAS
-             NPA=NINT(PA(NS))
              NPZ=NINT(PZA(NSA))
              NSA1=NSA_UP(NSA)
              IF(NSA1.NE.0) THEN
-                CALL ADAS_scd(NPA,NPZ+1,rne,rte,DR_inz,IERR)
+                CALL ADAS_scd(NPA(NS),NPZ+1,rne,rte,DR_inz,IERR)
                 CCN(NSA,NSA ,NR)=CCN(NSA,NSA ,NR) &           ! ionization
                                 -DR_inz*rne            !   to upper
-                CALL ADAS_acd(NPA,NPZ+1,rne,rte,DR_rcb,IERR)
+                CALL ADAS_acd(NPA(NS),NPZ+1,rne,rte,DR_rcb,IERR)
                 CCN(NSA,NSA1,NR)=CCN(NSA,NSA1,NR) &           ! recombination
                                 +DR_rcb*rne            !   from upper
              END IF
              NSA1=NSA_DN(NSA)
              IF(NSA1.NE.0) THEN
-                CALL ADAS_acd(NPA,NPZ,rne,rte,DR_rcb,IERR)
+                CALL ADAS_acd(NPA(NS),NPZ,rne,rte,DR_rcb,IERR)
                 CCN(NSA,NSA ,NR)=CCN(NSA,NSA ,NR) &           ! recombination
                                 -DR_rcb*rne            !     to lower
-                CALL ADAS_acd(NPA,NPZ,rne,rte,DR_inz,IERR)
+                CALL ADAS_acd(NPA(NS),NPZ,rne,rte,DR_inz,IERR)
                 CCN(NSA,NSA1,NR)=CCN(NSA,NSA1,NR) &           ! ionization
                                 +DR_inz*rne            !     from lower
              END IF
-             CALL ADAS_prb(NPA,NPZ,rne,rte,DR_prb,IERR)       ! recmb/brems pwr
-             CALL ADAS_plt(NPA,NPZ,rne,rte,DR_plt,IERR)       ! line ard pwr
+             CALL ADAS_prb(NPA(NS),NPZ,rne,rte,DR_prb,IERR)   ! recmb/brems pwr
+             CALL ADAS_plt(NPA(NS),NPZ,rne,rte,DR_plt,IERR)   ! line ard pwr
              PRADE(NSA,NR)=(10.D0**DR_prb+10.D0**DR_plt)*rne
           END SELECT
        END DO
