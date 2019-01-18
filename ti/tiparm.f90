@@ -84,6 +84,7 @@ CONTAINS
            MODEL_KAI,MODEL_DRR,MODEL_VR,MODEL_NC, &
            MODEL_NF,MODEL_NB,MODEL_EC,MODEL_LH,MODEL_IC, &
            MODEL_CD,MODEL_SYNC,MODEL_PEL,MODEL_PSC, &
+           MODEL_BND,BND_VALUE, &
            AK0,AD0,AV0,DK0,DKS, &
            PNBIN,PNBR0,PNBRW,PNBENG,PNBRTG, &
            PECIN,PECR0,PECRW,PECTOE,PECNPR, &
@@ -133,6 +134,7 @@ CONTAINS
       WRITE(6,'(A)') '        MODEL_KAI,MODEL_DRR,MODEL_VR,MODEL_NC,'
       WRITE(6,'(A)') '        MODEL_NF,MODEL_NB,MODEL_EC,MODEL_LH,MODEL_IC,'
       WRITE(6,'(A)') '        MODEL_CD,MODEL_SYNC,MODEL_PEL,MODEL_PSC,'
+      WRITE(6,'(A)') '        MODEL_BND,BND_VALUE,'
       WRITE(6,'(A)') '        AK0,AD0,AV0,DK0,DKS,'
       WRITE(6,'(A)') '        PNBIN,PNBR0,PNBRW,PNBENG,PNBRTG,'
       WRITE(6,'(A)') '        PECIN,PECR0,PECRW,PECTOE,PECNPR,'
@@ -176,7 +178,7 @@ CONTAINS
 
       USE ticomm_parm
       IMPLICIT NONE
-      INTEGER :: NS,NPSC
+      INTEGER :: NS,NPSC,NV
 
       WRITE(6,601) 'RR          ',RR          , &
                    'RA          ',RA          , &
@@ -237,6 +239,13 @@ CONTAINS
                    'MAXLOOP     ',MAXLOOP, &
                    'MATTYPE     ',MATTYPE, &
                    'IDEBUG      ',IDEBUG
+
+      WRITE(6,'(A)') 'NS,NV,MODEL_BNDA,,BND_VALUE='
+      DO NS=1,NSMAX
+         WRITE(6,'(I5,3(2I5,1PE12.4))') &
+              NS,(NV,MODEL_BND(NV,NS),BND_VALUE(NV,NS),NV=1,3)
+      END DO
+
       WRITE(6,*)
       WRITE(6,601) 'AK0         ',AK0, &
                    'AD0         ',AD0, &
@@ -586,6 +595,11 @@ CONTAINS
       CALL mtx_broadcast_real8(PT,NSMAX)
       CALL mtx_broadcast_real8(PELPAT,NSMAX)
       CALL mtx_broadcast_real8(PSCPAT,NSMAX)
+
+      DO NS=1,NSMAX
+         CALL mtx_broadcast_integer(MODEL_BND(1:3,NS),3)
+         CALL mtx_broadcast_real8(BND_VALUE(1:3,NS),3)
+      END DO
 
     END SUBROUTINE ti_broadcast
 

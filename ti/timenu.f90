@@ -48,18 +48,17 @@ CONTAINS
 
          CALL TASK_KLIN(LINE,KID,MODE,ti_parm)
       END IF
-
       CALL mtx_broadcast1_character(KID)
       CALL mtx_broadcast1_integer(MODE)
 
+      IF(MODE.EQ.2) CALL ti_broadcast
       IF(MODE.NE.1) GOTO 1
 
-      CALL ti_broadcast
-
       IF(KID.EQ.'P') THEN           ! parameter input
-         CALL ti_parm(0,'TI',IERR)
+         IF(nrank.eq.0) CALL ti_parm(0,'TI',IERR)
+         CALL ti_broadcast
       ELSE IF(KID.EQ.'V') THEN      ! view input parameters
-         CALL ti_view
+         IF(nrank.eq.0) CALL ti_view
       ELSE IF(KID.EQ.'L') THEN      ! load bulk component profile from TR
          CALL pl_load(ierr)
          if(ierr.ne.0) GO TO 1

@@ -240,6 +240,23 @@ CONTAINS
       DK0    = 0.3D0
       DKS    = 3.0D0
 
+!     ==== Boundary condition parameters ====
+!
+!     MODEL_BND: Bounndary condition setting [f=10^{20}m^{-3},keV,m/s]
+!                  0: reflection
+!                  1: fixed value:        value=BND_VALUE  [f]
+!                  2: fixed influx:       flux =BND_VALUE  [f m/s]
+!                  3: fixed decay length: dlen =BND_VALUE  [m]
+
+      DO NS=1,NSM
+         MODEL_BND(1,NS)=1   
+         BND_VALUE(1,NS)=PNS(NS)
+         MODEL_BND(2,NS)=1   
+         BND_VALUE(2,NS)=PTS(NS)
+         MODEL_BND(3,NS)=1   
+         BND_VALUE(3,NS)=PUS(NS)
+      END DO
+
 !     ==== Source Parameters ====
 
 !     PNBIN: NBI heating power [MW}

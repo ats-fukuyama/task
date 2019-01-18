@@ -13,7 +13,7 @@ PROGRAM ti
   USE plparm,ONLY: pl_parm
   USE equnit_mod
   USE tiinit,ONLY: ti_init
-  USE tiparm,ONLY: ti_parm
+  USE tiparm,ONLY: ti_parm,ti_broadcast
   USE timenu,ONLY: ti_menu
   USE libmtx
   IMPLICIT NONE
@@ -33,7 +33,10 @@ PROGRAM ti
   call eq_init
   CALL ti_init
 
-  CALL ti_parm(1,'tiparm',IERR)
+  IF(nrank.EQ.0) THEN
+     CALL ti_parm(1,'tiparm',IERR)
+  END IF
+  CALL ti_broadcast
 
   CALL ti_menu
 

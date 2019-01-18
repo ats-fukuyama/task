@@ -17,7 +17,7 @@ CONTAINS
 
 
     DO
-       WRITE(6,'(A)') '# SELECT : R1-5, R9, T1-3, G1-3, X/EXIT'
+       WRITE(6,'(A)') '# SELECT : R1-8, R9, T1-3, G1-3, X/EXIT'
        READ(5,'(A2)',IOSTAT=IST) KIG
        IF(IST.GT.0) CYCLE
        IF(IST.LT.0) EXIT
@@ -62,16 +62,18 @@ CONTAINS
     NSA1X=NSA1
     NSA2X=NSA2
     READ(5,*,END=8000,ERR=1) NSA1X,NSA2X
-    IF(NSA1X.EQ.0) THEN
+    IF(NSA1X.LE.0) THEN
        GOTO 8000
     ELSE
        NSA1=NSA1X
     ENDIF
-    IF(NSA2X.EQ.0) THEN
+    IF(NSA2X.LE.0) THEN
        NSA2=NSA1
     ELSE
        NSA2=NSA2X
     ENDIF
+    IF(NSA1.GT.nsa_max) NSA1=nsa_max
+    IF(NSA2.GT.nsa_max) NSA2=nsa_max
 
     NXMAX=NRMAX
     SELECT CASE(ID)
@@ -99,6 +101,8 @@ CONTAINS
              FDATA(NX,NF)=LOG10(MAX(RNA(NSA,NX),1.D-6))
           CASE(5)
              FDATA(NX,NF)=LOG10(MAX(RTA(NSA,NX),1.D-6))
+          CASE(6)
+             FDATA(NX,NF)=func_adpost(6,1,RTA(1,NX))
           CASE(7)
              FDATA(NX,NF)=func_adpost(18,1,RTA(1,NX))
           CASE(8)
@@ -117,22 +121,25 @@ CONTAINS
        CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@N vs r@',0, &
                   XMIN=0.D0,XMAX=RA,FMIN=0.D0)
     CASE(2)
-       CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@ln N vs r@',2, &
-                  XMIN=0.D0,XMAX=RA)
-    CASE(3)
-       CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@U vs r@',0, &
-                  XMIN=0.D0,XMAX=RA)
-    CASE(4)
        CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@T vs r@',0, &
                   XMIN=0.D0,XMAX=RA,FMIN=0.D0)
+    CASE(3)
+       CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@U vs r@',0, &
+                  XMIN=0.D0,XMAX=RA,FMIN=0.D0)
+    CASE(4)
+       CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@ln N vs r@',2, &
+                  XMIN=0.D0,XMAX=RA)
     CASE(5)
        CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@ln T vs r@',2, &
+                  XMIN=0.D0,XMAX=RA)
+    CASE(6)
+       CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@Z C vs r@',0, &
                   XMIN=0.D0,XMAX=RA)
     CASE(7)
        CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@Z Ar vs r@',0, &
                   XMIN=0.D0,XMAX=RA)
     CASE(8)
-       CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@Z FE vs r@',0, &
+       CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@Z Fe vs r@',0, &
                   XMIN=0.D0,XMAX=RA)
     CASE(9)
        CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@Z W vs r@',0, &
@@ -169,16 +176,18 @@ CONTAINS
     NSA1X=NSA1
     NSA2X=NSA2
     READ(5,*,END=8000,ERR=1) NSA1X,NSA2X
-    IF(NSA1X.EQ.0) THEN
+    IF(NSA1X.LE.0) THEN
        GOTO 8000
     ELSE
        NSA1=NSA1X
     ENDIF
-    IF(NSA2X.EQ.0) THEN
+    IF(NSA2X.LE.0) THEN
        NSA2=NSA1
     ELSE
        NSA2=NSA2X
     ENDIF
+    IF(NSA1.GT.nsa_max) NSA1=nsa_max
+    IF(NSA2.GT.nsa_max) NSA2=nsa_max
 
     SELECT CASE(ID)
     CASE(1:3)
@@ -241,15 +250,19 @@ CONTAINS
     CHARACTER(LEN=1),INTENT(IN):: K2
     REAL(rkind),DIMENSION(:),ALLOCATABLE:: XDATA
     REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: FDATA
-    INTEGER:: NXMAX,NFMAX,NX,NF,ID
+    INTEGER:: NXMAX,NFMAX,NX,NF,ID,NSAX
     INTEGER,SAVE:: NSA=1
 
     READ(K2,'(I1)',ERR=9000,END=9000) ID
 
 1   WRITE(6,'(A,2I5)') &
          '## INPUT: NSA (NSA=0 for end) ',NSA
-    READ(5,*,END=8000,ERR=1) NSA
-    IF(NSA.EQ.0) GO TO 8000
+    NSAX=NSA
+    READ(5,*,END=8000,ERR=1) NSAX
+    IF(NSAX.LE.0) GO TO 8000
+    NSA=NSAX
+    IF(NSA.GT.nsa_max) NSA=nsa_max
+
     NXMAX=NRMAX
     NFMAX=ngr_max
     ALLOCATE(XDATA(NXMAX),FDATA(NXMAX,NFMAX))

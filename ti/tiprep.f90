@@ -23,7 +23,8 @@ CONTAINS
 
     IERR=0
 
-    ID_adpost=0
+!    ID_adpost=0
+    ID_adpost=1
     ID_adas=0
     DO NS=1,NSMAX
        SELECT CASE(ID_NS(NS))
@@ -299,6 +300,25 @@ CONTAINS
     END DO
     DEALLOCATE(PLF)
 
+! --- setup boundary conditions ---
+
+    DO NEQ=1,NEQMAX
+       NV=NV_NEQ(NEQ)
+       NSA=NSA_NEQ(NEQ)
+       NS=NS_NSA(NSA)
+       MODEL_BNDA(NV,NSA)=1    
+       BND_VALUEA(NV,NSA)=0.D0
+       IF(NINT(PZA(NSA)).EQ.NZMIN_NS(NS)) THEN
+          MODEL_BNDA(NV,NSA)=MODEL_BND(NV,NS)
+          BND_VALUEA(NV,NSA)=BND_VALUE(NV,NS)
+       END IF
+!       write(6,'(A,7I5,1P2E12.4)') &
+!            'PREP:',NEQ,NV,NSA,NS,NINT(PZA(NSA)),NZMIN_NS(NS), &
+!            MODEL_BND(NV,NS),BND_VALUE(NV,NS),BND_VALUEA(NV,NSA)
+    END DO
+
+! --- time initializaion ---
+
     NT=0
     T=0.D0
     ngt_max=0
@@ -312,6 +332,8 @@ CONTAINS
     IF(ALLOCATED(gvrta)) DEALLOCATE(gvrta)
     ngr_allocate_max=0
 
+! --- motrix solver initializaion ---
+
     imax=NRMAX*NEQMAX
     jwidth=4*NEQMAX-1
     CALL mtx_setup(imax,istart,iend,jwidth)
@@ -322,6 +344,8 @@ CONTAINS
     WRITE(6,'(A,I5,6I8)') 'nrank: imax/s/e,nrmax/s/e=', &
                         nrank, imax,istart,iend,nrmax,nr_start,nr_end
     CALL mtx_barrier
+
+! --- record initial values ---
 
     IF(MOD(NT,NTSTEP ).EQ.0) CALL ti_snap         ! integrate and save
     IF(MOD(NT,NGTSTEP).EQ.0) CALL ti_record_ngt   ! save for time history
