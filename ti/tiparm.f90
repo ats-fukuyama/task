@@ -85,7 +85,8 @@ CONTAINS
            MODEL_NF,MODEL_NB,MODEL_EC,MODEL_LH,MODEL_IC, &
            MODEL_CD,MODEL_SYNC,MODEL_PEL,MODEL_PSC, &
            MODEL_BND,BND_VALUE, &
-           AK0,AD0,AV0,DK0,DKS, &
+           DN0,DT0,DU0,VDN0,VDT0,VDU0,DR0,DRS, &
+           DN0_NS,DT0_NS,DU0_NS,VDN0_NS,VDT0_NS,VDU0_NS, &
            PNBIN,PNBR0,PNBRW,PNBENG,PNBRTG, &
            PECIN,PECR0,PECRW,PECTOE,PECNPR, &
            PLHIN,PLHR0,PLHRW,PLHTOE,PLHNPR, &
@@ -95,7 +96,7 @@ CONTAINS
            PELTS,PELDT,PELTE,PELRAD,PELVEL, &
            PSCIN,PSCR0,PSCRW,PSCPAT, &
            SYNC_WALL,SYNC_CONV, &
-           KNAMLOG,IDEBUG
+           KNAMLOG,IDEBUG,glog_min
       
       IERR=0
 
@@ -135,7 +136,8 @@ CONTAINS
       WRITE(6,'(A)') '        MODEL_NF,MODEL_NB,MODEL_EC,MODEL_LH,MODEL_IC,'
       WRITE(6,'(A)') '        MODEL_CD,MODEL_SYNC,MODEL_PEL,MODEL_PSC,'
       WRITE(6,'(A)') '        MODEL_BND,BND_VALUE,'
-      WRITE(6,'(A)') '        AK0,AD0,AV0,DK0,DKS,'
+      WRITE(6,'(A)') '        DN0,DT0,DU0,VDN0,VDT0,VDU0,DR0,DRS,'
+      WRITE(6,'(A)') '        DN0_NS,DT0_NS,DU0_NS,VDN0_NS,VDT0_NS,VDU0_NS,'
       WRITE(6,'(A)') '        PNBIN,PNBR0,PNBRW,PNBENG,PNBRTG,'
       WRITE(6,'(A)') '        PECIN,PECR0,PECRW,PECTOE,PECNPR,'
       WRITE(6,'(A)') '        PLHIN,PLHR0,PLHRW,PLHTOE,PLHNPR,'
@@ -145,6 +147,7 @@ CONTAINS
       WRITE(6,'(A)') '        PELTS,PELDT,PELTE,PELRAD,PELVEL,'
       WRITE(6,'(A)') '        PSCIN,PSCR0,PSCRW,PSCPAT(NSM),'
       WRITE(6,'(A)') '        SYNC_WALL,SYNC_CONV,KNAMLOG,IEBUG'
+      WRITE(6,'(A)') '        glog_min'
       RETURN
     END SUBROUTINE ti_plst
 
@@ -247,11 +250,22 @@ CONTAINS
       END DO
 
       WRITE(6,*)
-      WRITE(6,601) 'AK0         ',AK0, &
-                   'AD0         ',AD0, &
-                   'AV0         ',AV0
-      WRITE(6,601) 'DK0         ',DK0, &
-                   'DKS         ',DKS
+      WRITE(6,601) 'DN0         ',DN0, &
+                   'DT0         ',DT0, &
+                   'DU0         ',DU0
+      WRITE(6,601) 'VDN0        ',VDN0, &
+                   'VDT0        ',VDT0, &
+                   'VDU0        ',VDU0
+      WRITE(6,'(A,A)') '   NS      DN0_NS      DT0_NS      DU0_NS', &
+                          '     VDN0_NS     VDT0_NS     VDU0_NS'
+      DO NS=1,NSMAX
+         WRITE(6,'(I5,1P6E12.4)') &
+              NS,DN0_NS(NS),DT0_NS(NS),DU0_NS(NS), &
+                 VDN0_NS(NS),VDT0_NS(NS),VDU0_NS(NS)
+      END DO
+
+      WRITE(6,601) 'DR0         ',DR0, &
+                   'DRS         ',DRS
       WRITE(6,601) 'PNBIN       ',PNBIN, &
                    'PNBR0       ',PNBR0, &
                    'PNBRW       ',PNBRW
@@ -289,7 +303,8 @@ CONTAINS
                    'PSCR0       ',PSCR0, &
                    'PSCRW       ',PSCRW
       WRITE(6,601) 'SYNC_WALL   ',SYNC_WALL, &
-                   'SYNC_CONV   ',SYNC_CONV
+                   'SYNC_CONV   ',SYNC_CONV, &
+                   'glog_min    ',glog_min
 
       IF(PELIN.GT.0.D0.OR.PSCIN.GT.0.D0) THEN
          WRITE(6,'(A4,2A12)') 'NS  ','PELPAT      ','PSCPAT      '
@@ -499,95 +514,104 @@ CONTAINS
       rdata( 3)=DT
       rdata( 4)=EPSLOOP
       rdata( 5)=EPSMAT
-      rdata( 6)=AK0
-      rdata( 7)=AD0
-      rdata( 8)=AV0
-      rdata( 9)=DK0
-      rdata(10)=DKS
-      rdata(11)=PNBIN
-      rdata(12)=PNBR0
-      rdata(13)=PNBRW
-      rdata(14)=PNBENG
-      rdata(15)=PNBRTG
-      rdata(16)=PECIN
-      rdata(17)=PECR0
-      rdata(18)=PECRW
-      rdata(19)=PECTOE
-      rdata(20)=PECNPR
-      rdata(21)=PLHR0
-      rdata(22)=PLHRW
-      rdata(23)=PLHTOE
-      rdata(24)=PLHNPR
-      rdata(25)=PICIN
-      rdata(26)=PICR0
-      rdata(27)=PICRW
-      rdata(28)=PICTOE
-      rdata(29)=PICNPR
-      rdata(30)=PNBCD
-      rdata(31)=PECCD
-      rdata(32)=PLHCD
-      rdata(33)=PICCD
-      rdata(34)=PBSCD
-      rdata(35)=PELIN
-      rdata(36)=PELR0
-      rdata(37)=PELRW
-      rdata(38)=PELDT
-      rdata(39)=PELTE
-      rdata(40)=PELRAD
-      rdata(41)=PELVEL
-      rdata(42)=PSCIN
-      rdata(43)=PSCR0
-      rdata(44)=PSCRW
-      rdata(45)=SYNC_WALL
-      rdata(46)=SYNC_CONV
+      rdata( 6)=DN0
+      rdata( 7)=DT0
+      rdata( 8)=DU0
+      rdata( 9)=VDN0
+      rdata(10)=VDT0
+      rdata(11)=VDU0
+      rdata(12)=DR0
+      rdata(13)=DRS
+      rdata(14)=PNBIN
+      rdata(15)=PNBR0
+      rdata(16)=PNBRW
+      rdata(17)=PNBENG
+      rdata(18)=PNBRTG
+      rdata(19)=PECIN
+      rdata(20)=PECR0
+      rdata(21)=PECRW
+      rdata(22)=PECTOE
+      rdata(23)=PECNPR
+      rdata(24)=PLHR0
+      rdata(25)=PLHRW
+      rdata(26)=PLHTOE
+      rdata(27)=PLHNPR
+      rdata(28)=PICIN
+      rdata(29)=PICR0
+      rdata(30)=PICRW
+      rdata(31)=PICTOE
+      rdata(32)=PICNPR
+      rdata(33)=PNBCD
+      rdata(34)=PECCD
+      rdata(35)=PLHCD
+      rdata(36)=PICCD
+      rdata(37)=PBSCD
+      rdata(38)=PELIN
+      rdata(39)=PELR0
+      rdata(40)=PELRW
+      rdata(41)=PELDT
+      rdata(42)=PELTE
+      rdata(43)=PELRAD
+      rdata(44)=PELVEL
+      rdata(45)=PSCIN
+      rdata(46)=PSCR0
+      rdata(47)=PSCRW
+      rdata(48)=SYNC_WALL
+      rdata(49)=SYNC_CONV
+      rdata(50)=glog_min
 
-      CALL mtx_broadcast_real8(rdata,46)
+      CALL mtx_broadcast_real8(rdata,50)
+
       PROFJ1=rdata( 1)
       PROFJ2=rdata( 2)
       DT=rdata( 3)
       EPSLOOP=rdata( 4)
       EPSMAT=rdata( 5)
-      AK0=rdata( 6)
-      AD0=rdata( 7)
-      AV0=rdata( 8)
-      DK0=rdata( 9)
-      DKS=rdata(10)
-      PNBIN=rdata(11)
-      PNBR0=rdata(12)
-      PNBRW=rdata(13)
-      PNBENG=rdata(14)
-      PNBRTG=rdata(15)
-      PECIN=rdata(16)
-      PECR0=rdata(17)
-      PECRW=rdata(18)
-      PECTOE=rdata(19)
-      PECNPR=rdata(20)
-      PLHR0=rdata(21)
-      PLHRW=rdata(22)
-      PLHTOE=rdata(23)
-      PLHNPR=rdata(24)
-      PICIN=rdata(25)
-      PICR0=rdata(26)
-      PICRW=rdata(27)
-      PICTOE=rdata(28)
-      PICNPR=rdata(29)
-      PNBCD=rdata(30)
-      PECCD=rdata(31)
-      PLHCD=rdata(32)
-      PICCD=rdata(33)
-      PBSCD=rdata(34)
-      PELIN=rdata(35)
-      PELR0=rdata(36)
-      PELRW=rdata(37)
-      PELDT=rdata(38)
-      PELTE=rdata(39)
-      PELRAD=rdata(40)
-      PELVEL=rdata(41)
-      PSCIN=rdata(42)
-      PSCR0=rdata(43)
-      PSCRW=rdata(44)
-      SYNC_WALL=rdata(45)
-      SYNC_CONV=rdata(46)
+      DN0=rdata( 6)
+      DT0=rdata( 7)
+      DU0=rdata( 8)
+      DN0=rdata( 9)
+      DT0=rdata(10)
+      DU0=rdata(11)
+      DR0=rdata(12)
+      DRS=rdata(13)
+      PNBIN=rdata(14)
+      PNBR0=rdata(15)
+      PNBRW=rdata(16)
+      PNBENG=rdata(17)
+      PNBRTG=rdata(18)
+      PECIN=rdata(19)
+      PECR0=rdata(20)
+      PECRW=rdata(21)
+      PECTOE=rdata(22)
+      PECNPR=rdata(23)
+      PLHR0=rdata(24)
+      PLHRW=rdata(25)
+      PLHTOE=rdata(26)
+      PLHNPR=rdata(27)
+      PICIN=rdata(28)
+      PICR0=rdata(29)
+      PICRW=rdata(30)
+      PICTOE=rdata(31)
+      PICNPR=rdata(32)
+      PNBCD=rdata(33)
+      PECCD=rdata(34)
+      PLHCD=rdata(35)
+      PICCD=rdata(36)
+      PBSCD=rdata(37)
+      PELIN=rdata(38)
+      PELR0=rdata(39)
+      PELRW=rdata(40)
+      PELDT=rdata(41)
+      PELTE=rdata(42)
+      PELRAD=rdata(43)
+      PELVEL=rdata(44)
+      PSCIN=rdata(45)
+      PSCR0=rdata(46)
+      PSCRW=rdata(47)
+      SYNC_WALL=rdata(48)
+      SYNC_CONV=rdata(49)
+      glog_min=rdata(50)
 
       CALL mtx_broadcast_integer(NZMIN_NS,NSMAX)
       CALL mtx_broadcast_integer(NZMAX_NS,NSMAX)
@@ -595,6 +619,12 @@ CONTAINS
       CALL mtx_broadcast_real8(PT,NSMAX)
       CALL mtx_broadcast_real8(PELPAT,NSMAX)
       CALL mtx_broadcast_real8(PSCPAT,NSMAX)
+      CALL mtx_broadcast_real8(DN0_NS,NSMAX)
+      CALL mtx_broadcast_real8(DT0_NS,NSMAX)
+      CALL mtx_broadcast_real8(DU0_NS,NSMAX)
+      CALL mtx_broadcast_real8(VDN0_NS,NSMAX)
+      CALL mtx_broadcast_real8(VDT0_NS,NSMAX)
+      CALL mtx_broadcast_real8(VDU0_NS,NSMAX)
 
       DO NS=1,NSMAX
          CALL mtx_broadcast_integer(MODEL_BND(1:3,NS),3)

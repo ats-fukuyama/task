@@ -4,18 +4,20 @@
    PM(3)=39.95D0
    ID_NS(3)=10
    KID_NS(3)='Ar'
-   NZMIN_NS(3)=0
+   NZMIN_NS(3)=15
    NZMAX_NS(3)=18
-   PNS(3)=0.001D0
+   MODEL_BND(1,3)=2
+   BND_VALUE(1,3)=1.D0
 !   
-   AD0=1.D0
-   AK0=0.D0
-   AV0=0.D0
-   DK0=1.D0
-   DKS=1.D0
-   NRMAX=10
+   DN0=0.1D0
+   DN0_NS(1)=0.D0
+   DN0_NS(2)=0.D0
+   DT0=1.D0
+   DR0=1.D0
+   DRS=3.D0
+   NRMAX=20
    NTSTEP=1
    NGTSTEP=1
    NGRSTEP=1
-   NTMAX=1
+   NTMAX=10
  &end

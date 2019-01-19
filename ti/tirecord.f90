@@ -26,10 +26,10 @@ CONTAINS
             '#NT,T,RD_LOOP,IC_LOOP,IC_MAT=', &
               NT,T,residual_loop_max,icount_loop_max,icount_mat_max
 
-       DO NSA=3,8
-          WRITE(6,'(A,I5,1P5E12.4)') &
-               'NSA,RNA: ',NSA,(RNA(NSA,NR),NR=NRMAX-4,NRMAX)
-       END DO
+!       DO NSA=3,nsa_max8
+!          WRITE(6,'(A,I5,1P5E12.4)') &
+!               'NSA,RNA: ',NSA,(RNA(NSA,NR),NR=NRMAX-4,NRMAX)
+!       END DO
     END IF
     residual_loop_max=0.D0
     icount_loop_max=0

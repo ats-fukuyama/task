@@ -228,17 +228,39 @@ CONTAINS
 
 !     ==== TRANSPORT PARAMETERS ====
 
-!        AK0    : THERMAL DIFFUSION FACTOR
-!        AD0    : PARTICLE DIFFUSION FACTOR
-!        AV0    : INWARD PARTICLE PINCH FACTOR
-!        DK0    : CENTERAL VALUE of KAI-fixed
-!        DKS    : SURFACE VALUE of KAI-fixed
+!        DN0    : PARTICLE DIFFUSION FACTOR
+!        DT0    : THERMAL DIFFUSION FACTOR
+!        DU0    : TOROIDAL VISCOSITY FACTOR
+!        VDN0   : particle pinch factor
+!        VDT0   : thermal pinch factor
+!        VDU0   : toroidal velocity pinch
+!        DR0    : CENTERAL VALUE of fixed diffusion type
+!        DRS    : SURFACE VALUE of fixed diffusion type
 
-      AK0    = 1.0D0
-      AD0    = 0.1D0
-      AV0    = 0.5D0
-      DK0    = 0.3D0
-      DKS    = 3.0D0
+      DN0    = 0.1D0
+      DT0    = 1.0D0
+      DU0    = 0.0D0
+      VDT0   = 0.0D0
+      VDN0   = 0.1D0
+      VDU0   = 0.0D0
+      DR0    = 1.0D0
+      DRS    = 3.0D0
+
+!        DN0_NS : PARTICLE DIFFUSION FACTOR for species NS
+!        DT0_NS : THERMAL DIFFUSION FACTOR for species NS
+!        DU0_NS : TOROIDAL VISCOSITY FACTOR for species NS
+!        VDN0_NS: particle pinch factor for species NS
+!        VDT0_NS: thermal pinch factor for species NS
+!        VDU0_NS: toroidal velocity pinch for species NS
+
+      DO NS=1,NSM
+         DN0_NS(NS) = 1.0D0
+         DT0_NS(NS) = 1.0D0
+         DU0_NS(NS) = 1.0D0
+         VDT0_NS(NS)= 1.0D0
+         VDN0_NS(NS)= 1.0D0
+         VDU0_NS(NS)= 1.0D0
+      END DO
 
 !     ==== Boundary condition parameters ====
 !
@@ -363,6 +385,12 @@ CONTAINS
 
       SYNC_WALL=0.2D0
       SYNC_CONV=0.95D0
+
+!     ==== graphic parameter ====
+
+!        glog_min : minimum number in log plot
+
+      glog_min=1.D-6
 
 !     ==== FILE NAME ====
 

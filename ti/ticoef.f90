@@ -12,7 +12,7 @@ CONTAINS
     USE tiadas
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NR
-    REAL(rkind):: RHON,DK_FIXED,rne,rte
+    REAL(rkind):: RHON,DR_FIXED,rne,rte
     REAL(rkind):: DR_inz,DR_rcb,DR_prb,DR_plt
     INTEGER:: NSA,NEQ,NV,NS,ID,NPZ,NSA1,ierr
 
@@ -56,19 +56,19 @@ CONTAINS
              IF(NSA1.NE.0) THEN
                 CALL ADAS_scd(NPA(NS),NPZ+1,rne,rte,DR_inz,IERR)
                 CCN(NSA,NSA ,NR)=CCN(NSA,NSA ,NR) &           ! ionization
-                                -DR_inz*rne            !   to upper
+                                -DR_inz*rne                   !   to upper
                 CALL ADAS_acd(NPA(NS),NPZ+1,rne,rte,DR_rcb,IERR)
                 CCN(NSA,NSA1,NR)=CCN(NSA,NSA1,NR) &           ! recombination
-                                +DR_rcb*rne            !   from upper
+                                +DR_rcb*rne                   !   from upper
              END IF
              NSA1=NSA_DN(NSA)
              IF(NSA1.NE.0) THEN
                 CALL ADAS_acd(NPA(NS),NPZ,rne,rte,DR_rcb,IERR)
                 CCN(NSA,NSA ,NR)=CCN(NSA,NSA ,NR) &           ! recombination
-                                -DR_rcb*rne            !     to lower
-                CALL ADAS_acd(NPA(NS),NPZ,rne,rte,DR_inz,IERR)
+                                -DR_rcb*rne                   !     to lower
+                CALL ADAS_scd(NPA(NS),NPZ,rne,rte,DR_inz,IERR)
                 CCN(NSA,NSA1,NR)=CCN(NSA,NSA1,NR) &           ! ionization
-                                +DR_inz*rne            !     from lower
+                                +DR_inz*rne                   !     from lower
              END IF
              CALL ADAS_prb(NPA(NS),NPZ,rne,rte,DR_prb,IERR)   ! recmb/brems pwr
              CALL ADAS_plt(NPA(NS),NPZ,rne,rte,DR_plt,IERR)   ! line ard pwr
@@ -76,27 +76,33 @@ CONTAINS
           END SELECT
        END DO
 
-    DK_FIXED=DK0+(DKS-DK0)*RHON**2
+    DR_FIXED=DR0+(DRS-DR0)*RHON**2
 
     DO NSA=1,nsa_max
-       ADTB(NSA,NR)=AD0*DK_FIXED
-       AKTB(NSA,NR)=AK0*DK_FIXED
-       AVTB(NSA,NR)=AV0*DK_FIXED*RHON
+       DNTB(NSA,NR)=DN0*DR_FIXED
+       DTTB(NSA,NR)=DT0*DR_FIXED
+       DUTB(NSA,NR)=DU0*DR_FIXED
+       VDNTB(NSA,NR)=VDN0*DR_FIXED*RHON
+       VDTTB(NSA,NR)=VDT0*DR_FIXED*RHON
+       VDUTB(NSA,NR)=VDU0*DR_FIXED*RHON
     END DO
 
     DO NSA=1,nsa_max
-       AKNC(NSA,NR)=0.D0
-       ADNC(NSA,NR)=0.D0
-       AVNC(NSA,NR)=0.D0
+       DNNC(NSA,NR)=0.D0
+       DTNC(NSA,NR)=0.D0
+       DUNC(NSA,NR)=0.D0
+       VDNNC(NSA,NR)=0.D0
+       VDTNC(NSA,NR)=0.D0
+       VDUNC(NSA,NR)=0.D0
     END DO
 
     DO NSA=1,nsa_max
-       DDN(NSA,NR)=ADTB(NSA,NR)+ADNC(NSA,NR)
-       VVN(NSA,NR)=AVTB(NSA,NR)+AVNC(NSA,NR)
-       DDT(NSA,NR)=AKTB(NSA,NR)+AKNC(NSA,NR)
-       VVT(NSA,NR)=AVTB(NSA,NR)+AVNC(NSA,NR)
-       DDU(NSA,NR)=0.D0
-       VVU(NSA,NR)=0.D0
+       DDN(NSA,NR)=DNTB(NSA,NR) +DNNC(NSA,NR)
+       VVN(NSA,NR)=VDNTB(NSA,NR)+VDNNC(NSA,NR)
+       DDT(NSA,NR)=DTTB(NSA,NR) +DTNC(NSA,NR)
+       VVT(NSA,NR)=VDTTB(NSA,NR)+VDTNC(NSA,NR)
+       DDU(NSA,NR)=DUTB(NSA,NR) +DUNC(NSA,NR)
+       VVU(NSA,NR)=VDUTB(NSA,NR)+VDUNC(NSA,NR)
     END DO
 
     RETURN
