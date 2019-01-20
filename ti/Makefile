@@ -42,14 +42,15 @@ SRCS=   ticomm.f90 tiadas.f90 \
 #      trunit.f90 trloop.f90 trmenu.f90 tr_bpsd.f90
 
 OBJS=$(SRCS:.f90=.o)
-LIBS=tilib.a ../adpost/lib-adpost.a ../open-adas/adf11/adf11-lib/lib-adf11.a ../eq/eqlib.a ../plx/pllib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a
+
+LIBS=libti.a ../adpost/lib-adpost.a ../open-adas/adf11/adf11-lib/lib-adf11.a ../eq/eqlib.a ../plx/pllib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a
 
 
 #all: libs ti
 all: ti
 
-tilib.a: $(OBJS)
-	$(LD) $(LDFLAGS) tilib.a $(OBJS)
+libti.a: $(OBJS)
+	$(LD) $(LDFLAGS) $@ $(OBJS)
 
 ../eq/eqlib.a:
 	(cd ../eq; make eqlib.a)
