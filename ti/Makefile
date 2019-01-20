@@ -46,30 +46,33 @@ OBJS=$(SRCS:.f90=.o)
 LIBS=libti.a ../adpost/lib-adpost.a ../open-adas/adf11/adf11-lib/lib-adf11.a ../eq/eqlib.a ../plx/pllib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a
 
 
-#all: libs ti
-all: ti
+all: libs ti
 
 libti.a: $(OBJS)
 	$(LD) $(LDFLAGS) $@ $(OBJS)
 
+../open-adas/adf11/adf11-lib/lib-adf11.a: 
+	(cd ../open-adas/adf11/adf11-lib; make lib-adf11.a)
+../adpost/lib-adpost.a: 
+	(cd ../adpost; make lib-adpost.a)
 ../eq/eqlib.a:
 	(cd ../eq; make eqlib.a)
 ../plx/pllib.a:
 	(cd ../plx; make pllib.a)
-../adpost/lib-adpost.a: 
-	(cd ../adpost; make lib-adfpost.a)
-../open-adas/adf11/adf11-lib/lib-adf11.a: 
-	(cd ../open-adas/adf11/adf11-lib; make lib-adf11.a)
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)
+$(LIB_MTX):
+	(cd ../mtxp; make)
 ../../bpsd/bpsdlib.a:
 	(cd ../../bpsd; make bpsdlib.a)
+
 
 libs:
 	(cd ../../bpsd; make bpsdlib.a)
 	(cd ../lib; make tasklib.a)
 	(cd ../mtxp; make)
 	(cd ../open-adas/adf11/adf11-lib; make lib-adf11.a)
+	(cd ../adpost; make lib-adpost.a)
 	(cd ../plx; make pllib.a)
 	(cd ../eq; make eqlib.a)
 
@@ -93,7 +96,8 @@ timain.o : timain.f90 ticomm.f90  timenu.f90
 timenu.o : timenu.f90 ticomm.f90
 tiinit.o : tiinit.f90 ticomm.f90
 tiparm.o : tiparm.f90 ticomm.f90
-tiprep.o : tiprep.f90 ticomm.f90
+tiprep.o : tiprep.f90 ticomm.f90 ../adpost/lib-adpost.f90 \
+           ../open-adas/adf11/adf11-lib/lib-adf11.f90
 tigout.o : tigout.f90 ticomm.f90
 tiexec.o : tiexec.f90 ticomm.f90
 ticoef.o : ticoef.f90 ticomm.f90

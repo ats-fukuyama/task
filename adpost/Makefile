@@ -2,6 +2,7 @@
 ### This Makefile should be located at task/ti/adpost
 ###
 include ../make.header
+include ../mtxp/make.mtxp
 
 .SUFFIXES:
 .SUFFIXES: .f .for .f90 .mod .o .a
@@ -9,13 +10,13 @@ include ../make.header
 #FFLAGS=$(OFLAGS)
 FFLAGS=$(DFLAGS)
 
-MODINCLUDE= -I./$(MOD) -I../../bpsd/mod  -I../lib/mod
+MODINCLUDE= -I./$(MOD) -I../../bpsd/$(MOD) -I../mtxp/$(MOD) -I../lib/$(MOD)
 
 SRCS = lib-adpost.f90
 
 OBJS = $(SRCS:.f90=.o)
 
-LIBS = lib-adpost.a ../lib/tasklib.a ../../bpsd/bpsdlib.a
+LIBS = lib-adpost.a ../mtxp/libmtxmpi.o ../lib/tasklib.a ../../bpsd/bpsdlib.a
 
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -29,7 +30,7 @@ libs:
 	(cd ../lib; make)
 
 test-adpost : $(LIBS) test-adpost.o
-	$(FCFREE) test-adpost.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODDIR) $(MODINCLUDE)
+	$(FLINKER) test-adpost.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODDIR) $(MODINCLUDE)
 
 clean:
 	-rm -f core *.o *.a ./*~ $(MOD)/*.mod

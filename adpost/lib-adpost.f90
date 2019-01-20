@@ -10,7 +10,7 @@ MODULE ADPOST
   USE libfio
 
   PRIVATE
-  PUBLIC read_adpost,func_adpost,nd_npa_adpost
+  PUBLIC read_adpost,broadcast_adpost,func_adpost,nd_npa_adpost
 
   INTEGER,PARAMETER:: IZDIMD = 140   ! maximum number of NPAs
 
@@ -34,9 +34,10 @@ MODULE ADPOST
 
 CONTAINS
 
-  SUBROUTINE read_adpost(IERR)
+  SUBROUTINE read_adpost(adpost_filename,IERR)
 
     IMPLICIT NONE
+    CHARACTER(LEN=*),INTENT(IN):: adpost_filename
     INTEGER,INTENT(OUT):: IERR
     INTEGER:: LUN,NPA,ND,NL,N
 
@@ -64,9 +65,9 @@ CONTAINS
     END DO
     LUN=12
 
-    CALL FROPEN(LUN,'adpost/ADPOST-DATA',1,0,'ADPOST',IERR)
+    CALL FROPEN(LUN,adpost_filename,1,0,'ADPOST',IERR)
     IF(IERR.NE.0) THEN
-       WRITE(6,'(A,I4)') 'XX READ_ADPOST: FROPEN(LIST): IERR =',IERR
+       WRITE(6,'(A,I4)') 'XX READ_ADPOST: FROPEN: IERR =',IERR
        IERR=1
        RETURN
     END IF
@@ -174,6 +175,167 @@ CONTAINS
     IERR=19
     RETURN
   END SUBROUTINE read_adpost
+
+! --- broadcast loaded adpost data ---
+
+  SUBROUTINE broadcast_adpost(IERR)
+
+    USE libmpi
+    USE commpi
+    IMPLICIT NONE
+    INTEGER,INTENT(OUT):: IERR
+    INTEGER:: NPA,ND,NL,N,i
+    REAl(rkind),ALLOCATABLE:: work(:)
+
+!   --- deallocate data array, if allocatd ---
+
+    IF(nrank.NE.0) THEN
+       IF(ALLOCATED(KZ0A)) DEALLOCATE(KZ0A)
+       IF(ALLOCATED(NPAA)) DEALLOCATE(NPAA)
+       IF(ALLOCATED(IM0A)) DEALLOCATE(IM0A)
+       IF(ALLOCATED(LMAXA)) DEALLOCATE(LMAXA)
+       IF(ALLOCATED(TMINA)) DEALLOCATE(TMINA)
+       IF(ALLOCATED(TMINB)) DEALLOCATE(TMINB)
+       IF(ALLOCATED(TMINC)) DEALLOCATE(TMINC)
+       IF(ALLOCATED(TMAXA)) DEALLOCATE(TMAXA)
+       IF(ALLOCATED(TMAXB)) DEALLOCATE(TMAXB)
+       IF(ALLOCATED(TMAXC)) DEALLOCATE(TMAXC)
+       IF(ALLOCATED(COEFA)) DEALLOCATE(COEFA)
+       IF(ALLOCATED(COEFB)) DEALLOCATE(COEFB)
+       IF(ALLOCATED(COEFC)) DEALLOCATE(COEFC)
+       IF(ALLOCATED(NPA_TABLE)) DEALLOCATE(NPA_TABLE)
+    END IF
+!   --- initialize conversion table between NPA and ND ---
+
+    DO NPA=1,IZDIMD
+       ND_TABLE(NPA)=0
+    END DO
+
+!   --- start broadcasting data ---
+
+    CALL mtx_broadcast1_integer(NDMAX)
+    CALL mtx_broadcast1_integer(LMAXM)
+
+    IF(nrank.NE.0) ALLOCATE(KZ0A(NDMAX),NPAA(NDMAX),IM0A(NDMAX),LMAXA(NDMAX))
+
+    DO ND=1,NDMAX
+       CALL mtx_broadcast_character(KZ0A(ND),8)
+    END DO
+    CALL mtx_broadcast_integer(NPAA,NDMAX)
+    CALL mtx_broadcast_integer(IM0A,NDMAX)
+    CALL mtx_broadcast_integer(LMAXA,NDMAX)
+
+    IF(nrank.NE.0) THEN
+       ALLOCATE(TMINA(LMAXM,NDMAX),TMAXA(LMAXM,NDMAX))
+       ALLOCATE(TMINB(LMAXM,NDMAX),TMAXB(LMAXM,NDMAX))
+       ALLOCATE(TMINC(LMAXM,NDMAX),TMAXC(LMAXM,NDMAX))
+       ALLOCATE(COEFA(0:5,LMAXM,NDMAX))
+       ALLOCATE(COEFB(0:5,LMAXM,NDMAX))
+       ALLOCATE(COEFC(0:5,LMAXM,NDMAX))
+       ALLOCATE(NPA_TABLE(NDMAX))
+    END IF
+
+    ALLOCATE(work(6*LMAXM))
+    DO ND=1,NDMAX
+       IF(nrank.EQ.0) work(1:LMAXA(ND))=TMINA(1:LMAXA(ND),ND)
+       CALL mtx_broadcast_real8(work,LMAXA(ND))
+       IF(nrank.NE.0) TMINA(1:LMAXA(ND),ND)=work(1:LMAXA(ND))
+       IF(nrank.EQ.0) work(1:LMAXA(ND))=TMAXA(1:LMAXA(ND),ND)
+       CALL mtx_broadcast_real8(work,LMAXA(ND))
+       IF(nrank.NE.0) TMAXA(1:LMAXA(ND),ND)=work(1:LMAXA(ND))
+       IF(nrank.EQ.0) work(1:LMAXA(ND))=TMINB(1:LMAXA(ND),ND)
+       CALL mtx_broadcast_real8(work,LMAXA(ND))
+       IF(nrank.NE.0) TMINB(1:LMAXA(ND),ND)=work(1:LMAXA(ND))
+       IF(nrank.EQ.0) work(1:LMAXA(ND))=TMAXB(1:LMAXA(ND),ND)
+       CALL mtx_broadcast_real8(work,LMAXA(ND))
+       IF(nrank.NE.0) TMAXB(1:LMAXA(ND),ND)=work(1:LMAXA(ND))
+       IF(nrank.EQ.0) work(1:LMAXA(ND))=TMINC(1:LMAXA(ND),ND)
+       CALL mtx_broadcast_real8(work,LMAXA(ND))
+       IF(nrank.NE.0) TMINC(1:LMAXA(ND),ND)=work(1:LMAXA(ND))
+       IF(nrank.EQ.0) work(1:LMAXA(ND))=TMAXC(1:LMAXA(ND),ND)
+       CALL mtx_broadcast_real8(work,LMAXA(ND))
+       IF(nrank.NE.0) TMAXC(1:LMAXA(ND),ND)=work(1:LMAXA(ND))
+
+       IF(nrank.EQ.0) THEN
+          i=0
+          DO NL=1,LMAXA(ND)
+             DO N=0,5
+                i=i+1
+                work(i)=COEFA(N,NL,ND)
+             END DO
+          END DO
+       END IF
+
+       CALL mtx_broadcast_real8(work,6*LMAXA(ND))
+
+       IF(nrank.NE.0) THEN
+          i=0
+          DO NL=1,LMAXA(ND)
+             DO N=0,5
+                i=i+1
+                COEFA(N,NL,ND)=work(i)
+             END DO
+          END DO
+       ELSE
+          i=0
+          DO NL=1,LMAXA(ND)
+             DO N=0,5
+                i=i+1
+                work(i)=COEFB(N,NL,ND)
+             END DO
+          END DO
+       END IF
+
+       CALL mtx_broadcast_real8(work,6*LMAXA(ND))
+
+       IF(nrank.ne.0) THEN
+          i=0
+          DO NL=1,LMAXA(ND)
+             DO N=0,5
+                i=i+1
+                COEFB(N,NL,ND)=work(i)
+             END DO
+          END DO
+       ELSE
+          i=0
+          DO NL=1,LMAXA(ND)
+             DO N=0,5
+                i=i+1
+                work(i)=COEFC(N,NL,ND)
+             END DO
+          END DO
+       END IF
+
+       CALL mtx_broadcast_real8(work,6*LMAXA(ND))
+
+       IF(nrank.ne.0) THEN
+          i=0
+          DO NL=1,LMAXA(ND)
+             DO N=0,5
+                i=i+1
+                COEFC(N,NL,ND)=work(i)
+             END DO
+          END DO
+       END IF
+    END DO
+    DEALLOCATE(work)
+
+    DO ND=1,NDMAX
+       ND_TABLE(NPAA(ND))=ND
+    END DO
+
+    ND=0
+    DO NPA=1,IZDIMD
+       IF(ND_TABLE(NPA).NE.0) THEN
+          ND=ND+1
+          NPA_TABLE(ND)=NPA
+       END IF
+    END DO
+
+    IERR=0
+    RETURN
+
+  END SUBROUTINE broadcast_adpost
 
 !--- fucntion to calculate Z_ave, Z^2_ave, and D_rad.
 

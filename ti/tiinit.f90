@@ -399,6 +399,10 @@ CONTAINS
 !        KNAMLOG: LOG FILE NAME
 
       KNAMLOG='ti.log'
+      adpost_dir='../adpost/'
+      adpost_filename='ADPOST-DATA'
+      adas_adf11_dir='./'
+      adas_adf11_filename='ADF11-bin.data'
 
       DO NS=1,NSM
          PT(NS)=(PTPR(NS)+2.D0*PTPP(NS))/3.D0

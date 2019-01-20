@@ -1,7 +1,10 @@
-!   MODULE timenu
+! timenu.f90
+
+! *** ti menu ***
 
 MODULE timenu
 
+  PRIVATE
   PUBLIC ti_menu
 
 CONTAINS
@@ -9,6 +12,7 @@ CONTAINS
   SUBROUTINE ti_menu
 
       USE bpsd
+      USE ticomm
       USE tiinit
       USE tiparm
       USE tiprep
@@ -16,11 +20,11 @@ CONTAINS
       USE tigout
       USE plload,ONLY: pl_load
       USE libmpi
-      USE commpi
       
       IMPLICIT NONE
       INTEGER(ikind)       :: IERR, MODE
       INTEGER(ikind), SAVE :: INIT=0
+      REAL(4):: cputime1,cputime2
       CHARACTER(LEN=1) :: KID
       CHARACTER(LEN=80):: LINE
 
@@ -54,47 +58,57 @@ CONTAINS
       IF(MODE.EQ.2) CALL ti_broadcast
       IF(MODE.NE.1) GOTO 1
 
-      IF(KID.EQ.'P') THEN           ! parameter input
+      SELECT CASE(KID)
+      CASE('P')                     ! parameter input
          IF(nrank.eq.0) CALL ti_parm(0,'TI',IERR)
          CALL ti_broadcast
-      ELSE IF(KID.EQ.'V') THEN      ! view input parameters
+      CASE('V')                     ! view input parameters
          IF(nrank.eq.0) CALL ti_view
-      ELSE IF(KID.EQ.'L') THEN      ! load bulk component profile from TR
+      CASE('L')                     ! load bulk component profile from TR
          CALL pl_load(ierr)
          if(ierr.ne.0) GO TO 1
-      ELSE IF(KID.EQ.'R') THEN      ! run simulation
-         CALL ti_prep(ierr)
-         if(ierr.ne.0) GO TO 1
-         CALL ti_exec(ierr)
-         INIT=2
-      ELSE IF(KID.EQ.'C'.AND.INIT.EQ.2) THEN  ! continue simulation
-         CALL ti_exec(ierr)
-      ELSE IF(KID.EQ.'G'.AND.INIT.GE.1) THEN  ! graphic output
-         IF(nrank.EQ.0) CALL ti_gout
-      ELSE IF(KID.EQ.'W'.AND.INIT.EQ.2) THEN  ! show simulation results in text
-  102    WRITE(6,*) '# SELECT ',  ': PRINT TYPE (1..9)  N/NAMELIST X/EXIT'
-         READ(5,'(A1)',ERR=102,END=1) KID
-         CALL GUCPTL(KID)
-         IF(KID.EQ.'H') THEN
-!            CALL ti_help('W')
-         ELSEIF(KID.EQ.'X') THEN
-            GOTO 1
-         ELSE
-!            CALL ti_print(KID)
-         ENDIF
-         GOTO 102
-      ELSE IF(KID.EQ.'H') THEN  ! show helpful information
+      CASE('R','C')                 ! run or continue simulation
+         IF(nrank.EQ.0) CALL CPU_TIME(cputime1)
+         IF(KID.EQ.'R') THEN
+            CALL ti_prep(ierr)
+            if(ierr.ne.0) GO TO 1
+            INIT=2
+         END IF
+         IF(INIT.EQ.2) THEN
+            CALL ti_exec(ierr)
+            if(ierr.ne.0) GO TO 1
+            IF(nrank.EQ.0) THEN
+               CALL CPU_TIME(cputime2)
+               WRITE(6,'(A,F12.3)') '--cpu time =',cputime2-cputime1
+            END IF
+         END IF
+      CASE('G')                     ! graphic output
+         IF(INIT.GE.1.AND.nrank.EQ.0) CALL ti_gout
+      CASE('W')                     ! show simulation results in text
+         IF(INIT.EQ.2) THEN
+102         WRITE(6,*) '# SELECT ',  ': PRINT TYPE (1..9)  N/NAMELIST X/EXIT'
+            READ(5,'(A1)',ERR=102,END=1) KID
+            CALL GUCPTL(KID)
+            IF(KID.EQ.'H') THEN
+               !            CALL ti_help('W')
+            ELSEIF(KID.EQ.'X') THEN
+               GOTO 1
+            ELSE
+               !            CALL ti_print(KID)
+            ENDIF
+            GOTO 102
+         END IF
+      CASE('H')                     ! show helpful information
 !         CALL ti_help('M')
-      ELSE IF(KID.EQ.'S') THEN  ! save results
+      CASE('S')                     ! save results
 !         CALL ti_save(ierr)
-      ELSE IF(KID.EQ.'Q') THEN  ! quit 
+      CASE('Q')                     ! quit 
          GOTO 9000
-
-      ELSE IF(KID.EQ.'X'.OR.KID.EQ.'#') THEN
+      CASE('X','#','!')
          CONTINUE
-      ELSE
+      CASE default
          WRITE(6,*) 'XX timenu: UNKNOWN KID'
-      END IF
+      END SELECT
 
       GOTO 1
 

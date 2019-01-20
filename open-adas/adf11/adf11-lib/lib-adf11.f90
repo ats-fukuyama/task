@@ -25,10 +25,11 @@ MODULE ADF11
 
 CONTAINS
 
-  SUBROUTINE  READ_ADF11(IERR)
+  SUBROUTINE  READ_ADF11(adas_adf11_filename,IERR)
 
     USE libfio
     IMPLICIT NONE
+    CHARACTER(LEN=*),INTENT(IN):: adas_adf11_filename
     INTEGER,INTENT(OUT):: IERR
     INTEGER:: LUN1,LUN2,ND,IZ0,IC,ID,IT,IS,IZ
     REAL(dp):: DDENS(IDDIMD),DTEMP(ITDIMD)
@@ -63,7 +64,7 @@ CONTAINS
     IF(ALLOCATED(FY)) DEALLOCATE(FY)
     IF(ALLOCATED(FXY)) DEALLOCATE(FXY)
 
-    CALL FROPEN(LUN1,'ADF11-FILE-LIST',1,0,'ADF11-LIST',IERR)
+    CALL FROPEN(LUN1,adas_adf11_filename,1,0,'ADF11-LIST',IERR)
     IF(IERR.NE.0) THEN
        WRITE(6,*) 'XX READ_ADF11: FROPEN(LIST): IERR=',IERR
        IERR=1
@@ -428,15 +429,16 @@ CONTAINS
 !        ADF11 data files are specified in ADF11-FILE-LIST
 !        binary data is written in ADF11-bin.data
 
-  SUBROUTINE SAVE_ADF11_bin(IERR)
+  SUBROUTINE SAVE_ADF11_bin(adas_bin_filename,IERR)
 
     USE libfio
     IMPLICIT NONE
+    CHARACTER(LEN=*),INTENT(IN):: adas_bin_filename
     INTEGER,INTENT(OUT):: IERR
     INTEGER:: LUN,ND,ID,IT,IS,I,J
 
     LUN=20
-    CALL FWOPEN(LUN,'ADF11-bin.data',0,0,'adf11-bin',IERR)
+    CALL FWOPEN(LUN,adas_bin_filename,0,0,'adf11-bin',IERR)
     IF(IERR.NE.0) THEN
        WRITE(6,*) 'XX SAVE_ADF11_bin: FWOPEN: IERR=',IERR
        IERR=1
@@ -465,10 +467,11 @@ CONTAINS
 ! --- Load ADF11 data from a TASK-specific binary data file ---
 !        binary data is loaded from ADF11-bin.data
 
-  SUBROUTINE LOAD_ADF11_bin(IERR)
+  SUBROUTINE LOAD_ADF11_bin(adas_bin_filename,IERR)
 
     USE libfio
     IMPLICIT NONE
+    CHARACTER(LEN=*),INTENT(IN):: adas_bin_filename
     INTEGER,INTENT(OUT):: IERR
     INTEGER:: LUN,ND,ID,IT,IS,I,J,IST,IC,IZ
     LOGICAL:: FLAG
@@ -489,7 +492,7 @@ CONTAINS
     IF(ALLOCATED(UDRCOFL)) DEALLOCATE(UDRCOFL)
 
     LUN=20
-    CALL FROPEN(LUN,'ADF11-bin.data',0,0,'adf11-bin',IERR)
+    CALL FROPEN(LUN,adas_bin_filename,0,0,'adf11-bin',IERR)
     IF(IERR.NE.0) THEN
        WRITE(6,*) 'XX LOAD_ADF11_bin: FROPEN: IERR=',IERR
        IERR=1
@@ -628,7 +631,6 @@ CONTAINS
 
   SUBROUTINE broadcast_ADF11_bin(IERR)
 
-    USE libfio
     USE libmpi
     USE commpi
     IMPLICIT NONE

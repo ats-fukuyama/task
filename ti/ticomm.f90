@@ -1,4 +1,4 @@
-! MODULE ticomm_parm,ticomm
+! ticomm.f90
 
 MODULE ticomm_parm
 
@@ -52,6 +52,8 @@ MODULE ticomm_parm
   REAL(rkind):: BND_VALUE(3,NSM)
 
   CHARACTER(LEN=80):: KNAMLOG
+  CHARACTER(LEN=80):: adpost_dir,adpost_filename
+  CHARACTER(LEN=80):: adas_adf11_dir,adas_adf11_filename
 
 END MODULE ticomm_parm
 

@@ -17,7 +17,7 @@ CONTAINS
     INTEGER,INTENT(OUT):: IERR
     INTEGER,SAVE:: init_adpost=0
     INTEGER,SAVE:: init_adas=0
-    INTEGER:: NS,NSA,NZ,NEQ,NR,NV,ID_adpost,ID_adas
+    INTEGER:: NS,NSA,NZ,NEQ,NR,NV,ID_adpost,ID_adas,l1,l2
     REAL(rkind):: RHON
     TYPE(pl_plf_type),DIMENSION(:),ALLOCATABLE:: PLF
 
@@ -37,19 +37,28 @@ CONTAINS
 
     IF(ID_adpost.EQ.1) THEN
        IF(init_adpost.EQ.0) THEN
-          CALL read_adpost(IERR)
-          IF(IERR.NE.0) WRITE(6,*) 'XX read_adpost: IERR=',IERR
+          IF(nrank.eq.0) THEN
+             l1=LEN_TRIM(adpost_dir)
+             L2=LEN_TRIM(adpost_filename)
+             CALL read_adpost(adpost_dir(1:l1)//adpost_filename(1:l2),IERR)
+             IF(IERR.NE.0) WRITE(6,*) 'XX read_adpost: IERR=',IERR
+          END IF
+          CALL broadcast_adpost(ierr)
+          IF(ierr.NE.0) WRITE(6,*) 'XX broadcast_adpost: IERR=',IERR
           init_adpost=1
        END IF
     END IF
     IF(ID_adas.EQ.1) THEN
        IF(init_adas.EQ.0) THEN
           IF(nrank.EQ.0) THEN
-             CALL LOAD_ADF11_bin(IERR)
+             l1=LEN_TRIM(adas_adf11_dir)
+             L2=LEN_TRIM(adas_adf11_filename)
+             CALL LOAD_ADF11_bin( &
+                  adas_adf11_dir(1:l1)//adas_adf11_filename(1:l2),IERR)
              IF(IERR.NE.0) WRITE(6,*) 'XX load_ADF11_bin: IERR=',IERR
           END IF
           CALL broadcast_ADF11_bin(IERR)
-          IF(IERR.NE.0) WRITE(6,*) 'XX bloadcast_ADF11_bin: IERR=',IERR
+          IF(IERR.NE.0) WRITE(6,*) 'XX broadcast_ADF11_bin: IERR=',IERR
           init_adas=1
 
           CALL CALC_ADF11(1,1,0.D0,0.D0,DR,IERR)

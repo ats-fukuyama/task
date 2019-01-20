@@ -96,7 +96,8 @@ CONTAINS
            PELTS,PELDT,PELTE,PELRAD,PELVEL, &
            PSCIN,PSCR0,PSCRW,PSCPAT, &
            SYNC_WALL,SYNC_CONV, &
-           KNAMLOG,IDEBUG,glog_min
+           KNAMLOG,IDEBUG,glog_min, &
+           adpost_dir,adpost_filename,adas_adf11_dir,adas_adf11_filename
       
       IERR=0
 
@@ -146,8 +147,10 @@ CONTAINS
       WRITE(6,'(A)') '        PELIN,PELR0,PELRW,PELPAT(NSM),'
       WRITE(6,'(A)') '        PELTS,PELDT,PELTE,PELRAD,PELVEL,'
       WRITE(6,'(A)') '        PSCIN,PSCR0,PSCRW,PSCPAT(NSM),'
-      WRITE(6,'(A)') '        SYNC_WALL,SYNC_CONV,KNAMLOG,IEBUG'
-      WRITE(6,'(A)') '        glog_min'
+      WRITE(6,'(A)') '        SYNC_WALL,SYNC_CONV,KNAMLOG,IEBUG,'
+      WRITE(6,'(A)') '        glog_min,'
+      WRITE(6,'(A)') '        adpost_dir,adpost_filename,'
+      WRITE(6,'(A)') '        adas_adf11_dir,adas_adf11_filename'
       RETURN
     END SUBROUTINE ti_plst
 
