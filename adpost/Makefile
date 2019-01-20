@@ -1,7 +1,7 @@
 ###
 ### This Makefile should be located at task/ti/adpost
 ###
-include ../../make.header
+include ../make.header
 
 .SUFFIXES:
 .SUFFIXES: .f .for .f90 .mod .o .a
@@ -9,27 +9,27 @@ include ../../make.header
 #FFLAGS=$(OFLAGS)
 FFLAGS=$(DFLAGS)
 
-MODINCLUDE= -I./$(MOD) -I../../../bpsd/mod  -I../../lib/mod
+MODINCLUDE= -I./$(MOD) -I../../bpsd/mod  -I../lib/mod
 
 SRCS = lib-adpost.f90
 
 OBJS = $(SRCS:.f90=.o)
 
-LIBS = adpost-lib.a ../../lib/tasklib.a ../../../bpsd/bpsdlib.a
+LIBS = lib-adpost.a ../lib/tasklib.a ../../bpsd/bpsdlib.a
 
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
 all : test-adpost
 
-adpost-lib.a: $(OBJS)
-	$(LD) $(LDFLAGS) adpost-lib.a $(OBJS)
+lib-adpost.a: $(OBJS)
+	$(LD) $(LDFLAGS) $@ $(OBJS)
 
 libs:
-	(cd ../../lib; make)
+	(cd ../lib; make)
 
 test-adpost : $(LIBS) test-adpost.o
-	$(FCFIXED) test-adpost.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODDIR) $(MODINCLUDE)
+	$(FCFREE) test-adpost.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODDIR) $(MODINCLUDE)
 
 clean:
 	-rm -f core *.o *.a ./*~ $(MOD)/*.mod

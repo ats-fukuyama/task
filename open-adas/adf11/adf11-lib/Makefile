@@ -28,7 +28,7 @@ lib-adf11.f90 \
 
 OBJS = $(SRCS:.for=.o) $(SRCX:.f90=.o) 
 
-LIBS = adf11-lib.a ../../../mtxp/libmtxmpi.o ../../../lib/tasklib.a 
+LIBS = lib-adf11.a ../../../mtxp/libmtxmpi.o ../../../lib/tasklib.a 
 
 .for.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -37,8 +37,8 @@ LIBS = adf11-lib.a ../../../mtxp/libmtxmpi.o ../../../lib/tasklib.a
 
 all : conv-adf11 test-adf11
 
-adf11-lib.a: $(OBJS)
-	$(LD) $(LDFLAGS) adf11-lib.a $(OBJS)
+lib-adf11.a: $(OBJS)
+	$(LD) $(LDFLAGS) $@ $(OBJS)
 
 libs:
 	(cd ../../../lib; make)
@@ -50,10 +50,10 @@ test-adf11 : $(LIBS) test-adf11.o
 	$(FLINKER) test-adf11.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 clean:
-	-rm -f core conv-adf11 test-adf11 *.o *.a ./*~ $(MOD)/*.mod
+	-rm -f core  *.o *.a ./*~ $(MOD)/*.mod
 
 veryclean: clean
-	-rm -f test-xxdata_11
+	-rm -f conv-adf11 test-adf11
 
 xxdata_11.o: xxdata_11.for
 xxrptn.o: xxrptn.for
@@ -63,3 +63,7 @@ xxword.o: xxword.for
 xxcase.o: xxcase.for
 xfelem.o: xfelem.for
 xxslen.o: xxslen.for 
+
+lib-adf11.o: lib-adf11.f90
+conv-adf11.o: conv-adf11.f90
+test-adf11.o: test-adf11.f90

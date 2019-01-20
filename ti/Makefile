@@ -11,13 +11,22 @@ LIBX_MTX=$(LIBX_MTX_MUMPS)
 #LIB_MTX=$(LIBXMTX_KSP)
 #LIBX_MTX=$(LIBX_MTX_KSP)
 
-.SUFFIXES:
-.SUFFIXES: .f .f90 .mod .o .a
-
 #FFLAGS = $(OFLAGS)
 FFLAGS = $(DFLAGS)
 
-SRCS=   ticomm.f90 adpost/lib-adpost.f90 tiadas.f90 \
+.SUFFIXES:
+.SUFFIXES: .f .f90 .mod .o .a
+
+.f.o :
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+.f90.o :
+	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+
+MODINCLUDE= -I./$(MOD) -I../open-adas/adf11/adf11-lib/$(MOD) \
+            -I../adpost/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD) \
+            -I../mtxp/$(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD) 
+
+SRCS=   ticomm.f90 tiadas.f90 \
 	tiinit.f90 tiparm.f90 \
 	ticoef.f90 tisource.f90 ticalc.f90 tirecord.f90 \
         tiprep.f90 tiexec.f90 \
@@ -33,16 +42,8 @@ SRCS=   ticomm.f90 adpost/lib-adpost.f90 tiadas.f90 \
 #      trunit.f90 trloop.f90 trmenu.f90 tr_bpsd.f90
 
 OBJS=$(SRCS:.f90=.o)
-LIBS=tilib.a ../open-adas/adf11/adf11-lib/adf11-lib.a ../eq/eqlib.a ../plx/pllib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a
+LIBS=tilib.a ../adpost/lib-adpost.a ../open-adas/adf11/adf11-lib/lib-adf11.a ../eq/eqlib.a ../plx/pllib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a
 
-MODINCLUDE= -I./$(MOD) -I../open-adas/adf11/adf11-lib/$(MOD) \
-            -I./adpost/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD) \
-            -I../mtxp/$(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD) 
-
-.f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
-.f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
 #all: libs ti
 all: ti
@@ -54,8 +55,10 @@ tilib.a: $(OBJS)
 	(cd ../eq; make eqlib.a)
 ../plx/pllib.a:
 	(cd ../plx; make pllib.a)
-../open-adas/adf11/adf11-lib/adf11-lib.a: 
-	(cd ../open-adas/adf11/adf11-lib; make adf11-lib.a)
+../adpost/lib-adpost.a: 
+	(cd ../adpost; make lib-adfpost.a)
+../open-adas/adf11/adf11-lib/lib-adf11.a: 
+	(cd ../open-adas/adf11/adf11-lib; make lib-adf11.a)
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)
 ../../bpsd/bpsdlib.a:
@@ -65,7 +68,7 @@ libs:
 	(cd ../../bpsd; make bpsdlib.a)
 	(cd ../lib; make tasklib.a)
 	(cd ../mtxp; make)
-	(cd ../open-adas/adf11/adf11-lib; make adf11-lib.a)
+	(cd ../open-adas/adf11/adf11-lib; make lib-adf11.a)
 	(cd ../plx; make pllib.a)
 	(cd ../eq; make eqlib.a)
 
@@ -96,8 +99,6 @@ ticoef.o : ticoef.f90 ticomm.f90
 tisource.o : tisource.f90 ticomm.f90
 ticalc.o : ticalc.f90 ticomm.f90
 tirecord.o : tirecord.f90 ticomm.f90
-
-adpost/lib-adpost.o:adpost/lib-adpost.f90 
 
 nclass/rarray_sum.o : nclass/rarray_sum.f
 nclass/rarray_copy.o: nclass/rarray_copy.f
