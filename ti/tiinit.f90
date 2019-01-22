@@ -124,9 +124,9 @@ CONTAINS
 !        NTMAX  : NUMBER OF TIME STEP
 !        NTSTEP : INTERVAL OF SNAP DATA PRINT
 !        NGTSTEP: INTERVAL OF TIME EVOLUTION SAVE
-!        NGRSTEP: INTERVAL OF RADIAL PROFILE SAVE
-!        NGTMAX_INIT: INITIAL SIZE OF NGTSTEP DATA
-!        NGRMAX_INIT: INITIAL SIZE OF NGRSTEP DATA
+!        NGRSTEP: INTERVAL OF PROFILE EVOLUTION SAVE
+!        ngt_allocate_step: allocation step size of time evolution save
+!        ngr_allocate_step: allocation step size of profile evolution save
 
 
       DT     = 0.01D0
@@ -135,16 +135,24 @@ CONTAINS
       NTSTEP = 1
       NGTSTEP = 2
       NGRSTEP = 100
-      NGTMAX_INIT = 10000
-      NGRMAX_INIT = 1000
+      ngt_allocate_step=10001
+      ngr_allocate_step=101
 
 !     ==== Convergence Parameter ====
 
-!        EPSLTI : CONVERGENCE CRITERION OF ITERATION
-!        LMAXTI : MAXIMUM COUNT OF ITERATION
+!        EPSLOOP: CONVERGENCE CRITERION OF ITERATION LOOP
+!        MAXLOOP: MAXIMUM COUNT OF ITERATION LOOP
 
-      EPSLTI = 0.001D0
-      LMAXTI = 20
+      EPSLOOP= 0.001D0
+      MAXLOOP= 20
+
+!     ==== matrix solver parameter ====
+
+!        EPSMAT : TOLERANCE for matrix solver
+!        MATTYPE: matrix solver type parameter
+
+      EPSMAT = 1.D-8
+      MATTYPE= 0
 
 !     ==== Solver Parameter ====
 !        MODEL_EQB: Solve poloidal magnetic field (0:Off, 1:On)
@@ -220,17 +228,56 @@ CONTAINS
 
 !     ==== TRANSPORT PARAMETERS ====
 
-!        AK0    : THERMAL DIFFUSION FACTOR
-!        AD0    : PARTICLE DIFFUSION FACTOR
-!        AV0    : INWARD PARTICLE PINCH FACTOR
-!        DK0    : CENTERAL VALUE of KAI-fixed
-!        DKS    : SURFACE VALUE of KAI-fixed
+!        DN0    : PARTICLE DIFFUSION FACTOR
+!        DT0    : THERMAL DIFFUSION FACTOR
+!        DU0    : TOROIDAL VISCOSITY FACTOR
+!        VDN0   : particle pinch factor
+!        VDT0   : thermal pinch factor
+!        VDU0   : toroidal velocity pinch
+!        DR0    : CENTERAL VALUE of fixed diffusion type
+!        DRS    : SURFACE VALUE of fixed diffusion type
 
-      AK0    = 1.0D0
-      AD0    = 0.1D0
-      AV0    = 0.5D0
-      DK0    = 0.3D0
-      DKS    = 3.0D0
+      DN0    = 0.1D0
+      DT0    = 1.0D0
+      DU0    = 0.0D0
+      VDT0   = 0.0D0
+      VDN0   = 0.1D0
+      VDU0   = 0.0D0
+      DR0    = 1.0D0
+      DRS    = 3.0D0
+
+!        DN0_NS : PARTICLE DIFFUSION FACTOR for species NS
+!        DT0_NS : THERMAL DIFFUSION FACTOR for species NS
+!        DU0_NS : TOROIDAL VISCOSITY FACTOR for species NS
+!        VDN0_NS: particle pinch factor for species NS
+!        VDT0_NS: thermal pinch factor for species NS
+!        VDU0_NS: toroidal velocity pinch for species NS
+
+      DO NS=1,NSM
+         DN0_NS(NS) = 1.0D0
+         DT0_NS(NS) = 1.0D0
+         DU0_NS(NS) = 1.0D0
+         VDT0_NS(NS)= 1.0D0
+         VDN0_NS(NS)= 1.0D0
+         VDU0_NS(NS)= 1.0D0
+      END DO
+
+!     ==== Boundary condition parameters ====
+!
+!     MODEL_BND: Bounndary condition setting [f=10^{20}m^{-3},keV,m/s]
+!                  0: reflection
+!                  1: fixed value:        value=BND_VALUE  [f]
+!                  2: fixed influx:       flux =BND_VALUE  [f m/s]
+!                  3: fixed decay length: dlen =BND_VALUE  [m]
+
+      DO NS=1,NSM
+         MODEL_BND(1,NS)=1   
+         BND_VALUE(1,NS)=PNS(NS)
+         MODEL_BND(2,NS)=1   
+         BND_VALUE(2,NS)=PTS(NS)
+         MODEL_BND(3,NS)=1   
+         BND_VALUE(3,NS)=PUS(NS)
+      END DO
 
 !     ==== Source Parameters ====
 
@@ -339,6 +386,12 @@ CONTAINS
       SYNC_WALL=0.2D0
       SYNC_CONV=0.95D0
 
+!     ==== graphic parameter ====
+
+!        glog_min : minimum number in log plot
+
+      glog_min=1.D-6
+
 !     ==== FILE NAME ====
 
 !        KNAMEQ: Filename of equilibrium data*
@@ -346,6 +399,10 @@ CONTAINS
 !        KNAMLOG: LOG FILE NAME
 
       KNAMLOG='ti.log'
+      adpost_dir='../adpost/'
+      adpost_filename='ADPOST-DATA'
+      adas_adf11_dir='./'
+      adas_adf11_filename='ADF11-bin.data'
 
       DO NS=1,NSM
          PT(NS)=(PTPR(NS)+2.D0*PTPP(NS))/3.D0

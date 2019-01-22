@@ -11,11 +11,10 @@ CONTAINS
   SUBROUTINE dp_menu
 
     USE dpcomm
-    USE pllocal
-    USE plprof,ONLY: pl_mag_old,pl_prof_old
+    USE plprof
     USE plparm,ONLY: pl_view
     USE dpparm,ONLY: dp_parm,dp_view
-    USE dproot,ONLY: dp_root,dpgrp1
+    USE dproot,ONLY: dp_root,dpgrp1,dpgrp0
     USE dpcont,ONLY: dp_cont,dp_contx
     USE dptens,ONLY: dp_tens
     IMPLICIT NONE
@@ -29,10 +28,13 @@ CONTAINS
     INTEGER:: MODELP_SAVE,I
     REAL(rkind):: RF0_SAVE,RKZ0_SAVE,RKX0_SAVE,RL,RHON
     COMPLEX(rkind):: CW,CKPR,CKPP
+    TYPE(pl_mag_type):: mag
+    TYPE(pl_plf_type),DIMENSION(nsmax):: plf
+    TYPE(pl_grd_type),DIMENSION(nsmax):: grd
 
 1   CONTINUE
     WRITE(6,*) '## DP MENU: P,V/PARM  ', &
-               'D1,D2,D3/DISP  F/ROOT  T,S,K/TEST  Q/QUIT'
+               'D0,D1,D2,D3/DISP  F/ROOT  T,S,K/TEST  Q/QUIT'
 
     CALL TASK_KLIN(LINE,KID,MODE,DP_PARM)
     IF(MODE.NE.1) GOTO 1
@@ -44,7 +46,9 @@ CONTAINS
        CALL DP_VIEW
     ELSEIF(KID.EQ.'D') THEN
        READ(LINE(2:),*,ERR=1,END=1) NID
-       IF(NID.EQ.1) THEN
+       IF(NID.EQ.0) THEN
+          CALL DPGRP0
+       ELSEIF(NID.EQ.1) THEN
           CALL DPGRP1
        ELSEIF(NID.EQ.2) THEN
           CALL DP_CONT
@@ -67,14 +71,16 @@ CONTAINS
        CW=2.D0*PI*CMPLX(RF0,RFI0)*1.D6
        CKPR=MAX(RKZ0,1.D-4)
        CKPP=RKX0
-       CALL PL_MAG_OLD(RL,0.D0,0.D0,RHON)
-       CALL PL_PROF_OLD(RHON)
+       CALL PL_MAG(RL,0.D0,0.D0,mag)
+       RHON=mag%rhon
+       CALL PL_PROF(RHON,plf)
+       CALL PL_GRAD(RHON,grd)
        MODELP(1)=1
-       CALL DP_TENS(CW,CKPR,CKPP,1,CD4)
+       CALL DP_TENS(CW,CKPR,CKPP,1,mag,plf,grd,CD4)
        MODELP(1)=4
-       CALL DP_TENS(CW,CKPR,CKPP,1,CD5)
+       CALL DP_TENS(CW,CKPR,CKPP,1,mag,plf,grd,CD5)
        MODELP(1)=5
-       CALL DP_TENS(CW,CKPR,CKPP,1,CD6)
+       CALL DP_TENS(CW,CKPR,CKPP,1,mag,plf,grd,CD6)
        WRITE(6,602) 
 602    FORMAT(8X,'MODELP=1',16X,'MODELP=4',16X,'MODELP=5')
        WRITE(6,603) (I,CD4(I),CD5(I),CD6(I),I=1,6)

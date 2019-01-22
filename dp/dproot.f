@@ -1,6 +1,85 @@
 C     $Id$
 C
 C     *************************
+C           CALC POINT DISP
+C     *************************
+
+      SUBROUTINE DPGRP0
+
+      USE plcomm
+      INCLUDE 'dpcomm.inc'
+      COMPLEX(rkind):: CRF,CKX,CKY,CKZ,CD,CD0,CD1,CD2,CD3,CD4,CD5,CD6
+      REAL(rkind):: RF0_SAVE
+      INTEGER:: MODELP_SAVE(NSMAX),NS
+      REAL(4):: GXMIN,GXMAX,GXSMN,GXSMX,GSCALX
+      REAL(4):: GYMIN,GYMAX,GYSMN,GYSMX,GSCALY
+      REAL(4):: GUCLIP,DRFI,RNPHII,DKX,DKY,DKZ
+
+    1 WRITE(6,'(A)') 
+     &     '## INPUT: RF0,RFI0,RKX0,RKY0,RKZ0,RX0,RY0,RZ0='
+      WRITE(6,'(A,1P2E12.4)') '##   ',RF0,RFI0
+      WRITE(6,'(A,1P6E12.4)') '##   ',RKX0,RKY0,RKZ0,RX0,RY0,RZ0
+      RF0_SAVE=RF0
+      READ(5,*,ERR=1,END=9000) RF0,RFI0,RKX0,RKY0,RKZ0,RX0,RY0,RZ0
+      IF(ABS(RF0).LE.1.D-8) THEN
+         RF0=RF0_SAVE
+         GOTO 9000
+      END IF
+
+      CRF=CMPLX(RF1,RFI0)
+      CKX=RKX0
+      CKY=RKY0
+      CKZ=RKZ0
+      DO ns=1,nsmax
+         MODELP_SAVE(ns)=MODELP(ns)
+      END DO
+      DO ns=1,nsmax
+         MODELP(ns)=0
+      END DO
+      CD0=CFDISP(CRF,CKX,CKY,CKZ,RX0,RY0,RZ0)
+      WRITE(6,'(A,1P2E16.8,A)') 'MODELP=0: (',CD0,')' 
+      DO ns=1,nsmax
+         MODELP(ns)=1
+      END DO
+      CD1=CFDISP(CRF,CKX,CKY,CKZ,RX0,RY0,RZ0)
+      WRITE(6,'(A,1P2E16.8,A)') 'MODELP=1: (',CD1,')' 
+      DO ns=1,nsmax
+         MODELP(ns)=2
+      END DO
+      CD2=CFDISP(CRF,CKX,CKY,CKZ,RX0,RY0,RZ0)
+      WRITE(6,'(A,1P2E16.8,A)') 'MODELP=2: (',CD2,')' 
+      DO ns=1,nsmax
+         MODELP(ns)=3
+      END DO
+      CD3=CFDISP(CRF,CKX,CKY,CKZ,RX0,RY0,RZ0)
+      WRITE(6,'(A,1P2E16.8,A)') 'MODELP=3: (',CD3,')' 
+      DO ns=1,nsmax
+         MODELP(ns)=4
+      END DO
+      CD4=CFDISP(CRF,CKX,CKY,CKZ,RX0,RY0,RZ0)
+      WRITE(6,'(A,1P2E16.8,A)') 'MODELP=4: (',CD4,')' 
+      DO ns=1,nsmax
+         MODELP(ns)=5
+      END DO
+      CD5=CFDISP(CRF,CKX,CKY,CKZ,RX0,RY0,RZ0)
+      WRITE(6,'(A,1P2E16.8,A)') 'MODELP=5: (',CD5,')' 
+      DO ns=1,nsmax
+         MODELP(ns)=6
+      END DO
+      CD6=CFDISP(CRF,CKX,CKY,CKZ,RX0,RY0,RZ0)
+      WRITE(6,'(A,1P2E16.8,A)') 'MODELP=6: (',CD6,')' 
+      DO ns=1,nsmax
+         MODELP(ns)=MODELP_SAVE(ns)
+      END DO
+      CD=CFDISP(CRF,CKX,CKY,CKZ,RX0,RY0,RZ0)
+      WRITE(6,'(A,1P2E16.8,A)') 'MODELP  : (',CD,')' 
+
+      GOTO 1
+
+ 9000 RETURN
+      END
+
+C     *************************
 C           PLOT 1D GRAPH      
 C     *************************
 C

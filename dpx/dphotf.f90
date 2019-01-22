@@ -14,18 +14,21 @@ MODULE dphotf
 
 CONTAINS
 
-  SUBROUTINE DP_HOTF(CW,CKPR,CKPP,NS,CLDISP)
+  SUBROUTINE DP_HOTF(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
 
     USE dpcomm
+    USE plprof
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NS
+    TYPE(pl_mag_type),INTENT(IN):: mag
+    TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     COMPLEX(rkind):: CLDISP1(6),CLDISP2(6)
     INTEGER:: I
       
-    CALL DP_HOTFR(CW,CKPR,CKPP,NS,CLDISP1)
-    CALL DP_HOTFI(CW,CKPR,CKPP,NS,CLDISP2)
+    CALL DP_HOTFR(CW,CKPR,CKPP,NS,mag,plf,CLDISP1)
+    CALL DP_HOTFI(CW,CKPR,CKPP,NS,mag,plf,CLDISP2)
     DO I=1,6
        CLDISP(I)=CLDISP1(I)+CLDISP2(I)
     ENDDO
@@ -36,14 +39,16 @@ CONTAINS
 !                       DPHOTFR
 ! ******************************************************
 
-  SUBROUTINE DP_HOTFR(CW,CKPR,CKPP,NS,CLDISP)
+  SUBROUTINE DP_HOTFR(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
 
     USE dpcomm
-    USE pllocal
+    USE plprof
     USE libbes,ONLY: bessjn
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NS
+    TYPE(pl_mag_type),INTENT(IN):: mag
+    TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     REAL(rkind),DIMENSION(:),ALLOCATABLE:: ADJ,ADJD
     INTEGER:: NCMIN,NCMAX,NHMAX,NTH,NP,NC,NCD
@@ -65,8 +70,8 @@ CONTAINS
       DELPL = 0.5D0
 
       CWP=PN0*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
-      CWC=BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
-      WCM=BABS*PZ(NS)*AEE
+      CWC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
+      WCM=mag%BABS*PZ(NS)*AEE
       CKPRW= CKPR*PTH0/(AMP*PA(NS)*CW)
       DKPRW=DBLE(CKPRW)
       DKPP=DBLE(CKPP)
@@ -249,14 +254,16 @@ CONTAINS
 !                       DPHOTFI
 ! ******************************************************
 
-  SUBROUTINE DP_HOTFI(CW,CKPR,CKPP,NS,CLDISP)
+  SUBROUTINE DP_HOTFI(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
 
     USE dpcomm
-    USE pllocal
+    USE plprof
     USE libbes,ONLY: bessjn
     IMPLICIT NONE
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NS
+    TYPE(pl_mag_type),INTENT(IN):: mag
+    TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     REAL(rkind),DIMENSION(:),ALLOCATABLE:: ADJ,ADJD
     INTEGER:: NCMIN,NCMAX,NHMAX,NTH,NP,NC,NCD
@@ -278,8 +285,8 @@ CONTAINS
       RGM   = 1.D0
 
       CWP=PN0*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
-      CWC=BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
-      WCM=BABS*PZ(NS)*AEE
+      CWC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
+      WCM=mag%BABS*PZ(NS)*AEE
       CKPRW=CKPR*PTH0/(AMP*PA(NS)*CW)
       DKPRW=DBLE(CKPRW)
       DKPP=DBLE(CKPP)

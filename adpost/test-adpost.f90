@@ -3,6 +3,7 @@
 !
 PROGRAM test_adpost
 
+  USE bpsd
   USE ADPOST
   USE libgrf
   IMPLICIT NONE
@@ -10,15 +11,17 @@ PROGRAM test_adpost
   REAL(rkind):: PTMIN,PTMAX,DPT,PT
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: XDATA
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: FDATA
+  CHARACTER(LEN=80):: adpost_filename
 
   ID   =    1
   IZ0  =   74
   PTMIN=-3.d0
   PTMAX= 2.d0
   NXMAX=  201
+  adpost_filename='ADPOST-DATA'
 
   CALL GSOPEN
-  CALL READ_ADPOST(IERR)
+  CALL READ_ADPOST(adpost_filename,IERR)
   IF(IERR.NE.0) THEN
      WRITE(6,'(A,I4)') 'XX test_adpost: READ_ADPOST: IERR =',IERR
      STOP
@@ -28,7 +31,7 @@ PROGRAM test_adpost
   WRITE(6,'(A)') '## Input Atomic Number IZ0 (0 for quit):'
   READ(5,*,ERR=1,END=9000) IZ0
   IF(IZ0.LE.0) GOTO 9000
-  IF(.NOT.AVAILABLE_IZ0(IZ0)) GOTO 1
+  IF(ND_NPA_ADPOST(IZ0).EQ.0) GOTO 1
 
 2 CONTINUE
   WRITE(6,'(A)') '## Input Data Type,LOG10_PTMIN,LO10_PTMAX,NXMAX:'

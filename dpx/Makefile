@@ -24,8 +24,8 @@ FFLAGS=$(DFLAGS)
 MODINCLUDE= -I $(MOD) -I../plx/$(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD) -I../mtxp/$(MOD) 
 
 SRCS = dpcomm.f90 dpinit.f90 dpparm.f90 \
-       dptnsr1.f90 dptnsr2.f90 dptens.f90 dpdisp.f90 \
        dpfpin.f90 dphotf.f90 dphotr.f90 \
+       dptnsr1.f90 dptnsr2.f90 dptens.f90 dpdisp.f90 \
        dpgsub.f90 dproot.f90 dpcont.f90 \
        dpmenu.f90	
 	

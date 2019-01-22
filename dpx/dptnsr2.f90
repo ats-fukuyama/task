@@ -19,16 +19,18 @@ CONTAINS
 
 !     ****** CALCULATE HOT DIELECTRIC TENSOR ******
 
-  SUBROUTINE DPTNFK2(CW,CKPR,CKPP,NS,CLDISP)
+  SUBROUTINE DPTNFK2(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
 
       USE dpcomm
-      USE pllocal
+      USE plprof
       USE libdsp,ONLY: dspfn
       IMPLICIT NONE
       COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
       INTEGER,INTENT(IN):: NS
+      TYPE(pl_mag_type),INTENT(IN):: mag
+      TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
-      COMPLEX(rkind):: CWP,CWC,CKPP2,CWN,CWU,CPERP,CPARA,CCROS,CPERM
+      COMPLEX(rkind):: CWP,CWC,CKPP2,CWN,CWU,CPERP,CPARA,CCROS,CPERM,CWNU
       COMPLEX(rkind):: CGZ0,CGZ,CZ,CDZ,CADD
       COMPLEX(rkind):: CPERP1,CCROS1,CPERM1,CPARA1
       COMPLEX(rkind):: CPERP2,CCROS2,CPERM2,CPARA2
@@ -39,54 +41,60 @@ CONTAINS
          CLDISP(I)=0.D0
       ENDDO
 
-      CWP=RN(NS)*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
-      CWC=BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
+      CWP=plf(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
+      CWC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
+
+      IF(plf(NS)%RNUC.EQ.0.D0) THEN
+         CWNU=DCMPLX(1.D0,plf(NS)%RZCL)
+      ELSE
+         CWNU=1.D0+CI*plf(NS)%RNUC/CW
+      END IF
 
       CKPP2=CKPP**2
 
       AM=PA(NS)*AMP
       AE=PZ(NS)*AEE
       IF(MODELP(NS).EQ.11) THEN
-         CWN=CW-RU(NS)*CKPR+CI*PZCL(NS)*CW
-         CWU=CW-RU(NS)*CKPR
-         CWP=AE*AE*RN(NS)*1.D20/(AM*EPS0)
-         CWC=AE*BABS/AM
+         CWN=CW-plf(NS)%RU*CKPR+CI*plf(NS)%RZCL*CW
+         CWU=CW-plf(NS)%RU*CKPR
+         CWP=AE*AE*plf(NS)%RN*1.D20/(AM*EPS0)
+         CWC=AE*mag%BABS/AM
          IF(NS.EQ.1) THEN
             CPERP=(0.D0,0.D0)
-            CPARA=CI*CWP/(CW*CW*PZCL(NS))
+            CPARA=CI*CWP/(CW*CW*plf(NS)%RZCL)
          ELSE
             CPERP=   CWP*CWU*CWN/(CW*CW*CWC**2)
-            CPARA=CI*CWP/(CW*CW*PZCL(NS))
+            CPARA=CI*CWP/(CW*CW*plf(NS)%RZCL)
          END IF
          CCROS=(0.D0,0.D0)
          CPERM=(0.D0,0.D0)
       ELSE IF(MODELP(NS).EQ.12) THEN
-         CWN=CW-RU(NS)*CKPR+CI*PZCL(NS)*CW
-         CWU=CW-RU(NS)*CKPR
-         CWP=AE*AE*RN(NS)*1.D20/(AM*EPS0)
-         CWC=AE*BABS/AM
+         CWN=CW-plf(ns)%RU*CKPR+CI*plf(NS)%RZCL*CW
+         CWU=CW-plf(NS)%RU*CKPR
+         CWP=AE*AE*plf(NS)%RN*1.D20/(AM*EPS0)
+         CWC=AE*mag%BABS/AM
          CPERP=-   CWP*CWU*CWN/(CW*CW*(CWN**2-CWC**2))
          CCROS= CI*CWP*CWC*CWU/(CW*CW*(CWN**2-CWC**2))
          CPARA=-   CWP/(CW*CW)*(CW*CW/(CWU*CWN) &
-               +2*CKPP2*RU(NS)*RU(NS)/(CWN*CWN-CWC*CWC)*CWN/CWU)
+               +2*CKPP2*plf(NS)%RU*plf(NS)%RU/(CWN*CWN-CWC*CWC)*CWN/CWU)
          CPERM=(0.D0,0.D0)
       ELSE IF(MODELP(NS).EQ.13) THEN
-         RT=(RTPR(NS)+2*RTPP(NS))/3.D0
+         RT=(plf(NS)%RTPR+2*plf(NS)%RTPP)/3.D0
          RKTPR=ABS(CKPR)*SQRT(2.D0*RT*AEE*1.D3/AM)
-         CWP=AE*AE*RN(NS)*1.D20/(AM*EPS0*CW*CW)
-         CWC=AE*BABS/AM
-         CGZ0=(CW       -CKPR*RU(NS))/RKTPR
+         CWP=AE*AE*plf(NS)%RN*1.D20/(AM*EPS0*CW*CW)
+         CWC=AE*mag%BABS/AM
+         CGZ0=(CW       -CKPR*plf(NS)%RU)/RKTPR
          CPERP=0.D0
          CCROS=0.D0
          CPARA=0.D0
          DO NC=-1,1
-            CGZ=(CW-NC*CWC-CKPR*RU(NS))/RKTPR
+            CGZ=(CW*CWNU-NC*CWC-CKPR*plf(NS)%RU)/RKTPR
             CALL DSPFN(CGZ,CZ,CDZ)
             IF(NC.EQ.-1) THEN
                CPERP=CPERP+   CWP*CGZ0*CZ/2
                CCROS=CCROS-CI*CWP*CGZ0*CZ/2
             ELSEIF(NC.EQ.0) THEN
-               CADD=1+CKPR*RU(NS)*CW/(CW-CKPR*RU(NS))**2 !
+               CADD=1+CKPR*plf(NS)%RU*CW/(CW-CKPR*plf(NS)%RU)**2 !
                CPARA=CPARA-CWP*CDZ*CGZ*CGZ0*CADD
             ELSEIF(NC.EQ.1) THEN
                CPERP=CPERP+   CWP*CGZ0*CZ/2
@@ -95,12 +103,12 @@ CONTAINS
          ENDDO
          CPERM=(0.D0,0.D0)
       ELSE IF(MODELP(NS).EQ.14.OR.MODELP(NS).EQ.15) THEN
-         CWP=AE*AE*RN(NS)*1.D20/(AM*EPS0*CW*CW)
-         RWC=AE*BABS/AM
-         RKTPR=ABS(CKPR)*SQRT(2.D0*RTPR(NS)*AEE*1.D3/AM)
-         RKTPP=RTPP(NS)*AEE*1.D3/(AM*RWC*RWC)
+         CWP=AE*AE*plf(NS)%RN*1.D20/(AM*EPS0*CW*CW)
+         RWC=AE*mag%BABS/AM
+         RKTPR=ABS(CKPR)*SQRT(2.D0*plf(NS)%RTPR*AEE*1.D3/AM)
+         RKTPP=plf(NS)%RTPP*AEE*1.D3/(AM*RWC*RWC)
          CWC=DCMPLX(RWC,0.D0)
-         CGZ0=(CW       -CKPR*RU(NS))/RKTPR
+         CGZ0=(CW*CWNU  -CKPR*plf(NS)%RU)/RKTPR
           
          CPERP1= 0.D0
          CPERP2= 0.D0
@@ -110,8 +118,8 @@ CONTAINS
          CCROS1= 0.D0
          CCROS2= 0.D0
          DO NC=-2,2
-            CGZ =(CW-NC*CWC-CKPR*RU(NS))/RKTPR
-            CADD=1+CKPR*RU(NS)/(CW-CKPR*RU(NS)-NC*CWC)
+            CGZ =(CW*CWNU-NC*CWC-CKPR*plf(NS)%RU)/RKTPR
+            CADD=1+CKPR*plf(NS)%RU/(CW-CKPR*plf(NS)%RU-NC*CWC)
             CALL DSPFN(CGZ,CZ,CDZ)
             IF(NC.EQ.-2) THEN 
                CPERP2=CPERP2+CWP*RKTPP*CGZ0*CZ
@@ -163,31 +171,34 @@ CONTAINS
 
 !     ****** CALCULATE DRIFT KINETIC DIELECTRIC TENSOR ******
 
-  SUBROUTINE DPTNDK0(CW,CKPR,CKPP,NS,CLDISP)
+  SUBROUTINE DPTNDK0(CW,CKPR,CKPP,NS,mag,plf,grd,CLDISP)
 
       USE dpcomm
-      USE pllocal
+      USE plprof
       IMPLICIT NONE
       COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
       INTEGER,INTENT(IN):: NS
+      TYPE(pl_mag_type),INTENT(IN):: mag
+      TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+      TYPE(pl_grd_type),DIMENSION(nsmax),INTENT(IN):: grd
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
       COMPLEX(rkind):: COEF,CWAST,CFN,CX,CEX,CPM,CQM,CRM,CKPR1
       REAL(rkind):: RLA,RNA,RTA,AM,AE,VTA,WP2,WC,RHOA,RHOR
 
-      RLA=RLN(NS) ! inverse of density scale lenth
+      RLA=grd(NS)%grdn ! inverse of density scale lenth
 
-      RNA=RN(NS)*1.D20
-      RTA=RTPP(NS)*AEE*1.D3
+      RNA=plf(NS)%RN*1.D20
+      RTA=plf(NS)%RTPP*AEE*1.D3
       AM=PA(NS)*AMP
       AE=PZ(NS)*AEE
       VTA=SQRT(2.D0*RTA/AM)
       WP2=AE*AE*RNA/(AM*EPS0)
 
-      WC=AE*BABS/AM
+      WC=AE*mag%BABS/AM
       RHOA=VTA/WC
       RHOR=RHOA/RR
       COEF=CI*WP2*SQRT(PI)/(CW*CW)
-      CWAST=RTA*RLA/(BABS*CW*AE)
+      CWAST=RTA*RLA/(mag%BABS*CW*AE)
 
       CFN=1.D0-CKPP*CWAST
       CKPR1=CKPR

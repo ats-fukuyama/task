@@ -18,7 +18,7 @@ PROGRAM test_adf11
   REAL(4):: RGB(3)
 
   CALL GSOPEN
-  CALL LOAD_ADF11_bin(IERR)
+  CALL LOAD_ADF11_bin('ADF11-bin.data',IERR)
   IF(IERR.NE.0) THEN
      WRITE(6,*) 'XX test_adf11: LOAD_ADF11_bin: IERR=',IERR
      STOP

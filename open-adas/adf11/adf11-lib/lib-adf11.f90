@@ -4,7 +4,7 @@ MODULE ADF11
 
 !     Data size required by XXDATA_11
   INTEGER,PARAMETER:: ISDIMD = 200   ! maximum number of blocks
-  INTEGER,PARAMETER:: ITDIMD = 50    ! maximum number of temp values
+  INTEGER,PARAMETER:: ITDIMD = 60    ! maximum number of temp values
   INTEGER,PARAMETER:: IDDIMD = 40    ! maximum number of dens values
   INTEGER,PARAMETER:: IZDIMD = 160   ! maximum number of IZ0s
   INTEGER,ALLOCATABLE,DIMENSION(:):: IZ0A,ICLASSA,IM0A
@@ -23,14 +23,13 @@ MODULE ADF11
 ! IZ=IZMINA+IS-1
 ! IS=IZ-IZMINA+1
 
-
-
 CONTAINS
 
-  SUBROUTINE  READ_ADF11(IERR)
+  SUBROUTINE  READ_ADF11(adas_adf11_filename,IERR)
 
     USE libfio
     IMPLICIT NONE
+    CHARACTER(LEN=*),INTENT(IN):: adas_adf11_filename
     INTEGER,INTENT(OUT):: IERR
     INTEGER:: LUN1,LUN2,ND,IZ0,IC,ID,IT,IS,IZ
     REAL(dp):: DDENS(IDDIMD),DTEMP(ITDIMD)
@@ -65,7 +64,7 @@ CONTAINS
     IF(ALLOCATED(FY)) DEALLOCATE(FY)
     IF(ALLOCATED(FXY)) DEALLOCATE(FXY)
 
-    CALL FROPEN(LUN1,'ADF11-FILE-LIST',1,0,'ADF11-LIST',IERR)
+    CALL FROPEN(LUN1,adas_adf11_filename,1,0,'ADF11-LIST',IERR)
     IF(IERR.NE.0) THEN
        WRITE(6,*) 'XX READ_ADF11: FROPEN(LIST): IERR=',IERR
        IERR=1
@@ -243,6 +242,7 @@ CONTAINS
 
   SUBROUTINE CALC_ADF11(ND,NZ,PN,PT,DR,IERR)
 
+    USE commpi
     IMPLICIT NONE
     INTEGER,INTENT(IN):: ND,NZ   ! 1 <= NZ <=NZMAX
     REAL(dp),INTENT(IN):: PN,PT  ! [n20], [keV]
@@ -269,8 +269,7 @@ CONTAINS
     UDRCOFL(1:4,1:4,1:IDMAXA(ND),1:ITMAXA(ND)) &
        =UDRCOFA(1:4,1:4,1:IDMAXA(ND),1:ITMAXA(ND),IS,ND)
     CALL SPL2DF(DENS,TEMP,DR, &
-                DDENSA(1:IDMAXA(ND),ND), &
-                DTEMPA(1:ITMAXA(ND),ND), &
+                DDENSA(1:IDMAXA(ND),ND),DTEMPA(1:ITMAXA(ND),ND), &
                 UDRCOFL,IDMAX,IDMAXA(ND),ITMAXA(ND),IERR)
     DR=DR+14.D0
     RETURN
@@ -430,15 +429,16 @@ CONTAINS
 !        ADF11 data files are specified in ADF11-FILE-LIST
 !        binary data is written in ADF11-bin.data
 
-  SUBROUTINE SAVE_ADF11_bin(IERR)
+  SUBROUTINE SAVE_ADF11_bin(adas_bin_filename,IERR)
 
     USE libfio
     IMPLICIT NONE
+    CHARACTER(LEN=*),INTENT(IN):: adas_bin_filename
     INTEGER,INTENT(OUT):: IERR
     INTEGER:: LUN,ND,ID,IT,IS,I,J
 
     LUN=20
-    CALL FWOPEN(LUN,'ADF11-bin.data',0,0,'adf11-bin',IERR)
+    CALL FWOPEN(LUN,adas_bin_filename,0,0,'adf11-bin',IERR)
     IF(IERR.NE.0) THEN
        WRITE(6,*) 'XX SAVE_ADF11_bin: FWOPEN: IERR=',IERR
        IERR=1
@@ -467,10 +467,11 @@ CONTAINS
 ! --- Load ADF11 data from a TASK-specific binary data file ---
 !        binary data is loaded from ADF11-bin.data
 
-  SUBROUTINE LOAD_ADF11_bin(IERR)
+  SUBROUTINE LOAD_ADF11_bin(adas_bin_filename,IERR)
 
     USE libfio
     IMPLICIT NONE
+    CHARACTER(LEN=*),INTENT(IN):: adas_bin_filename
     INTEGER,INTENT(OUT):: IERR
     INTEGER:: LUN,ND,ID,IT,IS,I,J,IST,IC,IZ
     LOGICAL:: FLAG
@@ -491,7 +492,7 @@ CONTAINS
     IF(ALLOCATED(UDRCOFL)) DEALLOCATE(UDRCOFL)
 
     LUN=20
-    CALL FROPEN(LUN,'ADF11-bin.data',0,0,'adf11-bin',IERR)
+    CALL FROPEN(LUN,adas_bin_filename,0,0,'adf11-bin',IERR)
     IF(IERR.NE.0) THEN
        WRITE(6,*) 'XX LOAD_ADF11_bin: FROPEN: IERR=',IERR
        IERR=1
@@ -625,6 +626,164 @@ CONTAINS
     IERR=19
     RETURN
   END SUBROUTINE LOAD_ADF11_bin
+
+! --- broadcast loaded ADF11-bin-data ---
+
+  SUBROUTINE broadcast_ADF11_bin(IERR)
+
+    USE libmpi
+    USE commpi
+    IMPLICIT NONE
+    INTEGER,INTENT(OUT):: IERR
+    INTEGER:: ND,ID,IT,IS,nmax,n,IC,I,J
+    LOGICAL:: FLAG
+    REAL(dp),ALLOCATABLE:: work(:)
+
+    CALL mtx_broadcast1_integer(NDMAX)
+    CALL mtx_broadcast1_integer(ISMAX)
+    CALL mtx_broadcast1_integer(IDMAX)
+    CALL mtx_broadcast1_integer(ITMAX)
+
+    IF(nrank.NE.0) THEN
+       IF(ALLOCATED(IZ0A))    DEALLOCATE(IZ0A)
+       IF(ALLOCATED(IM0A))    DEALLOCATE(IM0A)
+       IF(ALLOCATED(ICLASSA)) DEALLOCATE(ICLASSA)
+       IF(ALLOCATED(KFNAMA))  DEALLOCATE(KFNAMA)
+       IF(ALLOCATED(IDMAXA))  DEALLOCATE(IDMAXA)
+       IF(ALLOCATED(ITMAXA))  DEALLOCATE(ITMAXA)
+       IF(ALLOCATED(IZTOTA))  DEALLOCATE(IZTOTA)
+       IF(ALLOCATED(IZMINA)) DEALLOCATE(IZMINA)
+       IF(ALLOCATED(IZMAXA)) DEALLOCATE(IZMAXA)
+       IF(ALLOCATED(DDENSA))  DEALLOCATE(DDENSA)
+       IF(ALLOCATED(DTEMPA))  DEALLOCATE(DTEMPA)
+       IF(ALLOCATED(DRCOFA))  DEALLOCATE(DRCOFA)
+       IF(ALLOCATED(UDRCOFA)) DEALLOCATE(UDRCOFA)
+       IF(ALLOCATED(UDRCOFL)) DEALLOCATE(UDRCOFL)
+
+       ALLOCATE(IZ0A(NDMAX),IM0A(NDMAX),ICLASSA(NDMAX),KFNAMA(NDMAX))
+       ALLOCATE(IDMAXA(NDMAX),ITMAXA(NDMAX),IZTOTA(NDMAX))
+       ALLOCATE(IZMINA(NDMAX),IZMAXA(NDMAX))
+       ALLOCATE(DDENSA(IDMAX,NDMAX))
+       ALLOCATE(DTEMPA(ITMAX,NDMAX))
+       ALLOCATE(DRCOFA(IDMAX,ITMAX,ISMAX,NDMAX))
+       ALLOCATE(UDRCOFA(4,4,IDMAX,ITMAX,ISMAX,NDMAX))
+       ALLOCATE(UDRCOFL(4,4,IDMAX,ITMAX))
+    END IF
+
+    CALL mtx_broadcast_integer(IZ0A,NDMAX)
+    CALL mtx_broadcast_integer(IM0A,NDMAX)
+    CALL mtx_broadcast_integer(ICLASSA,NDMAX)
+    DO ND=1,NDMAX
+       CALL mtx_broadcast_character(KFNAMA(ND),256)
+    END DO
+    CALL mtx_broadcast_integer(IDMAXA,NDMAX)
+    CALL mtx_broadcast_integer(ITMAXA,NDMAX)
+    CALL mtx_broadcast_integer(IZTOTA,NDMAX)
+    CALL mtx_broadcast_integer(IZMINA,NDMAX)
+    CALL mtx_broadcast_integer(IZMAXA,NDMAX)
+
+    DO ND=1,NDMAX
+       ALLOCATE(work(IDMAXA(ND)))
+       IF(nrank.EQ.0) THEN
+          DO ID=1,IDMAXA(ND)
+             work(ID)=DDENSA(ID,ND)
+          END DO
+       END IF
+       CALL mtx_broadcast_real8(work,IDMAXA(ND))
+       IF(nrank.NE.0) THEN
+          DO ID=1,IDMAXA(ND)
+             DDENSA(ID,ND)=work(ID)
+          END DO
+          DEALLOCATE(work)
+          ALLOCATE(work(ITMAXA(ND)))
+       ELSE
+          DEALLOCATE(work)
+          ALLOCATE(work(ITMAXA(ND)))
+          DO IT=1,ITMAXA(ND)
+             work(IT)=DTEMPA(IT,ND)
+          END DO
+       END IF
+       CALL mtx_broadcast_real8(work,ITMAXA(ND))
+       IF(nrank.NE.0) THEN
+          DO IT=1,ITMAXA(ND)
+             DTEMPA(IT,ND)=work(IT)
+          END DO
+       END IF
+       DEALLOCATE(work)
+    END DO
+
+    DO ND=1,NDMAX
+       nmax=IZTOTA(ND)*ITMAXA(ND)*IDMAXA(ND)
+       ALLOCATE(work(nmax))
+       IF(nrank.EQ.0) THEN
+          n=0
+          DO IS=1,IZTOTA(ND)
+             DO IT=1,ITMAXA(ND)
+                DO ID=1,IDMAXA(ND)
+                   n=n+1
+                   work(n)=DRCOFA(ID,IT,IS,ND)
+                END DO
+             END DO
+          END DO
+       END IF
+       CALL mtx_broadcast_real8(work,nmax)
+       IF(nrank.NE.0) THEN
+          n=0
+          DO IS=1,IZTOTA(ND)
+             DO IT=1,ITMAXA(ND)
+                DO ID=1,IDMAXA(ND)
+                   n=n+1
+                   DRCOFA(ID,IT,IS,ND)=work(n)
+                END DO
+             END DO
+          END DO
+       END IF
+       DEALLOCATE(work)
+    END DO
+    DO ND=1,NDMAX
+       nmax=IZTOTA(ND)*ITMAXA(ND)*IDMAXA(ND)*4*4
+       ALLOCATE(work(nmax))
+       IF(nrank.EQ.0) THEN
+          n=0
+          DO IS=1,IZTOTA(ND)
+             DO IT=1,ITMAXA(ND)
+                DO ID=1,IDMAXA(ND)
+                   DO J=1,4
+                      DO I=1,4
+                         n=n+1
+                         work(n)=UDRCOFA(I,J,ID,IT,IS,ND)
+                      END DO
+                   END DO
+                END DO
+             END DO
+          END DO
+       END IF
+       CALL mtx_broadcast_real8(work,nmax)
+       IF(nrank.NE.0) THEN
+          n=0
+          DO IS=1,IZTOTA(ND)
+             DO IT=1,ITMAXA(ND)
+                DO ID=1,IDMAXA(ND)
+                   DO J=1,4
+                      DO I=1,4
+                         n=n+1
+                         UDRCOFA(I,J,ID,IT,IS,ND)=work(n)
+                      END DO
+                   END DO
+                END DO
+             END DO
+          END DO
+       END IF
+       DEALLOCATE(work)
+    END DO
+
+    DO IC=1,12
+       CALL mtx_broadcast_integer(ND_TABLE(1:IZDIMD,IC),IZDIMD)
+    END DO
+
+    IERR=0
+    RETURN
+  END SUBROUTINE broadcast_ADF11_bin
 
   SUBROUTINE IONIZE_EQ2(IZ0,PN,PT,PZAV,PZ2AV,PWBAV,PWLAV,IND,IERR)
 

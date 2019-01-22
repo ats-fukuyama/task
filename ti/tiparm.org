@@ -1,0 +1,13 @@
+ &ti
+   NSMAX=1
+   AD0=1.D0
+   AK0=0.D0
+   AV0=0.D0
+   DK0=1.D0
+   DKS=1.D0
+   NRMAX=10
+   NTSTEP=1
+   NGTSTEP=1
+   NGRSTEP=1
+   NTMAX=2
+ &end

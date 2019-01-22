@@ -196,7 +196,7 @@ CONTAINS
           DTEDR=DTEDR+DRNTL(NS)
        ELSE
           IF(PA(NS).LE.3.D0.AND.PZ(NS).EQ.1.D0) THEN  
-             ! 3He+ and 3H+ are not distinguished; waiting for the use of PZ0
+             ! 3He+ and 3H+ are not distinguished; waiting for the use of NPA
              PNHL=PNHL+RNL(NS)
              AMHL=AMHL+PA(NS)*RNL(NS)
              DNHDR=DNHDR+DRNL(NS)
@@ -432,7 +432,7 @@ CONTAINS
           DTEDR=DTEDR+DRNTL(NS)
        ELSE
           IF(PA(NS).LE.3.D0.AND.PZ(NS).EQ.1.D0) THEN  
-             ! 3He+ and 3H+ are not distinguished; waiting for the use of PZ0
+             ! 3He+ and 3H+ are not distinguished; waiting for the use of NPA
              PNHL=PNHL+RNL(NS)
              AMHL=AMHL+PA(NS)*RNL(NS)
              DNHDR=DNHDR+DRNL(NS)
