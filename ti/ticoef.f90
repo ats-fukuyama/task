@@ -39,10 +39,8 @@ CONTAINS
        ID=ID_NS(NS)
        SELECT CASE(ID)
           CASE(-1) ! electron
-             PZA(NSA)=-1.D0
-             PZ2A(NSA)=1.D0
              PRADE(NSA,NR)=0.D0
-          CASE(0) ! neutal
+          CASE(0) ! stationary
              PRADE(NSA,NR)=0.D0
           CASE(1,2) ! ions
              PRADE(NSA,NR)=0.D0
@@ -79,12 +77,13 @@ CONTAINS
     DR_FIXED=DR0+(DRS-DR0)*RHON**2
 
     DO NSA=1,nsa_max
-       DNTB(NSA,NR)=DN0*DR_FIXED
-       DTTB(NSA,NR)=DT0*DR_FIXED
-       DUTB(NSA,NR)=DU0*DR_FIXED
-       VDNTB(NSA,NR)=VDN0*DR_FIXED*RHON
-       VDTTB(NSA,NR)=VDT0*DR_FIXED*RHON
-       VDUTB(NSA,NR)=VDU0*DR_FIXED*RHON
+       NS=NS_NSA(NSA)
+       DNTB(NSA,NR) =DN0 *DN0_NS(NS) *DR_FIXED
+       DTTB(NSA,NR) =DT0 *DT0_NS(NS) *DR_FIXED
+       DUTB(NSA,NR) =DU0 *DU0_NS(NS) *DR_FIXED
+       VDNTB(NSA,NR)=VDN0*VDN0_NS(NS)*DR_FIXED*RHON
+       VDTTB(NSA,NR)=VDT0*VDT0_NS(NS)*DR_FIXED*RHON
+       VDUTB(NSA,NR)=VDU0*VDU0_NS(NS)*DR_FIXED*RHON
     END DO
 
     DO NSA=1,nsa_max
