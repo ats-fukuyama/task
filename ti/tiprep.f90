@@ -18,7 +18,7 @@ CONTAINS
     INTEGER,SAVE:: init_adpost=0
     INTEGER,SAVE:: init_adas=0
     INTEGER:: NS,NSA,NZ,NEQ,NR,NV,ID_adpost,ID_adas,l1,l2
-    REAL(rkind):: RHON
+    REAL(rkind):: RHON,DRX
     TYPE(pl_plf_type),DIMENSION(:),ALLOCATABLE:: PLF
 
     IERR=0
@@ -61,7 +61,7 @@ CONTAINS
           IF(IERR.NE.0) WRITE(6,*) 'XX broadcast_ADF11_bin: IERR=',IERR
           init_adas=1
 
-          CALL CALC_ADF11(1,1,0.D0,0.D0,DR,IERR)
+          CALL CALC_ADF11(1,1,0.D0,0.D0,DRX,IERR)
           IF(IERR.NE.0) WRITE(6,*) &
                'XX tiprep: CALC_ADF11 error: IERR,nrank=',IERR,NRANK
        END IF
@@ -168,20 +168,20 @@ CONTAINS
           CONTINUE
        CASE(-1,1,2,5,6)
           IF(MODEL_EQN.EQ.1) NEQ=NEQ+1
-          IF(MODEL_EQU.EQ.1) NEQ=NEQ+1
           IF(MODEL_EQT.EQ.1) NEQ=NEQ+1
+          IF(MODEL_EQU.EQ.1) NEQ=NEQ+1
        CASE(10)
           IF(MODEL_EQN.EQ.1) NEQ=NEQ+NZMAX_NS(NS)-NZMIN_NS(NS)+1
-          IF(MODEL_EQU.EQ.1) NEQ=NEQ+1
           IF(MODEL_EQT.EQ.1) NEQ=NEQ+1
+          IF(MODEL_EQU.EQ.1) NEQ=NEQ+1
        CASE(11)
           IF(MODEL_EQN.EQ.1) NEQ=NEQ+NZMAX_NS(NS)-NZMIN_NS(NS)+1
-          IF(MODEL_EQU.EQ.1) NEQ=NEQ+NZMAX_NS(NS)-NZMIN_NS(NS)+1
-          IF(MODEL_EQT.EQ.1) NEQ=NEQ+1
+          IF(MODEL_EQT.EQ.1) NEQ=NEQ+NZMAX_NS(NS)-NZMIN_NS(NS)+1
+          IF(MODEL_EQU.EQ.1) NEQ=NEQ+1
        CASE(12)
           IF(MODEL_EQN.EQ.1) NEQ=NEQ+NZMAX_NS(NS)-NZMIN_NS(NS)+1
-          IF(MODEL_EQU.EQ.1) NEQ=NEQ+NZMAX_NS(NS)-NZMIN_NS(NS)+1
           IF(MODEL_EQT.EQ.1) NEQ=NEQ+NZMAX_NS(NS)-NZMIN_NS(NS)+1
+          IF(MODEL_EQU.EQ.1) NEQ=NEQ+NZMAX_NS(NS)-NZMIN_NS(NS)+1
        END SELECT
     END DO
     NEQMAX=NEQ

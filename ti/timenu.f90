@@ -85,7 +85,7 @@ CONTAINS
       CASE('G')                     ! graphic output
          IF(INIT.GE.1.AND.nrank.EQ.0) CALL ti_gout
       CASE('W')                     ! show simulation results in text
-         IF(INIT.EQ.2) THEN
+         IF(INIT.EQ.2.and.nrank.EQ.0) THEN
 102         WRITE(6,*) '# SELECT ',  ': PRINT TYPE (1..9)  N/NAMELIST X/EXIT'
             READ(5,'(A1)',ERR=102,END=1) KID
             CALL GUCPTL(KID)
@@ -107,7 +107,7 @@ CONTAINS
       CASE('X','#','!')
          CONTINUE
       CASE default
-         WRITE(6,*) 'XX timenu: UNKNOWN KID'
+         IF(nrank.EQ.0) WRITE(6,*) 'XX timenu: UNKNOWN KID'
       END SELECT
 
       GOTO 1
