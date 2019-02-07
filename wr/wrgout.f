@@ -52,6 +52,11 @@ C
       DIMENSION GCF(NGXL,NGYL),GCX(NGXL),GCY(NGYL)
       DIMENSION KA(2,NGXL,NGYL)
 C
+C     MODEG=0 for power sumup, 
+C           1 for power flux (minor radius)
+C           2 for power flux (major radius)
+      MODEG=2
+C
 C     ----- PLASMA BOUNDARY -----
 C
       CALL PL_RZSU(RSU,ZSU,NSUM,NSUMAX)
@@ -252,6 +257,7 @@ C      CALL SETLIN(0,0,4)
 C
 C     ----- draw weight power ----
 C
+      IF(MODEG.EQ.0) THEN
       CALL GMNMX1(GPRY(1,1),1,NRZMAX,1,GYMIN,GYMAX)
       CALL GQSCAL(GYMIN,GYMAX,GYSMIN,GYSMAX1,GYSCAL1)
       GYSMIN=0.0
@@ -282,44 +288,78 @@ C      CALL SETLIN(0,0,4)
 C      DO NRAY=1,NRAYMX
 C         CALL SETLIN(0,2,7-MOD(NRAY-1,5))
          CALL GPLOTP(GPX,GPRY(1,1),1,NRZMAX,1,0,0,0)
+      END IF
 C      ENDDO
 C
-C     ----- DRAW POWER FLUX -----
+C     ----- DRAW POWER FLUX ----- minor raduis -----
 C      
-C      GZSMIN=0.0
-C      GZSMAX=1.1
-C      GZSCAL=0.2
+      IF(MODEG.EQ.1) THEN
+      GZSMIN=0.0
+      GZSMAX=1.1
+      GZSCAL=0.2
 C
-C      CALL MOVE(13.5,8.1)
-C      CALL TEXT('POWER FLUX',10)
-C      IF(MOD(MDLWRG/2,2).EQ.0) THEN
-C         CALL GDEFIN(13.5,23.5,1.0,8.0,0.0,GXMAX,0.0,GZSMAX)
-C         CALL SETLIN(0,2,7)
-C         CALL GFRAME
-C         CALL GSCALE(0.0,  GXSTEP,0.0,  GZSCAL,0.1,9)
-C         CALL GVALUE(0.0,2*GXSTEP,0.0,0.0,NGULEN(2*GXSTEP))
-C         CALL GVALUE(0.0,0.0,0.0,GZSCAL,1)
-C      ELSE
-C         CALL GDEFIN(13.5,23.5,1.0,8.0,GXMIN,GXMAX,0.0,GXSMAX)
-C         CALL SETLIN(0,2,7)
-C         CALL GFRAME
-C         GXORG=(INT(GXMIN/(2*GXSTEP))+1)*2*GXSTEP
-C         CALL GSCALE(GXORG,  GXSTEP,0.0,  GZSCAL,0.1,9)
-C         CALL GVALUE(GXORG,2*GXSTEP,0.0,0.0,NGULEN(2*GXSTEP))
-C         CALL GVALUE(0.0,0.0,0.0,GZSCAL,1)
-C      ENDIF
-C      DO NRAY=1,NRAYMX
-C         DO IT=0,NITMAX(NRAY)
-C            XL=RAYS(1,IT,NRAY)
-C            YL=RAYS(2,IT,NRAY)
-C            ZL=RAYS(3,IT,NRAY)
-C            CALL PL_MAG_OLD(XL,YL,ZL,RHON)
-C	    GUX(IT+1)=GUCLIP(RHON)
-C            GUY(IT+1)=GUCLIP(RAYS(7,IT,NRAY))
-C         ENDDO
-C         CALL SETLIN(0,0,7-MOD(NRAY-1,5))
-C         CALL GPLOTP(GUX,GUY,1,NITMAX(NRAY)+1,1,0,0,0)      
-C      ENDDO
+      CALL MOVE(13.5,8.1)
+      CALL TEXT('POWER FLUX',10)
+      IF(MOD(MDLWRG/2,2).EQ.0) THEN
+         CALL GDEFIN(13.5,23.5,1.0,8.0,0.0,GXMAX,0.0,GZSMAX)
+         CALL SETLIN(0,2,7)
+         CALL GFRAME
+         CALL GSCALE(0.0,  GXSTEP,0.0,  GZSCAL,0.1,9)
+         CALL GVALUE(0.0,2*GXSTEP,0.0,0.0,NGULEN(2*GXSTEP))
+         CALL GVALUE(0.0,0.0,0.0,GZSCAL,1)
+      ELSE
+         CALL GDEFIN(13.5,23.5,1.0,8.0,GXMIN,GXMAX,0.0,GXSMAX)
+         CALL SETLIN(0,2,7)
+         CALL GFRAME
+         GXORG=(INT(GXMIN/(2*GXSTEP))+1)*2*GXSTEP
+         CALL GSCALE(GXORG,  GXSTEP,0.0,  GZSCAL,0.1,9)
+         CALL GVALUE(GXORG,2*GXSTEP,0.0,0.0,NGULEN(2*GXSTEP))
+         CALL GVALUE(0.0,0.0,0.0,GZSCAL,1)
+      ENDIF
+      DO NRAY=1,NRAYMX
+         DO IT=0,NITMAX(NRAY)
+            XL=RAYS(1,IT,NRAY)
+            YL=RAYS(2,IT,NRAY)
+            ZL=RAYS(3,IT,NRAY)
+            CALL PL_MAG_OLD(XL,YL,ZL,RHON)
+	    GUX(IT+1)=GUCLIP(RHON)
+            GUY(IT+1)=GUCLIP(RAYS(7,IT,NRAY))
+         ENDDO
+         CALL SETLIN(0,0,7-MOD(NRAY-1,5))
+         CALL GPLOTP(GUX,GUY,1,NITMAX(NRAY)+1,1,0,0,0)      
+      ENDDO
+      ENDIF
+C
+C     ----- DRAW POWER FLUX ----- major radius ---
+C      
+      IF(MODEG.EQ.2) THEN
+      GZSMIN=0.0
+      GZSMAX=1.1
+      GZSCAL=0.2
+C
+      CALL MOVE(13.5,8.1)
+      CALL TEXT('POWER FLUX',10)
+      CALL GDEFIN(13.5,23.5,1.0,8.0,GRMIN,GRMAX,0.0,GZSMAX)
+      CALL SETLIN(0,2,7)
+      CALL GFRAME
+      CALL GSCALE(GRORG,GRSTEP,0.0,  GZSCAL,0.1,9)
+      CALL GVALUE(GRORG,2*GRSTEP,0.0,0.0,NGULEN(2*GRSTEP))
+      CALL GVALUE(0.0,0.0,0.0,GZSCAL,1)
+      DO NRAY=1,NRAYMX
+         DO IT=0,NITMAX(NRAY)
+            XL=RAYS(1,IT,NRAY)
+            YL=RAYS(2,IT,NRAY)
+            ZL=RAYS(3,IT,NRAY)
+            CALL PL_MAG_OLD(XL,YL,ZL,RHON)
+	    GUX(IT+1)=GUCLIP(SQRT(XL**2+YL**2))
+            GUY(IT+1)=GUCLIP(RAYS(7,IT,NRAY))
+         ENDDO
+         CALL SETLIN(0,0,7-MOD(NRAY-1,5))
+         CALL GPLOTP(GUX,GUY,1,NITMAX(NRAY)+1,1,0,0,0)      
+      ENDDO
+      ENDIF
+
+
       CALL WRGPRM
       CALL PAGEE
       RETURN

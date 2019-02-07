@@ -2,7 +2,7 @@
 
 MODULE dpcomm_parm
 
-  USE plcomm
+  USE plcomm_parm
   USE commpi
   IMPLICIT NONE
 
