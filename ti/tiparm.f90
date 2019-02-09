@@ -31,9 +31,9 @@ CONTAINS
 
       USE ticomm,ONLY: NSMAX,PT,PTPR,PTPP
       IMPLICIT NONE
-      INTEGER(4),INTENT(IN) :: MODE
+      INTEGER,INTENT(IN) :: MODE
       CHARACTER(LEN=*),INTENT(IN)::  KIN
-      INTEGER(4),INTENT(OUT):: IERR
+      INTEGER,INTENT(OUT):: IERR
       INTEGER:: NS
 
       DO NS=1,NSMAX
@@ -66,15 +66,15 @@ CONTAINS
 
       USE ticomm_parm
       IMPLICIT NONE
-      INTEGER(4),INTENT(IN) :: NID
-      INTEGER(4),INTENT(OUT):: IST, IERR
+      INTEGER,INTENT(IN) :: NID
+      INTEGER,INTENT(OUT):: IST, IERR
 
       NAMELIST /TI/ &
            RR,RA,RKAP,RDLT,BB,RIP,NSMAX, &
            NPA,PM,PZ,PN,PNS,PT,PTS,PU,PUS, &
            ID_NS,NZMIN_NS,NZMAX_NS,NZINI_NS,KID_NS, &
            PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2, &
-           MODELG,MODELN,MODELQ,MODEL_NPROF, &
+           MODELG,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF, &
            KNAMEQ,KNAMEQ2,KNAMTR, &
            PT,PROFJ1,PROFJ2,DT, &
            NRMAX,NTMAX,NTSTEP,NGTSTEP,NGRSTEP, &
@@ -126,7 +126,7 @@ CONTAINS
       WRITE(6,'(A)') '        NPA,PM,PZ,PN,PNS,PT,PTS,PU,PUS,'
       WRITE(6,'(A)') '        ID_NS,NZMIN_NS,NZMAX_NS,NZINI_NS,KID_NS,'
       WRITE(6,'(A)') '        PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,'
-      WRITE(6,'(A)') '        MODELG,MODELN,MODELQ,MODEL_NPROF,'
+      WRITE(6,'(A)') '        MODELG,MODELN,MODELQ,MODEL_PROF,MODEL_NPROF,'
       WRITE(6,'(A)') '        KNAMEQ,KNAMEQ2,KNAMTR,'
       WRITE(6,'(A)') '        PT,PROFJ1,PROFJ2,DT,'
       WRITE(6,'(A)') '        NRMAX,NTMAX,NTSTEP,NGTSTEP,NGRSTEP,'
@@ -353,7 +353,7 @@ CONTAINS
       idata( 6)=MODEFR
       idata( 7)=MODEFW
       idata( 8)=MODEL_PROF
-      idata( 9)=MODEL_PROF
+      idata( 9)=MODEL_NPROF
 
       CALL mtx_broadcast_integer(idata,9)
       NSMAX =idata( 1)
@@ -364,7 +364,7 @@ CONTAINS
       MODEFR=idata( 6)
       MODEFW=idata( 7)
       MODEL_PROF=idata( 8)
-      MODEL_PROF=idata( 9)
+      MODEL_NPROF=idata( 9)
 
       rdata( 1)=RR
       rdata( 2)=RA

@@ -1,5 +1,9 @@
+! dpinit.f90
 
 MODULE dpinit
+
+  PRIVATE
+  PUBLIC dp_init
 
   CONTAINS
 

@@ -21,7 +21,6 @@ MODULE dpcomm_parm
   INTEGER:: LMAXRT
 
   INTEGER:: NPMAX,NTHMAX,NRMAX,NSAMAX,NSBMAX
-!  INTEGER:: NCHMAX
   INTEGER:: MODEFA
   REAL(rkind):: RMIN,RMAX
 
@@ -72,6 +71,14 @@ MODULE dpcomm
 !       CHI,CCHI,SCHI ! (NCHMAX)
 
 CONTAINS
+
+  SUBROUTINE dp_allocate
+    RETURN
+  END SUBROUTINE dp_allocate
+
+  SUBROUTINE dp_deallocate
+    RETURN
+  END SUBROUTINE dp_deallocate
 
   SUBROUTINE dpfp_allocate
     IMPLICIT NONE
