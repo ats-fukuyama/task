@@ -18,11 +18,14 @@ CONTAINS
       USE tiprep
       USE tiexec
       USE tigout
-      USE plload,ONLY: pl_load
+      USE plload,ONLY: pl_load_trdata
+      USE plprof,ONLY: pl_plf_type,pl_prof
       USE libmpi
       
       IMPLICIT NONE
-      INTEGER(ikind)       :: IERR, MODE
+      INTEGER(ikind) :: IERR, MODE, nid,nr,nsa,ns
+      TYPE(pl_plf_type),ALLOCATABLE:: plf(:)
+      REAL(rkind):: RHON
       INTEGER(ikind), SAVE :: INIT=0
       REAL(4):: cputime1,cputime2
       CHARACTER(LEN=1) :: KID
@@ -65,8 +68,26 @@ CONTAINS
       CASE('V')                     ! view input parameters
          IF(nrank.eq.0) CALL ti_view
       CASE('L')                     ! load bulk component profile from TR
-         CALL pl_load(ierr)
+         WRITE(6,*) '## input nid: 0-6'
+         READ(5,*,ERR=1,END=1) nid
+         CALL pl_load_trdata(nid,ierr)
          if(ierr.ne.0) GO TO 1
+         IF(nid.ne.0) THEN
+            ALLOCATE(plf(NSMAX))
+            DO nr=1,nrmax
+               RHON=RM(NR)/RA
+               CALL pl_prof(RHON,plf)
+               DO NSA=1,nsa_max
+                  NS=NS_NSA(NSA)
+                  IF(NS.EQ.1.OR.NS.EQ.2) THEN
+                     RNA(NSA,NR)=PLF(NS)%RN
+                     RTA(NSA,NR)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
+                     RUA(NSA,NR)=PLF(NS)%RU
+                  END IF
+               END DO
+            END DO
+            DEALLOCATE(plf)
+         END IF
       CASE('R','C')                 ! run or continue simulation
          IF(nrank.EQ.0) CALL CPU_TIME(cputime1)
          IF(KID.EQ.'R') THEN

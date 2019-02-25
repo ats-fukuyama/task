@@ -31,14 +31,18 @@ CONTAINS
           CALL TI_GOUT_R(K2)
        CASE('P')
           CALL TI_GOUT_P(K2)
+       CASE('C')
+          CALL TI_GOUT_C(K2)
        CASE('G')
           CALL TI_GOUT_G(K2)
        CASE('T')
           CALL TI_GOUT_T(K2)
        CASE('?')
           WRITE(6,*) ' R: radial profile'
-          WRITE(6,*) '    1:n  2:T  3:u  4:ln n  5:;n T'
+          WRITE(6,*) '    1:n  2:T  3:u  4:ln n  5:n T'
           WRITE(6,*) ' P: ADPOST Z profile'
+          WRITE(6,*) '    1:Be 2:C  3:Ar 4:Ne 5:Fe 6:W'
+          WRITE(6,*) ' C: Compare Z profile'
           WRITE(6,*) '    1:Be 2:C  3:Ar 4:Ne 5:Fe 6:W'
           WRITE(6,*) ' T: time evolution'
           WRITE(6,*) '    1:n  2:T  3:u  4:ln n  5:;n T'
@@ -108,7 +112,7 @@ CONTAINS
           CASE(5)
              FDATA(NX,NF)=LOG10(MAX(RTA(NSA,NX),glog_min))
           CASE DEFAULT
-             GoTO 1
+             GOTO 1
           END SELECT
        END DO
     END DO
@@ -131,6 +135,10 @@ CONTAINS
        CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@ln T vs r@',2, &
                   XMIN=0.D0,XMAX=RA)
     END SELECT
+    CALL MOVE(18.0,17.3)
+    CALL TEXT('T = ',4)
+    CALL NUMBD(t,'(1PE12.4)',12)
+
     CALL PAGEE
     DEALLOCATE(XDATA,FDATA)
     GO TO 1
@@ -218,6 +226,9 @@ CONTAINS
        CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@W:  Z vs r@',0, &
                   XMIN=0.D0,XMAX=RA)
     END SELECT
+    CALL MOVE(18.0,17.3)
+    CALL TEXT('T = ',4)
+    CALL NUMBD(t,'(1PE12.4)',12)
     CALL PAGEE
     DEALLOCATE(XDATA,FDATA)
     GOTO 1
@@ -228,6 +239,107 @@ CONTAINS
 9000 WRITE(6,'(A,A1)') 'XX ti_gout_r: K1 error',K2
     RETURN
   END SUBROUTINE ti_gout_p
+    
+! --- C Graphics: compare Z --- 
+
+  SUBROUTINE ti_gout_c(K2)
+
+    USE ticomm
+    USE libgrf
+    USE ADPOST
+    IMPLICIT NONE
+    CHARACTER(LEN=1),INTENT(IN):: K2
+    REAL(rkind),DIMENSION(:),ALLOCATABLE:: XDATA
+    REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: FDATA
+    INTEGER:: NXMAX,NFMAX,NX,NF,ID,NSA
+    REAL(rkind):: pn_sum,pz_sum,pz2_sum
+
+    READ(K2,'(I1)',ERR=9000,END=9000) ID
+    GO TO 2
+
+1   WRITE(6,'(A)') &
+         '## INPUT: ID: 1:Be 2:C 3:Ne 4:Ar 5:Fe 6:W, 0 for end'
+    READ(5,*,END=8000,ERR=1) ID
+
+2   CONTINUE
+    IF(ID.LE.0) THEN
+       GOTO 8000
+    ELSE IF(ID.GT.6) THEN
+       GOTO 1
+    ENDIF
+
+    NXMAX=NRMAX
+    NFMAX=3
+
+    ALLOCATE(XDATA(NXMAX),FDATA(NXMAX,NFMAX))
+    DO NX=1,NXMAX
+       XDATA(NX)=RM(NX)
+    END DO
+    DO NX=1,NXMAX
+       NF=1
+          SELECT CASE(ID)
+          CASE(1)
+             FDATA(NX,NF)=func_adpost(4,1,RTA(1,NX))
+          CASE(2)
+             FDATA(NX,NF)=func_adpost(6,1,RTA(1,NX))
+          CASE(3)
+             FDATA(NX,NF)=func_adpost(10,1,RTA(1,NX))
+          CASE(4)
+             FDATA(NX,NF)=func_adpost(18,1,RTA(1,NX))
+          CASE(5)
+             FDATA(NX,NF)=func_adpost(26,1,RTA(1,NX))
+          CASE(6)
+             FDATA(NX,NF)=func_adpost(74,1,RTA(1,NX))
+          CASE DEFAULT
+             GO TO 1
+          END SELECT
+       pn_sum=0.D0
+       pz_sum=0.D0
+       pz2_sum=0.D0
+       DO nsa=1,nsa_max
+          IF(ns_nsa(nsa).EQ.3) THEN
+             pn_sum=pn_sum+rna(nsa,nx)
+             pz_sum=pz_sum+rna(nsa,nx)*pza(nsa)
+             pz2_sum=pz2_sum+rna(nsa,nx)*pza(nsa)*pza(nsa)
+          END IF
+       END DO
+       FDATA(nx,2)=pz_sum/pn_sum
+       FDATA(nx,3)=pz2_sum/pz_sum
+    END DO
+
+    CALL PAGES
+    SELECT CASE(ID)
+    CASE(1)
+       CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@Be: Z vs r@',0, &
+                  XMIN=0.D0,XMAX=RA,FMIN=0.D0)
+    CASE(2)
+       CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@C:  Z vs r@',0, &
+                  XMIN=0.D0,XMAX=RA,FMIN=0.D0)
+    CASE(3)
+       CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@Ne: Z vs r@',0, &
+                  XMIN=0.D0,XMAX=RA,FMIN=0.D0)
+    CASE(4)
+       CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@Ar: Z vs r@',0, &
+                  XMIN=0.D0,XMAX=RA)
+    CASE(5)
+       CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@Fe: Z vs r@',0, &
+                  XMIN=0.D0,XMAX=RA)
+    CASE(6)
+       CALL GRD1D(0,XDATA,FDATA,NXMAX,NXMAX,NFMAX,'@W:  Z vs r@',0, &
+                  XMIN=0.D0,XMAX=RA)
+    END SELECT
+    CALL MOVE(18.0,17.3)
+    CALL TEXT('T = ',4)
+    CALL NUMBD(t,'(1PE12.4)',12)
+    CALL PAGEE
+    GOTO 1
+
+8000 CONTINUE
+    RETURN
+
+9000 WRITE(6,'(A,A1)') 'XX ti_gout_r: K1 error',K2
+    RETURN
+  END SUBROUTINE ti_gout_c
     
 ! --- T Graphics: time evolution --- 
 

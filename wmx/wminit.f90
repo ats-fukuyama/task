@@ -29,8 +29,8 @@ CONTAINS
       NTHMAX  = 1
       NHHMAX  = 1
       NPHMAX  = 1
-      NTHMAX_F = 1
-      NHHMAX_F = 1
+      factor_nth = 2.D0
+      factor_nhh = 2.D0
 
 !     NSUMAX: Number of plasma surface plot points
 !     NSWMAX: Number of wall surface plot points 
@@ -222,6 +222,12 @@ CONTAINS
 
       WAEMIN = 0.001D0
       WAEMAX = 0.200D0
+
+!    *** graphics ***
+
+!        nthgmax : number of poloidal mesh for graphics
+
+      nthgmax = 256
 
     RETURN
   END SUBROUTINE wm_init

@@ -74,7 +74,7 @@ CONTAINS
              DDM=0.5D0*( DDN(NEQ,NR-1)+DDN(NEQ,NR))
              DDP=0.5D0*(-DDN(NEQ,NR-1)+3.D0*DDN(NEQ,NR)) ! extrapolation
              VVM=0.5D0*( VVN(NEQ,NR-1)+VVN(NEQ,NR))
-             VVP=0.5D0*(-VVN(NEQ,NR-1)+3.D0*DDN(NEQ,NR)) ! extrapolation 
+             VVP=0.5D0*(-VVN(NEQ,NR-1)+3.D0*VVN(NEQ,NR)) ! extrapolation 
           ELSE
              DDM=0.5D0*(DDN(NEQ,NR-1)+DDN(NEQ,NR  ))
              DDP=0.5D0*(DDN(NEQ,NR  )+DDN(NEQ,NR+1))

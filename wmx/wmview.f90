@@ -74,6 +74,8 @@ CONTAINS
                  'PRFIN ',PRFIN
     WRITE(6,601) 'RF    ',RF    ,'RFI   ',RFI   , &
                  'RD    ',RD    ,'BETAJ ',BETAJ
+    WRITE(6,603) 'factor_nth  ',factor_nth, &
+                 'factor_nhh  ',factor_nhh
     WRITE(6,602) 'NRMAX ',NRMAX ,'NTHMAX',NTHMAX, &
                  'NHHMAX',NHHMAX,'NPHMAX',NPHMAX
     WRITE(6,602) 'NTH0  ',NTH0  ,'NPH0  ',NPH0  , &
@@ -82,8 +84,9 @@ CONTAINS
                  'MODELN',MODELN,'MODELQ',MODELQ
     WRITE(6,602) 'MODELA',MODELA, & 
                  'MODEFR',MODEFR,'MODEFW',MODEFW
-    WRITE(6,603) 'MODEL_PROF  ',MODEL_PROF, &
-                 'MODEL_NPROF ',MODEL_NPROF
+    WRITE(6,604) 'MODEL_PROF  ',MODEL_PROF, &
+                 'MODEL_NPROF ',MODEL_NPROF, &
+                 'nthgmax     ',nthgmax
 
     WRITE(6,692)
     DO NS=1,NSMAX
@@ -109,12 +112,14 @@ CONTAINS
     ENDDO
     RETURN
 
-  601 FORMAT(' ',A6,'=',1PE11.3:2X,A6,'=',1PE11.3: &
-              2X,A6,'=',1PE11.3:2X,A6,'=',1PE11.3)
-  602 FORMAT(' ',A6,'=',I7,4X  :2X,A6,'=',I7,4X  : &
-              2X,A6,'=',I7,4X  :2X,A6,'=',I7)
-  603 FORMAT(' ',A12,'=',I7,4X  :2X,A12,'=',I7,4X  : &
-              2X,A12,'=',I7)
+  601 FORMAT(A6,'=',1PE12.4:1X,A6,'=',1PE12.4:1X, &
+             A6,'=',1PE12.4:1X,A6,'=',1PE12.4)
+  602 FORMAT(A6,'=',I8,4X  :1X,A6,'=',I8,4X  :1X, &
+             A6,'=',I8,4X  :1X,A6,'=',I8)
+  603 FORMAT(A12,'=',1PE12.4:1X,A12,'=',1PE12.4:1X, &
+             A12,'=',1PE12.4)
+  604 FORMAT(A12,'=',I8,4X  :1X,A12,'=',I8,4X  :1X, &
+             A12,'=',I8)
   610 FORMAT(' ',I1,6(1PE11.3))
   611 FORMAT(' ',I1,7(1PE11.3))
   612 FORMAT(' ',I1,3I3,I2,6(1PE11.3))

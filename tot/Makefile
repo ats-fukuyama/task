@@ -1,6 +1,7 @@
 ### $Id$ ###
 include ../make.header
 include ../mtxp/make.mtxp
+
 LIB_MTX=$(LIB_MTX_BND)
 LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIB_MTX_PCG)
@@ -13,41 +14,45 @@ LIBX_MTX=$(LIBX_MTX_BND)
 FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
-MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) \
-            -I../plx/$(MOD) -I../fp/$(MOD) -I../mtxp/$(MOD)
-EQLIBS= ../plx/noequlib.o ../eq/eqlib.a 
-
-SRCS = main.f
-
-OBJS = $(SRCS:.f=.o)
-
-LIBS = ../lib/mdslib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a \
-       ../plx/pllib.a \
-       ../tr/trcom2.o ../tr/trcom3.o $(EQLIBS) \
-       ../tr/tr2lib.a ../dp/dplib.a ../wr/wrlib.a ../wm/wmlib.a \
-       ../fp/fplib.a
+.SUFFIXES:
+.SUFFIXES: .f .f90 .mod .o .a
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all : tot
+MODINCLUDE= -I$(MOD) -I../open-adas/adf11/adf11-lib/$(MOD) \
+            -I../adpost/$(MOD) -I../eq/$(MOD) -I../plx/$(MOD) \
+            -I../fp/$(MOD) -I../ti/$(MOD) -I../mtxp/$(MOD) -I../lib/$(MOD) \
+            -I../../bpsd/$(MOD) 
 
+EQLIBS= ../plx/noequlib.o ../eq/eqlib.a 
+
+SRCS = totmenu.f90
+
+OBJS = $(SRCS:.f90=.o)
+
+LIBS = ../lib/mdslib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a \
+       ../adpost/lib-adpost.a ../open-adas/adf11/adf11-lib/lib-adf11.a \
+       ../plx/pllib.a \
+       ../tr/trcom2.o ../tr/trcom3.o $(EQLIBS) \
+       ../tr/tr2lib.a ../dp/dplib.a ../wr/wrlib.a ../wm/wmlib.a \
+       ../fp/fplib.a ../ti/libti.a $(OBJS)
+
+
+all : libs tot
+
+../open-adas/adf11/adf11-lib/lib-adf11.a:
+	(cd ../open-adas/adf11/adf11-lib; make lib-adf11.a)
+../adpost/lib-adpost.a:
+	(cd ../adpost; make lib-adpost.a)
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)
 ../lib/mdslib.a:
 	(cd ../lib; make mdslib.a)
-../mtxp/libmtxmpi.o:
-	(cd ../mtxp; make libmtxmpi.o)
-../mtxp/libmtxnompi.o:
-	(cd ../mtxp; make libmtxnompi.o)
-../mtxp/libmtxksp.o:
-	(cd ../mtxp; make libmtxksp.o)
-../mtxp/libmtxmumps.o:
-	(cd ../mtxp; make libmtxmumps.o)
-../mtxp/libmtxbnd.o:
-	(cd ../mtxp; make libmtxbnd.o)
+$(LIB_MTX):
+	(cd ../mtxp; make)
 ../../bpsd/bpsdlib.a:
 	(cd ../../bpsd; make bpsdlib.a)
 ../plx/pllib.a:
@@ -74,6 +79,8 @@ all : tot
 	(cd ../wm; make mpiwmlib.a)
 ../fp/fplib.a:
 	(cd ../fp; make fplib.a)
+../ti/libti.a:
+	(cd ../ti; make libti.a)
 
 libs:
 	(cd ../lib; make tasklib.a)
@@ -91,12 +98,14 @@ libs:
 	(cd ../wr; make wrlib.a)
 	(cd ../wm; make wmlib.a)
 	(cd ../fp; make fplib.a)
+	(cd ../ti; make libti.a)
+	make totmenu.o
 
-tot : libs main.o
-	$(FLINKER) main.o -o $@ $(FFLAGS) $(MODINCLUDE) $(LIBS) $(FLIBS) $(LIBX_MTX)
+tot : $(LIB_MTX) $(LIBS) totmain.o
+	$(FLINKER) totmain.o -o $@ $(FFLAGS) $(LIBS) $(FLIBS) $(LIBX_MTX)
 
-mpitot : $(LIBM) main.o
-	$(FLINKER) main.o -o $@ $(FFLAGS) $(MODINCLUDE) $(LIB) $(FLIBS) $(LIBX_MTX)
+mpitot : $(LIBM) totmain.o
+	$(FLINKER) totmain.o -o $@ $(FFLAGS) $(LIBS) $(FLIBS) $(LIBX_MTX)
 
 clean:
 	-rm -f core a.out *.o *.mod ./*~ *.a $(MOD)/*.mod
@@ -104,5 +113,6 @@ clean:
 veryclean: clean
 	-rm -f tot
 
-main.o: main.f ../wm/wmcomm.inc
+totmain.o: totmain.f90
+totmenu.o: totmenu.f90
 

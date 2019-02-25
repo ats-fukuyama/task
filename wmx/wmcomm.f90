@@ -38,8 +38,8 @@ MODULE wmcomm_parm
   INTEGER:: NHHMAX      ! number of helical mesh (0 for axisymmetric)
   INTEGER:: NPHMAX      ! number of toroidal mesh (0 for single toroidal mode)
                         !   NPHMAX should be >= NHHMAX*NHC for helical sym.
-  INTEGER:: NTHMAX_F    ! number of extenden poloidal mesh 
-  INTEGER:: NHHMAX_F    ! number of extended helical mesh
+  REAL(rkind):: factor_nth ! Factor of nthmax expansion for couping tensor 
+  REAL(rkind):: factor_nhh ! Factor of nhhmax expansion for couping tensor 
 
   INTEGER:: NSUMAX          ! Number of plasma surface plot points
   INTEGER:: NSWMAX          ! Number of wall surface plot points
@@ -112,6 +112,8 @@ MODULE wmcomm_parm
   REAL(rkind):: WAEMIN      ! minimum frequency range in Alfven frequency
   REAL(rkind):: WAEMAX      ! maximum frequency range in Alfven frequency
 
+  INTEGER:: NTHGMAX         ! number of poloidal mesh in graphics
+
 END MODULE wmcomm_parm
 
 MODULE wmcomm
@@ -121,6 +123,8 @@ MODULE wmcomm
   IMPLICIT NONE
 
   REAL(rkind),ALLOCATABLE:: XR(:),XRHO(:)
+  INTEGER:: NTHMAX_F    ! number of extended poloidal mesh =NTHMAX*factor_nth
+  INTEGER:: NHHMAX_F    ! number of extended helical mesh  =NHHMAX*factor_nhh
   INTEGER:: MDSIZ,MDMIN,MDMAX,LDSIZ,LDMIN,LDMAX
   INTEGER:: MDSIZ_F,MDMIN_F,MDMAX_F,LDSIZ_F,LDMIN_F,LDMAX_F
   INTEGER:: NDSIZ,NDMIN,NDMAX,KDSIZ,KDMIN,KDMAX
@@ -180,13 +184,14 @@ MODULE wmcomm
   REAL(rkind),ALLOCATABLE:: PPS(:),QPS(:),RBPS(:),VPS(:),RLEN(:)
   REAL(rkind),ALLOCATABLE:: BPR(:,:),BPZ(:,:),BPT(:,:),BTP(:,:)
   REAL(rkind),ALLOCATABLE:: SIOTA(:)
+  REAL(rkind),ALLOCATABLE:: RPSG(:,:),ZPSG(:,:)
 
 CONTAINS
 
   SUBROUTINE wm_allocate
     IMPLICIT NONE
     INTEGER,SAVE:: nrmax_save,nthmax_save,nhhmax_save,nphmax_save
-    INTEGER,SAVE:: nsumax_save,nswmax_save
+    INTEGER,SAVE:: nsumax_save,nswmax_save,nthgmax_save
     INTEGER,SAVE:: INIT=0
     
     IF(INIT.EQ.0) THEN
@@ -197,7 +202,8 @@ CONTAINS
           nhhmax.EQ.nhhmax_save.AND. &
           nphmax.EQ.nphmax_save.AND. &
           nsumax.EQ.nsumax_save.AND. &
-          nswmax.EQ.nswmax_save) RETURN
+          nswmax.EQ.nswmax_save.AND. &
+          nthgmax.EQ.nthgmax_save) RETURN
        CALL wm_deallocate
     END IF
 
@@ -274,12 +280,15 @@ CONTAINS
     ALLOCATE(BPT(nthmax_f,nrmax),BTP(nthmax_f,nrmax))
     ALLOCATE(SIOTA(nrmax))
 
+    ALLOCATE(RPSG(nthgmax,nrmax),ZPSG(nthgmax,nrmax))
+
     nrmax_save=nrmax
     nthmax_save=nthmax
     nhhmax_save=nhhmax
     nphmax_save=nphmax
     nsumax_save=nsumax
     nswmax_save=nswmax
+    nthgmax_save=nthgmax
   END SUBROUTINE wm_allocate
 
   SUBROUTINE wm_deallocate
@@ -320,5 +329,7 @@ CONTAINS
     DEALLOCATE(PPS,QPS,RBPS,VPS,RLEN)
     DEALLOCATE(BPR,BPZ,BPT,BTP)
     DEALLOCATE(SIOTA)
+
+    DEALLOCATE(RPSG,ZPSG)
   END SUBROUTINE wm_deallocate
 END MODULE wmcomm

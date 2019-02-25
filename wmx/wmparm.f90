@@ -59,14 +59,14 @@ CONTAINS
            KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF,KNAMTR,KNAMEQ2, &
            MODELP,MODELV,NDISP1,NDISP2,PMAX,EMAX, &
            NRMAX,NTHMAX,NPMAX,NSAMAX,RMIN,RMAX, &
-           NHHMAX,NPHMAX,NTHMAX_F,NHHMAX_F, &
+           NHHMAX,NPHMAX,factor_nth,factor_nhh, &
            NSUMAX,NSWMAX,B0_FACT, &
            RF,RFI,RD,PRFIN,BETAJ,NTH0,NPH0,NHC, &
            NAMAX,AJ,AEWGT,AEWGZ,APH,THJ1,THJ2,PHJ1,PHJ2,ANTANG, &
            NPRINT,NGRAPH,MODELJ,MODELA,MODELM,PNA,PNAL,PTA,ZEFF, &
            FRMIN,FRMAX,FIMIN,FIMAX,FI0,NGFMAX,NGXMAX,NGYMAX, &
            SCMIN,SCMAX,NSCMAX,LISTEG,FRINI,FIINI,DLTNW,EPSNW,LMAXNW,LISTNW, &
-           MODENW,NCONT,ILN1,IBL1,ICL1,ILN2,IBL2,ICL2,WAEMIN,WAEMAX
+           MODENW,NCONT,ILN1,IBL1,ICL1,ILN2,IBL2,ICL2,WAEMIN,WAEMAX,nthgmax
 
     ierr=0
 
@@ -101,7 +101,7 @@ CONTAINS
          '       KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF,', &
          '       MODELP,MODELV,NDISP1,NDISP2,PMAX,EMAX,', &
          '       NPMAX,NTHMAX,NRMAX,NSAMAX,RMIN,RMAX,', &
-         '       NHHMAX,NPHMAX,NTHMAX_F,NHHMAX_F,', &
+         '       NHHMAX,NPHMAX,factor_nth,factor_nhh,', &
          '       NSUMAX,NSWMAX,B0_FACT,', &
          '       RF,RFI,RD,PRFIN,BETAJ,NTH0,NPH0,NHC,', &
          '       NAMAX,AJ,AEWGT,AEWGZ,APH,THJ1,THJ2,PHJ1,PHJ2,ANTANG,', &
@@ -109,7 +109,8 @@ CONTAINS
          '       FRMIN,FRMAX,FIMIN,FIMAX,FI0,NGFMAX,NGXMAX,NGYMAX,', &
          '       SCMIN,SCMAX,NSCMAX,LISTEG,FRINI,FIINI,', &
          '       DLTNW,EPSNW,LMAXNW,LISTNW,', &
-         '       MODENW,NCONT,ILN1,IBL1,ICL1,ILN2,IBL2,ICL2,WAEMIN,WAEMAX'
+         '       MODENW,NCONT,ILN1,IBL1,ICL1,ILN2,IBL2,ICL2,WAEMIN,WAEMAX', &
+         '       nthgmax'
     RETURN
   END SUBROUTINE wm_plst
 
@@ -271,8 +272,8 @@ CONTAINS
     idata( 2)=NTHMAX
     idata( 3)=NHHMAX
     idata( 4)=NPHMAX
-    idata( 5)=NTHMAX_F
-    idata( 6)=NHHMAX_F
+    idata( 5)=0
+    idata( 6)=0
     idata( 7)=NPMAX
     idata( 8)=NSAMAX
     idata( 9)=NSUMAX
@@ -298,15 +299,16 @@ CONTAINS
     idata(29)=ILN2
     idata(30)=IBL2
     idata(31)=ICL2
+    idata(32)=nthgmax
 
-    CALL mtx_broadcast_integer(idata,31)
+    CALL mtx_broadcast_integer(idata,32)
 
     NRMAX=idata( 1)
     NTHMAX=idata( 2)
     NHHMAX=idata( 3)
     NPHMAX=idata( 4)
-    NTHMAX_F=idata( 5)
-    NHHMAX_F=idata( 6)
+!    NTHMAX_F=idata( 5)
+!    NHHMAX_F=idata( 6)
     NPMAX=idata( 7)
     NSAMAX=idata( 8)
     NSUMAX=idata( 9)
@@ -332,6 +334,7 @@ CONTAINS
     ILN2=idata(29)
     IBL2=idata(30)
     ICL2=idata(31)
+    nthgmax=idata(32)
 
     rdata( 1)=RF
     rdata( 2)=RFI
@@ -357,8 +360,10 @@ CONTAINS
     rdata(22)=DLTNW
     rdata(23)=WAEMIN
     rdata(24)=WAEMAX
+    rdata(25)=factor_nth
+    rdata(26)=factor_nhh
 
-    CALL mtx_broadcast_real8(rdata,24)
+    CALL mtx_broadcast_real8(rdata,26)
 
     RF=rdata( 1)
     RFI=rdata( 2)
@@ -384,6 +389,8 @@ CONTAINS
     DLTNW=rdata(22)
     WAEMIN=rdata(23)
     WAEMAX=rdata(24)
+    factor_nth=rdata(25)
+    factor_nhh=rdata(26)
 
     CALL mtx_broadcast_real8(AJ,NAMAX)
     CALL mtx_broadcast_real8(AEWGT,NAMAX)

@@ -37,7 +37,7 @@ CONTAINS
     CASE(12)
        CALL pl_load_p2D(ierr)
     CASE(21)
-       CALL pl_load_trdata(ierr)
+       CALL pl_load_trdata(0,ierr)
     END SELECT
 
     SELECT CASE(modelg)
@@ -148,11 +148,12 @@ CONTAINS
 
 !     ***** LOAD PROFILE DATA from trdata *****
 
-    SUBROUTINE pl_load_trdata(ierr)
+    SUBROUTINE pl_load_trdata(nid,ierr)
 
       USE pl_trdata
       USE libfio
       IMPLICIT NONE
+      INTEGER,INTENT(IN):: nid
       INTEGER,INTENT(OUT):: ierr
       INTEGER:: NFL,NR,NS,NF
       CHARACTER(LEN=80):: KFLNAM
@@ -167,8 +168,24 @@ CONTAINS
 !----  Open profile data file and read
 
       NFL=25
-      KFLNAM='trdata'
-      CALL FROPEN(NFL,KFLNAM,0,1,'trdata',IERR)
+      SELECT CASE(nid)
+      CASE(0)
+         KFLNAM='trdata'
+      CASE(1)
+         KFLNAM='trdata1'
+      CASE(2)
+         KFLNAM='trdata2'
+      CASE(3)
+         KFLNAM='trdata3'
+      CASE(4)
+         KFLNAM='trdata4'
+      CASE(5)
+         KFLNAM='trdata5'
+      CASE(6)
+         KFLNAM='trdata6'
+      END SELECT
+      WRITE(6,*) 'KFLNAM=',KFLNAM
+      CALL FROPEN(NFL,KFLNAM,0,0,'trdata',IERR)
       IF(IERR.NE.0) GO TO 9991
       READ(NFL) NRMAX_TR,NSMAX_TR,NFMAX_TR
       WRITE(6,'(A,3I5)') &
