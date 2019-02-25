@@ -14,7 +14,7 @@ CONTAINS
     INTEGER,INTENT(IN):: NR
     REAL(rkind):: RHON,DR_FIXED,rne,rte
     REAL(rkind):: DR_inz,DR_rcb,DR_prb,DR_plt
-    INTEGER:: NSA,NEQ,NV,NS,ID,NPZ,NSA1,ierr
+    INTEGER:: NSA,NS,ID,NPZ,NSA1,ierr
 
     RHON=RM(NR)/RA
 

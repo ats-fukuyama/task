@@ -151,7 +151,7 @@ CONTAINS
     USE libmtx
     USE libmpi
     IMPLICIT NONE
-    INTEGER:: itype,iterations,i,j,NEQ,NEQ1,NR
+    INTEGER:: itype,i,j,NEQ,NEQ1,NR
     INTEGER:: istart_,iend_
     REAL(rkind):: tolerance
 
@@ -244,7 +244,7 @@ CONTAINS
 
   SUBROUTINE ti_distribute_sol(sol)
     USE libmpi
-    USE ticomm,ONLY: rkind,istart,iend,imax,nrank
+    USE ticomm,ONLY: rkind,istart,iend,imax
     IMPLICIT NONE
     REAL(rkind),INTENT(INOUT):: sol(imax)
     REAL(rkind):: vsend(istart:iend)

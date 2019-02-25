@@ -184,7 +184,7 @@ CONTAINS
 
       USE ticomm_parm
       IMPLICIT NONE
-      INTEGER :: NS,NPSC,NV
+      INTEGER :: NS,NV
 
       WRITE(6,601) 'RR          ',RR          , &
                    'RA          ',RA          , &

@@ -19,7 +19,6 @@ CONTAINS
   SUBROUTINE ti_snap
     USE ticomm
     IMPLICIT NONE
-    INTEGER:: NSA,NR
 
     IF(nrank.EQ.0) THEN
        WRITE(6,'(A,I5,1PE12.4,1PE12.4,2I5)') &
