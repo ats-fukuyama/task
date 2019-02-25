@@ -99,6 +99,7 @@ C***********************************************************************
 C
       SUBROUTINE WM_TOPICS_OUT
 C
+      USE libfio
       INCLUDE '../wm/wmcomm.inc'
 C
       CHARACTER KNAMWT*80

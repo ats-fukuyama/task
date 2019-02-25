@@ -23,8 +23,8 @@ FFLAGS=$(DFLAGS)
 
 MODINCLUDE= -I $(MOD) -I../plx/$(MOD) -I../lib/$(MOD) -I../../bpsd/$(MOD) -I../mtxp/$(MOD) 
 
-SRCS = dpcomm.f90 dpinit.f90 dpparm.f90 \
-       dpfpin.f90 dphotf.f90 dphotr.f90 \
+SRCS = dpcomm.f90 dpinit.f90 dpfpin.f90 dpparm.f90 \
+       dphotf.f90 dphotr.f90 \
        dptnsr1.f90 dptnsr2.f90 dptens.f90 dpdisp.f90 \
        dpgsub.f90 dproot.f90 dpcont.f90 \
        dpmenu.f90	
@@ -61,7 +61,7 @@ dp : $(LIBS) dpmain.o
 	$(FLINKER) dpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(LIBX_MTX)
 
 clean:
-	-rm -f core a.out *.o *.a ./*~
+	-rm -f core a.out *.o *.a ./*~ $(MOD)/*.mod
 
 veryclean: clean
 	-rm -f dp

@@ -296,7 +296,7 @@ C
       SUBROUTINE DPTNKS(CW,CKPR,CKPP,NS,CLDISP)
 C
       USE libdsp,ONLY: DSPFN
-      USE libbes,ONLY: lambda
+      USE libbes,ONLY: BESEIN
       USE plcomm
       USE pllocal
       INCLUDE '../dp/dpcomm.inc'
@@ -321,8 +321,12 @@ C
       WTPP=RTPP(NS)*1.D3*AEE/(AMP*PA(NS))
       WTPX=SQRT(WTPR/WTPP)
       CBETA=CKPP*CKPP*WTPP/(CWC*CWC*CW*CW)
-      CALL LAMBDA(MAX(ABS(NMIN),ABS(NMAX))+1,CBETA,CALAM,IERR)
-      IF(IERR.EQ.1) WRITE(6,*) 'XX LAMBDA: N out of range'
+      DO N=0,NMAX
+         CALAM(N)=BESEIN(N,REAL(CBETA))
+      END DO
+C      CBETA=CKPP*CKPP*WTPP/(CWC*CWC*CW*CW)
+C      CALL LAMBDA(MAX(ABS(NMIN),ABS(NMAX))+1,CBETA,CALAM,IERR)
+C      IF(IERR.EQ.1) WRITE(6,*) 'XX LAMBDA: N out of range'
 C      IF(IERR.EQ.2) WRITE(6,*) 'XX LAMBDA: CBETA out of range'
 C
       DO NC=NMIN,NMAX
@@ -364,7 +368,7 @@ C
       SUBROUTINE DPTNKP(CW,CKPR,CKPP,NS,CLDISP)
 C
       USE libdsp,ONLY: DSPFN
-      USE libbes,ONLY: lambda
+      USE libbes,ONLY: BESEIN
       USE plcomm
       USE pllocal
       INCLUDE '../dp/dpcomm.inc'
@@ -389,8 +393,12 @@ C
       WTPP=RTPP(NS)*1.D3*AEE/(AMP*PA(NS))
       WTPX=SQRT(WTPR/WTPP)
       CBETA=CKPP*CKPP*WTPP/(CWC*CWC*CW*CW)
-      CALL LAMBDA(MAX(ABS(NMIN),ABS(NMAX))+1,CBETA,CALAM,IERR)
-      IF(IERR.EQ.1) WRITE(6,*) 'XX LAMBDA: N out of range'
+      DO N=0,NMAX
+         CALAM(N)=BESEIN(N,REAL(CBETA))
+      END DO
+C      CBETA=CKPP*CKPP*WTPP/(CWC*CWC*CW*CW)
+C      CALL LAMBDA(MAX(ABS(NMIN),ABS(NMAX))+1,CBETA,CALAM,IERR)
+C      IF(IERR.EQ.1) WRITE(6,*) 'XX LAMBDA: N out of range'
 C      IF(IERR.EQ.2) WRITE(6,*) 'XX LAMBDA: CBETA out of range'
 C
       DO NC=NMIN,NMAX

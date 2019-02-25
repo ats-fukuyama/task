@@ -8,7 +8,7 @@ LFLAGS = $(OFLAGS)
 #LFLAGS = $(DFLAGS)
 FFLAGS = $(DFLAGS)
 
-MODINCLUDE= -I $(MOD)
+MODINCLUDE= -I $(MOD) -I ../../bpsd/$(MOD)
 
 SRCSFREE  =  libbrn.f90 libinv.f90 libbnd.f90 \
              libpcgpme.f90 \
@@ -67,6 +67,8 @@ testfem_func: tasklib.a testfem_func.o
 
 testbes: tasklib.a testbes.o 
 	$(FCFIXED) testbes.o tasklib.a $(FFLAGS) -o $@ $(FLIBS)
+testlamb: tasklib.a testlamb.o 
+	$(FCFREE) testlamb.o tasklib.a $(FFLAGS) -o $@ $(FLIBS)
 
 testell: tasklib.a testell.o 
 	$(FCFIXED) testell.o tasklib.a $(FFLAGS) -o $@ $(FLIBS)

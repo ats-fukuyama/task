@@ -57,7 +57,7 @@ C              4 : KINETIC: READ FPDATA DISTRIBUTION (RELATIVISTIC)
 C              5 : DRIFTKINETIC: ANALYTIC MAXWELLIAN DISTRIBUTION
 C              6 : DRIFTKINETIC: READ FPDATA DISTRIBUTION
 C              9 : LOCAL MODEL (MODELV locally specified by MODELVR)
-!     MODEFA : Type of fast particle contribution
+C     MODEFA : Type of fast particle contribution
 C
 C     NDISP1: MINIMUM HARMONIC NUMBER
 C     NDISP2: MAXMUM  HARMONIC NUMBER
@@ -100,6 +100,8 @@ C
          NDISP2(NS)= 2
          modelv(NS)= 0
       ENDDO
+      rhon_min=0.D0
+      rhon_max=1.D0
 C
       DO NS=1,NSAM
          PMAX(NS)= 7.D0
@@ -266,8 +268,8 @@ C
                INITFM=1
             ENDIF
          ELSE
-            RHON_MIN=0.D0
-            RHON_MAX=1.D0
+            rhon_min=0.D0
+            rhon_max=1.D0
          ENDIF
       ENDDO
       IERR=0

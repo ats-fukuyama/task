@@ -15,6 +15,12 @@
 
       READ(5,'(A80)',ERR=2,END=3) LINE    ! read one line
 
+      KID=LINE(1:1)                  ! if first char is '!'
+      IF(KID.EQ.'!') THEN           ! comment input
+         MODE=0
+         RETURN
+      END IF
+
       ID=0                                ! if "=" is included, namelist
       DO I=1,80
          IF(LINE(I:I).EQ.'=') ID=1

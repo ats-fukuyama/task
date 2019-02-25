@@ -409,7 +409,7 @@ C     ****** DISPLAY INPUT DATA ******
 C
       SUBROUTINE WMVIEW
 C
-      USE plinit,ONLY: pl_view
+      USE plparm,ONLY: pl_view
       INCLUDE 'wmcomm.inc'
 C
       IF(NPRINT.LT.2) RETURN

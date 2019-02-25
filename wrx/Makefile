@@ -1,6 +1,7 @@
-### $Id$ ###
+### Madefile for wr
 include ../make.header
 include ../mtxp/make.mtxp
+
 LIB_MTX=$(LIB_MTX_BND)
 LIBX_MTX=$(LIBX_MTX_BND)
 #LIB_MTX=$(LIB_MTX_PCG)
@@ -35,10 +36,10 @@ LIBS = wrlib.a  ../dpx/dplib.a ../eq/eqlib.a ../plx/pllib.a \
 
 all : wr
 
-../lib/tasklib.a:
-	(cd ../lib; make tasklib.a)
 ../../bpsd/bpsdlib.a:
 	(cd ../../bpsd; make bpsdlib.a)
+../lib/tasklib.a:
+	(cd ../lib; make tasklib.a)
 ../plx/pllib.a:
 	(cd ../plx; make pllib.a)
 ../eq/eqlib.a:
@@ -49,8 +50,8 @@ wrlib.a: $(OBJS)
 	$(LD) $(LDFLAGS) wrlib.a $(OBJS)
 
 libs:
-	(cd ../lib; make tasklib.a)
 	(cd ../../bpsd; make bpsdlib.a)
+	(cd ../lib; make tasklib.a)
 	(cd ../mtxp; make)
 	(cd ../plx; make pllib.a)
 	(cd ../eq; make eqlib.a)

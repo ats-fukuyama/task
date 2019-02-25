@@ -97,17 +97,28 @@
          IF(NTYPE.EQ.0) GO TO 1
          SELECT CASE(NTYPE)
          CASE(1)
-            CALL FWOPEN(26,'trdata',0,1,'trdata',IERR)
+            CALL FWOPEN(26,'trdata1',0,1,'trdata',IERR)
+         CASE(2)
+            CALL FWOPEN(26,'trdata2',0,1,'trdata',IERR)
+         CASE(3)
+            CALL FWOPEN(26,'trdata3',0,1,'trdata',IERR)
+         CASE(4)
+            CALL FWOPEN(26,'trdata4',0,1,'trdata',IERR)
+         CASE(5)
+            CALL FWOPEN(26,'trdata5',0,1,'trdata',IERR)
+         CASE(6)
+            CALL FWOPEN(26,'trdata6',0,1,'trdata',IERR)
+         CASE DEFAULT
+            WRITE(6,*) 'XX unknown ntype'
+            GO TO 4
+         END SELECT
             IF(IERR.NE.0) GO TO 4
             WRITE(26) NRMAX,NSMAX,NFM
             WRITE(26) (RM(NR),RG(NR),NR=1,NRMAX)
             WRITE(26) ((RN(NR,NS),RT(NR,NS),NR=1,NRMAX),NS=1,NSMAX)
             WRITE(26) ((RW(NR,NF),RNF(NR,NF),RTF(NR,NF),NR=1,NRMAX),NF=1,NFM)
             CLOSE(26)
-            WRITE(6,*) '## Data saved in trdata'
-         CASE DEFAULT
-            WRITE(6,*) 'XX unknown ntype'
-         END SELECT
+            WRITE(6,'(A,I1)') '## Data saved in trdata',NTYPE
          GO TO 4
             
          

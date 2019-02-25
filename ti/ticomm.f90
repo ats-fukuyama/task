@@ -10,7 +10,7 @@ MODULE ticomm_parm
 ! IMPORTED FROM plcomm
 !     RR,RA,RKAP,RDLT,BB,RIP,
 !     NSM,NSMAX,
-!     PA(NSM),PM(NSM),PZ(NSM),PN(NSM),PNS(NSM),PTPR(NSM),PTPP(NSM),PTS(NSM),
+!     NPA(NSM),PM(NSM),PZ(NSM),PN(NSM),PNS(NSM),PTPR(NSM),PTPP(NSM),PTS(NSM),
 !     PU(NSM),PUS(NSM),ID_NS(NSM),KID_NS(NSM)
 !     PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2
 !     MODELG,MODELN,MODELQ,MODEL_NPROF
@@ -19,7 +19,6 @@ MODULE ticomm_parm
 !     RHOA,Q0,QA (not an input parameter for tr)
 
   INTEGER:: NZMIN_NS(NSM),NZMAX_NS(NSM),NZINI_NS(NSM)
-  INTEGER:: ND_adpost(NSM)
   INTEGER:: MODEL_BND(3,NSM)
   INTEGER:: NRMAX,NTMAX,NTSTEP,NGTSTEP,NGRSTEP
   INTEGER:: ngt_allocate_step,ngr_allocate_step
@@ -70,7 +69,7 @@ MODULE ticomm
 
   REAL(rkind):: T
   INTEGER,DIMENSION(:),ALLOCATABLE:: &  !nsa_max
-       ID_NSA,NSA_UP,NSA_DN,NS_NSA,ND
+       ID_NSA,NSA_UP,NSA_DN,NS_NSA
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &  !nsa_max
        PMA,PZA,PZ2A
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &  !nsa_max
@@ -82,6 +81,7 @@ MODULE ticomm
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &  !nsa_max,NRMAX
        rnatot,rnuatot,rntatot,rnaave,ruaave,rtaave
   
+  INTEGER:: ND_adpost(NSM)
   INTEGER:: NEQMAX,NGTMAX,NGRMAX
 
 !     ****** CONTROL VARIABLES ******

@@ -178,10 +178,16 @@ CONTAINS
                 IF(j.ge.1.AND.j.LE.imax) THEN
                    IF(ABS(MAT_LOCAL(NEQ,NEQ1)).GT.0.D0) THEN
                       CALL mtx_set_matrix(i,j,MAT_LOCAL(NEQ,NEQ1))
+!                      WRITE(6,'(A,2I5,1PE12.4)') &
+!                           'mat_l:',i,j,MAT_LOCAL(NEQ,NEQ1)
                    END IF
                 END IF
              END DO
-             CALL mtx_set_source(i,VEC_LOCAL(NEQ))
+             IF(ABS(VEC_LOCAL(NEQ)).GT.0.D0) THEN
+                CALL mtx_set_source(i,VEC_LOCAL(NEQ))
+!               WRITE(6,'(A,I5,5X,1PE12.4)') &
+!                       'vec_l:',i,VEC_LOCAL(NEQ,NEQ1)
+             END IF
              CALL mtx_set_vector(i,SOL_PREV(i))
           END IF
        END DO
