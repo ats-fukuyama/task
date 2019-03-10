@@ -130,6 +130,9 @@ CONTAINS
 
          X = DKPP*PTH0*PG(NP,NS)*TSNM(NTH)/WCM
          CALL BESSJN(X,NHMAX,ADJ,ADJD)
+         DO NC=0,NHMAX-1
+            WRITE(6,'(A,3I5,1P3E12.4)') 'BESSJN:',NP,NTH,NC,X,ADJ(NC),ADJD(NC)
+         END DO
 
          DO NC=NCMIN,NCMAX
             NCD = ABS(NC)
@@ -151,8 +154,15 @@ CONTAINS
             else
                PAI1  = NC*INC*ADJ(NCD)/X
             endif
+!            WRITE(6,'(A,I5,1PE12.4)') &
+!                 'NCD,ADJD=', &
+!                 NCD,ADJD(NCD)
             CPAI2 = CI*INC*ADJD(NCD)
             PAI3  =    INC*ADJ(NCD)/TTNM(NTH)
+
+!            WRITE(6,'(A,3I5,1P3E12.4)') &
+!                 'np,nth,nc,CPAI2,CDEN=', &
+!                 np,nth,nc,CPAI2,CDEN
 
             CSM11 = CSM11 + PAI1          *PAI1*CDEN
             CSM12 = CSM12 + PAI1         *CPAI2*CDEN
