@@ -330,7 +330,8 @@ CONTAINS
     REAL(rkind):: VGX,VGY,VGZ,RVGABS
 
     CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
-
+    
+    RKABS=SQRT(Y(4)**2+Y(5)**2+Y(6)**2)
     RKNX=Y(4)/RKABS
     RKNY=Y(5)/RKABS
     RKNZ=Y(6)/RKABS
@@ -643,9 +644,11 @@ CONTAINS
     REAL(rkind):: F00PP00,F00P0P0,F00P00P
     REAL(rkind):: F000PP0,F000P0P
     REAL(rkind):: F0000PP
+    REAL(rkind):: DUMMY
 
       VV=DELDER
       TT=DELDER
+      DUMMY=X
 
       XP=Y(1)
       YP=Y(2)
@@ -880,7 +883,7 @@ CONTAINS
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: XP,YP,ZP,RKXP,RKYP,RKZP,OMG
     REAL(rkind):: DISPBXR
-    REAL(rkind):: MODELPS(NSMAX)
+    INTEGER:: MODELPS(NSMAX)
     INTEGER:: NS
     REAL(rkind):: X,Y,Z
     COMPLEX(rkind):: CRF,CKX,CKY,CKZ,CWW,CWC,CF
@@ -926,7 +929,7 @@ CONTAINS
     IMPLICIT NONE
     REAL(rkind),INTENT(IN):: XP,YP,ZP,RKXP,RKYP,RKZP,OMG
     REAL(rkind):: DISPBXI
-    REAL(rkind):: MODELPS(NSMAX)
+    INTEGER:: MODELPS(NSMAX)
     INTEGER:: NS
     REAL(rkind):: X,Y,Z
     COMPLEX(rkind):: CRF,CKX,CKY,CKZ,CWW,CWC,CF

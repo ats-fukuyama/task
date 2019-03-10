@@ -79,8 +79,7 @@ CONTAINS
     REAL(rkind),INTENT(OUT):: F(NEQ)
     REAL(rkind),INTENT(OUT):: OXEFF
     INTEGER:: I
-    REAL(rkind):: YK(3)
-    REAL(rkind):: OMG,OX_K0,OX_LN,OX_Y,OX_NZOPT,OX_NZ,OX_NY,OX_N0,RHON
+    REAL(rkind):: OMG,OX_K0,OX_LN,OX_Y,OX_NZOPT,OX_NZ,OX_NY,RHON
     REAL(rkind):: BNX0,BNY0,BNZ0,RL0,Rr_IDEI,RKPARA0,S_O_X
     REAL(rkind):: DELTAB,Y10,Y20,Y30,OX_KC,Y4_OX,Y5_OX,Y6_OX
     REAL(rkind):: Y1_OX,Y2_OX,Y3_OX,DELTA
@@ -92,14 +91,14 @@ CONTAINS
        OX_K0 = OMG / VC
        WRITE(6,*)'N_OPT=',OX_NZOPT,'NZ=',OX_NZ,'NY=',OX_NY
        WRITE(6,*)'K0=',OX_K0,'N=', &
-                    SQRT((Y(4)**2+Y(5)**2+Y(6)**2))*(VC/OMG)	
+            SQRT((Y(4)**2+Y(5)**2+Y(6)**2))*(VC/OMG)
 
        OXEFF = ( 2.0*(1.0+OX_Y)*((OX_NZ-OX_NZOPT)**2) + OX_NY**2 )
        OXEFF = EXP(-PI*OX_K0*OX_LN*SQRT(0.5*OX_Y)*OXEFF)
        WRITE(6,*) 'OXEFF=',OXEFF 
 
        CALL PL_MAG_OLD(Y(1),Y(2),Y(3),RHON)
-       CALL PL_PROF_OLD(RHON)	   
+       CALL PL_PROF_OLD(RHON)
 
        BNX0 = BNX
        BNY0 = BNY
@@ -163,7 +162,7 @@ CONTAINS
     REAL(rkind):: OX_X0,OX_Y0,OX_Z0,D_OX_X0,D_OX_Y0,D_OX_Z0,OX_NE_P,OX_NE_M
 
       CALL PL_MAG_OLD(X,Y,Z, RHON)
-      CALL PL_PROF_OLD(RHON)	  
+      CALL PL_PROF_OLD(RHON)
       OX_NE = RN(1) 
 	  
       RL0  =SQRT(X**2+Y**2)
@@ -180,10 +179,10 @@ CONTAINS
 !	  WRITE(6,*)'DX=',D_OX_X0,'DY=',D_OX_Y0,'DZ=',D_OX_Z0
 	  
       CALL PL_MAG_OLD(X+D_OX_X0, Y+D_OX_Y0, Z+D_OX_Z0, RHON)
-      CALL PL_PROF_OLD(RHON)	  
-      OX_NE_P = RN(1)	  
+      CALL PL_PROF_OLD(RHON)
+      OX_NE_P = RN(1)
       CALL PL_MAG_OLD(X-D_OX_X0, Y-D_OX_Y0, Z-D_OX_Z0, RHON)
-      CALL PL_PROF_OLD(RHON)	  
+      CALL PL_PROF_OLD(RHON)
       OX_NE_M = RN(1) 
 	  
 !	  WRITE(6,*) 'OX_NE_P(E18)=',OX_NE_P,'OX_NE_M(E18)=', OX_NE_M
@@ -225,7 +224,7 @@ CONTAINS
        Y30 = Y30 / SQRT(Y10**2+Y20**2+Y30**2)
        OX_NX = (Y(4)*Y10 + Y(5)*Y20 + Y(6)*Y30)*VC/OMG
 		
-       OX_N2 = (Y(4)**2+Y(5)**2+Y(6)**2)*(VC/OMG)*(VC/OMG)		
+       OX_N2 = (Y(4)**2+Y(5)**2+Y(6)**2)*(VC/OMG)*(VC/OMG)
        OX_NY = OX_N2 - OX_NZ**2 - OX_NX**2
        IF (OX_NY.LT.0.D0) OX_NY=0.0D0
        OX_NY = SQRT(OX_NY)
@@ -501,7 +500,7 @@ CONTAINS
     INTEGER,INTENT(IN):: NSTPMAX_L,NRAY
     COMPLEX(rkind):: CDET(3,3),CDETP(3,3),CDETM(3,3),CDETD(3,3)
     INTEGER:: NSTP,J,I
-    REAL(rkind):: OMG,X1,Y1,Z1,EQ,VV,TT,ROMG,UE2,UE,RHON,EA
+    REAL(rkind):: OMG,X1,Y1,Z1,VV,TT,ROMG,UE2,UE,RHON,EA
     COMPLEX(rkind):: CRF,CKX1,CKY1,CKZ1,CE1,CE2,CE3,CE4,CEXY,CEZY
     COMPLEX(rkind):: CUEX,CUEY,CUEZ,CRFP,CRFM,CUE2
 
