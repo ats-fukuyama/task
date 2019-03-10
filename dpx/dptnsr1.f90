@@ -19,12 +19,12 @@ CONTAINS
 
 !     ****** COLLISIONLESS COLD MODEL ******
 
-  SUBROUTINE DPTNCL(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+  SUBROUTINE DPTNCL(CW,NS,mag,plf,CLDISP)
 
       USE dpcomm
       USE plprof
       IMPLICIT NONE
-      COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
+      COMPLEX(rkind),INTENT(IN):: CW
       INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
       TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
@@ -46,12 +46,12 @@ CONTAINS
 
 !     ****** COLLISIONAL COLD MODEL ******
 
-  SUBROUTINE DPTNCC(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+  SUBROUTINE DPTNCC(CW,NS,mag,plf,CLDISP)
 
       USE dpcomm
       USE plprof
       IMPLICIT NONE
-      COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
+      COMPLEX(rkind),INTENT(IN):: CW
       INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
       TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
@@ -80,12 +80,12 @@ CONTAINS
 
 !     ****** IDEAL MHD MODEL ******
 
-  SUBROUTINE DPTNIM(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+  SUBROUTINE DPTNIM(CKPR,NS,mag,plf,CLDISP)
 
       USE dpcomm
       USE plprof
       IMPLICIT NONE
-      COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
+      COMPLEX(rkind),INTENT(IN):: CKPR
       INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
       TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
@@ -113,17 +113,17 @@ CONTAINS
 
 !     ****** RESISTIVE MHD MODEL ******
 
-  SUBROUTINE DPTNRM(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+  SUBROUTINE DPTNRM(CW,NS,mag,plf,CLDISP)
 
       USE dpcomm
       USE plprof
       IMPLICIT NONE
-      COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
+      COMPLEX(rkind),INTENT(IN):: CW
       INTEGER,INTENT(IN):: NS
       TYPE(pl_mag_type),INTENT(IN):: mag
       TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
-      COMPLEX(rkind):: CWP,CWC,CWNU,CPARA
+      COMPLEX(rkind):: CWP,CWC,CWNU
 
       CWP=plf(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
       CWC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
@@ -157,7 +157,7 @@ CONTAINS
       TYPE(pl_mag_type),INTENT(IN):: mag
       TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
-      COMPLEX(rkind):: CWP,CWC,CWNU,CPARA,CTPR,CTPP
+      COMPLEX(rkind):: CWP,CWC,CWNU,CTPR,CTPP
       REAL(rkind):: WTPR,WTPP,WTPX
 
       CWP=plf(NS)%RN*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
@@ -538,7 +538,7 @@ CONTAINS
       TYPE(pl_mag_type),INTENT(IN):: mag
       TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
       COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
-      COMPLEX(rkind),ALLOCATABLE:: CALAM(:)
+!      COMPLEX(rkind),ALLOCATABLE:: CALAM(:)
       COMPLEX(rkind):: CWP,CWC,CBETA,CNPP,CNPR,CZ,CWNU
       COMPLEX(rkind):: CSUM1,CSUM2,CSUM3,CSUM4,CSUM5
       COMPLEX(rkind):: CN1,CN2,CN3,CF1,CF2,CF3,CF4,CF5,CF6,CF7,CPART
@@ -679,7 +679,8 @@ CONTAINS
       COMPLEX(rkind),INTENT(IN):: CZ
       COMPLEX(rkind):: CFQZ,CZ2,CDZ2
       COMPLEX(rkind):: CSUM,CTERM,CGZ
-      INTEGER:: NUMAX,NU,TEMP
+      REAL(rkind):: TEMP
+      INTEGER:: NUMAX,NU
 
       IF(ABS(CZ).GT.15.D0) THEN
          NUMAX=20

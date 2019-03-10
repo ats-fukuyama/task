@@ -17,15 +17,14 @@ CONTAINS
       real(4),DIMENSION(NPMAX,NTHMAX):: GF
       real(4),dimension(NPMAX):: GP
       real(4),dimension(NTHMAX):: GTH
-      real(8),dimension(8,NPMAX,NTHMAX)::KA
 
       INTEGER,PARAMETER:: NGLM=100
       REAL(4):: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
       INTEGER:: ILN(NGLM)
       real(4):: GPMAX, GPMIN1, GPMAX1, GPSTEP
       real(4):: GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
-      integer:: NR, NP, NTH
-      integer:: NTHM,NGLMAX, NGL
+      integer:: NP,NTH
+      integer:: NTHM,NGLMAX,NGL
       real(4):: GUCLIP
       integer:: NGULEN
 

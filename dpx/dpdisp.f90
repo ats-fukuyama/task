@@ -112,7 +112,7 @@ CONTAINS
     TYPE(pl_plf_type),DIMENSION(nsmax):: plf
     TYPE(pl_grd_type),DIMENSION(nsmax):: grd
     REAL(rkind):: RHON,BNXY
-    COMPLEX(rkind):: CW,CKPR,CKPP,CKPPF,CKPPS,CKPP1
+    COMPLEX(rkind):: CW,CKPR,CKPP
     COMPLEX(rkind):: CU11,CU12,CU13,CU21,CU22,CU23,CU31,CU32,CU33
     COMPLEX(rkind):: CDET11,CDET12,CDET13, &
                      CDET21,CDET22,CDET23, &

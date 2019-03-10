@@ -22,7 +22,7 @@ PROGRAM DP
   USE dpinit, ONLY: dp_init
   USE dpparm, ONLY: dp_parm
   USE dpmenu, ONLY: dp_menu
-  USE dpcomm, ONLY: BB,nrank
+  USE dpcomm, ONLY: nrank
   use libmtx
   IMPLICIt NONE
   INTEGER:: IERR

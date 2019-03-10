@@ -19,7 +19,7 @@ MODULE dphotr
 
 CONTAINS
 
-  SUBROUTINE DP_HOTR(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+  SUBROUTINE DP_HOTR(CW,CKPR,CKPP,NS,mag,CLDISP)
 
     USE dpcomm
     USE plprof
@@ -27,13 +27,13 @@ CONTAINS
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NS
     TYPE(pl_mag_type),INTENT(IN):: mag
-    TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+!    TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     COMPLEX(rkind):: CLDISP1(6),CLDISP2(6)
     INTEGER:: I
       
-    CALL DP_HOTRR(CW,CKPR,CKPP,NS,mag,plf,CLDISP1)
-    CALL DP_HOTRI(CW,CKPR,CKPP,NS,mag,plf,CLDISP2)
+    CALL DP_HOTRR(CW,CKPR,CKPP,NS,mag,CLDISP1)
+    CALL DP_HOTRI(CW,CKPR,CKPP,NS,mag,CLDISP2)
     DO I=1,6
        CLDISP(I)=CLDISP1(I)+CLDISP2(I)
     ENDDO
@@ -44,7 +44,7 @@ CONTAINS
 !                       DPHOTRR
 ! ******************************************************
 
-  SUBROUTINE DP_HOTRR(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+  SUBROUTINE DP_HOTRR(CW,CKPR,CKPP,NS,mag,CLDISP)
 
     USE dpcomm
     USE plprof
@@ -53,7 +53,7 @@ CONTAINS
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NS
     TYPE(pl_mag_type),INTENT(IN):: mag
-    TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+!    TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     REAL(rkind),DIMENSION(:),ALLOCATABLE:: ADJ,ADJD
     INTEGER:: NCMIN,NCMAX,NHMAX,NTH,NP,NC,NCD,INC
@@ -270,7 +270,7 @@ CONTAINS
 !                       DPHOTRI
 ! ******************************************************
 
-  SUBROUTINE DP_HOTRI(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+  SUBROUTINE DP_HOTRI(CW,CKPR,CKPP,NS,mag,CLDISP)
 
     USE dpcomm
     USE plprof
@@ -279,7 +279,7 @@ CONTAINS
     COMPLEX(rkind),INTENT(IN):: CW,CKPR,CKPP
     INTEGER,INTENT(IN):: NS
     TYPE(pl_mag_type),INTENT(IN):: mag
-    TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
+!    TYPE(pl_plf_type),DIMENSION(nsmax),INTENT(IN):: plf
     COMPLEX(rkind),INTENT(OUT):: CLDISP(6)
     REAL(rkind),DIMENSION(:),ALLOCATABLE:: ADJ,ADJD
     INTEGER:: NCMIN,NCMAX,NHMAX,NTH,NP,NC,NCD,NP1,INC,NP2

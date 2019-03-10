@@ -23,7 +23,7 @@ CONTAINS
     INTEGER:: ID1,ID2,IDV,IERR
 
       IF(plf(NS)%RN.LE.0.D0) THEN
-         CALL DPTNCL(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+         CALL DPTNCL(CW,NS,mag,plf,CLDISP)
 !      ELSEIF(RHON_LOC.LT.RHON_MIN.OR.RHON_LOC.GT.RHON_MAX) THEN
 !         ID1=MOD(MODELP(NS),100)
 !         CALL DPTENS_AN(ID1,CW,CKPR,CKPP,NS,mag,plf,grd,CLDISP)
@@ -37,37 +37,37 @@ CONTAINS
          CASE(1)
             CALL DPFMFL(NS,plf,0)
             IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
-               CALL DP_HOTFI(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+               CALL DP_HOTFI(CW,CKPR,CKPP,NS,mag,CLDISP)
             ELSE
-               CALL DP_HOTF(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+               CALL DP_HOTF(CW,CKPR,CKPP,NS,mag,CLDISP)
             ENDIF
          CASE(2)
             CALL DPFPFL(NS,mag,IERR)
             IF(IERR.NE.0) RETURN
             IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
-               CALL DP_HOTFI(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+               CALL DP_HOTFI(CW,CKPR,CKPP,NS,mag,CLDISP)
             ELSE
-               CALL DP_HOTF(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+               CALL DP_HOTF(CW,CKPR,CKPP,NS,mag,CLDISP)
             ENDIF
          CASE(3)
             CALL DPFMFL(NS,plf,1)
             IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
-               CALL DP_HOTRI(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+               CALL DP_HOTRI(CW,CKPR,CKPP,NS,mag,CLDISP)
             ELSE
-               CALL DP_HOTR(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+               CALL DP_HOTR(CW,CKPR,CKPP,NS,mag,CLDISP)
             ENDIF
          CASE(4)
             CALL DPFPFL(NS,mag,IERR)
             IF(IERR.NE.0) RETURN
             IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
-               CALL DP_HOTRI(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+               CALL DP_HOTRI(CW,CKPR,CKPP,NS,mag,CLDISP)
             ELSE
-               CALL DP_HOTR(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+               CALL DP_HOTR(CW,CKPR,CKPP,NS,mag,CLDISP)
             ENDIF
          END SELECT
 
          IF(ID2.EQ.2) THEN
-            CALL DPTNCL(CW,CKPR,CKPP,NS,mag,plf,CLDISP1)
+            CALL DPTNCL(CW,NS,mag,plf,CLDISP1)
          ELSEIF(ID2.EQ.3) THEN
             CALL DPTNKP(CW,CKPR,CKPP,NS,mag,plf,CLDISP1)
          ENDIF
@@ -110,13 +110,13 @@ CONTAINS
 
       SELECT CASE(ID1)
       CASE(0) ! collisionless cold model
-         CALL DPTNCL(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+         CALL DPTNCL(CW,NS,mag,plf,CLDISP)
       CASE(1) ! collisional cold model
-         CALL DPTNCC(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+         CALL DPTNCC(CW,NS,mag,plf,CLDISP)
       CASE(2) ! idial MHD model
-         CALL DPTNIM(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+         CALL DPTNIM(CKPR,NS,mag,plf,CLDISP)
       CASE(3) ! resistive MHD model
-         CALL DPTNRM(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
+         CALL DPTNRM(CW,NS,mag,plf,CLDISP)
       CASE(4) ! kinetic without FLR model
          CALL DPTNHP(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
       CASE(5) ! kinetic with FLR model
