@@ -55,6 +55,7 @@ CONTAINS
            RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ, &
            RMIR,ZBB,Hpitch1,Hpitch2,RRCH,RCOIL,ZCOIL,BCOIL,NCOILMAX, &
            NSMAX,NPA,PA,PZ,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PZCL, &
+           ID_NS,KID_NS, &
            r_corner,z_corner, &
            br_corner,bz_corner,bt_corner, &
            pn_corner,ptpr_corner,ptpp_corner, &
@@ -99,6 +100,7 @@ CONTAINS
   601 FORMAT(' ','# &PL : RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,'/ &
              9X,'RMIR,ZBB,Hpitch1,Hpitch2,RRCH,RCOI,ZCOIL,BCOIL,NCOILMAX,'/ &
              9X,'NSMAX,PA,PZ,PN,PNS,PTPR,PTPP,PTS,PU,PUS,PZCL,'/ &
+             9X,'ID_NS,KID_NS,'/ &
              9X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,'/ &
              9X,'r_corner,z_corner,br_corner,bz_corner,bt_corner,'/ &
              9X,'pn_corner,ptpr_corner,ptpp_corner,'/ &
