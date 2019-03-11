@@ -172,6 +172,9 @@ CONTAINS
        WRITE(6,*) 'XX BESJNV: N,X=',N,X
        IERR=100+ABS(NCALC)
     ELSEIF(NCALC.LT.N+1) THEN
+       DO nn=ncalc,N
+          V(nn)=0.D0
+       END DO
 !         WRITE(6,*) 'XX BESJNV: NCALC,N=',NCALC,N
        IERR=10+NCALC
     ELSE
@@ -339,9 +342,15 @@ CONTAINS
 
       SUBROUTINE BESSJN(X,NMAX,BJN,DBJN)
 
-      REAL*8  BJN(0:NMAX),DBJN(0:NMAX),X
+        IMPLICIT NONE
+        REAL(kind=8),INTENT(IN):: X
+        INTEGER,INTENT(IN):: NMAX
+        REAL(kind=8),INTENT(OUT):: BJN(0:NMAX),DBJN(0:NMAX)
+        INTEGER:: n,ierr
 
       CALL BESJNV(NMAX,X,BJN,IERR)
+!      write(6,*) ierr,X
+!      WRITE(6,'(1P5E12.4)') (BJN(n),n=0,nmax)
       IF(IERR.NE.0) RETURN
 
       DBJN(0)=BJN(1)
@@ -355,6 +364,7 @@ CONTAINS
             DBJN(N)=BJN(N-1)-N*BJN(N)/X
          ENDDO
       ENDIF
+!      WRITE(6,'(1P5E12.4)') (DBJN(n),n=0,nmax)
       RETURN
     END SUBROUTINE BESSJN
 
