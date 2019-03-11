@@ -18,51 +18,58 @@ CONTAINS
       IERR=0
       IF(KNAMFP.EQ.KNAMFP_SAVE) RETURN
 
-      CALL FROPEN(21,KNAMFP,0,MODEFR,'FP',IERR)
-      IF(IERR.NE.0) THEN
-         WRITE(6,*) 'XX DPLDFP: FROPEN: IERR=',IERR
-         RETURN
-      ENDIF
-      REWIND(21)
+      IF(nrank.EQ.0) THEN
 
-      READ(21) NRMAX,NPMAX,NTHMAX,NSAMAX,NSBMAX,NSMAX
+         CALL FROPEN(21,KNAMFP,0,MODEFR,'FP',IERR)
+         IF(IERR.NE.0) THEN
+            WRITE(6,*) 'XX DPLDFP: FROPEN: IERR=',IERR
+            RETURN
+         ENDIF
+         REWIND(21)
 
-      CALL DPFP_ALLOCATE
+         READ(21) NRMAX,NPMAX,NTHMAX,NSAMAX,NSBMAX,NSMAX
 
-      READ(21) DELR,DELTH,RMIN,RMAX
-      DO NSA=1,NSAMAX
-         READ(21) NS_NSA(NSA)
-         READ(21) AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
-      END DO
+         CALL DPFP_ALLOCATE
 
-      DO NS=1,NSMAX
-         READ(21) DELP(NS),PMAX(NS),EMAX(NS)
-      END DO
+         READ(21) DELR,DELTH,RMIN,RMAX
+         DO NSA=1,NSAMAX
+            READ(21) NS_NSA(NSA)
+            READ(21) AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
+         END DO
 
-      DO NSA=1, NSAMAX
-         DO NR=1, NRMAX
-            DO NP=1, NPMAX
-               READ(21) (FNS(NTH,NP,NR,NSA), NTH=1, NTHMAX) ! -> FNSP, FNSB
+         DO NS=1,NSMAX
+            READ(21) DELP(NS),PMAX(NS),EMAX(NS)
+         END DO
+
+         DO NSA=1, NSAMAX
+            DO NR=1, NRMAX
+               DO NP=1, NPMAX
+                  READ(21) (FNS(NTH,NP,NR,NSA), NTH=1, NTHMAX)
+               END DO
             END DO
          END DO
-      END DO
 
-      CLOSE(21)
+         CLOSE(21)
+      END IF
       
       CALL mtx_broadcast1_integer(NRMAX)
       CALL mtx_broadcast1_integer(NPMAX)
       CALL mtx_broadcast1_integer(NTHMAX)
       CALL mtx_broadcast1_integer(NSAMAX)
+      CALL mtx_broadcast1_integer(NSBMAX)
+      CALL mtx_broadcast1_integer(NSMAX)
       CALL mtx_broadcast1_real8(DELR)
       CALL mtx_broadcast1_real8(DELTH)
       CALL mtx_broadcast1_real8(RMIN)
       CALL mtx_broadcast1_real8(RMAX)
       CALL mtx_broadcast_integer(NS_NSA,NSAMAX)
-      CALL mtx_broadcast_real8(DELP,NSAMAX)
       CALL mtx_broadcast_real8(AEFP,NSAMAX)
       CALL mtx_broadcast_real8(AMFP,NSAMAX)
       CALL mtx_broadcast_real8(RNFP0,NSAMAX)
       CALL mtx_broadcast_real8(RTFP0,NSAMAX)
+      CALL mtx_broadcast_real8(DELP,NSMAX)
+      CALL mtx_broadcast_real8(pmax,NSMAX)
+      CALL mtx_broadcast_real8(emax,NSMAX)
 
       DO NSA=1,NSAMAX
          CALL mtx_broadcast_real8(FNS(1:NTHMAX,1:NPMAX,1:NRMAX,NSA), &

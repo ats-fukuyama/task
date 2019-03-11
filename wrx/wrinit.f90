@@ -130,6 +130,11 @@ CONTAINS
       MDLWRQ = 1
       MDLWRW = 0
 
+! --- defined in dpx ---
+
+      NPMAX=50
+      NTHMAX=50
+
       RETURN
   END SUBROUTINE WR_INIT
 END MODULE wrinit

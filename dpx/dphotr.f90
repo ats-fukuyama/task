@@ -130,9 +130,9 @@ CONTAINS
 
          X = DKPP*PTH0*PG(NP,NS)*TSNM(NTH)/WCM
          CALL BESSJN(X,NHMAX,ADJ,ADJD)
-         DO NC=0,NHMAX-1
-            WRITE(6,'(A,3I5,1P3E12.4)') 'BESSJN:',NP,NTH,NC,X,ADJ(NC),ADJD(NC)
-         END DO
+!         DO NC=0,NHMAX-1
+!            WRITE(6,'(A,3I5,1P3E12.4)') 'BESSJN:',NP,NTH,NC,X,ADJ(NC),ADJD(NC)
+!         END DO
 
          DO NC=NCMIN,NCMAX
             NCD = ABS(NC)
@@ -304,6 +304,9 @@ CONTAINS
     COMPLEX(rkind):: CINTG421,CINTG422,CINTG423
     COMPLEX(rkind):: CINTG431,CINTG432,CINTG433
     COMPLEX(rkind):: CSM11,CSM12,CSM13,CSM22,CSM23,CSM33
+    COMPLEX(rkind):: cdelta
+
+    cdelta=CI*0.003D0
 
       NCMIN = NDISP1(NS)
       NCMAX = NDISP2(NS)
@@ -394,7 +397,7 @@ CONTAINS
 
             RGM=SQRT(1+PTH0W*PNEAR1**2) 
             CPART31= DFP3*PNEAR1**3 &
-                     /ABS(PTH0W*PNEAR1/RGM-CKPRW*TCSM(NTH))
+                     /ABS(PTH0W*PNEAR1/RGM-CKPRW*TCSM(NTH)+cdelta)
 
             IF(NC.LT.0.AND.MOD(-NC,2).EQ.1) THEN
                INC=-1
@@ -453,7 +456,7 @@ CONTAINS
 
             RGM=SQRT(1+PTH0W*PNEAR2**2) 
             CPART31= DFP3*PNEAR2**3 &
-                     /ABS(PTH0W*PNEAR2/RGM-CKPRW*TCSM(NTH))
+                     /ABS(PTH0W*PNEAR2/RGM-CKPRW*TCSM(NTH)+cdelta)
 
             IF(NC.LT.0.AND.MOD(-NC,2).EQ.1) THEN
                INC=-1
@@ -554,7 +557,7 @@ CONTAINS
 
             RGM=SQRT(1+PTH0W*PNEAR1**2) 
             CPART41=DFT4*PNEAR1**2*(TCSG(NTH)-PNEAR1*CKPRW/RGM) &
-                    /ABS(PTH0W*PNEAR1/RGM-CKPRW*TCSG(NTH))
+                    /ABS(PTH0W*PNEAR1/RGM-CKPRW*TCSG(NTH)+cdelta)
 
             IF(NC.LT.0.AND.MOD(-NC,2).EQ.1) THEN
                INC=-1
@@ -613,7 +616,7 @@ CONTAINS
 
             RGM=SQRT(1+PTH0W*PNEAR2**2) 
             CPART41=DFT4*PNEAR2**2*(TCSG(NTH)-PNEAR2*CKPRW/RGM) &
-                    /ABS(PTH0W*PNEAR2/RGM-CKPRW*TCSG(NTH))
+                    /ABS(PTH0W*PNEAR2/RGM-CKPRW*TCSG(NTH)+cdelta)
 
             IF(NC.LT.0.AND.MOD(-NC,2).EQ.1) THEN
                INC=-1

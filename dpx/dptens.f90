@@ -22,6 +22,8 @@ CONTAINS
     COMPLEX(rkind):: CLDISP1(6)
     INTEGER:: ID1,ID2,IDV,IERR
 
+!    WRITE(6,*) 'dp_tens:',modelp(1),modelv(1)
+
       IF(plf(NS)%RN.LE.0.D0) THEN
          CALL DPTNCL(CW,NS,mag,plf,CLDISP)
 !      ELSEIF(RHON_LOC.LT.RHON_MIN.OR.RHON_LOC.GT.RHON_MAX) THEN
