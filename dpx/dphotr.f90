@@ -306,9 +306,9 @@ CONTAINS
     COMPLEX(rkind):: CSM11,CSM12,CSM13,CSM22,CSM23,CSM33
     COMPLEX(rkind):: cdelta
 
-!    cdelta=CI*0.01D0
+    cdelta=CI*0.01D0
 !    cdelta=CI*0.003D0
-    cdelta=CI*0.0
+!    cdelta=CI*0.0
 
       NCMIN = NDISP1(NS)
       NCMAX = NDISP2(NS)

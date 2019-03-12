@@ -2284,7 +2284,7 @@ C-------------------------------------------------------------------
 C---------- Last line of CALJY0 ----------
       END
 C
-      DOUBLE PRECISION FUNCTION BESJ0(X)
+      DOUBLE PRECISION FUNCTION BESJ0X(X)
 CS    REAL FUNCTION BESJ0(X)
 C--------------------------------------------------------------------
 C
@@ -2299,13 +2299,13 @@ CS    REAL  X, RESULT
 C--------------------------------------------------------------------
       ID=0
       CALL CALJY0(X,RESULT,ID)
-      BESJ0 = RESULT
+      BESJ0X = RESULT
       RETURN
-C---------- Last line of BESJ0 ----------
+C---------- Last line of BESJ0X ----------
       END
 C
-      DOUBLE PRECISION FUNCTION BESY0(X)
-CS    REAL FUNCTION BESY0(X)
+      DOUBLE PRECISION FUNCTION BESY0X(X)
+CS    REAL FUNCTION BESY0X(X)
 C--------------------------------------------------------------------
 C
 C This subprogram computes approximate values for Bessel functions
@@ -2319,9 +2319,9 @@ CS    REAL  X, RESULT
 C--------------------------------------------------------------------
       ID=1
       CALL CALJY0(X,RESULT,ID)
-      BESY0 = RESULT
+      BESY0X = RESULT
       RETURN
-C---------- Last line of BESY0 ----------
+C---------- Last line of BESY0X ----------
       END
 C
       SUBROUTINE CALJY1(ARG,RESULT,ID)
@@ -2700,7 +2700,7 @@ C-------------------------------------------------------------------
 C---------- Last card of CALJY1 ----------
       END
 C
-      FUNCTION BESJ1(X)
+      FUNCTION BESJ1X(X)
 C--------------------------------------------------------------------
 C
 C This subprogram computes approximate values for Bessel functions
@@ -2711,16 +2711,16 @@ C--------------------------------------------------------------------
       INTEGER ID
 CS    REAL
       DOUBLE PRECISION
-     1   BESJ1,RESULT,X
+     1   BESJ1X,RESULT,X
 C--------------------------------------------------------------------
       ID=0
       CALL CALJY1(X,RESULT,ID)
-      BESJ1 = RESULT
+      BESJ1X = RESULT
       RETURN
-C---------- Last card of BESJ1 ----------
+C---------- Last card of BESJ1X ----------
       END
 C
-      FUNCTION BESY1(X)
+      FUNCTION BESY1X(X)
 C--------------------------------------------------------------------
 C
 C This subprogram computes approximate values for Bessel functions
@@ -2731,13 +2731,13 @@ C--------------------------------------------------------------------
       INTEGER ID
 CS    REAL
       DOUBLE PRECISION
-     1   BESY1,RESULT,X
+     1   BESY1X,RESULT,X
 C--------------------------------------------------------------------
       ID=1
       CALL CALJY1(X,RESULT,ID)
-      BESY1 = RESULT
+      BESY1X = RESULT
       RETURN
-C---------- Last card of BESY1 ----------
+C---------- Last card of BESY1X ----------
       END
 C
       SUBROUTINE CALCI0(ARG,RESULT,ID)
@@ -2968,7 +2968,7 @@ C----------- Last line of CALCI0 -----------
 C
 CS    REAL 
       DOUBLE PRECISION 
-     1    FUNCTION BESI0(X)
+     1    FUNCTION BESI0X(X)
 C--------------------------------------------------------------------
 C
 C This long precision subprogram computes approximate values for
@@ -2983,14 +2983,14 @@ CS    REAL
 C--------------------------------------------------------------------
       ID=1
       CALL CALCI0(X,RESULT,ID)
-      BESI0=RESULT
+      BESI0X=RESULT
       RETURN
-C---------- Last line of BESI0 ----------
+C---------- Last line of BESI0X ----------
       END
 C
 CS    REAL 
       DOUBLE PRECISION 
-     1    FUNCTION BESEI0(X)
+     1    FUNCTION BESEI0X(X)
 C--------------------------------------------------------------------
 C
 C This function program computes approximate values for the
@@ -3007,9 +3007,9 @@ CS    REAL
 C--------------------------------------------------------------------
       ID=2
       CALL CALCI0(X,RESULT,ID)
-      BESEI0=RESULT
+      BESEI0X=RESULT
       RETURN
-C---------- Last line of BESEI0 ----------
+C---------- Last line of BESEI0X ----------
       END
 C
       SUBROUTINE CALCI1(ARG,RESULT,ID)
@@ -3243,7 +3243,7 @@ C----------- Last line of CALCI1 -----------
 C
 CS    REAL
       DOUBLE PRECISION
-     1    FUNCTION BESI1(X)
+     1    FUNCTION BESI1X(X)
 C--------------------------------------------------------------------
 C
 C This long precision subprogram computes approximate values for
@@ -3258,14 +3258,14 @@ CS    REAL
 C--------------------------------------------------------------------
       ID=1
       CALL CALCI1(X,RESULT,ID)
-      BESI1=RESULT
+      BESI1X=RESULT
       RETURN
-C---------- Last line of BESI1 ----------
+C---------- Last line of BESI1X ----------
       END
 C
 CS    REAL
       DOUBLE PRECISION
-     1    FUNCTION BESEI1(X)
+     1    FUNCTION BESEI1X(X)
 C--------------------------------------------------------------------
 C
 C This function program computes approximate values for the
@@ -3282,9 +3282,9 @@ CS    REAL
 C--------------------------------------------------------------------
       ID=2
       CALL CALCI1(X,RESULT,ID)
-      BESEI1=RESULT
+      BESEI1X=RESULT
       RETURN
-C---------- Last line of BESEI1 ----------
+C---------- Last line of BESEI1X ----------
       END
 C
       SUBROUTINE CALCK0(ARG,RESULT,ID)
@@ -3519,7 +3519,7 @@ C---------- Last line of CALCK0 ----------
 C
 CS    REAL 
       DOUBLE PRECISION
-     1    FUNCTION BESK0(X)
+     1    FUNCTION BESK0X(X)
 C--------------------------------------------------------------------
 C
 C This function program computes approximate values for the
@@ -3539,14 +3539,14 @@ CS    REAL
 C--------------------------------------------------------------------
       ID = 1
       CALL CALCK0(X,RESULT,ID)
-      BESK0 = RESULT
+      BESK0X = RESULT
       RETURN
-C---------- Last line of BESK0 ----------
+C---------- Last line of BESK0X ----------
       END
 C
 CS    REAL
       DOUBLE PRECISION 
-     1    FUNCTION BESEK0(X)
+     1    FUNCTION BESEK0X(X)
 C--------------------------------------------------------------------
 C
 C This function program computes approximate values for the
@@ -3566,9 +3566,9 @@ CS    REAL
 C--------------------------------------------------------------------
       ID = 2
       CALL CALCK0(X,RESULT,ID)
-      BESEK0 = RESULT
+      BESEK0X = RESULT
       RETURN
-C---------- Last line of BESEK0 ----------
+C---------- Last line of BESEK0X ----------
       END
 C
       SUBROUTINE CALCK1(ARG,RESULT,ID)
@@ -3804,7 +3804,7 @@ C---------- Last line of CALCK1 ----------
 C
 CS    REAL 
       DOUBLE PRECISION 
-     1    FUNCTION BESK1(X)
+     1    FUNCTION BESK1X(X)
 C--------------------------------------------------------------------
 C
 C This function program computes approximate values for the
@@ -3819,14 +3819,14 @@ CS    REAL
 C--------------------------------------------------------------------
       ID = 1
       CALL CALCK1(X,RESULT,ID)
-      BESK1 = RESULT
+      BESK1X = RESULT
       RETURN
-C---------- Last line of BESK1 ----------
+C---------- Last line of BESK1X ----------
       END
 C
 CS    REAL 
       DOUBLE PRECISION 
-     1    FUNCTION BESEK1(X)
+     1    FUNCTION BESEK1X(X)
 C--------------------------------------------------------------------
 C
 C This function program computes approximate values for the
@@ -3842,7 +3842,7 @@ CS    REAL
 C--------------------------------------------------------------------
       ID = 2
       CALL CALCK1(X,RESULT,ID)
-      BESEK1 = RESULT
+      BESEK1X = RESULT
       RETURN
-C---------- Last line of BESEK1 ----------
+C---------- Last line of BESEK1X ----------
       END
