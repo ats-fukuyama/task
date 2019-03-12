@@ -277,8 +277,8 @@
       DO NRAY=1,NRAYMAX
          NITMX=NITMAX(NRAY)
          DO NIT=0,NITMX
-            CALL pl_mag(RXS(NIT,NRAY),RYS(NIT,NRAY),RZS(NIT,NRAY),RHON,MAG)
-            PSIX(NIT,NRAY)=RHON**2
+            CALL pl_mag(RXS(NIT,NRAY),RYS(NIT,NRAY),RZS(NIT,NRAY),MAG)
+            PSIX(NIT,NRAY)=MAG%RHON**2
             SI(NIT,NRAY)=RAYS(0,NIT,NRAY)
          ENDDO
 
@@ -306,6 +306,7 @@
             NCR=0
             DO NIT=1,NITMX
                PSIL=PSIX(NIT,NRAY)
+!               WRITE(6,'(A,2I5,1P3E12.4)') 'RAY-PSI:',NR,NIT,PSIPRE,PSIL,PSICR
                IF((PSIPRE-PSICR)*(PSIL-PSICR).LT.0.D0.OR. &
                    PSIL-PSICR.EQ.0.D0) THEN
                   CALL FPCROS(PSICR,NIT,NRAY,SICR)

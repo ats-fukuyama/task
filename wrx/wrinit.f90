@@ -93,6 +93,11 @@ CONTAINS
 !              3 : PARTIAL TORUS, PARTIAL RADIUS FOR DEPOSITION
 !             11 : 2D plane
 
+!     MDLWRP : TYPE OF Power deoposition profile GRAPHICS
+!              0 : Sum up of power deposition of each species
+!              1 : Power flux with respect to minor radius
+!              2 : Power flud with respect to major radius
+
 !     MDLWRQ : TYPE OF DIFFERENTIAL EQUATION IN RAY TRACING
 !              0 : RUNGE-KUTTA, FIXED STEPSIZE
 !              1 : RUNGE-KUTTA, FIXED STEPSIZE, with k_X adjust to satisfy D=0
@@ -127,6 +132,7 @@ CONTAINS
 
       MDLWRI = 0
       MDLWRG = 0
+      MDLWRP = 1
       MDLWRQ = 1
       MDLWRW = 0
 

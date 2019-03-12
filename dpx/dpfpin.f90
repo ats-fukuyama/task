@@ -87,7 +87,7 @@ CONTAINS
                AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA),DELP(NSA)
       ENDDO
       ENDIF
-!     
+
       DELTH=PI/NTHMAX
 
       DO NSA=1,NSAMAX
@@ -480,7 +480,7 @@ CONTAINS
          SUM=SUM*2.D0*PI*DELP(NS)*DELTH
       ENDIF
 
-      FACTOR=1.D0/SUM
+      FACTOR=RN0/(PN0*SUM)
       DO NP=1,NPMAX
          DO NTH=1,NTHMAX
             FM(NP,NTH) = FACTOR*FM(NP,NTH)

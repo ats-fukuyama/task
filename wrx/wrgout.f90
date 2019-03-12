@@ -52,7 +52,7 @@ CONTAINS
   SUBROUTINE WRGRFA
 
     USE wrcomm
-    USE plprof,ONLY:PL_RZSU,PL_MAG_OLD
+    USE plprof,ONLY:PL_RZSU,PL_MAG_OLD,PL_MAG_TYPE,PL_MAG
     IMPLICIT NONE
     INTEGER,PARAMETER:: NSUM=501
     INTEGER,PARAMETER:: NGXL=101
@@ -73,12 +73,13 @@ CONTAINS
     REAL(4):: GYSMIN,GYSMAX1,GYSCAL1,GYSMAX2,GYSCAL2,GYSMAX,GYSCAL
     REAL(4):: GXMIN,GXMAX,GXSTEP,GYMIN,GYMAX,GXORG,GZSCAL
     REAL(rkind):: DGX,DGY,ZL,RL,RHON,XL,YL,DRHO,RHON1,RHON2,SDR,DELPWR
-    REAL(rkind):: FACTA,FACTB
+    REAL(rkind):: FACTA,FACTB,RFL,wwl,wce
+    INTEGER:: ID
+    TYPE(pl_mag_type):: MAG
 
-!     MODEG=0 for power sumup, 
-!           1 for power flux (minor radius)
-!           2 for power flux (major radius)
-      MODEG=2
+!     MDLWRP=0 for power sumup, 
+!            1 for power flux (minor radius)
+!            2 for power flux (major radius)
 
 !     ----- PLASMA BOUNDARY -----
 
@@ -126,6 +127,8 @@ CONTAINS
       CALL SETLIN(0,2,4)
       CALL GPLOTP(GRS,GZS,1,NSUMAX+1,1,0,0,0)
 
+!     ----- magnetic surface -----
+
       IF(MODELG.EQ.3.OR.MODELG.EQ.5.OR.MODELG.EQ.8) THEN
          DGX=DBLE(GRMAX-GRMIN)/(NGXL-1)
          DO NGX=1,NGXL
@@ -144,6 +147,40 @@ CONTAINS
             ENDDO
          ENDDO
          CALL CONTP2(GCF,GCX,GCY,NGXL,NGXL,NGYL,0.1,0.1,9,0,1,KA)
+      ENDIF
+
+!     ----- cyclotron resonnce -----
+
+      RFL=RFIN(1)
+      ID=0
+      DO NRAY=2,NRAYMAX
+         IF(RFIN(NRAY).NE.RFL) ID=1
+      END DO
+      IF(ID.EQ.0) THEN
+         DGX=DBLE(GRMAX-GRMIN)/(NGXL-1)
+         DO NGX=1,NGXL
+            GCX(NGX)=GRMIN+(NGX-1)*GUCLIP(DGX)
+         ENDDO
+         DGY=DBLE(GZMAX-GZMIN)/(NGYL-1)
+         DO NGY=1,NGYL
+            GCY(NGY)=GZMIN+(NGY-1)*GUCLIP(DGY)
+         ENDDO
+         DO NGY=1,NGYL
+            ZL=DBLE(GCY(NGY))
+            DO NGX=1,NGXL
+               RL=DBLE(GCX(NGX))
+               CALL PL_MAG(RL,0.D0,ZL,mag)
+               wce=AEE*mag%BABS/AME
+               wwl=2.D0*PI*RFL*1.D6
+               GCF(NGX,NGY)=GUCLIP(wwl/wce)
+               IF(NGX.EQ.NGXL/2.AND.NGY.EQ.NGYL) THEN
+                  WRITE(6,'(A,1P5E12.4)') 'www/wce:',RL,ZL,wwl,wce,wwl/wce
+               END IF
+            ENDDO
+         ENDDO
+         CALL SETRGB(0.7,0.7,0.0)
+         CALL CONTP2(GCF,GCX,GCY,NGXL,NGXL,NGYL,1.0,1.0,5,0,3,KA)
+         CALL SETRGB(0.0,1.0,0.0)
       ENDIF
 
 !     ----- RAY TRAJECTORY -----
@@ -277,7 +314,7 @@ CONTAINS
 
 !     ----- draw weight power ----
 
-      IF(MODEG.EQ.0) THEN
+      IF(MDLWRP.EQ.0) THEN
       CALL GMNMX1(GPRY(1,1),1,NRDIVMAX,1,GYMIN,GYMAX)
       CALL GQSCAL(GYMIN,GYMAX,GYSMIN,GYSMAX1,GYSCAL1)
       GYSMIN=0.0
@@ -309,7 +346,7 @@ CONTAINS
 
 !     ----- DRAW POWER FLUX ----- minor raduis -----
       
-      IF(MODEG.EQ.1) THEN
+      IF(MDLWRP.EQ.1) THEN
       GZSMIN=0.0
       GZSMAX=1.1
       GZSCAL=0.2
@@ -348,7 +385,7 @@ CONTAINS
 
 !     ----- DRAW POWER FLUX ----- major radius ---
 
-      IF(MODEG.EQ.2) THEN
+      IF(MDLWRP.EQ.2) THEN
       GZSMIN=0.0
       GZSMAX=1.1
       GZSCAL=0.2

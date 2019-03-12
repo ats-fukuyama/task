@@ -394,7 +394,7 @@
       FUNCTION FPMXWL_EXP(PML,NR,NS)
 
       USE plprof
-      USE libbes,ONLY: besekn 
+      USE libbes,ONLY: beseknx 
       implicit none
       integer :: NR, NS
       real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
@@ -435,7 +435,7 @@
          THETA0L=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)
          THETAL=THETA0L*RTFDL/RTFD0L
          Z=1.D0/THETAL
-         DKBSL=BESEKN(2,Z)
+         DKBSL=BESEKNX(2,Z)
          FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DKBSL) &
               *RTFD0L
          EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL

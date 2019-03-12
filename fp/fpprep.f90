@@ -745,15 +745,12 @@
       INTEGER:: NTH,NP,NR,NSA,NS,NSB
       REAL(8):: FL
 
-      write(6,*) '--- point 11'
       DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
          DO NR=NRSTARTW,NRENDWM
             IF(NR.ge.1.and.NR.le.NRMAX)THEN
                DO NP=NPSTARTW,NPENDWM
-                  write(6,*) '--- point 12'
                   FL=FPMXWL(PM(NP,NS),NR,NS)
-                  write(6,*) '--- point 13'
 !                  IF(NRANK.EQ.0) WRITE(6,'(A,4I5,1PE12.4)') &
 !                       'NSA,NS,NR,NP,FL=',NSA,NS,NR,NP,FL
                   DO NTH=1,NTHMAX
@@ -764,7 +761,6 @@
             END IF
          END DO
       END DO
-      write(6,*) '--- point 14'
 
       DO NSA=NSASTART,NSAEND
          NS=NS_NSA(NSA)
@@ -772,9 +768,7 @@
             DO NR=NRSTARTW,NRENDWM
                IF(NR.ge.1.and.NR.le.NRMAX)THEN
                   DO NP=NPSTARTW,NPENDWM
-      write(6,*) '--- point 15'
                      FL=FPMXWL(PM(NP,NS),NR,NS)
-      write(6,*) '--- point 16'
                      DO NTH=1,NTHMAX
                         FNSP_MXWL(NTH,NP,NR,NSA)=FL
                         FNSP_DEL(NTH,NP,NR,NSA)=FL*1.D-30
@@ -795,7 +789,6 @@
 !            ENDDO
 !         END DO
 !      END DO
-      write(6,*) '--- point 17'
 
       CALL update_fnsb_maxwell
 
@@ -1355,11 +1348,8 @@
       CALL fp_set_normalize_param
 !     ----- Initialize velocity distribution function of all species -----
 
-      write(6,*) '--- point 1'
       CALL FNSP_INIT     
-      write(6,*) '--- point 2'
       CALL FNSP_INIT_EDGE
-      write(6,*) '--- point 3'
       IF(NRANK.EQ.0) WRITE(6,*) 'END INIT'
 !     ----- set background f
 

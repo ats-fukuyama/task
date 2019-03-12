@@ -492,7 +492,7 @@
       TYPE(pl_mag_type):: mag
 
       NS=NS_NSA(NSA)
-      CALL pl_mag(RX,RY,RZ,RHON,MAG)
+      CALL pl_mag(RX,RY,RZ,MAG)
 
       RW     =2.D0*PI*RF_WR*1.D6
       RWC    =AEFP(NSA)*MAG%BABS/AMFP(NSA)

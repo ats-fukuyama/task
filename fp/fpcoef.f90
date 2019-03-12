@@ -14,7 +14,7 @@
       USE fpcalwm
       USE fpcalwr
       USE fpcalr
-      USE libbes,ONLY: besekn
+      USE libbes,ONLY: beseknx
       USE libmtx
       USE FP_READ_FIT
 
@@ -1019,7 +1019,7 @@
          THETA0L=THETA0(NS)
          THETAL=THETA0L*RTFPL/RTFP0L
          Z=1.D0/THETAL
-            DKBSL=BESEKN(2,Z)
+            DKBSL=BESEKNX(2,Z)
             FACT=RNFPL*SQRT(THETA0L)/(4.D0*PI*RTFPL*DKBSL) &
              *RTFP0L
             EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL

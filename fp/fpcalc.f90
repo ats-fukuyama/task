@@ -563,7 +563,7 @@
 !
       FUNCTION FPRMXW(PN)
 
-      USE libbes,ONLY: besekn
+      USE libbes,ONLY: beseknx
       USE plprof
       real(8):: FPRMXW
       real(8),INTENT(IN):: PN
@@ -572,7 +572,7 @@
 
       IF(MODELR.eq.1)THEN
          Z=1.D0/THETAL_C
-         DKBSL=BESEKN(2,Z)
+         DKBSL=BESEKNX(2,Z)
          FACT=RNFDL_C*SQRT(THETA0L_C)/(4.D0*PI*RTFDL_C*DKBSL) &
               *RTFD0L_C
 

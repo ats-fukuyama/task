@@ -138,7 +138,7 @@ CONTAINS
          THETA0L=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)
          THETAL=THETA0L*RTFDL/RTFD0L
          Z=1.D0/THETAL
-         DKBSL=BESEKN(2,Z)
+         DKBSL=BESEKNX(2,Z)
 !         WRITE(*,'(A,2I5,4E14.6)') "TEST MXWL ", NR, NS, PML, Z, THETAL, DKBSL
          FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DKBSL) &
               *RTFD0L
@@ -189,7 +189,7 @@ CONTAINS
          THETA0L=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)
          THETAL=THETA0L*RTFDL/RTFD0L
          Z=1.D0/THETAL
-         DKBSL=BESEKN(2,Z)
+         DKBSL=BESEKNX(2,Z)
          FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DKBSL) &
               *RTFD0L
          EX=-(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
@@ -274,7 +274,7 @@ CONTAINS
          THETA0L=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)
          THETAL=THETA0L*RTFDL/RTFD0L
          Z=1.D0/THETAL
-            DKBSL=BESEKN(2,Z)
+            DKBSL=BESEKNX(2,Z)
             FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DKBSL) &
              *RTFD0L
             EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
@@ -380,8 +380,8 @@ CONTAINS
       REAL(8):: thetal,rfunc
       REAL(8):: z,dkbsl1,dkbsl2
       z=1.D0/thetal
-      dkbsl1=BESEKN(1,Z)
-      dkbsl2=BESEKN(2,Z)
+      dkbsl1=BESEKNX(1,Z)
+      dkbsl2=BESEKNX(2,Z)
       rfunc= (dkbsl1 /dkbsl2 -1.D0+3.D0/Z)
       RETURN
       END FUNCTION rfunc
@@ -402,10 +402,10 @@ CONTAINS
       REAL(8):: thetal,dfunc
       REAL(8):: z,dkbsl0,dkbsl1,dkbsl2,dkbsl3
       z=1.D0/thetal
-      dkbsl0=BESEKN(0,z)
-      dkbsl1=BESEKN(1,z)
-      dkbsl2=BESEKN(2,z)
-      dkbsl3=BESEKN(3,z)
+      dkbsl0=BESEKNX(0,z)
+      dkbsl1=BESEKNX(1,z)
+      dkbsl2=BESEKNX(2,z)
+      dkbsl3=BESEKNX(3,z)
       dfunc =( (dkbsl0 +dkbsl2 )/dkbsl2                           &
                 -(dkbsl1 +dkbsl3 )*dkbsl1 /dkbsl2 **2)*0.5d0*z**2 &
             +3.d0

@@ -19,7 +19,8 @@ CONTAINS
     REAL(4):: TIME1,TIME2
     INTEGER:: NS,NSS,NRAY
     REAL(rkind):: ZA1,ZA2,SINP2,SINT2,ANGZ,ANGPH
-    REAL(rkind):: RKR0_1,RKR0_2,EPARA1,EPERP1,EPARA2,EPERP2
+    REAL(rkind):: RKR0_1,RKR0_2,EPARA,EPERP
+    REAL(rkind):: RKR0_11,RKR0_12,RKR0_21,RKR0_22
 
     IERR=0
 
@@ -81,24 +82,44 @@ CONTAINS
        RKZI  =2.D6*PI*RF*RNZI  /VC
        RKPHII=2.D6*PI*RF*RNPHII/VC
 
-       SELECT CASE(MODEW)
-       CASE(1,2)
+       IF(MODEW.NE.0) THEN
           CALL WR_COLD_RKR0(RKR0_1,RKR0_2)
-          RKR0=RKR0_1
-          CALL WRCALE_I(EPARA1,EPERP1)
-          RKR0=RKR0_2
-          CALL WRCALE_I(EPARA2,EPERP2)
-          WRITE(6,'(A,1P3E12.4)') 'RKR0_1,EPARA,EPWEP=',RKR0_1,EPARA1,EPERP1
-          WRITE(6,'(A,1P3E12.4)') 'RKR0_2,EPARA,EPWEP=',RKR0_2,EPARA2,EPERP2
-          IF(MODEW.EQ.1) THEN
-             RKR0=RKR0_1
-          ELSE
-             RKR0=RKR0_2
-          END IF
-       END SELECT
+          rkr0_11= rkr0_1
+          rkr0_12=-rkr0_1
+          rkr0_21= rkr0_2
+          rkr0_22=-rkr0_2
+          WRITE(6,'(A,1P2E12.4)') 'COLD: RKR0_1,RKR0_2',RKR0_1,RKR0_2
+          RKR0=RKR0_11
+          CALL WRCALE_I(EPARA,EPERP)
+          WRITE(6,'(A,1P3E12.4)') &
+               'RKR0_11,EPARA,EPERP=',RKR0_11,EPARA,EPERP
+          RKR0=RKR0_12
+          CALL WRCALE_I(EPARA,EPERP)
+          WRITE(6,'(A,1P3E12.4)') &
+               'RKR0_12,EPARA,EPERP=',RKR0_12,EPARA,EPERP
+          RKR0=RKR0_21
+          CALL WRCALE_I(EPARA,EPERP)
+          WRITE(6,'(A,1P3E12.4)') &
+               'RKR0_21,EPARA,EPERP=',RKR0_21,EPARA,EPERP
+          RKR0=RKR0_22
+          CALL WRCALE_I(EPARA,EPERP)
+          WRITE(6,'(A,1P3E12.4)') &
+               'RKR0_22,EPARA,EPERP=',RKR0_22,EPARA,EPERP
 
-       RKZI  =2.D6*PI*RF*RNZI  /VC
-       RKPHII=2.D6*PI*RF*RNPHII/VC
+          IF(MODEW.EQ.1) THEN
+             RKR0=RKR0_11
+          ELSE IF(MODEW.EQ.-1) THEN
+             RKR0=RKR0_12
+          ELSE IF(MODEW.EQ.2) THEN
+             RKR0=RKR0_21
+          ELSE IF(MODEW.EQ.-2) THEN
+             RKR0=RKR0_22
+          END IF
+       END IF
+
+       RKRI  = RKR0
+       RKZI  = 2.D6*PI*RF*RNZI  /VC
+       RKPHII= 2.D6*PI*RF*RNPHII/VC
        CALL WRNWTN(IERR)  ! input RKR0,RKZI,RKPHII; output RKRI
        IF(IERR.NE.0) cycle
 

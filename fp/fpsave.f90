@@ -9,7 +9,6 @@
       USE fpcomm
       USE plprof
       USE fpexec
-      USE libbes,ONLY: besekn,besjnv
 
       contains
 
