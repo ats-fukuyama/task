@@ -1346,11 +1346,13 @@
       RNS_DELF(:,:)=0.D0
 !     ----- set parameters for target species -----
       CALL fp_set_normalize_param
+
 !     ----- Initialize velocity distribution function of all species -----
 
       CALL FNSP_INIT     
       CALL FNSP_INIT_EDGE
       IF(NRANK.EQ.0) WRITE(6,*) 'END INIT'
+
 !     ----- set background f
 
       CALL mtx_set_communicator(comm_nsa)

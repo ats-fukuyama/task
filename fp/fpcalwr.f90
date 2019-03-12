@@ -421,6 +421,18 @@
                      CALL FPDWLL(P,PSIN,PCOS,                      &
                                  CEX,CEY,CEZ,RKX,RKY,RKZ,RX,RY,RZ, &
                                  DWPPL,DWPTL,DWTPL,DWTTL,NSA)
+!                     IF(NRAY.EQ.2) &
+!                     WRITE(28,'(A,4I5,1P3E12.4)') &
+!                          'FPDWAV:',NR,NAV,NRAY,NCR,CEX,DWPPL
+!                     IF(NRAY.EQ.2) &
+!                     WRITE(28,'(A,1P6E12.4)') &
+!                          '------:',RX,RY,RZ,RKX,RKY,RKZ
+!                     IF(NRAY.EQ.1) &
+!                     WRITE(29,'(A,4I5,1P3E12.4)') &
+!                          'FPDWAV:',NR,NAV,NRAY,NCR,CEX,DWPPL
+!                     IF(NRAY.EQ.1) &
+!                     WRITE(29,'(A,1P6E12.4)') &
+!                          '------:',RX,RY,RZ,RKX,RKY,RKZ
                      DWPPS=DWPPS+DWPPL*RCOS/PCOS
                      DWPTS=DWPTS+DWPTL          /SQRT(PSI)
                      DWTPS=DWTPS+DWTPL          /SQRT(PSI)

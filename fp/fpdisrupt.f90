@@ -526,8 +526,12 @@
 !           NR,RR,QLM(NR),EPSRM2(NR),tau_rela,theta_l
 
       phi = f_t/(1.D0 + (0.58D0+0.2D0*Z_i) &
-                       *(2.D0*RR*QLM(NR)*EPSRM2(NR)**(-1.5D0) ) &
-                       /(3.D0*SQRT(2.D0*PI)*VC*tau_rela)/theta_l**2 )
+                       *(2.D0*RR*QLM(NR)*EPSRM2(NR)**(-1.5D0) )*theta_l**2 &
+                       /(3.D0*SQRT(2.D0*PI)*VC*tau_rela))
+! AF modified 190313
+!                       *(2.D0*RR*QLM(NR)*EPSRM2(NR)**(-1.5D0) ) &
+!                       /(3.D0*SQRT(2.D0*PI)*VC*tau_rela)/theta_l**2 )
+! /AF
 
       neoc=(1.D0-phi)*(1.D0-C_*phi)*(1.D0+0.47D0*(Z_i-1.D0))/ &
            (Z_i*(1.D0+0.27D0*(Z_i-1.D0)) )
