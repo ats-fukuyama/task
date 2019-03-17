@@ -303,7 +303,7 @@ CONTAINS
     INTEGER,INTENT(IN):: NZ
     INTEGER,INTENT(OUT):: IERR
     REAL(rkind):: DS0(2,2),DS1(2,2),DS2(2,2),DS3(2,2)
-    INTEGER:: I,J,L,N,MCEN,N1,N2,M,NX,NX1,NS,IA,IB,NCL,NXD,NQ
+    INTEGER:: I,J,L,N,N1,N2,M,NX,NX1,NS,IA,IB,NCL,NXD,NQ
     REAL(rkind):: RW,RKV,DTT0,DSS0,DTS1,DTS2,DTTW,DX
     REAL(rkind):: RKPR,RNPR,FACT,RKZA
     COMPLEX(rkind):: CFJX1,CFJX2
@@ -424,77 +424,31 @@ CONTAINS
        END DO
     END DO
 
-!    WRITE(6,*) 'MCEN=',MCEN
-!    DO NQ=3*NXMAX/2+2-4,3*NXMAX/2+2+4
-!       WRITE(6,'(I5,1P6E12.3)') &
-!            NQ,CF(MCEN-3,NQ),CF(MCEN-2,NQ),CF(MCEN-1,NQ)
-!       WRITE(6,'(I5,1P6E12.3)') &
-!            NQ,CF(MCEN  ,NQ),CF(MCEN+1,NQ),CF(MCEN+2,NQ)
-!       WRITE(6,'(I5,1P6E12.3)') &
-!            NQ,CF(MCEN+3,NQ),CF(MCEN+4,NQ),CF(MCEN+5,NQ)
-!    END DO
+! --- wave guide B.C. ---
 
-    IF(MDLWG.EQ.4) THEN
-       CF(MCEN  ,1)=CGIN(2,1)
-       CF(MCEN+3,1)=CGIN(3,1)
-       CF(MCEN-3,4)=CF(MCEN  ,4)
-       CA(4)=-CF(MCEN  ,4)*CFWG4
-       CF(MCEN  ,4)=0.D0
-    ELSE
-       DO I=1,MWID
-          CF(I,1)=0.D0
-          CF(I,4)=0.D0
-       END DO
-       CF(MCEN,1)=1.D0
-       CF(MCEN,4)=1.D0
-    END IF
+    CF(MCEN  ,1)=1.D0
+    CF(MCEN  ,2)=1.D0
+    DO I=1,MWID
+       CF(I,4)=0.D0
+       CF(I,5)=0.D0
+    END DO
+    CF(MCEN,4)=1.D0
+    CA(4)=CFWG4
+    CF(MCEN,5)=1.D0
+    CA(5)=CFWG3
 
-    IF(MDLWG.EQ.3) THEN
-       CF(MCEN  ,2)=CGIN(2,2)
-       CF(MCEN+3,2)=CGIN(3,2)
-       CF(MCEN-3,5)=CF(MCEN  ,5)
-       CA(5)=-CF(MCEN  ,5)*CFWG3
-       CF(MCEN  ,5)=0.D0
-    ELSE
-       DO I=1,MWID
-          CF(I,2)=0.D0
-          CF(I,5)=0.D0
-       END DO
-       CF(MCEN,2)=1.D0
-       CF(MCEN,5)=1.D0
-    END IF
+    CF(MCEN,  MLEN-4)=1.D0    ! ER over RHS wall
 
-    CF(MCEN,  MLEN-4)=1.D0    ! ER
-
-    IF(MDLWG.EQ.2) THEN
-       CF(MCEN+2,MLEN-3)=CF(MCEN,  MLEN-3)
-       CA(MLEN-3)=-CF(MCEN,MLEN-3)*CFWG2
-       CF(MCEN,  MLEN-3)=0.D0
-       CF(MCEN-2,MLEN-1)=CGOT(1,3)
-       CF(MCEN,  MLEN-1)=CGOT(2,3)
-    ELSE
-       DO I=1,MWID
-          CF(I,MLEN-3)=0.D0
-          CF(I,MLEN-1)=0.D0
-       END DO
-       CF(MCEN,MLEN-3)=1.D0
-       CF(MCEN,MLEN-1)=1.D0
-    END IF
-
-    IF(MDLWG.EQ.1) THEN
-       CF(MCEN-2,MLEN  )=CGOT(1,4)
-       CF(MCEN,  MLEN  )=CGOT(2,4)
-       CF(MCEN+2,MLEN-2)=CF(MCEN,  MLEN-2)
-       CA(MLEN-2)=-CF(MCEN,  MLEN-2)*CFWG1
-       CF(MCEN,  MLEN-2)=0.D0
-    ELSE
-       DO I=1,MWID
-          CF(I,MLEN-2)=0.D0
-          CF(I,MLEN  )=0.D0
-       END DO
-       CF(MCEN,MLEN-2)=1.D0
-       CF(MCEN,MLEN  )=1.D0
-    END IF
+    DO I=1,MWID
+       CF(I,MLEN-3)=0.D0
+       CF(I,MLEN-2)=0.D0
+    END DO
+    CF(MCEN,MLEN-3)=1.D0
+    CA(MLEN-3)=CFWG2
+    CF(MCEN,MLEN-2)=1.D0
+    CA(MLEN-2)=CFWG1
+    CF(MCEN,MLEN-1)=1.D0
+    CF(MCEN,MLEN)=1.D0
 
 !   antenna current in HFS
 
@@ -630,7 +584,7 @@ CONTAINS
                    DO IA=1,3
                       DO IB=1,3
                          CABSL=CABSL &
-                         -0.5D0*CONJG(CA(NN+IA))*CL(IA,IB,IL,NCL)*CA(MM+IB) &
+                         +0.5D0*CONJG(CA(NN+IA))*CL(IA,IB,IL,NCL)*CA(MM+IB) &
                          -0.5D0*CA(NN+IA)*CONJG(CL(IB,IA,IL,NCL)*CA(MM+IB))
 !                         -CONJG(CA(NN+IA))*CL(IA,IB,IL,NCL)*CA(MM+IB)
                       END DO

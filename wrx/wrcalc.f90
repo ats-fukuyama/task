@@ -323,11 +323,13 @@ CONTAINS
             CALL PL_MAG_OLD(XL,YL,ZL,RHON1)
             IF(RHON1.LE.1.D0) THEN
                NRS1=INT(RHON1/DRHO)+1
+               IF(NRS1.GT.NRDIVMAX-1) NRS1=NRDIVMAX-1
                XL=RAYS(1,NSTP+1,NRAY)
                YL=RAYS(2,NSTP+1,NRAY)
                ZL=RAYS(3,NSTP+1,NRAY)
                CALL PL_MAG_OLD(XL,YL,ZL,RHON2)
                NRS2=INT(RHON2/DRHO)+1
+               IF(NRS2.GT.NRDIVMAX-1) NRS2=NRDIVMAX-1
                NDR=ABS(NRS2-NRS1)
                IF(NDR.EQ.0) THEN
                   PWRRAY(NRS1,NRAY) &
