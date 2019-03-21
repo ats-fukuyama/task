@@ -44,13 +44,13 @@ PROGRAM testlamb
      END DO
      DO nx=1,nxmax
         x=xdata(nx)
-        f2data(nx,n)=BESEIN(n,x)
+        f2data(nx,n)=BESEINX(n,x)
      END DO
   END DO
 
   CALL PAGES
   CALL GRD1D(1,xdata,fdata,nxmax,nxmax,nmax-nmin*1,'@LAMBDA(x)@',0)
-  CALL GRD1D(2,xdata,f2data,nxmax,nxmax,nmax-nmin*1,'@BESEIN(x)@',0)
+  CALL GRD1D(2,xdata,f2data,nxmax,nxmax,nmax-nmin*1,'@BESEINX(x)@',0)
   CALL PAGEE
   DEALLOCATE(xdata,fdata,f2data,cl)
   GOTO 1

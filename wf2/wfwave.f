@@ -55,7 +55,7 @@ C     ****** SETUP ******
 C
       SUBROUTINE WFSETW
 C
-      USE libbes,ONLY: BESKN
+      USE libbes,ONLY: BESKNX
       INCLUDE 'wfcomm.inc'
 C
       IF(MODELS.EQ.3) THEN
@@ -63,7 +63,7 @@ C
          IF(RGAMMA.LT.1.D-5) THEN
             HA1=0.D0
          ELSE
-            HA1=RGAMMA*BESKN(1,2.D0*RGAMMA)+BESKN(2,2.D0*RGAMMA)
+            HA1=RGAMMA*BESKNX(1,2.D0*RGAMMA)+BESKNX(2,2.D0*RGAMMA)
          ENDIF
          RKAP=SQRT((1.D0+2.D0*HA1)/(1.D0-2.D0*HA1))
          WRITE(6,'(A,1P2E12.4)') 'HA1,RKAP=',HA1,RKAP

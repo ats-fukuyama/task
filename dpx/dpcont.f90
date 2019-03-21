@@ -240,12 +240,15 @@ CONTAINS
                RZ=X
             ENDIF
             CD=CFDISP(CRF,CKX,CKY,CKZ,RX,RY,RZ)
+
+! --- remove sign change due to cyc
+
             CW=2.D0*PI*1.D6*CRF
             IF(ABS(CW).LE.1.D-8) CW=(1.D-8,0.D0)
             CALL pl_mag(RX,RY,RZ,mag)
             DO NS=1,NSMAX
                CWC=mag%BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
-               CD=CD*(1.D0-CWC)
+!               CD=CD*(1.D0-CWC)
             ENDDO
 
             GX(NX)=GUCLIP(X)

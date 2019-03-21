@@ -159,7 +159,7 @@ MODULE dpinit
     MODEFA   = 0
     RMIN=0.D0
     RMAX=1.D0
-!
+
     RETURN
   END SUBROUTINE dp_init
 END MODULE dpinit

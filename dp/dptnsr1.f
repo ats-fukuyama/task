@@ -296,7 +296,7 @@ C
       SUBROUTINE DPTNKS(CW,CKPR,CKPP,NS,CLDISP)
 C
       USE libdsp,ONLY: DSPFN
-      USE libbes,ONLY: BESEIN
+      USE libbes,ONLY: BESEINX
       USE plcomm
       USE pllocal
       INCLUDE '../dp/dpcomm.inc'
@@ -322,7 +322,7 @@ C
       WTPX=SQRT(WTPR/WTPP)
       CBETA=CKPP*CKPP*WTPP/(CWC*CWC*CW*CW)
       DO N=0,NMAX
-         CALAM(N)=BESEIN(N,REAL(CBETA))
+         CALAM(N)=BESEINX(N,REAL(CBETA))
       END DO
 C      CBETA=CKPP*CKPP*WTPP/(CWC*CWC*CW*CW)
 C      CALL LAMBDA(MAX(ABS(NMIN),ABS(NMAX))+1,CBETA,CALAM,IERR)
@@ -368,7 +368,7 @@ C
       SUBROUTINE DPTNKP(CW,CKPR,CKPP,NS,CLDISP)
 C
       USE libdsp,ONLY: DSPFN
-      USE libbes,ONLY: BESEIN
+      USE libbes,ONLY: BESEINX
       USE plcomm
       USE pllocal
       INCLUDE '../dp/dpcomm.inc'
@@ -394,7 +394,7 @@ C
       WTPX=SQRT(WTPR/WTPP)
       CBETA=CKPP*CKPP*WTPP/(CWC*CWC*CW*CW)
       DO N=0,NMAX
-         CALAM(N)=BESEIN(N,REAL(CBETA))
+         CALAM(N)=BESEINX(N,REAL(CBETA))
       END DO
 C      CBETA=CKPP*CKPP*WTPP/(CWC*CWC*CW*CW)
 C      CALL LAMBDA(MAX(ABS(NMIN),ABS(NMAX))+1,CBETA,CALAM,IERR)
