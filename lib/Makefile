@@ -23,12 +23,14 @@ SRCSFREE  =  libbrn.f90 libinv.f90 libbnd.f90 \
              libgrf/grf1d.f90 libgrf/grd1d.f90 \
 	     libgrf/grf2d.f90 libgrf/grd2d.f90 libgrf/grd2dframe.f90 \
 	     libgrf.f90 \
-             libbes.f90 libde.f90 libdsp.f90 libell.f90 libspf.f90 \
+             libde.f90 libdsp.f90 libell.f90 libspf.f90 \
 	     libfft.f90 \
              libqsort.f90 \
-             libufile/ufinit.f90 libufile/uflist.f90 libufile/ufread.f90
+             libufile/ufinit.f90 libufile/uflist.f90 libufile/ufread.f90 \
+             libbes.f90  netlib-bes.f90
 
-SRCSFIXED =  netlib-bes.f $(LAPACK)
+#SRCSFIXED =  netlib-bes.f $(LAPACK)
+SRCSFIXED =  $(LAPACK)
 
 OBJSFREE  = $(SRCSFREE:.f90=.o)
 OBJSFIXED = $(SRCSFIXED:.f=.o)
@@ -42,7 +44,7 @@ OBJSMDS = $(MDSPLUS:.f=.o)
 all : tasklib.a mdslib.a
 
 tasklib.a: $(OBJSFREE) $(OBJSFIXED)
-	$(LD) $(LDFLAGS) tasklib.a $(OBJSFIXED) $(OBJSFREE) 
+	$(LD) $(LDFLAGS) tasklib.a $(OBJSFREE) $(OBJSFIXED)
 
 mdslib.a: $(OBJSMDS)
 	$(LD) $(LDFLAGS) mdslib.a $(OBJSMDS)
