@@ -33,6 +33,9 @@ CONTAINS
          ID1=MOD(MODELP(NS),100)
          ID2=MODELP(NS)/100
          IDV=MODELV(NS)
+         IF(IDV.NE.0.AND.(RHON_LOC.LT.RHON_MIN.OR.RHON_LOC.GT.RHON_MAX)) THEN
+            CALL DPTENS_AN(ID1,CW,CKPR,CKPP,NS,mag,plf,grd,CLDISP)
+         ELSE
          SELECT CASE(IDV)
          CASE(0)
             CALL DPTENS_AN(ID1,CW,CKPR,CKPP,NS,mag,plf,grd,CLDISP)
@@ -67,7 +70,7 @@ CONTAINS
                CALL DP_HOTR(CW,CKPR,CKPP,NS,mag,CLDISP)
             ENDIF
          END SELECT
-
+         END IF
          IF(ID2.EQ.2) THEN
             CALL DPTNCL(CW,NS,mag,plf,CLDISP1)
          ELSEIF(ID2.EQ.3) THEN

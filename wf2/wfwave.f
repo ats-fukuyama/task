@@ -873,7 +873,7 @@ C               WRITE(6,'(A,I3,1P6E12.4)') 'CV=',IJ,(CJ(I),I=1,3)
                END IF
                CJ(1)=(0.D0,0.D0)
                CJ(2)=(0.D0,0.D0)
-               CJ(3)=CVJ
+               CJ(3)=CVJ*XM
             CASE(3)
                IF(IJ.EQ.1) GO TO 20
                X1=XJ(IJ-1,NA)
@@ -888,12 +888,12 @@ C               WRITE(6,'(A,I3,1P6E12.4)') 'CV=',IJ,(CJ(I),I=1,3)
      &                                    /(YJ0(2,NA)-YJ0(1,NA))
      &            +RTJ0(1,NA)
                CFACT=EXP(CI*NPHI*ARG*PI/180.D00)
-               FACTOR=XJ0(1,NA)*(RTJ0(2,NA)-RTJ0(1,NA))*PI/180.D0
+               FACTOR=-XJ0(1,NA)*(RTJ0(2,NA)-RTJ0(1,NA))*PI/180.D0
      &                  /(YJ0(2,NA)-YJ0(1,NA))
                IF(MOD(NPHI,2).EQ.0) THEN
                   CVJ=0.D0
                ELSE
-                  CVJ=-2.D0*CNST*CFACT*CAJ(1)
+                  CVJ=-CNST*CFACT*CAJ(1)/PI
                END IF
                CJ(1)= (0.D0,0.D0)
                CJ(2)= CVJ*(Y2-Y1)
@@ -914,10 +914,11 @@ C               WRITE(6,'(A,I3,1P6E12.4)') 'CV=',IJ,(CJ(I),I=1,3)
                CFACT=EXP(CI*NPHI*ARG*PI/180.D00)
                FACTOR=XJ0(1,NA)*(RTJ0(2,NA)-RTJ0(1,NA))*PI/180.D0
      &                   /(YJ0(2,3)-YJ0(1,3))
-               CVJ=CNST*CFACT*CAJ(1)
+C               CVJ=CNST*CFACT*CAJ(1)/(2.D0*PI)
+               CVJ=0.D0
                CJ(1)= CVJ*(X2-X1)
                CJ(2)= CVJ*(Y2-Y1)
-               CJ(3)= CVJ*FACTOR*(Y2-Y1)
+               CJ(3)= CVJ*FACTOR*(Y2-Y1)*XM
             END SELECT
             END IF
 C
@@ -931,6 +932,11 @@ C
                RL=1.D0
                CKZ=CI*RKZ
             ENDIF
+C
+C            IF(ABS(CJ(1))+ABS(CJ(2))+ABS(CJ(3)).GT.0.D0) THEN
+C               WRITE(26,'(2I5,1P5E12.4)')
+C     &              NA,IJ,XM,YM,ABS(CJ(1)),ABS(CJ(2)),ABS(CJ(3))
+C            END IF
 C
             DO 50 N=1,3
                WEIGHT=A(N)+XM*B(N)+YM*C(N)
@@ -958,6 +964,11 @@ C                  WRITE(6,*) 'NA,IJ,IN=',NA,IJ,IN
    50       CONTINUE
    20    CONTINUE
    10 CONTINUE
+
+!      DO N=1,MLEN
+!         IF(ABS(CRV(N)).GT.0.D0) WRITE(6,'(A,I5,1P2E12.4)') 
+!     &        'CRV: ',N,CRV(N)
+!      END DO
       RETURN
       END
 C
@@ -1745,7 +1756,7 @@ C               WRITE(6,'(A,I3,1P6E12.4)') 'CV=',IJ,(CJ(I),I=1,3)
                END IF
                CJ(1)=(0.D0,0.D0)
                CJ(2)=(0.D0,0.D0)
-               CJ(3)=CVJ
+               CJ(3)=CVJ*XM
             CASE(3)
                IF(IJ.EQ.1) GO TO 50
                X1=XJ(IJ-1,NA)
@@ -1760,12 +1771,12 @@ C               WRITE(6,'(A,I3,1P6E12.4)') 'CV=',IJ,(CJ(I),I=1,3)
      &                                    /(YJ0(2,NA)-YJ0(1,NA))
      &            +RTJ0(1,NA)
                CFACT=EXP(CI*NPHI*ARG*PI/180.D00)
-               FACTOR=XJ0(1,NA)*(RTJ0(2,NA)-RTJ0(1,NA))*PI/180.D0
+               FACTOR=-XJ0(1,NA)*(RTJ0(2,NA)-RTJ0(1,NA))*PI/180.D0
      &                  /(YJ0(2,NA)-YJ0(1,NA))
                IF(MOD(NPHI,2).EQ.0) THEN
                   CVJ=0.D0
                ELSE
-                  CVJ=-2.D0*CNST*CAJ(1)*CFACT
+                  CVJ=-CNST*CAJ(1)*CFACT/PI
                END IF
                CJ(1)= (0.D0,0.D0)
                CJ(2)= CVJ*(Y2-Y1)
@@ -1786,10 +1797,11 @@ C               WRITE(6,'(A,I3,1P6E12.4)') 'CV=',IJ,(CJ(I),I=1,3)
                CFACT=EXP(CI*NPHI*ARG*PI/180.D00)
                FACTOR=XJ0(1,NA)*(RTJ0(2,NA)-RTJ0(1,NA))*PI/180.D0
      &                   /(YJ0(2,3)-YJ0(1,3))
-               CVJ=CNST*CAJ(1)*CFACT
+C               CVJ=CNST*CAJ(1)*CFACT/(2.D0*PI)
+               CVJ=0.D0
                CJ(1)= CVJ*(X2-X1)
                CJ(2)= CVJ*(Y2-Y1)
-               CJ(3)= CVJ*FACTOR*(Y2-Y1)
+               CJ(3)= CVJ*FACTOR*(Y2-Y1)*XM
             END SELECT
             ENDIF
 
