@@ -4,8 +4,8 @@ include ../make.header
 .SUFFIXES:
 .SUFFIXES: .f90 .f .mod .o .a
 
-FFLAGS = $(OFLAGS)
-#FFLAGS = $(DFLAGS)
+#FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
 MODINCLUDE=-I $(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD)
 
@@ -20,7 +20,8 @@ SRCSFREE =w1comm.f90 w1lib.f90 w1init.f90 w1parm.f90 \
           w1bcnd.f90 w1rslt.f90  \
           w1alfa.f90 w1disp.f90 w1grf1.f90 w1grf2.f90 \
           w1mlm.f90 w1fem.f90 w1intg.f90 w1gdsp.f90 \
-	  w1exec7.f90 w1exec8.f90 w1exec9.f90 \
+          w1exec6.f90 w1exec7.f90 w1exec8.f90 \
+          w1exec9.f90 w1exec10.f90 w1exec11.f90 \
           w1exec.f90 w1gout.f90 \
           w1menu.f90 w1main.f90
 
@@ -56,7 +57,12 @@ w1menu.o: w1comm.f90 w1menu.f90
 w1init.o: w1comm.f90 w1init.f90
 w1parm.o: w1comm.f90 w1parm.f90
 w1exec.o: w1comm.f90 w1exec.f90
+w1exec6.o: w1comm.f90 w1exec6.f90
 w1exec7.o: w1comm.f90 w1exec7.f90
+w1exec8.o: w1comm.f90 w1exec8.f90
+w1exec9.o: w1comm.f90 w1exec9.f90
+w1exec10.o: w1comm.f90 w1exec10.f90
+w1exec11.o: w1comm.f90 w1exec11.f90
 w1prepost.o: w1comm.f90 w1prepost.f90
 w1prepostx.o: w1comm.f90 w1prepostx.f90
 w1prep.o: w1comm.f90 w1prep.f90

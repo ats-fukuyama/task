@@ -44,7 +44,7 @@ program wfmain
   call setaif
   call wf_init
 
-  if (nrank.eq.0) call wf_parm(1,'wf',IERR)
+  if (nrank.eq.0) call wf_parm(1,'wfparm',IERR)
   call wfparm_broadcast
 
   ! --- menu ---

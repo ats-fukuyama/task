@@ -234,19 +234,7 @@ CONTAINS
           
        DO NS1=1,NSMAX
 
-          IF(modelp(ns1).EQ.5.OR. &
-             modelp(ns1).EQ.6.OR. &
-             modelp(ns1).eq.15) THEN
-             CALL DPCOLD_RKPERP(cw,ckpr,mag,plf,ckppf,ckpps)
-             IF(real(ckppf**2).GT.0.d0) THEN
-                ckpp1=ckppf
-             ELSE
-                ckpp1=ckpp
-             ENDIF
-          ELSE
-             ckpp1=ckpp
-          ENDIF
-          CALL DP_TENS(CW,CKPR,CKPP1,NS1,mag,plf,grd,CLDISP)
+          CALL DP_TENS(CW,CKPR,CKPP,NS1,mag,plf,grd,CLDISP)
           DO I=1,6
              CDISP(I)=CDISP(I)+CLDISP(I)
           ENDDO
@@ -259,19 +247,7 @@ CONTAINS
           grd(ns)%grdu=0.D0
        END IF
 
-       IF(modelp(ns).EQ.5.OR. &
-          modelp(ns).eq.6.OR. &
-          modelp(ns).eq.15) THEN
-          CALL DPCOLD_RKPERP(cw,ckpr,mag,plf,ckppf,ckpps)
-          IF(real(ckppf**2).GT.0.d0) THEN
-             ckpp1=ckppf
-          ELSE
-             ckpp1=ckpp
-          ENDIF
-       ELSE
-          ckpp1=ckpp
-       ENDIF
-       CALL DP_TENS(CW,CKPR,CKPP1,NS,mag,plf,grd,CDISP)
+       CALL DP_TENS(CW,CKPR,CKPP,NS,mag,plf,grd,CDISP)
     ENDIF
 
     CDTNS(1,1)= CDISP(1)
@@ -339,9 +315,7 @@ CONTAINS
     CCD=SQRT(CCB**2-4.D0*CCA*CCC)
     CKPPA=(-CCB+CCD)/(2.D0*CCA)
     CKPPB=(-CCB-CCD)/(2.D0*CCA)
-! ----- 2018-08-29 ----- correction by AF -----
-!    RKPPA2=REAL(CKPPA**2)
-!    RKPPB2=REAL(CKPPB**2)
+
     RKPPA2=REAL(CKPPA)
     RKPPB2=REAL(CKPPB)
     IF(RKPPA2.GE.0.D0) THEN
@@ -367,4 +341,69 @@ CONTAINS
     CKPPS=SQRT(CKPPB)*CW/VC
     RETURN
   END SUBROUTINE DPCOLD_RKPERP
+
+!     ****** CALCULATE KPERP ******
+
+  SUBROUTINE DP_RKPERP(CW,CKPR,CKPPF,CKPPS)
+
+    USE dpcomm
+    USE pllocal
+    IMPLICIT NONE
+    COMPLEX(rkind),INTENT(IN):: CW,CKPR
+    COMPLEX(rkind),INTENT(OUT):: CKPPF,CKPPS
+    COMPLEX(rkind):: CDISP(6),CLDISP(6)
+    COMPLEX(rkind):: CKPP,CNPR,CCS,CCD,CCP,CCA,CCB,CCC,CCD
+    COMPLEX(rkind):: CKPPA,CKPPB
+    INTEGER:: I,NS1
+
+    CDISP(1)=1.D0
+    DO I=2,6
+       CDISP(I)=0.D0
+    ENDDO
+    CKPP=(0.D0,0.D0)
+    CNPR=CKPR*VC/CW
+
+    DO NS1=1,NSMAX
+       CALL DPTENS(CW,CKPR,CKPP,NS1,CLDISP)
+       DO I=1,6
+          CDISP(I)=CDISP(I)+CLDISP(I)
+       ENDDO
+    ENDDO
+
+    CCS= CDISP(1)
+    CCD= -CI*CDISP(5)
+    CCP= CDISP(1)+CDISP(2)
+
+    CCA=CCS
+    CCB=(CCP+CCS)*CNPR**2-(CCS**2-CCD**2+CCS*CCP)
+    CCC=((CCS-CNPR**2)**2-CCD**2)*CCP
+    CCD=SQRT(CCB**2-4.D0*CCA*CCC)
+    CKPPA=(-CCB+CCD)/(2.D0*CCA)
+    CKPPB=(-CCB-CCD)/(2.D0*CCA)
+
+    RKPPA2=REAL(CKPPA)
+    RKPPB2=REAL(CKPPB)
+    IF(RKPPA2.GE.0.D0) THEN
+       IF(RKPPB2.GE.0.D0) THEN
+          IF(RKPPA2.GT.RKPPB2) THEN
+             CTEMP=CKPPA
+             CKPPA=CKPPB
+             CKPPB=CTEMP
+          ENDIF
+       ELSE
+          CKPPB=0.D0
+       ENDIF
+    ELSE
+       IF(RKPPB2.GE.0.D0) THEN
+          CKPPA=CKPPB
+          CKPPB=0.D0
+       ELSE
+          CKPPA=0.D0
+          CKPPB=0.D0
+       ENDIF
+    ENDIF
+    CKPPF=SQRT(CKPPA)*CW/VC
+    CKPPS=SQRT(CKPPB)*CW/VC
+    RETURN
+  END SUBROUTINE DP_RKPERP
 END MODULE dpdisp

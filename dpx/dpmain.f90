@@ -14,6 +14,7 @@ PROGRAM DP
 !                      V2.00  : 1996 FEB 04
 !                      V3.00  : 1997 AUG 05
 !                      V3.10  : 2000 NOV 25
+!                      V4.00  : 2019 APR 04
 
 !-----------------------------------------------------------------------
 
@@ -29,7 +30,7 @@ PROGRAM DP
 
   CALL mtx_initialize
   IF(nrank.EQ.0) THEN
-     WRITE(6,*) '## TASK/DP 2018/08/21'
+     WRITE(6,*) '## TASK/DP 2019/04/04'
      CALL GSOPEN
      OPEN(7,STATUS='SCRATCH')
   END IF

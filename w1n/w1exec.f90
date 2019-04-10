@@ -14,9 +14,12 @@ CONTAINS
     USE w1mlm,ONLY: w1bndb,w1bndd,w1epwb,w1epwd,w1wkxb,w1wkxd
     USE w1intg,ONLY: w1bndq,w1epwq,w1qtbl,w1dspq
     USE w1rslt,ONLY: w1clcd,w1clpw,w1held
-    USE w1exec7,ONLY: w1_exec7,w1qtblx
-    USE w1exec8,ONLY: w1_exec8
+    USE w1exec6,ONLY: w1_exec6
+    USE w1exec7,ONLY: w1_exec7
+    USE w1exec8,ONLY: w1_exec8,w1qtblx
     USE w1exec9,ONLY: w1_exec9
+    USE w1exec10,ONLY: w1_exec10
+    USE w1exec11,ONLY: w1_exec11
     IMPLICIT NONE
     REAL(rkind):: DXD,RFSAVE,RKSAVE
     INTEGER:: NS,NL,NZP,IERR,IC,ICL,NX
@@ -35,16 +38,16 @@ CONTAINS
     SELECT CASE(NMODEL)
     CASE(0:5)
        CALL w1pre(IERR)
-    CASE(6)
-       CALL w1pre(IERR)
-       DXD=XDMAX/NDMAX
-       CALL W1QTBL
-    CASE(7)
+    CASE(6:7,9:10)
+       CALL w1prex(IERR)
+    CASE(8,11)
        CALL w1prex(IERR)
        DXD=XDMAX/NDMAX
        CALL W1QTBLX
-    CASE(8:9)
-       CALL w1prex(IERR)
+    CASE(12)
+       CALL w1pre(IERR)
+       DXD=XDMAX/NDMAX
+       CALL W1QTBL
     END SELECT
 
 !     ******* 2-DIMENSIONAL ANALYSIS *******
@@ -131,7 +134,25 @@ CONTAINS
              CALL W1EVAC(NZP)
              CALL W1CLCD(NZP)
              CALL W1CLPW(NZP)
-          CASE(6) ! intg
+          CASE(6) ! new intg (one region)
+             CALL W1_EXEC6(NZP,IERR)
+                IF(IERR.NE.0) GOTO 2000
+          CASE(7) ! new warm
+             CALL W1_EXEC7(NZP,IERR)
+                IF(IERR.NE.0) GOTO 2000
+          CASE(8) ! new cold-collisional
+             CALL W1_EXEC8(NZP,IERR)
+                IF(IERR.NE.0) GOTO 2000
+          CASE(9) ! new intg (one region)
+             CALL W1_EXEC9(NZP,IERR)
+                IF(IERR.NE.0) GOTO 2000
+          CASE(10) ! new warm
+             CALL W1_EXEC10(NZP,IERR)
+                IF(IERR.NE.0) GOTO 2000
+          CASE(11) ! new cold-collisional
+             CALL W1_EXEC11(NZP,IERR)
+                IF(IERR.NE.0) GOTO 2000
+          CASE(12) ! intg
              CALL W1_BCND
              CALL W1DSPQ
              CALL W1BNDQ(IERR)
@@ -140,23 +161,14 @@ CONTAINS
              CALL W1EVAC(NZP)
              CALL W1CLCD(NZP)
              CALL W1CLPW(NZP)
-          CASE(7) ! new intg (one region)
-             CALL W1_EXEC7(NZP,IERR)
-                IF(IERR.NE.0) GOTO 2000
-          CASE(8) ! new warm
-             CALL W1_EXEC8(NZP,IERR)
-                IF(IERR.NE.0) GOTO 2000
-          CASE(9) ! new cold-collisional
-             CALL W1_EXEC9(NZP,IERR)
-                IF(IERR.NE.0) GOTO 2000
           END SELECT
 
        END DO
 
        SELECT CASE(NMODEL)
-       CASE(0:6)
+       CASE(0:5,12)
           CALL w1post
-       CASE(7:9)
+       CASE(6:11)
           CALL w1postx
        END SELECT
 

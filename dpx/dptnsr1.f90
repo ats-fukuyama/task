@@ -303,6 +303,7 @@ CONTAINS
   SUBROUTINE DPTNKL(CW,CKPR,CKPP,NS,mag,plf,CLDISP)
 
       USE libdsp,ONLY: DSPFN
+      USE ibbes,ONLY: BESEINX
       USE dpcomm
       USE plprof
       IMPLICIT NONE
@@ -334,12 +335,11 @@ CONTAINS
       WTPP=plf(NS)%RTPP*1.D3*AEE/(AMP*PA(NS))
       WTPX=SQRT(WTPR/WTPP)
       CBETA=CKPP*CKPP*WTPP/(CWC*CWC*CW*CW)
-      CALAM(0)=1.D0-      CBETA+0.750D0*CBETA*CBETA
-      CALAM(1)=     0.5D0*CBETA-0.500D0*CBETA*CBETA
-      CALAM(2)=                 0.125D0*CBETA*CBETA
-      CALAM(3)=0.D0
+      DO NC=0,NHMAX
+         CALAM(NC)=BESEINX(NC,REAL(CBETA))
+      END DO
 
-      DO NC=-2,2
+      DO NC=NCMIN,NCMAX
          CPR=CW/SQRT(2.D0*CKPR**2*WTPR)
          CGZ= (CWNU-NC*CWC)*CPR
          CALL DSPFN(CGZ,CZ,CDZ)
@@ -411,10 +411,6 @@ CONTAINS
       DO NH=0,NHMAX
          CALAM(NH)=BESEINX(NH,REAL(CBETA))
       END DO
-
-!      CALL LAMBDA(NHMAX,CBETA,CALAM,IERR)
-!      IF(IERR.EQ.1) WRITE(6,*) 'XX LAMBDA: N out of range'
-!      IF(IERR.EQ.2) WRITE(6,*) 'XX LAMBDA: CBETA out of range'
 
       DO NC=NCMIN,NCMAX
          IF(ABS(CKPR).LE.0.D0) THEN

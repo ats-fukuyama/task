@@ -74,17 +74,19 @@ MODULE dpinit
 !              6 : DRIFTKINETIC: READ FPDATA DISTRIBUTION
 !              9 : LOCAL MODEL (MODELV locally specified by MODELVR)
 !
-!     NDISP1: MINIMUM HARMONIC NUMBER
-!     NDISP2: MAXMUM  HARMONIC NUMBER
+!     NCMIN: MINIMUM HARMONIC NUMBER
+!     NCMAXx: MAXMUM  HARMONIC NUMBER
 
     DO NS=1,NSM
        MODELP(NS)= 0
        MODELV(NS)= 0
-       NDISP1(NS)=-2
-       NDISP2(NS)= 2
+       NCMIN(NS)=-2
+       NCMAX(NS)= 2
        PMAX(NS)= 7.D0
        NS_NSA(NS)=NS
     ENDDO
+    RHON_MIN=0.D0
+    RHON_MAX=1.D0
 
 !     --- Root finding and dispersion plot parameters ---
 !

@@ -648,7 +648,7 @@ SUBROUTINE MODANT(IERR)
   NE=0
   DO NA=1,NAMAX
      CALL FEP(RJ0(1,NA),ZJ0(1,NA),NE)
-
+     WRITE(6,'(A,I5,1P2E12.4,I5)') 'NA,RJ0,ZJ0=',NA,RJ0(1,NA),ZJ0(1,NA),NE
 !    outside starting point
 
      IF(NE.EQ.0) THEN

@@ -3,10 +3,9 @@
 MODULE w1exec7
 
   USE w1comm,ONLY: rkind
-  USE w1fflr,ONLY: w1fnmn
 
   PRIVATE
-  PUBLIC w1_exec7,w1qtblx
+  PUBLIC w1_exec7
 
   REAL(rkind):: DXD
   COMPLEX(rkind),DIMENSION(:,:,:,:),ALLOCATABLE:: CL
@@ -14,25 +13,24 @@ MODULE w1exec7
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: XM,YK
   COMPLEX(rkind),DIMENSION(:),ALLOCATABLE:: CS0,CS1,CS2,CS3
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: YX
-  REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: SF,SG,AF,AG
   INTEGER:: NXDMIN,NXDMAX,NXWMAX,NXLMAX,NCLMAX
 
 CONTAINS
 
-  SUBROUTINE w1_exec7(NZ,IERR)
+  SUBROUTINE w1_exec7(NZP,IERR)
 
     IMPLICIT NONE
-    INTEGER,INTENT(IN):: NZ
+    INTEGER,INTENT(IN):: NZP
     INTEGER,INTENT(OUT):: IERR
 
     IERR=0
     CALL W1BCND
-    CALL W1DSPQ
-    CALL W1BNDQ(NZ,IERR)
+    CALL W1DSP
+    CALL W1BND(IERR)
        IF(IERR.NE.0) RETURN
-    CALL W1EPWQ(NZ)
-    CALL W1CLCD(NZ)
-    CALL W1CLPW(NZ)
+    CALL W1EPW(NZP)
+    CALL W1CLCD(NZP)
+    CALL W1CLP(NZP)
     RETURN
   END SUBROUTINE w1_exec7
 
@@ -42,7 +40,7 @@ CONTAINS
     USE w1comm
     IMPLICIT NONE
     INTEGER:: I,J
-    REAL(rkind):: RW,RKV,RKPR,RNPR,RCE
+    REAL(rkind):: RW,RKV,RKPR,RNPR,RCE,RKKV2
     COMPLEX(rkind):: CKKV2,CKKV
 
     RW=2.D6*PI*RF
@@ -50,16 +48,21 @@ CONTAINS
     RKPR=RKZ
     RNPR=VC*RKPR/RW
     RCE=VC*EPS0
-    CKKV2=RNPR*RNPR-1.D0
-    CKKV =SQRT(CKKV2)
-
-    IF(ABS(WALLR).GT.1.D-12) THEN
-       CKKV2=RNPR*RNPR-1.D0-DCMPLX(0.D0,1.D0/(RCE*RKV*WALLR))
-       CKKV =SQRT(CKKV2)
-    ELSE 
-       CKKV2=RNPR*RNPR-1.D0
-       CKKV =SQRT(CKKV2)
+    RKKV2=RNPR*RNPR-1.D0
+    IF(RKKV2.GE.0.D0) THEN
+       CKKV2=RKKV2
+       CKKV =SQRT(RKKV2)
+    ELSE
+       CKKV2=RKKV2
+       CKKV=CI*SQRT(-RKKV2)
     ENDIF
+!    IF(ABS(WALLR).GT.1.D-12) THEN
+!       CKKV2=RNPR*RNPR-1.D0-DCMPLX(0.D0,1.D0/(RCE*RKV*WALLR))
+!       CKKV =SQRT(CKKV2)
+!    ELSE 
+!       CKKV2=RNPR*RNPR-1.D0
+!       CKKV =SQRT(CKKV2)
+!    ENDIF
 
     DO I=1,4    ! I=1:DEY I=2:DEZ I=3:EY I=4:EZ
        DO J=1,4 ! J=1:N-1, J=2:N, J=3:N+1, J=4:RHS
@@ -95,243 +98,146 @@ CONTAINS
     RETURN
   END SUBROUTINE W1BCND
 
-!     ******* LOCAL PLASMA PARAMETERS for INTG *******
+!     ******* LOCAL PLASMA PARAMETERS for WARM *******
 
-  SUBROUTINE W1DSPQ
+  SUBROUTINE W1DSP
     USE w1comm
+    USE w1alfa
     USE libdsp
-    USE libgrf
+    USE w1lib
     IMPLICIT NONE
-    COMPLEX(rkind),DIMENSION(:,:),ALLOCATABLE:: CGZ,CZ,CDZ
-    REAL(rkind):: X1(4)
-    COMPLEX(rkind):: CSB(3,3,4)
-    INTEGER:: NLW,NCL,IL,IA,IB,NX,NX1,NS,NCMAXS,NC,NN,NXD
-    REAL(rkind):: RT2,RW,FWP,FWC,FVT,RKPR,WC,UD,AKPR,ARG,RT,XD
-    REAL(rkind):: VXA,VKA,VXB,VKB,VXC,VKC,VXD,VKD,VX,VK,RLI,DXA,DXB,DELTAX
-    COMPLEX(rkind):: CT0A,CT1A,CT2A,CT3A,CT0B,CT1B,CT2B,CT3B
-    COMPLEX(rkind):: CT0C,CT1C,CT2C,CT3C,CT0D,CT1D,CT2D,CT3D
-    COMPLEX(rkind):: CT0,CT1,CT2,CT3
+
+!      CM0 , CD0         CM1 , CD1          CM2 , CD2
+!      1   2   0         0   0   1          1   2   0
+!    -(2)  3   0         0   0   2        -(2)  3   0
+!      0   0   4         1 -(2)  0          0   0   4
+
+    INTEGER:: NS,NX
+    REAL(rkind):: RW,RKPR,RNPR
+    COMPLEX(rkind):: CW,CWP0,CWC0,CWP,CWC
     
-! Allocation of local data array
-
-    IF(ALLOCATED(XM)) DEALLOCATE(XM,YX,YK,CS0,CS1,CS2,CS3)
-    ALLOCATE(XM(NXMAX),YX(NXMAX,NSMAX),YK(NXMAX))
-    ALLOCATE(CS0(NXMAX),CS1(NXMAX),CS2(NXMAX),CS3(NXMAX))
-    ALLOCATE(CGZ(NXMAX,NCMAX),CZ(NXMAX,NCMAX),CDZ(NXMAX,NCMAX))
-
-! Evaluation of NXWMAX (Maximum number of mesh to be integrated)
-
-    NXDMIN=-1
-    NXDMAX= 1
-    DO NS=1,NSMAX
-       FWC = AEE*PZ(NS)*BB/(AMP*PA(NS))
-       FVT = AEE*1.D3/(AMP*PA(NS))
-       DO NX=1,NXMAX
-          WC = FWC*PROFB(NX)
-          YX(NX,NS)=WC/SQRT(FVT*PROFTP(NX,NS))   ! inverse of Larmor radius
-          DO NX1=1,NXMAX
-             XD=ABS(XA(NX1)-XA(NX))*ABS(YX(NX,NS))
-             IF(XD.LE.XDMAX) THEN
-                NXD=NX1-NX
-                IF(NXD.LT.NXDMIN) NXDMIN=NXD
-                IF(NXD.GT.NXDMAX) NXDMAX=NXD
-             END IF
-          END DO
-       END DO
-    END DO
-    NXDMAX=MAX(NXDMAX,-NXDMIN)
-    NXDMIN=-NXDMAX
-    NXWMAX=NXDMAX-NXDMIN+1
-    IF(NZMAX.EQ.1) &
-         WRITE(6,'(A,3I5)') 'NXDMIN,NXDMAX,NXWMAX=',NXDMIN,NXDMAX,NXWMAX
-
-! Allocation of data index array
-
-    IF(ALLOCATED(NCLA)) DEALLOCATE(NCLA)
-    ALLOCATE(NCLA(NXWMAX,NXMAX,NSMAX))
-    NCLA(1:NXWMAX,1:NXMAX,1:NSMAX)=0
-
-! Evaluation of NCLMAX (Size of data array)
-
-    NCL=0
-    DO NS=1,NSMAX
-       DO NX=1,NXMAX-1
-          DO NX1=MAX(1,NX+NXDMIN),MIN(NX+NXDMAX,NXMAX)
-             XD=ABS(XA(NX1)-XA(NX))*ABS(YX(NX,NS))
-             IF(ABS(NX1-NX).LE.1.OR.XD.LE.XDMAX) THEN
-                NXD=NX1-NX+NXDMAX+1
-                IF(NCLA(NXD,NX,NS).EQ.0) THEN
-                   NCL=NCL+1
-                   NCLA(NXD,NX,NS)=NCL
-!                   WRITE(22,'(A,4I5)') 'nxd,nx,ns,ncl=',NXD,NX,NS,NCL
-                END IF
-             END IF
-          END DO
-       END DO
-    END DO
-    NCLMAX=NCL
-
-    IF(NZMAX.EQ.1) WRITE(6,'(A,I8)') 'NCLMAX=',NCLMAX
-
-! Allocation of data array
-
-    IF(ALLOCATED(CL)) DEALLOCATE(CL)
-    ALLOCATE(CL(3,3,4,NCLMAX))
-    CL(1:3,1:3,1:4,1:NCLMAX)=(0.D0,0.D0)
-
-! Calculation of CL
-
-    RT2  = SQRT ( 2.D0 )
     RW  = 2.D6*PI*RF
+    RKPR=RKZ
+    RNPR=VC*RKPR/RW
 
     DO NS=1,NSMAX
-       FWP = 1.D20*AEE*AEE*PZ(NS)*PZ(NS)/(AMP*PA(NS)*EPS0*RW*RW)
-       FWC = AEE*PZ(NS)*BB/(AMP*PA(NS))
-       FVT = AEE*1.D3/(AMP*PA(NS))
-       DO NX = 1 , NXMAX
-          RKPR=RKZ
-          IF(ABS(RKPR).LE.1.D-6) RKPR=1.D-6
-          WC = FWC*PROFB(NX)
-          UD = SQRT(FVT*PROFPU(NX,NS))
-          AKPR = RT2*ABS(RKPR)*SQRT(FVT*PROFTR(NX,NS))
-
-          NCMAXS=2*ABS(IHARM(NS))+1
-          DO NC=1,NCMAXS
-             NN=NC-ABS(IHARM(NS))-1
-             ARG=(RW-NN*WC)/AKPR
-             CGZ(NX,NC)= ARG
-          END DO
-       END DO
-
-       DO NC=1,NCMAXS
-!          DO NX=1,NXMAX
-!             CALL DSPFN(CGZ(NX,NC),CZ(NX,NC),CDZ(NX,NC))
-!          END DO
-          CALL DSPFNA(NXMAX,CGZ(1:NXMAX,NC),CZ(1:NXMAX,NC), &
-                            CDZ(1:NXMAX,NC))
-       END DO
-
-!       NX=NXMAX/2
-!      NC=3
-!      WRITE(6,'(A,3I5,1P4E12.4)') 'DSP:',NS,NX,NC,CGZ(NX,NC),CZ(NX,NC)
-
-       DO NC=1,NCMAXS
-          NN=NC-ABS(IHARM(NS))-1
-          DO NX=1,NXMAX
-             RKPR = RKZ
-             IF(ABS(RKPR).LE.1.D-6) RKPR=1.D-6
-             WC=FWC*PROFB(NX)
-             UD = SQRT(FVT*PROFPU(NX,NS))
-             AKPR = RT2*ABS(RKPR)*SQRT(FVT*PROFTR(NX,NS))
-             RT = PROFTP(NX,NS)/PROFTR(NX,NS)
-             XM(NX)=XAM(NX)
-!             XM(NX)=XA(NX)
-             YK(NX)=FWP*PROFPN(NX,NS)*ABS(YX(NX,NS))*RW/AKPR
-             CS0(NX)=CGZ(NX,NC)*CDZ(NX,NC)
-             CS1(NX)=CZ(NX,NC)+0.5D0*(1.D0-RT)*AKPR*CDZ(NX,NC)/RW
-             CS2(NX)=(RT+(1.D0-RT)*NN*WC/RW)*CDZ(NX,NC) &
-                    /SQRT(2.D0*RT)
-             CS3(NX)=(1.D0-1.D0/RT)*CS0(NX)*WC/RW
-          END DO
-
-          DO NX=1,NXMAX-1
-             DO NX1=MAX(1,NX+NXDMIN),MIN(NX+NXDMAX,NXMAX-1)
-                NXD=NX1-NX+NXDMAX+1 ! positive
-                NCL=NCLA(NXD,NX,NS)
-                IF(NCL.NE.0) THEN
-                   DXA=XA(NX+1)-XA(NX)
-                   DXB=XA(NX1+1)-XA(NX1)
-                   X1(1)=XA(NX)-XA(NX1)
-                   X1(2)=XA(NX+1)-XA(NX1)
-                   X1(3)=XA(NX)-XA(NX1+1)
-                   X1(4)=XA(NX+1)-XA(NX1+1)
-                   IF(NX.EQ.NX1) THEN
-                      X1(1)= 0.D0
-                      X1(4)= 0.D0
-                   ELSEIF(NX+1.EQ.NX1) THEN
-                      X1(2)=0.D0
-                   ELSEIF(NX.EQ.NX1+1) THEN
-                      X1(3)=0.D0
-                   ENDIF
-
-                   CALL W1QLNI(0.5D0*(XA(NX  )+XA(NX1  )), &
-                               VXA,VKA,CT0A,CT1A,CT2A,CT3A,NS)
-                   CALL W1QLNI(0.5D0*(XA(NX+1)+XA(NX1  )), &
-                               VXB,VKB,CT0B,CT1B,CT2B,CT3B,NS)
-                   CALL W1QLNI(0.5D0*(XA(NX  )+XA(NX1+1)), &
-                               VXC,VKC,CT0C,CT1C,CT2C,CT3C,NS)
-                   CALL W1QLNI(0.5D0*(XA(NX+1)+XA(NX1+1)), &
-                               VXD,VKD,CT0D,CT1D,CT2D,CT3D,NS)
-                   VX =0.25D0*(VXA +VXB +VXC +VXD )
-                   VK =0.25D0*(VKA +VKB +VKC +VKD )
-                   CT0=0.25D0*(CT0A+CT0B+CT0C+CT0D)
-                   CT1=0.25D0*(CT1A+CT1B+CT1C+CT1D)
-                   CT2=0.25D0*(CT2A+CT2B+CT2C+CT2D)
-                   CT3=0.25D0*(CT3A+CT3B+CT3C+CT3D)
-                   CALL W1QCAL(X1,DXA,DXB,VX,CT0,CT1,CT2,CT3,CSB,NN)
-
-                   DO  IL=1,4
-                      DO IA=1,3
-                         DO IB=1,3
-                            CL(IA,IB,IL,NCL)=CL(IA,IB,IL,NCL) &
-                                            +VK*CSB(IA,IB,IL)*DXA*DXB
-                         END DO
-                      END DO
-                   END DO
-                END IF
-             END DO
-          END DO
+       CW  = (1.D0 + CI*PZCL(NS))*RW
+       CWP0 = 1.D20*AEE*AEE*PZ(NS)*PZ(NS)/(AMP*PA(NS)*EPS0*CW*RW)
+       CWC0 = AEE*PZ(NS)*BB/(AMP*PA(NS)*CW)
+       DO NX=1,NXMAX
+          CWP  = CWP0*PROFPN(NX,NS)
+          CWC  = CWC0*PROFB(NX)
+          CM0(1,NX,NS) = -CWP/(1.D0-CWC*CWC)
+          CM0(2,NX,NS) = -CI*CWP*CWC/(1.D0-CW*CWC)
+          CM0(3,NX,NS) = -CWP/(1.D0-CWC*CWC)
+          CM0(4,NX,NS) = -CWP
+          CM1(1,NX,NS) = 0.D0
+          CM1(2,NX,NS) = 0.D0
+          CM2(1,NX,NS) = 0.D0
+          CM2(2,NX,NS) = 0.D0
+          CM2(3,NX,NS) = 0.D0
+          CM2(4,NX,NS) = 0.D0
        END DO
     END DO
 
-!    DO NCL=600,602
-!       DO IL=1,4
-!          DO IB=1,3
-!             WRITE(6,'(A,I4,2I2,1P6E11.3)') &
-!                  'CL:',NCL,IL,IB,(CL(IA,IB,IL,NCL),IA=1,3)
-!          END DO
-!       END DO
-!    END DO
+    DO NX = 1 , NXMAX
+       CD0( 1 , NX ) =  1.D0 - RNPR*RNPR
+       CD0( 2 , NX ) =  0.D0
+       CD0( 3 , NX ) =  1.D0 - RNPR*RNPR
+       CD0( 4 , NX ) =  1.D0
+       CD1( 1 , NX ) =  RNPR
+       CD1( 2 , NX ) =  0.D0
+       CD2( 1 , NX ) =  0.D0
+       CD2( 2 , NX ) =  0.D0
+       CD2( 3 , NX ) = -1.D0
+       CD2( 4 , NX ) = -1.D0
+    END DO
+
+    DO NS = 1 , NSMAX
+       DO NX = 1 , NXMAX
+          CD0( 1 , NX ) = CD0( 1 , NX ) + CM0( 1 , NX , NS )
+          CD0( 2 , NX ) = CD0( 2 , NX ) + CM0( 2 , NX , NS )
+          CD0( 3 , NX ) = CD0( 3 , NX ) + CM0( 3 , NX , NS )
+          CD0( 4 , NX ) = CD0( 4 , NX ) + CM0( 4 , NX , NS )
+          CD1( 1 , NX ) = CD1( 1 , NX ) + CM1( 1 , NX , NS )
+          CD1( 2 , NX ) = CD1( 2 , NX ) + CM1( 2 , NX , NS )
+          CD2( 1 , NX ) = CD2( 1 , NX ) + CM2( 1 , NX , NS )
+          CD2( 2 , NX ) = CD2( 2 , NX ) + CM2( 2 , NX , NS )
+          CD2( 3 , NX ) = CD2( 3 , NX ) + CM2( 3 , NX , NS )
+          CD2( 4 , NX ) = CD2( 4 , NX ) + CM2( 4 , NX , NS )
+       END DO
+    END DO
     RETURN
-  END SUBROUTINE W1DSPQ
+  END SUBROUTINE W1DSP
 
 !     ******* BAND MATRIX COEFFICIENT *******
 
-  SUBROUTINE W1BNDQ(NZ,IERR)
+  SUBROUTINE W1BND(IERR)
     USE w1comm
     IMPLICIT NONE
-    INTEGER,INTENT(IN):: NZ
     INTEGER,INTENT(OUT):: IERR
-    REAL(rkind):: DS0(2,2),DS1(2,2),DS2(2,2),DS3(2,2)
-    INTEGER:: I,J,L,N,N1,N2,M,NX,NX1,NS,IA,IB,NCL,NXD,NQ
-    REAL(rkind):: RW,RKV,DTT0,DSS0,DTS1,DTS2,DTTW,DX
-    REAL(rkind):: RKPR,RNPR,FACT,RKZA
-    COMPLEX(rkind):: CFJX1,CFJX2
+    REAL(rkind):: DS0(2,2,2),DS1(2,2,2),DS2(2,2,2)
+    REAL(rkind):: DT0(2,2,2),DT1(2,2,2),DU0(2,2,2)
+    INTEGER:: I,J,K,N,L,N1,N2,M,NX
+    REAL(rkind):: RW,RKV,DX,DS01,DS02
+    REAL(rkind):: DS11,DS12,DS11A,DS12A,DS21,DS22
+    REAL(rkind):: DT11,DT12,DT11A,DT12A,DT21,DT22
 
-    DS0(1,1)=1.D0/3.D0
-    DS0(2,1)=1.D0/6.D0
-    DS0(1,2)=1.D0/6.D0
-    DS0(2,2)=1.D0/3.D0
-    DS1(1,1)=1.D0
-    DS1(2,1)=0.D0
-    DS1(1,2)=0.D0
-    DS1(2,2)=0.D0
-    DS2(1,1)=-1.D0
-    DS2(2,1)= 1.D0
-    DS2(1,2)=0.D0
-    DS2(2,2)=0.D0
-    DS3(1,1)= 1.D0
-    DS3(2,1)=-1.D0
-    DS3(1,2)=-1.D0
-    DS3(2,2)= 1.D0
-
-    MWID=3*(2*NXDMAX+4)-1
+    MWID=11
     MLEN=3*NXMAX+4
     ALLOCATE(CF(MWID,MLEN))
-    MCEN=3*NXDMAX+6
+    MCEN=6
 
     RW=2.D6*PI*RF
     RKV=RW/VC
+
+    DO I=1,2
+       DO J=1,2
+          DO K=1,2
+             IF(I.EQ.J.AND.I.EQ.K) THEN
+                DS0(I,J,K)=0.25D0
+             ELSE
+                DS0(I,J,K)=1.D0/12.D0
+             ENDIF
+             IF(J.EQ.K) THEN
+                DS1(I,J,K)=1.D0/3.D0
+             ELSE
+                DS1(I,J,K)=1.D0/6.D0
+             ENDIF
+             IF(I.EQ.1) THEN
+                DS1(I,J,K)=-DS1(I,J,K)
+             ENDIF
+             IF(I.EQ.J) THEN
+                DS2(I,J,K)= 0.5D0
+             ELSE
+                DS2(I,J,K)=-0.5D0
+             ENDIF
+             IF(I.EQ.1) THEN
+                IF(J.EQ.K) THEN
+                   DT0(I,J,K)=1.D0/3.D0
+                ELSE
+                   DT0(I,J,K)=1.D0/6.D0
+                ENDIF
+             ELSE
+                DT0(I,J,K)=0.D0
+             ENDIF
+             IF(I.EQ.1) THEN
+                IF(J.EQ.1) THEN
+                   DT1(I,J,K)=-0.5D0
+                ELSE
+                   DT1(I,J,K)= 0.5D0
+                ENDIF
+             ELSE
+                DT1(I,J,K)=0.D0
+             ENDIF
+             IF(I.EQ.1.AND.J.EQ.1) THEN
+                DU0(I,J,K)=0.5D0
+             ELSE
+                DU0(I,J,K)=0.D0
+             ENDIF
+          END DO
+       END DO
+    END DO
 
     DO I=1,MLEN
        DO J=1,MWID
@@ -344,210 +250,196 @@ CONTAINS
 
     DO I=1,2
        DO J=1,2
-          L=MCEN+3*(J-I)-1
-          DTT0=DS0(I,J)
-          DSS0=DS1(I,J)
-          DTS1=DS2(I,J)
-          DTS2=DS2(J,I)
-          DTTW=DS3(I,J)
+          L=3*(J-I+2)-1
+          DS01=DS0(I,J,1)
+          DS02=DS0(I,J,2)
+          DS11=DS1(I,J,1)+0.5D0*DS1(1,I,J)
+          DS12=DS1(I,J,2)+0.5D0*DS1(2,I,J)
+          DS11A=DS1(J,I,1)+0.5D0*DS1(1,J,I)
+          DS12A=DS1(J,I,2)+0.5D0*DS1(2,J,I)
+          DS21=DS2(I,J,1)+0.25D0*(DS2(I,1,J)+DS2(J,1,I))
+          DS22=DS2(I,J,2)+0.25D0*(DS2(I,2,J)+DS2(J,2,I))
+          DT11=DT1(I,J,1)+0.5D0*DT1(I,1,J)
+          DT12=DT1(I,J,2)+0.5D0*DT1(I,2,J)
+          DT11A=DT1(J,I,1)+0.5D0*DT1(J,1,I)
+          DT12A=DT1(J,I,2)+0.5D0*DT1(J,2,I)
 
           DO NX=1,NXMAX-1
-             RKPR=RKZ
-             IF(ABS(RKPR).LE.1.D-6) RKPR=1.D-6
-             RNPR=VC*RKPR/RW
              N1=NX
              N2=NX+1
              DX=RKV*(XA(N2)-XA(N1))
-             M=3*(NX-1)+3*(I-1)+2
+!             WRITE(6,'(A,2I5,1P4E12.4)') 'N1,N2,XA,DX,RKV=', &
+!                  N1,N2,XA(N1),XA(N2),DX,RKV
+             M=3*(NX+I-1)-1
              CF(L+1,M+1)=CF(L+1,M+1) &
-                        +(1.D0-RNPR*RNPR)*DSS0*DX
+                        +CD0(1,N1)*DU0(I,J,1)*DX &
+                        +CD0(1,N2)*DU0(I,J,2)*DX
+             CF(L+2,M+1)=CF(L+2,M+1) &
+                        +CD0(2,N1)*DT0(I,J,1)*DX &
+                        +CD0(2,N2)*DT0(I,J,2)*DX
+             CF(L,  M+2)=CF(L,  M+2) &
+                       -CD0(2,N1)*DT0(J,I,1)*DX &
+                       -CD0(2,N2)*DT0(J,I,2)*DX
              CF(L+1,M+2)=CF(L+1,M+2) &
-                        +(1.D0-RNPR*RNPR)*DTT0*DX &
-                        -DTTW/DX
+                        +CD0(3,N1)*DS01*DX &
+                        +CD0(3,N2)*DS02*DX &
+                        +CD2(3,N1)*DS21/DX &
+                        +CD2(3,N2)*DS22/DX
              CF(L+1,M+3)=CF(L+1,M+3) &
-                        +DTT0*DX &
-                        -DTTW/DX
+                        +CD0(4,N1)*DS01*DX &
+                        +CD0(4,N2)*DS02*DX &
+                        +CD2(4,N1)*DS21/DX &
+                        +CD2(4,N2)*DS22/DX
              CF(L+3,M+1)=CF(L+3,M+1) &
-                        -CI*RNPR*DTS2
+                        -CI*CD1(1,N1)*DT11 &
+                        -CI*CD1(1,N2)*DT12
+             CF(L+2,M+2)=CF(L+2,M+2) &
+                        +CI*CD1(2,N1)*DS11 &
+                        +CI*CD1(2,N2)*DS12
              CF(L-1,M+3)=CF(L-1,M+3) &
-                        +CI*RNPR*DTS1
+                        +CI*CD1(1,N1)*DT11A &
+                        +CI*CD1(1,N2)*DT12A
+             CF(L,  M+3)=CF(L,  M+3) &
+                        +CI*CD1(2,N1)*DS11A &
+                        +CI*CD1(2,N2)*DS12A
           END DO
        END DO
     END DO
 
-    
-!    WRITE(6,*) 'MCEN=',MCEN
-!    DO NQ=3*NXMAX/2+2-4,3*NXMAX/2+2+4
-!       WRITE(6,'(I5,1P6E12.3)') &
-!            NQ,CF(MCEN-3,NQ),CF(MCEN-2,NQ),CF(MCEN-1,NQ)
-!       WRITE(6,'(I5,1P6E12.3)') &
-!            NQ,CF(MCEN  ,NQ),CF(MCEN+1,NQ),CF(MCEN+2,NQ)
-!       WRITE(6,'(I5,1P6E12.3)') &
-!            NQ,CF(MCEN+3,NQ),CF(MCEN+4,NQ),CF(MCEN+5,NQ)
-!    END DO
-
-!    NS=1
-!    NX=NXMAX/2
-!    NXD=NXWMAX/2
-!    NCL=NCLA(NXD,NX,NS)
-!    WRITE(21,'(A,4I5)') 'NS,NX,NXD,NCL=',NS,NX,NXD,NCL
-!    DO IA=1,3
-!       DO IB=1,3
-!          WRITE(21,'(I5,3I3,1P2E12.4)') NCL,IA,IA,1,CL(IB,IA,1,NCL)
-!          WRITE(21,'(I5,3I3,1P2E12.4)') NCL,IA,IA,2,CL(IB,IA,2,NCL)
-!          WRITE(21,'(I5,3I3,1P2E12.4)') NCL,IA,IA,3,CL(IB,IA,3,NCL)
-!          WRITE(21,'(I5,3I3,1P2E12.4)')NCL,IA,IA,4,CL(IB,IA,4,NCL)
-!       END DO
-!    END DO
-
-    DO NS=1,NSMAX
-       DO NX=1,NXMAX
-          M=3*(NX-1)+2
-          DO NXD=1,NXWMAX
-             L=3*NXD+2
-             NCL=NCLA(NXD,NX,NS)
-             IF(NCL.NE.0) THEN
-                DO IA=1,3
-                   DO IB=1,3
-                      CF(L+IA-IB+1,M+IB  )=CF(L+IA-IB+1,M+IB  ) &
-                                          +CL(IB,IA,1,NCL)*RKV
-                      CF(L+IA-IB+4,M+IB  )=CF(L+IA-IB+4,M+IB  ) &
-                                          +CL(IB,IA,3,NCL)*RKV
-                      CF(L+IA-IB-2,M+IB+3)=CF(L+IA-IB-2,M+IB+3) &
-                                          +CL(IB,IA,2,NCL)*RKV
-                      CF(L+IA-IB+1,M+IB+3)=CF(L+IA-IB+1,M+IB+3) &
-                                          +CL(IB,IA,4,NCL)*RKV
-                   END DO
-                END DO
-             END IF
-          END DO
+    IF(MDLWG.EQ.4) THEN
+       DO I=1,MWID
+          CF(I,1)=0.D0
        END DO
-    END DO
-
-! --- wave guide B.C. ---
-
-    CF(MCEN  ,1)=1.D0
-    CF(MCEN  ,2)=1.D0
-    DO I=1,MWID
-       CF(I,4)=0.D0
-       CF(I,5)=0.D0
-    END DO
-    CF(MCEN,4)=1.D0
-    CA(4)=CFWG4
-    CF(MCEN,5)=1.D0
-    CA(5)=CFWG3
-
-    CF(MCEN,  MLEN-4)=1.D0    ! ER over RHS wall
-
-    DO I=1,MWID
-       CF(I,MLEN-3)=0.D0
-       CF(I,MLEN-2)=0.D0
-    END DO
-    CF(MCEN,MLEN-3)=1.D0
-    CA(MLEN-3)=CFWG2
-    CF(MCEN,MLEN-2)=1.D0
-    CA(MLEN-2)=CFWG1
-    CF(MCEN,MLEN-1)=1.D0
-    CF(MCEN,MLEN)=1.D0
-
-!   antenna current in HFS
-
-    RKZA=RKZ
-    IF(ABS(RKZA).LE.1.D-6) RKZA=1.D-6
-
-    IF(NXANT1.GE.1) THEN
-       CFJX1=CI*RKZA*CFJZ1
-       DO NX=1,NXANT1-1
-          DX=XA(NX+1)-XA(NX)
-          CA(3*(NX-1)+2+1)=CI*CFJX1*DX/(RW*EPS0)
+       CF(MCEN,1)=1.D0
+       CA(4)=-CF(MCEN  ,4)*CFWG4
+       CF(MCEN  ,4)=0.D0
+    ELSEIF(MDLWG.EQ.-4) THEN
+       CF(MCEN  ,1)=CGIN(2,1)
+       CF(MCEN+3,1)=CGIN(3,1)
+       CF(MCEN-3,4)=CF(MCEN  ,4)
+       CA(4)=-CF(MCEN  ,4)*CFWG4
+       CF(MCEN  ,4)=0.D0
+    ELSE
+       DO I=1,MWID
+          CF(I,1)=0.D0
+          CF(I,4)=0.D0
        END DO
-       DX=-RD-XA(NXANT1)
-       FACT=(-RD-XA(NXANT1))/(XA(NXANT1+1)-XA(NXANT1))
-       CA(3*(NXANT1-1)+2+1)=            CI*CFJX1*DX/(RW*EPS0)
-       CA(3*(NXANT1-1)+2+2)=(1.D0-FACT)*CI*CFJY1/(RW*EPS0)
-       CA(3* NXANT1   +2+2)= FACT      *CI*CFJY1/(RW*EPS0)
-       CA(3*(NXANT1-1)+2+3)=(1.D0-FACT)*CI*CFJZ1/(RW*EPS0)
-       CA(3* NXANT1   +2+3)= FACT      *CI*CFJZ1/(RW*EPS0)
+       CF(MCEN,1)=1.D0
+       CF(MCEN,4)=1.D0
     END IF
 
-!   antenna current in LFS
-
-    IF(NXANT2.GE.0) THEN
-       CFJX2=CI*RKZA*CFJZ2
-       DO NX=NXANT2+1,NXMAX-1
-          DX=XA(NX+1)-XA(NX)
-          CA(3*(NX-1)+2+1)=CI*CFJX2*DX/(RW*EPS0)
+    IF(MDLWG.EQ.3) THEN
+       DO I=1,MWID
+          CF(I,2)=0.D0
        END DO
-       DX=XA(NXANT2+1)-RD
-       FACT=( RD-XA(NXANT2))/(XA(NXANT2+1)-XA(NXANT2))
-       CA(3*(NXANT2-1)+2+1)=            CI*CFJX2*DX/(RW*EPS0)
-       CA(3*(NXANT2-1)+2+2)=(1.D0-FACT)*CI*CFJY2/(RW*EPS0)
-       CA(3* NXANT2   +2+2)= FACT      *CI*CFJY2/(RW*EPS0)
-       CA(3*(NXANT2-1)+2+3)=(1.D0-FACT)*CI*CFJZ2/(RW*EPS0)
-       CA(3* NXANT2   +2+3)= FACT      *CI*CFJZ2/(RW*EPS0)
+       CF(MCEN,2)=1.D0
+       CA(5)=-CF(MCEN  ,5)*CFWG3
+       CF(MCEN  ,5)=0.D0
+    ELSEIF(MDLWG.EQ.-3) THEN
+       CF(MCEN  ,2)=CGIN(2,2)
+       CF(MCEN+3,2)=CGIN(3,2)
+       CF(MCEN-3,5)=CF(MCEN  ,5)
+       CA(5)=-CF(MCEN  ,5)*CFWG3
+       CF(MCEN  ,5)=0.D0
+    ELSE
+       DO I=1,MWID
+          CF(I,2)=0.D0
+          CF(I,5)=0.D0
+       END DO
+       CF(MCEN,2)=1.D0
+       CF(MCEN,5)=1.D0
     END IF
 
-!    DO I=MLEN/2-3,MLEN/2+3
-!       DO J=1,15,3
-!          WRITE(6,'(A,2I4,1P6E11.3)') &
-!               'CF:',I,J,CF(J,I),CF(J+1,I),CF(J+2,I)
-!       END DO
-!       J=16
-!          WRITE(6,'(A,2I4,1P4E11.3)') &
-!               'CF:',I,J,CF(J,I),CF(J+1,I)
-!    END DO
+    CF(MCEN,  MLEN-4)=1.D0    ! ER
 
-!    DO NQ=1,8
-!       WRITE(6,'(I5,1P6E12.3)') &
-!            NQ,CF(MCEN-3,NQ),CF(MCEN-2,NQ),CF(MCEN-1,NQ)
-!       WRITE(6,'(I5,1P6E12.3)') &
-!            NQ,CF(MCEN  ,NQ),CF(MCEN+1,NQ),CF(MCEN+2,NQ)
-!       WRITE(6,'(I5,1P6E12.3)') &
-!            NQ,CF(MCEN+3,NQ),CF(MCEN+4,NQ),CF(MCEN+5,NQ)
-!    END DO
+    IF(MDLWG.EQ.2) THEN
+       CA(MLEN-3)=-CF(MCEN,MLEN-3)*CFWG2
+       CF(MCEN,  MLEN-3)=0.D0
+       DO I=1,MWID
+          CF(I,MLEN-1)=0.D0
+!          CF(I,MLEN-2)=0.D0
+!          CF(I,MLEN  )=0.D0
+!          CF(I,1)=0.D0
+!          CF(I,2)=0.D0
+!          CF(I,4)=0.D0
+!          CF(I,5)=0.D0
+       END DO
+       CF(MCEN,MLEN-1)=1.D0
+!       CF(MCEN,MLEN-2)=1.D0
+!       CF(MCEN,MLEN  )=1.D0
+!       CF(MCEN,1)=1.D0
+!       CF(MCEN,2)=1.D0
+!       CF(MCEN,4)=1.D0
+!       CF(MCEN,5)=1.D0
+    ELSEIF(MDLWG.EQ.-2) THEN
+       CF(MCEN+2,MLEN-3)=CF(MCEN,  MLEN-3)
+       CA(MLEN-3)=-CF(MCEN,MLEN-3)*CFWG2
+       CF(MCEN,  MLEN-3)=0.D0
+       CF(MCEN-2,MLEN-1)=CGOT(1,3)
+       CF(MCEN,  MLEN-1)=CGOT(2,3)
+    ELSE
+       DO I=1,MWID
+          CF(I,MLEN-3)=0.D0
+          CF(I,MLEN-1)=0.D0
+       END DO
+       CF(MCEN,MLEN-3)=1.D0
+       CF(MCEN,MLEN-1)=1.D0
+    END IF
 
-!    DO NQ=MLEN-7,MLEN
-!       WRITE(6,'(I5,1P6E12.3)') &
-!            NQ,CF(MCEN-3,NQ),CF(MCEN-2,NQ),CF(MCEN-1,NQ)
-!       WRITE(6,'(I5,1P6E12.3)') &
-!            NQ,CF(MCEN  ,NQ),CF(MCEN+1,NQ),CF(MCEN+2,NQ)
-!       WRITE(6,'(I5,1P6E12.3)') &
-!            NQ,CF(MCEN+3,NQ),CF(MCEN+4,NQ),CF(MCEN+5,NQ)
-!    END DO
+    IF(MDLWG.EQ.1) THEN
+       CA(MLEN-2)=-CF(MCEN,  MLEN-2)*CFWG1
+       CF(MCEN,  MLEN-2)=0.D0
+       DO I=1,MWID
+          CF(I,MLEN  )=0.D0
+       END DO
+       CF(MCEN,MLEN  )=1.D0
+    ELSEIF(MDLWG.EQ.-1) THEN
+       CF(MCEN-2,MLEN  )=CGOT(1,4)
+       CF(MCEN,  MLEN  )=CGOT(2,4)
+       CF(MCEN+2,MLEN-2)=CF(MCEN,  MLEN-2)
+       CA(MLEN-2)=-CF(MCEN,  MLEN-2)*CFWG1
+       CF(MCEN,  MLEN-2)=0.D0
+    ELSE
+       DO I=1,MWID
+          CF(I,MLEN-2)=0.D0
+          CF(I,MLEN  )=0.D0
+       END DO
+       CF(MCEN,MLEN-2)=1.D0
+       CF(MCEN,MLEN  )=1.D0
+    END IF
 
-!    DO N=1,MLEN
-!       IF(ABS(CA(N)).NE.0.D0) THEN
-!          WRITE(6,'(A,I5,1P2E12.3)') 'I,CA=',N,CA(N)
-!       END IF
-!    END DO
+    CA(3*(NXANT1-1)+2+2)=CI*CFJY1/(RW*EPS0)
+    CA(3*(NXANT1-1)+2+3)=CI*CFJZ1/(RW*EPS0)
+    CA(3*(NXANT2-1)+2+2)=CI*CFJY2/(RW*EPS0)
+    CA(3*(NXANT2-1)+2+3)=CI*CFJZ2/(RW*EPS0)
 
-    WRITE(6,'(A,3I5)') 'NZ,MLEN,MWID=',NZ,MLEN,MWID
+    IF(NZMAX.EQ.1) WRITE(6,'(A,2I5)') 'MLEN,MWID=',MLEN,MWID
     CALL BANDCD(CF,CA,MLEN,MWID,MWID,IERR)
     IF(IERR.NE.0) WRITE(6,601) IERR
-
-!    DO NQ=1,8
-!       WRITE(6,'(I5,1P2E12.3)') &
-!            NQ,CA(NQ)
-!    END DO
-       
     DEALLOCATE(CF)
     RETURN
 
 601 FORMAT('!! ERROR IN BANDCD : IND = ',I5)
-  END SUBROUTINE W1BNDQ
+  END SUBROUTINE W1BND
 
 !     ******* ELECTROMAGNETIC FIELD IN PLASMA *******
 
-  SUBROUTINE W1EPWQ(NZ)
+  SUBROUTINE W1EPW(NZ)
     USE w1comm
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NZ
-    INTEGER:: NS,NX,NX1,NXD,NCL,IL,NN,MM,IA,IB
-    REAL(rkind):: RW,RKV,RCE,DX,PABSL
-    COMPLEX(rkind):: CABSL,CDEY,CDEZ,CBY,CBZ
+    REAL(rkind):: DS0(2,2,2),DS1(2,2,2),DS2(2,2,2)
+    REAL(rkind):: DT0(2,2,2),DT1(2,2,2),DU0(2,2,2)
+    INTEGER:: NS,NX,I,J,K,N1,N2,M,L
+    REAL(rkind):: RW,RKV,RCE,DS01,DS02,DX,PABSL,PFLXL
+    REAL(rkind):: DS11,DS12,DS11A,DS12A,DS21,DS22
+    REAL(rkind):: DT11,DT12,DT11A,DT12A
+    COMPLEX(rkind):: CABSL,CFLXL
+    COMPLEX(rkind):: CM11,CM12,CM21,CM22,CM33,CM13,CM23,CM31,CM32
+    COMPLEX(rkind):: CD11,CD12,CD21,CD22,CD33,CD13,CD23,CD31,CD32
 
     RW=2.D6*PI*RF
-    RKV=2.D6*PI*RF/VC
+    RKV=RW/VC
     RCE=VC*EPS0
 
     DO NS=1,NSMAX
@@ -555,7 +447,6 @@ CONTAINS
           PABS(NX,NS)=0.D0
        END DO
     END DO
-
     DO NX=1,NXMAX
        FLUX(NX)=0.D0
     END DO
@@ -566,392 +457,160 @@ CONTAINS
        CE2DA(NZ,NX,3)=CA(3*NX+2)
     END DO
 
-    DO NS=1,NSMAX
-       DO NX=1,NXMAX-1
-          DX=RKV*(XA(NX+1)-XA(NX))
-          DO NX1=MAX(1,NX+NXDMIN),MIN(NX+NXDMAX,NXMAX-1)
-             NXD=NX1-NX+NXDMAX+1 ! positive
-             NCL=NCLA(NXD,NX,NS)
-             IF(NCL.NE.0) THEN
-                DO IL=1,4
-                   CABSL=0.D0
-                   NN=3*NX-1
-                   MM=3*NX1-1
-                   IF(IL.EQ.2) NN=NN+3
-                   IF(IL.EQ.3) MM=MM+3
-                   IF(IL.EQ.4) NN=NN+3
-                   IF(IL.EQ.4) MM=MM+3
-                   DO IA=1,3
-                      DO IB=1,3
-                         CABSL=CABSL &
-                         +0.5D0*CONJG(CA(NN+IA))*CL(IA,IB,IL,NCL)*CA(MM+IB) &
-                         -0.5D0*CA(NN+IA)*CONJG(CL(IB,IA,IL,NCL)*CA(MM+IB))
-!                         -CONJG(CA(NN+IA))*CL(IA,IB,IL,NCL)*CA(MM+IB)
-                      END DO
-                   END DO
-                   PABSL=-CI*RCE*CABSL*RKV
-!                   WRITE(6,'(A,2I5,1P5E12.4)') &
-!                        'PABS:',NS,NX,RCE,CABSL,RKV,PABSL
-                   PABS(NX,   NS)=PABS(NX,   NS)+0.5D0*PABSL
-                   PABS(NX1,  NS)=PABS(NX1,  NS)+0.5D0*PABSL
-                END DO
-             END IF
+    DO I=1,2
+       DO J=1,2
+          DO K=1,2
+             IF(I.EQ.J.AND.I.EQ.K) THEN
+                DS0(I,J,K)=0.25D0
+             ELSE
+                DS0(I,J,K)=1.D0/12.D0
+             ENDIF
+             IF(J.EQ.K) THEN
+                DS1(I,J,K)=1.D0/3.D0
+             ELSE
+                DS1(I,J,K)=1.D0/6.D0
+             ENDIF
+             IF(I.EQ.1) THEN
+                DS1(I,J,K)=-DS1(I,J,K)
+             ENDIF
+             IF(I.EQ.J) THEN
+                DS2(I,J,K)= 0.5D0
+             ELSE
+                DS2(I,J,K)=-0.5D0
+             ENDIF
+             IF(I.EQ.1) THEN
+                IF(J.EQ.K) THEN
+                   DT0(I,J,K)=1.D0/3.D0
+                ELSE
+                   DT0(I,J,K)=1.D0/6.D0
+                ENDIF
+             ELSE
+                DT0(I,J,K)=0.D0
+             ENDIF
+             IF(I.EQ.1) THEN
+                IF(J.EQ.1) THEN
+                   DT1(I,J,K)=-0.5D0
+                ELSE
+                   DT1(I,J,K)= 0.5D0
+                ENDIF
+             ELSE
+                DT1(I,J,K)=0.D0
+             ENDIF
+             IF(I.EQ.1.AND.J.EQ.1) THEN
+                DU0(I,J,K)=0.5D0
+             ELSE
+                DU0(I,J,K)=0.D0
+             ENDIF
           END DO
        END DO
     END DO
 
-    DO NX=1,NXMAX
-       IF(NX.EQ.1) THEN
-          CDEY=(CE2DA(NZ,NX+1,2)-CE2DA(NZ,NX,2))/(XA(NX+1)-XA(NX))
-          CDEZ=(CE2DA(NZ,NX+1,3)-CE2DA(NZ,NX,3))/(XA(NX+1)-XA(NX))
-       ELSEIF(NX.EQ.NXMAX+1) THEN
-          CDEY=(CE2DA(NZ,NX,2)-CE2DA(NZ,NX-1,2))/(XA(NX)-XA(NX-1))
-          CDEZ=(CE2DA(NZ,NX,3)-CE2DA(NZ,NX-1,3))/(XA(NX)-XA(NX-1))
-       ELSE
-          CDEY=(CE2DA(NZ,NX+1,2)-CE2DA(NZ,NX-1,2))/(XA(NX+1)-XA(NX-1))
-          CDEZ=(CE2DA(NZ,NX+1,3)-CE2DA(NZ,NX-1,3))/(XA(NX+1)-XA(NX-1))
-       END IF
-       CBY=-CDEZ/(-CI*RW)
-       CBZ= CDEY/(-CI*RW)
-       FLUX(NX)=FLUX(NX) &
-            +CONJG(CE2DA(NZ,NX,2))*CBZ-CONJG(CE2DA(NZ,NX,3))*CBY
-    END DO
-    RETURN
-  END SUBROUTINE W1EPWQ
+    DO I=1,2
+       DO J=1,2
+          DS01=DS0(I,J,1)
+          DS02=DS0(I,J,2)
+          DS11=DS1(I,J,1)+0.5D0*DS1(1,I,J)
+          DS12=DS1(I,J,2)+0.5D0*DS1(2,I,J)
+          DS11A=DS1(J,I,1)+0.5D0*DS1(1,J,I)
+          DS12A=DS1(J,I,2)+0.5D0*DS1(2,J,I)
+          DS21=DS2(I,J,1)+0.25D0*(DS2(I,1,J)+DS2(J,1,I))
+          DS22=DS2(I,J,2)+0.25D0*(DS2(I,2,J)+DS2(J,2,I))
+          DT11=DT1(I,J,1)+0.5D0*DT1(I,1,J)
+          DT12=DT1(I,J,2)+0.5D0*DT1(I,2,J)
+          DT11A=DT1(J,I,1)+0.5D0*DT1(J,1,I)
+          DT12A=DT1(J,I,2)+0.5D0*DT1(J,2,I)
 
-!      ****** MAKE TABLE OF F,G,H ******
+          DO NS=1,NSMAX
+             DO NX=1,NXMAX-1
+                N1=NX
+                N2=NX+1
+                DX=RKV*(XA(N2)-XA(N1))
+                M=3*(NX+I-1)-1
+                L=3*(NX+J-1)-1
+                CM11       =+CM0(1,N1,NS)*DU0(I,J,1)*DX &
+                            +CM0(1,N2,NS)*DU0(I,J,2)*DX
+                CM12       =+CM0(2,N1,NS)*DT0(I,J,1)*DX &
+                            +CM0(2,N2,NS)*DT0(I,J,2)*DX
+                CM21       =-CM0(2,N1,NS)*DT0(J,I,1)*DX &
+                            -CM0(2,N2,NS)*DT0(J,I,2)*DX
+                CM22       =+CM0(3,N1,NS)*DS01*DX &
+                            +CM0(3,N2,NS)*DS02*DX &
+                            +CM2(3,N1,NS)*DS21/DX &
+                            +CM2(3,N2,NS)*DS22/DX
+                CM33       =+CM0(4,N1,NS)*DS01*DX &
+                            +CM0(4,N2,NS)*DS02*DX &
+                            +CM2(4,N1,NS)*DS21/DX &
+                            +CM2(4,N2,NS)*DS22/DX
+                CM13       =-CI*CM1(1,N1,NS)*DT11 &
+                            -CI*CM1(1,N2,NS)*DT12
+                CM23       =+CI*CM1(2,N1,NS)*DS11 &
+                            +CI*CM1(2,N2,NS)*DS12
+                CM31       =+CI*CM1(1,N1,NS)*DT11A &
+                            +CI*CM1(1,N2,NS)*DT12A
+                CM32       =+CI*CM1(2,N1,NS)*DS11A &
+                            +CI*CM1(2,N2,NS)*DS12A
 
-  SUBROUTINE W1QTBLX
-    USE w1comm
-    IMPLICIT NONE
-    INTEGER,SAVE:: NDMAX_save=0
-    INTEGER,SAVE:: NCMAX_save=0
-    REAL(rkind),SAVE:: XDMAX_save=0.D0
-    INTEGER:: NC,NN,ND
-    
-    WRITE(6,*) 'NDMAX,NCMAX=',NDMAX,NCMAX
-    IF(NDMAX.EQ.NDMAX_save.AND. &
-       NCMAX.EQ.NCMAX_save.AND. &
-       ABS(XDMAX-XDMAX_save).LE.1.D-32) RETURN
-
-    IF(ALLOCATED(SF)) DEALLOCATE(SF,SG,AF,AG)
-    ALLOCATE(SF(NDMAX+1,NCMAX+1,3),SG(NDMAX+1,NCMAX+1,3))
-    ALLOCATE(AF(NDMAX+1,NCMAX+1,2),AG(NDMAX+1,NCMAX+1,2))
-
-    DXD=XDMAX/NDMAX
-    DO NC=1,NCMAX+1
-       NN=NC-1
-       DO ND=1,NDMAX+1
-          SF(ND,NC,1)= W1FNMN((ND-1)*DXD,1,NN,1)
-          SF(ND,NC,2)= W1FNMN((ND-1)*DXD,1,NN,3)
-          SF(ND,NC,3)= W1FNMN((ND-1)*DXD,1,NN,5)
-          SG(ND,NC,1)= W1FNMN((ND-1)*DXD,2,NN,0)
-          SG(ND,NC,2)= W1FNMN((ND-1)*DXD,2,NN,2)
-          SG(ND,NC,3)= W1FNMN((ND-1)*DXD,2,NN,4)
-          AF(ND,NC,1)=-W1FNMN((ND-1)*DXD,3,NN,1)
-          AF(ND,NC,2)=-W1FNMN((ND-1)*DXD,3,NN,3)
-          AG(ND,NC,1)=-W1FNMN((ND-1)*DXD,4,NN,0)
-          AG(ND,NC,2)=-W1FNMN((ND-1)*DXD,4,NN,2)
+                CABSL &
+                  =DCONJG(CA(M+1))*(CM11*CA(L+1)+CM12*CA(L+2)+CM13*CA(L+3)) &
+                  +DCONJG(CA(M+2))*(CM21*CA(L+1)+CM22*CA(L+2)+CM23*CA(L+3)) &
+                  +DCONJG(CA(M+3))*(CM31*CA(L+1)+CM32*CA(L+2)+CM33*CA(L+3))
+                PABSL=-CI*RCE*CABSL
+                IF(I.EQ.1.AND.J.EQ.1) THEN
+                   PABS(NX  ,NS)=PABS(NX  ,NS)+PABSL
+                ELSEIF(I.EQ.2.AND.J.EQ.2) THEN
+                   PABS(NX+1,NS)=PABS(NX+1,NS)+PABSL
+                ELSE
+                   PABS(NX  ,NS)=PABS(NX  ,NS)+0.5D0*PABSL
+                   PABS(NX+1,NS)=PABS(NX+1,NS)+0.5D0*PABSL
+                ENDIF
+             END DO
+          END DO
        END DO
     END DO
-    NDMAX_save=NDMAX
-    NCMAX_save=NCMAX
-    XDMAX_save=XDMAX
-    RETURN
-  END SUBROUTINE W1QTBLX
 
-!     ******** LINEAR INTERPOLATION  ******************************
+    DO I=1,2
+       DO J=1,2
+          DS21=DS1(J,I,1)+0.25D0*DS1(1,I,J)
+          DS22=DS1(J,I,2)+0.25D0*DS1(2,I,J)
+          DS11=DS0(J,I,1)
+          DS12=DS0(J,I,2)
 
-  SUBROUTINE W1QCAL(GX,DXA,DXB,YX,CT0,CT1,CT2,CT3,CSB,NN)
-    USE w1comm,ONLY: rkind,XDMAX,NDMAX
-    IMPLICIT NONE
-    INTEGER,INTENT(IN):: NN
-    REAL(rkind),INTENT(IN):: GX(4),DXA,DXB,YX
-    COMPLEX(rkind),INTENT(IN):: CT0,CT1,CT2,CT3
-    COMPLEX(rkind),INTENT(OUT):: CSB(3,3,4)
-    REAL(rkind):: AF0(4,3),AG0(4,3), &
-                  AF1(4,2),AF2(4,2),AF3(4,1),AF4(4,1), &
-                  AG1(4,2),AG2(4,2),AG3(4,1),AG4(4,1), &
-                  AAF(4),AAG(4),ADF(4),ADG(4),AQF(4),AQG(4),AQH(4), &
-                  ABF(4),ACF(4),ABG(4),BDG(4),GV(4)
-    INTEGER:: NNA,NX,IV,IR,NPV,NPV1,NPV2,IU
-    REAL(rkind):: ESGN,VSGN,YSGN,V,PV,PVS,PVT,EI,EJ,E0,E1,E2,E3,E4
-    REAL(rkind):: FA0,FA1,FA2,FA3,FA4,GA0,GA1,GA2,GA3,GA4,HA0,HA1,HA2
-    REAL(rkind):: FF,FFS,FFT,FFST,FG,FGS,FGT,FGST
-    REAL(rkind):: DF,DFS,DFT,DFST,DG,DGS,DGT,DGST
-    REAL(rkind):: QF,QFS,QFT,QFST,QG,QGS,QGT,QGST,QH,QHS,QHT,QHST
+          DO NX=1,NXMAX-1
+             N1=NX
+             N2=NX+1
+             DX=RKV*(XA(N2)-XA(N1))
+             L=3*(NX+I-2)+2
+             M=3*(NX+J-2)+2
+             CD11=+CD2(1,N1)*DS21+CD2(1,N2)*DS22
+             CD12=+CD2(2,N1)*DS21+CD2(2,N2)*DS22
+             CD21=-CD2(2,N1)*DS21-CD2(2,N2)*DS22
+             CD22=+CD2(3,N1)*DS21+CD2(3,N2)*DS22
+             CD33=+CD2(4,N1)*DS21+CD2(4,N2)*DS22
+             CD13=0.D0
+             CD23=+CI*CD1(2,N1)*DS11*DX+CI*CD1(2,N2)*DS12*DX
+             CD31=+CI*CD1(1,N1)*DS11*DX+CI*CD1(1,N2)*DS12*DX
+             CD32=0.D0
 
-    NNA=ABS(NN)+1
-    ESGN=SIGN(1.D0,DBLE(NN))
-
-    DO IV=1,4
-       GV(IV)=YX*GX(IV)
-       VSGN=SIGN(1.D0,GV(IV))
-       YSGN=SIGN(1.D0,YX)
-       V=ABS(GV(IV))
-       IF(V.GT.XDMAX) THEN
-          DO IR=1,3
-             AF0(IV,IR)=0.D0
-             AG0(IV,IR)=0.D0
+             CFLXL=DCONJG(CA(L+1))*(CD11*CA(M+1)+CD12*CA(M+2)+CD13*CA(M+3)) &
+                  +DCONJG(CA(L+2))*(CD21*CA(M+1)+CD22*CA(M+2)+CD23*CA(M+3)) &
+                  +DCONJG(CA(L+3))*(CD31*CA(M+1)+CD32*CA(M+2)+CD33*CA(M+3))
+             PFLXL=CI*RCE*CFLXL/DX
+             FLUX(NX)     =FLUX(NX)     +PFLXL
           END DO
-          AF1(IV,1)=0.D0
-          AG1(IV,1)=0.D0
-          AF1(IV,2)=0.D0
-          AG1(IV,2)=0.D0
-       ELSEIF(ABS(GX(IV)).LT.1.D-70) THEN
-          AF0(IV,1)= SF(1,NNA,1)
-          AF0(IV,2)= SF(1,NNA,2)
-          AF0(IV,3)= SF(1,NNA,3)
-          AG0(IV,1)= SG(1,NNA,1)*ESGN
-          AG0(IV,2)= SG(1,NNA,2)*ESGN
-          AG0(IV,3)= SG(1,NNA,3)*ESGN
-          IF(IV.EQ.1.OR.IV.EQ.3) THEN
-             AF1(IV,1)= AF(1,NNA,1)*YSGN
-             AF1(IV,2)= AF(1,NNA,2)*YSGN
-             AG1(IV,1)= AG(1,NNA,1)*YSGN*ESGN
-             AG1(IV,2)= AG(1,NNA,2)*YSGN*ESGN
-          ELSE
-             AF1(IV,1)=-AF(1,NNA,1)*YSGN
-             AF1(IV,2)=-AF(1,NNA,2)*YSGN
-             AG1(IV,1)=-AG(1,NNA,1)*YSGN*ESGN
-             AG1(IV,2)=-AG(1,NNA,2)*YSGN*ESGN
-          ENDIF
-       ELSE
-          PV=V/DXD
-          NPV=INT(PV)
-          IF(NPV.GE.NDMAX) THEN
-             NPV1=NDMAX+1
-             NPV2=NDMAX+1
-          ELSE
-             NPV1=NPV+1
-             NPV2=NPV+2
-          ENDIF
-          PVS=PV-DBLE(NPV)
-          PVT=1.D0-PVS
-          AF0(IV,1)= PVT*SF(NPV1,NNA,1)+PVS*SF(NPV2,NNA,1)
-          AF0(IV,2)= PVT*SF(NPV1,NNA,2)+PVS*SF(NPV2,NNA,2)
-          AF0(IV,3)= PVT*SF(NPV1,NNA,3)+PVS*SF(NPV2,NNA,3)
-          AG0(IV,1)=(PVT*SG(NPV1,NNA,1)+PVS*SG(NPV2,NNA,1))*ESGN
-          AG0(IV,2)=(PVT*SG(NPV1,NNA,2)+PVS*SG(NPV2,NNA,2))*ESGN
-          AG0(IV,3)=(PVT*SG(NPV1,NNA,3)+PVS*SG(NPV2,NNA,3))*ESGN
-          AF1(IV,1)=(PVT*AF(NPV1,NNA,1)+PVS*AF(NPV2,NNA,1))*VSGN
-          AF1(IV,2)=(PVT*AF(NPV1,NNA,2)+PVS*AF(NPV2,NNA,2))*VSGN
-          AG1(IV,1)=(PVT*AG(NPV1,NNA,1)+PVS*AG(NPV2,NNA,1))*VSGN*ESGN
-          AG1(IV,2)=(PVT*AG(NPV1,NNA,2)+PVS*AG(NPV2,NNA,2))*VSGN*ESGN
-       ENDIF
-       AF2(IV,1)= 4.D0*AF0(IV,2)+GV(IV)*AF1(IV,1)
-       AF2(IV,2)= 4.D0*AF0(IV,3)+GV(IV)*AF1(IV,2)
-       AF3(IV,1)=(4.D0*AF1(IV,2)+GV(IV)*AF2(IV,1))/2.D0
-       AF4(IV,1)=(4.D0*AF2(IV,2)+GV(IV)*AF3(IV,1))/3.D0
-       AG2(IV,1)= 4.D0*AG0(IV,2)+GV(IV)*AG1(IV,1)
-       AG2(IV,2)= 4.D0*AG0(IV,3)+GV(IV)*AG1(IV,2)
-       AG3(IV,1)=(4.D0*AG1(IV,2)+GV(IV)*AG2(IV,1))/2.D0
-       AG4(IV,1)=(4.D0*AG2(IV,2)+GV(IV)*AG3(IV,1))/3.D0
+       END DO
     END DO
-
-    EI=YX*DXA
-    EJ=YX*DXB
-    E0=EI
-    E1=EI*EJ
-    E2=EI*EI*EJ
-    E3=EI*EJ*EJ
-    E4=EI*EI*EJ*EJ
-
-    FA0=AF0(1,1)-AF0(2,1)-AF0(3,1)+AF0(4,1)
-    FA1=AF1(1,1)-AF1(2,1)-AF1(3,1)+AF1(4,1)
-    FA2=AF2(1,1)-AF2(2,1)-AF2(3,1)+AF2(4,1)
-    FA3=AF3(1,1)-AF3(2,1)-AF3(3,1)+AF3(4,1)
-    FA4=AF4(1,1)-AF4(2,1)-AF4(3,1)+AF4(4,1)
-    GA0=AG0(1,1)-AG0(2,1)-AG0(3,1)+AG0(4,1)
-    GA1=AG1(1,1)-AG1(2,1)-AG1(3,1)+AG1(4,1)
-    GA2=AG2(1,1)-AG2(2,1)-AG2(3,1)+AG2(4,1)
-    GA3=AG3(1,1)-AG3(2,1)-AG3(3,1)+AG3(4,1)
-    GA4=AG4(1,1)-AG4(2,1)-AG4(3,1)+AG4(4,1)
-    HA0=AF0(1,2)-AF0(2,2)-AF0(3,2)+AF0(4,2)
-    HA1=AF1(1,2)-AF1(2,2)-AF1(3,2)+AF1(4,2)
-    HA2=AF2(1,2)-AF2(2,2)-AF2(3,2)+AF2(4,2)
-
-    FF  =-FA2/E1
-    FFS = FA3/E3-(AF2(4,1)-AF2(2,1))/E1
-    FFT =-FA3/E2-(AF2(4,1)-AF2(3,1))/E1
-    FFST= FA4/E4-(AF3(4,1)-AF3(2,1))/E3 &
-                +(AF3(4,1)-AF3(3,1))/E2-AF2(4,1)/E1
-    FG  =-GA2/E1
-    FGS = GA3/E3-(AG2(4,1)-AG2(2,1))/E1
-    FGT =-GA3/E2-(AG2(4,1)-AG2(3,1))/E1
-    FGST= GA4/E4-(AG3(4,1)-AG3(2,1))/E3 &
-                +(AG3(4,1)-AG3(3,1))/E2-AG2(4,1)/E1
-    DF  =-FA1/E1
-    DFS = FA2/E3-(AF1(4,1)-AF1(2,1))/E1
-    DFT =-FA2/E2-(AF1(4,1)-AF1(3,1))/E1
-    DFST= FA3/E4-(AF2(4,1)-AF2(2,1))/E3 &
-                +(AF2(4,1)-AF2(3,1))/E2-AF1(4,1)/E1
-    DG  =-GA1/E1
-    DGS = GA2/E3-(AG1(4,1)-AG1(2,1))/E1
-    DGT =-GA2/E2-(AG1(4,1)-AG1(3,1))/E1
-    DGST= GA3/E4-(AG2(4,1)-AG2(2,1))/E3 &
-                +(AG2(4,1)-AG2(3,1))/E2-AG1(4,1)/E1
-    QF  =-FA0/E1
-    QFS = FA1/E3-(AF0(4,1)-AF0(2,1))/E1
-    QFT =-FA1/E2-(AF0(4,1)-AF0(3,1))/E1
-    QFST= FA2/E4-(AF1(4,1)-AF1(2,1))/E3 &
-                +(AF1(4,1)-AF1(3,1))/E2-AF0(4,1)/E1
-    QG  =-GA0/E1
-    QGS = GA1/E3-(AG0(4,1)-AG0(2,1))/E1
-    QGT =-GA1/E2-(AG0(4,1)-AG0(3,1))/E1
-    QGST= GA2/E4-(AG1(4,1)-AG1(2,1))/E3 &
-                +(AG1(4,1)-AG1(3,1))/E2-AG0(4,1)/E1
-    QH  =-HA0/E1
-    QHS = HA1/E3-(AF0(4,2)-AF0(2,2))/E1
-    QHT =-HA1/E2-(AF0(4,2)-AF0(3,2))/E1
-    QHST= HA2/E4-(AF1(4,2)-AF1(2,2))/E3 &
-                +(AF1(4,2)-AF1(3,2))/E2-AF0(4,2)/E1
-
-    IF(ABS(GX(1)).LT.1.D-70) THEN
-       FF  =FF  -(AF1(1,1)-AF1(4,1))/E0
-       FFS =FFS -(AF1(1,1)-AF1(4,1))/(2.D0*E0)
-       FFT =FFT -(AF1(1,1)-AF1(4,1))/(2.D0*E0) &
-                -(AF2(1,1)-AF2(4,1))/E1
-       FFST=FFST-(AF1(1,1)-AF1(4,1))/(3.D0*E0) &
-                -(AF2(1,1)-AF2(4,1))/(2.D0*E1)
-       FG  =FG  -(AG1(1,1)-AG1(4,1))/E0
-       FGS =FGS -(AG1(1,1)-AG1(4,1))/(2.D0*E0)
-       FGT =FGT -(AG1(1,1)-AG1(4,1))/(2.D0*E0) &
-                -(AG2(1,1)-AG2(4,1))/E1
-       FGST=FGST-(AG1(1,1)-AG1(4,1))/(3.D0*E0) &
-                -(AG2(1,1)-AG2(4,1))/(2.D0*E1)
-       DFT =DFT -(AF1(1,1)-AF1(4,1))/E1
-       DFST=DFST-(AF1(1,1)-AF1(4,1))/(2.D0*E1)
-       DGT =DGT -(AG1(1,1)-AG1(4,1))/E1
-       DGST=DGST-(AG1(1,1)-AG1(4,1))/(2.D0*E1)
-    ENDIF
-
-    AAF(1)=FF-FFS-FFT+FFST
-    AAF(2)=FFS-FFST
-    AAF(3)=FFT-FFST
-    AAF(4)=FFST
-    ABF(1)=FF-FFS
-    ABF(2)=FFS
-    ABF(3)=0.D0
-    ABF(4)=0.D0
-    ACF(1)=FF-FFT
-    ACF(2)=0.D0
-    ACF(3)=FFT
-    ACF(4)=0.D0
-    AAG(1)=FG-FGS-FGT+FGST
-    AAG(2)=FGS-FGST
-    AAG(3)=FGT-FGST
-    AAG(4)=FGST
-    ABG(1)=FG
-    ABG(2)=0.D0
-    ABG(3)=0.D0
-    ABG(4)=0.D0
-    ADF(1)=DF-DFS-DFT+DFST
-    ADF(2)=DFS-DFST
-    ADF(3)=DFT-DFST
-    ADF(4)=DFST
-    ADG(1)=DG-DGS
-    ADG(2)=DGS
-    ADG(3)=0.D0
-    ADG(4)=0.D0
-    BDG(1)=DG-DGT
-    BDG(2)=0.D0
-    BDG(3)=DGT
-    BDG(4)=0.D0
-    AQF(1)=QF-QFS-QFT+QFST
-    AQF(2)=QFS-QFST
-    AQF(3)=QFT-QFST
-    AQF(4)=QFST
-    AQG(1)=QG-QGS-QGT+QGST
-    AQG(2)=QGS-QGST
-    AQG(3)=QGT-QGST
-    AQG(4)=QGST
-    AQH(1)=QH-QHS-QHT+QHST
-    AQH(2)=QHS-QHST
-    AQH(3)=QHT-QHST
-    AQH(4)=QHST
-
-    DO IU=1,4
-       CSB(1,1,IU)=NN*ABG(IU)*CT1
-       CSB(1,2,IU)=(0.D0,-1.D0)*NN*ACF(IU)*CT1
-       CSB(1,3,IU)= BDG(IU)*CT2
-       CSB(2,1,IU)=(0.D0,1.D0)*NN*ABF(IU)*CT1
-       CSB(2,2,IU)=(NN*AAG(IU)-2.D0*AQF(IU))*CT1
-       CSB(2,3,IU)=-(0.D0,1.D0)*ADF(IU)*CT2
-       CSB(3,1,IU)= ADG(IU)*CT2
-       CSB(3,2,IU)= (0.D0,1.D0)*ADF(IU)*CT2
-       CSB(3,3,IU)=-CT0*(AAF(IU)+NN*AAG(IU)-2.D0*AQF(IU)+2.D0*AQH(IU)) &
-                   -CT3*AQG(IU)
-    END DO
+    FLUX(NXMAX)=FLUX(NXMAX-1)
     RETURN
-  END SUBROUTINE W1QCAL
-
-!     ******** LINEAR INTERPOLATION 2 ******************************
-
-  SUBROUTINE W1QLNI(V,VX,VK,CT0,CT1,CT2,CT3,NS)
-    USE w1comm
-    IMPLICIT NONE
-    REAL(rkind),INTENT(IN):: V
-    REAL(rkind),INTENT(OUT):: VX,VK
-    COMPLEX(rkind),INTENT(OUT):: CT0,CT1,CT2,CT3
-    INTEGER:: NS,NHF,I,NPV
-    REAL(rkind):: PVS
-
-    IF(V.LE.XM(1)) THEN
-       VX=YX(1,NS)
-       VK=YK(1)
-       CT0=CS0(1)
-       CT1=CS1(1)
-       CT2=CS2(1)
-       CT3=CS3(1)
-    ELSEIF(V.GE.XM(NXMAX)) THEN
-       VX=YX(NXMAX,NS)
-       VK=YK(NXMAX)
-       CT0=CS0(NXMAX)
-       CT1=CS1(NXMAX)
-       CT2=CS2(NXMAX)
-       CT3=CS3(NXMAX)
-    ELSE
-       NHF=INT(NXMAX*(V-XM(1))/(XM(NXMAX)-XM(1)))
-       IF(NHF.LT.1)     NHF=1
-       IF(NHF.GT.NXMAX) NHF=NXMAX
-       IF(V.LT.XM(NHF)) THEN
-          DO I=NHF-1,1,-1
-             IF(XM(I).LT.V) THEN
-                NPV=I
-                GOTO 100
-             ENDIF
-          END DO
-       ELSE
-          DO I=NHF+1,NXMAX
-             IF(XM(I).GT.V) THEN
-                NPV=I-1
-                GOTO 100
-             ENDIF
-          END DO
-       ENDIF
-100    CONTINUE
-       PVS=(V-XM(NPV))/(XM(NPV+1)-XM(NPV))
-       VX  =(1.D0-PVS)*YX(NPV,NS) +PVS*YX(NPV+1,NS)
-       VK  =(1.D0-PVS)*YK(NPV) +PVS*YK(NPV+1)
-       CT0 =(1.D0-PVS)*CS0(NPV)+PVS*CS0(NPV+1)
-       CT1 =(1.D0-PVS)*CS1(NPV)+PVS*CS1(NPV+1)
-       CT2 =(1.D0-PVS)*CS2(NPV)+PVS*CS2(NPV+1)
-       CT3 =(1.D0-PVS)*CS3(NPV)+PVS*CS3(NPV+1)
-    ENDIF
-    RETURN
-  END SUBROUTINE W1QLNI
+  END SUBROUTINE W1EPW
 
 !     ****** POWER ABSORPTION AS A FUNCTION OF KZ ******
 
-  SUBROUTINE W1CLPW(NZ)
+  SUBROUTINE W1CLP(NZ)
     USE w1comm
     IMPLICIT NONE
     INTEGER,INTENT(IN):: NZ
     INTEGER:: NX,NS,I
-    REAL(rkind):: FACT,DX,RKZA
-    COMPLEX(rkind):: CPANTKX1,CPANTKY1,CPANTKZ1,CPANTKX2,CPANTKY2,CPANTKZ2
-    COMPLEX(rkind):: CFJX1,CFJX2
+    REAL(rkind):: FACT
 
     IF(NSYM.NE.0.AND.NZ.NE.1.AND.NZ.NE.(NZMAX/2+1)) THEN
        FACT = 2.0*RZ
@@ -978,55 +637,10 @@ CONTAINS
        END DO
     END DO
 
-    CPANTKX1=0.D0
-    CPANTKY1=0.D0
-    CPANTKZ1=0.D0
-    CPANTKX2=0.D0
-    CPANTKY2=0.D0
-    CPANTKZ2=0.D0
-
-    RKZA=RKZ
-    IF(ABS(RKZA).LE.1.D-6) RKZA=1.D-6
-
-!   antenna power in HFS
-
-    IF(NXANT1.GE.1) THEN
-       CFJX1=CI*RKZA*CFJZ1
-       DO NX=1,NXANT1-1
-          DX=XA(NX+1)-XA(NX)
-          CPANTKX1=CPANTKX1+RZ*DCONJG(CE2DA(NZ,NX,1))*CFJX1*DX
-       END DO
-       DX=-RD-XA(NXANT1)
-       CPANTKX1=CPANTKX1+RZ*DCONJG(CE2DA(NZ,NXANT1,1))*CFJX1*DX
-       FACT=(-RD-XA(NXANT1))/(XA(NXANT1+1)-XA(NXANT1))
-       CPANTKY1=RZ*(1.D0-FACT)*DCONJG(CE2DA(NZ,NXANT1  ,2))*CFJY1 &
-               +RZ*      FACT *DCONJG(CE2DA(NZ,NXANT1+1,2))*CFJY1
-       CPANTKZ1=RZ*(1.D0-FACT)*DCONJG(CE2DA(NZ,NXANT1  ,3))*CFJZ1 &
-               +RZ*      FACT *DCONJG(CE2DA(NZ,NXANT1+1,3))*CFJZ1
-    END IF
-
-!   antenna power in LFS
-
-    IF(NXANT1.GE.2) THEN
-       CFJX2=CI*RKZA*CFJZ2
-       DO NX=NXANT2+1,NXMAX-1
-          DX=XA(NX+1)-XA(NX)
-          CPANTKX2=CPANTKX2+RZ*DCONJG(CE2DA(NZ,NX,1))*CFJX2*DX
-       END DO
-       DX=XA(NXANT2+1)-RD
-       CPANTKX2=CPANTKX2+RZ*DCONJG(CE2DA(NZ,NXANT2,1))*CFJX2*DX
-       FACT=( RD-XA(NXANT2))/(XA(NXANT2+1)-XA(NXANT2))
-       CPANTKY2=RZ*(1.D0-FACT)*DCONJG(CE2DA(NZ,NXANT2  ,2))*CFJY2 &
-               +RZ*      FACT *DCONJG(CE2DA(NZ,NXANT2+1,2))*CFJY2
-       CPANTKZ2=RZ*(1.D0-FACT)*DCONJG(CE2DA(NZ,NXANT2  ,3))*CFJZ2 &
-               +RZ*      FACT *DCONJG(CE2DA(NZ,NXANT2+1,3))*CFJZ2
-    END IF
-    
-    WRITE(6,'(A,I5,1PE12.4)') 'NZ,RKZ,CPANTKX/Y/Z=',NZ,RKZ
-    WRITE(6,'(A,1P6E12.4)') '  1:',CPANTKX1,CPANTKY1,CPANTKZ1
-    WRITE(6,'(A,1P6E12.4)') '  2:',CPANTKX2,CPANTKY2,CPANTKZ2
-    CPANTK1(NZ)=CPANTKX1+CPANTKY1+CPANTKZ1
-    CPANTK2(NZ)=CPANTKX2+CPANTKY2+CPANTKZ2
+    CPANTK(NZ)=-RZ*DCONJG(CE2DA(NZ,NXANT1,2))*CFJY1 &
+               -RZ*DCONJG(CE2DA(NZ,NXANT2,2))*CFJY2 &
+               -RZ*DCONJG(CE2DA(NZ,NXANT1,3))*CFJZ1 &
+               -RZ*DCONJG(CE2DA(NZ,NXANT2,3))*CFJZ2
 
     PAKT(NZ,3)=0.D0
     DO NS=1,NSMAX
@@ -1041,7 +655,7 @@ CONTAINS
     PAKT(NZ,1)=PAKT(NZ,2)+PAKT(NZ,3)
 
     RETURN
-  END SUBROUTINE W1CLPW
+  END SUBROUTINE W1CLP
 
 !     ****** CALCULATE DRIVEN CURRENT ******
 

@@ -66,7 +66,7 @@ clean:
 veryclean: clean
 	-rm -f dp
 
-DPCOMM=dpcomm.f90 ../plx/plcomm.f90
+DPCOMM=dpcomm.f90
 
 dpcomm.o: dpcomm.f90 ../plx/plcomm.f90
 dpinit.o: dpinit.f90 $(DPCOMM)

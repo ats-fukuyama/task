@@ -684,9 +684,6 @@ CONTAINS
     RKV=2.D6*PI*RF/VC
 
     NS  = 10
-    MWID=3*6 - 1
-    MLEN=6*NXPMAX+5
-    ALLOCATE(CF(MWID,MLEN))
     NWH = 6 + 6/2
 
     NCF=0
